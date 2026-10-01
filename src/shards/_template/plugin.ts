@@ -49,11 +49,16 @@ export class TemplatePlugin extends ShardPlugin {
       const iron = new Sword(rt.world, targets, { row: IRON_SWORD, profile: SWORD_IRON, allowUnlocked: nolock, ...viewmodel });
       this.whip = new TemplateWhip(ctx.app, targets, (target) => rt.play?.animals.animals.find((a) => a.position === target.position)?.combatActor() ?? null);
       this.whip.onSwing = (heavy) => { if (heavy) rt.play?.cues.charge(WHIP_ROW, 'heavy'); else rt.play?.cues.fire(WHIP_ROW); };
-      rt.world.game.camera.add(this.whip.model, this.lantern.model);
       return Promise.resolve({ primary: this.whip, secondary: iron, rifle: null, install: (equipment) => { equipment.unlock('sword-iron'); equipment.add(this.lantern, { locked: false }); } });
     };
   }
   override play(ctx: ShardContext): void {
+    const equipmentHost = ctx.app.equipmentHost, whip = this.whip;
+    if (equipmentHost !== null && whip !== null) {
+      const lantern = this.lantern;
+      equipmentHost.viewmodel.add(whip.model, lantern.model);
+      ctx.scope.onDispose(() => { whip.model.removeFromParent(); lantern.model.removeFromParent(); });
+    }
     const rt = ctx.game.runtime, position = rt?.world?.player.position ?? this.player;
     installClimate(ctx);
     if (rt?.play) { installSilentScore(rt.play.music, ctx.scope); installForestAmbience(rt.play.audio, ctx.scope); installTemplateCues(rt.play.audio, rt.play.cues, ctx.scope); }

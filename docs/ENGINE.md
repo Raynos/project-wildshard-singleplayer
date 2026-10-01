@@ -824,7 +824,23 @@ abstract class Tool extends Equipment { slot: 'tool' | 'offhand'; actions: reado
 | `EquipmentSlotMap`, `EquipmentIconMap`, `EquipmentTouchMap` | merge your slot, icon or touch mode into them |
 | `EquipContext`, `BlockSet`, `WeaponState`, `AimInfo`, `WeaponHooks`, `EquipmentAction`, `quiverState` | equipment plumbing |
 | `EquipmentService` | `app.equipment`: the loadout, `add`, `unlock`, swapping |
-| `EquipmentHost` | `app.equipmentHost`: the camera / scene the viewmodels draw in |
+| `EquipmentHost` | `app.equipmentHost`: the scene/player ports and `viewmodel` root for camera-space equipment |
+
+Mount a finished custom model in `app.equipmentHost.viewmodel` during `play`, and remove it with your scope.
+The engine keeps the camera in the scene and owns one depth clear at transparent render order 999. Added meshes
+draw at order 1000 or their higher declared order, without frustum culling or shadow casting; their materials use
+the transparent queue and retain their depth-write setting. Opaque materials are cloned so a shared world prop
+keeps its own rendering; already-transparent materials keep their identity. Parts added after mounting are prepared
+on the next matrix update. Hide the model to holster it. The engine skips its
+depth clear when every model is hidden. Kit weapon families share this root through `game.viewmodel`.
+
+```ts
+const host = ctx.app.equipmentHost;
+if (host !== null) {
+  host.viewmodel.add(weapon.model);
+  ctx.scope.onDispose(() => { weapon.model.removeFromParent(); });
+}
+```
 
 **The blocks** are public and the same for kit families and custom weapons:
 

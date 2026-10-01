@@ -217,9 +217,7 @@ export class Rifle extends Firearm {
     this.lastYaw = this.player.yaw; this.lastPitch = this.player.pitch;
     this.buildViewmodel();
     this.buildEffects();
-    const cam = this.game.camera;
-    cam.add(this.model);
-    if (!cam.parent) this.game.scene.add(cam);
+    this.game.viewmodel.add(this.model);
     this.game.scene.add(this.puffs.points);
 
   }
@@ -322,15 +320,10 @@ export class Rifle extends Firearm {
     this.flash.visible = false;
     this.model.add(this.flash);
 
-    // depth clear + render after the world, exactly like the crossbow (see Crossbow.ts buildViewmodel)
-    const clearer = new THREE.Mesh(new THREE.BoxGeometry(0.001, 0.001, 0.001), new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false, transparent: true, fog: false })); // fogless: draws nothing, shares the fogless MeshBasic program (as the crossbow's);
-    clearer.renderOrder = 999; clearer.frustumCulled = false;
-    clearer.onBeforeRender = (renderer) => { renderer.clearDepth(); };
-    this.model.add(clearer);
+    // The engine clears depth once for all viewmodels before this transparent queue.
     this.model.traverse((m) => {
       if (!isMesh(m)) return;
-      m.frustumCulled = false; m.castShadow = false; m.receiveShadow = m !== clearer;
-      if (m === clearer) return;
+      m.frustumCulled = false; m.castShadow = false; m.receiveShadow = true;
       m.renderOrder = this.flashQuads.includes(m) ? 1001 : 1000;
       if ((Array.isArray(m.material) ? m.material : [m.material]).some((mat) => mat.vertexColors)) whiteColors(m.geometry);
       for (const mat of Array.isArray(m.material) ? m.material : [m.material]) { mat.transparent = true; if (mat !== flashMat) mat.depthWrite = true; }
@@ -512,4 +505,3 @@ export class Rifle extends Firearm {
     }
   }
 }
-

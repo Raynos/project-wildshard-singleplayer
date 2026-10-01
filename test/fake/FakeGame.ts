@@ -3,6 +3,7 @@ import type { Game, FixedPhase } from '#engine/core/Game';
 import { FIXED_STEP } from '#engine/core/fixedStep';
 import { makeSystem, setLoopState, systemFault, type GameSystem } from '#engine/core/faults';
 import { worldTime } from '#engine/core/time';
+import { ViewmodelRoot } from '#engine/render/viewmodel';
 
 type Tick = (dt: number) => void;
 type Update = (dt: number, t: number) => void;
@@ -11,6 +12,7 @@ type Update = (dt: number, t: number) => void;
 export class FakeGame {
   readonly scene = new THREE.Scene();
   readonly camera = new THREE.PerspectiveCamera(72, 16 / 9, 0.08, 2600);
+  readonly viewmodel = new ViewmodelRoot();
   readonly clock = { elapsedTime: 0 };
   readonly renderer = {
     info: { render: { calls: 0, triangles: 0, points: 0, lines: 0, frame: 0 } },
@@ -29,8 +31,9 @@ export class FakeGame {
 
   /** Legacy constructors demand all of Game, but only use the surface implemented here. */
   asGame(): Game {
+    this.camera.add(this.viewmodel); this.scene.add(this.camera);
     return legacyDouble<Game>({
-      scene: this.scene, camera: this.camera,
+      scene: this.scene, camera: this.camera, viewmodel: this.viewmodel,
       renderer: legacyDouble<THREE.WebGLRenderer>({
         getDrawingBufferSize: this.renderer.getDrawingBufferSize,
         info: legacyDouble<THREE.WebGLInfo>(this.renderer.info),

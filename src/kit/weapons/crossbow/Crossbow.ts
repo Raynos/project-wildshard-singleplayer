@@ -543,9 +543,7 @@ export class Crossbow extends Weapon {
     this.lastYaw = this.player.yaw; this.lastPitch = this.player.pitch;
     this.buildViewmodel();
     this.buildProjectiles();
-    const cam = this.game.camera;
-    cam.add(this.model);
-    if (!cam.parent) this.game.scene.add(cam);
+    this.game.viewmodel.add(this.model);
     this.game.scene.add(this.puffs.points);
 
     this.buildHands();
@@ -609,19 +607,10 @@ export class Crossbow extends Weapon {
     this.tipL.copy(p.tipL); this.tipR.copy(p.tipR); this.nockRest.copy(p.nockRest); this.nockDrawn.copy(p.nockDrawn);
     this.tipLocal.copy(p.tipLocal); this.tipModel.copy(p.tipModel); this.nockZ = p.nockZ;
 
-    // depth-clear so the viewmodel never clips into world geometry; render after everything opaque
-    // The clearer and the viewmodel live in the *transparent* queue (renderOrder 999/1000) so the
-    // depth clear happens after every world transparent (boundary lines, mist, halos) has drawn —
-    // otherwise those would paint over the whole scene with the cleared depth buffer.
-    // fog: false — it draws nothing, and without fog it shares the peep glow's (and the world's fogless MeshBasic) program
-    const clearer = new THREE.Mesh(new THREE.BoxGeometry(0.001, 0.001, 0.001), new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false, transparent: true, fog: false }));
-    clearer.renderOrder = 999; clearer.frustumCulled = false;
-    clearer.onBeforeRender = (renderer) => { renderer.clearDepth(); };
-    this.model.add(clearer);
+    // The engine owns the shared depth clear at 999; models remain at 1000 in the transparent queue.
     this.model.traverse((m) => {
       if (!isMesh(m)) return;
-      m.frustumCulled = false; m.castShadow = false; m.receiveShadow = m !== clearer;
-      if (m === clearer) return;
+      m.frustumCulled = false; m.castShadow = false; m.receiveShadow = true;
       m.renderOrder = 1000;
       if ((Array.isArray(m.material) ? m.material : [m.material]).some((mat) => mat.vertexColors)) whiteColors(m.geometry);
       for (const mat of Array.isArray(m.material) ? m.material : [m.material]) { mat.transparent = true; mat.depthWrite = true; }
@@ -1003,4 +992,3 @@ function movingOwner(owner: unknown): THREE.Object3D | null {
   const f = (owner as { follows?: unknown }).follows;
   return f instanceof THREE.Object3D ? f : null;
 }
-

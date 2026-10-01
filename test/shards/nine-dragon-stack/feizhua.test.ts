@@ -35,7 +35,7 @@ function setup(hooks = [new Vector3(0, 1.6, -10)], enemy = false) {
   fake.camera.position.set(0, 1.72, 0); fake.camera.updateMatrixWorld(true);
   const game = fake.asGame(); Object.assign(game, { app });
   const unlock = vi.fn<() => void>(), playLeft = vi.fn<NonNullable<SwordArms['playLeft']>>(), setClawVisible = vi.fn<NonNullable<SwordArms['setClawVisible']>>();
-  const host: EquipmentHost = { game, physics, player: legacyDouble<Player>({ position, velocity, motor, onGround: true }),
+  const host: EquipmentHost = { game, physics, viewmodel: fake.viewmodel, player: legacyDouble<Player>({ position, velocity, motor, onGround: true }),
     arms: legacyDouble<SwordArms>({ playLeft, setClawVisible }), lock: legacyDouble<LockOnSystem>({ unlock, hasTarget: () => enemy }), toast: vi.fn<(message: string) => void>(), enabled: () => true };
   app.registerEquipmentHost(host, scope);
   let labels: Partial<Record<DiscSpot, TouchRelabel>> = {};

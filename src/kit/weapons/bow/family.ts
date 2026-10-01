@@ -112,22 +112,14 @@ export class Bow extends Weapon {
     this.nocked = view.nocked; this.rHand = view.rHand; this.lSleeve = view.lSleeve; this.rSleeve = view.rSleeve;
     this.bowPivot.add(new THREE.Mesh(this.bowMesh.geometry, this.mat));
     this.model.add(this.bowPivot, this.nocked, this.rHand, this.lSleeve, this.rSleeve);
-    const clearer = new THREE.Mesh(new THREE.BoxGeometry(0.001, 0.001, 0.001), new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false, transparent: true, fog: false }));
-    clearer.renderOrder = 999; clearer.frustumCulled = false;
-    clearer.onBeforeRender = (renderer) => { renderer.clearDepth(); };
-    this.model.add(clearer);
     this.model.traverse((m) => {
       if (!isMesh(m)) return;
-      m.frustumCulled = false; m.castShadow = false; m.receiveShadow = m !== clearer;
-      if (m !== clearer) {
-        m.renderOrder = 1000;
-        if (this.profile.transparentParts) for (const mat of Array.isArray(m.material) ? m.material : [m.material]) { mat.transparent = true; mat.depthWrite = true; }
-      }
+      m.frustumCulled = false; m.castShadow = false; m.receiveShadow = true;
+      m.renderOrder = 1000;
+      if (this.profile.transparentParts) for (const mat of Array.isArray(m.material) ? m.material : [m.material]) { mat.transparent = true; mat.depthWrite = true; }
     });
     this.model.scale.setScalar(this.profile.vmScale);
-    const cam = this.game.camera;
-    cam.add(this.model);
-    if (!cam.parent) this.game.scene.add(cam);
+    this.game.viewmodel.add(this.model);
 
     this.arrows = new Projectiles(world, targets, this.profile.arrow(this.sky));
     this.arrows.onTargetHit = (hit) => this.onArrowHit(hit);

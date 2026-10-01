@@ -63,7 +63,7 @@ async function buildLoadout(ctx: Awaited<ReturnType<typeof worldStage>>) {
   app.addSystem({ id: 'engine.lockon.input', phase: 'input', after: ['engine.input.collect'], before: ['engine.player.input'], run: () => {
     if (app.input.consume('lock')) lockSys.resolveToggle();
   } }, game.levelScope);
-  app.registerEquipmentHost({ game, player, physics: world.physics, arms: shardSword?.arms ?? null, lock: lockSys,
+  app.registerEquipmentHost({ game, player, viewmodel: game.viewmodel, physics: world.physics, arms: shardSword?.arms ?? null, lock: lockSys,
     toast: (message) => hud.toast(message), enabled: () => hud.entered && !world.freeCamera && !world.tour.active }, game.levelScope);
   const hudRoot = document.getElementById('hud');
   if (hudRoot === null) throw new Error('HUD root is missing');

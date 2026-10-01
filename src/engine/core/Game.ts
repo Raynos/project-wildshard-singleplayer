@@ -2,6 +2,7 @@ import { app } from '../app/runtime';
 import { Scope } from '../app/scope';
 import { SceneOwnership } from '../app/sceneOwnership';
 import { UploadOwnership } from '../render/uploadOwnership';
+import { ViewmodelRoot } from '../render/viewmodel';
 import type { Phase } from '../app/systems';
 import { currentOwner, enterOwner } from '../app/ownership';
 import * as THREE from 'three';
@@ -96,6 +97,7 @@ export class Game {
   renderer: Renderer;
   scene = new THREE.Scene();
   camera: THREE.PerspectiveCamera;
+  readonly viewmodel: ViewmodelRoot;
   private _composer: EffectComposer | null = null;
   private _sky: Sky | null = null;
   // oxlint-disable-next-line typescript/no-deprecated -- Clock→Timer changes getDelta semantics; migrate separately
@@ -320,6 +322,8 @@ export class Game {
       try { renderShadows(lights, scene, camera); } finally { camera.layers.mask = mask; }
     };
     this.camera = new THREE.PerspectiveCamera(72, window.innerWidth / viewportHeight(), 0.08, 2600);
+    this.viewmodel = new ViewmodelRoot();
+    this.camera.add(this.viewmodel); this.scene.add(this.camera);
     this.engineScope.listen(window, 'resize', () => this.resize());
   }
 

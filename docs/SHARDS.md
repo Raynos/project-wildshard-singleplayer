@@ -140,6 +140,10 @@ Every verb is bound to your scope: what you register goes away when the level un
 **Rows only in `kit`.** A row verb called in `world` or `play` throws. The loadout is built from the rows when `kit`
 returns, so `play` can't add a weapon.
 
+Mount a custom weapon's finished camera-space model in `play` with `ctx.app.equipmentHost?.viewmodel.add(model)`;
+remove it with `ctx.scope.onDispose`. The engine owns the camera and shared depth-clear pass ([ENGINE §18](ENGINE.md#18-combat-equipment-weapon-tool-gas-lite)).
+The template mounts its whip and lantern this way. No camera insertion or local depth-clear mesh is needed.
+
 **`ctx.game.runtime`** is the shell's handoff while the API grows: the built world (`runtime.world`), the player kit
 and UI (`runtime.play`), `buildEquipment`, `hooks`, `interactables`. It is `undefined` in the headless contract test,
 so read it with `?.`.
