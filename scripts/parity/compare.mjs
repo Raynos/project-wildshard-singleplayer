@@ -127,6 +127,10 @@ export function compare(rawBaseline, rawCurrent, options = {}) {
   }
   const pause = get(current, 'pauseResume');
   if (pause !== undefined) d.push(['pauseResume', array(object(pause).diff).length === 0 && (get(current, 'boot.appStates') === undefined || (array(object(pause).appStates)[0] === 'paused' && array(object(pause).appStates)[1] === object(pause).returnState)), 'no state drift; resumed prior state']);
+  for (const prefix of ['leak', 'leak.weather']) {
+    const errors = get(current, `${prefix}.disposalErrors`);
+    if (errors !== undefined) emit(`${prefix}.disposalErrors`, [], errors, 'D', equal(errors, []), 'no disposal failures');
+  }
   for (const [path, after] of Object.entries(flatten(get(current, 'leak.after')))) d.push([`leak.${path}`, equal(after, get(current, `leak.before.${path}`)), 'B1 = B0']);
   for (const [path, after] of Object.entries(flatten(get(current, 'leak.weather.after')))) d.push([`leak.weather.${path}`, equal(after, get(current, `leak.weather.before.${path}`)), 'weather B1 = B0']);
   for (const [path, pass, band] of d) {

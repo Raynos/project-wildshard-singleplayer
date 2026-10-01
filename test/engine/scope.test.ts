@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { BoxGeometry, MeshBasicMaterial, Texture, WebGLRenderTarget } from 'three';
 import { Scope, AssetService } from '#engine/index';
+import { disposalErrorMessages } from '../../src/engine/app/scope';
 
 const originalRaf = globalThis.requestAnimationFrame;
 const originalCancelRaf = globalThis.cancelAnimationFrame;
@@ -77,6 +78,22 @@ describe('scope ownership', () => {
     scope.onDispose(callback);
     expect(callback).toHaveBeenCalledTimes(4);
     expect(Object.values(scope.census).every((count) => count === 0)).toBe(true);
+  });
+
+  it('preserves every nested failure in its message and JSON diagnostics while finishing cleanup', () => {
+    const parent = new Scope('parent'), child = parent.child('child'), released = vi.fn<() => void>();
+    child.onDispose(() => { throw new Error('child body is already removed'); });
+    parent.onDispose(() => { throw new Error('parent sound is stopped'); });
+    parent.onDispose(released);
+    let failure: unknown;
+    try { parent.dispose(); } catch (error) { failure = error; }
+    expect(failure).toBeInstanceOf(AggregateError);
+    expect(failure instanceof Error ? failure.message : '').toBe('Scope parent disposal failed: parent sound is stopped; child body is already removed');
+    expect(disposalErrorMessages(failure)).toEqual(['parent sound is stopped', 'child body is already removed']);
+    expect(disposalErrorMessages('non-Error failure')).toEqual(['non-Error failure']);
+    expect(released).toHaveBeenCalledOnce();
+    expect(parent.census.disposers).toBe(0);
+    expect(() => { parent.dispose(); child.dispose(); }).not.toThrow();
   });
 
   it('removes listeners and updates the census for once and aborted listeners', () => {

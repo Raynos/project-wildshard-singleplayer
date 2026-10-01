@@ -16,7 +16,7 @@ import { tap } from '../core/harnessTap';
 import { currentScope, levelRegistrations, retainedRegistrations, registrationTimerIds, asShell } from '../app/legacyCapture';
 import { ExternalTimerBaseline } from './timerBaseline';
 import { poseBudgets } from '../render/budgetReport';
-import type { ScopeCensus } from '../app/scope';
+import { disposalErrorMessages, type ScopeCensus } from '../app/scope';
 import type { AppState, Phase } from '../app/systems';
 
 declare const __BUILD_ID__: string;
@@ -41,7 +41,7 @@ export interface LeakCensus {
   systems: { input: number; fixed: { pre: number; step: number; post: number }; update: number; late: number; render: number }; events: { listeners: number; answerers: number };
   dom: { hud: number; body: number }; sceneObjects: number;
 }
-export interface LeakResult { before: LeakCensus; after: LeakCensus; scope: ScopeCensus; stacks: ResourceCounts['stacks']; retained: ReturnType<World['game']['app']['assets']['retained']>; gpu: object }
+export interface LeakResult { before: LeakCensus; after: LeakCensus; disposalErrors: string[]; scope: ScopeCensus; stacks: ResourceCounts['stacks']; retained: ReturnType<World['game']['app']['assets']['retained']>; gpu: object }
 export interface HarnessPins {
   seed: number;
   capture: number | null;
@@ -356,9 +356,10 @@ export function installProbe<W extends ProbeWorld>(world: W, deps: ProbeDeps): W
     leak: async () => {
       requireHarness();
       if (!pins?.resources) throw new Error('Leak census requires independent harness resource counters');
-      await app.unloadLevel();
+      let disposalErrors: string[] = [];
+      try { await app.unloadLevel(); } catch (error) { disposalErrors = disposalErrorMessages(error); }
       await asShell(() => new Promise<void>((resolve) => { requestAnimationFrame(() => { requestAnimationFrame(() => { resolve(); }); }); }));
-      return { before: structuredClone(baseline), after: census(), scope: game.levelScope.census,
+      return { before: structuredClone(baseline), after: census(), disposalErrors, scope: game.levelScope.census,
         stacks: pins.resources().stacks, retained: app.assets.retained(), gpu: game.gpuResourceDiagnostics() };
     },
     walkLeg: async (leg) => {

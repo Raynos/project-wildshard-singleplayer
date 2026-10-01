@@ -20,6 +20,11 @@ export interface ScopeCensus {
 }
 type Kind = keyof ScopeCensus;
 interface Cleanup { kind: Kind; run: () => void }
+/** Preserve nested disposal failures across browser/JSON error boundaries. */
+export function disposalErrorMessages(error: unknown): string[] {
+  if (error instanceof AggregateError) return error.errors.flatMap((inner: unknown) => disposalErrorMessages(inner));
+  return [error instanceof Error ? error.message : String(error)];
+}
 function emptyCensus(): ScopeCensus {
   return { geometries: 0, materials: 0, textures: 0, renderTargets: 0, meshes: 0, resources: 0,
     bodies: 0, sounds: 0, listeners: 0, timers: 0, rafs: 0, disposers: 0, systems: 0, colliders: 0, nodes: 0 };
@@ -145,6 +150,7 @@ export class Scope {
     this.owned.clear();
     this.detach?.();
     this.detach = undefined;
-    if (errors.length > 0) throw new AggregateError(errors, `Scope ${this.name} disposal failed`);
+    if (errors.length > 0) throw new AggregateError(errors,
+      `Scope ${this.name} disposal failed: ${errors.flatMap(disposalErrorMessages).join('; ')}`);
   }
 }

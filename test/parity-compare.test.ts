@@ -7,6 +7,17 @@ const fixture: RecordValue = baselineFixture;
 const clone = (): RecordValue => structuredClone(fixture);
 const rows = (b: RecordValue, n: RecordValue, options: Parameters<typeof compare>[2] = {}) => compare(b,n,options);
 describe('parity comparison', () => {
+  it('reports disposal messages as non-quarantinable failures even when the census is zero', () => {
+    const n = clone();
+    n['leak'] = { before: { bodies: 0 }, after: { bodies: 0 }, disposalErrors: ['body already removed'],
+      weather: { before: { bodies: 0 }, after: { bodies: 0 }, disposalErrors: ['weather sound stopped'] } };
+    const result = rows(fixture, n, { lanePending: true });
+    for (const [field, message] of [['leak.disposalErrors', 'body already removed'], ['leak.weather.disposalErrors', 'weather sound stopped']]) {
+      expect(result.rows).toContainEqual(expect.objectContaining({ field, now: [message], class: 'D', verdict: 'red' }));
+    }
+    n['leak'] = { before: { bodies: 0 }, after: { bodies: 0 }, disposalErrors: [] };
+    expect(rows(fixture, n).rows.find((row) => row.field === 'leak.disposalErrors')?.verdict).toBe('green');
+  });
   it('keeps exact structural order and ignores object property order', () => {
     const n = clone();
     expect(rows(fixture,n).verdict).toBe('green');

@@ -55,6 +55,29 @@ afterEach(() => {
 });
 
 describe('probe contract', () => {
+  it('returns every disposal failure alongside the post-unload census instead of rejecting the leak probe', async () => {
+    window.__wildshardHarness = { seed: 1, capture: null, resources: () => ({
+      listeners: { window: 0, document: 0, canvas: 0, other: 0 },
+      timers: { timeouts: 0, intervals: 0, raf: 1 }, timerIds: { timeouts: [], intervals: [], raf: [1] },
+      stacks: { listeners: [], timers: [] },
+    }) };
+    const world = fixture();
+    Object.assign(world.game, { retainedGpuCounts: () => ({ geometries: 1, textures: 2, programs: 0 }),
+      retainedHudCount: () => 0, retainedSceneObjects: () => 4, gpuResourceDiagnostics: () => ({}) });
+    Object.assign(world.audio, { census: () => ({ activeVoices: 0, beds: 0, buses: 0 }) });
+    vi.spyOn(world.game.app, 'unloadLevel').mockRejectedValue(new AggregateError([
+      new Error('first disposer'), new AggregateError([new Error('child disposer')], 'child scope'),
+    ], 'level scope'));
+    vi.useFakeTimers({ toFake: ['requestAnimationFrame', 'cancelAnimationFrame'] });
+    try {
+      const pending = installProbe(world, deps).leak();
+      await vi.runAllTimersAsync();
+      const result = await pending;
+      expect(result.disposalErrors).toEqual(['first disposer', 'child disposer']);
+      expect(result.after.bodies).toBe(0);
+      expect(result.scope.disposers).toBe(0);
+    } finally { vi.useRealTimers(); }
+  });
   it('shares its exact declared type with scripts and captures the boot synchronously', () => {
     expectTypeOf<ScriptProbe>().toEqualTypeOf<WildshardProbe>();
     const world = fixture(), probe = installProbe(world, deps);
