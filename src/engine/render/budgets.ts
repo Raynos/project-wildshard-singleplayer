@@ -39,7 +39,9 @@ export function deriveBudget(inputs: BudgetInputs, tier: 'phone' | 'desktop', ca
   const frameMs = 1000 / positive(i.fps, 'fps') / positive(i.variability, 'variability');
   const cpuMs = positive(i.cpuMs, 'cpuMs');
   const systemMs = Object.values(i.systems).reduce((sum, v) => sum + v, 0);
-  if (Object.values(i.systems).some((v) => !Number.isFinite(v) || v < 0) || i.gcMs < 0 || systemMs + i.gcMs >= cpuMs || cpuMs >= frameMs || i.vertexShare <= 0 || i.vertexShare >= 1) throw new RangeError('Invalid budget allocation');
+  const lanes = Object.values(i.lanes);
+  if (Object.values(i.systems).some((v) => !Number.isFinite(v) || v < 0) || !Number.isFinite(i.gcMs) || i.gcMs < 0 || systemMs + i.gcMs >= cpuMs || cpuMs >= frameMs || !Number.isFinite(i.vertexShare) || i.vertexShare <= 0 || i.vertexShare >= 1 || lanes.some((v) => !Number.isFinite(v) || v < 0) || lanes.reduce((a, b) => a + b, 0) > 1.000001) throw new RangeError('Invalid budget allocation');
+  positive(i.linkMs, 'link allocation');
   const gpuMs = calibration.combine === 'serial' ? frameMs - cpuMs : frameMs;
   const drawMs = positive(c.drawCpuMs, 'draw cost') * ratio;
   const triMs = positive(c.triangleGpuMs.static, 'triangle cost') * ratio;
