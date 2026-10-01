@@ -1,6 +1,7 @@
 import { WeightedTable, type WeightedRow } from '#engine';
 import { findShard } from './shard/registry';
 import { inventorySave, saveSlug } from './saves';
+import type { ItemRow } from './bag/items';
 /**
  * Inventory — the pack: what harvesting a carcass leaves you with (venison, hides, tusks, antlers; on Driftwood Isle
  * crab claws and coconuts — the drowned sailor and captain fade, nothing to harvest, E318). Counts
@@ -33,7 +34,7 @@ export type ItemId = 'venison' | 'deer-hide' | 'boar-meat' | 'boar-hide' | 'boar
   // good, a ribbon is what a lodge contract pays
   | 'amber-resin' | 'lodge-ribbon';
 
-export const ITEMS: Record<ItemId, { label: string; icon: IconId }> = {
+const ITEM_LABELS: Record<ItemId, { label: string; icon: IconId }> = {
   'venison': { label: 'Venison', icon: 'meat' },
   'deer-hide': { label: 'Deer hide', icon: 'hide' },
   'boar-meat': { label: 'Boar meat', icon: 'meat' },
@@ -62,6 +63,10 @@ export const ITEMS: Record<ItemId, { label: string; icon: IconId }> = {
   'amber-resin': { label: 'Amber resin', icon: 'seaglass' },
   'lodge-ribbon': { label: 'Lodge ribbon', icon: 'laurel' },
 };
+
+/** All shipped items stay local to their shard (E357 X9 / decision 75). */
+export const ITEMS = Object.fromEntries(Object.entries(ITEM_LABELS).map(([id, row]) => [id, { ...row, travels: false }])) as Record<ItemId, { label: string; icon: IconId; travels: boolean }>;
+export function isItemId(id: string): id is ItemId { return Object.hasOwn(ITEMS, id); }
 
 /** Every eligible harvest row drops once, in the original pack order. */
 const HARVEST: Readonly<Record<string, readonly WeightedRow<ItemId, string>[]>> = {
@@ -129,5 +134,15 @@ export class Inventory {
     return true;
   }
   get items(): { id: ItemId; count: number; label: string; icon: IconId }[] { return this.order.map((id) => ({ id, count: this.counts[id] ?? 0, ...ITEMS[id] })); }
+  /** Move all travel-enabled lines together; one save write, preserving local lines and order. */
+  takeTravel(rows: ReadonlyMap<string, ItemRow>): { id: ItemId; count: number }[] {
+    const carry = this.items.filter((line) => (rows.get(line.id)?.travels ?? ITEMS[line.id].travels) && line.count > 0).map(({ id, count }) => ({ id, count }));
+    if (carry.length === 0) return carry;
+    const moved = new Set(carry.map((line) => line.id));
+    for (const { id } of carry) delete this.counts[id];
+    this.order = this.order.filter((id) => !moved.has(id));
+    this.save(); this.onChange?.();
+    return carry;
+  }
   get total(): number { return this.order.reduce((s, id) => s + (this.counts[id] ?? 0), 0); }
 }

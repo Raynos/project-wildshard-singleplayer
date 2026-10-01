@@ -1,4 +1,7 @@
 import { progressSave, saveSlug } from './saves';
+import { updateSummary } from './summary';
+import { findShard } from './shard/registry';
+import type { ShardSlug } from './shard/shards.generated';
 /**
  * Progress — per-shard achievement progress, earned titles and the title you wear. Persisted in
  * localStorage ('ws.progress.v1', keyed by chunk id); the in-memory copy is the truth for the session
@@ -29,6 +32,7 @@ export class Progress {
   constructor(readonly chunkId: string) {
     this.defs = achievementsFor(chunkId);
     this.shard = progressSave.read(saveSlug(chunkId));
+    this.updateSummary();
     const flush = (): void => { if (this.unsaved > 0) { this.unsaved = 0; this.save(); } };
     if (typeof document !== 'undefined') { // not in the node tests
       window.addEventListener('pagehide', flush);
@@ -47,7 +51,14 @@ export class Progress {
     if (this.unsaved >= PLAY_SAVE_S) { this.unsaved = 0; this.save(); }
   }
 
-  private save() { progressSave.write(this.shard, saveSlug(this.chunkId)); }
+  /** Plugin registrations refine the total after level.kit; legacy shards retain their table count. */
+  setFeatTotal(total: number): void { this.featTotal = total; this.updateSummary(); }
+  private featTotal: number | undefined;
+  private updateSummary(): void {
+    const slug = saveSlug(this.chunkId);
+    if (findShard(slug) !== undefined) updateSummary(slug as ShardSlug, this.shard, this.featTotal ?? this.defs.length);
+  }
+  private save() { progressSave.write(this.shard, saveSlug(this.chunkId)); this.updateSummary(); }
 
   /** one kill of (kind, variant) — bumps every matching achievement, unlocks the ones that reach their count */
   recordKill(kind: string, variant?: string): void {

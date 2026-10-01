@@ -6,7 +6,7 @@ export interface SaveKeyDef<T> {
   key: string; scope: SaveScope; version: number; schema: v.GenericSchema<unknown, T>; initial: () => T;
   migrate?: Readonly<Record<number, (old: unknown) => unknown>>;
 }
-export interface SaveSlot<T> { read: (namespace?: string) => T; write: (value: T, namespace?: string) => boolean; reset: (namespace?: string) => void }
+export interface SaveSlot<T> { /** Validated existing data, without creating or changing a save. */ peek: (namespace?: string) => T | null; read: (namespace?: string) => T; write: (value: T, namespace?: string) => boolean; reset: (namespace?: string) => void }
 export interface SaveStorage { readonly length: number; key: (index: number) => string | null; getItem: (key: string) => string | null; setItem: (key: string, value: string) => void; removeItem: (key: string) => void }
 export interface SchemaFailure { kind: 'save-schema'; scope: string; key: string; version: number; issue: string }
 export interface CorruptSave { scope: string; key: string; at: string; bytes: number }
@@ -140,7 +140,26 @@ export class SaveStore {
       savedDoc.keys[definition.key] = { v: definition.version, data: result.output };
       return this.put(definition.scope, name, JSON.stringify(savedDoc));
     };
-    return { read, write, reset: (namespace) => { write(definition.initial(), namespace); } };
+    const peek = (namespace?: string): T | null => {
+      this.initialize();
+      const raw = this.get(definition.scope, this.name(definition.scope, namespace));
+      if (raw === null) return null;
+      try {
+        const parsed: unknown = JSON.parse(raw);
+        if (!doc(parsed)) return null;
+        const stored = parsed.keys[definition.key];
+        if (!entry(stored) || stored.v > definition.version) return null;
+        let data = stored.data, version = stored.v;
+        while (version < definition.version) {
+          const migrate = definition.migrate?.[version];
+          if (migrate === undefined) return null;
+          data = migrate(data); version++;
+        }
+        const result = v.safeParse(definition.schema, data);
+        return result.success ? clone(result.output) : null;
+      } catch { return null; }
+    };
+    return { peek, read, write, reset: (namespace) => { write(definition.initial(), namespace); } };
   }
   persist(): Promise<boolean> {
     this.persistence ??= (async () => {

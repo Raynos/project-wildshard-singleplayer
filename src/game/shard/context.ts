@@ -1,4 +1,5 @@
 import type { ShardRuntime } from './runtime';
+import { normalizeItemRow, type ItemRow } from '../bag/items';
 import type { ContentRow, SkinDef, EngineRows, LevelContext } from '#engine';
 import type { ShardManifest } from './manifest';
 
@@ -6,7 +7,7 @@ export type BagTabId = 'map' | 'gear' | 'pack' | 'finds' | 'feats';
 export interface BagTabSpec { id: BagTabId; title: string }
 export interface BagFragment { id: string; render: (host: HTMLElement) => void }
 export interface BagVerbs { tab: (spec: BagTabSpec) => void; fragment: (tab: BagTabId, fragment: BagFragment) => void }
-export interface GameRowMap { item: ContentRow; lootTable: ContentRow; skin: SkinDef; feat: ContentRow; shop: ContentRow; compendium: ContentRow; places: ContentRow }
+export interface GameRowMap { item: ItemRow; lootTable: ContentRow; skin: SkinDef; feat: ContentRow; shop: ContentRow; compendium: ContentRow; places: ContentRow }
 export type GameRows = { [K in keyof GameRowMap]: (value: GameRowMap[K] | readonly GameRowMap[K][]) => void };
 export interface GameServices {
   readonly runtime?: ShardRuntime;
@@ -37,7 +38,7 @@ export function shardContext(ctx: LevelContext, manifest: ShardManifest, game: G
     }
     game.rows.set(kind, rows);
     for (const value of list) {
-      rows.set(value.id, value);
+      rows.set(value.id, kind === 'item' ? normalizeItemRow(value) : value);
       ctx.scope.onDispose(() => { rows.delete(value.id); if (rows.size === 0) game.rows.delete(kind); });
     }
   };
