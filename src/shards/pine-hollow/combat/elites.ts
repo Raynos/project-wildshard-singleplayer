@@ -138,7 +138,7 @@ abstract class PineElite extends EliteBrain<Animal> implements EliteScript {
   }
   override spawn(): void {
     const L = this.def.lair;
-    const a = this.env.animals.spawn(this.who.kind, L.x, L.z, Math.random() * Math.PI * 2, this.who.variant);
+    const a = this.env.animals.spawn(this.who.kind, L.x, L.z, app.rng.stream('cosmetic').next() * Math.PI * 2, this.who.variant);
     own(a); elitesOwned.add(a);
     this.animal = a; this.p2 = false; this.setMode('idle'); this.wx = L.x; this.wz = L.z; this.wanderT = 0;
     pinBrain(a); inspectBrain(a, () => ({ state: this.brainState, picks: [], brainHz: 60, pinned: true }));
