@@ -152,6 +152,20 @@
     ]
   },
   {
+    "id": "metal-off",
+    "kind": "flag",
+    "shards": "all",
+    "flag": "--angle=swiftshader",
+    "expect": "exit3"
+  },
+  {
+    "id": "asset-case",
+    "kind": "linux",
+    "shards": [],
+    "patch": "asset-case.patch",
+    "expect": ["asset-case"]
+  },
+  {
     "id": "soak-leak",
     "kind": "nightly",
     "shards": "all",

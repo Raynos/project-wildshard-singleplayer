@@ -7,7 +7,7 @@ on:
       sha:    { description: Commit to gate (default the branch head), type: string, required: false }
       record: { description: Record runner baselines (artifact), type: boolean, default: false }
       prove:  { description: Run the determinism proof, type: boolean, default: false }
-      plant:  { description: Apply one plant (test/parity/plants/<id>.patch), type: string, required: false }
+      plant:  { description: Run one patch/flag/Linux plant (nightly plants use nightly.sh), type: string, required: false }
       angle:  { description: ANGLE backend (the metal-off plant uses swiftshader), type: string, default: metal }
       offline: { description: Also run the offline boot check (a milestone candidate; R1-47), type: boolean, default: false }
 concurrency:
@@ -72,8 +72,8 @@ jobs:
           git checkout ${{ github.sha }} -- scripts/parity.mjs scripts/parity scripts/gpu-gate scripts/types
       - name: Pending boards of the target SHA (R1-13; docs/ is outside the sparse checkout)
         run: git show "$SHA:docs/plans/game-normalization/reviews/pending.json" > pending.json 2>/dev/null || echo '[]' > pending.json
-      - name: Apply plant
-        if: inputs.plant != ''
+      - name: Apply runtime patch plant
+        if: inputs.plant != '' && inputs.plant != 'metal-off' && inputs.plant != 'asset-case' && inputs.plant != 'soak-leak'
         run: git apply "test/parity/plants/${{ inputs.plant }}.patch"
       - run: pnpm exec vite build
         if: matrix.mode != 'prove'                         # prove builds each part from its own export
@@ -84,7 +84,7 @@ jobs:
           for i in $(seq 1 60); do curl -fsS http://127.0.0.1:4400/version.json && break; sleep 1; done
       - name: Parity (${{ matrix.shard }}, phone, ${{ matrix.mode }} ${{ matrix.part }})   # exactly one mode per job (R1-35)
         run: |
-          common="--lane=gh-macos15 --shards=${{ matrix.shard }} --tiers=phone --angle=${{ inputs.angle || 'metal' }} --out=parity-out"
+          common="--lane=gh-macos15 --shards=${{ matrix.shard }} --tiers=phone --angle=${{ inputs.plant == 'metal-off' && 'swiftshader' || inputs.angle || 'metal' }} --out=parity-out"
           case "${{ matrix.mode }}" in
             prove)            node scripts/parity.mjs --prove --only=${{ matrix.part }} --export="$SHA" $common ;;   # one part per job (R2-32)
             record|bootstrap) node scripts/parity.mjs --url=http://127.0.0.1:4400 --record --runs=3 $common ;;   # writes test/parity/baselines/gh-macos15/<slug>.* (R2-33)
@@ -130,8 +130,8 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 24, cache: pnpm }
       - run: pnpm install --frozen-lockfile
-      - name: Apply plant
-        if: inputs.plant != ''
+      - name: Apply Linux case plant
+        if: inputs.plant == 'asset-case'
         run: git apply "test/parity/plants/${{ inputs.plant }}.patch"
       - run: pnpm exec vite build
       - run: node scripts/check-asset-case.mjs dist --out=asset-case.json

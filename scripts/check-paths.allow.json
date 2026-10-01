@@ -1,6 +1,11 @@
 [
   {
     "path": "src/shards",
+    "file": "scripts/gpu-perf/nightly.mjs",
+    "why": "Git ls-tree registry prefix introduced by F6; nightly combines new manifests with existing physics-route slugs while the migration is incomplete."
+  },
+  {
+    "path": "src/shards",
     "file": "scripts/gpu-gate/matrix.mjs",
     "why": "Git ls-tree pathspec prefix on the target commit; the fallback handles commits before F6 creates this folder."
   },
