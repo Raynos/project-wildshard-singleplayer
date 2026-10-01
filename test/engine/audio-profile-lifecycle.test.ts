@@ -17,7 +17,7 @@ describe('plugin audio lifecycle', () => {
     app.levelDriver = driver;
     const game: GameServices = { shard: manifest, rows: new Map(), bag: { tab: () => noop, fragment: () => noop } };
     for (let attempt = 0; attempt < 2; attempt++) {
-      await app.loadLevel(toLevelSpec(manifest), { kit: (ctx) => { installAudio(shardContext(ctx, manifest, game)); } });
+      await app.loadLevel(toLevelSpec(manifest), { kit: async (ctx) => { await installAudio(shardContext(ctx, manifest, game)); } });
       expect(audio.ready).toBe(false);
       expect(music.scoreId).toBe('score.nd');
       expect(audio.bedIds).toEqual(['bed.nd.market', 'bed.nd.well']);

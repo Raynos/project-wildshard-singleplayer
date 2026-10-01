@@ -19,7 +19,7 @@ async function buildWorld(ctx: ShardContext): ReturnType<WorldBuilder> {
 
 /** The world hook can be exercised with a stub build without a DOM or GPU. */
 export class NdPlugin extends ShardPlugin {
-  override kit(ctx: ShardContext): void { installAudio(ctx); }
+  override async kit(ctx: ShardContext): Promise<void> { await installAudio(ctx); }
   private readonly build: WorldBuilder;
   constructor(build: WorldBuilder = buildWorld) {
     super();

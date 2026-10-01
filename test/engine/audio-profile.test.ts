@@ -6,7 +6,7 @@ import type { AudioMixer } from '#engine/audio/levelAudio';
 import { AmbienceBeds, PositionalLoops } from '#engine/audio/AmbienceBeds';
 import { CuePlayer, cueFiles, decodeCueSet } from '#engine/audio/Cues';
 import { SetScore, scoreFiles, decodeScore } from '#engine/audio/SetScore';
-import { ndPick, ND_AUDIO, SCORE_SET } from '#shards/nine-dragon-stack/audio/files';
+import { ndPick, createNdAudio, SCORE_SET } from '#shards/nine-dragon-stack/audio/files';
 import { ndZones } from '#shards/nine-dragon-stack/audio/ambience';
 import { ndCueMap } from '#shards/nine-dragon-stack/audio/cues';
 import { tap, ambientTick } from '#engine/core/harnessTap';
@@ -57,6 +57,7 @@ const state: MusicState = { shard: 'pine', mode: 'calm', intensity: 0, underwate
 
 describe('level-owned audio slice', () => {
   it('downloads only title cuts, the own score, beds, hum and sprite; boot decodes only market plus stings', async () => {
+    const ND_AUDIO = await createNdAudio();
     const files = ND_AUDIO.files(), selected = ND_AUDIO.bootFiles('folk');
     expect(files.music.some((url) => /\/pine[.-]/.test(url))).toBe(false);
     expect(files.sfx).toHaveLength(4);

@@ -13,7 +13,15 @@ describe('every sound source is observed', () => {
   it('requires a tap on every shipping module that creates sound sources', () => {
     const files = Object.entries(sources).filter(([file, text]) => !file.includes('/dev/') && /createBufferSource|createOscillator/.test(text));
     expect(files.length).toBeGreaterThan(0);
-    for (const [file, text] of files) expect(text, file).toContain('tap.sound?.(');
+    // Generic audio players accept content ids; R4-12 keeps their literal taps in their shipping owners.
+    const owners: Readonly<Record<string, string>> = {
+      '../src/engine/audio/Cues.ts': '../src/shards/nine-dragon-stack/audio/cues.ts',
+      '../src/engine/audio/AmbienceBeds.ts': '../src/shards/nine-dragon-stack/audio/ambience.ts',
+    };
+    for (const [file, text] of files) {
+      const owner = owners[file];
+      expect(owner === undefined ? text : sources[owner], file).toContain('tap.sound?.(');
+    }
     expect(files.length).toBeGreaterThanOrEqual(10); // Audio + the nine independent sound modules (R2-F1).
   });
 

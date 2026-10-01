@@ -1,6 +1,6 @@
 import { Vector3 } from 'three';
 import type { ShardContext } from '#game';
-import { AmbienceBeds, PositionalLoops, CuePlayer, tap, ambientTick, castRay, type ZoneWeights } from '#engine';
+import { loadAudio, tap, ambientTick, castRay, type ZoneWeights } from '#engine';
 import { lanternAudioPositions } from '../look/lanterns';
 import { PLAZA, STREET, STAIR, WELL } from '../layout';
 import { ndCueMap, bindTraversalCue } from './cues';
@@ -16,11 +16,12 @@ export function ndZones(pos: Pick<Vector3, 'x' | 'z'>): ZoneWeights {
   const well = Math.min(1, Math.max(0, 0.5 + (toMarket - toWell) / 6));
   return { market: 1 - well, well };
 }
-export function installAudio(ctx: ShardContext): void {
+export async function installAudio(ctx: ShardContext): Promise<void> {
+  const { AmbienceBeds, PositionalLoops, CuePlayer } = await loadAudio();
   const audio = ctx.app.audio;
   if (audio?.music === null || audio === null) throw new Error('Nine Dragon kit needs the audio/music service');
   const music = audio.music, random = (): number => ctx.app.rng.stream('cosmetic').next();
-  const score = ndScore(() => { music.refreshScore(); });
+  const score = await ndScore(() => { music.refreshScore(); });
   const player = new CuePlayer(audio, ctx.scope, random), map = ndCueMap(player, random);
   ctx.scope.onDispose(music.setScore('score.nd', score));
   ctx.scope.onDispose(() => { score.dispose(); });
