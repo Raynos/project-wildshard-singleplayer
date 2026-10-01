@@ -51,6 +51,7 @@ The pop-up answers can be typed over by a builder's herdr message (that is how t
 
 - **Q2 input buffer (120 ms): fine** (keep). The dodge clip showed no visible difference (caption only); re-captured by sol-roof.
 - **Q3 Settings ▸ Controls: makes sense, but hide it on iOS / touch-only devices** (key bindings mean nothing there); show it only in desktop mode with a keyboard. Jake wants to see the desktop version: build row J7 (sol-ctrl).
+- **Q4 reserved action slot: A, first row** ("definitely first row") — as built.
 - **Q1 coyote / late roof jump:** the clip was broken (no visible edge; the capture fixture dropped the player through the street). sol-roof re-captures it on a real edge and checks for a real fall-through bug; Q1 asked again after.
 - Jake's finding: crouch (and other actions) exist only on the keyboard, with no touch control: ask E365, a keyboard-vs-touch audit.
 
