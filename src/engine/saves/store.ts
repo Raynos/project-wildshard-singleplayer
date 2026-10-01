@@ -1,0 +1,202 @@
+import * as v from 'valibot';
+import { resetLegacy } from './legacy';
+
+export type SaveScope = 'global' | 'shard' | 'device' | 'session';
+export interface SaveKeyDef<T> {
+  key: string; scope: SaveScope; version: number; schema: v.GenericSchema<unknown, T>; initial: () => T;
+  migrate?: Readonly<Record<number, (old: unknown) => unknown>>;
+}
+export interface SaveSlot<T> { read: (namespace?: string) => T; write: (value: T, namespace?: string) => void; reset: (namespace?: string) => void }
+export interface SaveStorage { readonly length: number; key: (index: number) => string | null; getItem: (key: string) => string | null; setItem: (key: string, value: string) => void; removeItem: (key: string) => void }
+export interface SchemaFailure { kind: 'save-schema'; scope: string; key: string; version: number; issue: string }
+export interface CorruptSave { scope: string; key: string; at: string; bytes: number }
+export interface ImportReport { imported: string[]; skipped: { key: string; reason: string }[] }
+interface Entry { v: number; data: unknown }
+interface Document { keys: Record<string, unknown> }
+interface StoreOptions {
+  local?: SaveStorage | null; session?: SaveStorage | null; build?: string; now?: () => string;
+  report?: (failure: SchemaFailure) => void;
+  forgetLegacy?: (keys: readonly string[]) => void;
+  persist?: () => Promise<boolean>;
+}
+const PREFIX = 'wildshard.save.v2.';
+const object = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null && !Array.isArray(value);
+const entry = (value: unknown): value is Entry => object(value) && typeof value['v'] === 'number' && Number.isInteger(value['v']) && value['v'] > 0 && Object.hasOwn(value, 'data');
+const doc = (value: unknown): value is Document => object(value) && object(value['keys']);
+const clone = <T>(value: T): T => structuredClone(value);
+function browserStorage(scope: SaveScope): SaveStorage | null {
+  try { return scope === 'session' ? globalThis.sessionStorage : globalThis.localStorage; } catch { return null; }
+}
+
+/** Renderer-free, write-through save service. Re-read each savedDoc before writing to preserve other keys. */
+export class SaveStore {
+  private readonly definitions = new Map<string, SaveKeyDef<unknown>>();
+  private readonly memory = new Map<string, string>();
+  private readonly readonlyKeys = new Set<string>();
+  private initialized = false;
+  private persistence: Promise<boolean> | null = null;
+  private readonly options: StoreOptions;
+  constructor(options: StoreOptions = {}) { this.options = options; }
+  private storage(scope: SaveScope): SaveStorage | null {
+    return scope === 'session' ? this.options.session === undefined ? browserStorage(scope) : this.options.session
+      : this.options.local === undefined ? browserStorage(scope) : this.options.local;
+  }
+  private initialize(): void {
+    if (this.initialized) return;
+    this.initialized = true;
+    try { resetLegacy(this.storage('global'), this.storage('session'), this.options.forgetLegacy); } catch { /* blocked storage: memory keeps this page playable */ }
+  }
+  private name(scope: SaveScope, namespace?: string): string {
+    if (scope === 'shard' && (!namespace || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/u.test(namespace))) throw new Error('Shard saves need a slug');
+    return PREFIX + (scope === 'shard' ? namespace : scope);
+  }
+  private get(scope: SaveScope, name: string): string | null {
+    try { const storage = this.storage(scope); return storage ? storage.getItem(name) : this.memory.get(name) ?? null; } catch { return this.memory.get(name) ?? null; }
+  }
+  private put(scope: SaveScope, name: string, value: string): void {
+    this.memory.set(name, value);
+    try { this.storage(scope)?.setItem(name, value); } catch { /* private mode / quota: retain the page's value */ }
+  }
+  private remove(scope: SaveScope, name: string): void {
+    this.memory.delete(name);
+    try { this.storage(scope)?.removeItem(name); } catch { /* already absent from memory */ }
+  }
+  private names(scope: SaveScope): string[] {
+    const names = new Set(this.memory.keys());
+    try { const storage = this.storage(scope); if (storage) for (let i = 0; i < storage.length; i++) { const name = storage.key(i); if (name) names.add(name); } } catch { /* memory only */ }
+    return [...names].filter((name) => name.startsWith(PREFIX));
+  }
+  private at(): string { return this.options.now?.() ?? new Date().toISOString(); }
+  private report(scope: string, key: string, version: number, issue: string): void {
+    try { this.options.report?.({ kind: 'save-schema', scope, key, version, issue }); } catch { /* error reporting cannot break a read */ }
+  }
+  private prune(keys: readonly string[], remove: (key: string) => void): void {
+    for (const key of [...keys].sort().slice(0, -3)) remove(key);
+  }
+  private savedDoc(scope: SaveScope, name: string): Document {
+    this.initialize();
+    const raw = this.get(scope, name);
+    if (raw === null) return { keys: {} };
+    try { const parsed: unknown = JSON.parse(raw); if (doc(parsed)) return parsed; } catch { /* set aside below */ }
+    const prefix = `${name}.corrupt.`;
+    this.put(scope, prefix + this.at(), raw);
+    this.prune(this.names(scope).filter((key) => key.startsWith(prefix)), (key) => { this.remove(scope, key); });
+    const fresh: Document = { keys: {} };
+    this.put(scope, name, JSON.stringify(fresh));
+    this.report(name.slice(PREFIX.length), '*', 0, 'Invalid save savedDoc: expected JSON with a keys object');
+    return fresh;
+  }
+  define<T>(definition: SaveKeyDef<T>): SaveSlot<T> {
+    const id = `${definition.scope}/${definition.key}`;
+    const priorDef = this.definitions.get(id);
+    if (priorDef && priorDef !== definition) throw new Error(`Duplicate save definition: ${id}`);
+    this.definitions.set(id, definition);
+    const read = (namespace?: string): T => {
+      const name = this.name(definition.scope, namespace), savedDoc = this.savedDoc(definition.scope, name);
+      const raw = savedDoc.keys[definition.key];
+      if (raw === undefined) return clone(definition.initial());
+      const identity = `${name}/${definition.key}`;
+      if (entry(raw) && raw.v > definition.version) { this.readonlyKeys.add(identity); return clone(definition.initial()); }
+      let data: unknown = entry(raw) ? raw.data : undefined;
+      let version = entry(raw) ? raw.v : 0;
+      let issue = 'Invalid save entry';
+      try {
+        if (!entry(raw)) throw new Error(issue);
+        while (version < definition.version) {
+          const migrate = definition.migrate?.[version];
+          if (!migrate) throw new Error(`Missing migration ${version} → ${version + 1}`);
+          data = migrate(data); version++;
+        }
+        const result = v.safeParse(definition.schema, data);
+        if (!result.success) {
+          const first = result.issues[0];
+          throw new Error(`${first.path?.map((item) => String(item.key)).join('.') ?? ''}: ${first.message}`);
+        }
+        if (version !== raw.v) { savedDoc.keys[definition.key] = { v: version, data: result.output }; this.put(definition.scope, name, JSON.stringify(savedDoc)); }
+        return clone(result.output);
+      } catch (error) { issue = error instanceof Error ? error.message : 'Migration failed'; }
+      const prefix = `${definition.key}.corrupt.`;
+      savedDoc.keys[prefix + this.at()] = raw;
+      this.prune(Object.keys(savedDoc.keys).filter((key) => key.startsWith(prefix)), (key) => { delete savedDoc.keys[key]; });
+      const initial = definition.initial();
+      savedDoc.keys[definition.key] = { v: definition.version, data: initial };
+      this.put(definition.scope, name, JSON.stringify(savedDoc));
+      this.report(name.slice(PREFIX.length), definition.key, version, issue);
+      return clone(initial);
+    };
+    const write = (value: T, namespace?: string): void => {
+      const name = this.name(definition.scope, namespace), savedDoc = this.savedDoc(definition.scope, name);
+      const prior = savedDoc.keys[definition.key];
+      if (this.readonlyKeys.has(`${name}/${definition.key}`) || (entry(prior) && prior.v > definition.version)) return;
+      const result = v.safeParse(definition.schema, value);
+      if (!result.success) { this.report(name.slice(PREFIX.length), definition.key, definition.version, result.issues[0].message); return; }
+      savedDoc.keys[definition.key] = { v: definition.version, data: result.output };
+      this.put(definition.scope, name, JSON.stringify(savedDoc));
+    };
+    return { read, write, reset: (namespace) => { write(definition.initial(), namespace); } };
+  }
+  persist(): Promise<boolean> {
+    this.persistence ??= (async () => {
+      let granted = false;
+      try { granted = await (this.options.persist?.() ?? navigator.storage.persist()); } catch { /* API missing or denied */ }
+      const name = this.name('device'), savedDoc = this.savedDoc('device', name);
+      savedDoc.keys['storage.persisted'] = { v: 1, data: granted };
+      this.put('device', name, JSON.stringify(savedDoc));
+      return granted;
+    })();
+    return this.persistence;
+  }
+  exportAll(): string {
+    this.initialize();
+    const docs: Record<string, Document> = {};
+    for (const name of new Set([`${PREFIX  }global`, ...this.names('global')])) {
+      const scope = name.slice(PREFIX.length);
+      if (scope === 'device' || scope === 'session' || scope.includes('.corrupt.')) continue;
+      docs[scope] = this.savedDoc('global', name);
+    }
+    return JSON.stringify({ format: 'wildshard.save', version: 2, build: this.options.build ?? '', exported: this.at(), docs }, null, 2);
+  }
+  importAll(json: string): ImportReport {
+    const report: ImportReport = { imported: [], skipped: [] };
+    let value: unknown;
+    try { value = JSON.parse(json); } catch { return { imported: [], skipped: [{ key: '*', reason: 'Invalid JSON' }] }; }
+    if (!object(value) || value['format'] !== 'wildshard.save' || value['version'] !== 2 || !object(value['docs'])) return { imported: [], skipped: [{ key: '*', reason: 'Unknown save format' }] };
+    for (const [scope, savedDoc] of Object.entries(value['docs'])) {
+      if (scope === 'device' || scope === 'session' || (scope !== 'global' && !/^[a-z0-9]+(?:-[a-z0-9]+)*$/u.test(scope)) || !doc(savedDoc)) { report.skipped.push({ key: scope, reason: 'Invalid or private scope' }); continue; }
+      const kind = scope === 'global' ? 'global' : 'shard';
+      for (const [key, raw] of Object.entries(savedDoc.keys)) {
+        const identity = `${scope}/${key}`, definition = this.definitions.get(`${kind}/${key}`);
+        if (!definition || !entry(raw)) { report.skipped.push({ key: identity, reason: 'Unknown key or invalid entry' }); continue; }
+        const target = this.savedDoc(kind, PREFIX + scope), existing = target.keys[key];
+        if (raw.v > definition.version || (entry(existing) && existing.v > definition.version)) { report.skipped.push({ key: identity, reason: 'Newer version: kept untouched' }); continue; }
+        let data = raw.data, version = raw.v;
+        try {
+          while (version < definition.version) { const migrate = definition.migrate?.[version]; if (!migrate) throw new Error('Missing migration'); data = migrate(data); version++; }
+          const result = v.safeParse(definition.schema, data);
+          if (!result.success) throw new Error(result.issues[0].message);
+          target.keys[key] = { v: version, data: result.output }; this.put(kind, PREFIX + scope, JSON.stringify(target)); report.imported.push(identity);
+        } catch (error) { report.skipped.push({ key: identity, reason: error instanceof Error ? error.message : 'Invalid data' }); }
+      }
+    }
+    return report;
+  }
+  corrupt(): CorruptSave[] {
+    this.initialize();
+    const copies: CorruptSave[] = [];
+    for (const name of this.names('global')) {
+      const [scope = '', at] = name.slice(PREFIX.length).split('.corrupt.');
+      if (scope === 'device' || scope === 'session') continue;
+      if (at) { copies.push({ scope, key: '*', at, bytes: new TextEncoder().encode(this.get('global', name) ?? '').length }); continue; }
+      for (const [key, raw] of Object.entries(this.savedDoc('global', name).keys)) {
+        const [original = '', stamp] = key.split('.corrupt.');
+        if (stamp) copies.push({ scope, key: original, at: stamp, bytes: new TextEncoder().encode(JSON.stringify(raw)).length });
+      }
+    }
+    return copies;
+  }
+  exportCorrupt(copy: CorruptSave): string {
+    if (copy.scope === 'device' || copy.scope === 'session') throw new Error('Private saves cannot be exported');
+    const name = PREFIX + copy.scope;
+    return copy.key === '*' ? this.get('global', `${name}.corrupt.${copy.at}`) ?? '' : JSON.stringify(this.savedDoc('global', name).keys[`${copy.key}.corrupt.${copy.at}`], null, 2);
+  }
+}

@@ -1,3 +1,4 @@
+import { saves } from '../saves/runtime';
 import { RngService } from '../core/rng';
 import type { Scene } from 'three';
 import type { Game } from '../core/Game';
@@ -8,7 +9,7 @@ import type { WorldClock } from '../world/WorldClock';
 import type { WorldRegistry } from '../world/registry';
 import type { AimTarget } from '../player/AimTargets';
 import type { Audio } from '../audio/Audio';
-import { AppDebug, EveryFrameScheduler, PendingSaves, resolveGrade } from './services';
+import { AppDebug, EveryFrameScheduler, resolveGrade } from './services';
 import { Events } from '../events/events';
 import { GameClock } from '../core/clock';
 import { AssetService } from './assets';
@@ -72,7 +73,7 @@ export class App {
     return this.registryValue;
   }
   readonly gradeFor = resolveGrade;
-  readonly saves = new PendingSaves();
+  readonly saves = saves;
   readonly debug = new AppDebug();
   readonly scheduler = new EveryFrameScheduler();
 

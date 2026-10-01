@@ -1,12 +1,5 @@
 import type { SystemSpec } from './systems';
 
-/** Replaced by the save implementation at F10; use before then fails loudly. */
-export class PendingSaves {
-  read(): never { throw new Error('Save service is not installed (F10)'); }
-  write(): never { throw new Error('Save service is not installed (F10)'); }
-  flush(): never { throw new Error('Save service is not installed (F10)'); }
-}
-
 /** Until rate classes land, every registered system remains eligible on every frame. */
 export class EveryFrameScheduler {
   runs(_system: SystemSpec): boolean { return true; }

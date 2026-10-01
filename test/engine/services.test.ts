@@ -19,9 +19,10 @@ it('legacy getters delegate to the same typed app services, including lazy regis
   expect(activeNavmesh()).toBe(app.navmesh); expect(activeClock()).toBe(app.dayCycle);
   const def = getActiveChunk(); expect(activeGrade(def)).toEqual(app.gradeFor(def));
 });
-it('fails on saves before F10 and schedules every rate class on each frame', () => {
+it('exposes the save service and schedules every rate class on each frame', () => {
   const isolated = new App();
-  expect(() => isolated.saves.read()).toThrow('F10'); expect(() => isolated.saves.write()).toThrow('F10');
+  expect(isolated.saves).toBe(app.saves);
+  expect(isolated.saves.exportAll()).toContain('wildshard.save');
   for (const tick of ['ai', 'far', 'frame']) expect(isolated.scheduler.runs({ id: tick, phase: 'update', tick, run: () => undefined })).toBe(true);
   isolated.debug.expose('test', 1);
   expect(isolated.debug.snapshot()).toEqual({ test: 1 });

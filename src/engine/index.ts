@@ -23,3 +23,7 @@ export type { LookStrategy, LookComposeContext, LookComposition } from './render
 
 export { boxInFrame, type BoxSpec } from './physics/box';
 export type { Player } from './player/Player';
+
+export { SaveStore, type SaveKeyDef, type SaveSlot, type SaveScope, type ImportReport, type CorruptSave } from './saves/store';
+export { saves, persistHomeScreen } from './saves/runtime';
+export { jsonSlot, jsonSchema, jsonRecord, saveStorage } from './saves/slots';
