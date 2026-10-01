@@ -994,6 +994,11 @@ The kit's starter set is `effect.poison`, `effect.burn`, `effect.bleed`, `effect
 
 A creature is two rows: a `SpeciesRow` (simulation) and a `SpeciesLook` (render). Register both in `kit`.
 
+**Creature coordinates.** A creature faces **+Z** in model space (+Y up, +X right). Each `BoneDef.pos` is an
+**absolute bind-space position in model units**, even when it has a parent. The factory subtracts the parent’s
+absolute position to construct the local bone transform; do not subtract it yourself. For example, a body at
+`[0, 1, 0]` and its head at `[0, 1.2, 2]` put the head two metres forward and 0.2 metres above the body.
+
 **Required creature bones.** Every rig, including `rig: 'custom'` and flying rigs, needs named `body` and `head`
 bones in `build().bones`; `body` must be the first bone. They anchor the body capsule and head hit sphere even
 when the creature does not have a visually separate head. Declare both names in `rigContract.sockets`.

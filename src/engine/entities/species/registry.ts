@@ -181,6 +181,7 @@ export interface ThinkCtx {
   mayAttack: (a: Animal) => boolean;
 }
 
+/** Model faces +Z; pos is absolute bind-space, not parent-local (the factory subtracts the parent position). */
 export interface BoneDef { name: string; parent: string | null; pos: [number, number, number] }
 
 /** What `SpeciesDef.build()` returns: the un-merged parts of one (kind, variant) model. */

@@ -267,6 +267,10 @@ the ground at about 5 Hz. `above: 'world'` uses absolute altitude over islands o
 also falls back to world altitude without a floor within 200 metres. Use `sphere` for actual 3-D strike contact,
 and animate bones rather than writing `position`, `driven` or `yOffset`.
 
+Model your creature facing **+Z**, with +Y up. `BoneDef.pos` uses **absolute bind-space coordinates**, not a
+parent-relative offset: the factory subtracts the parent position. A child head at `[0, 1.2, 2]` under a body at
+`[0, 1, 0]` is 0.2 metres above and two metres in front of the body.
+
 A kit species (`BOAR`, `BEAR` and their looks) needs no code: register the rows. Spread a row to add a variant:
 `{ ...BOAR, variants: [...BOAR.variants, { id: 'greyback', … }] }`.
 

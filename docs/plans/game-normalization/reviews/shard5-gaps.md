@@ -31,6 +31,8 @@ edits and zero gaps**.
 | G13 | A custom creature boots only with named body/head bones; ENGINE §19 and SHARDS §6 omit the requirement | E364 round 2 (drift ray boot) | document required hit bones and reject missing declarations at registration, with built-bone validation and regression tests | built (sol-g13 private candidate; landing pending) |
 | G14 | Manifest budget edits stale the computed `derived` entries in `budgets/ceiling-sources.json`, blocking the gate; content lanes cannot safely regenerate measured provenance | E363 / E364 round 2, manifest-budgets test | scoped `pnpm gen --shard=<slug>`, freshness check before gate generation, and lock permission for only reopened derived entries; measured GL re-records remain lead-approved | built (sol-g13 private candidate; landing pending) |
 
+| G15 | Creature bone positions and forward axis are undocumented; parent-local positions or facing −Z produce incorrect rigs | E363 round 2 | ENGINE §19 / SHARDS §6 state absolute bind-space `BoneDef.pos` and +Z forward, with an example | built (sol-g13 private candidate; landing pending) |
+
 ## Shard findings for the rebuild (not API gaps)
 
 From the first-look boards (`art/sunscar-dunes/round-3-build/board-c2fdc72d.jpg`,
