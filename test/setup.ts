@@ -31,4 +31,10 @@ installKitSpecies();
 const { PINE_BOAR } = await import('#shards/pine-hollow/species/rows');
 const { PINE_BOAR_LOOK } = await import('#shards/pine-hollow/species/looks');
 registerSpecies(speciesWithLook(PINE_BOAR, PINE_BOAR_LOOK));
+// Pure inventory fixtures explicitly install the authored item catalogs.
+const { registerItemRow } = await import('#game/bag/itemCatalog');
+const { KIT_ITEMS } = await import('#kit/bag/items');
+const { PINE_ITEMS } = await import('#shards/pine-hollow/items');
+for (const row of [...KIT_ITEMS, ...PINE_ITEMS]) registerItemRow(row);
+
 beforeEach(() => { localStorage.clear(); });

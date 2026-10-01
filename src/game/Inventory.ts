@@ -1,3 +1,4 @@
+import { ITEMS } from './bag/itemCatalog';
 import { WeightedTable, type WeightedRow } from '#engine';
 import { findShard } from './shard/registry';
 import { inventorySave, saveSlug } from './saves';
@@ -25,6 +26,8 @@ import type { ItemRow } from './bag/items';
  */
 import type { IconId } from '#engine/ui/icons';
 
+export { ITEMS, isItemId, registerItemRow } from './bag/itemCatalog';
+
 export type ItemId = 'venison' | 'deer-hide' | 'boar-meat' | 'boar-hide' | 'boar-tusk' | 'antlers' | 'elk-meat' | 'elk-hide' | 'bear-pelt' | 'bear-claw'
   | 'crab-meat' | 'crab-claw' | 'crab-shell' | 'coconut' | 'monkey-fur' | 'silver-fur' | 'doubloon'
   // Pine Hollow's elite + boss trophies (PH-C2 / PH-C3, src/shards/pine-hollow/); 'warden-longbow' is the King's drop as a flag
@@ -33,40 +36,6 @@ export type ItemId = 'venison' | 'deer-hide' | 'boar-meat' | 'boar-hide' | 'boar
   // Pine Hollow's collectibles and the lodge (PH-C6 / C8, src/shards/pine-hollow/quest/): resin is the trader's currency-free swap
   // good, a ribbon is what a lodge contract pays
   | 'amber-resin' | 'lodge-ribbon';
-
-const ITEM_LABELS: Record<ItemId, { label: string; icon: IconId }> = {
-  'venison': { label: 'Venison', icon: 'meat' },
-  'deer-hide': { label: 'Deer hide', icon: 'hide' },
-  'boar-meat': { label: 'Boar meat', icon: 'meat' },
-  'boar-hide': { label: 'Boar hide', icon: 'hide' },
-  'boar-tusk': { label: 'Boar tusk', icon: 'tusk' },
-  'antlers': { label: 'Antlers', icon: 'antlers' },
-  'elk-meat': { label: 'Elk meat', icon: 'meat' },
-  'elk-hide': { label: 'Elk hide', icon: 'hide' },
-  'bear-pelt': { label: 'Bear pelt', icon: 'hide' },
-  'bear-claw': { label: 'Bear claw', icon: 'tusk' },
-  // Driftwood Isle
-  'crab-meat': { label: 'Crab meat', icon: 'meat' },
-  'crab-claw': { label: 'Crab claw', icon: 'claw' },
-  'crab-shell': { label: 'Reef shell', icon: 'shell' },
-  'coconut': { label: 'Coconut', icon: 'coconut' },
-  'monkey-fur': { label: 'Monkey fur', icon: 'hide' },
-  'silver-fur': { label: 'Silver fur', icon: 'hide' },
-  'doubloon': { label: 'Salt-crusted doubloon', icon: 'coin' },
-  // Pine Hollow's elites and the Antler King
-  'ironhide-tusk': { label: "Ironhide's broken tusk", icon: 'tusk' },
-  'ghost-antler': { label: 'Pale antler', icon: 'antlers' },
-  'blackpaw-claw': { label: "Old Blackpaw's claw", icon: 'claw' },
-  'imperial-crown': { label: 'Seven-tine crown', icon: 'antlers' },
-  'amber-heartwood': { label: 'Amber heartwood', icon: 'laurel' },
-  'warden-longbow': { label: "The Warden's Longbow", icon: 'longbow' },
-  'amber-resin': { label: 'Amber resin', icon: 'seaglass' },
-  'lodge-ribbon': { label: 'Lodge ribbon', icon: 'laurel' },
-};
-
-/** All shipped items stay local to their shard (E357 X9 / decision 75). */
-export const ITEMS = Object.fromEntries(Object.entries(ITEM_LABELS).map(([id, row]) => [id, { ...row, travels: false }])) as Record<ItemId, { label: string; icon: IconId; travels: boolean }>;
-export function isItemId(id: string): id is ItemId { return Object.hasOwn(ITEMS, id); }
 
 /** Every eligible harvest row drops once, in the original pack order. */
 const HARVEST: Readonly<Record<string, readonly WeightedRow<ItemId, string>[]>> = {

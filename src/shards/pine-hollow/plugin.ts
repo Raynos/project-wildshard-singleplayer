@@ -32,7 +32,7 @@ import { PINE_FINISH_EFFECTS, pineFinishes, finishPick } from './loadout/finishe
 import { SKINS, PINE_FINISHES } from './loadout/skins';
 import { bindLoadoutDeath } from './loadout/events';
 import { mottLine } from './quest/trades';
-import { isPineItem } from './items';
+import { isPineItem, PINE_ITEMS } from './items';
 import { KING_KIND, registerKing } from './combat/antlerKing';
 
 function runtime(ctx: ShardContext): ShardRuntime {
@@ -107,6 +107,7 @@ export class PineHollow extends ShardPlugin {
     ctx.rows.species(PINE_SPECIES);
     ctx.rows.speciesLook(pineLooks());
     ctx.rows.spawnTable(PINE_SPAWNS);
+    ctx.rows.item(PINE_ITEMS);
     ctx.rows.feat(PINE_FEATS);
     ctx.rows.compendium({ ...PINE_HOLLOW_COMPENDIUM, id: PINE_HOLLOW_COMPENDIUM.chunkId });
     const rt = runtime(ctx), world = rt.world;

@@ -1,3 +1,4 @@
+import { registerItemRow } from '../bag/itemCatalog';
 import { registerAchievements, type AchievementDef } from '../achievements';
 import { registerCompendium } from '../compendium/registry';
 import type { ShardCompendium } from '../compendium/types';
@@ -53,7 +54,7 @@ export function shardContext(ctx: LevelContext, manifest: ShardManifest, game: G
       fragment: (tab, fragment) => { live(); ctx.scope.onDispose(game.bag.fragment(tab, fragment)); },
     },
     rows: { ...ctx.rows,
-      item: (values) => add('item', values), lootTable: (values) => add('lootTable', values),
+      item: (values) => { add('item', values); const list: readonly ItemRow[] = Array.isArray(values) ? values : [values as ItemRow]; for (const value of list) ctx.scope.onDispose(registerItemRow(value)); }, lootTable: (values) => add('lootTable', values),
       skin: (values) => add('skin', values), feat: (values) => { add('feat', values); ctx.scope.onDispose(registerAchievements(manifest.slug, [...(game.rows.get('feat')?.values() ?? [])] as AchievementDef[])); },
       shop: (values) => add('shop', values), compendium: (values) => { add('compendium', values); const list: readonly (ShardCompendium & { id: string })[] = Array.isArray(values) ? values : [values as ShardCompendium & { id: string }]; for (const value of list) ctx.scope.onDispose(registerCompendium(value)); }, places: (values) => add('places', values),
     },

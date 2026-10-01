@@ -3459,6 +3459,8 @@ function originalShape(m: ShardManifest, fixture: (typeof ORIGINAL)[number]['dat
   // S2 turns former Pine-only runtime gates into declared atmosphere policy.
   const { edgeHaze: _edgeHaze, wetSurfaces: _wetSurfaces, ...atmosphere } = m.atmosphere;
   projected['atmosphere'] = atmosphere;
+  // The lazy shard factory replaces the historical selector; authored assets stay exact.
+  if (typeof m.trees.factory === 'function') projected['trees'] = { ...m.trees, factory: fixture.trees.factory };
   if (!('style' in fixture)) delete projected['style'];
   else projected['style'] = m.style === 'toon' ? 'lowpoly' : m.style === 'jiehua' ? 'pbr' : m.style;
   if (!('weapon' in fixture)) delete projected['weapon'];
