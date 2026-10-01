@@ -1,6 +1,6 @@
 # Plan: game normalization v2 (E127 → E357). The Wildshard engine: engine · game · kit · shard plugins
 
-**State:** `draft` 2026-09-30 — rewritten from scratch by E357: an audit, 8 research and code audits, and Jake's decisions 1–99 (with the revisions 12′, 28′, 55′, 90′). Every spec in [game-normalization/](game-normalization/) is written (00–13). **The council** (12 §1; decisions 81–83, 92–93, 97) has run all 4 rounds: accepted must + should went 71 → ~40 → ~17 → ~18 (round 4 did not fall), and every round-4 finding is fixed (R4-01…R4-18, d815aaf1). The battery passes 16 of 26 scenarios as walked in round 4, every failing step since fixed; 3 new scenarios make 29. Per decision 97 the next step is Jake's: mark the plan `ready`, or run one verification pass on the round-4 fixes first. Nothing is built. The lock holds: engine / game / kit until the end, and each shard's folder reopens at its milestone.
+**State:** `draft` 2026-09-30 — rewritten from scratch by E357: an audit, 8 research and code audits, and Jake's decisions 1–100 (with the revisions 12′, 28′, 55′, 90′). Every spec in [game-normalization/](game-normalization/) is written (00–13). **The council** (12 §1; decisions 81–83, 92–93, 97) has run all 4 rounds: accepted must + should went 71 → ~40 → ~17 → ~18 (round 4 did not fall), and every round-4 finding is fixed (R4-01…R4-18, d815aaf1). The battery passes 16 of 26 scenarios as walked in round 4, every failing step since fixed; 3 new scenarios make 29. Jake's decision 100: one check pass (a Codex seat, scoped to the round-4 fixes) runs now; what it finds is fixed, then the plan is `ready` and Jake is asked for the F0 go. Nothing is built. The lock holds: engine / game / kit until the end, and each shard's folder reopens at its milestone.
 
 ## Specs (the executable detail) and the definition of ready
 
@@ -463,7 +463,7 @@ F12. The table lists the rows in that order; the detail is in [02-foundations](g
 
 ## 9. Jake's decisions (E357, 2026-09-30)
 
-The verbatim table (decisions 1–99 and the revisions 12′, 28′, 55′, 90′) is in [docs/tasks/asks/E357.md](../tasks/asks/E357.md). In short:
+The verbatim table (decisions 1–100 and the revisions 12′, 28′, 55′, 90′) is in [docs/tasks/asks/E357.md](../tasks/asks/E357.md). In short:
 
 | Area | Decisions |
 |---|---|

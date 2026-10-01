@@ -9,7 +9,7 @@ spoken about."*
 
 **The protocol** (decisions 81–83, 92–93). It is built so that rounds converge rather than circle.
 
-1. **A frozen ledger.** Settled means Jake's decisions in `docs/tasks/asks/E357.md` (1–99 and the ′ revisions) plus
+1. **A frozen ledger.** Settled means Jake's decisions in `docs/tasks/asks/E357.md` (1–100 and the ′ revisions) plus
    the lead's resolutions in [13](13-lead-resolutions.md). A reviewer may reopen a settled item only with **new
    evidence** that it is wrong against the code or contradicts another settled item, never on preference. Without
    that, the finding is closed as `settled` on sight.
@@ -50,6 +50,9 @@ spoken about."*
      zero accepted should-fix.
    - After 4 rounds, what's still open goes to Jake, one recommended answer each, and the plan is `ready` after his
      answers.
+   - **After round 4 (decision 100):** its count didn't fall, so one **check pass** follows: one Codex seat checks only
+     that R4-01…R4-18 landed in every file that carries their pattern and contradict nothing, with no new scenarios and,
+     outside the fixes, must-fix only (`reviews/round-5-check.md`). What it finds is fixed, then the plan is `ready`.
 
 **The seats** (3 per round, decision 82), each a fresh agent every round (never a resumed one):
 

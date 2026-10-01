@@ -156,6 +156,7 @@ The numbers are E357's. A revision sits right after the decision it replaces.
 | 97 | The round cap stays 4: round 4 is the last review, then the open items go to Jake as decisions | 12 §1 item 8; reviews/register.md | covered |
 | 98 | No physical-iPhone readings; the Simulator nightly + budgets are the memory gate; the risk is stated | 13 R3-11′; 02 F12; 03 §14; 12 §8; 05–08 §9 | covered |
 | 99 | No phone calibration: phone budgets = the M5 calibration × the measured phone : M5 ratio (E283) | 05 S1.6; budget-design; 13 R3-F4 | covered |
+| 100 | One check pass on the round-4 fixes, then `ready` | 12 §1; reviews/round-5-check.md; index State line | covered |
 
 ## 3. The audit (`docs/audits/game-normalization-2026-09-30.md`) and the bugs found later
 
@@ -537,7 +538,7 @@ closure)
 `src/engine/combat/view/**` carve-out for the drawing blocks; 01 §13.3 gains the engine tier knob `msaa` (07 §6.2
 step 2); `move-map.json` needs F6's `src/entry.ts` amendment (02 §F6 step 1); 09 §8 Q1 / Q2 / Q11 are resolved by 13 C4 / C5.
 
-**Counts.** Table 1: 13 rows (13 covered). Table 2: one row per decision 1–99, plus the revisions 12′, 28′, 55′, 90′ and 3 unnumbered rows. Table 3: 21 +
+**Counts.** Table 1: 13 rows (13 covered). Table 2: one row per decision 1–100, plus the revisions 12′, 28′, 55′, 90′ and 3 unnumbered rows. Table 3: 21 +
 11 + 15 + 26 = 73 rows. Table 4: 25 + 18 + 22 = 65 rows. Table 5: 10 + 22 + 8 + 7 + 11 = 58 rows. Table 6: 26 rows.
 Gaps: 21 (G1–G21), all resolved (G4, G5, G8, G9 while this was written; the other 17 by 13 and the gap closure). No row
 is `partial`, `gap` or an unresolved `conflict`.
