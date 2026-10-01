@@ -43,7 +43,8 @@ import { practiceRoom } from '#engine/core/practiceRoom';
 import type { Sky } from '#engine/world/Sky';
 import type { WorldRegistry } from '#engine/world/registry';
 import { SEA_GLASS_COUNT, SEA_GLASS_FLAG } from '../quest/interactables';
-import type { Adventure } from '#game/quest/Adventure';
+import type { Adventure } from '../quest/adventure';
+import type { ShardContext } from '#game';
 import { seaGlassFound } from './finds';
 import type { Owned } from '#game/loot/Owned';
 import { charmsFor, chimeCount, dodgeCooldownScale, heavyMult, nightGlow } from './perks';
@@ -83,6 +84,8 @@ const PLAQUES = { x: 0.3, z: 2.655, up: 1.3, scale: 1.5 };
 
 export interface KeepsakeAnimal { kind: string; variant?: string | undefined; position: THREE.Vector3 }
 export interface KeepsakeHost<A extends KeepsakeAnimal> {
+  owner?: ShardContext;
+  onDeath?: (run: (animal: A) => void, order: number) => void;
   owned: Owned;
   adventure: Adventure;
   sky: Sky;
@@ -135,7 +138,8 @@ export function installKeepsakes<A extends KeepsakeAnimal>(h: KeepsakeHost<A>): 
     }
   };
   syncGlass(false);
-  flags.onChange((f) => { if (f.startsWith(SEA_GLASS_FLAG)) syncGlass(true); });
+  const offGlass = flags.onChange((f) => { if (f.startsWith(SEA_GLASS_FLAG)) syncGlass(true); });
+  h.owner?.scope.onDispose(offGlass);
 
   // ── the worn things on the body shadow, built once when first worn ──
   let hat: THREE.Object3D | null = null, cape: THREE.Object3D | null = null;
@@ -157,7 +161,8 @@ export function installKeepsakes<A extends KeepsakeAnimal>(h: KeepsakeHost<A>): 
     dress();
   };
   apply();
-  owned.onChange(apply);
+  const offOwned = owned.onChange(apply);
+  h.owner?.scope.onDispose(offOwned);
 
   // ── the trophy drops ──
   const drops = new Map<TrophyDropId, ItemPickup>();
@@ -184,9 +189,7 @@ export function installKeepsakes<A extends KeepsakeAnimal>(h: KeepsakeHost<A>): 
     };
     drops.set(id, drop);
   };
-  const prevKill = h.animals.onKill;
-  h.animals.onKill = (a) => {
-    prevKill?.(a);
+  const killed = (a: A): void => {
     if (practiceRoom.open) return;
     const id = trophyFor(a);
     if (id === null || owned.has(id)) return;
@@ -197,6 +200,11 @@ export function installKeepsakes<A extends KeepsakeAnimal>(h: KeepsakeHost<A>): 
       spawnDrop(id, new THREE.Vector3(x, adv.floorAt(x, z), z), true);
     } else spawnDrop(id, a.position, true);
   };
+  if (h.onDeath !== undefined) h.onDeath(killed, 30);
+  else {
+    const prevKill = h.animals.onKill;
+    h.animals.onKill = (a) => { prevKill?.(a); killed(a); };
+  }
   // the captain dies once: a hat left lying through a reload waits at the ring's reward spot
   if (flags.has('dead:captain') && !owned.has('captain-hat') && adv.finale) spawnDrop('captain-hat', adv.finale.rewardAt, false);
 
@@ -234,6 +242,7 @@ export function installKeepsakes<A extends KeepsakeAnimal>(h: KeepsakeHost<A>): 
       spawnDrop(id, new THREE.Vector3(x, adv.floorAt(x, z), z), true);
     },
   };
-  Object.assign(window, { __keepsakes: dev });
+  if (h.owner !== undefined) h.owner.debug.expose('keepsakes', dev);
+  else Object.assign(window, { __keepsakes: dev });
   return { chime, plaques };
 }

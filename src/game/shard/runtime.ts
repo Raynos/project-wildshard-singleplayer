@@ -1,8 +1,9 @@
-import type { World, StepRunner, Interactable, Animal, AnimalManager, EquipmentService, WeaponId, Weapon, Audio, StepSurface, Music, HUD, GameMenu, FullMap, SkinLocker, SkinDef, CombatCues, Targets, GameMenuOptions } from '#engine';
+import type { World, StepRunner, Interactable, Animal, AnimalManager, EquipmentService, WeaponId, Weapon, Audio, StepSurface, Music, HUD, GameMenu, FullMap, SkinLocker, SkinDef, CombatCues, Targets, GameMenuOptions, FirstHints, MapMark, BodyShadow } from '#engine';
 import type { Group, Vector2, Vector3 } from 'three';
 import type { Inventory } from '../Inventory';
 import type { Progress } from '../Progress';
 import type { Owned } from '../loot/Owned';
+import type { ShardSword } from './manifest';
 
 /** Services supplied by the gameplay shell after it has built the player kit and UI. */
 export interface ShardPlayHost {
@@ -10,6 +11,9 @@ export interface ShardPlayHost {
   inventory: Inventory; owned: Owned; progress: Progress; hud: HUD; menu: GameMenu; fullMap: FullMap;
   audio: Audio; music: Music; skins: SkinLocker; wearSkin: (skin: SkinDef) => void;
   touchUi: () => boolean; nolock: boolean; disposeRifleDrop: () => void; cues: CombatCues;
+  firstHints?: FirstHints;
+  minimap?: { setMarks: (source: (() => readonly MapMark[]) | null) => void } | null;
+  bodyShadow?: BodyShadow | null;
 }
 export interface ShardPlayHooks {
   wearFinish?: (id: string) => void;
@@ -21,6 +25,7 @@ export interface ShardPlayHooks {
   audioUpdate?: (dt: number) => void;
   dispose?: () => void;
   questFlags?: () => readonly string[];
+  places?: () => readonly { id: string; label: string; x: number; z: number; r: number }[];
   checkpoint?: () => boolean;
   eliteEngaged?: () => boolean;
   isElite?: (animal: Animal) => boolean;
@@ -36,7 +41,7 @@ export interface ShardRuntime {
   readonly overhead: Group[];
   readonly hooks: ShardPlayHooks;
   readonly objects: Record<string, unknown>;
-  buildEquipment?: (targets: Targets, nolock: boolean) => Promise<{ primary: Weapon; rifle: Weapon | null; secondary: Weapon | null; extras?: readonly Weapon[]; order?: readonly WeaponId[]; install?: (equipment: EquipmentService) => void }>;
+  buildEquipment?: (targets: Targets, nolock: boolean, viewmodel?: ShardSword | null) => Promise<{ primary: Weapon; rifle: Weapon | null; secondary: Weapon | null; extras?: readonly Weapon[]; order?: readonly WeaponId[]; install?: (equipment: EquipmentService) => void }>;
   menu?: Pick<GameMenuOptions, 'skins' | 'onWearSkin' | 'skinsTitle' | 'pack'>;
   viewer: () => Vector3;
   horizonVeil: { value: Vector2 } | null;

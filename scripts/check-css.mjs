@@ -56,7 +56,7 @@ const FILES = [
   { file: join(ROOT, 'src/engine/ui/styles/playgrounds.css'), prefix: 'ws-pg-', strict: true }, // the feature playgrounds' run chip (src/engine/practice/playground/hud.ts, E307)
   { file: join(ROOT, 'src/engine/ui/styles/hints.css'), prefix: 'ws-hint-', strict: true }, // first-time control hints on the touch controls (src/engine/ui/FirstHints.ts, E308)
   { file: join(ROOT, 'src/game/loot/loot.css'), prefix: 'ws-loot-', strict: true }, // the purse on the HUD: the coin chip + the "+n" pop (src/game/loot/CoinChip.ts, E314)
-  { file: join(ROOT, 'src/shards/driftwood-isle/loot/shop.css'), prefix: 'ws-shop-', strict: true }, // the trader's counter on Driftwood (src/shards/driftwood-isle/loot/ShopPanel.ts, E314 stage 2)
+  { file: join(ROOT, 'src/game/loot/ui/shop.css'), prefix: 'ws-shop-', strict: true }, // the trader's counter on Driftwood (src/shards/driftwood-isle/loot/ShopPanel.ts, E314 stage 2)
   // loading screen: owned by src/engine/ui/Loading.ts — warn only while its owner finishes the ws-load-* rename
   { file: join(ROOT, 'src/engine/ui/loading.css'), prefix: 'ws-load-', strict: false },
   // frame meter (src/engine/ui/Perf.ts) — warn only; not part of the HUD split

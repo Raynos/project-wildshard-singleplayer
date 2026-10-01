@@ -30,7 +30,7 @@ import { CoinBurst } from './CoinBurst';
 import { coinsFor, coinsOn, type LootGate } from './coins';
 import { driftwoodFinds, nextCharmAt, seaChartMarks, seaGlassFound, type FlagReader } from '#shards/driftwood-isle/loot/finds';
 import { buyGood, goodById, goodState, GOODS, maxHealthOf, swordMul, type Good } from '#shards/driftwood-isle/loot/shop';
-import { ShopPanel } from '#shards/driftwood-isle/loot/ShopPanel';
+import { ShopPanel } from './ui/ShopPanel';
 import type { MapMark } from '#engine/ui/Minimap';
 import { TRADER_NAME, type TraderStall } from '#shards/driftwood-isle/quest/TraderStall';
 import { isCosmetic, isOwnedId, OWNED, type Owned, type OwnedId } from './Owned';

@@ -1,6 +1,6 @@
 /**
  * ShopPanel — the trader's counter on Driftwood (E314 stage 2, Jake's pick board 5 **C**: one good per card, flipped with
- * ‹ ›, a big BUY button; buy only). DOM in `#hud`, styled by src/shards/driftwood-isle/loot/shop.css (prefix ws-shop-), in the baseline UI
+ * ‹ ›, a big BUY button; buy only). DOM in `#hud`, styled by src/game/loot/ui/shop.css (prefix ws-shop-), in the baseline UI
  * language: navy glass, cyan hairlines with corner brackets, letter-spaced monospace uppercase. The world stays visible
  * above the sheet (the trader at her counter); the sheet holds her one-line greeting, the purse, the card and BUY.
  *
@@ -13,7 +13,7 @@
  * Input: ‹ › (or a swipe on the card, ← →) flips; BUY (or Enter / Space) buys the card shown; CLOSE, Esc or E closes.
  */
 import './shop.css';
-import { icon, type IconId } from '#engine/ui/icons';
+import { icon, type IconId } from '#engine';
 
 export interface ShopGood { id: string; name: string; does: string; icon: IconId; price: number }
 export type ShopState = 'owned' | 'locked' | 'short' | 'buy';
@@ -59,7 +59,9 @@ export class ShopPanel<G extends ShopGood> {
     e.preventDefault(); e.stopPropagation();
   };
 
-  constructor(private readonly o: ShopOpts<G>) {
+  private readonly o: ShopOpts<G>;
+  constructor(o: ShopOpts<G>) {
+    this.o = o;
     this.root = el('div', 'ws-shop');
     const top = el('div', 'ws-shop-top', this.root);
     const close = el('button', 'ws-shop-close', top, `<i>${CROSS}</i>Close`);
