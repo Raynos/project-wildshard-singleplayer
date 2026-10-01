@@ -11,7 +11,7 @@ import { TRADES, ammoOf, mottLine, tradeState } from '#shards/pine-hollow/quest/
 import { ELITE_TARGETS, contractFor, draw } from '#shards/pine-hollow/quest/contracts';
 import { restoreKept } from '#shards/pine-hollow/loadout/loadout';
 import { finishPick, pineFinishes } from '#shards/pine-hollow/loadout/finishes';
-import { SkinLocker } from '#engine/player/Skins';
+import { SkinLocker } from '#game';
 import { SKINS, PINE_FINISHES } from '#shards/pine-hollow/loadout/skins';
 
 const PINE = 'chunk://local/pine-hollow';

@@ -1,3 +1,4 @@
+import type { SkinLocker } from '#game';
 import { app, type Game, type Sky, type Player, type EquipmentService, type Weapon, lineOfSight, canReach } from '#engine';
 import * as THREE from 'three';
 
@@ -7,7 +8,7 @@ import type { AnimalManager } from '#engine/entities/AnimalManager';
 import type { Animal } from '#engine/entities/Animal';
 
 import { Crossbow, MAX_BOLTS, crossbowDisplayModel } from '#kit';
-import { applySkin, type SkinDef, type SkinLocker } from '#engine/player/Skins';
+import { applySkin, type SkinDef } from '#engine/player/Skins';
 import { SKINS, type SkinId } from '../loadout/skins';
 import { CameraFX } from '#engine/player/CameraFX';
 import type { Inventory } from '#game/Inventory';

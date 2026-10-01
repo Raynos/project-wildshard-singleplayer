@@ -9,7 +9,7 @@ import { pineFinishEffect } from './effects';
  *   pineFinishes(locker) → SkinRow[]           (Menu's `skins`)
  *   finishPick(locker, id) → 'wear' | 'off' | null   (what a tap does: main.ts applies it to the weapon's model)
  */
-import type { SkinLocker } from '#engine/player/Skins';
+import type { SkinLocker } from '#game';
 import { SKINS, type SkinId } from './skins';
 import type { SkinRow } from '#engine/ui/Menu';
 

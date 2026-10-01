@@ -1,11 +1,8 @@
-import * as v from 'valibot';
-import { saves } from '../saves/runtime';
 import * as THREE from 'three';
 import type { WeaponId } from '../combat/Equipment';
 import type { Sky } from '../world/Sky';
 import { fixIBL, isMesh, VIEWMODEL_GROUP } from '#engine/combat/view/ranged';
 
-const skinSave = saves.define({ key: 'skins', scope: 'shard', version: 1, schema: v.object({ owned: v.array(v.string()), worn: v.record(v.string(), v.string()) }), initial: () => ({ owned: [] as string[], worn: {} as Record<string, string> }) });
 
 /** Material cosmetics supplied by the host's registered rows. */
 export type WeaponKind = WeaponId;
@@ -94,33 +91,3 @@ export function clearSkin(root: THREE.Object3D): void {
   STATE.delete(root);
 }
 
-// ───────────────────────────── ownership ─────────────────────────────
-
-
-/** What this level owns and what each weapon wears; persisted independently per namespace. */
-export class SkinLocker {
-  private owned = new Set<SkinId>();
-  private worn: Partial<Record<WeaponKind, SkinId>> = {};
-  private readonly rows: ReadonlyMap<string, SkinDef>;
-  constructor(private readonly namespace: string, rows: readonly SkinDef[] = []) {
-    this.rows = new Map(rows.map((row) => [row.id, row]));
-    try {
-      const saved = skinSave.read(this.namespace);
-      for (const id of saved.owned) if (this.rows.has(id)) this.owned.add(id);
-      for (const [weapon, id] of Object.entries(saved.worn)) {
-        const row = this.rows.get(id);
-        if (row?.weapon === weapon && this.owned.has(id)) this.worn[row.weapon] = id;
-      }
-    } catch { /* defaults */ }
-  }
-  private save(): void { try { skinSave.write({ owned: [...this.owned], worn: this.worn }, this.namespace); } catch { /* not persisted */ } }
-  has(id: SkinId): boolean { return this.owned.has(id); }
-  own(id: SkinId): void { if (this.rows.has(id) && !this.owned.has(id)) { this.owned.add(id); this.save(); } }
-  /** The row this weapon wears, if any. */
-  wearing(weapon: WeaponKind): SkinDef | null { const id = this.worn[weapon]; return id === undefined ? null : this.rows.get(id) ?? null; }
-  wear(weapon: WeaponKind, id: SkinId | null): void {
-    if (id !== null && (!this.owned.has(id) || this.rows.get(id)?.weapon !== weapon)) return;
-    if (id !== null) this.worn[weapon] = id; else delete this.worn[weapon];
-    this.save();
-  }
-}

@@ -68,7 +68,6 @@ export { Hands } from '../player/Hands';
 export { CameraFX } from '../player/CameraFX';
 export { WeaponStrip } from '../ui/WeaponStrip';
 export { hudSlots } from '../ui/hudSlots';
-export { SkinLocker } from '../player/Skins';
 export { applySkin } from '../player/Skins';
 export { LockOn } from '../ui/LockOn';
 export { SpeedLines } from '../ui/SpeedLines';

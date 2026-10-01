@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { SkinLocker, type SkinDef } from '#engine/player/Skins';
+import { SkinLocker } from '#game';
+import type { SkinDef } from '#engine';
 import { saveFixture } from '../fake/saveFixture';
 
 const rows: readonly SkinDef[] = [

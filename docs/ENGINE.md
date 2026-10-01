@@ -1023,6 +1023,8 @@ x, z, yaw, variant)` and `.retire(animal)` are how the template spawns today.
 | Cosmetics | `BodyShadow`, `installBodyShadow` | `manifest.bodyShadow` |
 | Template | `installTemplateDebug` | the Debug ▸ Developer tools entry that opens a hidden level |
 
+`CosmeticsLocker<Slot, Row>` (`#game`) owns registered cosmetics, validates saved ownership and slot matches, and provides `own`, `wear`, `toggle`, `wearing`, `entries`, `version` and `onChange`. A `CosmeticProfile` supplies a slot selector, save slot and optional `autoWear` for empty slots. `SkinLocker` is the weapon-material profile (`SkinDef.weapon`), using the existing per-shard `skins` save with manual wear; Nalati supplies its own saved skin rows and auto-wear policy.
+
 The game's quest wiring sits on the engine's quest core: `QuestState`, `QuestLine`, `lineFor`, `validateQuest`,
 `CHIP_MAX`, `QuestDef`, `QuestStep`, `QuestMarker`, `NpcDef`, `DialogueEntry`, `QuestChip`, `NpcTalk`, `loadQuest`
 (all `#engine`). The template's quest:
@@ -1160,7 +1162,7 @@ sections above describe what to use; this list is the complete inventory.
 
 ### `#engine` (`src/engine/index.ts`)
 
-680 exports, grouped by the module they come from.
+679 exports, grouped by the module they come from.
 
 - `./core/devMode`: `isDev`, `onDev`, `setDev`
 - `./core/config`: `CHUNK_HALF`, `ROAD_LENGTH`, `SEED`, `CHUNK_SIZE`, `CHUNK_DEPTH`, `TERRAIN_RES`
@@ -1277,7 +1279,7 @@ sections above describe what to use; this list is the complete inventory.
 - `./audio/Audio`: `Audio`, `StepSurface`, `AnimalSound`, `HoofSurface`, `ImpactKind`
 - `./ui/HUD`: `HUD`
 - `./ui/Map`: `FullMap`, `FullMapPoi`, `MapQuest`
-- `./player/Skins`: `SkinLocker`, `SkinDef`
+- `./player/Skins`: `SkinDef`
 - `./contentApi`: `loadWorldContent`
 - `./entities/Animal`: `Animal`
 - `./combat/view/rangedFeel`: `installRangedFeel`, `RangedFeelProfile`
@@ -1376,7 +1378,7 @@ sections above describe what to use; this list is the complete inventory.
 
 ### `#game` (`src/game/index.ts`)
 
-93 exports, grouped by the module they come from.
+98 exports, grouped by the module they come from.
 
 - `./equipmentTypes`: `EquipmentRow`
 - `./shard/plugin`: `ShardPlugin`
@@ -1407,6 +1409,7 @@ sections above describe what to use; this list is the complete inventory.
 - `./shard/world`: `ShardWorld`
 - `./shard/templateDebug`: `installTemplateDebug`
 - `./loot/CoinBurst`: `CoinBurst`
+- `./cosmetics/locker`: `CosmeticsLocker`, `SkinLocker`, `CosmeticDef`, `CosmeticProfile`, `CosmeticState`
 - `(local)`: `GAME_API`
 
 ### `#kit` (`src/kit/index.ts`)

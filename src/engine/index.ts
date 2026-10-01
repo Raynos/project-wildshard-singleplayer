@@ -146,7 +146,7 @@ export type { Music } from './audio/Music';
 export type { HUD } from './ui/HUD';
 export type { GameMenu, GameMenuOptions } from './ui/Menu';
 export type { FullMap } from './ui/Map';
-export type { SkinLocker, SkinDef } from './player/Skins';
+export type { SkinDef } from './player/Skins';
 export { loadWorldContent } from './contentApi';
 export type { Animal } from './entities/Animal';
 export { installRangedFeel, type RangedFeelProfile } from './combat/view/rangedFeel';

@@ -1,3 +1,4 @@
+import { SkinLocker } from '../cosmetics/locker';
 import { equipmentEntry, toolEntries } from '../bag/equipment';
 import type { WeaponId, SkinDef, DeathCause, AimTarget, Feedback, Explore, ExploreMode, Playground, PlaygroundId, Bucket } from '#engine';
 import { installBodyShadow, isOwnedId, bindTravelInventory, applyTravelCarry } from '../index';
@@ -14,7 +15,7 @@ import { describeKeyBindings } from '../keyBindings';
 
 async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
   const { engine, manifest, boot, session, kit, files, step, menuLoad, world, game, sky, player, params, chunk, registry, nolock, viewer, boundary, horizon, interactables, prepareAudio, animals, arena, swimArms, crossbow, rifle, longbow, weapons, lockSys, touchControls, hud } = ctx;
-  const { app, EffectService, CombatCues, installBounds, CHUNK_HALF, getNumber, onNumber, floorBelow, lineOfSight, tap, Hands, CameraFX, WeaponStrip, hudSlots, SkinLocker, applySkin, LockOn, SpeedLines, buzz, HAPTIC, Perf, Minimap, FullMap, GameMenu, practiceRoom, KeepAlive, Combat, aimReadout, HurtArc, deathCause, respawnWhere, PlayerHealth, PlayerHurt, installPlayerDeath, WindupWarn, DeathFade, FirstHints, setAimTargets, meleeLock, macrotask, startMenuPreload, onReview, queuedCount, quickNote, rotateGated, loadPlayground, TIER, frameCost, Impacts, activePhysics, pickInteractable, beginExploreEntry, recordBootCheckpoint, isDev } = engine;
+  const { app, EffectService, CombatCues, installBounds, CHUNK_HALF, getNumber, onNumber, floorBelow, lineOfSight, tap, Hands, CameraFX, WeaponStrip, hudSlots, applySkin, LockOn, SpeedLines, buzz, HAPTIC, Perf, Minimap, FullMap, GameMenu, practiceRoom, KeepAlive, Combat, aimReadout, HurtArc, deathCause, respawnWhere, PlayerHealth, PlayerHurt, installPlayerDeath, WindupWarn, DeathFade, FirstHints, setAimTargets, meleeLock, macrotask, startMenuPreload, onReview, queuedCount, quickNote, rotateGated, loadPlayground, TIER, frameCost, Impacts, activePhysics, pickInteractable, beginExploreEntry, recordBootCheckpoint, isDev } = engine;
 
   let playground: Playground | null = null;
   const away = (): boolean => arena.entered || playground?.entered === true;

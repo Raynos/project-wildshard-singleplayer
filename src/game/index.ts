@@ -51,3 +51,5 @@ export type { ShardWorld } from './shard/world';
 export { installTemplateDebug } from './shard/templateDebug';
 
 export { CoinBurst } from './loot/CoinBurst';
+
+export { CosmeticsLocker, SkinLocker, type CosmeticDef, type CosmeticProfile, type CosmeticState } from './cosmetics/locker';

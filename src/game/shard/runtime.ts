@@ -1,6 +1,7 @@
+import type { SkinLocker } from '../cosmetics/locker';
 import type { ShardWorld } from './world';
 import type { BodyShadow } from '../cosmetics/bodyShadow';
-import type { StepRunner, Interactable, Animal, AnimalManager, EquipmentService, WeaponId, Weapon, Audio, StepSurface, Music, HUD, GameMenu, FullMap, SkinLocker, SkinDef, CombatCues, Targets, GameMenuOptions, FirstHints, MapMark } from '#engine';
+import type { StepRunner, Interactable, Animal, AnimalManager, EquipmentService, WeaponId, Weapon, Audio, StepSurface, Music, HUD, GameMenu, FullMap, SkinDef, CombatCues, Targets, GameMenuOptions, FirstHints, MapMark } from '#engine';
 import type { Group, Vector2, Vector3 } from 'three';
 import type { Inventory } from '../Inventory';
 import type { Progress } from '../Progress';

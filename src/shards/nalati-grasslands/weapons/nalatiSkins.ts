@@ -1,3 +1,4 @@
+import { CosmeticsLocker } from '#game';
 import { EffectService, type EffectTarget } from '#engine';
 import { nalatiSkinEffect } from './effects';
 import * as THREE from 'three';
@@ -43,62 +44,17 @@ export const NALATI_SKINS: readonly NalatiSkinDef[] = [
   { id: 'night-rider-mount', slot: 'mount', name: 'Night Rider', blurb: 'Mount skin · black barding, a spectral glow' },
   { id: 'sky-marked-saddle', slot: 'mount', name: 'Sky-Marked Saddle', blurb: 'Mount skin · white-and-blue felt, a lightning blaze' },
 ];
-const byId = (id: string): NalatiSkinDef | undefined => NALATI_SKINS.find((s) => s.id === id);
-
-export class NalatiSkinLocker {
+/** Nalati profile: auto-wear bare slots and synchronize the authored skin effects. */
+export class NalatiSkinLocker extends CosmeticsLocker<NalatiSkinSlot, NalatiSkinDef> {
   readonly effects = new EffectService(NALATI_SKINS.map((skin) => nalatiSkinEffect(skin.id, skin.slot)));
   readonly effectTarget: EffectTarget = { attributes: {} };
-  readonly owned = new Set<string>();
-  readonly worn: Partial<Record<NalatiSkinSlot, string>> = {};
-  /** bumps on every change (the painter re-applies) */
-  version = 0;
-  onChange?: (() => void) | undefined;
-
   constructor() {
-    try {
-      const s = savedSlot.read('nalati-grasslands');
-      if (Array.isArray(s.owned)) for (const id of s.owned) if (typeof id === 'string' && byId(id)) this.owned.add(id);
-      if (typeof s.worn === 'object') {
-        for (const [slot, id] of Object.entries(s.worn as Record<string, unknown>)) {
-          if (typeof id !== 'string') continue;
-          const d = byId(id);
-          if (d?.slot === slot && this.owned.has(id)) this.worn[d.slot] = d.id;
-        }
-      }
-    } catch { /* a fresh locker */ }
+    super('nalati-grasslands', NALATI_SKINS, { save: savedSlot, autoWear: true, slot: (row) => row.slot });
+    this.changed = () => { this.syncEffects(); };
     this.syncEffects();
   }
-
   private syncEffects(): void {
     this.effects.sync(this.effectTarget, Object.values(this.worn).map((id) => ({ id: `effect.skin.${id}` })));
-  }
-  private save(): void {
-    this.syncEffects();
-    this.version++;
-    try { savedSlot.write({ owned: [...this.owned], worn: this.worn }, 'nalati-grasslands'); } catch { /* not persisted */ }
-    this.onChange?.();
-  }
-
-  /** a skin taken (idempotent): worn at once if nothing is worn in its slot */
-  own(id: string): void {
-    const d = byId(id);
-    if (d === undefined || this.owned.has(id)) return;
-    this.owned.add(id);
-    this.worn[d.slot] ??= id;
-    this.save();
-  }
-  /** wear it (taking off whatever was in the slot), or take it off if it is on */
-  toggle(id: string): void {
-    const d = byId(id);
-    if (d === undefined || !this.owned.has(id)) return;
-    if (this.worn[d.slot] === id) delete this.worn[d.slot]; else this.worn[d.slot] = id;
-    this.save();
-  }
-  wearing(slot: NalatiSkinSlot): string | null { return this.worn[slot] ?? null; }
-  entries(): NalatiSkinEntry[] {
-    const out: NalatiSkinEntry[] = [];
-    for (const d of NALATI_SKINS) if (this.owned.has(d.id)) out.push({ id: d.id, slot: d.slot, name: d.name, blurb: d.blurb, worn: this.worn[d.slot] === d.id });
-    return out;
   }
 }
 
@@ -139,7 +95,7 @@ export class NalatiSkinPainter {
       for (const [a] of this.dressed) this.undress(a);
     }
     // the mount skin: the horse under you and your bonded horse
-    const skin = this.locker.wearing('mount');
+    const skin = this.locker.wearing('mount')?.id ?? null;
     const want = new Set<Animal>();
     if (skin !== null) { const mounted = this.t.mounted?.() ?? null; if (mounted !== null) want.add(mounted); const tp = this.t.tulpar(); if (tp !== null && tp.alive && !tp.hidden) want.add(tp); }
     for (const [a, d] of this.dressed) if (!want.has(a) || d.skin !== skin) this.undress(a);
