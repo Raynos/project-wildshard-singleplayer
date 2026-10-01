@@ -435,7 +435,10 @@ export class AnimalManager {
   /** a melee shard (the sword): telegraphed charges, attacks on an arc (see the header) */
   private readonly melee = meleeShard(getActiveChunk()); // Driftwood's swords, Nalati's sabre / spear
   /** E297: the shard's fight rules (Driftwood), null = the old fights (see the header) */
-  private readonly rules = getActiveChunk().fight ?? null;
+  private readonly rules = (() => {
+    const fight = getActiveChunk().fight;
+    return fight?.attackers === undefined || !Number.isFinite(fight.attackers) ? null : fight;
+  })();
   /** E322 F-L4: Pine Hollow's animals part the grass (Nalati's Wildlife feeds the same map its own way) */
   private readonly trampling = getActiveChunk().slug === 'pine-hollow';
   /** E297: the attack tokens — at most `rules.maxAttackers` attacking at once */
