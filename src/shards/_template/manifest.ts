@@ -1,4 +1,4 @@
-import { buildTerrain } from '#engine';
+import { buildTerrain } from '#engine/data';
 import type { ShardManifest } from '#game';
 import { STRINGS } from './strings';
 import { TRAIL } from './layout';
