@@ -30,13 +30,19 @@ change the post-unload event count from 3 to 5; scoped resources still return to
 
 Focused suite: **38/38** tests, including an actual Rapier capsule at 22 m/s, buffered consume ordering, repeated
 context ownership release, practice fallback, miss shot, HUD pin/relabel restoration, Bag metadata and playgrounds.
+The clean exported `fd9da1bb` runtime with `6a9911ce`'s test-only WASM loader fix also passes **38/38**.
 Whole working typecheck and owned lint passed before the proof commit. Clean export `fd9da1bb` passes CSS,
 generation, app/API typecheck and whole oxlint; Vite builds successfully for its browser runs.
 
-The combined Vercel gate stops at sibling S2.1/S2.4 boundary-ratchet rises. A separate clean exported full Vitest run
+The earlier combined Vercel gate stops at sibling S2.1/S2.4 boundary-ratchet rises. A separate clean exported full Vitest run
 found the new nested Fei Zhua WASM-inline fs denial (fixed here), Pine's pre-existing undefined-variant mapping
 fixture, and S2.2's `longbowView.ts` model-contract rule (owners notified). The lead must rerun the clean whole
 gate after those checkpoints. No push, deployment or pin movement by this builder.
+
+The latest gate on proof commit `6a9911ce` stops at generation instead: its newer shared node import graph reaches
+`src/engine/models/weld.ts:218`, whose constructor parameter property is unsupported by Node's strip-only loader.
+S2.1/S2.2/S2.4 and the lead have the exact logs in `/private/tmp/e357-s14/gate-proof.log`.
+Queued for the lead after that graph is corrected: `bash scripts/vercel-tree-gate.sh HEAD`.
 
 `onTryToggle`, `onJumpRequest`, `traversalStep` and `touchHint` no longer occur in `src/`. Outside the shard,
 the Nine Dragon slug occurs only in generated data. The historic `ws.nineBoot` legacy save migration key remains.
