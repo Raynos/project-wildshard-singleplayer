@@ -96,6 +96,9 @@ jobs:
       - name: Facade instancing (E271, Nine Dragon only)   # every job that posts a status runs it (R3-10)
         if: matrix.shard == 'nine-dragon-stack' && (matrix.mode == 'compare' || matrix.mode == 'bootstrap')
         run: node scripts/test-facade-instancing.mjs --url=http://127.0.0.1:4400
+      - name: Template gameplay contract (Z1)   # hut walk, a whip kill by touch input, unload census
+        if: matrix.shard == '_template' && (matrix.mode == 'compare' || matrix.mode == 'bootstrap')
+        run: node scripts/test-template-gate.mjs --url=http://127.0.0.1:4400 --out=parity-out/template
       - name: Per-shard status   # compare and bootstrap only; never from a record, prove or plant dispatch (R1-35)
         if: always() && (matrix.mode == 'compare' || matrix.mode == 'bootstrap') && inputs.plant == ''
         env: { GH_TOKEN: '${{ github.token }}' }
