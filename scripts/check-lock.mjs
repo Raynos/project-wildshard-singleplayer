@@ -43,6 +43,10 @@ export function allowGlobs(slug, extra) {
     `art/${slug}/**`,
     `scripts/blender/${slug}/**`,
     'docs/tasks/asks/**',
+    // generated from the shard folders / Debug rows (E362 AG14, X8): a new shard's lane must regenerate them, and
+    // `pnpm gen` + `gen-shards --check` in CI prove their content, so the lock allows them whole (Z3, 2026-10-01)
+    'lint/shard-words.generated.json',
+    'lint/ask-ids.json',
     ...defaultAssetGlobs(slug),
     ...extra,
   ];
