@@ -32,6 +32,7 @@ export const FAR_REACH: ShardManifest = {
   audio: { bed: 'forest', ambience: 'kit.ambience.forest', score: 'far-reach.silent', cues: async () => (await import('./audio/cues')).CUES,
     preload: async () => (await import('#kit')).createForestAudio() },
   boot: { files: bootFiles, sources: bootSources, viewmodelSets: [], shaders: { background: false }, audio: () => Promise.resolve([]), precache: [] },
+  assetGlobs: ['public/assets/far-reach/**'],
   explore: EXPLORE, roster: async () => (await import('./roster')).ROSTER, load: () => import('./plugin'),
 };
 // oxlint-disable-next-line import/no-default-export -- Folder discovery requires a default manifest.

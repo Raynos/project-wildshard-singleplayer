@@ -35,7 +35,7 @@ export class WarFan extends Weapon {
   constructor(app: App, targets: Targets | null = null, actorFor: (animal: TargetAnimal) => Actor | null = () => null, foes: () => readonly GustTarget[] = () => []) {
     super(FAN_ROW); this.app = app; this.targets = targets; this.actorFor = actorFor; this.foes = foes; this.contact = blocks.melee(app.combat);
     this.blocks.vm = this.vm; this.blocks.melee = this.contact;
-    this.model.add(this.fan); this.model.position.set(0.27, -0.3, -0.62); this.model.rotation.set(-0.2, -0.35, -0.25);
+    this.model.add(this.fan); this.fan.scale.setScalar(0.45); this.model.position.set(0.13, -0.25, -0.55); this.model.rotation.set(-0.2, -0.35, -0.25);
   }
   override install(ctx: EquipContext): void {
     super.install(ctx);
@@ -90,7 +90,7 @@ export class WarFan extends Weapon {
     const swing = Math.sin(this.swingT / 0.28 * Math.PI), gust = Math.sin(this.gustT / 0.45 * Math.PI);
     this.model.rotation.y = -0.35 + this.spring.yaw + swing * 0.9;
     this.model.rotation.z = -0.25 - swing * 0.6;
-    this.model.position.z = -0.62 - gust * 0.12;
+    this.model.position.z = -0.55 - gust * 0.1;
     this.fan.rotation.x = -gust * 0.9;
   }
 }

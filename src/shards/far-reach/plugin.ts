@@ -63,6 +63,9 @@ export class FarReachPlugin extends ShardPlugin {
   override play(ctx: ShardContext): void {
     const rt = ctx.game.runtime, position = rt?.world?.player.position ?? this.player, sky = this.sky;
     if (sky === null) throw new Error('Sky Reach play before world');
+    // API gap 8 (E364): a viewmodel added to the camera (the template's way) draws only while the camera is in the scene
+    const view = rt?.world?.game;
+    if (view?.camera.parent === null) { view.scene.add(view.camera); ctx.scope.onDispose(() => { view.camera.removeFromParent(); }); }
     if (rt?.play) { installSilentScore(rt.play.music, ctx.scope); installForestAmbience(rt.play.audio, ctx.scope); installSkyCues(rt.play.audio, rt.play.cues, ctx.scope); }
     const quest = installQuest(ctx, position); this.quest = quest.quest; this.flags = quest.flags;
     if (quest.saved) { sky.fallen.raise = 1; sky.fallen.raised = true; sky.fallen.pivot.rotation.x = sky.fallen.deck.pitch; sky.winch.label = STRINGS.fallen; }
