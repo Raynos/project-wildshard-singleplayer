@@ -1,0 +1,788 @@
+{
+  "recordedRuntime": "479cc5fb54ec23c4272c35df3d1e5b3d59767c39",
+  "validationCandidate": "1c37a5030b08a1d1765ce7c3adabb2d354661d35",
+  "recordRuns": 3,
+  "recordPairs": 10,
+  "compareRetry": 0,
+  "pairs": [
+    {
+      "pair": "_template.desktop",
+      "verdict": "green",
+      "redFields": [],
+      "pendingFields": []
+    },
+    {
+      "pair": "_template.phone",
+      "verdict": "green",
+      "redFields": [],
+      "pendingFields": []
+    },
+    {
+      "pair": "driftwood-isle.desktop",
+      "verdict": "green",
+      "redFields": [],
+      "pendingFields": []
+    },
+    {
+      "pair": "driftwood-isle.phone",
+      "verdict": "green",
+      "redFields": [],
+      "pendingFields": []
+    },
+    {
+      "pair": "nalati-grasslands.desktop",
+      "verdict": "green",
+      "redFields": [],
+      "pendingFields": []
+    },
+    {
+      "pair": "nalati-grasslands.phone",
+      "verdict": "green",
+      "redFields": [],
+      "pendingFields": []
+    },
+    {
+      "pair": "nine-dragon-stack.desktop",
+      "verdict": "green",
+      "redFields": [],
+      "pendingFields": []
+    },
+    {
+      "pair": "nine-dragon-stack.phone",
+      "verdict": "green",
+      "redFields": [],
+      "pendingFields": []
+    },
+    {
+      "pair": "pine-hollow.desktop",
+      "verdict": "green",
+      "redFields": [],
+      "pendingFields": []
+    },
+    {
+      "pair": "pine-hollow.phone",
+      "verdict": "green",
+      "redFields": [],
+      "pendingFields": []
+    }
+  ],
+  "corruptBaselineRedFields": [
+    {
+      "pair": "_template.desktop.json",
+      "fields": []
+    },
+    {
+      "pair": "_template.phone.json",
+      "fields": []
+    },
+    {
+      "pair": "driftwood-isle.desktop.json",
+      "fields": []
+    },
+    {
+      "pair": "driftwood-isle.phone.json",
+      "fields": [
+        "walk.sounds.event"
+      ]
+    },
+    {
+      "pair": "nalati-grasslands.desktop.json",
+      "fields": [
+        "walk.sounds.event",
+        "combat.sounds.event"
+      ]
+    },
+    {
+      "pair": "nalati-grasslands.phone.json",
+      "fields": [
+        "walk.sounds.event",
+        "combat.sounds.event"
+      ]
+    },
+    {
+      "pair": "nine-dragon-stack.desktop.json",
+      "fields": [
+        "walk.sounds.event",
+        "combat.sounds.event"
+      ]
+    },
+    {
+      "pair": "nine-dragon-stack.phone.json",
+      "fields": [
+        "walk.sounds.event",
+        "combat.sounds.event"
+      ]
+    },
+    {
+      "pair": "pine-hollow.desktop.json",
+      "fields": [
+        "walk.sounds.event"
+      ]
+    },
+    {
+      "pair": "pine-hollow.phone.json",
+      "fields": [
+        "walk.sounds.event"
+      ]
+    }
+  ],
+  "solM2Coverage": [
+    {
+      "pair": "_template.desktop.json",
+      "redFields": 0,
+      "unclassified": []
+    },
+    {
+      "pair": "_template.phone.json",
+      "redFields": 0,
+      "unclassified": []
+    },
+    {
+      "pair": "driftwood-isle.desktop.json",
+      "redFields": 8,
+      "unclassified": []
+    },
+    {
+      "pair": "driftwood-isle.phone.json",
+      "redFields": 8,
+      "unclassified": []
+    },
+    {
+      "pair": "nalati-grasslands.desktop.json",
+      "redFields": 15,
+      "unclassified": []
+    },
+    {
+      "pair": "nalati-grasslands.phone.json",
+      "redFields": 15,
+      "unclassified": []
+    },
+    {
+      "pair": "nine-dragon-stack.desktop.json",
+      "redFields": 16,
+      "unclassified": []
+    },
+    {
+      "pair": "nine-dragon-stack.phone.json",
+      "redFields": 17,
+      "unclassified": []
+    },
+    {
+      "pair": "pine-hollow.desktop.json",
+      "redFields": 5,
+      "unclassified": []
+    },
+    {
+      "pair": "pine-hollow.phone.json",
+      "redFields": 8,
+      "unclassified": []
+    }
+  ],
+  "deferredBankTraces": {
+    "parent-narrow": [
+      {
+        "run": "run-1",
+        "trace": [
+          {
+            "type": "cue-fail",
+            "ready": true,
+            "hasBank": false,
+            "opts": {
+              "surface": "rock",
+              "sprinting": false
+            },
+            "frame": 14,
+            "pos": {
+              "x": 15.484907674771023,
+              "z": 5.99996784683629
+            }
+          },
+          {
+            "type": "cue-fail",
+            "ready": true,
+            "hasBank": false,
+            "opts": {
+              "surface": "rock",
+              "sprinting": false
+            },
+            "frame": 25,
+            "pos": {
+              "x": 17.061170305293274,
+              "z": 5.999962079275091
+            }
+          },
+          {
+            "type": "cue-fail",
+            "ready": true,
+            "hasBank": false,
+            "opts": {
+              "surface": "rock",
+              "sprinting": false
+            },
+            "frame": 36,
+            "pos": {
+              "x": 18.637833002191257,
+              "z": 5.999980088624644
+            }
+          },
+          {
+            "type": "bank-ready",
+            "frame": 39
+          }
+        ]
+      }
+    ],
+    "narrow-repeat": [
+      {
+        "run": "run-1",
+        "trace": [
+          {
+            "type": "cue-fail",
+            "ready": true,
+            "hasBank": false,
+            "opts": {
+              "surface": "rock",
+              "sprinting": false
+            },
+            "frame": 14,
+            "pos": {
+              "x": 15.484907674771023,
+              "z": 5.99996784683629
+            }
+          },
+          {
+            "type": "cue-fail",
+            "ready": true,
+            "hasBank": false,
+            "opts": {
+              "surface": "rock",
+              "sprinting": false
+            },
+            "frame": 25,
+            "pos": {
+              "x": 17.061170305293274,
+              "z": 5.999962079275091
+            }
+          },
+          {
+            "type": "cue-fail",
+            "ready": true,
+            "hasBank": false,
+            "opts": {
+              "surface": "rock",
+              "sprinting": false
+            },
+            "frame": 36,
+            "pos": {
+              "x": 18.637833002191257,
+              "z": 5.999980088624644
+            }
+          },
+          {
+            "type": "bank-ready",
+            "frame": 45
+          }
+        ]
+      },
+      {
+        "run": "run-2",
+        "trace": [
+          {
+            "type": "cue-fail",
+            "ready": true,
+            "hasBank": false,
+            "opts": {
+              "surface": "rock",
+              "sprinting": false
+            },
+            "frame": 14,
+            "pos": {
+              "x": 15.484907674771023,
+              "z": 5.99996784683629
+            }
+          },
+          {
+            "type": "cue-fail",
+            "ready": true,
+            "hasBank": false,
+            "opts": {
+              "surface": "rock",
+              "sprinting": false
+            },
+            "frame": 25,
+            "pos": {
+              "x": 17.061170305293274,
+              "z": 5.999962079275091
+            }
+          },
+          {
+            "type": "cue-fail",
+            "ready": true,
+            "hasBank": false,
+            "opts": {
+              "surface": "rock",
+              "sprinting": false
+            },
+            "frame": 36,
+            "pos": {
+              "x": 18.637833002191257,
+              "z": 5.999980088624644
+            }
+          },
+          {
+            "type": "bank-ready",
+            "frame": 46
+          }
+        ]
+      },
+      {
+        "run": "run-3",
+        "trace": [
+          {
+            "type": "cue-fail",
+            "ready": true,
+            "hasBank": false,
+            "opts": {
+              "surface": "rock",
+              "sprinting": false
+            },
+            "frame": 14,
+            "pos": {
+              "x": 15.484907674771023,
+              "z": 5.99996784683629
+            }
+          },
+          {
+            "type": "cue-fail",
+            "ready": true,
+            "hasBank": false,
+            "opts": {
+              "surface": "rock",
+              "sprinting": false
+            },
+            "frame": 25,
+            "pos": {
+              "x": 17.061170305293274,
+              "z": 5.999962079275091
+            }
+          },
+          {
+            "type": "cue-fail",
+            "ready": true,
+            "hasBank": false,
+            "opts": {
+              "surface": "rock",
+              "sprinting": false
+            },
+            "frame": 36,
+            "pos": {
+              "x": 18.637833002191257,
+              "z": 5.999980088624644
+            }
+          },
+          {
+            "type": "bank-ready",
+            "frame": 44
+          }
+        ]
+      }
+    ]
+  },
+  "repeatSoundMembership": [
+    {
+      "capture": "e357-lead-accept",
+      "run": "run-1",
+      "pair": "nalati-grasslands.desktop",
+      "walkRock": 0,
+      "combatAmbient": [
+        "steppe.herd",
+        "steppe.marmot"
+      ]
+    },
+    {
+      "capture": "e357-lead-accept",
+      "run": "run-1",
+      "pair": "nine-dragon-stack.phone",
+      "walkRock": 0,
+      "combatAmbient": [
+        "nd.audio.tick"
+      ]
+    },
+    {
+      "capture": "e357-lead-accept",
+      "run": "run-1",
+      "pair": "pine-hollow.desktop",
+      "walkRock": 0,
+      "combatAmbient": [
+        "forest.thrall"
+      ]
+    },
+    {
+      "capture": "e357-lead-accept",
+      "run": "run-1",
+      "pair": "pine-hollow.phone",
+      "walkRock": 0,
+      "combatAmbient": [
+        "forest.thrall",
+        "pineLife.woodpecker"
+      ]
+    },
+    {
+      "capture": "e357-lead-accept",
+      "run": "run-2",
+      "pair": "nalati-grasslands.desktop",
+      "walkRock": 0,
+      "combatAmbient": [
+        "steppe.herd",
+        "steppe.marmot"
+      ]
+    },
+    {
+      "capture": "e357-lead-accept",
+      "run": "run-2",
+      "pair": "nine-dragon-stack.phone",
+      "walkRock": 0,
+      "combatAmbient": [
+        "nd.audio.tick"
+      ]
+    },
+    {
+      "capture": "e357-lead-accept",
+      "run": "run-2",
+      "pair": "pine-hollow.desktop",
+      "walkRock": 0,
+      "combatAmbient": [
+        "forest.thrall"
+      ]
+    },
+    {
+      "capture": "e357-lead-accept",
+      "run": "run-2",
+      "pair": "pine-hollow.phone",
+      "walkRock": 0,
+      "combatAmbient": [
+        "forest.thrall",
+        "pineLife.woodpecker"
+      ]
+    },
+    {
+      "capture": "e357-lead-accept",
+      "run": "run-3",
+      "pair": "nalati-grasslands.desktop",
+      "walkRock": 0,
+      "combatAmbient": [
+        "steppe.herd",
+        "steppe.marmot"
+      ]
+    },
+    {
+      "capture": "e357-lead-accept",
+      "run": "run-3",
+      "pair": "nine-dragon-stack.phone",
+      "walkRock": 0,
+      "combatAmbient": [
+        "nd.audio.tick"
+      ]
+    },
+    {
+      "capture": "e357-lead-accept",
+      "run": "run-3",
+      "pair": "pine-hollow.desktop",
+      "walkRock": 0,
+      "combatAmbient": []
+    },
+    {
+      "capture": "e357-lead-accept",
+      "run": "run-3",
+      "pair": "pine-hollow.phone",
+      "walkRock": 0,
+      "combatAmbient": [
+        "forest.thrall",
+        "pineLife.woodpecker"
+      ]
+    },
+    {
+      "capture": "e357-sol-m3/accept",
+      "run": "run-1",
+      "pair": "nalati-grasslands.desktop",
+      "walkRock": 0,
+      "combatAmbient": [
+        "steppe.herd",
+        "steppe.marmot"
+      ]
+    },
+    {
+      "capture": "e357-sol-m3/accept",
+      "run": "run-1",
+      "pair": "nine-dragon-stack.phone",
+      "walkRock": 0,
+      "combatAmbient": [
+        "nd.audio.tick"
+      ]
+    },
+    {
+      "capture": "e357-sol-m3/accept",
+      "run": "run-1",
+      "pair": "pine-hollow.desktop",
+      "walkRock": 0,
+      "combatAmbient": []
+    },
+    {
+      "capture": "e357-sol-m3/accept",
+      "run": "run-1",
+      "pair": "pine-hollow.phone",
+      "walkRock": 0,
+      "combatAmbient": [
+        "forest.thrall",
+        "pineLife.woodpecker"
+      ]
+    },
+    {
+      "capture": "e357-sol-m3/accept",
+      "run": "run-2",
+      "pair": "nalati-grasslands.desktop",
+      "walkRock": 0,
+      "combatAmbient": []
+    },
+    {
+      "capture": "e357-sol-m3/accept",
+      "run": "run-2",
+      "pair": "nine-dragon-stack.phone",
+      "walkRock": 0,
+      "combatAmbient": [
+        "nd.audio.tick"
+      ]
+    },
+    {
+      "capture": "e357-sol-m3/accept",
+      "run": "run-2",
+      "pair": "pine-hollow.desktop",
+      "walkRock": 0,
+      "combatAmbient": [
+        "forest.thrall"
+      ]
+    },
+    {
+      "capture": "e357-sol-m3/accept",
+      "run": "run-2",
+      "pair": "pine-hollow.phone",
+      "walkRock": 0,
+      "combatAmbient": [
+        "forest.thrall",
+        "pineLife.woodpecker"
+      ]
+    },
+    {
+      "capture": "e357-sol-m3/accept",
+      "run": "run-3",
+      "pair": "nalati-grasslands.desktop",
+      "walkRock": 0,
+      "combatAmbient": [
+        "steppe.herd",
+        "steppe.marmot"
+      ]
+    },
+    {
+      "capture": "e357-sol-m3/accept",
+      "run": "run-3",
+      "pair": "nine-dragon-stack.phone",
+      "walkRock": 0,
+      "combatAmbient": [
+        "nd.audio.tick"
+      ]
+    },
+    {
+      "capture": "e357-sol-m3/accept",
+      "run": "run-3",
+      "pair": "pine-hollow.desktop",
+      "walkRock": 0,
+      "combatAmbient": [
+        "forest.thrall"
+      ]
+    },
+    {
+      "capture": "e357-sol-m3/accept",
+      "run": "run-3",
+      "pair": "pine-hollow.phone",
+      "walkRock": 0,
+      "combatAmbient": [
+        "forest.thrall",
+        "pineLife.woodpecker"
+      ]
+    },
+    {
+      "capture": "e357-sol-m3/record",
+      "run": "run-1",
+      "pair": "nalati-grasslands.desktop",
+      "walkRock": 0,
+      "combatAmbient": [
+        "steppe.marmot"
+      ]
+    },
+    {
+      "capture": "e357-sol-m3/record",
+      "run": "run-1",
+      "pair": "nine-dragon-stack.phone",
+      "walkRock": 0,
+      "combatAmbient": [
+        "nd.audio.tick"
+      ]
+    },
+    {
+      "capture": "e357-sol-m3/record",
+      "run": "run-1",
+      "pair": "pine-hollow.desktop",
+      "walkRock": 0,
+      "combatAmbient": [
+        "forest.thrall"
+      ]
+    },
+    {
+      "capture": "e357-sol-m3/record",
+      "run": "run-1",
+      "pair": "pine-hollow.phone",
+      "walkRock": 0,
+      "combatAmbient": [
+        "forest.thrall",
+        "pineLife.woodpecker"
+      ]
+    },
+    {
+      "capture": "e357-sol-m3/record",
+      "run": "run-2",
+      "pair": "nalati-grasslands.desktop",
+      "walkRock": 0,
+      "combatAmbient": [
+        "steppe.herd",
+        "steppe.marmot"
+      ]
+    },
+    {
+      "capture": "e357-sol-m3/record",
+      "run": "run-2",
+      "pair": "nine-dragon-stack.phone",
+      "walkRock": 0,
+      "combatAmbient": [
+        "nd.audio.tick"
+      ]
+    },
+    {
+      "capture": "e357-sol-m3/record",
+      "run": "run-2",
+      "pair": "pine-hollow.desktop",
+      "walkRock": 0,
+      "combatAmbient": [
+        "forest.thrall"
+      ]
+    },
+    {
+      "capture": "e357-sol-m3/record",
+      "run": "run-2",
+      "pair": "pine-hollow.phone",
+      "walkRock": 0,
+      "combatAmbient": [
+        "forest.thrall",
+        "pineLife.woodpecker"
+      ]
+    },
+    {
+      "capture": "e357-sol-m3/record",
+      "run": "run-3",
+      "pair": "nalati-grasslands.desktop",
+      "walkRock": 0,
+      "combatAmbient": [
+        "steppe.marmot"
+      ]
+    },
+    {
+      "capture": "e357-sol-m3/record",
+      "run": "run-3",
+      "pair": "nine-dragon-stack.phone",
+      "walkRock": 0,
+      "combatAmbient": [
+        "nd.audio.tick"
+      ]
+    },
+    {
+      "capture": "e357-sol-m3/record",
+      "run": "run-3",
+      "pair": "pine-hollow.desktop",
+      "walkRock": 0,
+      "combatAmbient": [
+        "forest.thrall"
+      ]
+    },
+    {
+      "capture": "e357-sol-m3/record",
+      "run": "run-3",
+      "pair": "pine-hollow.phone",
+      "walkRock": 0,
+      "combatAmbient": [
+        "forest.thrall",
+        "pineLife.woodpecker"
+      ]
+    },
+    {
+      "capture": "e357-sol-m3/narrow-repeat",
+      "run": "run-1",
+      "pair": "nine-dragon-stack.phone",
+      "walkRock": 3,
+      "combatAmbient": [
+        "nd.audio.tick"
+      ]
+    },
+    {
+      "capture": "e357-sol-m3/narrow-repeat",
+      "run": "run-1",
+      "pair": "pine-hollow.phone",
+      "walkRock": 0,
+      "combatAmbient": []
+    },
+    {
+      "capture": "e357-sol-m3/narrow-repeat",
+      "run": "run-2",
+      "pair": "nine-dragon-stack.phone",
+      "walkRock": 3,
+      "combatAmbient": [
+        "nd.audio.tick"
+      ]
+    },
+    {
+      "capture": "e357-sol-m3/narrow-repeat",
+      "run": "run-2",
+      "pair": "pine-hollow.phone",
+      "walkRock": 0,
+      "combatAmbient": []
+    },
+    {
+      "capture": "e357-sol-m3/narrow-repeat",
+      "run": "run-3",
+      "pair": "nine-dragon-stack.phone",
+      "walkRock": 3,
+      "combatAmbient": [
+        "nd.audio.tick"
+      ]
+    },
+    {
+      "capture": "e357-sol-m3/narrow-repeat",
+      "run": "run-3",
+      "pair": "pine-hollow.phone",
+      "walkRock": 0,
+      "combatAmbient": []
+    }
+  ],
+  "checks": [
+    "24 focused parity tests",
+    "app/API/scripts typechecks",
+    "whole oxlint",
+    "CSS",
+    "ratchet",
+    "liveness",
+    "full vitest",
+    "Vite build",
+    "template hut/blob/touch/disposal gate"
+  ],
+  "exceptions": [],
+  "browserLaneAfter": "0 / 8",
+  "thresholdOrIgnoreChanges": []
+}

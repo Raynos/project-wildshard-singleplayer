@@ -12,8 +12,8 @@ import { assertMetal, relevantError } from './parity/fingerprint.mjs';
 import { poses } from './parity/poses.mjs';
 import { walk } from './parity/walk.mjs';
 import { combat, pauseResume } from './parity/combat.mjs';
-import { aggregate, imageScore, writeBaseline } from './parity/record.mjs';
-import { array, flatten, get, object, set, string } from './parity/value.mjs';
+import { acceptFields, aggregate, imageScore, writeBaseline } from './parity/record.mjs';
+import { array, flatten, get, object, string } from './parity/value.mjs';
 import { within } from './parity/timeout.mjs';
 import { advance } from './parity/frames.mjs';
 import { browserPool, parallel } from './parity/pool.mjs';
@@ -240,7 +240,7 @@ async function main(opts) {
       currentNormalized.verdict=checked.verdict;currentNormalized.fields=checked.rows.map((r)=>object(r));reports.push(currentNormalized);
       for(const [name,p] of Object.entries(object(currentNormalized.poses)))if(existsSync(string(object(p).shot)))copyFileSync(string(object(p).shot),join(out,`${shard}.${tier}.${name}.jpg`));
       writeFileSync(join(out,`${shard}.${tier}.json`),`${JSON.stringify(currentNormalized,null,2)}\n`);report(reports,sha,out,Boolean(opts.ms));
-      if(isRecord){let next=current;if(opts.accept){next=structuredClone(baselineNormalized);for(const field of fields){for(const [path,value] of Object.entries(flatten(current)))if(matches(field,path)&&value!==undefined)set(next,path,value);for(const [path,value] of Object.entries(object(current.spread)))if(matches(field,path)&&value!==undefined)object(next.spread)[path]=value;for(const [pose,value]of Object.entries(object(current.selfMin)))if(matches(field,`poses.${pose}.ssim`)&&value!==undefined)object(next.selfMin)[pose]=value;}for(const [pose,value]of Object.entries(object(next.poses)))if(fields.some((field)=>matches(field,`poses.${pose}.ssim`))) {object(value).shot=get(current,`poses.${pose}.shot`);object(value).boxes=get(current,`poses.${pose}.boxes`);}next.sha=sha;next.recorded=new Date().toISOString();}writes.push({shard,tier,baseline:next,fields:opts.accept?fields:undefined});}
+      if(isRecord)writes.push({shard,tier,baseline:opts.accept?acceptFields(baselineNormalized,current,fields):current,fields:opts.accept?fields:undefined});
       if(opts['pending-fill'])for(const entry of selected.filter((p)=>p.shard===shard)){if(array(entry.fields).every((p)=>string(p).startsWith('memory.')))continue;const expect=object(entry.expect);for(const field of array(entry.fields).map(string))for(const [path,val]of Object.entries(flatten(currentNormalized)))if(matches(field,path)&&val!==undefined)expect[`${tier}/${path}`]=val;entry.expect=expect;}
     }
     }finally{await scoreContext.close();}
