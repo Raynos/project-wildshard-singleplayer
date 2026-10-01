@@ -51,7 +51,15 @@ describe('Explore World', () => {
 
   it('explorer artwork is declared on the manifest', () => {
     for (const c of PLAYABLE_SHARDS) if (c.explore !== undefined) {
-      for (const image of Object.values(exploreArt(c.explore) ?? {})) expect(image, c.slug).toMatch(/\.(webp|jpe?g|png)$/);
+      for (const image of Object.values(exploreArt(c.explore) ?? {})) {
+        if (typeof image !== 'string') throw new Error(`${c.slug}: artwork must be an image URL`);
+        // Experimental shards may bundle SVG art; inline images have no downloadable file extension.
+        if (image.startsWith('data:image/svg+xml,')) {
+          const svg = decodeURIComponent(image.slice('data:image/svg+xml,'.length));
+          expect(svg, c.slug).toMatch(/^<svg\s[^>]*xmlns="http:\/\/www\.w3\.org\/2000\/svg"/);
+          expect(svg, c.slug).toMatch(/<\/svg>$/);
+        } else expect(image, c.slug).toMatch(/\.(webp|jpe?g|png|svg)$/);
+      }
     }
   });
 

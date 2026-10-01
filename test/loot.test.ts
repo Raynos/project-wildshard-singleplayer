@@ -106,13 +106,17 @@ describe('coins', () => {
     expect(coinsFor(DRIFTWOOD_ISLE, 'deer')).toBe(0); // Jake cut the deer from Driftwood
   });
 
-  it('only Driftwood pays coins (ShardManifest.loot gating)', () => {
+  it('Driftwood keeps its payouts; every shard pays only when its manifest enables coins', () => {
     expect(coinsOn(DRIFTWOOD_ISLE)).toBe(true);
     expect(coinsFor(DRIFTWOOD_ISLE, 'boar')).toBe(2);
     expect(coinsFor(DRIFTWOOD_ISLE, 'gull')).toBe(0);
-    for (const def of SHARDS) if (def.status !== 'hidden' && def.slug !== 'driftwood-isle') {
-      expect(coinsOn(def)).toBe(false);
-      expect(coinsFor(def, 'bear')).toBe(0);
+    // Include hidden and experimental shards: both may opt into the reusable coin mechanism.
+    for (const def of SHARDS) {
+      const enabled = def.loot?.coins === true;
+      expect(coinsOn(def), def.slug).toBe(enabled);
+      for (const kind of ['boar', 'bear', 'gull', 'unknown']) {
+        expect(coinsFor(def, kind), `${def.slug}: ${kind}`).toBe(enabled ? coinsFor({ loot: { coins: true } }, kind) : 0);
+      }
     }
   });
 

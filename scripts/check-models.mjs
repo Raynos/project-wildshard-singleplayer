@@ -206,10 +206,11 @@ function importsOf(file, text) {
 /**
  * 9. Every named place is a Set (M12). A shard's named places, read from its own list: `file` holds `list`, an array
  *    whose rows carry `id: '…'` (or, `labels`, `label: '…'` slugged the way NALATI_PLACES slugs them). A shard's list
- *    file not in the checked files (a test's partial map) skips that shard; in the whole tree a missing one fails.
+ *    file not in the checked files (a test's partial map) skips that shard. New shards may omit quest/Places.ts;
+ *    a declared list is still fully checked, and the original shards' required lists cannot disappear.
  */
 export const NAMED_PLACES = {
-  ...Object.fromEntries(shardFolders(ROOT).map((slug) => [slug, [{ file: `src/shards/${slug}/quest/Places.ts`, list: 'PLACES' }]])),
+  ...Object.fromEntries(shardFolders(ROOT).map((slug) => [slug, [{ file: `src/shards/${slug}/quest/Places.ts`, list: 'PLACES', optional: true }]])),
   'driftwood-isle': [{ file: 'src/shards/driftwood-isle/quest/Places.ts', list: 'DRIFTWOOD_PLACES' }],
   'nalati-grasslands': [{ file: 'src/shards/nalati-grasslands/layout.ts', list: 'pois', labels: true }], // NALATI_PLACES = NALATI_MAP.pois, slugged (src/shards/nalati-grasslands/quest.ts)
   'pine-hollow': [{ file: 'src/shards/pine-hollow/layout.ts', list: 'PINE_HOLLOW_POIS' }, { file: 'src/shards/pine-hollow/world/places.ts', list: 'PINE_HOLLOW_QUEST_PLACES', optional: true }],
@@ -248,11 +249,13 @@ function namedPlaceSets(texts, whole, strip) {
       read = true;
       for (const m of arr.matchAll(l.labels ? /\blabel:\s*'([^']+)'/g : /\{\s*id:\s*'([^']+)'/g)) ids.push(l.labels ? placeSlug(m[1]) : m[1]);
     }
-    if (read) named.set(shard, ids);
+    // B83/Z3: no optional list means no named places, not a missing required source.
+    // Partial fixture maps still skip absent lists rather than inventing empty declarations.
+    if (read || whole && lists.every((l) => l.optional === true)) named.set(shard, ids);
   }
   const setFor = new Map();
   for (const [file, text] of Object.entries(texts)) {
-    for (const m of strip(text).matchAll(/\bplace:\s*'([a-z0-9-]+)\/([a-z0-9-]+)'/g)) {
+    for (const m of strip(text).matchAll(/\bplace:\s*'(_?[a-z0-9-]+)\/([a-z0-9-]+)'/g)) {
       const [, shard, id] = m;
       const ids = named.get(shard);
       if (ids !== undefined && !ids.includes(id)) problems.push({ shard, msg: `${file}: a set names the place '${shard}/${id}', which is not in ${shard}'s named places` });

@@ -5,6 +5,7 @@ import { shardContext, toLevelSpec, purseSave, shardSave, type GameServices } fr
 import { Vector3 } from 'three';
 import { STARTER_EFFECTS } from '#kit';
 import { summaryStore } from '#game/summary';
+import { SHARDS, playable } from '#game/shard/registry';
 import manifest from '#shards/_template/manifest';
 import { TemplatePlugin } from '#shards/_template/plugin';
 import { TemplateWhip } from '#shards/_template/weapons/TemplateWhip';
@@ -57,7 +58,9 @@ describe('template plugin contract', () => {
   it('keeps hidden-shard saves out of the production summary', () => {
     const reads: string[] = [];
     summaryStore(new SaveStore({ local: null, session: null }), (slug) => { reads.push(slug); return null; }).read();
-    expect(reads).not.toContain(manifest.slug); expect(reads).toHaveLength(4);
+    // Experimental title cards participate in the summary; hidden teaching shards never do.
+    expect(reads).not.toContain(manifest.slug);
+    expect(reads).toEqual(SHARDS.filter(playable).map((shard) => shard.slug));
   });
   it('heavy contacts use a lane, reject outside it, and apply kit poison', async () => {
     const { app } = await boot(); const scope = app.levelScope; if (scope === null) throw new Error('No scope');

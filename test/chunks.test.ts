@@ -1,6 +1,5 @@
 import { terrainFor, type ShardManifest } from '#game/shard/manifest';
-// src/chunks/* — every authored shard satisfies the ShardManifest contract and the Wildshard fundamentals
-// (500 m square, four entry roads level with no-man's-land at the edge midpoints), and the registry switches cleanly.
+// Every authored shard satisfies the ShardManifest contract; the original world-grid shards retain their entry roads.
 import { describe, expect, it, vi } from 'vitest';
 import { loadSpecies } from './species';
 import { SHARDS, playable, DEFAULT_CHUNK, chunkSlugFromUrl, chunkUrl, findChunk, getActiveChunk, onActiveChunkChange, setActiveChunk } from '#game/shard/registry';
@@ -14,6 +13,8 @@ const { CHUNK_HALF } = config;
 loadSpecies();
 const finite = (xs: readonly number[]): boolean => xs.every(Number.isFinite);
 const EDGE_MIDPOINTS: [number, number][] = [[0, -CHUNK_HALF], [0, CHUNK_HALF], [-CHUNK_HALF, 0], [CHUNK_HALF, 0]];
+// B83: these authored grid connections stay fixed, regardless of status. New shards choose their own roads.
+const WORLD_GRID = new Set(['driftwood-isle', 'pine-hollow', 'nalati-grasslands', 'nine-dragon-stack']);
 
 describe('chunk registry data', () => {
   it('ids and slugs are unique and ids follow chunk://local/<slug>', () => {
@@ -78,11 +79,21 @@ describe('chunk terrain', () => {
     for (const c of PLAYABLE_SHARDS) for (const [x, z] of EDGE_MIDPOINTS) expect(terrainFor(c).heightAt(x, z), `${c.slug} @ ${x},${z}`).toBeCloseTo(0, 6);
   });
 
-  it('the first four trails start at the edge midpoints (the mandated entry roads)', () => {
-    for (const c of PLAYABLE_SHARDS) {
-      expect(terrainFor(c).trails.length, c.slug).toBeGreaterThanOrEqual(4);
-      const starts = terrainFor(c).trails.slice(0, 4).map((t) => t[0]);
-      for (const m of EDGE_MIDPOINTS) expect(starts, c.slug).toContainEqual(m);
+  it('grid shards retain four midpoint entry trails; other shards have a trail from spawn', () => {
+    // Include hidden teaching shards and experimental shards: each still needs a usable entry trail.
+    for (const c of SHARDS) {
+      const trails = terrainFor(c).trails;
+      if (WORLD_GRID.has(c.slug)) {
+        expect(trails.length, c.slug).toBeGreaterThanOrEqual(4);
+        const starts = trails.slice(0, 4).map((t) => t[0]);
+        for (const m of EDGE_MIDPOINTS) expect(starts, c.slug).toContainEqual(m);
+      } else {
+        expect(trails.length, c.slug).toBeGreaterThanOrEqual(1);
+        expect(trails.some((t) => {
+          const start = t[0];
+          return t.length >= 2 && start !== undefined && start[0] === c.spawn.x && start[1] === c.spawn.z;
+        }), c.slug).toBe(true);
+      }
     }
   });
 

@@ -99,11 +99,21 @@ describe('the explicit picks override Auto', () => {
 });
 
 describe('the KTX2 sets', () => {
-  it.each(['phone', 'desktop'] as const)('every %s shard has one: the stand-ins its KTX2 boot declares + the transcoder, nothing else', async (tier) => {
-    const { PLAYABLE_SHARDS, sp, chunkFiles } = await load({ tier });
-    for (const def of PLAYABLE_SHARDS) {
+  it.each(['phone', 'desktop'] as const)('every %s shard has the KTX2 stand-ins it declares + the transcoder, or an empty set without GPU assets', async (tier) => {
+    const { SHARDS, sp, chunkFiles } = await load({ tier });
+    // Include experimental and hidden shards: assets and KTX2 mappings are optional for either.
+    for (const def of SHARDS) {
       const set = sp.ktx2Set(def);
-      expect(set.length, def.slug).toBeGreaterThan(2);
+      const gpu = [...Object.values(chunkFiles(def, 'ktx2')).flat(), ...sp.lateReads(def, 'ktx2')].filter((url) => url.startsWith('/assets/gpu/'));
+      if (gpu.length === 0) {
+        expect(set, def.slug).toEqual([]);
+        expect(sp.ktx2Ready(def), `${def.slug}: no empty-set cache hit`).toBe(false);
+      } else {
+        expect(set.length, def.slug).toBeGreaterThan(2);
+        expect(set.filter((url) => url.startsWith('/assets/gpu/')).sort(), def.slug).toEqual([...new Set(gpu)].sort());
+        expect(set.some((url) => url.endsWith('/basis_transcoder.js')), def.slug).toBe(true);
+        expect(set.some((url) => url.endsWith('/basis_transcoder.wasm')), def.slug).toBe(true);
+      }
       for (const u of set) expect(/^\/assets\/gpu\/|^\/basis\/r\d+\/basis_transcoder\.(js|wasm)$/.test(u), u).toBe(true);
       // every KTX2 file the KTX2 boot declares is in the set (a KTX2 boot then reads nothing the set lacks, offline too)
       for (const f of Object.values(chunkFiles(def, 'ktx2')).flat()) if (f.startsWith('/assets/gpu/')) expect(set, `${def.slug} ${f}`).toContain(f);

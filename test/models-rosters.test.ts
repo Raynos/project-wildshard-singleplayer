@@ -6,8 +6,15 @@ import { SHARDS } from '#game/shard/shards.generated';
 import type { ShardManifest } from '#game/shard/manifest';
 import type { RosterEntry } from '#engine/models/live';
 import { definedModels } from '#engine/models/model';
+// oxlint-disable-next-line import/no-nodejs-modules -- Node test verifies roster sources are committed in the checkout.
+import { execFileSync } from 'node:child_process';
+// oxlint-disable-next-line import/no-nodejs-modules -- Node test verifies source existence in clean git archives too.
+import { existsSync } from 'node:fs';
 
 const TABS = new Set(['buildings', 'nature', 'creatures', 'people', 'gear', 'props']);
+const ROOT = new URL('../', import.meta.url);
+// A clean git archive has no .git; existence there already proves the source was committed.
+const TRACKED = existsSync(new URL('.git', ROOT)) ? new Set(execFileSync('git', ['ls-files', '-z', '--', 'src/'], { cwd: ROOT, encoding: 'utf8' }).split('\0')) : null;
 
 const defined = (id: string): ReturnType<typeof definedModels>[number] | undefined => definedModels().find((m) => m.id === id);
 
@@ -31,7 +38,11 @@ describe('shard rosters (E315 M5)', () => {
         const m = defined(id);
         expect(m, id).toBeDefined();
         expect(TABS.has(m?.category ?? ''), `${id} tab`).toBe(true);
-        expect(m?.file.startsWith(id.startsWith('shared/') ? 'src/engine/models/' : `src/shards/${def.slug}/models/`), `${id} file`).toBe(true);
+        // Include hidden and experimental rosters. Definitions live in models/, but their build source may be weapons/ or world/.
+        expect(m?.file.startsWith(id.startsWith('shared/') ? 'src/engine/models/' : `src/shards/${def.slug}/`), `${id} file ownership`).toBe(true);
+        if (m === undefined) throw new Error(`${id}: no defined model`);
+        expect(m.file.split('/'), `${id} source stays within its owner`).not.toContain('..');
+        expect((TRACKED?.has(m.file) ?? true) && existsSync(new URL(m.file, ROOT)), `${id}: tracked source ${m.file}`).toBe(true);
       }
     }, 60_000); // (a roster's first import compiles the shard's creatures, people and weapons: slow on a loaded box)
   }

@@ -459,6 +459,8 @@ creatures, dressing or a new style are engine work (below).
 
 ### What is fixed by the Wildshard fundamentals
 
+E357 B83: the four original world-grid shards retain the four midpoint entry trails below; new shards (including experimental and hidden teaching shards) declare their own roads and need at least one trail starting in the spawn area.
+
 These live in `src/engine/core/config.ts` and `src/engine/world/terrainField.ts` and are **not** per shard:
 
 | Rule | Where it is enforced |

@@ -1,8 +1,9 @@
 // E297 (DRIFTWOOD-TOP10 row 1): one set of fight rules for every enemy on Driftwood — at most 2 attack at once (attack
-// tokens), engaged boars circle back and charge again instead of fleeing (reengage), and only Driftwood has the rules.
+// tokens), engaged boars circle back and charge again instead of fleeing (reengage). Each shard may declare its own cap.
 import { describe, expect, it } from 'vitest';
 import { AttackTokens, reengage, backoffPoint, aroundPoint, BREAK_OFF_HP, RING, BACKOFF_PAST, type ReengageIn } from '#engine/entities/fightRules';
-import { SHARDS, playable } from '#game/shard/registry';
+import { SHARDS } from '#game/shard/registry';
+import { AggressionDirector } from '#engine/ai/director';
 import { DRIFTWOOD_ISLE } from '#shards/driftwood-isle/manifest';
 import * as THREE from 'three';
 import { clearBody } from '#engine/entities/AnimalManager';
@@ -11,8 +12,6 @@ import { Physics } from '#engine/physics/Physics';
 import { CharacterMotor } from '#engine/physics/CharacterMotor';
 import { groups } from '#engine/physics/groups';
 import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';
-
-const PLAYABLE_SHARDS = SHARDS.filter(playable);
 
 describe('AttackTokens (E297: at most 2 attackers)', () => {
   it('hands out at most `max` tokens; a third attacker waits', () => {
@@ -131,10 +130,24 @@ describe('the back-off and the ring (E297)', () => {
   });
 });
 
-describe('ShardManifest.fightRules (E297: Driftwood only)', () => {
-  it('Driftwood lets 2 attack at once; no other shard has the rules', () => {
+describe('ShardManifest.fightRules (E297)', () => {
+  it('Driftwood retains its 2-attacker cap; every shard gets its declared cap or the unlimited default', () => {
     expect(DRIFTWOOD_ISLE.fight?.attackers).toBe(2);
-    for (const c of PLAYABLE_SHARDS) if (c.slug !== DRIFTWOOD_ISLE.slug) expect(c.fight?.attackers ?? Infinity, c.slug).toBe(Infinity);
+    // Include hidden and experimental shards: opting into capped fights is a public manifest feature.
+    for (const c of SHARDS) {
+      const cap = c.fight?.attackers;
+      const director = new AggressionDirector<number>(cap);
+      expect(director.max, c.slug).toBe(cap ?? Infinity);
+      expect(director.enabled, c.slug).toBe(cap !== undefined && Number.isFinite(cap));
+      if (cap === undefined || cap === Infinity) {
+        for (let i = 0; i < 20; i++) expect(director.take(i), c.slug).toBe(true);
+      } else {
+        expect(Number.isInteger(cap) && cap >= 0, c.slug).toBe(true);
+        for (let i = 0; i < cap; i++) expect(director.take(i), c.slug).toBe(true);
+        expect(director.take(cap), c.slug).toBe(false);
+        expect(director.count, c.slug).toBe(cap);
+      }
+    }
   });
 });
 

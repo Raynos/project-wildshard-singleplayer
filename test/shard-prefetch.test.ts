@@ -13,19 +13,21 @@ async function load(tier: 'phone' | 'desktop') {
   vi.stubGlobal('location', new URL(`http://localhost:5173/?tier=${tier}`));
   const { initializeTier } = await import('#engine/core/tier');
   await initializeTier();
-  const [{ SHARDS, playable }, sp, { bootFiles, extraFetches }, { bootFetches }, { packFor }, { versionedUrl }] = await Promise.all([
+  const [{ SHARDS, playable }, sp, { bootFiles, extraFetches }, { bootFetches }, { packFor }, { versionedUrl }, { PACKS }] = await Promise.all([
     import('#game/shard/registry'),
     import('#engine/boot/shardPrefetch'),
     import('#engine/boot/extras'),
     import('#engine/boot/prefetch'),
     import('#engine/boot/pack'),
     import('#engine/boot/bytes'),
+    import('#engine/boot/packs.generated'),
   ]);
   const { prepareShardAssets } = await import('#game/shard/load');
   const { registerGpuFiles } = await import('#engine/boot/gpuFiles');
   await Promise.all(SHARDS.map((m) => prepareShardAssets(m, registerGpuFiles)));
   const PLAYABLE_SHARDS = SHARDS.filter(playable);
-  return { PLAYABLE_SHARDS, sp, bootFiles, extraFetches, bootFetches, packFor, versionedUrl };
+  // The background downloader visits title cards, including experimental shards; hidden teaching shards are excluded.
+  return { PLAYABLE_SHARDS, sp, bootFiles, extraFetches, bootFetches, packFor, versionedUrl, PACKS };
 }
 
 describe('shardBootRequests: the boot request list of each shard', () => {
@@ -51,14 +53,15 @@ describe('shardBootRequests: the boot request list of each shard', () => {
       const { PLAYABLE_SHARDS, sp, bootFiles, extraFetches, bootFetches, packFor, versionedUrl } = await load(tier);
       for (const def of PLAYABLE_SHARDS) {
         const files = bootFiles(def);
-        // The moved art paths keep the phone's existing landscape exclusion and every portrait/thumbnail.
+        // Downloadable cards retain the landscape tier rule. SVG data URLs are bundled and never fetched.
         for (const card of PLAYABLE_SHARDS) {
           const artPath = (url: string): string => new URL(url, location.href).pathname;
-          expect(files.art).toContain(artPath(card.card.thumb));
-          expect(files.art).toContain(artPath(card.card.portrait));
-          expect(files.art.includes(artPath(card.card.landscape))).toBe(tier === 'desktop' || card.slug === def.slug);
+          for (const image of [card.card.thumb, card.card.portrait]) {
+            expect(files.art.includes(artPath(image)), `${card.slug}: ${image}`).toBe(!image.startsWith('data:'));
+          }
+          expect(files.art.includes(artPath(card.card.landscape))).toBe(!card.card.landscape.startsWith('data:') && (tier === 'desktop' || card.slug === def.slug));
         }
-        for (const image of def.boot?.explore?.art ?? []) expect(files.art).toContain(new URL(image, location.href).pathname);
+        for (const image of def.boot?.explore?.art ?? []) expect(files.art.includes(new URL(image, location.href).pathname)).toBe(!image.startsWith('data:'));
         const ownArt = new Set(def.boot?.explore?.art);
         for (const other of PLAYABLE_SHARDS) if (other !== def) for (const image of other.boot?.explore?.art ?? []) {
           if (!ownArt.has(image)) expect(files.art).not.toContain(new URL(image, location.href).pathname);
@@ -84,13 +87,18 @@ describe('shardBootRequests: the boot request list of each shard', () => {
 
   it('names phone pack parts first and migrated desktop packs where authored', async () => {
     const phone = await load('phone');
-    expect(phone.PLAYABLE_SHARDS.filter((d) => phone.packFor(d) !== null).length).toBe(phone.PLAYABLE_SHARDS.length); // every shard has a phone pack
+    // Packs are generated only where assets are authored; asset-free experimental shards boot per file.
     for (const def of phone.PLAYABLE_SHARDS) {
       const pack = phone.packFor(def);
+      expect(pack, `${def.slug}: phone pack inventory`).toEqual(phone.PACKS[def.slug]?.['phone'] ?? null);
       if (pack) expect(phone.sp.shardBootRequests(def).slice(0, pack.parts.length)).toEqual(pack.parts.map((part) => part.url));
     }
     const desktop = await load('desktop');
-    for (const def of desktop.PLAYABLE_SHARDS) expect(desktop.sp.shardBootRequests(def).some((u) => u.startsWith('/assets/packs/'))).toBe(def.load !== undefined);
+    for (const def of desktop.PLAYABLE_SHARDS) {
+      const pack = desktop.PACKS[def.slug]?.['desktop'];
+      expect(desktop.packFor(def), `${def.slug}: desktop pack inventory`).toEqual(pack ?? null);
+      expect(desktop.sp.shardBootRequests(def).some((u) => u.startsWith('/assets/packs/'))).toBe((pack?.parts.length ?? 0) > 0);
+    }
   });
 });
 
