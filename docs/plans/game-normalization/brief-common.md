@@ -17,6 +17,8 @@ engine / game / kit / shards. The lead session (Claude, herdr agent `wildshard-9
   `pnpm exec oxlint <your files>` (~1 s), and focused `pnpm exec vitest run <your test files>`.
 - **Parity runs go straight to `node scripts/parity.mjs …`** (P1, a166dd8b): it takes a browser-lane slot per browser itself.
   Drop any `scripts/browser-lane.sh --max N` prefix a job brief shows; an outer wrapper wastes a slot and can stall a full lane.
+  Since ca907933 the default clock is the proven fast driver (P1: full record 36 m → 6 m); `--clock=raf` only to compare
+  with a capture taken on the old clock. Compares still show `/api/telemetry` 404s in `boot.errors` (no backend on the preview).
 - Where a spec says "the per-commit parity run", skip it and write `Parity: queued for the lead` in the commit message.
 - P1 clock: fast is the proven default; `--clock=raf` explicitly selects native pacing for diagnosis. Compare uses one run; milestone records use three concurrent runs.
 - Where a spec needs a long run (a browser capture, a bake in a GPU page, a model job, a CI dispatch), don't wait for it:
