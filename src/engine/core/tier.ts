@@ -93,6 +93,13 @@ export const TIER_TABLE = {
 
 export const TIER_CONFIG = { ...TIER_TABLE[TIER] };
 
+let buildingAs: Tier | null = null;
+/** the tier a model builds at: TIER, or the one Explore's DETAIL TIERS builds it as (explore/tiers.ts `withTier`). A level's
+ *  own knob tables (its scatter counts, its detail levels) index by this, as the engine's read TIER_CONFIG. */
+export function buildTier(): Tier { return buildingAs ?? TIER; }
+/** @internal — explore/tiers.ts `withTier` only */
+export function _buildAs(tier: Tier | null): void { buildingAs = tier; }
+
 /** Driftwood keeps its legacy picture policy until S4.1; other levels declare tier knobs. */
 export function phonePictureCuts(): boolean {
   return TIER === 'phone' && CHUNK_ID === 'driftwood-isle';
