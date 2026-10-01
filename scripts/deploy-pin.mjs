@@ -23,20 +23,27 @@ const PENDING = 'docs/plans/game-normalization/reviews/pending.json';
 /** What a build is made of (03 §1's export, without test/parity/): a diff outside these is not a runtime change. */
 const RUNTIME = ['src', 'public', 'api', 'index.html', 'package.json', 'pnpm-lock.yaml', 'vite.config.ts', 'tsconfig.json', 'vercel.json'];
 
+/** @param {...string} args */
 const git = (...args) => execFileSync('git', args, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
+/** @param {() => unknown} fn */
 const ok = (fn) => { try { fn(); return true; } catch { return false; } };
 
-/** @returns {{ mode: string, sha: string, milestone: string, gate: string, go: string, set: string, by: string }} */
+/** @typedef {{ mode: string, sha: string, milestone: string, gate: string, go: string, set: string, by: string }} Pin */
+
+/** @param {Pin} pin @returns {Pin} */
 export function validatePin(pin) {
-  if (!/^[0-9a-f]{40}$/.test(String(pin.sha))) throw new Error(`${FILE}: sha must be 40 hex`);
+  if (!/^[0-9a-f]{40}$/.test(pin.sha)) throw new Error(`${FILE}: sha must be 40 hex`);
   if (!['pinned', 'newest-green'].includes(pin.mode)) throw new Error(`${FILE}: mode must be pinned | newest-green`);
   if (!['grandfathered', 'required'].includes(pin.gate)) throw new Error(`${FILE}: gate must be grandfathered | required`);
   return pin;
 }
 
+/** @returns {Pin} */
 const readPin = () => validatePin(JSON.parse(readFileSync(FILE, 'utf8')));
+/** @param {Pin} pin */
 const writePin = (pin) => writeFileSync(FILE, `${JSON.stringify(validatePin(pin), null, 2)}\n`);
 
+/** @param {string} sha @returns {Map<string, { state: string, description: string }>} */
 function statuses(sha) {
   const out = execFileSync('gh', ['api', `repos/${REPO}/commits/${sha}/status`, '--paginate', '--jq', '.statuses[] | [.context, .state, .description] | @tsv'], { encoding: 'utf8' });
   const seen = new Map();
@@ -47,6 +54,7 @@ function statuses(sha) {
   return seen;
 }
 
+/** @param {string} sha */
 export function gateGreen(sha) {
   return statuses(sha).get('gpu-gate')?.state === 'success';
 }
@@ -54,6 +62,7 @@ export function gateGreen(sha) {
 /** Every SHA the pin file has held, oldest first (R1-16). */
 function history() {
   const log = ok(() => git('log', '--format=%H', '--', FILE)) ? git('log', '--reverse', '--format=%H', '--', FILE).split('\n').filter(Boolean) : [];
+  /** @type {Pin[]} */
   const out = [];
   for (const c of log) {
     try {
@@ -64,11 +73,13 @@ function history() {
   return out;
 }
 
+/** @param {string} name */
 function arg(name) {
   const i = process.argv.indexOf(name);
   return i > 0 ? process.argv[i + 1] : undefined;
 }
 
+/** @param {string} sha @returns {string | null} */
 function memoryReading(sha) {
   if (statuses(sha).get('gpu-perf/memory')?.state === 'success') return sha;
   // a runtime-equal ancestor with a reading (R4-15)
@@ -104,6 +115,7 @@ function main() {
     const go = arg('--go');
     if (!a1 || !milestone || !go) throw new Error('set <sha> --milestone M<n> --go "<where Jake OKed>"');
     const sha = git('rev-parse', a1);
+    /** @param {string} why */
     const refuse = (why) => { console.error(`deploy-pin set: refused — ${why}`); return 1; };
     if (!ok(() => git('merge-base', '--is-ancestor', sha, 'origin/main'))) return refuse(`${sha.slice(0, 8)} is not on origin/main`);
     const st = statuses(sha);
