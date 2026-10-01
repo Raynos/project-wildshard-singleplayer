@@ -260,6 +260,7 @@ export class Player {
     this.prevFeet.copy(this.position);
     this.yaw = yaw; this.pitch = 0;
     this.velocity.set(0, 0, 0);
+    this.dashT = 0;
     this.setSwimming(false); this.inWater = false; this.depth = 0; this.wading = false;
   }
 

@@ -1,0 +1,337 @@
+{
+  "before": "7501007f4f64d22751e9215bbe20db69dea8bf1b",
+  "afterRuntime": "d9301b777c3ef969329c4f7652e57475de1eeef0",
+  "verifiedGate": "bf561e1c6b5812a8ce45b0ed4dc07e738b667aa4",
+  "note": "bf561e1c and d9301b77 have identical runtime source; only ratchet retirement and ask/handoff metadata differ. No baseline acceptance. Paired full captures used all four original phone shards, accelerated clock, retry=0.",
+  "shards": {
+    "driftwood-isle": {
+      "beforeErrors": [],
+      "afterErrors": [],
+      "bootStructuralChangedFields": [],
+      "walkChangedFields": [],
+      "stuckBefore": 0,
+      "stuckAfter": 0,
+      "pauseDiffBefore": [],
+      "pauseDiffAfter": [],
+      "gameplayDelta": [
+        {
+          "field": "combat.sounds.event.lunge",
+          "before": null,
+          "after": 1
+        },
+        {
+          "field": "combat.sounds.event.voices:step-sand",
+          "before": 1,
+          "after": null
+        },
+        {
+          "field": "pauseResume.after.player.pitch",
+          "before": -1.1078381762808542,
+          "after": -0.7388837258157365
+        },
+        {
+          "field": "pauseResume.after.player.pos.x",
+          "before": -6.345,
+          "after": -7.872
+        },
+        {
+          "field": "pauseResume.after.player.pos.y",
+          "before": 1.866,
+          "after": 1.929
+        },
+        {
+          "field": "pauseResume.after.player.pos.z",
+          "before": -142.64,
+          "after": -142.116
+        },
+        {
+          "field": "pauseResume.after.player.yaw",
+          "before": -0.7379864864808251,
+          "after": -0.7380514260733101
+        },
+        {
+          "field": "pauseResume.before.player.pitch",
+          "before": -1.1078381762808542,
+          "after": -0.7388837258157365
+        },
+        {
+          "field": "pauseResume.before.player.pos.x",
+          "before": -6.345,
+          "after": -7.872
+        },
+        {
+          "field": "pauseResume.before.player.pos.y",
+          "before": 1.866,
+          "after": 1.929
+        },
+        {
+          "field": "pauseResume.before.player.pos.z",
+          "before": -142.64,
+          "after": -142.116
+        },
+        {
+          "field": "pauseResume.before.player.yaw",
+          "before": -0.7379864864808251,
+          "after": -0.7380514260733101
+        }
+      ],
+      "beforeCapture": "/tmp/sol-fin-final-before/run-1/driftwood-isle.phone.raw.json",
+      "afterCapture": "/tmp/sol-fin-final-after/run-1/driftwood-isle.phone.raw.json"
+    },
+    "nalati-grasslands": {
+      "beforeErrors": [],
+      "afterErrors": [],
+      "bootStructuralChangedFields": [],
+      "walkChangedFields": [],
+      "stuckBefore": 0,
+      "stuckAfter": 0,
+      "pauseDiffBefore": [],
+      "pauseDiffAfter": [],
+      "gameplayDelta": [
+        {
+          "field": "combat.sounds.ambient.length",
+          "before": 1,
+          "after": 0
+        },
+        {
+          "field": "combat.sounds.event.lunge",
+          "before": null,
+          "after": 1
+        },
+        {
+          "field": "combat.sounds.event.sabreSwing",
+          "before": 7,
+          "after": 3
+        },
+        {
+          "field": "combat.swing.killWithinS",
+          "before": 4.2413333333331025,
+          "after": 1.7079999999999131
+        },
+        {
+          "field": "pauseResume.after.clockNow",
+          "before": 111.80799999999623,
+          "after": 109.27466666666304
+        },
+        {
+          "field": "pauseResume.after.creatures.11.brain",
+          "before": "idle",
+          "after": "graze"
+        },
+        {
+          "field": "pauseResume.after.player.pitch",
+          "before": -0.008858562685187877,
+          "after": 0.011605539084170335
+        },
+        {
+          "field": "pauseResume.after.player.pos.x",
+          "before": -143.566,
+          "after": -141.645
+        },
+        {
+          "field": "pauseResume.after.player.pos.y",
+          "before": 33.009,
+          "after": 32.763
+        },
+        {
+          "field": "pauseResume.after.player.pos.z",
+          "before": 95.46,
+          "after": 94.276
+        },
+        {
+          "field": "pauseResume.after.player.yaw",
+          "before": 0.45855998893411526,
+          "after": 0.6473658418509705
+        },
+        {
+          "field": "pauseResume.before.clockNow",
+          "before": 111.80799999999623,
+          "after": 109.27466666666304
+        },
+        {
+          "field": "pauseResume.before.creatures.11.brain",
+          "before": "idle",
+          "after": "graze"
+        },
+        {
+          "field": "pauseResume.before.player.pitch",
+          "before": -0.008858562685187877,
+          "after": 0.011605539084170335
+        },
+        {
+          "field": "pauseResume.before.player.pos.x",
+          "before": -143.566,
+          "after": -141.645
+        },
+        {
+          "field": "pauseResume.before.player.pos.y",
+          "before": 33.009,
+          "after": 32.763
+        },
+        {
+          "field": "pauseResume.before.player.pos.z",
+          "before": 95.46,
+          "after": 94.276
+        },
+        {
+          "field": "pauseResume.before.player.yaw",
+          "before": 0.45855998893411526,
+          "after": 0.6473658418509705
+        }
+      ],
+      "beforeCapture": "/tmp/sol-fin-final-before/run-1/nalati-grasslands.phone.raw.json",
+      "afterCapture": "/tmp/sol-fin-final-after/run-1/nalati-grasslands.phone.raw.json"
+    },
+    "nine-dragon-stack": {
+      "beforeErrors": [],
+      "afterErrors": [],
+      "bootStructuralChangedFields": [],
+      "walkChangedFields": [],
+      "stuckBefore": 0,
+      "stuckAfter": 0,
+      "pauseDiffBefore": [],
+      "pauseDiffAfter": [],
+      "gameplayDelta": [
+        {
+          "field": "combat.sounds.event.nd.step.metal",
+          "before": 1,
+          "after": null
+        },
+        {
+          "field": "pauseResume.after.player.pitch",
+          "before": -0.2302643804609675,
+          "after": -0.3900480722633999
+        },
+        {
+          "field": "pauseResume.after.player.pos.x",
+          "before": -1.184,
+          "after": 0.951
+        },
+        {
+          "field": "pauseResume.after.player.pos.z",
+          "before": 0.138,
+          "after": 1.983
+        },
+        {
+          "field": "pauseResume.after.player.vel.z",
+          "before": -0.004,
+          "after": 0
+        },
+        {
+          "field": "pauseResume.after.player.yaw",
+          "before": -0.10158679904026185,
+          "after": -4.5929846523859284e-08
+        },
+        {
+          "field": "pauseResume.before.player.pitch",
+          "before": -0.2302643804609675,
+          "after": -0.3900480722633999
+        },
+        {
+          "field": "pauseResume.before.player.pos.x",
+          "before": -1.184,
+          "after": 0.951
+        },
+        {
+          "field": "pauseResume.before.player.pos.z",
+          "before": 0.138,
+          "after": 1.983
+        },
+        {
+          "field": "pauseResume.before.player.vel.z",
+          "before": -0.004,
+          "after": 0
+        },
+        {
+          "field": "pauseResume.before.player.yaw",
+          "before": -0.10158679904026185,
+          "after": -4.5929846523859284e-08
+        }
+      ],
+      "beforeCapture": "/tmp/sol-fin-final-before/run-1/nine-dragon-stack.phone.raw.json",
+      "afterCapture": "/tmp/sol-fin-final-after/run-1/nine-dragon-stack.phone.raw.json"
+    },
+    "pine-hollow": {
+      "beforeErrors": [],
+      "afterErrors": [],
+      "bootStructuralChangedFields": [],
+      "walkChangedFields": [],
+      "stuckBefore": 0,
+      "stuckAfter": 0,
+      "pauseDiffBefore": [],
+      "pauseDiffAfter": [],
+      "gameplayDelta": [
+        {
+          "field": "combat.sounds.event.footstep:litter",
+          "before": 1,
+          "after": null
+        },
+        {
+          "field": "pauseResume.after.player.pitch",
+          "before": -0.15713933892738732,
+          "after": -0.1463800312970967
+        },
+        {
+          "field": "pauseResume.after.player.pos.x",
+          "before": 1.519,
+          "after": 0.52
+        },
+        {
+          "field": "pauseResume.after.player.pos.y",
+          "before": 5.394,
+          "after": 5.266
+        },
+        {
+          "field": "pauseResume.after.player.pos.z",
+          "before": -163.743,
+          "after": -161.976
+        },
+        {
+          "field": "pauseResume.after.player.yaw",
+          "before": -2.168469116367159,
+          "after": -1.9993759130294504
+        },
+        {
+          "field": "pauseResume.before.player.pitch",
+          "before": -0.15713933892738732,
+          "after": -0.1463800312970967
+        },
+        {
+          "field": "pauseResume.before.player.pos.x",
+          "before": 1.519,
+          "after": 0.52
+        },
+        {
+          "field": "pauseResume.before.player.pos.y",
+          "before": 5.394,
+          "after": 5.266
+        },
+        {
+          "field": "pauseResume.before.player.pos.z",
+          "before": -163.743,
+          "after": -161.976
+        },
+        {
+          "field": "pauseResume.before.player.yaw",
+          "before": -2.168469116367159,
+          "after": -1.9993759130294504
+        }
+      ],
+      "beforeCapture": "/tmp/sol-fin-final-before/run-1/pine-hollow.phone.raw.json",
+      "afterCapture": "/tmp/sol-fin-final-after/run-1/pine-hollow.phone.raw.json"
+    }
+  },
+  "acceptedByLead": "2026-10-01: spawn reset combat deltas accepted; harness teleports mid-dodge and used to carry the dash. Lead owns re-baseline.",
+  "stageScopedCandidate": {
+    "sha": "fe3c0acaf8f97454db68a6b81c9cfbe624c91e49",
+    "cleanExportGate": "passed: types, lint, ratchet, all vitest, Vite build",
+    "phoneBootErrors": {
+      "driftwood-isle": [],
+      "nalati-grasslands": [],
+      "nine-dragon-stack": [],
+      "pine-hollow": []
+    },
+    "captures": "/tmp/sol-fin-stage-boot/run-1",
+    "comparison": "exit 1 versus historical baselines; no acceptance performed"
+  }
+}
