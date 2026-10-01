@@ -1,0 +1,17 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "jsPlugins": ["./lint/wildshard-plugin.js"],
+  "categories": {
+    "correctness": "off", "suspicious": "off", "perf": "off", "pedantic": "off",
+    "restriction": "off", "style": "off", "nursery": "off"
+  },
+  "rules": {
+    "wildshard/layer": "error",
+    "wildshard/no-shard-branch": "error",
+    "wildshard/no-raw-save": "error",
+    "wildshard/no-raw-random-time": "error",
+    "wildshard/no-raw-input": "error",
+    "wildshard/no-renderer-type": "error",
+    "wildshard/sim-no-render": "error"
+  }
+}

@@ -14,7 +14,7 @@
 //     parameter it is (`num('scale', 1)`) — anything else is an error;
 //   · raw parsing of `location.search` (`.includes`, `.match`, regex `.test`, …) that dodges the above.
 import { existsSync, readFileSync } from 'node:fs';
-import { dirname, resolve } from 'node:path';
+import { dirname, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const REPO = fileURLToPath(new URL('../', import.meta.url));
@@ -261,8 +261,182 @@ const noUrlSwitch = {
   },
 };
 
+// E357 F4: syntactic ratchets; their scope and patterns are 01 §24 / 02 F4's contract.
+const pathOf = (context) => {
+  const path = relative(REPO, context.filename).replaceAll('\\', '/');
+  // Fixture repositories deliberately retain the same src/ layout.
+  const index = path.lastIndexOf('/src/');
+  return index === -1 ? path : path.slice(index + 1);
+};
+const modulePath = (filename, source) => {
+  const target = source.startsWith('#') ? aliasTarget(source) : null;
+  if (target !== null) return target.replace(/^\.\//u, '');
+  if (!source.startsWith('.')) return source;
+  return relative(REPO, resolve(dirname(filename), source)).replaceAll('\\', '/').replace(/^.*\/src\//u, 'src/');
+};
+const layerOf = (path) => {
+  const match = /^src\/(engine|game|kit|shards)\/([^/]+)?/u.exec(path);
+  if (!match) return null;
+  return { name: match[1], rank: ['engine', 'game', 'kit', 'shards'].indexOf(match[1]), slug: match[1] === 'shards' ? match[2] : null };
+};
+const engineWords = JSON.parse(readFileSync(new URL('engine-words.json', import.meta.url), 'utf8'));
+const WORDS = new RegExp(`\\b(?:${engineWords.join('|')})\\b`, 'giu');
+const rule = (description, create) => ({ meta: { type: 'problem', docs: { description }, schema: [] }, create });
+const report = (context, node, message) => { context.report({ node, message }); };
+const importsVisitor = (fn) => ({
+  ImportDeclaration: fn,
+  ExportNamedDeclaration(node) { if (node.source) fn(node); },
+  ExportAllDeclaration: fn,
+  ImportExpression: fn,
+});
+
+const layer = rule('Layer direction, public APIs and engine vocabulary (E357)', (context) => {
+  const own = layerOf(pathOf(context));
+  if (!own) return {};
+  const words = (node, text) => {
+    for (const match of text.matchAll(WORDS)) report(context, node, `Engine contains Wildshard word: ${match[0]}`);
+  };
+  return {
+    ...importsVisitor((node) => {
+      const source = stringOf(node.source);
+      if (source === null) return;
+      const target = layerOf(modulePath(context.filename, source));
+      if (!target) return;
+      if (target.rank > own.rank || (own.name === 'shards' && target.name === 'shards' && own.slug !== target.slug)) {
+        report(context, node, `Layer import ${own.name} → ${target.name}: ${source}`);
+      } else if (own.name !== target.name && /^#(?:engine|game|kit)\//u.test(source)) {
+        report(context, node, `Cross-layer imports use the public index: ${source}`);
+      }
+    }),
+    Identifier(node) { if (own.name === 'engine') words(node, node.name); },
+    Literal(node) { if (own.name === 'engine' && typeof node.value === 'string') words(node, node.value); },
+    TemplateElement(node) { if (own.name === 'engine') words(node, node.value.cooked ?? node.value.raw); },
+    Program(node) {
+      if (own.name !== 'engine') return;
+      for (const comment of context.sourceCode.getAllComments()) {
+        for (const match of comment.value.matchAll(WORDS)) {
+          context.report({ node, loc: comment.loc, message: `Engine comment contains Wildshard word: ${match[0]}` });
+        }
+      }
+    },
+  };
+});
+
+export const SHARD_BRANCH = {
+  identifiers: new Set(['isOcean', 'isNalati', 'isPine', 'isNine', 'LOOK_V2']),
+  calls: new Set(['nalatiNow', 'isStylized', 'isPaintedAir', 'isPainterlyGrass']),
+  comparisons: new Set(['slug', 'style']),
+  members: new Set(['structures', 'weapon', 'style', 'ocean']),
+  objects: new Set(['chunk', 'def', 'manifest']),
+  slugs: new Set(['driftwood-isle', 'nalati-grasslands', 'pine-hollow', 'nine-dragon-stack']),
+};
+const nameOf = (node) => {
+  const x = unwrap(node);
+  return x?.type === 'Identifier' ? x.name : x?.type === 'MemberExpression' ? propName(x) : null;
+};
+const isReference = (node) => {
+  const parent = node.parent;
+  if (!parent) return true;
+  if (parent.type === 'MemberExpression' && parent.property === node && !parent.computed) return false;
+  if (['ImportSpecifier', 'ImportDefaultSpecifier', 'ImportNamespaceSpecifier', 'ExportSpecifier'].includes(parent.type)) return false;
+  if ((parent.type === 'VariableDeclarator' || parent.type === 'FunctionDeclaration' || parent.type === 'ClassDeclaration') && parent.id === node) return false;
+  if (['Property', 'PropertyDefinition', 'MethodDefinition', 'TSPropertySignature'].includes(parent.type) && parent.key === node && !parent.computed && !parent.shorthand) return false;
+  return true;
+};
+const noShardBranch = rule('Shard decisions belong in plugins (E357)', (context) => {
+  const path = pathOf(context);
+  if (/^src\/(?:shards\/|chunks\/(?:driftwood-isle|nalati-grasslands|pine-hollow|nine-dragon-stack)(?:\/|\.ts$)|nalati\/|pinehollow\/)/u.test(path)) return {};
+  const hits = new Set();
+  return {
+    Identifier(node) { if (SHARD_BRANCH.identifiers.has(node.name) && isReference(node)) hits.add(node); },
+    CallExpression(node) { if (SHARD_BRANCH.calls.has(calleeName(node.callee))) hits.add(node); },
+    ConditionalExpression(node) { if (['sea', 'painterly'].includes(nameOf(node.test))) hits.add(node); },
+    LogicalExpression(node) { if (node.operator === '&&' && nameOf(node.left) === 'painterly') hits.add(node); },
+    BinaryExpression(node) {
+      if (!['===', '!==', '==', '!='].includes(node.operator)) return;
+      if ([node.left, node.right].some((side) => SHARD_BRANCH.slugs.has(stringOf(side))) ||
+          (['===', '!=='].includes(node.operator) && [node.left, node.right].some((side) => SHARD_BRANCH.comparisons.has(nameOf(side))))) hits.add(node);
+    },
+    SwitchCase(node) { if (node.test && SHARD_BRANCH.slugs.has(stringOf(node.test))) hits.add(node); },
+    MemberExpression(node) {
+      if (!SHARD_BRANCH.members.has(propName(node))) return;
+      if (node.parent?.type === 'AssignmentExpression' && node.parent.left === node && node.parent.operator === '=') return;
+      const object = unwrap(node.object);
+      if (SHARD_BRANCH.objects.has(nameOf(object)) || (object?.type === 'CallExpression' && calleeName(object.callee) === 'getActiveChunk')) hits.add(node);
+    },
+    'Program:exit'() {
+      for (const node of hits) {
+        let ancestor = node.parent;
+        while (ancestor && ['ChainExpression', 'TSAsExpression', 'TSSatisfiesExpression', 'ParenthesizedExpression'].includes(ancestor.type)) ancestor = ancestor.parent;
+        // Only a comparison's overlapping clauses collapse; nested decisions remain separate expressions.
+        if (ancestor?.type !== 'BinaryExpression' || !hits.has(ancestor)) report(context, node, 'Shard-specific expression belongs in the shard plugin');
+      }
+    },
+  };
+});
+
+const noRawSave = rule('Storage access belongs in saves (E357)', (context) => {
+  if (/^src\/(?:engine\/(?:saves|native)|native)\//u.test(pathOf(context))) return {};
+  return { Identifier(node) { if (['localStorage', 'sessionStorage'].includes(node.name)) report(context, node, 'Use the save service instead of raw storage'); } };
+});
+export const TIME_ALLOW = Object.fromEntries([
+  'src/core/frameCost.ts', 'src/ui/perfHud.ts', 'src/ui/perfProbe.ts', 'src/ui/perfLap.ts', 'src/ui/Perf.ts',
+  'src/boot/plan.ts', 'src/boot/timing.ts', 'src/boot/precompile.ts', 'src/core/lifeTrace.ts',
+  'src/core/errorReport.ts', 'src/boot/nineBootTrace.ts', 'src/boot/nineGpuTrace.ts',
+].map((path) => [path, 'performance.now measures elapsed cost or diagnostic timing; never gameplay state.']));
+const ratchetFile = process.env.WILDSHARD_RATCHET_FILE ?? new URL('ratchet.json', import.meta.url);
+const measurementAllow = existsSync(ratchetFile) ? JSON.parse(readFileSync(ratchetFile, 'utf8')).allow?.['wildshard/no-raw-random-time'] ?? TIME_ALLOW : TIME_ALLOW;
+const noRawRandomTime = rule('Randomness and time use engine services (E357)', (context) => {
+  const path = pathOf(context);
+  if (/^src\/(?:core\/(?:rng|time)\.ts|engine\/core\/(?:rng|clock)\.ts)$/u.test(path)) return {};
+  return { MemberExpression(node) {
+    const object = unwrap(node.object), property = propName(node) ?? stringOf(node.property);
+    if (object?.type !== 'Identifier') return;
+    if (object.name === 'Math' && property === 'random') report(context, node, 'Use app.rng instead of Math.random');
+    if (object.name === 'performance' && property === 'now' && !Object.hasOwn(measurementAllow, path)) report(context, node, 'Use app.clock instead of performance.now');
+  } };
+});
+const INPUT_EVENTS = new Set('keydown keyup keypress pointerdown pointerup pointermove pointercancel mousedown mouseup mousemove wheel contextmenu touchstart touchmove touchend touchcancel'.split(' '));
+const noRawInput = rule('Input listeners belong in the input service (E357)', (context) => {
+  if (/^src\/(?:core|engine)\/input\//u.test(pathOf(context))) return {};
+  return { CallExpression(node) { if (calleeName(node.callee) === 'addEventListener' && INPUT_EVENTS.has(stringOf(node.arguments[0]))) report(context, node, 'Use the input service instead of a raw input listener'); } };
+});
+const noRendererType = rule('Renderer types stay inside rendering (E357)', (context) => {
+  if (/^src\/(?:engine\/render\/|(?:engine\/)?core\/(?:Game|bootstrap)\.ts$)/u.test(pathOf(context))) return {};
+  return { Identifier(node) { if (node.name === 'WebGLRenderer') report(context, node, 'Renderer types belong in engine/render'); } };
+});
+const SIM = /^src\/engine\/(?:combat|ai|saves|quests|effects)\//u;
+const VIEW = /^src\/engine\/(?:combat|ai)\/view\//u;
+const VISUAL = /^src\/engine\/(?:render|ui|fx|anim)\//u;
+const MATH_TYPES = new Set(['Vector3', 'Quaternion', 'Matrix4', 'Box3', 'Ray']);
+const DOM_GLOBALS = new Set(['document', 'HTMLElement', 'HTMLCanvasElement', 'requestAnimationFrame']);
+const simNoRender = rule('Simulation stays independent of visuals (E357)', (context) => {
+  const path = pathOf(context);
+  if (!SIM.test(path) || VIEW.test(path)) return {};
+  return {
+    ...importsVisitor((node) => {
+      const source = stringOf(node.source);
+      if (source === null) return;
+      if (source === 'three' && (!node.specifiers?.length || node.specifiers.some((specifier) => specifier.type !== 'ImportSpecifier' || !MATH_TYPES.has(nameOf(specifier.imported))))) {
+        report(context, node, 'Simulation imports only Vector3, Quaternion, Matrix4, Box3 or Ray from three');
+      } else if (VISUAL.test(modulePath(context.filename, source)) || VIEW.test(modulePath(context.filename, source))) {
+        report(context, node, 'Simulation cannot import a visual module');
+      }
+    }),
+    Identifier(node) { if (isReference(node) && DOM_GLOBALS.has(node.name)) report(context, node, 'Simulation cannot read a DOM global'); },
+    MemberExpression(node) {
+      const object = unwrap(node.object);
+      if (object?.type === 'Identifier' && ['window', 'globalThis'].includes(object.name) && DOM_GLOBALS.has(propName(node) ?? stringOf(node.property))) report(context, node, 'Simulation cannot read a DOM global');
+    },
+  };
+});
+
 const plugin = {
   meta: { name: 'wildshard' },
-  rules: { 'no-url-switch': noUrlSwitch },
+  rules: {
+    'no-url-switch': noUrlSwitch, layer, 'no-shard-branch': noShardBranch, 'no-raw-save': noRawSave,
+    'no-raw-random-time': noRawRandomTime, 'no-raw-input': noRawInput,
+    'no-renderer-type': noRendererType, 'sim-no-render': simNoRender,
+  },
 };
 export default plugin; // oxlint loads a JS plugin from its default export

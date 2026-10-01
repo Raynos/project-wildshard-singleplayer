@@ -50,6 +50,7 @@ run check-css node scripts/check-css.mjs
 run typecheck pnpm exec tsc --noEmit
 run typecheck-api pnpm exec tsc --noEmit -p api
 run oxlint pnpm exec oxlint
+run ratchet node lint/ratchet.mjs
 run vitest pnpm exec vitest run
 run vite-build pnpm exec vite build --outDir "$work/dist" --emptyOutDir
 
