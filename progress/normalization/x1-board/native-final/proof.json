@@ -875,5 +875,65 @@
       }
     }
   },
-  "templateBootErrors": []
+  "templateBootErrors": [],
+  "sourceLanding": "4303d347bcd61c5318c3520aa063953a1af91dcd",
+  "landingGate": [
+    "vercel-gate: 4303d347 \u2014 3501 files as Vercel sees them; check-css \u00b7 typecheck \u00b7 oxlint \u00b7 vitest \u00b7 vite build",
+    "  \u2713 check-css (0 s)",
+    "  \u2713 gen (3 s)",
+    "  \u2713 gen-check (1 s)",
+    "  \u2713 typecheck (1 s)",
+    "  \u2713 typecheck-api (0 s)",
+    "  \u2713 typecheck-scripts (1 s)",
+    "  \u2713 oxlint (2 s)",
+    "  \u2713 ratchet (2 s)",
+    "  \u2713 liveness (0 s)",
+    "  \u2713 vitest (12 s)",
+    "  \u2713 vite-build (5 s)",
+    "vercel-gate: 4303d347 passed"
+  ],
+  "landingBootCommand": "node scripts/parity.mjs --export=4303d347bcd61c5318c3520aa063953a1af91dcd --lane=m5 --shards=all --tiers=phone --only=fingerprint+poses --retry=0 --out=/private/tmp/e357-sol-x1c/boot-final",
+  "landingBoot": {
+    "_template.phone.raw.json": {
+      "errors": [],
+      "poseSSIM": [],
+      "rawSha256": "b8d01737b5e272bd5ba62b60738cad9aff8d7dedfdf40cc9c2e27947cf8622c7"
+    },
+    "driftwood-isle.phone.raw.json": {
+      "errors": [],
+      "poseSSIM": [
+        1,
+        1,
+        1
+      ],
+      "rawSha256": "53bf9fe40a0aa25c259945119a9ac3c3dae39c9d5fa27fd3cc0b83ea8eb0764e"
+    },
+    "nalati-grasslands.phone.raw.json": {
+      "errors": [],
+      "poseSSIM": [
+        1,
+        1,
+        1
+      ],
+      "rawSha256": "af6952b41678cbb75b5e0c40bad4f95e7c57eebda67db076203d0807b58c94e0"
+    },
+    "nine-dragon-stack.phone.raw.json": {
+      "errors": [],
+      "poseSSIM": [
+        1,
+        1,
+        1
+      ],
+      "rawSha256": "ab372360c091192a1bb0f68e8166a481ac9273fc054b02a9f29a13e315ab2abb"
+    },
+    "pine-hollow.phone.raw.json": {
+      "errors": [],
+      "poseSSIM": [
+        1,
+        1,
+        1
+      ],
+      "rawSha256": "693069531ec8d166d0bbbdb043b05dd4b393ba656c0d5db844fb94ea8bfc9392"
+    }
+  }
 }
