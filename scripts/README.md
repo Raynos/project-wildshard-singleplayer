@@ -77,6 +77,7 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [test-ios-memory-watchdog.py](./test-ios-memory-watchdog.py)
 - [test-nine-gpu-boot.mjs](./test-nine-gpu-boot.mjs)
 - [test-nine-gpu-boot.sh](./test-nine-gpu-boot.sh)
+- [webgpu-inventory.mjs](./webgpu-inventory.mjs)
 
 ## Gameplay verification
 
