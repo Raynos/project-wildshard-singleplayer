@@ -34,6 +34,14 @@ const RETIRED = [
   [/30 Hz near, 15 Hz/, 'decision 85 (AI: 20 Hz near, 10 Hz mid, paused far)'],
   [/\bspeciesTuning\b/, 'faunaTuning (13 07/08#1)'],
   [/boar, bear,? and horse/, 'the horse is Nalati\'s (13 09#5)'],
+  // council round 1 / round 2 renames and retirements (R1-01, R1-24, R2-08, R2-10)
+  [/\bShardRender\b/, 'LookStrategy (R1-01)'],
+  [/\bShardComposeContext\b/, 'LookComposeContext (R1-01)'],
+  [/\bshard\.(data|world|kit|play|loaded|unloaded)\b/, 'level.* stages / events (R1-01)'],
+  [/\bapp\.shard\b/, 'game.shard (R1-01)'],
+  [/\binstall\(ctx\)/, 'the staged hooks world(ctx) / kit(ctx) / play(ctx) (R1-24)'],
+  [/\{ ?allowed, toggle ?\}/, '{ allowed, latched } (R1-F9 / R2-08)'],
+  [/model\.bolt/, 'the bolt base formula (R1-31 / R2-10)'],
 ];
 // a quote of Jake runs *"…"* and can wrap lines: everything after an opening *" is his words, not the plan's
 const strip = (line) => line.replace(/\*"[^]*$/, '').replaceAll(/`[^`]*`/g, '').replaceAll(/"[^"]*"/g, '');
