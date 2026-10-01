@@ -56,7 +56,7 @@ export class Events {
     for (const listener of answerers) {
       if (listener.active) result = listener.run(result);
     }
-    if (name === 'player.crouch' && answerers.length === 0) result = { allowed: true, latched: false };
+    if (name === 'player.crouch' && answerers.length === 0) result = { allowed: false, latched: false };
     return result as AskOutput<K>;
   }
   private dispatch(event: QueuedEvent): void {

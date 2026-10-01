@@ -8,7 +8,7 @@ export const pineWind: BowProfile['wind'] = {
 };
 export const LONGBOW: BowProfile = {
   ...BOW, parent: 'weapon.bow', quiver: 20, swayMax: 1.4 * (Math.PI / 180), speedBase: 32, speedDraw: 30, damageScale: 1.35,
-  aimZoom: 1.6, arcColour: 0xffc070, arcMode: 'aim', zoomLook: false, autoShot: true,
+  aimZoom: 1.6, arcColour: 0xffc070, arcMode: 'aim', zoomLook: false,
   inspectZ: -1.4, inspectHidesArms: true, transparentParts: true,
   poses: POSE, arrowX: -0.017, arrowY: 0.052, arrowLength: ARROW_LEN, build: buildLongbow, arrow: arrowKind, wind: pineWind,
 };

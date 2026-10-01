@@ -353,7 +353,7 @@ export class Player {
     this.preUpdate?.(dt);
     const crouch = (want: boolean, via: 'toggle' | 'hold'): boolean => {
       const answer = this.traversalEvents?.ask('player.crouch', { want, via });
-      return answer === undefined ? want : answer.latched || (want && answer.allowed);
+      return answer !== undefined && (answer.latched || (want && answer.allowed));
     };
     const toggle = crouch(this.keys.has('KeyC') || (this.inputService?.held('crouch') ?? false), 'toggle');
     const hold = crouch(this.keys.has('ControlLeft') || (this.inputService?.held('crouch.hold') ?? false), 'hold');

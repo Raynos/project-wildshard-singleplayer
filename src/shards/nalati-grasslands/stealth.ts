@@ -27,7 +27,7 @@ import { practiceRoom } from '#engine/core/practiceRoom';
  * JUMP (hudSlots `up0`; the first time per session with a pulse ring + a TALL GRASS chip) and is a TOGGLE. Desktop: C toggles, Ctrl holds —
  * both gated to long grass like the disc. Jumping (stand + jump in one), sprinting, leaving the grass, the hoverboard,
  * swimming, mounting and a practice room (the arena, a playground, 3 km over the grass: `practiceRoom.open`, E321) all stand you up.
- * The scoped player.crouch answer gates the shared motor's crouch (eye 1.03 m, 2.2 m/s); other shards use its default answer.
+ * The scoped player.crouch answer gates the shared motor's crouch (eye 1.03 m, 2.2 m/s); without a shard answer the motor stays standing.
  *
  * DETECTION: the creatures own their senses (Pack / Herd via wildEnv.playerVisibility — grass cover at you and along the
  * line to them, your speed, the light, hearing with the grass rustle, the wolves' and the stallion's smell from downwind
@@ -275,7 +275,7 @@ export class Stealth {
 /** The shard owns eligibility and latch; the engine motor owns the crouch action. */
 export function installStealth(ctx: LevelContext, opts: StealthOpts): Stealth {
   const stealth = new Stealth({ ...opts, ctx });
-  ctx.inputContext({ id: 'stealth', actions: ['crouch', 'crouch.hold'], keys: { crouch: ['KeyC'], 'crouch.hold': ['ControlLeft'] } });
+  ctx.inputContext({ id: 'stealth', actions: ['crouch', 'crouch.hold'], keys: { crouch: ['KeyC'], 'crouch.hold': ['ControlLeft', 'ControlRight'] } });
   ctx.app.input.push('stealth', ctx.scope);
   ctx.answer('player.crouch', (request) => stealth.answerCrouch(request));
   ctx.system({ id: 'shard.nalati.stealth.crouch', phase: 'input', before: ['engine.player.input'], run: (dt) => { stealth.crouchStep(Math.min(dt, 0.05)); } });

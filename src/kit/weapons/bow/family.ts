@@ -77,7 +77,6 @@ export class Bow extends Weapon {
   private readonly arc: DropArc;
   private readonly mat: THREE.Material;
   private readonly roll: THREE.Quaternion;
-  private autoShot = false;
   freezeDraw: number | null = null;
 
   // draw state (bowDraw.ts)
@@ -165,8 +164,7 @@ export class Bow extends Weapon {
     app.input.bind('attack', () => { if (this.state.bolts <= 0) this.onDry?.(); else { this.mouseDraw = true; this.mouseCancel = false; } }, ctx.scope, allowed);
     app.input.bind('aim', () => { this.mouseAds = !this.mouseAds; }, ctx.scope, allowed);
     app.input.bindRelease('attack', () => { if (!this.mouseDraw) return; this.mouseDraw = false; if (!allowed()) this.mouseCancel = true; }, ctx.scope);
-    if (this.profile.autoShot) app.input.bind('autoFire', () => { if (this.state.bolts <= 0) this.onDry?.(); else if (!this.mouseDraw && !this.altHeld) this.autoShot = true; }, ctx.scope, allowed);
-    app.input.onReset(() => { if (this.mouseDraw) this.mouseCancel = true; this.mouseDraw = false; this.mouseAds = false; this.autoShot = false; }, ctx.scope);
+    app.input.onReset(() => { if (this.mouseDraw) this.mouseCancel = true; this.mouseDraw = false; this.mouseAds = false; }, ctx.scope);
   }
 
   /** the FIRE disc's touch-down (Weapons.tryFire): the draw itself is the hold (`altHeld`), so this only clicks dry on an
@@ -250,18 +248,15 @@ export class Bow extends Weapon {
   update(dt: number, t: number): void {
     const pl = this.player, cam = this.game.camera;
     cam.updateMatrixWorld();
-    if (!this.enabled) { this.mouseDraw = false; this.mouseAds = false; this.autoShot = false; }
+    if (!this.enabled) { this.mouseDraw = false; this.mouseAds = false; }
 
     // ── the draw (bowDraw.ts): hold = draw, release at full = loose, early = let-down. The next draw may start while the
     //    hand is still coming up from the quiver (RN_EARLY of the re-nock left): the string comes back to meet the hand
     //    halfway, instead of the hand reaching all the way out to the braced string ──
-    const auto = this.autoShot && !this.draw.full;
-    const held = this.mouseDraw || this.altHeld || auto;
-    if (this.autoShot && this.draw.full && !this.mouseDraw && !this.altHeld) this.autoShot = false;
+    const held = this.mouseDraw || this.altHeld;
     const running = pl.sprinting && !this.mounted; // sprinting on foot lowers the bow; a gallop does not (horse archery)
     const blocked = !this.enabled || this.mouseCancel || this.state.bolts <= 0 || running || pl.swimming;
     if (!held) this.mouseCancel = false;
-    if (blocked) this.autoShot = false;
     const ev = this.draw.step(dt, held, blocked, this.drawSpeedScale * this.mountDraw);
     if (ev === 'start') { this.chargeEvent('draw'); this.onDrawStart?.(); }
     else if (ev === 'full') { this.chargeEvent('draw', 1); this.onFullDraw?.(); }
@@ -332,7 +327,7 @@ export class Bow extends Weapon {
     const pl = this.player, cam = this.game.camera;
     const port = cam.aspect < 1 ? Math.min(1, (1 - cam.aspect) * 1.6) : 0;
     // raised while drawing (and a beat after the loose so the follow-through reads)
-    const raise = this.p > 0.01 || this.mouseDraw || this.altHeld || this.autoShot || this.aimBlend > 0.01 || this.draw.renockT > 0;
+    const raise = this.p > 0.01 || this.mouseDraw || this.altHeld || this.aimBlend > 0.01 || this.draw.renockT > 0;
     this.ready += ((raise ? 1 : 0) - this.ready) * Math.min(1, dt * (raise ? 9 : 4));
     const r = sstep(0, 1, this.ready);
     // the string: a spring onto the draw (under-damped: the release snaps past the brace and back)

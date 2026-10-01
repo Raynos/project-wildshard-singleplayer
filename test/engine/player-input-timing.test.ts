@@ -1,5 +1,6 @@
 import { expect, it, vi } from 'vitest';
 import { PerspectiveCamera } from 'three';
+import { Events, Scope } from '#engine';
 import { Player } from '#engine/player/Player';
 import { InputService } from '#engine/input/InputService';
 import { Physics } from '#engine/physics/Physics';
@@ -11,15 +12,18 @@ import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';
 vi.mock('#engine/world/Heightfield', () => ({ heightAt: () => 0 }));
 vi.mock('#engine/player/WaterLine', () => ({ WaterLine: class { readonly visible = false; } }));
 
-async function fixture() {
+async function fixture(crouchEnabled = true) {
   const R = await loadRapier(await (await fetch(wasmInline)).arrayBuffer()), physics = new Physics(R);
   physics.world.createCollider(R.ColliderDesc.cuboid(50, 0.5, 50).setTranslation(0, -0.5, 0).setCollisionGroups(groups('WORLD')));
   physics.step();
   let now = 0, jumps = 0; const launches: number[] = [];
   const input = new InputService(() => now), player = new Player(new PerspectiveCamera(), physics, legacyDouble<HTMLCanvasElement>({}));
+  const events = new Events(), scope = new Scope('test-crouch');
+  player.traversalEvents = events;
+  if (crouchEnabled) events.answer('player.crouch', () => ({ allowed: true, latched: false }), scope);
   player.inputService = input; player.onGround = true; player.onJump = () => { jumps++; launches.push(player.velocity.y); };
   const step = (ms: number) => { now += ms; player.input(ms / 1000); physics.step(); player.step(ms / 1000); };
-  return { player, input, step, jumps: () => jumps, launches, dispose: () => { player.motor.dispose(); physics.dispose(); } };
+  return { player, input, step, scope, jumps: () => jumps, launches, dispose: () => { scope.dispose(); player.motor.dispose(); physics.dispose(); } };
 }
 it('keeps a blocked jump until it can execute inside120ms and consumes it exactly once', async () => {
   const f = await fixture();
@@ -60,4 +64,21 @@ it('buffers a landing press after both airborne jumps were spent', async () => {
     expect(f.jumps()).toBe(2); expect(f.player.onGround).toBe(true);
     f.step(16); expect(f.jumps()).toBe(3); expect(f.input.pressed('jump')).toBe(false);
   } finally { f.dispose(); }
+});
+
+it('ignores raw and injected crouch without a scoped shard answer, including after unload', async () => {
+  const f = await fixture(false);
+  try {
+    f.player.keys.add('KeyC'); f.player.keys.add('ControlLeft');
+    f.input.setHeld('crouch', true); f.input.setHeld('crouch.hold', true);
+    f.step(16); expect(f.player.crouching).toBe(false);
+    f.player.traversalEvents = null;
+    f.step(16); expect(f.player.crouching).toBe(false);
+  } finally { f.dispose(); }
+  const scoped = await fixture();
+  try {
+    scoped.input.setHeld('crouch', true); scoped.step(16); expect(scoped.player.crouching).toBe(true);
+    scoped.scope.dispose(); scoped.step(16); expect(scoped.player.crouching).toBe(false);
+    scoped.input.press('jump'); scoped.step(16); expect(scoped.jumps()).toBe(1);
+  } finally { scoped.dispose(); }
 });

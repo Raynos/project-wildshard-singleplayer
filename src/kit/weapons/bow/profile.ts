@@ -16,7 +16,7 @@ export interface BowProfile {
   family: 'bow'; parent?: EquipmentRow['id']; quiver: number; swayMax: number;
   speedBase: number; speedDraw: number; damageScale: number;
   aimZoom: number; aimVmZoom: number; aimSway: number; aimSpread: number; aimIn: number;
-  arcFrom: number; arcColour: number; arcMode: 'setting' | 'aim'; zoomLook: boolean; autoShot: boolean;
+  arcFrom: number; arcColour: number; arcMode: 'setting' | 'aim'; zoomLook: boolean;
   inspectZ: number; inspectHidesArms: boolean; transparentParts: boolean; vmScale: number;
   poses: Record<'rest' | 'drawn' | 'restPort' | 'drawnPort' | 'aim' | 'aimPort', GripPose>;
   arrowX: number; arrowY: number; arrowLength: number;

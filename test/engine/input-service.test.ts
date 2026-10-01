@@ -39,3 +39,23 @@ describe('the shared input service', () => {
     input.press('attack'); now = 241; expect(input.consume('attack')).toBe(false); scope.dispose();
   });
 });
+
+it('drops retired saved binding rows while retaining overrides for current actions', () => {
+  const original = new Bindings(() => undefined); original.reset();
+  original.define('onFoot', { crouch: ['KeyC'], jump: ['Space'] });
+  original.rebind('onFoot', 'crouch', 'KeyV'); original.rebind('onFoot', 'jump', 'KeyK');
+  const restored = new Bindings(() => undefined); restored.define('onFoot', { jump: ['Space'] });
+  expect(restored.keys('onFoot')).toEqual({ jump: ['KeyK'] });
+  expect(restored.entries()).toEqual([{ context: 'onFoot', action: 'jump', codes: ['KeyK'] }]);
+  restored.reset();
+});
+it('leaves shared walking and bows without crouch or automatic-shot keys', () => {
+  const input = new InputService(() => 0), scope = new Scope('J11-J12');
+  for (const context of INPUT_CONTEXTS) input.register(context, scope);
+  input.push('onFoot', scope); input.push('weapon.bow', scope);
+  expect(input.held('crouch')).toBe(false); expect(input.held('crouch.hold')).toBe(false);
+  expect(input.bindings.entries().some((entry) => entry.action === 'crouch' || entry.action === 'crouch.hold')).toBe(false);
+  expect(input.bindings.entries().some((entry) => entry.context === 'weapon.bow' && entry.codes.includes('KeyF'))).toBe(false);
+  input.setHeld('attack', true); expect(input.held('attack')).toBe(true);
+  scope.dispose();
+});

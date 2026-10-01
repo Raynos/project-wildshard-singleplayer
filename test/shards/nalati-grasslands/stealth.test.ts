@@ -20,8 +20,8 @@ function setup() {
   return { stealth, player, ask, scope, mount: () => { mounted = true; }, tame: () => { taming = true; } };
 }
 describe('Nalati crouch through the motor ask', () => {
-  it('defaults to held crouch on other shards', () => {
-    expect(new Events().ask('player.crouch', { want: true, via: 'toggle' })).toEqual({ allowed: true, latched: false });
+  it('keeps other shards standing without a crouch answer', () => {
+    expect(new Events().ask('player.crouch', { want: true, via: 'toggle' })).toEqual({ allowed: false, latched: false });
   });
   it('latches C once per press and keeps Ctrl held', () => {
     const f = setup(); expect(f.ask(true)).toEqual({ allowed: false, latched: true });

@@ -13,7 +13,12 @@ export class Bindings {
   constructor(changed: () => void) { this.changed = changed; }
   define(context: string, keys: Keys): void { this.defaults.set(context, keys); }
   remove(context: string): void { this.defaults.delete(context); }
-  keys(context: string): Keys { return { ...this.defaults.get(context), ...this.overrides[context] }; }
+  keys(context: string): Keys {
+    // Saved overrides cannot restore actions removed from a context's defaults.
+    const defaults = this.defaults.get(context) ?? {};
+    const overrides = Object.fromEntries(Object.entries(this.overrides[context] ?? {}).filter(([action]) => Object.hasOwn(defaults, action)));
+    return { ...defaults, ...overrides };
+  }
   entries(): readonly { context: string; action: Action; codes: readonly string[] }[] {
     return [...this.defaults.keys()].flatMap((context) => Object.entries(this.keys(context)).map(([action, codes]) => ({ context, action: action as Action, codes })));
   }

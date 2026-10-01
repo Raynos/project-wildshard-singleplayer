@@ -56,7 +56,7 @@ describe('weapon tuning parity (09 §1.4)', () => {
     expect(BOW).toMatchObject({ family: 'bow', quiver: 24, swayMax: rad(1.5), speedBase: 30, speedDraw: 28, damageScale: 1.2,
       aimZoom: 2, aimVmZoom: 0.85, aimSway: 0.5, aimSpread: 0.5, aimIn: 10, arcFrom: 0.25, arcColour: 0x8fe3ff, vmScale: 0.72, arrowLength: 0.8 });
     expect(LONGBOW).toMatchObject({ ...BOW, parent: 'weapon.bow', quiver: 20, swayMax: rad(1.4), speedBase: 32, speedDraw: 30, damageScale: 1.35,
-      aimZoom: 1.6, arcColour: 0xffc070, arcMode: 'aim', zoomLook: false, autoShot: true, inspectZ: -1.4,
+      aimZoom: 1.6, arcColour: 0xffc070, arcMode: 'aim', zoomLook: false, inspectZ: -1.4,
       inspectHidesArms: true, transparentParts: true, poses: LONGBOW.poses, arrowX: -0.017, arrowY: 0.052, arrowLength: 0.76, build: LONGBOW.build, arrow: LONGBOW.arrow, wind: LONGBOW.wind });
     expect(CROSSBOW_PROFILE).toEqual({ family: 'crossbow', quiver: 30, speed: 62, gravity: 9.8, drag: 0.012, radius: 0.03, bury: 0.08,
       reload: 1.35, autoReload: 1.4, cooldown: 0.3, kick: rad(0.8), adsBlend: 0.18, adsMotion: 0.3, maxFlying: 8, maxStuck: 200 });

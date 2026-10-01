@@ -634,7 +634,7 @@ export function installPineLife(h: PineLifeHost): PineLife | null {
   const updateHare = (hr: Hare, dt: number): void => {
     const pp = player.position, p = hr.pose;
     const d = Math.hypot(hr.x - pp.x, hr.z - pp.z);
-    const scare = player.sprinting ? 20 : player.crouching ? 7 : 12;
+    const scare = player.sprinting ? 20 : 12;
     if (hr.mode !== 'flee' && d < scare) { hr.mode = 'flee'; hr.fleeLeft = rng.range(28, 45); hr.zig = 0; hr.yaw = Math.atan2(hr.x - pp.x, hr.z - pp.z); hr.t = hr.dur; }
     else if (hr.mode === 'graze' && d < scare + 10) { hr.mode = 'alert'; hr.timer = rng.range(2, 5); }
     const hopping = hr.t < hr.dur;
