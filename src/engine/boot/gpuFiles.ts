@@ -31,10 +31,18 @@
  * resolver that checks the marker is registered by shardPrefetch.ts (it owns the set's list); a page that never loads it
  * (dev pages, the bake scripts in Node) reads Auto as Images.
  */
-import { GPU_FILES } from './gpu.generated';
+
+import { GPU_FILES as ENGINE_GPU_FILES } from './ktx2.generated';
 import { TIER } from '../core/tier';
 import { setting } from '../ui/Settings';
 import { shardSlot } from '../core/shardState';
+
+export interface Ktx2Table { readonly phone: Readonly<Record<string, string>>; readonly desktop: Readonly<Record<string, string>> }
+const GPU_FILES = { phone: { ...ENGINE_GPU_FILES.phone }, desktop: { ...ENGINE_GPU_FILES.desktop } };
+export function registerGpuFiles(table: Ktx2Table): void {
+  Object.assign(GPU_FILES.phone, table.phone);
+  Object.assign(GPU_FILES.desktop, table.desktop);
+}
 
 export type TexMode = 'ktx2' | 'img';
 

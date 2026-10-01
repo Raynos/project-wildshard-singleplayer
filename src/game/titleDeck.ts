@@ -3,7 +3,7 @@
  * screens, one only please"): the cold launch (src/engine/ui/StartTitle.ts, renderer-free, before any shard loads) and pause ▸
  * EXIT TO MAIN (src/engine/ui/HUD.ts `showIntro`, over the loaded shard) build the same deck from the same cards.
  *
- *   const deck = buildTitleDeck({ cards: TITLE_CARDS, onEnter, onExplore, onSettings })
+ *   const deck = buildTitleDeck({ cards: titleCards(), onEnter, onExplore, onSettings })
  *   parent.append(deck.root); deck.start()                // after it is in the DOM: centre the selected card
  *   deck.select(i) · deck.index · deck.activate()          // the HUD's arrow keys / any key
  *   deck.dispose()                                          // its resize listeners, when the title goes away
@@ -12,21 +12,11 @@
  * under it, ENTER WORLD and EXPLORE WORLD, and the main menu's SETTINGS. A swipe steps one card; the centred card is the
  * selection. Hero art loads for the selected card only; a neighbour's warms when a swipe or a dot press starts toward it.
  *
- * `TITLE_CARDS` must not import a ShardManifest: terrain and world modules stay outside the opening document's JS graph.
+ * Cards use the generated, node-safe manifests; world builders remain lazy.
  * test/title-deck.test.ts keeps each card's name, label (the def's `biome`), badge and art equal to its ShardManifest.
  */
-import driftThumb from '#shards/driftwood-isle/thumbs/driftwood-isle.jpg';
-import driftPortrait from '#shards/driftwood-isle/thumbs/driftwood-isle-portrait.jpg';
-import driftLandscape from '#shards/driftwood-isle/thumbs/driftwood-isle-landscape.jpg';
-import pineThumb from '#shards/pine-hollow/thumbs/pine-hollow.jpg';
-import pinePortrait from '#shards/pine-hollow/thumbs/pine-hollow-portrait.jpg';
-import pineLandscape from '#shards/pine-hollow/thumbs/pine-hollow-landscape.jpg';
-import nalatiThumb from '#shards/nalati-grasslands/thumbs/nalati-grasslands.jpg';
-import nalatiPortrait from '#shards/nalati-grasslands/thumbs/nalati-grasslands-portrait.jpg';
-import nalatiLandscape from '#shards/nalati-grasslands/thumbs/nalati-grasslands-landscape.jpg';
-import nineThumb from '#shards/nine-dragon-stack/thumbs/nine-dragon-stack.jpg';
-import ninePortrait from '#shards/nine-dragon-stack/thumbs/nine-dragon-stack-portrait.jpg';
-import nineLandscape from '#shards/nine-dragon-stack/thumbs/nine-dragon-stack-landscape.jpg';
+import { SHARDS } from './shard/shards.generated';
+import { setting } from '#engine/ui/Settings';
 
 export type TitleBadge = 'Early access' | 'Experimental';
 
@@ -36,20 +26,24 @@ export interface TitleCard {
   readonly name: string;
   /** the one-line player blurb under the name (the def's `biome`; E318: no grid coordinates, no chunk size) */
   readonly label: string;
-  readonly badge?: TitleBadge;
+  badge?: TitleBadge;
   thumbnail: string;
   heroPortrait: string;
   heroLandscape: string;
 }
 
-/** the four shards, in deck order. Nine Dragon Stack is playable for everyone, tagged EXPERIMENTAL (E318: the one status
- *  — the cold launch already said so; the in-game deck's COMING SOON teaser is gone) */
-export const TITLE_CARDS: readonly TitleCard[] = [
-  { slug: 'driftwood-isle', name: 'Driftwood Isle', label: 'Low-poly island, open ocean', thumbnail: driftThumb, heroPortrait: driftPortrait, heroLandscape: driftLandscape },
-  { slug: 'pine-hollow', name: 'Pine Hollow', label: 'Boreal pine forest', thumbnail: pineThumb, heroPortrait: pinePortrait, heroLandscape: pineLandscape },
-  { slug: 'nalati-grasslands', name: 'Nalati Grasslands', label: 'Alpine steppe', badge: 'Early access', thumbnail: nalatiThumb, heroPortrait: nalatiPortrait, heroLandscape: nalatiLandscape },
-  { slug: 'nine-dragon-stack', name: 'Nine Dragon Stack', label: 'Vertical neon city', badge: 'Experimental', thumbnail: nineThumb, heroPortrait: ninePortrait, heroLandscape: nineLandscape },
-];
+/** Cards are derived at each opening so Debug's hidden-shard pick and preloaded art stay current. */
+export function titleCards(showHidden = setting('showHiddenShards') === 'on'): readonly TitleCard[] {
+  return SHARDS.filter((m) => showHidden || m.status !== 'hidden').map((m): TitleCard => {
+    const card: TitleCard = {
+    slug: m.slug, name: m.name, label: m.biome,
+    thumbnail: m.card.thumb, heroPortrait: m.card.portrait, heroLandscape: m.card.landscape,
+    };
+    if (m.status === 'earlyAccess') card.badge = 'Early access';
+    if (m.status === 'experimental') card.badge = 'Experimental';
+    return card;
+  });
+}
 
 export interface TitleDeckOptions {
   readonly cards: readonly TitleCard[];

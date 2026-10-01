@@ -47,6 +47,8 @@ cd "$work/tree" || exit 1
 echo "vercel-gate: $short — $(wc -l < "$work/keep" | tr -d ' ') files as Vercel sees them; check-css · typecheck · oxlint · vitest · vite build"
 run() { local name="$1"; shift; local t0=$SECONDS; if ! "$@" > "$work/$name.log" 2>&1; then tail -40 "$work/$name.log" >&2; fail "$name"; fi; echo "  ✓ $name ($((SECONDS - t0)) s)"; }
 run check-css node scripts/check-css.mjs
+run gen pnpm gen
+run gen-check node scripts/gen-shards.mjs --check
 run typecheck pnpm exec tsc --noEmit
 run typecheck-api pnpm exec tsc --noEmit -p api
 run oxlint pnpm exec oxlint

@@ -10,7 +10,7 @@ import explorePractice from './explore/practice-nine-dragon-stack.webp';
  *
  * A structure-first shard (`structures`): its world is built floors on colliders (world/), not a landscape; the terrain
  * functions are a flat datum at y = 0, 125 m under the square, that nothing draws or collides with. Node-safe data:
- * the world's code is a lazy import (./index). A prototype: listed in PROTOTYPES (src/game/shard/registry.ts), not CHUNKS —
+ * the world's code is a lazy import (./index). A prototype: listed in EXPERIMENTAL_SHARDS (src/game/shard/registry.ts), not PLAYABLE_SHARDS —
  * the deck shows it only when Debug ▸ Developer tools ▸ Prototype shards is on; `?chunk=nine-dragon-stack` boots it.
  *
  * Coordinates are the clean room's (layout.ts: x east, z south, the square's datum at Y0 = 125). The engine's compass
@@ -41,6 +41,9 @@ const FILES = [
 ];
 
 export const NINE_DRAGON_STACK: ShardManifest = {
+  api: 1,
+  assetGlobs: ['public/assets/nine-dragon/**', 'public/assets/gpu/nine-dragon/**', 'public/assets/music/nine-dragon-stack/**', 'public/assets/sfx/nine-dragon-stack/**', 'public/assets/title/nine-dragon-stack-portrait.jpg'],
+  ktx2: () => import('./ktx2.generated'),
   order: 4,
   status: 'experimental',
   placement: { grid: [-2, 1], size: [500, 500, 500] },
@@ -158,3 +161,6 @@ export const NINE_DRAGON_STACK: ShardManifest = {
 
   style: 'pbr',
 };
+
+// oxlint-disable-next-line import/no-default-export -- F9 discovery requires a uniform manifest default export.
+export default NINE_DRAGON_STACK;

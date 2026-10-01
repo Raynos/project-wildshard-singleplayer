@@ -5,7 +5,9 @@ import { loadSpecies } from './species';
 import { achievementsFor, type AchievementDef } from '#game/achievements';
 import { Progress } from '#game/Progress';
 import { hasSpecies, speciesDef } from '#engine/entities/species/registry';
-import { CHUNKS } from '#game/shard/registry';
+import { SHARDS, playable } from '#game/shard/registry';
+
+const PLAYABLE_SHARDS = SHARDS.filter(playable);
 
 const PINE = 'chunk://local/pine-hollow';
 const STORE = 'ws.progress.v1';
@@ -19,7 +21,7 @@ describe('achievement tables', () => {
   });
 
   it('every shard table has unique ids, positive integer counts, a name and a title', () => {
-    for (const c of CHUNKS) {
+    for (const c of PLAYABLE_SHARDS) {
       const defs = achievementsFor(legacyShardId(c.slug));
       expect(new Set(defs.map((d) => d.id)).size).toBe(defs.length);
       for (const d of defs) {
@@ -31,11 +33,11 @@ describe('achievement tables', () => {
   });
 
   it('every achievement counts kills OR an event, never both', () => {
-    for (const c of CHUNKS) for (const d of achievementsFor(legacyShardId(c.slug))) expect((d.kind === undefined) !== (d.event === undefined), d.id).toBe(true);
+    for (const c of PLAYABLE_SHARDS) for (const d of achievementsFor(legacyShardId(c.slug))) expect((d.kind === undefined) !== (d.event === undefined), d.id).toBe(true);
   });
 
   it('every kill achievement names a registered species and, if any, one of its variants', () => {
-    for (const c of CHUNKS) {
+    for (const c of PLAYABLE_SHARDS) {
       for (const d of achievementsFor(legacyShardId(c.slug))) {
         if (d.kind === undefined) continue;
         expect(hasSpecies(d.kind), `${d.id}: kind ${d.kind}`).toBe(true);

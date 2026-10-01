@@ -8,7 +8,7 @@
 //
 //   node --import ./scripts/bake-loader.mjs scripts/bake-sky.mjs [--check]
 import { execFileSync } from 'node:child_process';
-import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { byteWriter, outputHash, jsonBytes, toolVersion } from './bake-output.mjs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -21,11 +21,9 @@ const output = byteWriter(check, 'bake-sky');
 const magick = toolVersion('magick', ['-version']);
 if (!magick) console.log('bake-check: sky pair skipped (no magick)');
 
-const chunkFiles = readdirSync(resolve(ROOT, 'src/shards')).sort();
-for (const file of chunkFiles) {
-  const mod = await import(pathToFileURL(resolve(ROOT, 'src/shards', file, 'manifest.ts')).href);
-  for (const def of Object.values(mod)) {
-    if (!def || typeof def !== 'object' || typeof def.slug !== 'string' || !def.ground?.terrain || def.ground.structures || !def.sky?.hdri) continue;
+const { SHARDS } = await import(pathToFileURL(resolve(ROOT, 'src/game/shard/shards.generated.ts')).href);
+for (const def of SHARDS) {
+  if (!def.ground.terrain || def.ground.structures || !def.sky?.hdri) continue;
     const hdrPath = resolve(ROOT, `public/assets/hdri/${def.sky.hdri}_2k.hdr`);
     if (!existsSync(hdrPath)) { console.warn(`bake-sky: ${def.slug}: ${hdrPath} missing`); continue; }
     const hdr = readFileSync(hdrPath);
@@ -65,7 +63,6 @@ for (const file of chunkFiles) {
     const digest = outputHash(jsonBytes(sky));
     output.put(out, jsonBytes({ hash: digest, ...sky }));
     console.log(`bake-sky: ${def.slug} sun (${sx.toFixed(3)}, ${sy.toFixed(3)}, ${sz.toFixed(3)}) horizon (${r.toFixed(3)}, ${g.toFixed(3)}, ${b.toFixed(3)}) in ${Math.round(performance.now() - t0)} ms (${digest})`);
-  }
 }
 
 output.finish();

@@ -42,7 +42,7 @@ const SHEET = flag('sheet', '');
 const TEX = flag('tex', '');
 const DEBUGCARD = argv.includes('--debugcard');
 mkdirSync(OUT, { recursive: true });
-const SLUGS = ['driftwood-isle', 'pine-hollow', 'nalati-grasslands']; // the deck's order (src/game/shard/registry.ts CHUNKS)
+const SLUGS = ['driftwood-isle', 'pine-hollow', 'nalati-grasslands']; // the deck's order (src/game/shard/registry.ts PLAYABLE_SHARDS)
 const sleep = (ms) => new Promise((resolve) => { setTimeout(resolve, ms); });
 const round = (v, k = 1) => Math.round(v * 10 ** k) / 10 ** k;
 

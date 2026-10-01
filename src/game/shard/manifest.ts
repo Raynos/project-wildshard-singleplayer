@@ -1,3 +1,5 @@
+import type { Ktx2Table } from '#engine';
+import type { ShardSlug } from './shards.generated';
 /**
  * ShardManifest — everything that makes one Wildshard shard different from another.
  *
@@ -527,6 +529,8 @@ export interface ShardRender {
 }
 
 export interface ShardManifest {
+  /** Plugin API version; mismatches fail before the first asset load. */
+  api: 1;
   /** title-card order, starting at one */
   order: number;
   status: 'live' | 'experimental' | 'earlyAccess' | 'hidden';
@@ -551,6 +555,8 @@ export interface ShardManifest {
     | { terrain?: ChunkTerrain; structures: ChunkStructures };
   /** the PBR ground's texture sets; omitted by a shard that loads none (the low-poly Driftwood, E318) */
   assets?: ChunkAssets;
+  assetGlobs?: readonly string[];
+  ktx2?: () => Promise<{ GPU_FILES: Ktx2Table }>;
   trees: ChunkTrees;
   /** the forest's placement; omitted by a treeless shard (Driftwood, E318) */
   forest?: ChunkForest;
@@ -664,7 +670,7 @@ export type MapLook = 'planks' | 'timber' | 'stone' | 'rock' | 'dot';
 export interface ChunkPoi { id: string; name: string; x: number; z: number; r?: number }
 
 /** Four authored shards; F9 generates this union from the registry. */
-export type ShardSlug = 'driftwood-isle' | 'pine-hollow' | 'nalati-grasslands' | 'nine-dragon-stack';
+export type { ShardSlug } from './shards.generated';
 
 /** Explore entry art is owned by its shard and imported without world code. */
 export interface ExploreSpec { world: string; models: string; sets: string; practice: string }

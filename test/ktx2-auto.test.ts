@@ -9,21 +9,27 @@ import type { ShardManifest } from '#game/shard/manifest';
 
 type SP = typeof ShardPrefetch;
 
-async function load(opts: { chunk?: string; tier?: 'phone' | 'desktop'; tex?: string; marker?: (sp: SP, CHUNKS: readonly ShardManifest[]) => [string, string] | null } = {}) {
+async function load(opts: { chunk?: string; tier?: 'phone' | 'desktop'; tex?: string; marker?: (sp: SP, PLAYABLE_SHARDS: readonly ShardManifest[]) => [string, string] | null } = {}) {
   vi.resetModules();
   const chunk = opts.chunk ?? 'pine-hollow';
   vi.stubGlobal('location', new URL(`http://localhost:5173/?tier=${opts.tier ?? 'phone'}&chunk=${chunk}`));
   localStorage.clear();
   if (opts.tex !== undefined) localStorage.setItem('ws.settings.v1', JSON.stringify({ tex: opts.tex }));
-  const [{ CHUNKS, PROTOTYPES }, sp, gf, { chunkFiles }, { packFor, bootParts }] = await Promise.all([
+  const { initializeTier } = await import('#engine/core/tier');
+  initializeTier();
+  const [{ SHARDS, playable }, sp, gf, { chunkFiles }, { packFor, bootParts }] = await Promise.all([
     import('#game/shard/registry'), import('#engine/boot/shardPrefetch'), import('#engine/boot/gpuFiles'), import('#engine/boot/manifest'), import('#engine/boot/pack'),
   ]);
-  const m = opts.marker?.(sp, CHUNKS);
+  const { prepareShardAssets } = await import('#game/shard/load');
+  const { registerGpuFiles } = await import('#engine/boot/gpuFiles');
+  await Promise.all(SHARDS.map((m) => prepareShardAssets(m, registerGpuFiles)));
+  const PLAYABLE_SHARDS = SHARDS.filter(playable);
+  const m = opts.marker?.(sp, PLAYABLE_SHARDS);
   if (m) localStorage.setItem(m[0], m[1]);
-  return { CHUNKS, PROTOTYPES, sp, gf, chunkFiles, packFor, bootParts, def: CHUNKS.find((c) => c.slug === chunk) };
+  return { SHARDS, PLAYABLE_SHARDS, sp, gf, chunkFiles, packFor, bootParts, def: PLAYABLE_SHARDS.find((c) => c.slug === chunk) };
 }
-const current = (sp: SP, CHUNKS: readonly ShardManifest[], slug = 'pine-hollow'): [string, string] | null => {
-  const def = CHUNKS.find((c) => c.slug === slug);
+const current = (sp: SP, PLAYABLE_SHARDS: readonly ShardManifest[], slug = 'pine-hollow'): [string, string] | null => {
+  const def = PLAYABLE_SHARDS.find((c) => c.slug === slug);
   return def ? [sp.ktx2MarkerKey(slug), sp.setHash(sp.ktx2Set(def))] : null;
 };
 
@@ -70,9 +76,9 @@ describe('Auto: images until the shard\'s KTX2 set is cached', () => {
     expect(desk.gf.texMode()).toBe('img');
   });
   it('is resolved once: a marker written mid-session changes nothing until the next load', async () => {
-    const { gf, sp, CHUNKS } = await load();
+    const { gf, sp, PLAYABLE_SHARDS } = await load();
     expect(gf.texMode()).toBe('img');
-    const m = current(sp, CHUNKS);
+    const m = current(sp, PLAYABLE_SHARDS);
     if (m) localStorage.setItem(m[0], m[1]);
     expect(gf.texMode()).toBe('img');
   });
@@ -91,8 +97,8 @@ describe('the explicit picks override Auto', () => {
 
 describe('the KTX2 sets', () => {
   it.each(['phone', 'desktop'] as const)('every %s shard has one: the stand-ins its KTX2 boot declares + the transcoder, nothing else', async (tier) => {
-    const { CHUNKS, sp, chunkFiles } = await load({ tier });
-    for (const def of CHUNKS) {
+    const { PLAYABLE_SHARDS, sp, chunkFiles } = await load({ tier });
+    for (const def of PLAYABLE_SHARDS) {
       const set = sp.ktx2Set(def);
       expect(set.length, def.slug).toBeGreaterThan(2);
       for (const u of set) expect(/^\/assets\/gpu\/|^\/basis\/r\d+\/basis_transcoder\.(js|wasm)$/.test(u), u).toBe(true);
@@ -101,8 +107,8 @@ describe('the KTX2 sets', () => {
     }
   });
   it.each(['phone', 'desktop'] as const)('the %s images boot declares no KTX2 file, and its lists are what they were before B (the packs do not change)', async (tier) => {
-    const { CHUNKS, chunkFiles } = await load({ tier });
-    for (const def of CHUNKS) for (const f of Object.values(chunkFiles(def, 'img')).flat()) expect(f.startsWith('/assets/gpu/'), f).toBe(false);
+    const { PLAYABLE_SHARDS, chunkFiles } = await load({ tier });
+    for (const def of PLAYABLE_SHARDS) for (const f of Object.values(chunkFiles(def, 'img')).flat()) expect(f.startsWith('/assets/gpu/'), f).toBe(false);
   });
   it('a KTX2 boot streams only the pack parts that carry a file it declares', async () => {
     const { def, chunkFiles, packFor, bootParts } = await load({ tex: 'ktx2' });
@@ -135,8 +141,8 @@ describe('the bake keeps no file a KTX2 set does not read (E173, scripts/bake-kt
   it('every file under /assets/gpu is in some tier\'s KTX2 set (a .gltf stand-in\'s textures with it)', async () => {
     const used = new Set<string>();
     for (const tier of ['phone', 'desktop'] as const) {
-      const { CHUNKS, PROTOTYPES, sp } = await load({ tier });
-      for (const def of [...CHUNKS, ...PROTOTYPES]) for (const u of sp.ktx2Set(def)) used.add(u.split('?')[0] ?? u);
+      const { SHARDS, sp } = await load({ tier });
+      for (const def of SHARDS) for (const u of sp.ktx2Set(def)) used.add(u.split('?')[0] ?? u);
     }
     for (const u of used) { // the textures a .gltf adds are .ktx2: visited, never expanded
       const raw = GLTF[`../public${u}`];
@@ -150,11 +156,11 @@ describe('the bake keeps no file a KTX2 set does not read (E173, scripts/bake-kt
     expect(GPU.filter((f) => !used.has(f))).toEqual([]);
   });
   it.each(['phone', 'desktop'] as const)('a %s KTX2 boot declares no texture the bake could have stood in for (an ARRAY_ONLY set read by a plain loader)', async (tier) => {
-    const { CHUNKS, chunkFiles } = await load({ tier, tex: 'ktx2' });
+    const { PLAYABLE_SHARDS, chunkFiles } = await load({ tier, tex: 'ktx2' });
     const list = Object.values(LIST)[0]?.[tier];
     const seen = new Set(Array.isArray(list) ? list.filter((x): x is string => typeof x === 'string') : []);
     expect(seen.size).toBeGreaterThan(100);
-    const raw = CHUNKS.flatMap((def) => Object.values(chunkFiles(def, 'ktx2')).flat()).filter((f) => /^\/assets\/tex\/.+\.(jpe?g|png|webp)$/.test(f) && seen.has(f));
+    const raw = PLAYABLE_SHARDS.flatMap((def) => Object.values(chunkFiles(def, 'ktx2')).flat()).filter((f) => /^\/assets\/tex\/.+\.(jpe?g|png|webp)$/.test(f) && seen.has(f));
     expect(raw).toEqual([]);
   });
 });

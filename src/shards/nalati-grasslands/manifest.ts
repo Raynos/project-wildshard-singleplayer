@@ -584,6 +584,9 @@ function loneSpruceMask(x: number, z: number): number {
 }
 
 export const NALATI_GRASSLANDS: ShardManifest = {
+  api: 1,
+  assetGlobs: ['public/assets/nalati/**', 'public/assets/gpu/nalati/**', 'public/assets/music/nalati/**', 'public/assets/sfx/nalati-grasslands/**', 'public/assets/title/nalati-grasslands-portrait.jpg'],
+  ktx2: () => import('./ktx2.generated'),
   order: 3,
   status: 'earlyAccess',
   placement: { grid: [4, -2], size: [500, 500, 500] },
@@ -665,3 +668,6 @@ export const NALATI_GRASSLANDS: ShardManifest = {
   },
   spawn: SPAWN,
 };
+
+// oxlint-disable-next-line import/no-default-export -- F9 discovery requires a uniform manifest default export.
+export default NALATI_GRASSLANDS;

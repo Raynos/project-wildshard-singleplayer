@@ -11,7 +11,9 @@ import { describe, expect, it, vi } from 'vitest';
 async function load(tier: 'phone' | 'desktop') {
   vi.resetModules();
   vi.stubGlobal('location', new URL(`http://localhost:5173/?tier=${tier}`));
-  const [{ CHUNKS }, sp, { bootFiles, extraFetches }, { bootFetches }, { packFor }, { versionedUrl }] = await Promise.all([
+  const { initializeTier } = await import('#engine/core/tier');
+  initializeTier();
+  const [{ SHARDS, playable }, sp, { bootFiles, extraFetches }, { bootFetches }, { packFor }, { versionedUrl }] = await Promise.all([
     import('#game/shard/registry'),
     import('#engine/boot/shardPrefetch'),
     import('#engine/boot/extras'),
@@ -19,17 +21,21 @@ async function load(tier: 'phone' | 'desktop') {
     import('#engine/boot/pack'),
     import('#engine/boot/bytes'),
   ]);
-  return { CHUNKS, sp, bootFiles, extraFetches, bootFetches, packFor, versionedUrl };
+  const { prepareShardAssets } = await import('#game/shard/load');
+  const { registerGpuFiles } = await import('#engine/boot/gpuFiles');
+  await Promise.all(SHARDS.map((m) => prepareShardAssets(m, registerGpuFiles)));
+  const PLAYABLE_SHARDS = SHARDS.filter(playable);
+  return { PLAYABLE_SHARDS, sp, bootFiles, extraFetches, bootFetches, packFor, versionedUrl };
 }
 
 describe('shardBootRequests: the boot request list of each shard', () => {
   for (const tier of ['phone', 'desktop'] as const) {
     it(`equals main.ts's own composition — ${tier} tier`, async () => {
-      const { CHUNKS, sp, bootFiles, extraFetches, bootFetches, packFor, versionedUrl } = await load(tier);
-      for (const def of CHUNKS) {
+      const { PLAYABLE_SHARDS, sp, bootFiles, extraFetches, bootFetches, packFor, versionedUrl } = await load(tier);
+      for (const def of PLAYABLE_SHARDS) {
         const files = bootFiles(def);
         // The moved art paths keep the phone's existing landscape exclusion and every portrait/thumbnail.
-        for (const card of CHUNKS) {
+        for (const card of PLAYABLE_SHARDS) {
           const artPath = (url: string): string => new URL(url, location.href).pathname;
           expect(files.art).toContain(artPath(card.card.thumb));
           expect(files.art).toContain(artPath(card.card.portrait));
@@ -57,13 +63,13 @@ describe('shardBootRequests: the boot request list of each shard', () => {
 
   it('names the tier pack parts first on the phone, and no pack on the desktop', async () => {
     const phone = await load('phone');
-    expect(phone.CHUNKS.filter((d) => phone.packFor(d) !== null).length).toBe(phone.CHUNKS.length); // every shard has a phone pack
-    for (const def of phone.CHUNKS) {
+    expect(phone.PLAYABLE_SHARDS.filter((d) => phone.packFor(d) !== null).length).toBe(phone.PLAYABLE_SHARDS.length); // every shard has a phone pack
+    for (const def of phone.PLAYABLE_SHARDS) {
       const pack = phone.packFor(def);
       if (pack) expect(phone.sp.shardBootRequests(def).slice(0, pack.parts.length)).toEqual(pack.parts.map((part) => part.url));
     }
     const desktop = await load('desktop');
-    for (const def of desktop.CHUNKS) expect(desktop.sp.shardBootRequests(def).some((u) => u.startsWith('/assets/packs/'))).toBe(false);
+    for (const def of desktop.PLAYABLE_SHARDS) expect(desktop.sp.shardBootRequests(def).some((u) => u.startsWith('/assets/packs/'))).toBe(false);
   });
 });
 
@@ -84,9 +90,9 @@ describe('prefetchVeto: when the background download must not run', () => {
 describe('lateReads and the ?v= URLs (E160)', () => {
   it('names only files the build ships, tier by tier', async () => {
     for (const tier of ['phone', 'desktop'] as const) {
-      const { CHUNKS, sp } = await load(tier);
+      const { PLAYABLE_SHARDS, sp } = await load(tier);
       const { PUBLIC_BYTES } = await import('#engine/boot/bytes.generated');
-      for (const def of CHUNKS) {
+      for (const def of PLAYABLE_SHARDS) {
         const late = sp.lateReads(def);
         for (const u of late) expect(new URL(u, 'http://x').pathname in PUBLIC_BYTES, `${def.slug} ${u}`).toBe(true);
         expect(late.length, `${def.slug} (${tier})`).toBeGreaterThan(3);

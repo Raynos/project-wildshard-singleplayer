@@ -39,9 +39,9 @@ import type { AmbientBed } from '../audio/Audio';
 import { decodeStyle, styleFiles, type SlotName, type StyleBank } from '../audio/Stems';
 import { decodeSteppe, steppeBootFiles, steppeFiles, type SteppeBank } from '#shards/nalati-grasslands/audio/SteppeScore';
 import { getMusicStyle, getSfxSet } from '../ui/Settings';
-import { CHUNKS, getActiveChunk } from '#game/shard/registry';
-import { TITLE_CARDS } from '#game/titleDeck';
+import { SHARDS, getActiveChunk } from '#game/shard/registry';
 import { TIER } from '../core/tier';
+
 
 /** source path (`../../shards/<slug>/thumbs/x.jpg`, relative to this file) → the bundle's URL for it */
 const ART_URLS = import.meta.glob<string>(['../../shards/*/thumbs/*.{jpg,jpeg,png,webp}', '../../shards/*/explore/*.{jpg,jpeg,png,webp}'], { eager: true, query: '?url', import: 'default' });
@@ -96,20 +96,13 @@ function counter(total: number): { tick: () => void; attach: (p: StepProgress, l
 
 /** the decoded images live here for the page's life: the menu's CSS backgrounds and <img>s are served from memory */
 const keep: HTMLImageElement[] = [];
-interface CardArt { thumbnail: string; heroPortrait: string; heroLandscape: string }
 /** every card's pictures pointed at their in-memory copies (the title menu reads them when it builds its deck) */
 function swapCardArt(blobs: ReadonlyMap<string, string>): void {
-  const swap = (c: CardArt): void => {
-    c.thumbnail = blobs.get(pathOf(c.thumbnail)) ?? c.thumbnail;
-    c.heroPortrait = blobs.get(pathOf(c.heroPortrait)) ?? c.heroPortrait;
-    c.heroLandscape = blobs.get(pathOf(c.heroLandscape)) ?? c.heroLandscape;
-  };
-  for (const c of CHUNKS) {
+  for (const c of SHARDS) {
     c.card.thumb = blobs.get(pathOf(c.card.thumb)) ?? c.card.thumb;
     c.card.portrait = blobs.get(pathOf(c.card.portrait)) ?? c.card.portrait;
     c.card.landscape = blobs.get(pathOf(c.card.landscape)) ?? c.card.landscape;
   }
-  for (const t of TITLE_CARDS) swap(t); // the title deck's own cards (src/game/titleDeck.ts) — the deck reads these
 }
 
 export interface Preload<T> { wait: (p: StepProgress) => Promise<T> }

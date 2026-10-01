@@ -2,10 +2,12 @@
 // on the same view (X6), and the shard's points of interest the mini map pins (X5).
 import { describe, expect, it } from 'vitest';
 import { reproUrl } from '#engine/ui/Feedback';
-import { CHUNKS, findChunk } from '#game/shard/registry';
+import { SHARDS, playable, findChunk } from '#game/shard/registry';
 import { CHUNK_HALF } from '#engine/core/config';
 import { registeredModels } from '#engine/explore/registry';
 import { activeRegistry } from '#engine/world/registry';
+
+const PLAYABLE_SHARDS = SHARDS.filter(playable);
 
 describe('Explore World', () => {
   it('a note filed in the World Explorer reopens the same camera', () => {
@@ -43,11 +45,11 @@ describe('Explore World', () => {
   });
 
   it('only the explorable shards carry points of interest', () => {
-    for (const c of CHUNKS) if (!EXPLORABLE.includes(c.slug)) expect(c.pois ?? [], c.slug).toEqual([]);
+    for (const c of PLAYABLE_SHARDS) if (!EXPLORABLE.includes(c.slug)) expect(c.pois ?? [], c.slug).toEqual([]);
   });
 
   it('EXPLORE WORLD is switched on per shard — Driftwood, Pine Hollow and Nalati (E66; X10 made the viewer itself shard-agnostic)', () => {
-    for (const c of CHUNKS) expect(c.explore !== undefined, c.slug).toBe(EXPLORABLE.includes(c.slug));
+    for (const c of PLAYABLE_SHARDS) expect(c.explore !== undefined, c.slug).toBe(EXPLORABLE.includes(c.slug));
   });
 
   it('the model registry keeps one entry per id (a shard re-registering after a rebuild replaces it)', () => {

@@ -490,16 +490,6 @@
     "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
   },
   {
-    "path": "src/chunks/live.ts",
-    "file": "test/gpu-gate-matrix.test.ts",
-    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
-  },
-  {
-    "path": "src/chunks/prototype/def.ts",
-    "file": "test/gpu-gate-matrix.test.ts",
-    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
-  },
-  {
     "path": "src/world/NewScatter.ts",
     "file": "test/models-check-rules.test.ts",
     "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
@@ -803,11 +793,6 @@
     "path": "src/engine/saves/store.ts",
     "file": "scripts/deploy-pin.mjs",
     "why": "E357 F6m: git show path on an historical commit; intentionally absent until F10."
-  },
-  {
-    "path": "src/chunks",
-    "file": "scripts/gpu-gate/matrix.mjs",
-    "why": "E357 F6m: git ls-tree historical registry prefix retained for pre-F6 commits."
   },
   {
     "path": "src/main/res",
@@ -1181,12 +1166,12 @@
   },
   {
     "path": "src/shards/${slug}/thumbs",
-    "file": "vite.config.ts",
+    "file": "vite/gen.ts",
     "why": "Computed path from discovered shard folders; each owns its title images."
   },
   {
     "path": "src/shards/${slug}/explore",
-    "file": "vite.config.ts",
+    "file": "vite/gen.ts",
     "why": "Computed path from discovered shard folders; each owns its Explore images."
   },
   {

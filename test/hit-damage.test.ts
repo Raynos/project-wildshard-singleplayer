@@ -3,9 +3,11 @@ import { terrainFor, hitDamage } from '#game/shard/manifest';
 // enemy needs ~5 hits to kill you; the other shards stay uncapped. And the brown bear lives off the quest paths.
 import { describe, expect, it } from 'vitest';
 import { loadSpecies } from './species';
-import { CHUNKS, findChunk } from '#game/shard/registry';
+import { SHARDS, playable, findChunk } from '#game/shard/registry';
 import { DRIFTWOOD_ISLE, PATHS, WRECK, SHRINE, HUT, LOOKOUT, OCEAN } from '#shards/driftwood-isle/manifest';
 import { speciesDef, variantMods } from '#engine/entities/species/registry';
+
+const PLAYABLE_SHARDS = SHARDS.filter(playable);
 
 loadSpecies();
 const HEALTH = 100;
@@ -48,7 +50,7 @@ describe('hitDamage (E294)', () => {
   });
 
   it('the other shards are not capped (a brown bear still hits Pine Hollow for 45)', () => {
-    for (const c of CHUNKS) if (c.slug !== 'driftwood-isle') expect(c.fight?.maxHitDamage, c.slug).toBeUndefined();
+    for (const c of PLAYABLE_SHARDS) if (c.slug !== 'driftwood-isle') expect(c.fight?.maxHitDamage, c.slug).toBeUndefined();
     const pine = findChunk('pine-hollow');
     expect(pine).toBeDefined();
     if (pine) expect(hitDamage(pine, 45)).toBe(45);

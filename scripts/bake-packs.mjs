@@ -40,10 +40,16 @@ const CHECK = process.argv.includes('--check');
 const TIERS = ['phone'];
 
 // the modules read the tier / chunk from the page's URL at import time: stand in for a phone page (Node has `navigator`)
-globalThis.location = { search: `?tier=${TIERS[0]}`, href: 'http://bake.invalid/', pathname: '/' };
+const { initializeTier } = await import('../src/engine/core/tier.ts');
+initializeTier('phone');
 
 const imp = (p) => import(pathToFileURL(resolve(ROOT, p)).href);
-const { CHUNKS } = await imp('src/game/shard/registry.ts');
+const { SHARDS } = await imp('src/game/shard/shards.generated.ts');
+const { playable } = await imp('src/game/shard/registry.ts');
+const PLAYABLE_SHARDS = SHARDS.filter(playable);
+const { prepareShardAssets } = await imp('src/game/shard/load.ts');
+const { registerGpuFiles } = await imp('src/engine/boot/gpuFiles.ts');
+await Promise.all(SHARDS.map((m) => prepareShardAssets(m, registerGpuFiles)));
 const { chunkFiles } = await imp('src/engine/boot/manifest.ts');
 const { bootFetches } = await imp('src/engine/boot/prefetch.ts');
 
@@ -100,7 +106,7 @@ function partsOf(paths) {
 if (!CHECK) mkdirSync(PACK_DIR, { recursive: true });
 const packs = {};
 const keep = new Set();
-for (const def of CHUNKS) {
+for (const def of PLAYABLE_SHARDS) {
   for (const tierName of TIERS) {
     const files = chunkFiles(def);
     const paths = packOrder(bootFetches(def, files));

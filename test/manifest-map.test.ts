@@ -1,6 +1,6 @@
 // E357 F6: all authored manifest data and sampled analytic terrain match the pre-move fixtures.
 import { describe, expect, it } from 'vitest';
-import { CHUNKS, PROTOTYPES } from '#game/shard/registry';
+import { SHARDS } from '#game/shard/registry';
 import { formatGrid, legacyShardId, terrainFor, type ShardManifest } from '#game/shard/manifest';
 
 // Captured before F6 from the four authored definitions; functions remain lazy hooks.
@@ -3439,7 +3439,7 @@ function originalArt(value: unknown): unknown {
 }
 
 function originalShape(m: ShardManifest, fixture: (typeof ORIGINAL)[number]['data']): object {
-  const { name, label, card, ground, spawns, minimap, fight, camera, status, order: _order, placement: _placement, explore, ...kept } = m;
+  const { api: _api, assetGlobs: _assetGlobs, ktx2: _ktx2, name, label, card, ground, spawns, minimap, fight, camera, status, order: _order, placement: _placement, explore, ...kept } = m;
   const old = {
     ...kept, id: legacyShardId(m.slug), displayName: name, gridCoords: label,
     thumbnail: originalArt(card.thumb), heroPortrait: originalArt(card.portrait), heroLandscape: originalArt(card.landscape),
@@ -3464,7 +3464,7 @@ function originalShape(m: ShardManifest, fixture: (typeof ORIGINAL)[number]['dat
 
 describe('ChunkDef → ShardManifest preserves all 48 field mappings', () => {
   it.each(ORIGINAL)('$data.slug retains its authored data, save key, hooks and terrain', (fixture) => {
-    const m = [...CHUNKS, ...PROTOTYPES].find((entry) => entry.slug === fixture.data.slug);
+    const m = SHARDS.find((entry) => entry.slug === fixture.data.slug);
     if (!m) throw new Error(`Missing manifest ${fixture.data.slug}`);
     expect(m.label).toBe(fixture.data.gridCoords);
     expect(formatGrid(m.placement.grid)).toBe(m.label);

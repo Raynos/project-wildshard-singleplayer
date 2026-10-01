@@ -89,6 +89,7 @@ const THREE = await import('three');
 const { ConvexHull } = await import('three/examples/jsm/math/ConvexHull.js');
 const { generateTiledNavMesh } = await import('navcat/blocks');
 const registry = await src('game/shard/registry.ts');
+const { SHARDS } = await src('game/shard/shards.generated.ts');
 const HF = await src('engine/world/Heightfield.ts');
 const BT = await src('engine/world/BakedTerrain.ts');
 const { CHUNK_HALF, ROAD_LENGTH, TERRAIN_RES, CHUNK_SIZE } = await src('engine/core/config.ts');
@@ -393,7 +394,7 @@ function writeLayer(w, layer, nav) {
 
 // ── main ─────────────────────────────────────────────────────────────────────────────────────────────────────────────
 const output = byteWriter(check, 'bake-navmesh');
-for (const def of registry.CHUNKS) {
+for (const def of SHARDS.filter(registry.playable)) {
   if (only.length > 0 && !only.includes(def.slug)) continue;
   const bakedFile = resolve(ROOT, 'public/assets/baked', def.slug, 'terrain.bin');
   if (!existsSync(bakedFile)) { console.log(`[navmesh] ${def.slug}: no terrain.bin — skipped (run scripts/bake-chunk.mjs first)`); continue; }

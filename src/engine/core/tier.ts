@@ -11,11 +11,10 @@ export type Tier = 'phone' | 'desktop';
 const ua = navigator.userAgent;
 const isIPadOS = navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
 const mobileUA = /iPhone|iPad|iPod|Android/i.test(ua) || isIPadOS;
-const forced = setting('tier');
 
 /** the tier 'auto' picks on this device (Settings shows it) */
 export const AUTO_TIER: Tier = mobileUA ? 'phone' : 'desktop';
-export const TIER: Tier = forced === 'auto' ? AUTO_TIER : forced;
+export let TIER: Tier = AUTO_TIER;
 
 /** both tiers' tables — Explore's DETAIL TIERS view builds a model at the other tier with `withTier` (src/engine/explore/tiers.ts) */
 export const TIER_TABLE = {
@@ -87,7 +86,7 @@ export const TIER_TABLE = {
   },
 };
 
-export const TIER_CONFIG = TIER_TABLE[TIER];
+export const TIER_CONFIG = { ...TIER_TABLE[TIER] };
 
 /**
  * E142 (Pine Hollow on Jake's iPhone: 14 fps / 71 ms in the old-growth): the photoreal shard's phone knobs on top of the
@@ -99,9 +98,8 @@ export const TIER_CONFIG = TIER_TABLE[TIER];
  *  - the grass carpet 40 slots per 4 m cell, not 56 (−29 % alpha-tested blades; the bottom half of the screen was blades)
  */
 export const PINE_HOLLOW_PHONE = { treeHiDist: 60, shadowFar: 60, animalShadowDist: 60, grassSlots: 40 } as const;
-const PAGE_QUERY = typeof location === 'undefined' ? new URLSearchParams() : new URLSearchParams(location.search);
 /** the shard the knobs are set for: the URL's at first; the shard host (src/engine/shard/ShardHost.ts) moves it on a switch */
-let tierShard = PAGE_QUERY.get('chunk');
+let tierShard: string | null = null;
 /** the tier row's own values of the keys Pine Hollow's phone knobs override (applyShardTier puts them back for another shard) */
 const ROW_BASE: Record<keyof typeof PINE_HOLLOW_PHONE, number> = { treeHiDist: TIER_CONFIG.treeHiDist, shadowFar: TIER_CONFIG.shadowFar, animalShadowDist: TIER_CONFIG.animalShadowDist, grassSlots: TIER_CONFIG.grassSlots };
 /**
@@ -112,7 +110,7 @@ export function applyShardTier(slug: string): void {
   tierShard = slug;
   Object.assign(TIER_CONFIG, TIER === 'phone' && slug === 'pine-hollow' ? PINE_HOLLOW_PHONE : ROW_BASE);
 }
-if (TIER === 'phone' && tierShard === 'pine-hollow') Object.assign(TIER_CONFIG, PINE_HOLLOW_PHONE);
+
 
 /**
  * E142, the 30-fps-at-2× lane (Jake: "we should just be doing performance optimizations necessary for hitting 30 FPS
@@ -155,12 +153,22 @@ export const gfxPrefs: GfxPrefs = readGfxPrefs();
 export function saveGfxPrefs(): void { try { localStorage.setItem(GFX_KEY, JSON.stringify(gfxPrefs)); } catch { /* private mode */ } }
 
 // 'native' = the screen's own density (the renderer caps at min(devicePixelRatio, dpr)): sharpest, and the costliest fill
-if (gfxPrefs.dpr !== 'auto') TIER_CONFIG.dpr = gfxPrefs.dpr === 'native' ? 4 : Number(gfxPrefs.dpr);
-if (gfxPrefs.aa === 'on' && TIER_CONFIG.smaa === 'off') TIER_CONFIG.smaa = 'low';
-if (gfxPrefs.aa === 'off') TIER_CONFIG.smaa = 'off';
+export let MOBILE_DEVICE = mobileUA || TIER === 'phone';
+
+export function initializeTier(tier?: Tier): void {
+  const forced = setting('tier');
+  TIER = tier ?? (forced === 'auto' ? AUTO_TIER : forced);
+  Object.assign(TIER_CONFIG, TIER_TABLE[TIER]);
+  Object.assign(ROW_BASE, { treeHiDist: TIER_CONFIG.treeHiDist, shadowFar: TIER_CONFIG.shadowFar, animalShadowDist: TIER_CONFIG.animalShadowDist, grassSlots: TIER_CONFIG.grassSlots });
+  applyShardTier(typeof location === 'undefined' ? '' : new URLSearchParams(location.search).get('chunk') ?? '');
+  if (gfxPrefs.dpr !== 'auto') TIER_CONFIG.dpr = gfxPrefs.dpr === 'native' ? 4 : Number(gfxPrefs.dpr);
+  if (gfxPrefs.aa === 'on' && TIER_CONFIG.smaa === 'off') TIER_CONFIG.smaa = 'low';
+  if (gfxPrefs.aa === 'off') TIER_CONFIG.smaa = 'off';
+  MOBILE_DEVICE = mobileUA || TIER === 'phone';
+}
 
 /** a phone or tablet (its user agent), or the phone tier on any device (a headless phone run renders what the phone does) */
-export const MOBILE_DEVICE = mobileUA || TIER === 'phone';
+
 
 /** the on-device perf probe's uncapped rows (src/engine/ui/perfProbe.ts): the frame's real cost, for the probe's own seconds only */
 export const frameProbe = { uncapped: false };

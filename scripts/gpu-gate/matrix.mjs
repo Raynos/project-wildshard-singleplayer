@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 // E357 F3.2: inspect the target commit, never the builders' shared working tree.
 import { execFileSync } from 'node:child_process';
-import { posix } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 /** Probe measurements decide this set; record and bootstrap jobs are never split. */
@@ -19,20 +18,6 @@ export function matrix(sha, mode, options = {}) {
   const exists = (path) => { try { git(['cat-file', '-e', `${sha}:${path}`]); return true; } catch { return false; } };
   const files = git(['ls-tree', '-r', '--name-only', sha, '--', 'src/shards']).trim().split('\n');
   let shards = files.flatMap((file) => /^src\/shards\/([^/]+)\/manifest\.ts$/.exec(file)?.slice(1) ?? []);
-  // F6 creates manifests. Until then read both CHUNKS and PROTOTYPES, including Nine Dragon.
-  if (shards.length === 0) {
-    const registry = git(['show', `${sha}:src/chunks/registry.ts`]);
-    const imports = [...registry.matchAll(/import\s*\{\s*(\w+)\s*\}\s*from\s*['"]([^'"]+)['"]/g)];
-    const registered = [...registry.matchAll(/export const (?:CHUNKS|PROTOTYPES)[^=]*=\s*\[([^\]]+)\]/g)].map((match) => match[1]).join(',');
-    shards = imports.flatMap((match) => {
-      if (!new RegExp(`\\b${match[1]}\\b`).test(registered)) return [];
-      const file = posix.normalize(posix.join('src/chunks', `${match[2]}.ts`));
-      const source = git(['show', `${sha}:${file}`]);
-      const slug = /\bslug:\s*['"]([^'"]+)['"]/.exec(source)?.[1];
-      if (!slug) throw new Error(`matrix: no slug in ${file}`);
-      return [slug];
-    });
-  }
   shards = [...new Set(shards)].sort();
   if (shards.length === 0) throw new Error('matrix: target SHA has no shards');
   /** @type {Plant[]} */

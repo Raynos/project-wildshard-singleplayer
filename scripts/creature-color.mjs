@@ -40,7 +40,7 @@ const GT = join(ROOT, 'node_modules/.bin/gltf-transform');
  * folder as the references) and per hull the match knobs — k = blend 0..1 of the match; lift = L units added at L = 0
  * (toe); sat = extra chroma multiplier; gain = L multiplier; hiSat = chroma multiplier on the light paint.
  */
-const CHUNKS = {
+const CREATURE_CONFIGS = {
   'pine-hollow': {
     post: '~/ml/img2mesh/out/pine-hollow-creatures-post',
     src: 'art/pine-hollow/round-9-creature-refs',
@@ -53,7 +53,7 @@ const CHUNKS = {
     },
   },
 };
-const CFG = CHUNKS[CHUNK];
+const CFG = CREATURE_CONFIGS[CHUNK];
 if (!CFG) throw new Error(`creature-color: no table for chunk '${CHUNK}'`);
 const POST = tilde(flag('post', CFG.post));
 const OUT0 = resolvePath(ROOT, CFG.src);

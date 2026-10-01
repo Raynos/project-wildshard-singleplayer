@@ -17,7 +17,6 @@
 //   Then, for a shard that grows undergrowth, the placement decision log (src/engine/world/forest/placement.ts — the forest
 //   planted on this grid, then every undergrowth candidate's kept / skipped bit, ~17 KB): 'WSPL' u32 version=1 ·
 //   u32 decisions · u32 kinds · u32[kinds] counts · f64 checksum sum · u8[⌈decisions/8⌉] bits.
-import { readdirSync } from 'node:fs';
 import { byteWriter, outputHash, jsonBytes } from './bake-output.mjs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -27,13 +26,13 @@ const OUT = resolve(ROOT, 'public/assets/baked');
 const check = process.argv.includes('--check');
 const VERSION = 1;
 // before any game module loads: the settings (and the defs that read them) take the page's query at import
-if (!('location' in globalThis)) Object.assign(globalThis, { location: new URL('http://localhost/') });
+
 
 const { CHUNK_SIZE, CHUNK_HALF, TERRAIN_RES } = await import(pathToFileURL(resolve(ROOT, 'src/engine/core/config.ts')).href);
 const { landscapeHash } = await import(pathToFileURL(resolve(ROOT, 'src/engine/world/terrainField.ts')).href);
 
 // every chunk module that exports a ShardManifest (has slug + terrain); the registry itself needs `location`
-const chunkFiles = readdirSync(resolve(ROOT, 'src/shards')).sort();
+const { SHARDS } = await import(pathToFileURL(resolve(ROOT, 'src/game/shard/shards.generated.ts')).href);
 
 const registry = await import(pathToFileURL(resolve(ROOT, 'src/game/shard/registry.ts')).href);
 const heightfield = await import(pathToFileURL(resolve(ROOT, 'src/engine/world/Heightfield.ts')).href);
@@ -64,10 +63,8 @@ function placementSection(def, gridBuf) {
 }
 
 const output = byteWriter(check, 'bake-chunk');
-for (const file of chunkFiles) {
-  const mod = await import(pathToFileURL(resolve(ROOT, 'src/shards', file, 'manifest.ts')).href);
-  for (const def of Object.values(mod)) {
-    if (!def || typeof def !== 'object' || typeof def.slug !== 'string' || !def.ground?.terrain || def.ground.structures) continue;
+for (const def of SHARDS) {
+  if (!def.ground.terrain || def.ground.structures) continue;
     const res = TERRAIN_RES;
     const dir = resolve(OUT, def.slug);
     const meta = resolve(dir, 'terrain.json');
@@ -109,6 +106,5 @@ for (const file of chunkFiles) {
     output.put(bin, bytes);
     output.put(meta, jsonBytes({ hash: digest, version: VERSION, res, size: CHUNK_SIZE, seed: def.seed, landscapeHash: lhash, bytes: bytes.byteLength, placement: section ? { decisions: section.decisions, counts: section.counts } : null, heightRange: [min, max] }));
     console.log(`bake: ${tag} terrain ${res}² → ${(buf.byteLength / 1024).toFixed(0)} KB in ${Math.round(performance.now() - t0)} ms (h ${min.toFixed(1)}…${max.toFixed(1)} m, ${digest})`);
-  }
 }
 output.finish();

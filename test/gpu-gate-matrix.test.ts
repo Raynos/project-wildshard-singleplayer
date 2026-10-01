@@ -46,12 +46,9 @@ describe('target SHA GPU jobs', () => {
       { shard: 'b', mode: 'prove', part: 'green' }, { shard: 'b', mode: 'prove', part: 'common' },
     ]);
   });
-  it('reads CHUNKS and PROTOTYPES before F6 without a fixed slug list', () => {
-    const { cwd, sha } = repo({
-      'src/chunks/registry.ts': "import { LIVE } from './live';\nimport { PROTO } from './prototype/def';\nexport const CHUNKS: ShardManifest[] = [LIVE];\nexport const PROTOTYPES: ShardManifest[] = [PROTO];",
-      'src/chunks/live.ts': "export const LIVE = { slug: 'live' };", 'src/chunks/prototype/def.ts': "export const PROTO = { slug: 'prototype' };",
-    });
-    expect(matrix(sha, 'record', { cwd }).map((job) => job.shard)).toEqual(['live', 'prototype']);
+  it('refuses an export with no shard manifests', () => {
+    const { cwd, sha } = repo({ 'README.md': 'no shards' });
+    expect(() => matrix(sha, 'record', { cwd })).toThrow('no shards');
   });
   it('rejects moving references and unknown modes', () => {
     expect(() => matrix('HEAD', 'compare')).toThrow('40-hex');

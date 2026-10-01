@@ -3,7 +3,7 @@
 import { setTitleArrival, type TitleArrivalMode } from '../boot/titleArrival';
 import { markUnload } from '../boot/lastEnd';
 import { previousNineBootLine } from '../boot/nineBootTrace';
-import { buildTitleDeck, TITLE_CARDS, type TitleCard } from '#game/titleDeck';
+import { buildTitleDeck, titleCards, type TitleCard } from '#game/titleDeck';
 
 export function showStartTitle(): void {
   const hud = document.getElementById('hud');
@@ -19,7 +19,7 @@ export function showStartTitle(): void {
   };
   const interrupted = previousNineBootLine();
   const deck = buildTitleDeck({
-    cards: TITLE_CARDS, active: null,
+    cards: titleCards(), active: null,
     onEnter: (card) => { launch(card, 'enter'); },
     onExplore: (card) => { launch(card, 'explore'); },
     onSettings: () => { void import('./BootSettings').then(({ openBootSettings }) => openBootSettings()); },

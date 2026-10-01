@@ -7,7 +7,7 @@ import { COIN_VALUES, MAX_BURST, burstCount, coinShare, coinsFor, coinsOn } from
 import { driftwoodFinds, nextCharmAt } from '#shards/driftwood-isle/loot/finds';
 import { DRIFTWOOD_PLACES } from '#shards/driftwood-isle/quest/Places';
 import { DRIFTWOOD_ISLE } from '#shards/driftwood-isle/manifest';
-import { CHUNKS, PROTOTYPES } from '#game/shard/registry';
+import { SHARDS } from '#game/shard/registry';
 
 const DRIFT = 'chunk://local/driftwood-isle';
 const PINE = 'chunk://local/pine-hollow';
@@ -108,7 +108,7 @@ describe('coins', () => {
     expect(coinsOn(DRIFTWOOD_ISLE)).toBe(true);
     expect(coinsFor(DRIFTWOOD_ISLE, 'boar')).toBe(2);
     expect(coinsFor(DRIFTWOOD_ISLE, 'gull')).toBe(0);
-    for (const def of [...CHUNKS, ...PROTOTYPES]) if (def.slug !== 'driftwood-isle') {
+    for (const def of SHARDS) if (def.slug !== 'driftwood-isle') {
       expect(coinsOn(def)).toBe(false);
       expect(coinsFor(def, 'bear')).toBe(0);
     }

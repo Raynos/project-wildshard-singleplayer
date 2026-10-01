@@ -2,7 +2,7 @@
 // tokens), engaged boars circle back and charge again instead of fleeing (reengage), and only Driftwood has the rules.
 import { describe, expect, it } from 'vitest';
 import { AttackTokens, reengage, backoffPoint, aroundPoint, BREAK_OFF_HP, RING, BACKOFF_PAST, type ReengageIn } from '#engine/entities/fightRules';
-import { CHUNKS } from '#game/shard/registry';
+import { SHARDS, playable } from '#game/shard/registry';
 import { DRIFTWOOD_ISLE } from '#shards/driftwood-isle/manifest';
 import * as THREE from 'three';
 import { clearBody } from '#engine/entities/AnimalManager';
@@ -11,6 +11,8 @@ import { Physics } from '#engine/physics/Physics';
 import { CharacterMotor } from '#engine/physics/CharacterMotor';
 import { groups } from '#engine/physics/groups';
 import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';
+
+const PLAYABLE_SHARDS = SHARDS.filter(playable);
 
 describe('AttackTokens (E297: at most 2 attackers)', () => {
   it('hands out at most `max` tokens; a third attacker waits', () => {
@@ -132,7 +134,7 @@ describe('the back-off and the ring (E297)', () => {
 describe('ShardManifest.fightRules (E297: Driftwood only)', () => {
   it('Driftwood lets 2 attack at once; no other shard has the rules', () => {
     expect(DRIFTWOOD_ISLE.fight?.attackers).toBe(2);
-    for (const c of CHUNKS) if (c.slug !== DRIFTWOOD_ISLE.slug) expect(c.fight, c.slug).toBeUndefined();
+    for (const c of PLAYABLE_SHARDS) if (c.slug !== DRIFTWOOD_ISLE.slug) expect(c.fight, c.slug).toBeUndefined();
   });
 });
 

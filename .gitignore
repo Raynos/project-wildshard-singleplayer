@@ -39,3 +39,7 @@ __pycache__/
 # E357 parity harness artifacts
 /progress/parity/
 /coverage/
+
+# E357 F9: build-derived tables; KTX2 tables require local basisu and stay committed.
+src/**/*.generated.*
+!src/**/ktx2.generated.ts

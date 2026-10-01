@@ -31,11 +31,11 @@
  */
 import { setting } from '../ui/Settings';
 import type { ShardManifest } from '#game/shard/manifest';
-import { CHUNKS, findChunk } from '#game/shard/registry';
+import { SHARDS, playable, findChunk } from '#game/shard/registry';
 import { bootFiles } from './extras';
 import { bootParts, packFor } from './pack';
 import { gpuUrl, tierUrl, versionedUrl } from './bytes';
-import { setAutoKtx2Check, texMode, texModeWhy, type TexMode } from './gpuFiles';
+import { registerGpuFiles, setAutoKtx2Check, texMode, texModeWhy, type TexMode } from './gpuFiles';
 import { BASIS_PATH } from '../core/ktx2';
 import { PUBLIC_BYTES } from './bytes.generated';
 import { TIER } from '../core/tier';
@@ -50,6 +50,8 @@ import { PERSON_FILE, peopleModelUrl, type PersonKey } from '#shards/nalati-gras
 import { blenderModelsBase } from '../world/blenderArea';
 import { CAPTAIN_GLB_URL } from '../entities/species/captainMesh';
 import { shell } from '../core/shardScope';
+
+const PLAYABLE_SHARDS = SHARDS.filter(playable);
 
 /** files in flight at once: the worker's fetches share the pipe with anything the game still asks for */
 const CONCURRENCY = 2;
@@ -228,7 +230,8 @@ export function startShardPrefetch(active: ShardManifest): PrefetchHandle {
     await sleep(START_DELAY_MS);
     // A phone keeps only one shard in play. Cache this shard (including its KTX2 set for the next launch),
     // but do not download the other worlds while the iOS WebContent process is under memory pressure.
-    const order = TIER === 'phone' ? [active] : [active, ...CHUNKS.filter((c) => c.slug !== active.slug)];
+    const order = TIER === 'phone' ? [active] : [active, ...PLAYABLE_SHARDS.filter((c) => c.slug !== active.slug)];
+    await Promise.all(order.map(async (def) => { if (def.ktx2 !== undefined) registerGpuFiles((await def.ktx2()).GPU_FILES); }));
     const jobs: { slug: string; url: string; set: 'boot' | 'ktx2' }[] = [];
     // 1. (E158) every shard's boot files, in the textures its NEXT boot loads with: the pick, or Auto's — images until the
     //    shard's KTX2 set is cached. The page's own shard first: what its boot fetched before the worker controlled it.

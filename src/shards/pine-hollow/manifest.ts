@@ -220,6 +220,9 @@ function speciesMix(x: number, z: number): SpeciesWeights {
 }
 
 export const PINE_HOLLOW: ShardManifest = {
+  api: 1,
+  assetGlobs: ['public/assets/models/pine-hollow-crags/**', 'public/assets/models/pine-hollow-hero/**', 'public/assets/models/pine-hollow-trees/**', 'public/assets/gpu/models/pine-hollow-hero/**', 'public/assets/gpu/models/pine-hollow-trees/**', 'public/assets/gpu/pine-hollow/**', 'public/assets/gpu/baked/pine-hollow/**', 'public/assets/music/pine-hollow-folk/**', 'public/assets/music/pine-hollow-orchestral/**', 'public/assets/music/pine-hollow-piano/**', 'public/assets/sfx/pine-hollow/**', 'public/assets/horizon/pine-hollow-*', 'public/assets/gpu/horizon/pine-hollow-*', 'public/assets/lut/pine-hollow.bin', 'public/assets/title/pine-hollow-portrait.jpg'],
+  ktx2: () => import('./ktx2.generated'),
   order: 2,
   status: 'live',
   placement: { grid: [3, -2], size: [500, 500, 500] },
@@ -339,3 +342,6 @@ export const PINE_HOLLOW: ShardManifest = {
   weapon: 'crossbow',
   style: 'pbr',
 };
+
+// oxlint-disable-next-line import/no-default-export -- F9 discovery requires a uniform manifest default export.
+export default PINE_HOLLOW;

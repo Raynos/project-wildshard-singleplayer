@@ -105,6 +105,8 @@ import { bootFetches, prefetch, prefetchAfter, whenPrefetched } from '#engine/bo
 import { packFor, streamPack } from '#engine/boot/pack';
 import { startShardPrefetch } from '#engine/boot/shardPrefetch';
 import { getActiveChunk } from '#game/shard/registry';
+import { prepareShardAssets } from '#game/shard/load';
+import { registerGpuFiles } from '#engine/boot/gpuFiles';
 import { Audio } from '#engine/audio/Audio';
 import { Music } from '#engine/audio/Music';
 import { ShrineHum } from '#shards/driftwood-isle/audio/shrineHum';
@@ -215,13 +217,15 @@ async function main() {
 async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   const loading = new Loading();
   app.setState('loading');
-  if (getActiveChunk().slug !== slug) throw new Error(`buildShard: ${slug} is not the active chunk`);
+  const manifest = getActiveChunk();
+  if (manifest.slug !== slug) throw new Error(`buildShard: ${slug} is not the active chunk`);
   // The boot plan: DOWNLOAD = bytes read / bytes declared, SETUP = weighted steps (src/engine/boot/plan.ts).
   // Declared bytes come from the chunk's file list; every /assets fetch is counted on its way in.
   // the RESUMING screen's brand (E99): the shard's name + title art, while its URL is still the served file (the menu
   // preload swaps it for an in-memory blob: that one would not survive a recovery reload)
   const brand = (): void => { resumeScreen().brand(getActiveChunk().slug.split('-').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' '), getActiveChunk().card.portrait); };
   brand();
+  await prepareShardAssets(manifest, registerGpuFiles);
   const files = bootFiles(getActiveChunk()); // + the title / explore art and every audio file (project/archive/2026-09-23-preload-offline.md)
   useShardSteps(getActiveChunk().slug); // the shard's own loading nouns + weights (src/engine/boot/steps.ts)
   const bootSteps: Record<string, number> = {}; // each step's wall ms (the host's timings: what a build / rebuild spends where)

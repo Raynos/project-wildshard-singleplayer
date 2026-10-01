@@ -16,7 +16,7 @@ const ROOT = resolvePath(new URL('..', import.meta.url).pathname);
 const argv = process.argv.slice(2);
 const flag = (n, d) => { const a = argv.find((x) => x.startsWith(`--${n}=`)); return a ? a.slice(n.length + 3) : d; };
 const CHUNK = flag('chunk', 'pine-hollow');
-const CHUNKS = {
+const CREATURE_CONFIGS = {
   'pine-hollow': {
     spot: { x: 6, z: -178 }, q: 'tod=day&clock=1e6',
     rows: [
@@ -27,7 +27,7 @@ const CHUNKS = {
     ],
   },
 };
-const CFG = CHUNKS[CHUNK];
+const CFG = CREATURE_CONFIGS[CHUNK];
 if (!CFG) throw new Error(`creature-lineup: no table for chunk '${CHUNK}'`);
 const URL_BASE = flag('url', 'http://127.0.0.1:5176');
 const LOOK = flag('creatures', 'glb');

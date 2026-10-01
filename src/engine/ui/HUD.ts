@@ -6,7 +6,7 @@ import { CABIN_SITES } from '../world/Heightfield';
 import type { GameMenu } from './Menu';
 import { openBootSettings } from './BootSettings';
 import { isDev } from '../core/devMode';
-import { buildTitleDeck, TITLE_CARDS, type TitleDeck } from '#game/titleDeck';
+import { buildTitleDeck, titleCards, type TitleDeck } from '#game/titleDeck';
 import { ToastStack } from './ToastStack';
 import { ROW, hudSlots } from './hudSlots';
 
@@ -492,7 +492,7 @@ export class HUD {
     this.root.classList.add('intro');
     const active = getActiveChunk().slug;
     const deck = buildTitleDeck({
-      cards: TITLE_CARDS, active,
+      cards: titleCards(), active,
       onEnter: (c) => { if (c.slug === active) this.enter(); else requestShard(c.slug, { enter: true }); },
       onExplore: (c) => { if (c.slug !== active) { requestShard(c.slug, { explore: true }); return; } this.leaveForExplore(); },
       onSettings: () => { openBootSettings(); }, // E55: the reload-to-apply picks

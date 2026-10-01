@@ -3,10 +3,12 @@ import { terrainFor, legacyShardId, type ShardManifest } from '#game/shard/manif
 // (500 m square, four entry roads level with no-man's-land at the edge midpoints), and the registry switches cleanly.
 import { describe, expect, it, vi } from 'vitest';
 import { loadSpecies } from './species';
-import { CHUNKS, DEFAULT_CHUNK, chunkSlugFromUrl, chunkUrl, findChunk, getActiveChunk, onActiveChunkChange, setActiveChunk } from '#game/shard/registry';
+import { SHARDS, playable, DEFAULT_CHUNK, chunkSlugFromUrl, chunkUrl, findChunk, getActiveChunk, onActiveChunkChange, setActiveChunk } from '#game/shard/registry';
 import { landscapeHash } from '#engine/world/terrainField';
 import { hasSpecies, speciesDef } from '#engine/entities/species/registry';
 import * as config from '#engine/core/config';
+
+const PLAYABLE_SHARDS = SHARDS.filter(playable);
 
 const { CHUNK_HALF } = config;
 loadSpecies();
@@ -15,9 +17,9 @@ const EDGE_MIDPOINTS: [number, number][] = [[0, -CHUNK_HALF], [0, CHUNK_HALF], [
 
 describe('chunk registry data', () => {
   it('ids and slugs are unique and ids follow chunk://local/<slug>', () => {
-    expect(new Set(CHUNKS.map((c) => c.slug)).size).toBe(CHUNKS.length);
-    expect(new Set(CHUNKS.map((c) => legacyShardId(c.slug))).size).toBe(CHUNKS.length);
-    for (const c of CHUNKS) {
+    expect(new Set(PLAYABLE_SHARDS.map((c) => c.slug)).size).toBe(PLAYABLE_SHARDS.length);
+    expect(new Set(PLAYABLE_SHARDS.map((c) => legacyShardId(c.slug))).size).toBe(PLAYABLE_SHARDS.length);
+    for (const c of PLAYABLE_SHARDS) {
       expect(legacyShardId(c.slug)).toBe(`chunk://local/${c.slug}`);
       expect(c.slug).toMatch(/^[a-z0-9-]+$/);
     }
@@ -25,8 +27,8 @@ describe('chunk registry data', () => {
   });
 
   it('seeds are distinct integers and picker fields are filled', () => {
-    expect(new Set(CHUNKS.map((c) => c.seed)).size).toBe(CHUNKS.length);
-    for (const c of CHUNKS) {
+    expect(new Set(PLAYABLE_SHARDS.map((c) => c.seed)).size).toBe(PLAYABLE_SHARDS.length);
+    for (const c of PLAYABLE_SHARDS) {
       expect(Number.isInteger(c.seed), c.slug).toBe(true);
       expect(c.treeCount, c.slug).toBeGreaterThanOrEqual(0);
       for (const s of [c.name, c.label, c.biome, c.blurb, c.card.thumb, c.card.portrait, c.card.landscape]) expect(s.length, c.slug).toBeGreaterThan(0);
@@ -34,7 +36,7 @@ describe('chunk registry data', () => {
   });
 
   it('the spawn is inside the chunk, and on dry ground unless the shard is open water (Driftwood spawns on the pier deck)', () => {
-    for (const c of CHUNKS) {
+    for (const c of PLAYABLE_SHARDS) {
       expect(Math.abs(c.spawn.x), c.slug).toBeLessThan(CHUNK_HALF);
       expect(Math.abs(c.spawn.z), c.slug).toBeLessThan(CHUNK_HALF);
       if (!c.ocean) expect(terrainFor(c).heightAt(c.spawn.x, c.spawn.z), c.slug).toBeGreaterThan(terrainFor(c).waterLevel());
@@ -42,7 +44,7 @@ describe('chunk registry data', () => {
   });
 
   it('every herd names a registered species, real variants, a positive count, a sane trail band and an in-chunk anchor', () => {
-    for (const c of CHUNKS) {
+    for (const c of PLAYABLE_SHARDS) {
       // Nalati's wolves / horses / sheep are placed by Wildlife (src/engine/entities/Wildlife.ts), not by `fauna`
       if (c.slug !== 'nalati-grasslands') expect(c.spawns.length, c.slug).toBeGreaterThan(0);
       for (const h of c.spawns) {
@@ -62,7 +64,7 @@ describe('chunk registry data', () => {
   });
 
   it('look numbers (sky, fog, grade) are finite', () => {
-    for (const c of CHUNKS) {
+    for (const c of PLAYABLE_SHARDS) {
       const { sky, atmosphere: a, grade: g } = c;
       expect(finite([sky.sunIntensity, sky.envIntensity, sky.bgIntensity, sky.hemiIntensity, ...sky.sunColor]), c.slug).toBe(true);
       expect(finite([a.fogHeight, a.fogHeightFalloff, a.fogHeightDensity, a.fogDistDensity]), c.slug).toBe(true);
@@ -73,11 +75,11 @@ describe('chunk registry data', () => {
 
 describe('chunk terrain', () => {
   it('the four entry roads meet no-man\'s-land at y = 0 on the edge midpoints', () => {
-    for (const c of CHUNKS) for (const [x, z] of EDGE_MIDPOINTS) expect(terrainFor(c).heightAt(x, z), `${c.slug} @ ${x},${z}`).toBeCloseTo(0, 6);
+    for (const c of PLAYABLE_SHARDS) for (const [x, z] of EDGE_MIDPOINTS) expect(terrainFor(c).heightAt(x, z), `${c.slug} @ ${x},${z}`).toBeCloseTo(0, 6);
   });
 
   it('the first four trails start at the edge midpoints (the mandated entry roads)', () => {
-    for (const c of CHUNKS) {
+    for (const c of PLAYABLE_SHARDS) {
       expect(terrainFor(c).trails.length, c.slug).toBeGreaterThanOrEqual(4);
       const starts = terrainFor(c).trails.slice(0, 4).map((t) => t[0]);
       for (const m of EDGE_MIDPOINTS) expect(starts, c.slug).toContainEqual(m);
@@ -85,7 +87,7 @@ describe('chunk terrain', () => {
   });
 
   it('height, normals and splat weights are finite and well-formed across the chunk', () => {
-    for (const c of CHUNKS) {
+    for (const c of PLAYABLE_SHARDS) {
       const t = terrainFor(c);
       for (let x = -CHUNK_HALF; x <= CHUNK_HALF; x += 50) for (let z = -CHUNK_HALF; z <= CHUNK_HALF; z += 50) {
         const at = `${c.slug} @ ${x},${z}`;
@@ -106,7 +108,7 @@ describe('chunk terrain', () => {
   });
 
   it('trailDistance is 0 on a trail vertex and positive off it', () => {
-    for (const c of CHUNKS) {
+    for (const c of PLAYABLE_SHARDS) {
       const v = terrainFor(c).trails[0]?.[1];
       if (v === undefined) throw new Error(`${c.slug}: first trail has no second vertex`);
       expect(terrainFor(c).trailDistance(v[0], v[1]), c.slug).toBeCloseTo(0, 9);
@@ -115,9 +117,9 @@ describe('chunk terrain', () => {
   });
 
   it('landscapeHash is stable per shard and tells shards apart', () => {
-    const hashes = CHUNKS.map((c) => landscapeHash(terrainFor(c)));
-    expect(CHUNKS.map((c) => landscapeHash(terrainFor(c)))).toEqual(hashes);
-    expect(new Set(hashes).size).toBe(CHUNKS.length);
+    const hashes = PLAYABLE_SHARDS.map((c) => landscapeHash(terrainFor(c)));
+    expect(PLAYABLE_SHARDS.map((c) => landscapeHash(terrainFor(c)))).toEqual(hashes);
+    expect(new Set(hashes).size).toBe(PLAYABLE_SHARDS.length);
   });
 });
 
@@ -142,7 +144,7 @@ describe('chunk registry switching', () => {
   });
 
   it('setActiveChunk rebinds config and notifies listeners only on a real switch; unknown slugs fall back', () => {
-    const other = CHUNKS.find((c) => c.slug !== DEFAULT_CHUNK);
+    const other = PLAYABLE_SHARDS.find((c) => c.slug !== DEFAULT_CHUNK);
     if (other === undefined) throw new Error('needs a second shard');
     expect(getActiveChunk().slug).toBe(DEFAULT_CHUNK); // location is stubbed with no ?chunk=
     const seen = vi.fn<(def: ShardManifest) => void>();

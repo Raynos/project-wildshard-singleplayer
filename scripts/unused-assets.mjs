@@ -34,10 +34,17 @@ const collect = argv.find((a) => a.startsWith('--collect='))?.slice(10);
 if (collect) {
   globalThis.location = { search: `?tier=${collect}`, href: 'http://audit.invalid/', pathname: '/' };
   const imp = (p) => import(pathToFileURL(resolve(ROOT, p)).href);
-  const { CHUNKS } = await imp('src/game/shard/registry.ts');
-  const { chunkFiles } = await imp('src/engine/boot/manifest.ts');
+  const { initializeTier } = await import('../src/engine/core/tier.ts');
+  initializeTier();
+  const { SHARDS } = await imp('src/game/shard/shards.generated.ts');
+const { playable } = await imp('src/game/shard/registry.ts');
+const PLAYABLE_SHARDS = SHARDS.filter(playable);
+  const { prepareShardAssets } = await imp('src/game/shard/load.ts');
+const { registerGpuFiles } = await imp('src/engine/boot/gpuFiles.ts');
+await Promise.all(SHARDS.map((m) => prepareShardAssets(m, registerGpuFiles)));
+const { chunkFiles } = await imp('src/engine/boot/manifest.ts');
   const out = new Set();
-  for (const def of CHUNKS) for (const list of Object.values(chunkFiles(def))) for (const f of list) out.add(f);
+  for (const def of PLAYABLE_SHARDS) for (const list of Object.values(chunkFiles(def))) for (const f of list) out.add(f);
   process.stdout.write(JSON.stringify([...out]));
   process.exit(0);
 }
