@@ -50,3 +50,11 @@ From the first-look boards (`art/sunscar-dunes/round-3-build/board-c2fdc72d.jpg`
 | S6-2 | Sky Reach | On that cliff, with no input the player clings and sinks ~0.4 m/s; he only drops away while walking. Check whether the engine's character controller sticks to steep (> 40°) walls; if so it is an engine bug (G13), not a shard one | open (investigate) |
 | S6-3 | Sky Reach | The fan stays in the player's hand on the hoverboard | open (rebuild) |
 | S6-4 | Sky Reach | The drift ray dives every ~10 s and hits for 10: tune with the look board | open (rebuild) |
+
+## Round 3 (2026-10-01)
+
+Fresh Opus agents rebuilt both shards again from the docs after G13–G18.
+
+| ID | Gap | From | Wanted | Status |
+|---|---|---|---|---|
+| G19 | An asset-free shard can't omit `audio.preload` although ENGINE §15 / SHARDS §8 say it may: boot threw "boot audio requires the authored preload profile" | E364 round 3 #1 | boot falls back to an empty profile | fixed (92d1b752: `NO_AUDIO`) |
