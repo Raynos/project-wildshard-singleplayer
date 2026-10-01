@@ -55,6 +55,23 @@ afterEach(() => {
 });
 
 describe('probe contract', () => {
+  it('reads authored handles and quest flags from this level and forgets scoped readers on disposal', () => {
+    const world = fixture(), debug = world.game.app.debug, slug = world.chunk.slug, scope = world.game.levelScope;
+    const handles = { cabins: { id: 'authored-building' }, pineLife: { alive: true } }, flags = ['second', 'first'];
+    const inactive = vi.fn(() => ['inactive']);
+    scope.onDispose(debug.scopedExpose(`harness.shard.${slug}`, handles));
+    scope.onDispose(debug.scopedExpose(`harness.quest.${slug}`, () => flags));
+    scope.onDispose(debug.scopedExpose('harness.quest.other', inactive));
+    const probe = installProbe(world, deps);
+    expect(probe.shard['cabins']).toBe(handles.cabins);
+    expect(probe.shard['pineLife']).toBe(handles.pineLife);
+    expect(probe.state().quest).toEqual({ adventure: deps.quest(), pine: ['first', 'second'] });
+    expect(flags).toEqual(['second', 'first']);
+    expect(inactive).not.toHaveBeenCalled();
+    scope.dispose();
+    expect(probe.state().quest).toEqual({ adventure: deps.quest(), pine: [] });
+    expect(debug.snapshot()).not.toHaveProperty(`harness.shard.${slug}`);
+  });
   it('returns every disposal failure alongside the post-unload census instead of rejecting the leak probe', async () => {
     window.__wildshardHarness = { seed: 1, capture: null, resources: () => ({
       listeners: { window: 0, document: 0, canvas: 0, other: 0 },

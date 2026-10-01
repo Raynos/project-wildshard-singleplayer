@@ -200,6 +200,7 @@ export class PineHollow extends ShardPlugin {
       places: compendium ? () => compendium.state.def.entries.flatMap((entry) => entry.place ? [{ id: entry.id, ...entry.place }] : []) : null,
       visited: (id) => compendium?.state.reached(id, 'seen') ?? true, inCombat: () => music.state.mode === 'combat' });
     Object.assign(rt.objects, { pineLife: life, ambience });
+    ctx.debug.expose(`harness.shard.${ctx.manifest.slug}`, { cabins, props: rt.objects['props'], streams: rt.objects['streams'], pineLife: life });
     rt.hooks.equipmentUpdate = (dt) => { loadout.update(dt); };
     rt.hooks.audioUpdate = (dt) => { ambience.update(dt, game.camera); };
     rt.hooks.dispose = () => { ambience.dispose(); };

@@ -593,6 +593,7 @@ export async function installPineQuest(h: PineQuestHost): Promise<PineQuest> {
     test: (c: { all?: string[] }): boolean => test(flags, c),
   };
   ctx.debug.expose('pine.quest', debug);
+  ctx.debug.expose(`harness.quest.${ctx.manifest.slug}`, () => flags.all.slice().sort());
   Object.assign(window, { __pineQuest: debug });
   ctx.scope.onDispose(() => {
     if (Reflect.get(window, '__pineQuest') === debug) Reflect.deleteProperty(window, '__pineQuest');

@@ -152,18 +152,15 @@ export function createProbeNav(mesh: Pick<Navmesh, 'randomPointNear' | 'findPath
     path: (a, b) => mesh.findPath(a, b, radius)?.map((v) => ({ x: v.x, y: v.y, z: v.z })) ?? null,
   };
 }
-/** Pine's existing debug handle exposes its in-memory flags; reading it never touches storage. */
-function pineQuestFlags(): string[] {
-  const pine: unknown = Reflect.get(window, '__pineQuest');
-  if (typeof pine !== 'object' || pine === null) return [];
-  const flags: unknown = Reflect.get(pine, 'flags');
-  if (typeof flags !== 'object' || flags === null) return [];
-  const all: unknown = Reflect.get(flags, 'all');
-  return Array.isArray(all) ? all.filter((f): f is string => typeof f === 'string').sort() : [];
+/** Authored harness values use a level-keyed scoped exposure, without reading browser globals. */
+const isFlagsReader = (value: unknown): value is (() => unknown) => typeof value === 'function';
+function authoredQuestFlags(world: ProbeWorld): string[] {
+  const read: unknown = world.game.app.debug.snapshot()[`harness.quest.${world.chunk.slug}`];
+  const flags: unknown = isFlagsReader(read) ? read() : [];
+  return Array.isArray(flags) ? flags.filter((flag): flag is string => typeof flag === 'string').sort() : [];
 }
 const SHARD_KEYS: Readonly<Record<string, readonly string[]>> = {
   'driftwood-isle': ['ocean', 'pier', 'jetties', 'boat', 'hut', 'lookout', 'wreck', 'shrine', 'bushes', 'gulls', 'bridge', 'bridgeDeck', 'cove', 'enemies', 'shrineHum', 'islandSfx'],
-  'pine-hollow': ['pineLife', 'cabins', 'props', 'streams'],
   'nalati-grasslands': ['nalati', 'ride', 'wildlife'],
 };
 
@@ -337,6 +334,8 @@ export function installProbe<W extends ProbeWorld>(world: W, deps: ProbeDeps): W
   };
   const shard: WildshardProbe['shard'] = { slug: world.chunk.slug };
   for (const key of SHARD_KEYS[world.chunk.slug] ?? []) shard[key] = world[key];
+  const authored: unknown = app.debug.snapshot()[`harness.shard.${world.chunk.slug}`];
+  if (authored !== null && typeof authored === 'object') Object.assign(shard, authored);
   const probe: WildshardProbe<W> = {
     app: Object.freeze({
       get state() { return app.state; },
@@ -414,7 +413,7 @@ export function installProbe<W extends ProbeWorld>(world: W, deps: ProbeDeps): W
       player: { pos: point(world.player.position), yaw: world.player.yaw, pitch: world.player.pitch, vel: point(world.player.velocity), health: deps.health() },
       weapon: { id: world.weapons.current.id, state: { ...world.weapons.current.state }, ammo: world.weapons.current.state.ammo ?? null },
       creatures: world.animals.animals.map((a, i) => ({ id: `${a.kind}:${i}`, kind: a.kind, pos: point(a.position), hp: a.hp, brain: a.state })).sort((a, b) => a.id.localeCompare(b.id)),
-      quest: { adventure: deps.quest(), pine: pineQuestFlags() },
+      quest: { adventure: deps.quest(), pine: authoredQuestFlags(world) },
     }),
     onResume: (fn) => { requireHarness(); resume = fn; }, saves,
     sounds: () => { const log = { event: events, ambient: [...ambient].sort() }; events = {}; ambient.clear(); return log; },
