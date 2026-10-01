@@ -1,0 +1,46 @@
+{
+  "freshEncounter": {
+    "bootErrors": [],
+    "flags": [
+      "used:altar",
+      "seen:pier"
+    ],
+    "map": true,
+    "mapSize": 1024,
+    "version": {
+      "build": "1a286df-mupzwwte",
+      "time": "2026-10-01T20:37:40.342Z"
+    },
+    "vertices": 45192
+  },
+  "savedAltarReload": {
+    "bootErrors": [],
+    "flags": [
+      "used:altar",
+      "seen:pier",
+      "seen:shrine"
+    ],
+    "map": true,
+    "mapSize": 1024,
+    "version": {
+      "build": "1a286df-mupzwwte",
+      "time": "2026-10-01T20:37:40.342Z"
+    },
+    "vertices": 45192
+  },
+  "candidate": "1a286dffc48faafc45f502525e72c90592da863a",
+  "tests": {
+    "files": 316,
+    "passed": 2296,
+    "newPreloadTests": 10
+  },
+  "bootErrors": {
+    "pine-hollow": [],
+    "nalati-grasslands": [],
+    "far-reach": [],
+    "driftwood-isle": [],
+    "nine-dragon-stack": [],
+    "sunscar-dunes": [],
+    "_template": []
+  }
+}

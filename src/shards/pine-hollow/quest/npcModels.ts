@@ -8,7 +8,7 @@ import { loadRigFile } from '#engine';
  * paint, grafted at its own neck (scripts/img2mesh/e304_faces.sh paint, face_remaster.py --graft-v2), normal map re-baked. npcFigure.ts's `makeNpcFigure` shows
  * its stand-in until the model has loaded, then swaps this in (Debug ▸ Pine Hollow people = Stand-ins keeps them).
  *
- *   void preloadNpcModels();                  // the quest's install: fetch all three early
+ *   await preloadNpcModels();                 // the quest's install: every person behind the loading screen
  *   const r = npcRig(kind);                   // null until loaded → { mesh (SkinnedMesh), pose(dt, t, s), lanternAt }
  *
  * The rig is built at load, from the hull itself (no offline bake — three people, ~5–9 k verts each): npcRig.ts's
@@ -75,8 +75,8 @@ export function loadNpcModel(kind: NpcKind): Promise<Source | null> {
   return p;
 }
 
-export function preloadNpcModels(): void {
-  for (const k of NPC_KINDS) void loadNpcModel(k);
+export async function preloadNpcModels(): Promise<void> {
+  await Promise.all(NPC_KINDS.map(loadNpcModel));
 }
 
 export interface NpcRig {

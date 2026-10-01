@@ -48,6 +48,7 @@ import { KING_KIND } from '../combat/antlerKing';
 import { WARDENS_HOLLOW, RANGER, MILLER, TRADER, QUEST_DONE, LANTERN_FLAGS, type LanternId } from './wardensHollow';
 import { pineTable, RESIN_SPOTS, RESIN_COUNT, RESIN_FLAG, TOKEN_FLAG, TOKEN_NAMES, SECRET_FLAGS, type Spot } from './table';
 import { makeNpcFigure, type NpcFigure, type NpcKind } from '../models/people';
+import { preloadNpcModels } from './npcModels';
 import { loadBoard, saveBoard, recordKill, claim, reroll, eliteOf, isFilled, type Board } from './contracts';
 import type { Room, Trade, TradeItem } from './trades';
 import { BoardPanel, TradePanel, CountChip } from './ui';
@@ -98,6 +99,8 @@ const TALK_R = 3.2;
 const _v = new THREE.Vector3();
 
 export async function installPineQuest(h: PineQuestHost): Promise<PineQuest> {
+  await preloadNpcModels();
+  if (h.ctx.scope.disposed) throw new Error('Pine Hollow was unloaded during the NPC model load');
   const { DialogueBox, QuestChip, NpcTalk, RewardCaption } = await loadQuest();
   const { ctx } = h;
   const { game, sky, player, animals, hud, inventory, progress } = h;

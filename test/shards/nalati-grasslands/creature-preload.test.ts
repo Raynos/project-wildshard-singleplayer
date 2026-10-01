@@ -1,0 +1,53 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { Bone, BufferGeometry, Float32BufferAttribute, Group, MeshStandardMaterial, Skeleton, SkinnedMesh, Texture, Uint16BufferAttribute } from 'three';
+import { GLTFLoader, type GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { fakeWorld } from '../../fake/world';
+
+function rig(): GLTF {
+  const geometry = new BufferGeometry();
+  geometry.setAttribute('position', new Float32BufferAttribute([0, 0, 0, 1, 0, 0, 0, 2, 0], 3));
+  geometry.setAttribute('uv', new Float32BufferAttribute([0, 0, 1, 0, 0, 1], 2));
+  geometry.setAttribute('skinWeight', new Float32BufferAttribute([1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0], 4));
+  geometry.setAttribute('skinIndex', new Uint16BufferAttribute(new Uint16Array(12), 4));
+  geometry.computeVertexNormals();
+  const mesh = new SkinnedMesh(geometry, new MeshStandardMaterial({ map: new Texture() }));
+  const bone = new Bone(); bone.name = 'body'; mesh.add(bone); mesh.bind(new Skeleton([bone]));
+  const scene = new Group(); scene.add(mesh);
+  return { scene, scenes: [scene], animations: [], cameras: [], asset: { version: '2.0' }, parser: {} as GLTF['parser'], userData: {} };
+}
+
+beforeEach(() => { vi.resetModules(); });
+
+describe('Nalati creature boot barrier (E357 R9)', () => {
+  it.each([false, true])('factory.ready waits for every rig, including when the last file fails (%s)', async (failLast) => {
+    const pending: { resolve: (value: GLTF) => void; reject: (reason: Error) => void }[] = [];
+    const warning = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const load = vi.spyOn(GLTFLoader.prototype, 'loadAsync').mockImplementation(() => new Promise<GLTF>((resolve, reject) => { pending.push({ resolve, reject }); }));
+    const { NALATI_LOOKS, NALATI_SPECIES } = await import('#shards/nalati-grasslands/species/rows');
+    const { default: manifest } = await import('#shards/nalati-grasslands/manifest');
+    const { AnimalFactory } = await import('#engine/entities/AnimalFactory');
+    const { app, Scope } = await import('#engine');
+    const scope = new Scope('nalati-preload-test');
+    app.levelScope = scope;
+    for (const row of NALATI_SPECIES) app.species.registerRow(row, scope);
+    for (const look of NALATI_LOOKS) app.species.registerLook(look, scope);
+    expect(manifest.creatures?.waitForModels).toBe(true);
+    const factory = new AnimalFactory(fakeWorld().sky, { render: manifest.creatures });
+    let ready = false;
+    const done = factory.ready.then(() => { ready = true; return undefined; });
+    expect(pending.length).toBeGreaterThan(1);
+    const count = pending.length, last = pending.at(-1);
+    if (last === undefined) throw new Error('No creature rigs requested');
+    for (const p of pending.slice(0, -1)) p.resolve(rig());
+    await new Promise<void>((resolve) => { setTimeout(resolve, 0); });
+    expect(ready).toBe(false);
+    for (const look of NALATI_LOOKS) void look.preload?.();
+    expect(load).toHaveBeenCalledTimes(count);
+    if (failLast) last.reject(new Error('Rig unavailable')); else last.resolve(rig());
+    await done;
+    expect(ready).toBe(true);
+    expect(warning).toHaveBeenCalledTimes(failLast ? 1 : 0);
+    scope.dispose();
+    app.levelScope = null;
+  });
+});

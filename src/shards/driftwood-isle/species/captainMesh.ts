@@ -8,14 +8,14 @@ import * as THREE from 'three';
  * E343 (Jake's pick D): the head is a Hunyuan3D-2 bust from a codex portrait (art/driftwood-isle/round-14-faces/) with its
  * own paint, grafted at its own neck (scripts/img2mesh/e304_faces.sh paint captain, face_remaster.py --graft-v2): ~346 KB.
  *
- *   void preloadCaptainMesh();          // Finale.ts installs it: loads in the background, long before the altar
+ *   await preloadCaptainMesh();         // quest/install.ts waits behind the loading screen, before saved-altar restore
  *   const m = captainMeshFor(bones);    // buildCaptain: { parts, map } bound to the captain's own bones, or null
  *
  * At load the mesh is normalized to the rig: 1.9 m tall (the tricorn's top — the rig's head bone sits at 1.56), feet at
  * y = 0, centred on x / z. Binding: every vertex rides the bone whose segment (bone → each child; a leaf is a point) is
  * nearest in the bind pose — rigid, like the loft kit's parts, so animateCaptain() drives it unchanged. The texture goes
- * on the rig's material (AnimalSpecies.map); the vertex colours are white so it shows true. Null until the load finishes
- * (or if it fails): buildCaptain then builds the loft stand-in, so the fight never waits on the file.
+ * on the rig's material (AnimalSpecies.map); the vertex colours are white so it shows true. A failed load permits the
+ * loft stand-in; a build during the load throws, so AnimalFactory cannot cache a stand-in while the hull is pending.
  */
 export const CAPTAIN_GLB_URL = '/assets/models/driftwood-hero/captain/captain.glb';
 const URL_GLB = CAPTAIN_GLB_URL;
@@ -25,6 +25,7 @@ const ARM_MIN_X = 0.36;
 let source: THREE.BufferGeometry | null = null;
 let texture: THREE.Texture | null = null;
 let loading: Promise<void> | null = null;
+let settled = false;
 
 /**
  * gltf-transform's meshopt pass quantizes position / normal / uv to normalized ints (KHR_mesh_quantization): copy every
@@ -56,15 +57,16 @@ async function load(): Promise<void> {
       if (mat instanceof THREE.MeshStandardMaterial) hit.map = mat.map;
     });
     const g = hit.geo;
-    if (g === null) return;
+    if (g === null) throw new Error('Captain GLB has no mesh');
     g.computeBoundingBox();
     const bb = g.boundingBox;
-    if (bb === null) return;
+    if (bb === null) throw new Error('Captain mesh has no bounds');
     const k = HEIGHT / Math.max(1e-6, bb.max.y - bb.min.y);
     g.translate(-(bb.min.x + bb.max.x) / 2, -bb.min.y, -(bb.min.z + bb.max.z) / 2).scale(k, k, k);
     source = g;
     texture = hit.map;
   } catch (e: unknown) { console.warn('[captain] generated mesh not loaded, using the stand-in:', e); }
+  finally { settled = true; }
 }
 
 /** the generated mesh has loaded (buildCaptain then fits the rig to it before binding) */
@@ -81,6 +83,7 @@ export function preloadCaptainMesh(): Promise<void> {
  * so both halves draw alike), plus its texture. Null before / without the load.
  */
 export function captainMeshFor(bones: BoneDef[]): { parts: [THREE.BufferGeometry, THREE.BufferGeometry]; map: THREE.Texture | null } | null {
+  if (loading !== null && !settled) throw new Error('Captain mesh is still loading; await preloadCaptainMesh before building');
   if (source === null) return null;
   const g = source.clone();
   const pos = g.getAttribute('position');

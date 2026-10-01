@@ -53,6 +53,8 @@ export interface Person {
 }
 
 export interface CampPeople {
+  /** The play hook waits until the real figures are adopted or loading has failed. */
+  ready: Promise<void>;
   group: THREE.Group;
   fig: Record<PersonId, Person>;
   update: (dt: number, t: number, player: THREE.Vector3) => void;
@@ -309,19 +311,19 @@ export function buildCampPeople(sky: Sky, floorAt: (x: number, z: number) => num
     }, bones);
   };
 
-  // the image-to-3D figures (N20, the user's pick): the procedural batch stands until they have loaded (and stays if they fail)
+  // The play hook awaits ready behind the loading screen; the procedural batch remains only on a load failure.
   for (const id of ids) pose(fig[id]);
-  void loadPeopleRig(sky, frames, models).then((r) => {
+  const ready = loadPeopleRig(sky, frames, models).then((r) => {
     scope?.own(r.mesh.geometry); scope?.own(r.mesh.skeleton);
     for (const material of Array.isArray(r.mesh.material) ? r.mesh.material : [r.mesh.material]) {
       if (material instanceof THREE.MeshLambertMaterial && material.map) scope?.own(material.map);
       scope?.own(material);
     }
-    if (scope?.disposed === true) return r;
+    if (scope?.disposed === true) return undefined;
     group.add(r.mesh);
     rig = r; batch.visible = false;
     for (const id of ids) pose(fig[id]);
-    return r;
+    return undefined;
   }).catch((e: unknown) => { console.warn('[nalati] camp people models failed: the procedural figures stay', e); });
 
   let asleep = false;
@@ -335,5 +337,5 @@ export function buildCampPeople(sky: Sky, floorAt: (x: number, z: number) => num
       pose(p);
     }
   };
-  return { group, fig, update };
+  return { group, fig, update, ready };
 }

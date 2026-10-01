@@ -73,7 +73,7 @@ export class NalatiPlugin extends ShardPlugin {
     };
   }
 
-  override play(ctx: ShardContext): void {
+  override async play(ctx: ShardContext): Promise<void> {
     const shell = host(ctx), world = shell.world, h = shell.play, rt = this.runtime(), kit = this.loadout;
     if (world === null || h === null || kit === null) throw new Error('Nalati gameplay requires its equipment and UI');
     const { player, game, sky, params, chunk, registry } = world;
@@ -111,6 +111,8 @@ export class NalatiPlugin extends ShardPlugin {
     health?.checkpoint(ctx.scope, () => rt.titan.onPlayerDeath(), () => ctx.app.player === health);
     ctx.answer('feat.toast', (value) => ({ ...value, allowed: value.allowed && (value.event === undefined || !CAPTIONED_EVENTS.has(value.event)) }));
     const quest = installNalatiAdventure({ ctx, game, sky, player, chunk, prompts: shell.interactables, registry, hud, audio, music, progress, fullMap, ride, animals, nalati: rt, params });
+    await quest?.people.ready;
+    if (ctx.scope.disposed) throw new Error('Nalati was unloaded during the camp people model load');
     if (quest !== null) { ctx.bag.fragment('finds', { id: 'nalati.finds', render: (panel) => { renderFinds(panel, nalatiFinds(quest.flags)); } }); shell.hooks.questFlags = () => quest.flags.all.slice().sort(); }
     ctx.playground(horsePlayground(ride));
   }

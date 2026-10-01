@@ -3494,7 +3494,7 @@ describe('ChunkDef → ShardManifest preserves all 48 field mappings', () => {
     }
     // Former engine branches are explicit policy; check them separately from the frozen original schema.
     const pine = m.slug === 'pine-hollow', island = m.slug === 'driftwood-isle';
-    expect(m.creatures).toEqual({ lowPoly: island, waitForModels: pine, furRim: pine, tintRange: island ? 0.3 : 0.2, oneMaterial: island });
+    expect(m.creatures).toEqual({ lowPoly: island, waitForModels: pine || m.slug === 'nalati-grasslands', furRim: pine, tintRange: island ? 0.3 : 0.2, oneMaterial: island });
     expect(m.debugOptions).toEqual(m.slug === 'nalati-grasslands' ? ['clockSpeed', 'balbals', 'ghosts'] : []);
     expect(m.fight?.telegraphed).toBe(!pine);
     if (island) {

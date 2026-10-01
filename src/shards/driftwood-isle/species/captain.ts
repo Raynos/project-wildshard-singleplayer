@@ -118,8 +118,8 @@ function buildCaptain(v: VariantDef, rng: Rng): AnimalSpecies {
   const gen = captainMeshLoaded();
   for (const sx of [1, -1]) eyes.push(skinPlain(gen ? new THREE.SphereGeometry(0.02, 8, 6).translate(0.022 + sx * 0.034, 1.70, 0.092) : new THREE.SphereGeometry(0.027, 8, 6).translate(sx * 0.043, 1.635, 0.115), head, 'eye', paint));
   // v0.2: the generated captain (codex concept → Hunyuan3D-2, src/engine/entities/species/captainMesh.ts) once it has loaded —
-  // bound to these same bones, so animateCaptain() drives it unchanged; the glowing eye spheres ride on top. Until the
-  // file is in (or if it fails) the loft stand-in below is built instead.
+  // bound to these same bones, so animateCaptain() drives it unchanged; the glowing eye spheres ride on top. The play
+  // installer awaits the file; a failed load uses the loft stand-in below. A pending build throws instead of caching it.
   const generated = captainMeshFor(bones);
   if (generated) return { bones, furParts: [generated.parts[0]], hardParts: [generated.parts[1]], eyeParts: eyes, dims: CAPTAIN_DIMS, ...(generated.map ? { map: generated.map, selfLight: 0.5 } : {}), facetJitter: 0 };
   // the tricorn: a flat brim turned up in three corners + a low crown

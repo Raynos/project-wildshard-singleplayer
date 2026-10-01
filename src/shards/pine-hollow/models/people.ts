@@ -153,7 +153,7 @@ function lanternGlass(): THREE.BufferGeometry {
 /** a stand-in NPC at `feet` facing `yaw` (the quest's one factory: PH-M4 replaces this body, nothing else) */
 export function makeNpcFigure(kind: NpcKind, sky: Sky, feet: { x: number; y: number; z: number }, yaw: number): NpcFigure {
   const L = LOOKS[kind];
-  preloadNpcModels();
+  void preloadNpcModels(); // the play installer already awaited these; standalone specimens may still request them
   const group = new THREE.Group();
   group.name = `npc-${kind}`;
   group.position.set(feet.x, feet.y, feet.z);
@@ -242,6 +242,8 @@ export function makeNpcFigure(kind: NpcKind, sky: Sky, feet: { x: number; y: num
       mesh.rotation.z = fig.talking ? Math.sin(t * 2.3) * 0.025 : 0;
     },
   };
+  const loaded = npcRig(kind, sky);
+  if (loaded !== null) adopt(loaded);
   return fig;
 }
 

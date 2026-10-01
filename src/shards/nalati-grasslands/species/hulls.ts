@@ -4,7 +4,7 @@ import { loadRigFile, retainCachedResources, variantDef, type BoneDef } from '#e
  * glbCreatures — the generated creature hulls, pre-skinned to the procedural species' skeletons, so the species' own
  * bones, gaits and AI drive them (AnimalFactory 'painterly' style, Nalati; behind `?creatures=glb`).
  *
- *   preloadCreatureGlbs();                                  // at factory construction: fetch the rigs early
+ *   await preloadCreatureGlbs();                            // factory.ready: every rig before the first herd
  *   const s = skinCreatureGlb(kind, variantId, bones);      // null → keep the procedural mesh (off / not loaded yet)
  *   s.geometry  (position, normal, uv, color, skinIndex, skinWeight; one group)   s.map (the atlas)
  *
@@ -119,11 +119,11 @@ export function loadCreatureRig(name: CreatureRigName): Promise<RigAsset> {
   return p;
 }
 
-let preloaded = false;
-export function preloadCreatureGlbs(): void {
-  if (preloaded || !modelsOn('creatures')) return;
-  preloaded = true;
-  for (const n of new Set(Object.values(HULL))) loadCreatureRig(n).catch((e: unknown) => { console.warn(`[nalati] creature rig ${n} failed`, e); });
+let preloaded: Promise<void> | null = null;
+export function preloadCreatureGlbs(): Promise<void> {
+  if (!modelsOn('creatures')) return Promise.resolve();
+  preloaded ??= Promise.all([...new Set(Object.values(HULL))].map((n) => loadCreatureRig(n).catch((e: unknown) => { console.warn(`[nalati] creature rig ${n} failed`, e); }))).then(() => undefined);
+  return preloaded;
 }
 
 /** true when the rig's skin joints are `bones` by name, in order (their rest positions may be retargeted) */
