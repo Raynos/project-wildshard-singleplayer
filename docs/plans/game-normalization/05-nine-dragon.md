@@ -677,8 +677,8 @@ the save keys, the facade instancing check (`test-facade-instancing.mjs`), and t
 2. The next per-commit run, on that commit's SHA, fills `expect` per tier: `parity --pending-fill=<ids>
    --export=<sha>`, committed as a follow-up commit that names the SHA.
 3. The gate shows a pending item yellow (allowed), and the pin can't move while one is pending.
-4. **`parity --accept=<ids>` runs only after Jake's OK at the milestone**: it re-records exactly those fields and
-   removes the entries. Without his OK the change is fixed or reverted. The change commit never runs `--accept`.
+4. **`parity --accept=<ids>` runs only after Jake's OK at the milestone, and last** (after the fix and revert commits,
+   R3-14): it re-records exactly those fields over 3 runs and removes the entries. Without his OK the change is fixed or reverted. The change commit never runs `--accept`.
 
 | Difference | Why | Where it is shown |
 |---|---|---|
@@ -694,9 +694,9 @@ Anything else that differs is a bug in the step: the commit is reverted (12-proc
 
 | Step | Detail |
 |---|---|
-| Flow | gate green on the candidate → boards to Jake → Jake OKs the board items (or they are fixed / reverted), and `parity --accept=<ids>` re-records the OKed ones → the pin moves to **the newest `gpu-gate`-green SHA after that step, with `reviews/pending.json` empty** (R2-27) → deploy → Jake plays it live → **Jake's go starts S2**. The go is not a ship gate (R1-15); a "no" holds S2 (Decision asked) |
+| Flow | gate green on the candidate → boards to Jake → Jake OKs the board items (or they are fixed / reverted) → the fix and revert commits land first → **`parity --accept=<ids>` runs last**, re-recording the OKed ones over 3 runs (R3-14) → the pin moves to **the newest `gpu-gate`-green SHA after that step, with `reviews/pending.json` empty** (R2-27) → deploy → Jake plays it live → **Jake's go starts S2**. The go is not a ship gate (R1-15); a "no" holds S2 (Decision asked) |
 | Gate | `gpu-gate` green on the candidate SHA for the 4 shards (the template shard joins at Z1): Nine Dragon's budget check on its derived budgets (S1.6), Pine Hollow's, Nalati's and Driftwood's on their F2-baseline ceilings (R1-14); parity green; `pnpm test` green incl. the ratchets |
-| Pin | After step 3 (Jake's OKs, the `--accept` commit, and any fix or revert commits), with `reviews/pending.json` empty (R1-13, R1-15): the pin moves to the newest SHA after step 3 whose `gpu-gate` is green (R2-27), never to the pre-accept candidate: `node scripts/deploy-pin.mjs set <that sha> --milestone M1 --go "<where>"` writes `.github/deploy-pin.json` (committed alone; 13-lead-resolutions G7), then `gh workflow run deploy`, confirm `version.json`, record the build id in E357 (12-process §3, 03 §13.4) |
+| Pin | After step 3 (Jake's OKs, then any fix or revert commits, then the `--accept` commit last, R3-14), with `reviews/pending.json` empty (R1-13, R1-15): the pin moves to the newest SHA after step 3 whose `gpu-gate` is green (R2-27), never to the pre-accept candidate: `node scripts/deploy-pin.mjs set <that sha> --milestone M1 --go "<where>"` writes `.github/deploy-pin.json` (committed alone; 13-lead-resolutions G7), then `gh workflow run deploy`, confirm `version.json`, record the build id in E357 (12-process §3, 03 §13.4) |
 | Summary | What moved (§1, file and line counts), the lines deleted (`look/post.ts` and `hero/paifang.ts` at F7, `util.ts`'s `Rng` and `facade/rng.ts` at F8, the ND branches in §2), the ratchet counts before / after (`wildshard/no-shard-branch`, `no-raw-input` for the Fei Zhua hooks, `no-raw-save` for `ws.nineBoot`), Nine Dragon's derived budgets and ceilings, the audio byte change |
 | Boards | **Weapons** (the Spear / Naizagai wall fixes; any spot a Melee profile could not match: none expected for the jian) and **Audio** (the listening page). iPhone portrait, clips ≤ 10 s; clips and images come from the harness's capture of the candidate SHA (R1-15). Each item stays pending until Jake OKs it (re-baselined) or it is fixed / reverted (R1-13) |
 | Jake plays | Nine Dragon **live** on the pinned build, after the deploy (R1-15): the square, the Well rim, a grapple across, the stair-street, the grapple playground; he listens in the market and at the Well; he runs RUN CALIBRATION once (S1.6). If he wants to play before the pin moves, the lead deploys the candidate as a Vercel **preview** deployment (`vercel deploy --prebuilt`, which keeps `/api`), not `release-url.sh` (R1-15) |

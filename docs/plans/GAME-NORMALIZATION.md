@@ -329,7 +329,7 @@ F12. The table lists the rows in that order; the detail is in [02-foundations](g
 | **F9** | **The shard registry** (EI8, TP8, MW20): a generated `shards.generated.ts` (manifests + lazy `load`), the `ShardManifest` type with `api` version, the full-screen error on a failed load | The title deck and the bakers read the registry; no hand-kept shard list | M |
 | **F10** | **SaveStore** (EI19, MW7, MW15): one namespaced, versioned store with a migration chain and four scopes (`global`, `shard`, `device`, `session`). Today's saves are reset (Jake: fine); the 3 pre-boot keys survive (`ws.dev` a `device` key, the two resume keys `session`). A save that fails its schema is set aside, defaulted and reported, never a crash. `storage.persist()` on home-screen launch; export / import in Settings | 0 raw `localStorage` outside the store | M |
 | **F11** | **Retire the old machinery**: the resident host (EI6: ShardHost's park / activate / evict, the 76 `shardSlot`s) and `player.colliders` + `src/physics/bridge.ts` (PHYSICS-POLISH F3). The `addEventListener` patch stays (396 listeners rely on it for teardown). The `wildshard/no-global-listener-patch` ratchet counts it, and X1 / X2 remove it | One collision path; walk + trails 0 stuck | M |
-| **F12** | **Rapier 0.21** (decisions 45, 89: +~413 KB gz on a cold load, accepted) | Walk + trails 0 stuck; nav bake `--check` green; one physical-iPhone load reading from Jake | S |
+| **F12** | **Rapier 0.21** (decisions 45, 89: +~413 KB gz on a cold load, accepted) | Walk + trails 0 stuck; nav bake `--check` green; a Simulator load reading within 1.8 GB (decision 98: no physical-iPhone reading) | S |
 
 ### S1 — Nine Dragon Stack becomes a plugin (milestone M1)
 

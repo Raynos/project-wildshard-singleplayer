@@ -1231,7 +1231,7 @@ the full-screen error on a failed load. No hand-kept shard list anywhere.
    `src/shards/<slug>/ktx2.generated.ts` (the rows whose URL lies under that shard's allowlisted asset folders, F0
    step 5), plus the engine's own,
    `src/engine/boot/ktx2.generated.ts` (every other row). `gpuFiles.ts` reads the engine table. **A shard's table is
-   optional (R3-08; B3-2):** a manifest whose shard has one declares `assets.ktx2: () => import('./ktx2.generated')`
+   optional (R3-08; B3-2):** a manifest whose shard has one declares top-level `ktx2: () => import('./ktx2.generated')` (outside `assets`, R3-F1)
    (01 §6), and the level load awaits that thunk, when present, and hands the table to `gpuFiles` before the level's
    first asset load, so the engine never imports a shard file. A shard with none (Z1's template, Z3's new shard before
    its first KTX2 bake) declares no thunk and boots without a table; nothing imports a file that doesn't exist.
@@ -1287,7 +1287,7 @@ screen has the stack and a RELOAD button).
 - `pnpm gen && node scripts/gen-shards.mjs --check` exits 0; the title deck, the 6 bakers and `unused-assets` read
   `SHARDS`.
 - `git ls-files 'src/**/*.generated.*'` prints only `ktx2.generated.ts` files: at most one per shard (each with its
-  manifest's `assets.ktx2` thunk) plus `src/engine/boot/ktx2.generated.ts` (R2-04, R3-08). On a fresh `git archive
+  manifest's top-level `ktx2` thunk (R3-F1)) plus `src/engine/boot/ktx2.generated.ts` (R2-04, R3-08). On a fresh `git archive
   <the F9 sha>` export, with no `basisu` on the
   `PATH`, `pnpm test`, `pnpm run typecheck` and `pnpm exec vite build` exit 0 (they generate first; R1-11,
   R2-04), and `bash scripts/vercel-tree-gate.sh` exits 0 on the F9 commit with no stamp for it (R2-03).
