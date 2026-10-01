@@ -3438,7 +3438,7 @@ function originalArt(value: unknown): unknown {
 }
 
 function originalShape(m: ShardManifest, fixture: (typeof ORIGINAL)[number]['data']): object {
-  const { uses: _uses, loadout: _loadout, budgets: _budgets, audio: _audio, species: _species, encounters: _encounters, bag: _bag, dev: _dev, api: _api, assetGlobs: _assetGlobs, ktx2: _ktx2, kitLook: _kitLook, load: _load, boot: _boot, tiers: _tiers, name, label, card, ground, spawns, minimap, fight, camera, status, order: _order, render: _render, placement: _placement, explore, ...kept } = m;
+  const { horizonStrips: _horizonStrips, uses: _uses, loadout: _loadout, budgets: _budgets, audio: _audio, species: _species, encounters: _encounters, bag: _bag, dev: _dev, api: _api, assetGlobs: _assetGlobs, ktx2: _ktx2, kitLook: _kitLook, load: _load, boot: _boot, tiers: _tiers, name, label, card, ground, spawns, minimap, fight, camera, status, order: _order, render: _render, placement: _placement, explore, ...kept } = m;
   const old = {
     ...kept, id: `chunk://local/${m.slug}`, displayName: name, gridCoords: label,
     thumbnail: originalArt(card.thumb), heroPortrait: originalArt(card.portrait), heroLandscape: originalArt(card.landscape),
@@ -3478,6 +3478,11 @@ describe('ChunkDef → ShardManifest preserves all 48 field mappings', () => {
     const m = SHARDS.find((entry) => entry.slug === fixture.data.slug);
     if (!m) throw new Error(`Missing manifest ${fixture.data.slug}`);
     if (fixture.data.slug === 'pine-hollow' || fixture.data.slug === 'nalati-grasslands') expect(typeof m.trees.factory).toBe('function');
+    if (fixture.data.slug === 'pine-hollow') expect(m.horizonStrips).toEqual({
+      day: '/assets/horizon/pine-hollow-day.webp', night: '/assets/horizon/pine-hollow-night.webp',
+      phone: { day: '/assets/horizon/pine-hollow-day-phone.webp', night: '/assets/horizon/pine-hollow-night-phone.webp' },
+      elMin: -30, elMax: 14, scale: 4,
+    });
     if (fixture.data.slug === 'nalati-grasslands') {
       expect(typeof m.minimap?.palette?.ground).toBe('function');
       expect(typeof m.minimap?.palette?.overlay).toBe('function');

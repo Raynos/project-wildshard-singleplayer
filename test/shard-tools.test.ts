@@ -6,6 +6,7 @@ import { lutUrl } from '#engine/world/lut';
 import { horizonStrips } from '#engine/world/HorizonMatte';
 import { hasAdventure } from '#game/quest/Adventure';
 import { CHUNK_HALF } from '#engine/core/config';
+import { PINE_HOLLOW } from '#shards/pine-hollow/manifest';
 
 describe('per-shard pipeline lookups (PH-0.3)', () => {
   it('Blender areas: Driftwood unchanged, Pine Hollow provisional, others none', () => {
@@ -33,15 +34,15 @@ describe('per-shard pipeline lookups (PH-0.3)', () => {
   });
 
   it('painted horizon: Driftwood its strips and range, Pine Hollow its photoreal pair (PH-L5), others none', () => {
-    expect(horizonStrips('driftwood-isle')).toEqual({
+    expect(horizonStrips({ slug: 'driftwood-isle' })).toEqual({
       day: '/assets/horizon/driftwood-isle-day.webp', night: '/assets/horizon/driftwood-isle-night.webp', elMin: -4, elMax: 24,
     });
     // the range is scripts/horizon-matte/configs/pine-hollow.json's strip; the texels are scene-linear ÷ 4 (encode.py)
-    expect(horizonStrips('pine-hollow')).toEqual({
+    expect(horizonStrips(PINE_HOLLOW)).toEqual({
       day: '/assets/horizon/pine-hollow-day.webp', night: '/assets/horizon/pine-hollow-night.webp', elMin: -30, elMax: 14, scale: 4,
       phone: { day: '/assets/horizon/pine-hollow-day-phone.webp', night: '/assets/horizon/pine-hollow-night-phone.webp' },
     });
-    expect(horizonStrips('nalati-grasslands')).toBeNull();
+    expect(horizonStrips({ slug: 'nalati-grasslands' })).toBeNull();
   });
 
   it('adventure registry: Driftwood registered, Pine Hollow empty', () => {
