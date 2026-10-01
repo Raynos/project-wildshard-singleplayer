@@ -85,6 +85,6 @@ describe('Sky Reach contract', () => {
     const dive = RAY_STRIKES[0];
     expect(dive?.shape.kind).toBe('sphere'); expect(dive?.motion?.track).toBe('lead');
     const g = rayGeometry(), bones = new Set(Array.from(g.getAttribute('skinIndex').array).filter((_, i) => i % 4 === 0));
-    expect([...bones].sort((a, b) => a - b)).toEqual([0, 1, 2, 3]);
+    expect([...bones].sort((a, b) => a - b)).toEqual([0, 1, 2, 3, 4]);
   });
 });

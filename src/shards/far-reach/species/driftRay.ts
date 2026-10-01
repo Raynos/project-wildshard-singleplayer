@@ -59,10 +59,10 @@ export const DRIFT_RAY: SpeciesRow = { id: 'far.creature.driftRay', kind: 'drift
 
 type P = readonly [number, number, number];
 const TOP = [0.16, 0.19, 0.27] as const, EDGE = [0.3, 0.33, 0.45] as const, BELLY = [0.86, 0.82, 0.8] as const;
-/** The ray's hull: a flat diamond of wings on a raised back, a whip tail; wings skin to their own bones so they flap. */
+/** The ray's hull (bones: body, head — the engine requires both on a custom rig — wingL, wingR, tail): a flat diamond of wings on a raised back, a whip tail; wings skin to their own bones so they flap. */
 export function rayGeometry(): BufferGeometry {
   const y = 0.6, pos: number[] = [], col: number[] = [], idx: number[] = [];
-  const bone = { body: 0, wingL: 1, wingR: 2, tail: 3 } as const;
+  const bone = { body: 0, head: 1, wingL: 2, wingR: 3, tail: 4 } as const;
   const face = (pts: readonly [P, number][], up: boolean, c: readonly [number, number, number]): void => {
     const [a, b, d] = pts; if (!a || !b || !d) return;
     const [ax, , az] = a[0], [bx, , bz] = b[0], [cx, , cz] = d[0];
@@ -75,7 +75,7 @@ export function rayGeometry(): BufferGeometry {
   for (const s of [-1, 1]) {
     const w = s < 0 ? bone.wingL : bone.wingR;
     const M: [P, number] = [[s * 1.7, y + 0.18, 0.15], w], Tip: [P, number] = [[s * 3.7, y + 0.28, -0.55], w];
-    const H: [P, number] = [[s * 0.45, y, 2.55], bone.body], Hb: [P, number] = [[s * 0.25, y, 1.95], bone.body], Tl: [P, number] = [[s * 0.13, y + 0.1, -1.45], bone.body];
+    const H: [P, number] = [[s * 0.45, y, 2.55], bone.head], Hb: [P, number] = [[s * 0.25, y, 1.95], bone.head], Tl: [P, number] = [[s * 0.13, y + 0.1, -1.45], bone.body];
     face([N, M, CT], true, TOP); face([CT, M, R], true, TOP); face([N, Tip, M], true, EDGE); face([M, Tip, R], true, TOP);
     face([N, M, CB], false, BELLY); face([CB, M, R], false, BELLY); face([N, Tip, M], false, BELLY); face([M, Tip, R], false, BELLY);
     face([H, Hb, N], true, TOP); face([H, Hb, N], false, BELLY);
@@ -90,8 +90,9 @@ export function rayGeometry(): BufferGeometry {
   return g;
 }
 export const DRIFT_RAY_LOOK: SpeciesLook = { id: 'far.look.driftRay', species: DRIFT_RAY.id, kind: 'driftRay', rig: 'custom', fur: NO_FUR,
-  rigContract: { skeleton: 'far.driftRay', sockets: ['body', 'wingL', 'wingR', 'tail'], clips: ['idle', 'fly', 'attack', 'hit', 'die'] },
-  build: () => ({ bones: [{ name: 'body', parent: null, pos: [0, 0.6, 0] }, { name: 'wingL', parent: 'body', pos: [-0.8, 0.65, 0.1] },
+  rigContract: { skeleton: 'far.driftRay', sockets: ['body', 'head', 'wingL', 'wingR', 'tail'], clips: ['idle', 'fly', 'attack', 'hit', 'die'] },
+  build: () => ({ bones: [{ name: 'body', parent: null, pos: [0, 0.6, 0] }, { name: 'head', parent: 'body', pos: [0, 0.62, 1.9] },
+    { name: 'wingL', parent: 'body', pos: [-0.8, 0.65, 0.1] },
     { name: 'wingR', parent: 'body', pos: [0.8, 0.65, 0.1] }, { name: 'tail', parent: 'body', pos: [0, 0.65, -1.5] }],
     furParts: [], hardParts: [rayGeometry()], eyeParts: [],
     dims: { bodyY: 0.6, bodyHalfLen: 2, bodyRadius: 1.3, headRadius: 0.6, legLen: 0.6, feet: [], halfWidth: 3.6 } }),
