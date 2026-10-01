@@ -47,42 +47,10 @@ const filesOf = (dir: string, manifest: unknown): string[] => manifestFiles(mani
 export const musicDir = (style: string): string => `/assets/music/${style}/`;
 export const sfxDir = (set: string): string => `/assets/sfx/${set}/`;
 
-const PINE = 'pine-hollow';
-/** the shard's own music sets (dirs under /assets/music/): Pine Hollow's, in the selected style — none for the synth */
-export function shardMusicSets(slug: string): string[] {
-  const style = getMusicStyle(), set = `${PINE}-${style}`;
-  return slug === PINE && style !== 'synth' && Object.hasOwn(MUSIC_MANIFESTS, set) ? [set] : [];
-}
-/** the shard's own SFX sets (dirs under /assets/sfx/): Pine Hollow's — downloaded whatever Settings plays (a switch reads the cache) */
-export const shardSfxSets = (slug: string): string[] => (slug === PINE && Object.hasOwn(SFX_MANIFESTS, PINE) ? [PINE] : []);
-/** a base style's slots this shard never plays (Pine Hollow: Driftwood's 'island') */
-const unplayed = (slug: string): readonly string[] => (slug === PINE ? ['island'] : []);
-const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
-/**
- * Driftwood's own sounds in the one shared set, untagged: its creatures (crabs, monkeys, the drowned sailors), the coconuts, the
- * gulls, the shrine's hum and the island bed. Pine Hollow has none of them (PH-P3, 2026-09-25: ~0.45 MiB and 16 requests of
- * its phone bar); src/engine/audio/preload.ts leaves them undecoded there too, so nothing asks for them after the bar.
- */
 export const DRIFTWOOD_SOUNDS: Readonly<Record<'beds' | 'hums' | 'oneshots', readonly string[]>> = {
   beds: ['island'], hums: ['shrine'],
   oneshots: ['crab_click', 'crab_snap', 'monkey_chatter', 'monkey_shriek', 'sailor_groan', 'sailor_slash', 'coconut_hit', 'coconut_land', 'gull'],
 };
-/** the files of `m`'s beds / hums / one-shots tagged for another shard (`shard: 'nalati'`) or Driftwood's own, which `slug` never plays */
-function otherShardFiles(m: unknown, slug: string): Set<string> {
-  const out = new Set<string>();
-  if (slug !== PINE || !isObj(m)) return out;
-  for (const sec of ['beds', 'hums', 'oneshots'] as const) {
-    const entries = m[sec];
-    if (!isObj(entries)) continue;
-    for (const [k, v] of Object.entries(entries)) if (DRIFTWOOD_SOUNDS[sec].includes(k)) for (const f of manifestFiles(v)) out.add(f);
-  }
-  return out;
-}
-/** the files of SFX set `set` for shard `slug` (URLs): all of them, but another shard's own sounds */
-function sfxFilesFor(set: string, slug: string): string[] {
-  const m = SFX_MANIFESTS[set], skip = otherShardFiles(m, slug), dir = sfxDir(set);
-  return filesOf(dir, m).filter((p) => !skip.has(p.slice(dir.length)));
-}
 /** the manifest without `drop`'s slots */
 function withoutSlots(m: unknown, drop: readonly string[]): unknown {
   if (drop.length === 0 || typeof m !== 'object' || m === null || Array.isArray(m)) return m;
@@ -94,10 +62,15 @@ function withoutSlots(m: unknown, drop: readonly string[]): unknown {
 /** the loading bar's `music` and `sfx` byte sources for shard `slug`: every file of every style / set (the selected one
  *  first; on Pine Hollow without another shard's own sounds), then the shard's own sets. Without a slug (or on Driftwood):
  *  the base styles and sets, every slot. */
-export function audioFiles(slug = ''): { music: string[]; sfx: string[] } {
-  const drop = unplayed(slug);
+export interface AudioFilePolicy {
+  omitSlots?: readonly string[];
+  musicSets?: readonly string[];
+  sfxSets?: readonly string[];
+  omitSfx?: Readonly<Record<string, readonly string[]>>;
+}
+export function audioFiles(policy: AudioFilePolicy = {}): { music: string[]; sfx: string[] } {
   return {
-    music: [...musicStyles().flatMap((s) => filesOf(musicDir(s), withoutSlots(MUSIC_MANIFESTS[s], drop))), ...shardMusicSets(slug).flatMap((s) => filesOf(musicDir(s), MUSIC_MANIFESTS[s]))],
-    sfx: [...sfxSets().flatMap((s) => sfxFilesFor(s, slug)), ...shardSfxSets(slug).flatMap((s) => filesOf(sfxDir(s), SFX_MANIFESTS[s]))],
+    music: [...musicStyles().flatMap((style) => filesOf(musicDir(style), withoutSlots(MUSIC_MANIFESTS[style], policy.omitSlots ?? []))), ...(policy.musicSets ?? []).flatMap((set) => filesOf(musicDir(set), MUSIC_MANIFESTS[set]))],
+    sfx: [...sfxSets().flatMap((set) => filesOf(sfxDir(set), SFX_MANIFESTS[set]).filter((url) => !(policy.omitSfx?.[set] ?? []).includes(url.slice(sfxDir(set).length)))), ...(policy.sfxSets ?? []).flatMap((set) => filesOf(sfxDir(set), SFX_MANIFESTS[set]))],
   };
 }

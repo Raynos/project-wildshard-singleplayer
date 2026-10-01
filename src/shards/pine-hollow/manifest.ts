@@ -24,6 +24,7 @@ export const PINE_HOLLOW: ShardManifest = {
   uses: ['dayCycle', 'weather'],
   render: async () => (await import('./look/render')).shardRender(),
   api: 1,
+  audio: { ambience: 'ambience.pine', score: 'score.pine', preload: () => import('./audio/files').then((m) => m.createPineAudio()) },
   load: () => import('./plugin'),
   boot: { stagedWorld: true, files: bootFiles, sources: bootSources, bakedUnread: BAKED_UNREAD },
   kitLook: 'pbr',

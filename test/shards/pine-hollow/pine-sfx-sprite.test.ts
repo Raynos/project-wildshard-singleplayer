@@ -1,7 +1,7 @@
+import { createPineAudio } from '#shards/pine-hollow/audio/files';
 // Pine Hollow's one-shots + barks ship as ONE audio sprite (scripts/music/gen/sfx_sprite.py): the loading bar fetches one
 // file, not 63 (228 requests on a phone cold launch against the 180 row). sfx.json `sprite: {file, gap, duration, clips}`.
 import { describe, expect, it } from 'vitest';
-import { audioFiles } from '#engine/boot/audioFiles';
 import { SFX_MANIFESTS } from '#engine/boot/audio.generated';
 import { PUBLIC_BYTES } from '#engine/boot/bytes.generated';
 import { pineShotFiles } from '#shards/pine-hollow/audio/sfx';
@@ -24,11 +24,11 @@ const familyFiles = (v: unknown): string[] => {
 const TABLE: Readonly<Record<string, number>> = PUBLIC_BYTES;
 
 describe('Pine Hollow\'s one-shot sprite', () => {
-  it('is what the bar fetches and decodes, and none of the packed files is', () => {
+  it('is what the bar fetches and decodes, and none of the packed files is', async () => {
     expect(typeof sprite['file']).toBe('string');
     const url = `${DIR}${String(sprite['file'])}`;
     expect(url in TABLE).toBe(true); // src/engine/boot/bytes.generated.ts is current
-    const sfx = audioFiles('pine-hollow').sfx;
+    const sfx = (await createPineAudio()).files().sfx;
     expect(sfx).toContain(url);
     expect(pineShotFiles()).toEqual([url]);
     expect(clips.size).toBeGreaterThan(0);

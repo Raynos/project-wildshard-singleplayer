@@ -1,4 +1,5 @@
-import { CombatCues, Scope, panFromYaw, audioRandom, loadAudio, wind, wildEnv, type Audio, type Music, type Player, type AnimalManager, type AnimalSound, type HoofSurface, type ImpactKind } from '#engine';
+import type { ShardContext } from '#game';
+import { CombatCues, Scope, panFromYaw, audioRandom, loadAudio, wind, wildEnv, type Audio, type Music, type Player, type AnimalManager, type Wildlife, type AnimalSound, type HoofSurface, type ImpactKind } from '#engine';
 import { createSteppeScore, type SteppeScene } from './SteppeScore';
 /**
  * Nalati's sound (row B16, the audio half): the steppe's creatures, hooves on the ground they cross, the stampede, the
@@ -23,7 +24,7 @@ import { createSteppeScore, type SteppeScene } from './SteppeScore';
  */
 import * as THREE from 'three';
 import { SteppeAmbience } from './SteppeAmbience';
-import type { NalatiKit } from '../weapons/nalatiKit';
+import type { NalatiLoadout } from '../weapons/loadout';
 import type { Nalati } from '../index';
 import type { NalatiWeather } from '../weather';
 import { RIVER, BRIDGE, CAMP, SUMMER_YURTS, GLACIER, BROOK, riverMask, zoneAt, TERRAIN } from '../manifest';
@@ -31,7 +32,7 @@ import { RIVER, BRIDGE, CAMP, SUMMER_YURTS, GLACIER, BROOK, riverMask, zoneAt, T
 const surfaceOf = (surface: string | undefined): ImpactKind => surface === 'wood' || surface === 'flesh' ? surface : 'ground';
 
 export interface NalatiSound {
-  bind: (audio: Audio, music?: Music) => void;
+  bind: (audio: Audio, music?: Music, animals?: AnimalManager, wildlife?: Wildlife) => void;
   fire: (cue: string) => boolean;
   impact: (cue: string, surface: ImpactKind, pan: number, gain: number) => boolean;
   update: (dt: number) => void;
@@ -73,7 +74,7 @@ function brookDistance(x: number, z: number): number {
   return best;
 }
 
-export function wireSound(nalati: Pick<Nalati, 'attachAnimals' | 'bindPlay' | 'boss' | 'titan'>, ctx: { player: Player; weather: NalatiWeather; scope?: Scope }): NalatiSound {
+export function wireSound(nalati: Pick<Nalati, 'attachAnimals' | 'bindPlay' | 'boss' | 'titan'>, ctx: { player: Player; weather: NalatiWeather; scope?: Scope; on?: ShardContext['on'] }): NalatiSound {
   const { player, weather } = ctx;
   let audio: Audio | null = null;
   const _v = new THREE.Vector3();
@@ -111,7 +112,7 @@ export function wireSound(nalati: Pick<Nalati, 'attachAnimals' | 'bindPlay' | 'b
       default: return false;
     }
   });
-  const bindKit = (kit: NalatiKit): void => {
+  const bindKit = (kit: NalatiLoadout): void => {
     const loose = kit.bow.onLoose;
     kit.bow.onLoose = (power) => { loose?.(power); kit.bow.chargeEvent('loose', power); cues.cue('cue.bow.loose.power', { strength: power }); };
     const thrown = kit.spear.onThrow;
@@ -123,8 +124,21 @@ export function wireSound(nalati: Pick<Nalati, 'attachAnimals' | 'bindPlay' | 'b
     kit.bow.onLetDown = () => { letDown?.(); kit.bow.chargeEvent('letdown'); cues.cue('cue.bow.letdown'); };
   };
 
-  // ── self-wiring onto the shard's hooks (the integrator's index.ts calls wireSound once) ──
   let manager: AnimalManager | null = null;
+  if (ctx.on) {
+    ctx.on('creature.signal', ({ name, x, z }) => { event(name, x, z); });
+    ctx.on('weapon.charge', ({ id, phase, value }) => {
+      if (id === 'weapon.bow') {
+        if (phase === 'draw') cues.cue(value === 1 ? 'cue.bow.full' : 'cue.bow.draw');
+        else if (phase === 'letdown') cues.cue('cue.bow.letdown');
+        else if (phase === 'loose') cues.cue('cue.bow.loose.power', { strength: value ?? 1 });
+      } else if (id === 'weapon.spear' && phase === 'throw') {
+        thrustPending = false; cues.cue('cue.spear.throw');
+        queueMicrotask(() => { thrustPending = false; });
+      }
+    });
+  } else {
+  // ── self-wiring onto the shard's hooks (the integrator's index.ts calls wireSound once) ──
   const attach = nalati.attachAnimals;
   nalati.attachAnimals = (animals) => {
     manager = animals;
@@ -137,6 +151,8 @@ export function wireSound(nalati: Pick<Nalati, 'attachAnimals' | 'bindPlay' | 'b
   nalati.bindPlay = (p) => { bindPlay(p); if (p.kit !== null) bindKit(p.kit); };
   const onEvent = wildEnv.onEvent;
   wildEnv.onEvent = (name, x, z) => { onEvent?.(name, x, z); event(name, x, z); };
+
+  }
 
   // ── the dusk / night chorus: now and then a pack far off answers (never in a storm, never in the kurgan) ──
   let chorusT = 20, bedT = 0;
@@ -156,13 +172,23 @@ export function wireSound(nalati: Pick<Nalati, 'attachAnimals' | 'bindPlay' | 'b
   };
 
   const sound: NalatiSound = {
-    bind(a, music) {
+    bind(a, music, animals, wildlife) {
+      if (animals) manager = animals;
+      if (wildlife) wildlife.onSound = emit;
       audio = a;
       a.hoofSurfaceAt = hoofSurfaceAt;
       // the manager's footfalls are 'hoofsteps' for every animal: only a horse's are hooves — a wolf's or the dog's paws
       // are silent in the grass (bind runs after main.ts sets animals.onSound, so this wraps it)
       const m = manager;
-      if (m?.onSound) {
+      if (m && ctx.on) {
+        m.onSound = (name, pos) => {
+          if (name === 'hoofsteps') {
+            const who = m.animals.find((animal) => animal.position === pos);
+            if (who && who.kind !== 'horse') return;
+          }
+          a.animal(name, pos, player.position, player.yaw);
+        };
+      } else if (m?.onSound) {
         const prev = m.onSound;
         m.onSound = (name, pos) => {
           if (name === 'hoofsteps') {

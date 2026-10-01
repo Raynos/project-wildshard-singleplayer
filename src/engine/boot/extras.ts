@@ -31,15 +31,13 @@ import { chunkFiles } from './manifest';
 import { addBytes, type ChunkFiles } from './bytes';
 import { ART_BYTES } from './art.generated';
 import { macrotask, type StepProgress } from './plan';
-import { audioFiles, musicDir, sfxDir, shardMusicSets, shardSfxSets } from './audioFiles';
-import { decodePineShots, pineShotFiles } from '#shards/pine-hollow/audio/sfx';
+import { audioFiles, musicDir, sfxDir } from './audioFiles';
 import { whenPrefetched } from './prefetch';
 import { decodeBytes, decodeSfxSet, sfxFiles, type SfxBank } from '../audio/preload';
 import type { AmbientBed } from '../audio/Audio';
 import { decodeStyle, styleFiles, type SlotName, type StyleBank } from '../audio/Stems';
-import { decodeSteppe, steppeBootFiles, steppeFiles, type SteppeBank } from '#shards/nalati-grasslands/audio/SteppeScore';
 import { getMusicStyle, getSfxSet } from '../ui/Settings';
-import { SHARDS, getActiveChunk } from '#game/shard/registry';
+import { SHARDS } from '#game/shard/registry';
 import { TIER } from '../core/tier';
 import type { LevelAudioProfile, LevelAudioBank } from '../audio/levelAudio';
 
@@ -69,19 +67,22 @@ function artFor(def: ShardManifest): { urls: string[]; bytes: Record<string, num
 }
 
 /** this shard's declared files: the boot manifest's sources plus the bundled title / explore art */
+const audioPriority = new WeakMap<ChunkFiles, ReadonlySet<string>>();
+
 export function bootFiles(def: ShardManifest, tex: TexMode = texMode(), profile?: LevelAudioProfile): ChunkFiles {
   const art = artFor(def);
   addBytes(art.bytes);
-  const audio = profile?.files() ?? audioFiles(def.slug);
-  // Nalati's own score (NALATI-MERGE A2): downloaded on the steppe only — no other shard plays it
-  if (!profile && def.style === 'painterly') audio.music.push(...steppeFiles());
-  return { ...chunkFiles(def, tex), art: art.urls, ...audio };
+  const audio = profile?.files() ?? audioFiles();
+  const files = { ...chunkFiles(def, tex), art: art.urls, ...audio };
+  const priority = profile?.priorityFiles?.();
+  if (priority) audioPriority.set(files, new Set(priority));
+  return files;
 }
 
 /** the art and the audio for the prefetch queue: the selected style + set (decoded in the bar) ahead of the others (downloaded only) */
 export function extraFetches(files: ChunkFiles): string[] {
-  const slug = getActiveChunk().slug, own = [...shardMusicSets(slug).map(musicDir), ...shardSfxSets(slug).map(sfxDir)]; // the shard's own sets (Pine Hollow's)
-  const mine = (p: string): boolean => p.startsWith(musicDir(getMusicStyle())) || p.startsWith(sfxDir(getSfxSet())) || own.some((d) => p.startsWith(d)) || p.startsWith(musicDir('nalati'));
+  const own = audioPriority.get(files);
+  const mine = (url: string): boolean => url.startsWith(musicDir(getMusicStyle())) || url.startsWith(sfxDir(getSfxSet())) || own?.has(url) === true;
   const audio = [...files.music, ...files.sfx];
   return [...files.art, ...audio.filter(mine), ...audio.filter((p) => !mine(p))];
 }
@@ -156,7 +157,7 @@ const decoded_ = new Map<string, Promise<unknown>>();
 /** audio files this page already read to the end once */
 const downloaded = new Set<string>();
 
-export interface AudioBanks { music: StyleBank | undefined; sfx: SfxBank; steppe: SteppeBank | undefined; profile?: LevelAudioBank }
+export interface AudioBanks { music: StyleBank | undefined; sfx: SfxBank; profile?: LevelAudioBank }
 
 /** Nine Dragon's phone boot: count/cache every file, then decode the selected banks after the world starts. */
 export function startDeferredAudioPreload(files: ChunkFiles, def: ShardManifest, profile?: LevelAudioProfile): Preload<void> & { readonly style: ReturnType<typeof getMusicStyle>; decode: () => Promise<AudioBanks> } {
@@ -204,7 +205,7 @@ export function startDeferredAudioPreload(files: ChunkFiles, def: ShardManifest,
         try {
           if (profile) {
             const bank = await profile.decode(style, read, oneAtATime);
-            return { music: undefined, sfx: { set, credit: undefined, loops: new Map(), shots: new Map() }, steppe: undefined, profile: bank };
+            return { music: undefined, sfx: { set, credit: undefined, loops: new Map(), shots: new Map() }, profile: bank };
           }
           const [music, sfx] = await Promise.all([
             decodeStyle(style, slots, read, oneAtATime).catch((error: unknown) => {
@@ -213,7 +214,7 @@ export function startDeferredAudioPreload(files: ChunkFiles, def: ShardManifest,
             }),
             decodeSfxSet(set, bed, read, undefined, oneAtATime),
           ]);
-          return { music, sfx, steppe: undefined };
+          return { music, sfx };
         } finally { selectedBytes.clear(); }
       })();
       return decoding;
@@ -226,17 +227,11 @@ export function startAudioPreload(files: ChunkFiles, def: ShardManifest, profile
     const preload = startDeferredAudioPreload(files, def, profile);
     return { wait: async (p) => { await preload.wait(p); return preload.decode(); } };
   }
-  const ocean = def.ocean !== undefined, steppe = def.style === 'painterly';
+  // The remaining legacy profile is the ocean level until S4.3.
   const style = getMusicStyle(), set = getSfxSet();
-  // this shard's slot (another shard built in the page decodes its own — Music.useBank adds it to the resident bank);
-  // the steppe has no stems yet (Music.ts themeSlot)
-  const slots: SlotName[] = ocean ? ['title', 'island'] : steppe ? ['title'] : ['title', 'pine'];
-  const bed: AmbientBed = ocean ? 'island' : steppe ? 'steppe' : 'forest'; // the same bed Audio's constructor picks
-  // the steppe: its own score's first slot (the camp is in the valley) + stings, whatever the style — unless the style is synth
-  const steppeNow = steppe && style !== 'synth';
-  // Pine Hollow's one-shots + barks (its own set, E44): decoded at the bar so no first shot / bark is silent
-  const pineShots = !ocean && !steppe && shardSfxSets(def.slug).length > 0 && set !== 'synth' ? pineShotFiles() : [];
-  const decoded = new Set([...styleFiles(style, slots), ...sfxFiles(set, bed), ...pineShots, ...(steppeNow ? steppeBootFiles() : [])]);
+  const slots: SlotName[] = ['title', 'island'];
+  const bed: AmbientBed = 'island';
+  const decoded = new Set([...styleFiles(style, slots), ...sfxFiles(set, bed)]);
   const rest = [...files.music, ...files.sfx].filter((u) => !decoded.has(u));
   const c = counter(decoded.size + rest.length);
   // the boot's counted fetch (the prefetch hands over the bytes it already has); a file two decoders share is read once
@@ -267,8 +262,6 @@ export function startAudioPreload(files: ChunkFiles, def: ShardManifest, profile
     return undefined;
   });
   const sfx = once(`sfx|${set}|${bed}`, sfxFiles(set, bed).length, () => decodeSfxSet(set, bed, read, c.tick));
-  const shots = pineShots.length > 0 ? once(`pine-shots|${set}`, pineShots.length, () => decodePineShots(read, c.tick)) : Promise.resolve();
-  const score = steppeNow ? once(`steppe|${style}`, steppeBootFiles().length, () => decodeSteppe(['steppe-grass'], read, decodeBytes, true, c.tick)) : Promise.resolve(undefined);
   // every other style / set: downloaded to the last byte (through the service worker, which keeps it), then let go — once a page
   const others = rest.map(async (u) => {
     if (!downloaded.has(u)) {
@@ -280,9 +273,9 @@ export function startAudioPreload(files: ChunkFiles, def: ShardManifest, profile
   return {
     async wait(p) {
       c.attach(p, 'audio files');
-      const [m, s, st] = await Promise.all([music, sfx, score, shots, ...others]);
+      const [m, s] = await Promise.all([music, sfx, ...others]);
       reads.clear();
-      return { music: m, sfx: s, steppe: st };
+      return { music: m, sfx: s };
     },
   };
 }

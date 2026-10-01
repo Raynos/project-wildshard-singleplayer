@@ -12,3 +12,6 @@ export { decodeSfxSet, sfxFiles } from './preload';
 export { audioFiles, musicStyles, sfxSets } from '../boot/audioFiles';
 export { styleFiles } from './Stems';
 export { getSfxSet } from '../ui/Settings';
+
+export { MUSIC_MANIFESTS, SFX_MANIFESTS } from '../boot/audio.generated';
+export { manifestFiles, musicDir, sfxDir, DRIFTWOOD_SOUNDS } from '../boot/audioFiles';

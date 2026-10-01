@@ -11,6 +11,7 @@ export async function createNalatiAudio(): Promise<LevelAudioProfile> {
       const base = audioFiles();
       return { music: [...base.music, ...scoreFiles(SCORE)], sfx: [...base.sfx, ...cueFiles(SFX)] };
     },
+    priorityFiles: () => [...scoreFiles(SCORE), ...cueFiles(SFX)],
     bootFiles: (style) => [...styleFiles(style, ['title']), ...sfxFiles(getSfxSet(), 'steppe'),
       ...(getSfxSet() === 'synth' ? [] : cueFiles(SFX)), ...(style === 'synth' ? [] : scoreFiles(SCORE, ['steppe-grass']))],
     decode: async (style, read, decode, onFile) => {

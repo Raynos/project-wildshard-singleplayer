@@ -15,6 +15,7 @@ export interface AudioMixer {
 }
 /** Boot downloads and decodes this content profile through the same counted/deferred queue. */
 export interface LevelAudioProfile {
+  priorityFiles?: () => readonly string[];
   files: () => { music: string[]; sfx: string[] };
   bootFiles: (style: MusicStyle) => readonly string[];
   decode: (style: MusicStyle, read: AudioRead, decode: AudioDecode, onFile?: () => void) => Promise<LevelAudioBank>;
