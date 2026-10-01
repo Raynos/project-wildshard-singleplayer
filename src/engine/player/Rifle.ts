@@ -15,6 +15,7 @@ import {
 } from './Crossbow';
 import type { KitWeapon, WeaponState, AimInfo } from './Weapons';
 import type { Sky } from '../world/Sky';
+import { gameplayRandom } from '../app/runtime';
 
 export interface RifleOptions extends CrossbowOptions {
   /**
@@ -359,8 +360,8 @@ export class Rifle implements KitWeapon {
     this.aimRay(_o, _d);
     const a = sstep(0, 1, this.adsBlend);
     const spread = THREE.MathUtils.degToRad(SPREAD_ADS + (1 - a) * SPREAD_HIP + this.bloom * (1 - a * 0.7));
-    _v1.set(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).cross(_d).normalize();
-    _d.addScaledVector(_v1, Math.tan(spread * Math.random())).normalize();
+    _v1.set(gameplayRandom() - 0.5, gameplayRandom() - 0.5, gameplayRandom() - 0.5).cross(_d).normalize();
+    _d.addScaledVector(_v1, Math.tan(spread * gameplayRandom())).normalize();
     // the world (terrain, trunks, rocks, structures — the physics world's first hit on the ray), then the animals short
     // of it: the nearer wins, so a wall in front of a deer takes the round
     let dist = HITSCAN_RANGE, surface: ImpactSurface | null = null;

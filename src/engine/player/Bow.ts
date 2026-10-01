@@ -1,4 +1,4 @@
-import { app } from '../app/runtime';
+import { app, gameplayRandom } from '../app/runtime';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type { Game } from '../core/Game';
@@ -735,8 +735,8 @@ export class Bow implements Weapon {
     const spreadDeg = 0.3 * (1 - (1 - AIM_SPREAD) * this.aimBlend) + 0.6 * this.player.speedFactor + this.extraSpreadDeg + this.mountSpread;
     const spread = THREE.MathUtils.degToRad(spreadDeg);
     _dir.copy(_fwd);
-    _v2.set(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).cross(_fwd).normalize();
-    _dir.addScaledVector(_v2, Math.tan(spread * Math.sqrt(Math.random()))).normalize();
+    _v2.set(gameplayRandom() - 0.5, gameplayRandom() - 0.5, gameplayRandom() - 0.5).cross(_fwd).normalize();
+    _dir.addScaledVector(_v2, Math.tan(spread * Math.sqrt(gameplayRandom()))).normalize();
     this.launchFrom(_dir, p, this.spawnPos, this.launchVel);
     this.arrows.launch(this.spawnPos, this.launchVel, { damageScale: DAMAGE_SCALE, onHitScale: this.damageMultiplier });
     this.state.bolts--;

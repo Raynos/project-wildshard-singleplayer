@@ -1,4 +1,4 @@
-import { app } from '../app/runtime';
+import { app, gameplayRandom } from '../app/runtime';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { LineSegments2 } from 'three/examples/jsm/lines/LineSegments2.js';
@@ -986,8 +986,8 @@ export class Crossbow implements Weapon {
     // spread: tight at ADS, a touch wider from the hip
     const spread = THREE.MathUtils.degToRad(0.15 + (1 - a) * 0.6);
     _dir.copy(_fwd);
-    _v1.set((Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2).cross(_fwd).normalize();
-    _dir.addScaledVector(_v1, Math.tan(spread * Math.random())).normalize();
+    _v1.set((gameplayRandom() - 0.5) * 2, (gameplayRandom() - 0.5) * 2, (gameplayRandom() - 0.5) * 2).cross(_fwd).normalize();
+    _dir.addScaledVector(_v1, Math.tan(spread * gameplayRandom())).normalize();
     // hip: start where the rail bolt is (so it visibly leaves the weapon) pulled most of the way onto the aim line;
     // sighted: from the tip itself, which lies on the sight ray, so the flight stays under the tip all the way out
     this.loadedBolt.getWorldPosition(this.spawnPos);

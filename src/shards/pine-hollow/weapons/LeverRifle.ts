@@ -1,4 +1,4 @@
-import { app } from '#engine';
+import { gameplayRandom, app } from '#engine';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
@@ -540,8 +540,8 @@ export class LeverRifle implements KitWeapon {
     this.aimRay(_o, _d);
     const a = sstep(0, 1, this.adsBlend);
     const spread = THREE.MathUtils.degToRad(SPREAD_ADS + (1 - a) * SPREAD_HIP + this.player.speedFactor * 0.5 * (1 - a * 0.6));
-    _v1.set(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).cross(_d).normalize();
-    _d.addScaledVector(_v1, Math.tan(spread * Math.sqrt(Math.random()))).normalize();
+    _v1.set(gameplayRandom() - 0.5, gameplayRandom() - 0.5, gameplayRandom() - 0.5).cross(_d).normalize();
+    _d.addScaledVector(_v1, Math.tan(spread * Math.sqrt(gameplayRandom()))).normalize();
     let dist = HITSCAN_RANGE, surface: ImpactSurface | null = null;
     const wall = worldHit(_o, _v2.copy(_o).addScaledVector(_d, HITSCAN_RANGE), 0);
     if (wall) { dist = wall.distance; surface = impactSurfaceOf(wall.material); }

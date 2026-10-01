@@ -9,7 +9,7 @@ export type { EventMap, AskMap, TagMap, Tag, FaultEvent, AskInput, AskOutput } f
 export { hasTag } from './events/tags';
 export { GameClock } from './core/clock';
 export { Rng, RngService, fnv1a32, pageSeed, type RngStream, type RngStreams } from './core/rng';
-export { app } from './app/runtime';
+export { app, gameplayRandom } from './app/runtime';
 export { ownAudioSource } from './audio/ownership';
 export { ambientTick } from './core/harnessTap';
 export { retainCachedResources } from './app/cachedAssets';
