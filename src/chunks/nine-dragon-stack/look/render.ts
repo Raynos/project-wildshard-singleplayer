@@ -2,7 +2,7 @@
 // on the engine's composer. The engine's passes stay (the scene pass with the viewmodels in their depth slices, SMAA);
 // the shard adds the bleed pyramid before the colour chain and replaces the chain with its own composite (ink
 // silhouette, 晕染 bleed, window glow, drizzle, shoulder, the learned LUT, grain) — the clean room's frame, rebuilt on
-// the engine (look/post.ts is the clean room's own, kept for the dev page until it retires).
+// the engine (the clean room's post.ts, deleted in E357 F7; git show b1b8f9c9:src/chunks/nine-dragon-stack/look/post.ts).
 // `window.__ndRender` (captures / A/B, no URL switch): the live pieces and their switches.
 import { Color, Fog, type IUniform, Mesh, type Object3D, type PerspectiveCamera, ShaderMaterial, Vector4, type WebGLRenderer } from 'three';
 import type { ShardComposeContext, ShardComposition, ShardRender } from '../../ChunkDef';

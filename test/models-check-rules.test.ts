@@ -51,8 +51,7 @@ describe('check-models after M6: every area is held (E315)', () => {
     for (const [area, files] of Object.entries(DONE)) for (const [file, d] of Object.entries(files)) expect(d.why.length, `${area} ${file}`).toBeGreaterThan(10);
   });
 
-  it('the dev labs are exempt; the old registrations fail everywhere', () => {
-    expect(checkModels({ 'src/dev/lab/page.ts': 'new THREE.InstancedMesh(g, m, 1); mergeGeometries([a, b]);' }).violations).toEqual([]);
+  it('the old registrations fail everywhere (the dev labs and their exemption went in E357 F7)', () => {
     const bad = checkModels({ 'src/world/Grass.ts': "registerModel({ id: 'x' }); addBuilt('x', mesh);" }).violations;
     expect(bad.some((v) => v.includes('registerModel'))).toBe(true);
     expect(bad.some((v) => v.includes('addBuilt'))).toBe(true);

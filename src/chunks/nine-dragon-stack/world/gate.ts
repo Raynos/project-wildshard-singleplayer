@@ -1,5 +1,5 @@
 // Dome B (E169, round-10-dome-b): the paifang of Lantern Square at hero quality — the gate the spawn looks at and the
-// dome-B anchor stands under. Grown from the hero lab's paifang (hero/paifang.ts) against the dome-B look-loop targets
+// dome-B anchor stands under. Grown from the hero lab's paifang (deleted in E357 F7; git show b1b8f9c9:src/chunks/nine-dragon-stack/world/hero/paifang.ts) against the dome-B look-loop targets
 // (art/nine-dragon-stack/round-10-dome-b-*/target-*.jpg: the gate seen from 10–15 m and from above):
 // - dark, weathered cinnabar lacquer posts (not toy orange) with gold bands, on carved Sumeru stone bases (須彌座)
 //   with a lotus cushion; drum stones (抱鼓石) with ringed, bossed drum faces and a crouching beast on top;

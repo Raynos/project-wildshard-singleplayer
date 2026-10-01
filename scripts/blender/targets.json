@@ -117,17 +117,6 @@
    "outputs": ["public/assets/pine-hollow/weapons/skinning-knife.glb", "public/assets/pine-hollow/weapons/skinning-knife.phone.glb", "public/assets/pine-hollow/weapons/skinning-knife.json"],
    "feeds": ["src/chunks/pine-hollow/models/skinningKnife.ts"]
   },
-  "nine-dragon-stack/fei-zhua": {
-   "about": "Lab only: the Fei Zhua wrist grapple, modelled + AO-baked (lab P9, E169). Loaded only by the dev lab page (src/dev/nd-lab/grapple/)",
-   "script": "scripts/blender/nine-dragon-stack/lab/fei_zhua.py",
-   "args": ["$BUILD"],
-   "sources": [],
-   "lock": true,
-   "build": ["fei-zhua.glb"],
-   "meshopt": [["fei-zhua.glb", "public/assets/nine-dragon/lab/grapple/fei-zhua.glb"]],
-   "outputs": ["public/assets/nine-dragon/lab/grapple/fei-zhua.glb"],
-   "feeds": ["src/dev/nd-lab/grapple/feizhua.ts"]
-  },
   "nine-dragon-stack/fp-rig": {
    "about": "The Nine Dragon first-person arms: hand, gauntlet and guard parts (Blender), rigged with 16 clips into fp-rig.glb by the viewmodel lab's bake (lab P8 round 13, E169)",
    "manual": "the rig bake ran in the deleted viewmodel lab page, and fp-rig.glb is the only complete copy: scripts/blender/nine-dragon-stack/viewmodel/README.md says how to re-derive it",

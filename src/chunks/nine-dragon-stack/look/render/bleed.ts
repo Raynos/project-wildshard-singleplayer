@@ -1,5 +1,5 @@
 // The Jiehua bleed pyramid in the engine's composer (a `beforeChain` pass, ChunkDef.ShardComposition): the clean room's
-// 晕染 bloom (look/post.ts) — a Karis prefilter (threshold 1.0, tight knee), dual-filter downs, ups summing back (tight =
+// 晕染 bloom (the clean room's post.ts, deleted in E357 F7; git show b1b8f9c9:src/chunks/nine-dragon-stack/look/post.ts) — a Karis prefilter (threshold 1.0, tight knee), dual-filter downs, ups summing back (tight =
 // the ¼ mip, wide = the summed pyramid). Round 14 (the phone's draw budget, 8 → 5 draws): the prefilter writes the ¼
 // level directly (four bilinear taps cover its 4×4 full-res texels) and the pyramid stops at 1/16. The window glow rides in its alpha
 // (light/glow.ts). The one change: the prefilter reads inverse depth from the scene's depth texture (the engine's scene

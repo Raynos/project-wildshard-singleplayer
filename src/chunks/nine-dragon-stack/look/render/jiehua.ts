@@ -1,5 +1,5 @@
 // The Jiehua composite as an Effect in the engine's colour chain (ChunkDef.ShardComposition `chain`): the clean room's
-// one composite (look/post.ts FS_COMPOSITE) — the depth silhouette in ink (gold in the sutra look), the 晕染 bleed (tight +
+// one composite (the clean room's post.ts FS_COMPOSITE, deleted in E357 F7; git show b1b8f9c9:src/chunks/nine-dragon-stack/look/post.ts) — the depth silhouette in ink (gold in the sutra look), the 晕染 bleed (tight +
 // wide added as light, the wide mip soaked into pale paper as a pigment glaze), the window glow, screen-space drizzle, the
 // hue-preserving shoulder, the cool shadow lift, the weave, the vignette, the learned LUT and grain. The silhouette reads
 // inverse depth from the scene's depth texture (the engine's scene target has no MSAA and no near / viewZ alpha): its

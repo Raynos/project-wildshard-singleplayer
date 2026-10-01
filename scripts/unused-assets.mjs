@@ -7,12 +7,12 @@
 //   2. the audio manifests: every file a public/assets/music/*/music.json or sfx/*/sfx.json names (+ the manifests);
 //   3. a used .gltf's own buffers / images;
 //   4. a sibling of a used file that differs only by its tier / format suffix (`x.phone.webp`, `x.ktx2`, `x.phone.glb`);
-//   5. the game's code and pages naming it: src/ (not src/dev/, not the *.generated.ts tables, which list every file),
+//   5. the game's code and pages naming it: src/ (not the *.generated.ts tables, which list every file),
 //      index.html, public/manifest.webmanifest, vite.config.ts, vite/ — by its path, or by its file stem together with its
 //      folder's name (`/assets/lut/${slug}.bin`, `${DIR}${kind}.gen.glb` build paths from pieces).
 //      A folder the code builds names inside counts whole: its path is named (`'/assets/pine-hollow/journal'` + `${id}.webp`),
 //      or it is a texture set / model folder whose id is named (`pbrUrls('stone_wall')` → /assets/tex/stone_wall/*).
-// A file only src/dev/, dev/, scripts/ or test/ name is DEV-ONLY: listed, kept.
+// A file only scripts/ or test/ name is DEV-ONLY: listed, kept.
 // A file (or its folder) a doc under docs/ names is DOCUMENTED — staged for a pass, not wired in yet: listed, kept.
 // Everything else is UNUSED.
 //
@@ -89,10 +89,10 @@ const walk = (dir, out = []) => {
 };
 const read = (ps) => ps.filter((p) => !p.endsWith('.generated.ts')).map((p) => readFileSync(p, 'utf8')).join('\n');
 const game = read([
-  ...walk(join(ROOT, 'src')).filter((p) => !p.includes(join(ROOT, 'src/dev'))),
+  ...walk(join(ROOT, 'src')),
   join(ROOT, 'index.html'), join(ROOT, 'public/manifest.webmanifest'), join(ROOT, 'vite.config.ts'), ...walk(join(ROOT, 'vite')),
 ].filter((p) => existsSync(p)));
-const dev = read([...walk(join(ROOT, 'src/dev')), ...walk(join(ROOT, 'dev')), ...walk(join(ROOT, 'scripts')).filter((p) => !p.endsWith('unused-assets.mjs')), ...walk(join(ROOT, 'test'))]);
+const dev = read([...walk(join(ROOT, 'scripts')).filter((p) => !p.endsWith('unused-assets.mjs')), ...walk(join(ROOT, 'test'))]);
 const tokenIn = (text, t) => t.length > 2 && new RegExp(`(^|[^\\w-])${t.replaceAll(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`)}([^\\w-]|$)`).test(text);
 /** named by path, or by stem + folder (a path built from pieces) */
 function named(text, p) {
@@ -152,7 +152,7 @@ if (has('warn')) {
   process.exit(0);
 }
 console.log(`public/: ${files.length} tracked files, ${mb(sum(files))} · used ${files.length - devOnly.length - documented.length - unused.length} · dev-only ${devOnly.length} (${mb(sum(devOnly))}) · documented ${documented.length} (${mb(sum(documented))}) · UNUSED ${unused.length} (${mb(sum(unused))})`);
-if (devOnly.length > 0) { console.log('\ndev-only (named by src/dev, dev/, scripts/ or test/ — kept):'); for (const p of devOnly) console.log(`  ${mb(size(p)).padStart(9)}  ${p}`); }
+if (devOnly.length > 0) { console.log('\ndev-only (named by scripts/ or test/ — kept):'); for (const p of devOnly) console.log(`  ${mb(size(p)).padStart(9)}  ${p}`); }
 if (documented.length > 0) { console.log('\ndocumented (named by docs/ — staged for a pass, kept):'); for (const p of documented) console.log(`  ${mb(size(p)).padStart(9)}  ${p}`); }
 if (unused.length > 0) { console.log('\nUNUSED:'); for (const p of unused) console.log(`  ${mb(size(p)).padStart(9)}  ${p}`); }
 if (has('delete') && unused.length > 0) {

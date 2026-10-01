@@ -11,7 +11,7 @@
  *
  * It is a `TreeFactory` — the engine `Forest` draws it (placement, LOD bands, culling, collision, canopy map):
  *   ChunkDef.trees.factory = 'spruce'   → `TREE_FACTORIES.spruce` in src/core/bootstrap.ts builds it
- *   ChunkDef.forest.mask = spruceMask() → src/world/spruceMask.ts plants it in the gullies only
+ *   ChunkDef.forest.mask = a keep-probability function (Nalati's loneSpruceMask / edgeSpruceMask) plants it in the gullies only
  *
  * LODs per variant (tris for the 15 m variant; `SpruceFactory.lodTris` has all four):
  *   cardsHi  the full crown: 13 tiers × 16 tips, 4 bands (upper ×2, underside ×2)  ≈ 1.7 k

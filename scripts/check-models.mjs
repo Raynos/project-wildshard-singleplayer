@@ -307,7 +307,6 @@ export function checkModels(files) {
       if (inShared && /(?:^|\/)chunks\//.test(spec)) violations.push(`${file}: src/models/ imports a shard (${spec})`);
     }
     if (inShared || inShardModels) continue;
-    if (file.startsWith('src/dev/')) continue; // the dev labs: pages of their own, not the game (rule 7's exemption)
     if (ON_CONTRACT.includes(file) && (/\bregisterSolid\(|\bregisterModel\(/.test(code) || addsWithObject(code) > 0 || addsWithKey(code, 'model') > 0)) {
       violations.push(`${file}: on the model contract — it places models, it never registers a built thing by hand`);
     }

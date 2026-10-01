@@ -13,8 +13,7 @@
  * (500 m), slab depth, the four 15 m entry roads at the edge midpoints reaching ≥ 50 m in and
  * level with no-man's-land (y = 0) at the boundary, and the terrain mesh resolution.
  *
- * To add a shard: copy `src/chunks/_template.ts`, fill it in, register it in
- * `src/chunks/registry.ts`. See `docs/SHARDS.md`.
+ * To add a shard: see `docs/SHARDS.md`.
  */
 import type { PerspectiveCamera, Scene, WebGLRenderer } from 'three';
 import type {
@@ -260,7 +259,7 @@ export interface ChunkForest {
    * tested after the chunk's own candidates by the same rules (density, trails, pads, slope). Omitted = none.
    */
   infill?: { x: number; z: number; r: number };
-  /** optional keep probability 0..1 at (x, z), applied after the clearing noise (Nalati: spruce only in the gullies, `src/world/spruceMask.ts`); omitted = everywhere */
+  /** optional keep probability 0..1 at (x, z), applied after the clearing noise (Nalati: spruce only in the gullies); omitted = everywhere */
   mask?: (x: number, z: number) => number;
 }
 
