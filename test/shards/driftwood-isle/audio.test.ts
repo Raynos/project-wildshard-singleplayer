@@ -11,6 +11,7 @@ import { Scope } from '#engine/app/scope';
 import { Events } from '#engine/events/events';
 import { sortSystems, type SystemSpec } from '#engine/app/systems';
 import { driftwoodAudioSystems } from '../../../src/shards/driftwood-isle/audio/systems';
+import { Music } from '#engine/audio/Music';
 
 // E357 S4.3 (08 §6.3 C): the island's bed, gulls and voices left the engine mixer for Driftwood's audio folder.
 describe("Driftwood's island audio on the engine mixer", () => {
@@ -103,6 +104,19 @@ describe("Driftwood's island audio on the engine mixer", () => {
     expect(score.pending).toBe(false);
     scope.dispose(); score.dispose();
     expect(score.want(undefined)).toBeUndefined();
+  });
+
+  it('keeps the island synth lead as marimba and restores the default pluck when another score attaches', () => {
+    const audio = new Audio(), music = new Music(audio), scope = new Scope('lead');
+    const score = new DriftwoodScore(music, scope);
+    music.setScore('score.driftwood', score);
+    expect(music.state.lead).toBe('marimba');
+    const { synthLead: _lead, ...other } = score;
+    void _lead;
+    music.setScore('score.other', { ...other, pending: false, target: () => 'other', want: () => undefined, useBank: () => undefined });
+    expect(music.state.lead).toBe('pluck');
+    expect(audio.ready).toBe(false);
+    scope.dispose();
   });
 
   it('retains dusk before hands/enemies and weapons, pickups, listener, hum, ambience, interactions even when plugin systems register last', () => {

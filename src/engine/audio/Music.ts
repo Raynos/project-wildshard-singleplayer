@@ -54,7 +54,7 @@ export function themeSlot(shard: Shard): SlotName | null { return shard === 'isl
 export type MusicMode = 'menu' | 'calm' | 'alert' | 'combat';
 export type StingName = 'pickup' | 'death' | 'chunk' | 'dawn';
 export type { BossPhase } from './Stems';
-export interface MusicState { shard: Shard; mode: MusicMode; intensity: number; underwater: boolean }
+export interface MusicState { shard: Shard; lead?: 'pluck' | 'marimba'; mode: MusicMode; intensity: number; underwater: boolean }
 
 const LOOKAHEAD_BARS = 2;
 const TICK_MS = 120;
@@ -334,7 +334,7 @@ class Engine {
   /** the game state → layer levels (project/archive/2026-09-23-music.md "In the game"); `menu` follows the arrangement's own mix instead */
   private stateLevels(seg: Segment): Partial<Record<GainKey, number>> {
     const s = this.state, i = Math.min(1, Math.max(0, s.intensity));
-    const mine: LayerId = s.shard === 'island' ? 'marimba' : 'pluck', other: LayerId = mine === 'pluck' ? 'marimba' : 'pluck';
+    const mine: LayerId = s.lead ?? (s.shard === 'island' ? 'marimba' : 'pluck'), other: LayerId = mine === 'pluck' ? 'marimba' : 'pluck';
     const motif = mine === 'pluck' ? 0.9 : 0.85;
     void seg;
     if (s.mode === 'combat') return { drone: 1, pad: 0.85, [mine]: 1, [other]: 0.35, bass: 1, 'pulse.soft': 1, 'pulse.kick': 1, 'pulse.four': 0.7 + 0.3 * i, bell: 1 };
@@ -561,7 +561,8 @@ export class Music {
   }
   /** A plugin owns the score registration; disposing it releases its decks and restores legacy selection. */
   setScore(id: string, source: ScoreSource): () => void {
-    this.source = source; this.sourceId = id; this.sync();
+    this.source = source; this.sourceId = id;
+    this.setState({ lead: source.synthLead ?? 'pluck' }); this.sync();
     return () => {
       if (this.source !== source) return;
       this.source = undefined; this.sourceId = undefined;
@@ -754,7 +755,7 @@ export class Music {
       this.engine.setLevel('chorus', s.underwater ? 0.55 : 0, now, 0.6);
     }
     if (s.mode !== prev.mode) audioLog('music', `mode:${s.mode}`);
-    if (this.playing && (s.mode !== prev.mode || s.shard !== prev.shard || s.intensity !== prev.intensity)) {
+    if (this.playing && (s.mode !== prev.mode || s.shard !== prev.shard || s.lead !== prev.lead || s.intensity !== prev.intensity)) {
       if (this.synthOn) { this.engine.cancelPending(now); this.pump(); }
       this.sync();
     }

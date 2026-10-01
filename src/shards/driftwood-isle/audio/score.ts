@@ -3,6 +3,7 @@ import { loadAudio, type Audio, type Music, type MusicState, type ScoreSource, t
 /** The base style bank's island slot in play; Music owns its common title slot on the menu. */
 export class DriftwoodScore implements ScoreSource {
   readonly base = 'island';
+  readonly synthLead = 'marimba';
   readonly slots = ['island'];
   readonly minFade = 0;
   readonly stings = new Map<StemSting, AudioBuffer>();

@@ -9,6 +9,7 @@ export interface ScoreSource {
   readonly slots: readonly string[];
   /** The base-style slot used by this source before its scene-specific recordings. */
   readonly base?: string;
+  readonly synthLead?: 'pluck' | 'marimba';
   readonly minFade?: number;
   readonly phase?: BossPhase;
   readonly sceneName?: string;
