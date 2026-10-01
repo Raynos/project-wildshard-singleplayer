@@ -1,7 +1,7 @@
 import { registerLevelDebugRow } from '#engine/ui/debugOptions';
 import { hudAdapters } from '#engine/ui/hudAdapters';
 import { equipmentEntry, toolEntries } from '#game/bag/equipment';
-import { sharedWeaponVoices, SWORD_WOOD, SWORD_IRON, type MeleeProfile, loadParticles, installKitSpecies, KIT_ITEMS } from '#kit';
+import { sharedWeaponVoices, SWORD_WOOD, SWORD_IRON, type MeleeProfile, installKitSpecies, KIT_ITEMS } from '#kit';
 import { reportError } from '#engine/core/errorReport';
 import { showLoadFailure } from '#engine/ui/errorScreen';
 import { app, EffectService, CombatCues, pageSeed, LevelLoadError, installBounds, EquipmentService, type WeaponId, type Weapon, type LevelContext, type DiscSpot, CHUNK_HALF, startViewmodelTextures, viewmodelTexturesReady, loadWorldContent, authoredTargets, type Targets, getNumber, onNumber, onSettingChange, setting, floorBelow, lineOfSight } from '#engine';
@@ -31,7 +31,6 @@ import { IronSwordPickup, ironSwordSite } from '#shards/driftwood-isle/weapons/I
 import { installAdventure } from '#game/quest/Adventure';
 import { Horizon } from '#engine/world/Horizon';
 import { HorizonMatte } from '#engine/world/HorizonMatte';
-import { Grass } from '#engine/world/Grass';
 import { AnimalManager } from '#engine/entities/AnimalManager';
 
 
@@ -366,19 +365,8 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
     colliders: pathRampDescs(TRAILS, heightAt, (x, z) => normalAt(x, z)[1], { carried: (x, z) => registry.floorAt(x, z) !== undefined }) }); };
   if (chunk.ground.paths !== 'plugin' && built === undefined) addPaths();
 
-  const carpet = manifest.load === undefined && !isOcean && built === undefined
-    ? await step('grass', async () => {
-      const grass = new Grass(sky, forest).build();
-      await macrotask();
-      const { Particles } = await loadParticles();
-      const particles = new Particles(sky, forest).build();
-      game.scene.add(grass.group, particles.group);
-      return { grass, particles };
-    }) : null;
-  const grass = carpet?.grass ?? null;
-  const legacyParticles = carpet?.particles ?? null;
   if (manifest.boot?.stagedWorld !== true) {
-    if (carpet === null) await step('grass', () => undefined);
+    await step('grass', () => undefined);
     await step('cabins', () => undefined);
   }
   const interactables = boot.runtime.interactables;
@@ -883,7 +871,7 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
     const t1 = performance.now();
     recordBootCheckpoint('explore:imported');
     explore ??= new X({ world, onExit: exitExplore, onPractice: () => { hud.enterArenaNow(); }, onPlayground: (id) => { void enterPlayground(id); }, openFeedback: () => { void noteSheet(); }, hide: [boundary.group], creatures: animals.animals,
-      overhead: [grass?.group, ...boot.runtime.overhead, legacyParticles?.group, gulls?.group, dressing.cover?.group].filter((g) => g !== undefined) });
+      overhead: [...boot.runtime.overhead, gulls?.group, dressing.cover?.group].filter((g) => g !== undefined) });
     const t2 = performance.now();
     recordBootCheckpoint('explore:constructed');
     explore.open(mode, opts);
@@ -960,8 +948,6 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
     hands.update(dt, player);
     mark('player');
     horizon.update(dt, game.camera);
-    grass?.update(dt, viewer());
-    legacyParticles?.update(dt, viewer(), game.camera);
     boot.runtime.hooks.worldUpdate?.(dt, t);
     mark('world');
     // swimming holsters the weapon (hands only; Hands.ts follows)
@@ -1112,7 +1098,7 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
     if (chunk.explore !== undefined) void import('#engine/explore/Explore');
     game.primeFrame();
   }, TITLE_IDLE_MS);
-  const handle = { ...world, boundary, water, streams: dressing.streams, ocean, pier, jetties, boat, hut, lookout, wreck, shrine, bushes, gulls, bridge, bridgeDeck, cove, enemies, hands, grass, particles: legacyParticles, props, animals, interactables, crossbow, hud, audio, music, shrineHum, islandSfx, surfaces, ambience, lockSys, lockState, weapons, arena, playground: (): Playground | null => playground, ...boot.runtime.objects };
+  const handle = { ...world, boundary, water, streams: dressing.streams, ocean, pier, jetties, boat, hut, lookout, wreck, shrine, bushes, gulls, bridge, bridgeDeck, cove, enemies, hands, props, animals, interactables, crossbow, hud, audio, music, shrineHum, islandSfx, surfaces, ambience, lockSys, lockState, weapons, arena, playground: (): Playground | null => playground, ...boot.runtime.objects };
   app.audio = audio;
   game.retainKitResources();
   game.captureLevelResources();
