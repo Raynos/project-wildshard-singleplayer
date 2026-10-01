@@ -13,7 +13,7 @@ import type { Emitter } from './emitters';
 import type { Kit, Look } from '../world/kit';
 import type { NeonSigns } from './neonsigns';
 import { chars } from '../util';
-import { TIER } from '#engine/core/tier';
+import { signLayout, type NdTier } from '../tier';
 import { gpuOnlyTexture } from '#engine/core/gpuOnly';
 
 export const KAI = '"LXGW WenKai TC", "Kaiti TC", "STKaiti", "BiauKai", "Songti TC", serif';
@@ -34,14 +34,11 @@ export interface SignSpec {
 export interface Cell { u0: number; v0: number; u1: number; v1: number; mono: boolean }
 
 // the colour atlas is twice as tall as wide: dome B's stalls and gate carry many small paper / banner signs
-const PHONE = TIER === 'phone';
-const MW = PHONE ? 1024 : 2048, MH = PHONE ? 2048 : 4096, CS = PHONE ? 512 : 1024, CH = PHONE ? 1024 : 2048;
-const U = PHONE ? 48 : 96; // px per character; same atlas capacity with a quarter of the phone pixels
-const PAD = PHONE ? 4 : 8;
-
 const isMono = (s: SignStyle): boolean => s === 'tube' || s === 'box';
 
 export class SignAtlas {
+  private readonly sizing: ReturnType<typeof signLayout>;
+  private readonly phone: boolean;
   private readonly mono: HTMLCanvasElement;
   private readonly mctx: CanvasRenderingContext2D;
   private readonly colour: HTMLCanvasElement;
@@ -49,7 +46,7 @@ export class SignAtlas {
   private hx = 0;
   private hy = 0;
   private vx = 0;
-  private vy = MH / 2;
+  private vy = 0;
   private cx = 0;
   private cy = 0;
   private crow = 0;
@@ -57,20 +54,23 @@ export class SignAtlas {
   readonly monoTex: DataTexture;
   readonly colourTex: CanvasTexture;
 
-  constructor() {
+  constructor(tier: NdTier) {
+    this.sizing = signLayout(tier);
+    this.phone = tier === 'phone';
+    this.vy = this.sizing.mh / 2;
     this.mono = document.createElement('canvas');
-    this.mono.width = MW;
-    this.mono.height = MH;
+    this.mono.width = this.sizing.mw;
+    this.mono.height = this.sizing.mh;
     this.colour = document.createElement('canvas');
-    this.colour.width = CS;
-    this.colour.height = CH;
+    this.colour.width = this.sizing.cw;
+    this.colour.height = this.sizing.ch;
     const m = this.mono.getContext('2d', { willReadFrequently: true });
     const c = this.colour.getContext('2d');
     if (m === null || c === null) throw new Error('2d canvas unavailable');
     this.mctx = m;
     this.cctx = c;
     m.fillStyle = '#000';
-    m.fillRect(0, 0, MW, MH);
+    m.fillRect(0, 0, this.sizing.mw, this.sizing.mh);
     this.monoTex = new DataTexture(new Uint8Array(4), 1, 1, RedFormat, UnsignedByteType);
     this.colourTex = new CanvasTexture(this.colour);
     this.colourTex.colorSpace = SRGBColorSpace;
@@ -80,14 +80,14 @@ export class SignAtlas {
 
   /** after every sign is placed: copy the mono canvas's red channel into the R8 texture */
   finish(): void {
-    const img = this.mctx.getImageData(0, 0, MW, MH).data;
-    const r = new Uint8Array(MW * MH);
+    const img = this.mctx.getImageData(0, 0, this.sizing.mw, this.sizing.mh).data;
+    const r = new Uint8Array(this.sizing.mw * this.sizing.mh);
     // the canvas is top-down; the texture's v runs bottom-up (flipY is off for DataTexture)
-    for (let y = 0; y < MH; y++) {
-      const src = y * MW * 4, dst = (MH - 1 - y) * MW;
-      for (let x = 0; x < MW; x++) r[dst + x] = img[src + x * 4] ?? 0;
+    for (let y = 0; y < this.sizing.mh; y++) {
+      const src = y * this.sizing.mw * 4, dst = (this.sizing.mh - 1 - y) * this.sizing.mw;
+      for (let x = 0; x < this.sizing.mw; x++) r[dst + x] = img[src + x * 4] ?? 0;
     }
-    this.monoTex.image = { data: r, width: MW, height: MH };
+    this.monoTex.image = { data: r, width: this.sizing.mw, height: this.sizing.mh };
     this.monoTex.minFilter = LinearMipmapLinearFilter;
     this.monoTex.magFilter = LinearFilter;
     this.monoTex.generateMipmaps = true;
@@ -110,24 +110,24 @@ export class SignAtlas {
 
   private allocMono(w: number, h: number, vertical: boolean): { x: number; y: number } {
     if (vertical) {
-      if (this.vy + h > MH) { this.vy = MH / 2; this.vx += w + PAD; }
-      if (this.vx + w > MW) throw new Error('mono atlas (vertical) full');
+      if (this.vy + h > this.sizing.mh) { this.vy = this.sizing.mh / 2; this.vx += w + this.sizing.pad; }
+      if (this.vx + w > this.sizing.mw) throw new Error('mono atlas (vertical) full');
       const at = { x: this.vx, y: this.vy };
-      this.vy += h + PAD;
+      this.vy += h + this.sizing.pad;
       return at;
     }
-    if (this.hx + w > MW) { this.hx = 0; this.hy += h + PAD; }
-    if (this.hy + h > MH / 2) throw new Error('mono atlas (horizontal) full');
+    if (this.hx + w > this.sizing.mw) { this.hx = 0; this.hy += h + this.sizing.pad; }
+    if (this.hy + h > this.sizing.mh / 2) throw new Error('mono atlas (horizontal) full');
     const at = { x: this.hx, y: this.hy };
-    this.hx += w + PAD;
+    this.hx += w + this.sizing.pad;
     return at;
   }
 
   private allocColour(w: number, h: number): { x: number; y: number } {
-    if (this.cx + w > CS) { this.cx = 0; this.cy += this.crow + PAD; this.crow = 0; }
-    if (this.cy + h > CH) throw new Error('colour atlas full');
+    if (this.cx + w > this.sizing.cw) { this.cx = 0; this.cy += this.crow + this.sizing.pad; this.crow = 0; }
+    if (this.cy + h > this.sizing.ch) throw new Error('colour atlas full');
     const at = { x: this.cx, y: this.cy };
-    this.cx += w + PAD;
+    this.cx += w + this.sizing.pad;
     this.crow = Math.max(this.crow, h);
     return at;
   }
@@ -152,7 +152,7 @@ export class SignAtlas {
 
   private drawMono(spec: SignSpec): Cell {
     const ctx = this.mctx;
-    const { w, h, chars: glyphList, pos } = this.layout(spec, U);
+    const { w, h, chars: glyphList, pos } = this.layout(spec, this.sizing.unit);
     const { x, y } = this.allocMono(w, h, spec.vertical);
     ctx.save();
     ctx.beginPath();
@@ -164,7 +164,7 @@ export class SignAtlas {
     const glyphs = (font: string, style: string): void => {
       ctx.font = font;
       ctx.fillStyle = style;
-      glyphList.forEach((ch, i) => { const [px, py] = pos(i); ctx.fillText(ch, px, py + U * 0.04); });
+      glyphList.forEach((ch, i) => { const [px, py] = pos(i); ctx.fillText(ch, px, py + this.sizing.unit * 0.04); });
     };
     const frame = (inset: number, lw: number, r: number, style: string): void => {
       ctx.strokeStyle = style;
@@ -176,32 +176,32 @@ export class SignAtlas {
     if (spec.style === 'tube') {
       // the halo soaks out of the tube, the tube itself is near white; the tint comes from the vertex
       ctx.shadowColor = '#ffffff';
-      ctx.shadowBlur = U * 0.07;
-      glyphs(`900 ${U * 0.84}px ${KAI}`, '#9a9a9a');
-      frame(U * 0.1, U * 0.035, U * 0.08, '#d0d0d0');
+      ctx.shadowBlur = this.sizing.unit * 0.07;
+      glyphs(`900 ${this.sizing.unit * 0.84}px ${KAI}`, '#9a9a9a');
+      frame(this.sizing.unit * 0.1, this.sizing.unit * 0.035, this.sizing.unit * 0.08, '#d0d0d0');
       ctx.shadowBlur = 0;
-      glyphs(`900 ${U * 0.84}px ${KAI}`, '#ffffff');
+      glyphs(`900 ${this.sizing.unit * 0.84}px ${KAI}`, '#ffffff');
       ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = U * 0.035;
-      glyphList.forEach((ch, i) => { const [px, py] = pos(i); ctx.strokeText(ch, px, py + U * 0.04); });
-      frame(U * 0.1, U * 0.014, U * 0.08, '#ffffff');
+      ctx.lineWidth = this.sizing.unit * 0.035;
+      glyphList.forEach((ch, i) => { const [px, py] = pos(i); ctx.strokeText(ch, px, py + this.sizing.unit * 0.04); });
+      frame(this.sizing.unit * 0.1, this.sizing.unit * 0.014, this.sizing.unit * 0.08, '#ffffff');
     } else {
       // a lightbox: the tinted panel glows, the characters are the dark board showing through
       ctx.fillStyle = '#e6e6e6';
-      ctx.fillRect(U * 0.06, U * 0.06, w - U * 0.12, h - U * 0.12);
-      glyphs(`900 ${U * 0.8}px ${SONG}`, '#000000');
-      frame(U * 0.15, U * 0.03, 0, '#000000');
+      ctx.fillRect(this.sizing.unit * 0.06, this.sizing.unit * 0.06, w - this.sizing.unit * 0.12, h - this.sizing.unit * 0.12);
+      glyphs(`900 ${this.sizing.unit * 0.8}px ${SONG}`, '#000000');
+      frame(this.sizing.unit * 0.15, this.sizing.unit * 0.03, 0, '#000000');
     }
     ctx.restore();
-    return { u0: x / MW, v0: 1 - (y + h) / MH, u1: (x + w) / MW, v1: 1 - y / MH, mono: true };
+    return { u0: x / this.sizing.mw, v0: 1 - (y + h) / this.sizing.mh, u1: (x + w) / this.sizing.mw, v1: 1 - y / this.sizing.mh, mono: true };
   }
 
   private drawColour(spec: SignSpec): Cell {
     const ctx = this.cctx;
     const isEtch = spec.style === 'etch';
-    const u = PHONE ? 36 : 72;
+    const u = this.phone ? 36 : 72;
     const lay = this.layout(spec, u);
-    const w = isEtch ? (PHONE ? 500 : 1000) : lay.w, h = isEtch ? (PHONE ? 40 : 80) : lay.h;
+    const w = isEtch ? (this.phone ? 500 : 1000) : lay.w, h = isEtch ? (this.phone ? 40 : 80) : lay.h;
     const { x, y } = this.allocColour(w, h);
     ctx.save();
     ctx.beginPath();
@@ -249,8 +249,8 @@ export class SignAtlas {
       frame(u * 0.06, u * 0.03);
     } else {
       // etch: cloud scrolls (祥云) and a circuit line along a blade, silver on nothing
-      if (PHONE) ctx.scale(0.5, 0.5);
-      const ew = PHONE ? w * 2 : w, eh = PHONE ? h * 2 : h;
+      if (this.phone) ctx.scale(0.5, 0.5);
+      const ew = this.phone ? w * 2 : w, eh = this.phone ? h * 2 : h;
       ctx.strokeStyle = spec.color;
       ctx.lineWidth = 3;
       ctx.beginPath();
@@ -275,7 +275,7 @@ export class SignAtlas {
       }
     }
     ctx.restore();
-    return { u0: x / CS, v0: 1 - (y + h) / CH, u1: (x + w) / CS, v1: 1 - y / CH, mono: false };
+    return { u0: x / this.sizing.cw, v0: 1 - (y + h) / this.sizing.ch, u1: (x + w) / this.sizing.cw, v1: 1 - y / this.sizing.ch, mono: false };
   }
 }
 

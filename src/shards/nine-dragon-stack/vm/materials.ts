@@ -22,7 +22,7 @@ import {
   Matrix3, SRGBColorSpace, ShaderMaterial, type Texture, UnsignedByteType, Vector2, Vector3, Vector4,
 } from 'three';
 import { CLS } from './geo';
-import { TIER } from '#engine/core/tier';
+import { decalScale, type NdTier } from '../tier';
 
 /** the class palette (sRGB hex), index = CLS value; tuned against round-6 style A / target-1 */
 export const PALETTE: Readonly<Record<number, number>> = {
@@ -104,9 +104,9 @@ function cloud(g: CanvasRenderingContext2D, x: number, y: number, s: number, fli
 /** the decal atlas: the blade etch strip (top 256 px of 2048) and the fu talisman cell */
 export interface Decals { tex: Texture; etch: Vector4; fu: Vector4 }
 
-export function decalAtlas(): Decals {
+export function decalAtlas(tier: NdTier): Decals {
   const W = 2048, H = 1024;
-  const scale = TIER === 'phone' ? 0.5 : 1;
+  const scale = decalScale(tier);
   const cv = document.createElement('canvas');
   cv.width = W * scale;
   cv.height = H * scale;

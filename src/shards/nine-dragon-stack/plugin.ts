@@ -2,6 +2,7 @@ import { ShardPlugin, type ShardContext } from '#game';
 import type { PerspectiveCamera } from 'three';
 import { type NineDragonWorld, buildNineDragonWorld } from './world/build';
 import { installWorld } from './world/install';
+import { installSpecimenLight } from './look/specimenLight';
 
 type WorldBuilder = (ctx: ShardContext) => Promise<{ world: NineDragonWorld; camera: PerspectiveCamera }>;
 
@@ -11,7 +12,7 @@ async function buildWorld(ctx: ShardContext): ReturnType<WorldBuilder> {
   const world = await buildNineDragonWorld(render.renderer, (fraction, detail) => {
     ctx.progress.set(fraction, 1);
     if (detail !== undefined) ctx.progress.detail(detail);
-  });
+  }, render.tier);
   return { world, camera: render.camera };
 }
 
@@ -25,7 +26,8 @@ export class NdPlugin extends ShardPlugin {
   override async world(ctx: ShardContext): Promise<void> {
     const { world, camera } = await this.build(ctx);
     if (ctx.scope.disposed) throw new Error('Nine Dragon was unloaded during its world build');
-    installWorld(ctx, world, camera);
+    const rt = installWorld(ctx, world, camera);
+    if (typeof document !== 'undefined') installSpecimenLight(ctx.scope, (on, key) => { rt.specimenLight(on, key); });
   }
 }
 

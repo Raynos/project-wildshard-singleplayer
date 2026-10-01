@@ -34,6 +34,8 @@ import { type Decals, type VmUniforms, decalAtlas, inkHullMaterial, vmMaterial, 
 import { type JointAngles, LEFT_HAND, RIGHT_HAND, measure } from '#kit/viewmodel/armRig';
 import { Trail, type TrailLook } from './trail';
 import { phoneUrl } from '#engine/boot/bytes';
+import { app } from '#engine';
+import type { NdTier } from '../tier';
 import { ClipChannel as Channel } from '#kit/viewmodel/rigArms';
 import { ktx2Texture } from '#engine/core/ktx2';
 
@@ -125,10 +127,10 @@ async function rigScene(url: string): Promise<{ scene: Object3D; animations: Ani
 }
 
 /** the decal atlas (a 2048 × 1024 canvas, drawn once): every rig of the shard reads the same one */
-const atlases = new Map<string, Decals>();
-function sharedDecals(): Decals {
-  let d = atlases.get('decals');
-  if (d === undefined) { d = decalAtlas(); atlases.set('decals', d); }
+const atlases = new Map<NdTier, Decals>();
+function sharedDecals(tier: NdTier): Decals {
+  let d = atlases.get(tier);
+  if (d === undefined) { d = decalAtlas(tier); atlases.set(tier, d); }
   return d;
 }
 
@@ -160,8 +162,8 @@ export class NineDragonArms {
   private readonly rest: { guard: Vector3; tip: Vector3; hub: Vector3 };
   private readonly claws: Object3D[] = [];
 
-  private constructor(scene: Group, clips: AnimationClip[], textures: Map<string, [Texture | null, Texture | null]>, silk: Texture) {
-    this.u = vmUniforms(silk, sharedDecals());
+  private constructor(scene: Group, clips: AnimationClip[], textures: Map<string, [Texture | null, Texture | null]>, silk: Texture, tier: NdTier) {
+    this.u = vmUniforms(silk, sharedDecals(tier));
     const data = scene.userData as { attach?: { tassel: number[]; talisman: number[]; muzzle: number[]; bladeBase: number; bladeTip: number }; clips?: Record<string, { side: 'R' | 'L'; loop: boolean; timing: Timing | null; trailFrom: number | null }> };
     const at = data.attach;
     this.attach = {
@@ -262,7 +264,7 @@ export class NineDragonArms {
     };
   }
 
-  static async load(url = RIG_URL): Promise<NineDragonArms> {
+  static async load(tier: NdTier = app.render?.tier ?? 'desktop', url = RIG_URL): Promise<NineDragonArms> {
     const gltf = await rigScene(url);
     const names = ['hand-r', 'arm-r', 'fist-l', 'gauntlet'];
     const pairs = await Promise.all(names.map((n) => sharedMapPair(n)));
@@ -272,7 +274,7 @@ export class NineDragonArms {
     const g = new Group();
     g.userData = scene.userData;
     while (scene.children.length > 0) { const c = scene.children[0]; if (c !== undefined) g.add(c); }
-    return new NineDragonArms(g, gltf.animations, textures, weaveTexture());
+    return new NineDragonArms(g, gltf.animations, textures, weaveTexture(), tier);
   }
 
   /** start a right-arm move (crossfade `fade` s). 'charge' and 'sheathe' hold their last pose until the next play. */

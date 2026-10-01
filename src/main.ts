@@ -1,7 +1,9 @@
 import { reportError } from '#engine/core/errorReport';
 import { showLoadFailure } from '#engine/ui/errorScreen';
 import { app } from '#engine/app/runtime';
-import { pageSeed } from '#engine';
+import { pageSeed, LevelLoadError, type LevelContext } from '#engine';
+import { shardContext, toLevelSpec, type ShardContext, type GameServices } from '#game';
+import { levelSequenceDriver, type LevelSequence } from '#game/shard/sequence';
 import { meleeShard, hitDamage, type ShardManifest } from '#game/shard/manifest';
 import { installProbe } from '#engine/debug/probe';
 import { tap } from '#engine/core/harnessTap';
@@ -99,7 +101,7 @@ import { FirstHints } from '#engine/ui/FirstHints';
 import { LastPlace, placeName } from '#game/LastPlace';
 import { setAimTargets, meleeLock, lockOn as lockState, type AimTarget } from '#engine/player/AimTargets';
 import { pastRidden, riding } from '#engine/player/riding';
-import { createBootPlan, macrotask, slicer, type StepRunner } from '#engine/boot/plan';
+import { createBootPlan, macrotask, slicer, type StepProgress, type StepRunner } from '#engine/boot/plan';
 import { useShardSteps } from '#engine/boot/steps';
 import { declareTotals, installByteCounter, releaseByteCounter } from '#engine/boot/bytes';
 import { bootFiles, extraFetches, startAudioPreload, startDeferredAudioPreload, startMenuPreload } from '#engine/boot/extras';
@@ -107,7 +109,7 @@ import { bootFetches, prefetch, prefetchAfter, whenPrefetched } from '#engine/bo
 import { packFor, streamPack } from '#engine/boot/pack';
 import { startShardPrefetch } from '#engine/boot/shardPrefetch';
 import { getActiveChunk } from '#game/shard/registry';
-import { runShardLoad, withShardHooks, type LoadStage, prepareShardAssets } from '#game/shard/load';
+import { runShardLoad, withShardHooks, ShardLoadError, type LoadStage, prepareShardAssets } from '#game/shard/load';
 import { registerGpuFiles } from '#engine/boot/gpuFiles';
 import { Audio } from '#engine/audio/Audio';
 import { Music } from '#engine/audio/Music';
@@ -227,7 +229,51 @@ function buildShard(slug: string): Promise<BuiltWorld> {
   });
 }
 
+interface StagedBoot {
+  progress: StepProgress;
+  worldHook: (work: () => Promise<void>) => Promise<void>;
+}
+
 async function buildShardWorld(slug: string, manifest: ShardManifest, stage: LoadStage): Promise<BuiltWorld> {
+  const boot: StagedBoot = { progress: { set: () => undefined, detail: () => undefined }, worldHook: (work) => work() };
+  const sequence = buildShardStages(slug, manifest, stage, boot);
+  if (manifest.load === undefined) {
+    let next = await sequence.next();
+    while (!next.done) next = await sequence.next();
+    return next.value;
+  }
+  const scope = currentScope()?.resources;
+  if (scope === undefined) throw new Error('Plugin boot needs a level scope');
+  const { default: Plugin } = await stage('manifest.load', manifest.load);
+  const plugin = new Plugin();
+  const game: GameServices = { shard: manifest, rows: new Map(), bag: {
+    tab: () => { throw new Error('Bag plugin tabs are not installed'); },
+    fragment: () => { throw new Error('Bag plugin fragments are not installed'); },
+  } };
+  let context: ShardContext | undefined;
+  const ctx = (level: LevelContext): ShardContext => { context ??= shardContext(level, manifest, game); return context; };
+  const staged = levelSequenceDriver(sequence, scope, () => boot.progress, () => {
+    if (app.render !== null) {
+      app.render.captureLevelResources();
+      app.render.hold = true;
+      app.render.frameGate = () => false;
+    }
+  });
+  app.levelDriver = staged.driver;
+  try {
+    await app.loadLevel(toLevelSpec(manifest), {
+      world: (level) => boot.worldHook(async () => { await plugin.world?.(ctx(level)); }),
+      kit: (level) => plugin.kit?.(ctx(level)),
+      play: (level) => plugin.play?.(ctx(level)),
+    });
+  } catch (error) {
+    if (error instanceof LevelLoadError) throw new ShardLoadError(error.stage, error);
+    throw error;
+  }
+  return staged.result();
+}
+
+async function* buildShardStages(slug: string, manifest: ShardManifest, stage: LoadStage, boot: StagedBoot): LevelSequence<BuiltWorld> {
   const loading = new Loading();
   app.setState('loading');
   if (manifest.slug !== slug) throw new Error(`buildShard: ${slug} is not the active chunk`);
@@ -235,7 +281,7 @@ async function buildShardWorld(slug: string, manifest: ShardManifest, stage: Loa
   // Declared bytes come from the chunk's file list; every /assets fetch is counted on its way in.
   // the RESUMING screen's brand (E99): the shard's name + title art, while its URL is still the served file (the menu
   // preload swaps it for an in-memory blob: that one would not survive a recovery reload)
-  const brand = (): void => { resumeScreen().brand(getActiveChunk().slug.split('-').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' '), getActiveChunk().card.portrait); };
+  const brand = (): void => { resumeScreen().brand(manifest.name, manifest.card.portrait); };
   brand();
   await stage('ktx2', () => prepareShardAssets(manifest, registerGpuFiles));
   const files = bootFiles(getActiveChunk()); // + the title / explore art and every audio file (project/archive/2026-09-23-preload-offline.md)
@@ -247,6 +293,7 @@ async function buildShardWorld(slug: string, manifest: ShardManifest, stage: Loa
   window.addEventListener('unhandledrejection', (e) => plan.fail(`BOOT FAILED · ${String((e.reason as { message?: string } | null | undefined)?.message ?? e.reason)}`.slice(0, 300)));
   window.addEventListener('error', (e) => plan.fail(`BOOT FAILED · ${e.message} @ ${e.filename.split('/').pop()}:${e.lineno}`.slice(0, 300)));
   const step: StepRunner = (key, work) => stage(key, () => plan.step(key, work).then((p) => p.value));
+  boot.worldHook = (work) => step('props', (p) => { boot.progress = p; return work(); });
   // let the service worker take control first (≤ 2.5 s, never fatal) so the first visit's bytes are cached (a shard built
   // later in the page finds it long settled)
   await window.__ws_sw?.ready;
@@ -273,8 +320,10 @@ async function buildShardWorld(slug: string, manifest: ShardManifest, stage: Loa
   startViewmodelTextures((getActiveChunk().weapon) === 'crossbow'); // the crossbow's + rifle's textures, drawn in a worker while the world builds
   if (getActiveChunk().slug === 'pine-hollow') void preloadLeverModel(); // the lever-action's Blender model (PH-C11), fetched while the world builds
   const fieldModels = getActiveChunk().fieldModels?.() ?? null; // the shard's field models' code (ShardManifest.fieldModels, E349), fetched while the world builds
+  const level = yield 'world';
   const world = await bootstrap(step);
   const { game, sky, player, forest, params, chunk, registry } = world;
+  if (level !== undefined) game.scene.add(level.root);
   // A phone can lose WebGL during Nine Dragon's large build, before the normal in-game GPU recovery
   // is installed. Show the fatal error once and let the player choose the next action.
   const fragileBoot = TIER === 'phone' && slug === 'nine-dragon-stack';
@@ -491,7 +540,7 @@ async function buildShardWorld(slug: string, manifest: ShardManifest, stage: Loa
     return { cabins, interactables, landmarks };
   });
   const { cabins, interactables, landmarks } = homestead;
-  const props = await step('props', async (p) => {
+  const props = manifest.load === undefined ? await step('props', async (p) => {
     if (painterly) { nalati = await wireNalati({ game, sky, player, forest, chunk }); addPaths(); return null; } // the Nalati world (src/shards/nalati-grasslands/index.ts)
     if (isOcean) return null;
     if (built !== undefined) { // the structure-first shard's world: drawn, collides and lends its floor through the registry
@@ -506,7 +555,8 @@ async function buildShardWorld(slug: string, manifest: ShardManifest, stage: Loa
     await propsBuilt.build(registry, macrotask);
     statics.push(...propsBuilt.colliders);
     return propsBuilt;
-  });
+  }) : null;
+  yield 'kit';
 
   const animals = await step('animals', async (p) => {
     const a = await new AnimalManager(game.scene, sky, forest).buildAsync(macrotask); // a task per herd, not one long one
@@ -536,6 +586,7 @@ async function buildShardWorld(slug: string, manifest: ShardManifest, stage: Loa
   setActiveClock(worldClock);
   if (worldClock) onSettingChange('time', (t) => { worldClock.setTime(t); }); // pause menu ▸ Settings ▸ Time of day (E55)
 
+  yield 'loadout';
   // ── player kit: the shard's weapon + the rifle slot where the shard has one (Weapons.ts: 1…N / Q, the touch SWAP ring), HUD, audio ──
   const shardSword = (await step('weapon', () => Promise.all([viewmodelTexturesReady(), chunk.slug === 'pine-hollow' ? preloadLeverModel() : null, chunk.sword?.() ?? null])))[2]; // the viewmodels' textures from the worker + the lever-action's model (usually long done) + the shard's own sword (ShardManifest.sword); the build below is synchronous
   let arena: TrainingArena | null = null;
@@ -570,6 +621,7 @@ async function buildShardWorld(slug: string, manifest: ShardManifest, stage: Loa
   const isNine = chunk.slug === 'nine-dragon-stack';
   const ironSword = chunk.weapon === 'sword' && !isNine ? new Sword({ game, sky, player, forest }, targets, { allowUnlocked: nolock, blade: 'iron', ...(ironArms ? { arms: ironArms } : {}) }) : null;
   const weapons = new Weapons(crossbow, rifle, nalatiKit ? nalatiKit.extras : ironSword ? [{ weapon: ironSword, id: 'sword-iron', name: 'Iron sword' }] : longbow ? [{ weapon: longbow, id: 'bow', name: "Warden's longbow" }] : [], nalatiKit?.options ?? (isOcean ? { baseName: 'Wooden sword' } : isNine ? { baseName: NINE_WEAPON_NAME } : undefined)); // Driftwood's sword is "Wooden sword" everywhere, Nine Dragon's the Neon Jian (E314 A) — Bag, touch ring, hotbar (E318 row 18); held weapon = weapons.current; the hooks below are wired once here and forwarded; the rifle is locked until its pickup
+  yield 'play';
   const lockSys = new LockOnSystem(player, weapons, game.camera); // the Zelda lock-on (E50): LOCK / Z, orbit, flick-switch — src/engine/player/LockOnTarget.ts
   const touchControls = new TouchControls(player, weapons, setting('touch') === 'on', lockSys); // on-screen FPS controls on coarse-pointer devices (?touch=1 / main menu ▸ Settings ▸ Touch controls forces)
   nalatiKit?.install(weapons); // Nalati: all three slots owned, the bow in hand
@@ -1249,6 +1301,7 @@ async function buildShardWorld(slug: string, manifest: ShardManifest, stage: Loa
   // back from a GPU-recovery reload (E54): the pose is applied; take it off the address so a later reload spawns as usual
   if (params.has(RELOAD_PARAM)) { const u = new URL(location.href); u.searchParams.delete(RELOAD_PARAM); u.searchParams.delete('at'); history.replaceState(history.state, '', u); }
 
+  yield 'finish';
   await macrotask();
   game.buildComposer();
   // Compile programs in batches with a visible count, then draw the first frames as a step —
@@ -1289,7 +1342,7 @@ async function buildShardWorld(slug: string, manifest: ShardManifest, stage: Loa
   if (fragileBoot) game.canvas.removeEventListener('webglcontextlost', onBootContextLost);
   setPoseProvider(() => (hud.entered ? { x: player.position.x, y: player.position.y, z: player.position.z, yaw: player.yaw, pitch: player.pitch } : null)); // the Look Lab's reload prompt comes back right here (E65)
   await loading.done();
-  app.events.emit('level.loaded', { id: slug });
+  if (level === undefined) app.events.emit('level.loaded', { id: slug });
   app.setState(hud.entered ? 'play' : 'title');
   game.start(); // keep the full render loop out of the loader's 100% fade and its transient boot-memory peak
   if (arrival?.mode === 'enter' || arrival?.mode === 'arena') enter();

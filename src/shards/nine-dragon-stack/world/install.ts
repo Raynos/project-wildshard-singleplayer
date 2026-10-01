@@ -44,7 +44,9 @@ export const NINE_DRAGON_WORLD = {
   async build(ctx: StructureContext): Promise<void> {
     const scope = app.levelScope;
     if (scope === null) throw new Error('Nine Dragon world needs a level scope');
-    const world = await buildNineDragonWorld(ctx.renderer, ctx.progress);
+    const render = app.render;
+    if (render === null) throw new Error('Nine Dragon world needs the render service');
+    const world = await buildNineDragonWorld(ctx.renderer, ctx.progress, render.tier);
     const rt = installWorld({ scope, piece: (piece) => { ctx.registry.add(piece); },
       system: (system) => { ctx.onUpdate(system.run, system.id); } }, world, ctx.camera);
     installSpecimenLight(scope, (on, key) => { rt.specimenLight(on, key); });

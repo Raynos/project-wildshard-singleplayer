@@ -14,7 +14,7 @@
 // poster wall (concrete ×2 + the poster). GPU memory 1024² × 9 × 4 B × 4/3 = 50 MB as RGBA8 (the lab); ~12.6 MB as ASTC
 // 4×4 / ETC2 in a KTX2 array for shipping. Download: the JPEGs, 3.65 MB. Findings: round-9-lab-texture/README.md.
 import { Color, DataArrayTexture, LinearFilter, LinearMipmapLinearFilter, NoColorSpace, RepeatWrapping, RGBAFormat, UnsignedByteType, Vector4 } from 'three';
-import { TIER } from '#engine/core/tier';
+import { paintSize, type NdTier } from '../tier';
 import { phoneUrl } from '#engine/boot/bytes';
 import { gpuOnlyTexture } from '#engine/core/gpuOnly';
 
@@ -36,7 +36,7 @@ export const SURF = { auto: 0, none: 1, stone: 2, concrete: 3, lacquer: 4, wood:
 
 // The 1024px array alone holds 48 MiB on the GPU. On a phone, 512px preserves the authored ratios at the
 // displayed scale and reduces the array and its upload buffer to one quarter of that size.
-export const PAINT_SIZE = TIER === 'phone' ? 512 : 1024;
+
 
 /**
  * The flagstone layout, shared by the ground's joints (style.ts STONES_GLSL `stone()`), the streak cards and the paint's
@@ -88,8 +88,8 @@ export function paintPlaceholder(): DataArrayTexture {
 }
 
 /** load every layer (`base` = the folder URL) into one mipmapped RGBA8 array */
-export async function loadPaint(base: string, anisotropy: number, onLayer: (fraction: number) => void = () => undefined): Promise<{ tex: DataArrayTexture; bytes: number }> {
-  const S = PAINT_SIZE;
+export async function loadPaint(base: string, anisotropy: number, tier: NdTier, onLayer: (fraction: number) => void = () => undefined): Promise<{ tex: DataArrayTexture; bytes: number }> {
+  const S = paintSize(tier);
   const n = LAYERS.length;
   const data = new Uint8Array(S * S * 4 * n);
   let bytes = 0;

@@ -48,6 +48,7 @@ import { buildSquare } from './square';
 import { Shared, jiehuaMaterial, neonMaterial, sheetMaterial, skyMaterial, steamMaterial } from '../look/style';
 import { WORDS, buildTowers } from './towers';
 import { chars } from '../util';
+import type { NdTier } from '../tier';
 import { Rng } from '#engine';
 import { type HandedBatch, type InstancedCuller, type Placed, place } from '#engine/models/place';
 import type { ModelDef, Placement } from '#engine/models/model';
@@ -150,7 +151,7 @@ export interface NineDragonWorld {
 }
 
 /** build the fragment's world; `progress(0..1)` as it goes */
-export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f: number, detail?: string) => void = () => undefined): Promise<NineDragonWorld> {
+export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f: number, detail?: string) => void, tier: NdTier): Promise<NineDragonWorld> {
   const shared = new Shared();
   const root = new Group();
   root.name = 'nine-dragon-stack';
@@ -158,7 +159,7 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
   const phaseDone = (name: string, start: number): void => { phaseProfile.push({ name, ms: Math.round(performance.now() - start) }); };
   progress(0, 'paint + fonts');
   const paintStart = performance.now();
-  const paintReady = loadPaint('/assets/nine-dragon/paint', Math.min(8, renderer.capabilities.getMaxAnisotropy()), (f) => { progress(f * 0.15, 'paint + fonts'); })
+  const paintReady = loadPaint('/assets/nine-dragon/paint', Math.min(8, renderer.capabilities.getMaxAnisotropy()), tier, (f) => { progress(f * 0.15, 'paint + fonts'); })
     .then((paint) => { phaseDone('paint', paintStart); return paint; });
   const fontsStart = performance.now();
   const fontsReady = loadFonts().then(() => { phaseDone('fonts', fontsStart); return undefined; });
@@ -167,9 +168,9 @@ export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f
   progress(0.15, 'layout: square');
 
   // ── the layout: the square, the towers, the Well ──
-  const atlas = new SignAtlas();
+  const atlas = new SignAtlas(tier);
   const signs = new SignBuilder(atlas);
-  const glyphs = new GlyphAtlas(chars(FONT_CHARS));
+  const glyphs = new GlyphAtlas(chars(FONT_CHARS), tier);
   const neonSigns = new NeonSigns(shared, glyphs);
   signs.calligraphy = neonSigns;
   shared.u.uGroundY.value = Y0;

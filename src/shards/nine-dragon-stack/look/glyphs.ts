@@ -6,7 +6,7 @@
 //       constant-width hand-bent tube with round ends (real Hong Kong neon is bent glass along the stroke's centreline).
 // One cell per character, shared by every sign and colour (the colour is a vertex attribute).
 import { ClampToEdgeWrapping, DataTexture, LinearFilter, LinearMipmapLinearFilter, RGFormat, UnsignedByteType } from 'three';
-import { TIER } from '#engine/core/tier';
+import { glyphLayout, type NdTier } from '../tier';
 
 export const KAI_STACK = '"LXGW WenKai TC", "Kaiti TC", "STKaiti", "BiauKai", "Songti TC", "PingFang TC", serif';
 
@@ -84,20 +84,18 @@ function thin(img: Uint8Array, w: number, x0: number, y0: number, x1: number, y1
 
 export class GlyphAtlas {
   /** atlas px per cell, px of the font's em, and the distance-field reach in px (fill / skeleton) */
-  static readonly CELL = TIER === 'phone' ? 64 : 128;
-  static readonly FONT_PX = TIER === 'phone' ? 46 : 92;
-  static readonly SPREAD = TIER === 'phone' ? 9 : 18;
-  static readonly SKEL_SPREAD = TIER === 'phone' ? 13 : 26;
+  readonly layout: ReturnType<typeof glyphLayout>;
   readonly texture: DataTexture;
   readonly size: number;
   private readonly rects = new Map<string, GlyphRect>();
   /** ms spent building (canvas + both distance fields) */
   readonly buildMs: number;
 
-  constructor(chars: readonly string[], font = KAI_STACK, weight = 700) {
+  constructor(chars: readonly string[], tier: NdTier, font = KAI_STACK, weight = 700) {
+    this.layout = glyphLayout(tier);
     const t0 = performance.now();
     const list = [...new Set(chars)];
-    const C = GlyphAtlas.CELL;
+    const C = this.layout.cell;
     const cols = Math.ceil(Math.sqrt(list.length));
     let size = 64;
     while (size < cols * C) size *= 2;
@@ -111,11 +109,11 @@ export class GlyphAtlas {
     ctx.fillStyle = '#fff';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.font = `${weight} ${GlyphAtlas.FONT_PX}px ${font}`;
+    ctx.font = `${weight} ${this.layout.fontPx}px ${font}`;
     list.forEach((ch, i) => {
       const cx = (i % cols) * C, cy = Math.floor(i / cols) * C;
       // CJK ideographs sit a touch high on 'middle': nudge down so the cell is centred on the ink
-      ctx.fillText(ch, cx + C / 2, cy + C / 2 + GlyphAtlas.FONT_PX * 0.04);
+      ctx.fillText(ch, cx + C / 2, cy + C / 2 + this.layout.fontPx * 0.04);
       this.rects.set(ch, { u0: cx / size, v0: 1 - (cy + C) / size, u1: (cx + C) / size, v1: 1 - cy / size });
     });
     const px = ctx.getImageData(0, 0, size, size).data;
@@ -140,7 +138,7 @@ export class GlyphAtlas {
     for (let i = 0; i < N; i++) sk[i] = bin[i] === 1 ? 0 : INF;
     edt(sk, size, size);
     const data = new Uint8Array(N * 2);
-    const S = GlyphAtlas.SPREAD, SK = GlyphAtlas.SKEL_SPREAD;
+    const S = this.layout.spread, SK = this.layout.skeletonSpread;
     for (let y = 0; y < size; y++) {
       const dst = (size - 1 - y) * size; // canvas rows run top-down, texture rows bottom-up (no flipY on DataTexture)
       for (let x = 0; x < size; x++) {

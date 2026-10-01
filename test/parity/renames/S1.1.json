@@ -1,0 +1,9 @@
+{
+  "shardSystems": {
+    "nine-dragon-stack": {
+      "update": {
+        "structures": "shard.nd.world"
+      }
+    }
+  }
+}

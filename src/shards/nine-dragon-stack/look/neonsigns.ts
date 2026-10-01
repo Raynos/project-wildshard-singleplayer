@@ -10,7 +10,7 @@ import {
   BufferAttribute, BufferGeometry, Color, DataUtils, Float16BufferAttribute, Float32BufferAttribute, Mesh, ShaderMaterial, Uint32BufferAttribute, Vector3,
 } from 'three';
 import type { Emitter } from './emitters';
-import { GlyphAtlas } from './glyphs';
+import type { GlyphAtlas } from './glyphs';
 import { ADD_KEEP_ALPHA, EMIT_FOG, FOG_GLSL, NOISE_GLSL, type Shared } from './style';
 import { chars } from '../util';
 
@@ -264,7 +264,7 @@ export class NeonSigns {
       uniforms: {
         ...u,
         uSdf: { value: atlas.texture },
-        uAtlas: { value: [GlyphAtlas.FONT_PX, GlyphAtlas.SPREAD, GlyphAtlas.SKEL_SPREAD, GlyphAtlas.CELL] },
+        uAtlas: { value: [this.atlas.layout.fontPx, this.atlas.layout.spread, this.atlas.layout.skeletonSpread, this.atlas.layout.cell] },
         uTube: { value: [L.mono, L.tubeRadius, L.rim, L.thicken] },
         uTube2: { value: [L.seam, L.seamWidth, L.haloReach, L.haloGain] },
       },
@@ -313,7 +313,7 @@ export class NeonSigns {
     const two = def.twoSided === true;
     const clear = Math.min(1, Math.max(0, def.clear ?? 0));
     boards.box(at, right, up, f, w / 2, h / 2, depth / 2, tint, [gain, seed, MODE.face, clear], MODE.side, two);
-    const cellEm = GlyphAtlas.CELL / GlyphAtlas.FONT_PX;
+    const cellEm = this.atlas.layout.cell / this.atlas.layout.fontPx;
     for (const side of two ? [1, -1] : [1]) {
       const fn = f.clone().multiplyScalar(side);
       const r = new Vector3().crossVectors(up, fn).normalize();
