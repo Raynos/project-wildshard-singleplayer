@@ -459,6 +459,7 @@ export class Game {
   private isDead(): boolean { return this.dead; }
   /** one fixed phase, each system guarded */
   private runPhase(phase: Phase, dt = FIXED_STEP, t = this.clock.elapsedTime): void {
+    if (this.app.state === 'paused') return;
     const on = frameCost.on; // the dev fps panel's timing rows (src/engine/core/frameCost.ts): one boolean read while it is closed
     for (const spec of this.app.systemsByPhase()[phase]) {
       if (spec.when && !spec.when(this.app)) continue;
@@ -473,6 +474,7 @@ export class Game {
 
   /** Run the fixed steps this frame's (scaled) dt owes: hit-stop slows them with everything else. */
   private runFixed(dt: number): void {
+    if ('app' in this && this.app.state === 'paused') { this.fixedSteps = 0; return; }
     this.fixedAcc += dt;
     let n = 0;
     while (this.fixedAcc >= FIXED_STEP && n < MAX_FIXED_STEPS) {
