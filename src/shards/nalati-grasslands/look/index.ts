@@ -2,10 +2,11 @@
  * The Nalati look (docs/design/nalati/handoff/port-v2.md, NALATI.md Phase A2; "v2" — the painterly v1 it replaced is
  * gone, E136). The shard's only look.
  *
- * The hooks into shared files, one line each, on the painterly shard (`style: 'painterly'`):
- *   Game constructor      `installLookV2Fog()`                                  (fog.ts — before anything compiles)
- *   Game.buildComposer    `this._composer = buildLookV2Chain(…); return;`       (grade.ts)
- *   Grass.build           `new GrassV2(…)`                                      (grass.ts)
+ * The engine reaches it through the look strategy (render.ts, the manifest's `render`; E357 S3.2):
+ *   fog                   `installPaintedAir()` + `installLookV2Fog()`          (air.ts, fog.ts — Game.buildSky, before anything compiles)
+ *   compose ('replace')   `lookV2Passes(c)`                                     (grade.ts)
+ *   terrainPainter        the painted ground                                    (terrainPainter.ts)
+ *   grass                 `new GrassV2(…)`                                      (grass.ts)
  *   Horizon               the def's `horizon` is NALATI_HORIZON_V2               (horizon.ts)
  *   wireNalati            `await wireLookV2({ game, sky, weather, updates })`
  *

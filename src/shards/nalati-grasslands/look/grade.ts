@@ -116,7 +116,7 @@ export class GradeV2Effect extends Effect {
  * DPR 1.5 on a tile GPU, for edges the grass hides anyway — none while the player turned anti-aliasing off) is the
  * manifest's `msaa` tier knob.
  */
-export function lookV2Passes(c: LookReplaceContext): Pass[] {
+export function lookV2Passes(c: Pick<LookReplaceContext, 'scene' | 'camera' | 'tier'>): Pass[] {
   const scene = new RenderPass(c.scene, c.camera);
   const grade = new GradeV2Effect();
   if (c.tier === 'desktop') {
