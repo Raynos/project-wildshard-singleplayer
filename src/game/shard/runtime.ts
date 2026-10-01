@@ -25,6 +25,7 @@ export interface ShardPlayHooks {
   audioUpdate?: (dt: number) => void;
   dispose?: () => void;
   questFlags?: () => readonly string[];
+  adventureFlags?: () => readonly string[];
   places?: () => readonly { id: string; label: string; x: number; z: number; r: number }[];
   checkpoint?: () => boolean;
   eliteEngaged?: () => boolean;

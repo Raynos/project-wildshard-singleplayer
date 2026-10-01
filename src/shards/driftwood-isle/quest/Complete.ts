@@ -20,10 +20,9 @@ import { travel } from '#game';
 import { DRIFTWOOD_PLACES } from './Places';
 import { QUEST_DONE } from './questLine';
 import type { LiveMarker } from '#game/quest/core';
-import type { Adventure, AdventureWorld, AdvAnimal } from '#game/quest/Adventure';
+import type { Adventure, AdventureWorld, AdvAnimal } from './adventure';
 
 export const SEEN_COMPLETE = 'seen:complete';
-const NEXT_SHARD = 'nalati-grasslands';
 const SAFE_R = 25;   // the fallback toast waits until nothing hostile is this close
 const MAX_TODO = 7;  // chips on the card; the rest fold into "+N more"
 
@@ -60,7 +59,7 @@ export function installComplete<A extends AdvAnimal>(adv: Adventure, w: Adventur
   const { flags } = adv;
   const card = new ShardComplete();
   const shardName = findChunk(w.chunk.slug)?.name ?? 'Driftwood Isle';
-  const next = findChunk(NEXT_SHARD);
+  const next = w.chunk.next === undefined ? undefined : findChunk(w.chunk.next);
 
   // ── the finds, resolved to world coordinates once ──
   const glass: Spot[] = [], extras: Spot[] = [];
