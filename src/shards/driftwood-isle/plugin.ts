@@ -1,5 +1,6 @@
 import { ShardPlugin, type ShardContext } from '#game';
 import { buildDriftwoodWorld, keepDriftwoodWorld, type DriftwoodWorld } from './world/build';
+import { islandSystems } from './world/systems';
 import type { World } from '#engine';
 import type { Vector3 } from 'three';
 
@@ -26,6 +27,7 @@ export class DriftwoodPlugin extends ShardPlugin {
     const built = await this.build(world, shell.viewer);
     if (ctx.scope.disposed) throw new Error('Driftwood Isle was unloaded during its world build');
     keepDriftwoodWorld(shell, built);
+    islandSystems<NonNullable<DriftwoodWorld['bridgeDeck']>>(ctx, world, built); // the island's per-frame work (./world/systems.ts)
   }
 }
 

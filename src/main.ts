@@ -419,7 +419,7 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   // Driftwood's world, built by its plugin's world hook (src/shards/driftwood-isle/world/build.ts, E357 S4.1); its readers
   // below move into the plugin at S4.2–S4.4 (nothing built off Driftwood)
   const dressing = { ...edgeDressing, ...driftwoodWorld(boot.runtime) };
-  const { ocean, pier, jetties, boat, palms, palmSpecs, cove, hut, lookout, wreck, shrine, bushes, gulls, bridge, seabed, bridgeDeck } = dressing;
+  const { ocean, pier, jetties, boat, palmSpecs, cove, hut, lookout, wreck, shrine, bushes, gulls, bridge, bridgeDeck } = dressing;
   if (chunk.ocean) {
     const { installDriftwoodSpecies } = await import('./shards/driftwood-isle/species/install');
     installDriftwoodSpecies(game.levelScope);
@@ -951,13 +951,8 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
       }
     }
     boundary.update(dt, t);
-    ocean?.update(dt);
-    boat?.update(dt);
-    palms?.update(dt);
-    gulls?.update(dt, player.position);
-    if (bridge && bridgeDeck?.awake === true) bridge.setPoses(bridgeDeck, game.alpha);
-    seabed?.update(dt);
-    cove?.update(dt); shrine?.update(dt); enemies?.update(dt, t, player.position);
+    // Driftwood's ocean · boat · palms · gulls · bridge planks · seabed · cove · shrine: its plugin's systems (src/shards/driftwood-isle/world/systems.ts)
+    enemies?.update(dt, t, player.position);
     if (dayNight) { shrine?.setDusk(dayNight.dusk); if (ambience) ambience.night = dayNight.night; }
     mark('world');
     hands.update(dt, player);
