@@ -26,3 +26,5 @@ Generic `walk.legs={}`, combat `n/a`, poses and budgets `{}` reflect absent gene
 The universal touch-leg wait changed real-shard sounds and Nalati combat and was discarded. A node spawn test also passed against the broken old spawn, so it was discarded. `scripts/parity/walk.mjs` stays identical to HEAD.
 
 Lead pushes with `scripts/push-main.sh`, obtains the first green macos-15 bootstrap plus dedicated template contract, and commits its runner baseline artifact. Local M5 proof does not claim CI green. Follow-up: Player.spawn dash retention. No design guesses remain; spawn y=1 and template settle=30 were explicitly authorized.
+
+Published runtime commit `267a3eca234c3e03aa23e25a1138e6933da4b6ef`: full clean-export gate passed (`gate-final.log`); exact four-real phone boot has errors []/12 poses (`boot-land/`); all browser sessions/previews closed, lane 0 used. Atomic CAS rejected the earlier stale-parent attempt and preserved the intervening documentation commit.

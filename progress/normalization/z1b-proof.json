@@ -83,5 +83,10 @@
     "candidate": 4,
     "sameRuntimeOriginalHarness": 4,
     "sameRuntimeChangedHarness": 4
-  }
+  },
+  "landedRuntimeCommit": "267a3eca234c3e03aa23e25a1138e6933da4b6ef",
+  "finalGatePassed": true,
+  "finalFourRealBootErrors": [],
+  "finalRealPoseCount": 12,
+  "browserLaneRemaining": 0
 }
