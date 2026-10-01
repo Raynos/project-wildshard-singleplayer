@@ -96,6 +96,7 @@ export { getSetting, getNumber, onNumber, onSettingChange, setting } from './ui/
 export { LightPool } from './fx/LightPool';
 export { ParticlePool, pointScale, type ParticlePoolSpec, type ParticleAttr } from './fx/ParticlePool';
 export { voxelAO, aoTint, hemisphere, type VoxelAOParams, type HemiRing, type HemiDir } from './world/voxelAO';
+export { log, beam, rope, sagLine, rock, plank, tris, wobble, pole, blob, mergeVerticesByPos, lathe, revolve, revolveUV } from './world/geometryKit';
 export { painterlyMaterial, syncPainterlySun, updatePainterly, setPainterlyLook, painterlyUniforms } from './world/painterly';
 export { ARM_PAL, gloveFist, riderArm, placeArm, forearm } from './player/nalatiArms';
 export { wind } from './world/steppeWind';
