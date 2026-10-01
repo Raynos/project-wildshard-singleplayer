@@ -12,7 +12,8 @@ S2.3/S2.1 own removal of the temporary scalar King weatherHold compatibility onc
 
 ## Frozen numerical and rendering evidence
 
-42 tests in nine focused files pass. Whole working-tree TypeScript and all owned-file oxlint pass.
+42 tests in nine focused files pass at 06:18. Whole working-tree TypeScript and owned-file oxlint
+passed before the next scheduler WIP; clean committed export TypeScript passes at e0b2617c.
 Fixtures were recorded from original `152c5409` before extraction:
 
 - 1001 whole-day Pine/Driftwood curve/body samples and Nalati schedule ticks preserve original arithmetic.
@@ -45,7 +46,9 @@ First after `fd6567bd` exposed Pine +6400 instances/+486400 buffer bytes. Grass 
 before declared40; S2.1 corrected construction in `459ce119`. Final instances now EXACT20064.
 Residual Pine +11520 buffer bytes and pose triangles +16048..22536 remain. Inspected before/final cabin
 shows changed distant crown geometry. Forest.ts caches LOD_DIST80/SHADOW_KEEP before Pine60 policy;
-S2.1 confirmed and owns per-instance fix. Pine cabin .988344 and pond .986358 are NOT called green.
+S2.1 corrected per-instance policy in6b515363. Its integrated capture failed before usable shots:
+Pine missing Debug row host adapter; other shards missing grass/cabins completion. S2.1 owns fixes/rerun.
+Pine cabin .988344 and pond .986358 from b3a are NOT called green.
 Rain buffer/program hashes remain exact. All captured screenshots were inspected; browsers/previews closed.
 
 ## Clean export gate and next owner
@@ -55,5 +58,9 @@ It stops at committed NightBrain.ts public-boundary ratchet (0 -> 6), notified t
 Every S2.4 ratchet rise is cleared, including the last Game sky active-chunk read: LevelSpec.lookLayer
 now receives authored multipliers through toLevelSpec. No blanket lint escape or baseline rewrite.
 
-Lead: after S2.1 forest/plugin and S2.3 NightBrain fixes, run clean Vercel gate and full two-tier parity.
+Later clean gate `e0b2617c` also passes ratchet: NightBrain boundary is fixed. It runs1797 tests;
+1796 pass, one Pine shard-prefetch test fails11 missing declared assets. S2.1 owns boot manifest fix.
+Log: `/private/tmp/e357-sol-s24/gate-final2.log`. Capture6b515 was unusable, not accepted as proof.
+
+Lead: after S2.1 plugin/boot fixes, rerun clean Vercel gate and forest-corrected poses, then full two-tier parity.
 Builder did not push/deploy. Full milestone parity and pin remain lead-owned.
