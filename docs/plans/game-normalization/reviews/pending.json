@@ -1,0 +1,7458 @@
+[
+  {
+    "id": "M-driftwood-intended",
+    "row": "M1\u2013M4",
+    "wave": "M1\u2013M4",
+    "shard": "driftwood-isle",
+    "fields": [
+      "boot.audio.requests",
+      "boot.hud",
+      "boot.saves.read",
+      "boot.systems.fixed.post",
+      "boot.systems.input",
+      "boot.systems.late",
+      "combat.loot.written"
+    ],
+    "expect": {
+      "desktop/boot.systems.input": [
+        "engine.input.weapon",
+        "engine.input.contexts",
+        "engine.input.collect",
+        "engine.lockon.input",
+        "engine.player.input"
+      ],
+      "desktop/boot.systems.fixed.post": [
+        "physics.bodies.post",
+        "player.step",
+        "shard.driftwood.bridge.capture"
+      ],
+      "desktop/boot.systems.late": [
+        "engine.input.edges",
+        "engine.hud.pins"
+      ],
+      "desktop/boot.audio.requests": [
+        "/assets/music/folk/island-calm-d7d189f9.m4a",
+        "/assets/music/folk/island-tension-bb05ab64.m4a",
+        "/assets/music/folk/pine-calm-10905c79.m4a",
+        "/assets/music/folk/pine-tension-180bc197.m4a",
+        "/assets/music/folk/sting-chunk-31c10eaf.m4a",
+        "/assets/music/folk/sting-death-67f54fe8.m4a",
+        "/assets/music/folk/sting-pickup-332f81db.m4a",
+        "/assets/music/folk/title-50001128.m4a",
+        "/assets/music/orchestral/island-calm-27861d1b.m4a",
+        "/assets/music/orchestral/island-tension-73116f36.m4a",
+        "/assets/music/orchestral/pine-calm-fbc4a99e.m4a",
+        "/assets/music/orchestral/pine-tension-525d8c6d.m4a",
+        "/assets/music/orchestral/sting-chunk-a639b19e.m4a",
+        "/assets/music/orchestral/sting-death-771d34f7.m4a",
+        "/assets/music/orchestral/sting-pickup-65f7ac5b.m4a",
+        "/assets/music/orchestral/title-b47c8a52.m4a",
+        "/assets/music/piano/island-calm-05125ed8.m4a",
+        "/assets/music/piano/island-tension-7faf0468.m4a",
+        "/assets/music/piano/pine-calm-923e0056.m4a",
+        "/assets/music/piano/pine-tension-cc014e5b.m4a",
+        "/assets/music/piano/sting-chunk-a4f2ffab.m4a",
+        "/assets/music/piano/sting-death-99b071e0.m4a",
+        "/assets/music/piano/sting-pickup-6ed91318.m4a",
+        "/assets/music/piano/title-3d1f713a.m4a",
+        "/assets/sfx/best/bear_growl-3-f91d7740.m4a",
+        "/assets/sfx/best/bear_hurt-1-43b45d1e.m4a",
+        "/assets/sfx/best/bear_hurt-3-3aea6172.m4a",
+        "/assets/sfx/best/bear_roar-2-29e3055e.m4a",
+        "/assets/sfx/best/bear_roar-3-9f1e177e.m4a",
+        "/assets/sfx/best/bed-forest-2-0cd11be5.m4a",
+        "/assets/sfx/best/bed-underwater-3-cbe2810d.m4a",
+        "/assets/sfx/best/boar_grunt-3-4e4a9bec.m4a",
+        "/assets/sfx/best/boar_squeal-1-804df37c.m4a",
+        "/assets/sfx/best/boltImpact-flesh-2-13ed7f2c.m4a",
+        "/assets/sfx/best/boltImpact-flesh-3-62e25aa5.m4a",
+        "/assets/sfx/best/boltImpact-ground-1-f81140e6.m4a",
+        "/assets/sfx/best/boltImpact-ground-2-5e8a3076.m4a",
+        "/assets/sfx/best/boltImpact-wood-2-8e9e99ee.m4a",
+        "/assets/sfx/best/boltImpact-wood-3-673a0ef6.m4a",
+        "/assets/sfx/best/crossbowFire-3-18ccf9f0.m4a",
+        "/assets/sfx/best/deer_call-1-7cd35867.m4a",
+        "/assets/sfx/best/deer_call-3-1d601bb4.m4a",
+        "/assets/sfx/best/dive-1-4b978224.m4a",
+        "/assets/sfx/best/dive-3-e74abc72.m4a",
+        "/assets/sfx/best/dodge-2-13887dd8.m4a",
+        "/assets/sfx/best/dodge-3-453516f6.m4a",
+        "/assets/sfx/best/dryFire-2-88071d1d.m4a",
+        "/assets/sfx/best/dryFire-3-173415cb.m4a",
+        "/assets/sfx/best/elk_bugle-2-0e80875f.m4a",
+        "/assets/sfx/best/elk_bugle-3-f6e8030e.m4a",
+        "/assets/sfx/best/footstep-litter-1-fe9cd8d9.m4a",
+        "/assets/sfx/best/footstep-litter-3-09ceed7a.m4a",
+        "/assets/sfx/best/footstep-mud-1-1dd22736.m4a",
+        "/assets/sfx/best/footstep-mud-2-99e4a10d.m4a",
+        "/assets/sfx/best/footstep-planks-2-ebb5a80c.m4a",
+        "/assets/sfx/best/footstep-planks-3-d919e436.m4a",
+        "/assets/sfx/best/footstep-rock-2-58c2cc26.m4a",
+        "/assets/sfx/best/footstep-rock-3-98e0e874.m4a",
+        "/assets/sfx/best/footstep-sand-1-09a40a2f.m4a",
+        "/assets/sfx/best/footstep-sand-2-4b40473a.m4a",
+        "/assets/sfx/best/footstep-wet-1-58d313a2.m4a",
+        "/assets/sfx/best/hitMarker-1-46ef1236.m4a",
+        "/assets/sfx/best/hoofsteps-1-9580d36a.m4a",
+        "/assets/sfx/best/hoofsteps-3-f1c11f8f.m4a",
+        "/assets/sfx/best/hum-pickup-3-7b7db58f.m4a",
+        "/assets/sfx/best/kill-2-5e4acc1b.m4a",
+        "/assets/sfx/best/kill-3-5f7ea225.m4a",
+        "/assets/sfx/best/land-2-773487f2.m4a",
+        "/assets/sfx/best/land-3-eebff605.m4a",
+        "/assets/sfx/best/land-hard-1-2ce640be.m4a",
+        "/assets/sfx/best/land-hard-3-5aed2a6b.m4a",
+        "/assets/sfx/best/lunge-3-be45ba7a.m4a",
+        "/assets/sfx/best/reload-1-d3e6d32a.m4a",
+        "/assets/sfx/best/reload-3-d81ab6e2.m4a",
+        "/assets/sfx/best/rifleFire-2-a850ad83.m4a",
+        "/assets/sfx/best/rifleFire-3-8ed56841.m4a",
+        "/assets/sfx/best/rifleReload-2-1ad54372.m4a",
+        "/assets/sfx/best/rifleReload-3-20027167.m4a",
+        "/assets/sfx/best/splash-2-03ab63ae.m4a",
+        "/assets/sfx/best/splash-3-9509efbe.m4a",
+        "/assets/sfx/best/surface-2-e5ac4e8a.m4a",
+        "/assets/sfx/best/surface-3-85550528.m4a",
+        "/assets/sfx/best/swimStroke-2-9e35721b.m4a",
+        "/assets/sfx/best/swordHeavy-2-1debcc8f.m4a",
+        "/assets/sfx/best/swordHeavy-3-1bed510f.m4a",
+        "/assets/sfx/best/swordHit-flesh-1-07225bb8.m4a",
+        "/assets/sfx/best/swordHit-flesh-2-efbf5fd7.m4a",
+        "/assets/sfx/best/swordHit-wood-2-800b6fe9.m4a",
+        "/assets/sfx/best/swordHit-wood-3-6381cc6b.m4a",
+        "/assets/sfx/best/swordSwing-1-6303fc5d.m4a",
+        "/assets/sfx/best/wadeStep-1-83e1423c.m4a",
+        "/assets/sfx/best/wadeStep-2-402e850a.m4a",
+        "/assets/sfx/best/waterExit-1-d85f0e47.m4a",
+        "/assets/sfx/best/weaponSwap-3-fbe81018.m4a",
+        "/assets/sfx/driftwood-isle/bed-island-1-4611714d.m4a",
+        "/assets/sfx/driftwood-isle/coconut_hit-2-83ed831d.m4a",
+        "/assets/sfx/driftwood-isle/coconut_hit-3-9c8e8fd7.m4a",
+        "/assets/sfx/driftwood-isle/coconut_land-1-42389b0a.m4a",
+        "/assets/sfx/driftwood-isle/crab_click-2-aefbc41d.m4a",
+        "/assets/sfx/driftwood-isle/crab_click-3-f47e95a3.m4a",
+        "/assets/sfx/driftwood-isle/crab_snap-2-bff601ad.m4a",
+        "/assets/sfx/driftwood-isle/crab_snap-3-69ea11c0.m4a",
+        "/assets/sfx/driftwood-isle/gull-1-5fa9130b.m4a",
+        "/assets/sfx/driftwood-isle/hum-shrine-2-d89ed03a.m4a",
+        "/assets/sfx/driftwood-isle/monkey_chatter-3-1c7d7e2d.m4a",
+        "/assets/sfx/driftwood-isle/monkey_shriek-1-1a358b4e.m4a",
+        "/assets/sfx/driftwood-isle/monkey_shriek-2-54acd647.m4a",
+        "/assets/sfx/driftwood-isle/sailor_groan-2-43e2a981.m4a",
+        "/assets/sfx/driftwood-isle/sailor_slash-1-611ba654.m4a",
+        "/assets/sfx/driftwood-isle/sailor_slash-3-5a10eada.m4a"
+      ],
+      "desktop/boot.hud": [
+        {
+          "cls": "ws-bar",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-bar",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-bar-cap",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-bar-cap",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-bar-caption",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-bar-fill",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-bar-frame",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-bar-lag",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-bar-name",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-bar-notches",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-bar-shimmer",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-bar-track",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-card",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-card-band",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-card-band",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-card-emblem",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-card-inner",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-card-name",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-card-rule",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-card-rule",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-card-skip",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-card-title",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-fade",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-retry",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-retry-attempt",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-retry-title",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-reward",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-reward-flavour",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-reward-gem",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-reward-name",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-reward-rule",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-reward-tier",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-death",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-death-card",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-death-cause",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-death-rule",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-death-where",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-float",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-float",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-float",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-float",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-float",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-float",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-float",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-float",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-float",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-float",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-hp",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-fill",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-fill",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-fill",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-fill",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-fill",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-fill",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-fill",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-fill",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-fill",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-fill",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-fill",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-fill",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-kind",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-kind",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-kind",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-kind",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-kind",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-kind",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-kind",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-kind",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-kind",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-kind",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-kind",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-kind",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-track",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-track",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-track",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-track",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-track",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-track",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-track",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-track",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-track",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-track",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-track",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-track",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hurt",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hurt-arc",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-hurt-arc",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-hurt-arc",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-hurt-arc",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-layer",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-warn",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-warn-mark",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-warn-mark",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-warn-mark",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-warn-mark",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-dive-hint ws-glass",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-aim",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-ammo ws-glass",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-arow",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-band",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-boundary",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-brk",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-brk",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-brk",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-brk",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-bs",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-bt",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-centre",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-compass",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-count",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-cross",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-feed",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-flash",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-health ws-glass",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-hitring",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-hrow",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-hval",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-lock",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-lockcand",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-lockedge",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-lockedge",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-mark",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-mark",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-notch",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-pips",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-prompt ws-glass",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-range",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-rbar",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-reserve",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-smear",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-speed",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-status",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-strip",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-toasts",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-weapon",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-x",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-glass ws-hint-tag",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-glass ws-shop-sheet",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-hint-ring",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-label",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-label",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-loot-chip",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-loot-coin",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-loot-num",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-loot-pop",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-loot-pop",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-loot-pop",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-loot-pop",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-minimap",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-minimap-bag",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-minimap-bag-body",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-minimap-bag-corner",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-minimap-bag-edge",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-minimap-bag-hit",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-minimap-bag-icon",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-minimap-bag-loop",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-minimap-bag-piece",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-minimap-bag-seam",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-minimap-bag-seam",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-minimap-canvas",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-minimap-n",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-practice",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-practice-label",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-practice-label",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-practice-label",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-practice-preparing",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-quest-obj",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-quest-obj-arrow",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-quest-obj-count",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-quest-obj-dia",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-quest-obj-dist",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-quest-obj-goal",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-quest-obj-label",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-quest-obj-name",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-quest-obj-nav",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-quest-obj-sep",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-quest-reward",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-quest-reward-kicker",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-quest-reward-sub",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-quest-reward-title",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-quest-talk",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-quest-talk-foot",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-quest-talk-name",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-quest-talk-text",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-shop",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-shop-buy",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-shop-card",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-shop-close",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-shop-count",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-shop-deck",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-shop-dots",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-shop-flip",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-shop-flip",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-shop-line",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-shop-purse",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-shop-row",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-shop-title",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-shop-top",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-shop-who",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-touch-slot",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-touch-slot-ammo",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-touch-slot-key",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-touch-slot-name",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-touch-strip",
+          "spot": "",
+          "shown": false
+        }
+      ],
+      "desktop/boot.saves.read": [
+        "local:wildshard.save.v2.device",
+        "local:wildshard.save.v2.driftwood-isle",
+        "local:wildshard.save.v2.global",
+        "local:wildshard.save.v2.nalati-grasslands",
+        "local:wildshard.save.v2.nine-dragon-stack",
+        "local:wildshard.save.v2.pine-hollow",
+        "session:wildshard.save.v2.session"
+      ],
+      "desktop/combat.loot.written": [
+        "local:wildshard.save.v2.driftwood-isle",
+        "local:wildshard.save.v2.global"
+      ],
+      "phone/boot.systems.input": [
+        "engine.input.weapon",
+        "engine.input.contexts",
+        "engine.input.collect",
+        "engine.lockon.input",
+        "engine.player.input"
+      ],
+      "phone/boot.systems.fixed.post": [
+        "physics.bodies.post",
+        "player.step",
+        "shard.driftwood.bridge.capture"
+      ],
+      "phone/boot.systems.late": [
+        "engine.input.edges",
+        "engine.hud.pins"
+      ],
+      "phone/boot.audio.requests": [
+        "/assets/music/folk/island-calm-d7d189f9.m4a",
+        "/assets/music/folk/island-tension-bb05ab64.m4a",
+        "/assets/music/folk/pine-calm-10905c79.m4a",
+        "/assets/music/folk/pine-tension-180bc197.m4a",
+        "/assets/music/folk/sting-chunk-31c10eaf.m4a",
+        "/assets/music/folk/sting-death-67f54fe8.m4a",
+        "/assets/music/folk/sting-pickup-332f81db.m4a",
+        "/assets/music/folk/title-50001128.m4a",
+        "/assets/music/orchestral/island-calm-27861d1b.m4a",
+        "/assets/music/orchestral/island-tension-73116f36.m4a",
+        "/assets/music/orchestral/pine-calm-fbc4a99e.m4a",
+        "/assets/music/orchestral/pine-tension-525d8c6d.m4a",
+        "/assets/music/orchestral/sting-chunk-a639b19e.m4a",
+        "/assets/music/orchestral/sting-death-771d34f7.m4a",
+        "/assets/music/orchestral/sting-pickup-65f7ac5b.m4a",
+        "/assets/music/orchestral/title-b47c8a52.m4a",
+        "/assets/music/piano/island-calm-05125ed8.m4a",
+        "/assets/music/piano/island-tension-7faf0468.m4a",
+        "/assets/music/piano/pine-calm-923e0056.m4a",
+        "/assets/music/piano/pine-tension-cc014e5b.m4a",
+        "/assets/music/piano/sting-chunk-a4f2ffab.m4a",
+        "/assets/music/piano/sting-death-99b071e0.m4a",
+        "/assets/music/piano/sting-pickup-6ed91318.m4a",
+        "/assets/music/piano/title-3d1f713a.m4a",
+        "/assets/sfx/best/bear_growl-3-f91d7740.m4a",
+        "/assets/sfx/best/bear_hurt-1-43b45d1e.m4a",
+        "/assets/sfx/best/bear_hurt-3-3aea6172.m4a",
+        "/assets/sfx/best/bear_roar-2-29e3055e.m4a",
+        "/assets/sfx/best/bear_roar-3-9f1e177e.m4a",
+        "/assets/sfx/best/bed-forest-2-0cd11be5.m4a",
+        "/assets/sfx/best/bed-underwater-3-cbe2810d.m4a",
+        "/assets/sfx/best/boar_grunt-3-4e4a9bec.m4a",
+        "/assets/sfx/best/boar_squeal-1-804df37c.m4a",
+        "/assets/sfx/best/boltImpact-flesh-2-13ed7f2c.m4a",
+        "/assets/sfx/best/boltImpact-flesh-3-62e25aa5.m4a",
+        "/assets/sfx/best/boltImpact-ground-1-f81140e6.m4a",
+        "/assets/sfx/best/boltImpact-ground-2-5e8a3076.m4a",
+        "/assets/sfx/best/boltImpact-wood-2-8e9e99ee.m4a",
+        "/assets/sfx/best/boltImpact-wood-3-673a0ef6.m4a",
+        "/assets/sfx/best/crossbowFire-3-18ccf9f0.m4a",
+        "/assets/sfx/best/deer_call-1-7cd35867.m4a",
+        "/assets/sfx/best/deer_call-3-1d601bb4.m4a",
+        "/assets/sfx/best/dive-1-4b978224.m4a",
+        "/assets/sfx/best/dive-3-e74abc72.m4a",
+        "/assets/sfx/best/dodge-2-13887dd8.m4a",
+        "/assets/sfx/best/dodge-3-453516f6.m4a",
+        "/assets/sfx/best/dryFire-2-88071d1d.m4a",
+        "/assets/sfx/best/dryFire-3-173415cb.m4a",
+        "/assets/sfx/best/elk_bugle-2-0e80875f.m4a",
+        "/assets/sfx/best/elk_bugle-3-f6e8030e.m4a",
+        "/assets/sfx/best/footstep-litter-1-fe9cd8d9.m4a",
+        "/assets/sfx/best/footstep-litter-3-09ceed7a.m4a",
+        "/assets/sfx/best/footstep-mud-1-1dd22736.m4a",
+        "/assets/sfx/best/footstep-mud-2-99e4a10d.m4a",
+        "/assets/sfx/best/footstep-planks-2-ebb5a80c.m4a",
+        "/assets/sfx/best/footstep-planks-3-d919e436.m4a",
+        "/assets/sfx/best/footstep-rock-2-58c2cc26.m4a",
+        "/assets/sfx/best/footstep-rock-3-98e0e874.m4a",
+        "/assets/sfx/best/footstep-sand-1-09a40a2f.m4a",
+        "/assets/sfx/best/footstep-sand-2-4b40473a.m4a",
+        "/assets/sfx/best/footstep-wet-1-58d313a2.m4a",
+        "/assets/sfx/best/hitMarker-1-46ef1236.m4a",
+        "/assets/sfx/best/hoofsteps-1-9580d36a.m4a",
+        "/assets/sfx/best/hoofsteps-3-f1c11f8f.m4a",
+        "/assets/sfx/best/hum-pickup-3-7b7db58f.m4a",
+        "/assets/sfx/best/kill-2-5e4acc1b.m4a",
+        "/assets/sfx/best/kill-3-5f7ea225.m4a",
+        "/assets/sfx/best/land-2-773487f2.m4a",
+        "/assets/sfx/best/land-3-eebff605.m4a",
+        "/assets/sfx/best/land-hard-1-2ce640be.m4a",
+        "/assets/sfx/best/land-hard-3-5aed2a6b.m4a",
+        "/assets/sfx/best/lunge-3-be45ba7a.m4a",
+        "/assets/sfx/best/reload-1-d3e6d32a.m4a",
+        "/assets/sfx/best/reload-3-d81ab6e2.m4a",
+        "/assets/sfx/best/rifleFire-2-a850ad83.m4a",
+        "/assets/sfx/best/rifleFire-3-8ed56841.m4a",
+        "/assets/sfx/best/rifleReload-2-1ad54372.m4a",
+        "/assets/sfx/best/rifleReload-3-20027167.m4a",
+        "/assets/sfx/best/splash-2-03ab63ae.m4a",
+        "/assets/sfx/best/splash-3-9509efbe.m4a",
+        "/assets/sfx/best/surface-2-e5ac4e8a.m4a",
+        "/assets/sfx/best/surface-3-85550528.m4a",
+        "/assets/sfx/best/swimStroke-2-9e35721b.m4a",
+        "/assets/sfx/best/swordHeavy-2-1debcc8f.m4a",
+        "/assets/sfx/best/swordHeavy-3-1bed510f.m4a",
+        "/assets/sfx/best/swordHit-flesh-1-07225bb8.m4a",
+        "/assets/sfx/best/swordHit-flesh-2-efbf5fd7.m4a",
+        "/assets/sfx/best/swordHit-wood-2-800b6fe9.m4a",
+        "/assets/sfx/best/swordHit-wood-3-6381cc6b.m4a",
+        "/assets/sfx/best/swordSwing-1-6303fc5d.m4a",
+        "/assets/sfx/best/wadeStep-1-83e1423c.m4a",
+        "/assets/sfx/best/wadeStep-2-402e850a.m4a",
+        "/assets/sfx/best/waterExit-1-d85f0e47.m4a",
+        "/assets/sfx/best/weaponSwap-3-fbe81018.m4a",
+        "/assets/sfx/driftwood-isle/bed-island-1-4611714d.m4a",
+        "/assets/sfx/driftwood-isle/coconut_hit-2-83ed831d.m4a",
+        "/assets/sfx/driftwood-isle/coconut_hit-3-9c8e8fd7.m4a",
+        "/assets/sfx/driftwood-isle/coconut_land-1-42389b0a.m4a",
+        "/assets/sfx/driftwood-isle/crab_click-2-aefbc41d.m4a",
+        "/assets/sfx/driftwood-isle/crab_click-3-f47e95a3.m4a",
+        "/assets/sfx/driftwood-isle/crab_snap-2-bff601ad.m4a",
+        "/assets/sfx/driftwood-isle/crab_snap-3-69ea11c0.m4a",
+        "/assets/sfx/driftwood-isle/gull-1-5fa9130b.m4a",
+        "/assets/sfx/driftwood-isle/hum-shrine-2-d89ed03a.m4a",
+        "/assets/sfx/driftwood-isle/monkey_chatter-3-1c7d7e2d.m4a",
+        "/assets/sfx/driftwood-isle/monkey_shriek-1-1a358b4e.m4a",
+        "/assets/sfx/driftwood-isle/monkey_shriek-2-54acd647.m4a",
+        "/assets/sfx/driftwood-isle/sailor_groan-2-43e2a981.m4a",
+        "/assets/sfx/driftwood-isle/sailor_slash-1-611ba654.m4a",
+        "/assets/sfx/driftwood-isle/sailor_slash-3-5a10eada.m4a"
+      ],
+      "phone/boot.hud": [
+        {
+          "cls": "ws-bar",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-bar",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-bar-cap",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-bar-cap",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-bar-caption",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-bar-fill",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-bar-frame",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-bar-lag",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-bar-name",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-bar-notches",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-bar-shimmer",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-bar-track",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-card",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-card-band",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-card-band",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-card-emblem",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-card-inner",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-card-name",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-card-rule",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-card-rule",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-card-skip",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-card-title",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-fade",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-retry",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-retry-attempt",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-retry-title",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-reward",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-reward-flavour",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-reward-gem",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-reward-name",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-reward-rule",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-reward-tier",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-death",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-death-card",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-death-cause",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-death-rule",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-death-where",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-float",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-float",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-float",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-float",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-float",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-float",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-float",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-float",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-float",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-float",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-hp",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-fill",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-fill",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-fill",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-fill",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-fill",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-fill",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-kind",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-kind",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-kind",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-kind",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-kind",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-kind",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-track",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-track",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-track",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-track",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-track",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-track",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hurt",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hurt-arc",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-hurt-arc",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-hurt-arc",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-hurt-arc",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-layer",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-warn",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-warn-mark",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-warn-mark",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-warn-mark",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-warn-mark",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-dive-hint ws-glass",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-fb-badge",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-fb-disc ws-touch-tag",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-aim",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-ammo ws-glass",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-arow",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-band",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-bolts",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-boundary",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-brk",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-brk",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-brk",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-brk",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-bs",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-bt",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-centre",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-compass",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-count",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-cross",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-feed",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-flash",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-glyph",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-glyph",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-health ws-glass",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-hitring",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-hrow",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-hval",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-lock",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-lockcand",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-lockedge",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-lockedge",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-mark",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-mark",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-notch",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-num",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-num",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-pips",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-prompt ws-glass",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-range",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-rbar",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-reserve",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-reserve",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-segs",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-smear",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-speed",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-status",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-strip",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tiny",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tiny",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-toasts",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-vbar",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-vitals",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-weapon",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-weapon",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-x",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-glass ws-hint-tag",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-glass ws-shop-sheet",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-hint-ring",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-label",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-label",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-loot-chip",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-loot-coin",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-loot-num",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-loot-pop",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-loot-pop",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-loot-pop",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-loot-pop",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-minimap",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-minimap-bag",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-minimap-bag-body",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-minimap-bag-corner",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-minimap-bag-edge",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-minimap-bag-hit",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-minimap-bag-icon",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-minimap-bag-loop",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-minimap-bag-piece",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-minimap-bag-seam",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-minimap-bag-seam",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-minimap-canvas",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-minimap-n",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-practice",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-practice-label",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-practice-label",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-practice-label",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-practice-preparing",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-quest-obj",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-quest-obj-arrow",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-quest-obj-count",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-quest-obj-dia",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-quest-obj-dist",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-quest-obj-goal",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-quest-obj-label",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-quest-obj-name",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-quest-obj-nav",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-quest-obj-sep",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-quest-reward",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-quest-reward-kicker",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-quest-reward-sub",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-quest-reward-title",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-quest-talk",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-quest-talk-foot",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-quest-talk-name",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-quest-talk-text",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-shop",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-shop-buy",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-shop-card",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-shop-close",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-shop-count",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-shop-deck",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-shop-dots",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-shop-flip",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-shop-flip",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-shop-line",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-shop-purse",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-shop-row",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-shop-title",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-shop-top",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-shop-who",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-touch",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-touch-aimdebug",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-touch-attack",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-touch-bar",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-touch-cd",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-touch-charge",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-touch-charge",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-touch-disc",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-touch-disc",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-touch-disc",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-touch-disc",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-touch-disc",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-touch-disc",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-touch-disc",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-touch-disc",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-touch-hover",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-touch-label",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-touch-lookpad",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-touch-orbit",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-touch-pause",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-touch-pie",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-touch-sprint",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-touch-status",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-touch-stick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-touch-swap",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-touch-swap-ammo",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-touch-swap-arrows",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-touch-swap-dots",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-touch-swap-icon",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-touch-use",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-touch-zone",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-touch-zone",
+          "spot": "",
+          "shown": true
+        }
+      ],
+      "phone/boot.saves.read": [
+        "local:wildshard.save.v2.device",
+        "local:wildshard.save.v2.driftwood-isle",
+        "local:wildshard.save.v2.global",
+        "local:wildshard.save.v2.nalati-grasslands",
+        "local:wildshard.save.v2.nine-dragon-stack",
+        "local:wildshard.save.v2.pine-hollow",
+        "session:wildshard.save.v2.session"
+      ],
+      "phone/combat.loot.written": [
+        "local:wildshard.save.v2.driftwood-isle",
+        "local:wildshard.save.v2.global"
+      ]
+    },
+    "notes": [
+      "fc043df: M classification intended, groups I1,I3,I4,I5,I8,I9; see progress/normalization/m-classification.md. Filled from final compare captures; no accept or record."
+    ]
+  },
+  {
+    "id": "M-nalati-intended",
+    "row": "M1\u2013M4",
+    "wave": "M1\u2013M4",
+    "shard": "nalati-grasslands",
+    "fields": [
+      "boot.audio.requests",
+      "boot.gpuBytes.textures",
+      "boot.gpuBytes.total",
+      "boot.render.memory.textures",
+      "boot.render.programKeys",
+      "boot.render.programs",
+      "boot.saves.read",
+      "boot.scene.named",
+      "boot.scene.totals.mesh",
+      "boot.systems.input",
+      "boot.systems.late",
+      "combat.loot.written"
+    ],
+    "expect": {
+      "desktop/boot.systems.input": [
+        "engine.input.weapon",
+        "engine.input.contexts",
+        "engine.input.collect",
+        "engine.lockon.input",
+        "shard.nalati.stealth.crouch",
+        "shard.nalati.ride.input",
+        "engine.player.input"
+      ],
+      "desktop/boot.systems.late": [
+        "engine.input.edges",
+        "shard.nalati.reins",
+        "engine.hud.pins"
+      ],
+      "desktop/boot.scene.totals.mesh": 583,
+      "desktop/boot.scene.named": [
+        {
+          "path": "animals",
+          "type": "Group",
+          "n": 61
+        },
+        {
+          "path": "animals/far-herd",
+          "type": "Group",
+          "n": 0
+        },
+        {
+          "path": "animals/herd-shadow",
+          "type": "Group",
+          "n": 0
+        },
+        {
+          "path": "cloud-sea",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "HUD + Weapon Explorer \u00b7 grid arena",
+          "type": "Group",
+          "n": 9
+        },
+        {
+          "path": "impacts",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "kurgan-dungeon",
+          "type": "Group",
+          "n": 34
+        },
+        {
+          "path": "kurgan-dungeon/kurgan-interior",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "light-pool",
+          "type": "Group",
+          "n": 0
+        },
+        {
+          "path": "marmots",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "nalati-camp-people",
+          "type": "Group",
+          "n": 2
+        },
+        {
+          "path": "nalati-camp-people/nalati-camp-child",
+          "type": "Object3D",
+          "n": 0
+        },
+        {
+          "path": "nalati-camp-people/nalati-camp-people",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "nalati-camp-people/nalati-camp-people-gen",
+          "type": "SkinnedMesh",
+          "n": 0
+        },
+        {
+          "path": "nalati-crag-rock",
+          "type": "Group",
+          "n": 118
+        },
+        {
+          "path": "nalati-crag-rock/nalati-crag-rock-0",
+          "type": "Mesh",
+          "n": 18
+        },
+        {
+          "path": "nalati-crag-rock/nalati-crag-rock-1",
+          "type": "Mesh",
+          "n": 20
+        },
+        {
+          "path": "nalati-crag-rock/nalati-crag-rock-2",
+          "type": "Mesh",
+          "n": 37
+        },
+        {
+          "path": "nalati-crag-rock/nalati-crag-rock-3",
+          "type": "Mesh",
+          "n": 39
+        },
+        {
+          "path": "nalati-dressing",
+          "type": "Group",
+          "n": 93
+        },
+        {
+          "path": "nalati-dressing/nalati-dress-boulder",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "nalati-dressing/nalati-dress-boulder-tall",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "nalati-dressing/nalati-dress-camp-clutter",
+          "type": "Mesh",
+          "n": 6
+        },
+        {
+          "path": "nalati-dressing/nalati-dress-daisy",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "nalati-dressing/nalati-dress-juniper",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "nalati-dressing/nalati-dress-life",
+          "type": "Group",
+          "n": 2
+        },
+        {
+          "path": "nalati-dressing/nalati-dress-lupin",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "nalati-dressing/nalati-dress-reed",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "nalati-dressing/nalati-dress-rose",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "nalati-dressing/nalati-dress-slab",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "nalati-dressing/nalati-dress-statics",
+          "type": "Group",
+          "n": 73
+        },
+        {
+          "path": "nalati-dressing/nalati-dress-stone",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "nalati-dressing/nalati-dress-willow",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "nalati-kokpar-goat",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "nalati-outcrops",
+          "type": "Mesh",
+          "n": 34
+        },
+        {
+          "path": "nalati-outcrops/nalati-outcrops-shadow-pieces",
+          "type": "Group",
+          "n": 34
+        },
+        {
+          "path": "nalati-pois",
+          "type": "Group",
+          "n": 89
+        },
+        {
+          "path": "nalati-pois/nalati-balbals",
+          "type": "Group",
+          "n": 2
+        },
+        {
+          "path": "nalati-pois/nalati-bridge",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "nalati-pois/nalati-cairn",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "nalati-pois/nalati-camp",
+          "type": "Group",
+          "n": 10
+        },
+        {
+          "path": "nalati-pois/nalati-crags",
+          "type": "Mesh",
+          "n": 16
+        },
+        {
+          "path": "nalati-pois/nalati-eagle-rock",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "nalati-pois/nalati-far-herds",
+          "type": "Group",
+          "n": 4
+        },
+        {
+          "path": "nalati-pois/nalati-glacier",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "nalati-pois/nalati-kokpar",
+          "type": "Group",
+          "n": 3
+        },
+        {
+          "path": "nalati-pois/nalati-kurgans",
+          "type": "Mesh",
+          "n": 23
+        },
+        {
+          "path": "nalati-pois/nalati-snow-lotus",
+          "type": "Group",
+          "n": 1
+        },
+        {
+          "path": "nalati-pois/nalati-summer-camp",
+          "type": "Group",
+          "n": 6
+        },
+        {
+          "path": "nalati-pois/nalati-watchtower",
+          "type": "Group",
+          "n": 2
+        },
+        {
+          "path": "night-debris",
+          "type": "Points",
+          "n": 0
+        },
+        {
+          "path": "night-mist",
+          "type": "Points",
+          "n": 0
+        },
+        {
+          "path": "projectiles",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "projectiles",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "reins",
+          "type": "Group",
+          "n": 1
+        },
+        {
+          "path": "sheep-flock",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "sky-dome",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "sky-dome-v2",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "titan-cloud",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "titan-debris",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "titan-flames",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "titan-scorch",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "titan-smoke",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "titan-storm-wall",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "titan-storm-wall",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "titan-whirlwind",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "titan-whirlwind",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "titan-whirlwind",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "weather-fx",
+          "type": "Group",
+          "n": 5
+        },
+        {
+          "path": "weather-fx/lightning-bolt",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "weather-fx/lightning-smoke",
+          "type": "Points",
+          "n": 0
+        },
+        {
+          "path": "weather-fx/puddles",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "weather-fx/rain",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "weather-fx/storm-curtains",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "weather-fx/storm-deck",
+          "type": "Mesh",
+          "n": 0
+        }
+      ],
+      "desktop/boot.render.programs": 115,
+      "desktop/boot.render.programKeys": "2acf0eb54433db3e87810bba403391591ff0bf10229999da114c783f0e0bcc96",
+      "desktop/boot.render.memory.textures": 159,
+      "desktop/boot.gpuBytes.textures": 458383160,
+      "desktop/boot.gpuBytes.total": 616513930,
+      "desktop/boot.audio.requests": [
+        "/assets/music/folk/island-calm-d7d189f9.m4a",
+        "/assets/music/folk/island-tension-bb05ab64.m4a",
+        "/assets/music/folk/pine-calm-10905c79.m4a",
+        "/assets/music/folk/pine-tension-180bc197.m4a",
+        "/assets/music/folk/sting-chunk-31c10eaf.m4a",
+        "/assets/music/folk/sting-death-67f54fe8.m4a",
+        "/assets/music/folk/sting-pickup-332f81db.m4a",
+        "/assets/music/folk/title-50001128.m4a",
+        "/assets/music/nalati/steppe-grass-calm-68234a31.m4a",
+        "/assets/music/nalati/steppe-grass-tension-e7aa4970.m4a",
+        "/assets/music/nalati/steppe-king-calm-bbcfbe31.m4a",
+        "/assets/music/nalati/steppe-king-tension-9d5ec1d2.m4a",
+        "/assets/music/nalati/steppe-night-calm-1b01c85d.m4a",
+        "/assets/music/nalati/steppe-night-tension-849680a6.m4a",
+        "/assets/music/nalati/steppe-sky-calm-81e788bb.m4a",
+        "/assets/music/nalati/steppe-sky-tension-478decfa.m4a",
+        "/assets/music/nalati/steppe-snow-calm-2723fb59.m4a",
+        "/assets/music/nalati/steppe-snow-tension-9f095e46.m4a",
+        "/assets/music/nalati/steppe-storm-calm-e64bb429.m4a",
+        "/assets/music/nalati/steppe-storm-tension-847136fa.m4a",
+        "/assets/music/nalati/sting-chunk-c85d0270.m4a",
+        "/assets/music/nalati/sting-death-fc7a4dce.m4a",
+        "/assets/music/nalati/sting-pickup-7ebca9f6.m4a",
+        "/assets/music/orchestral/island-calm-27861d1b.m4a",
+        "/assets/music/orchestral/island-tension-73116f36.m4a",
+        "/assets/music/orchestral/pine-calm-fbc4a99e.m4a",
+        "/assets/music/orchestral/pine-tension-525d8c6d.m4a",
+        "/assets/music/orchestral/sting-chunk-a639b19e.m4a",
+        "/assets/music/orchestral/sting-death-771d34f7.m4a",
+        "/assets/music/orchestral/sting-pickup-65f7ac5b.m4a",
+        "/assets/music/orchestral/title-b47c8a52.m4a",
+        "/assets/music/piano/island-calm-05125ed8.m4a",
+        "/assets/music/piano/island-tension-7faf0468.m4a",
+        "/assets/music/piano/pine-calm-923e0056.m4a",
+        "/assets/music/piano/pine-tension-cc014e5b.m4a",
+        "/assets/music/piano/sting-chunk-a4f2ffab.m4a",
+        "/assets/music/piano/sting-death-99b071e0.m4a",
+        "/assets/music/piano/sting-pickup-6ed91318.m4a",
+        "/assets/music/piano/title-3d1f713a.m4a",
+        "/assets/sfx/best/bear_growl-3-f91d7740.m4a",
+        "/assets/sfx/best/bear_hurt-1-43b45d1e.m4a",
+        "/assets/sfx/best/bear_hurt-3-3aea6172.m4a",
+        "/assets/sfx/best/bear_roar-2-29e3055e.m4a",
+        "/assets/sfx/best/bear_roar-3-9f1e177e.m4a",
+        "/assets/sfx/best/bed-forest-2-0cd11be5.m4a",
+        "/assets/sfx/best/bed-underwater-3-cbe2810d.m4a",
+        "/assets/sfx/best/boar_grunt-3-4e4a9bec.m4a",
+        "/assets/sfx/best/boar_squeal-1-804df37c.m4a",
+        "/assets/sfx/best/boltImpact-flesh-2-13ed7f2c.m4a",
+        "/assets/sfx/best/boltImpact-flesh-3-62e25aa5.m4a",
+        "/assets/sfx/best/boltImpact-ground-1-f81140e6.m4a",
+        "/assets/sfx/best/boltImpact-ground-2-5e8a3076.m4a",
+        "/assets/sfx/best/boltImpact-wood-2-8e9e99ee.m4a",
+        "/assets/sfx/best/boltImpact-wood-3-673a0ef6.m4a",
+        "/assets/sfx/best/crossbowFire-3-18ccf9f0.m4a",
+        "/assets/sfx/best/deer_call-1-7cd35867.m4a",
+        "/assets/sfx/best/deer_call-3-1d601bb4.m4a",
+        "/assets/sfx/best/dive-1-4b978224.m4a",
+        "/assets/sfx/best/dive-3-e74abc72.m4a",
+        "/assets/sfx/best/dodge-2-13887dd8.m4a",
+        "/assets/sfx/best/dodge-3-453516f6.m4a",
+        "/assets/sfx/best/dryFire-2-88071d1d.m4a",
+        "/assets/sfx/best/dryFire-3-173415cb.m4a",
+        "/assets/sfx/best/elk_bugle-2-0e80875f.m4a",
+        "/assets/sfx/best/elk_bugle-3-f6e8030e.m4a",
+        "/assets/sfx/best/footstep-litter-1-fe9cd8d9.m4a",
+        "/assets/sfx/best/footstep-litter-3-09ceed7a.m4a",
+        "/assets/sfx/best/footstep-mud-1-1dd22736.m4a",
+        "/assets/sfx/best/footstep-mud-2-99e4a10d.m4a",
+        "/assets/sfx/best/footstep-planks-2-ebb5a80c.m4a",
+        "/assets/sfx/best/footstep-planks-3-d919e436.m4a",
+        "/assets/sfx/best/footstep-rock-2-58c2cc26.m4a",
+        "/assets/sfx/best/footstep-rock-3-98e0e874.m4a",
+        "/assets/sfx/best/footstep-sand-1-09a40a2f.m4a",
+        "/assets/sfx/best/footstep-sand-2-4b40473a.m4a",
+        "/assets/sfx/best/footstep-wet-1-58d313a2.m4a",
+        "/assets/sfx/best/hitMarker-1-46ef1236.m4a",
+        "/assets/sfx/best/hoofsteps-1-9580d36a.m4a",
+        "/assets/sfx/best/hoofsteps-3-f1c11f8f.m4a",
+        "/assets/sfx/best/hum-pickup-3-7b7db58f.m4a",
+        "/assets/sfx/best/kill-2-5e4acc1b.m4a",
+        "/assets/sfx/best/kill-3-5f7ea225.m4a",
+        "/assets/sfx/best/land-2-773487f2.m4a",
+        "/assets/sfx/best/land-3-eebff605.m4a",
+        "/assets/sfx/best/land-hard-1-2ce640be.m4a",
+        "/assets/sfx/best/land-hard-3-5aed2a6b.m4a",
+        "/assets/sfx/best/lunge-3-be45ba7a.m4a",
+        "/assets/sfx/best/reload-1-d3e6d32a.m4a",
+        "/assets/sfx/best/reload-3-d81ab6e2.m4a",
+        "/assets/sfx/best/rifleFire-2-a850ad83.m4a",
+        "/assets/sfx/best/rifleFire-3-8ed56841.m4a",
+        "/assets/sfx/best/rifleReload-2-1ad54372.m4a",
+        "/assets/sfx/best/rifleReload-3-20027167.m4a",
+        "/assets/sfx/best/splash-2-03ab63ae.m4a",
+        "/assets/sfx/best/splash-3-9509efbe.m4a",
+        "/assets/sfx/best/surface-2-e5ac4e8a.m4a",
+        "/assets/sfx/best/surface-3-85550528.m4a",
+        "/assets/sfx/best/swimStroke-2-9e35721b.m4a",
+        "/assets/sfx/best/swordHeavy-2-1debcc8f.m4a",
+        "/assets/sfx/best/swordHeavy-3-1bed510f.m4a",
+        "/assets/sfx/best/swordHit-flesh-1-07225bb8.m4a",
+        "/assets/sfx/best/swordHit-flesh-2-efbf5fd7.m4a",
+        "/assets/sfx/best/swordHit-wood-2-800b6fe9.m4a",
+        "/assets/sfx/best/swordHit-wood-3-6381cc6b.m4a",
+        "/assets/sfx/best/swordSwing-1-6303fc5d.m4a",
+        "/assets/sfx/best/wadeStep-1-83e1423c.m4a",
+        "/assets/sfx/best/wadeStep-2-402e850a.m4a",
+        "/assets/sfx/best/waterExit-1-d85f0e47.m4a",
+        "/assets/sfx/best/weaponSwap-3-fbe81018.m4a",
+        "/assets/sfx/nalati-grasslands/arrowImpact-flesh-2-bb61e810.m4a",
+        "/assets/sfx/nalati-grasslands/arrowImpact-flesh-3-a82fa369.m4a",
+        "/assets/sfx/nalati-grasslands/arrowImpact-ground-2-a04ed94d.m4a",
+        "/assets/sfx/nalati-grasslands/arrowImpact-wood-2-b5a11d70.m4a",
+        "/assets/sfx/nalati-grasslands/arrowImpact-wood-3-6940161f.m4a",
+        "/assets/sfx/nalati-grasslands/arrowWhoosh-1-a831cab6.m4a",
+        "/assets/sfx/nalati-grasslands/arrowWhoosh-2-3792e59f.m4a",
+        "/assets/sfx/nalati-grasslands/bed-camp-1-c7570b1a.m4a",
+        "/assets/sfx/nalati-grasslands/bed-coldwind-3-2fe1886b.m4a",
+        "/assets/sfx/nalati-grasslands/bed-highwind-1-95937f84.m4a",
+        "/assets/sfx/nalati-grasslands/bed-meltwater-2-608d0e3b.m4a",
+        "/assets/sfx/nalati-grasslands/bed-rain-1-abadcece.m4a",
+        "/assets/sfx/nalati-grasslands/bed-river-1-beb1a9a8.m4a",
+        "/assets/sfx/nalati-grasslands/bed-steppe-larks-2-b0d20bcd.m4a",
+        "/assets/sfx/nalati-grasslands/bed-steppe-night-1-e1a88138.m4a",
+        "/assets/sfx/nalati-grasslands/bed-steppe-wind-3-51fa5a78.m4a",
+        "/assets/sfx/nalati-grasslands/bed-stormwind-2-465916b5.m4a",
+        "/assets/sfx/nalati-grasslands/bowDraw-2-a565b317.m4a",
+        "/assets/sfx/nalati-grasslands/bowDraw-3-c29c9c43.m4a",
+        "/assets/sfx/nalati-grasslands/bowFullDraw-2-ee0e4dd9.m4a",
+        "/assets/sfx/nalati-grasslands/bowLetDown-2-06e19a6d.m4a",
+        "/assets/sfx/nalati-grasslands/bowTwang-1-66536b93.m4a",
+        "/assets/sfx/nalati-grasslands/bowTwang-2-04acbe73.m4a",
+        "/assets/sfx/nalati-grasslands/dog_bark-1-b5697b0b.m4a",
+        "/assets/sfx/nalati-grasslands/dog_bark-2-b970e2be.m4a",
+        "/assets/sfx/nalati-grasslands/dog_yelp-1-3c70e498.m4a",
+        "/assets/sfx/nalati-grasslands/dog_yelp-3-ff2849fb.m4a",
+        "/assets/sfx/nalati-grasslands/eagle_cry-3-4fc31339.m4a",
+        "/assets/sfx/nalati-grasslands/footstep-grass-1-12997b46.m4a",
+        "/assets/sfx/nalati-grasslands/footstep-grass-2-5a248407.m4a",
+        "/assets/sfx/nalati-grasslands/footstep-gravel-1-19e4eea2.m4a",
+        "/assets/sfx/nalati-grasslands/footstep-gravel-2-fd612069.m4a",
+        "/assets/sfx/nalati-grasslands/hoof-grass-2-5f364e1d.m4a",
+        "/assets/sfx/nalati-grasslands/hoof-gravel-1-44e6b20f.m4a",
+        "/assets/sfx/nalati-grasslands/hoof-gravel-2-ee23d114.m4a",
+        "/assets/sfx/nalati-grasslands/hoof-wood-1-90597c92.m4a",
+        "/assets/sfx/nalati-grasslands/hoof-wood-2-b5f90eb8.m4a",
+        "/assets/sfx/nalati-grasslands/horse_neigh-1-2d461ec9.m4a",
+        "/assets/sfx/nalati-grasslands/horse_neigh-3-0fb050e4.m4a",
+        "/assets/sfx/nalati-grasslands/horse_snort-1-e17c9310.m4a",
+        "/assets/sfx/nalati-grasslands/horse_snort-3-71c7762c.m4a",
+        "/assets/sfx/nalati-grasslands/horse_squeal-2-deba46fc.m4a",
+        "/assets/sfx/nalati-grasslands/horse_squeal-3-d3ec1b12.m4a",
+        "/assets/sfx/nalati-grasslands/javelinImpact-flesh-22-e83a7a00.m4a",
+        "/assets/sfx/nalati-grasslands/javelinImpact-flesh-38-e58ddf4b.m4a",
+        "/assets/sfx/nalati-grasslands/javelinImpact-ground-1-30313064.m4a",
+        "/assets/sfx/nalati-grasslands/javelinImpact-ground-3-8ebe2f3b.m4a",
+        "/assets/sfx/nalati-grasslands/javelinImpact-wood-1-1d56a392.m4a",
+        "/assets/sfx/nalati-grasslands/javelinThrow-2-0cb3c85f.m4a",
+        "/assets/sfx/nalati-grasslands/king_call-2-be937d44.m4a",
+        "/assets/sfx/nalati-grasslands/king_hurt-2-af879fbf.m4a",
+        "/assets/sfx/nalati-grasslands/king_hurt-3-170faca9.m4a",
+        "/assets/sfx/nalati-grasslands/leopard_growl-2-d3af9bac.m4a",
+        "/assets/sfx/nalati-grasslands/leopard_growl-3-35bd3b8b.m4a",
+        "/assets/sfx/nalati-grasslands/lightningCrackle-1-38ea4f51.m4a",
+        "/assets/sfx/nalati-grasslands/lightningCrackle-3-a3e695ea.m4a",
+        "/assets/sfx/nalati-grasslands/marmot_whistle-1-b7eecab8.m4a",
+        "/assets/sfx/nalati-grasslands/marmot_whistle-3-cb2183cf.m4a",
+        "/assets/sfx/nalati-grasslands/sabreHit-flesh-2-e6417bf6.m4a",
+        "/assets/sfx/nalati-grasslands/sabreHit-flesh-3-762ce5fc.m4a",
+        "/assets/sfx/nalati-grasslands/sabreHit-wood-1-e4853660.m4a",
+        "/assets/sfx/nalati-grasslands/sabreHit-wood-2-a5b2f0b1.m4a",
+        "/assets/sfx/nalati-grasslands/sabreSwing-1-ae5a26f0.m4a",
+        "/assets/sfx/nalati-grasslands/sabreSwing-2-02d47131.m4a",
+        "/assets/sfx/nalati-grasslands/sheep_bleat-1-e8ac7f93.m4a",
+        "/assets/sfx/nalati-grasslands/sheep_bleat-3-aeefea06.m4a",
+        "/assets/sfx/nalati-grasslands/spearThrust-22-5612e63b.m4a",
+        "/assets/sfx/nalati-grasslands/spearThrust-23-d19fc200.m4a",
+        "/assets/sfx/nalati-grasslands/stampede-1-2e9f5914.m4a",
+        "/assets/sfx/nalati-grasslands/stampede-2-17664d37.m4a",
+        "/assets/sfx/nalati-grasslands/thunder-far-1-615a697f.m4a",
+        "/assets/sfx/nalati-grasslands/thunder-far-3-a9a4b0c0.m4a",
+        "/assets/sfx/nalati-grasslands/thunder-near-1-25a8635e.m4a",
+        "/assets/sfx/nalati-grasslands/thunder-near-2-63591c82.m4a",
+        "/assets/sfx/nalati-grasslands/wolf_bite-1-a7669147.m4a",
+        "/assets/sfx/nalati-grasslands/wolf_howl-1-9f1204b6.m4a",
+        "/assets/sfx/nalati-grasslands/wolf_howl-3-b1d62e56.m4a",
+        "/assets/sfx/nalati-grasslands/wolf_snarl-1-cbccb5ca.m4a",
+        "/assets/sfx/nalati-grasslands/wolf_snarl-2-14ee8a80.m4a",
+        "/assets/sfx/nalati-grasslands/wolf_yelp-1-0a654844.m4a",
+        "/assets/sfx/nalati-grasslands/wolf_yelp-3-0b926af1.m4a",
+        "/assets/sfx/nalati-grasslands/wolf_yip-1-916cfc1c.m4a",
+        "/assets/sfx/nalati-grasslands/wolf_yip-3-57734ee6.m4a"
+      ],
+      "desktop/boot.saves.read": [
+        "local:wildshard.save.v2.device",
+        "local:wildshard.save.v2.driftwood-isle",
+        "local:wildshard.save.v2.global",
+        "local:wildshard.save.v2.nalati-grasslands",
+        "local:wildshard.save.v2.nine-dragon-stack",
+        "local:wildshard.save.v2.pine-hollow",
+        "session:wildshard.save.v2.session"
+      ],
+      "desktop/combat.loot.written": [
+        "local:wildshard.save.v2.global",
+        "local:wildshard.save.v2.nalati-grasslands"
+      ],
+      "phone/boot.systems.input": [
+        "engine.input.weapon",
+        "engine.input.contexts",
+        "engine.input.collect",
+        "engine.lockon.input",
+        "shard.nalati.stealth.crouch",
+        "shard.nalati.ride.input",
+        "engine.player.input"
+      ],
+      "phone/boot.systems.late": [
+        "engine.input.edges",
+        "shard.nalati.reins",
+        "engine.hud.pins"
+      ],
+      "phone/boot.scene.totals.mesh": 311,
+      "phone/boot.scene.named": [
+        {
+          "path": "animals",
+          "type": "Group",
+          "n": 61
+        },
+        {
+          "path": "animals/far-herd",
+          "type": "Group",
+          "n": 0
+        },
+        {
+          "path": "animals/herd-shadow",
+          "type": "Group",
+          "n": 0
+        },
+        {
+          "path": "cloud-sea",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "HUD + Weapon Explorer \u00b7 grid arena",
+          "type": "Group",
+          "n": 9
+        },
+        {
+          "path": "impacts",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "kurgan-dungeon",
+          "type": "Group",
+          "n": 34
+        },
+        {
+          "path": "kurgan-dungeon/kurgan-interior",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "light-pool",
+          "type": "Group",
+          "n": 0
+        },
+        {
+          "path": "marmots",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "nalati-camp-people",
+          "type": "Group",
+          "n": 2
+        },
+        {
+          "path": "nalati-camp-people/nalati-camp-child",
+          "type": "Object3D",
+          "n": 0
+        },
+        {
+          "path": "nalati-camp-people/nalati-camp-people",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "nalati-camp-people/nalati-camp-people-gen",
+          "type": "SkinnedMesh",
+          "n": 0
+        },
+        {
+          "path": "nalati-crag-rock",
+          "type": "Group",
+          "n": 4
+        },
+        {
+          "path": "nalati-crag-rock/nalati-crag-rock-0",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "nalati-crag-rock/nalati-crag-rock-1",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "nalati-crag-rock/nalati-crag-rock-2",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "nalati-crag-rock/nalati-crag-rock-3",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "nalati-dressing",
+          "type": "Group",
+          "n": 19
+        },
+        {
+          "path": "nalati-dressing/nalati-dress-boulder",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "nalati-dressing/nalati-dress-boulder-tall",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "nalati-dressing/nalati-dress-camp-clutter",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "nalati-dressing/nalati-dress-daisy",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "nalati-dressing/nalati-dress-juniper",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "nalati-dressing/nalati-dress-life",
+          "type": "Group",
+          "n": 2
+        },
+        {
+          "path": "nalati-dressing/nalati-dress-lupin",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "nalati-dressing/nalati-dress-reed",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "nalati-dressing/nalati-dress-rose",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "nalati-dressing/nalati-dress-slab",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "nalati-dressing/nalati-dress-statics",
+          "type": "Group",
+          "n": 5
+        },
+        {
+          "path": "nalati-dressing/nalati-dress-stone",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "nalati-dressing/nalati-dress-willow",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "nalati-kokpar-goat",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "nalati-outcrops",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "nalati-pois",
+          "type": "Group",
+          "n": 39
+        },
+        {
+          "path": "nalati-pois/nalati-balbals",
+          "type": "Group",
+          "n": 2
+        },
+        {
+          "path": "nalati-pois/nalati-bridge",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "nalati-pois/nalati-cairn",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "nalati-pois/nalati-camp",
+          "type": "Group",
+          "n": 10
+        },
+        {
+          "path": "nalati-pois/nalati-crags",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "nalati-pois/nalati-eagle-rock",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "nalati-pois/nalati-far-herds",
+          "type": "Group",
+          "n": 4
+        },
+        {
+          "path": "nalati-pois/nalati-glacier",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "nalati-pois/nalati-kokpar",
+          "type": "Group",
+          "n": 3
+        },
+        {
+          "path": "nalati-pois/nalati-kurgans",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "nalati-pois/nalati-snow-lotus",
+          "type": "Group",
+          "n": 1
+        },
+        {
+          "path": "nalati-pois/nalati-summer-camp",
+          "type": "Group",
+          "n": 6
+        },
+        {
+          "path": "nalati-pois/nalati-watchtower",
+          "type": "Group",
+          "n": 2
+        },
+        {
+          "path": "night-debris",
+          "type": "Points",
+          "n": 0
+        },
+        {
+          "path": "night-mist",
+          "type": "Points",
+          "n": 0
+        },
+        {
+          "path": "projectiles",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "projectiles",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "reins",
+          "type": "Group",
+          "n": 1
+        },
+        {
+          "path": "sheep-flock",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "sky-dome",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "sky-dome-v2",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "titan-cloud",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "titan-debris",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "titan-flames",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "titan-scorch",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "titan-smoke",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "titan-storm-wall",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "titan-storm-wall",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "titan-whirlwind",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "titan-whirlwind",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "titan-whirlwind",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "weather-fx",
+          "type": "Group",
+          "n": 5
+        },
+        {
+          "path": "weather-fx/lightning-bolt",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "weather-fx/lightning-smoke",
+          "type": "Points",
+          "n": 0
+        },
+        {
+          "path": "weather-fx/puddles",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "weather-fx/rain",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "weather-fx/storm-curtains",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "weather-fx/storm-deck",
+          "type": "Mesh",
+          "n": 0
+        }
+      ],
+      "phone/boot.render.programs": 98,
+      "phone/boot.render.programKeys": "6f1d571cef85e4eb8655b2e44a9b6e56c11dcbc3e872076e3036797d5dd815d2",
+      "phone/boot.render.memory.textures": 125,
+      "phone/boot.gpuBytes.textures": 122485564,
+      "phone/boot.gpuBytes.total": 236764824,
+      "phone/boot.audio.requests": [
+        "/assets/music/folk/island-calm-d7d189f9.m4a",
+        "/assets/music/folk/island-tension-bb05ab64.m4a",
+        "/assets/music/folk/pine-calm-10905c79.m4a",
+        "/assets/music/folk/pine-tension-180bc197.m4a",
+        "/assets/music/folk/sting-chunk-31c10eaf.m4a",
+        "/assets/music/folk/sting-death-67f54fe8.m4a",
+        "/assets/music/folk/sting-pickup-332f81db.m4a",
+        "/assets/music/folk/title-50001128.m4a",
+        "/assets/music/nalati/steppe-grass-calm-68234a31.m4a",
+        "/assets/music/nalati/steppe-grass-tension-e7aa4970.m4a",
+        "/assets/music/nalati/steppe-king-calm-bbcfbe31.m4a",
+        "/assets/music/nalati/steppe-king-tension-9d5ec1d2.m4a",
+        "/assets/music/nalati/steppe-night-calm-1b01c85d.m4a",
+        "/assets/music/nalati/steppe-night-tension-849680a6.m4a",
+        "/assets/music/nalati/steppe-sky-calm-81e788bb.m4a",
+        "/assets/music/nalati/steppe-sky-tension-478decfa.m4a",
+        "/assets/music/nalati/steppe-snow-calm-2723fb59.m4a",
+        "/assets/music/nalati/steppe-snow-tension-9f095e46.m4a",
+        "/assets/music/nalati/steppe-storm-calm-e64bb429.m4a",
+        "/assets/music/nalati/steppe-storm-tension-847136fa.m4a",
+        "/assets/music/nalati/sting-chunk-c85d0270.m4a",
+        "/assets/music/nalati/sting-death-fc7a4dce.m4a",
+        "/assets/music/nalati/sting-pickup-7ebca9f6.m4a",
+        "/assets/music/orchestral/island-calm-27861d1b.m4a",
+        "/assets/music/orchestral/island-tension-73116f36.m4a",
+        "/assets/music/orchestral/pine-calm-fbc4a99e.m4a",
+        "/assets/music/orchestral/pine-tension-525d8c6d.m4a",
+        "/assets/music/orchestral/sting-chunk-a639b19e.m4a",
+        "/assets/music/orchestral/sting-death-771d34f7.m4a",
+        "/assets/music/orchestral/sting-pickup-65f7ac5b.m4a",
+        "/assets/music/orchestral/title-b47c8a52.m4a",
+        "/assets/music/piano/island-calm-05125ed8.m4a",
+        "/assets/music/piano/island-tension-7faf0468.m4a",
+        "/assets/music/piano/pine-calm-923e0056.m4a",
+        "/assets/music/piano/pine-tension-cc014e5b.m4a",
+        "/assets/music/piano/sting-chunk-a4f2ffab.m4a",
+        "/assets/music/piano/sting-death-99b071e0.m4a",
+        "/assets/music/piano/sting-pickup-6ed91318.m4a",
+        "/assets/music/piano/title-3d1f713a.m4a",
+        "/assets/sfx/best/bear_growl-3-f91d7740.m4a",
+        "/assets/sfx/best/bear_hurt-1-43b45d1e.m4a",
+        "/assets/sfx/best/bear_hurt-3-3aea6172.m4a",
+        "/assets/sfx/best/bear_roar-2-29e3055e.m4a",
+        "/assets/sfx/best/bear_roar-3-9f1e177e.m4a",
+        "/assets/sfx/best/bed-forest-2-0cd11be5.m4a",
+        "/assets/sfx/best/bed-underwater-3-cbe2810d.m4a",
+        "/assets/sfx/best/boar_grunt-3-4e4a9bec.m4a",
+        "/assets/sfx/best/boar_squeal-1-804df37c.m4a",
+        "/assets/sfx/best/boltImpact-flesh-2-13ed7f2c.m4a",
+        "/assets/sfx/best/boltImpact-flesh-3-62e25aa5.m4a",
+        "/assets/sfx/best/boltImpact-ground-1-f81140e6.m4a",
+        "/assets/sfx/best/boltImpact-ground-2-5e8a3076.m4a",
+        "/assets/sfx/best/boltImpact-wood-2-8e9e99ee.m4a",
+        "/assets/sfx/best/boltImpact-wood-3-673a0ef6.m4a",
+        "/assets/sfx/best/crossbowFire-3-18ccf9f0.m4a",
+        "/assets/sfx/best/deer_call-1-7cd35867.m4a",
+        "/assets/sfx/best/deer_call-3-1d601bb4.m4a",
+        "/assets/sfx/best/dive-1-4b978224.m4a",
+        "/assets/sfx/best/dive-3-e74abc72.m4a",
+        "/assets/sfx/best/dodge-2-13887dd8.m4a",
+        "/assets/sfx/best/dodge-3-453516f6.m4a",
+        "/assets/sfx/best/dryFire-2-88071d1d.m4a",
+        "/assets/sfx/best/dryFire-3-173415cb.m4a",
+        "/assets/sfx/best/elk_bugle-2-0e80875f.m4a",
+        "/assets/sfx/best/elk_bugle-3-f6e8030e.m4a",
+        "/assets/sfx/best/footstep-litter-1-fe9cd8d9.m4a",
+        "/assets/sfx/best/footstep-litter-3-09ceed7a.m4a",
+        "/assets/sfx/best/footstep-mud-1-1dd22736.m4a",
+        "/assets/sfx/best/footstep-mud-2-99e4a10d.m4a",
+        "/assets/sfx/best/footstep-planks-2-ebb5a80c.m4a",
+        "/assets/sfx/best/footstep-planks-3-d919e436.m4a",
+        "/assets/sfx/best/footstep-rock-2-58c2cc26.m4a",
+        "/assets/sfx/best/footstep-rock-3-98e0e874.m4a",
+        "/assets/sfx/best/footstep-sand-1-09a40a2f.m4a",
+        "/assets/sfx/best/footstep-sand-2-4b40473a.m4a",
+        "/assets/sfx/best/footstep-wet-1-58d313a2.m4a",
+        "/assets/sfx/best/hitMarker-1-46ef1236.m4a",
+        "/assets/sfx/best/hoofsteps-1-9580d36a.m4a",
+        "/assets/sfx/best/hoofsteps-3-f1c11f8f.m4a",
+        "/assets/sfx/best/hum-pickup-3-7b7db58f.m4a",
+        "/assets/sfx/best/kill-2-5e4acc1b.m4a",
+        "/assets/sfx/best/kill-3-5f7ea225.m4a",
+        "/assets/sfx/best/land-2-773487f2.m4a",
+        "/assets/sfx/best/land-3-eebff605.m4a",
+        "/assets/sfx/best/land-hard-1-2ce640be.m4a",
+        "/assets/sfx/best/land-hard-3-5aed2a6b.m4a",
+        "/assets/sfx/best/lunge-3-be45ba7a.m4a",
+        "/assets/sfx/best/reload-1-d3e6d32a.m4a",
+        "/assets/sfx/best/reload-3-d81ab6e2.m4a",
+        "/assets/sfx/best/rifleFire-2-a850ad83.m4a",
+        "/assets/sfx/best/rifleFire-3-8ed56841.m4a",
+        "/assets/sfx/best/rifleReload-2-1ad54372.m4a",
+        "/assets/sfx/best/rifleReload-3-20027167.m4a",
+        "/assets/sfx/best/splash-2-03ab63ae.m4a",
+        "/assets/sfx/best/splash-3-9509efbe.m4a",
+        "/assets/sfx/best/surface-2-e5ac4e8a.m4a",
+        "/assets/sfx/best/surface-3-85550528.m4a",
+        "/assets/sfx/best/swimStroke-2-9e35721b.m4a",
+        "/assets/sfx/best/swordHeavy-2-1debcc8f.m4a",
+        "/assets/sfx/best/swordHeavy-3-1bed510f.m4a",
+        "/assets/sfx/best/swordHit-flesh-1-07225bb8.m4a",
+        "/assets/sfx/best/swordHit-flesh-2-efbf5fd7.m4a",
+        "/assets/sfx/best/swordHit-wood-2-800b6fe9.m4a",
+        "/assets/sfx/best/swordHit-wood-3-6381cc6b.m4a",
+        "/assets/sfx/best/swordSwing-1-6303fc5d.m4a",
+        "/assets/sfx/best/wadeStep-1-83e1423c.m4a",
+        "/assets/sfx/best/wadeStep-2-402e850a.m4a",
+        "/assets/sfx/best/waterExit-1-d85f0e47.m4a",
+        "/assets/sfx/best/weaponSwap-3-fbe81018.m4a",
+        "/assets/sfx/nalati-grasslands/arrowImpact-flesh-2-bb61e810.m4a",
+        "/assets/sfx/nalati-grasslands/arrowImpact-flesh-3-a82fa369.m4a",
+        "/assets/sfx/nalati-grasslands/arrowImpact-ground-2-a04ed94d.m4a",
+        "/assets/sfx/nalati-grasslands/arrowImpact-wood-2-b5a11d70.m4a",
+        "/assets/sfx/nalati-grasslands/arrowImpact-wood-3-6940161f.m4a",
+        "/assets/sfx/nalati-grasslands/arrowWhoosh-1-a831cab6.m4a",
+        "/assets/sfx/nalati-grasslands/arrowWhoosh-2-3792e59f.m4a",
+        "/assets/sfx/nalati-grasslands/bed-camp-1-c7570b1a.m4a",
+        "/assets/sfx/nalati-grasslands/bed-coldwind-3-2fe1886b.m4a",
+        "/assets/sfx/nalati-grasslands/bed-highwind-1-95937f84.m4a",
+        "/assets/sfx/nalati-grasslands/bed-meltwater-2-608d0e3b.m4a",
+        "/assets/sfx/nalati-grasslands/bed-rain-1-abadcece.m4a",
+        "/assets/sfx/nalati-grasslands/bed-river-1-beb1a9a8.m4a",
+        "/assets/sfx/nalati-grasslands/bed-steppe-larks-2-b0d20bcd.m4a",
+        "/assets/sfx/nalati-grasslands/bed-steppe-night-1-e1a88138.m4a",
+        "/assets/sfx/nalati-grasslands/bed-steppe-wind-3-51fa5a78.m4a",
+        "/assets/sfx/nalati-grasslands/bed-stormwind-2-465916b5.m4a",
+        "/assets/sfx/nalati-grasslands/bowDraw-2-a565b317.m4a",
+        "/assets/sfx/nalati-grasslands/bowDraw-3-c29c9c43.m4a",
+        "/assets/sfx/nalati-grasslands/bowFullDraw-2-ee0e4dd9.m4a",
+        "/assets/sfx/nalati-grasslands/bowLetDown-2-06e19a6d.m4a",
+        "/assets/sfx/nalati-grasslands/bowTwang-1-66536b93.m4a",
+        "/assets/sfx/nalati-grasslands/bowTwang-2-04acbe73.m4a",
+        "/assets/sfx/nalati-grasslands/dog_bark-1-b5697b0b.m4a",
+        "/assets/sfx/nalati-grasslands/dog_bark-2-b970e2be.m4a",
+        "/assets/sfx/nalati-grasslands/dog_yelp-1-3c70e498.m4a",
+        "/assets/sfx/nalati-grasslands/dog_yelp-3-ff2849fb.m4a",
+        "/assets/sfx/nalati-grasslands/eagle_cry-3-4fc31339.m4a",
+        "/assets/sfx/nalati-grasslands/footstep-grass-1-12997b46.m4a",
+        "/assets/sfx/nalati-grasslands/footstep-grass-2-5a248407.m4a",
+        "/assets/sfx/nalati-grasslands/footstep-gravel-1-19e4eea2.m4a",
+        "/assets/sfx/nalati-grasslands/footstep-gravel-2-fd612069.m4a",
+        "/assets/sfx/nalati-grasslands/hoof-grass-2-5f364e1d.m4a",
+        "/assets/sfx/nalati-grasslands/hoof-gravel-1-44e6b20f.m4a",
+        "/assets/sfx/nalati-grasslands/hoof-gravel-2-ee23d114.m4a",
+        "/assets/sfx/nalati-grasslands/hoof-wood-1-90597c92.m4a",
+        "/assets/sfx/nalati-grasslands/hoof-wood-2-b5f90eb8.m4a",
+        "/assets/sfx/nalati-grasslands/horse_neigh-1-2d461ec9.m4a",
+        "/assets/sfx/nalati-grasslands/horse_neigh-3-0fb050e4.m4a",
+        "/assets/sfx/nalati-grasslands/horse_snort-1-e17c9310.m4a",
+        "/assets/sfx/nalati-grasslands/horse_snort-3-71c7762c.m4a",
+        "/assets/sfx/nalati-grasslands/horse_squeal-2-deba46fc.m4a",
+        "/assets/sfx/nalati-grasslands/horse_squeal-3-d3ec1b12.m4a",
+        "/assets/sfx/nalati-grasslands/javelinImpact-flesh-22-e83a7a00.m4a",
+        "/assets/sfx/nalati-grasslands/javelinImpact-flesh-38-e58ddf4b.m4a",
+        "/assets/sfx/nalati-grasslands/javelinImpact-ground-1-30313064.m4a",
+        "/assets/sfx/nalati-grasslands/javelinImpact-ground-3-8ebe2f3b.m4a",
+        "/assets/sfx/nalati-grasslands/javelinImpact-wood-1-1d56a392.m4a",
+        "/assets/sfx/nalati-grasslands/javelinThrow-2-0cb3c85f.m4a",
+        "/assets/sfx/nalati-grasslands/king_call-2-be937d44.m4a",
+        "/assets/sfx/nalati-grasslands/king_hurt-2-af879fbf.m4a",
+        "/assets/sfx/nalati-grasslands/king_hurt-3-170faca9.m4a",
+        "/assets/sfx/nalati-grasslands/leopard_growl-2-d3af9bac.m4a",
+        "/assets/sfx/nalati-grasslands/leopard_growl-3-35bd3b8b.m4a",
+        "/assets/sfx/nalati-grasslands/lightningCrackle-1-38ea4f51.m4a",
+        "/assets/sfx/nalati-grasslands/lightningCrackle-3-a3e695ea.m4a",
+        "/assets/sfx/nalati-grasslands/marmot_whistle-1-b7eecab8.m4a",
+        "/assets/sfx/nalati-grasslands/marmot_whistle-3-cb2183cf.m4a",
+        "/assets/sfx/nalati-grasslands/sabreHit-flesh-2-e6417bf6.m4a",
+        "/assets/sfx/nalati-grasslands/sabreHit-flesh-3-762ce5fc.m4a",
+        "/assets/sfx/nalati-grasslands/sabreHit-wood-1-e4853660.m4a",
+        "/assets/sfx/nalati-grasslands/sabreHit-wood-2-a5b2f0b1.m4a",
+        "/assets/sfx/nalati-grasslands/sabreSwing-1-ae5a26f0.m4a",
+        "/assets/sfx/nalati-grasslands/sabreSwing-2-02d47131.m4a",
+        "/assets/sfx/nalati-grasslands/sheep_bleat-1-e8ac7f93.m4a",
+        "/assets/sfx/nalati-grasslands/sheep_bleat-3-aeefea06.m4a",
+        "/assets/sfx/nalati-grasslands/spearThrust-22-5612e63b.m4a",
+        "/assets/sfx/nalati-grasslands/spearThrust-23-d19fc200.m4a",
+        "/assets/sfx/nalati-grasslands/stampede-1-2e9f5914.m4a",
+        "/assets/sfx/nalati-grasslands/stampede-2-17664d37.m4a",
+        "/assets/sfx/nalati-grasslands/thunder-far-1-615a697f.m4a",
+        "/assets/sfx/nalati-grasslands/thunder-far-3-a9a4b0c0.m4a",
+        "/assets/sfx/nalati-grasslands/thunder-near-1-25a8635e.m4a",
+        "/assets/sfx/nalati-grasslands/thunder-near-2-63591c82.m4a",
+        "/assets/sfx/nalati-grasslands/wolf_bite-1-a7669147.m4a",
+        "/assets/sfx/nalati-grasslands/wolf_howl-1-9f1204b6.m4a",
+        "/assets/sfx/nalati-grasslands/wolf_howl-3-b1d62e56.m4a",
+        "/assets/sfx/nalati-grasslands/wolf_snarl-1-cbccb5ca.m4a",
+        "/assets/sfx/nalati-grasslands/wolf_snarl-2-14ee8a80.m4a",
+        "/assets/sfx/nalati-grasslands/wolf_yelp-1-0a654844.m4a",
+        "/assets/sfx/nalati-grasslands/wolf_yelp-3-0b926af1.m4a",
+        "/assets/sfx/nalati-grasslands/wolf_yip-1-916cfc1c.m4a",
+        "/assets/sfx/nalati-grasslands/wolf_yip-3-57734ee6.m4a"
+      ],
+      "phone/boot.saves.read": [
+        "local:wildshard.save.v2.device",
+        "local:wildshard.save.v2.driftwood-isle",
+        "local:wildshard.save.v2.global",
+        "local:wildshard.save.v2.nalati-grasslands",
+        "local:wildshard.save.v2.nine-dragon-stack",
+        "local:wildshard.save.v2.pine-hollow",
+        "session:wildshard.save.v2.session"
+      ],
+      "phone/combat.loot.written": [
+        "local:wildshard.save.v2.global",
+        "local:wildshard.save.v2.nalati-grasslands"
+      ]
+    },
+    "notes": [
+      "fc043df: M classification intended, groups I1,I3,I5,I6,I8; see progress/normalization/m-classification.md. Filled from final compare captures; no accept or record."
+    ]
+  },
+  {
+    "id": "M-nine-intended",
+    "row": "M1\u2013M4",
+    "wave": "M1\u2013M4",
+    "shard": "nine-dragon-stack",
+    "fields": [
+      "boot.gpuBytes.textures",
+      "boot.gpuBytes.total",
+      "boot.hud",
+      "boot.render.memory.textures",
+      "boot.render.programKeys",
+      "boot.render.programs",
+      "boot.saves.read",
+      "boot.scene.totals.mesh",
+      "boot.systems.input",
+      "boot.systems.late"
+    ],
+    "expect": {
+      "desktop/boot.systems.input": [
+        "engine.input.weapon",
+        "engine.input.contexts",
+        "engine.input.collect",
+        "shard.nd.feizhua.input",
+        "engine.lockon.input",
+        "engine.player.input"
+      ],
+      "desktop/boot.systems.late": [
+        "engine.input.edges",
+        "engine.hud.pins"
+      ],
+      "desktop/boot.scene.totals.mesh": 223,
+      "desktop/boot.render.programs": 81,
+      "desktop/boot.render.programKeys": "722b819beeb9f4b009d15dd3fd716a3ea040b5a633c8166f0fd4ad4a2b027fab",
+      "desktop/boot.render.memory.textures": 79,
+      "desktop/boot.gpuBytes.textures": 440725395,
+      "desktop/boot.gpuBytes.total": 602059343,
+      "desktop/boot.hud": [
+        {
+          "cls": "ws-bar",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-death",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-death-card",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-death-cause",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-death-rule",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-death-where",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-float",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-float",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-float",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-float",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-float",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-float",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-float",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-float",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-float",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-float",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-hp",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-fill",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-fill",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-fill",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-fill",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-fill",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-fill",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-fill",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-fill",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-fill",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-fill",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-fill",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-fill",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-kind",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-kind",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-kind",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-kind",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-kind",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-kind",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-kind",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-kind",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-kind",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-kind",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-kind",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-kind",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-track",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-track",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-track",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-track",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-track",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-track",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-track",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-track",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-track",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-track",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-track",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-track",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hurt",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hurt-arc",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-hurt-arc",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-hurt-arc",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-hurt-arc",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-layer",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-dive-hint ws-glass",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-dragon-hook",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-dragon-mark",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-dragon-mark",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-dragon-mark",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-dragon-mark",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-dragon-mark",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-dragon-mark",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-dragon-mark",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-dragon-mark",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-aim",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-ammo ws-glass",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-arow",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-band",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-boundary",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-brk",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-brk",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-brk",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-brk",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-bs",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-bt",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-centre",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-compass",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-count",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-cross",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-feed",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-flash",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-health ws-glass",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-hitring",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-hrow",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-hval",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-lock",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-lockcand",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-lockedge",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-lockedge",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-mark",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-mark",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-notch",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-pips",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-prompt ws-glass",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-range",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-rbar",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-reserve",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-smear",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-speed",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-status",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-strip",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-toasts",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-weapon",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-x",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-glass ws-hint-tag",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-hint-ring",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-label",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-label",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-minimap",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-minimap-bag",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-minimap-bag-body",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-minimap-bag-corner",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-minimap-bag-edge",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-minimap-bag-hit",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-minimap-bag-icon",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-minimap-bag-loop",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-minimap-bag-piece",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-minimap-bag-seam",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-minimap-bag-seam",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-minimap-canvas",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-minimap-n",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-practice",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-practice-label",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-practice-label",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-practice-label",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-practice-preparing",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-touch-slot",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-touch-slot-ammo",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-touch-slot-key",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-touch-slot-name",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-touch-strip",
+          "spot": "",
+          "shown": false
+        }
+      ],
+      "desktop/boot.saves.read": [
+        "local:wildshard.save.v2.device",
+        "local:wildshard.save.v2.driftwood-isle",
+        "local:wildshard.save.v2.global",
+        "local:wildshard.save.v2.nalati-grasslands",
+        "local:wildshard.save.v2.nine-dragon-stack",
+        "local:wildshard.save.v2.pine-hollow",
+        "session:wildshard.save.v2.session"
+      ],
+      "phone/boot.systems.input": [
+        "engine.input.weapon",
+        "engine.input.contexts",
+        "engine.input.collect",
+        "shard.nd.feizhua.input",
+        "engine.lockon.input",
+        "engine.player.input"
+      ],
+      "phone/boot.systems.late": [
+        "engine.input.edges",
+        "engine.hud.pins"
+      ],
+      "phone/boot.scene.totals.mesh": 224,
+      "phone/boot.render.programs": 66,
+      "phone/boot.render.programKeys": "94f7445079966f7a8e9d342a3fc73835e00df6755f019f82aadbb8d914aba2a3",
+      "phone/boot.render.memory.textures": 54,
+      "phone/boot.gpuBytes.textures": 130811123,
+      "phone/boot.gpuBytes.total": 265923475,
+      "phone/boot.hud": [
+        {
+          "cls": "ws-bar",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-death",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-death-card",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-death-cause",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-death-rule",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-death-where",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-float",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-float",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-float",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-float",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-float",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-float",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-float",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-float",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-float",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-float",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-hp",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-fill",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-fill",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-fill",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-fill",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-fill",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-fill",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-kind",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-kind",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-kind",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-kind",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-kind",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-kind",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-track",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-track",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-track",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-track",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-track",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-track",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hurt",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hurt-arc",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-hurt-arc",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-hurt-arc",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-hurt-arc",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-layer",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-dive-hint ws-glass",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-dragon-hook",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-dragon-mark",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-dragon-mark",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-dragon-mark",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-dragon-mark",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-dragon-mark",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-dragon-mark",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-dragon-mark",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-dragon-mark",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-fb-badge",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-fb-disc ws-touch-tag",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-aim",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-ammo ws-glass",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-arow",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-band",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-bolts",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-boundary",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-brk",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-brk",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-brk",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-brk",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-bs",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-bt",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-centre",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-compass",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-count",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-cross",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-feed",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-flash",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-glyph",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-glyph",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-health ws-glass",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-hitring",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-hrow",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-hval",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-lock",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-lockcand",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-lockedge",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-lockedge",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-mark",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-mark",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-notch",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-num",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-num",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-pips",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-prompt ws-glass",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-range",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-rbar",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-reserve",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-reserve",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-segs",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-smear",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-speed",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-status",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-strip",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tiny",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tiny",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-toasts",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-vbar",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-vitals",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-weapon",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-weapon",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-x",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-glass ws-hint-tag",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-hint-ring",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-label",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-label",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-minimap",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-minimap-bag",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-minimap-bag-body",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-minimap-bag-corner",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-minimap-bag-edge",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-minimap-bag-hit",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-minimap-bag-icon",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-minimap-bag-loop",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-minimap-bag-piece",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-minimap-bag-seam",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-minimap-bag-seam",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-minimap-canvas",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-minimap-n",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-practice",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-practice-label",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-practice-label",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-practice-label",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-practice-preparing",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-touch",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-touch-aimdebug",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-touch-attack",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-touch-bar",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-touch-cd",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-touch-charge",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-touch-charge",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-touch-disc",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-touch-disc",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-touch-disc",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-touch-disc",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-touch-disc",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-touch-disc",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-touch-disc",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-touch-disc",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-touch-hover",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-touch-label",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-touch-lookpad",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-touch-orbit",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-touch-pause",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-touch-pie",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-touch-sprint",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-touch-status",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-touch-stick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-touch-swap",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-touch-swap-ammo",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-touch-swap-arrows",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-touch-swap-dots",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-touch-swap-icon",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-touch-use",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-touch-zone",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-touch-zone",
+          "spot": "",
+          "shown": true
+        }
+      ],
+      "phone/boot.saves.read": [
+        "local:wildshard.save.v2.device",
+        "local:wildshard.save.v2.driftwood-isle",
+        "local:wildshard.save.v2.global",
+        "local:wildshard.save.v2.nalati-grasslands",
+        "local:wildshard.save.v2.nine-dragon-stack",
+        "local:wildshard.save.v2.pine-hollow",
+        "session:wildshard.save.v2.session"
+      ]
+    },
+    "notes": [
+      "fc043df: M classification intended, groups I1,I3,I5,I7,I9; see progress/normalization/m-classification.md. Filled from final compare captures; no accept or record."
+    ]
+  },
+  {
+    "id": "M-pine-intended",
+    "row": "M1\u2013M4",
+    "wave": "M1\u2013M4",
+    "shard": "pine-hollow",
+    "fields": [
+      "boot.saves.read",
+      "boot.systems.input",
+      "boot.systems.late",
+      "combat.loot.written"
+    ],
+    "expect": {
+      "desktop/boot.systems.input": [
+        "engine.input.weapon",
+        "engine.input.contexts",
+        "engine.input.collect",
+        "engine.lockon.input",
+        "engine.player.input"
+      ],
+      "desktop/boot.systems.late": [
+        "engine.input.edges",
+        "engine.hud.pins"
+      ],
+      "desktop/boot.saves.read": [
+        "local:wildshard.save.v2.device",
+        "local:wildshard.save.v2.driftwood-isle",
+        "local:wildshard.save.v2.global",
+        "local:wildshard.save.v2.nalati-grasslands",
+        "local:wildshard.save.v2.nine-dragon-stack",
+        "local:wildshard.save.v2.pine-hollow",
+        "session:wildshard.save.v2.session"
+      ],
+      "desktop/combat.loot.written": [
+        "local:wildshard.save.v2.global",
+        "local:wildshard.save.v2.pine-hollow"
+      ],
+      "phone/boot.systems.input": [
+        "engine.input.weapon",
+        "engine.input.contexts",
+        "engine.input.collect",
+        "engine.lockon.input",
+        "engine.player.input"
+      ],
+      "phone/boot.systems.late": [
+        "engine.input.edges",
+        "engine.hud.pins"
+      ],
+      "phone/boot.saves.read": [
+        "local:wildshard.save.v2.device",
+        "local:wildshard.save.v2.driftwood-isle",
+        "local:wildshard.save.v2.global",
+        "local:wildshard.save.v2.nalati-grasslands",
+        "local:wildshard.save.v2.nine-dragon-stack",
+        "local:wildshard.save.v2.pine-hollow",
+        "session:wildshard.save.v2.session"
+      ],
+      "phone/combat.loot.written": [
+        "local:wildshard.save.v2.global",
+        "local:wildshard.save.v2.pine-hollow"
+      ]
+    },
+    "notes": [
+      "fc043df: M classification intended, groups I1,I3,I5; see progress/normalization/m-classification.md. Filled from final compare captures; no accept or record."
+    ]
+  },
+  {
+    "id": "M-nine-board",
+    "row": "M1\u2013M4",
+    "wave": "M1\u2013M4",
+    "shard": "nine-dragon-stack",
+    "fields": [
+      "walk.legs.escape-square-balustrade.end.x",
+      "walk.legs.escape-square-balustrade.end.y",
+      "walk.legs.escape-square-balustrade.end.z",
+      "walk.legs.escape-square-balustrade.maxY",
+      "walk.sounds.event"
+    ],
+    "expect": {
+      "desktop/walk.sounds.event": {
+        "nd.step.stone": 83,
+        "jump": 9,
+        "land": 5
+      },
+      "desktop/walk.legs.escape-square-balustrade.end.x": 0.5,
+      "desktop/walk.legs.escape-square-balustrade.end.y": 126.582,
+      "desktop/walk.legs.escape-square-balustrade.end.z": -7.469,
+      "desktop/walk.legs.escape-square-balustrade.maxY": 127.329,
+      "phone/walk.sounds.event": {
+        "nd.step.stone": 93,
+        "jump": 9,
+        "land": 6,
+        "dodge": 1
+      },
+      "phone/walk.legs.escape-square-balustrade.end.x": 0.5,
+      "phone/walk.legs.escape-square-balustrade.end.y": 126.582,
+      "phone/walk.legs.escape-square-balustrade.end.z": -7.469,
+      "phone/walk.legs.escape-square-balustrade.maxY": 127.329
+    },
+    "notes": [
+      "fc043df: M classification board, groups B1; see progress/normalization/m-classification.md. Filled from final compare captures; no accept or record."
+    ]
+  },
+  {
+    "id": "M-pine-board",
+    "row": "M1\u2013M4",
+    "wave": "M1\u2013M4",
+    "shard": "pine-hollow",
+    "fields": [
+      "combat.sounds.ambient"
+    ],
+    "expect": {
+      "desktop/combat.sounds.ambient": [],
+      "phone/combat.sounds.ambient": [
+        "forest.thrall",
+        "pineLife.woodpecker"
+      ]
+    },
+    "notes": [
+      "fc043df: M classification board, groups B2; see progress/normalization/m-classification.md. Filled from final compare captures; no accept or record."
+    ]
+  }
+]
