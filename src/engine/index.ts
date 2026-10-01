@@ -117,7 +117,6 @@ export type { OptionValue } from './ui/Settings';
 export { attachFogUniforms, fogUniforms } from './world/Atmosphere';
 export { preloadBakedTextures, loadBakedSky, loadLUT } from './boot/bakedApi';
 
-export type { SkyKey } from './world/DayClock';
 export type { RGB } from './level/data';
 export { compassDir, type ScheduleSeg } from './world/dayCycle';
 
@@ -127,7 +126,7 @@ export { SEED } from './core/config';
 export { terrainHeight as heightAt } from './world/terrainHeight';
 export { boxDesc, type ColliderDesc } from './world/registry';
 export { TIER_CONFIG } from './core/tier';
-export { macrotask } from './boot/plan';
+export { macrotask, slicer } from './boot/plan';
 export type { StepRunner } from './boot/plan';
 export { twoSidedPositions, type WeldBuild } from './models/weld';
 export type { Interactable } from './world/interact/types';
@@ -208,3 +207,8 @@ export { EncounterService, type SpawnTableRow, type SpawnEntry, type SpawnContex
 export type { SlotAudio, StyleBank, StemSting, BossPhase } from './audio/Stems';
 export type { MusicStyle } from './ui/Settings';
 export { Synth } from './audio/synth';
+
+export { ENGINE_STRINGS, engineString, installEngineStrings, type EngineStringKey } from './strings';
+export { RopeChain, type RopeChainSpec } from './physics/ropeChain';
+export type { WorldRegistry } from './world/registry';
+export { WaterBodies, swellBody, type WaterBody } from './world/water/body';

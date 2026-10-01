@@ -45,7 +45,11 @@ export class RopeChain {
   private prev: Float32Array;
   private cur: Float32Array;
 
-  constructor(private readonly physics: Physics, readonly spec: RopeChainSpec) {
+  private readonly physics: Physics;
+  readonly spec: RopeChainSpec;
+
+  constructor(physics: Physics, spec: RopeChainSpec) {
+    this.physics = physics; this.spec = spec;
     const { R, world } = physics;
     const { segments, hx, hy, mass } = spec;
     const n = segments.length;

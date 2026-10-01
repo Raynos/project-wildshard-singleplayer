@@ -83,7 +83,11 @@ export class CharacterMotor {
   private readonly flat = { x: 0, y: 0, z: 0 };
   private touchShape: Capsule | null = null; private touchMargin = -1;
 
-  constructor(private readonly physics: Physics, readonly opts: MotorOptions) {
+  private readonly physics: Physics;
+  readonly opts: MotorOptions;
+
+  constructor(physics: Physics, opts: MotorOptions) {
+    this.physics = physics; this.opts = opts;
     const { R, world } = physics;
     const lying = opts.length !== undefined;
     const half = lying ? Math.max(0.01, (opts.length ?? 0) / 2 - opts.radius) : Math.max(0.01, opts.height / 2 - opts.radius);
