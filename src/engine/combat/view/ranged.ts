@@ -150,7 +150,7 @@ const DFG_FIX = /* glsl */`
 export function fixIBL(mat: THREE.Material, name: string): void {
   mat.onBeforeCompile = function onBeforeCompile(shader) {
     // this replaces the prototype hook (Atmosphere.ts) that hands every fogged material the shared fog uniforms: attach them
-    // here, or a level fog's samplers (Nalati's fogCloudTex / fogLutV2) stay unbound on unit 0 next to the shadow map's
+    // here, or a level fog's samplers (a painted fog's fogCloudTex / fogLutV2) stay unbound on unit 0 next to the shadow map's
     // sampler2DShadow — "two textures of different types use the same sampler location", and WebGL drops the draw
     attachFogUniforms(shader);
     shader.fragmentShader = shader.fragmentShader.replace('#include <lights_fragment_begin>', DFG_FIX);
