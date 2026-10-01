@@ -16,7 +16,7 @@ export function registerCompendium(def: ShardCompendium): void {
     ids.add(e.id);
   }
   for (const t of def.trophies ?? []) if (!ids.has(t.entry)) throw new Error(`compendium ${def.chunkId}: trophy slot for an unknown entry '${t.entry}'`);
-  TABLE.set(def.chunkId, def);
+  TABLE.set(def.chunkId.replace(/^chunk:\/\/local\//u, ''), def);
 }
 
-export function compendiumFor(chunkId: string): ShardCompendium | undefined { return TABLE.get(chunkId); }
+export function compendiumFor(chunkId: string): ShardCompendium | undefined { return TABLE.get(chunkId.replace(/^chunk:\/\/local\//u, '')); }

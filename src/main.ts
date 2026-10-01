@@ -2,7 +2,7 @@ import { reportError } from '#engine/core/errorReport';
 import { showLoadFailure } from '#engine/ui/errorScreen';
 import { app } from '#engine/app/runtime';
 import { pageSeed } from '#engine';
-import { legacyShardId, meleeShard, hitDamage, type ShardManifest } from '#game/shard/manifest';
+import { meleeShard, hitDamage, type ShardManifest } from '#game/shard/manifest';
 import { installProbe } from '#engine/debug/probe';
 import { tap } from '#engine/core/harnessTap';
 import * as THREE from 'three';
@@ -638,10 +638,10 @@ async function buildShardWorld(slug: string, manifest: ShardManifest, stage: Loa
   let kills = 0, health = 100, maxHealth = 100, lastHurt = 0, swimHold = false; // maxHealth: 100, Driftwood's sturdy hearts raise it (E314, installLoot)
   const harvested = new Set<object>();
   // ── the in-game menu: MAP · INVENTORY · ACHIEVEMENTS · SETTINGS (src/engine/ui/Menu.ts) ──
-  const progress = new Progress(legacyShardId(getActiveChunk().slug));     // shard achievements → titles (src/game/achievements.ts)
-  const inventory = new Inventory(legacyShardId(getActiveChunk().slug));   // the pack: harvest drops
-  const skins = new SkinLocker();                          // legendary skins owned / worn (persisted; wired below)
-  const owned = new Owned(legacyShardId(getActiveChunk().slug));            // E314: upgrades, cosmetics, trophies, the found iron sword (src/game/loot/Owned.ts)
+  const progress = new Progress(getActiveChunk().slug);     // shard achievements → titles (src/game/achievements.ts)
+  const inventory = new Inventory(getActiveChunk().slug);   // the pack: harvest drops
+  const skins = new SkinLocker(chunk.slug);                          // legendary skins owned / worn (persisted; wired below)
+  const owned = new Owned(getActiveChunk().slug);            // E314: upgrades, cosmetics, trophies, the found iron sword (src/game/loot/Owned.ts)
   // Pine Hollow's GEAR ▸ FINISHES (E314 C, src/shards/pine-hollow/loadout/finishes.ts): wear / take off — set once the weapons' models exist (below)
   let pineFinish: ((id: string) => void) | null = null;
   const menu = new GameMenu({
@@ -820,9 +820,9 @@ async function buildShardWorld(slug: string, manifest: ShardManifest, stage: Loa
     if (skin && !skins.has(skin.id) && pineFights?.isElite(a) !== true) spawnSkinDrop(skin, a.position); // the legendary's drop, once (a named elite's comes from its own orb)
   };
   // the Compendium (PH-C5 / C4, src/ui/compendium/): the hunter's journal (N, the pause menu, the touch disc) + the trophy wall; chains onKill
-  const compendium = installCompendium({ chunkId: legacyShardId(getActiveChunk().slug), game, camera: game.camera, hud, menu, animals, cabins, interactables, weapons, touchUi, nolock });
+  const compendium = installCompendium({ chunkId: getActiveChunk().slug, game, camera: game.camera, hud, menu, animals, cabins, interactables, weapons, touchUi, nolock });
   // Pine Hollow's adventure (src/shards/pine-hollow/quest/): PH-C1 the lantern quest, PH-C6 the hamlet, PH-C7 the night, PH-C8 collectibles; chains onKill
-  const pineQuest = chunk.slug === 'pine-hollow' ? installPineQuest({ game, sky, player, animals, hud, audio, music, inventory, progress, skins, wearSkin, weapons, crossbow: pineLoadout ? { addBolts: (n) => { pineLoadout.addAmmo('iron', n); }, addAmmo: (k, n) => { pineLoadout.addAmmo(k, n); }, room: (k, n) => pineLoadout.room(k, n) } : crossbow, menu, interactables, registry, cabins, landmarks, trees: forest.trees, fullMap, compendium: compendium?.state ?? null, chunkId: legacyShardId(getActiveChunk().slug), params, touchUi, nolock }) : null;
+  const pineQuest = chunk.slug === 'pine-hollow' ? installPineQuest({ game, sky, player, animals, hud, audio, music, inventory, progress, skins, wearSkin, weapons, crossbow: pineLoadout ? { addBolts: (n) => { pineLoadout.addAmmo('iron', n); }, addAmmo: (k, n) => { pineLoadout.addAmmo(k, n); }, room: (k, n) => pineLoadout.room(k, n) } : crossbow, menu, interactables, registry, cabins, landmarks, trees: forest.trees, fullMap, compendium: compendium?.state ?? null, chunkId: getActiveChunk().slug, params, touchUi, nolock }) : null;
   if (chunk.slug === 'pine-hollow') placePineHollowSets(registry); // E315 M12: every named place is a Set (after the quest has placed its props)
   // E314 stage 1 (src/game/loot/install.ts): the purse + coin chip + kill coin bursts on a shard with `loot.coins` (Driftwood),
   // the Bag's GEAR extras and FINDS tab; chains onKill, so it comes after main's own onKill and the quests' chains

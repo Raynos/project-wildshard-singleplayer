@@ -1,3 +1,4 @@
+import { progressSave, saveSlug } from './saves';
 /**
  * Progress — per-shard achievement progress, earned titles and the title you wear. Persisted in
  * localStorage ('ws.progress.v1', keyed by chunk id); the in-memory copy is the truth for the session
@@ -11,16 +12,8 @@
  */
 import { achievementsFor, type AchievementDef } from './achievements';
 
-const STORE = 'ws.progress.v1';
-
-/** `playS` (E132) is optional so a save written before it existed loads as 0 s played */
-interface ShardProgress { counts: Record<string, number>; earned: string[]; title: string | null; playS?: number }
-const PLAY_SAVE_S = 15; // the time played is written back at most this often (and when the page hides)
-type Store = Record<string, ShardProgress>;
-
-function load(): Store {
-  try { return (JSON.parse(localStorage.getItem(STORE) ?? '{}') as Store | null) ?? {}; } catch { return {}; }
-}
+interface ShardProgress { counts: Record<string, number>; earned: string[]; title: string | null; playS: number }
+const PLAY_SAVE_S = 15;
 
 /** what a shard's feats code records into (Driftwood's quest/Feats.ts, Nalati's adventure): the game layer's type, so two shards share it without importing each other (E357 F6) */
 export interface ProgressSink { recordEvent: (event: string, total?: number) => void }
@@ -29,14 +22,13 @@ export interface ProgressRow { def: AchievementDef; count: number; earned: boole
 
 export class Progress {
   readonly defs: AchievementDef[];
-  private store = load();
   private shard: ShardProgress;
   onEarned?: (def: AchievementDef) => void;
   onChange?: () => void;
 
   constructor(readonly chunkId: string) {
     this.defs = achievementsFor(chunkId);
-    this.shard = this.store[chunkId] ??= { counts: {}, earned: [], title: null };
+    this.shard = progressSave.read(saveSlug(chunkId));
     const flush = (): void => { if (this.unsaved > 0) { this.unsaved = 0; this.save(); } };
     if (typeof document !== 'undefined') { // not in the node tests
       window.addEventListener('pagehide', flush);
@@ -46,7 +38,7 @@ export class Progress {
 
   private unsaved = 0;
   /** seconds played on this shard (E132): main.ts counts the frames in the world, not the title or the menus */
-  get playS(): number { return this.shard.playS ?? 0; }
+  get playS(): number { return this.shard.playS; }
   addPlay(dt: number): void {
     if (!(dt > 0)) return;
     const s = Math.min(dt, 0.25);
@@ -55,7 +47,7 @@ export class Progress {
     if (this.unsaved >= PLAY_SAVE_S) { this.unsaved = 0; this.save(); }
   }
 
-  private save() { try { localStorage.setItem(STORE, JSON.stringify(this.store)); } catch { /* not persisted this session */ } }
+  private save() { progressSave.write(this.shard, saveSlug(this.chunkId)); }
 
   /** one kill of (kind, variant) — bumps every matching achievement, unlocks the ones that reach their count */
   recordKill(kind: string, variant?: string): void {

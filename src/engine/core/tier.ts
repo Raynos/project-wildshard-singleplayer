@@ -1,3 +1,4 @@
+import { saveStorage } from '#engine/saves/slots';
 /**
  * Quality tier, picked once at boot. Phones get smaller textures, fewer shadow cascades, no AO and a
  * DPR cap — the difference between "loads in minutes then dies" and playable. `?tier=phone|desktop`
@@ -5,6 +6,8 @@
  * project/archive/2026-09-22-play-perf.md.
  */
 import { setting, settingFromUrl } from '../ui/Settings';
+
+const savedStorage = saveStorage('global');
 
 export type Tier = 'phone' | 'desktop';
 
@@ -137,12 +140,11 @@ export function phonePictureCuts(): boolean {
  * override under 'ws.debug'; the pill is gone and that key is dropped once so a stale override stops applying.
  */
 export interface GfxPrefs { dpr: 'auto' | '1' | '1.25' | '1.5' | '2' | 'native'; aa: 'auto' | 'on' | 'off' }
-const GFX_KEY = 'ws.gfx.v1';
+const GFX_KEY = 'gfx';
 function readGfxPrefs(): GfxPrefs {
   const prefs: GfxPrefs = { dpr: 'auto', aa: 'auto' };
   try {
-    localStorage.removeItem('ws.debug');
-    const raw = JSON.parse(localStorage.getItem(GFX_KEY) ?? '{}') as Partial<Record<string, unknown>>;
+    const raw = JSON.parse(savedStorage.getItem(GFX_KEY) ?? '{}') as Partial<Record<string, unknown>>;
     const dpr = raw['dpr'], aa = raw['aa'];
     if (dpr === '1' || dpr === '1.25' || dpr === '1.5' || dpr === '2' || dpr === 'native') prefs.dpr = dpr;
     if (aa === 'on' || aa === 'off') prefs.aa = aa;
@@ -150,7 +152,7 @@ function readGfxPrefs(): GfxPrefs {
   return prefs;
 }
 export const gfxPrefs: GfxPrefs = readGfxPrefs();
-export function saveGfxPrefs(): void { try { localStorage.setItem(GFX_KEY, JSON.stringify(gfxPrefs)); } catch { /* private mode */ } }
+export function saveGfxPrefs(): void { try { savedStorage.setItem(GFX_KEY, JSON.stringify(gfxPrefs)); } catch { /* private mode */ } }
 
 // 'native' = the screen's own density (the renderer caps at min(devicePixelRatio, dpr)): sharpest, and the costliest fill
 export let MOBILE_DEVICE = mobileUA || TIER === 'phone';

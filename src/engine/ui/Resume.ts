@@ -1,3 +1,6 @@
+import { saveStorage } from '#engine/saves/slots';
+
+const savedStorage = saveStorage('session');
 /**
  * The app-switch resume screen (E61): what the player sees between coming back to the app and the first good frame.
  * NOT the first-boot loader (no chunk / tier / download breakdown), but branded (E99, the user: "I don't want a black
@@ -18,9 +21,9 @@
 export const RESUME_HTML = '<div class="ws-resume-shot"></div><div class="ws-resume-hero"></div><div class="ws-resume-word">Project <b>Wildshard</b></div><div class="ws-resume-card"><div class="ws-resume-line">Resuming</div><div class="ws-resume-bar"><i></i></div><div class="ws-resume-shard"></div><button type="button" class="ws-resume-btn">Reload</button></div>';
 
 /** sessionStorage key of the last still (a small JPEG data URL) — survives the recovery reload */
-export const SHOT_KEY = 'wsResumeShot';
+export const SHOT_KEY = 'resume.shot';
 /** sessionStorage key of `{ name, hero }` — the shard's name and title art for index.html's first paint of a recovery reload */
-export const BRAND_KEY = 'wsResumeBrand';
+export const BRAND_KEY = 'resume.brand';
 
 class ResumeScreen {
   private readonly root: HTMLElement;
@@ -64,7 +67,7 @@ class ResumeScreen {
       void this.heroImg.decode().catch(() => undefined);
     }
     // a blob: URL dies with the page: the recovery reload then shows the still behind the wordmark instead
-    try { sessionStorage.setItem(BRAND_KEY, JSON.stringify({ name, hero: hero.startsWith('blob:') ? '' : hero })); } catch { /* no first-paint brand */ }
+    try { savedStorage.setItem(BRAND_KEY, JSON.stringify({ name, hero: hero.startsWith('blob:') ? '' : hero })); } catch { /* no first-paint brand */ }
   }
 
   /** Up at once (no fade in). `shot`: a data URL of the last frame, or null for the dark glass alone. */

@@ -1,3 +1,5 @@
+import * as v from 'valibot';
+import { saves } from '#engine';
 import * as THREE from 'three';
 import type { Animal } from '#engine/entities/Animal';
 import type { Bow } from '#engine/player/Bow';
@@ -5,6 +7,8 @@ import type { Sabre } from './Sabre';
 import { horseBones } from '#engine/entities/species/horse';
 import { riding } from '#engine/player/riding';
 import { skyMarkedAtlas } from '#engine/entities/creatureCoats';
+
+const savedSlot = saves.define({ key: 'nalati.skins', scope: 'shard', version: 1, schema: v.object({ owned: v.array(v.string()), worn: v.record(v.string(), v.string()) }), initial: () => ({ owned: [] as string[], worn: {} as Record<string, string> }) });
 
 /**
  * Nalati's wearable skins (plan row B15; handoff docs/design/nalati/handoff/b15-items-map.md §2). The named elites drop
@@ -39,7 +43,6 @@ export const NALATI_SKINS: readonly NalatiSkinDef[] = [
   { id: 'night-rider-mount', slot: 'mount', name: 'Night Rider', blurb: 'Mount skin · black barding, a spectral glow' },
   { id: 'sky-marked-saddle', slot: 'mount', name: 'Sky-Marked Saddle', blurb: 'Mount skin · white-and-blue felt, a lightning blaze' },
 ];
-const STORE = 'ws.nalati.skins.v1';
 const byId = (id: string): NalatiSkinDef | undefined => NALATI_SKINS.find((s) => s.id === id);
 
 export class NalatiSkinLocker {
@@ -51,10 +54,9 @@ export class NalatiSkinLocker {
 
   constructor() {
     try {
-      const raw = localStorage.getItem(STORE);
-      const s = raw !== null ? JSON.parse(raw) as { owned?: unknown; worn?: unknown } : null;
-      if (s !== null && Array.isArray(s.owned)) for (const id of s.owned) if (typeof id === 'string' && byId(id)) this.owned.add(id);
-      if (s !== null && typeof s.worn === 'object' && s.worn !== null) {
+      const s = savedSlot.read('nalati-grasslands');
+      if (Array.isArray(s.owned)) for (const id of s.owned) if (typeof id === 'string' && byId(id)) this.owned.add(id);
+      if (typeof s.worn === 'object') {
         for (const [slot, id] of Object.entries(s.worn as Record<string, unknown>)) {
           if (typeof id !== 'string') continue;
           const d = byId(id);
@@ -66,7 +68,7 @@ export class NalatiSkinLocker {
 
   private save(): void {
     this.version++;
-    try { localStorage.setItem(STORE, JSON.stringify({ owned: [...this.owned], worn: this.worn })); } catch { /* not persisted */ }
+    try { savedSlot.write({ owned: [...this.owned], worn: this.worn }, 'nalati-grasslands'); } catch { /* not persisted */ }
     this.onChange?.();
   }
 

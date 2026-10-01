@@ -159,9 +159,9 @@ export function reroll(b: Board, i: number): void {
   b.slots[i] = draw(b.next++, b.slots.filter((_, j) => j !== i));
 }
 
-// ── persistence (per shard, 'ws.lodge.v1') ──
+// ── persistence (per shard, 'lodge') ──
 
-export const BOARD_STORE = 'ws.lodge.v1';
+export const BOARD_STORE = 'lodge';
 export interface KV { getItem: (k: string) => string | null; setItem: (k: string, v: string) => void }
 
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);

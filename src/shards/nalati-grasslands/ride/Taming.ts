@@ -1,3 +1,5 @@
+import * as v from 'valibot';
+import { saves } from '#engine';
 import * as THREE from 'three';
 import type { Player } from '#engine/player/Player';
 import type { Mount } from './Mount';
@@ -8,6 +10,8 @@ import type { Interactable } from '#engine/world/Cabin';
 import type { RideHUD, TamingView } from './RideHUD';
 import { wildEnv } from '#engine/entities/wildEnv';
 import { heightAt } from '#engine/world/Heightfield';
+
+const savedSlot = saves.define({ key: 'tulpar', scope: 'shard', version: 1, schema: v.nullable(v.string()), initial: () => null });
 
 /**
  * Taming — winning a wild stallion (Nalati row B8; docs/design/nalati/wolves-horses-taming.md "Taming — step by step";
@@ -52,7 +56,6 @@ interface Move { kind: 'buck' | 'spin' | 'rear'; dir: number; at: number; power:
 
 const RANGE = 40, ROUNDS = 5, ROUND_T = 3.5, TELEGRAPH = 0.3;
 const LEAN_ACC = 6.2, DAMP = 2.4, RED = 0.72, THROW_T = 0.4;
-const STORE = 'ws.nalati.tulpar';
 /** the elite stallion's kind (src/shards/nalati-grasslands/elites.ts ARGYMAQ) — the one horse that may replace a bonded Tulpar */
 const ARGYMAQ_KIND = 'argymaq';
 const _v = new THREE.Vector3(), _f = new THREE.Vector3();
@@ -95,7 +98,7 @@ export class Taming {
       for (const h of this.opts.herds()) if (!this.drove.has(h) && Math.hypot(h.cx - x, h.cz - z) < 40 && this.opts.player.position.distanceTo(_v.set(h.cx, this.opts.player.position.y, h.cz)) < 60) { this.drove.add(h); h.addTrust(30); this.opts.toast?.('The herd saw you drive the wolves off · TRUST +30'); }
     };
     let saved: string | null = null;
-    try { saved = localStorage.getItem(STORE); } catch { /* no storage: not remembered */ }
+    try { saved = savedSlot.read('nalati-grasslands'); } catch { /* no storage: not remembered */ }
     if (saved === '1' || saved === ARGYMAQ_KIND) this.spawnTulpar(this.opts.rest.x + 2.6, this.opts.rest.z + 3.5, Math.atan2(this.opts.rest.face.x, this.opts.rest.face.z), saved === ARGYMAQ_KIND);
   }
 
@@ -273,7 +276,7 @@ export class Taming {
     }
     const t = this.spawnTulpar(x, z, yaw, argymaq);
     m.mount(t);
-    try { localStorage.setItem(STORE, argymaq ? ARGYMAQ_KIND : '1'); } catch { /* not remembered */ }
+    try { savedSlot.write(argymaq ? ARGYMAQ_KIND : '1', 'nalati-grasslands'); } catch { /* not remembered */ }
     this.opts.toast?.(argymaq
       ? 'ARGYMAQ is yours — he takes Tulpar\'s place at the camp\'s rail · whistle (X / HORSE) to call him'
       : 'TULPAR is yours · he waits at the camp\'s hitching rail · whistle (X / HORSE) to call him');

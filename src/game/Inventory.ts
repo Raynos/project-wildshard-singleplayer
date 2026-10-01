@@ -1,3 +1,4 @@
+import { inventorySave, saveSlug } from './saves';
 /**
  * Inventory — the pack: what harvesting a carcass leaves you with (venison, hides, tusks, antlers; on Driftwood Isle
  * crab claws and coconuts — the drowned sailor and captain fade, nothing to harvest, E318). Counts
@@ -83,10 +84,9 @@ export type PineItem = (typeof PINE_PACK_KINDS)[number];
 export const PINE_PACK_SLOTS = PINE_PACK_KINDS.length;
 const PINE_KEEPS: ReadonlySet<ItemId> = new Set<ItemId>(PINE_PACK_KINDS);
 export const isPineItem = (id: ItemId): id is PineItem => PINE_KEEPS.has(id);
-const isPineChunk = (chunkId: string): boolean => chunkId.endsWith('/pine-hollow');
+const isPineChunk = (chunkId: string): boolean => chunkId.endsWith('pine-hollow');
 /** Nalati (E314 C) and Nine Dragon (E314 A): no pack — nothing enters it, the Bag has no PACK tab */
-const isNoPackChunk = (chunkId: string): boolean => chunkId.endsWith('/nalati-grasslands') || chunkId.endsWith('/nine-dragon-stack');
-const STORE = 'ws.inventory.v1';
+const isNoPackChunk = (chunkId: string): boolean => chunkId.endsWith('nalati-grasslands') || chunkId.endsWith('nine-dragon-stack');
 
 export class Inventory {
   private counts: Partial<Record<ItemId, number>>;
@@ -96,11 +96,10 @@ export class Inventory {
   onChange?: () => void;
 
   constructor(readonly chunkId: string) {
-    let saved: { counts?: Partial<Record<ItemId, number>>; order?: ItemId[] } = {};
-    try { saved = (JSON.parse(localStorage.getItem(STORE) ?? '{}') as Record<string, typeof saved>)[chunkId] ?? {}; } catch { /* defaults */ }
-    this.counts = saved.counts ?? {};
+    const saved = inventorySave.read(saveSlug(chunkId)) as { counts: Partial<Record<ItemId, number>>; order: ItemId[] };
+    this.counts = saved.counts;
     this.order = [];
-    for (const id of saved.order ?? []) {
+    for (const id of saved.order) {
       if (!(id in ITEMS)) { delete this.counts[id]; continue; } // a kind the game no longer has (Nalati's, E314 C)
       if (this.keeps(id)) this.order.push(id);
       else { if ((this.counts[id] ?? 0) > 0) this.legacy.add(id); delete this.counts[id]; }
@@ -114,13 +113,7 @@ export class Inventory {
   /** did the save this pack loaded hold `id`, a kind the pack no longer keeps? ('warden-longbow' → Owned) */
   had(id: ItemId): boolean { return this.legacy.has(id); }
 
-  private save() {
-    try {
-      const all = (JSON.parse(localStorage.getItem(STORE) ?? '{}') as Record<string, unknown> | null) ?? {};
-      all[this.chunkId] = { counts: this.counts, order: this.order };
-      localStorage.setItem(STORE, JSON.stringify(all));
-    } catch { /* not persisted this session */ }
-  }
+  private save() { inventorySave.write({ counts: this.counts, order: this.order }, saveSlug(this.chunkId)); }
 
   /** false, and nothing added, for a kind this shard does not keep or a new kind with every slot taken */
   add(id: ItemId, n = 1): boolean {

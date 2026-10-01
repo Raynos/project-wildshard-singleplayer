@@ -1,13 +1,14 @@
+import { saveStorage } from '#engine/saves/slots';
 /** A small durable breadcrumb for Nine Dragon's phone boot. A terminated WebContent process cannot run a final handler. */
 import { deliverBrowserError } from '../telemetry/browserErrors';
 import type { ProgressView } from './plan';
 
 declare const __BUILD_ID__: string;
 
-const KEY = 'ws.nineBoot';
+const KEY = 'boot.trace';
 const RECENT_MS = 5 * 60_000;
 const HISTORY_LIMIT = 32;
-const REPORT_KEY = 'wsNineReports'; // diagnostic evidence is not part of the native save mirror
+const REPORT_KEY = 'boot.reports'; // diagnostic evidence is not part of the native save mirror
 const REPORT_LIMIT = 4;
 const REPORT_MAX_AGE = 7 * 24 * 60 * 60_000;
 type Status = 'in_progress' | 'ready' | 'planned' | 'handled_error' | 'context_lost' | 'pagehide';
@@ -100,7 +101,7 @@ export async function flushNineBootReports(): Promise<void> {
   } finally { flushing = false; }
 }
 
-function storage(): Storage | null { try { return localStorage; } catch { return null; } }
+function storage(): ReturnType<typeof saveStorage> | null { return saveStorage('device'); }
 function read(key: string): BootRecord | null {
   try {
     const value: unknown = JSON.parse(storage()?.getItem(key) ?? 'null');

@@ -1,3 +1,4 @@
+import { saveStorage } from '#engine/saves/slots';
 /**
  * GPU recovery (E54) and the app-switch resume (E61): what the game does when the phone takes its graphics away — the
  * iOS home-screen app switched out and back, Safari backgrounded, a driver reset.
@@ -44,6 +45,8 @@ import { layout, trace, traceReturn, traceWorldReady } from './lifeTrace';
 import { recordNineGpuRecovery } from '../boot/nineBootTrace';
 import { markUnload } from '../boot/lastEnd';
 
+const savedStorage = saveStorage('session');
+
 export interface RecoveryHost {
   game: Game;
   /** re-render content that only ever lived on the GPU (after an in-place restore, before the first frame) */
@@ -78,7 +81,7 @@ const RESTORE_MAX_S = 40;
 /** automatic reloads allowed inside RELOAD_WINDOW_MS before the page asks instead */
 const RELOADS_MAX = 2;
 const RELOAD_WINDOW_MS = 120_000;
-const RELOAD_KEY = 'wsGpuReloads'; // sessionStorage, deliberately not `ws.`: the native save mirror copies every ws.* key
+const RELOAD_KEY = 'gpu.reloads'; // sessionStorage, deliberately not `ws.`: the native save mirror copies every ws.* key
 /** the resume still: px wide (the screen scales it up and blurs it — a few KB of JPEG) */
 const SHOT_W = 120;
 
@@ -101,7 +104,7 @@ export function installGpuRecovery(host: RecoveryHost): void {
   let visibleMs = 0; // visible time spent in the current lost / restoring phase
   let timer = 0;
   let shot: string | null = null;
-  try { shot = sessionStorage.getItem(SHOT_KEY); } catch { /* no still: the dark glass alone */ }
+  try { shot = savedStorage.getItem(SHOT_KEY); } catch { /* no still: the dark glass alone */ }
 
   // A canvas the size the browsers accelerate, painted once: a GPU-process restart wipes it with the game's own.
   // Read back only on a loss / restore — frequent readbacks would move it to the CPU and hide the wipe.
@@ -131,7 +134,7 @@ export function installGpuRecovery(host: RecoveryHost): void {
     if (phase !== 'ok') return;
     const still = game.snapshot(SHOT_W);
     if (!still || blank(still)) return;
-    try { shot = still.toDataURL('image/jpeg', 0.7); sessionStorage.setItem(SHOT_KEY, shot); } catch { /* keep the last one */ }
+    try { shot = still.toDataURL('image/jpeg', 0.7); savedStorage.setItem(SHOT_KEY, shot); } catch { /* keep the last one */ }
   };
 
   const stopTimer = (): void => { if (timer !== 0) { clearInterval(timer); timer = 0; } };
@@ -147,7 +150,7 @@ export function installGpuRecovery(host: RecoveryHost): void {
     trace('reload', `${why}${away ? ' (away)' : ''}`);
     const now = Date.now();
     let recent: number[] = [];
-    try { recent = (JSON.parse(sessionStorage.getItem(RELOAD_KEY) ?? '[]') as number[]).filter((t) => now - t < RELOAD_WINDOW_MS); } catch { /* no session storage: allow the reload */ }
+    try { recent = (JSON.parse(savedStorage.getItem(RELOAD_KEY) ?? '[]') as number[]).filter((t) => now - t < RELOAD_WINDOW_MS); } catch { /* no session storage: allow the reload */ }
     const fragileBoot = host.fragileBoot?.() === true;
     const url = fragileBoot ? new URL('/', location.origin) : new URL(location.href);
     url.searchParams.delete('v');
@@ -169,7 +172,7 @@ export function installGpuRecovery(host: RecoveryHost): void {
       return;
     }
     phase = 'reloading';
-    try { sessionStorage.setItem(RELOAD_KEY, JSON.stringify([...recent, now])); } catch { /* the guard just will not count this one */ }
+    try { savedStorage.setItem(RELOAD_KEY, JSON.stringify([...recent, now])); } catch { /* the guard just will not count this one */ }
     screen.show(shot);
     go();
   };

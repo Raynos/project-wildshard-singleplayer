@@ -1,3 +1,4 @@
+import { saveFixture } from '../../fake/saveFixture';
 // E314 (Jake's pick C, art/loot/round-3-other-shards/board-1-pine-hollow.jpg): Pine Hollow's Bag — the pack keeps only
 // what Mott trades for, nothing he gives goes into it, and the unlocks never ride in a pack slot.
 import { describe, expect, it } from 'vitest';
@@ -11,7 +12,6 @@ import { restoreKept } from '#shards/pine-hollow/loadout/loadout';
 import { finishPick, pineFinishes } from '#shards/pine-hollow/loadout/finishes';
 import { SKINS, SkinLocker } from '#engine/player/Skins';
 
-const STORE = 'ws.inventory.v1';
 const PINE = 'chunk://local/pine-hollow';
 const DRIFT = 'chunk://local/driftwood-isle';
 loadSpecies();
@@ -45,7 +45,7 @@ describe('the drop list', () => {
   });
 
   it('an old save\'s slop is dropped on load, the kept kinds stay in order', () => {
-    localStorage.setItem(STORE, JSON.stringify({ [PINE]: { counts: { 'boar-meat': 3, venison: 2, antlers: 1, 'amber-resin': 5 }, order: ['boar-meat', 'venison', 'antlers', 'amber-resin'] } }));
+    saveFixture(PINE.replace(/^chunk:\/\/local\//u, ''), 'inventory', { counts: { 'boar-meat': 3, venison: 2, antlers: 1, 'amber-resin': 5 }, order: ['boar-meat', 'venison', 'antlers', 'amber-resin'] });
     const inv = new Inventory(PINE);
     expect(inv.items.map((i) => [i.id, i.count])).toEqual([['venison', 2], ['amber-resin', 5]]);
     expect(inv.had('boar-meat')).toBe(true);
@@ -84,7 +84,7 @@ describe('a full pack', () => {
     // An old save that did get it in: the pack drops the flag (not a kept kind), restoreKept moves it to Owned
     const kinds = [...PINE_PACK_KINDS, ...SLOP.filter((id) => id !== 'warden-longbow')];
     const counts = Object.fromEntries([...kinds, 'warden-longbow'].map((id) => [id, 1]));
-    localStorage.setItem(STORE, JSON.stringify({ [PINE]: { counts, order: [...kinds, 'warden-longbow'] } }));
+    saveFixture(PINE.replace(/^chunk:\/\/local\//u, ''), 'inventory', { counts, order: [...kinds, 'warden-longbow'] });
     const owned = new Owned(PINE);
     expect(restoreKept(new Inventory(PINE), owned)).toEqual({ bow: true, rifle: false });
     expect(new Inventory(PINE).items.some((i) => i.id === 'warden-longbow')).toBe(false);
@@ -127,7 +127,7 @@ describe('a full pack', () => {
 
 describe('GEAR ▸ FINISHES', () => {
   it('lists every crossbow / lever-action finish, the unowned ones locked with where they come from', () => {
-    const locker = new SkinLocker();
+    const locker = new SkinLocker('pine-hollow');
     locker.own('hollow-ash'); locker.wear('crossbow', 'hollow-ash'); locker.own('ghost-stag');
     const rows = pineFinishes(locker);
     expect(rows.map((r) => r.id).sort()).toEqual(Object.keys(SKINS).sort());
@@ -138,7 +138,7 @@ describe('GEAR ▸ FINISHES', () => {
   });
 
   it('a tap wears an owned finish, takes off the worn one, and does nothing for a locked one', () => {
-    const locker = new SkinLocker();
+    const locker = new SkinLocker('pine-hollow');
     locker.own('hollow-ash'); locker.own('ghost-stag'); locker.wear('crossbow', 'ghost-stag');
     expect(finishPick(locker, 'hollow-ash')?.act).toBe('wear');
     expect(finishPick(locker, 'ghost-stag')?.act).toBe('off');

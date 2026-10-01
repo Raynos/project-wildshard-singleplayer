@@ -1,8 +1,11 @@
+import { saveStorageFixture } from './fake/saveFixture';
 // src/engine/ui/Settings.ts — reads storage once at module init, so each test imports a fresh copy of the module.
 import { describe, expect, it, vi } from 'vitest';
 import type * as SettingsModule from '#engine/ui/Settings';
 
-const STORE = 'ws.settings.v1';
+const fixtures = saveStorageFixture('global');
+
+const STORE = 'settings';
 function fresh(): Promise<typeof SettingsModule> {
   vi.resetModules();
   return import('#engine/ui/Settings');
@@ -18,7 +21,7 @@ describe('Settings', () => {
   });
 
   it('loads saved values and ignores wrongly-typed ones', async () => {
-    localStorage.setItem(STORE, JSON.stringify({ aimAssist: false, tracers: 'no', volume: 0.25, music: '1' }));
+    fixtures.setItem(STORE, JSON.stringify({ aimAssist: false, tracers: 'no', volume: 0.25, music: '1' }));
     const s = await fresh();
     expect(s.getSetting('aimAssist')).toBe(false);
     expect(s.getSetting('tracers')).toBe(true);
@@ -27,7 +30,7 @@ describe('Settings', () => {
   });
 
   it('falls back to defaults on corrupt JSON or a throwing storage', async () => {
-    localStorage.setItem(STORE, '{{');
+    fixtures.setItem(STORE, '{{');
     expect((await fresh()).getNumber('volume')).toBe(0.8);
     vi.spyOn(localStorage, 'getItem').mockImplementation(() => { throw new Error('SecurityError'); });
     expect((await fresh()).getSetting('aimAssist')).toBe(true);
@@ -41,7 +44,7 @@ describe('Settings', () => {
     s.setSetting('tracers', false); // unchanged: no second call
     expect(fn).toHaveBeenCalledTimes(1);
     expect(fn).toHaveBeenCalledWith(false);
-    expect(JSON.parse(localStorage.getItem(STORE) ?? '{}')).toMatchObject({ tracers: false, aimAssist: true, volume: 0.8 });
+    expect(JSON.parse(fixtures.getItem(STORE) ?? '{}')).toMatchObject({ tracers: false, aimAssist: true, volume: 0.8 });
     expect((await fresh()).getSetting('tracers')).toBe(false);
   });
 
@@ -88,20 +91,20 @@ describe('Settings', () => {
     s.setMusicStyle('folk');
     s.setMusicStyle('folk');
     expect(fn.mock.calls).toEqual([['folk']]);
-    expect(JSON.parse(localStorage.getItem(STORE) ?? '{}')).toMatchObject({ musicStyle: 'folk', volume: 0.8 });
+    expect(JSON.parse(fixtures.getItem(STORE) ?? '{}')).toMatchObject({ musicStyle: 'folk', volume: 0.8 });
     expect((await fresh()).getMusicStyle()).toBe('folk');
-    localStorage.setItem(STORE, JSON.stringify({ musicStyle: 'dubstep' }));
+    fixtures.setItem(STORE, JSON.stringify({ musicStyle: 'dubstep' }));
     expect((await fresh()).getMusicStyle()).toBe('piano');
   });
 
   it('sfxSet: best by default, a retired saved set reads as best, persisted beside musicStyle, no URL override (E162)', async () => {
-    localStorage.setItem(STORE, JSON.stringify({ sfxSet: 'moss' })); // a set from SFX round 2, retired by the merged one
+    fixtures.setItem(STORE, JSON.stringify({ sfxSet: 'moss' })); // a set from SFX round 2, retired by the merged one
     expect((await fresh()).getSfxSet()).toBe('best');
     localStorage.clear();
     const s = await fresh();
     expect(s.getSfxSet()).toBe('best');
     s.setSfxSet('synth');
-    expect(JSON.parse(localStorage.getItem(STORE) ?? '{}')).toMatchObject({ sfxSet: 'synth', musicStyle: 'piano' });
+    expect(JSON.parse(fixtures.getItem(STORE) ?? '{}')).toMatchObject({ sfxSet: 'synth', musicStyle: 'piano' });
     s.setSfxSet('best');
     vi.stubGlobal('location', new URL('http://localhost:5173/?sfx=synth'));
     try {
@@ -110,13 +113,13 @@ describe('Settings', () => {
   });
 
   it('the old ?music=<style> switch is ignored: the saved style plays (E162)', async () => {
-    localStorage.setItem(STORE, JSON.stringify({ musicStyle: 'orchestral' }));
+    fixtures.setItem(STORE, JSON.stringify({ musicStyle: 'orchestral' }));
     vi.stubGlobal('location', new URL('http://localhost:5173/?music=synth'));
     try {
       const s = await fresh();
       expect(s.getMusicStyle()).toBe('orchestral');
       s.setMusicStyle('folk');
-      expect(JSON.parse(localStorage.getItem(STORE) ?? '{}')).toMatchObject({ musicStyle: 'folk' });
+      expect(JSON.parse(fixtures.getItem(STORE) ?? '{}')).toMatchObject({ musicStyle: 'folk' });
     } finally { vi.stubGlobal('location', new URL('http://localhost:5173/')); }
   });
 });
@@ -137,7 +140,7 @@ describe('Settings OPTIONS (setting / saveSetting)', () => {
   });
 
   it('precedence: the URL param wins for this load, else the saved pick, else the default', async () => {
-    localStorage.setItem(STORE, JSON.stringify({ tier: 'phone', time: 'night' }));
+    fixtures.setItem(STORE, JSON.stringify({ tier: 'phone', time: 'night' }));
     try {
       const saved = await at('');
       expect([saved.setting('tier'), saved.setting('time')]).toEqual(['phone', 'night']);
@@ -148,12 +151,12 @@ describe('Settings OPTIONS (setting / saveSetting)', () => {
       expect(url.settingFromUrl('tier')).toBe(true);
       expect(url.savedSetting('tier')).toBe('phone'); // the URL is never persisted
       url.setNumber('volume', 0.3);
-      expect(JSON.parse(localStorage.getItem(STORE) ?? '{}')).toMatchObject({ tier: 'phone', time: 'night' });
+      expect(JSON.parse(fixtures.getItem(STORE) ?? '{}')).toMatchObject({ tier: 'phone', time: 'night' });
     } finally { reset(); }
   });
 
   it('URL forms: an invalid ?tier= falls through to the saved pick', async () => {
-    localStorage.setItem(STORE, JSON.stringify({ tier: 'phone' }));
+    fixtures.setItem(STORE, JSON.stringify({ tier: 'phone' }));
     try {
       const s = await at('?tier=lego');
       expect(s.setting('tier')).toBe('phone');
@@ -162,21 +165,21 @@ describe('Settings OPTIONS (setting / saveSetting)', () => {
   });
 
   it('a saved value outside the option set falls back to the default', async () => {
-    localStorage.setItem(STORE, JSON.stringify({ tier: 'vulkan', time: 42 }));
+    fixtures.setItem(STORE, JSON.stringify({ tier: 'vulkan', time: 42 }));
     const s = await fresh();
     expect(s.setting('tier')).toBe('auto');
     expect(s.setting('time')).toBe('live');
   });
 
   it('the retired Look Lab picks (E136) a player saved before are ignored and dropped on the next save', async () => {
-    localStorage.setItem(STORE, JSON.stringify({ island: 'procedural', edge: 'off', lighting: 'standard', sky: 'hdri', post: 'cinematic', lut: 'off', matte: 'off', tier: 'phone' }));
-    localStorage.setItem('ws.island.v1', 'procedural');
+    fixtures.setItem(STORE, JSON.stringify({ island: 'procedural', edge: 'off', lighting: 'standard', sky: 'hdri', post: 'cinematic', lut: 'off', matte: 'off', tier: 'phone' }));
+    fixtures.setItem('ws.island.v1', 'procedural');
     try {
       const s = await at('?island=procedural&edge=0&lighting=standard&sky=hdri&post=cinematic&matte=0');
       expect(s.setting('tier')).toBe('phone');
       expect(s.pendingReload()).toEqual([]);
       s.setNumber('volume', 0.3);
-      const stored = JSON.parse(localStorage.getItem(STORE) ?? '{}') as Record<string, unknown>;
+      const stored = JSON.parse(fixtures.getItem(STORE) ?? '{}') as Record<string, unknown>;
       expect(stored).toMatchObject({ tier: 'phone', volume: 0.3 });
       for (const k of ['island', 'edge', 'lighting', 'sky', 'post', 'lut', 'matte']) expect(stored).not.toHaveProperty(k);
     } finally { reset(); localStorage.removeItem('ws.island.v1'); }
@@ -207,7 +210,7 @@ describe('Settings OPTIONS (setting / saveSetting)', () => {
       expect(s.setting('time')).toBe('golden');
       expect(fn.mock.calls).toEqual([['golden']]);
       expect(s.pendingReload()).toEqual([]); // live options never wait for a reload
-      expect(JSON.parse(localStorage.getItem(STORE) ?? '{}')).toMatchObject({ time: 'golden' });
+      expect(JSON.parse(fixtures.getItem(STORE) ?? '{}')).toMatchObject({ time: 'golden' });
     } finally { reset(); }
   });
 

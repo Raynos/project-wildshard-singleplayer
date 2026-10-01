@@ -1,3 +1,4 @@
+import { saveStorage } from '#engine/saves/slots';
 /**
  * The boot's safety net under the game's own error handling (E144). src/engine/ui/ErrorModal.ts is armed by src/main.ts, so a
  * failure BEFORE main evaluates never reached it: a main chunk that 404'd (a service worker holding a build the host no
@@ -34,7 +35,7 @@ let detail = '';
 // lib.dom says it always exists; it doesn't (an insecure context, a WebView without service workers)
 const nav: { serviceWorker?: ServiceWorkerContainer | undefined } = navigator;
 
-function store(kind: 'session' | 'local'): Storage | null { try { return kind === 'session' ? sessionStorage : localStorage; } catch { return null; } }
+function store(kind: 'session' | 'local'): ReturnType<typeof saveStorage> { return saveStorage(kind === 'local' ? 'device' : 'session'); }
 
 function report(error: unknown): void {
   try {

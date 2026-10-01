@@ -1,4 +1,3 @@
-import { legacyShardId } from '../shard/manifest';
 /**
  * installAdventure — the active shard's adventure layer wired into the running game in ONE call from main.ts, looked
  * up in a per-shard registry (`ADVENTURES`, the bottom of this file; PINE-HOLLOW-REMASTER PH-0.3). A shard with no
@@ -121,7 +120,7 @@ const FRAMES: Record<Exclude<PoiId, 'world'>, { x: number; z: number; rot: numbe
 
 /** Driftwood Isle's adventure (plan Track A): the castaway spine, feats, places, the captain's finale, the zipline */
 function installDriftwoodAdventure<A extends AdvAnimal>(w: AdventureWorld<A>): Adventure {
-  const flags = new Flags(legacyShardId(w.chunk.slug));
+  const flags = new Flags(w.chunk.slug);
   if (w.params?.has('resetquest')) flags.reset();
 
   const floorAt = (x: number, z: number): number => {

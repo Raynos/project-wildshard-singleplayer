@@ -95,9 +95,9 @@ const DRIFTWOOD: AchievementDef[] = [
 ];
 
 const TABLES: Record<string, AchievementDef[]> = {
-  'chunk://local/pine-hollow': PINE_HOLLOW,
-  'chunk://local/nalati-grasslands': NALATI,
-  'chunk://local/driftwood-isle': DRIFTWOOD,
+  'pine-hollow': PINE_HOLLOW,
+  'nalati-grasslands': NALATI,
+  'driftwood-isle': DRIFTWOOD,
 };
 
-export function achievementsFor(chunkId: string): AchievementDef[] { return TABLES[chunkId] ?? []; }
+export function achievementsFor(chunkId: string): AchievementDef[] { return TABLES[chunkId.replace(/^chunk:\/\/local\//u, '')] ?? []; }

@@ -17,7 +17,7 @@
  *
  * Every id is typed (OwnedId); `OWNED` says what kind each is and how GEAR / FINDS label it.
  */
-import { readShard, writeShard } from './store';
+import { ownedSave, saveSlug } from '../saves';
 
 export type OwnedKind = 'upgrade' | 'cosmetic' | 'charm' | 'trophy' | 'gear';
 export const OWNED = {
@@ -41,7 +41,6 @@ export const OWNED = {
 export type OwnedId = keyof typeof OWNED;
 export type CosmeticId = { [K in OwnedId]: (typeof OWNED)[K]['kind'] extends 'cosmetic' ? K : never }[OwnedId];
 
-const STORE = 'ws.owned.v1';
 export const isOwnedId = (v: unknown): v is OwnedId => typeof v === 'string' && Object.hasOwn(OWNED, v);
 export const isCosmetic = (id: OwnedId): id is CosmeticId => OWNED[id].kind === 'cosmetic';
 
@@ -51,8 +50,7 @@ export class Owned {
   private listeners: (() => void)[] = [];
 
   constructor(readonly shard: string) {
-    const saved = readShard(STORE, shard);
-    if (typeof saved !== 'object' || saved === null) return;
+    const saved = ownedSave.read(saveSlug(shard));
     const { owned, worn } = saved as { owned?: unknown; worn?: unknown };
     if (Array.isArray(owned)) for (const id of owned) if (isOwnedId(id)) this.have.add(id);
     if (Array.isArray(worn)) for (const id of worn) if (isOwnedId(id) && isCosmetic(id) && this.have.has(id)) this.wearing.add(id);
@@ -99,7 +97,7 @@ export class Owned {
   }
 
   private changed(): void {
-    writeShard(STORE, this.shard, { owned: [...this.have], worn: [...this.wearing] });
+    ownedSave.write({ owned: [...this.have], worn: [...this.wearing] }, saveSlug(this.shard));
     for (const l of this.listeners) l();
   }
 }

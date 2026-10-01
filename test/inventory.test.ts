@@ -1,10 +1,11 @@
+import { inventorySave } from '#game/saves';
+import { saveFixture, readFixture } from './fake/saveFixture';
 // src/game/Inventory.ts — what a carcass yields, and the per-shard pack.
 import { describe, expect, it, vi } from 'vitest';
 import { loadSpecies } from './species';
 import { ITEMS, Inventory, PACK_SLOTS, PINE_PACK_SLOTS, harvestOf, type ItemId } from '#game/Inventory';
 import { speciesDef } from '#engine/entities/species/registry';
 
-const STORE = 'ws.inventory.v1';
 const PINE = 'chunk://local/pine-hollow';
 const DRIFT = 'chunk://local/driftwood-isle';
 const ALL_ITEMS = Object.keys(ITEMS) as ItemId[];
@@ -141,18 +142,18 @@ describe('Inventory', () => {
     const again = new Inventory(PINE);
     expect(again.items.map((i) => [i.id, i.count])).toEqual([['boar-tusk', 2], ['venison', 1]]);
     expect(new Inventory(DRIFT).items.map((i) => i.id)).toEqual(['bear-pelt']);
-    expect(Object.keys(JSON.parse(localStorage.getItem(STORE) ?? '{}') as object).sort()).toEqual([DRIFT, PINE]);
+    expect(readFixture('pine-hollow', 'inventory')).toMatchObject({ order: ['boar-tusk', 'venison'] });
   });
 
   it('drops unknown ids from a saved pack (an item removed from the game)', () => {
-    localStorage.setItem(STORE, JSON.stringify({ [PINE]: { counts: { venison: 2, 'old-thing': 9 }, order: ['old-thing', 'venison'] } }));
+    saveFixture(PINE.replace(/^chunk:\/\/local\//u, ''), 'inventory', { counts: { venison: 2, 'old-thing': 9 }, order: ['old-thing', 'venison'] });
     const inv = new Inventory(PINE);
     expect(inv.items.map((i) => [i.id, i.count])).toEqual([['venison', 2]]);
     expect(inv.total).toBe(2);
   });
 
   it('survives corrupt storage (starts empty)', () => {
-    localStorage.setItem(STORE, '{not json');
+    localStorage.setItem('wildshard.save.v2.pine-hollow', '{not json');
     const inv = new Inventory(PINE);
     expect(inv.items).toEqual([]);
     inv.add('venison');
@@ -164,6 +165,8 @@ describe('Inventory', () => {
     const inv = new Inventory(PINE);
     inv.add('bear-pelt', 2);
     expect(inv.total).toBe(2);
+    vi.restoreAllMocks();
+    inventorySave.reset('pine-hollow');
   });
 
   it('takes items out for a trade, all or nothing, freeing the slot at 0', () => {

@@ -1,3 +1,4 @@
+import { saveStorage } from '#engine/saves/slots';
 /**
  * The other shards, downloaded in the background (E158; the user: "skip the download phase when swapping shards and only
  * do the loading phase"). Once this shard is playable, every file another shard's boot reads — for THIS device's tier —
@@ -50,6 +51,8 @@ import { PERSON_FILE, peopleModelUrl, type PersonKey } from '#shards/nalati-gras
 import { blenderModelsBase } from '../world/blenderArea';
 import { CAPTAIN_GLB_URL } from '../entities/species/captainMesh';
 import { shell } from '../app/legacyCapture';
+
+const savedStorage = saveStorage('device');
 
 const PLAYABLE_SHARDS = SHARDS.filter(playable);
 
@@ -113,17 +116,17 @@ export function setHash(files: readonly string[]): string {
   return `${files.length}-${h.toString(16).padStart(8, '0')}`;
 }
 /** the marker the background download writes once the worker holds every file of the set (localStorage: read synchronously at boot) */
-export const ktx2MarkerKey = (slug: string): string => `ws.ktx2set.${slug}.${TIER}`;
+export const ktx2MarkerKey = (slug: string): string => `ktx2set:${slug}.${TIER}`;
 /** Auto (src/engine/boot/gpuFiles.ts): this shard's KTX2 set for this tier is cached — the marker names the current set */
 export function ktx2Ready(def: ShardManifest): boolean {
   const set = ktx2Set(def);
   if (set.length === 0) return false;
-  try { return localStorage.getItem(ktx2MarkerKey(def.slug)) === setHash(set); } catch { return false; }
+  try { return savedStorage.getItem(ktx2MarkerKey(def.slug)) === setHash(set); } catch { return false; }
 }
 function markKtx2(def: ShardManifest, complete: boolean, hash: string): void {
   try {
-    if (complete) localStorage.setItem(ktx2MarkerKey(def.slug), hash);
-    else localStorage.removeItem(ktx2MarkerKey(def.slug));
+    if (complete) savedStorage.setItem(ktx2MarkerKey(def.slug), hash);
+    else savedStorage.removeItem(ktx2MarkerKey(def.slug));
   } catch { /* private mode: Auto stays on images */ }
 }
 setAutoKtx2Check((slug) => { const def = findChunk(slug); return def !== undefined && ktx2Ready(def); });

@@ -1,3 +1,6 @@
+import { saveStorage } from '#engine/saves/slots';
+import { installSaveReporter } from '../saves/runtime';
+import type { SchemaFailure } from '../saves/store';
 /**
  * Client error reports (E133, FINISH-LINE S2): every error the game hits reaches the server (api/errors.ts), and from
  * there `pnpm inbox:pull` → `.review/inbox/` as category `error`.
@@ -36,9 +39,9 @@ export const REPORTS_MAX = 10;
 export const QUEUE_MAX = 10;
 export const REPORT_DELAY_MS = 3000;
 /** sessionStorage: `{ n, keys }` — reports this session and the dedupe keys already sent (not `ws.`: the save mirror copies ws.*) */
-export const SESSION_KEY = 'wsErrSession';
+export const SESSION_KEY = 'err.session';
 /** localStorage: reports waiting for the network */
-export const QUEUE_KEY = 'wsErrQueue';
+export const QUEUE_KEY = 'err.queue';
 
 export type ContextValue = string | number | boolean | number[] | null;
 export interface ErrorPayload {
@@ -219,16 +222,20 @@ export function safeUrl(href: string): string {
 }
 
 /** Fatal level loads use the existing durable inbox queue and the configured Sentry channel. */
-export function reportError(failure: LoadFailure): Promise<ReportOutcome> {
+export function reportError(failure: LoadFailure | SchemaFailure): Promise<ReportOutcome> {
+  if ('issue' in failure) {
+    return reportError({ kind: failure.kind, context: { scope: failure.scope, key: failure.key, version: failure.version, issue: failure.issue }, tags: { system: failure.kind, build: '', shard: failure.scope, bootStage: 'save', fatal: false }, name: failure.key, build: '', stage: 'save', message: `${failure.scope}/${failure.key} v${failure.version}: ${failure.issue}`, stack: '' });
+  }
   const error = new Error(failure.message);
   error.stack = failure.stack;
   captureBrowserError(error, failure.tags);
-  const storage = (name: 'localStorage' | 'sessionStorage'): Storage | null => { try { return globalThis[name]; } catch { return null; } };
+  const storage = (name: 'device' | 'session'): ReturnType<typeof saveStorage> => saveStorage(name);
   const reporter = new ErrorReporter({
-    send: sendReport, session: storage('sessionStorage'), local: storage('localStorage'),
+    send: sendReport, session: storage('session'), local: storage('device'),
     context: () => failure.context,
     now: () => performance.now(),
   });
-  return reporter.report(failure.kind, error, { fatal: true });
+  return reporter.report(failure.kind, error, { fatal: failure.kind !== 'save-schema' });
 }
 
+installSaveReporter((failure) => { void reportError(failure).catch(() => { /* retained by the durable reporter */ }); });

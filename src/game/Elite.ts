@@ -1,3 +1,4 @@
+import { elitesSave } from './saves';
 import * as THREE from 'three';
 import type { Animal } from '#engine/entities/Animal';
 import { heightAt } from '#engine/world/Heightfield';
@@ -116,16 +117,15 @@ interface Entry {
   /** dev-spawned (`?elite=`): out whatever its rule */
   forced: boolean;
 }
-interface Saved { timer: number; discovered: boolean; skinTaken: boolean; kills: number; retired: boolean }
-const STORE = 'ws.elites.v1';
-function loadAll(): Record<string, Saved> { try { return (JSON.parse(localStorage.getItem(STORE) ?? '{}') as Record<string, Saved> | null) ?? {}; } catch { return {}; } }
+
 
 const BANNER_R = 80, DISCOVER_R = 60, REARM_T = 60, LEASH_HOME_T = 12, SIGHT_EVERY = 0.2;
 const _h = new THREE.Vector3();
 
 export class Elites {
   readonly entries: Entry[] = [];
-  private saved = loadAll();
+  private readonly slug: string;
+  private saved: ReturnType<typeof elitesSave.read>;
   private saveT = 0;
   private lastDusk = false;
   /** the elite whose bar is up (nearest aware / engaged) */
@@ -133,7 +133,7 @@ export class Elites {
   /** the focus's head in line of sight (re-cast every SIGHT_EVERY s while its bar floats over its head) */
   private seen = true; private sightT = 0;
 
-  constructor(private readonly host: EliteHost, private readonly bar: EliteBar) {}
+  constructor(private readonly host: EliteHost, private readonly bar: EliteBar, slug: string) { this.slug = slug; this.saved = elitesSave.read(slug); }
 
   add(script: EliteScript): void {
     const s = this.saved[script.def.id] ?? { timer: 0, discovered: false, skinTaken: false, kills: 0, retired: false };
@@ -158,7 +158,7 @@ export class Elites {
 
   private save(): void {
     for (const e of this.entries) { const s = this.saved[e.script.def.id]; if (s) { s.timer = e.timer; s.discovered = e.discovered; } }
-    try { localStorage.setItem(STORE, JSON.stringify(this.saved)); } catch { /* not persisted this session */ }
+    elitesSave.write(this.saved, this.slug);
   }
 
   /** the script says this elite moved its signature move now: flash its name the first time */

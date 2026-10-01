@@ -854,7 +854,7 @@ export class NalatiElites {
       ...(play.sting ? { sting: play.sting } : {}),
       ...(play.pickupHum ? { pickupHum: play.pickupHum } : {}),
       ownSkin: (s) => { this.skins.add(s); },
-    }, bar);
+    }, bar, 'nalati-grasslands');
     this.elites = elites;
     const env: Env = {
       game, sky, player, animals: play.animals, elites, bar, wildlife: play.wildlife, taming: play.taming, ghosts: play.ghosts ?? this.ghosts, ledges: this.ctx.ledges,

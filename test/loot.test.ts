@@ -1,3 +1,4 @@
+import { saveFixture } from './fake/saveFixture';
 // E314 stage 1 (src/game/loot/): the purse, the owned store, what a kill is worth and where coins drop, FINDS' counts.
 import { describe, expect, it, vi } from 'vitest';
 import { Purse } from '#game/loot/Purse';
@@ -91,7 +92,7 @@ describe('Owned', () => {
     const o = new Owned(DRIFT);
     o.grant('captain-hat'); o.wear('captain-hat'); o.revoke('captain-hat');
     expect(o.worn('captain-hat')).toBe(false);
-    localStorage.setItem('ws.owned.v1', JSON.stringify({ [DRIFT]: { owned: ['iron-sword', 'hoverboard-fin'], worn: ['cape'] } }));
+    saveFixture(DRIFT.replace(/^chunk:\/\/local\//u, ''), 'owned', { owned: ['iron-sword', 'hoverboard-fin'], worn: ['cape'] });
     const r = new Owned(DRIFT);
     expect(r.all).toEqual(['iron-sword']);
     expect(r.worn('cape')).toBe(false); // not owned → not worn

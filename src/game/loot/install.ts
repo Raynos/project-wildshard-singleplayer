@@ -1,4 +1,3 @@
-import { legacyShardId } from '../shard/manifest';
 /**
  * installLoot — the shard's loot wired into the running game in one call from main.ts (E314 stage 1,
  * project/archive/2026-09-30-driftwood-loot.md). main.ts builds the shard's Owned store first (the iron sword is kept there); a shard
@@ -77,7 +76,7 @@ export function installLoot<A extends LootAnimal>(h: LootHost<A>): Loot {
   const owned = h.owned;
   if (!coinsOn(h.chunk)) return { purse: null, dispose: () => undefined };
 
-  const purse = new Purse(legacyShardId(h.chunk.slug));
+  const purse = new Purse(h.chunk.slug);
   const chip = new CoinChip(purse.coins);
   purse.onChange((n) => { chip.set(n); });
   const burst = new CoinBurst(h.game.scene);
@@ -92,7 +91,7 @@ export function installLoot<A extends LootAnimal>(h: LootHost<A>): Loot {
   const sfx = new IslandSfx(h.audio);
   // each enemy pays once (Jake, 2026-09-30): a respawn's kill pays nothing (Bounty.ts); the census is the island as it starts
   const census = Bounty.census(h.animals.animals);
-  const bounty = new Bounty(legacyShardId(h.chunk.slug), census);
+  const bounty = new Bounty(h.chunk.slug, census);
   let fullClear = 0;
   for (const [k, n] of census) fullClear += n * coinsFor(h.chunk, k.split(':')[0] ?? k);
   for (const lone of ['sailor', 'captain']) if (!census.has(lone)) fullClear += coinsFor(h.chunk, lone); // they rise later

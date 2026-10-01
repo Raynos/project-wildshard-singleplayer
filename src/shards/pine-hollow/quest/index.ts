@@ -1,3 +1,5 @@
+import * as v from 'valibot';
+import { saves, jsonSchema,boxInFrame } from '#engine';
 /**
  * Pine Hollow's adventure layer, wired in one call from main.ts (PINE-HOLLOW-REMASTER: PH-C1 the quest *The Warden's
  * Hollow*, PH-C6 the mill hamlet, PH-C7 night play, PH-C8 collectibles + secrets, PH-C10's event achievements, the C9
@@ -23,7 +25,6 @@ import type { Player } from '#engine/player/Player';
 import type { AnimalManager } from '#engine/entities/AnimalManager';
 import type { Animal } from '#engine/entities/Animal';
 import type { Interactable, Cabins } from '#engine/world/Cabin';
-import { boxInFrame } from '#engine';
 import type { WorldRegistry } from '#engine/world/registry';
 import type { HUD } from '#engine/ui/HUD';
 import type { Audio } from '#engine/audio/Audio';
@@ -64,6 +65,8 @@ import { placeTokenShelf } from './tokenShelf';
 import { markUnload } from '#engine/boot/lastEnd';
 import { BeaverPool } from '../world/beaverPool';
 import { perfLap } from '#engine/core/perfLap';
+
+const lodgeSave = saves.define({ key: 'lodge', scope: 'shard', version: 1, schema: jsonSchema, initial: () => null });
 
 export interface PineQuestHost {
   game: Game; sky: Sky; player: Player; animals: AnimalManager;
@@ -288,7 +291,7 @@ export function installPineQuest(h: PineQuestHost): PineQuest {
   });
 
   // ── the lodge's contract board ──
-  const store = ((): Storage | null => { try { return localStorage; } catch { return null; } })();
+  const store = { getItem: (_key: string): string => JSON.stringify(lodgeSave.read('pine-hollow')), setItem: (_key: string, raw: string): void => { lodgeSave.write(v.parse(jsonSchema, JSON.parse(raw) as unknown), 'pine-hollow'); } };
   const board: Board = loadBoard(store);
   const boardUi = new BoardPanel(() => board);
   boardUi.onClaim = (i) => {

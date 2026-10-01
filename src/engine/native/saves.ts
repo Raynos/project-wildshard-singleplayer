@@ -12,7 +12,19 @@
  */
 import { Preferences } from '@capacitor/preferences';
 
-const PREFIX = 'ws.';
+import { installLegacyMirror } from '../saves/runtime';
+
+export function isMirroredSave(key: string): boolean {
+  if (key.startsWith('ws.ota.')) return true;
+  if (!key.startsWith('wildshard.save.v2.')) return false;
+  const scope = key.slice('wildshard.save.v2.'.length);
+  return scope !== 'device' && scope !== 'session' && /^[a-z0-9]+(?:-[a-z0-9]+)*$/u.test(scope);
+}
+
+export function forgetLegacy(keys: readonly string[]): void {
+  for (const key of keys) queue(() => Preferences.remove({ key }));
+}
+installLegacyMirror(forgetLegacy);
 
 let chain: Promise<void> = Promise.resolve();
 
@@ -28,13 +40,13 @@ function queue(write: () => Promise<void>): void {
 /** Preferences → localStorage, then mirror every later `ws.*` write back. Call once, before the game loads. */
 export async function hydrateSaves(): Promise<number> {
   const { keys } = await Preferences.keys();
-  const ours = keys.filter((k) => k.startsWith(PREFIX));
+  const ours = keys.filter((key) => isMirroredSave(key) || key.startsWith('ws.'));
   const rows = await Promise.all(ours.map(async (key) => ({ key, value: (await Preferences.get({ key })).value })));
   for (const { key, value } of rows) if (value !== null) localStorage.setItem(key, value);
   // A save the WebView still holds but Preferences never saw (a first launch after installing this mirror): keep it.
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i);
-    if (key?.startsWith(PREFIX) === true && !ours.includes(key)) {
+    if (key !== null && isMirroredSave(key) && !ours.includes(key)) {
       const value = localStorage.getItem(key);
       if (value !== null) queue(() => Preferences.set({ key, value }));
     }
@@ -45,11 +57,11 @@ export async function hydrateSaves(): Promise<number> {
   const nativeSet = proto.setItem, nativeRemove = proto.removeItem;
   proto.setItem = function setItem(this: Storage, key: string, value: string): void {
     nativeSet.call(this, key, value);
-    if (this === localStorage && key.startsWith(PREFIX)) queue(() => Preferences.set({ key, value }));
+    if (this === localStorage && isMirroredSave(key)) queue(() => Preferences.set({ key, value }));
   };
   proto.removeItem = function removeItem(this: Storage, key: string): void {
     nativeRemove.call(this, key);
-    if (this === localStorage && key.startsWith(PREFIX)) queue(() => Preferences.remove({ key }));
+    if (this === localStorage && isMirroredSave(key)) queue(() => Preferences.remove({ key }));
   };
   return rows.length;
 }

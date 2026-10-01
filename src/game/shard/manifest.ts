@@ -686,9 +686,6 @@ export type { ShardSlug } from './shards.generated';
 /** Explore entry art is owned by its shard and imported without world code. */
 export interface ExploreSpec { world: string; models: string; sets: string; practice: string }
 
-/** Save keys remain byte-for-byte unchanged until F10 resets the stores. */
-export function legacyShardId(slug: string): string { return `chunk://local/${slug}`; }
-
 export function formatGrid(grid: readonly [number, number]): string {
   const signed = (n: number): string => n < 0 ? `−${-n}` : `+${n}`;
   return `(${signed(grid[0])}, ${signed(grid[1])})`;

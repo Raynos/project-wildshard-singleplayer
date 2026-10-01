@@ -1,3 +1,4 @@
+import { compendiumSave, saveSlug } from '../saves';
 /**
  * CompendiumState — the per-entry state machine (unknown → discovered → seen → taken) and its stats, persisted per
  * shard in localStorage ('ws.compendium.v1', keyed by chunk id, like ws.progress.v1 / ws.inventory.v1). The in-memory
@@ -14,7 +15,7 @@
  */
 import { STATE_ORDER, type EntryDef, type EntryState, type EntryStats, type ShardCompendium } from './types';
 
-export const COMPENDIUM_STORE = 'ws.compendium.v1';
+export const COMPENDIUM_STORE = 'compendium';
 
 /** one entry's save: s = STATE_ORDER index, n = seen, t = taken, b = best kg */
 interface Saved { s: number; n: number; t: number; b: number }
@@ -22,18 +23,10 @@ type ShardSave = Record<string, Saved>;
 
 const num = (v: unknown, lo = 0): number => (typeof v === 'number' && Number.isFinite(v) ? Math.max(lo, v) : lo);
 
-function loadAll(): Record<string, unknown> {
-  try {
-    const v: unknown = JSON.parse(localStorage.getItem(COMPENDIUM_STORE) ?? '{}');
-    return typeof v === 'object' && v !== null && !Array.isArray(v) ? (v as Record<string, unknown>) : {};
-  } catch { return {}; }
-}
-
 /** a shard's save, cleaned: unknown ids dropped, every field a finite number in range */
 function loadShard(chunkId: string, ids: ReadonlySet<string>): ShardSave {
-  const raw = loadAll()[chunkId];
+  const raw = compendiumSave.read(saveSlug(chunkId));
   const out: ShardSave = {};
-  if (typeof raw !== 'object' || raw === null) return out;
   for (const [id, v] of Object.entries(raw as Record<string, unknown>)) {
     if (!ids.has(id) || typeof v !== 'object' || v === null) continue;
     const r = v as Record<string, unknown>;
@@ -111,11 +104,5 @@ export class CompendiumState {
   /** how many of a tab's entries have reached `at` */
   count(tab: string, at: EntryState): number { return this.tab(tab).filter((e) => this.reached(e.id, at)).length; }
 
-  private persist(): void {
-    try {
-      const all = loadAll();
-      all[this.def.chunkId] = this.save;
-      localStorage.setItem(COMPENDIUM_STORE, JSON.stringify(all));
-    } catch { /* not persisted this session */ }
-  }
+  private persist(): void { compendiumSave.write(this.save, saveSlug(this.def.chunkId)); }
 }

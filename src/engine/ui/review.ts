@@ -1,3 +1,4 @@
+import { saveStorage } from '#engine/saves/slots';
 // src/engine/ui/review.ts — the review inbox's always-loaded half (project/archive/2026-09-22-feedback-inbox.md): the Settings REVIEW unlock, the
 // Quick note switch, and sending a note (with an offline queue). The composer itself (quick bar, sheet, pen) is the lazy
 // src/engine/ui/Feedback.ts; the server is api/inbox.ts; notes come down with `pnpm inbox:pull`.
@@ -16,8 +17,8 @@ export type ContextValue = string | number | boolean | number[];
 export interface NotePayload { note: string; category: Category; context: Record<string, ContextValue>; screenshot: string | null }
 export interface StorageLike { getItem: (k: string) => string | null; setItem: (k: string, v: string) => void; removeItem: (k: string) => void }
 
-const KEY = 'ws.review.v1';
-const QUEUE_KEY = 'ws.review.queue.v1';
+const KEY = 'review';
+const QUEUE_KEY = 'review.queue';
 /** a queued note carries a ≤ 300 KB screenshot; localStorage holds ~5 MB, shared with the saves */
 export const QUEUE_MAX = 6;
 /** the native shells (Capacitor) have no same-origin /api: they post to production (CORS in api/inbox.ts) */
@@ -25,7 +26,7 @@ export const INBOX_URL = import.meta.env.MODE === 'native' ? 'https://wildshard-
 
 interface ReviewState { password: string | null; quick: boolean }
 
-const storage = (): StorageLike | null => { try { return typeof localStorage === 'undefined' ? null : localStorage; } catch { return null; } };
+const storage = (): StorageLike | null => saveStorage('global');
 
 export function loadState(s: StorageLike | null = storage()): ReviewState {
   try {

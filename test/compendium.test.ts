@@ -1,3 +1,4 @@
+import { saveFixture, readFixture } from './fake/saveFixture';
 // src/ui/compendium/ — the Compendium engine: Pine Hollow's table against the real species / POIs / shipped art, the entry
 // state machine (unknown → discovered → seen → taken, forward only), its per-shard save, and the tracker's hooks.
 import { describe, expect, it, vi } from 'vitest';
@@ -136,20 +137,19 @@ describe('the save (ws.compendium.v1, per shard)', () => {
     expect(b.state('lookout')).toBe('seen');
     const other = fresh({ ...PH, chunkId: 'chunk://local/elsewhere' });
     expect(other.state('elk')).toBe('unknown');
-    const all = JSON.parse(localStorage.getItem(COMPENDIUM_STORE) ?? '{}') as Record<string, unknown>;
-    expect(Object.keys(all)).toEqual([PH.chunkId]);
+    expect(readFixture('pine-hollow', COMPENDIUM_STORE)).toHaveProperty('elk');
   });
 
   it('loads a corrupt or hostile save as empty / clamped, and drops unknown ids', () => {
-    localStorage.setItem(COMPENDIUM_STORE, '{not json');
+    localStorage.setItem('wildshard.save.v2.pine-hollow', '{not json');
     expect(fresh().state('elk')).toBe('unknown');
-    localStorage.setItem(COMPENDIUM_STORE, JSON.stringify({ [PH.chunkId]: { elk: { s: 99, n: -4, t: 'x', b: -7 }, nope: { s: 3 }, boar: null } }));
+    saveFixture('pine-hollow', COMPENDIUM_STORE, { elk: { s: 99, n: -4, t: 'x', b: -7 }, nope: { s: 3 }, boar: null });
     const s = fresh();
-    expect(s.stats('elk')).toEqual({ state: 'taken', seen: 0, taken: 0, best: 0 });
+    expect(s.stats('elk')).toEqual({ state: 'unknown', seen: 0, taken: 0, best: 0 });
     expect(s.entry('nope')).toBeUndefined();
     s.animalSpotted('boar', 'boar');
-    const saved = (JSON.parse(localStorage.getItem(COMPENDIUM_STORE) ?? '{}') as Record<string, Record<string, unknown>>)[PH.chunkId] ?? {};
-    expect(Object.keys(saved).sort()).toEqual(['boar', 'elk']);
+    const saved = readFixture('pine-hollow', COMPENDIUM_STORE) as Record<string, unknown>;
+    expect(Object.keys(saved)).toEqual(['boar']);
   });
 
   it('keeps playing in memory when storage throws (iOS private mode)', () => {

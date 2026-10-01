@@ -1,6 +1,10 @@
+import * as v from 'valibot';
+import { saves } from '../saves/runtime';
 import * as THREE from 'three';
 import type { Sky } from '../world/Sky';
 import { fixIBL, isMesh, VIEWMODEL_GROUP, type Crossbow } from './Crossbow';
+
+const skinSave = saves.define({ key: 'skins', scope: 'shard', version: 1, schema: v.object({ owned: v.array(v.string()), worn: v.record(v.string(), v.string()) }), initial: () => ({ owned: [] as string[], worn: {} as Record<string, string> }) });
 
 /**
  * Weapon skins — the legendary drops (art/skins/round-1/skin-*.png). A skin restyles the EXISTING crossbow / rifle model (the
@@ -277,20 +281,19 @@ function antlerTines(root: THREE.Object3D, mat: THREE.Material | undefined): THR
 
 // ───────────────────────────── ownership ─────────────────────────────
 
-const STORE = 'ws.skins.v1';
 
 /** What you own and what each weapon wears; persisted (skins are yours across shards). */
 export class SkinLocker {
   private owned = new Set<SkinId>();
   private worn: Partial<Record<WeaponKind, SkinId>> = {};
-  constructor() {
+  constructor(private readonly namespace: string) {
     try {
-      const s = JSON.parse(localStorage.getItem(STORE) ?? '{}') as { owned?: SkinId[]; worn?: Partial<Record<WeaponKind, SkinId>> };
+      const s = skinSave.read(this.namespace) as { owned?: SkinId[]; worn?: Partial<Record<WeaponKind, SkinId>> };
       for (const id of s.owned ?? []) if (id in SKINS) this.owned.add(id);
       for (const [w, id] of Object.entries(s.worn ?? {})) if (id in SKINS) this.worn[w as WeaponKind] = id;
     } catch { /* defaults */ }
   }
-  private save(): void { try { localStorage.setItem(STORE, JSON.stringify({ owned: [...this.owned], worn: this.worn })); } catch { /* not persisted */ } }
+  private save(): void { try { skinSave.write({ owned: [...this.owned], worn: this.worn }, this.namespace); } catch { /* not persisted */ } }
   has(id: SkinId): boolean { return this.owned.has(id); }
   own(id: SkinId): void { if (!this.owned.has(id)) { this.owned.add(id); this.save(); } }
   /** the skin `weapon` wears, if any */

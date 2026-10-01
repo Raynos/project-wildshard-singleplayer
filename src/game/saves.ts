@@ -15,7 +15,7 @@ export const compendiumSave = define('compendium', v.record(v.string(), v.object
 export const bossesSave = define('bosses', v.record(v.string(), v.object({ defeated: v.boolean(), rewardTaken: v.boolean(), kills: finite })), () => ({}));
 export const elitesSave = define('elites', v.record(v.string(), v.object({ timer: finite, discovered: v.boolean(), skinTaken: v.boolean(), kills: finite, retired: v.boolean() })), () => ({}));
 /** The public game wrapper constrains saves to the generated registry's slug union. */
-export function shardSlot<T>(slot: SaveSlot<T>, slug: ShardSlug): { read: () => T; write: (data: T) => void; reset: () => void } {
+export function shardSave<T>(slot: SaveSlot<T>, slug: ShardSlug): { read: () => T; write: (data: T) => void; reset: () => void } {
   return { read: () => slot.read(slug), write: (data) => { slot.write(data, slug); }, reset: () => { slot.reset(slug); } };
 }
 /** Legacy actor APIs accept strings until their shard phase; normalize the old identifier at this boundary. */

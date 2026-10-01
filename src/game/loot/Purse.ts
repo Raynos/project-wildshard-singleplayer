@@ -11,9 +11,8 @@
  *   purse.coins                   // the total (the HUD chip, GEAR)
  *   purse.onChange((n, delta) => chip.set(n))   // returns an unsubscribe
  */
-import { readShard, writeShard } from './store';
+import { purseSave, saveSlug } from '../saves';
 
-const STORE = 'ws.purse.v1';
 
 export class Purse {
   private n: number;
@@ -21,7 +20,7 @@ export class Purse {
   private listeners: ((coins: number, delta: number) => void)[] = [];
 
   constructor(readonly shard: string) {
-    const saved = readShard(STORE, shard);
+    const saved = purseSave.read(saveSlug(shard));
     this.n = typeof saved === 'number' && Number.isFinite(saved) && saved > 0 ? Math.floor(saved) : 0;
   }
 
@@ -47,7 +46,7 @@ export class Purse {
   flush(): void {
     if (!this.dirty) return;
     this.dirty = false;
-    writeShard(STORE, this.shard, this.n);
+    purseSave.write(this.n, saveSlug(this.shard));
   }
 
   onChange(fn: (coins: number, delta: number) => void): () => void {

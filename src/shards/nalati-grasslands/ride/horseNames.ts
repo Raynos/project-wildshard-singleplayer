@@ -1,4 +1,8 @@
+import * as v from 'valibot';
+import { saves } from '#engine';
 import type { Animal } from '#engine/entities/Animal';
+
+const savedSlot = saves.define({ key: 'horseNames', scope: 'shard', version: 1, schema: v.record(v.string(), v.string()), initial: () => ({}) });
 
 /**
  * The names you give your horses at the hitching rail (NALATI-FINISH B1, N13 "renaming the horse at the rail"). Kept in
@@ -11,7 +15,6 @@ import type { Animal } from '#engine/entities/Animal';
  *   savedHorseName(key) → string | null ;  saveHorseName(key, name) ;  horseKey(a, registeredName)
  */
 
-const STORE = 'ws.nalati.horseNames';
 export const HORSE_NAME_MAX = 16;
 const GRAPHEMES = new Intl.Segmenter(undefined, { granularity: 'grapheme' });
 
@@ -26,17 +29,7 @@ export function cleanHorseName(raw: string): string {
 /** a horse's key in the store: the name it was registered under + its kind and variant ('Camp horse|horse:camp-bay') */
 export const horseKey = (a: Pick<Animal, 'kind' | 'variant'>, registered: string): string => `${registered}|${a.kind}:${a.variant}`;
 
-function readAll(): Record<string, string> {
-  try {
-    const raw = localStorage.getItem(STORE);
-    if (raw === null) return {};
-    const v: unknown = JSON.parse(raw);
-    if (typeof v !== 'object' || v === null) return {};
-    const out: Record<string, string> = {};
-    for (const [k, n] of Object.entries(v)) if (typeof n === 'string') out[k] = n;
-    return out;
-  } catch { return {}; }
-}
+function readAll(): Record<string, string> { return savedSlot.read('nalati-grasslands'); }
 
 export function savedHorseName(key: string): string | null {
   const n = readAll()[key];
@@ -47,6 +40,6 @@ export function saveHorseName(key: string, name: string): void {
   try {
     const all = readAll();
     all[key] = name;
-    localStorage.setItem(STORE, JSON.stringify(all));
+    savedSlot.write(all, 'nalati-grasslands');
   } catch { /* no storage: the name lasts this session */ }
 }

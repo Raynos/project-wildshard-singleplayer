@@ -1,7 +1,8 @@
+import { saveStorage } from '#engine/saves/slots';
 /**
  * pause ▸ Settings ▸ Debug and main menu ▸ Settings ▸ Debug (E172: one registry, both menus), rendered from the registry (E162, src/engine/ui/debugOptions.ts): a filter box, then one section per
  * group — collapsed by default, its header says how many toggles it holds here, its open / closed state remembered
- * (localStorage `ws.debug.open`). Only the rows that apply to this shard (and the weapons held) show, and a group with none
+ * (localStorage `debug.open`). Only the rows that apply to this shard (and the weapons held) show, and a group with none
  * is hidden. Typing in the filter opens every group with a match and hides the rest. Styled by src/engine/ui/styles/debug.css
  * (prefix ws-dbg-); the rows reuse the menu's own row / segmented-picker look (gmenu.css).
  *
@@ -18,11 +19,13 @@ import { DEBUG_GROUPS, DEBUG_READOUTS, DEBUG_ROWS, type DebugActionSpec, type De
 import { settingsReloadUrl } from './Settings';
 import { markUnload } from '../boot/lastEnd';
 
-const OPEN_KEY = 'ws.debug.open';
+const savedStorage = saveStorage('device');
+
+const OPEN_KEY = 'debug.open';
 const loadOpen = (): Set<string> => {
-  try { const raw = localStorage.getItem(OPEN_KEY); const v: unknown = raw === null ? [] : JSON.parse(raw); return new Set(Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : []); } catch { return new Set(); }
+  try { const raw = savedStorage.getItem(OPEN_KEY); const v: unknown = raw === null ? [] : JSON.parse(raw); return new Set(Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : []); } catch { return new Set(); }
 };
-const saveOpen = (s: ReadonlySet<string>): void => { try { localStorage.setItem(OPEN_KEY, JSON.stringify([...s])); } catch { /* storage blocked: not remembered */ } };
+const saveOpen = (s: ReadonlySet<string>): void => { try { savedStorage.setItem(OPEN_KEY, JSON.stringify([...s])); } catch { /* storage blocked: not remembered */ } };
 
 const make = (cls: string, text = '', tag = 'div'): HTMLElement => { const e = document.createElement(tag); e.className = cls; if (text) e.textContent = text; return e; };
 

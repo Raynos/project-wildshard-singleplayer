@@ -13,8 +13,8 @@ describe('resume screen', () => {
 
   it('the inline script reads the same reload flag and still key', () => {
     expect(html).toContain(`.has('${RELOAD_PARAM}')`);
-    expect(html).toContain(`sessionStorage.getItem('${SHOT_KEY}')`);
-    expect(html).toContain(`sessionStorage.getItem('${BRAND_KEY}')`);
+    expect(html).toContain(`keys?.['${SHOT_KEY}']?.data`);
+    expect(html).toContain(`keys?.['${BRAND_KEY}']?.data`);
   });
 
   it('links its stylesheet from the head (styled before any bundle runs)', () => {

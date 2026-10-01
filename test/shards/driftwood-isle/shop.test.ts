@@ -46,7 +46,7 @@ describe('buying', () => {
   });
 
   it('a sale spends the price and grants the good once; a refused one changes nothing', () => {
-    const owned = new Owned(`${SHARD}/2`), purse = new Purse(`${SHARD}/2`);
+    const owned = new Owned(`${SHARD}-2`), purse = new Purse(`${SHARD}-2`);
     const heart1 = GOODS.find((g) => g.id === 'heart-1'), heart2 = GOODS.find((g) => g.id === 'heart-2');
     if (!heart1 || !heart2) throw new Error('goods');
     purse.add(heart1.price + 3);
@@ -60,7 +60,7 @@ describe('buying', () => {
   });
 
   it('every good bought with exactly the goods total leaves the purse at 0', () => {
-    const owned = new Owned(`${SHARD}/3`), purse = new Purse(`${SHARD}/3`);
+    const owned = new Owned(`${SHARD}-3`), purse = new Purse(`${SHARD}-3`);
     purse.add(goodsTotal());
     for (const g of GOODS) expect(buyGood(g, owned, purse)).toBe(true);
     expect(purse.coins).toBe(0);

@@ -1,4 +1,4 @@
-import { terrainFor, legacyShardId, type ShardManifest } from '#game/shard/manifest';
+import { terrainFor, type ShardManifest } from '#game/shard/manifest';
 // src/chunks/* — every authored shard satisfies the ShardManifest contract and the Wildshard fundamentals
 // (500 m square, four entry roads level with no-man's-land at the edge midpoints), and the registry switches cleanly.
 import { describe, expect, it, vi } from 'vitest';
@@ -18,9 +18,9 @@ const EDGE_MIDPOINTS: [number, number][] = [[0, -CHUNK_HALF], [0, CHUNK_HALF], [
 describe('chunk registry data', () => {
   it('ids and slugs are unique and ids follow chunk://local/<slug>', () => {
     expect(new Set(PLAYABLE_SHARDS.map((c) => c.slug)).size).toBe(PLAYABLE_SHARDS.length);
-    expect(new Set(PLAYABLE_SHARDS.map((c) => legacyShardId(c.slug))).size).toBe(PLAYABLE_SHARDS.length);
+    expect(new Set(PLAYABLE_SHARDS.map((c) => c.slug)).size).toBe(PLAYABLE_SHARDS.length);
     for (const c of PLAYABLE_SHARDS) {
-      expect(legacyShardId(c.slug)).toBe(`chunk://local/${c.slug}`);
+      expect(c.slug).toMatch(/^[a-z0-9-]+$/u);
       expect(c.slug).toMatch(/^[a-z0-9-]+$/);
     }
     expect(findChunk(DEFAULT_CHUNK)).toBeDefined();
@@ -152,7 +152,7 @@ describe('chunk registry switching', () => {
 
     expect(setActiveChunk(other.slug)).toBe(other);
     expect(config.SEED).toBe(other.seed);
-    expect(config.CHUNK_ID).toBe(legacyShardId(other.slug));
+    expect(config.CHUNK_ID).toBe(other.slug);
     expect(config.TREE_COUNT).toBe(other.treeCount);
     setActiveChunk(other.slug); // same chunk: no second notification
     expect(seen).toHaveBeenCalledTimes(1);

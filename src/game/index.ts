@@ -5,4 +5,4 @@ export { shardContext, type ShardContext, type GameServices, type GameRows, type
 export { toLevelSpec } from './shard/spec';
 export type { ShardManifest } from './shard/manifest';
 
-export { progressSave, inventorySave, purseSave, ownedSave, bountySave, compendiumSave, bossesSave, elitesSave, saveSlug, shardSlot } from './saves';
+export { progressSave, inventorySave, purseSave, ownedSave, bountySave, compendiumSave, bossesSave, elitesSave, saveSlug, shardSave } from './saves';

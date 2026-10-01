@@ -1,3 +1,5 @@
+import globalFixture from '../fixtures/saves/v2-global.json';
+import driftFixture from '../fixtures/saves/v2-driftwood-isle.json';
 import { describe, expect, it, vi } from 'vitest';
 import * as v from 'valibot';
 import { SaveStore, type SchemaFailure } from '#engine/saves/store';
@@ -99,4 +101,21 @@ describe('SaveStore in node', () => {
     expect(local.getItem('wildshard.save.v2.device')).toContain('"storage.persisted":{"v":1,"data":true}');
     expect(store.exportAll()).not.toContain('storage.persisted');
   });
+});
+
+it('loads the v2 fixture corpus and round-trips purse, owned and progress', () => {
+  const first = fixture(), second = fixture();
+  for (const f of [first, second]) {
+    f.store.define({ scope: 'global', key: 'settings', version: 1, schema: v.record(v.string(), v.string()), initial: () => ({}) });
+  }
+  first.local.setItem('wildshard.save.v2.global', JSON.stringify(globalFixture));
+  first.local.setItem('wildshard.save.v2.driftwood-isle', JSON.stringify(driftFixture));
+  for (const key of ['purse', 'owned', 'progress']) {
+    const schema = key === 'purse' ? v.number() : v.record(v.string(), v.unknown());
+    first.store.define({ scope: 'shard', key, version: 1, schema, initial: () => key === 'purse' ? 0 : {} });
+    second.store.define({ scope: 'shard', key, version: 1, schema, initial: () => key === 'purse' ? 0 : {} });
+  }
+  const report = second.store.importAll(first.store.exportAll());
+  expect(report.imported).toEqual(expect.arrayContaining(['driftwood-isle/purse', 'driftwood-isle/owned', 'driftwood-isle/progress']));
+  expect(second.local.getItem('wildshard.save.v2.driftwood-isle')).toBe(first.local.getItem('wildshard.save.v2.driftwood-isle')?.trim());
 });

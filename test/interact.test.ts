@@ -11,7 +11,7 @@ const items = Object.keys(ITEMS);
 
 describe('Flags', () => {
   it('sets, clears, toggles, counts by prefix and tells listeners', () => {
-    const f = new Flags('chunk://test/a');
+    const f = new Flags('a');
     const seen: string[] = [];
     f.onChange((flag, on) => { seen.push(`${on ? "+" : "-"}${flag}`); });
     f.set('glass:1'); f.set('glass:2'); f.set('glass:2');
@@ -23,19 +23,19 @@ describe('Flags', () => {
   });
 
   it('persists per shard, but never the transient plate flags', () => {
-    const a = new Flags('chunk://test/a');
+    const a = new Flags('a');
     a.set('open:chest'); a.set('plate:p1');
-    new Flags('chunk://test/b').set('open:other');
-    const again = new Flags('chunk://test/a');
+    new Flags('b').set('open:other');
+    const again = new Flags('a');
     expect(again.has('open:chest')).toBe(true);
     expect(again.has('plate:p1')).toBe(false);
     expect(again.has('open:other')).toBe(false);
     again.reset();
-    expect(new Flags('chunk://test/a').all).toEqual([]);
+    expect(new Flags('a').all).toEqual([]);
   });
 
   it('survives a storage that throws (iOS private mode)', () => {
-    const f = new Flags('chunk://test/c', false);
+    const f = new Flags('c', false);
     f.set('x:y');
     expect(f.has('x:y')).toBe(true);
   });

@@ -1,7 +1,10 @@
+import { saveStorage } from '#engine';
 /** A shard change navigates to a fresh page. iOS Safari must release the old renderer and JS heap before the next boot. */
 import { chunkUrl, findChunk } from '../shard/registry';
 import { markUnload } from '#engine/boot/lastEnd';
 import { setTitleArrival } from '#engine/boot/titleArrival';
+
+const arrivalSave = saveStorage('session');
 
 export interface ShardRequest {
   /** into the world (ENTER WORLD) */
@@ -16,12 +19,12 @@ export interface ShardMemory { cap: number; shards: { slug: string; running: boo
 interface Switcher { memory: () => ShardMemory }
 
 let switcher: Switcher | null = null;
-const ARENA_ARRIVAL = 'ws.shardArrival.arena';
+const ARENA_ARRIVAL = 'shardArrival.arena';
 /** A practice-room selection crosses a page navigation without a new URL switch. */
 export function consumeArenaArrival(slug: string): boolean {
   try {
-    const saved = sessionStorage.getItem(ARENA_ARRIVAL);
-    sessionStorage.removeItem(ARENA_ARRIVAL);
+    const saved = arrivalSave.getItem(ARENA_ARRIVAL);
+    arrivalSave.removeItem(ARENA_ARRIVAL);
     return saved === slug;
   } catch { return false; }
 }
@@ -33,8 +36,8 @@ export function requestShard(slug: string, req: ShardRequest = {}): void {
   if (!findChunk(slug)) return;
   setTitleArrival({ slug, mode: req.arena === true ? 'arena' : req.explore === true ? 'explore' : 'enter' });
   try {
-    if (req.arena === true) sessionStorage.setItem(ARENA_ARRIVAL, slug);
-    else sessionStorage.removeItem(ARENA_ARRIVAL);
+    if (req.arena === true) arrivalSave.setItem(ARENA_ARRIVAL, slug);
+    else arrivalSave.removeItem(ARENA_ARRIVAL);
   } catch { /* the target page opens on its title if session storage is unavailable */ }
   const u = new URL(chunkUrl(slug));
   for (const name of ['at', 'glreload', 'x', 'z', 'yaw', 'pitch', 'explore', 'cam', 'model', 'skipintro', 'tour', 'quest', 'drop']) u.searchParams.delete(name);

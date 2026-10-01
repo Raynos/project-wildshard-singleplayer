@@ -1,3 +1,5 @@
+import * as valibot from 'valibot';
+import { saves } from '#engine';
 import * as THREE from 'three';
 import type { Sky } from '#engine/world/Sky';
 import type { Weapons } from '#engine/player/Weapons';
@@ -10,6 +12,8 @@ import type { Audio } from '#engine/audio/Audio';
 import type { PineHollowSfx, PhShot } from '../audio/sfx';
 import { BOLT_KINDS, BOLT_LABEL, BOLT_NAME, POUCH_MAX, Quiver, boltDamage, boltFlight, type AmmoKind, type BoltKind } from './ammo';
 import type { Owned } from '#game/loot/Owned';
+
+const savedSlot = saves.define({ key: 'loadout', scope: 'shard', version: 1, schema: valibot.object({ pitch: valibot.optional(valibot.pipe(valibot.number(), valibot.finite())), broadhead: valibot.optional(valibot.pipe(valibot.number(), valibot.finite())), rounds: valibot.optional(valibot.pipe(valibot.number(), valibot.finite())), arrows: valibot.optional(valibot.pipe(valibot.number(), valibot.finite())) }), initial: () => ({}) });
 
 /**
  * Pine Hollow's LOADOUT (PINE-HOLLOW-REMASTER PH-C11; ranged only, PH-U15): the crossbow (the hero), the lever-action
@@ -63,7 +67,6 @@ export interface PineLoadout {
   update: (dt: number) => void;
 }
 
-const STORE = 'ws.ph.loadout.v1';
 const ECHO_DELAY = 0.42, ECHO_GAIN = 0.55;
 /** the bolt dress per kind: a uniform-only tint of the iron bolt's material (no program) */
 const TINT: Readonly<Record<Exclude<BoltKind, 'iron'>, { color: number; roughness: number }>> = {
@@ -91,7 +94,7 @@ export function restoreKept(inventory: Pick<Inventory, 'had'>, owned: Pick<Owned
 export function installPineLoadout(h: PineLoadoutHost): PineLoadout {
   const { weapons, crossbow, rifle, longbow, hud, audio, inventory, owned, params } = h;
   let saved: Partial<Record<BoltKind | 'rounds' | 'arrows', number>> = {};
-  try { saved = JSON.parse(localStorage.getItem(STORE) ?? '{}') as typeof saved; } catch { /* defaults */ }
+  try { saved = savedSlot.read('pine-hollow'); } catch { /* defaults */ }
   const quiver = new Quiver({ pitch: saved.pitch ?? 0, broadhead: saved.broadhead ?? 0 });
   const num = (v: unknown): number | null => (typeof v === 'number' && Number.isFinite(v) ? Math.max(0, Math.round(v)) : null);
   const rounds = num(saved.rounds), arrows = num(saved.arrows);
@@ -128,7 +131,7 @@ export function installPineLoadout(h: PineLoadoutHost): PineLoadout {
   const save = (): void => {
     if (crossbow) quiver.stash(live());
     kept.rounds = rifle.state.reserve; kept.arrows = longbow.state.bolts;
-    try { localStorage.setItem(STORE, JSON.stringify({ pitch: quiver.counts.pitch, broadhead: quiver.counts.broadhead, rounds: kept.rounds, arrows: kept.arrows })); } catch { /* not persisted */ }
+    try { savedSlot.write({ pitch: quiver.counts.pitch, broadhead: quiver.counts.broadhead, rounds: kept.rounds, arrows: kept.arrows }, 'pine-hollow'); } catch { /* not persisted */ }
     dirty = false;
   };
 

@@ -1,3 +1,4 @@
+import { buildSavePanel } from './SavePanel';
 import { app } from '../app/runtime';
 import type { AppState } from '../app/systems';
 import { containMenuInput } from '../input/menuInput';
@@ -546,6 +547,7 @@ export class GameMenu {
     this.debug = buildDebugMenu(dbg);
     // Review is not debug (E140): playtesters unlock notes with it, so it stays in Settings, with the Developer switch
     p.append(this.buildReview(), ...devSwitchRows());
+    panel.append(buildSavePanel());
   }
   /** show only the Settings rows that apply now (E130: the weapons you hold, the shard) — every open and every Settings select */
   private applies(): void {

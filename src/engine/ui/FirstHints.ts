@@ -1,12 +1,15 @@
+import { saveStorage } from '#engine/saves/slots';
 import './styles/hints.css';
 import type { Player } from '../player/Player';
 import { lockOn } from '../player/AimTargets';
+
+const savedStorage = saveStorage('global');
 
 /**
  * FirstHints — first-time control hints, every shard's one system (E308, DRIFTWOOD-TOP10 row 5; Jake's pick A from
  * art/onboarding/round-1-first-minutes/board-1-hint-look.jpg): the first time a control matters, a short label ("DRAG TO
  * MOVE", "TAP TO ATTACK") and a pulsing ring sit ON that very touch control. Each control's hint shows once: it goes the
- * moment the player uses the control (saved in localStorage `ws.hints.v1`, per device, not per shard — a control learnt
+ * moment the player uses the control (saved in localStorage `hints`, per device, not per shard — a control learnt
  * on one shard is known on the next), never while paused or before ENTER WORLD, and a hint that has been up for
  * MAX_SHOWN seconds without the control being used retires anyway, so nothing nags.
  *
@@ -58,7 +61,7 @@ const OBSTACLES = '.ws-touch-disc, .ws-touch-attack, .ws-touch-hover, .ws-touch-
 /** the keys that use a control on a desktop (jump and dodge come through the player's own hooks) */
 const KEYS: Partial<Record<string, HintControl>> = { KeyZ: 'lock', KeyE: 'use' };
 
-const STORE = 'ws.hints.v1';
+const STORE = 'hints';
 /** metres walked from the first frame in that count as having moved */
 const MOVED = 3;
 /** seconds a hint may be up in all without the control being used before it retires */
@@ -72,7 +75,7 @@ const MEASURE_EVERY = 0.25;
 
 function loadSeen(): Set<HintControl> {
   try {
-    const raw = localStorage.getItem(STORE);
+    const raw = savedStorage.getItem(STORE);
     const v: unknown = raw === null ? [] : JSON.parse(raw);
     const all = new Set<string>(Object.keys(HINT_TOUCH));
     return new Set(Array.isArray(v) ? v.filter((x): x is HintControl => typeof x === 'string' && all.has(x)) : []);
@@ -141,7 +144,7 @@ export class FirstHints {
   used(c: HintControl): void {
     if (this.seen.has(c)) return;
     this.seen.add(c);
-    try { localStorage.setItem(STORE, JSON.stringify([...this.seen])); } catch { /* storage blocked: known for this session only */ }
+    try { savedStorage.setItem(STORE, JSON.stringify([...this.seen])); } catch { /* storage blocked: known for this session only */ }
     if (this.current?.control === c) this.show(null);
   }
 

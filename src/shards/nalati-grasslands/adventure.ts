@@ -1,4 +1,4 @@
-import { legacyShardId } from '#game/shard/manifest';
+import { elitesSave } from '#game';
 /**
  * Nalati's adventure layer (NALATI-MERGE Q1–Q5) — the shard's quest line on the shared quest core
  * (src/game/quest/core.ts: the chip, NPC talk, places with saved discovery, chained chapters), wired from main.ts in
@@ -93,14 +93,13 @@ const REWARD: Record<string, { event: string; title: string }> = {
   'father-wind': { event: 'chapter-wind', title: 'Weather Complainer (Successful)' },
 };
 /** the saved elite store (src/game/Elite.ts 'ws.elites.v1'): a named elite felled once (Argymaq: broken) = its storm feather */
-const ELITE_STORE = 'ws.elites.v1';
 /** a chapter's achievement is announced by its reward caption (chapter, title earned): main.ts's generic achievement toast
  *  stays quiet for these, or on the phone three banners stack over the caption saying the same thing */
 export const CAPTIONED_EVENTS: ReadonlySet<string> = new Set(Object.values(REWARD).map((r) => r.event));
 function elitesFelled(): Set<string> {
   const out = new Set<string>();
   try {
-    const all: unknown = JSON.parse(localStorage.getItem(ELITE_STORE) ?? '{}');
+    const all: unknown = elitesSave.read('nalati-grasslands');
     if (typeof all !== 'object' || all === null) return out;
     for (const [id, v] of Object.entries(all as Record<string, unknown>)) if (typeof v === 'object' && v !== null && 'kills' in v && typeof v.kills === 'number' && v.kills > 0) out.add(id);
   } catch { /* nothing saved */ }
@@ -109,7 +108,7 @@ function elitesFelled(): Set<string> {
 
 export function installNalatiAdventure<A extends { kind: string }>(w: NalatiAdventureWorld<A>): NalatiAdventure | null {
   if (w.chunk.slug !== 'nalati-grasslands') return null;
-  const flags = new Flags(legacyShardId(w.chunk.slug));
+  const flags = new Flags(w.chunk.slug);
   if (w.params?.has('resetquest') === true) flags.reset();
   for (const f of (w.params?.get('questflags') ?? '').split(',')) if (f.trim() !== '') flags.set(f.trim());
 

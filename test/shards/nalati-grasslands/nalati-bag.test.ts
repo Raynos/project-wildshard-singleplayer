@@ -1,3 +1,4 @@
+import { saveFixture } from '../../fake/saveFixture';
 // E314 (Jake's pick C, art/loot/round-3-other-shards/board-2-nalati.jpg): Nalati's Bag is MAP · GEAR · FINDS · FEATS —
 // no pack and no harvest, every skin on GEAR (the locked ones say who drops them), FINDS = the 5 elites with their
 // prizes + the places, and Argymaq's prize is the horse (his old drop id 'argymaq' was no skin, silently dropped).
@@ -8,7 +9,6 @@ import { ELITE_DEFS } from '#shards/nalati-grasslands/elites';
 import { FINDS_ELITES, elitePrize, kitName, nalatiFinds, skinRows, skinSource } from '#shards/nalati-grasslands/bag';
 import { NALATI_PLACES } from '#shards/nalati-grasslands/quest';
 
-const STORE = 'ws.inventory.v1';
 const NALATI = 'chunk://local/nalati-grasslands';
 const PINE = 'chunk://local/pine-hollow';
 const DRIFT = 'chunk://local/driftwood-isle';
@@ -39,7 +39,7 @@ describe('the drop list', () => {
   });
 
   it('an old save\'s Nalati pack is dropped on load', () => {
-    localStorage.setItem(STORE, JSON.stringify({ [NALATI]: { counts: { 'wolf-pelt': 4, 'mane-braid': 1, 'gold-plaque': 1 }, order: ['wolf-pelt', 'mane-braid', 'gold-plaque'] } }));
+    saveFixture('nalati-grasslands', 'inventory', { counts: { 'wolf-pelt': 4, 'mane-braid': 1, 'gold-plaque': 1 }, order: ['wolf-pelt', 'mane-braid', 'gold-plaque'] });
     const inv = new Inventory(NALATI);
     expect(inv.items).toEqual([]);
     expect(inv.total).toBe(0);
@@ -69,7 +69,7 @@ describe('GEAR', () => {
   });
 
   it('the SKINS row shows every skin; the ones not owned are locked and say who drops them', () => {
-    localStorage.setItem('ws.nalati.skins.v1', JSON.stringify({ owned: ['irbis-sabre', 'sky-wolf-bow'], worn: { sabre: 'irbis-sabre' } }));
+    saveFixture('nalati-grasslands', 'nalati.skins', { owned: ['irbis-sabre', 'sky-wolf-bow'], worn: { sabre: 'irbis-sabre' } });
     const rows = skinRows(new NalatiSkinLocker());
     expect(rows.map((r) => r.id)).toEqual(NALATI_SKINS.map((s) => s.id));
     expect(rows.filter((r) => r.locked !== true).map((r) => r.id)).toEqual(['irbis-sabre', 'sky-wolf-bow']);
@@ -124,7 +124,7 @@ describe('Argymaq', () => {
   });
 
   it('the other four each pay their own skin, which the locker takes', () => {
-    localStorage.removeItem('ws.nalati.skins.v1');
+    saveFixture('nalati-grasslands', 'nalati.skins', { owned: [], worn: {} });
     const locker = new NalatiSkinLocker();
     for (const id of ['aqbars', 'kokbori', 'qyran', 'qara-batyr']) {
       const skin = ELITE_DEFS[id]?.drop.skin;

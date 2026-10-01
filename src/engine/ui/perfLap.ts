@@ -1,3 +1,4 @@
+import { saveStorage } from '#engine/saves/slots';
 /**
  * The PERF LAP (E350 F-J1, Jake picked "Automate it": the iPhone reading of Pine Hollow's locked 30 fps at the gate, the
  * cabin, the pond, the hamlet, the lookout and the King's clearing, without doing it by hand). One tap on PERF LAP in the
@@ -20,10 +21,12 @@ import { frameCost, BUCKETS, type FrameRecord } from '../core/frameCost';
 import { perfLap, type PerfLapHost, type LapSpot } from '../core/perfLap';
 import { lapSummary, type LapFrame, type LapSpotResult } from './perfLapSummary';
 
+const savedStorage = saveStorage('device');
+
 declare const __BUILD_ID__: string; // vite.config.ts define
 function buildId(): string { try { return __BUILD_ID__; } catch { return ''; } }
 
-export const LAP_STORE = 'ws.perf.lap.v1';
+export const LAP_STORE = 'perf.lap';
 /** still at the spot before recording (the teleport's streaming, LOD swaps and first-draw uploads land here) */
 const SETTLE_MS = 3000;
 /** the recording at each spot, one full turn */
@@ -61,7 +64,7 @@ export class PerfLap {
   onDone: ((text: string) => void) | null = null;
 
   constructor(private readonly game: Game) {
-    try { this.lastText = localStorage.getItem(LAP_STORE) ?? ''; } catch { this.lastText = ''; }
+    try { this.lastText = savedStorage.getItem(LAP_STORE) ?? ''; } catch { this.lastText = ''; }
   }
 
   get running(): boolean { return this.run !== null; }
@@ -182,7 +185,7 @@ export class PerfLap {
       elapsedS: (now - r.t0) / 1000, total: r.host.spots.length, cancelled,
     }, r.done);
     this.lastText = text; this.lastStatus = '';
-    try { localStorage.setItem(LAP_STORE, text); } catch { /* not kept past this load */ }
+    try { savedStorage.setItem(LAP_STORE, text); } catch { /* not kept past this load */ }
     console.info(`[perf lap]\n${text}`);
     Object.assign(window, { __perfLap: { text } });
     this.onStatus?.(null);

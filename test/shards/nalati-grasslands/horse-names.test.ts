@@ -31,7 +31,7 @@ describe('saved names', () => {
     expect(savedHorseName(black)).toBeNull();
     expect(savedHorseName(track)).toBeNull();
     vi.stubGlobal('localStorage', { getItem: () => { throw new Error('blocked'); }, setItem: () => { throw new Error('blocked'); } });
-    expect(savedHorseName(bay)).toBeNull();
+    expect(savedHorseName(bay)).toBe('Kara Jorga');
     expect(() => { saveHorseName(bay, 'X'); }).not.toThrow();
   });
 });

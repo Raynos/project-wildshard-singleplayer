@@ -1,3 +1,4 @@
+import { saveStorage } from '#engine/saves/slots';
 import { app } from '../app/runtime';
 /**
  * ErrorModal — what the player sees when the game hits an error, and the wiring that reports every error (E133).
@@ -49,8 +50,8 @@ const nav: { clipboard?: Clipboard | undefined; hardwareConcurrency?: number | u
 
 function buildId(): string { try { return __BUILD_ID__; } catch { return ''; } }
 function q(el: ParentNode, sel: string): HTMLElement { const e = el.querySelector<HTMLElement>(sel); if (!e) throw new Error(`ErrorModal: no ${sel}`); return e; }
-function session(): Storage | null { try { return sessionStorage; } catch { return null; } }
-function local(): Storage | null { try { return localStorage; } catch { return null; } }
+function session(): ReturnType<typeof saveStorage> { return saveStorage('session'); }
+function local(): ReturnType<typeof saveStorage> { return saveStorage('device'); }
 
 const STYLE = `
   #wserr { position: fixed; inset: 0; z-index: 2147482500; display: flex; align-items: center; justify-content: center; box-sizing: border-box; padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom)); background: rgba(4, 9, 14, 0.62); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); color: #e6f2f8; font: 12px/1.5 "JetBrains Mono", ui-monospace, Menlo, monospace; }

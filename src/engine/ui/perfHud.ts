@@ -1,3 +1,4 @@
+import { saveStorage } from '#engine/saves/slots';
 /**
  * The developer fps panel's on-device perf HUD (E142 aggro-perf; Jake: "Can you add the debug info you need for the game
  * loop that's not rendering for the fps drop? Or anything else you can think of I can't think of."). Perf.ts owns the
@@ -21,13 +22,15 @@ import type { Game } from '../core/Game';
 import { TIER, frameCapFps } from '../core/tier';
 import { frameCost, BUCKETS, SUBS, type FrameRecord } from '../core/frameCost';
 
+const savedStorage = saveStorage('device');
+
 declare const __BUILD_ID__: string; // vite.config.ts define
 function buildId(): string { try { return __BUILD_ID__; } catch { return ''; } }
 
 
 export type Counts = Record<string, number>;
 const REC_MS = 30_000;
-const STORE = 'ws.perf.rec.v1';
+const STORE = 'perf.rec';
 const f1 = (n: number): string => n.toFixed(1);
 const k = (n: number): string => (n >= 1e6 ? `${(n / 1e6).toFixed(2)}M` : n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(Math.round(n)));
 const pad = (s: string, n: number): string => s.padEnd(n).slice(0, n);
@@ -112,7 +115,7 @@ export class PerfHud {
   constructor(private readonly game: Game, private readonly out: HTMLElement, spark: HTMLCanvasElement, own: readonly HTMLElement[]) {
     this.spark = spark;
     this.dom = new DomWrites(own);
-    try { const s = localStorage.getItem(STORE); if (s !== null) this.lastRecText = s; } catch { this.lastRecText = ''; }
+    try { const s = savedStorage.getItem(STORE); if (s !== null) this.lastRecText = s; } catch { this.lastRecText = ''; }
   }
 
   /** the A/B switches into `host` (buttons; `guard` cancels a touch so it never reaches the look layer) */
@@ -255,7 +258,7 @@ export class PerfHud {
     this.dom.set(this.open);
     const text = recSummary(r.frames, r.maxCounts, this.game, this.abLabel);
     this.lastRecText = text;
-    try { localStorage.setItem(STORE, text); } catch { /* not kept this session */ }
+    try { savedStorage.setItem(STORE, text); } catch { /* not kept this session */ }
     this.onRecDone?.(text);
   }
 }

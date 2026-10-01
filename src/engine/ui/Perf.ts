@@ -1,3 +1,4 @@
+import { saveStorage } from '#engine/saves/slots';
 /**
  * Frame meter, top-right — after trials-gauntlet-demo's `src/ui/perf.ts`: fps and frame ms p50 / p95
  * from the game's ring of frame times, draw calls and triangles from renderer.info, the tier and DPR.
@@ -26,9 +27,11 @@ import { PerfHud, type Counts } from './perfHud';
 import { PerfLap } from './perfLap';
 import './perf.css';
 
+const savedStorage = saveStorage('device');
+
 declare const __BUILD_ID__: string; // vite.config.ts define
 /** the last probe's full report (E189: COPY), kept across a reload */
-const PROBE_KEY = 'ws.perf.probe';
+const PROBE_KEY = 'perf.probe';
 
 const PAINT_MS = 500;
 /** the open panel's timing / counts block (src/engine/ui/perfHud.ts): ≤ 4 repaints a second */
@@ -90,7 +93,7 @@ export class Perf {
     probeCopy.addEventListener('pointerup', (e) => {
       cancel(e);
       let text = this.probeText;
-      if (text === '') { try { text = localStorage.getItem(PROBE_KEY) ?? ''; } catch { /* storage blocked */ } }
+      if (text === '') { try { text = savedStorage.getItem(PROBE_KEY) ?? ''; } catch { /* storage blocked */ } }
       if (text === '') { probeCopy.textContent = 'RUN FIRST'; setTimeout(() => { probeCopy.textContent = 'COPY'; }, 1500); return; }
       const done = (ok: boolean): void => { probeCopy.textContent = ok ? 'COPIED' : 'SELECT ↓'; setTimeout(() => { probeCopy.textContent = 'COPY'; }, 1500); };
       // no clipboard API (an http page, an old WebKit): the report goes in the panel, selected for a manual copy
@@ -187,7 +190,7 @@ export class Perf {
     out.textContent = lines.join('\n');
     console.info(`[probe]\n${lines.join('\n')}`);
     this.probeText = probeReport(rows, probeSamples, header);
-    try { localStorage.setItem(PROBE_KEY, this.probeText); } catch { /* not kept past this load */ }
+    try { savedStorage.setItem(PROBE_KEY, this.probeText); } catch { /* not kept past this load */ }
     Object.assign(window, { __perfProbe: rows });
     this.open(true);
   }
@@ -195,7 +198,7 @@ export class Perf {
   private probeHeader(): string[] {
     const g = this.game, r = g.renderer, cv = r.domElement, info = r.info, w: unknown = '__wildshard' in window ? window.__wildshard.world : null;
     let build = ''; try { build = __BUILD_ID__; } catch { /* a dev page */ }
-    let settings = ''; try { settings = localStorage.getItem('ws.settings.v1') ?? ''; } catch { /* storage blocked */ }
+    let settings = ''; try { settings = saveStorage('global').getItem('settings') ?? ''; } catch { /* storage blocked */ }
     const pl: unknown = typeof w === 'object' && w !== null ? Reflect.get(w, 'player') : null;
     const pos: unknown = typeof pl === 'object' && pl !== null ? Reflect.get(pl, 'position') : null;
     const where = pos instanceof THREE.Vector3 ? `${pos.x.toFixed(1)}, ${pos.y.toFixed(1)}, ${pos.z.toFixed(1)}` : '?';

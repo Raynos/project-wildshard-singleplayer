@@ -1,3 +1,6 @@
+import { saveStorage } from '#engine/saves/slots';
+
+const savedStorage = saveStorage('device');
 /**
  * Lifecycle trace (E135): what the page did around an app switch, kept across reloads and sent home.
  *
@@ -12,9 +15,9 @@
  * (`paint` entries) and drew frames, and how the viewport looked. The report goes through the E133 error reporter as
  * system `lifecycle` (not an error: no chip, no modal), the trace in its stack field.
  *
- * localStorage `wsLifeTrace` (not `ws.`: the native save mirror copies every ws.* key), the newest TRACE_MAX lines.
+ * localStorage `life.trace` (not `ws.`: the native save mirror copies every ws.* key), the newest TRACE_MAX lines.
  */
-const KEY = 'wsLifeTrace';
+const KEY = 'life.trace';
 const TRACE_MAX = 60;
 /** an absence this long is worth a report on the way back */
 export const REPORT_AWAY_MS = 60_000;
@@ -33,7 +36,7 @@ const t0 = Date.now();
 let send: LifeSend | null = null;
 
 function read(): string[] {
-  try { const v: unknown = JSON.parse(localStorage.getItem(KEY) ?? '[]'); return Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : []; } catch { return []; }
+  try { const v: unknown = JSON.parse(savedStorage.getItem(KEY) ?? '[]'); return Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : []; } catch { return []; }
 }
 
 /** the layout right now: window, visual viewport, the game canvas's box, the page's visibility */
@@ -53,7 +56,7 @@ export function trace(event: string, detail = ''): void {
     const line = `${hms} ${page} +${Math.round((Date.now() - t0) / 1000)}s ${event}${detail ? ` · ${detail}` : ''}`;
     const all = read();
     all.push(line);
-    localStorage.setItem(KEY, JSON.stringify(all.slice(-TRACE_MAX)));
+    savedStorage.setItem(KEY, JSON.stringify(all.slice(-TRACE_MAX)));
   } catch { /* no storage: nothing to keep */ }
 }
 
@@ -128,8 +131,8 @@ export function installLifeTrace(sendFn: LifeSend): void {
   const last = prevLines.some((l) => eventOf(l) === 'reload') ? 'reload' : eventOf(prevLines.at(-1) ?? '');
   const endedAway = pid !== page && (last === 'hide' || last === 'reload');
   let recent = false;
-  try { recent = Date.now() - Number(localStorage.getItem(`${KEY}At`) ?? 0) < FOLLOW_MS; } catch { /* no storage */ }
-  const stamp = (): void => { try { localStorage.setItem(`${KEY}At`, String(Date.now())); } catch { /* no storage */ } };
+  try { recent = Date.now() - Number(savedStorage.getItem('life.traceAt') ?? 0) < FOLLOW_MS; } catch { /* no storage */ }
+  const stamp = (): void => { try { savedStorage.setItem('life.traceAt', String(Date.now())); } catch { /* no storage */ } };
   stamp();
   document.addEventListener('visibilitychange', stamp);
   window.addEventListener('pagehide', stamp);

@@ -34,7 +34,9 @@ export function saveStorage(scope: 'global' | 'device' | 'session'): { getItem: 
     getItem: (key) => { const { slot, suffix } = resolve(key); const whole = slot.read(); const data = suffix === undefined ? whole : typeof whole === 'object' && whole !== null && !Array.isArray(whole) ? whole[suffix] ?? null : null;
       return data === null ? null : strings.has(key) || key.startsWith('ui.fold:') || key.startsWith('ktx2set:') ? typeof data === 'string' ? data : JSON.stringify(data) : key === 'devMode' ? data === true ? '1' : null : JSON.stringify(data); },
     setItem: (key, raw) => { const { slot, suffix } = resolve(key); const data: Json = key === 'devMode' ? raw === '1' : strings.has(key) || key.startsWith('ui.fold:') || key.startsWith('ktx2set:') ? raw : v.parse(jsonSchema, JSON.parse(raw) as unknown);
-      if (suffix === undefined) slot.write(data); else { const whole = slot.read(); slot.write({ ...(typeof whole === 'object' && whole !== null && !Array.isArray(whole) ? whole : {}), [suffix]: data }); } },
+      let persisted: boolean;
+      if (suffix === undefined) persisted = slot.write(data); else { const whole = slot.read(); persisted = slot.write({ ...(typeof whole === 'object' && whole !== null && !Array.isArray(whole) ? whole : {}), [suffix]: data }); }
+      if (!persisted) throw new Error('Save storage unavailable or full'); },
     removeItem: (key) => { const { slot, suffix } = resolve(key); if (suffix === undefined) slot.reset(); else { const whole = slot.read(); if (typeof whole === 'object' && whole !== null && !Array.isArray(whole)) { delete whole[suffix]; slot.write(whole); } } },
   };
 }

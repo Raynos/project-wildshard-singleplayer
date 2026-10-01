@@ -1,3 +1,5 @@
+import * as v from 'valibot';
+import { saves } from '../../saves/runtime';
 /**
  * Flags — the one piece of world state the interactables kit and the quests share: a set of strings, persisted per
  * shard in localStorage ('ws.flags.v1'), with change listeners. Transient flags (`plate:*`, see types.ts) live in
@@ -10,7 +12,8 @@
  */
 import { TRANSIENT_PREFIXES, type Cond } from './types';
 
-const STORE = 'ws.flags.v1';
+const flagsSave = saves.define({ key: 'flags', scope: 'shard', version: 1, schema: v.array(v.string()), initial: () => [] as string[] });
+
 
 export type FlagListener = (flag: string, on: boolean) => void;
 
@@ -23,8 +26,7 @@ export class Flags {
     this.persist = persist;
     if (!persist) return;
     try {
-      const all = (JSON.parse(localStorage.getItem(STORE) ?? '{}') as Record<string, unknown> | null) ?? {};
-      const mine = all[shard];
+      const mine = flagsSave.read(shard.replace(/^chunk:\/\/local\//u, ''));
       if (Array.isArray(mine)) for (const f of mine) if (typeof f === 'string') this.set_.add(f);
     } catch { /* fresh */ }
   }
@@ -59,9 +61,7 @@ export class Flags {
   private save(): void {
     if (!this.persist) return;
     try {
-      const all = (JSON.parse(localStorage.getItem(STORE) ?? '{}') as Record<string, unknown> | null) ?? {};
-      all[this.shard] = [...this.set_].filter((f) => !TRANSIENT_PREFIXES.some((p) => f.startsWith(p)));
-      localStorage.setItem(STORE, JSON.stringify(all));
+      flagsSave.write([...this.set_].filter((f) => !TRANSIENT_PREFIXES.some((p) => f.startsWith(p))), this.shard.replace(/^chunk:\/\/local\//u, ''));
     } catch { /* not persisted this session */ }
   }
 }

@@ -1,3 +1,4 @@
+import { saveStorage } from '#engine/saves/slots';
 import { getActiveChunk } from '#game/shard/registry';
 import { formatMB, type ProgressView } from '../boot/plan';
 import { TIER } from '../core/tier';
@@ -7,6 +8,8 @@ import { lastEndLine } from '../boot/lastEnd';
 import { recordNineBootProgress, startNineBoot } from '../boot/nineBootTrace';
 import { isDev } from '../core/devMode';
 import './loading.css';
+
+const savedStorage = saveStorage('session');
 
 /**
  * Loading screen in the Wildshard staging identity — a painter of the boot plan's view
@@ -57,16 +60,16 @@ export class Loading {
     this.els = { slug: el('slug'), tier: el('tier'), clock: el('clock'), dlFact: el('dlFact'), dlPct: el('dlPct'), dlBar: el('dlBar'), suFact: el('suFact'), suPct: el('suPct'), suBar: el('suBar'), rows: el('rows'), foot: el('foot'), bar: el('bar'), line: el('line'), diagnostics: el('diagnostics') };
     this.els.slug.textContent = isDev() ? chunk.slug : chunk.name;
     this.els.tier.textContent = `${TIER} · ${Math.round(innerWidth * devicePixelRatio)}×${Math.round(innerHeight * devicePixelRatio)} · ${nav.hardwareConcurrency ?? '?'} cores${window.__ws_sw ? ' · offline cache' : ''}`;
-    const key = 'ws.loadAttempt';
+    const key = 'loadAttempt';
     let attempt = 1;
     try {
-      const previous: unknown = JSON.parse(sessionStorage.getItem(key) ?? 'null');
+      const previous: unknown = JSON.parse(savedStorage.getItem(key) ?? 'null');
       if (typeof previous === 'object' && previous !== null && Reflect.get(previous, 'slug') === chunk.slug) {
         const when: unknown = Reflect.get(previous, 'at');
         const count: unknown = Reflect.get(previous, 'count');
         if (typeof when === 'number' && Date.now() - when < 120_000 && typeof count === 'number') attempt = count + 1;
       }
-      sessionStorage.setItem(key, JSON.stringify({ slug: chunk.slug, at: Date.now(), count: attempt }));
+      savedStorage.setItem(key, JSON.stringify({ slug: chunk.slug, at: Date.now(), count: attempt }));
     } catch { /* a storage-denied PWA still gets the loader */ }
     this.attempt = attempt;
     this.rowsEl = this.els.rows;

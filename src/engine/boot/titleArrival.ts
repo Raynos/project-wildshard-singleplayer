@@ -1,9 +1,10 @@
+import { saveStorage } from '#engine/saves/slots';
 /** One-shot intent from the renderer-free title page to the selected shard's fresh document. */
 export type TitleArrivalMode = 'enter' | 'explore' | 'arena';
 export interface TitleArrival { slug: string; mode: TitleArrivalMode }
 
-const KEY = 'ws.titleArrival';
-const BACKUP_KEY = 'ws.titleArrival.once';
+const KEY = 'titleArrival';
+const BACKUP_KEY = 'titleArrival.once';
 const MAX_AGE_MS = 60_000;
 
 interface StoredArrival extends TitleArrival { at: number }
@@ -22,15 +23,15 @@ function valid(raw: string | null, slug: string): TitleArrival | null {
 
 export function setTitleArrival(arrival: TitleArrival): void {
   const raw = JSON.stringify({ ...arrival, at: Date.now() } satisfies StoredArrival);
-  try { sessionStorage.setItem(KEY, raw); } catch { /* the local one-shot below can carry the intent */ }
+  try { saveStorage('session').setItem(KEY, raw); } catch { /* the local one-shot below can carry the intent */ }
   // iOS home-screen navigation can replace WebContent between the static title and the game document.
   // The backup is consumed once, and expires quickly; it never becomes a remembered last shard.
-  try { localStorage.setItem(BACKUP_KEY, raw); } catch { /* the session copy may still survive */ }
+  try { saveStorage('device').setItem(BACKUP_KEY, raw); } catch { /* the session copy may still survive */ }
 }
 
 export function consumeTitleArrival(slug: string): TitleArrival | null {
   let session: string | null = null, backup: string | null = null;
-  try { session = sessionStorage.getItem(KEY); sessionStorage.removeItem(KEY); } catch { /* use the backup */ }
-  try { backup = localStorage.getItem(BACKUP_KEY); localStorage.removeItem(BACKUP_KEY); } catch { /* use the session copy */ }
+  try { session = saveStorage('session').getItem(KEY); saveStorage('session').removeItem(KEY); } catch { /* use the backup */ }
+  try { backup = saveStorage('device').getItem(BACKUP_KEY); saveStorage('device').removeItem(BACKUP_KEY); } catch { /* use the session copy */ }
   return valid(session, slug) ?? valid(backup, slug);
 }

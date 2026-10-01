@@ -1,3 +1,4 @@
+import { persistHomeScreen } from '#engine/saves/runtime';
 /**
  * The page's module entry. Everything the game imports statically is evaluated in ONE task when a module graph
  * runs: three.js plus the ~150 game modules at once was a 115–157 ms long task at 4× CPU before the first boot step
@@ -28,6 +29,7 @@ async function retried<T>(load: () => Promise<T>): Promise<T> {
 }
 
 /** The plain home URL paints only the title. No renderer, world, or Three.js is imported until a shard is chosen. */
+persistHomeScreen();
 const search = new URLSearchParams(location.search);
 // Do not depend on the sibling sw.ts module finishing first; both entry points share the same consumed record.
 inspectPreviousNineBoot();

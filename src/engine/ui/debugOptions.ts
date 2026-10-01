@@ -15,6 +15,7 @@
  * `setting(key)` (at load for a `reload` row) and `onSettingChange(key, fn)` (a live row).
  */
 import type { ShardManifest } from '#game/shard/manifest';
+import { jsonSlot } from '../saves/slots';
 import { texMode } from '../boot/gpuFiles';
 import { clearDownloads, freedBytes, lastClear, mbText, storageUsed } from '../boot/clearDownloads';
 import { RELOAD_PARAM } from '../core/GpuRecovery';
@@ -172,6 +173,7 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
   },
   opt('prefetch', 'loading', 'Download in background', ON_OFF, { note: 'E158 · the other shards\' files, once this one is playable' }),
   opt('bootPack', 'loading', 'Boot pack', ON_OFF, { reload: true, note: 'boot files as one pack; off = one by one (the KTX2 record run)' }),
+  { id: 'storage', group: 'loading', label: 'Storage', choices: () => [], get: () => '', set: () => undefined, on: () => undefined, reload: false, when: always, note: 'E357 F10 · persistent storage and origin usage' },
   clearDownloadsRow,
 
   // ── Developer tools ──
@@ -191,4 +193,15 @@ function memoryReadout(): string {
   return [`Resident (oldest first, keeps ${m?.cap ?? '?'}):`, ...shards, `JS heap: ${heap} · device memory: ${typeof dm === 'number' ? `${dm} GB` : 'n/a'}`, lastEndLine()].join('\n');
 }
 /** E172: a few live lines under a row (by row id), re-read while the row can be seen — in both menus */
-export const DEBUG_READOUTS: Readonly<Partial<Record<string, () => string>>> = { tex: memoryReadout }; // E318: under GPU textures (the one-choice Shard residency row it sat under is gone)
+export const DEBUG_READOUTS: Readonly<Partial<Record<string, () => string>>> = { tex: memoryReadout, storage: storageReadout };
+
+let storageEstimate = 'usage / quota: checking';
+let estimateAt = 0;
+function storageReadout(): string {
+  if (Date.now() - estimateAt > 10_000) {
+    estimateAt = Date.now();
+    try { void navigator.storage.estimate().then((value) => { storageEstimate = `${mbText(value.usage ?? null)} / ${mbText(value.quota ?? null)}`; return undefined; }).catch(() => { storageEstimate = 'usage / quota: unavailable'; }); }
+    catch { storageEstimate = 'usage / quota: unavailable'; }
+  }
+  return `Persisted: ${jsonSlot('storage.persisted', 'device').read() === true ? 'yes' : 'no'} · ${storageEstimate}`;
+}

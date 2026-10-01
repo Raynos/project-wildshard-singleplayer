@@ -19,7 +19,7 @@ import { GradeEffect } from './Grade';
 import { activeGrade } from '../world/lookFlags';
 import { VolumetricsEffect, makeNoiseTexture } from './Volumetrics';
 import { getActiveChunk } from '#game/shard/registry';
-import { TIER, TIER_CONFIG, frameCapFps, phonePictureCuts } from './tier';
+import { TIER, TIER_CONFIG, frameCapFps, phonePictureCuts, type Tier } from './tier';
 import { installLookV2Fog } from '#shards/nalati-grasslands/look/fog';
 import { buildLookV2Chain } from '#shards/nalati-grasslands/look/grade';
 import { chunkShadowCasters } from '../world/shadowChunks';
@@ -104,6 +104,7 @@ export class Game {
   // Every entry is a GameSystem (src/engine/core/faults.ts, E133): called inside its own try/catch, switched off if it keeps throwing.
   readonly engineScope = app.engineScope.child('game');
   readonly levelScope = currentScope()?.resources ?? new Scope('level');
+  get tier(): Tier { return TIER; }
   private ownership: SceneOwnership | null = null;
   private readonly uploads = new UploadOwnership(this.levelScope, app.assets);
   readonly leakBaseline = new Scope('baseline').census;

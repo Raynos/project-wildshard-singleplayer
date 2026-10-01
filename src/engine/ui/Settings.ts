@@ -1,4 +1,5 @@
-// src/engine/ui/Settings.ts — persisted player toggles + sliders (localStorage 'ws.settings.v1'); the menu's Settings tab (src/engine/ui/Menu.ts) writes here.
+import { saveStorage } from '#engine/saves/slots';
+// src/engine/ui/Settings.ts — persisted player toggles + sliders (localStorage 'settings'); the menu's Settings tab (src/engine/ui/Menu.ts) writes here.
 //
 //   getSetting('aimAssist')                          → boolean (default true)
 //   setSetting('tracers', false)                     → persists + notifies subscribers
@@ -23,12 +24,14 @@
 //   the overriding params so the reload builds the saved pick). The rest are LIVE (pause menu ▸ Settings, src/engine/ui/Menu.ts):
 //   saving one changes setting() at once and notifies (main.ts hands it to DayNight.setTime).
 //   The Look Lab switches the user has picked a winner for are gone (E136: island, edge, lighting, sky, post, lut, matte):
-//   a value a player saved for one before is never read, and the next save drops it from localStorage.
+//   a value a player saved for one before is never read, and the next save drops it from savedStorage.
 //
 // localStorage is wrapped in try/catch (iOS private mode throws on write) — the in-memory copy is the truth for the session.
 //
 // A listener a resident shard adds while it builds or runs is removed when that shard is evicted (src/engine/app/legacyCapture.ts).
 import { onScopeDispose } from '../app/legacyCapture';
+
+const savedStorage = saveStorage('global');
 
 export type SettingKey = 'aimAssist' | 'tracers' | 'haptics' | 'autoLock' | 'huntersEye';
 export type NumberKey = 'volume' | 'music' | 'look' | 'swingLook' | 'lockCam';
@@ -37,7 +40,7 @@ export type MusicStyle = (typeof MUSIC_STYLES)[number];
 export const SFX_SETS = ['best', 'synth'] as const;
 export type SfxSet = (typeof SFX_SETS)[number];
 
-const STORE = 'ws.settings.v1';
+const STORE = 'settings';
 // autoLock: a kill re-locks the next enemy (E50); huntersEye: the bow's dotted drop arc while drawing (Nalati, src/engine/player/Bow.ts) — on by default on touch, off with a mouse
 const DEFAULTS: Record<SettingKey, boolean> = { aimAssist: true, tracers: true, haptics: true, autoLock: true, huntersEye: typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches };
 const NUM_DEFAULTS: Record<NumberKey, number> = { volume: 0.8, music: 0.7, look: 1, swingLook: 0.7, lockCam: 0.5 }; // lockCam: the lock-on camera, Follow 1 / Gentle 0.5 / Off 0 (E50: Jake picked Gentle)
@@ -48,7 +51,7 @@ function load(): { bools: Record<SettingKey, boolean>; nums: Record<NumberKey, n
   const bools = { ...DEFAULTS }, nums = { ...NUM_DEFAULTS };
   let parsed: Partial<Record<string, unknown>> = {};
   try {
-    const raw = localStorage.getItem(STORE);
+    const raw = savedStorage.getItem(STORE);
     if (raw) {
       parsed = JSON.parse(raw) as Partial<Record<string, unknown>>;
       for (const k of Object.keys(DEFAULTS) as SettingKey[]) if (typeof parsed[k] === 'boolean') bools[k] = parsed[k];
@@ -99,7 +102,7 @@ class Choice<T extends string> {
   }
   on(fn: (v: T) => void): () => void { this.listeners.add(fn); const off = (): void => { this.listeners.delete(fn); }; onScopeDispose(off); return off; }
 }
-// no URL override (E162): the Debug ▸ Audio rows pick them; a script saves musicStyle / sfxSet in ws.settings.v1
+// no URL override (E162): the Debug ▸ Audio rows pick them; a script saves musicStyle / sfxSet in settings
 const musicStyle = new Choice<MusicStyle>('musicStyle', MUSIC_STYLES, 'piano', () => null);
 const sfxSet = new Choice<SfxSet>('sfxSet', SFX_SETS, 'best', () => null);
 
@@ -208,7 +211,7 @@ const numListeners = new Map<NumberKey, Set<(v: number) => void>>();
 function persist() {
   const picks: Partial<Record<string, string>> = {};
   for (const k of OPTION_KEYS) picks[k] = options[k].stored;
-  try { localStorage.setItem(STORE, JSON.stringify({ ...state, ...nums, musicStyle: musicStyle.stored, sfxSet: sfxSet.stored, ...picks })); } catch { /* not persisted this session */ }
+  try { savedStorage.setItem(STORE, JSON.stringify({ ...state, ...nums, musicStyle: musicStyle.stored, sfxSet: sfxSet.stored, ...picks })); } catch { /* not persisted this session */ }
 }
 
 export function getSetting(k: SettingKey): boolean { return state[k]; }

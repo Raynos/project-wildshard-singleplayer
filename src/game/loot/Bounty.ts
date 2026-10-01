@@ -11,9 +11,8 @@
  *   if (bounty.claim(a)) burst(…)       // true: this death pays (and is counted, saved); false: a respawn's, no coins
  *   bounty.left(a)                      // deaths this key still pays for
  */
-import { readShard, writeShard } from './store';
+import { bountySave, saveSlug } from '../saves';
 
-const STORE = 'ws.bounty.v1';
 
 export interface BountyTarget { kind: string; herd: number }
 
@@ -30,8 +29,7 @@ export class Bounty {
   }
 
   constructor(readonly shard: string, private caps: ReadonlyMap<string, number>) {
-    const saved = readShard(STORE, shard);
-    if (typeof saved !== 'object' || saved === null) return;
+    const saved = bountySave.read(saveSlug(shard));
     for (const [k, v] of Object.entries(saved)) if (typeof v === 'number' && Number.isFinite(v) && v > 0) this.paid[k] = Math.floor(v);
   }
 
@@ -44,7 +42,7 @@ export class Bounty {
     if (this.left(a) <= 0) return false;
     const k = bountyKey(a);
     this.paid[k] = (this.paid[k] ?? 0) + 1;
-    writeShard(STORE, this.shard, this.paid);
+    bountySave.write(this.paid, saveSlug(this.shard));
     return true;
   }
 }

@@ -1,5 +1,8 @@
+import { saveStorageFixture } from './fake/saveFixture';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ProgressView } from '#engine/boot/plan';
+
+const fixtures = saveStorageFixture('device');
 
 const capture = vi.hoisted(() => vi.fn());
 const inbox = vi.hoisted(() => vi.fn());
@@ -122,7 +125,7 @@ describe('Nine Dragon boot trace', () => {
   });
 
   it('does not let an old title-navigation marker hide a later interrupted Nine boot', async () => {
-    localStorage.setItem('ws.lastUnload', JSON.stringify({ reason: 'title chose nine-dragon-stack', t: Date.now() - 20_000 }));
+    fixtures.setItem('ws.lastUnload', JSON.stringify({ reason: 'title chose nine-dragon-stack', t: Date.now() - 20_000 }));
     const first = await boot();
     first.startNineBoot();
     first.recordNineBootProgress(progress('firstFrame', 0.95));
@@ -190,13 +193,13 @@ describe('durable Explore and recovery evidence', () => {
     const next = await boot();
     next.inspectPreviousNineBoot();
     await vi.waitFor(() => { expect(inbox).toHaveBeenCalledOnce(); });
-    await vi.waitFor(() => { expect(localStorage.getItem('wsNineReports')).toContain('"sentry":true'); });
-    expect(localStorage.getItem('wsNineReports')).toContain('explore:world');
+    await vi.waitFor(() => { expect(fixtures.getItem('boot.reports')).toContain('"sentry":true'); });
+    expect(fixtures.getItem('boot.reports')).toContain('explore:world');
     inbox.mockResolvedValue('ok');
     const third = await boot();
     third.inspectPreviousNineBoot();
     await vi.waitFor(() => { expect(inbox).toHaveBeenCalledTimes(2); });
-    await vi.waitFor(() => { expect(localStorage.getItem('wsNineReports')).toBe('[]'); });
+    await vi.waitFor(() => { expect(fixtures.getItem('boot.reports')).toBe('[]'); });
     expect(capture).toHaveBeenCalledOnce();
   });
 
@@ -206,11 +209,11 @@ describe('durable Explore and recovery evidence', () => {
     first.startNineBoot();
     const next = await boot();
     next.inspectPreviousNineBoot();
-    await vi.waitFor(() => { expect(localStorage.getItem('wsNineReports')).toContain('"inbox":true'); });
+    await vi.waitFor(() => { expect(fixtures.getItem('boot.reports')).toContain('"inbox":true'); });
     capture.mockResolvedValue(true);
     const third = await boot();
     third.inspectPreviousNineBoot();
-    await vi.waitFor(() => { expect(localStorage.getItem('wsNineReports')).toBe('[]'); });
+    await vi.waitFor(() => { expect(fixtures.getItem('boot.reports')).toBe('[]'); });
     expect(inbox).toHaveBeenCalledOnce();
     expect(capture).toHaveBeenCalledTimes(2);
   });
@@ -237,11 +240,11 @@ describe('durable Explore and recovery evidence', () => {
       page.startNineBoot();
       page.recordNineGpuRecovery(`lost ${i}`);
     }
-    const pending: unknown = JSON.parse(localStorage.getItem('wsNineReports') ?? 'null');
+    const pending: unknown = JSON.parse(fixtures.getItem('boot.reports') ?? 'null');
     expect(pending).toHaveLength(4);
     const next = await boot();
     next.startNineBoot();
-    expect(localStorage.getItem('wsNineReports')).toContain('lost 5');
+    expect(fixtures.getItem('boot.reports')).toContain('lost 5');
     vi.setSystemTime(Date.now() + 8 * 24 * 60 * 60_000);
     await next.flushNineBootReports();
     expect(inbox).not.toHaveBeenCalled();

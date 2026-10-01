@@ -1,3 +1,4 @@
+import { saveStorage } from '#engine/saves/slots';
 /**
  * The shared budget for reloads a broken page offers or makes (E144): the error modal's RELOAD HERE / TITLE SCREEN
  * (src/engine/ui/ErrorModal.ts) and the boot's stuck-loader recovery (src/engine/boot/stuck.ts) count into one list, so the two
@@ -7,9 +8,9 @@
 /** reloads inside RELOAD_WINDOW_MS before a broken page stops reloading by itself / stops returning to the spot */
 export const RELOADS_MAX = 2;
 export const RELOAD_WINDOW_MS = 120_000;
-const RELOAD_KEY = 'wsErrReloads'; // sessionStorage (not `ws.`: the native save mirror copies ws.*)
+const RELOAD_KEY = 'err.reloads'; // sessionStorage (not `ws.`: the native save mirror copies ws.*)
 
-function session(): Storage | null { try { return sessionStorage; } catch { return null; } }
+function session(): ReturnType<typeof saveStorage> | null { return saveStorage('session'); }
 
 /** the reloads counted inside the window, oldest first */
 export function recentReloads(): number[] {

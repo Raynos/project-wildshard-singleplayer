@@ -1,9 +1,10 @@
+import { saveStorage,jsonSlot } from '#engine/saves/slots';
 /**
  * Debug ▸ Clear downloads (E172, the user: "I need a button to nuke the cache so i can test it"; their pick 1: downloads
  * only). Throws away every downloaded game file so the next load is a true first visit — and nothing the player made:
  *
  *   gone   every Cache Storage cache (the worker's ws-immutable / ws-static-* / ws-shell-*, and any other), the service
- *          worker's registration, the KTX2 "set complete" markers (`ws.ktx2set.*`, src/engine/boot/shardPrefetch.ts — so Auto
+ *          worker's registration, the KTX2 "set complete" markers (`ktx2set:*`, src/engine/boot/shardPrefetch.ts — so Auto
  *          boots with images again, E157 B), and the origin's HTTP cache (`/clear-cache.json` answers with
  *          `Clear-Site-Data: "cache"`, vercel.json: the worker's fetches go through the HTTP cache, and the immutable
  *          `/assets/**` year would otherwise answer the "cold" load from disk);
@@ -40,9 +41,9 @@ export interface ClearReport {
 }
 
 /** sessionStorage, deliberately not `ws.`-prefixed localStorage (the native save mirror copies every ws.* key) */
-const REPORT_KEY = 'wsClearDownloads';
+const REPORT_KEY = 'clearDownloads.report';
 /** the localStorage keys that are download bookkeeping, not the player's */
-const MARKER_PREFIXES = ['ws.ktx2set.'];
+
 /** the file whose response carries `Clear-Site-Data: "cache"` (vercel.json); `?sw=0` so no worker answers it */
 const CLEAR_HTTP_URL = '/clear-cache.json?sw=0';
 
@@ -86,22 +87,23 @@ export async function clearDownloads(): Promise<ClearReport> {
   // 4. the KTX2 "set complete" markers: Auto must not boot KTX2 against files that are gone
   let markers = 0;
   try {
-    const keys: string[] = [];
-    for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k !== null && MARKER_PREFIXES.some((p) => k.startsWith(p))) keys.push(k); }
-    for (const k of keys) { localStorage.removeItem(k); markers++; }
+    const slot = jsonSlot('ktx2set', 'device');
+    const value = slot.read();
+    markers = typeof value === 'object' && value !== null ? Object.keys(value).length : 0;
+    slot.write({});
   } catch { /* storage off: no markers were written either */ }
   // 5. the HTTP cache (Clear-Site-Data: "cache"): offline this fails, and the reload is cold for Cache Storage only
   let httpCache = false;
   try { httpCache = (await within(fetch(CLEAR_HTTP_URL, { cache: 'no-store' }), 5000))?.ok === true; } catch { /* offline */ }
   const report: ClearReport = { before, after: await storageUsed(), cached, caches: deleted, workers, markers, httpCache, at: Date.now() };
-  try { sessionStorage.setItem(REPORT_KEY, JSON.stringify(report)); } catch { /* the next page just will not say it */ }
+  try { saveStorage('session').setItem(REPORT_KEY, JSON.stringify(report)); } catch { /* the next page just will not say it */ }
   return report;
 }
 
 /** the last clear's report, when this tab's previous page cleared (the Debug card says what was freed) */
 export function lastClear(): ClearReport | null {
   try {
-    const raw = sessionStorage.getItem(REPORT_KEY);
+    const raw = saveStorage('session').getItem(REPORT_KEY);
     if (raw === null) return null;
     const r = JSON.parse(raw) as Partial<ClearReport>;
     return typeof r.at === 'number' && typeof r.caches === 'number' ? { before: r.before ?? null, after: r.after ?? null, cached: r.cached ?? null, caches: r.caches, workers: r.workers ?? 0, markers: r.markers ?? 0, httpCache: r.httpCache === true, at: r.at } : null;

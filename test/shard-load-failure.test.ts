@@ -1,3 +1,4 @@
+import { saveStorageFixture } from './fake/saveFixture';
 // @vitest-environment happy-dom
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Scope } from '#engine/app/scope';
@@ -7,6 +8,8 @@ import { showLoadFailure } from '#engine/ui/errorScreen';
 import { runShardLoad, withShardHooks } from '#game/shard/load';
 import { SHARDS } from '#game/shard/shards.generated';
 import type { ShardManifest } from '#game/shard/manifest';
+
+const fixtures = saveStorageFixture('device');
 
 vi.mock('#engine/telemetry/browserErrors', () => ({ captureBrowserError: vi.fn() }));
 
@@ -39,8 +42,8 @@ describe('shard load failure', () => {
     expect(order).toEqual(['dispose', 'report', 'show']);
     expect(captureBrowserError).toHaveBeenCalledWith(expect.objectContaining({ stack: error.stack }), expect.objectContaining({ shard: m.slug, bootStage: 'render', build: 'test-build' }));
     expect(m.render).toBe(authored);
-    await vi.waitFor(() => { expect(JSON.parse(localStorage.getItem(QUEUE_KEY) ?? '[]')).toHaveLength(1); });
-    expect(JSON.parse(localStorage.getItem(QUEUE_KEY) ?? '[]')).toEqual([expect.objectContaining({
+    await vi.waitFor(() => { expect(JSON.parse(fixtures.getItem(QUEUE_KEY) ?? '[]')).toHaveLength(1); });
+    expect(JSON.parse(fixtures.getItem(QUEUE_KEY) ?? '[]')).toEqual([expect.objectContaining({
       system: 'shard-load', fatal: true, stack: error.stack,
       context: { kind: 'shard-load', shard: m.slug, build: 'test-build', stage: 'render' },
     })]);

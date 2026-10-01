@@ -1,3 +1,4 @@
+import { bossesSave, saveSlug } from './saves';
 import * as THREE from 'three';
 import type { BossBar } from '#engine/ui/BossBar';
 import type { Player } from '#engine/player/Player';
@@ -126,9 +127,8 @@ export interface BossHost {
 
 export type BossState = 'dormant' | 'armed' | 'intro' | 'fight' | 'beat' | 'victory';
 
-const STORE = 'ws.boss.v1';
 interface Saved { defeated: boolean; rewardTaken: boolean; kills: number }
-function loadAll(): Record<string, Saved> { try { return (JSON.parse(localStorage.getItem(STORE) ?? '{}') as Record<string, Saved> | null) ?? {}; } catch { return {}; } }
+
 
 const BEAT = 1.5, SKIP_HOLD = 0.6;
 const _to = new THREE.Vector3();
@@ -145,13 +145,15 @@ export class Boss {
   private short = false;
   private drop: WeaponPickup | null = null;
   private readonly key: string;
+  private readonly slug: string;
   private saved: Saved;
   /** the reward orb (while it floats) — update() ticks it */
   get reward(): WeaponPickup | null { return this.drop; }
 
   constructor(readonly def: BossDef, readonly script: BossScript, private readonly host: BossHost, private readonly ui: BossBar, chunkId = 'local') {
-    this.key = `${chunkId}#${def.id}`;
-    this.saved = loadAll()[this.key] ?? { defeated: false, rewardTaken: false, kills: 0 };
+    this.slug = saveSlug(chunkId);
+    this.key = def.id;
+    this.saved = bossesSave.read(this.slug)[this.key] ?? { defeated: false, rewardTaken: false, kills: 0 };
   }
 
   /** beaten at least once / the reward taken (persisted) */
@@ -160,7 +162,7 @@ export class Boss {
   get engaged(): boolean { return this.state === 'intro' || this.state === 'fight' || this.state === 'beat'; }
 
   private save(): void {
-    try { const all = loadAll(); all[this.key] = this.saved; localStorage.setItem(STORE, JSON.stringify(all)); } catch { /* not persisted this session */ }
+    const all = bossesSave.read(this.slug); all[this.key] = this.saved; bossesSave.write(all, this.slug);
   }
 
   /** ready at the threshold: the room at the checkpoint phase, the seal open */

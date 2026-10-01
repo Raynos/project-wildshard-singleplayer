@@ -1,3 +1,4 @@
+import { saveStorageFixture, saveFixture } from './fake/saveFixture';
 /**
  * E157 B — "images on the first visit, KTX2 from the next launch" (src/engine/boot/gpuFiles.ts, src/engine/boot/shardPrefetch.ts).
  * Settings ▸ Debug ▸ GPU textures: Auto loads KTX2 only when the shard's whole KTX2 set for the tier is cached (the marker
@@ -14,7 +15,7 @@ async function load(opts: { chunk?: string; tier?: 'phone' | 'desktop'; tex?: st
   const chunk = opts.chunk ?? 'pine-hollow';
   vi.stubGlobal('location', new URL(`http://localhost:5173/?tier=${opts.tier ?? 'phone'}&chunk=${chunk}`));
   localStorage.clear();
-  if (opts.tex !== undefined) localStorage.setItem('ws.settings.v1', JSON.stringify({ tex: opts.tex }));
+  if (opts.tex !== undefined) saveStorageFixture('global').setItem('settings', JSON.stringify({ tex: opts.tex }));
   const { initializeTier } = await import('#engine/core/tier');
   initializeTier();
   const [{ SHARDS, playable }, sp, gf, { chunkFiles }, { packFor, bootParts }] = await Promise.all([
@@ -25,7 +26,7 @@ async function load(opts: { chunk?: string; tier?: 'phone' | 'desktop'; tex?: st
   await Promise.all(SHARDS.map((m) => prepareShardAssets(m, registerGpuFiles)));
   const PLAYABLE_SHARDS = SHARDS.filter(playable);
   const m = opts.marker?.(sp, PLAYABLE_SHARDS);
-  if (m) localStorage.setItem(m[0], m[1]);
+  if (m) saveFixture('device', 'ktx2set', { [m[0].slice('ktx2set:'.length)]: m[1] });
   return { SHARDS, PLAYABLE_SHARDS, sp, gf, chunkFiles, packFor, bootParts, def: PLAYABLE_SHARDS.find((c) => c.slug === chunk) };
 }
 const current = (sp: SP, PLAYABLE_SHARDS: readonly ShardManifest[], slug = 'pine-hollow'): [string, string] | null => {
@@ -79,7 +80,7 @@ describe('Auto: images until the shard\'s KTX2 set is cached', () => {
     const { gf, sp, PLAYABLE_SHARDS } = await load();
     expect(gf.texMode()).toBe('img');
     const m = current(sp, PLAYABLE_SHARDS);
-    if (m) localStorage.setItem(m[0], m[1]);
+    if (m) saveFixture('device', 'ktx2set', { [m[0].slice('ktx2set:'.length)]: m[1] });
     expect(gf.texMode()).toBe('img');
   });
 });

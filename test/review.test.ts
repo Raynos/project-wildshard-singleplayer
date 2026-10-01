@@ -1,11 +1,14 @@
+import { saveStorageFixture } from './fake/saveFixture';
 // src/engine/ui/review.ts (unlock, Quick note switch, send + offline queue) and the pure helpers of src/ui/Feedback.ts.
 // review.ts reads storage once at module init, so each test imports a fresh copy; fetch is stubbed per test.
 import { describe, expect, it, vi } from 'vitest';
 import type * as ReviewModule from '#engine/ui/review';
 import { headingDeg, reproUrl } from '#engine/ui/Feedback';
 
-const KEY = 'ws.review.v1';
-const QUEUE_KEY = 'ws.review.queue.v1';
+const fixtures = saveStorageFixture('global');
+
+const KEY = 'review';
+const QUEUE_KEY = 'review.queue';
 function fresh(): Promise<typeof ReviewModule> {
   vi.resetModules();
   return import('#engine/ui/review');
@@ -38,7 +41,7 @@ describe('review unlock', () => {
   });
 
   it('the Quick note switch and LOCK notify listeners', async () => {
-    localStorage.setItem(KEY, JSON.stringify({ password: 'secret', quick: true }));
+    fixtures.setItem(KEY, JSON.stringify({ password: 'secret', quick: true }));
     const r = await fresh();
     const fn = vi.fn<() => void>();
     r.onReview(fn);
@@ -60,7 +63,7 @@ describe('sendNote + the offline queue', () => {
   });
 
   it('sent → the id; offline → queued, then flushed oldest first when the network is back', async () => {
-    localStorage.setItem(KEY, JSON.stringify({ password: 'secret', quick: true }));
+    fixtures.setItem(KEY, JSON.stringify({ password: 'secret', quick: true }));
     const r = await fresh();
     vi.stubGlobal('fetch', vi.fn(() => Promise.resolve(reply(200, { id: 'abc' }))));
     expect(await r.sendNote(note('first'))).toEqual({ id: 'abc' });
@@ -76,7 +79,7 @@ describe('sendNote + the offline queue', () => {
   });
 
   it('a 401 while sending locks review again (the password was changed)', async () => {
-    localStorage.setItem(KEY, JSON.stringify({ password: 'old', quick: true }));
+    fixtures.setItem(KEY, JSON.stringify({ password: 'old', quick: true }));
     const r = await fresh();
     vi.stubGlobal('fetch', vi.fn(() => Promise.resolve(reply(401))));
     expect(await r.sendNote(note('x'))).toBe('locked');
@@ -93,7 +96,7 @@ describe('sendNote + the offline queue', () => {
     const set = vi.spyOn(localStorage, 'setItem').mockImplementationOnce(() => { throw new DOMException('full', 'QuotaExceededError'); });
     r.writeQueue([big]);
     expect(set).toHaveBeenCalledTimes(2);
-    expect(JSON.parse(localStorage.getItem(QUEUE_KEY) ?? '[]')).toEqual([{ ...note('shot'), screenshot: null }]);
+    expect(JSON.parse(fixtures.getItem(QUEUE_KEY) ?? '[]')).toEqual([{ ...note('shot'), screenshot: null }]);
   });
 });
 

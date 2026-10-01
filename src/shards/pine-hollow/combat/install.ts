@@ -114,7 +114,7 @@ export function installPineCombat(h: PineCombatHost): PineCombat {
     ownSkin: (id) => { if (id in SKINS) ctx.ownSkin(id as keyof typeof SKINS); },
     // the floating name hides behind the cabin's walls, the crags, a rise (no physics yet: always seen)
     canSee: (from, to) => { const ph = activePhysics(); return ph === null || lineOfSight(ph, from, to, 0.6); },
-  }, new EliteBar());
+  }, new EliteBar(), 'pine-hollow');
   const pineElites = makePineElites(ctx, elites);
 
   // ── the Antler King ── (his name, not his kind, in the aim readout; no floating plate: he has the boss bar)

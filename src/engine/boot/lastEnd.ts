@@ -1,19 +1,20 @@
+import { saveStorage } from '#engine/saves/slots';
 /**
  * Why the last page ended (E179). Jake's iPhone lost Pine Hollow on an ENTER WORLD: the Debug readout went from two
  * resident shards to "nalati-grasslands (playing)" alone, so the page had reloaded, and nothing said whether the game
  * navigated or the page ended abruptly. This module records the observable exit path:
  *
  *   markUnload('build pill tap')   before EVERY navigation / reload the game makes on purpose: localStorage
- *                                  `ws.lastUnload` = { reason, t, build, slug, resident }
- *   the alive beat                 every BEAT_MS, sessionStorage `ws.alive` = { t, build, slug, resident, vis };
+ *                                  `life.lastUnload` = { reason, t, build, slug, resident }
+ *   the alive beat                 every BEAT_MS, sessionStorage `life.alive` = { t, build, slug, resident, vis };
  *                                  cleared on pagehide (a page that ends normally says so)
  *   lastEnd()                      read once at import (the boot's first module): how the previous page in this tab ended
- *     intentional   a `ws.lastUnload` younger than INTENT_MS: the game navigated, and says why
- *     unexpected    no recent reason but a stale `ws.alive`: the page ended without a pagehide; browser/system cause unknown
+ *     intentional   a `life.lastUnload` younger than INTENT_MS: the game navigated, and says why
+ *     unexpected    no recent reason but a stale `life.alive`: the page ended without a pagehide; browser/system cause unknown
  *     fresh         neither: a cold launch
  *   `document.wasDiscarded` rides along (Chrome's tab discarding; iOS never sets it).
  *
- * The last non-fresh end is kept in localStorage `ws.lastEnd`, so pause ▸ Settings ▸ Debug ▸ Loading & memory can show it
+ * The last non-fresh end is kept in localStorage `life.lastEnd`, so pause ▸ Settings ▸ Debug ▸ Loading & memory can show it
  * ("Last reload: …", src/engine/ui/Menu.ts) even after a later cold launch. Dependency-free: src/engine/boot/sw.ts and src/entry.ts
  * import it before the game's graph, so its listeners and its timer are the page's, never a shard's.
  *
@@ -23,9 +24,9 @@ import { inspectPreviousNineBoot, markNineBootPlanned, previousNineBootLine } fr
 
 declare const __BUILD_ID__: string;
 
-const UNLOAD_KEY = 'ws.lastUnload';
-const ALIVE_KEY = 'ws.alive';
-const END_KEY = 'ws.lastEnd';
+const UNLOAD_KEY = 'life.lastUnload';
+const ALIVE_KEY = 'life.alive';
+const END_KEY = 'life.lastEnd';
 /** a reason written this long before the next boot still explains it */
 const INTENT_MS = 10_000;
 /** the alive beat's period */
@@ -55,9 +56,9 @@ export interface LastEnd {
 
 /** `<sha>-<stamp>` → the sha, else the stamp (a Vercel CLI build has no commit): the build pill's short id (src/engine/ui/Update.ts) */
 const build = (): string => { try { const [sha = '', time = ''] = __BUILD_ID__.split('-'); return sha.length >= 7 ? sha : time; } catch { return ''; } };
-const store = (kind: 'local' | 'session'): Storage | null => { try { return kind === 'local' ? localStorage : sessionStorage; } catch { return null; } };
-const readJson = (s: Storage | null, key: string): unknown => { try { const v = s?.getItem(key); return v === null || v === undefined ? null : JSON.parse(v) as unknown; } catch { return null; } };
-const writeJson = (s: Storage | null, key: string, v: unknown): void => { try { s?.setItem(key, JSON.stringify(v)); } catch { /* storage full or blocked: this record is lost */ } };
+const store = (kind: 'local' | 'session'): ReturnType<typeof saveStorage> | null => saveStorage(kind === 'local' ? 'device' : 'session');
+const readJson = (s: ReturnType<typeof saveStorage> | null, key: string): unknown => { try { const v = s?.getItem(key); return v === null || v === undefined ? null : JSON.parse(v) as unknown; } catch { return null; } };
+const writeJson = (s: ReturnType<typeof saveStorage> | null, key: string, v: unknown): void => { try { s?.setItem(key, JSON.stringify(v)); } catch { /* storage full or blocked: this record is lost */ } };
 const str = (o: unknown, k: string): string => { const v: unknown = typeof o === 'object' && o !== null ? Reflect.get(o, k) : undefined; return typeof v === 'string' ? v : ''; };
 const num = (o: unknown, k: string): number => { const v: unknown = typeof o === 'object' && o !== null ? Reflect.get(o, k) : undefined; return typeof v === 'number' && Number.isFinite(v) ? v : 0; };
 

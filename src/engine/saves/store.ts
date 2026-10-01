@@ -6,7 +6,7 @@ export interface SaveKeyDef<T> {
   key: string; scope: SaveScope; version: number; schema: v.GenericSchema<unknown, T>; initial: () => T;
   migrate?: Readonly<Record<number, (old: unknown) => unknown>>;
 }
-export interface SaveSlot<T> { read: (namespace?: string) => T; write: (value: T, namespace?: string) => void; reset: (namespace?: string) => void }
+export interface SaveSlot<T> { read: (namespace?: string) => T; write: (value: T, namespace?: string) => boolean; reset: (namespace?: string) => void }
 export interface SaveStorage { readonly length: number; key: (index: number) => string | null; getItem: (key: string) => string | null; setItem: (key: string, value: string) => void; removeItem: (key: string) => void }
 export interface SchemaFailure { kind: 'save-schema'; scope: string; key: string; version: number; issue: string }
 export interface CorruptSave { scope: string; key: string; at: string; bytes: number }
@@ -32,6 +32,7 @@ function browserStorage(scope: SaveScope): SaveStorage | null {
 export class SaveStore {
   private readonly definitions = new Map<string, SaveKeyDef<unknown>>();
   private readonly memory = new Map<string, string>();
+  private readonly failedWrites = new Set<string>();
   private readonly readonlyKeys = new Set<string>();
   private initialized = false;
   private persistence: Promise<boolean> | null = null;
@@ -51,11 +52,11 @@ export class SaveStore {
     return PREFIX + (scope === 'shard' ? namespace : scope);
   }
   private get(scope: SaveScope, name: string): string | null {
-    try { const storage = this.storage(scope); return storage ? storage.getItem(name) : this.memory.get(name) ?? null; } catch { return this.memory.get(name) ?? null; }
+    try { if (this.failedWrites.has(name)) return this.memory.get(name) ?? null; const storage = this.storage(scope); return storage ? storage.getItem(name) : this.memory.get(name) ?? null; } catch { return this.memory.get(name) ?? null; }
   }
-  private put(scope: SaveScope, name: string, value: string): void {
+  private put(scope: SaveScope, name: string, value: string): boolean {
     this.memory.set(name, value);
-    try { this.storage(scope)?.setItem(name, value); } catch { /* private mode / quota: retain the page's value */ }
+    try { const storage = this.storage(scope); if (!storage) { this.failedWrites.add(name); return false; } storage.setItem(name, value); this.failedWrites.delete(name); return true; } catch { this.failedWrites.add(name); return false; }
   }
   private remove(scope: SaveScope, name: string): void {
     this.memory.delete(name);
@@ -124,14 +125,14 @@ export class SaveStore {
       this.report(name.slice(PREFIX.length), definition.key, version, issue);
       return clone(initial);
     };
-    const write = (value: T, namespace?: string): void => {
+    const write = (value: T, namespace?: string): boolean => {
       const name = this.name(definition.scope, namespace), savedDoc = this.savedDoc(definition.scope, name);
       const prior = savedDoc.keys[definition.key];
-      if (this.readonlyKeys.has(`${name}/${definition.key}`) || (entry(prior) && prior.v > definition.version)) return;
+      if (this.readonlyKeys.has(`${name}/${definition.key}`) || (entry(prior) && prior.v > definition.version)) return false;
       const result = v.safeParse(definition.schema, value);
-      if (!result.success) { this.report(name.slice(PREFIX.length), definition.key, definition.version, result.issues[0].message); return; }
+      if (!result.success) { this.report(name.slice(PREFIX.length), definition.key, definition.version, result.issues[0].message); return false; }
       savedDoc.keys[definition.key] = { v: definition.version, data: result.output };
-      this.put(definition.scope, name, JSON.stringify(savedDoc));
+      return this.put(definition.scope, name, JSON.stringify(savedDoc));
     };
     return { read, write, reset: (namespace) => { write(definition.initial(), namespace); } };
   }

@@ -1,3 +1,6 @@
+import { saveStorage } from '#engine/saves/slots';
+
+const savedStorage = saveStorage('device');
 /**
  * A Settings card that folds (E177, Jake: "the debug cards in main menu & pause menu should be collapsed by default and
  * opt into expansion"). The pause menu's Debug card is over half of that panel's scroll height (1166 px of 2215 on a
@@ -9,9 +12,9 @@
  *
  * Styled by src/engine/ui/styles/gmenu.css (`.ws-gmenu-card.fold` / `.folded` / `.ws-gmenu-foldmark`).
  */
-const key = (id: string): string => `ws.fold.${id}`;
+const key = (id: string): string => `ui.fold:${id}`;
 /** folded unless this card was opened before (storage blocked — private mode, a test browser — reads as folded) */
-const wasOpen = (id: string): boolean => { try { return localStorage.getItem(key(id)) === 'open'; } catch { return false; } };
+const wasOpen = (id: string): boolean => { try { return savedStorage.getItem(key(id)) === 'open'; } catch { return false; } };
 
 export function foldCard(id: string, title: string, sub = ''): HTMLElement {
   const card = document.createElement('div');
@@ -29,7 +32,7 @@ export function foldCard(id: string, title: string, sub = ''): HTMLElement {
   head.addEventListener('click', () => {
     const open = card.classList.contains('folded');
     paint(open);
-    try { localStorage.setItem(key(id), open ? 'open' : 'shut'); } catch { /* storage blocked: the fold is just not remembered */ }
+    try { savedStorage.setItem(key(id), open ? 'open' : 'shut'); } catch { /* storage blocked: the fold is just not remembered */ }
   });
   return card;
 }

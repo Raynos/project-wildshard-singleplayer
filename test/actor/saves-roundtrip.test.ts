@@ -1,4 +1,5 @@
-// F10 replaces these legacy-store contracts with the engine SaveStore contract.
+import { saves } from '#engine';
+// Gameplay clients round-trip through the versioned SaveStore in node.
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Progress } from '#game/Progress';
 import { Inventory } from '#game/Inventory';
@@ -13,7 +14,7 @@ const originalStorage = localStorage;
 beforeEach(() => { vi.stubGlobal('localStorage', new FakeStorage()); });
 afterEach(() => { vi.stubGlobal('localStorage', originalStorage); });
 
-describe('legacy save round-trip contract in node', () => {
+describe('gameplay SaveStore contract in node', () => {
   it('round-trips progress, inventory, purse, owned/worn, bounty and flags across fresh storage and instances', () => {
     const progress = new Progress(PINE), inventory = new Inventory(PINE), purse = new Purse(DRIFT), owned = new Owned(DRIFT);
     progress.recordKill('deer', 'ghost');
@@ -24,15 +25,9 @@ describe('legacy save round-trip contract in node', () => {
     const bounty = new Bounty(DRIFT, caps); expect(bounty.claim(target)).toBe(true);
     const flags = new Flags(DRIFT); flags.set('talked:castaway'); flags.set('plate:test');
 
-    const exported = Array.from({ length: localStorage.length }, (_, i) => {
-      const key = localStorage.key(i);
-      if (key === null) throw new Error('missing key');
-      return [key, localStorage.getItem(key)] as const;
-    });
-    expect(exported).toHaveLength(6);
-    const restored = new FakeStorage();
-    for (const [key, value] of exported) { if (value === null) throw new Error('missing value'); restored.setItem(key, value); }
-    vi.stubGlobal('localStorage', restored);
+    const exported = saves.exportAll();
+    vi.stubGlobal('localStorage', new FakeStorage());
+    expect(saves.importAll(exported).skipped).toEqual([]);
     expect(new Progress(PINE).title?.id).toBe('ghost');
     expect(new Progress(PINE).count('deer5')).toBe(1);
     expect(new Inventory(PINE).count('deer-hide')).toBe(3);
