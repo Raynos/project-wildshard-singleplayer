@@ -21,8 +21,11 @@ export class Flags {
   private set_ = new Set<string>();
   private listeners: FlagListener[] = [];
   private persist: boolean;
+  readonly shard: string;
 
-  constructor(readonly shard: string, persist = true) {
+  // no parameter property: node's type stripping (the bakers' loader) rejects them
+  constructor(shard: string, persist = true) {
+    this.shard = shard;
     this.persist = persist;
     if (!persist) return;
     try {
