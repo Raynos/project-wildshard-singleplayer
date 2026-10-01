@@ -35,15 +35,13 @@ import type { ShardManifest } from '#game/shard/manifest';
 import { SHARDS, playable, findChunk } from '#game/shard/registry';
 import { bootFiles } from './extras';
 import { bootParts, packFor } from './pack';
-import { gpuUrl, tierUrl, versionedUrl } from './bytes';
+import { gpuUrl, versionedUrl } from './bytes';
 import { registerGpuFiles, setAutoKtx2Check, texMode, texModeWhy, type TexMode } from './gpuFiles';
 import { BASIS_PATH } from '../core/ktx2';
 import { PUBLIC_BYTES } from './bytes.generated';
 import { TIER } from '../core/tier';
 import { lutUrl } from '../world/lut';
 import { horizonStrips } from '../world/HorizonMatte';
-import { blenderModelsBase } from '../world/blenderArea';
-import { CAPTAIN_GLB_URL } from '../entities/species/captainMesh';
 import { shell } from '../app/legacyCapture';
 
 const savedStorage = saveStorage('device');
@@ -78,12 +76,9 @@ export function lateReads(def: ShardManifest, tex: TexMode = texMode()): string[
   if (lut !== null) out.push(lut);
   const strips = horizonStrips(def);
   if (strips) { const s = TIER === 'phone' && strips.phone ? strips.phone : strips; out.push(gpuUrl(s.day, tex), gpuUrl(s.night, tex)); }
-  if (def.ocean !== undefined) { // the Blender-built island (main.ts: every open-water shard installs it) and the finale's captain
-    const base = blenderModelsBase('driftwood-isle'), lm = TIER === 'phone' ? '.phone.webp' : '.webp';
-    out.push(tierUrl(`${base}island.glb`, tex), `${base}island.json`, `${base}placements.bin`, gpuUrl(`${base}lm-ao${lm}`, tex), gpuUrl(`${base}lm-bounce${lm}`, tex), tierUrl(CAPTAIN_GLB_URL, tex));
-  }
   const declared = new Set(Object.values(bootFiles(def, tex)).flat());
-  return out.filter((p) => p in PUBLIC_BYTES && !declared.has(p)).map(versionedUrl);
+  // a level's declared late reads may name the LUT and the strips too (first occurrence kept: the declared order)
+  return [...new Set(out)].filter((p) => p in PUBLIC_BYTES && !declared.has(p)).map(versionedUrl);
 }
 
 /** What the background download fetches for `def`: its boot's requests, then what the world reads as it comes up. */

@@ -15,6 +15,7 @@ import { smoothstep, clamp } from '#engine/core/noise';
 import { CHUNK_HALF, ROAD_LENGTH } from '#engine/core/config';
 import { buildTerrain } from '#engine/world/terrainField';
 import type { ShardManifest, OceanDef } from '#game/shard/manifest';
+import { lateReads } from './boot/lateReads';
 import thumbnail from './thumbs/driftwood-isle.jpg';
 import heroPortrait from './thumbs/driftwood-isle-portrait.jpg';
 import heroLandscape from './thumbs/driftwood-isle-landscape.jpg';
@@ -95,6 +96,7 @@ export const DRIFTWOOD_ISLE: ShardManifest = {
   kitLook: 'toon',
   assetGlobs: ['public/assets/models/driftwood-blender/**', 'public/assets/models/driftwood-cc0/**', 'public/assets/models/driftwood-fp/**', 'public/assets/models/driftwood-hero/**', 'public/assets/gpu/models/driftwood-blender/**', 'public/assets/gpu/models/driftwood-hero/**', 'public/assets/gpu/baked/driftwood-isle/**', 'public/assets/horizon/driftwood-isle-*', 'public/assets/gpu/horizon/driftwood-isle-*', 'public/assets/lut/driftwood-isle.bin', 'public/assets/title/driftwood-isle-portrait.jpg', 'public/assets/sfx/driftwood-isle/**'],
   ktx2: () => import('./ktx2.generated'),
+  boot: { files: () => [], lateReads }, // no props of its own (today's ocean rule); the island's late reads (./boot/lateReads.ts)
   order: 1,
   status: 'live',
   placement: { grid: [-1, 6], size: [500, 500, 500] },
