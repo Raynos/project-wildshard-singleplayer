@@ -227,7 +227,7 @@ export class Bow extends Weapon {
   }
 
   /**
-   * The saddle's per-frame hand-off (nalatiKit.setMount → here; `null` on foot). From the horse's speed (m/s) and heading
+   * The saddle's per-frame hand-off (loadout mount data → here; `null` on foot). From the horse's speed (m/s) and heading
    * (`yaw`, Player.yaw convention) it sets the knobs above per combat.md §A: the draw 0.9 s mounted (0.75 on foot), the
    * gait's spread cone (walk 0.8° · trot 3.0° · canter 1.5° · gallop 1.8°), the horse's velocity added to every arrow,
    * no drop arc from the saddle, and the Parthian shot — the view > 110° off the heading: the draw 0.2 s slower and
@@ -236,14 +236,22 @@ export class Bow extends Weapon {
    */
   setMount(m: { speed: number; yaw: number } | null): void {
     if (m === null) { this.mountDraw = 1; this.mountSpread = 0; this.carrierVelocity.set(0, 0, 0); this.mountArc = true; this.parthian = false; this.mounted = false; return; }
+    const mounted = this.profile.mounted;
+    if (mounted === undefined) return;
     const v = m.speed;
-    const gait = v < 0.3 ? 0.3 : v < 3.2 ? 0.8 : v < 6.5 ? 3.0 : v < 10.5 ? 1.5 : 1.8;
+    const gait = mounted.gaits.find((row) => v < row.below)?.spread ?? 0;
     let off = this.player.yaw - m.yaw; off = Math.abs(Math.atan2(Math.sin(off), Math.cos(off)));
-    this.parthian = off > THREE.MathUtils.degToRad(110);
-    this.mountDraw = DRAW_TIME / (0.9 + (this.parthian ? 0.2 : 0));
-    this.mountSpread = gait + (this.parthian ? 0.5 : 0);
+    this.parthian = off > THREE.MathUtils.degToRad(mounted.rearAngle);
+    this.mountDraw = DRAW_TIME / (mounted.drawTime + (this.parthian ? mounted.rearDraw : 0));
+    this.mountSpread = gait + (this.parthian ? mounted.rearSpread : 0);
     this.carrierVelocity.set(-Math.sin(m.yaw) * v, 0, -Math.cos(m.yaw) * v);
-    this.mountArc = false; this.mounted = true;
+    this.mountArc = mounted.arc; this.mounted = true;
+  }
+  carryMountState(previous: Bow): void {
+    this.mountDraw = previous.mountDraw; this.mountSpread = previous.mountSpread;
+    this.mountArc = previous.mountArc; this.parthian = previous.parthian; this.mounted = previous.mounted;
+    this.carrierVelocity.copy(previous.carrierVelocity); this.extraSpreadDeg = previous.extraSpreadDeg;
+    this.arcAllowed = previous.arcAllowed; this.wind = previous.wind;
   }
   /** the saddle's share (setMount) — kept apart from `drawSpeedScale` / `extraSpreadDeg` / `arcAllowed`, which other
    *  systems (the Golden Bow) set: the two multiply / add / AND */

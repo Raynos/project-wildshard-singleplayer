@@ -13,7 +13,7 @@ import { KURGAN_BALBAL } from '#engine/entities/species/kurganBalbal';
 import { KurganDungeon, DUNGEON, CH, COFFIN, PEDESTAL, NICHES, STREAMS, CHECKPOINT, DROMOS_SPAWN, DROMOS_END } from './world/KurganDungeon';
 import { Boss, type BossDef, type BossScript } from '#game/Boss';
 import { BossBar } from '#engine/ui/BossBar';
-import { GoldenBow, goldenBowModel } from './weapons/GoldenBow';
+import { GoldenBowPower, goldenBowModel } from './weapons/GoldenBow';
 import { activeRegistry } from '#engine/world/registry';
 
 /**
@@ -606,6 +606,7 @@ export interface KurganPlay {
   animals: AnimalManager;
   setWeaponsEnabled: (on: boolean) => void;
   bow: Bow | null;
+  upgradeBow?: (power: GoldenBowPower) => void;
   refill: () => void;
   interactables: Interactable[];
   toast: (text: string) => void;
@@ -623,7 +624,7 @@ export class KurganBoss {
   ui: BossBar | null = null;
   fight: GoldenKingFight | null = null;
   boss: Boss | null = null;
-  golden: GoldenBow | null = null;
+  golden: GoldenBowPower | null = null;
   /** the player is inside (the dromos or the chamber) */
   inside = false;
   private play: KurganPlay | null = null;
@@ -656,7 +657,7 @@ export class KurganBoss {
       const hit = play.animals.onCharge;
       play.animals.onCharge = (a, dmg) => { if (a.kind !== GOLDEN_KING && a.kind !== KURGAN_BALBAL) hit?.(a, dmg); };
     }
-    this.golden = new GoldenBow({ scene: game.scene, sky, camera: game.camera, raycast: (o, d, max) => play.animals.raycast(o, d, max) });
+    this.golden = new GoldenBowPower({ scene: game.scene, sky, camera: game.camera, raycast: (o, d, max) => play.animals.raycast(o, d, max) });
     this.ui = new BossBar();
     this.fight = new GoldenKingFight(this.dungeon, {
       player, animals: play.animals,
@@ -669,7 +670,7 @@ export class KurganBoss {
       reward: {
         tier: 'LEGENDARY', name: 'THE GOLDEN BOW', flavour: 'Bow of the Saka King', prompt: 'TAKE THE GOLDEN BOW',
         model: () => goldenBowModel(sky),
-        grant: () => { if (play.bow && this.golden) this.golden.apply(play.bow); },
+        grant: () => { if (play.bow && this.golden) { if (play.upgradeBow) play.upgradeBow(this.golden); else this.golden.apply(play.bow); } },
       },
     };
     this.boss = new Boss(def, this.fight, {
@@ -686,7 +687,7 @@ export class KurganBoss {
     // the King starts outside every list until you walk in; the reward, once won, is yours at every boot
     this.fight.reset(0);
     this.fight.setPresent(false);
-    if (this.boss.rewardTaken && play.bow) this.golden.apply(play.bow);
+    if (this.boss.rewardTaken && play.bow) { if (play.upgradeBow) play.upgradeBow(this.golden); else this.golden.apply(play.bow); }
     window.addEventListener('pointerdown', () => { this.skipTouch = true; });
     window.addEventListener('pointerup', () => { this.skipTouch = false; });
     window.addEventListener('pointercancel', () => { this.skipTouch = false; });

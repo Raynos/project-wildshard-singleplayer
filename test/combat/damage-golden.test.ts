@@ -14,7 +14,7 @@ import { Bow } from '#kit/weapons/bow/index';
 import { Rifle } from '#kit/weapons/firearm/Rifle';
 
 import { Spear, JAVELIN, SPEAR_PROFILE } from '#shards/nalati-grasslands/weapons/Spear';
-import { GoldenBow } from '#shards/nalati-grasslands/weapons/GoldenBow';
+import { GoldenBowPower } from '#shards/nalati-grasslands/weapons/GoldenBow';
 import { boltDamage } from '#shards/pine-hollow/loadout/ammo';
 import { app } from '#engine/app/runtime';
 import { setSetting } from '#engine/ui/Settings';
@@ -44,7 +44,7 @@ function dealt(source: Source, rule: Rule, headshot: boolean, distance: number, 
     const bow = legacyActor(Bow.prototype, { row: { id: 'weapon.bow', ui: { name: 'Bow' }, meta: { name: 'Bow' } },
       drawSpeedScale: 1, onLoose: undefined, damageMultiplier: () => sneak ? 2 : 1 });
     if (source === 'golden' || source === 'sun') {
-      const upgrade = legacyActor(GoldenBow.prototype, { bow: null, recolour: noop, sunShot: source === 'sun' }); upgrade.apply(bow);
+      const upgrade = legacyActor(GoldenBowPower.prototype, { bow: null, recolour: noop, sunShot: source === 'sun' }); upgrade.apply(bow);
     }
     const pool = legacyActor(Projectiles.prototype, { kind: {}, onTargetHit: undefined, targets: { raycast }, onHit: undefined, stop: noop });
     invokeLegacy(pool, 'testHit', { pos: new THREE.Vector3(0, 1, -1), origin: new THREE.Vector3(),
@@ -59,7 +59,7 @@ function dealt(source: Source, rule: Rule, headshot: boolean, distance: number, 
     // Visual-only stagger is explicitly suppressed; damage still executes real Animal.applyDamage.
     Reflect.set(target.animal, 'stagger', noop); invokeLegacy(spear, 'flyJavelins', 1 / 60);
   } else if (source === 'pierce') {
-    const golden = legacyActor(GoldenBow.prototype, { streakT: 0, pending: [{ t: 0, target: target.animal, point, dir: new THREE.Vector3(0, 0, -1), dmg: 37 }] });
+    const golden = legacyActor(GoldenBowPower.prototype, { streakT: 0, pending: [{ t: 0, target: target.animal, point, dir: new THREE.Vector3(0, 0, -1), dmg: 37 }] });
     golden.update(1 / 60);
   } else {
     const weapon = legacyActor(source === 'rifle' ? Rifle.prototype : LeverRifle.prototype, { profile: source === 'rifle' ? AR15 : LEVER_PROFILE, game: f.game.asGame(), player: f.player,

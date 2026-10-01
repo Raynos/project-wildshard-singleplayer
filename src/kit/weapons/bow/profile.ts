@@ -11,6 +11,8 @@ export interface BowView {
 }
 export type BowStyle = 'recurve' | 'golden' | 'sky-wolf';
 export interface BowProfile {
+  mounted?: { drawTime: number; rearAngle: number; rearDraw: number; rearSpread: number;
+    gaits: readonly { below: number; spread: number }[]; arc: boolean };
   family: 'bow'; parent?: EquipmentRow['id']; quiver: number; swayMax: number;
   speedBase: number; speedDraw: number; damageScale: number;
   aimZoom: number; aimVmZoom: number; aimSway: number; aimSpread: number; aimIn: number;

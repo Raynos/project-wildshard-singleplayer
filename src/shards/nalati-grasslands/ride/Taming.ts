@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { saves } from '#engine';
+import { saves, type InputService } from '#engine';
 import * as THREE from 'three';
 import type { Player } from '#engine/player/Player';
 import type { Mount } from './Mount';
@@ -85,11 +85,9 @@ export class Taming {
   private round = 0; private roundT = 0; private b = 0; private bv = 0; private redT = 0;
   private moves: Move[] = [];
   private spinF = 0; private spinT = 0;
-  private offerKey = false;
+  input: InputService | null = null;
 
   constructor(private readonly opts: TamingOpts) {
-    document.addEventListener('keydown', (e) => { if (e.code === 'KeyG') this.offerKey = true; });
-    document.addEventListener('keyup', (e) => { if (e.code === 'KeyG') this.offerKey = false; });
     // wolves driven off a herd: +30 TRUST once per herd (the pack broke / was driven off within 40 m of it)
     const prevEvent = wildEnv.onEvent;
     wildEnv.onEvent = (name, x, z) => {
@@ -147,7 +145,7 @@ export class Taming {
     p.camera.getWorldDirection(_f);
     _v.copy(this.ear).sub(p.camera.position).normalize();
     this.lookT = _f.dot(_v) > 0.9975 ? this.lookT + dt : Math.max(0, this.lookT - dt * 2);
-    const offering = (this.offerKey || this.opts.hud.offer) && bd < 12;
+    const offering = (this.input?.held('ride.offer') ?? this.opts.hud.offer) && !this.opts.mount.mounted && bd < 12 && herd.alert < 33;
     let trustRate = -1, alertRate = -15;
     if (crouched && spd <= 2.4 && bd < 25) trustRate = 2;
     if (offering && herd.alert < 33) trustRate = Math.max(trustRate, 0) + 8;
@@ -226,7 +224,7 @@ export class Taming {
     if (this.spinT > 0) { this.spinT -= dt; force += this.spinF; st.setMotion(st.yaw + Math.sign(this.spinF) * 2, 0, 3.2); st.yaw += Math.sign(this.spinF) * dt * 2.6; }
     // your lean
     const k = p.keys;
-    const lean = THREE.MathUtils.clamp((k.has('KeyD') ? 1 : 0) - (k.has('KeyA') ? 1 : 0) + this.opts.hud.lean, -1, 1);
+    const lean = THREE.MathUtils.clamp((this.input ? (this.input.held('lean.right') ? 1 : 0) - (this.input.held('lean.left') ? 1 : 0) : (k.has('KeyD') ? 1 : 0) - (k.has('KeyA') ? 1 : 0) + this.opts.hud.lean), -1, 1);
     this.bv += (force - lean * LEAN_ACC) * dt;
     this.bv *= Math.exp(-DAMP * dt);
     this.b = THREE.MathUtils.clamp(this.b + this.bv * dt, -1.2, 1.2);

@@ -1,7 +1,8 @@
-import { sourceMultiplier, isMesh, type Sky, painterlyMaterial } from '#engine';
+import { sourceMultiplier, isMesh, type Sky, type Targets, painterlyMaterial } from '#engine';
 import { NALATI_SOURCE_MULTIPLIERS, goldenSourceTags } from './effects';
 import * as THREE from 'three';
-import type { Bow } from '#kit';
+import { Bow, type BowWorld, type BowOptions } from '#kit';
+import { BOW } from './equipment';
 
 
 
@@ -46,7 +47,7 @@ const STRING_LIGHT = new THREE.Color(3.2, 2.6, 1.3);
 const STREAK_PTS = 48, SPEED_BASE = 30, SPEED_DRAW = 28, SUN_DRAW = 0.95;
 const _o = new THREE.Vector3(), _d = new THREE.Vector3(), _v = new THREE.Vector3(), _a = new THREE.Vector3(), _b = new THREE.Vector3(), _c = new THREE.Color();
 
-export class GoldenBow {
+export class GoldenBowPower {
   private bow: Bow | null = null;
   private streak: THREE.Mesh; private streakMat: FxMaterial; private streakPos: Float32Array; private streakAttr: THREE.BufferAttribute;
   private streakT = 0;
@@ -233,4 +234,19 @@ export function goldenBowModel(sky: Sky): THREE.Object3D {
   group.rotation.z = -0.5;
   const wrap = new THREE.Group(); wrap.add(group);
   return wrap;
+}
+
+export const GOLDEN_BOW = { ...BOW, id: 'weapon.golden-bow' as const,
+  ui: { ...BOW.ui, name: 'Golden Bow', swapName: 'Golden Bow' }, meta: { ...BOW.meta, name: 'Golden Bow' } };
+/** Reward behavior shares the Bow family and keeps the source's preloaded streak clock. */
+export class GoldenBow extends Bow {
+  constructor(world: BowWorld, targets: Targets, opts: BowOptions & { power: GoldenBowPower; previous?: Bow }) {
+    super(world, targets, { ...opts, row: GOLDEN_BOW });
+    if (opts.previous) {
+      this.damageMultiplier = opts.previous.damageMultiplier;
+      this.onLoose = opts.previous.onLoose;
+      this.carryMountState(opts.previous);
+    }
+    opts.power.apply(this);
+  }
 }

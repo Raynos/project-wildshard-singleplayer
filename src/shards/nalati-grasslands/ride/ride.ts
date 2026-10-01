@@ -1,3 +1,4 @@
+import type { LevelContext } from '#engine';
 import * as THREE from 'three';
 import type { Player } from '#engine/player/Player';
 import type { Forest } from '#engine/world/forest/Forest';
@@ -48,7 +49,7 @@ const BOLT_PANIC = 35;
 /** a species' own voice through the manager's sound hook (its names are the species' — AnimalManager's `c.sound` does the same) */
 function voice(name: string): AnimalSound { return name as AnimalSound; }
 
-export interface RideCtx { player: Player; forest: Forest; animals: AnimalManager; wildlife: Wildlife; camera: THREE.PerspectiveCamera }
+export interface RideCtx { ctx?: LevelContext; player: Player; forest: Forest; animals: AnimalManager; wildlife: Wildlife; camera: THREE.PerspectiveCamera }
 /** `hurt` defaults to the animals' onCharge (main.ts's damage path); `isDrawing` to the kit bow's DRAW latch / draw */
 export interface RidePlay { kit: (MountKit & { bow: { drawing: boolean; adsHeld: boolean } }) | null; toast: (text: string) => void; hurt?: (damage: number) => void; isDrawing?: () => boolean }
 
@@ -71,9 +72,11 @@ export interface Ride {
 export function wireRide(ctx: RideCtx): Ride {
   let play: RidePlay | null = null;
   const hurt = (d: number): void => {
-    if (play?.hurt !== undefined) { play.hurt(d); return; }
-    const a = ctx.animals.animals[0];
-    if (a !== undefined) ctx.animals.onCharge?.(a, d);   // main.ts's damage path (health, flash, sound)
+    const player = ctx.ctx?.app.player;
+    if (player) ctx.ctx?.app.combat.hit({ source: 'env', sourceTags: ['env.ride'], target: player, amount: d, throughWalls: true,
+      point: ctx.player.position, dir: new THREE.Vector3(),
+      cause: { kind: 'env.ride', label: 'cause.ride', text: 'cause.ride.text' } });
+    else play?.hurt?.(d);
   };
   const rest = HITCH_HORSE_SPOTS[0] ?? { x: HITCHING_RAIL.x - 1.9, z: HITCHING_RAIL.z, face: { x: 1, z: 0 } };
   const mount = new Mount({
@@ -84,7 +87,7 @@ export function wireRide(ctx: RideCtx): Ride {
     roads: ROADS,
   });
   for (const h of ctx.wildlife.campHorses) mount.addMountable(h, 'Camp horse');
-  const hud = new RideHUD(mount, ctx.camera);
+  const hud = new RideHUD(mount, ctx.camera, ctx.ctx);
   const taming = new Taming({
     player: ctx.player, mount, animals: ctx.animals, hud, herds: () => ctx.wildlife.herds, rest,
     hurt: (d) => { hurt(d); }, toast: (t) => { play?.toast(t); },

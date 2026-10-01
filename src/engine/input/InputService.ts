@@ -11,6 +11,7 @@ interface Context { def: InputContextDef; scope: Scope }
 export class InputService {
   private readonly definitions = new Map<string, Context>();
   private readonly stack: Context[] = [];
+  private readonly samples = new Map<string, () => void>();
   private readonly pushed = new Map<string, () => void>();
   private readonly presses = new Map<Action, number>();
   private readonly down = new Set<Action>();
@@ -29,6 +30,8 @@ export class InputService {
           this.setHeld(action as Action, this.stack.includes(entry) && codes.some((code) => heldKeys.has(code)));
         }
       };
+      this.samples.set(def.id, sample);
+      scope.onDispose(() => { this.samples.delete(def.id); });
       scope.listen(document, 'keydown', (event) => {
         if (!(event instanceof KeyboardEvent)) return;
         heldKeys.add(event.code); sample();
@@ -46,10 +49,10 @@ export class InputService {
     const entry = this.definitions.get(id);
     if (entry === undefined) throw new Error(`Unknown input context: ${id}`);
     if (scope.disposed || this.stack.includes(entry)) return;
-    this.stack.push(entry); this.repaint();
+    this.stack.push(entry); this.samples.get(id)?.(); this.repaint();
     this.pushed.set(id, scope.capture('disposers', () => { this.pop(id); }));
   }
-  pop(id: string): void { const at = this.stack.findIndex((entry) => entry.def.id === id); if (at === -1) return; this.stack.splice(at, 1); this.pushed.get(id)?.(); this.pushed.delete(id); this.repaint(); }
+  pop(id: string): void { const at = this.stack.findIndex((entry) => entry.def.id === id); if (at === -1) return; this.stack.splice(at, 1); this.samples.get(id)?.(); this.pushed.get(id)?.(); this.pushed.delete(id); this.repaint(); }
   get top(): string { return this.stack.at(-1)?.def.id ?? ''; }
   private allowed(action: Action): boolean {
     for (const { def } of [...this.stack].reverse()) {

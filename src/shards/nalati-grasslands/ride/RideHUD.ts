@@ -1,7 +1,8 @@
+import type { LevelContext } from '#engine';
 import * as THREE from 'three';
 import './ride.css';
 import type { Mount } from './Mount';
-import { ROW, hudSlots } from '#engine/ui/hudSlots';
+import { ROW, hudSlots, type DiscOpts } from '#engine/ui/hudSlots';
 
 /**
  * RideHUD — the riding and taming HUD atoms (Nalati B7 / B8; mockups art/nalati-grasslands/round-2/1-combat/
@@ -70,7 +71,7 @@ export class RideHUD {
   private last = { mounted: true, breaking: true, offer: true, horseTab: true, steed: -1, gait: '', winded: false, beat: false, spur: 0 }; // ≠ the first frame's: paint it
   private spurUntil = 0;
 
-  constructor(private readonly mount: Mount, private readonly camera: THREE.PerspectiveCamera) {
+  constructor(private readonly mount: Mount, private readonly camera: THREE.PerspectiveCamera, private readonly ctx?: LevelContext) {
     this.root = document.getElementById('hud') ?? document.body;
     const el = (cls: string, html = ''): HTMLElement => { const d = document.createElement('div'); d.className = cls; d.innerHTML = html; return d; };
     this.steed = el('ws-glass ws-ride-steed', `<div class="ws-ride-row"><i class="ws-ride-glyph">${SVG_HORSE}</i><span class="ws-ride-name">Steed</span><span class="ws-ride-gait">stand</span></div><div class="ws-ride-sbar"><i style="width:100%"></i></div>`);
@@ -87,29 +88,39 @@ export class RideHUD {
     this.holdMark = mk;
     this.root.append(this.steed, this.trust, this.ear, this.hold);
     this.t = this.buildTouch();
+    this.ctx?.scope.onDispose(() => {
+      this.steed.remove(); this.trust.remove(); this.ear.remove(); this.hold.remove();
+      for (const tag of this.tags.values()) tag.el.remove();
+      this.tags.clear();
+    });
   }
 
   private q(r: HTMLElement, s: string): HTMLElement { const e = r.querySelector<HTMLElement>(s); if (e === null) throw new Error(`RideHUD: ${s}`); return e; }
 
   /** the phone's discs and STEED row, through the base HUD's slots */
   private buildTouch(): RideHUD['t'] {
-    const gallop = hudSlots.disc({ cls: 'ws-ride-gallop', icon: SVG_SHOE, label: 'Gallop', spot: 'r0', press: () => { this.mount.touchGallop = true; this.mount.gallopTap(); }, release: () => { this.mount.touchGallop = false; } });
+    const disc = (opts: DiscOpts): HTMLButtonElement => this.ctx ? this.ctx.hud.disc(opts) : hudSlots.disc(opts);
+    const gallop = disc({ cls: 'ws-ride-gallop', icon: SVG_SHOE, label: 'Gallop', spot: 'r0', press: () => { if (this.ctx) this.ctx.app.input.setHeld('ride.gallop', true); else { this.mount.touchGallop = true; this.mount.gallopTap(); } }, release: () => { if (this.ctx) this.ctx.app.input.setHeld('ride.gallop', false); else this.mount.touchGallop = false; } });
     // HORSE ⇄ DISMOUNT (N17): one tab on the left edge over HOVER (E319, Jake: HORSE right and HOVER left "makes no sense")
     // — on foot it whistles your horse (shown only once one is bonded), in the saddle it reads DISMOUNT and gets you off
     // (the full-width USE band's DISMOUNT hides, syncUse)
-    const horse = hudSlots.disc({ cls: 'ws-ride-horse', icon: SVG_HORSE, label: 'Horse', spot: 'edge-l', press: () => { if (this.mount.mounted) { if (!this.mount.breaking) this.mount.dismount(); } else this.mount.whistle(); } });
-    const leanL = hudSlots.disc({ cls: 'ws-ride-lean', icon: SVG_LEFT, label: 'Lean L', spot: 'lean-l', press: () => { this.lean = -1; }, release: () => { if (this.lean < 0) this.lean = 0; } });
-    const leanR = hudSlots.disc({ cls: 'ws-ride-lean', icon: SVG_RIGHT, label: 'Lean R', spot: 'lean-r', press: () => { this.lean = 1; }, release: () => { if (this.lean > 0) this.lean = 0; } });
-    const offer = hudSlots.disc({ cls: 'ws-ride-offer', icon: SVG_HAND, label: 'Offer', spot: 'aim', press: () => { this.offer = true; }, release: () => { this.offer = false; } });
+    const horse = disc({ cls: 'ws-ride-horse', icon: SVG_HORSE, label: 'Horse', spot: 'edge-l', press: () => { if (this.ctx) this.ctx.app.input.press(this.mount.mounted ? 'ride.horseTab' : 'ride.whistle'); else if (this.mount.mounted) { if (!this.mount.breaking) this.mount.dismount(); } else this.mount.whistle(); } });
+    const leanL = disc({ cls: 'ws-ride-lean', icon: SVG_LEFT, label: 'Lean L', spot: 'lean-l', press: () => { if (this.ctx) this.ctx.app.input.setHeld('lean.left', true); else this.lean = -1; }, release: () => { if (this.ctx) this.ctx.app.input.setHeld('lean.left', false); else if (this.lean < 0) this.lean = 0; } });
+    const leanR = disc({ cls: 'ws-ride-lean', icon: SVG_RIGHT, label: 'Lean R', spot: 'lean-r', press: () => { if (this.ctx) this.ctx.app.input.setHeld('lean.right', true); else this.lean = 1; }, release: () => { if (this.ctx) this.ctx.app.input.setHeld('lean.right', false); else if (this.lean > 0) this.lean = 0; } });
+    const offer = disc({ cls: 'ws-ride-offer', icon: SVG_HAND, label: 'Offer', spot: 'aim', press: () => { if (this.ctx) this.ctx.app.input.setHeld('ride.offer', true); else this.offer = true; }, release: () => { if (this.ctx) this.ctx.app.input.setHeld('ride.offer', false); else this.offer = false; } });
     // STEED: a row of the status column under VITALS (D-saddle.jpg's content)
     const steed = document.createElement('div');
     steed.className = 'ws-ride-steed ws-ride-touch';
     steed.innerHTML = `<i class="ws-ride-glyph">${SVG_HORSE}</i><span class="ws-ride-name">Steed</span><span class="ws-ride-sbar"><i style="width:100%"></i></span><span class="ws-ride-gait">stand</span>`;
-    hudSlots.statusRow(steed, ROW.steed);
+    if (this.ctx) this.ctx.hud.widget('status', steed, ROW.steed); else hudSlots.statusRow(steed, ROW.steed);
     hudSlots.onLayer((layer) => {
       this.layer = layer;
       this.use = layer.querySelector<HTMLElement>('.ws-touch-use');
-      if (this.use !== null) new MutationObserver(() => { this.syncUse(); }).observe(this.use, { childList: true, characterData: true, subtree: true });
+      if (this.use !== null) {
+        const observer = new MutationObserver(() => { this.syncUse(); });
+        observer.observe(this.use, { childList: true, characterData: true, subtree: true });
+        this.ctx?.scope.onDispose(() => { observer.disconnect(); });
+      }
     });
     return { gallop, horse, leanL, leanR, offer, steed, sbar: this.q(steed, '.ws-ride-sbar i'), sname: this.q(steed, '.ws-ride-name'), gait: this.q(steed, '.ws-ride-gait') };
   }
@@ -198,7 +209,7 @@ export class RideHUD {
       this.last.offer = offer;
       hudSlots.show(t.offer, offer);
       this.showDisc('.ws-touch-disc.aim', !offer && !breaking);
-      if (!offer) this.offer = false;
+      if (!offer) if (this.ctx) this.ctx.app.input.setHeld('ride.offer', false); else this.offer = false;
     }
     // ── name tags over your horses ──
     for (const mt of m.mountables) {

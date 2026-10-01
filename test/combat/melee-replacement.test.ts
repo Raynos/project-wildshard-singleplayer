@@ -5,7 +5,8 @@ import { Melee, Thrown, SWORD_WOOD } from '#kit';
 import { Sabre, PASS_RIGHT, SABRE_PROFILE } from '#shards/nalati-grasslands/weapons/Sabre';
 import { Spear, JAVELIN, SPEAR_PROFILE } from '#shards/nalati-grasslands/weapons/Spear';
 import { Naizagai, NaizagaiPower, NAIZAGAI_PROFILE } from '#shards/nalati-grasslands/weapons/Naizagai';
-import { buildNalatiKit } from '#shards/nalati-grasslands/weapons/nalatiKit';
+import { buildNalatiLoadout } from '#shards/nalati-grasslands/weapons/loadout';
+import { GoldenBow, GoldenBowPower } from '#shards/nalati-grasslands/weapons/GoldenBow';
 import { fakeWorld } from '../fake/world';
 import { manager } from '../fake/manager';
 
@@ -18,6 +19,24 @@ class PassSabre extends Sabre {
   recordPass(): void { this.onMoveHit(PASS_RIGHT); }
 }
 describe('Melee content and reward replacement', () => {
+  it('replaces the golden bow once, keeps its quiver, saddle data and source multiplier', () => {
+    const f = world(), kit = buildNalatiLoadout(f.world, { raycast: () => null }, true);
+    const scope = new Scope('golden-replacement'), service = new EquipmentService(kit.base, { scope });
+    for (const weapon of kit.extras) service.add(weapon, { locked: false });
+    kit.install(service); kit.bow.state.bolts = 7; kit.bow.damageMultiplier = () => 2;
+    kit.setMount({ speed: 12, yaw: 0.4 });
+    const previous = kit.bow;
+    const power = new GoldenBowPower({ scene: f.game.scene, sky: f.sky, camera: f.game.camera, raycast: () => null });
+    kit.upgradeBow(service, power); kit.upgradeBow(service, power);
+    expect(kit.bow).toBeInstanceOf(GoldenBow); expect(service.current).toBe(kit.bow);
+    expect(kit.bow.state.bolts).toBe(7); expect(kit.bow.drawSpeedScale).toBe(1.2);
+    expect(kit.bow.carrierVelocity.toArray()).toEqual(previous.carrierVelocity.toArray());
+    expect(previous.model.parent).toBeNull(); expect(service.available).toHaveLength(3);
+    const hit = { animal: { kind: 'boar' } } as TargetHit;
+    expect(kit.bow.damageMultiplier(hit)).toBe(2);
+    kit.setMount(null); expect(kit.bow.carrierVelocity.length()).toBe(0); expect(kit.bow.drawSpeedScale).toBe(1.2);
+    scope.dispose();
+  });
   it('preserves the sabre slot, held model, ownership, heavy perk and pass clock', () => {
     const f = world(), original = new PassSabre(f.world), scope = new Scope('replacement');
     const service = new EquipmentService(original, { scope, events: app.events });
@@ -40,7 +59,7 @@ describe('Melee content and reward replacement', () => {
     scope.dispose(); expect(scope.census.listeners).toBe(0); expect(upgraded.model.parent).toBeNull();
   });
   it('the kit changes its live mounted reference once and keeps all three javelins', () => {
-    const f = world(), kit = buildNalatiKit(f.world, { raycast: () => null }, true);
+    const f = world(), kit = buildNalatiLoadout(f.world, { raycast: () => null }, true);
     const scope = new Scope('kit'), service = new EquipmentService(kit.base, { scope });
     const original = kit.sabre;
     const power = new NaizagaiPower({ scene: f.game.scene, player: f.player, camera: f.game.camera,

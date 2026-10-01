@@ -3,7 +3,6 @@ import type { Player } from '#engine/player/Player';
 import { Animal } from '#engine/entities/Animal';
 import type { Forest } from '#engine/world/forest/Forest';
 import type { Interactable } from '#engine/world/interact/types';
-import type { MountState } from '../weapons/Sabre';
 import { heightAt, inChunk, waterLevel } from '#engine/world/Heightfield';
 import { HorseHerd } from '#engine/entities/Herd';
 import { CharacterMotor } from '#engine/physics/CharacterMotor';
@@ -12,7 +11,10 @@ import { castRay, floorBelow } from '#engine/physics/query';
 import { tagOf } from '#engine/physics/surface';
 import { HORSE_SPEED } from '#engine/entities/species/horse';
 import { wildEnv } from '#engine/entities/wildEnv';
-import { riding } from '#engine/player/riding';
+import type { InputService, EquipmentService } from '#engine';
+import { Bow } from '#kit';
+import { Sabre, type MountState } from '../weapons/Sabre';
+import { Spear } from '../weapons/Spear';
 import { lockOn } from '#engine/player/AimTargets';
 import { RhythmSpur, roadSteer, SPUR_WINDOW, type RoadXZ } from './rideAssist';
 import { horseKey, savedHorseName, saveHorseName } from './horseNames';
@@ -136,6 +138,8 @@ const angDiff = (a: number, b: number): number => Math.atan2(Math.sin(a - b), Ma
 export class Mount {
   /** the horse under you (null on foot) */
   horse: Animal | null = null;
+  input: InputService | null = null;
+  equipment: (() => EquipmentService | null) | null = null;
   get mounted(): boolean { return this.horse !== null; }
   /** STEED stamina 0..100 */
   steed = STEED_MAX;
@@ -206,14 +210,21 @@ export class Mount {
 
   constructor(private opts: MountOpts) {
     this.player = opts.player;
-    document.addEventListener('keydown', (e) => {
-      if (e.code === 'KeyX' && !e.repeat) this.whistle();
-      if ((e.code === 'ShiftLeft' || e.code === 'ShiftRight') && !e.repeat) this.gallopTap();
-    });
+
   }
 
   /** B1: a GALLOP press (the disc's press, a Shift keydown) — counted even when the tap is shorter than a frame */
   gallopTap(): void { if (this.horse !== null) this.tapQueued = true; }
+
+  private updateWeapons(mount: MountState | null): void {
+    const equipment = this.equipment?.();
+    if (equipment) {
+      for (const weapon of equipment.available) {
+        if (weapon instanceof Bow) weapon.setMount(mount);
+        else if (weapon instanceof Sabre || weapon instanceof Spear) weapon.mount = mount;
+      }
+    } else this.opts.kit?.setMount(mount);
+  }
 
   /** hand over the weapon kit once it exists (the wiring builds the mount before main.ts builds the kit) */
   setKit(kit: MountKit | null): void { this.opts.kit = kit; }
@@ -263,7 +274,7 @@ export class Mount {
     if (this.horse !== null || !this.canRide(a)) return false;
     const p = this.player;
     p.setHover(false);
-    this.horse = a; riding.horse = a;
+    this.horse = a; p.mountedOn = a;
     this.breaking = breaking;
     const herd = HorseHerd.of(a);
     if (herd !== null) herd.setRidden(a); else a.mem['ridden'] = 1;
@@ -334,15 +345,14 @@ export class Mount {
     p.onGround = true;
     p.ride = null;
     p.setBodyEnabled(true);
-    this.horse = null; riding.horse = null;
+    this.horse = null; p.mountedOn = null;
     this.breaking = false; this.breakRoll = 0; this.breakShake = 0;
     const herd = HorseHerd.of(a);
     if (herd?.ridden === a) herd.setRidden(null); else a.mem['ridden'] = 0;
     a.setMotion(a.yaw, 0, 2);
     a.mem['rear'] = 0; a.mem['buck'] = 0; a.mem['turnLead'] = 0;
     wildEnv.playerMounted = false;
-    const kit = this.opts.kit;
-    if (kit) kit.setMount(null);
+    this.updateWeapons(null);
     this.gait = 'stand';
     if (thrown) this.onThrown?.();
     this.onMountChange?.(null);
@@ -406,10 +416,11 @@ export class Mount {
     if (Math.abs(angDiff(p.yaw, this.camYaw)) > 1e-4 || Math.abs(p.pitch - this.camPitch) > 1e-4) this.lookIdle = 0;
     else this.lookIdle += dt;
     // ── input, in the HORSE's frame (never the camera's): forward / back = the reins' speed, left / right = turn ──
-    const fwdK = (k.has('KeyW') ? 1 : 0) - (k.has('KeyS') ? 1 : 0), strK = (k.has('KeyD') ? 1 : 0) - (k.has('KeyA') ? 1 : 0);
+    const held = (action: 'move.forward' | 'move.back' | 'move.left' | 'move.right', key: string): number => (this.input ? this.input.held(action) : k.has(key)) ? 1 : 0;
+    const fwdK = held('move.forward', 'KeyW') - held('move.back', 'KeyS'), strK = held('move.right', 'KeyD') - held('move.left', 'KeyA');
     const tx = p.touchMove.x, ty = p.touchMove.y, stick = Math.hypot(tx, ty);
     const turnIn = THREE.MathUtils.clamp(strK + tx, -1, 1);
-    const gallopKey = k.has('ShiftLeft') || k.has('ShiftRight') || this.touchGallop;
+    const gallopKey = this.input ? this.input.held('ride.gallop') : k.has('ShiftLeft') || k.has('ShiftRight') || this.touchGallop;
     this.wUp = fwdK > 0 ? this.wUp + dt : 0;
     // the stick's sector (8 ways): ahead (within ~67° of up) = go, the gait by how far it is pushed; beside = a collected
     // turn (at most a trot; a pivot on the spot from a stand); behind = rein in, then back up
@@ -703,11 +714,9 @@ export class Mount {
     _e.set(p.pitch + this.rock - SEAT_TILT - 0.03 * this.leanLow - 0.06 * this.skidDip + shake * 0.4 - hm.x * TILT_FOLLOW, p.yaw, this.roll + this.breakRoll + jolt * 2 - hm.z * TILT_FOLLOW, 'YXZ');
     cam.rotation.copy(_e);
     // ── weapons from the saddle ──
-    const kit = this.opts.kit;
-    if (kit) {
-      kit.setMount({ speed: this.speed, yaw: heading - Math.PI });
-      if (this.gait === 'gallop' && Math.cos(this.bobPh) > 0.3) kit.bow.extraSpreadDeg *= 0.5;   // the gallop's float: all four hooves off the ground
-    }
+    this.updateWeapons({ speed: this.speed, yaw: heading - Math.PI });
+    const bow = this.equipment?.()?.available.find((weapon) => weapon instanceof Bow);
+    if (bow instanceof Bow && this.gait === 'gallop' && Math.cos(this.bobPh) > 0.3) bow.extraSpreadDeg *= 0.5;
   }
 
   /**
