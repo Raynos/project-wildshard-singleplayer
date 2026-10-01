@@ -21,7 +21,7 @@ import type { Sky } from '#engine/world/Sky';
 import { Flags } from '#engine/world/interact/flags';
 import { Interactables, type InteractEvent } from '#engine/world/interact/Interactables';
 import { DRIFTWOOD_INTERACT, SEA_GLASS_COUNT, SEA_GLASS_FLAG } from '#shards/driftwood-isle/quest/interactables';
-import type { PoiId, Place } from '#engine/world/interact/types';
+import type { Interactable, PoiId, Place } from '#engine/world/interact/types';
 import { ITEMS, type ItemId } from '../Inventory';
 import type { Audio } from '#engine/audio/Audio';
 import { IslandSfx } from '#engine/audio/IslandSfx';
