@@ -37,6 +37,52 @@ import * as THREE from 'three';
 /** Authored hull traits; the seed rig contains no shard names or model paths. */
 export interface NpcRigProfile { id: string; lantern: boolean }
 
+/** Authored pivot and skinned models share the NPC row lifecycle; their pose driver stays with the content. */
+export interface NpcModel {
+  readonly group: THREE.Group;
+  update: (dt: number, t: number, player: THREE.Vector3) => void;
+}
+export interface NpcFace<M extends NpcModel> {
+  load: () => Promise<THREE.BufferGeometry | null>;
+  target: (model: M) => THREE.Mesh;
+}
+export interface NpcRow<M extends NpcModel, Args> {
+  id: string;
+  model: (args: Args) => M;
+  idle: string;
+  near: number;
+  visible?: (model: M, near: boolean) => void;
+  face?: NpcFace<M>;
+}
+
+/** The draw cut runs before the pose, so a hidden counter and its figure freeze together. */
+export class NpcRig<M extends NpcModel, Args> {
+  readonly model: M;
+  private readonly row: NpcRow<M, Args>;
+  private live = true;
+  constructor(row: NpcRow<M, Args>, args: Args) {
+    this.row = row;
+    this.model = row.model(args);
+    const face = row.face;
+    if (face !== undefined) void face.load().then((geometry) => {
+      if (geometry === null) return null;
+      if (!this.live) { geometry.dispose(); return null; }
+      const head = face.target(this.model);
+      head.geometry.dispose(); head.geometry = geometry;
+      return geometry;
+    });
+  }
+  update(dt: number, t: number, player: THREE.Vector3): void {
+    if (!this.live) return;
+    const p = this.model.group.position;
+    const near = Math.hypot(player.x - p.x, player.z - p.z) < this.row.near;
+    this.row.visible?.(this.model, near);
+    if (near) this.model.update(dt, t, player);
+  }
+  /** Prevent a pending face load from writing into an evicted scene. Resources belong to the scene scope. */
+  dispose(): void { this.live = false; }
+}
+
 export const LEG_BONE_NAMES = [
   'hips', 'spine', 'chest', 'neck', 'head',
   'clavicleR', 'shoulderR', 'twistR', 'elbowR', 'handR',
