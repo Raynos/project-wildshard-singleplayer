@@ -446,6 +446,25 @@ const noActiveChunk = rule('Current content data belongs in the game layer (E357
   return { CallExpression(node) { if (calleeName(node.callee) === 'getActiveChunk') report(context, node, 'Read explicit level data or the game content service'); } };
 });
 
+// Page overlays remain outside legacy level capture (legacyCapture's SHELL selector).
+const CAPTURE_SHELL_FILES = new Set(['Loading', 'Resume', 'RotateGate', 'Update', 'ReloadPrompt', 'ErrorModal', 'BootSettings', 'errorScreen'].map((name) => `src/engine/ui/${name}.ts`));
+const CAPTURE_CALLS = new Set(['addEventListener', 'setTimeout', 'setInterval', 'requestAnimationFrame']);
+const noGlobalListenerPatch = rule('Legacy global registrations migrate to explicit Scopes (E357 F11)', (context) => {
+  const path = pathOf(context);
+  if (path.startsWith('src/engine/app/') || CAPTURE_SHELL_FILES.has(path)) return {};
+  return { CallExpression(node) {
+    const callee = unwrap(node.callee);
+    if (CAPTURE_CALLS.has(calleeName(callee))) {
+      report(context, node, 'Register listeners and timers through the owning Scope'); return;
+    }
+    if (callee?.type !== 'MemberExpression' || !['append', 'appendChild'].includes(propName(callee) ?? stringOf(callee.property))) return;
+    const target = unwrap(callee.object);
+    if (target?.type === 'MemberExpression' && (propName(target) ?? stringOf(target.property)) === 'body' && nameOf(target.object) === 'document') {
+      report(context, node, 'Register body nodes through the owning Scope');
+    }
+  } };
+});
+
 const plugin = {
   meta: { name: 'wildshard' },
   rules: {
@@ -454,6 +473,7 @@ const plugin = {
     'no-renderer-type': noRendererType, 'sim-no-render': simNoRender,
     'no-hook-chain': noHookChain,
     'no-active-singleton': noActiveSingleton, 'no-active-chunk': noActiveChunk,
+    'no-global-listener-patch': noGlobalListenerPatch,
   },
 };
 export default plugin; // oxlint loads a JS plugin from its default export

@@ -1,4 +1,4 @@
-import { currentScope } from '../core/shardScope';
+import { currentScope } from '../app/legacyCapture';
 
 /** Legacy sound makers keep their graph; the level owns only scheduled source handles. */
 export function ownAudioSource<T extends AudioScheduledSourceNode>(source: T): T {

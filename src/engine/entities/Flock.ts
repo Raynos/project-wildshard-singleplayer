@@ -12,7 +12,6 @@ import { modelsOn } from '#shards/nalati-grasslands/world/glbPaint';
 import { TIER } from '../core/tier';
 import { painterlyAnimalMaterial } from './painterlyAnimals';
 import { wildEnv, angDiff } from './wildEnv';
-import { listSlot } from '../core/shardState';
 
 /**
  * Flock — the camp's sheep (docs/design/nalati/wolves-horses-taming.md "Sheep"): 20–60 fat-tailed sheep as ONE
@@ -359,7 +358,6 @@ export class Flock {
   }
 }
 
-
 function raySphere(o: THREE.Vector3, d: THREE.Vector3, c: THREE.Vector3, r: number): number {
   const ox = o.x - c.x, oy = o.y - c.y, oz = o.z - c.z;
   const b = ox * d.x + oy * d.y + oz * d.z, cc = ox * ox + oy * oy + oz * oz - r * r;
@@ -478,7 +476,3 @@ export function thinkSheepdog(a: Animal, c: ThinkCtx): void {
   a.lookTarget.copy(c.player); a.lookWeight = pd < 6 ? 0.8 : 0;
   c.confine(a);
 }
-
-
-// E155 (src/engine/core/shardState.ts): the running shard's flock wolves
-listSlot('flock.dogWolves', dogWolves);

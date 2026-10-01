@@ -1,27 +1,4 @@
-/**
- * hudSlots — the ONE way anything adds to the phone HUD (E154, the user: "one shared base-layer HUD … how does each
- * shard add new things to the HUD that's custom to the shard").
- *
- * The base HUD is the same on every shard: TouchControls (src/engine/player/TouchControls.ts) builds the layer — PAUSE, the
- * top-left status column, the bar (MOVE · ATTACK · LOOK), the E119 row (LOCK · DODGE · JUMP above the LOOK pad), HOVER on
- * the left edge, USE — and HUD.ts fills the column with VITALS and the held weapon's ammo strip. A shard never builds its
- * own HUD and never positions its own controls: it asks for a slot here, and the base stylesheet (touch.css) places it.
- *
- *   hudSlots.statusRow(el, ROW.steed)        // a row of the top-left status column (VITALS' glass: `.ws-touch-row`)
- *   hudSlots.pill(el)                        // a small round-cornered tag under the column (✎ NOTE, JOURNAL)
- *   hudSlots.disc({ cls, icon, label, spot, press, release })   // a round control disc at a named spot (below)
- *   hudSlots.onLayer((layer) => …)           // the raw layer, for a class toggle (`.riding`, …) — last resort
- *
- * Spots (touch.css `.at-*`): `r0` JUMP's · `r1` DODGE's · `r2` LOCK's · `r3` the 4th slot left of LOCK (all in the E119
- * row) · `aim` wherever AIM is (LOCK's slot, or the 4th when LOCK shows) · `up0` above JUMP (the row pushes the USE band
- * up while a disc there `.show`s) · `lean-l` / `lean-r` just above the bar at the two edges · `edge-r` a tab on the right
- * screen edge · `edge-l` a tab on the left edge just above HOVER (E319: HORSE). A disc starts hidden; the caller toggles `.show` (or `hudSlots.show(el, on)`).
- *
- * Everything is queued until TouchControls mounts the layer (`mount`), so build order in main.ts never matters. On a
- * mouse / trackpad device nothing mounts: the calls are harmless and the elements stay detached.
- */
 
-import { shardSlot } from '../core/shardState';
 
 export type DiscSpot = 'r0' | 'r1' | 'r2' | 'r3' | 'aim' | 'up0' | 'lean-l' | 'lean-r' | 'edge-r' | 'edge-l';
 export interface DiscOpts {
@@ -99,5 +76,3 @@ class HudSlots {
 interface HudSlotsState { layer: HTMLElement | null; status: HTMLElement | null; pending: ((layer: HTMLElement, status: HTMLElement) => void)[] }
 
 export const hudSlots = new HudSlots();
-// E155 (src/engine/core/shardState.ts): a new shard starts with no layer (its TouchControls mounts its own)
-shardSlot('hudSlots', () => hudSlots.snapshot(), (v) => { hudSlots.restore(v); }, () => ({ layer: null, status: null, pending: [] }));

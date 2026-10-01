@@ -8,7 +8,7 @@
 //   onSfxCredit(fn)          → a set's sfx.json credit arrived (Audio.ts calls setSfxCredit)
 import type { SfxSet } from '../ui/Settings';
 import { shipped } from './Stems';
-import { onScopeDispose } from '../core/shardScope';
+import { onScopeDispose } from '../app/legacyCapture';
 
 export const MUSIC_CREDIT = 'Music: MiniMax-Music3';
 const STABILITY = 'Powered by Stability AI';

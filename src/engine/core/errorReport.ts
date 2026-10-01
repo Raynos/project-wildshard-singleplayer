@@ -17,7 +17,7 @@
  * (`sendReport` below is the real transport the pages inject).
  */
 import { describeError } from './faults';
-import { shell } from './shardScope';
+import { shell } from '../app/legacyCapture';
 import { captureBrowserError, type BrowserErrorTags } from '../telemetry/browserErrors';
 
 export interface LoadFailure {
@@ -89,7 +89,7 @@ export class ErrorReporter {
     this.deps = {
       session: null, local: null,
       now: () => 0,
-      later: (fn, ms) => { shell.setTimeout(fn, ms); }, // the page's retry, not a shard's (src/engine/core/shardScope.ts)
+      later: (fn, ms) => { shell.setTimeout(fn, ms); }, // the page's retry, not a shard's (src/engine/app/legacyCapture.ts)
       delayMs: REPORT_DELAY_MS,
       ...deps,
     };

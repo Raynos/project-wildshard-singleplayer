@@ -1,5 +1,5 @@
 import type { LoadFailure } from '../core/errorReport';
-import { asShell, shell } from '../core/shardScope';
+import { asShell, shell } from '../app/legacyCapture';
 
 /** The shell survives the disposed level. Text nodes keep raw error messages/stacks safe to display. */
 export function showLoadFailure(failure: LoadFailure): HTMLElement {

@@ -98,7 +98,7 @@ export const TIER_CONFIG = { ...TIER_TABLE[TIER] };
  *  - the grass carpet 40 slots per 4 m cell, not 56 (−29 % alpha-tested blades; the bottom half of the screen was blades)
  */
 export const PINE_HOLLOW_PHONE = { treeHiDist: 60, shadowFar: 60, animalShadowDist: 60, grassSlots: 40 } as const;
-/** the shard the knobs are set for: the URL's at first; the shard host (src/engine/shard/ShardHost.ts) moves it on a switch */
+/** The shard selected for this page's build. */
 let tierShard: string | null = null;
 /** the tier row's own values of the keys Pine Hollow's phone knobs override (applyShardTier puts them back for another shard) */
 const ROW_BASE: Record<keyof typeof PINE_HOLLOW_PHONE, number> = { treeHiDist: TIER_CONFIG.treeHiDist, shadowFar: TIER_CONFIG.shadowFar, animalShadowDist: TIER_CONFIG.animalShadowDist, grassSlots: TIER_CONFIG.grassSlots };

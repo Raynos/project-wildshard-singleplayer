@@ -1,45 +1,21 @@
-/**
- * What a resident shard owns in the page, so a parked one neither hears nor shows anything (SHARD-CACHE M1, E155).
- *
- * The game's code registers ~140 `document` / `window` listeners (keys, pointer lock, resize, the pause events …) and
- * appends its HUD, menus and canvas to `<body>`; none of it was written to be switched off. Rather than threading an
- * AbortSignal through every call, the page's own entry points are scoped:
- *
- *   - `document` / `window` `addEventListener` (installScopes): a listener added while a shard is the current scope is
- *     wrapped — it runs only while that shard is active, and the shard's eviction removes it. `once` means once while
- *     active. A listener added with no current scope (the shell: the loader, the service worker, the error modal,
- *     `asShell(…)`) is untouched.
- *   - `setInterval` / `setTimeout`: a timer started while a shard is current is the shard's; its eviction clears the ones
- *     still pending (a parked shard's keep running — the cheap ones: the frame meter's idle check, an ambience's next bird).
- *     A chain of timeouts (the island's surf scheduling its next swell) would otherwise hold an evicted world forever.
- *     The shell's own (the score's scheduler) start with `asShell`.
- *   - `<body>`'s children: an element appended while a shard is current belongs to it (a MutationObserver, flushed
- *     synchronously at every scope change so the attribution is exact). Parking a shard swaps each of its elements for a
- *     comment where it stood; activating swaps them back, in place (the stacking order is the same). The shell's own
- *     overlays (the loader, the resume screen, the rotate gate, the error / update / boot-settings panels) never belong
- *     to a shard.
- *
- * A single-shard session has one scope, always active: every wrapped listener runs, nothing is swapped.
+/** Temporary capture of legacy listeners, timers and body appends into F8 Scopes.
+ * X1 and X2 migrate call sites to explicit scope registration, then remove this capture.
  */
-
-import { Scope } from '../app/scope';
+import { Scope } from './scope';
 
 interface Reg { target: EventTarget; type: string; fn: EventListener; capture: boolean; listener: object; key: string; forget: () => void; owner: Scope }
 
-export class ShardScope {
+export class LegacyCapture {
   readonly resources = new Scope('level');
   owner = this.resources;
-  /** true while this shard is the one running (or being built): its listeners fire */
-  active = true;
   readonly regs: Reg[] = [];
-  /** body children this shard appended, each with the comment that holds its place while parked */
-  readonly nodes = new Map<Element, Comment | null>();
+  readonly nodes = new Set<Element>();
   readonly nodeOwners = new Map<Element, Scope>();
-  /** intervals and pending timeouts it started (cleared on eviction) */
+  /** intervals and pending timeouts it started (cleared on disposal) */
   readonly intervals = new Set<number>();
   readonly timeouts = new Set<number>();
   readonly timerOwners = new Map<number, { scope: Scope; kind: 'timeouts' | 'intervals' }>();
-  /** run on eviction (shell-level registrations the shard made: settings listeners …) */
+  /** run on disposal (shell-level registrations the shard made: settings listeners …) */
   readonly disposers: (() => void)[] = [];
   // a plain field, not a constructor parameter property: node's type stripping loads this module for the boot-pack bake
   // (scripts/bake-packs.mjs, run by every vite build) and cannot parse parameter properties — the bake failed, every pack
@@ -51,7 +27,7 @@ export class ShardScope {
 /** the shell's overlays: never a shard's, whatever was current when they were appended */
 const SHELL = '.ws-load, .ws-resume, .ws-rotate, .ws-update, .ws-reload, #wserr, #wserr-chip, #wsstuck, [data-ws-shell], [data-shell]';
 
-let current: ShardScope | null = null;
+let current: LegacyCapture | null = null;
 let observer: MutationObserver | null = null;
 let installed = false;
 const engineTimers = new Map<number, 'timeouts' | 'intervals'>();
@@ -67,10 +43,10 @@ const windowAdd: unknown = typeof window === 'undefined' ? null : Reflect.get(wi
 const windowRemove: unknown = typeof window === 'undefined' ? null : Reflect.get(window, 'removeEventListener');
 /** listener → its wrappers, by `type|capture` (the DOM keys a listener the same way) and by scope (a module-level
  *  handler two shards both add is two registrations, one per shard) */
-const wrappers = new WeakMap<object, WeakMap<EventTarget, Map<string, Map<ShardScope, EventListener>>>>();
+const wrappers = new WeakMap<object, WeakMap<EventTarget, Map<string, Map<LegacyCapture, EventListener>>>>();
 
 /** the scope a registration made now belongs to (null: the shell) */
-export function currentScope(): ShardScope | null { return current; }
+export function currentScope(): LegacyCapture | null { return current; }
 export function levelRegistrations(): { listeners: { window: number; document: number; canvas: number; other: number }; timers: { timeouts: number; intervals: number; raf: number } } {
   const listeners = { window: 0, document: 0, canvas: 0, other: 0 }, timers = { timeouts: 0, intervals: 0, raf: 0 };
   if (!current) return { listeners, timers };
@@ -106,13 +82,13 @@ export function withScopeOwner<T>(owner: Scope, fn: () => T): T {
 }
 
 /** make `s` the current scope (the shard being built or the running one; null = the shell) */
-export function enterScope(s: ShardScope | null): void {
+export function enterScope(s: LegacyCapture | null): void {
   flush();
   current = s;
 }
 
 /** run `fn` as scope `s` (a timer's handler, as the shard that started the timer) */
-function runAs(s: ShardScope, fn: () => void): void {
+function runAs(s: LegacyCapture, fn: () => void): void {
   const prev = current;
   if (prev === s) { fn(); return; }
   enterScope(s);
@@ -126,7 +102,7 @@ export function asShell<T>(fn: () => T): T {
   try { return fn(); } finally { enterScope(prev); }
 }
 
-/** a shell-level registration a shard made (a settings listener): undone when the shard is evicted */
+/** a shell-level registration a shard made (a settings listener): undone when the shard is disposed */
 export function onScopeDispose(fn: () => void): void { current?.owner.onDispose(fn); }
 
 const keyOf = (type: string, options?: boolean | EventListenerOptions): string => `${type}|${String(typeof options === 'boolean' ? options : options?.capture === true)}`;
@@ -161,7 +137,7 @@ function scopeTarget(target: EventTarget): void {
     const owner = scope.owner;
     let forget = () => { /* Bound after registration. */ };
     const fn: EventListener = function fn(this: unknown, e: Event): void {
-      if (!scope.active || owner.disposed) return;
+      if (owner.disposed) return;
       if (once) cleanup();
       withScopeOwner(owner, () => { if (typeof listener === 'function') listener.call(this, e); else listener.handleEvent(e); });
     };
@@ -176,7 +152,7 @@ function scopeTarget(target: EventTarget): void {
       const at = capturedScope.regs.indexOf(reg); if (at !== -1) capturedScope.regs.splice(at, 1);
     }
     forget = owner.capture('listeners', cleanup);
-    // `once` is ours to keep (once while active): a parked shard must not lose a one-shot to another shard's event
+    // A one-shot removes its capture record together with the native listener.
     if (typeof options === 'object') {
       const nativeOptions = { ...options, once: false };
       delete nativeOptions.signal; // Our abort handler removes both the native listener and its scope record.
@@ -210,40 +186,28 @@ function flush(): void {
 }
 function take(records: readonly MutationRecord[]): void {
   const s = current;
-  let late = false;
   for (const r of records) {
     if (s) for (const n of r.addedNodes) {
       if (!(n instanceof Element) || !n.isConnected || n.closest(SHELL)) continue;
-      s.nodes.set(n, null);
+      s.nodes.add(n);
       s.nodeOwners.set(n, s.owner);
       for (const child of n.querySelectorAll('*')) s.nodeOwners.set(child, s.owner);
       const node = n;
       s.owner.capture('nodes', () => {
-        s.nodes.get(node)?.remove(); node.remove(); s.nodes.delete(node); s.nodeOwners.delete(node);
+        node.remove(); s.nodes.delete(node); s.nodeOwners.delete(node);
         for (const child of node.querySelectorAll('*')) s.nodeOwners.delete(child);
       });
-      late ||= !s.active; // a parked shard's timer put it there: out of the page with the rest of it
     }
     for (const n of r.removedNodes) {
       if (!(n instanceof Element) || n.isConnected) continue;
-      // a shard's own element taken out by its own code (Explore's viewer closing): no longer one to swap
-      if (s?.nodes.get(n) === null) s.nodes.delete(n);
+      // An element removed by its own code is no longer captured.
+      if (s?.nodes.has(n)) s.nodes.delete(n);
     }
-  }
-  if (late && s) { parkNodes(s); observer?.takeRecords(); }
-}
-
-function parkNodes(s: ShardScope): void {
-  for (const [el, mark] of s.nodes) {
-    if (mark !== null || !el.isConnected) continue;
-    const m = document.createComment(`shard ${s.slug}`);
-    el.replaceWith(m);
-    s.nodes.set(el, m);
   }
 }
 
 /** Install the scoping (once, before the first shard builds). */
-export function installScopes(): void {
+export function installLegacyCapture(): void {
   if (installed) return;
   installed = true;
   scopeTarget(document);
@@ -260,7 +224,7 @@ export function installScopes(): void {
     nodeProto = Object.getPrototypeOf(nodeProto);
   }
   const setIv = window.setInterval.bind(window), clearIv = window.clearInterval.bind(window);
-  const owner = new Map<number, ShardScope>();
+  const owner = new Map<number, LegacyCapture>();
   const intervalCaptures = new Map<number, () => void>();
   const scopedSet = (handler: TimerHandler, timeout?: number, ...args: unknown[]): number => {
     const s = current;
@@ -286,7 +250,7 @@ export function installScopes(): void {
   clearIntervalNow = (id: number): void => { owner.delete(id); clearIv(id); };
   Object.defineProperty(window, 'setInterval', { value: scopedSet, configurable: true, writable: true });
   const setTo = window.setTimeout.bind(window), clearTo = window.clearTimeout.bind(window);
-  const timeoutCaptures = new Map<number, { scope: ShardScope; forget: () => void }>();
+  const timeoutCaptures = new Map<number, { scope: LegacyCapture; forget: () => void }>();
   const scopedTimeout = (handler: TimerHandler, timeout?: number, ...args: unknown[]): number => {
     const s = current;
     if (typeof handler !== 'function') return setTo(handler, timeout, ...args);
@@ -318,32 +282,11 @@ export function installScopes(): void {
 }
 
 /** claim an element that was in the page before the scope existed (index.html's canvas and #hud for the first shard) */
-export function claim(scope: ShardScope, el: Element | null): void { if (el) scope.nodes.set(el, null); }
+export function claim(scope: LegacyCapture, el: Element | null): void { if (el) scope.nodes.add(el); }
 
-/** parking: the shard's listeners go quiet, its elements leave the page (a comment holds each one's place) */
-export function parkScope(s: ShardScope): void {
+/** disposal: every listener removed, every element gone, the disposers run */
+export function disposeScope(s: LegacyCapture): void {
   flush();
-  s.active = false;
-  parkNodes(s);
-  observer?.takeRecords(); // our own swaps are not the shard's doing
-}
-
-/** activating: the shard's elements back where they stood, its listeners live */
-export function activateScope(s: ShardScope): void {
-  flush();
-  for (const [el, mark] of s.nodes) {
-    if (mark === null) continue;
-    mark.replaceWith(el);
-    s.nodes.set(el, null);
-  }
-  observer?.takeRecords();
-  s.active = true;
-}
-
-/** eviction: every listener removed, every element gone, the disposers run */
-export function disposeScope(s: ShardScope): void {
-  flush();
-  s.active = false;
   s.resources.dispose();
   for (const r of s.regs) { origRemove.get(r.target)?.call(r.target, r.type, r.fn, r.capture); wrappers.get(r.listener)?.get(r.target)?.get(r.key)?.delete(s); }
   s.regs.length = 0;
@@ -351,19 +294,19 @@ export function disposeScope(s: ShardScope): void {
   s.intervals.clear();
   for (const id of s.timeouts) clearTimeout(id);
   s.timeouts.clear();
-  for (const [el, mark] of s.nodes) { mark?.remove(); el.remove(); }
+  for (const el of s.nodes) el.remove();
   s.nodes.clear();
   observer?.takeRecords();
   for (const d of s.disposers.splice(0)) { try { d(); } catch (e) { console.warn('[shard] a disposer threw', e); } }
 }
 
-/** the shard host runs this page (several shards may be resident): a chunk change is a switch between them, not a new world */
+/** Whether legacy capture was installed before level construction. */
 export function scopesInstalled(): boolean { return installed; }
 
 /**
  * The page's own timers and listeners, never a shard's: for shell code whose async continuations can run while any
  * shard is current (the background prefetch's sleeps, an error report's retry). A shard's timers are cleared when it is
- * evicted; a shell flow must not lose its wake-up with it. (The browser's own functions, taken before the scoping.)
+ * disposed; a shell flow must not lose its wake-up with it. (The browser's own functions, taken before the scoping.)
  */
 const nativeTimeout: (fn: () => void, ms?: number) => number = typeof window === 'undefined' ? (fn, ms) => Number(setTimeout(fn, ms)) : window.setTimeout.bind(window); // Number(): with node's types in the program (vite's Plugin type, test/backdrop-prefix.test.ts) setTimeout returns a Timeout
 export const shell = {

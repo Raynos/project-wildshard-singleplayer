@@ -1,5 +1,5 @@
 import { ownAudioSource } from './ownership';
-import { currentScope } from '../core/shardScope';
+import { currentScope } from '../app/legacyCapture';
 import { tap, ambientTick } from '../core/harnessTap';
 import type { Vector3 } from 'three';
 import { getActiveChunk } from '#game/shard/registry';

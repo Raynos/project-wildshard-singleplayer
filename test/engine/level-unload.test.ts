@@ -7,7 +7,7 @@ import { createRequire } from 'node:module';
 import { BoxGeometry, Group, Mesh, MeshBasicMaterial, Scene, Texture, DirectionalLight, WebGLRenderTarget, Bone, Skeleton, SkinnedMesh } from 'three';
 import { App, Scope, AssetService } from '#engine';
 import { SceneOwnership } from '#engine/app/sceneOwnership';
-import { ShardScope, enterScope, installScopes, withScopeOwner } from '#engine/core/shardScope';
+import { LegacyCapture, enterScope, installLegacyCapture, withScopeOwner } from '#engine/app/legacyCapture';
 import { Physics } from '#engine/physics/Physics';
 import { loadRapier } from '#engine/physics/rapier';
 
@@ -16,7 +16,7 @@ describe('level unload keeps the engine usable', () => {
     // happy-dom uses Vite's client asset resolver: a symlinked dependency outside a clean export is denied.
     // Resolve the package with Node, as this is a Node test with DOM globals, and pass the actual binary unchanged.
     const R = await loadRapier(readFileSync(createRequire(import.meta.url).resolve('@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm')));
-    const legacy = new ShardScope('test'), level = legacy.resources, app = new App();
+    const legacy = new LegacyCapture('test'), level = legacy.resources, app = new App();
     enterScope(legacy); legacy.owner = app.engineScope;
     const physics = new Physics(R), player = physics.world.createRigidBody(R.RigidBodyDesc.dynamic());
     physics.world.createCollider(R.ColliderDesc.ball(0.2), player);
@@ -54,8 +54,8 @@ describe('level unload keeps the engine usable', () => {
   });
 
   it('captures legacy listeners, pending and completed timers, and body nodes without removing engine listeners', async () => {
-    installScopes();
-    const legacy = new ShardScope('test'), engine = new Scope('engine'), level = legacy.resources;
+    installLegacyCapture();
+    const legacy = new LegacyCapture('test'), engine = new Scope('engine'), level = legacy.resources;
     enterScope(legacy);
     const retained = vi.fn<() => void>(), removed = vi.fn<() => void>();
     withScopeOwner(engine, () => { window.addEventListener('ownership-test', retained); });

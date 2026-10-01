@@ -46,7 +46,7 @@ import { NALATI_WILDLIFE } from '../entities/Wildlife';
 import { activeRegistry } from '../world/registry';
 import { mapShapes, mapWants, type MapPoly, type MapShapes } from './mapShapes';
 import { activeClock } from '../world/WorldClock';
-import { scopesInstalled } from '../core/shardScope';
+import { scopesInstalled } from '../app/legacyCapture';
 import { ROOM_BG, arenaMap, fitRoom, paintRoom, type RoomMap } from './roomMap';
 
 /** a point the map marks with a small diamond (Minimap.setMarks) */

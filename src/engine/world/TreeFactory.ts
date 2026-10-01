@@ -11,7 +11,6 @@ import { markGpuOnly } from '../core/gpuOnly';
 import { TREE_SPECS, TREE_SPECS_V2, type TreeSpecies } from './forest/placement';
 import { BARK_LAYERS, loadTreeSetGeometry, patchBarkArrays, patchCardCrownTop, patchImpostorCrownTop, standIn, treeSetUrls, crownTopUniforms, type CrownTop } from './forest/treeSet';
 import { windUniforms as sharedWind, patchWindField } from './wind';
-import { stateSlot } from '../core/shardState';
 
 /**
  * Pine trees built from a runtime-baked "branch card".
@@ -762,7 +761,3 @@ export function patchWind(shader: { vertexShader: string; uniforms: Record<strin
         transformed += ( off * wm ) / max( dot( wm[0], wm[0] ), 1e-6 );
       }`);
 }
-
-// E155 (src/engine/core/shardState.ts): the running shard's tree wind / fade
-stateSlot('trees.wind', windUniforms);
-stateSlot('trees.fade', forestFade);

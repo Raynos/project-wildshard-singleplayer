@@ -21,7 +21,6 @@ import { KTX2Loader } from 'three/examples/jsm/loaders/KTX2Loader.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { texMode, gpuFile } from '../boot/gpuFiles';
 import { markGpuOnly } from './gpuOnly';
-import { shardSlot } from './shardState';
 
 /** where vite/basis.ts copies three's transcoder: versioned by three's revision, so the SW / HTTP caches never mix two */
 export const BASIS_PATH = `/basis/r${THREE.REVISION}/`;
@@ -191,7 +190,3 @@ export function readTexturePixels(tex: THREE.Texture, w: number, h: number, rend
   for (let y = 0; y < h; y++) rows.set(out.subarray((h - 1 - y) * stride, (h - y) * stride), y * stride);
   return rows;
 }
-
-// E155 (src/engine/core/shardState.ts): the game renderer is the running shard's; a new shard's Game sets its own (initKtx2). The
-// loader's format detection is the GPU's, the same for every renderer on the page, and it keeps no renderer.
-shardSlot<THREE.WebGLRenderer | null>('ktx2.renderer', () => gameRenderer, (v) => { gameRenderer = v; }, () => null);

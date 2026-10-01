@@ -1,9 +1,9 @@
 import { app } from '../app/runtime';
 import { Scope } from '../app/scope';
 import { SceneOwnership } from '../app/sceneOwnership';
-import { disposeListenerResources } from '../shard/disposeListeners';
+import { UploadOwnership } from '../render/uploadOwnership';
 import type { Phase } from '../app/systems';
-import { currentScope } from './shardScope';
+import { currentScope } from '../app/legacyCapture';
 import * as THREE from 'three';
 import {
   EffectComposer, type RenderPass, EffectPass, BloomEffect, SMAAEffect, FXAAEffect, VignetteEffect, ToneMappingEffect,
@@ -132,6 +132,7 @@ export class Game {
   readonly engineScope = app.engineScope.child('game');
   readonly levelScope = currentScope()?.resources ?? new Scope('level');
   private ownership: SceneOwnership | null = null;
+  private readonly uploads = new UploadOwnership(this.levelScope, app.assets);
   readonly leakBaseline = new Scope('baseline').census;
   hudBaseline = 0;
   hudRetained: ReadonlySet<Element> = new Set();
@@ -155,8 +156,7 @@ export class Game {
   }
   retainedSceneObjects(): number { return this.ownership?.retainedNodeCount() ?? 0; }
   retainedGpuCounts(): { geometries: number; textures: number; programs: number } {
-    const allocated = currentScope();
-    const live = allocated ? disposeListenerResources(allocated) : new Set<object>();
+    const live = this.uploads.resources();
     const textures = new Set<unknown>(), programs = new Set<unknown>();
     let geometries = 0;
     for (const resource of this.app.assets.retainedResources()) {
@@ -175,8 +175,8 @@ export class Game {
     return { geometries, textures: textures.size, programs: programs.size };
   }
   gpuResourceDiagnostics(): object {
-    const allocated = currentScope(), retained = new Set<object>(this.app.assets.retainedResources());
-    const live = allocated ? disposeListenerResources(allocated) : new Set<object>();
+    const retained = new Set<object>(this.app.assets.retainedResources());
+    const live = this.uploads.resources();
     const read = (value: unknown, key: string): unknown => typeof value === 'object' && value !== null ? Reflect.get(value, key) : undefined;
     return { total: { ...this.renderer.info.memory, programs: this.renderer.info.programs?.length ?? 0 },
       retained: this.retainedGpuCounts(), resources: [...live].map((resource) => {
@@ -336,6 +336,7 @@ export class Game {
       }
       draw(camera, scene, geometry, material, object, group);
     };
+    this.uploads.attach(this.renderer);
     // shadow-only casters (shadowLayer.ts): the shadow pass tests layers against the view camera, so the view camera sees
     // SHADOW_LAYER while — and only while — the shadow maps draw. Before this the cabins' depth proxies (PLAY-PERF lever
     // 12, 46868b5) were never drawn: the cabins cast no wall / roof shadow at all.

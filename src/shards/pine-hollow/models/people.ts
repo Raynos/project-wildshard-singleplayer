@@ -15,7 +15,6 @@ import type { Sky } from '#engine/world/Sky';
 import type { BoxSpec as Collider } from '#engine/physics/box';
 import { KINGS_CLEARING } from '../layout';
 import { loadNpcModel, npcRig, preloadNpcModels, type NpcRig } from '../quest/npcModels';
-import { shardSlot } from '#engine/core/shardState';
 import { defineModel, type ModelContext, type ModelDef } from '#engine/models/model';
 import { MILLER, RANGER, TRADER } from '../quest/wardensHollow';
 
@@ -245,9 +244,6 @@ export function makeNpcFigure(kind: NpcKind, sky: Sky, feet: { x: number; y: num
   };
   return fig;
 }
-
-// E155 (src/engine/core/shardState.ts): set up for one shard's sky (its CSM light loop): per shard, an evicted Pine Hollow's let go
-shardSlot('npcFigure.mats', () => ({ sharedMat, sharedGlow }), (v) => { ({ sharedMat, sharedGlow } = v); }, () => ({ sharedMat: null, sharedGlow: null }));
 
 // ─────────────── the models (E306 / E315 M5) ───────────────
 

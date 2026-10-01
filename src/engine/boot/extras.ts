@@ -220,7 +220,7 @@ export function startAudioPreload(files: ChunkFiles, def: ShardManifest): Preloa
   const ocean = def.ocean !== undefined, steppe = def.style === 'painterly';
   const style = getMusicStyle(), set = getSfxSet();
   // this shard's slot (another shard built in the page decodes its own — Music.useBank adds it to the resident bank);
-  // the steppe has no stems yet (Music.ts shardSlot)
+  // the steppe has no stems yet (Music.ts themeSlot)
   const slots: SlotName[] = ocean ? ['title', 'island'] : steppe ? ['title'] : ['title', 'pine'];
   const bed: AmbientBed = ocean ? 'island' : steppe ? 'steppe' : 'forest'; // the same bed Audio's constructor picks
   // the steppe: its own score's first slot (the camp is in the valley) + stings, whatever the style — unless the style is synth

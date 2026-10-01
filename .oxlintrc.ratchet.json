@@ -16,6 +16,7 @@
     "wildshard/sim-no-render": "error",
     "wildshard/no-hook-chain": "error",
     "wildshard/no-active-singleton": "error",
-    "wildshard/no-active-chunk": "error"
+    "wildshard/no-active-chunk": "error",
+    "wildshard/no-global-listener-patch": "error"
   }
 }

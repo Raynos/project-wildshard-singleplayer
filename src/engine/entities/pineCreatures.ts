@@ -28,8 +28,6 @@ import { DEER_PALETTE } from './species/deer';
 import { BOAR_PALETTE } from './species/boar';
 import { ELK_PALETTE } from './species/elk';
 import { BEAR_PALETTE } from './species/bear';
-import { mapSlot } from '../core/shardState';
-import { MAY_KTX2 } from '../boot/gpuFiles';
 import { setting } from '../ui/Settings';
 import { BEAR_FIX_COATS, BEAR_FIX_FUR, BEAR_TAIL_TRIM, trimTail } from './bearFix';
 import type { RGB } from './species/loft';
@@ -356,8 +354,3 @@ function withThrallExtras(hull: THREE.BufferGeometry, bones: readonly BoneDef[],
   if (g.boundingSphere !== null) g.boundingSphere.radius += 0.6;
   return g;
 }
-
-// E155 × E157 (src/engine/core/shardState.ts): with KTX2 a loaded texture's mips leave JS once uploaded, so another shard's renderer
-// (the other resident, or this shard rebuilt) could not upload a cached copy: the cache is per shard unless Debug ▸ GPU
-// textures = Images (then one per page).
-if (MAY_KTX2) { mapSlot('pineCreatures.loading', loading); mapSlot('pineCreatures.ready', ready); }

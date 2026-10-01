@@ -14,7 +14,6 @@
 import * as THREE from 'three';
 import { Effect, BlendFunction, EffectComposer, RenderPass, EffectPass, BloomEffect } from 'postprocessing';
 import { TIER, TIER_CONFIG } from '#engine/core/tier';
-import { stateSlot } from '#engine/core/shardState';
 
 /** the grade's live knobs (shared uniform objects: the grade effect and every inverse read them) */
 export const gradeUniforms = {
@@ -128,6 +127,3 @@ export function buildLookV2Chain(renderer: THREE.WebGLRenderer, scene: THREE.Sce
   }
   return composer;
 }
-
-// E155 (src/engine/core/shardState.ts): a rebuilt Nalati starts from these
-stateSlot('nalati.grade', gradeUniforms);

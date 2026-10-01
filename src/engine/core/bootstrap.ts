@@ -27,7 +27,7 @@ import { addPiece } from '../physics/pieces';
 import { activeRegistry, type WorldRegistry } from '../world/registry';
 import { installPhysicsDebug } from '../physics/debug';
 import { installCrashFlag } from './crashFlag';
-import { withScopeOwner } from './shardScope';
+import { withScopeOwner } from '../app/legacyCapture';
 
 /** Tree builders by `ChunkTrees.factory` id. Add a species here when a shard needs one. */
 const TREE_FACTORIES = {

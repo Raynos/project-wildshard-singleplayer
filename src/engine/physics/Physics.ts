@@ -9,7 +9,7 @@
 import type { World } from '@dimforge/rapier3d-simd';
 import type { Rapier } from './rapier';
 import { FIXED_STEP } from '../core/fixedStep';
-import { currentScope } from '../core/shardScope';
+import { currentScope } from '../app/legacyCapture';
 import { untagCollider } from './surface';
 
 export class Physics {

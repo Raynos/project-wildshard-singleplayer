@@ -11,7 +11,6 @@ import { boxDesc, type ColliderDesc } from './registry';
 import { TIER_CONFIG } from '../core/tier';
 import { macrotask } from '../boot/plan';
 import { LightPool } from '../fx/LightPool';
-import { stateSlot } from '../core/shardState';
 import { twoSidedPositions, type WeldBuild } from '../models/weld';
 import {
   CABIN_SPECS, CabinBuilder, PROP_KINDS, mergeParts,
@@ -637,6 +636,3 @@ export function prepModel(scene: THREE.Object3D, sky: Sky): PropPart[] {
   });
   return out;
 }
-
-// E155 (src/engine/core/shardState.ts): the running shard's cabin night
-stateSlot('cabin.night', cabinNight);

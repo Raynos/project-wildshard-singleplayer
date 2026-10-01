@@ -42,7 +42,6 @@ import type { Forest } from '#engine/world/forest/Forest';
 import { macrotask } from '#engine/boot/plan';
 import { LOOK_BAKE_GLSL, bakeUniforms } from './bake';
 import { GRASS_CARDS, loadGrassCardAtlas } from './nalatiTextures';
-import { setSlot, stateSlot } from '#engine/core/shardState';
 
 const PHONE = TIER === 'phone';
 
@@ -689,9 +688,3 @@ export class GrassV2 {
     return { cx: ox + (G / 2) * T, cz: oz + (G / 2) * T, half: (G / 2) * T };
   }
 }
-
-// E155 (src/engine/core/shardState.ts): a rebuilt Nalati starts from these
-stateSlot('nalati.grassV2', grassV2Uniforms);
-
-// E155 (src/engine/core/shardState.ts): the running shard's carpets (a rebuilt Nalati's, not the evicted one's)
-setSlot('nalati.grassV2', instances);

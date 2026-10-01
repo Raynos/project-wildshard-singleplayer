@@ -18,7 +18,6 @@ import {
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { clone as cloneSkeleton } from 'three/examples/jsm/utils/SkeletonUtils.js';
-import { mapSlot } from '#engine/core/shardState';
 import type { Sky } from '#engine/world/Sky';
 import type { SwordArms } from '#engine/player/Sword';
 import type { Move } from '#engine/player/SwordMoves';
@@ -98,7 +97,6 @@ const isMesh = (o: Object3D): o is Mesh => 'isMesh' in o;
 const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
 /** one parse per URL per shard; every rig is a skeleton clone of it (the same geometry, so the same GPU buffers) */
 const parsed = new Map<string, Promise<{ scene: Object3D; animations: AnimationClip[] }>>();
-mapSlot('rig.arms', parsed);
 async function rigScene(url: string): Promise<{ scene: Object3D; animations: AnimationClip[] }> {
   let p = parsed.get(url);
   if (p === undefined) {

@@ -18,7 +18,7 @@ import type { AmbientBed, LoopName, SampleLoop, SteppeLoop } from './Audio';
 import { SFX_MANIFESTS } from '../boot/audio.generated';
 import { PUBLIC_BYTES } from '../boot/bytes.generated';
 import { sfxDir, DRIFTWOOD_SOUNDS } from '../boot/audioFiles';
-import { onScopeDispose } from '../core/shardScope';
+import { onScopeDispose } from '../app/legacyCapture';
 
 export const DECODE_RATE = 48000;
 let offline: OfflineAudioContext | undefined;

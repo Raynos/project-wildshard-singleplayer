@@ -12,7 +12,6 @@
 import { RELOAD_PARAM } from '../core/GpuRecovery';
 import { settingsReloadUrl } from './Settings';
 import './styles/reload.css';
-import { shardSlot } from '../core/shardState';
 import { markUnload } from '../boot/lastEnd';
 
 interface Pose { x: number; y: number; z: number; yaw: number; pitch: number }
@@ -56,6 +55,3 @@ export function askReload(host: HTMLElement, what: string): void {
   open = sheet;
   go.focus();
 }
-
-// E155 (src/engine/core/shardState.ts): the running shard's pose
-shardSlot('reloadPrompt.pose', () => poseOf, (v) => { poseOf = v; });

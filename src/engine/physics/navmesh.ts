@@ -18,7 +18,6 @@ import {
 } from 'navcat';
 import { navmeshUrl } from './navmeshUrl';
 import { frameCost } from '../core/frameCost';
-import { shardSlot } from '../core/shardState';
 
 export { navmeshUrl } from './navmeshUrl';
 
@@ -218,8 +217,6 @@ export function parseNavmesh(buf: ArrayBuffer): Navmesh | null {
   }
 }
 
-
-
 /** The loaded shard's navmesh — null before the `physics` step, for a shard the build has none for, or in node tests. */
 export function activeNavmesh(): Navmesh | null { return app.navmesh; }
 
@@ -247,6 +244,3 @@ export async function loadNavmesh(slug: string): Promise<Navmesh | null> {
     return null;
   }
 }
-
-// E155 (src/engine/core/shardState.ts): the running shard's navmesh
-shardSlot('physics.navmesh', () => ({ id: app.navmeshId, mesh: app.navmesh }), (v) => { app.navmeshId = v.id; app.navmesh = v.mesh; });

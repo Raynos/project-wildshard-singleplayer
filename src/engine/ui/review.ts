@@ -8,7 +8,7 @@
 //   queuedCount() / flushQueue()   → a failed send waits in localStorage and retries on `online` and on the next send
 //
 // There is no query string: the feature ships to everyone and stays hidden until a reviewer types the password in Settings.
-import { onScopeDispose } from '../core/shardScope';
+import { onScopeDispose } from '../app/legacyCapture';
 
 export type Category = 'bug' | 'art' | 'feel' | 'perf' | 'idea';
 export const CATEGORIES: readonly Category[] = ['bug', 'art', 'feel', 'perf', 'idea'];

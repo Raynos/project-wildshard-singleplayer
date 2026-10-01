@@ -49,7 +49,7 @@ import { tap, ambientTick } from '../core/harnessTap';
 // decodes from the offline cache when first wanted while the old one plays on, then crossfades over ≥ 6 s on the old deck's bar.
 import type { Audio } from './Audio';
 import { getActiveChunk } from '#game/shard/registry';
-import { asShell, shell } from '../core/shardScope';
+import { asShell, shell } from '../app/legacyCapture';
 import { getNumber, setNumber, onNumber, getMusicStyle, onMusicStyle, type MusicStyle, setting } from '../ui/Settings';
 import { Deck, decodeStyle, isSteppeSlot, setFiles, type BossPhase, type SlotAudio, type SlotName, type StyleBank } from './Stems';
 import { SteppeScore, type SteppeScene } from '#shards/nalati-grasslands/audio/SteppeScore';
@@ -60,10 +60,10 @@ import {
   type Arrangement, type ArrangementName, type ChordName, type LayerId, type MixKey, type NoteEv, type Segment,
 } from './score/wildshard-theme';
 
-/** the shard's mood: 'steppe' = Nalati — its own score (SteppeScore, NALATI-MERGE A2 / A3), not a style slot: shardSlot is null */
+/** the shard's mood: 'steppe' = Nalati — its own score (SteppeScore, NALATI-MERGE A2 / A3), not a style slot: themeSlot is null */
 export type Shard = 'pine' | 'island' | 'steppe';
 /** the stems slot a shard plays in game; null = none yet (the synth theme) */
-export function shardSlot(shard: Shard): SlotName | null { return shard === 'island' ? 'island' : shard === 'pine' ? 'pine' : null; }
+export function themeSlot(shard: Shard): SlotName | null { return shard === 'island' ? 'island' : shard === 'pine' ? 'pine' : null; }
 export type MusicMode = 'menu' | 'calm' | 'alert' | 'combat';
 export type StingName = 'pickup' | 'death' | 'chunk' | 'dawn';
 /** Pine Hollow's music scene (PINE-HOLLOW-REMASTER PH-A1): 'day' = theme 1 ('pine'), 'night' = calm-night, 'boss' = the Antler King */
@@ -677,7 +677,7 @@ export class Music {
       e.begin(ARRANGEMENTS[this.playing ?? 'theme'], t);
       this.synthOn = true;
       this.pump();
-      this.timer = asShell(() => window.setInterval(() => { ambientTick('music.pump', () => { this.pump(); }); }, TICK_MS)); // the page's score: never a shard's interval (src/engine/core/shardScope.ts)
+      this.timer = asShell(() => window.setInterval(() => { ambientTick('music.pump', () => { this.pump(); }); }, TICK_MS)); // the page's score: never a shard's interval (src/engine/app/legacyCapture.ts)
       g.cancelScheduledValues(t); g.setValueAtTime(fade > 0 ? 0 : 1, t);
     } else holdAt(g, t);
     if (fade > 0) g.linearRampToValueAtTime(1, t + fade);
@@ -706,7 +706,7 @@ export class Music {
   /** the slot of the base set: the title on the menu, else the shard's theme (Pine Hollow's night / boss fall back to 'pine') */
   private baseSlot(): SlotName | null {
     const s = this.state;
-    return s.mode === 'menu' ? 'title' : shardSlot(s.shard);
+    return s.mode === 'menu' ? 'title' : themeSlot(s.shard);
   }
   private tension(): number { return TENSION[this.state.mode]; }
 
@@ -779,7 +779,7 @@ export class Music {
     void this.decodeFor(style);
   }
   private async decodeFor(style: MusicStyle): Promise<void> {
-    const own = shardSlot(this.state.shard);
+    const own = themeSlot(this.state.shard);
     const slots: SlotName[] = own === null ? ['title'] : ['title', own];
     let bank: StyleBank;
     try { bank = await trackBusy('music', decodeStyle(style, slots, cachedBytes, decodeBytes)); }

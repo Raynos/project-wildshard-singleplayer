@@ -8,7 +8,6 @@ import { terrainFor, type ChunkTerrain, type PondDef } from '#game/shard/manifes
 // and again on setActiveChunk() — no per-call lookup, so heightAt() stays as cheap as before.
 import { CHUNK_HALF } from '../core/config';
 import { getActiveChunk, onActiveChunkChange } from '#game/shard/registry';
-import { shardSlot } from '../core/shardState';
 
 const NO_POND: PondDef = { x: 0, z: 0, r: 0 };
 
@@ -59,8 +58,3 @@ export function _installBakedTerrain(baked: Pick<ChunkTerrain, 'heightAt' | 'nor
 export function inChunk(x: number, z: number, margin = 0): boolean {
   return Math.abs(x) <= CHUNK_HALF - margin && Math.abs(z) <= CHUNK_HALF - margin;
 }
-
-// E155 (src/engine/core/shardState.ts): the running shard's terrain — its def's samplers, or its installed bake (setActiveChunk
-// rebinds the def's; the shard host then puts the running shard's own set back, bake included)
-shardSlot('heightfield', () => ({ T, heightAt, normalAt, splatAt, trailDistance, cabinMask, pondMask, waterLevel, streamAt, TRAILS, CABIN_SITES, POND }),
-  (s) => { ({ T, heightAt, normalAt, splatAt, trailDistance, cabinMask, pondMask, waterLevel, streamAt, TRAILS, CABIN_SITES, POND } = s); });

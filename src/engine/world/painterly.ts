@@ -55,7 +55,6 @@
 import * as THREE from 'three';
 import { attachFogUniforms } from './Atmosphere';
 import type { Sky } from './Sky';
-import { stateSlot } from '../core/shardState';
 
 export interface PainterlyOpts {
   color?: THREE.ColorRepresentation;
@@ -320,6 +319,3 @@ export function paintGeometry(geo: THREE.BufferGeometry, color: THREE.ColorRepre
   _white.set(geo, true);
   return geo;
 }
-
-// E155 (src/engine/core/shardState.ts): the running shard's painterly light
-stateSlot('painterly.uniforms', painterlyUniforms);

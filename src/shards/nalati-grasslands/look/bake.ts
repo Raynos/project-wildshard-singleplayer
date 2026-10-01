@@ -17,7 +17,6 @@
 import * as THREE from 'three';
 import { TIER } from '#engine/core/tier';
 import { onGpuRestored } from '#engine/core/gpuOnly';
-import { stateSlot } from '#engine/core/shardState';
 
 const LAYER = 7;
 const SIZE = TIER === 'phone' ? 1024 : 2048;
@@ -226,6 +225,3 @@ export class StaticBake {
     }
   }
 }
-
-// E155 (src/engine/core/shardState.ts): a rebuilt Nalati starts with no bake (its targets were the evicted renderer's)
-stateSlot('nalati.bake', bakeUniforms);

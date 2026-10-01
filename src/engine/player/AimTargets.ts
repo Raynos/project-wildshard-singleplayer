@@ -11,7 +11,6 @@ import { app } from '../app/runtime';
  * itself from position deltas, so a plain `{ alive, position }` object also works.
  */
 import type * as THREE from 'three';
-import { shardSlot, stateSlot } from '../core/shardState';
 
 export interface AimTarget {
   kind?: string;
@@ -27,8 +26,6 @@ export interface AimTarget {
    *  Titan, a 110 m giant beyond the rim, is locked on from the arena (NALATI-MERGE H3); it breaks at 1.5 × this */
   lockRange?: number;
 }
-
-
 
 export function setAimTargets(list: readonly AimTarget[]): void { app.aimTargets = list; }
 export function getAimTargets(): readonly AimTarget[] { return app.aimTargets; }
@@ -58,8 +55,3 @@ export const lockOn: {
   offYaw: number; offPitch: number; r0: number;
   left: AimTarget | null; right: AimTarget | null; leftDist: number; rightDist: number;
 } = { state: 'off', target: null, candidate: null, offYaw: 0, offPitch: 0, r0: 0, left: null, right: null, leftDist: 0, rightDist: 0 };
-
-// E155 (src/engine/core/shardState.ts): the running shard's targets and lock state
-shardSlot('aim.targets', () => app.aimTargets, (v) => { app.aimTargets = v; });
-stateSlot('aim.meleeLock', meleeLock);
-stateSlot('aim.lockOn', lockOn);

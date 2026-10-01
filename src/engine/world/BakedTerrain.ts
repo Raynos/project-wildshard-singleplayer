@@ -15,7 +15,6 @@ import { _installBakedTerrain } from './Heightfield';
 import { getActiveChunk } from '#game/shard/registry';
 import { PUBLIC_BYTES } from '../boot/bytes.generated';
 import type { ChunkTerrain } from '#game/shard/manifest';
-import { shardSlot } from '../core/shardState';
 
 export interface BakedGrid { res: number; size: number; seed: number; /** retained legacy header field; the build checks complete output bytes */ landscapeHash: number; heights: Float32Array; splat: Uint8Array; /** the undergrowth decision log, when the bake has one */ undergrowth: BakedPlacement | null }
 
@@ -127,6 +126,3 @@ export async function loadBakedTerrain(): Promise<boolean> {
     return false;
   }
 }
-
-// E155 (src/engine/core/shardState.ts): which shard's bake is installed follows the running shard (Heightfield's samplers too)
-shardSlot('bakedTerrain', () => ({ installedFor, installedPlacement }), (s) => { ({ installedFor, installedPlacement } = s); });

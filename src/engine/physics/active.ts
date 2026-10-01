@@ -4,11 +4,7 @@
  */
 import type { Physics } from './Physics';
 import { app } from '../app/runtime';
-import { shardSlot } from '../core/shardState';
 
 export function setActivePhysics(p: Physics | null): void { app.physics = p; }
 
 export function activePhysics(): Physics | null { return app.physics; }
-
-// E155 (src/engine/core/shardState.ts): the running shard's world
-shardSlot('physics.active', () => app.physics, (v) => { app.physics = v; });

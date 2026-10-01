@@ -2,7 +2,7 @@
 import type { ShardManifest } from './manifest';
 import { SHARDS } from './shards.generated';
 import { _applyChunkConstants } from '#engine/core/config';
-import { onScopeDispose } from '#engine/core/shardScope';
+import { onScopeDispose } from '#engine/app/legacyCapture';
 
 export { SHARDS } from './shards.generated';
 export { SHARD_API } from './api';

@@ -1,25 +1,4 @@
-/**
- * ToastStack — the HUD's ONE toast queue (`hud.toast(text)`: the journal's new pages / places, elite drops, the boss's
- * rewards, the feedback notes, the quest's steps — every caller goes through HUD.toast). Styled in game.css
- * (`.ws-game-toasts`, `.ws-game-toast`).
- *
- *   const stack = new ToastStack(box);    // box = the `.ws-game-toasts` column HUD builds
- *   stack.push('Journal · new page: Black bear');
- *   stack.tick();                         // every frame (HUD.setState): re-lays the column ~6× a second while a toast is up
- *
- * At most `MAX` toasts show: the newest at the bottom, the older ones dimmed (CSS), the oldest dropped. The same text
- * twice in a row restarts that toast instead of stacking a copy.
- *
- * **No overlap with the top bars.** The column keeps its CSS home (phone: the left column under PAUSE / the journal disc;
- * desktop: the right column), and is pushed DOWN below whatever top-anchored bar shares its horizontal band right now:
- * the named elite's pinned bar and its NAMED ELITE NEARBY banner (EliteBar), the boss bar and its reward card (BossBar),
- * the quest's boss bar, the quest chip, the minimap, the kill feed. It measures those boxes (getBoundingClientRect) only
- * while a toast is up and at most every `EVERY` ms, and moves the column with a transform (no reflow of the HUD).
- * An elite's bar floating over its head (not pinned) is world-anchored and is not an obstacle: it dims itself where it
- * crosses the toasts (`toastArea`, read by EliteBar). Pushed down toward the crosshair (half the screen, less a margin),
- * the oldest toasts leave early — the newest always shows.
- */
-import { stateSlot } from '../core/shardState';
+
 
 const MAX = 3;
 const LIFE = 3200, OUT = 500, EVERY = 160, GAP = 8;
@@ -103,6 +82,3 @@ export class ToastStack {
     toastArea.left = left; toastArea.right = right; toastArea.top = top; toastArea.bottom = top + h;
   }
 }
-
-// E155 (src/engine/core/shardState.ts): the running shard's toast area
-stateSlot('toastArea', toastArea);

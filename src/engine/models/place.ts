@@ -22,7 +22,6 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { Rng } from '../core/rng';
-import { shardSlot } from '../core/shardState';
 import { activeRegistry, type ColliderDesc, type DrawnAs, type ModelEntry, type WorldRegistry } from '../world/registry';
 import { withTier } from '../explore/tiers';
 import { paramsOf, seedOf, type ModelContext, type ModelDef, type ModelPart, type Placement } from './model';
@@ -166,10 +165,8 @@ interface Drawn {
 // ── the shard's placed models (E155: every resident shard has its own) ──
 
 interface ModelRecord { readonly groups: Placed[] }
-let records = new Map<string, ModelRecord>();
-let cullers: ((camera: THREE.Camera) => void)[] = [];
-shardSlot<Map<string, ModelRecord>>('models.placed', () => records, (v) => { records = v; }, () => new Map());
-shardSlot<((camera: THREE.Camera) => void)[]>('models.cullers', () => cullers, (v) => { cullers = v; }, () => []);
+const records = new Map<string, ModelRecord>();
+const cullers: ((camera: THREE.Camera) => void)[] = [];
 
 /** Per-copy culling and LODs of everything this shard placed — once a frame, after the camera is posed. */
 export function cullPlaced(camera: THREE.Camera): void {

@@ -9,7 +9,6 @@ import type { Forest } from '#engine/world/forest/Forest';
 import { TIER_CONFIG } from '#engine/core/tier';
 import { DecisionLog, placeUndergrowth, placementChecksum, sameChecksum, type Placement, type UnderPlacements } from '#engine/world/forest/placement';
 import { bakedUndergrowth } from '#engine/world/BakedTerrain';
-import { stateSlot } from '#engine/core/shardState';
 
 /**
  * Forest-floor undergrowth: ferns, low round-leaf shrubs and needle/twig litter — the field (world): where every copy
@@ -167,7 +166,6 @@ export class Undergrowth {
   }
 
 }
-
 
 /** a kind's parts: its geometry and material, and — where the tier casts its shadow — the alpha-tested shadow material */
 function kindDraw(geometry: THREE.BufferGeometry, material: THREE.MeshStandardMaterial, shadow: boolean, tex?: THREE.Texture, wind = 0): UnderKindDraw {
@@ -534,6 +532,3 @@ function makeLitterTexture() {
   }
   return canvasTexture(c);
 }
-
-// E155 (src/engine/core/shardState.ts): the running shard's undergrowth light
-stateSlot('undergrowth.uniforms', underUniforms);

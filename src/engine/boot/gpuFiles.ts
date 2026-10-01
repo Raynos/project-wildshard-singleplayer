@@ -25,9 +25,8 @@
  * Nine Dragon's phone tier temporarily defaults to Images while isolating a reproducible iOS Simulator WebKit GPU
  * crash during compressedTexSubImage2D (E248). The explicit KTX2 Debug pick remains available for controlled tests.
  * Resolved once per SHARD BUILD, on the build's first question (`texMode()`), and never changed inside it: no swap in a
- * running world. E155 builds several shards in one page (src/engine/shard/ShardHost.ts): the answer is shard state
- * (src/engine/core/shardState.ts) — reset before each build, so every build asks for its own shard (the `?chunk=` the host keeps on
- * the address), and put back when a resident shard plays again. An explicit Debug pick applies to every build. The
+ * running world. One page builds one level; navigation rebuilds the selected level on a fresh page.
+ * The explicit Debug pick applies to that page's build. The
  * resolver that checks the marker is registered by shardPrefetch.ts (it owns the set's list); a page that never loads it
  * (dev pages, the bake scripts in Node) reads Auto as Images.
  */
@@ -35,7 +34,6 @@
 import { GPU_FILES as ENGINE_GPU_FILES } from './ktx2.generated';
 import { TIER } from '../core/tier';
 import { setting } from '../ui/Settings';
-import { shardSlot } from '../core/shardState';
 
 export interface Ktx2Table { readonly phone: Readonly<Record<string, string>>; readonly desktop: Readonly<Record<string, string>> }
 const GPU_FILES = { phone: { ...ENGINE_GPU_FILES.phone }, desktop: { ...ENGINE_GPU_FILES.desktop } };
@@ -87,6 +85,3 @@ export function standIn(served: string, tex: TexMode): string | undefined {
 export function gpuFile(served: string): string | undefined {
   return standIn(served, texMode());
 }
-
-// E155: each shard build resolves its own mode (a fresh page's first question); a resident shard keeps the one it built with
-shardSlot<{ mode: TexMode; why: string } | null>('gpuFiles.texMode', () => resolved, (v) => { resolved = v; }, () => null);

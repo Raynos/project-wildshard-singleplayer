@@ -36,7 +36,6 @@ import { Trail, type TrailLook } from './trail';
 import { phoneUrl } from '#engine/boot/bytes';
 import { ClipChannel as Channel } from '#kit/viewmodel/rigArms';
 import { ktx2Texture } from '#engine/core/ktx2';
-import { mapSlot } from '#engine/core/shardState';
 
 export const ASSET_BASE = '/assets/nine-dragon/viewmodel/';
 export const RIG_URL = `${ASSET_BASE}fp-rig.glb`;
@@ -100,7 +99,6 @@ function mapPair(name: string): Promise<[Texture | null, Texture | null]> {
 /** each part's maps, loaded once per shard: the held rig and the Model Explorer's specimen (models/gear.ts, E315 M5) read
  *  the same textures (nothing writes them), so the card costs no second set */
 const mapLoads = new Map<string, Promise<[Texture | null, Texture | null]>>();
-mapSlot('nds.vm.maps', mapLoads);
 function sharedMapPair(name: string): Promise<[Texture | null, Texture | null]> {
   let p = mapLoads.get(name);
   if (p === undefined) { p = mapPair(name); mapLoads.set(name, p); }
@@ -114,7 +112,6 @@ function sharedMapPair(name: string): Promise<[Texture | null, Texture | null]> 
  */
 interface RigFile { readonly gltf: GLTF; readonly pristine: Object3D; taken: boolean }
 const rigFiles = new Map<string, Promise<RigFile>>();
-mapSlot('nds.vm.rig', rigFiles);
 async function rigScene(url: string): Promise<{ scene: Object3D; animations: AnimationClip[] }> {
   let p = rigFiles.get(url);
   if (p === undefined) {
@@ -129,7 +126,6 @@ async function rigScene(url: string): Promise<{ scene: Object3D; animations: Ani
 
 /** the decal atlas (a 2048 × 1024 canvas, drawn once): every rig of the shard reads the same one */
 const atlases = new Map<string, Decals>();
-mapSlot('nds.vm.decals', atlases);
 function sharedDecals(): Decals {
   let d = atlases.get('decals');
   if (d === undefined) { d = decalAtlas(); atlases.set('decals', d); }

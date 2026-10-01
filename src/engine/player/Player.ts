@@ -11,8 +11,6 @@ import { addLockOffset } from './LockOnTarget';
 import { CharacterMotor } from '../physics/CharacterMotor';
 import { floorBelow } from '../physics/query';
 import type { Physics } from '../physics/Physics';
-import { stateSlot } from '../core/shardState';
-
 
 const EYE = 1.68;
 const RADIUS = 0.38;
@@ -732,6 +730,3 @@ export class Player {
     this.waterLine.setHint(!swim ? 0 : submerged ? 2 : 1);
   }
 }
-
-// E155 (src/engine/core/shardState.ts): the running shard's dodge
-stateSlot('player.dodgeFx', dodgeFx);

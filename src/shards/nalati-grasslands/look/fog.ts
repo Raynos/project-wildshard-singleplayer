@@ -17,7 +17,6 @@ import { paintedAir } from '#engine/world/Atmosphere';
 import { V2_TINT_GLSL, tintUniforms } from './tint';
 import { ungrade } from './grade';
 import { PANO_FOG_SRGB } from './panoramaData';
-import { shardSlot, stateSlot } from '#engine/core/shardState';
 
 /** the LUT: scene-linear (already un-graded), half float, RepeatWrapping on the azimuth */
 export const fogLut = ((): THREE.DataTexture => {
@@ -90,8 +89,3 @@ export function installLookV2Fog(): void {
       }
     #endif`;
 }
-
-// E155 (src/engine/core/shardState.ts): the Nalati fog patch + its uniforms are the running shard's
-shardSlot('nalati.fog', () => installed, (v) => { installed = v; });
-stateSlot('nalati.fogV2', fogV2);
-stateSlot('nalati.fogEdgeV2', fogEdgeV2);

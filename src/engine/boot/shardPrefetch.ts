@@ -49,7 +49,7 @@ import { JOURNAL_SKIN } from '#shards/pine-hollow/compendium';
 import { PERSON_FILE, peopleModelUrl, type PersonKey } from '#shards/nalati-grasslands/campPeopleModels';
 import { blenderModelsBase } from '../world/blenderArea';
 import { CAPTAIN_GLB_URL } from '../entities/species/captainMesh';
-import { shell } from '../core/shardScope';
+import { shell } from '../app/legacyCapture';
 
 const PLAYABLE_SHARDS = SHARDS.filter(playable);
 

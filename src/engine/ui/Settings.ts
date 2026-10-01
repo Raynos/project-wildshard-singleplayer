@@ -27,8 +27,8 @@
 //
 // localStorage is wrapped in try/catch (iOS private mode throws on write) — the in-memory copy is the truth for the session.
 //
-// A listener a resident shard adds while it builds or runs is removed when that shard is evicted (src/engine/core/shardScope.ts).
-import { onScopeDispose } from '../core/shardScope';
+// A listener a resident shard adds while it builds or runs is removed when that shard is evicted (src/engine/app/legacyCapture.ts).
+import { onScopeDispose } from '../app/legacyCapture';
 
 export type SettingKey = 'aimAssist' | 'tracers' | 'haptics' | 'autoLock' | 'huntersEye';
 export type NumberKey = 'volume' | 'music' | 'look' | 'swingLook' | 'lockCam';

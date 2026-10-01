@@ -20,7 +20,6 @@ import { ACT_BRACE, ACT_ROAR, ACT_STRIKE, ACT_SWEEP } from './kingRig';
 import { own, retire, voice, LaneCharge, type PineCtx } from './ctx';
 import { KING_PHASE_AT, burnTick, headingTo, inArc, ringCatches, wallPush } from './combatMath';
 import type { FxMaterial } from '#engine/world/fx';
-import { shardSlot } from '#engine/core/shardState';
 
 /**
  * THE ANTLER KING, Warden of Pine Hollow (PINE-HOLLOW-REMASTER PH-C2; board B2 pick A, the Bark Warden). The engine's
@@ -682,6 +681,3 @@ export class AntlerKing {
 
   onPlayerDeath(): boolean { return this.boss.onPlayerDeath(); }
 }
-
-// E155 (src/engine/core/shardState.ts): the running Pine Hollow's fight (a rebuilt one hooks in again)
-shardSlot('antlerKing.damage', () => kingDamage, (v) => { kingDamage = v; });

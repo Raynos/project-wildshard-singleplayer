@@ -35,7 +35,6 @@
  */
 import * as THREE from 'three';
 import type { NpcKind } from '../models/people';
-import { mapSlot } from '#engine/core/shardState';
 
 export const LEG_BONE_NAMES = [
   'hips', 'spine', 'chest', 'neck', 'head',
@@ -452,7 +451,6 @@ export function legRigOf(kind: NpcKind, source: THREE.BufferGeometry): LegBuilt 
   if (!b) { b = rigLegs(kind, source); built.set(kind, b); }
   return b;
 }
-mapSlot('npcRig.built', built);
 
 /** the rig's bones at rest (LEG_BONE_NAMES order), parented, the root first */
 export function legBones(b: LegBuilt): THREE.Bone[] {

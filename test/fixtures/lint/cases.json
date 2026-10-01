@@ -453,5 +453,26 @@
     "rule": "no-active-chunk",
     "code": "getActiveChunk();",
     "count": 0
+  },
+  {
+    "id": "global capture calls",
+    "file": "src/engine/ui/f11Capture.ts",
+    "rule": "no-global-listener-patch",
+    "count": 6,
+    "code": "window.addEventListener('click', fn); el.addEventListener('dispose', fn); setTimeout(fn, 1); window.setInterval(fn, 1); requestAnimationFrame(fn); document.body.append(el); scope.listen(el, 'click', fn); scope.timeout(1, fn);"
+  },
+  {
+    "id": "capture implementation excluded",
+    "file": "src/engine/app/f11Capture.ts",
+    "rule": "no-global-listener-patch",
+    "count": 0,
+    "code": "window.addEventListener('click', fn); document.body.append(el);"
+  },
+  {
+    "id": "shell overlays excluded",
+    "file": "src/engine/ui/Loading.ts",
+    "rule": "no-global-listener-patch",
+    "count": 0,
+    "code": "setTimeout(fn, 1); document.body.appendChild(el);"
   }
 ]

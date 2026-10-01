@@ -147,12 +147,12 @@ import { installPineQuest } from '#shards/pine-hollow/quest/index';
 import { installPineWeather } from '#shards/pine-hollow/world/weather';
 import { installPineLoadout } from '#shards/pine-hollow/loadout/loadout';
 import { installPineLife } from '#shards/pine-hollow/life/index';
-import { ShardHost, textureBytes, type ShardWorld } from '#engine/shard/ShardHost';
+import { textureBytes } from '#engine/render/textureBytes';
 import { consumeArenaArrival, setShardSwitcher } from '#game/travel/switch';
 import { consumeTitleArrival, type TitleArrival } from '#engine/boot/titleArrival';
 import { setAliveSource } from '#engine/boot/lastEnd';
 import { beginNineExploreEntry, recordNineBootCheckpoint, markNineBootContextLost, markNineBootHandledError } from '#engine/boot/nineBootTrace';
-import { currentScope, disposeScope, asShell, withScopeOwner } from '#engine/core/shardScope';
+import { LegacyCapture, installLegacyCapture, enterScope, currentScope, disposeScope, asShell, withScopeOwner } from '#engine/app/legacyCapture';
 import { isDev } from '#engine/core/devMode';
 
 // live animal positions for the compass, reused buffers (no per-frame allocations in the update loop)
@@ -174,16 +174,12 @@ installErrorModal(); // before anything can throw
 declare const __BUILD_ID__: string;
 
 const shell: { music: Music | null } = { music: null };
-/** the page's shard host (main() makes it): each shard's GPU recovery asks it whether that shard is parked */
-let hostRef: ShardHost | null = null;
 let bootArrival: TitleArrival | null = null;
 let bootFatalShown = false;
 
 /** E183: how long the title idles before its one primed frame (a first glance at the deck, a swipe, stay smooth) */
 const TITLE_IDLE_MS = 1200;
 
-/** E216: every shard switch navigates, so this page owns only its one booted world. */
-const SHARD_CAP = 1;
 
 async function main() {
   app.rng.seed(pageSeed(getActiveChunk().seed, window.__wildshardHarness?.seed));
@@ -200,28 +196,27 @@ async function main() {
       history.replaceState(history.state, '', home);
     }
   }
-  const host = new ShardHost({ build: buildShard, cap: SHARD_CAP });
-  setShardSwitcher({
-    memory: () => host.memory(),
-  });
-  (window as unknown as { __shardHost: ShardHost }).__shardHost = host; // the E155 test + debugging: resident shards, switch timings, memory
-  hostRef = host;
-  // E179: the page's alive beat and every intentional reload record the running shard and what was resident
-  setAliveSource(() => ({
-    slug: host.active ?? '',
-    resident: host.memory(60_000).shards.map((s) => `${s.slug}${s.running ? ' (playing)' : ''} ~${Math.round(s.textureMB)} MB`).join(' · '),
-  }));
-  await host.start(selected);
+  installLegacyCapture();
+  const capture = new LegacyCapture(selected);
+  enterScope(capture);
+  const world = await buildShard(selected);
+  let memoryAt = -Infinity, memoryMB = 0;
+  const memory = (maxAgeMs = 5000) => {
+    const now = app.clock.real * 1000;
+    if (now - memoryAt >= maxAgeMs) { memoryAt = now; memoryMB = Math.round(textureBytes(world.scene) / 1e5) / 10; }
+    return { cap: 1, shards: [{ slug: selected, running: true, textureMB: memoryMB }] };
+  };
+  setShardSwitcher({ memory });
+  setAliveSource(() => ({ slug: selected, resident: `${selected} (playing) ~${Math.round(memory(60_000).shards[0]?.textureMB ?? 0)} MB` }));
 }
 
-/**
- * One shard's world, built in the page (the first at page load, the others when the deck asks — src/engine/shard/ShardHost.ts).
- * This was the whole of main() when a page held one shard; it still is that boot, step for step.
- */
-function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
+interface BuiltWorld { readonly scene: THREE.Scene; dispose: () => void }
+
+/** The page builds one level; all navigation uses a fresh page. */
+function buildShard(slug: string): Promise<BuiltWorld> {
   const manifest = getActiveChunk();
   const scope = currentScope();
-  return runShardLoad(manifest, (stage) => withShardHooks(manifest, stage, () => buildShardWorld(slug, first, manifest, stage)), {
+  return runShardLoad(manifest, (stage) => withShardHooks(manifest, stage, () => buildShardWorld(slug, manifest, stage)), {
     build: __BUILD_ID__,
     dispose: () => {
       if (app.render !== null) app.render.hold = true;
@@ -232,7 +227,7 @@ function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   });
 }
 
-async function buildShardWorld(slug: string, first: boolean, manifest: ShardManifest, stage: LoadStage): Promise<ShardWorld> {
+async function buildShardWorld(slug: string, manifest: ShardManifest, stage: LoadStage): Promise<BuiltWorld> {
   const loading = new Loading();
   app.setState('loading');
   if (manifest.slug !== slug) throw new Error(`buildShard: ${slug} is not the active chunk`);
@@ -254,7 +249,7 @@ async function buildShardWorld(slug: string, first: boolean, manifest: ShardMani
   const step: StepRunner = (key, work) => stage(key, () => plan.step(key, work).then((p) => p.value));
   // let the service worker take control first (≤ 2.5 s, never fatal) so the first visit's bytes are cached (a shard built
   // later in the page finds it long settled)
-  if (first) await window.__ws_sw?.ready;
+  await window.__ws_sw?.ready;
   // this shard's files in flight now, in step order; each step builds as its files land — as one pack when the build has
   // one (src/engine/boot/pack.ts), else file by file (src/engine/boot/prefetch.ts); anything the pack lacks still goes file by file
   const pack = packFor(getActiveChunk());
@@ -960,9 +955,8 @@ async function buildShardWorld(slug: string, first: boolean, manifest: ShardMani
   if (ride) ride.taming.onBonded = () => { progress.recordEvent('tame'); }; // B15: the Horse Sense achievement
   if (gulls) gulls.onCall = (pos) => audio.gullCallAt(pos, player.position, player.yaw);
   player.onEnterWater = (impact) => audio.splash(impact);
-  let submerged = false; // the score's underwater state, given back when this shard plays again (E155)
-  player.onSubmerge = () => { submerged = true; audio.dive(); islandSfx?.plunge(false); audio.setUnderwater(true); ambience?.setUnderwater(true); music.setState({ underwater: true }); };
-  player.onSurface = () => { submerged = false; audio.surface(); islandSfx?.plunge(true); audio.setUnderwater(false); ambience?.setUnderwater(false); music.setState({ underwater: false }); };
+  player.onSubmerge = () => { audio.dive(); islandSfx?.plunge(false); audio.setUnderwater(true); ambience?.setUnderwater(true); music.setState({ underwater: true }); };
+  player.onSurface = () => { audio.surface(); islandSfx?.plunge(true); audio.setUnderwater(false); ambience?.setUnderwater(false); music.setState({ underwater: false }); };
   player.onExitWater = () => audio.waterExit();
   player.onStroke = () => audio.swimStroke();
   player.onJump = () => audio.jump();
@@ -1023,7 +1017,7 @@ async function buildShardWorld(slug: string, first: boolean, manifest: ShardMani
   const tour = world.tour;
   // a GPU-recovery reload (E61) skips the title: straight back into the world at the saved spot, under the pause menu
   const resuming = params.has(RELOAD_PARAM);
-  const arrival = first ? bootArrival : null;
+  const arrival = bootArrival;
   const menuFirst = arrival === null && !params.has('skipintro') && !params.has('tour') && !resuming;
   let firstIn = true;
   let fromTitle = false; // pause → "Exit to main menu" → ENTER WORLD starts over at the spawn (E121), a plain resume does not
@@ -1290,7 +1284,7 @@ async function buildShardWorld(slug: string, first: boolean, manifest: ShardMani
   const recoveryInstalledAt = performance.now();
   installGpuRecovery({ game, rebuild: () => { sky.rebuildEnvironment(); }, pose: () => (hud.entered ? { x: player.position.x, y: player.position.y, z: player.position.z, yaw: player.yaw, pitch: player.pitch } : null), resumed: resuming,
     fragileBoot: () => TIER === 'phone' && performance.now() - recoveryInstalledAt < 20_000,
-    parked: () => hostRef?.isParked(slug) === true, onLostParked: () => { hostRef?.evict(slug); } }); // a parked shard that loses its context is evicted (E155)
+  });
   bootGpuGuardActive = false;
   if (fragileBoot) game.canvas.removeEventListener('webglcontextlost', onBootContextLost);
   setPoseProvider(() => (hud.entered ? { x: player.position.x, y: player.position.y, z: player.position.z, yaw: player.yaw, pitch: player.pitch } : null)); // the Look Lab's reload prompt comes back right here (E65)
@@ -1319,7 +1313,7 @@ async function buildShardWorld(slug: string, first: boolean, manifest: ShardMani
   // textures that arrived after the boot uploaded: EXPLORE WORLD's first tap stalled ~1.3 s at 4× CPU (and ENTER WORLD's
   // first frame the same). A return from the background already draws such a frame on the title (Game.start).
   if (menuFirst) window.setTimeout(() => {
-    if (hostRef?.isParked(slug) === true || hud.entered || exploring()) return;
+    if (hud.entered || exploring()) return;
     if (chunk.explore !== undefined) void import('#engine/explore/Explore');
     game.primeFrame();
   }, TITLE_IDLE_MS);
@@ -1328,44 +1322,17 @@ async function buildShardWorld(slug: string, first: boolean, manifest: ShardMani
   game.retainKitResources();
   game.captureLevelResources();
   game.levelScope.onDispose(() => { loot.dispose(); windupWarn?.dispose(); weapons.setEnabled(false); ambience?.dispose(); audio.unloadLevel(); });
-  const probe = installProbe(handle, { bootSteps, health: () => health, quest: () => ({ driftwood: adventure?.flags.all.slice().sort() ?? [], nalati: nalatiAdventure?.flags.all.slice().sort() ?? [] }) });
+  installProbe(handle, { bootSteps, health: () => health, quest: () => ({ driftwood: adventure?.flags.all.slice().sort() ?? [], nalati: nalatiAdventure?.flags.all.slice().sort() ?? [] }) });
   document.dispatchEvent(new Event('ws:ready')); // booted to the title: the native shell's update watchdog (src/engine/native/boot.ts) waits for this
   // E158: the other shards' boot files into the worker's cache, in the background — once a page (the shell's, not a shard's)
-  if (first) asShell(() => { startShardPrefetch(getActiveChunk()); });
+  asShell(() => { startShardPrefetch(getActiveChunk()); });
 
 
-  // ── the shard host's handles on this world (src/engine/shard/ShardHost.ts, E155) ──
-  return {
-    slug, handle, renderer: game.renderer, scene: game.scene, bootSteps,
-    park: () => {
-      if (hud.entered) hud.exitToMenu(); // in the world (the complete card's Next shard): to its title first, as the pause menu's exit does
-      weapons.setEnabled(false); perf.setActive(false);
-      audio.worldMuted = true;
-      game.stop();
-      const freed = game.releaseTargets(); // E179: the canvas, the post chain's targets and the shadow maps, back at resume
-      if (freed > 0) console.info(`[shard] ${slug} parked: ~${Math.round(freed / 1e6)} MB of render targets released`);
-      audio.park(true);
-    },
-    activate: (req) => {
-      audio.park(false);
-      music.attach(audio);
-      music.setState({ shard: mood, mode: 'menu', intensity: 0, underwater: submerged });
-      game.resume();
-      brand();
-      window.__wildshard = probe;
-      if (req.arena === true) hud.enterArenaNow();
-      else if (req.explore === true && chunk.explore !== undefined) hud.startExplore();
-      else if (req.enter === true) { fromTitle = false; hud.enterNow(); } // where the player left off: no respawn at the gate (E121 is for the same shard's title)
-    },
-    dispose: () => {
-      loot.dispose(); // E314: the coin chip leaves #hud, the purse's last write
-      windupWarn?.dispose(); // E323: its ResizeObserver off, its marks out of #hud
-      game.dispose();
-      world.physics.dispose();
-      audio.evict();
-      if ('__wildshard' in window && window.__wildshard.world === handle) Reflect.deleteProperty(window, '__wildshard');
-    },
-  };
+  const levelWorld: BuiltWorld = { scene: game.scene, dispose: () => {
+    weapons.setEnabled(false); perf.setActive(false); audio.unloadLevel();
+  } };
+  game.levelScope.onDispose(levelWorld.dispose);
+  return levelWorld;
 }
 main().catch((e: unknown) => {
   markNineBootHandledError();

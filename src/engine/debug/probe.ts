@@ -13,7 +13,7 @@ import { activeNavmesh, type Navmesh } from '../physics/navmesh';
 import { Rng } from '../core/rng';
 import { TIER } from '../core/tier';
 import { tap } from '../core/harnessTap';
-import { currentScope, levelRegistrations, retainedRegistrations, registrationTimerIds, asShell } from '../core/shardScope';
+import { currentScope, levelRegistrations, retainedRegistrations, registrationTimerIds, asShell } from '../app/legacyCapture';
 import { ExternalTimerBaseline } from './timerBaseline';
 import type { ScopeCensus } from '../app/scope';
 import type { AppState, Phase } from '../app/systems';

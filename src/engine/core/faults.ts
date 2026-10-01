@@ -17,7 +17,7 @@
  * this `label`, and each phase list becomes a list of `GameSystem`s.
  */
 
-import { onScopeDispose } from './shardScope';
+import { onScopeDispose } from '../app/legacyCapture';
 
 /** frames in a row that throw before a system is switched off */
 export const FAULT_STREAK = 3;

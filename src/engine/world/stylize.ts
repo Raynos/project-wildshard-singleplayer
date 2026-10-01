@@ -28,7 +28,6 @@
  * no cloud shadow — still the ramp.
  */
 import * as THREE from 'three';
-import { shardSlot, stateSlot } from '../core/shardState';
 
 export const toonUniforms = {
   /** added to the shade band (linear, ×albedo): the blue-violet of Rime's shadows */
@@ -210,7 +209,3 @@ export function installStylize(): void {
   THREE.ShaderChunk.lights_physical_pars_fragment = chunk.replace('#define RE_IndirectSpecular		RE_IndirectSpecular_Physical', `#define RE_IndirectSpecular		RE_IndirectSpecular_Physical
 ${TOON_GLSL}`);
 }
-
-// E155 (src/engine/core/shardState.ts): the toon patch + its uniforms are the running shard's
-shardSlot('stylize', () => installed, (v) => { installed = v; });
-stateSlot('stylize.toonUniforms', toonUniforms);

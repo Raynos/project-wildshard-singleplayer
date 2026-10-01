@@ -1,17 +1,4 @@
-/**
- * The sea's one wave function (DRIFTWOOD-REMASTER W3): the Ocean's vertex shader and every TypeScript rider (the boat,
- * the swimmer's eye, gulls on the water, floating debris) evaluate the same four Gerstner waves on the same clock, so a
- * boat bobs exactly with the facets around it.
- *
- *   import { waveHeight, waveClock, WAVES_GLSL } from './waves';
- *   const y = level + waveHeight(x, z);                 // metres above the still level, at world (x, z), now
- *   const y2 = waveHeight(x, z, t, damp);               // at time t, with the shore damping (0..1) of your choice
- *   seaDamp(depth)                                      // the shore damping the Ocean uses: 0.35 on the sand → 1 by 1.5 m deep
- *
- * `waveClock.t` is advanced by `Ocean.update(dt)` (seconds). Gerstner: every wave moves points in a circle, so the
- * height at a fixed (x, z) is found by undoing the horizontal push (two fixed-point steps — plenty at these steepnesses).
- */
-import { stateSlot } from '../core/shardState';
+
 
 /** [dirX, dirZ, amplitude m, wavelength m, speed m/s, steepness 0..1] — gentle lagoon swell; λ ≥ 11 m so the phone's 4 m grid resolves them */
 export const WAVES: readonly (readonly [number, number, number, number, number, number])[] = [
@@ -85,6 +72,3 @@ ${WAVES.map(([wx, wz, a, len, speed, q]) => {
   }).join('\n')}
   return normalize(cross(vec3(0.0, 0.0, 1.0) + tz * damp, vec3(1.0, 0.0, 0.0) + tx * damp));
 }`;
-
-// E155 (src/engine/core/shardState.ts): the running shard's swell clock
-stateSlot('waves.clock', waveClock);

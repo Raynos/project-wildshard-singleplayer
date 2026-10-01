@@ -4,8 +4,7 @@
  * src/engine/core/GpuRecovery.ts reloads the page on a context loss instead of restoring in place (E54).
  */
 import { BufferAttribute, type BufferGeometry, Data3DTexture, DataArrayTexture, DataTexture, StaticDrawUsage, type Texture } from 'three';
-import { listSlot, shardSlot } from './shardState';
-import { currentScope } from './shardScope';
+import { currentScope } from '../app/legacyCapture';
 
 const labels = new Set<string>();
 /** marks made outside any shard (at module load: KTX2 mode drops every texture's mips once uploaded) — the page's, never reset */
@@ -75,7 +74,3 @@ export function gpuOnlyTexture(t: Texture, label: string): void {
   };
   markGpuOnly(label);
 }
-
-// E155 (src/engine/core/shardState.ts): each resident shard's own bakes
-shardSlot('gpuOnly.labels', () => [...labels], (v) => { labels.clear(); for (const l of v) labels.add(l); }, () => []);
-listSlot('gpuOnly.rebakes', rebakes);

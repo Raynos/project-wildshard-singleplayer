@@ -35,8 +35,6 @@
 import * as THREE from 'three';
 import { loadTexture } from '#engine/core/assets';
 import { TIER_CONFIG } from '#engine/core/tier';
-import { mapSlot, shardSlot } from '#engine/core/shardState';
-import { MAY_KTX2 } from '#engine/boot/gpuFiles';
 
 export type NalatiTexName = 'meadow' | 'path' | 'gravel' | 'rock' | 'snow' | 'bark' | 'felt';
 
@@ -126,7 +124,3 @@ export function loadGrassCardAtlas(): Promise<THREE.Texture> {
   });
   return atlas;
 }
-
-// E155 × E157 (src/engine/core/shardState.ts): with KTX2 a loaded texture's mips leave JS once uploaded, so another shard's renderer
-// (a rebuilt Nalati's) could not upload a cached copy: the cache is per shard unless Debug ▸ GPU textures = Images.
-if (MAY_KTX2) { mapSlot('nalatiTextures.cache', cache); shardSlot('nalatiTextures.atlas', () => atlas, (v) => { atlas = v; }, () => null); }

@@ -12,7 +12,6 @@ import { TIER_CONFIG } from '../core/tier';
 import { getActiveChunk } from '#game/shard/registry';
 import { groundSet } from './lookFlags';
 import { GrassV2 } from '#shards/nalati-grasslands/look/grass';
-import { stateSlot } from '../core/shardState';
 import { trample, TRAMPLE_GLSL } from '#kit/looks/trample';
 import { practiceRoom } from '../core/practiceRoom';
 
@@ -609,6 +608,3 @@ function drawBlade(g: CanvasRenderingContext2D, rx: number, ry: number, bendX: n
   for (let i = 0; i <= steps * 0.8; i++) { const r = right[i]; if (!r) continue; const [x, y] = r; if (i === 0) g.moveTo(x, y); else g.lineTo(x, y); }
   g.stroke();
 }
-
-// E155 (src/engine/core/shardState.ts): the running shard's grass light / wind
-stateSlot('grass.uniforms', grassUniforms);

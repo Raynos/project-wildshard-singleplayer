@@ -11,7 +11,7 @@
  * ones that skip the title, so the reload lands back on this title screen. Reuses the in-game menu's look (gmenu.css).
  */
 import { AUTO_TIER, TIER, gfxPrefs, saveGfxPrefs } from '../core/tier';
-import { asShell } from '../core/shardScope';
+import { asShell } from '../app/legacyCapture';
 import { isDev, onDev } from '../core/devMode';
 import { getActiveChunk } from '#game/shard/registry';
 import { askReload } from './ReloadPrompt';
@@ -41,9 +41,9 @@ let debug: DebugMenu | null = null;
 let memTimer = 0;
 
 export function openBootSettings(): void {
-  const r = root ?? asShell(build); // the page's one panel (src/engine/core/shardScope.ts): its Esc listener is not a shard's
+  const r = root ?? asShell(build); // the page's one panel (src/engine/app/legacyCapture.ts): its Esc listener is not a shard's
   root = r;
-  // the title may belong to any resident shard (src/engine/shard/ShardHost.ts): re-read which Debug rows apply, and their choices
+  // re-read which Debug rows apply to the selected level, and their choices
   // (GPU textures' "Auto · now …"), for the one behind it now. No weapons in hand on the title
   debug?.applies({ chunk: getActiveChunk(), weapons: new Set() });
   asShell(() => { window.clearInterval(memTimer); memTimer = window.setInterval(() => { debug?.paint(); }, 2000); }); // the readouts, while open only
@@ -60,7 +60,7 @@ function close(): void {
 
 function build(): HTMLElement {
   const r = el('ws-gmenu');
-  r.dataset['wsShell'] = ''; // the page's one boot-settings panel: never a resident shard's (src/engine/core/shardScope.ts)
+  r.dataset['wsShell'] = ''; // the page's one boot-settings panel: never a resident shard's (src/engine/app/legacyCapture.ts)
   r.inert = true;
   const sheet = el('ws-gmenu-sheet ws-glass');
   sheet.innerHTML = `
