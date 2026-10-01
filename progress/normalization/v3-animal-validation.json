@@ -1,0 +1,44 @@
+{
+  "source": "77590cf02cbd6222ec4ea2c8089b1f622dbc1226",
+  "gate": "green",
+  "gateLog": "/private/tmp/e357-sol-v3/animal-gate-model.log",
+  "scope": "Legal optional empty geometry groups; fur/hard/eyes material slots remain0/1/2. Shared model contract unchanged.",
+  "boot": {
+    "pine-hollow.phone": {
+      "sha": "77590cf02cbd6222ec4ea2c8089b1f622dbc1226",
+      "errors": [],
+      "poses": [
+        "gate",
+        "cabin",
+        "pond"
+      ]
+    },
+    "nalati-grasslands.phone": {
+      "sha": "77590cf02cbd6222ec4ea2c8089b1f622dbc1226",
+      "errors": [],
+      "poses": [
+        "camp",
+        "bridge",
+        "plains"
+      ]
+    },
+    "driftwood-isle.phone": {
+      "sha": "77590cf02cbd6222ec4ea2c8089b1f622dbc1226",
+      "errors": [],
+      "poses": [
+        "pier",
+        "beach",
+        "wreck"
+      ]
+    },
+    "nine-dragon-stack.phone": {
+      "sha": "77590cf02cbd6222ec4ea2c8089b1f622dbc1226",
+      "errors": [],
+      "poses": [
+        "spawn-rail",
+        "well-edge",
+        "stair-street"
+      ]
+    }
+  }
+}
