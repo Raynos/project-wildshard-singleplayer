@@ -1,4 +1,4 @@
-import { app } from '../app/runtime';
+import { app, gameplayRandom } from '../app/runtime';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type { Game } from '../core/Game';
@@ -12,7 +12,6 @@ import { BowDraw, RENOCK_TIME } from './bowDraw';
 import { gloveFist, riderArm, placeArm } from './nalatiArms';
 import { withHunterPalette } from './hunterHands';
 import type { Weapon } from './Weapon';
-import { gameplayRandom } from '../app/runtime';
 
 /**
  * Longbow — THE WARDEN'S LONGBOW, the Antler King's reward on Pine Hollow (PINE-HOLLOW-REMASTER PH-U15 / PH-C2 / PH-C11):

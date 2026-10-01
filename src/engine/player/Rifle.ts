@@ -1,4 +1,4 @@
-import { app } from '../app/runtime';
+import { app, gameplayRandom } from '../app/runtime';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { LineSegments2 } from 'three/examples/jsm/lines/LineSegments2.js';
@@ -15,7 +15,6 @@ import {
 } from './Crossbow';
 import type { KitWeapon, WeaponState, AimInfo } from './Weapons';
 import type { Sky } from '../world/Sky';
-import { gameplayRandom } from '../app/runtime';
 
 export interface RifleOptions extends CrossbowOptions {
   /**
