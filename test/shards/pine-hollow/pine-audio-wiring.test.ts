@@ -1,20 +1,21 @@
 import { createPineAudio } from '#shards/pine-hollow/audio/files';
+import { createDriftwoodAudio } from '#shards/driftwood-isle/audio/files';
 // The audio-wiring lane (PINE-HOLLOW-REMASTER A-rows): Pine Hollow's own music + SFX ride on its loading bar only (E44 —
 // Driftwood's list is unchanged), and the layout's zones become ambience spots.
 import { describe, expect, it } from 'vitest';
-import { audioFiles, DRIFTWOOD_SOUNDS, manifestFiles } from '#engine/boot/audioFiles';
+import { audioFiles, manifestFiles } from '#engine/boot/audioFiles';
 import { MUSIC_MANIFESTS, SFX_MANIFESTS } from '#engine/boot/audio.generated';
 import { pineZoneSpots } from '#shards/pine-hollow/audio/wiring';
 
 describe('the loading bar\'s audio per shard', () => {
-  it('Driftwood (and no slug) lists no Pine Hollow file, and every base slot', () => {
-    const d = audioFiles();
-    expect(d).toEqual(audioFiles());
+  it('Driftwood lists its own SFX, no Pine Hollow file, and every base slot', async () => {
+    const d = (await createDriftwoodAudio()).files();
+    expect(d.sfx.some((file) => file.startsWith('/assets/sfx/driftwood-isle/'))).toBe(true);
     expect([...d.music, ...d.sfx].some((p) => p.includes('pine-hollow'))).toBe(false);
     expect(d.music.some((p) => p.includes('/island-'))).toBe(true);
   });
   it('Pine Hollow adds its selected-style music and its whole SFX set, and drops the island slot', async () => {
-    const p = (await createPineAudio()).files(), d = audioFiles();
+    const p = (await createPineAudio()).files(), d = (await createDriftwoodAudio()).files();
     expect('pine-hollow-piano' in MUSIC_MANIFESTS && 'pine-hollow' in SFX_MANIFESTS).toBe(true); // src/engine/boot/audio.generated.ts is current
     expect(p.music.some((f) => f.startsWith('/assets/music/pine-hollow-piano/'))).toBe(true);
     expect(p.music.some((f) => f.startsWith('/assets/music/pine-hollow-folk/'))).toBe(false); // the selected style only (piano, the default)
@@ -22,24 +23,15 @@ describe('the loading bar\'s audio per shard', () => {
     const own = p.sfx.filter((f) => f.startsWith('/assets/sfx/pine-hollow/'));
     expect(own.some((f) => f.includes('/bed-hollow-'))).toBe(true);
     expect(own.some((f) => f.includes('/oneshots-'))).toBe(true); // the one-shots + barks: one sprite (test/shards/pine-hollow/pine-sfx-sprite.test.ts)
-    // every base set still comes along — but for another shard's own sounds: the one set's `shard: 'nalati'` entries and
-    // Driftwood's untagged own (DRIFTWOOD_SOUNDS: its creatures, the gulls, the shrine's hum, the island bed — PH-P3)
-    const best = SFX_MANIFESTS['best'], steppe = manifestFiles(SFX_MANIFESTS['nalati-grasslands']), drift = new Set<string>();
-    for (const sec of ['beds', 'hums', 'oneshots'] as const) {
-      const entries: unknown = typeof best === 'object' && best !== null ? (best as Record<string, unknown>)[sec] : undefined;
-      for (const [k, v] of Object.entries(typeof entries === 'object' && entries !== null ? entries : {})) {
-        const e = v as { shard?: unknown; files?: unknown; file?: unknown };
-        expect(e.shard).toBeUndefined();
-        const into = DRIFTWOOD_SOUNDS[sec].includes(k) ? drift : null;
-        if (!into) continue;
-        for (const f of Array.isArray(e.files) ? e.files : [e.file]) into.add(`/assets/sfx/best/${String(f)}`);
-      }
-    }
+    // The own sets carry their own sounds; shared files need no per-shard family exclusion table.
+    const steppe = manifestFiles(SFX_MANIFESTS['nalati-grasslands']);
+    const drift = new Set(manifestFiles(SFX_MANIFESTS['driftwood-isle']).map((file) => `/assets/sfx/driftwood-isle/${file}`));
     expect(steppe).toHaveLength(83);
     for (const file of steppe) { expect(p.sfx).not.toContain(`/assets/sfx/nalati-grasslands/${file}`); expect(d.sfx).not.toContain(`/assets/sfx/best/${file}`); }
     expect(drift.size).toBeGreaterThan(10);
     for (const f of drift) expect(d.sfx).toContain(f); // Driftwood keeps every one of its own
     for (const f of d.sfx) { if (drift.has(f)) expect(p.sfx).not.toContain(f); else expect(p.sfx).toContain(f); }
+    for (const f of audioFiles().sfx) expect(f).not.toContain('/driftwood-isle/');
   });
 });
 

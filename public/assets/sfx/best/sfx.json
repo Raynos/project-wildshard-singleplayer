@@ -1,6 +1,6 @@
 {
   "model": "MOSS-SoundEffect v2 + Stable Audio 3 Medium",
-  "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+  "credit": "Sound effects: MOSS-SoundEffect v2 \u00b7 Stable Audio 3 Medium \u2014 Powered by Stability AI",
   "licence": "Per file (see provenance.source): MOSS-SoundEffect v2.0 is Apache-2.0; Stable Audio 3 Medium is the Stability AI Community License (free below USD 1M revenue, register with Stability AI for commercial use, show 'Powered by Stability AI').",
   "beds": {
     "forest": {
@@ -8,13 +8,6 @@
       "loopStart": 12.75,
       "loopEnd": 26.75,
       "duration": 27.7547,
-      "gain": 0.5
-    },
-    "island": {
-      "file": "bed-island-1-4611714d.m4a",
-      "loopStart": 2.25,
-      "loopEnd": 15.25,
-      "duration": 16.256,
       "gain": 0.5
     },
     "underwater": {
@@ -32,13 +25,6 @@
       "loopEnd": 9.25,
       "duration": 10.2613,
       "gain": 0.35
-    },
-    "shrine": {
-      "file": "hum-shrine-2-d89ed03a.m4a",
-      "loopStart": 2.75,
-      "loopEnd": 8.75,
-      "duration": 9.7707,
-      "gain": 0.6
     }
   },
   "oneshots": {
@@ -231,12 +217,6 @@
       ],
       "gain": 1.0
     },
-    "gull": {
-      "files": [
-        "gull-1-5fa9130b.m4a"
-      ],
-      "gain": 1.0
-    },
     "deer_call": {
       "files": [
         "deer_call-3-1d601bb4.m4a",
@@ -290,59 +270,6 @@
       ],
       "gain": 1.0
     },
-    "crab_click": {
-      "files": [
-        "crab_click-2-aefbc41d.m4a",
-        "crab_click-3-f47e95a3.m4a"
-      ],
-      "gain": 1.0
-    },
-    "crab_snap": {
-      "files": [
-        "crab_snap-2-bff601ad.m4a",
-        "crab_snap-3-69ea11c0.m4a"
-      ],
-      "gain": 1.0
-    },
-    "monkey_chatter": {
-      "files": [
-        "monkey_chatter-3-1c7d7e2d.m4a"
-      ],
-      "gain": 1.0
-    },
-    "monkey_shriek": {
-      "files": [
-        "monkey_shriek-2-54acd647.m4a",
-        "monkey_shriek-1-1a358b4e.m4a"
-      ],
-      "gain": 1.0
-    },
-    "sailor_groan": {
-      "files": [
-        "sailor_groan-2-43e2a981.m4a"
-      ],
-      "gain": 1.0
-    },
-    "sailor_slash": {
-      "files": [
-        "sailor_slash-3-5a10eada.m4a",
-        "sailor_slash-1-611ba654.m4a"
-      ],
-      "gain": 1.0
-    },
-    "coconut_hit": {
-      "files": [
-        "coconut_hit-3-9c8e8fd7.m4a",
-        "coconut_hit-2-83ed831d.m4a"
-      ],
-      "gain": 1.0
-    },
-    "coconut_land": {
-      "files": [
-        "coconut_land-1-42389b0a.m4a"
-      ],
-      "gain": 1.0
-    },
     "footstep-mud": {
       "files": [
         "footstep-mud-2-99e4a10d.m4a",
@@ -379,18 +306,6 @@
       "set_of_origin": "sa3-medium"
     },
     {
-      "file": "bed-island-1-4611714d.m4a",
-      "model": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
-      "code": "MOSS-TTS 934d682, torch 2.9.0",
-      "prompt": "Ambience of a sunny tropical beach: gentle ocean waves washing on sand, a light sea breeze, distant seagulls calling now and then. Continuous field recording, no music.",
-      "seed": 1,
-      "steps": 100,
-      "clap_p": 0.958,
-      "clap_rank": 1,
-      "source": "MOSS-SoundEffect v2.0 (OpenMOSS-Team/MOSS-SoundEffect-v2.0, Apache-2.0)",
-      "set_of_origin": "moss"
-    },
-    {
       "file": "bed-underwater-3-cbe2810d.m4a",
       "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
       "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
@@ -412,18 +327,6 @@
       "steps": 100,
       "clap_p": 0.008,
       "clap_rank": 2,
-      "source": "MOSS-SoundEffect v2.0 (OpenMOSS-Team/MOSS-SoundEffect-v2.0, Apache-2.0)",
-      "set_of_origin": "moss"
-    },
-    {
-      "file": "hum-shrine-2-d89ed03a.m4a",
-      "model": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
-      "code": "MOSS-TTS 934d682, torch 2.9.0",
-      "prompt": "A deep ancient stone shrine humming with old magic: a low sustained drone on D with a fifth above, slowly breathing, resonant and mysterious, constant, no rhythm, no melody.",
-      "seed": 2,
-      "steps": 100,
-      "clap_p": 0.989,
-      "clap_rank": 1,
       "source": "MOSS-SoundEffect v2.0 (OpenMOSS-Team/MOSS-SoundEffect-v2.0, Apache-2.0)",
       "set_of_origin": "moss"
     },
@@ -1023,18 +926,6 @@
       "set_of_origin": "sa3-medium"
     },
     {
-      "file": "gull-1-5fa9130b.m4a",
-      "model": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
-      "code": "MOSS-TTS 934d682, torch 2.9.0",
-      "prompt": "A single seagull calling twice over the sea, outdoors.",
-      "seed": 1,
-      "steps": 100,
-      "clap_p": 0.008,
-      "clap_rank": 5,
-      "source": "MOSS-SoundEffect v2.0 (OpenMOSS-Team/MOSS-SoundEffect-v2.0, Apache-2.0)",
-      "set_of_origin": "moss"
-    },
-    {
       "file": "deer_call-3-1d601bb4.m4a",
       "model": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
       "code": "MOSS-TTS 934d682, torch 2.9.0",
@@ -1205,168 +1096,6 @@
       "steps": 100,
       "clap_p": 0.854,
       "clap_rank": 1,
-      "source": "MOSS-SoundEffect v2.0 (OpenMOSS-Team/MOSS-SoundEffect-v2.0, Apache-2.0)",
-      "set_of_origin": "moss"
-    },
-    {
-      "file": "crab_click-2-aefbc41d.m4a",
-      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
-      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
-      "prompt": "A crab clicking its claws on rocks, small hard clicks.",
-      "seed": 2,
-      "steps": 8,
-      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
-      "clap_p": 0.365,
-      "clap_rank": 2,
-      "source": "Stable Audio 3 Medium (stabilityai/stable-audio-3-medium, Stability AI Community License)",
-      "set_of_origin": "sa3-medium"
-    },
-    {
-      "file": "crab_click-3-f47e95a3.m4a",
-      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
-      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
-      "prompt": "A crab clicking its claws on rocks, small hard clicks.",
-      "seed": 3,
-      "steps": 8,
-      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
-      "clap_p": 0.096,
-      "clap_rank": 2,
-      "source": "Stable Audio 3 Medium (stabilityai/stable-audio-3-medium, Stability AI Community License)",
-      "set_of_origin": "sa3-medium"
-    },
-    {
-      "file": "crab_snap-2-bff601ad.m4a",
-      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
-      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
-      "prompt": "A single sharp crab claw snap, a hard shell click.",
-      "seed": 2,
-      "steps": 8,
-      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
-      "clap_p": 0.688,
-      "clap_rank": 1,
-      "source": "Stable Audio 3 Medium (stabilityai/stable-audio-3-medium, Stability AI Community License)",
-      "set_of_origin": "sa3-medium"
-    },
-    {
-      "file": "crab_snap-3-69ea11c0.m4a",
-      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
-      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
-      "prompt": "A single sharp crab claw snap, a hard shell click.",
-      "seed": 3,
-      "steps": 8,
-      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
-      "clap_p": 0.617,
-      "clap_rank": 1,
-      "source": "Stable Audio 3 Medium (stabilityai/stable-audio-3-medium, Stability AI Community License)",
-      "set_of_origin": "sa3-medium"
-    },
-    {
-      "file": "monkey_chatter-3-1c7d7e2d.m4a",
-      "model": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
-      "code": "MOSS-TTS 934d682, torch 2.9.0",
-      "prompt": "A small monkey chattering excitedly in the jungle.",
-      "seed": 3,
-      "steps": 100,
-      "clap_p": 0.06,
-      "clap_rank": 3,
-      "source": "MOSS-SoundEffect v2.0 (OpenMOSS-Team/MOSS-SoundEffect-v2.0, Apache-2.0)",
-      "set_of_origin": "moss"
-    },
-    {
-      "file": "monkey_shriek-2-54acd647.m4a",
-      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
-      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
-      "prompt": "A monkey shrieking loudly, alarmed.",
-      "seed": 2,
-      "steps": 8,
-      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
-      "clap_p": 0.073,
-      "clap_rank": 3,
-      "source": "Stable Audio 3 Medium (stabilityai/stable-audio-3-medium, Stability AI Community License)",
-      "set_of_origin": "sa3-medium"
-    },
-    {
-      "file": "monkey_shriek-1-1a358b4e.m4a",
-      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
-      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
-      "prompt": "A monkey shrieking loudly, alarmed.",
-      "seed": 1,
-      "steps": 8,
-      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
-      "clap_p": 0.065,
-      "clap_rank": 3,
-      "source": "Stable Audio 3 Medium (stabilityai/stable-audio-3-medium, Stability AI Community License)",
-      "set_of_origin": "sa3-medium"
-    },
-    {
-      "file": "sailor_groan-2-43e2a981.m4a",
-      "model": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
-      "code": "MOSS-TTS 934d682, torch 2.9.0",
-      "prompt": "A ghostly undead sailor groaning low and hollow, eerie, no words.",
-      "seed": 2,
-      "steps": 100,
-      "clap_p": 0.112,
-      "clap_rank": 3,
-      "source": "MOSS-SoundEffect v2.0 (OpenMOSS-Team/MOSS-SoundEffect-v2.0, Apache-2.0)",
-      "set_of_origin": "moss"
-    },
-    {
-      "file": "sailor_slash-3-5a10eada.m4a",
-      "model": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
-      "code": "MOSS-TTS 934d682, torch 2.9.0",
-      "prompt": "A rusty cutlass slashing through the air with a metallic whoosh.",
-      "seed": 3,
-      "steps": 100,
-      "clap_p": 0.956,
-      "clap_rank": 1,
-      "source": "MOSS-SoundEffect v2.0 (OpenMOSS-Team/MOSS-SoundEffect-v2.0, Apache-2.0)",
-      "set_of_origin": "moss"
-    },
-    {
-      "file": "sailor_slash-1-611ba654.m4a",
-      "model": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
-      "code": "MOSS-TTS 934d682, torch 2.9.0",
-      "prompt": "A rusty cutlass slashing through the air with a metallic whoosh.",
-      "seed": 1,
-      "steps": 100,
-      "clap_p": 0.848,
-      "clap_rank": 1,
-      "source": "MOSS-SoundEffect v2.0 (OpenMOSS-Team/MOSS-SoundEffect-v2.0, Apache-2.0)",
-      "set_of_origin": "moss"
-    },
-    {
-      "file": "coconut_hit-3-9c8e8fd7.m4a",
-      "model": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
-      "code": "MOSS-TTS 934d682, torch 2.9.0",
-      "prompt": "A coconut hitting a hard surface, a single hollow wooden knock.",
-      "seed": 3,
-      "steps": 100,
-      "clap_p": 0.43,
-      "clap_rank": 1,
-      "source": "MOSS-SoundEffect v2.0 (OpenMOSS-Team/MOSS-SoundEffect-v2.0, Apache-2.0)",
-      "set_of_origin": "moss"
-    },
-    {
-      "file": "coconut_hit-2-83ed831d.m4a",
-      "model": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
-      "code": "MOSS-TTS 934d682, torch 2.9.0",
-      "prompt": "A coconut hitting a hard surface, a single hollow wooden knock.",
-      "seed": 2,
-      "steps": 100,
-      "clap_p": 0.065,
-      "clap_rank": 3,
-      "source": "MOSS-SoundEffect v2.0 (OpenMOSS-Team/MOSS-SoundEffect-v2.0, Apache-2.0)",
-      "set_of_origin": "moss"
-    },
-    {
-      "file": "coconut_land-1-42389b0a.m4a",
-      "model": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
-      "code": "MOSS-TTS 934d682, torch 2.9.0",
-      "prompt": "A coconut dropping onto sand with a soft dull thud and a small roll.",
-      "seed": 1,
-      "steps": 100,
-      "clap_p": 0.122,
-      "clap_rank": 3,
       "source": "MOSS-SoundEffect v2.0 (OpenMOSS-Team/MOSS-SoundEffect-v2.0, Apache-2.0)",
       "set_of_origin": "moss"
     },

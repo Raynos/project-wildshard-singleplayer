@@ -4,7 +4,7 @@ import { tap, ambientTick } from '../core/harnessTap';
 //
 //   const music = new Music(audio);                 // its own `music` gain → audio.master; shares the AudioContext
 //   music.play('theme');                            // on ENTER (after audio.resume()); loops D → B for as long as it plays
-//   music.setState({ shard: 'pine' | 'island' | <a level's mood>, mode: 'menu' | 'calm' | 'alert' | 'combat', intensity: 0..1, underwater: false });
+//   music.setState({ mode: 'menu' | 'calm' | 'alert' | 'combat', intensity: 0..1, underwater: false });
 //   music.sting('pickup' | 'death' | 'chunk');      // the bell motif · the minor turn then 6 s of silence · the resolve chord
 //   music.stop();                                   // fades the bus over a bar and silences every voice
 //   music.volume = 0.7;                             // persisted as Settings 'music' (the pause menu's MUSIC slider drives it)
@@ -46,15 +46,10 @@ import {
   type Arrangement, type ArrangementName, type ChordName, type LayerId, type MixKey, type NoteEv, type Segment,
 } from './score/wildshard-theme';
 
-/** the shard's mood: 'pine' / 'island' = the base set's theme slot of that name; any other id = a level with its own score
- *  source (`setScore`), not a style slot: themeSlot is null */
-export type Shard = string;
-/** the stems slot a shard plays in game; null = none yet (the synth theme) */
-export function themeSlot(shard: Shard): SlotName | null { return shard === 'island' ? 'island' : shard === 'pine' ? 'pine' : null; }
 export type MusicMode = 'menu' | 'calm' | 'alert' | 'combat';
 export type StingName = 'pickup' | 'death' | 'chunk' | 'dawn';
 export type { BossPhase } from './Stems';
-export interface MusicState { shard: Shard; lead?: 'pluck' | 'marimba'; mode: MusicMode; intensity: number; underwater: boolean }
+export interface MusicState { lead?: 'pluck' | 'marimba'; mode: MusicMode; intensity: number; underwater: boolean }
 
 const LOOKAHEAD_BARS = 2;
 const TICK_MS = 120;
@@ -98,7 +93,7 @@ class Engine {
   arrangement: Arrangement | undefined;
   private segIdx = 0; private beat0 = 0; private nextT = 0;
   private bars: Bar[] = [];
-  state: MusicState = { shard: 'pine', mode: 'menu', intensity: 0, underwater: false };
+  state: MusicState = { mode: 'menu', intensity: 0, underwater: false };
   /** dev: only these layers sound (scripts/music/render.mjs --solo for per-layer level checks) */
   solo: Set<string> | undefined;
   /** diagnostics: scheduled notes / bars, scheduler main-thread time; `liveOsc(now)` counts the oscillators sounding at `now` */
@@ -334,7 +329,7 @@ class Engine {
   /** the game state → layer levels (project/archive/2026-09-23-music.md "In the game"); `menu` follows the arrangement's own mix instead */
   private stateLevels(seg: Segment): Partial<Record<GainKey, number>> {
     const s = this.state, i = Math.min(1, Math.max(0, s.intensity));
-    const mine: LayerId = s.lead ?? (s.shard === 'island' ? 'marimba' : 'pluck'), other: LayerId = mine === 'pluck' ? 'marimba' : 'pluck';
+    const mine: LayerId = s.lead ?? 'pluck', other: LayerId = mine === 'pluck' ? 'marimba' : 'pluck';
     const motif = mine === 'pluck' ? 0.9 : 0.85;
     void seg;
     if (s.mode === 'combat') return { drone: 1, pad: 0.85, [mine]: 1, [other]: 0.35, bass: 1, 'pulse.soft': 1, 'pulse.kick': 1, 'pulse.four': 0.7 + 0.3 * i, bell: 1 };
@@ -491,7 +486,7 @@ export class Music {
    *  first use (play, after the first gesture) so boot never creates the AudioContext; state set before then waits in `pending` */
   private rig: { ctx: AudioContext; out: GainNode; duckGain: GainNode; engine: Engine; stemBus: GainNode } | undefined;
   /** The installed source owns the level's slot; the title is the common menu slot. */
-  private pending: MusicState = { shard: '', mode: 'menu', intensity: 0, underwater: false };
+  private pending: MusicState = { mode: 'menu', intensity: 0, underwater: false };
   private timer = 0;
   private _volume: number;
   private playing: ArrangementName | undefined;
@@ -559,7 +554,7 @@ export class Music {
       scene: this.source?.sceneName ?? 'day', phase: this.source?.phase ?? 1, layers: this.deck ? this.deck.layerGains.map((g) => g.gain.value) : [],
     };
   }
-  /** A plugin owns the score registration; disposing it releases its decks and restores legacy selection. */
+  /** A plugin owns the score registration; disposing it releases its decks. */
   setScore(id: string, source: ScoreSource): () => void {
     this.source = source; this.sourceId = id;
     this.setState({ lead: source.synthLead ?? 'pluck' }); this.sync();
@@ -647,10 +642,10 @@ export class Music {
     if (s.mode !== 'menu' && this.scoreSource()) return this.scoreSource()?.target(s) ?? null;
     return this.baseSlot();
   }
-  /** the slot of the base set: the title on the menu, else the shard's theme (Pine Hollow's night / boss fall back to 'pine') */
+  /** the slot of the base set: the title on the menu, else the source's base slot */
   private baseSlot(): SlotName | null {
     const s = this.state;
-    return s.mode === 'menu' ? 'title' : this.source?.base ?? themeSlot(s.shard);
+    return s.mode === 'menu' ? 'title' : this.source?.base ?? null;
   }
   private tension(): number { return TENSION[this.state.mode]; }
 
@@ -685,10 +680,8 @@ export class Music {
     void this.decodeFor(style);
   }
   private async decodeFor(style: MusicStyle): Promise<void> {
-    const own = this.source ? null : themeSlot(this.state.shard);
-    const slots: SlotName[] = own === null ? ['title'] : ['title', own];
     let bank: StyleBank;
-    try { bank = await trackBusy('music', decodeStyle(style, slots, cachedBytes, decodeBytes)); }
+    try { bank = await trackBusy('music', decodeStyle(style, ['title'], cachedBytes, decodeBytes)); }
     catch (err: unknown) {
       this.failed.add(style);
       console.info(`[music] ${style}: ${err instanceof Error ? err.message : String(err)} — the synth plays on`);
@@ -743,7 +736,7 @@ export class Music {
     this.playing = undefined;
   }
 
-  /** the game → the music: mode/shard/intensity take effect on the next bar (pending bars are rescheduled); underwater is immediate */
+  /** the game → the music: mode/lead/intensity take effect on the next bar (pending bars are rescheduled); underwater is immediate */
   setState(next: Partial<MusicState>): void {
     if (!this.rig) { Object.assign(this.pending, next); this.pending.intensity = Math.min(1, Math.max(0, this.pending.intensity)); return; }
     const s = this.rig.engine.state, prev = { ...s };
@@ -755,7 +748,7 @@ export class Music {
       this.engine.setLevel('chorus', s.underwater ? 0.55 : 0, now, 0.6);
     }
     if (s.mode !== prev.mode) audioLog('music', `mode:${s.mode}`);
-    if (this.playing && (s.mode !== prev.mode || s.shard !== prev.shard || s.lead !== prev.lead || s.intensity !== prev.intensity)) {
+    if (this.playing && (s.mode !== prev.mode || s.lead !== prev.lead || s.intensity !== prev.intensity)) {
       if (this.synthOn) { this.engine.cancelPending(now); this.pump(); }
       this.sync();
     }

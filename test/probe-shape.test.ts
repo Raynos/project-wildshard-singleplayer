@@ -45,7 +45,7 @@ function fixture(): ProbeWorld {
   const registry = new WorldRegistry(); registry.add({ id: 'deck', name: 'Deck', category: 'buildings', file: 'fixture', surface: 'stone', colliders: [{ kind: 'box', x: 0, y: 0, z: 0, hx: 1, hy: 1, hz: 1 }] });
   return fake<ProbeWorld>({ game, player, physics, hud, animals, weapons, arena, registry,
     chunk: fake<ShardManifest>({ slug: 'driftwood-isle', budgets: {}, spawn: { x: 0, z: 0, yaw: 0 } }),
-    audio: fake<Audio>({ bedIds: undefined, samples: { set: 'best', loops: [], oneshots: [], sampleBed: false, underSample: false } }), music: fake<Music>({ scoreId: undefined, style: 'synth', state: { shard: 'island', mode: 'menu', intensity: 0, underwater: false } }), ocean: 'ocean-handle', pier: null, jetties: [], boat: null, hut: null, lookout: null, wreck: null, shrine: null, bushes: null, gulls: null, bridge: null, bridgeDeck: null, cove: null, enemies: null, shrineHum: null, islandSfx: null,
+    audio: fake<Audio>({ bedIds: undefined, samples: { set: 'best', loops: [], oneshots: [], sampleBed: false, underSample: false } }), music: fake<Music>({ scoreId: undefined, style: 'synth', state: { mode: 'menu', intensity: 0, underwater: false } }), ocean: 'ocean-handle', pier: null, jetties: [], boat: null, hut: null, lookout: null, wreck: null, shrine: null, bushes: null, gulls: null, bridge: null, bridgeDeck: null, cove: null, enemies: null, shrineHum: null, islandSfx: null,
   });
 }
 const deps = { bootSteps: { renderer: 1, physics: 2 }, health: () => 90, quest: () => ['quest:started'] };

@@ -58,7 +58,7 @@ function fake(): { audio: AudioMixer; nodes: Node[]; bus: Node } {
   return { audio, nodes, bus };
 }
 const sample: SampleLoop = { buffer: buffer(), loopStart: 2, loopEnd: 8, gain: 0.5 };
-const state: MusicState = { shard: 'pine', mode: 'calm', intensity: 0, underwater: false };
+const state: MusicState = { mode: 'calm', intensity: 0, underwater: false };
 
 describe('level-owned audio slice', () => {
   it('registers sampled voices in the same pool as procedural voices and releases the table on unload', () => {

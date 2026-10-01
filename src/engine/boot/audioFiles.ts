@@ -1,19 +1,5 @@
-/**
- * Every audio file the game can play, for the loading bar (project/archive/2026-09-23-preload-offline.md, the user's pick: "the shard being
- * launched + ALL audio"). The lists come from the manifests the build compiled in (src/engine/boot/audio.generated.ts, written by
- * vite.config.ts from public/assets/music/<style>/music.json and public/assets/sfx/<set>/sfx.json), crossed with the styles
- * and sets the Settings menu offers (MUSIC_STYLES / SFX_SETS) — neither list is spelled out here, so a set renamed or added
- * in Settings + its sfx.json needs no edit in this file. The selected style / set comes first: it is the one decoded before
- * "playable", so its bytes should land first.
- *
- * A shard's own sets ride on its bar only (E44, PINE-HOLLOW-REMASTER A-rows): Pine Hollow adds its music for the selected
- * style (public/assets/music/pine-hollow-<style>/: calm-night, the Antler King's phases, the dawn sting) and its SFX set
- * (public/assets/sfx/pine-hollow/: the zoned beds, the one-shots, the barks), and leaves out the base styles' Driftwood slot
- * ('island' — never played on Pine Hollow; a shard change reloads). Driftwood's list is exactly what it was.
- *
- * The one SFX set carries another shard's sounds too (NALATI-MERGE A1: an entry tagged `shard: 'nalati'` — the steppe's
- * creatures, weapons, weather and ten beds; preload.ts decodes them on the steppe only). Pine Hollow's bar leaves those out
- * as it leaves out 'island': 49 families, ~2.4 MB and ~80 requests it never plays (the phone's 180-request row).
+/** Audio inventories come from the generated manifests, with the selected styles/sets first.
+ * Level profiles add their own sets and declare any file/slot exclusions.
  */
 import { MUSIC_MANIFESTS, SFX_MANIFESTS } from './audio.generated';
 import { PUBLIC_BYTES } from './bytes.generated';
@@ -47,10 +33,6 @@ const filesOf = (dir: string, manifest: unknown): string[] => manifestFiles(mani
 export const musicDir = (style: string): string => `/assets/music/${style}/`;
 export const sfxDir = (set: string): string => `/assets/sfx/${set}/`;
 
-export const DRIFTWOOD_SOUNDS: Readonly<Record<'beds' | 'hums' | 'oneshots', readonly string[]>> = {
-  beds: ['island'], hums: ['shrine'],
-  oneshots: ['crab_click', 'crab_snap', 'monkey_chatter', 'monkey_shriek', 'sailor_groan', 'sailor_slash', 'coconut_hit', 'coconut_land', 'gull'],
-};
 /** the manifest without `drop`'s slots */
 function withoutSlots(m: unknown, drop: readonly string[]): unknown {
   if (drop.length === 0 || typeof m !== 'object' || m === null || Array.isArray(m)) return m;
@@ -59,9 +41,7 @@ function withoutSlots(m: unknown, drop: readonly string[]): unknown {
   return { ...m, slots: Object.fromEntries(Object.entries(slots).filter(([k]) => !drop.includes(k))) };
 }
 
-/** the loading bar's `music` and `sfx` byte sources for shard `slug`: every file of every style / set (the selected one
- *  first; on Pine Hollow without another shard's own sounds), then the shard's own sets. Without a slug (or on Driftwood):
- *  the base styles and sets, every slot. */
+/** Shared style/set files, followed by the level profile's own sets. */
 export interface AudioFilePolicy {
   omitSlots?: readonly string[];
   musicSets?: readonly string[];

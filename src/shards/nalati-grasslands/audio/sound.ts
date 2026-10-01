@@ -166,7 +166,6 @@ export function wireSound(nalati: Pick<Nalati, 'boss' | 'titan'>, ctx: { player:
         };
       }
       a.setAmbient(STEPPE_BED);
-      music?.setState({ shard: 'steppe' });
       // A4: the zones' sampled beds (the synth bed stays the fallback); A2: the score follows the zone they report
       if (music) {
         score = createSteppeScore((url) => loadAudio().then((ports) => ports.cachedBytes(url)), (bytes) => loadAudio().then((ports) => ports.decodeBytes(bytes)), () => { music.refreshScore(); });

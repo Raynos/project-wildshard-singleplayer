@@ -14,7 +14,7 @@ export { styleFiles } from './Stems';
 export { getSfxSet } from '../ui/Settings';
 
 export { MUSIC_MANIFESTS, SFX_MANIFESTS } from '../boot/audio.generated';
-export { manifestFiles, musicDir, sfxDir, DRIFTWOOD_SOUNDS } from '../boot/audioFiles';
+export { manifestFiles, musicDir, sfxDir } from '../boot/audioFiles';
 
 export { audioLog } from './audioLog';
 

@@ -12,6 +12,7 @@ import { Events } from '#engine/events/events';
 import { sortSystems, type SystemSpec } from '#engine/app/systems';
 import { driftwoodAudioSystems } from '../../../src/shards/driftwood-isle/audio/systems';
 import { Music } from '#engine/audio/Music';
+import { createDriftwoodAudio } from '../../../src/shards/driftwood-isle/audio/files';
 
 // E357 S4.3 (08 §6.3 C): the island's bed, gulls and voices left the engine mixer for Driftwood's audio folder.
 describe("Driftwood's island audio on the engine mixer", () => {
@@ -98,7 +99,7 @@ describe("Driftwood's island audio on the engine mixer", () => {
   it('owns the island score slot in play and uses the selected style bank without starting an audio device', () => {
     const scope = new Scope('score'), score = new DriftwoodScore({ style: 'folk', refreshScore: () => undefined }, scope);
     expect(score.base).toBe('island');
-    expect(score.target({ shard: 'unused', mode: 'calm', intensity: 0, underwater: false })).toBe('island');
+    expect(score.target({ mode: 'calm', intensity: 0, underwater: false })).toBe('island');
     score.useStyleBank({ style: 'folk', set: 'base', slots: new Map(), stings: new Map(), log: [] });
     expect(score.want(undefined)).toBeUndefined();
     expect(score.pending).toBe(false);
@@ -136,5 +137,30 @@ describe("Driftwood's island audio on the engine mixer", () => {
     });
     for (const s of sortSystems(systems)) s.run(0.02, 0);
     expect(calls).toEqual(['dusk:0.7', 'boundary', 'hands', 'enemies', 'animals', 'weapons', 'pickups', 'listener', 'hum', 'ambience:0.4', 'otherAudio', 'interactions']);
+  });
+
+  it('decodes moved island/shrine samples at the original gains and retains variant order and common loops', async () => {
+    const profile = await createDriftwoodAudio(), reads: string[] = [];
+    const bytes = new TextEncoder(), labels = new WeakMap<AudioBuffer, string>();
+    const bank = await profile.decode('synth', (url) => { reads.push(url); return Promise.resolve(bytes.encode(url).buffer); },
+      (data) => {
+        const buffer: AudioBuffer = { duration: 40, length: 1, numberOfChannels: 1, sampleRate: 1, getChannelData: () => new Float32Array(1), copyFromChannel: () => undefined, copyToChannel: () => undefined };
+        labels.set(buffer, new TextDecoder().decode(data));
+        return Promise.resolve(buffer);
+      });
+    const samples = bank.samples;
+    expect(samples).toBeDefined();
+    expect([...samples?.loops.keys() ?? []]).toEqual(['island', 'underwater', 'pickup', 'shrine']);
+    expect(samples?.loops.get('island')?.gain).toBe(0.25);
+    expect(samples?.loops.get('shrine')?.gain).toBe(0.36);
+    expect(samples?.shots.get('crab_snap')?.bufs.map((buffer) => labels.get(buffer))).toEqual([
+      '/assets/sfx/driftwood-isle/crab_snap-2-bff601ad.m4a', '/assets/sfx/driftwood-isle/crab_snap-3-69ea11c0.m4a',
+    ]);
+    expect(reads.filter((url) => url.startsWith('/assets/sfx/driftwood-isle/'))).toHaveLength(16);
+    expect(reads.some((url) => url.startsWith('/assets/sfx/best/bed-island'))).toBe(false);
+    const selected = profile.bootFiles('folk');
+    expect(new Set(selected).size).toBe(selected.length);
+    expect(selected.some((url) => url.startsWith('/assets/music/folk/island'))).toBe(true);
+    expect(selected.some((url) => url.startsWith('/assets/sfx/driftwood-isle/'))).toBe(true);
   });
 });
