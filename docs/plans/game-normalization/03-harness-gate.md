@@ -21,7 +21,7 @@ from S1.6 on, the **budgets**.
 | `m5` | Jake's M5 Max, the lead's run, headless Chromium `channel: 'chromium'` + `--use-angle=metal`, in `scripts/browser-lane.sh` | phone, the changed shards (every commit); phone + desktop, every shard (before every push, before each milestone and nightly; R1-10) | every commit, every push (§10); nightly (§14) | the lead's push (the plan's rule: harness green → push, 12 §5) |
 | `gh-macos15` | GitHub-hosted `macos-15` runner (M1 VM, 3 vCPU, 7 GB, paravirtual Metal) | phone | every push to main (§11) | the `gpu-gate` status; the deploy pin needs it green (§13) |
 | `gh-ubuntu` | GitHub-hosted `ubuntu-latest` (a case-sensitive disk) | — (no browser) | every push to main: the `asset-case` job (§11.6) | the `gpu-gate` status (it is one of the jobs the aggregate reads) |
-| `sim` | the iOS Simulator on Jake's M5 (`scripts/sim-lane.sh`, iOS Safari) | phone | nightly (§14.1) | nothing: a memory regression check that turns `gpu-perf` red, never phone evidence |
+| `sim` | the iOS Simulator on Jake's M5 (`scripts/sim-lane.sh`, iOS Safari) | phone | nightly (§14.1) | the pin: a red `gpu-perf/memory` stops the line and `deploy-pin.mjs set` refuses (§14.1). With the budgets it is the plan's memory gate (decision 98, R3-11′), though it can't prove the phone is under its limits (12 §8) |
 
 Baselines are per lane (pixels, programs and GPU bytes differ between a paravirtual M1 and an M5 Max; ci-gpu-options §3).
 Timing (ms, fps) is never a gate on either lane: it is recorded as information and gated only by the nightly `gpu-perf`
@@ -48,11 +48,30 @@ node scripts/parity.mjs [source] [--lane=m5|gh-macos15] [--shards=a,b|all] [--ti
 - **What `--export` archives (R2-32; C2-14).** `git archive <sha>` of the build inputs only (the paths
   `.vercelignore` keeps, the list `scripts/vercel-tree-gate.sh` computes) plus `test/parity/`, never `art/`,
   `progress/` or `docs/`. So a runner's `blob:none` checkout never fetches the 2.3 GB of `art/` and `progress/`
-  blobs one by one, and an m5 export stays small.
+  blobs one by one, and an m5 export stays small. An export has no `.git`, so its build runs with
+  `VERCEL_GIT_COMMIT_SHA=<sha>` set, which `vite.config.ts:16-17` reads before `git rev-parse`: its `version.json`
+  and `boot.sha` name the SHA (C3-11).
 - **Baselines come from the target SHA, harness code from HEAD (R2-31).** A run compares against the baselines,
   rename maps and plants in the target SHA's `test/parity/` (inside the export, or the runner's checkout of that SHA),
   while the harness code (`scripts/parity.mjs`, `scripts/parity/`, `scripts/gpu-gate/`, `scripts/types/`) runs from
-  the lead's checkout or main's head (§8 "How", §11.1).
+  the lead's checkout or main's head (§8 "How", §11.1). So a proof runs on a SHA that holds the baselines it compares
+  with: a recording's follow-up commit, never the recording SHA itself (R3-01; §9).
+- **Lane-pending (R3-12; C3-1).** Between a reopened lane's content commit `C` and its follow-up baseline commit
+  (`<slug> baselines for <sha7>`, §8 case 6), every SHA carries that shard's old baselines. `parity.mjs` derives this
+  for the target SHA `X` from `X`'s `.github/lock.json` and its commit log: a slug in `reopened` is **`lane-pending`**
+  on `X` when `git log <B>..X -- <the slug's allowlisted paths that the export carries>` (02 F0 step 5, without
+  `art/` and `docs/`) lists a commit without the `E357-Lead: yes` trailer, where `B` is the newest `<slug> baselines
+  for …` commit in `X`'s history (or the `lock.json` commit that reopened the slug). The lane's own
+  `--rebaseline=<slug>` run records that shard and so ignores the state for it. On a lane-pending shard every
+  field is still compared and printed, but its verdict is `lane-pending` (yellow, like a pending board), never red;
+  only its class D thresholds, which need no baseline, can turn it red. Every other run in that window (the lead's
+  per-commit and pre-push runs, another lane's cross-shard proof) therefore shows that shard yellow, and the lead
+  never reverts for it. **A red is attributed before anything is reverted:** a red that may come from a lane's window
+  (a class D red on a lane-pending shard, or a red on another shard in the lane's own cross-shard proof) is re-run on
+  the lane's parent commit, `--export=<C^> --shards=<that shard>`. Red there too, it predates `C`: the lane commits
+  its baselines and tells the lead (`herdr agent prompt`), who finds the cause (§11.4's bisect by dispatch). Green
+  there, it is `C`'s, and `C` is reverted. **Nothing is pushed while the newest local SHA has a lane-pending shard**
+  (the lane's follow-up lands within its ≤ 25 min run, §10), so the runner never gates a lane-pending SHA.
 
 - Default `--lane=m5`, `--shards` = every shard in the registry (today the 4; from Z1 also `_template`; `all` says
   the same explicitly), `--tiers=phone`, `--retry=1`.
@@ -62,16 +81,23 @@ node scripts/parity.mjs [source] [--lane=m5|gh-macos15] [--shards=a,b|all] [--ti
   runs it for its own shard only (one shard, phone ≤ 2.5 min, under AGENTS.md's 4-minute wait), and anything longer is
   "queued: <command>" for the lead. Before every push: `node scripts/parity.mjs --export=<the newest local sha>
   --shards=all --tiers=phone,desktop`.
-- `--accept=<ids>` (R1-13, R2-18): runs **only after Jake's OK** on boarded items at the milestone (§13.4 step 3).
-  With `--export=<sha>` (the SHA whose build shows the OKed items), it re-records exactly the fields of those entries
-  of the pending file (§8) into the m5 baselines, per tier, and removes the entries; every other field must still
-  pass, or nothing is written.
-- `--pending-fill=<ids>` (R2-18): the run that writes a pending entry's `expect` (§8 "Pending boards"). With
+- `--accept=<ids>` (R1-13, R2-18, R3-14): runs **only after Jake's OK** on boarded items at the milestone (§13.4
+  step 3), and **last**: the milestone's fixes and reverts land first, and `--accept` runs on the newest SHA after
+  them (`--export=<sha>`, whose build shows the OKed items as they ship). It records exactly the fields of those
+  entries of the pending file (§8) into the m5 baselines, per tier, **with 3 runs** (`--runs=3` always, so each
+  class B field gets its `spread` and each pose its `selfMin`, as `--record`), and removes the entries; every other
+  field must still pass, or nothing is written.
+- `--pending-fill=<ids>` (R2-18, R3-14): the run that writes a pending entry's `expect` (§8 "Pending boards"). With
   `--export=<sha>` of the change commit, it runs each entry's shard on m5 on both tiers, compares every other field
-  as usual (all must be green), and writes each entry's `expect` as `{ "<tier>/<field path>": <value> }`. It
-  replaces that commit's per-commit run; its `pending.json` lands in a follow-up commit naming the SHA.
+  as usual (all must be green), and writes each entry's `expect` as `{ "<tier>/<field path>": <value> }`. It also
+  runs the commit's own per-commit check on phone for every other shard that check covers (`<changed>`, or `all` for
+  an engine / game / kit commit), which must be green, so it fully replaces that commit's per-commit run; its
+  `pending.json` lands in a follow-up commit naming the SHA. A field outside the entries that comes out red fails the
+  fill (§8 step 2's rule).
 - `--pending=<file>` (default `docs/plans/game-normalization/reviews/pending.json`, R1-13): the pending-board entries
-  (§8). A missing file reads as `[]`.
+  (§8). A missing file reads as `[]`. With `--export=<sha>` the default is read from the target SHA
+  (`git show <sha>:docs/plans/game-normalization/reviews/pending.json`, because the export drops `docs/`), as the
+  runner and `deploy-pin.mjs set` read it (C3-9).
 - `--rebaseline=<slug>` (R1-12): the reopened lane's re-record of its own shard (§8 case 6): records `<slug>` on m5
   (phone + desktop, `--runs=3`) and in the same run compares every other shard, which must stay green (the
   cross-shard proof); it writes only `test/parity/baselines/m5/<slug>.*`.
@@ -82,7 +108,8 @@ node scripts/parity.mjs [source] [--lane=m5|gh-macos15] [--shards=a,b|all] [--ti
 - `--plant=<id>` applies `test/parity/plants/<id>.patch` to the exported tree before the build (§9); needs `--export`.
 - `--prove` runs the determinism proof (§9) and exits 0 only if it holds; it needs `--export` (it builds each plant).
   `--only=green` runs only its two green runs, and `--only=<plant id>` only that plant: the runner's prove matrix runs
-  one job per part (§11.1; R2-32). Without `--only` (the m5 lane), it runs every part. On a compare run,
+  one job per part (§11.1; R2-32). Without `--only` (the m5 lane), it runs every part: the two green runs and every
+  `patch` and `flag` plant (§9; R3-16). On a compare run,
   `--only=fingerprint+poses` or `--only=walk+combat+leak` runs half the steps, for a runner job split in two (§10).
 - `--full` walks every leg of the shard's route and its trails (§4) instead of the 3 gate legs (nightly, F11, F12,
   milestones).
@@ -119,7 +146,8 @@ node scripts/parity.mjs [source] [--lane=m5|gh-macos15] [--shards=a,b|all] [--ti
 | `arena()` | F2 | `hud.enterArenaNow()` (the practice room, for Nine Dragon's dummies) |
 | `state()` | F2 | the gameplay snapshot the pause → resume step compares (§5.6): `{ appState, clockNow, player: { pos, yaw, pitch, vel, health }, weapon: { id, state, ammo }, creatures: [{ id, kind, pos, hp, brain }] (sorted by id), quest }`; positions rounded to 1 mm. Plus `onResume(fn)`: a one-shot callback fired by `tap.resumed`, after every resume handler has run (after `hud.onResume`, `src/ui/HUD.ts:472`) and before the loop runs its next frame (02 F2 step 2; R2-13) |
 | `saves` | F2 | `{ read, written }`, filled by the init script's `Storage` wrapper |
-| `sounds()` | F2 | the sound-play log since the last call, as `{ <sound id>: count }`, then cleared. Its one source for the whole plan is `tap.sound`, which every sound-play path calls (`Audio.ts`'s cue methods and the 9 modules that play sound outside it, 02 F2 step 2), and from S1.5 the `AudioService` too, with the same ids (§2.3; R1-45, R2-26) |
+| `sounds()` | F2 | the sound-play log since the last call, as `{ event: { <sound id>: count }, ambient: <sound id>[] sorted }`, then cleared. Its one source for the whole plan is `tap.sound`, which every sound-play path calls (`Audio.ts`'s cue methods and private schedulers and the 9 modules that play sound outside it, 02 F2 step 2), and from S1.5 the `AudioService` too, with the same ids and kinds: a call with `kind: 'ambient'` (a timer-driven one-shot) goes into `ambient`, every other call into `event` (§2.3; R1-45, R2-26, R3-13) |
+| `used()` | F2 | the labels `tap.use` received since the last call (the one use dispatch, `src/main.ts:1093`; 02 F2 step 2), then cleared: the touch leg's `used` read (§4; B3-10) |
 | `nav` | F3.2 | `{ randomPoint(near, min, max), path(a, b) }` over the engine's navmesh query (`src/physics/navmesh.ts` today) with the harness seed, for the soak bot (§14.2); `null` on a shard with no baked navmesh (Nine Dragon) |
 | `app` | F8 | a read-only view of the `App`: state, systems by phase, clock, RNG seed, census |
 | `leak()` | F8 | §5.5 |
@@ -193,7 +221,7 @@ drawn frames, then takes one JPEG (q 80, CSS scale).
 | `walk.legs[].maxY` | the highest feet y | B | floor 0.3 m |
 | `walk.legs[].out` | escape legs: frames outside `inside` | D: must be 0 | — |
 | `walk.legs[].seconds` | wall time | C | — |
-| `walk.sounds`, `combat.sounds` | the sound-play log of that scripted run, as a multiset `{ <sound id>: count }`: every sound id played from the run's start to its end, read from the probe's `tap.sound` hook, which every sound-play path calls from F2 on, and the `AudioService` too from S1.5 with the ids of the paths it replaced (02 F2 step 2; R1-45, R2-26). The source never switches, so S1.5 and S3.5 compare against the same baseline | A (multiset equality, after the rename map) | — |
+| `walk.sounds`, `combat.sounds` | the sound-play log of that scripted run, `{ event, ambient }` (§2.0): every sound played from the run's start to its end, read from the probe's `tap.sound` hook, which every sound-play path calls from F2 on, and the `AudioService` too from S1.5 with the ids and kinds of the paths it replaced (02 F2 step 2; R1-45, R2-26). The source never switches, so S1.5 and S3.5 compare against the same baseline. **Two kinds (R3-13; C3-2):** `event` (sounds a gameplay event starts) is a multiset `{ <sound id>: count }`; `ambient` (one-shots a timer starts: birds, larks, crickets, bubbles, crackle, far calls) is a set of ids, because how many fire depends on wall time. The baseline's `ambient` is the ids every recording run started; a run passes when it started each of them (an extra id is printed as information) | A: `event` by multiset equality, `ambient` by "no baseline id missing" (both after the rename map) | — |
 | `combat.swing` | `{ weapon, target, hits, hitWithinS, killed, killWithinS }` or `'n/a'` (§5) | D: `hits ≥ 1` within the step's hit limit; `killed` within its kill limit when the table says kill; the limits' clock is §5.2's (R1-44) | — |
 | `combat.shot`, `combat.shot2` | the same for the ranged steps (`shot2`: Pine Hollow's longbow, `'n/a'` elsewhere; §5.2, R1-34) | D (same rule) | — |
 | `combat.hitsToKill` | per step | B | floor 1 hit (damage rolls use the seeded `Math.random`, but the number of draws before the swing depends on AI timing) |
@@ -305,8 +333,12 @@ through real `pointerType: 'touch'` input, never held keys: (1) it drags the mov
 2 s: the feet move ≥ 2 m; (2) it drags 120 px across the look area: the yaw changes; (3) it taps DODGE: the player's
 dodge starts (the dodge cooldown goes above 0); (4) it teleports next to the shard's nearest interactable to the spawn
 (`'n/a'` on a shard with none) and taps USE: the interaction fires. The record `walk.touch` = `{ moved, yawDelta,
-dodged, used }` is class D (`moved ≥ 2`, `yawDelta ≠ 0`, `dodged`, and `used` unless `'n/a'`). The disc selectors are
-read from `src/player/TouchControls.ts` into `scripts/parity/walk.mjs` as constants.
+dodged, used }` is class D (`moved ≥ 2`, `yawDelta ≠ 0`, `dodged`, and `used` unless `'n/a'`). Its two reads, from
+verified source lines (B3-10; R2-F5): `dodged` = `player.dodgeCooldown > 0` right after the tap (the getter at
+`src/player/Player.ts:212`, which the DODGE disc's sweep reads); `used` = `probe.used()` holds the interactable's
+label after the tap (`tap.use` at the one use dispatch, `src/main.ts:1093`, which the USE disc reaches through its
+`KeyE`, `src/player/TouchControls.ts:398`; 02 F2 step 2). The disc selectors are read from
+`src/player/TouchControls.ts` into `scripts/parity/walk.mjs` as constants.
 
 **`--full`** walks every leg, then every trail (`physics-baseline.mjs --trails`: each path of `TRAILS` end to end, both
 ways, a waypoint every 3 m). It runs nightly (§14), for F11's and F12's done-when, and before each milestone. The
@@ -462,27 +494,40 @@ page global set by the test browser's init script, not a URL switch, and the lin
   harness version bump, `reviews/pending.json` for case 1 and the pending fill), with a pathspec commit whose message
   says which rule below allowed it and **names the SHA the baselines were recorded on**. It is always its own
   follow-up commit, never an amend (R2-25; §1).
-- **Pending boards (R1-13, R2-18).** A visible change that waits for Jake's board has a state:
+- **Pending boards (R1-13, R2-18, R3-14).** A visible change that waits for Jake's board has a state:
   `docs/plans/game-normalization/reviews/pending.json`, `[{ "id", "row", "wave", "shard", "fields": [<field paths>],
-  "expect": null | { "<tier>/<field path>": <m5 value> } }]`. The flow has three steps:
-  1. **The change commit** adds its entries with `"expect": null`. A pending field with no `expect` is reported
-     `pending` without being compared: yellow, allowed, never red.
+  "expect": null | { "<tier>/<field path>": <m5 value> }, "notes"?: ["<sha7>: <one line>"] }]`. The flow:
+  1. **The change commit** adds its entries with `"expect": null`, and its message names each entry's fields
+     (`pending <id>: <field paths>`). A pending field with no `expect` is reported `pending` without being compared:
+     yellow, allowed, never red.
   2. **The fill.** Instead of that commit's plain per-commit run, the lead runs `node scripts/parity.mjs
-     --pending-fill=<ids> --export=<its sha>` (§1): both tiers on m5, every other field green, and each entry's
-     `expect` written per tier from the run's "now" values. `pending.json` lands in a follow-up commit naming the SHA
-     (R2-25), before the push. From then on the m5 lane compares a pending field with its tier's `expect` value
-     instead of the baseline, and its verdict is `pending`: yellow in `report.md` and the status descriptions,
-     allowed, never red. The runner, which has no `expect` value, reports the field `pending` without comparing it.
-  3. **At the milestone,** only after Jake's OK on the board, `node scripts/parity.mjs --accept=<ids>
-     --export=<sha>` re-records those fields per tier and removes the entries (case 1). A "no" reverts the change and
-     removes its entries in the same revert commit.
+     --pending-fill=<ids> --export=<its sha>` (§1): both tiers on m5 for the entries' shards, the commit's own
+     per-commit check on phone for every other shard it covers (all green), and each entry's `expect` written per tier
+     from the run's "now" values. `pending.json` lands in a follow-up commit naming the SHA (R2-25), before the push.
+     **A newly red field joins `fields` only if its change commit names it** (the message's `pending <id>:` list;
+     the fill then adds it to the entry); otherwise it is red, and the change is reverted (12 §5).
+  3. **After the fill**, the m5 lane compares a pending field with its tier's `expect` instead of the baseline, within
+     the field's own band (§2: exact for class A, the baseline's band for class B): inside it, the verdict is
+     `pending` (yellow in `report.md` and the status descriptions, allowed); **off its `expect` beyond the band, it is
+     red** (R3-14). The runner, which has no `expect` value, reports the field `pending` without comparing it.
+  4. **A later commit that changes an already-pending field** (a second item on the same field, a case-4 bug fix
+     whose effect lands on it, a fix Jake asked for on the board) names the entry in its message and refills that
+     entry's `expect` with `--pending-fill=<id> --export=<its sha>` as its per-commit run; the refilled `pending.json`
+     lands in its own follow-up commit, and the entry gains a note (`"<sha7>: <why>"`), so the board shows the field
+     as it will ship. A case-4 fix records its other fields in the baseline as usual (case 4); a field it shares with
+     an entry follows this step.
+  5. **At the milestone,** the reverts of the items Jake said no to (each removes its entries in the revert commit)
+     and the fixes he asked for (each refilled, step 4) land first. Then, only for his OKs and **last**, `node
+     scripts/parity.mjs --accept=<ids> --export=<the newest sha>` records those fields per tier with 3 runs and
+     removes the entries (case 1; §1), so no accepted baseline carries the effect of a reverted item.
   `deploy-pin.mjs set` refuses while the target SHA's file has any entry (§13.2), so every entry is settled before the
   pin moves.
 - **Who may re-record, and when — the only six cases:**
   1. **A boarded change** (R1-13). Jake OKed a visible change on a wave board (weapons, creatures, input / HUD, audio,
-     look; GAME-NORMALIZATION §5). Only after Jake's OK, `node scripts/parity.mjs --accept=<ids> --export=<sha>` (the
-     newest SHA, whose build shows the OKed items) re-records exactly the fields of those pending entries on m5, per
-     tier, and removes the entries (R2-18); the runner's files for those shards are deleted in the same accept commit
+     look; GAME-NORMALIZATION §5). Only after Jake's OK, and last, after the milestone's reverts and fixes (R3-14),
+     `node scripts/parity.mjs --accept=<ids> --export=<sha>` (the newest SHA, whose build shows the OKed items)
+     re-records exactly the fields of those pending entries on m5, per tier, with 3 runs, and removes the entries
+     (R2-18); the runner's files for those shards are deleted in the same accept commit
      and come back from the next gate run's bootstrap record. The accept commit names the board, Jake's pick and the
      SHA. Other fields must still pass unchanged.
   2. **A harness version bump** (a new field, a new pin such as capture mode, a changed band rule; R1-19). Its commit's
@@ -507,7 +552,9 @@ page global set by the test browser's init script, not a URL switch, and the lin
      and the deletion of its `gh-macos15/<slug>.*` files (so the push's gate run bootstrap-records them), land in a
      follow-up pathspec commit, `<slug> baselines for <sha7>`, which lists the fields that changed. Never an amend:
      the lead may have committed in between. Both commits go up in one `scripts/push-main.sh`, and the lane commits
-     the bootstrap artifact next.
+     the bootstrap artifact next. **Until the follow-up lands, the shard is `lane-pending` (R3-12; §1):** every other
+     run shows it yellow, not red, and nothing is pushed. A red on another shard in the lane's cross-shard proof is
+     re-run on `C^` before the lane reverts anything: red there too, the regression isn't the lane's (§1).
   Anything else that changes the fingerprint is a regression and is reverted.
 - The lead re-records cases 1–5 (decision 33); a reopened shard's lane re-records only its own shard, under case 6.
   The lead's engine, game and kit commits keep every shard identical except boarded items (R1-12). After the plan
@@ -516,11 +563,26 @@ page global set by the test browser's init script, not a URL switch, and the lin
 ## 9. Determinism proof
 
 `node scripts/parity.mjs --prove --lane=<lane> --export=<sha>` (and `gh workflow run gpu-gate -f sha=<sha> -f prove=true`
-on the runner, which splits it into one job per shard for step 1 and one job per plant for step 2, §11.1; R2-32):
+on the runner, which splits it into one job per shard for step 1 and one job per plant for step 2, §11.1; R2-32).
+`<sha>` holds the baselines the proof compares with: after a recording, that is the follow-up baseline commit (its
+runtime is the recorded SHA's), never the recording SHA (R3-01; 02 F2 step 8, F3.2 step 6). Before it runs, the proof
+asserts that every shard × tier it compares has a baseline at `<sha>`; a missing one exits 1, so fields reported `new`
+can never pass as a proof.
 1. Two compare runs on the unchanged SHA: both green.
-2. Each plant in `test/parity/plants/index.json` applied to the same SHA (`git apply`), built and run: each red, and
-   among its red fields every field in the plant's `expect` list. A plant that comes out green means a band is too wide
-   or a field is missing: the harness is fixed before the row that introduced the plant is done.
+2. Each `patch` and `flag` plant of `test/parity/plants/index.json` (R3-16) on the same SHA: a `patch` plant applied
+   (`git apply <patch>`), built and run, a `flag` plant run with its launch argument: each red, and among its red
+   fields every field in the plant's `expect` list (`metal-off`: exit 3, status `error`). A plant that comes out
+   green means a band is too wide or a field is missing: the harness is fixed before the row that introduced the
+   plant is done. The `nightly` plant is proven by `scripts/gpu-perf/nightly.sh --plant=<id>` (§14) and the `linux`
+   plant by `gh workflow run gpu-gate -f plant=<id>` (the `asset-case` job, §11.6), as 02 F3.2's done-when does;
+   neither is in the prove matrix.
+
+**`test/parity/plants/index.json`** (R3-16; C3-7) is `[{ "id", "kind": "patch" | "flag" | "nightly" | "linux",
+"shards": [<slug>…] | "all", "patch"?: "<id>.patch", "flag"?: "<launch argument>", "expect": [<field paths>] |
+"exit3" }]`, one entry per row of the table below: `patch` names the patch file of a `patch`, `nightly` or `linux`
+plant; `flag` is a `flag` plant's launch argument (`metal-off`: `--angle=swiftshader`); `expect` is the table's
+expected red fields (`metal-off`: `"exit3"`). `metal-off` is a `flag` plant, `soak-leak` is `nightly`, `asset-case`
+is `linux`, and every other plant is a `patch`.
 
 | Plant `id` | The one change (a patch file) | Shards | Expected red fields | From |
 |---|---|---|---|---|
@@ -537,9 +599,9 @@ on the runner, which splits it into one job per shard for step 1 and one job per
 | `hud-hide` | the LOCK disc is never mounted (`src/player/TouchControls.ts`) | all (phone) | `boot.hud` | F2 |
 | `save-rename` | `ws.purse.v1` → `ws.purse.v9` (`src/game/loot/Purse.ts:16`) | driftwood-isle | `combat.loot`, `boot.saves` | F2 |
 | `pause-drift` | the resume path no longer gives back the player's state at the pause, which a correct build has restored before `tap.resumed` fires: the resume handler (`hud.onResume` = `enter`, `src/main.ts:1014`) first sets `player.velocity` to (0, 2, 0) m/s. `tap.resumed` fires after that handler (§5.6 step 4), so the snapshot sees the write and the diff shows `player.vel`; the frame gate (`src/main.ts:1067`) is untouched (R1-42, R2-13) | driftwood-isle, pine-hollow, nalati-grasslands | `pauseResume` (`player.vel`) | F2 |
-| `metal-off` | the gate job launches Chromium with `--use-angle=swiftshader` (a workflow input, not a patch) | all | exit 3, status `error` | F3.2 |
-| `asset-case` | one boot-declared asset URL's case changed (`/assets/music/…` → `/assets/Music/…` in Driftwood's declared audio list); the file on disk unchanged | — (the `asset-case` job) | the job fails naming the URL (§11.6) | F3.2 |
-| `soak-leak` | one 1 MiB `DataTexture` uploaded every 10 s and never disposed (a system added in the shard's scope) | all (nightly soak only) | the soak's `gpuBytes` growth (§14.2) | F3.2 |
+| `metal-off` | Chromium launched with `--use-angle=swiftshader` (a `flag` plant: its launch argument, no patch; the gate's `angle` input does the same) | all | exit 3, status `error` | F3.2 |
+| `asset-case` | (a `linux` plant) one boot-declared asset URL's case changed (`/assets/music/…` → `/assets/Music/…` in Driftwood's declared audio list); the file on disk unchanged | — (the `asset-case` job) | the job fails naming the URL (§11.6) | F3.2 |
+| `soak-leak` | (a `nightly` plant) one 1 MiB `DataTexture` uploaded every 10 s and never disposed (a system added in the shard's scope) | all (nightly soak only) | the soak's `gpuBytes` growth (§14.2) | F3.2 |
 | `leak-geometry` | the shard scope skips disposing one geometry on unload | all | `leak.geometries` | F8 |
 | `render-throw` | Nine Dragon's `render` thunk throws | nine-dragon-stack | `boot.errors` (the error screen, 02 F9) | F9 |
 | `budget-over` | 200 extra draws at Nine Dragon's `spawn-rail` pose | nine-dragon-stack | `budgets` | S1.6 |
@@ -557,7 +619,7 @@ F2 (m5), of F3.2 (runner), and again after F6, F8, F9 and S1.6 (each adds its pl
 | The lead's pre-push run: m5, phone + desktop, all shards (R1-10) | ≤ 12 min wall | the per-commit run × 2 tiers |
 | The lead's pre-milestone run: m5, phone + desktop, `--full` | ≤ 45 min | full routes and trails dominate; runs once per milestone and nightly |
 | Recording (3 runs) | ≤ 3× the matching compare run | only on the six re-record cases |
-| One compare job on `macos-15` | ≤ 12 min (timeout 20; R2-32) | setup ≈ 4 min (sparse checkout with `public/`, pnpm install from cache, Playwright Chromium from cache, `vite build`), harness for one shard ≈ 2× the M5's 2.5 min. Unmeasured until the F3.2 probe run (ci-gpu-options: "the 3.5 min M5 budget could become 8–12 min"); if a shard's compare job exceeds 12 min, `matrix.mjs` emits two compare entries for it, `part: 'fingerprint+poses'` and `part: 'walk+combat+leak'`, which the parity step passes as `--only=<part>` (§1, §11.1) |
+| One compare job on `macos-15` | ≤ 12 min (timeout 20; R2-32) | setup ≈ 4 min (sparse checkout with `public/`, pnpm install from cache, Playwright Chromium from cache, `vite build`), harness for one shard ≈ 2× the M5's 2.5 min. Unmeasured until the F3.2 probe run (ci-gpu-options: "the 3.5 min M5 budget could become 8–12 min"); if a shard's compare job exceeds 12 min, `matrix.mjs` emits two compare entries for it, `part: 'fingerprint+poses'` and `part: 'walk+combat+leak'`, which the parity step passes as `--only=<part>` (§1, §11.1). The split shards are a `SPLIT` constant in `matrix.mjs`, set from the F3.2 probe run; a record or bootstrap entry is never split, since two jobs would upload one artifact name (R1-18; B3-17) |
 | One record, bootstrap or prove job on `macos-15` (R2-32) | ≤ 45 min (timeout 60) | record and bootstrap: setup ≈ 4 min plus 3 recording runs of one shard (≈ 3 × 5 min, plus ≈ 1.5 min per run for Nalati's and Pine's weather leak run from F8) ≈ 23 min; prove: one job per part, either the two green runs (≈ 2 × 5 min) or one plant (patch, build ≈ 1 min, one run ≈ 5 min), so no job runs more than one plant |
 | A reopened lane's `--rebaseline=<slug>`: m5, its shard × 3 runs × phone + desktop, then a compare of every other shard (§8 case 6) | ≤ 25 min | ≈ 3 × 2 × 2.5 min plus the pre-push compare of the others; over AGENTS.md's 4-minute wait, so a subagent never runs it: it is "queued: <command>" for the lead or a main session (B2-21) |
 | The whole gate (matrix of 4, then 5) | ≤ 15 min wall | jobs in parallel (5 macOS jobs at once on the Free plan) |
@@ -661,11 +723,11 @@ jobs:
             record|bootstrap) node scripts/parity.mjs --url=http://127.0.0.1:4400 --record --runs=3 $common ;;   # writes test/parity/baselines/gh-macos15/<slug>.* (R2-33)
             compare)          node scripts/parity.mjs --url=http://127.0.0.1:4400 --retry=1 --pending=pending.json ${{ matrix.part && format('--only={0}', matrix.part) || '' }} $common ;;
           esac
-      - name: Offline boot (a milestone candidate; R1-47)
-        if: inputs.offline && matrix.mode == 'compare'
+      - name: Offline boot (a milestone candidate; R1-47)   # compare and bootstrap: both post a status (R3-10)
+        if: inputs.offline && (matrix.mode == 'compare' || matrix.mode == 'bootstrap')
         run: node scripts/parity.mjs --offline --url=http://127.0.0.1:4400 --lane=gh-macos15 --shards=${{ matrix.shard }} --tiers=phone --out=parity-out/offline
-      - name: Facade instancing (E271, Nine Dragon only)
-        if: matrix.shard == 'nine-dragon-stack' && matrix.mode == 'compare'
+      - name: Facade instancing (E271, Nine Dragon only)   # every job that posts a status runs it (R3-10)
+        if: matrix.shard == 'nine-dragon-stack' && (matrix.mode == 'compare' || matrix.mode == 'bootstrap')
         run: node scripts/test-facade-instancing.mjs --url=http://127.0.0.1:4400
       - name: Per-shard status   # compare and bootstrap only; never from a record, prove or plant dispatch (R1-35)
         if: always() && (matrix.mode == 'compare' || matrix.mode == 'bootstrap') && inputs.plant == ''
@@ -725,11 +787,13 @@ jobs:
 without checking it out (`git ls-tree`, `git cat-file -e`, `git show`) and prints `[{ shard, mode, part }]`:
 - the shards are the folders of `src/shards/` with a `manifest.ts` (as `gen-shards.mjs` lists them, `_template`
   from Z1; before F6 the four slugs);
-- `compare`: one job per shard, whose mode becomes `bootstrap` when the SHA has no
-  `test/parity/baselines/gh-macos15/<shard>.phone.json` (R1-11);
+- `compare`: one job per shard (two for a shard in the `SPLIT` set, §10), whose mode becomes `bootstrap` when the
+  SHA has no `test/parity/baselines/gh-macos15/<shard>.phone.json` (R1-11); a bootstrap is always one job per shard,
+  split or not (B3-17);
 - `record`: one `record` job per shard;
 - `prove`: per shard one job with `part: 'green'` (§9 step 1), plus one job per plant of the SHA's
-  `test/parity/plants/index.json` whose Shards column names that shard (§9 step 2), so no job runs more than one plant.
+  `test/parity/plants/index.json` whose `kind` is `patch` or `flag` and whose `shards` names that shard (or is
+  `"all"`; §9 step 2; R3-16), so no job runs more than one plant. A `nightly` or `linux` plant is never a prove job.
 
 The parity step runs exactly one mode per job (R1-35), and the job's timeout follows its mode (§11.5):
 - **compare** (every push, and a plain dispatch): the run is compared with the runner baselines, pending-board fields
@@ -739,8 +803,11 @@ The parity step runs exactly one mode per job (R1-35), and the job's timeout fol
   `parity-baselines-gh-macos15-<slug>` (R1-18, R2-33). It posts no status.
 - **bootstrap** (R1-11): a compare job whose shard has no runner baselines at the SHA (a new shard, or one whose lane
   just re-recorded, §8 case 6) records instead. It uploads the same artifact the same way (R2-33), still holds every
-  class D threshold (they need no baseline), and posts `gpu-gate/<slug>` = `success` with the description `bootstrap
-  record: commit parity-baselines-gh-macos15-<slug>`. The lead, or the reopened shard's lane, commits it (§8 "How").
+  class D threshold (they need no baseline), and runs the same extra checks a compare job runs (R3-10; B3-6): the
+  Nine Dragon facade-instancing check (E271; AGENTS.md: "keep this regression check") and, on an `offline: true`
+  dispatch, the offline boot check. Its `success` requires both; then it posts `gpu-gate/<slug>` = `success` with the
+  description `bootstrap record: commit parity-baselines-gh-macos15-<slug>`. The lead, or the reopened shard's lane,
+  commits it (§8 "How").
 - **prove** (`prove: true`): each job runs one part, `parity.mjs --prove --only=<part> --export=$SHA`: the two green
   runs, or one plant built on a temp copy with its expected red fields asserted (§9), and uploads the proof as
   `parity-prove-<slug>-<part>`. A prove or a plant dispatch never posts a status, so it can never mark a real commit
@@ -751,8 +818,8 @@ SHA's** `test/parity/` (baselines, rename maps, plants), which the checkout of t
 from main's head" step overlays only `scripts/parity.mjs`, `scripts/parity/`, `scripts/gpu-gate/` and `scripts/types/`
 (R1-19, R2-31). So a baseline that main's head re-recorded later (an accept, a bootstrap, a lane's case 6) never judges
 an older build. It reads that SHA's pending boards with `git show`, because the sparse checkout leaves `docs/` out. With
-`offline: true` (R1-47) each job also runs the offline boot check (§1) for its shard; a failure fails the job and so the
-gate. The lead dispatches it on every milestone candidate (§13.4).
+`offline: true` (R1-47) each compare or bootstrap job also runs the offline boot check (§1) for its shard (R3-10); a
+failure fails the job and so the gate. The lead dispatches it on every milestone candidate (§13.4).
 
 ### 11.2 Metal or fail
 
@@ -886,9 +953,10 @@ The milestone flow (R1-15), in order:
    both tiers (m5, `--export=<sha>`) is green.
 2. **Boards to Jake** (decision 42): the summary, and the boards built from the harness's capture of that SHA (its
    pose images and clips).
-3. **Jake OKs the board items**, or they're fixed or reverted. Each OK, and only after it, is `node
-   scripts/parity.mjs --accept=<ids> --export=<sha>` (§8 case 1; R2-18), committed with `pending.json`, so the file
-   is empty.
+3. **Jake OKs the board items**, or they're fixed or reverted. The reverts and the fixes land first (a fix refills
+   its entry, §8 pending step 4); then, last, the OKed items are accepted with `node scripts/parity.mjs
+   --accept=<ids> --export=<the newest sha>` (3 runs; §8 case 1; R2-18, R3-14), committed with `pending.json`, so
+   the file is empty.
 4. **The pin moves to the newest `gpu-gate`-green SHA after step 3** (R2-27): step 3's accept, fix and revert
    commits included, and, after an accept, the commit that lands the runner's bootstrap artifacts (the accept deleted
    those shards' runner baselines, §8 case 1, and `set` refuses a SHA where a shard was only bootstrap-recorded,
@@ -897,11 +965,11 @@ The milestone flow (R1-15), in order:
    `.github/deploy-pin.json` alone, `scripts/push-main.sh`, then `gh workflow run deploy`, and checks that
    `version.json` reports `<sha7>`. The build id goes into E357 (AGENTS.md → Deploy).
 5. **Jake plays it live** on his phone (the home-screen app), including the milestone's checklist items (05–08 §9).
-   **Every milestone checklist, M1 to M4, has the physical-iPhone memory reading (R2-30):** Jake's loading peak and
-   in-world peak, sent in chat with the lead's AskUserQuestion template, against 1.8 GB loading and 1.0 GB in the
-   world (decimal; decision 31). A reading over a limit stops the line as a red `gpu-perf/memory` does (§14.1: the
-   next commit fixes or reverts the cause, with that reading as its evidence), and Jake gets `rollback` to the
-   previous pin as the recommended option while the fix lands (R1-16).
+   **No checklist has a physical-iPhone reading (decision 98, R3-11′).** The memory evidence is the nightly Simulator
+   memory run (§14.1: every shard's WebContent footprint against 1.8 GB loading and 1.0 GB in the world, decimal;
+   decision 31) plus the budgets (§2.5). Over a limit means **stop the line** (R1-53): the pin doesn't move (`set`
+   refuses while `gpu-perf/memory` is `failure`, §13.2), and the next commit fixes or reverts the cause. The accepted
+   risk is stated in 12 §8: an iPhone-only memory death (the E271 class) can reach Jake's phone undetected.
 6. **Jake's go starts the next shard.** The go is not a ship gate: the build already shipped in step 4. **A "no"
    (R2-29):** the next shard phase waits. Jake's reasons become rows of this milestone, each one fixed, gated, boarded
    if it is visible, and then "M<n>: go?" is asked again (the flow repeats from step 1). The pinned build stays live
@@ -912,7 +980,8 @@ The milestone flow (R1-15), in order:
 into `<dir>/.vercel/` (`.vercel` is git-ignored, so the export has none, and without it the CLI links, or creates, a
 project named after the temp folder; `deploy.yml` writes the same file before its own pull,
 `.github/workflows/deploy.yml:116-117`), then `vercel pull --yes --environment=preview --scope raynos-projects`,
-`vercel build --scope raynos-projects` and `vercel deploy --prebuilt --scope raynos-projects` (no `--prod`, so
+`VERCEL_GIT_COMMIT_SHA=<sha> vercel build --scope raynos-projects` (the export has no `.git`, so the variable stamps
+`version.json` with the SHA, §1; C3-11) and `vercel deploy --prebuilt --scope raynos-projects` (no `--prod`, so
 production is untouched). Unlike `scripts/release-url.sh`, which deploys static `dist/` only, it keeps `/api` (the
 inbox, `/api/errors`). The preview sits behind the project's deployment protection, so Jake opens it signed in to
 Vercel.
@@ -940,7 +1009,8 @@ asks Jake, with one recommended option, to board the pending items early or to w
 - **`scripts/gpu-perf/nightly.sh [--plant=<id>]`**, in order, under `caffeinate -i`, capped at 240 min as a whole
   (`--max 240` for the nightly; each step below is its own lane call with its own `--max`, within its §10 budget;
   R1-43). `--plant` (a one-off, by hand)
-  applies `test/parity/plants/<id>.patch` to the exported tree, runs only the parts the plant's `Shards` column names,
+  applies `test/parity/plants/<id>.patch` to the exported tree, runs only the parts the plant's `shards` names (its
+  `index.json` entry, §9),
   prints the verdict, writes the report under `~/.wildshard/gpu-perf/plant-<id>-<date>.md` and posts no status (a
   plant never marks a real commit, as in the gate):
   1. `git --git-dir=<mirror> fetch origin main`; pick the newest of the last 30 commits whose `gpu-gate` is `success`;
@@ -988,12 +1058,21 @@ reset at each phase start) and Web Inspector's total.
 - **Verdict:** red when a phase is over its limit, or when it is more than 10 % above the previous night's reading for
   the same shard and phase (a regression on the same machine). The table goes into the report, and the verdict is the
   `gpu-perf/memory` status (§14 step 6).
+- **An intended increase (C3-15; R3-N)** is a boarded item: the commit that adds it (a lane's new hero model, an
+  engine change that holds more) adds a pending entry (§8) whose `fields` name `memory.<shard>.<phase>`. While the
+  entry is open, a night more than 10 % above the previous one on that phase reads `pending` (yellow), never red, as
+  long as the phase is under its limit; over a limit is red regardless. Jake's OK on the board (its `--accept`, which
+  removes the entry) re-baselines the nightly: that night's reading becomes the value the next night compares with.
+  A "no" reverts the commit.
 - **Memory red stops the line (R1-53).** The lead's next commit fixes it or reverts the cause (found by running
   `node scripts/sim-memory.mjs --url=<u> --shards=<the red shard>` on the SHAs between the last green night and the
   red one), and no other row lands before it. The pin can't move while `gpu-perf/memory` is `failure` (§13.2).
-- **What it is not.** The Simulator runs on the Mac's memory and GPU and read ~0.75 GB where the phone read 1.054
-  (the ios-simulator skill; E271 / E272). Under the limits proves nothing about the phone; the physical iPhone reading
-  on every milestone checklist, M1 to M4, stays the memory evidence (§13.4 step 5, §15, 12 §8; R2-30).
+- **The memory gate, and its limit (decision 98, R3-11′).** This run plus the budgets (§2.5) is the plan's memory
+  evidence: there is no physical-iPhone reading at any milestone (§13.4 step 5) or for F12 (02 F12 step 5 uses a
+  Simulator load reading). The Simulator runs on the Mac's memory and GPU and read ~0.75 GB where the phone read 1.054
+  (the ios-simulator skill; E271 / E272), so under the limits here does not prove the phone is under them: an
+  iPhone-only memory death (the E271 class) can reach Jake's phone undetected. That risk is accepted and stated in
+  12 §8.
 
 ### 14.2 The soak bot (MW19; 13-lead-resolutions G13)
 
@@ -1025,8 +1104,9 @@ nights and the nightly still runs four soaks inside its 240 minutes:
 Which numbers: per pose and tier, draws, triangles, programs, GPU MB (derived by `src/engine/render/budgets.ts` from the
 manifest inputs and `budgets/calibration.json` or `budgets/provisional.json`; ceilings from `lint/ratchet.json`
 `"budgets"`). Where checked: the per-push gate (counts, both lanes) from S1.6. Where not: frame ms and GPU ms (nightly
-on the M5, `gpu-perf`), CPU ms per system and download bytes (nightly scorecard), memory (the iPhone, decision 31; the
-nightly Simulator run of §14.1 checks the same limits as a regression check, never as phone evidence).
+on the M5, `gpu-perf`), CPU ms per system and download bytes (nightly scorecard), memory (the nightly Simulator run of
+§14.1 against decision 31's limits: with the budgets, the plan's memory gate; there is no physical-iPhone reading,
+decision 98, R3-11′, and the risk that leaves is stated in 12 §8).
 The report prints each number with its formula and inputs, so a re-calibration moves numbers without code edits
 (budget-design §3).
 

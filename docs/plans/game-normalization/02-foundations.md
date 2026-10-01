@@ -81,26 +81,33 @@ the plan is archived, with each shard's folder reopening at its milestone (decis
    message file and `git diff --cached --name-only` (the paths being committed; a pathspec commit's hook sees its
    temporary index) and `.github/lock.json`: `{ "locked": true, "reopened": { "<slug>": ["<extra asset glob>", …] } }`.
    F0 writes `{ "locked": true, "reopened": {} }`. On Jake's go at a milestone, the lead commits `lock.json` alone,
-   adding the reopened shard's slug with its manifest's `assets.globs` copied in (R2-19; C2-24). Before Z3's agent
-   starts, the lead commits Z3's new slug into `reopened` the same way (R2-12; 11 Z3). The archive commit sets
-   `"locked": false`.
+   adding the reopened shard's slug with its manifest's `assetGlobs` copied in (R2-19, R3-09; C2-24). Before Z3's
+   agent starts, the lead commits Z3's new slug into `reopened` the same way (R2-12; 11 Z3). The new shard has no
+   manifest yet, so its entry holds **the default asset globs for a new shard** (R3-06): `public/assets/<slug>/**`,
+   `public/assets/gpu/<slug>/**`, `public/assets/baked/<slug>/**`, `public/assets/music/<slug>/**`,
+   `public/assets/sfx/<slug>/**`, `public/assets/horizon/<slug>/**` and `public/assets/title/<slug>/**`; its manifest's
+   `assetGlobs` later names the same folders. The archive commit sets `"locked": false`.
    While `locked` is true, a commit whose trailers (`git interpret-trailers --parse`) carry `E357-Lead: yes` passes:
    the lead and the subagents it spawns, except Z3's agent, which never carries the trailer (12 §4 item 10; R2-12).
    Any other commit may touch only the **reopened-shard allowlist** of a slug in `reopened`. This list is the plan's
    one definition of it (R2-19); 05–08 §9, 11 Z3 and 12 §2 cite it and copy none of it:
-   - `src/shards/<slug>/**` (the shard's committed KTX2 table `src/shards/<slug>/ktx2.generated.ts` included, F9;
-     R2-04), `test/shards/<slug>/**`, `test/parity/baselines/*/<slug>.*` (its lane owns its baselines, R1-12),
-     `art/<slug>/**`, `public/assets/<slug>/**`, `public/assets/baked/<slug>/**` (its terrain, sky, navmesh and
-     texture bakes), `scripts/blender/<slug>/**`, and `docs/tasks/asks/**`;
-   - the extra asset folders its manifest declares by their real names in `assets.globs` (01 §6), which the lead copies
-     into `lock.json`. Each shard's list, read from the tree, is in its manifest (05–08 §3), for example Driftwood's
+   - `src/shards/<slug>/**` (the shard's committed KTX2 table `src/shards/<slug>/ktx2.generated.ts` included when it
+     has one, F9; R2-04, R3-08), `test/shards/<slug>/**`, `test/parity/baselines/*/<slug>.*` (its lane owns its
+     baselines, R1-12),
+     `art/<slug>/**`, `public/assets/<slug>/**`, `public/assets/gpu/<slug>/**` (the KTX2 files `bake-ktx2` writes for
+     the shard's own textures, R3-08), `public/assets/baked/<slug>/**` (its terrain, sky, navmesh and texture bakes),
+     `scripts/blender/<slug>/**`, and `docs/tasks/asks/**`;
+   - the extra asset folders its manifest declares by their real names in `assetGlobs` (a manifest field of its own,
+     game data read by `check-lock`, not part of `assets`; 01 §6, R3-09), which the lead copies into `lock.json`. Each
+     shard's list, read from the tree, is in its manifest (05–08 §3), for example Driftwood's
      `public/assets/models/driftwood-{blender,cc0,fp,hero}/**` and `public/assets/gpu/baked/driftwood-isle/**` (08);
    - **line-scoped shared files**, checked hunk by hunk on the staged diff (`git diff --cached -U0 -- <file>`):
      `scripts/blender/targets.json` (only targets whose key starts `<slug>/` may be added, changed or removed: the file
      is parsed before and after) and `art/README.md` (every added or removed line names `art/<slug>/`); and, because a
      lane bakes its own KTX2 table (R2-04; C2-11), `scripts/bake-ktx2.list.json` and `scripts/bake-ktx2.cache.json`
-     (parsed before and after: only entries whose URL lies under the slug's allowlisted asset folders may differ). A
-     hunk outside that scope refuses the file.
+     (parsed before and after: only entries whose URL lies under the slug's allowlisted asset folders may differ; a
+     cache entry with no URL, `"<hash>": "none"` for an image-less GLB, `bake-ktx2.mjs:365`, may be added when its key
+     is new, C3-13). A hunk outside that scope refuses the file.
    Also always allowed: a commit that touches only `project/sweepguard-ledger.md`, which `.githooks/post-commit` writes
    and commits by itself after a `SKIP_SWEEPGUARD` commit (13 R1 K-ledger). Anything else exits 1, listing each refused
    path (and, for a line-scoped file, each refused hunk). The other generated files (`src/**/*.generated.*` except
@@ -118,11 +125,13 @@ the plan is archived, with each shard's folder reopening at its milestone (decis
 
 **Tests added.** `test/check-lock.test.ts` (R1-09): `lockVerdict` refuses a message without the trailer that touches
 `src/engine/app/app.ts`, passes the same paths with `E357-Lead: yes`, passes `src/shards/<slug>/x.ts`,
-`src/shards/<slug>/ktx2.generated.ts`, `public/assets/baked/<slug>/terrain.bin`, a path under one of the slug's
-`assets.globs` and `docs/tasks/asks/E400.md` for a reopened slug, refuses them for a slug that isn't reopened, passes a
-`scripts/blender/targets.json` diff that adds a `<slug>/x` target and refuses one that also changes another slug's
-target, passes an `art/README.md` hunk naming `art/<slug>/` and refuses one that doesn't (R2-19), and passes
-everything when `locked` is false.
+`src/shards/<slug>/ktx2.generated.ts`, `public/assets/gpu/<slug>/x.ktx2`, `public/assets/baked/<slug>/terrain.bin`,
+a path under one of the slug's `assetGlobs` and `docs/tasks/asks/E400.md` for a reopened slug, refuses them for a slug
+that isn't reopened, passes a `scripts/blender/targets.json` diff that adds a `<slug>/x` target and refuses one that
+also changes another slug's target, passes an `art/README.md` hunk naming `art/<slug>/` and refuses one that doesn't
+(R2-19), passes a `scripts/bake-ktx2.list.json` / `.cache.json` hunk whose entries lie under the slug's folders (and a
+new `"none"` cache key) and refuses one that changes another slug's entry (C3-14), and passes everything when
+`locked` is false.
 
 **Done when.**
 - `bash .claude/hooks/session-brief.sh | grep -c '^LOCK: E357'` prints `1`.
@@ -200,35 +209,53 @@ resolver, the `wildshard/no-url-switch` rule, `scripts/bake-loader.mjs`); a path
      "why": "..." }]` for a literal that is deliberately not a file (for example a prefix used in a `startsWith`).
      Starts empty; every entry needs a `why`. An entry whose `file` no longer contains the literal fails the check.
 5. `package.json` `"test"` becomes
-   `node scripts/check-model-sources.mjs && node scripts/check-paths.mjs && vitest run`.
+   `node scripts/check-model-sources.mjs && node scripts/check-paths.mjs && node scripts/bake-check.mjs && vitest run`
+   (`bake-check.mjs`: step 7; R3-07).
 6. **Non-empty asserts.** Each of the 8 test files with a glob gets `expect(Object.keys(<GLOB>).length).toBeGreaterThan(0)`
    as its first assertion: `test/shell.test.ts`, `test/models-pine-hollow.test.ts`, `test/nalati-roster.test.ts`,
    `test/compendium.test.ts`, `test/models-driftwood.test.ts`, `test/facade-no-multidraw.test.ts`,
    `test/ktx2-auto.test.ts` (all three of its globs), `test/species.ts` (the helper; the assert throws at import).
    The 4 src globs (`src/boot/extras.ts:47`, `src/explore/Compare.ts:9`, `src/entities/AnimalFactory.ts:15`, and the
    `species/registry.ts` doc reference) are covered by `check-paths`.
-7. **Bakers hash data, never source bytes (R1-20, R2-01).** A baker whose stamp hashes the bytes of a source file
-   re-stamps whenever that file is edited, and later rows edit both the bakers and the `src/` files they hash: F6
-   rewrites their imports and comment paths, F8 rewrites `rng.ts`, F9 adds `export default` / `api: 1` to every
-   manifest. So every baker's digest takes only data: a hand-bumped `BAKE_VERSION` constant (bumped when the baker's
-   output format changes, or the maths of the baker or of a `src/` module it runs), plus its data inputs, and the bytes
-   of no file under `src/` or `scripts/`:
-   - `bake-chunk.mjs` (`:40` `shared`, `:95-98`): `BAKE_VERSION`, `res`, `CHUNK_SIZE`, the def's `seed`,
-     `landscapeHash(def.terrain)` (`src/chunks/terrain.ts:85`, a sampled fingerprint of the height function), the same
-     16 × 16 sampling of `splatAt` (a `splatHash` beside `landscapeHash`), and the placement inputs as data
-     (`treeCount`, `trees` as JSON, and `forest` as JSON with its functions sampled on the same grid). `shared`,
-     `EXTRA_DEPS` and `localImports` leave the digest, and `bakedAt` leaves `terrain.json` (`:142`), so a forced
-     re-bake of unchanged inputs writes the same bytes.
-   - `bake-sky.mjs:22,32`: the HDRI bytes and its `VERSION`; `self` leaves the digest.
-   - `bake-navmesh.mjs:419`: `readFileSync(import.meta.filename)` → `BAKE_VERSION`; its collider inputs stay.
-   - `bake-cards.mjs:24-26`: the three twig-atlas images and `BAKE_VERSION`; `TreeFactory.ts` and `BakedCards.ts` leave.
-   - `bake-textures.mjs:23-25`: `BAKE_VERSION` only, since its inputs are code (`Sky.ts`, `AnimalFactory.ts`,
-     `bakedTextures.ts`, `noise.ts`, `rng.ts` leave the digest). Each of those five files gets a one-line comment:
-     a change to a baked texture's drawing bumps `bake-textures.mjs`'s `BAKE_VERSION`.
-   The lead greps `scripts/bake-*.mjs` for any other `readFileSync` of a `src/` or `scripts/` file into a hash and
-   changes it the same way. The re-stamp this causes once (the `hash` fields under `public/assets/baked/`, and the
-   packs that carry them) is committed in F1: it is the accepted one-time re-download (13-lead-resolutions 04#5), which
-   happens here and never again in F6, F8 or F9.
+7. **Bakers compare bytes, never fingerprints (R1-20, R3-07; supersedes R2-01).** Today each baker skips its bake
+   when a digest of its inputs matches the stamp in its JSON. A digest of source bytes re-stamps whenever a later row
+   edits a baker or a `src/` file it hashes (F6 rewrites imports and comment paths, F8 rewrites `rng.ts`, F9 adds
+   `export default` / `api: 1` to every manifest). A digest of sampled data misses real edits: `landscapeHash` samples
+   the terrain on a 16 × 16 grid 33 m apart (`src/chunks/terrain.ts:79-90`), so a moved trail or a `graded` path
+   between samples changes no digest (B3-1, C3-4). So no baker decides "up to date" from a hash any more:
+   - **Every run bakes in memory** and compares the bytes it baked with the committed output files, and writes only
+     the files that differ (`bake-textures.mjs:51` already does this per file). There is no input digest, so there is
+     no "up to date" skip and no bump constant (no `BAKE_VERSION`); a `VERSION` that is part of a file format
+     (`bake-chunk`'s and `bake-navmesh`'s headers) stays in the format. The `hash` field
+     in a baker's JSON becomes the sha of its output bytes, so the JSON changes only when an output does, and
+     timestamps leave the files (`bakedAt`, `bake-chunk.mjs:142`). The five bakers below lose `--force`: every run
+     is a full bake.
+   - **`--check`** bakes the same way, writes nothing, and exits 1 naming every file that would change.
+   - `bake-chunk.mjs`: the digest (`:40` `shared`, `:94-106`: the def's bytes, `EXTRA_DEPS`, `localImports`) goes; it
+     bakes `terrain.bin` / `terrain.json` for each shard and compares them. The header's `landscapeHash` field stays in
+     the format (so `terrain.bin` keeps its bytes), but nothing checks it: **`src/world/BakedTerrain.ts:122-125`'s
+     runtime fingerprint check (`:124`) is deleted**, and the runtime trusts the bake as committed, because a stale bake
+     can't be committed (`--check` in `pnpm test`, below).
+   - `bake-sky.mjs` (`:22,32`: `self` and `VERSION` in the digest), `bake-navmesh.mjs` (`:416-421`: `VERSION`, the
+     script's own bytes, the triangle soup) and `bake-cards.mjs` / `bake-textures.mjs` (`:24-28` / `:23-26`: their
+     input lists): the digest goes; each bakes and compares its outputs (`sky.json` and the sky pair; `navmesh.bin` /
+     `.json`; the three card planes and `cards.json`; every `tex/` file and `textures.json`). Shard-owned bake code
+     (Pine's tree factory and baked cards, which move to `src/shards/pine-hollow/world/` in F6) moves with the shard
+     and needs no bump constant: an edit that changes the cards changes their bytes.
+   - **`pnpm test` runs every baker's `--check`** through `scripts/bake-check.mjs`, so a stale bake fails at commit
+     time. `bake-chunk`, `bake-sky` and `bake-navmesh` run in node. `bake-cards` and `bake-textures` draw in a GPU page
+     (headless Chromium, ANGLE Metal), so on the Mac `bake-check.mjs` builds the tree once (`vite build --outDir` a
+     scratch folder), serves it with `vite preview` on a free port and runs both under `scripts/browser-lane.sh`;
+     where there is no Metal GPU (CI, Vercel's build) it prints `bake-check: GPU bakers skipped (no Metal): bake-cards,
+     bake-textures` and runs the node three. Every commit runs `pnpm test` on the Mac first (12 §5), so a stale GPU
+     bake still fails at commit time. `vite.config.ts` stops calling the GPU bakers' `--check` (`:46-50`, a build
+     can't serve itself); it keeps running `bake-chunk` and `bake-sky`, which now bake fully and write only a changed
+     byte.
+   The lead greps `scripts/bake-*.mjs` for any other skip on a digest or stamp and changes it the same way
+   (`bake-packs` and `bake-ktx2` are content-addressed by their exact input bytes and stay). The re-stamp this causes
+   once (the `hash` fields under `public/assets/baked/` become output shas, and the packs that carry them) is committed
+   in F1: it is the accepted one-time re-download (13-lead-resolutions 04#5), which happens here and never again in
+   F6, F8 or F9.
 
 **Tests added.** `test/alias.test.ts` (aliases in vitest, in a baker, the lint resolver via the exported
 `importedConst` with a `#engine/aliasFixture` specifier → `'tier'`, and the asset specifier
@@ -241,15 +268,21 @@ planted item).
 - `test/alias.test.ts` passes (a baker and a lint key both resolve through `#engine/…`, and an asset specifier resolves
   with its own extension).
 - `test/check-paths.test.ts` passes (a moved file can't make a test pass vacuously).
-- The bakers' re-stamp is committed, and **two bakes across a no-op source edit** change no byte (R1-20, R2-01): a
-  comment added to `scripts/bake-chunk.mjs`, `scripts/bake-sky.mjs`, `src/core/rng.ts`, `src/world/placement.ts` and
-  `src/chunks/terrain.ts` (the edits are not kept), then `pnpm exec vite build`, leaves `git status --porcelain
-  public/assets` empty; and `node --import ./scripts/bake-loader.mjs scripts/bake-chunk.mjs --force` on top rewrites
-  every `terrain.bin` / `terrain.json` byte-identical (`git status --porcelain public/assets` still empty).
+- The bakers' re-stamp is committed, and **a no-op source edit changes no byte** (R1-20, R3-07): a comment added to
+  `scripts/bake-chunk.mjs`, `scripts/bake-sky.mjs`, `src/core/rng.ts`, `src/world/placement.ts` and
+  `src/chunks/terrain.ts` (the edits are not kept), then `pnpm exec vite build` and `node scripts/bake-check.mjs`,
+  leaves `git status --porcelain public/assets` empty and `bake-check` exits 0.
+- **A real edit re-bakes** (R3-07): a 2 m move of one waypoint of a Pine Hollow trail (`TerrainSpec.trails`; a
+  scratch edit, not kept) makes `node --import ./scripts/bake-loader.mjs scripts/bake-chunk.mjs --check` exit 1
+  naming `public/assets/baked/pine-hollow/terrain.bin`, and the same command without `--check` rewrites that file
+  (`git status --porcelain public/assets` lists it; the edit and the file are then restored).
+- `grep -n "landscapeHash(" src/world/BakedTerrain.ts` prints nothing (the runtime check is gone), and
+  `grep -n "up to date" scripts/bake-{chunk,sky,navmesh,cards,textures}.mjs` prints nothing (no baker skips on a
+  stamp).
 
 **Risks and rollback.** TS 7's bundler resolution may reject `.ts` targets under `verbatimModuleSyntax` → the fallback
-in step 2. Rollback: `git revert` (no runtime change; the bundle is byte-identical except the `ENGINE_API` constant, the
-fixture image and step 7's re-stamped `hash` fields).
+in step 2. Rollback: `git revert` (no gameplay change; the bundle is byte-identical except the `ENGINE_API` constant,
+the fixture image, step 7's re-stamped `hash` fields and the deleted terrain fingerprint check).
 
 **Size.** S.
 
@@ -268,8 +301,9 @@ right after the probe commit. Nine Dragon joins (it is outside scorecard's `SHAR
 **Steps.**
 1. **The probe (src, read-only).** New `src/core/probe.ts` (→ `src/engine/debug/probe.ts` in F6):
    `installProbe(handle, deps)` sets `window.__wildshard = { version: 1, world, shard, boot, fingerprint(),
-   pose(), walkLeg(), combat, arena(), state(), onResume(), saves }` exactly as 03 §2 defines each member (`state()` /
-   `onResume()` serve the pause → resume step, 03 §5.6; F3.2 adds `nav` for the soak bot, 03 §14.2), and keeps
+   pose(), walkLeg(), combat, arena(), state(), onResume(), saves, sounds(), used() }` exactly as 03 §2 defines each
+   member (`state()` / `onResume()` serve the pause → resume step, 03 §5.6; `used()` the touch leg, 03 §4; F3.2 adds
+   `nav` for the soak bot, 03 §14.2), and keeps
    `window.__world = world` (the same object). `world` is today's handle (`src/main.ts:1296`, all its keys);
    `shard = { slug, …handles }`: each shard-named key of that handle sits at `shard.<name>`, the place
    `ctx.debug.expose(name, value)` writes from S1.1 on (01 §7). The keys: Driftwood `ocean, pier,
@@ -281,9 +315,10 @@ right after the probe commit. Nine Dragon joins (it is outside scorecard's `SHAR
      returning the `label` of every `GameSystem` in `inputs`, `fixed.pre/step/post`, `updaters`, `lates` (lines 125-128),
      in list order.
    - `src/world/registry.ts`: `pieces(): readonly Piece[]` (the registry's internal list, as registered).
-   - `src/core/harnessTap.ts` (new, 10 lines): `export const tap: { hit: ((kind: string, amount: number) => void) | null;
-     kill: ((kind: string) => void) | null; resumed: (() => void) | null; sound: ((id: string) => void) | null } =
-     { hit: null, kill: null, resumed: null, sound: null };`. One call each at the two damage sites:
+   - `src/core/harnessTap.ts` (new, 12 lines): `export const tap: { hit: ((kind: string, amount: number) => void) | null;
+     kill: ((kind: string) => void) | null; resumed: (() => void) | null; sound: ((id: string, kind?: 'ambient') =>
+     void) | null; use: ((label: string) => void) | null } = { hit: null, kill: null, resumed: null, sound: null, use:
+     null };`. One call each at the two damage sites:
      `Animal.applyDamage` (`src/entities/Animal.ts`) calls `tap.hit?.(this.kind, amount)`, and the TrainingTarget damage
      method (`src/practice/TrainingArena.ts`, the method that calls `this.motion.hit(…)` at line 125) calls
      `tap.hit?.('training-dummy', amount)`. `AnimalManager`'s kill path calls `tap.kill?.(a.kind)` where it calls
@@ -293,8 +328,9 @@ right after the probe commit. Nine Dragon joins (it is outside scorecard's `SHAR
      wrapper then calls `hud.onResume` (= `enter`, `src/main.ts:1014`). So the call goes at the end of that wrapper,
      `src/ui/HUD.ts:472`: `m.onClose = () => { …; this.onResume?.(); tap.resumed?.(); }`, still before the loop's next
      frame. `probe.onResume` therefore reads the state a resume leaves behind (03 §5.6).
-     A fourth, `sound: ((id: string) => void) | null`, feeds the sound-play log (03 §2.0, §2.3; R1-45, R2-26). It is
-     called on **every sound-play path**, inside the code that plays, never by wrapping methods from outside:
+     A fourth, `sound: ((id: string, kind?: 'ambient') => void) | null`, feeds the sound-play log (03 §2.0, §2.3;
+     R1-45, R2-26). It is called on **every sound-play path**, inside the code that plays, never by wrapping methods
+     from outside:
      - each public cue method of `src/audio/Audio.ts` (`crossbowFire`, `swordSwing`, `footstep`, `boltImpact` and the
        rest from line 350 on) calls `tap.sound?.('<method>')`, or `tap.sound?.('<method>:<its first string
        argument>')`, on entry;
@@ -304,10 +340,26 @@ right after the probe commit. Nine Dragon joins (it is outside scorecard's `SHAR
        `src/pinehollow/life/index.ts` (`:496`). Each calls `tap.sound?.('<module>.<sound>')` with a literal id fixed
        at F2 (`voices:<clip id>`, `pineSfx:<clip>`, `forest.bed`, `music.sting:<name>`), once per sound it starts (a
        bed with its LFOs is one sound).
-     A row that moves a sound path keeps its id literal, and the `AudioService` built at S1.5 (01 §15) calls
-     `tap.sound?.(id)` on every play with the id of the path it replaced. The log therefore has one source for the
-     whole plan, and `walk.sounds` / `combat.sounds` stay comparable across S1.5 and S3.5 with no rename map and no
-     source switch. The probe sets the functions only when `window.__wildshardHarness` exists (03 §6).
+     **Two kinds of sound (R3-13; C3-2).** An **event** sound is one a gameplay event starts (a cue method, a voice,
+     a Pine SFX clip, a footstep, an impact, a bed or sting the state machine starts): `tap.sound?.(id)`, and the log
+     compares it as an exact multiset. An **ambient** sound is a one-shot that a timer or scheduler starts (a
+     `window.setTimeout`, a `later(…)` helper, or a countdown on the frame's `dt`): the island birds
+     (`IslandAmbience.ts:251, 270`), the forest calls (`ForestAmbience.ts:159-162`), the steppe far calls
+     (`SteppeAmbience.ts:139-157`), and `Audio.ts`'s own private schedulers, which are tapped too: `scheduleBubble`
+     (`:740`), `scheduleLark` (`:1409`), `scheduleCricket` (`:1430`) and `scheduleCrackle` (`:1447`). Each calls
+     `tap.sound?.(id, 'ambient')`, and the log compares the ambient ids as a **set** (03 §2.3), because how many fire
+     depends on wall time and on how the seeded draws interleave. A dropped ambient
+     voice (one of those schedulers lost in S3.5's split of `Audio.ts`) still shows as a missing id.
+     A row that moves a sound path keeps its id literal and its kind, and the `AudioService` built at S1.5 (01 §15)
+     calls `tap.sound?.(id, kind)` on every play with the id and kind of the path it replaced. The log therefore has
+     one source for the whole plan, and `walk.sounds` / `combat.sounds` stay comparable across S1.5 and S3.5 with no
+     rename map and no source switch. The probe sets the functions only when `window.__wildshardHarness` exists
+     (03 §6).
+     A fifth, `use: ((label: string) => void) | null`, fires on the one use dispatch, `src/main.ts:1093` (`if (nearest)
+     nearest.onInteract();` becomes `if (nearest) { tap.use?.(nearest.label); nearest.onInteract(); }`), which the
+     touch USE disc reaches through its `KeyE` (`src/player/TouchControls.ts:398`). It is the touch leg's `used` read;
+     its `dodged` read is the existing getter `player.dodgeCooldown > 0` (`src/player/Player.ts:212`), which needs no
+     tap (03 §4; B3-10).
    - `src/entities/AnimalManager.ts`: an animal with `harnessHold === true` skips its think / motor update (the harness
      holds one target still, 03 §5). Nothing sets it except the probe.
 3. `src/main.ts`: move the `const handle = {…}` line (1296) and `debug.__world = handle` (1298) above
@@ -328,24 +380,35 @@ right after the probe commit. Nine Dragon joins (it is outside scorecard's `SHAR
    The CLI, outputs and every rule are 03 §1–§9.
 6. **Routes.** `scripts/physics-route.json`: add `"gate": true` to the 3 legs per shard that 03 §4 names. No leg
    changes otherwise.
-7. **Record the baselines** (03 §8) on the commit that contains steps 1–6, by its SHA captured at commit time
-   (`node scripts/parity.mjs --record --runs=3 --lane=m5 --tiers=phone,desktop --export=<that sha>`, 4 shards), then
-   commit `test/parity/baselines/m5/**` as a follow-up commit whose message names that SHA (never an amend; R2-25).
-   The probe commit also adds `/test/parity` to `.vercelignore` and `/progress/parity/` (the harness's default
-   `--out`, 03 §1) to `.gitignore`, so a parity run never leaves an untracked file (R2-35).
-8. **Prove it** (03 §9): `node scripts/parity.mjs --prove --lane=m5 --export=<that sha>`: green twice on the unchanged
-   SHA, red on each planted change in `test/parity/plants/`.
+7. **Record the baselines** (03 §8) on the commit that contains steps 1–6 (**the probe SHA**, captured at commit
+   time: `node scripts/parity.mjs --record --runs=3 --lane=m5 --tiers=phone,desktop --export=<the probe sha>`, 4
+   shards; `meta.json` and each baseline file record it as their `sha`), then commit `test/parity/baselines/m5/**` as
+   a follow-up commit whose message names that SHA (never an amend; R2-25), and capture **the follow-up's SHA** the
+   same way. The probe commit also adds `/test/parity` to `.vercelignore` and `/progress/parity/` (the harness's
+   default `--out`, 03 §1) to `.gitignore`, so a parity run never leaves an untracked file (R2-35).
+8. **Prove it on the follow-up SHA** (03 §9; R3-01, A3-1): `node scripts/parity.mjs --prove --lane=m5
+   --export=<the follow-up sha>`. A run compares with the target SHA's own baselines (03 §1; R2-31), and only the
+   follow-up holds the baselines step 7 recorded; its runtime is the probe SHA's (the follow-up changes only
+   `test/parity/`). Before it runs anything, the proof asserts that every shard × tier it compares has a baseline at
+   that SHA, so a missing baseline (every field `new`) can never pass as a proof: green twice, then red on each planted
+   change in `test/parity/plants/`, all on the follow-up SHA, never on the probe SHA.
 
 **Tests added.** `test/parity-compare.test.ts`: the pure comparison (`scripts/parity/compare.mjs`) on fixture JSON —
 exact fields, noise bands, SSIM floors, renames (03 §7), quarantine (03 §12), pending entries with `expect: null`
-and with per-tier `expect` (03 §8; R2-18). `test/probe-shape.test.ts`: the `.d.ts` and `installProbe`'s returned keys
-agree (a type-level check through `tsc -p scripts`). `test/sound-tap.test.ts` (R2-26): lists every `src/**/*.ts` file
-that calls `createBufferSource` or `createOscillator` (a non-empty assert) and fails on any of them that has no
-`tap.sound?.(` call, so a new sound module can't bypass the log.
+and with per-tier `expect` (03 §8; R2-18, R3-14), event sounds as a multiset and ambient ids as a set (03 §2.3;
+R3-13). Its fixtures live in `test/fixtures/parity/`, never under `test/parity/` (which `.vercelignore` drops, so the
+pre-push tree gate's `vitest run` would not have them), and a missing `test/parity/quarantine.json` reads as `[]`
+(C3-10). `test/probe-shape.test.ts`: the `.d.ts` and `installProbe`'s returned keys
+agree (a type-level check through `tsc -p scripts`). `test/sound-tap.test.ts` (R2-26, R3-13): lists every
+`src/**/*.ts` file that calls `createBufferSource` or `createOscillator` (a non-empty assert) and fails on any of them
+that has no `tap.sound?.(` call, so a new sound module can't bypass the log, and fails when any of `Audio.ts`'s four
+`schedule*` methods has no `tap.sound?.(…, 'ambient')` call.
 
 **Done when.**
-- `node scripts/parity.mjs --export=<the baseline sha> --lane=m5 --tiers=phone,desktop` exits 0 twice in a row.
-- Each plant in `test/parity/plants/` makes it exit 1 with that plant's expected field named in the report (03 §9).
+- `node scripts/parity.mjs --export=<the follow-up sha> --lane=m5 --tiers=phone,desktop` exits 0 twice in a row
+  (step 8: the follow-up SHA holds the baselines; R3-01).
+- Each `patch` plant in `test/parity/plants/index.json` makes it exit 1 with that plant's expected field named in the
+  report (03 §9; F2 adds no other kind, R3-16).
 - The probe commit itself changed no behaviour: on that commit, `node scripts/physics-baseline.mjs --no-build
   --mode=walk` reports 0 stuck on every leg, and `node scripts/nalati-boot-check.mjs --url=<the served build> --touch
   --shards=driftwood-isle,pine-hollow,nalati-grasslands,nine-dragon-stack` reports 0 errors.
@@ -400,19 +463,22 @@ timing and GPU bytes. Neither is a self-hosted runner (the repo is public).
    `asset-case` job and `scripts/check-asset-case.mjs` (03 §11.6; 13-lead-resolutions G15).
 3. Port `scripts/test-facade-instancing.mjs` to launch with `channel: 'chromium'` (its `chromium.launch` at line 8 uses
    the headless shell, which falls back to SwiftShader on the runner). `pnpm test:gpu-boot` keeps calling it unchanged.
-4. **Runner baselines.** Dispatch `gpu-gate.yml` with `record: true` on the F2 baseline SHA (the harness code runs
-   from main's head against a build of that SHA, 03 §8; R1-19, R2-31); download the four artifacts, one per matrix job
-   (`gh run download <run> -p 'parity-baselines-gh-macos15-*' -D <tmp>`, each into its own folder; each holds exactly
-   that shard's `test/parity/baselines/gh-macos15/<slug>.*` files, 03 §11.1; R2-33), merge their files into
-   `test/parity/baselines/gh-macos15/`, check that all four shards are there, and commit
-   `test/parity/baselines/gh-macos15/**` with a message naming the recorded SHA (R1-18, R2-25).
+4. **Runner baselines.** Dispatch `gpu-gate.yml` with `record: true` on F2's follow-up SHA (F2 step 8; its runtime is
+   the probe SHA's; the harness code runs from main's head against a build of that SHA, 03 §8; R1-19, R2-31); download
+   the four artifacts, one per matrix job (`gh run download <run> -p 'parity-baselines-gh-macos15-*' -D <tmp>`, each
+   into its own folder; each holds exactly that shard's `test/parity/baselines/gh-macos15/<slug>.*` files, 03 §11.1;
+   R2-33), merge their files into `test/parity/baselines/gh-macos15/`, check that all four shards are there, and commit
+   `test/parity/baselines/gh-macos15/**` with a message naming the recorded SHA (R1-18, R2-25). Capture this commit's
+   SHA, **the runner follow-up SHA**, and push it.
 5. **Nightly.** `scripts/gpu-perf/nightly.sh`, `scripts/gpu-perf/com.wildshard.gpu-perf.plist`,
    `scripts/gpu-perf/install.sh` (03 §14), with the Simulator memory run (`scripts/sim-memory.mjs`, 03 §14.1;
    13-lead-resolutions G2) and the soak bot (`scripts/soak.mjs`, 03 §14.2; G13, MW19). The lead runs `install.sh`
    once on Jake's Mac.
-6. **Proof** (03 §9) on the runner lane: `gh workflow run gpu-gate -f sha=<sha> -f prove=true`, whose matrix runs
-   one job per shard for the two green runs and one job per plant (03 §11.1; R2-32): every green job green, every
-   plant job red on its expected fields.
+6. **Proof** (03 §9) on the runner lane, on **the runner follow-up SHA** of step 4 (the one that holds the runner
+   baselines; never the recorded SHA, which doesn't; R3-01): `gh workflow run gpu-gate -f sha=<the runner follow-up
+   sha> -f prove=true`, whose matrix runs one job per shard for the two green runs and one job per `patch` or `flag`
+   plant (03 §11.1; R2-32, R3-16): every green job green (each first asserts that its shard has a runner baseline at
+   that SHA), every plant job red on its expected fields, and `metal-off` exits 3.
 
 **Done when.**
 - A broken shard turns the gate red: `gh workflow run gpu-gate -f plant=boot-throw` fails the `pine-hollow` job and
@@ -461,19 +527,26 @@ and a count may only go down. Adding a shard branch, a raw save, a raw random / 
      an English false positive ("bear in mind") is fixed by rewording the comment.
    - `wildshard/no-shard-branch`, outside `src/shards/**` and (until F6) outside today's shard territories
      (`src/chunks/<slug>/**`, `src/chunks/<slug>.ts`, `src/nalati/**`, `src/pinehollow/**`): exactly 01 §24's list and
-     its AST matching rules, which are the rule's one definition (R1-06, R2-17). F4 writes them as `SHARD_BRANCH` in
-     `lint/wildshard-plugin.js` and adds nothing of its own; a pattern the rule should gain is added to 01 §24 first.
-     The rule walks the AST (no type information) and counts one report per matching expression:
-     (a) a **member read** `.structures`, `.weapon`, `.style` or `.ocean` whose object is a chunk / def / manifest
-     value: an identifier named `chunk`, `def` or `manifest`, a member chain whose last name is one of those, or a
+     its AST matching rules, which are the rule's one definition (R1-06, R2-17, R3-05). F4 writes them as
+     `SHARD_BRANCH` in `lint/wildshard-plugin.js` and adds nothing of its own; a pattern the rule should gain is added
+     to 01 §24 first. The rule walks the AST (no type information) and counts one report per matching expression,
+     by the same three clauses as 01 §24:
+     (a) the **identifiers and calls** 01 §24 lists (`slug ===` / `!==`, `style ===` / `!==`, `isOcean`, `sea ?`,
+     `chunk.ocean`, `nalatiNow()`, `isNalati`, `isPine`, `isNine`, `painterly ?` / `&&`, `LOOK_V2`, `isStylized(`,
+     `isPaintedAir(`, `isPainterlyGrass(`);
+     (b) a **member read** `.structures`, `.weapon`, `.style` or `.ocean` on a chunk / def / manifest value or on
+     `getActiveChunk()`, but **not** on `level` (R3-05). Syntactically, the read's object is an identifier named
+     `chunk`, `def` or `manifest`, a member chain whose last name is one of those (`this.def`, `shard.manifest`), or a
      `getActiveChunk()` call (`chunk.weapon === 'sword'`, `src/main.ts:532`; `def.structures === undefined`,
-     `src/core/bootstrap.ts:101`);
-     (b) the identifiers and calls 01 §24 lists (`slug ===` / `!==`, `style ===` / `!==`, `isOcean`, `sea ?`,
-     `nalatiNow()`, `isNalati`, `isPine`, `isNine`, `painterly ?` / `&&`, `LOOK_V2`, `isStylized(`, `isPaintedAir(`,
-     `isPainterlyGrass(`);
-     (c) a shard slug string literal (`'driftwood-isle'`, `'nalati-grasslands'`, `'pine-hollow'`, `'nine-dragon-stack'`)
-     that is an operand of a comparison (`===`, `!==`, `==`, `!=`).
-     A comparison that matches two clauses (`chunk.slug === 'pine-hollow'`: (b) and (c)) counts once. The `style`
+     `src/core/bootstrap.ts:101`; `getActiveChunk().style === 'painterly'`, `src/core/Game.ts:207`). Any other object
+     is not counted, and that is how a `LevelSpec` read is recognised with no type information: its chain starts at
+     `level` or passes through it (`level.ground.structures`, `ctx.level.ground.structures`), so its object is never
+     one of the three names. A capability read from `LevelSpec` data, such as `level.ground.structures === true`, is
+     allowed;
+     (c) a shard **slug string literal** (`'driftwood-isle'`, `'nalati-grasslands'`, `'pine-hollow'`,
+     `'nine-dragon-stack'`) that is an operand of a comparison (`===`, `!==`, `==`, `!=`) **or the test of a `switch`
+     case** (`case 'pine-hollow':`, one report per case).
+     A comparison that matches two clauses (`chunk.slug === 'pine-hollow'`: (a) and (c)) counts once. The `style`
      literals follow F6's rename (`'lowpoly'` → `'toon'`), so the count is unchanged.
    - `wildshard/no-raw-save`: the identifiers `localStorage` / `sessionStorage` anywhere outside `src/engine/saves/**`
      (created by F10, after the move) and `src/native/**` (`src/engine/native/**` after F6: the Capacitor save mirror
@@ -534,9 +607,13 @@ and a count may only go down. Adding a shard branch, a raw save, a raw random / 
    layered files yet); `sim-no-render` 0 (no simulation folder yet).
 
 **Tests added.** `test/lint-ratchet.test.ts`: runs each rule on fixtures in `test/fixtures/lint/` (one allowed and one
-reported case per rule clause above; for `no-shard-branch` (R2-17): `chunk.weapon === 'sword'`, `def.structures ===
-undefined` and `x === 'pine-hollow'` each reported once, `const url = 'pine-hollow'` (a slug literal outside a
-comparison) allowed; for `sim-no-render` (R2-06): `import { Vector3 } from 'three'` in `src/engine/ai/x.ts` allowed,
+reported case per rule clause above; for `no-shard-branch` (R2-17, R3-05), per clause: (a) `if (isNalati)` and `slug
+!== other` each reported once, `if (isOpen)` allowed; (b) `chunk.weapon === 'sword'`, `def.structures === undefined`
+and `getActiveChunk().style === 'painterly'` each reported once, `level.ground.structures === true` and
+`ctx.level.ground.structures` **allowed** (a `LevelSpec` read is not counted); (c) `x === 'pine-hollow'` reported
+once, `switch (s) { case 'nalati-grasslands': … case 'pine-hollow': … }` reported twice (one per case), `const url =
+'pine-hollow'` (a slug literal outside a comparison or a case) allowed; and `chunk.slug === 'pine-hollow'` (clauses (a)
+and (c)) reported once; for `sim-no-render` (R2-06): `import { Vector3 } from 'three'` in `src/engine/ai/x.ts` allowed,
 `import { Mesh } from 'three'` there reported, the same `Mesh` import in `src/engine/combat/view/x.ts` and in
 `src/engine/ai/view/x.ts` allowed, and `src/engine/ai/x.ts` importing `./view/x` reported) through `oxlint -c
 .oxlintrc.ratchet.json -f json`; and runs `ratchet.mjs` against a temp ratchet file to prove a rise exits 1, a fall
@@ -550,8 +627,9 @@ that has entries (R1-07), and `--update` keeps every `budgets` and `debugRows` e
   a planted `localStorage.getItem('x')` in `src/core/Game.ts`, each make `pnpm test` exit 1 naming the rule and file
   (the plants are not committed).
 
-**Risks and rollback.** 01 §24's matching rules are syntactic (member reads, listed identifiers and calls, a slug
-literal in a comparison), so `no-shard-branch` needs no type information from oxlint's JS-plugin API (R1-06, R2-17).
+**Risks and rollback.** 01 §24's matching rules are syntactic (listed identifiers and calls, member reads on a named
+object, a slug literal in a comparison or a `switch` case), so `no-shard-branch` needs no type information from
+oxlint's JS-plugin API (R1-06, R2-17, R3-05).
 Rollback: `git revert`.
 
 **Size.** S.
@@ -651,7 +729,7 @@ script reads the typed probe instead of `window.__world`.
    `src/player/meleeGeo.ts` lines 157-213: `RIDER` and `forearm()` (imported by nothing; the other 12 exports are used by
    `Sabre.ts`, `Spear.ts`, `nalati-grasslands/models/gear.ts`). `src/chunks/_template.ts` (146 lines; imported by
    nothing; `bake-chunk.mjs:39` and `bake-sky.mjs:24` only exclude it by name — drop `_template` from both regexes, which
-   re-stamps nothing since F1 step 7 made the bakers hash data, never source bytes (R1-20, R2-01); its
+   changes no baked byte, since F1 step 7 made every baker compare its output bytes (R1-20, R3-07); its
    role passes to Z1's `src/shards/_template/`; `ChunkDef.ts:16`'s comment points at `docs/SHARDS.md` instead).
    The 7 images under `src/explore/img/` that nothing shows (04 Q7, 13-lead-resolutions 04#7): `practice.jpg`,
    `models.webp`, `world.webp` (`extras.ts`'s ART glob preloads them; no code displays them) and
@@ -967,12 +1045,11 @@ with its old value (the old values are inlined as fixtures in the test file, tak
   src/shards`, and `grep -n "/src/entry.ts" index.html` prints the module script line.
 - `pnpm test`, `pnpm run typecheck`, `pnpm run lint`, `node scripts/check-css.mjs`, `pnpm exec vite build` exit 0;
   `lint/ratchet.json` has a count for every layer violation and `pnpm lint:ratchet` exits 0.
-- **Bakers bake the same bytes** (their stamps hash data, never source bytes, since F1 step 7; R1-20, R2-01): after
-  `pnpm exec vite build` on the moved tree, `git status --porcelain public/assets src` prints nothing (terrain, sky,
-  packs, generated modules unchanged); `node --import ./scripts/bake-loader.mjs scripts/bake-chunk.mjs --force` then
-  rewrites every `terrain.bin` / `terrain.json` byte-identical (`git status --porcelain public/assets` still prints
-  nothing: the moved code computes the same terrain); and `node --experimental-transform-types --import
-  ./scripts/bake-loader.mjs scripts/bake-navmesh.mjs --check` exits 0.
+- **Bakers bake the same bytes** (every baker bakes in full and compares its output bytes, since F1 step 7; R1-20,
+  R3-07): after `pnpm exec vite build` on the moved tree, `git status --porcelain public/assets src` prints nothing
+  (terrain, sky, packs, generated modules unchanged), and `node scripts/bake-check.mjs` exits 0 (every baker's
+  `--check`, the GPU bakers included, on the Mac: the moved code bakes the same terrain, sky, navmesh, cards and
+  textures).
 - The parity run (03 §10) is green on both lanes with **no** rename map (the move changes no system label, key or
   registry id).
 
@@ -1054,7 +1131,10 @@ clock with capture mode. Identical behaviour: the phase lists match today's unde
    as state transitions without removing them: `hud.entered` true → `play`, the title → `title`, the pause menu →
    `paused`, Explore → `explore`, the practice room → `practice`, the playgrounds → `playground`, death → `dead`,
    the loading screen → `loading`, a fatal fault → `error`. The flags stay the source of truth until X1 / X2 remove
-   them; `app.state` mirrors them and emits `'app.state'`. Parity: `app.state` sequence joins the fingerprint
+   them; `app.state` mirrors them and emits `'app.state'`. Each transition is set **synchronously where its flag
+   changes** (`Menu.open` / `Menu.close`, where `hud.entered` is set, the death and loading paths), never polled per
+   frame, so at
+   `tap.resumed` the state already reads `play` (03 §5.6; B3-16). Parity: `app.state` sequence joins the fingerprint
    (`boot.appStates`, exact).
 4. **Events.** `src/engine/events/` with 01 §3's `Events` (`emit` queued per phase, `on`, `ask`, `answer`) and
    `EventMap` / `AskMap` / `TagMap` for declaration merging. F8 declares only the engine events it emits itself:
@@ -1145,14 +1225,20 @@ the full-screen error on a failed load. No hand-kept shard list anywhere.
    and `.gitignore` gains `src/**/*.generated.*` and `!src/**/ktx2.generated.ts`. `pnpm gen` (`scripts/gen.mjs`)
    writes all of them: `gen-shards.mjs`, the table writers `vite.config.ts` runs today (moved into `vite/gen.ts`,
    which the Vite plugin and the script both import) and `bake-packs.mjs` for `packs.generated.ts`.
-   **The KTX2 tables stay committed, one per shard (R2-04).** Today's `gpu.generated.ts` has one writer,
+   **The KTX2 tables stay committed, at most one per shard (R2-04, R3-08).** Today's `gpu.generated.ts` has one writer,
    `scripts/bake-ktx2.mjs`, which needs `basisu` (`:102`), and CI, Vercel and the gate runner don't have it. So
-   `bake-ktx2.mjs` (run on the Mac) splits it: one table per shard, `src/shards/<slug>/ktx2.generated.ts` (the rows
-   whose URL lies under that shard's allowlisted asset folders, F0 step 5), plus the engine's own,
-   `src/engine/boot/ktx2.generated.ts` (every other row). `gpuFiles.ts` reads the engine table, and the generated
-   registry (`shards.generated.ts`) imports each shard's table and hands it to `gpuFiles` at boot, so the engine never
-   imports a shard file. `pnpm gen` and the Vite plugin never touch the KTX2 tables. A content lane that bakes its
-   shard's KTX2 files commits its own shard's table (F0 step 5's allowlist), and the lead commits the engine's.
+   `bake-ktx2.mjs` (run on the Mac) splits it: one table per shard that has KTX2 rows,
+   `src/shards/<slug>/ktx2.generated.ts` (the rows whose URL lies under that shard's allowlisted asset folders, F0
+   step 5), plus the engine's own,
+   `src/engine/boot/ktx2.generated.ts` (every other row). `gpuFiles.ts` reads the engine table. **A shard's table is
+   optional (R3-08; B3-2):** a manifest whose shard has one declares `assets.ktx2: () => import('./ktx2.generated')`
+   (01 §6), and the level load awaits that thunk, when present, and hands the table to `gpuFiles` before the level's
+   first asset load, so the engine never imports a shard file. A shard with none (Z1's template, Z3's new shard before
+   its first KTX2 bake) declares no thunk and boots without a table; nothing imports a file that doesn't exist.
+   `bake-ktx2` writes a shard's KTX2 files under `public/assets/gpu/<slug>/**`, which is on F0 step 5's allowlist.
+   `pnpm gen` and the Vite plugin never touch the KTX2 tables. A content lane that bakes its shard's KTX2 files
+   commits its own shard's table (F0 step 5's allowlist) and adds the thunk to its manifest if it had none, and the
+   lead commits the engine's.
    **Every entry point generates first (R2-03).** `package.json`'s `"test"`, `"typecheck"` and `"lint"` each start
    with `pnpm gen &&`, because tsc and oxlint read the generated modules too, and `"build"` becomes `pnpm gen && tsc
    --noEmit && vite build`. CI's `deploy.yml` calls `pnpm run …`, so it generates first. `scripts/vercel-tree-gate.sh`
@@ -1160,7 +1246,11 @@ the full-screen error on a failed load. No hand-kept shard list anywhere.
    step to it before `typecheck`; without it the pre-push gate's clean checkout has no generated module and refuses
    every push (B2-3, C2-2). With the
    registry generated and the gate's matrix derived from it (03 §11.1), a new shard lands with **zero engine edits**:
-   no change under `src/engine`, `src/game`, `src/kit`, `lint`, `scripts` or `.github` (R1-11; 11 Z3).
+   no change under `src/engine`, `src/game`, `src/kit`, `lint`, `scripts` or `.github` (R1-11; 11 Z3), with exactly
+   these exceptions for the new shard's own work (R3-06; A3-6, B3-15): its own `scripts/blender/<slug>/**`; the hunks
+   that name the slug in the four line-scoped files of F0 step 5 (`scripts/blender/targets.json`, `art/README.md`,
+   `scripts/bake-ktx2.list.json`, `scripts/bake-ktx2.cache.json`); and its own `src/shards/<slug>/ktx2.generated.ts`,
+   the one generated file it commits.
    Each `manifest.ts` gets `export default` of its manifest (named exports stay for existing importers until they are
    rewritten in this row).
 2. `ShardManifest` gains `api: 1`. `src/game/shard/registry.ts` (today's `chunks/registry.ts`) becomes a thin module
@@ -1185,8 +1275,9 @@ the full-screen error on a failed load. No hand-kept shard list anywhere.
    the shard scope is disposed and `reportError({ kind: 'shard-load', shard, build, stage, stack })` is sent through
    `src/engine/core/errorReport.ts` (the `/api/errors` queue and Sentry when configured).
 
-**Tests added.** `test/gen-shards.test.ts` (a temp folder with a new `manifest.ts` appears in the output; `--check`
-fails on a stale file); `test/manifests-node-safe.test.ts` (imports every manifest in node with no `window`,
+**Tests added.** `test/gen-shards.test.ts` (a temp folder with a new `manifest.ts` and no `ktx2.generated.ts`
+appears in the output, which imports no KTX2 table, R3-08; `--check` fails on a stale file);
+`test/manifests-node-safe.test.ts` (imports every manifest in node with no `window`,
 `document` or `location` defined and asserts no throw — 01 §6's rule); `test/shard-load-failure.test.ts`
 (happy-dom: a manifest whose `render` rejects → the scope is disposed, the report is queued with shard and stage, the
 screen has the stack and a RELOAD button).
@@ -1195,16 +1286,16 @@ screen has the stack and a RELOAD button).
 - `grep -rn "CHUNKS\|PROTOTYPES\|TITLE_CARDS" src scripts` prints nothing.
 - `pnpm gen && node scripts/gen-shards.mjs --check` exits 0; the title deck, the 6 bakers and `unused-assets` read
   `SHARDS`.
-- `git ls-files 'src/**/*.generated.*'` prints only `ktx2.generated.ts` files: one per shard plus
-  `src/engine/boot/ktx2.generated.ts` (R2-04). On a fresh `git archive <the F9 sha>` export, with no `basisu` on the
+- `git ls-files 'src/**/*.generated.*'` prints only `ktx2.generated.ts` files: at most one per shard (each with its
+  manifest's `assets.ktx2` thunk) plus `src/engine/boot/ktx2.generated.ts` (R2-04, R3-08). On a fresh `git archive
+  <the F9 sha>` export, with no `basisu` on the
   `PATH`, `pnpm test`, `pnpm run typecheck` and `pnpm exec vite build` exit 0 (they generate first; R1-11,
   R2-04), and `bash scripts/vercel-tree-gate.sh` exits 0 on the F9 commit with no stamp for it (R2-03).
 - A planted `throw` in Nine Dragon's `render` thunk shows the error screen with the stack in the harness (plant
   `render-throw`, 03 §9), and the gate reports that shard red.
-- Parity green; bakers unchanged (R1-20, R2-01): F9 edits the bakers and every manifest, and the stamps hash data,
-  never source bytes (F1 step 7), so `git status --porcelain public/assets src` is empty after a build, and
-  `node --import ./scripts/bake-loader.mjs scripts/bake-chunk.mjs --force` rewrites every `terrain.bin` /
-  `terrain.json` byte-identical.
+- Parity green; bakers unchanged (R1-20, R3-07): F9 edits the bakers and every manifest, and every baker compares its
+  output bytes (F1 step 7), so `git status --porcelain public/assets src` is empty after a build, and `node
+  scripts/bake-check.mjs` exits 0.
 
 **Risks and rollback.** A manifest that reaches a module with import-time side effects breaks the node-safety test:
 the side effect moves behind a function (TP8's rule). Rollback: `git revert`.
@@ -1366,9 +1457,10 @@ store's contract test.
 - A save exported on Driftwood imports into a fresh browser context and restores purse, owned and progress (a
   Playwright check in `scripts/parity/combat.mjs`'s save step, run once, recorded in E357).
 
-**Milestone check, not a row done-when (R1-50).** On the physical iPhone home-screen app, Debug ▸ Loading & memory ▸
-storage shows `persisted: true`. It is Jake's one glance on the M1 checklist (05 §9), recorded in E357; F11 does not
-wait for it.
+**Milestone check, not a row done-when (R1-50).** In the iOS Simulator's home-screen web app (`scripts/sim-lane.sh
+run`, the ios-simulator skill), Debug ▸ Loading & memory ▸ storage shows `persisted: true`. It is the lead's check on
+the M1 checklist (05 §9), recorded in E357; there is no physical-iPhone step (decision 98, R3-11′). F11 does not wait
+for it.
 
 **Risks and rollback.** A native install loses its saves because the mirror prefix changed: the reset is deliberate
 (decision 13); the risk is losing OTA state, which the `ws.ota.*` rule protects, with a test. Rollback: `git revert`;
@@ -1465,12 +1557,13 @@ rebuilds that piece's collider on change. Rollback: two commits (colliders, host
 3. Fix API changes inside `src/engine/physics/` only.
 4. Re-bake the navmesh only if `bake-navmesh.mjs --check` reports stale (it should not: the navmesh is baked from
    colliders, not from Rapier's solver).
-5. **The iPhone reading is on the M1 checklist (05 §9), not this row's done-when (R1-50).** At M1, on the M1 build
-   (the Vercel preview candidate or the pinned production, 12 §3), Jake loads Nine Dragon (the fragile phone boot)
-   and Pine Hollow (the largest phone pack) on his iPhone 17 Pro, plays 60 s in each, and sends each reading **in the
-   chat** (R1-17): the lead asks with AskUserQuestion carrying the reading template (shard; build id; reached play
-   yes / no; WebContent crash yes / no; Debug ▸ Performance ▸ RUN PROBE's text, copied with the panel's COPY button,
-   `src/ui/Perf.ts:61`), and records both answers in E357. The in-game inbox isn't used for it.
+5. **A Simulator load reading, on the M1 checklist (05 §9), not this row's done-when (R1-50; decision 98, R3-11′:
+   no physical-iPhone reading).** At M1, on the M1 build, the lead loads Nine Dragon (the fragile phone boot) and Pine
+   Hollow (the largest phone pack) in the iOS Simulator: `scripts/sim-lane.sh run --max 40 wildshard-iphone node
+   scripts/sim-memory.mjs --url=<the served M1 build> --shards=nine-dragon-stack,pine-hollow` (03 §14.1: loading, then
+   60 s of play). Both must reach play with no WebContent crash; the loading and play peaks are recorded in E357 with
+   the build id, against 1.8 GB / 1.0 GB (decimal; decision 31), and a peak over a limit stops the line like a red
+   nightly (12 §8; R1-53).
 
 **Tests added.** None new; F5's and the physics tests (`test/physics*`, 14 files) must pass unchanged.
 
@@ -1479,7 +1572,7 @@ rebuilds that piece's collider on change. Rollback: two commits (colliders, host
 - `node --experimental-transform-types --import ./scripts/bake-loader.mjs scripts/bake-navmesh.mjs --check` exits 0.
 - Parity green on both lanes with no rename map, or green after a pure numeric walk drift is re-baselined (Risks
   below; R1-52).
-- The physical-iPhone reading of step 5 is an M1 checklist item (R1-50), not a condition of this row.
+- The Simulator load reading of step 5 is an M1 checklist item (R1-50, R3-11′), not a condition of this row.
 
 **Risks and rollback.** The wasm grows 732 → 1,145 KB gz (E357 handoff, engine-fit research): +413 KB on every cold
 load, accepted by Jake (decision 89), against Driftwood's 30 s Fast-4G cap that the scorecard already reads at 23.7 s. The parity boot fingerprint's
