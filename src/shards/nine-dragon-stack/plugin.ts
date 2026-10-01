@@ -4,6 +4,7 @@ import { type NineDragonWorld, buildNineDragonWorld } from './world/build';
 import { installWorld } from './world/install';
 import { installSpecimenLight } from './look/specimenLight';
 import { installAudio } from './audio/ambience';
+import { STRINGS } from './strings';
 
 type WorldBuilder = (ctx: ShardContext) => Promise<{ world: NineDragonWorld; camera: PerspectiveCamera }>;
 
@@ -26,6 +27,7 @@ export class NdPlugin extends ShardPlugin {
     this.build = build;
   }
   override async world(ctx: ShardContext): Promise<void> {
+    ctx.strings(STRINGS);
     const { world, camera } = await this.build(ctx);
     if (ctx.scope.disposed) throw new Error('Nine Dragon was unloaded during its world build');
     const rt = installWorld(ctx, world, camera);

@@ -15,7 +15,7 @@ export class PlayerHealth implements Actor {
   readonly attributes: HealthAttributes = { health: 100, maxHealth: 100, incomingCap: Infinity };
   lastHurt = 0;
   cause: DeathCause | undefined;
-  private lifecycle: { fading: () => boolean; updateFade: (dt: number) => void; died: (cause: DeathCause | undefined, checkpoint: boolean) => void } | null = null;
+  private lifecycle: { fading: () => boolean; updateFade: (dt: number) => void } | null = null;
   bindLifecycle(ports: NonNullable<PlayerHealth['lifecycle']>): void { this.lifecycle = ports; }
   private readonly events: Events;
   private readonly ports: PlayerHealthPorts;
@@ -45,12 +45,10 @@ export class PlayerHealth implements Actor {
     if (a.health > 0) return;
     const cause = this.cause;
     a.health = a.maxHealth;
-    this.events.emit('player.died', cause === undefined ? {} : { cause });
     const answer: unknown = this.events.ask('death.checkpoint', cause === undefined ? {} : { cause });
     const checkpoint = answer === true;
-    this.lifecycle?.died(cause, checkpoint);
+    this.events.emit('player.died', { actor: this, checkpoint, ...(cause === undefined ? {} : { cause }) });
     this.cause = undefined;
-    this.events.emit('player.respawned', { at: this.ports.position().clone(), checkpoint });
   }
   /** Encounter answerers preserve the old short-circuit: an earlier accepted checkpoint wins. */
   checkpoint(scope: Scope, answer: () => boolean, active: () => boolean = () => true): void {

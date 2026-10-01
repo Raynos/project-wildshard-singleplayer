@@ -1,3 +1,5 @@
+import { sourceMultiplier } from '#engine';
+import { NALATI_SOURCE_MULTIPLIERS, goldenSourceTags } from './effects';
 import * as THREE from 'three';
 import type { Bow } from '#engine/player/Bow';
 import { isMesh } from '#engine/player/Crossbow';
@@ -86,8 +88,8 @@ export class GoldenBow {
     const prevMul = bow.damageMultiplier;
     bow.damageMultiplier = (hit) => {
       const base = prevMul?.(hit) ?? 1;
-      const balbal = hit.animal.kind === 'balbal' || hit.animal.kind === 'kurgan-balbal';
-      return base * (balbal ? (this.sunShot ? 3 : 2) : 1);
+      return base * sourceMultiplier(NALATI_SOURCE_MULTIPLIERS, { weaponTags: ['weapon.golden-bow'],
+        sourceTags: goldenSourceTags(this.sunShot), targetTags: [`creature.${hit.animal.kind}`] });
     };
   }
 

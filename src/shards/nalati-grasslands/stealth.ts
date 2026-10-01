@@ -1,3 +1,5 @@
+import { EffectService, sourceMultiplier, type EffectTarget } from '#engine';
+import { SNEAK_SHOT, NALATI_SOURCE_MULTIPLIERS } from './weapons/effects';
 import type { Player } from '#engine/player/Player';
 import type { Wildlife } from '#engine/entities/Wildlife';
 import type { TargetHit } from '#engine/player/Crossbow';
@@ -58,7 +60,6 @@ const PACK_ALERT = 0.35;                 // a pack's awareness at which it leave
 const HERD_ALERT = 0.45;                 // a horse's head-up level (Herd.ts ALERT_AT)
 const SENSE_RANGE = 90;                  // m — creatures further than this don't drive the pip
 const QUIET_RANGE = 40;                  // m — HIDDEN needs every animal this close under NOTICE
-const SNEAK_MUL = 2, SNEAK_WINDOW = 4;   // × damage for a shot loosed from HIDDEN, landing within this many s
 
 const EYE_OPEN = '<svg viewBox="0 0 24 24"><path d="M1.5 12c2.8-4.6 6.3-7 10.5-7s7.7 2.4 10.5 7c-2.8 4.6-6.3 7-10.5 7S4.3 16.6 1.5 12z" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="12" r="3.4" fill="currentColor"/></svg>';
 const EYE_HALF = '<svg viewBox="0 0 24 24"><path d="M1.5 12c2.8-4.6 6.3-7 10.5-7s7.7 2.4 10.5 7c-2.8 4.6-6.3 7-10.5 7S4.3 16.6 1.5 12z" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M3.5 10.5h17" stroke="currentColor" stroke-width="1.7"/><path d="M8.6 10.5a3.4 3.4 0 0 0 6.8 0z" fill="currentColor"/></svg>';
@@ -92,7 +93,8 @@ export class Stealth {
   private onT = 0; private offT = 0;
   private toggleReq = false; private ctrlDown = false;
   private t = 0;
-  private sneakShot = false; private sneakT = -1e9;
+  private readonly shotEffects = new EffectService([SNEAK_SHOT]);
+  private readonly shotTarget: EffectTarget = { attributes: {} };
   private threatX = 0; private threatZ = 0;
   private hinted = false;
   // DOM
@@ -156,9 +158,12 @@ export class Stealth {
     spear.damageMultiplier = (hit: TargetHit) => (prevSpear?.(hit) ?? 1) * this.sneakMultiplier();
   }
   /** a shot was loosed now (main's weapons.onFire): remember whether it left from HIDDEN */
-  noteShot(): void { this.sneakShot = this.state === 'hidden'; this.sneakT = this.t; }
+  noteShot(): void {
+    this.shotEffects.remove(this.shotTarget, SNEAK_SHOT.id);
+    if (this.state === 'hidden') this.shotEffects.apply(this.shotTarget, SNEAK_SHOT.id);
+  }
   /** × 2 for a shot loosed from HIDDEN (landing within SNEAK_WINDOW s), else 1 */
-  sneakMultiplier(): number { return this.sneakShot && this.t - this.sneakT < SNEAK_WINDOW ? SNEAK_MUL : 1; }
+  sneakMultiplier(): number { return sourceMultiplier(NALATI_SOURCE_MULTIPLIERS, { sourceTags: this.shotTarget.effectTags ?? [] }); }
 
   // ── the crouch: long grass, the toggle, what stands you up ──
   private crouchStep(dt: number): void {
@@ -184,6 +189,7 @@ export class Stealth {
 
   // ── detection → the eye pip ──
   update(dt: number, t: number): void {
+    this.shotEffects.update(Math.max(0, t - this.t));
     this.t = t;
     const p = this.player.position;
     const crouched = this.player.crouching;

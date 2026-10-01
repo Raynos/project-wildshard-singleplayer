@@ -11,6 +11,7 @@
  */
 import type { IconId } from '#engine/ui/icons';
 import type { OwnedId } from '#game/loot/Owned';
+import { DRIFTWOOD_EFFECTS, driftwoodAttributes } from './effects';
 
 /**
  * PRICES — coins are capped per enemy (Bounty.ts), so the island holds a fixed purse: one full clear of Driftwood is
@@ -63,11 +64,10 @@ export function buyGood(g: Good, owned: OwnedView & { grant: (id: OwnedId) => bo
 export const goodById = (id: OwnedId): Good | undefined => GOODS.find((g) => g.id === id);
 
 /** the sword's damage multiplier for the whetstones owned (0 · 1 · 2) */
-export const swordMul = (sharpen: number): number => (sharpen >= 2 ? 1.5 : sharpen >= 1 ? 1.25 : 1);
+export const swordMul = (sharpen: number): number => DRIFTWOOD_EFFECTS.find((def) => def.id === (sharpen >= 2 ? 'effect.whetstone.2' : sharpen >= 1 ? 'effect.whetstone.1' : ''))?.modifiers[0]?.value ?? 1;
 
 export const BASE_HEALTH = 100;
 /** max health: 100, +20 a sturdy heart (120 · 140), +10 for the first sea glass charm (the chime at 5 pieces, stage 3) */
 export function maxHealthOf(owned: OwnedView): number {
-  const hearts = owned.has('heart-2') ? 2 : owned.has('heart-1') ? 1 : 0;
-  return BASE_HEALTH + 20 * hearts + (owned.has('charm-1') ? 10 : 0);
+  return driftwoodAttributes(owned).attributes['maxHealth'] ?? BASE_HEALTH;
 }

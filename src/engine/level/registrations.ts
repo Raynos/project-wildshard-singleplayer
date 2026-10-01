@@ -5,7 +5,7 @@ import type { ContentRow, ContentRowMap, CreatureMaterialFactory, StringTable, T
 export class LevelRegistrations {
   private readonly rows = new Map<keyof ContentRowMap, Map<string, ContentRow>>();
   private readonly looks = new Map<string, CreatureMaterialFactory>();
-  private readonly tables: StringTable[] = [];
+  private readonly tables: { table: StringTable; scope: Scope }[] = [];
   private readonly schemas = new Map<string, TierKnobSchema>();
   private readonly kitScopes = new Set<Scope>();
   openKit(scope: Scope): void { this.kitScopes.add(scope); }
@@ -41,11 +41,20 @@ export class LevelRegistrations {
   }
   look(name: string): CreatureMaterialFactory | undefined { return this.looks.get(name); }
   strings(table: StringTable, scope: Scope): void {
-    this.tables.push(table);
-    scope.onDispose(() => { const at = this.tables.indexOf(table); if (at !== -1) this.tables.splice(at, 1); });
+    const entry = { table, scope };
+    this.tables.push(entry);
+    scope.onDispose(() => { const at = this.tables.indexOf(entry); if (at !== -1) this.tables.splice(at, 1); });
   }
-  text(key: string): string {
-    for (const table of [...this.tables].reverse()) { const value = table[key]; if (value !== undefined) return value; }
+  findText(key: string, scope?: Scope): string | undefined {
+    for (const entry of [...this.tables].reverse()) {
+      if (scope !== undefined && !entry.scope.belongsTo(scope)) continue;
+      const value = entry.table[key]; if (value !== undefined) return value;
+    }
+    return undefined;
+  }
+  text(key: string, scope?: Scope): string {
+    const value = this.findText(key, scope);
+    if (value !== undefined) return value;
     throw new Error(`Unknown string key: ${key}`);
   }
   knobs(schema: TierKnobSchema, scope: Scope): void {

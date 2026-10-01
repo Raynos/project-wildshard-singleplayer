@@ -1,3 +1,4 @@
+import { CombatCues } from '#engine';
 /**
  * Nalati's sound (row B16, the audio half): the steppe's creatures, hooves on the ground they cross, the stampede, the
  * grassland bed (wind in the grass by gust strength, the Kunes, the waterfall, the camp stove, larks / crickets), the
@@ -33,6 +34,8 @@ import { wildEnv } from '#engine/entities/wildEnv';
 import { lightLevel } from '#engine/world/DayClock';
 import { trailDistance } from '#engine/world/Heightfield';
 import { RIVER, BRIDGE, CAMP, SUMMER_YURTS, GLACIER, BROOK, riverMask, zoneAt } from './manifest';
+
+const surfaceOf = (surface: string | undefined): ImpactKind => surface === 'wood' || surface === 'flesh' ? surface : 'ground';
 
 export interface NalatiSound {
   bind: (audio: Audio, music?: Music) => void;
@@ -98,16 +101,36 @@ export function wireSound(nalati: Nalati, ctx: { player: Player; weather: Nalati
 
   // ── the kit: the bow's twang carries the draw's power; the spear's thrust vs throw is known only after onFire ──
   let thrustPending = false;
+  const cues = new CombatCues((id, opts) => {
+    if (audio === null) return false;
+    switch (id) {
+      case 'cue.bow.loose': return true; // powered twang is the loose callback, never a second shot sound
+      case 'cue.bow.loose.power': audio.bowTwang(opts.strength ?? 1); return true;
+      case 'cue.bow.draw': audio.bowDraw(); return true;
+      case 'cue.bow.full': audio.bowFullDraw(); return true;
+      case 'cue.bow.letdown': audio.bowLetDown(); return true;
+      case 'cue.spear.throw': audio.javelinThrow(); return true;
+      case 'cue.sabre.swing': audio.sabreSwing(); return true;
+      case 'cue.spear.thrust':
+        thrustPending = true;
+        queueMicrotask(() => { if (thrustPending) { thrustPending = false; audio?.spearThrust(); } });
+        return true;
+      case 'cue.arrow.hit': audio.arrowImpact(surfaceOf(opts.surface), opts.pan ?? 0, opts.gain ?? 1); return true;
+      case 'cue.javelin.hit': audio.javelinImpact(surfaceOf(opts.surface), opts.pan ?? 0, opts.gain ?? 1); return true;
+      case 'cue.sabre.hit': audio.sabreHit(surfaceOf(opts.surface), opts.pan ?? 0, opts.gain ?? 1); return true;
+      default: return false;
+    }
+  });
   const bindKit = (kit: NalatiKit): void => {
     const loose = kit.bow.onLoose;
-    kit.bow.onLoose = (power) => { loose?.(power); audio?.bowTwang(power); };
+    kit.bow.onLoose = (power) => { loose?.(power); kit.bow.chargeEvent('loose', power); cues.cue('cue.bow.loose.power', { strength: power }); };
     const thrown = kit.spear.onThrow;
-    kit.spear.onThrow = () => { thrown?.(); thrustPending = false; audio?.javelinThrow(); };
+    kit.spear.onThrow = () => { thrown?.(); thrustPending = false; cues.cue('cue.spear.throw'); };
     // H4's hold-to-draw: the limbs creak as you draw, click at full draw, ease back on a let-down (A1)
     const drawStart = kit.bow.onDrawStart, full = kit.bow.onFullDraw, letDown = kit.bow.onLetDown;
-    kit.bow.onDrawStart = () => { drawStart?.(); audio?.bowDraw(); };
-    kit.bow.onFullDraw = () => { full?.(); audio?.bowFullDraw(); };
-    kit.bow.onLetDown = () => { letDown?.(); audio?.bowLetDown(); };
+    kit.bow.onDrawStart = () => { drawStart?.(); kit.bow.chargeEvent('draw', 0); cues.cue('cue.bow.draw'); };
+    kit.bow.onFullDraw = () => { full?.(); kit.bow.chargeEvent('draw', 1); cues.cue('cue.bow.full'); };
+    kit.bow.onLetDown = () => { letDown?.(); kit.bow.chargeEvent('letdown'); cues.cue('cue.bow.letdown'); };
   };
 
   // ── self-wiring onto the shard's hooks (the integrator's index.ts calls wireSound once) ──
@@ -159,25 +182,8 @@ export function wireSound(nalati: Nalati, ctx: { player: Player; weather: Nalati
       amb = new SteppeAmbience(a);
       amb.onZone = (zone) => { score?.setSteppe({ zone }); };
     },
-    fire(id) {
-      if (!audio) return false;
-      if (id === 'cue.bow.loose') return true; // the twang comes with the loose's power (bindKit)
-      if (id === 'cue.sabre.swing') { audio.sabreSwing(); return true; }
-      if (id === 'cue.spear.thrust') {
-        // a throw calls onFire then onThrow in the same task: only a thrust is still pending after it
-        thrustPending = true;
-        queueMicrotask(() => { if (thrustPending) { thrustPending = false; audio?.spearThrust(); } });
-        return true;
-      }
-      return false;
-    },
-    impact(id, surface, pan, gain) {
-      if (!audio) return false;
-      if (id === 'cue.arrow.hit') { audio.arrowImpact(surface, pan, gain); return true; }
-      if (id === 'cue.javelin.hit') { audio.javelinImpact(surface, pan, gain); return true; }
-      if (id === 'cue.sabre.hit') { audio.sabreHit(surface, pan, gain); return true; }
-      return false;
-    },
+    fire(id) { return id.startsWith('cue.') && cues.cue(id as `cue.${string}`); },
+    impact(id, surface, pan, gain) { return id.startsWith('cue.') && cues.cue(id as `cue.${string}`, { surface, pan, gain }); },
     emit, event,
     counts: () => ({ ...audio?.counts }),
     get ambience() { return amb; },

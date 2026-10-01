@@ -1,7 +1,10 @@
 import type { EquipmentRow } from '#game';
 import { SWAP_GLYPHS } from '#kit';
 
+export const PINE_BOLT_HIT_STOP = { body: 0.035, head: 0.055, kill: 0.075 } as const;
+
 export const CROSSBOW: EquipmentRow = {
+  hitStop: PINE_BOLT_HIT_STOP,
   cues: {"fire": "cue.crossbow.fire", "reload": "cue.reload", "impact": "cue.projectile.hit"},
   "id": "weapon.crossbow",
   "legacySlot": "crossbow",
@@ -30,7 +33,8 @@ export const CROSSBOW: EquipmentRow = {
 };
 
 export const LONGBOW: EquipmentRow = {
-  cues: {"fire": "cue.longbow.loose", "reload": "cue.reload", "impact": "cue.projectile.hit"},
+  hitStop: PINE_BOLT_HIT_STOP,
+  cues: {"fire": "cue.longbow.loose", "reload": "cue.reload", "impact": "cue.projectile.hit", "charge": { "draw": "cue.longbow.draw" }},
   "id": "weapon.longbow",
   "legacySlot": "bow",
   "ui": {
@@ -57,6 +61,7 @@ export const LONGBOW: EquipmentRow = {
 };
 
 export const LEVER: EquipmentRow = {
+  hitStop: PINE_BOLT_HIT_STOP,
   cues: {"fire": "cue.lever.fire", "reload": "cue.lever.reload", "impact": "cue.projectile.hit", "dry": "cue.lever.dry"},
   "id": "weapon.lever",
   "legacySlot": "rifle",

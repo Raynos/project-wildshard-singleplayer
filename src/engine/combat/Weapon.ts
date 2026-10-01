@@ -1,5 +1,6 @@
 import type { Vector3, Matrix4 } from 'three';
 import { Equipment, type WeaponId, type EquipmentRow, type EquipContext } from './Equipment';
+import type { WeaponChargePhase } from './cues';
 
 export type ImpactSurface = 'wood' | 'ground' | 'flesh';
 export interface ViewFrame { matrixWorld: Matrix4; getWorldDirection: (dir: Vector3) => Vector3 }
@@ -46,6 +47,9 @@ export abstract class Weapon extends Equipment implements WeaponHooks {
   get hasAmmo(): boolean { return this.row.ui.ammo !== undefined; }
   get ammoLabel(): string { return this.row.ui.ammo?.label ?? ''; }
   get segments(): number { return this.row.ui.ammo?.segments ?? 0; }
+  chargeEvent(phase: WeaponChargePhase, value?: number): void {
+    this.equipEvents?.emit('weapon.charge', { id: this.row.id, phase, ...(value === undefined ? {} : { value }) });
+  }
   abstract tryFire(): void;
   reload(): void { /* Melee weapons and tools have no reload action. */ }
   addBolts(_n: number): void { /* Ammo families override the refill. */ }

@@ -1,4 +1,5 @@
-import { saves, type EquipmentService } from '#engine';
+import { saves, CombatCues, type EquipmentService } from '#engine';
+import { pineCombatCues } from '../audio/combatCues';
 import * as valibot from 'valibot';
 import * as THREE from 'three';
 import type { Sky } from '#engine/world/Sky';
@@ -8,7 +9,7 @@ import { QUIVER_MAX, type Longbow } from '#engine/player/Longbow';
 import type { Inventory } from '#game/Inventory';
 import type { HUD } from '#engine/ui/HUD';
 import type { Audio } from '#engine/audio/Audio';
-import type { PineHollowSfx, PhShot } from '../audio/sfx';
+import type { PineHollowSfx } from '../audio/sfx';
 import { BOLT_KINDS, BOLT_LABEL, BOLT_NAME, POUCH_MAX, Quiver, boltDamage, boltFlight, type AmmoKind, type BoltKind } from './ammo';
 import type { Owned } from '#game/loot/Owned';
 
@@ -168,30 +169,25 @@ export function installPineLoadout(h: PineLoadoutHost): PineLoadout {
   }, true);
 
   // ── sounds (chained over main.ts's: the held weapon decides) ──
-  const shot = (name: PhShot, gain = 1): boolean => sfx?.shot(name, { gain }) ?? false;
+  const cues = new CombatCues(pineCombatCues({
+    shot: (name, opts) => sfx?.shot(name, opts) ?? false, stony,
+    later: (fn, seconds) => { window.setTimeout(fn, seconds * 1000); }, echoDelay: ECHO_DELAY, echoGain: ECHO_GAIN,
+  }));
   const prevFire = weapons.onFire;
-  weapons.onFire = () => {
-    const cue = weapons.current.row.cues?.fire;
-    if (cue === 'cue.lever.fire' && shot('leverShot')) { window.setTimeout(() => { shot('leverEcho', ECHO_GAIN); }, ECHO_DELAY * 1000); return; }
-    if (cue === 'cue.longbow.loose' && shot('longbowLoose')) return;
-    prevFire?.();
-  };
+  weapons.onFire = () => { if (!cues.fire(weapons.current.row)) prevFire?.(); };
   const prevReload = weapons.onReloadStart;
-  weapons.onReloadStart = () => { if (weapons.current.row.cues?.reload !== 'cue.lever.reload') prevReload?.(); }; // the lever gun's reload is its rounds (onRoundIn), not the AR's magazine
-  rifle.onCycle = () => { shot('leverCycle'); };
-  rifle.onRoundIn = () => { if (!shot('leverRoundIn', 0.9)) audio.dryFire(); };
-  // the lever gun's hammer on an empty chamber (the crossbow keeps Audio's latch click)
-  const prevDry = weapons.onDry;
-  weapons.onDry = () => { if (weapons.current.row.cues?.dry === 'cue.lever.dry' && shot('leverDry')) return; prevDry?.(); };
-  // a bolt / arrow / round on stone (a crag, a boulder, the cave): the crack and the ricochet instead of main.ts's ground thud.
-  // The impact point is on the surface, so a short probe through it on each axis in turn meets what was hit.
-  const prevImpact = weapons.onImpact;
-  weapons.onImpact = (surface, point) => {
-    if (surface === 'ground' && stony(point) && sfx?.shot('boltImpact-rock', { at: point }) === true) return;
-    prevImpact?.(surface, point);
+  weapons.onReloadStart = () => { if (!cues.reload(weapons.current.row)) prevReload?.(); };
+  rifle.onCycle = () => { cues.cue('cue.lever.cycle'); };
+  rifle.onRoundIn = () => {
+    weapons.events?.emit('weapon.reload', { id: rifle.row.id, phase: 'round' });
+    if (!cues.cue('cue.lever.round')) audio.dryFire();
   };
-  longbow.onDrawStart = () => { shot('longbowDraw', 0.8); };
-  longbow.onRecover = (ok) => { hud.toast(ok ? 'Arrow recovered' : 'Arrow broke'); };
+  const prevDry = weapons.onDry;
+  weapons.onDry = () => { if (!cues.cue(weapons.current.row.cues?.dry ?? 'cue.dry')) prevDry?.(); };
+  const prevImpact = weapons.onImpact;
+  weapons.onImpact = (surface, point) => { if (!cues.impact(weapons.current.row, { surface, point })) prevImpact?.(surface, point); };
+  longbow.onDrawStart = () => { longbow.chargeEvent('draw'); cues.charge(longbow.row, 'draw'); };
+  longbow.onRecover = (ok) => { longbow.chargeEvent('recover', ok ? 1 : 0); hud.toast(ok ? 'Arrow recovered' : 'Arrow broke'); };
 
   // ── the longbow: the King's reward, and the lever-action: kept in Owned, never in a pack slot (E314 C) ──
   const keep = restoreKept(inventory, owned);

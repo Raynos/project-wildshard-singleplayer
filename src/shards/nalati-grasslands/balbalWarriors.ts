@@ -1,3 +1,5 @@
+import { balbalPiercing } from './weapons/effects';
+import { app } from '#engine';
 import * as THREE from 'three';
 import type { Animal } from '#engine/entities/Animal';
 import type { AnimalManager } from '#engine/entities/AnimalManager';
@@ -122,6 +124,7 @@ export class BalbalWarriors {
   private soilAcc = 0;
 
   constructor(private readonly ctx: BalbalWarriorsCtx) {
+    balbalCombat.isPiercing = balbalPiercing;
     this.debris = new NightParticles(ctx.scene, 'debris');
     for (let i = 0; i < 6; i++) this.wedges.push(new Wedge(ctx.scene, BALBAL_SLAM.cone));
     ctx.clock.onDusk(() => { this.wake(); });
@@ -185,7 +188,11 @@ export class BalbalWarriors {
 
   update(dt: number, _t: number, camera: THREE.PerspectiveCamera, renderer: THREE.WebGLRenderer, light: number): void {
     const k = this.kit;
-    if (k !== null) balbalCombat.melee = k.sabre.model.visible ? 'sabre' : k.spear.model.visible ? 'spear' : 'other';
+    if (k !== null) {
+      const equipment = app.equipment;
+      const id = equipment !== null && equipment.visible && !equipment.stowed ? equipment.current.row.id : undefined;
+      balbalCombat.melee = id === 'weapon.sabre' || id === 'weapon.naizagai' ? 'sabre' : id === 'weapon.spear' ? 'spear' : 'other';
+    }
     this.debris.light = Math.max(0.25, light);
     this.soilAcc += dt;
     const soilTick = this.soilAcc > 0.05; if (soilTick) this.soilAcc = 0;

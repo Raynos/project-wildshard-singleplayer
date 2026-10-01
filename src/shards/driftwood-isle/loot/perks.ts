@@ -12,19 +12,26 @@
  * defaults (×1, 0, ×1, false).
  */
 import type { OwnedId } from '#game/loot/Owned';
+import { DRIFTWOOD_EFFECTS } from './effects';
+
+const effect = (id: string) => {
+  const row = DRIFTWOOD_EFFECTS.find((def) => def.id === id);
+  if (row === undefined) throw new Error(`Missing keepsake effect ${id}`);
+  return row;
+};
 
 export interface OwnedReader { has: (id: OwnedId) => boolean }
 
 /** charm II: the dodge's cooldown × this (0.8 s today → 0.56 s) */
-export const CHARM_DODGE = 0.7;
+export const CHARM_DODGE = effect('effect.charm.2').modifiers[0]?.value ?? 1;
 /** the bear claw: the heavy's damage × this */
-export const CLAW_HEAVY = 1.2;
+export const CLAW_HEAVY = effect('effect.bear-claw').modifiers[0]?.value ?? 1;
 
 export const dodgeCooldownScale = (o: OwnedReader): number => (o.has('charm-2') ? CHARM_DODGE : 1);
 
 export const heavyMult = (o: OwnedReader): number => (o.has('bear-claw') ? CLAW_HEAVY : 1);
 
-export const dodgeGuard = (o: OwnedReader): boolean => o.has('boar-tusk');
+export const dodgeGuard = (o: OwnedReader): boolean => o.has('boar-tusk') && effect('effect.boar-tusk').grants?.includes('guard.dodge') === true;
 
 /** charm III's glow for the sky's `night` (0 day … 1 night): off until dusk is well in, full once it is dark */
 export function nightGlow(o: OwnedReader, night: number): number {

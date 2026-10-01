@@ -1,3 +1,5 @@
+import type { EffectDef } from '#engine';
+import { pineFinishEffect } from './effects';
 /**
  * Pine Hollow's FINISHES row on the Bag's GEAR (E314, Jake's pick C, art/loot/round-3-other-shards/board-1-pine-hollow.jpg):
  * every crossbow / lever-action finish (src/engine/player/Skins.ts) as a tap-to-wear card, the ones you don't own yet dim with
@@ -20,6 +22,8 @@ const FINISHES: readonly { id: SkinId; from: string }[] = [
   { id: 'ironhide', from: 'Old Ironhide' },
   { id: 'scarback-furnace', from: "Mott's stall" },
 ];
+
+export const PINE_FINISH_EFFECTS: readonly EffectDef[] = FINISHES.map(({ id }) => pineFinishEffect(id, SKINS[id].weapon));
 
 const WEAPON_WORD: Record<SkinDef['weapon'], string> = { crossbow: 'Crossbow', rifle: 'Lever-action' };
 

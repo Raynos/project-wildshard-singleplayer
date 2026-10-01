@@ -22,6 +22,7 @@ import type { LevelAdapters, LevelHooks } from '../level/context';
 import type { LevelSpec } from '../level/spec';
 import { CombatPipeline } from '../combat/pipeline';
 import type { PlayerHealth } from '../combat/health';
+import type { EffectService } from '../combat/effects/EffectService';
 
 interface StateHook { state: AppState; run: () => void }
 export type SystemsByPhase = Readonly<Record<Phase, readonly SystemSpec[]>>;
@@ -42,6 +43,12 @@ export class App {
   registerEquipment(equipment: EquipmentService, scope: Scope): void {
     this.equipmentByLevel.set(scope, equipment);
     scope.onDispose(() => { this.equipmentByLevel.delete(scope); });
+  }
+  private readonly effectsByLevel = new WeakMap<Scope, EffectService>();
+  get effects(): EffectService | null { return this.levelScope === null ? null : this.effectsByLevel.get(this.levelScope) ?? null; }
+  registerEffects(effects: EffectService, scope: Scope): void {
+    this.effectsByLevel.set(scope, effects);
+    scope.onDispose(() => { this.effectsByLevel.delete(scope); });
   }
   private readonly players = new WeakMap<Scope, PlayerHealth>();
   get player(): PlayerHealth | null { return this.levelScope === null ? null : this.players.get(this.levelScope) ?? null; }

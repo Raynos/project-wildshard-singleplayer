@@ -94,6 +94,8 @@ export interface KeepsakeHost<A extends KeepsakeAnimal> {
   music: { sting: (name: 'pickup' | 'death' | 'chunk') => void };
   /** the island's swords (wooden, iron): the claw's heavy and charm III's glow */
   swords: readonly { heavyMult: number; bladeGlow: number }[];
+  /** C5 applies the perks to live attributes once, before these presentation hooks. */
+  effectsManaged?: boolean;
   /** the body shadow (ShardManifest.bodyShadow): the worn hat and cape ride on it */
   body: BodyShadow | null;
   registry?: WorldRegistry | undefined;
@@ -148,8 +150,10 @@ export function installKeepsakes<A extends KeepsakeAnimal>(h: KeepsakeHost<A>): 
   const apply = (): void => {
     plaques?.setFilled('bear', owned.has('bear-claw'));
     plaques?.setFilled('boar', owned.has('boar-tusk'));
-    h.player.dodgeCooldownScale = dodgeCooldownScale(owned);
-    for (const s of h.swords) s.heavyMult = heavyMult(owned);
+    if (h.effectsManaged !== true) {
+      h.player.dodgeCooldownScale = dodgeCooldownScale(owned);
+      for (const s of h.swords) s.heavyMult = heavyMult(owned);
+    }
     dress();
   };
   apply();

@@ -1,5 +1,6 @@
 import type * as THREE from 'three';
 import type { Rng } from '../../core/rng';
+import type { DamageRequest } from '../../combat/pipeline';
 import type { HuntTuning } from '../AnimalManager';
 import type { Animal, AnimalState } from '../Animal';
 
@@ -263,7 +264,7 @@ export interface SpeciesDef {
   /** the species runs its own AI: called at 10 Hz instead of the manager's senses / flee / charge loop */
   think?: (a: Animal, ctx: ThinkCtx) => void;
   /** scale the damage of a hit by where it lands: (animal, hitPoint, blow direction) → multiplier (the crab's shell: 0.5 from the front) */
-  damageMul?: (a: Animal, hitPoint: THREE.Vector3, dir: THREE.Vector3) => number;
+  damageMul?: (a: Animal, hitPoint: THREE.Vector3, dir: THREE.Vector3, request?: DamageRequest) => number;
   /** custom rigs: seconds the corpse stays before it fades on its own (the sailor dissolves into droplets); omit = stays like any carcass */
   corpseFade?: number;
   /** self-lit eyes (linear rgb) × intensity — the Drowned Sailor's cyan stare; the eye material is per species */

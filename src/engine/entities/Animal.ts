@@ -947,7 +947,7 @@ function animalCombatActor(animal: Animal, model: AnimalModel): Actor {
       return _v.distanceToSquared(req.point) < (model.dims.headRadius * animal.scale + 0.06) ** 2;
     },
     ...(model.species.damageMul === undefined ? {} : {
-      damageMul: (req: DamageRequest) => model.species.damageMul?.(animal, req.point, req.dir) ?? 1,
+      damageMul: (req: DamageRequest) => model.species.damageMul?.(animal, req.point, req.dir, req) ?? 1,
     }),
     applyDamage: (req) => animal.applyFinalDamage(req.amount, req.point, req.dir),
   };

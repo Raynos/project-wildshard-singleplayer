@@ -1,4 +1,4 @@
-import type { EffectDef, SourceMulDef, CombatTag } from '#engine';
+import type { EffectDef, SourceMulDef, CombatTag, DamageRequest } from '#engine';
 
 export const SNEAK_SHOT: EffectDef = {
   id: 'effect.sneak-shot', kind: 'timed', duration: 4, stacking: 'refresh', tags: [],
@@ -14,3 +14,7 @@ export const nalatiSkinEffect = (id: string, slot: string): EffectDef => ({
   grants: [`cosmetic.skin.${id}`], group: `skin.${slot}`,
 });
 export const goldenSourceTags = (sun: boolean): readonly CombatTag[] => sun ? ['arrow.sun'] : [];
+/** Untagged ranged adapters retain their held-slot rule until S2's source migration. */
+export const balbalPiercing = (request: DamageRequest | undefined): boolean | undefined =>
+  request === undefined || request.sourceTags.includes('dmg.legacy') ? undefined
+    : request.sourceTags.includes('weapon.spear') || request.sourceTags.includes('weapon.javelin');

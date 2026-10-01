@@ -1,5 +1,6 @@
 import * as v from 'valibot';
-import { saves } from '#engine';
+import { saves, EffectService, type EffectTarget } from '#engine';
+import { nalatiSkinEffect } from './effects';
 import * as THREE from 'three';
 import type { Animal } from '#engine/entities/Animal';
 import type { Bow } from '#engine/player/Bow';
@@ -46,6 +47,8 @@ export const NALATI_SKINS: readonly NalatiSkinDef[] = [
 const byId = (id: string): NalatiSkinDef | undefined => NALATI_SKINS.find((s) => s.id === id);
 
 export class NalatiSkinLocker {
+  readonly effects = new EffectService(NALATI_SKINS.map((skin) => nalatiSkinEffect(skin.id, skin.slot)));
+  readonly effectTarget: EffectTarget = { attributes: {} };
   readonly owned = new Set<string>();
   readonly worn: Partial<Record<NalatiSkinSlot, string>> = {};
   /** bumps on every change (the painter re-applies) */
@@ -64,9 +67,14 @@ export class NalatiSkinLocker {
         }
       }
     } catch { /* a fresh locker */ }
+    this.syncEffects();
   }
 
+  private syncEffects(): void {
+    this.effects.sync(this.effectTarget, Object.values(this.worn).map((id) => ({ id: `effect.skin.${id}` })));
+  }
   private save(): void {
+    this.syncEffects();
     this.version++;
     try { savedSlot.write({ owned: [...this.owned], worn: this.worn }, 'nalati-grasslands'); } catch { /* not persisted */ }
     this.onChange?.();
@@ -153,7 +161,7 @@ export class NalatiSkinPainter {
             base = { color: m.color.clone(), emissive: m.emissive.clone(), ei: m.emissiveIntensity };
             this.steel.set(m, base);
           }
-          const irbis = this.locker.wearing('sabre') === 'irbis-sabre';
+          const irbis = this.locker.effects.has(this.locker.effectTarget, 'cosmetic.skin.irbis-sabre');
           if (irbis) { m.color.copy(FROST); m.emissive.copy(FROST_GLOW); m.emissiveIntensity = 1; }
           else if (this.t.naizagai()) { m.color.copy(STORM_BLUE); m.emissive.copy(STORM_GLOW); m.emissiveIntensity = 1; }
           else { m.color.copy(base.color); m.emissive.copy(base.emissive); m.emissiveIntensity = base.ei; }
@@ -161,11 +169,11 @@ export class NalatiSkinPainter {
       });
     }
     if (bow !== null) {
-      bow.setStyle(this.locker.wearing('bow') === 'sky-wolf-bow' ? 'sky-wolf' : this.t.golden() ? 'golden' : 'recurve');
+      bow.setStyle(this.locker.effects.has(this.locker.effectTarget, 'cosmetic.skin.sky-wolf-bow') ? 'sky-wolf' : this.t.golden() ? 'golden' : 'recurve');
       const am = bow.arrows.mesh.material;
       if (am instanceof THREE.MeshLambertMaterial) {
         this.arrowBase ??= am.color.clone();
-        am.color.copy(this.locker.wearing('arrows') === 'storm-wing-arrows' ? GOLD_ARROW : this.arrowBase);
+        am.color.copy(this.locker.effects.has(this.locker.effectTarget, 'cosmetic.skin.storm-wing-arrows') ? GOLD_ARROW : this.arrowBase);
       }
     }
   }

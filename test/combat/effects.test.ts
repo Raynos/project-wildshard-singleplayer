@@ -1,10 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { EffectService } from '#engine/combat/effects/EffectService';
 import { sourceMultiplier, type EffectTarget, type EffectDef } from '#engine/combat/effects/types';
-import { DRIFTWOOD_EFFECTS, driftwoodAttributes } from '#shards/driftwood-isle/loot/effects';
-import { SNEAK_SHOT, NALATI_SOURCE_MULTIPLIERS, nalatiSkinEffect } from '#shards/nalati-grasslands/weapons/effects';
+import { DRIFTWOOD_EFFECTS, driftwoodAttributes, bindDriftwoodEffects } from '#shards/driftwood-isle/loot/effects';
+import { SNEAK_SHOT, NALATI_SOURCE_MULTIPLIERS, nalatiSkinEffect, balbalPiercing } from '#shards/nalati-grasslands/weapons/effects';
 import { AMMO_ROWS, PINE_AMMO_EFFECTS, PINE_SOURCE_MULTIPLIERS, pineFinishEffect } from '#shards/pine-hollow/loadout/effects';
 import { Scope } from '#engine/app/scope';
+import { Vector3 } from 'three';
+import { PlayerHealth } from '#engine/combat/health';
+import type { DamageRequest } from '#engine/combat/pipeline';
 import { Events } from '#engine/events/events';
 import type { OwnedId } from '#game/loot/Owned';
 
@@ -76,5 +79,33 @@ describe('E357 effect core, current E1–E14 rows', () => {
     events.flush('update'); expect(log).toContain('removed:effect.test');
     effects.apply(target, def.id); scope.dispose(); expect(target.attributes['speed']).toBe(20); expect(target.effectTags).toEqual([]);
     effects.apply(target, def.id); expect(effects.active(target)).toEqual([]);
+  });
+});
+
+describe('live effect bindings', () => {
+  it('purchases preserve wounds, repeated saves do not heal and both swords use their original bases', () => {
+    const ids = new Set<OwnedId>(), listeners = new Set<() => void>(), scope = new Scope('live-effects'), events = new Events();
+    const owned = { has: (id: OwnedId) => ids.has(id), onChange: (fn: () => void): (() => void) => { listeners.add(fn); return () => { listeners.delete(fn); }; } };
+    const health = new PlayerHealth(events, { now: () => 0, dodging: () => true, dodgeGuard: () => false, position: () => new Vector3() });
+    const player = { dodgeCooldownScale: 1 }, swords = [12, 28].map((damage) => ({ attributes: {}, damage, heavyMult: 1 }));
+    const effects = new EffectService(DRIFTWOOD_EFFECTS, scope, events);
+    health.attributes.health = 70;
+    bindDriftwoodEffects({ effects, scope, owned, health, player, swords, hitCap: 20, slug: 'driftwood-isle' });
+    for (const id of ['heart-2', 'charm-1', 'charm-2', 'boar-tusk', 'whetstone-2', 'bear-claw'] as const) ids.add(id);
+    for (const notify of listeners) notify();
+    expect(health.attributes).toMatchObject({ health: 120, maxHealth: 150, incomingCap: 20 });
+    expect(player.dodgeCooldownScale).toBe(0.7); expect(health.state).toContain('guard.dodge');
+    expect(swords.map((sword) => [sword.damage, sword.heavyMult])).toEqual([[18, 1.2], [42, 1.2]]);
+    health.attributes.health = 80; for (const notify of listeners) notify(); expect(health.attributes.health).toBe(80);
+    scope.dispose(); expect(listeners.size).toBe(0); expect(health.effectTags).toEqual([]);
+    expect(swords.map((sword) => [sword.damage, sword.heavyMult])).toEqual([[12, 1], [28, 1]]);
+  });
+  it('tagged R7 sources select the piercing rule independently of the held-slot legacy adapter', () => {
+    const health = new PlayerHealth(new Events(), { now: () => 0, dodging: () => false, dodgeGuard: () => false, position: () => new Vector3() });
+    const req: DamageRequest = { source: 'env', sourceTags: ['weapon.spear'], target: health, amount: 12, point: new Vector3(), dir: new Vector3() };
+    expect(balbalPiercing(req)).toBe(true);
+    expect(balbalPiercing({ ...req, sourceTags: ['weapon.javelin'] })).toBe(true);
+    expect(balbalPiercing({ ...req, sourceTags: ['weapon.sabre'] })).toBe(false);
+    expect(balbalPiercing({ ...req, sourceTags: ['dmg.legacy'] })).toBeUndefined();
   });
 });

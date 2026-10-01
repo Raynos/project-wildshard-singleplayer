@@ -4,6 +4,7 @@ import type { WeaponId, ToolId } from './Equipment';
 import type { Weapon, WeaponHooks, WeaponState, AimInfo } from './Weapon';
 import { Tool } from './Tool';
 import { EquipmentDomInput, type EquipmentInput } from '../input/equipmentInput';
+import type { Events } from '../events/events';
 
 const SWAP_TIME = 0.25, STOW_TIME = 0.25;
 
@@ -26,8 +27,10 @@ export class EquipmentService implements WeaponHooks {
 
   readonly tools: Tool[] = [];
   private readonly scope: Scope;
-  constructor(first: Weapon, opts: { scope?: Scope; input?: EquipmentInput; order?: WeaponId[] } = {}) {
+  readonly events: Events | undefined;
+  constructor(first: Weapon, opts: { scope?: Scope; events?: Events; input?: EquipmentInput; order?: WeaponId[] } = {}) {
     this.scope = opts.scope?.child('equipment') ?? new Scope('equipment');
+    this.events = opts.events;
     this.list = []; this.current = first; this.order = opts.order;
     this.add(first, { locked: false });
     const input = opts.input ?? new EquipmentDomInput(this.scope, () => this.current.inputAllowed());
@@ -39,16 +42,17 @@ export class EquipmentService implements WeaponHooks {
     }, this.scope);
   }
   private wire(w: Weapon): void {
-    w.onFire = () => this.onFire?.();
-    w.onHit = (k, h, d) => this.onHit?.(k, h, d);
-    w.onImpact = (surface, point) => this.onImpact?.(surface, point);
-    w.onReloadStart = () => this.onReloadStart?.();
-    w.onReloadEnd = () => this.onReloadEnd?.();
-    w.onDry = () => this.onDry?.();
+    // Compatibility callbacks keep existing source clocks; each boundary publishes once for new subscribers.
+    w.onFire = () => { this.events?.emit('weapon.fired', { id: w.row.id }); this.onFire?.(); };
+    w.onHit = (kind, headshot, killed) => { this.events?.emit('weapon.hit', { id: w.row.id, kind, headshot, killed }); this.onHit?.(kind, headshot, killed); };
+    w.onImpact = (surface, point) => { this.events?.emit('weapon.impact', { id: w.row.id, surface, point: point.clone() }); this.onImpact?.(surface, point); };
+    w.onReloadStart = () => { this.events?.emit('weapon.reload', { id: w.row.id, phase: 'start' }); this.onReloadStart?.(); };
+    w.onReloadEnd = () => { this.events?.emit('weapon.reload', { id: w.row.id, phase: 'end' }); this.onReloadEnd?.(); };
+    w.onDry = () => { this.events?.emit('weapon.dry', { id: w.row.id }); this.onDry?.(); };
   }
   add(w: Weapon | Tool, opts: { locked: boolean; order?: number }): void {
     if ([...this.list, ...this.tools].some((item) => item.row.id === w.row.id)) throw new Error(`Duplicate equipment ${w.row.id}`);
-    w.install({ scope: this.scope.child(w.row.id) });
+    w.install({ scope: this.scope.child(w.row.id), ...(this.events === undefined ? {} : { events: this.events }) });
     if (w instanceof Tool) this.tools.push(w);
     else {
       this.wire(w);
@@ -68,7 +72,7 @@ export class EquipmentService implements WeaponHooks {
     next.state.reloadProgress = previous.state.reloadProgress;
     next.state.ads = previous.state.ads;
     next.holster = previous.holster;
-    next.install({ scope: this.scope.child(next.row.id) }); this.wire(next);
+    next.install({ scope: this.scope.child(next.row.id), ...(this.events === undefined ? {} : { events: this.events }) }); this.wire(next);
     this.list[index] = next;
     if (this.current === previous) this.current = next;
     if (this.swapping?.from === previous) this.swapping.from = next;
@@ -126,6 +130,8 @@ export class EquipmentService implements WeaponHooks {
     if (this.unlocked.has(id) || !([...this.list, ...this.tools].some((w) => w.id === id))) return; // absent slots remain absent
     this.unlocked.add(id);
     this.apply();
+    const item = [...this.list, ...this.tools].find((w) => w.id === id);
+    if (item !== undefined) this.events?.emit('weapon.unlocked', { id: item.row.id });
     this.onUnlock?.(id);
   }
   /** what the player owned before the practice room lent the whole kit (null = no loan running) */
@@ -160,6 +166,7 @@ export class EquipmentService implements WeaponHooks {
     }
     this.swapping = { from: this.current, to, t: 0, switched: false };
     this.apply();
+    this.events?.emit('weapon.swap', { to: to.row.id });
     this.onSwap?.(id);
   }
   /** Select the next owned slot, if there is one. */

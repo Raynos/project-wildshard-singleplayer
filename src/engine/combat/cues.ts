@@ -1,13 +1,28 @@
 import type { Vector3 } from 'three';
 import type { CueOpts, CueMap } from '../audio/Cues';
-import type { EquipmentRow } from './Equipment';
+import type { EquipmentRow, EquipmentId } from './Equipment';
+import type { ImpactSurface } from './Weapon';
 import type { CueId } from './effects/types';
 
 export interface CombatCueOpts extends CueOpts {
-  point?: Vector3; dir?: Vector3; speed?: number; heavy?: boolean; killed?: boolean; clang?: boolean;
+  point?: Vector3; dir?: Vector3 | -1 | 1; speed?: number; heavy?: boolean; killed?: boolean; clang?: 'wood' | 'stone';
   headshot?: boolean; kind?: string; phase?: string;
 }
 export type CombatCueMap = (id: CueId, opts: CombatCueOpts) => boolean;
+export type WeaponChargePhase = 'heavy' | 'draw' | 'letdown' | 'loose' | 'throw' | 'brace-on' | 'brace-off' | 'recover';
+declare module '../events/maps' {
+  interface EventMap {
+    'weapon.fired': { id: EquipmentId; move?: string };
+    'weapon.hit': { id: EquipmentId; kind: string; headshot: boolean; killed: boolean };
+    'weapon.impact': { id: EquipmentId; surface: ImpactSurface; point: Vector3 };
+    'weapon.reload': { id: EquipmentId; phase: 'start' | 'end' | 'round' };
+    'weapon.dry': { id: EquipmentId };
+    'weapon.swap': { to: EquipmentId };
+    'weapon.unlocked': { id: EquipmentId };
+    'weapon.charge': { id: EquipmentId; phase: WeaponChargePhase; value?: number };
+    'tool.used': { id: EquipmentId; phase: string };
+  }
+}
 /** Content maps own literal sound taps; routing never creates a second sound-log source. */
 export class CombatCues {
   private readonly maps: readonly CombatCueMap[];

@@ -16,7 +16,7 @@ export const DRIFTWOOD_EFFECTS: readonly EffectDef[] = [
   permanent('effect.captain-hat', [], ['cosmetic.hat.captain']),
   permanent('effect.cape', [], ['cosmetic.cape']),
 ];
-interface OwnedEffects { has: (id: OwnedId) => boolean; worn?: (id: OwnedId) => boolean }
+interface OwnedEffects { has: (id: OwnedId) => boolean; worn?: (id: 'captain-hat' | 'cape') => boolean }
 export function driftwoodPlayerGrants(owned: OwnedEffects): { id: EffectId; stacks?: number }[] {
   const grants: { id: EffectId; stacks?: number }[] = [];
   const hearts = owned.has('heart-2') ? 2 : owned.has('heart-1') ? 1 : 0;
@@ -45,8 +45,9 @@ export function driftwoodAttributes(owned: OwnedEffects): { attributes: Attribut
 export function bindDriftwoodEffects(o: {
   effects: EffectService; scope: Scope; owned: OwnedEffects & { onChange: (fn: () => void) => () => void };
   health: PlayerHealth; player: { dodgeCooldownScale: number };
-  swords: readonly (EffectTarget & { damage: number; heavyMult: number })[]; hitCap: number;
+  swords: readonly (EffectTarget & { damage: number; heavyMult: number })[]; hitCap: number; slug: string;
 }): void {
+  if (o.slug !== 'driftwood-isle') return;
   const { effects, scope, health } = o;
   health.attributes['dodgeCooldownMul'] = 1;
   effects.bind(health, (previous) => {

@@ -2,6 +2,7 @@ import type { Scope } from '../app/scope';
 import type { AttributeSet, CueId } from './effects/types';
 import type { CombatTag } from './pipeline';
 import type { HitStopProfile } from './cues';
+import type { Events } from '../events/events';
 
 
 /** Hosts declare their slot, icon and touch-layout vocabularies without importing content into simulation. */
@@ -29,7 +30,7 @@ export interface EquipmentRow { cues?: EquipmentCues; hitStop?: HitStopProfile; 
 export interface EquipmentBlock { dispose: () => void }
 export type BlockSet = Partial<Record<'vm' | 'aim' | 'ads' | 'melee' | 'projectile' | 'hitStop' | 'ammo' | 'brass', EquipmentBlock>>;
 /** The scope is sufficient for the legacy families; block/input/combat ports expand as their migration rows land. */
-export interface EquipContext { scope: Scope }
+export interface EquipContext { scope: Scope; events?: Events }
 
 export abstract class Equipment {
   readonly attributes: AttributeSet = {};
@@ -39,6 +40,7 @@ export abstract class Equipment {
   abstract enabled: boolean;
   protected readonly blocks: BlockSet = {};
   private owner: Scope | undefined;
+  protected equipEvents: Events | undefined;
   row: EquipmentRow;
   constructor(row: EquipmentRow) { this.row = row; }
   get meta(): EquipmentMeta { return this.row.meta; }
@@ -46,6 +48,7 @@ export abstract class Equipment {
   install(ctx: EquipContext): void {
     if (this.owner) throw new Error(`Equipment ${this.row.id} is already installed`);
     this.owner = ctx.scope;
+    this.equipEvents = ctx.events;
     ctx.scope.onDispose(() => { this.enabled = false; for (const block of Object.values(this.blocks)) block.dispose(); });
   }
   abstract update(dt: number, t: number): void;

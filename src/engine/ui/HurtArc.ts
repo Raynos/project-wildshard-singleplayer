@@ -84,8 +84,9 @@ const VERB: Record<string, string> = {
  * where this shard puts you back (the death card's second line): `place` = the last named place you reached (E295,
  * src/game/LastPlace.ts `placeName`) when the shard has places and you have reached one; else the shard's spawn
  */
-export function respawnWhere(def: { slug: string; ocean?: unknown }, place?: string | null): string {
+export function respawnWhere(def: { slug: string; ocean?: unknown }, place?: string | null, defaultText?: string): string {
   if (place !== undefined && place !== null && place !== '') return `respawning at ${place}`;
+  if (defaultText !== undefined) return defaultText;
   if (def.ocean !== undefined) return 'washed back to the pier';
   if (def.slug === 'nalati-grasslands') return 'respawning on the north road';
   return 'respawning at the south gate';

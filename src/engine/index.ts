@@ -38,6 +38,7 @@ export type { ScoreSource, SetScore } from './audio/SetScore';
 export type { CuePlayer, CueMap, CueOpts } from './audio/Cues';
 export type { ZoneWeights } from './audio/AmbienceBeds';
 export type { LevelAudioProfile } from './audio/levelAudio';
+export type { IslandSfx } from './audio/IslandSfx';
 export type { MusicState } from './audio/Music';
 export { tap } from './core/harnessTap';
 export { castRay } from './physics/query';

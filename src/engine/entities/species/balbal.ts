@@ -1,3 +1,4 @@
+import type { DamageRequest } from '../../combat/pipeline';
 import * as THREE from 'three';
 import type { Rng } from '../../core/rng';
 import { registerSpecies, type AnimalSpecies, type BoneDef, type VariantDef, type RigAnimCtx, type ThinkCtx } from './registry';
@@ -38,7 +39,7 @@ import { heightAt } from '../../world/Heightfield';
 export const BALBAL = 'balbal';
 
 /** what the Nalati wiring tells the damage model every frame: the melee weapon in hand */
-export const balbalCombat: { melee: 'sabre' | 'spear' | 'other' } = { melee: 'other' };
+export const balbalCombat: { melee: 'sabre' | 'spear' | 'other'; isPiercing?: (request: DamageRequest | undefined) => boolean | undefined } = { melee: 'other' };
 
 const PALETTE = {
   stone: [0.6, 0.58, 0.53], stoneWarm: [0.65, 0.6, 0.53], stoneDark: [0.36, 0.35, 0.33], carve: [0.3, 0.29, 0.27],
@@ -432,13 +433,13 @@ function thinkBalbal(a: Animal, c: ThinkCtx): void {
 }
 
 /** the damage model (see the header) */
-function balbalDamageMul(a: Animal, hitPoint: THREE.Vector3): number {
+function balbalDamageMul(a: Animal, hitPoint: THREE.Vector3, _dir?: THREE.Vector3, request?: DamageRequest): number {
   const m = a.mem as BalbalMem;
   if (m.field === 1 && (m.rise ?? 1) < 0.6) return 0.25;          // still mostly in the ground
   const open = m.open === 1 ? 1.25 : 1;
   const ranged = Math.hypot(hitPoint.x - _player.x, hitPoint.z - _player.z) > 4.2;
   if (ranged) return 0.5 * open;
-  if (balbalCombat.melee === 'spear') {
+  if (balbalCombat.isPiercing?.(request) ?? balbalCombat.melee === 'spear') {
     // into the model's frame: undo the position, the heading and the scale
     _lp.copy(hitPoint).sub(a.position); _lp.y -= a.yOffset;
     const cos = Math.cos(-a.yaw), sin = Math.sin(-a.yaw);

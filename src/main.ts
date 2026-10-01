@@ -6,7 +6,7 @@ import { AR15 } from '#shards/nalati-grasslands/weapons/equipment';
 import { reportError } from '#engine/core/errorReport';
 import { showLoadFailure } from '#engine/ui/errorScreen';
 import { app } from '#engine/app/runtime';
-import { pageSeed, LevelLoadError, installBounds, EquipmentService, type WeaponId, type Weapon, type LevelContext } from '#engine';
+import { EffectService, CombatCues, pageSeed, LevelLoadError, installBounds, EquipmentService, type WeaponId, type Weapon, type LevelContext } from '#engine';
 import { shardContext, toLevelSpec, type ShardContext, type GameServices } from '#game';
 import { levelSequenceDriver, type LevelSequence } from '#game/shard/sequence';
 import { meleeShard, type ShardManifest } from '#game/shard/manifest';
@@ -69,7 +69,7 @@ import { WeaponStrip } from '#engine/ui/WeaponStrip';
 import { hudSlots } from '#engine/ui/hudSlots';
 import { WeaponPickup } from '#engine/player/WeaponPickup';
 import { SkinLocker, applySkin, clearSkin, crossbowDisplayModel, skinFor, type SkinDef } from '#engine/player/Skins';
-import { finishPick, pineFinishes } from '#shards/pine-hollow/loadout/finishes';
+import { PINE_FINISH_EFFECTS, finishPick, pineFinishes } from '#shards/pine-hollow/loadout/finishes';
 import { mottLine } from '#shards/pine-hollow/quest/trades';
 import { TouchControls } from '#engine/player/TouchControls';
 import { HUD } from '#engine/ui/HUD';
@@ -90,7 +90,9 @@ import { Owned } from '#game/loot/Owned';
 import { practiceRoom } from '#engine/core/practiceRoom';
 import { installLoot } from '#game/loot/install';
 import { installKeepsakes } from '#shards/driftwood-isle/loot/keepsakes';
-import { dodgeGuard } from '#shards/driftwood-isle/loot/perks';
+import { DRIFTWOOD_EFFECTS, bindDriftwoodEffects } from '#shards/driftwood-isle/loot/effects';
+import { sharedCombatCues } from '#kit/audio/combatCues';
+import { driftwoodCombatCues } from '#shards/driftwood-isle/audio/combatCues';
 import { installBodyShadow } from '#engine/player/BodyShadow';
 import { getNumber, onNumber, onSettingChange, setting } from '#engine/ui/Settings';
 import { dayClockClock, dayNightClock, setActiveClock } from '#engine/world/WorldClock';
@@ -101,6 +103,7 @@ import { HurtArc, deathCause, respawnWhere } from '#engine/ui/HurtArc';
 import { PlayerHealth } from '#engine/combat/health';
 import type { DeathCause } from '#engine/combat/pipeline';
 import { PlayerHurt } from '#engine/ui/playerHurt';
+import { installPlayerDeath } from '#engine/ui/playerDeath';
 import { WindupWarn } from '#engine/ui/WindupWarn';
 import { DeathFade } from '#engine/ui/DeathFade';
 import { FirstHints } from '#engine/ui/FirstHints';
@@ -645,7 +648,7 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   // Dragon (E314 A): nothing there can unlock it, so its kit is the Neon Jian alone (NINE_WEAPON_NAME)
   const isNine = chunk.slug === 'nine-dragon-stack';
   const ironSword = chunk.weapon === 'sword' && !isNine ? new Sword({ game, sky, player, forest }, targets, { row: SWORD_IRON, profile: SWORD_IRON, allowUnlocked: nolock, blade: 'iron', ...(ironArms ? { arms: ironArms } : {}) }) : null;
-  const weapons = new EquipmentService(crossbow, { scope: game.levelScope, ...(nalatiKit ? { order: ['bow', 'sabre', 'spear'] } : {}) });
+  const weapons = new EquipmentService(crossbow, { scope: game.levelScope, events: app.events, ...(nalatiKit ? { order: ['bow', 'sabre', 'spear'] } : {}) });
   for (const w of [...(rifle ? [rifle] : []), ...(nalatiKit?.extras ?? []), ...(ironSword ? [ironSword] : []), ...(longbow ? [longbow] : [])]) weapons.add(w, { locked: true });
   app.registerEquipment(weapons, game.levelScope);
   yield 'play';
@@ -693,9 +696,11 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   const owned = new Owned(getActiveChunk().slug);            // E314: upgrades, cosmetics, trophies, the found iron sword (src/game/loot/Owned.ts)
   const playerHealth = new PlayerHealth(app.events, {
     now: () => performance.now(), position: () => player.position,
-    dodging: () => player.dodging, dodgeGuard: () => dodgeGuard(owned),
+    dodging: () => player.dodging, dodgeGuard: () => false,
   });
   app.registerPlayer(playerHealth, game.levelScope);
+  const effects = new EffectService([...DRIFTWOOD_EFFECTS, ...PINE_FINISH_EFFECTS], game.levelScope, app.events);
+  app.registerEffects(effects, game.levelScope);
   playerHealth.attributes.incomingCap = chunk.fight?.maxHitDamage ?? Infinity;
   app.combat.playerRules(game.levelScope, { target: playerHealth, bossGod: params.has('bossGod'), capExempt: chunk.fight?.capExempt ?? [] });
   const harvested = new Set<object>();
@@ -775,32 +780,29 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   onNumber('volume', masterGain);
 
   const hands = new Hands(sky, game.camera, swimArms ?? null); // the swimming hands (shown only while player.swimming): the shard's arm rig swimming (Driftwood, E334), else white gloves
-  if (chunk.weapon === 'sword') (crossbow as Sword).onHeavy = () => { if (!isOcean) audio.swordHeavy(); }; // the charged overhead (EquipmentService does not forward it); the island's is swordEvents.onSwing
-  const fireCue: Readonly<Record<string, () => void>> = {
-    'cue.firearm.fire': () => audio.rifleFire(), 'cue.lever.fire': () => audio.rifleFire(),
-    'cue.crossbow.fire': () => audio.crossbowFire(), 'cue.longbow.loose': () => audio.crossbowFire(),
-    'cue.bow.loose': () => audio.crossbowFire(),
-    'cue.sabre.swing': () => { if (!isOcean) audio.swordSwing(); }, 'cue.spear.thrust': () => { if (!isOcean) audio.swordSwing(); },
-    'cue.sword.swing': () => { if (!isOcean) audio.swordSwing(); },
-  };
+  const combatCues = new CombatCues((id, opts) => {
+    const sound = nalatiNow()?.sound;
+    if (opts.surface !== undefined) {
+      const surface = opts.surface === 'wood' || opts.surface === 'flesh' ? opts.surface : 'ground';
+      return sound?.impact(id, surface, opts.pan ?? 0, opts.gain ?? 1) === true;
+    }
+    return sound?.fire(id) === true;
+  }, sharedCombatCues(audio, isOcean));
+  if (chunk.weapon === 'sword') (crossbow as Sword).onHeavy = () => { combatCues.cue(crossbow.row.cues?.heavy ?? 'cue.sword.heavy'); };
   // Content cue routing retains each weapon's existing sound source and fallback.
   weapons.onFire = () => {
-    const cue = weapons.current.row.cues?.fire;
-    if (cue !== undefined && nalatiNow()?.sound?.fire(cue) !== true) fireCue[cue]?.();
+    combatCues.fire(weapons.current.row);
     nalatiNow()?.onShot();
   };
-  weapons.onDry = () => audio.dryFire();
-  weapons.onReloadStart = () => { const cue = weapons.current.row.cues?.reload; if (cue === 'cue.firearm.reload' || cue === 'cue.lever.reload') audio.rifleReload(); else audio.reload(); };
-  weapons.onSwap = () => audio.weaponSwap();
+  weapons.onDry = () => { combatCues.cue(weapons.current.row.cues?.dry ?? 'cue.dry'); };
+  weapons.onReloadStart = () => { combatCues.reload(weapons.current.row); };
+  weapons.onSwap = () => { combatCues.cue('cue.swap'); };
   weapons.onImpact = (surface, point) => {
     if (surface !== 'flesh') arena.miss(point);
     const dx = point.x - player.position.x, dz = point.z - player.position.z, d = Math.hypot(dx, dz);
     const rx = Math.cos(player.yaw), rz = -Math.sin(player.yaw);
     const pan = d > 1 ? ((dx * rx + dz * rz) / d) * 0.7 : 0, gain = 1 / (1 + d / 12);
-    const cue = weapons.current.row.cues?.impact;
-    if (cue === undefined || nalatiNow()?.sound?.impact(cue, surface, pan, gain) !== true) {
-      if (weapons.current.row.ui.melee) { if (!isOcean) audio.swordHit(surface, pan, gain); } else audio.boltImpact(surface, pan, gain);
-    }
+    combatCues.impact(weapons.current.row, { surface, point, pan, gain });
     nalatiNow()?.onImpact(surface, point); // Nalati: an arrow landing by a herd / the flock spooks it
   };
   weapons.onHit = (_kind, headshot, killed) => {
@@ -856,12 +858,12 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   // rifle if you had not found it). What you own / wear persists; `?skin=ghost-stag` previews, `?drop=ironhide` spawns one ahead.
   const skinDrops: WeaponPickup[] = [];
   const weaponModel = (w: 'crossbow' | 'rifle') => (w === 'rifle' ? rifle?.model ?? null : crossbow instanceof Crossbow ? crossbow.model : null);
-  const wearSkin = (skin: SkinDef) => { const m = weaponModel(skin.weapon); if (m) applySkin(m, skin, sky); skins.wear(skin.weapon, skin.id); };
+  const wearSkin = (skin: SkinDef) => { const m = weaponModel(skin.weapon); if (m) { applySkin(m, skin, sky); effects.sync(weapons.get(skin.weapon), [{ id: `effect.finish.${skin.id}` }]); } skins.wear(skin.weapon, skin.id); };
   if (isPine) pineFinish = (id) => {
     const pick = finishPick(skins, id);
     if (!pick) return;
     if (pick.act === 'wear') { wearSkin(pick.skin); return; }
-    const m = weaponModel(pick.skin.weapon); if (m) clearSkin(m); skins.wear(pick.skin.weapon, null); // taken off: the plain weapon
+    const m = weaponModel(pick.skin.weapon); if (m) { clearSkin(m); effects.sync(weapons.get(pick.skin.weapon), []); } skins.wear(pick.skin.weapon, null); // taken off: the plain weapon
   };
   const spawnSkinDrop = (skin: SkinDef, at: THREE.Vector3) => {
     const item = skin.weapon === 'rifle' ? rifle?.displayModel() ?? null : crossbow instanceof Crossbow ? crossbowDisplayModel(crossbow, sky) : null;
@@ -901,11 +903,12 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   // E314 stage 1 (src/game/loot/install.ts): the purse + coin chip + kill coin bursts on a shard with `loot.coins` (Driftwood),
   // the Bag's GEAR extras and FINDS tab; chains onKill, so it comes after main's own onKill and the quests' chains
   let shopHold = 0;
+  const perkSwords = [crossbow, ironSword].filter((w): w is Sword => w instanceof Sword);
+  bindDriftwoodEffects({ effects, scope: game.levelScope, owned, health: playerHealth, player, swords: perkSwords, hitCap: chunk.fight?.maxHitDamage ?? Infinity, slug: chunk.slug });
   const loot = installLoot({ owned, chunk, game, player, camera: game.camera, animals, audio, menu, flags: adventure?.flags ?? null,
     // stage 2: the trader's shop and what it sells — sharper swords, a bigger heart (topped up by what it adds), the sea chart's marks
     trader: adventure?.trader ?? null, minimap, toast: (t) => { hud.toast(t); },
-    swords: [crossbow, ironSword].filter((w): w is Sword => w instanceof Sword),
-    setMaxHealth: (m) => { playerHealth.setMaxHealth(m); },
+    // Live C5 effects own sharpening and max health; loot owns purchases and map marks.
     hold: (on) => { // the shop screen releases the lock and the sword like Pine Hollow's slate; its close takes them back
       window.clearTimeout(shopHold);
       weapons.stowed = on;
@@ -921,7 +924,7 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
     ? installBodyShadow({ game, player, hidden: () => !hud.entered || practiceRoom.open || world.freeCamera || world.tour.active || explore?.active === true })
     : null;
   if (adventure !== null && isOcean) installKeepsakes({ owned, adventure, sky, game, player, animals, hud, audio, music, registry, body: bodyShadow,
-    swords: [crossbow, ironSword].filter((w): w is Sword => w instanceof Sword) });
+    swords: perkSwords, effectsManaged: true });
   for (const w of ['crossbow', 'rifle'] as const) { const s = skins.wearing(w); if (s) wearSkin(s); }
   new Combat(game, animals, weapons, game.camera); // health bars over animals + MMO-style damage / MISS floats (self-wiring); Combat only taps onFire / onImpact, which the manager forwards for every weapon
   // taking a hit (B3): the arc points at the attacker (src/engine/ui/HurtArc.ts), a hurt grunt panned toward it (Audio.hurt — it
@@ -943,13 +946,10 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   // the sword's combat layers on the island (S3 bank via IslandSfx; Pine Hollow has no sword): a whoosh per swing, an impact per blade
   // hit by material (+ a death bark), a clang where the blade meets a wall / trunk, each enemy wind-up's cue (C5)
   if (islandSfx) {
-    swordEvents.onSwing = (speed, heavy, dir) => { islandSfx.whoosh(speed, { heavy, dir }); };
-    swordEvents.onStrike = (kind, point, strength, killed) => {
-      islandSfx.impact(kind === 'crab' ? 'shell' : kind === 'sailor' ? 'wood' : 'flesh', strength, point);
-      const enemy = kind === 'boar' || kind === 'crab' || kind === 'monkey' || kind === 'sailor' ? kind : null;
-      if (killed && enemy !== null) islandSfx.vocal(enemy, point, 1.3);
-    };
-    swordEvents.onClang = (point, strength, clang) => { islandSfx.impact(clang, strength, point); }; // stone / wood by what the tip met (P5)
+    const islandCues = new CombatCues(driftwoodCombatCues(islandSfx));
+    swordEvents.onSwing = (speed, heavy, dir) => { islandCues.cue('cue.sword.swing', { speed, heavy, dir }); };
+    swordEvents.onStrike = (kind, point, strength, killed) => { islandCues.cue('cue.sword.hit', { kind, point, strength, killed }); };
+    swordEvents.onClang = (point, strength, clang) => { islandCues.cue('cue.sword.clang', { point, strength, clang }); }; // stone / wood by what the tip met (P5)
     animals.onWindup = (a) => { const e = a.kind === 'crab' ? 'crab' : a.kind === 'sailor' ? 'sailor' : a.kind === 'boar' || a.kind === 'bear' ? 'boar' : null; if (e !== null) islandSfx.windup(e, a.position); };
   }
   // E297 fight rules (Driftwood): an amber edge chevron toward an enemy winding up where you can't see it (src/engine/ui/WindupWarn.ts);
@@ -1062,13 +1062,14 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
     const stand = lastPlace?.stand ?? null;
     music.sting('death');
     player.carried = true; weapons.setEnabled(false); // frozen: the fixed step leaves the body alone, no swing / shot
-    deathFade.play(deathCause(by ?? null), respawnWhere(chunk, stand !== null && stand.id !== 'pier' ? placeName(stand.label) : null), {
+    deathFade.play(deathCause(by ?? null), respawnWhere(chunk, stand !== null && stand.id !== 'pier' ? placeName(stand.label) : null, app.levelRegistrations.findText('respawn.default', game.levelScope)), {
       dark: () => { if (stand !== null && stand.id !== 'pier') player.spawn(stand.x, stand.z, stand.yaw, stand.y); else toSpawn(); }, // the pier IS the spawn (E308: half way down it, facing the island)
       done: () => { player.carried = false; weapons.setEnabled(!player.swimming); },
     });
   };
-  playerHealth.bindLifecycle({
-    fading: () => deathFade.active, updateFade: (dt) => deathFade.update(dt),
+  playerHealth.bindLifecycle({ fading: () => deathFade.active, updateFade: (dt) => deathFade.update(dt) });
+  installPlayerDeath(app.events, game.levelScope, playerHealth, {
+    active: () => app.player === playerHealth, position: () => player.position,
     died: (cause, checkpoint) => {
       audio.death(); hud.damageFlash();
       if (ride?.mounted === true) ride.mount.dismount();

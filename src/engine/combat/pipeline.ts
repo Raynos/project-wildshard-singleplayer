@@ -38,7 +38,7 @@ declare module '../events/maps' {
   interface EventMap {
     'damage.dealt': DamageDealt;
     'actor.died': { actor: Actor; req: DamageRequest };
-    'player.died': { cause?: DeathCause };
+    'player.died': { actor: Actor; checkpoint: boolean; cause?: DeathCause };
     'player.respawned': { at: Vector3; checkpoint: boolean };
   }
   interface AskMap {

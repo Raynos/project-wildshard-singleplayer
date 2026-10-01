@@ -1,3 +1,5 @@
+import { sourceMultiplier } from '#engine';
+import { AMMO_ROWS, PINE_SOURCE_MULTIPLIERS } from './effects';
 /**
  * Pine Hollow's special ammunition (PINE-HOLLOW-REMASTER PH-C11, Jake's PH-U16: the trader swaps hides / antlers / resin
  * for special bolts and cartridges). Pure rules, no THREE / DOM (test/shards/pine-hollow/pine-loadout.test.ts); loadout.ts applies them.
@@ -36,14 +38,16 @@ export interface Flight { gravity: number; drag: number }
 /** the flight multipliers of a `kind` bolt with the rain at `rain` (0 dry … 1 a downpour) */
 export function boltFlight(kind: BoltKind, rain: number): Flight {
   const r = Math.min(1, Math.max(0, rain));
-  if (kind === 'pitch') return { gravity: 0.8, drag: 0.7 };
-  const base = kind === 'broadhead' ? { gravity: 1.08, drag: 1.1 } : { gravity: 1, drag: 1 };
+  const row = AMMO_ROWS.find((ammo) => ammo.id === `ammo.${kind}`);
+  if (row === undefined) throw new Error(`Unknown bolt ${kind}`);
+  const base = row.flight, wet = row.wet;
+  if (wet === undefined) return { ...base };
   return { gravity: base.gravity * (1 + WET_GRAVITY * r), drag: base.drag * (1 + WET_DRAG * r) };
 }
 
 /** × the damage model's number for a `kind` bolt landing in an animal of `animalKind` */
 export function boltDamage(kind: BoltKind, animalKind: string): number {
-  return kind === 'broadhead' && DEER_SIZED.has(animalKind) ? BROADHEAD_DEER : 1;
+  return sourceMultiplier(PINE_SOURCE_MULTIPLIERS, { sourceTags: [`ammo.${kind}`], targetTags: DEER_SIZED.has(animalKind) ? ['size.deer'] : [] });
 }
 
 /**

@@ -1,12 +1,12 @@
 import * as THREE from 'three';
 import type { Game } from '#engine/core/Game';
 import type { AnimalManager } from '#engine/entities/AnimalManager';
-import type { EquipmentService } from '#engine';
+import { resolveHitStop, type EquipmentService } from '#engine';
 import { worldHit } from '#engine/player/Crossbow';
 import { CameraFX } from '#engine/player/CameraFX';
 import { Impacts, type ImpactKind } from '#engine/fx/Impacts';
 import { GroundTell } from '#game/Elite';
-import { boltHitStop } from './combatMath';
+import { PINE_BOLT_HIT_STOP } from '../weapons/equipment';
 
 /**
  * Pine Hollow's COMBAT FEEL for the ranged kit (PINE-HOLLOW-REMASTER PH-F1): Driftwood's melee kit (Driftwood C2–C4:
@@ -41,7 +41,7 @@ export function installPineFeel(o: { game: Game; weapons: EquipmentService; anim
   const prevHit = weapons.onHit;
   weapons.onHit = (kind, headshot, killed) => {
     prevHit?.(kind, headshot, killed);
-    game.hitStop(boltHitStop(headshot, killed));
+    game.hitStop(resolveHitStop(weapons.current.row.hitStop ?? PINE_BOLT_HIT_STOP, headshot, killed));
     fx.kick(killed ? 0.9 : headshot ? 0.6 : 0.35, (Math.random() - 0.5) * (killed ? 1.2 : 0.6));
     if ((killed && BIG.has(kind)) || (headshot && kind === 'antler-king')) fx.addTrauma(killed ? 0.28 : 0.15);
   };

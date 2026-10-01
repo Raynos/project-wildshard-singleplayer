@@ -1,3 +1,4 @@
+import { installPlayerDeath } from '#engine/ui/playerDeath';
 import * as THREE from 'three';
 import { vi } from 'vitest';
 import { Events } from '#engine/events/events';
@@ -40,7 +41,8 @@ export function legacyHurtFixture({ cap = 20, tusk = false, guarded = false, bos
   const refill = vi.fn(), crossbow = { hasAmmo: true, state: { bolts: 12 }, addBolts: vi.fn() };
   const health = new PlayerHealth(events, { now: () => clock.now, position: () => player.position,
     dodging: () => player.dodging, dodgeGuard: () => tusk });
-  health.bindLifecycle({ fading: () => deathFade.active, updateFade: () => undefined, died: (cause, checkpoint) => {
+  health.bindLifecycle({ fading: () => deathFade.active, updateFade: () => undefined });
+  installPlayerDeath(events, scope, health, { position: () => player.position, died: (cause, checkpoint) => {
     audio.death(); hud.damageFlash(); if (!checkpoint) die(cause);
   } });
   health.attributes.incomingCap = cap;
