@@ -25,6 +25,7 @@ import { TEX_METRES, TEX_MEAN, isPhoneTier, type NalatiTexName } from './look/na
 import { V2_OLIVE_GLSL } from './look/light';
 import { LOOK_BAKE_GLSL, bakeUniforms, PHONE_STATIC_OFF_CSM } from './look/bake';
 import { SNOW_LINE, GLACIER } from './layout';
+import { PATCH_ORDER, patchShader } from '#engine';
 
 export type TerrainTextures = Record<'meadow' | 'path' | 'gravel' | 'rock' | 'snow', THREE.Texture>;
 
@@ -253,9 +254,7 @@ export function applyTerrainSurface(mat: THREE.Material, tex: TerrainTextures): 
     uTexScale: { value: new THREE.Vector4(1 / TEX_METRES.meadow, 1 / TEX_METRES.path, 1 / TEX_METRES.gravel, 1 / TEX_METRES.rock) },
     uSnowScale: { value: 1 / TEX_METRES.snow },
   };
-  const base = mat.onBeforeCompile.bind(mat);
-  mat.onBeforeCompile = (shader, renderer) => {
-    base(shader, renderer);
+  patchShader(mat, 'nalati.terrain', PATCH_ORDER.decorate, (shader) => {
     Object.assign(shader.uniforms, uniforms);
     Object.assign(shader.uniforms, bakeUniforms);
     shader.vertexShader = shader.vertexShader
@@ -271,6 +270,5 @@ export function applyTerrainSurface(mat: THREE.Material, tex: TerrainTextures): 
         .replaceAll('getDirectionalLightInfo( directionalLight, directLight );', 'getDirectionalLightInfo( directionalLight, directLight );\n\t\t\tdirectLight.color *= bakedShadow( vTWorld );')
         .replaceAll('getDirectionalLightInfo( directionalLights[0], directLight );', 'getDirectionalLightInfo( directionalLights[0], directLight );\n\t\tdirectLight.color *= bakedShadow( vTWorld );'));
     }
-  };
-  mat.customProgramCacheKey = () => 'painterly-terrain-v2';
+  }, { key: 'painterly-terrain-v2' });
 }

@@ -17,6 +17,7 @@
  */
 import * as THREE from 'three';
 import { CHUNK_HALF, CHUNK_SIZE } from '#engine/core/config';
+import { PATCH_ORDER, patchShader } from '#engine';
 
 /** metres per grid cell */
 const STEP = 4;
@@ -147,9 +148,7 @@ const patched = new WeakSet<THREE.Material>();
 function patchTerrainMaterial(mat: THREE.Material): void {
   if (patched.has(mat)) return;
   patched.add(mat);
-  const prev = mat.onBeforeCompile.bind(mat);
-  mat.onBeforeCompile = (sh, r) => {
-    prev(sh, r);
+  patchShader(mat, 'driftwood.cover-tint', PATCH_ORDER.decorate, (sh) => {
     sh.vertexShader = sh.vertexShader
       .replace('#include <common>', '#include <common>\nattribute vec4 aCover;\nattribute float aCoverSide;\nflat varying vec4 vCover;\nflat varying float vCoverSide;')
       .replace('#include <begin_vertex>', '#include <begin_vertex>\nvCover = aCover; vCoverSide = aCoverSide;');
@@ -158,8 +157,6 @@ function patchTerrainMaterial(mat: THREE.Material): void {
       .replace('#include <common>', `#include <common>\nflat varying vec4 vCover;\nflat varying float vCoverSide;\n${COVER_SEEN_GLSL}`)
       .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
 	diffuseColor.rgb = mix( diffuseColor.rgb, vCover.rgb, coverSeen( vCover.a, vCoverSide, abs( dot( normal, normalize( vViewPosition ) ) ) ) );`);
-  };
-  const key = mat.customProgramCacheKey.bind(mat);
-  mat.customProgramCacheKey = () => `${key()}|cover-tint`;
+  }, { key: (k) => `${k}|cover-tint` });
   mat.needsUpdate = true;
 }

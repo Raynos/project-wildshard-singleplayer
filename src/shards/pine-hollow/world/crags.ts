@@ -51,6 +51,7 @@ import { CRAG_LOD, useCragKit } from './cragKit';
 import { CLIFF_MODULES, cragCliff } from '../models/cragCliff';
 import { BOULDER_MODULES, cragBoulder } from '../models/cragBoulder';
 import { SCREE_MODULES, scree as screeFan } from '../models/scree';
+import { PATCH_ORDER, patchShader, setProgramKey } from '#engine';
 
 const CRAG_DIR = PINE_CRAG_DIR; // the files: pineHero.ts `PINE_CRAG_URLS` (the boot manifest lists them with the landmarks' props)
 
@@ -432,11 +433,10 @@ function cragMaterial(sky: Sky, rock: PBRSet, grit: PBRSet): THREE.MeshStandardM
     uCragDebug: CRAG_VIEW,
   };
   for (const t of [rock.map, rock.normalMap, rock.armMap, grit.map, grit.normalMap]) { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(1, 1); t.needsUpdate = true; }
-  mat.customProgramCacheKey = () => 'pine-crag';
+  setProgramKey(mat, 'pine-crag');
   sky.setupMaterial(mat);
-  const csmHook = mat.onBeforeCompile.bind(mat);
-  mat.onBeforeCompile = (shader, renderer) => {
-    csmHook(shader, renderer); // CSM's uniforms (its lights_fragment_begin is the global chunk, patched below)
+  // chained after sky.setupMaterial's CSM uniforms (its lights_fragment_begin is the global chunk, patched below)
+  patchShader(mat, 'pine.crag', PATCH_ORDER.material, (shader) => {
     attachFogUniforms(shader);
     Object.assign(shader.uniforms, u);
     shader.vertexShader = shader.vertexShader
@@ -578,7 +578,7 @@ function cragMaterial(sky: Sky, rock: PBRSet, grit: PBRSet): THREE.MeshStandardM
           reflectedLight.indirectDiffuse *= amb;
           reflectedLight.indirectSpecular *= amb * mix( 0.35, 1.0, vCD.g );
         }`);
-  };
+  });
   return mat;
 }
 

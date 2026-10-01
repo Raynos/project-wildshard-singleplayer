@@ -1,4 +1,4 @@
-import { type EquipmentRow, type WeaponState, type AimInfo, type DrawingBuffer, type EquipContext, type SwordWorld, type SwordRig, type SwordArms, type SwordFraming, type SwordMoveSet, app, BladeGlow, type Game, type Sky, dodgeFx, dodgeEnv, type Player, type Targets, type TargetHit, lockOn, meleeLock, targetRadius, type AimTarget, bladeBlocked, bladeContact, type Clang, worldTime, CameraFX, Impacts, aimRay, viewmodel, fovForAspect } from '#engine';
+import { type EquipmentRow, type WeaponState, type AimInfo, type DrawingBuffer, type EquipContext, type SwordWorld, type SwordRig, type SwordArms, type SwordFraming, type SwordMoveSet, app, BladeGlow, type Game, type Sky, dodgeFx, dodgeEnv, type Player, type Targets, type TargetHit, lockOn, meleeLock, targetRadius, type AimTarget, bladeBlocked, bladeContact, type Clang, worldTime, CameraFX, Impacts, aimRay, viewmodel, fovForAspect, setProgramKey } from '#engine';
 import { Melee, isMeleeProfile, type MeleeProfile } from './Melee';
 import { SWORD_WOOD, SWORD_IRON } from './profiles';
 import * as THREE from 'three';
@@ -245,7 +245,7 @@ export function buildSword(blade: 'wood' | 'iron'): { sword: THREE.BufferGeometr
  *  viewmodel turns its own copy into the transparent queue */
 export function swordMaterial(sky: Sky, blade: 'wood' | 'iron'): THREE.MeshStandardMaterial {
   const mat = new THREE.MeshStandardMaterial({ flatShading: true, vertexColors: true, roughness: 0.82, metalness: blade === 'iron' ? 0.6 : 0, envMapIntensity: 0.6 });
-  mat.name = 'sword'; mat.customProgramCacheKey = () => 'sword-lowpoly';
+  mat.name = 'sword'; setProgramKey(mat, 'sword-lowpoly');
   sky.setupMaterial(mat);
   return mat;
 }

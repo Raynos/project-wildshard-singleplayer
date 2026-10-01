@@ -343,6 +343,27 @@
     "count": 0
   },
   {
+    "id": "shader-patch-raw",
+    "file": "src/shards/demo/look.ts",
+    "rule": "no-raw-shader-patch",
+    "code": "declare const m: { onBeforeCompile: () => void; customProgramCacheKey: () => string }; m.onBeforeCompile = () => {}; m.customProgramCacheKey = () => 'k';",
+    "count": 2
+  },
+  {
+    "id": "shader-patch-read",
+    "file": "src/engine/world/look.ts",
+    "rule": "no-raw-shader-patch",
+    "code": "declare const m: { onBeforeCompile: () => void }; const hook = m.onBeforeCompile;",
+    "count": 0
+  },
+  {
+    "id": "shader-patch-registry",
+    "file": "src/engine/render/shaderPatches.ts",
+    "rule": "no-raw-shader-patch",
+    "code": "declare const m: { onBeforeCompile: () => void }; m.onBeforeCompile = () => {};",
+    "count": 0
+  },
+  {
     "id": "sim-math",
     "file": "src/engine/ai/math.ts",
     "rule": "sim-no-render",

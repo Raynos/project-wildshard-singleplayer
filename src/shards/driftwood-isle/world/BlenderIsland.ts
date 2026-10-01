@@ -47,6 +47,7 @@ import { place as placeModel } from '#engine/models/place';
 import { smallRock, type SmallRockParams } from '../models/smallRock';
 import { COVE_MODELS, coveFamilyOf, coveProtos, type CoveFamily, type CoveParams } from '../models/cove';
 import { CoverGrid, tintTerrain, triAreas, coverSample, coverJitter, type CoverTri } from './coverTint';
+import { PATCH_ORDER, patchShader } from '#engine';
 
 const BASE = blenderModelsBase('driftwood-isle'); // Driftwood's build: its palms / toon / sea are this file's own
 /** tiles per side: the casters (palms, rocks, logs; near + far copies) and the ground cover */
@@ -185,18 +186,14 @@ function clipTerrain(mesh: THREE.Mesh): void {
 
 /** instanced plants: collapse an instance whose origin is inside the area (vertex shader, no discard, no CPU per frame) */
 function clipInstanced(mat: THREE.Material): void {
-  const prev = mat.onBeforeCompile.bind(mat);
   const f = (v: number) => v.toFixed(3);
-  mat.onBeforeCompile = (shader, renderer) => {
-    prev(shader, renderer);
+  patchShader(mat, 'driftwood.island-clip', PATCH_ORDER.decorate, (shader) => {
     shader.vertexShader = shader.vertexShader.replace('#include <project_vertex>', `#include <project_vertex>
 #ifdef USE_INSTANCING
 	{ vec4 io = modelMatrix * instanceMatrix * vec4( 0.0, 0.0, 0.0, 1.0 );
 	  if ( io.x > ${f(area.x0)} && io.x < ${f(area.x1)} && io.z > ${f(area.z0)} && io.z < ${f(area.z1)} ) gl_Position = vec4( 2.0, 2.0, 2.0, 1.0 ); }
 #endif`);
-  };
-  const key = mat.customProgramCacheKey.bind(mat);
-  mat.customProgramCacheKey = () => `${key()}|island-clip`;
+  }, { key: (k) => `${k}|island-clip` });
   mat.needsUpdate = true;
 }
 
@@ -260,17 +257,16 @@ export class BlenderIsland {
 
     // ── materials: the shard's toon lighting (stylize.ts), fog, CSM — plus the bake ──
     const terrainMat = this.terrainMat = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.92, metalness: 0, aoMap: ao, aoMapIntensity: 1, lightMap: bounce, lightMapIntensity: 0 });
-    terrainMat.onBeforeCompile = (sh) => {
+    patchShader(terrainMat, 'driftwood.island-terrain', PATCH_ORDER.material, (sh) => {
       attachFogUniforms(sh);
       // the baked AO also grounds the direct light a little: contact shade under the palms, the rocks, the pier
       sh.fragmentShader = sh.fragmentShader.replace('#include <aomap_fragment>', `#include <aomap_fragment>
 	reflectedLight.directDiffuse *= mix( 1.0, ambientOcclusion, ${AO_DIRECT.toFixed(2)} );`);
-    };
-    terrainMat.customProgramCacheKey = () => 'island-terrain';
+    }, { mode: 'replace', key: 'island-terrain' });
     ctx.sky.setupMaterial(terrainMat);
     const makePropsMat = (cover: { near: number; far: number; grow: number; key: string } | null) => {
       const mat = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.9, metalness: 0, side: THREE.DoubleSide });
-      mat.onBeforeCompile = (s) => {
+      patchShader(mat, 'driftwood.island-props', PATCH_ORDER.material, (s) => {
         attachFogUniforms(s);
         // the colour's alpha is the prototype's Cycles AO: all of the fill, a little of the sun (the crown's inner fronds)
         s.fragmentShader = s.fragmentShader.replace('#include <aomap_fragment>', `#include <aomap_fragment>
@@ -290,8 +286,7 @@ export class BlenderIsland {
             .replace('#include <color_fragment>', '#include <color_fragment>\n\tdiffuseColor.rgb = mix( diffuseColor.rgb, vGround.rgb, vFar );')
             .replace('#include <normal_fragment_begin>', '#include <normal_fragment_begin>\n\tnormal = normalize( mix( normal, normalize( ( viewMatrix * vec4( 0.0, 1.0, 0.0, 0.0 ) ).xyz ), vFar ) );');
         }
-      };
-      mat.customProgramCacheKey = () => (cover !== null ? cover.key : 'island-props');
+      }, { mode: 'replace', key: (cover !== null ? cover.key : 'island-props') });
       ctx.sky.setupMaterial(mat);
       return mat;
     };

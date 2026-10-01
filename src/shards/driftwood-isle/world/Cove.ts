@@ -44,6 +44,7 @@ import { boxDesc, type ColliderDesc, type WorldRegistry } from '#engine/world/re
 import { reefRock } from '../models/reefRock';
 import { modelContext } from '#engine/models/model';
 import { place, type Placed } from '#engine/models/place';
+import { PATCH_ORDER, patchShader } from '#engine';
 
 export interface CaveBounds { x: number; z: number; r: number; yMin: number; yMax: number }
 export interface CoveAnchor { x: number; y: number; z: number; yaw: number }
@@ -454,7 +455,7 @@ export class Cove {
   /** the pools: concentric ripple rings drift outward, the sun catches their crests */
   private patchRipple(mat: THREE.MeshStandardMaterial, key: string) {
     const u = this.uniforms;
-    mat.onBeforeCompile = (shader) => {
+    patchShader(mat, 'driftwood.cove', PATCH_ORDER.material, (shader) => {
       attachFogUniforms(shader);
       shader.uniforms['uTime'] = u.uTime;
       shader.vertexShader = shader.vertexShader
@@ -469,8 +470,7 @@ export class Cove {
             float crest = smoothstep(0.75, 1.0, w);
             diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.12, 0.4, 0.5), crest * 0.4 + 0.06 * sin(vWp.z * 5.0 + uTime * 1.7));
           }`);
-    };
-    mat.customProgramCacheKey = () => key;
+    }, { mode: 'replace', key });
   }
 
   update(dt: number): void {

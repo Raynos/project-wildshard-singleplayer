@@ -19,6 +19,7 @@
  */
 import * as THREE from 'three';
 import { attachFogUniforms } from '#engine/world/Atmosphere';
+import { PATCH_ORDER, patchShader } from '#engine';
 
 export interface WaterfallSpec {
   lip: THREE.Vector3;
@@ -70,7 +71,7 @@ export class Waterfall implements WaterfallLike {
       vertexShader: vert, fragmentShader: frag, transparent: true, depthWrite: false, fog: true, side,
     });
     Object.assign(m.uniforms, this.u);
-    m.onBeforeCompile = (shader) => { attachFogUniforms(shader); };
+    patchShader(m, 'driftwood.waterfall-fog', PATCH_ORDER.material, (shader) => { attachFogUniforms(shader); }, { mode: 'replace' });
     return m;
   }
 

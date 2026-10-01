@@ -13,6 +13,7 @@
     "wildshard/no-raw-random-time": "error",
     "wildshard/no-raw-input": "error",
     "wildshard/no-renderer-type": "error",
+    "wildshard/no-raw-shader-patch": "error",
     "wildshard/sim-no-render": "error",
     "wildshard/no-hook-chain": "error",
     "wildshard/no-active-singleton": "error",

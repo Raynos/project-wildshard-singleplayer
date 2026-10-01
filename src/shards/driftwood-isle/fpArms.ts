@@ -15,6 +15,7 @@ import type { ShardSword } from '#game/shard/manifest';
 import type { Sky } from '#engine/world/Sky';
 import { RigArms, swordArmsOf, vmScale } from '#kit/viewmodel/rigArms';
 import { attachFogUniforms } from '#engine/world/Atmosphere';
+import { PATCH_ORDER, patchShader } from '#engine';
 import type { SwimArms } from '#engine/player/Hands';
 
 export const FP_ARMS_URL = '/assets/models/driftwood-fp/fp-arms.glb';
@@ -50,7 +51,7 @@ function toonMaterial(sky: Sky, name: string, metal: boolean, blade?: BladeRim):
   m.name = name;
   const lightDir = sky.csm.lightDirection; // the one vector the day / night clock copies the sun (or the moon) into (lowpolyKit.ts)
   const f = (x: number): string => x.toFixed(4);
-  m.onBeforeCompile = (sh) => {
+  patchShader(m, 'driftwood.fp-arms', PATCH_ORDER.material, (sh) => {
     attachFogUniforms(sh); // an own hook replaces Material.prototype's, which binds the fog + toon uniforms (Atmosphere.ts): unbound, the ramp fog reads 0 → the whole mesh the fog's colour
     sh.uniforms['uVmLightDir'] = { value: lightDir };
     sh.vertexShader = sh.vertexShader
@@ -80,8 +81,7 @@ function toonMaterial(sky: Sky, name: string, metal: boolean, blade?: BladeRim):
           totalEmissiveRadiance += uRimAqua * (uRim * onBlade * 1.3 * edge);
         }`);
     }
-  };
-  m.customProgramCacheKey = () => `driftwood-fp-${metal ? 'metal' : 'toon'}${blade ? '-blade' : ''}`;
+  }, { mode: 'replace', key: `driftwood-fp-${metal ? 'metal' : 'toon'}${blade ? '-blade' : ''}` });
   if (blade) m.userData['rim'] = blade.rim; // the cost capture (scripts/e334-look-review-capture.mjs --measure) turns it off and on
   sky.setupMaterial(m);
   return m;
@@ -92,7 +92,7 @@ function toonMaterial(sky: Sky, name: string, metal: boolean, blade?: BladeRim):
 function swimMaterial(sky: Sky, water: { n: { value: Vector3 }; d: { value: number } }): MeshStandardMaterial {
   const m = new MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.85, metalness: 0, envMapIntensity: 0.6 });
   m.name = 'driftwood-fp-swim';
-  m.onBeforeCompile = (sh) => {
+  patchShader(m, 'driftwood.fp-swim', PATCH_ORDER.material, (sh) => {
     attachFogUniforms(sh); // an own hook replaces Material.prototype's, which binds the fog + toon uniforms (Atmosphere.ts): unbound, the ramp fog reads 0 → the whole mesh the fog's colour
     sh.uniforms['uWaterN'] = water.n;
     sh.uniforms['uWaterD'] = water.d;
@@ -108,8 +108,7 @@ function swimMaterial(sky: Sky, water: { n: { value: Vector3 }; d: { value: numb
         diffuseColor.rgb = mix(diffuseColor.rgb, sea, under * 0.9);`)
       .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
         totalEmissiveRadiance += vec3(0.62, 0.74, 0.78) * (1.0 - smoothstep(0.002, 0.011, abs(hWater)));`);
-  };
-  m.customProgramCacheKey = () => 'driftwood-fp-swim';
+  }, { mode: 'replace', key: 'driftwood-fp-swim' });
   sky.setupMaterial(m);
   return m;
 }

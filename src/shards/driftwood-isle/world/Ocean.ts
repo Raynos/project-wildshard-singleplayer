@@ -33,6 +33,7 @@ import { islandKnobs } from '../tiers';
 import { WAVES_GLSL, WAVES_NORMAL_GLSL, waveClock } from '#engine/world/waves';
 import { toonUniforms } from '../look/toon';
 import { HORIZON_RADIUS } from '#engine/world/HorizonMatte';
+import { PATCH_ORDER, patchShader } from '#engine';
 
 const SEA_RES = 512; // the sea-floor texture: ~1 m per texel over the chunk
 
@@ -112,7 +113,7 @@ export class Ocean {
     mat.defines = { OCEAN_SURFACE: '' };
     mat.forceSinglePass = true; // a transparent DoubleSide material is otherwise drawn twice (back faces, then front)
     const shallow = new THREE.Vector3(...def.shallowColor), deep = new THREE.Vector3(...def.deepColor);
-    mat.onBeforeCompile = (shader) => {
+    patchShader(mat, 'driftwood.ocean', PATCH_ORDER.material, (shader) => {
       attachFogUniforms(shader);
       Object.assign(shader.uniforms, this.uniforms, {
         uShallow: { value: shallow }, uDeep: { value: deep }, uDeepDepth: { value: def.deepDepth }, uLevel: { value: def.level },
@@ -238,8 +239,7 @@ export class Ocean {
             vec3 premul = outgoingLight * a + waterAdd * seaEnd;
             gl_FragColor = vec4(premul / max(a, 1e-3), a);       // PREMULTIPLIED_ALPHA multiplies it back
           }`);
-    };
-    mat.customProgramCacheKey = () => 'ocean-v2';
+    }, { mode: 'replace', key: 'ocean-v2' });
     this.sky.setupMaterial(mat);
     this.mesh = new THREE.Mesh(geo, mat);
     this.mesh.position.y = def.level;

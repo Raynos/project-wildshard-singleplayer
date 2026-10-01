@@ -29,6 +29,7 @@ import { LowPolyKit, rock, tris, bakeLight, lowPolyMaterial, fern, broadClump, h
 import type { BoxSpec as Collider } from '#engine/physics/box';
 import { boxDesc, type ColliderDesc } from '#engine/world/registry';
 import { defineModel, type ModelContext } from '#engine/models/model';
+import { PATCH_ORDER, patchShader } from '#engine';
 
 /** where a shrine stands: its centre (world xz) and which way its front faces (rot, radians about +Y) */
 export interface ShrineSite { readonly x: number; readonly z: number; readonly rot: number }
@@ -463,7 +464,7 @@ class ShrineBuilder {
 /** the pool's material: soft ripple rings and a caustic shimmer, brighter at the edges (its clock: `uniforms.uTime`) */
 function poolMaterial(ctx: ModelContext, uniforms: { uTime: THREE.IUniform<number> }): THREE.MeshStandardMaterial {
   const mat = new THREE.MeshStandardMaterial({ color: new THREE.Color(C.water), roughness: 0.25, metalness: 0, transparent: true, opacity: 0.82, flatShading: true });
-  mat.onBeforeCompile = (shader) => {
+  patchShader(mat, 'driftwood.shrine-pool', PATCH_ORDER.material, (shader) => {
     attachFogUniforms(shader);
     shader.uniforms['uTime'] = uniforms.uTime;
     shader.vertexShader = shader.vertexShader
@@ -476,8 +477,7 @@ function poolMaterial(ctx: ModelContext, uniforms: { uTime: THREE.IUniform<numbe
             float w = sin(vWp.x * 2.3 + uTime * 1.1) * sin(vWp.z * 2.9 - uTime * 0.9) + sin((vWp.x + vWp.z) * 4.1 + uTime * 1.7) * 0.5;
             diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.55, 0.95, 0.95), smoothstep(0.9, 1.4, w) * 0.45);
           }`);
-  };
-  mat.customProgramCacheKey = () => 'shrine-pool';
+  }, { mode: 'replace', key: 'shrine-pool' });
   ctx.sky.setupMaterial(mat);
   return mat;
 }

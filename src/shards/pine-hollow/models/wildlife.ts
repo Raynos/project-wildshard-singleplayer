@@ -22,6 +22,7 @@ import { attachFogUniforms } from '#engine/world/Atmosphere';
 import type { Sky } from '#engine/world/Sky';
 import type { BirdMesh, BirdSet } from '../life/birdModels';
 import { defineModel, type ModelContext, type ModelDef } from '#engine/models/model';
+import { PATCH_ORDER, patchShader } from '#engine';
 
 export const KIND = { raven: 0, owl: 1, woodpecker: 2, hare: 4 } as const;
 export type WildKind = (typeof KIND)[keyof typeof KIND];
@@ -365,7 +366,7 @@ export class WildlifeMesh {
 
     const mat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.8, metalness: 0, side: THREE.DoubleSide });
     const glow = this.glow, atlas = this.atlas;
-    mat.onBeforeCompile = (shader) => {
+    patchShader(mat, 'pine.wildlife', PATCH_ORDER.material, (shader) => {
       attachFogUniforms(shader);
       shader.uniforms['uWlGlow'] = glow;
       shader.uniforms['uWlTex'] = atlas;
@@ -380,8 +381,7 @@ float wlEye(vec3 t) { return smoothstep(0.3, 0.5, t.r) * smoothstep(0.18, 0.3, t
         .replace('#include <color_fragment>', '#include <color_fragment>\nvec3 wlTexel = vec3(1.0);\nif (vWlTex > 0.5) { wlTexel = texture2D(uWlTex, vWlUv).rgb; diffuseColor.rgb *= wlTexel; }')
         .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\nroughnessFactor = vWlRough;')
         .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\ntotalEmissiveRadiance += vec3(1.0, 0.72, 0.22) * vWlEmis * uWlGlow * 1.4 * (vWlTex > 0.5 ? wlEye(wlTexel) : 1.0);');
-    };
-    mat.customProgramCacheKey = () => 'pine-wildlife';
+    }, { mode: 'replace', key: 'pine-wildlife' });
     sky.setupMaterial(mat);
     this.mesh = new THREE.InstancedMesh(geo, mat, capacity);
     this.mesh.name = 'pine-wildlife';

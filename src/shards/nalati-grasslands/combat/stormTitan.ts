@@ -1,5 +1,5 @@
 import { NALATI_STRIKES, sampleArena } from './strikes';
-import { app, type Game, type Player, type TargetAnimal, type TargetHit, wind, type Animal, type AnimalManager, type Interactable, type AimTarget, BossBar, heightAt, terrainNormal as normalAt, setEliteDamage, TIER } from '#engine';
+import { app, type Game, type Player, type TargetAnimal, type TargetHit, wind, type Animal, type AnimalManager, type Interactable, type AimTarget, BossBar, heightAt, terrainNormal as normalAt, setEliteDamage, TIER, PATCH_ORDER, patchShader } from '#engine';
 import * as THREE from 'three';
 
 
@@ -188,13 +188,11 @@ export class TitanBody {
     const mat = new THREE.MeshBasicMaterial({ color: 0xffffff, fog: false });
     mat.name = 'nalati-titan-cloud';
     const uni = this.uni;
-    const base = mat.onBeforeCompile.bind(mat);
-    mat.onBeforeCompile = (sh, renderer) => {
-      base(sh, renderer);   // the prototype hook (Atmosphere's uniforms) — never replace it (see ghostRiders.ts)
+    patchShader(mat, 'nalati.titan-cloud', PATCH_ORDER.decorate, (sh) => {
+      // the prototype hook (Atmosphere's uniforms) — never replace it (see ghostRiders.ts)
       Object.assign(sh.uniforms, uni);
       patchTitanCloud(sh);   // dark cumulus, lightning veins, the heart's spiral (stormTitanLook.ts)
-    };
-    mat.customProgramCacheKey = () => 'nalati-titan-cloud';
+    }, { key: 'nalati-titan-cloud' });
     this.puffs = new THREE.InstancedMesh(geo, mat, this.list.length);
     this.puffs.frustumCulled = false; this.puffs.castShadow = false; this.puffs.receiveShadow = false;
     this.puffs.name = 'titan-cloud';

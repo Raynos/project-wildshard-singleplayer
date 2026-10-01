@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { loadTexture, loadPBR, loadPBRArray, Rng, attachFogUniforms, TIER_CONFIG, loadBakedCards, exportCardTextures, macrotask, markGpuOnly, TREE_SPECS, TREE_SPECS_V2, BARK_LAYERS, loadTreeSetGeometry, patchBarkArrays, patchCardCrownTop, patchImpostorCrownTop, standIn, treeSetUrls, TreeFactory, patchFade, patchWind, treeSetOf, PUBLIC_BYTES, type FadeBand, type LookReplaceContext } from '#engine';
+import { loadTexture, loadPBR, loadPBRArray, Rng, attachFogUniforms, TIER_CONFIG, loadBakedCards, exportCardTextures, macrotask, markGpuOnly, TREE_SPECS, TREE_SPECS_V2, BARK_LAYERS, loadTreeSetGeometry, patchBarkArrays, patchCardCrownTop, patchImpostorCrownTop, standIn, treeSetUrls, TreeFactory, patchFade, patchWind, treeSetOf, PUBLIC_BYTES, type FadeBand, type LookReplaceContext, PATCH_ORDER, patchShader } from '#engine';
 import { PINE_TREE_ASSETS } from './treeAssets';
 
 export interface PineTreeFactoryOptions { bark?: string; twigAtlas?: string; set?: string | null }
@@ -86,7 +86,7 @@ export class PineTreeFactory extends TreeFactory {
       map: bark.map, normalMap: bark.normalMap, roughnessMap: bark.armMap, aoMap: bark.armMap,
       roughness: 1, metalness: 0, color: new THREE.Color(0.85, 0.8, 0.75),
     });
-    this.barkMaterial.onBeforeCompile = (shader) => {
+    patchShader(this.barkMaterial, 'pine.bark', PATCH_ORDER.material, (shader) => {
       attachFogUniforms(shader); patchWind(shader, true); patchFade(shader, this.fade.trunk);
       // Scots pine: dark plated bark low on the trunk, papery orange bark high up
       shader.vertexShader = shader.vertexShader
@@ -101,14 +101,13 @@ export class PineTreeFactory extends TreeFactory {
             vec3 high = vec3(1.25, 0.78, 0.52);
             diffuseColor.rgb *= mix(low, high, up);
           }`);
-    };
-    this.barkMaterial.customProgramCacheKey = () => 'bark';
+    }, { mode: 'replace', key: 'bark' });
     this.needleMaterial = new THREE.MeshStandardMaterial({
       map: card.albedo, normalMap: card.normal, aoMap: card.arm,
       alphaTest: 0.45, side: THREE.DoubleSide, roughness: 0.96, metalness: 0, envMapIntensity: 0.45,
       color: new THREE.Color(0.55, 0.78, 0.45), normalScale: new THREE.Vector2(0.8, 0.8),
     });
-    this.needleMaterial.onBeforeCompile = (shader) => {
+    patchShader(this.needleMaterial, 'pine.needles', PATCH_ORDER.material, (shader) => {
       attachFogUniforms(shader);
       patchWind(shader); patchFade(shader, this.fade.cards);
       // Foliage shading: bend the card normal toward "up" so the crown lights like a volume
@@ -143,13 +142,12 @@ export class PineTreeFactory extends TreeFactory {
             reflectedLight.indirectDiffuse += diffuseColor.rgb * 0.04;
           }`)
         .replace('#include <map_fragment>', '#include <map_fragment>\ndiffuseColor.rgb *= vCrownAO;');
-    };
-    this.needleMaterial.customProgramCacheKey = () => 'needles';
+    }, { mode: 'replace', key: 'needles' });
     this.twigMaterial = new THREE.MeshStandardMaterial({
       map: twigDiff, normalMap: twigNor, aoMap: twigArm, alphaTest: 0.5, side: THREE.DoubleSide, roughness: 0.95, metalness: 0, envMapIntensity: 0.45,
       color: new THREE.Color(0.6, 0.8, 0.5), normalScale: new THREE.Vector2(0.7, 0.7),
     });
-    this.twigMaterial.onBeforeCompile = (shader) => {
+    patchShader(this.twigMaterial, 'pine.twigs', PATCH_ORDER.material, (shader) => {
       attachFogUniforms(shader); patchWind(shader); patchFade(shader, this.fade.twigs);
       shader.fragmentShader = shader.fragmentShader
         .replace('#include <normal_fragment_maps>', `
@@ -158,14 +156,11 @@ export class PineTreeFactory extends TreeFactory {
           { vec3 upV = normalize( ( viewMatrix * vec4( 0.0, 1.0, 0.0, 0.0 ) ).xyz ); normal = normalize( mix( normal, upV, 0.35 ) ); }`)
         .replace('#include <lights_fragment_begin>', `#include <lights_fragment_begin>
           reflectedLight.indirectDiffuse += diffuseColor.rgb * 0.05;`);
-    };
-    this.twigMaterial.customProgramCacheKey = () => 'twigs';
+    }, { mode: 'replace', key: 'twigs' });
     this.twigDepth = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, map: twigDiff, alphaTest: 0.5, side: THREE.DoubleSide });
-    this.twigDepth.onBeforeCompile = (shader) => { patchWind(shader); patchFade(shader, this.fade.twigs); };
-    this.twigDepth.customProgramCacheKey = () => 'tree-depth'; // same wind + fade patch as the needles' depth material (its own band uniform): one program
+    patchShader(this.twigDepth, 'pine.twig-depth', PATCH_ORDER.material, (shader) => { patchWind(shader); patchFade(shader, this.fade.twigs); }, { mode: 'replace', key: 'tree-depth' }); // same wind + fade patch as the needles' depth material (its own band uniform): one program
     this.needleDepth = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, map: card.albedo, alphaTest: 0.45, side: THREE.DoubleSide });
-    this.needleDepth.onBeforeCompile = (shader) => { patchWind(shader); patchFade(shader, this.fade.cards); };
-    this.needleDepth.customProgramCacheKey = () => 'tree-depth';
+    patchShader(this.needleDepth, 'pine.needle-depth', PATCH_ORDER.material, (shader) => { patchWind(shader); patchFade(shader, this.fade.cards); }, { mode: 'replace', key: 'tree-depth' });
 
     const rng = new Rng(4242);
     for (const [i, s] of TREE_SPECS.entries()) { // src/engine/world/forest/placement.ts: the forest plants by the same heights / trunk radii
@@ -270,7 +265,7 @@ export class PineTreeFactory extends TreeFactory {
       map: albedo, normalMap: normal, alphaTest: 0.3, side: THREE.DoubleSide, roughness: 0.96, metalness: 0, envMapIntensity: 0.45,
       color, normalScale: new THREE.Vector2(1, 1),
     });
-    far.onBeforeCompile = (shader) => {
+    patchShader(far, 'pine.tree-far', PATCH_ORDER.material, (shader) => {
       attachFogUniforms(shader); patchWind(shader); patchFade(shader, this.fade.far);
       shader.fragmentShader = shader.fragmentShader
         .replace('#include <alphatest_fragment>', /* glsl */`
@@ -280,8 +275,7 @@ export class PineTreeFactory extends TreeFactory {
         .replace('#include <lights_fragment_begin>', `#include <lights_fragment_begin>
           reflectedLight.indirectDiffuse += diffuseColor.rgb * 0.06;`);
       if (crownTop) patchImpostorCrownTop(shader, this.crownTop);
-    };
-    far.customProgramCacheKey = () => (crownTop ? 'tree-far-crown' : 'tree-far');
+    }, { mode: 'replace', key: (crownTop ? 'tree-far-crown' : 'tree-far') });
     return far;
   }
 
@@ -309,15 +303,14 @@ export class PineTreeFactory extends TreeFactory {
       map: white, normalMap: standIn([128, 128, 255, 255]), roughnessMap: white, aoMap: white,
       roughness: 1, metalness: 0, vertexColors: true, color: new THREE.Color(1.22, 1.2, 1.18),
     });
-    this.barkMaterial.onBeforeCompile = (shader) => { attachFogUniforms(shader); patchWind(shader, true); patchFade(shader, this.fade.trunk); patchBarkArrays(shader, bark); };
-    this.barkMaterial.customProgramCacheKey = () => 'bark-set';
+    patchShader(this.barkMaterial, 'pine.bark-set', PATCH_ORDER.material, (shader) => { attachFogUniforms(shader); patchWind(shader, true); patchFade(shader, this.fade.trunk); patchBarkArrays(shader, bark); }, { mode: 'replace', key: 'bark-set' });
 
     const needles = (band: FadeBand, key: string): THREE.MeshStandardMaterial => {
       const m = new THREE.MeshStandardMaterial({
         map: cardAlbedo, normalMap: cardNormal, aoMap: cardArm, alphaTest: 0.45, side: THREE.DoubleSide, roughness: 0.92, metalness: 0,
         envMapIntensity: 0.5, vertexColors: true, color: new THREE.Color(0.86, 0.92, 0.8), normalScale: new THREE.Vector2(0.8, 0.8),
       });
-      m.onBeforeCompile = (shader) => {
+      patchShader(m, 'pine.crown', PATCH_ORDER.material, (shader) => {
         attachFogUniforms(shader); patchWind(shader); patchFade(shader, band);
         shader.fragmentShader = shader.fragmentShader
           // both faces of a card take the crown-bent vertex normal: a crown lights as a volume from any side
@@ -345,18 +338,15 @@ export class PineTreeFactory extends TreeFactory {
               reflectedLight.indirectDiffuse += diffuseColor.rgb * 0.04;
             }`);
         patchCardCrownTop(shader, this.crownTop);
-      };
-      m.customProgramCacheKey = () => `${key}-crown`;
+      }, { mode: 'replace', key: `${key}-crown` });
       return m;
     };
     this.needleMaterial = needles(this.fade.cards, 'needles-set');
     this.twigMaterial = needles(this.fade.twigs, 'twigs-set');
     this.needleDepth = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, map: cardAlbedo, alphaTest: 0.45, side: THREE.DoubleSide });
-    this.needleDepth.onBeforeCompile = (shader) => { patchWind(shader); patchFade(shader, this.fade.cards); };
-    this.needleDepth.customProgramCacheKey = () => 'tree-depth';
+    patchShader(this.needleDepth, 'pine.needle-depth', PATCH_ORDER.material, (shader) => { patchWind(shader); patchFade(shader, this.fade.cards); }, { mode: 'replace', key: 'tree-depth' });
     this.twigDepth = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, map: cardAlbedo, alphaTest: 0.45, side: THREE.DoubleSide });
-    this.twigDepth.onBeforeCompile = (shader) => { patchWind(shader); patchFade(shader, this.fade.twigs); };
-    this.twigDepth.customProgramCacheKey = () => 'tree-depth';
+    patchShader(this.twigDepth, 'pine.twig-depth', PATCH_ORDER.material, (shader) => { patchWind(shader); patchFade(shader, this.fade.twigs); }, { mode: 'replace', key: 'tree-depth' });
     this.farMaterial = this.makeFarMaterial(farAlbedo, farNormal, new THREE.Color(0.92, 0.95, 0.9), true);
 
     for (const s of TREE_SPECS_V2) {

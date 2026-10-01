@@ -4,7 +4,7 @@
  * for the wet sand and the seabed is the manifest's `OCEAN.level`.
  */
 import * as THREE from 'three';
-import { CHUNK_SIZE, CHUNK_HALF, CHUNK_DEPTH, TERRAIN_RES, attachFogUniforms, macrotask, type PainterField, type Terrain, type TerrainPainter } from '#engine';
+import { CHUNK_SIZE, CHUNK_HALF, CHUNK_DEPTH, TERRAIN_RES, attachFogUniforms, macrotask, type PainterField, type Terrain, type TerrainPainter, PATCH_ORDER, patchShader } from '#engine';
 import { OCEAN } from '../manifest';
 import { LP, hash2, lowPolyGroundColor } from './groundColor';
 
@@ -25,7 +25,7 @@ export const LOWPOLY_TERRAIN: TerrainPainter = { build: buildLowPoly };
 async function buildLowPoly(t: Terrain, f: PainterField): Promise<void> {
   await f.ready();
   const mat = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.92, metalness: 0 });
-  mat.onBeforeCompile = (shader) => {
+  patchShader(mat, 'driftwood.terrain-lowpoly', PATCH_ORDER.material, (shader) => {
     attachFogUniforms(shader);
     // `flat` interpolation: the whole triangle gets its last vertex's colour. The declaration lives inside the
     // color_pars includes, which are still unexpanded here — so expand them first (replacing the bare string never
@@ -33,8 +33,7 @@ async function buildLowPoly(t: Terrain, f: PainterField): Promise<void> {
     const flat = (chunk: string) => chunk.replace('varying vec4 vColor;', 'flat varying vec4 vColor;');
     shader.vertexShader = shader.vertexShader.replace('#include <color_pars_vertex>', flat(THREE.ShaderChunk.color_pars_vertex));
     shader.fragmentShader = shader.fragmentShader.replace('#include <color_pars_fragment>', flat(THREE.ShaderChunk.color_pars_fragment));
-  };
-  mat.customProgramCacheKey = () => 'terrain-lowpoly';
+  }, { mode: 'replace', key: 'terrain-lowpoly' });
   t.material = mat;
   const rows = buildLowPolyGeometry(f);
   let r = rows.next();

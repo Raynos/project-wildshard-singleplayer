@@ -20,6 +20,7 @@ import { painterlyMaterial } from '#engine/world/painterly';
 import { loadNalatiTextures, TEX_METRES, TEX_MEAN, isPhoneTier } from '../look/nalatiTextures';
 import { SNOW_LINE } from '../manifest';
 import type { Sky } from '#engine/world/Sky';
+import { PATCH_ORDER, patchShader } from '#engine';
 
 // ── the rock pieces ─────────────────────────────────────────────────────────────────────────────────────────────
 
@@ -146,9 +147,7 @@ export function cragMaterial(sky: Sky): THREE.MeshLambertMaterial {
   };
   loadNalatiTextures(['rock', 'snow']).then((t) => { uniforms.tCragRock.value = t.rock; uniforms.tCragSnow.value = t.snow; return t; }).catch(() => null);
   const phone = isPhoneTier();
-  const base = mat.onBeforeCompile.bind(mat);
-  mat.onBeforeCompile = (shader, renderer) => {
-    base(shader, renderer);
+  patchShader(mat, 'nalati.crag-rock', PATCH_ORDER.decorate, (shader) => {
     Object.assign(shader.uniforms, uniforms);
     shader.vertexShader = shader.vertexShader
       .replace('#include <common>', '#include <common>\nvarying vec3 vCragW; varying vec3 vCragN;')
@@ -156,8 +155,7 @@ export function cragMaterial(sky: Sky): THREE.MeshLambertMaterial {
     shader.fragmentShader = shader.fragmentShader
       .replace('#include <common>', `#include <common>\n${CRAG_FRAG_PARS}`)
       .replace('#include <color_fragment>', cragFragMain(phone));
-  };
-  mat.customProgramCacheKey = () => `nalati-crag-rock${phone ? '-phone' : ''}`;
+  }, { key: `nalati-crag-rock${phone ? '-phone' : ''}` });
   return mat;
 }
 

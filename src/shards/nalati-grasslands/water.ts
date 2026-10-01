@@ -14,6 +14,7 @@ import { attachFogUniforms } from '#engine/world/Atmosphere';
 import type { Sky } from '#engine/world/Sky';
 import { RIVER, BROOK } from './manifest';
 import { CHUNK_HALF } from '#engine/core/config';
+import { setProgramKey } from '#engine';
 
 const VERT = /* glsl */`
 attribute float depth;
@@ -141,7 +142,7 @@ export class NalatiWater {
     });
     Object.assign(mat.uniforms, this.uniforms);
     attachFogUniforms(mat);
-    mat.customProgramCacheKey = () => 'nalati-water';
+    setProgramKey(mat, 'nalati-water');
     this.group.add(this.river(mat), this.brook(mat)); // (the waterfall is cut: layout v2)
     this.group.traverse((o) => { o.renderOrder = 1; });
     return this;

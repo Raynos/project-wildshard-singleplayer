@@ -26,6 +26,7 @@ import { windUniforms, WIND_DIR } from '#engine/world/wind';
 import {
   CREEK, WATERFALL, RIDGE_STREAM, CREEK_WATER, creekSpan, creekSurfaceAt, creekFlowAt, creekFoamAt, type XZ,
 } from '../layout';
+import { PATCH_ORDER, patchShader } from '#engine';
 
 /** the creek ribbon's across-stream offsets (m): dense where the water meets the banks */
 const CREEK_ACROSS = [-6, -4.6, -3.8, -3.2, -2.6, -1.5, 0, 1.5, 2.6, 3.2, 3.8, 4.6, 6];
@@ -272,7 +273,7 @@ export class PineStreams {
           gl_FragColor = vec4( col, a );
         }`,
     });
-    mat.onBeforeCompile = (shader) => { attachFogUniforms(shader); };
+    patchShader(mat, 'pine.stream-fog', PATCH_ORDER.material, (shader) => { attachFogUniforms(shader); }, { mode: 'replace' });
     return mat;
   }
 }

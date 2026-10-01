@@ -14,6 +14,7 @@ import { windUniforms } from '#engine/world/wind';
 import type { ColliderDesc } from '#engine/world/registry';
 import type { Rng } from '#engine/core/rng';
 import { defineModel, type ModelContext } from '#engine/models/model';
+import { PATCH_ORDER, patchShader } from '#engine';
 
 export interface PalmParams {
   /** trunk height, metres */
@@ -137,13 +138,11 @@ function patchPalmSway(shader: { uniforms: Record<string, THREE.IUniform>; verte
 function palmMaterials(ctx: ModelContext): { lit: THREE.MeshStandardMaterial; depth: THREE.MeshDepthMaterial } {
   return ctx.once('driftwood-isle/palm:materials', () => {
     const lit = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.85, metalness: 0, side: THREE.DoubleSide });
-    lit.onBeforeCompile = (shader) => { attachFogUniforms(shader); patchPalmSway(shader); };
-    lit.customProgramCacheKey = () => 'palms-sway';
+    patchShader(lit, 'driftwood.palm-sway', PATCH_ORDER.material, (shader) => { attachFogUniforms(shader); patchPalmSway(shader); }, { mode: 'replace', key: 'palms-sway' });
     ctx.sky.setupMaterial(lit);
     // the shadow pass sways the fronds too, so the palm shadows on the sand move (M5)
     const depth = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, side: THREE.DoubleSide });
-    depth.onBeforeCompile = (shader) => { patchPalmSway(shader); };
-    depth.customProgramCacheKey = () => 'palms-sway-depth';
+    patchShader(depth, 'driftwood.palm-sway-depth', PATCH_ORDER.material, (shader) => { patchPalmSway(shader); }, { mode: 'replace', key: 'palms-sway-depth' });
     return { lit, depth };
   });
 }

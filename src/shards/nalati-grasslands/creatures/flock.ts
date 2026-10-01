@@ -1,4 +1,4 @@
-import { GroupBrain, app, type Sky, heightAt, terrainNormal as normalAt, Rng, attachFogUniforms, type Animal, type ThinkCtx, TIER, TickScheduler } from '#engine';
+import { GroupBrain, app, type Sky, heightAt, terrainNormal as normalAt, Rng, attachFogUniforms, type Animal, type ThinkCtx, TIER, TickScheduler, PATCH_ORDER, patchShader } from '#engine';
 
 
 import * as THREE from 'three';
@@ -383,10 +383,8 @@ function raySphere(o: THREE.Vector3, d: THREE.Vector3, c: THREE.Vector3, r: numb
  * swings about its part's pivot (aRig: part a, part b, weight of b) by an angle from the instance's iAnim.
  */
 function patchSheep(mat: THREE.Material, uTime: { value: number }, depthOnly: boolean): void {
-  const prev = mat.onBeforeCompile.bind(mat);
   const piv = SHEEP_PIVOTS.map((p) => `vec3(${p[0].toFixed(3)}, ${p[1].toFixed(3)}, ${p[2].toFixed(3)})`).join(', ');
-  mat.onBeforeCompile = (shader, renderer) => {
-    prev(shader, renderer);
+  patchShader(mat, depthOnly ? 'nalati.sheep-depth' : 'nalati.sheep', PATCH_ORDER.decorate, (shader) => {
     attachFogUniforms(shader);
     shader.uniforms['uSheepTime'] = uTime;
     shader.vertexShader = shader.vertexShader
@@ -433,9 +431,7 @@ function patchSheep(mat: THREE.Material, uTime: { value: number }, depthOnly: bo
     if (!depthOnly) shader.fragmentShader = shader.fragmentShader.replace('#include <color_fragment>', `#if defined( USE_COLOR ) || defined( USE_INSTANCING_COLOR )
       { float woolL = dot( diffuseColor.rgb, vec3( 0.2126, 0.7152, 0.0722 ) ); diffuseColor.rgb *= mix( vec3( 1.0 ), vColor.rgb, smoothstep( 0.05, 0.18, woolL ) ); }
       #endif`);
-  };
-  const key = mat.customProgramCacheKey.bind(mat);
-  mat.customProgramCacheKey = () => `${key()}|nalati-sheep${depthOnly ? '-depth' : ''}`;
+  }, { key: (k) => `${k}|nalati-sheep${depthOnly ? '-depth' : ''}` });
 }
 
 /** SpeciesDef.think for the sheepdog: circle the flock, fetch stragglers, face down wolves */

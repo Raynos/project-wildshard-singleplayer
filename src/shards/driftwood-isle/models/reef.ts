@@ -14,6 +14,7 @@ import * as THREE from 'three';
 import type { Rng } from '#engine/core/rng';
 import { attachFogUniforms } from '#engine/world/Atmosphere';
 import { defineModel, type ModelContext, type ModelPart } from '#engine/models/model';
+import { PATCH_ORDER, patchShader } from '#engine';
 
 export interface ReefParams {
   /** size, 1 = the builders' metre scale */
@@ -38,7 +39,7 @@ export function reefMaterial(ctx: ModelContext): { material: THREE.MeshStandardM
   return ctx.once('driftwood-isle/reef:material', () => {
     const uniforms = { uTime: { value: 0 } };
     const material = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.8, metalness: 0, side: THREE.DoubleSide });
-    material.onBeforeCompile = (shader) => {
+    patchShader(material, 'driftwood.seabed-sway', PATCH_ORDER.material, (shader) => {
       attachFogUniforms(shader);
       Object.assign(shader.uniforms, uniforms);
       shader.vertexShader = shader.vertexShader
@@ -53,8 +54,7 @@ export function reefMaterial(ctx: ModelContext): { material: THREE.MeshStandardM
             transformed.z += cos(uTime * 0.65 + ph * 1.3) * w * 0.28;
             transformed.y -= abs(g) * w * 0.08;
           }`);
-    };
-    material.customProgramCacheKey = () => 'seabed-sway';
+    }, { mode: 'replace', key: 'seabed-sway' });
     ctx.sky.setupMaterial(material);
     return { material, uniforms };
   });

@@ -22,7 +22,7 @@
  */
 import * as THREE from 'three';
 import { Rng } from '#engine/core/rng';
-import { ambientTick } from '#engine';
+import { ambientTick, PATCH_ORDER, patchShader } from '#engine';
 import { CHUNK_HALF } from '#engine/core/config';
 import { heightAt, waterLevel, inChunk } from '#engine/world/Heightfield';
 import { attachFogUniforms } from '#engine/world/Atmosphere';
@@ -256,7 +256,7 @@ export class Gulls {
     geo.boundingSphere = new THREE.Sphere(new THREE.Vector3(0, 20, 0), 400);
 
     const mat = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.8, metalness: 0, side: THREE.DoubleSide });
-    mat.onBeforeCompile = (shader) => {
+    patchShader(mat, 'driftwood.gulls', PATCH_ORDER.material, (shader) => {
       attachFogUniforms(shader);
       Object.assign(shader.uniforms, this.uniforms);
       shader.vertexShader = shader.vertexShader
@@ -294,8 +294,7 @@ export class Gulls {
               transformed.yz = rot2(-tuck * 1.35) * (transformed.yz - h) + h;
             }
           }`);
-    };
-    mat.customProgramCacheKey = () => 'gulls-anim';
+    }, { mode: 'replace', key: 'gulls-anim' });
     this.sky.setupMaterial(mat);
     this.mesh = new THREE.InstancedMesh(geo, mat, n);
     this.mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);

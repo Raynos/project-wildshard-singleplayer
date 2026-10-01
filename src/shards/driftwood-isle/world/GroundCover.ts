@@ -69,6 +69,7 @@ import type { Sky } from '#engine/world/Sky';
 import { driftLog, driftLogBox } from '../models/driftLog';
 import { modelContext } from '#engine/models/model';
 import { place, type Placed } from '#engine/models/place';
+import { PATCH_ORDER, patchShader } from '#engine';
 
 export interface GroundCoverOpts {
   sea: number;
@@ -767,7 +768,7 @@ export class GroundCover {
    */
   private patch(mat: THREE.MeshStandardMaterial, reach: THREE.Vector3, far: THREE.Vector3, mode: number, keep: number): void {
     const u = this.uniforms, uReach = { value: reach }, uFarReach = { value: far }, uMode = { value: mode }, uFarIn = this.farIn, uKeep = { value: keep };
-    mat.onBeforeCompile = (sh) => {
+    patchShader(mat, 'driftwood.ground-cover', PATCH_ORDER.material, (sh) => {
       attachFogUniforms(sh);
       sh.uniforms['uPlayer'] = u.uPlayer; sh.uniforms['uTime'] = windUniforms.uWindTime; sh.uniforms['uWind'] = u.uWind; sh.uniforms['uReach'] = uReach;
       sh.uniforms['uFarReach'] = uFarReach; sh.uniforms['uMode'] = uMode; sh.uniforms['uFarIn'] = uFarIn;
@@ -824,7 +825,6 @@ export class GroundCover {
         .replace('#include <common>', '#include <common>\nvarying vec3 vGround; varying float vFar;')
         .replace('#include <color_fragment>', '#include <color_fragment>\ndiffuseColor.rgb = mix(diffuseColor.rgb, vGround, vFar);')
         .replace('#include <normal_fragment_begin>', '#include <normal_fragment_begin>\nnormal = normalize(mix(normal, normalize((viewMatrix * vec4(0.0, 1.0, 0.0, 0.0)).xyz), vFar));');
-    };
-    mat.customProgramCacheKey = () => 'ground-cover';
+    }, { mode: 'replace', key: 'ground-cover' });
   }
 }

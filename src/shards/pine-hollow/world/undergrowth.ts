@@ -9,6 +9,7 @@ import type { Forest } from '#engine/world/forest/Forest';
 import { TIER_CONFIG } from '#engine/core/tier';
 import { DecisionLog, placeUndergrowth, placementChecksum, sameChecksum, type Placement, type UnderPlacements } from '#engine/world/forest/placement';
 import { bakedUndergrowth } from '#engine/world/BakedTerrain';
+import { PATCH_ORDER, patchShader } from '#engine';
 
 /**
  * Forest-floor undergrowth: ferns, low round-leaf shrubs and needle/twig litter — the field (world): where every copy
@@ -139,7 +140,7 @@ export class Undergrowth {
   private makeMaterial(tex: THREE.Texture, key: string, wind: number, alphaTest: number) {
     const mat = new THREE.MeshStandardMaterial({ map: tex, alphaTest, side: THREE.DoubleSide, roughness: 0.8, metalness: 0 });
     mat.name = `under-${key}`;
-    mat.onBeforeCompile = (shader) => {
+    patchShader(mat, 'pine.undergrowth', PATCH_ORDER.material, (shader) => {
       attachFogUniforms(shader);
       Object.assign(shader.uniforms, underUniforms);
       patchUndergrowthVertex(shader, wind);
@@ -159,8 +160,7 @@ export class Undergrowth {
             float bl = pow( max( dot( normalize( - vViewPosition ), sunV ), 0.0 ), 5.0 );
             reflectedLight.indirectDiffuse += diffuseColor.rgb * ( 0.05 + bl * 0.35 ) * uSunColor;
           }`);
-    };
-    mat.customProgramCacheKey = () => 'under'; // `key` names the material; wind is a uniform, so every kind shares ONE program (was 6 — ~150 ms each on iOS)
+    }, { mode: 'replace', key: 'under' }); // `key` names the material; wind is a uniform, so every kind shares ONE program (was 6 — ~150 ms each on iOS)
     this.sky.setupMaterial(mat);
     return mat;
   }
@@ -172,8 +172,7 @@ function kindDraw(geometry: THREE.BufferGeometry, material: THREE.MeshStandardMa
   const castShadow = shadow && TIER_CONFIG.undergrowthShadows;
   if (!castShadow || !tex) return { geometry, material, castShadow };
   const depth = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, map: tex, alphaTest: 0.5, side: THREE.DoubleSide });
-  depth.onBeforeCompile = (shader) => { patchUndergrowthVertex(shader, wind); };
-  depth.customProgramCacheKey = () => 'under-depth'; // wind is a uniform: one depth program for every kind
+  patchShader(depth, 'pine.undergrowth-depth', PATCH_ORDER.material, (shader) => { patchUndergrowthVertex(shader, wind); }, { mode: 'replace', key: 'under-depth' }); // wind is a uniform: one depth program for every kind
   return { geometry, material, castShadow, customDepthMaterial: depth };
 }
 

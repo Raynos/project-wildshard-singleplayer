@@ -29,6 +29,7 @@ import type { Sky } from '#engine/world/Sky';
 import type { BoxSpec as Collider } from '#engine/physics/box';
 import { attachFogUniforms } from '#engine/world/Atmosphere';
 import { loadFaceHead, type FaceHead } from '#kit';
+import { PATCH_ORDER, patchShader } from '#engine';
 
 const C = {
   skin: '#c98d62', skinDark: '#a8704a', beard: '#cfcac0', beardDark: '#a9a39a', hat: '#d8b867', hatDark: '#b8964a', band: '#7a3b2a',
@@ -214,7 +215,7 @@ export class Castaway {
     const smokeMat = this.smokeMat = new THREE.PointsMaterial({ color: new THREE.Color(0.8, 0.79, 0.77), size: 1, sizeAttenuation: true, transparent: true, opacity: 0.42, depthWrite: false, map: puffTexture(), fog: true });
     smokeMat.name = 'castaway-smoke';
     // per-puff size + alpha: the stock points shader with two attributes spliced in
-    smokeMat.onBeforeCompile = (sh) => {
+    patchShader(smokeMat, 'driftwood.castaway-smoke', PATCH_ORDER.material, (sh) => {
       attachFogUniforms(sh);
       sh.vertexShader = sh.vertexShader
         .replace('uniform float size;', 'uniform float size;\nattribute float aSize;\nattribute float aAlpha;\nvarying float vAlpha;')
@@ -222,8 +223,7 @@ export class Castaway {
       sh.fragmentShader = sh.fragmentShader
         .replace('uniform float opacity;', 'uniform float opacity;\nvarying float vAlpha;')
         .replace('vec4 diffuseColor = vec4( diffuse, opacity );', 'vec4 diffuseColor = vec4( diffuse, opacity * vAlpha );');
-    };
-    smokeMat.customProgramCacheKey = () => 'castaway-smoke-v2';
+    }, { mode: 'replace', key: 'castaway-smoke-v2' });
     this.smoke = new THREE.Points(g, smokeMat);
     this.smoke.renderOrder = 4;
 

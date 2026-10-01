@@ -39,6 +39,7 @@ import { herdHorse } from '../models/herdHorse';
 import { snowLotus } from '../models/snowLotus';
 import { glacierSnout, snoutGeometry, snoutAt } from '../models/glacierSnout';
 import { place as placeModel } from '#engine/models/place';
+import { PATCH_ORDER, patchShader } from '#engine';
 
 const PHONE = TIER === 'phone';
 
@@ -102,12 +103,9 @@ const GALLOP_GLSL = /* glsl */`
 /** a painterly material for the riders with the gallop bent in (one extra program, for the six riders) */
 function gallopMaterial(sky: Sky, like: THREE.MeshLambertMaterial): THREE.MeshLambertMaterial {
   const mat = painterlyMaterial(sky, { map: like.map, rim: 0.8, bands: 0.85 });
-  const base = mat.onBeforeCompile.bind(mat), key = mat.customProgramCacheKey.bind(mat);
-  mat.onBeforeCompile = (shader, renderer) => {
-    base(shader, renderer);
+  patchShader(mat, 'nalati.gallop', PATCH_ORDER.decorate, (shader) => {
     shader.vertexShader = shader.vertexShader.replace('#include <begin_vertex>', `#include <begin_vertex>\n${GALLOP_GLSL}`);
-  };
-  mat.customProgramCacheKey = () => `${key()}|gallop`;
+  }, { key: (k) => `${k}|gallop` });
   return mat;
 }
 

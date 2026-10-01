@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { loadPBR, loadGLTF, pbrMaterial, Rng, SEED, heightAt, attachFogUniforms, boxDesc, TIER_CONFIG, macrotask, LightPool, twoSidedPositions, type Interactable, type PBRSet, type Sky, type BoxSpec as Collider, type ColliderDesc, type WeldBuild } from '#engine';
+import { loadPBR, loadGLTF, pbrMaterial, Rng, SEED, heightAt, attachFogUniforms, boxDesc, TIER_CONFIG, macrotask, LightPool, twoSidedPositions, type Interactable, type PBRSet, type Sky, type BoxSpec as Collider, type ColliderDesc, type WeldBuild, PATCH_ORDER, patchShader } from '#engine';
 import { CABIN_SITES } from '../layout';
 import {
   CABIN_SPECS, CabinBuilder, PROP_KINDS, mergeParts,
@@ -87,12 +87,11 @@ async function loadMats(sky: Sky): Promise<Mats> {
   installMoss(m.roof, sky, 'roof');
   installMoss(m.stone, sky, 'stone');
   // the rough_pine_door scan is a saturated orange-red: pull it toward a weathered grey-brown in the shader
-  m.door.onBeforeCompile = (shader) => {
+  patchShader(m.door, 'pine.cabin-door', PATCH_ORDER.material, (shader) => {
     attachFogUniforms(shader);
     shader.fragmentShader = shader.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
       diffuseColor.rgb = mix(vec3(dot(diffuseColor.rgb, vec3(0.333))), diffuseColor.rgb, 0.45) * vec3(0.9, 0.95, 1.0);`);
-  };
-  m.door.customProgramCacheKey = () => 'cabin-door';
+  }, { mode: 'replace', key: 'cabin-door' });
   for (const k of ['log', 'endGrain', 'chink', 'roof', 'beam', 'deck', 'door', 'stone', 'glass', 'bark', 'iron', 'cloth', 'char'] as const) sky.setupMaterial(m[k]);
   return m;
 }
@@ -283,7 +282,7 @@ const isMesh = (o: THREE.Object3D): o is THREE.Mesh => 'isMesh' in o;
  */
 function installMoss(mat: THREE.MeshStandardMaterial, sky: Sky, kind: 'roof' | 'stone') {
   const strength = kind === 'roof' ? 1.0 : 0.6;
-  mat.onBeforeCompile = (shader) => {
+  patchShader(mat, 'pine.cabin-moss', PATCH_ORDER.material, (shader) => {
     attachFogUniforms(shader);
     shader.uniforms['uMossSun'] = { value: sky.sunDir };
     shader.uniforms['uMossStrength'] = { value: strength };
@@ -337,8 +336,7 @@ function installMoss(mat: THREE.MeshStandardMaterial, sky: Sky, kind: 'roof' | '
           vec3 vGrad = sign(fDet) * (dHdxy.x * R1 + dHdxy.y * R2);
           normal = normalize(abs(fDet) * normal - vGrad * 6.0);
         }`);
-  };
-  mat.customProgramCacheKey = () => 'cabin-moss'; // strength / upOnly are uniforms: roof and stone share one program
+  }, { mode: 'replace', key: 'cabin-moss' }); // strength / upOnly are uniforms: roof and stone share one program
 }
 
 // ───────────────────────────── the homestead ─────────────────────────────

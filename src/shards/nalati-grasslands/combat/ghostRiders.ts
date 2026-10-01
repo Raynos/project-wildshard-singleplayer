@@ -1,5 +1,5 @@
 import { nightSpawner } from './spawns';
-import { GroupBrain, app, pinBrain, type Scope, type Game, type Sky, type Player, type Forest, type TargetAnimal, type TargetHit, Projectiles, type ProjectileKind, setting, type Animal, type AnimalManager, type Spawner, type DayCycleClock, heightAt } from '#engine';
+import { GroupBrain, app, pinBrain, type Scope, type Game, type Sky, type Player, type Forest, type TargetAnimal, type TargetHit, Projectiles, type ProjectileKind, setting, type Animal, type AnimalManager, type Spawner, type DayCycleClock, heightAt, PATCH_ORDER, patchShader } from '#engine';
 import * as THREE from 'three';
 
 
@@ -81,9 +81,7 @@ function ghostMaterial(look: GhostVariant | 'storm' = 'rider'): GhostMat {
   // chain the prototype hook (Atmosphere.ts attaches the painted air's fog + cloud-shadow uniforms there). Replacing it left
   // `fogCloudTex` (sampler2D) unbound on texture unit 0 next to the shadow map's sampler2DShadow: "two textures of different
   // types use the same sampler location" — WebGL drops the draw, so the bodies never rendered (only the mist did; B11)
-  const base = mat.onBeforeCompile.bind(mat);
-  mat.onBeforeCompile = (sh, renderer) => {
-    base(sh, renderer);
+  patchShader(mat, 'nalati.ghost', PATCH_ORDER.decorate, (sh) => {
     sh.uniforms['uGFade'] = fade; sh.uniforms['uGTime'] = GHOST_TIME;
     sh.fragmentShader = sh.fragmentShader
       .replace('#include <common>', '#include <common>\nuniform float uGFade;\nuniform float uGTime;')
@@ -94,8 +92,7 @@ function ghostMaterial(look: GhostVariant | 'storm' = 'rider'): GhostMat {
         float gS = 0.75 + 0.25 * sin( gl_FragCoord.y * 0.045 + uGTime * 3.1 ) * sin( gl_FragCoord.x * 0.031 - uGTime * 2.3 );
         vec3 gC = mix( ${core}, ${rim}, gF ) * ( 0.8 + 1.3 * gF ) * gS;
         gl_FragColor = vec4( gC * uGFade, 1.0 );`);
-  };
-  mat.customProgramCacheKey = () => (storm ? 'nalati-ghost-storm' : captain ? 'nalati-ghost-captain' : 'nalati-ghost');
+  }, { key: (storm ? 'nalati-ghost-storm' : captain ? 'nalati-ghost-captain' : 'nalati-ghost') });
   mat.name = 'nalati-ghost';
   return { mat, fade };
 }

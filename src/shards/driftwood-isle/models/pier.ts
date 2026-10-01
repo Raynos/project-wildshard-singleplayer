@@ -22,6 +22,7 @@ import { boxDesc, type ColliderDesc } from '#engine/world/registry';
 import { lowPolyMaterial } from '#engine/world/lowpolyKit';
 import { patchSway } from '#engine/world/wind';
 import { defineModel, type ModelContext, type ModelPart } from '#engine/models/model';
+import { PATCH_ORDER, patchShader } from '#engine';
 
 export interface PierLanding {
   /** where the deck starts ramping down (metres from the sea end) */
@@ -99,12 +100,10 @@ function patchFlutter(shader: { vertexShader: string }, dir: readonly [number, n
 function pennantMaterials(ctx: ModelContext, dir: readonly [number, number]): { lit: THREE.Material; depth: THREE.MeshDepthMaterial } {
   return ctx.once('driftwood-isle/pier:pennant', () => {
     const lit = lowPolyMaterial(ctx.sky, 'pennant', (m) => {
-      const kit = m.onBeforeCompile.bind(m);
-      m.onBeforeCompile = (sh, r) => { kit(sh, r); patchFlutter(sh, dir); };
+      patchShader(m, 'driftwood.pennant-flutter', PATCH_ORDER.decorate, (sh) => { patchFlutter(sh, dir); });
     });
     const depth = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, side: THREE.DoubleSide });
-    depth.onBeforeCompile = (sh) => { patchSway(sh); patchFlutter(sh, dir); };
-    depth.customProgramCacheKey = () => 'pennant-depth';
+    patchShader(depth, 'driftwood.pennant-depth', PATCH_ORDER.material, (sh) => { patchSway(sh); patchFlutter(sh, dir); }, { mode: 'replace', key: 'pennant-depth' });
     return { lit, depth };
   });
 }

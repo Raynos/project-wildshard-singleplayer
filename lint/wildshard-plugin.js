@@ -412,6 +412,14 @@ const noRendererType = rule('Renderer types stay inside rendering (E357)', (cont
   if (/^src\/(?:engine\/render\/|(?:engine\/)?core\/(?:Game|bootstrap)\.ts$)/u.test(pathOf(context))) return {};
   return { Identifier(node) { if (node.name === 'WebGLRenderer') report(context, node, 'Renderer types belong in engine/render'); } };
 });
+const SHADER_HOOKS = new Set(['onBeforeCompile', 'customProgramCacheKey']);
+const noRawShaderPatch = rule('Shader patches go through the one registry (E357 X6)', (context) => {
+  if (pathOf(context).startsWith('src/engine/render/')) return {};
+  return { AssignmentExpression(node) {
+    const left = unwrap(node.left);
+    if (left?.type === 'MemberExpression' && SHADER_HOOKS.has(propName(left) ?? stringOf(left.property) ?? '')) report(context, node, 'Patch shaders with patchShader / setProgramKey (#engine/render/shaderPatches)');
+  } };
+});
 const SIM = /^src\/engine\/(?:combat|ai|saves|quests|effects)\//u;
 const VIEW = /^src\/engine\/(?:combat|ai)\/view\//u;
 const VISUAL = /^src\/engine\/(?:render|ui|fx|anim)\//u;
@@ -495,7 +503,7 @@ const plugin = {
   rules: {
     'no-url-switch': noUrlSwitch, layer, 'no-shard-branch': noShardBranch, 'no-raw-save': noRawSave,
     'no-raw-random-time': noRawRandomTime, 'no-raw-input': noRawInput,
-    'no-renderer-type': noRendererType, 'sim-no-render': simNoRender,
+    'no-renderer-type': noRendererType, 'no-raw-shader-patch': noRawShaderPatch, 'sim-no-render': simNoRender,
     'no-hook-chain': noHookChain,
     'no-active-singleton': noActiveSingleton, 'no-active-chunk': noActiveChunk,
     'no-global-listener-patch': noGlobalListenerPatch,
