@@ -105,6 +105,7 @@ const esc = (s: string): string => s.replaceAll('&', '&amp;').replaceAll('<', '&
 const tabHtml = (label: string, ic?: IconId): string => (ic ? `<i class="ws-gmenu-ticon">${icon(ic)}</i><span class="ws-gmenu-tword">${esc(label)}</span>` : esc(label));
 
 export class GameMenu {
+  private savePanel: ReturnType<typeof buildSavePanel> | null = null;
   readonly root: HTMLElement;
   private sheet: HTMLElement;
   private tabBar: HTMLElement;
@@ -547,10 +548,11 @@ export class GameMenu {
     this.debug = buildDebugMenu(dbg);
     // Review is not debug (E140): playtesters unlock notes with it, so it stays in Settings, with the Developer switch
     p.append(this.buildReview(), ...devSwitchRows());
-    panel.append(buildSavePanel());
+    this.savePanel = buildSavePanel(); panel.append(this.savePanel);
   }
   /** show only the Settings rows that apply now (E130: the weapons you hold, the shard) — every open and every Settings select */
   private applies(): void {
+    this.savePanel?.refresh();
     const kit = this.opts.kit(), c: SettingsCtx = { weapons: new Set(kit.map((k) => k.id)), melee: kit.some((k) => k.icon === 'sword'), chunk: getActiveChunk() };
     for (const g of this.gated) g.el.hidden = !g.when(c);
     this.debug?.applies(c);

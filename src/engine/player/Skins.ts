@@ -282,7 +282,7 @@ function antlerTines(root: THREE.Object3D, mat: THREE.Material | undefined): THR
 // ───────────────────────────── ownership ─────────────────────────────
 
 
-/** What you own and what each weapon wears; persisted (skins are yours across shards). */
+/** What this level owns and what each weapon wears; persisted independently per namespace. */
 export class SkinLocker {
   private owned = new Set<SkinId>();
   private worn: Partial<Record<WeaponKind, SkinId>> = {};

@@ -9,7 +9,7 @@ const savedStorage = saveStorage('device');
  *   setDev(on)         // the Settings ▸ Developer switch: saved, and every listener told at once (no reload)
  *   onDev((on) => …)   // live show / hide; returns the unsubscribe
  *
- * The saved pick lives in localStorage `devMode` (a `ws.*` key, so the native save mirror keeps it, src/engine/native/saves.ts).
+ * The saved pick lives in the device document's `devMode` key and stays on this machine.
  * No URL switch (E162: the test scripts set `devMode` before load). `<html data-dev>` mirrors the state for CSS — index.html
  * sets it before any module runs (the loading screen is painted from the first bytes), from this same key; keep the two
  * readers in step.

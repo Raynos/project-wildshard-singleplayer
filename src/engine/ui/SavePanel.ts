@@ -13,7 +13,7 @@ const button = (scope: Scope, text: string, run: () => void): HTMLButtonElement 
   const element = document.createElement('button'); element.type = 'button'; element.className = 'ws-gmenu-btn'; element.textContent = text;
   scope.listen(element, 'click', run); return element;
 };
-export function buildSavePanel(): HTMLElement {
+export function buildSavePanel(): HTMLDivElement & { refresh: () => void } {
   const scope = (currentScope()?.resources ?? app.levelScope ?? app.engineScope).child('save-panel');
   const card = document.createElement('div'); card.className = 'ws-gmenu-card';
   const title = document.createElement('div'); title.className = 'ws-gmenu-cardtitle'; title.textContent = strings.title;
@@ -42,5 +42,5 @@ export function buildSavePanel(): HTMLElement {
       reload.hidden = report.imported.length === 0; renderAside(); return undefined;
     }).catch(() => { status.textContent = strings.failed; });
   });
-  card.append(title, note, row, picker, status, reload, aside); renderAside(); return card;
+  card.append(title, note, row, picker, status, reload, aside); renderAside(); return Object.assign(card, { refresh: renderAside });
 }

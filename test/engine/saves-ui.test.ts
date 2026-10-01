@@ -39,4 +39,6 @@ it('lists and exports corrupt gameplay copies while hiding an empty aside list',
   vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => undefined);
   const panel = buildSavePanel(); expect(panel.textContent).toContain('SET ASIDE'); expect(panel.textContent).toContain('pine-hollow / inventory');
   [...panel.querySelectorAll('button')].filter((b) => b.textContent === 'EXPORT')[1]?.click(); expect(exportCopy).toHaveBeenCalledTimes(1);
+  vi.spyOn(app.saves, 'corrupt').mockReturnValue([]); panel.refresh();
+  expect(panel.textContent).not.toContain('SET ASIDE');
 });
