@@ -70,6 +70,8 @@ export class RideHUD {
   private readonly t: { gallop: HTMLElement; horse: HTMLButtonElement; leanL: HTMLElement; leanR: HTMLElement; offer: HTMLButtonElement; steed: HTMLElement; sbar: HTMLElement; sname: HTMLElement; gait: HTMLElement };
   private layer: HTMLElement | null = null; private use: HTMLElement | null = null;
   private last = { mounted: true, breaking: true, offer: true, horseTab: true, steed: -1, gait: '', winded: false, beat: false, spur: 0 }; // ≠ the first frame's: paint it
+  /** Actual taming availability; the first-paint cache deliberately starts with the opposite value. */
+  private offerAvailable = false;
   private spurUntil = 0;
 
   constructor(private readonly mount: Mount, private readonly camera: THREE.PerspectiveCamera, private readonly ctx?: LevelContext) {
@@ -103,7 +105,7 @@ export class RideHUD {
         icon: mounted ? `${SVG_HORSE}<b class="ws-ride-darrow">${SVG_DOWN}</b>` : SVG_HORSE, element: this.t.horse,
         show: () => !this.mount.breaking && (this.mount.mounted || this.mount.mountables.some((mt) => (mt.a.mem['whistle'] ?? 0) === 1)) },
       'verb.2': { action: 'ride.offer', label: 'Offer', icon: SVG_HAND, hold: true, element: this.t.offer,
-        show: () => this.last.offer },
+        show: () => this.offerAvailable },
     };
   }
 
@@ -218,6 +220,7 @@ export class RideHUD {
     const horseTab = !breaking && (mounted || m.mountables.some((mt) => (mt.a.mem['whistle'] ?? 0) === 1));
     if (horseTab !== this.last.horseTab) { this.last.horseTab = horseTab; hudSlots.show(t.horse, horseTab); }
     const offer = (view?.offer ?? false) && !mounted;
+    this.offerAvailable = offer;
     if (offer !== this.last.offer) {
       this.last.offer = offer;
       hudSlots.show(t.offer, offer);
