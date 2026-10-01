@@ -57,8 +57,8 @@ export type ShardSlug = ${slugs.map((slug) => JSON.stringify(slug)).join(' | ')}
 `;
 }
 
-export function genShards(root = resolve(import.meta.dirname, '..'), check = false, initializeMissing = false) {
-  genShardWords(root, check);
+export function genShards(root = resolve(import.meta.dirname, '..'), check = false, initializeMissing = false, shard = '') {
+  genShardWords(root, check, shard);
   const outputs = { 'shards.generated.ts': shardSource(root), 'manifest-closure.generated.json': `${JSON.stringify(manifestClosure(root), null, 2)}\n` };
   for (const [name, source] of Object.entries(outputs)) {
     const out = resolve(root, 'src/game/shard', name);
@@ -72,6 +72,6 @@ export function genShards(root = resolve(import.meta.dirname, '..'), check = fal
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href) {
-  try { genShards(undefined, process.argv.includes('--check')); }
+  try { genShards(undefined, process.argv.includes('--check'), false, process.argv.find((arg) => arg.startsWith('--shard='))?.slice(8)); }
   catch (error) { console.error(error instanceof Error ? error.message : String(error)); process.exitCode = 1; }
 }

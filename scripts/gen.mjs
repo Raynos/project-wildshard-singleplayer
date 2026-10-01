@@ -3,9 +3,10 @@ import { genShards } from './gen-shards.mjs';
 import { genAskIds } from './gen-ask-ids.mjs';
 
 await import('./bake-loader.mjs');
-genShards();
+const shard = process.argv.find((arg) => arg.startsWith('--shard='))?.slice(8);
+genShards(undefined, false, false, shard);
 genAskIds();
 const { generateBootTables } = await import('../vite/gen.ts');
 generateBootTables();
 // Boot tables add static imports; derive the closure from the completed graph.
-genShards();
+genShards(undefined, false, false, shard);

@@ -28,7 +28,10 @@ the title deck.
   why the public API can't do it. The lead fixes the API. Don't work around it with a deep import or a global.
 - **Generated files outside your lane.** Three committed files under `lint/` change when a shard is added, and only
   the lead commits them. Name them in your ask file as soon as they change, so the lead lands them:
-  - `lint/shard-words.generated.json`: `pnpm gen` adds your slug, your shard's name and your species and weapon ids.
+  - `lint/shard-words.generated.json`: `pnpm gen --shard=<slug>` adds or updates only your slug's name, species/weapon ids,
+    settings and asset ownership, preserving every other committed entry even while its source is unfinished.
+    It rebuilds aggregate words from those preserved entries. The ignored runtime registry/closure tables still regenerate globally.
+    A scoped run requires an existing inventory (already present in this repository); use unscoped `pnpm gen` for a full refresh or removal.
     The pre-commit hook checks it (`gen-shards --check`) whenever a commit touches your `manifest.ts`.
   - `lint/ratchet.json` `debugRows`: every new `ctx.debugRow` raises the Debug-row cap.
   - `lint/ask-ids.json`: `pnpm gen` adds an ask id that a new Debug row names.
@@ -53,7 +56,8 @@ Then, in the copy:
    global: two shards with the same row id collide.
 3. Delete what you won't use. The template has one of everything on purpose; a real shard lists only the mechanisms
    and verbs it runs.
-4. `pnpm gen` regenerates `src/game/shard/shards.generated.ts` (git-ignored). Your shard is now in the registry.
+4. `pnpm gen --shard=<slug>` regenerates `src/game/shard/shards.generated.ts` (git-ignored) and only your lint vocabulary entry.
+   Your shard is now in the registry. `node scripts/gen-shards.mjs --shard=<slug> --check` checks that scoped entry and the runtime tables.
 5. `pnpm exec tsc --noEmit -p .` and `pnpm exec vitest run test/shards/<slug>` must pass before you go on.
 
 A folder whose name starts with `_` is hidden: it gets no title card and no layout check. Yours must not.

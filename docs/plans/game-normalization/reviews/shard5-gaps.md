@@ -21,7 +21,7 @@ edits and zero gaps**.
 | G8 | The template's custom melee context declares `attack` / `heavy` / `lock` with no `keys`, and its heavy reads `altHeld` while the touch hold sets `adsHeld`. The E365 whip findings trace back to it. | E363 #5, E364 #8 note | template + SHARDS §5 step 4 show the keys and the `heavy` binding, or a custom melee context inherits `weapon.melee`'s keys | open |
 | G9 | Far ridges and the boundary always build. The way to turn the rings off (`horizon: { rings: [], cloudSea: false }`) is only in Nine Dragon's manifest; a dune sea can only recolour them | E363 #6, E364 #9 | ENGINE §6 documents `horizon` fully; a shard can drop or reshape the rings | fixed (this commit: E357 Z3G G9) |
 | G10 | Doc nit: SHARDS §3 says the manifest imports `buildTerrain` from `#engine/data`, the template imports it from `#engine` | E364 #7 | one import path, the same in both | fixed (this commit: E357 Z3G G10) |
-| G11 | `pnpm gen` writes every slug's `lint/shard-words.generated.json` entry from the shared tree; a shard agent has to splice HEAD + its slug by hand through a private index | E363 #1 | `gen-shards` writes one slug's entry (or one file per slug) | open |
+| G11 | `pnpm gen` writes every slug's `lint/shard-words.generated.json` entry from the shared tree; a shard agent has to splice HEAD + its slug by hand through a private index | E363 #1 | `gen-shards` writes one slug's entry (or one file per slug) | fixed (this commit: E357 Z3G G11) |
 | G12 | A `git archive` check export is 3 GB with `public/` (ENOSPC mid-session) | E364 #10 | SHARDS documents a check export that skips `public/` (symlink it) | open |
 
 ## Shard findings for the rebuild (not API gaps)

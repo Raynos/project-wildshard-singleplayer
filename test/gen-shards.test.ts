@@ -57,4 +57,51 @@ describe('shard generation', () => {
     expect(result.get('engine')?.phone).toEqual({ '/assets/tex/shared.jpg#layer': '/assets/gpu/tex/shared.ktx2' });
     expect(() => splitKtx2(map, [{ slug: 'new-shard' }, { slug: 'other', assetGlobs: ['public/assets/new-shard/**'] }])).toThrow('ambiguous');
   });
+
+  it('updates only one vocabulary entry while another shard has malformed WIP', () => {
+    const root = mkdtempSync(join(tmpdir(), 'gen-shards-scoped-'));
+    const put = (slug: string, file: string, source: string): void => {
+      const dir = join(root, 'src/shards', slug); mkdirSync(dir, { recursive: true }); writeFileSync(join(dir, file), source);
+    };
+    try {
+      put('mine', 'manifest.ts', "export default { slug: 'mine', name: 'Before', debugOptions: ['mine.old'], assetGlobs: ['public/assets/mine/**'] };");
+      put('other', 'manifest.ts', "export default { slug: 'other', name: 'Committed Other', debugOptions: ['other.keep'], assetGlobs: ['public/assets/other/**'] };");
+      put('other', 'plugin.ts', "export function kit(ctx) { ctx.rows.species({ id: 'other.creature' }); }");
+      genShards(root);
+      put('other', 'manifest.ts', 'export default { this is unfinished');
+      put('other', 'plugin.ts', 'export function kit( unfinished');
+      put('mine', 'manifest.ts', "export default { slug: 'mine', name: 'After', debugOptions: ['mine.new'], assetGlobs: ['public/assets/mine/v2/**'] };");
+      put('mine', 'plugin.ts', "export function kit(ctx) { ctx.rows.weapon({ id: 'mine.whip' }); }");
+      genShards(root, false, false, 'mine');
+      const file = join(root, 'lint/shard-words.generated.json');
+      const source = readFileSync(file, 'utf8'); const data: unknown = JSON.parse(source);
+      expect(data).toMatchObject({ slugs: ['mine', 'other'], words: ['After', 'Committed Other', 'mine', 'mine.whip', 'other', 'other.creature'],
+        shards: { mine: { name: 'After', ids: ['mine.whip'], settings: ['mine.new'], assets: ['public/assets/mine/v2/**'] },
+          other: { name: 'Committed Other', ids: ['other.creature'], settings: ['other.keep'], assets: ['public/assets/other/**'] } } });
+      expect(() => genShards(root, true, false, 'mine')).not.toThrow();
+      expect(readFileSync(file, 'utf8')).toBe(source);
+      expect(() => genShards(root)).toThrow('Cannot read shard vocabulary');
+      expect(() => genShards(root, false, false, '../mine')).toThrow('unknown shard');
+      expect(() => genShards(root, false, false, 'missing')).toThrow('unknown shard');
+      expect(readFileSync(file, 'utf8')).toBe(source);
+      put('fresh', 'manifest.ts', "export default { slug: 'fresh', name: 'Fresh' };");
+      genShards(root, false, false, 'fresh');
+      const added: unknown = JSON.parse(readFileSync(file, 'utf8'));
+      expect(added).toMatchObject({ slugs: ['fresh', 'mine', 'other'], words: ['After', 'Committed Other', 'fresh', 'Fresh', 'mine', 'mine.whip', 'other', 'other.creature'] });
+    } finally { rmSync(root, { recursive: true, force: true }); }
+  });
+
+  it('requires an existing vocabulary for a scoped write and checks stale entries without writing', () => {
+    const root = mkdtempSync(join(tmpdir(), 'gen-shards-scoped-init-'));
+    try {
+      const dir = join(root, 'src/shards/mine'); mkdirSync(dir, { recursive: true });
+      const manifest = join(dir, 'manifest.ts'); writeFileSync(manifest, "export default { slug: 'mine', name: 'Before' };");
+      expect(() => genShards(root, false, false, 'mine')).toThrow('scoped generation needs');
+      genShards(root);
+      const file = join(root, 'lint/shard-words.generated.json'), before = readFileSync(file, 'utf8');
+      writeFileSync(manifest, "export default { slug: 'mine', name: 'After' };");
+      expect(() => genShards(root, true, false, 'mine')).toThrow('stale lint/shard-words.generated.json');
+      expect(readFileSync(file, 'utf8')).toBe(before);
+    } finally { rmSync(root, { recursive: true, force: true }); }
+  });
 });

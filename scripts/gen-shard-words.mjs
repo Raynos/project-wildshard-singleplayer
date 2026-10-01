@@ -21,7 +21,10 @@ const walk = (node, visit) => {
 };
 
 /** Read only the static data used by manifests and declared species/weapon rows. */
-export function shardWordData(root) {
+export function shardWordData(root, shard) {
+  if (shard !== undefined && (!/^[a-z0-9_-]+$/.test(shard) || !existsSync(resolve(root, 'src/shards', shard, 'manifest.ts')))) {
+    throw new Error(`gen-shards: unknown shard ${shard}`);
+  }
   const modules = new Map(), resolving = new Set();
   const find = (base) => [base, `${base}.ts`, `${base}/index.ts`].find((file) => existsSync(file) && file.endsWith('.ts'));
   const module = (file) => {
@@ -107,6 +110,7 @@ export function shardWordData(root) {
   };
   const shards = {};
   for (const entry of readdirSync(resolve(root, 'src/shards'), { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
+    if (shard !== undefined && entry.name !== shard) continue;
     if (!entry.isDirectory()) continue;
     const file = resolve(root, 'src/shards', entry.name, 'manifest.ts');
     if (!existsSync(file)) continue;
@@ -129,17 +133,29 @@ export function shardWordData(root) {
     }
     shards[entry.name] = { name: data?.name ?? entry.name, ids: [...ids].sort((a, b) => a.localeCompare(b)), settings: [...settings].sort((a, b) => a.localeCompare(b)), assets: data?.assetGlobs ?? [] };
   }
-  const slugs = Object.keys(shards).filter((slug) => !slug.startsWith('_'));
+  return wordInventory(shards);
+}
+
+function wordInventory(shards, sharedAssets = ['public/assets/tex/**', 'public/assets/gpu/tex/**', 'public/assets/hdri/**', 'public/assets/gpu/hdri/**', 'public/assets/sfx/best/**', 'public/assets/practice/**']) {
+  const slugs = Object.keys(shards).filter((slug) => !slug.startsWith('_')).sort((a, b) => a.localeCompare(b));
   // These are the engine/kit's shared texture, sky, SFX and practice namespaces, never another shard's folder.
-  const sharedAssets = ['public/assets/tex/**', 'public/assets/gpu/tex/**', 'public/assets/hdri/**', 'public/assets/gpu/hdri/**', 'public/assets/sfx/best/**', 'public/assets/practice/**'];
   return { slugs, words: [...new Set(slugs.flatMap((slug) => [slug, shards[slug].name].concat(shards[slug].ids)))].sort((a, b) => a.localeCompare(b)), sharedAssets, shards };
 }
 
-export function genShardWords(root = resolve(import.meta.dirname, '..'), check = false) {
+export function genShardWords(root = resolve(import.meta.dirname, '..'), check = false, shard = '') {
   const file = resolve(root, 'lint/shard-words.generated.json');
-  const source = `${JSON.stringify(shardWordData(root), null, 2)}\n`;
+  let data = shardWordData(root, shard || undefined);
+  if (shard !== '') {
+    if (!existsSync(file)) throw new Error('gen-shards: scoped generation needs lint/shard-words.generated.json (run pnpm gen once)');
+    const prior = JSON.parse(readFileSync(file, 'utf8'));
+    if (!prior.shards || typeof prior.shards !== 'object' || Array.isArray(prior.shards) || !Array.isArray(prior.sharedAssets)) throw new Error('gen-shards: invalid prior shard vocabulary');
+    const merged = { ...prior.shards, ...data.shards };
+    const sorted = Object.fromEntries(Object.keys(merged).sort((a, b) => a.localeCompare(b)).map((slug) => [slug, merged[slug]]));
+    data = wordInventory(sorted, prior.sharedAssets);
+  }
+  const source = `${JSON.stringify(data, null, 2)}\n`;
   const same = existsSync(file) && readFileSync(file, 'utf8') === source;
   if (check && !same) throw new Error('gen-shards: stale lint/shard-words.generated.json (run pnpm gen)');
   if (!check && !same) { mkdirSync(dirname(file), { recursive: true }); writeFileSync(file, source); }
 }
-if (process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href) genShardWords(undefined, process.argv.includes('--check'));
+if (process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href) genShardWords(undefined, process.argv.includes('--check'), process.argv.find((arg) => arg.startsWith('--shard='))?.slice(8));
