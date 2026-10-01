@@ -93,7 +93,7 @@ describe.skipIf(!DOCS)('docs/ENGINE.md (E357 Z2)', () => {
     if (from === -1 || to === -1) throw new Error(`${ENGINE_DOC}: the export markers are missing`);
     writeFileSync(resolve(ROOT, ENGINE_DOC), doc.slice(0, from) + appendix(indexes) + doc.slice(to + END.length));
   }
-  const doc = read(ENGINE_DOC);
+  const doc = DOCS ? read(ENGINE_DOC) : ''; // describe.skipIf still runs this body to collect
 
   it('has the generated export appendix', () => {
     expect(doc.includes(START) && doc.includes(END)).toBe(true);
@@ -119,7 +119,7 @@ describe.skipIf(!DOCS)('docs/ENGINE.md (E357 Z2)', () => {
 
 describe.skipIf(!DOCS)('docs/SHARDS.md and the shard READMEs (E357 Z2, E362 AG22)', () => {
   const layout = JSON.parse(read('lint/shard-layout.json')) as { requiredFiles: string[]; allowedFiles: string[]; folders: string[] };
-  const shards = read(SHARDS_DOC);
+  const shards = DOCS ? read(SHARDS_DOC) : '';
 
   it('names every file and folder the AG9 layout check knows', () => {
     const want = [...layout.requiredFiles, ...layout.allowedFiles, ...layout.folders.map((f) => `${f}/`)];
