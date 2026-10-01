@@ -353,8 +353,7 @@ fields (`stuck`, `out`) and reports `end` / `maxY` as information (R1-43).
 
 ### 5.1 How the harness attacks
 
-- `probe.combat.equip(id)` selects the weapon (`weapons.select(id, true)`); `nolock` in the URL unlocks locked weapons
-  (Pine Hollow's longbow). It throws when the shard's loadout has no weapon with that id, so a wrong step table fails
+- `probe.combat.equip(id)` selects the weapon (`weapons.select(id, true)`); the harness grants that kit weapon through `world.weapons.unlock(id)` before equipping and asserts the held id (F2c: `nolock` disables pointer lock, it does not unlock Pine Hollow's longbow). It throws when the shard's loadout has no weapon with that id, so a wrong step table fails
   at once, naming the id (R1-34). `probe.combat.target(kind, near)` returns the nearest live animal of that kind to
   the point `near` (the herds are placed from the manifest's seed, so the target is the same animal every run) and
   sets `harnessHold = true` on it so it neither flees nor charges (02 F2 step 2).
@@ -376,7 +375,7 @@ fields (`stuck`, `out`) and reports `end` / `maxY` as information (R1-43).
 | | shot | — Driftwood's loadout has no ranged weapon (no rifle on the sword shards, E333; R1-34) | — | — | recorded as `'n/a'` |
 | `pine-hollow` | swing | — Pine Hollow's loadout has no melee weapon (crossbow, lever rifle, longbow) | — | — | recorded as `'n/a'` |
 | | shot | crossbow (the base) | the nearest `boar` to (0, −200) | 12 m | killed within 20 s |
-| | shot2 | Warden's longbow (`bow`, unlocked by `nolock`; R1-34) | the nearest other `boar` to (0, −200) | 12 m | killed within 20 s |
+| | shot2 | Warden's longbow (`bow`, granted by the harness; R1-34, F2c) | the nearest other `boar` to (0, −200) | 12 m | killed within 20 s |
 | `nalati-grasslands` | swing | sabre (`sabre`) | the nearest `wolf` to the spawn (0, 232) | 1.8 m | ≥ 1 hit within 3 s; killed within 15 s |
 | | shot | bow (`bow`) | the nearest other `wolf` to the spawn | 12 m | killed within 20 s |
 | `nine-dragon-stack` | swing | the jian (the base sword) | training dummy 1 in the practice arena (`probe.arena()` = `hud.enterArenaNow()`; the shard has no creatures) | 1.8 m | ≥ 1 hit within 3 s (dummies do not die) |

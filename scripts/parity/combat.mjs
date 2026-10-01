@@ -18,7 +18,11 @@ export async function combat(page,opts) {
   /** @type {string[]} */ const written=[];
   for(const step of STEPS[opts.shard] ?? []) {
     const setup=await page.evaluate((s)=> {
-      const probe=window.__wildshard,p=probe.world.player;probe.combat.equip(s.weapon);
+      const probe=window.__wildshard,p=probe.world.player;
+      const weapon=probe.world.weapons.list.find((w)=>w.id===s.weapon);
+      if(!weapon)throw new Error(`Scripted weapon absent: ${s.weapon}`);
+      probe.world.weapons.unlock(weapon.id);probe.combat.equip(weapon.id);
+      if(probe.world.weapons.current.id!==weapon.id)throw new Error(`Scripted equip failed: ${weapon.id}`);
       const target=probe.combat.target(s.target,s.near),at=target.position;
       let dx=p.position.x-at.x,dz=p.position.z-at.z;const len=Math.hypot(dx,dz);if(len<0.01){dx=0;dz=1;}else{dx/=len;dz/=len;}
       const cy=at.y+target.dims.bodyY*('scale' in target?target.scale:1);
