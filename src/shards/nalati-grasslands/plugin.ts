@@ -1,9 +1,8 @@
 import { NALATI_SPECIES, NALATI_LOOKS } from './species/rows';
 import { NALATI_FEATS } from './feats';
-import { TERRAIN } from './world/terrain';
 import { renderFinds, ShardPlugin, type ShardContext, type ShardRuntime } from '#game';
-import { loadMeadow, setting, onSettingChange, pathRampDescs, type DamageRequest } from '#engine';
-import { Rifle } from '#kit';
+import { loadMeadow, loadWorldContent, heightAt, macrotask, setting, onSettingChange, pathRampDescs, type DamageRequest } from '#engine';
+import { Rifle, loadParticles } from '#kit';
 import { Vector3 } from 'three';
 import { buildNalatiWorld, type Nalati } from './runtime';
 import { buildNalatiLoadout, type NalatiLoadout } from './weapons/loadout';
@@ -30,16 +29,28 @@ export class NalatiPlugin extends ShardPlugin {
     const { game, sky, forest, registry } = world;
     ctx.strings({ 'respawn.default': 'respawning on the north road', 'cause.ride': 'Thrown from the saddle', 'cause.ride.text': 'Thrown from the saddle', 'cause.lightning': 'Struck by lightning', 'cause.lightning.text': 'Struck by lightning', 'cause.stormTitan': 'the Storm Titan' });
     const { Grass } = await loadMeadow();
-    const grass = await step('grass', () => new Grass(sky, forest).build());
-    game.scene.add(grass.group); shell.overhead.push(grass.group);
-    shell.hooks.worldUpdate = (dt) => { grass.update(dt, shell.viewer()); };
+    // the grass step also builds the shared mote / mist / needle field the steppe has always carried (main.ts built it for
+    // every forest shard before the plugin split; R2: dropping it lost a Points, two InstancedMeshes and three textures)
+    const { grass, particles } = await step('grass', async () => {
+      const field = new Grass(sky, forest).build();
+      await macrotask();
+      const { Particles } = await loadParticles();
+      const motes = new Particles(sky, forest).build();
+      game.scene.add(field.group, motes.group);
+      return { grass: field, particles: motes };
+    });
+    shell.overhead.push(grass.group, particles.group);
+    shell.hooks.worldUpdate = (dt) => { grass.update(dt, shell.viewer()); particles.update(dt, shell.viewer(), game.camera); };
     await step('cabins', () => undefined);
     this.rt = await step('props', () => buildNalatiWorld(world, ctx));
     const rt = this.rt;
-    registry.add({ id: 'paths', name: 'Paths', category: 'ground', file: 'src/engine/physics/paths.ts', surface: 'ground', colliders: pathRampDescs(TERRAIN.trails, TERRAIN.heightAt, (x, z) => TERRAIN.normalAt(x, z)[1], { carried: (x, z) => registry.floorAt(x, z) !== undefined }) });
+    // the ramps sit on the live (baked) heightfield the capsule walks, not the analytic TERRAIN field (R2: the analytic
+    // heights laid 9 fewer ramps)
+    const ground = await loadWorldContent();
+    registry.add({ id: 'paths', name: 'Paths', category: 'ground', file: 'src/engine/physics/paths.ts', surface: 'ground', colliders: pathRampDescs(ground.TRAILS, heightAt, (x, z) => ground.normalAt(x, z)[1], { carried: (x, z) => registry.floorAt(x, z) !== undefined }) });
     shell.hooks.animalsReady = (animals) => { rt.attachAnimals(animals); };
     shell.menu = { skins: () => skinRows(rt.skins), onWearSkin: (id) => { rt.skins.toggle(id); }, skinsTitle: 'Skins' };
-    Object.assign(shell.objects, { nalati: rt, grass });
+    Object.assign(shell.objects, { nalati: rt, grass, particles });
     ctx.app.registerDayCycle(rt.weather.clock, ctx.scope);
     if (!world.params.has('time')) rt.weather.clock.setTime(setting('time'));
     ctx.scope.onDispose(onSettingChange('time', (value) => { rt.weather.clock.setTime(value); }));
