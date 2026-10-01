@@ -51,6 +51,7 @@ run gen pnpm gen
 run gen-check node scripts/gen-shards.mjs --check
 run typecheck pnpm exec tsc --noEmit
 run typecheck-api pnpm exec tsc --noEmit -p api
+run typecheck-scripts pnpm exec tsc --noEmit -p scripts   # CI runs it in pnpm typecheck; fc043dfe went red there with this gate green
 run oxlint pnpm exec oxlint
 run ratchet node lint/ratchet.mjs
 # CI runs this in `pnpm test`; a stale scripts/README.md failed the 96239386 deploy run with this gate green
