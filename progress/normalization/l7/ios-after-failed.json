@@ -1,0 +1,22 @@
+{
+  "passed": false,
+  "device": "0204D232-EEF1-4115-87D3-FC273BE9FA64",
+  "runtime": "com.apple.CoreSimulator.SimRuntime.iOS-26-5",
+  "chunks": [
+    "/assets/three.module-CQzLsTV9.js",
+    "/assets/runtime-C5j-CVQi.js",
+    "/assets/plugin-CvVkLLgo.js"
+  ],
+  "requests": [
+    {
+      "path": "/assets/three.module-CQzLsTV9.js",
+      "attempt": 1,
+      "cut": true,
+      "bytes": 738500
+    }
+  ],
+  "boot": false,
+  "failureText": "PROJECT WILDSHARD\nLOADING\nCOULDN\u2019T START\n\nThe game failed to start. A reload usually fixes it.\n\nRELOAD\nTypeError: Importing a module script failed.",
+  "error": "Error: Dropped chunks were not all retried completely, or world boot was not reached within 120 s",
+  "candidate": "1170c6b2affe5c78c1abb4b3224558a5abb053ea"
+}

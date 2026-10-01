@@ -1,0 +1,68 @@
+{
+  "mainSha": "97bae80ff34145bbdfa8b7918c31a704e8210b9f",
+  "candidateSha": "0fdfe2c21117a399ff670ceb9f2ba54622458029",
+  "mainDriftwood": [
+    {
+      "run": "head-offline",
+      "errors": [],
+      "offline": {
+        "title": true,
+        "play": true,
+        "explore": true
+      }
+    },
+    {
+      "run": "head-offline2",
+      "errors": [],
+      "offline": {
+        "title": true,
+        "play": true,
+        "explore": true
+      }
+    }
+  ],
+  "candidate": [
+    {
+      "shard": "driftwood-isle",
+      "errors": [],
+      "offline": {
+        "title": true,
+        "play": true,
+        "explore": true
+      }
+    },
+    {
+      "shard": "nalati-grasslands",
+      "errors": [],
+      "offline": {
+        "title": true,
+        "play": true,
+        "explore": true
+      }
+    },
+    {
+      "shard": "nine-dragon-stack",
+      "errors": [],
+      "offline": {
+        "title": true,
+        "play": true,
+        "explore": true
+      }
+    },
+    {
+      "shard": "pine-hollow",
+      "errors": [],
+      "offline": {
+        "title": true,
+        "play": true,
+        "explore": true
+      }
+    }
+  ],
+  "finding": "Prior sol-j4 net::ERR_FAILED not reproduced on main in two fresh contexts; no failed URL logged. No speculative asset change.",
+  "stagedBoot": {
+    "labelsAndWeights": "src/game/session/data.ts calls useShardSteps with manifest.boot.steps/bytes; existing test/boot-plan.test.ts proves authored labels/weights and reset.",
+    "hooks": "src/engine/level/load.ts awaits data/world/kit/loadout/play/finish; test/engine/level-load.test.ts proves ordered hooks and cleanup failures (15 cases).",
+    "stagesReported": "All four candidate boot.steps list renderer through audio; no runtime step changes needed."
+  }
+}

@@ -1,0 +1,92 @@
+{
+  "candidate": "d23faa305a893b02704e45cc83e6d428993f9f9a",
+  "base": "865569e063692a1bb0c6e590a0f4d1c406c8978f",
+  "staticCheck": "passed",
+  "boots": [
+    {
+      "file": "_template.desktop.json",
+      "errors": [
+        "Export 'runtime_exports' is not defined in module"
+      ]
+    },
+    {
+      "file": "_template.phone.json",
+      "errors": [
+        "Export 'runtime_exports' is not defined in module"
+      ]
+    },
+    {
+      "file": "driftwood-isle.desktop.json",
+      "errors": [
+        "Export 'runtime_exports' is not defined in module"
+      ]
+    },
+    {
+      "file": "driftwood-isle.phone.json",
+      "errors": [
+        "Export 'runtime_exports' is not defined in module"
+      ]
+    },
+    {
+      "file": "far-reach.desktop.json",
+      "errors": [
+        "Export 'runtime_exports' is not defined in module"
+      ]
+    },
+    {
+      "file": "far-reach.phone.json",
+      "errors": [
+        "Export 'runtime_exports' is not defined in module"
+      ]
+    },
+    {
+      "file": "nalati-grasslands.desktop.json",
+      "errors": [
+        "Export 'runtime_exports' is not defined in module"
+      ]
+    },
+    {
+      "file": "nalati-grasslands.phone.json",
+      "errors": [
+        "Export 'runtime_exports' is not defined in module"
+      ]
+    },
+    {
+      "file": "nine-dragon-stack.desktop.json",
+      "errors": [
+        "Export 'runtime_exports' is not defined in module"
+      ]
+    },
+    {
+      "file": "nine-dragon-stack.phone.json",
+      "errors": [
+        "Export 'runtime_exports' is not defined in module"
+      ]
+    },
+    {
+      "file": "pine-hollow.desktop.json",
+      "errors": [
+        "Export 'runtime_exports' is not defined in module"
+      ]
+    },
+    {
+      "file": "pine-hollow.phone.json",
+      "errors": [
+        "Export 'runtime_exports' is not defined in module"
+      ]
+    },
+    {
+      "file": "sunscar-dunes.desktop.json",
+      "errors": [
+        "Export 'runtime_exports' is not defined in module"
+      ]
+    },
+    {
+      "file": "sunscar-dunes.phone.json",
+      "errors": [
+        "Export 'runtime_exports' is not defined in module"
+      ]
+    }
+  ],
+  "decision": "Rejected. No grouping changes reach main; offline test has no bootable candidate."
+}

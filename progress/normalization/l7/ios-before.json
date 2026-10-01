@@ -1,0 +1,20 @@
+{
+  "passed": false,
+  "device": "0204D232-EEF1-4115-87D3-FC273BE9FA64",
+  "runtime": "com.apple.CoreSimulator.SimRuntime.iOS-26-5",
+  "chunks": [
+    "/assets/three-CaH31Z3s.js",
+    "/assets/engine-B29RI_P3.js",
+    "/assets/plugin-BrRqe0V2.js"
+  ],
+  "requests": [
+    {
+      "path": "/assets/engine-B29RI_P3.js",
+      "attempt": 1,
+      "cut": true,
+      "bytes": 152211
+    }
+  ],
+  "boot": false,
+  "error": "Error: Dropped chunks were not all retried completely, or world boot was not reached within 120 s"
+}
