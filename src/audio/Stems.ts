@@ -1,3 +1,4 @@
+import { tap } from '../core/harnessTap';
 // src/audio/Stems.ts — the MiniMax-Music3 stem player behind src/audio/Music.ts (project/archive/2026-09-23-music.md v3, row 7).
 //
 //   public/assets/music/<style>/music.json   { style, model, credit, slots: { pine | island: { calm, tension, bpm, beatsPerBar,
@@ -164,6 +165,7 @@ export class Deck {
   stopAt = Infinity;
 
   constructor(ctx: BaseAudioContext, readonly audio: SlotAudio, dest: AudioNode, readonly t0: number, fadeIn: number, tension = 0, phase: BossPhase = 1) {
+    tap.sound?.(`stems.bed:${audio.slot}`);
     const { spec } = audio;
     this.bar = (60 / spec.bpm) * spec.beatsPerBar;
     this.out = ctx.createGain();

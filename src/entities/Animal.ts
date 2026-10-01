@@ -1,3 +1,4 @@
+import { tap } from '../core/harnessTap';
 import * as THREE from 'three';
 import type { CharacterMotor } from '../physics/CharacterMotor';
 import { activePhysics } from '../physics/active';
@@ -115,6 +116,8 @@ type LegBones = readonly [THREE.Bone, THREE.Bone, THREE.Bone];
 const _want = { x: 0, y: 0, z: 0 };
 
 export class Animal {
+  /** Only the parity probe sets this: the selected target skips its AI and motor. */
+  harnessHold = false;
   kind: AnimalKind;
   /** VariantDef id ('hind', 'black', 'ironhide'…), its rarity tier and display name */
   variant: string; rarity: Rarity; label: string;
@@ -332,6 +335,7 @@ export class Animal {
    */
   applyDamage(amount: number, hitPoint: THREE.Vector3, dir: THREE.Vector3): boolean {
     if (!this.alive) return false;
+    tap.hit?.(this.kind, amount);
     let dealt = amount;
     if (this.mods.damageTaken !== 1) {
       this.headWorld(_v);

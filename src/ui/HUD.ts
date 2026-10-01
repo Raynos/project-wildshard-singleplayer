@@ -1,3 +1,4 @@
+import { tap } from '../core/harnessTap';
 import { getActiveChunk } from '../chunks/registry';
 import { requestShard } from '../shard/switch';
 import { CABIN_SITES } from '../world/Heightfield';
@@ -469,7 +470,7 @@ export class HUD {
    *  frame, so the Developer switch shows / hides it live. */
   setBoundaryWarning(visible: boolean): void { this.boundary.classList.toggle('show', visible && isDev()); }
 
-  set menu(m: GameMenu) { this._menu = m; m.keyGate = () => this.entered && !this.holdPause; m.onClose = () => { this.menuClosedAt = performance.now(); this.onResume?.(); }; m.onExit = () => { if (m.inPractice) this.exitToExplore(); else this.exitToMenu(); }; }
+  set menu(m: GameMenu) { this._menu = m; m.keyGate = () => this.entered && !this.holdPause; m.onClose = () => { this.menuClosedAt = performance.now(); this.onResume?.(); tap.resumed?.(); }; m.onExit = () => { if (m.inPractice) this.exitToExplore(); else this.exitToMenu(); }; }
   get menu(): GameMenu { const m = this._menu; if (!m) throw new Error('HUD: no menu attached (hud.menu = …)'); return m; }
   setPaused(paused: boolean): void { if (!this._menu || !this.entered) return; if (paused) this._menu.open('settings'); else this._menu.close(); }
   get paused(): boolean { return this._menu?.isOpen ?? false; }

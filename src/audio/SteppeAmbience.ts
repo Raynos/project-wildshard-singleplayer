@@ -1,3 +1,4 @@
+import { tap, ambientTick } from '../core/harnessTap';
 /**
  * SteppeAmbience — Nalati's zoned soundscape (NALATI-MERGE A4), the IslandAmbience pattern for the steppe.
  *
@@ -127,6 +128,7 @@ export class SteppeAmbience {
     }
     if (b.src && (!l || l.buffer !== b.buf)) { const s = b.src; s.stop(t + 1.2); b.src = undefined; b.buf = undefined; b.gain.gain.setTargetAtTime(0, t, 0.3); }
     if (l && !b.src && level >= 0.002) {
+      tap.sound?.(`steppe.bed:${k}`);
       const s = c.createBufferSource(); s.buffer = l.buffer; s.loop = true; s.loopStart = l.loopStart; s.loopEnd = l.loopEnd;
       s.connect(b.gain); s.start(t, l.loopStart + Math.random() * (l.loopEnd - l.loopStart)); // a random point: two beds never phase
       b.src = s; b.buf = l.buffer; b.quiet = 0;
@@ -153,16 +155,22 @@ export class SteppeAmbience {
     // the far calls: herds + marmots on the Sky Grassland, eagles over the Snow Lotus Valley (never in a gale or the kurgan)
     this.herdT -= dt; this.marmotT -= dt; this.eagleT -= dt;
     if (this.herdT <= 0) {
-      this.herdT = rnd(14, 32);
-      if (out && bowl > 0.35 && day > 0.3) this.far(Math.random() < 0.6 ? 'horse_neigh' : 'horse_snort', listener, yaw, 90, 200);
+      ambientTick('steppe.herd', () => {
+        this.herdT = rnd(14, 32);
+        if (out && bowl > 0.35 && day > 0.3) this.far(Math.random() < 0.6 ? 'horse_neigh' : 'horse_snort', listener, yaw, 90, 200);
+      });
     }
     if (this.marmotT <= 0) {
-      this.marmotT = rnd(9, 22);
-      if (out && bowl + snow > 0.4 && day > 0.5) this.far('marmot_whistle', listener, yaw, 50, 140);
+      ambientTick('steppe.marmot', () => {
+        this.marmotT = rnd(9, 22);
+        if (out && bowl + snow > 0.4 && day > 0.5) this.far('marmot_whistle', listener, yaw, 50, 140);
+      });
     }
     if (this.eagleT <= 0) {
-      this.eagleT = rnd(22, 48);
-      if (out && snow > 0.3 && day > 0.4) this.far('eagle_cry', listener, yaw, 140, 320, 60);
+      ambientTick('steppe.eagle', () => {
+        this.eagleT = rnd(22, 48);
+        if (out && snow > 0.3 && day > 0.4) this.far('eagle_cry', listener, yaw, 140, 320, 60);
+      });
     }
   }
 

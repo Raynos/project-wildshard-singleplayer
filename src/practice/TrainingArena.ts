@@ -1,3 +1,4 @@
+import { tap } from '../core/harnessTap';
 /** Shared HUD + Weapon Explorer: a 100 × 100 m enclosed grid room and three hit-reactive humanoid dummies. */
 import * as THREE from 'three';
 import type { Game } from '../core/Game';
@@ -38,6 +39,7 @@ const _label = new THREE.Vector3(), _float = new THREE.Vector3(), _toward = new 
 
 class TrainingTarget implements TargetAnimal {
   readonly kind = 'training-dummy';
+  harnessHold = false;
   readonly alive = true; // practice targets never die or stop accepting combos
   readonly position: THREE.Vector3;
   readonly dims = { bodyY: 0.94, bodyRadius: 0.4, bodyHalfLen: 0.4 };
@@ -122,6 +124,7 @@ class TrainingTarget implements TargetAnimal {
     const px = point.x - this.position.x, py = point.y - this.position.y, pz = point.z - this.position.z;
     const { dx, dz } = this.push(dir, point);
     // the punch of any hit; a melee blow's stagger (Sword/Sabre call it right after) adds the knock-back
+    tap.hit?.('training-dummy', amount);
     this.motion.hit({ px, py, pz, dx, dz, weight: Math.min(3, Math.max(0.3, amount / 25)) / MASS[this.variant], headshot: py > HEAD_BOTTOM });
     const reaction = py > HEAD_BOTTOM ? 'head-hit' : Math.abs(px) > 0.18
       ? (px * this.motion.leftSign > 0 ? 'hit-left' : 'hit-right') : amount >= 45 ? 'heavy-hit' : 'body-hit';
@@ -259,6 +262,8 @@ function makeRoom(cx: number, cz: number): { root: THREE.Group; colliders: Colli
 }
 
 export class TrainingArena {
+  /** E357 F2 read-only practice state for the pause/resume snapshot. */
+  get isActive(): boolean { return this.active; }
   readonly targets: TrainingTarget[];
   private readonly root: THREE.Group;
   private readonly overlay: HTMLElement;

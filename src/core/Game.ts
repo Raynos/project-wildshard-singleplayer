@@ -126,6 +126,17 @@ export class Game {
   private inputs: GameSystem<(dt: number) => void>[] = [];
   private fixed: Record<FixedPhase, GameSystem<(dt: number) => void>[]> = { pre: [], step: [], post: [] };
   private lates: GameSystem<(dt: number) => void>[] = [];
+  /** E357 F2: list order is the execution order; observation never registers a system. */
+  systemLabels(): Record<'input' | 'fixed.pre' | 'fixed.step' | 'fixed.post' | 'update' | 'late', string[]> {
+    return {
+      input: this.inputs.map((s) => s.label),
+      'fixed.pre': this.fixed.pre.map((s) => s.label),
+      'fixed.step': this.fixed.step.map((s) => s.label),
+      'fixed.post': this.fixed.post.map((s) => s.label),
+      update: this.updaters.map((s) => s.label),
+      late: this.lates.map((s) => s.label),
+    };
+  }
   /** the sky + the draw: core (a throw there that repeats is fatal, faults.ts) */
   private readonly renderSystem = makeSystem(null, 'render', true, 'render');
   /** frames drawn since start() (the fault streak counts in these) */
@@ -146,6 +157,9 @@ export class Game {
   updateMs = new Float32Array(120); renderMs = new Float32Array(120);
   /** frames drawn since start() */
   frameCount = 0;
+  /** E357 F2: simulation time observed only on a drawn frame; the wall clock still runs behind menus. */
+  private _frameTime = 0;
+  get frameTime(): number { return this._frameTime; }
   /** draw calls / triangles of the last whole frame (all composer passes) */
   lastFrame = { calls: 0, triangles: 0 };
   /** WebGL context loss bookkeeping (iOS drops the context in the background); the perf meter shows it */
@@ -409,6 +423,12 @@ export class Game {
    * other system is just switched off (src/core/faults.ts).
    */
   onUpdate(fn: (dt: number, t: number) => void, label?: string, core = false): void { this.updaters.push(makeSystem(fn, label, core, `update#${this.updaters.length}`)); }
+  /** E357 F2: a temporary harness observer of simulation frames, removed when its walk finishes. */
+  watchFrames(fn: (dt: number) => void): () => void {
+    const system = makeSystem(fn, 'harness.walk', false, 'harness.walk');
+    this.updaters.push(system);
+    return () => { const i = this.updaters.indexOf(system); if (i !== -1) this.updaters.splice(i, 1); };
+  }
   /** First in the frame: read controls into intents the fixed steps consume (the player's move, a queued jump). */
   onInput(fn: (dt: number) => void, label?: string, core = false): void { this.inputs.push(makeSystem(fn, label, core, `input#${this.inputs.length}`)); }
   /** Once per fixed step (dt = FIXED_STEP), in phase order. */
@@ -621,6 +641,7 @@ export class Game {
       if (this.stopLeft > 0) { this.stopLeft -= realDt; scale = HIT_STOP_SCALE; }
       worldTime.scale = scale; worldTime.realDt = realDt;
       const dt = realDt * scale;
+      this._frameTime += dt;
       this.frameNo++;
       // the dev fps panel's timing rows (src/core/frameCost.ts): each system timed by its label only while the panel is open
       const on = frameCost.on;

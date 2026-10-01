@@ -1,3 +1,4 @@
+import { tap, ambientTick } from '../core/harnessTap';
 import type { Vector3 } from 'three';
 import { getActiveChunk } from '../chunks/registry';
 import { getSfxSet, onSfxSet, type SfxSet } from '../ui/Settings';
@@ -348,6 +349,7 @@ export class Audio {
 
   // ─────────────── weapon ───────────────
   crossbowFire(): void {
+    tap.sound?.('crossbowFire');
     if (!this.g || this.shot('crossbowFire')) return;
     const t = this.ctx.currentTime;
     // latch release click
@@ -362,6 +364,7 @@ export class Audio {
   }
 
   dryFire(): void {
+    tap.sound?.('dryFire');
     if (!this.g || this.shot('dryFire')) return;
     const t = this.ctx.currentTime;
     this.burst({ t, type: 'highpass', freq: 3000, gain: 0.25, decay: 0.01 });
@@ -369,6 +372,7 @@ export class Audio {
   }
 
   boltImpact(kind: ImpactKind, pan = 0, gain = 1): void {
+    tap.sound?.(`boltImpact:${kind}`);
     if (!this.g || this.shot(`boltImpact-${kind}`, { pan, gain })) return;
     const t = this.ctx.currentTime;
     if (kind === 'wood') {
@@ -390,6 +394,7 @@ export class Audio {
 
   /** sword swing: a whoosh — bandpass noise sweeping up then down over ~0.2 s, a hair of low air under it (src/player/Sword.ts onFire) */
   swordSwing(): void {
+    tap.sound?.('swordSwing');
     if (!this.g || this.shot('swordSwing')) return;
     const t = this.ctx.currentTime;
     this.burst({ t, type: 'bandpass', freq: 500, freqEnd: 2200, q: 0.6, gain: 0.32, attack: 0.05, decay: 0.09, rate: 1.1 });
@@ -399,6 +404,7 @@ export class Audio {
 
   /** a dodge (Player.onDodge): a body whoosh — lower and airier than a blade, a cloth flap, the scuff of the push-off */
   dodge(): void {
+    tap.sound?.('dodge');
     if (!this.g || this.shot('dodge')) return;
     const t = this.ctx.currentTime;
     this.burst({ t, type: 'bandpass', freq: 260, freqEnd: 1100, q: 0.5, gain: 0.34, attack: 0.03, decay: 0.16, rate: 1.2 });
@@ -408,6 +414,7 @@ export class Audio {
 
   /** a lunge (Player.onLunge, under the swing's whoosh): a short low rush of closing distance */
   lunge(): void {
+    tap.sound?.('lunge');
     if (!this.g || this.shot('lunge')) return;
     const t = this.ctx.currentTime;
     this.burst({ t, type: 'bandpass', freq: 180, freqEnd: 620, q: 0.6, gain: 0.3, attack: 0.02, decay: 0.12, rate: 1.4 });
@@ -416,6 +423,7 @@ export class Audio {
 
   /** the heavy's release (Sword.onHeavy, on top of swordSwing): a longer, deeper whoosh — a low rush that climbs, a chest-thump of effort, a breathy tail */
   swordHeavy(): void {
+    tap.sound?.('swordHeavy');
     if (!this.g || this.shot('swordHeavy')) return;
     const t = this.ctx.currentTime;
     this.burst({ t, type: 'bandpass', freq: 220, freqEnd: 900, q: 0.8, gain: 0.45, attack: 0.09, decay: 0.22, rate: 0.9 });
@@ -426,6 +434,7 @@ export class Audio {
 
   /** sword hit: a wooden thud on flesh (or a knock on wood) — low thump, a damp mid knock, a short bright crack; panned like boltImpact */
   swordHit(kind: ImpactKind = 'flesh', pan = 0, gain = 1): void {
+    tap.sound?.(`swordHit:${kind}`);
     if (!this.g || this.shot(kind === 'wood' ? 'swordHit-wood' : 'swordHit-flesh', { pan, gain })) return;
     const t = this.ctx.currentTime;
     if (kind === 'wood') {
@@ -441,6 +450,7 @@ export class Audio {
 
   /** ratchet clicks over ~1.2 s (matches the crossbow's span animation) */
   reload(): void {
+    tap.sound?.('reload');
     if (!this.g || this.shot('reload')) return;
     const t0 = this.ctx.currentTime + 0.12;
     const n = 11;
@@ -462,6 +472,7 @@ export class Audio {
 
   /** AR-15 semi-auto report: a hard supersonic crack, the gas-port bark, a 150 → 45 Hz chest thump and a short forest echo tail */
   rifleFire(): void {
+    tap.sound?.('rifleFire');
     if (!this.g || this.shot('rifleFire')) return;
     const t = this.ctx.currentTime;
     // the crack: a ~5 ms highpass transient at full tilt
@@ -479,6 +490,7 @@ export class Audio {
 
   /** mag release · mag drops out · fresh mag seated · bolt release slams home (matches the 1.6 s reload) */
   rifleReload(): void {
+    tap.sound?.('rifleReload');
     if (!this.g || this.shot('rifleReload')) return;
     const t0 = this.ctx.currentTime + 0.05;
     // mag release button
@@ -500,6 +512,7 @@ export class Audio {
 
   /** weapon swap: sling rustle as one drops, a strap snap and the other's grip clack as it comes up */
   weaponSwap(): void {
+    tap.sound?.('weaponSwap');
     if (!this.g || this.shot('weaponSwap')) return;
     const t = this.ctx.currentTime;
     this.burst({ t, type: 'bandpass', freq: 900, freqEnd: 1600, q: 0.5, gain: 0.16, attack: 0.03, decay: 0.2 });
@@ -512,6 +525,7 @@ export class Audio {
   /** the item-pickup orb's hum while the player stands inside its prompt radius (WeaponPickup.onNear): a low-passed
    *  220 Hz sine with a 5.5 Hz tremolo and a faint fifth, looped, faded in over 0.35 s and out over 0.5 s */
   pickupHum(on: boolean): void {
+    tap.sound?.('pickupHum');
     this.humOn = on;
     if (!this.g) return;
     const c = this.ctx, t = c.currentTime;
@@ -545,6 +559,7 @@ export class Audio {
 
   // ─────────────── movement ───────────────
   footstep(sprinting: boolean, surface: StepSurface = 'litter'): void {
+    tap.sound?.(`footstep:${surface}`);
     if (!this.g) return;
     const t = this.ctx.currentTime;
     this.stepSide = -this.stepSide;
@@ -601,6 +616,7 @@ export class Audio {
   }
 
   jump(): void {
+    tap.sound?.('jump');
     if (!this.g || this.shot('jump')) return;
     const t = this.ctx.currentTime;
     this.burst({ t, type: 'bandpass', freq: 400, freqEnd: 1400, q: 0.6, gain: 0.16, attack: 0.02, decay: 0.16 });
@@ -608,6 +624,7 @@ export class Audio {
   }
 
   land(hard: boolean): void {
+    tap.sound?.('land');
     if (!this.g || this.shot(hard ? 'land-hard' : 'land')) return;
     const t = this.ctx.currentTime;
     this.burst({ t, type: 'lowpass', freq: hard ? 380 : 500, gain: hard ? 0.8 : 0.45, decay: hard ? 0.16 : 0.09 });
@@ -619,6 +636,7 @@ export class Audio {
   // ─────────────── water (wading / swimming) ───────────────
   /** feet break the surface. `impact` = entry speed m/s: ~0–1 walking in (a slosh), 10+ off the pier (a full plunge with a spray tail) */
   splash(impact = 0): void {
+    tap.sound?.('splash');
     if (!this.g) return;
     const t = this.ctx.currentTime;
     const k = Math.min(1, impact / 10);            // 0 = stepping in, 1 = a dive off the pier
@@ -639,6 +657,7 @@ export class Audio {
 
   /** a footstep in shallow water: the crunch of the dry step is replaced by a slosh that deepens with the water */
   wadeStep(depth: number, sprinting = false): void {
+    tap.sound?.('wadeStep');
     if (!this.g) return;
     const t = this.ctx.currentTime;
     this.stepSide = -this.stepSide;
@@ -652,6 +671,7 @@ export class Audio {
 
   /** one swim stroke: an arm sweeping through the water, a soft wash off to one side */
   swimStroke(): void {
+    tap.sound?.('swimStroke');
     if (!this.g || this.shot('swimStroke')) return;
     const t = this.ctx.currentTime;
     this.stepSide = -this.stepSide;
@@ -663,6 +683,7 @@ export class Audio {
 
   /** climbing / wading out: water sheeting off and a few drips */
   waterExit(): void {
+    tap.sound?.('waterExit');
     if (!this.g || this.shot('waterExit')) return;
     const t = this.ctx.currentTime;
     this.burst({ t, type: 'bandpass', freq: 1200, freqEnd: 500, q: 0.6, gain: 0.16, attack: 0.02, decay: 0.3 });
@@ -672,6 +693,7 @@ export class Audio {
   // ─────────────── diving (Player.onSubmerge / onSurface) ───────────────
   /** the head goes under: a soft whump of water closing over the ears and a trail of bubbles */
   dive(): void {
+    tap.sound?.('dive');
     if (!this.g || this.shot('dive')) return;
     const t = this.ctx.currentTime;
     this.tone({ t, type: 'sine', f0: 140, f1: 40, glide: 0.25, gain: 0.35, attack: 0.02, decay: 0.35 });
@@ -684,6 +706,7 @@ export class Audio {
 
   /** breaking the surface: water sheeting off the head, a gasp of air, a couple of drips */
   surface(): void {
+    tap.sound?.('surface');
     if (!this.g || this.shot('surface')) return;
     const t = this.ctx.currentTime;
     this.burst({ t, type: 'bandpass', freq: 1400, freqEnd: 500, q: 0.6, gain: 0.34, attack: 0.01, decay: 0.28 });
@@ -718,6 +741,7 @@ export class Audio {
   /** what feeds the underwater gain: the set's underwater bed when one decoded, else the synth hum (re-run when either changes;
    *  the envelope in setUnderwater is untouched) */
   private feedUnder(): void {
+    tap.sound?.('audio.feedUnder');
     const g = this.underGain;
     if (!g) return;
     const c = this.ctx, l = this.loops.get('underwater');
@@ -739,15 +763,18 @@ export class Audio {
 
   private scheduleBubble() {
     this.bubbleTimer = window.setTimeout(() => {
-      if (!this.underwater) return;
-      const t = this.ctx.currentTime, n = 1 + Math.floor(rnd(0, 4)), pan = rnd(-0.7, 0.7);
-      for (let i = 0; i < n; i++) this.tone({ t: t + i * rnd(0.05, 0.12), type: 'sine', f0: rnd(300, 700), f1: rnd(800, 1600), glide: 0.07, gain: rnd(0.015, 0.04), attack: 0.004, decay: rnd(0.04, 0.08), pan, out: this.ambient });
-      this.scheduleBubble();
+      ambientTick('audio.bubble', () => {
+        if (!this.underwater) return;
+        const t = this.ctx.currentTime, n = 1 + Math.floor(rnd(0, 4)), pan = rnd(-0.7, 0.7);
+        for (let i = 0; i < n; i++) this.tone({ t: t + i * rnd(0.05, 0.12), type: 'sine', f0: rnd(300, 700), f1: rnd(800, 1600), glide: 0.07, gain: rnd(0.015, 0.04), attack: 0.004, decay: rnd(0.04, 0.08), pan, out: this.ambient });
+        this.scheduleBubble();
+      });
     }, rnd(1.2, 4.5) * 1000);
   }
 
   // ─────────────── feedback ───────────────
   hitMarker(): void {
+    tap.sound?.('hitMarker');
     if (!this.g || this.shot('hitMarker')) return;
     const t = this.ctx.currentTime;
     this.tone({ t, type: 'sine', f0: 1900, gain: 0.16, decay: 0.045 });
@@ -757,6 +784,7 @@ export class Audio {
   /** the player takes a hit (both shards, B3): a short grunt ("uh" / "ah" / "oof") over a body blow, from the bank (gen.ts
    *  hurt). `strength` ≈ dmg / 20 (0.1 … 1.5): louder and a little lower / heavier as it grows; `pan` −1 … 1 toward the attacker. */
   hurt(strength = 0.5, pan = 0): void {
+    tap.sound?.('hurt');
     if (!this.g) return;
     const s = Math.max(0.1, Math.min(1, strength));
     this.voices.play('hurt', { gain: 0.45 + 0.4 * s, rate: 1.05 - 0.12 * s, pan: Math.max(-1, Math.min(1, pan)) * 0.6 });
@@ -764,12 +792,14 @@ export class Audio {
 
   /** the player dies (both shards): the hit, a groan falling out of breath, the body hitting the ground (~1.6 s) */
   death(): void {
+    tap.sound?.('death');
     if (!this.g) return;
     this.voices.play('death', { gain: 0.85, jitter: 0.03 });
   }
 
   /** lock-on (E50, src/player/LockOnTarget.ts): a short bright two-note chime on LOCK (the Navi "ping" idea, no voice) */
   lockOn(): void {
+    tap.sound?.('lockOn');
     if (!this.g) return;
     const t = this.ctx.currentTime;
     this.tone({ t, type: 'sine', f0: 1320, gain: 0.12, decay: 0.08 });
@@ -778,21 +808,25 @@ export class Audio {
   }
   /** lock-on: a softer single ping when the lock switches to another enemy */
   lockSwitch(): void {
+    tap.sound?.('lockSwitch');
     if (!this.g) return;
     this.tone({ t: this.ctx.currentTime, type: 'sine', f0: 1660, gain: 0.09, decay: 0.1 });
   }
   /** lock-on: a low falling tone when the lock is released or breaks */
   lockOff(): void {
+    tap.sound?.('lockOff');
     if (!this.g) return;
     this.tone({ t: this.ctx.currentTime, type: 'sine', f0: 880, f1: 520, glide: 0.1, gain: 0.08, decay: 0.14 });
   }
   /** lock-on: a dull tick — LOCK with nothing lockable, or a flick with nothing on that side */
   lockNone(): void {
+    tap.sound?.('lockNone');
     if (!this.g) return;
     this.burst({ t: this.ctx.currentTime, type: 'bandpass', freq: 900, q: 2, gain: 0.07, decay: 0.035 });
   }
 
   kill(): void {
+    tap.sound?.('kill');
     if (!this.g || this.shot('kill')) return;
     const t = this.ctx.currentTime;
     this.tone({ t, type: 'sine', f0: 660, gain: 0.18, decay: 0.16 });
@@ -804,6 +838,7 @@ export class Audio {
   // ─────────────── positional animal sounds ───────────────
   /** distance attenuation + stereo pan from direction relative to the listener yaw */
   animal(kind: AnimalSound, position: Vector3, listenerPos: Vector3, yaw = this.listenerYaw): void {
+    tap.sound?.(`animal:${kind}`);
     if (!this.g) return;
     const dx = position.x - listenerPos.x, dz = position.z - listenerPos.z, dy = position.y - listenerPos.y;
     const dist = Math.sqrt(dx * dx + dz * dz + dy * dy);
@@ -1073,6 +1108,7 @@ export class Audio {
   // ─────────────── gulls ───────────────
   /** a gull: a short two-note squawk — a nasal sawtooth "kyow" that breaks up, then a lower "ow"; sometimes a third yelp */
   gullCall(pan = 0, gain = 1): void {
+    tap.sound?.('gullCall');
     if (!this.g || this.shot('gull', { pan, gain, out: this.ambient })) return;
     const c = this.ctx, t = c.currentTime;
     const bus = c.createGain(); bus.gain.value = 0.28 * gain;
@@ -1095,6 +1131,7 @@ export class Audio {
 
   /** gullCall positioned like `animal()`: distance attenuation + a stereo pan from the listener yaw */
   gullCallAt(position: Vector3, listenerPos: Vector3, yaw = this.listenerYaw): void {
+    tap.sound?.('gullCallAt');
     if (!this.g) return;
     const dx = position.x - listenerPos.x, dz = position.z - listenerPos.z, dy = position.y - listenerPos.y;
     const dist = Math.sqrt(dx * dx + dz * dz + dy * dy);
@@ -1145,6 +1182,7 @@ export class Audio {
 
   /** a thunderclap `distance` m away (delayed by the speed of sound): near = a crack + a rolling rumble; far = a low roll */
   thunder(distance: number, pan = 0): void {
+    tap.sound?.('thunder');
     if (!this.g) return;
     this.tally('thunder');
     const c = this.ctx, delay = Math.min(12, distance / 343), t = c.currentTime + delay;
@@ -1170,6 +1208,7 @@ export class Audio {
 
   /** the static crackle before a strike (1.2 s of dry snaps, rising) */
   lightningCrackle(pan = 0, gain = 1): void {
+    tap.sound?.('lightningCrackle');
     if (!this.g) return;
     this.tally('lightningCrackle');
     if (this.shot('lightningCrackle', { pan, gain })) return;
@@ -1214,6 +1253,7 @@ export class Audio {
 
   /** a herd stampeding `distance` m away: a rolling ground rumble under a scatter of hooves (~3.5 s) */
   stampede(distance: number, pan = 0): void {
+    tap.sound?.('stampede');
     if (!this.g || distance > 400) return;
     this.tally('stampede');
     const t = this.ctx.currentTime, k = 1 / (1 + distance / 30);
@@ -1228,6 +1268,7 @@ export class Audio {
 
   /** the recurve's release: the string's twang and the limbs' thump, brighter at full draw (power 0..1) */
   bowTwang(power = 1): void {
+    tap.sound?.('bowTwang');
     if (!this.g) return;
     this.tally('bowTwang');
     const t = this.ctx.currentTime, p = Math.max(0.2, Math.min(1, power));
@@ -1241,6 +1282,7 @@ export class Audio {
 
   /** an arrow leaving the bow: a fast rising-falling air rip */
   arrowWhoosh(power = 1): void {
+    tap.sound?.('arrowWhoosh');
     if (!this.g) return;
     this.tally('arrowWhoosh');
     if (this.shot('arrowWhoosh', { gain: 0.35 + 0.35 * power })) return;
@@ -1250,6 +1292,7 @@ export class Audio {
 
   /** the bow drawn (Bow.onDrawStart — H4's hold-to-draw): the limbs' creak and the string stretching */
   bowDraw(): void {
+    tap.sound?.('bowDraw');
     if (!this.g) return;
     this.tally('bowDraw');
     if (this.shot('bowDraw', { gain: 0.7 })) return;
@@ -1260,6 +1303,7 @@ export class Audio {
 
   /** full draw reached (Bow.onFullDraw): one tight creak and the nock's click */
   bowFullDraw(): void {
+    tap.sound?.('bowFullDraw');
     if (!this.g) return;
     this.tally('bowFullDraw');
     if (this.shot('bowFullDraw', { gain: 0.6 })) return;
@@ -1270,6 +1314,7 @@ export class Audio {
 
   /** the draw eased back without a shot (Bow.onLetDown: an early release, or the arm tiring) */
   bowLetDown(): void {
+    tap.sound?.('bowLetDown');
     if (!this.g) return;
     this.tally('bowLetDown');
     if (this.shot('bowLetDown', { gain: 0.6 })) return;
@@ -1280,6 +1325,7 @@ export class Audio {
 
   /** an arrow striking: the shaft's quiver in wood, a dull thump in the turf, a wet thud in flesh */
   arrowImpact(kind: ImpactKind, pan = 0, gain = 1): void {
+    tap.sound?.(`arrowImpact:${kind}`);
     if (!this.g) return;
     this.tally(`arrowImpact:${kind}`);
     if (this.shot(`arrowImpact-${kind}`, { pan, gain })) return;
@@ -1298,6 +1344,7 @@ export class Audio {
 
   /** a javelin thrown: a grunt of effort and a long heavy whoosh */
   javelinThrow(): void {
+    tap.sound?.('javelinThrow');
     if (!this.g) return;
     this.tally('javelinThrow');
     if (this.shot('javelinThrow')) return;
@@ -1309,6 +1356,7 @@ export class Audio {
 
   /** a javelin landing: heavier than an arrow — a deep thump, the shaft ringing in wood */
   javelinImpact(kind: ImpactKind, pan = 0, gain = 1): void {
+    tap.sound?.(`javelinImpact:${kind}`);
     if (!this.g) return;
     this.tally(`javelinImpact:${kind}`);
     if (this.shot(`javelinImpact-${kind}`, { pan, gain })) return;
@@ -1321,6 +1369,7 @@ export class Audio {
 
   /** the sabre's cut: a thin fast swish and the steel's ring */
   sabreSwing(): void {
+    tap.sound?.('sabreSwing');
     if (!this.g) return;
     this.tally('sabreSwing');
     if (this.shot('sabreSwing')) return;
@@ -1331,6 +1380,7 @@ export class Audio {
 
   /** the sabre biting: the sword's hit + the blade ringing on */
   sabreHit(kind: ImpactKind, pan = 0, gain = 1): void {
+    tap.sound?.(`sabreHit:${kind}`);
     if (!this.g) return;
     this.tally(`sabreHit:${kind}`);
     if (kind !== 'ground' && this.shot(`sabreHit-${kind}`, { pan, gain })) return;
@@ -1347,6 +1397,7 @@ export class Audio {
 
   /** the spear's thrust: a short upward rip of air and the shaft's creak */
   spearThrust(): void {
+    tap.sound?.('spearThrust');
     if (!this.g) return;
     this.tally('spearThrust');
     if (this.shot('spearThrust')) return;
@@ -1385,6 +1436,7 @@ export class Audio {
 
   /** the grassland: wind in the grass (driven by setSteppe), the river, the camp stove; larks by day, crickets at night */
   private startSteppe() {
+    tap.sound?.('audio.startSteppe');
     const grass = this.mkWind(3600, 0.35, 0.15, 0.13, 0.02, 8000);   // the blades' hiss
     const low = this.mkWind(200, 0.5, -0.35, 0.05, 0.06, 800);       // the wind itself
     const mid = this.mkWind(700, 0.8, 0.4, 0.09, 0.02, 1800);        // gusts whistling
@@ -1408,8 +1460,10 @@ export class Audio {
 
   private scheduleLark() {
     this.larkTimer = window.setTimeout(() => {
-      if (this.ambientOn && this.bed === 'steppe' && this.steppeLv.night < 0.4 && this.steppeLv.wind < 16) this.lark();
-      this.scheduleLark();
+      ambientTick('audio.lark', () => {
+        if (this.ambientOn && this.bed === 'steppe' && this.steppeLv.night < 0.4 && this.steppeLv.wind < 16) this.lark();
+        this.scheduleLark();
+      });
     }, rnd(5, 13) * 1000);
   }
 
@@ -1429,9 +1483,11 @@ export class Audio {
 
   private scheduleCricket() {
     this.cricketTimer = window.setTimeout(() => {
-      const nl = this.steppeLv.night;
-      if (this.ambientOn && this.bed === 'steppe' && nl > 0.3) this.cricket(nl);
-      this.scheduleCricket();
+      ambientTick('audio.cricket', () => {
+        const nl = this.steppeLv.night;
+        if (this.ambientOn && this.bed === 'steppe' && nl > 0.3) this.cricket(nl);
+        this.scheduleCricket();
+      });
     }, rnd(0.25, 0.9) * 1000);
   }
 
@@ -1446,13 +1502,15 @@ export class Audio {
 
   private scheduleCrackle() {
     this.crackleTimer = window.setTimeout(() => {
-      const k = this.steppeLv.camp;
-      if (this.ambientOn && this.bed === 'steppe' && k > 0.03) {
-        const t = this.ctx.currentTime;
-        this.burst({ t, type: 'highpass', freq: rnd(1500, 3500), gain: rnd(0.02, 0.09) * k, decay: rnd(0.006, 0.025), pan: rnd(-0.3, 0.3), out: this.ambient });
-        if (Math.random() < 0.08) this.burst({ t: t + 0.01, type: 'bandpass', freq: rnd(600, 1100), q: 1.2, gain: 0.12 * k, decay: 0.04, out: this.ambient }); // a knot pops
-      }
-      this.scheduleCrackle();
+      ambientTick('audio.crackle', () => {
+        const k = this.steppeLv.camp;
+        if (this.ambientOn && this.bed === 'steppe' && k > 0.03) {
+          const t = this.ctx.currentTime;
+          this.burst({ t, type: 'highpass', freq: rnd(1500, 3500), gain: rnd(0.02, 0.09) * k, decay: rnd(0.006, 0.025), pan: rnd(-0.3, 0.3), out: this.ambient });
+          if (Math.random() < 0.08) this.burst({ t: t + 0.01, type: 'bandpass', freq: rnd(600, 1100), q: 1.2, gain: 0.12 * k, decay: 0.04, out: this.ambient }); // a knot pops
+        }
+        this.scheduleCrackle();
+      });
     }, rnd(0.04, 0.35) * 1000);
   }
 
@@ -1480,6 +1538,7 @@ export class Audio {
   }
   /** sfx.json's bed for this shard: one looping source faded in over 2 s (replaces the synth winds, birds, gusts and surf) */
   private startSampleBed(l: SampleLoop) {
+    tap.sound?.('audio.startSampleBed');
     const c = this.ctx, t = c.currentTime, g = c.createGain();
     g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(l.gain, t + 2);
     const s = this.loopSource(l); s.connect(g).connect(this.ambient);
@@ -1509,6 +1568,7 @@ export class Audio {
 
   /** the island: a warm low breeze, a wide surf hiss bed, and a slow swell rolling up the beach every 6–9 s */
   private startIsland() {
+    tap.sound?.('audio.startIsland');
     this.windGain = this.mkWind(180, 0.4, -0.3, 0.05, 0.05, 900);   // a lighter, warmer breeze than the pines
     this.windGain2 = this.mkWind(420, 0.6, 0.3, 0.08, 0.03, 1100);
     this.mkWind(1500, 0.35, 0.0, 0.03, 0.02, 5000);                  // the constant far surf hiss
@@ -1518,6 +1578,7 @@ export class Audio {
 
   /** the pines: the original three wind bands, the tree hiss, gusts and distant birds */
   private startForest() {
+    tap.sound?.('audio.startForest');
     this.windGain = this.mkWind(260, 0.5, -0.55, 0.07, 0.11);
     this.windGain2 = this.mkWind(620, 0.8, 0.55, 0.11, 0.06);
     this.mkWind(140, 0.4, 0.0, 0.05, 0.09);
@@ -1530,8 +1591,10 @@ export class Audio {
   private scheduleSurf() {
     const wait = rnd(6, 9);
     this.surfTimer = window.setTimeout(() => {
-      if (this.ambientOn) this.surfSwell();
-      this.scheduleSurf();
+      ambientTick('audio.surf', () => {
+        if (this.ambientOn) this.surfSwell();
+        this.scheduleSurf();
+      });
     }, wait * 1000);
   }
 
@@ -1553,25 +1616,29 @@ export class Audio {
   private scheduleGust(gentle = 1) {
     const wait = rnd(5, 12) * gentle;
     this.gustTimer = window.setTimeout(() => {
-      if (this.ambientOn && this.windGain && this.windGain2) {
-        const t = this.ctx.currentTime, rise = rnd(1.5, 3), fall = rnd(2, 4), amt = 1 + rnd(0.5, 1.6) / gentle;
-        for (const g of [this.windGain, this.windGain2]) {
-          const base = this.bed === 'island' ? (g === this.windGain ? 0.05 : 0.03) : (g === this.windGain ? 0.11 : 0.06);
-          g.gain.cancelScheduledValues(t);
-          g.gain.setValueAtTime(g.gain.value, t);
-          g.gain.linearRampToValueAtTime(base * amt, t + rise);
-          g.gain.linearRampToValueAtTime(base, t + rise + fall);
+      ambientTick('audio.gust', () => {
+        if (this.ambientOn && this.windGain && this.windGain2) {
+          const t = this.ctx.currentTime, rise = rnd(1.5, 3), fall = rnd(2, 4), amt = 1 + rnd(0.5, 1.6) / gentle;
+          for (const g of [this.windGain, this.windGain2]) {
+            const base = this.bed === 'island' ? (g === this.windGain ? 0.05 : 0.03) : (g === this.windGain ? 0.11 : 0.06);
+            g.gain.cancelScheduledValues(t);
+            g.gain.setValueAtTime(g.gain.value, t);
+            g.gain.linearRampToValueAtTime(base * amt, t + rise);
+            g.gain.linearRampToValueAtTime(base, t + rise + fall);
+          }
         }
-      }
-      this.scheduleGust(gentle);
+        this.scheduleGust(gentle);
+      });
     }, wait * 1000);
   }
 
   private scheduleBird() {
     const wait = rnd(4, 12);
     this.birdTimer = window.setTimeout(() => {
-      if (this.ambientOn) this.birdsong();
-      this.scheduleBird();
+      ambientTick('audio.bird', () => {
+        if (this.ambientOn) this.birdsong();
+        this.scheduleBird();
+      });
     }, wait * 1000);
   }
 

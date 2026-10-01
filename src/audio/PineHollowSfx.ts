@@ -1,3 +1,4 @@
+import { tap } from '../core/harnessTap';
 /**
  * PineHollowSfx — Pine Hollow's own generated sounds (PINE-HOLLOW-REMASTER PH-A2..A4): public/assets/sfx/pine-hollow/sfx.json,
  * the better take per sound of MOSS-SoundEffect v2 and Stable Audio 3 Medium (scripts/music/gen/sfx_merge.py --jobs
@@ -238,6 +239,7 @@ export class PineHollowSfx {
       cutoff = 12000 / (1 + d / 30);
     }
     if (!Number.isFinite(gain + pan + cutoff)) return false; // a NaN position would throw on the AudioParam (E278)
+    tap.sound?.(`pineSfx:${family}`);
     const s = c.createBufferSource(); s.buffer = clip.buffer; s.playbackRate.value = 2 ** ((Math.random() * 80 - 40) / 1200);
     const g = c.createGain(); g.gain.value = gain;
     let node: AudioNode = s.connect(g);

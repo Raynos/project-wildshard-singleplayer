@@ -1,3 +1,4 @@
+import { tap } from '../core/harnessTap';
 import * as THREE from 'three';
 import { activePhysics } from '../physics/active';
 import { activeNavmesh } from '../physics/navmesh';
@@ -696,7 +697,7 @@ export class AnimalManager {
       this.repaths = 0;
       if (this.rules !== null) this.tokens.sweep(this.stillAttacking); // E297: the tokens of attacks that are over go back
       const t0 = frameCost.on ? performance.now() : 0;
-      for (const a of this.animals) this.think(a, 0.1, playerPos, playerSprinting);
+      for (const a of this.animals) if (!a.harnessHold) this.think(a, 0.1, playerPos, playerSprinting);
       if (frameCost.on) frameCost.sub('think', t0);
     }
     // fur shells: pick the SHELL_MAX nearest animals inside SHELL_DIST (tiny insertion sort, no allocs)
@@ -712,9 +713,9 @@ export class AnimalManager {
       if (a === undefined || a.hidden) continue;
       const d2 = a.position.distanceToSquared(viewPos);
       const near = d2 < ANIM_LOD * ANIM_LOD;
-      a.update(dt, t, near);
-      if (this.melee && a.state === 'charge' && a.alive && !a.stunned) this.chargeContact(a, playerPos);
-      if (this.rules !== null && a.alive && d2 < 36) this.clearBody(a, playerPos); // E297: no body swallows the camera
+      if (!a.harnessHold) a.update(dt, t, near);
+      if (!a.harnessHold && this.melee && a.state === 'charge' && a.alive && !a.stunned) this.chargeContact(a, playerPos);
+      if (!a.harnessHold && this.rules !== null && a.alive && d2 < 36) this.clearBody(a, playerPos); // E297: no body swallows the camera
       // draw / shadow distance by tier: a deer at 150 m is a few pixels on a phone, and only near animals shadow
       // … shrinking away over the last 15 % of the draw distance rather than blinking out at it (E117: no pop)
       const hide = TIER_CONFIG.animalHideDist;
@@ -1368,7 +1369,7 @@ export class AnimalManager {
     const headshot = _p.distanceToSquared(hitPoint) < (a.dims.headRadius * a.scale + 0.06) ** 2;
     this.onDamage?.(a, amount, hitPoint, headshot, died);
     const br = this.brains.get(a);
-    if (died) { this.onKill?.(a); if (br !== undefined) br.timer = 0; return; }
+    if (died) { tap.kill?.(a.kind); this.onKill?.(a); if (br !== undefined) br.timer = 0; return; }
     if (sp.think !== undefined) return;   // a self-thinking species reads animal.lastHitT / hp in its own tick
     if (br !== undefined && a.state !== 'charge') {
       // a wounded animal bolts at once — no freeze; a boar this close turns on you instead

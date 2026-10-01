@@ -1,3 +1,5 @@
+import { installProbe } from './core/probe';
+import { tap } from './core/harnessTap';
 import * as THREE from 'three';
 import { ENGINE_API } from '#engine';
 import aliasArt from '#engine/aliasFixture.webp';
@@ -1093,7 +1095,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   let carcass: (typeof animals.animals)[number] | undefined;
   document.addEventListener('keydown', (e) => {
     if (e.code !== 'KeyE' || !hud.entered) return;
-    if (nearest) nearest.onInteract();
+    if (nearest) { tap.use?.(nearest.label); nearest.onInteract(); }
     else if (carcass && pineLife?.busy !== true) {
       harvested.add(carcass);
       const drops = inventory.harvest(carcass.kind, carcass.variant); // Pine Hollow: only what Mott takes (E314 C)
@@ -1293,12 +1295,14 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
     if (chunk.explore === true) void import('./explore/Explore');
     game.primeFrame();
   }, TITLE_IDLE_MS);
+  const handle = { ...world, boundary, water, streams: dressing.streams, ocean, pier, jetties, boat, hut, lookout, wreck, shrine, bushes, gulls, bridge, bridgeDeck, cove, enemies, hands, grass, under, particles, cabins, props, animals, interactables, crossbow, hud, audio, music, shrineHum, islandSfx, surfaces, ambience, lockSys, lockState, wildlife, nalati: nalatiNow(), ride, weapons, pineLife, arena, playground: (): Playground | null => playground };
+  const debug = window as unknown as { __world: unknown };
+  debug.__world = handle; // the running shard's (the host re-points it on every switch)
+  installProbe(handle, { bootSteps, health: () => health, quest: () => ({ driftwood: adventure?.flags.all.slice().sort() ?? [], nalati: nalatiAdventure?.flags.all.slice().sort() ?? [] }) });
   document.dispatchEvent(new Event('ws:ready')); // booted to the title: the native shell's update watchdog (src/native/boot.ts) waits for this
   // E158: the other shards' boot files into the worker's cache, in the background — once a page (the shell's, not a shard's)
   if (first) asShell(() => { startShardPrefetch(getActiveChunk()); });
-  const handle = { ...world, boundary, water, streams: dressing.streams, ocean, pier, jetties, boat, hut, lookout, wreck, shrine, bushes, gulls, bridge, bridgeDeck, cove, enemies, hands, grass, under, particles, cabins, props, animals, crossbow, hud, audio, music, shrineHum, islandSfx, surfaces, ambience, lockSys, lockState, wildlife, nalati: nalatiNow(), ride, weapons, pineLife, arena, playground: (): Playground | null => playground };
-  const debug = window as unknown as { __world: unknown };
-  debug.__world = handle; // the running shard's (the host re-points it on every switch)
+
 
   // ── the shard host's handles on this world (src/shard/ShardHost.ts, E155) ──
   return {

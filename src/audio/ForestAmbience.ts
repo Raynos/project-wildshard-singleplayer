@@ -1,3 +1,4 @@
+import { tap, ambientTick } from '../core/harnessTap';
 /**
  * ForestAmbience — Pine Hollow's zoned soundscape and reverb zones (PINE-HOLLOW-REMASTER PH-A2 / PH-A5), the IslandAmbience
  * pattern with generated beds (src/audio/PineHollowSfx.ts: public/assets/sfx/pine-hollow/, MOSS-SoundEffect v2 vs Stable
@@ -129,6 +130,7 @@ export class ForestAmbience {
     void this.sfx.bed(name).then((l) => {
       b.pending = false;
       if (!l || this.beds.get(name) !== b) { if (!l) audioLog('bed', name, false, 'will not decode'); return undefined; }
+      tap.sound?.(`forest.bed:${name}`);
       const s = c.createBufferSource(); s.buffer = l.buffer; s.loop = true; s.loopStart = l.loopStart; s.loopEnd = l.loopEnd;
       const k = c.createGain(); k.gain.value = l.gain * LEVEL[name];
       s.connect(k).connect(g); s.start(c.currentTime + 0.05, l.loopStart + Math.random() * (l.loopEnd - l.loopStart));
@@ -160,12 +162,14 @@ export class ForestAmbience {
   /** the King's thralls calling from the fog at night: a far, eerie call from a random side, 25-60 m out */
   private scheduleThrall(): void {
     this.later(9 + Math.random() * 16, () => {
-      const k = this.thrallLevel();
-      if (k > 0.05 && !this.underwater && this.diag.cabin < 0.5 && Math.random() < 0.35 + 0.5 * k) {
-        const a = Math.random() * Math.PI * 2, d = 25 + Math.random() * 35;
-        this.sfx.shot('thrall_call', { at: { x: this.px + Math.cos(a) * d, y: this.py, z: this.pz + Math.sin(a) * d }, gain: 0.9 * k });
-      }
-      this.scheduleThrall();
+      ambientTick('forest.thrall', () => {
+        const k = this.thrallLevel();
+        if (k > 0.05 && !this.underwater && this.diag.cabin < 0.5 && Math.random() < 0.35 + 0.5 * k) {
+          const a = Math.random() * Math.PI * 2, d = 25 + Math.random() * 35;
+          this.sfx.shot('thrall_call', { at: { x: this.px + Math.cos(a) * d, y: this.py, z: this.pz + Math.sin(a) * d }, gain: 0.9 * k });
+        }
+        this.scheduleThrall();
+      });
     });
   }
   private thrallLevel(): number { return Math.max(0, Math.min(1, this.thralls ?? this.night * 0.5)); }

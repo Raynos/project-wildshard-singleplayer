@@ -1,3 +1,4 @@
+import { tap } from '../core/harnessTap';
 /**
  * Voices — the procedural sound bank (src/audio/gen.ts) as AudioBuffers, and a one-node-chain player for them.
  *
@@ -124,6 +125,7 @@ export class Voices {
     const buf = this.variant(name, v);
     if (!buf) return undefined;
     const c = this.host.ctx, t = c.currentTime + (o.delay ?? 0);
+    tap.sound?.(`voices:${name}`);
     const src = c.createBufferSource(); src.buffer = buf;
     src.playbackRate.value = (o.rate ?? 1) * (1 + (Math.random() * 2 - 1) * (o.jitter ?? 0.05));
     const g = c.createGain(); g.gain.value = o.gain ?? 1;

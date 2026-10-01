@@ -197,6 +197,8 @@ export interface Piece {
 
 export class WorldRegistry {
   readonly pieces: Piece[] = [];
+  /** E357 F2: preserve the existing public pieces array used by maps and model tools. */
+  pieceList(): readonly Piece[] { return this.pieces; }
   /** Explore's tap targets on batch meshes */
   readonly picks: RegisteredPick[] = [];
   /** the sets placed on this shard (E306 M7: explored between single models and the world) */

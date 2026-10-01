@@ -1,3 +1,4 @@
+import { tap, ambientTick } from '../core/harnessTap';
 /**
  * IslandAmbience — Driftwood Isle's zoned soundscape (S1) and reverb zones + underwater (S2), project/archive/2026-09-23-driftwood-remaster.md.
  *
@@ -145,6 +146,7 @@ export class IslandAmbience {
     const b = this.audio.ctx.createBiquadFilter(); b.type = type; b.frequency.value = f; b.Q.value = q; return b;
   }
   private bed(name: string, out: AudioNode): GainNode {
+    tap.sound?.(`island.bed:${name}`);
     const g = this.audio.ctx.createGain(); g.gain.value = 0; g.connect(out);
     this.beds.set(name, { gain: g, level: 0 });
     return g;
@@ -252,25 +254,29 @@ export class IslandAmbience {
   /** one swell on the surf emitter: a build, the break, the wash (automation only — the sources run continuously) */
   private scheduleSwell(): void {
     this.later(4 + Math.random() * 5 * (1 + this.night * 0.4), () => {
-      const body = this.beds.get('surfBody'), hiss = this.beds.get('surfHiss');
-      if (body && hiss) {
-        const t = this.audio.ctx.currentTime, size = (0.7 + Math.random() * 0.5) * (1 - 0.35 * this.night);
-        const build = 1.4 + Math.random() * 0.9, wash = 2.4 + Math.random() * 1.6;
-        for (const [g, base, peak] of [[body.gain.gain, 0.35, 1.0], [hiss.gain.gain, 0.12, 0.75]] as const) {
-          g.cancelScheduledValues(t); g.setValueAtTime(g.value, t);
-          g.linearRampToValueAtTime(base + (peak - base) * size * 0.45, t + build * 0.8);
-          g.linearRampToValueAtTime(base + (peak - base) * size, t + build);
-          g.setTargetAtTime(base, t + build + 0.3, wash / 3);
+      ambientTick('island.swell', () => {
+        const body = this.beds.get('surfBody'), hiss = this.beds.get('surfHiss');
+        if (body && hiss) {
+          const t = this.audio.ctx.currentTime, size = (0.7 + Math.random() * 0.5) * (1 - 0.35 * this.night);
+          const build = 1.4 + Math.random() * 0.9, wash = 2.4 + Math.random() * 1.6;
+          for (const [g, base, peak] of [[body.gain.gain, 0.35, 1.0], [hiss.gain.gain, 0.12, 0.75]] as const) {
+            g.cancelScheduledValues(t); g.setValueAtTime(g.value, t);
+            g.linearRampToValueAtTime(base + (peak - base) * size * 0.45, t + build * 0.8);
+            g.linearRampToValueAtTime(base + (peak - base) * size, t + build);
+            g.setTargetAtTime(base, t + build + 0.3, wash / 3);
+          }
         }
-      }
-      this.scheduleSwell();
+        this.scheduleSwell();
+      });
     });
   }
   private scheduleBird(): void {
     this.later(2.5 + Math.random() * 6, () => {
-      const j = this.beds.get('jungle')?.level ?? 0;
-      if (j > 0.05 && this.night < 0.6 && !this.underwater) this.bird(j);
-      this.scheduleBird();
+      ambientTick('island.bird', () => {
+        const j = this.beds.get('jungle')?.level ?? 0;
+        if (j > 0.05 && this.night < 0.6 && !this.underwater) this.bird(j);
+        this.scheduleBird();
+      });
     });
   }
   /** an exotic jungle call from a random side: a hollow two-note "toucan" croak, or a falling whistle phrase */
@@ -291,14 +297,16 @@ export class IslandAmbience {
   /** a drip in the sea cave: a high plink with a little pitch drop, into the cave reverb */
   private scheduleDrip(): void {
     this.later(0.7 + Math.random() * 2.2, () => {
-      const cave = this.diag.cave;
-      if (cave > 0.05 && !this.underwater) {
-        const c = this.audio.ctx, t = c.currentTime, f = 1300 + Math.random() * 1400;
-        const o = c.createOscillator(); o.frequency.setValueAtTime(f, t); o.frequency.exponentialRampToValueAtTime(f * 0.7, t + 0.05);
-        const e = c.createGain(); e.gain.setValueAtTime(0.0001, t); e.gain.exponentialRampToValueAtTime(0.12 * cave, t + 0.003); e.gain.exponentialRampToValueAtTime(0.0001, t + 0.09);
-        o.connect(e).connect(this.audio.sfx); o.start(t); o.stop(t + 0.12); // on the sfx bus: it rings in the cave reverb
-      }
-      this.scheduleDrip();
+      ambientTick('island.drip', () => {
+        const cave = this.diag.cave;
+        if (cave > 0.05 && !this.underwater) {
+          const c = this.audio.ctx, t = c.currentTime, f = 1300 + Math.random() * 1400;
+          const o = c.createOscillator(); o.frequency.setValueAtTime(f, t); o.frequency.exponentialRampToValueAtTime(f * 0.7, t + 0.05);
+          const e = c.createGain(); e.gain.setValueAtTime(0.0001, t); e.gain.exponentialRampToValueAtTime(0.12 * cave, t + 0.003); e.gain.exponentialRampToValueAtTime(0.0001, t + 0.09);
+          o.connect(e).connect(this.audio.sfx); o.start(t); o.stop(t + 0.12); // on the sfx bus: it rings in the cave reverb
+        }
+        this.scheduleDrip();
+      });
     });
   }
 

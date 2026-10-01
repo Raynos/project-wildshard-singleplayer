@@ -1,3 +1,4 @@
+import { tap, ambientTick } from '../../core/harnessTap';
 /**
  * Pine Hollow's ambient life without wolves (PINE-HOLLOW-REMASTER PH-M5) and the harvest's skinning beat (PH-F2), in one
  * call from main.ts (`installPineLife`, before the boot's precompile: the one draw below is parked in the scene then).
@@ -493,6 +494,7 @@ export function installPineLife(h: PineLifeHost): PineLife | null {
     if (!au.ready) return;
     const c = au.ctx;
     if (noiseBuf === null) { noiseBuf = c.createBuffer(1, Math.floor(c.sampleRate * 0.03), c.sampleRate); const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length) ** 3; }
+    tap.sound?.('pineLife.knock');
     const s = c.createBufferSource(); s.buffer = noiseBuf;
     const bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 850 + Math.random() * 120; bp.Q.value = 2.2;
     const g = c.createGain(); g.gain.value = gain;
@@ -522,7 +524,7 @@ export function installPineLife(h: PineLifeHost): PineLife | null {
       // the drum roll: ~16 knocks a second for ~1.2 s, the head a blur against the trunk
       drumOn -= dt; drumT += dt * 16;
       p.a3 = 0.75 + 0.35 * Math.abs(Math.sin(drumT * Math.PI));
-      if (drumT >= 1) { drumT -= 1; const g = 0.5 / (1 + d / 12) ** 1.3 * Math.min(1, drumOn + 0.3); if (d < 60 && !drumVoiced) knock(g, THREE.MathUtils.clamp(((p.x - pp.x) * Math.cos(player.yaw) - (p.z - pp.z) * Math.sin(player.yaw)) / (d || 1), -1, 1) * 0.8); }
+      if (drumT >= 1) { ambientTick('pineLife.drum', () => { drumT -= 1; const g = 0.5 / (1 + d / 12) ** 1.3 * Math.min(1, drumOn + 0.3); if (d < 60 && !drumVoiced) knock(g, THREE.MathUtils.clamp(((p.x - pp.x) * Math.cos(player.yaw) - (p.z - pp.z) * Math.sin(player.yaw)) / (d || 1), -1, 1) * 0.8);  }); }
     } else {
       p.a3 += (0.35 - p.a3) * Math.min(1, dt * 6);
       lookAbout(wood, dt, 0.7, 0.8);

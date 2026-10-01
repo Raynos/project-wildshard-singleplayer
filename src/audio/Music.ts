@@ -1,3 +1,4 @@
+import { tap, ambientTick } from '../core/harnessTap';
 // src/audio/Music.ts — the Wildshard score, played by a small WebAudio instrument set (project/archive/2026-09-23-music.md).
 //
 //   const music = new Music(audio);                 // its own `music` gain → audio.master; shares the AudioContext
@@ -185,6 +186,7 @@ class Engine {
   // ─────────────── the seven patches ───────────────
   /** drone: D2 and D3 saws, the upper one 6 cents flat, through a low-pass that breathes between ~170 and ~400 Hz */
   startDrone(t: number) {
+    tap.sound?.('music.drone');
     this.stopDrone();
     const c = this.ctx, far = 1e9;
     const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 260; lp.Q.value = 0.9;
@@ -199,6 +201,7 @@ class Engine {
 
   /** pad: 4 voices, the root a sine and the rest triangles, each a few cents off, a slow attack; released when the next chord lands */
   padVoice(chord: ChordName, t: number, attack: number, out: AudioNode = this.padFilter): PadVoice {
+    tap.sound?.('music.padVoice');
     const c = this.ctx, pitches = CHORDS[chord], det = [0, 6, -5, 4], pan = [-0.35, 0.3, -0.15, 0.25];
     const g = c.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(1, t + attack);
     g.connect(out);
@@ -234,6 +237,7 @@ class Engine {
 
   /** pluck: Karplus-Strong — a noise burst through a feedback delay of 1/f with a 2-point low-pass, computed into a buffer per pitch */
   pluck(n: number, t: number, _d: number, v: number, out: AudioNode = this.into('pluck')) {
+    tap.sound?.('music.pluck');
     const buf = this.ksBuffer(midiHz(n));
     const s = this.ctx.createBufferSource(); s.buffer = buf; s.start(t); s.stop(t + buf.duration);
     const g = this.ctx.createGain(); g.gain.setValueAtTime(0.34 * v, t); g.gain.setValueAtTime(0.34 * v, t + buf.duration - 0.08); g.gain.linearRampToValueAtTime(0.0001, t + buf.duration - 0.005);
@@ -265,6 +269,7 @@ class Engine {
 
   /** marimba: a sine and its 4th harmonic (the bar's overtone), 3 ms attack, exponential decay; a tiny mallet click */
   marimba(n: number, t: number, _d: number, v: number, out: AudioNode = this.into('marimba')) {
+    tap.sound?.('music.marimba');
     const c = this.ctx, f = midiHz(n), decay = Math.min(1.1, Math.max(0.3, 1.3 - (n - 60) / 40));
     const g = c.createGain(); this.env(g.gain, t, 0.26 * v, 0.003, decay); g.connect(out);
     const o1 = this.osc('sine', f, t, t + decay + 0.05);
@@ -277,6 +282,7 @@ class Engine {
 
   /** bass: sine + a little saw through the 420 Hz low-pass, 10 ms attack, held for the note, sidechained to the kick */
   bass(n: number, t: number, d: number, v: number, out: AudioNode = this.bassDuck) {
+    tap.sound?.('music.bass');
     const c = this.ctx, f = midiHz(n), hold = Math.max(0.05, d - 0.07);
     const g = c.createGain(); this.env(g.gain, t, 0.15 * v, 0.012, 0.07, hold); g.connect(out);
     const o1 = this.osc('sine', f, t, t + hold + 0.15), o2 = this.osc('sawtooth', f, t, t + hold + 0.15, 4);
@@ -287,6 +293,7 @@ class Engine {
 
   /** pulse: 36 kick (1 & 3) · 35 the four-on-the-floor kicks · 38 tap · 42 shaker — each to its own sub-bus */
   drum(n: number, t: number, v: number, outOverride?: AudioNode): Voice {
+    tap.sound?.('music.drum');
     const c = this.ctx;
     if (n === 36 || n === 35) {
       const out = outOverride ?? this.gains[n === 36 ? 'pulse.kick' : 'pulse.four'];
@@ -311,6 +318,7 @@ class Engine {
 
   /** bell: 2-operator FM — a sine carrier, a modulator at 3.5× (the inharmonic bell partial) whose index decays fast */
   bell(n: number, t: number, d: number, v: number, out: AudioNode = this.into('bell')) {
+    tap.sound?.('music.bell');
     const c = this.ctx, f = midiHz(n), decay = Math.max(1.2, d);
     const car = this.osc('sine', f, t, t + decay + 0.1), mod = this.osc('sine', f * 3.5, t, t + decay + 0.1);
     const mg = c.createGain(); mg.gain.setValueAtTime(f * 2.8, t); mg.gain.exponentialRampToValueAtTime(f * 0.08, t + 0.8);
@@ -668,7 +676,7 @@ export class Music {
       e.begin(ARRANGEMENTS[this.playing ?? 'theme'], t);
       this.synthOn = true;
       this.pump();
-      this.timer = asShell(() => window.setInterval(() => this.pump(), TICK_MS)); // the page's score: never a shard's interval (src/core/shardScope.ts)
+      this.timer = asShell(() => window.setInterval(() => { ambientTick('music.pump', () => { this.pump(); }); }, TICK_MS)); // the page's score: never a shard's interval (src/core/shardScope.ts)
       g.cancelScheduledValues(t); g.setValueAtTime(fade > 0 ? 0 : 1, t);
     } else holdAt(g, t);
     if (fade > 0) g.linearRampToValueAtTime(1, t + fade);
@@ -854,6 +862,7 @@ export class Music {
 
   /** the style's sting file while its stems play, else the synth sting; the death sting ducks the stems like the synth (a bar down, 6 s out, a bar back) */
   sting(name: StingName): void {
+    tap.sound?.(`music.sting:${name}`);
     audioLog('music', `sting:${name}`, this.rig !== undefined);
     if (!this.rig) return;
     const { ctx, engine, stemBus } = this.rig, t = ctx.currentTime + 0.02, deck = this.deck;
