@@ -29,6 +29,7 @@ import { Pass, type EffectComposer } from 'postprocessing';
 import { PERFLOAD, perfLog, describeProgram, newProgramsSince, snapshotPrograms, type ProgramLike } from './perflog';
 import { TIER } from '../core/tier';
 import { recordBootCheckpoint } from './bootTrace';
+import type { Renderer } from '../render/renderer';
 
 export interface CompileJob {
   label: string;
@@ -247,7 +248,7 @@ const frame = (): Promise<void> => new Promise((resolve) => { requestAnimationFr
  * `total` = jobs + programs once the programs are known.
  */
 export async function runPrecompile(
-  renderer: THREE.WebGLRenderer, camera: THREE.Camera, jobs: CompileJob[], materials: number,
+  renderer: Renderer, camera: THREE.Camera, jobs: CompileJob[], materials: number,
   onProgress?: (done: number, total: number, detail: string) => void,
   textures: THREE.Texture[] = collectTextures(jobs),
 ): Promise<PrecompileReport> {

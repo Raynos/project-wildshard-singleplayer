@@ -12,11 +12,11 @@
  * shard seeds in its creature style before it lists its roster. The copies are the AnimalManager's, never placed: the
  * shard lists them (`listRoster`, ./live.ts) with the count alive of their species.
  */
-import type * as THREE from 'three';
 import { AnimalFactory, speciesDef, type AnimalStyle } from '../entities/AnimalFactory';
 import type { Sky } from '../world/Sky';
 import type { ModelCategory } from '../world/registry';
 import { modelContext, type ModelContext, type ModelDef } from './model';
+import type { Renderer } from '../render/renderer';
 
 export interface CreatureParams { readonly variant: string }
 
@@ -31,7 +31,7 @@ export function creatureFactory(ctx: ModelContext): AnimalFactory {
 }
 
 /** a model context whose creatures are built in the shard's style (the factory made on first build, not before) */
-export function creatureContext(sky: Sky, style: AnimalStyle, renderer: THREE.WebGLRenderer | null = null): ModelContext {
+export function creatureContext(sky: Sky, style: AnimalStyle, renderer: Renderer | null = null): ModelContext {
   const ctx = modelContext(sky, renderer);
   let made: AnimalFactory | null = null;
   const once = ctx.once;

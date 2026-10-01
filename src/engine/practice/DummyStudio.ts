@@ -8,6 +8,7 @@
  */
 import * as THREE from 'three';
 import { PATCH_ORDER, patchShader } from '../render/shaderPatches';
+import type { Renderer } from '../render/renderer';
 
 /** Shared by every dummy material: one program for all three figures. */
 const uniforms = {
@@ -61,7 +62,7 @@ function studioChunk(): string | null {
 let chunkCache: string | null | undefined;
 
 /** A small prefiltered environment: a dark navy box, overhead softboxes, a warm key panel and the cyan floor glow. */
-function buildEnv(renderer: THREE.WebGLRenderer): THREE.WebGLRenderTarget {
+function buildEnv(renderer: Renderer): THREE.WebGLRenderTarget {
   const scene = new THREE.Scene();
   const box = new THREE.Mesh(new THREE.BoxGeometry(20, 10, 20), new THREE.MeshBasicMaterial({ color: new THREE.Color(0.05, 0.085, 0.13), side: THREE.BackSide }));
   box.position.y = 4; scene.add(box);
@@ -96,7 +97,7 @@ let envTarget: THREE.WebGLRenderTarget | null = null;
  * Relight every standard material under `root` with the studio set. Returns the materials (the hit flash drives their
  * emissive). The procedural fallback's flat-shaded materials take it too.
  */
-export function applyDummyStudio(root: THREE.Object3D, renderer: THREE.WebGLRenderer): THREE.MeshStandardMaterial[] {
+export function applyDummyStudio(root: THREE.Object3D, renderer: Renderer): THREE.MeshStandardMaterial[] {
   chunkCache ??= studioChunk();
   const chunk = chunkCache;
   envTarget ??= buildEnv(renderer);

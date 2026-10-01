@@ -2,6 +2,7 @@
 declare module 'n8ao' {
   import type * as THREE from 'three';
   import type * as PP from 'postprocessing';
+  import type { Renderer } from '#engine/render/renderer';
 
   /** the `configuration` proxy: every write re-tunes the pass (see n8ao's N8AOPostPass source) */
   export interface N8AOConfiguration {
@@ -32,6 +33,6 @@ declare module 'n8ao' {
     constructor(scene: THREE.Scene, camera: THREE.Camera, width?: number, height?: number);
     configuration: N8AOConfiguration;
     /** the transparency-aware pre-passes (two extra renders of the scene); Game.ts wraps it (the multi-material fix) */
-    renderTransparency(renderer: THREE.WebGLRenderer): void;
+    renderTransparency(renderer: Renderer): void;
   }
 }

@@ -83,6 +83,7 @@ import type { Rng } from '../core/rng';
 import type { Sky } from '../world/Sky';
 import type { Animal } from '../entities/Animal';
 import type { WeldBuild } from './weld';
+import type { Renderer } from '../render/renderer';
 
 export type { DrawnAs, ModelCategory, Pipeline } from '../world/registry';
 
@@ -91,7 +92,7 @@ export interface ModelContext {
   /** the shard's sky: materials are prepared by it (its fog, its toon / painterly / PBR / Jiehua look) */
   readonly sky: Sky;
   /** the renderer, when a builder needs it (KTX2 textures; the batched path's multi-draw check) */
-  readonly renderer: THREE.WebGLRenderer | null;
+  readonly renderer: Renderer | null;
   /** one value per key for this shard: shared materials, textures, loaded GLB geometry */
   once: <T>(key: string, make: () => T) => T;
 }
@@ -100,7 +101,7 @@ export interface ModelContext {
  * A context for one shard (its sky, and the renderer when there is one). A structure shard has no engine Sky (Nine
  * Dragon, E306 M4): pass null — its models take their look from `once`, and reading `sky` throws.
  */
-export function modelContext(sky: Sky | null, renderer: THREE.WebGLRenderer | null = null): ModelContext {
+export function modelContext(sky: Sky | null, renderer: Renderer | null = null): ModelContext {
   const memo = new Map<string, unknown>();
   return {
     get sky(): Sky { if (sky === null) throw new Error('modelContext: this shard has no Sky (its models take their look from `once`)'); return sky; },

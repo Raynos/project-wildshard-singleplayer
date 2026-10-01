@@ -21,15 +21,16 @@ import { KTX2Loader } from 'three/examples/jsm/loaders/KTX2Loader.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { texMode, gpuFile } from '../boot/gpuFiles';
 import { markGpuOnly } from './gpuOnly';
+import { type Renderer, probeRenderer } from '../render/renderer';
 
 /** where vite/basis.ts copies three's transcoder: versioned by three's revision, so the SW / HTTP caches never mix two */
 export const BASIS_PATH = `/basis/r${THREE.REVISION}/`;
 
 let loader: KTX2Loader | null = null;
-let gameRenderer: THREE.WebGLRenderer | null = null;
+let gameRenderer: Renderer | null = null;
 
 /** detect the GPU's formats and start the transcoder download (idempotent) */
-export function initKtx2(renderer: THREE.WebGLRenderer): void {
+export function initKtx2(renderer: Renderer): void {
   gameRenderer ??= renderer; // the building shard's (a slot: each resident shard has its own, below)
   if (texMode() !== 'ktx2') return;
   markGpuOnly('KTX2 textures (their mips are dropped from JS once uploaded)'); // this build's (a shard built with images restores in place)
@@ -41,7 +42,7 @@ export function initKtx2(renderer: THREE.WebGLRenderer): void {
 /** a loader even without the game's renderer (dev pages, a model loaded before the renderer): detect on a throw-away context */
 function ktx2Loader(): KTX2Loader {
   if (loader !== null) return loader;
-  const probe = new THREE.WebGLRenderer({ canvas: document.createElement('canvas') });
+  const probe = probeRenderer();
   try {
     const made = new KTX2Loader().setTranscoderPath(BASIS_PATH).detectSupport(probe);
     loader = made;

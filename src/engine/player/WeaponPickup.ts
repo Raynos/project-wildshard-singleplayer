@@ -8,6 +8,7 @@ import { LightPool } from '../fx/LightPool';
 import { activePhysics } from '../physics/active';
 import { floorBelow } from '../physics/query';
 import { activeBodies, Drop } from '../physics/bodies';
+import type { Renderer } from '../render/renderer';
 
 /**
  * ItemPickup (exported as WeaponPickup too) — an item lying in the world for the player to find, presented like
@@ -299,7 +300,7 @@ export class ItemPickup {
     this.sigil.geometry.dispose(); this.sigilMat.dispose(); this.pool.geometry.dispose(); this.poolMat.dispose(); this.shock.geometry.dispose(); this.shockMat.dispose();
   }
 
-  update(dt: number, t: number, renderer?: THREE.WebGLRenderer, camera?: THREE.PerspectiveCamera): void {
+  update(dt: number, t: number, renderer?: Renderer, camera?: THREE.PerspectiveCamera): void {
     if (this.disposed) return;
     if (renderer && camera) { renderer.getDrawingBufferSize(_size); this.uScale.value = _size.y / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2)); }
     this.uTime.value = t;

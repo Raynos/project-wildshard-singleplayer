@@ -5,7 +5,6 @@
  * lazy loader, so the def stays node-safe). None of it is placed: the AnimalManager, the quests, the arena and the
  * weapons keep drawing the copies (./live.ts).
  */
-import type * as THREE from 'three';
 import type { AnimalStyle } from '../entities/AnimalFactory';
 import type { Sky } from '../world/Sky';
 import type { WorldRegistry } from '../world/registry';
@@ -14,6 +13,7 @@ import { listRoster, live, type RosterEntry } from './live';
 import { trainingDummy } from './trainingDummy';
 import { hoverboard } from './hoverboard';
 import { ARENA_LINEUP } from '../practice/lineup';
+import type { Renderer } from '../render/renderer';
 
 export interface ShardModelsOptions {
   /** the shard's roster (ShardManifest.roster) */
@@ -21,7 +21,7 @@ export interface ShardModelsOptions {
   /** its creature style (ShardManifest.style): the factory its creatures' specimens are built with */
   readonly style: AnimalStyle;
   readonly sky: Sky;
-  readonly renderer: THREE.WebGLRenderer;
+  readonly renderer: Renderer;
   /** the live animals (a creature's copies) */
   readonly animals: () => readonly { readonly kind: string }[];
   readonly registry: WorldRegistry;

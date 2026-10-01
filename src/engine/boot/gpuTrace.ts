@@ -1,10 +1,10 @@
 /** E256: boot-only snapshots. Counts are observations, not estimates of iOS process memory. */
-import type { WebGLRenderer } from 'three';
 import type { Pass } from 'postprocessing';
 import { setting } from '../ui/Settings';
 import { recordBootCheckpoint } from './bootTrace';
+import type { Renderer } from '../render/renderer';
 
-export function recordGpuCheckpoint(renderer: WebGLRenderer, operation: string): void {
+export function recordGpuCheckpoint(renderer: Renderer, operation: string): void {
   try {
     const gl = renderer.getContext();
     const memory: unknown = Reflect.get(performance, 'memory');

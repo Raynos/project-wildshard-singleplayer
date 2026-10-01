@@ -4,8 +4,8 @@
  * from, per-batch wall ms, and what the first real frames still had to compile. Everything lands in
  * `window.__perfload` (rows) and `console.info` so a headless run can read it back.
  */
-import type * as THREE from 'three';
 import { setting } from '../ui/Settings';
+import type { Renderer } from '../render/renderer';
 
 export const PERFLOAD = typeof location !== 'undefined' && setting('loadProfile') === 'on';
 
@@ -19,10 +19,10 @@ export const perfRows: PerfRow[] = [];
 export const barTrace: [number, number, number, string][] = [];
 if (typeof window !== 'undefined') Object.assign(window, { __perfload: perfRows, __perfbar: barTrace });
 
-const programsOf = (r: THREE.WebGLRenderer): Programs => (r.info.programs ?? []) as unknown as Programs;
+const programsOf = (r: Renderer): Programs => (r.info.programs ?? []) as unknown as Programs;
 
 /** The programs that exist now, as a set (diff against later to see what a render compiled). */
-export function snapshotPrograms(r: THREE.WebGLRenderer): Set<ProgramLike> { return new Set(programsOf(r)); }
+export function snapshotPrograms(r: Renderer): Set<ProgramLike> { return new Set(programsOf(r)); }
 
 /** Human-readable id of a program: material type, name, the custom cache key tail, and the depth-packing/light counts. */
 export function describeProgram(p: ProgramLike): string {
@@ -32,17 +32,17 @@ export function describeProgram(p: ProgramLike): string {
   return `${p.type}${p.name ? `/${p.name}` : ''}${custom ? ` [${custom}]` : ''} #${p.id}`;
 }
 
-export function newProgramsSince(r: THREE.WebGLRenderer, before: Set<ProgramLike>): ProgramLike[] {
+export function newProgramsSince(r: Renderer, before: Set<ProgramLike>): ProgramLike[] {
   return programsOf(r).filter((p) => !before.has(p));
 }
 
-export function perfLog(phase: string, ms: number, r: THREE.WebGLRenderer, detail: string): void {
+export function perfLog(phase: string, ms: number, r: Renderer, detail: string): void {
   if (!PERFLOAD) return;
   perfRows.push({ phase, ms: Math.round(ms * 10) / 10, programs: programsOf(r).length, detail });
   console.info(`[perfload] ${phase.padEnd(28)} ${String(Math.round(ms)).padStart(6)} ms  programs=${programsOf(r).length}  ${detail}`);
 }
 
 /** Every program the renderer holds, one line each (for the final table). */
-export function dumpPrograms(r: THREE.WebGLRenderer): string[] { return programsOf(r).map(describeProgram); }
+export function dumpPrograms(r: Renderer): string[] { return programsOf(r).map(describeProgram); }
 
-export const parallelCompile = (r: THREE.WebGLRenderer): boolean => r.extensions.has('KHR_parallel_shader_compile');
+export const parallelCompile = (r: Renderer): boolean => r.extensions.has('KHR_parallel_shader_compile');

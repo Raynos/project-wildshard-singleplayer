@@ -19,6 +19,7 @@ import { ARENA_LINEUP } from './lineup';
 import { paramsOf } from '../models/model';
 import { dummyFigure, dummyStandIn, trainingDummy } from '../models/trainingDummy';
 import './arena.css';
+import type { Renderer } from '../render/renderer';
 
 const HALF_WIDTH = 50, HALF_DEPTH = 50, WALL_HEIGHT = 9;
 const Y = 900; // an isolated room high over each shard; existing world geometry and AI never enter it
@@ -76,7 +77,7 @@ class TrainingTarget implements TargetAnimal {
     layer.append(label); this.label = label;
   }
 
-  install(model: TrainingDummyModel, renderer: THREE.WebGLRenderer): void {
+  install(model: TrainingDummyModel, renderer: Renderer): void {
     const previous = this.model.root;
     model.root.position.copy(previous.position);
     const parent = previous.parent;

@@ -1,10 +1,11 @@
 import { Effect, EffectAttribute, BlendFunction } from 'postprocessing';
 import {
   Uniform, Vector3, Matrix4, Color, type PerspectiveCamera, type Texture, DataTexture, RepeatWrapping, NearestFilter, LinearFilter,
-  WebGLRenderTarget, HalfFloatType, ShaderMaterial, Mesh, BufferGeometry, Float32BufferAttribute, Scene, OrthographicCamera, type WebGLRenderer,
+  WebGLRenderTarget, HalfFloatType, ShaderMaterial, Mesh, BufferGeometry, Float32BufferAttribute, Scene, OrthographicCamera,
   type DepthPackingStrategies, BasicDepthPacking,
 } from 'three';
 import { fogUniforms, volumetricFog } from '../world/Atmosphere';
+import type { Renderer } from '../render/renderer';
 
 /** the march's uniforms, typed per slot so the per-frame `.value.copy(...)` calls are checked */
 interface MarchUniforms {
@@ -175,7 +176,7 @@ export class VolumetricsEffect extends Effect {
     this.rt?.setSize(Math.max(1, Math.round(width * this.scale)), Math.max(1, Math.round(height * this.scale)));
   }
 
-  override update(renderer: WebGLRenderer): void {
+  override update(renderer: Renderer): void {
     const cam = this.camera, u = this.marchUniforms;
     u.uInvView.value.copy(cam.matrixWorld);
     u.uInvProj.value.copy(cam.projectionMatrixInverse);

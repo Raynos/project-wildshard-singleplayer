@@ -18,6 +18,7 @@
  */
 import * as THREE from 'three';
 import { RenderPass, type EffectComposer } from 'postprocessing';
+import type { Renderer } from '../render/renderer';
 
 /**
  * E142 (the 30-fps-at-2× lane): the depth slices. The blit above runs mid-pass — at the viewmodel's clear — and on a
@@ -35,7 +36,7 @@ import { RenderPass, type EffectComposer } from 'postprocessing';
 const DEPTH_SLICES: readonly (readonly [number, number])[] = [[0.225, 0.3], [0.15, 0.225], [0.075, 0.15], [0, 0.075]];
 
 /** a render target's framebuffer, once three has set it up */
-function framebufferOf(renderer: THREE.WebGLRenderer, rt: THREE.WebGLRenderTarget): WebGLFramebuffer | null {
+function framebufferOf(renderer: Renderer, rt: THREE.WebGLRenderTarget): WebGLFramebuffer | null {
   const props: unknown = renderer.properties.get(rt);
   if (typeof props !== 'object' || props === null || !('__webglFramebuffer' in props)) return null;
   const fb = props.__webglFramebuffer;
@@ -46,7 +47,7 @@ function framebufferOf(renderer: THREE.WebGLRenderer, rt: THREE.WebGLRenderTarge
  * Copy `src`'s depth into `dst` (same size, same depth format — postprocessing makes the stable target so). Leaves `src`
  * bound for drawing, three's framebuffer cache in step: safe in the middle of a scene render.
  */
-function blitDepth(renderer: THREE.WebGLRenderer, src: THREE.WebGLRenderTarget, dst: THREE.WebGLRenderTarget): boolean {
+function blitDepth(renderer: Renderer, src: THREE.WebGLRenderTarget, dst: THREE.WebGLRenderTarget): boolean {
   const gl = renderer.getContext();
   if (!(gl instanceof WebGL2RenderingContext)) return false;
   const s = framebufferOf(renderer, src), d = framebufferOf(renderer, dst);
@@ -115,7 +116,7 @@ export class WorldRenderPass extends RenderPass {
    * before a depth clear: the first one of the scene pass saves the world's depth. With the slices, a clear of the scene
    * pass moves the depth range to the next slice instead; true = do not clear
    */
-  private keepWorldDepth(renderer: THREE.WebGLRenderer): boolean {
+  private keepWorldDepth(renderer: Renderer): boolean {
     const target = this.drawing;
     if (target === null || renderer.getRenderTarget() !== target) return false;
     if (this.slices) {
@@ -131,7 +132,7 @@ export class WorldRenderPass extends RenderPass {
     return false;
   }
 
-  override render(renderer: THREE.WebGLRenderer, inputBuffer: THREE.WebGLRenderTarget | null, outputBuffer: THREE.WebGLRenderTarget | null, deltaTime?: number, stencilTest?: boolean): void {
+  override render(renderer: Renderer, inputBuffer: THREE.WebGLRenderTarget | null, outputBuffer: THREE.WebGLRenderTarget | null, deltaTime?: number, stencilTest?: boolean): void {
     const stable = this.stableTarget();
     if (stable === null || inputBuffer === null || this.renderToScreen) { super.render(renderer, inputBuffer, outputBuffer, deltaTime, stencilTest); return; }
     if (this.slices) {

@@ -5,6 +5,7 @@ import { fetchImage, tierUrl } from '../boot/bytes';
 import { initKtx2, ktx2Layers, ktx2Texture, releaseAfterUpload } from './ktx2';
 import { TIER_CONFIG } from './tier';
 import { PUBLIC_BYTES } from '../boot/bytes.generated';
+import type { Renderer } from '../render/renderer';
 
 const gltfLoader = new GLTFLoader();
 const hdrLoader = new HDRLoader();
@@ -12,8 +13,8 @@ const hdrLoader = new HDRLoader();
 export interface PBRSet { map: THREE.Texture; normalMap: THREE.Texture; armMap: THREE.Texture }
 
 let maxAniso = 8;
-let gpu: THREE.WebGLRenderer | null = null;
-export function setAnisotropy(renderer: THREE.WebGLRenderer): void { gpu = renderer; maxAniso = Math.min(16, renderer.capabilities.getMaxAnisotropy()); initKtx2(renderer); }
+let gpu: Renderer | null = null;
+export function setAnisotropy(renderer: Renderer): void { gpu = renderer; maxAniso = Math.min(16, renderer.capabilities.getMaxAnisotropy()); initKtx2(renderer); }
 
 /**
  * Decoded images, one per URL: the same file asked for twice (rock_ground: terrain slab and cabin
@@ -110,7 +111,7 @@ export async function loadPBRArray(ids: string[], size = TIER_CONFIG.layerSize):
     t.needsUpdate = true;
     return t;
   };
-  const buildGPU = async (kind: (typeof kinds)[number], srgb: boolean, renderer: THREE.WebGLRenderer) => {
+  const buildGPU = async (kind: (typeof kinds)[number], srgb: boolean, renderer: Renderer) => {
     // Each kind's array is as big as its files (capped at `size`), never scaled up: the phone's half-res ARM
     // planes make a 512² ARM array. Scaling them to 1024 at decode (resizeQuality 'high') ran on the main
     // thread, ~75 ms a layer at 4x CPU — 0.3 s of the terrain step for texels the file never had.
