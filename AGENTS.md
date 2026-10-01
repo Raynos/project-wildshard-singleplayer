@@ -219,6 +219,9 @@ When Jake says "do N council rounds on X", it means the protocol in [docs/proces
   (see Deploy), so before you push,
   HEAD must pass the four CI gates on a clean export of the tree — `tsc --noEmit`, `oxlint`,
   `node scripts/check-css.mjs`, `vite build` — not just the files you touched.
+- **Before you push (E357 Z4):** keep the permanent per-push gate green: `macos-15` parity jobs for every shard
+  and the template; node checks for layers, ratchets, contracts, the asset audit, `gen-shards --check` and coverage.
+  Keep the nightly `gpu-perf` run on Jake's Mac enabled. The lead owns the batched runs and push during E357.
 - **Strict means strict.** `tsconfig.json` has every strictness flag on and `.oxlintrc.json` is
   type-aware with every category at error and zero warnings allowed. Fix the type, never the
   gate: no `any`, no non-null `!`, no `@ts-ignore` / `@ts-expect-error`, no `as unknown as`, no
