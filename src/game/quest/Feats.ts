@@ -9,8 +9,8 @@
 import { SEA_GLASS_COUNT, SEA_GLASS_FLAG, SHARD_FLAGS } from '../../world/interact/driftwood';
 import { QUEST_DONE } from './driftwood';
 import type { Adventure, AdventureWorld, AdvAnimal } from './Adventure';
+import type { ProgressSink } from '../Progress';
 
-export interface ProgressSink { recordEvent: (event: string, total?: number) => void }
 
 export function installFeats<A extends AdvAnimal>(adv: Adventure, w: AdventureWorld<A>, progress: ProgressSink): void {
   const { flags } = adv;

@@ -36,7 +36,7 @@ import type { MapPoi, MapQuest } from '../ui/Map';
 import { DialogueBox, RewardCaption } from '../game/quest/QuestUI';
 import { NpcTalk, QuestChip, QuestLine, placesWithDiscovery, type LiveMarker, type Places } from '../game/quest/core';
 import type { QuestState } from '../game/quest/quest';
-import type { ProgressSink } from '../game/quest/Feats';
+import type { ProgressSink } from '../game/Progress';
 import { CAMP_NPCS, CARVINGS, CLUE_FLAGS, FEATHER_ELITES, FEATHER_FLAGS, NALATI_PLACES, NALATI_QUESTS } from '../game/quest/nalati';
 import { buildCampPeople, type CampPeople, type PersonId } from './campPeople';
 import { buildKokparRound, KOKPAR_GOALS, type KokparMount, type KokparRound } from './kokpar';
