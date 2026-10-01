@@ -12,7 +12,7 @@ import type { Interactable } from '#engine/world/interact/types';
  * phase segments, phase changes that change the room, adds and hazards, a checkpoint per phase, and a legendary reward.
  * This class is the GENERIC half — the state machine, the bar, the cards, the checkpoints, the retry, the reward pickup
  * and the persistence. Everything particular to one fight (what the boss does, what the room does) is a `BossScript`
- * (the Golden King's: src/shards/nalati-grasslands/kurganBoss.ts). Nalati has two bosses; every later shard reuses this.
+ * (the Golden King's: src/shards/nalati-grasslands/combat/goldenKing.ts). Nalati has two bosses; every later shard reuses this.
  *
  *   const boss = new Boss(def, script, host, ui);     // ui = new BossBar() (src/engine/ui/BossBar.ts)
  *   boss.arm();                                        // the player is at the door: the next step over the threshold starts it

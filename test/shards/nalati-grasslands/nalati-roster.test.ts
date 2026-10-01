@@ -8,13 +8,13 @@ import type { Sky } from '#engine/world/Sky';
 import { modelContext } from '#engine/models/model';
 import { listRoster } from '#engine/models/live';
 import { ROSTER } from '#shards/nalati-grasslands/roster';
-import { GOLDEN_KING } from '#engine/entities/species/goldenKing';
-import { KURGAN_BALBAL } from '#engine/entities/species/kurganBalbal';
-import { BALBAL } from '#engine/entities/species/balbal';
-import { GHOST_RIDER } from '#engine/entities/species/ghostRider';
-import { LEOPARD } from '#engine/entities/species/leopard';
-import { KOKBORI } from '#engine/entities/species/kokbori';
-import { EAGLE } from '#engine/entities/species/eagle';
+import { GOLDEN_KING } from '#shards/nalati-grasslands/species/goldenKing';
+import { KURGAN_BALBAL } from '#shards/nalati-grasslands/species/kurganBalbal';
+import { BALBAL } from '#shards/nalati-grasslands/species/balbal';
+import { GHOST_RIDER } from '#shards/nalati-grasslands/species/ghostRider';
+import { LEOPARD } from '#shards/nalati-grasslands/species/leopard';
+import { KOKBORI } from '#shards/nalati-grasslands/species/kokbori';
+import { EAGLE } from '#shards/nalati-grasslands/species/eagle';
 import { ARGYMAQ, GHOST_HORSE } from '#shards/nalati-grasslands/elites';
 
 const sky = { setupMaterial(_m: THREE.Material): void { /* nothing to prepare */ } } as Sky;
@@ -23,7 +23,7 @@ const sky = { setupMaterial(_m: THREE.Material): void { /* nothing to prepare */
 const KINDS: Readonly<Record<string, string>> = { GOLDEN_KING, KURGAN_BALBAL, BALBAL, GHOST_RIDER, GHOST_HORSE, LEOPARD, KOKBORI, EAGLE, ARGYMAQ };
 
 /** Nalati's spawners: src/nalati/, the wildlife, the taming */
-const SPAWNERS = import.meta.glob<string>(["../../../src/shards/nalati-grasslands/*.ts","../../../src/shards/nalati-grasslands/ride/ride.ts","../../../src/engine/entities/Wildlife.ts","../../../src/shards/nalati-grasslands/ride/Taming.ts"], { query: '?raw', import: 'default', eager: true });
+const SPAWNERS = import.meta.glob<string>(["../../../src/shards/nalati-grasslands/*.ts","../../../src/shards/nalati-grasslands/ride/ride.ts","../../../src/shards/nalati-grasslands/creatures/wildlife.ts","../../../src/shards/nalati-grasslands/ride/Taming.ts"], { query: '?raw', import: 'default', eager: true });
 expect(Object.keys(SPAWNERS).length).toBeGreaterThan(0);
 
 /** every kind a spawner names: `spawn('horse', …)`, `spawn(GOLDEN_KING, …)`, `spawnAt(LEOPARD, …)` */

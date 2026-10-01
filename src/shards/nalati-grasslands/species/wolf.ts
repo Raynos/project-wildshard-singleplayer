@@ -1,15 +1,15 @@
 import { engineString } from '#engine/strings';
 import * as THREE from 'three';
-import type { Rng } from '../../core/rng';
-import { registerSpecies, type AnimalSpecies, type BoneDef, type VariantDef, type RigAnimCtx } from './registry';
-import { loft, skinPlain, S, boneIndex, mix, sstep, srgb, paletteColors, paintNoise, type Paint, type RGB } from './loft';
-import { NO_FUR, smooth01, bump, clamp } from './rigs';
-import { tuft, hash01, type V3, type Skin } from '../creatureKit';
-import { thinkWolf } from '../Pack';
+import type { Rng } from '#engine/core/rng';
+import { registerSpecies, type AnimalSpecies, type BoneDef, type VariantDef, type RigAnimCtx } from '#engine/entities/species/registry';
+import { loft, skinPlain, S, boneIndex, mix, sstep, srgb, paletteColors, paintNoise, type Paint, type RGB } from '#engine/entities/species/loft';
+import { NO_FUR, smooth01, bump, clamp } from '#engine/entities/species/rigs';
+import { tuft, hash01, type V3, type Skin } from './shape';
+import { thinkWolf } from '../creatures/pack';
 
 /**
  * Steppe wolf (Nalati, row B4) — grey-tawny, a dark saddle over a buff coat, cream mask / throat / belly, a thick ruff on
- * the neck, amber eyes, a bushy black-tipped tail. 0.78 m at the shoulder. Pack hunter: the AI is `src/engine/entities/Pack.ts`
+ * the neck, amber eyes, a bushy black-tipped tail. 0.78 m at the shoulder. Pack hunter: the AI is `src/shards/nalati-grasslands/creatures/pack.ts`
  * (roles alpha / flankers / lunger / scout; roam → scent → shadow → encircle → lunge → howl regroup → break).
  *
  * The same canid build makes the camp's sheepdog (`species/sheepdog.ts`, trait `dog`): a black-and-white collie.

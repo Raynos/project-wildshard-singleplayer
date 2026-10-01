@@ -1,4 +1,4 @@
-import { encounterHit } from './combat/damage';
+import { encounterHit } from './damage';
 import * as THREE from 'three';
 import { app, type Game, type Sky, type Player } from '#engine';
 
@@ -8,13 +8,13 @@ import type { Animal } from '#engine/entities/Animal';
 import type { ThinkCtx } from '#engine/entities/species/registry';
 import type { Bow } from '#kit';
 import type { Interactable } from '#engine/world/interact/types';
-import type { KurganEntrance } from './world/KurganField';
-import { GOLDEN_KING, goldenKingBrain } from '#engine/entities/species/goldenKing';
-import { KURGAN_BALBAL } from '#engine/entities/species/kurganBalbal';
-import { KurganDungeon, DUNGEON, CH, COFFIN, PEDESTAL, NICHES, STREAMS, CHECKPOINT, DROMOS_SPAWN, DROMOS_END } from './world/KurganDungeon';
+import type { KurganEntrance } from '../world/KurganField';
+import { GOLDEN_KING, goldenKingBrain } from '../species/goldenKing';
+import { KURGAN_BALBAL } from '../species/kurganBalbal';
+import { KurganDungeon, DUNGEON, CH, COFFIN, PEDESTAL, NICHES, STREAMS, CHECKPOINT, DROMOS_SPAWN, DROMOS_END } from '../world/KurganDungeon';
 import { Boss, type BossDef, type BossScript } from '#game/Boss';
 import { BossBar } from '#engine/ui/BossBar';
-import { GoldenBowPower, goldenBowModel } from './weapons/GoldenBow';
+import { GoldenBowPower, goldenBowModel } from '../weapons/GoldenBow';
 import { activeRegistry } from '#engine/world/registry';
 
 /**

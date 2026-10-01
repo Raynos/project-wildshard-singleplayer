@@ -10,7 +10,7 @@ import type { EliteBar } from '#engine/ui/EliteBar';
 /**
  * Elite — the engine's NAMED ELITE system (docs/design/nalati/elites-and-bosses.md §1; plan NALATI.md row B12). "Elites
  * live in the world, bosses own the screen." This is the generic half every shard reuses — each elite's own AI is an
- * `EliteScript` (Nalati's five: src/shards/nalati-grasslands/elites.ts).
+ * `EliteScript` (Nalati's five: src/shards/nalati-grasslands/combat/elites.ts).
  *
  *   const elites = new Elites(host, bar);            // bar = new EliteBar() (src/engine/ui/EliteBar.ts)
  *   elites.add(script);                              // one per elite: its EliteDef + its brain

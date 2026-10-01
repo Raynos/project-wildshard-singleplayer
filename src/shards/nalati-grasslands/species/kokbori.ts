@@ -1,16 +1,16 @@
 import { engineString } from '#engine/strings';
-import { registerSpecies } from './registry';
-import type { RGB } from './loft';
-import { NO_FUR } from './rigs';
+import { registerSpecies } from '#engine/entities/species/registry';
+import type { RGB } from '#engine/entities/species/loft';
+import { NO_FUR } from '#engine/entities/species/rigs';
 import { buildCanid, canidPostPose } from './wolf';
-import { eliteThink, eliteDamageMul } from '../eliteBrain';
+import { eliteThink, eliteDamageMul } from '#engine/entities/eliteBrain';
 
 /**
  * Kokbori, Mother of the Pack (Nalati named elite E2; row B12; mockup
  * art/nalati-grasslands/round-2/4-named-elites/elite-2-kokbori-sky-wolf.jpg) — the sky-grey she-wolf of Turkic myth. The
- * creature row's canid (src/engine/entities/species/wolf.ts `buildCanid` + `canidPostPose`, so she stalks, snarls, lunges and
+ * creature row's canid (src/shards/nalati-grasslands/species/wolf.ts `buildCanid` + `canidPostPose`, so she stalks, snarls, lunges and
  * HOWLS exactly like her pack) at ×2.6, in a blue-grey coat with a silver ruff and pale eyes. Her own kind so the pack AI
- * (Pack.ts, which drives every `wolf`) leaves her to the elite's brain (src/shards/nalati-grasslands/elites.ts). 650 hp.
+ * (Pack.ts, which drives every `wolf`) leaves her to the elite's brain (src/shards/nalati-grasslands/combat/elites.ts). 650 hp.
  */
 
 export const KOKBORI = 'kokbori';

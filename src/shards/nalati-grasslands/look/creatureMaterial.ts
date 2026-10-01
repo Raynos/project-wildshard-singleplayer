@@ -1,6 +1,6 @@
 import type * as THREE from 'three';
-import type { Sky } from '../world/Sky';
-import { painterlyMaterial } from '../world/painterly';
+import type { Sky } from '#engine/world/Sky';
+import { painterlyMaterial } from '#engine/world/painterly';
 
 /**
  * The material every Nalati creature is drawn with (`AnimalFactory` style 'painterly', the instanced sheep flock):

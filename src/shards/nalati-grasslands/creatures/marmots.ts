@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import type { Sky } from '../world/Sky';
-import { heightAt, inChunk, normalAt } from '../world/Heightfield';
-import { Rng } from '../core/rng';
-import { loft, S, mix, sstep, srgb, type Paint } from './species/loft';
-import { painterlyAnimalMaterial } from './painterlyAnimals';
-import { TickScheduler } from '../app/scheduler';
+import type { Sky } from '#engine/world/Sky';
+import { heightAt, inChunk, normalAt } from '#engine/world/Heightfield';
+import { Rng } from '#engine/core/rng';
+import { loft, S, mix, sstep, srgb, type Paint } from '#engine/entities/species/loft';
+import { painterlyAnimalMaterial } from '../look/creatureMaterial';
+import { TickScheduler } from '#engine/app/scheduler';
 
 /**
  * Marmots — the steppe's ambient sentries (docs/design/nalati/wolves-horses-taming.md "Sheep (ambient life)"): small

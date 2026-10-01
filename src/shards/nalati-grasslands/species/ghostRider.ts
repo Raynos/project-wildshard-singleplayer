@@ -1,18 +1,18 @@
 import { engineString } from '#engine/strings';
 import * as THREE from 'three';
-import { registerSpecies, speciesDef, type ThinkCtx } from './registry';
-import { NO_FUR } from './rigs';
+import { registerSpecies, speciesDef, type ThinkCtx } from '#engine/entities/species/registry';
+import { NO_FUR } from '#engine/entities/species/rigs';
 import { HORSE_SPEED, horseBones } from './horse';
-import type { Animal } from '../Animal';
-import { eliteDamageMul } from '../eliteBrain';
+import type { Animal } from '#engine/entities/Animal';
+import { eliteDamageMul } from '#engine/entities/eliteBrain';
 
 /**
  * Ghost rider — the night half of row B11 (NALATI.md; elites-and-bosses.md E5 "the ghost-rider line"; mockups
  * art/nalati-grasslands/round-1/3-enemies/enemy-6-ghost-riders.jpg, round-2/4-named-elites/elite-5-qara-batyr-night-rider.png):
  * a spectral horse archer, cyan smoke and glass, galloping the ridge lines at night.
  *
- * The horse IS the creature row's horse (src/engine/entities/species/horse.ts — its build, gaits, mane / tail postPose, tack),
- * registered again as kind `ghost-rider` with this file's brain; src/shards/nalati-grasslands/ghostRiders.ts swaps its material for the
+ * The horse IS the creature row's horse (src/shards/nalati-grasslands/species/horse.ts — its build, gaits, mane / tail postPose, tack),
+ * registered again as kind `ghost-rider` with this file's brain; src/shards/nalati-grasslands/combat/ghostRiders.ts swaps its material for the
  * ghost one (translucent teal, a fresnel rim, additive, no shadow) and seats the hooded rider (`riderGeometry`) on the
  * horse's body bone. The brain is a puppet: the controller writes the steering target every frame (`mem.tx / tz`, the
  * speed `mem.v`) — the line's formation, the ridge path, the circling — and does the shooting; `think` only steers.

@@ -1,20 +1,20 @@
-import { GroupBrain } from '../ai/GroupBrain';
-import { app } from '../app/runtime';
+import { GroupBrain } from '#engine/ai/GroupBrain';
+import { app } from '#engine/app/runtime';
 import * as THREE from 'three';
-import type { Sky } from '../world/Sky';
-import { heightAt, inChunk, normalAt } from '../world/Heightfield';
-import { Rng } from '../core/rng';
-import { attachFogUniforms } from '../world/Atmosphere';
-import type { Animal } from './Animal';
-import type { ThinkCtx } from './species/registry';
-import type { PackPrey } from './Pack';
-import { buildSheepGeometry, SHEEP_PIVOTS, SHEEP_PART_NAMES } from './species/sheep';
-import { loadCreatureRig, type RigAsset } from './glbCreatures';
-import { modelsOn } from '#shards/nalati-grasslands/world/glbPaint';
-import { TIER } from '../core/tier';
-import { painterlyAnimalMaterial } from './painterlyAnimals';
-import { wildEnv, angDiff } from './wildEnv';
-import { TickScheduler } from '../app/scheduler';
+import type { Sky } from '#engine/world/Sky';
+import { heightAt, inChunk, normalAt } from '#engine/world/Heightfield';
+import { Rng } from '#engine/core/rng';
+import { attachFogUniforms } from '#engine/world/Atmosphere';
+import type { Animal } from '#engine/entities/Animal';
+import type { ThinkCtx } from '#engine/entities/species/registry';
+import type { PackPrey } from './pack';
+import { buildSheepGeometry, SHEEP_PIVOTS, SHEEP_PART_NAMES } from '../species/sheep';
+import { loadCreatureRig, type RigAsset } from '../species/hulls';
+import { modelsOn } from '../world/glbPaint';
+import { TIER } from '#engine/core/tier';
+import { painterlyAnimalMaterial } from '../look/creatureMaterial';
+import { wildEnv, angDiff } from './env';
+import { TickScheduler } from '#engine/app/scheduler';
 
 /**
  * Flock — the camp's sheep (docs/design/nalati/wolves-horses-taming.md "Sheep"): 20–60 fat-tailed sheep as ONE
@@ -30,7 +30,7 @@ import { TickScheduler } from '../app/scheduler';
  *   flock.onSound = (name, x, z) => …                                   'sheep_bleat' (ambient, panicked), 'dog_bark'
  *   flock.positions(i, out)                                              world position of sheep i
  *   flock.prey(i) / flock.nearest(x, z)                                  B1: sheep i as a wolf pack's prey (Pack.raid —
- *                                                                        src/shards/nalati-grasslands/sheepRaid.ts); the living sheep nearest (x, z)
+ *                                                                        src/shards/nalati-grasslands/creatures/sheepRaid.ts); the living sheep nearest (x, z)
  *
  * Behaviour: grazing head-down with the odd shuffle; the flock drifts across its pasture (a new spot every 60–90 s,
  * within `range` m of home); a sheep > 12 m out is a straggler (the dog fetches it); a wolf within 30 m or the player

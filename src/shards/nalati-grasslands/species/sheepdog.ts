@@ -1,13 +1,13 @@
 import { engineString } from '#engine/strings';
-import { registerSpecies } from './registry';
-import { NO_FUR } from './rigs';
+import { registerSpecies } from '#engine/entities/species/registry';
+import { NO_FUR } from '#engine/entities/species/rigs';
 import { buildCanid, canidPostPose, COLLIE_TINT } from './wolf';
-import { thinkSheepdog } from '../Flock';
+import { thinkSheepdog } from '../creatures/flock';
 
 /**
  * The camp's sheepdog (Nalati, row B4): a black-and-white collie on the wolf's canid build (species/wolf.ts, trait
  * `dog`: softer ears, shorter muzzle, a feathered white-tipped tail), 0.55 m at the shoulder. Its AI is the flock's
- * (`thinkSheepdog` in src/engine/entities/Flock.ts — `flock.setDog(dog)`): circles the flock, fetches stragglers, stands
+ * (`thinkSheepdog` in src/shards/nalati-grasslands/creatures/flock.ts — `flock.setDog(dog)`): circles the flock, fetches stragglers, stands
  * between the sheep and a wolf barking. Not hostile; not a quarry.
  */
 registerSpecies({

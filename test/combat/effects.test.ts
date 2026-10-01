@@ -7,7 +7,7 @@ import { AMMO_ROWS, PINE_AMMO_EFFECTS, PINE_SOURCE_MULTIPLIERS, pineFinishEffect
 import { Scope } from '#engine/app/scope';
 import { Vector3 } from 'three';
 import { PlayerHealth } from '#engine/combat/health';
-import { balbalCombat, BALBAL_WEAK } from '#engine/entities/species/balbal';
+import { balbalCombat, BALBAL_WEAK } from '#shards/nalati-grasslands/species/balbal';
 import { speciesDef } from '#engine/entities/species/registry';
 import { app } from '#engine/app/runtime';
 import { damageTarget } from '../fake/legacyActor';

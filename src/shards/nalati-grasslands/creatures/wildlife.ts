@@ -1,16 +1,16 @@
 import * as THREE from 'three';
-import type { Sky } from '../world/Sky';
-import { heightAt, inChunk, normalAt, waterLevel } from '../world/Heightfield';
-import { Rng } from '../core/rng';
-import type { AnimalManager } from './AnimalManager';
-import type { Animal } from './Animal';
-import { Pack } from './Pack';
-import { HorseHerd } from './Herd';
-import { Flock, dogWolves } from './Flock';
-import { wildEnv } from './wildEnv';
-import { Marmots } from './Marmots';
-import { HITCH_HORSE_SPOTS } from '#shards/nalati-grasslands/world/layout';
-import { KOKBORI_DEN, HORSE_PLAINS, PASTURE } from '#shards/nalati-grasslands/layout';
+import type { Sky } from '#engine/world/Sky';
+import { heightAt, inChunk, normalAt, waterLevel } from '#engine/world/Heightfield';
+import { Rng } from '#engine/core/rng';
+import type { AnimalManager } from '#engine/entities/AnimalManager';
+import type { Animal } from '#engine/entities/Animal';
+import { Pack } from './pack';
+import { HorseHerd } from './herd';
+import { Flock, dogWolves } from './flock';
+import { wildEnv } from './env';
+import { Marmots } from './marmots';
+import { HITCH_HORSE_SPOTS } from '../world/layout';
+import { KOKBORI_DEN, HORSE_PLAINS, PASTURE } from '../layout';
 
 /**
  * Wildlife — Nalati's creatures placed into the shard (row B4; the Driftwood `Enemies.ts` pattern): wolf packs, wild

@@ -51,7 +51,7 @@ export const LOCK = {
 /** what may be locked: Driftwood's and Pine Hollow's enemies, and every Nalati hostile (NALATI-MERGE H3) — the wolves (alphas
  *  included), the named elites (Kokbori, Aqbars the leopard, Qyran the eagle; Argymaq is tamed, not fought), the ghost riders
  *  (Qara Batyr's rig and Jel Ata's storm riders too), the balbal warriors (the kurgan's adds are the same species), the
- *  Golden King and Jel Ata's heart (`storm-titan`, src/shards/nalati-grasslands/stormTitan.ts `lockTarget`). Horses, sheep and the dog never. */
+ *  Golden King and Jel Ata's heart (`storm-titan`, src/shards/nalati-grasslands/combat/stormTitan.ts `lockTarget`). Horses, sheep and the dog never. */
 const HOSTILE: ReadonlySet<string> = new Set(['crab', 'boar', 'monkey', 'sailor', 'bear', 'captain',
   'wolf', 'kokbori', 'leopard', 'eagle', 'ghost-rider', 'balbal', 'golden-king', 'storm-titan', 'training-dummy']);
 /** the weapons that lock: the Driftwood swords and Nalati's sabre + spear (H3). The bow waits for its own lock (H4 / N18) */

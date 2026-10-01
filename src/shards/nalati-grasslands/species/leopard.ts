@@ -1,10 +1,10 @@
 import { engineString } from '#engine/strings';
 import * as THREE from 'three';
-import type { Rng } from '../../core/rng';
-import { registerSpecies, type AnimalSpecies, type BoneDef, type VariantDef, type RigAnimCtx } from './registry';
-import { loft, skinPlain, S, boneIndex, mix, sstep, paletteColors, paintNoise, type Paint, type RGB, type Station } from './loft';
-import { NO_FUR, bump, clamp } from './rigs';
-import { eliteThink, eliteDamageMul } from '../eliteBrain';
+import type { Rng } from '#engine/core/rng';
+import { registerSpecies, type AnimalSpecies, type BoneDef, type VariantDef, type RigAnimCtx } from '#engine/entities/species/registry';
+import { loft, skinPlain, S, boneIndex, mix, sstep, paletteColors, paintNoise, type Paint, type RGB, type Station } from '#engine/entities/species/loft';
+import { NO_FUR, bump, clamp } from '#engine/entities/species/rigs';
+import { eliteThink, eliteDamageMul } from '#engine/entities/eliteBrain';
 
 /**
  * Snow leopard (Nalati named elite E1 — Aqbars the Pale, Irbis of the Crags; row B12; mockup
@@ -16,7 +16,7 @@ import { eliteThink, eliteDamageMul } from '../eliteBrain';
  *   mem.low     the stalking crouch (belly to the rock)       mem.snarl  lips back, ears flat
  *   mem.leap    0..1 airborne (the POUNCE: forelegs reach, hind legs trail, tail streaming)
  *   attackPhase (Animal.startAttack) a swipe: the right forepaw rakes (0.3–0.6), the left follows (0.6–0.9)
- * The AI is the elite's (src/shards/nalati-grasslands/elites.ts). No think here: the species is not placed by any herd.
+ * The AI is the elite's (src/shards/nalati-grasslands/combat/elites.ts). No think here: the species is not placed by any herd.
  */
 
 export const LEOPARD = 'leopard';

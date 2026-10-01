@@ -1,6 +1,6 @@
 export { Grass } from './Grass';
-export { Wildlife } from '../entities/Wildlife';
-export { wildEnv } from '../entities/wildEnv';
-export { isLunging } from '../entities/Pack';
+export { Wildlife } from '#shards/nalati-grasslands/creatures/wildlife';
+export { wildEnv } from '#shards/nalati-grasslands/creatures/env';
+export { isLunging } from '#shards/nalati-grasslands/creatures/pack';
 export { modelContext } from '../models/model';
 export { practiceRoom } from '../core/practiceRoom';

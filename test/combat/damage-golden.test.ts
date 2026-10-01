@@ -6,7 +6,7 @@ import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
 import { damageFor } from '#engine/entities/Animal';
 import { speciesDef } from '#engine/entities/species/registry';
-import { balbalCombat } from '#engine/entities/species/balbal';
+import { balbalCombat } from '#shards/nalati-grasslands/species/balbal';
 import { Projectiles } from '#engine/combat/view/projectile';
 import { Crossbow } from '#kit/weapons/crossbow/Crossbow';
 import type { TargetHit } from '#engine/combat/view/targets';

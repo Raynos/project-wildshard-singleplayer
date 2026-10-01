@@ -10,8 +10,8 @@ import { setLowPoly } from './species/loft';
 import { facetGeometry, lowPolyMaterials, oneMaterial, patchEyeGlow } from './lowpoly';
 import type { EyeSpot } from './species/look';
 import { app } from '../app/runtime';
-import { preloadCreatureGlbs, creatureHull, skinCreatureGlb, loadCreatureRig } from './glbCreatures';
-import { painterlyAnimalMaterial } from './painterlyAnimals';
+import { preloadCreatureGlbs, creatureHull, skinCreatureGlb, loadCreatureRig } from '#shards/nalati-grasslands/species/hulls';
+import { painterlyAnimalMaterial } from '#shards/nalati-grasslands/look/creatureMaterial';
 
 // every species file registers itself on import: drop `src/engine/entities/species/<kind>.ts` in and it exists
 import.meta.glob(['./species/*.ts', '!./species/registry.ts', '!./species/loft.ts', '!./species/look.ts'], { eager: true });
@@ -323,7 +323,7 @@ export class AnimalFactory {
 
     if (this.style === 'painterly') {
       // Nalati: the smooth loft, vertex colours only, no fur texture / shells — and fur, hooves and eyes in ONE group so a
-      // wolf / horse is a single draw call; the soft cel light is the material's (src/engine/entities/painterlyAnimals.ts)
+      // wolf / horse is a single draw call; the soft cel light is the material's (src/shards/nalati-grasslands/look/creatureMaterial.ts)
       const count = geometry.index !== null ? geometry.index.count : (geometry.getAttribute('position') as THREE.BufferAttribute).count;
       geometry.clearGroups(); geometry.addGroup(0, count, 0);
       const mat = painterlyAnimalMaterial(this.sky, species.eyeGlow, species.eyeGlowIntensity);

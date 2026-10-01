@@ -1,17 +1,17 @@
 import { engineString } from '#engine/strings';
 import * as THREE from 'three';
-import type { Rng } from '../../core/rng';
-import { registerSpecies, type AnimalSpecies, type BoneDef, type VariantDef, type RigAnimCtx } from './registry';
-import { loft, tube, skinPlain, S, boneIndex, mix, sstep, srgb, paletteColors, type Station, type RGB, type Paint } from './loft';
-import { NO_FUR, smooth01, bump, clamp } from './rigs';
-import { thinkHorse, horseDamageMul } from '../Herd';
-import type { Animal } from '../Animal';
-import { lock, hash01, wrapPatch, type V3, type Skin, type Section } from '../creatureKit';
-import { wildEnv } from '../wildEnv';
+import type { Rng } from '#engine/core/rng';
+import { registerSpecies, type AnimalSpecies, type BoneDef, type VariantDef, type RigAnimCtx } from '#engine/entities/species/registry';
+import { loft, tube, skinPlain, S, boneIndex, mix, sstep, srgb, paletteColors, type Station, type RGB, type Paint } from '#engine/entities/species/loft';
+import { NO_FUR, smooth01, bump, clamp } from '#engine/entities/species/rigs';
+import { thinkHorse, horseDamageMul } from '../creatures/herd';
+import type { Animal } from '#engine/entities/Animal';
+import { lock, hash01, wrapPatch, type V3, type Skin, type Section } from './shape';
+import { wildEnv } from '../creatures/env';
 
 /**
  * Wild steppe horse (Nalati, row B4) — a stocky Kazakh horse, 1.42 m at the withers: bay / chestnut / black / dun / grey
- * mares, 0.6-scale foals, and the black stallion with the long mane. Herd AI: `src/engine/entities/Herd.ts` (lead mare, boids,
+ * mares, 0.6-scale foals, and the black stallion with the long mane. Herd AI: `src/shards/nalati-grasslands/creatures/herd.ts` (lead mare, boids,
  * flight / stampede, the stallion's guard states). Painterly: smooth lofts, vertex colour, one draw call.
  *
  * ── The horse rig, for riding (B7) and taming (B8) ─────────────────────────────────────────────────────────────────

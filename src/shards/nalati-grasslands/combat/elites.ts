@@ -1,5 +1,5 @@
 import { app, EliteBrain } from '#engine';
-import { encounterHit } from './combat/damage';
+import { encounterHit } from './damage';
 import * as THREE from 'three';
 import type { Game } from '#engine/core/Game';
 import type { Sky } from '#engine/world/Sky';
@@ -7,25 +7,25 @@ import type { Player } from '#engine/player/Player';
 import type { AnimalManager } from '#engine/entities/AnimalManager';
 import type { Animal } from '#engine/entities/Animal';
 import { registerSpecies, speciesDef, hasSpecies, type ThinkCtx } from '#engine/entities/species/registry';
-import type { Wildlife } from '#engine/entities/Wildlife';
-import type { Pack } from '#engine/entities/Pack';
-import type { HorseHerd } from '#engine/entities/Herd';
+import type { Wildlife } from '../creatures/wildlife';
+import type { Pack } from '../creatures/pack';
+import type { HorseHerd } from '../creatures/herd';
 import type { Interactable } from '#engine/world/interact/types';
-import type { Ledge } from './world/Crags';
+import type { Ledge } from '../world/Crags';
 import { heightAt } from '#engine/world/Heightfield';
-import { wildEnv } from '#engine/entities/wildEnv';
+import { wildEnv } from '../creatures/env';
 import { setEliteBrain, setEliteDamage, eliteThink, eliteDamageMul } from '#engine/entities/eliteBrain';
-import { horseSaddle } from '#engine/entities/species/horse';
-import { LEOPARD } from '#engine/entities/species/leopard';
-import { EAGLE } from '#engine/entities/species/eagle';
-import { KOKBORI } from '#engine/entities/species/kokbori';
+import { horseSaddle } from '../species/horse';
+import { LEOPARD } from '../species/leopard';
+import { EAGLE } from '../species/eagle';
+import { KOKBORI } from '../species/kokbori';
 import { Elites, GroundTell, type EliteDef, type EliteScript, type EliteRule } from '#game/Elite';
 import { EliteBar } from '#engine/ui/EliteBar';
 import { painterlyMaterial } from '#engine/world/painterly';
-import { fxMaterial, FX, type FxMaterial } from './world/KurganDungeon';
-import { PaintKit, M, pole, v3, blob } from './world/paint';
-import { EAGLE_ROCK, CRAG_CAVE } from './world/layout';
-import { KOKBORI_DEN, QARA_CAIRN, ARGYMAQ_PASTURE } from './layout';
+import { fxMaterial, FX, type FxMaterial } from '../world/KurganDungeon';
+import { PaintKit, M, pole, v3, blob } from '../world/paint';
+import { EAGLE_ROCK, CRAG_CAVE } from '../world/layout';
+import { KOKBORI_DEN, QARA_CAIRN, ARGYMAQ_PASTURE } from '../layout';
 
 /**
  * Nalati's five NAMED ELITES (plan NALATI.md row B12; design docs/design/nalati/elites-and-bosses.md §1 "The five Nalati
@@ -48,7 +48,7 @@ import { KOKBORI_DEN, QARA_CAIRN, ARGYMAQ_PASTURE } from './layout';
  *   QARA BATYR the Unburied (the ghost-rider captain, NIGHT, the rim's burial cairn) — a spectral rider on a spectral
  *     horse (the creature row's horse rig in a ghost material + a rider). Circles you at the gallop. DEATH CHARGE: a
  *     lane of cyan ghost-fire burns toward you (1.3 s) → 38 + knock-down; swerve and his back is OPEN 2 s (a blade ×3).
- *     Phase 2: the charges come in pairs. He rides B11's captain rig (src/shards/nalati-grasslands/ghostRiders.ts, handed in by index.ts) with a
+ *     Phase 2: the charges come in pairs. He rides B11's captain rig (src/shards/nalati-grasslands/combat/ghostRiders.ts, handed in by index.ts) with a
  *     line of three of its riders; without B11 wired, a fallback rig of our own.
  *   ARGYMAQ the Unbroken (the feral black stallion, the Crags' high pasture, always, ONCE) — the stallion of his own herd
  *     (B4's HorseHerd: the herd AI rears and charges; this script paints the TRAMPLE lane when he rears and leads the
@@ -539,7 +539,7 @@ function registerGhostHorse(): void {
   });
 }
 
-/** B11's ghost riders (src/shards/nalati-grasslands/ghostRiders.ts) — the captain's rig, his line, the spawn rule. Structural: B11 owns it */
+/** B11's ghost riders (src/shards/nalati-grasslands/combat/ghostRiders.ts) — the captain's rig, his line, the spawn rule. Structural: B11 owns it */
 export interface GhostsApi {
   spawnRider: (o: { x: number; z: number; yaw: number; variant?: 'rider' | 'captain' }) => Animal | null;
   spawnLine: (o: { count?: number; captain?: boolean; at?: number }) => Animal[];

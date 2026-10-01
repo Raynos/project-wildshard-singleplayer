@@ -278,7 +278,7 @@ try {
   // ── R3: a stampede through the rider on foot · into a rider galloping at it (head-on) · with a rider among it ──
   await leg('herd', async () => {
     await page.evaluate(async () => {
-      const { wildEnv } = await import('/src/engine/entities/wildEnv.ts');
+      const { wildEnv } = await import('/src/shards/nalati-grasslands/creatures/env.ts');
       const rt = window.__rt;
       rt.knocks = 0;
       if (rt.knockHooked !== true) { rt.knockHooked = true; const k = wildEnv.onKnockdown; wildEnv.onKnockdown = (x, z, s) => { rt.knocks++; k?.(x, z, s); }; }

@@ -1,10 +1,10 @@
-import { GroupBrain } from '../ai/GroupBrain';
-import { app } from '../app/runtime';
+import { GroupBrain } from '#engine/ai/GroupBrain';
+import { app } from '#engine/app/runtime';
 import * as THREE from 'three';
-import type { Animal } from './Animal';
-import type { ThinkCtx } from './species/registry';
-import { inChunk, normalAt } from '../world/Heightfield';
-import { wildEnv, playerVisibility, downwindOf, hearingRadius, angDiff } from './wildEnv';
+import type { Animal } from '#engine/entities/Animal';
+import type { ThinkCtx } from '#engine/entities/species/registry';
+import { inChunk, normalAt } from '#engine/world/Heightfield';
+import { wildEnv, playerVisibility, downwindOf, hearingRadius, angDiff } from './env';
 
 /**
  * Pack — one wolf pack's shared hunt (docs/design/nalati/wolves-horses-taming.md "Steppe wolves"). The wolves are
@@ -33,7 +33,7 @@ import { wildEnv, playerVisibility, downwindOf, hearingRadius, angDiff } from '.
  * Prey: `pack.findPrey = (x, z, r) => Animal | null` (Wildlife hands it the herds' foals) — a roaming pack that has not
  * found you may hunt a foal instead, with the same ring and lunges; the bite lands on the foal.
  *
- * Raids (NALATI-FINISH B1, N13): `pack.raid(prey)` hands a roaming pack any `PackPrey` — src/shards/nalati-grasslands/sheepRaid.ts gives it a
+ * Raids (NALATI-FINISH B1, N13): `pack.raid(prey)` hands a roaming pack any `PackPrey` — src/shards/nalati-grasslands/creatures/sheepRaid.ts gives it a
  * sheep of the camp's flock (Flock.prey(i)); the pack takes it at its next tick (whatever it had sensed of you), shadows,
  * rings and lunges at it as at a foal, and the bite kills it. A crack of the mounted shepherd's whip breaks the pack
  * (`scare`).

@@ -1,12 +1,12 @@
-import { balbalPiercing } from './weapons/effects';
+import { balbalPiercing } from '../weapons/effects';
 import { app } from '#engine';
 import * as THREE from 'three';
 import type { Animal } from '#engine/entities/Animal';
 import type { AnimalManager } from '#engine/entities/AnimalManager';
-import type { Balbals } from './world/Balbals';
+import type { Balbals } from '../world/Balbals';
 import type { DayCycleClock } from '#engine/world/dayCycle';
 import { heightAt } from '#engine/world/Heightfield';
-import { BALBAL, BALBAL_SLAM, balbalCombat, onBalbalCrack } from '#engine/entities/species/balbal';
+import { BALBAL, BALBAL_SLAM, balbalCombat, onBalbalCrack } from '../species/balbal';
 import { NightParticles, FLAG_GRAVITY, FLAG_BOUNCE, FLAG_GROW } from './nightFx';
 import { setting } from '#engine/ui/Settings';
 
@@ -23,7 +23,7 @@ import { setting } from '#engine/ui/Settings';
  *   bw.awake                 // the live warriors
  *
  * Who wakes: each dusk four stones of the ring (a different four each night) and one crown balbal. The species
- * (src/engine/entities/species/balbal.ts, `mem.field = 1`) does the rest — rise, guard, stalk, the slam, return, sink; this
+ * (src/shards/nalati-grasslands/species/balbal.ts, `mem.field = 1`) does the rest — rise, guard, stalk, the slam, return, sink; this
  * controller hides the statue, spawns the warrior in its place (same spot, same facing, same carved variant), and draws
  * what the species can't: the soil pouring off it as it rises and walks, the dust and turf of the slam, the stone chips
  * of a hit (amber sparks off a crack), the rubble of a kill, and the SLAM telegraph — an amber wedge on the ground

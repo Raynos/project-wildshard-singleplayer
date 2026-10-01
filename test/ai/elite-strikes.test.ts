@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import { describe, expect, it, vi } from 'vitest';
 import type { Animal } from '#engine/entities/Animal';
 import type * as Heightfield from '#engine/world/Heightfield';
-import { wildEnv } from '#engine/entities/wildEnv';
+import { wildEnv } from '#shards/nalati-grasslands/creatures/env';
 import { invokeLegacy, legacyActor } from '../fake/legacyActor';
 import { legacyMethods } from '../fake/legacySource';
 import { creature } from '../fake/creature';
@@ -14,7 +14,7 @@ import { blackpawGoal, ghostGoal, ironhideGoal, imperialGoal } from '#shards/pin
 
 vi.mock('#engine/world/Heightfield', async (original) => ({ ...await original<typeof Heightfield>(),
   heightAt: (): number => 0, normalAt: (): [number, number, number] => [0, 1, 0], waterLevel: (): number => -100, streamAt: (): null => null }));
-const file = 'src/shards/nalati-grasslands/elites.ts';
+const file = 'src/shards/nalati-grasslands/combat/elites.ts';
 const noOp = (): void => undefined;
 const tell = (): object => ({ setTime: noOp, ring: noOp, hide: noOp, lane: noOp });
 function elite(name: string, fields: Record<string, unknown>) {

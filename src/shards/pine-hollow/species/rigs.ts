@@ -2,7 +2,7 @@
  * Pine Hollow's rigged creature hulls (PINE-HOLLOW-REMASTER PH-M1; baked by `scripts/creature-rig-bake.mjs --chunk
  * pine-hollow`): their names and the one URL each tier loads. Split from pineCreatures.ts (which pulls in three's
  * GLTFLoader) so the boot manifest can declare the files — src/engine/boot/manifest.ts runs in Node too (scripts/bake-packs.mjs).
- * Nalati's own table is src/engine/entities/creatureRigs.ts (on its branch); the two never share a hull.
+ * Nalati's own table is src/shards/nalati-grasslands/species/rigs.ts (on its branch); the two never share a hull.
  */
 import { TIER } from '#engine';
 

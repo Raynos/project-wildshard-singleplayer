@@ -5,8 +5,8 @@ import type * as Heightfield from '#engine/world/Heightfield';
 import { getActiveChunk, setActiveChunk } from '#game/shard/registry';
 import { manager } from '../fake/manager';
 import { pinBrain } from '#engine/ai/inspect';
-import { Flock } from '#engine/entities/Flock';
-import { Marmots } from '#engine/entities/Marmots';
+import { Flock } from '#shards/nalati-grasslands/creatures/flock';
+import { Marmots } from '#shards/nalati-grasslands/creatures/marmots';
 import { app } from '#engine/app/runtime';
 import { Scope } from '#engine/app/scope';
 

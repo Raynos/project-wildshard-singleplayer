@@ -8,11 +8,11 @@ import type { AnimalManager } from '#engine/entities/AnimalManager';
 import type { DayCycleClock } from '#engine/world/dayCycle';
 
 import { heightAt } from '#engine/world/Heightfield';
-import { HORSE_SPEED } from '#engine/entities/species/horse';
-import { GHOST_RIDER, riderGeometry, ghostSeat, ghostRiderPoints } from '#engine/entities/species/ghostRider';
+import { HORSE_SPEED } from '../species/horse';
+import { GHOST_RIDER, riderGeometry, ghostSeat, ghostRiderPoints } from '../species/ghostRider';
 
 import { NightParticles, FLAG_RISE, FLAG_GROW } from './nightFx';
-import { BOWL } from './layout';
+import { BOWL } from '../layout';
 
 
 /**

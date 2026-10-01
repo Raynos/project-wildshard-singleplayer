@@ -9,8 +9,8 @@ import { legacyDouble } from '../fake/FakeGame';
 import { legacyConstants } from '../fake/legacySource';
 
 const rows = [
-  { id: 'golden-king', file: 'src/shards/nalati-grasslands/kurganBoss.ts', key: 'KING_DEF_PHASES' },
-  { id: 'storm-titan', file: 'src/shards/nalati-grasslands/stormTitan.ts', key: 'TITAN_PHASES' },
+  { id: 'golden-king', file: 'src/shards/nalati-grasslands/combat/goldenKing.ts', key: 'KING_DEF_PHASES' },
+  { id: 'storm-titan', file: 'src/shards/nalati-grasslands/combat/stormTitan.ts', key: 'TITAN_PHASES' },
   { id: 'antler-king', file: 'src/shards/pine-hollow/combat/antlerKing.ts', key: 'PHASES' },
 ];
 describe('actual boss phase data and the shared checkpoint machine', () => {

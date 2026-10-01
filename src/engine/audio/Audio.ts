@@ -75,8 +75,8 @@ export type ImpactKind = 'wood' | 'ground' | 'flesh';
 export type AnimalSound = 'deer_call' | 'boar_grunt' | 'hoofsteps' | 'boar_squeal' | 'elk_bugle' | 'bear_growl' | 'bear_roar' | 'bear_hurt'
   | 'crab_click' | 'crab_snap' | 'monkey_chatter' | 'monkey_shriek' | 'sailor_groan' | 'sailor_slash' | 'coconut_hit' | 'coconut_land'   // Driftwood Isle's enemies (src/shards/driftwood-isle/creatures/Enemies.ts)
   | 'wolf_howl' | 'wolf_snarl' | 'wolf_bite' | 'wolf_yip' | 'wolf_yelp' | 'horse_neigh' | 'horse_snort' | 'horse_squeal'
-  | 'dog_bark' | 'dog_yelp' | 'sheep_bleat' | 'marmot_whistle'   // Nalati's creatures (src/engine/entities/Wildlife.ts, Pack / Herd / Flock)
-  | 'eagle_cry' | 'leopard_growl'   // Nalati's elites (src/shards/nalati-grasslands/elites.ts: Qyran, Aqbars) — their own voices, no other shard's sample
+  | 'dog_bark' | 'dog_yelp' | 'sheep_bleat' | 'marmot_whistle'   // Nalati's creatures (src/shards/nalati-grasslands/creatures/wildlife.ts, Pack / Herd / Flock)
+  | 'eagle_cry' | 'leopard_growl'   // Nalati's elites (src/shards/nalati-grasslands/combat/elites.ts: Qyran, Aqbars) — their own voices, no other shard's sample
   | 'king_call' | 'king_hurt';      // the Golden King (species/goldenKing.ts) — the synth falls back to the bear's growl / hurt
 export type AmbientBed = 'forest' | 'island' | 'steppe';
 /** the ground under a hoof (Nalati: the steppe, the gravel bars and roads, the bridge deck) */

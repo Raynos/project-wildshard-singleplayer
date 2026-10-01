@@ -157,7 +157,7 @@ export class Animal {
   driven = false;
   /** it stands on a structure, not the terrain (Mount: the ridden horse on a bridge deck) — `sampleTerrain` levels the
    *  body instead of tilting it to the slope heightAt reads under the deck. Also the kurgan's King and balbals
-   *  (src/shards/nalati-grasslands/kurganBoss.ts: the chamber floor sits 140 m up, over the mound's slope). Nothing else sets it */
+   *  (src/shards/nalati-grasslands/combat/goldenKing.ts: the chamber floor sits 140 m up, over the mound's slope). Nothing else sets it */
   levelGround = false;
   /** per-animal scratch for a species' think / animate (numbers only) */
   mem: Record<string, number> = {};

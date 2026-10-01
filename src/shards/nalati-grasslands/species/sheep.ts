@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { loft, S, mix, sstep, srgb, setShag, setShapeFn, paintNoise, type Paint, type Station } from './loft';
-import type { BoneDef } from './registry';
+import { loft, S, mix, sstep, srgb, setShag, setShapeFn, paintNoise, type Paint, type Station } from '#engine/entities/species/loft';
+import type { BoneDef } from '#engine/entities/species/registry';
 
 /**
  * Fat-tailed steppe sheep — the MODEL of the camp flock (Nalati, row B4). Sheep are not AnimalManager animals: a flock
- * of 20–60 is ONE InstancedMesh animated in the vertex shader (`src/engine/entities/Flock.ts`), so this file registers no
+ * of 20–60 is ONE InstancedMesh animated in the vertex shader (`src/shards/nalati-grasslands/creatures/flock.ts`), so this file registers no
  * species — it builds the static geometry the flock instances.
  *
  * The geometry carries `aRig` (vec3: part a, part b, weight of b) instead of a skin: parts are 0 body, 1 head + neck,

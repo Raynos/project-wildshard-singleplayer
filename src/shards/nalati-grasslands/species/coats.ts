@@ -15,10 +15,10 @@
  * (the red saddle cloth, the gold ornament) as they are.
  */
 import * as THREE from 'three';
-import type { RGB } from './species/loft';
-import { HORSE } from './species/horse';
-import { WOLF } from './species/wolf';
-import { variantDef } from './species/registry';
+import type { RGB } from '#engine/entities/species/loft';
+import { HORSE } from './horse';
+import { WOLF } from './wolf';
+import { variantDef } from '#engine/entities/species/registry';
 
 export interface CoatSpec {
   /** the species default palette (the variant's `tint` overrides keys of it) */

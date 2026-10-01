@@ -1,4 +1,4 @@
-import { retainCachedResources } from '../app/cachedAssets';
+import { retainCachedResources } from '#engine/app/cachedAssets';
 /**
  * glbCreatures — the generated creature hulls, pre-skinned to the procedural species' skeletons, so the species' own
  * bones, gaits and AI drive them (AnimalFactory 'painterly' style, Nalati; behind `?creatures=glb`).
@@ -20,13 +20,13 @@ import { retainCachedResources } from '../app/cachedAssets';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
-import { creatureRigUrl, type CreatureRigName } from './creatureRigs';
-import { modelsOn } from '#shards/nalati-grasslands/world/glbPaint';
-import { variantDef, type BoneDef } from './species/registry';
-import { coatAtlas, HULL_COATS } from './creatureCoats';
+import { creatureRigUrl, type CreatureRigName } from './rigs';
+import { modelsOn } from '../world/glbPaint';
+import { variantDef, type BoneDef } from '#engine/entities/species/registry';
+import { coatAtlas, HULL_COATS } from './coats';
 
 /** the rigged hulls (scripts/nalati-rig-bake.mjs RIG_BAKES; the names + URLs in creatureRigs.ts, which the boot manifest declares) */
-export type { CreatureRigName } from './creatureRigs';
+export type { CreatureRigName } from './rigs';
 
 const HULL: Readonly<Record<string, CreatureRigName>> = {
   // every coat wears its hull, recoloured (creatureCoats.ts)

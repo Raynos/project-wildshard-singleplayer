@@ -3,24 +3,24 @@ import { app, type Game, type Player, type TargetAnimal, type TargetHit, wind } 
 
 import type { Animal } from '#engine/entities/Animal';
 import type { AnimalManager } from '#engine/entities/AnimalManager';
-import type { Wildlife } from '#engine/entities/Wildlife';
+import type { Wildlife } from '../creatures/wildlife';
 import type { Interactable } from '#engine/world/interact/types';
 
 import type { AimTarget } from '#engine/player/AimTargets';
-import type { Sabre } from './weapons/Sabre';
-import type { NalatiWeather } from './weather';
+import type { Sabre } from '../weapons/Sabre';
+import type { NalatiWeather } from '../weather';
 import type { GhostRiders } from './ghostRiders';
-import type { Ride } from './ride/ride';
+import type { Ride } from '../ride/ride';
 import { Boss, type BossDef, type BossScript } from '#game/Boss';
 import { BossBar } from '#engine/ui/BossBar';
 import { GroundTell } from '#game/Elite';
-import { fxMaterial, FX, type FxMaterial } from './world/KurganDungeon';
+import { fxMaterial, FX, type FxMaterial } from '../world/KurganDungeon';
 import { heightAt, normalAt } from '#engine/world/Heightfield';
 
-import { wildEnv } from '#engine/entities/wildEnv';
+import { wildEnv } from '../creatures/env';
 import { setEliteDamage } from '#engine/entities/eliteBrain';
-import { CAIRN } from './manifest';
-import { LightningStrip, NaizagaiPower, naizagaiModel } from './weapons/Naizagai';
+import { CAIRN } from '../manifest';
+import { LightningStrip, NaizagaiPower, naizagaiModel } from '../weapons/Naizagai';
 import { patchTitanCloud, GrassFireFx } from './stormTitanLook';
 import { TIER } from '#engine/core/tier';
 

@@ -1,11 +1,11 @@
 import { engineString } from '#engine/strings';
 import * as THREE from 'three';
-import type { Rng } from '../../core/rng';
-import { registerSpecies, type AnimalSpecies, type BoneDef, type VariantDef, type RigAnimCtx } from './registry';
-import { loft, skinPlain, S, boneIndex, mix, sstep, paletteColors, paintNoise, type Paint, type RGB } from './loft';
-import { NO_FUR, smooth01, clamp } from './rigs';
-import { eliteThink, eliteDamageMul } from '../eliteBrain';
-import { heightAt } from '../../world/Heightfield';
+import type { Rng } from '#engine/core/rng';
+import { registerSpecies, type AnimalSpecies, type BoneDef, type VariantDef, type RigAnimCtx } from '#engine/entities/species/registry';
+import { loft, skinPlain, S, boneIndex, mix, sstep, paletteColors, paintNoise, type Paint, type RGB } from '#engine/entities/species/loft';
+import { NO_FUR, smooth01, clamp } from '#engine/entities/species/rigs';
+import { eliteThink, eliteDamageMul } from '#engine/entities/eliteBrain';
+import { heightAt } from '#engine/world/Heightfield';
 
 /**
  * Golden eagle (Nalati named elite E3 — Qyran the Storm-Wing, Berkut of the High Wind; row B12; mockup

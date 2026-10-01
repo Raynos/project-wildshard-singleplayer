@@ -1,21 +1,21 @@
-import { encounterHit } from './combat/damage';
+import { encounterHit } from './damage';
 import type * as THREE from 'three';
 import type { Game, Sky, Player, Forest, TargetHit } from '#engine';
 
 
 
 import type { DayCycleClock } from '#engine/world/dayCycle';
-import type { Balbals } from './world/Balbals';
+import type { Balbals } from '../world/Balbals';
 import type { AnimalManager } from '#engine/entities/AnimalManager';
 
-import type { NalatiLoadout } from './weapons/loadout';
-import { wildEnv } from '#engine/entities/wildEnv';
+import type { NalatiLoadout } from '../weapons/loadout';
+import { wildEnv } from '../creatures/env';
 import { BalbalWarriors } from './balbalWarriors';
 import { GhostRiders } from './ghostRiders';
 
 /**
  * The dusk + night enemies (row B11 of project/archive/2026-09-23-nalati.md) as one piece for the shard wiring (src/shards/nalati-grasslands/index.ts):
- * the balbal warriors (src/shards/nalati-grasslands/balbalWarriors.ts — they wake at dusk) and the ghost riders (src/shards/nalati-grasslands/ghostRiders.ts —
+ * the balbal warriors (src/shards/nalati-grasslands/combat/balbalWarriors.ts — they wake at dusk) and the ghost riders (src/shards/nalati-grasslands/combat/ghostRiders.ts —
  * they ride at night). Both run off the weather row's clock (`weather.clock`); both are ordinary AnimalManager animals, so
  * the health bars, the damage numbers, the kill feed, the minimap, the aim assist and the achievements (Stonebreaker:
  * `progress.recordKill('balbal', …)`) all come for free.

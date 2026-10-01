@@ -1,21 +1,21 @@
 import { engineString } from '#engine/strings';
-import type { DamageRequest } from '../../combat/pipeline';
+import type { DamageRequest } from '#engine/combat/pipeline';
 import * as THREE from 'three';
-import type { Rng } from '../../core/rng';
-import { registerSpecies, type AnimalSpecies, type BoneDef, type VariantDef, type RigAnimCtx, type ThinkCtx } from './registry';
-import { loft, tube, skinPlain, S, boneIndex, mix, sstep, paletteColors, paintNoise, setShapeFn, type Paint, type RGB } from './loft';
-import type { Animal } from '../Animal';
-import { NO_FUR, lookAngles, smooth01, step, clamp } from './rigs';
-import { heightAt } from '../../world/Heightfield';
+import type { Rng } from '#engine/core/rng';
+import { registerSpecies, type AnimalSpecies, type BoneDef, type VariantDef, type RigAnimCtx, type ThinkCtx } from '#engine/entities/species/registry';
+import { loft, tube, skinPlain, S, boneIndex, mix, sstep, paletteColors, paintNoise, setShapeFn, type Paint, type RGB } from '#engine/entities/species/loft';
+import type { Animal } from '#engine/entities/Animal';
+import { NO_FUR, lookAngles, smooth01, step, clamp } from '#engine/entities/species/rigs';
+import { heightAt } from '#engine/world/Heightfield';
 
 /**
  * Balbal — THE stone warrior (NALATI.md B11; elites-and-bosses.md E4: "they wake at dusk, 2.5 m, 220 hp, amber cracks
  * that the sabre and the spear break"; mockups art/nalati-grasslands/round-1/3-enemies/enemy-2-balbal-warriors.jpg,
  * round-2/1-combat/combat-D-mounted-sabre.png). One species for every walking balbal in the shard:
  *
- *   · the dusk warriors of the Balbal Circle and the kurgan crowns (src/shards/nalati-grasslands/balbalWarriors.ts wakes them: the statue
+ *   · the dusk warriors of the Balbal Circle and the kurgan crowns (src/shards/nalati-grasslands/combat/balbalWarriors.ts wakes them: the statue
  *     tears out of the ground on its plinth's spot, fights, and walks back and sinks at dawn) — `mem.field = 1`;
- *   · the Golden King's phase-II adds (src/shards/nalati-grasslands/kurganBoss.ts) — they step out of a wall niche onto the chamber floor:
+ *   · the Golden King's phase-II adds (src/shards/nalati-grasslands/combat/goldenKing.ts) — they step out of a wall niche onto the chamber floor:
  *     the spawner sets `mem.floorY`, `mem.emergeT` and the chamber bounds `mem.minX / maxX / minZ / maxZ` (the fields
  *     B13's minimal `kurgan-balbal` read; `KURGAN_BALBAL` in kurganBalbal.ts now names THIS species).
  *

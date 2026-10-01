@@ -1,12 +1,12 @@
-import { GroupBrain } from '../ai/GroupBrain';
-import { app } from '../app/runtime';
+import { GroupBrain } from '#engine/ai/GroupBrain';
+import { app } from '#engine/app/runtime';
 import * as THREE from 'three';
-import type { Animal } from './Animal';
-import type { ThinkCtx } from './species/registry';
-import { inChunk, normalAt } from '../world/Heightfield';
-import { wildEnv, playerVisibility, downwindOf, hearingRadius, angDiff } from './wildEnv';
-import { Pack } from './Pack';
-import type { GroupName } from '../physics/groups';
+import type { Animal } from '#engine/entities/Animal';
+import type { ThinkCtx } from '#engine/entities/species/registry';
+import { inChunk, normalAt } from '#engine/world/Heightfield';
+import { wildEnv, playerVisibility, downwindOf, hearingRadius, angDiff } from './env';
+import { Pack } from './pack';
+import type { GroupName } from '#engine/physics/groups';
 
 /** the kinds a stampeding horse's body lets through (R3): the player on foot · none */
 const THROUGH_PLAYER: readonly GroupName[] = ['PLAYER'], BLOCKED: readonly GroupName[] = [];
@@ -137,7 +137,7 @@ export class HorseHerd extends GroupBrain<Animal> {
   /** the stallion leads the herd away from (x, z) at a gallop (taming: ALERT maxed with some trust) — not a stampede */
   leadAway(x: number, z: number): void { this.startFlight(x, z, false); }
   /** the stallion leaves the herd for good (tamed): the herd grazes on without a guard */
-  /** a stallion of another kind joins this herd as its stallion (the elite Argymaq, src/shards/nalati-grasslands/elites.ts). Without the
+  /** a stallion of another kind joins this herd as its stallion (the elite Argymaq, src/shards/nalati-grasslands/combat/elites.ts). Without the
    *  registration his brain (thinkHorse → forThink) found no herd and built a fresh one every tick — he was never BEATEN
    *  and the mares were re-homed into throwaway herds (HorseHerd.all grew at 10 Hz) */
   adoptStallion(a: Animal): void { if (!this.members.includes(a)) this.members.push(a); herdOf.set(a, this); this.stallion = a; this.setStallion('watch'); }

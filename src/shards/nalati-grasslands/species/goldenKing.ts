@@ -1,11 +1,11 @@
 import { engineString } from '#engine/strings';
 import * as THREE from 'three';
-import type { Rng } from '../../core/rng';
-import { registerSpecies, type AnimalSpecies, type BoneDef, type VariantDef, type RigAnimCtx, type ThinkCtx } from './registry';
-import { loft, skinPlain, S, boneIndex, mix, sstep, paletteColors, paintNoise, type Paint, type RGB, type Station } from './loft';
-import type { Animal } from '../Animal';
-import { NO_FUR, lookAngles, smooth01, bump, step, clamp } from './rigs';
-import { heightAt } from '../../world/Heightfield';
+import type { Rng } from '#engine/core/rng';
+import { registerSpecies, type AnimalSpecies, type BoneDef, type VariantDef, type RigAnimCtx, type ThinkCtx } from '#engine/entities/species/registry';
+import { loft, skinPlain, S, boneIndex, mix, sstep, paletteColors, paintNoise, type Paint, type RGB, type Station } from '#engine/entities/species/loft';
+import type { Animal } from '#engine/entities/Animal';
+import { NO_FUR, lookAngles, smooth01, bump, step, clamp } from '#engine/entities/species/rigs';
+import { heightAt } from '#engine/world/Heightfield';
 
 /**
  * The Golden King — Nalati's first boss (docs/design/nalati/elites-and-bosses.md §2, plan row B13; mockups
@@ -17,7 +17,7 @@ import { heightAt } from '../../world/Heightfield';
  * scaled to ~0 collapses its skin (phase III tears off the cloak; shooting the headdress off drops it).
  *
  * This file is the BODY only: the rig, the paint and the poses. The brain lives with the fight
- * (`src/shards/nalati-grasslands/kurganBoss.ts` sets `goldenKingBrain.think`), because the King's AI is the boss script — phases, the
+ * (`src/shards/nalati-grasslands/combat/goldenKing.ts` sets `goldenKingBrain.think`), because the King's AI is the boss script — phases, the
  * shield, the adds and the hazards all read the arena. The species' `think` just forwards to it.
  *
  * `Animal.mem` (numbers only) is the contract between the brain and the poses:
@@ -50,7 +50,7 @@ interface KingMem extends Record<string, number | undefined> {
   cape?: number; crown?: number; raise?: number; kneelS?: number; raiseS?: number; floorS?: number; deadT?: number;
 }
 
-/** the fight script's brain (src/shards/nalati-grasslands/kurganBoss.ts) — the species forwards its 10 Hz tick and its damage rule here
+/** the fight script's brain (src/shards/nalati-grasslands/combat/goldenKing.ts) — the species forwards its 10 Hz tick and its damage rule here
  *  (the gold scale takes half from arrows, the face full, a shield nothing; the script knows which) */
 export const goldenKingBrain: {
   think: ((a: Animal, c: ThinkCtx) => void) | null;

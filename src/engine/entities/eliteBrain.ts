@@ -3,7 +3,7 @@ import type { Animal } from './Animal';
 import type { ThinkCtx } from './species/registry';
 
 /**
- * The named elites' brains (src/shards/nalati-grasslands/elites.ts sets them, src/game/Elite.ts runs the system): a species that only
+ * The named elites' brains (src/shards/nalati-grasslands/combat/elites.ts sets them, src/game/Elite.ts runs the system): a species that only
  * ever exists as an elite (the snow leopard, the giant eagle, Kokbori, the ghost captain) has `think: eliteThink` and
  * `damageMul: eliteDamageMul`, and its 10 Hz AI tick and its damage rule go to whatever the elite registered for that
  * animal. A tiny module on purpose: species files import it, and it imports nothing at runtime.

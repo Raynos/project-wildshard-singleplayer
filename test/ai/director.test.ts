@@ -3,8 +3,8 @@ import { getActiveChunk, setActiveChunk } from '#game/shard/registry';
 import type * as Heightfield from '#engine/world/Heightfield';
 import { manager } from '../fake/manager';
 import { creature } from '../fake/creature';
-import { Pack } from '#engine/entities/Pack';
-import { wildEnv } from '#engine/entities/wildEnv';
+import { Pack } from '#shards/nalati-grasslands/creatures/pack';
+import { wildEnv } from '#shards/nalati-grasslands/creatures/env';
 import { invokeLegacy, legacyActor } from '../fake/legacyActor';
 
 vi.mock('#engine/world/Heightfield', async (original) => ({ ...await original<typeof Heightfield>(),
