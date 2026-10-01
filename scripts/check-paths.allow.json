@@ -133,5 +133,820 @@
     "path": "test/parity/baselines/gh-macos15",
     "file": "scripts/parity.mjs",
     "why": "Runner baseline output folder; absent before the first runner bootstrap artifact."
+  },
+  {
+    "path": "src/engine/app/app.ts",
+    "file": "test/check-lock.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/shards/nine-dragon-stack/x.ts",
+    "file": "test/check-lock.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/shards/nine-dragon-stack/ktx2.generated.ts",
+    "file": "test/check-lock.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/shards/pine-hollow/x.ts",
+    "file": "test/check-lock.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/kit/bow.ts",
+    "file": "test/check-lock.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/planted-missing.ts",
+    "file": "test/check-paths.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/planted-empty/*.ts",
+    "file": "test/check-paths.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/ignored.ts",
+    "file": "test/check-paths.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/a.ts",
+    "file": "test/check-paths.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/*.{ts,js}",
+    "file": "test/check-paths.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/${name}.ts",
+    "file": "test/check-paths.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/history.ts",
+    "file": "test/check-paths.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/*.ts",
+    "file": "test/check-paths.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/missing.ts",
+    "file": "test/check-paths.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/deleted.ts",
+    "file": "test/check-paths.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/unquoted-missing.ts",
+    "file": "test/check-paths.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/[ab].ts",
+    "file": "test/check-paths.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/future/",
+    "file": "test/check-paths.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/shards/sample/down.ts",
+    "file": "test/fixtures/lint/cases.json",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/engine/up.ts",
+    "file": "test/fixtures/lint/cases.json",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/engine/relative.ts",
+    "file": "test/fixtures/lint/cases.json",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/kit/deep.ts",
+    "file": "test/fixtures/lint/cases.json",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/engine/internal.ts",
+    "file": "test/fixtures/lint/cases.json",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/shards/sample/cross.ts",
+    "file": "test/fixtures/lint/cases.json",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/engine/dynamic.ts",
+    "file": "test/fixtures/lint/cases.json",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/engine/words.ts",
+    "file": "test/fixtures/lint/cases.json",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/engine/comment.ts",
+    "file": "test/fixtures/lint/cases.json",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/engine/boundary.ts",
+    "file": "test/fixtures/lint/cases.json",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/engine/template.ts",
+    "file": "test/fixtures/lint/cases.json",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/ui/ident.ts",
+    "file": "test/fixtures/lint/cases.json",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/ui/slug.ts",
+    "file": "test/fixtures/lint/cases.json",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/ui/open.ts",
+    "file": "test/fixtures/lint/cases.json",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/ui/weapon.ts",
+    "file": "test/fixtures/lint/cases.json",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/ui/structures.ts",
+    "file": "test/fixtures/lint/cases.json",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/ui/active.ts",
+    "file": "test/fixtures/lint/cases.json",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/ui/level.ts",
+    "file": "test/fixtures/lint/cases.json",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/ui/literal.ts",
+    "file": "test/fixtures/lint/cases.json",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/ui/switch.ts",
+    "file": "test/fixtures/lint/cases.json",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/ui/url.ts",
+    "file": "test/fixtures/lint/cases.json",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/ui/dedup.ts",
+    "file": "test/fixtures/lint/cases.json",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/ui/members.ts",
+    "file": "test/fixtures/lint/cases.json",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/ui/all-a.ts",
+    "file": "test/fixtures/lint/cases.json",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/shards/sample/plugin.ts",
+    "file": "test/fixtures/lint/cases.json",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/chunks/nine-dragon-stack/look.ts",
+    "file": "test/fixtures/lint/cases.json",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/pinehollow/look.ts",
+    "file": "test/fixtures/lint/cases.json",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/nalati/look.ts",
+    "file": "test/fixtures/lint/cases.json",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/ui/save.ts",
+    "file": "test/fixtures/lint/cases.json",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/engine/saves/storage.ts",
+    "file": "test/fixtures/lint/cases.json",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/native/storage.ts",
+    "file": "test/fixtures/lint/cases.json",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/engine/native/storage.ts",
+    "file": "test/fixtures/lint/cases.json",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/ui/random.ts",
+    "file": "test/fixtures/lint/cases.json",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/ui/computed.ts",
+    "file": "test/fixtures/lint/cases.json",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/engine/core/clock.ts",
+    "file": "test/fixtures/lint/cases.json",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/ui/input.ts",
+    "file": "test/fixtures/lint/cases.json",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/ui/resize.ts",
+    "file": "test/fixtures/lint/cases.json",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/engine/input/listeners.ts",
+    "file": "test/fixtures/lint/cases.json",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/core/input/listeners.ts",
+    "file": "test/fixtures/lint/cases.json",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/ui/render.ts",
+    "file": "test/fixtures/lint/cases.json",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/engine/render/type.ts",
+    "file": "test/fixtures/lint/cases.json",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/engine/ai/math.ts",
+    "file": "test/fixtures/lint/cases.json",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/engine/ai/mesh.ts",
+    "file": "test/fixtures/lint/cases.json",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/engine/effects/namespace.ts",
+    "file": "test/fixtures/lint/cases.json",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/engine/quests/visual.ts",
+    "file": "test/fixtures/lint/cases.json",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/engine/ai/runtime.ts",
+    "file": "test/fixtures/lint/cases.json",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/engine/combat/dom.ts",
+    "file": "test/fixtures/lint/cases.json",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/engine/saves/local.ts",
+    "file": "test/fixtures/lint/cases.json",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/engine/combat/view/mesh.ts",
+    "file": "test/fixtures/lint/cases.json",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/engine/ai/view/mesh.ts",
+    "file": "test/fixtures/lint/cases.json",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/shards/a/manifest.ts",
+    "file": "test/gpu-gate-matrix.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/shards/b/manifest.ts",
+    "file": "test/gpu-gate-matrix.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/shards/_template/manifest.ts",
+    "file": "test/gpu-gate-matrix.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/chunks/live.ts",
+    "file": "test/gpu-gate-matrix.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/chunks/prototype/def.ts",
+    "file": "test/gpu-gate-matrix.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/world/NewScatter.ts",
+    "file": "test/models-check-rules.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/core/rng",
+    "file": "test/models-contract.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/world/registry",
+    "file": "test/models-contract.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/world/Sky",
+    "file": "test/models-contract.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/world/rockKit",
+    "file": "test/models-contract.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/models/model",
+    "file": "test/models-contract.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/models/place",
+    "file": "test/models-contract.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/models/colliders",
+    "file": "test/models-contract.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/models/sets",
+    "file": "test/models-contract.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/chunks/driftwood-isle/models/shoreBoulder",
+    "file": "test/models-contract.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/world/Foo.ts",
+    "file": "test/models-contract.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/chunks/pine-hollow/world/x.ts",
+    "file": "test/models-contract.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/chunks/pine-hollow/models/helper.ts",
+    "file": "test/models-contract.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/chunks/pine-hollow/models/stone.ts",
+    "file": "test/models-contract.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/models/leak.ts",
+    "file": "test/models-contract.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/world/registry",
+    "file": "test/models-live.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/world/Sky",
+    "file": "test/models-live.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/models/model",
+    "file": "test/models-live.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/models/live",
+    "file": "test/models-live.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/models/place",
+    "file": "test/models-live.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/models/creature",
+    "file": "test/models-live.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/entities/AnimalFactory",
+    "file": "test/models-live.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/entities/species/newt.ts",
+    "file": "test/models-live.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/chunks/test-shard/models/newt.ts",
+    "file": "test/models-live.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/game/quest/Places",
+    "file": "test/models-places.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/game/quest/nalati",
+    "file": "test/models-places.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/chunks/pineHollowLayout",
+    "file": "test/models-places.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/world/x.ts",
+    "file": "test/models-places.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/world/View.ts",
+    "file": "test/normalize-move.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/engine/world/View.ts",
+    "file": "test/normalize-move.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/world/Widget.ts",
+    "file": "test/normalize-move.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/engine/world/Widget.ts",
+    "file": "test/normalize-move.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/core/helper.ts",
+    "file": "test/normalize-move.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/engine/core/helper.ts",
+    "file": "test/normalize-move.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/core/job.ts",
+    "file": "test/normalize-move.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/engine/core/job.ts",
+    "file": "test/normalize-move.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/ui/panel.css",
+    "file": "test/normalize-move.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/game/panel.css",
+    "file": "test/normalize-move.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/chunks/pine-hollow/hero.webp",
+    "file": "test/normalize-move.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/shards/pine-hollow/hero.webp",
+    "file": "test/normalize-move.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/core/job.ts?worker",
+    "file": "test/normalize-move.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/world/A.ts",
+    "file": "test/normalize-move.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/engine/world/A.ts",
+    "file": "test/normalize-move.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/kit/A.ts",
+    "file": "test/normalize-move.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/dead.ts",
+    "file": "test/normalize-move.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/world/A",
+    "file": "test/normalize-move.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/chunks/pine-hollow/install.ts",
+    "file": "test/normalize-move.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/shards/pine-hollow/install.ts",
+    "file": "test/normalize-move.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/models/Only.ts",
+    "file": "test/normalize-move.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/shards/pine-hollow/models/Only.ts",
+    "file": "test/normalize-move.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/shards/pine-hollow/world/Forest.ts",
+    "file": "test/normalize-move.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/world/PineTest.ts",
+    "file": "test/normalize-move.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/shards/pine-hollow/world/PineTest.ts",
+    "file": "test/normalize-move.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/core/new.ts",
+    "file": "test/normalize-move.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/engine/core/new.ts",
+    "file": "test/normalize-move.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/world/Thing.ts",
+    "file": "test/normalize-move.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/engine/world/Thing.ts",
+    "file": "test/normalize-move.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/world/Thing",
+    "file": "test/normalize-move.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/kit/Thing",
+    "file": "test/normalize-move.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/engine/world/Thing.ts?raw",
+    "file": "test/normalize-move.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/world/Thing.tsx",
+    "file": "test/normalize-move.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/world/Thing.ts/child",
+    "file": "test/normalize-move.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/a.ts",
+    "file": "test/normalize-move.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/b.ts",
+    "file": "test/normalize-move.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/c.ts",
+    "file": "test/normalize-move.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/boot/x.ts",
+    "file": "test/normalize-move.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/B.ts",
+    "file": "test/normalize-move.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/x.ts",
+    "file": "test/normalize-move.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/X.ts",
+    "file": "test/normalize-move.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/A.ts",
+    "file": "test/normalize-move.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/ui/write.ts",
+    "file": "test/fixtures/lint/cases.json",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/ui/nested.ts",
+    "file": "test/fixtures/lint/cases.json",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/engine/combat/qualified.ts",
+    "file": "test/fixtures/lint/cases.json",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/ui/example.ts",
+    "file": "test/lint-ratchet.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/deleted.ts",
+    "file": "test/lint-ratchet.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/ui/new.ts",
+    "file": "test/lint-ratchet.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/ui/perf.ts",
+    "file": "test/lint-ratchet.test.ts",
+    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/models/glb.ts",
+    "file": "test/normalize-move.test.ts",
+    "why": "E357 F6m: codemod input/output fixture path; rewriting the codemod own test data would corrupt its assertions."
+  },
+  {
+    "path": "src/engine/models/glb.ts",
+    "file": "test/normalize-move.test.ts",
+    "why": "E357 F6m: codemod input/output fixture path; rewriting the codemod own test data would corrupt its assertions."
+  },
+  {
+    "path": "src/world/Forest.ts",
+    "file": "test/normalize-move.test.ts",
+    "why": "E357 F6m: codemod input/output fixture path; rewriting the codemod own test data would corrupt its assertions."
+  },
+  {
+    "path": "src/main.ts",
+    "file": "test/normalize-move.test.ts",
+    "why": "E357 F6m: codemod input/output fixture path; rewriting the codemod own test data would corrupt its assertions."
+  },
+  {
+    "path": "src/a.ts src/b.ts",
+    "file": "test/normalize-move.test.ts",
+    "why": "E357 F6m: codemod input/output fixture path; rewriting the codemod own test data would corrupt its assertions."
+  },
+  {
+    "path": "src/b.ts src/c.ts",
+    "file": "test/normalize-move.test.ts",
+    "why": "E357 F6m: codemod input/output fixture path; rewriting the codemod own test data would corrupt its assertions."
+  },
+  {
+    "path": "src/shards/${slug}/**",
+    "file": "scripts/check-lock.mjs",
+    "why": "E357 F6m: lock pathspec template for future reopened shard folders."
+  },
+  {
+    "path": "src/engine/saves/store.ts",
+    "file": "scripts/deploy-pin.mjs",
+    "why": "E357 F6m: git show path on an historical commit; intentionally absent until F10."
+  },
+  {
+    "path": "src/chunks",
+    "file": "scripts/gpu-gate/matrix.mjs",
+    "why": "E357 F6m: git ls-tree historical registry prefix retained for pre-F6 commits."
+  },
+  {
+    "path": "src/main/res",
+    "file": "scripts/native-icons.py",
+    "why": "E357 F6m: Android resource namespace under android/app, outside the game src tree."
+  },
+  {
+    "path": "src/shards/${shard}",
+    "file": "scripts/parity.mjs",
+    "why": "E357 F6m: git diff pathspec template for destination shards."
+  },
+  {
+    "path": "src/node_modules",
+    "file": "scripts/release-url.sh",
+    "why": "E357 F6m: source-export scratch directory under WORK, not the game source tree."
+  },
+  {
+    "path": "shared (src/world, src/player, src/entities, …)",
+    "file": "scripts/check-models.mjs",
+    "why": "E357 F6m: human-readable report area label, not three repository paths; the actual model folder rules remain manual F6 edits."
   }
 ]

@@ -25,6 +25,52 @@ export const MECHANISMS = new Map([
   ['src/game/quest/QuestUI.ts', 'quest renderer stays in game until S2.5 (E4)'],
   ['src/core/probe.ts', 'F2 generic debug probe; 04 section 6 explicitly maps it'],
   ['src/core/harnessTap.ts', 'F2 generic harness tap; no shard content'],
+  ['src/world/BakedCards.ts', 'E357 F6m: generic baked-card loader/exporter; no Pine content'],
+  ['src/world/faceHeads.ts', 'E357 F6m: generic head loader/converter; URLs supplied by callers'],
+  ['src/physics/heightPatch.ts', 'E357 F6m: generic replaceable heightfield collider; no Nalati tuning'],
+]);
+// Reviewed semantic homes win where boot/game wiring or interim stacks obscure shard ownership.
+// Explicit destinations and reasons from 04; these are exceptions, not a blanket acceptance of map rows.
+const REVIEWED_PLACEMENTS = new Map([
+  ["src/audio/ForestAmbience.ts", { rule: "G", destination: "shards/pine-hollow/audio/ambience.ts", why: "E357 F6m: built only on Pine (main.ts:863; 06 §1.3)" }],
+  ["src/entities/npc/Castaway.ts", { rule: "I", destination: "shards/driftwood-isle/npc/Castaway.ts", why: "E357 F6m: Driftwood people (importers: its models + quest/Spine.ts); on #kit/npc at S4.3 (01 §21)" }],
+  ["src/entities/npc/Trader.ts", { rule: "I", destination: "shards/driftwood-isle/npc/Trader.ts", why: "E357 F6m: Driftwood people (importers: its models + quest/TraderStall.ts); on #kit/npc at S4.3" }],
+  ["src/game/loot/finds.ts", { rule: "N", destination: "shards/driftwood-isle/loot/finds.ts", why: "E357 F6m: Driftwood's FINDS (its header)" }],
+  ["src/game/loot/keepsakes.ts", { rule: "N", destination: "shards/driftwood-isle/loot/keepsakes.ts", why: "E357 F6m: Driftwood's keepsakes (its header); trophies → loot.driftwood.trophies (09 §5.6)" }],
+  ["src/game/loot/shop.ts", { rule: "N", destination: "shards/driftwood-isle/loot/shop.ts", why: "E357 F6m: the Driftwood trader's goods (its header)" }],
+  ["src/game/quest/Complete.ts", { rule: "N", destination: "shards/driftwood-isle/quest/Complete.ts", why: "E357 F6m: Driftwood complete (its header)" }],
+  ["src/game/quest/Ecology.ts", { rule: "N", destination: "shards/driftwood-isle/quest/Ecology.ts", why: "E357 F6m: the island's enemies come back (its header)" }],
+  ["src/game/quest/Feats.ts", { rule: "N", destination: "shards/driftwood-isle/quest/Feats.ts", why: "E357 F6m: Driftwood's collectibles (its header)" }],
+  ["src/game/quest/Finale.ts", { rule: "N", destination: "shards/driftwood-isle/quest/Finale.ts", why: "E357 F6m: the Drowned Captain finale → the boss runtime at S4.2 (09 §5.4)" }],
+  ["src/game/quest/Places.ts", { rule: "N", destination: "shards/driftwood-isle/quest/Places.ts", why: "E357 F6m: Driftwood's named places (check-models.mjs reads it)" }],
+  ["src/game/quest/Spine.ts", { rule: "N", destination: "shards/driftwood-isle/quest/Spine.ts", why: "E357 F6m: Driftwood's quest spine" }],
+  ["src/game/quest/TraderStall.ts", { rule: "N", destination: "shards/driftwood-isle/quest/TraderStall.ts", why: "E357 F6m: the trader's stall at Wendell's hut" }],
+  ["src/game/quest/driftwood.ts", { rule: "N", destination: "shards/driftwood-isle/quest/questLine.ts", why: "E357 F6m: Driftwood's quest data (02 rule 4); renamed: a driftwood.ts inside the Driftwood folder names nothing" }],
+  ["src/game/quest/guards.ts", { rule: "N", destination: "shards/driftwood-isle/quest/guards.ts", why: "E357 F6m: the iron sword's guard" }],
+  ["src/game/quest/gullGuide.ts", { rule: "N", destination: "shards/driftwood-isle/quest/gullGuide.ts", why: "E357 F6m: the gull guide (DRIFTWOOD-TOP10)" }],
+  ["src/player/IronSword.ts", { rule: "G", destination: "shards/driftwood-isle/weapons/IronSword.ts", why: "E357 F6m: the iron-sword pickup, Driftwood only (02 rule 3; 09 §1.5)" }],
+  ["src/player/LeverRifle.ts", { rule: "G", destination: "shards/pine-hollow/weapons/LeverRifle.ts", why: "E357 F6m: Pine only: LeverRifle extends Firearm there (09 §1.5; 06 §1.3 says kit: Q3)" }],
+  ["src/ui/ShopPanel.ts", { rule: "I", destination: "shards/driftwood-isle/loot/ShopPanel.ts", why: "E357 F6m: the Driftwood trader's panel (its only importer: loot/install.ts, Driftwood's shop)" }],
+  ["src/ui/compendium/shards/pine-hollow.ts", { rule: "N", destination: "shards/pine-hollow/compendium.ts", why: "E357 F6m: Pine's compendium, ctx.rows.compendium at S2.1 (06 §1.3)" }],
+  ["src/ui/styles/shop.css", { rule: "I", destination: "shards/driftwood-isle/loot/shop.css", why: "E357 F6m: with ShopPanel.ts" }],
+  ["src/world/BlenderIsland.ts", { rule: "G", destination: "shards/driftwood-isle/world/BlenderIsland.ts", why: "E357 F6m: a Driftwood world builder (main.ts isOcean gate; 02 rule 3)" }],
+  ["src/world/Cove.ts", { rule: "G", destination: "shards/driftwood-isle/world/Cove.ts", why: "E357 F6m: a Driftwood world builder (main.ts isOcean gate; 02 rule 3)" }],
+  ["src/world/Gulls.ts", { rule: "G", destination: "shards/driftwood-isle/world/Gulls.ts", why: "E357 F6m: Driftwood gulls (main.ts gate + its models)" }],
+  ["src/world/Palms.ts", { rule: "G", destination: "shards/driftwood-isle/world/Palms.ts", why: "E357 F6m: a Driftwood world builder (main.ts isOcean gate; 02 rule 3)" }],
+  ["src/world/PineCrags.ts", { rule: "N", destination: "shards/pine-hollow/world/crags.ts", why: "E357 F6m: 06 §1.3" }],
+  ["src/world/Spruce.ts", { rule: "G", destination: "shards/nalati-grasslands/world/Spruce.ts", why: "E357 F6m: trees.factory 'spruce' is Nalati's (core/bootstrap.ts TREE_FACTORIES)" }],
+  ["src/world/TrophyWall.ts", { rule: "G", destination: "shards/pine-hollow/world/trophyWall.ts", why: "E357 F6m: built for Pine's compendium only (06 §1.3)" }],
+  ["src/world/Undergrowth.ts", { rule: "G", destination: "shards/pine-hollow/world/undergrowth.ts", why: "E357 F6m: only Pine draws the undergrowth (06 §1.3)" }],
+  ["src/world/Water.ts", { rule: "G", destination: "shards/pine-hollow/world/pond.ts", why: "E357 F6m: Pine's still pond + lily pads (PH-L9; main.ts gate + BeaverPool)" }],
+  ["src/world/Waterfall.ts", { rule: "I", destination: "shards/driftwood-isle/world/Waterfall.ts", why: "E357 F6m: Driftwood's toon cascade (its only importer: Cove.ts)" }],
+  ["src/world/Zipline.ts", { rule: "I", destination: "shards/driftwood-isle/world/Zipline.ts", why: "E357 F6m: Driftwood's zipline (its only importer: quest/Adventure.ts)" }],
+  ["src/world/coverTint.ts", { rule: "G", destination: "shards/driftwood-isle/world/coverTint.ts", why: "E357 F6m: Driftwood's ground-cover tint (main, BlenderIsland, GroundCover)" }],
+  ["src/world/driftwood.ts", { rule: "N", destination: "shards/driftwood-isle/world/driftLogs.ts", why: "E357 F6m: the drift-log painter (02 rule 4); renamed inside its own shard" }],
+  ["src/world/interact/driftwood.ts", { rule: "N", destination: "shards/driftwood-isle/quest/interactables.ts", why: "E357 F6m: Driftwood's interactables table (02 rule 4)" }],
+  ["src/world/nalati/KurganDungeon.ts", { rule: "I", destination: "shards/nalati-grasslands/world/KurganDungeon.ts", why: "E357 F6m: Nalati world (02 rule 2; the extra nalati/ level dropped)" }],
+  ["src/world/nalati/glbPaint.ts", { rule: "I", destination: "shards/nalati-grasslands/world/glbPaint.ts", why: "E357 F6m: Nalati world (02 rule 2; the extra nalati/ level dropped)" }],
+  ["src/world/nalati/layout.ts", { rule: "I", destination: "shards/nalati-grasslands/world/layout.ts", why: "E357 F6m: Nalati world (02 rule 2; the extra nalati/ level dropped)" }],
+  ["src/world/nalati/paint.ts", { rule: "I", destination: "shards/nalati-grasslands/world/paint.ts", why: "E357 F6m: Nalati world (02 rule 2; the extra nalati/ level dropped)" }],
 ]);
 const SLUGS = ['nine-dragon-stack', 'pine-hollow', 'nalati-grasslands', 'driftwood-isle'];
 const NAMED = [ /Nine|nine|nine-dragon/, /Pine|pine|pine-hollow/, /Nalati|nalati|Steppe|steppe/, /Driftwood|driftwood|Island/ ];
@@ -159,7 +205,9 @@ export function classify(map, root = process.cwd()) {
       const owners = sites.map((site) => layer(destinations.get(site.file) ?? site.file));
       let rule = 'F';
       let destination = territory(file) ?? defaultDestination(file);
-      if (MECHANISMS.has(file)) rule = 'M';
+      const reviewed = REVIEWED_PLACEMENTS.get(file);
+      if (reviewed) { rule = reviewed.rule; destination = `src/${reviewed.destination}`; }
+      else if (MECHANISMS.has(file)) rule = 'M';
       else if (territory(file)) rule = 'T';
       else if (sites.length > 0 && owners.every((owner) => owner.startsWith('shards/') && owner === owners[0])) {
         rule = 'I'; destination = shardDestination(file, owners[0].slice(7));

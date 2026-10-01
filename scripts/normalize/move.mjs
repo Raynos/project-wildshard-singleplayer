@@ -4,7 +4,8 @@ import { existsSync, globSync, mkdirSync, readFileSync, statSync, writeFileSync 
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { execFileSync } from 'node:child_process';
-import { changedLines, collisions, imports, layer, localSpecifier, pathRewriter, resolveImport, rewriteGlobs, rewriteImports } from './core.mjs';
+import ts from '@typescript/typescript6';
+import { applyEdits, changedLines, collisions, imports, layer, localSpecifier, pathRewriter, resolveImport, rewriteGlobs, rewriteImport, rewriteImports, sourceFile } from './core.mjs';
 import { classify } from './classify.mjs';
 
 export const REPORT_FILE = '/private/tmp/e357-f6c/dry-run.json';
@@ -30,13 +31,15 @@ export function selectedMoves(map, row, files) {
   return { moves, missing };
 }
 
-function pathPass(text, rewrite, comments) {
+function pathPass(text, rewrite, comments, allowed = []) {
   let cursor = 0;
   let result = '';
   for (const token of text.matchAll(TOKENS)) {
     const outside = text.slice(cursor, token.index);
     result += comments ? rewrite(outside) : outside;
-    result += token[0].startsWith('/') === comments ? rewrite(token[0]) : token[0];
+    // Synthetic fixture paths and external namespaces must retain their original spelling.
+    const exempt = !token[0].startsWith('/') && allowed.some((entry) => token[0].includes(entry.path));
+    result += token[0].startsWith('/') === comments && !exempt ? rewrite(token[0]) : token[0];
     cursor = token.index + token[0].length;
   }
   const tail = text.slice(cursor);
@@ -50,13 +53,59 @@ function rewriteSrcHelpers(text, moves) {
   });
 }
 
-function warnings(file, text, known) {
+function rewriteMocks(file, destination, text, files, moves) {
+  const root = sourceFile(file, text);
+  const edits = [];
+  function visit(node) {
+    if (ts.isCallExpression(node) && ts.isPropertyAccessExpression(node.expression)
+      && node.expression.expression.getText(root) === 'vi' && ['mock', 'doMock', 'unmock', 'doUnmock'].includes(node.expression.name.text)) {
+      const argument = node.arguments.at(0);
+      if (argument && ts.isStringLiteralLike(argument)) edits.push({ start: argument.getStart(root) + 1, end: argument.getEnd() - 1,
+        text: rewriteImport(file, destination, argument.text, files, moves) });
+    }
+    ts.forEachChild(node, visit);
+  }
+  visit(root);
+  return applyEdits(text, edits);
+}
+
+// Only infer a directory rename when every mapped descendant preserves the same relative suffix.
+function pathMoves(moves) {
+  const result = new Map(moves);
+  const candidates = new Map();
+  for (const [from, to] of moves) {
+    if (from.endsWith('.ts')) result.set(from.slice(0, -3), to.endsWith('.ts') ? to.slice(0, -3) : to);
+    for (let dir = path.posix.dirname(from); dir !== '.' && dir !== 'src'; dir = path.posix.dirname(dir)) {
+      const suffix = from.slice(dir.length);
+      const target = to.endsWith(suffix) ? to.slice(0, -suffix.length) : null;
+      if (!candidates.has(dir)) candidates.set(dir, target);
+      else if (candidates.get(dir) !== target) candidates.set(dir, null);
+    }
+  }
+  for (const [from, to] of candidates) if (to) { result.set(from, to); result.set(`${from}/`, `${to}/`); }
+  return result;
+}
+
+function warnings(file, text, known, importSites, allowed, manual, virtualFiles) {
   const result = [];
   for (const token of text.matchAll(TOKENS)) {
     if (token[0].startsWith('/')) continue;
+    if (importSites.some((entry) => token.index + 1 === entry.start)) continue;
     for (const match of token[0].matchAll(/(?<![\w.-])src\/[\w./${}*?@{}[\],+-]+/g)) {
       const value = match[0].replace(/[.,]+$/, '');
-      if (!known.has(value)) result.push({ file, line: text.slice(0, token.index).split('\n').length, literal: value });
+      const line = text.slice(0, token.index + match.index).split('\n').length;
+      if (known.has(value) || allowed.some((entry) => entry.path === value
+        || (token[0].includes(entry.path) && entry.path.includes(value)))) continue;
+      // Root-wide globs/directories survive F6 unchanged; they are paths, not missing map rows.
+      if (['src/**', 'src/**/*.ts', 'src'].includes(value)) continue;
+      const clean = value.replace(/[?#].*$/, '');
+      if (known.has(clean) || virtualFiles.has(clean)) continue;
+      if (value.endsWith('/') && [...virtualFiles].some((target) => target.startsWith(value))) continue;
+      if (!value.includes('${') && /[*{?[]/.test(value)
+        && [...virtualFiles].some((target) => path.posix.matchesGlob(target, value))) continue;
+      const lineText = text.split('\n')[line - 1] ?? '';
+      const comment = /\.(sh|py)$/.test(file) && lineText.trimStart().startsWith('#');
+      result.push({ file, line, literal: value, manual: manual?.literals?.includes(value) ?? false, bucket: comment ? 'b' : 'a' });
     }
   }
   return result;
@@ -67,7 +116,7 @@ export function planMove(map, row = 'F6', root = process.cwd(), mapPath = '') {
   const files = new Set(globSync(['src/**/*', 'test/**/*', 'api-tests/**/*', 'scripts/**/*', 'public/**/*',
     'vite/**/*', 'lint/**/*', 'index.html'], { cwd: root }).filter((file) => statSync(path.join(root, file)).isFile()));
   const { moves, missing } = selectedMoves(map, row, files);
-  const rewrite = pathRewriter(moves);
+  const rewrite = pathRewriter(pathMoves(moves));
   const collisionChecks = collisions(moves, files);
   for (const [from, to] of moves) if (existsSync(path.join(root, to)) && statSync(path.join(root, to)).isDirectory()) {
     collisionChecks.push({ from, to, kind: 'occupied directory', other: to });
@@ -84,14 +133,30 @@ export function planMove(map, row = 'F6', root = process.cwd(), mapPath = '') {
   const edges = {};
   const edgeDetails = [];
   const known = new Set([...map.files, ...map.tests].flatMap((entry) => [entry.from, entry.f6, entry.final]).filter(Boolean));
+  for (const file of known) if (file.endsWith('.ts')) known.add(file.slice(0, -3));
+  for (const pattern of map.globs.filter((entry) => entry.row === row && Array.isArray(entry.to))) {
+    for (const target of pattern.to) known.add(target.replace(/^(?:\.\.\/)+/, ''));
+  }
+  const allowPath = path.join(root, 'scripts/check-paths.allow.json');
+  const allowances = existsSync(allowPath) ? JSON.parse(readFileSync(allowPath, 'utf8')) : [];
   for (const file of scans) {
     const destination = moves.get(file) ?? file;
     const before = readFileSync(path.join(root, file), 'utf8');
     const source = /^(src|test)\//.test(file) && /\.[cm]?[jt]sx?$/.test(file);
-    const imported = source ? rewriteImports(file, destination, before, files, moves) : before;
-    const globbed = source ? rewriteGlobs(file, imported, map.globs, row) : imported;
-    const strings = file.endsWith('.md') || file === 'AGENTS.md' ? globbed : rewriteSrcHelpers(pathPass(globbed, rewrite, false), moves);
-    let comments = file.endsWith('.md') ? rewrite(strings) : pathPass(strings, rewrite, true);
+    const allowed = allowances.filter((entry) => entry.file === file);
+    const manual = map.manual.find((entry) => entry.file === file || entry.file === destination);
+    const imported = source ? rewriteMocks(file, destination, rewriteImports(file, destination, before, files, moves), files, moves) : before;
+    let globbed = source ? rewriteGlobs(file, imported, map.globs, row) : imported;
+    // Reviewed one-to-one path patterns can also appear in computed path strings outside import.meta.glob.
+    for (const pattern of map.globs.filter((entry) => entry.file === file && entry.row === row
+      && entry.from.length === 1 && Array.isArray(entry.to) && entry.to.length === 1)) {
+      globbed = globbed.replaceAll(pattern.from[0], pattern.to[0]);
+    }
+    // An allowance describes a deliberate non-path. Move its owning test/tool filename, preserve its path value.
+    const strings = file === 'scripts/check-paths.allow.json'
+      ? `${JSON.stringify(allowances.map((entry) => ({ path: entry.path, file: moves.get(entry.file) ?? entry.file, why: entry.why })), null, 2)}\n`
+      : file.endsWith('.md') || file === 'AGENTS.md' ? globbed : rewriteSrcHelpers(pathPass(globbed, rewrite, false, allowed), moves);
+    let comments = file.endsWith('.md') ? rewrite(strings) : pathPass(strings, rewrite, true, allowed);
     // HTML paths live in attributes; the ordinary quoted-string pass above handles them.
     if (file === 'lint/ratchet.json' || file === 'test/coverage-ratchet.json') comments = rewrite(comments);
     contents.set(destination, comments);
@@ -99,7 +164,9 @@ export function planMove(map, row = 'F6', root = process.cwd(), mapPath = '') {
       imports: changedLines(before, imported), globs: changedLines(imported, globbed),
       strings: changedLines(globbed, strings), comments: changedLines(strings, comments),
     } });
-    if (!file.endsWith('.md')) unmatchedLiterals.push(...warnings(file, before, known));
+    if (!file.endsWith('.md') && file !== 'scripts/check-paths.allow.json') {
+      unmatchedLiterals.push(...warnings(file, comments, known, source ? imports(destination, comments) : [], allowed, manual, virtualFiles));
+    }
     if (source) for (const entry of imports(destination, comments)) {
       if (!localSpecifier(entry.specifier)) continue;
       const target = resolveImport(destination, entry.specifier, virtualFiles);
@@ -123,7 +190,9 @@ export function planMove(map, row = 'F6', root = process.cwd(), mapPath = '') {
   }
   const gitMoves = [...moves].filter(([from, to]) => from !== to).map(([from, to]) => ({ from, to }));
   const touchedPaths = [...new Set([...gitMoves.flatMap((entry) => [entry.from, entry.to]), ...rewrites.map((entry) => entry.to), 'docs/MOVED.md', 'lint/ratchet.json'])].sort((a, b) => a.localeCompare(b));
-  const report = { row, counts, gitMoves, rewrites, missing, unresolvedImports, unmatchedLiterals, edges, edgeDetails,
+  const manualLiterals = unmatchedLiterals.filter((entry) => entry.manual);
+  const unmatched = unmatchedLiterals.filter((entry) => !entry.manual);
+  const report = { row, counts, gitMoves, rewrites, missing, unresolvedImports, unmatchedLiterals: unmatched, manualLiterals, edges, edgeDetails,
     collisions: collisionChecks, touchedPaths, manual: map.manual, ratchetCommand: 'node lint/ratchet.mjs --add-rule wildshard/layer',
     ok: missing.length === 0 && unresolvedImports.length === 0 && collisionChecks.length === 0 && edges['shard → shard'] === 0 };
   return { report, contents };
@@ -144,6 +213,7 @@ export function executeMove(map, row, root, mapPath, dryRun) {
     writeFileSync(REPORT_FILE, `${JSON.stringify(report, null, 2)}\n`);
   } else {
     if (!report.ok) throw new Error('Move refused: unresolved imports, missing files, collisions or cross-shard edges');
+    if (report.unmatchedLiterals.some((entry) => entry.bucket !== 'b')) throw new Error('Move refused: unresolved path literals must be fixed or explicitly allowlisted');
     // A second run must be a true no-op, including MOVED.md and the once-only ratchet bootstrap.
     if (report.gitMoves.length > 0 || report.rewrites.length > 0) {
       for (const entry of report.gitMoves) {
