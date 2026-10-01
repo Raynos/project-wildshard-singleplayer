@@ -68,6 +68,7 @@
     "@gltf-transform/functions": "^4.5.0",
     "@types/node": "^24.13.6",
     "@types/three": "^0.186.0",
+    "@typescript/typescript6": "6.0.2",
     "@vitest/coverage-v8": "5.0.1",
     "happy-dom": "20.14.5",
     "meshoptimizer": "1.2.0",
