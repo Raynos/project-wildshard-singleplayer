@@ -64,10 +64,8 @@ sections are updated for the new paths (`src/engine/physics/`,
 0. **Before the agent starts, the lead** (R2-12) files the run's ask (`scripts/ask-new.sh`, giving `<id>`), picks the
    new shard's slug (a folder id; the shard's display `name` comes from Jake's pick in step 2), and commits the slug
    into `.github/lock.json` `reopened` with the **default asset globs for a new shard** (R3-06), in its own commit
-   carrying the lead's `E357-Lead: yes` trailer:
-   `public/assets/<new-slug>/**`, `public/assets/gpu/<new-slug>/**`, `public/assets/baked/<new-slug>/**`,
-   `public/assets/music/<new-slug>/**`, `public/assets/sfx/<new-slug>/**`, `public/assets/horizon/<new-slug>/**`,
-   `public/assets/title/<new-slug>/**`.
+   carrying the lead's `E357-Lead: yes` trailer: the list in 02 F0 step 5 (the one definition; its KTX2 mirror folders
+   `gpu/baked/<slug>/**` and `gpu/horizon/<slug>-*` included, R4-09).
    No manifest exists yet, so the list is this fixed default, not a copy; the agent's manifest declares the same
    folders as its `assetGlobs` (R3-09), and a folder outside them is an API gap (step 4). That commit is the only
    `.github` edit Z3 needs, and the agent never makes it.

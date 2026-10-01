@@ -392,7 +392,7 @@ The file has no numbered top 12. AA1–AA12 are the patterns its one-paragraph a
 | BD4 | What gates where: counts per push; GPU ms on the M5; memory nightly on the Simulator | 03 §15; 03 §14.1 (the Simulator memory run) | covered (G2 resolved) |
 | BD5 | Provisional numbers; delete the three unrelated phone draw budgets; bytes derived from Jake's time caps | 10 X7 step 2; 01 §13.4 (download MB); 13 (05/06 #7: Nine Dragon's load cap) | covered |
 | BD6 | GPU MB stays a ratchet until a jetsam reading names the limit | 01 §13.4 rollout; 03 §15 | covered |
-| BD7 | Rollout: a shard over a P number keeps its current worst as a ceiling; one calibration by Jake; a shard still over gets cut rows | 01 §13.4; 05 §6.6 step 5; 10 X7 step 3 | covered (the cut-rows rule is AGENTS.md's perf-cut rule) |
+| BD7 | Rollout: a shard over a P number keeps its current worst as a ceiling; one M5 calibration, the phone = the M5 × the E283 hot ratio (decision 99, R4-01); a shard still over gets cut rows | 01 §13.4; 05 §6.6 step 5; 10 X7 step 3 | covered (the cut-rows rule is AGENTS.md's perf-cut rule) |
 | BD8 | Measure CPU / GPU overlap first (sweep 6) | 05 §6.6 step 1 (the overlap sweep) | covered |
 
 ### 5.4 ci-gpu-options.md
@@ -537,7 +537,7 @@ closure)
 `src/engine/combat/view/**` carve-out for the drawing blocks; 01 §13.3 gains the engine tier knob `msaa` (07 §6.2
 step 2); `move-map.json` needs F6's `src/entry.ts` amendment (02 §F6 step 1); 09 §8 Q1 / Q2 / Q11 are resolved by 13 C4 / C5.
 
-**Counts.** Table 1: 13 rows (13 covered). Table 2: one row per decision 1–98, plus the revisions 12′, 28′, 55′, 90′ and 3 unnumbered rows. Table 3: 21 +
+**Counts.** Table 1: 13 rows (13 covered). Table 2: one row per decision 1–99, plus the revisions 12′, 28′, 55′, 90′ and 3 unnumbered rows. Table 3: 21 +
 11 + 15 + 26 = 73 rows. Table 4: 25 + 18 + 22 = 65 rows. Table 5: 10 + 22 + 8 + 7 + 11 = 58 rows. Table 6: 26 rows.
 Gaps: 21 (G1–G21), all resolved (G4, G5, G8, G9 while this was written; the other 17 by 13 and the gap closure). No row
 is `partial`, `gap` or an unresolved `conflict`.

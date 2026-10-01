@@ -240,7 +240,8 @@ export default defineShard({
     first boot (a renderer-string table, else a 2 s GPU micro-benchmark, cached in a `device` save key) and derives the
     desktop budgets from the M5 calibration × a documented M5 : 3060 ratio.
   - **Memory:** 1.8 GB loading (justified by the phone's kill limit) and 1.0 GB in world (kept; the E271 rule).
-  - **Calibration:** a scene in Debug ▸ Developer tools measures unit costs on the hot phone and the M5.
+  - **Calibration:** a scene (Debug ▸ Developer tools, and `scripts/calibrate.mjs` headless) measures unit costs on the
+    M5; the phone's are the M5's × the E283 hot ratio (~10×), stated as an assumption (decision 99).
   - **The manifest holds the inputs, and every number is recomputed.**
   - **Rollout:** a shard over a provisional number keeps its worst as a ceiling that only goes down. Over budget fails
     the gate.
@@ -462,7 +463,7 @@ F12. The table lists the rows in that order; the detail is in [02-foundations](g
 
 ## 9. Jake's decisions (E357, 2026-09-30)
 
-The verbatim table (decisions 1–98 and the revisions 12′, 28′, 55′, 90′) is in [docs/tasks/asks/E357.md](../tasks/asks/E357.md). In short:
+The verbatim table (decisions 1–99 and the revisions 12′, 28′, 55′, 90′) is in [docs/tasks/asks/E357.md](../tasks/asks/E357.md). In short:
 
 | Area | Decisions |
 |---|---|

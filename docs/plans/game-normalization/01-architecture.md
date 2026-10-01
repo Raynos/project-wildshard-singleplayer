@@ -219,7 +219,9 @@ export interface LevelSpec {
   // R2-02: every field the engine reads is here, copied by toLevelSpec; engine code never reads a manifest
   loadout: LoadoutSpec;                         // the equipment the kit stage builds (R2-05)
   // LoadoutSpec (R3-04, aligned to the four manifests, R3-F2) = {
-  //   weapons: readonly WeaponId[]; tools: readonly ToolId[];        // everything this level's kit can hold
+  //   weapons: readonly WeaponId[]; tools: readonly ToolId[];        // what level.kit builds and preloads; a grant built only
+  //                                                                   // when granted (Nalati's two) is in `grants` alone, one built
+  //                                                                   // at load and locked until granted (Pine's longbow) is in both (R4-16)
   //   start: readonly EquipmentId[]; held?: EquipmentId;              // owned at the start; the one in hand
   //   pickups?: readonly { id: EquipmentId; at: string }[];           // found in the world (Pine's lever in cabin-1)
   //   loans?: readonly { id: EquipmentId; in: string }[];             // lent only inside a room (Nalati's AR-15 in 'practice')
@@ -307,13 +309,18 @@ export interface ShardManifest {
   tiers?: TierOverrides;                    // data, replaces PINE_HOLLOW_PHONE and Game.ts:290 (EI24)
   budgets: BudgetInputs;                    // per tier: fps + lane split; the numbers are derived (§13.4, decision 30)
   fight: { maxHitDamage?: number; capExempt?: readonly Tag[]; attackers?: number };   // 18, 20
-  loadout: Loadout;                         // weapons / tools by id, start set, pickups (§18)
+  loadout: LoadoutSpec;                     // weapons / tools by id, start set, pickups, loans, grants (§5a, §18; R4-11)
+  assets?: ChunkAssets;                     // today's flat ChunkDef.assets fields, copied to level.assets (R3-09)
+  assetGlobs?: readonly string[];           // the extra asset folders a reopened lane may commit (02 F0 step 5; R3-09, R4-11)
+  ktx2?: () => Promise<{ GPU_FILES: Ktx2Table }>;  // the shard's committed KTX2 table, top-level (R3-08, R3-F1, R4-11);
+                                            // Ktx2Table = today's GPU_FILES type (gpu.generated.ts): { phone, desktop }: URL → KTX2 URL;
+                                            // #game's load awaits it before app.loadLevel and hands the table to gpuFiles
   species: readonly SpeciesRef[]; encounters?: readonly EncounterRef[];
   audio: { ambience: AmbienceRef; score: ScoreRef; cues: () => Promise<CueMap> };
   input?: readonly InputContextRef[];       // contexts it adds (§10)
   boot: BootSpec;                           // steps, asset lists per tier, precache, barrier / fragile / trace (§8)
   dayCycle?: DayCycleKeyframes; weather?: WeatherSpec;              // data for the opt-in mechanisms (§17)
-  // carried over from ChunkDef as data, unchanged: trees, forest, assets, look, horizon, pondClip, pois, spawns (was
+  // carried over from ChunkDef as data, unchanged: trees, forest, look, horizon, pondClip, pois, spawns (was
   // fauna: HerdPlan[]), faunaTuning, loot, bodyShadow, groundColor, surfaceAt; ocean becomes a WaterBody row (§17);
   // weapon becomes loadout (§18)
   roster?: () => Promise<readonly RosterEntry[]>;   // Explore's cards (today's hook, as is)
@@ -407,7 +414,7 @@ export const SHARDS: readonly ShardManifest[];
 | Stage | Engine does | The shard fills (manifest / plugin) |
 |---|---|---|
 | `engine` | renderer, physics world, sky rig, audio unlock, input, UI shell, saves | — |
-| `level.data` | reads the `LevelSpec`: `tiers`, `budgets`, string tables | `boot.steps` labels and weights |
+| `level.data` | reads the `LevelSpec`: `tiers`, `budgets`, string tables; fetches the pack files `boot.files(tier)` lists, as today's loading steps do. No row and no model here: a model's file is fetched where it is built, in `level.kit` (R3-03, R4-06) | `boot.steps` labels and weights |
 | `level.world` | terrain (if `ground.terrain`), registry wiring | plugin world build (today's `edge` / `grass` / `cabins` / `props` / `structures` / `fieldModels`) |
 | `level.kit` | equipment service, loadout from rows | its weapon / tool / species / effect rows |
 | `level.play` | creatures, encounters, quests runtime, audio beds, HUD | its systems, events, contexts, widgets |

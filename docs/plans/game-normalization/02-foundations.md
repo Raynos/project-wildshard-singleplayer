@@ -84,8 +84,11 @@ the plan is archived, with each shard's folder reopening at its milestone (decis
    adding the reopened shard's slug with its manifest's `assetGlobs` copied in (R2-19, R3-09; C2-24). Before Z3's
    agent starts, the lead commits Z3's new slug into `reopened` the same way (R2-12; 11 Z3). The new shard has no
    manifest yet, so its entry holds **the default asset globs for a new shard** (R3-06): `public/assets/<slug>/**`,
-   `public/assets/gpu/<slug>/**`, `public/assets/baked/<slug>/**`, `public/assets/music/<slug>/**`,
-   `public/assets/sfx/<slug>/**`, `public/assets/horizon/<slug>/**` and `public/assets/title/<slug>/**`; its manifest's
+   `public/assets/gpu/<slug>/**`, `public/assets/baked/<slug>/**`, `public/assets/gpu/baked/<slug>/**`,
+   `public/assets/music/<slug>/**`, `public/assets/sfx/<slug>/**`, `public/assets/horizon/<slug>-*`,
+   `public/assets/gpu/horizon/<slug>-*`, `public/assets/lut/<slug>.bin` and `public/assets/title/<slug>-portrait.jpg`
+   (R4-09: the repo's file names, `HorizonMatte.ts:22`, `ls public/assets/title`; and the folders `bake-ktx2` mirrors
+   its sources into, `bake-ktx2.mjs:31`); its manifest's
    `assetGlobs` later names the same folders. The archive commit sets `"locked": false`.
    While `locked` is true, a commit whose trailers (`git interpret-trailers --parse`) carry `E357-Lead: yes` passes:
    the lead and the subagents it spawns, except Z3's agent, which never carries the trailer (12 §4 item 10; R2-12).
@@ -228,8 +231,10 @@ resolver, the `wildshard/no-url-switch` rule, `scripts/bake-loader.mjs`); a path
      no "up to date" skip and no bump constant (no `BAKE_VERSION`); a `VERSION` that is part of a file format
      (`bake-chunk`'s and `bake-navmesh`'s headers) stays in the format. The `hash` field
      in a baker's JSON becomes the sha of its output bytes, so the JSON changes only when an output does, and
-     timestamps leave the files (`bakedAt`, `bake-chunk.mjs:142`). The five bakers below lose `--force`: every run
-     is a full bake.
+     timestamps leave the files (`bakedAt`, `bake-chunk.mjs:142`). **So does every value that differs between two
+     runs of the same inputs (R4-04, C4-2):** `bake-navmesh`'s per-layer `ms` (`:435`) and its `gzip` / `brotli`
+     sizes (`:438-441`, which depend on node's zlib build) are printed, not stored. The five bakers below lose
+     `--force`: every run is a full bake.
    - **`--check`** bakes the same way, writes nothing, and exits 1 naming every file that would change.
    - `bake-chunk.mjs`: the digest (`:40` `shared`, `:94-106`: the def's bytes, `EXTRA_DEPS`, `localImports`) goes; it
      bakes `terrain.bin` / `terrain.json` for each shard and compares them. The header's `landscapeHash` field stays in
@@ -247,10 +252,27 @@ resolver, the `wildshard/no-url-switch` rule, `scripts/bake-loader.mjs`); a path
      (headless Chromium, ANGLE Metal), so on the Mac `bake-check.mjs` builds the tree once (`vite build --outDir` a
      scratch folder), serves it with `vite preview` on a free port and runs both under `scripts/browser-lane.sh`;
      where there is no Metal GPU (CI, Vercel's build) it prints `bake-check: GPU bakers skipped (no Metal): bake-cards,
-     bake-textures` and runs the node three. Every commit runs `pnpm test` on the Mac first (12 §5), so a stale GPU
+     bake-textures` and runs the node three. **The sky pair is Mac-only too (R4-04):** `bake-sky` encodes
+     `.sky.jpg` / `.gain.png` with ImageMagick (`magick`, `:93-94`), which CI's `ubuntu-latest` and Vercel's builder
+     lack; there `bake-check` prints `bake-check: sky pair skipped (no magick)` and compares `sky.json` alone, and
+     the build keeps the committed pair (the script's own fallback, `:63`). Every commit runs `pnpm test` on the Mac first (12 §5), so a stale GPU
      bake still fails at commit time. `vite.config.ts` stops calling the GPU bakers' `--check` (`:46-50`, a build
      can't serve itself); it keeps running `bake-chunk` and `bake-sky`, which now bake fully and write only a changed
      byte.
+   - **The derived copies (R4-05, C4-9).** The phone copies (`*.phone.webp`, written by `scripts/tex-tiers.mjs`,
+     ImageMagick + `cwebp`, Mac-only) and the KTX2 files (`scripts/bake-ktx2.mjs` → `public/assets/gpu/<the source's
+     path>`, keyed by source hash + settings in `scripts/bake-ktx2.cache.json`) derive from the baked files. After a
+     cards or textures re-bake, the same commit runs `node scripts/tex-tiers.mjs`, then `node scripts/bake-ktx2.mjs`,
+     and carries the phone copies, the KTX2 files, the cache hunk and the shard's `ktx2.generated.ts`.
+     `tex-tiers.mjs` gains `--check` (it encodes into a scratch folder and exits 1 naming each copy that differs) and
+     `bake-ktx2.mjs` gains `--check` (exit 1 when a listed source's current hash + settings has no cache entry, or
+     its output file is missing); `bake-check` runs both on the Mac after the GPU bakers, and skips them with a
+     printed line where the tools are missing.
+   - **A tool upgrade that changes bytes (R4-04).** Homebrew's ImageMagick or `cwebp`, Playwright's Chromium (the
+     GPU bakers) or node's zlib can change output bytes with no source change. `bake-check` prints the tool versions
+     with every mismatch. The lead re-bakes on the parent SHA with the new tool: the same new bytes there mean the
+     change is the tool's, and one commit re-bakes every affected output, its message naming the old and new versions
+     (`bake: re-bake for <tool> <old> → <new>`). Different bytes on the parent mean the change is the commit's own.
    The lead greps `scripts/bake-*.mjs` for any other skip on a digest or stamp and changes it the same way
    (`bake-packs` and `bake-ktx2` are content-addressed by their exact input bytes and stay). The re-stamp this causes
    once (the `hash` fields under `public/assets/baked/` become output shas, and the packs that carry them) is committed
@@ -265,6 +287,9 @@ planted item).
 
 **Done when.**
 - `pnpm test`, `pnpm run typecheck`, `pnpm run lint`, `pnpm exec vite build` all exit 0.
+- **The bakes are reproducible (R4-04):** two `node scripts/bake-check.mjs` runs in a row on the Mac exit 0 with
+  nothing written, and CI's `pnpm test` (the push's `deploy.yml` run) exits 0 with the GPU and sky-pair skip lines
+  printed. The Mac's `pnpm test` time with the GPU part is measured and becomes 03 §10's `pnpm test` row (C4-14).
 - `test/alias.test.ts` passes (a baker and a lint key both resolve through `#engine/…`, and an asset specifier resolves
   with its own extension).
 - `test/check-paths.test.ts` passes (a moved file can't make a test pass vacuously).
@@ -344,14 +369,23 @@ right after the probe commit. Nine Dragon joins (it is outside scorecard's `SHAR
      a Pine SFX clip, a footstep, an impact, a bed or sting the state machine starts): `tap.sound?.(id)`, and the log
      compares it as an exact multiset. An **ambient** sound is a one-shot that a timer or scheduler starts (a
      `window.setTimeout`, a `later(…)` helper, or a countdown on the frame's `dt`): the island birds
-     (`IslandAmbience.ts:251, 270`), the forest calls (`ForestAmbience.ts:159-162`), the steppe far calls
-     (`SteppeAmbience.ts:139-157`), and `Audio.ts`'s own private schedulers, which are tapped too: `scheduleBubble`
-     (`:740`), `scheduleLark` (`:1409`), `scheduleCricket` (`:1430`) and `scheduleCrackle` (`:1447`). Each calls
-     `tap.sound?.(id, 'ambient')`, and the log compares the ambient ids as a **set** (03 §2.3), because how many fire
-     depends on wall time and on how the seeded draws interleave. A dropped ambient
-     voice (one of those schedulers lost in S3.5's split of `Audio.ts`) still shows as a missing id.
-     A row that moves a sound path keeps its id literal and its kind, and the `AudioService` built at S1.5 (01 §15)
-     calls `tap.sound?.(id, kind)` on every play with the id and kind of the path it replaced. The log therefore has
+     (`IslandAmbience.ts:270`, `scheduleBird`), the forest calls (`ForestAmbience.ts:159-162`), the steppe far calls
+     (`SteppeAmbience.ts:139-157`: the `herdT` / `marmotT` / `eagleT` countdowns), and `Audio.ts`'s own private
+     schedulers: `scheduleBubble` (`:740`), `scheduleLark` (`:1409`), `scheduleCricket` (`:1430`) and
+     `scheduleCrackle` (`:1447`). **The tap sits at the scheduler's tick, not at the gated play (R4-12; C4-5):** the
+     first statement of each timer callback, or of each countdown's expiry branch, is
+     `tap.sound?.('<module>.<scheduler>', 'ambient')` (`audio.cricket`, `island.bird`, `steppe.herd` …), before the
+     condition that decides whether a sound plays (night, a camp, the jungle bed's level, a zone). The id so says
+     "this scheduler is armed and ticking", whatever the time of day or the player's position, and the log
+     compares the ambient ids as a **set** (03 §2.3). A scheduler whose longest interval (its constants in the code)
+     is longer than the shortest scripted run that logs sounds (03 §4) may not tick inside it: F2 computes that list
+     and commits it as `test/parity/ambient-info.json`, and those ids are printed as information, never compared.
+     A dropped scheduler (one lost in S3.5's split of `Audio.ts`, a cricket timer at midday included) still shows as
+     a missing id. Never tap inside a shared timer helper (`IslandAmbience.ts:251`'s `later`), which other timers
+     use too.
+     A row that moves a sound path keeps its id literal and its kind: the `AudioService` built at S1.5 (01 §15)
+     calls `tap.sound?.(id)` on every event play with the id of the path it replaced, and a moved scheduler keeps its
+     tick tap as its callback's first statement (R4-12). The log therefore has
      one source for the whole plan, and `walk.sounds` / `combat.sounds` stay comparable across S1.5 and S3.5 with no
      rename map and no source switch. The probe sets the functions only when `window.__wildshardHarness` exists
      (03 §6).
@@ -402,7 +436,8 @@ pre-push tree gate's `vitest run` would not have them), and a missing `test/pari
 agree (a type-level check through `tsc -p scripts`). `test/sound-tap.test.ts` (R2-26, R3-13): lists every
 `src/**/*.ts` file that calls `createBufferSource` or `createOscillator` (a non-empty assert) and fails on any of them
 that has no `tap.sound?.(` call, so a new sound module can't bypass the log, and fails when any of `Audio.ts`'s four
-`schedule*` methods has no `tap.sound?.(…, 'ambient')` call.
+`schedule*` methods has no `tap.sound?.(…, 'ambient')` call. It also parses each ambient scheduler's callback (the
+list in step 2) and fails unless `tap.sound?.(…, 'ambient')` is its first statement, ahead of any condition (R4-12).
 
 **Done when.**
 - `node scripts/parity.mjs --export=<the follow-up sha> --lane=m5 --tiers=phone,desktop` exits 0 twice in a row
@@ -1232,10 +1267,12 @@ the full-screen error on a failed load. No hand-kept shard list anywhere.
    step 5), plus the engine's own,
    `src/engine/boot/ktx2.generated.ts` (every other row). `gpuFiles.ts` reads the engine table. **A shard's table is
    optional (R3-08; B3-2):** a manifest whose shard has one declares top-level `ktx2: () => import('./ktx2.generated')` (outside `assets`, R3-F1)
-   (01 §6), and the level load awaits that thunk, when present, and hands the table to `gpuFiles` before the level's
+   (01 §6), and `#game`'s level load (`src/game/shard/load.ts`) awaits that thunk, when present, and hands the table to `gpuFiles` before the level's
    first asset load, so the engine never imports a shard file. A shard with none (Z1's template, Z3's new shard before
    its first KTX2 bake) declares no thunk and boots without a table; nothing imports a file that doesn't exist.
-   `bake-ktx2` writes a shard's KTX2 files under `public/assets/gpu/<slug>/**`, which is on F0 step 5's allowlist.
+   `bake-ktx2` writes each KTX2 file under `public/assets/gpu/<its source's path>` (`bake-ktx2.mjs:31`): a shard's
+   files land in `gpu/<slug>/**`, `gpu/baked/<slug>/**` and `gpu/horizon/<slug>-*`, which its `assetGlobs` (or, for a
+   new shard, F0 step 5's default globs) allow (R4-09).
    `pnpm gen` and the Vite plugin never touch the KTX2 tables. A content lane that bakes its shard's KTX2 files
    commits its own shard's table (F0 step 5's allowlist) and adds the thunk to its manifest if it had none, and the
    lead commits the engine's.
@@ -1448,7 +1485,9 @@ reader against a device document with `devMode` true, a session document with `r
 (reads as absent, no throw).
 `test/fixtures/saves/v2-global.json`, `v2-driftwood-isle.json` (the fixture corpus starts here; every later version
 bump adds one, 01 §9). `test/elites-per-shard.test.ts` (bug §7.6). F5's `saves-roundtrip.test.ts` is replaced by the
-store's contract test.
+store's contract test. `test/saves-persist.test.ts` (R4-17): with `matchMedia('(display-mode: standalone)')`
+stubbed true, `app.saves.persist()` is called once per page and its result lands in the `device` key
+`storage.persisted`; stubbed false (a browser tab), it is never called.
 
 **Done when.**
 - `pnpm lint:ratchet` shows `wildshard/no-raw-save` at 0 and the rule's entries are gone from `lint/ratchet.json`.
@@ -1457,9 +1496,10 @@ store's contract test.
 - A save exported on Driftwood imports into a fresh browser context and restores purse, owned and progress (a
   Playwright check in `scripts/parity/combat.mjs`'s save step, run once, recorded in E357).
 
-**Milestone check, not a row done-when (R1-50).** In the iOS Simulator's home-screen web app (`scripts/sim-lane.sh
-run`, the ios-simulator skill), Debug ▸ Loading & memory ▸ storage shows `persisted: true`. It is the lead's check on
-the M1 checklist (05 §9), recorded in E357; there is no physical-iPhone step (decision 98, R3-11′). F11 does not wait
+**No milestone reading for persistence (R1-50, R4-17).** `navigator.storage.persist()` runs only in the
+home-screen app (step 7), which can't be installed in the Simulator headless (no UI-tap tool on the Mac; the
+ios-simulator skill), and decision 98 rules out a phone reading. The code path is covered by the test below; whether
+iOS grants it is not checked, and that risk (iOS evicting a home-screen app's saves) is stated in 12 §8.
 for it.
 
 **Risks and rollback.** A native install loses its saves because the mirror prefix changed: the reset is deliberate

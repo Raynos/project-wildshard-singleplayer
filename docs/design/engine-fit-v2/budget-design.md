@@ -109,7 +109,7 @@ differ by > 25 % on a playtest, or else quarterly. Files: `calibration/<device>-
 | Bytes, requests, cold / warm play on shaped 4G | bytes yes; seconds ±25 % | the Mac (bench, scorecard) | bytes hard; seconds as a p50-of-3 trend |
 | GPU ms per pose (frozen frame, A/B interleaved) | **no** | the Mac GPU gate (MW3) | hard at `B_gpu_M5`, re-run once before red |
 | CPU ms per system (frameCost buckets at 4× CPU) | no (a proxy) | the Mac | trend now; hard once `k` is calibrated |
-| Hot frame p50 / p95, unit costs | no | **the phone only** (Jake, one tap) | calibration + acceptance, not per push |
+| Hot frame p50 / p95, unit costs | no | **the M5 run × the phone : M5 ratio** (E283: ~10× hot; an assumption, E357 decision 99: no phone run) | calibration + acceptance, not per push |
 | WebContent native footprint | no | Simulator nightly (watchdog), phone manual (decision 31) | nightly hard on the Simulator at 1.8 / 1.0 GB |
 
 ## 6. Provisional numbers (P), from measurements already in the repo
@@ -181,7 +181,9 @@ Warm launch stays ≤ 4 s at the 4× CPU proxy ([bench](../../../bench.budget.js
 2. The gate goes live on counts, M5 GPU ms and load bytes. **A shard that is over a P number today gets its current worst
    as its ceiling** (a ratchet: it may only go down), with the derived number printed as its target. No shard turns red
    without a change.
-3. Jake runs one calibration (~6 min, one tap). The derivation re-runs: numbers move, formulas don't. A shard still
+3. One M5 calibration (`scripts/calibrate.mjs`, headless) × the E283 hot ratio (~10×) writes `budgets/calibration.json`;
+   there is no phone run (E357 decision 99), so the phone numbers are an assumption, stated in the file. The derivation
+   re-runs: numbers move, formulas don't. A shard still
    over becomes cut rows under Jake's perf-cut rule (default-off Debug rows, before / after).
 4. MW8's thermal governor and MW6's tick scheduler take their ms budgets from §6.2 / §6.3, not from constants of their own.
 

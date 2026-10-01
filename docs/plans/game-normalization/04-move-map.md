@@ -353,7 +353,7 @@ Grouped by today's folder. Territory folders (`src/chunks/<slug>/`, `src/nalati/
 | `world/facade/geo.ts` | 297 | `ND:world/facade/geo.ts` | = | ND | T | F6 | Nine Dragon content (05 §1.1) |  |
 | `world/facade/grammar.ts` | 895 | `ND:world/facade/grammar.ts` | = | ND | T | F6 | Nine Dragon content (05 §1.1) |  |
 | `world/facade/pieces.ts` | 465 | `ND:world/facade/pieces.ts` | = | ND | T | F6 | Nine Dragon content (05 §1.1) |  |
-| `world/facade/rng.ts` | 34 | `ND:world/facade/rng.ts` | ✗ (deleted at F8) | ND | DELETE | F6 → F8 | one RNG: `Rng.scrambled` keeps the facade sequence (01 §2, G18, R1-04) |  |
+| `world/facade/rng.ts` | 34 | `ND:world/facade/rng.ts` | ✗ (deleted at F8) | deleted | DEL | F6 → F8 | one RNG: `Rng.scrambled` keeps the facade sequence (01 §2, G18, R1-04) |  |
 | `world/facades.ts` | 233 | `ND:world/facades.ts` | = | ND | T | F6 | Nine Dragon content (05 §1.1) |  |
 | `world/gate.ts` | 570 | `ND:world/gate.ts` | = | ND | T | F6 | Nine Dragon content (05 §1.1) |  |
 | `world/hero/figures.ts` | 194 | `ND:world/hero/figures.ts` | = | ND | T | F6 | Nine Dragon content (05 §1.1) |  |
@@ -1120,7 +1120,7 @@ Grouped by today's folder. Territory folders (`src/chunks/<slug>/`, `src/nalati/
 | `Sky.ts` | 899 | `E:world/Sky.ts` | = | engine | SPLIT | F6 (+S2.1, S3.2, S4.3, X5) | shard branches leave (split table §3.3) |  |
 | `Spruce.ts` | 266 | `NG:world/Spruce.ts` | = | NG | G | F6 (+S3.1) | trees.factory 'spruce' is Nalati's (core/bootstrap.ts TREE_FACTORIES) | 07 |
 | `spruceMask.ts` | 79 | `NG:world/spruceMask.ts` | = | NG | N | F6 | Nalati's ChunkForest.mask (node-safe; bake-chunk runs it) | 07 |
-| `steppeWind.ts` | 157 | `E:world/steppeWind.ts` | ✗ (merged into `E:world/wind.ts`, S3.2) | engine | MERGE | F6 → S3.2 | one `WindField` (01 §17, R1-04); Nalati's steppe numbers become `manifest.wind` |  |
+| `steppeWind.ts` | 157 | `E:world/steppeWind.ts` | ✗ (merged into `E:world/wind.ts`, S3.2) | deleted | MERGE | F6 → S3.2 | one `WindField` (01 §17, R1-04); Nalati's steppe numbers become `manifest.wind` |  |
 | `stylize.ts` | 216 | `E:world/stylize.ts` | `DI:look/stylize.ts` | DI | SPLIT | F6 → S4.3 | Driftwood's toon lighting patch (a shader-patch registry entry, X6) (split table §3.13) | 08 |
 | `StylizedSky.ts` | 188 | `E:world/StylizedSky.ts` | `DI:look/StylizedSky.ts` | DI | SPLIT | F6 → S4.3 | Driftwood's sky (Sky.ts builds it when style === 'lowpoly'): the toon look as a LookStrategy backdrop (S4.3 / X5) (split table §3.13) | 08 |
 | `Terrain.ts` | 713 | `E:world/Terrain.ts` | = | engine | SPLIT | F6 (+S2.1, S3.2, S4.3, X5) | shard branches leave (split table §3.7) |  |
@@ -1540,7 +1540,7 @@ F6 commit, listed again in §7.3. The 21 scripts that import game modules throug
 | `scripts/bake-navmesh.mjs` | 17 | src() | codemod rewrites the 17 `src('…')` args; manual: `src(`world/${m}.ts`)` (:124) → an explicit list of the 10 Driftwood builders' new paths |
 | `scripts/bake-packs.mjs` | 4 | string | codemod: 4 literal(s) |
 | `scripts/bake-sky-keys.mjs` | 1 | import | codemod: 1 literal(s) |
-| `scripts/bake-sky.mjs` | 2 | string | manual: shard discovery `readdirSync('src/chunks')` (:24, :26) → `src/shards/*/manifest.ts` (02 F6 step 3); its `self` hash changes → every sky.json re-stamps (§7.5) |
+| `scripts/bake-sky.mjs` | 2 | string | manual: shard discovery `readdirSync('src/chunks')` (:24, :26) → `src/shards/*/manifest.ts` (02 F6 step 3) |
 | `scripts/bake-textures.mjs` | 5 | string | codemod: 5 literal(s) |
 | `scripts/blender/driftwood-isle/export.mjs` | 8 | string | codemod: 8 literal(s) |
 | `scripts/blender/driftwood-isle/fp-arms/bake.mjs` | 1 | import | codemod: 1 literal(s) |
@@ -1677,7 +1677,7 @@ every row whose `row` ends in `→ S2.3` from `f6` to `final` (§7.6).
 | Types, lint, CSS, build | `pnpm run typecheck`, `pnpm run lint` (0 warnings), `node scripts/check-css.mjs`, `pnpm exec vite build` exit 0 |
 | Tests | `pnpm test` exits 0 (check-paths, check-model-sources, vitest) and runs **the same number of test files and cases** as before the move (vitest `--reporter=json` totals compared; nothing skipped, nothing vacuous) |
 | Ratchets | `pnpm lint:ratchet` exits 0; every layer violation has a count; shard → shard = 0 |
-| Bakers | after `vite build`: every baked payload is byte-identical (`public/assets/**/*.bin`, images, `packs/*`, `packs.generated.ts`). The staleness `hash` fields in `terrain.json`, `navmesh.json`, `sky.json`, `cards.json` and the textures meta may change **once**, because the files they hash had their import lines rewritten (`bake-chunk` hashes the chunk sources, `bake-navmesh` and `bake-sky` hash their own script). `scripts/normalize/restamp.mjs` recomputes those digests without re-baking and fails if any hashed input differs from HEAD in anything but import / export specifiers and path literals; `bake-cards` / `bake-textures` are never re-rendered (GPU output is not reproducible). `node --experimental-transform-types --import ./scripts/bake-loader.mjs scripts/bake-navmesh.mjs --check` exits 0 after the restamp. Cost: `sky.json` ships inside Pine Hollow's phone pack (a 2.7 MB part), so its new hash renames that part once (Q5) |
+| Bakers | after `vite build`, `git status --porcelain public/assets src` is empty and `node scripts/bake-check.mjs` exits 0: every baker bakes in full and its bytes equal the committed files (02 F6 done-when; R3-07, R4-02). F6 re-stamps nothing: the bakers keep no input digest since F1, whose one re-stamp is the only one (02 F1 step 7). No restamp tool |
 | Parity | 03 §10's run is green on both lanes with **no** rename map (the move changes no system label, key or registry id) |
 | Chunks | `ls dist/assets/*.js \| wc -l` equal and the main chunk's bytes within ±1 % (aliases can move chunk boundaries; 02 F6 risks) |
 | History | `git log --follow` on 5 sampled files (one per layer) shows the pre-move history |
@@ -1747,7 +1747,7 @@ Each has the default this map uses, so the map stays executable.
 | Q2 | **One map, one location.** 02 F6 has `classify.mjs` compute the map into `scripts/normalize/move-map.json`; this spec commits the reviewed map at `docs/plans/game-normalization/move-map.json` and makes the classifier a `--check` against it (§7.1). 02's rules also differ in 8 places (§1.5 rows 1–4, 6, 10–12) | This spec's map is the input; 02 F6 step 1 is amended to `--check` it |
 | Q3 | **LeverRifle.** 06 §1.3 sends it to `src/kit/weapons/firearm/`; 09 §1.5 keeps it in Pine | Pine (09, rule of two) |
 | Q4 | **Grass.ts.** 06 §1.3 says S2.1 but also "after S3.1 takes Nalati's GrassV2 dispatch out", and S3.1 runs after S2.1 | the move is S3.1's; S2.1 wires Pine's call to it where it lies |
-| Q5 | **One bake re-stamp.** The staleness digests hash sources whose import lines F6 rewrites, so `terrain.json`, `navmesh.json`, `sky.json` and the cards / textures metas re-stamp once (payloads identical, §7.5). `sky.json` sits in Pine Hollow's phone pack, so one 2.7 MB part gets a new name and every Pine phone player downloads it once, at M2's deploy | accept; the restamp tool proves nothing else changed |
+| Q5 | **One bake re-stamp.** Settled by R3-07 (R4-02): the bakers keep no input digest from F1 on, so the one re-stamp is F1's (02 F1 step 7, with its one-time re-download of the packs that carry the `hash` fields) and F6 re-stamps nothing | settled (02 F1 step 7) |
 | Q6 | **Which tests move.** This map moves a test by its subject (34 at F6); 02 counts 28 | by subject (§4) |
 | Q7 | **Dead images.** `explore/img/{practice.jpg, models.webp, world.webp}` (the ART glob preloads them; no code shows them) and `explore/img/mockups/{lookout,shrine,spawn,wreck}.jpg` (no compare pair names them) | kept (engine / Driftwood); delete at F7 if the lead agrees (a parity-visible preload change: fewer bytes) |
 | Q8 | **Driftwood's interact sounds.** Pine's quest plays `IslandSfx.interact()` sounds, so `gen.ts` and the interact half of `IslandSfx.ts` are 2-shard content | kit at S3.5 (`K:audio/gen.ts`, `K:audio/interactSfx.ts`); the alternative is Pine gets its own interact cues and both stay Driftwood's |

@@ -44,6 +44,12 @@ const RETIRED = [
   [/model\.bolt/, 'the bolt base formula (R1-31 / R2-10)'],
   [/manifest\.map\./, 'manifest.minimap (13 05/06#1)'],
   [/(manifest|level)\.world\.blender/, 'blender.area / blender.models (R2-02)'],
+  // council round 3 / round 4 retirements (R3-07, R3-F1, decisions 98–99, R4-01, R4-02, R4-09)
+  [/restamp\.mjs/, 'full bakes + byte compare, no digests (R3-07, R4-02)'],
+  [/assets\.ktx2/, 'the top-level manifest ktx2 thunk (R3-F1)'],
+  [/RUN CALIBRATION once|first calibration run|calibration by Jake/, 'no phone calibration (decision 99, R4-01)'],
+  [/physical-iPhone (load )?reading from Jake/, 'no physical-iPhone readings (decision 98)'],
+  [/horizon\/<(new-)?slug>\/\*\*|title\/<(new-)?slug>\/\*\*/, 'horizon/<slug>-* and title/<slug>-portrait.jpg (R4-09)'],
 ];
 // a quote of Jake runs *"…"* and can wrap lines: everything after an opening *" is his words, not the plan's
 const strip = (line) => line.replace(/\*"[^]*$/, '').replaceAll(/`[^`]*`/g, '').replaceAll(/"[^"]*"/g, '');

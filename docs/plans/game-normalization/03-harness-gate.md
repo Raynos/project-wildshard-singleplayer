@@ -60,8 +60,12 @@ node scripts/parity.mjs [source] [--lane=m5|gh-macos15] [--shards=a,b|all] [--ti
   (`<slug> baselines for <sha7>`, §8 case 6), every SHA carries that shard's old baselines. `parity.mjs` derives this
   for the target SHA `X` from `X`'s `.github/lock.json` and its commit log: a slug in `reopened` is **`lane-pending`**
   on `X` when `git log <B>..X -- <the slug's allowlisted paths that the export carries>` (02 F0 step 5, without
-  `art/` and `docs/`) lists a commit without the `E357-Lead: yes` trailer, where `B` is the newest `<slug> baselines
-  for …` commit in `X`'s history (or the `lock.json` commit that reopened the slug). The lane's own
+  `art/` and `docs/`) lists a commit without the `E357-Lead: yes` trailer **that touches a path outside
+  `test/parity/baselines/**`** (a baselines-only commit changes no runtime, so it never makes a shard lane-pending;
+  R4-10), where `B` is the newest commit in `X`'s history that touches `test/parity/baselines/m5/<slug>.*` (or the
+  `lock.json` commit that reopened the slug), whatever its message. Only the m5 lane derives it (`--lane=m5`, the
+  lead's checkout with its full history): the runner treats no shard as lane-pending, since nothing is pushed while
+  one is (below), and its `blob:none` checkout of one SHA has no history to derive it from (R4-10). The lane's own
   `--rebaseline=<slug>` run records that shard and so ignores the state for it. On a lane-pending shard every
   field is still compared and printed, but its verdict is `lane-pending` (yellow, like a pending board), never red;
   only its class D thresholds, which need no baseline, can turn it red. Every other run in that window (the lead's
@@ -221,7 +225,7 @@ drawn frames, then takes one JPEG (q 80, CSS scale).
 | `walk.legs[].maxY` | the highest feet y | B | floor 0.3 m |
 | `walk.legs[].out` | escape legs: frames outside `inside` | D: must be 0 | — |
 | `walk.legs[].seconds` | wall time | C | — |
-| `walk.sounds`, `combat.sounds` | the sound-play log of that scripted run, `{ event, ambient }` (§2.0): every sound played from the run's start to its end, read from the probe's `tap.sound` hook, which every sound-play path calls from F2 on, and the `AudioService` too from S1.5 with the ids and kinds of the paths it replaced (02 F2 step 2; R1-45, R2-26). The source never switches, so S1.5 and S3.5 compare against the same baseline. **Two kinds (R3-13; C3-2):** `event` (sounds a gameplay event starts) is a multiset `{ <sound id>: count }`; `ambient` (one-shots a timer starts: birds, larks, crickets, bubbles, crackle, far calls) is a set of ids, because how many fire depends on wall time. The baseline's `ambient` is the ids every recording run started; a run passes when it started each of them (an extra id is printed as information) | A: `event` by multiset equality, `ambient` by "no baseline id missing" (both after the rename map) | — |
+| `walk.sounds`, `combat.sounds` | the sound-play log of that scripted run, `{ event, ambient }` (§2.0): every sound played from the run's start to its end, read from the probe's `tap.sound` hook, which every sound-play path calls from F2 on, and the `AudioService` too from S1.5 with the ids and kinds of the paths it replaced (02 F2 step 2; R1-45, R2-26). The source never switches, so S1.5 and S3.5 compare against the same baseline. **Two kinds (R3-13; C3-2):** `event` (sounds a gameplay event starts) is a multiset `{ <sound id>: count }`; `ambient` (one-shots a timer starts: birds, larks, crickets, bubbles, crackle, far calls) is a set of **scheduler** ids, tapped at each scheduler's tick before its play condition (02 F2 step 2; R4-12), because how many fire depends on wall time and which play depends on the time of day and the player's position. Ids in `test/parity/ambient-info.json` (schedulers slower than the run) are printed, never compared. The baseline's `ambient` is the ids every recording run started; a run passes when it started each of them (an extra id is printed as information) | A: `event` by multiset equality, `ambient` by "no baseline id missing" (both after the rename map) | — |
 | `combat.swing` | `{ weapon, target, hits, hitWithinS, killed, killWithinS }` or `'n/a'` (§5) | D: `hits ≥ 1` within the step's hit limit; `killed` within its kill limit when the table says kill; the limits' clock is §5.2's (R1-44) | — |
 | `combat.shot`, `combat.shot2` | the same for the ranged steps (`shot2`: Pine Hollow's longbow, `'n/a'` elsewhere; §5.2, R1-34) | D (same rule) | — |
 | `combat.hitsToKill` | per step | B | floor 1 hit (damage rolls use the seeded `Math.random`, but the number of draws before the swing depends on AI timing) |
@@ -259,8 +263,8 @@ note, never a verdict.
 `probe.budgets()` returns, per pose of the running tier: `{ derived: { draws, tris, programs, gpuMB }, ceiling: {…} |
 null, formula: { inputs, source } }`. The derived numbers come from `src/engine/render/budgets.ts` (01 §13.4), which
 computes them from the manifest's `budgets` inputs (target fps, CPU / GPU split) and the committed calibration file
-(`budgets/calibration.json`, or `budgets/provisional.json` holding budget-design §6's P numbers until Jake's first
-calibration run). `ceiling` is the ratchet from `lint/ratchet.json` `"budgets"` (`"<shard>.<tier>.<pose>.<metric>":
+(`budgets/calibration.json`, which S1.6's `calibrate.mjs` writes from its M5 run × the measured phone : M5 ratio,
+E283's hot ~10×, decision 99; before S1.6 lands, `budgets/provisional.json` holding budget-design §6's P numbers). `ceiling` is the ratchet from `lint/ratchet.json` `"budgets"` (`"<shard>.<tier>.<pose>.<metric>":
 n`) for a shard already over its derived number (budget-design §7: its worst today, may only go down).
 
 | Check | Against | Class |
@@ -517,9 +521,17 @@ page global set by the test browser's init script, not a URL switch, and the lin
      as it will ship. A case-4 fix records its other fields in the baseline as usual (case 4); a field it shares with
      an entry follows this step.
   5. **At the milestone,** the reverts of the items Jake said no to (each removes its entries in the revert commit)
-     and the fixes he asked for (each refilled, step 4) land first. Then, only for his OKs and **last**, `node
-     scripts/parity.mjs --accept=<ids> --export=<the newest sha>` records those fields per tier with 3 runs and
+     and the fixes he asked for (each refilled, step 4) land first. **A fix Jake asked for goes back to him (R4-13):**
+     after its refill lands, the lead sends the fixed item's clip or page with AskUserQuestion; its entry is settled
+     only by his OK (then accepted) or a revert. **A reverted entry that carries a case-4 refill note** (step 4)
+     leaves that bug fix's effect on the field unrecorded: the revert's follow-up commit re-records that field under
+     case 4 on the revert's SHA (R4-13). Then, once every entry is OKed or reverted, only for his OKs and **last**,
+     `node scripts/parity.mjs --accept=<ids> --export=<the newest sha>` records those fields per tier with 3 runs and
      removes the entries (case 1; §1), so no accepted baseline carries the effect of a reverted item.
+  6. **Memory entries (R4-14; A4-1, B4-9, C4-8).** An entry whose `fields` are `memory.<shard>.<phase>` (§14.1) is
+     owned by the nightly, not by parity: `--pending-fill` leaves its `expect` null and `--accept` records nothing for
+     it (no parity field exists), only removing the entry. Only the lead commits it (a lane can't commit
+     `pending.json`, 02 F0 step 5).
   `deploy-pin.mjs set` refuses while the target SHA's file has any entry (§13.2), so every entry is settled before the
   pin moves.
 - **Who may re-record, and when — the only six cases:**
@@ -552,7 +564,8 @@ page global set by the test browser's init script, not a URL switch, and the lin
      and the deletion of its `gh-macos15/<slug>.*` files (so the push's gate run bootstrap-records them), land in a
      follow-up pathspec commit, `<slug> baselines for <sha7>`, which lists the fields that changed. Never an amend:
      the lead may have committed in between. Both commits go up in one `scripts/push-main.sh`, and the lane commits
-     the bootstrap artifact next. **Until the follow-up lands, the shard is `lane-pending` (R3-12; §1):** every other
+     the bootstrap artifact next, as `<slug> gh-macos15 baselines for <sha7>` (baselines only, so it never makes the
+     shard lane-pending again; R4-10). **Until the follow-up lands, the shard is `lane-pending` (R3-12; §1):** every other
      run shows it yellow, not red, and nothing is pushed. A red on another shard in the lane's cross-shard proof is
      re-run on `C^` before the lane reverts anything: red there too, the regression isn't the lane's (§1).
   Anything else that changes the fingerprint is a regression and is reverted.
@@ -615,6 +628,7 @@ F2 (m5), of F3.2 (runner), and again after F6, F8, F9 and S1.6 (each adds its pl
 | Run | Budget | How it holds |
 |---|---|---|
 | The lead's per-commit run: m5, phone, the changed shards (all 4 for an engine / game / kit commit; 5 from Z1) | ≤ 6 min wall | 2 shards in parallel (2 browser-lane slots), each ≤ 2.5 min: boot ≈ 11 s (TP audit §6), fingerprint 2 s, 3 poses × (3 s settle + 5 s sample) = 24 s, 3 gate legs ≈ 45 s, combat ≤ 40 s, pause → resume ≈ 5 s, leak 5 s (plus ≈ 40 s for Nalati's and Pine's weather leak run, §5.5), build ≈ 15 s once |
+| `pnpm test` on the Mac, with `bake-check`'s GPU part (02 F1 step 7: a `vite build`, a preview and the cards / textures bakes in a browser-lane slot) | measured at F1 and written here (02 F1 done-when; C4-14) | every commit runs it before the parity run (12 §5); if it is over 4 min, a subagent reports "queued: pnpm test" for the lead as AGENTS.md says |
 | A subagent's per-commit run: m5, phone, its one shard (R1-10) | ≤ 2.5 min | under AGENTS.md's 4-minute wait; anything longer is "queued: <command>" for the lead |
 | The lead's pre-push run: m5, phone + desktop, all shards (R1-10) | ≤ 12 min wall | the per-commit run × 2 tiers |
 | The lead's pre-milestone run: m5, phone + desktop, `--full` | ≤ 45 min | full routes and trails dominate; runs once per milestone and nightly |
@@ -922,7 +936,10 @@ A plant (`asset-case`, §9) proves it goes red. After the plan (§16) the job st
 |---|---|
 | `read` | validates the file (40-hex `sha`, `mode` ∈ {`pinned`, `newest-green`}, `gate` ∈ {`grandfathered`, `required`}); in `pinned` mode prints `sha`; in `newest-green` mode walks `git rev-list origin/main -n 50` newest first and prints the first SHA whose `gpu-gate` status is `success`; writes `sha=`, `mode=`, `gate=` to `$GITHUB_OUTPUT` when set |
 | `check-gate <sha>` | exit 0 only if `gh api repos/Raynos/project-wildshard-singleplayer/commits/<sha>/status` has context `gpu-gate` with state `success` |
-| `set <sha> --milestone <Mn> --go "<where Jake said go>"` | refuses unless `git merge-base --is-ancestor <sha> origin/main` and `check-gate <sha>` pass; the **target SHA's** pending file has no entry (`git show <sha>:docs/plans/game-normalization/reviews/pending.json`, a missing file reading as `[]`; R1-13, R2-28); no `gpu-gate/<slug>` status of `<sha>` has a description starting `bootstrap record` (a shard the runner recorded but never compared there; R2-27); and the newest `gpu-perf/memory` status (§14) is not `failure` (R1-53). Writes the file with `gate: "required"`, `set` = now, `by` = `E357 lead` |
+| `set <sha> --milestone <Mn> --go "<where Jake said go>"` | refuses unless `git merge-base --is-ancestor <sha> origin/main` and `check-gate <sha>` pass; the **target SHA's** pending file has no entry (`git show <sha>:docs/plans/game-normalization/reviews/pending.json`, a missing file reading as `[]`; R1-13, R2-28); no `gpu-gate/<slug>` status of `<sha>` has a description starting `bootstrap record` (a shard the runner recorded but never compared there; R2-27); and **`<sha>` has a `gpu-perf/memory` status `success`**, or an ancestor `A` of it has one and `git diff --quiet A
+<sha> -- <the build inputs §1's `--export` archives, without `test/parity/`>` holds (no runtime change since; R4-15,
+C4-1); without one, the lead first runs `scripts/gpu-perf/nightly.sh --memory-only --sha=<sha>` (§14), and a
+`failure` there refuses (R1-53). Writes the file with `gate: "required"`, `set` = now, `by` = `E357 lead` |
 | `rollback <sha> --go "<Jake's words>"` | (R1-16) accepts only a SHA the pin history holds (every `sha` in `git log -p -- .github/deploy-pin.json`; M0 is there from F3.1, recorded as trusted then) and skips the gate check; writes that pin's own `gate` value back, `milestone` = `<its milestone>-rollback`. When the SHA predates F10, it prints, and the lead states to Jake with the rollback, that the old build can't read the v2 saves made since F10 (it reads only the deleted `ws.*` keys), so progress resets a second time (decision 95; the saves reset of decision 13) |
 | `mode newest-green --go "<…>"` | (Z4 only) switches the mode; `sha` is kept as the last pinned build for the record |
 
@@ -960,7 +977,10 @@ The milestone flow (R1-15), in order:
 4. **The pin moves to the newest `gpu-gate`-green SHA after step 3** (R2-27): step 3's accept, fix and revert
    commits included, and, after an accept, the commit that lands the runner's bootstrap artifacts (the accept deleted
    those shards' runner baselines, §8 case 1, and `set` refuses a SHA where a shard was only bootstrap-recorded,
-   §13.2). That SHA's `pending.json` must be empty, and the lead dispatches the offline check on it as in step 1. The
+   §13.2). That SHA's `pending.json` must be empty, and the lead dispatches the offline check on it as in step 1. **That SHA
+   needs its own memory reading (R4-15):** a `gpu-perf/memory` `success` on it or on a runtime-equal ancestor
+   (§13.2); otherwise the lead runs `scripts/gpu-perf/nightly.sh --memory-only --sha=<sha>` (with
+   `run_in_background`, ≤ 40 min) before `set`. The
    lead runs `node scripts/deploy-pin.mjs set <sha> --milestone M<n> --go "E357 <where Jake OKed>"`, commits
    `.github/deploy-pin.json` alone, `scripts/push-main.sh`, then `gh workflow run deploy`, and checks that
    `version.json` reports `<sha7>`. The build id goes into E357 (AGENTS.md → Deploy).
@@ -968,7 +988,7 @@ The milestone flow (R1-15), in order:
    **No checklist has a physical-iPhone reading (decision 98, R3-11′).** The memory evidence is the nightly Simulator
    memory run (§14.1: every shard's WebContent footprint against 1.8 GB loading and 1.0 GB in the world, decimal;
    decision 31) plus the budgets (§2.5). Over a limit means **stop the line** (R1-53): the pin doesn't move (`set`
-   refuses while `gpu-perf/memory` is `failure`, §13.2), and the next commit fixes or reverts the cause. The accepted
+   refuses a SHA without its own `gpu-perf/memory` `success`, §13.2), and the next commit fixes or reverts the cause. The accepted
    risk is stated in 12 §8: an iPhone-only memory death (the E271 class) can reach Jake's phone undetected.
 6. **Jake's go starts the next shard.** The go is not a ship gate: the build already shipped in step 4. **A "no"
    (R2-29):** the next shard phase waits. Jake's reasons become rows of this milestone, each one fixed, gated, boarded
@@ -1006,13 +1026,15 @@ asks Jake, with one recommended option, to board the pending items early or to w
   bootstrap gui/$(id -u)`. It needs no new token (13-lead-resolutions 02/03#8): the poller posts with the Mac's
   existing `gh` login (`gh api repos/Raynos/project-wildshard-singleplayer/statuses/<sha> -f state=… -f
   context=gpu-perf -f description=…`), and `install.sh` refuses to load the agent while `gh auth status` fails.
-- **`scripts/gpu-perf/nightly.sh [--plant=<id>]`**, in order, under `caffeinate -i`, capped at 240 min as a whole
+- **`scripts/gpu-perf/nightly.sh [--plant=<id>] [--memory-only --sha=<sha>]`**, in order, under `caffeinate -i`, capped at 240 min as a whole
   (`--max 240` for the nightly; each step below is its own lane call with its own `--max`, within its §10 budget;
   R1-43). `--plant` (a one-off, by hand)
   applies `test/parity/plants/<id>.patch` to the exported tree, runs only the parts the plant's `shards` names (its
   `index.json` entry, §9),
   prints the verdict, writes the report under `~/.wildshard/gpu-perf/plant-<id>-<date>.md` and posts no status (a
-  plant never marks a real commit, as in the gate):
+  plant never marks a real commit, as in the gate). `--memory-only --sha=<sha>` (R4-15: the pin's own memory reading,
+  §13.2) runs steps 2, 4 and 7 on that SHA, compares with the newest earlier reading, writes
+  `~/.wildshard/gpu-perf/memory-<date>-<sha7>.json` and posts only `gpu-perf/memory` on it:
   1. `git --git-dir=<mirror> fetch origin main`; pick the newest of the last 30 commits whose `gpu-gate` is `success`;
      stop if a report for it exists (`~/.wildshard/gpu-perf/*-<sha7>.json`, the name step 6 writes).
   2. `git archive <sha>` into `~/.cache/wildshard-gpu-perf/tree-<sha7>/`; `pnpm install --frozen-lockfile
@@ -1037,7 +1059,8 @@ asks Jake, with one recommended option, to board the pending items early or to w
      when every check passed, `failure` otherwise, description ≤ 140 characters, e.g. `M5 GPU worst nine/well-edge
      1.42 ms (1.6) · GPU 373 MB · parity 0 red · sim 0.71/1.0 GB · soak ok`. It never blocks a deploy. It also posts
      context **`gpu-perf/memory`**, from the Simulator memory table alone (`failure` when §14.1's verdict is red),
-     which `deploy-pin.mjs set` reads: the pin can't move while it is `failure` (R1-53).
+     which `deploy-pin.mjs set` reads on the target SHA (or a runtime-equal ancestor): the pin can't move to a SHA
+     without a `success` there (R1-53, R4-15).
   7. `scripts/serve-build.sh stop <port>`, closes every browser, deletes the tree.
 - `.claude/hooks/session-brief.sh` prints the newest report's first line, so the lead sees the night's numbers at
   session start.
@@ -1058,15 +1081,21 @@ reset at each phase start) and Web Inspector's total.
 - **Verdict:** red when a phase is over its limit, or when it is more than 10 % above the previous night's reading for
   the same shard and phase (a regression on the same machine). The table goes into the report, and the verdict is the
   `gpu-perf/memory` status (§14 step 6).
-- **An intended increase (C3-15; R3-N)** is a boarded item: the commit that adds it (a lane's new hero model, an
-  engine change that holds more) adds a pending entry (§8) whose `fields` name `memory.<shard>.<phase>`. While the
-  entry is open, a night more than 10 % above the previous one on that phase reads `pending` (yellow), never red, as
-  long as the phase is under its limit; over a limit is red regardless. Jake's OK on the board (its `--accept`, which
-  removes the entry) re-baselines the nightly: that night's reading becomes the value the next night compares with.
-  A "no" reverts the commit.
+- **An intended increase (C3-15; R3-N, R4-14)** is a boarded item, and only the lead commits its entry (a lane can't
+  commit `pending.json`):
+  - **A lane's increase** (a new hero model): the lane's follow-up baseline commit names it (`memory: <slug>.<phase>
+    +<n> % intended`), and the lane tells the lead (`herdr agent prompt`, or its ask file). The lead's next commit
+    adds the entry. **The lead's own increase** (an engine change that holds more) adds it in the change commit.
+  - The entry is `{ id, row, wave: "look", shard, fields: ["memory.<shard>.<phase>"], expect: null }` (§8 pending
+    step 6: parity's fill and accept skip it). While it is open, a reading more than 10 % above the previous one
+    on that phase reads `pending` (yellow), never red, as long as the phase is under its limit; over a limit is red
+    regardless.
+  - It goes on the milestone's Look board as "memory: <shard> <phase> +<n> %" with the two readings. Jake's OK
+    removes the entry in the accept commit; the readings compare with the previous reading as before, so the
+    raised one is the reference from then on. A "no" reverts the commit that raised it.
 - **Memory red stops the line (R1-53).** The lead's next commit fixes it or reverts the cause (found by running
   `node scripts/sim-memory.mjs --url=<u> --shards=<the red shard>` on the SHAs between the last green night and the
-  red one), and no other row lands before it. The pin can't move while `gpu-perf/memory` is `failure` (§13.2).
+  red one), and no other row lands before it. The pin can't move to a SHA without its own `gpu-perf/memory` `success` (§13.2, R4-15).
 - **The memory gate, and its limit (decision 98, R3-11′).** This run plus the budgets (§2.5) is the plan's memory
   evidence: there is no physical-iPhone reading at any milestone (§13.4 step 5) or for F12 (02 F12 step 5 uses a
   Simulator load reading). The Simulator runs on the Mac's memory and GPU and read ~0.75 GB where the phone read 1.054

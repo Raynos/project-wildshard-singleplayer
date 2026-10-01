@@ -9,7 +9,7 @@ spoken about."*
 
 **The protocol** (decisions 81–83, 92–93). It is built so that rounds converge rather than circle.
 
-1. **A frozen ledger.** Settled means Jake's decisions in `docs/tasks/asks/E357.md` (1–98 and the ′ revisions) plus
+1. **A frozen ledger.** Settled means Jake's decisions in `docs/tasks/asks/E357.md` (1–99 and the ′ revisions) plus
    the lead's resolutions in [13](13-lead-resolutions.md). A reviewer may reopen a settled item only with **new
    evidence** that it is wrong against the code or contradicts another settled item, never on preference. Without
    that, the finding is closed as `settled` on sight.
@@ -131,21 +131,23 @@ lane's terrain and tree-card edit against the bakers, and the sound log over tim
 - **At each milestone** (M1–M4, then Z3's shard 5 and the archive), the flow is (R1-15; 03 §13.4):
   1. the gate is green on the candidate SHA (dispatched with the offline boot check, 03 §11.1);
   2. the boards go to Jake, with clips and images from the harness's capture of that SHA;
-  3. Jake OKs the board items, or they're fixed or reverted. The reverts and fixes land first; then, last and only for
-     his OKs, `node scripts/parity.mjs --accept=<ids> --export=<the newest sha>` re-records them with 3 runs (R2-18,
+  3. Jake OKs the board items, or they're fixed or reverted. The reverts and fixes land first, and a fix he asked for
+     goes back to him for an OK (R4-13; 03 §8 pending step 5); then, last and only for his OKs, `node scripts/parity.mjs --accept=<ids> --export=<the newest sha>` re-records them with 3 runs (R2-18,
      R3-14; 03 §8), so nothing is pending;
   4. the pin moves to **the newest `gpu-gate`-green SHA after step 3** (R2-27): step 3's accept, fix and revert
      commits included, and after an accept the commit that lands the runner's bootstrap artifacts; only when that
-     SHA's `pending.json` is empty. `node scripts/deploy-pin.mjs set <sha> --milestone M<n> --go "<where Jake OKed>"`
+     SHA's `pending.json` is empty, and only with a `gpu-perf/memory` reading of that SHA or a runtime-equal ancestor
+     (R4-15; 03 §13.2: `nightly.sh --memory-only --sha=<sha>` when there is none). `node scripts/deploy-pin.mjs set <sha> --milestone M<n> --go "<where Jake OKed>"`
      refuses a SHA without a green `gpu-gate`, a SHA with a pending entry (R1-13, R2-28), a SHA a shard was only
-     bootstrap-recorded on, and any SHA while `gpu-perf/memory` is red (R1-53). The lead commits
+     bootstrap-recorded on, and a SHA without a `gpu-perf/memory` `success` of its own or of a runtime-equal
+     ancestor (R1-53, R4-15). The lead commits
      `.github/deploy-pin.json` alone, runs `gh workflow run deploy`, confirms `version.json` reports it, and records the
      build id in `docs/tasks/asks/E357.md`;
   5. Jake plays it live, with the milestone's checklist (05–08 §9). **No checklist has a physical-iPhone reading
      (decision 98, R3-11′).** The memory evidence is the nightly Simulator memory run (03 §14.1: every shard's
      WebContent footprint against 1.8 GB loading / 1.0 GB in world, decimal; decision 31) plus the budgets (03 §2.5).
-     Over a limit means **stop the line** (§8; R1-53): the pin doesn't move (`set` refuses while `gpu-perf/memory` is
-     red, step 4), and the next commit fixes or reverts. The risk this accepts is stated in §8;
+     Over a limit means **stop the line** (§8; R1-53): the pin doesn't move (`set` refuses a SHA without its own
+     `gpu-perf/memory` `success`, step 4), and the next commit fixes or reverts. The risk this accepts is stated in §8;
   6. **Jake's go starts the next shard.** The go is not a ship gate. **On a "no" (R2-29),** the next shard phase
      waits: Jake's reasons become rows of this milestone, each fixed, gated, boarded if it is visible, and then
      "M<n>: go?" is asked again (the flow repeats from step 1). The pinned build stays live unless it is broken on his
@@ -266,6 +268,7 @@ lane's terrain and tree-card edit against the bakers, and the sound log over tim
 | The harness is non-deterministic (flaky) | F2 | green twice on unchanged HEAD before anything moves; re-run once, quarantine with an owner | A flaky check blocks nothing only while quarantined, max 3 days (03 §12), then fixed, or deleted only with a replacement check covering the same field (R1-36) |
 | iPhone memory regression (the E271 class) | any render change | budgets + GPU bytes in the nightly perf; **the nightly Simulator memory run** (03 §14.1: every shard's WebContent footprint against 1.8 GB loading / 1.0 GB in world, decimal; decision 31) and the soak bot (03 §14.2). With the budgets, that run is the plan's memory gate: **no physical-iPhone reading anywhere**, at a milestone or for F12 (decision 98, R3-11′; F12 uses a Simulator load reading, 02 F12 step 5). An intended increase is a boarded item whose OK re-baselines the nightly (03 §14.1; C3-15) | **Memory red stops the line** (R1-53): over a limit, or > 10 % above the previous night without an open pending entry for it, the pin doesn't move (`set` refuses while `gpu-perf/memory` is red, 03 §13.2) and the next commit fixes or reverts the cause. A pinned build that breaks on the phone goes back with `deploy-pin.mjs rollback <sha>` to any earlier pin, M0 included (R1-16; past F10 the old build can't read the v2 saves, so progress resets a second time, which decision 95 accepts and the rollback states). **The accepted risk (decision 98):** the Simulator runs on the Mac's memory and GPU (it read ~0.75 GB where the phone read 1.054, E271 / E272), so an iPhone-only memory death, as the multi-draw crash was, can reach Jake's phone undetected; nothing in the plan takes a reading that would catch it first. A render optimisation that AGENTS.md's E271 rule says needs physical-device evidence (MW12) is not in this plan: it waits until after it (index §8) |
 | Rapier 0.21 changes walks | F12 | walk + trails 0 stuck, nav bake `--check`, a Simulator load reading of Nine Dragon and Pine Hollow at M1 (02 F12 step 5; R3-11′) | 0 stuck but `end` / `maxY` beyond the band: the lead inspects the legs and trails; a pure numeric drift is re-baselined with a note (decision 89); a new stuck or a fall reverts F12 and files an ask (R1-52; 03 §8 case 5). The engine hides Rapier, so it's one module |
+| iOS evicts the home-screen app's saves (storage not persisted) | F10 | `app.saves.persist()` on a home-screen launch, covered by `test/saves-persist.test.ts`; export / import in Settings (02 F10 step 8). Whether iOS grants it is not checked: the home-screen install can't be driven headless and decision 98 rules out a phone reading (R4-17) | Jake's progress resets; he can restore an export. The lead adds a Simulator home-screen check if a UI-tap tool lands on the Mac |
 | `macos-15` runner changes (image, Chromium) | F3.2 | image label and Chromium version pinned; baselines recorded on the runner | Re-baseline in one commit with a board only if pixels moved |
 | A profile can't express a weapon's old behaviour | S1–S3 | parity trajectory / timing tests per weapon | The family gains the field (a bug in the family, decision 12′), never the weapon converges |
 | The scope creeps (new features mid-refactor) | any | the lock; the plan's rows are the only work | New ideas become asks; a draft plan marked "Jake approved none" ([[park-unapproved-ideas]]) |
