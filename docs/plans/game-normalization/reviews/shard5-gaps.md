@@ -10,7 +10,7 @@ edits and zero gaps**.
 
 | ID | Gap | From | Wanted | Status |
 |---|---|---|---|---|
-| G0 | A shard's deck / Explore card art has no public fallback (`artFor`); far-reach's `card.jpg` failed `test/shard-prefetch.test.ts` | Z3 suite (8d97b0ca) | runtime fallback to the public card bytes + ENGINE doc | in flight (sol-tests, candidate 4a5534f2) |
+| G0 | A shard's deck / Explore card art has no public fallback (`artFor`); far-reach's `card.jpg` failed `test/shard-prefetch.test.ts` | Z3 suite (8d97b0ca) | runtime fallback to the public card bytes + ENGINE doc | fixed (ef3d5ac5) |
 | G1 | No readable movement mode: "is the player on the hoverboard?" (hover bridges' collider gate + glow). Used the undocumented `runtime.world.player.hover` | E364 #1 (#2 is covered by `active()` once G1 exists) | `app.player.mode` (`'foot' \| 'board' \| 'swim' \| 'ride'`) plus a `player.mode` event | open |
 | G2 | No flying creature. `SpeciesRow` / `ThinkCtx` / `StrikeRunner` are ground-only (xz, slope steer, ground follow owns `y`). Dunes' ray uses `Animal.yOffset` + raw `setMotion`; Sky Reach's manta uses the undocumented `Animal.driven`. | E363 #2, E364 #3 | a documented `flight` block next to `steer` (altitude, climb/dive rate) and a 3-D strike shape | open |
 | G3 | No creature push and no fall death. `DamageRequest.knockback` does nothing documented to an `Animal`; Sky Reach moves `Animal.position` itself and kills over the void with `combat.hit({ amount: 1e4 })` | E364 #4 | a documented creature impulse; an out-of-world / fall death cause | open |
@@ -23,3 +23,15 @@ edits and zero gaps**.
 | G10 | Doc nit: SHARDS §3 says the manifest imports `buildTerrain` from `#engine/data`, the template imports it from `#engine` | E364 #7 | one import path, the same in both | open |
 | G11 | `pnpm gen` writes every slug's `lint/shard-words.generated.json` entry from the shared tree; a shard agent has to splice HEAD + its slug by hand through a private index | E363 #1 | `gen-shards` writes one slug's entry (or one file per slug) | open |
 | G12 | A `git archive` check export is 3 GB with `public/` (ENOSPC mid-session) | E364 #10 | SHARDS documents a check export that skips `public/` (symlink it) | open |
+
+## Shard findings for the rebuild (not API gaps)
+
+From the first-look boards (`art/sunscar-dunes/round-3-build/board-c2fdc72d.jpg`,
+`art/far-reach/round-2-build/board-8dbba343.jpg`). The fresh rebuild agents get these in their brief.
+
+| ID | Shard | Finding | Status |
+|---|---|---|---|
+| S6-1 | Sky Reach | A hover deck starts inside the island's rim: on foot you walk onto ground first, then slide down the cliff under the bridge instead of dropping straight through | open (rebuild) |
+| S6-2 | Sky Reach | On that cliff, with no input the player clings and sinks ~0.4 m/s; he only drops away while walking. Check whether the engine's character controller sticks to steep (> 40°) walls; if so it is an engine bug (G13), not a shard one | open (investigate) |
+| S6-3 | Sky Reach | The fan stays in the player's hand on the hoverboard | open (rebuild) |
+| S6-4 | Sky Reach | The drift ray dives every ~10 s and hits for 10: tune with the look board | open (rebuild) |
