@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { debugSettings } from './debug-settings.mjs';
 // E226: matched cold phone loads across Chromium and WebKit. Each run owns a new browser context and
 // blocks the service worker so network size means transferred response bytes, not a previous cache.
 import { chromium, webkit } from 'playwright';
@@ -17,7 +18,7 @@ for (const [engine, browserType] of [['chromium', chromium], ['webkit', webkit]]
     for (const shard of ['driftwood-isle', 'nine-dragon-stack']) {
       if (onlyShard && shard !== onlyShard) continue;
       const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true, serviceWorkers: 'block' });
-      if (textureMode === 'ktx2' || textureMode === 'img') await context.addInitScript((tex) => { localStorage.setItem('ws.settings.v1', JSON.stringify({ tex })); }, textureMode);
+      if (textureMode === 'ktx2' || textureMode === 'img') await debugSettings(context, { tex: textureMode });
       await context.addInitScript(() => {
         window.__e226 = { gaps: [], heaps: [] };
         let last = performance.now();

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { saveFixture } from './debug-settings.mjs';
 // playground-hubs.mjs — E307: the Explore hub on all four shards, and that each shard still boots and plays.
 //
 // Per shard (iPhone-16-Pro portrait, touch, phone tier, Developer mode): boot to the title → EXPLORE WORLD (a tap) → the
@@ -75,7 +76,7 @@ try {
   // the list scrolls: a short phone, the hub overflows, a real swipe moves it
   if (ONLY.includes('nalati-grasslands')) {
     const ctx = await browser.newContext({ viewport: { width: 402, height: 480 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true });
-    await ctx.addInitScript(() => { try { localStorage.setItem('ws.dev', '1'); } catch { /* defaults */ } });
+    await saveFixture(ctx, { scope: 'device', key: 'devMode', data: true });
     const page = await ctx.newPage();
     await page.route('**/@vite/client', (r) => r.fulfill({ contentType: 'application/javascript', body: VITE_STUB }));
     await bootToTitle(page, BASE, 'nalati-grasslands');

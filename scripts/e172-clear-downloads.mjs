@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { saveFixture } from './debug-settings.mjs';
 // e172-clear-downloads.mjs — E172's proof: title ▸ Settings ▸ Developer ▸ Debug ▸ Clear downloads makes the next load cold.
 //
 // Serves a build with `vite preview` (the service worker on, vercel.json's headers replayed — Clear-Site-Data included) and
@@ -75,13 +76,10 @@ try {
   page.on('pageerror', (e) => errors.push(e.message.slice(0, 200)));
   result.errors = errors;
   // the saved picks the clean reload keeps (it drops ?tier / ?touch), a save sentinel and a review login: once, before any script
-  await page.addInitScript(() => {
-    if (localStorage.getItem('ws.e172.seeded') !== null) return;
-    localStorage.setItem('ws.e172.seeded', '1');
-    localStorage.setItem('ws.settings.v1', JSON.stringify({ tier: 'phone', touch: 'on' }));
-    localStorage.setItem('ws.e172.save', 'a save the clear must keep');
-    localStorage.setItem('ws.review.v1', JSON.stringify({ password: 'e172-test', quick: true }));
-  });
+  await saveFixture(page, { scope: 'global', key: 'settings', data: { tier: 'phone', touch: 'on' }, once: 'e172-settings' });
+  await saveFixture(page, { scope: 'global', key: 'e172.save', data: 'a save the clear must keep', once: 'e172-save' });
+  await saveFixture(page, { scope: 'global', key: 'review', data: { password: 'e172-test', quick: true }, once: 'e172-review' });
+
   const mark = async () => { await within(Promise.all(inflight), 10_000); const n = reqs.length; return () => reqs.slice(n); };
   const playable = () => page.waitForFunction(() => Boolean(window.__wildshard?.world) && !document.querySelector('.ws-load'), null, { timeout: TIMEOUT_MS, polling: 200 });
   const settle = async () => { await page.waitForTimeout(1500); await within(Promise.all(inflight), 10_000); };
@@ -104,7 +102,7 @@ try {
   // 2. warm reload
   result.warm = await load('warm reload', () => page.goto(URL0, { waitUntil: 'commit', timeout: TIMEOUT_MS }));
   const lsBefore = await page.evaluate(() => Object.fromEntries(Object.keys(localStorage).sort().map((k) => [k, localStorage.getItem(k)])));
-  result.markersBefore = Object.keys(lsBefore).filter((k) => k.startsWith('ws.ktx2set.'));
+  result.markersBefore = Object.keys(JSON.parse(lsBefore['wildshard.save.v2.device'] ?? '{}').keys?.ktx2set?.data ?? {});
   result.cachesBefore = await page.evaluate(() => caches.keys());
   result.storageBefore = await storage();
 
@@ -144,12 +142,12 @@ try {
   });
   result.reloadUrl = page.url();
   const lsAfter = await page.evaluate(() => Object.fromEntries(Object.keys(localStorage).sort().map((k) => [k, localStorage.getItem(k)])));
-  result.report = await page.evaluate(() => JSON.parse(sessionStorage.getItem('wsClearDownloads') ?? 'null'));
-  const keptKeys = Object.keys(lsBefore).filter((k) => !k.startsWith('ws.ktx2set.'));
+  result.report = await page.evaluate(() => JSON.parse(sessionStorage.getItem('wildshard.save.v2.session') ?? '{}').keys?.['clearDownloads.report']?.data ?? null);
+  const keptKeys = Object.keys(lsBefore).filter((k) => k !== 'wildshard.save.v2.device');
   result.localStorage = {
     changed: keptKeys.filter((k) => lsAfter[k] !== lsBefore[k]).map((k) => [k, lsBefore[k], lsAfter[k] ?? null]),
-    markersAfterReload: Object.keys(lsAfter).filter((k) => k.startsWith('ws.ktx2set.')),
-    save: lsAfter['ws.e172.save'], review: lsAfter['ws.review.v1'], settings: lsAfter['ws.settings.v1'], dev: lsAfter['ws.dev'],
+    markersAfterReload: Object.keys(JSON.parse(lsAfter['wildshard.save.v2.device'] ?? '{}').keys?.ktx2set?.data ?? {}),
+    save: JSON.parse(lsAfter['wildshard.save.v2.global'] ?? '{}').keys?.['e172.save']?.data, review: JSON.parse(lsAfter['wildshard.save.v2.global'] ?? '{}').keys?.review?.data, settings: JSON.parse(lsAfter['wildshard.save.v2.global'] ?? '{}').keys?.settings?.data, dev: JSON.parse(lsAfter['wildshard.save.v2.device'] ?? '{}').keys?.devMode?.data,
   };
   result.sw = await page.evaluate(async () => ({ controlled: navigator.serviceWorker.controller !== null, regs: (await navigator.serviceWorker.getRegistrations()).length, build: (await window.__ws_sw?.version())?.build ?? null, caches: await caches.keys() }));
   console.error(`  clicked: "${result.clearedText}" → ${result.reloadUrl}`);

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { saveFixtureCode } from './debug-settings.mjs';
 // nine-sim-memory.mjs — Nine Dragon's memory in the iOS Simulator's Safari, per phase, for one or more builds (E264).
 //
 // A REGRESSION CHECK, NOT PHONE EVIDENCE: the Simulator runs on the Mac's memory and GPU. The phone killed WebContent at
@@ -25,7 +26,7 @@
 //      inspector  Web Inspector Memory.trackingUpdate, the categories summed: the meter of the phone's 1.054 GB
 //    plus, at the end of the flight, what the scene still holds in JS (geometry arrays, texture images).
 // Writes <out>/<label>-r<n>.{native,inspector}.jsonl, .end.jpg and table.md (default out: a fresh dir under
-// /private/tmp/nine-sim-memory/). --setting saves pause ▸ Settings values (ws.settings.v1) before every load.
+// /private/tmp/nine-sim-memory/). --setting saves pause ▸ Settings values (v2 global/settings) before every load.
 import { spawn, spawnSync, execFileSync } from 'node:child_process';
 import { mkdirSync, writeFileSync, readFileSync, existsSync, createWriteStream, readdirSync } from 'node:fs';
 import { resolve as resolvePath, join } from 'node:path';
@@ -190,8 +191,8 @@ async function oneRun(udid, run, opts) {
     const { evaluate } = page;
     // a first-visit origin, entered the way the start title's ENTER WORLD enters it (src/engine/boot/titleArrival.ts)
     const settings = Object.fromEntries(opts.settings.map((s) => s.split('=')));
-    await evaluate(`(() => { const v = JSON.stringify({ slug: 'nine-dragon-stack', mode: 'enter', at: Date.now() }); sessionStorage.setItem('ws.titleArrival', v); localStorage.setItem('ws.titleArrival.once', v);
-      const s = JSON.parse(localStorage.getItem('ws.settings.v1') || '{}'); Object.assign(s, ${JSON.stringify(settings)}); localStorage.setItem('ws.settings.v1', JSON.stringify(s)); return 1; })()`);
+    const arrival = { slug: 'nine-dragon-stack', mode: 'enter', at: Date.now() };
+    await evaluate(`${saveFixtureCode({ scope: 'session', key: 'titleArrival', data: arrival })};${saveFixtureCode({ scope: 'device', key: 'titleArrival.once', data: arrival })};${saveFixtureCode({ scope: 'global', key: 'settings', data: settings, merge: true })};1`);
     setPhase('loading');
     const loadStart = Date.now();
     await evaluate(`location.href = ${JSON.stringify(`${run.base}?chunk=nine-dragon-stack&mute=1`)}; 1`);

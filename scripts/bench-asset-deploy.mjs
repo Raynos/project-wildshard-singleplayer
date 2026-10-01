@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { debugSettings } from './debug-settings.mjs';
 // bench-asset-deploy.mjs — E160's ruler: what does a returning player download when a deploy changes ONE texture?
 //
 // On a tree (--root, default this checkout): build, serve with `vite preview`, and in one headless Chromium context
@@ -70,7 +71,7 @@ try {
   })()); });
   const page = await ctx.newPage();
   // the background download off (pause ▸ Settings ▸ Debug; no URL switches — AGENTS.md): the saved settings, before any script runs
-  await page.addInitScript(() => { localStorage.setItem('ws.settings.v1', JSON.stringify({ prefetch: 'off' })); });
+  await debugSettings(page, { prefetch: 'off' });
   const mark = async () => { await within(Promise.all(inflight), 10_000); const n = reqs.length; return () => reqs.slice(n); };
   // 1. two launches of build A: everything the boot reads is in the worker's cache
   let since = await mark();

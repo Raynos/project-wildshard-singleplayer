@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { debugSettings } from './debug-settings.mjs';
 // Reproduce the phone's null precision result or the Simulator's shaderSource failure during boot.
 // Run after `pnpm build` with `pnpm exec vite preview --port 4184` up:
 // node scripts/test-nine-gpu-boot.mjs [--url=http://127.0.0.1:4184] [--only=webkit|chromium|all] [--fault=precision|shader|context|texture]
@@ -30,9 +31,9 @@ for (const [name, engine] of engines) {
       envelopes.push(route.request().postData() ?? '');
       await route.fulfill({ status: 200, contentType: 'application/json', body: '{}' });
     });
+    if (fault === 'texture') await debugSettings(context, { tex: 'ktx2' });
     await context.addInitScript((selectedFault) => {
       if (selectedFault === 'texture') {
-        localStorage.setItem('ws.settings.v1', JSON.stringify({ tex: 'ktx2' }));
         // Ask the actual driver to reject one upload; do not fabricate getError's result.
         // oxlint-disable-next-line typescript/unbound-method -- native receiver supplied with Reflect.apply
         const original = WebGL2RenderingContext.prototype.compressedTexSubImage2D;
@@ -110,7 +111,7 @@ for (const [name, engine] of engines) {
       await page.locator('.ws-menu-explore').click();
       await page.locator('.ws-x-card[data-m="world"]').click();
       await page.waitForFunction(() => {
-        const trace = JSON.parse(localStorage.getItem('ws.nineBoot') ?? 'null');
+        const trace = (JSON.parse(localStorage.getItem('wildshard.save.v2.device') ?? '{}').keys?.['boot.trace']?.data ?? null);
         return trace?.status === 'ready' && trace.checkpoints?.some((point) => point.operation === 'explore:stable');
       }, null, { timeout: 25_000 });
       const state = await page.evaluate(() => ({
@@ -118,7 +119,7 @@ for (const [name, engine] of engines) {
         lost: window.__wildshard?.world?.game.renderer.getContext().isContextLost(),
         calls: window.__wildshard?.world?.game.renderer.info.render.calls ?? 0,
         error: Boolean(document.querySelector('#wserr')),
-        trace: localStorage.getItem('ws.nineBoot') ?? '',
+        trace: JSON.stringify(JSON.parse(localStorage.getItem('wildshard.save.v2.device') ?? '{}').keys?.['boot.trace']?.data ?? null),
       }));
       const okay = injections === 1 && navigations.length === 1 && state.world && state.exploring &&
         state.lost === false && state.calls > 0 && !state.error && reports.length === 0 &&
@@ -137,7 +138,7 @@ for (const [name, engine] of engines) {
       retry: Boolean(document.querySelector('#wserr button.here')),
       title: Boolean(document.querySelector('#wserr button.title')),
       url: location.href,
-      loadAttempt: JSON.parse(sessionStorage.getItem('ws.loadAttempt') ?? 'null')?.count ?? null,
+      loadAttempt: (JSON.parse(sessionStorage.getItem('wildshard.save.v2.session') ?? '{}').keys?.loadAttempt?.data ?? null)?.count ?? null,
     }));
     const otherNavigation = navigations.some((url) => new URL(url).searchParams.get('chunk') !== 'nine-dragon-stack');
     const expectedError = fault === 'precision' ? 'Graphics context did not recover' : fault === 'texture' ? 'Graphics error 1280 after compressed texture' : 'Nine Dragon GPU boot failed';

@@ -27,10 +27,10 @@ try {
   await page.waitForFunction(() => Boolean(window.__wildshard?.world), null, { timeout: 90_000 });
   await page.locator('.ws-menu-explore').click();
   await page.waitForFunction(() => {
-    const trace = JSON.parse(localStorage.getItem('ws.nineBoot') ?? 'null');
+    const trace = (JSON.parse(localStorage.getItem('wildshard.save.v2.device') ?? '{}').keys?.['boot.trace']?.data ?? null);
     return trace?.status === 'in_progress' && /explore/i.test(trace.stage);
   });
-  const attempt = await page.evaluate(() => JSON.parse(localStorage.getItem('ws.nineBoot')).id);
+  const attempt = await page.evaluate(() => (JSON.parse(localStorage.getItem('wildshard.save.v2.device') ?? '{}').keys?.['boot.trace']?.data ?? null).id);
   assert.ok(held.length > 0, 'Explore import must be held before the crash');
   const cdp = await context.newCDPSession(page);
   const crashed = page.waitForEvent('crash');
@@ -41,7 +41,7 @@ try {
   await context.unroute(/\/assets\/Explore-[^/]+\.js$/);
   const title = await context.newPage();
   await title.goto(`${base}/`);
-  await title.waitForFunction(() => localStorage.getItem('wsNineReports') !== null);
+  await title.waitForFunction(() => (JSON.parse(localStorage.getItem('wildshard.save.v2.device') ?? '{}').keys?.['boot.reports']?.data ?? []).length > 0);
   await expectEventually(() => reports.length > 0 && envelopes.length > 0, 'both transports attempted');
   assert.equal(await title.evaluate(() => Boolean(window.__wildshard?.world)), false, 'reporting must work without gameplay boot');
   assert.ok(JSON.stringify(reports[0]).includes(attempt), 'report must identify the interrupted attempt');
@@ -50,7 +50,7 @@ try {
   unavailable = false;
   await title.reload();
   await expectEventually(() => reports.some((report) => report.accepted), 'failed first-party report retries on next title');
-  await title.waitForFunction(() => localStorage.getItem('wsNineReports') === null || localStorage.getItem('wsNineReports') === '[]');
+  await title.waitForFunction(() => JSON.stringify(JSON.parse(localStorage.getItem('wildshard.save.v2.device') ?? '{}').keys?.['boot.reports']?.data ?? []) === '[]');
   const acceptedCount = reports.filter((report) => report.accepted).length;
   await title.reload();
   await title.waitForTimeout(1500);
@@ -72,9 +72,9 @@ try {
   });
   const gpuPage = await recovery.newPage();
   await gpuPage.goto(`${base}/?chunk=nine-dragon-stack&tier=phone&touch=1&mute=1&nolock=1&sw=0`);
-  await gpuPage.waitForFunction(() => window.__wildshard?.world && JSON.parse(localStorage.getItem('ws.nineBoot') ?? 'null')?.status === 'ready', null, { timeout: 90_000 });
+  await gpuPage.waitForFunction(() => window.__wildshard?.world && (JSON.parse(localStorage.getItem('wildshard.save.v2.device') ?? '{}').keys?.['boot.trace']?.data ?? null)?.status === 'ready', null, { timeout: 90_000 });
   const lostAttempt = await gpuPage.evaluate(() => {
-    const trace = JSON.parse(localStorage.getItem('ws.nineBoot'));
+    const trace = (JSON.parse(localStorage.getItem('wildshard.save.v2.device') ?? '{}').keys?.['boot.trace']?.data ?? null);
     const extension = window.__wildshard.world.game.renderer.getContext().getExtension('WEBGL_lose_context');
     if (!extension) throw new Error('Recovery reporting test requires WEBGL_lose_context');
     extension.loseContext();
@@ -82,11 +82,11 @@ try {
   });
   await gpuPage.waitForURL(`${base}/`, { timeout: 20_000 });
   await expectEventually(() => recoveryReports.length > 0 && recoveryEnvelopes.length > 0, 'known GPU reload reports both channels');
-  await gpuPage.waitForFunction(() => localStorage.getItem('wsNineReports') === '[]');
+  await gpuPage.waitForFunction(() => JSON.stringify(JSON.parse(localStorage.getItem('wildshard.save.v2.device') ?? '{}').keys?.['boot.reports']?.data ?? []) === '[]');
   assert.equal(await gpuPage.evaluate(() => Boolean(window.__wildshard?.world)), false, 'GPU recovery report reaches static title without renderer');
   assert.ok(recoveryReports.some((report) => report.system === 'gpu-recovery' && report.context.bootDiagnostic.includes(lostAttempt)), 'known failure keeps original attempt identity');
   assert.ok(recoveryReports.some((report) => report.context.bootDiagnostic.includes('gpu:recovery')), 'known failure keeps GPU recovery checkpoint');
-  assert.ok(await gpuPage.evaluate(() => JSON.parse(localStorage.getItem('ws.lastEnd') ?? '{}').reason.includes('graphics recovery')), 'actual planned recovery navigation occurred');
+  assert.ok(await gpuPage.evaluate(() => (JSON.parse(localStorage.getItem('wildshard.save.v2.device') ?? '{}').keys?.['life.lastEnd']?.data ?? null).reason.includes('graphics recovery')), 'actual planned recovery navigation occurred');
   console.info('PASS: real un-restored context loss → automatic planned reload/pagehide → GPU report on static title.');
 
   const inboxBefore = recoveryReports.length, sentryBefore = recoveryEnvelopes.length;
@@ -95,14 +95,14 @@ try {
   await gpuPage.locator('.ws-menu-explore').click();
   await gpuPage.locator('.ws-x-card[data-m="world"]').click();
   await gpuPage.waitForFunction(() => {
-    const trace = JSON.parse(localStorage.getItem('ws.nineBoot') ?? 'null');
+    const trace = (JSON.parse(localStorage.getItem('wildshard.save.v2.device') ?? '{}').keys?.['boot.trace']?.data ?? null);
     return trace?.status === 'ready' && trace.checkpoints?.some((point) => point.operation === 'explore:stable');
   }, null, { timeout: 25_000 });
   await gpuPage.locator('.ws-x-close').click(); // world → hub
   await gpuPage.locator('.ws-x-close').click(); // hub → title
-  assert.equal(await gpuPage.evaluate(() => JSON.parse(localStorage.getItem('ws.nineBoot')).status), 'ready', 'successful in-page exit ends the entry watch');
+  assert.equal(await gpuPage.evaluate(() => (JSON.parse(localStorage.getItem('wildshard.save.v2.device') ?? '{}').keys?.['boot.trace']?.data ?? null).status), 'ready', 'successful in-page exit ends the entry watch');
   await gpuPage.goto(`${base}/`); // normal pagehide, not a process termination
-  await gpuPage.waitForFunction(() => localStorage.getItem('wsNineReports') === '[]');
+  await gpuPage.waitForFunction(() => JSON.stringify(JSON.parse(localStorage.getItem('wildshard.save.v2.device') ?? '{}').keys?.['boot.reports']?.data ?? []) === '[]');
   await gpuPage.waitForTimeout(1000);
   assert.equal(recoveryReports.length, inboxBefore, 'normal Explore/title navigation is not an abrupt crash');
   assert.equal(recoveryEnvelopes.length, sentryBefore, 'normal navigation produces no Sentry error');

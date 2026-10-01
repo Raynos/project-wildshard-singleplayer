@@ -15,7 +15,7 @@
 //   panic  a scare 6 m ahead at a stand (a bite / lightning): the horse rears, then bolts away from it, deaf to the stick;
 //          lightning within 35 m reaches it (Wildlife.scare); the head settles after the bolt (E320)
 //   name   on foot at the hitching rail: the prompt reads "Name Camp horse"; the NAME panel opens, a name typed + Enter
-//          renames the horse (its prompt, the save in localStorage ws.nalati.horseNames)
+//          renames the horse (its prompt, the save in v2 Nalati/horseNames)
 // Prints PASS / FAIL per check, writes b1-checks.json and one JPEG per leg (portrait) into --out.
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve as resolvePath } from 'node:path';
@@ -245,7 +245,7 @@ try {
   if (ONLY.includes('name')) {
     await page.evaluate(() => {
       const w = window.__wildshard?.world;
-      localStorage.removeItem('ws.nalati.horseNames');
+      const save = JSON.parse(localStorage.getItem('wildshard.save.v2.nalati-grasslands') ?? '{"keys":{}}'); delete save.keys.horseNames; localStorage.setItem('wildshard.save.v2.nalati-grasslands', JSON.stringify(save));
       w.ride.mount.dismount();
       // at the head of the camp horse still tied there (the black; the bay is out on the road from ?ride=gallop), on its side of the rail
       const h = w.wildlife.campHorses[1], hx = h.position.x + Math.sin(h.yaw) * 1.3, hz = h.position.z + Math.cos(h.yaw) * 1.3 - 0.9;
@@ -264,9 +264,9 @@ try {
     await simWait(600);
     const res = await page.evaluate(() => {
       const w = window.__wildshard?.world, a = w.wildlife.campHorses.find((h) => w.ride.mount.nameOf(h) === 'Kara Jorga') ?? null;
-      return { renamed: a !== null, label: a?.label ?? null, stored: localStorage.getItem('ws.nalati.horseNames'), open: document.querySelector('.ws-ride-namebox') !== null, prompt: w.ride.interactable.label };
+      return { renamed: a !== null, label: a?.label ?? null, stored: JSON.stringify(JSON.parse(localStorage.getItem('wildshard.save.v2.nalati-grasslands') ?? '{}').keys?.horseNames?.data ?? null), open: document.querySelector('.ws-ride-namebox') !== null, prompt: w.ride.interactable.label };
     });
-    check('name: typed + Enter renames it, saved, the panel closed', res.renamed && res.label === 'Kara Jorga' && (res.stored ?? '').includes('Kara Jorga') && !res.open, JSON.stringify(res));
+    check('name: typed + Enter renames it, saved, the panel closed', res.renamed && res.label === 'Kara Jorga' && res.stored.includes('Kara Jorga') && !res.open, JSON.stringify(res));
   }
 
   out.errors = errors;

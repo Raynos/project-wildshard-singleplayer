@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { debugSettings } from './debug-settings.mjs';
 // ktx2-ab.mjs — the E157 A/B: the same poses in each shard with the images and the KTX2 textures (the saved `tex` setting),
 // on the iPhone portrait the user judges on (iPhone 16 Pro UA, 390×844 @3, touch, the phone tier) — or, `--tier=desktop`
 // (E173), the desktop's 1600×900 @1 landscape, the desktop tier. Every DOM layer but the
@@ -67,7 +68,7 @@ try {
         ? { userAgent: iphone.userAgent, isMobile: true, hasTouch: true, deviceScaleFactor: 3, viewport: { width: 390, height: 844 } }
         : { viewport: { width: 1600, height: 900 }, deviceScaleFactor: 1 });
       // the textures are a saved setting (pause ▸ Settings ▸ Debug ▸ GPU textures), never a URL switch; no background prefetch
-      await ctx.addInitScript((t) => { try { localStorage.setItem('ws.settings.v1', JSON.stringify({ tex: t, prefetch: 'off' })); } catch { /* */ } }, tex);
+      await debugSettings(ctx, { tex, prefetch: 'off' });
       const page = await ctx.newPage();
       const errors = [];
       page.on('pageerror', (e) => errors.push(e.message.slice(0, 200)));

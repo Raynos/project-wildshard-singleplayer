@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { saveFixtureCode } from './debug-settings.mjs';
 // webkit-mem-reading.mjs — the iPhone memory reading of E263 as one command (NALATI-FINISH B8 / P4, E302): Safari Web
 // Inspector's Memory.trackingUpdate (~500 ms, categories summed; decimal GB) over one shard load, then World Explorer
 // and the world, plus the fps of the world (renderer frames / wall time) for --fps seconds.
@@ -23,7 +24,7 @@
 //   --from=<game url>    load this shard first (to its playable state + settle), then switch to --url the way the game's
 //                        shard switch does (src/game/travel/switch.ts: a navigation in the same tab) — the E263 flow
 //   --nav=href|replace   how that navigation is made (default: what the game's switch does, href)
-//   --setting=k=v        save a pause ▸ Settings value (ws.settings.v1) in the tab before the load, e.g. --setting=tex=img
+//   --setting=k=v        save a pause ▸ Settings value (v2 global/settings) in the tab before the load, e.g. --setting=tex=img
 //                        (repeatable; the tab must already be on the game's origin — open /version.json first)
 //   --fps=60             seconds of world play to time the frame rate over (0 = none); it reports per-10-s windows, so
 //                        the thermal fall-off after 1–2 min shows
@@ -95,7 +96,7 @@ const report = () => {
 };
 
 try {
-  if (SETTINGS.length > 0) console.error(`> settings ${await tryEval(`(() => { const k = 'ws.settings.v1'; const s = JSON.parse(localStorage.getItem(k) || '{}'); for (const [a, b] of ${JSON.stringify(SETTINGS)}) s[a] = b; localStorage.setItem(k, JSON.stringify(s)); return localStorage.getItem(k); })()`)}`);
+  if (SETTINGS.length > 0) console.error(`> settings ${await tryEval(`${saveFixtureCode({ scope: 'global', key: 'settings', data: Object.fromEntries(SETTINGS), merge: true })}; 'settings saved'`)}`);
   if (BLANK) { phase = 'blank'; await tryEval('location.href = "about:blank"'); await sleep(3000); }
   if (FROM) {
     phase = 'from';
@@ -142,7 +143,7 @@ try {
       if (typeof f0 === 'number' && typeof f1 === 'number') { const fps = (f1 - f0) / ((t1 - t0) / 1000); windows.push(Math.round(fps * 10) / 10); write({ kind: 'fps', fps }); console.error(`  fps ${fps.toFixed(1)}`); }
       f0 = f1; t0 = t1;
     }
-    const lowPower = await tryEval('JSON.stringify({ dpr: devicePixelRatio, quality: JSON.parse(localStorage.getItem("ws.settings.v1") || "{}").quality ?? null })');
+    const lowPower = await tryEval('JSON.stringify({ dpr: devicePixelRatio, quality: JSON.parse(localStorage.getItem("wildshard.save.v2.global") || "{}").keys?.settings?.data?.quality ?? null })');
     console.log(`fps windows (10 s): ${windows.join(' · ')}  ${lowPower ?? ''}`);
     write({ kind: 'fps-summary', windows, context: lowPower });
   }

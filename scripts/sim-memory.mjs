@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { saveFixtureCode } from './debug-settings.mjs';
 // E357: per-shard cold Safari phases; the caller holds sim-lane.sh.
 import { shardFolders } from './gen-shards.mjs';
 import { spawn, spawnSync, execFileSync } from 'node:child_process';
@@ -168,8 +169,8 @@ async function oneRun(udid, run, opts) {
     const { evaluate } = page;
     // a first-visit origin, entered the way the start title's ENTER WORLD enters it (src/engine/boot/titleArrival.ts)
     const settings = Object.fromEntries(opts.settings.map((s) => s.split('=')));
-    await evaluate(`(() => { const v = JSON.stringify({ slug: ${JSON.stringify(run.shard)}, mode: 'enter', at: Date.now() }); sessionStorage.setItem('ws.titleArrival', v); localStorage.setItem('ws.titleArrival.once', v);
-      const s = JSON.parse(localStorage.getItem('ws.settings.v1') || '{}'); Object.assign(s, ${JSON.stringify(settings)}); localStorage.setItem('ws.settings.v1', JSON.stringify(s)); return 1; })()`);
+    const arrival = { slug: run.shard, mode: 'enter', at: Date.now() };
+    await evaluate(`${saveFixtureCode({ scope: 'session', key: 'titleArrival', data: arrival })};${saveFixtureCode({ scope: 'device', key: 'titleArrival.once', data: arrival })};${saveFixtureCode({ scope: 'global', key: 'settings', data: settings, merge: true })};1`);
     setPhase('loading');
     const loadStart = Date.now();
     await evaluate(`location.href = ${JSON.stringify(`${run.base}?chunk=${run.shard}&mute=1`)}; 1`, 1);

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { saveFixtureCode, debugSettings } from './debug-settings.mjs';
 // scorecard.mjs — the regression scorecard (docs/design/scorecard.md). One table of every variable the big merges trade
 // against each other (E155/E159 shard residency, E157 KTX2 textures + baked PMREM, E158/E161 prefetch + cache GC):
 // memory, downloads, time, frame rate, the look, and the shard-switch route. A baseline is recorded on main before
@@ -164,7 +165,7 @@ console.error(`> scorecard ${URL_BASE} build=${build} tag=${TAG} runs=${RUNS} ne
 const INIT_SCRIPT = `(() => {
   const W = window;
   // pins: the saved Settings the game reads (time of day frozen at midday, Pine Hollow's weather clear), a seeded Math.random
-  try { const k = 'ws.settings.v1'; const cur = JSON.parse(localStorage.getItem(k) || '{}'); cur.time = 'midday'; cur.weather = 'clear'; localStorage.setItem(k, JSON.stringify(cur)); } catch {}
+  ${saveFixtureCode({ scope: 'global', key: 'settings', data: { time: 'midday', weather: 'clear' }, merge: true })};
   let seed = 0x2545f491 >>> 0;
   Math.random = function random() { seed = (seed + 0x6d2b79f5) >>> 0; let t = seed; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
   // load timing (bench-load's definitions) + long tasks with their epoch start
@@ -619,9 +620,7 @@ async function switchRoute(vp) {
   const { ctx, net } = await newContext(vp);
   // 2 shards in memory, whatever the default (da2566d4 made it 1): step 2 is the resident return this route measures.
   // Under cap 1 it silently became a rebuild (E194: "0.05 s → 1.7 s" was that, not a slower return)
-  await ctx.addInitScript(() => {
-    try { const k = 'ws.settings.v1'; const cur = JSON.parse(localStorage.getItem(k) ?? '{}'); cur.shardCap = '2'; localStorage.setItem(k, JSON.stringify(cur)); } catch { /* the default */ }
-  });
+  await debugSettings(ctx, { shardCap: '2' });
   const out = { vp, route: ROUTE, steps: [] };
   try {
     const first = await load(ctx, net, pageUrl(ROUTE[0], vp), `switch ${vp} cold ${ROUTE[0]}`);

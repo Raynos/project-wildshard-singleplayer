@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { debugSettings } from './debug-settings.mjs';
 // gpu-texmem.mjs — how much GPU memory each shard's textures take (E157, KTX2 / Basis GPU compression).
 //
 // Counts at the WebGL call, not from three's bookkeeping: an init script wraps texStorage2D/3D, texImage2D/3D,
@@ -45,7 +46,7 @@ try {
     ? { userAgent: iphone.userAgent, isMobile: true, hasTouch: true, deviceScaleFactor: 3, viewport: { width: 390, height: 844 } }
     : { viewport: { width: 1600, height: 900 }, deviceScaleFactor: 1 });
   await ctx.addInitScript(ledger);
-  await ctx.addInitScript(([tex, record]) => { try { localStorage.setItem('ws.settings.v1', JSON.stringify({ prefetch: 'off', ...(tex === '' ? {} : { tex }), ...(record ? { bootPack: 'off' } : {}) })); } catch { /* */ } }, [TEX, RECORD]);
+  await debugSettings(ctx, { prefetch: 'off', ...(TEX === '' ? {} : { tex: TEX }), ...(RECORD ? { bootPack: 'off' } : {}) });
   const page = await ctx.newPage();
   const errors = [];
   page.on('pageerror', (e) => errors.push(e.message.slice(0, 200)));

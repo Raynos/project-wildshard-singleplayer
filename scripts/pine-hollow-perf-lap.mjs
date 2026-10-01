@@ -54,7 +54,7 @@ try {
   // the saves at the lap's first and last tick, in the page (a boar the journal spots at the spawn a second before the
   // tap is not the lap's); play time (`playS`) runs on through a lap like any time in the world
   await page.evaluate(() => {
-    const snap = () => Object.fromEntries(Object.keys(localStorage).filter((k) => !k.startsWith('ws.perf')).sort().map((k) => [k, localStorage.getItem(k)]));
+    const snap = () => Object.fromEntries(Object.keys(localStorage).filter((k) => k.startsWith('wildshard.save.v2.') && k !== 'wildshard.save.v2.device').sort().map((k) => [k, localStorage.getItem(k)]));
     const run = window.__perfLapRun, start = run.start.bind(run), done = run.onDone;
     window.__lapSaves = {};
     run.start = (rec) => { window.__lapSaves = { before: snap() }; return start(rec); };

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { fixtureStorageCode } from './debug-settings.mjs';
 // ktx2-b-check.mjs — E157 B's proof ("images on the first visit, KTX2 from the next launch"), end to end in one headless
 // Chromium context (service worker on; the phone tier: iPhone 16 Pro UA, 390×844 @3 — or `--tier=desktop`: 1600×900 @1,
 // E173), Settings ▸ Debug ▸ GPU textures on Auto (the default):
@@ -110,7 +111,7 @@ try {
   await launch('4-offline-reload');
   await ctx.setOffline(false);
   // the same warm launch with Settings ▸ Debug ▸ GPU textures = Images (the comparison: everything cached either way)
-  const setTex = (t) => page.evaluate((v) => { const o = JSON.parse(localStorage.getItem('ws.settings.v1') ?? '{}'); if (v === null) delete o.tex; else o.tex = v; localStorage.setItem('ws.settings.v1', JSON.stringify(o)); }, t);
+  const setTex = (texturePick) => page.evaluate(`(() => { const store = ${fixtureStorageCode('global')}; const settings = JSON.parse(store.getItem('settings') ?? '{}'); if (${JSON.stringify(texturePick)} === null) delete settings.tex; else settings.tex = ${JSON.stringify(texturePick)}; store.setItem('settings', JSON.stringify(settings)); })()`);
   await setTex('img');
   await launch('4b-warm-images-for-comparison');
   await setTex(null);

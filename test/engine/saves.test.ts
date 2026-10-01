@@ -119,3 +119,23 @@ it('loads the v2 fixture corpus and round-trips purse, owned and progress', () =
   expect(report.imported).toEqual(expect.arrayContaining(['driftwood-isle/purse', 'driftwood-isle/owned', 'driftwood-isle/progress']));
   expect(second.local.getItem('wildshard.save.v2.driftwood-isle')).toBe(first.local.getItem('wildshard.save.v2.driftwood-isle')?.trim());
 });
+
+it('keeps distinct aside copies even when corrupt reads happen within one millisecond', () => {
+  const local = new MemoryStorage(); local.setItem('wildshard.save.v2.global', '{"keys":{}}');
+  const store = new SaveStore({ local, session: null, now: () => '2026-10-01T00:00:00.000Z' });
+  const slot = store.define({ scope: 'global', key: 'x', version: 1, schema: v.number(), initial: () => 0 });
+  for (let n = 0; n < 4; n++) {
+    const doc = JSON.parse(local.getItem('wildshard.save.v2.global') ?? '{}') as { keys: Record<string, unknown> };
+    doc.keys['x'] = { v: 1, data: `bad${n}` }; local.setItem('wildshard.save.v2.global', JSON.stringify(doc)); slot.read();
+  }
+  expect(store.corrupt()).toHaveLength(3);
+  expect(new Set(store.corrupt().map((copy) => copy.at)).size).toBe(3);
+});
+it('reports an import quota failure instead of offering a reload that would lose it', () => {
+  const local = new MemoryStorage(); local.setItem('wildshard.save.v2.global', '{"keys":{}}');
+  const store = new SaveStore({ local, session: null });
+  const slot = store.define({ scope: 'global', key: 'x', version: 1, schema: v.number(), initial: () => 0 });
+  vi.spyOn(local, 'setItem').mockImplementation(() => { throw new Error('QuotaExceededError'); });
+  const report = store.importAll('{"format":"wildshard.save","version":2,"docs":{"global":{"keys":{"x":{"v":1,"data":7}}}}}');
+  expect(report.imported).toEqual([]); expect(report.skipped[0]?.reason).toContain('Storage unavailable'); expect(slot.read()).toBe(7);
+});

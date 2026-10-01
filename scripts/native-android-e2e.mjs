@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { writeSaveFixture } from './debug-settings.mjs';
 /**
  * Headless Android E2E (docs/plans/NATIVE-APPS.md N-B). Boots a task-owned emulator with no window, installs the
  * debug APK (scripts/native-android.sh debug), and drives the real app:
@@ -7,7 +8,7 @@
  *   2. ENTER WORLD (a real `adb input tap` on the button's on-screen rect) → in the world
  *   3. Android Back → the pause menu opens (ws:back); Back again → it closes
  *   4. Home → relaunch → still paused (ws:background)
- *   5. saves survive WebView storage eviction: write a `ws.*` key, force-stop, delete the WebView's localStorage on
+ *   5. saves survive WebView storage eviction: write a v2 gameplay key, force-stop, delete the WebView's localStorage on
  *      disk (what the OS may do under storage pressure), relaunch → the key is back (the Preferences mirror)
  *
  * The page is observed (and located) through the debuggable WebView's DevTools socket with a minimal CDP client
@@ -146,14 +147,14 @@ try {
 
   // 5. saves survive WebView localStorage eviction
   const stamp = `e2e-${Date.now()}`;
-  await page.evaluate((v) => { localStorage.setItem('ws.e2e', v); }, stamp);
+  await page.evaluate(writeSaveFixture, { scope: 'global', key: 'native.e2e', data: stamp });
   await sleep(1500); // the mirror write is async
   browser.close();
   adb('shell', 'am', 'force-stop', PKG);
   adb('shell', 'run-as', PKG, 'rm', '-rf', 'app_webview/Default/Local Storage');
   launch();
   ({ browser, page } = await attach());
-  const restored = await waitFor(() => page.evaluate(() => localStorage.getItem('ws.e2e')), 60_000);
+  const restored = await waitFor(() => page.evaluate(() => JSON.parse(localStorage.getItem('wildshard.save.v2.global') ?? '{}').keys?.['native.e2e']?.data ?? null), 60_000);
   step('a save survives WebView storage eviction', restored === stamp, { restored });
   await waitFor(() => page.evaluate(() => document.querySelector('.ws-load') === null), 600_000, 2000);
   shot('5-relaunched');

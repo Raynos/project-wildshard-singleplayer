@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { saveFixture } from './debug-settings.mjs';
 // e334-look-review-capture.mjs — Jake's Driftwood look review (2026-09-30; E334 castaway arms + E314 stage 3 keepsakes):
 // the before / after frames for one iPhone-portrait sheet, and the phone-tier cost of charm III's glow.
 //
@@ -30,13 +31,12 @@ const MEASURE = argv.includes('--measure');
 mkdirSync(OUT, { recursive: true });
 const sleep = (ms) => new Promise((resolve) => { setTimeout(resolve, ms); });
 const measures = {};
-const ID = 'chunk://local/driftwood-isle';
-const seed = { 'ws.flags.v1': { [ID]: ['talked:castaway', 'seen:pier', 'seen:hut'] } };
+const seed = ['talked:castaway', 'seen:pier', 'seen:hut'];
 
 const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 try {
   const ctx = await browser.newContext({ viewport: { width: 402, height: 874 }, deviceScaleFactor: 3, hasTouch: true, isMobile: true });
-  await ctx.addInitScript((s) => { try { if (sessionStorage.getItem('e334look') === null) { sessionStorage.setItem('e334look', '1'); for (const [k, v] of Object.entries(s)) localStorage.setItem(k, JSON.stringify(v)); } } catch { /* private mode */ } }, seed);
+  await saveFixture(ctx, { scope: 'driftwood-isle', key: 'flags', data: seed, once: 'e334look' });
   const errors = [];
   const load = async (chunk) => {
     const page = await ctx.newPage();

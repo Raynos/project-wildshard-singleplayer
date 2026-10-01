@@ -1,8 +1,7 @@
 /**
- * Native saves (docs/plans/NATIVE-APPS.md N-A). The game keeps reading and writing `localStorage` exactly as it
- * does on the web (Progress, Inventory, Skins, Settings, tier, boot timing — every key starts `ws.`), but a
- * WKWebView / Android WebView may drop localStorage under storage pressure. So in the native shells every `ws.*`
- * key is mirrored into @capacitor/preferences (UserDefaults / SharedPreferences, never evicted):
+ * Native saves (docs/plans/NATIVE-APPS.md N-A). The game keeps reading and writing `localStorage` through the v2 SaveStore documents, but a
+ * WKWebView / Android WebView may drop localStorage under storage pressure. So in the native shells gameplay documents and `ws.ota.*`
+ * keys are mirrored into @capacitor/preferences (UserDefaults / SharedPreferences, never evicted):
  *
  *   hydrateSaves()  before the game module loads: Preferences → localStorage (Preferences is the truth), then
  *                   hook Storage.prototype.setItem / removeItem so each later write is queued to Preferences
@@ -14,11 +13,14 @@ import { Preferences } from '@capacitor/preferences';
 
 import { installLegacyMirror } from '../saves/runtime';
 
-export function isMirroredSave(key: string): boolean {
+declare const __SAVE_NAMESPACES__: readonly string[];
+const namespaces: readonly string[] = (() => { try { return __SAVE_NAMESPACES__; } catch { return []; } })();
+
+export function isMirroredSave(key: string, knownNamespaces: readonly string[] = namespaces): boolean {
   if (key.startsWith('ws.ota.')) return true;
   if (!key.startsWith('wildshard.save.v2.')) return false;
   const scope = key.slice('wildshard.save.v2.'.length);
-  return scope !== 'device' && scope !== 'session' && /^[a-z0-9]+(?:-[a-z0-9]+)*$/u.test(scope);
+  return scope === 'global' || knownNamespaces.includes(scope);
 }
 
 export function forgetLegacy(keys: readonly string[]): void {
@@ -37,7 +39,7 @@ function queue(write: () => Promise<void>): void {
   })();
 }
 
-/** Preferences → localStorage, then mirror every later `ws.*` write back. Call once, before the game loads. */
+/** Preferences → localStorage, then mirror later gameplay / OTA writes back. Call once, before the game loads. */
 export async function hydrateSaves(): Promise<number> {
   const { keys } = await Preferences.keys();
   const ours = keys.filter((key) => isMirroredSave(key) || key.startsWith('ws.'));

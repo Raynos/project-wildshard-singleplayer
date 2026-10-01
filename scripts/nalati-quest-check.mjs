@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { fixtureStorageCode } from './debug-settings.mjs';
 // nalati-quest-check.mjs — NALATI-MERGE Q1–Q3 in a muted headless browser: Nalati's camp people + the elder's talk, the
 // quest chip + markers + the MAP tab card, TULPAR's steps driven (flags / the kokpar's dev win), a reload that keeps the
 // progress and the discovered places; then Driftwood's quest on the shared core (Wendell's talk, a shard, the chip).
@@ -52,16 +53,17 @@ const talkThrough = async (id, name) => {
 };
 /** write the game's own saved stores (the boss / elite modules read them at boot) — a reload follows */
 const saveStores = (boss, elites) => q(`(() => {
-  const b = JSON.parse(localStorage.getItem('ws.boss.v1') ?? '{}'); for (const id of ${JSON.stringify(boss)}) b['nalati-grasslands#' + id] = { defeated: true, rewardTaken: true, kills: 1 };
-  localStorage.setItem('ws.boss.v1', JSON.stringify(b));
-  const e = JSON.parse(localStorage.getItem('ws.elites.v1') ?? '{}'); for (const id of ${JSON.stringify(elites)}) e[id] = { ...(e[id] ?? { timer: 0, discovered: true, skinTaken: true, retired: false }), kills: 1 };
-  localStorage.setItem('ws.elites.v1', JSON.stringify(e));
+  const store = ${fixtureStorageCode('nalati-grasslands')};
+  const b = JSON.parse(store.getItem('bosses') ?? '{}'); for (const id of ${JSON.stringify(boss)}) b[id] = { defeated: true, rewardTaken: true, kills: 1 };
+  store.setItem('bosses', JSON.stringify(b));
+  const e = JSON.parse(store.getItem('elites') ?? '{}'); for (const id of ${JSON.stringify(elites)}) e[id] = { ...(e[id] ?? { timer: 0, discovered: true, skinTaken: true, retired: false }), kills: 1 };
+  store.setItem('elites', JSON.stringify(e));
 })()`);
 const drain = async () => { for (let i = 0; i < 12 && await q(`window.__nalatiQuest.dialogue.isOpen`); i++) { await q(`window.__nalatiQuest.dialogue.advance()`); await sleep(120); } };
 async function chapters() {
   const FROM = 'chunk=nalati-grasslands&at=88,-6,205,3.14,0';
   await boot(`${FROM}&resetquest=1&questflags=talked:elder,tamed:horse,won:kokpar,told:tulpar,quest:tulpar`);
-  await q(`(() => { localStorage.removeItem('ws.boss.v1'); localStorage.removeItem('ws.elites.v1'); })()`);
+  await q(`(() => { const store = ${fixtureStorageCode('nalati-grasslands')}; store.removeItem('bosses'); store.removeItem('elites'); })()`);
   const c0 = await chipText();
   check('chapters: after TULPAR the chip points at the elder (GOLDEN KING │ BAQYT ATA)', /Golden King/i.test(c0) && /BAQYT/i.test(c0), c0);
   await standAtElder();
@@ -131,7 +133,7 @@ async function chapters() {
   await sleep(1500);
   check('chapters: FATHER OF THE WIND complete, the line finished', await q(`window.__nalatiQuest.flags.has('quest:father-wind') && window.__nalatiQuest.line.active === null`));
   await shot('q5-reward');
-  await q(`(() => { localStorage.removeItem('ws.boss.v1'); localStorage.removeItem('ws.elites.v1'); })()`);
+  await q(`(() => { const store = ${fixtureStorageCode('nalati-grasslands')}; store.removeItem('bosses'); store.removeItem('elites'); })()`);
 }
 
 try {

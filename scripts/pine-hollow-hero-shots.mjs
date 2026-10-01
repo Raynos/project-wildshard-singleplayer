@@ -1,3 +1,4 @@
+import { saveFixture } from './debug-settings.mjs';
 // pine-hollow-hero-shots.mjs — PH-S1's hero captures (art/hero-images/round-4-pine-hollow-in-engine/README.md): a god camera posed in
 // game.onLate, every DOM layer but the game canvas hidden, the weapon hidden, the clock frozen, DPR 2 (1600×900 → 3200×1800,
 // 1024×1536 → 2048×3072 PNGs). Needs the vite DEV server (it imports /src/engine/world/Heightfield.ts for ground heights).
@@ -25,7 +26,7 @@ const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=meta
 try {
   for (const [q, views] of groups) {
     const ctx = await browser.newContext({ viewport: DIM[SIZES[0]], deviceScaleFactor: 2 });
-    await ctx.addInitScript(() => { try { localStorage.setItem('ws.gfx.v1', JSON.stringify({ dpr: '2', aa: 'on' })); } catch { /* */ } });
+    await saveFixture(ctx, { scope: 'global', key: 'gfx', data: { dpr: '2', aa: 'on' } });
     const page = await ctx.newPage();
     const errors = []; page.on('pageerror', (e) => errors.push(e.message.slice(0, 200)));
     const url = `${URL_BASE}/?chunk=pine-hollow&mute=1&nolock=1&skipintro=1&sw=0&perf=0&tier=desktop&clock=1000000&${q}`;

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { saveFixtureCode } from './debug-settings.mjs';
 // load-mem-probe.mjs — where a shard's LOAD memory goes, on the desktop (NALATI-FINISH B8, E302). Indicative only: the
 // acceptance number is the iPhone's Web Inspector reading (scripts/webkit-mem-reading.mjs, docs/audits/).
 //
@@ -102,7 +103,7 @@ const ALLOC_SCRIPT = String.raw`(() => {
   const gid = CanvasRenderingContext2D.prototype.getImageData; CanvasRenderingContext2D.prototype.getImageData = function (...a) { const r = gid.apply(this, a); note('getImageData', r.data.byteLength); return r; };
   const dad = BaseAudioContext.prototype.decodeAudioData; BaseAudioContext.prototype.decodeAudioData = function (buf, ...rest) { const pr = dad.call(this, buf, ...rest); pr.then((b) => { note('AudioBuffer', b.length * b.numberOfChannels * 4); }, () => undefined); return pr; };
 })();`;
-const texScript = (tex) => `(() => { try { const k = 'ws.settings.v1'; const s = JSON.parse(localStorage.getItem(k) || '{}'); s.tex = ${JSON.stringify(tex)}; localStorage.setItem(k, JSON.stringify(s)); } catch { /* opaque origin */ } })();`;
+const texScript = (tex) => saveFixtureCode({ scope: 'global', key: 'settings', data: { tex }, merge: true });
 
 const WK = ENGINE === 'webkit';
 const wkBefore = WK ? new Set([...wkPids('WebContent'), ...wkPids('GPU')]) : new Set();

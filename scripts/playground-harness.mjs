@@ -1,3 +1,4 @@
+import { saveFixture, debugSettings } from './debug-settings.mjs';
 // playground-harness.mjs — the shared half of the E307 playground tests (scripts/playground-grapple.mjs,
 // scripts/playground-horse.mjs): an iPhone-16-Pro portrait touch page (402 × 874 @ 3×, phone tier) in Developer mode, booted
 // to the TITLE, then real taps: EXPLORE WORLD → the hub → a playground's card. Plus the in-page video recorder
@@ -29,13 +30,8 @@ export function flags(argv = process.argv.slice(2)) {
 /** a phone page in Developer mode (the hub's Practice + playground cards are developer entries), `settings` merged in */
 export async function phonePage(browser, settings = {}) {
   const ctx = await browser.newContext({ viewport: { width: 402, height: 874 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true });
-  await ctx.addInitScript((picks) => {
-    try {
-      localStorage.setItem('ws.dev', '1');
-      const key = 'ws.settings.v1';
-      localStorage.setItem(key, JSON.stringify({ ...JSON.parse(localStorage.getItem(key) ?? '{}'), ...picks }));
-    } catch { /* storage blocked: defaults */ }
-  }, settings);
+  await saveFixture(ctx, { scope: 'device', key: 'devMode', data: true });
+  await debugSettings(ctx, settings);
   const page = await ctx.newPage();
   await page.route('**/@vite/client', (r) => r.fulfill({ contentType: 'application/javascript', body: VITE_STUB }));
   return page;

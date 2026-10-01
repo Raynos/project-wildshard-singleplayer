@@ -1,3 +1,4 @@
+import { saveFixture } from '../debug-settings.mjs';
 // E168 Steam trailer — deterministic in-engine capture.
 //
 //   node scripts/steam-trailer/capture.mjs <outDir> [--shots driftwood,nalati,pine] [--only a,b] [--sub 2] [--scale 2]
@@ -140,9 +141,7 @@ for (const grp of groups) {
   if (todo.length === 0) continue;
   const first = todo[0];
   const ctx = await browser.newContext({ viewport: VIEW, deviceScaleFactor: SCALE });
-  await ctx.addInitScript(() => {
-    try { localStorage.setItem('ws.gfx.v1', JSON.stringify({ dpr: 'native', aa: 'on' })); } catch { /* storage off */ }
-  });
+  await saveFixture(ctx, { scope: 'global', key: 'gfx', data: { dpr: 'native', aa: 'on' } });
   if (first.init) await ctx.addInitScript(first.init);
   const page = await ctx.newPage();
   let errors = [];

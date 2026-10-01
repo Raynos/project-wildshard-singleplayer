@@ -68,7 +68,7 @@ try {
     world: Boolean(window.__wildshard?.world), lost: window.__wildshard?.world?.game.renderer.getContext().isContextLost(),
     exploring: Boolean(document.querySelector('.ws-x.show[data-mode="world"]')),
     error: document.querySelector('#wserr .msg')?.textContent ?? '',
-    waited: (localStorage.getItem('ws.nineBoot') ?? '').includes('renderer:waiting'),
+    waited: (JSON.stringify(JSON.parse(localStorage.getItem('wildshard.save.v2.device') ?? '{}').keys?.['boot.trace']?.data ?? null)).includes('renderer:waiting'),
   }));
   const okay = native.killed && state.waited && state.world && !state.lost && state.exploring && !state.error && reports.length === 0;
   console.log(`${okay ? 'PASS' : 'FAIL'} native GPU restart: ${JSON.stringify({ killed: native.killed, reports: reports.length, ...state })}`);

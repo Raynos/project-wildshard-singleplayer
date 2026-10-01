@@ -1,6 +1,6 @@
 import { defineConfig, type Plugin } from 'vite';
 import { execSync } from 'node:child_process';
-import { rmSync } from 'node:fs';
+import { rmSync, readdirSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import type { ServerResponse } from 'node:http';
 import { pwaPlugin } from './vite/pwa-plugin';
@@ -95,7 +95,7 @@ export default defineConfig(({ mode }) => {
       },
     assetsInclude: ['**/*.hdr', '**/*.gltf', '**/*.bin'],
     resolve: { alias: rapierAlias }, // Rapier's wasm-importing module → plain bindings (vite/rapier.ts)
-    define: { __BUILD_ID__: JSON.stringify(BUILD_ID) },
+    define: { __BUILD_ID__: JSON.stringify(BUILD_ID), __SAVE_NAMESPACES__: JSON.stringify(readdirSync('src/shards').filter((slug) => existsSync(join('src/shards', slug, 'manifest.ts')))) },
     plugins: native ? [genShardsPlugin(), backdropPrefixPlugin(), versionPlugin(), nativePlugin()] : [genShardsPlugin(), backdropPrefixPlugin(), versionPlugin(), pwaPlugin(BUILD_ID), rapierPreviewPlugin()],
   };
 });

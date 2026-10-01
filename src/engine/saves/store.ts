@@ -35,6 +35,7 @@ export class SaveStore {
   private readonly failedWrites = new Set<string>();
   private readonly readonlyKeys = new Set<string>();
   private initialized = false;
+  private lastStamp = 0;
   private persistence: Promise<boolean> | null = null;
   private readonly options: StoreOptions;
   constructor(options: StoreOptions = {}) { this.options = options; }
@@ -67,7 +68,12 @@ export class SaveStore {
     try { const storage = this.storage(scope); if (storage) for (let i = 0; i < storage.length; i++) { const name = storage.key(i); if (name) names.add(name); } } catch { /* memory only */ }
     return [...names].filter((name) => name.startsWith(PREFIX));
   }
-  private at(): string { return this.options.now?.() ?? new Date().toISOString(); }
+  private at(): string {
+    const now = this.options.now?.() ?? new Date().toISOString(), epoch = Date.parse(now);
+    if (!Number.isFinite(epoch)) return now;
+    this.lastStamp = Math.max(epoch, this.lastStamp + 1);
+    return new Date(this.lastStamp).toISOString();
+  }
   private report(scope: string, key: string, version: number, issue: string): void {
     try { this.options.report?.({ kind: 'save-schema', scope, key, version, issue }); } catch { /* error reporting cannot break a read */ }
   }
@@ -175,7 +181,9 @@ export class SaveStore {
           while (version < definition.version) { const migrate = definition.migrate?.[version]; if (!migrate) throw new Error('Missing migration'); data = migrate(data); version++; }
           const result = v.safeParse(definition.schema, data);
           if (!result.success) throw new Error(result.issues[0].message);
-          target.keys[key] = { v: version, data: result.output }; this.put(kind, PREFIX + scope, JSON.stringify(target)); report.imported.push(identity);
+          target.keys[key] = { v: version, data: result.output };
+          if (this.put(kind, PREFIX + scope, JSON.stringify(target))) report.imported.push(identity);
+          else report.skipped.push({ key: identity, reason: 'Storage unavailable or full: kept in memory for this page only' });
         } catch (error) { report.skipped.push({ key: identity, reason: error instanceof Error ? error.message : 'Invalid data' }); }
       }
     }

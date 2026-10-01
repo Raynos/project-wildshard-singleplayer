@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { debugSettings } from './debug-settings.mjs';
 // E271/E272: exercise the real scene on desktop and mobile; no facade multi-draw anywhere.
 // See docs/audits/nine-dragon-mobile-multidraw.md. This guards routing, not native phone memory.
 import { chromium } from 'playwright';
@@ -12,9 +13,7 @@ try {
       isMobile: true, hasTouch: true, serviceWorkers: 'block', userAgent: profile.userAgent });
     try {
       // The retired stored Auto setting must be ignored on every platform.
-      await context.addInitScript(() => {
-        localStorage.setItem('ws.settings.v1', JSON.stringify({ nineFacade: 'auto' }));
-      });
+      await debugSettings(context, { nineFacade: 'auto' });
       await context.route('**/api/errors', (route) => route.fulfill({ status: 200, contentType: 'application/json', body: '{}' }));
       await context.route(/https:\/\/[^/]+\.ingest\.[^/]+\/api\//, (route) => route.fulfill({ status: 200, body: '{}' }));
       const page = await context.newPage();

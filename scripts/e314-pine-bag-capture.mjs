@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { saveFixture } from './debug-settings.mjs';
 // e314-pine-bag-capture.mjs — E314 Pine Hollow Bag C evidence: iPhone 16 Pro portrait (402 × 874 at 3×, touch, phone tier,
 // muted, Metal) frames of Pine Hollow's Bag on one build, for a before / after sheet.
 //
@@ -20,24 +21,23 @@ const OUT = resolvePath(flag('out', '/tmp/e314-pine'));
 const TAG = flag('tag', 'before');
 mkdirSync(OUT, { recursive: true });
 const sleep = (ms) => new Promise((resolve) => { setTimeout(resolve, ms); });
-const PINE = 'chunk://local/pine-hollow';
 
 const pack = (ids) => ({ counts: Object.fromEntries(ids.map(([id, n]) => [id, n])), order: ids.map(([id]) => id) });
 const MID = {
-  'ws.inventory.v1': { [PINE]: pack([['venison', 4], ['deer-hide', 3], ['boar-meat', 3], ['boar-hide', 1], ['boar-tusk', 2], ['antlers', 2], ['elk-meat', 2], ['elk-hide', 1],
-    ['bear-pelt', 1], ['bear-claw', 1], ['amber-resin', 5], ['lodge-ribbon', 1], ['ironhide-tusk', 1], ['warden-longbow', 1]]) },
-  'ws.skins.v1': { owned: ['hollow-ash', 'ghost-stag', 'ironhide'], worn: { crossbow: 'hollow-ash', rifle: 'ironhide' } },
-  'ws.compendium.v1': { [PINE]: {
+  inventory: pack([['venison', 4], ['deer-hide', 3], ['boar-meat', 3], ['boar-hide', 1], ['boar-tusk', 2], ['antlers', 2], ['elk-meat', 2], ['elk-hide', 1],
+    ['bear-pelt', 1], ['bear-claw', 1], ['amber-resin', 5], ['lodge-ribbon', 1], ['ironhide-tusk', 1], ['warden-longbow', 1]]),
+  skins: { owned: ['hollow-ash', 'ghost-stag', 'ironhide'], worn: { crossbow: 'hollow-ash', rifle: 'ironhide' } },
+  compendium: {
     'red-deer': { s: 3, n: 6, t: 3, b: 121 }, boar: { s: 3, n: 4, t: 2, b: 84 }, 'black-bear': { s: 3, n: 1, t: 1, b: 63 }, elk: { s: 2, n: 3, t: 0, b: 0 },
     'white-deer': { s: 1, n: 0, t: 0, b: 0 }, ironhide: { s: 3, n: 1, t: 1, b: 80 }, 'ghost-stag': { s: 3, n: 2, t: 1, b: 110 }, blackpaw: { s: 1, n: 0, t: 0, b: 0 },
     gate: { s: 2, n: 3, t: 0, b: 0 }, crossroads: { s: 2, n: 2, t: 0, b: 0 }, 'cabin-1': { s: 2, n: 2, t: 0, b: 0 }, hamlet: { s: 2, n: 1, t: 0, b: 0 },
     lodge: { s: 2, n: 1, t: 0, b: 0 }, mill: { s: 2, n: 1, t: 0, b: 0 }, pond: { s: 2, n: 1, t: 0, b: 0 }, bridge: { s: 1, n: 0, t: 0, b: 0 },
-  } },
+  },
 };
 // the full pack: 18 kinds, no bow (before: every slot taken; after: only the 7 kept kinds survive the load)
 const FULL = {
-  'ws.inventory.v1': { [PINE]: pack([['venison', 2], ['deer-hide', 2], ['boar-meat', 1], ['boar-hide', 1], ['boar-tusk', 1], ['antlers', 1], ['elk-meat', 1], ['elk-hide', 1], ['bear-pelt', 1],
-    ['bear-claw', 1], ['amber-resin', 9], ['lodge-ribbon', 2], ['ironhide-tusk', 1], ['ghost-antler', 1], ['blackpaw-claw', 1], ['imperial-crown', 1], ['amber-heartwood', 1], ['crab-meat', 1]]) },
+  inventory: pack([['venison', 2], ['deer-hide', 2], ['boar-meat', 1], ['boar-hide', 1], ['boar-tusk', 1], ['antlers', 1], ['elk-meat', 1], ['elk-hide', 1], ['bear-pelt', 1],
+    ['bear-claw', 1], ['amber-resin', 9], ['lodge-ribbon', 2], ['ironhide-tusk', 1], ['ghost-antler', 1], ['blackpaw-claw', 1], ['imperial-crown', 1], ['amber-heartwood', 1], ['crab-meat', 1]]),
 };
 
 const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
@@ -45,7 +45,7 @@ const errors = [];
 async function run(seed, body) {
   const ctx = await browser.newContext({ viewport: { width: 402, height: 874 }, deviceScaleFactor: 3, hasTouch: true, isMobile: true });
   // seeded once per tab: a reload keeps what the game saved since (sessionStorage survives it, the seed does not re-run)
-  await ctx.addInitScript((s) => { try { if (sessionStorage.getItem('e314-seeded') === null) { localStorage.clear(); for (const [k, v] of Object.entries(s)) localStorage.setItem(k, JSON.stringify(v)); sessionStorage.setItem('e314-seeded', '1'); } } catch { /* */ } }, seed);
+  for (const [key, data] of Object.entries(seed)) await saveFixture(ctx, { scope: 'pine-hollow', key, data, once: `e314-${key}` });
   const page = await ctx.newPage();
   page.on('pageerror', (e) => errors.push(e.message.slice(0, 200)));
   const load = async () => {
