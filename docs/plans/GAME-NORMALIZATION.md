@@ -1,6 +1,6 @@
 # Plan: game normalization v2 (E127 → E357). The Wildshard engine: engine · game · kit · shard plugins
 
-**State:** `in progress` 2026-09-30 — **F-wave: F0, F3.1, F1, F4, F5, F7, F6 (the big move, bb88b80e) built; F2's baselines recording; F3.2's gate files + nightly built (runner record waits on the baselines); F8 (the spine) building (sol-f8); next F9 + F11, then F10, F12, then S1 Nine Dragon (its audio generating now).** Jake's go (101): the lead (wildshard-9) builds autonomously, no milestone stops (102), the pin moves itself at milestones (103), parity in lead batches (104), Opus subagents + Codex GPT 6.1 Sol panes over herdr (105, 107, 109), two new shards at Z3 (106). Build log: 13 B1–B13. Milestones 0/4; ~8.7k dead lines + 44 scripts deleted.
+**State:** `in progress` 2026-10-01 — **F0–F12 built** (F8 spine + leak test green on all 4 shards, F9 registry, F10 SaveStore, F11 one collision path, F12 Rapier 0.21; 3 game bugs fixed inline, B16/B17); **F2's m5 baselines recording** (side commit 5c46207e, B22), then F3.2's runner record and the first full two-tier parity batch. **S1 (Nine Dragon) building:** S1.1 plugin machinery landed, S1.1b (sol-s11b) finishing the shard; C1 combat tests, S1.5 audio wiring (files generated), S1.6 budgets in flight; S1.2/S1.3 next, then S1.4. Decisions 101–109; build log 13 B1–B23. Milestones 0/4.
 
 ## Specs (the executable detail) and the definition of ready
 
