@@ -15,14 +15,19 @@
  * Cards use the generated, node-safe manifests; world builders remain lazy.
  * test/title-deck.test.ts keeps each card's name, label (the def's `biome`), badge and art equal to its ShardManifest.
  */
-import { SHARDS } from './shard/shards.generated';
-import { setting } from '#engine/ui/Settings';
+import { SHARDS, type ShardSlug } from './shard/shards.generated';
+import { setting, onSettingChange } from '#engine';
+import { readSummary, summaryView } from './summary';
+import { GAME_STRINGS } from './strings';
+import './summary.css';
+
+export { travel } from './travel/travel';
 
 export type TitleBadge = 'Early access' | 'Experimental';
 
 /** one shard card. The standalone title art fields are swapped alongside the manifests: src/engine/boot/extras.ts points them at their in-memory copies */
 export interface TitleCard {
-  readonly slug: string;
+  readonly slug: ShardSlug;
   readonly name: string;
   /** the one-line player blurb under the name (the def's `biome`; E318: no grid coordinates, no chunk size) */
   readonly label: string;
@@ -112,6 +117,28 @@ export function buildTitleDeck(opts: TitleDeckOptions): TitleDeck {
     required(root, '.ws-menu-head').append(notice);
   }
 
+  const summary = document.createElement('div');
+  summary.className = 'ws-title-summary';
+  summary.setAttribute('aria-label', GAME_STRINGS.summary.label);
+  const paintSummary = (): void => {
+    const view = summaryView(readSummary(), cards);
+    summary.hidden = !view.visited;
+    summary.dataset['variant'] = setting('titleSummary');
+    summary.replaceChildren();
+    for (const line of view.lines) {
+      const row = document.createElement('div'); row.className = 'ws-title-summary-line';
+      const name = document.createElement('span'); name.textContent = line.name;
+      const value = document.createElement('span');
+      value.textContent = !line.visited ? GAME_STRINGS.summary.notVisited : line.total === null ? GAME_STRINGS.summary.unknown(line.earned) : GAME_STRINGS.summary.known(line.earned, line.total);
+      row.append(name, value); summary.append(row);
+    }
+    const total = document.createElement('strong'); total.className = 'ws-title-summary-total';
+    total.textContent = GAME_STRINGS.summary.total(view.earned); summary.append(total);
+  };
+  paintSummary();
+  required(root, '.ws-menu-dots').after(summary);
+  const stopSummary = onSettingChange('titleSummary', paintSummary);
+
   const hero = required(root, '.ws-menu-hero');
   const list = required(root, '.ws-menu-cards');
   const track = required(root, '.ws-menu-deck-track');
@@ -199,6 +226,6 @@ export function buildTitleDeck(opts: TitleDeckOptions): TitleDeck {
     get index() { return index; },
     select, activate,
     start: () => { place(index, 0, false); requestAnimationFrame(() => { place(index, 0, false); }); },
-    dispose: () => { removeEventListener('resize', onResize); strip.disconnect(); },
+    dispose: () => { stopSummary(); removeEventListener('resize', onResize); strip.disconnect(); },
   };
 }

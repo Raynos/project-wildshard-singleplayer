@@ -1,5 +1,7 @@
 import { beforeEach, expect, it, vi } from 'vitest';
-import { SaveStore } from '#engine';
+import { SaveStore, App, type LevelDriver } from '#engine';
+import { shardContext, toLevelSpec, type GameServices } from '#game';
+import manifest from '#shards/nine-dragon-stack/manifest';
 import { Inventory, ITEMS } from '#game/Inventory';
 import { normalizeItemRow } from '#game/bag/items';
 import { applyTravelCarry, travelService, travelSlot, type TravelSource } from '#game/travel/travel';
@@ -65,4 +67,18 @@ it('adds carry through the arriving Bag and ignores a wrong target', () => {
 it('keeps inventory intact if the per-tab handoff cannot be persisted', () => {
   const f = fixture(); vi.spyOn(f.slot, 'write').mockReturnValue(false);
   f.service.travel({ to: 'pine-hollow', mode: 'enter' }); expect(f.inventory.count('coconut')).toBe(3);
+});
+
+it('stores travel defaults through the real shard registration and releases rows on unload', async () => {
+  const app = new App();
+  const noop = (): void => undefined;
+  const driver: LevelDriver = { progress: () => ({ set: noop, detail: noop }), data: noop, world: noop, kit: noop, loadout: noop, play: noop, finish: noop };
+  app.levelDriver = driver;
+  const game: GameServices = { shard: manifest, rows: new Map(), bag: { tab: () => noop, fragment: () => noop } };
+  await app.loadLevel(toLevelSpec(manifest), { kit: (ctx) => {
+    const shard = shardContext(ctx, manifest, game);
+    shard.rows.item([{ id: 'local' }, { id: 'portable', travels: true }]);
+  } });
+  expect([...game.rows.get('item')?.values() ?? []]).toEqual([{ id: 'local', travels: false }, { id: 'portable', travels: true }]);
+  await app.unloadLevel(); expect(game.rows.size).toBe(0);
 });

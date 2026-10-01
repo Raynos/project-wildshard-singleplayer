@@ -7,7 +7,7 @@ import { reportError } from '#engine/core/errorReport';
 import { showLoadFailure } from '#engine/ui/errorScreen';
 import { app, EffectService, CombatCues, pageSeed, LevelLoadError, installBounds, EquipmentService, type WeaponId, type Weapon, type LevelContext, type DiscSpot, CHUNK_HALF, ROAD_LENGTH, startViewmodelTextures, viewmodelTexturesReady, type Targets, type TargetHit, getNumber, onNumber, onSettingChange, setting, floorBelow, lineOfSight } from '#engine';
 
-import { shardContext, toLevelSpec, type ShardContext, type GameServices, type ShardRuntime } from '#game';
+import { shardContext, toLevelSpec, consumeTravelHandoff, bindTravelInventory, applyTravelCarry, setShardSwitcher, type TravelHandoff, type ItemRow, type ShardContext, type GameServices, type ShardRuntime } from '#game';
 import { levelSequenceDriver, type LevelSequence } from '#game/shard/sequence';
 import { meleeShard, type ShardManifest } from '#game/shard/manifest';
 import { installProbe } from '#engine/debug/probe';
@@ -137,7 +137,6 @@ import { activePhysics } from '#engine/physics/active';
 
 import { pickInteractable } from '#engine/world/interact/Interactables';
 import { textureBytes } from '#engine/render/textureBytes';
-import { consumeArenaArrival, setShardSwitcher } from '#game/travel/switch';
 import { consumeTitleArrival, type TitleArrival } from '#engine/boot/titleArrival';
 import { setAliveSource } from '#engine/boot/lastEnd';
 import { beginExploreEntry, recordBootCheckpoint, markBootContextLost, markBootHandledError } from '#engine/boot/bootTrace';
@@ -221,10 +220,13 @@ interface StagedBoot {
   skins: readonly SkinDef[];
   progress: StepProgress;
   worldHook: (work: () => Promise<void>) => Promise<void>;
+  handoff: TravelHandoff | null;
+  items: ReadonlyMap<string, ItemRow>;
+  featTotal: number | undefined;
 }
 
 async function buildShardWorld(slug: string, manifest: ShardManifest, stage: LoadStage): Promise<BuiltWorld> {
-  const boot: StagedBoot = { skins: [], runtime: { world: null, step: null, play: null, interactables: [], overhead: [], objects: {}, hooks: {}, viewer: () => new THREE.Vector3(), horizonVeil: null }, progress: { set: () => undefined, detail: () => undefined }, worldHook: (work) => work() };
+  const boot: StagedBoot = { handoff: null, items: new Map(), featTotal: undefined, skins: [], runtime: { world: null, step: null, play: null, interactables: [], overhead: [], objects: {}, hooks: {}, viewer: () => new THREE.Vector3(), horizonVeil: null }, progress: { set: () => undefined, detail: () => undefined }, worldHook: (work) => work() };
   const sequence = buildShardStages(slug, manifest, stage, boot);
   if (manifest.load === undefined) {
     let next = await sequence.next();
@@ -248,7 +250,10 @@ async function buildShardWorld(slug: string, manifest: ShardManifest, stage: Loa
       app.render.frameGate = () => false;
     }
   });
-  app.levelDriver = staged.driver;
+  app.levelDriver = { ...staged.driver, data: async (spec, level) => {
+    await staged.driver.data(spec, level);
+    if (boot.handoff?.arrive) spec.spawn = boot.handoff.arrive;
+  } };
   app.levelAdapters.inputContext = (def) => {
     const child = scope.child(`input.${def.id}`); app.input.register(def, child);
     return () => child.dispose();
@@ -261,6 +266,8 @@ async function buildShardWorld(slug: string, manifest: ShardManifest, stage: Loa
       kit: async (level) => {
         await plugin.kit?.(ctx(level));
         boot.skins = [...(game.rows.get('skin')?.values() ?? [])] as SkinDef[];
+        boot.items = game.rows.get('item') ?? new Map();
+        boot.featTotal = game.rows.get('feat')?.size;
       },
       play: (level) => plugin.play?.(ctx(level)),
     });
@@ -272,6 +279,9 @@ async function buildShardWorld(slug: string, manifest: ShardManifest, stage: Loa
 }
 
 async function* buildShardStages(slug: string, manifest: ShardManifest, stage: LoadStage, boot: StagedBoot): LevelSequence<BuiltWorld> {
+  // level.data consumes the per-tab intent before any expensive build can fail.
+  boot.handoff = consumeTravelHandoff(manifest.slug);
+  if (boot.handoff !== null) bootArrival = { slug: boot.handoff.to, mode: boot.handoff.mode };
   setTexturePolicy(manifest.tiers?.[TIER]?.textures);
   const loading = new Loading();
   app.setState('loading');
@@ -318,7 +328,7 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   startViewmodelTextures((getActiveChunk().weapon) === 'crossbow'); // the crossbow's + rifle's textures, drawn in a worker while the world builds
   const fieldModels = getActiveChunk().fieldModels?.() ?? null; // the shard's field models' code (ShardManifest.fieldModels, E349), fetched while the world builds
   const level = yield 'world';
-  const world = await bootstrap(step, toLevelSpec(manifest));
+  const world = await bootstrap(step, toLevelSpec({ ...manifest, spawn: boot.handoff?.arrive ?? manifest.spawn }));
   const { game, sky, player, forest, params, chunk, registry } = world;
   boot.runtime.world = world; boot.runtime.step = step;
   if (level !== undefined) game.scene.add(level.root);
@@ -655,7 +665,8 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   const { audio, music } = prepareAudio();
   // the ring shrine hums by proximity and ducks the score up close (project/archive/2026-09-23-music.md v3 row 9)
   const shrineHum = shrine ? new ShrineHum(audio, music, { x: SHRINE.x, y: heightAt(SHRINE.x, SHRINE.z) + 2.5, z: SHRINE.z }) : null;
-  const toSpawn = () => { player.spawn(chunk.spawn.x, chunk.spawn.z, chunk.spawn.yaw, chunk.spawn.y); if (pier) { const y = pier.floorHeightAt(player.position.x, player.position.z); if (y !== undefined) player.position.y = y; } };
+  const arrivalSpawn = boot.handoff?.arrive ?? chunk.spawn;
+  const toSpawn = () => { player.spawn(arrivalSpawn.x, arrivalSpawn.z, arrivalSpawn.yaw, arrivalSpawn.y); if (pier && !boot.handoff?.arrive) { const y = pier.floorHeightAt(player.position.x, player.position.z); if (y !== undefined) player.position.y = y; } };
   const respawn = () => { toSpawn(); music.sting('death'); };
   installBounds(app, game.levelScope, game.level.bounds, { player, toSpawn,
     floorAt: (x, z) => registry.floorAt(x, z), suspended: () => world.freeCamera || world.tour.active || away() });
@@ -674,6 +685,9 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   // ── the in-game menu: MAP · INVENTORY · ACHIEVEMENTS · SETTINGS (src/engine/ui/Menu.ts) ──
   const progress = new Progress(getActiveChunk().slug);     // shard achievements → titles (src/game/achievements.ts)
   const inventory = new Inventory(getActiveChunk().slug);   // the pack: harvest drops
+  if (boot.featTotal !== undefined) progress.setFeatTotal(boot.featTotal);
+  applyTravelCarry(boot.handoff, inventory);
+  game.levelScope.onDispose(bindTravelInventory({ shard: chunk.slug, inventory, rows: boot.items }));
   const skins = new SkinLocker(chunk.slug, boot.skins);                          // legendary skins owned / worn (persisted; wired below)
   const menu = new GameMenu({
     fullMap, progress, inventory,
@@ -1264,8 +1278,7 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   game.start(); // keep the full render loop out of the loader's 100% fade and its transient boot-memory peak
   if (arrival?.mode === 'enter' || arrival?.mode === 'arena') enter();
   else if (arrival?.mode === 'explore') hud.startExplore(); // import the viewer only after shader compilation and the loader's peak
-  const arenaArrival = consumeArenaArrival(slug);
-  if (arrival?.mode === 'arena' || arenaArrival) hud.enterArenaNow();
+  if (arrival?.mode === 'arena') hud.enterArenaNow();
   if (deferredAudio) {
     const decodeAfterBoot = async (): Promise<void> => {
       try {

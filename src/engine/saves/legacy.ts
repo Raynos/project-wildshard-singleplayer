@@ -9,9 +9,9 @@ export const LEGACY_DEVICE: Readonly<Record<string, string>> = {
 export const LEGACY_SESSION: Readonly<Record<string, string>> = {
   'ws.alive': 'life.alive', wsErrSession: 'err.session', wsErrReloads: 'err.reloads', wsGpuReloads: 'gpu.reloads',
   wsResumeShot: 'resume.shot', wsResumeBrand: 'resume.brand', wsClearDownloads: 'clearDownloads.report',
-  'ws.titleArrival': 'titleArrival', 'ws.shardArrival.arena': 'shardArrival.arena', 'ws.loadAttempt': 'loadAttempt',
+  'ws.titleArrival': 'titleArrival', 'ws.loadAttempt': 'loadAttempt',
 };
-const TEXT = new Set(['perf.probe', 'perf.rec', 'perf.lap', 'resume.shot', 'shardArrival.arena']);
+const TEXT = new Set(['perf.probe', 'perf.rec', 'perf.lap', 'resume.shot']);
 export function decodeLegacy(key: string, raw: string): unknown {
   if (key === 'devMode') return raw === '1';
   if (TEXT.has(key)) return raw;

@@ -19,7 +19,7 @@ import { jsonSlot } from '../saves/slots';
 import { texMode } from '../boot/gpuFiles';
 import { clearDownloads, freedBytes, lastClear, mbText, storageUsed } from '../boot/clearDownloads';
 import { RELOAD_PARAM } from '../core/GpuRecovery';
-import { shardMemory } from '#game/travel/switch';
+import { shardMemory } from '#game';
 import { lastEndLine, markUnload } from '../boot/lastEnd';
 import { getMusicStyle, getSfxSet, onMusicStyle, onSettingChange, onSfxSet, saveSetting, setMusicStyle, setSfxSet, setting, settingsReloadUrl, MUSIC_STYLES, SFX_SETS, type MusicStyle, type OptionKey, type OptionValue, type SfxSet } from './Settings';
 import { MOBILE_DEVICE } from '../core/tier';
@@ -152,6 +152,7 @@ const SFX_TEXT: Record<SfxSet, string> = { best: 'Generated', synth: 'Synth' };
 
 export const DEBUG_ROWS: readonly DebugRow[] = [
   // ── Look ──
+  opt('titleSummary', 'look', 'Title progress summary', [['a', 'A · ledger'], ['b', 'B · split ledger']], { ask: 'E357', reviewBy: '2026-12-30', note: 'E357 X9 · title-deck Wildshard summary; Look board A / B' }),
   opt('learnedLut', 'look', 'Learned LUT', ON_OFF, { reload: true, ask: 'E85', reviewBy: '2026-12-30', note: 'E85 · off = the captures scripts/fit-lut.py fits from (was ?nolut)' }),
 
   // ── Sky & weather ──

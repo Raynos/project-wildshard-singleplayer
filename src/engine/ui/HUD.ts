@@ -2,7 +2,7 @@ import type { WeaponUi } from '../combat/Equipment';
 import { app } from '../app/runtime';
 import { tap } from '../core/harnessTap';
 import { getActiveChunk } from '#game/shard/registry';
-import { requestShard } from '#game/travel/switch';
+import { travel } from '#game';
 import { CABIN_SITES } from '../world/Heightfield';
 import type { GameMenu } from './Menu';
 import { openBootSettings } from './BootSettings';
@@ -495,8 +495,8 @@ export class HUD {
     const active = getActiveChunk().slug;
     const deck = buildTitleDeck({
       cards: titleCards(), active,
-      onEnter: (c) => { if (c.slug === active) this.enter(); else requestShard(c.slug, { enter: true }); },
-      onExplore: (c) => { if (c.slug !== active) { requestShard(c.slug, { explore: true }); return; } this.leaveForExplore(); },
+      onEnter: (c) => { if (c.slug === active) this.enter(); else travel({ to: c.slug, mode: 'enter' }); },
+      onExplore: (c) => { if (c.slug !== active) { travel({ to: c.slug, mode: 'explore' }); return; } this.leaveForExplore(); },
       onSettings: () => { openBootSettings(); }, // E55: the reload-to-apply picks
     });
     this.root.append(deck.root);
