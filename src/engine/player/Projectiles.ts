@@ -103,7 +103,7 @@ const RECOVER_R = 1.25; // m, horizontal reach from the feet
 const RECOVER_UP = 2.1; // m, highest point of a stuck arrow's midpoint the player can pull out
 const NEG_Z = new THREE.Vector3(0, 0, -1), POS_Z = new THREE.Vector3(0, 0, 1), Y_AXIS = new THREE.Vector3(0, 1, 0), X_AXIS = new THREE.Vector3(1, 0, 0);
 const _cp = new THREE.Vector3(), _chord = new THREE.Vector3();
-const _v1 = new THREE.Vector3(), _v2 = new THREE.Vector3(), _dir = new THREE.Vector3(), _wind = new THREE.Vector3(), _side = new THREE.Vector3(), _nrm = new THREE.Vector3();
+const _v1 = new THREE.Vector3(), _v2 = new THREE.Vector3(), _dir = new THREE.Vector3(), _wind = new THREE.Vector3(), _nrm = new THREE.Vector3();
 const _q = new THREE.Quaternion(), _q2 = new THREE.Quaternion(), _m = new THREE.Matrix4(), _s = new THREE.Vector3(1, 1, 1);
 const ZERO_M = new THREE.Matrix4().makeScale(0, 0, 0);
 
@@ -111,6 +111,26 @@ const ZERO_M = new THREE.Matrix4().makeScale(0, 0, 0);
 function yawOf(a: TargetAnimal): number { return 'yaw' in a && typeof a.yaw === 'number' ? a.yaw : 0; }
 /** a hidden (harvested, faded) carcass */
 function hiddenOf(a: TargetAnimal): boolean { return 'hidden' in a && a.hidden === true; }
+
+/** Deterministic flight substep. Only the supplied position/velocity are written; no world or clock is read. */
+export function projectileFlightStep(pos: THREE.Vector3, vel: THREE.Vector3, h: number,
+  kind: Pick<ProjectileKind, 'gravity' | 'drag' | 'windCoupling'>, wind: Readonly<THREE.Vector3> | null = null): void {
+  vel.y -= kind.gravity * h;
+  if (wind !== null && kind.windCoupling > 0) {
+    const sp = vel.length();
+    if (sp > 1e-3) {
+      let x = wind.x - vel.x, y = -vel.y, z = wind.z - vel.z;
+      const along = -(x * vel.x + y * vel.y + z * vel.z) / (sp * sp);
+      x += vel.x * along; y += vel.y * along; z += vel.z * along;
+      const coupling = kind.windCoupling * h;
+      vel.x += x * coupling;
+      vel.y += y * coupling;
+      vel.z += z * coupling;
+    }
+  }
+  vel.multiplyScalar(1 - kind.drag * h * vel.length() * 0.1);
+  pos.addScaledVector(vel, h);
+}
 
 export class Projectiles {
   wind: WindField | null = null;
@@ -170,19 +190,8 @@ export class Projectiles {
 
   private step(pos: THREE.Vector3, vel: THREE.Vector3, h: number): void {
     const k = this.kind;
-    vel.y -= k.gravity * h;
-    if (this.wind !== null && k.windCoupling > 0) {
-      this.wind.vecAt(pos.x, pos.z, _wind); _wind.y = 0;
-      // sideways only: the part of (wind − v) across the flight direction
-      const sp = vel.length();
-      if (sp > 1e-3) {
-        _side.copy(_wind).sub(vel);
-        _side.addScaledVector(vel, -_side.dot(vel) / (sp * sp));
-        vel.addScaledVector(_side, k.windCoupling * h);
-      }
-    }
-    vel.multiplyScalar(1 - k.drag * h * vel.length() * 0.1);
-    pos.addScaledVector(vel, h);
+    const wind = this.wind !== null && k.windCoupling > 0 ? this.wind.vecAt(pos.x, pos.z, _wind) : null;
+    projectileFlightStep(pos, vel, h, k, wind);
   }
 
   /**

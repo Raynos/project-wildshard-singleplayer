@@ -70,6 +70,12 @@ const ARC_POINTS = 32, ARC_SHOW_AFTER = 0.12;
 const FOV_HIP = 72;
 const LEFT_HAND_Y = 0.3;         // the left fist sits this far up the shaft from the right
 
+/** Deterministic javelin substep (the flight uses steps of at most 1/120 s). */
+export function javelinFlightStep(pos: THREE.Vector3, vel: THREE.Vector3, h: number): void {
+  vel.y -= JAV_GRAVITY * h;
+  pos.addScaledVector(vel, h);
+}
+
 function fovForAspect(base: number, aspect: number): number {
   if (aspect >= 1) return base;
   return THREE.MathUtils.radToDeg(2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(base) / 2) / Math.sqrt(aspect)));
@@ -440,8 +446,7 @@ export class Spear implements Weapon {
         while (rem > 0) { // every way out of the flight breaks the loop
           const h = Math.min(rem, 1 / 120); rem -= h;
           _v1.copy(j.pos);
-          j.vel.y -= JAV_GRAVITY * h;
-          j.pos.addScaledVector(j.vel, h);
+          javelinFlightStep(j.pos, j.vel, h);
           const seg = _v2.subVectors(j.pos, _v1), len = seg.length();
           if (len < 1e-6) continue;
           _dir.copy(seg).multiplyScalar(1 / len);

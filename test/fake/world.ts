@@ -39,7 +39,8 @@ export function fakeWorld(): {
     sprinting: false, speedFactor: 0, bobTime: 0, dashing: false, swinging: false,
     motor: legacyDouble<CharacterMotor>({ collider: legacyDouble<Collider>({}) }), dashTo: (): boolean => false,
   });
-  const sky = legacyDouble<Sky>({ setupMaterial: (): void => undefined, csm: legacyDouble<Sky['csm']>({ updateFrustums: (): void => undefined }) });
+  const sky = legacyDouble<Sky>({ sunDir: new THREE.Vector3(0, 1, 0), setupMaterial: (): void => undefined,
+    csm: legacyDouble<Sky['csm']>({ lights: [], updateFrustums: (): void => undefined }) });
   const forest = legacyDouble<Forest>({ nearby: (): [] => [] });
   return { game, player, sky, forest, registry: new WorldRegistry(), physics: new FakePhysics() };
 }

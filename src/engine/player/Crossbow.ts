@@ -95,6 +95,8 @@ export function worldHit(a: Vec3, b: Vec3, radius: number): Hit | null {
 export interface CrossbowWorld { game: Game; sky: Sky; player: Player; forest: Forest }
 export interface CrossbowOptions { allowUnlocked?: boolean }
 
+
+
 export const MAX_BOLTS = 30;
 const BOLT_SPEED = 62;
 const BOLT_DRAG = 0.012;
@@ -145,6 +147,14 @@ const ADS_NEAR_MARGIN = 0.03, ADS_PITCH = 0, ADS_BLEND_TIME = 0.18, ADS_MOTION =
  *  projects exactly where the tip does — the tip is seen through the ring. Outer diameter ≈ 4 % of the screen width
  *  (≥ 7 % of the height, so it stays a ring on a portrait phone). Hidden at the hip, fades in with the ADS blend. */
 const PEEP_Z = 0.10, PEEP_R = 0.01, PEEP_TUBE = 0.12, PEEP_R_WORLD = 0.0105, PEEP_CYAN = 0x8fe3ff; // rear peep: 2.1 cm ring on a short post just ahead of the nut
+
+/** Deterministic bolt substep, including the selected ammo/weather multipliers. */
+export function boltFlightStep(pos: THREE.Vector3, vel: THREE.Vector3, h: number,
+  mod: { gravity: number; drag: number }): void {
+  vel.y -= GRAVITY * mod.gravity * h;
+  vel.multiplyScalar(1 - BOLT_DRAG * mod.drag * h * vel.length() * 0.1);
+  pos.addScaledVector(vel, h);
+}
 
 // ───────────────────────────── procedural textures ─────────────────────────────
 
@@ -1194,9 +1204,7 @@ export class Crossbow implements Weapon {
       let stopped = false;
       for (let s = 0; s < sub; s++) {
         _v1.copy(b.pos); // previous
-        b.vel.y -= GRAVITY * b.mod.gravity * h;
-        b.vel.multiplyScalar(1 - BOLT_DRAG * b.mod.drag * h * b.vel.length() * 0.1);
-        b.pos.addScaledVector(b.vel, h);
+        boltFlightStep(b.pos, b.vel, h, b.mod);
         if (this.testHit(b, _v1)) { stopped = true; break; }
         b.tracer?.addPoint(b.pos);
       }
