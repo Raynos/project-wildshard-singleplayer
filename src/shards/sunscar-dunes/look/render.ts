@@ -62,14 +62,16 @@ export function sunscarLook(): LookStrategy {
   return { mode: 'extend', dispose: () => { if (built) { built.removeFromParent(); built.geometry.dispose(); built.material.dispose(); built = null; } }, compose: ({ engineChain }) => ({ chain: engineChain('clean') }),
     sky: { clouds: false, planet: false },
     shadows: { rig: 'tier', normalBias: 0.08, radius: 2 },
-    backdrop: ({ sky }) => {
+    backdrop: ({ sky, scene }) => {
       const clock = duskClock(), dome = buildDome(), keyColor = new Color().copy(DUSK.key);
-      built = dome;
+      built = dome; scene.add(dome); // the engine keeps `clouds` on the camera; the backdrop puts it in the scene
       let hemi: { color: Color; groundColor: Color; intensity: number } | null = null;
       return Promise.resolve({ clock, horizon: new Color().copy(DUSK.fog), lut: null, clouds: dome, fadesPlanet: false,
         bind: (targets) => {
           hemi = targets.hemi; targets.disc.visible = false; if (targets.halo) targets.halo.visible = false;
           targets.fog.color.copy(DUSK.fog); targets.fogU.fogSunColor.value.copy(DUSK.fogSun);
+          // the engine's far ridges (Horizon) take the dusk haze, not its default grey
+          targets.far.uHazeCol.value.copy(DUSK.fog); targets.far.uSeaSky.value.copy(DUSK.away); targets.far.uSeaSun.value.copy(DUSK.fogSun);
         },
         update: () => {
           sky.setKeyLight(KEY_DIR, keyColor, KEY_INTENSITY);

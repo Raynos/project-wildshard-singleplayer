@@ -6,13 +6,14 @@
 import { BackSide, Color, Mesh, ShaderMaterial, SphereGeometry, Vector3 } from 'three';
 
 /** Toward the sun, a few degrees under the horizon (the sky's glow centre). */
-export const SUN_BELOW = new Vector3(-0.42, -0.07, -1).normalize();
-/** The key light: the last skylight off the glow, a few degrees up, so the crests facing it catch warm light. */
-export const KEY_DIR = new Vector3(-0.42, 0.17, -1).normalize();
+export const SUN_BELOW = new Vector3(-0.55, -0.07, -1).normalize();
+/** The key light: the last skylight off the glow, low from the west, so the west faces catch warm light and the east
+ *  faces fall into the indigo fill (the mockup's lit left flanks and blue right-hand hollows). */
+export const KEY_DIR = new Vector3(-1, 0.22, -0.5).normalize();
 export const DUSK = {
   zenith: new Color(0.010, 0.013, 0.048), upper: new Color(0.040, 0.040, 0.115), mauve: new Color(0.11, 0.045, 0.085),
   away: new Color(0.13, 0.075, 0.10), glow: new Color(1.25, 0.40, 0.08), fog: new Color(0.20, 0.11, 0.11), fogSun: new Color(0.9, 0.36, 0.12),
-  key: new Color(1, 0.56, 0.32), hemiSky: new Color(0.34, 0.39, 0.66), hemiGround: new Color(0.45, 0.22, 0.1),
+  key: new Color(1, 0.56, 0.32), hemiSky: new Color(0.30, 0.37, 0.66), hemiGround: new Color(0.5, 0.24, 0.1),
 } as const;
 
 const VERT = /* glsl */ `

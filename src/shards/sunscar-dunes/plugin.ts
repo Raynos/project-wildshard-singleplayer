@@ -32,7 +32,9 @@ export class SunscarDunesPlugin extends ShardPlugin {
       if (rt.world === null) throw new Error('Signal Dunes equipment needs the world stage');
       this.whip = new SignalWhip(ctx.app, targets, (target) => rt.play?.animals.animals.find((a) => a.position === target.position)?.combatActor() ?? null);
       this.whip.onSwing = (heavy) => { if (heavy) rt.play?.cues.charge(WHIP_ROW, 'heavy'); else rt.play?.cues.fire(WHIP_ROW); };
-      rt.world.game.camera.add(this.whip.model);
+      // the camera must be in the scene for a viewmodel to draw; the kit's weapon families add it themselves (API gap)
+      const { camera, scene } = rt.world.game; if (!camera.parent) scene.add(camera);
+      camera.add(this.whip.model);
       return Promise.resolve({ primary: this.whip, secondary: null, rifle: null, install: () => undefined });
     };
   }

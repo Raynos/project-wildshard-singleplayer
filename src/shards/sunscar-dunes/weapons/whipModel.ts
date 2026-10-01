@@ -3,7 +3,7 @@
  * centre line is recomputed every frame (one draw, ~200 vertices). The braid is vertex colour: two browns laid in a
  * spiral, so the plaits read without a texture. `pose(crack)` blends the hanging loop (0) into the thrown line (1).
  */
-import { BufferAttribute, BufferGeometry, CylinderGeometry, Group, Mesh, MeshStandardMaterial, SphereGeometry, Vector3 } from 'three';
+import { BoxGeometry, BufferAttribute, BufferGeometry, CylinderGeometry, Group, Mesh, MeshBasicMaterial, MeshStandardMaterial, SphereGeometry, Vector3 } from 'three';
 
 export const THONG_POINTS = 34;
 const SIDES = 6, LENGTH = 6;
@@ -40,7 +40,12 @@ export class WhipModel {
     geometry.setIndex(index);
     this.thong = new Mesh(geometry, new MeshStandardMaterial({ vertexColors: true, roughness: 0.7, metalness: 0 }));
     this.thong.frustumCulled = false;
-    this.root.add(handle, knob, fist, this.thong);
+    // the viewmodel pass (as the kit's weapons): a depth clear at 999, then the whip at 1000 in the transparent queue,
+    // so the thong never clips into a dune
+    const clearer = new Mesh(new BoxGeometry(0.001, 0.001, 0.001), new MeshBasicMaterial({ colorWrite: false, depthWrite: false, transparent: true, fog: false }));
+    clearer.renderOrder = 999; clearer.frustumCulled = false; clearer.onBeforeRender = (renderer) => { renderer.clearDepth(); };
+    for (const part of [handle, knob, fist, this.thong]) { part.renderOrder = 1000; part.frustumCulled = false; part.material.transparent = true; part.material.depthWrite = true; }
+    this.root.add(clearer, handle, knob, fist, this.thong);
     this.pose(0, 0);
   }
 
