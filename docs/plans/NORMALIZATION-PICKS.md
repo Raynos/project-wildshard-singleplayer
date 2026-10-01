@@ -1,11 +1,17 @@
-# E357 — what waits on Jake
+# NORMALIZATION-PICKS — every pick, decision, question and review for Jake (E357)
 
-The one list of picks, decisions and reviews for Jake. Every builder's open question lands here (the lead adds it);
-nothing is decided for Jake without a row. Decision 102 still holds for milestone board items (the lead takes the
-recommended option and logs it, so the build never stops), but each one stays here until Jake has seen it.
-Rows leave only when Jake answers: the answer and the date go in the row, then it moves to **Answered** below.
+**State:** `blocked` 2026-10-01 — 13 rows open (P1–P13), waiting on Jake; the lead asks them with the question tool; must be empty before GAME-NORMALIZATION is archived.
 
-**Before the plan is archived, this list must be empty** (every row answered or turned into its own ask).
+A mini plan beside [GAME-NORMALIZATION](GAME-NORMALIZATION.md). Each row is one question the lead asks Jake through
+the question tool (AskUserQuestion), with its options and the evidence to look at. Builders never decide a row: when
+one reports a guess, a board item or a needs-pick, the lead adds a row the same turn. Decision 102 still lets the build
+continue on the recommended option, but the row stays open until Jake has answered.
+
+## How a row closes
+1. The lead asks it (a batch of up to 4 per question call; the evidence images first when the row has them).
+2. Jake's answer and the date go in the row; it moves to **Answered**.
+3. If the answer differs from what was built, the lead turns it into a build row in GAME-NORMALIZATION (or its own ask)
+   and links it here.
 
 ## Open
 
