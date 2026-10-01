@@ -1,7 +1,8 @@
-import type { EquipmentRow } from '#engine';
+import type { EquipmentRow } from '#game';
 import { SWAP_GLYPHS } from '#kit';
 
 export const SABRE: EquipmentRow = {
+  cues: {"fire": "cue.sabre.swing", "reload": "cue.reload", "impact": "cue.sabre.hit"},
   "id": "weapon.sabre",
   "legacySlot": "sabre",
   "ui": {
@@ -23,6 +24,7 @@ export const SABRE: EquipmentRow = {
 };
 
 export const SPEAR: EquipmentRow = {
+  cues: {"fire": "cue.spear.thrust", "reload": "cue.reload", "impact": "cue.javelin.hit"},
   "id": "weapon.spear",
   "legacySlot": "spear",
   "ui": {
@@ -48,6 +50,7 @@ export const SPEAR: EquipmentRow = {
 };
 
 export const BOW: EquipmentRow = {
+  cues: {"fire": "cue.bow.loose", "reload": "cue.reload", "impact": "cue.arrow.hit"},
   "id": "weapon.bow",
   "legacySlot": "bow",
   "ui": {
@@ -74,6 +77,7 @@ export const BOW: EquipmentRow = {
 };
 
 export const AR15: EquipmentRow = {
+  cues: {"fire": "cue.firearm.fire", "reload": "cue.firearm.reload", "impact": "cue.projectile.hit"},
   "id": "weapon.rifle",
   "legacySlot": "rifle",
   "ui": {
@@ -96,4 +100,3 @@ export const AR15: EquipmentRow = {
     "category": "weapon"
   }
 };
-

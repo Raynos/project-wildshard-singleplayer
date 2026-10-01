@@ -148,7 +148,7 @@ export class Naizagai {
 
   /** the upgrade (idempotent): the blade recoloured storm-blue; the moves hook in through update() */
   apply(sabre: Sabre): void {
-    sabre.row = { ...sabre.row, id: 'weapon.naizagai', ui: { ...sabre.row.ui, name: 'Naizagai' }, meta: { ...sabre.meta, name: 'Naizagai' } };
+    sabre.row = { ...sabre.row, id: 'weapon.naizagai', meta: { ...sabre.meta, name: 'Naizagai' } };
     if (this.sabre === sabre) return;
     this.sabre = sabre;
     sabre.model.traverse((o) => {

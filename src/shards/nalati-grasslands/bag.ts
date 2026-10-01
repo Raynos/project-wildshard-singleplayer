@@ -3,8 +3,6 @@
  * PACK and no harvest — src/game/Inventory.ts keeps nothing on Nalati, so the menu hides the tab and no carcass shows
  * "[E] Harvest". What this file adds, pure (test/shards/nalati-grasslands/nalati-bag.test.ts):
  *
- *   kitName(id, name, { golden, naizagai })   GEAR's weapon cards name the upgrades: GOLDEN BOW once the Golden King's
- *                                              reward is taken, NAIZAGAI once Jel Ata's is
  *   skinRows(locker)                           GEAR's SKINS row: every skin — owned ones WEAR / WORN, the rest dim (locked)
  *                                              saying who drops them
  *   nalatiFinds(flags)                         FINDS: the 5 named elites (felled = bright, not yet = dashed) each with its
@@ -48,13 +46,6 @@ export function elitePrize(id: string): { prize: string; title: string | null } 
   const name = skin === null ? null : NALATI_SKINS.find((s) => s.id === skin)?.name ?? null;
   const title = achievementsFor(NALATI_CHUNK_ID).find((a) => a.id === id)?.title ?? null;
   return { prize: name === null ? 'Your horse' : `${name} skin`, title };
-}
-
-/** a weapon card's name: the upgrade once it is yours */
-export function kitName(id: string, name: string, up: { golden: boolean; naizagai: boolean }): string {
-  if (id === 'bow' && up.golden) return 'Golden Bow';
-  if (id === 'sabre' && up.naizagai) return 'Naizagai';
-  return name;
 }
 
 /** GEAR's SKINS row: every Nalati skin; the ones not owned yet locked, saying who drops them */

@@ -1,7 +1,8 @@
-import type { EquipmentRow } from '#engine';
+import type { EquipmentRow } from '#game';
 import { SWAP_GLYPHS } from '#kit';
 
 export const JIAN: EquipmentRow = {
+  cues: {"fire": "cue.sword.swing", "reload": "cue.reload", "impact": "cue.sword.hit"},
   "id": "weapon.jian",
   "legacySlot": "sword",
   "ui": {
@@ -20,4 +21,3 @@ export const JIAN: EquipmentRow = {
     "category": "weapon"
   }
 };
-

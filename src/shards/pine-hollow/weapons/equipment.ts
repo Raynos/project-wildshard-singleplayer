@@ -1,7 +1,8 @@
-import type { EquipmentRow } from '#engine';
+import type { EquipmentRow } from '#game';
 import { SWAP_GLYPHS } from '#kit';
 
 export const CROSSBOW: EquipmentRow = {
+  cues: {"fire": "cue.crossbow.fire", "reload": "cue.reload", "impact": "cue.projectile.hit"},
   "id": "weapon.crossbow",
   "legacySlot": "crossbow",
   "ui": {
@@ -15,7 +16,8 @@ export const CROSSBOW: EquipmentRow = {
     "ammo": {
       "label": "Bolts",
       "segments": 4,
-      "bagLabel": "Iron bolts"
+      "bagLabel": "Iron bolts",
+      "bagLabelFor": "Bolts"
     },
     "swapName": "Crossbow"
   },
@@ -28,6 +30,7 @@ export const CROSSBOW: EquipmentRow = {
 };
 
 export const LONGBOW: EquipmentRow = {
+  cues: {"fire": "cue.longbow.loose", "reload": "cue.reload", "impact": "cue.projectile.hit"},
   "id": "weapon.longbow",
   "legacySlot": "bow",
   "ui": {
@@ -54,6 +57,7 @@ export const LONGBOW: EquipmentRow = {
 };
 
 export const LEVER: EquipmentRow = {
+  cues: {"fire": "cue.lever.fire", "reload": "cue.lever.reload", "impact": "cue.projectile.hit", "dry": "cue.lever.dry"},
   "id": "weapon.lever",
   "legacySlot": "rifle",
   "ui": {
@@ -76,4 +80,3 @@ export const LEVER: EquipmentRow = {
     "category": "weapon"
   }
 };
-

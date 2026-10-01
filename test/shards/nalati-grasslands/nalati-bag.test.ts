@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest';
 import { Inventory, ITEMS, harvestOf, type ItemId } from '#game/Inventory';
 import { NALATI_SKINS, NalatiSkinLocker } from '#shards/nalati-grasslands/weapons/nalatiSkins';
 import { ELITE_DEFS } from '#shards/nalati-grasslands/elites';
-import { FINDS_ELITES, elitePrize, kitName, nalatiFinds, skinRows, skinSource } from '#shards/nalati-grasslands/bag';
+import { FINDS_ELITES, elitePrize, nalatiFinds, skinRows, skinSource } from '#shards/nalati-grasslands/bag';
 import { NALATI_PLACES } from '#shards/nalati-grasslands/quest';
 
 const NALATI = 'chunk://local/nalati-grasslands';
@@ -60,14 +60,6 @@ describe('the no-pack Bag', () => {
 });
 
 describe('GEAR', () => {
-  it('the weapon cards name the upgrades once they are yours', () => {
-    expect(kitName('bow', 'Bow', { golden: false, naizagai: false })).toBe('Bow');
-    expect(kitName('bow', 'Bow', { golden: true, naizagai: false })).toBe('Golden Bow');
-    expect(kitName('sabre', 'Sabre', { golden: true, naizagai: false })).toBe('Sabre');
-    expect(kitName('sabre', 'Sabre', { golden: false, naizagai: true })).toBe('Naizagai');
-    expect(kitName('spear', 'Spear', { golden: true, naizagai: true })).toBe('Spear');
-  });
-
   it('the SKINS row shows every skin; the ones not owned are locked and say who drops them', () => {
     saveFixture('nalati-grasslands', 'nalati.skins', { owned: ['irbis-sabre', 'sky-wolf-bow'], worn: { sabre: 'irbis-sabre' } });
     const rows = skinRows(new NalatiSkinLocker());

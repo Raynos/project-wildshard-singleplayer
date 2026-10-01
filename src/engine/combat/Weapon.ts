@@ -1,10 +1,10 @@
 import type { Vector3, Matrix4 } from 'three';
-import { Equipment, type WeaponId, type EquipmentRow } from './Equipment';
+import { Equipment, type WeaponId, type EquipmentRow, type EquipContext } from './Equipment';
 
 export type ImpactSurface = 'wood' | 'ground' | 'flesh';
 export interface ViewFrame { matrixWorld: Matrix4; getWorldDirection: (dir: Vector3) => Vector3 }
 /** Minimal view port; simulation does not import the renderer's scene types. */
-export interface EquipmentView { visible: boolean; parent: ViewFrame | null }
+export interface EquipmentView { visible: boolean; parent: ViewFrame | null; removeFromParent: () => void }
 
 export interface WeaponState {
   ammo: number | undefined; magazine: number; reserve: number;
@@ -36,8 +36,13 @@ export abstract class Weapon extends Equipment implements WeaponHooks {
   abstract aimInfo: AimInfo | null;
   declare readonly reach?: number;
   get charge(): number | undefined { return undefined; }
+  ammoSelect?: (() => void) | undefined;
   onFire?: WeaponHooks['onFire']; onHit?: WeaponHooks['onHit']; onImpact?: WeaponHooks['onImpact'];
   onReloadStart?: WeaponHooks['onReloadStart']; onReloadEnd?: WeaponHooks['onReloadEnd']; onDry?: WeaponHooks['onDry'];
+  override install(ctx: EquipContext): void {
+    super.install(ctx);
+    ctx.scope.onDispose(() => { this.model.visible = false; this.model.removeFromParent(); });
+  }
   get hasAmmo(): boolean { return this.row.ui.ammo !== undefined; }
   get ammoLabel(): string { return this.row.ui.ammo?.label ?? ''; }
   get segments(): number { return this.row.ui.ammo?.segments ?? 0; }

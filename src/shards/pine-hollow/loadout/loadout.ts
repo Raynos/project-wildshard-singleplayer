@@ -143,6 +143,7 @@ export function installPineLoadout(h: PineLoadoutHost): PineLoadout {
     if (!quiet) { hud.toast(`${BOLT_NAME[kind]} loaded · ${n}`); audio.weaponSwap(); }
   };
   const cycleBolt = (): void => { if (crossbow) selectBolt(quiver.next()); };
+  if (crossbow) crossbow.ammoSelect = cycleBolt;
 
   const addAmmo = (kind: AmmoKind, n: number): void => {
     if (kind === 'cartridge') { rifle.addRounds(n); return; }
@@ -157,31 +158,31 @@ export function installPineLoadout(h: PineLoadoutHost): PineLoadout {
 
   // ── input: B cycles the bolt kind while the crossbow is held; the touch ammo strip, tapped, does the same ──
   document.addEventListener('keydown', (e) => {
-    if (e.repeat || e.code !== 'KeyB' || weapons.current.id !== 'crossbow' || !weapons.current.inputAllowed()) return;
-    cycleBolt();
+    if (e.repeat || e.code !== 'KeyB' || weapons.current.ammoSelect === undefined || !weapons.current.inputAllowed()) return;
+    weapons.current.ammoSelect();
   });
   document.addEventListener('pointerdown', (e) => {
     const t = e.target;
-    if (!(t instanceof Element) || t.closest('.ws-game-bolts') === null || weapons.current.id !== 'crossbow' || !weapons.enabled) return;
-    e.stopPropagation(); cycleBolt();
+    if (!(t instanceof Element) || t.closest('.ws-game-bolts') === null || weapons.current.ammoSelect === undefined || !weapons.enabled) return;
+    e.stopPropagation(); weapons.current.ammoSelect();
   }, true);
 
   // ── sounds (chained over main.ts's: the held weapon decides) ──
   const shot = (name: PhShot, gain = 1): boolean => sfx?.shot(name, { gain }) ?? false;
   const prevFire = weapons.onFire;
   weapons.onFire = () => {
-    const id = weapons.current.id;
-    if (id === 'rifle' && shot('leverShot')) { window.setTimeout(() => { shot('leverEcho', ECHO_GAIN); }, ECHO_DELAY * 1000); return; }
-    if (id === 'bow' && shot('longbowLoose')) return;
+    const cue = weapons.current.row.cues?.fire;
+    if (cue === 'cue.lever.fire' && shot('leverShot')) { window.setTimeout(() => { shot('leverEcho', ECHO_GAIN); }, ECHO_DELAY * 1000); return; }
+    if (cue === 'cue.longbow.loose' && shot('longbowLoose')) return;
     prevFire?.();
   };
   const prevReload = weapons.onReloadStart;
-  weapons.onReloadStart = () => { if (weapons.current.id !== 'rifle') prevReload?.(); }; // the lever gun's reload is its rounds (onRoundIn), not the AR's magazine
+  weapons.onReloadStart = () => { if (weapons.current.row.cues?.reload !== 'cue.lever.reload') prevReload?.(); }; // the lever gun's reload is its rounds (onRoundIn), not the AR's magazine
   rifle.onCycle = () => { shot('leverCycle'); };
   rifle.onRoundIn = () => { if (!shot('leverRoundIn', 0.9)) audio.dryFire(); };
   // the lever gun's hammer on an empty chamber (the crossbow keeps Audio's latch click)
   const prevDry = weapons.onDry;
-  weapons.onDry = () => { if (weapons.current.id === 'rifle' && shot('leverDry')) return; prevDry?.(); };
+  weapons.onDry = () => { if (weapons.current.row.cues?.dry === 'cue.lever.dry' && shot('leverDry')) return; prevDry?.(); };
   // a bolt / arrow / round on stone (a crag, a boulder, the cave): the crack and the ricochet instead of main.ts's ground thud.
   // The impact point is on the surface, so a short probe through it on each axis in turn meets what was hit.
   const prevImpact = weapons.onImpact;

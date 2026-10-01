@@ -3,6 +3,8 @@ import * as THREE from 'three';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { EquipmentService, Weapon, Scope, Tool, quiverState, type EquipmentRow, type WeaponId, type WeaponState } from '#engine';
 import { SABRE, BOW, SPEAR } from '#shards/nalati-grasslands/weapons/equipment';
+import { CROSSBOW } from '#shards/pine-hollow/weapons/equipment';
+import { App } from '#engine/app/app';
 import { equipmentEntry } from '#game/bag/equipment';
 import { FakeGame } from '../fake/FakeGame';
 
@@ -113,7 +115,9 @@ describe('equipment contracts and lifecycle', () => {
     const parent = new Scope('level'), a = new FixtureWeapon(SABRE, 'sabre'), b = new FixtureWeapon(BOW, 'bow', true);
     const weapons = new EquipmentService(a, { scope: parent }); weapons.add(b, { locked: false });
     expect(parent.census.listeners).toBe(2); key('KeyQ'); weapons.update(0.5, 0.5); expect(weapons.current).toBe(b);
+    const camera = new THREE.Group(); camera.add(a.model, b.model);
     parent.dispose(); expect(parent.census.listeners).toBe(0); expect(a.enabled).toBe(false); expect(b.enabled).toBe(false);
+    expect(camera.children).toHaveLength(0); expect(a.model.visible).toBe(false); expect(b.model.visible).toBe(false);
     key('KeyQ'); expect(weapons.swappingNow).toBe(false); expect(weapons.current).toBe(b);
   });
   it('runs owned tools alongside every weapon and returns borrowed tools at the end of a loan', () => {
@@ -135,5 +139,23 @@ describe('equipment contracts and lifecycle', () => {
   it('reads Bag names and flags from metadata regardless of the legacy slot id', () => {
     const a = new FixtureWeapon({ ...SABRE, meta: { ...SABRE.meta, name: 'Custom weapon', icon: 'grapple' } }, 'rifle');
     expect(equipmentEntry(a, a, ' · Bright')).toMatchObject({ name: 'Custom weapon · Bright', icon: 'grapple', melee: true, tracers: false });
+  });
+  it('preserves the default Bag ammo label while showing each selected bolt type', () => {
+    const a = new FixtureWeapon(CROSSBOW, 'crossbow', true);
+    expect(equipmentEntry(a, a).ammoLabel).toBe('Iron bolts');
+    for (const label of ['Broadheads', 'Pitch bolts', 'Bolts']) {
+      if (a.row.ui.ammo === undefined) throw new Error('Fixture has no ammo row');
+      a.row = { ...a.row, ui: { ...a.row.ui, ammo: { ...a.row.ui.ammo, label } } };
+      expect(equipmentEntry(a, a).ammoLabel).toBe(label === 'Bolts' ? 'Iron bolts' : label);
+    }
+  });
+  it('exposes the resident level kit and clears only the disposed level registration', () => {
+    const app = new App(), first = new Scope('first'), second = new Scope('second');
+    const a = new EquipmentService(new FixtureWeapon(SABRE, 'sabre'), { scope: first });
+    const b = new EquipmentService(new FixtureWeapon(BOW, 'bow'), { scope: second });
+    app.registerEquipment(a, first); app.registerEquipment(b, second);
+    expect(app.equipment).toBeNull(); app.levelScope = first; expect(app.equipment).toBe(a);
+    app.levelScope = second; expect(app.equipment).toBe(b); first.dispose(); expect(app.equipment).toBe(b);
+    second.dispose(); expect(app.equipment).toBeNull(); app.engineScope.dispose();
   });
 });

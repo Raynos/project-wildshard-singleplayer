@@ -1,3 +1,4 @@
+import type { EquipmentService } from '../combat/EquipmentService';
 import { saves } from '../saves/runtime';
 import { RngService } from '../core/rng';
 import type { Scene } from 'three';
@@ -36,6 +37,12 @@ export class App {
   readonly stateHistory: AppState[] = ['boot'];
   readonly events: Events;
   readonly combat: CombatPipeline;
+  private readonly equipmentByLevel = new WeakMap<Scope, EquipmentService>();
+  get equipment(): EquipmentService | null { return this.levelScope === null ? null : this.equipmentByLevel.get(this.levelScope) ?? null; }
+  registerEquipment(equipment: EquipmentService, scope: Scope): void {
+    this.equipmentByLevel.set(scope, equipment);
+    scope.onDispose(() => { this.equipmentByLevel.delete(scope); });
+  }
   private readonly players = new WeakMap<Scope, PlayerHealth>();
   get player(): PlayerHealth | null { return this.levelScope === null ? null : this.players.get(this.levelScope) ?? null; }
   registerPlayer(player: PlayerHealth, scope: Scope): void {

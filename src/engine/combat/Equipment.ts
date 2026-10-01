@@ -13,7 +13,7 @@ export type ToolId = `tool.${string}`;
 export type EquipmentId = `weapon.${string}` | ToolId;
 export interface WeaponUi {
   name: string; icon: EquipmentIcon;
-  ammo?: { label: string; segments: number; bagLabel?: string };
+  ammo?: { label: string; segments: number; bagLabel?: string; bagLabelFor?: string };
   touch: keyof EquipmentTouchMap;
   lockOn: boolean; melee: boolean; tracers: boolean;
   /** The existing 24px swap glyph and short label; menu icons use the shared 64px icon library. */
@@ -21,7 +21,8 @@ export interface WeaponUi {
   huntersEye?: boolean;
 }
 export interface EquipmentMeta { name: string; icon: EquipmentIcon; blurb: string; category: 'weapon' | 'tool' }
-export interface EquipmentRow { id: EquipmentId; legacySlot?: WeaponId; ui: WeaponUi; meta: EquipmentMeta }
+export interface EquipmentCues { fire: string; reload: string; impact: string; dry?: string }
+export interface EquipmentRow { cues?: EquipmentCues; id: EquipmentId; legacySlot?: WeaponId; ui: WeaponUi; meta: EquipmentMeta }
 export interface EquipmentBlock { dispose: () => void }
 export type BlockSet = Partial<Record<'vm' | 'aim' | 'ads' | 'melee' | 'projectile' | 'hitStop' | 'ammo' | 'brass', EquipmentBlock>>;
 /** The scope is sufficient for the legacy families; block/input/combat ports expand as their migration rows land. */

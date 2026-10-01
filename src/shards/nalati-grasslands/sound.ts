@@ -36,8 +36,8 @@ import { RIVER, BRIDGE, CAMP, SUMMER_YURTS, GLACIER, BROOK, riverMask, zoneAt } 
 
 export interface NalatiSound {
   bind: (audio: Audio, music?: Music) => void;
-  fire: (weaponId: string) => boolean;
-  impact: (weaponId: string, surface: ImpactKind, pan: number, gain: number) => boolean;
+  fire: (cue: string) => boolean;
+  impact: (cue: string, surface: ImpactKind, pan: number, gain: number) => boolean;
   update: (dt: number) => void;
   /** a creature sound from the flock / dog / marmots (Wildlife.onSound) */
   emit: (name: string, position: THREE.Vector3) => void;
@@ -161,9 +161,9 @@ export function wireSound(nalati: Nalati, ctx: { player: Player; weather: Nalati
     },
     fire(id) {
       if (!audio) return false;
-      if (id === 'bow') return true; // the twang comes with the loose's power (bindKit)
-      if (id === 'sabre') { audio.sabreSwing(); return true; }
-      if (id === 'spear') {
+      if (id === 'cue.bow.loose') return true; // the twang comes with the loose's power (bindKit)
+      if (id === 'cue.sabre.swing') { audio.sabreSwing(); return true; }
+      if (id === 'cue.spear.thrust') {
         // a throw calls onFire then onThrow in the same task: only a thrust is still pending after it
         thrustPending = true;
         queueMicrotask(() => { if (thrustPending) { thrustPending = false; audio?.spearThrust(); } });
@@ -173,9 +173,9 @@ export function wireSound(nalati: Nalati, ctx: { player: Player; weather: Nalati
     },
     impact(id, surface, pan, gain) {
       if (!audio) return false;
-      if (id === 'bow') { audio.arrowImpact(surface, pan, gain); return true; }
-      if (id === 'spear') { audio.javelinImpact(surface, pan, gain); return true; }
-      if (id === 'sabre') { audio.sabreHit(surface, pan, gain); return true; }
+      if (id === 'cue.arrow.hit') { audio.arrowImpact(surface, pan, gain); return true; }
+      if (id === 'cue.javelin.hit') { audio.javelinImpact(surface, pan, gain); return true; }
+      if (id === 'cue.sabre.hit') { audio.sabreHit(surface, pan, gain); return true; }
       return false;
     },
     emit, event,

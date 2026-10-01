@@ -645,8 +645,9 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   // Dragon (E314 A): nothing there can unlock it, so its kit is the Neon Jian alone (NINE_WEAPON_NAME)
   const isNine = chunk.slug === 'nine-dragon-stack';
   const ironSword = chunk.weapon === 'sword' && !isNine ? new Sword({ game, sky, player, forest }, targets, { row: IRON_SWORD, allowUnlocked: nolock, blade: 'iron', ...(ironArms ? { arms: ironArms } : {}) }) : null;
-  const weapons = new EquipmentService(crossbow, { scope: game.engineScope, ...(nalatiKit ? { order: ['bow', 'sabre', 'spear'] } : {}) });
+  const weapons = new EquipmentService(crossbow, { scope: game.levelScope, ...(nalatiKit ? { order: ['bow', 'sabre', 'spear'] } : {}) });
   for (const w of [...(rifle ? [rifle] : []), ...(nalatiKit?.extras ?? []), ...(ironSword ? [ironSword] : []), ...(longbow ? [longbow] : [])]) weapons.add(w, { locked: true });
+  app.registerEquipment(weapons, game.levelScope);
   yield 'play';
   const lockSys = new LockOnSystem(player, weapons, game.camera); // the Zelda lock-on (E50): LOCK / Z, orbit, flick-switch — src/engine/player/LockOnTarget.ts
   const touchControls = new TouchControls(player, weapons, setting('touch') === 'on', lockSys); // on-screen FPS controls on coarse-pointer devices (?touch=1 / main menu ▸ Settings ▸ Touch controls forces)
@@ -775,18 +776,31 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
 
   const hands = new Hands(sky, game.camera, swimArms ?? null); // the swimming hands (shown only while player.swimming): the shard's arm rig swimming (Driftwood, E334), else white gloves
   if (chunk.weapon === 'sword') (crossbow as Sword).onHeavy = () => { if (!isOcean) audio.swordHeavy(); }; // the charged overhead (EquipmentService does not forward it); the island's is swordEvents.onSwing
-  const meleeHeld = () => weapons.current.row.ui.melee; // the swords / the sabre / the spear
-  // Nalati's kit voices (src/shards/nalati-grasslands/sound.ts) first; the island's whoosh is swordEvents.onSwing
-  weapons.onFire = () => { if (nalatiNow()?.sound?.fire(weapons.current.id) === true) { /* voiced */ } else if (weapons.current.id === 'rifle') audio.rifleFire(); else if (!meleeHeld()) audio.crossbowFire(); else if (!isOcean) audio.swordSwing(); nalatiNow()?.onShot(); };
+  const fireCue: Readonly<Record<string, () => void>> = {
+    'cue.firearm.fire': () => audio.rifleFire(), 'cue.lever.fire': () => audio.rifleFire(),
+    'cue.crossbow.fire': () => audio.crossbowFire(), 'cue.longbow.loose': () => audio.crossbowFire(),
+    'cue.bow.loose': () => audio.crossbowFire(),
+    'cue.sabre.swing': () => { if (!isOcean) audio.swordSwing(); }, 'cue.spear.thrust': () => { if (!isOcean) audio.swordSwing(); },
+    'cue.sword.swing': () => { if (!isOcean) audio.swordSwing(); },
+  };
+  // Content cue routing retains each weapon's existing sound source and fallback.
+  weapons.onFire = () => {
+    const cue = weapons.current.row.cues?.fire;
+    if (cue !== undefined && nalatiNow()?.sound?.fire(cue) !== true) fireCue[cue]?.();
+    nalatiNow()?.onShot();
+  };
   weapons.onDry = () => audio.dryFire();
-  weapons.onReloadStart = () => (weapons.current.id === 'rifle' ? audio.rifleReload() : audio.reload());
+  weapons.onReloadStart = () => { const cue = weapons.current.row.cues?.reload; if (cue === 'cue.firearm.reload' || cue === 'cue.lever.reload') audio.rifleReload(); else audio.reload(); };
   weapons.onSwap = () => audio.weaponSwap();
   weapons.onImpact = (surface, point) => {
     if (surface !== 'flesh') arena.miss(point);
     const dx = point.x - player.position.x, dz = point.z - player.position.z, d = Math.hypot(dx, dz);
     const rx = Math.cos(player.yaw), rz = -Math.sin(player.yaw);
     const pan = d > 1 ? ((dx * rx + dz * rz) / d) * 0.7 : 0, gain = 1 / (1 + d / 12);
-    if (nalatiNow()?.sound?.impact(weapons.current.id, surface, pan, gain) === true) { /* Nalati: arrow / javelin / sabre (src/shards/nalati-grasslands/sound.ts) */ } else if (weapons.current.id !== 'rifle' && meleeHeld()) { if (!isOcean) audio.swordHit(surface, pan, gain); } else audio.boltImpact(surface, pan, gain); // the island's: swordEvents.onStrike
+    const cue = weapons.current.row.cues?.impact;
+    if (cue === undefined || nalatiNow()?.sound?.impact(cue, surface, pan, gain) !== true) {
+      if (weapons.current.row.ui.melee) { if (!isOcean) audio.swordHit(surface, pan, gain); } else audio.boltImpact(surface, pan, gain);
+    }
     nalatiNow()?.onImpact(surface, point); // Nalati: an arrow landing by a herd / the flock spooks it
   };
   weapons.onHit = (_kind, headshot, killed) => {
