@@ -300,3 +300,44 @@
 .ws-gmenu .ws-gmenu-glass { flex: none; display: grid; grid-template-columns: repeat(15, minmax(0, 1fr)); gap: 3px; margin-bottom: 6px; }
 .ws-gmenu .ws-gmenu-glasschip { display: block; aspect-ratio: 0.8; color: rgba(143, 227, 255, 0.22); }
 .ws-gmenu .ws-gmenu-glasschip.found { filter: drop-shadow(0 0 4px currentcolor); }
+
+/* Settings, layout A (E357 J10; Menu.ts buildSettings + settingsCats.ts): on a keyboard-and-mouse desktop the Settings tab is
+   a category rail on the left and one category on the right; a phone keeps its one stacked column (no rail, no Video) */
+.ws-gmenu .ws-gmenu-rail, .ws-gmenu .ws-gmenu-cathead { display: none; }
+.ws-gmenu .ws-gmenu-pane { display: contents; }
+.ws-gmenu .ws-gmenu-panel .catoff { display: none; }
+.ws-gmenu.wide .ws-gmenu-sheet { max-width: 1180px; }
+.ws-gmenu .ws-gmenu-panel.cats.active { display: grid; grid-template-columns: 196px minmax(0, 1fr); padding: 0; overflow: hidden; }
+.ws-gmenu .ws-gmenu-panel.cats .ws-gmenu-rail { display: flex; flex-direction: column; gap: 10px; min-height: 0; padding: 18px 16px; overflow-y: auto; border-right: 1px solid rgba(143, 227, 255, 0.18); }
+.ws-gmenu .ws-gmenu-cat { flex: none; padding: 12px 16px; appearance: none; -webkit-appearance: none; text-align: left; background: rgba(143, 227, 255, 0.04); border: 1px solid rgba(143, 227, 255, 0.22); color: var(--ws-text); font-family: var(--ws-display); font-weight: 700; font-size: 14px; letter-spacing: 0.24em; text-transform: uppercase; cursor: pointer; }
+.ws-gmenu .ws-gmenu-cat[hidden] { display: none; }
+.ws-gmenu .ws-gmenu-cat:hover { border-color: var(--ws-cyan-line); }
+.ws-gmenu .ws-gmenu-cat.active { color: var(--ws-cyan); border-color: var(--ws-cyan); background: rgba(143, 227, 255, 0.1); box-shadow: inset 3px 0 0 var(--ws-cyan), 0 0 14px rgba(143, 227, 255, 0.12); }
+.ws-gmenu .ws-gmenu-panel.cats .ws-gmenu-pane { display: flex; flex-direction: column; min-height: 0; padding: 18px 22px 14px; overflow-y: auto; overscroll-behavior: contain; }
+.ws-gmenu .ws-gmenu-panel.cats .ws-gmenu-cathead { display: block; flex: none; margin: 0 0 14px; font-family: var(--ws-display); font-weight: 700; font-size: 26px; line-height: 1; letter-spacing: 0.3em; text-transform: uppercase; color: #fff; }
+.ws-gmenu .ws-gmenu-panel.cats .ws-gmenu-card:not(.fold) > .ws-gmenu-cardtitle { display: none; }
+.ws-gmenu .ws-gmenu-panel.cats .ws-gmenu-label.catdup { display: none; }
+.ws-gmenu .ws-gmenu-panel.cats .ws-gmenu-card:not(.debug) { padding: 0; border: 0; background: none; }
+.ws-gmenu .ws-gmenu-panel.cats .ws-gmenu-card:not(.ws-gmenu-keys) { max-width: 700px; }
+/* Key bindings (src/engine/input/ControlsPanel.ts): ACTION / KEY / ALT in two columns of plain-named groups */
+.ws-gmenu .ws-gmenu-keycols { flex: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 14px; align-items: start; margin-bottom: 12px; }
+.ws-gmenu .ws-gmenu-keycol { display: grid; grid-template-columns: minmax(0, 1fr) 104px 104px; column-gap: 10px; align-items: center; padding: 0 14px 10px; border: 1px solid rgba(143, 227, 255, 0.22); background: rgba(6, 10, 18, 0.35); }
+.ws-gmenu .ws-gmenu-keyhead { padding: 11px 0 9px; border-bottom: 1px solid rgba(143, 227, 255, 0.22); font-size: 10px; font-weight: 700; letter-spacing: 0.24em; text-align: center; text-transform: uppercase; color: var(--ws-text); }
+.ws-gmenu .ws-gmenu-keyhead:first-child { text-align: left; }
+.ws-gmenu .ws-gmenu-keygroup { grid-column: 1 / -1; margin: 10px 0 4px; font-size: 10px; font-weight: 700; letter-spacing: 0.26em; text-transform: uppercase; color: var(--ws-cyan); }
+.ws-gmenu .ws-gmenu-keygroup ~ .ws-gmenu-keygroup { margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(143, 227, 255, 0.14); }
+.ws-gmenu .ws-gmenu-keyname { padding: 4px 0; font-size: 11.5px; letter-spacing: 0.04em; color: var(--ws-text); }
+.ws-gmenu .ws-gmenu-keypair { display: contents; }
+.ws-gmenu .ws-gmenu-keychips { grid-column: 2 / 4; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.ws-gmenu .ws-gmenu-keycap { height: 24px; margin: 2px 0; padding: 0 6px; appearance: none; -webkit-appearance: none; overflow: hidden; background: rgba(143, 227, 255, 0.06); border: 1px solid var(--ws-cyan-line); color: #fff; font-family: var(--ws-mono); font-weight: 700; font-size: 10.5px; letter-spacing: 0.08em; white-space: nowrap; text-overflow: ellipsis; text-transform: uppercase; cursor: pointer; }
+.ws-gmenu .ws-gmenu-keycap:hover { border-color: var(--ws-cyan); }
+.ws-gmenu .ws-gmenu-keycap.empty { background: none; border-color: transparent; color: var(--ws-text-dim); font-weight: 400; }
+.ws-gmenu .ws-gmenu-keycap.empty:hover { border-color: rgba(143, 227, 255, 0.22); }
+.ws-gmenu .ws-gmenu-keycap.pending, .ws-gmenu .ws-gmenu-keycap.clash { border-color: var(--ws-amber); background: rgba(255, 181, 71, 0.1); color: var(--ws-amber); box-shadow: 0 0 10px rgba(255, 181, 71, 0.25); }
+.ws-gmenu .ws-gmenu-keyclash { flex: none; display: flex; align-items: center; gap: 12px; margin: 0 0 12px; padding: 10px 14px; border: 1px solid var(--ws-amber); background: rgba(255, 181, 71, 0.07); }
+.ws-gmenu .ws-gmenu-keyclash[hidden] { display: none; }
+.ws-gmenu .ws-gmenu-keyclashtext { flex: 1; font-size: 11.5px; letter-spacing: 0.06em; color: var(--ws-amber); }
+.ws-gmenu .ws-gmenu-keybtn { flex: none; padding: 9px 18px; appearance: none; -webkit-appearance: none; background: rgba(143, 227, 255, 0.06); border: 1px solid var(--ws-cyan-line); color: var(--ws-cyan); font-family: var(--ws-display); font-weight: 700; font-size: 12px; letter-spacing: 0.22em; text-transform: uppercase; cursor: pointer; }
+.ws-gmenu .ws-gmenu-keybtn:hover { background: rgba(143, 227, 255, 0.14); }
+.ws-gmenu .ws-gmenu-keyclash .ws-gmenu-keybtn { border-color: var(--ws-amber); background: rgba(255, 181, 71, 0.06); color: var(--ws-amber); }
+.ws-gmenu .ws-gmenu-keyfoot { flex: none; display: flex; justify-content: flex-end; margin-bottom: 8px; }

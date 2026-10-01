@@ -1,46 +1,112 @@
 import { app } from '../app/runtime';
 import { engineString } from '../strings';
 import type { Scope } from '../app/scope';
-import type { Action } from './InputService';
+import { BindingTable, bindableKey, keyOfCode, type BindingTableRow } from './bindingTable';
 
-/** Keyboard/mouse rebinding lives in Settings; a conflict offers an explicit swap. */
+const SYMBOLS: Readonly<Record<string, string>> = {
+  ArrowUp: '↑', ArrowDown: '↓', ArrowLeft: '←', ArrowRight: '→', Escape: 'Esc', Backquote: '`', Minus: '-', Equal: '=',
+  BracketLeft: '[', BracketRight: ']', Backslash: '\\', Semicolon: ';', Quote: "'", Comma: ',', Period: '.', Slash: '/',
+  Shift: 'Shift', ShiftLeft: 'Shift', ShiftRight: 'Shift', Alt: 'Alt', AltLeft: 'Alt', AltRight: 'R Alt', CapsLock: 'Caps', Backspace: 'Bksp',
+};
+/** A logical key → its keycap ("KeyW" → W, "Mouse2" → RMB, "ArrowUp" → ↑). */
+export function keycap(key: string): string {
+  const mouse = /^Mouse(\d)$/u.exec(key)?.[1];
+  if (mouse !== undefined) return mouse === '0' ? engineString('s_key_lmb') : mouse === '1' ? engineString('s_key_mmb') : mouse === '2' ? engineString('s_key_rmb') : engineString('s_key_mouse', [Number(mouse) + 1]);
+  return SYMBOLS[key] ?? key.replace(/^Key|^Digit/u, '').replace(/^Numpad/u, 'Num ');
+}
+const div = (cls: string, text = ''): HTMLDivElement => { const d = document.createElement('div'); d.className = cls; if (text !== '') d.textContent = text; return d; };
+interface Editing { row: string; cell: number; key?: string; clash?: { row: string; cell: number } }
+
+/** Settings ▸ Key bindings (desktop only, J10 layout A): a dense ACTION / KEY / ALT table in plain-named groups over two
+ *  columns. Clicking a key captures the next key or mouse button on it; a clash asks before it swaps. */
 export function buildControlsPanel(parent: Scope): HTMLDivElement & { refresh: () => void } {
-  const scope = parent.child('controls'), input = app.input;
+  const scope = parent.child('controls'), input = app.input, table = new BindingTable(input.bindings);
   // Primary fine-pointer mode includes laptops with touchscreens, but excludes touch-only
   // devices even when their browser requests a desktop site. Viewport size is not a keyboard.
   const desktop = window.matchMedia('(pointer: fine)');
-  const card = document.createElement('div'); card.className = 'ws-gmenu-card ws-controls';
-  const title = document.createElement('div'); title.className = 'ws-gmenu-cardtitle'; title.textContent = engineString('s_f4fce9bc331d');
-  const note = document.createElement('div'); note.className = 'ws-gmenu-note'; note.textContent = engineString('s_7738e78a7360');
-  const list = document.createElement('div'), status = document.createElement('div'); status.className = 'ws-gmenu-note'; status.setAttribute('role', 'status');
-  const conflict = document.createElement('div'); conflict.className = 'ws-gmenu-row';
-  let capture: Scope | null = null, rows = scope.child('rows');
-  const button = (text: string, run: () => void, owner: Scope): HTMLButtonElement => {
-    const b = document.createElement('button'); b.type = 'button'; b.className = 'ws-gmenu-btn'; b.textContent = text; owner.listen(b, 'click', run); return b;
+  const card = div('ws-gmenu-card ws-gmenu-keys');
+  const title = div('ws-gmenu-cardtitle', engineString('s_f4fce9bc331d'));
+  const note = div('ws-gmenu-note', engineString('s_keys_hint'));
+  const cols = div('ws-gmenu-keycols');
+  const clash = div('ws-gmenu-keyclash'); clash.setAttribute('role', 'status');
+  const foot = div('ws-gmenu-keyfoot');
+  const cells = new Map<string, HTMLButtonElement>();
+  let editing: Editing | null = null, capture: Scope | null = null, rows = scope.child('rows'), swallow: HTMLElement | null = null;
+  const button = (cls: string, text: string, run: () => void, owner: Scope): HTMLButtonElement => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = cls; b.textContent = text; owner.listen(b, 'click', run); return b;
   };
-  const cancel = (): void => { capture?.dispose(); capture = null; status.textContent = ''; conflict.replaceChildren(); };
-  const rebind = (context: string, action: Action): void => {
-    cancel(); capture = scope.child('capture'); status.textContent = engineString('s_8f54cf405740');
+  const rowOf = (id: string): BindingTableRow | undefined => table.rows().find((row) => row.def.id === id);
+  const cancel = (): void => { capture?.dispose(); capture = null; editing = null; };
+  /** cell text and marks from the table and the edit in flight; the buttons stay (a click mid-capture still lands) */
+  const paint = (): void => {
+    for (const [id, b] of cells) {
+      const [rowId = '', at = '0'] = id.split('|'), cell = Number(at), row = rowOf(rowId);
+      const own = editing?.row === rowId && editing.cell === cell, held = editing?.clash?.row === rowId && editing.clash.cell === cell;
+      const key = own && editing?.key !== undefined ? editing.key : row === undefined ? undefined : table.key(row, cell);
+      b.textContent = own && editing?.key === undefined ? engineString('s_8f54cf405740') : key === undefined ? engineString('s_keys_none') : keycap(key);
+      b.classList.toggle('empty', key === undefined && !own); b.classList.toggle('pending', own); b.classList.toggle('clash', held);
+    }
+    clash.replaceChildren(); clash.hidden = editing?.clash === undefined && editing?.key === undefined;
+  };
+  const apply = (key: string | undefined): void => {
+    const edit = editing, row = edit === null ? undefined : rowOf(edit.row);
+    if (edit === null || row === undefined) return;
+    const held = table.assign(row, edit.cell, key);
+    if (held === undefined) { cancel(); refresh(); return; }
+    capture?.dispose(); capture = scope.child('clash');
+    editing = { ...edit, ...(key === undefined ? {} : { key }), ...(held.row === undefined || held.cell === undefined ? {} : { clash: { row: held.row.def.id, cell: held.cell } }) };
+    paint();
+    clash.append(div('ws-gmenu-keyclashtext', engineString('s_632fe896901d', [held.label])),
+      button('ws-gmenu-keybtn', engineString('s_4e7f483dadbe'), () => { table.assign(row, edit.cell, key, true); cancel(); refresh(); }, capture),
+      button('ws-gmenu-keybtn', engineString('s_8097ea62e33b'), () => { cancel(); paint(); }, capture));
+  };
+  const arm = (owner: Scope): void => {
     input.captureNextKey((code) => {
-      const other = input.bindings.rebind(context, action, code);
-      if (other === undefined) { cancel(); refresh(); return; }
-      status.textContent = engineString('s_632fe896901d', [other]);
-      const owner = capture; if (owner === null) return;
-      conflict.append(button(engineString('s_4e7f483dadbe'), () => { input.bindings.rebind(context, action, code, true); cancel(); refresh(); }, owner), button(engineString('s_8097ea62e33b'), cancel, owner));
-    }, capture);
+      const edit = editing; if (edit === null) return;
+      if (code === 'Escape') { cancel(); paint(); return; }
+      const alt = (rowOf(edit.row)?.cells.length ?? 0) === 2 && edit.cell === 1;
+      if (code === 'Backspace' || code === 'Delete') { if (alt) apply(undefined); else arm(owner); return; }
+      if (!bindableKey(code)) { arm(owner); return; }
+      apply(keyOfCode(code));
+    }, owner);
+  };
+  const edit = (row: string, cell: number, b: HTMLButtonElement): void => {
+    if (swallow === b) { swallow = null; return; }
+    cancel(); editing = { row, cell }; const owner = scope.child('capture'); capture = owner; paint(); arm(owner);
+    // a mouse button pressed on the waiting cell binds it; a press anywhere else gives up
+    owner.listen(document, 'mousedown', (event) => {
+      if (!(event instanceof MouseEvent)) return;
+      if (event.target !== b) { cancel(); paint(); return; }
+      event.preventDefault(); swallow = event.button === 0 ? b : null; apply(`Mouse${event.button}`);
+    }, { capture: true });
+    owner.listen(b, 'contextmenu', (event) => { event.preventDefault(); });
   };
   function refresh(): void {
     card.hidden = !desktop.matches; card.inert = card.hidden;
     if (card.hidden) { cancel(); return; }
-    rows.dispose(); rows = scope.child('rows'); list.replaceChildren();
-    for (const entry of input.bindings.entries()) {
-      if (!['onFoot', 'swim', 'board'].includes(entry.context) && !entry.context.startsWith('weapon.')) continue;
-      const row = document.createElement('div'); row.className = 'ws-gmenu-row';
-      const label = document.createElement('span'); label.textContent = engineString('s_input_binding', [entry.context, entry.action]);
-      row.append(label, button(entry.codes.map((code) => code.replace(/^Key|^Digit/u, '')).join(' / '), () => { rebind(entry.context, entry.action); }, rows)); list.append(row);
+    rows.dispose(); rows = scope.child('rows'); cols.replaceChildren(); cells.clear();
+    const groups = table.groups();
+    for (const column of [0, 1] as const) {
+      const box = div('ws-gmenu-keycol');
+      box.append(div('ws-gmenu-keyhead', engineString('s_keys_action')), div('ws-gmenu-keyhead', engineString('s_keys_key')), div('ws-gmenu-keyhead', engineString('s_keys_alt')));
+      for (const group of groups.filter((g) => g.def.column === column)) {
+        box.append(div('ws-gmenu-keygroup', group.def.label));
+        for (const row of group.rows) {
+          const keys = div(row.def.chips === true ? 'ws-gmenu-keychips' : 'ws-gmenu-keypair');
+          row.cells.forEach((_, cell) => {
+            const b = button('ws-gmenu-keycap', '', () => { edit(row.def.id, cell, b); }, rows);
+            b.dataset['row'] = row.def.id; b.dataset['cell'] = String(cell);
+            cells.set(`${row.def.id}|${cell}`, b); keys.append(b);
+          });
+          box.append(div('ws-gmenu-keyname', row.def.label), keys);
+        }
+      }
+      if (box.childElementCount > 3) cols.append(box);
     }
-  };
-  card.append(title, note, list, status, conflict, button(engineString('s_dd7d08f05555'), () => { cancel(); input.bindings.reset(); refresh(); }, scope));
+    paint();
+  }
+  foot.append(button('ws-gmenu-keybtn', engineString('s_dd7d08f05555'), () => { cancel(); table.reset(); refresh(); }, scope));
+  card.append(title, note, cols, clash, foot);
   scope.listen(desktop, 'change', refresh);
   scope.onDispose(() => { capture?.dispose(); card.remove(); }); refresh();
   return Object.assign(card, { refresh });

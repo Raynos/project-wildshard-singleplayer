@@ -10,6 +10,7 @@ import { LastPlace, placeName } from '../LastPlace';
 import { shardCompleteUp } from '../complete/ShardComplete';
 import type { loadoutStage } from './loadout';
 import { animalPositions } from './positions';
+import { describeKeyBindings } from '../keyBindings';
 
 async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
   const { engine, manifest, boot, session, kit, files, step, menuLoad, world, game, sky, player, params, chunk, registry, nolock, viewer, boundary, horizon, interactables, prepareAudio, animals, arena, swimArms, crossbow, rifle, longbow, weapons, lockSys, touchControls, hud } = ctx;
@@ -66,6 +67,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
     ...boot.runtime.menu,
   });
   hud.menu = menu; // pause → Settings tab; the menu's CLOSE → hud.onResume
+  describeKeyBindings(game.levelScope); // pause ▸ Settings ▸ Key bindings: the plain-named table (E357 J10)
   game.onUpdate((dt) => { if (hud.entered && !menu.isOpen) progress.addPlay(dt); }, 'main.6'); // E132: this shard's time played (the complete card shows it), in the world only
   fullMap.bindMinimap(() => { if (hud.entered) menu.open('map'); }); // in a practice room: its own map (E321)
   // E124: the BAG button squaring out the minimap's top-right corner (src/game/bag/BagButton.ts) — opens on GEAR (E314)

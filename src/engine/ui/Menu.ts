@@ -28,6 +28,9 @@ import { isDev, onDev } from '../core/devMode';
 import { devSwitchRows } from './devSwitch';
 import { foldCard } from './cards';
 import { buildDebugMenu, type DebugMenu } from './DebugMenu';
+import { settingsCategories, settingsHint, type SettingsCat, type SettingsCats } from './settingsCats';
+import { SAVE_STRINGS } from './saveStrings';
+import { TIER } from '../core/tier';
 import { bagTabs, renderFinds, renderGear, type FindsView, type GearLoot, type GearTool } from '#game/bag/bag';
 
 type BuiltInTab = 'map' | 'gear' | 'finds' | 'inventory' | 'achievements' | 'settings' | 'feedback';
@@ -118,6 +121,8 @@ export class GameMenu {
 
   /** the Settings rows that apply only sometimes (E130: hidden, not greyed, when they do not apply) — see `applies()` */
   private controlsPanel: ReturnType<typeof buildControlsPanel> | undefined;
+  /** pause ▸ Settings's categories: a rail + one pane on a desktop (J10 layout A), one column on a phone */
+  private cats: SettingsCats | undefined;
   private gated: { el: HTMLElement; when: When }[] = [];
 
   constructor(private opts: GameMenuOptions) {
@@ -296,7 +301,7 @@ export class GameMenu {
     for (const b of this.tabBar.children) (b as HTMLElement).classList.toggle('active', (b as HTMLElement).dataset['tab'] === tab);
     for (const [id, p] of Object.entries(this.panels)) p?.classList.toggle('active', id === tab);
     this.hint.textContent = this.hintFor(tab);
-    this.syncTabs();
+    this.syncTabs(); this.syncCats();
     if (this._open) { if (tab === 'map') { this.opts.fullMap.show(); this.syncZoom(); this.renderQuest(); } else this.opts.fullMap.hide(); }
     if (tab === 'gear') this.renderGear();
     if (tab === 'finds') this.renderFinds();
@@ -455,12 +460,20 @@ export class GameMenu {
    *  painted horizon, E83 the photo sky, E85 the colour grade, E87 the lighting, E88 the post) */
   private buildSettings(): void {
     const panel = this.panels.settings;
+    const catLabel: Record<SettingsCat, string> = { video: engineString('s_settings_video'), audio: engineString('s_bc1b88907d3b'), controls: engineString('s_799c26913574'), keys: engineString('s_f4fce9bc331d'),
+      gameplay: engineString('s_31bcb8940fff'), save: SAVE_STRINGS.title, review: engineString('s_aff0766a5290'), debug: engineString('s_1a03bd2fd107') };
+    const cats = settingsCategories(panel, this.scope, catLabel, () => { this.syncCats(); }); this.cats = cats;
     // E178: no full-width RESUME / EXIT TO MAIN MENU on top of the panel any more — they are the header bar's two buttons
     const p = el('ws-gmenu-card', engineString('s_e68f72548349'));
     const dbg = foldCard('debug', engineString('s_1a03bd2fd107'), engineString('s_8c4422087396')); // E177: folded until it is asked for
     // developer mode only (E140, the user's 7a): the Settings ▸ Developer switch shows / hides it live
-    dbg.hidden = !isDev(); onDev((on) => { dbg.hidden = !on; });
-    panel.append(p, dbg);
+    dbg.hidden = !isDev(); onDev((on) => { dbg.hidden = !on; cats.sync(); });
+    cats.pane.append(p, dbg); cats.tag('debug', dbg);
+    // VIDEO (desktop rail only): the boot-time picks are the main menu's (E55), so the pause menu reads them out
+    const tierRow = el('ws-gmenu-row', engineString('s_b756f4e0f8ff', [esc(engineString('s_1b2c08a8733d'))])), tierVal = tierRow.querySelector<HTMLElement>('.ws-gmenu-val');
+    if (tierVal) tierVal.textContent = TIER === 'phone' ? engineString('s_63dceb8800b2') : engineString('s_9bd88f2485ac');
+    const video = [cats.head(el('ws-gmenu-label', esc(catLabel.video))), tierRow, el('ws-gmenu-note', esc(engineString('s_settings_video_note')))];
+    p.append(...video); cats.tag('video', ...video);
 
     const sw = (key: SettingKey, label: string) => {
       const b = el('ws-gmenu-switch', engineString('s_d652c0be6be8', [label]), 'button') as HTMLButtonElement; b.type = 'button'; b.setAttribute('role', 'switch');
@@ -471,15 +484,16 @@ export class GameMenu {
     };
     // "applies when" (E130): a row that does not apply to the weapons you hold or to this shard is hidden (re-read on every
     // open — a weapon unlocked mid-run brings its rows); a section label goes with its last row
-    const section = (card: HTMLElement, label: string, ...rows: (HTMLElement | [When, HTMLElement])[]): void => {
+    const section = (card: HTMLElement, cat: SettingsCat, label: string, ...rows: (HTMLElement | [When, HTMLElement])[]): void => {
       const whens: When[] = [];
       const els = rows.map((r) => { if (Array.isArray(r)) { whens.push(r[0]); this.gated.push({ el: r[1], when: r[0] }); return r[1]; } whens.push(() => true); return r; });
       const head = el('ws-gmenu-label', label);
+      cats.head(head); // both sections are named as their category
       this.gated.push({ el: head, when: (c) => whens.some((w) => w(c)) });
-      card.append(head, ...els);
+      card.append(head, ...els); cats.tag(cat, head, ...els);
     };
     const ranged: When = (c) => c.tracers; // the bolts / rounds draw tracers: Nalati's bow draws none (NALATI-MERGE F7)
-    section(p, engineString('s_31bcb8940fff'), sw('aimAssist', engineString('s_714896153134')),
+    section(p, 'gameplay', engineString('s_31bcb8940fff'), sw('aimAssist', engineString('s_714896153134')),
       [ranged, sw('tracers', engineString('s_702cb41e280a'))],
       [(c) => c.huntersEye, sw('huntersEye', engineString('s_80f6259cced8'))], // the bow's drop arc (Bow.ts): on by default on touch
       [() => CAN_VIBRATE, sw('haptics', engineString('s_59e1fd02f6c2'))]); // Android only — iOS Safari has no vibrate (src/engine/ui/haptics.ts)
@@ -496,7 +510,7 @@ export class GameMenu {
       this.scope.listen(s, 'pointerdown', (e) => e.stopPropagation());
       paint(); row.append(s); return row;
     };
-    section(p, engineString('s_799c26913574'), mult('look', engineString('s_64e57bf9ef8a')), [(c) => c.melee, mult('swingLook', engineString('s_e532946ea0dd'))]); // a swing's turn: the blades
+    section(p, 'controls', engineString('s_799c26913574'), mult('look', engineString('s_64e57bf9ef8a')), [(c) => c.melee, mult('swingLook', engineString('s_e532946ea0dd'))]); // a swing's turn: the blades
 
     // audio: master volume (Settings 'volume', 0..1) — main.ts drives the AudioContext gain from it
     const vol = el('ws-gmenu-row', engineString('s_31a1802e19b8'));
@@ -531,21 +545,31 @@ export class GameMenu {
     const sfxNote = el('ws-gmenu-note');
     const paintCredit = () => { const c = sfxCredit(getSfxSet()); sfxNote.textContent = c; sfxNote.hidden = c === ''; };
     paintCredit(); onSfxSet(paintCredit); onSfxCredit(paintCredit);
-    p.append(el('ws-gmenu-label', engineString('s_bc1b88907d3b')), vol, mus, el('ws-gmenu-note', MUSIC_CREDIT), sfxNote);
+    const audio = [cats.head(el('ws-gmenu-label', engineString('s_bc1b88907d3b'))), vol, mus, el('ws-gmenu-note', MUSIC_CREDIT), sfxNote];
+    p.append(...audio); cats.tag('audio', ...audio);
     // lock-on (E50, src/engine/player/LockOnTarget.ts): how hard the view follows a locked enemy (Gentle = Jake's pick; Off keeps the
     // lock — the reticle, orbit strafing, the lunge, switching — but never turns the view: the motion-sickness escape)
     const lockCams: { v: '1' | '0.5' | '0'; text: string }[] = [{ v: '1', text: engineString('s_641d1ef657bd') }, { v: '0.5', text: engineString('s_96124817c810') }, { v: '0', text: engineString('s_ca7981b46ecf') }];
     const lockCam = picker(engineString('s_21ed7056ff10'), lockCams, () => (getNumber('lockCam') >= 0.75 ? '1' : getNumber('lockCam') > 0.1 ? '0.5' : '0'), (v) => setNumber('lockCam', Number(v)), () => undefined);
-    p.append(el('ws-gmenu-label', engineString('s_fcc34c9149ac')), lockCam, sw('autoLock', engineString('s_c436a89a4252')), el('ws-gmenu-note', engineString('s_c12db72ef23e')));
+    const lockOn = [el('ws-gmenu-label', engineString('s_fcc34c9149ac')), lockCam, sw('autoLock', engineString('s_c436a89a4252')), el('ws-gmenu-note', engineString('s_c12db72ef23e'))];
+    p.append(...lockOn); cats.tag('gameplay', ...lockOn);
 
     // DEBUG (E162): every variant, taste toggle and developer aid, grouped — declared once in src/engine/ui/debugOptions.ts and
     // rendered by src/engine/ui/DebugMenu.ts (collapsible groups, only the rows that apply to this shard, a filter). Shards in
     // memory carries the on-device readout (E155 / E159): refreshed only while this menu is open on Settings
     this.debug = buildDebugMenu(dbg);
     // Review is not debug (E140): playtesters unlock notes with it, so it stays in Settings, with the Developer switch
-    p.append(this.buildReview(), ...devSwitchRows());
-    this.savePanel = buildSavePanel(); panel.append(this.savePanel);
-    this.controlsPanel = buildControlsPanel(app.levelScope ?? app.engineScope); panel.append(this.controlsPanel);
+    const review = [this.buildReview(), ...devSwitchRows()];
+    p.append(...review); cats.tag('review', ...review);
+    this.savePanel = buildSavePanel(); cats.pane.append(this.savePanel); cats.tag('save', this.savePanel);
+    this.controlsPanel = buildControlsPanel(app.levelScope ?? app.engineScope); cats.pane.append(this.controlsPanel); cats.tag('keys', this.controlsPanel);
+    cats.sync();
+  }
+  /** layout A on a desktop: the sheet goes wide for Settings, and the footer says click (J10) */
+  private syncCats(): void {
+    const wide = this.cats?.desk === true && this._tab === 'settings';
+    this.root.classList.toggle('wide', wide);
+    this.hint.textContent = wide ? settingsHint() : this.hintFor(this._tab);
   }
   /** show only the Settings rows that apply now (E130: the weapons you hold, the shard) — every open and every Settings select */
   private applies(): void {
@@ -553,6 +577,7 @@ export class GameMenu {
     this.controlsPanel?.refresh();
     const kit = this.opts.kit(), c: SettingsCtx = { weapons: new Set(kit.map((k) => k.id)), melee: kit.some((k) => k.melee), tracers: kit.some((k) => k.tracers), huntersEye: kit.some((k) => k.huntersEye), chunk: activeLevel() };
     for (const g of this.gated) g.el.hidden = !g.when(c);
+    this.cats?.sync();
     this.debug?.applies(c);
   }
   /** Settings → REVIEW: a password unlocks the review inbox (src/engine/ui/review.ts); unlocked, the Quick note switch + LOCK */

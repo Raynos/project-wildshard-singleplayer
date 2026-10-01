@@ -1,6 +1,12 @@
 import type { LevelContext } from '#engine';
 import type { Ride } from './ride';
 
+/** pause ▸ Settings ▸ Key bindings (E357 J10): the riding rows show on this shard only; mounted, Shift gallops instead of sprinting */
+export const RIDE_KEY_ROWS = [
+  { group: 'riding', id: 'whistle', label: 'Call horse', actions: ['ride.whistle'] },
+  { group: 'riding', id: 'gallop', label: 'Gallop', actions: ['ride.gallop'], shares: ['sprint', 'surface'] },
+  { group: 'riding', id: 'offer', label: 'Offer (hold)', actions: ['ride.offer'] },
+] as const;
 /** Additive on-foot verbs remain live underneath the mounted and breaking controls. */
 export function installRide(ctx: LevelContext, ride: Ride): void {
   const input = ctx.app.input, mount = ride.mount;
@@ -13,6 +19,7 @@ export function installRide(ctx: LevelContext, ride: Ride): void {
     touch: { relabel: { 'edge-l': { label: 'Dismount', tone: 'ready' } }, verbs: ride.hud.inputVerbs(true) } });
   ctx.inputContext({ id: 'ride.break', actions: ['lean.left', 'lean.right'], blocks: ['attack', 'aim', 'swap', 'ride.whistle', 'ride.offer', 'ride.horseTab'],
     keys: { 'lean.left': ['KeyA'], 'lean.right': ['KeyD'] } });
+  input.bindings.describe({ rows: RIDE_KEY_ROWS }, ctx.scope);
   input.push('ride.foot', ctx.scope);
   mount.input = input; mount.equipment = () => ctx.app.equipment; ride.taming.input = input;
   mount.onMountChange = (horse) => {
