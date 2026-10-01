@@ -20,9 +20,9 @@ try {
   await debugSettings(context, { time: 'midday', weather: 'clear' });
   const page = await context.newPage(); page.setDefaultTimeout(120000);
   await page.goto(`${server.url}/?chunk=driftwood-isle&tier=phone&skipintro=1&nolock=1&mute=1&sw=0`);
-  await page.waitForFunction(() => Boolean(window.__wildshard) && Boolean(window.__adventure ?? window.__wildshard.world.game.app.debug.snapshot().adventure) && !document.querySelector('.ws-load') && !document.getElementById('hud')?.classList.contains('intro'));
+  await page.waitForFunction(() => Boolean(window.__wildshard) && Boolean(window.__adventure ?? (window.__wildshard.world.game.app.debug.snapshot()['driftwood.adventure'] ?? window.__wildshard.world.game.app.debug.snapshot().adventure)) && !document.querySelector('.ws-load') && !document.getElementById('hud')?.classList.contains('intro'));
   await page.evaluate(() => {
-    const w = window.__wildshard.world, adv = window.__adventure ?? w.game.app.debug.snapshot().adventure, app = w.game.app;
+    const w = window.__wildshard.world, adv = window.__adventure ?? (w.game.app.debug.snapshot()['driftwood.adventure'] ?? w.game.app.debug.snapshot().adventure), app = w.game.app;
     window.__captainAdventure = adv;
     app.rng.seed(4242); app.clock.setCapture(60);
     adv.flags.set('used:altar');
