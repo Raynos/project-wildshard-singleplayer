@@ -8,9 +8,9 @@ import { MANTA_HOME, CLOUD_Y } from '../layout';
  * the player along a lane, then rises back out of reach. The body is driven (`Animal.driven`): the brain owns x, y, z
  * and yaw; the creature manager only draws it, animates it and takes its hits.
  */
-export const MANTA = { cruise: MANTA_HOME.alt, circleR: 18, circleSpeed: 9, aware: 42, diveSpeed: 19, riseSpeed: 7, glide: 10, hitHeight: 1.1 } as const;
+export const MANTA = { grace: 10, cruise: MANTA_HOME.alt, circleR: 18, circleSpeed: 9, aware: 34, diveSpeed: 19, riseSpeed: 7, glide: 10, hitHeight: 1.1 } as const;
 export const MANTA_STRIKES: readonly StrikeSpec[] = [
-  { id: 'farReach.manta.dive', shape: { kind: 'lane', length: 40, width: 2.4 }, windup: 1.1, active: 2.5, recover: 1.6, cooldown: 3.5, range: 60, damage: 14,
+  { id: 'farReach.manta.dive', shape: { kind: 'lane', length: 40, width: 2.4 }, windup: 1.2, active: 2.5, recover: 1.6, cooldown: 7, range: 60, damage: 10,
     tags: ['creature.skyManta', 'cover.exempt'], motion: { speed: MANTA.diveSpeed, track: 'lead', overshoot: 8 }, eligibility: { maxDy: 2.6 }, weight: () => 1 },
 ];
 export type MantaState = 'circle' | 'dive' | 'rise';
@@ -23,7 +23,7 @@ export class MantaFlight {
 }
 
 export class MantaBrain extends CreatureBrain<MantaState> {
-  readonly strikes = new StrikeRunner(); readonly flight: MantaFlight;
+  readonly strikes = new StrikeRunner(); readonly flight: MantaFlight; private calmFor: number = MANTA.grace;
   private readonly body: StrikeActor;
   constructor(actor: Animal) {
     super(actor, ['circle', 'dive', 'rise']); actor.driven = true;
@@ -39,7 +39,8 @@ export class MantaBrain extends CreatureBrain<MantaState> {
   override think(ctx: ThinkCtx): void {
     const a = this.actor; if (!a.alive || ctx.calm) { if (this.state === 'dive') { this.strikes.cancel(); this.transition('rise'); } return; }
     const f = this.flight, near = Math.hypot(ctx.player.x - f.pos.x, ctx.player.z - f.pos.z) < MANTA.aware;
-    if (this.state === 'circle' && near && !this.strikes.busy && ctx.player.y > CLOUD_Y) {
+    this.calmFor = Math.max(0, this.calmFor - ctx.dt);
+    if (this.state === 'circle' && this.calmFor === 0 && near && !this.strikes.busy && ctx.player.y > CLOUD_Y) {
       const c = this.context(ctx), pick = this.strikes.pick(MANTA_STRIKES, c);
       if (pick) { f.diveFrom = f.pos.y; this.strikes.start(pick, this.body, c.target); this.transition('dive'); }
     }

@@ -4,7 +4,7 @@ import { Vector3 } from 'three';
 import type { QuestState, Animal, Flags } from '#engine';
 import { STRINGS } from './strings';
 import { buildSkyWorld, FALLEN, type SkyWorld } from './world/build';
-import { SKY_MANTA, SKY_MANTA_LOOK, mantaBrain } from './species/manta';
+import { SKY_MANTA, SKY_MANTA_LOOK, mantaBrain, type MantaBrain } from './species/manta';
 import { WarFan, type GustTarget } from './weapons/WarFan';
 import { FAN_ROW } from './weapons/rows';
 import { installQuest, QUEST_FLAG } from './quest/install';
@@ -22,7 +22,9 @@ const GUST_ICON = '<svg viewBox="0 0 24 24"><path d="M3 9h11a3 3 0 1 0-3-3M3 14h
 /** Sky Reach (E364 B): islands, rope and hover bridges, the war fan, the drift ray, and the fallen-bridge quest. */
 export class FarReachPlugin extends ShardPlugin {
   readonly player = new Vector3(); fan: WarFan | null = null; quest: QuestState | null = null; flags: Flags | null = null; sky: SkyWorld | null = null;
-  manta: Animal | null = null; hovering = false; fell = 0;
+  manta: Animal | null = null; ray: MantaBrain | null = null; hovering = false; fell = 0;
+  /** Where each walking creature last stood on an island: a walker that strays over the void is put back (only a GUST throws one off). */
+  readonly safe = new Map<Animal, Vector3>();
   /** Bodies a GUST threw: they slide until the push dies, and fall off an edge into the clouds. */
   readonly blown = new Map<Animal, Vector3>();
   override world(ctx: ShardContext): void {
@@ -90,15 +92,18 @@ export class FarReachPlugin extends ShardPlugin {
       }
       const ground = ctx.manifest.ground.terrain;
       for (const a of rt?.play?.animals.animals ?? []) {
-        if (!a.alive || a === this.manta || ground === undefined || ground.heightAt(a.position.x, a.position.z) > CLOUD_Y) continue;
-        this.blown.delete(a); this.fell++;
+        if (!a.alive || a === this.manta || ground === undefined) continue;
+        const safe = this.safe.get(a);
+        if (ground.heightAt(a.position.x, a.position.z) > CLOUD_Y) { if (safe) safe.copy(a.position); else this.safe.set(a, a.position.clone()); continue; }
+        if (!this.blown.has(a) && safe) { a.position.x = safe.x; a.position.z = safe.z; continue; }
+        this.blown.delete(a); this.safe.delete(a); this.fell++;
         ctx.app.combat.hit({ source: 'env', sourceTags: ['farReach.fall'], target: a.combatActor(), amount: 1e4, point: a.position.clone(), dir: new Vector3(0, -1, 0), throughWalls: true });
       }
     } });
     if (rt?.play) {
       for (const bridge of sky.hover) { const pin = document.createElement('span'); pin.textContent = STRINGS.hoverHint; ctx.hud.pin(bridge.deck.a.clone().setY(bridge.deck.a.y + 2.4), pin); }
       const animals = rt.play.animals, manta = animals.spawn('skyManta', MANTA_HOME.x, MANTA_HOME.z, 0, 'drift');
-      this.manta = manta; mantaBrain(manta);
+      this.manta = manta; this.ray = mantaBrain(manta);
       ctx.scope.onDispose(() => { animals.retire(manta); });
     }
     const spawner = ctx.app.encounters.spawn('farReach.boars', ctx.scope, { create: (entry, at) => rt?.play?.animals.spawn(entry.kind, at.x, at.z, at.yaw, entry.variant) ?? null,

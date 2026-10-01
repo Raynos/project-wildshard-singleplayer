@@ -29,8 +29,8 @@ export const SPANS: readonly Span[] = [
 export const VOID_Y = -40;
 /** The cloud sea's surface. */
 export const CLOUD_Y = 6;
-/** Below this the player has fallen off the world (`bounds.floor`). */
-export const FALL_Y = 2;
+/** Below this the player has fallen off the world (`bounds.floor`): 5 m under the lowest island top, so a fall never slides down a cliff. */
+export const FALL_Y = 12;
 /** A bridge deck starts this far inside an island's rim (fraction of its radius). */
 export const ANCHOR_IN = 0.86;
 export const SPAWN = { x: 0, z: 8, yaw: 0 };
