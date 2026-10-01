@@ -7,3 +7,5 @@ genShards();
 genAskIds();
 const { generateBootTables } = await import('../vite/gen.ts');
 generateBootTables();
+// Boot tables add static imports; derive the closure from the completed graph.
+genShards();

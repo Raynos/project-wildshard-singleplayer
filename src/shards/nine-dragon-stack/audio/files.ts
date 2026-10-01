@@ -22,8 +22,8 @@ export async function createNdAudio(): Promise<LevelAudioProfile> {
   };
 }
 export async function BOOT_AUDIO(): Promise<readonly string[]> {
-  const [{ getMusicStyle }, profile] = await Promise.all([loadAudio(), createNdAudio()]);
-  return profile.bootFiles(getMusicStyle());
+  const files = (await createNdAudio()).files();
+  return [...files.music, ...files.sfx];
 }
 export interface NdScene { well: number }
 export function ndPick(scene: NdScene, state: MusicState | undefined): readonly string[] {

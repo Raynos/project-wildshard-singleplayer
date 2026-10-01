@@ -45,6 +45,6 @@ export async function createDriftwoodAudio(): Promise<LevelAudioProfile> {
 }
 
 export async function BOOT_AUDIO(): Promise<readonly string[]> {
-  const [ports, profile] = await Promise.all([loadAudio(), createDriftwoodAudio()]);
-  return profile.bootFiles(ports.getMusicStyle());
+  const files = (await createDriftwoodAudio()).files();
+  return [...files.music, ...files.sfx];
 }
