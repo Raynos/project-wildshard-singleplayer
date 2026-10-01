@@ -11,7 +11,7 @@ import {
   type Effect, type Pass,
 } from 'postprocessing';
 import { N8AOPostPass } from 'n8ao';
-import type { EngineEffects, LookComposition, LookStrategy } from '../render/look';
+import type { EngineEffects, LookComposition, LookStrategy, ReplaceLook } from '../render/look';
 import { resolveTierKnobs, type LevelSpec, type TierKnobs } from '../level/spec';
 import { installAtmosphere } from '../world/Atmosphere';
 import { setAnisotropy } from './assets';
@@ -21,8 +21,6 @@ import { activeGrade } from '../world/lookFlags';
 import { VolumetricsEffect, makeNoiseTexture } from './Volumetrics';
 import { getActiveChunk } from '#game/shard/registry';
 import { TIER, TIER_CONFIG, frameCapFps, phonePictureCuts, type Tier } from './tier';
-import { installLookV2Fog } from '#shards/nalati-grasslands/look/fog';
-import { buildLookV2Chain } from '#shards/nalati-grasslands/look/grade';
 import { chunkShadowCasters } from '../world/shadowChunks';
 import { PERFLOAD, snapshotPrograms, newProgramsSince, describeProgram, perfLog, dumpPrograms, parallelCompile } from '../boot/perflog';
 import { sceneJobs, shadowJobs, backgroundJob, postJobs, runPrecompile } from '../boot/precompile';
@@ -280,8 +278,7 @@ export class Game {
     this.app.scene = this.scene;
     this.app.render = this;
     const legacy = currentScope(); if (legacy) legacy.owner = this.engineScope;
-    installAtmosphere(getActiveChunk().style === 'painterly', level.atmosphere); // the painterly shard's air: aerial perspective + cloud shadows
-    if (getActiveChunk().style === 'painterly') installLookV2Fog(); // Nalati: the fog coloured from the panorama (src/shards/nalati-grasslands/look/fog.ts)
+    installAtmosphere(level.atmosphere); // the engine fog (slot 100); a shard's own fog (LookStrategy.fog, slot 300) installs in buildSky, before anything compiles
     installViewport(); // --ws-vh: the real height (an iOS home-screen app reports innerHeight a status bar short — viewport.ts)
     const tracedBoot = bootTraceActive();
     if (tracedBoot) recordBootCheckpoint('renderer:before', { userAgent: navigator.userAgent.slice(0, 250), devicePixelRatio: window.devicePixelRatio });
@@ -329,6 +326,8 @@ export class Game {
 
   /** the shard's render strategy (ShardManifest.render), loaded by buildSky; null = the engine's chain as it is */
   private lookStrategy: LookStrategy | null = null;
+  /** the shard's look strategy once buildSky has loaded it (its terrain painter and grass driver are read by Terrain / Grass) */
+  get look(): LookStrategy | null { return this.lookStrategy; }
   private levelId = '';
   /** where the strategy put its passes (asked once, in buildComposer) */
   private composition: LookComposition | null = null;
@@ -337,6 +336,7 @@ export class Game {
     this.levelId = this.level.id;
     const render = this.level.look?.() ?? null; // the render code downloads while the sky builds; buildComposer reads both
     this.lookStrategy = await render;
+    this.lookStrategy?.fog?.install(); // after installAtmosphere (the constructor), before the sky or anything compiles (01 §13.2: slot 300)
     this._sky = await new Sky(this.scene, this.camera, this.renderer).build(this.lookStrategy?.backdrop, { level: this.level, tier: TIER, look: this.level.lookLayer ?? null });
     this.levelScope.onDispose(() => { this.lookStrategy?.dispose?.(); this.lookStrategy = null; });
     return this._sky;
@@ -348,7 +348,7 @@ export class Game {
    */
   private colourPass(composer: EffectComposer, order: Effect[], fx: Omit<EngineEffects, 'order'>): EffectPass {
     const R = this.lookStrategy;
-    if (R === null) return new EffectPass(this.camera, ...order);
+    if (R === null || R.mode === 'replace') return new EffectPass(this.camera, ...order); // a 'replace' look never reaches the engine chain (replaceComposer)
     const scope = this.levelScope.child('look');
     this.composition = R.compose({ app: this.app, scope, debug: { expose: (name, value) => { scope.onDispose(this.app.debug.scopedExpose(name, value)); } }, renderer: this.renderer, scene: this.scene, camera: this.camera, composer, tier: TIER, fx: { ...fx, order } });
     return new EffectPass(this.camera, ...(this.composition.chain ?? order));
@@ -371,8 +371,21 @@ export class Game {
     return resolveTierKnobs({ ao: TIER_CONFIG.ao, slices: phonePictureCuts(), warmTurns: WARM_TURNS }, kit, this.level.tiers, TIER);
   }
 
+  /**
+   * A `mode: 'replace'` look (01 §13.1): one composer (HalfFloat, `multisampling` from the tier's `msaa` knob, clamped to
+   * the GPU's samples, 0 while anti-aliasing is off) holding exactly the passes the shard's compose returns, in order.
+   */
+  private replaceComposer(R: ReplaceLook): EffectComposer {
+    const msaa = TIER_CONFIG.smaa === 'off' ? 0 : this.renderKnobs().msaa ?? 0;
+    const composer = new EffectComposer(this.renderer, { frameBufferType: THREE.HalfFloatType, multisampling: Math.min(msaa, this.renderer.capabilities.maxSamples) });
+    const scope = this.levelScope.child('look');
+    const { chain } = R.compose({ app: this.app, scope, debug: { expose: (name, value) => { scope.onDispose(this.app.debug.scopedExpose(name, value)); } }, renderer: this.renderer, scene: this.scene, camera: this.camera, composer, tier: TIER });
+    for (const p of chain) composer.addPass(p);
+    return composer;
+  }
+
   buildComposer(): void {
-    if (getActiveChunk().style === 'painterly') { this._composer = buildLookV2Chain(this.renderer, this.scene, this.camera); return; } // Nalati: MSAA → the one grade (src/shards/nalati-grasslands/look/grade.ts)
+    if (this.lookStrategy?.mode === 'replace') { this._composer = this.replaceComposer(this.lookStrategy); return; } // the shard's whole chain (Nalati: MSAA → the one grade)
     const { atmosphere: A } = getActiveChunk();
     const { grade: G, look } = activeGrade(getActiveChunk()); // + the look loop's layer (PH-L1 / L4)
     const composer = new EffectComposer(this.renderer, { frameBufferType: THREE.HalfFloatType, multisampling: 0 });
