@@ -38,7 +38,7 @@ export class Horizon {
   build(): this {
     const def = getActiveChunk();
     const own = def.horizon;
-    if (own) { // a shard's own painted horizon (Nalati: src/shards/nalati-grasslands/look/horizon.ts)
+    if (own) { // a level's own compass-banded ranges (its manifest's `horizon` data)
       this.buildBands(own);
       if (own.cloudSea) this.buildCloudSea();
       return this;
@@ -64,7 +64,7 @@ export class Horizon {
    * `ShardManifest.horizon` (Nalati): each ring's height profile is shaped by compass bands — the snow range big and white
    * across the south, the plateau rolling on as low green hills at slab height, the valley opening flat to the west,
    * a gorge in the east — instead of one noise profile the same all the way round. A ring is a three-row strip
-   * (hidden foot · a shoulder at 55 % · the ridge line) with a painted colour ramp foot → `color` → `top`, snow above
+   * (hidden foot · a shoulder at 55 % · the ridge line) with a colour ramp foot → `color` → `top`, snow above
    * `snowLine` of the ring's tallest point, and the same aerial-perspective haze as the default ridges.
    * One draw call per ring, one shared program.
    */
@@ -133,7 +133,7 @@ export class Horizon {
       geo.setAttribute('normal', new THREE.Float32BufferAttribute(nrm, 3));
       geo.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
       geo.setIndex(idx);
-      // the haze is the painted sky's own horizon colour, so the far range dissolves into that sky
+      // the haze is the sky's own horizon colour (`ChunkSky.painted`), so the far range dissolves into that sky
       const P = getActiveChunk().sky.painted;
       const mesh = new THREE.Mesh(geo, this.ridgeMaterial(ri, ring.haze, P ? new THREE.Color(...P.horizon) : new THREE.Color(0.5, 0.58, 0.74)));
       mesh.frustumCulled = false;
@@ -282,7 +282,7 @@ export class Horizon {
     this.cloudSea.position.y = -CHUNK_DEPTH - 140;
     this.cloudSea.frustumCulled = false;
     this.cloudSea.renderOrder = -5;
-    this.cloudSea.name = 'cloud-sea'; // Nalati look v2 restyles it (src/shards/nalati-grasslands/look/cloudSea.ts)
+    this.cloudSea.name = 'cloud-sea'; // a level's look may restyle it (found by this name)
     this.group.add(this.cloudSea);
   }
 

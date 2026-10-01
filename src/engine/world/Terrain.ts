@@ -279,7 +279,7 @@ export class Terrain {
           if (top > 0) { slope = Math.max(slope, 1 - d / Math.hypot(d, top - h)); h = (h + top) * 0.5; }
         }
         lowPolyGroundColor(c, h, slope, x, z, lip);
-        // the sand paths: trails above the beach are painted sand over the grass (a 3 m bed with a soft edge)
+        // the sand paths: trails above the beach are sand drawn over the grass (a 3 m bed with a soft edge)
         if (y - wl > 1.5) { const td = trailDistance(x, z); if (td < 4.5) { _pathC.copy(LP.path).multiplyScalar(0.94 + hash2(x, z) * 0.12); c.lerp(_pathC, 1 - ss(td, 2.2, 4.5)); } }
         // clamped: a Uint8Array wraps 256+ to ~0, so a bright sand facet jittered over 1.0 turned mint (r 1.07 → 17)
         col[i * 3] = Math.min(255, Math.round(c.r * 255)); col[i * 3 + 1] = Math.min(255, Math.round(c.g * 255)); col[i * 3 + 2] = Math.min(255, Math.round(c.b * 255));
