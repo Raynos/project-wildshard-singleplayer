@@ -17,7 +17,7 @@ const fixture = mkdtempSync(join(tmpdir(), 'template-gate-'));
 mkdirSync(join(fixture, 'scripts'));
 writeFileSync(join(fixture, 'scripts/physics-route.json'), JSON.stringify({ _template: [{ name: 'hut', gate: true,
   start: { x: 0, y: 1, z: 0, yaw: 0 }, waypoints: [{ x: 0, z: -4 }, { x: 0, z: -7.5 }], timeout: 30 }] }));
-STEPS._template = [{ step: 'swing', weapon: 'template-whip', target: 'greyBlob', near: { x: 0, z: -19 }, distance: 3, hit: 5, kill: 20 }];
+STEPS._template = [{ step: 'swing', weapon: 'template-whip', target: 'greyBlob', near: { x: 0, z: -19 }, distance: 3, hit: 5, kill: 20, settleFrames: 30 }];
 const pool = browserPool(resolve(import.meta.dirname, '..'), 1, 'metal');
 try {
   const browser = await pool.browser(0); await assertMetal(browser, 'metal');
@@ -26,6 +26,10 @@ try {
   writeFileSync(join(out, 'gate.json'), JSON.stringify(result, null, 2));
   assert.deepEqual(object(result.boot).errors, [], 'template boot');
   const walk = object(result.walk); assert.equal(walk.stuck, 0, 'hut walk'); assert.equal(array(walk.legs).length, 1, 'hut route ran');
+  const touch = object(walk.touch);
+  assert.ok(typeof touch.moved === 'number' && touch.moved >= 2, 'touch stick moves the player');
+  assert.ok(typeof touch.yawDelta === 'number' && touch.yawDelta !== 0, 'touch look changes yaw');
+  assert.equal(touch.dodged, true, 'touch dodge'); assert.equal(touch.used, true, 'touch use');
   assert.equal(object(object(result.combat).swing).killed, true, 'custom whip killed the blob');
   const leak = object(result.leak); assert.deepEqual(leak.disposalErrors, [], 'scope disposal');
   const before = flatten(leak.before), after = flatten(leak.after);

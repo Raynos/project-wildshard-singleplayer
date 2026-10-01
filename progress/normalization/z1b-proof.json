@@ -1,0 +1,87 @@
+{
+  "runtimeCandidate": "e11049109f5a63c296a548490e5f4657c560881e",
+  "harnessCandidate": "dcbe204a33eca12fb13dcc2d52e633547f960fdb",
+  "landingParent": "762c0dccf6ceb5c48b21a3fbc51a5c5b1f906f8b",
+  "ciRun": "36905741385",
+  "ciRedFields": [
+    "walk.touch"
+  ],
+  "ciRegistryVerdict": "green",
+  "recordVerdict": "green",
+  "recordRuns": 3,
+  "recordTouch": {
+    "moved": 8.500821728356668,
+    "yawDelta": -1.1065470956695471,
+    "dodged": true,
+    "used": true
+  },
+  "contractTouch": {
+    "moved": 8.500821728356668,
+    "yawDelta": -1.1070066451349543,
+    "dodged": true,
+    "used": true
+  },
+  "contractCombat": {
+    "weapon": "template-whip",
+    "target": "greyBlob",
+    "hits": 4,
+    "hitWithinS": 0.6333333333333311,
+    "killed": true,
+    "killWithinS": 2.533333333333325,
+    "hitLimit": 5,
+    "killLimit": 20
+  },
+  "contractCensusExact": true,
+  "contractDisposalErrors": [],
+  "fingerprints": {
+    "driftwood-isle.phone.raw.json": {
+      "errors": [],
+      "structuralDiffs": {}
+    },
+    "nalati-grasslands.phone.raw.json": {
+      "errors": [],
+      "structuralDiffs": {}
+    },
+    "nine-dragon-stack.phone.raw.json": {
+      "errors": [],
+      "structuralDiffs": {}
+    },
+    "pine-hollow.phone.raw.json": {
+      "errors": [],
+      "structuralDiffs": {}
+    }
+  },
+  "harnessEquivalence": {
+    "driftwood-isle": {
+      "fields": 9844,
+      "differences": []
+    },
+    "pine-hollow": {
+      "fields": 19352,
+      "differences": []
+    },
+    "nalati-grasslands": {
+      "fields": 21153,
+      "differences": []
+    },
+    "nine-dragon-stack": {
+      "fields": 10738,
+      "differences": []
+    }
+  },
+  "diagnosticExclusions": [
+    "leak.stacks",
+    "leak.retained",
+    "leak.gpu",
+    "leak.weather.stacks",
+    "leak.weather.retained",
+    "leak.weather.gpu"
+  ],
+  "routeSecondsDecimals": 9,
+  "crossBuildNineRockSteps": {
+    "parent": 3,
+    "candidate": 4,
+    "sameRuntimeOriginalHarness": 4,
+    "sameRuntimeChangedHarness": 4
+  }
+}

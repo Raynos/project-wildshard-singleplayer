@@ -15,7 +15,8 @@ export const TEMPLATE: ShardManifest = {
   ground: { paths: 'plugin', water: [POOL], terrain: buildTerrain(357, { landscape: (x, z, { n }) => poolMask(x, z) ? -3 : n.get(x * 0.015, z * 0.015) * 0.5,
     trails: TRAIL, cabinSites: [] }) },
   groundColor: (_x, _z, _h, _slope, _terrain, out) => { out[0] = 0.38; out[1] = 0.4; out[2] = 0.42; return out; },
-  spawn: { x: 0, z: 0, yaw: 0 }, bounds: { x0: -100, x1: 100, z0: -100, z1: 100, floor: -10 },
+  // Start above the sampled collision floor: the analytic trail bed is lower between grid vertices.
+  spawn: { x: 0, y: 1, z: 0, yaw: 0 }, bounds: { x0: -100, x1: 100, z0: -100, z1: 100, floor: -10 },
   sky: { sunColor: [1, 1, 1], sunIntensity: 1.5, envIntensity: 0.5, bgIntensity: 1, fogSunColor: [1, 1, 1], cloudSunColor: [1, 1, 1],
     hemiSky: 0x9ca7b4, hemiGround: 0x606060, hemiIntensity: 0.7, sun: { azimuth: 35, elevation: 45 } },
   atmosphere: { fogHeight: -20, fogHeightFalloff: 0, fogHeightDensity: 0, fogDistDensity: 0, volumetricSunColor: [1, 1, 1] },

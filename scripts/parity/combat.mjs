@@ -2,7 +2,7 @@ import { equal, flatten, object } from './value.mjs';
 import { advance, poseAt } from './frames.mjs';
 import { touch, TOUCH } from './walk.mjs';
 
-/** @typedef {{step:string,weapon:string,target:string,near:{x:number,z:number},distance:number,hit:number,kill:number|null}} Step */
+/** @typedef {{step:string,weapon:string,target:string,near:{x:number,z:number},distance:number,hit:number,kill:number|null,settleFrames?:number}} Step */
 /** @type {Record<string,Step[]>} */
 export const STEPS={
   'driftwood-isle':[{step:'swing',weapon:'sword',target:'crab',near:{x:-7,z:-143},distance:1.8,hit:3,kill:15}],
@@ -17,6 +17,8 @@ export async function combat(page,opts) {
   /** @type {import('./value.mjs').RecordValue} */const result={swing:'n/a',shot:'n/a',shot2:'n/a',hitsToKill:{},kills:[],loot:{written:[]}};
   /** @type {string[]} */ const written=[];
   for(const step of STEPS[opts.shard] ?? []) {
+    // A scenario may follow a live dash; finish it before sampling the target-relative aim pose.
+    if(step.settleFrames)await advance(page,step.settleFrames);
     const setup=await page.evaluate((s)=> {
       const probe=window.__wildshard,p=probe.world.player;
       const weapon=probe.world.weapons.list.find((w)=>w.id===s.weapon);
