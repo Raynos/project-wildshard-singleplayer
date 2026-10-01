@@ -19,7 +19,7 @@ export type LoadStage = <T>(name: string, work: () => T | Promise<T>) => Promise
 export interface ShardLoadFailure extends LoadFailure { readonly shard: string }
 export interface ShardLoadServices {
   readonly build: string;
-  readonly dispose: () => void;
+  readonly dispose: () => void | Promise<void>;
   readonly report: (failure: LoadFailure) => Promise<unknown>;
   readonly show: (failure: LoadFailure) => unknown;
 }
@@ -55,7 +55,7 @@ export async function runShardLoad<T>(manifest: { readonly api: number; readonly
       message: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack ?? '' : String(error),
     };
-    try { services.dispose(); } catch (disposeError) { console.warn('[load] level disposal failed', disposeError); }
+    try { await services.dispose(); } catch (disposeError) { console.warn('[load] level disposal failed', disposeError); }
     void services.report(failure).catch((reportFailure: unknown) => { console.warn('[load] error reporting failed', reportFailure); });
     services.show(failure);
     throw error;

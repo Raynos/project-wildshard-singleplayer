@@ -41,7 +41,10 @@ export class SceneOwnership {
   private readonly engineNodes = new Set<Object3D>();
   private readonly acquired = new Set<Disposable3>();
   private readonly roots = new Set<Object3D>();
-  constructor(private readonly scene: Object3D, private readonly level: Scope, private readonly assets: AssetService) {}
+  private readonly scene: Object3D;
+  private readonly level: Scope;
+  private readonly assets: AssetService;
+  constructor(scene: Object3D, level: Scope, assets: AssetService) { this.scene = scene; this.level = level; this.assets = assets; }
   retain(root: Object3D): void {
     root.traverse((node) => { this.engineNodes.add(node); });
     for (const resource of sceneResources(root)) this.acquire(resource);

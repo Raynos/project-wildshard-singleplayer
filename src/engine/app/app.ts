@@ -14,6 +14,10 @@ import { GameClock } from '../core/clock';
 import { AssetService } from './assets';
 import { Scope } from './scope';
 import { PHASES, sortSystems, type AppState, type Phase, type SystemSpec } from './systems';
+import { LevelLoader, type LevelDriver } from '../level/load';
+import { LevelRegistrations } from '../level/registrations';
+import type { LevelAdapters, LevelHooks } from '../level/context';
+import type { LevelSpec } from '../level/spec';
 
 interface StateHook { state: AppState; run: () => void }
 export type SystemsByPhase = Readonly<Record<Phase, readonly SystemSpec[]>>;
@@ -37,9 +41,21 @@ export class App {
   scene: Scene | null = null;
   render: Game | null = null;
   audio: Audio | null = null;
-  unloadLevel(): void {
-    if (!this.render) throw new Error('Render service is not installed');
-    this.render.unloadLevel();
+  readonly levelRegistrations = new LevelRegistrations();
+  private readonly levelLoader = new LevelLoader(this);
+  levelDriver: LevelDriver | null = null;
+  levelAdapters: LevelAdapters = {};
+  loadLevel(spec: LevelSpec, hooks: LevelHooks): Promise<void> {
+    if (this.levelDriver === null) return Promise.reject(new Error('Level boot driver is not installed'));
+    return this.levelLoader.load(spec, hooks, this.levelDriver, this.levelAdapters);
+  }
+  unloadLevel(): Promise<void> {
+    try {
+      if (this.levelLoader.unload()) return Promise.resolve();
+      if (!this.render) throw new Error('Render service is not installed');
+      this.render.unloadLevel();
+      return Promise.resolve();
+    } catch (error) { return Promise.reject(error instanceof Error ? error : new Error(String(error), { cause: error })); }
   }
   physics: Physics | null = null;
   bodies: Bodies | null = null;

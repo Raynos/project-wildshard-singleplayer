@@ -1,5 +1,6 @@
-import type { Ktx2Table } from '#engine';
+import type { Ktx2Table, LevelSpec, EngineMechanism, TierOverrides, BootSpec, LoadoutSpec } from '#engine';
 import type { ShardSlug } from './shards.generated';
+import type { ShardPlugin } from './plugin';
 /**
  * ShardManifest — everything that makes one Wildshard shard different from another.
  *
@@ -529,6 +530,16 @@ export interface ShardRender {
 }
 
 export interface ShardManifest {
+  /** Migrated manifests declare their plugin and level policy; legacy hooks retire per shard phase. */
+  load?: () => Promise<{ default: new () => ShardPlugin }>;
+  kitLook?: LevelSpec['kitLook'];
+  uses?: readonly (EngineMechanism | 'quests' | 'coins' | 'loot' | 'compendium' | 'feats' | 'pack')[];
+  tiers?: TierOverrides;
+  boot?: BootSpec;
+  loadout?: LoadoutSpec;
+  budgets?: LevelSpec['budgets'];
+  audio?: LevelSpec['audio'];
+  species?: LevelSpec['species'];
   /** Plugin API version; mismatches fail before the first asset load. */
   api: 1;
   /** title-card order, starting at one */

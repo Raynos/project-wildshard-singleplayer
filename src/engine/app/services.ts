@@ -16,6 +16,11 @@ export class AppDebug {
   leakBaseline: Readonly<Record<string, unknown>> | null = null;
   private readonly values = new Map<string, unknown>();
   expose(name: string, value: unknown): void { this.values.set(name, value); }
+  scopedExpose(name: string, value: unknown): () => void {
+    if (this.values.has(name)) throw new Error(`Duplicate debug exposure: ${name}`);
+    this.values.set(name, value);
+    return () => { this.values.delete(name); };
+  }
   snapshot(): Readonly<Record<string, unknown>> { return Object.freeze(Object.fromEntries(this.values)); }
 }
 

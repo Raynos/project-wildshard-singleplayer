@@ -349,7 +349,7 @@ export function installProbe<W extends ProbeWorld>(world: W, deps: ProbeDeps): W
     leak: async () => {
       requireHarness();
       if (!pins?.resources) throw new Error('Leak census requires independent harness resource counters');
-      app.unloadLevel();
+      await app.unloadLevel();
       await asShell(() => new Promise<void>((resolve) => { requestAnimationFrame(() => { requestAnimationFrame(() => { resolve(); }); }); }));
       return { before: structuredClone(baseline), after: census(), scope: game.levelScope.census,
         stacks: pins.resources().stacks, retained: app.assets.retained(), gpu: game.gpuResourceDiagnostics() };

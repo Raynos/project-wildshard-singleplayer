@@ -585,6 +585,7 @@ function loneSpruceMask(x: number, z: number): number {
 
 export const NALATI_GRASSLANDS: ShardManifest = {
   api: 1,
+  kitLook: 'painterly',
   assetGlobs: ['public/assets/nalati/**', 'public/assets/gpu/nalati/**', 'public/assets/music/nalati/**', 'public/assets/sfx/nalati-grasslands/**', 'public/assets/title/nalati-grasslands-portrait.jpg'],
   ktx2: () => import('./ktx2.generated'),
   order: 3,

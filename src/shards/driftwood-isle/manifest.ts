@@ -91,6 +91,7 @@ const ISLAND_BOARS = ['boar', 'sow', 'black', 'big'];
 
 export const DRIFTWOOD_ISLE: ShardManifest = {
   api: 1,
+  kitLook: 'toon',
   assetGlobs: ['public/assets/models/driftwood-blender/**', 'public/assets/models/driftwood-cc0/**', 'public/assets/models/driftwood-fp/**', 'public/assets/models/driftwood-hero/**', 'public/assets/gpu/models/driftwood-blender/**', 'public/assets/gpu/models/driftwood-hero/**', 'public/assets/gpu/baked/driftwood-isle/**', 'public/assets/horizon/driftwood-isle-*', 'public/assets/gpu/horizon/driftwood-isle-*', 'public/assets/lut/driftwood-isle.bin', 'public/assets/title/driftwood-isle-portrait.jpg', 'public/assets/sfx/driftwood-isle/**'],
   ktx2: () => import('./ktx2.generated'),
   order: 1,

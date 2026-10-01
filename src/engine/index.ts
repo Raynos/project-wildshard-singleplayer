@@ -15,6 +15,11 @@ export { ambientTick } from './core/harnessTap';
 export { retainCachedResources } from './app/cachedAssets';
 export type { Ktx2Table } from './boot/gpuFiles';
 export type { LoadFailure } from './core/errorReport';
+export { LevelLoadError, type LevelDriver, type LevelStage } from './level/load';
+export { resolveTierKnobs, needsTerrainCollider, type LevelSpec, type BootSpec, type LoadoutSpec, type EngineMechanism, type TierKnobs, type TierOverrides } from './level/spec';
+export { LevelRegistrations } from './level/registrations';
+export type { LevelContext, LevelHooks, LevelAdapters, EngineRows, ContentRow, ContentRowMap, InputContextDef, HudVerbs, HudBand, VerbSlotOpts, DebugRowSpec, PlaygroundSpec, StringTable, TierKnobSchema } from './level/context';
+export type { LookStrategy, LookComposeContext, LookComposition } from './render/look';
 
 export { boxInFrame, type BoxSpec } from './physics/box';
 export type { Player } from './player/Player';

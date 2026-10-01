@@ -1,0 +1,23 @@
+import { describe, expect, it } from 'vitest';
+import { SHARDS } from '#game/shard/shards.generated';
+import { toLevelSpec } from '#game/shard/spec';
+
+describe('node-safe manifest to engine level boundary', () => {
+  it.each(SHARDS)('copies $slug engine data without title metadata or game policy', (manifest) => {
+    const level = toLevelSpec(manifest);
+    expect(level.id).toBe(manifest.slug); expect(level.spawn).toEqual(manifest.spawn);
+    expect(level.sky).toEqual(manifest.sky); expect(level.atmosphere).toEqual(manifest.atmosphere); expect(level.grade).toEqual(manifest.grade);
+    expect(level.ground.terrain).toBe(manifest.ground.terrain);
+    expect(level.ground.structures).toBe(manifest.ground.structures === undefined ? undefined : true);
+    for (const key of ['slug', 'name', 'blurb', 'card', 'status', 'order', 'bag', 'label', 'assetGlobs', 'ktx2', 'load']) expect(level).not.toHaveProperty(key);
+  });
+  it('filters game mechanisms and copies normalized loadout, audio, boot and tier data', () => {
+    const first = SHARDS[0]; if (first === undefined) throw new Error('No manifests');
+    const manifest = { ...first, uses: ['hover', 'coins', 'loot', 'water'] as const, kitLook: 'toon' as const,
+      boot: { files: () => ['/fixture.bin'], barrier: true }, audio: { ambience: 'fixture.ambience', score: 'fixture.score' },
+      loadout: { weapons: ['fixture.weapon'], tools: [], start: ['fixture.weapon'] }, tiers: { phone: { ao: false } } };
+    const level = toLevelSpec(manifest);
+    expect(level.mechanisms).toEqual(['hover', 'water']); expect(level.boot).toBe(manifest.boot); expect(level.loadout).toBe(manifest.loadout);
+    expect(level.audio).toBe(manifest.audio); expect(level.tiers).toBe(manifest.tiers); expect(level.kitLook).toBe('toon');
+  });
+});
