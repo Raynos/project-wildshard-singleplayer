@@ -85,7 +85,9 @@ the plan is archived, with each shard's folder reopening at its milestone (decis
    (the lead and the subagents it spawns); any other commit may touch only the reopened-shard allowlist of a slug in
    `reopened`: `src/shards/<slug>/**`, `test/shards/<slug>/**`, `test/parity/baselines/*/<slug>.*` (its lane owns its
    baselines, R1-12), `art/<slug>/**`, `public/assets/<slug>/**` and that slug's extra asset globs,
-   `scripts/blender/<slug>/**`, and `docs/tasks/asks/**`. Anything else exits 1, listing each refused path. Generated
+   `scripts/blender/<slug>/**`, and `docs/tasks/asks/**`. Also always allowed: a commit that touches only
+   `project/sweepguard-ledger.md`, which `.githooks/post-commit` writes and commits by itself after a `SKIP_SWEEPGUARD`
+   commit (13 R1 K-ledger). Anything else exits 1, listing each refused path. Generated
    files are never committed (F9, R1-11), so none is on the list. The pure check `lockVerdict(message, paths, lock)`
    is a named export, so the test calls it without git.
 6. **AGENTS.md beyond the lock section (R1-49).**

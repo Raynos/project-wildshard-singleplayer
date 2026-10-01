@@ -165,7 +165,7 @@ Every accepted finding is resolved here and applied in the file named; these joi
 | R1-05 | B5 | The map's row keys are `from · lines · bytes · f6 · final · layer · rule · row · why`; 02 uses them | 02 F6 |
 | R1-06 | B6 | 01 §24's `no-shard-branch` list is the one definition; 02 F4 references it | 02 F4 |
 | R1-07 | B7, A7 | `lint/ratchet.mjs --add-rule <rule>` records a new rule's first counts once (refused if the rule exists); F6's step order runs `--add-rule` before the post-move check | 02 F4, F6 |
-| R1-08 | B8, A9 | F10's reset deletes only the listed **game-save** `ws.*` keys, never `device` / `session` / `ws.ota.*` / the pre-boot keys. The native mirror copies exactly `wildshard.save.v2.global` and `wildshard.save.v2.shard.*`, never the device document | 02 F10 |
+| R1-08 | B8, A9 | F10's reset deletes only the listed **game-save** `ws.*` keys, never `device` / `session` / `ws.ota.*` / the pre-boot keys. The native mirror copies exactly `wildshard.save.v2.global` and the per-shard `wildshard.save.v2.<slug>` documents (01 §9's names), plus `ws.ota.*` (OTA durability needs it), never the device document | 02 F10 |
 | R1-09 | B9, C1 | **The lock check is a `commit-msg` hook** (it can read the message): `scripts/check-lock.mjs`, built in **F0**. Lead commits carry the trailer `E357-Lead: yes`. A reopened shard's allowlist: `src/shards/<slug>/**`, `test/shards/<slug>/**`, `art/<slug>/**`, `public/assets/<slug>/**` and the asset folders its manifest declares, `scripts/blender/<slug>/**`, `docs/tasks/asks/**`. Generated files are not committed (R1-11) | 02 F0, 12 §2, 05–08 §9 |
 | R1-10 | B10, C14, C15, C16 | **One per-commit command:** `node scripts/parity.mjs --export=HEAD --shards=<changed> --tiers=phone` against the lane's baselines, **plus** before every push `--shards=all --tiers=phone,desktop`. The CLI gains `--accept <item ids>` (R1-13). A subagent runs only the per-commit phone lane for its shard (< 4 min). Anything longer is "queued: <command>" for the lead (AGENTS.md) | 03 §1, 12 §5, 05–08 §0 |
 | R1-11 | C12, A20 | **Generated files are built, not committed.** `shards.generated.ts` is written by a Vite plugin and `pnpm gen` (pre-test) and is git-ignored. The gate's matrix is derived from the registry at CI time. A shard with no baselines gets them recorded on its first gate run (a "bootstrap record", artifact `parity-baselines-<runner>-<slug>`). "Zero engine edits" means no change under `src/engine`, `src/game`, `src/kit`, `lint`, `scripts`, `.github`. Z3's allowlist is the reopened-shard allowlist (R1-09) | 02 F9, 03 §11, 11 Z3 |
@@ -213,3 +213,19 @@ Every accepted finding is resolved here and applied in the file named; these joi
 | R1-53 | C30 | **Memory red stops the line:** the next commit fixes or reverts, and the pin can't move while `gpu-perf` memory is red | 03 §14, 12 §8 |
 | R1-54 | C32 | The codemod runs only on a clean tree; its dry-run list is committed first, and a half-applied run is undone by restoring exactly the dry-run's paths (all the lead's, under the lock). F6 can be reverted only until F8 starts; after that it's forward-fix | 02 F6 |
 | R1-55 | C33 | F7 updates every living doc that teaches `window.__world` (`docs/SUBAGENT-BRIEF.md:98`, `docs/RUNNING.md:28,36` and the rest seat C listed) to `window.__wildshard` | 02 F7 |
+
+### Round 1 follow-ups (the fix agents' judgment calls, reviewed and accepted)
+
+| Res | Item | Resolution |
+|---|---|---|
+| R1-F1 | Where `pending.json` lives | `docs/plans/game-normalization/reviews/pending.json`. The runner checks out without `docs/`, so the gate reads it with `git show HEAD:<path>` |
+| R1-F2 | The native mirror and OTA | It copies `ws.ota.*` too (OTA durability). A first boot of v2 copies the old device / session keys into their new keys, because the reset no longer deletes them and nothing else carries their values (A9) |
+| R1-F3 | Which generated files | **Every** `src/**/*.generated.*` is git-ignored and written by `pnpm gen`, which `test`, `typecheck` and `lint` each run first (so CI and the tree gate generate on a clean export). Otherwise the R1-09 allowlist would refuse ordinary content commits that change a boot table |
+| R1-F4 | `pause-drift` | The plant sets `player.velocity` in the resume handler (nothing restores velocity today); the frame gate is untouched |
+| R1-F5 | Pine's longbow in the battery | A second shot step, `shot2`, and its field |
+| R1-F6 | Re-recording one shard on the runner | The commit deletes that shard's runner baselines, and the next gate run records them again (R1-11's bootstrap) |
+| R1-F7 | The nightly within `--max 240` | Nalati and Pine alternate their clear and weather soaks night by night |
+| R1-F8 | Title deck art before F9 | It keeps its thumb imports as alias imports, counted by the layer lint, until F9 turns them into manifest `card` URLs |
+| K-ledger | The sweepguard ledger's automatic commit under the lock | A commit that touches only `project/sweepguard-ledger.md` is always allowed by `check-lock.mjs` (02 F0 step 5) |
+| R1-F9 | The crouch ask's binding | `ask('player.crouch', { want, via: 'toggle' \| 'hold' }) → { allowed, latched }` (01 §10) |
+| R1-F10 | The species-look verb | `ctx.rows.speciesLook(look)` (01 §5a) |
