@@ -57,8 +57,13 @@ export type ExploreMode = 'hub' | 'world' | 'model' | 'sets';
 /** a tab's / a card's `data-m` as a mode (anything else: the World Explorer) */
 const asMode = (m: string | undefined): ExploreMode => (m === 'model' || m === 'sets' ? m : 'world');
 
+/** the level's presentation the game layer hands Explore: its name and its picker art */
+export interface ExploreTitle { name: string; landscape: string; thumb: string }
+
 export interface ExploreHost {
   world: World;
+  /** the level's name and picker art (the composition root's; until it passes one, read from the world's manifest) */
+  title?: ExploreTitle;
   /** ✕ / ◀ TITLE: main.ts shows the title again */
   onExit: () => void;
   /** the hub's Practice Arena card returns to play with the current shard's starter weapon */
@@ -77,6 +82,12 @@ export interface ExploreHost {
   overhead?: THREE.Object3D[];
 }
 
+/** the bridge until the composition root passes `ExploreHost.title`: the world's manifest's name and card art */
+function manifestTitle(world: World): ExploreTitle {
+  const m = world.chunk;
+  return { name: m.name, landscape: m.card.landscape, thumb: m.card.thumb };
+}
+
 /** a mode that lives in its own module (Model Explorer, …): shown / hidden with its tab, ticked while shown */
 export interface ExplorePane {
   readonly el: HTMLElement;
@@ -92,7 +103,7 @@ export interface ExplorePane {
 /** the World Explorer's first view: up and behind the shard's spawn, looking the way the spawn faces — over the
  *  canopy on a forest shard (its pines reach 26 m), so the first frame is the land, not a trunk */
 function homeView(world: World): { pos: THREE.Vector3; look: THREE.Vector3 } {
-  const s = world.chunk.spawn, fx = -Math.sin(s.yaw), fz = -Math.cos(s.yaw);
+  const s = world.game.level.spawn, fx = -Math.sin(s.yaw), fz = -Math.cos(s.yaw);
   // a built floor (ShardManifest.spawn.y, a structure-first shard) stands in for the ground
   const ground = Math.max(s.y ?? heightAt(s.x, s.z), app.world.water.level ?? -Infinity);
   const up = world.forest.trees.length > 0 ? 42 : 26;
@@ -164,8 +175,12 @@ export class Explore {
   private readonly parkedFrom = new THREE.Vector3();
   private toastTimer = 0;
 
+  /** the level's name and picker art */
+  readonly title: ExploreTitle;
+
   constructor(private readonly host: ExploreHost) {
     const { game } = host.world;
+    this.title = host.title ?? manifestTitle(host.world);
     this.cam = new FreeCam(game.camera, game.canvas, { moveSpeed: SPEEDS[1][1], damping: 0.82, pointerLock: true });
     this.cam.enabled = false;
     this.cam.floor = (x, z) => heightAt(x, z);
@@ -178,14 +193,13 @@ export class Explore {
     this.closeBtn = top.querySelector<HTMLElement>('.ws-x-close') ?? top;
     this.tabs = top.querySelector<HTMLElement>('.ws-x-tabs') ?? top;
     this.readout = html('div', 'ws-x-readout');
-    const shard = host.world.chunk;
     const hubArt = exploreArt(game.level.explore);
-    const worldArt = hubArt?.world ?? shard.card.landscape, modelsArt = hubArt?.models ?? shard.card.thumb; // a shard with none yet shows its picker art
+    const worldArt = hubArt?.world ?? this.title.landscape, modelsArt = hubArt?.models ?? this.title.thumb; // a shard with none yet shows its picker art
     const setsArt = hubArt?.sets ?? worldArt; // E315 M7: one of the shard's sets from the air
     // the Practice card is this shard's own arena: the room takes each shard's grade and weapon (E292)
-    const practiceArt = hubArt?.practice ?? shard.card.thumb;
+    const practiceArt = hubArt?.practice ?? this.title.thumb;
     // E307: the shard's own feature playgrounds under the shared cards (placeholder art: the verb's glyph on a dev tile)
-    const playgrounds = playgroundsFor(shard.slug);
+    const playgrounds = playgroundsFor(game.level.id);
     const pgArt = (c: PlaygroundCard): string => {
       const art = c.art ?? PLAYGROUND_ART[c.id];
       return art === undefined ? `<span class="ws-x-card-art ws-x-pg-art">${c.icon}</span>` : `<span class="ws-x-card-art" style="background-image:url('${art}')"></span>`;
@@ -196,9 +210,9 @@ export class Explore {
       <div class="ws-x-hub-heading">Choose an explorer</div>
       <button class="ws-x-card" type="button" data-m="model"><span class="ws-x-card-art" style="background-image:url('${modelsArt}')"></span><span class="ws-x-card-text"><b>Model explorer</b><small>Inspect every model up close</small></span><span class="ws-x-card-go">›</span></button>
       <button class="ws-x-card" type="button" data-m="sets"><span class="ws-x-card-art${hubArt?.sets === undefined ? ' ws-x-sets-art' : ''}" style="background-image:url('${setsArt}')"></span><span class="ws-x-card-text"><b>Set explorer</b><small>Camps, squares, fields: groups of models where they stand</small></span><span class="ws-x-card-go">›</span></button>
-      <button class="ws-x-card" type="button" data-m="world"><span class="ws-x-card-art" style="background-image:url('${worldArt}')"></span><span class="ws-x-card-text"><b>World explorer</b><small>Fly over ${shard.name} in god mode</small></span><span class="ws-x-card-go">›</span></button>
+      <button class="ws-x-card" type="button" data-m="world"><span class="ws-x-card-art" style="background-image:url('${worldArt}')"></span><span class="ws-x-card-text"><b>World explorer</b><small>Fly over ${this.title.name} in god mode</small></span><span class="ws-x-card-go">›</span></button>
       <button class="ws-x-card" type="button" data-m="practice" data-dev><span class="ws-x-card-art ws-x-practice-art" style="background-image:url('${practiceArt}')"></span><span class="ws-x-card-text"><b>Practice arena</b><small>HUD · weapon explorer</small></span><span class="ws-x-card-go">›</span></button>
-      ${playgrounds.length > 0 ? `<div class="ws-x-hub-heading ws-x-hub-shard" data-dev>${shard.name} · playgrounds</div>${pgCards}` : ''}</div>`);
+      ${playgrounds.length > 0 ? `<div class="ws-x-hub-heading ws-x-hub-shard" data-dev>${this.title.name} · playgrounds</div>${pgCards}` : ''}</div>`);
     this.hubEl.dataset['scroll'] = ''; // index.html swallows touchmove outside [data-scroll]: without it the list can't scroll on a phone
     // the developer-only entries: the Practice arena and the playgrounds (Settings ▸ Developer, live)
     const devOnly = [...this.hubEl.querySelectorAll<HTMLElement>('[data-dev]')];
@@ -239,15 +253,14 @@ export class Explore {
     }
     document.addEventListener('keydown', this.onKey);
     game.onUpdate((dt) => { this.update(dt); }, 'engine.explore.constructor');
-    if ((host.world.chunk.pois ?? []).length > 0) this.map = new MiniMap(this, host.world, host.overhead ?? []);
+    if ((game.level.pois ?? []).length > 0) this.map = new MiniMap(this, host.world, host.overhead ?? []);
     if (hasCompareTargets(host.world)) this.compare = new Compare(this, host.world);
-    const { chunk } = host.world;
-    const entries = catalogEntries(host.world.sky, host.creatures ?? [], host.world.game.level.creatureStyle ?? 'pbr', chunk.spawn); // the level's own creature style
+    const entries = catalogEntries(host.world.sky, host.creatures ?? [], game.level.creatureStyle ?? 'pbr', game.level.spawn); // the level's own creature style
     if (entries.length > 0) {
       this.addPane('model', new ModelExplorer(this, host.world, entries));
       this.select = new Select(this, host.world, selectTargets(entries, host.creatures ?? []), entries);
       this.onTap = (x, y) => { this.select?.pick(x, y); };
-    } else this.addPane('model', new EmptyModels(this, chunk.name));
+    } else this.addPane('model', new EmptyModels(this, this.title.name));
     this.addPane('sets', new SetExplorer(this, host.world, entries));
   }
 
@@ -553,7 +566,7 @@ export class Explore {
       // a slow cinematic orbit of the island behind the hub cards
       this.hubT += dt * 0.035;
       const a = this.hubT - 1.1;
-      const base = this.host.world.chunk.spawn.y ?? 0; // a structure-first shard orbits its built datum, not the ground far under it
+      const base = this.host.world.game.level.spawn.y ?? 0; // a structure-first shard orbits its built datum, not the ground far under it
       camera.position.set(Math.sin(a) * CHUNK_HALF, base + CHUNK_HALF * 0.47, Math.cos(a) * -CHUNK_HALF); // the whole shard from above its edge
       camera.lookAt(0, base + 4, 0);
     } else if (this.mode === 'world') {

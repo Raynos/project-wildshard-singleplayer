@@ -110,7 +110,7 @@ export class SetExplorer implements ExplorePane {
 
   constructor(private readonly explore: Explore, private readonly world: World, private readonly entries: readonly CatalogEntry[]) {
     this.el = html('div', 'ws-x-sets');
-    const shard = world.chunk.name;
+    const shard = explore.title.name;
     this.listEl = html('div', 'ws-x-setlist', `
       <div class="ws-x-setlist-head"><span>Sets · ${esc(shard)}</span><b class="ws-x-setcount"></b></div>
       <p class="ws-x-setlist-blurb">Every named place, camp and square: the models placed there. Each opens where it stands in the world.</p>
@@ -215,7 +215,7 @@ export class SetExplorer implements ExplorePane {
     this.listEl.classList.toggle('few', n < 4); // (no ordering to choose between a handful)
     this.cards.replaceChildren();
     if (n === 0) {
-      this.cards.append(html('div', 'ws-x-setempty', `<b>No sets on ${esc(this.world.chunk.name)} yet</b><small>A set names a group of placed models — <code>placeSet</code> in src/models/sets.ts.</small>`));
+      this.cards.append(html('div', 'ws-x-setempty', `<b>No sets on ${esc(this.explore.title.name)} yet</b><small>A set names a group of placed models — <code>placeSet</code> in src/models/sets.ts.</small>`));
       return;
     }
     let region: string | null = null;
@@ -294,7 +294,7 @@ export class SetExplorer implements ExplorePane {
   }
 
   /** the opening pitch of the aerial: steeper on a structure-first shard (ShardManifest.spawn.y: its ground is what it built) */
-  private pitch0(): number { return this.world.chunk.spawn.y === undefined ? PITCH : PITCH_BUILT; }
+  private pitch0(): number { return this.world.game.level.spawn.y === undefined ? PITCH : PITCH_BUILT; }
 
   /** the box on a set's bounds */
   private mark(set: RegisteredSet): void {
@@ -453,7 +453,7 @@ export class SetExplorer implements ExplorePane {
     if (this.shotStep()) return;
     // the list floats over a slow orbit of the shard, like the hub
     this.listT += dt * 0.03;
-    const base = this.world.chunk.spawn.y ?? 0;
+    const base = this.world.game.level.spawn.y ?? 0;
     camera.position.set(Math.sin(this.listT + 2) * CHUNK_HALF * 0.92, base + CHUNK_HALF * 0.42, Math.cos(this.listT + 2) * -CHUNK_HALF * 0.92);
     camera.lookAt(0, base + 4, 0);
   }

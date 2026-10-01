@@ -16,7 +16,7 @@ import { CHUNK_HALF } from '../core/config';
 import { heightAt, normalAt } from '../world/Heightfield';
 import { fogUniforms } from '../world/Atmosphere';
 import { waterView } from '../world/waterSurface';
-import type { ChunkPoi } from '#game/shard/manifest';
+import type { PoiSpec } from '../level/data';
 import type { Explore } from './Explore';
 
 const RES = 192; // the fallback relief's pixels (no composer yet / a lost context)
@@ -35,12 +35,12 @@ export class MiniMap {
   private drawn = false;
   /** the clock's part of the day the shot was taken in (EXPLORE-V2 V3: re-shot when it moves on, not once a session) */
   private shotKey = '';
-  private readonly pois: readonly ChunkPoi[];
+  private readonly pois: readonly PoiSpec[];
   /** the square the map shows: the land and every pin, not the whole chunk (an island in its sea fills the sheet) */
   private readonly view: { x: number; z: number; half: number };
 
   constructor(private readonly explore: Explore, private readonly world: World, private readonly overhead: readonly THREE.Object3D[] = []) {
-    this.pois = world.chunk.pois ?? [];
+    this.pois = world.game.level.pois ?? [];
     this.view = this.frame();
     this.button = html('button', 'ws-x-mapbtn', '<svg viewBox="0 0 24 24"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z M9 4v14 M15 6v14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg><span>Map</span>');
     (this.button as HTMLButtonElement).type = 'button';
@@ -48,7 +48,7 @@ export class MiniMap {
     this.sheet = html('div', 'ws-x-map', `
       <i class="ws-x-map-grab"></i>
       <div class="ws-x-map-head">
-        <div><b>${world.chunk.name}</b><small>World explorer · tap a place to fly there</small></div>
+        <div><b>${explore.title.name}</b><small>World explorer · tap a place to fly there</small></div>
         <button type="button" class="ws-x-map-spawn"><svg viewBox="0 0 24 24"><path d="M4 11l8-7 8 7 M6 9.5V20h12V9.5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>Spawn</button>
         <button type="button" class="ws-x-map-close" aria-label="Close map">✕</button>
       </div>
@@ -122,7 +122,7 @@ export class MiniMap {
       if (heightAt(x, z) > sea + 0.5) add(x, z);
     }
     for (const p of this.pois) add(p.x, p.z, p.r ?? 14);
-    const s = this.world.chunk.spawn; add(s.x, s.z, 10);
+    const s = this.world.game.level.spawn; add(s.x, s.z, 10);
     if (!Number.isFinite(x0)) return { x: 0, z: 0, half: CHUNK_HALF };
     return { x: (x0 + x1) / 2, z: (z0 + z1) / 2, half: Math.min(CHUNK_HALF, Math.max(x1 - x0, z1 - z0) / 2 + 24) };
   }
@@ -233,7 +233,7 @@ export class MiniMap {
     g.putImageData(img, 0, 0);
   }
 
-  private flyToPoi(p: ChunkPoi): void {
+  private flyToPoi(p: PoiSpec): void {
     const r = p.r ?? 14;
     const ground = Math.max(heightAt(p.x, p.z), app.world.water.level ?? -Infinity);
     const look = new THREE.Vector3(p.x, ground + r * 0.2, p.z);
@@ -254,7 +254,7 @@ export class MiniMap {
   }
 
   private home(): void {
-    const s = this.world.chunk.spawn;
+    const s = this.world.game.level.spawn;
     const y = Math.max(heightAt(s.x, s.z), app.world.water.level ?? -Infinity) + 3;
     const fwd = new THREE.Vector3(-Math.sin(s.yaw), 0, -Math.cos(s.yaw));
     this.close();
