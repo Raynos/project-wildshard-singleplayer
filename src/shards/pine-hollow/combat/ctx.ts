@@ -111,7 +111,7 @@ export class LaneCharge {
     this.tellT = tell;
     const spec: StrikeSpec = { ...this.spec, windup: tell };
     this.runner.start(spec, a, { x: px, y: a.position.y, z: pz }, speedMul);
-    inspectBrain(a, () => ({ state: `charge.${this.runner.state}`, picks: [{ id: spec.id, score: 1 }], brainHz: 10, pinned: false }));
+    inspectBrain(a, () => ({ state: this.runner.busy ? `charge.${this.runner.state}` : a.state, picks: [{ id: spec.id, score: 1 }], brainHz: 60, pinned: false }));
   }
   cancel(): void { this.runner.cancel(); this.tellDecal.hide(); }
   recoverNow(): void { this.runner.recoverNow(); }

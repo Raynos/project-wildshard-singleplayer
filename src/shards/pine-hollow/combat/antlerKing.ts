@@ -154,6 +154,7 @@ export class AntlerKingFight implements BossScript {
   private readonly puffs: Puffs;
   private light: THREE.PointLight | null = null;
   private sealK = 0; private sealed = false;
+  get weatherHold(): number { return this.sealK; }
   private darkK = 0; private glow = 0; private open = 0;
   private present = false;
   private won = false;
@@ -231,7 +232,7 @@ export class AntlerKingFight implements BossScript {
     const a = this.ctx.animals.spawn(KING_KIND, C.x, C.z, 0, 'warden');
     a.herd = -1;
     this.king = a;
-    pinBrain(a); inspectBrain(a, () => ({ state: this.mode, picks: [], brainHz: 10, pinned: true }));
+    pinBrain(a); inspectBrain(a, () => ({ state: this.mode, picks: [], brainHz: 60, pinned: true }));
     this.look = dressAntlerKing(a, this.kit);
     // bark, not blood: splinters and embers where a bolt lands
     const prev = a.onDamaged;

@@ -51,6 +51,8 @@ export interface PineCombatHost {
 }
 
 export interface PineCombat {
+  /** Sealed room fog override, answered by the active plugin scope. */
+  weatherHold: () => number;
   /** a death in the King's fight is his (back at the phase checkpoint): true = do not respawn at the gate */
   onPlayerDeath: () => boolean;
   /** a named elite (its skin comes from the elite's orb, not main.ts's legendary kill drop) */
@@ -65,9 +67,9 @@ export function installPineCombat(h: PineCombatHost): PineCombat {
   const { game, sky, player, animals, weapons, params } = h;
   const god = params.has('bossGod');
   // the player's legs: a roar's stun and the King's intro both root you; either one holds
-  let stunT = 0, introLock = false;
+  let introLock = false;
   let sfx: PineHollowSfx | null = null;
-  const legs = (): void => { player.carried = stunT > 0 || introLock; };
+  const legs = (): void => { player.carried = (app.player?.attributes['moveLocked'] ?? 0) > 0 || introLock; };
   // the drop orbs' skinned weapons, built now and parked (hidden) in the scene so the boot's precompile covers their
   // programs: the first elite kill / the King's reward then compiles nothing mid-play
   const buildSkin = (id: SkinId): THREE.Object3D => {
@@ -87,7 +89,7 @@ export function installPineCombat(h: PineCombatHost): PineCombat {
       app.combat.hit({ source: a.combatActor(), sourceTags: [a.kind === KING_KIND ? `boss.${a.kind}` : `creature.${a.kind}`, 'feel.blow', 'cover.checked'],
         target, amount: dmg, point: a.position, dir: new THREE.Vector3(), throughWalls, cause: { kind: a.kind, label: a.label } });
     },
-    stun: (s) => { if (god) return; stunT = Math.max(stunT, s); legs(); },
+    stun: (s) => { const target = app.player; if (god || target === null) return; app.effects?.apply(target, 'effect.stun', undefined, { duration: s }); legs(); },
     trauma: (k) => { CameraFX.for(game).addTrauma(k); },
     sound: (name, at) => { voice(animals, name, at); },
     shot: (name, at) => { sfx?.shot(name, { at }); },
@@ -141,7 +143,7 @@ export function installPineCombat(h: PineCombatHost): PineCombat {
   }
 
   game.onUpdate((dt, t) => {
-    if (stunT > 0) { stunT = Math.max(0, stunT - dt); if (stunT === 0) legs(); }
+    legs();
     feel.update(dt, t);
     if (perfLap.active) return; // E350 F-J1: the PERF LAP's teleports find no lair and wake no King
     pineElites.update(dt, t);
@@ -151,7 +153,8 @@ export function installPineCombat(h: PineCombatHost): PineCombat {
   registerPineLap({ game, player, animals, music: h.music, hud: h.hud, elites, king }); // E350 F-J1: the fps panel's PERF LAP
 
   return {
-    onPlayerDeath: () => { stunT = 0; introLock = false; legs(); return king.onPlayerDeath(); },
+    weatherHold: () => king.fight.weatherHold,
+    onPlayerDeath: () => { const target = app.player; if (target !== null) app.effects?.remove(target, 'effect.stun'); introLock = false; legs(); return king.onPlayerDeath(); },
     isElite: isPineElite,
     useSfx: (s) => { sfx = s; },
     eliteEngaged: () => elites.focus?.state === 'engaged',
