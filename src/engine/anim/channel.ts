@@ -5,7 +5,10 @@ interface Layer { action: AnimationAction; name: string; w: number; target: numb
 /** one arm's clip channel: a base (idle ↔ walk) under crossfading one-shot moves */
 export class ClipChannel {
   readonly layers: Layer[] = [];
-  constructor(private readonly base: AnimationAction, private readonly walk: AnimationAction | null) {
+  private readonly base: AnimationAction;
+  private readonly walk: AnimationAction | null;
+  constructor(base: AnimationAction, walk: AnimationAction | null) {
+    this.base = base; this.walk = walk;
     base.play();
     walk?.play();
   }

@@ -16,7 +16,10 @@ export class AnimMachine {
   private live = true;
   private current: string | null = null;
   private stateChannel: ClipChannel | undefined;
-  constructor(readonly def: AnimMachineDef, readonly rig: RigInstance, scope?: Scope) {
+  readonly def: AnimMachineDef;
+  readonly rig: RigInstance;
+  constructor(def: AnimMachineDef, rig: RigInstance, scope?: Scope) {
+    this.def = def; this.rig = rig;
     this.mixer = new AnimationMixer(rig.root);
     for (const [name, clip] of rig.clips) {
       const action = this.mixer.clipAction(clip);
