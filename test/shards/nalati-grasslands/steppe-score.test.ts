@@ -11,7 +11,7 @@ vi.mock('#engine/boot/bytes.generated', () => ({
   PUBLIC_BYTES: Object.fromEntries(['g', 's', 'n', 'k'].flatMap((n) => [`/assets/music/nalati/${n}-calm.m4a`, `/assets/music/nalati/${n}-tension.m4a`]).concat(['/assets/music/nalati/d.m4a']).map((u) => [u, 1000])),
 }));
 
-const { SteppeScore, steppeFiles, steppeBootFiles } = await import('#shards/nalati-grasslands/audio/SteppeScore');
+const { createSteppeScore, steppeFiles, steppeBootFiles } = await import('#shards/nalati-grasslands/audio/SteppeScore');
 
 const buf = (duration: number): AudioBuffer => ({ duration, length: duration * 48000, sampleRate: 48000, numberOfChannels: 2 } as AudioBuffer);
 const tick = () => new Promise((resolve) => { setTimeout(resolve, 0); });
@@ -23,7 +23,7 @@ describe('SteppeScore', () => {
   });
 
   test('the fallback chain: king > storm > night > the zone > grass', () => {
-    const s = new SteppeScore(() => Promise.resolve(new ArrayBuffer(8)), () => Promise.resolve(buf(22)), () => undefined);
+    const s = createSteppeScore(() => Promise.resolve(new ArrayBuffer(8)), () => Promise.resolve(buf(22)), () => undefined);
     expect(s.target()).toBe('steppe-grass');
     s.scene.zone = 'sky'; expect(s.target()).toBe('steppe-sky');
     s.scene.zone = 'snow'; expect(s.target()).toBe('steppe-grass'); // no snow theme in this build
@@ -34,7 +34,7 @@ describe('SteppeScore', () => {
 
   test('decoded on demand; only the wanted + the playing slot stay resident', async () => {
     let ready = 0;
-    const s = new SteppeScore(() => Promise.resolve(new ArrayBuffer(8)), () => Promise.resolve(buf(22)), () => { ready++; });
+    const s = createSteppeScore(() => Promise.resolve(new ArrayBuffer(8)), () => Promise.resolve(buf(22)), () => { ready++; });
     expect(s.want(undefined)).toBeUndefined();
     expect(s.pending).toBe(true);
     await tick(); await tick();
@@ -51,7 +51,7 @@ describe('SteppeScore', () => {
   });
 
   test('a slot whose loop runs past its file fails once and the chain skips it', async () => {
-    const s = new SteppeScore(() => Promise.resolve(new ArrayBuffer(8)), () => Promise.resolve(buf(10)), () => undefined); // 10 s < loopEnd 20
+    const s = createSteppeScore(() => Promise.resolve(new ArrayBuffer(8)), () => Promise.resolve(buf(10)), () => undefined); // 10 s < loopEnd 20
     s.scene.zone = 'sky';
     expect(s.want(undefined)).toBeUndefined();
     await tick(); await tick();

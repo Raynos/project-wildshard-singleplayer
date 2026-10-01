@@ -33,7 +33,8 @@ export type SteppeSlot = 'steppe-grass' | 'steppe-sky' | 'steppe-snow' | 'steppe
 export const STEPPE_SLOTS: readonly SteppeSlot[] = ['steppe-grass', 'steppe-sky', 'steppe-snow', 'steppe-night', 'steppe-storm', 'steppe-king'];
 export const isSteppeSlot = (s: string | null | undefined): s is SteppeSlot => s?.startsWith('steppe-') === true;
 /** 'night' / 'boss': Pine Hollow's (PH-A1, the `pine-hollow` music set) */
-export type SlotName = 'pine' | 'island' | 'title' | 'night' | 'boss' | SteppeSlot;
+/** Score-source slot names are content data, including sets registered by a level. */
+export type SlotName = string;
 export type StemSting = 'pickup' | 'death' | 'chunk' | 'dawn';
 /** a music set: the style's own folder, or Pine Hollow's (`pine-hollow-<style>/`) */
 export type MusicSet = 'base' | 'pine-hollow';
@@ -46,9 +47,8 @@ export interface SlotSpec {
   phases: Partial<Record<BossPhase, number[]>>;
   bpm: number; beatsPerBar: number; loopStart: number; loopEnd: number; duration: number;
 }
-export interface MusicManifest { style: string; credit: string; slots: Partial<Record<SlotName, SlotSpec>>; stings: Partial<Record<StemSting, string>> }
+export interface MusicManifest { style: string; credit: string; slots: Partial<Record<string, SlotSpec>>; stings: Partial<Record<StemSting, string>> }
 
-const SLOTS: SlotName[] = ['pine', 'island', 'title', 'night', 'boss', ...STEPPE_SLOTS];
 const STINGS: StemSting[] = ['pickup', 'death', 'chunk', 'dawn'];
 const PHASES: BossPhase[] = [1, 2, 3];
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
@@ -68,7 +68,7 @@ function parseSlot(v: unknown): SlotSpec | undefined {
 export function parseManifest(raw: unknown): MusicManifest | undefined {
   if (!isObj(raw) || !isObj(raw['slots'])) return undefined;
   const slots: Partial<Record<SlotName, SlotSpec>> = {}, stings: Partial<Record<StemSting, string>> = {};
-  for (const k of SLOTS) { const s = parseSlot(raw['slots'][k]); if (s) slots[k] = s; }
+  for (const [k, value] of Object.entries(raw['slots'])) { const s = parseSlot(value); if (s && str(k) !== undefined) slots[k] = s; }
   const st = raw['stings'];
   if (isObj(st)) for (const k of STINGS) { const f = str(st[k]); if (f !== undefined) stings[k] = f; }
   return { style: str(raw['style']) ?? '', credit: str(raw['credit']) ?? 'Music: MiniMax-Music3', slots, stings };
@@ -96,7 +96,7 @@ export function setFiles(style: MusicStyle, set: MusicSet): string[] {
   const m = musicManifest(style, set);
   if (!m) return [];
   const files: string[] = [];
-  for (const sp of Object.values(m.slots)) files.push(sp.calm, ...(sp.tension === undefined ? [] : [sp.tension]), ...sp.layers);
+  for (const sp of Object.values(m.slots)) if (sp) files.push(sp.calm, ...(sp.tension === undefined ? [] : [sp.tension]), ...sp.layers);
   for (const f of Object.values(m.stings)) files.push(f);
   return [...new Set(files.map((f) => `/assets/music/${musicSetDir(style, set)}/${f}`))].filter(shipped);
 }
