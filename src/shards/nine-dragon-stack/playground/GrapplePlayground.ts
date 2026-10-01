@@ -15,7 +15,8 @@ import { app } from '#engine';
  */
 import * as THREE from 'three';
 import type { ColliderDesc } from '#engine/world/registry';
-import { setGrappleCourse, type GrappleCourse } from '../grapple/course';
+import type { GrappleCourse } from '../grapple/course';
+import { FeiZhua } from '../grapple/FeiZhua';
 import { practiceFps } from '#engine/core/tier';
 import { DevKit, devLabel } from '#engine/practice/playground/devGrid';
 import { COLUMN, FALL_Y, HOOKS, PADS, RING_UP, ROOM, RUN, coursePad, type CoursePad } from './grappleCourse';
@@ -68,6 +69,12 @@ export class GrapplePlayground implements Playground {
     this.map = courseMap(o);
     this.chip = new PlaygroundChip('Grapple', () => { this.restart(); });
     host.game.onUpdate(() => { if (this.active) this.update(); }, 'playground-grapple');
+  }
+
+  private tool(): FeiZhua {
+    const tool = this.host.game.app.equipment?.tools.find((item) => item instanceof FeiZhua);
+    if (!(tool instanceof FeiZhua)) throw new Error('Grapple playground needs the Fei Zhua');
+    return tool;
   }
 
   get entered(): boolean { return this.active; }
@@ -143,7 +150,7 @@ export class GrapplePlayground implements Playground {
     this.active = true;
     app.setState('playground');
     this.root.visible = true;
-    setGrappleCourse(this.course);               // the claw bites these hooks now (before the practice flag, which it reads)
+    this.tool().setGrappleCourse(this.course);               // the claw bites these hooks now (before the practice flag, which it reads)
     practiceFps.on = true;                        // a tiny scene: mobile runs it at 60 (tier.ts, as the Practice arena)
     document.dispatchEvent(new CustomEvent('ws:practice-active', { detail: true }));
     app.events.emit('practice.active', true);
@@ -163,7 +170,7 @@ export class GrapplePlayground implements Playground {
     document.dispatchEvent(new CustomEvent('ws:practice-active', { detail: false }));
     app.events.emit('practice.active', false);
     practiceFps.on = false;
-    setGrappleCourse(null);
+    this.tool().setGrappleCourse(null);
   }
 
   /** ↺: back on START facing P1, the run reset */

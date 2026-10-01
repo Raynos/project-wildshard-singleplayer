@@ -24,7 +24,7 @@ export interface WeaponUi {
   swapIcon: string; swapName?: string;
   huntersEye?: boolean;
 }
-export interface EquipmentMeta { name: string; icon: EquipmentIcon; blurb: string; category: 'weapon' | 'tool' }
+export interface EquipmentMeta { name: string; icon: EquipmentIcon; blurb: string; category: string }
 export interface EquipmentCues { fire: CueId; reload: CueId; impact: CueId; dry?: CueId; hit?: CueId; heavy?: CueId; charge?: Readonly<Record<string, CueId>> }
 export interface EquipmentRow { cues?: EquipmentCues; hitStop?: HitStopProfile; tags?: readonly CombatTag[]; id: EquipmentId; legacySlot?: WeaponId; ui: WeaponUi; meta: EquipmentMeta }
 export interface EquipmentBlock { dispose: () => void }

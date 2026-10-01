@@ -41,7 +41,7 @@ export type { LevelAudioProfile } from './audio/levelAudio';
 export type { IslandSfx } from './audio/IslandSfx';
 export type { MusicState } from './audio/Music';
 export { tap } from './core/harnessTap';
-export { castRay } from './physics/query';
+export { castRay, castSegment, floorBelow, lineOfSight } from './physics/query';
 
 export { Equipment, type EquipmentRow, type EquipmentMeta, type WeaponUi, type EquipContext, type BlockSet, type EquipmentId, type WeaponId, type ToolId } from './combat/Equipment';
 export { Weapon, quiverState, type WeaponState, type AimInfo, type WeaponHooks } from './combat/Weapon';
@@ -78,3 +78,7 @@ export { Impacts } from './fx/Impacts';
 export { defineModel, type ModelContext, type ModelPart } from './models/model';
 export { DayCycle, type DayCycleSpec, type DayCycleClock, type DayKeys, type DayPhase, type TimePick, type LightPreset } from './world/dayCycle';
 export { Weather, type WeatherProfile, type WeatherNumbers } from './world/weather';
+
+export { InputService, type Action } from './input/InputService';
+export type { EquipmentHost } from './combat/view/EquipmentHost';
+export type { TouchRelabel, DiscSpot } from './ui/hudSlots';

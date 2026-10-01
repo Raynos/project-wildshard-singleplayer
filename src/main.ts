@@ -1,12 +1,12 @@
-import { equipmentEntry } from '#game/bag/equipment';
-import { SWORD_WOOD, SWORD_IRON } from '#kit';
-import { JIAN } from '#shards/nine-dragon-stack/weapons/jian';
+import { hudAdapters } from '#engine/ui/hudAdapters';
+import { equipmentEntry, toolEntries } from '#game/bag/equipment';
+import { SWORD_WOOD, SWORD_IRON, type MeleeProfile } from '#kit';
 import { CROSSBOW, LONGBOW, LEVER } from '#shards/pine-hollow/weapons/equipment';
 import { AR15 } from '#shards/nalati-grasslands/weapons/equipment';
 import { reportError } from '#engine/core/errorReport';
 import { showLoadFailure } from '#engine/ui/errorScreen';
 import { app } from '#engine/app/runtime';
-import { EffectService, CombatCues, pageSeed, LevelLoadError, installBounds, EquipmentService, type WeaponId, type Weapon, type LevelContext } from '#engine';
+import { EffectService, CombatCues, pageSeed, LevelLoadError, installBounds, EquipmentService, type WeaponId, type Weapon, type LevelContext, type DiscSpot } from '#engine';
 import { shardContext, toLevelSpec, type ShardContext, type GameServices } from '#game';
 import { levelSequenceDriver, type LevelSequence } from '#game/shard/sequence';
 import { meleeShard, type ShardManifest } from '#game/shard/manifest';
@@ -51,7 +51,6 @@ import { IronSwordPickup, ironSwordSite } from '#shards/driftwood-isle/weapons/I
 import { installAdventure } from '#game/quest/Adventure';
 import { installNalatiAdventure, CAPTIONED_EVENTS } from '#shards/nalati-grasslands/adventure';
 import { nalatiFinds, skinRows as nalatiSkinRows } from '#shards/nalati-grasslands/bag';
-import { FEI_ZHUA } from '#shards/nine-dragon-stack/bag';
 import { Horizon } from '#engine/world/Horizon';
 import { HorizonMatte } from '#engine/world/HorizonMatte';
 import { Grass } from '#engine/world/Grass';
@@ -138,7 +137,7 @@ import { listShardModels } from '#engine/models/roster';
 import { TrainingArena } from '#engine/practice/TrainingArena';
 import { loadPlayground } from '#engine/practice/playground/load';
 import type { Playground } from '#engine/practice/playground/Playground';
-import type { PlaygroundId } from '#engine/practice/playground/catalog';
+import { registerPlayground, type PlaygroundId } from '#engine/practice/playground/catalog';
 import { TIER } from '#engine/core/tier';
 import { frameCost, type Bucket } from '#engine/core/frameCost';
 import { Impacts } from '#engine/fx/Impacts';
@@ -268,6 +267,11 @@ async function buildShardWorld(slug: string, manifest: ShardManifest, stage: Loa
     }
   });
   app.levelDriver = staged.driver;
+  app.levelAdapters.inputContext = (def) => {
+    const child = scope.child(`input.${def.id}`); app.input.register(def, child);
+    return () => child.dispose();
+  };
+  app.levelAdapters.playground = (spec) => registerPlayground(manifest.slug, spec);
   try {
     await app.loadLevel(toLevelSpec(manifest), {
       world: (level) => boot.worldHook(async () => { await plugin.world?.(ctx(level)); }),
@@ -631,8 +635,11 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   const nalatiKit = chunk.slug === 'nalati-grasslands' ? buildNalatiKit({ game, sky, player, forest }, targets, nolock) : null;
   // Driftwood's castaway rig (E334) also carries the iron sword's arms and the swimming hands: those go to their own owners
   const { ironArms, swim: swimArms, ...ownSword } = shardSword ?? {};
+  const heldRow = chunk.loadout?.weapons[0];
+  const authoredMelee = heldRow === undefined ? undefined : app.levelRegistrations.get('weapon', heldRow);
+  const meleeProfile = authoredMelee !== undefined && 'moves' in authoredMelee ? authoredMelee as MeleeProfile : SWORD_WOOD;
   const crossbow: Weapon = nalatiKit ? nalatiKit.base : chunk.weapon === 'sword'
-    ? new Sword({ game, sky, player, forest }, targets, { row: chunk.slug === 'nine-dragon-stack' ? JIAN : SWORD_WOOD, allowUnlocked: nolock, ...ownSword, ...(chunk.camera ? { portraitFov: chunk.camera.portraitFov } : {}) })
+    ? new Sword({ game, sky, player, forest }, targets, { row: meleeProfile, profile: meleeProfile, allowUnlocked: nolock, ...ownSword, ...(chunk.camera ? { portraitFov: chunk.camera.portraitFov } : {}) })
     : new Crossbow({ game, sky, player, forest }, targets, { row: CROSSBOW, allowUnlocked: nolock });
   await macrotask(); // each viewmodel in its own task
   // the rifle slot: Pine Hollow's lever-action (PH-U5, LeverRifle.ts — the crossbow's walnut, shared), the AR-15 on Nalati
@@ -646,12 +653,10 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   const longbow = isPine ? new Longbow({ game, sky, player, forest }, targets, { row: LONGBOW, allowUnlocked: nolock }) : null;
   // the iron sword is FOUND on the wreck's deck (IronSword.ts) — wooden stays 1, iron becomes 2 once taken. Not on Nine
   // Dragon (E314 A): nothing there can unlock it, so its kit is the Neon Jian alone (NINE_WEAPON_NAME)
-  const isNine = chunk.slug === 'nine-dragon-stack';
-  const ironSword = chunk.weapon === 'sword' && !isNine ? new Sword({ game, sky, player, forest }, targets, { row: SWORD_IRON, profile: SWORD_IRON, allowUnlocked: nolock, blade: 'iron', ...(ironArms ? { arms: ironArms } : {}) }) : null;
+  const ironSword = chunk.weapon === 'sword' && (chunk.loadout === undefined || chunk.loadout.weapons.includes(SWORD_IRON.id)) ? new Sword({ game, sky, player, forest }, targets, { row: SWORD_IRON, profile: SWORD_IRON, allowUnlocked: nolock, blade: 'iron', ...(ironArms ? { arms: ironArms } : {}) }) : null;
   const weapons = new EquipmentService(crossbow, { scope: game.levelScope, events: app.events, ...(nalatiKit ? { order: ['bow', 'sabre', 'spear'] } : {}) });
   for (const w of [...(rifle ? [rifle] : []), ...(nalatiKit?.extras ?? []), ...(ironSword ? [ironSword] : []), ...(longbow ? [longbow] : [])]) weapons.add(w, { locked: true });
   app.registerEquipment(weapons, game.levelScope);
-  yield 'play';
   const lockSys = new LockOnSystem(player, weapons, game.camera); // the Zelda lock-on (E50): LOCK / Z, orbit, flick-switch — src/engine/player/LockOnTarget.ts
   const touchControls = new TouchControls(player, weapons, setting('touch') === 'on', lockSys); // on-screen FPS controls on coarse-pointer devices (?touch=1 / main menu ▸ Settings ▸ Touch controls forces)
   nalatiKit?.install(weapons); // Nalati: all three slots owned, the bow in hand
@@ -665,12 +670,24 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   // Explore hub like the arena. `away()`: the player is in a practice room, not the shard (no bounds, no map, no last place)
   let playground: Playground | null = null;
   const away = (): boolean => arena.entered || playground?.entered === true;
-  await chunk.traversal?.({
-    game, player, physics: world.physics, arms: shardSword?.arms ?? null, lock: lockSys,
-    toast: (message) => { hud.toast(message); },
-    enabled: () => hud.entered && !world.freeCamera && !world.tour.active,
-    touchHint: (lockHint, jumpHint) => { touchControls.hint(lockHint, jumpHint); }, // E286: the verb re-dresses LOCK / JUMP (Nine Dragon's GRAPPLE / ZIP)
-  });
+  lockSys.inputService = app.input;
+  app.addSystem({ id: 'engine.lockon.input', phase: 'input', after: ['engine.input.collect'], before: ['engine.player.input'], run: () => {
+    if (app.input.consume('lock')) lockSys.resolveToggle();
+  } }, game.levelScope);
+  app.registerEquipmentHost({ game, player, physics: world.physics, arms: shardSword?.arms ?? null, lock: lockSys,
+    toast: (message) => hud.toast(message), enabled: () => hud.entered && !world.freeCamera && !world.tour.active }, game.levelScope);
+  const hudRoot = document.getElementById('hud');
+  if (hudRoot === null) throw new Error('HUD root is missing');
+  app.levelAdapters.hud = hudAdapters(game, game.levelScope, hudRoot, (spot, hint) => touchControls.relabel(spot, hint));
+  const contextLabels = new Map<DiscSpot, () => void>();
+  app.input.touchSink((labels) => {
+    for (const dispose of contextLabels.values()) dispose(); contextLabels.clear();
+    for (const [spot, hint] of Object.entries(labels)) {
+      contextLabels.set(spot as DiscSpot,
+        app.levelAdapters.hud?.relabel(spot as DiscSpot, hint.label, hint.icon ?? '', hint) ?? (() => undefined));
+    }
+  }, game.levelScope);
+  yield 'play';
   const weaponStrip = new WeaponStrip(weapons); // every shard's one swap control (E303 / E319): the SWAP ring + pie on touch, a hotbar on desktop
   const lockOn = new LockOn(game.camera); // sword lunge target brackets (meleeLock, Sword.ts)
   const speedLines = new SpeedLines(); // dodge / lunge edge streaks
@@ -714,7 +731,7 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
     fullMap, progress, inventory,
     kit: () => weapons.available.map((w) => { const worn = w.id === 'crossbow' || w.id === 'rifle' ? skins.wearing(w.id) : null; return equipmentEntry(w, weapons.current, worn ? ` · ${worn.name}` : ''); }),
     onEquip: (id) => weapons.select(id as WeaponId),
-    ...(isNine ? { tools: () => [FEI_ZHUA] } : {}), // Nine Dragon's GEAR: the Fei Zhua grapple beside the jian (E314 A)
+    tools: () => toolEntries(weapons.tools, (key) => app.levelRegistrations.findText(key) ?? key),
     ...(isPine
       ? { skins: () => pineFinishes(skins), onWearSkin: (id: string) => { pineFinish?.(id); }, skinsTitle: 'Finishes',
         // E314 C: the pack is Mott's trade stock — each item says what he gives for it

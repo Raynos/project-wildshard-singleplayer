@@ -28,10 +28,6 @@ import type { Forest } from '#engine/world/forest/Forest';
 import type { Undergrowth } from '#shards/pine-hollow/world/undergrowth';
 import type { SwordArms, SwordFraming, SwordMoveSet, SwordRig } from '#engine/combat/view/melee';
 import type { SwimArms } from '#engine/player/Hands';
-import type { Player } from '#engine/player/Player';
-import type { LockOnSystem } from '#engine/player/LockOnTarget';
-import type { Game } from '#engine/core/Game';
-import type { Physics } from '#engine/physics/Physics';
 import type { RosterEntry } from '#engine/models/live';
 
 /** a shard's own sword (ShardManifest.sword): the engine Sword's rigid rig, moves and portrait framing — or an animated rig
@@ -42,36 +38,6 @@ export interface ShardSword {
   ironArms?: SwordArms;
   /** the swimming hands on the same rig (Hands.ts plays its swim clips); omitted = the white-gloved hands */
   swim?: SwimArms;
-}
-
-/**
- * How a shard's traversal verb re-dresses one of the base touch discs while the verb applies (E286: Nine Dragon's LOCK
- * reads GRAPPLE with a dragon hook in reach, LOCKED once one is locked, and JUMP reads ZIP). The disc keeps its place,
- * size and glass; only its label, its icon and its accent change.
- */
-export interface TouchDiscHint {
-  /** the disc's label in place of its own */
-  label: string;
-  /** the disc's icon in place of its own: inner SVG markup for a 24 × 24 viewBox (omitted: its own icon) */
-  icon?: string;
-  /** 'rest' its own look at full strength (the verb is live), 'ready' an accent rim that pulses (it can act now),
-   *  'active' filled with the accent (it is committed) */
-  tone: 'rest' | 'ready' | 'active';
-  /** the accent colour (any CSS colour; omitted: the HUD's cyan) */
-  accent?: string;
-}
-
-/** Shared controls and motor, handed to a shard's optional traversal verb after its world and HUD exist. */
-export interface ShardTraversalContext {
-  game: Game;
-  player: Player;
-  physics: Physics;
-  arms: SwordArms | null;
-  lock: LockOnSystem;
-  toast: (message: string) => void;
-  enabled: () => boolean;
-  /** re-dress the touch LOCK and JUMP discs (null gives a disc its own label and look back); a no-op without the touch layer */
-  touchHint?: (lock: TouchDiscHint | null, jump: TouchDiscHint | null) => void;
 }
 
 /** What core hands a shard's field models (`ShardManifest.fieldModels`): the fields it built, the shard's sky and registry. */
@@ -579,8 +545,6 @@ export interface ShardManifest {
    * the fields draw their copies themselves.
    */
   fieldModels?: () => Promise<(ctx: FieldModelsContext) => void>;
-  /** An optional shard traversal verb installed on the shared LOCK and JUMP controls. */
-  traversal?: (ctx: ShardTraversalContext) => Promise<void> | void;
   /** the first person's field of view: `portrait` = the sword's hip FOV base on a portrait screen before Hor+ (degrees;
    *  the engine's 72° gives ~94° vertical / ~52° across at 9:19.5); omitted = the engine's */
   camera?: { portraitFov: number };

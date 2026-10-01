@@ -1,3 +1,4 @@
+import type { InputService } from '../input/InputService';
 /**
  * LockOnTarget — the Zelda-style lock-on (E50, project/archive/2026-09-23-lock-on.md; Jake's picks: the J disc, the N locked HUD, a
  * toggle, auto-next within 8 m, a Gentle camera, melee only). Nalati (NALATI-MERGE H3): the sabre and the spear lock too
@@ -132,7 +133,7 @@ export class LockOnSystem {
   /** hooks (main.ts): the lock chime, the switch ping, the unlock / break tone, the "nothing there" tick */
   onLock?: () => void; onSwitch?: () => void; onUnlock?: () => void; onNone?: () => void;
   /** A shard's traversal target gets first claim on LOCK; true means it handled the press. */
-  onTryToggle?: () => boolean;
+  inputService: InputService | null = null;
   /** TouchControls: flash the LOCK disc's "NO TARGET"; flash an edge chevron that had nothing */
   onNoTarget?: () => void; onFlickMiss?: (dir: FlickDir) => void;
 
@@ -167,7 +168,14 @@ export class LockOnSystem {
   }
 
   toggle(): void {
-    if (this.onTryToggle?.() === true) return;
+    if (this.inputService !== null) { this.inputService.press('lock'); return; }
+    this.resolveToggle();
+  }
+
+  /** Whether LOCK has an enemy claim before a tool offers its miss shot. */
+  hasTarget(): boolean { this.scan(); return lockOn.state === 'locked' || (this.usable && this.best() !== null); }
+
+  resolveToggle(): void {
     if (lockOn.state === 'locked') { this.unlock(); return; }
     if (!this.usable) return;
     this.scan();

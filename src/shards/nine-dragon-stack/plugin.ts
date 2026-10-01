@@ -1,3 +1,7 @@
+import { JIAN_ROW } from './vm/jianRow';
+import { FEI_ZHUA_ROW } from './grapple/row';
+import { FeiZhua } from './grapple/FeiZhua';
+import { GRAPPLE_PLAYGROUND } from './playground/registration';
 import { ShardPlugin, type ShardContext } from '#game';
 import type { PerspectiveCamera } from 'three';
 import { type NineDragonWorld, buildNineDragonWorld } from './world/build';
@@ -5,6 +9,7 @@ import { installWorld } from './world/install';
 import { installSpecimenLight } from './look/specimenLight';
 import { installAudio } from './audio/ambience';
 import { STRINGS } from './strings';
+
 
 type WorldBuilder = (ctx: ShardContext) => Promise<{ world: NineDragonWorld; camera: PerspectiveCamera }>;
 
@@ -20,7 +25,12 @@ async function buildWorld(ctx: ShardContext): ReturnType<WorldBuilder> {
 
 /** The world hook can be exercised with a stub build without a DOM or GPU. */
 export class NdPlugin extends ShardPlugin {
-  override async kit(ctx: ShardContext): Promise<void> { await installAudio(ctx); }
+  override async kit(ctx: ShardContext): Promise<void> { await installAudio(ctx); ctx.rows.weapon(JIAN_ROW); ctx.rows.tool(FEI_ZHUA_ROW); }
+  override play(ctx: ShardContext): void {
+    const equipment = ctx.app.equipment;
+    if (equipment === null) throw new Error('Nine Dragon needs its loadout before play');
+    equipment.add(new FeiZhua(ctx), { locked: false });
+  }
   private readonly build: WorldBuilder;
   constructor(build: WorldBuilder = buildWorld) {
     super();
@@ -28,6 +38,7 @@ export class NdPlugin extends ShardPlugin {
   }
   override async world(ctx: ShardContext): Promise<void> {
     ctx.strings(STRINGS);
+    ctx.playground(GRAPPLE_PLAYGROUND);
     const { world, camera } = await this.build(ctx);
     if (ctx.scope.disposed) throw new Error('Nine Dragon was unloaded during its world build');
     const rt = installWorld(ctx, world, camera);

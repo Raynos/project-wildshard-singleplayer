@@ -1,3 +1,5 @@
+import { InputService } from '../input/InputService';
+import type { EquipmentHost } from '../combat/view/EquipmentHost';
 import type { EquipmentService } from '../combat/EquipmentService';
 import { saves } from '../saves/runtime';
 import { RngService } from '../core/rng';
@@ -61,6 +63,12 @@ export class App {
   registerPlayer(player: PlayerHealth, scope: Scope): void {
     this.players.set(scope, player);
     scope.onDispose(() => { this.players.delete(scope); });
+  }
+  readonly input = new InputService();
+  private readonly equipmentHosts = new WeakMap<Scope, EquipmentHost>();
+  get equipmentHost(): EquipmentHost | null { return this.levelScope === null ? null : this.equipmentHosts.get(this.levelScope) ?? null; }
+  registerEquipmentHost(host: EquipmentHost, scope: Scope): void {
+    this.equipmentHosts.set(scope, host); scope.onDispose(() => { this.equipmentHosts.delete(scope); this.input.clear(); });
   }
   readonly engineScope = new Scope('engine');
   levelScope: Scope | null = null;

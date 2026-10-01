@@ -4,7 +4,7 @@
  * E286 (Jake: "I can't seem to use a grappling hook … no dedicated HUD button"; his pick: keep the baseline HUD, make LOCK
  * say so): every hook in reach (2.5–38 m, in sight, with a floor to land on) wears a small ◇ marker wherever it is on
  * screen; the one nearest the centre wears the "◇ DRAGON HOOK" chip and turns the touch LOCK disc into GRAPPLE (gold,
- * pulsing), a locked one makes it LOCKED and JUMP reads ZIP (ShardManifest `touchHint`). The reach test is a round robin, a
+ * pulsing), a locked one makes it LOCKED and JUMP reads ZIP (the grapple input context). The reach test is a round robin, a
  * couple of hooks a frame, so the phone never raycasts the whole registry in one frame (E283).
  *
  * E307: the hooks and the Well's rules are a course (course.ts). The fragment's is `fragmentCourse` below; a playground
@@ -13,14 +13,16 @@
 import {
   AdditiveBlending, Color, ConeGeometry, DoubleSide, Group, Mesh, MeshBasicMaterial, Quaternion, RingGeometry, SphereGeometry, TorusGeometry, Vector2, Vector3,
 } from 'three';
-import type { ShardTraversalContext, TouchDiscHint } from '#game/shard/manifest';
-import { castRay, castSegment, floorBelow, lineOfSight } from '#engine/physics/query';
+import { Tool, inState, castRay, castSegment, floorBelow, lineOfSight, type EquipmentHost, type EquipContext, type TouchRelabel, type Scope } from '#engine';
+import type { ShardContext } from '#game';
+import { FEI_ZHUA_ROW } from './row';
+import { GRAPPLE_CONTEXT } from './context';
 import { WELL, Y0 } from '../layout';
 import { ndRuntime } from '../runtime';
 import { RIM } from '../world/well-plan';
 import { Filament, Rope } from './line';
 import { Flash, Sparks } from './fx';
-import { onGrappleCourse, playgroundCourse, type GrappleCourse } from './course';
+import type { GrappleCourse } from './course';
 import { grappleCue } from '../audio/cues';
 
 const MIN_RANGE = 2.5;
@@ -46,12 +48,12 @@ const GOLD = '#ffcf70';
 /** the claw on LOCK (a three-talon grapple on its line) and ZIP on JUMP (an arrow along a line) */
 const CLAW_ICON = '<path d="M12 2.2v9.3" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><circle cx="12" cy="3.4" r="1.6" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M12 11.5c-3.9 0-6.6 2.5-6.9 6.6l1.9-1.3M12 11.5c3.9 0 6.6 2.5 6.9 6.6l-1.9-1.3M12 11.5v10" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>';
 const ZIP_ICON = '<path d="M3.5 20.5 18.5 5.5M11 5h8v8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 14.5l4-4M9.5 21l4-4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.7"/>';
-const HINT_REST: TouchDiscHint = { label: 'Lock', tone: 'rest' };
-const HINT_READY: TouchDiscHint = { label: 'Grapple', icon: CLAW_ICON, tone: 'ready', accent: GOLD };
-const HINT_LOCKED: TouchDiscHint = { label: 'Locked', icon: CLAW_ICON, tone: 'active', accent: GOLD };
-const HINT_ZIP: TouchDiscHint = { label: 'Zip', icon: ZIP_ICON, tone: 'active', accent: GOLD };
-const HINT_ARMED: TouchDiscHint = { label: 'Armed', icon: CLAW_ICON, tone: 'ready', accent: GOLD };
-const HINT_FIRE: TouchDiscHint = { label: 'Fire', icon: ZIP_ICON, tone: 'ready', accent: GOLD };
+const HINT_REST: TouchRelabel = { label: 'Lock', tone: 'rest' };
+const HINT_READY: TouchRelabel = { label: 'Grapple', icon: CLAW_ICON, tone: 'ready', accent: GOLD };
+const HINT_LOCKED: TouchRelabel = { label: 'Locked', icon: CLAW_ICON, tone: 'active', accent: GOLD };
+const HINT_ZIP: TouchRelabel = { label: 'Zip', icon: ZIP_ICON, tone: 'active', accent: GOLD };
+const HINT_ARMED: TouchRelabel = { label: 'Armed', icon: CLAW_ICON, tone: 'ready', accent: GOLD };
+const HINT_FIRE: TouchRelabel = { label: 'Fire', icon: ZIP_ICON, tone: 'ready', accent: GOLD };
 
 interface Target { hook: Vector3; landing: Vector3; approach: Vector3; lifts: boolean }
 
@@ -59,13 +61,13 @@ const UP = { x: 0, y: 1, z: 0 };
 const vDir = new Vector3(), vPast = new Vector3(), vToward = new Vector3(), vSide = new Vector3(), vProbe = new Vector3();
 
 /** The claw sees a hook: a clear line of sight, or past what only the course knows (the fragment's Well rail). */
-function hookVisible(ctx: ShardTraversalContext, course: GrappleCourse, eye: Vector3, hook: Vector3): boolean {
+function hookVisible(ctx: EquipmentHost, course: GrappleCourse, eye: Vector3, hook: Vector3): boolean {
   if (lineOfSight(ctx.physics, eye, hook, 1.1, ctx.player.motor.collider)) return true;
   return course.seePast?.(ctx, eye, hook) === true;
 }
 
 /** A hook beyond the Well rail is visible to the claw if the rail is the only obstruction (the line of sight is blocked). */
-function seePastWellRail(ctx: ShardTraversalContext, eye: Vector3, hook: Vector3): boolean {
+function seePastWellRail(ctx: EquipmentHost, eye: Vector3, hook: Vector3): boolean {
   const body = ctx.player.motor.collider;
   const hit = castSegment(ctx.physics, eye, hook, ['WORLD'], body);
   if (hit === null || Math.abs(hit.point.z - RIM.z0) > 0.45 || hit.point.x < WELL.x0 || hit.point.x > WELL.x1) return false;
@@ -101,7 +103,7 @@ function fragmentCourse(): GrappleCourse {
 const FOOT = [[0.4, 0], [-0.4, 0], [0, 0.4], [0, -0.4]] as const;
 /** a floor the capsule can stand on at (x, z): within a tread's rise across its whole width (a stair is; a rail's top, a
  *  balustrade's or the square's edge by the balustrade is not) */
-function standable(ctx: ShardTraversalContext, x: number, y: number, z: number): boolean {
+function standable(ctx: EquipmentHost, x: number, y: number, z: number): boolean {
   const body = ctx.player.motor.collider;
   for (const [dx, dz] of FOOT) {
     const f = floorBelow(ctx.physics, x + dx, z + dz, y + 0.6, 1.2, body);
@@ -120,7 +122,7 @@ const NONE = 0, NEAR = 1, PAST = 2;
 type Side = typeof NONE | typeof NEAR | typeof PAST;
 
 /** The actual floor near a ring, approached from `from` (the player's feet), written to `out`. */
-function landingFor(ctx: ShardTraversalContext, from: Vector3, hook: Vector3, out: Vector3): Side {
+function landingFor(ctx: EquipmentHost, from: Vector3, hook: Vector3, out: Vector3): Side {
   vToward.subVectors(from, hook).setY(0);
   if (vToward.lengthSq() < 0.01) return NONE;
   vToward.normalize();
@@ -145,7 +147,7 @@ function landingFor(ctx: ShardTraversalContext, from: Vector3, hook: Vector3, ou
  * ring hangs from, a rail or a balustrade, instead of through it) with room for the capsule under anything overhead,
  * then the player drops on. A landing on the player's side is flown to straight, as it always was.
  */
-function approachFor(ctx: ShardTraversalContext, hook: Vector3, landing: Vector3, out: Vector3): void {
+function approachFor(ctx: EquipmentHost, hook: Vector3, landing: Vector3, out: Vector3): void {
   let clear = Math.min(1.6, Math.max(0, hook.y - landing.y - 0.2));
   if (clear > 0) {
     const hit = castRay(ctx.physics, landing, UP, clear + BODY, ['WORLD'], ctx.player.motor.collider);
@@ -155,14 +157,14 @@ function approachFor(ctx: ShardTraversalContext, hook: Vector3, landing: Vector3
   out.y += clear;
 }
 
-function targetFor(ctx: ShardTraversalContext, course: GrappleCourse, hook: Vector3, landing: Vector3, side: Side): Target {
+function targetFor(ctx: EquipmentHost, course: GrappleCourse, hook: Vector3, landing: Vector3, side: Side): Target {
   const approach = landing.clone();
   if (side === PAST) approachFor(ctx, hook, landing, approach);
   return { hook, landing: landing.clone(), approach, lifts: course.lifts?.(ctx.player.position, landing) === true };
 }
 
 /** the full test of every hook, for the LOCK press when the round robin has no candidate yet (a one-off, not per frame) */
-function nearest(ctx: ShardTraversalContext, course: GrappleCourse): Target | null {
+function nearest(ctx: EquipmentHost, course: GrappleCourse): Target | null {
   const camera = ctx.game.camera;
   camera.updateMatrixWorld(true);
   const eye = camera.position;
@@ -183,7 +185,7 @@ function nearest(ctx: ShardTraversalContext, course: GrappleCourse): Target | nu
   return chosen;
 }
 
-function makeTracer(ctx: ShardTraversalContext) {
+function makeTracer(ctx: EquipmentHost) {
   // Lab P9's fixed-step rope and screen-width ribbon replace the straight world-space cylinders.
   const rope = new Rope(24);
   const line = new Filament(rope.n);
@@ -229,52 +231,69 @@ function makeTracer(ctx: ShardTraversalContext) {
   };
 }
 
-/** a DOM label pinned to a screen point: writes only when its text, colour, visibility or pixel spot change */
+/** Content owns visibility and labels; the engine owns screen projection. */
 class Pin {
   readonly el = document.createElement('div');
-  private x = Number.NaN; private y = Number.NaN; private shown = false; private text = ''; private tone = '';
+  point: Vector3 | null = null;
+  private shown = false; private text = ''; private tone = '';
   constructor(style: Partial<CSSStyleDeclaration>, className: string) {
-    this.el.className = className;
-    Object.assign(this.el.style, { position: 'fixed', left: '0', top: '0', display: 'none', pointerEvents: 'none', willChange: 'transform' }, style);
+    this.el.className = className; Object.assign(this.el.style, style);
   }
-  show(on: boolean): void { if (on !== this.shown) { this.shown = on; this.el.style.display = on ? 'block' : 'none'; } }
-  at(x: number, y: number): void {
-    const px = Math.round(x), py = Math.round(y);
-    if (px === this.x && py === this.y) return;
-    this.x = px; this.y = py;
-    this.el.style.transform = `translate3d(${px}px, ${py}px, 0) translate(-50%, -50%)`;
-  }
+  show(on: boolean): void { this.shown = on; }
+  at(point: Vector3): void { this.point = point; }
+  position(): Vector3 | null { return this.shown ? this.point : null; }
   label(text: string, tone: string, color: string): void {
     if (text !== this.text) { this.text = text; this.el.textContent = text; }
     if (tone !== this.tone) { this.tone = tone; this.el.style.borderColor = color; this.el.style.color = color; }
   }
 }
 
-export function installFeiZhua(ctx: ShardTraversalContext): void {
-  const fragment = fragmentCourse();
-  let course = playgroundCourse() ?? fragment;
+export class FeiZhua extends Tool {
+  readonly id = 'tool.fei-zhua' as const;
+  readonly slot = 'offhand' as const;
+  readonly actions = ['lock', 'jump'] as const;
+  holster = 0;
+  enabled = true;
+  private readonly shard: ShardContext;
+  private readonly course: GrappleCourse | undefined;
+  private courseSetter: ((course: GrappleCourse | null) => void) | undefined;
+  constructor(shard: ShardContext, course?: GrappleCourse) { super(FEI_ZHUA_ROW); this.shard = shard; this.course = course; }
+  override install(equip: EquipContext): void {
+    super.install(equip);
+    const host = this.shard.app.equipmentHost;
+    if (host === null) throw new Error('Fei Zhua needs the equipment scene ports');
+    this.courseSetter = installRuntime(host, this.shard, equip.scope, () => this.enabled, this.course);
+  }
+  setGrappleCourse(course: GrappleCourse | null): void { this.courseSetter?.(course); }
+  override update(_dt: number, _t: number): void { /* Owned systems retain their original phases. */ }
+}
+
+function installRuntime(ctx: EquipmentHost, shard: ShardContext, scope: Scope, toolEnabled: () => boolean, baseCourse?: GrappleCourse): (course: GrappleCourse | null) => void {
+  const fragment = baseCourse ?? fragmentCourse();
+  let course = fragment;
   let hooks = course.hooks;
   const tracer = makeTracer(ctx);
   const touchUi = document.getElementById('hud')?.classList.contains('touch') === true;
-  const hud = document.getElementById('hud');
-  // the centred candidate's chip (and, locked, its gold "LOCKED · ZIP")
   const chip = new Pin({
     zIndex: '25', padding: '6px 9px', border: '1px solid #8fe3ff', background: '#0d1b26dd', color: '#8fe3ff',
     font: '700 10px monospace', letterSpacing: '1.5px', whiteSpace: 'nowrap',
   }, 'ws-dragon-hook');
-  hud?.append(chip.el);
-  // E286: a small ◇ on every other hook in reach, wherever it is on screen (a fixed pool, reused)
   const marks: Pin[] = [];
   for (let i = 0; i < MARKS; i++) {
     const m = new Pin({
       zIndex: '24', font: '700 15px monospace', lineHeight: '1', color: '#8fe3ff',
       textShadow: '0 0 3px #0d1b26, 0 0 3px #0d1b26, 0 0 9px rgba(143, 227, 255, 0.75)',
     }, 'ws-dragon-mark');
-    m.label('◇', 'mark', '#8fe3ff');
-    marks.push(m);
-    hud?.append(m.el);
+    m.label('◇', 'mark', '#8fe3ff'); marks.push(m);
+    shard.hud.pin(() => m.position(), m.el);
   }
-
+  shard.hud.pin(() => chip.position(), chip.el);
+  const input = shard.app.input;
+  const context = { ...GRAPPLE_CONTEXT, touch: { relabel: {} } };
+  input.register(context, scope);
+  let contextOn = false;
+  let restLabel: (() => void) | undefined;
+  const enabled = (): boolean => toolEnabled() && ctx.enabled() && inState('play', 'practice', 'playground')(shard.app);
   // ── the reach cache: per hook, its screen spot this frame (cheap), and its sight + landing from the round robin ──
   let n = hooks.length;
   let ndcX = new Float32Array(n), ndcY = new Float32Array(n), dist = new Float32Array(n);
@@ -290,7 +309,7 @@ export function installFeiZhua(ctx: ShardTraversalContext): void {
   let phase: Phase = 'idle';
   let clock = 0, blocked = 0, liftY = 0, time = 0;
   let muzzleAge = Infinity, biteAge = Infinity, dockAge = Infinity;
-  let hintShown: TouchDiscHint | null | undefined; // the LOCK hint last handed to the touch layer (undefined: none yet)
+  let hintShown: TouchRelabel | null | undefined; // the LOCK hint last handed to the touch layer (undefined: none yet)
   const end = new Vector3(), want = new Vector3(), before = new Vector3();
   const muzzle = new Vector3(), tip = new Vector3(), missEnd = new Vector3();
   const screen = new Vector2();
@@ -331,8 +350,8 @@ export function installFeiZhua(ctx: ShardTraversalContext): void {
     ctx.arms?.playLeft?.('idle'); ctx.arms?.setClawVisible?.(true);
   };
   // E307: a playground opens / closes — let go of anything in flight on the old course, then its hooks and a fresh cache
-  onGrappleCourse(() => {
-    const next = playgroundCourse() ?? fragment;
+  const setCourse = (value: GrappleCourse | null): void => {
+    const next = value ?? fragment;
     if (next === course) return;
     if (phase !== 'idle' || target !== null || armedMiss) release();
     course = next; hooks = next.hooks; n = hooks.length;
@@ -340,12 +359,21 @@ export function installFeiZhua(ctx: ShardTraversalContext): void {
     inView = new Uint8Array(n); reach = new Uint8Array(n); hasLanding = new Uint8Array(n);
     landings = hooks.map(() => new Vector3()); landedFrom = hooks.map(() => new Vector3(Infinity, 0, 0));
     cursor = 0; candidate = -1;
-  });
+  };
   /** the touch discs follow the verb: LOCK / GRAPPLE / LOCKED (+ ZIP on JUMP) / ARMED (+ FIRE) */
-  const hint = (lock: TouchDiscHint | null): void => {
+  const hint = (lock: TouchRelabel | null): void => {
     if (lock === hintShown) return;
     hintShown = lock;
-    ctx.touchHint?.(lock, lock === HINT_LOCKED ? HINT_ZIP : lock === HINT_ARMED ? HINT_FIRE : null);
+    if (typeof restLabel === 'function') restLabel();
+    restLabel = undefined;
+    const active = lock !== null && lock !== HINT_REST;
+    if (active && !contextOn) { input.push('grapple', scope); contextOn = true; }
+    if (!active && contextOn) { input.pop('grapple'); contextOn = false; }
+    const jump = lock === HINT_LOCKED ? HINT_ZIP : lock === HINT_ARMED ? HINT_FIRE : null;
+    context.touch.relabel = { ...(lock === null ? {} : { lock }), ...(jump === null ? {} : { jump }) };
+    input.repaint();
+    if (lock === HINT_REST) restLabel = shard.hud.relabel('lock', lock.label, '', lock);
+
   };
 
   /** the cached candidate, checked afresh (its sight and landing) at the moment LOCK is pressed */
@@ -362,16 +390,15 @@ export function installFeiZhua(ctx: ShardTraversalContext): void {
   // hook below would otherwise take the tap, and a zip would leave the room). A playground's room is a practice room too,
   // but it brings its own course (E307): the claw works there
   let inPractice = false;
-  document.addEventListener('ws:practice-active', (e) => { if (e instanceof CustomEvent) inPractice = e.detail === true; });
-  const priorToggle = ctx.lock.onTryToggle;
-  ctx.lock.onTryToggle = () => {
-    if (!ctx.enabled() || (inPractice && course === fragment)) return priorToggle?.() ?? false;
+  shard.app.events.on('practice.active', (on) => { inPractice = on; }, scope);
+  const lockPress = (): boolean => {
+    if (!enabled() || (inPractice && course === fragment)) return false;
     // Once a crossing starts the safety guard must stay open until a safe landing or bailout.
     if (phase !== 'idle' && phase !== 'miss' && phase !== 'reel' && phase !== 'dock') return true;
     if (target !== null || armedMiss) { release(); return true; }
     const pick = pickCandidate() ?? nearest(ctx, course);
     if (pick === null) {
-      if (priorToggle?.() === true) return true;
+      if (ctx.lock.hasTarget()) return false;
       armedMiss = true;
       ctx.arms?.playLeft?.('grapple_aim');
       ctx.toast(touchUi ? 'FEI ZHUA READY · FIRE TO SHOOT' : 'FEI ZHUA READY · JUMP TO FIRE');
@@ -384,10 +411,8 @@ export function installFeiZhua(ctx: ShardTraversalContext): void {
     return true;
   };
 
-  const priorJump = ctx.player.onJumpRequest;
-  ctx.player.onJumpRequest = () => {
-    if (priorJump?.() === true) return true;
-    if (!ctx.enabled() || (target === null && !armedMiss)) return false;
+  const jumpPress = (): boolean => {
+    if (!enabled() || (target === null && !armedMiss)) return false;
     if (phase !== 'idle') return true;
     phase = 'fire'; clock = 0; muzzleAge = 0;
     grappleCue('grapple.fire');
@@ -406,10 +431,13 @@ export function installFeiZhua(ctx: ShardTraversalContext): void {
     return true;
   };
 
-  const priorStep = ctx.player.traversalStep;
-  ctx.player.traversalStep = (dt) => {
-    if (priorStep?.(dt) === true) return true;
-    if (!ctx.enabled() || phase === 'idle') return false;
+  shard.app.addSystem({ id: 'shard.nd.feizhua.input', phase: 'input', before: ['engine.lockon.input', 'engine.player.input'], after: ['engine.input.collect'], when: () => enabled(), run: () => {
+    if (input.pressed('lock') && lockPress()) input.consume('lock');
+    if (input.pressed('jump') && jumpPress()) input.consume('jump');
+  } }, scope);
+  shard.app.events.answer('player.traversal', (dt) => {
+    if (typeof dt !== 'number') return dt;
+    if (!enabled() || phase === 'idle') return false;
     clock += dt;
     const p = ctx.player;
     if (phase === 'fire') {
@@ -467,16 +495,16 @@ export function installFeiZhua(ctx: ShardTraversalContext): void {
     blocked = moved < want.length() * 0.15 ? blocked + dt : 0;
     if (blocked > 0.22 || clock > 2.5) { p.velocity.set(0, -0.5, 0); release(); }
     return true;
-  };
+  }, scope);
 
-  ctx.game.onFixed('post', (dt) => {
+  shard.app.addSystem({ id: 'fei-zhua.rope', phase: 'fixed.post', run: (dt) => {
     if (phase === 'idle') return;
     time += dt;
     muzzleAge += dt; biteAge += dt; dockAge += dt;
     tipAt();
     const slack = phase === 'fire' ? 1.14 : phase === 'reel' ? 1.20 : 1.005;
     tracer.step(dt, muzzle, tip, slack);
-  }, 'fei-zhua.rope');
+  } }, scope);
 
   /**
    * The reach scan, once a frame while idle: every hook's range and screen spot (a projection each, no ray), then a
@@ -528,13 +556,12 @@ export function installFeiZhua(ctx: ShardTraversalContext): void {
     return best;
   };
 
-  ctx.game.onUpdate(() => {
-    if (!ctx.enabled()) {
+  shard.app.addSystem({ id: 'fei-zhua', phase: 'update', run: () => {
+    if (!enabled()) {
       if (target !== null || armedMiss || phase !== 'idle') release();
       hideCues(); hint(null); candidate = -1;
       return;
     }
-    const w = innerWidth / 2, h = innerHeight / 2;
     if (target === null && !armedMiss && phase === 'idle') {
       candidate = scan();
       // the small markers: every reachable hook on screen but the candidate (it wears the chip)
@@ -545,7 +572,7 @@ export function installFeiZhua(ctx: ShardTraversalContext): void {
         if (Math.abs(x) > 0.96 || Math.abs(y) > 0.96) continue;
         const m = marks[used++];
         if (m === undefined) break;
-        m.at((x + 1) * w, (1 - y) * h);
+        const markHook = hooks[i]; if (markHook !== undefined) m.at(markHook);
         m.show(true);
       }
       for (let k = used; k < MARKS; k++) marks[k]?.show(false);
@@ -553,7 +580,7 @@ export function installFeiZhua(ctx: ShardTraversalContext): void {
       if (hook === undefined) chip.show(false);
       else {
         chip.label('◇ DRAGON HOOK', 'cand', '#8fe3ff');
-        chip.at(((ndcX[candidate] ?? 0) + 1) * w, (1 - (ndcY[candidate] ?? 0)) * h);
+        chip.at(hook);
         chip.show(true);
       }
       hint(hook === undefined ? HINT_REST : HINT_READY);
@@ -565,7 +592,7 @@ export function installFeiZhua(ctx: ShardTraversalContext): void {
         ndc.copy(target.hook).project(ctx.game.camera);
         chip.show(ndc.z >= -1 && ndc.z <= 1);
         chip.label(touchUi ? '◆ LOCKED · ZIP' : '◆ LOCKED · JUMP', 'locked', '#d7a546');
-        chip.at((ndc.x + 1) * w, (1 - ndc.y) * h);
+        chip.at(target.hook);
       }
       hint(target !== null ? HINT_LOCKED : HINT_ARMED);
     }
@@ -588,5 +615,7 @@ export function installFeiZhua(ctx: ShardTraversalContext): void {
     dockFlash.mesh.position.copy(muzzle);
     dockFlash.set(dockAge / 0.12, 0.2, 0);
     sparks.update(biteAge, target?.hook ?? missEnd, want.set(0, 1, 0), 0.55);
-  }, 'fei-zhua');
+  } }, scope);
+  scope.onDispose(() => { release(); input.pop('grapple'); });
+  return setCourse;
 }

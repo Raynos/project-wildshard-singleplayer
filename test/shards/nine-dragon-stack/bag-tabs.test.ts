@@ -8,7 +8,8 @@ import { bagTabs } from '#game/bag/bag';
 import { icon } from '#engine/ui/icons';
 import { Inventory } from '#game/Inventory';
 import { Progress } from '#game/Progress';
-import { FEI_ZHUA, NINE_WEAPON_NAME } from '#shards/nine-dragon-stack/bag';
+import { FEI_ZHUA_ROW } from '#shards/nine-dragon-stack/grapple/row';
+import { JIAN_ROW } from '#shards/nine-dragon-stack/vm/jianRow';
 import { ROSTER as NINE_ROSTER } from '#shards/nine-dragon-stack/roster';
 
 const DRIFT = 'chunk://local/driftwood-isle', PINE = 'chunk://local/pine-hollow', NALATI = 'chunk://local/nalati-grasslands', NINE = 'chunk://local/nine-dragon-stack';
@@ -41,9 +42,9 @@ describe('each shard\'s BAG tabs', () => {
 
 describe('Nine Dragon\'s GEAR', () => {
   it('the jian is named, the grapple is a card with its own glyph', () => {
-    expect(NINE_WEAPON_NAME).toBe('Neon Jian');
-    expect(FEI_ZHUA).toMatchObject({ name: 'Fei Zhua', kind: 'Grapple' });
-    expect(icon(FEI_ZHUA.icon)).toContain('<path');
+    expect(JIAN_ROW.meta.name).toBe('Neon Jian');
+    expect(FEI_ZHUA_ROW.meta).toMatchObject({ name: 'tool.fei-zhua', category: 'Grapple' });
+    expect(icon(FEI_ZHUA_ROW.meta.icon)).toContain('<path');
   });
   it('the Explorer\'s gear cards are the jian arms alone (no iron sword)', () => {
     const ids = NINE_ROSTER.map((e) => e.id);

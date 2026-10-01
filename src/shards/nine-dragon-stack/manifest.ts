@@ -121,7 +121,6 @@ export const NINE_DRAGON_STACK: ShardManifest = {
   // the Neon Jian and the Fei Zhua on lab P8's skinned arms, swung by the engine's own moves (vm/arms.ts); the static
   // model (world/jian.ts) if the rig does not load
   sword: JIAN_ROW.viewmodel,
-  traversal: async (ctx) => { (await import('./grapple/FeiZhua')).installFeiZhua(ctx); },
   horizon: { rings: [], cloudSea: false },
   // EXPLORE WORLD on the title (the deck's card, behind the same Debug row; `?explore=` for captures): the World
   // Explorer's free camera over the fragment — no model catalog is registered

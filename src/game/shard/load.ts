@@ -69,14 +69,13 @@ export async function withShardHooks<T>(manifest: ShardManifest, stage: LoadStag
     void pending.catch(() => undefined);
     return pending;
   };
-  const { render, sword, roster, fieldModels, traversal } = manifest;
+  const { render, sword, roster, fieldModels } = manifest;
   const structures = typeof manifest.ground.structures === 'object' ? manifest.ground.structures : undefined;
   const structureBuild = structures?.build;
   if (render !== undefined) manifest.render = () => prefetched('render', render);
   if (sword !== undefined) manifest.sword = () => prefetched('sword', sword);
   if (roster !== undefined) manifest.roster = () => prefetched('roster', roster);
   if (fieldModels !== undefined) manifest.fieldModels = () => prefetched('fieldModels', fieldModels);
-  if (traversal !== undefined) manifest.traversal = (ctx) => stage('traversal', () => traversal(ctx));
   if (structures !== undefined && structureBuild !== undefined) structures.build = () => stage('structures', async () => {
     const builder = await structureBuild();
     return { ...builder, build: (ctx) => stage('structures.build', () => builder.build(ctx)) };
@@ -87,7 +86,6 @@ export async function withShardHooks<T>(manifest: ShardManifest, stage: LoadStag
     if (sword !== undefined) manifest.sword = sword;
     if (roster !== undefined) manifest.roster = roster;
     if (fieldModels !== undefined) manifest.fieldModels = fieldModels;
-    if (traversal !== undefined) manifest.traversal = traversal;
     if (structures !== undefined && structureBuild !== undefined) structures.build = structureBuild;
   }
 }

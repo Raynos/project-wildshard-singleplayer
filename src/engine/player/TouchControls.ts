@@ -69,7 +69,7 @@
  * every look drag (the LOOK side, the free-look area, a drag from ATTACK) is the ±10° glance that springs back, a FLICK on
  * the LOOK side (≥ 28 px at ≥ 600 px/s within 200 ms) switches target, the LOOK pad reads SWITCH ‹ ›, MOVE reads ORBIT
  * with an arc lit on the pushed side, and aim assist / the lunge turn stand down. A short tap on an enemy above the bar
- * locks it. A shard's traversal verb may re-dress LOCK and JUMP (`hint()`, ShardManifest TouchDiscHint, E286: Nine Dragon's
+ * locks it. A shard's traversal verb may re-dress LOCK and JUMP (`relabel()`, ShardManifest TouchRelabel, E286: Nine Dragon's
  * GRAPPLE / LOCKED / ZIP in the grapple's gold); every other shard keeps them as they are.
  * Talks to the player through `player.touchMove / touchSprint / touchJump / touchDodge / touchDive / touchSurface`
  * (analog, summed with WASD) and to the held weapon through the EquipmentService manager's `tryFire() / adsHeld / enabled / swap()`
@@ -82,8 +82,7 @@ import { AimAssist } from './AimAssist';
 import { lockOn, meleeLock } from './AimTargets';
 import { FlickTracker, addLockOffset, type LockOnSystem } from './LockOnTarget';
 import { getSetting } from '../ui/Settings';
-import { hudSlots } from '../ui/hudSlots';
-import type { TouchDiscHint } from '#game/shard/manifest';
+import { hudSlots, type DiscSpot, type TouchRelabel } from '../ui/hudSlots';
 
 export const IS_TOUCH = typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches;
 
@@ -101,8 +100,8 @@ const LUNGE_TURN_RATE = 6;    // /s — exponential ease of the lunge camera tur
 const LUNGE_TURN_MAX = 150 * Math.PI / 180; // rad/s cap on it
 const LOCK_LINGER = 0.8;       // s — E319: LOCK stays up this long after the last lockable target leaves its reach
 
-/** a disc a shard's traversal verb may re-dress (ShardManifest TouchDiscHint): its button, label, icon and own label / icon */
-interface HintDisc { btn: HTMLElement; label: HTMLElement; svg: Element; ownIcon: string; hint: TouchDiscHint | null }
+/** a disc a shard's traversal verb may re-dress (ShardManifest TouchRelabel): its button, label, icon and own label / icon */
+interface HintDisc { btn: HTMLElement; label: HTMLElement; svg: Element; ownIcon: string; hint: TouchRelabel | null }
 
 /** a control the layer's own markup (above) must contain — a miss is a template typo, not a runtime state */
 function el(parent: ParentNode, sel: string): HTMLElement {
@@ -415,16 +414,16 @@ export class TouchControls {
   }
 
   /**
-   * A shard's traversal verb re-dresses LOCK and JUMP (ShardManifest `ShardTraversalContext.touchHint`, E286: Nine Dragon's
+   * A shard's traversal verb re-dresses LOCK and JUMP (scoped HUD relabels, E286: Nine Dragon's
    * GRAPPLE / LOCKED / ZIP): the label, the icon and a tone class (`.hint.hint-rest|ready|active`, accent `--hint`); null
    * gives the disc its own back. Only a change touches the DOM. A no-op without the touch layer.
    */
-  hint(lock: TouchDiscHint | null, jump: TouchDiscHint | null): void {
-    if (this.hintLock !== undefined) this.applyHint(this.hintLock, lock, lockOn.state === 'locked' ? 'Locked' : 'Lock');
-    if (this.hintJump !== undefined) this.applyHint(this.hintJump, jump, 'Jump');
+  relabel(spot: DiscSpot, hint: TouchRelabel | null): void {
+    if (spot === 'lock' && this.hintLock !== undefined) this.applyHint(this.hintLock, hint, lockOn.state === 'locked' ? 'Locked' : 'Lock');
+    if (spot === 'jump' && this.hintJump !== undefined) this.applyHint(this.hintJump, hint, 'Jump');
   }
 
-  private applyHint(d: HintDisc, h: TouchDiscHint | null, own: string): void {
+  private applyHint(d: HintDisc, h: TouchRelabel | null, own: string): void {
     const was = d.hint;
     if (was === h || (was !== null && h !== null && was.label === h.label && was.icon === h.icon && was.tone === h.tone && was.accent === h.accent)) return;
     d.hint = h;

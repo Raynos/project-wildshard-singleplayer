@@ -10,8 +10,7 @@ export interface EventMap {
   'explore.turntable': { on: boolean; key?: { x: number; y: number; z: number } };
   'fault': FaultEvent;
 }
-// oxlint-disable-next-line typescript/no-empty-interface, typescript/no-empty-object-type -- Consumers extend this registry by declaration merging.
-export interface AskMap {}
+export interface AskMap { 'player.traversal': readonly [number | boolean, boolean] }
 // oxlint-disable-next-line typescript/no-empty-interface, typescript/no-empty-object-type -- Consumers extend this registry by declaration merging.
 export interface TagMap {}
 export type AskInput<K extends keyof AskMap> = AskMap[K] extends readonly [infer Input, unknown] ? Input : never;

@@ -1,6 +1,7 @@
 
 
-export type DiscSpot = 'r0' | 'r1' | 'r2' | 'r3' | 'aim' | 'up0' | 'lean-l' | 'lean-r' | 'edge-r' | 'edge-l';
+export type DiscSpot = 'r0' | 'r1' | 'r2' | 'r3' | 'aim' | 'up0' | 'lean-l' | 'lean-r' | 'edge-r' | 'edge-l' | 'lock' | 'jump';
+export interface TouchRelabel { label: string; icon?: string; tone: 'rest' | 'ready' | 'active'; accent?: string }
 export interface DiscOpts {
   /** the disc's own class(es), styled by the owner's stylesheet (`ws-ride-gallop`, `ws-stealth-crouch`) */
   cls: string;

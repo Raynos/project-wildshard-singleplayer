@@ -3244,7 +3244,6 @@ const ORIGINAL = [
         "portrait": 78
       },
       "sword": "@function",
-      "traversal": "@function",
       "horizon": {
         "rings": [],
         "cloudSea": false

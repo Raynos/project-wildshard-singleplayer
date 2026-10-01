@@ -1,3 +1,4 @@
+import { app } from '../app/runtime';
 import type * as THREE from 'three';
 import { Game } from './Game';
 import { applyLevelTier, TIER } from './tier';
@@ -140,7 +141,9 @@ export async function bootstrap(step: StepRunner, level: LevelSpec): Promise<Wor
   // frame phases (Game.ts): input → fixed steps (pre: move the boxes, step: advance the world, post: the player's move) → update → late
   const playing = () => !tour.active && !world.freeCamera;
   // labels name them in error reports; `true` = core: the world step and the player's move can't be switched off (src/engine/core/faults.ts)
-  game.onInput((dt) => { if (playing()) player.input(dt); }, 'player.input');
+  player.inputService = app.input; player.traversalEvents = app.events;
+  app.addSystem({ id: 'engine.input.collect', phase: 'input', before: ['engine.player.input'], run: () => { if (playing()) player.collectActions(); else app.input.clear(); } }, game.levelScope);
+  game.onInput((dt) => { if (playing()) player.input(dt); }, 'engine.player.input');
   game.onFixed('pre', () => { for (const m of moving) m(); }, 'physics.movers');
   game.onFixed('step', () => { physics.step(); }, 'physics.step', true);
   game.onFixed('post', (dt) => { const on = playing(); player.setBodyEnabled(on); if (on) player.step(dt); }, 'player.step', true);

@@ -23,6 +23,7 @@ function setup(): { app: App; world: NineDragonWorld; plugin: NdPlugin; context:
   const driver: LevelDriver = { progress: () => ({ set: noop, detail: noop }), data: noop, world: noop,
     kit: noop, loadout: noop, play: noop, finish: noop };
   app.levelDriver = driver;
+  app.levelAdapters.playground = () => noop;
   const world: NineDragonWorld = { root: new Group(), shared: new Shared(), ctx: { hooks: [] },
     update: vi.fn<() => void>(), cull: vi.fn<() => void>(), culler: new InstanceCuller() };
   const plugin = new NdPlugin(() => Promise.resolve({ world, camera: fake.camera }));
