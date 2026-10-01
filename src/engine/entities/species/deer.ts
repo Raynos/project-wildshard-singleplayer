@@ -2,8 +2,7 @@ import { engineString } from '#engine/strings';
 import * as THREE from 'three';
 import type { Rng } from '../../core/rng';
 import { registerSpecies, type AnimalSpecies, type BoneDef, type VariantDef } from './registry';
-import { loft, tube, skinPlain, S, boneIndex, srgb, mix, sstep, paintNoise, setShag, isLowPoly, paletteColors, type Paint, type RGB } from './loft';
-import { deerPaintLow } from '../lowpoly';
+import { loft, tube, skinPlain, S, boneIndex, srgb, mix, sstep, paintNoise, setShag, isLowPoly, toonPaint, paletteColors, type Paint, type RGB } from './loft';
 
 /**
  * Deer — red-deer proportions: 0.92 m at the spine, long neck, stags carry a 6-point rack.
@@ -128,7 +127,8 @@ function buildDeer(v: VariantDef, _rng: Rng): AnimalSpecies {
     );
   }
   const B = boneIndex(bones);
-  const paint = isLowPoly() ? deerPaintLow(v) : deerPaint(v);   // Driftwood Isle: flat pastel palette (see ../lowpoly.ts)
+  const toon = isLowPoly() ? toonPaint('deer') : null;   // a toon level: its own palette
+  const paint = toon !== null ? toon(v) : deerPaint(v);
   const fur: THREE.BufferGeometry[] = [], hard: THREE.BufferGeometry[] = [], eyes: THREE.BufferGeometry[] = [];
   const body = B('body'), n1 = B('neck1'), n2 = B('neck2'), hd = B('head'), bl = B('belly');
 

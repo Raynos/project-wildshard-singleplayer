@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { loft, tube, skinPlain, S, boneIndex, mix, speciesSstep as sstep, paintNoise, setShag, isLowPoly, paletteColors, srgb, boarPaintLow, crestSpikes, type Rng, type AnimalSpecies, type BoneDef, type VariantDef, type SpeciesLook, type Paint, type SpeciesRGB as RGB } from '#engine';
+import { loft, tube, skinPlain, S, boneIndex, mix, speciesSstep as sstep, paintNoise, setShag, isLowPoly, paletteColors, srgb, toonPaint, crestSpikes, type Rng, type AnimalSpecies, type BoneDef, type VariantDef, type SpeciesLook, type Paint, type SpeciesRGB as RGB } from '#engine';
 
 /**
  * Wild boar — 0.62 m at the spine, shoulder hump, bristle crest, tusks, held-low wedge head.
@@ -101,8 +101,9 @@ function buildBoar(v: VariantDef, rng: Rng): AnimalSpecies {
     );
   }
   const B = boneIndex(bones);
-  const lowPoly = isLowPoly();   // Driftwood Isle: flat pastel palette, crest = a row of spikes (see ../lowpoly.ts)
-  const paint = lowPoly ? boarPaintLow(v) : boarPaint(v);
+  const lowPoly = isLowPoly();   // a toon level: its own palette (toonPaint), crest = a row of spikes
+  const toon = lowPoly ? toonPaint('boar') : null;
+  const paint = toon !== null ? toon(v) : boarPaint(v);
   const fur: THREE.BufferGeometry[] = [], hard: THREE.BufferGeometry[] = [], eyes: THREE.BufferGeometry[] = [];
   const body = B('body'), n1 = B('neck1'), n2 = B('neck2'), hd = B('head'), bl = B('belly');
   // torso: barrel with shoulder hump, narrower hips (y is raised 0.07 vs the first draft: legs were too short)

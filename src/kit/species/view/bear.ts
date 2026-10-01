@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { loft, tube, skinPlain, S, boneIndex, mix, speciesSstep as sstep, paintNoise, setShag, isLowPoly, paletteColors, bearPaintLow, type Rng, type AnimalSpecies, type BoneDef, type VariantDef, type SpeciesLook, type Paint, type SpeciesRGB as RGB } from '#engine';
+import { loft, tube, skinPlain, S, boneIndex, mix, speciesSstep as sstep, paintNoise, setShag, isLowPoly, paletteColors, toonPaint, type Rng, type AnimalSpecies, type BoneDef, type VariantDef, type SpeciesLook, type Paint, type SpeciesRGB as RGB } from '#engine';
 
 /**
  * Bear — black bear (scale 1: ~1.0 m at the shoulder, ~2.0 m nose to rump) and the bigger humped brown /
@@ -116,7 +116,8 @@ function buildBear(v: VariantDef, rng: Rng): AnimalSpecies {
     );
   }
   const B = boneIndex(bones);
-  const paint = isLowPoly() ? bearPaintLow(v) : bearPaint(v);   // Driftwood Isle: flat two-tone coat (see ../lowpoly.ts)
+  const toon = isLowPoly() ? toonPaint('bear') : null;   // a toon level: its own palette
+  const paint = toon !== null ? toon(v) : bearPaint(v);
   const fur: THREE.BufferGeometry[] = [], hard: THREE.BufferGeometry[] = [], eyes: THREE.BufferGeometry[] = [];
   const body = B('body'), n1 = B('neck1'), n2 = B('neck2'), hd = B('head'), bl = B('belly');
   // torso: a long, deep, low-slung barrel; heavy round rump, the withers rise into a hump (brown bear)

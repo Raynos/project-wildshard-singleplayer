@@ -3,8 +3,7 @@ import * as THREE from 'three';
 import type { Rng } from '../../core/rng';
 import type { HuntTuning } from '../AnimalManager';
 import { registerSpecies, type AnimalSpecies, type BoneDef, type VariantDef } from './registry';
-import { loft, tube, skinPlain, S, boneIndex, mix, sstep, paintNoise, setShag, isLowPoly, paletteColors, type Paint, type RGB } from './loft';
-import { deerPaintLow } from '../lowpoly';
+import { loft, tube, skinPlain, S, boneIndex, mix, sstep, paintNoise, setShag, isLowPoly, toonPaint, paletteColors, type Paint, type RGB } from './loft';
 import { THRALL_TRAITS, thrallPose } from './thrall';
 
 /**
@@ -141,7 +140,8 @@ function buildElk(v: VariantDef, _rng: Rng): AnimalSpecies {
     );
   }
   const B = boneIndex(bones);
-  const paint = isLowPoly() ? deerPaintLow(v) : elkPaint(v);   // Driftwood Isle: flat pastel palette (see ../lowpoly.ts)
+  const toon = isLowPoly() ? toonPaint('elk') : null;   // a toon level: its own palette
+  const paint = toon !== null ? toon(v) : elkPaint(v);
   const fur: THREE.BufferGeometry[] = [], hard: THREE.BufferGeometry[] = [], eyes: THREE.BufferGeometry[] = [];
   const body = B('body'), n1 = B('neck1'), n2 = B('neck2'), hd = B('head'), bl = B('belly');
 

@@ -1,5 +1,7 @@
 import * as THREE from 'three';
 import { Noise2D } from '../../core/noise';
+import type { Scope } from '../../app/scope';
+import type { VariantDef } from './registry';
 
 /**
  * Loft helpers shared by every species file (`src/engine/entities/species/<kind>.ts`).
@@ -101,6 +103,19 @@ export function setShapeFn(fn: ((x: number, y: number, z: number, part: string) 
 let lowPoly = false;
 export function setLowPoly(on: boolean): void { lowPoly = on; }
 export function isLowPoly(): boolean { return lowPoly; }
+
+/** a toon level's palette for one species kind: flat vertex colours from the variant's tints */
+export type ToonPaint = (v?: VariantDef) => Paint;
+const toonPaints = new Map<string, ToonPaint>();
+/**
+ * A toon level registers its palette per species kind (its species look rows, B50); a species build asks `toonPaint(kind)`
+ * when `isLowPoly()` and falls back to its own PBR paint. Without a scope it stays for the process (test fixtures).
+ */
+export function registerToonPaint(kind: string, paint: ToonPaint, scope?: Scope): void {
+  toonPaints.set(kind, paint);
+  scope?.onDispose(() => { if (toonPaints.get(kind) === paint) toonPaints.delete(kind); });
+}
+export function toonPaint(kind: string): ToonPaint | null { return toonPaints.get(kind) ?? null; }
 /** ring sides for a loft that asks for `seg` in PBR: big parts 6, legs 5, ears / hooves / tusks 4 */
 export function lowPolySides(seg: number): number { return seg >= 16 ? 6 : seg >= 11 ? 5 : 4; }
 
