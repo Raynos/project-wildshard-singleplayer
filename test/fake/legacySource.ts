@@ -38,3 +38,27 @@ export function legacyConstants(file: string, names: readonly string[], globals:
   const code = [...defs].filter(([name]) => selected.has(name)).map(([, d]) => `const ${d.getText(source)};`).join('\n');
   return executeLegacy(`${code}\n;({${names.join(',')}});`, globals) as Record<string, unknown>;
 }
+
+/** Private class methods without constructors/field initializers. The fixture explicitly supplies each read field. */
+export function legacyMethods(file: string, className: string, globals: Record<string, unknown> = {}): object {
+  const source = legacySource(file);
+  const decl = source.statements.find((s) => ts.isClassDeclaration(s) && s.name?.text === className);
+  if (decl === undefined || !ts.isClassDeclaration(decl)) throw new Error(`${file}: missing class ${className}`);
+  const members = decl.members.filter((m) => ts.isMethodDeclaration(m) || ts.isGetAccessor(m) || ts.isSetAccessor(m));
+  const code = `class Legacy { ${members.map((m) => m.getText(source)).join('\n')} }\nLegacy.prototype;`;
+  const result = executeLegacy(code, globals);
+  if (typeof result !== 'object' || result === null) throw new Error('legacy class did not return a prototype');
+  return result;
+}
+
+/** Inline constructor tuning, read as data from the actual new-expression rather than copied into an oracle. */
+export function legacyNewOptions(file: string, ctor: string, globals: Record<string, unknown> = {}): Record<string, number>[] {
+  const source = legacySource(file);
+  const calls = descendants(source, (n) => ts.isNewExpression(n) && n.expression.getText(source) === ctor);
+  return calls.map((n) => {
+    if (!ts.isNewExpression(n)) throw new Error('not a constructor');
+    const option = n.arguments?.find(ts.isObjectLiteralExpression);
+    if (option === undefined) throw new Error(`${file}: ${ctor} lacks options`);
+    return executeLegacy(`(${option.getText(source)})`, globals) as Record<string, number>;
+  });
+}

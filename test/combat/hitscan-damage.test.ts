@@ -7,20 +7,20 @@ import { setSetting } from '#engine/ui/Settings';
 import { setActivePhysics } from '#engine/physics/active';
 import { damageFor } from '#engine/entities/Animal';
 import { legacyActor, invokeLegacy, damageTarget } from '../fake/legacyActor';
-import { seedRandom } from '../fake/FakeGame';
 import { fakeWorld } from '../fake/world';
 
-let restore: () => void = () => undefined;
-beforeEach(() => { restore = seedRandom(11); app.rng.seed(11); setActivePhysics(null); setSetting('tracers', false); });
-afterEach(() => { restore(); setActivePhysics(null); });
+beforeEach(() => { app.rng.seed(11); setActivePhysics(null); setSetting('tracers', false); });
+afterEach(() => { setActivePhysics(null); });
 
 describe('AR-15 and lever hitscan keep distinct damage, seeded spread and ranges', () => {
   for (const [name, prototype, scale, range] of [['AR-15', Rifle.prototype, 0.55, 300], ['lever', LeverRifle.prototype, 1.5, 320]] as const) {
     for (const headshot of [false, true]) for (const distance of [20, 60, 100]) {
       it(`${name} ${headshot ? 'head' : 'body'} at ${distance}m uses damageFor × ${scale} without rounding twice`, () => {
         const world = fakeWorld(), target = damageTarget(), point = (headshot ? target.head : target.body).clone(); point.z = -distance;
-        const expectedRestore = seedRandom(11); const roll = damageFor(headshot, distance); expectedRestore();
-        const rollRestore = seedRandom(11); target.animal.damageFor = damageFor;
+        app.rng.seed(11);
+        // The hitscan consumes three direction draws and one spread radius before rolling body damage.
+        for (let i = 0; i < 4; i++) app.rng.stream('gameplay').next();
+        const roll = damageFor(headshot, distance); app.rng.seed(11); target.animal.damageFor = damageFor;
         let requestedRange = 0; const directions: number[][] = [];
         const weapon = legacyActor(prototype, {
           game: world.game.asGame(), player: world.player, adsBlend: 0, bloom: 0,
@@ -28,7 +28,7 @@ describe('AR-15 and lever hitscan keep distinct damage, seeded spread and ranges
             requestedRange = max; directions.push(dir.toArray()); return { animal: target.animal, point, distance, headshot };
           } }, onHit: undefined, onImpact: undefined, puffs: { emit: () => undefined },
         });
-        try { invokeLegacy(weapon, 'hitscan'); } finally { rollRestore(); }
+        invokeLegacy(weapon, 'hitscan');
         expect(requestedRange).toBe(range); expect(target.dealt).toEqual([roll * scale]);
         app.rng.seed(11); invokeLegacy(weapon, 'hitscan'); expect(directions[1]).toEqual(directions[0]);
       });

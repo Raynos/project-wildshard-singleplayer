@@ -1,0 +1,69 @@
+import * as THREE from 'three';
+import { describe, expect, it, vi } from 'vitest';
+import type { Animal } from '#engine/entities/Animal';
+import type * as Heightfield from '#engine/world/Heightfield';
+import { wildEnv } from '#engine/entities/wildEnv';
+import { invokeLegacy, legacyActor } from '../fake/legacyActor';
+import { legacyMethods } from '../fake/legacySource';
+import { creature } from '../fake/creature';
+
+vi.mock('#engine/world/Heightfield', async (original) => ({ ...await original<typeof Heightfield>(),
+  heightAt: (): number => 0, normalAt: (): [number, number, number] => [0, 1, 0], waterLevel: (): number => -100, streamAt: (): null => null }));
+const file = 'src/shards/nalati-grasslands/elites.ts';
+const noOp = (): void => undefined;
+const tell = (): object => ({ setTime: noOp, ring: noOp, hide: noOp, lane: noOp });
+function elite(name: string, fields: Record<string, unknown>) {
+  const f = creature('crab', 'small'), hits: number[] = [];
+  const env = { player: { position: f.ctx.player }, hurt: (_a: Animal, d: number): void => { hits.push(d); },
+    knock: vi.fn(noOp), feed: vi.fn(noOp), sound: vi.fn(noOp), bar: { chevron: noOp }, game: f.game };
+  const proto = legacyMethods(file, name, { THREE, _v: new THREE.Vector3(), _w: new THREE.Vector3(), heightAt: () => 0, wildEnv });
+  const actor = legacyActor(proto, { animal: f.animal, env, p2: false, stT: 0, cd: 0,
+    toPlayer: (a: Animal) => ({ d: a.position.distanceTo(f.ctx.player), yaw: Math.atan2(f.ctx.player.x - a.position.x, f.ctx.player.z - a.position.z) }),
+    ...fields });
+  return { ...f, actor, env, hits };
+}
+
+describe('private Nalati elite strikes executed from their production class methods', () => {
+  it('S13 Aqbars swipes twice at .45/.8 and recovers for1.4 seconds', () => {
+    const f = elite('Aqbars', { st: 'swipe', hitDone: 0 }); f.animal.startAttack(1);
+    for (let i = 0; i < 61; i++) {
+      invokeLegacy(f.actor, 'think', f.animal, { ...f.ctx, dt: 1 / 60 }); f.animal.update(1 / 60, i / 60, true);
+      if (i < 27) expect(f.hits).toEqual([]);
+    }
+    expect(f.hits).toEqual([14, 14]); expect(Reflect.get(f.actor, 'cd')).toBe(1.4); expect(f.animal.attackPhase).toBe(-1);
+  });
+  it.each([0, 2])('S14 Aqbars landing offsets%s preserve damage35 or the open miss window', (offset) => {
+    const f = elite('Aqbars', { st: 'tell', ring: tell(), from: new THREE.Vector3(), to: new THREE.Vector3(0, 0, 1), goal: null,
+      standY: () => 0, def: { awareR: 60 } }); f.ctx.player.x = offset;
+    for (let i = 0; i < 120; i++) {
+      invokeLegacy(f.actor, 'tick', 1 / 60, i / 60, true, false);
+      if (i < 95) expect(f.hits).toEqual([]);
+    }
+    expect(f.hits).toEqual(offset === 0 ? [35] : []);
+    expect(Reflect.get(f.actor, 'st')).toBe(offset === 0 ? 'stalk' : 'open');
+  });
+  it('S15 Kokbori hits22 at .7 of a .9s bite then takes1.8 seconds to recover', () => {
+    const f = elite('Kokbori', { st: 'hunt', bit: false, chase: (_a: Animal, _c: unknown, _d: number, yaw: number) => yaw }); f.animal.startAttack(0.9);
+    for (let i = 0; i < 56; i++) {
+      invokeLegacy(f.actor, 'think', f.animal, { ...f.ctx, dt: 1 / 60 }); f.animal.update(1 / 60, i / 60, true);
+      f.animal.position.set(0, 0, 0);
+      if (i < 38) expect(f.hits).toEqual([]);
+    }
+    expect(f.hits).toEqual([22]); expect(Reflect.get(f.actor, 'cd')).toBeCloseTo(1.8 - 1 / 60);
+  });
+  it.each([2.39, 2.41])('S16 Qyran landing separation%s keeps the2.4m radius', (offset) => {
+    const f = elite('Qyran', { st: 'stoop', centre: { x: 0, z: 0 }, lineMat: { uniforms: { uTime: { value: 0 } } },
+      tgt: new THREE.Vector3(0, 0.9, 1), line: { visible: true }, aim: noOp });
+    f.ctx.player.x = offset; f.animal.position.set(0, 0, 1); f.animal.mem['altY'] = 1;
+    invokeLegacy(f.actor, 'tick', 1 / 60, 0, true, false);
+    expect(f.hits).toEqual(offset < 2.4 ? [30] : []);
+    expect(Reflect.get(f.actor, 'st')).toBe(offset < 2.4 ? 'climb' : 'ground');
+  });
+  it('S17 Qara Batyr tells for1.3s, charges for38 once and does not repeat a contact', () => {
+    const f = elite('QaraBatyr', { st: 'wheel', lane: tell(), rider: null, c0: new THREE.Vector3(), c1: new THREE.Vector3(), struck: false });
+    for (let i = 0; i < 78; i++) { invokeLegacy(f.actor, 'tick', 1 / 60, i / 60, true, false); expect(f.hits).toEqual([]); }
+    expect(Reflect.get(f.actor, 'st')).toBe('charge');
+    invokeLegacy(f.actor, 'tick', 1 / 60, 2, true, false); invokeLegacy(f.actor, 'tick', 1 / 60, 2.1, true, false);
+    expect(f.hits).toEqual([38]); expect(f.env.knock).toHaveBeenCalledOnce();
+  });
+});

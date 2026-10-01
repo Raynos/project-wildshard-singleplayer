@@ -1,0 +1,92 @@
+import * as THREE from 'three';
+import { describe, expect, it, vi } from 'vitest';
+import type * as Heightfield from '#engine/world/Heightfield';
+import { LaneCharge } from '#shards/pine-hollow/combat/ctx';
+import { Animal } from '#engine/entities/Animal';
+import { AnimalFactory } from '#engine/entities/AnimalFactory';
+import { legacyConstants, legacyNewOptions } from '../fake/legacySource';
+import { creature } from '../fake/creature';
+import { fakeWorld } from '../fake/world';
+
+vi.mock('#engine/world/Heightfield', async (original) => ({ ...await original<typeof Heightfield>(),
+  heightAt: (): number => 0, normalAt: (): [number, number, number] => [0, 1, 0], waterLevel: (): number => -100, streamAt: (): null => null }));
+const species = 'src/engine/entities/species/', nalati = 'src/shards/nalati-grasslands/', pine = 'src/shards/pine-hollow/combat/';
+const tuning = [
+  ['S1 crab snap', `${species}crab.ts`, { SNAP_R: 1.6, SNAP_DAMAGE: 10, WINDUP: 0.5, SNAP_DUR: 0.78, HOLD_R: 3.6 }],
+  ['S2 monkey bite', `${species}monkey.ts`, { BITE_R: 1.3, BITE_DAMAGE: 6, BITE_DUR: 0.9 }],
+  ['S3 monkey coconut release', `${species}monkey.ts`, { THROW_R: 14, THROW_DUR: 1, THROW_RELEASE: 0.62 }],
+  ['S4 sailor swing', `${species}sailor.ts`, { SWING_R: 1.8, HIT_R: 1.9, SWING_DAMAGE: 14, WINDUP: 0.6, SWING_DUR: 0.9 }],
+  ['S5/S6 captain cuts', `${species}captain.ts`, { SWING_R: 2.3, HIT_R: 2.5, SWING_DMG: 24, WINDUP: [0, 0.7, 0.62, 0.5], COOLDOWN: [0, 1.4, 1.2, 0.8] }],
+  ['S7 captain burst', `${species}captain.ts`, { BURST_R: 3, BURST_DMG: 16, UNDER_T: 1.1, SINK_EVERY: [0, 0, 7, 5] }],
+  ['S8/S9 boar/bear charge', 'src/engine/entities/AnimalManager.ts', { BOAR_CHARGE: 7.5, CHARGE_HIT_DIST: 1.4, CHARGE_WINDUP: { boar: 0.55, bear: 0.65 }, CHARGE_ARC: THREE.MathUtils.degToRad(50), CHARGE_COMMIT: 4.5, CHARGE_COMMIT_TURN: 1.1 }],
+  ['S10 wolf lunge', 'src/engine/entities/Pack.ts', { RUN: 9.5, BITE_R: 1.4, TELEGRAPH: 0.4, DASH_MAX: 1.8, BREAKOFF: 1.1 }],
+  ['S11 balbal slam', `${species}balbal.ts`, { ATK_T: 2.9, W_END: 0.52, S_END: 0.58, HIT_R: 3.1, HIT_CONE: 0.96, DAMAGE: 30, KURGAN_DAMAGE: 18, COOLDOWN: 1.4 }],
+  ['S12 ghost rider arrow', `${nalati}ghostRiders.ts`, { SPACING: 11, CIRCLE_R: 34, ENGAGE: 70, DISENGAGE: 115, SHOOT: 62, ARROW_SPEED: 34, ARROW_G: 5, ARROW_DMG: 10, RESPAWN: 60 }],
+  ['S18 horse charge', 'src/engine/entities/Herd.ts', { CHARGE: 12 }],
+  ['S19 Golden King cuts', `${nalati}kurganBoss.ts`, { STRIKE_DMG: [14, 14, 22, 22], REACH: 3 }],
+  ['S20 Golden King sunburst', `${nalati}kurganBoss.ts`, { SUNBURST_DMG: 25, RING_SPEED: 8.5, RING_MAX: 17 }],
+  ['S21 Golden King beam', `${nalati}kurganBoss.ts`, { BEAM_R: 6.2, BEAM_HIT_R: 1.15, BEAM_DMG: 15 }],
+  ['S23 Titan spear', `${nalati}stormTitan.ts`, { SPEAR_DMG: 40, SPEAR_R: 4.5, SPEAR_AIM: 1.5, SPEAR_LOCK: 0.5, SPEAR_STUCK: 3 }],
+  ['S24 Titan whirl', `${nalati}stormTitan.ts`, { WHIRL_DMG: 15, WHIRL_R: 3.2 }],
+  ['S25 Titan wind charge', `${nalati}stormTitan.ts`, { CHARGE_DMG: 30, LANE_T: 1.2, FLANK_T: 2, STUN_T: 4 }],
+  ['S26 Titan chain', `${nalati}stormTitan.ts`, { CHAIN_DMG: 18, CHAIN_R: 3, CHAIN_LAND: 0.6 }],
+  ['S27 Titan fire', `${nalati}stormTitan.ts`, { CELL: 4, BURN_T: 7, FIRE_DPS: 8 }],
+  ['S35 Antler King sweep', `${pine}antlerKing.ts`, { SWEEP_NEAR: 4, SWEEP_NEAR_ARC: 1.31, SWEEP_REACH: 7.1, SWEEP_AIM: -0.26, SWEEP_ARC: 0.52 }],
+  ['S36 Antler King stomp', `${pine}antlerKing.ts`, { STOMP_R: 4.4 }],
+] as const;
+describe('strike tuning from current production declarations', () => {
+  it.each(tuning)('%s', (_name, file, expected) => {
+    expect(legacyConstants(file, Object.keys(expected), { THREE })).toEqual(expected);
+  });
+});
+
+const laneRows: { name: string; file: string; index: number; tell: number; options: ConstructorParameters<typeof LaneCharge>[2] }[] = [
+  { name: 'S29 Ironhide', file: `${pine}elites.ts`, index: 0, tell: 0.9, options: { width: 2.4, speed: 12.5, overshoot: 7, dmg: 30, skid: 1.1, reach: 1.7 } },
+  { name: 'S31 Blackpaw', file: `${pine}elites.ts`, index: 1, tell: 0.75, options: { width: 2.6, speed: 10.5, overshoot: 5, dmg: 28, skid: 1.2, reach: 1.6 } },
+  { name: 'S33 Imperial Bull', file: `${pine}elites.ts`, index: 2, tell: 1, options: { width: 2.8, speed: 11, overshoot: 8, dmg: 34, skid: 1.3, reach: 1.8 } },
+  { name: 'S34 rival', file: `${pine}elites.ts`, index: 3, tell: 0.9, options: { width: 2.4, speed: 9.5, overshoot: 6, dmg: 18, skid: 1.4, reach: 1.7 } },
+  { name: 'S37 Antler King', file: `${pine}antlerKing.ts`, index: 0, tell: 1.1, options: { width: 5.2, speed: 13, overshoot: 10, dmg: 32, skid: 1.6, reach: 2 } },
+  { name: 'S38 thrall', file: `${pine}antlerKing.ts`, index: 1, tell: 0.7, options: { width: 2.4, speed: 9, overshoot: 5, dmg: 14, skid: 1.2, reach: 1.7 } },
+];
+describe('real Pine lane strikes at the body clock', () => {
+  it.each(laneRows)('$name holds its tell, hits once and finishes recovery', ({ file, index, options, tell }) => {
+    const actual = legacyNewOptions(file, 'LaneCharge', { LANE_W: 5.2, LANE_REACH: 2 })[index];
+    expect(actual).toEqual(options);
+    const f = fakeWorld(), factory = new AnimalFactory(f.sky, { style: 'toon' }), model = factory.model('boar', 'sow');
+    const a = new Animal(factory.instantiate(model, 0.5), model, 0.5), player = new THREE.Vector3(0, 0, 4);
+    const lane = new LaneCharge(f.game.scene, 0xff4400, options), hits: { frame: number; damage: number }[] = [];
+    let frame = 0; lane.start(a, player.x, player.z, tell);
+    f.game.onFixed('step', (dt) => { frame++; lane.update(a, dt, frame / 60, player, (damage) => { hits.push({ frame, damage }); }); a.update(dt, frame / 60, false); }, 'lane', true);
+    for (let i = 0; i < Math.floor(tell * 60) - 1; i++) f.game.advance(1 / 60);
+    expect(lane.state).toBe('tell'); expect(hits).toEqual([]);
+    for (let i = 0; i < 480; i++) f.game.advance(1 / 60);
+    expect(hits).toHaveLength(1); expect(hits[0]?.damage).toBe(options.dmg);
+    expect(hits[0]?.frame).toBeGreaterThanOrEqual(tell * 60); expect(lane.state).toBe('none'); expect(f.game.dead).toBe(false);
+  });
+});
+describe('species strikes retain current hit timing and damage', () => {
+  it.each(['small', 'big'])('S1 %s crab snaps once after .5s (B6: big still hits10 today)', (variant) => {
+    const f = creature('crab', variant); f.advance(80);
+    expect(f.starts[0]?.duration).toBe(0.78); expect(f.hits.map((h) => h.damage)).toEqual([10]);
+    expect((f.hits[0]?.frame ?? 0) - (f.starts[0]?.frame ?? 0)).toBeGreaterThanOrEqual(30);
+    expect((f.hits[0]?.frame ?? 0) - (f.starts[0]?.frame ?? 0)).toBeLessThanOrEqual(36);
+  });
+  it('S2 ground monkey bites at .405 seconds then takes 1.2 seconds to recover', () => {
+    const f = creature('monkey', 'monkey'); f.advance(7);
+    Object.assign(f.animal.mem, { st: 4, cd: 0, gt: 10, onGround: 1, perch: -1 }); f.advance(70);
+    expect(f.starts[0]?.duration).toBe(0.9); expect(f.hits.map((h) => h.damage)).toEqual([6]);
+    expect((f.hits[0]?.frame ?? 0) - (f.starts[0]?.frame ?? 0)).toBeGreaterThanOrEqual(24);
+    expect(f.animal.mem['cd']).toBeGreaterThan(0.8);
+  });
+  it('S3 a perched monkey releases one coconut after .62 seconds', () => {
+    const thrown = vi.fn((): void => undefined), f = creature('monkey', 'monkey', { perches: [new THREE.Vector3(0, 5, 0)], throwCoconut: thrown });
+    f.ctx.player.z = 8; f.advance(7); f.animal.mem['cd'] = 0; f.advance(42); expect(thrown).not.toHaveBeenCalled(); f.advance(6);
+    expect(f.starts[0]?.duration).toBe(1); expect(thrown).toHaveBeenCalledOnce(); expect(f.hits).toEqual([]);
+    f.advance(40); expect(thrown).toHaveBeenCalledOnce(); expect(f.animal.mem['cd']).toBeGreaterThan(1.9);
+  });
+  it.each([[1, 0.7, 1], [0.5, 0.62, 1], [0.2, 0.5, 2]])('S5/S6 captain fraction%s keeps its phase windup%s and %s cuts', (frac, windup, cuts) => {
+    const f = creature('captain', 'captain'); f.advance(7); f.animal.hp = f.animal.maxHp * frac;
+    Object.assign(f.animal.mem, { st: 2, cd: 0, subT: 0 }); f.advance(130);
+    expect(f.starts[0]?.duration).toBeCloseTo(windup + 0.35); expect(f.hits.map((h) => h.damage)).toEqual(Array.from({ length: cuts }, () => 24));
+  });
+});

@@ -1,0 +1,1670 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`seeded spawn baselines > layoutFauna stays deterministic and keeps its ring/trail rules > seed1337 flat trail grid 1`] = `
+[
+  {
+    "anchor": {
+      "rMax": 20,
+      "rMin": 0,
+      "x": -69,
+      "z": -64,
+    },
+    "canopy": false,
+    "count": 4,
+    "kind": "deer",
+    "trailBand": [
+      10,
+      49,
+    ],
+    "variants": undefined,
+  },
+  {
+    "anchor": {
+      "rMax": 20,
+      "rMin": 0,
+      "x": 12,
+      "z": -59,
+    },
+    "canopy": false,
+    "count": 4,
+    "kind": "elk",
+    "trailBand": [
+      15,
+      42,
+    ],
+    "variants": undefined,
+  },
+  {
+    "anchor": {
+      "rMax": 20,
+      "rMin": 0,
+      "x": 41,
+      "z": -53,
+    },
+    "canopy": true,
+    "count": 3,
+    "kind": "boar",
+    "trailBand": [
+      12,
+      44,
+    ],
+    "variants": undefined,
+  },
+  {
+    "anchor": {
+      "rMax": 20,
+      "rMin": 0,
+      "x": -45,
+      "z": 9,
+    },
+    "canopy": true,
+    "count": 3,
+    "kind": "boar",
+    "trailBand": [
+      12,
+      40,
+    ],
+    "variants": undefined,
+  },
+  {
+    "anchor": {
+      "rMax": 20,
+      "rMin": 0,
+      "x": 13,
+      "z": -6,
+    },
+    "canopy": false,
+    "count": 3,
+    "kind": "deer",
+    "trailBand": [
+      10,
+      33,
+    ],
+    "variants": undefined,
+  },
+  {
+    "anchor": {
+      "rMax": 20,
+      "rMin": 0,
+      "x": 62,
+      "z": -10,
+    },
+    "canopy": false,
+    "count": 4,
+    "kind": "elk",
+    "trailBand": [
+      15,
+      43,
+    ],
+    "variants": undefined,
+  },
+  {
+    "anchor": {
+      "rMax": 20,
+      "rMin": 0,
+      "x": -58,
+      "z": 62,
+    },
+    "canopy": true,
+    "count": 3,
+    "kind": "boar",
+    "trailBand": [
+      12,
+      47,
+    ],
+    "variants": undefined,
+  },
+  {
+    "anchor": {
+      "rMax": 20,
+      "rMin": 0,
+      "x": 51,
+      "z": 45,
+    },
+    "canopy": true,
+    "count": 2,
+    "kind": "boar",
+    "trailBand": [
+      12,
+      44,
+    ],
+    "variants": undefined,
+  },
+]
+`;
+
+exports[`seeded spawn baselines > species variant roll weights retain the actual registered baseline > variant roll tables 1`] = `
+{
+  "balbal": [
+    {
+      "hp": 220,
+      "id": "warrior",
+      "mods": undefined,
+      "scale": [
+        1.15,
+        1.22,
+      ],
+      "weight": 2,
+    },
+    {
+      "hp": 220,
+      "id": "capped",
+      "mods": undefined,
+      "scale": [
+        1.15,
+        1.22,
+      ],
+      "weight": 1,
+    },
+  ],
+  "bear": [
+    {
+      "hp": 220,
+      "id": "black",
+      "mods": undefined,
+      "scale": [
+        1.3,
+        1.4,
+      ],
+      "weight": 37,
+    },
+    {
+      "hp": 220,
+      "id": "black-blaze",
+      "mods": undefined,
+      "scale": [
+        1.3,
+        1.4,
+      ],
+      "weight": 18,
+    },
+    {
+      "hp": 320,
+      "id": "brown",
+      "mods": {
+        "chargeDamage": 45,
+        "damageTaken": 0.85,
+        "relentless": true,
+      },
+      "scale": [
+        1.6,
+        1.75,
+      ],
+      "weight": 30,
+    },
+    {
+      "hp": 330,
+      "id": "black-old",
+      "mods": {
+        "chargeDamage": 42,
+        "chargeDist": 1.2,
+        "relentless": true,
+      },
+      "scale": [
+        1.65,
+        1.65,
+      ],
+      "weight": 10,
+    },
+    {
+      "hp": 480,
+      "id": "brown-old",
+      "mods": {
+        "chargeDamage": 55,
+        "chargeDist": 1.3,
+        "damageTaken": 0.8,
+        "relentless": true,
+        "speed": 1.05,
+      },
+      "scale": [
+        2,
+        2,
+      ],
+      "weight": 5,
+    },
+  ],
+  "boar": [
+    {
+      "hp": undefined,
+      "id": "boar",
+      "mods": undefined,
+      "scale": [
+        0.95,
+        1.1,
+      ],
+      "weight": 49,
+    },
+    {
+      "hp": 70,
+      "id": "sow",
+      "mods": undefined,
+      "scale": [
+        0.8,
+        0.9,
+      ],
+      "weight": 26,
+    },
+    {
+      "hp": undefined,
+      "id": "black",
+      "mods": undefined,
+      "scale": [
+        1,
+        1.15,
+      ],
+      "weight": 10,
+    },
+    {
+      "hp": 140,
+      "id": "big",
+      "mods": undefined,
+      "scale": [
+        1.25,
+        1.25,
+      ],
+      "weight": 8,
+    },
+    {
+      "hp": 180,
+      "id": "scarback",
+      "mods": {
+        "chargeDamage": 32,
+        "chargeDist": 1.6,
+      },
+      "scale": [
+        1.3,
+        1.3,
+      ],
+      "weight": 3,
+    },
+    {
+      "hp": 300,
+      "id": "ironhide",
+      "mods": {
+        "chargeDamage": 40,
+        "chargeDist": 1.8,
+        "damageTaken": 0.6,
+        "relentless": true,
+        "speed": 1.05,
+      },
+      "scale": [
+        1.5,
+        1.5,
+      ],
+      "weight": 1,
+    },
+  ],
+  "captain": [
+    {
+      "hp": 320,
+      "id": "captain",
+      "mods": undefined,
+      "scale": [
+        1.35,
+        1.35,
+      ],
+      "weight": 100,
+    },
+  ],
+  "crab": [
+    {
+      "hp": 25,
+      "id": "small",
+      "mods": undefined,
+      "scale": [
+        0.78,
+        0.95,
+      ],
+      "weight": 75,
+    },
+    {
+      "hp": 70,
+      "id": "big",
+      "mods": {
+        "chargeDamage": 14,
+      },
+      "scale": [
+        1.7,
+        1.9,
+      ],
+      "weight": 25,
+    },
+  ],
+  "deer": [
+    {
+      "hp": undefined,
+      "id": "hind",
+      "mods": undefined,
+      "scale": [
+        0.9,
+        1.05,
+      ],
+      "weight": 46,
+    },
+    {
+      "hp": undefined,
+      "id": "stag",
+      "mods": undefined,
+      "scale": [
+        1,
+        1.1,
+      ],
+      "weight": 30,
+    },
+    {
+      "hp": undefined,
+      "id": "white-hind",
+      "mods": undefined,
+      "scale": [
+        0.9,
+        1.05,
+      ],
+      "weight": 4,
+    },
+    {
+      "hp": undefined,
+      "id": "white-stag",
+      "mods": undefined,
+      "scale": [
+        1,
+        1.1,
+      ],
+      "weight": 4,
+    },
+    {
+      "hp": 90,
+      "id": "big-stag",
+      "mods": undefined,
+      "scale": [
+        1.2,
+        1.3,
+      ],
+      "weight": 8,
+    },
+    {
+      "hp": undefined,
+      "id": "piebald",
+      "mods": undefined,
+      "scale": [
+        0.95,
+        1.1,
+      ],
+      "weight": 3,
+    },
+    {
+      "hp": 130,
+      "id": "ghost",
+      "mods": {
+        "speed": 1.25,
+      },
+      "scale": [
+        1.35,
+        1.35,
+      ],
+      "weight": 1,
+    },
+  ],
+  "elk": [
+    {
+      "hp": 160,
+      "id": "cow",
+      "mods": {
+        "damageTaken": 0.8,
+      },
+      "scale": [
+        0.95,
+        1.05,
+      ],
+      "weight": 50,
+    },
+    {
+      "hp": 200,
+      "id": "bull",
+      "mods": {
+        "damageTaken": 0.8,
+      },
+      "scale": [
+        1.05,
+        1.15,
+      ],
+      "weight": 38,
+    },
+    {
+      "hp": 260,
+      "id": "big-bull",
+      "mods": {
+        "damageTaken": 0.8,
+      },
+      "scale": [
+        1.25,
+        1.25,
+      ],
+      "weight": 8,
+    },
+    {
+      "hp": 160,
+      "id": "pale",
+      "mods": {
+        "damageTaken": 0.8,
+      },
+      "scale": [
+        0.95,
+        1.1,
+      ],
+      "weight": 3,
+    },
+    {
+      "hp": 340,
+      "id": "imperial",
+      "mods": {
+        "damageTaken": 0.8,
+        "speed": 1.15,
+      },
+      "scale": [
+        1.4,
+        1.4,
+      ],
+      "weight": 1,
+    },
+  ],
+  "horse": [
+    {
+      "hp": undefined,
+      "id": "bay",
+      "mods": undefined,
+      "scale": [
+        0.96,
+        1.03,
+      ],
+      "weight": 34,
+    },
+    {
+      "hp": undefined,
+      "id": "chestnut",
+      "mods": undefined,
+      "scale": [
+        0.95,
+        1.02,
+      ],
+      "weight": 24,
+    },
+    {
+      "hp": undefined,
+      "id": "dun",
+      "mods": undefined,
+      "scale": [
+        0.95,
+        1.02,
+      ],
+      "weight": 14,
+    },
+    {
+      "hp": undefined,
+      "id": "grey",
+      "mods": undefined,
+      "scale": [
+        0.96,
+        1.03,
+      ],
+      "weight": 10,
+    },
+    {
+      "hp": undefined,
+      "id": "black",
+      "mods": undefined,
+      "scale": [
+        0.96,
+        1.03,
+      ],
+      "weight": 8,
+    },
+    {
+      "hp": 70,
+      "id": "foal-bay",
+      "mods": undefined,
+      "scale": [
+        0.6,
+        0.64,
+      ],
+      "weight": 0,
+    },
+    {
+      "hp": 70,
+      "id": "foal-chestnut",
+      "mods": undefined,
+      "scale": [
+        0.6,
+        0.64,
+      ],
+      "weight": 0,
+    },
+    {
+      "hp": undefined,
+      "id": "camp-bay",
+      "mods": undefined,
+      "scale": [
+        1,
+        1,
+      ],
+      "weight": 0,
+    },
+    {
+      "hp": 150,
+      "id": "tulpar",
+      "mods": undefined,
+      "scale": [
+        1.08,
+        1.08,
+      ],
+      "weight": 0,
+    },
+    {
+      "hp": undefined,
+      "id": "camp-black",
+      "mods": undefined,
+      "scale": [
+        1.02,
+        1.02,
+      ],
+      "weight": 0,
+    },
+    {
+      "hp": 150,
+      "id": "stallion",
+      "mods": {
+        "chargeDamage": 25,
+      },
+      "scale": [
+        1.08,
+        1.08,
+      ],
+      "weight": 0,
+    },
+  ],
+  "monkey": [
+    {
+      "hp": 30,
+      "id": "monkey",
+      "mods": undefined,
+      "scale": [
+        1.25,
+        1.4,
+      ],
+      "weight": 85,
+    },
+    {
+      "hp": 45,
+      "id": "elder",
+      "mods": undefined,
+      "scale": [
+        1.5,
+        1.6,
+      ],
+      "weight": 15,
+    },
+  ],
+  "sailor": [
+    {
+      "hp": 60,
+      "id": "sailor",
+      "mods": undefined,
+      "scale": [
+        1,
+        1.05,
+      ],
+      "weight": 100,
+    },
+  ],
+  "wolf": [
+    {
+      "hp": undefined,
+      "id": "grey",
+      "mods": undefined,
+      "scale": [
+        0.95,
+        1.05,
+      ],
+      "weight": 50,
+    },
+    {
+      "hp": undefined,
+      "id": "tawny",
+      "mods": undefined,
+      "scale": [
+        0.92,
+        1.02,
+      ],
+      "weight": 30,
+    },
+    {
+      "hp": undefined,
+      "id": "dark",
+      "mods": undefined,
+      "scale": [
+        1,
+        1.08,
+      ],
+      "weight": 8,
+    },
+    {
+      "hp": 55,
+      "id": "scout",
+      "mods": undefined,
+      "scale": [
+        0.84,
+        0.86,
+      ],
+      "weight": 12,
+    },
+    {
+      "hp": 110,
+      "id": "alpha",
+      "mods": {
+        "chargeDamage": 18,
+      },
+      "scale": [
+        1.16,
+        1.16,
+      ],
+      "weight": 0,
+    },
+  ],
+}
+`;
+
+exports[`seeded spawn baselines > the real shard manifests retain species, counts, variants, spots and rings > driftwood anchored herds 1`] = `
+[
+  {
+    "anchor": {
+      "rMax": 20,
+      "rMin": 5,
+      "x": 66,
+      "z": -132,
+    },
+    "canopy": false,
+    "count": 4,
+    "kind": "boar",
+    "trailBand": [
+      8,
+      600,
+    ],
+    "variants": [
+      "boar",
+      "sow",
+      "black",
+      "big",
+    ],
+  },
+  {
+    "anchor": {
+      "rMax": 30,
+      "rMin": 5,
+      "x": -140,
+      "z": -30,
+    },
+    "canopy": false,
+    "count": 3,
+    "kind": "boar",
+    "trailBand": [
+      8,
+      600,
+    ],
+    "variants": [
+      "boar",
+      "sow",
+      "black",
+      "big",
+    ],
+  },
+  {
+    "anchor": {
+      "rMax": 30,
+      "rMin": 5,
+      "x": 30,
+      "z": 150,
+    },
+    "canopy": false,
+    "count": 4,
+    "kind": "boar",
+    "trailBand": [
+      8,
+      600,
+    ],
+    "variants": [
+      "boar",
+      "sow",
+      "black",
+      "big",
+    ],
+  },
+  {
+    "anchor": {
+      "rMax": 16,
+      "rMin": 4,
+      "x": 56,
+      "z": -84,
+    },
+    "canopy": false,
+    "count": 1,
+    "kind": "bear",
+    "trailBand": [
+      8,
+      600,
+    ],
+    "variants": [
+      "brown",
+    ],
+  },
+  {
+    "anchor": {
+      "rMax": 14,
+      "rMin": 4,
+      "x": -122,
+      "z": -100,
+    },
+    "canopy": false,
+    "count": 1,
+    "kind": "bear",
+    "trailBand": [
+      8,
+      600,
+    ],
+    "variants": [
+      "black",
+      "black-blaze",
+    ],
+  },
+]
+`;
+
+exports[`seeded spawn baselines > the real shard manifests retain species, counts, variants, spots and rings > pine seeded layout and dens 1`] = `
+[
+  {
+    "anchor": {
+      "rMax": 20,
+      "rMin": 0,
+      "x": -237,
+      "z": -232,
+    },
+    "canopy": false,
+    "count": 4,
+    "kind": "deer",
+    "trailBand": [
+      10,
+      174,
+    ],
+    "variants": undefined,
+  },
+  {
+    "anchor": {
+      "rMax": 20,
+      "rMin": 0,
+      "x": -156,
+      "z": -227,
+    },
+    "canopy": false,
+    "count": 4,
+    "kind": "elk",
+    "trailBand": [
+      15,
+      123,
+    ],
+    "variants": undefined,
+  },
+  {
+    "anchor": {
+      "rMax": 20,
+      "rMin": 0,
+      "x": -127,
+      "z": -221,
+    },
+    "canopy": true,
+    "count": 3,
+    "kind": "boar",
+    "trailBand": [
+      12,
+      113,
+    ],
+    "variants": undefined,
+  },
+  {
+    "anchor": {
+      "rMax": 20,
+      "rMin": 0,
+      "x": 62,
+      "z": -234,
+    },
+    "canopy": true,
+    "count": 3,
+    "kind": "boar",
+    "trailBand": [
+      12,
+      92,
+    ],
+    "variants": undefined,
+  },
+  {
+    "anchor": {
+      "rMax": 20,
+      "rMin": 0,
+      "x": 110,
+      "z": -218,
+    },
+    "canopy": false,
+    "count": 4,
+    "kind": "deer",
+    "trailBand": [
+      10,
+      141,
+    ],
+    "variants": undefined,
+  },
+  {
+    "anchor": {
+      "rMax": 20,
+      "rMin": 0,
+      "x": 219,
+      "z": -235,
+    },
+    "canopy": true,
+    "count": 2,
+    "kind": "boar",
+    "trailBand": [
+      12,
+      250,
+    ],
+    "variants": undefined,
+  },
+  {
+    "anchor": {
+      "rMax": 20,
+      "rMin": 0,
+      "x": -218,
+      "z": -159,
+    },
+    "canopy": false,
+    "count": 4,
+    "kind": "deer",
+    "trailBand": [
+      10,
+      113,
+    ],
+    "variants": undefined,
+  },
+  {
+    "anchor": {
+      "rMax": 20,
+      "rMin": 0,
+      "x": -45,
+      "z": -180,
+    },
+    "canopy": true,
+    "count": 2,
+    "kind": "boar",
+    "trailBand": [
+      12,
+      73,
+    ],
+    "variants": undefined,
+  },
+  {
+    "anchor": {
+      "rMax": 20,
+      "rMin": 0,
+      "x": -1,
+      "z": -157,
+    },
+    "canopy": true,
+    "count": 2,
+    "kind": "boar",
+    "trailBand": [
+      12,
+      40,
+    ],
+    "variants": undefined,
+  },
+  {
+    "anchor": {
+      "rMax": 20,
+      "rMin": 0,
+      "x": 51,
+      "z": -158,
+    },
+    "canopy": false,
+    "count": 4,
+    "kind": "deer",
+    "trailBand": [
+      10,
+      87,
+    ],
+    "variants": undefined,
+  },
+  {
+    "anchor": {
+      "rMax": 20,
+      "rMin": 0,
+      "x": 97,
+      "z": -179,
+    },
+    "canopy": false,
+    "count": 4,
+    "kind": "deer",
+    "trailBand": [
+      10,
+      128,
+    ],
+    "variants": undefined,
+  },
+  {
+    "anchor": {
+      "rMax": 20,
+      "rMin": 0,
+      "x": 178,
+      "z": -163,
+    },
+    "canopy": false,
+    "count": 4,
+    "kind": "deer",
+    "trailBand": [
+      10,
+      191,
+    ],
+    "variants": undefined,
+  },
+  {
+    "anchor": {
+      "rMax": 20,
+      "rMin": 0,
+      "x": 225,
+      "z": -159,
+    },
+    "canopy": true,
+    "count": 3,
+    "kind": "boar",
+    "trailBand": [
+      12,
+      189,
+    ],
+    "variants": undefined,
+  },
+  {
+    "anchor": {
+      "rMax": 20,
+      "rMin": 0,
+      "x": -229,
+      "z": -120,
+    },
+    "canopy": false,
+    "count": 3,
+    "kind": "deer",
+    "trailBand": [
+      10,
+      111,
+    ],
+    "variants": undefined,
+  },
+  {
+    "anchor": {
+      "rMax": 20,
+      "rMin": 0,
+      "x": -115,
+      "z": -101,
+    },
+    "canopy": false,
+    "count": 4,
+    "kind": "deer",
+    "trailBand": [
+      10,
+      59,
+    ],
+    "variants": undefined,
+  },
+  {
+    "anchor": {
+      "rMax": 20,
+      "rMin": 0,
+      "x": -56,
+      "z": -103,
+    },
+    "canopy": false,
+    "count": 2,
+    "kind": "elk",
+    "trailBand": [
+      15,
+      57,
+    ],
+    "variants": undefined,
+  },
+  {
+    "anchor": {
+      "rMax": 20,
+      "rMin": 0,
+      "x": 2,
+      "z": -106,
+    },
+    "canopy": true,
+    "count": 2,
+    "kind": "boar",
+    "trailBand": [
+      12,
+      53,
+    ],
+    "variants": undefined,
+  },
+  {
+    "anchor": {
+      "rMax": 20,
+      "rMin": 0,
+      "x": 65,
+      "z": -110,
+    },
+    "canopy": true,
+    "count": 2,
+    "kind": "boar",
+    "trailBand": [
+      12,
+      110,
+    ],
+    "variants": undefined,
+  },
+  {
+    "anchor": {
+      "rMax": 20,
+      "rMin": 0,
+      "x": 160,
+      "z": -103,
+    },
+    "canopy": false,
+    "count": 3,
+    "kind": "deer",
+    "trailBand": [
+      10,
+      129,
+    ],
+    "variants": undefined,
+  },
+  {
+    "anchor": {
+      "rMax": 20,
+      "rMin": 0,
+      "x": 225,
+      "z": -124,
+    },
+    "canopy": true,
+    "count": 2,
+    "kind": "boar",
+    "trailBand": [
+      12,
+      154,
+    ],
+    "variants": undefined,
+  },
+  {
+    "anchor": {
+      "rMax": 20,
+      "rMin": 0,
+      "x": -235,
+      "z": -70,
+    },
+    "canopy": true,
+    "count": 2,
+    "kind": "boar",
+    "trailBand": [
+      12,
+      101,
+    ],
+    "variants": undefined,
+  },
+  {
+    "anchor": {
+      "rMax": 20,
+      "rMin": 0,
+      "x": -154,
+      "z": -57,
+    },
+    "canopy": true,
+    "count": 2,
+    "kind": "boar",
+    "trailBand": [
+      12,
+      54,
+    ],
+    "variants": undefined,
+  },
+  {
+    "anchor": {
+      "rMax": 20,
+      "rMin": 0,
+      "x": -104,
+      "z": -59,
+    },
+    "canopy": false,
+    "count": 4,
+    "kind": "elk",
+    "trailBand": [
+      15,
+      56,
+    ],
+    "variants": undefined,
+  },
+  {
+    "anchor": {
+      "rMax": 20,
+      "rMin": 0,
+      "x": -70,
+      "z": -56,
+    },
+    "canopy": false,
+    "count": 4,
+    "kind": "deer",
+    "trailBand": [
+      10,
+      69,
+    ],
+    "variants": undefined,
+  },
+  {
+    "anchor": {
+      "rMax": 20,
+      "rMin": 0,
+      "x": 61,
+      "z": -66,
+    },
+    "canopy": false,
+    "count": 3,
+    "kind": "deer",
+    "trailBand": [
+      10,
+      103,
+    ],
+    "variants": undefined,
+  },
+  {
+    "anchor": {
+      "rMax": 20,
+      "rMin": 0,
+      "x": 109,
+      "z": -58,
+    },
+    "canopy": false,
+    "count": 3,
+    "kind": "deer",
+    "trailBand": [
+      10,
+      102,
+    ],
+    "variants": undefined,
+  },
+  {
+    "anchor": {
+      "rMax": 20,
+      "rMin": 0,
+      "x": 213,
+      "z": -67,
+    },
+    "canopy": true,
+    "count": 2,
+    "kind": "boar",
+    "trailBand": [
+      12,
+      97,
+    ],
+    "variants": undefined,
+  },
+  {
+    "anchor": {
+      "rMax": 20,
+      "rMin": 0,
+      "x": -210,
+      "z": 1,
+    },
+    "canopy": false,
+    "count": 3,
+    "kind": "deer",
+    "trailBand": [
+      10,
+      32,
+    ],
+    "variants": undefined,
+  },
+  {
+    "anchor": {
+      "rMax": 20,
+      "rMin": 0,
+      "x": -164,
+      "z": 0,
+    },
+    "canopy": false,
+    "count": 4,
+    "kind": "deer",
+    "trailBand": [
+      10,
+      33,
+    ],
+    "variants": undefined,
+  },
+  {
+    "anchor": {
+      "rMax": 20,
+      "rMin": 0,
+      "x": -97,
+      "z": -3,
+    },
+    "canopy": false,
+    "count": 3,
+    "kind": "deer",
+    "trailBand": [
+      10,
+      41,
+    ],
+    "variants": undefined,
+  },
+  {
+    "anchor": {
+      "rMax": 20,
+      "rMin": 0,
+      "x": -59,
+      "z": -3,
+    },
+    "canopy": true,
+    "count": 2,
+    "kind": "boar",
+    "trailBand": [
+      12,
+      45,
+    ],
+    "variants": undefined,
+  },
+  {
+    "anchor": {
+      "rMax": 20,
+      "rMin": 0,
+      "x": 13,
+      "z": 9,
+    },
+    "canopy": false,
+    "count": 4,
+    "kind": "deer",
+    "trailBand": [
+      10,
+      40,
+    ],
+    "variants": undefined,
+  },
+  {
+    "anchor": {
+      "rMax": 20,
+      "rMin": 0,
+      "x": 51,
+      "z": -4,
+    },
+    "canopy": false,
+    "count": 4,
+    "kind": "deer",
+    "trailBand": [
+      10,
+      42,
+    ],
+    "variants": undefined,
+  },
+  {
+    "anchor": {
+      "rMax": 20,
+      "rMin": 0,
+      "x": 100,
+      "z": -3,
+    },
+    "canopy": false,
+    "count": 4,
+    "kind": "elk",
+    "trailBand": [
+      15,
+      48,
+    ],
+    "variants": undefined,
+  },
+  {
+    "anchor": {
+      "rMax": 20,
+      "rMin": 0,
+      "x": 233,
+      "z": -9,
+    },
+    "canopy": false,
+    "count": 4,
+    "kind": "deer",
+    "trailBand": [
+      10,
+      40,
+    ],
+    "variants": undefined,
+  },
+  {
+    "anchor": {
+      "rMax": 20,
+      "rMin": 0,
+      "x": -224,
+      "z": 70,
+    },
+    "canopy": true,
+    "count": 3,
+    "kind": "boar",
+    "trailBand": [
+      12,
+      100,
+    ],
+    "variants": undefined,
+  },
+  {
+    "anchor": {
+      "rMax": 20,
+      "rMin": 0,
+      "x": -107,
+      "z": 44,
+    },
+    "canopy": true,
+    "count": 3,
+    "kind": "boar",
+    "trailBand": [
+      12,
+      86,
+    ],
+    "variants": undefined,
+  },
+  {
+    "anchor": {
+      "rMax": 20,
+      "rMin": 0,
+      "x": -57,
+      "z": 49,
+    },
+    "canopy": false,
+    "count": 3,
+    "kind": "deer",
+    "trailBand": [
+      10,
+      75,
+    ],
+    "variants": undefined,
+  },
+  {
+    "anchor": {
+      "rMax": 20,
+      "rMin": 0,
+      "x": 13,
+      "z": 65,
+    },
+    "canopy": false,
+    "count": 4,
+    "kind": "deer",
+    "trailBand": [
+      10,
+      40,
+    ],
+    "variants": undefined,
+  },
+  {
+    "anchor": {
+      "rMax": 20,
+      "rMin": 0,
+      "x": 125,
+      "z": 64,
+    },
+    "canopy": false,
+    "count": 4,
+    "kind": "deer",
+    "trailBand": [
+      10,
+      83,
+    ],
+    "variants": undefined,
+  },
+  {
+    "anchor": {
+      "rMax": 20,
+      "rMin": 0,
+      "x": 170,
+      "z": 46,
+    },
+    "canopy": false,
+    "count": 3,
+    "kind": "deer",
+    "trailBand": [
+      10,
+      71,
+    ],
+    "variants": undefined,
+  },
+  {
+    "anchor": {
+      "rMax": 20,
+      "rMin": 0,
+      "x": 229,
+      "z": 63,
+    },
+    "canopy": true,
+    "count": 3,
+    "kind": "boar",
+    "trailBand": [
+      12,
+      93,
+    ],
+    "variants": undefined,
+  },
+  {
+    "anchor": {
+      "rMax": 20,
+      "rMin": 0,
+      "x": -176,
+      "z": 108,
+    },
+    "canopy": false,
+    "count": 4,
+    "kind": "elk",
+    "trailBand": [
+      15,
+      136,
+    ],
+    "variants": undefined,
+  },
+  {
+    "anchor": {
+      "rMax": 20,
+      "rMin": 0,
+      "x": -45,
+      "z": 105,
+    },
+    "canopy": false,
+    "count": 3,
+    "kind": "deer",
+    "trailBand": [
+      10,
+      42,
+    ],
+    "variants": undefined,
+  },
+  {
+    "anchor": {
+      "rMax": 20,
+      "rMin": 0,
+      "x": -13,
+      "z": 101,
+    },
+    "canopy": true,
+    "count": 3,
+    "kind": "boar",
+    "trailBand": [
+      12,
+      46,
+    ],
+    "variants": undefined,
+  },
+  {
+    "anchor": {
+      "rMax": 20,
+      "rMin": 0,
+      "x": 63,
+      "z": 114,
+    },
+    "canopy": true,
+    "count": 2,
+    "kind": "boar",
+    "trailBand": [
+      12,
+      40,
+    ],
+    "variants": undefined,
+  },
+  {
+    "anchor": {
+      "rMax": 20,
+      "rMin": 0,
+      "x": 161,
+      "z": 122,
+    },
+    "canopy": false,
+    "count": 4,
+    "kind": "elk",
+    "trailBand": [
+      15,
+      53,
+    ],
+    "variants": undefined,
+  },
+  {
+    "anchor": {
+      "rMax": 20,
+      "rMin": 0,
+      "x": 225,
+      "z": 103,
+    },
+    "canopy": true,
+    "count": 2,
+    "kind": "boar",
+    "trailBand": [
+      12,
+      109,
+    ],
+    "variants": undefined,
+  },
+  {
+    "anchor": {
+      "rMax": 20,
+      "rMin": 0,
+      "x": -236,
+      "z": 159,
+    },
+    "canopy": false,
+    "count": 3,
+    "kind": "deer",
+    "trailBand": [
+      10,
+      188,
+    ],
+    "variants": undefined,
+  },
+  {
+    "anchor": {
+      "rMax": 20,
+      "rMin": 0,
+      "x": -176,
+      "z": 165,
+    },
+    "canopy": true,
+    "count": 2,
+    "kind": "boar",
+    "trailBand": [
+      12,
+      130,
+    ],
+    "variants": undefined,
+  },
+  {
+    "anchor": {
+      "rMax": 20,
+      "rMin": 0,
+      "x": -42,
+      "z": 176,
+    },
+    "canopy": true,
+    "count": 3,
+    "kind": "boar",
+    "trailBand": [
+      12,
+      71,
+    ],
+    "variants": undefined,
+  },
+  {
+    "anchor": {
+      "rMax": 20,
+      "rMin": 0,
+      "x": 13,
+      "z": 155,
+    },
+    "canopy": true,
+    "count": 3,
+    "kind": "boar",
+    "trailBand": [
+      12,
+      45,
+    ],
+    "variants": undefined,
+  },
+  {
+    "anchor": {
+      "rMax": 20,
+      "rMin": 0,
+      "x": 58,
+      "z": 170,
+    },
+    "canopy": false,
+    "count": 4,
+    "kind": "deer",
+    "trailBand": [
+      10,
+      61,
+    ],
+    "variants": undefined,
+  },
+  {
+    "anchor": {
+      "rMax": 10,
+      "rMin": 0,
+      "x": 196,
+      "z": 192,
+    },
+    "canopy": false,
+    "count": 2,
+    "kind": "bear",
+    "trailBand": [
+      18,
+      220,
+    ],
+    "variants": [
+      "black",
+      "black-blaze",
+      "black-old",
+    ],
+  },
+  {
+    "anchor": {
+      "rMax": 10,
+      "rMin": 0,
+      "x": 182,
+      "z": 172,
+    },
+    "canopy": false,
+    "count": 1,
+    "kind": "bear",
+    "trailBand": [
+      18,
+      220,
+    ],
+    "variants": [
+      "brown",
+      "brown-old",
+    ],
+  },
+]
+`;

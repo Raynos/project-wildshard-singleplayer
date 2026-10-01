@@ -1,12 +1,12 @@
 import * as THREE from 'three';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+import { app } from '#engine/app/runtime';
 import { damageFor } from '#engine/entities/Animal';
 import { Crossbow, type TargetHit } from '#engine/player/Crossbow';
 import { Projectiles } from '#engine/player/Projectiles';
 import { boltDamage } from '#shards/pine-hollow/loadout/ammo';
 import { legacyActor, invokeLegacy, damageTarget } from '../fake/legacyActor';
 import { legacyHurtFixture } from '../fake/legacyHurt';
-import { seedRandom } from '../fake/FakeGame';
 import { fakeWorld } from '../fake/world';
 
 const attacker = (kind = 'boar') => ({ kind, label: kind, position: new THREE.Vector3(2, 0, 0) });
@@ -50,13 +50,13 @@ describe('current executable damage rules (09 §3.6)', () => {
     expect(f.crossbow.addBolts).toHaveBeenCalledWith(18); expect(f.refill).toHaveBeenCalledTimes(2);
     expect(f.api.killer).toBeNull();
   });
-  it('seeded old damageFor gives identical 20 rolls and preserves body/head distance falloff (B5 moves the RNG only)', () => {
-    const sequence = (): number[] => { const restore = seedRandom(42); try { return Array.from({ length: 20 }, () => damageFor(false, 20)); } finally { restore(); } };
+  it('seeded gameplay damageFor gives identical 20 rolls and preserves body/head distance falloff (B5)', () => {
+    const sequence = (): number[] => { app.rng.seed(42); return Array.from({ length: 20 }, () => damageFor(false, 20)); };
     const rolls = sequence(); expect(sequence()).toEqual(rolls);
     expect(Math.min(...rolls)).toBeGreaterThanOrEqual(32); expect(Math.max(...rolls)).toBeLessThanOrEqual(40);
     for (const [head, distance, expected] of [[false, 20, 36], [true, 20, 90], [false, 65, 29], [true, 90, 54]] as const) {
-      const original = Math.random; Math.random = () => 0.5;
-      try { expect(damageFor(head, distance)).toBe(expected); } finally { Math.random = original; }
+      const draw = vi.spyOn(app.rng.stream('gameplay'), 'next').mockReturnValue(0.5);
+      try { expect(damageFor(head, distance)).toBe(expected); } finally { draw.mockRestore(); }
     }
   });
   it('variant shrug rounds before the species rule and a headshot skips only the variant shrug', () => {
