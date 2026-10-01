@@ -93,7 +93,10 @@ export class CombatPipeline {
   }
   hit(input: DamageRequest): DamageDealt | null {
     if (!input.target.alive) return null;
-    const req = input.source === 'env' ? input : { ...input, sourceTags: [...input.sourceTags, ...input.source.tags, ...input.source.state] };
+    // Raycast/weapon scratch vectors are reused; queued listeners must see this hit's contact frame.
+    const req: DamageRequest = { ...input, point: input.point.clone(), dir: input.dir.clone(),
+      ...(input.from === undefined ? {} : { from: input.from.clone() }),
+      sourceTags: input.source === 'env' ? [...input.sourceTags] : [...input.sourceTags, ...input.source.tags, ...input.source.state] };
     const physics = this.physics();
     if (req.from !== undefined && !req.throughWalls && !matches(req.sourceTags, 'through.walls') && !matches(req.sourceTags, 'cover.checked')
       && physics !== null && !lineOfSight(physics, req.from, req.point)) return null;

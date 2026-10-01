@@ -169,4 +169,15 @@ describe('public combat.hit rules, events and player health', () => {
     f.combat.rule({ id: 'rule.veto', order: 21, when: { sourceTags: ['env.test'] }, op: 'negate', value: 0 }, f.scope);
     expect(f.combat.hit(req)).toBeNull(); f.events.flush('update'); expect(seen).toHaveLength(1);
   });
+  it('queued damage retains the hit frame when a weapon reuses its raycast scratch vectors', () => {
+    const f = legacyHurtFixture(), seen: DamageDealt[] = [];
+    f.events.on('damage.dealt', (event) => { seen.push(event); }, f.scope);
+    const req = { ...request(f, ['env.test'], 7), from: new THREE.Vector3(3, 4, 5) };
+    f.combat.hit(req);
+    req.point.set(100, 100, 100); req.dir.set(1, 0, 0); req.from.set(0, 0, 0);
+    f.events.flush('update');
+    expect(seen[0]?.req.point.toArray()).toEqual([2, 0, 0]);
+    expect(seen[0]?.req.dir.toArray()).toEqual([0, 0, 0]);
+    expect(seen[0]?.req.from?.toArray()).toEqual([3, 4, 5]);
+  });
 });
