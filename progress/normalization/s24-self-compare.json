@@ -1,0 +1,388 @@
+{
+  "before": "152c540966efb739265b53cd17ce0f60b14637d1",
+  "after": "b3a71ff8a5a7220e8f269f3be44bad4219f50a0f",
+  "sourceFollowup": "d3186b186ba1d824f1852bc006fef809e45a113e",
+  "scope": "all four shards, phone, fingerprint+poses; own before/after, not B27 baseline",
+  "results": {
+    "driftwood-isle": {
+      "errors": [],
+      "poses": [
+        {
+          "name": "pier",
+          "ssim": 0.9901511563179258,
+          "full": 0.9904164512197106,
+          "masked": 0.027
+        },
+        {
+          "name": "beach",
+          "ssim": 0.991397248395669,
+          "full": 0.9918441588178465,
+          "masked": 0.052
+        },
+        {
+          "name": "wreck",
+          "ssim": 0.999960871659502,
+          "full": 0.9999532670501333,
+          "masked": 0.129
+        }
+      ],
+      "differences": [
+        {
+          "field": "boot.systems.input",
+          "baseline": [
+            "player.input"
+          ],
+          "now": [
+            "engine.input.collect",
+            "engine.lockon.input",
+            "engine.player.input"
+          ],
+          "class": "A",
+          "band": "exact",
+          "verdict": "red"
+        },
+        {
+          "field": "boot.systems.late",
+          "baseline": [],
+          "now": [
+            "engine.hud.pins"
+          ],
+          "class": "A",
+          "band": "exact",
+          "verdict": "red"
+        }
+      ],
+      "exact": {
+        "render": true,
+        "scene": true,
+        "registry": true,
+        "registryModels": true,
+        "physics": true
+      },
+      "gpuBytes": {
+        "before": {
+          "textures": 91509608,
+          "renderbuffers": 10877184,
+          "buffers": 127709473,
+          "total": 230096265
+        },
+        "after": {
+          "textures": 91509608,
+          "renderbuffers": 10877184,
+          "buffers": 127709473,
+          "total": 230096265
+        }
+      }
+    },
+    "nalati-grasslands": {
+      "errors": [],
+      "poses": [
+        {
+          "name": "camp",
+          "ssim": 1,
+          "full": 1,
+          "masked": 0.271
+        },
+        {
+          "name": "bridge",
+          "ssim": 0.9999997314853184,
+          "full": 0.9999997350717224,
+          "masked": 0.013
+        },
+        {
+          "name": "plains",
+          "ssim": 1,
+          "full": 1,
+          "masked": 0.112
+        }
+      ],
+      "differences": [
+        {
+          "field": "boot.systems.input",
+          "baseline": [
+            "player.input"
+          ],
+          "now": [
+            "engine.input.collect",
+            "engine.lockon.input",
+            "engine.player.input"
+          ],
+          "class": "A",
+          "band": "exact",
+          "verdict": "red"
+        },
+        {
+          "field": "boot.systems.late",
+          "baseline": [
+            "nalati-reins"
+          ],
+          "now": [
+            "nalati-reins",
+            "engine.hud.pins"
+          ],
+          "class": "A",
+          "band": "exact",
+          "verdict": "red"
+        }
+      ],
+      "exact": {
+        "render": true,
+        "scene": true,
+        "registry": true,
+        "registryModels": true,
+        "physics": true
+      },
+      "gpuBytes": {
+        "before": {
+          "textures": 136202680,
+          "renderbuffers": 41060224,
+          "buffers": 73219036,
+          "total": 250481940
+        },
+        "after": {
+          "textures": 136202680,
+          "renderbuffers": 41060224,
+          "buffers": 73219036,
+          "total": 250481940
+        }
+      }
+    },
+    "nine-dragon-stack": {
+      "errors": [],
+      "poses": [
+        {
+          "name": "spawn-rail",
+          "ssim": 1,
+          "full": 1,
+          "masked": 0
+        },
+        {
+          "name": "well-edge",
+          "ssim": 1,
+          "full": 1,
+          "masked": 0
+        },
+        {
+          "name": "stair-street",
+          "ssim": 0.9991762977566658,
+          "full": 0.9991762977566658,
+          "masked": 0
+        }
+      ],
+      "differences": [
+        {
+          "field": "boot.systems.input",
+          "baseline": [
+            "player.input"
+          ],
+          "now": [
+            "engine.input.collect",
+            "shard.nd.feizhua.input",
+            "engine.lockon.input",
+            "engine.player.input"
+          ],
+          "class": "A",
+          "band": "exact",
+          "verdict": "red"
+        },
+        {
+          "field": "boot.systems.update",
+          "baseline": [
+            "player.update",
+            "shard.nd.world",
+            "shard.nd.audio",
+            "world.impacts",
+            "engine.player.for",
+            "training-arena",
+            "fei-zhua",
+            "hud.perf",
+            "engine.world.bounds",
+            "main.6",
+            "hud.combat",
+            "first hints",
+            "main.frame",
+            "engine.player.regen",
+            "engine.player.hud"
+          ],
+          "now": [
+            "player.update",
+            "shard.nd.world",
+            "shard.nd.audio",
+            "world.impacts",
+            "engine.player.for",
+            "training-arena",
+            "hud.perf",
+            "engine.world.bounds",
+            "main.6",
+            "hud.combat",
+            "first hints",
+            "main.frame",
+            "engine.player.regen",
+            "engine.player.hud",
+            "fei-zhua"
+          ],
+          "class": "A",
+          "band": "exact",
+          "verdict": "red"
+        },
+        {
+          "field": "boot.systems.late",
+          "baseline": [],
+          "now": [
+            "engine.hud.pins"
+          ],
+          "class": "A",
+          "band": "exact",
+          "verdict": "red"
+        }
+      ],
+      "exact": {
+        "render": true,
+        "scene": true,
+        "registry": true,
+        "registryModels": true,
+        "physics": true
+      },
+      "gpuBytes": {
+        "before": {
+          "textures": 132209223,
+          "renderbuffers": 1572864,
+          "buffers": 133539488,
+          "total": 267321575
+        },
+        "after": {
+          "textures": 132209223,
+          "renderbuffers": 1572864,
+          "buffers": 133539488,
+          "total": 267321575
+        }
+      }
+    },
+    "pine-hollow": {
+      "errors": [],
+      "poses": [
+        {
+          "name": "gate",
+          "ssim": 0.9944497316083825,
+          "full": 0.9949251810954163,
+          "masked": 0.086
+        },
+        {
+          "name": "cabin",
+          "ssim": 0.9883439618903543,
+          "full": 0.9890081803401153,
+          "masked": 0.063
+        },
+        {
+          "name": "pond",
+          "ssim": 0.9863578117815643,
+          "full": 0.9864989838690581,
+          "masked": 0.026
+        }
+      ],
+      "differences": [
+        {
+          "field": "boot.systems.input",
+          "baseline": [
+            "player.input"
+          ],
+          "now": [
+            "engine.input.collect",
+            "engine.lockon.input",
+            "engine.player.input"
+          ],
+          "class": "A",
+          "band": "exact",
+          "verdict": "red"
+        },
+        {
+          "field": "boot.systems.late",
+          "baseline": [],
+          "now": [
+            "engine.hud.pins"
+          ],
+          "class": "A",
+          "band": "exact",
+          "verdict": "red"
+        },
+        {
+          "field": "boot.gpuBytes.buffers",
+          "baseline": 41667444,
+          "now": 41678964,
+          "class": "B",
+          "band": "\u00b1 0",
+          "verdict": "red"
+        },
+        {
+          "field": "boot.gpuBytes.total",
+          "baseline": 609397324,
+          "now": 609408844,
+          "class": "B",
+          "band": "\u00b1 0",
+          "verdict": "red"
+        },
+        {
+          "field": "poses.gate.tris",
+          "baseline": 1152418,
+          "now": 1174494,
+          "class": "B",
+          "band": "\u00b1 0",
+          "verdict": "red"
+        },
+        {
+          "field": "poses.cabin.tris",
+          "baseline": 1324294,
+          "now": 1340342,
+          "class": "B",
+          "band": "\u00b1 0",
+          "verdict": "red"
+        },
+        {
+          "field": "poses.cabin.ssim",
+          "baseline": 1,
+          "now": 0.9883439618903543,
+          "class": "B",
+          "band": "\u2265 0.99",
+          "verdict": "red"
+        },
+        {
+          "field": "poses.pond.tris",
+          "baseline": 950098,
+          "now": 972634,
+          "class": "B",
+          "band": "\u00b1 0",
+          "verdict": "red"
+        },
+        {
+          "field": "poses.pond.ssim",
+          "baseline": 1,
+          "now": 0.9863578117815643,
+          "class": "B",
+          "band": "\u2265 0.99",
+          "verdict": "red"
+        }
+      ],
+      "exact": {
+        "render": true,
+        "scene": true,
+        "registry": true,
+        "registryModels": true,
+        "physics": true
+      },
+      "gpuBytes": {
+        "before": {
+          "textures": 567729880,
+          "renderbuffers": 0,
+          "buffers": 41667444,
+          "total": 609397324
+        },
+        "after": {
+          "textures": 567729880,
+          "renderbuffers": 0,
+          "buffers": 41678964,
+          "total": 609408844
+        }
+      }
+    }
+  }
+}

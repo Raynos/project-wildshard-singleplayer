@@ -1,31 +1,7 @@
 /**
- * Day clock (was DayNight.ts on the Nalati branch; main's DayNight.ts is Driftwood's clock) — an engine-generic clock and the sky rig it drives (Nalati B10; Driftwood D38 wants the same clock).
- *
- * A shard that wants time to pass builds one; a shard that does not (Pine Hollow, Driftwood today) never constructs it,
- * so its fixed sun, fog and grade stay exactly as its ShardManifest paints them.
- *
- *   const clock = new DayClock({ start: DayClock.hourOfSun(def.sky.sun) });   // start where the def's sun stands
- *   clock.update(dt)                    // every frame
- *   clock.hour / clock.dayPhase            // 0..24 · 'dawn' | 'day' | 'golden' | 'dusk' | 'night'
- *   clock.sunElevation / sunAzimuth     // degrees (compass azimuth: 0 = north = +Z, 90 = east = −X)
- *   clock.onDusk(fn) · onNight(fn) · onDawn(fn) · onDay(fn) · onGolden(fn)   // fire on entering the phase (fn(phase, prev))
- *   clock.onPhase(fn)                   // every phase change
- *   clock.set('dusk') / clock.set(21.5) // jump (dev `?time=dusk`); fires the phase event
- *   clock.scale = 2 · clock.paused = true
- *
- *   const rig = new SkyRig(game, sky);   // takes over the background (a painted dome), captures the def's look as "day"
- *   rig.look(clock, out)                 // the time-of-day look → out (a SkyLook); weather may modify it
- *   rig.apply(look, dt)                  // write it into the sun / moon (CSM), hemisphere, env, fog, clouds, planet, grade,
- *                                        //   volumetrics, the painterly uniforms and the sky dome
- *
- * The day passes on a play-time schedule, not a real 24 h one: each phase has its own length in minutes of play
- * (`DEFAULT_SCHEDULE`: a full day ≈ 26 min — a long day, a quick golden hour and dusk, a 7-minute night). Within a
- * phase the hour runs linearly, and the sun follows a simple arc: rises in the east at 06:00, stands `maxElevation`
- * high in the south at noon, sets in the west at 18:00. At night the key light is the MOON (the sun disc becomes the
- * moon, the CSM light turns pale blue and dim), so the painterly cel bands and shadows keep working in the dark.
- *
- * The look is key-framed on the sun's elevation (`KEYS`); the "day" key is whatever the shard's def paints (read off
- * the live rig when `SkyRig` is built), so at the def's own sun position nothing changes.
+ * SkyRig applies a shared DayCycle and authored keyframes to the existing sky, lighting,
+ * fog, clouds and post effects. Clock arithmetic and phase events live in dayCycle.ts;
+ * elevation keys and interpolation policy belong to the shard's look data.
  */
 import * as THREE from 'three';
 import type { Game } from '../core/Game';

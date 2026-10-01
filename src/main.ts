@@ -543,12 +543,10 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   if (fieldModels) await stage('fieldModels', async () => { (await fieldModels)({ sky, renderer: game.renderer, forest, under: null, registry }); });
   const roster = await stage('roster', () => chunk.roster?.());
   await stage('roster', () => listShardModels({ roster: roster === undefined ? undefined : () => Promise.resolve(roster), style: chunk.style, sky, renderer: game.renderer, animals: () => animals.animals, registry })); // every shard's live models in its Model Explorer (E315 M5): the shared training dummy, its creatures (its species list, alive now or not), people and gear
-  const dayNight = sky.dayNight; // the low-poly shard's clock (DayNight.ts, D3): the sailor walks at night, the shrine glows, the jungle swaps to crickets
+  const dayNight = sky.dayNight; // the backdrop's shared clock drives night activity
   if (dayNight) animals.enemyWorld.night = () => dayNight.night;
-  // the day clock behind one interface (src/engine/world/WorldClock.ts, NALATI-MERGE F8): Driftwood's DayNight or Nalati's DayClock —
-  // Settings ▸ Time of day, Explore's light presets and the HUD's sun / moon glyph reach either (a URL ?time= wins on Nalati)
+  // The resident clock drives Settings, Explore light presets and the HUD day badge.
   const nalatiClock = nalatiNow()?.weather.clock;
-  // Pine Hollow's clock (PineDayNight) keeps its own Settings (Debug ▸ Time of day): only Driftwood's DayNight goes through WorldClock
   const worldClock = dayNight ?? nalatiClock ?? null;
   if (nalatiClock && !params.has('time')) nalatiClock.setTime(setting('time'));
   app.registerDayCycle(worldClock, game.levelScope);
