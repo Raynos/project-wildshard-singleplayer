@@ -7,7 +7,6 @@ import { CROSSBOW, LONGBOW, LEVER } from '#shards/pine-hollow/weapons/equipment'
 import { Sword } from '#kit/weapons/melee/SweptMelee';
 import { Bow } from '#kit/weapons/bow/index';
 import { Crossbow } from '#kit/weapons/crossbow/Crossbow';
-import { Longbow } from '#shards/pine-hollow/weapons/Longbow';
 import { Rifle } from '#kit/weapons/firearm/Rifle';
 import { Sabre } from '#shards/nalati-grasslands/weapons/Sabre';
 import { Spear } from '#shards/nalati-grasslands/weapons/Spear';
@@ -33,7 +32,7 @@ describe('C2 concrete weapon and UI row contracts', () => {
       ['weapon.longbow', 'bow', false, false, false, 4], ['weapon.lever', 'ranged', false, false, true, 7],
     ]);
   });
-  it.each([Sword, Bow, Crossbow, Longbow, Rifle, Sabre, Spear, LeverRifle])('%s inherits the concrete Weapon class', (weapon) => {
+  it.each([Sword, Bow, Crossbow, Rifle, Sabre, Spear, LeverRifle])('%s inherits the concrete Weapon class', (weapon) => {
     expect(Object.prototype.isPrototypeOf.call(Weapon.prototype, weapon.prototype)).toBe(true);
     for (const method of ['install', 'dispose', 'setActive', 'tryFire', 'update']) expect(Reflect.get(weapon.prototype, method)).toBeTypeOf('function');
   });

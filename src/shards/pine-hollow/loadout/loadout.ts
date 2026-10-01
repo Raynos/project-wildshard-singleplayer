@@ -5,9 +5,9 @@ import * as valibot from 'valibot';
 import * as THREE from 'three';
 
 
-import { MAX_BOLTS, PLAIN_BOLT, type BoltMod, type Crossbow } from '#kit';
+import { MAX_BOLTS, PLAIN_BOLT, type BoltMod, type Crossbow, type Bow } from '#kit';
 import type { LeverRifle } from '../weapons/LeverRifle';
-import { QUIVER_MAX, type Longbow } from '#shards/pine-hollow/weapons/Longbow';
+import { QUIVER_MAX } from '#shards/pine-hollow/weapons/Longbow';
 import type { Inventory } from '#game/Inventory';
 import type { HUD } from '#engine/ui/HUD';
 import type { Audio } from '#engine/audio/Audio';
@@ -46,7 +46,7 @@ const savedSlot = saves.define({ key: 'loadout', scope: 'shard', version: 1, sch
  */
 
 export interface PineLoadoutHost {
-  scope: Scope; cues: CombatCues; scene: THREE.Scene; sky: Sky; weapons: EquipmentService; crossbow: Crossbow | null; rifle: LeverRifle; longbow: Longbow;
+  scope: Scope; cues: CombatCues; scene: THREE.Scene; sky: Sky; weapons: EquipmentService; crossbow: Crossbow | null; rifle: LeverRifle; longbow: Bow;
   inventory: Inventory; owned: Owned; hud: HUD; audio: Audio; params: URLSearchParams;
 }
 

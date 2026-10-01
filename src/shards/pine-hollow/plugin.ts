@@ -2,7 +2,7 @@ import { ShardPlugin, type ShardContext, installCompendium, type ShardRuntime } 
 import { loadWorldContent, macrotask, heightAt, installAiDebug } from '#engine';
 import * as THREE from 'three';
 import { CABIN_SITES } from './layout';
-import { Crossbow, STARTER_EFFECTS, installStarterEffects, crossbowDisplayModel, loadParticles, type Particles } from '#kit';
+import { Crossbow, Bow, STARTER_EFFECTS, installStarterEffects, crossbowDisplayModel, loadParticles, type Particles } from '#kit';
 import { Cabins } from './world/homestead';
 import { Undergrowth } from './world/undergrowth';
 import { Props } from './world/props';
@@ -19,7 +19,7 @@ import { installPineAudio } from './audio/wiring';
 import { ForestAmbience } from './audio/ambience';
 import { installWeather } from './world/weather';
 import { LeverRifle, preloadLeverModel } from './weapons/LeverRifle';
-import { Longbow } from './weapons/Longbow';
+import { LONGBOW as LONGBOW_PROFILE } from './weapons/longbowProfile';
 import { CROSSBOW, LEVER, LONGBOW } from './weapons/equipment';
 import { AMMO_ROWS } from './loadout/effects';
 import { PINE_FINISH_EFFECTS, pineFinishes, finishPick } from './loadout/finishes';
@@ -102,7 +102,7 @@ export class PineHollow extends ShardPlugin {
       await macrotask();
       const rifle = new LeverRifle(world, targets, { row: LEVER, allowUnlocked: nolock, woodFrom: primary.model });
       await macrotask();
-      const secondary = new Longbow(world, targets, { row: LONGBOW, allowUnlocked: nolock });
+      const secondary = new Bow(world, targets, { row: LONGBOW, profile: LONGBOW_PROFILE, allowUnlocked: nolock });
       return { primary, rifle, secondary };
     };
     ctx.rows.encounter({ id: KING_KIND, displayName: 'The Antler King', showHeadBar: false });
@@ -120,7 +120,7 @@ export class PineHollow extends ShardPlugin {
     const { animals, weapons, inventory, owned, hud, audio, music, skins, wearSkin, menu, progress, fullMap, touchUi, nolock } = h;
     const { cabins, landmarks, particles } = this;
     const rifle = h.rifle, longbow = h.secondary, crossbow = h.primary;
-    if (!(rifle instanceof LeverRifle) || !(longbow instanceof Longbow) || !(crossbow instanceof Crossbow)) throw new Error('Pine ranged kit was not built');
+    if (!(rifle instanceof LeverRifle) || !(longbow instanceof Bow) || !(crossbow instanceof Crossbow)) throw new Error('Pine ranged kit was not built');
     installAiDebug(ctx, { game, actors: () => animals.animals, player });
     rt.hooks.wearFinish = (id) => {
       const pick = finishPick(skins, id); if (!pick) return;
