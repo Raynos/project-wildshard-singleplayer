@@ -1,6 +1,5 @@
 import { retainCachedResources } from '#engine';
-// rigArms — the first-person arm player the skinned viewmodel rigs share (E334): Nine Dragon's jian arms
-// (src/shards/nine-dragon-stack/vm/fpArms.ts, round 13) and Driftwood's castaway arms (src/shards/driftwood-isle/fpArms.ts).
+// rigArms — the first-person arm player shared by the skinned viewmodel rigs (E334).
 //
 //   ClipChannel     one arm's clips: a base loop (idle ↔ walk by speed) under one-shot moves that CROSSFADE (80–150 ms),
 //                   so a move never restarts from a snap; a held pose (charge, sheathe) stays until the next play

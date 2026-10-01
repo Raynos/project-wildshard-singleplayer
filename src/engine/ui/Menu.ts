@@ -30,7 +30,7 @@ import { containMenuInput } from '../input/menuInput';
  * src/game/compendium/install.ts), GEAR's skins row is FINISHES, and each PACK item says what Mott gives for it (`pack`).
  * Nalati (E314 C, src/shards/nalati-grasslands/bag.ts): MAP · GEAR · FINDS · FEATS — no PACK (its Inventory has 0 slots), GEAR's SKINS row
  * lists every skin (the locked ones dim), FINDS is the elites and their prizes plus the places (`setFinds`).
- * Nine Dragon (E314 A, src/shards/nine-dragon-stack/bag.ts): MAP · GEAR — no PACK (0 slots) and no FEATS (0 achievements);
+ * A shard with no inventory slots or achievements gets MAP · GEAR;
  * GEAR names the Neon Jian and shows the Fei Zhua grapple as a card (`tools`). Which tabs a shard gets: bag.ts `bagTabs`.
  */
 import { getActiveChunk } from '#game/shard/registry';

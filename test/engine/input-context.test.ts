@@ -12,6 +12,9 @@ describe('additive input contexts', () => {
     input.press('attack'); expect(input.consume('attack')).toBe(true);
     expect(input.top).toBe('grapple'); expect(labels.lock?.label).toBe('Grapple');
     input.pop('grapple'); expect(labels.lock?.label).toBe('Lock');
+    const live = scope.census.disposers;
+    for (let i = 0; i < 20; i++) { input.push('grapple', scope); input.pop('grapple'); }
+    expect(scope.census.disposers).toBe(live);
     input.push('grapple', scope); scope.dispose(); expect(input.top).toBe(''); expect(labels).toEqual({});
   });
   it('blocks only named actions, while a blocking context can own its own action', () => {

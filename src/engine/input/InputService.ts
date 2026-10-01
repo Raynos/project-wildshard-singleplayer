@@ -9,6 +9,7 @@ interface Context { def: InputContextDef; scope: Scope }
 export class InputService {
   private readonly definitions = new Map<string, Context>();
   private readonly stack: Context[] = [];
+  private readonly pushed = new Map<string, () => void>();
   private readonly presses = new Map<Action, number>();
   private readonly down = new Set<Action>();
   private readonly ups = new Set<Action>();
@@ -26,9 +27,9 @@ export class InputService {
     if (entry === undefined) throw new Error(`Unknown input context: ${id}`);
     if (scope.disposed || this.stack.includes(entry)) return;
     this.stack.push(entry); this.repaint();
-    scope.onDispose(() => { this.pop(id); });
+    this.pushed.set(id, scope.capture('disposers', () => { this.pop(id); }));
   }
-  pop(id: string): void { const at = this.stack.findIndex((entry) => entry.def.id === id); if (at === -1) return; this.stack.splice(at, 1); this.repaint(); }
+  pop(id: string): void { const at = this.stack.findIndex((entry) => entry.def.id === id); if (at === -1) return; this.stack.splice(at, 1); this.pushed.get(id)?.(); this.pushed.delete(id); this.repaint(); }
   get top(): string { return this.stack.at(-1)?.def.id ?? ''; }
   private allowed(action: Action): boolean {
     for (const { def } of [...this.stack].reverse()) {

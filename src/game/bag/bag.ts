@@ -11,8 +11,7 @@
  *     loot:    Driftwood's (src/game/loot/install.ts): sharpening pips on the swords, HEALTH + its heart pips, the charm
  *              slot, the COSMETICS group (captain's hat, sailcloth cape: dim until owned, tap to wear / take off) and the
  *              PURSE. Absent on the other shards.
- *     tools:   gear that is not a weapon (no HOLD): Nine Dragon's Fei Zhua grapple (src/shards/nine-dragon-stack/bag.ts,
- *              E314 A), on the figure's carried side
+ *     tools:   metadata cards for gear that is not a weapon (no HOLD), on the figure's carried side
  *   renderFinds(panel, view)
  *     view: counters (SEA GLASS n/15 · PLACES n/9 · GLYPH SHARDS n/3), the next-charm line, sticker sections (TROPHIES,
  *           TREASURES: found bright, missing dashed "???"), and the 15 sea glass chips — Driftwood's (src/shards/driftwood-isle/loot/finds.ts).

@@ -19,8 +19,7 @@
  * MIN_DIST. The bottom third is the card's: a fixed height for every model (one-line path, name, stats, PART OF, budget).
  * A flat piece drawn from one side (a sign board, a roll shutter, a couplet: Nine Dragon's facade pieces face +z out of
  * their wall) opens facing its face, and the idle turn sways round its front instead of turning its blank back to you.
- * While a model is on show, `ws:turntable` tells the shard (Nine Dragon lights its specimens like a studio, not the
- * city's night: src/shards/nine-dragon-stack/look/specimenLight.ts).
+ * While a model is on show, `ws:turntable` lets the shard install its specimen lighting.
  */
 import * as THREE from 'three';
 import type { World } from '../core/bootstrap';

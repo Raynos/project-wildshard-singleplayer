@@ -89,7 +89,14 @@ export class LevelLoader {
       hud: {
         widget: (band, el, order) => own(hud().widget(band, el, order)),
         disc: (opts) => { const result = hud().disc(opts); own(result.dispose); return result.button; },
-        relabel: (spot, label, icon, appearance) => { const dispose = hud().relabel(spot, label, icon, appearance); own(dispose); return dispose; },
+        relabel: (spot, label, icon, appearance) => {
+          const dispose = hud().relabel(spot, label, icon, appearance);
+          let active = true;
+          let forget = (): void => { /* Assigned before this live scope can dispose. */ };
+          const release = (): void => { if (!active) return; active = false; forget(); dispose(); };
+          forget = scope.capture('disposers', release);
+          return release;
+        },
         verb: (slot, opts) => own(hud().verb(slot, opts)),
         pin: (at, el) => own(hud().pin(at, el)),
       },
