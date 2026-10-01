@@ -22,3 +22,5 @@ export { CROSSBOW_PROFILE, type CrossbowProfile } from './weapons/crossbow/profi
 export { Firearm } from './weapons/firearm/Firearm';
 export { AR15, type FirearmProfile } from './weapons/firearm/profiles';
 export { Rifle, buildRifleParts, type RifleParts, type RifleOptions } from './weapons/firearm/Rifle';
+export { rainCurtain, type RainProgram, type RainCurtainSpec } from './weather/rainCurtain';
+export { fogGLSL } from './looks/fogProgram';

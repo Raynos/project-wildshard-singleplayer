@@ -1,7 +1,5 @@
+import { MIDDAY_SKY, type SkyPalette, type OptionValue, type DayCycleSpec } from '#engine';
 import * as THREE from 'three';
-import { MIDDAY_SKY, type SkyPalette } from '#engine/world/StylizedSky';
-import type { OptionValue } from '#engine/ui/Settings';
-import type { DayCycleSpec } from '#engine/world/dayCycle';
 
 const DAY = 20 / 24;
 /** the whole cycle in seconds (E147, the user: "72 minutes is too big … 48 is good"; it was 24 min, as BotW's) */

@@ -100,7 +100,7 @@ export class Weather<S extends string = string, N extends WeatherNumbers = Weath
     this.entered(state);
     if (prev !== state) for (const fn of this.phaseFns.slice()) fn(state, prev);
   }
-  protected entered(_state: S): void { /* shard event work happens before phase listeners, after the length draw */ }
+  protected entered(_state: S): void { /* content event work happens before phase listeners, after the length draw */ }
   protected afterForce(_state: S): void { /* lightning may reset its next bolt before continuous outputs */ }
   protected outputs(dt: number, phase: number): void {
     Object.assign(this.n, this.profile.numbers({ state: this.state, mode: this.mode, t: this.phaseT, length: this.phaseLen, u: this.phaseLen > 0 ? this.phaseT / this.phaseLen : 0, dt, prev: this.n, clockPhase: phase }));

@@ -22,7 +22,7 @@ import { StylizedSky } from './StylizedSky';
 import type { DayCycleClock } from './dayCycle';
 import { DriftwoodSky } from '#shards/driftwood-isle/look/dayNight';
 import { ShadowMaps } from './shadowVariants';
-import type { SkyBackdrop, SkyBackdropFactory, SkyBackdropPost } from '../render/look';
+import type { SkyBackdrop, SkyBackdropFactory, SkyBackdropContext, SkyBackdropPost } from '../render/look';
 import { horizonLight } from './Horizon';
 import { loadLUT } from './lut';
 import type { LookupTexture } from 'postprocessing';
@@ -92,13 +92,13 @@ export class Sky {
   /** the player's camera (world modules cull against it) */
   get viewCamera(): THREE.PerspectiveCamera { return this.camera; }
 
-  async build(backdropFactory?: SkyBackdropFactory): Promise<this> {
+  async build(backdropFactory?: SkyBackdropFactory, backdropData?: Pick<SkyBackdropContext, 'level' | 'tier' | 'look'>): Promise<this> {
     const { sky: S, atmosphere: A, style } = getActiveChunk();
     // Look Lab (E65): the low-poly shard's toon lighting (E87) and stylized sky (E83) are the user's picks, the only looks
     // since E136; the other shards light from their HDRI
     const toon = style === 'toon', stylizedSky = toon;
     if (toon) installStylize(); // the toon lighting model (D1) — patched into three's chunk before anything compiles
-    this.backdrop = backdropFactory ? await backdropFactory({ sky: this, scene: this.scene, renderer: this.renderer }) : null;
+    this.backdrop = backdropFactory && backdropData ? await backdropFactory({ sky: this, scene: this.scene, renderer: this.renderer, ...backdropData }) : null;
     if (this.backdrop) this.lut = this.backdrop.lut;
     const horizon = this.backdrop?.horizon ?? (stylizedSky ? await this.setupStylized() : await this.setupHDRI());
     this.scene.fog = new THREE.Fog(horizon, 1, 1e6); // distances unused: Atmosphere.ts overrides the maths

@@ -1,4 +1,4 @@
-import { fogGLSL } from '#kit/looks/particles';
+import { fogGLSL } from '#kit';
 
 export const RAIN_PROGRAM = {
 vertexShader: /* glsl */`

@@ -1,3 +1,4 @@
+import { type Sky, type SkyBackdropContext, type SkyBackdropTargets as PineTargets, type SkyBackdropPost as PinePost, loadBakedSky, DayCycle, setting, type OptionValue } from '#engine';
 /**
  * Pine Hollow's day / night clock (PINE-HOLLOW-REMASTER PH-L2; Jake's PH-U7: "the full cycle, 20 + 4 min, dawn / day /
  * golden hour / night, like Driftwood, in photoreal"; picked over the pre-remaster fixed sunset: "A + a brighter night").
@@ -25,15 +26,8 @@
  * Nothing here changes a program: it is uniforms, light intensities / colours and texture uniforms only.
  */
 import * as THREE from 'three';
-import type { Sky } from '#engine/world/Sky';
-import type { SkyBackdropTargets as PineTargets, SkyBackdropPost as PinePost } from '#engine/render/look';
 import { PINE_SKY_KEYS, type SkyKeyName } from './skyKeys';
-import { loadBakedSky } from '#engine/world/BakedSky';
-import { DayCycle } from '#engine/world/dayCycle';
 import { PINE_DAY, PINE_PHASES, FIXED_PHASE, P, clonePreset, pineSunAt, pineMoonAt, pineNightAt, type Preset } from './dayKeys';
-import { setting, type OptionValue } from '#engine/ui/Settings';
-import { TIER } from '#engine/core/tier';
-import { getActiveChunk } from '#game/shard/registry';
 
 /** the PMREMGenerator (r186) internals the stepped refresh drives, one call a frame (PineDayNight.stepEnvironment) */
 interface PmremSteps {
@@ -74,7 +68,7 @@ const tmpC = new THREE.Color();
 interface Resident { tex: THREE.DataTexture; horizon: THREE.Color; used: number }
 
 /** the knobs the clock turns — Sky hands them over (no Sky import: Sky imports this) */
-export type { SkyBackdropTargets as PineTargets, SkyBackdropPost as PinePost } from '#engine/render/look';
+export type { SkyBackdropTargets as PineTargets, SkyBackdropPost as PinePost } from '#engine';
 /**
  * The weather's hook on the clock (PH-L10, src/shards/pine-hollow/world/weather.ts writes it every frame): multipliers laid over the keyed
  * presets after they are blended — the presets' own numbers are never edited. Identity ({ overcast 0, fog × 1 }) is the
@@ -142,9 +136,8 @@ export class PineSkyBackdrop {
    * -1 = idle, 0 = the top level, i = GGX level i.
    */
   private envStep = -1;
-  private readonly envSteps = getActiveChunk().tiers?.[TIER]?.envSteps === true;
 
-  private constructor(private renderer: THREE.WebGLRenderer, private scene: THREE.Scene, phase: number, cycle: number, frozen: boolean) {
+  private constructor(private renderer: SkyBackdropContext['renderer'], private scene: THREE.Scene, phase: number, cycle: number, frozen: boolean, private readonly envSteps: boolean) {
     this.clock = new DayCycle({ ...PINE_DAY, start: phase, curves: { night: pineNightAt, dusk: PINE_DAY.curves?.dusk ?? (() => 0), dawn: PINE_DAY.curves?.dawn ?? (() => 0), lamps: (p) => Math.max(PINE_DAY.curves?.lamps(p) ?? 0, .35 * this.mod.overcast) } });
     this.clock.cycle = cycle; this.clock.paused = frozen;
     this.clock.onSet = () => this.jump();
@@ -186,7 +179,7 @@ export class PineSkyBackdrop {
   }
 
   /** the clock at the URL's / Settings' time, its first two keys decoded, the environment rendered */
-  static async create(renderer: THREE.WebGLRenderer, scene: THREE.Scene): Promise<PineSkyBackdrop> {
+  static async create(renderer: SkyBackdropContext['renderer'], scene: THREE.Scene, envSteps: boolean): Promise<PineSkyBackdrop> {
     const qs = new URLSearchParams(location.search);
     const todRaw = qs.get('tod') ?? '';
     const named = (PINE_PHASES as Record<string, number | undefined>)[todRaw];
@@ -195,7 +188,7 @@ export class PineSkyBackdrop {
     const time = setting('time'); // 'live' whenever ?tod / ?clock are in the URL
     const frozen = time !== 'live';
     const phase = frozen ? FIXED_PHASE[time] : Number.isFinite(tod) ? ((tod % 1) + 1) % 1 : PINE_PHASES.morning + 0.05;
-    const dn = new PineSkyBackdrop(renderer, scene, phase, Number.isFinite(clock) && clock > 1 ? clock : 24 * 60, frozen);
+    const dn = new PineSkyBackdrop(renderer, scene, phase, Number.isFinite(clock) && clock > 1 ? clock : 24 * 60, frozen, envSteps);
     const [a, b] = dn.segment(phase);
     await Promise.all([dn.ensure(a[1].key), dn.ensure(b[1].key)]);
     return dn;

@@ -337,7 +337,7 @@ export class Game {
     this.levelId = this.level.id;
     const render = this.level.look?.() ?? null; // the render code downloads while the sky builds; buildComposer reads both
     this.lookStrategy = await render;
-    this._sky = await new Sky(this.scene, this.camera, this.renderer).build(this.lookStrategy?.backdrop);
+    this._sky = await new Sky(this.scene, this.camera, this.renderer).build(this.lookStrategy?.backdrop, { level: this.level, tier: TIER, look: this.app.gradeFor(getActiveChunk()).look });
     this.levelScope.onDispose(() => { this.lookStrategy?.dispose?.(); this.lookStrategy = null; });
     return this._sky;
   }

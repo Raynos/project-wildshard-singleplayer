@@ -1,4 +1,4 @@
-import { rainCurtain } from '#kit/weather/rainCurtain';
+import { rainCurtain } from '#kit';
 import { RAIN_PROGRAM } from './rainProgram';
 /**
  * WeatherFX — what the steppe storm looks like (Nalati B10): the storm deck and its shelf cloud rolling in from one

@@ -1,3 +1,4 @@
+import { type SkyPalette, DayCycle, setting, type OptionValue } from '#engine';
 /**
  * The day / night clock of the low-poly shard (DRIFTWOOD-REMASTER L7, the user's pick D3: "a real clock — 20 min day +
  * 4 min night, night moonlit blue and playable"; E147: "48 is good" — both doubled, a 40 min day + 8 min night). Sky.ts
@@ -19,10 +20,7 @@
  * swaps sun ↔ moon while dark, and fades back, so the direction never visibly jumps. The PMREM environment is re-rendered every 15 s.
  */
 import * as THREE from 'three';
-import type { SkyPalette } from '#engine/world/StylizedSky';
-import { DayCycle } from '#engine/world/dayCycle';
 import { DRIFTWOOD_DAY, FIXED_PHASE, clonePreset, type Preset } from './dayKeys';
-import { setting, type OptionValue } from '#engine/ui/Settings';
 
 const c = (r: number, g: number, b: number) => new THREE.Color(r, g, b);
 

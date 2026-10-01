@@ -8,6 +8,7 @@ import type { App } from '../app/app';
 import type { Scope } from '../app/scope';
 import type { LevelContext } from '../level/context';
 import type { Tier } from '../core/tier';
+import type { LevelSpec } from '../level/spec';
 import type { VolumetricsEffect } from '../core/Volumetrics';
 
 export interface EngineEffects {
@@ -94,4 +95,5 @@ export interface SkyBackdrop {
   rebuild: () => void;
   attachPost: (post: SkyBackdropPost) => void;
 }
-export type SkyBackdropFactory = (c: { sky: Sky; scene: Scene; renderer: WebGLRenderer }) => Promise<SkyBackdrop>;
+export interface SkyBackdropContext { sky: Sky; scene: Scene; renderer: WebGLRenderer; level: LevelSpec; tier: Tier; look: { vol: number; fogDist: number; sat: number; ambient: number; sky: number } | null }
+export type SkyBackdropFactory = (c: SkyBackdropContext) => Promise<SkyBackdrop>;

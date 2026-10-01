@@ -1,7 +1,5 @@
+import { type ProjectileModification, Weather, type WeatherProfile, Rng } from '#engine';
 import { WET_GRAVITY, WET_DRAG } from '../loadout/ammo';
-import type { ProjectileModification } from '#engine/combat/ammo';
-import { Weather, type WeatherProfile } from '#engine/world/weather';
-import { Rng } from '#engine/core/rng';
 
 export type PineWeatherState = 'clear' | 'overcast' | 'rain' | 'clearing';
 export const PINE_WEATHER_STATES: readonly PineWeatherState[] = ['clear', 'overcast', 'rain', 'clearing'];

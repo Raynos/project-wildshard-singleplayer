@@ -40,7 +40,7 @@ import { setting, onSettingChange } from '#engine/ui/Settings';
 import { TIER } from '#engine/core/tier';
 import { SEED } from '#engine/core/config';
 import { practiceRoom } from '#engine/core/practiceRoom';
-import type { LevelContext } from '#engine/level/context';
+import type { LevelContext } from '#engine';
 
 /** 0 … 1: how far a scripted room's own air replaces the weather's fog (the Antler King's seal, src/shards/pine-hollow/combat/antlerKing.ts) */
 export const weatherHold = { k: 0 };

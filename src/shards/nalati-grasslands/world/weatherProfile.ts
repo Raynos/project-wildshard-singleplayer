@@ -1,4 +1,4 @@
-import type { WeatherProfile, WeatherNumbers } from '#engine/world/weather';
+import type { WeatherProfile, WeatherNumbers } from '#engine';
 import type { WeatherOpts } from './Weather';
 
 export type StormPhase = 'clear' | 'building' | 'gust' | 'storm' | 'clearing' | 'after';

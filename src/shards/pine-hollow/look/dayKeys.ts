@@ -1,6 +1,5 @@
+import { DayCycle, type DayCycleSpec, type OptionValue } from '#engine';
 import * as THREE from 'three';
-import { DayCycle, type DayCycleSpec } from '#engine/world/dayCycle';
-import type { OptionValue } from '#engine/ui/Settings';
 import type { SkyKeyName } from './skyKeys';
 
 const DAY = 20 / 24;
@@ -125,7 +124,8 @@ export function lerpPreset(out: Preset, a: Preset, b: Preset, t: number): void {
   out.lamps = n(a.lamps, b.lamps); out.sat = n(a.sat, b.sat);
 }
 
-export function pineDuskAt(p: number): number { return Math.max(pineNightAt(p), 1 - THREE.MathUtils.smoothstep(pineSunAt(p, new THREE.Vector3()).y, 0.06, 0.35)); }
+const duskSun = new THREE.Vector3();
+export function pineDuskAt(p: number): number { return Math.max(pineNightAt(p), 1 - THREE.MathUtils.smoothstep(pineSunAt(p, duskSun).y, 0.06, 0.35)); }
 export function pineDawnAt(p: number): number { const d = Math.min(Math.abs(p - PINE_PHASES.sunrise), Math.abs(p - 1 - PINE_PHASES.sunrise)); return 1 - THREE.MathUtils.smoothstep(d, 0.01, 0.07); }
 const PINE_BASE: DayCycleSpec<Preset> = {
   units: 'phase', start: PINE_PHASES.morning + 0.05, dayFraction: DAY,

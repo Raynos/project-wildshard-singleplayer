@@ -1,5 +1,4 @@
 import { clockForSun, steppeClock, nightKeys, blendSteppeKey, type SteppeKey } from './look/dayKeys';
-import type { DayCycle } from '#engine/world/dayCycle';
 /**
  * Nalati weather + day/night wiring (row B10 of project/archive/2026-09-23-nalati.md): the clock, the storm state machine, the storm's
  * visuals, and everything they touch — the sky rig (sun / moon, sky, fog, grade), the one Wind, the creatures'
@@ -22,7 +21,7 @@ import type { DayCycle } from '#engine/world/dayCycle';
 import * as THREE from 'three';
 import type { Game } from '#engine/core/Game';
 import type { Sky } from '#engine/world/Sky';
-import type { Player, BoxSpec as Collider } from '#engine';
+import type { Player, BoxSpec as Collider, DayCycle } from '#engine';
 import type { Forest } from '#engine/world/forest/Forest';
 import type { Audio } from '#engine/audio/Audio';
 import { getActiveChunk } from '#game/shard/registry';

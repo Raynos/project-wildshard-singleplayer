@@ -1,6 +1,5 @@
+import { Rng, attachFogUniforms } from '#engine';
 import * as THREE from 'three';
-import { Rng } from '#engine/core/rng';
-import { attachFogUniforms } from '#engine/world/Atmosphere';
 
 export interface RainProgram { vertexShader: string; fragmentShader: string }
 export interface RainCurtainSpec {

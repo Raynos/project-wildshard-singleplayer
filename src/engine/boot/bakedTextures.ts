@@ -45,8 +45,9 @@ function urlFor(slug: string, name: string): string | null {
 /** Fetch + decode every baked texture of the active chunk (one round of parallel fetches, ~ms from the SW cache). */
 export async function preloadBakedTextures(): Promise<number> {
   if (NOBAKE) return 0;
-  const slug = getActiveChunk().slug;
-  const urls = bakedTextureUrls(slug, getActiveChunk().boot?.bakedUnread);
+  const level = getActiveChunk();
+  const slug = level.slug;
+  const urls = bakedTextureUrls(slug, level.boot?.bakedUnread);
   await Promise.all(urls.map(async (u) => {
     // E157: the KTX2 stand-in when there is one (Y-flipped at encode, like fetchImage's bitmap)
     try { loaded.set(u, (await ktx2Texture(tierUrl(u))) ?? await fetchImage(u, Infinity, true)); }
