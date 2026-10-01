@@ -14,3 +14,7 @@
 /android
 /dist-native
 /.native-build
+
+# E357 parity harness artifacts
+/test/parity
+/coverage/

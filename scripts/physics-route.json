@@ -3,6 +3,7 @@
  "driftwood-isle": [
   {
    "name": "pier",
+   "gate": true,
    "start": {
     "x": 0,
     "z": -235,
@@ -136,6 +137,7 @@
   },
   {
    "name": "lookout",
+   "gate": true,
    "start": {
     "x": 86.1,
     "z": 82.45,
@@ -230,6 +232,7 @@
   },
   {
    "name": "cave",
+   "gate": true,
    "start": {
     "x": 145.6,
     "z": 0.8,
@@ -353,6 +356,7 @@
  "pine-hollow": [
   {
    "name": "cabin-porch",
+   "gate": true,
    "start": {
     "x": 0,
     "z": -200,
@@ -455,6 +459,7 @@
   },
   {
    "name": "lookout-climb",
+   "gate": true,
    "start": {
     "x": 41.23,
     "z": 211.92,
@@ -561,6 +566,7 @@
   },
   {
    "name": "creek-bridge",
+   "gate": true,
    "start": {
     "x": -166.81,
     "z": -0.57,
@@ -687,6 +693,7 @@
  "nalati-grasslands": [
   {
    "name": "road-camp",
+   "gate": true,
    "start": {
     "x": 0,
     "z": 232,
@@ -1129,6 +1136,7 @@
   },
   {
    "name": "great-kurgan-door",
+   "gate": true,
    "start": {
     "x": -160,
     "z": 75,
@@ -1195,6 +1203,7 @@
   },
   {
    "name": "leopard-cave",
+   "gate": true,
    "start": {
     "x": 180,
     "z": 4.8,
@@ -1655,6 +1664,7 @@
   },
   {
    "name": "stair-street",
+   "gate": true,
    "start": {
     "x": 14,
     "z": 6,
@@ -1721,6 +1731,7 @@
   },
   {
    "name": "crossing-gate-bridge",
+   "gate": true,
    "start": {
     "x": -19.8,
     "z": -25.4,
@@ -1802,6 +1813,7 @@
   },
   {
    "name": "escape-square-balustrade",
+   "gate": true,
    "start": {
     "x": 4,
     "z": -8,

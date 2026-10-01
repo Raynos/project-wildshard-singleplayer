@@ -35,3 +35,7 @@ __pycache__/
 # copies go to ~/.cache/wildshard-blender/ (scripts/blender/build.sh --save-blend); .githooks/pre-commit refuses one.
 *.blend
 *.blend[0-9]*
+
+# E357 parity harness artifacts
+/progress/parity/
+/coverage/

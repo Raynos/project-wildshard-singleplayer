@@ -1,0 +1,144 @@
+import { array, equal, flatten, get, number, object, set, string } from './value.mjs';
+/** @typedef {import('./value.mjs').Value} Value */
+/** @typedef {import('./value.mjs').RecordValue} RecordValue */
+/** @typedef {{field:string, baseline:Value|undefined, now:Value|undefined, band:string, verdict:string, class:string}} Verdict */
+/** @typedef {{pending?:RecordValue[], quarantine?:RecordValue[], renames?:RecordValue[], ambientInfo?:string[], lanePending?:boolean, now?:string, ignore?:string[]}} CompareOptions */
+
+/** @param {string} pattern @param {string} path */
+export function matches(pattern, path) {
+  const re = pattern.split('*').map((p) => p.replaceAll(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`)).join('.*');
+  return new RegExp(`^${re}(?:\\.|$)`).test(path);
+}
+/** Maps only structural baseline fields. List ordering is deliberately preserved.
+ * @param {RecordValue} baseline @param {RecordValue} current @param {RecordValue[]} maps */
+export function renameBaseline(baseline, current, maps) {
+  const b = structuredClone(baseline);
+  for (const map of maps) {
+    const systems = object(map.systems), saves = object(map.saves), registry = object(map.registry);
+    for (const [phase, list] of Object.entries(object(get(b, 'boot.systems')))) set(b, `boot.systems.${phase}`, array(list).map((id) => systems[string(id)] ?? id));
+    for (const path of ['boot.saves.read', 'boot.saves.written', 'combat.loot.written']) {
+      const list = get(b, path); if (list !== undefined) set(b, path, array(list).map((id) => {
+        const key = string(id), prefix = /^(local:|session:)/.exec(key)?.[0] ?? '';
+        return saves[key] ?? (prefix + string(saves[key.slice(prefix.length)] ?? key.slice(prefix.length)));
+      }));
+    }
+    if (get(b, 'boot.registry') !== undefined) {
+      const renamed = object(registry.renamed), added = array(registry.added).map(string), removed = array(registry.removed).map(string);
+      const pieces = array(get(b, 'boot.registry')).map((p) => Object.assign(object(p), {id: renamed[string(object(p).id)] ?? object(p).id ?? ''}));
+      set(b, 'boot.registry', [...pieces.filter((p) => !removed.some((pat) => matches(pat, string(p.id)))), ...array(get(current, 'boot.registry')).filter((p) => added.some((pat) => matches(pat, string(object(p).id))))].sort((a, c) => string(object(a).id).localeCompare(string(object(c).id))));
+    }
+  }
+  return b;
+}
+/** @param {string} field @param {number} baseline */
+export function floorFor(field, baseline) {
+  if (field.startsWith('boot.gpuBytes.')) return 2 ** 20;
+  if (/^poses\.[^.]+\.pos(?:\.|$)/.test(field)) return 0.05;
+  if (/^poses\.[^.]+\.calls$/.test(field)) return 2;
+  if (/^poses\.[^.]+\.tris$/.test(field)) return baseline * 0.01;
+  if (/^walk\.legs\.[^.]+\.end(?:\.|$)/.test(field)) return 1;
+  if (/^walk\.legs\.[^.]+\.maxY$/.test(field)) return 0.3;
+  if (/^combat\.hitsToKill(?:\.|$)/.test(field)) return 1;
+  return 0;
+}
+/** @param {string} p */
+function measured(p) { return /^(boot\.(render\.(programs|memory\.)|gpuBytes\.)|poses\.[^.]+\.(pos|calls$|tris$)|walk\.legs\.[^.]+\.(end|maxY$)|combat\.hitsToKill)/.test(p); }
+/** @param {string} p */
+function info(p) { return /^(harness$|sha$|recorded$|browser$|spread|selfMin|verdict|boot\.(sha|build|browser|playMs|stepMs|heapMB)|poses\.[^.]+\.(fps|frameP|cpuP|frames|creatureBoxes|boxes|shot)|walk\.legs\.[^.]+\.(seconds|trace)|leak\.scope)/.test(p); }
+/** @param {RecordValue} value */
+export function normalize(value) {
+  const result = structuredClone(value);
+  for (const path of ['poses', 'walk.legs']) {
+    const list = get(result, path);
+    if (Array.isArray(list)) set(result, path, Object.fromEntries(list.map((v) => [string(object(v).name), v])));
+  }
+  return result;
+}
+/** @param {RecordValue[]} entries @param {string} today */
+export function validateQuarantine(entries, today) {
+  /** @type {string[]} */ const errors = [];
+  if (entries.length > 5) errors.push('more than 5 quarantine entries');
+  for (const e of entries) {
+    const start = Date.parse(string(e.since)), end = Date.parse(string(e.until));
+    if (!string(e.owner) || !/^E\d+$/.test(string(e.ask)) || !string(e.why) || !Number.isFinite(start) || !Number.isFinite(end) || end < start || end - start > 3 * 86400000) errors.push(`invalid quarantine: ${string(e.id)}`);
+    if (string(e.until) < today) errors.push(`quarantine expired: ${string(e.id)}`);
+    if (/\/(boot\.(errors|renderer|facade)|boot.scene.totals.batched|walk\.(stuck|touch)|.*\.stuck|.*\.out|combat\.(swing|shot)|pauseResume|leak|budgets)/.test(string(e.id))) errors.push(`class D cannot be quarantined: ${string(e.id)}`);
+  }
+  return errors;
+}
+/** Pure comparison, used by capture, recording validation, and fixtures.
+ * @param {RecordValue} rawBaseline @param {RecordValue} rawCurrent @param {CompareOptions} [options] */
+export function compare(rawBaseline, rawCurrent, options = {}) {
+  const current = normalize(rawCurrent), baseline = renameBaseline(normalize(rawBaseline), current, options.renames ?? []);
+  const bf = flatten(baseline), cf = flatten(current), spreads = object(rawBaseline.spread), selfMin = object(rawBaseline.selfMin);
+  /** @type {Verdict[]} */ const rows = [];
+  const shard = string(get(current, 'boot.shard')), tier = string(get(current, 'boot.tier')), lane = string(get(current, 'boot.lane'));
+  /** @param {string} field @param {Value|undefined} before @param {Value|undefined} now @param {string} cls @param {boolean} pass @param {string} band */
+  function emit(field, before, now, cls, pass, band) {
+    let verdict = pass ? 'green' : 'red';
+    if (cls === 'C') verdict = 'info';
+    else if (cls !== 'D') {
+      const pending = (options.pending ?? []).find((e) => string(e.shard) === shard && array(e.fields).some((p) => matches(string(p), field)));
+      if (pending) {
+        const expect = object(pending.expect)[`${tier}/${field}`];
+        if (lane !== 'm5' || pending.expect === null || expect === undefined) verdict = 'pending';
+        else { const width = measured(field) ? number(spreads[field]) > 0 ? 2 * number(spreads[field]) + floorFor(field, number(before)) : 0 : 0; verdict = typeof now === 'number' && typeof expect === 'number' && measured(field) ? Math.abs(now - expect) <= width ? 'pending' : 'red' : equal(now, expect) ? 'pending' : 'red'; }
+      } else if (before === undefined) verdict = 'new';
+      if (options.lanePending) verdict = 'lane-pending';
+      if ((options.quarantine ?? []).some((e) => string(e.id) === `${shard}/${tier}/${field}`)) verdict = 'quarantined';
+    }
+    rows.push({field, baseline:before, now, class:cls, band, verdict});
+  }
+  for (const error of validateQuarantine(options.quarantine ?? [], options.now ?? new Date().toISOString().slice(0, 10))) emit('quarantine', undefined, error, 'D', false, 'valid, unexpired; at most 5');
+  // D checks run even with no baseline, pending board or quarantine.
+  const d = /** @type {Array<[string, boolean, string]>} */ ([
+    ['boot.errors', array(get(current, 'boot.errors')).length === 0, '[]'],
+    ['boot.renderer', string(get(current, 'boot.renderer')).includes('ANGLE (Apple, ANGLE Metal Renderer'), 'ANGLE Metal'],
+    ['boot.scene.totals.batched', get(current, 'boot.scene.totals.batched') === 0, '0'],
+  ]);
+  if (get(current, 'boot.facade') !== undefined) d.push(['boot.facade', get(current, 'boot.facade.multiDraw') === true && get(current, 'boot.facade.batches') === 0 && number(get(current, 'boot.facade.instances')) > 0, 'multiDraw available; 0 batches; >0 instances']);
+  if (get(current, 'walk') !== undefined) d.push(['walk.stuck', get(current, 'walk.stuck') === 0, '0']);
+  for (const [name, leg] of Object.entries(object(get(current, 'walk.legs')))) {
+    d.push([`walk.legs.${name}.stuck`, array(object(leg).stuck).length === 0, '[]']);
+    if (object(leg).out !== undefined) d.push([`walk.legs.${name}.out`, object(leg).out === 0, '0']);
+  }
+  const touch = get(current, 'walk.touch');
+  if (touch !== undefined) d.push(['walk.touch', number(object(touch).moved) >= 2 && number(object(touch).yawDelta) !== 0 && object(touch).dodged === true && (object(touch).used === true || object(touch).used === 'n/a'), 'moved ≥2; yaw changed; dodge; use']);
+  for (const step of ['swing', 'shot', 'shot2']) {
+    const v = get(current, `combat.${step}`); if (v === undefined || v === 'n/a') continue;
+    const s = object(v);
+    d.push([`combat.${step}`, number(s.hits) >= 1 && number(s.hitWithinS) <= number(s.hitLimit) && (s.killLimit === null || (s.killed === true && number(s.killWithinS) <= number(s.killLimit))), 'hit and kill within limits']);
+  }
+  const pause = get(current, 'pauseResume');
+  if (pause !== undefined) d.push(['pauseResume', array(object(pause).diff).length === 0 && (get(current, 'boot.appStates') === undefined || (array(object(pause).appStates)[0] === 'paused' && array(object(pause).appStates)[1] === object(pause).returnState)), 'no state drift; resumed prior state']);
+  for (const [path, after] of Object.entries(flatten(get(current, 'leak.after')))) d.push([`leak.${path}`, equal(after, get(current, `leak.before.${path}`)), 'B1 = B0']);
+  const budget = object(current.budgets);
+  for (const [pose, spec] of Object.entries(budget)) {
+    const limits = {...object(object(spec).derived), ...object(object(spec).ceiling)};
+    for (const [metric, value] of Object.entries(limits)) {
+      const v = metric === 'draws' ? get(current, `poses.${pose}.calls`) : metric === 'tris' ? get(current, `poses.${pose}.tris`) : metric === 'programs' ? get(current, 'boot.render.programs') : metric === 'gpuMB' ? number(get(current, 'boot.gpuBytes.total')) / 2 ** 20 : undefined;
+      if (v !== undefined) d.push([`budgets.${pose}.${metric}`, number(v) <= number(value), `≤ ${number(value)}`]);
+    }
+  }
+  for (const [path, pass, band] of d) emit(path, get(baseline, path), get(current, path), 'D', pass, band);
+  for(const path of ['walk.sounds.event','combat.sounds.event'])if(get(current,path)!==undefined || get(baseline,path)!==undefined)emit(path,get(baseline,path),get(current,path),'A',equal(get(baseline,path),get(current,path)),'exact multiset');
+  for (const path of new Set([...Object.keys(bf), ...Object.keys(cf)])) {
+    if (d.some(([p]) => matches(p, path)) || matches('walk.sounds.event',path) || matches('combat.sounds.event',path) || path.startsWith('budgets.') || path.startsWith('leak.') || (options.ignore ?? []).some((p) => matches(p, path))) continue;
+    const a = bf[path], b = cf[path];
+    if (info(path)) { emit(path, a, b, 'C', true, 'information'); continue; }
+    if (path.endsWith('.ambient')) {
+      const ignored = options.ambientInfo ?? [], missing = array(a).filter((id) => !ignored.includes(string(id)) && !array(b).includes(id));
+      emit(path, a, b, 'A', missing.length === 0, 'no baseline scheduler missing'); continue;
+    }
+    if (/^poses\.[^.]+\.ssim$/.test(path)) {
+      const pose = path.split('.')[1] ?? '', limit = Math.min(0.99, number(selfMin[pose] ?? 1) - 0.01);
+      emit(path, a, b, 'B', number(b) >= limit, `≥ ${limit}`); continue;
+    }
+    if (measured(path) && (typeof a === 'number' || Array.isArray(a))) {
+      const spread = number(spreads[path] ?? 0), width = spread === 0 ? 0 : 2 * spread + floorFor(path, number(a));
+      const pass = Array.isArray(a) ? Array.isArray(b) && a.length === b.length && a.every((v, i) => Math.abs(number(v) - number(b[i])) <= width) : typeof b === 'number' && Number.isFinite(b) && Math.abs(b - a) <= width;
+      emit(path, a, b, 'B', pass, `± ${width}`);
+    } else emit(path, a, b, 'A', equal(a, b), 'exact');
+  }
+  return {verdict: rows.some((r) => r.verdict === 'red') ? 'red' : rows.some((r) => r.verdict === 'lane-pending') ? 'lane-pending' : rows.some((r) => r.verdict === 'pending') ? 'pending' : 'green', rows};
+}

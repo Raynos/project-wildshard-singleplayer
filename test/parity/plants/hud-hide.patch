@@ -1,0 +1,10 @@
+--- a/src/player/TouchControls.ts
++++ b/src/player/TouchControls.ts
+@@ -180,6 +180,7 @@
+     this.knob = el(stick, 'i');
+     const moveZone = el(root, '.ws-touch-zone.move'), lookpad = el(root, '.ws-touch-lookpad');
+     const lockBtn = el(root, '.ws-touch-disc.lock'), lockLabel = el(lockBtn, 'span'), lookLabel = el(lookpad, 'span'), moveLabel = el(moveZone, '.ws-touch-label');
++    lockBtn.remove();
+     const hintDisc = (btn: HTMLElement): HintDisc => { const svg = el(btn, 'svg'); return { btn, label: el(btn, 'span'), svg, ownIcon: svg.innerHTML, hint: null }; };
+     const hintLock = this.hintLock = hintDisc(lockBtn);
+     this.hintJump = hintDisc(el(root, '.ws-touch-disc.jump'));
