@@ -1,6 +1,6 @@
 # Plan: game normalization v2 (E127 → E357). The Wildshard engine: engine · game · kit · shard plugins
 
-**State:** `in progress` 2026-09-30 — **F0 done (3ae8256e); F3.1 (the deploy pin, M0 = dcd6a29) landing; next F1 → F2.** Jake's go (decision 101): the lead (session wildshard-9) builds the whole plan autonomously with no milestone stops (102), the pin moving by itself at each milestone (103), parity in batches by the lead only (104), many short Opus subagents + Codex GPT 6.1 Sol panes over herdr, round-robin by weekly usage left, visuals → Opus, engine / TS → Sol (105, 107, 109), and two new shards at Z3 (106: desert + whip, and one of the agent's choice). Milestones 0/4; lines deleted 0.
+**State:** `in progress` 2026-09-30 — **F-wave: F0, F3.1, F1, F4, F5, F7, F6 (the big move, bb88b80e) built; F2's baselines recording; F3.2's gate files + nightly built (runner record waits on the baselines); F8 (the spine) building (sol-f8); next F9 + F11, then F10, F12, then S1 Nine Dragon (its audio generating now).** Jake's go (101): the lead (wildshard-9) builds autonomously, no milestone stops (102), the pin moves itself at milestones (103), parity in lead batches (104), Opus subagents + Codex GPT 6.1 Sol panes over herdr (105, 107, 109), two new shards at Z3 (106). Build log: 13 B1–B13. Milestones 0/4; ~8.7k dead lines + 44 scripts deleted.
 
 ## Specs (the executable detail) and the definition of ready
 
