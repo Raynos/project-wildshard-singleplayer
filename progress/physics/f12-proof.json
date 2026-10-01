@@ -1,0 +1,904 @@
+{
+  "schema": 1,
+  "row": "F12",
+  "implementation": "18a91b488600d5f67bd77a939b293e12f87291e1",
+  "reference": {
+    "raw": "f11-fixed-walk-8f71103-mup73xh0.json.gz",
+    "sha256": "6d5b4a0971538566be8a27d352b93a96e2b70ae9318740540cad54d38c5103d0"
+  },
+  "checks": {
+    "typecheck": "pass",
+    "oxlint": "pass",
+    "navmesh": "pass; unchanged",
+    "vercelTreeGate": "pass",
+    "pnpmTest": {
+      "files": 166,
+      "cases": 1262,
+      "verdict": "pass"
+    }
+  },
+  "wasmBytes": {
+    "0.20.0": {
+      "raw": 2196730,
+      "gzip9": 735518,
+      "brotli11": 537065
+    },
+    "0.21.0": {
+      "raw": 3292228,
+      "gzip9": 1151160,
+      "brotli11": 836316
+    }
+  },
+  "walks": {
+    "driftwood": {
+      "raw": "f12-driftwood-walk-18a91b4-mup8i53w.json.gz",
+      "sha256": "b794675772cb06bfe95c7792a7d042983a92fb32628be336792eb22a20fd6275",
+      "build": "18a91b4-mup8i53w",
+      "date": "2026-10-01T07:52:14.927Z",
+      "physics": {
+        "driftwood-isle": {
+          "colliders": 2195
+        }
+      },
+      "legs": [
+        {
+          "name": "pier",
+          "end": {
+            "x": -19.717,
+            "y": 1.331,
+            "z": -150.68
+          },
+          "maxY": 2.03,
+          "stuck": [],
+          "out": null,
+          "endDelta": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "maxYDelta": 0.0
+        },
+        {
+          "name": "hut",
+          "end": {
+            "x": -22,
+            "y": 19.712,
+            "z": -64.54
+          },
+          "maxY": 19.71,
+          "stuck": [],
+          "out": null,
+          "endDelta": {
+            "x": 0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "maxYDelta": 0.0
+        },
+        {
+          "name": "bridge",
+          "end": {
+            "x": 35.289,
+            "y": 13.071,
+            "z": 33.257
+          },
+          "maxY": 13.07,
+          "stuck": [],
+          "out": null,
+          "endDelta": {
+            "x": -0.001,
+            "y": -0.001,
+            "z": -0.002
+          },
+          "maxYDelta": 0.0
+        },
+        {
+          "name": "lookout",
+          "end": {
+            "x": 93.741,
+            "y": 41.174,
+            "z": 93.617
+          },
+          "maxY": 41.18,
+          "stuck": [],
+          "out": null,
+          "endDelta": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "maxYDelta": 0.0
+        },
+        {
+          "name": "wreck",
+          "end": {
+            "x": 151.301,
+            "y": 4.607,
+            "z": 7.65
+          },
+          "maxY": 4.61,
+          "stuck": [],
+          "out": null,
+          "endDelta": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "maxYDelta": 0.0
+        },
+        {
+          "name": "cave",
+          "end": {
+            "x": 142.004,
+            "y": 1.22,
+            "z": 18.495
+          },
+          "maxY": 1.37,
+          "stuck": [],
+          "out": null,
+          "endDelta": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "maxYDelta": 0.0
+        },
+        {
+          "name": "shrine",
+          "end": {
+            "x": -96.927,
+            "y": 11.018,
+            "z": 106.534
+          },
+          "maxY": 11.02,
+          "stuck": [],
+          "out": null,
+          "endDelta": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "maxYDelta": 0.0
+        },
+        {
+          "name": "boat",
+          "end": {
+            "x": -4.256,
+            "y": 1.068,
+            "z": -202.302
+          },
+          "maxY": 2.01,
+          "stuck": [],
+          "out": null,
+          "endDelta": {
+            "x": 0.072,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "maxYDelta": 0.0
+        }
+      ]
+    },
+    "pine": {
+      "raw": "f12-pine-walk-18a91b4-mup8i53w.json.gz",
+      "sha256": "5bc99a7a418758474957c5a9a7e9e9a090f41b66411faa7b8d9028718b33cd91",
+      "build": "18a91b4-mup8i53w",
+      "date": "2026-10-01T07:54:07.374Z",
+      "physics": {
+        "pine-hollow": {
+          "colliders": 2419
+        }
+      },
+      "legs": [
+        {
+          "name": "cabin-porch",
+          "end": {
+            "x": -10.236,
+            "y": 3.833,
+            "z": -34.416
+          },
+          "maxY": 4.25,
+          "stuck": [],
+          "out": null,
+          "endDelta": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "maxYDelta": 0.0
+        },
+        {
+          "name": "pond",
+          "end": {
+            "x": -63.912,
+            "y": -2.005,
+            "z": 109.4
+          },
+          "maxY": 4,
+          "stuck": [],
+          "out": null,
+          "endDelta": {
+            "x": -0.029,
+            "y": 0.0,
+            "z": 0.141
+          },
+          "maxYDelta": 0
+        },
+        {
+          "name": "lookout-climb",
+          "end": {
+            "x": 34.796,
+            "y": 57.477,
+            "z": 211.354
+          },
+          "maxY": 57.48,
+          "stuck": [],
+          "out": null,
+          "endDelta": {
+            "x": 0.004,
+            "y": 0.0,
+            "z": -0.003
+          },
+          "maxYDelta": 0.0
+        },
+        {
+          "name": "zip-landing",
+          "end": {
+            "x": 3.245,
+            "y": 3.304,
+            "z": 20.127
+          },
+          "maxY": 3.31,
+          "stuck": [],
+          "out": null,
+          "endDelta": {
+            "x": 0.003,
+            "y": 0.0,
+            "z": -0.001
+          },
+          "maxYDelta": 0.0
+        },
+        {
+          "name": "creek-bridge",
+          "end": {
+            "x": -135.897,
+            "y": 1.48,
+            "z": -5.311
+          },
+          "maxY": 1.52,
+          "stuck": [],
+          "out": null,
+          "endDelta": {
+            "x": 0.07,
+            "y": -0.008,
+            "z": -0.011
+          },
+          "maxYDelta": -0.01
+        },
+        {
+          "name": "lodge-porch",
+          "end": {
+            "x": -165.161,
+            "y": -0.16,
+            "z": -114.292
+          },
+          "maxY": -0.16,
+          "stuck": [],
+          "out": null,
+          "endDelta": {
+            "x": 0.037,
+            "y": 0.0,
+            "z": -0.061
+          },
+          "maxYDelta": 0.0
+        },
+        {
+          "name": "den-cave",
+          "end": {
+            "x": 218.924,
+            "y": 8.036,
+            "z": 217.593
+          },
+          "maxY": 9.07,
+          "stuck": [],
+          "out": null,
+          "endDelta": {
+            "x": 0.014,
+            "y": 0.0,
+            "z": 0.012
+          },
+          "maxYDelta": 0.0
+        }
+      ]
+    },
+    "nalati": {
+      "raw": "f12-nalati-walk-18a91b4-mup8i53w.json.gz",
+      "sha256": "5d15d8dbe690a4155aec6ab5e243f28bd1d2e407a680bfefb15d07deedb40664",
+      "build": "18a91b4-mup8i53w",
+      "date": "2026-10-01T07:54:59.746Z",
+      "physics": {
+        "nalati-grasslands": {
+          "colliders": 2772
+        }
+      },
+      "legs": [
+        {
+          "name": "road-camp",
+          "end": {
+            "x": 94.218,
+            "y": -4.337,
+            "z": 204.056
+          },
+          "maxY": 0.02,
+          "stuck": [],
+          "out": null,
+          "endDelta": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "maxYDelta": 0.0
+        },
+        {
+          "name": "bridge",
+          "end": {
+            "x": 0.199,
+            "y": -7.037,
+            "z": 142.749
+          },
+          "maxY": -0.19,
+          "stuck": [],
+          "out": null,
+          "endDelta": {
+            "x": -0.008,
+            "y": -0.039,
+            "z": 0.066
+          },
+          "maxYDelta": 0.0
+        },
+        {
+          "name": "eagle-rock",
+          "end": {
+            "x": 181.197,
+            "y": 65.02,
+            "z": 85.739
+          },
+          "maxY": 65.02,
+          "stuck": [],
+          "out": null,
+          "endDelta": {
+            "x": 0.018,
+            "y": 0.0,
+            "z": -0.072
+          },
+          "maxYDelta": -0.01
+        },
+        {
+          "name": "kurgan-crown",
+          "end": {
+            "x": -94.253,
+            "y": 31.806,
+            "z": 103.33
+          },
+          "maxY": 35.5,
+          "stuck": [],
+          "out": null,
+          "endDelta": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "maxYDelta": 0.0
+        },
+        {
+          "name": "great-kurgan-crown",
+          "end": {
+            "x": -191.035,
+            "y": 39.585,
+            "z": 72.229
+          },
+          "maxY": 39.59,
+          "stuck": [],
+          "out": null,
+          "endDelta": {
+            "x": 0.0,
+            "y": -0.001,
+            "z": -0.002
+          },
+          "maxYDelta": 0.0
+        },
+        {
+          "name": "great-kurgan-door",
+          "end": {
+            "x": -172.843,
+            "y": 34.935,
+            "z": 75
+          },
+          "maxY": 34.94,
+          "stuck": [],
+          "out": null,
+          "endDelta": {
+            "x": 0.036,
+            "y": 0.0,
+            "z": 0
+          },
+          "maxYDelta": 0.0
+        },
+        {
+          "name": "dungeon",
+          "end": {
+            "x": -38.894,
+            "y": 140.47,
+            "z": -94.909
+          },
+          "maxY": 140.47,
+          "stuck": [],
+          "out": null,
+          "endDelta": {
+            "x": -0.002,
+            "y": 0.0,
+            "z": -0.068
+          },
+          "maxYDelta": 0.0
+        },
+        {
+          "name": "leopard-cave",
+          "end": {
+            "x": 137.206,
+            "y": 54.118,
+            "z": -65.906
+          },
+          "maxY": 54.12,
+          "stuck": [],
+          "out": null,
+          "endDelta": {
+            "x": -0.005,
+            "y": 0.001,
+            "z": -0.004
+          },
+          "maxYDelta": 0.0
+        },
+        {
+          "name": "summer-camp",
+          "end": {
+            "x": -87.237,
+            "y": 28.361,
+            "z": -24.184
+          },
+          "maxY": 28.67,
+          "stuck": [],
+          "out": null,
+          "endDelta": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "maxYDelta": 0.0
+        },
+        {
+          "name": "cairn",
+          "end": {
+            "x": -26.538,
+            "y": 33.54,
+            "z": -41.344
+          },
+          "maxY": 33.54,
+          "stuck": [],
+          "out": null,
+          "endDelta": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "maxYDelta": 0.0
+        },
+        {
+          "name": "watchtower",
+          "end": {
+            "x": -199.721,
+            "y": 44.131,
+            "z": -37.433
+          },
+          "maxY": 44.13,
+          "stuck": [],
+          "out": null,
+          "endDelta": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "maxYDelta": 0.0
+        },
+        {
+          "name": "argymaq-pasture",
+          "end": {
+            "x": -159.533,
+            "y": 51.847,
+            "z": -71.507
+          },
+          "maxY": 51.85,
+          "stuck": [],
+          "out": null,
+          "endDelta": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "maxYDelta": 0.0
+        }
+      ]
+    },
+    "nine": {
+      "raw": "f12-nine-walk-18a91b4-mup8i53w.json.gz",
+      "sha256": "6904b4692adc9559b81a5adf9ece40db0f6f80dc4afa04c7d10da7441beba732",
+      "build": "18a91b4-mup8i53w",
+      "date": "2026-10-01T07:50:41.843Z",
+      "physics": {
+        "nine-dragon-stack": {
+          "colliders": 525
+        }
+      },
+      "legs": [
+        {
+          "name": "square-to-street",
+          "end": {
+            "x": 6.5,
+            "y": 125.02,
+            "z": -109.212
+          },
+          "maxY": 125.03,
+          "stuck": [],
+          "out": null,
+          "endDelta": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "maxYDelta": 0.0
+        },
+        {
+          "name": "balustrade-west-bay",
+          "end": {
+            "x": 2.482,
+            "y": 125.016,
+            "z": -39.237
+          },
+          "maxY": 125.03,
+          "stuck": [],
+          "out": null,
+          "endDelta": {
+            "x": -0.002,
+            "y": -0.004,
+            "z": 0.091
+          },
+          "maxYDelta": 0.0
+        },
+        {
+          "name": "stair-street",
+          "end": {
+            "x": 75.277,
+            "y": 146.02,
+            "z": 6
+          },
+          "maxY": 146.02,
+          "stuck": [],
+          "out": null,
+          "endDelta": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0
+          },
+          "maxYDelta": 0.0
+        },
+        {
+          "name": "stair-down",
+          "end": {
+            "x": 12.668,
+            "y": 125.017,
+            "z": 6
+          },
+          "maxY": 146.02,
+          "stuck": [],
+          "out": null,
+          "endDelta": {
+            "x": -0.073,
+            "y": -0.005,
+            "z": 0
+          },
+          "maxYDelta": 0.0
+        },
+        {
+          "name": "crossing-gate-bridge",
+          "end": {
+            "x": -6.562,
+            "y": 107.02,
+            "z": -25.4
+          },
+          "maxY": 107.02,
+          "stuck": [],
+          "out": null,
+          "endDelta": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "maxYDelta": 0.0
+        },
+        {
+          "name": "crossing-timber-hump",
+          "end": {
+            "x": -8.761,
+            "y": 119.098,
+            "z": -21
+          },
+          "maxY": 119.25,
+          "stuck": [],
+          "out": null,
+          "endDelta": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0
+          },
+          "maxYDelta": 0.0
+        },
+        {
+          "name": "well-rim",
+          "end": {
+            "x": -2.729,
+            "y": 125.02,
+            "z": 13.505
+          },
+          "maxY": 125.03,
+          "stuck": [],
+          "out": null,
+          "endDelta": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "maxYDelta": 0.0
+        },
+        {
+          "name": "escape-square-balustrade",
+          "end": {
+            "x": 0.5,
+            "y": 126.136,
+            "z": -7.387
+          },
+          "maxY": 128.08,
+          "stuck": [],
+          "out": 0,
+          "endDelta": {
+            "x": 0.0,
+            "y": -0.004,
+            "z": -0.129
+          },
+          "maxYDelta": 0.13
+        },
+        {
+          "name": "escape-street-balustrade",
+          "end": {
+            "x": 0.5,
+            "y": 126.14,
+            "z": -35.813
+          },
+          "maxY": 127.98,
+          "stuck": [],
+          "out": 0,
+          "endDelta": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.006
+          },
+          "maxYDelta": 0.0
+        },
+        {
+          "name": "escape-hawker-roof",
+          "end": {
+            "x": 0.899,
+            "y": 125.02,
+            "z": -2.501
+          },
+          "maxY": 128.16,
+          "stuck": [],
+          "out": 0,
+          "endDelta": {
+            "x": -0.001,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "maxYDelta": 0.0
+        },
+        {
+          "name": "escape-south-front",
+          "end": {
+            "x": 5.999,
+            "y": 125.02,
+            "z": 20.2
+          },
+          "maxY": 127.88,
+          "stuck": [],
+          "out": 0,
+          "endDelta": {
+            "x": 0.001,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "maxYDelta": 0.0
+        },
+        {
+          "name": "escape-street-end",
+          "end": {
+            "x": 6.499,
+            "y": 125.02,
+            "z": -120.6
+          },
+          "maxY": 127.88,
+          "stuck": [],
+          "out": 0,
+          "endDelta": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "maxYDelta": 0.0
+        },
+        {
+          "name": "escape-stair-sides",
+          "end": {
+            "x": 37.014,
+            "y": 132.54,
+            "z": 9.6
+          },
+          "maxY": 134.91,
+          "stuck": [],
+          "out": 0,
+          "endDelta": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "maxYDelta": 0.0
+        },
+        {
+          "name": "escape-stair-top",
+          "end": {
+            "x": 77.6,
+            "y": 146.02,
+            "z": 6.001
+          },
+          "maxY": 148.87,
+          "stuck": [],
+          "out": 0,
+          "endDelta": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.001
+          },
+          "maxYDelta": 0.0
+        },
+        {
+          "name": "escape-rim-into-well",
+          "end": {
+            "x": -19.5,
+            "y": 127.41,
+            "z": 11.7
+          },
+          "maxY": 127.83,
+          "stuck": [],
+          "out": 0,
+          "endDelta": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "maxYDelta": 0.0
+        },
+        {
+          "name": "escape-rim-hop",
+          "end": {
+            "x": -18.781,
+            "y": 125.014,
+            "z": 13.6
+          },
+          "maxY": 127.98,
+          "stuck": [],
+          "out": 0,
+          "endDelta": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "maxYDelta": 0.0
+        },
+        {
+          "name": "escape-hover-balustrade",
+          "end": {
+            "x": 0.498,
+            "y": 126.539,
+            "z": -7.999
+          },
+          "maxY": 128.69,
+          "stuck": [],
+          "out": 0,
+          "endDelta": {
+            "x": -0.001,
+            "y": -0.026,
+            "z": -0.001
+          },
+          "maxYDelta": 0.21
+        },
+        {
+          "name": "escape-hover-rim",
+          "end": {
+            "x": -19.5,
+            "y": 125.189,
+            "z": 11.702
+          },
+          "maxY": 127.99,
+          "stuck": [],
+          "out": 0,
+          "endDelta": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "maxYDelta": -0.39
+        },
+        {
+          "name": "net-well-fall",
+          "end": {
+            "x": -18.81,
+            "y": 125.001,
+            "z": 13.6
+          },
+          "maxY": 125,
+          "stuck": [],
+          "out": 0,
+          "endDelta": {
+            "x": -0.014,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "maxYDelta": 0
+        }
+      ]
+    }
+  },
+  "narrowPhone": {
+    "driftwood": {
+      "raw": "f12-driftwood-isle.phone.json.gz",
+      "sha256": "ad5e0b22c137a34dc3d34c25a4a35c9a5508d9de6f1a1d5552fb0d90ec4c16d9",
+      "verdict": "green",
+      "redFields": [],
+      "report": "/private/tmp/e357-f12/parity/driftwood/report.md"
+    },
+    "pine": {
+      "raw": "f12-pine-hollow.phone.json.gz",
+      "sha256": "cb9e6f41feb1f02fcf0ba58fbf467da7afa72cf58a679ded2573756997acd847",
+      "verdict": "green",
+      "redFields": [],
+      "report": "/private/tmp/e357-f12/parity/pine/report.md"
+    },
+    "nalati": {
+      "raw": "f12-nalati-grasslands.phone.json.gz",
+      "sha256": "83d162ca44c6e97e06842b85c1bc513576d9f72b08b4d4076a5a60c043b6c2c5",
+      "verdict": "green",
+      "redFields": [],
+      "report": "/private/tmp/e357-f12/parity/nalati/report.md"
+    },
+    "nine": {
+      "raw": "f12-nine-dragon-stack.phone.json.gz",
+      "sha256": "56221a7606a13c55a408cacd13aea53bacfa94d039091813958c6b4e0de05852",
+      "verdict": "green",
+      "redFields": [],
+      "report": "/private/tmp/e357-f12/parity/nine/report.md"
+    }
+  },
+  "pending": [
+    "lead full trails comparison",
+    "lead full parity on both lanes/tiers without a rename map",
+    "M1 Simulator memory reading"
+  ],
+  "note": "F11 reference predates concurrent F10/S1.1 integration. Narrow checks prove thresholds/census; baseline fields are null, so they do not prove exact full parity. Nine escape-hover-rim maxY 127.99 is in F11 repeated-run range 127.99..128.38. No baselines or tolerance changes."
+}
