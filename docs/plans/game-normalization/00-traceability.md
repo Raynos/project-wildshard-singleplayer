@@ -154,6 +154,7 @@ The numbers are E357's. A revision sits right after the decision it replaces.
 | 95 | A rollback past F10 may reset saves a second time (stated on the rollback) | 03 §13; 12 §8; 13 R1-16 | covered |
 | 96 | A "no" at a milestone pauses: the next phase waits, the reasons become rows in this milestone, the live build stays unless broken | 12 §3; 05–08 §9; 13 R2-29 | covered |
 | 97 | The round cap stays 4: round 4 is the last review, then the open items go to Jake as decisions | 12 §1 item 8; reviews/register.md | covered |
+| 98 | No physical-iPhone readings; the Simulator nightly + budgets are the memory gate; the risk is stated | 13 R3-11′; 02 F12; 03 §14; 12 §8; 05–08 §9 | covered |
 
 ## 3. The audit (`docs/audits/game-normalization-2026-09-30.md`) and the bugs found later
 
