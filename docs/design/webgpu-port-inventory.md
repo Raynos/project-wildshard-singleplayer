@@ -17,12 +17,12 @@ place a renderer port has to touch. The renderer type is `Renderer` (`src/engine
 | `engine.grass-flowers` | material | src/engine/world/Grass.ts |
 | `engine.horizon-ridge-painted` | material | src/engine/world/Horizon.ts |
 | `engine.horizon-ridge` | material | src/engine/world/Horizon.ts |
-| `engine.csm` | shadows | src/engine/world/Sky.ts |
 | `engine.terrain-splat` | material | src/engine/world/Terrain.ts |
 | `engine.terrain-slab` | material | src/engine/world/Terrain.ts |
 | `engine.lowpoly-kit` | material | src/engine/world/lowpolyKit.ts |
 | `engine.painterly` | material | src/engine/world/painterly.ts |
 | `engine.pond-lilies` | material | src/engine/world/pond.ts |
+| `engine.csm` | shadows | src/engine/world/skyRig.ts |
 | `engine.pond-water` | material | src/engine/world/waterSurface.ts |
 | `engine.sway-depth` | material | src/engine/world/wind.ts |
 | `template.linear-fog` | decorate | src/shards/_template/look/render.ts |
@@ -45,7 +45,7 @@ place a renderer port has to touch. The renderer type is `Renderer` (`src/engine
 | `driftwood.ocean` | material | src/shards/driftwood-isle/world/Ocean.ts |
 | `driftwood.waterfall-fog` | material | src/shards/driftwood-isle/world/Waterfall.ts |
 | `driftwood.cover-tint` | decorate | src/shards/driftwood-isle/world/coverTint.ts |
-| `farReach.linear-fog` | decorate | src/shards/far-reach/look/render.ts |
+| `far.haze` | decorate | src/shards/far-reach/look/render.ts |
 | `nalati.ghost` | decorate | src/shards/nalati-grasslands/combat/ghostRiders.ts |
 | `nalati.titan-cloud` | decorate | src/shards/nalati-grasslands/combat/stormTitan.ts |
 | `nalati.sheep-depth` | decorate | src/shards/nalati-grasslands/creatures/flock.ts |
@@ -70,7 +70,7 @@ place a renderer port has to touch. The renderer type is `Renderer` (`src/engine
 | `pine.twig-depth` | material | src/shards/pine-hollow/world/treeFactory.ts |
 | `pine.undergrowth` | material | src/shards/pine-hollow/world/undergrowth.ts |
 | `pine.undergrowth-depth` | material | src/shards/pine-hollow/world/undergrowth.ts |
-| `sunscar.sand-ripples` | material | src/shards/sunscar-dunes/look/render.ts |
+| `sunscar.ripples` | decorate | src/shards/sunscar-dunes/look/render.ts |
 
 ## Program keys without a patch (4)
 
@@ -97,7 +97,7 @@ place a renderer port has to touch. The renderer type is `Renderer` (`src/engine
 | src/engine/world/Boundary.ts | 2 |
 | src/engine/world/Horizon.ts | 1 |
 | src/engine/world/HorizonMatte.ts | 2 |
-| src/engine/world/Sky.ts | 3 |
+| src/engine/world/skyBackdrop.ts | 3 |
 | src/kit/looks/particles.ts | 3 |
 | src/kit/weapons/melee/SweptMelee.ts | 3 |
 | src/kit/weather/rainCurtain.ts | 1 |
@@ -148,15 +148,15 @@ place a renderer port has to touch. The renderer type is `Renderer` (`src/engine
 | File | Edits |
 |---|---|
 | src/engine/world/Atmosphere.ts | 6 |
-| src/engine/world/Sky.ts | 1 |
 | src/engine/world/pointLightSkip.ts | 1 |
 | src/engine/world/shadowFade.ts | 2 |
 | src/engine/world/shadowFilter.ts | 1 |
+| src/engine/world/skyRig.ts | 1 |
 | src/shards/driftwood-isle/look/toon.ts | 3 |
 | src/shards/nalati-grasslands/look/air.ts | 3 |
 | src/shards/nalati-grasslands/look/fog.ts | 2 |
 
-## postprocessing files (16)
+## postprocessing files (17)
 
 - src/engine/boot/bakedApi.ts
 - src/engine/boot/gpuTrace.ts
@@ -167,8 +167,9 @@ place a renderer port has to touch. The renderer type is `Renderer` (`src/engine
 - src/engine/render/look.ts
 - src/engine/render/precompile.ts
 - src/engine/ui/perfProbe.ts
-- src/engine/world/Sky.ts
 - src/engine/world/lut.ts
+- src/engine/world/skyBackdrop.ts
+- src/engine/world/skyRig.ts
 - src/shards/nalati-grasslands/look/grade.ts
 - src/shards/nine-dragon-stack/look/render/bleed.ts
 - src/shards/nine-dragon-stack/look/render/haze.ts
