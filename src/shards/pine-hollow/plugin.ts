@@ -2,7 +2,7 @@ import { ShardPlugin, type ShardContext, installCompendium, type ShardRuntime } 
 import { loadWorldContent, macrotask, heightAt, installAiDebug } from '#engine';
 import * as THREE from 'three';
 import { CABIN_SITES } from './layout';
-import { Crossbow, STARTER_EFFECTS, installStarterEffects, loadParticles, type Particles } from '#kit';
+import { Crossbow, STARTER_EFFECTS, installStarterEffects, crossbowDisplayModel, loadParticles, type Particles } from '#kit';
 import { Cabins } from './world/homestead';
 import { Undergrowth } from './world/undergrowth';
 import { Props } from './world/props';
@@ -109,6 +109,7 @@ export class PineHollow extends ShardPlugin {
     ctx.rows.weapon([CROSSBOW, LEVER, LONGBOW]);
     ctx.rows.ammo(AMMO_ROWS);
     ctx.rows.effect([...PINE_FINISH_EFFECTS, ...STARTER_EFFECTS]);
+    ctx.rows.skin(PINE_FINISHES);
   }
 
   override async play(ctx: ShardContext): Promise<void> {
