@@ -1,23 +1,16 @@
 import * as THREE from 'three';
-import { heightAt, waterLevel } from '#engine/world/Heightfield';
-import { Rng } from '#engine/core/rng';
-import { SEED } from '#engine/core/config';
-import type { Sky } from '#engine/world/Sky';
+import { app, heightAt, terrainWaterLevel as waterLevel, Rng, SEED, worldTime, activeBodies, groups, waveHeight,
+  type Sky, type AnimalManager, type Animal, type Body, type BodySpec, type Scope } from '#engine';
 import type { PalmSpec } from '../world/Palms';
-import type { AnimalManager } from '#engine/entities/AnimalManager';
-import type { Animal } from '#engine/entities/Animal';
 import { WRECK } from '../manifest';
-import { worldTime } from '#engine/core/time';
-import { waveHeight } from '#engine/world/waves';
-import { getActiveChunk } from '#game/shard/registry';
-import { activeBodies, type Body, type BodySpec } from '#engine/physics/bodies';
-import { groups } from '#engine/physics/groups';
+import { enemyCount, DRIFTWOOD_PRACTICE } from './tables';
+import { DRIFTWOOD_STRIKES } from '../combat/strikes';
 import { preloadSailorHead } from '../species/sailor';
 
 /**
  * Enemies — Driftwood Isle's three enemy species placed into the island's spaces, plus the pieces their AIs need
  * that no animal owns: the palm perches, the coconut projectiles, the water-droplet splash and the Drowned Sailor's
- * cyan point light. The species themselves are registry entries (`src/engine/entities/species/{crab,monkey,sailor}.ts`,
+ * cyan point light. The species themselves are registry entries (`../species/{crab,monkey,sailor}.ts`,
  * `rig: 'custom'` + their own `think`); the AnimalManager still owns them (hit tests, health bars, blood, onKill,
  * corpses), so the sword, Combat.ts and the minimap see them like any boar.
  *
@@ -25,12 +18,12 @@ import { preloadSailorHead } from '../species/sailor';
  *   game.onUpdate((dt, t) => enemies.update(dt, t, player.position));
  *
  *   palms      the PalmSpec[] the island's Palms were built from (Palms.scatterIsland) — the crowns become monkey perches
- *              (`animals.enemyWorld.perches` / `perchBases`), troops of 3–4 are spawned into the densest groves
+ *              (`animals.habitat.perches` / `perchBases`), troops of 3–4 are spawned into the densest groves
  *   wreck      the Wreck (floorHeightAt) — the hold: the sailor rises through the broken midships deck beside the iron sword
  *   crabSites  tidepool spots ({x, z}[], e.g. Cove.crabSites) — a group of 3–5 crabs (one big) at each
  *
- * Damage to the player from every enemy attack (crab snap 10, coconut 8, monkey bite 6, cutlass 18) arrives through
- * `animals.onCharge(animal, damage)` — the same hook a boar charge uses, so main.ts needs no new wiring for it.
+ * Damage to the player from every enemy attack (crab snap 10, coconut 8, monkey bite 6, cutlass 14) arrives through
+ * the shared combat pipeline, with the same cover, death-cause and presentation tags as other creature hits.
  * Coconuts (PHYSICS P7): a 16-slot InstancedMesh of faceted brown spheres (one draw call), each a dynamic ball in the
  * physics world (src/engine/physics/bodies.ts) — thrown on a ballistic arc, it bounces, rolls down the beach and floats on the
  * swell. In flight it is DEBRIS (the world only) and a hit is the ball passing within 0.45 m of the player's feet→head
@@ -40,6 +33,7 @@ import { preloadSailorHead } from '../species/sailor';
 
 export interface EnemiesOpts {
   scene: THREE.Scene;
+  scope?: Scope;
   sky: Sky;
   palms?: PalmSpec[];
   wreck?: { floorHeightAt: (x: number, z: number) => number | undefined } | null;
@@ -53,7 +47,7 @@ export interface EnemiesOpts {
   practice?: { x: number; z: number };
 }
 
-const PRACTICE_BACK = 45, PRACTICE_AWAY = 30;
+const { delay: PRACTICE_BACK, away: PRACTICE_AWAY } = DRIFTWOOD_PRACTICE.respawn;
 
 const COCONUTS = 16, COCONUT_R = 0.13, G = 9.81, REST_T = 4, MAX_AGE = 16;
 /** a knock this hard (m/s of velocity change) in flight is the landing */
@@ -65,7 +59,7 @@ const DEBRIS_GROUPS = groups('DEBRIS');
 const seaSurface = (x: number, z: number): number | undefined => {
   const lvl = waterLevel();
   if (heightAt(x, z) >= lvl) return undefined;
-  return getActiveChunk().ocean ? lvl + waveHeight(x, z) : lvl;
+  return lvl + waveHeight(x, z);
 };
 /** a coconut's body (PHYSICS P7): a light ball that bounces a little, rolls (its spin damped so it stops on the flat) and
  *  floats (lighter than water); DEBRIS in flight; removed, not frozen, when the body cap is full */
@@ -82,18 +76,21 @@ export class Enemies {
   /** what was placed (for the dev harness / report) */
   placed = { crabs: 0, monkeys: 0, sailors: 0, troops: 0, crabGroups: 0 };
   private rng = new Rng(SEED ^ 0xe11e);
-  private coconuts!: THREE.InstancedMesh;
+  private coconutMesh: THREE.InstancedMesh | null = null;
+  private get coconuts(): THREE.InstancedMesh { if (this.coconutMesh === null) throw new Error('Enemies not built'); return this.coconutMesh; }
   private cBody: (Body | null)[] = [];
   private cState = new Int8Array(COCONUTS);     // 0 free, 1 flying, 2 landed
   private cRest = new Float32Array(COCONUTS);   // seconds at rest (landed)
   private cAge = new Float32Array(COCONUTS);
   private cThrower: (Animal | null)[] = [];
   private cNext = 0;
-  private drops!: THREE.Points;
+  private dropPoints: THREE.Points | null = null;
+  private get drops(): THREE.Points { if (this.dropPoints === null) throw new Error('Enemies not built'); return this.dropPoints; }
   private dPos = new Float32Array(DROPS * 3);
   private dVel = new Float32Array(DROPS * 3);
   private dLife = new Float32Array(DROPS);
-  private dAttr!: THREE.BufferAttribute;
+  private dropAttribute: THREE.BufferAttribute | null = null;
+  private get dAttr(): THREE.BufferAttribute { if (this.dropAttribute === null) throw new Error('Enemies not built'); return this.dropAttribute; }
   private dNext = 0; private dActive = 0;
   private sailors: { a: Animal; light: THREE.PointLight; dead: boolean; fade: number }[] = [];
   /** the practice crab now (E308; a new one after each death, see PRACTICE_BACK), and s since it died */
@@ -101,12 +98,36 @@ export class Enemies {
   private practiceDead = 0;
   private playerPos = new THREE.Vector3();
 
-  constructor(private readonly animals: AnimalManager, private readonly opts: EnemiesOpts) { this.group.name = 'enemies'; }
+  private disposed = false;
+  private readonly spawned = new Set<Animal>();
+  constructor(private readonly animals: AnimalManager, private readonly opts: EnemiesOpts) {
+    this.group.name = 'enemies'; opts.scope?.onDispose(() => { this.dispose(); });
+  }
+  private spawn(kind: string, x: number, z: number, yaw: number, variant?: string): Animal {
+    const actor = this.animals.spawn(kind, x, z, yaw, variant); this.spawned.add(actor); return actor;
+  }
+  dispose(): void {
+    if (this.disposed) return;
+    this.disposed = true;
+    for (let k = 0; k < this.cBody.length; k++) {
+      const body = this.cBody[k]; if (body !== null && body !== undefined) activeBodies()?.remove(body);
+      this.cBody[k] = null; this.cState[k] = 0;
+    }
+    for (const actor of this.spawned) this.animals.retire(actor);
+    this.spawned.clear(); this.group.removeFromParent();
+    if (this.opts.scope === undefined) {
+      this.coconutMesh?.geometry.dispose();
+      const mat = this.coconutMesh?.material; if (Array.isArray(mat)) mat.forEach((m) => { m.dispose(); }); else mat?.dispose();
+      this.dropPoints?.geometry.dispose();
+      const material = this.dropPoints?.material; if (material instanceof THREE.PointsMaterial) { material.map?.dispose(); material.dispose(); }
+    }
+  }
 
   build(): this {
+    if (this.disposed) throw new Error('Cannot build disposed enemies');
     const { opts, animals } = this;
-    // ── the pieces the AIs read (AnimalManager.enemyWorld) ──
-    const W = animals.enemyWorld;
+    // ── the pieces the AIs read (AnimalManager.habitat) ──
+    const W = animals.habitat;
     if (opts.palms?.length) {
       W.perches = []; W.perchBases = [];
       for (const p of opts.palms) {
@@ -122,7 +143,9 @@ export class Enemies {
       const g = new THREE.IcosahedronGeometry(COCONUT_R, 0);
       const mat = new THREE.MeshStandardMaterial({ color: new THREE.Color('#5a3d22'), flatShading: true, roughness: 0.85, metalness: 0 });
       opts.sky.setupMaterial(mat);
-      this.coconuts = new THREE.InstancedMesh(g, mat, COCONUTS);
+      opts.scope?.own(g); opts.scope?.own(mat);
+      this.coconutMesh = new THREE.InstancedMesh(g, mat, COCONUTS);
+      opts.scope?.own(this.coconuts);
       this.coconuts.castShadow = true; this.coconuts.frustumCulled = false;
       for (let i = 0; i < COCONUTS; i++) { this.coconuts.setMatrixAt(i, _m.makeScale(0, 0, 0)); this.cThrower.push(null); this.cBody.push(null); }
       this.coconuts.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
@@ -131,11 +154,12 @@ export class Enemies {
     // ── droplets ──
     {
       const g = new THREE.BufferGeometry();
-      this.dAttr = new THREE.BufferAttribute(this.dPos, 3); this.dAttr.setUsage(THREE.DynamicDrawUsage);
+      this.dropAttribute = new THREE.BufferAttribute(this.dPos, 3); this.dAttr.setUsage(THREE.DynamicDrawUsage);
       g.setAttribute('position', this.dAttr);
       g.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 1e6);
       const mat = new THREE.PointsMaterial({ color: new THREE.Color(0.75, 0.95, 1.0), size: 0.05, sizeAttenuation: true, transparent: true, opacity: 0.9, depthWrite: false, map: dropTexture(), alphaTest: 0.3 });
-      this.drops = new THREE.Points(g, mat); this.drops.frustumCulled = false; this.drops.renderOrder = 5;
+      opts.scope?.own(g); opts.scope?.own(mat); if (mat.map !== null) opts.scope?.own(mat.map);
+      this.dropPoints = new THREE.Points(g, mat); this.drops.frustumCulled = false; this.drops.renderOrder = 5;
       for (let i = 0; i < DROPS; i++) this.dPos[i * 3 + 1] = -1000;
       this.group.add(this.drops);
     }
@@ -144,7 +168,7 @@ export class Enemies {
     this.placeMonkeys();
     // E343: the sailor's generated head first (AnimalFactory builds his model once, at the first spawn): a ~30 KB file, a
     // beat after the boot; he waits under the hold's deck until night anyway
-    void preloadSailorHead().then(() => { this.placeSailor(); return null; });
+    void preloadSailorHead().then(() => { if (!this.disposed) this.placeSailor(); return null; });
     opts.scene.add(this.group);
     return this;
   }
@@ -155,13 +179,13 @@ export class Enemies {
     const sites = this.opts.crabSites ?? [];
     const rng = this.rng;
     for (const s of sites) {
-      const n = rng.int(3, 5);
+      const n = enemyCount('tidepool', () => rng.next());
       const herd = this.animals.addHerd('crab', s.x, s.z);
       for (let i = 0; i < n; i++) {
         const ang = rng.range(0, Math.PI * 2), r = i === 0 ? 0 : rng.range(1.2, 2.8);
         const x = s.x + Math.cos(ang) * r, z = s.z + Math.sin(ang) * r;
         if (heightAt(x, z) < waterLevel() + 0.15) continue;
-        const a = this.animals.spawn('crab', x, z, rng.range(0, Math.PI * 2), i === 0 ? 'big' : 'small');
+        const a = this.spawn('crab', x, z, rng.range(0, Math.PI * 2), i === 0 ? 'big' : 'small');
         a.herd = herd; this.animals.herds[herd]?.members.push(a);
         this.placed.crabs++;
       }
@@ -174,7 +198,7 @@ export class Enemies {
     const at = this.opts.practice;
     if (at === undefined) return;
     const herd = this.animals.addHerd('crab', at.x, at.z);
-    const a = this.animals.spawn('crab', at.x, at.z, 0, 'small'); // yaw 0: faces −z, down the path toward the pier
+    const a = this.spawn('crab', at.x, at.z, 0, 'small'); // yaw 0: faces −z, down the path toward the pier
     a.herd = herd; this.animals.herds[herd]?.members.push(a);
     this.practiceCrab = a; this.practiceDead = 0;
     this.placed.crabs++;
@@ -210,12 +234,12 @@ export class Enemies {
     }
     for (const c of centres) {
       const grove = palms.filter((p) => Math.hypot(p.x - c.x, p.z - c.z) < 10);
-      const n = Math.min(grove.length, rng.int(3, 4));
+      const n = Math.min(grove.length, enemyCount('grove', () => rng.next()));
       const herd = this.animals.addHerd('monkey', c.x, c.z);
       for (let i = 0; i < n; i++) {
         const p = grove[i];
         if (p === undefined) continue;
-        const a = this.animals.spawn('monkey', p.x, p.z, rng.range(0, Math.PI * 2));
+        const a = this.spawn('monkey', p.x, p.z, rng.range(0, Math.PI * 2));
         a.herd = herd; this.animals.herds[herd]?.members.push(a);
         this.placed.monkeys++;
       }
@@ -231,8 +255,8 @@ export class Enemies {
     const h = WRECK.heading, cs = Math.cos(h), sn = Math.sin(h);
     const at = (lx: number, lz: number): { x: number; z: number } => ({ x: WRECK.x + lx * cs + lz * sn, z: WRECK.z - lx * sn + lz * cs });
     const spot = at(0.5, 2.2), centre = at(0, 3.2);
-    this.animals.enemyWorld.hold = { x: centre.x, z: centre.z, r: 7.5, guardR: 8, floorAt: (x, z) => wreck.floorHeightAt(x, z) };
-    const a = this.animals.spawn('sailor', spot.x, spot.z, h + Math.PI, 'sailor');
+    this.animals.habitat.hold = { x: centre.x, z: centre.z, r: 7.5, guardR: 8, floorAt: (x, z) => wreck.floorHeightAt(x, z) };
+    const a = this.spawn('sailor', spot.x, spot.z, h + Math.PI, 'sailor');
     a.herd = -1;
     const light = new THREE.PointLight(0x7fe8ff, 0, 7, 2);
     light.castShadow = false;
@@ -281,17 +305,18 @@ export class Enemies {
     const n = Math.round(60 * strength);
     for (let i = 0; i < n; i++) {
       const k = this.dNext; this.dNext = (this.dNext + 1) % DROPS;
-      const ang = Math.random() * Math.PI * 2, r = Math.random() * 0.5;
-      this.dPos[k * 3] = at.x + Math.cos(ang) * r; this.dPos[k * 3 + 1] = at.y + 0.2 + Math.random() * 1.4 * strength; this.dPos[k * 3 + 2] = at.z + Math.sin(ang) * r;
-      const s = 0.6 + Math.random() * 2.2;
-      this.dVel[k * 3] = Math.cos(ang) * s; this.dVel[k * 3 + 1] = 1.2 + Math.random() * 2.5; this.dVel[k * 3 + 2] = Math.sin(ang) * s;
-      this.dLife[k] = 0.5 + Math.random() * 0.6;
+      const ang = app.rng.stream('cosmetic').next() * Math.PI * 2, r = app.rng.stream('cosmetic').next() * 0.5;
+      this.dPos[k * 3] = at.x + Math.cos(ang) * r; this.dPos[k * 3 + 1] = at.y + 0.2 + app.rng.stream('cosmetic').next() * 1.4 * strength; this.dPos[k * 3 + 2] = at.z + Math.sin(ang) * r;
+      const s = 0.6 + app.rng.stream('cosmetic').next() * 2.2;
+      this.dVel[k * 3] = Math.cos(ang) * s; this.dVel[k * 3 + 1] = 1.2 + app.rng.stream('cosmetic').next() * 2.5; this.dVel[k * 3 + 2] = Math.sin(ang) * s;
+      this.dLife[k] = 0.5 + app.rng.stream('cosmetic').next() * 0.6;
     }
     this.dActive = Math.min(DROPS, this.dActive + n);
   }
 
   update(dt: number, t: number, playerPos: THREE.Vector3): void {
     this.playerPos.copy(playerPos);
+    if (this.disposed) return;
     this.tickPractice(dt, playerPos);
     // ── coconuts: their bodies fly, bounce, roll and float in the physics world; this reads them ──
     const bodies = activeBodies();
@@ -307,7 +332,11 @@ export class Enemies {
         const cy = THREE.MathUtils.clamp(_v.y, playerPos.y, playerPos.y + 1.75);
         if ((_v.x - playerPos.x) ** 2 + (cy - _v.y) ** 2 + (_v.z - playerPos.z) ** 2 < 0.45 * 0.45) {
           const th = this.cThrower[k];
-          if (th !== null && th !== undefined) this.animals.onCharge?.(th, 8);
+          if (th !== null && th !== undefined && app.player !== null) app.combat.hit({
+            source: 'env', sourceTags: ['creature.monkey', 'feel.blow', 'cover.checked'], target: app.player,
+            amount: DRIFTWOOD_STRIKES.coconut.damage, moveId: DRIFTWOOD_STRIKES.coconut.id,
+            point: th.position.clone(), dir: new THREE.Vector3(), cause: { kind: th.kind, label: th.label },
+          });
           this.animals.onSound?.('coconut_hit', _v);
           const vel = b.rb.linvel();
           b.launch({ x: vel.x * -0.2, y: 1.5, z: vel.z * -0.2 });   // bounces off you (still DEBRIS: it is inside your capsule)
@@ -358,7 +387,7 @@ export class Enemies {
       const flick = 0.85 + 0.15 * Math.sin(t * 11 + Math.sin(t * 3.7) * 2);
       s.light.intensity = 4.5 * up * flick * (a.position.distanceToSquared(playerPos) < 60 * 60 ? 1 : 0);
       // streaming water while it rises
-      if (a.mem['rising'] && Math.random() < dt * 30) { _v.copy(a.position); _v.y += 0.5 + Math.random() * 1.2 * up; this.splash(_v, 0.08); }
+      if (a.mem['rising'] && app.rng.stream('cosmetic').next() < dt * 30) { _v.copy(a.position); _v.y += 0.5 + app.rng.stream('cosmetic').next() * 1.2 * up; this.splash(_v, 0.08); }
     }
   }
 }

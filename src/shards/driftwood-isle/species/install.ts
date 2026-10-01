@@ -1,5 +1,6 @@
 import { app, registerSpecies, speciesWithLook, type Scope } from '#engine';
 import { installDriftwoodLootTables } from '../loot/tables';
+import { DRIFTWOOD_FAUNA, DRIFTWOOD_ENEMIES, DRIFTWOOD_PRACTICE } from '../creatures/tables';
 import { CRAB, CRAB_LOOK } from './crab';
 import { MONKEY, MONKEY_LOOK } from './monkey';
 import { SAILOR, SAILOR_LOOK } from './sailor';
@@ -10,6 +11,7 @@ export const DRIFTWOOD_LOOKS = [CRAB_LOOK, MONKEY_LOOK, SAILOR_LOOK, CAPTAIN_LOO
 /** The composition root's legacy boot bridge also supports standalone model fixtures. */
 export function installDriftwoodSpecies(scope?: Scope): void {
   installDriftwoodLootTables(scope);
+  if (scope !== undefined) { app.encounters.registerSpawn(DRIFTWOOD_FAUNA, scope); app.encounters.registerSpawn(DRIFTWOOD_ENEMIES, scope); app.encounters.registerSpawn(DRIFTWOOD_PRACTICE, scope); }
   for (let i = 0; i < DRIFTWOOD_SPECIES.length; i++) {
     const row = DRIFTWOOD_SPECIES[i], look = DRIFTWOOD_LOOKS[i];
     if (row === undefined || look === undefined) continue;

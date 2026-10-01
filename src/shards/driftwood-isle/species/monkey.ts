@@ -1,4 +1,4 @@
-import { CreatureBrain, engineString, type Rng, type SpeciesRow, type SpeciesLook, type AnimalSpecies, type BoneDef, type VariantDef, type RigAnimCtx, type ThinkCtx, loft, skinPlain, S, boneIndex, mix, speciesSstep as sstep, paletteColors, type Paint, type SpeciesRGB as RGB, type Animal, NO_FUR, lookAngles, smooth01, bump, step, rigClamp as clamp, squashBody } from '#engine';
+import { app, CreatureBrain, engineString, type Rng, type SpeciesRow, type SpeciesLook, type AnimalSpecies, type BoneDef, type VariantDef, type RigAnimCtx, type ThinkCtx, loft, skinPlain, S, boneIndex, mix, speciesSstep as sstep, paletteColors, type Paint, type SpeciesRGB as RGB, type Animal, NO_FUR, lookAngles, smooth01, bump, step, rigClamp as clamp, squashBody } from '#engine';
 import { DRIFTWOOD_STRIKES, driftwoodContact } from '../combat/strikes';
 import * as THREE from 'three';
 
@@ -290,7 +290,7 @@ function decideMonkey(a: Animal, c: ThinkCtx): void {
       a.state = 'attack';
       a.setMotion(toPlayer, 0, 6); a.setStrafe(0);
       const p = a.attackPhase;
-      if (p >= 1 || p < 0) { a.cancelAttack(); if (m.bite) { m.cd = 1.2; m.st = ST_GROUND; m.bit = 1; } else { m.cd = rng.range(2.5, 4); m.st = m.onGround ? ST_GROUND_IDLE : ST_PERCH; } }
+      if (p >= 1 || p < 0) { a.cancelAttack(); if (m.bite) { m.cd = 1.2; m.st = ST_GROUND; m.bit = 1; } else { m.cd = app.rng.stream('ai').range(2.5, 4); m.st = m.onGround ? ST_GROUND_IDLE : ST_PERCH; } }
       break;
     }
     case ST_DROP: {

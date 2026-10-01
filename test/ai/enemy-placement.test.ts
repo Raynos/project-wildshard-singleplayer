@@ -1,20 +1,24 @@
 import * as THREE from 'three';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { Scope } from '#engine';
+import type * as Engine from '#engine';
 import type * as Heightfield from '#engine/world/Heightfield';
 import { Enemies } from '#shards/driftwood-isle/creatures/Enemies';
 import { getActiveChunk, setActiveChunk } from '#game/shard/registry';
 import { invokeLegacy } from '../fake/legacyActor';
 import { manager } from '../fake/manager';
 
+vi.mock('#engine', async (original) => ({ ...await original<typeof Engine>(),
+  heightAt: (): number => 0, normalAt: (): [number, number, number] => [0, 1, 0], terrainWaterLevel: (): number => -100, streamAt: (): null => null }));
 vi.mock('#engine/world/Heightfield', async (original) => ({ ...await original<typeof Heightfield>(),
   heightAt: (): number => 0, normalAt: (): [number, number, number] => [0, 1, 0], waterLevel: (): number => -100, streamAt: (): null => null }));
 const originalChunk = getActiveChunk().slug;
 afterEach(() => { setActiveChunk(originalChunk); });
-function placements(): { enemies: Enemies; f: ReturnType<typeof manager> } {
+function placements(scope?: Scope): { enemies: Enemies; f: ReturnType<typeof manager> } {
   setActiveChunk('driftwood-isle'); const f = manager();
   const palms = [-150, 0, 150].flatMap((x) => Array.from({ length: 4 }, (_, i) =>
     ({ x: x + i * 2, z: 100, h: 8, lean: 0, leanDir: 0, rot: 0, fronds: 8 })));
-  const enemies = new Enemies(f.manager, { scene: f.game.scene, sky: f.sky, palms,
+  const enemies = new Enemies(f.manager, { scene: f.game.scene, sky: f.sky, palms, ...(scope === undefined ? {} : { scope }),
     crabSites: [{ x: -40, z: -100 }, { x: 40, z: -100 }], practice: { x: 0, z: -200 },
     wreck: { floorHeightAt: () => 2 } });
   for (const method of ['placeCrabs', 'placePracticeCrab', 'placeMonkeys', 'placeSailor']) invokeLegacy(enemies, method);
@@ -32,6 +36,10 @@ describe('Driftwood actual enemy placement baseline', () => {
       expect(herd.members[0]?.variant).toBe('big'); expect(herd.members.slice(1).every((c) => c.variant === 'small')).toBe(true);
     }
     expect(a.enemies.placed.troops).toBe(3); expect(a.enemies.placed.sailors).toBe(1);
+  });
+  it('scope retirement removes only this enemy population and is idempotent', () => {
+    const scope = new Scope('enemies'); const { f } = placements(scope); const unrelated = f.manager.spawn('boar', 0, 0, 0);
+    scope.dispose(); scope.dispose(); expect(f.manager.animals).toEqual([unrelated]);
   });
   it('practice crab needs both45s dead and30m away, then fades before replacing the body', () => {
     const { enemies, f } = placements(), crab = enemies.practiceCrab;
