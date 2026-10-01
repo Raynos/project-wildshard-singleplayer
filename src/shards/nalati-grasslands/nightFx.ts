@@ -1,3 +1,4 @@
+import { app } from '#engine';
 import * as THREE from 'three';
 import { heightAt } from '#engine/world/Heightfield';
 
@@ -81,9 +82,9 @@ export class NightParticles {
   /** a spray from `c`: `n` particles, horizontal speed up to `speed`, upward `up` (± 40 %), each coloured round `rgb` (± `jitter`) */
   burst(c: THREE.Vector3, n: number, speed: number, up: number, life: number, size: number, rgb: readonly [number, number, number], jitter: number, flags: number, spread = 0.2): void {
     for (let k = 0; k < n; k++) {
-      const a = Math.random() * Math.PI * 2, s = speed * (0.3 + Math.random() * 0.7), j = 1 - jitter + Math.random() * jitter * 2;
-      this.emit(c.x + Math.cos(a) * spread * Math.random(), c.y + Math.random() * spread, c.z + Math.sin(a) * spread * Math.random(),
-        Math.cos(a) * s, up * (0.6 + Math.random() * 0.8), Math.sin(a) * s, life * (0.6 + Math.random() * 0.8), size * (0.6 + Math.random() * 0.8),
+      const a = app.rng.stream('cosmetic').next() * Math.PI * 2, s = speed * (0.3 + app.rng.stream('cosmetic').next() * 0.7), j = 1 - jitter + app.rng.stream('cosmetic').next() * jitter * 2;
+      this.emit(c.x + Math.cos(a) * spread * app.rng.stream('cosmetic').next(), c.y + app.rng.stream('cosmetic').next() * spread, c.z + Math.sin(a) * spread * app.rng.stream('cosmetic').next(),
+        Math.cos(a) * s, up * (0.6 + app.rng.stream('cosmetic').next() * 0.8), Math.sin(a) * s, life * (0.6 + app.rng.stream('cosmetic').next() * 0.8), size * (0.6 + app.rng.stream('cosmetic').next() * 0.8),
         rgb[0] * j, rgb[1] * j, rgb[2] * j, flags);
     }
   }

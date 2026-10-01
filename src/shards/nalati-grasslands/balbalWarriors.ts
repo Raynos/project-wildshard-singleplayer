@@ -230,16 +230,16 @@ export class BalbalWarriors {
       if (soilTick) {
         if (moving) {
           for (let n = 0; n < 3; n++) {
-            const ang = Math.random() * Math.PI * 2, r = (0.45 + Math.random() * 0.35) * sc;
+            const ang = app.rng.stream('cosmetic').next() * Math.PI * 2, r = (0.45 + app.rng.stream('cosmetic').next() * 0.35) * sc;
             const x = a.position.x + Math.cos(ang) * r, z = a.position.z + Math.sin(ang) * r;
-            this.debris.emit(x, heightAt(x, z) + 0.05, z, Math.cos(ang) * 1.2, 2.2 + Math.random() * 2.5, Math.sin(ang) * 1.2, 1.4, 0.08 + Math.random() * 0.1,
+            this.debris.emit(x, heightAt(x, z) + 0.05, z, Math.cos(ang) * 1.2, 2.2 + app.rng.stream('cosmetic').next() * 2.5, Math.sin(ang) * 1.2, 1.4, 0.08 + app.rng.stream('cosmetic').next() * 0.1,
               SOIL[0], SOIL[1], SOIL[2], FLAG_GRAVITY | FLAG_BOUNCE);
           }
-          if (Math.random() < 0.35) { _v.set(a.position.x, heightAt(a.position.x, a.position.z) + 0.1, a.position.z); this.debris.burst(_v, 1, 0.6, 0.4, 2.2, 0.8, DUST, 0.15, FLAG_GROW, 0.6); }
-        } else if (rise >= 1 && Math.random() < 0.18) {
-          const ang = Math.random() * Math.PI * 2;
+          if (app.rng.stream('cosmetic').next() < 0.35) { _v.set(a.position.x, heightAt(a.position.x, a.position.z) + 0.1, a.position.z); this.debris.burst(_v, 1, 0.6, 0.4, 2.2, 0.8, DUST, 0.15, FLAG_GROW, 0.6); }
+        } else if (rise >= 1 && app.rng.stream('cosmetic').next() < 0.18) {
+          const ang = app.rng.stream('cosmetic').next() * Math.PI * 2;
           const x = a.position.x + Math.cos(ang) * 0.3 * sc, z = a.position.z + Math.sin(ang) * 0.3 * sc;
-          this.debris.emit(x, a.position.y + (0.3 + Math.random() * 1.3) * sc, z, Math.cos(ang) * 0.4, 0, Math.sin(ang) * 0.4, 1.3, 0.05 + Math.random() * 0.06,
+          this.debris.emit(x, a.position.y + (0.3 + app.rng.stream('cosmetic').next() * 1.3) * sc, z, Math.cos(ang) * 0.4, 0, Math.sin(ang) * 0.4, 1.3, 0.05 + app.rng.stream('cosmetic').next() * 0.06,
             SOIL[0], SOIL[1], SOIL[2], FLAG_GRAVITY | FLAG_BOUNCE);
         }
       }

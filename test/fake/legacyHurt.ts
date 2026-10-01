@@ -59,7 +59,7 @@ export function legacyHurtFixture({ cap = 20, tusk = false, guarded = false, bos
     creature: (a, raw) => { hurt.creature(a, raw); flush(); },
     ride: (amount) => { hurt.jolt('env.ride', amount, { kind: 'env.ride', label: 'Thrown from the saddle', text: 'Thrown from the saddle' }); flush(); },
     lightning: (amount, why) => { hurt.jolt('env.lightning', amount, { kind: 'env.lightning', label: 'Struck by lightning', text: 'Struck by lightning' }, why); flush(); },
-    titan: (amount, why) => { hurt.jolt('boss.storm-titan', amount, { kind: 'storm-titan', label: 'the Storm Titan' }, why, true); flush(); },
+    titan: (amount, why) => { hurt.jolt('boss.storm-titan', amount, { kind: 'storm-titan', label: 'the Storm Titan' }, why); flush(); },
     fall: (hard) => { hurt.fall(hard); flush(); },
     tick: (dt) => { health.update(dt); flush(); },
     get health() { return health.attributes.health; }, get lastHurt() { return health.lastHurt; }, get killer() { return health.cause ?? null; },

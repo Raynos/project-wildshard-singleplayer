@@ -46,8 +46,8 @@ export class PlayerHurt {
     this.combat.hit({ source: 'env', sourceTags: [`creature.${a.kind}`, 'feel.blow', 'cover.checked'],
       target: this.health, amount, point: a.position.clone(), dir: new Vector3(), cause: { kind: a.kind, label: a.label } });
   }
-  jolt(tag: CombatTag, amount: number, cause: DeathCause, toast?: string, legacyBypass = false): void {
-    this.combat.hit({ source: 'env', sourceTags: [tag, 'feel.jolt', 'cover.checked', ...(legacyBypass ? ['legacy.player-rules-bypass' as const] : [])],
+  jolt(tag: CombatTag, amount: number, cause: DeathCause, toast?: string): void {
+    this.combat.hit({ source: 'env', sourceTags: [tag, 'feel.jolt', 'cover.checked'],
       target: this.health, amount, point: this.ports.player.position.clone(), dir: new Vector3(), cause,
       ...(toast === undefined ? {} : { toast }) });
   }

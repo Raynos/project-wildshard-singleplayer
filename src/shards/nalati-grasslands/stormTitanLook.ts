@@ -1,3 +1,4 @@
+import { app } from '#engine';
 /**
  * The Storm Titan's look (NALATI.md B14 "look is a first pass"; mockups art/nalati-grasslands/round-3/2-storm-titan/):
  * a towering giant of DARK cumulus with lightning veins crawling over him and a glowing spiral heart, and the phase-3
@@ -268,10 +269,10 @@ export class GrassFireFx {
     const p = this.pool[this.next];
     this.next = (this.next + 1) % this.pool.length;
     if (!p) return;
-    p.on = true; p.x = x + (Math.random() - 0.5) * 2; p.y = y + 1.2; p.z = z + (Math.random() - 0.5) * 2;
-    p.vx = (Math.random() - 0.5) * 0.6; p.vz = (Math.random() - 0.5) * 0.6; p.vy = 3.2 + Math.random() * 2;
-    p.age = 0; p.life = 5 + Math.random() * 3.5; p.r0 = 1.1 + Math.random() * 0.8; p.r1 = (5 + Math.random() * 4) * (0.7 + 0.4 * strength);
-    p.glow = strength; p.seed = Math.random();
+    p.on = true; p.x = x + (app.rng.stream('cosmetic').next() - 0.5) * 2; p.y = y + 1.2; p.z = z + (app.rng.stream('cosmetic').next() - 0.5) * 2;
+    p.vx = (app.rng.stream('cosmetic').next() - 0.5) * 0.6; p.vz = (app.rng.stream('cosmetic').next() - 0.5) * 0.6; p.vy = 3.2 + app.rng.stream('cosmetic').next() * 2;
+    p.age = 0; p.life = 5 + app.rng.stream('cosmetic').next() * 3.5; p.r0 = 1.1 + app.rng.stream('cosmetic').next() * 0.8; p.r1 = (5 + app.rng.stream('cosmetic').next() * 4) * (0.7 + 0.4 * strength);
+    p.glow = strength; p.seed = app.rng.stream('cosmetic').next();
   }
 
   update(dt: number, t: number, windX: number, windZ: number, windSpeed: number): void {

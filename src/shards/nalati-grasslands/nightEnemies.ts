@@ -1,3 +1,4 @@
+import { encounterHit } from './combat/damage';
 import type * as THREE from 'three';
 import type { Game, Sky, Player, Forest, TargetHit } from '#engine';
 
@@ -7,7 +8,7 @@ import type { DayCycleClock } from '#engine/world/dayCycle';
 import type { Balbals } from './world/Balbals';
 import type { AnimalManager } from '#engine/entities/AnimalManager';
 
-import type { NalatiKit } from './weapons/nalatiKit';
+import type { NalatiLoadout } from './weapons/loadout';
 import { wildEnv } from '#engine/entities/wildEnv';
 import { BalbalWarriors } from './balbalWarriors';
 import { GhostRiders } from './ghostRiders';
@@ -25,7 +26,7 @@ import { GhostRiders } from './ghostRiders';
  *   night.bindKit(play.kit)                     // in bindPlay (the sabre / spear in hand feeds the balbals' damage model)
  *   hit = night.target(origin, dir, max, hit)   // in the Targets chain (sheepTarget): the ghost riders' torso + hood
  *
- * Damage to the player goes through `animals.onCharge(animal, damage)` — main.ts's health, flash and sound — for the
+ * Damage to the player goes through `combat.hit` — main.ts's health, flash and sound — for the
  * balbals' slam (the species' `hurt`) and the riders' arrows alike. Dev: `?time=dusk` / `?time=night` (the weather row),
  * Debug ▸ Creatures & NPCs ▸ Balbal warriors / Ghost riders (wake now · never); `window.__balbals`, `window.__ghosts`.
  */
@@ -36,7 +37,7 @@ export interface NightEnemies {
   riders: GhostRiders;
   update: (dt: number, t: number) => void;
   attach: (animals: AnimalManager) => void;
-  bindKit: (kit: NalatiKit | null) => void;
+  bindKit: (kit: NalatiLoadout | null) => void;
   target: (origin: THREE.Vector3, dir: THREE.Vector3, maxDist: number, hit: TargetHit | null) => TargetHit | null;
 }
 
@@ -53,10 +54,10 @@ export function wireNightEnemies(ctx: NightEnemiesCtx): NightEnemies {
       // never let a night enemy stop the shard's boot (the shared tree is everyone's): a failed build logs and switches it off
       try { balbals.attach(animals); } catch (e) { console.error('[B11] balbal warriors off:', e); }
       try { riders.attach(animals); } catch (e) { console.error('[B11] ghost riders off:', e); }
-      // a ghost arrow hurts like any creature's blow (main.ts's onCharge: health, the red flash, the sound)
+      // a ghost arrow hurts like any creature's blow (the pipeline: health, the red flash, the sound)
       riders.hurt = (damage, from) => {
         const a = from ?? riders.riders[0]?.a;
-        if (a !== undefined) animals.onCharge?.(a, damage);
+        if (a !== undefined) encounterHit(a, damage, 'creature.ghost-rider', ctx.player.position);
       };
     },
     bindKit(kit) { balbals.bindKit(kit); },

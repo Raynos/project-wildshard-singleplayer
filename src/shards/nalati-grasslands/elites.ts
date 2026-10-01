@@ -1,3 +1,5 @@
+import { app, EliteBrain } from '#engine';
+import { encounterHit } from './combat/damage';
 import * as THREE from 'three';
 import type { Game } from '#engine/core/Game';
 import type { Sky } from '#engine/world/Sky';
@@ -122,26 +124,23 @@ const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _h = new THREE.Vector3
 
 /** out of the world for good: hidden, out of the manager's list (minimap, prompts, aim assist) */
 function retire(animals: AnimalManager, a: Animal): void {
-  a.hidden = true; a.mesh.visible = false; a.alive = false; a.position.y = -9999;
-  const i = animals.animals.indexOf(a); if (i !== -1) animals.animals.splice(i, 1);
-  a.mesh.removeFromParent();
+  animals.retire(a);
 }
 
 function isHead(a: Animal, p: THREE.Vector3, slack = 0.12): boolean { a.headWorld(_h); return _h.distanceTo(p) < a.dims.headRadius * a.scale + slack; }
 
-abstract class Base implements EliteScript {
-  animal: Animal | null = null;
-  protected p2 = false;
+abstract class Base extends EliteBrain<Animal> implements EliteScript {
   protected t = 0;
-  constructor(readonly def: EliteDef, protected readonly env: Env) {}
-  abstract spawn(): void;
-  abstract tick(dt: number, t: number, engaged: boolean, leashing: boolean): void;
-  despawn(): void { if (this.animal) retire(this.env.animals, this.animal); this.animal = null; }
-  reset(): void { this.p2 = false; }
-  enterPhase2(): void { this.p2 = true; }
+  constructor(override readonly def: EliteDef, protected readonly env: Env) { super(def, { player: env.player, random: () => app.rng.stream('ai').next() }); }
+  abstract override spawn(): void;
+  abstract override tick(dt: number, t: number, engaged: boolean, leashing: boolean): void;
+  override despawn(): void { if (this.animal) retire(this.env.animals, this.animal); this.animal = null; }
+  override reset(): void { this.p2 = false; }
+  override enterPhase2(): void { this.p2 = true; }
   /** no trophy on Nalati (E314 C: no pack) — main.ts's kill feed names the kill, the orb holds the skin */
   trophy(): void { /* nothing */ }
   dropModel(): THREE.Object3D { return trophyModel(this.def.id, this.env.sky); }
+  protected fight(): void { /* Authored elite ticks supply their own goal and body clock. */ }
   protected sig(): void { this.env.elites.signature(this.def.id); }
   protected spawnAt(kind: string, variant: string, x: number, z: number, yaw: number): Animal {
     const a = this.env.animals.spawn(kind, x, z, yaw, variant);
@@ -154,12 +153,13 @@ abstract class Base implements EliteScript {
   /** the 10 Hz brain (the species' think forwards here) */
   protected think(_a: Animal, _c: ThinkCtx): void { /* per elite */ }
   protected damage(_a: Animal, _p: THREE.Vector3, _d: THREE.Vector3): number { return 1; }
-  protected toPlayer(a: Animal): { d: number; yaw: number } {
+  protected override toPlayer(a: Animal): { d: number; yaw: number } {
     const p = this.env.player.position, dx = p.x - a.position.x, dz = p.z - a.position.z;
     return { d: Math.hypot(dx, dz), yaw: Math.atan2(dx, dz) };
   }
   /** back to the lair, round what's in the way (the navmesh path — NALATI-MERGE P3) */
-  protected goHome(a: Animal, c: ThinkCtx, speed: number): void {
+  protected override goHome(a: Animal, c?: ThinkCtx, speed = 4): void {
+    if (c === undefined) { super.goHome(a); return; }
     const dx = this.def.lair.x - a.position.x, dz = this.def.lair.z - a.position.z;
     a.setMotion(c.pathYaw(a, this.def.lair.x, this.def.lair.z, 2), Math.hypot(dx, dz) > 3 ? speed : 0, 3);
   }
@@ -396,7 +396,7 @@ class Kokbori extends Base {
         a.mem['howl'] = 0; this.rings.hide();
         if (this.pack) { this.pack.awareness = 1; this.pack.phase = 'encircle'; }
         this.env.feed('PACK HOWL — the pack closes in');
-        this.st = 'hold'; this.howlT = 11 + Math.random() * 4;
+        this.st = 'hold'; this.howlT = 11 + app.rng.stream('ai').next() * 4;
       }
     } else if (a.mem['howl'] !== 0) a.mem['howl'] = 0;
   }
@@ -493,7 +493,7 @@ class Qyran extends Base {
             this.env.hurt(a, 30); this.env.knock(p.x - _v.x, p.z - _v.z);
             this.st = 'climb'; m['altY'] = this.tgt.y + 2;
           } else { this.st = 'ground'; this.stT = 0; m['altY'] = heightAt(a.position.x, a.position.z) + 0.55 * a.scale; this.env.feed('Qyran is GROUNDED'); }
-          this.stoopT = this.p2 ? 4.5 + Math.random() * 1.5 : 7 + Math.random() * 2;
+          this.stoopT = this.p2 ? 4.5 + app.rng.stream('ai').next() * 1.5 : 7 + app.rng.stream('ai').next() * 2;
         } else {
           _w.multiplyScalar(step / L);
           a.position.x += _w.x; a.position.z += _w.z; m['altY'] = (m['altY'] ?? 0) + _w.y; m['altS'] = m['altY'];
@@ -858,7 +858,7 @@ export class NalatiElites {
     this.elites = elites;
     const env: Env = {
       game, sky, player, animals: play.animals, elites, bar, wildlife: play.wildlife, taming: play.taming, ghosts: play.ghosts ?? this.ghosts, ledges: this.ctx.ledges,
-      hurt: (a, dmg) => { play.animals.onCharge?.(a, dmg); },
+      hurt: (a, dmg) => { encounterHit(a, dmg, `elite.${a.variant}`, player.position); },
       knock: (dx, dz) => { const l = Math.hypot(dx, dz) || 1; wildEnv.onKnockdown?.(dx / l, dz / l, 1); },
       feed: play.feed, record: play.record,
       sound: (name, at) => { play.sound?.(name, at); },
@@ -870,7 +870,7 @@ export class NalatiElites {
       new QaraBatyr(ELITE_DEFS['qara-batyr'] ?? fail('qara-batyr'), env),
       new Argymaq(ELITE_DEFS['argymaq'] ?? fail('argymaq'), env),
     ];
-    for (const s of this.scripts) { elites.add(s); const skin = s.def.drop.skin; if (skin !== null && elites.owned(s.def.id)) this.skins.add(skin); }
+    for (const s of this.scripts) { app.encounters.elite(s.def.id, s, game.levelScope); elites.add(s); const skin = s.def.drop.skin; if (skin !== null && elites.owned(s.def.id)) this.skins.add(skin); }
     // build the new rigs' models now (a first spawn mid-hunt must not stall a frame)
     for (const [k, v] of [[LEOPARD, 'aqbars'], [EAGLE, 'qyran'], [KOKBORI, 'kokbori']] as const) { try { play.animals.factory.model(k, v); } catch (e) { console.warn(`[elites] ${k} did not build`, e); } }
     // dev: `?elite=<id>` — spawn it whatever its rule and put the player DEV_FROM's distance from it (`&from=<m>`), facing it
@@ -885,7 +885,7 @@ export class NalatiElites {
         player.yaw = Math.atan2(-(a.position.x - px), -(a.position.z - pz)); player.pitch = from.pitch;
       }
     }
-    (window as unknown as { __elites: unknown }).__elites = this;
+    this.ctx.game.levelScope.onDispose(app.debug.scopedExpose('nalati.elites', this));
   }
 
   update(dt: number, t: number): void { this.elites?.update(dt, t); }

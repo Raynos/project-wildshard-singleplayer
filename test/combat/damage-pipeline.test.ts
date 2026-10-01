@@ -102,13 +102,14 @@ describe('public combat.hit rules, events and player health', () => {
     expect(f.combat.hit(request(f, ['creature.boar'], 25))?.dealt).toBe(20);
     expect(f.combat.hit(request(f, ['env.fall'], 8))?.dealt).toBe(8); expect(f.api.health).toBe(72);
   });
-  it('boss-tag R1/R2 work, while the Titan adapter keeps its S3.4-boarded bypass', () => {
+  it('B3: every Titan adapter hit obeys the cap and dodge guard', () => {
     const f = legacyHurtFixture({ tusk: true });
     expect(f.combat.hit(request(f, ['boss.storm-titan'], 40))?.dealt).toBe(20);
     f.player.dodging = true;
     expect(f.combat.hit(request(f, ['boss.storm-titan'], 40))).toBeNull();
     expect(f.combat.hit(request(f, ['env.lightning'], 60))?.dealt).toBe(60);
-    f.api.healthSet(100); f.api.titan(40); expect(f.api.health).toBe(60);
+    f.api.healthSet(100); f.api.titan(40); expect(f.api.health).toBe(100);
+    f.player.dodging = false; f.api.titan(40); expect(f.api.health).toBe(80);
   });
   it.each([[false, 39], [true, 65]] as const)('R8 then R7 apply only once to a broadhead product, head=%s', (headshot, expected) => {
     const f = legacyHurtFixture(), target = damageTarget({ bodyMul: 0.6, speciesMul: 1.25 });

@@ -1,3 +1,5 @@
+import { app, PlayerHealth, Scope } from '#engine';
+import { encounterHit } from '#shards/nalati-grasslands/combat/damage';
 import * as THREE from 'three';
 import { afterEach, beforeAll, describe, expect, it } from 'vitest';
 import { Animal } from '#engine/entities/Animal';
@@ -42,5 +44,25 @@ describe('legacy melee chest-to-attacker occlusion using the real physics query'
   });
   it('endpoint slack permits an attacker touching a wall; a wall nearer the player blocks', () => {
     arena(3.9); expect(reach()).toBe(true); arena(3.4); expect(reach()).toBe(false);
+  });
+});
+
+
+describe('Nalati encounter contact routes through the same cover query and player rules', () => {
+  it.each(['elite.aqbars', 'boss.golden-king', 'creature.ghost-rider'] as const)('%s cannot hit through a yurt or dungeon pillar', (tag) => {
+    const previousScope = app.levelScope, scope = new Scope('nalati-contact');
+    app.levelScope = scope;
+    const health = new PlayerHealth(app.events, { now: () => 1000, dodging: () => false, dodgeGuard: () => false, position: () => new THREE.Vector3() });
+    app.registerPlayer(health, scope); app.combat.playerRules(scope, { target: health });
+    const a = legacyActor(Animal.prototype, { kind: 'leopard', label: 'Aqbars', position: new THREE.Vector3(0, 0, 4), scale: 1,
+      dims: { bodyY: 1.2, bodyRadius: 0.3 }, headWorld: (out: THREE.Vector3) => out.set(0, 1.8, 4) });
+    try {
+      arena(2, 'felt');
+      expect(encounterHit(a, 14, tag, new THREE.Vector3())).toBe(false); expect(health.attributes.health).toBe(100);
+      arena(null);
+      expect(encounterHit(a, 14, tag, new THREE.Vector3())).toBe(true); expect(health.attributes.health).toBe(86);
+      arena(2, 'stone');
+      expect(encounterHit(a, 4, tag, new THREE.Vector3(), true)).toBe(true); expect(health.attributes.health).toBe(82);
+    } finally { scope.dispose(); app.levelScope = previousScope; }
   });
 });

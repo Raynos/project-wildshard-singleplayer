@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { type Game, type Sky, type Player, type Forest, type TargetAnimal, type TargetHit, Projectiles, type ProjectileKind, setting } from '#engine';
+import { app, type Game, type Sky, type Player, type Forest, type TargetAnimal, type TargetHit, Projectiles, type ProjectileKind, setting } from '#engine';
 
 
 
@@ -229,7 +229,7 @@ export class GhostRiders {
     rider.frustumCulled = false;
     const body = a.mesh.skeleton.getBoneByName('body');
     if (body !== undefined) { body.add(rider); rider.position.set(0, 0, 0); }
-    const r: Rider = { a, mats: [horseMat, riderMat], line: null, slot: 0, fade: 0, fadeTarget: 1, dying: 0, fireT: 2 + Math.random() * 2.5, dead: false, quiet: o.storm === true };
+    const r: Rider = { a, mats: [horseMat, riderMat], line: null, slot: 0, fade: 0, fadeTarget: 1, dying: 0, fireT: 2 + app.rng.stream('ai').next() * 2.5, dead: false, quiet: o.storm === true };
     this.riders.push(r);
     _v.set(o.x, heightAt(o.x, o.z) + 1, o.z);
     this.mist.burst(_v, 24, 1.6, 0.8, 1.6, 0.9, MIST, 0.25, FLAG_GROW | FLAG_RISE, 1.2);
@@ -242,7 +242,7 @@ export class GhostRiders {
     const p = this.ctx.player.position;
     let s = o.at ?? -1;
     if (s < 0) { let bd = -1; for (let q = 0; q < LOOP; q += 8) { ridgeAt(q, _v); const d = Math.hypot(_v.x - p.x, _v.z - p.z); if (d > bd && d < 260) { bd = d; s = q; } } }
-    const line: Line = { riders: [], s, mode: 'patrol', theta: 0, dir: Math.random() < 0.5 ? 1 : -1, engagedT: 0 };
+    const line: Line = { riders: [], s, mode: 'patrol', theta: 0, dir: app.rng.stream('ai').next() < 0.5 ? 1 : -1, engagedT: 0 };
     const out: Animal[] = [];
     for (let i = 0; i < count; i++) {
       ridgeAt(s - i * SPACING, _v); ridgeAt(s - i * SPACING + 4, _w);
@@ -333,23 +333,23 @@ export class GhostRiders {
         r.dying += dt;
         if (r.dying < 1.3) {
           ghostSeat(a, _v);
-          for (let k = 0; k < 4; k++) this.mist.emit(_v.x + (Math.random() - 0.5) * 1.6, _v.y - Math.random() * 1.4, _v.z + (Math.random() - 0.5) * 1.6,
-            (Math.random() - 0.5) * 1.2, 0.6 + Math.random(), (Math.random() - 0.5) * 1.2, 1.4, 0.35 + Math.random() * 0.4, MIST[0], MIST[1], MIST[2], FLAG_GROW | FLAG_RISE);
+          for (let k = 0; k < 4; k++) this.mist.emit(_v.x + (app.rng.stream('cosmetic').next() - 0.5) * 1.6, _v.y - app.rng.stream('cosmetic').next() * 1.4, _v.z + (app.rng.stream('cosmetic').next() - 0.5) * 1.6,
+            (app.rng.stream('cosmetic').next() - 0.5) * 1.2, 0.6 + app.rng.stream('cosmetic').next(), (app.rng.stream('cosmetic').next() - 0.5) * 1.2, 1.4, 0.35 + app.rng.stream('cosmetic').next() * 0.4, MIST[0], MIST[1], MIST[2], FLAG_GROW | FLAG_RISE);
         } else { this.retire(r); this.riders.splice(i, 1); continue; }
       }
       if (r.dead || a.hidden) continue;
       // the smoke trail: mist off the legs and the cloak, left behind as it gallops
       // (small wisps, left BEHIND the horse: the body itself must stay readable through them)
-      if (Math.random() < dt * 22) {
+      if (app.rng.stream('cosmetic').next() < dt * 22) {
         ghostSeat(a, _v);
         const back = _w.set(-Math.sin(a.yaw), 0, -Math.cos(a.yaw));
-        this.mist.emit(_v.x + back.x * 1.1 + (Math.random() - 0.5) * 0.7, _v.y + 0.3 - Math.random() * 1.6, _v.z + back.z * 1.1 + (Math.random() - 0.5) * 0.7,
-          back.x * 2.2, 0.25, back.z * 2.2, 0.9 + Math.random() * 0.5, 0.12 + Math.random() * 0.14, MIST[0] * 0.6, MIST[1] * 0.6, MIST[2] * 0.6, FLAG_GROW | FLAG_RISE);
+        this.mist.emit(_v.x + back.x * 1.1 + (app.rng.stream('cosmetic').next() - 0.5) * 0.7, _v.y + 0.3 - app.rng.stream('cosmetic').next() * 1.6, _v.z + back.z * 1.1 + (app.rng.stream('cosmetic').next() - 0.5) * 0.7,
+          back.x * 2.2, 0.25, back.z * 2.2, 0.9 + app.rng.stream('cosmetic').next() * 0.5, 0.12 + app.rng.stream('cosmetic').next() * 0.14, MIST[0] * 0.6, MIST[1] * 0.6, MIST[2] * 0.6, FLAG_GROW | FLAG_RISE);
       }
       // shooting: inside SHOOT m, engaged (or a loose rider), on a timer
       r.fireT -= dt;
       const d = Math.hypot(p.x - a.position.x, p.z - a.position.z);
-      if (!r.quiet && r.fireT <= 0 && d < SHOOT && d > 6 && (r.line === null || r.line.mode === 'engage')) { this.shoot(r); r.fireT = 3 + Math.random() * 1.8; }
+      if (!r.quiet && r.fireT <= 0 && d < SHOOT && d > 6 && (r.line === null || r.line.mode === 'engage')) { this.shoot(r); r.fireT = 3 + app.rng.stream('ai').next() * 1.8; }
     }
     // lines with nobody left: drop them; start the next one's clock
     for (let i = this.lines.length - 1; i >= 0; i--) {
@@ -412,7 +412,7 @@ export class GhostRiders {
     const disc = v2 * v2 - g * (g * h * h + 2 * dy * v2);
     const th = disc >= 0 ? Math.atan((v2 - Math.sqrt(disc)) / (g * Math.max(h, 1e-3))) : Math.PI / 4;
     const spread = THREE.MathUtils.degToRad(1.4);
-    const yaw = Math.atan2(dx, dz) + (Math.random() - 0.5) * spread * 2, pitch = th + (Math.random() - 0.5) * spread;
+    const yaw = Math.atan2(dx, dz) + (app.rng.stream('ai').next() - 0.5) * spread * 2, pitch = th + (app.rng.stream('ai').next() - 0.5) * spread;
     _d.set(Math.sin(yaw) * Math.cos(pitch), Math.sin(pitch), Math.cos(yaw) * Math.cos(pitch)).multiplyScalar(ARROW_SPEED);
     this.shooter = a;
     this.arrows.launch(_v, _d, { damageScale: 1 });

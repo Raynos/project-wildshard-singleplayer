@@ -76,9 +76,9 @@ export class CombatPipeline {
     const applies = (req: DamageRequest): boolean => playerTarget(req) && (target === undefined || target === req.target);
     if (bossGod) this.events.answer('damage.modify', (req) => req !== null && applies(req) && any(req.sourceTags, ['boss.*', 'elite.*', 'add.*']) ? null : req, scope, { order: 1 });
     this.events.answer('damage.modify', (req) => req !== null && applies(req) && hostileSource(req)
-      && !matches(req.sourceTags, 'legacy.player-rules-bypass') && matches(req.target.state, 'guard.dodge') && matches(req.target.state, 'state.dodging') ? null : req, scope, { order: 10 });
+      && matches(req.target.state, 'guard.dodge') && matches(req.target.state, 'state.dodging') ? null : req, scope, { order: 10 });
     this.events.answer('damage.modify', (req) => {
-      if (req === null || !applies(req) || !hostileSource(req) || matches(req.sourceTags, 'legacy.player-rules-bypass')
+      if (req === null || !applies(req) || !hostileSource(req)
         || capExempt.some((kind) => req.sourceTags.some((tag) => tag === kind || tag === `creature.${kind}`))) return req;
       return { ...req, amount: Math.min(req.amount, req.target.attributes.incomingCap ?? Infinity) };
     }, scope, { order: 90 });

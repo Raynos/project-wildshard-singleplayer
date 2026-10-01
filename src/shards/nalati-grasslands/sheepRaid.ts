@@ -1,3 +1,4 @@
+import { app } from '#engine';
 import * as THREE from 'three';
 import type { Animal } from '#engine/entities/Animal';
 import type { AnimalManager, AnimalSound } from '#engine/entities/AnimalManager';
@@ -56,7 +57,7 @@ const RING = 22;                       // m: his slow ring round the flock
 /** the valley pack's den from the flock (m) and its wolves; spawned at most this many times a session */
 const DEN = { dx: -80, dz: -8 }, RAIDERS = ['grey', 'tawny', 'scout'], MAX_PACKS = 2;
 const voice = (name: string): AnimalSound => name as AnimalSound;
-const rand = (r: readonly [number, number]): number => r[0] + Math.random() * (r[1] - r[0]);
+const rand = (r: readonly [number, number]): number => r[0] + app.rng.stream('ai').next() * (r[1] - r[0]);
 
 // ── the shepherd, seated (seat space: origin on the saddle, +y up, +z forward, +x his LEFT — the camp people's frame) ──
 const C = {
@@ -233,7 +234,7 @@ export class SheepRaid {
         this.patrolA = Math.atan2(hx - f.cx, hz - f.cz) + 0.35;
         const tx = f.cx + Math.sin(this.patrolA) * RING, tz = f.cz + Math.cos(this.patrolA) * RING;
         yaw = Math.atan2(tx - hx, tz - hz); speed = HORSE_SPEED.walk;
-        if (Math.random() < dt * 0.02) this.restT = 6 + Math.random() * 8;
+        if (app.rng.stream('ai').next() < dt * 0.02) this.restT = 6 + app.rng.stream('ai').next() * 8;
       }
     }
     h.state = speed > 6 ? 'flee' : speed > 0.2 ? 'wander' : Math.sin(performance.now() * 0.0003 + h.seed * 5) > 0.3 ? 'graze' : 'idle';

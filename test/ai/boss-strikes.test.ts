@@ -1,3 +1,4 @@
+import { app } from '#engine';
 import * as THREE from 'three';
 import { describe, expect, it, vi } from 'vitest';
 import type * as Heightfield from '#engine/world/Heightfield';
@@ -53,7 +54,7 @@ describe('boss contacts executed through original production methods', () => {
       dungeon: { rings: [vis], floorHeightAt: () => 0 },
     });
     invokeLegacy(fight, 'updateRings', 1 / 60); invokeLegacy(fight, 'updateRings', 1 / 60);
-    expect(hurt).toHaveBeenCalledTimes(jump ? 0 : 1); if (!jump) expect(hurt).toHaveBeenCalledWith(25);
+    expect(hurt).toHaveBeenCalledTimes(jump ? 0 : 1); if (!jump) expect(hurt).toHaveBeenCalledWith(25, true);
   });
   it('S21 the Golden beam ticks15 once a second', () => {
     const hurt = vi.fn(noop), vis = visual(), line = new THREE.Object3D();
@@ -61,18 +62,18 @@ describe('boss contacts executed through original production methods', () => {
       beamHitCd: 0, beamKingCd: 0, king: null, dungeon: { beam: { ...vis, line, lineMat: vis.mat } },
       host: { player: { position: new THREE.Vector3(DUNGEON.x, 0, DUNGEON.z + 6.2 * 0.85 - 0.5) }, hurt },
     });
-    invokeLegacy(fight, 'updateBeam', 0.1); invokeLegacy(fight, 'updateBeam', 0.9); expect(hurt).toHaveBeenCalledExactlyOnceWith(15);
+    invokeLegacy(fight, 'updateBeam', 0.1); invokeLegacy(fight, 'updateBeam', 0.9); expect(hurt).toHaveBeenCalledExactlyOnceWith(15, true);
     invokeLegacy(fight, 'updateBeam', 0.1); expect(hurt).toHaveBeenCalledTimes(2);
   });
   it('S22 sand keeps the1s tell,6s pour and4-damage2/s chance inside .55m', () => {
-    const draw = vi.spyOn(Math, 'random').mockReturnValue(0), hurt = vi.fn(noop), vis = visual(), tellMesh = new THREE.Object3D();
+    const draw = vi.spyOn(app.rng.stream('ai'), 'next').mockReturnValue(0), hurt = vi.fn(noop), vis = visual(), tellMesh = new THREE.Object3D();
     const fight = legacyActor(GoldenKingFight.prototype, { phase: 1, mode: 'fight', streamT: 100, streams: [{ st: 1, t: 0 }],
       dungeon: { streams: [{ ...vis, tell: tellMesh, tellMat: vis.mat, x: 0, z: 0 }], sandAt: () => 0, addSand: noop },
       host: { player: { position: new THREE.Vector3(DUNGEON.x, 0, DUNGEON.z) }, hurt },
     });
     try {
       invokeLegacy(fight, 'updateStreams', 1); expect(hurt).not.toHaveBeenCalled();
-      invokeLegacy(fight, 'updateStreams', 0.01); invokeLegacy(fight, 'updateStreams', 0.1); expect(hurt).toHaveBeenCalledExactlyOnceWith(4);
+      invokeLegacy(fight, 'updateStreams', 0.01); invokeLegacy(fight, 'updateStreams', 0.1); expect(hurt).toHaveBeenCalledExactlyOnceWith(4, true);
       invokeLegacy(fight, 'updateStreams', 6); const streams: unknown = Reflect.get(fight, 'streams'); expect(streams).toEqual([{ st: 0, t: 0 }]);
     } finally { draw.mockRestore(); }
   });

@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { type Game, type Player, type TargetAnimal, type TargetHit, wind } from '#engine';
+import { app, type Game, type Player, type TargetAnimal, type TargetHit, wind } from '#engine';
 
 import type { Animal } from '#engine/entities/Animal';
 import type { AnimalManager } from '#engine/entities/AnimalManager';
@@ -648,7 +648,7 @@ export class StormTitanFight implements BossScript {
         break;
       case 'stuck':
         b.bend += (1 - b.bend) * Math.min(1, dt * 5);
-        if (this.spearT >= SPEAR_STUCK) { this.spear = 'idle'; this.spearT = 0; this.spearCd = this.phase === 2 ? 6 + Math.random() * 2 : 2 + Math.random() * 1.5; }
+        if (this.spearT >= SPEAR_STUCK) { this.spear = 'idle'; this.spearT = 0; this.spearCd = this.phase === 2 ? 6 + app.rng.stream('ai').next() * 2 : 2 + app.rng.stream('ai').next() * 1.5; }
         break;
       default: break;
     }
@@ -739,7 +739,7 @@ export class StormTitanFight implements BossScript {
       if (r !== undefined) {
         const a = r.a, dx = p.x - a.position.x, dz = p.z - a.position.z, l = Math.hypot(dx, dz) || 1;
         r.mode = 'aim'; r.t = 0; r.x0 = a.position.x; r.z0 = a.position.z; r.x1 = p.x + (dx / l) * 22; r.z1 = p.z + (dz / l) * 22;
-        this.chargeCd = 3 + Math.random() * 1.5;
+        this.chargeCd = 3 + app.rng.stream('ai').next() * 1.5;
       }
     }
     if (this.stunT > 0) this.stunT -= dt;
@@ -760,16 +760,16 @@ export class StormTitanFight implements BossScript {
   private ignite(x: number, z: number): void {
     const c = this.cellOf(x, z);
     if (c < 0 || this.burn[c] !== 0 || !this.inside(c)) return;
-    this.burn[c] = 1; this.burnT[c] = BURN_T * (0.8 + Math.random() * 0.4);
+    this.burn[c] = 1; this.burnT[c] = BURN_T * (0.8 + app.rng.stream('ai').next() * 0.4);
   }
   private addScorch(c: number): void {
     if (this.scorchN >= this.scorch.instanceMatrix.count) return;
-    const x = this.cellX(c) + (Math.random() - 0.5) * 2.4, z = this.cellZ(c) + (Math.random() - 0.5) * 2.4;
+    const x = this.cellX(c) + (app.rng.stream('cosmetic').next() - 0.5) * 2.4, z = this.cellZ(c) + (app.rng.stream('cosmetic').next() - 0.5) * 2.4;
     // lying on the slope (a flat decal floats off the rim's fall), turned at random
     const n = normalAt(x, z);
     _q.setFromUnitVectors(_w.set(0, 1, 0), _v.set(n[0], n[1], n[2]).normalize());
-    _q.multiply(_q2.setFromAxisAngle(_w.set(0, 1, 0), Math.random() * 6.28));
-    _m.compose(_v.set(x, heightAt(x, z) + 0.08, z), _q, _s.set(0.8 + Math.random() * 0.5, 1, 0.8 + Math.random() * 0.5));
+    _q.multiply(_q2.setFromAxisAngle(_w.set(0, 1, 0), app.rng.stream('cosmetic').next() * 6.28));
+    _m.compose(_v.set(x, heightAt(x, z) + 0.08, z), _q, _s.set(0.8 + app.rng.stream('cosmetic').next() * 0.5, 1, 0.8 + app.rng.stream('cosmetic').next() * 0.5));
     this.scorch.setMatrixAt(this.scorchN++, _m);
     this.scorch.count = this.scorchN; this.scorch.instanceMatrix.needsUpdate = true;
     wildEnv.trample(x, z, CELL * 0.6, 1, 0, 0);   // the grass burnt flat
@@ -799,10 +799,10 @@ export class StormTitanFight implements BossScript {
           if (this.burn[n] !== 0) continue;
           const l = Math.hypot(di, dj), along = (di * wx + dj * wz) / l;
           const pr = along > 0.5 ? 0.16 : along > -0.2 ? 0.035 : 0.004;
-          if (Math.random() < pr) next.push(n);
+          if (app.rng.stream('ai').next() < pr) next.push(n);
         }
       }
-      for (const n of next) if (this.inside(n)) { this.burn[n] = 1; this.burnT[n] = BURN_T * (0.8 + Math.random() * 0.4); }
+      for (const n of next) if (this.inside(n)) { this.burn[n] = 1; this.burnT[n] = BURN_T * (0.8 + app.rng.stream('ai').next() * 0.4); }
     }
     // burn down; draw the flames: each cell rises, roars and sinks to embers; the downwind front stands tallest; smoke rolls off
     const fx = this.fire;
@@ -821,7 +821,7 @@ export class StormTitanFight implements BossScript {
       const nc = this.cellOf(x + wx * CELL, z + wz * CELL);
       const front = nc >= 0 && this.burn[nc] === 0 ? 1 : 0;
       fx.flame(x + Math.sin(c * 3.1) * 0.8, y, z + Math.cos(c * 2.3) * 0.8, c, heat, front, 1.5);
-      if (Math.random() < dt * smokeRate * (0.4 + heat)) fx.puff(x, y, z, heat);
+      if (app.rng.stream('cosmetic').next() < dt * smokeRate * (0.4 + heat)) fx.puff(x, y, z, heat);
     }
     fx.end();
     if (!live) return;
@@ -846,7 +846,7 @@ export class StormTitanFight implements BossScript {
       if (this.chainStep <= 0) {
         this.chainStep = 0.42;
         this.chainLeft--;
-        if (this.chainLeft === 0) this.chainCd = 5 + Math.random() * 2;
+        if (this.chainLeft === 0) this.chainCd = 5 + app.rng.stream('ai').next() * 2;
         // a ring where you were ~0.4 s ago: stopping means being hit
         const tr = this.trail[Math.max(0, this.trail.length - 5)] ?? { x: this.host.player.position.x, z: this.host.player.position.z };
         const c = this.chains.find((x) => !x.on);
@@ -949,6 +949,9 @@ export interface TitanPlay {
   params: URLSearchParams;
 }
 
+/** Authored Titan presentation over the shared BossBrain clock. */
+export class StormTitanBrain extends Boss {}
+
 export class StormTitan {
   readonly fight: StormTitanFight;
   readonly spareLight = new THREE.PointLight(0xc8dcff, 0, 1, 2);
@@ -1013,25 +1016,26 @@ export class StormTitan {
         },
       },
     };
-    this.boss = new Boss(def, this.fight, {
+    this.boss = new StormTitanBrain(def, this.fight, {
       scene: game.scene, player, camera: game.camera, renderer: game.renderer, spareLight: this.spareLight,
       lockInput: (on) => { play.setWeaponsEnabled(!on); player.moveScale = on ? 0 : 1; },
       respawn: (pos, yaw) => { this.respawnMounted(pos, yaw); play.refill(); },
       addInteractable: (it) => { play.interactables.push(it); },
       removeInteractable: (it) => { const i = play.interactables.indexOf(it); if (i !== -1) play.interactables.splice(i, 1); },
-      skipHeld: () => this.skipTouch || player.keys.has('Space') || player.keys.has('KeyE') || player.keys.has('Enter'),
+      skipHeld: () => this.skipTouch || app.input.held('jump') || app.input.held('use'),
       toast: play.toast, feed: play.feed,
       ...(play.music ? { music: play.music } : {}),
       ...(play.pickupHum ? { pickupHum: play.pickupHum } : {}),
     }, this.ui, 'nalati-grasslands');
+    app.encounters.boss('storm-titan', this.boss, game.levelScope);
     play.interactables.push(this.prompt);
     if (this.boss.rewardTaken) play.upgradeSabre?.(this.naizagai);
     // the horse refuses the storm wall and the fire line
     const mount = play.ride?.mount;
     if (mount) { const prev = mount.refuse; mount.refuse = (x, z) => this.fight.refuses(x, z) || (prev?.(x, z) ?? false); }
-    window.addEventListener('pointerdown', () => { this.skipTouch = true; });
-    window.addEventListener('pointerup', () => { this.skipTouch = false; });
-    window.addEventListener('pointercancel', () => { this.skipTouch = false; });
+    game.levelScope.listen(window, 'pointerdown', () => { this.skipTouch = true; });
+    game.levelScope.listen(window, 'pointerup', () => { this.skipTouch = false; });
+    game.levelScope.listen(window, 'pointercancel', () => { this.skipTouch = false; });
     // dev: `?boss=storm-titan` — a storm, mounted at the cairn, the strip tied; `&bossPhase=2|3` at that checkpoint
     if (play.params.get('boss') === 'storm-titan') {
       this.ctx.weather.weather.force('storm', 0.1);
@@ -1041,7 +1045,7 @@ export class StormTitan {
       const ph = Number(play.params.get('bossPhase') ?? '1');
       if (ph > 1) this.boss.devStartAt(ph - 1); else this.boss.arm();
     }
-    (window as unknown as { __titan: unknown }).__titan = this;
+    this.ctx.game.levelScope.onDispose(app.debug.scopedExpose('nalati.titan', this));
   }
 
   /** a death: in the fight → back at the cairn, mounted (true); else not ours */

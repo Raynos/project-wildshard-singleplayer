@@ -1,5 +1,6 @@
+import { encounterHit } from './combat/damage';
 import * as THREE from 'three';
-import type { Game, Sky, Player } from '#engine';
+import { app, type Game, type Sky, type Player } from '#engine';
 
 
 import type { AnimalManager } from '#engine/entities/AnimalManager';
@@ -67,8 +68,8 @@ function standOnFloor(a: Animal): void { a.levelGround = true; a.sampleTerrain()
 export interface FightHost {
   player: Player;
   animals: AnimalManager;
-  /** the player takes `dmg` from the King / a hazard (routed to animals.onCharge: main's health, flash, sound) */
-  hurt: (dmg: number) => void;
+  /** the player takes `dmg` from the King / a hazard (routed to the shared damage pipeline) */
+  hurt: (dmg: number, throughWalls?: boolean) => void;
   feed: (text: string) => void;
 }
 
@@ -133,7 +134,7 @@ export class GoldenKingFight implements BossScript {
     k.hidden = false; k.mesh.visible = true;
     m['noHeadBar'] = 1;                                // the wide boss bar instead (Combat.ts skips it)
     this.mode = 'coffin'; this.modeT = 0; this.invuln = false;
-    this.comboLeft = 0; this.comboCd = 1.2; this.burstCd = 5 + Math.random() * 2;
+    this.comboLeft = 0; this.comboCd = 1.2; this.burstCd = 5 + app.rng.stream('ai').next() * 2;
     this.plaques = 0; this.chestOpen = false; this.headHp = HEADDRESS_HP; this.glow = 0; this.glint = 0;
     for (const b of this.balbals) this.retire(b.a);
     this.balbals = []; this.waves = 0; this.waveT = 0;
@@ -169,7 +170,7 @@ export class GoldenKingFight implements BossScript {
     this.dungeon.setLid(1);
     k.mem['pose'] = 1; k.mem['rise'] = 1;
     this.mode = 'fight'; this.modeT = 0;
-    this.comboCd = 0.8; this.burstCd = 4 + Math.random() * 3;
+    this.comboCd = 0.8; this.burstCd = 4 + app.rng.stream('ai').next() * 3;
     this.setEmissive(this.baseEmissive);
     if (phase === 1) {
       // the phase II checkpoint: straight to the coffin's foot, the dome up, the adds out
@@ -273,7 +274,7 @@ export class GoldenKingFight implements BossScript {
       } else if (act === 2) {
         this.glow = Math.min(1, atk / 0.72);
         if (atk >= 0.72 && m['hitDone'] !== 1) { m['hitDone'] = 1; this.fireRings(a, p3 ? 2 : 1); }
-        if (atk >= 1) { a.cancelAttack(); m['act'] = 0; this.burstCd = p3 ? 6.5 + Math.random() * 2 : 9 + Math.random() * 3; this.comboCd = Math.max(this.comboCd, 0.6); }
+        if (atk >= 1) { a.cancelAttack(); m['act'] = 0; this.burstCd = p3 ? 6.5 + app.rng.stream('ai').next() * 2 : 9 + app.rng.stream('ai').next() * 3; this.comboCd = Math.max(this.comboCd, 0.6); }
       } else if (atk >= 1) {
         // the roar / the torn cloak
         if (act === 4) m['cape'] = 0;
@@ -436,7 +437,7 @@ export class GoldenKingFight implements BossScript {
       const dp = Math.hypot(pl.x - r.cx, pl.z - r.cz);
       if (!r.hit && Math.abs(dp - r.r) < 0.5 && pl.y - floorY < 0.4) {
         r.hit = true;
-        this.host.hurt(SUNBURST_DMG);
+        this.host.hurt(SUNBURST_DMG, true);
         this.host.player.dash((pl.x - r.cx) / Math.max(0.1, dp) * 9, (pl.z - r.cz) / Math.max(0.1, dp) * 9, 0.18);
       }
       vis.mesh.visible = true;
@@ -476,9 +477,9 @@ export class GoldenKingFight implements BossScript {
     if (pouring) {
       this.streamT -= dt;
       if (this.streamT <= 0) {
-        this.streamT = 3.2 + Math.random() * 1.6;
+        this.streamT = 3.2 + app.rng.stream('ai').next() * 1.6;
         const free = this.streams.map((s, i) => (s.st === 0 ? i : -1)).filter((i) => i >= 0);
-        const pick = free[Math.floor(Math.random() * free.length)];
+        const pick = free[Math.floor(app.rng.stream('ai').next() * free.length)];
         const s = pick !== undefined ? this.streams[pick] : undefined;
         if (s) { s.st = 1; s.t = 0; }
       }
@@ -501,7 +502,7 @@ export class GoldenKingFight implements BossScript {
         d.addSand(vis.x, vis.z, 2.4, 0.2 * dt * k, 0.95);
         // standing under it: the sand beats down on you
         const pl = this.host.player.position;
-        if (Math.hypot(pl.x - DUNGEON.x - vis.x, pl.z - DUNGEON.z - vis.z) < 0.55 && Math.random() < dt * 2) this.host.hurt(4);
+        if (Math.hypot(pl.x - DUNGEON.x - vis.x, pl.z - DUNGEON.z - vis.z) < 0.55 && app.rng.stream('ai').next() < dt * 2) this.host.hurt(4, true);
         if (s.t > 6 || !pouring) { s.st = 0; s.t = 0; }
       }
     }
@@ -532,7 +533,7 @@ export class GoldenKingFight implements BossScript {
     // it burns: you (15, once a second) and him (50 when you lure him through it)
     const pl = this.host.player.position;
     this.beamHitCd -= dt; this.beamKingCd -= dt;
-    if (this.beamHitCd <= 0 && Math.hypot(pl.x - DUNGEON.x - cx, pl.z - DUNGEON.z - cz) < BEAM_HIT_R) { this.beamHitCd = 1; this.host.hurt(BEAM_DMG); }
+    if (this.beamHitCd <= 0 && Math.hypot(pl.x - DUNGEON.x - cx, pl.z - DUNGEON.z - cz) < BEAM_HIT_R) { this.beamHitCd = 1; this.host.hurt(BEAM_DMG, true); }
     const k = this.king;
     if (k && k.alive && this.beamKingCd <= 0 && !this.invuln && Math.hypot(k.position.x - DUNGEON.x - cx, k.position.z - DUNGEON.z - cz) < BEAM_HIT_R + 0.3) {
       this.beamKingCd = 3;
@@ -606,7 +607,7 @@ export interface KurganPlay {
   animals: AnimalManager;
   setWeaponsEnabled: (on: boolean) => void;
   bow: Bow | null;
-  upgradeBow?: (power: GoldenBowPower) => void;
+  upgradeBow: (power: GoldenBowPower) => void;
   refill: () => void;
   interactables: Interactable[];
   toast: (text: string) => void;
@@ -617,6 +618,9 @@ export interface KurganPlay {
 }
 
 export interface KurganCtx { game: Game; sky: Sky; player: Player; entrance: KurganEntrance | null }
+
+/** Authored arena and reward adapter; the encounter clock is BossBrain. */
+export class GoldenKing extends Boss {}
 
 export class KurganBoss {
   readonly dungeon = new KurganDungeon();
@@ -650,18 +654,13 @@ export class KurganBoss {
   bind(play: KurganPlay): void {
     this.play = play;
     const { game, sky, player } = this.ctx;
-    const god = play.params.has('bossGod');               // dev: the King's blows and the hazards do no damage (screenshots)
     // build the adds' model now, not mid-fight (a prewarm: a broken add rig must not take the whole boot down)
     try { play.animals.factory.model(KURGAN_BALBAL, 'warrior'); } catch (e) { console.warn('[kurgan] the balbal adds did not build', e); }
-    if (god) {
-      const hit = play.animals.onCharge;
-      play.animals.onCharge = (a, dmg) => { if (a.kind !== GOLDEN_KING && a.kind !== KURGAN_BALBAL) hit?.(a, dmg); };
-    }
     this.golden = new GoldenBowPower({ scene: game.scene, sky, camera: game.camera, raycast: (o, d, max) => play.animals.raycast(o, d, max) });
     this.ui = new BossBar();
     this.fight = new GoldenKingFight(this.dungeon, {
       player, animals: play.animals,
-      hurt: (dmg) => { const k = this.fight?.king; if (k) play.animals.onCharge?.(k, dmg); },
+      hurt: (dmg, throughWalls) => { const k = this.fight?.king; if (k) encounterHit(k, dmg, 'boss.golden-king', player.position, throughWalls); },
       feed: play.feed,
     });
     const def: BossDef = {
@@ -670,27 +669,28 @@ export class KurganBoss {
       reward: {
         tier: 'LEGENDARY', name: 'THE GOLDEN BOW', flavour: 'Bow of the Saka King', prompt: 'TAKE THE GOLDEN BOW',
         model: () => goldenBowModel(sky),
-        grant: () => { if (play.bow && this.golden) { if (play.upgradeBow) play.upgradeBow(this.golden); else this.golden.apply(play.bow); } },
+        grant: () => { if (play.bow && this.golden) { play.upgradeBow(this.golden); } },
       },
     };
-    this.boss = new Boss(def, this.fight, {
+    this.boss = new GoldenKing(def, this.fight, {
       scene: game.scene, player, camera: game.camera, renderer: game.renderer, spareLight: this.spareLight,
       lockInput: (on) => { this.locked = on; play.setWeaponsEnabled(!on); this.applyMove(); },
       respawn: (pos, yaw) => { player.position.copy(pos); player.velocity.set(0, 0, 0); player.yaw = yaw; player.pitch = 0; play.refill(); },
       addInteractable: (it) => { play.interactables.push(it); },
       removeInteractable: (it) => { const i = play.interactables.indexOf(it); if (i !== -1) play.interactables.splice(i, 1); },
-      skipHeld: () => this.skipKeys || this.skipTouch || player.keys.has('Space') || player.keys.has('KeyE') || player.keys.has('Enter'),
+      skipHeld: () => this.skipKeys || this.skipTouch || app.input.held('jump') || app.input.held('use'),
       toast: play.toast, feed: play.feed,
       ...(play.music ? { music: play.music } : {}),
       ...(play.pickupHum ? { pickupHum: play.pickupHum } : {}),
     }, this.ui, 'nalati-grasslands');
+    app.encounters.boss('golden-king', this.boss, game.levelScope);
     // the King starts outside every list until you walk in; the reward, once won, is yours at every boot
     this.fight.reset(0);
     this.fight.setPresent(false);
-    if (this.boss.rewardTaken && play.bow) { if (play.upgradeBow) play.upgradeBow(this.golden); else this.golden.apply(play.bow); }
-    window.addEventListener('pointerdown', () => { this.skipTouch = true; });
-    window.addEventListener('pointerup', () => { this.skipTouch = false; });
-    window.addEventListener('pointercancel', () => { this.skipTouch = false; });
+    if (this.boss.rewardTaken && play.bow) { play.upgradeBow(this.golden); }
+    game.levelScope.listen(window, 'pointerdown', () => { this.skipTouch = true; });
+    game.levelScope.listen(window, 'pointerup', () => { this.skipTouch = false; });
+    game.levelScope.listen(window, 'pointercancel', () => { this.skipTouch = false; });
     game.onUpdate((dt) => this.golden?.update(dt), 'shard.nalati-grasslands.bind');
     // dev: `?boss=golden-king` — start at the chamber door; `&bossPhase=2|3` at that checkpoint
     if (play.params.get('boss') === 'golden-king') {
@@ -698,7 +698,7 @@ export class KurganBoss {
       this.enter(true, 13.2);
       if (ph > 1) this.boss.devStartAt(ph - 1);
     }
-    (window as unknown as { __boss: unknown }).__boss = this;
+    this.ctx.game.levelScope.onDispose(app.debug.scopedExpose('nalati.boss', this));
   }
 
   /** a death: in the fight → back at the checkpoint (true); else not ours */
