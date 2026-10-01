@@ -12,7 +12,6 @@ import { Taming } from './Taming';
 import { RideHUD } from './RideHUD';
 import { HITCH_HORSE_SPOTS, HITCHING_RAIL } from '../world/layout';
 import { N_ROAD_PTS, S_ROAD_PTS, W_ROAD_PTS, E_ROAD_PTS, SKY_ROAD, CAMP_SPUR, BOWL_TRACKS, EAGLE_TRAIL, CAVE_TRAIL, ARGYMAQ_TRAIL } from '../layout';
-import { wildEnv } from '#engine/entities/wildEnv';
 import { Reins } from './Reins';
 import { SheepRaid } from '../sheepRaid';
 import { HorseNamePrompt } from './HorseNamePrompt';
@@ -96,9 +95,8 @@ export function wireRide(ctx: RideCtx): Ride {
   mount.onThrown = () => { play?.toast('Thrown!'); };
   // B1: the panic — a wolf's bite on the rider, lightning close by (chained after Taming's and the HUD's own listeners)
   mount.onPanic = (h) => { ctx.animals.onSound?.(voice('horse_squeal'), h.position); };
-  const prevEvent = wildEnv.onEvent;
-  wildEnv.onEvent = (name, x, z) => {
-    prevEvent?.(name, x, z);
+  ctx.ctx?.on('creature.signal', ({ name, x, z }) => {
+    taming.noteEvent(name, x, z);
     const h = mount.horse;
     if (h === null) return;
     if (name === 'rider-bitten') mount.panic(x, z, 0.9);
@@ -106,7 +104,7 @@ export function wireRide(ctx: RideCtx): Ride {
       const d = Math.hypot(h.position.x - x, h.position.z - z);
       if (d < BOLT_PANIC && mount.panic(x, z, d < 12 ? 2.2 : 1.5)) play?.toast(`${h.label} panics at the lightning — hold on`);
     }
-  };
+  });
 
   // B1: the reins (from the hands just under the frame along the neck to the bit, E320); they drop while the bow draws or the stallion bucks
   const reins = new Reins(ctx.camera);
@@ -115,6 +113,7 @@ export function wireRide(ctx: RideCtx): Ride {
 
   // B1: NAME at the hitching rail — the horse standing nearest you by the rail, on foot
   const namer = new HorseNamePrompt();
+  ctx.ctx?.scope.onDispose(() => { namer.close(); });
   let naming: Animal | null = null;
   const nameIt: Interactable = {
     position: new THREE.Vector3(HITCHING_RAIL.x, 0, HITCHING_RAIL.z), radius: 0, label: 'Name',

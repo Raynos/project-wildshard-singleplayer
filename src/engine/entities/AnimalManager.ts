@@ -1364,7 +1364,7 @@ export class AnimalManager {
   raycast(origin: THREE.Vector3, dir: THREE.Vector3, maxDist: number, aliveOnly = true): AnimalHit | null {
     // PHYSICS P6: the animals' head / body hitboxes in the physics world (posed every update); dead ones have none
     void aliveOnly;
-    const hit = this.bodiesFor()?.cast(origin, dir, maxDist) ?? null;
+    const hit = this.bodiesFor()?.cast(origin, dir, maxDist, app.equipmentHost?.player.mountedOn ?? null) ?? null;
     if (hit === null) return null;
     const h = this.hitResult ??= { animal: hit.creature, point: new THREE.Vector3(), distance: 0, headshot: false, damage: 0 };
     h.animal = hit.creature; h.distance = hit.distance; h.headshot = hit.head;
@@ -1389,7 +1389,7 @@ export class AnimalManager {
   nearRay(origin: THREE.Vector3, dir: THREE.Vector3, maxDist: number, tol: number): Animal | null {
     let best = maxDist, bestA: Animal | null = null;
     for (const a of this.animals) {
-      if (!a.alive || a.hidden) continue;
+      if (!a.alive || a.hidden || a === app.equipmentHost?.player.mountedOn) continue;
       _c.copy(a.position); _c.y += a.dims.bodyY * a.scale;
       _d.subVectors(_c, origin);
       const t = _d.dot(dir);

@@ -34,6 +34,8 @@ import type { Sky } from '#engine/world/Sky';
 import type { WorldRegistry, ColliderDesc } from '#engine/world/registry';
 import { CAMP_PEOPLE } from './quest';
 import { loadPeopleRig, type PersonFrame, type PeopleRig } from './campPeopleModels';
+import { stepNpcFigure, npcFigurePose } from '#kit';
+import { CAMP_MOTION } from './campPeopleProfiles';
 
 export type PersonId = keyof typeof CAMP_PEOPLE;
 
@@ -241,10 +243,6 @@ interface Live extends Person {
   anchor: THREE.Object3D | null;
 }
 
-const _m = new THREE.Matrix4(), _b = new THREE.Matrix4(), _q = new THREE.Quaternion(), _e = new THREE.Euler(), _s = new THREE.Vector3(1, 1, 1);
-const wrap = (a: number): number => Math.atan2(Math.sin(a), Math.cos(a));
-const damp = (a: number, b: number, k: number, dt: number): number => a + (b - a) * (1 - Math.exp(-k * dt));
-
 const CHILD_RING = 2.3;
 
 export function buildCampPeople(sky: Sky, floorAt: (x: number, z: number) => number, registry: WorldRegistry | null): CampPeople {
@@ -296,26 +294,16 @@ export function buildCampPeople(sky: Sky, floorAt: (x: number, z: number) => num
   for (const id of ids) { const pp = fig[id].parts; frames[id] = { height: pp.height, neck: pp.neck, shoulder: pp.shoulder }; }
   let rig: PeopleRig<PersonId> | null = null;
 
-  const _hq = new THREE.Quaternion(), _aq = new THREE.Quaternion();
+  const writePose = npcFigurePose();
   const pose = (p: Live): void => {
-    const breathe = 1 + Math.sin(p.phase * 1.3) * 0.012;
-    _b.compose(p.feet, _q.setFromEuler(_e.set(0, p.yaw, 0)), _s.set(1, breathe, 1));
-    // the head: a turn + a tilt about the neck; the arm: a swing about the shoulder
-    _hq.setFromEuler(_e.set(p.headPitch, p.headYaw, 0, 'YXZ'));
-    _aq.setFromEuler(_e.set(p.armX, 0, p.armZ));
-    _s.set(1, 1, 1);
-    if (rig) {
-      const b = rig.bones[p.id];
-      b.root.matrixWorld.copy(_b);
-      b.head.matrixWorld.compose(b.neck, _hq, _s).premultiply(_b);
-      b.arm.matrixWorld.compose(b.shoulder, _aq, _s).premultiply(_b);
-    } else {
-      batch.setMatrixAt(p.ids.body, _b);
-      batch.setMatrixAt(p.ids.head, _m.compose(p.parts.neck, _hq, _s).premultiply(_b));
-      batch.setMatrixAt(p.ids.arm, _m.compose(p.parts.shoulder, _aq, _s).premultiply(_b));
-    }
-    p.headWorld.copy(p.parts.neck).applyMatrix4(_b);
-    p.headWorld.y += 0.12;
+    const bones = rig?.bones[p.id];
+    writePose(p, p.parts, (bodyMatrix, headMatrix, armMatrix) => {
+      if (bones) {
+        bones.root.matrixWorld.copy(bodyMatrix); bones.head.matrixWorld.copy(headMatrix); bones.arm.matrixWorld.copy(armMatrix);
+      } else {
+        batch.setMatrixAt(p.ids.body, bodyMatrix); batch.setMatrixAt(p.ids.head, headMatrix); batch.setMatrixAt(p.ids.arm, armMatrix);
+      }
+    }, bones);
   };
 
   // the image-to-3D figures (N20, the user's pick): the procedural batch stands until they have loaded (and stays if they fail)
@@ -334,41 +322,7 @@ export function buildCampPeople(sky: Sky, floorAt: (x: number, z: number) => num
     if (asleep) asleep = false;
     for (const id of ids) {
       const p = fig[id];
-      p.phase += dt;
-      const dx = player.x - p.feet.x, dz = player.z - p.feet.z, d = Math.hypot(dx, dz), toYou = Math.atan2(dx, dz);
-      // the child skips round the ribbon pole until you come close (or talk)
-      if (id === 'child') {
-        const spot = CAMP_PEOPLE.child;
-        const stop = d < 5 || p.talking;
-        if (!stop) {
-          p.ring += dt * 0.55;
-          const x = spot.x + Math.cos(p.ring) * CHILD_RING, z = spot.z + Math.sin(p.ring) * CHILD_RING;
-          p.feet.set(x, floorAt(x, z) + Math.abs(Math.sin(p.phase * 6.5)) * 0.1, z);
-          p.idleYaw = Math.atan2(-Math.sin(p.ring), Math.cos(p.ring));   // the ring's tangent (counter-clockwise)
-          place(p);
-        } else p.feet.y = damp(p.feet.y, floorAt(p.feet.x, p.feet.z), 10, dt);
-      }
-      // the body turns to you inside 7 m (a little, from further for the talker), else back to its own facing
-      const face = p.talking || d < 7 ? toYou : p.idleYaw;
-      p.yaw += wrap(face - p.yaw) * (1 - Math.exp(-(p.talking ? 5 : 2.5) * dt));
-      // the head follows you inside 12 m (±70° off the body), else glances about now and then
-      p.glanceT -= dt;
-      if (p.glanceT < 0) { p.glanceT = 2.5 + ((p.phase * 7.3) % 3); p.glance = (Math.sin(p.phase * 3.1) * 0.9); }
-      let hy = p.glance * 0.6, hp = 0;
-      if (d < 12 || p.talking) {
-        hy = Math.max(-1.2, Math.min(1.2, wrap(toYou - p.yaw)));
-        hp = -Math.atan2(player.y + 1.6 - (p.feet.y + p.parts.neck.y), Math.max(0.5, d)) * 0.6;
-      }
-      if (p.talking) hp += Math.sin(t * 5.2) * 0.06;                                   // nods as it talks
-      if (id === 'cook' && !p.talking && d > 3) { hy = -0.35; hp = 0.35; }           // eyes on the pot
-      if (id === 'child' && !p.talking && d > 5) { hy = 0; hp = -0.1; }
-      p.headYaw = damp(p.headYaw, hy, 4, dt); p.headPitch = damp(p.headPitch, hp, 4, dt);
-      // the arm: a gesture while talking, the cook's stir, a hang and sway otherwise
-      let ax = Math.sin(p.phase * 1.1) * 0.04, az = -0.05;
-      if (p.talking) { ax = -0.55 - Math.max(0, Math.sin(t * 2.3)) * 0.45; az = -0.25 + Math.sin(t * 1.7) * 0.15; }
-      else if (id === 'cook' && d > 3) { ax = -0.75 + Math.sin(t * 2.4) * 0.14; az = -0.2 + Math.cos(t * 2.4) * 0.14; }
-      else if (id === 'child' && d > 5) ax = Math.sin(p.phase * 6.5) * 0.6;          // swinging as it skips
-      p.armX = damp(p.armX, ax, 6, dt); p.armZ = damp(p.armZ, az, 6, dt);
+      if (stepNpcFigure(p, p.parts, CAMP_MOTION[id], dt, t, player, floorAt)) place(p);
       pose(p);
     }
   };

@@ -5,6 +5,7 @@ export interface EventMap {
   'app.state': { prev: AppState; next: AppState };
   'level.loaded': { id: string };
   'level.unloaded': { id: string };
+  'creature.signal': { name: string; x: number; z: number };
   'practice.active': boolean;
   'explore.studio': boolean;
   'explore.turntable': { on: boolean; key?: { x: number; y: number; z: number } };

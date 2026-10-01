@@ -1,15 +1,14 @@
-import * as v from 'valibot';
-import { saves, EffectService, type EffectTarget } from '#engine';
+import { EffectService, type EffectTarget } from '#engine';
 import { nalatiSkinEffect } from './effects';
 import * as THREE from 'three';
 import type { Animal } from '#engine/entities/Animal';
 import type { Bow } from '#kit';
 import type { Sabre } from './Sabre';
 import { horseBones } from '#engine/entities/species/horse';
-import { riding } from '#engine/player/riding';
 import { skyMarkedAtlas } from '#engine/entities/creatureCoats';
 
-const savedSlot = saves.define({ key: 'nalati.skins', scope: 'shard', version: 1, schema: v.object({ owned: v.array(v.string()), worn: v.record(v.string(), v.string()) }), initial: () => ({ owned: [] as string[], worn: {} as Record<string, string> }) });
+import { nalatiSkinsSave as savedSlot } from './saves';
+
 
 /**
  * Nalati's wearable skins (plan row B15; handoff docs/design/nalati/handoff/b15-items-map.md §2). The named elites drop
@@ -104,6 +103,7 @@ export class NalatiSkinLocker {
 }
 
 export interface SkinTargets {
+  mounted?: () => Animal | null;
   sabre: Sabre | null;
   bow: Bow | null;
   /** the Golden Bow is yours (its repaint is the bow's base look under a skin) */
@@ -141,7 +141,7 @@ export class NalatiSkinPainter {
     // the mount skin: the horse under you and your bonded horse
     const skin = this.locker.wearing('mount');
     const want = new Set<Animal>();
-    if (skin !== null) { if (riding.horse !== null) want.add(riding.horse); const tp = this.t.tulpar(); if (tp !== null && tp.alive && !tp.hidden) want.add(tp); }
+    if (skin !== null) { const mounted = this.t.mounted?.() ?? null; if (mounted !== null) want.add(mounted); const tp = this.t.tulpar(); if (tp !== null && tp.alive && !tp.hidden) want.add(tp); }
     for (const [a, d] of this.dressed) if (!want.has(a) || d.skin !== skin) this.undress(a);
     if (skin !== null) for (const a of want) if (!this.dressed.has(a)) this.dress(a, skin);
   }

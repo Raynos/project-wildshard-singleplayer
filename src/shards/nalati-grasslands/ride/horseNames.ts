@@ -1,8 +1,7 @@
-import * as v from 'valibot';
-import { saves } from '#engine';
 import type { Animal } from '#engine/entities/Animal';
 
-const savedSlot = saves.define({ key: 'horseNames', scope: 'shard', version: 1, schema: v.record(v.string(), v.string()), initial: () => ({}) });
+import { horseNamesSave as savedSlot } from './saves';
+
 
 /**
  * The names you give your horses at the hitching rail (NALATI-FINISH B1, N13 "renaming the horse at the rail"). Kept in

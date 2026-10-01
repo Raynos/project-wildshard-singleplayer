@@ -10,7 +10,6 @@ import { activePhysics } from '#engine/physics/active';
 import { castRay, floorBelow } from '#engine/physics/query';
 import { GroundTell } from '#game/Elite';
 import { fxMaterial, FX, annulus, type FxMaterial } from '../world/KurganDungeon';
-import { riding } from '#engine/player/riding';
 
 /**
  * NAIZAGAI — the Storm Sabre of Jel Ata (Nalati row B14's reward; docs/design/nalati/elites-and-bosses.md "5 — Victory";
@@ -214,7 +213,7 @@ export class NaizagaiPower {
   }
 
   private mul(): number { return this.deps.storm() ? NAIZAGAI_PROFILE.powers.stormMultiplier : 1; }
-  private hittable(a: Animal): boolean { return a.alive && !a.hidden && a !== riding.horse && a.mem['owned'] !== 1; }
+  private hittable(a: Animal): boolean { return a.alive && !a.hidden && a !== this.deps.player.mountedOn && a.mem['owned'] !== 1; }
 
   /** mounted, at a gallop: the crescent 15 m along the look, the first creature in its path, then the arcs */
   private throwCrescent(): void {

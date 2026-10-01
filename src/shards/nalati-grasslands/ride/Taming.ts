@@ -1,5 +1,4 @@
-import * as v from 'valibot';
-import { saves, type InputService } from '#engine';
+import type { InputService } from '#engine';
 import * as THREE from 'three';
 import type { Player } from '#engine/player/Player';
 import type { Mount } from './Mount';
@@ -11,7 +10,8 @@ import type { RideHUD, TamingView } from './RideHUD';
 import { wildEnv } from '#engine/entities/wildEnv';
 import { heightAt } from '#engine/world/Heightfield';
 
-const savedSlot = saves.define({ key: 'tulpar', scope: 'shard', version: 1, schema: v.nullable(v.string()), initial: () => null });
+import { tulparSave as savedSlot } from './saves';
+
 
 /**
  * Taming — winning a wild stallion (Nalati row B8; docs/design/nalati/wolves-horses-taming.md "Taming — step by step";
@@ -88,16 +88,17 @@ export class Taming {
   input: InputService | null = null;
 
   constructor(private readonly opts: TamingOpts) {
-    // wolves driven off a herd: +30 TRUST once per herd (the pack broke / was driven off within 40 m of it)
-    const prevEvent = wildEnv.onEvent;
-    wildEnv.onEvent = (name, x, z) => {
-      prevEvent?.(name, x, z);
-      if (name !== 'pack-driven-off' && name !== 'pack-break') return;
-      for (const h of this.opts.herds()) if (!this.drove.has(h) && Math.hypot(h.cx - x, h.cz - z) < 40 && this.opts.player.position.distanceTo(_v.set(h.cx, this.opts.player.position.y, h.cz)) < 60) { this.drove.add(h); h.addTrust(30); this.opts.toast?.('The herd saw you drive the wolves off · TRUST +30'); }
-    };
     let saved: string | null = null;
     try { saved = savedSlot.read('nalati-grasslands'); } catch { /* no storage: not remembered */ }
     if (saved === '1' || saved === ARGYMAQ_KIND) this.spawnTulpar(this.opts.rest.x + 2.6, this.opts.rest.z + 3.5, Math.atan2(this.opts.rest.face.x, this.opts.rest.face.z), saved === ARGYMAQ_KIND);
+  }
+
+  /** Wolves driven off nearby earn trust once per herd, through the scoped creature signal. */
+  noteEvent(name: string, x: number, z: number): void {
+    if (name !== 'pack-driven-off' && name !== 'pack-break') return;
+    for (const h of this.opts.herds()) if (!this.drove.has(h) && Math.hypot(h.cx - x, h.cz - z) < 40 && this.opts.player.position.distanceTo(_v.set(h.cx, this.opts.player.position.y, h.cz)) < 60) {
+      this.drove.add(h); h.addTrust(30); this.opts.toast?.('The herd saw you drive the wolves off · TRUST +30');
+    }
   }
 
   /** an arrow / javelin landed at (x, z): −30 TRUST and ALERT full if a stallion is within 40 m */

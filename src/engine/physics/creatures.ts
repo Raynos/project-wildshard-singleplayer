@@ -52,9 +52,9 @@ export class CreatureBodies<C extends Creature = Creature> {
   private readonly hitGroups = queryGroups(['HITBOX'], 'PROJECTILE');
   private readonly hitPoint = new THREE.Vector3();
   private result: CreatureHit<C> | null = null;
-  /** skips a hitbox whose creature is hidden right now — the colliders only turn off at the next sync, and pastRidden
-   *  (src/engine/player/riding.ts) hides the ridden horse for the one call, so a rider never aims at / shoots his own mount */
-  private readonly shown = (col: Collider): boolean => { const o = this.owners.get(col.handle); return o !== undefined && !o.creature.hidden; };
+  /** An excluded mount stays visible and collidable while its rider's target query skips it. */
+  private excluded: object | null = null;
+  private readonly shown = (col: Collider): boolean => { const o = this.owners.get(col.handle); return o !== undefined && !o.creature.hidden && o.creature !== this.excluded; };
   /** how many creatures had a body (a controller) at the last sync — the bench reads it */
   bodies = 0;
 
@@ -117,8 +117,9 @@ export class CreatureBodies<C extends Creature = Creature> {
   }
 
   /** The nearest head / body along the ray within `maxDist` (the returned object is reused). */
-  cast(origin: THREE.Vector3, dir: THREE.Vector3, maxDist: number): CreatureHit<C> | null {
+  cast(origin: THREE.Vector3, dir: THREE.Vector3, maxDist: number, excluded: object | null = null): CreatureHit<C> | null {
     const { R, world } = this.physics;
+    this.excluded = excluded;
     const hit = world.castRay(new R.Ray(origin, dir), maxDist, true, R.QueryFilterFlags.EXCLUDE_SENSORS, this.hitGroups, undefined, undefined, this.shown);
     if (!hit) return null;
     const owner = this.owners.get(hit.collider.handle);

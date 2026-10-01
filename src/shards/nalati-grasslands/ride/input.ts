@@ -7,7 +7,7 @@ export function installRide(ctx: LevelContext, ride: Ride): void {
   ctx.inputContext({ id: 'ride.foot', actions: ['ride.whistle', 'ride.offer'],
     keys: { 'ride.whistle': ['KeyX'], 'ride.offer': ['KeyG'] },
     touch: { relabel: {}, verbs: { 'verb.1': 'ride.whistle', 'verb.2': 'ride.offer' } } });
-  ctx.inputContext({ id: 'ride', actions: ['move.forward', 'move.back', 'move.left', 'move.right', 'ride.gallop', 'ride.horseTab', 'use'],
+  ctx.inputContext({ id: 'ride', actions: ['move.forward', 'move.back', 'move.left', 'move.right', 'ride.gallop', 'ride.gallop.tap', 'ride.horseTab', 'use'],
     keys: { 'move.forward': ['KeyW'], 'move.back': ['KeyS'], 'move.left': ['KeyA'], 'move.right': ['KeyD'],
       'ride.gallop': ['ShiftLeft', 'ShiftRight'] },
     touch: { relabel: { 'edge-l': { label: 'Dismount', tone: 'ready' } } } });
@@ -25,7 +25,7 @@ export function installRide(ctx: LevelContext, ride: Ride): void {
   };
   ctx.system({ id: 'shard.nalati.ride.input', phase: 'input', before: ['engine.player.input'], run: () => {
     if (input.consume('ride.whistle')) mount.whistle();
-    if (input.consume('ride.gallop')) mount.gallopTap();
+    if (input.consume('ride.gallop.tap')) mount.gallopTap();
     if (input.consume('ride.horseTab') && !mount.breaking) mount.dismount();
   } });
   ctx.scope.onDispose(() => { mount.dismount(); mount.input = null; mount.equipment = null; ride.taming.input = null; });

@@ -5,7 +5,6 @@ import type { AnimalManager } from '../entities/AnimalManager';
 import type { Animal } from '../entities/Animal';
 import type { Weapon } from '../combat/Weapon';
 import { TIER } from '../core/tier';
-import { riding, pastRidden } from '../player/riding';
 import { viewportHeight } from '../core/viewport';
 import { lockOn } from '../player/AimTargets';
 import './styles/combat.css';
@@ -164,7 +163,7 @@ export class Combat {
     // crosshair target: the animal nearest along the aim ray, within AIM_TOL m of it
     _o.setFromMatrixPosition(cam.matrixWorld);
     cam.getWorldDirection(_d);
-    const aimed = pastRidden(() => this.animals.nearRay(_o, _d, AIM_RANGE, AIM_TOL));   // not the horse you sit on
+    const aimed = this.animals.nearRay(_o, _d, AIM_RANGE, AIM_TOL);   // not the horse you sit on
     this.aimed = aimed?.mem['owned'] === 1 ? null : aimed;                                  // nor a camp horse / Tulpar
 
     // aimed shots that flew past the target without touching it → MISS over the target (don't wait for the bolt to land)
@@ -187,7 +186,7 @@ export class Combat {
     for (let i = 0; i < list.length; i++) {
       const a = list[i];
       // a boss / a named elite has its own wide bar (src/game/Boss.ts, src/game/Elite.ts); the horse you ride has none
-      if (a === undefined || a.hidden || app.encounters.get(a.kind)?.showHeadBar === false || a.mem['noHeadBar'] === 1 || a === riding.horse) continue;
+      if (a === undefined || a.hidden || app.encounters.get(a.kind)?.showHeadBar === false || a.mem['noHeadBar'] === 1 || a === app.equipmentHost?.player.mountedOn) continue;
       const show = now - a.lastHitT < BAR_HOLD || a === this.aimed || (lockOn.state === 'locked' && a === lockOn.target); // the locked enemy keeps its tag (E50, N)
       if (!show) continue;
       const d2 = a.position.distanceToSquared(_o);
