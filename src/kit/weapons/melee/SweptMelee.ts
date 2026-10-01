@@ -1,4 +1,4 @@
-import { type EquipmentRow, type WeaponState, type AimInfo, type DrawingBuffer, type EquipContext, type SwordWorld, type SwordRig, type SwordArms, type SwordFraming, type SwordMoveSet, app, BladeGlow, type Game, type Sky, dodgeFx, dodgeEnv, type Player, type Targets, type TargetHit, lockOn, meleeLock, targetRadius, type AimTarget, bladeBlocked, bladeContact, type Clang, worldTime, CameraFX, Impacts, aimRay, viewmodel, fovForAspect, setProgramKey, lin } from '#engine';
+import { type EquipmentRow, type WeaponState, type AimInfo, type DrawingBuffer, type EquipContext, type SwordWorld, type SwordRig, type SwordArms, type SwordFraming, type SwordMoveSet, app, BladeGlow, type Game, type Sky, dodgeFx, dodgeEnv, type Player, type Targets, type TargetHit, lockOn, meleeLock, targetRadius, type AimTarget, bladeBlocked, bladeContact, type Clang, worldTime, CameraFX, Impacts, aimRay, viewmodel, fovForAspect, setProgramKey, lin, ParticlePool, pointScale } from '#engine';
 import { Melee, isMeleeProfile, type MeleeProfile } from './Melee';
 import { SWORD_WOOD, SWORD_IRON } from './profiles';
 import * as THREE from 'three';
@@ -253,19 +253,11 @@ export function swordMaterial(sky: Sky, blade: 'wood' | 'iron'): THREE.MeshStand
 
 const STAR_COUNT = 24;
 class Stars {
-  points: THREE.Points;
-  private pos = new Float32Array(STAR_COUNT * 3); private vel = new Float32Array(STAR_COUNT * 3);
-  private life = new Float32Array(STAR_COUNT); private alpha = new Float32Array(STAR_COUNT); private size = new Float32Array(STAR_COUNT);
-  private posAttr: THREE.BufferAttribute; private alphaAttr: THREE.BufferAttribute; private sizeAttr: THREE.BufferAttribute;
-  private mat: THREE.ShaderMaterial; private cursor = 0; private tmpSize = new THREE.Vector2();
+  private readonly pool: ParticlePool<'aAlpha' | 'aSize'>;
+  readonly points: THREE.Points;
+  private mat: THREE.ShaderMaterial;
   private uScale: THREE.IUniform<number> = { value: 400 };
   constructor() {
-    const g = new THREE.BufferGeometry();
-    g.setAttribute('position', (this.posAttr = new THREE.BufferAttribute(this.pos, 3)));
-    g.setAttribute('aAlpha', (this.alphaAttr = new THREE.BufferAttribute(this.alpha, 1)));
-    g.setAttribute('aSize', (this.sizeAttr = new THREE.BufferAttribute(this.size, 1)));
-    this.posAttr.setUsage(THREE.DynamicDrawUsage); this.alphaAttr.setUsage(THREE.DynamicDrawUsage); this.sizeAttr.setUsage(THREE.DynamicDrawUsage);
-    g.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 1e6);
     this.mat = new THREE.ShaderMaterial({
       uniforms: { uScale: this.uScale },
       vertexShader: `attribute float aAlpha; attribute float aSize; varying float vA; uniform float uScale;
@@ -274,32 +266,32 @@ class Stars {
       fragmentShader: `varying float vA; void main(){ vec2 d = abs(gl_PointCoord - 0.5) * 2.0; float s = sqrt(d.x) + sqrt(d.y); if (s > 1.0 || vA <= 0.001) discard; float a = (1.0 - s) * vA; gl_FragColor = vec4(1.0, 0.93, 0.62, a * 1.4); }`,
       transparent: true, depthWrite: false, depthTest: false, blending: THREE.AdditiveBlending, toneMapped: false,
     });
-    this.points = new THREE.Points(g, this.mat);
-    this.points.frustumCulled = false; this.points.renderOrder = 1001;
+    this.pool = new ParticlePool({ capacity: STAR_COUNT, material: this.mat, renderOrder: 1001, attributes: { aAlpha: { itemSize: 1, dynamic: true }, aSize: { itemSize: 1, dynamic: true } } });
+    this.points = this.pool.points;
   }
   burst(point: THREE.Vector3, dir: THREE.Vector3, n = 9) {
+    const { vel, life } = this.pool, { aAlpha: alpha, aSize: size } = this.pool.data;
     for (let k = 0; k < n; k++) {
-      const i = this.cursor; this.cursor = (this.cursor + 1) % STAR_COUNT;
-      this.pos[i * 3] = point.x; this.pos[i * 3 + 1] = point.y; this.pos[i * 3 + 2] = point.z;
+      const i = this.pool.claim();
+      this.pool.place(i, point);
       const sp = 1.2 + app.rng.stream('cosmetic').next() * 1.6;
-      this.vel[i * 3] = (-dir.x * 0.6 + (app.rng.stream('cosmetic').next() - 0.5) * 1.6) * sp; this.vel[i * 3 + 1] = (0.5 + app.rng.stream('cosmetic').next() * 0.9) * sp; this.vel[i * 3 + 2] = (-dir.z * 0.6 + (app.rng.stream('cosmetic').next() - 0.5) * 1.6) * sp;
-      this.life[i] = 0.3 + app.rng.stream('cosmetic').next() * 0.2; this.alpha[i] = 1; this.size[i] = 0.05 + app.rng.stream('cosmetic').next() * 0.05;
+      vel[i * 3] = (-dir.x * 0.6 + (app.rng.stream('cosmetic').next() - 0.5) * 1.6) * sp; vel[i * 3 + 1] = (0.5 + app.rng.stream('cosmetic').next() * 0.9) * sp; vel[i * 3 + 2] = (-dir.z * 0.6 + (app.rng.stream('cosmetic').next() - 0.5) * 1.6) * sp;
+      life[i] = 0.3 + app.rng.stream('cosmetic').next() * 0.2; alpha[i] = 1; size[i] = 0.05 + app.rng.stream('cosmetic').next() * 0.05;
     }
   }
   update(dt: number, renderer: DrawingBuffer, camera: THREE.PerspectiveCamera) {
-    renderer.getDrawingBufferSize(this.tmpSize);
-    this.uScale.value = this.tmpSize.y / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2));
+    this.uScale.value = pointScale(renderer, camera);
     let any = false;
-    const pos = this.pos, vel = this.vel;
+    const { pos, vel, life: lives } = this.pool, alpha = this.pool.data.aAlpha;
     for (let i = 0; i < STAR_COUNT; i++) {
-      const life0 = this.life[i] ?? 0;
+      const life0 = lives[i] ?? 0;
       if (life0 <= 0) continue;
-      any = true; const life = life0 - dt; this.life[i] = life;
+      any = true; const life = life0 - dt; lives[i] = life;
       const j = i * 3, vy = (vel[j + 1] ?? 0) - 6 * dt; vel[j + 1] = vy;
       pos[j] = (pos[j] ?? 0) + (vel[j] ?? 0) * dt; pos[j + 1] = (pos[j + 1] ?? 0) + vy * dt; pos[j + 2] = (pos[j + 2] ?? 0) + (vel[j + 2] ?? 0) * dt;
-      this.alpha[i] = life > 0 ? Math.min(1, life * 5) : 0;
+      alpha[i] = life > 0 ? Math.min(1, life * 5) : 0;
     }
-    if (any) { this.posAttr.needsUpdate = true; this.alphaAttr.needsUpdate = true; this.sizeAttr.needsUpdate = true; }
+    if (any) { this.pool.posAttr.needsUpdate = true; this.pool.attr.aAlpha.needsUpdate = true; this.pool.attr.aSize.needsUpdate = true; }
   }
 }
 

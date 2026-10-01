@@ -1,4 +1,5 @@
 import { app } from '../app/runtime';
+import { ParticlePool } from '../fx/ParticlePool';
 import { tap } from '../core/harnessTap';
 import * as THREE from 'three';
 import { activePhysics } from '../physics/active';
@@ -306,30 +307,17 @@ const DOWN = { x: 0, y: -1, z: 0 } as const;
 
 class BloodFX {
   group = new THREE.Group();
-  private pos = new Float32Array(MAX_P * 3);
-  private vel = new Float32Array(MAX_P * 3);
-  private life = new Float32Array(MAX_P);
+  private readonly pool: ParticlePool;
   /** where each droplet lands (PHYSICS P7: one ray down per burst) */
   private floor = new Float32Array(MAX_P);
-  private points: THREE.Points;
-  private posAttr: THREE.BufferAttribute;
-  private next = 0;
   private decals: THREE.Mesh[] = [];
   private decalNext = 0;
   private active = 0;
 
   constructor(sky: Sky) {
-    const g = new THREE.BufferGeometry();
-    this.posAttr = new THREE.BufferAttribute(this.pos, 3);
-    this.posAttr.setUsage(THREE.DynamicDrawUsage);
-    g.setAttribute('position', this.posAttr);
-    g.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 1e6);
     const mat = new THREE.PointsMaterial({ color: new THREE.Color(0.09, 0.004, 0.003), size: 0.035, sizeAttenuation: true, transparent: true, opacity: 0.95, depthWrite: false, map: makeDropTexture(), alphaTest: 0.3 });
-    this.points = new THREE.Points(g, mat);
-    this.points.frustumCulled = false;
-    this.points.renderOrder = 5;
-    this.group.add(this.points);
-    for (let i = 0; i < MAX_P; i++) this.pos[i * 3 + 1] = -1000;
+    this.pool = new ParticlePool({ capacity: MAX_P, material: mat, renderOrder: 5, attributes: {}, parkY: -1000 }); // PointsMaterial draws every slot: the free ones wait far below
+    this.group.add(this.pool.points);
     const dmat = new THREE.MeshStandardMaterial({ color: new THREE.Color(0.035, 0.002, 0.002), roughness: 0.35, metalness: 0, transparent: true, opacity: 0.9, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
     sky.setupMaterial(dmat);
     const dgeo = new THREE.CircleGeometry(1, 18);
@@ -347,16 +335,17 @@ class BloodFX {
     const n = Math.round(22 * strength);
     const physics = activePhysics();
     const fl = (physics ? floorBelow(physics, at.x, at.z, at.y + 0.3, BLOOD_DROP) : undefined) ?? heightAt(at.x, at.z);
+    const { vel, life } = this.pool;
     for (let i = 0; i < n; i++) {
-      const k = this.next; this.next = (this.next + 1) % MAX_P;
+      const k = this.pool.claim();
       this.floor[k] = fl;
-      this.pos[k * 3] = at.x; this.pos[k * 3 + 1] = at.y; this.pos[k * 3 + 2] = at.z;
+      this.pool.place(k, at);
       // spray mostly along the shot direction (exit) with a wide cone
       const s = 1.5 + Math.random() * 3.5;
-      this.vel[k * 3] = (dir.x * 0.6 + (Math.random() - 0.5) * 1.2) * s;
-      this.vel[k * 3 + 1] = (dir.y * 0.6 + (Math.random() - 0.2) * 1.2) * s;
-      this.vel[k * 3 + 2] = (dir.z * 0.6 + (Math.random() - 0.5) * 1.2) * s;
-      this.life[k] = 0.45 + Math.random() * 0.45;
+      vel[k * 3] = (dir.x * 0.6 + (Math.random() - 0.5) * 1.2) * s;
+      vel[k * 3 + 1] = (dir.y * 0.6 + (Math.random() - 0.2) * 1.2) * s;
+      vel[k * 3 + 2] = (dir.z * 0.6 + (Math.random() - 0.5) * 1.2) * s;
+      life[k] = 0.45 + Math.random() * 0.45;
     }
     this.active = Math.min(MAX_P, this.active + n);
     // ground patch
@@ -377,7 +366,7 @@ class BloodFX {
   update(dt: number): void {
     if (this.active === 0) return;
     let alive = 0;
-    const life = this.life, pos = this.pos, vel = this.vel;
+    const { life, pos, vel } = this.pool;
     for (let k = 0; k < MAX_P; k++) {
       const l0 = life[k] ?? 0;
       if (l0 <= 0) continue;
@@ -391,7 +380,7 @@ class BloodFX {
       if ((pos[j + 1] ?? 0) < fl) { pos[j + 1] = fl + 0.01; vel[j] = vel[j + 1] = vel[j + 2] = 0; } // landed: it soaks in where it fell
     }
     this.active = alive;
-    this.posAttr.needsUpdate = true;
+    this.pool.posAttr.needsUpdate = true;
   }
 }
 

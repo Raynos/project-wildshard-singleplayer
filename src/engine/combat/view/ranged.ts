@@ -11,6 +11,7 @@ import { attachFogUniforms } from '#engine/world/Atmosphere';
 import type { Material } from '#engine/physics/surface';
 import { makePixels, clamp01, CROSSBOW_SETS, RIFLE_SETS, type Pixels, type SetName, type Ctx2D } from '#engine/player/viewmodelTextures';
 import { PATCH_ORDER, patchShader } from '../../render/shaderPatches';
+import { ParticlePool, pointScale } from '../../fx/ParticlePool';
 
 export type { ImpactSurface } from '#engine/combat/Weapon';
 export type { TargetAnimal, TargetHit, Targets } from '#engine/combat/types';
@@ -221,26 +222,14 @@ export function stripExtra(geo: THREE.BufferGeometry): THREE.BufferGeometry { //
 const PUFF_COUNT = 6, PUFF_PARTICLES = 14, MAX_PARTICLES = PUFF_COUNT * PUFF_PARTICLES;
 
 export class Puffs {
-  points: THREE.Points;
-  private pos: Float32Array; private vel = new Float32Array(MAX_PARTICLES * 3);
-  private life = new Float32Array(MAX_PARTICLES); private maxLife = new Float32Array(MAX_PARTICLES);
-  private size: Float32Array; private alpha: Float32Array; private col: Float32Array;
-  private posAttr: THREE.BufferAttribute; private alphaAttr: THREE.BufferAttribute; private sizeAttr: THREE.BufferAttribute; private colAttr: THREE.BufferAttribute;
-  private cursor = 0;
+  private readonly pool: ParticlePool<'aSize' | 'aAlpha' | 'aColor'>;
+  readonly points: THREE.Points;
+  private maxLife = new Float32Array(MAX_PARTICLES);
   private mat: THREE.ShaderMaterial;
   private uScale: THREE.IUniform<number> = { value: 400 };
-  private tmpSize = new THREE.Vector2();
   private rnd = () => app.rng.stream('cosmetic').next();
 
   constructor() {
-    const g = new THREE.BufferGeometry();
-    this.pos = new Float32Array(MAX_PARTICLES * 3); this.size = new Float32Array(MAX_PARTICLES); this.alpha = new Float32Array(MAX_PARTICLES); this.col = new Float32Array(MAX_PARTICLES * 3);
-    g.setAttribute('position', (this.posAttr = new THREE.BufferAttribute(this.pos, 3)));
-    g.setAttribute('aSize', (this.sizeAttr = new THREE.BufferAttribute(this.size, 1)));
-    g.setAttribute('aAlpha', (this.alphaAttr = new THREE.BufferAttribute(this.alpha, 1)));
-    g.setAttribute('aColor', (this.colAttr = new THREE.BufferAttribute(this.col, 3)));
-    this.posAttr.setUsage(THREE.DynamicDrawUsage); this.alphaAttr.setUsage(THREE.DynamicDrawUsage); this.sizeAttr.setUsage(THREE.DynamicDrawUsage);
-    g.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 1e6);
     this.mat = new THREE.ShaderMaterial({
       uniforms: { uScale: this.uScale },
       vertexShader: `attribute float aSize; attribute float aAlpha; attribute vec3 aColor; varying float vA; varying vec3 vC; uniform float uScale;
@@ -248,9 +237,11 @@ export class Puffs {
       fragmentShader: `varying float vA; varying vec3 vC; void main(){ vec2 d = gl_PointCoord - 0.5; float r = dot(d,d)*4.0; if (r > 1.0 || vA <= 0.001) discard; float a = (1.0 - r) * (1.0 - r) * vA; gl_FragColor = vec4(vC, a); }`,
       transparent: true, depthWrite: false,
     });
-    this.points = new THREE.Points(g, this.mat);
-    this.points.frustumCulled = false;
-    this.points.renderOrder = 10;
+    this.pool = new ParticlePool({
+      capacity: MAX_PARTICLES, material: this.mat, renderOrder: 10,
+      attributes: { aSize: { itemSize: 1, dynamic: true }, aAlpha: { itemSize: 1, dynamic: true }, aColor: { itemSize: 3, dynamic: false } },
+    });
+    this.points = this.pool.points;
   }
 
   private tmpN = new THREE.Vector3();
@@ -259,41 +250,41 @@ export class Puffs {
     const cr = surface === 'flesh' ? 0.32 : surface === 'wood' ? 0.58 : 0.42;
     const cg = surface === 'flesh' ? 0.05 : surface === 'wood' ? 0.44 : 0.36;
     const cb = surface === 'flesh' ? 0.04 : surface === 'wood' ? 0.28 : 0.26;
+    const { vel, life } = this.pool, { aSize: size, aAlpha: alpha, aColor: col } = this.pool.data;
     for (let k = 0; k < PUFF_PARTICLES; k++) {
-      const i = this.cursor; this.cursor = (this.cursor + 1) % MAX_PARTICLES;
+      const i = this.pool.claim();
       const sp = surface === 'flesh' ? 1.6 : 1.1;
-      this.pos[i * 3] = point.x; this.pos[i * 3 + 1] = point.y; this.pos[i * 3 + 2] = point.z;
-      this.vel[i * 3] = (n.x + (this.rnd() - 0.5) * 1.4) * sp * (0.4 + this.rnd());
-      this.vel[i * 3 + 1] = (n.y + (this.rnd() - 0.5) * 1.4 + 0.4) * sp * (0.4 + this.rnd());
-      this.vel[i * 3 + 2] = (n.z + (this.rnd() - 0.5) * 1.4) * sp * (0.4 + this.rnd());
-      this.maxLife[i] = this.life[i] = 0.35 + this.rnd() * 0.4;
-      this.size[i] = (surface === 'ground' ? 0.05 : 0.025) + this.rnd() * 0.03;
+      this.pool.place(i, point);
+      vel[i * 3] = (n.x + (this.rnd() - 0.5) * 1.4) * sp * (0.4 + this.rnd());
+      vel[i * 3 + 1] = (n.y + (this.rnd() - 0.5) * 1.4 + 0.4) * sp * (0.4 + this.rnd());
+      vel[i * 3 + 2] = (n.z + (this.rnd() - 0.5) * 1.4) * sp * (0.4 + this.rnd());
+      this.maxLife[i] = life[i] = 0.35 + this.rnd() * 0.4;
+      size[i] = (surface === 'ground' ? 0.05 : 0.025) + this.rnd() * 0.03;
       const v = 0.8 + this.rnd() * 0.4;
-      this.col[i * 3] = cr * v; this.col[i * 3 + 1] = cg * v; this.col[i * 3 + 2] = cb * v;
-      this.alpha[i] = 1;
+      col[i * 3] = cr * v; col[i * 3 + 1] = cg * v; col[i * 3 + 2] = cb * v;
+      alpha[i] = 1;
     }
-    this.colAttr.needsUpdate = true;
+    this.pool.attr.aColor.needsUpdate = true;
   }
 
   update(dt: number, renderer: { getDrawingBufferSize: (out: THREE.Vector2) => THREE.Vector2 }, camera: THREE.PerspectiveCamera): void {
-    renderer.getDrawingBufferSize(this.tmpSize);
-    this.uScale.value = this.tmpSize.y / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2));
+    this.uScale.value = pointScale(renderer, camera);
     let any = false;
-    const pos = this.pos, vel = this.vel;
+    const { pos, vel, life } = this.pool, { aSize: size, aAlpha: alpha } = this.pool.data;
     for (let i = 0; i < MAX_PARTICLES; i++) {
-      const life0 = this.life[i] ?? 0;
+      const life0 = life[i] ?? 0;
       if (life0 <= 0) continue;
       any = true;
-      const life = life0 - dt; this.life[i] = life;
-      const g = life > 0 ? life / (this.maxLife[i] ?? 1) : 0;
+      const left = life0 - dt; life[i] = left;
+      const g = left > 0 ? left / (this.maxLife[i] ?? 1) : 0;
       const j = i * 3;
       const vx = (vel[j] ?? 0) * 0.94, vy = ((vel[j + 1] ?? 0) - 3.5 * dt) * 0.94, vz = (vel[j + 2] ?? 0) * 0.94;
       vel[j] = vx; vel[j + 1] = vy; vel[j + 2] = vz;
       pos[j] = (pos[j] ?? 0) + vx * dt; pos[j + 1] = (pos[j + 1] ?? 0) + vy * dt; pos[j + 2] = (pos[j + 2] ?? 0) + vz * dt;
-      this.alpha[i] = g * 0.85;
-      this.size[i] = (this.size[i] ?? 0) + dt * 0.06;
+      alpha[i] = g * 0.85;
+      size[i] = (size[i] ?? 0) + dt * 0.06;
     }
-    if (any) { this.posAttr.needsUpdate = true; this.alphaAttr.needsUpdate = true; this.sizeAttr.needsUpdate = true; }
+    if (any) { this.pool.posAttr.needsUpdate = true; this.pool.attr.aAlpha.needsUpdate = true; this.pool.attr.aSize.needsUpdate = true; }
   }
 }
 

@@ -94,6 +94,7 @@ export { HitLine, makeFlashTexture } from './combat/view/firearmFx';
 export { Puffs, worldHit, impactSurfaceOf, FOV_HIP, FOV_ADS, fovForAspect as rangedFovForAspect, dataTexture, viewmodelTexSet, remapUV, makeCord, makeBoltAtlas, fixIBL, VIEWMODEL_GROUP, viewmodelMaterial, isMesh, box, cyl, edgeWear, whiteColors, stripExtra, TRACER_ORDER, TRACER_RED, clamp01, sstep, startViewmodelTextures, viewmodelTexturesReady, type TexSet, type CrossbowWorld, type CrossbowOptions, type RangedWorld, type RangedOptions } from './combat/view/ranged';
 export { getSetting, getNumber, onNumber, onSettingChange, setting } from './ui/Settings';
 export { LightPool } from './fx/LightPool';
+export { ParticlePool, pointScale, type ParticlePoolSpec, type ParticleAttr } from './fx/ParticlePool';
 export { painterlyMaterial, syncPainterlySun, updatePainterly, setPainterlyLook, painterlyUniforms } from './world/painterly';
 export { ARM_PAL, gloveFist, riderArm, placeArm, forearm } from './player/nalatiArms';
 export { wind } from './world/steppeWind';
