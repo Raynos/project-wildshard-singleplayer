@@ -10,10 +10,9 @@
 // character motor still resolves every final move.
 //
 // Output: public/assets/baked/<slug>/navmesh.bin (format below; src/physics/navmesh.ts reads it) + navmesh.json (the
-// input hash and stats). Idempotent by content hash of the input triangles and the options: an unchanged world writes
-// nothing. Offline: run it after a builder / terrain change and commit the output.
+// output hash and stats). Every run bakes in memory and writes only differing bytes. Offline: run it after a builder / terrain change and commit the output.
 //
-//   node --experimental-transform-types --import ./scripts/bake-loader.mjs scripts/bake-navmesh.mjs [--force] [--check] [slug…]
+//   node --experimental-transform-types --import ./scripts/bake-loader.mjs scripts/bake-navmesh.mjs [--check] [slug…]
 //
 // Format (little-endian): 'WSNM' u32 version=1 · u32 layers · then per layer:
 //   f32 radius · f32 height · f32 climb · f32 cellSize · f32 cellHeight · f32 origin[3] · f32 tileSize · u32 tiles · per tile:
@@ -21,14 +20,13 @@
 //     u16[nVerts·3] vertices (1 cm steps above bounds.min) · per poly: u8 nv · u8 area · u16 flags · u16[nv] vertex · u16[nv] neis ·
 //     per poly: u32 detail verticesBase · u16 verticesCount · u32 trianglesBase · u16 trianglesCount ·
 //     u16[nDetailVerts·3] detail vertices (1 cm, same frame) · u8[nDetailTris·4] detail triangles (3 local indices + edge flags)
-import { createHash } from 'node:crypto';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
+import { byteWriter, outputHash, jsonBytes } from './bake-output.mjs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { brotliCompressSync, gzipSync } from 'node:zlib';
 
 const ROOT = resolve(import.meta.dirname, '..');
-const force = process.argv.includes('--force');
 const check = process.argv.includes('--check');
 const only = process.argv.slice(2).filter((a) => !a.startsWith('--'));
 const VERSION = 1;
@@ -394,7 +392,7 @@ function writeLayer(w, layer, nav) {
 }
 
 // ── main ─────────────────────────────────────────────────────────────────────────────────────────────────────────────
-let stale = 0;
+const output = byteWriter(check, 'bake-navmesh');
 for (const def of registry.CHUNKS) {
   if (only.length > 0 && !only.includes(def.slug)) continue;
   const bakedFile = resolve(ROOT, 'public/assets/baked', def.slug, 'terrain.bin');
@@ -413,18 +411,10 @@ for (const def of registry.CHUNKS) {
   const soup = new Soup();
   const dropped = addTerrain(soup, cuts, await wetTest(def));
   for (const d of colliders) addDesc(soup, d);
-  const hash = createHash('sha1');
   const LAYERS = layersFor(def.slug);
-  hash.update(JSON.stringify({ VERSION, LAYERS, GEN, navcat: JSON.parse(readFileSync(resolve(ROOT, 'node_modules/navcat/package.json'), 'utf8')).version }));
-  hash.update(readFileSync(import.meta.filename)); // this script: the triangulation and the file format
-  hash.update(Float32Array.from(soup.positions)); hash.update(Uint32Array.from(soup.indices));
-  const digest = hash.digest('hex');
   const dir = resolve(ROOT, 'public/assets/baked', def.slug), jsonFile = resolve(dir, 'navmesh.json'), binFile = resolve(dir, 'navmesh.bin');
-  const prev = existsSync(jsonFile) ? JSON.parse(readFileSync(jsonFile, 'utf8')) : null;
   const tIn = performance.now() - t0;
   console.log(`[navmesh] ${def.slug}: ${colliders.length} colliders (${Object.entries(counts).map(([k, n]) => `${n} ${k}`).join(', ')}), ${soup.indices.length / 3} triangles (${dropped} wet terrain triangles left out) in ${tIn.toFixed(0)} ms`);
-  if (!force && prev?.hash === digest && existsSync(binFile)) { console.log(`[navmesh] ${def.slug}: up to date`); continue; }
-  if (check) { console.log(`[navmesh] ${def.slug}: STALE`); stale++; continue; }
   const w = new Writer();
   w.u8(0x57, 0x53, 0x4e, 0x4d); w.u32(VERSION, LAYERS.length); // 'WSNM'
   const layers = [];
@@ -432,13 +422,12 @@ for (const def of registry.CHUNKS) {
     const t1 = performance.now();
     const nav = generate(soup, layer);
     const stats = writeLayer(w, layer, nav);
-    layers.push({ ...layer, ...stats, ms: Math.round(performance.now() - t1) });
+    layers.push({ ...layer, ...stats });
     console.log(`[navmesh] ${def.slug} ${layer.name} r=${layer.radius}: ${stats.tiles} tiles, ${stats.polys} polys, ${stats.detailTris} detail tris in ${((performance.now() - t1) / 1000).toFixed(1)} s`);
   }
   const bytes = w.bytes(), gz = gzipSync(bytes, { level: 9 }).byteLength, br = brotliCompressSync(bytes).byteLength;
-  mkdirSync(dir, { recursive: true });
-  writeFileSync(binFile, bytes);
-  writeFileSync(jsonFile, `${JSON.stringify({ version: VERSION, hash: digest, bytes: bytes.byteLength, gzip: gz, brotli: br, layers }, null, 1)}\n`);
-  console.log(`[navmesh] ${def.slug}: wrote navmesh.bin ${(bytes.byteLength / 1024).toFixed(1)} KB (${(gz / 1024).toFixed(1)} KB gzip, ${(br / 1024).toFixed(1)} KB brotli)`);
+  output.put(binFile, bytes);
+  output.put(jsonFile, jsonBytes({ version: VERSION, hash: outputHash(bytes), bytes: bytes.byteLength, layers }, 1));
+  console.log(`[navmesh] ${def.slug}: baked navmesh.bin ${(bytes.byteLength / 1024).toFixed(1)} KB (${(gz / 1024).toFixed(1)} KB gzip, ${(br / 1024).toFixed(1)} KB brotli)`);
 }
-if (check && stale > 0) process.exit(1);
+output.finish();

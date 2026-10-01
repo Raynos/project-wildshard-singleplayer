@@ -1,9 +1,7 @@
 {
  "version": 1,
- "hash": "83d2d1ebeeac5666f3d472c735dcc51474fa1c88",
+ "hash": "7d912954290c05a0de65cf8fd4da42662541f93612e70fee75f3d6feff21c95a",
  "bytes": 171474,
- "gzip": 101343,
- "brotli": 84997,
  "layers": [
   {
    "name": "large",
@@ -15,8 +13,7 @@
    "polys": 7286,
    "verts": 13224,
    "detailVerts": 1020,
-   "detailTris": 2470,
-   "ms": 2407
+   "detailTris": 2470
   }
  ]
 }

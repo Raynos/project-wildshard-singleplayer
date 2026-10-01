@@ -1,5 +1,5 @@
 {
-  "hash": "a50bd77f406afa0f",
+  "hash": "73135bc55e9acc06475f7e13c6bd9a907ed9ba2c0524a24275617f877dfd562d",
   "version": 1,
   "res": 256,
   "size": 500,
@@ -20,6 +20,5 @@
   "heightRange": [
     -9,
     63.43809909193379
-  ],
-  "bakedAt": "2026-09-30T14:09:26.013Z"
+  ]
 }

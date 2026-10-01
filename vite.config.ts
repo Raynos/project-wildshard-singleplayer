@@ -37,17 +37,13 @@ function assetIndex(): string {
 
 // Pre-bake every shard's terrain (scripts/bake-chunk.mjs → public/assets/baked/<slug>/terrain.bin) before
 // the byte table below is written, so the bake is declared and downloaded like any other asset. Idempotent
-// by content hash: a no-op unless a chunk's terrain sources changed. Never fatal (the game computes at launch).
+// by output bytes: source-only edits write nothing. Never fatal (the game computes at launch).
 function bakeChunks() {
   try { execSync('node --import ./scripts/bake-loader.mjs scripts/bake-chunk.mjs', { stdio: 'inherit' }); }
   catch (e) { console.warn('[bake] terrain bake failed — launch falls back to the analytic field', e); }
   try { execSync('node --import ./scripts/bake-loader.mjs scripts/bake-sky.mjs', { stdio: ['ignore', 'inherit', 'ignore'] }); }
   catch (e) { console.warn('[bake] sky bake failed — launch scans the HDR', e); }
-  // the branch cards need a GPU (scripts/bake-cards.mjs runs headless Chromium locally, outputs are committed): only check
-  try { execSync('node scripts/bake-cards.mjs --check', { stdio: 'inherit' }); }
-  catch { console.warn('[bake] branch cards are stale or missing — run `node scripts/bake-cards.mjs` with the dev server up; launch bakes at runtime meanwhile'); }
-  try { execSync('node scripts/bake-textures.mjs --check', { stdio: 'inherit' }); }
-  catch { console.warn('[bake] procedural textures are stale or missing — run `node scripts/bake-textures.mjs` with the dev server up; launch draws them meanwhile'); }
+
 }
 bakeChunks();
 copyRapierWasm(); // public/assets/physics/rapier.wasm, before the byte table below lists it

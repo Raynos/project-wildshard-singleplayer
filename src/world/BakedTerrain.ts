@@ -8,18 +8,16 @@
  * evaluating fbm/ridged noise for each (phone: terrain 838 ms, most of it here).
  *
  * The lookups are exact at the mesh vertices and the mesh's own bilinear surface between them,
- * which is what the player sees. A missing, foreign or stale file (its landscape fingerprint —
- * `landscapeHash` in src/chunks/terrain.ts, stored in the header — must equal the live def's) leaves
- * the analytic functions in place (a warning, never a failure).
+ * which is what the player sees. The build checks the full bake's bytes before committing. A missing
+ * or malformed file leaves the analytic functions in place (a warning, never a failure).
  */
 import { _installBakedTerrain } from './Heightfield';
 import { getActiveChunk } from '../chunks/registry';
-import { landscapeHash } from '../chunks/terrain';
 import { PUBLIC_BYTES } from '../boot/bytes.generated';
 import type { ChunkTerrain } from '../chunks/ChunkDef';
 import { shardSlot } from '../core/shardState';
 
-export interface BakedGrid { res: number; size: number; seed: number; /** fingerprint of the def's heightAt the bake was made from (0 = legacy, unhashed) */ landscapeHash: number; heights: Float32Array; splat: Uint8Array; /** the undergrowth decision log, when the bake has one */ undergrowth: BakedPlacement | null }
+export interface BakedGrid { res: number; size: number; seed: number; /** retained legacy header field; the build checks complete output bytes */ landscapeHash: number; heights: Float32Array; splat: Uint8Array; /** the undergrowth decision log, when the bake has one */ undergrowth: BakedPlacement | null }
 
 /**
  * The build's undergrowth decision log (src/world/placement.ts), a section after the grid in terrain.bin:
@@ -119,12 +117,6 @@ export async function loadBakedTerrain(): Promise<boolean> {
     if (!res.ok) throw new Error(`${res.status}`);
     const grid = parseBakedTerrain(await res.arrayBuffer());
     if (!grid || grid.seed !== (def.seed >>> 0)) throw new Error('bad header / seed');
-    // the bake must come from THIS def's landscape: a stale file (service-worker cache, a def edited since the last
-    // bake) fingerprints differently and is refused — the analytic field stays in place
-    if (grid.landscapeHash !== 0) {
-      const live = landscapeHash(def.terrain, grid.size);
-      if (live !== grid.landscapeHash) throw new Error(`stale: landscape ${grid.landscapeHash.toString(16)} ≠ live ${live.toString(16)}`);
-    } else console.info(`[baked] ${def.slug}: legacy bake without a landscape fingerprint — accepted unchecked`);
     if (getActiveChunk() !== def) return false;
     _installBakedTerrain(bakedSamplers(grid));
     installedFor = def.slug;

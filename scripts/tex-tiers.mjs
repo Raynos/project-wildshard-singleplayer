@@ -17,15 +17,21 @@
 //    is (the original 2k map, not its q82 _1k copy). A copy that is not ≥ 15 % smaller is not kept.
 // 4. `<id>_lod.phone.glb`: the LOD props with their embedded JPEGs as WebP (EXT_texture_webp, which three's
 //    GLTFLoader reads), ARM planes at 512 px.
-//    `--force` re-encodes every phone copy (after changing the settings above).
-import { readdirSync, existsSync, statSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
+//    Every run encodes to scratch; --check compares without writing any asset.
+import { readdirSync, existsSync, statSync, readFileSync, rmSync, mkdtempSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { byteWriter } from './bake-output.mjs';
 import { execFileSync } from 'node:child_process';
 import { join } from 'node:path';
 
 const ROOT = 'public/assets/tex';
 let made = 0, kept = 0;
 const identify = (fmt, file) => execFileSync('magick', ['identify', '-format', fmt, file]).toString().trim();
-const fresh = (out, src) => existsSync(out) && statSync(out).mtimeMs >= statSync(src).mtimeMs;
+const check = process.argv.includes('--check');
+const output = byteWriter(check, 'tex-tiers');
+const scratch = mkdtempSync(join(tmpdir(), 'tex-tiers-'));
+let scratchId = 0;
+process.on('exit', () => rmSync(scratch, { recursive: true, force: true }));
 
 // ── 1. Poly Haven set _1k siblings ──
 for (const id of readdirSync(ROOT)) {
@@ -36,8 +42,9 @@ for (const id of readdirSync(ROOT)) {
     if (!existsSync(src)) continue;
     const w = Number(identify('%w', src));
     if (w <= 1024 && statSync(src).size < 350 * 1024) continue; // small enough: the loader falls back to the base file
-    if (fresh(out, src)) { kept++; continue; }
-    execFileSync('magick', [src, '-resize', '1024x1024', '-quality', '82', '-strip', out]);
+    const bytes = execFileSync('magick', [src, '-resize', '1024x1024', '-quality', '82', '-strip', 'jpg:-'], { maxBuffer: 64 << 20 });
+    if (existsSync(out) && readFileSync(out).equals(bytes)) kept++;
+    output.put(out, bytes);
     made++;
   }
 }
@@ -58,7 +65,7 @@ for (const id of readdirSync(MODELS)) {
   if (existsSync(texDir)) for (const f of readdirSync(texDir).filter((x) => x.endsWith('.jpg'))) {
     const p = join(texDir, f), buf = readFileSync(p);
     const out = squeeze(buf, f);
-    if (out && out.length < buf.length) { writeFileSync(p, out); squeezed++; saved += buf.length - out.length; }
+    if (out && out.length < buf.length) { output.put(p, out); squeezed++; saved += buf.length - out.length; }
   }
   const glb = join(MODELS, id, `${id}_lod.glb`);
   if (existsSync(glb)) { const d = squeezeGlb(glb); if (d > 0) { squeezed++; saved += d; } }
@@ -107,12 +114,11 @@ function writeGlb(path, json, views) {
   const jh = Buffer.alloc(8); jh.writeUInt32LE(jsonBuf.length, 0); jh.writeUInt32LE(0x4e4f534a, 4);
   const bh = Buffer.alloc(8); bh.writeUInt32LE(newBin.length, 0); bh.writeUInt32LE(0x004e4942, 4);
   const total = 12 + 8 + jsonBuf.length + 8 + newBin.length; header.writeUInt32LE(total, 8);
-  writeFileSync(path, Buffer.concat([header, jh, jsonBuf, bh, newBin]));
+  output.put(path, Buffer.concat([header, jh, jsonBuf, bh, newBin]));
   return total;
 }
 
 // ── 3. .phone.webp siblings ──
-const force = process.argv.includes('--force');
 const PHONE_MAX = 1024, ARM_MAX = 512;
 /** AO / roughness / metalness planes: low-frequency, the phone gets them at half resolution */
 const isArm = (p) => /(^|[_/-])(arm|rough|roughness|metal|metallic)([_.-]|$)/i.test(p.split('/').pop() ?? p);
@@ -159,10 +165,13 @@ let phoneMade = 0, phoneKept = 0, phoneSkipped = 0;
 const want = new Set();
 for (const [served, src, max] of phoneJobs()) {
   const out = phoneName(served);
-  if (!force && fresh(out, src)) { phoneKept++; want.add(out); continue; }
-  webp(src, max, out);
+  const encoded = join(scratch, `${++scratchId}.webp`);
+  webp(src, max, encoded);
   // not worth a second file unless it is ≥ 15 % smaller than what the desktop tier downloads
-  if (statSync(out).size > statSync(served).size * 0.85) { rmSync(out); phoneSkipped++; continue; }
+  const bytes = readFileSync(encoded); rmSync(encoded);
+  if (bytes.length > statSync(served).size * 0.85) { output.remove(out); phoneSkipped++; continue; }
+  if (existsSync(out) && readFileSync(out).equals(bytes)) phoneKept++;
+  output.put(out, bytes);
   want.add(out); phoneMade++;
 }
 
@@ -171,9 +180,8 @@ for (const id of readdirSync(MODELS)) {
   const glb = join(MODELS, id, `${id}_lod.glb`), out = join(MODELS, id, `${id}_lod.phone.glb`);
   if (!existsSync(glb)) continue;
   want.add(out);
-  if (!force && fresh(out, glb)) { phoneKept++; continue; }
   const { json, views } = readGlb(glb);
-  const tmp = `${out}.img.webp`;
+  const tmp = join(scratch, `${++scratchId}.webp`);
   (json.images ?? []).forEach((img, i) => {
     if (img.mimeType !== 'image/jpeg' || img.bufferView === undefined) return;
     webp(views[img.bufferView], isArm(img.name ?? '') ? ARM_MAX : PHONE_MAX, tmp);
@@ -186,6 +194,7 @@ for (const id of readdirSync(MODELS)) {
   phoneMade++;
 }
 // stale phone copies (a source that went away, or a sibling that stopped paying for itself)
-const sweep = (dir) => { for (const n of readdirSync(dir)) { const p = join(dir, n); if (statSync(p).isDirectory()) sweep(p); else if (n.includes('.phone.') && !want.has(p)) { rmSync(p); phoneSkipped++; } } };
+const sweep = (dir) => { for (const n of readdirSync(dir)) { const p = join(dir, n); if (statSync(p).isDirectory()) sweep(p); else if (n.includes('.phone.') && !want.has(p)) { output.remove(p); phoneSkipped++; } } };
 sweep('public/assets');
 console.log(`tex-tiers: ${made} _1k written, ${kept} up to date · ${squeezed} model files squeezed (−${(saved / 1048576).toFixed(1)} MB) · ${phoneMade} phone copies written, ${phoneKept} up to date, ${phoneSkipped} dropped`);
+output.finish();

@@ -64,7 +64,10 @@ const CACHE_FILE = resolve(ROOT, 'scripts/bake-ktx2.cache.json');
 const LIST_FILE = resolve(ROOT, 'scripts/bake-ktx2.list.json');
 const argv = process.argv.slice(2);
 const flag = (n, d) => { const a = argv.find((x) => x.startsWith(`--${n}=`)); return a ? a.slice(n.length + 3) : d; };
-const DRY = argv.includes('--dry'), FORCE = argv.includes('--force');
+const CHECK = argv.includes('--check');
+const DRY = argv.includes('--dry') || CHECK, FORCE = argv.includes('--force') && !CHECK;
+const missing = new Set();
+const staleSource = (served) => { missing.add(served); console.log(`bake-ktx2: STALE ${served} (source/settings cache entry or output missing)`); };
 const ONLY = flag('only', '');
 const JOBS = Number(flag('jobs', '4'));
 /** the desktop's largest KTX2 edge: the file's own size (the horizons are 6144 wide and load whole) */
@@ -261,7 +264,7 @@ async function imageOut(src, w, h, cls, flip, served) {
   usedKeys.add(key);
   const hit = cache[key];
   if (!FORCE && hit && existsSync(abs(hit))) { reused++; return hit; }
-  if (DRY) return `(new) ${served}`;
+  if (DRY) { if (CHECK) staleSource(served); return `(new) ${served}`; }
   const bytes = await encode(src, w, h, cls, flip);
   const out = outPath(served, bytes, 'ktx2');
   mkdirSync(dirname(out), { recursive: true });
@@ -362,8 +365,8 @@ async function glbOut(file, served) {
   if (!FORCE && hit && (hit === 'none' || existsSync(abs(hit)))) { reused++; return hit === 'none' ? null : hit; }
   const { json, bin } = readGlb(file);
   const swap = new Map();
-  if (!(json.images?.length > 0)) { cache[key] = 'none'; return null; }
-  if (DRY) return `(new) ${served}`;
+  if (!(json.images?.length > 0)) { if (CHECK) staleSource(served); else cache[key] = 'none'; return null; }
+  if (DRY) { if (CHECK) staleSource(served); return `(new) ${served}`; }
   const classes = imageClasses(json);
   for (const [i, img] of json.images.entries()) {
     if (img.bufferView === undefined) throw new Error(`${file}: image ${i} is not embedded`);
@@ -420,7 +423,11 @@ for (const [tier, served, file] of gltfJobs) {
   for (const t of json.textures ?? []) { if (t.source === undefined) continue; t.extensions = { ...t.extensions, KHR_texture_basisu: { source: t.source } }; delete t.source; }
   for (const k of ['extensionsUsed', 'extensionsRequired']) json[k] = [...new Set([...(json[k] ?? []), 'KHR_texture_basisu'])];
   const bytes = Buffer.from(JSON.stringify(json));
-  if (DRY) { map[tier][served] = `(new) ${served}`; continue; }
+  if (DRY) {
+    const out = outPath(served.replace(/\.gltf$/, `.${tier}.gltf`), bytes, 'gltf');
+    if (CHECK && !existsSync(out)) staleSource(served);
+    map[tier][served] = existsSync(out) ? pub(out) : `(new) ${served}`; continue;
+  }
   const out = outPath(served.replace(/\.gltf$/, `.${tier}.gltf`), bytes, 'gltf');
   mkdirSync(dirname(out), { recursive: true });
   if (!existsSync(out)) writeFileSync(out, bytes);
@@ -452,3 +459,4 @@ for (const f of new Set(Object.values(map.phone).concat(Object.values(map.deskto
 rmSync(TMP, { recursive: true, force: true });
 console.log(`bake-ktx2: ${encoded} encoded, ${reused} reused, ${stale} stale removed · phone ${Object.keys(map.phone).length} + desktop ${Object.keys(map.desktop).length} mapped · ${(bytesOut / 1048576).toFixed(1)} MB of KTX2 (the files they stand in for: ${(bytesIn / 1048576).toFixed(1)} MB, counted per tier)`);
 if (skipped.length > 0) console.log(`  not baked (${skipped.length}):\n    ${skipped.slice(0, 40).join('\n    ')}${skipped.length > 40 ? '\n    …' : ''}`);
+if (CHECK && missing.size > 0) { console.log(`bake-ktx2: tools node ${process.version}; basisu ${ENCODER}; ${execFileSync('magick', ['-version']).toString().split('\n')[0]}`); process.exitCode = 1; }

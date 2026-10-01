@@ -4,24 +4,24 @@
 // Sky.build scans the decoded 2k HDR twice at launch (findSun: every other pixel for the brightest texel;
 // sampleHorizon: one row above the horizon) — pure functions of the file. This runs the same maths in Node
 // (three's HDRLoader.parse is DOM-free) and writes public/assets/baked/<slug>/sky.json; Sky.ts reads it and
-// skips the scans. Idempotent by a hash of the HDR + this script (Sky.ts keeps the reference implementation:
-// change the maths in both places). Runs from vite.config.ts with the terrain bake.
+// skips the scans. Every run compares baked output bytes (Sky.ts keeps the reference implementation).
 //
-//   node --import ./scripts/bake-loader.mjs scripts/bake-sky.mjs [--force]
-import { createHash } from 'node:crypto';
+//   node --import ./scripts/bake-loader.mjs scripts/bake-sky.mjs [--check]
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, readFileSync, writeFileSync, readdirSync } from 'node:fs';
-import { resolve, dirname } from 'node:path';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { byteWriter, outputHash, jsonBytes, toolVersion } from './bake-output.mjs';
+import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { HDRLoader } from 'three/examples/jsm/loaders/HDRLoader.js';
 import { DataUtils } from 'three';
 
 const ROOT = resolve(import.meta.dirname, '..');
-const force = process.argv.includes('--force');
-const VERSION = 2; // 2: + the gain-mapped JPEG / PNG pair (encodeSky)
-const self = readFileSync(resolve(ROOT, 'scripts/bake-sky.mjs'));
+const check = process.argv.includes('--check');
+const output = byteWriter(check, 'bake-sky');
+const magick = toolVersion('magick', ['-version']);
+if (!magick) console.log('bake-check: sky pair skipped (no magick)');
 
-const chunkFiles = readdirSync(resolve(ROOT, 'src/chunks')).filter((f) => f.endsWith('.ts') && !/^(registry|terrain|ChunkDef|_template|placeholders)\.ts$/.test(f));
+const chunkFiles = readdirSync(resolve(ROOT, 'src/chunks')).filter((f) => f.endsWith('.ts') && !/^(registry|terrain|ChunkDef|placeholders)\.ts$/.test(f));
 for (const file of chunkFiles) {
   const mod = await import(pathToFileURL(resolve(ROOT, 'src/chunks', file)).href);
   for (const def of Object.values(mod)) {
@@ -29,12 +29,8 @@ for (const file of chunkFiles) {
     const hdrPath = resolve(ROOT, `public/assets/hdri/${def.sky.hdri}_2k.hdr`);
     if (!existsSync(hdrPath)) { console.warn(`bake-sky: ${def.slug}: ${hdrPath} missing`); continue; }
     const hdr = readFileSync(hdrPath);
-    const digest = createHash('sha1').update(`v${VERSION}:`).update(hdr).update(self).digest('hex').slice(0, 16);
     const out = resolve(ROOT, 'public/assets/baked', def.slug, 'sky.json');
-    const prev = existsSync(out) ? JSON.parse(readFileSync(out, 'utf8')) : null;
     const stem = resolve(ROOT, `public/assets/hdri/${def.sky.hdri}_2k`);
-    if (!force && prev?.hash === digest && existsSync(`${stem}.sky.jpg`) && existsSync(`${stem}.gain.png`)) { console.log(`bake-sky: ${def.slug} up to date (${digest})`); continue; }
-
     const t0 = performance.now();
     const img = new HDRLoader().parse(hdr.buffer.slice(hdr.byteOffset, hdr.byteOffset + hdr.byteLength));
     const { width, height, data } = img;
@@ -59,13 +55,20 @@ for (const file of chunkFiles) {
     r /= n; g /= n; b /= n;
     const m = Math.max(r, g, b, 1e-3);
     if (m > 1.1) { r *= 1.1 / m; g *= 1.1 / m; b *= 1.1 / m; }
-    try { encodeSky(width, height, px, stem); }
-    catch (e) { console.warn(`bake-sky: ${def.slug}: gain-map encode failed (${e.message.split('\n')[0]}) — the launch keeps the committed pair, else the .hdr`); }
-    mkdirSync(dirname(out), { recursive: true });
-    writeFileSync(out, `${JSON.stringify({ hash: digest, version: VERSION, hdri: def.sky.hdri, sunDir: [sx, sy, sz], horizon: [r, g, b] }, null, 2)}\n`);
+    if (magick) {
+      const pair = encodeSky(width, height, px);
+      output.put(`${stem}.sky.jpg`, pair.sky);
+      output.put(`${stem}.gain.png`, pair.gain);
+    }
+    // Hash the serialized sky payload; no source fingerprint or self-referential JSON hash.
+    const sky = { hdri: def.sky.hdri, sunDir: [sx, sy, sz], horizon: [r, g, b] };
+    const digest = outputHash(jsonBytes(sky));
+    output.put(out, jsonBytes({ hash: digest, ...sky }));
     console.log(`bake-sky: ${def.slug} sun (${sx.toFixed(3)}, ${sy.toFixed(3)}, ${sz.toFixed(3)}) horizon (${r.toFixed(3)}, ${g.toFixed(3)}, ${b.toFixed(3)}) in ${Math.round(performance.now() - t0)} ms (${digest})`);
   }
 }
+
+output.finish();
 
 /**
  * The HDR as a gain-mapped pair, decoded by src/world/BakedSky.ts (keep GAIN_MAX in step) — what the phone downloads
@@ -76,7 +79,7 @@ for (const file of chunkFiles) {
  * the JPEG error of an 8-bit sRGB plane — well under what AgX + an 8-bit screen resolve. Needs ImageMagick (the pair
  * is committed; a builder without it keeps the committed files).
  */
-function encodeSky(width, height, px, stem) {
+function encodeSky(width, height, px) {
   const GAIN_MAX = 16; // log2 of the brightest value the pair can hold: 2^16 ≈ half-float max, where the sun is clipped
   const n = width * height;
   const rgb = Buffer.alloc(n * 3), gain = Buffer.alloc(n);
@@ -90,6 +93,7 @@ function encodeSky(width, height, px, stem) {
     gain[p] = gq;
   }
   const size = `${width}x${height}`;
-  execFileSync('magick', ['-size', size, '-depth', '8', 'rgb:-', '-quality', '95', '-sampling-factor', '1x1', '-strip', `${stem}.sky.jpg`], { input: rgb });
-  execFileSync('magick', ['-size', size, '-depth', '8', 'gray:-', '-strip', '-define', 'png:compression-level=9', `PNG8:${stem}.gain.png`], { input: gain });
+  const sky = execFileSync('magick', ['-size', size, '-depth', '8', 'rgb:-', '-quality', '95', '-sampling-factor', '1x1', '-strip', 'jpg:-'], { input: rgb, maxBuffer: 64 << 20 });
+  const gainBytes = execFileSync('magick', ['-size', size, '-depth', '8', 'gray:-', '-strip', '-define', 'png:compression-level=9', 'PNG8:-'], { input: gain, maxBuffer: 64 << 20 });
+  return { sky, gain: gainBytes };
 }
