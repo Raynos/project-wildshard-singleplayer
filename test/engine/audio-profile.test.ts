@@ -1,5 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { Vector3 } from 'three';
+import { VoicePool } from '#engine/audio/Voices';
+import { panFromYaw } from '#engine/audio/util';
 import { Scope } from '#engine/app/scope';
 import type { SampleLoop } from '#engine/audio/Audio';
 import type { AudioMixer } from '#engine/audio/levelAudio';
@@ -50,12 +52,34 @@ function fake(): { audio: AudioMixer; nodes: Node[]; bus: Node } {
     return { ...wiring(n), buffer: n.buffer, loop: n.loop, loopStart: n.loopStart, loopEnd: n.loopEnd,
       start: (...args: number[]) => { n.start(...args); }, stop: () => { n.stop(); }, addEventListener: n.addEventListener.bind(n), removeEventListener: n.removeEventListener.bind(n) } as AudioBufferSourceNode;
   } } as BaseAudioContext;
-  return { audio: { ready: false, ctx, bus: () => gain(bus) }, nodes, bus };
+  const state = { ready: false };
+  const voices = new VoicePool({ get ready() { return state.ready; }, ctx, sfx: gain(bus) });
+  const audio = Object.assign(state, { ctx, bus: () => gain(bus), voice: (): VoicePool => voices });
+  return { audio, nodes, bus };
 }
 const sample: SampleLoop = { buffer: buffer(), loopStart: 2, loopEnd: 8, gain: 0.5 };
 const state: MusicState = { shard: 'pine', mode: 'calm', intensity: 0, underwater: false };
 
 describe('level-owned audio slice', () => {
+  it('registers sampled voices in the same pool as procedural voices and releases the table on unload', () => {
+    const { audio, nodes } = fake(), scope = new Scope('voice-table');
+    const voices = audio.voice();
+    voices.register({ 'sample.test': { clips: () => [{ buffer: buffer(), offset: 3, duration: 0.7 }], policy: { jitter: 0 } } }, scope);
+    expect(voices.play('sample.test')).toBeUndefined();
+    Object.assign(audio, { ready: true });
+    expect(voices.buffer('sample.test')?.duration).toBe(100);
+    expect(voices.play('sample.test')).toBeDefined();
+    expect(nodes[0]?.starts).toEqual([[10, 3, 0.7]]);
+    scope.dispose();
+    expect(voices.play('sample.test')).toBeUndefined();
+    expect(voices.buffer('sample.test')).toBeUndefined();
+  });
+  it('preserves each audio pan spread, yaw convention and three-dimensional distance normalization', () => {
+    expect(panFromYaw(10, 0, 0, 0.8)).toBe(0.8);
+    expect(panFromYaw(0, 10, Math.PI / 2, 0.7)).toBe(-0.7);
+    expect(panFromYaw(10, 0, 0, 0.8, 20)).toBe(0.4);
+    expect(panFromYaw(0.2, 0, 0)).toBe(0);
+  });
   it('downloads only title cuts, the own score, beds, hum and sprite; boot decodes only market plus stings', async () => {
     const ND_AUDIO = await createNdAudio();
     const files = ND_AUDIO.files(), selected = ND_AUDIO.bootFiles('folk');
@@ -100,9 +124,9 @@ describe('level-owned audio slice', () => {
     const beds = new AmbienceBeds(audio, scope, [{ id: 'bed.a', zone: 'a', sample: () => sample, started }], () => ({ a: 0.25 }), 3, () => 0.5);
     beds.update(new Vector3()); expect(nodes).toEqual([]);
     Object.assign(audio, { ready: true }); beds.update(new Vector3());
-    expect(started).toHaveBeenCalledOnce(); expect(nodes[1]?.gain.value).toBe(0.125);
-    expect(nodes[0]?.starts).toEqual([[10, 5]]); expect(scope.census.sounds).toBe(1);
-    scope.dispose(); expect(nodes.every((node) => node.disconnected)).toBe(true); expect(nodes[0]?.stopped).toBe(true); expect(scope.census.sounds).toBe(0);
+    expect(started).toHaveBeenCalledOnce(); expect(nodes[0]?.gain.value).toBe(0.125);
+    expect(nodes[2]?.starts).toEqual([[10, 5]]); expect(scope.census.sounds).toBe(1);
+    scope.dispose(); expect(nodes.every((node) => node.disconnected)).toBe(true); expect(nodes[2]?.stopped).toBe(true); expect(scope.census.sounds).toBe(0);
   });
   it('keeps nearest four positional loops, stops departed ones and leaves no voices after unload', () => {
     const { audio, nodes } = fake(), scope = new Scope('hums'); Object.assign(audio, { ready: true });

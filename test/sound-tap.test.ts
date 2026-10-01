@@ -17,12 +17,18 @@ describe('every sound source is observed', () => {
     const owners: Readonly<Record<string, string>> = {
       '../src/engine/audio/Cues.ts': '../src/shards/nine-dragon-stack/audio/cues.ts',
       '../src/engine/audio/AmbienceBeds.ts': '../src/shards/nine-dragon-stack/audio/ambience.ts',
+      '../src/engine/audio/ambience.ts': '../src/shards/nalati-grasslands/audio/SteppeAmbience.ts',
     };
     for (const [file, text] of files) {
       const owner = owners[file];
       expect(owner === undefined ? text : sources[owner], file).toContain('tap.sound?.(');
     }
-    expect(files.length).toBeGreaterThanOrEqual(10); // Audio + the nine independent sound modules (R2-F1).
+    expect(files.map(([file]) => file).sort()).toEqual([
+      '../src/engine/audio/AmbienceBeds.ts', '../src/engine/audio/Audio.ts', '../src/engine/audio/Music.ts',
+      '../src/engine/audio/Stems.ts', '../src/engine/audio/Voices.ts', '../src/engine/audio/ambience.ts',
+      '../src/shards/driftwood-isle/audio/ambience.ts', '../src/shards/driftwood-isle/audio/shrineHum.ts',
+      '../src/shards/pine-hollow/life/index.ts',
+    ].sort()); // S3.5 merges three independent players; every remaining source still requires its content tap.
   });
 
   it('parses every ambient callback and requires exactly one ambientTick statement', () => {

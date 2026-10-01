@@ -3,6 +3,7 @@ import { shipped } from './Stems';
 import type { SampleLoop } from './Audio';
 import type { AudioMixer } from './levelAudio';
 import type { AudioRead, AudioDecode } from './SetScore';
+import type { VoicePool } from './Voices';
 import type { Scope } from '../app/scope';
 
 export interface SampleClip { buffer: AudioBuffer; offset: number; duration: number; gain: number }
@@ -75,25 +76,13 @@ export class CuePlayer {
   private readonly audio: AudioMixer;
   private readonly scope: Scope;
   private readonly random: () => number;
-  constructor(audio: AudioMixer, scope: Scope, random: () => number) { this.audio = audio; this.scope = scope; this.random = random; }
+  private readonly voices: VoicePool;
+  constructor(audio: AudioMixer, scope: Scope, random: () => number) { this.audio = audio; this.scope = scope; this.random = random; this.voices = audio.voice(); }
   useBank(bank: CueBank): void { if (!this.scope.disposed) this.bank = bank; }
   loop(id: string): SampleLoop | undefined { return this.bank.loops.get(id); }
   play(family: string, opts: CueOpts = {}): boolean {
     if (this.scope.disposed || !this.audio.ready) return false;
-    const clips = this.bank.shots.get(family), clip = clips?.[Math.floor(this.random() * clips.length)];
-    if (!clip) return false;
-    const ctx = this.audio.ctx, source = ctx.createBufferSource(), gain = ctx.createGain(), pan = ctx.createStereoPanner();
-    source.buffer = clip.buffer;
-    gain.gain.value = clip.gain * (opts.gain ?? 1);
-    pan.pan.value = Math.min(1, Math.max(-1, opts.pan ?? 0));
-    source.connect(gain).connect(pan).connect(this.audio.bus('sfx'));
-    let ended = false;
-    const forget = this.scope.capture('sounds', () => {
-      if (!ended) source.stop();
-      source.disconnect(); gain.disconnect(); pan.disconnect();
-    });
-    this.scope.listen(source, 'ended', () => { ended = true; forget(); source.disconnect(); gain.disconnect(); pan.disconnect(); }, { once: true });
-    source.start(ctx.currentTime, clip.offset, clip.duration);
-    return true;
+    const clips = this.bank.shots.get(family);
+    return clips !== undefined && this.voices.sample(clips, opts, { jitter: 0, panAlways: true }, this.random, this.scope) !== undefined;
   }
 }

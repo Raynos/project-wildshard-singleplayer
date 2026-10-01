@@ -1,3 +1,4 @@
+import { loopAt } from './util';
 import { ownAudioSource } from './ownership';
 import { currentScope } from '../app/legacyCapture';
 import { tap, ambientTick } from '../core/harnessTap';
@@ -158,6 +159,7 @@ export class Audio {
   }
   /** the procedural one-shot bank (gen.ts rendered to AudioBuffers after the first gesture) — src/engine/audio/IslandSfx.ts plays it */
   readonly voices = new Voices(this);
+  voice(): Voices { return this.voices; }
   /** the WebAudio graph, built on the first gesture (resume) — creating the first AudioContext is a ~150 ms main-thread
    *  task on the phone tier, so boot never pays it; sounds asked for before then are dropped (the context could not play them) */
   private g: Graph | undefined;
@@ -301,20 +303,15 @@ export class Audio {
   private shot(family: OneShot, o: { pan?: number; gain?: number; out?: AudioNode; t?: number; rate?: number } = {}): boolean {
     const set = this.shots.get(family);
     if (!set || !this.g) return false;
-    const buf = set.bufs[Math.floor(Math.random() * set.bufs.length)];
-    if (!buf) return false;
-    const c = this.g.ctx, src = ownAudioSource(c.createBufferSource()); src.buffer = buf;
-    src.playbackRate.value = (o.rate ?? 1) * 2 ** (rnd(-40, 40) / 1200);
-    const g = c.createGain(); g.gain.value = set.gain * (o.gain ?? 1) * rnd(0.84, 1);
-    src.connect(g); this.route(g, o.pan ?? 0, o.out); src.start(o.t ?? 0);
-    return true;
+    return this.voices.sample(set.bufs.map((buffer) => ({ buffer, offset: 0, duration: buffer.duration, gain: set.gain })),
+      { ...o, time: o.t ?? 0 }, { jitter: 40, gainJitter: 0.84 }) !== undefined;
   }
   /** a sampled one-shot of this set exists (Nalati's ambience scatters calls only when they are sampled) */
   hasShot(family: OneShot): boolean { return this.shots.has(family); }
   /** a looping source of `l` (loopStart → loopEnd) started now, from a random point inside the loop so two plays never phase */
   private loopSource(l: SampleLoop): AudioBufferSourceNode {
-    const c = this.ctx, s = ownAudioSource(c.createBufferSource()); s.buffer = l.buffer; s.loop = true; s.loopStart = l.loopStart; s.loopEnd = l.loopEnd;
-    s.start(c.currentTime, l.loopStart + Math.random() * (l.loopEnd - l.loopStart));
+    const c = this.ctx, s = ownAudioSource(c.createBufferSource());
+    loopAt(s, l.buffer, l, Math.random, c.currentTime);
     return s;
   }
   /** the master lowpass: wide open on land, shut down to ~500 Hz under water (setUnderwater) */

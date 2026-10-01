@@ -1,4 +1,5 @@
-import { ownAudioSource } from '#engine';
+import { app } from '#engine';
+import { AmbienceZones } from '#engine/audio/ambience';
 import { tap, ambientTick } from '#engine/core/harnessTap';
 /**
  * SteppeAmbience — Nalati's zoned soundscape (NALATI-MERGE A4), the IslandAmbience pattern for the steppe.
@@ -50,7 +51,6 @@ const ZONES: readonly SteppeZone[] = ['grass', 'sky', 'snow'];
 const clamp01 = (x: number): number => Math.min(1, Math.max(0, x));
 const rnd = (a: number, b: number): number => a + Math.random() * (b - a);
 
-interface Bed { gain: GainNode; pan: StereoPannerNode | undefined; src: AudioBufferSourceNode | undefined; buf: AudioBuffer | undefined; level: number; quiet: number }
 
 export class SteppeAmbience {
   onZone?: ((zone: SteppeZone) => void) | undefined;
@@ -62,12 +62,13 @@ export class SteppeAmbience {
     valley: 1, bowl: 0, snow: 0, sampled: 0, calls: 0,
   };
 
-  private readonly beds = new Map<SteppeLoop, Bed>();
+  private readonly zones: AmbienceZones;
   private place: SteppePlace = { zones: [1, 0, 0], river: 0, melt: 0, camp: 0, night: 0, wind: 5, gust: 0.3, out: 1, pan: { river: 0, camp: 0, melt: 0 } };
   private lead: SteppeZone = 'grass'; private leadT = 0; private first = true;
   private herdT = rnd(8, 18); private marmotT = rnd(6, 14); private eagleT = rnd(15, 30);
 
   constructor(private readonly audio: Audio) {
+    this.zones = new AmbienceZones(audio, () => app.rng.stream('cosmetic').next());
     audio.stormSink = (rain, wind) => {
       if (!this.sampled('rain') && !this.sampled('stormwind')) return false;
       this.storm.rain = rain; this.storm.wind = wind;
@@ -112,30 +113,12 @@ export class SteppeAmbience {
     this.audio.sampledSteppe(any > 0);
     const pans: Partial<Record<SteppeLoop, number>> = { river: p.pan.river, camp: p.pan.camp, meltwater: p.pan.melt };
     const t = this.audio.ctx.currentTime;
-    for (const k of PANNED) { const b = this.beds.get(k), v = pans[k] ?? 0; b?.pan?.pan.setTargetAtTime(Math.max(-1, Math.min(1, v)), t, TAU); }
+    for (const k of PANNED) { const b = this.zones.beds.get(k), v = pans[k] ?? 0; b?.pan?.pan.setTargetAtTime(Math.max(-1, Math.min(1, v)), t, TAU); }
   }
 
   /** one bed toward `level`: started on its first rise, restarted on a new buffer (a set switch), stopped after a silence */
   private mix(k: SteppeLoop, l: SampleLoop | undefined, level: number): void {
-    let b = this.beds.get(k);
-    const c = this.audio.ctx, t = c.currentTime;
-    if (!b) {
-      if (!l || level < 0.002) return;
-      const gain = c.createGain(); gain.gain.value = 0;
-      const pan = PANNED.has(k) && 'createStereoPanner' in c ? c.createStereoPanner() : undefined;
-      if (pan) gain.connect(pan).connect(this.audio.ambient); else gain.connect(this.audio.ambient);
-      b = { gain, pan, src: undefined, buf: undefined, level: 0, quiet: 0 };
-      this.beds.set(k, b);
-    }
-    if (b.src && (!l || l.buffer !== b.buf)) { const s = b.src; s.stop(t + 1.2); b.src = undefined; b.buf = undefined; b.gain.gain.setTargetAtTime(0, t, 0.3); }
-    if (l && !b.src && level >= 0.002) {
-      tap.sound?.(`steppe.bed:${k}`);
-      const s = ownAudioSource(c.createBufferSource()); s.buffer = l.buffer; s.loop = true; s.loopStart = l.loopStart; s.loopEnd = l.loopEnd;
-      s.connect(b.gain); s.start(t, l.loopStart + Math.random() * (l.loopEnd - l.loopStart)); // a random point: two beds never phase
-      b.src = s; b.buf = l.buffer; b.quiet = 0;
-    }
-    b.level = level;
-    b.gain.gain.setTargetAtTime(b.src ? level : 0, t, TAU);
+    this.zones.mix({ id: k, panned: PANNED.has(k), started: () => { tap.sound?.(`steppe.bed:${k}`); } }, l, level, TAU);
   }
 
   /** every frame: stop the beds that have been silent a while, fire the zones' far calls, track the dominant zone */
@@ -147,12 +130,7 @@ export class SteppeAmbience {
     this.leadT += dt;
     if (this.lead !== this.zone && this.leadT >= ZONE_HOLD_S) { this.zone = this.lead; this.onZone?.(this.zone); }
     if (!this.audio.ready) return;
-    const t = this.audio.ctx.currentTime;
-    for (const b of this.beds.values()) {
-      if (!b.src) continue;
-      b.quiet = b.level < 0.002 ? b.quiet + dt : 0;
-      if (b.quiet > SILENT_S) { b.src.stop(t + 0.1); b.src = undefined; b.buf = undefined; }
-    }
+    this.zones.silence(dt, SILENT_S);
     // the far calls: herds + marmots on the Sky Grassland, eagles over the Snow Lotus Valley (never in a gale or the kurgan)
     this.herdT -= dt; this.marmotT -= dt; this.eagleT -= dt;
     if (this.herdT <= 0) {
@@ -187,9 +165,7 @@ export class SteppeAmbience {
   }
 
   dispose(): void {
-    const t = this.audio.ready ? this.audio.ctx.currentTime : 0;
-    for (const b of this.beds.values()) { b.src?.stop(t); b.gain.disconnect(); }
-    this.beds.clear();
+    this.zones.dispose();
     this.audio.stormSink = undefined;
     this.audio.sampledSteppe(false);
   }

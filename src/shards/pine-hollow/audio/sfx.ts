@@ -1,4 +1,4 @@
-import { app, ownAudioSource } from '#engine';
+import { app } from '#engine';
 import { tap } from '#engine/core/harnessTap';
 /**
  * PineHollowSfx — Pine Hollow's own generated sounds (PINE-HOLLOW-REMASTER PH-A2..A4): public/assets/sfx/pine-hollow/sfx.json,
@@ -162,7 +162,7 @@ export class PineHollowSfx {
   get decoded(): string[] { return [...new Set([...barShots.keys(), ...this.shots.keys()])]; }
   private buffers(family: string): Clip[] | undefined { return this.shots.get(family) ?? barShots.get(family); }
 
-  setListener(x: number, y: number, z: number, yaw: number): void { this.lx = x; this.ly = y; this.lz = z; this.yaw = yaw; }
+  setListener(x: number, y: number, z: number, yaw: number): void { this.lx = x; this.ly = y; this.lz = z; this.yaw = yaw; this.audio.voices.setListener(x, y, z, yaw); }
 
   /** the beds sfx.json lists, with their zone and whether that zone is in the world today */
   bedsListed(): { name: string; zone: string | undefined; live: boolean }[] {
@@ -227,27 +227,15 @@ export class PineHollowSfx {
     if (!this.audio.ready || !this.available) return false;
     const clips = this.buffers(family);
     if (!clips) { this.load(family); return false; }
-    const clip = clips[Math.floor(Math.random() * clips.length)];
-    if (!clip) return false;
-    const c = this.audio.ctx, t = c.currentTime + 0.01;
-    let gain = o.gain ?? 1, pan = o.pan ?? 0, cutoff = 20000;
     if (o.at) {
-      const dx = o.at.x - this.lx, dy = o.at.y - this.ly, dz = o.at.z - this.lz, d = Math.hypot(dx, dy, dz);
-      if (d > 220) return true;
-      gain *= 1 / (1 + d / 10) ** 1.3;
-      const rx = Math.cos(this.yaw), rz = -Math.sin(this.yaw); // the listener's right vector (Player.yaw's convention)
-      pan = d > 0.5 ? Math.max(-1, Math.min(1, (dx * rx + dz * rz) / d)) * 0.8 : 0;
-      cutoff = 12000 / (1 + d / 30);
+      const distance = Math.hypot(o.at.x - this.lx, o.at.y - this.ly, o.at.z - this.lz);
+      if (distance > 220) return true;
+      if (!Number.isFinite(distance)) return false;
     }
-    if (!Number.isFinite(gain + pan + cutoff)) return false; // a NaN position would throw on the AudioParam (E278)
+    this.audio.voices.setListener(this.lx, this.ly, this.lz, this.yaw);
+    const source = this.audio.voices.sample(clips, o, { reach: 220, scale: 10, power: 1.3, cutoffScale: 30, delay: 0.01, jitter: 40 });
+    if (!source) return false;
     tap.sound?.(`pineSfx:${family}`);
-    const s = ownAudioSource(c.createBufferSource()); s.buffer = clip.buffer; s.playbackRate.value = 2 ** ((Math.random() * 80 - 40) / 1200);
-    const g = c.createGain(); g.gain.value = gain;
-    let node: AudioNode = s.connect(g);
-    if (cutoff < 19000) { const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = cutoff; node = node.connect(lp); }
-    if (pan !== 0 && 'createStereoPanner' in c) { const p = c.createStereoPanner(); p.pan.value = pan; node = node.connect(p); }
-    node.connect(o.out ?? this.audio.sfx);
-    s.start(t, clip.offset, clip.duration); // `duration` is buffer time: the ±40 cents do not change which samples play
     return true;
   }
 
@@ -287,8 +275,8 @@ export class PineHollowSfx {
     if (this.prefetched || !this.available) return;
     this.prefetched = true;
     const files = this.allFiles();
-    const idle = (window as unknown as { requestIdleCallback?: (fn: () => void) => void }).requestIdleCallback;
+    const idle: { requestIdleCallback?: (fn: () => void) => void } = window;
     const go = (): void => { void (async () => { for (const f of files) { try { await cachedBytes(f); } catch { /* offline: decoded later, or silent */ } } })(); };
-    if (idle) idle(go); else window.setTimeout(go, 3000);
+    if (idle.requestIdleCallback) idle.requestIdleCallback(go); else window.setTimeout(go, 3000);
   }
 }

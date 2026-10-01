@@ -1,3 +1,5 @@
+import { AmbienceZones } from './ambience';
+import { loopAt } from './util';
 import type { SampleLoop } from './Audio';
 import type { AudioMixer } from './levelAudio';
 import type { Scope } from '../app/scope';
@@ -13,36 +15,33 @@ function loopVoice(audio: AudioMixer, sample: SampleLoop, scope: Scope, random: 
   let forget = (): void => { /* Installed below before playback. */ };
   const stop = (): void => { if (stopped) return; stopped = true; source.stop(); source.disconnect(); gain.disconnect(); pan.disconnect(); forget(); };
   forget = scope.capture('sounds', stop);
-  source.start(ctx.currentTime, sample.loopStart + random() * (sample.loopEnd - sample.loopStart));
+  loopAt(source, sample.buffer, sample, random, ctx.currentTime);
   return { gain, pan, stop };
 }
 export interface BedDef { id: string; zone: string; sample: () => SampleLoop | undefined; started: () => void }
 export type ZoneWeights = Readonly<Record<string, number>>;
 /** Zone weights fade N beds through the ambience bus without starting an audio device before a gesture. */
 export class AmbienceBeds {
-  private readonly voices = new Map<string, LoopVoice>();
+  private readonly zones: AmbienceZones;
   private readonly audio: AudioMixer;
   private readonly scope: Scope;
   private readonly beds: readonly BedDef[];
   private readonly weights: (pos: Vector3) => ZoneWeights;
   private readonly fade: number;
-  private readonly random: () => number;
   constructor(audio: AudioMixer, scope: Scope, beds: readonly BedDef[], weights: (pos: Vector3) => ZoneWeights, fade: number, random: () => number) {
-    this.audio = audio; this.scope = scope; this.beds = beds; this.weights = weights; this.fade = Math.max(0.05, fade); this.random = random;
-    scope.onDispose(() => { this.voices.clear(); });
+    this.audio = audio; this.scope = scope; this.beds = beds; this.weights = weights; this.fade = Math.max(0.05, fade);
+    this.zones = new AmbienceZones(audio, random, scope);
   }
   update(pos: Vector3): void {
     if (!this.audio.ready || this.scope.disposed) return;
-    const weights = this.weights(pos), t = this.audio.ctx.currentTime;
+    const weights = this.weights(pos);
     for (const bed of this.beds) {
-      const sample = bed.sample();
-      if (!sample) continue;
-      let voice = this.voices.get(bed.id);
-      if (!voice) { voice = loopVoice(this.audio, sample, this.scope, this.random); this.voices.set(bed.id, voice); bed.started(); }
-      voice.gain.gain.setTargetAtTime(sample.gain * Math.min(1, Math.max(0, weights[bed.zone] ?? 0)), t, this.fade / 3);
+      const sample = bed.sample(); if (!sample) continue;
+      this.zones.mix({ id: bed.id, panned: true, started: bed.started }, sample,
+        sample.gain * Math.min(1, Math.max(0, weights[bed.zone] ?? 0)), this.fade / 3, -Infinity);
     }
   }
-  get audible(): string[] { return [...this.voices.keys()]; }
+  get audible(): string[] { return [...this.zones.beds.keys()]; }
 }
 /** Select at most max nearest audible loops. Removed voices stop immediately and release their scope handles. */
 export class PositionalLoops {

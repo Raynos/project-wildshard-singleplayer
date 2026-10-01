@@ -1,4 +1,5 @@
-import { ownAudioSource } from '#engine';
+import { app } from '#engine';
+import { AmbienceZones, type ZoneVoice } from '#engine/audio/ambience';
 import { tap, ambientTick } from '#engine/core/harnessTap';
 /**
  * ForestAmbience — Pine Hollow's zoned soundscape and reverb zones (PINE-HOLLOW-REMASTER PH-A2 / PH-A5), the IslandAmbience
@@ -72,7 +73,7 @@ const CABIN_HALF_W = 2.45;
 const ROCK_SLOPE = 0.32;
 const DROP_S = 60;
 
-interface Bed { name: PhBed; gain: GainNode; pan: StereoPannerNode | undefined; level: number; src: AudioBufferSourceNode | undefined; pending: boolean; idle: number; heard: boolean }
+interface Bed extends ZoneVoice { name: PhBed; pending: boolean; idle: number; heard: boolean }
 
 export class ForestAmbience {
   night = 0; dawn = 0; rain = 0;
@@ -86,6 +87,7 @@ export class ForestAmbience {
     sends: { cabin: 0, den: 0, oldgrowth: 0, bowl: 0 } as Record<Room, number>, beds: [] as string[], underwater: 0,
   };
 
+  private readonly zones: AmbienceZones;
   private built = false;
   private out: GainNode | undefined;
   private occl: BiquadFilterNode | undefined;
@@ -99,6 +101,7 @@ export class ForestAmbience {
   private timers: number[] = [];
 
   constructor(private readonly audio: Audio, private readonly o: ForestAmbienceOpts) {
+    this.zones = new AmbienceZones(audio, () => app.rng.stream('cosmetic').next());
     this.sfx = new PineHollowSfx(audio);
     this.spots = [...(o.spots ?? [])];
   }
@@ -123,27 +126,21 @@ export class ForestAmbience {
     const have = this.beds.get(name);
     if (have) return have;
     if (!this.out || !this.occl) return undefined;
-    const c = this.audio.ctx, g = c.createGain(); g.gain.value = 0;
-    let pan: StereoPannerNode | undefined;
-    if (PANNED.has(name) && 'createStereoPanner' in c) { pan = c.createStereoPanner(); g.connect(pan).connect(this.occl); } else g.connect(name === 'cabin' ? this.out : this.occl);
-    const b: Bed = { name, gain: g, pan, level: 0, src: undefined, pending: true, idle: 0, heard: false };
+    const out = name === 'cabin' ? this.out : this.occl;
+    const def = { id: name, panned: PANNED.has(name), out: () => out, started: () => { tap.sound?.(`forest.bed:${name}`); } };
+    const b: Bed = Object.assign(this.zones.ensure(def), { name, pending: true, idle: 0, heard: false });
     this.beds.set(name, b);
     void this.sfx.bed(name).then((l) => {
       b.pending = false;
       if (!l || this.beds.get(name) !== b) { if (!l) audioLog('bed', name, false, 'will not decode'); return undefined; }
-      tap.sound?.(`forest.bed:${name}`);
-      const s = ownAudioSource(c.createBufferSource()); s.buffer = l.buffer; s.loop = true; s.loopStart = l.loopStart; s.loopEnd = l.loopEnd;
-      const k = c.createGain(); k.gain.value = l.gain * LEVEL[name];
-      s.connect(k).connect(g); s.start(c.currentTime + 0.05, l.loopStart + Math.random() * (l.loopEnd - l.loopStart));
-      b.src = s;
+      this.zones.start(def, l, this.audio.ctx.currentTime + 0.05, l.gain * LEVEL[name]);
       audioLog('bed', name, true, 'loop in');
       return undefined;
     });
     return b;
   }
   private dropBed(b: Bed): void {
-    try { b.src?.stop(); } catch { /* not started */ }
-    b.gain.disconnect(); this.beds.delete(b.name); this.sfx.dropBed(b.name);
+    this.zones.drop(b.name); this.beds.delete(b.name); this.sfx.dropBed(b.name);
   }
 
   /** the room's send (and convolver), built the first time it is needed */

@@ -1,5 +1,7 @@
 import { ownAudioSource } from './ownership';
 import { tap } from '../core/harnessTap';
+import { panFromYaw } from './util';
+import type { Scope } from '../app/scope';
 /**
  * Voices — the procedural sound bank (src/engine/audio/gen.ts) as AudioBuffers, and a one-node-chain player for them.
  *
@@ -15,11 +17,11 @@ import { tap } from '../core/harnessTap';
 import type { Vector3 } from 'three';
 import { footstep, whoosh, impact, vocal, windup, hurt, death, plunge, bubbleBed, noiseLoop, impulseChannel, interact, STEP_KINDS, MATERIALS, ENEMIES, INTERACT_SOUNDS, type Room } from './gen';
 
-interface Host { readonly ctx: AudioContext; readonly sfx: GainNode; readonly ready: boolean }
+interface Host { readonly ctx: BaseAudioContext; readonly sfx: GainNode; readonly ready: boolean }
 type Gen = (sr: number, seed: number) => Float32Array;
 /** `half`: rendered at half the context rate (sounds with nothing above ~6 kHz — the long vocals, the bubble bed): half the
  *  render time and memory, and the source resamples on play (IRs must stay at the context rate: ConvolverNode requires it) */
-interface Family { n: number; ch: 1 | 2; half?: boolean; gen: Gen | ((sr: number, seed: number, ch: number) => Float32Array) }
+export interface Family { n: number; ch: 1 | 2; half?: boolean; gen: Gen | ((sr: number, seed: number, ch: number) => Float32Array) }
 
 const fam = (n: number, gen: Gen, half = false): Family => ({ n, ch: 1, half, gen });
 const room = (r: Room): Family => ({ n: 1, ch: 2, gen: (sr: number, seed: number, ch: number) => impulseChannel(r, sr, seed, ch) });
@@ -30,6 +32,7 @@ export const FAMILIES: Record<string, Family> = {
   whoosh: fam(4, (sr, s) => whoosh(sr, s)),
   'whoosh-heavy': fam(3, (sr, s) => whoosh(sr, s, true)),
   ...Object.fromEntries(MATERIALS.map((m) => [`impact-${m}`, fam(4, (sr, s) => impact(m, sr, s))])),
+  // driftwood, S4.3: vocal, windup and impact-shell ownership moves with its audio.
   ...Object.fromEntries(ENEMIES.map((e) => [`vocal-${e}`, fam(3, (sr, s) => vocal(e, sr, s), e === 'sailor' || e === 'boar')])),
   'windup-boar': fam(2, (sr, s) => windup('boar', sr, s)),
   'windup-crab': fam(2, (sr, s) => windup('crab', sr, s)),
@@ -66,7 +69,16 @@ export interface PlayOpts {
   jitter?: number;
 }
 
-export class Voices {
+export interface SampleVoice { buffer: AudioBuffer; offset: number; duration: number; gain?: number }
+export interface SamplePolicy {
+  reach?: number; scale?: number; power?: number; cutoff?: number; cutoffScale?: number;
+  spread?: number; delay?: number; jitter?: number; gainJitter?: number; panAlways?: boolean;
+  repeat?: boolean; startAtZero?: boolean;
+}
+export interface SamplePlay extends PlayOpts { time?: number }
+export type VoiceTable = Readonly<Record<string, Family | { clips: () => readonly SampleVoice[] | undefined; policy?: SamplePolicy }>>;
+
+export class VoicePool {
   private bufs = new Map<string, (AudioBuffer | undefined)[]>();
   private warm: [string, number][] = [];
   private warming = false;
@@ -74,14 +86,61 @@ export class Voices {
   private last = new Map<string, number>();
   private done = new Set<string>();
 
+  private readonly tables = new Map<string, Family | { clips: () => readonly SampleVoice[] | undefined; policy?: SamplePolicy }>();
   constructor(private readonly host: Host) {}
+  register(table: VoiceTable, scope?: Scope): () => void {
+    for (const [id, entry] of Object.entries(table)) this.tables.set(id, entry);
+    const remove = (): void => { for (const [id, entry] of Object.entries(table)) if (this.tables.get(id) === entry) this.tables.delete(id); };
+    scope?.onDispose(remove);
+    return remove;
+  }
+  private family(id: string): Family | undefined { const entry = this.tables.get(id); return entry && 'gen' in entry ? entry : FAMILIES[id]; }
+  /** Sample selection and generated rendering share the same source, roll-off and output chain. Content owns its tap. */
+  sample(clips: readonly SampleVoice[], o: SamplePlay = {}, policy: SamplePolicy = {}, random: () => number = Math.random, scope?: Scope): AudioBufferSourceNode | undefined {
+    if (!this.host.ready || scope?.disposed) return undefined;
+    const clip = clips[Math.floor(random() * clips.length)];
+    if (!clip) return undefined;
+    let gain = (clip.gain ?? 1) * (o.gain ?? 1), pan = o.pan ?? 0, cutoff = policy.cutoff ?? 20000;
+    if (o.at) {
+      const dx = o.at.x - this.lx, dy = o.at.y - this.ly, dz = o.at.z - this.lz;
+      const dist = Math.hypot(dx, dy, dz);
+      if (dist > (policy.reach ?? 150)) return undefined;
+      gain *= 1 / (1 + dist / (policy.scale ?? 9)) ** (policy.power ?? 1.4);
+      cutoff = 12000 / (1 + dist / (policy.cutoffScale ?? 22));
+      pan = panFromYaw(dx, dz, this.yaw, policy.spread ?? 0.8, dist);
+    }
+    if (!Number.isFinite(gain + pan + cutoff)) return undefined;
+    const c = this.host.ctx, src = scope ? c.createBufferSource() : ownAudioSource(c.createBufferSource());
+    const t = o.time ?? (policy.startAtZero === true ? 0 : c.currentTime + (o.delay ?? policy.delay ?? 0));
+    src.buffer = clip.buffer;
+    if (policy.jitter !== 0 || o.rate !== undefined) src.playbackRate.value = (o.rate ?? 1) * 2 ** (policy.jitter === 0 ? 0 : (random() * 2 - 1) * (policy.jitter ?? 40) / 1200);
+    const g = c.createGain(); g.gain.value = gain * (policy.gainJitter === undefined ? 1 : policy.gainJitter + random() * (1 - policy.gainJitter));
+    src.connect(g);
+    const nodes: AudioNode[] = [src, g];
+    let node: AudioNode = g;
+    if (cutoff < 19000) { const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = cutoff; node.connect(lp); node = lp; nodes.push(lp); }
+    if ((pan !== 0 || o.panTo !== undefined || policy.panAlways === true) && 'createStereoPanner' in c) {
+      const p = c.createStereoPanner(); p.pan.setValueAtTime(Math.max(-1, Math.min(1, pan)), t);
+      if (o.panTo !== undefined && !o.at) p.pan.linearRampToValueAtTime(Math.max(-1, Math.min(1, o.panTo)), t + clip.duration / src.playbackRate.value);
+      node.connect(p); node = p; nodes.push(p);
+    }
+    node.connect(o.out ?? this.host.sfx);
+    if (scope) {
+      let ended = false;
+      const cleanup = (): void => { for (const n of nodes) n.disconnect(); };
+      const forget = scope.capture('sounds', () => { if (!ended) src.stop(); cleanup(); });
+      scope.listen(src, 'ended', () => { ended = true; forget(); cleanup(); }, { once: true });
+    }
+    src.start(t, clip.offset, clip.duration);
+    return src;
+  }
 
   setListener(x: number, y: number, z: number, yaw: number): void { this.lx = x; this.ly = y; this.lz = z; this.yaw = yaw; }
 
   /** render these families' variants in the background, one per idle slice, in the order given */
   prewarm(names: readonly string[]): void {
     if (!this.host.ready) return;
-    for (const n of names) { const f = FAMILIES[n]; if (f) for (let v = 0; v < f.n; v++) for (let c = 0; c < f.ch; c++) this.warm.push([n, v * 2 + c]); }
+    for (const n of names) { const f = this.family(n); if (f) for (let v = 0; v < f.n; v++) for (let c = 0; c < f.ch; c++) this.warm.push([n, v * 2 + c]); }
     if (!this.warming) { this.warming = true; this.slice(); }
   }
   private slice(): void {
@@ -94,7 +153,7 @@ export class Voices {
   }
   /** one variant rendered into its AudioBuffer — every channel, or only `ch` (prewarm renders a stereo IR a channel per slice) */
   private variant(name: string, v: number, ch = -1): AudioBuffer | undefined {
-    const f = FAMILIES[name]; if (!f) return undefined;
+    const f = this.family(name); if (!f) return undefined;
     const list = this.bufs.get(name) ?? []; this.bufs.set(name, list);
     const ctx = this.host.ctx, sr = f.half === true ? ctx.sampleRate / 2 : ctx.sampleRate;
     for (let c = 0; c < f.ch; c++) {
@@ -109,14 +168,20 @@ export class Voices {
   }
 
   /** every channel of every variant of `name` is rendered (a caller can build on it without a synchronous render) */
-  has(name: FamilyName): boolean { const f = FAMILIES[name]; if (!f) return false; for (let v = 0; v < f.n; v++) for (let c = 0; c < f.ch; c++) if (!this.done.has(`${name}/${v}/${c}`)) return false; return true; }
+  has(name: FamilyName): boolean { const f = this.family(name); if (!f) return false; for (let v = 0; v < f.n; v++) for (let c = 0; c < f.ch; c++) if (!this.done.has(`${name}/${v}/${c}`)) return false; return true; }
 
   /** a family's first variant (the IRs, the bubble bed), rendered now if it is not yet */
-  buffer(name: FamilyName): AudioBuffer | undefined { return this.host.ready ? this.variant(name, 0) : undefined; }
+  buffer(name: FamilyName): AudioBuffer | undefined {
+    if (!this.host.ready) return undefined;
+    const entry = this.tables.get(name);
+    return entry && 'clips' in entry ? entry.clips()?.[0]?.buffer : this.variant(name, 0);
+  }
 
   /** play a random variant (never the same one twice in a row); returns the source, or undefined before the first gesture */
   play(name: FamilyName, o: PlayOpts = {}): AudioBufferSourceNode | undefined {
-    const f = FAMILIES[name];
+    const entry = this.tables.get(name);
+    if (entry && 'clips' in entry) return this.sample(entry.clips() ?? [], o, entry.policy);
+    const f = this.family(name);
     if (!f || !this.host.ready) return undefined;
     let dist = 0;
     if (o.at) { const dx = o.at.x - this.lx, dy = o.at.y - this.ly, dz = o.at.z - this.lz; dist = Math.sqrt(dx * dx + dy * dy + dz * dz); if (dist > 150) return undefined; }
@@ -137,8 +202,7 @@ export class Voices {
       g.gain.value *= 1 / (1 + dist / 9) ** 1.4;
       const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 12000 / (1 + dist / 22);
       node.connect(lp); node = lp;
-      const rx = Math.cos(this.yaw), rz = -Math.sin(this.yaw);
-      pan = dist > 0.5 ? Math.max(-1, Math.min(1, (dx * rx + dz * rz) / dist)) * 0.8 : 0;
+      pan = panFromYaw(dx, dz, this.yaw, 0.8, dist);
     }
     if ((pan !== 0 || (o.panTo !== undefined && !o.at)) && 'createStereoPanner' in c) {
       const p = c.createStereoPanner(), clampP = (x: number) => Math.max(-1, Math.min(1, x));
@@ -154,3 +218,5 @@ export class Voices {
   /** diagnostics: variants rendered per family */
   get rendered(): Record<string, number> { const o: Record<string, number> = {}; for (const [k, list] of this.bufs) o[k] = list.filter((b) => b !== undefined).length; return o; }
 }
+
+export { VoicePool as Voices };

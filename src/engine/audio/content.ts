@@ -5,3 +5,6 @@ export { CuePlayer, cueFiles, decodeCueSet } from './Cues';
 export { AmbienceBeds, PositionalLoops } from './AmbienceBeds';
 export { cachedBytes, decodeBytes } from './preload';
 export { MUSIC_STYLES, getMusicStyle } from '../ui/Settings';
+export { VoicePool } from './Voices';
+export { panFromYaw, loopAt } from './util';
+export { AmbienceZones } from './ambience';
