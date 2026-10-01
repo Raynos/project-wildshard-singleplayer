@@ -72,7 +72,7 @@ export function globToRegExp(glob) {
     else if (c === '{') re += '(?:';
     else if (c === '}') re += ')';
     else if (c === ',') re += '|';
-    else re += c.replace(/[.+^$()|[\]\\]/g, '\\$&');
+    else re += c.replaceAll(/[.+^$()|[\]\\]/g, String.raw`\$&`);
   }
   const out = new RegExp(`^${re}$`);
   reCache.set(glob, out);
@@ -138,8 +138,8 @@ export function lineScopedRefusals(path, before, after, slugs) {
     for (const k of new Set([...Object.keys(b), ...Object.keys(a)])) {
       if (same(b[k], a[k])) continue;
       if (!Array.isArray(b[k] ?? []) || !Array.isArray(a[k] ?? [])) { out.push(`field "${k}"`); continue; }
-      const bs = new Set(b[k] ?? []);
-      const as = new Set(a[k] ?? []);
+      const bs = new Set(b[k]);
+      const as = new Set(a[k]);
       for (const u of [...bs].filter((x) => !as.has(x)).concat([...as].filter((x) => !bs.has(x)))) {
         if (!ownsUrl(u)) out.push(`${k} entry "${u}"`);
       }
@@ -171,7 +171,7 @@ export function lockVerdict(message, paths, lock, diffs) {
   if (!lock.locked) return { ok: true, why: 'unlocked', refused: [] };
   if (hasLeadTrailer(message)) return { ok: true, why: 'E357-Lead: yes', refused: [] };
   if (paths.length > 0 && paths.every((p) => p === LEDGER)) return { ok: true, why: 'sweepguard ledger', refused: [] };
-  const slugs = Object.entries(lock.reopened ?? {});
+  const slugs = Object.entries(lock.reopened);
   const globs = slugs.flatMap(([slug, extra]) => allowGlobs(slug, extra));
   const refused = [];
   for (const p of paths) {
@@ -216,7 +216,7 @@ function main() {
   console.error('  Only the E357 lead (trailer `E357-Lead: yes`) or a reopened shard\'s lane may commit. Refused:');
   for (const r of v.refused) console.error(`  - ${r}`);
   const open = Object.keys(lock.reopened ?? {});
-  console.error(`  Reopened shards: ${open.length ? open.join(', ') : 'none'}. If you are not the E357 lead, stop and ask Jake.`);
+  console.error(`  Reopened shards: ${open.length > 0 ? open.join(', ') : 'none'}. If you are not the E357 lead, stop and ask Jake.`);
   return 1;
 }
 

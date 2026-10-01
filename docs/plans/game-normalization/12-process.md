@@ -15,6 +15,11 @@
   short (one job, small context, few turns), never waits on anything, is never recycled or forked. Codex CLI
   (GPT 6.1 Sol) agents in herdr panes take suitable jobs. The browser lane is 8 under the lock. The lead stops, commits
   and pushes when 10 % of the weekly quota is left.
+- **Builders** (109, Jake's blessing): Codex CLI (GPT 6.1 Sol) sibling agents in herdr panes (the herdr skill) and Opus 5.5
+  subagents, round-robin by the weekly usage left on each side (`openusage`: `providers.claude` / `providers.codex`
+  `.resources.weekly.remaining`). **Graphics, three.js, GPU and visual work → Opus 5.5; the engine, the refactors and all
+  other TypeScript → GPT 6.1 Sol.** Each side stops at 10 % left (107). A Sol pane gets the same brief template (§4)
+  and the same caps; its commits carry `E357-Lead: yes`.
 - **Z3 builds two shards** (106) by two fresh agents in parallel: shard 5 desert + whip (+ a flying creature, a quest
   step), shard 6 the agent's choice.
 - **A gap the plan doesn't cover** (108): the lead picks the option most faithful to E127 / E357, logs it in 13 with its

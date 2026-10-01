@@ -165,6 +165,7 @@ The numbers are E357's. A revision sits right after the decision it replaces.
 | 106 | Z3 builds two shards in parallel: desert + whip, and one of the agent's choice | 12 §0; 11 Z3 | covered |
 | 107 | Build until 10 % of the weekly quota is left; delegate to Codex panes over herdr | 12 §0 | covered |
 | 108 | Gaps: pick, log in 13, keep going | 12 §0; 13 | covered |
+| 109 | Codex CLI (GPT 6.1 Sol) sibling agents via herdr, round-robin with Opus by weekly usage left; visuals → Opus, engine / TS → Sol | 12 §0 | covered |
 
 ## 3. The audit (`docs/audits/game-normalization-2026-09-30.md`) and the bugs found later
 
