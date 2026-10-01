@@ -22,4 +22,18 @@ if ! git -C "$repo" diff --quiet HEAD -- "$ledger" 2>/dev/null; then
     || echo "  !! sweep-guard ledger is dirty and the auto-commit FAILED - commit $ledger yourself" >&2
 fi
 
+# E357: the ratchet on the commit just made (its own tree, not the shared working tree): a rise here blocks every push,
+# so say so loudly now. Advisory (a post-commit hook cannot refuse); ~3 s.
+if [ -f "$repo/lint/ratchet.mjs" ]; then
+  tmp="$(mktemp -d /tmp/ratchet-commit.XXXXXX)"
+  git -C "$repo" archive HEAD -- src lint .oxlintrc.ratchet.json package.json | tar -x -C "$tmp" 2>/dev/null
+  ln -s "$repo/node_modules" "$tmp/node_modules"
+  if ! out="$(cd "$tmp" && node lint/ratchet.mjs 2>&1)"; then
+    echo "" >&2
+    echo "  !! RATCHET ROSE in the commit you just made ($(git -C "$repo" rev-parse --short HEAD)): it blocks every push. Fix it now:" >&2
+    echo "$out" | grep -E "was|rose" | head -12 | sed 's/^/     /' >&2
+  fi
+  rm -rf "$tmp"
+fi
+
 exit 0
