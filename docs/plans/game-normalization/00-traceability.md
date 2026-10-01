@@ -265,7 +265,7 @@ The numbers are E357's. A revision sits right after the decision it replaces.
 | EI9 | `engine/input`: actions, bindings, context stack, dev overlay | S1.4 (05 §6.4); 10 X1 steps 1, 7 | covered |
 | EI10 | Move every consumer onto actions; delete `inputAllowed()` ×7 and the fake `KeyE` | 10 X1 steps 1–2 | covered |
 | EI11 | `TouchControls` draws the top context's discs; `touchHint` → `grapple` context (announce over herdr) | 10 X1 step 3; 01 §11 (the herdr notice is moot under the lock) | covered |
-| EI12 | Engine-owned crouch action | 01 §10 (`ask('player.crouch', { want }) → { allowed, toggle }`); 07 §6.3 C (Nalati's stealth answers it); 10 X1 step 1 (stealth.ts) | covered |
+| EI12 | Engine-owned crouch action | 01 §10 (`ask('player.crouch', { want, via }) → { allowed, latched }`, R1-F9 / R2-08); 07 §6.3 C (Nalati's stealth answers it); 10 X1 step 1 (stealth.ts) | covered |
 | EI13 | `engine/ui/layers` for the ~10 overlays | 01 §11; 10 X2 step 1 | covered |
 | EI14 | `app.ui.slot` numbered bands; `ui.mount`; a lint rule | 10 X2 step 3 (`wildshard/no-raw-hud`) | covered |
 | EI15 | Registered Bag tabs + item fragments | 01 §11, §20; 10 X2 step 4 | covered |
@@ -521,7 +521,7 @@ closure)
   §F4 step 1: count 0, every simulation module born under it), and the node-only actor tests are the proof (02 §F5
   step 5). Row: decision 56.
 - **G20: spec questions 13 didn't answer.** **Resolved → 13-lead-resolutions "Still-open spec questions":** 07 Q7 (the
-  camp rig, 05/06 #14), Q9 (`ask('player.crouch', { want }) → { allowed, toggle }`, 07 §6.3 C), Q10
+  camp rig, 05/06 #14), Q9 (`ask('player.crouch', { want, via }) → { allowed, latched }`, R1-F9 / R2-08, 07 §6.3 C), Q10
   (`ctx.rows.creatureLook`); 08 Q2 (`{ chain: c.engineChain('clean') }`, C6), Q6 (`boss.attempt`, a fix: 08 §6.2 B
   step 4), Q8 (`validate.ts` reviewed on F7's one list and kept: two tests import it); 05 / 06 / 07 / 08 Q1 (every
   sub-field a declared manifest field). Every spec's "Questions for the lead" now reads resolved. Rows: X-4, 08 D2.

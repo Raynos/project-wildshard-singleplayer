@@ -184,8 +184,9 @@ export interface App {                      // typed fields; no string-keyed ser
   readonly scheduler: Scheduler; readonly analytics: AnalyticsSink; readonly debug: DebugService;
   readonly explore: ExploreService; readonly practice: PracticeService;
   readonly params: HarnessParams;            // the only URL-param reader: the `harness` allowlist in lint/url-params.json (tier, touch, chunk, spawn, skipintro, mute …)
-  readonly assets: AssetService;            // acquire(key) / release(key), ref-counted (§4, R1-28)
+  readonly assets: AssetService;            // acquire(key) / release(key), ref-counted; retained(): AssetCensus = what the engine still holds (§4, R1-28, R2-21)
   loadLevel(spec: LevelSpec, hooks: LevelHooks): Promise<void>;   // runs the level.* boot stages (§5a, §8)
+  unloadLevel(): Promise<void>;             // disposes the level scope and emits `level.unloaded` (the leak test, §4; R2-21)
 }
 ```
 
@@ -215,6 +216,13 @@ export interface LevelSpec {
   mechanisms: readonly EngineMechanism[];       // the engine half of the manifest's `uses` (§6)
   fight: FightRules; input?: readonly InputContextDef[]; boot: BootSpec; audio: AudioSpec;
   dayCycle?: DayCycleKeyframes; weather?: WeatherSpec;
+  // R2-02: every field the engine reads is here, copied by toLevelSpec; engine code never reads a manifest
+  loadout: LoadoutSpec;                         // the equipment the kit stage builds (R2-05)
+  species: readonly SpeciesRef[]; spawns: readonly HerdPlan[]; spawnTables?: readonly SpawnTableRef[];
+  faunaTuning?: FaunaTuning; trees?: TreeSpec; forest?: ForestSpec; horizon?: HorizonSpec;
+  minimap: MinimapSpec; hud?: HudSpec; pois?: readonly PoiSpec[]; bodyShadow?: boolean;
+  groundColor?: GroundColorFn; surfaceAt?: SurfaceFn; assets?: AssetSpec; explore?: ExploreSpec;
+  // not here (game-only, stay on the manifest): name, blurb, card, order, status, bag, label, the game mechanisms
 }
 export interface LevelContext {                 // the engine's verbs, every one bound to ctx.scope (R1-25)
   readonly app: App; readonly scope: Scope; readonly root: THREE.Group; progress: StepProgress;
@@ -225,6 +233,17 @@ export interface LevelContext {                 // the engine's verbs, every one
   inputContext(def: InputContextDef): void; hud: HudVerbs; piece(p: PieceSpec): void;
   debugRow(r: DebugRowSpec): void; playground(p: PlaygroundSpec): void; strings(t: StringTable): void;
   tiers: { knobs(schema: TierKnobSchema): void }; debug: { expose(name: string, value: unknown): void };
+}
+export interface EngineRows {                   // R2-20: every engine row verb (registration is legal only in level.kit, R2-05)
+  weapon(row: WeaponRow): void; tool(row: ToolRow): void; ammo(row: AmmoRow): void;
+  species(row: SpeciesRow): void; speciesLook(look: SpeciesLook): void; effect(row: EffectDef): void;
+  damageRule(row: DamageRuleDef): void; encounter(row: BossDef | EliteDef): void; spawnTable(row: SpawnTableRow): void;
+  creatureLook(kitLook: string, factory: CreatureMaterialFactory): void;
+}
+export interface HudVerbs {                     // R2-20: HudSlots (§11) bound to the scope
+  widget(band: HudBand, el: HTMLElement, order: number): void; disc(o: DiscOpts): HTMLButtonElement;
+  relabel(spot: DiscSpot, label: StringKey, icon: string): void; verb(slot: 'verb.1' | 'verb.2', o: VerbSlotOpts): void;
+  pin(at: THREE.Vector3 | (() => THREE.Vector3 | null), el: HTMLElement): void;
 }
 export interface LevelHooks {                   // each awaited in its stage, with the engine's work in between (R1-24)
   world?(ctx: LevelContext): Promise<void> | void;   // level.world
@@ -238,6 +257,10 @@ export interface LevelHooks {                   // each awaited in its stage, wi
   `toLevelSpec(manifest)`, a pure function that a node test runs on every shard. It then calls
   `app.loadLevel(spec, hooks)`, where the hooks wrap the plugin's `world` / `kit` / `play` with a `ShardContext` (the
   `LevelContext` plus the game verbs, §7).
+- **The kit stage's contract (R2-05):** rows register only during `level.kit` (inside `hooks.kit`); a registration
+  after `level.kit` ends throws. When `hooks.kit` returns, the engine builds the loadout from `level.loadout`
+  (resolving each id against the registered rows) and preloads its models before `level.play`. `play` can't add
+  weapons or tools; a pickup only unlocks an id already in the loadout.
 - The engine's code says `level` everywhere: `LookStrategy`, the stages `level.data / world / kit / play`, the events
   `level.loaded / unloaded`. The word list (§24) keeps "shard" out of `src/engine/**`.
 
@@ -336,8 +359,8 @@ export abstract class ShardPlugin {         // staged hooks, each awaited in its
 export interface ShardContext extends LevelContext {   // every verb bound to ctx.scope: no verb takes a scope (R1-25)
   readonly manifest: ShardManifest;
   readonly game: GameServices;              // Bag, coins, loot, compendium, feats (#game)
-  bag: BagVerbs;                            // tabs + item fragments
-  rows: EngineRows & GameRows;              // + item / loot-table rows; rows.creatureLook(kitLook, factory) registers a look's creature material factory
+  bag: BagVerbs;                            // R2-20: tab(spec: BagTabSpec), fragment(tab: BagTabId, f: BagFragment): bound to the scope
+  rows: EngineRows & GameRows;              // GameRows (R2-20): item(row), lootTable(row), feat(row), shop(row), compendium(row), places(row)
   // debug.expose(name, value) → window.__wildshard.shard[name]; replaces __ndRender, the seven __pine*, __titan …
 }
 // src/game/shard/shards.generated.ts — written by scripts/gen-shards.mjs from src/shards/*/manifest.ts
@@ -670,8 +693,8 @@ export interface AnimService { load(rig: RigRef): Promise<RigInstance>; machine(
 export abstract class Equipment {           // the shared base (27)
   abstract readonly id: string; abstract readonly name: string;   // name via string table
   readonly meta: EquipmentMeta;             // { name (string key), icon, blurb, category }: #game's Bag builds its entries from it (R1-26)
-  protected blocks: BlockSet;               // viewmodel, aim, input … (below)
-  install(ctx: EquipContext): void;         // wires blocks, actions, cues, HUD
+  protected blocks: BlockSet;               // { vm?: VmBlock; aim?: AimBlock; ads?: AdsBlock; melee?: MeleeBlock; projectile?: ProjectileBlock; hitStop?: HitStopBlock; ammo?: AmmoBlock; brass?: BrassBlock } (R2-20)
+  install(ctx: EquipContext): void;         // EquipContext = { app, scope, input: InputService, combat: CombatService, cue: AudioService['cue'], hud: HudVerbs } (R2-20)
   abstract update(dt: number, t: number): void;
 }
 export abstract class Weapon extends Equipment { slot: 'main'; abstract tryFire(): void; reload?(): void; readonly state: WeaponState }
@@ -721,9 +744,15 @@ export interface DamageRequest {             // the superset every path fills (0
   point: THREE.Vector3; dir: THREE.Vector3; surface?: SurfaceId; weaponId?: string; moveId?: string;
   headshot?: boolean; stagger?: number; knockback?: number; throughWalls?: boolean;
   from?: THREE.Vector3; distance?: number; scale?: number;   // the attacker's position, the hit distance, a charge / draw scale
-  cause?: string; toast?: string;   // the death card's cause line and the hit toast, as string-table keys
+  cause?: DeathCause; toast?: StringKey;   // the killer for the death card; the hit toast (R2-14)
 }
-// A rule the DamageRuleDef data form can't express (09's R0b, R1, R3, R6, R7) registers as a plain answerer:
+export interface DeathCause {              // one type for DamageRequest.cause, damage.dealt, player.died and the death card (R2-14)
+  kind: string;                             // 'storm-titan', 'env.lightning', 'env.fall' … (today's killer.kind, main.ts:923)
+  label: StringKey;                         // 'the Storm Titan' as a string key
+  text?: StringKey;                         // a full line for causes with no actor (lightning, a fall from the horse)
+}
+// A rule the DamageRuleDef data form can't express (09's R0b, R1, R7) registers as a plain answerer
+// (R3 / R4 / R5 are source multipliers inside their source's base formula and R6 is gone: 09 §2.2, R1-31, R2-10):
 // events.answer('damage.modify', fn, scope, { order }). DamageRuleDef is the data form of the simple ones.
 ```
 
@@ -769,9 +798,9 @@ export interface Move {                      // decision 15: moves as data with 
   tags: readonly Tag[]; blockedBy?: readonly Tag[]; cancels?: readonly Tag[];
 }
 export interface MoveSet { light: readonly Move[]; heavy?: Move; mounted?: readonly Move[]; lunge?: Move }   // today's SwordMoves shape, generalised
-export interface BossPhase { at: number; caption: string; name: string; strikes: readonly string[]; enrage?: number }   // today's BossPhaseDef + its strike list
+export interface BossPhase { at: number; caption?: StringKey; name?: StringKey; strikes: readonly string[]; enrage?: number }   // today's BossPhaseDef + its strike list; caption / name optional (the Captain has none, R2-11)
 export interface BossDef {                   // today's Boss.ts BossDef, generalised (arena, wake, intro, seal, reward, persistence)
-  id: string; name: string; title: string; arena: { at: string; r: number }; wake?: { flag: string };
+  id: string; name: StringKey; title?: StringKey; arena: { at: string; r: number }; wake?: { flag: string };
   intro: { long: number; short: number } | null; seal: boolean; checkpoint: boolean; bar: 'boss';
   phases: readonly BossPhase[]; reward: BossReward | null; persist: { deadFlag: string }; capExempt?: boolean;
 }
@@ -857,7 +886,7 @@ export interface WeightedTable<T> { mode: 'weighted' | 'each'; rows: readonly { 
 | Rule | Checks | Starts at |
 |---|---|---|
 | `wildshard/layer` | import direction; no shard ↔ shard; the public index only; `src/engine/**` word list (slugs, shard / creature / weapon names, Bag, coin, loot, compendium, feat) | today's counts, per file |
-| `wildshard/no-shard-branch` | outside `src/shards/`, any of: `slug ===` / `slug !==`; `style ===` / `style !==`; `isOcean`; `sea ?`; `chunk.ocean`; `nalatiNow()`; `isNalati`; `isPine`; `isNine`; `painterly ?` / `painterly &&`; `LOOK_V2`; `isStylized(`; `isPaintedAir(`; `isPainterlyGrass(`; a shard slug string literal (`'driftwood-isle'`, `'nalati-grasslands'`, `'pine-hollow'`, `'nine-dragon-stack'`). F4 writes this list as `SHARD_BRANCH` in `lint/wildshard-plugin.js` | 269 |
+| `wildshard/no-shard-branch` | outside `src/shards/`, any of: `slug ===` / `slug !==`; `style ===` / `style !==`; `isOcean`; `sea ?`; `chunk.ocean`; `nalatiNow()`; `isNalati`; `isPine`; `isNine`; `painterly ?` / `painterly &&`; `LOOK_V2`; `isStylized(`; `isPaintedAir(`; `isPainterlyGrass(`; a shard slug string literal (`'driftwood-isle'`, `'nalati-grasslands'`, `'pine-hollow'`, `'nine-dragon-stack'`). **How it matches (AST, R2-17):** (a) the identifiers and calls above; (b) a member read of `.structures`, `.weapon`, `.style` or `.ocean` on a value typed `ChunkDef` / `ShardManifest` / `LevelSpec` (a branch on what kind of shard this is); (c) a shard slug string literal anywhere in a comparison or a `switch` case. F4 implements exactly this as `SHARD_BRANCH` in `lint/wildshard-plugin.js` | 269 |
 | `wildshard/no-raw-save` | `localStorage` / `sessionStorage` outside `#engine/saves` | 36 keys / 28 files |
 | `wildshard/no-raw-random-time` | `Math.random` / `performance.now` outside `core/{rng,clock}.ts` + the cosmetic allowlist | 254 / 242 |
 | `wildshard/no-raw-input` | DOM input listeners outside `#engine/input` | 179 |

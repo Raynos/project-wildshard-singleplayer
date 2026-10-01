@@ -296,7 +296,8 @@ export default defineShard({
   - (a) **small differences** that must change, batched into **one before/after board per wave** (weapons, creatures,
     input / HUD, audio, look);
   - (b) **bugs found are fixed inline**, each with a test.
-- **Every commit:** harness green → pathspec commit → `scripts/push-main.sh`. A red result is reverted, not patched
+- **Every commit** (12 §5, R1-10 / R2-22 / R2-25): pathspec commit → the per-commit parity run on that commit's own SHA
+  (`--export=<sha>`, never `HEAD`) → before every push the full run → `scripts/push-main.sh`. No `--amend` under the lock. A red result is reverted, not patched
   forward.
 - **Tests.** A fake `Game` (no WebGL) lets node tests drive weapons, strike timing, effects, AI, bosses, quests and
   saves. Every public API gets a contract test, and every bug fixed gets a test. A coverage gate on `src/engine/`

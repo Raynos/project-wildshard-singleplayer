@@ -93,7 +93,7 @@ From F6 on, `src/` holds exactly `engine/`, `game/`, `kit/` and `shards/` (02 F6
 | 7 | 06 §1.3: `LeverRifle.ts` → `src/kit/weapons/firearm/leverRifle.ts`. 09 §1.5: Pine's `weapons/`, `LeverRifle extends Firearm` there | `PH:weapons/LeverRifle.ts` at F6 | Rule of two (Pine only); 09 is the combat spec (Q3) |
 | 8 | 01 §21, 09 §5.2, plan §2.5: the horse is kit | `NG:species/horse.ts`, with its brain stack in Nalati | Rule of two: 01 §22 moves the horse playground into Nalati, so only Nalati uses the horse (09 Q5 notes the same). A kit horse would pull `Herd` → `Pack` → `wildEnv` and the painterly look (~2k lines of Nalati wildlife AI) into the kit (Q1) |
 | 9 | 06 §1.3: `Grass.ts` → Pine at "S2.1 (after S3.1 takes Nalati's GrassV2 dispatch out)" | `F6 → S3.1` | S3.1 runs after S2.1, and the file can only move once the dispatch is out (Q4) |
-| 10 | 02 F9 step 3 edits `src/engine/ui/titleDeck.ts`. 01 §20: the title deck is `#game` | `G:titleDeck.ts` at F6 | 01 §20; "shard" is on the engine word list |
+| 10 | 02 F9 step 3 edits `src/engine/ui/titleDeck.ts`. 01 §20: the title deck is `#game` | **Resolved (R1-04):** `G:titleDeck.ts` at F6 | 01 §20; "shard" is on the engine word list |
 | 11 | 02 F11: "`src/engine/shard/switch.ts` stays" | `G:travel/switch.ts` at F6 | 01 §20: travel is `#game`; the engine word list forbids "shard". The file stays; it lives in `#game` |
 | 12 | 02 F6 step 6: 28 tests move | 34 move at F6 (§4) | The Driftwood quest and loot files and 3 more Nalati files move at F6 here, so their tests move too |
 | 13 | 05 §1.1 and 06 §1.2 give S1.1, S1.4 and S2.x as *When* for whole-file renames (`index.ts` → `world/install.ts`, `Traversal.ts` → `grapple/FeiZhua.ts`, `pinehollow/index.ts` → `combat/install.ts`, …) | The renames happen at F6; the rows restructure in place | §1.1 rule 1 |
@@ -184,18 +184,18 @@ Grouped by today's folder. Territory folders (`src/chunks/<slug>/`, `src/nalati/
 | `pineHollowLayout.ts` | 296 | `PH:layout.ts` | = | PH | T | F6 | 06 §1.1 |  |
 | `registry.ts` | 75 | `G:shard/registry.ts` | ✗ | ✗ | SPEC | F6 → F9 | hand list; F9 replaces it with shards.generated.ts and deletes it (01 §7) |  |
 | `terrain.ts` | 207 | `E:world/terrainField.ts` | = | engine | SPEC | F6 | shared landscape maths every terrain shard uses (02 F6 folder map) |  |
-| `thumbs/driftwood-isle-landscape.jpg` | bin 202 K | `DI:thumbs/driftwood-isle-landscape.jpg` | = | DI | T | F6 | card art; the art module and titleDeck imports are rewritten (TP12; 05 §1.2) |  |
-| `thumbs/driftwood-isle-portrait.jpg` | bin 187 K | `DI:thumbs/driftwood-isle-portrait.jpg` | = | DI | T | F6 | card art; the art module and titleDeck imports are rewritten (TP12; 05 §1.2) |  |
-| `thumbs/driftwood-isle.jpg` | bin 46 K | `DI:thumbs/driftwood-isle.jpg` | = | DI | T | F6 | card art; the art module and titleDeck imports are rewritten (TP12; 05 §1.2) |  |
-| `thumbs/nalati-grasslands-landscape.jpg` | bin 380 K | `NG:thumbs/nalati-grasslands-landscape.jpg` | = | NG | T | F6 | card art; the art module and titleDeck imports are rewritten (TP12; 05 §1.2) |  |
-| `thumbs/nalati-grasslands-portrait.jpg` | bin 375 K | `NG:thumbs/nalati-grasslands-portrait.jpg` | = | NG | T | F6 | card art; the art module and titleDeck imports are rewritten (TP12; 05 §1.2) |  |
-| `thumbs/nalati-grasslands.jpg` | bin 71 K | `NG:thumbs/nalati-grasslands.jpg` | = | NG | T | F6 | card art; the art module and titleDeck imports are rewritten (TP12; 05 §1.2) |  |
-| `thumbs/nine-dragon-stack-landscape.jpg` | bin 387 K | `ND:thumbs/nine-dragon-stack-landscape.jpg` | = | ND | T | F6 | card art; the art module and titleDeck imports are rewritten (TP12; 05 §1.2) |  |
-| `thumbs/nine-dragon-stack-portrait.jpg` | bin 353 K | `ND:thumbs/nine-dragon-stack-portrait.jpg` | = | ND | T | F6 | card art; the art module and titleDeck imports are rewritten (TP12; 05 §1.2) |  |
-| `thumbs/nine-dragon-stack.jpg` | bin 65 K | `ND:thumbs/nine-dragon-stack.jpg` | = | ND | T | F6 | card art; the art module and titleDeck imports are rewritten (TP12; 05 §1.2) |  |
-| `thumbs/pine-hollow-landscape.jpg` | bin 239 K | `PH:thumbs/pine-hollow-landscape.jpg` | = | PH | T | F6 | card art; the art module and titleDeck imports are rewritten (TP12; 05 §1.2) |  |
-| `thumbs/pine-hollow-portrait.jpg` | bin 315 K | `PH:thumbs/pine-hollow-portrait.jpg` | = | PH | T | F6 | card art; the art module and titleDeck imports are rewritten (TP12; 05 §1.2) |  |
-| `thumbs/pine-hollow.jpg` | bin 46 K | `PH:thumbs/pine-hollow.jpg` | = | PH | T | F6 | card art; the art module and titleDeck imports are rewritten (TP12; 05 §1.2) |  |
+| `thumbs/driftwood-isle-landscape.jpg` | bin 202 K | `DI:thumbs/driftwood-isle-landscape.jpg` | = | DI | T | F6 | card art, imported by the shard's own manifest (`card`); the title deck and Explore read the URLs from the registry, so no import crosses a layer (R1-21) |  |
+| `thumbs/driftwood-isle-portrait.jpg` | bin 187 K | `DI:thumbs/driftwood-isle-portrait.jpg` | = | DI | T | F6 | card art, imported by the shard's own manifest (`card`); the title deck and Explore read the URLs from the registry, so no import crosses a layer (R1-21) |  |
+| `thumbs/driftwood-isle.jpg` | bin 46 K | `DI:thumbs/driftwood-isle.jpg` | = | DI | T | F6 | card art, imported by the shard's own manifest (`card`); the title deck and Explore read the URLs from the registry, so no import crosses a layer (R1-21) |  |
+| `thumbs/nalati-grasslands-landscape.jpg` | bin 380 K | `NG:thumbs/nalati-grasslands-landscape.jpg` | = | NG | T | F6 | card art, imported by the shard's own manifest (`card`); the title deck and Explore read the URLs from the registry, so no import crosses a layer (R1-21) |  |
+| `thumbs/nalati-grasslands-portrait.jpg` | bin 375 K | `NG:thumbs/nalati-grasslands-portrait.jpg` | = | NG | T | F6 | card art, imported by the shard's own manifest (`card`); the title deck and Explore read the URLs from the registry, so no import crosses a layer (R1-21) |  |
+| `thumbs/nalati-grasslands.jpg` | bin 71 K | `NG:thumbs/nalati-grasslands.jpg` | = | NG | T | F6 | card art, imported by the shard's own manifest (`card`); the title deck and Explore read the URLs from the registry, so no import crosses a layer (R1-21) |  |
+| `thumbs/nine-dragon-stack-landscape.jpg` | bin 387 K | `ND:thumbs/nine-dragon-stack-landscape.jpg` | = | ND | T | F6 | card art, imported by the shard's own manifest (`card`); the title deck and Explore read the URLs from the registry, so no import crosses a layer (R1-21) |  |
+| `thumbs/nine-dragon-stack-portrait.jpg` | bin 353 K | `ND:thumbs/nine-dragon-stack-portrait.jpg` | = | ND | T | F6 | card art, imported by the shard's own manifest (`card`); the title deck and Explore read the URLs from the registry, so no import crosses a layer (R1-21) |  |
+| `thumbs/nine-dragon-stack.jpg` | bin 65 K | `ND:thumbs/nine-dragon-stack.jpg` | = | ND | T | F6 | card art, imported by the shard's own manifest (`card`); the title deck and Explore read the URLs from the registry, so no import crosses a layer (R1-21) |  |
+| `thumbs/pine-hollow-landscape.jpg` | bin 239 K | `PH:thumbs/pine-hollow-landscape.jpg` | = | PH | T | F6 | card art, imported by the shard's own manifest (`card`); the title deck and Explore read the URLs from the registry, so no import crosses a layer (R1-21) |  |
+| `thumbs/pine-hollow-portrait.jpg` | bin 315 K | `PH:thumbs/pine-hollow-portrait.jpg` | = | PH | T | F6 | card art, imported by the shard's own manifest (`card`); the title deck and Explore read the URLs from the registry, so no import crosses a layer (R1-21) |  |
+| `thumbs/pine-hollow.jpg` | bin 46 K | `PH:thumbs/pine-hollow.jpg` | = | PH | T | F6 | card art, imported by the shard's own manifest (`card`); the title deck and Explore read the URLs from the registry, so no import crosses a layer (R1-21) |  |
 
 #### `src/chunks/driftwood-isle/` — 31 files, 5,491 lines
 
@@ -350,7 +350,7 @@ Grouped by today's folder. Territory folders (`src/chunks/<slug>/`, `src/nalati/
 | `world/facade/geo.ts` | 297 | `ND:world/facade/geo.ts` | = | ND | T | F6 | Nine Dragon content (05 §1.1) |  |
 | `world/facade/grammar.ts` | 895 | `ND:world/facade/grammar.ts` | = | ND | T | F6 | Nine Dragon content (05 §1.1) |  |
 | `world/facade/pieces.ts` | 465 | `ND:world/facade/pieces.ts` | = | ND | T | F6 | Nine Dragon content (05 §1.1) |  |
-| `world/facade/rng.ts` | 34 | `ND:world/facade/rng.ts` | = | ND | T | F6 | Nine Dragon content (05 §1.1) |  |
+| `world/facade/rng.ts` | 34 | `ND:world/facade/rng.ts` | ✗ (deleted at F8) | ND | DELETE | F6 → F8 | one RNG: `Rng.scrambled` keeps the facade sequence (01 §2, G18, R1-04) |  |
 | `world/facades.ts` | 233 | `ND:world/facades.ts` | = | ND | T | F6 | Nine Dragon content (05 §1.1) |  |
 | `world/gate.ts` | 570 | `ND:world/gate.ts` | = | ND | T | F6 | Nine Dragon content (05 §1.1) |  |
 | `world/hero/figures.ts` | 194 | `ND:world/hero/figures.ts` | = | ND | T | F6 | Nine Dragon content (05 §1.1) |  |
@@ -590,7 +590,7 @@ Grouped by today's folder. Territory folders (`src/chunks/<slug>/`, `src/nalati/
 | Today | Lines | After F6 | Final | Layer | Rule | Row | Why | Confirm |
 |---|---|---|---|---|---|---|---|---|
 | `catalog.ts` | 151 | `E:explore/catalog.ts` | = | engine | F | F6 |  |  |
-| `Compare.ts` | 127 | `E:explore/Compare.ts` | = | engine | F | F6 (+S1.1, S2.1, S3.1, S4.1) | compare pairs → manifest.explore.compare (05 §2.4) |  |
+| `Compare.ts` | 127 | `E:explore/Compare.ts` | = | engine | F | F6 (+S1.1, S2.1, S3.1, S4.1) | compare pairs → `level.explore.compare` (05 §2.4; R2-02) |  |
 | `diorama.ts` | 246 | `E:explore/diorama.ts` | = | engine | F | F6 |  |  |
 | `Explore.ts` | 635 | `E:explore/Explore.ts` | = | engine | F | F6 (+S1.1, S2.1, S3.1, S4.1) | the four art maps lose one shard each (05 §2.4; EI21) |  |
 | `fatLines.ts` | 47 | `E:explore/fatLines.ts` | = | engine | F | F6 |  |  |
@@ -1000,7 +1000,7 @@ Grouped by today's folder. Territory folders (`src/chunks/<slug>/`, `src/nalati/
 | `ShopPanel.ts` | 178 | `DI:loot/ShopPanel.ts` | = | DI | I | F6 (+X2) | the Driftwood trader's panel (its only importer: loot/install.ts, Driftwood's shop) | 08 |
 | `SpeedLines.ts` | 45 | `E:ui/SpeedLines.ts` | = | engine | F | F6 |  |  |
 | `StartTitle.ts` | 33 | `E:ui/StartTitle.ts` | = | engine | F | F6 |  |  |
-| `titleDeck.ts` | 210 | `E:ui/titleDeck.ts` | `G:titleDeck.ts` | game | GM | F6 → F9 | the title deck is #game (01 §20); F9 builds it from the registry (02 F9 step 3) |  |
+| `titleDeck.ts` | 210 | `G:titleDeck.ts` | = | game | GM | F6 → F9 | the title deck is #game (01 §20, R1-04), moved there at F6; F9 builds it from the registry and it reads each manifest's `card` URLs (R1-21) |  |
 | `ToastStack.ts` | 108 | `E:ui/ToastStack.ts` | = | engine | F | F6 |  |  |
 | `Update.ts` | 101 | `E:ui/Update.ts` | = | engine | F | F6 |  |  |
 | `WeaponStrip.ts` | 254 | `E:ui/WeaponStrip.ts` | = | engine | F | F6 |  |  |
@@ -1117,7 +1117,7 @@ Grouped by today's folder. Territory folders (`src/chunks/<slug>/`, `src/nalati/
 | `Sky.ts` | 899 | `E:world/Sky.ts` | = | engine | SPLIT | F6 (+S2.1, S3.2, S4.3, X5) | shard branches leave (split table §3.3) |  |
 | `Spruce.ts` | 266 | `NG:world/Spruce.ts` | = | NG | G | F6 (+S3.1) | trees.factory 'spruce' is Nalati's (core/bootstrap.ts TREE_FACTORIES) | 07 |
 | `spruceMask.ts` | 79 | `NG:world/spruceMask.ts` | = | NG | N | F6 | Nalati's ChunkForest.mask (node-safe; bake-chunk runs it) | 07 |
-| `steppeWind.ts` | 157 | `E:world/steppeWind.ts` | = | engine | F | F6 |  |  |
+| `steppeWind.ts` | 157 | `E:world/steppeWind.ts` | ✗ (merged into `E:world/wind.ts`, S3.2) | engine | MERGE | F6 → S3.2 | one `WindField` (01 §17, R1-04); Nalati's steppe numbers become `manifest.wind` |  |
 | `stylize.ts` | 216 | `E:world/stylize.ts` | `DI:look/stylize.ts` | DI | SPLIT | F6 → S4.3 | Driftwood's toon lighting patch (a shader-patch registry entry, X6) (split table §3.13) | 08 |
 | `StylizedSky.ts` | 188 | `E:world/StylizedSky.ts` | `DI:look/StylizedSky.ts` | DI | SPLIT | F6 → S4.3 | Driftwood's sky (Sky.ts builds it when style === 'lowpoly'): the toon look as a LookStrategy backdrop (S4.3 / X5) (split table §3.13) | 08 |
 | `Terrain.ts` | 713 | `E:world/Terrain.ts` | = | engine | SPLIT | F6 (+S2.1, S3.2, S4.3, X5) | shard branches leave (split table §3.7) |  |
@@ -1207,9 +1207,9 @@ A part that "stays" stays in the file at its F6 path.
 | `step('grass', …)`: `const bare = isOcean \|\| built`, `new Undergrowth` | Pine's carpet | Pine's plugin | S2.1 (Grass.ts itself: S3.1) |
 | `step('cabins', …)`: `new Cabins`, `pineHamletBuildings`, `installPineLandmarks` | the homestead | Pine's plugin | S2.1 |
 | `step('props', …)`: `wireNalati`, the `structures` branch, Pine's `Props` | the props step | each plugin's `level.world` stage | S1.1, S2.1, S3.1 |
-| `step('animals', …)`, `nalatiNow()?.attachAnimals`, `nalatiNow()?.ride`, `new Enemies(` | creatures | `CreatureService` + spawn tables from the manifests | S2.3, S3.4, S4.2 |
+| `step('animals', …)`, `nalatiNow()?.attachAnimals`, `nalatiNow()?.ride`, `new Enemies(` | creatures | `CreatureService` + `level.spawns` / `level.spawnTables` (the `LevelSpec`, R2-02) | S2.3, S3.4, S4.2 |
 | `const nalatiClock`, the WorldClock wiring | the clocks | `app.world.dayCycle` | S2.4 |
-| `step('weapon', …)`, `buildNalatiKit`, `const isPine`, `new Longbow`, `const isNine`, `new Weapons(` | the loadout | `EquipmentService` from `manifest.loadout` | S1.2, S2.2, S3.3, S4.1 |
+| `step('weapon', …)`, `buildNalatiKit`, `const isPine`, `new Longbow`, `const isNine`, `new Weapons(` | the loadout | `EquipmentService` from `level.loadout` (built in `level.kit`, R2-02 / R2-05) | S1.2, S2.2, S3.3, S4.1 |
 | `await chunk.traversal?.(` | the Fei Zhua | the Tool row | S1.4 |
 | `const mood = chunk.ocean ? 'island'` | the score's mood | `manifest.audio.score` | S1.5 |
 | `if (chunk.bounds !== undefined)` | soft respawn | the engine system `engine.world.bounds` | S1.1 |
