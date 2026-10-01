@@ -2,12 +2,12 @@ import exploreWorld from './explore/world-driftwood-isle.webp';
 import exploreModels from './explore/models-driftwood-isle.webp';
 import exploreSets from './explore/sets-driftwood-isle.webp';
 import explorePractice from './explore/practice-driftwood-isle.webp';
-import compareSpawnLive from './explore/driftwood-spawn-live.jpg';
-import compareSpawnTarget from './explore/driftwood-spawn-target.jpg';
-import compareRightLive from './explore/driftwood-right-live.jpg';
-import compareRightTarget from './explore/driftwood-right-target.jpg';
-import compareOverlookLive from './explore/driftwood-overlook-live.jpg';
-import compareOverlookTarget from './explore/driftwood-overlook-target.jpg';
+import compareSpawnLive from './explore/compare/driftwood-spawn-live.jpg';
+import compareSpawnTarget from './explore/compare/driftwood-spawn-target.jpg';
+import compareRightLive from './explore/compare/driftwood-right-live.jpg';
+import compareRightTarget from './explore/compare/driftwood-right-target.jpg';
+import compareOverlookLive from './explore/compare/driftwood-overlook-live.jpg';
+import compareOverlookTarget from './explore/compare/driftwood-overlook-target.jpg';
 /**
  * Driftwood Isle — the second shard: a small faceted low-poly island in a bright turquoise ocean
  * on grid (−1, +6). Wind Waker in spirit: flat-shaded vertex-coloured geometry, no textures at
@@ -23,6 +23,7 @@ import { buildTerrain } from '#engine/world/terrainField';
 import { swellBody } from '#engine/data';
 import type { ShardManifest, OceanDef } from '#game/shard/manifest';
 import { lateReads } from './boot/lateReads';
+import { bootSources } from './boot/sources';
 import thumbnail from './thumbs/driftwood-isle.jpg';
 import heroPortrait from './thumbs/driftwood-isle-portrait.jpg';
 import heroLandscape from './thumbs/driftwood-isle-landscape.jpg';
@@ -103,7 +104,7 @@ export const DRIFTWOOD_ISLE: ShardManifest = {
   kitLook: 'toon',
   assetGlobs: ['public/assets/models/driftwood-blender/**', 'public/assets/models/driftwood-cc0/**', 'public/assets/models/driftwood-fp/**', 'public/assets/models/driftwood-hero/**', 'public/assets/gpu/models/driftwood-blender/**', 'public/assets/gpu/models/driftwood-hero/**', 'public/assets/gpu/baked/driftwood-isle/**', 'public/assets/horizon/driftwood-isle-*', 'public/assets/gpu/horizon/driftwood-isle-*', 'public/assets/lut/driftwood-isle.bin', 'public/assets/title/driftwood-isle-portrait.jpg', 'public/assets/sfx/driftwood-isle/**'],
   ktx2: () => import('./ktx2.generated'),
-  boot: { files: () => [], lateReads }, // no props of its own (today's ocean rule); the island's late reads (./boot/lateReads.ts)
+  boot: { files: () => [], sources: bootSources, lateReads }, // what its boot reads (./boot/sources.ts: no props of its own); the island's late reads (./boot/lateReads.ts)
   load: () => import('./plugin'), // E357 S4.1: the world build (./world/build.ts); the rest still runs in main.ts until S4.2–S4.4
   order: 1,
   // the phone's picture cuts (E189): the viewmodels in near depth slices, no god-ray pass while the sun is off screen;

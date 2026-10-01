@@ -27,19 +27,13 @@ const CONCURRENCY = 6;
 const EXTRA_CONCURRENCY = 16;
 
 /**
- * The declared files this shard's boot really reads, in step order. The boot manifest (src/engine/boot/manifest.ts)
- * declares the engine-fixed cabins / props, the textured terrain's layers and the tree textures for every
- * shard; an open-water shard builds no cabins or props, a low-poly one reads only its baked terrain and a
- * treeless one (ChunkTrees.factory 'none') no tree textures — prefetching the whole manifest downloaded
- * Driftwood's boot plus 14 MB of Pine Hollow's.
+ * The declared files this level's boot really reads, in step order: its own `boot.sources` (each level that declares
+ * them lists only what it reads), else the boot manifest's (src/engine/boot/manifest.ts) — prefetching the whole
+ * engine-fixed manifest once downloaded a small level's boot plus 14 MB of another's.
  */
 export function bootFetches(def: ShardManifest, files: ChunkFiles): string[] {
   if (def.boot?.sources !== undefined) return [...files.sky, ...files.baked, ...files.terrain, ...files.trees, ...files.cabins, ...files.props];
-  const painted = def.style === 'toon'; // no ground textures: only the baked terrain
-  const terrain = painted ? files.terrain.filter((f) => f.startsWith('/assets/baked/')) : files.terrain;
-  const trees = files.trees; // the shard's boot manifest declares its tree textures
-  const homestead = def.ocean === undefined ? [...files.cabins, ...files.props] : [];
-  return [...files.sky, ...files.baked, ...terrain, ...trees, ...homestead]; // not files.physics: Rapier fetches its own WASM at boot start (streamed compile), outside the uncompressed pack
+  return [...files.sky, ...files.baked, ...files.terrain, ...files.trees, ...files.cabins, ...files.props]; // not files.physics: Rapier fetches its own WASM at boot start (streamed compile), outside the uncompressed pack
 }
 const pathOf = (url: string): string => { try { return new URL(url, location.href).pathname; } catch { return url; } };
 

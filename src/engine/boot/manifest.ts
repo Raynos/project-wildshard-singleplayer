@@ -51,16 +51,13 @@ export function chunkFiles(def: ShardManifest, tex: TexMode = texMode()): ChunkF
   const skyJson = `/assets/baked/${def.slug}/sky.json`;
   const hdri = def.sky.hdri;
   const pair = hdri !== undefined ? bakedSkyUrls(hdri) : null; // the gain-mapped JPEG + PNG in place of the .hdr (src/engine/world/BakedSky.ts)
-  // a painted sky (Nalati), the low-poly shard's stylized dome (Driftwood: its only sky since E136) and a sky without an
-  // HDRI download nothing
-  const sky = def.sky.painted || def.style === 'toon' || hdri === undefined ? [] : [...(pair ? [pair.color, pair.gain] : [`/assets/hdri/${hdri}_2k.hdr`]), ...(skyJson in PUBLIC_BYTES ? [skyJson] : [])];
-  // per shard: only what its boot really reads, so DOWNLOAD's declared total is honest (it was Driftwood's ~2 MB against
-  // Pine Hollow's ~20 MB of layers, cards, cabins and props): a low-poly shard reads only its baked terrain, a treeless
-  // one (trees.factory 'none' or the painted 'spruce') no tree textures, an open-water one (ocean) builds no cabins or props
-  // a painterly one (Nalati) paints its ground and builds no cabins or props either
-  // a structure-first one (ShardManifest.ground.structures, Nine Dragon Stack) draws no ground and builds no cabins or props: its world's own files instead
+  // a painted sky and a sky without an HDRI download nothing (a level whose dome is drawn declares its own boot.sources)
+  const sky = def.sky.painted || hdri === undefined ? [] : [...(pair ? [pair.color, pair.gain] : [`/assets/hdri/${hdri}_2k.hdr`]), ...(skyJson in PUBLIC_BYTES ? [skyJson] : [])];
+  // per level: only what its boot really reads, so DOWNLOAD's declared total is honest; a level with its own reads declares
+  // boot.sources (above). A treeless one (trees.factory 'none' or the painted 'spruce') reads no tree textures; a
+  // structure-first one (ShardManifest.ground.structures) draws no ground and builds no cabins or props: its world's own files instead
   const built = def.ground.structures !== undefined;
-  const lowpoly = def.style === 'toon', treeless = def.trees.factory === 'none' || (def.trees.bark === undefined && def.trees.twigAtlas === undefined && def.trees.set === undefined), ocean = def.ocean !== undefined || built;
+  const treeless = def.trees.factory === 'none' || (def.trees.bark === undefined && def.trees.twigAtlas === undefined && def.trees.set === undefined);
   // the phone tier's .phone.webp / .phone.glb copies (fetchImage and three's loaders fetch through the same map), and the
   // KTX2 stand-ins when textures ride as KTX2 (E157, src/engine/boot/gpuFiles.ts) — only the default path's files are declared
   const t = (xs: string[]) => xs.map((u) => gpuUrl(u, tex));
@@ -68,11 +65,11 @@ export function chunkFiles(def: ShardManifest, tex: TexMode = texMode()): ChunkF
   return {
     sky: t(sky),
     baked: t(bakedTextureUrls(def.slug, def.boot?.bakedUnread)),
-    terrain: t(built ? [] : lowpoly ? terrain.filter((f) => f.startsWith('/assets/baked/')) : terrain),
+    terrain: t(built ? [] : terrain),
     trees: t(treeless ? [] : trees),
     physics: [RAPIER_WASM_URL, ...(nav ? [nav] : [])], // Rapier's WASM, every shard (src/engine/physics/rapier.ts); the shard's baked navmesh (src/engine/physics/navmesh.ts)
-    cabins: t(ocean ? [] : cabins),
-    props: t(def.boot !== undefined ? [...def.boot.files(TIER)].filter((f) => f in PUBLIC_BYTES) : typeof def.ground.structures === 'object' ? def.ground.structures.files.filter((f) => f in PUBLIC_BYTES) : ocean ? [] : props),
+    cabins: t(built ? [] : cabins),
+    props: t(def.boot !== undefined ? [...def.boot.files(TIER)].filter((f) => f in PUBLIC_BYTES) : typeof def.ground.structures === 'object' ? def.ground.structures.files.filter((f) => f in PUBLIC_BYTES) : built ? [] : props),
     // filled by src/engine/boot/extras.ts `bootFiles` (project/archive/2026-09-23-preload-offline.md): the title / explore art (bundled, hashed URLs)
     // and every audio file of every style and set (the lists follow the menu's Settings, a module Node's type stripping cannot
     // load — this file also runs in scripts/bake-packs.mjs, and neither goes in a shard's boot pack)
