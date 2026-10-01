@@ -14,12 +14,15 @@ export interface ScopeCensus {
   timers: number;
   rafs: number;
   disposers: number;
+  systems: number;
+  colliders: number;
+  nodes: number;
 }
 type Kind = keyof ScopeCensus;
 interface Cleanup { kind: Kind; run: () => void }
 function emptyCensus(): ScopeCensus {
   return { geometries: 0, materials: 0, textures: 0, renderTargets: 0, meshes: 0, resources: 0,
-    bodies: 0, sounds: 0, listeners: 0, timers: 0, rafs: 0, disposers: 0 };
+    bodies: 0, sounds: 0, listeners: 0, timers: 0, rafs: 0, disposers: 0, systems: 0, colliders: 0, nodes: 0 };
 }
 function resourceKind(resource: Disposable3): Kind {
   if ('isBufferGeometry' in resource && resource.isBufferGeometry === true) return 'geometries';
@@ -37,9 +40,11 @@ export class Scope {
   private owned = new Set<object>();
   private detach: (() => void) | undefined;
   readonly name: string;
+  private readonly parent: Scope | undefined;
 
   constructor(name: string, parent?: Scope) {
     this.name = name;
+    this.parent = parent;
     if (parent) {
       parent.children.add(this);
       const forget = parent.track('disposers', () => this.dispose());
@@ -49,6 +54,7 @@ export class Scope {
   }
 
   get disposed(): boolean { return this.closed; }
+  belongsTo(scope: Scope): boolean { return this === scope || (this.parent?.belongsTo(scope) ?? false); }
   get census(): ScopeCensus {
     const counts = emptyCensus();
     for (const cleanup of this.cleanups) counts[cleanup.kind]++;
@@ -66,6 +72,8 @@ export class Scope {
     this.cleanups.add(cleanup);
     return () => { this.cleanups.delete(cleanup); };
   }
+  /** Bridge for legacy registrations; forget when a one-shot ends or a handle is removed early. */
+  capture(kind: Kind, cleanup: () => void): () => void { return this.track(kind, cleanup); }
 
   private ownHandle<T extends object>(resource: T, kind: Kind, dispose: () => void): T {
     if (!this.owned.has(resource)) {

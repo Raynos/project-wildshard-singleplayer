@@ -1,3 +1,4 @@
+import { retainCachedResources } from '../app/cachedAssets';
 /** The three local TRELLIS.2 figures, skinned in Blender and shared by the arena and Model Explorer. */
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
@@ -19,7 +20,7 @@ const templates = new Map<DummyVariant, Promise<THREE.Group>>();
 function template(variant: DummyVariant): Promise<THREE.Group> {
   let promise = templates.get(variant);
   if (!promise) {
-    promise = loader.loadAsync(URLS[variant]).then((gltf) => gltf.scene);
+    promise = loader.loadAsync(URLS[variant]).then((gltf) => retainCachedResources(gltf.scene));
     templates.set(variant, promise);
     void promise.catch(() => { templates.delete(variant); }); // a failed fetch can retry on the next open
   }

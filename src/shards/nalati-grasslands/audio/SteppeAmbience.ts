@@ -1,3 +1,4 @@
+import { ownAudioSource } from '#engine';
 import { tap, ambientTick } from '#engine/core/harnessTap';
 /**
  * SteppeAmbience — Nalati's zoned soundscape (NALATI-MERGE A4), the IslandAmbience pattern for the steppe.
@@ -129,7 +130,7 @@ export class SteppeAmbience {
     if (b.src && (!l || l.buffer !== b.buf)) { const s = b.src; s.stop(t + 1.2); b.src = undefined; b.buf = undefined; b.gain.gain.setTargetAtTime(0, t, 0.3); }
     if (l && !b.src && level >= 0.002) {
       tap.sound?.(`steppe.bed:${k}`);
-      const s = c.createBufferSource(); s.buffer = l.buffer; s.loop = true; s.loopStart = l.loopStart; s.loopEnd = l.loopEnd;
+      const s = ownAudioSource(c.createBufferSource()); s.buffer = l.buffer; s.loop = true; s.loopStart = l.loopStart; s.loopEnd = l.loopEnd;
       s.connect(b.gain); s.start(t, l.loopStart + Math.random() * (l.loopEnd - l.loopStart)); // a random point: two beds never phase
       b.src = s; b.buf = l.buffer; b.quiet = 0;
     }

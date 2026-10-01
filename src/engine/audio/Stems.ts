@@ -1,3 +1,4 @@
+import { ownAudioSource } from './ownership';
 import { tap } from '../core/harnessTap';
 // src/engine/audio/Stems.ts — the MiniMax-Music3 stem player behind src/engine/audio/Music.ts (project/archive/2026-09-23-music.md v3, row 7).
 //
@@ -173,7 +174,7 @@ export class Deck {
     if (fadeIn > 0) { this.out.gain.setValueAtTime(0, t0); this.out.gain.linearRampToValueAtTime(1, t0 + fadeIn); }
     this.out.connect(dest);
     const mk = (buf: AudioBuffer, to: AudioNode) => {
-      const s = ctx.createBufferSource(); s.buffer = buf; s.loop = true; s.loopStart = spec.loopStart; s.loopEnd = spec.loopEnd;
+      const s = ownAudioSource(ctx.createBufferSource()); s.buffer = buf; s.loop = true; s.loopStart = spec.loopStart; s.loopEnd = spec.loopEnd;
       s.connect(to); s.start(t0, 0); this.srcs.push(s);
     };
     mk(audio.calm, this.out);

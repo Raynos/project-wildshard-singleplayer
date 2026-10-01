@@ -1,4 +1,5 @@
 import { tap, ambientTick } from '#engine/core/harnessTap';
+import { ownAudioSource } from '#engine';
 /**
  * Pine Hollow's ambient life without wolves (PINE-HOLLOW-REMASTER PH-M5) and the harvest's skinning beat (PH-F2), in one
  * call from main.ts (`installPineLife`, before the boot's precompile: the one draw below is parked in the scene then).
@@ -495,7 +496,7 @@ export function installPineLife(h: PineLifeHost): PineLife | null {
     const c = au.ctx;
     if (noiseBuf === null) { noiseBuf = c.createBuffer(1, Math.floor(c.sampleRate * 0.03), c.sampleRate); const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length) ** 3; }
     tap.sound?.('pineLife.knock');
-    const s = c.createBufferSource(); s.buffer = noiseBuf;
+    const s = ownAudioSource(c.createBufferSource()); s.buffer = noiseBuf;
     const bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 850 + Math.random() * 120; bp.Q.value = 2.2;
     const g = c.createGain(); g.gain.value = gain;
     let node: AudioNode = s.connect(bp).connect(g);

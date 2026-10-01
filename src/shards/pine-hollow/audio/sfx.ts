@@ -1,3 +1,4 @@
+import { ownAudioSource } from '#engine';
 import { tap } from '#engine/core/harnessTap';
 /**
  * PineHollowSfx — Pine Hollow's own generated sounds (PINE-HOLLOW-REMASTER PH-A2..A4): public/assets/sfx/pine-hollow/sfx.json,
@@ -240,7 +241,7 @@ export class PineHollowSfx {
     }
     if (!Number.isFinite(gain + pan + cutoff)) return false; // a NaN position would throw on the AudioParam (E278)
     tap.sound?.(`pineSfx:${family}`);
-    const s = c.createBufferSource(); s.buffer = clip.buffer; s.playbackRate.value = 2 ** ((Math.random() * 80 - 40) / 1200);
+    const s = ownAudioSource(c.createBufferSource()); s.buffer = clip.buffer; s.playbackRate.value = 2 ** ((Math.random() * 80 - 40) / 1200);
     const g = c.createGain(); g.gain.value = gain;
     let node: AudioNode = s.connect(g);
     if (cutoff < 19000) { const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = cutoff; node = node.connect(lp); }

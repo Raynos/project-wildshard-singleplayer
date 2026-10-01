@@ -13,6 +13,7 @@ export class EveryFrameScheduler {
 }
 
 export class AppDebug {
+  leakBaseline: Readonly<Record<string, unknown>> | null = null;
   private readonly values = new Map<string, unknown>();
   expose(name: string, value: unknown): void { this.values.set(name, value); }
   snapshot(): Readonly<Record<string, unknown>> { return Object.freeze(Object.fromEntries(this.values)); }

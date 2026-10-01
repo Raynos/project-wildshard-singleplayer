@@ -1,3 +1,4 @@
+import { retainCachedResources } from '../app/cachedAssets';
 /**
  * pineCreatures — Pine Hollow's generated creature hulls (PINE-HOLLOW-REMASTER PH-M1 / PH-M2, Jake's PH-U11), pre-skinned
  * to the procedural species' own skeletons, so the species' bones, gaits and AI drive them. On by default in Pine Hollow;
@@ -145,6 +146,7 @@ export function loadPineRig(name: PineRigName): Promise<PineRig> {
       if (normalMap) normalMap.anisotropy = 4;
       const joints = sm.skeleton.bones.map((b) => ({ name: b.name, pos: new THREE.Vector3().setFromMatrixPosition(b.matrixWorld) }));
       const out: PineRig = { geometry, map, normalMap, joints, flap };
+      retainCachedResources(out);
       ready.set(name, out);
       return out;
     });

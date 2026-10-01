@@ -28,6 +28,7 @@ import { addPiece } from '../physics/pieces';
 import { activeRegistry, type WorldRegistry } from '../world/registry';
 import { installPhysicsDebug } from '../physics/debug';
 import { installCrashFlag } from './crashFlag';
+import { withScopeOwner } from './shardScope';
 
 /** Tree builders by `ChunkTrees.factory` id. Add a species here when a shard needs one. */
 const TREE_FACTORIES = {
@@ -79,6 +80,7 @@ export async function bootstrap(step: StepRunner = runDirect): Promise<World> {
   });
   game.app.clock.setCapture(window.__wildshardHarness?.capture ?? null);
   const sky = await step('sky', () => game.buildSky());
+  game.retainEngineScene();
   const terrain = await step('terrain', async (p) => {
     const t = await new Terrain().build();
     t.group.traverse((o) => { const m = (o as THREE.Mesh).material as THREE.Material | undefined; if (m) sky.setupMaterial(m); });
@@ -99,8 +101,10 @@ export async function bootstrap(step: StepRunner = runDirect): Promise<World> {
   const physics = await step('physics', async (p) => {
     const ph = new Physics(await rapier);
     await navmesh;
-    if (def.ground.structures === undefined) addTerrain(ph); // a structure-first shard walks on its built floors only
-    addEdgeWalls(ph);
+    withScopeOwner(game.levelScope, () => {
+      if (def.ground.structures === undefined) addTerrain(ph); // a structure-first shard walks on its built floors only
+      addEdgeWalls(ph);
+    });
     p.detail(`${ph.world.colliders.len()} colliders`);
     return ph;
   });
@@ -115,6 +119,7 @@ export async function bootstrap(step: StepRunner = runDirect): Promise<World> {
   // the registry's listeners: a registered piece is drawn, collides, and (until P4 / P3) lends the player its floor
   const registry = activeRegistry(); // the one list of built things: scene, physics, floors and Explore's catalog read it
   const moving: (() => void)[] = []; // pieces that follow a moving object (the boat): posed every fixed step
+  game.levelScope.onDispose(() => { moving.length = 0; player.platforms.length = 0; registry.pieces.length = 0; registry.picks.length = 0; registry.sets.length = 0; });
   registry.onAdd((piece) => {
     if (piece.object) game.scene.add(piece.object);
     const added = addPiece(physics, piece);
@@ -122,7 +127,7 @@ export async function bootstrap(step: StepRunner = runDirect): Promise<World> {
     if (piece.floor && piece.solidFloor !== true) player.platforms.push(piece.floor);
   });
   // the forest's trunks (Nalati's spruces; none on the island). A forest its shard's tree model draws: the model's (E315)
-  if (forest.trees.length > 0 && forest.drawer === 'self') registry.add({ id: 'forest', name: 'Forest', category: 'nature', file: 'src/engine/world/forest/Forest.ts', surface: 'wood', colliders: forest.colliderDescs() });
+  if (forest.trees.length > 0 && forest.drawer === 'self') withScopeOwner(game.levelScope, () => registry.add({ id: 'forest', name: 'Forest', category: 'nature', file: 'src/engine/world/forest/Forest.ts', surface: 'wood', colliders: forest.colliderDescs() }));
   // the shard's paths as walkways where they cross ground steeper than the motor climbs (PHYSICS P4) — laid by main.ts
   // once the builders have registered their decks, so no board pokes up through one (`addPathWalkways`)
   player.spawn(num('x', def.spawn.x), num('z', def.spawn.z), num('yaw', def.spawn.yaw), def.spawn.y);

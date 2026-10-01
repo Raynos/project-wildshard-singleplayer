@@ -28,6 +28,15 @@ const targets = new WeakMap<ShardScope, WeakRef<object>[]>();
 let installed = false;
 /** EventDispatcher's own removeEventListener, before the patch */
 let removeOriginal: ((target: object, type: string, listener: Listener) => void) | null = null;
+/** Resources with live disposal registrations in this renderer's legacy capture. */
+export function disposeListenerResources(scope: ShardScope): ReadonlySet<object> {
+  const result = new Set<object>();
+  for (const ref of targets.get(scope) ?? []) {
+    const resource = ref.deref();
+    if (resource && [...(owned.get(resource)?.values() ?? [])].includes(scope)) result.add(resource);
+  }
+  return result;
+}
 
 export function trackDisposeListeners(): void {
   if (installed) return;

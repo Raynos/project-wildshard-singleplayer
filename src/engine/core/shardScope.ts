@@ -22,17 +22,23 @@
  * A single-shard session has one scope, always active: every wrapped listener runs, nothing is swapped.
  */
 
-interface Reg { target: EventTarget; type: string; fn: EventListener; capture: boolean; listener: object; key: string }
+import { Scope } from '../app/scope';
+
+interface Reg { target: EventTarget; type: string; fn: EventListener; capture: boolean; listener: object; key: string; forget: () => void; owner: Scope }
 
 export class ShardScope {
+  readonly resources = new Scope('level');
+  owner = this.resources;
   /** true while this shard is the one running (or being built): its listeners fire */
   active = true;
   readonly regs: Reg[] = [];
   /** body children this shard appended, each with the comment that holds its place while parked */
   readonly nodes = new Map<Element, Comment | null>();
+  readonly nodeOwners = new Map<Element, Scope>();
   /** intervals and pending timeouts it started (cleared on eviction) */
   readonly intervals = new Set<number>();
   readonly timeouts = new Set<number>();
+  readonly timerOwners = new Map<number, { scope: Scope; kind: 'timeouts' | 'intervals' }>();
   /** run on eviction (shell-level registrations the shard made: settings listeners …) */
   readonly disposers: (() => void)[] = [];
   // a plain field, not a constructor parameter property: node's type stripping loads this module for the boot-pack bake
@@ -51,13 +57,36 @@ let installed = false;
 let clearIntervalNow: (id: number) => void = (id) => { clearInterval(id); };
 type AddFn = (type: string, listener: EventListenerOrEventListenerObject | null, options?: boolean | AddEventListenerOptions) => void;
 type RemoveFn = (type: string, listener: EventListenerOrEventListenerObject | null, options?: boolean | EventListenerOptions) => void;
-const origRemove = new Map<EventTarget, RemoveFn>();
+const origRemove = new WeakMap<EventTarget, RemoveFn>();
+// oxlint-disable-next-line typescript/unbound-method -- Native DOM method saved before wrapping; every call supplies its target with .call.
+const nativeAdd = typeof EventTarget === 'undefined' ? null : EventTarget.prototype.addEventListener;
+// oxlint-disable-next-line typescript/unbound-method -- Native DOM method saved before wrapping; every call supplies its target with .call.
+const nativeRemove = typeof EventTarget === 'undefined' ? null : EventTarget.prototype.removeEventListener;
+const windowAdd: unknown = typeof window === 'undefined' ? null : Reflect.get(window, 'addEventListener');
+const windowRemove: unknown = typeof window === 'undefined' ? null : Reflect.get(window, 'removeEventListener');
 /** listener → its wrappers, by `type|capture` (the DOM keys a listener the same way) and by scope (a module-level
  *  handler two shards both add is two registrations, one per shard) */
 const wrappers = new WeakMap<object, Map<string, Map<ShardScope, EventListener>>>();
 
 /** the scope a registration made now belongs to (null: the shell) */
 export function currentScope(): ShardScope | null { return current; }
+export function levelRegistrations(): { listeners: { window: number; document: number; canvas: number; other: number }; timers: { timeouts: number; intervals: number; raf: number } } {
+  const listeners = { window: 0, document: 0, canvas: 0, other: 0 }, timers = { timeouts: 0, intervals: 0, raf: 0 };
+  if (!current) return { listeners, timers };
+  for (const reg of current.regs) if (reg.owner === current.resources) {
+    listeners[reg.target === window ? 'window' : reg.target === document ? 'document' : reg.target instanceof HTMLCanvasElement ? 'canvas' : 'other']++;
+  }
+  for (const entry of current.timerOwners.values()) if (entry.scope === current.resources) timers[entry.kind]++;
+  return { listeners, timers };
+}
+export function withScopeOwner<T>(owner: Scope, fn: () => T): T {
+  const scope = current;
+  if (!scope) return fn();
+  flush();
+  const prev = scope.owner;
+  scope.owner = owner;
+  try { return fn(); } finally { flush(); scope.owner = prev; }
+}
 
 /** make `s` the current scope (the shard being built or the running one; null = the shell) */
 export function enterScope(s: ShardScope | null): void {
@@ -81,14 +110,21 @@ export function asShell<T>(fn: () => T): T {
 }
 
 /** a shell-level registration a shard made (a settings listener): undone when the shard is evicted */
-export function onScopeDispose(fn: () => void): void { current?.disposers.push(fn); }
+export function onScopeDispose(fn: () => void): void { current?.owner.onDispose(fn); }
 
 const keyOf = (type: string, options?: boolean | EventListenerOptions): string => `${type}|${String(typeof options === 'boolean' ? options : options?.capture === true)}`;
 
-function scopeTarget(target: Document | Window): void {
+function scopeTarget(target: EventTarget): void {
+  if (origRemove.has(target)) return;
   // EventTarget's own methods (what document / window inherit), called on the target: the page's add / remove as they were
-  const add: AddFn = (type, listener, options) => { EventTarget.prototype.addEventListener.call(target, type, listener, options); };
-  const remove: RemoveFn = (type, listener, options) => { EventTarget.prototype.removeEventListener.call(target, type, listener, options); };
+  const add: AddFn = (type, listener, options) => {
+    if (target === window && typeof windowAdd === 'function') Reflect.apply(windowAdd, target, [type, listener, options]);
+    else nativeAdd?.call(target, type, listener, options);
+  };
+  const remove: RemoveFn = (type, listener, options) => {
+    if (target === window && typeof windowRemove === 'function') Reflect.apply(windowRemove, target, [type, listener, options]);
+    else nativeRemove?.call(target, type, listener, options);
+  };
   origRemove.set(target, remove);
   const scopedAdd: AddFn = (type, listener, options) => {
     const scope = current;
@@ -102,13 +138,23 @@ function scopeTarget(target: Document | Window): void {
     const once = typeof options === 'object' && options.once === true;
     const capture = typeof options === 'boolean' ? options : options?.capture === true;
     const mine = byScope;
+    const owner = scope.owner;
+    let forget = () => { /* Bound after registration. */ };
     const fn: EventListener = function fn(this: unknown, e: Event): void {
-      if (!scope.active) return;
-      if (once) { remove(type, fn, capture); mine.delete(scope); }
-      if (typeof listener === 'function') listener.call(this, e); else listener.handleEvent(e);
+      if (!scope.active || owner.disposed) return;
+      if (once) {
+        remove(type, fn, capture); mine.delete(scope); forget();
+        const at = scope.regs.findIndex((r) => r.fn === fn); if (at !== -1) scope.regs.splice(at, 1);
+      }
+      withScopeOwner(owner, () => { if (typeof listener === 'function') listener.call(this, e); else listener.handleEvent(e); });
     };
     byScope.set(scope, fn);
-    scope.regs.push({ target, type, fn, capture, listener, key });
+    const reg = { target, type, fn, capture, listener, key, owner, forget: () => { forget(); } };
+    scope.regs.push(reg);
+    forget = owner.capture('listeners', () => {
+      remove(type, fn, capture); mine.delete(scope);
+      const at = scope.regs.indexOf(reg); if (at !== -1) scope.regs.splice(at, 1);
+    });
     // `once` is ours to keep (once while active): a parked shard must not lose a one-shot to another shard's event
     add(type, fn, typeof options === 'object' ? { ...options, once: false } : options);
   };
@@ -118,7 +164,12 @@ function scopeTarget(target: Document | Window): void {
       // the current scope's registration, else the one there is (a shard removing its own listener)
       const scope = current !== null && byScope.has(current) ? current : byScope.keys().next().value;
       const fn = scope === undefined ? undefined : byScope.get(scope);
-      if (scope !== undefined && fn !== undefined) { remove(type, fn, options); byScope.delete(scope); return; }
+      if (scope !== undefined && fn !== undefined) {
+        remove(type, fn, options); byScope.delete(scope);
+        const at = scope.regs.findIndex((r) => r.fn === fn);
+        if (at !== -1) { scope.regs[at]?.forget(); scope.regs.splice(at, 1); }
+        return;
+      }
     }
     remove(type, listener, options);
   };
@@ -138,6 +189,9 @@ function take(records: readonly MutationRecord[]): void {
     if (s) for (const n of r.addedNodes) {
       if (!(n instanceof Element) || n.parentNode !== document.body || n.matches(SHELL)) continue;
       s.nodes.set(n, null);
+      s.nodeOwners.set(n, s.owner);
+      const node = n;
+      s.owner.capture('nodes', () => { s.nodes.get(node)?.remove(); node.remove(); s.nodes.delete(node); s.nodeOwners.delete(node); });
       late ||= !s.active; // a parked shard's timer put it there: out of the page with the rest of it
     }
     for (const n of r.removedNodes) {
@@ -164,30 +218,61 @@ export function installScopes(): void {
   installed = true;
   scopeTarget(document);
   scopeTarget(window);
+  const captureAdd: AddFn = function captureAdd(this: EventTarget, type, listener, options): void {
+    if (current) { scopeTarget(this); this.addEventListener(type, listener, options); }
+    else nativeAdd?.call(this, type, listener, options);
+  };
+  EventTarget.prototype.addEventListener = captureAdd;
+  // DOM implementations can expose a bound window EventTarget class while nodes inherit the base class.
+  let nodeProto: unknown = Object.getPrototypeOf(document.createElement('span'));
+  while (typeof nodeProto === 'object' && nodeProto !== null) {
+    if (Object.hasOwn(nodeProto, 'addEventListener')) { Object.defineProperty(nodeProto, 'addEventListener', { configurable: true, writable: true, value: captureAdd }); break; }
+    nodeProto = Object.getPrototypeOf(nodeProto);
+  }
   const setIv = window.setInterval.bind(window), clearIv = window.clearInterval.bind(window);
   const owner = new Map<number, ShardScope>();
+  const intervalCaptures = new Map<number, () => void>();
   const scopedSet = (handler: TimerHandler, timeout?: number, ...args: unknown[]): number => {
     const s = current;
-    const id = s === null || typeof handler !== 'function' ? setIv(handler, timeout, ...args) : setIv(() => { runAs(s, () => { Reflect.apply(handler, window, args); }); }, timeout);
-    if (s) { s.intervals.add(id); owner.set(id, s); }
+    const resourceOwner = s?.owner;
+    const id = s === null || typeof handler !== 'function' ? setIv(handler, timeout, ...args) : setIv(() => {
+      if (!resourceOwner || resourceOwner.disposed) return;
+      runAs(s, () => withScopeOwner(resourceOwner, () => { Reflect.apply(handler, window, args); }));
+    }, timeout);
+    if (s && resourceOwner) {
+      s.intervals.add(id); owner.set(id, s);
+      s.timerOwners.set(id, { scope: resourceOwner, kind: 'intervals' });
+      intervalCaptures.set(id, resourceOwner.capture('timers', () => { clearIv(id); s.intervals.delete(id); s.timerOwners.delete(id); owner.delete(id); intervalCaptures.delete(id); }));
+    }
     return id;
   };
   const scopedClear = (id?: number): void => {
-    if (id !== undefined) { owner.get(id)?.intervals.delete(id); owner.delete(id); }
+    if (id !== undefined) { intervalCaptures.get(id)?.(); intervalCaptures.delete(id); owner.get(id)?.intervals.delete(id); owner.get(id)?.timerOwners.delete(id); owner.delete(id); }
     clearIv(id);
   };
   clearIntervalNow = (id: number): void => { owner.delete(id); clearIv(id); };
   Object.defineProperty(window, 'setInterval', { value: scopedSet, configurable: true, writable: true });
-  const setTo = window.setTimeout.bind(window);
+  const setTo = window.setTimeout.bind(window), clearTo = window.clearTimeout.bind(window);
+  const timeoutCaptures = new Map<number, { scope: ShardScope; forget: () => void }>();
   const scopedTimeout = (handler: TimerHandler, timeout?: number, ...args: unknown[]): number => {
     const s = current;
     if (s === null || typeof handler !== 'function') return setTo(handler, timeout, ...args);
+    const resourceOwner = s.owner;
     // the handler runs as its shard (a timeout chain — the surf scheduling its next swell — stays that shard's)
-    const id: number = setTo(() => { s.timeouts.delete(id); runAs(s, () => { Reflect.apply(handler, window, args); }); }, timeout);
+    const id: number = setTo(() => {
+      timeoutCaptures.get(id)?.forget(); timeoutCaptures.delete(id); s.timeouts.delete(id); s.timerOwners.delete(id);
+      if (!resourceOwner.disposed) runAs(s, () => withScopeOwner(resourceOwner, () => { Reflect.apply(handler, window, args); }));
+    }, timeout);
     s.timeouts.add(id);
+    s.timerOwners.set(id, { scope: resourceOwner, kind: 'timeouts' });
+    timeoutCaptures.set(id, { scope: s, forget: resourceOwner.capture('timers', () => { clearTo(id); s.timeouts.delete(id); s.timerOwners.delete(id); timeoutCaptures.delete(id); }) });
     return id;
   };
   Object.defineProperty(window, 'setTimeout', { value: scopedTimeout, configurable: true, writable: true });
+  Object.defineProperty(window, 'clearTimeout', { value: (id?: number): void => {
+    if (id !== undefined) { const record = timeoutCaptures.get(id); record?.forget(); record?.scope.timeouts.delete(id); record?.scope.timerOwners.delete(id); timeoutCaptures.delete(id); }
+    clearTo(id);
+  }, configurable: true, writable: true });
   Object.defineProperty(window, 'clearInterval', { value: scopedClear, configurable: true, writable: true });
   observer = new MutationObserver(take);
   observer.observe(document.body, { childList: true });
@@ -220,6 +305,7 @@ export function activateScope(s: ShardScope): void {
 export function disposeScope(s: ShardScope): void {
   flush();
   s.active = false;
+  s.resources.dispose();
   for (const r of s.regs) { origRemove.get(r.target)?.call(r.target, r.type, r.fn, r.capture); wrappers.get(r.listener)?.get(r.key)?.delete(s); }
   s.regs.length = 0;
   for (const id of s.intervals) clearIntervalNow(id);
@@ -243,6 +329,6 @@ export function scopesInstalled(): boolean { return installed; }
 const nativeTimeout: (fn: () => void, ms?: number) => number = typeof window === 'undefined' ? (fn, ms) => Number(setTimeout(fn, ms)) : window.setTimeout.bind(window); // Number(): with node's types in the program (vite's Plugin type, test/backdrop-prefix.test.ts) setTimeout returns a Timeout
 export const shell = {
   setTimeout: (fn: () => void, ms?: number): number => nativeTimeout(fn, ms),
-  listen: (target: EventTarget, type: string, fn: EventListener, options?: boolean | AddEventListenerOptions): void => { EventTarget.prototype.addEventListener.call(target, type, fn, options); },
-  unlisten: (target: EventTarget, type: string, fn: EventListener, options?: boolean | EventListenerOptions): void => { EventTarget.prototype.removeEventListener.call(target, type, fn, options); },
+  listen: (target: EventTarget, type: string, fn: EventListener, options?: boolean | AddEventListenerOptions): void => { nativeAdd?.call(target, type, fn, options); },
+  unlisten: (target: EventTarget, type: string, fn: EventListener, options?: boolean | EventListenerOptions): void => { nativeRemove?.call(target, type, fn, options); },
 };

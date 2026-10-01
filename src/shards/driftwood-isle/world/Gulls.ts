@@ -22,6 +22,7 @@
  */
 import * as THREE from 'three';
 import { Rng } from '#engine/core/rng';
+import { ambientTick } from '#engine';
 import { CHUNK_HALF } from '#engine/core/config';
 import { heightAt, waterLevel, inChunk } from '#engine/world/Heightfield';
 import { attachFogUniforms } from '#engine/world/Atmosphere';
@@ -519,12 +520,14 @@ export class Gulls {
     // the odd squawk: a wheeling gull if any, else a perched one
     this.callTimer -= dt;
     if (this.callTimer <= 0) {
+      ambientTick('gulls.call', () => {
       this.callTimer = this.rng.range(5, 12);
       const k = this.rng.int(0, this.gulls.length - 1);
       let g = this.gulls[k];
       if (g === undefined) return;
       if (flying > 0 && g.state === S.Perched) { for (let j = 0; j < this.gulls.length; j++) { const h = this.gulls[(k + j) % this.gulls.length]; if (h !== undefined && h.state === S.Wheel) { g = h; break; } } }
       this.onCall?.(_q.set(g.x, g.y, g.z));
+      });
     }
   }
 

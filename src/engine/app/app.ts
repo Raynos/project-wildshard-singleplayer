@@ -7,10 +7,11 @@ import type { Navmesh } from '../physics/navmesh';
 import type { WorldClock } from '../world/WorldClock';
 import type { WorldRegistry } from '../world/registry';
 import type { AimTarget } from '../player/AimTargets';
+import type { Audio } from '../audio/Audio';
 import { AppDebug, EveryFrameScheduler, PendingSaves, resolveGrade } from './services';
 import { Events } from '../events/events';
 import { GameClock } from '../core/clock';
-import type { AssetService } from './assets';
+import { AssetService } from './assets';
 import { Scope } from './scope';
 import { PHASES, sortSystems, type AppState, type Phase, type SystemSpec } from './systems';
 
@@ -20,6 +21,7 @@ export type SystemsByPhase = Readonly<Record<Phase, readonly SystemSpec[]>>;
 export class App {
   private currentState: AppState = 'boot';
   private systems = new Map<string, SystemSpec>();
+  private readonly systemScopes = new Map<string, Scope>();
   private enters = new Set<StateHook>();
   private exits = new Set<StateHook>();
   private transitioning = false;
@@ -31,9 +33,14 @@ export class App {
   private sorted: SystemsByPhase | null = null;
   readonly clock = new GameClock();
   readonly rng = new RngService();
-  assets?: AssetService;
+  readonly assets = new AssetService();
   scene: Scene | null = null;
   render: Game | null = null;
+  audio: Audio | null = null;
+  unloadLevel(): void {
+    if (!this.render) throw new Error('Render service is not installed');
+    this.render.unloadLevel();
+  }
   physics: Physics | null = null;
   bodies: Bodies | null = null;
   navmesh: Navmesh | null = null;
@@ -92,10 +99,12 @@ export class App {
     const system = { ...spec, ...(spec.before ? { before: [...spec.before] } : {}),
       ...(spec.after ? { after: [...spec.after] } : {}) };
     this.systems.set(system.id, system);
+    this.systemScopes.set(system.id, scope);
     this.sorted = null;
     try { this.systemsByPhase(); } catch (error) { this.systems.delete(system.id); this.sorted = null; throw error; }
-    scope.onDispose(() => { this.systems.delete(system.id); this.sorted = null; });
+    scope.capture('systems', () => { this.systems.delete(system.id); this.systemScopes.delete(system.id); this.sorted = null; });
   }
+  systemIds(scope: Scope): string[] { return [...this.systemScopes].filter(([, owner]) => owner.belongsTo(scope)).map(([id]) => id); }
   systemsByPhase(): SystemsByPhase {
     if (this.sorted) return this.sorted;
     const all = [...this.systems.values()];

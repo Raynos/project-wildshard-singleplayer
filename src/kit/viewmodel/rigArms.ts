@@ -1,3 +1,4 @@
+import { retainCachedResources } from '#engine';
 // rigArms — the first-person arm player the skinned viewmodel rigs share (E334): Nine Dragon's jian arms
 // (src/shards/nine-dragon-stack/vm/fpArms.ts, round 13) and Driftwood's castaway arms (src/shards/driftwood-isle/fpArms.ts).
 //
@@ -101,7 +102,7 @@ mapSlot('rig.arms', parsed);
 async function rigScene(url: string): Promise<{ scene: Object3D; animations: AnimationClip[] }> {
   let p = parsed.get(url);
   if (p === undefined) {
-    p = loader.loadAsync(url).then((g) => ({ scene: g.scene, animations: g.animations }));
+    p = loader.loadAsync(url).then((g) => ({ scene: retainCachedResources(g.scene), animations: g.animations }));
     parsed.set(url, p);
     void p.catch(() => { parsed.delete(url); }); // a failed fetch can retry
   }

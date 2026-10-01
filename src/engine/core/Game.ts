@@ -1,6 +1,9 @@
 import { app } from '../app/runtime';
 import { Scope } from '../app/scope';
+import { SceneOwnership } from '../app/sceneOwnership';
+import { disposeListenerResources } from '../shard/disposeListeners';
 import type { Phase } from '../app/systems';
+import { currentScope } from './shardScope';
 import * as THREE from 'three';
 import {
   EffectComposer, type RenderPass, EffectPass, BloomEffect, SMAAEffect, FXAAEffect, VignetteEffect, ToneMappingEffect,
@@ -127,7 +130,50 @@ export class Game {
   // Frame phases (PHYSICS P2 / ENGINE-FIT E2): input → fixed steps (pre → step → post, × 0‥3) → update (`onUpdate`) → late → render.
   // Every entry is a GameSystem (src/engine/core/faults.ts, E133): called inside its own try/catch, switched off if it keeps throwing.
   readonly engineScope = app.engineScope.child('game');
-  readonly levelScope = new Scope('level');
+  readonly levelScope = currentScope()?.resources ?? new Scope('level');
+  private ownership: SceneOwnership | null = null;
+  readonly leakBaseline = new Scope('baseline').census;
+  hudBaseline = 0;
+  /** Snapshot the engine rig before any level geometry is built. */
+  retainEngineScene(): void {
+    this.ownership = new SceneOwnership(this.scene, this.levelScope, this.app.assets);
+    this.ownership.retain(this.scene);
+  }
+  captureLevelResources(): void { this.ownership?.capture(); }
+  retainKitResources(): void {
+    this.ownership?.retain(this.camera);
+    this.ownership?.retainContainer(this._composer);
+    this.ownership?.retainContainer(this._sky);
+  }
+  retainedSceneObjects(): number { return this.ownership?.retainedNodeCount() ?? 0; }
+  retainedGpuCounts(): { geometries: number; textures: number; programs: number } {
+    const allocated = currentScope();
+    const live = allocated ? disposeListenerResources(allocated) : new Set<object>();
+    const textures = new Set<unknown>(), programs = new Set<unknown>();
+    let geometries = 0;
+    for (const resource of this.app.assets.retainedResources()) {
+      if (resource instanceof THREE.BufferGeometry && live.has(resource)) geometries++;
+      const value: unknown = this.renderer.properties.get(resource);
+      if (typeof value !== 'object' || value === null) continue;
+      const props = value;
+      if (resource instanceof THREE.Texture) {
+        const texture: unknown = Reflect.get(props, '__webglTexture'); if (texture !== undefined) textures.add(texture);
+      }
+      if (resource instanceof THREE.Material) {
+        const compiled: unknown = Reflect.get(props, 'programs');
+        if (compiled instanceof Map) for (const program of compiled.values()) programs.add(program);
+      }
+    }
+    return { geometries, textures: textures.size, programs: programs.size };
+  }
+  unloadLevel(): void {
+    if (this.levelScope.disposed) return;
+    this.captureLevelResources();
+    this.app.setState('loading');
+    this.frameGate = () => false;
+    this.levelScope.dispose();
+    this.app.events.emit('level.unloaded', { id: this.levelId });
+  }
   registrationScope = this.engineScope;
   private readonly fixed: Record<FixedPhase, Phase> = { pre: 'fixed.pre', step: 'fixed.step', post: 'fixed.post' };
   private readonly faultSystems = new Map<string, GameSystem<(dt: number, t: number) => void>>();
@@ -144,8 +190,12 @@ export class Game {
       late: phases.late.map((s) => s.id),
     };
   }
+  levelSystemIds(): string[] { return this.app.systemIds(this.levelScope); }
   /** The bootstrap boundary: everything registered next belongs to the level. */
-  beginLevelSystems(): void { this.registrationScope = this.levelScope; this.app.levelScope = this.levelScope; }
+  beginLevelSystems(): void {
+    this.registrationScope = this.levelScope; this.app.levelScope = this.levelScope;
+    const legacy = currentScope(); if (legacy) legacy.owner = this.levelScope;
+  }
   /** the sky + the draw: core (a throw there that repeats is fatal, faults.ts) */
   private readonly renderSystem = makeSystem(null, 'render', true, 'render');
   /** frames drawn since start() (the fault streak counts in these) */
@@ -229,6 +279,7 @@ export class Game {
   constructor(public canvas: HTMLCanvasElement, context: WebGL2RenderingContext) {
     this.app.scene = this.scene;
     this.app.render = this;
+    const legacy = currentScope(); if (legacy) legacy.owner = this.engineScope;
     installAtmosphere(getActiveChunk().style === 'painterly'); // the painterly shard's air: aerial perspective + cloud shadows
     if (getActiveChunk().style === 'painterly') installLookV2Fog(); // Nalati: the fog coloured from the panorama (src/shards/nalati-grasslands/look/fog.ts)
     installViewport(); // --ws-vh: the real height (an iOS home-screen app reports innerHeight a status bar short — viewport.ts)
@@ -263,13 +314,17 @@ export class Game {
 
   /** the shard's render strategy (ShardManifest.render), loaded by buildSky; null = the engine's chain as it is */
   private shardRender: ShardRender | null = null;
+  private levelId = '';
   /** where the strategy put its passes (asked once, in buildComposer) */
   private composition: ShardComposition | null = null;
 
   async buildSky(): Promise<Sky> {
-    const render = getActiveChunk().render?.() ?? null; // the shard's render code downloads while the sky builds; buildComposer reads both
+    const def = getActiveChunk();
+    this.levelId = def.slug;
+    const render = def.render?.() ?? null; // the render code downloads while the sky builds; buildComposer reads both
     this._sky = await new Sky(this.scene, this.camera, this.renderer).build();
     this.shardRender = await render;
+    this.levelScope.onDispose(() => { this.shardRender?.dispose?.(); this.shardRender = null; });
     return this._sky;
   }
 

@@ -148,7 +148,7 @@ import { consumeArenaArrival, setShardSwitcher } from '#game/travel/switch';
 import { consumeTitleArrival, type TitleArrival } from '#engine/boot/titleArrival';
 import { setAliveSource } from '#engine/boot/lastEnd';
 import { beginNineExploreEntry, recordNineBootCheckpoint, markNineBootContextLost, markNineBootHandledError } from '#engine/boot/nineBootTrace';
-import { asShell } from '#engine/core/shardScope';
+import { asShell, withScopeOwner } from '#engine/core/shardScope';
 import { isDev } from '#engine/core/devMode';
 
 // live animal positions for the compass, reused buffers (no per-frame allocations in the update loop)
@@ -557,7 +557,10 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   const touchControls = new TouchControls(player, weapons, setting('touch') === 'on', lockSys); // on-screen FPS controls on coarse-pointer devices (?touch=1 / main menu ▸ Settings ▸ Touch controls forces)
   nalatiKit?.install(weapons); // Nalati: all three slots owned, the bow in hand
   await macrotask();
-  const hud = new HUD({ pointerLock: !nolock });
+  const hud = withScopeOwner(game.engineScope, () => new HUD({ pointerLock: !nolock }));
+  const shellHud = new Set(document.querySelectorAll('#hud *'));
+  game.hudBaseline = shellHud.size;
+  game.levelScope.onDispose(() => { for (const node of document.querySelectorAll('#hud *')) if (!shellHud.has(node)) node.remove(); });
   arena = new TrainingArena(game, registry, world.physics, { x: chunk.spawn.x, z: chunk.spawn.z });
   // E307: the open feature playground (src/playgrounds/: Nine Dragon's grapple course, Nalati's horse track), entered from the
   // Explore hub like the arena. `away()`: the player is in a practice room, not the shard (no bounds, no map, no last place)
@@ -1299,6 +1302,10 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
     game.primeFrame();
   }, TITLE_IDLE_MS);
   const handle = { ...world, boundary, water, streams: dressing.streams, ocean, pier, jetties, boat, hut, lookout, wreck, shrine, bushes, gulls, bridge, bridgeDeck, cove, enemies, hands, grass, under, particles, cabins, props, animals, interactables, crossbow, hud, audio, music, shrineHum, islandSfx, surfaces, ambience, lockSys, lockState, wildlife, nalati: nalatiNow(), ride, weapons, pineLife, arena, playground: (): Playground | null => playground };
+  app.audio = audio;
+  game.retainKitResources();
+  game.captureLevelResources();
+  game.levelScope.onDispose(() => { loot.dispose(); windupWarn?.dispose(); weapons.setEnabled(false); ambience?.dispose(); audio.unloadLevel(); });
   const probe = installProbe(handle, { bootSteps, health: () => health, quest: () => ({ driftwood: adventure?.flags.all.slice().sort() ?? [], nalati: nalatiAdventure?.flags.all.slice().sort() ?? [] }) });
   document.dispatchEvent(new Event('ws:ready')); // booted to the title: the native shell's update watchdog (src/engine/native/boot.ts) waits for this
   // E158: the other shards' boot files into the worker's cache, in the background — once a page (the shell's, not a shard's)

@@ -1,3 +1,4 @@
+import { ownAudioSource } from './ownership';
 import { tap, ambientTick } from '../core/harnessTap';
 // src/engine/audio/Music.ts — the Wildshard score, played by a small WebAudio instrument set (project/archive/2026-09-23-music.md).
 //
@@ -136,7 +137,7 @@ class Engine {
     const dry = c.createGain(); dry.gain.value = 1; this.lpf.connect(dry).connect(dest);
     // the underwater chorus: a 14 ms delay wobbled ±5 ms at 0.35 Hz, mixed in by `chorusWet`
     const delay = c.createDelay(0.1); delay.delayTime.value = 0.014;
-    const lfo = c.createOscillator(); lfo.frequency.value = 0.35; const lg = c.createGain(); lg.gain.value = 0.005;
+    const lfo = ownAudioSource(c.createOscillator()); lfo.frequency.value = 0.35; const lg = c.createGain(); lg.gain.value = 0.005;
     lfo.connect(lg).connect(delay.delayTime); lfo.start();
     this.chorusWet = c.createGain(); this.chorusWet.gain.value = 0;
     this.lpf.connect(delay).connect(this.chorusWet).connect(dest);
@@ -175,11 +176,11 @@ class Engine {
     g.exponentialRampToValueAtTime(0.0001, t + attack + hold + decay);
   }
   private osc(type: OscillatorType, f: number, t0: number, t1: number, detune = 0): OscillatorNode {
-    const o = this.ctx.createOscillator(); o.type = type; o.frequency.value = f; o.detune.value = detune;
+    const o = ownAudioSource(this.ctx.createOscillator()); o.type = type; o.frequency.value = f; o.detune.value = detune;
     o.start(t0); o.stop(t1); this.track(o, t0, t1); return o;
   }
   private noiseSrc(t0: number, t1: number, rate = 1): AudioBufferSourceNode {
-    const s = this.ctx.createBufferSource(); s.buffer = this.noise; s.loop = true; s.playbackRate.value = rate;
+    const s = ownAudioSource(this.ctx.createBufferSource()); s.buffer = this.noise; s.loop = true; s.playbackRate.value = rate;
     s.start(t0, (t0 * 7.31) % 1.5); s.stop(t1); return s;
   }
 
@@ -190,7 +191,7 @@ class Engine {
     this.stopDrone();
     const c = this.ctx, far = 1e9;
     const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 260; lp.Q.value = 0.9;
-    const lfo = c.createOscillator(); lfo.frequency.value = 0.045; const lg = c.createGain(); lg.gain.value = 110;
+    const lfo = ownAudioSource(c.createOscillator()); lfo.frequency.value = 0.045; const lg = c.createGain(); lg.gain.value = 110;
     lfo.connect(lg).connect(lp.frequency); lfo.start(t); lfo.stop(far);
     const a = this.osc('sawtooth', midiHz(38), t, far, 3), b = this.osc('sawtooth', midiHz(50), t, far, -6);
     const ga = c.createGain(); ga.gain.value = 0.09; const gb = c.createGain(); gb.gain.value = 0.062;
@@ -239,7 +240,7 @@ class Engine {
   pluck(n: number, t: number, _d: number, v: number, out: AudioNode = this.into('pluck')) {
     tap.sound?.('music.pluck');
     const buf = this.ksBuffer(midiHz(n));
-    const s = this.ctx.createBufferSource(); s.buffer = buf; s.start(t); s.stop(t + buf.duration);
+    const s = ownAudioSource(this.ctx.createBufferSource()); s.buffer = buf; s.start(t); s.stop(t + buf.duration);
     const g = this.ctx.createGain(); g.gain.setValueAtTime(0.34 * v, t); g.gain.setValueAtTime(0.34 * v, t + buf.duration - 0.08); g.gain.linearRampToValueAtTime(0.0001, t + buf.duration - 0.005);
     s.connect(g).connect(out);
     return { srcs: [s], out: g } as Voice;
@@ -868,7 +869,7 @@ export class Music {
     const { ctx, engine, stemBus } = this.rig, t = ctx.currentTime + 0.02, deck = this.deck;
     if (name === 'dawn') { this.dawn(); return; }
     const buf = deck && isSteppeSlot(deck.slot) ? this.steppe.sting(name) : deck && this.bank?.style === deck.style ? this.bank.stings.get(name) : undefined;
-    if (buf) { const src = ctx.createBufferSource(); src.buffer = buf; src.connect(engine.stingBus); src.start(t); }
+    if (buf) { const src = ownAudioSource(ctx.createBufferSource()); src.buffer = buf; src.connect(engine.stingBus); src.start(t); }
     else engine.sting(name, t);
     if (name === 'death' && deck) {
       const g = stemBus.gain, bar = deck.bar;
@@ -888,7 +889,7 @@ export class Music {
       const { ctx, engine, stemBus } = this.rig, t = ctx.currentTime + 0.02;
       audioLog('music', 'sting:dawn-take', buf !== undefined, buf ? style : 'synth chord');
       if (!buf) { engine.sting('dawn', t); return; }
-      const src = ctx.createBufferSource(); src.buffer = buf; src.connect(engine.stingBus); src.start(t);
+      const src = ownAudioSource(ctx.createBufferSource()); src.buffer = buf; src.connect(engine.stingBus); src.start(t);
       const d = this.deck, beat = d ? d.bar / 4 : 0.5, g = stemBus.gain;
       holdAt(g, t); g.linearRampToValueAtTime(0.25, t + beat); g.setValueAtTime(0.25, t + buf.duration - 1); g.linearRampToValueAtTime(1, t + buf.duration - 1 + (d ? d.bar * 2 : 4));
     })();

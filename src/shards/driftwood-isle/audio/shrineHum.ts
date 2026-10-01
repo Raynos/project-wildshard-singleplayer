@@ -1,3 +1,4 @@
+import { ownAudioSource } from '#engine';
 import { tap } from '#engine/core/harnessTap';
 // src/shards/driftwood-isle/audio/shrineHum.ts — the Driftwood ring shrine hums (project/archive/2026-09-23-music.md v3 row 9; ASKS D42: "always, by proximity").
 //
@@ -64,18 +65,18 @@ export class ShrineHum {
     const sample = this.audio.loop('shrine');
     let level = 0.5;
     if (sample) {
-      const s = c.createBufferSource(); s.buffer = sample.buffer; s.loop = true; s.loopStart = sample.loopStart; s.loopEnd = sample.loopEnd;
+      const s = ownAudioSource(c.createBufferSource()); s.buffer = sample.buffer; s.loop = true; s.loopStart = sample.loopStart; s.loopEnd = sample.loopEnd;
       s.connect(out); s.start(t, sample.loopStart); srcs.push(s); level = sample.gain;
     } else {
       // the synth drone: D2 sine + D3 sine (quiet) + A2 triangle through a 480 Hz low-pass, the fifth breathing on a 0.09 Hz LFO
       const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 480; lp.Q.value = 0.6; lp.connect(out);
       const voice = (type: OscillatorType, n: number, gain: number, detune = 0): GainNode => {
-        const o = c.createOscillator(); o.type = type; o.frequency.value = midiHz(n); o.detune.value = detune;
+        const o = ownAudioSource(c.createOscillator()); o.type = type; o.frequency.value = midiHz(n); o.detune.value = detune;
         const g = c.createGain(); g.gain.value = gain; o.connect(g).connect(lp); o.start(t); srcs.push(o); return g;
       };
       voice('sine', 38, 0.55); voice('sine', 50, 0.16, 4);
       const fifth = voice('triangle', 45, 0.14, -3);
-      const lfo = c.createOscillator(); lfo.frequency.value = 0.09; const lg = c.createGain(); lg.gain.value = 0.1;
+      const lfo = ownAudioSource(c.createOscillator()); lfo.frequency.value = 0.09; const lg = c.createGain(); lg.gain.value = 0.1;
       lfo.connect(lg).connect(fifth.gain); lfo.start(t); srcs.push(lfo);
     }
     out.gain.linearRampToValueAtTime(level, t + 1.5);

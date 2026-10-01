@@ -9,6 +9,8 @@
 import type { World } from '@dimforge/rapier3d-simd';
 import type { Rapier } from './rapier';
 import { FIXED_STEP } from '../core/fixedStep';
+import { currentScope } from '../core/shardScope';
+import { untagCollider } from './surface';
 
 export class Physics {
   readonly world: World;
@@ -18,6 +20,29 @@ export class Physics {
   constructor(readonly R: Rapier) {
     this.world = new R.World({ x: 0, y: -9.81, z: 0 });
     this.world.timestep = FIXED_STEP;
+    const bodies = new Map<number, () => void>(), colliders = new Map<number, () => void>();
+    const createBody = this.world.createRigidBody.bind(this.world), removeBody = this.world.removeRigidBody.bind(this.world);
+    const createCollider = this.world.createCollider.bind(this.world), removeCollider = this.world.removeCollider.bind(this.world);
+    this.world.createRigidBody = (desc) => {
+      const body = createBody(desc), scope = currentScope()?.owner;
+      if (scope) bodies.set(body.handle, scope.capture('bodies', () => { if (body.isValid()) this.world.removeRigidBody(body); }));
+      return body;
+    };
+    this.world.createCollider = (desc, parent) => {
+      const collider = createCollider(desc, parent), scope = currentScope()?.owner;
+      if (scope) colliders.set(collider.handle, scope.capture('colliders', () => { if (collider.isValid()) this.world.removeCollider(collider, true); }));
+      return collider;
+    };
+    this.world.removeCollider = (collider, wake) => {
+      colliders.get(collider.handle)?.(); colliders.delete(collider.handle); untagCollider(collider);
+      removeCollider(collider, wake);
+    };
+    this.world.removeRigidBody = (body) => {
+      for (let i = 0; i < body.numColliders(); i++) {
+        const collider = body.collider(i); colliders.get(collider.handle)?.(); colliders.delete(collider.handle); untagCollider(collider);
+      }
+      bodies.get(body.handle)?.(); bodies.delete(body.handle); removeBody(body);
+    };
   }
 
   step(): void {

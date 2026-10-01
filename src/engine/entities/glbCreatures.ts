@@ -1,3 +1,4 @@
+import { retainCachedResources } from '../app/cachedAssets';
 /**
  * glbCreatures — the generated creature hulls, pre-skinned to the procedural species' skeletons, so the species' own
  * bones, gaits and AI drive them (AnimalFactory 'painterly' style, Nalati; behind `?creatures=glb`).
@@ -114,6 +115,7 @@ export function loadCreatureRig(name: CreatureRigName): Promise<RigAsset> {
       if (map) { map.colorSpace = THREE.SRGBColorSpace; map.anisotropy = 4; }
       const joints = sm.skeleton.bones.map((b) => ({ name: b.name, pos: new THREE.Vector3().setFromMatrixPosition(b.matrixWorld) }));
       const out: RigAsset = { geometry, map, joints };
+      retainCachedResources(out);
       ready.set(name, out);
       return out;
     });

@@ -16,6 +16,10 @@ export class Events {
   private frameBound = false;
   /** All phase drains share one frame budget; isolated callers retain the standalone drain contract. */
   beginFrame(): void { this.frameCount = 0; this.frameBound = true; }
+  census(): { listeners: number; answerers: number } {
+    return { listeners: [...this.listeners.values()].reduce((n, list) => n + list.length, 0),
+      answerers: [...this.answerers.values()].reduce((n, list) => n + list.length, 0) };
+  }
 
   emit<K extends keyof EventMap>(name: K, payload: EventMap[K]): void {
     this.queue.push({ name, payload });

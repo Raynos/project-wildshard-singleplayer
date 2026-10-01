@@ -54,15 +54,17 @@ describe('every sound source is observed', () => {
         visit(ast);
         expect(found.sort(), module).toEqual([...methods].sort());
       }
-      const file = 'src/shards/nalati-grasslands/audio/SteppeAmbience.ts', source = sources[`../${file}`], ast = project.program.getSourceFile(file);
-      if (!source || !ast) throw new Error('Missing steppe countdown source');
-      const visit = (node: Node): void => {
-        if (isIfStatement(node) && /this\.(herd|marmot|eagle)T <= 0/.test(source.slice(node.expression.pos, node.expression.end))) { checkBody(node.thenStatement, source); countdowns++; }
-        node.forEachChild(visit);
-      };
-      visit(ast);
+      for (const file of ['src/shards/nalati-grasslands/audio/SteppeAmbience.ts', 'src/shards/driftwood-isle/world/Gulls.ts']) {
+        const source = sources[`../${file}`], ast = project.program.getSourceFile(file);
+        if (!source || !ast) throw new Error('Missing ambient countdown source');
+        const visit = (node: Node): void => {
+          if (isIfStatement(node) && /this\.(?:(herd|marmot|eagle)T|callTimer) <= 0/.test(source.slice(node.expression.pos, node.expression.end))) { checkBody(node.thenStatement, source); countdowns++; }
+          node.forEachChild(visit);
+        };
+        visit(ast);
+      }
       expect(callbacks).toBe(11);
-      expect(countdowns).toBe(3);
+      expect(countdowns).toBe(4);
       snapshot.dispose();
     } finally { api.close(); }
   });

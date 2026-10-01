@@ -1,3 +1,5 @@
+import { ownAudioSource } from './ownership';
+import { currentScope } from '../core/shardScope';
 import { tap, ambientTick } from '../core/harnessTap';
 import type { Vector3 } from 'three';
 import { getActiveChunk } from '#game/shard/registry';
@@ -141,6 +143,16 @@ export class Audio {
   private loops = new Map<LoopName, SampleLoop>();
   private shots = new Map<string, { bufs: AudioBuffer[]; gain: number }>();
   private sampleBed = false;
+  census(): { activeVoices: number; beds: number; buses: number } {
+    return { activeVoices: currentScope()?.resources.census.sounds ?? 0, beds: this.bedNodes.length > 0 ? 1 : 0, buses: this.g ? 7 : 0 };
+  }
+  unloadLevel(): void {
+    this.stopBed();
+    this.hum?.stop(); this.hum = undefined; this.humOn = false;
+    for (const source of this.underFeed) { try { source.stop(); } catch { /* May have already ended. */ } source.disconnect(); }
+    this.underFeed.length = 0;
+    this.worldMuted = true;
+  }
 
   constructor() {
     const def = getActiveChunk();
@@ -253,7 +265,7 @@ export class Audio {
     if (!set || !this.g) return false;
     const buf = set.bufs[Math.floor(Math.random() * set.bufs.length)];
     if (!buf) return false;
-    const c = this.g.ctx, src = c.createBufferSource(); src.buffer = buf;
+    const c = this.g.ctx, src = ownAudioSource(c.createBufferSource()); src.buffer = buf;
     src.playbackRate.value = (o.rate ?? 1) * 2 ** (rnd(-40, 40) / 1200);
     const g = c.createGain(); g.gain.value = set.gain * (o.gain ?? 1) * rnd(0.84, 1);
     src.connect(g); this.route(g, o.pan ?? 0, o.out); src.start(o.t ?? 0);
@@ -263,7 +275,7 @@ export class Audio {
   hasShot(family: OneShot): boolean { return this.shots.has(family); }
   /** a looping source of `l` (loopStart → loopEnd) started now, from a random point inside the loop so two plays never phase */
   private loopSource(l: SampleLoop): AudioBufferSourceNode {
-    const c = this.ctx, s = c.createBufferSource(); s.buffer = l.buffer; s.loop = true; s.loopStart = l.loopStart; s.loopEnd = l.loopEnd;
+    const c = this.ctx, s = ownAudioSource(c.createBufferSource()); s.buffer = l.buffer; s.loop = true; s.loopStart = l.loopStart; s.loopEnd = l.loopEnd;
     s.start(c.currentTime, l.loopStart + Math.random() * (l.loopEnd - l.loopStart));
     return s;
   }
@@ -309,7 +321,7 @@ export class Audio {
   /** filtered noise burst */
   private burst(opts: { t?: number; type?: BiquadFilterType; freq: number; freqEnd?: number; q?: number; gain: number; attack?: number; decay: number; hold?: number; pan?: number; out?: AudioNode; rate?: number }) {
     const c = this.ctx, t = opts.t ?? c.currentTime;
-    const src = c.createBufferSource(); src.buffer = this.noise; src.loop = true; src.playbackRate.value = opts.rate ?? 1;
+    const src = ownAudioSource(c.createBufferSource()); src.buffer = this.noise; src.loop = true; src.playbackRate.value = opts.rate ?? 1;
     src.start(t, Math.random() * 1.5);
     const f = c.createBiquadFilter(); f.type = opts.type ?? 'bandpass'; f.frequency.setValueAtTime(opts.freq, t); f.Q.value = opts.q ?? 1;
     if (opts.freqEnd) f.frequency.exponentialRampToValueAtTime(opts.freqEnd, t + (opts.attack ?? 0.002) + opts.decay);
@@ -324,11 +336,11 @@ export class Audio {
   /** oscillator with pitch glide */
   private tone(opts: { t?: number; type?: OscillatorType; f0: number; f1?: number; glide?: number; gain: number; attack?: number; decay: number; hold?: number; pan?: number; out?: AudioNode; vibrato?: { rate: number; depth: number }; lowpass?: number }) {
     const c = this.ctx, t = opts.t ?? c.currentTime;
-    const o = c.createOscillator(); o.type = opts.type ?? 'sine';
+    const o = ownAudioSource(c.createOscillator()); o.type = opts.type ?? 'sine';
     o.frequency.setValueAtTime(opts.f0, t);
     if (opts.f1) o.frequency.exponentialRampToValueAtTime(Math.max(1, opts.f1), t + (opts.glide ?? opts.decay));
     if (opts.vibrato) {
-      const lfo = c.createOscillator(); lfo.frequency.value = opts.vibrato.rate;
+      const lfo = ownAudioSource(c.createOscillator()); lfo.frequency.value = opts.vibrato.rate;
       const lg = c.createGain(); lg.gain.value = opts.vibrato.depth;
       lfo.connect(lg).connect(o.frequency); lfo.start(t);
       lfo.stop(t + (opts.attack ?? 0.002) + (opts.hold ?? 0) + opts.decay + 0.1);
@@ -539,11 +551,11 @@ export class Audio {
       if (!this.hum) {
         const out = c.createGain(); out.gain.value = 0;
         const trem = c.createGain(); trem.gain.value = 0.7;
-        const lfo = c.createOscillator(); lfo.frequency.value = 5.5;
+        const lfo = ownAudioSource(c.createOscillator()); lfo.frequency.value = 5.5;
         const lg = c.createGain(); lg.gain.value = 0.3; lfo.connect(lg).connect(trem.gain); lfo.start(t);
         const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 700; lp.Q.value = 0.7;
-        const o1 = c.createOscillator(); o1.type = 'sine'; o1.frequency.value = 220;
-        const o2 = c.createOscillator(); o2.type = 'triangle'; o2.frequency.value = 330; // a soft fifth
+        const o1 = ownAudioSource(c.createOscillator()); o1.type = 'sine'; o1.frequency.value = 220;
+        const o2 = ownAudioSource(c.createOscillator()); o2.type = 'triangle'; o2.frequency.value = 330; // a soft fifth
         const g2 = c.createGain(); g2.gain.value = 0.18;
         o1.connect(lp); o2.connect(g2).connect(lp); lp.connect(trem).connect(out).connect(this.sfx);
         o1.start(t); o2.start(t);
@@ -752,10 +764,10 @@ export class Audio {
       this.underFeed = [s]; this.underSample = true;
       return;
     }
-    const src = c.createBufferSource(); src.buffer = this.noise; src.loop = true; src.start(0, Math.random());
+    const src = ownAudioSource(c.createBufferSource()); src.buffer = this.noise; src.loop = true; src.start(0, Math.random());
     const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 90; lp.Q.value = 0.9;
     const lp2 = c.createBiquadFilter(); lp2.type = 'lowpass'; lp2.frequency.value = 220;
-    const lfo = c.createOscillator(); lfo.frequency.value = 0.13; const lg = c.createGain(); lg.gain.value = 0.35;
+    const lfo = ownAudioSource(c.createOscillator()); lfo.frequency.value = 0.13; const lg = c.createGain(); lg.gain.value = 0.35;
     const sw = c.createGain(); sw.gain.value = 1; lfo.connect(lg).connect(sw.gain); lfo.start();
     src.connect(lp).connect(lp2).connect(sw).connect(g);
     this.underFeed = [src, lfo]; this.underSample = false;
@@ -1083,7 +1095,7 @@ export class Audio {
       case 'sheep_bleat': { // "baa": a nasal tremolo, the voice wobbling
         const dur = rnd(0.5, 0.85), f = rnd(300, 460);
         const bleat = this.ctx.createGain(); bleat.gain.value = 1;
-        const lfo = this.ctx.createOscillator(); lfo.frequency.value = rnd(6.5, 8.5);
+        const lfo = ownAudioSource(this.ctx.createOscillator()); lfo.frequency.value = rnd(6.5, 8.5);
         const lg = this.ctx.createGain(); lg.gain.value = 0.6;
         lfo.connect(lg).connect(bleat.gain); lfo.start(t); lfo.stop(t + dur + 0.2);
         const form = this.ctx.createBiquadFilter(); form.type = 'bandpass'; form.frequency.value = rnd(1000, 1300); form.Q.value = 1.2;
@@ -1157,7 +1169,7 @@ export class Audio {
       if (rain <= 0.001 && wind <= 0.001) return;
       const c = this.ctx;
       const loop = (type: BiquadFilterType, freq: number, q: number): { src: AudioBufferSourceNode; out: GainNode } => {
-        const src = c.createBufferSource(); src.buffer = this.noise; src.loop = true; src.playbackRate.value = rnd(0.9, 1.1); src.start(0, Math.random() * 1.5);
+        const src = ownAudioSource(c.createBufferSource()); src.buffer = this.noise; src.loop = true; src.playbackRate.value = rnd(0.9, 1.1); src.start(0, Math.random() * 1.5);
         const f = c.createBiquadFilter(); f.type = type; f.frequency.value = freq; f.Q.value = q;
         const g = c.createGain(); g.gain.value = 0;
         src.connect(f).connect(g).connect(this.ambient);
@@ -1169,7 +1181,7 @@ export class Audio {
       const roarLp = c.createBiquadFilter(); roarLp.type = 'lowpass'; roarLp.frequency.value = 500;
       roarL.out.disconnect(); roarL.out.connect(roarLp).connect(this.ambient);
       // the roar breathes: a slow LFO on its gain
-      const lfo = c.createOscillator(); lfo.frequency.value = 0.13; const lg = c.createGain(); lg.gain.value = 0.25;
+      const lfo = ownAudioSource(c.createOscillator()); lfo.frequency.value = 0.13; const lg = c.createGain(); lg.gain.value = 0.25;
       lfo.connect(lg).connect(roarL.out.gain); lfo.start();
       this.storm = { rain: rainL.out, hiss: hissL.out, roar: roarL.out, roarLp };
     }
@@ -1442,7 +1454,7 @@ export class Audio {
     const mid = this.mkWind(700, 0.8, 0.4, 0.09, 0.02, 1800);        // gusts whistling
     const c = this.ctx;
     const loop = (type: BiquadFilterType, freq: number, q: number, lp: number): GainNode => {
-      const src = c.createBufferSource(); src.buffer = this.noise; src.loop = true; src.playbackRate.value = rnd(0.8, 1.1); src.start(0, Math.random() * 1.5);
+      const src = ownAudioSource(c.createBufferSource()); src.buffer = this.noise; src.loop = true; src.playbackRate.value = rnd(0.8, 1.1); src.start(0, Math.random() * 1.5);
       const f = c.createBiquadFilter(); f.type = type; f.frequency.value = freq; f.Q.value = q;
       const l = c.createBiquadFilter(); l.type = 'lowpass'; l.frequency.value = lp;
       const g = c.createGain(); g.gain.value = 0;
@@ -1548,15 +1560,15 @@ export class Audio {
   /** a looping noise band: bandpass + lowpass, slow amplitude and filter LFOs, panned into the ambient bus */
   private mkWind(freq: number, q: number, pan: number, lfoRate: number, base: number, lowpass = 1200) {
     const c = this.ctx;
-    const src = c.createBufferSource(); src.buffer = this.noise; src.loop = true; src.start(0, Math.random());
+    const src = ownAudioSource(c.createBufferSource()); src.buffer = this.noise; src.loop = true; src.start(0, Math.random());
     const f = c.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = freq; f.Q.value = q;
     const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = lowpass;
     const g = c.createGain(); g.gain.value = base;
-    const lfo = c.createOscillator(); lfo.type = 'sine'; lfo.frequency.value = lfoRate;
+    const lfo = ownAudioSource(c.createOscillator()); lfo.type = 'sine'; lfo.frequency.value = lfoRate;
     const lg = c.createGain(); lg.gain.value = base * 0.6;
     lfo.connect(lg).connect(g.gain); lfo.start();
     // slow filter drift for movement
-    const lfo2 = c.createOscillator(); lfo2.frequency.value = lfoRate * 0.7 + 0.01;
+    const lfo2 = ownAudioSource(c.createOscillator()); lfo2.frequency.value = lfoRate * 0.7 + 0.01;
     const lg2 = c.createGain(); lg2.gain.value = freq * 0.35;
     lfo2.connect(lg2).connect(f.frequency); lfo2.start();
     src.connect(f).connect(lp).connect(g);

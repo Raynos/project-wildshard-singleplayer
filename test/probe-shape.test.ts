@@ -17,6 +17,7 @@ import type { Weapons, KitWeapon } from '#engine/player/Weapons';
 import type { TrainingArena } from '#engine/practice/TrainingArena';
 import { WorldRegistry } from '#engine/world/registry';
 import { ambientTick, tap } from '#engine/core/harnessTap';
+import { App, Scope } from '#engine';
 
 function fake<T extends object>(fields: Partial<T>): T {
   return new Proxy(fields, { get: (target, key) => {
@@ -32,9 +33,10 @@ function fixture(): ProbeWorld {
     info: { programs: [], memory: { geometries: 1, textures: 2 }, autoReset: true, render: { calls: 0, triangles: 0, points: 0, lines: 0, frame: 0 }, reset: () => { /* observation fixture has no side effects */ }, update: () => { /* observation fixture has no side effects */ } },
     getContext: () => fake<WebGL2RenderingContext>({ getExtension: () => null, getParameter: () => 'ANGLE (Apple, ANGLE Metal Renderer)', RENDERER: 7937 }),
   });
-  const game = fake<Game>({ scene, renderer, frameTime: 10, systemLabels: () => ({ input: ['input'], 'fixed.pre': [], 'fixed.step': ['physics'], 'fixed.post': [], update: [], late: [] }) });
+  const app = new App(), levelScope = new Scope('level'); app.setState('play'); app.clock.tick(10);
+  const game = fake<Game>({ app, levelScope, hudBaseline: 0, scene, renderer, frameTime: 10, levelSystemIds: () => [], systemLabels: () => ({ input: ['input'], 'fixed.pre': [], 'fixed.step': ['physics'], 'fixed.post': [], update: [], late: [] }) });
   const player = fake<Player>({ position: new THREE.Vector3(1.0004, 2, 3), velocity: new THREE.Vector3(), yaw: 0.1, pitch: 0.2, keys: new Set<string>(), spawn: vi.fn<() => void>(), setHover: vi.fn<() => void>() });
-  const physics = fake<Physics>({ world: fake<RapierWorld>({ bodies: fake<RigidBodySet>({ forEach: () => { /* observation fixture has no side effects */ } }), colliders: fake<ColliderSet>({ len: () => 2 }) }) });
+  const physics = fake<Physics>({ world: fake<RapierWorld>({ bodies: fake<RigidBodySet>({ len: () => 1, forEach: () => { /* observation fixture has no side effects */ } }), colliders: fake<ColliderSet>({ len: () => 2 }) }) });
   const hud = fake<HUD>({ paused: false, entered: true, enterArenaNow: vi.fn<() => void>() });
   const animal = fake<Animal>({ kind: 'wolf', alive: true, hp: 20, position: new THREE.Vector3(5, 0, 6), state: 'idle', harnessHold: false });
   const animals = fake<AnimalManager>({ animals: [animal] });
@@ -57,7 +59,7 @@ describe('probe contract', () => {
   it('shares its exact declared type with scripts and captures the boot synchronously', () => {
     expectTypeOf<ScriptProbe>().toEqualTypeOf<WildshardProbe>();
     const world = fixture(), probe = installProbe(world, deps);
-    expect(Object.keys(probe).sort()).toEqual(['version', 'world', 'shard', 'boot', 'fingerprint', 'pose', 'walkLeg', 'combat', 'arena', 'state', 'onResume', 'saves', 'sounds', 'used', 'nav'].sort());
+    expect(Object.keys(probe).sort()).toEqual(['version', 'world', 'shard', 'boot', 'fingerprint', 'pose', 'walkLeg', 'combat', 'arena', 'state', 'onResume', 'saves', 'sounds', 'used', 'nav', 'leak'].sort());
     expect(window.__wildshard).toBe(probe);
     expect(Reflect.has(window, '__world')).toBe(false);
     expect(probe.shard).toMatchObject({ slug: 'driftwood-isle', ocean: 'ocean-handle' });
@@ -90,7 +92,7 @@ describe('probe contract', () => {
     const state = probe.state(); expect(state.player.pos.x).toBe(1); expect(state.clockNow).toBe(10);
     const resumed = vi.fn<() => void>(); probe.onResume(resumed); tap.resumed?.(); tap.resumed?.(); expect(resumed).toHaveBeenCalledOnce();
     expect(probe.state()).toEqual(state);
-    Reflect.set(world.hud, 'paused', true); expect(probe.state().appState).toBe('paused');
+    world.game.app.setState('paused'); expect(probe.state().appState).toBe('paused');
   });
 
   it('hashes sorted program keys using standard SHA-256', () => {

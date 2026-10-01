@@ -1,3 +1,4 @@
+import { ownAudioSource } from '#engine';
 import { tap, ambientTick } from '#engine/core/harnessTap';
 /**
  * IslandAmbience — Driftwood Isle's zoned soundscape (S1) and reverb zones + underwater (S2), project/archive/2026-09-23-driftwood-remaster.md.
@@ -137,7 +138,7 @@ export class IslandAmbience {
     this.poolN++;
     if (list.length >= 2) return list[this.poolN % 2];
     const buf = this.audio.voices.buffer(name); if (!buf) return undefined;
-    const c = this.audio.ctx, s = c.createBufferSource(); s.buffer = buf; s.loop = true; s.playbackRate.value = 0.97 + Math.random() * 0.06;
+    const c = this.audio.ctx, s = ownAudioSource(c.createBufferSource()); s.buffer = buf; s.loop = true; s.playbackRate.value = 0.97 + Math.random() * 0.06;
     s.start(c.currentTime, Math.random() * buf.duration);
     list.push(s);
     return s;
@@ -152,7 +153,7 @@ export class IslandAmbience {
     return g;
   }
   private lfo(rate: number, depth: number, param: AudioParam, type: OscillatorType = 'sine'): OscillatorNode {
-    const c = this.audio.ctx, o = c.createOscillator(); o.type = type; o.frequency.value = rate;
+    const c = this.audio.ctx, o = ownAudioSource(c.createOscillator()); o.type = type; o.frequency.value = rate;
     const g = c.createGain(); g.gain.value = depth; o.connect(g).connect(param); o.start();
     return o;
   }
@@ -209,7 +210,7 @@ export class IslandAmbience {
     { const g = c.createGain(); g.gain.value = 0.4; P()?.connect(this.filter('lowpass', 320)).connect(g).connect(jungle); }
     // crickets: a 4.4 kHz tone chopped at 32 Hz into chirps, gated in trills at ~1.7 Hz; a second one detuned and slower
     for (const [f, trill, lvl] of [[4400, 1.7, 0.16], [4900, 1.1, 0.1]] as const) {
-      const o = c.createOscillator(); o.frequency.value = f; o.start();
+      const o = ownAudioSource(c.createOscillator()); o.frequency.value = f; o.start();
       const chop = c.createGain(); chop.gain.value = 0.5; const gate = c.createGain(); gate.gain.value = 0.5;
       const g = c.createGain(); g.gain.value = lvl;
       o.connect(chop).connect(gate).connect(g).connect(nite);
@@ -230,7 +231,7 @@ export class IslandAmbience {
 
     // ── underwater: the bubble bed ──
     const uw = this.bed('underwater', a.ambient);
-    { const b = a.voices.buffer('bubble-bed'); if (b) { const s = c.createBufferSource(); s.buffer = b; s.loop = true; s.start(c.currentTime, Math.random() * b.duration); s.connect(uw); } }
+    { const b = a.voices.buffer('bubble-bed'); if (b) { const s = ownAudioSource(c.createBufferSource()); s.buffer = b; s.loop = true; s.start(c.currentTime, Math.random() * b.duration); s.connect(uw); } }
 
     // ── reverb sends: tap the sfx bus once; a send + convolver per room is built on first approach ──
     const sendIn = c.createGain(); sendIn.gain.value = 1; a.sfx.connect(sendIn); this.sendIn = sendIn;
@@ -285,7 +286,7 @@ export class IslandAmbience {
     const pan = c.createStereoPanner(); pan.pan.value = Math.random() * 1.6 - 0.8;
     const out = c.createGain(); out.gain.value = 0.35 * (0.5 + Math.random() * 0.5); out.connect(pan).connect(jb.gain);
     const note = (t0: number, f0: number, f1: number, dur: number, type: OscillatorType, g: number, lp: number): void => {
-      const o = c.createOscillator(); o.type = type; o.frequency.setValueAtTime(f0, t0); o.frequency.exponentialRampToValueAtTime(f1, t0 + dur);
+      const o = ownAudioSource(c.createOscillator()); o.type = type; o.frequency.setValueAtTime(f0, t0); o.frequency.exponentialRampToValueAtTime(f1, t0 + dur);
       const e = c.createGain(); e.gain.setValueAtTime(0.0001, t0); e.gain.exponentialRampToValueAtTime(g, t0 + 0.02); e.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
       const f = c.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = lp;
       o.connect(f).connect(e).connect(out); o.start(t0); o.stop(t0 + dur + 0.05);
@@ -301,7 +302,7 @@ export class IslandAmbience {
         const cave = this.diag.cave;
         if (cave > 0.05 && !this.underwater) {
           const c = this.audio.ctx, t = c.currentTime, f = 1300 + Math.random() * 1400;
-          const o = c.createOscillator(); o.frequency.setValueAtTime(f, t); o.frequency.exponentialRampToValueAtTime(f * 0.7, t + 0.05);
+          const o = ownAudioSource(c.createOscillator()); o.frequency.setValueAtTime(f, t); o.frequency.exponentialRampToValueAtTime(f * 0.7, t + 0.05);
           const e = c.createGain(); e.gain.setValueAtTime(0.0001, t); e.gain.exponentialRampToValueAtTime(0.12 * cave, t + 0.003); e.gain.exponentialRampToValueAtTime(0.0001, t + 0.09);
           o.connect(e).connect(this.audio.sfx); o.start(t); o.stop(t + 0.12); // on the sfx bus: it rings in the cave reverb
         }

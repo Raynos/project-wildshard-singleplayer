@@ -1,3 +1,4 @@
+import { ownAudioSource } from '#engine';
 import { tap, ambientTick } from '#engine/core/harnessTap';
 /**
  * ForestAmbience — Pine Hollow's zoned soundscape and reverb zones (PINE-HOLLOW-REMASTER PH-A2 / PH-A5), the IslandAmbience
@@ -131,7 +132,7 @@ export class ForestAmbience {
       b.pending = false;
       if (!l || this.beds.get(name) !== b) { if (!l) audioLog('bed', name, false, 'will not decode'); return undefined; }
       tap.sound?.(`forest.bed:${name}`);
-      const s = c.createBufferSource(); s.buffer = l.buffer; s.loop = true; s.loopStart = l.loopStart; s.loopEnd = l.loopEnd;
+      const s = ownAudioSource(c.createBufferSource()); s.buffer = l.buffer; s.loop = true; s.loopStart = l.loopStart; s.loopEnd = l.loopEnd;
       const k = c.createGain(); k.gain.value = l.gain * LEVEL[name];
       s.connect(k).connect(g); s.start(c.currentTime + 0.05, l.loopStart + Math.random() * (l.loopEnd - l.loopStart));
       b.src = s;
