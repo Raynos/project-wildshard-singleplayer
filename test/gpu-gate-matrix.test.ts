@@ -63,7 +63,7 @@ describe('GPU gate status mapping', () => {
   it('keeps infrastructure red and bootstrap status explicit', () => {
     expect(shardResult('failure', [{ exitCode: 3 }], '', 'compare', 'a').state).toBe('error');
     expect(shardResult('success', [], '', 'bootstrap', 'a').description).toBe('bootstrap record: commit parity-baselines-gh-macos15-a');
-    expect(shardResult('failure', [{ rows: [{ verdict: 'red', field: 'walk.stuck' }] }], '', 'compare', 'a').description).toBe('walk.stuck');
+    expect(shardResult('failure', [{ fields: [{ verdict: 'red', field: 'walk.stuck' }] }], '', 'compare', 'a').description).toBe('walk.stuck');
     expect(shardResult('success', [{ flaked: ['poses.gate.ssim'], pending: ['E357-look'] }], '', 'compare', 'a').description).toBe('green (retried: poses.gate.ssim) · pending board: E357-look');
   });
   it('requires every job and assets green; timeout produces infrastructure error', () => {

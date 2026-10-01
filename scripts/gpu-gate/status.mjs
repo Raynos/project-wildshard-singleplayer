@@ -8,7 +8,7 @@ import { pathToFileURL } from 'node:url';
 const REPO = process.env.GITHUB_REPOSITORY ?? 'Raynos/project-wildshard-singleplayer';
 const runUrl = process.env.GITHUB_RUN_ID ? `${process.env.GITHUB_SERVER_URL ?? 'https://github.com'}/${REPO}/actions/runs/${process.env.GITHUB_RUN_ID}` : '';
 /** @typedef {{ state: string, description: string }} Result */
-/** @typedef {{ verdict?: string, exitCode?: number, field?: string, rows?: Report[], pending?: string[], flaked?: string[] }} Report */
+/** @typedef {{ verdict?: string, exitCode?: number, field?: string, rows?: Report[], fields?: Report[], pending?: string[], flaked?: string[] }} Report */
 /** @typedef {{ id?: number, name: string, conclusion: string | null, infrastructure?: boolean }} ActionJob */
 /** @typedef {{ context: string, state: string, description: string }} Status */
 
@@ -36,7 +36,7 @@ function reportFiles(path) {
 
 /** @param {string} jobStatus @param {Report[]} reports @param {string} markdown @param {string} mode @param {string} shard @returns {Result} */
 export function shardResult(jobStatus, reports, markdown, mode, shard) {
-  const rows = reports.flatMap((report) => report.rows ?? []);
+  const rows = reports.flatMap((report) => report.fields ?? report.rows ?? []);
   const infrastructure = reports.some((report) => report.exitCode === 3) || /(?:exit(?: code)?[: =]+3|infrastructure|Metal required|timed out)/i.test(markdown);
   const red = rows.find((row) => row.verdict === 'red');
   if (infrastructure) return { state: 'error', description: 'infrastructure: renderer, browser or timeout' };
@@ -76,6 +76,11 @@ function main(args) {
     }
     /** @type {Report[]} */
     const reports = reportFiles(path).map((file) => JSON.parse(readFileSync(file, 'utf8')));
+    if (reports.some((report) => (report.fields ?? []).some((field) => field.verdict === 'pending')) && existsSync('pending.json')) {
+      /** @type {{ id: string, shard: string }[]} */
+      const pending = JSON.parse(readFileSync('pending.json', 'utf8'));
+      reports.push({ pending: pending.filter((entry) => entry.shard === shardOrResults).map((entry) => entry.id) });
+    }
     const markdown = existsSync(join(path, 'report.md')) ? readFileSync(join(path, 'report.md'), 'utf8') : '';
     post(sha, `gpu-gate/${shardOrResults}`, shardResult(jobStatusOrUrl, reports, markdown, mode, shardOrResults));
     return;

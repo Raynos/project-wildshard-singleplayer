@@ -7,7 +7,7 @@ import process from 'node:process';
 import { describe, expect, it } from 'vitest';
 import { checkAssetCase } from '../scripts/check-asset-case.mjs';
 
-const fixture = join(import.meta.dirname, 'fixtures/asset-case/dist');
+const fixture = join(import.meta.dirname, 'fixtures/asset-case/sample');
 describe('asset URL spelling', () => {
   it('finds wrong directory case on Mac too, preserves provenance and strips cache suffixes', () => {
     expect(checkAssetCase(fixture)).toEqual({ checked: 5, missing: [
