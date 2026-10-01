@@ -822,14 +822,14 @@
     "src/shards/nalati-grasslands/kurganBoss.ts": 1,
     "src/shards/nalati-grasslands/ride/Taming.ts": 1,
     "src/shards/nalati-grasslands/ride/ride.ts": 1,
-    "src/shards/nalati-grasslands/sound.ts": 8,
     "src/shards/nalati-grasslands/weapons/GoldenBow.ts": 1,
     "src/shards/nine-dragon-stack/grapple/FeiZhua.ts": 2,
     "src/shards/pine-hollow/audio/wiring.ts": 1,
     "src/shards/pine-hollow/combat/antlerKing.ts": 1,
     "src/shards/pine-hollow/combat/ctx.ts": 1,
     "src/shards/pine-hollow/life/index.ts": 1,
-    "src/shards/pine-hollow/quest/index.ts": 2
+    "src/shards/pine-hollow/quest/index.ts": 2,
+    "src/shards/nalati-grasslands/audio/sound.ts": 8
   },
   "wildshard/no-raw-input": {
     "src/engine/explore/Compare.ts": 3,

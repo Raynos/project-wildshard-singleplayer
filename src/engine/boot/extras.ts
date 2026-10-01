@@ -74,7 +74,7 @@ export function bootFiles(def: ShardManifest, tex: TexMode = texMode(), profile?
   addBytes(art.bytes);
   const audio = profile?.files() ?? audioFiles(def.slug);
   // Nalati's own score (NALATI-MERGE A2): downloaded on the steppe only — no other shard plays it
-  if (def.style === 'painterly') audio.music.push(...steppeFiles());
+  if (!profile && def.style === 'painterly') audio.music.push(...steppeFiles());
   return { ...chunkFiles(def, tex), art: art.urls, ...audio };
 }
 

@@ -20,6 +20,7 @@ export { RIVER, BRIDGE, BROOK, RIM_Z, riverMask, rimZAt, brookMask, zoneAt, glac
 export const NALATI_GRASSLANDS: ShardManifest = {
   uses: ['dayCycle', 'weather', 'bosses', 'elites', 'spawns', 'quests', 'swim', 'hover', 'explore', 'practice', 'loot', 'feats'],
   api: 1,
+  audio: { ambience: 'ambience.nalati', score: 'score.nalati', alertOnlyHostile: true, preload: () => import('./audio/files').then((m) => m.createNalatiAudio()) },
   boot: { files: bootFiles, sources: bootSources, steps: BOOT_STEPS, lateReads },
   bag: { tabs: ['map', 'gear', 'finds', 'feats'], pack: { slots: 0 }, skinsTitle: 'Skins' },
   kitLook: 'painterly',

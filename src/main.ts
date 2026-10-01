@@ -1258,7 +1258,6 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   } else {
     const banks = await step('audio', (p) => (audioLoad ?? startAudioPreload(files, chunk, audioProfile)).wait(p));
     if (banks.music) music.useBank(banks.music); // the title theme's first gesture plays the stems at once
-    if (banks.steppe) music.steppe.useBank(banks.steppe); // Nalati's own score: its first slot + stings (NALATI-MERGE A2)
     if (banks.profile) audio.useLevelBank(banks.profile); else audio.useSamples(banks.sfx);
   }
   (plan as unknown as { done: () => void }).done(); // throws unless both tracks are exactly 1

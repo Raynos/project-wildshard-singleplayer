@@ -52,7 +52,6 @@ import { getActiveChunk } from '#game/shard/registry';
 import { asShell, shell } from '../app/legacyCapture';
 import { getNumber, setNumber, onNumber, getMusicStyle, onMusicStyle, type MusicStyle, setting } from '../ui/Settings';
 import { Deck, decodeStyle, setFiles, type BossPhase, type SlotAudio, type SlotName, type StyleBank } from './Stems';
-import { createSteppeScore, type SteppeScene } from '#shards/nalati-grasslands/audio/SteppeScore';
 import { cachedBytes, decodeBytes, trackBusy } from './preload';
 import { audioLog } from './audioLog';
 import type { ScoreSource } from './SetScore';
@@ -538,12 +537,10 @@ export class Music {
   private urlDawn = false;
 
   /** Nalati's own score (NALATI-MERGE A2): its zone / night / storm / boss slots, decoded on demand — src/shards/nalati-grasslands/audio/SteppeScore.ts */
-  readonly steppe: ReturnType<typeof createSteppeScore>;
   private source: ScoreSource | undefined;
   private sourceId: string | undefined;
 
   constructor(private audio: Audio) {
-    this.steppe = createSteppeScore(cachedBytes, decodeBytes, () => { this.sync(); });
     const pin = setting('pineScore'); // Debug ▸ Audio ▸ Pine Hollow score (E162): hold a scene / phase, or the dawn sting
     const m = pin === 'auto' ? null : /^(night|boss|dawn)(?:-([123]))?$/.exec(pin);
     if (m) {
@@ -630,11 +627,6 @@ export class Music {
 
   /** Nalati: what the score follows (sound.ts: the zone from SteppeAmbience, the clock, the storm, the King's fight) — the deck
    *  changes on the bar once the slot is decoded (the old one plays on meanwhile). No effect off the steppe. */
-  setSteppe(scene: Partial<SteppeScene>): void {
-    const s = this.steppe.scene, before = `${s.zone}/${String(s.night)}/${String(s.storm)}/${String(s.boss)}`;
-    Object.assign(s, scene);
-    if (`${s.zone}/${String(s.night)}/${String(s.storm)}/${String(s.boss)}` !== before) this.sync();
-  }
 
   /** A plugin owns the score registration; disposing it releases its decks and restores legacy selection. */
   setScore(id: string, source: ScoreSource): () => void {
@@ -650,7 +642,7 @@ export class Music {
   get scoreId(): string | undefined { return this.sourceId; }
   refreshScore(): void { this.sync(); }
   private scoreSource(): ScoreSource | undefined {
-    return this.source ?? (this.state.shard === 'steppe' ? this.steppe : undefined);
+    return this.source;
   }
 
   /** the stems the loading bar decoded (src/engine/boot/extras.ts) — the selected style's title + this shard's slot + stings */

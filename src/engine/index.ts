@@ -35,7 +35,7 @@ export { jsonSlot, jsonSchema, jsonRecord, saveStorage } from './saves/slots';
 // Audio content ports: runtime implementations are loaded after manifest discovery.
 export { loadAudio } from './audio/contentApi';
 export type { ScoreSource, SetScore } from './audio/SetScore';
-export type { CuePlayer, CueMap, CueOpts } from './audio/Cues';
+export type { CuePlayer, CueMap, CueOpts, CueBank, SampleClip } from './audio/Cues';
 export type { ZoneWeights } from './audio/AmbienceBeds';
 export type { LevelAudioProfile } from './audio/levelAudio';
 export type { IslandSfx } from './audio/IslandSfx';
@@ -186,3 +186,9 @@ export { PUBLIC_BYTES } from './boot/bytes.generated';
 export { markUnload } from './boot/lastEnd';
 export { setTitleArrival } from './boot/titleArrival';
 export { TREE_SPECS_V2 } from './world/forest/treeSpecies';
+
+export type { AnimalSound, HoofSurface, ImpactKind } from './audio/Audio';
+
+export { audioRandom } from './audio/util';
+
+export { wildEnv } from './entities/wildEnv';

@@ -74,7 +74,7 @@ function otherShardFiles(m: unknown, slug: string): Set<string> {
   for (const sec of ['beds', 'hums', 'oneshots'] as const) {
     const entries = m[sec];
     if (!isObj(entries)) continue;
-    for (const [k, v] of Object.entries(entries)) if ((isObj(v) && typeof v['shard'] === 'string') || DRIFTWOOD_SOUNDS[sec].includes(k)) for (const f of manifestFiles(v)) out.add(f);
+    for (const [k, v] of Object.entries(entries)) if (DRIFTWOOD_SOUNDS[sec].includes(k)) for (const f of manifestFiles(v)) out.add(f);
   }
   return out;
 }

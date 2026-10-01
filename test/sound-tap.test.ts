@@ -18,6 +18,7 @@ describe('every sound source is observed', () => {
       '../src/engine/audio/Cues.ts': '../src/shards/nine-dragon-stack/audio/cues.ts',
       '../src/engine/audio/AmbienceBeds.ts': '../src/shards/nine-dragon-stack/audio/ambience.ts',
       '../src/engine/audio/ambience.ts': '../src/shards/nalati-grasslands/audio/SteppeAmbience.ts',
+      '../src/engine/audio/synth.ts': '../src/engine/audio/playerVoices.ts',
     };
     for (const [file, text] of files) {
       const owner = owners[file];
@@ -26,6 +27,7 @@ describe('every sound source is observed', () => {
     expect(files.map(([file]) => file).sort()).toEqual([
       '../src/engine/audio/AmbienceBeds.ts', '../src/engine/audio/Audio.ts', '../src/engine/audio/Music.ts',
       '../src/engine/audio/Stems.ts', '../src/engine/audio/Voices.ts', '../src/engine/audio/ambience.ts',
+      '../src/engine/audio/synth.ts',
       '../src/shards/driftwood-isle/audio/ambience.ts', '../src/shards/driftwood-isle/audio/shrineHum.ts',
       '../src/shards/pine-hollow/life/index.ts',
     ].sort()); // S3.5 merges three independent players; every remaining source still requires its content tap.

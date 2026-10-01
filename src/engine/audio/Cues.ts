@@ -27,6 +27,10 @@ export function cueFiles(key: string): string[] {
   }
   const sprite = raw['sprite'];
   if (obj(sprite)) { const url = file(dir, sprite['file']); if (url) files.push(url); }
+  else if (obj(raw['oneshots'])) for (const value of Object.values(raw['oneshots'])) {
+    const takes = Array.isArray(value) ? value : obj(value) && Array.isArray(value['files']) ? value['files'] : [];
+    for (const take of takes) { const url = file(dir, take); if (url) files.push(url); }
+  }
   return [...new Set(files)];
 }
 export async function decodeCueSet(key: string, read: AudioRead, decode: AudioDecode, onFile?: () => void): Promise<CueBank> {
@@ -51,7 +55,17 @@ export async function decodeCueSet(key: string, read: AudioRead, decode: AudioDe
     }
   }
   const sprite = raw['sprite'], shots = raw['oneshots'];
-  if (!obj(sprite) || !obj(shots) || !obj(sprite['clips'])) return bank;
+  if (!obj(shots)) return bank;
+  if (!obj(sprite)) {
+    for (const [family, value] of Object.entries(shots)) {
+      const takes = Array.isArray(value) ? value : obj(value) && Array.isArray(value['files']) ? value['files'] : [];
+      const clips: SampleClip[] = [];
+      for (const take of takes) { const url = file(dir, take), buffer = url ? buffers.get(url) : undefined; if (buffer) clips.push({ buffer, offset: 0, duration: buffer.duration, gain: obj(value) ? num(value['gain'], 1) : 1 }); }
+      if (clips.length > 0) bank.shots.set(family, clips);
+    }
+    return bank;
+  }
+  if (!obj(sprite['clips'])) return bank;
   const url = file(dir, sprite['file']), buffer = url ? buffers.get(url) : undefined;
   if (!buffer) return bank;
   const clips = sprite['clips'];

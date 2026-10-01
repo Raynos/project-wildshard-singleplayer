@@ -86,7 +86,7 @@ function sfxJobs(set: string, bed: AmbientBed): Job[] {
     if (u === undefined) return;
     jobs.push({ url: u, apply: (buffer, bank) => {
       const loopEnd = Math.min(buffer.duration, num(v['loopEnd'], buffer.duration)), loopStart = Math.max(0, Math.min(loopEnd - 0.05, num(v['loopStart'], 0)));
-      bank.loops.set(name, { buffer, loopStart, loopEnd, gain: LOOP_GAIN[name] * num(v['gain'], 1) });
+      bank.loops.set(name, { buffer, loopStart, loopEnd, gain: (LOOP_GAIN[name] ?? 1) * num(v['gain'], 1) });
     } });
   };
   const beds = isObj(j['beds']) ? j['beds'] : {}, hums = isObj(j['hums']) ? j['hums'] : {}, shots = isObj(j['oneshots']) ? j['oneshots'] : {};
@@ -95,10 +95,9 @@ function sfxJobs(set: string, bed: AmbientBed): Job[] {
   const drift = bed === 'forest';
   loop(bed, beds[bed]); loop('underwater', beds['underwater']); loop('pickup', hums['pickup']); if (!drift) loop('shrine', hums['shrine']);
   // a sound tagged `shard: 'nalati'` (NALATI-MERGE A1: the one set carries Nalati's sounds) is decoded only on the steppe
-  const mine = (v: unknown): boolean => !isObj(v) || v['shard'] !== 'nalati' || bed === 'steppe';
   if (bed === 'steppe') for (const k of STEPPE_LOOPS) loop(k, beds[k]);
   for (const [family, v] of Object.entries(shots)) {
-    if (!mine(v) || (drift && DRIFTWOOD_SOUNDS.oneshots.includes(family))) continue;
+    if (drift && DRIFTWOOD_SOUNDS.oneshots.includes(family)) continue;
     const files = Array.isArray(v) ? v : isObj(v) && Array.isArray(v['files']) ? v['files'] : [];
     const gain = isObj(v) ? num(v['gain'], 1) : 1;
     for (const f of files) {
