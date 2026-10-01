@@ -36,3 +36,36 @@ log `/private/tmp/e357-sol-s23/nightfix-gate.log`. Vite build is not reached aft
 
 Final clean projected source verification on `8f3b7541`: 258 tests / 27 files pass (all AI, inventory/loot, wall controls,
 effects and level lifecycle). Whole working-tree TypeScript and owned lint pass at 06:26 before the final proof commit.
+
+## Continuation — sol-s23b, 2026-10-01
+
+`a3df39a1` separates kit boar/bear simulation rows and visual strategies, with Pine and Driftwood children.
+`d2398ba4` publishes their public ports and passes the complete clean Vercel gate. The original procedural
+PBR/toon fingerprints and 512-roll fixtures remain unchanged; no snapshots or parity baselines were rewritten.
+
+`14e57a0f` publishes scoped species resolution at the factory boundary, Pine hull/coats/rigs in the shard,
+King and four elite move policies, authored swipe/roar/sweep/root/lantern contacts, scoped thrall spawn tables,
+and boss/elite runtime binding. `386ff9a7` unlinks retired King adds from their spawner and removes four obsolete
+engine rig modules. Both were published by the index hot-file holder, V1, from reviewed committed-tree projections.
+`2f44de31` applies the kit defaults and active island child composition calls through the main hot-file holder, S3.1.
+
+Clean candidate `e40d8dd4` passes CSS, generation/check, application/API TypeScript, oxlint and the ratchet.
+Its full suite is 1890/1901 (11 sibling failures in 8 files); this is not a full green gate claim.
+Log: `/private/tmp/e357-sol-s23b/source-gate.log`. A separate clean export builds successfully:
+`/private/tmp/e357-sol-s23b/final-build.log`. Focused AI, inventory, wall and hitbox-owner tests pass 227/227
+in 26 files: `/private/tmp/e357-sol-s23b/final-focused.log`.
+The published `386ff9a7` gate also passes every pre-test stage; 1891/1901 tests pass (10 sibling failures).
+Log: `/private/tmp/e357-sol-s23b/published-gate.log`. The obsolete `pineCreatures.ts` is absent from this committed tree.
+
+Contact tests compare the sweep with the old union of arcs across 4225 points, roots with the old expanding
+ring and jump exemption, and strict lantern/roar distances and damage. Real Rapier wall controls preserve B4
+cover rejection and open damage. Retirement tests verify one manager actor loses its brain/body ownership
+without removing its neighbor; encounter tests verify scope switching, unload, idempotent retirement and no extra draw.
+
+The after-pose attempt on `2f44de31` failed before the first page with browser.newPage reporting a closed browser.
+Its report is infrastructure exitCode3: `/private/tmp/e357-sol-s23b/after-poses/report.json`.
+No continuation browser parity was recorded. Do not carry the predecessor's browser results forward as
+proof of this source. The next builder/lead must run direct all-four phone fingerprint/poses and walk/combat/leak
+before and after this checkpoint, preserving the predecessor's exact-field and 2 mm Pine porch caveats above.
+The previous eight removed disabled hitboxes identified by S2.1 are distinct from new explicit retirement cleanup.
+Deer/elk remain legacy engine rows/views behind a scoped Pine hull adapter; no full species-directory migration is claimed.
