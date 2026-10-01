@@ -10,7 +10,7 @@ import { WHIP_ROW } from './weapons/rows';
 import { installQuest } from './quest/install';
 import { RAY, TOWER } from './layout';
 import { installSunscarCues } from './audio/cues';
-import { DUSK, LIGHT } from './look/sky';
+import { BAND, DUSK, LIGHT } from './look/sky';
 import { ownPrimitives } from './world/resources';
 
 declare module '#engine' {
@@ -55,7 +55,7 @@ export class SunscarDunesPlugin extends ShardPlugin {
     const animals = rt?.play?.animals;
     this.ray = animals?.spawn('duneRay', RAY.x, RAY.z, 0, 'dusk') ?? null;
     ctx.scope.onDispose(() => { if (this.ray) animals?.retire(this.ray); this.ray = null; });
-    ctx.debug.expose('sunscar', this); ctx.debug.expose('sunscarLight', { DUSK, LIGHT });
+    ctx.debug.expose('sunscar', this); ctx.debug.expose('sunscarLight', { DUSK, LIGHT, BAND });
     if (this.whip) ownPrimitives(this.whip.model, ctx.scope);
   }
   /** The ray's brain, for captures and tests (`__wildshard.shard.sunscar.rayBrain()`). */

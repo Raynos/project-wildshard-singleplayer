@@ -3,7 +3,7 @@
  * a mauve belt above it, thin dark cloud streaks lit orange from below near the glow, and the first stars. Below the
  * horizon it is the fog's colour, so the far dunes melt into it. One draw, no textures.
  */
-import { BackSide, Color, Mesh, ShaderMaterial, SphereGeometry, Vector3 } from 'three';
+import { BackSide, Color, Mesh, ShaderMaterial, SphereGeometry, Vector2, Vector3 } from 'three';
 
 /** Toward the sun, a few degrees under the horizon (the sky's glow centre). */
 export const SUN_BELOW = new Vector3(-0.55, -0.07, -1).normalize();
@@ -11,10 +11,12 @@ export const SUN_BELOW = new Vector3(-0.55, -0.07, -1).normalize();
  *  faces fall into the indigo fill (the mockup's lit left flanks and blue right-hand hollows). */
 export const KEY_DIR = new Vector3(-1, 0.32, -0.5).normalize();
 export const DUSK = {
-  zenith: new Color(0.010, 0.013, 0.048), upper: new Color(0.040, 0.040, 0.115), mauve: new Color(0.07, 0.03, 0.05),
-  away: new Color(0.13, 0.075, 0.10), glow: new Color(1.4, 0.42, 0.07), fog: new Color(0.20, 0.11, 0.11), fogSun: new Color(0.9, 0.36, 0.12),
+  zenith: new Color(0.006, 0.010, 0.035), upper: new Color(0.022, 0.035, 0.10), mauve: new Color(0.02, 0.008, 0.015),
+  away: new Color(0.10, 0.055, 0.06), glow: new Color(1.5, 0.45, 0.06), fog: new Color(0.10, 0.05, 0.045), fogSun: new Color(0.6, 0.2, 0.05),
   key: new Color(1, 0.56, 0.32), hemiSky: new Color(0.40, 0.40, 0.64), hemiGround: new Color(0.55, 0.28, 0.12),
 } as const;
+/** The glow band's height: base + toward-the-sun growth (radians of elevation, roughly). */
+export const BAND = new Vector2(0.022, 0.07);
 /** The light levels (mutable so a capture can tune them live through the plugin's debug handle). */
 export const LIGHT = { key: 3, hemi: 1, keyDir: KEY_DIR };
 
@@ -27,6 +29,7 @@ void main() {
 }`;
 const FRAG = /* glsl */ `
 uniform vec3 uSun, uZenith, uUpper, uMauve, uAway, uGlow, uFog;
+uniform vec2 uBand;
 varying vec3 vDir;
 float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 float noise(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
@@ -38,10 +41,11 @@ void main() {
   vec2 flat2 = normalize(d.xz + vec2(1e-5)), sun2 = normalize(uSun.xz);
   float az = 0.5 + 0.5 * dot(flat2, sun2), toward = pow(az, 3.0);
   vec3 horizon = mix(uAway, uGlow, toward);
-  float band = exp(-hh / (0.05 + 0.16 * az * az));
+  float band = exp(-hh / (uBand.x + uBand.y * az * az));
   vec3 col = mix(uUpper, uZenith, smoothstep(0.12, 0.85, hh));
   col += uMauve * exp(-hh / 0.22) * (0.5 + 0.5 * az);
   col = mix(col, horizon, band);
+  col += uGlow * 0.05 * exp(-hh / 0.2) * toward; // a faint amber wash above the band
   // thin cloud streaks low in the sky, dark, their undersides lit where they face the glow
   float ang = atan(d.z, d.x);
   float streak = fbm(vec2(ang * 5.0, hh * 34.0)) * exp(-pow((hh - 0.085) / 0.05, 2.0));
@@ -63,7 +67,7 @@ void main() {
 export function buildDome(): Mesh<SphereGeometry, ShaderMaterial> {
   const material = new ShaderMaterial({ vertexShader: VERT, fragmentShader: FRAG, side: BackSide, depthWrite: false, depthTest: true, fog: false,
     uniforms: { uSun: { value: SUN_BELOW }, uZenith: { value: DUSK.zenith }, uUpper: { value: DUSK.upper }, uMauve: { value: DUSK.mauve },
-      uAway: { value: DUSK.away }, uGlow: { value: DUSK.glow }, uFog: { value: DUSK.fog } } });
+      uAway: { value: DUSK.away }, uGlow: { value: DUSK.glow }, uFog: { value: DUSK.fog }, uBand: { value: BAND } } });
   const dome = new Mesh(new SphereGeometry(300, 48, 24), material);
   dome.frustumCulled = false; dome.renderOrder = -10; dome.name = 'sunscar.sky';
   return dome;

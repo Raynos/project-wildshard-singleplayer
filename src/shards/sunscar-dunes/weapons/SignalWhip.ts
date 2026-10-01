@@ -29,7 +29,7 @@ export class SignalWhip extends Weapon {
   constructor(app: App, targets: Targets | null = null, actorFor: (animal: TargetAnimal) => Actor | null = () => null) {
     super(WHIP_ROW); this.app = app; this.targets = targets; this.actorFor = actorFor; this.contact = blocks.melee(app.combat);
     this.blocks.vm = this.vm; this.blocks.melee = this.contact;
-    this.model.position.set(0.19, -0.17, -0.42); this.model.rotation.set(0.35, 0, -0.5);
+    this.model.position.set(0.07, -0.15, -0.4); this.model.rotation.set(0.35, 0, -0.45);
   }
   override install(ctx: EquipContext): void {
     super.install(ctx);

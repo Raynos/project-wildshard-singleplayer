@@ -57,8 +57,10 @@ export class DuneRayBrain extends CreatureBrain<RayState> {
   override act(ctx: ThinkCtx): void {
     const a = this.actor; if (!a.alive) return;
     const ground = ctx.heightAt(a.position.x, a.position.z), glide = ground + RAY_FLIGHT.glideAlt;
+    // the strike clock runs in every state (its recover and cooldown finish during the climb); the glide's setMotion
+    // below comes after it, so the runner's lane brake never holds the ray in the air
+    this.strikes.update(ctx.dt, this.context(ctx));
     if (this.state === 'swoop') {
-      this.strikes.update(ctx.dt, this.context(ctx));
       const s = this.strikes;
       if (s.state === 'windup') this.altitude += (this.swoopFrom + 2.5 - this.altitude) * Math.min(1, ctx.dt * 2); // rears up: the tell
       else if (s.state === 'active') {

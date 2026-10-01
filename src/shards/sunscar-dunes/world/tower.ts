@@ -5,7 +5,7 @@
  */
 import { AdditiveBlending, BoxGeometry, BufferAttribute, BufferGeometry, ConeGeometry, CylinderGeometry, DoubleSide, Group, Matrix4, Mesh, MeshBasicMaterial, MeshStandardMaterial, PointLight, Quaternion, Vector3 } from 'three';
 
-export const TOWER_SIZE = { deck: 4.5, half: 2, legs: 1.75, stairRun: 0.4, stairRise: 0.32, stairWidth: 1.1 } as const;
+export const TOWER_SIZE = { deck: 7, half: 2, legs: 1.75, stairRun: 0.4, stairRise: 0.32, stairWidth: 1.1 } as const;
 
 /** Concatenate indexed geometries (position, normal, uv) into one. */
 export function mergeBoxes(parts: BufferGeometry[]): BufferGeometry {
@@ -57,6 +57,9 @@ export function buildTower(footDrop: number): TowerParts {
   const rise = deck + footDrop, count = Math.ceil(rise / TOWER_SIZE.stairRise), run = TOWER_SIZE.stairRun, step = rise / count;
   for (let i = 0; i < count; i++) wood.push(box(0.6, deck - step * i - step * 0.5 + 0.02, half + run * (i + 0.5), TOWER_SIZE.stairWidth, 0.07, run * 0.92));
   for (const x of [0.6 - TOWER_SIZE.stairWidth / 2, 0.6 + TOWER_SIZE.stairWidth / 2]) wood.push(beam(new Vector3(x, deck, half), new Vector3(x, -footDrop - 0.2, half + run * count), 0.12));
+  // a signal mast at the north-west corner with a cross arm, so the tower reads from the spawn
+  wood.push(beam(new Vector3(-half + 0.15, deck, -half + 0.15), new Vector3(-half + 0.15, deck + 4.2, -half + 0.15), 0.12));
+  wood.push(beam(new Vector3(-half - 0.7, deck + 3.6, -half + 0.15), new Vector3(-half + 1.0, deck + 3.6, -half + 0.15), 0.08));
   // the fire basket: an iron bowl on a post, stacked with split wood
   iron.push(box(0, deck + 0.35, 0, 0.14, 0.7, 0.14));
   const bowl = new CylinderGeometry(0.55, 0.32, 0.4, 10, 1, true); bowl.translate(0, deck + 0.9, 0); iron.push(bowl);

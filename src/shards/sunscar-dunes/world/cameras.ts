@@ -17,6 +17,6 @@ export function duskPoses(heightAt: (x: number, z: number) => number): Readonly<
   return {
     C: pose(SPAWN.x, SPAWN.z, toTower, 3, 'the signal tower on the far crest, centred, against the orange glow; dunes falling away in front'),
     hollow: pose(-30, 10, 300, 2, 'a dune hollow in blue shade, the lit crest beyond'),
-    deck: pose(TOWER.x, TOWER.z + 1, 180, -6, 'from the tower deck back over the dune sea', 4.5),
+    deck: pose(TOWER.x, TOWER.z + 1, 180, -6, 'from the tower deck back over the dune sea', 7),
   };
 }

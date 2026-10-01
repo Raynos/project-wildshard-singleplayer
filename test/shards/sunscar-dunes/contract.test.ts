@@ -77,6 +77,12 @@ describe('Signal Dunes plugin contract', () => {
       expect(hits > 0).toBe(lands);
     }
   });
+  it('the strike clock frees the ray for its next swoop', () => {
+    const spec = RAY_STRIKES[0]; if (spec === undefined) throw new Error('no swoop');
+    const runner = new StrikeRunner(), ray = fakeRay(16), player = new Vector3(0, 0, 20), ctx = { actor: ray, target: player, canReach: () => false, hit: noop };
+    runner.start(spec, ray, player); for (let t = 0; t < 12; t += 0.1) runner.update(0.1, ctx);
+    expect(runner.busy).toBe(false);
+  });
   it('builds a skinned ray and walkable dunes', () => {
     const g = rayGeometry(); expect(g.getAttribute('skinIndex').count).toBe(g.getAttribute('position').count);
     const h = (x: number, z: number): number => manifest.ground.terrain?.heightAt(x, z) ?? 0;
