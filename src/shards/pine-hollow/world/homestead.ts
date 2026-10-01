@@ -1,18 +1,7 @@
-import type { Interactable } from '#engine/world/interact/types';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { loadPBR, loadGLTF, pbrMaterial, type PBRSet } from '#engine/core/assets';
-import { Rng } from '#engine/core/rng';
-import { SEED } from '#engine/core/config';
-import { heightAt, CABIN_SITES } from '#engine/world/Heightfield';
-import { attachFogUniforms } from '#engine/world/Atmosphere';
-import type { Sky } from '#engine/world/Sky';
-import type { BoxSpec as Collider } from '#engine/physics/box';
-import { boxDesc, type ColliderDesc } from '#engine/world/registry';
-import { TIER_CONFIG } from '#engine/core/tier';
-import { macrotask } from '#engine/boot/plan';
-import { LightPool } from '#engine/fx/LightPool';
-import { twoSidedPositions, type WeldBuild } from '#engine/models/weld';
+import { loadPBR, loadGLTF, pbrMaterial, Rng, SEED, heightAt, attachFogUniforms, boxDesc, TIER_CONFIG, macrotask, LightPool, twoSidedPositions, type Interactable, type PBRSet, type Sky, type BoxSpec as Collider, type ColliderDesc, type WeldBuild } from '#engine';
+import { CABIN_SITES } from '../layout';
 import {
   CABIN_SPECS, CabinBuilder, PROP_KINDS, mergeParts,
   type BuildingOwner, type CabinSpec, type Door, type Fire, type Floor, type LightAnchor, type PropKind, type PropPart, type Room, type Swing,
@@ -43,7 +32,7 @@ import {
  */
 
 /** `weak`: shown only when no other prompt is in reach (the saddle's Dismount: it hid the Wind Cairn's tie, E288) */
-export type { Interactable } from '#engine/world/interact/types';
+export type { Interactable } from '#engine';
 
 export type { CabinSpec } from '../models/logCabin';
 

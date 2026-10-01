@@ -1,7 +1,4 @@
-import { filePolicy, PUBLIC_BYTES } from '#engine/boot/filePolicy';
-import type { ChunkFiles } from '#engine/boot/bytes';
-import type { Tier } from '#engine/core/tier';
-import type { TexMode } from '#engine/boot/gpuFiles';
+import { filePolicy, PUBLIC_BYTES, type ChunkFiles, type Tier, type TexMode } from '#engine/data';
 import { GPU_FILES } from '../ktx2.generated';
 import { pineHeroUrls } from '../world/heroFiles';
 import { pineSkyKeyUrls } from '../look/skyKeys';

@@ -124,8 +124,7 @@ export type { ScheduleSeg } from './world/dayCycle';
 // Authored static content and gameplay host ports (E357 S2.1).
 export { loadPBR, loadGLTF, pbrMaterial, type PBRSet } from './core/assets';
 export { SEED } from './core/config';
-export { heightAt, CABIN_SITES } from './world/Heightfield';
-export { attachFogUniforms } from './world/Atmosphere';
+export { terrainHeight as heightAt } from './world/terrainHeight';
 export { boxDesc, type ColliderDesc } from './world/registry';
 export { TIER_CONFIG } from './core/tier';
 export { macrotask } from './boot/plan';
@@ -140,7 +139,6 @@ export type { HUD } from './ui/HUD';
 export type { GameMenu, GameMenuOptions } from './ui/Menu';
 export type { FullMap } from './ui/Map';
 export type { SkinLocker, SkinDef } from './player/Skins';
-export { Grass } from './world/Grass';
-export { cutTerrain } from './physics/terrain';
-export { setSight } from './world/interact/Interactables';
-export { WeaponPickup } from './player/WeaponPickup';
+export { loadWorldContent } from './contentApi';
+export type { Animal } from './entities/Animal';
+

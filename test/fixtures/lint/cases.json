@@ -474,5 +474,19 @@
     "rule": "no-global-listener-patch",
     "count": 0,
     "code": "setTimeout(fn, 1); document.body.appendChild(el);"
+  },
+  {
+    "id": "layer-manifest-public",
+    "file": "src/shards/sample/pure.ts",
+    "rule": "layer",
+    "code": "import { buildTerrain } from '#engine/data';",
+    "count": 0
+  },
+  {
+    "id": "layer-public-subpath-not-general",
+    "file": "src/shards/sample/dataDeep.ts",
+    "rule": "layer",
+    "code": "import { value } from '#engine/data/private';",
+    "count": 1
   }
 ]

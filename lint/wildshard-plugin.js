@@ -311,7 +311,7 @@ const layer = rule('Layer direction, public APIs and engine vocabulary (E357)', 
       if (!target) return;
       if (target.rank > own.rank || (own.name === 'shards' && target.name === 'shards' && own.slug !== target.slug)) {
         report(context, node, `Layer import ${own.name} → ${target.name}: ${source}`);
-      } else if (own.name !== target.name && /^#(?:engine|game|kit)\//u.test(source)) {
+      } else if (own.name !== target.name && source !== '#engine/data' && /^#(?:engine|game|kit)\//u.test(source)) {
         report(context, node, `Cross-layer imports use the public index: ${source}`);
       }
     }),

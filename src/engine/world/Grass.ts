@@ -57,7 +57,6 @@ const RADIUS = TIER_CONFIG.grassRadius; // metres: ring around the player that h
 const FADE = 10;           // metres: outer band where instances scale down to 0
 const CELL = 4;            // metres per cell
 const N = Math.ceil((RADIUS * 2) / CELL); // 28 cells per side (20 on the phone)
-const K = TIER_CONFIG.grassSlots; // instance slots per cell → 75 264 instances (96 × 28²); phone 56 × 20² = 22 400
 const KF = 8;              // flower slots per cell
 const QUADS = TIER_CONFIG.grassQuads; // quads per clump: 3 crossed (+ 2 near fillers on desktop)
 
@@ -87,6 +86,7 @@ const UP = new THREE.Vector3(0, 1, 0);
 const bilerp = (a: number, b: number, c: number, d: number, u: number, v: number) => lerp(lerp(a, b, u), lerp(c, d, u), v);
 
 export class Grass {
+  private readonly slots = TIER_CONFIG.grassSlots;
   group = new THREE.Group();
   mesh!: THREE.InstancedMesh;
   material!: THREE.MeshStandardMaterial;
@@ -129,9 +129,9 @@ export class Grass {
     const geo = buildClumpGeometry();
     this.trampleAble = getActiveChunk().slug === 'pine-hollow';
     this.material = this.buildMaterial();
-    this.mesh = new THREE.InstancedMesh(geo, this.material, N * N * K);
+    this.mesh = new THREE.InstancedMesh(geo, this.material, N * N * this.slots);
     this.mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-    this.meshColor = new THREE.InstancedBufferAttribute(new Float32Array(N * N * K * 3), 3);
+    this.meshColor = new THREE.InstancedBufferAttribute(new Float32Array(N * N * this.slots * 3), 3);
     this.mesh.instanceColor = this.meshColor;
     this.meshColor.setUsage(THREE.DynamicDrawUsage);
     this.mesh.frustumCulled = false;
@@ -139,7 +139,7 @@ export class Grass {
     this.mesh.castShadow = false;
     // start with everything collapsed
     const arr = this.mesh.instanceMatrix.array as Float32Array;
-    for (let i = 0; i < N * N * K; i++) this.zeroM.toArray(arr, i * 16);
+    for (let i = 0; i < N * N * this.slots; i++) this.zeroM.toArray(arr, i * 16);
     this.group.add(this.mesh);
     this.flowers = new THREE.InstancedMesh(buildFlowerGeometry(), this.buildFlowerMaterial(), N * N * KF);
     this.flowers.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
@@ -353,7 +353,7 @@ export class Grass {
     const trees = this.forest.nearby(x0 + CELL / 2, z0 + CELL / 2, 3);
     const matArr = this.mesh.instanceMatrix.array as Float32Array;
     const colArr = this.meshColor.array as Float32Array;
-    const base = slot * K;
+    const base = slot * this.slots;
     const fArr = this.flowers.instanceMatrix.array as Float32Array;
     const fCol = this.flowerColor.array as Float32Array;
     const fBase = slot * KF;
@@ -361,7 +361,7 @@ export class Grass {
     const canopy = this.canopyAt(x0 + CELL / 2, z0 + CELL / 2);
     this.tmpN.set(nrm[0], nrm[1], nrm[2]);
     this.tmpQ2.setFromUnitVectors(UP, this.tmpN);
-    for (let k = 0; k < K; k++) {
+    for (let k = 0; k < this.slots; k++) {
       const u = rng.next(), v = rng.next();
       const x = x0 + u * CELL, z = z0 + v * CELL;
       // bilinear splat
@@ -414,8 +414,8 @@ export class Grass {
     for (let i = fk; i < KF; i++) this.zeroM.toArray(fArr, (fBase + i) * 16);
     this.flowers.instanceMatrix.addUpdateRange(fBase * 16, KF * 16);
     this.flowerColor.addUpdateRange(fBase * 3, KF * 3);
-    this.mesh.instanceMatrix.addUpdateRange(base * 16, K * 16);
-    this.meshColor.addUpdateRange(base * 3, K * 3);
+    this.mesh.instanceMatrix.addUpdateRange(base * 16, this.slots * 16);
+    this.meshColor.addUpdateRange(base * 3, this.slots * 3);
   }
 }
 
