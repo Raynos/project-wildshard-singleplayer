@@ -56,3 +56,10 @@ The pop-up answers can be typed over by a builder's herdr message (that is how t
 - **Q1 coyote / late roof jump:** the clip was broken (no visible edge; the capture fixture dropped the player through the street). sol-roof re-captures it on a real edge and checks for a real fall-through bug; Q1 asked again after.
 - Jake's finding: crouch (and other actions) exist only on the keyboard, with no touch control: ask E365, a keyboard-vs-touch audit.
 
+## Wave 2 answers (2026-10-01, typed in chat)
+
+- **Q1 title summary (J8): looks good** — ship.
+- **Q2 key bindings:** iPhone with none is right; the desktop version is "just a mobile layout on desktop" — redesign the key bindings screen (and the desktop Settings menu) in a desktop layout with better defaults. Build row J9: mockups A/B/C first (a wave), then build Jake's pick.
+- **Q3 Captain's shared boss bar: looks great** — keep. Jake: "I don't know why the art style of the Drowned Captain changed completely in the two screenshots" — investigated as R9.
+- **Q4 big crab hits for 14: fine** — keep.
+
