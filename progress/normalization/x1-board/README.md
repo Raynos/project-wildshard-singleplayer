@@ -4,16 +4,22 @@
 
 | Review | Before / A | After / B | Measured result |
 |---|---|---|---|
-| Nine Dragon late roof jump | [Clip](roof-before.mp4) · [frame](roof-before.jpg) · [counter](roof-before.json) | [Clip](roof-after.mp4) · [frame](roof-after.jpg) · [counter](roof-after.json) | Jump33ms after leaving the collider: existing airborne jump8.6m/s → ground-grace launch7.2m/s. |
-| Dodge pressed mid-swing | [Clip](dodge-before.mp4) · [frame](dodge-before.jpg) · [counter](dodge-before.json) | [Clip](dodge-after.mp4) · [frame](dodge-after.jpg) · [counter](dodge-after.json) | Press inside the final72ms of cooldown: one starting dodge → starting dodge plus one buffered dodge. |
+| Driftwood visible pier-edge jump | [Clip](roof-before.mp4) · [frame](roof-before.jpg) · [counter](roof-before.json) | [Clip](roof-after.mp4) · [frame](roof-after.jpg) · [counter](roof-after.json) | Same two presses: first 33ms past the visible edge, second 333ms later. Coyote 0 spends its air jump and misses the boat; 100ms preserves the air jump and lands aboard. |
+| Dodge pressed mid-swing | [Clip](dodge-before.mp4) · [frame](dodge-before.jpg) · [counter](dodge-before.json) | [Clip](dodge-after.mp4) · [frame](dodge-after.jpg) · [counter](dodge-after.json) | Same presses in the normal input phase, second in the last ~67ms of cooldown during a sword swing: 1 → 2 visible forward dodges; 3.79m → 6.56m along the pier posts. |
 | Blocked jump buffer | [Clip](buffer-before.mp4) · [frame](buffer-before.jpg) · [counter](buffer-before.json) | [Clip](buffer-after.mp4) · [frame](buffer-after.jpg) · [counter](buffer-after.json) | Jump pressed while crouched, released67ms later: zero → one ground jump. |
 | Controlled ground removal | [Clip](coyote-before.mp4) · [frame](coyote-before.jpg) · [counter](coyote-before.json) | [Clip](coyote-after.mp4) · [frame](coyote-after.jpg) · [counter](coyote-after.json) | Existing airborne8.6m/s → grace7.2m/s. This supplemental case moves the player5m above the floor. |
 | Pine reserved bolt verb | [A: first row above JUMP](pine-hollow-verbs-a.jpg) | [B: second row above JUMP](pine-hollow-verbs-b.jpg) | Same BOLTS action, native live HUD; B is screenshot-only CSS. |
 | Nalati reserved offer verb | [A: first row above AIM](nalati-grasslands-verbs-a.jpg) | [B: second row above AIM](nalati-grasslands-verbs-b.jpg) | Same OFFER action and left HORSE tab; B is screenshot-only CSS. |
 
-The source for the after clips and verb images is `df3989476a82869c3e14b9c0127259ecec3d2d88`. Driftwood before clips use pre-X1 `478f6864`. That revision cannot boot Nine Dragon (missing primary weapon factory), so the roof before clip uses the same current source with **only player.coyoteMs set to0 by the capture script**. This preserves the roof and equipment for a controlled timing comparison; it is not a historical full-tree before capture. The after roof clip keeps100ms. Harness captions and fixture preparation are capture-only.
+The replacement roof and dodge pairs use the same clean source **`064e06763548ab6bf060b7ed76b82ccb01ce00db`**, the HEAD selected when this review began. BEFORE sets respectively motor `coyoteMs=0` and `input.buffer.ms=0`; AFTER uses 100ms and 120ms. These compare timing on the same game, not historical full-tree builds. The buffer and supplemental controlled-ground-removal clips retain their earlier sources (`478f6864` before, `df398947` after); verb images use `df3989476a82869c3e14b9c0127259ecec3d2d88`.
 
-All captures use Chromium with Metal,390×844 portrait, phone tier,30Hz deterministic harness frames. Clips retain the final4seconds, without audio. The jump counters hook the real motor's onJump; dodge counts successful calls to the real dodge method. `beforeRelease` in the dodge JSON stores the final dodge count (1before,2after). The capture script restores its wrappers; no runtime diagnostics were committed. All images and representative clip frames were inspected; every artifact is below500KB.
+**The rejected Nine Dragon roof fixture was wrong.** It teleported to `(24,165,-10)`, atop the forty-metre building-front barrier, then walked beyond its back edge at x28 into visual-only scenery. Normal play is at y125. A normal walk from spawn with no teleport stayed grounded; downward rays and an exact old-fixture replay confirmed the cause. No collider was removed by that roof fixture, and no normal street fall-through was reproduced. [Exact collider audit](roof-fixture-audit.md) · [normal walk and fixture traces](roof-fixture-audit.json). No runtime fix was needed.
+
+The new `roof-*` files show a real Driftwood pier edge and the water gap to the moored boat. Movement, jumping and landing use unchanged game collision. **The game already has an air jump:** with 0ms coyote, a late first press launches 8.6m/s and spends it; with 100ms, the first launches 7.2m/s from grace and leaves it for the equal second press. The failure/success demonstrates retained air jump, not a claim that 0ms forbids airborne jumping. No colliders, velocity, jump allowance or movement tuning are changed.
+
+The new dodge pair faces along real pier posts. Movement direction is held only around the two presses, so the bursts and the pause between them read clearly. Both takes deliver presses during the player's normal input phase: a 0ms press between harness frames would expire before any action could read it. The real `dodge()` return value and per-frame positions are recorded; only AFTER has a second launch at frame48.
+
+All captures use Chromium with Metal, 390×844 portrait, phone tier and 30Hz deterministic harness frames. Replacement clips are six seconds without audio, assembled from every drawn frame (180 frames); the JPG is frame100. JSON includes positions, presses, launches and unchanged collider counts. All four replacement clips were inspected using `ffmpeg -vf fps=4,scale=195:422,tile=6x4`, with sheets in `/private/tmp/e357-sol-roof/`. Every committed artifact is below 500KB. Observation wrappers and timing settings are restored; browsers and previews close in `finally`. Other board clips retain their original four-second edit.
 
 Controls: [defaults](controls-default.jpg) → [conflict and SWAP/CANCEL](controls-conflict.jpg) → [swapped forward/back bindings](controls-swapped.jpg). These are the real Settings ▸ Controls panel. The keyboard conflict swaps W/S; touch positions are fixed. The binding change lives in the isolated capture browser's storage.
 
@@ -26,10 +32,10 @@ Reproduce through the shared lane:
 ```sh
 scripts/browser-lane.sh --max 4 node progress/normalization/x1-board/capture-timing.mjs rev:478f6864 before /private/tmp/x1-before
 scripts/browser-lane.sh --max 4 node progress/normalization/x1-board/capture-timing.mjs rev:df398947 after /private/tmp/x1-after
-scripts/browser-lane.sh --max 4 node progress/normalization/x1-board/capture-timing.mjs rev:df398947 before-coyote0 /private/tmp/x1-roof-before roof
-scripts/browser-lane.sh --max 4 node progress/normalization/x1-board/capture-timing.mjs rev:df398947 after /private/tmp/x1-roof-after roof
-scripts/browser-lane.sh --max 4 node progress/normalization/x1-board/capture-timing.mjs rev:478f6864 before /private/tmp/x1-dodge-before dodge
-scripts/browser-lane.sh --max 4 node progress/normalization/x1-board/capture-timing.mjs rev:df398947 after /private/tmp/x1-dodge-after dodge
+scripts/browser-lane.sh --max 4 node progress/normalization/x1-board/capture-timing.mjs rev:064e0676 before-coyote0 /private/tmp/x1-roof-before roof
+scripts/browser-lane.sh --max 4 node progress/normalization/x1-board/capture-timing.mjs rev:064e0676 after /private/tmp/x1-roof-after roof
+scripts/browser-lane.sh --max 4 node progress/normalization/x1-board/capture-timing.mjs rev:064e0676 before /private/tmp/x1-dodge-before dodge
+scripts/browser-lane.sh --max 4 node progress/normalization/x1-board/capture-timing.mjs rev:064e0676 after /private/tmp/x1-dodge-after dodge
 scripts/browser-lane.sh --max 4 node progress/normalization/x1-board/capture-verbs.mjs http://127.0.0.1:<built-preview-port> /private/tmp/x1-verbs
 scripts/browser-lane.sh --max 4 node progress/normalization/x1-board/capture-trace.mjs ad1f66df /private/tmp/x1-trace
 ```

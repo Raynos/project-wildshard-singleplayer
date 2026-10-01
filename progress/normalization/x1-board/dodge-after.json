@@ -1,11 +1,1676 @@
 {
   "scenario": "dodge",
-  "label": "after",
-  "after": true,
-  "jumps": 0,
-  "launch": null,
-  "beforeRelease": 2,
-  "crouched": null,
+  "before": false,
+  "source": "064e06763548ab6bf060b7ed76b82ccb01ce00db",
+  "start": {
+    "x": 1.564892748717739e-07,
+    "y": 2.0059999574295944,
+    "z": -229.9999860134393
+  },
+  "end": {
+    "x": -3.328016780843675e-05,
+    "y": 2.019880859013938,
+    "z": -223.4384815239324
+  },
   "coyoteMs": 100,
-  "bufferMs": 120
+  "bufferMs": 120,
+  "edge": null,
+  "jumpDelayMs": 33.333333333333336,
+  "jumps": [],
+  "dodges": [
+    {
+      "frame": 24,
+      "x": 4.831110258507465e-07,
+      "y": 2.0107999572428525,
+      "z": -229.99997795808864
+    },
+    {
+      "frame": 48,
+      "x": 7.011284692908894e-08,
+      "y": 2.0155260398605606,
+      "z": -226.65318002189284
+    }
+  ],
+  "presses": [
+    {
+      "frame": 24,
+      "action": "dodge"
+    },
+    {
+      "frame": 46,
+      "action": "attack"
+    },
+    {
+      "frame": 46,
+      "action": "dodge"
+    }
+  ],
+  "landed": false,
+  "collidersBefore": 2195,
+  "collidersAfter": 2195,
+  "fixture": "Initial camera pose only; no collider, jump allowance, velocity or movement tuning changes",
+  "trace": [
+    {
+      "frame": 0,
+      "x": 2.788822790478207e-07,
+      "y": 2.006199957424542,
+      "z": -229.999985536022,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 1,
+      "x": -6.297741514948996e-07,
+      "y": 2.0063999574122136,
+      "z": -229.99998462544738,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 2,
+      "x": -7.470545793086814e-07,
+      "y": 2.006599957399885,
+      "z": -229.99998368720395,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 3,
+      "x": -7.477226635632661e-07,
+      "y": 2.0067999573948327,
+      "z": -229.99998190831343,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 4,
+      "x": -6.397441165706397e-07,
+      "y": 2.0069999573897803,
+      "z": -229.99998190831343,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 5,
+      "x": -8.498539207923983e-07,
+      "y": 2.007199957370176,
+      "z": -229.99998021724616,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 6,
+      "x": -8.498539207923983e-07,
+      "y": 2.0073999573578476,
+      "z": -229.99998020400042,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 7,
+      "x": -9.991761216188166e-07,
+      "y": 2.007599957352795,
+      "z": -229.99998139857803,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 8,
+      "x": -1.2149717589782227e-06,
+      "y": 2.0077999573477427,
+      "z": -229.9999790967579,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 9,
+      "x": -4.3483640710384464e-07,
+      "y": 2.0079999573426903,
+      "z": -229.9999768755672,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 10,
+      "x": -3.886460595570185e-07,
+      "y": 2.008199957337638,
+      "z": -229.99997724054106,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 11,
+      "x": -2.9943768198315013e-07,
+      "y": 2.0083999573325855,
+      "z": -229.99997760106552,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 12,
+      "x": -3.653888731580679e-07,
+      "y": 2.008599957327533,
+      "z": -229.99997689758615,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 13,
+      "x": -3.523358664825338e-07,
+      "y": 2.0087999573006527,
+      "z": -229.99997687099062,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 14,
+      "x": -2.899408493295397e-07,
+      "y": 2.0089999572956003,
+      "z": -229.99997820208432,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 15,
+      "x": -1.264402265110931e-07,
+      "y": 2.009199957290548,
+      "z": -229.9999788560868,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 16,
+      "x": 5.545632137948786e-07,
+      "y": 2.0093999572854955,
+      "z": -229.99997823286574,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 17,
+      "x": 5.545632137948786e-07,
+      "y": 2.009599957280443,
+      "z": -229.99997885467806,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 18,
+      "x": -1.9302204745663687e-07,
+      "y": 2.0097999572753906,
+      "z": -229.99997825660986,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 19,
+      "x": -1.74324412016702e-07,
+      "y": 2.009999957270338,
+      "z": -229.99997825660986,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 20,
+      "x": 5.454182128161733e-07,
+      "y": 2.01019995725801,
+      "z": -229.9999776817576,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 21,
+      "x": -3.024133521378758e-07,
+      "y": 2.0103999572529574,
+      "z": -229.99997684391622,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 22,
+      "x": 4.831110258507465e-07,
+      "y": 2.010599957247905,
+      "z": -229.99997656738552,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 23,
+      "x": 4.831110258507465e-07,
+      "y": 2.0107999572428525,
+      "z": -229.99997795808864,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 24,
+      "x": -2.2116779254906102e-07,
+      "y": 2.0109826239277027,
+      "z": -229.59997741568637,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 25,
+      "x": -2.8791510067412013e-07,
+      "y": 2.0112083251588047,
+      "z": -229.19997822928977,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 26,
+      "x": -3.702671671980379e-07,
+      "y": 2.0113574362912914,
+      "z": -228.79997664380622,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 27,
+      "x": -3.3714606669364295e-07,
+      "y": 2.0115826271721744,
+      "z": -228.3999774276073,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 28,
+      "x": -4.318089256030666e-07,
+      "y": 2.0117499745319947,
+      "z": -227.99997640836787,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 29,
+      "x": -4.3029994335509055e-07,
+      "y": 2.0119499745196663,
+      "z": -227.5999764024074,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 30,
+      "x": -5.227136644995939e-07,
+      "y": 2.012118050159188,
+      "z": -227.1999754129703,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 31,
+      "x": -4.618728743159467e-07,
+      "y": 2.012321951922786,
+      "z": -226.94997589353275,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 32,
+      "x": -5.219793043749303e-07,
+      "y": 2.0125290132054943,
+      "z": -226.88225486937714,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 33,
+      "x": 3.081938778003519e-08,
+      "y": 2.0127262830283144,
+      "z": -226.8424485555644,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 34,
+      "x": -7.15076476404796e-07,
+      "y": 2.012925835988426,
+      "z": -226.81905170593214,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 35,
+      "x": -7.046414844554597e-08,
+      "y": 2.013124974044331,
+      "z": -226.8052986559252,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 36,
+      "x": -1.264590336191559e-07,
+      "y": 2.0133262234012363,
+      "z": -226.79721724840616,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 37,
+      "x": -9.888516154495858e-08,
+      "y": 2.013526223396184,
+      "z": -226.79246611746763,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 38,
+      "x": 5.709488684754522e-07,
+      "y": 2.0137258876420674,
+      "z": -226.78967199304876,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 39,
+      "x": 5.175198099645639e-07,
+      "y": 2.013926000792708,
+      "z": -226.78803141524818,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 40,
+      "x": 1.9269380605204684e-08,
+      "y": 2.0141258699368336,
+      "z": -226.78706493253972,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 41,
+      "x": 4.5477326640758066e-08,
+      "y": 2.014325892283523,
+      "z": -226.78649846870954,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 42,
+      "x": 9.716111455683065e-08,
+      "y": 2.014525910904922,
+      "z": -226.78616576779146,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 43,
+      "x": 2.11281710600463e-08,
+      "y": 2.0147259108998696,
+      "z": -226.78596984904848,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 44,
+      "x": 2.1128171060032193e-08,
+      "y": 2.0149259160170914,
+      "z": -226.7858550973198,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 45,
+      "x": 4.593152687370258e-08,
+      "y": 2.0151259099511662,
+      "z": -226.78578642393236,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 46,
+      "x": 7.030452471384443e-08,
+      "y": 2.015326039865613,
+      "z": -226.7394820191968,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 47,
+      "x": 7.011284692908894e-08,
+      "y": 2.0155260398605606,
+      "z": -226.65318002189284,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 48,
+      "x": 1.411098560896672e-07,
+      "y": 2.015713913104264,
+      "z": -226.25317962850218,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 49,
+      "x": -4.590615338298566e-07,
+      "y": 2.015877896992606,
+      "z": -225.85317850495463,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 50,
+      "x": -4.1267711932281886e-07,
+      "y": 2.01611976413551,
+      "z": -225.45317981029635,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 51,
+      "x": -3.672353214671815e-07,
+      "y": 2.0163374834737624,
+      "z": -225.05318035567885,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 52,
+      "x": -4.126684720667105e-07,
+      "y": 2.0165200030096457,
+      "z": -224.65317981327658,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 53,
+      "x": 1.6286731407362492e-07,
+      "y": 2.01670863248728,
+      "z": -224.25317944968825,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 54,
+      "x": 3.1808280251122245e-07,
+      "y": 2.0168859710756806,
+      "z": -223.8531787433732,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 55,
+      "x": 3.2896823104526756e-07,
+      "y": 2.017109962864197,
+      "z": -223.60317961509114,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 56,
+      "x": -1.2018972778089538e-07,
+      "y": 2.0173073579499032,
+      "z": -223.53545705052798,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 57,
+      "x": -1.6266769914624138e-07,
+      "y": 2.017504223578726,
+      "z": -223.49565041075235,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 58,
+      "x": -1.2036826941082623e-07,
+      "y": 2.017705323465634,
+      "z": -223.47225422701572,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 59,
+      "x": -1.2036826941251037e-07,
+      "y": 2.0179056424385635,
+      "z": -223.45850240588894,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 60,
+      "x": -1.2036826941350026e-07,
+      "y": 2.018106129980879,
+      "z": -223.4504198579654,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 61,
+      "x": -7.958521070558416e-08,
+      "y": 2.018306346042664,
+      "z": -223.4456693777885,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 62,
+      "x": -9.930724093673488e-08,
+      "y": 2.0185063460376114,
+      "z": -223.44287676851505,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 63,
+      "x": 3.141629984431413e-07,
+      "y": 2.018706368842686,
+      "z": -223.4412353436766,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 64,
+      "x": -1.933572709229941e-07,
+      "y": 2.018906326928118,
+      "z": -223.44026992078412,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 65,
+      "x": 2.7265279694473404e-07,
+      "y": 2.019106313418888,
+      "z": -223.43970267909586,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 66,
+      "x": 2.437401149183946e-07,
+      "y": 2.0193063264523516,
+      "z": -223.43936982221035,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 67,
+      "x": 2.629158603543573e-07,
+      "y": 2.0195063450664748,
+      "z": -223.43917512755266,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 68,
+      "x": 2.2490916389765233e-07,
+      "y": 2.019706347382453,
+      "z": -223.43906027530662,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 69,
+      "x": 2.9962011776555926e-07,
+      "y": 2.0199063455074793,
+      "z": -223.43899228925707,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 70,
+      "x": 3.181653222487456e-07,
+      "y": 2.020062613009941,
+      "z": -223.4389523536121,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 71,
+      "x": -4.603250912289155e-06,
+      "y": 2.019880807689333,
+      "z": -223.43886298847715,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 72,
+      "x": -8.23714199544375e-06,
+      "y": 2.019953375092882,
+      "z": -223.43882273927116,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 73,
+      "x": -8.25576310187833e-06,
+      "y": 2.0199638022240833,
+      "z": -223.43881968021802,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 74,
+      "x": -8.25576310187833e-06,
+      "y": 2.0197058432968333,
+      "z": -223.43881728633156,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 75,
+      "x": -8.629311803182901e-06,
+      "y": 2.019880822073901,
+      "z": -223.43881329983802,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 76,
+      "x": -8.675777901707335e-06,
+      "y": 2.020069133985089,
+      "z": -223.4388100251737,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 77,
+      "x": -8.778341619226268e-06,
+      "y": 2.019880603023921,
+      "z": -223.4388095021924,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 78,
+      "x": -8.741098209092598e-06,
+      "y": 2.0199107146909228,
+      "z": -223.43880914060136,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 79,
+      "x": -1.3300145464362941e-05,
+      "y": 2.019780829876254,
+      "z": -223.438735714022,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 80,
+      "x": -1.3300145464362941e-05,
+      "y": 2.0199808298712014,
+      "z": -223.43873596468617,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 81,
+      "x": -1.3300145464362941e-05,
+      "y": 2.0198808384739095,
+      "z": -223.43873834993013,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 82,
+      "x": -1.3327549406589497e-05,
+      "y": 2.0199683875762275,
+      "z": -223.438739308179,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 83,
+      "x": -1.3273908938522169e-05,
+      "y": 2.0199534438870614,
+      "z": -223.43874020220514,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 84,
+      "x": -1.3241974327122449e-05,
+      "y": 2.0197807816657587,
+      "z": -223.4387416392562,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 85,
+      "x": -1.3131738551059499e-05,
+      "y": 2.0198337295914826,
+      "z": -223.4387432103676,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 86,
+      "x": -1.3298080641383677e-05,
+      "y": 2.0199682039310574,
+      "z": -223.43874275952777,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 87,
+      "x": -1.3268594567356814e-05,
+      "y": 2.0200107225537067,
+      "z": -223.4387431033437,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 88,
+      "x": -1.3229064842085933e-05,
+      "y": 2.0198054103311733,
+      "z": -223.4387434642873,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 89,
+      "x": -1.3171895030978561e-05,
+      "y": 2.0197808783268556,
+      "z": -223.43874552552194,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 90,
+      "x": -1.3190202548258497e-05,
+      "y": 2.019908802685677,
+      "z": -223.43874566796507,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 91,
+      "x": -1.3069078029843325e-05,
+      "y": 2.019880752377503,
+      "z": -223.438745591758,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 92,
+      "x": -1.3061016155119972e-05,
+      "y": 2.019780832575634,
+      "z": -223.43874644529237,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 93,
+      "x": -1.3042653396695044e-05,
+      "y": 2.019953405506385,
+      "z": -223.4387464394488,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 94,
+      "x": -1.2981463731804496e-05,
+      "y": 2.019880775245838,
+      "z": -223.4387478445261,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 95,
+      "x": -1.3054893456327562e-05,
+      "y": 2.01996795321611,
+      "z": -223.4387481285731,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 96,
+      "x": -1.2629416243754207e-05,
+      "y": 2.020098042608879,
+      "z": -223.4387478455819,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 97,
+      "x": -1.3484856037421963e-05,
+      "y": 2.01988070106745,
+      "z": -223.43872215736414,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 98,
+      "x": -1.3447676579687226e-05,
+      "y": 2.0199808444449445,
+      "z": -223.43872333425753,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 99,
+      "x": -1.344635832129589e-05,
+      "y": 2.019780793787504,
+      "z": -223.43872386388037,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 100,
+      "x": -1.3297503071391844e-05,
+      "y": 2.019780815622653,
+      "z": -223.43872636811713,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 101,
+      "x": -1.3198820318755708e-05,
+      "y": 2.0197806205105735,
+      "z": -223.4387271711882,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 102,
+      "x": -1.3180104569805081e-05,
+      "y": 2.019880782077962,
+      "z": -223.4387273175156,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 103,
+      "x": -1.3069414776473906e-05,
+      "y": 2.019987562591268,
+      "z": -223.43872864511326,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 104,
+      "x": -1.3031255771629077e-05,
+      "y": 2.0198806345433695,
+      "z": -223.43872979779977,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 105,
+      "x": -1.2996834768692253e-05,
+      "y": 2.0197807959193597,
+      "z": -223.4387314059559,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 106,
+      "x": -1.296887145169697e-05,
+      "y": 2.0199807959143072,
+      "z": -223.43873200184314,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 107,
+      "x": -1.3014662162475673e-05,
+      "y": 2.020099485729588,
+      "z": -223.4387321481271,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 108,
+      "x": -1.5675892930672916e-05,
+      "y": 2.0199057154750335,
+      "z": -223.43870602348656,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 109,
+      "x": -1.565311568214119e-05,
+      "y": 2.0195823370449943,
+      "z": -223.43870645525115,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 110,
+      "x": -1.5671925062860822e-05,
+      "y": 2.019782337039942,
+      "z": -223.43870660623224,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 111,
+      "x": -1.57276644777223e-05,
+      "y": 2.019880793399352,
+      "z": -223.4387058609958,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 112,
+      "x": -1.56295473224329e-05,
+      "y": 2.0198808175118756,
+      "z": -223.43870764325823,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 113,
+      "x": -1.5574123766910105e-05,
+      "y": 2.020009667965496,
+      "z": -223.43870779192713,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 114,
+      "x": -1.5610769536551125e-05,
+      "y": 2.0200999309490726,
+      "z": -223.43870868328742,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 115,
+      "x": -1.7764598282128027e-05,
+      "y": 2.01988074435576,
+      "z": -223.43868283734156,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 116,
+      "x": -2.374697200386374e-05,
+      "y": 2.0197941487313074,
+      "z": -223.4385718953743,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 117,
+      "x": -2.3784892879414507e-05,
+      "y": 2.0199806782511587,
+      "z": -223.43857130293839,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 118,
+      "x": -2.372526767863777e-05,
+      "y": 2.019880574564013,
+      "z": -223.4385725913702,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 119,
+      "x": -2.366616562760678e-05,
+      "y": 2.019880860887497,
+      "z": -223.43857389089314,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 120,
+      "x": -2.360660663164945e-05,
+      "y": 2.0198807030574244,
+      "z": -223.43857484383707,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 121,
+      "x": -2.3587984926582614e-05,
+      "y": 2.020080703052372,
+      "z": -223.43857513838662,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 122,
+      "x": -2.3625731454263906e-05,
+      "y": 2.0197805617754057,
+      "z": -223.4385760820546,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 123,
+      "x": -2.3625731454263906e-05,
+      "y": 2.0198807155720715,
+      "z": -223.43857578889694,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 124,
+      "x": -2.359595195628524e-05,
+      "y": 2.0198807904562273,
+      "z": -223.43857597221125,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 125,
+      "x": -2.3674828879056328e-05,
+      "y": 2.019880647017999,
+      "z": -223.43857680361367,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 126,
+      "x": -2.3585483487526723e-05,
+      "y": 2.0197806573742128,
+      "z": -223.43857823313994,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 127,
+      "x": -2.353888220291774e-05,
+      "y": 2.0199806573691603,
+      "z": -223.43857778697136,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 128,
+      "x": -2.369219678883335e-05,
+      "y": 2.0198806880616758,
+      "z": -223.43857766589483,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 129,
+      "x": -2.3602851397303745e-05,
+      "y": 2.0197807085751265,
+      "z": -223.43857880226344,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 130,
+      "x": -2.379806666347813e-05,
+      "y": 2.019980708570074,
+      "z": -223.4385783568676,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 131,
+      "x": -2.3768772958238834e-05,
+      "y": 2.0198807333981676,
+      "z": -223.43857908234827,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 132,
+      "x": -2.3963725759696594e-05,
+      "y": 2.0200532718699833,
+      "z": -223.4385784883168,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 133,
+      "x": -2.3963725759696594e-05,
+      "y": 2.019905867131456,
+      "z": -223.4385784883168,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 134,
+      "x": -2.392723130423898e-05,
+      "y": 2.019968148913904,
+      "z": -223.43857833860196,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 135,
+      "x": -2.392706770799132e-05,
+      "y": 2.0200995199884346,
+      "z": -223.43857847907015,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 136,
+      "x": -2.608441778967981e-05,
+      "y": 2.019780828097282,
+      "z": -223.4385612202695,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 137,
+      "x": -2.6037918564764858e-05,
+      "y": 2.01998082809223,
+      "z": -223.43856092232582,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 138,
+      "x": -2.607497532242727e-05,
+      "y": 2.0200996068560926,
+      "z": -223.4385603294177,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 139,
+      "x": -2.605983766596561e-05,
+      "y": 2.019880859374098,
+      "z": -223.4385611826248,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 140,
+      "x": -2.6087583683893264e-05,
+      "y": 2.0200808593690454,
+      "z": -223.438560291773,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 141,
+      "x": -2.6081552695739937e-05,
+      "y": 2.0197806522373867,
+      "z": -223.43856084713957,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 142,
+      "x": -2.6044364210559742e-05,
+      "y": 2.0198808403838484,
+      "z": -223.43856040740064,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 143,
+      "x": -2.6081366654335433e-05,
+      "y": 2.020080840378796,
+      "z": -223.43856129632826,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 144,
+      "x": -2.605524576044312e-05,
+      "y": 2.0198806304069876,
+      "z": -223.43856120058746,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 145,
+      "x": -2.6054647448043497e-05,
+      "y": 2.019990338751086,
+      "z": -223.4385607673432,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 146,
+      "x": -3.354238570680364e-05,
+      "y": 2.019880761628883,
+      "z": -223.43849479303802,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 147,
+      "x": -3.348836940337348e-05,
+      "y": 2.019780544706009,
+      "z": -223.438496044531,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 148,
+      "x": -3.348836940337348e-05,
+      "y": 2.0199601764361432,
+      "z": -223.4384954505906,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 149,
+      "x": -3.2996385314349634e-05,
+      "y": 2.020010724358144,
+      "z": -223.43849501377025,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 150,
+      "x": -3.2996385314349634e-05,
+      "y": 2.019880172381818,
+      "z": -223.43849532646516,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 151,
+      "x": -3.3026085153382194e-05,
+      "y": 2.0199687861895654,
+      "z": -223.43849880130853,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 152,
+      "x": -3.313481691120186e-05,
+      "y": 2.0200996801941073,
+      "z": -223.4384983663815,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 153,
+      "x": -3.267087902398343e-05,
+      "y": 2.0198808379500406,
+      "z": -223.438498212439,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 154,
+      "x": -3.2592660939529576e-05,
+      "y": 2.0198692143821972,
+      "z": -223.43849961264618,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 155,
+      "x": -3.25768767696973e-05,
+      "y": 2.0198808017594274,
+      "z": -223.4385003774737,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 156,
+      "x": -3.263219487712539e-05,
+      "y": 2.0200684730443754,
+      "z": -223.43850096833762,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 157,
+      "x": -3.259438635814312e-05,
+      "y": 2.0197807364020264,
+      "z": -223.4385020103812,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 158,
+      "x": -3.264086715335586e-05,
+      "y": 2.019968366919784,
+      "z": -223.4385027540739,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 159,
+      "x": -3.2597689874714524e-05,
+      "y": 2.0197809580349713,
+      "z": -223.43850314827225,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 160,
+      "x": -3.2616112336492824e-05,
+      "y": 2.019880687817931,
+      "z": -223.43850344453452,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 161,
+      "x": -3.257913370211603e-05,
+      "y": 2.0200683183356887,
+      "z": -223.4385038893455,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 162,
+      "x": -3.25286617892447e-05,
+      "y": 2.0198808734785416,
+      "z": -223.43850514606862,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 163,
+      "x": -3.25286617892447e-05,
+      "y": 2.020068011210242,
+      "z": -223.43850455141518,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 164,
+      "x": -3.31186770667687e-05,
+      "y": 2.0198807423148537,
+      "z": -223.4384765301338,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 165,
+      "x": -3.3307944601746646e-05,
+      "y": 2.019780630755122,
+      "z": -223.43847699845912,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 166,
+      "x": -3.331730247533378e-05,
+      "y": 2.0199681931044324,
+      "z": -223.43847699845912,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 167,
+      "x": -3.327613153756366e-05,
+      "y": 2.019880869498593,
+      "z": -223.43847765719414,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 168,
+      "x": -3.3244425969614815e-05,
+      "y": 2.01978084736038,
+      "z": -223.43847850558092,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 169,
+      "x": -3.327235818970727e-05,
+      "y": 2.0199808473553276,
+      "z": -223.4384780586654,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 170,
+      "x": -3.324833663118716e-05,
+      "y": 2.019582428569265,
+      "z": -223.43847862622863,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 171,
+      "x": -3.322002766890171e-05,
+      "y": 2.019782428556937,
+      "z": -223.4384792398437,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 172,
+      "x": -3.322941492254279e-05,
+      "y": 2.019979531840363,
+      "z": -223.43847968679142,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 173,
+      "x": -3.3227443471984435e-05,
+      "y": 2.0198807378619676,
+      "z": -223.43847993343786,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 174,
+      "x": -3.324639089517041e-05,
+      "y": 2.020002834004117,
+      "z": -223.43848022617365,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 175,
+      "x": -3.321235636131255e-05,
+      "y": 2.019682319070853,
+      "z": -223.4384811049256,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 176,
+      "x": -3.334392527174564e-05,
+      "y": 2.019880683357769,
+      "z": -223.43848050381297,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 177,
+      "x": -3.3330680470933976e-05,
+      "y": 2.0197809221062926,
+      "z": -223.43848071572978,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 178,
+      "x": -3.332133874620687e-05,
+      "y": 2.0199681826197775,
+      "z": -223.4384808651974,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    },
+    {
+      "frame": 179,
+      "x": -3.328016780843675e-05,
+      "y": 2.019880859013938,
+      "z": -223.4384815239324,
+      "grounded": true,
+      "swimming": false,
+      "velocityY": 0
+    }
+  ],
+  "fps": 30,
+  "durationSeconds": 6
 }
