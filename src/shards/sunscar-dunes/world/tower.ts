@@ -70,10 +70,10 @@ export function buildTower(footDrop: number): TowerParts {
   root.add(timber, basket);
   // the fire (off): three flame cones and a warm light
   const fire = new Group(); fire.position.set(0, deck + 1.05, 0); fire.visible = false;
-  const flameMat = new MeshBasicMaterial({ color: 0xff8a2a, transparent: true, opacity: 0.85, blending: AdditiveBlending, depthWrite: false });
-  const coreMat = new MeshBasicMaterial({ color: 0xffd27a, transparent: true, opacity: 0.9, blending: AdditiveBlending, depthWrite: false });
-  const flames = [new Mesh(new ConeGeometry(0.42, 1.5, 8, 1, true), flameMat), new Mesh(new ConeGeometry(0.3, 1.1, 8, 1, true), flameMat), new Mesh(new ConeGeometry(0.2, 0.8, 8, 1, true), coreMat)];
-  for (const [i, f] of flames.entries()) { f.geometry.translate(0, 0.5, 0); f.position.set(i === 1 ? 0.15 : 0, 0, i === 1 ? -0.1 : 0); fire.add(f); }
+  const flameMat = new MeshBasicMaterial({ color: 0xff4a08, transparent: true, opacity: 0.9, blending: AdditiveBlending, depthWrite: false });
+  const coreMat = new MeshBasicMaterial({ color: 0xffa020, transparent: true, opacity: 0.9, blending: AdditiveBlending, depthWrite: false });
+  const flames = [new Mesh(new ConeGeometry(0.5, 2.0, 8, 1, true), flameMat), new Mesh(new ConeGeometry(0.34, 1.5, 8, 1, true), flameMat), new Mesh(new ConeGeometry(0.3, 1.2, 8, 1, true), flameMat), new Mesh(new ConeGeometry(0.22, 0.9, 8, 1, true), coreMat)];
+  for (const [i, f] of flames.entries()) { f.geometry.translate(0, 0.45, 0); f.position.set(Math.cos(i * 2.1) * 0.14 * Math.min(1, i), 0, Math.sin(i * 2.1) * 0.14 * Math.min(1, i)); fire.add(f); }
   const light = new PointLight(0xff7a30, 0, 40, 1.6); light.position.y = 0.9; fire.add(light);
   root.add(fire);
   return { root, fire, light, flames, stairFoot: half + run * count, stairCount: count };

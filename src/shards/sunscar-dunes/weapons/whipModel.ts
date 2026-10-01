@@ -19,10 +19,10 @@ export class WhipModel {
 
   constructor() {
     const leather = new MeshStandardMaterial({ color: 0x3a1f10, roughness: 0.78, metalness: 0 });
-    const glove = new MeshStandardMaterial({ color: 0x1d1612, roughness: 0.9, metalness: 0 });
+    const glove = new MeshStandardMaterial({ color: 0x4a3020, roughness: 0.85, metalness: 0 });
     const handle = new Mesh(new CylinderGeometry(0.016, 0.02, 0.3, 8), leather); handle.position.y = 0.02;
     const knob = new Mesh(new SphereGeometry(0.024, 8, 6), leather); knob.position.y = -0.13;
-    const fist = new Mesh(new SphereGeometry(0.055, 10, 8), glove); fist.scale.set(1, 1.35, 0.95); fist.position.set(0.012, -0.03, 0.01);
+    const fist = new Mesh(new SphereGeometry(0.038, 10, 8), glove); fist.scale.set(1, 1.3, 0.95); fist.position.set(0.012, -0.03, 0.01);
     const geometry = new BufferGeometry(), count = THONG_POINTS * SIDES;
     geometry.setAttribute('position', new BufferAttribute(new Float32Array(count * 3), 3));
     geometry.setAttribute('normal', new BufferAttribute(new Float32Array(count * 3), 3));
@@ -57,7 +57,7 @@ export class WhipModel {
       if (p === undefined) continue;
       // the loop: out over the knuckles, round, and down out of frame
       const ang = u * Math.PI * 1.75;
-      const rx = -Math.sin(ang) * 0.075 - u * 0.05 + sway * u, ry = (Math.cos(ang) - 1) * 0.06 - u * u * 0.3, rz = -Math.sin(ang * 0.5) * 0.035;
+      const rx = -Math.sin(ang) * 0.055 - u * 0.04 + sway * u, ry = (Math.cos(ang) - 1) * 0.045 - u * u * 0.24, rz = -Math.sin(ang * 0.5) * 0.03;
       // the throw: the line rolls out ahead of the hand (the base first), with a travelling hump that runs to the tip
       const k = Math.min(1, Math.max(0, crack * 1.5 - u * 0.5)), roll = k * k * (3 - 2 * k);
       const hump = Math.sin(Math.PI * Math.min(1, u / Math.max(0.05, crack))) * 0.5 * (1 - crack);
