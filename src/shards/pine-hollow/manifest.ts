@@ -1,3 +1,4 @@
+import { FOREST_AUDIO } from './audio/profile';
 import compareRidgeLive from './explore/pine-ridge-live.jpg';
 import compareRidgeTarget from './explore/pine-ridge-target.jpg';
 import compareDenLive from './explore/pine-den-live.jpg';
@@ -37,7 +38,7 @@ export const PINE_HOLLOW: ShardManifest = {
   },
   render: async () => (await import('./look/render')).shardRender(),
   api: 1,
-  audio: { ambience: 'ambience.pine', score: 'score.pine', preload: () => import('./audio/files').then((m) => m.createPineAudio()) },
+  audio: { bed: FOREST_AUDIO.bed, samples: FOREST_AUDIO.samples, ambience: 'ambience.pine', score: 'score.pine', preload: () => import('./audio/files').then((m) => m.createPineAudio()) },
   load: () => import('./plugin'),
   boot: { stagedWorld: true, files: bootFiles, sources: bootSources, bakedUnread: BAKED_UNREAD, steps: PINE_STEPS, bytes: PINE_BYTES },
   kitLook: 'pbr',

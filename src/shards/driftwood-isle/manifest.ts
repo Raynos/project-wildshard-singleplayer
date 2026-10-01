@@ -99,6 +99,7 @@ export const PRACTICE_CRAB = { x: -7, z: -143 };
 const ISLAND_BOARS = ['boar', 'sow', 'black', 'big'];
 
 export const DRIFTWOOD_ISLE: ShardManifest = {
+  audio: { bed: 'island', samples: { loopGains: { island: 0.5 } }, ambience: 'legacy', score: 'legacy' },
   uses: ['dayCycle'],
   api: 1,
   kitLook: 'toon',
@@ -116,6 +117,7 @@ export const DRIFTWOOD_ISLE: ShardManifest = {
   status: 'live',
   placement: { grid: [-1, 6], size: [500, 500, 500] },
   slug: 'driftwood-isle',
+  next: 'nalati-grasslands',
   name: 'Driftwood Isle',
   label: '(−1, +6)',
   seed: SEED,

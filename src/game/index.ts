@@ -35,6 +35,9 @@ export { QuestState, type QuestMarker, type NpcDef } from './quest/quest';
 export { DialogueBox, ObjectiveLine } from './quest/QuestUI';
 export { ShardComplete, setCompleteEntry, type ShardCompleteData } from './complete/ShardComplete';
 export { NpcTalk, QuestChip, type LiveMarker } from './quest/core';
-export { findShard, findChunk } from './shard/registry';
+export { findShard, findChunk, getActiveChunk } from './shard/registry';
 export { Owned, isOwnedId, isCosmetic, OWNED } from './loot/Owned';
 export type { GearLoot, CosmeticSlot, FindsView } from './bag/bag';
+
+export { installLoot, type ScopedLootHost, type ScopedLoot, type LootPresentation, type LootShop } from './loot/runtime';
+export { onCreatureDeath, DEATH_ORDER, type CreatureDeathSource } from './loot/deaths';

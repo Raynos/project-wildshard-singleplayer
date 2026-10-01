@@ -38,7 +38,6 @@ export type { ScoreSource, SetScore } from './audio/SetScore';
 export type { CuePlayer, CueMap, CueOpts, CueBank, SampleClip } from './audio/Cues';
 export type { ZoneWeights } from './audio/AmbienceBeds';
 export type { LevelAudioProfile } from './audio/levelAudio';
-export type { IslandSfx } from './audio/IslandSfx';
 export type { MusicState } from './audio/Music';
 export { tap } from './core/harnessTap';
 export { castRay, castSegment, floorBelow, lineOfSight } from './physics/query';
@@ -249,3 +248,6 @@ export { modelContext } from './models/model';
 export { activeBodies, type Body, type BodySpec } from './physics/bodies';
 export { groups } from './physics/groups';
 export { waveHeight } from './world/waves';
+
+export { vocal, windup, impact } from './audio/gen';
+export { icon } from './ui/icons';

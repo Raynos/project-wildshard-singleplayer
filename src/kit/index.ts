@@ -50,3 +50,5 @@ export { KIT_ITEMS } from './bag/items';
 export { loadGrassField } from './lookApi';
 
 export { NpcRig, type NpcRow, type NpcModel, type NpcFace } from './npc/npcRig';
+
+export { sharedWeaponVoices } from './audio/weaponVoices';

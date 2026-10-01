@@ -1,3 +1,4 @@
+import { NALATI_BUDGET_INPUTS } from './budgets';
 import type { ShardManifest } from '#game/shard/manifest';
 import { SEED, SPAWN, TERRAIN, groundColor, surfaceAt, loneSpruceMask, edgeBermAt } from './world/terrain';
 import { NALATI_MAP } from './layout';
@@ -23,7 +24,8 @@ export const NALATI_GRASSLANDS: ShardManifest = {
   api: 1,
   load: () => import('./plugin'),
   loadout: { weapons: ['bow', 'sabre', 'spear', 'rifle'], tools: [], start: ['bow', 'sabre', 'spear'], held: 'bow', loans: [{ id: 'rifle', in: 'practice' }] },
-  audio: { ambience: 'ambience.nalati', score: 'score.nalati', alertOnlyHostile: true, preload: () => import('./audio/files').then((m) => m.createNalatiAudio()) },
+  budgets: NALATI_BUDGET_INPUTS,
+  audio: { bed: 'steppe', ambience: 'ambience.nalati', score: 'score.nalati', alertOnlyHostile: true, preload: () => import('./audio/files').then((m) => m.createNalatiAudio()) },
   boot: { stagedWorld: true, files: bootFiles, sources: bootSources, steps: BOOT_STEPS, bytes: { trees: 'spruce bark' }, lateReads },
   bag: { tabs: ['map', 'gear', 'finds', 'feats'], pack: { slots: 0 }, skinsTitle: 'Skins' },
   kitLook: 'painterly',

@@ -59,7 +59,7 @@ export const NINE_DRAGON_STACK: ShardManifest = {
   dev: { poses: () => import('./mockupCameras').then((m) => m.MOCKUP_CAMERAS) },
   load: () => import('./plugin'),
   boot: { steps: {}, files: () => FILES, audio: async () => (await import('./audio/files')).BOOT_AUDIO(), explore: { art: [explorePractice, exploreWorld, exploreModels, exploreSets] }, precache: [], barrier: true, phone: { deferExtras: true, fragile: true, trace: true }, cullBeforeFirstDraw: true },
-  audio: { ambience: 'ambience.nd', score: 'score.nd', preload: async () => (await import('./audio/files')).createNdAudio() },
+  audio: { bed: 'forest', samples: { omitLoops: ['shrine'], omitShots: ['crab_click', 'crab_snap', 'monkey_chatter', 'monkey_shriek', 'sailor_groan', 'sailor_slash', 'coconut_hit', 'coconut_land', 'gull'], loopGains: { forest: 0.5 } }, ambience: 'ambience.nd', score: 'score.nd', preload: async () => (await import('./audio/files')).createNdAudio() },
   tiers: { phone: { ao: false, slices: false, aa: 'fxaa', warmTurns: 0, textures: 'img' }, desktop: { ao: true, slices: false } },
   assetGlobs: ['public/assets/nine-dragon/**', 'public/assets/gpu/nine-dragon/**', 'public/assets/music/nine-dragon-stack/**', 'public/assets/sfx/nine-dragon-stack/**', 'public/assets/title/nine-dragon-stack-portrait.jpg'],
   ktx2: () => import('./ktx2.generated'),

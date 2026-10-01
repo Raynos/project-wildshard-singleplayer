@@ -35,7 +35,8 @@ export class Rand {
 export class Biquad {
   private b0 = 1; private b1 = 0; private b2 = 0; private a1 = 0; private a2 = 0;
   private z1 = 0; private z2 = 0;
-  constructor(type: FilterType, freq: number, q: number, private readonly sr: number, gainDb = 0) { this.set(type, freq, q, gainDb); }
+  private readonly sr: number;
+  constructor(type: FilterType, freq: number, q: number, sr: number, gainDb = 0) { this.sr = sr; this.set(type, freq, q, gainDb); }
   set(type: FilterType, freq: number, q: number, gainDb = 0): this {
     const f = Math.min(Math.max(freq, 5), this.sr * 0.49);
     const w = (2 * Math.PI * f) / this.sr, cw = Math.cos(w), sw = Math.sin(w), alpha = sw / (2 * Math.max(q, 0.05));
@@ -65,7 +66,8 @@ export class Biquad {
 /** Paul Kellet's economy pink filter over white noise */
 export class Pink {
   private b0 = 0; private b1 = 0; private b2 = 0;
-  constructor(private readonly r: Rand) {}
+  private readonly r: Rand;
+  constructor(r: Rand) { this.r = r; }
   next(): number {
     const w = this.r.bi();
     this.b0 = 0.99765 * this.b0 + w * 0.099046;
@@ -112,7 +114,11 @@ export class Modes {
  */
 export class Glottis {
   private ph = 0; private per = 1; private amp = 1;
-  constructor(private readonly sr: number, private readonly r: Rand, private readonly jitter = 0.02, private readonly shimmer = 0.08) {}
+  private readonly sr: number;
+  private readonly r: Rand;
+  private readonly jitter: number;
+  private readonly shimmer: number;
+  constructor(sr: number, r: Rand, jitter = 0.02, shimmer = 0.08) { this.sr = sr; this.r = r; this.jitter = jitter; this.shimmer = shimmer; }
   run(f0: number, tense: number, breath = 0.08): number {
     this.ph += f0 / this.sr * this.per;
     if (this.ph >= 1) { this.ph -= 1; this.per = 1 + this.r.gauss() * this.jitter; this.amp = 1 + this.r.gauss() * this.shimmer; }
@@ -129,7 +135,8 @@ export class Glottis {
 /** a parallel formant filter (vowel): [freq, bandwidth-Q, gain] */
 export class Formants {
   private f: Biquad[];
-  constructor(sr: number, private spec: [number, number, number][]) { this.f = spec.map(([fr, q]) => new Biquad('bandpass', fr, q, sr)); }
+  private spec: [number, number, number][];
+  constructor(sr: number, spec: [number, number, number][]) { this.spec = spec; this.f = spec.map(([fr, q]) => new Biquad('bandpass', fr, q, sr)); }
   /** morph the formant frequencies (call every ~32 samples) */
   set(spec: [number, number, number][]): void { this.spec = spec; spec.forEach(([fr, q], i) => { this.f[i]?.set('bandpass', fr, q); }); }
   run(x: number): number { let y = 0; for (let i = 0; i < this.f.length; i++) y += (this.f[i]?.run(x) ?? 0) * (this.spec[i]?.[2] ?? 0); return y; }

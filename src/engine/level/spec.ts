@@ -7,6 +7,7 @@ import type { Tier } from '../core/tier';
 import type { HuntTuning } from '../entities/AnimalManager';
 import type { RosterEntry } from '../models/live';
 import type { InputContextDef } from './context';
+import type { SfxDecodePolicy } from '../audio/preload';
 import type { LevelAudioProfile } from '../audio/levelAudio';
 import type { AtmosphereSpec, ExploreSpec, ForestSpec, GradeSpec, GradeLook, HerdPlan, HorizonSpec, HudSpec, LevelAssets, MinimapSpec, PoiSpec, RGB, SkySpec, SpawnPose, TerrainField, TreeSpec } from './data';
 import type { BudgetInputs } from '../render/budgets';
@@ -18,7 +19,7 @@ export interface Bounds { x0: number; x1: number; z0: number; z1: number; floor:
 export interface TierKnobs { treeHiDist?: number; shadowFar?: number; animalShadowDist?: number; grassSlots?: number; envSteps?: boolean; pointLightSkip?: boolean; skipRaysOffscreen?: boolean; godRays?: boolean; ao?: boolean; aa?: 'fxaa' | 'smaa' | 'off'; slices?: boolean; warmTurns?: number; textures?: 'img' | 'ktx2'; msaa?: number; ticks?: Readonly<Record<string, TickRate>> }
 export type TierOverrides = Partial<Record<Tier, TierKnobs>>;
 export type { BudgetInputs } from '../render/budgets';
-export interface AudioSpec { alertOnlyHostile?: boolean; ambience: string; score: string; cues?: () => Promise<object>; preload?: () => Promise<LevelAudioProfile> }
+export interface AudioSpec { bed?: string; samples?: SfxDecodePolicy; alertOnlyHostile?: boolean; ambience: string; score: string; cues?: () => Promise<object>; preload?: () => Promise<LevelAudioProfile> }
 export interface BootSpec {
   /** The plugin runs grass, cabins and props as separate counted world steps. */
   stagedWorld?: boolean;
