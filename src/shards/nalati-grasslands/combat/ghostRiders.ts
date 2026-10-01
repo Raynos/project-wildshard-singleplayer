@@ -1,5 +1,5 @@
 import { nightSpawner } from './spawns';
-import { GroupBrain, app, pinBrain, type Game, type Sky, type Player, type Forest, type TargetAnimal, type TargetHit, Projectiles, type ProjectileKind, setting, type Animal, type AnimalManager, type Spawner, type DayCycleClock, heightAt } from '#engine';
+import { GroupBrain, app, pinBrain, type Scope, type Game, type Sky, type Player, type Forest, type TargetAnimal, type TargetHit, Projectiles, type ProjectileKind, setting, type Animal, type AnimalManager, type Spawner, type DayCycleClock, heightAt } from '#engine';
 import * as THREE from 'three';
 
 
@@ -50,7 +50,7 @@ import { BOWL } from '../layout';
 export interface GhostRidersCtx { game: Game; sky: Sky; player: Player; forest: Forest; clock: DayCycleClock }
 export type GhostVariant = 'rider' | 'captain';
 interface Rider {
-  a: Animal; mats: GhostMat[]; line: Line | null; slot: number;
+  a: Animal; scope: Scope; mats: GhostMat[]; line: Line | null; slot: number;
   fade: number; fadeTarget: number; dying: number; fireT: number; dead: boolean;
   /** a storm rider (the Titan's, B14): no arrows — its script drives its charges */
   quiet: boolean;
@@ -196,7 +196,6 @@ export class GhostRiders extends GroupBrain<Animal> {
     ctx.clock.onNight(() => { this.killsTonight = 0; if (!this.hold && this.living() === 0) this.respawnT = 2; });
     ctx.clock.onDawn(() => { this.dawn(); });
     ctx.clock.onDay(() => { this.dawn(); });
-    ctx.game.levelScope.onDispose(app.debug.scopedExpose('nalati.ghosts', this)); // dev / screenshots
   }
 
   private placeholder(): TargetAnimal {
@@ -227,16 +226,19 @@ export class GhostRiders extends GroupBrain<Animal> {
     // the ghost look: one material on the whole horse (not the painterly three), a hooded rider on the body bone
     const look = o.storm === true ? 'storm' : variant;
     const horseMat = ghostMaterial(look), riderMat = ghostMaterial(look);
-    if (o.storm === true) { a.scale *= 1.6; a.mesh.scale.setScalar(a.scale); pinBrain(a, this.ctx.game.levelScope); }   // the Titan's 8 m cloud horsemen
+    const scope = this.ctx.game.levelScope.child('ghost-rider');
+    scope.own(horseMat.mat); scope.own(riderMat.mat);
+    if (o.storm === true) { a.scale *= 1.6; a.mesh.scale.setScalar(a.scale); pinBrain(a, scope); }   // the Titan's 8 m cloud horsemen
     a.mesh.material = horseMat.mat;
     // no shadow from a ghost: the manager sets castShadow every frame, so pin it off
     Object.defineProperty(a.mesh, 'castShadow', { get: () => false, set: () => undefined, configurable: true });
     const rider = new THREE.Mesh(riderGeometry(variant === 'captain'), riderMat.mat);
+    scope.own(rider.geometry);
     rider.name = 'ghost-rider-figure';
     rider.frustumCulled = false;
     const body = a.mesh.skeleton.getBoneByName('body');
     if (body !== undefined) { body.add(rider); rider.position.set(0, 0, 0); }
-    const r: Rider = { a, mats: [horseMat, riderMat], line: null, slot: 0, fade: 0, fadeTarget: 1, dying: 0, fireT: 2 + app.rng.stream('ai').next() * 2.5, dead: false, quiet: o.storm === true };
+    const r: Rider = { a, scope, mats: [horseMat, riderMat], line: null, slot: 0, fade: 0, fadeTarget: 1, dying: 0, fireT: 2 + app.rng.stream('ai').next() * 2.5, dead: false, quiet: o.storm === true };
     this.riders.push(r);
     _v.set(o.x, heightAt(o.x, o.z) + 1, o.z);
     this.mist.burst(_v, 24, 1.6, 0.8, 1.6, 0.9, MIST, 0.25, FLAG_GROW | FLAG_RISE, 1.2);
@@ -430,6 +432,6 @@ export class GhostRiders extends GroupBrain<Animal> {
     const a = r.a;
     this.spawner?.retire(a);
     const i = this.members.indexOf(a); if (i !== -1) this.members.splice(i, 1);
-    for (const m of r.mats) m.mat.dispose();
+    r.scope.dispose();
   }
 }
