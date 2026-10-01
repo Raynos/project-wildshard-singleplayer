@@ -1,3 +1,4 @@
+import { uiScope, mountUi } from './ownership';
 import { engineString } from '#engine/strings';
 import * as THREE from 'three';
 import './styles/elite.css';
@@ -47,6 +48,7 @@ function skullPulse(t: number): string {
 const _v = new THREE.Vector3();
 
 export class EliteBar {
+  readonly scope = uiScope('EliteBar');
   readonly root: HTMLElement;
   private bar: HTMLElement; private name: HTMLElement; private epithet: HTMLElement; private fill: HTMLElement; private lag: HTMLElement;
   private cap: HTMLElement; private arrow: HTMLElement;
@@ -61,25 +63,25 @@ export class EliteBar {
 
   constructor(parent: HTMLElement = document.getElementById('hud') ?? document.body) {
     const el = (tag: string, cls: string, html = ''): HTMLElement => { const e = document.createElement(tag); e.className = cls; if (html) e.innerHTML = html; return e; };
-    this.root = el('div', 'ws-elite');
-    this.bar = el('div', 'ws-elite-bar');
-    this.name = el('div', 'ws-elite-name'); this.epithet = el('div', 'ws-elite-epithet');
-    const frame = el('div', 'ws-elite-frame');
-    const track = el('div', 'ws-elite-track');
-    this.lag = el('div', 'ws-elite-lag'); this.fill = el('div', 'ws-elite-fill');
-    track.append(this.lag, this.fill, el('i', 'ws-elite-tick'), el('div', 'ws-elite-shimmer'));
-    frame.append(el('span', 'ws-elite-skull', SKULL), track);
-    this.cap = el('div', 'ws-elite-caption');
-    this.arrow = el('i', 'ws-elite-arrow');
+    this.root = el('div', engineString('s_beb26b328669'));
+    this.bar = el('div', engineString('s_e9c3ff48e734'));
+    this.name = el('div', engineString('s_773f5023eb38')); this.epithet = el('div', engineString('s_615cabd12786'));
+    const frame = el('div', engineString('s_ff51d38b2c32'));
+    const track = el('div', engineString('s_11c4725bfcf1'));
+    this.lag = el('div', engineString('s_d61ce14df1db')); this.fill = el('div', engineString('s_140a09bf0fc0'));
+    track.append(this.lag, this.fill, el('i', engineString('s_299f841789a8')), el('div', engineString('s_7c362fc63ef4')));
+    frame.append(el('span', engineString('s_02d5bb9a468b'), SKULL), track);
+    this.cap = el('div', engineString('s_ed4694ff96c0'));
+    this.arrow = el('i', engineString('s_1052929f5366'));
     this.bar.append(this.name, this.epithet, frame, this.cap, this.arrow);
-    this.ban = el('div', 'ws-elite-banner');
-    this.banName = el('div', 'ws-elite-banner-name');
-    const banText = el('div', 'ws-elite-banner-text');
-    banText.append(el('div', 'ws-elite-banner-kicker', engineString('s_59729f06918a')), this.banName);
-    this.ban.append(el('span', 'ws-elite-skull', SKULL), banText);
-    this.chev = el('i', 'ws-elite-chevron');
+    this.ban = el('div', engineString('s_31fdfcd8ef0a'));
+    this.banName = el('div', engineString('s_78b3e3398890'));
+    const banText = el('div', engineString('s_bfb25bd4f3f5'));
+    banText.append(el('div', engineString('s_e25cdae4577d'), engineString('s_59729f06918a')), this.banName);
+    this.ban.append(el('span', engineString('s_02d5bb9a468b'), SKULL), banText);
+    this.chev = el('i', engineString('s_026ecaf4ec08'));
     this.root.append(this.bar, this.ban, this.chev);
-    parent.append(this.root);
+    mountUi(this.root, this.scope, parent);
   }
 
   show(name: string, epithet: string): void {

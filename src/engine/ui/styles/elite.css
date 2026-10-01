@@ -4,7 +4,7 @@
 .ws-elite {
   --gold: #e9b44c; --gold-hi: #fff0b5; --gold-lo: #8a5a16;
   --serif: 'Cinzel', 'Trajan Pro', 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, serif;
-  position: absolute; inset: 0; pointer-events: none; z-index: 4;
+  position: absolute; inset: 0; pointer-events: none; z-index: calc(var(--ws-layer-hud) + 4);
 }
 #hud.intro .ws-elite { display: none; }
 

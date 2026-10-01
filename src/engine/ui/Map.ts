@@ -1,3 +1,4 @@
+import { uiScope, mountUi } from './ownership';
 import { engineString } from '#engine/strings';
 /**
  * The full map — the MAP tab of the in-game menu (src/engine/ui/Menu.ts): tap the minimap or press M.
@@ -52,6 +53,7 @@ const MERGE_M = 30;
 const ctx2d = (c: HTMLCanvasElement): CanvasRenderingContext2D => { const ctx = c.getContext('2d'); if (!ctx) throw new Error('FullMap: no 2d context'); return ctx; };
 
 export class FullMap {
+  readonly scope = uiScope('FullMap');
   readonly root: HTMLDivElement;
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
@@ -78,28 +80,28 @@ export class FullMap {
     this.root.append(this.canvas);
 
     // pan / pinch
-    this.canvas.addEventListener('pointerdown', (e) => { this.canvas.setPointerCapture(e.pointerId); this.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY }); if (this.pointers.size === 2) { this.pinchDist = this.dist(); this.pinchZoom = this.zoom; } });
-    this.canvas.addEventListener('pointermove', (e) => {
+    this.scope.listen(this.canvas, 'pointerdown', (e) => { this.canvas.setPointerCapture(e.pointerId); this.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY }); if (this.pointers.size === 2) { this.pinchDist = this.dist(); this.pinchZoom = this.zoom; } });
+    this.scope.listen(this.canvas, 'pointermove', (e) => {
       const p = this.pointers.get(e.pointerId); if (!p) return;
       if (this.pointers.size === 1) { this.panBy(e.clientX - p.x, e.clientY - p.y); }
       p.x = e.clientX; p.y = e.clientY;
       if (this.pointers.size === 2 && this.pinchDist > 0) { const d = this.dist(); this.zoomTo(this.pinchZoom * (d / this.pinchDist), this.mid()); }
     });
     const end = (e: PointerEvent) => { this.pointers.delete(e.pointerId); if (this.pointers.size < 2) this.pinchDist = 0; };
-    this.canvas.addEventListener('pointerup', end); this.canvas.addEventListener('pointercancel', end);
-    this.canvas.addEventListener('wheel', (e) => { e.preventDefault(); this.zoomTo(this._zoom * (e.deltaY < 0 ? 1.15 : 1 / 1.15), { x: e.clientX, y: e.clientY }); }, { passive: false });
+    this.scope.listen(this.canvas, 'pointerup', end); this.scope.listen(this.canvas, 'pointercancel', end);
+    this.scope.listen(this.canvas, 'wheel', (e) => { e.preventDefault(); this.zoomTo(this._zoom * (e.deltaY < 0 ? 1.15 : 1 / 1.15), { x: e.clientX, y: e.clientY }); }, { passive: false });
   }
 
   /** put the map in its frame (the menu's MAP tab); the frame is the map's viewport */
-  mount(frame: HTMLElement): void { frame.append(this.root); }
+  mount(frame: HTMLElement): void { mountUi(this.root, this.scope, frame); }
   /** the minimap as a button: `onTap` (the menu opens on the Map tab) */
   bindMinimap(onTap: () => void): void {
     const m = this.minimap.root;
     m.style.pointerEvents = 'auto';
     m.style.cursor = 'pointer';
-    m.style.zIndex = '6'; // above the phone's full-screen touch layer (.ws-touch, z-index 5), which would otherwise eat the tap
-    m.addEventListener('pointerdown', (e) => { e.stopPropagation(); e.preventDefault(); });
-    m.addEventListener('pointerup', (e) => { e.stopPropagation(); onTap(); });
+    m.style.zIndex = 'calc(var(--ws-layer-hud) + 6)'; // above the phone's full-screen touch layer (.ws-touch, z-index 5), which would otherwise eat the tap
+    this.scope.listen(m, 'pointerdown', (e) => { e.stopPropagation(); e.preventDefault(); });
+    this.scope.listen(m, 'pointerup', (e) => { e.stopPropagation(); onTap(); });
   }
 
   get isOpen(): boolean { return this.open; }

@@ -22,20 +22,20 @@ export function hudAdapters(game: Game, scope: Scope, root: HTMLElement,
   } }, scope);
   const labels = new Map<DiscSpot, { hint: TouchRelabel }[]>();
   return {
-    widget: (band, el, order) => { if (band === 'status') hudSlots.statusRow(el, order); else root.append(el); return () => { hudSlots.discard(el); }; },
-    disc: (opts) => { const button = hudSlots.disc(opts); return { button, dispose: () => { hudSlots.discard(button); } }; },
+    widget: (band, el, order) => { hudSlots.widget(band, el, order, scope, root); return () => { hudSlots.discard(el); }; },
+    disc: (opts) => { const button = hudSlots.disc(opts, scope); return { button, dispose: () => { hudSlots.discard(button); } }; },
     relabel: (spot, label, icon, appearance) => {
       const entry = { hint: appearance ?? { label, icon, tone: 'rest' as const } };
       const list = labels.get(spot) ?? []; labels.set(spot, list); list.push(entry); relabel(spot, entry.hint);
       return () => { const at = list.indexOf(entry); if (at !== -1) list.splice(at, 1); relabel(spot, list.at(-1)?.hint ?? null); };
     },
     verb: (slot, opts) => {
-      const button = hudSlots.disc({ ...opts, cls: 'ws-verb', spot: slot === 'verb.1' ? 'lean-l' : 'lean-r' });
+      const button = hudSlots.disc({ ...opts, cls: 'ws-verb', spot: slot === 'verb.1' ? 'lean-l' : 'lean-r' }, scope);
       hudSlots.show(button, true); return () => { hudSlots.discard(button); };
     },
     pin: (at, el) => {
       Object.assign(el.style, { position: 'fixed', left: '0', top: '0', display: 'none', pointerEvents: 'none', willChange: 'transform' });
-      const pin = { at, el, x: Number.NaN, y: Number.NaN, shown: false }; pins.add(pin); root.append(el);
+      const pin = { at, el, x: Number.NaN, y: Number.NaN, shown: false }; pins.add(pin); hudSlots.widget('band.1', el, 0, scope, root);
       return () => { pins.delete(pin); el.remove(); };
     },
   };

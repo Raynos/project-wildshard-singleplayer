@@ -1,3 +1,4 @@
+import type { BagTabId, BagTabSpec, BagFragment } from '../bag/registry';
 import { registerItemRow } from '../bag/itemCatalog';
 import { registerAchievements, type AchievementDef } from '../achievements';
 import { registerCompendium } from '../compendium/registry';
@@ -7,9 +8,7 @@ import { normalizeItemRow, type ItemRow } from '../bag/items';
 import type { ContentRow, SkinDef, EngineRows, LevelContext } from '#engine';
 import type { ShardManifest } from './manifest';
 
-export type BagTabId = 'map' | 'gear' | 'pack' | 'finds' | 'feats';
-export interface BagTabSpec { id: BagTabId; title: string }
-export interface BagFragment { id: string; render: (host: HTMLElement) => void }
+export type { BagTabId, BagTabSpec, BagFragment } from '../bag/registry';
 export interface BagVerbs { tab: (spec: BagTabSpec) => void; fragment: (tab: BagTabId, fragment: BagFragment) => void }
 export interface GameRowMap { item: ItemRow; lootTable: ContentRow; skin: SkinDef; feat: AchievementDef; shop: ContentRow; compendium: ShardCompendium & { id: string }; places: ContentRow }
 export type GameRows = { [K in keyof GameRowMap]: (value: GameRowMap[K] | readonly GameRowMap[K][]) => void };

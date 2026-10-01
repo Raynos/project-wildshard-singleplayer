@@ -1,3 +1,4 @@
+import { uiScope, mountUi } from './ownership';
 import { engineString } from '#engine/strings';
 import type { WeaponId, EquipmentService } from '../combat/EquipmentService';
 
@@ -39,6 +40,7 @@ interface Wedge { id: WeaponId; el: SVGPathElement; label: HTMLElement }
 const SVGNS = 'http://www.w3.org/2000/svg';
 
 export class WeaponStrip {
+  readonly scope = uiScope('WeaponStrip');
   readonly el: HTMLElement;
   private readonly touch: boolean;
   private slots: Slot[] = [];
@@ -53,7 +55,7 @@ export class WeaponStrip {
   private wedges: Wedge[] = [];
   private pieCentre = { x: 0, y: 0 };
   private pick: WeaponId | null = null;
-  private press: { id: number; timer: number; open: boolean } | null = null;
+  private press: { id: number; timer: ReturnType<typeof setTimeout> | 0; open: boolean } | null = null;
 
   constructor(private weapons: EquipmentService) {
     const hud = document.getElementById('hud') ?? document.body;
@@ -69,12 +71,12 @@ export class WeaponStrip {
       this.dots = this.el.querySelector('.ws-touch-swap-dots');
       this.pie = document.createElement('div');
       this.pie.className = 'ws-touch-pie';
-      layer.append(this.pie, this.el);
+      mountUi(this.pie, this.scope, layer); mountUi(this.el, this.scope, layer);
       this.wireRing();
     } else {
       this.el = document.createElement('div');
       this.el.className = 'ws-touch-strip desk';
-      hud.append(this.el);
+      mountUi(this.el, this.scope, hud);
     }
     this.update();
   }
@@ -119,7 +121,7 @@ export class WeaponStrip {
       b.innerHTML = engineString('s_c54323633e60', [i + 1, k.row.ui.swapIcon, k.row.ui.swapName ?? k.row.ui.name]);
       const ammo = b.querySelector<HTMLElement>('.ws-touch-slot-ammo');
       if (ammo === null) return;
-      b.addEventListener('pointerdown', (e) => {
+      this.scope.listen(b, 'pointerdown', (e) => {
         e.stopPropagation(); e.preventDefault();
         if (this.weapons.enabled) this.weapons.select(k.id);
       });
@@ -138,16 +140,16 @@ export class WeaponStrip {
 
   private wireRing(): void {
     const ring = this.el;
-    ring.addEventListener('pointerdown', (e) => {
+    this.scope.listen(ring, 'pointerdown', (e) => {
       e.stopPropagation(); e.preventDefault();
       if (this.press !== null || !this.weapons.enabled) return;
       ring.setPointerCapture(e.pointerId);
       ring.classList.add('down');
-      const press = { id: e.pointerId, timer: 0, open: false };
-      press.timer = window.setTimeout(() => { press.open = true; this.openPie(); }, HOLD_MS);
+      const press = { id: e.pointerId, timer: 0 as ReturnType<typeof setTimeout> | 0, open: false };
+      press.timer = this.scope.timeout(HOLD_MS, () => { press.open = true; this.openPie(); });
       this.press = press;
     });
-    ring.addEventListener('pointermove', (e) => {
+    this.scope.listen(ring, 'pointermove', (e) => {
       const p = this.press;
       if (p === null || e.pointerId !== p.id || !p.open) return;
       e.stopPropagation();
@@ -157,7 +159,7 @@ export class WeaponStrip {
       const p = this.press;
       if (p === null || e.pointerId !== p.id) return;
       e.stopPropagation();
-      window.clearTimeout(p.timer);
+      clearTimeout(p.timer);
       this.press = null;
       ring.classList.remove('down');
       if (ring.hasPointerCapture(e.pointerId)) ring.releasePointerCapture(e.pointerId);
@@ -168,8 +170,8 @@ export class WeaponStrip {
       this.closePie();
       if (pick !== null && pick !== this.weapons.current.id) this.weapons.select(pick);
     };
-    ring.addEventListener('pointerup', (e) => { end(e, false); });
-    ring.addEventListener('pointercancel', (e) => { end(e, true); });
+    this.scope.listen(ring, 'pointerup', (e) => { end(e, false); });
+    this.scope.listen(ring, 'pointercancel', (e) => { end(e, true); });
   }
 
   /** open the pie on the ring's centre: one wedge per owned weapon across the right half, the held one lit */

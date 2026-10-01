@@ -131,7 +131,7 @@ export async function weatherLeak(browser,url,opts) {
     console.error(`parity: ${opts.shard}.${opts.tier} weather leak`);
     await advance(page,900);
     const result=object(await page.evaluate(()=>{
-      const p=/** @type {typeof window.__wildshard & {leak:()=>Promise<unknown>}} */(window.__wildshard);
+      const p=/** @type {{leak:()=>Promise<unknown>}} */(window.__wildshard);
       return p.leak();
     }));
     object(result.before).errors=[];object(result.after).errors=[...new Set(errors)];return result;

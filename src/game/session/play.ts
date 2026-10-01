@@ -58,6 +58,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
   const skins = new SkinLocker(chunk.slug, boot.skins);                          // legendary skins owned / worn (persisted; wired below)
   const menu = new GameMenu({
     levelName: chunk.name,
+    ...(manifest.bag?.tabs === undefined ? {} : { tabs: manifest.bag.tabs }),
     fullMap, progress, inventory,
     kit: () => weapons.available.map((w) => { const worn = skins.wearing(w.id); return equipmentEntry(w, weapons.current, worn ? ` · ${worn.name}` : ''); }),
     onEquip: (id) => weapons.select(id as WeaponId),
@@ -99,16 +100,12 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
     toast: (t) => { if (explore?.active === true) explore.toast(t); else hud.toast(t); },
     touch: touchUi,
   })); return feedback; };
-  document.addEventListener('keydown', (e) => {
-    if (e.code !== 'F8' || e.repeat || !quickNote() || !hud.entered || menu.isOpen || feedbackHeld) return;
-    e.preventDefault();
-    void loadFeedback().then((f) => f.openQuick());
-  });
+  app.input.bind('quickNote', () => { if (quickNote() && hud.entered && !menu.isOpen && !feedbackHeld) void loadFeedback().then((f) => f.openQuick()); }, game.levelScope);
   menu.onFeedbackTab = (panel) => { void loadFeedback().then((f) => f.mountTab(panel)); };
   // the ✎ NOTE tag: a tag of the base HUD's status column (src/engine/ui/hudSlots.ts), under the rows
   const noteDisc = document.createElement('button'); noteDisc.type = 'button'; noteDisc.className = 'ws-fb-disc';
   noteDisc.innerHTML = '<svg viewBox="0 0 24 24"><path d="M4 20l1-4L16 5l3 3L8 19z M14 7l3 3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>Note<b class="ws-fb-badge"></b>';
-  hudSlots.pill(noteDisc, () => { if (hud.entered && !feedbackHeld) void loadFeedback().then((f) => f.openSheet()); });
+  hudSlots.pill(noteDisc, () => { if (hud.entered && !feedbackHeld) void loadFeedback().then((f) => f.openSheet()); }, game.levelScope);
   const noteBadge = noteDisc.querySelector('b');
   const syncNoteDisc = () => {
     noteDisc.classList.toggle('show', quickNote() && touchUi() && hud.entered);
@@ -362,8 +359,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
   }
   // the first gesture builds the AudioContext; on the title screen it also starts the title theme (synth, then the title stems)
   const firstGesture = () => { audio.resume(); if (!hud.entered && !music.isPlaying) music.play('theme'); };
-  document.addEventListener('keydown', firstGesture, { once: true });
-  document.addEventListener('mousedown', firstGesture, { once: true });
+  app.input.firstGesture(firstGesture, game.levelScope);
 
   // ── interaction (doors, chests, pickups, carcasses): the nearest one within its radius that the eye can SEE (PHYSICS P5 —
   // a Rapier ray from the camera; a door or chest behind a wall neither prompts nor opens) ──
@@ -372,8 +368,8 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
   let prompt: string | undefined;
   let nearest: (typeof interactables)[number] | undefined;
   let carcass: (typeof animals.animals)[number] | undefined;
-  document.addEventListener('keydown', (e) => {
-    if (e.code !== 'KeyE' || !hud.entered) return;
+  app.input.bind('use', () => {
+    if (!hud.entered) return;
     if (nearest) { tap.use?.(nearest.label); nearest.onInteract(); }
     else if (carcass && boot.runtime.hooks.harvestBusy?.() !== true) {
       harvested.add(carcass);
@@ -386,7 +382,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
       if (boot.runtime.hooks.harvest) boot.runtime.hooks.harvest(carcass, give); // PH-F2: the skinning beat, then the drops; the carcass stays for the ravens
       else { give(); carcass.fadeOut(); }
     }
-  });
+  }, game.levelScope);
 
   let musicPoll = 0;
   const alertOnlyHostile = manifest.audio?.alertOnlyHostile === true;

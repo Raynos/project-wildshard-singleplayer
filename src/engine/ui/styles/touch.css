@@ -10,7 +10,7 @@
                (the inset is --ws-home in a home-screen app, where iOS reports 0 since E58 — src/engine/core/viewport.ts)
      --split   the MOVE | LOOK divider (TouchControls reads the MOVE zone's rect, so it follows)
      --atk     the ATTACK disc's and the LOOK pad's width                --disc    DODGE / JUMP / DIVE / SURFACE / AIM */
-.ws-touch { --safe: calc(max(env(safe-area-inset-bottom, 0px), var(--ws-home, 0px)) * 0.5); --bar-in: max(15vh, 104px); --bar: calc(var(--bar-in) + var(--safe)); --split: 45%; --disc: min(15vw, 84px); --atk: min(24vw, 112px); position: absolute; inset: 0; display: none; pointer-events: auto; touch-action: none; z-index: 5; }
+.ws-touch { --safe: calc(max(env(safe-area-inset-bottom, 0px), var(--ws-home, 0px)) * 0.5); --bar-in: max(15vh, 104px); --bar: calc(var(--bar-in) + var(--safe)); --split: 45%; --disc: min(15vw, 84px); --atk: min(24vw, 112px); position: absolute; inset: 0; display: none; pointer-events: auto; touch-action: none; z-index: calc(var(--ws-layer-hud) + 5); }
 /* iOS WebKit (E46): no gesture, selection, callout or drag lift on anything in the layer — a long press on ATTACK lifted a
    ghost copy of the disc and stole the touch (pointercancel), so the heavy never charged. #hud raises it over base.css's
    `#hud button { touch-action: manipulation }` (which still allows double-tap zoom around a button). TouchControls also
@@ -68,7 +68,7 @@
 /* ── ATTACK (FIRE on ranged kit): the big round glass disc in the LOOK section, its left edge on the MOVE | LOOK divider,
    on the bar's centre line; a touch on the disc is ATTACK, never a look. Fires on touch-down (.fire flashes); a drag from it looks; a still
    hold (melee) charges the heavy — the .ws-touch-charge ring fills with --charge 0..1 while .on, and glows at full (.ready) ── */
-.ws-touch-attack { --charge: 0; position: absolute; left: var(--split); bottom: calc(var(--safe) + (var(--bar-in) - var(--atk)) / 2); z-index: 1; width: var(--atk); height: var(--atk); appearance: none; -webkit-appearance: none; margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; border-radius: 50%; background: radial-gradient(circle at 50% 35%, rgb(24, 34, 48), rgb(6, 10, 18) 70%); border: 1.5px solid var(--ws-cyan); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35), 0 8px 24px rgba(0, 0, 0, 0.4), 0 0 16px rgba(143, 227, 255, 0.2), inset 0 0 0 4px rgba(6, 10, 18, 0.6), inset 0 0 0 5px rgba(143, 227, 255, 0.22); color: #fff; font-family: var(--ws-mono); font-size: 10px; letter-spacing: 0.24em; text-transform: uppercase; -webkit-tap-highlight-color: transparent; transition: background 0.1s, box-shadow 0.15s; }
+.ws-touch-attack { --charge: 0; position: absolute; left: var(--split); bottom: calc(var(--safe) + (var(--bar-in) - var(--atk)) / 2); z-index: calc(var(--ws-layer-hud) + 1); width: var(--atk); height: var(--atk); appearance: none; -webkit-appearance: none; margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; border-radius: 50%; background: radial-gradient(circle at 50% 35%, rgb(24, 34, 48), rgb(6, 10, 18) 70%); border: 1.5px solid var(--ws-cyan); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35), 0 8px 24px rgba(0, 0, 0, 0.4), 0 0 16px rgba(143, 227, 255, 0.2), inset 0 0 0 4px rgba(6, 10, 18, 0.6), inset 0 0 0 5px rgba(143, 227, 255, 0.22); color: #fff; font-family: var(--ws-mono); font-size: 10px; letter-spacing: 0.24em; text-transform: uppercase; -webkit-tap-highlight-color: transparent; transition: background 0.1s, box-shadow 0.15s; }
 .ws-touch-attack::before, .ws-touch-attack::after { content: ''; position: absolute; top: 50%; width: 8px; height: 1.5px; margin-top: -0.75px; background: var(--ws-cyan); }
 .ws-touch-attack::before { left: -4px; } .ws-touch-attack::after { right: -4px; }
 .ws-touch-attack svg { display: block; width: 30%; height: 30%; fill: currentColor; filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.6)); }
@@ -91,7 +91,7 @@
    accident") and picked its look — the placement board's C ring and the wheel board's C pie (progress/e319-hud/). The ring:
    the held weapon inside two swap arrows, its ammo on a badge, one dot per owned weapon; shown with ≥ 2 weapons. The pie
    fans right from the ring's centre, one wedge per weapon; the wedge in the finger's direction lights (.pick). */
-#hud .ws-touch-swap { --ring: 54px; position: absolute; z-index: 3; left: calc(env(safe-area-inset-left, 0px) + 6px); top: calc(46% + var(--hov-h) / 2 + var(--edge-gap)); display: none; align-items: center; justify-content: center; width: var(--ring); height: var(--ring); margin: 0; padding: 0; appearance: none; -webkit-appearance: none; border: 1.5px solid var(--ws-cyan); border-radius: 50%; background: radial-gradient(circle at 50% 35%, rgba(24, 34, 48, 0.78), rgba(6, 10, 18, 0.86) 70%); box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35), 0 0 12px rgba(143, 227, 255, 0.25); color: var(--ws-cyan); pointer-events: auto; touch-action: none; -webkit-tap-highlight-color: transparent; transition: background 0.12s, transform 0.1s; }
+#hud .ws-touch-swap { --ring: 54px; position: absolute; z-index: calc(var(--ws-layer-hud) + 3); left: calc(env(safe-area-inset-left, 0px) + 6px); top: calc(46% + var(--hov-h) / 2 + var(--edge-gap)); display: none; align-items: center; justify-content: center; width: var(--ring); height: var(--ring); margin: 0; padding: 0; appearance: none; -webkit-appearance: none; border: 1.5px solid var(--ws-cyan); border-radius: 50%; background: radial-gradient(circle at 50% 35%, rgba(24, 34, 48, 0.78), rgba(6, 10, 18, 0.86) 70%); box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35), 0 0 12px rgba(143, 227, 255, 0.25); color: var(--ws-cyan); pointer-events: auto; touch-action: none; -webkit-tap-highlight-color: transparent; transition: background 0.12s, transform 0.1s; }
 #hud .ws-touch-swap.show { display: flex; }
 #hud .ws-touch-swap::after { content: ''; position: absolute; inset: -8px; border-radius: 50%; }
 #hud .ws-touch-swap.down { background: radial-gradient(circle at 50% 35%, rgba(143, 227, 255, 0.35), rgba(6, 10, 18, 0.86) 75%); transform: scale(0.96); }
@@ -103,7 +103,7 @@
 .ws-touch-swap-dots { position: absolute; left: 50%; bottom: -10px; transform: translateX(-50%); display: flex; gap: 4px; }
 .ws-touch-swap-dots i { display: block; width: 5px; height: 5px; border-radius: 50%; border: 1px solid var(--ws-cyan-dim); box-sizing: border-box; }
 .ws-touch-swap-dots i.on { border: 0; background: var(--ws-cyan); box-shadow: 0 0 6px var(--ws-cyan); }
-.ws-touch-pie { position: absolute; z-index: 4; width: 0; height: 0; display: none; pointer-events: none; }
+.ws-touch-pie { position: absolute; z-index: calc(var(--ws-layer-hud) + 4); width: 0; height: 0; display: none; pointer-events: none; }
 .ws-touch-pie.open { display: block; }
 .ws-touch-pie-disc { position: absolute; left: -130px; top: -130px; overflow: visible; filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.45)); }
 .ws-touch-pie-wedge { fill: rgba(6, 10, 18, 0.82); stroke: rgba(143, 227, 255, 0.55); stroke-width: 1; transition: fill 0.08s; }
@@ -120,7 +120,7 @@
 #hud.intro .ws-touch-swap, #hud.intro .ws-touch-pie { display: none; }
 /* ── HOVER (E80, Jake's pick C): a folder tab growing out of the bar's top edge over the MOVE label — the bar's own glass
    and hairline, open at the bottom so it reads as part of the bar; lit (.on) while riding. Hit area 10 px taller (≥ 44 px) ── */
-.ws-touch-hover { position: absolute; z-index: 2; left: 8px; bottom: calc(var(--bar) - 1px); display: flex; align-items: center; gap: 8px; height: 28px; margin: 0; padding: 0 16px 0 12px; appearance: none; -webkit-appearance: none; border: 1px solid var(--ws-cyan-line); border-bottom: 0; border-radius: 10px 10px 0 0; background: rgba(6, 10, 18, 0.67); box-shadow: inset 0 1px 0 rgba(143, 227, 255, 0.12); color: var(--ws-text); font-family: var(--ws-mono); font-size: 9px; letter-spacing: 0.24em; text-transform: uppercase; -webkit-tap-highlight-color: transparent; transition: background 0.12s, color 0.12s; }
+.ws-touch-hover { position: absolute; z-index: calc(var(--ws-layer-hud) + 2); left: 8px; bottom: calc(var(--bar) - 1px); display: flex; align-items: center; gap: 8px; height: 28px; margin: 0; padding: 0 16px 0 12px; appearance: none; -webkit-appearance: none; border: 1px solid var(--ws-cyan-line); border-bottom: 0; border-radius: 10px 10px 0 0; background: rgba(6, 10, 18, 0.67); box-shadow: inset 0 1px 0 rgba(143, 227, 255, 0.12); color: var(--ws-text); font-family: var(--ws-mono); font-size: 9px; letter-spacing: 0.24em; text-transform: uppercase; -webkit-tap-highlight-color: transparent; transition: background 0.12s, color 0.12s; }
 .ws-touch-hover::after { content: ''; position: absolute; inset: -16px 0 0; }
 .ws-touch-hover svg { width: 18px; height: 18px; }
 .ws-touch-hover.on { color: var(--ws-cyan); border-color: var(--ws-cyan); background: rgba(20, 44, 60, 0.85); box-shadow: inset 0 0 12px rgba(143, 227, 255, 0.35), 0 0 12px rgba(143, 227, 255, 0.25); text-shadow: 0 0 6px rgba(143, 227, 255, 0.7); }
@@ -233,7 +233,7 @@
 @keyframes ws-touch-letdown { 0% { opacity: 0.55; } 25% { transform: translateX(-2px); } 55% { transform: translateX(2px); } 100% { opacity: 1; transform: none; } }
 /* the desktop hotbar (src/engine/ui/WeaponStrip.ts `.desk`, controls-desktop-keys.png): bottom-centre on every shard (E303), key
    numbers + names + ammo, the held one outlined in cyan; shown once a second weapon is owned */
-.ws-touch-strip { --slot: 64px; position: absolute; display: none; z-index: 3; pointer-events: auto; touch-action: none; left: 50%; bottom: 22px; transform: translateX(-50%); gap: 8px; }
+.ws-touch-strip { --slot: 64px; position: absolute; display: none; z-index: calc(var(--ws-layer-hud) + 3); pointer-events: auto; touch-action: none; left: 50%; bottom: 22px; transform: translateX(-50%); gap: 8px; }
 .ws-touch-strip.show { display: flex; }
 #hud.intro .ws-touch-strip { display: none; }
 .ws-touch-slot { position: relative; width: var(--slot); height: var(--slot); padding: 0; appearance: none; -webkit-appearance: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; border-radius: 7px; background: radial-gradient(circle at 50% 30%, rgba(24, 34, 48, 0.7), rgba(6, 10, 18, 0.82) 75%); border: 1px solid rgba(143, 227, 255, 0.4); box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(143, 227, 255, 0.15); color: rgba(230, 242, 248, 0.85); font-family: var(--ws-mono); touch-action: none; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s, background 0.15s; }

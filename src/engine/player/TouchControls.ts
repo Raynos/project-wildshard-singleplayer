@@ -1,3 +1,4 @@
+import { mountUi } from '../ui/ownership';
 import { app } from '../app/runtime';
 import { listenDom } from '../input/dom';
 import type { Action } from '../input/InputService';
@@ -147,7 +148,7 @@ export class TouchControls {
     const root = document.createElement('div');
     root.className = 'ws-touch';
     root.innerHTML = engineString('s_d27c19bf3c27');
-    hud.append(root);
+    mountUi(root, this.scope, hud);
     this.scope.onDispose(() => { root.remove(); });
     // ── iOS WebKit hardening (E46 — Jake's iPhone): a long press on a button lifted a drag preview of the ATTACK disc (and
     //    fired pointercancel, so the heavy never charged), a quick double tap zoomed, a press selected text. Pointer events

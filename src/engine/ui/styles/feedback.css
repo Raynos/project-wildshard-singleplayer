@@ -7,7 +7,7 @@
 .ws-fb-disc.queued .ws-fb-badge { display: inline-block; }
 
 /* ── overlay root (quick bar / sheet): above the HUD and the touch layer, below nothing but the pen ── */
-.ws-fb { position: fixed; inset: 0; z-index: 80; font-family: var(--ws-mono); color: var(--ws-text); pointer-events: auto; touch-action: manipulation; }
+.ws-fb { position: fixed; inset: 0; z-index: calc(var(--ws-layer-modal) + 0); font-family: var(--ws-mono); color: var(--ws-text); pointer-events: auto; touch-action: manipulation; }
 .ws-fb *, .ws-fb-tab * { box-sizing: border-box; }
 .ws-fb-dim { position: absolute; inset: 0; background: rgba(6, 10, 18, 0.35); }
 .ws-fb.bar .ws-fb-dim { background: transparent; }
@@ -54,7 +54,7 @@
 .ws-fb-queued { color: var(--ws-amber); font-weight: 400; }
 
 /* ── the pen (mockup D, freehand): the frozen frame full-screen, strokes in cyan ── */
-.ws-fb-pen { position: fixed; inset: 0; z-index: 90; display: flex; align-items: center; justify-content: center; background: #000; touch-action: none; font-family: var(--ws-mono); }
+.ws-fb-pen { position: fixed; inset: 0; z-index: calc(var(--ws-layer-modal) + 10); display: flex; align-items: center; justify-content: center; background: #000; touch-action: none; font-family: var(--ws-mono); }
 .ws-fb-pencanvas { display: block; cursor: crosshair; touch-action: none; }
 .ws-fb-tools { position: absolute; left: 50%; top: calc(var(--ws-top) + 6px); transform: translateX(-50%); display: flex; gap: 6px; padding: 6px; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); }
 .ws-fb-tool { padding: 7px 14px; background: transparent; border: 1px solid var(--ws-cyan-line); color: var(--ws-text); font: 10px var(--ws-mono); letter-spacing: 0.18em; text-transform: uppercase; cursor: pointer; }

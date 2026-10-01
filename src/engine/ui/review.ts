@@ -1,3 +1,4 @@
+import { uiScope } from './ownership';
 import { saveStorage } from '#engine/saves/slots';
 // src/engine/ui/review.ts — the review inbox's always-loaded half (project/archive/2026-09-22-feedback-inbox.md): the Settings REVIEW unlock, the
 // Quick note switch, and sending a note (with an offline queue). The composer itself (quick bar, sheet, pen) is the lazy
@@ -10,6 +11,9 @@ import { saveStorage } from '#engine/saves/slots';
 //
 // There is no query string: the feature ships to everyone and stays hidden until a reviewer types the password in Settings.
 import { onScopeDispose } from '../app/legacyCapture';
+
+
+const scope = uiScope('review');
 
 export type Category = 'bug' | 'art' | 'feel' | 'perf' | 'idea';
 export const CATEGORIES: readonly Category[] = ['bug', 'art', 'feel', 'perf', 'idea'];
@@ -132,4 +136,4 @@ export async function sendNote(n: NotePayload): Promise<{ id: string } | 'queued
   return r;
 }
 
-if (typeof window !== 'undefined') window.addEventListener('online', () => { void flushQueue(); });
+if (typeof window !== 'undefined') scope.listen(window, 'online', () => { void flushQueue(); });

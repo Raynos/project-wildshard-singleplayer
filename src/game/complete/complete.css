@@ -5,7 +5,7 @@
 .ws-complete-up > :not(.ws-complete):not(.ws-game-toasts) { visibility: hidden; }
 
 .ws-complete {
-  position: absolute; inset: 0; z-index: 60; display: flex; align-items: center; justify-content: center;
+  position: absolute; inset: 0; z-index: calc(var(--ws-layer-hud) + 60); display: flex; align-items: center; justify-content: center;
   padding: calc(env(safe-area-inset-top, 0px) + 24px) 18px calc(env(safe-area-inset-bottom, 0px) + 24px);
   background: rgba(6, 10, 18, 0.42); pointer-events: auto; opacity: 0; transition: opacity 0.6s ease-out;
   font-family: var(--ws-mono); color: var(--ws-text); overflow-y: auto;

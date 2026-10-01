@@ -4,7 +4,7 @@
    index.html so it is there from the first bytes. Keyed on the POINTER, not on ?touch: a desktop is landscape by
    nature and is never gated. The media query below and QUERY in RotateGate.ts must stay identical. prefix ws-rotate- ─── */
 .ws-rotate {
-  display: none; position: fixed; inset: 0; z-index: 2147483000; box-sizing: border-box;
+  display: none; position: fixed; inset: 0; z-index: calc(var(--ws-layer-error) + 500); box-sizing: border-box;
   align-items: center; justify-content: center;
   padding: env(safe-area-inset-top, 0px) max(24px, env(safe-area-inset-right, 0px)) env(safe-area-inset-bottom, 0px) max(24px, env(safe-area-inset-left, 0px));
   background: #070e16; color: var(--ws-text); font-family: var(--ws-mono);

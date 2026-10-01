@@ -4,12 +4,12 @@
    HUD.ts also toggles the state class `intro` on #hud while this screen is up. */
 .ws-menu { position: absolute; inset: 0; pointer-events: auto; display: flex; flex-direction: column; justify-content: space-between; transition: opacity 0.6s ease; overflow: hidden; }
 .ws-menu.hide { opacity: 0; pointer-events: none; }
-.ws-menu .ws-menu-hero { position: absolute; inset: 0; z-index: 0; background-size: cover; background-position: center; opacity: 0; transition: opacity 0.35s ease; pointer-events: none; }
+.ws-menu .ws-menu-hero { position: absolute; inset: 0; z-index: calc(var(--ws-layer-hud) + 0); background-size: cover; background-position: center; opacity: 0; transition: opacity 0.35s ease; pointer-events: none; }
 .ws-menu .ws-menu-hero.show { opacity: 1; }
 /* a teaser's slideshow (HUD.ts startShots): the next screen fades in over the backdrop, then becomes it */
 /* its caption: a glass chip top-right (EXPLORE WORLD, which lives there, is off on a teaser); a tap skips ahead */
-.ws-menu::before { content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none; background: linear-gradient(180deg, rgba(6, 10, 18, 0.45) 0%, rgba(6, 10, 18, 0.05) 28%, rgba(6, 10, 18, 0.05) 50%, rgba(6, 10, 18, 0.7) 100%); }
-.ws-menu .ws-menu-head, .ws-menu .ws-menu-deck { position: relative; z-index: 2; }
+.ws-menu::before { content: ''; position: absolute; inset: 0; z-index: calc(var(--ws-layer-hud) + 1); pointer-events: none; background: linear-gradient(180deg, rgba(6, 10, 18, 0.45) 0%, rgba(6, 10, 18, 0.05) 28%, rgba(6, 10, 18, 0.05) 50%, rgba(6, 10, 18, 0.7) 100%); }
+.ws-menu .ws-menu-head, .ws-menu .ws-menu-deck { position: relative; z-index: calc(var(--ws-layer-hud) + 2); }
 .ws-menu .ws-menu-head { padding: 34px 44px 0; }
 .ws-menu .ws-wordmark { text-shadow: 0 4px 30px rgba(0, 0, 0, 0.6); }
 .ws-menu .ws-wordmark b { font-weight: 700; }
@@ -21,16 +21,16 @@
 .ws-menu-deck-track { display: flex; gap: var(--card-gap); will-change: transform; }
 .ws-menu-cards::-webkit-scrollbar { display: none; }
 .ws-menu-card { position: relative; flex: 0 0 var(--card-w); width: var(--card-w); padding: 0; margin: 0; text-align: center; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); backdrop-filter: blur(10px) saturate(1.2); -webkit-backdrop-filter: blur(10px) saturate(1.2); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35), 0 12px 40px rgba(0, 0, 0, 0.45); color: var(--ws-text); cursor: pointer; font-family: var(--ws-mono); opacity: 0.55; transform: scale(0.94); transition: opacity 0.25s, transform 0.25s, border-color 0.25s, box-shadow 0.25s; -webkit-tap-highlight-color: transparent; }
-.ws-menu-card::before { content: ''; position: absolute; left: -1px; top: -1px; width: 18px; height: 18px; border-left: 1px solid var(--ws-cyan); border-top: 1px solid var(--ws-cyan); opacity: 0.8; z-index: 1; }
+.ws-menu-card::before { content: ''; position: absolute; left: -1px; top: -1px; width: 18px; height: 18px; border-left: 1px solid var(--ws-cyan); border-top: 1px solid var(--ws-cyan); opacity: 0.8; z-index: calc(var(--ws-layer-hud) + 1); }
 .ws-menu-card.selected { opacity: 1; transform: none; border-color: var(--ws-cyan); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35), 0 12px 40px rgba(0, 0, 0, 0.5), 0 0 28px rgba(143, 227, 255, 0.28); cursor: default; }
 .ws-menu-card:focus-visible { outline: none; border-color: var(--ws-cyan); }
 .ws-menu-card .ws-menu-card-img { display: block; position: relative; margin: 6px; aspect-ratio: 16 / 9; background-size: cover; background-position: center; border: 1px solid rgba(143, 227, 255, 0.18); }
 .ws-menu-card .ws-menu-card-img::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(6, 10, 18, 0) 60%, rgba(6, 10, 18, 0.5) 100%); }
 /* a teaser card's picture follows its slideshow (HUD.ts nextShot): the next slide fades in over it, under the tag and the shade */
-.ws-menu-card .ws-menu-card-tag { position: absolute; right: 8px; top: 8px; z-index: 1; font-style: normal; font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; padding: 3px 8px; color: var(--ws-cyan); border: 1px solid var(--ws-cyan-line); background: var(--ws-glass-deep); }
+.ws-menu-card .ws-menu-card-tag { position: absolute; right: 8px; top: 8px; z-index: calc(var(--ws-layer-hud) + 1); font-style: normal; font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; padding: 3px 8px; color: var(--ws-cyan); border: 1px solid var(--ws-cyan-line); background: var(--ws-glass-deep); }
 .ws-menu-card .ws-menu-card-tag.ok { color: #7cf2a7; border-color: rgba(124, 242, 167, 0.6); box-shadow: 0 0 10px rgba(124, 242, 167, 0.3); }
 /* an experimental shard (ChunkDef.experimental): a hazard-taped amber band straight across the card image, sized off the card */
-.ws-menu-card .ws-menu-card-exp { position: absolute; left: 0; right: 0; top: 50%; z-index: 2; transform: translateY(-50%); padding: calc(var(--card-w) * 0.022 + 6px) 0; font-style: normal; font-family: var(--ws-display); font-weight: 700; font-size: calc(var(--card-w) * 0.085); line-height: 1; letter-spacing: 0.2em; text-indent: 0.2em; text-transform: uppercase; color: #140d02; background: var(--ws-amber); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5), 0 6px 24px rgba(0, 0, 0, 0.55), 0 0 32px rgba(255, 181, 71, 0.45); }
+.ws-menu-card .ws-menu-card-exp { position: absolute; left: 0; right: 0; top: 50%; z-index: calc(var(--ws-layer-hud) + 2); transform: translateY(-50%); padding: calc(var(--card-w) * 0.022 + 6px) 0; font-style: normal; font-family: var(--ws-display); font-weight: 700; font-size: calc(var(--card-w) * 0.085); line-height: 1; letter-spacing: 0.2em; text-indent: 0.2em; text-transform: uppercase; color: #140d02; background: var(--ws-amber); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5), 0 6px 24px rgba(0, 0, 0, 0.55), 0 0 32px rgba(255, 181, 71, 0.45); }
 .ws-menu-card .ws-menu-card-exp::before, .ws-menu-card .ws-menu-card-exp::after { content: ''; position: absolute; left: 0; right: 0; height: calc(var(--card-w) * 0.012 + 3px); background: repeating-linear-gradient(-45deg, #140d02 0 8px, var(--ws-amber) 8px 16px); }
 .ws-menu-card .ws-menu-card-exp::before { top: 0; }
 /* EARLY ACCESS (ChunkDef.earlyAccess, Nalati): the same banner in the HUD's cyan — open to play, still being built */
@@ -114,7 +114,7 @@
 .ws-menu .ws-menu-play { padding-bottom: 22px; }
 .ws-menu .ws-menu-play .ws-menu-mode-glyph svg { width: 24px; height: 24px; }
 .ws-menu .ws-menu-head { position: relative; }
-.ws-menu .ws-menu-head .ws-menu-explore { position: fixed; z-index: 61; right: 44px; top: calc(40px + env(safe-area-inset-top, 0px)); flex: none; flex-direction: row; gap: 10px; padding: 8px 14px 8px 11px; }
+.ws-menu .ws-menu-head .ws-menu-explore { position: fixed; z-index: calc(var(--ws-layer-hud) + 61); right: 44px; top: calc(40px + env(safe-area-inset-top, 0px)); flex: none; flex-direction: row; gap: 10px; padding: 8px 14px 8px 11px; }
 .ws-menu .ws-menu-head .ws-menu-explore .ws-menu-mode-glyph svg { width: 22px; height: 22px; }
 .ws-menu .ws-menu-explore-text { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; }
 .ws-menu .ws-menu-head .ws-menu-explore b { font-size: 14px; letter-spacing: 0.2em; }

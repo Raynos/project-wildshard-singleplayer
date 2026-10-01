@@ -70,3 +70,5 @@ html, body { margin: 0; padding: 0; overflow: clip; height: 100%; background: #0
 @keyframes ws-flash { 0% { opacity: 1; } 100% { opacity: 0; } }
 @keyframes ws-ring { 0% { opacity: 0.9; transform: scale(0.5); } 100% { opacity: 0; transform: scale(1.4); } }
 @keyframes ws-update-pulse { 50% { opacity: 0.3; } }
+
+:root { --ws-layer-hud: 0; --ws-layer-gameMenu: 70; --ws-layer-menu: 70; --ws-layer-modal: 80; --ws-layer-error: 2147482500; }

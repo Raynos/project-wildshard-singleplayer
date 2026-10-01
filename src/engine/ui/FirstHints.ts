@@ -1,3 +1,5 @@
+import { mountUi } from './ownership';
+import { app } from '../app/runtime';
 import { engineString } from '#engine/strings';
 import { saveStorage } from '#engine/saves/slots';
 import './styles/hints.css';
@@ -60,7 +62,6 @@ const ANCHOR: Record<HintControl, string> = {
 /** controls the tag must not cover while it finds its spot */
 const OBSTACLES = '.ws-touch-disc, .ws-touch-attack, .ws-touch-hover, .ws-touch-swap, .ws-touch-use.show';
 /** the keys that use a control on a desktop (jump and dodge come through the player's own hooks) */
-const KEYS: Partial<Record<string, HintControl>> = { KeyZ: 'lock', KeyE: 'use' };
 
 const STORE = 'hints';
 /** metres walked from the first frame in that count as having moved */
@@ -109,27 +110,28 @@ export class FirstHints {
   private last = { x: 0, z: 0 };
 
   constructor(private readonly player: Player, private readonly opts: FirstHintsOptions) {
-    const hud = document.getElementById('hud') ?? document.body;
+    const scope = (app.levelScope ?? app.engineScope).child('input.hints');
     this.ring = document.createElement('div');
     this.ring.className = 'ws-hint-ring';
     this.tag = document.createElement('div');
     this.tag.className = `ws-glass ws-hint-tag${opts.touch ? '' : ' desk'}`;
     this.words = document.createElement('span');
     this.tag.append(this.words, document.createElement('i'));
-    hud.append(this.ring, this.tag);
+    mountUi(this.ring, scope); mountUi(this.tag, scope);
 
     // ── uses the system sees for itself: a touch on the control, its key, the player's jump / dodge ──
-    document.addEventListener('pointerdown', (e) => {
+    scope.onDispose(() => { this.ring.remove(); this.tag.remove(); });
+    scope.listen(document, 'pointerdown', (e) => {
       const t = e.target;
       if (!(t instanceof Element)) return;
       for (const c of Object.keys(ANCHOR) as HintControl[]) if (c !== 'move' && t.closest(ANCHOR[c]) !== null) this.used(c);
     }, { capture: true });
-    document.addEventListener('mousedown', (e) => { if (e.button === 0 && document.pointerLockElement !== null) this.used('attack'); }, { capture: true });
-    document.addEventListener('keydown', (e) => { const c = KEYS[e.code]; if (c !== undefined) this.used(c); }, { capture: true });
+    for (const control of ['attack', 'lock', 'use'] as const) app.input.bind(control, () => { this.used(control); }, scope);
     const onJump = player.onJump;
     player.onJump = () => { onJump?.(); this.used('jump'); };
     const onDodge = player.onDodge;
     player.onDodge = () => { onDodge?.(); this.used('dodge'); };
+    scope.onDispose(() => { if (onJump === undefined) delete player.onJump; else player.onJump = onJump; if (onDodge === undefined) delete player.onDodge; else player.onDodge = onDodge; });
   }
 
   /** the shard's triggers, highest priority first (replaces any earlier feed) */

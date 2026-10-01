@@ -1,8 +1,8 @@
-import type { TrainingArena as Arena, Weapon, DiscSpot, Targets } from '#engine';
+import { weaponInputContext, type TrainingArena as Arena, type Weapon, type DiscSpot, type Targets } from '#engine';
 import type { worldStage } from './world';
 
 async function buildLoadout(ctx: Awaited<ReturnType<typeof worldStage>>) {
-  const { engine, stage, boot, step, fieldModels, world, game, sky, player, forest, chunk, registry, nolock } = ctx;
+  const { engine, kit, stage, boot, step, fieldModels, world, game, sky, player, forest, chunk, registry, nolock } = ctx;
   const { hudAdapters, app, EquipmentService, viewmodelTexturesReady, authoredTargets, onSettingChange, setting, AnimalManager, TouchControls, HUD, LockOnSystem, macrotask, listShardModels, TrainingArena, withScopeOwner } = engine;
 
 
@@ -41,6 +41,11 @@ async function buildLoadout(ctx: Awaited<ReturnType<typeof worldStage>>) {
   const longbow = authoredKit.secondary ?? null;
   const weapons = new EquipmentService(crossbow, { scope: game.levelScope, events: app.events, ...(authoredKit.order === undefined ? {} : { order: [...authoredKit.order] }) });
   for (const w of [...(rifle ? [rifle] : []), ...(authoredKit.extras ?? []), ...(longbow ? [longbow] : [])]) weapons.add(w, { locked: true });
+  weaponInputContext(weapons, game.levelScope);
+  for (const id of game.level.loadout.tools) {
+    const row = kit.tools.find((tool) => tool.id === id);
+    if (row !== undefined) weapons.add(row.create(game.camera, player), { locked: !game.level.loadout.start.includes(id) });
+  }
   app.registerEquipment(weapons, game.levelScope);
   const lockSys = new LockOnSystem(player, weapons, game.camera); // the Zelda lock-on (E50): LOCK / Z, orbit, flick-switch — src/engine/player/LockOnTarget.ts
   const touchControls = new TouchControls(player, weapons, setting('touch') === 'on', lockSys); // on-screen FPS controls on coarse-pointer devices (?touch=1 / main menu ▸ Settings ▸ Touch controls forces)

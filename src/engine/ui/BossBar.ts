@@ -1,3 +1,4 @@
+import { uiScope, mountUi } from './ownership';
 import { engineString } from '#engine/strings';
 import './styles/boss.css';
 
@@ -24,6 +25,7 @@ const EMBLEM = `<svg viewBox="0 0 64 40" aria-hidden="true"><defs><linearGradien
 <path fill="url(#bossgold)" d="M40 5c2-3 6-4 9-3-3 0-6 2-7 4zm3 1c3-2 7-2 10 0-3-1-6 0-8 1z"/></svg>`;
 
 export class BossBar {
+  readonly scope = uiScope('BossBar');
   readonly root: HTMLElement;
   private bar: HTMLElement; private barName: HTMLElement; private fill: HTMLElement; private lag: HTMLElement; private caption: HTMLElement;
   private notches: HTMLElement;
@@ -36,42 +38,42 @@ export class BossBar {
 
   constructor(parent: HTMLElement = document.getElementById('hud') ?? document.body) {
     const el = (tag: string, cls: string, html = ''): HTMLElement => { const e = document.createElement(tag); e.className = cls; if (html) e.innerHTML = html; return e; };
-    this.root = el('div', 'ws-boss');
+    this.root = el('div', engineString('s_34a143a1f53a'));
     // ── the bar ──
-    this.bar = el('div', 'ws-boss-bar');
-    this.barName = el('div', 'ws-boss-bar-name');
-    const frame = el('div', 'ws-boss-bar-frame');
-    const track = el('div', 'ws-boss-bar-track');
-    this.lag = el('div', 'ws-boss-bar-lag');
-    this.fill = el('div', 'ws-boss-bar-fill');
-    const shimmer = el('div', 'ws-boss-bar-shimmer');
-    this.notches = el('div', 'ws-boss-bar-notches');
+    this.bar = el('div', engineString('s_771a43c06356'));
+    this.barName = el('div', engineString('s_29b1d49345f8'));
+    const frame = el('div', engineString('s_217dc62593b8'));
+    const track = el('div', engineString('s_0ecd0b04527d'));
+    this.lag = el('div', engineString('s_3085b8e4aac1'));
+    this.fill = el('div', engineString('s_dc96c2a4d36e'));
+    const shimmer = el('div', engineString('s_134f319d6cde'));
+    this.notches = el('div', engineString('s_e4877b2b62a7'));
     track.append(this.lag, this.fill, shimmer, this.notches);
-    frame.append(el('span', 'ws-boss-bar-cap l', EMBLEM), track, el('span', 'ws-boss-bar-cap r', EMBLEM));
-    this.caption = el('div', 'ws-boss-bar-caption');
+    frame.append(el('span', engineString('s_838f436ab7a4'), EMBLEM), track, el('span', engineString('s_106372c2d5d7'), EMBLEM));
+    this.caption = el('div', engineString('s_19a8d0ce51e9'));
     this.bar.append(this.barName, frame, this.caption);
     // ── the name card (+ letterbox) ──
-    this.card = el('div', 'ws-boss-card');
-    const inner = el('div', 'ws-boss-card-inner');
-    this.cardName = el('div', 'ws-boss-card-name');
-    this.cardTitle = el('div', 'ws-boss-card-title');
-    inner.append(el('div', 'ws-boss-card-emblem', EMBLEM), el('div', 'ws-boss-card-rule'), this.cardName, this.cardTitle);
-    this.skip = el('div', 'ws-boss-card-skip', engineString('s_65d7ea309809'));
-    this.card.append(el('div', 'ws-boss-card-band top'), el('div', 'ws-boss-card-band bottom'), inner, this.skip);
+    this.card = el('div', engineString('s_47b60dc604ca'));
+    const inner = el('div', engineString('s_b2c6bc8113a7'));
+    this.cardName = el('div', engineString('s_7e1dfdd4b861'));
+    this.cardTitle = el('div', engineString('s_9ffbec798cb4'));
+    inner.append(el('div', engineString('s_f0902a102ae9'), EMBLEM), el('div', engineString('s_16575b7c29b5')), this.cardName, this.cardTitle);
+    this.skip = el('div', engineString('s_f7d8b3d434a8'), engineString('s_65d7ea309809'));
+    this.card.append(el('div', engineString('s_e7ae82510afb')), el('div', engineString('s_eff5bec83717')), inner, this.skip);
     // ── the retry card ──
-    this.retry = el('div', 'ws-boss-retry');
-    this.retryTitle = el('div', 'ws-boss-retry-title');
-    this.retryAttempt = el('div', 'ws-boss-retry-attempt');
-    this.retry.append(this.retryTitle, el('div', 'ws-boss-card-rule'), this.retryAttempt);
+    this.retry = el('div', engineString('s_924c429c3ffa'));
+    this.retryTitle = el('div', engineString('s_e0e0436d8333'));
+    this.retryAttempt = el('div', engineString('s_8089c0b51bcb'));
+    this.retry.append(this.retryTitle, el('div', engineString('s_16575b7c29b5')), this.retryAttempt);
     // ── the legendary reward card ──
-    this.reward = el('div', 'ws-boss-reward');
-    this.rewardTier = el('div', 'ws-boss-reward-tier');
-    this.rewardName = el('div', 'ws-boss-reward-name');
-    this.rewardFlavour = el('div', 'ws-boss-reward-flavour');
-    this.reward.append(el('i', 'ws-boss-reward-gem'), this.rewardTier, this.rewardName, el('div', 'ws-boss-reward-rule'), this.rewardFlavour);
-    this.black = el('div', 'ws-boss-fade');
+    this.reward = el('div', engineString('s_df0af1a4a41c'));
+    this.rewardTier = el('div', engineString('s_4245fc97e8fa'));
+    this.rewardName = el('div', engineString('s_42c83e7425a7'));
+    this.rewardFlavour = el('div', engineString('s_e648a8561f66'));
+    this.reward.append(el('i', engineString('s_e43ae2109177')), this.rewardTier, this.rewardName, el('div', engineString('s_bbdd573c01f8')), this.rewardFlavour);
+    this.black = el('div', engineString('s_965e51e1ac76'));
     this.root.append(this.bar, this.card, this.retry, this.reward, this.black);
-    parent.append(this.root);
+    mountUi(this.root, this.scope, parent);
   }
 
   // ── the bar ──

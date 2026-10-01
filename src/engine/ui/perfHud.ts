@@ -1,3 +1,4 @@
+import { uiScope } from './ownership';
 import { engineString } from '#engine/strings';
 import { saveStorage } from '#engine/saves/slots';
 /**
@@ -60,6 +61,7 @@ class DomWrites {
 }
 
 /** audio sources playing (started, not ended), counted from the first time the panel opened (a dev-only hook on start) */
+const shellScope = uiScope('audioCounter');
 const audioSrc = { live: 0, started: 0, hooked: false };
 function hookAudio(): void {
   if (audioSrc.hooked || typeof AudioScheduledSourceNode === 'undefined') return;
@@ -73,7 +75,7 @@ function hookAudio(): void {
     if (typeof start !== 'function') continue;
     Reflect.set(proto, 'start', function countedStart(this: AudioScheduledSourceNode, ...args: number[]): void {
       audioSrc.live++; audioSrc.started++;
-      this.addEventListener('ended', () => { audioSrc.live = Math.max(0, audioSrc.live - 1); }, { once: true });
+      shellScope.listen(this, 'ended', () => { audioSrc.live = Math.max(0, audioSrc.live - 1); }, { once: true });
       Reflect.apply(start, this, args);
     });
   }
@@ -102,6 +104,7 @@ const AB: readonly { id: string; css?: string }[] = [
 interface RecFrame { t: number; frame: number; update: number; render: number; gpu: number; buckets: number[]; subs: number[]; nav: number; top: string; topMs: number }
 
 export class PerfHud {
+  readonly scope = uiScope('PerfHud');
   private readonly counters: (() => Counts)[] = [];
   private readonly dom: DomWrites;
   private readonly spark: HTMLCanvasElement;
@@ -127,9 +130,9 @@ export class PerfHud {
     for (const ab of AB) {
       const b = document.createElement('button');
       b.type = 'button'; b.className = 'ws-perf-btn ws-perf-ab'; b.textContent = ab.id;
-      for (const t of ['touchstart', 'touchmove', 'touchend'] as const) b.addEventListener(t, guard, { passive: false });
-      b.addEventListener('pointerdown', guard);
-      b.addEventListener('pointerup', (e) => {
+      for (const t of ['touchstart', 'touchmove', 'touchend'] as const) this.scope.listen(b, t, guard, { passive: false });
+      this.scope.listen(b, 'pointerdown', guard);
+      this.scope.listen(b, 'pointerup', (e) => {
         guard(e);
         const now = !off.has(ab.id);
         if (now) off.add(ab.id); else off.delete(ab.id);

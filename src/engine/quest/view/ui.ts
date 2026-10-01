@@ -1,3 +1,4 @@
+import { uiScope, mountUi } from '../../ui/ownership';
 import { engineString } from '#engine/strings';
 /**
  * The adventure's own HUD pieces (kept out of HUD.ts, which the HUD agent owns) — DOM in `#hud`, styled by
@@ -12,7 +13,7 @@ import { engineString } from '#engine/strings';
  *   RewardCaption — the big centred caption over the golden-hour reward view.
  */
 import '../../ui/styles/quest.css';
-import { Scope } from '../../app/scope';
+import type { Scope } from '../../app/scope';
 import { app } from '../../app/runtime';
 
 const hudRoot = (): HTMLElement => document.getElementById('hud') ?? document.body;
@@ -21,6 +22,7 @@ const el = <K extends keyof HTMLElementTagNameMap>(tag: K, cls: string, parent?:
 };
 
 export class ObjectiveLine {
+  readonly scope = uiScope('objective');
   readonly root = el('div', 'ws-quest-obj');
   private goal = el('span', 'ws-quest-obj-goal', this.root);
   private label = el('span', 'ws-quest-obj-label', this.goal);
@@ -38,7 +40,7 @@ export class ObjectiveLine {
     this.root.prepend(el('i', 'ws-quest-obj-dia'));
     this.arrow.textContent = engineString('s_671fd067cc0e');
     this.sep.style.display = this.nav.style.display = 'none';
-    hudRoot().append(this.root);
+    mountUi(this.root, this.scope, hudRoot());
   }
 
   /** the chip's goal: a short label ("Glyph shards") and its counter ("1/3", or '') — pulses cyan when either changes */
@@ -97,12 +99,12 @@ export class DialogueBox {
   cps = 60;
 
   /** E (desktop) and a tap anywhere on the box (touch) advance it; the game's "[E]" prompt is hidden while it is open */
-  constructor(scope = new Scope('quest.dialogue')) {
+  constructor(scope = uiScope('dialogue')) {
     this.scope = scope;
-    hudRoot().append(this.root);
+    mountUi(this.root, this.scope, hudRoot());
     scope.listen(this.root, 'pointerdown', (e) => { e.stopPropagation(); e.preventDefault(); this.advance(); });
     scope.listen(document, 'keydown', (event) => {
-      const e = event as KeyboardEvent;
+      const e = event;
       if (e.code !== 'KeyE' || !this.open_ || e.repeat || app.clock.now * 1000 - this.openT < 150) return;
       this.advance();
     });
@@ -157,12 +159,13 @@ export class DialogueBox {
 }
 
 export class RewardCaption {
+  readonly scope = uiScope('reward');
   readonly root = el('div', 'ws-quest-reward');
   constructor(kicker: string, title: string, sub: string) {
     el('div', 'ws-quest-reward-kicker', this.root).textContent = kicker;
     el('div', 'ws-quest-reward-title', this.root).textContent = title;
     el('div', 'ws-quest-reward-sub', this.root).textContent = sub;
-    hudRoot().append(this.root);
+    mountUi(this.root, this.scope, hudRoot());
   }
   show(on: boolean): void { this.root.classList.toggle('show', on); }
 }

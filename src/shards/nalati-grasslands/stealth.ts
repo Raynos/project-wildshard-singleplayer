@@ -1,4 +1,4 @@
-import { EffectService, sourceMultiplier, type Scope, type LevelContext, type EffectTarget, type Player, type TargetHit } from '#engine';
+import { uiScope, mountUi, EffectService, sourceMultiplier, type Scope, type LevelContext, type EffectTarget, type Player, type TargetHit } from '#engine';
 import { SNEAK_SHOT, NALATI_SOURCE_MULTIPLIERS } from './weapons/effects';
 
 import type { Wildlife } from './creatures/wildlife';
@@ -76,7 +76,7 @@ function q2(root: HTMLElement, sel: string): HTMLElement {
 }
 
 export class Stealth {
-  private readonly scope: Scope | undefined;
+  private readonly scope: Scope;
   state: StealthState = 'none';
   /** grass cover at the player, 0..1 (the stealth doc's `cover`) */
   cover = 0;
@@ -109,9 +109,8 @@ export class Stealth {
   private lastCover = -1; private lastThreat = -1;
 
   constructor(opts: StealthOpts) {
-    this.scope = opts.ctx?.scope;
+    this.scope = opts.ctx?.scope ?? uiScope('stealth');
     this.player = opts.player; this.wildlife = opts.wildlife; this.isMounted = opts.isMounted ?? (() => false); this.crouchHere = opts.crouchHere ?? (() => false);
-    const hud = document.getElementById('hud') ?? document.body;
     this.root = document.createElement('div');
     this.root.className = 'ws-stealth';
     this.root.innerHTML = `<div class="ws-stealth-vig"></div>
@@ -119,24 +118,24 @@ export class Stealth {
       <div class="ws-stealth-chev"></div>
       <div class="ws-stealth-grass"><span>Grass</span><b><i></i></b></div>
       <div class="ws-stealth-hint"></div>`;
-    hud.append(this.root);
+    mountUi(this.root, this.scope);
     const q = (sel: string): HTMLElement => { const e = this.root.querySelector<HTMLElement>(sel); if (e === null) throw new Error(`Stealth: missing ${sel}`); return e; };
     this.pip = q('.ws-stealth-pip'); this.pipIcon = q('.ws-stealth-eye'); this.pipLabel = q('.ws-stealth-label');
     this.chev = q('.ws-stealth-chev'); this.meter = q('.ws-stealth-grass'); this.meterFill = q('.ws-stealth-grass i'); this.hint = q('.ws-stealth-hint');
     this.hint.textContent = 'Tall grass · C crouch';
     // the phone: the base HUD's slots (src/engine/ui/hudSlots.ts) — nothing here is placed by this module
-    const disc = (value: Parameters<typeof hudSlots.disc>[0]): HTMLButtonElement => opts.ctx ? opts.ctx.hud.disc(value) : hudSlots.disc(value);
+    const disc = (value: Parameters<typeof hudSlots.disc>[0]): HTMLButtonElement => opts.ctx ? opts.ctx.hud.disc(value) : hudSlots.disc(value, this.scope);
     this.disc = disc({ cls: 'ws-stealth-crouch', icon: CROUCH_ICON, label: 'Crouch', spot: 'up0', press: () => { this.touchToggle = true; } });
     this.row = document.createElement('div');
     this.row.className = 'ws-stealth-row'; this.row.dataset['state'] = 'none';
     this.row.innerHTML = '<i class="ws-stealth-eye"></i><span class="ws-stealth-label"></span>';
     this.rowIcon = q2(this.row, '.ws-stealth-eye'); this.rowLabel = q2(this.row, '.ws-stealth-label');
-    if (opts.ctx) opts.ctx.hud.widget('status', this.row, 3); else hudSlots.statusRow(this.row, 3);
+    if (opts.ctx) opts.ctx.hud.widget('band.3', this.row, 3); else hudSlots.statusRow(this.row, 3);
     this.grassRow = document.createElement('div');
     this.grassRow.className = 'ws-stealth-grassrow';
     this.grassRow.innerHTML = '<span>Grass</span><b><i></i></b>';
     this.grassRowFill = q2(this.grassRow, 'i');
-    if (opts.ctx) opts.ctx.hud.widget('status', this.grassRow, 4); else hudSlots.statusRow(this.grassRow, 4);
+    if (opts.ctx) opts.ctx.hud.widget('band.3', this.grassRow, 4); else hudSlots.statusRow(this.grassRow, 4);
     const unlayer = hudSlots.onLayer(() => { this.hint.textContent = 'Tall grass'; this.hint.classList.add('touch'); });
     opts.ctx?.scope.onDispose(unlayer);
     opts.ctx?.scope.onDispose(() => { this.root.remove(); this.latched = false; });
@@ -268,7 +267,7 @@ export class Stealth {
       this.disc.classList.add('pulse');
       this.hint.classList.add('on');
       const endHint = (): void => { this.hint.classList.remove('on'); this.disc.classList.remove('pulse'); };
-      if (this.scope) this.scope.timeout(3200, endHint); else setTimeout(endHint, 3200);
+      this.scope.timeout(3200, endHint);
     }
   }
 }

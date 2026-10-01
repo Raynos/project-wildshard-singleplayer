@@ -61,8 +61,8 @@ export function installCompendium(host: CompendiumHost): { state: CompendiumStat
   const disc = document.createElement('button');
   disc.type = 'button'; disc.className = 'ws-cmp-disc';
   disc.innerHTML = `${GLYPH_BOOK}Journal`;
-  hudSlots.pill(disc, () => { if (hud.entered) journal.open(); });
-  menu.setFinds(() => compendiumFinds(state, (id) => { journal.open(id); })); // the BAG's FINDS tab is the journal (E314 C: JOURNAL became FINDS)
+  hudSlots.pill(disc, () => { if (hud.entered) journal.open(); }, journal.scope);
+  menu.addFinds('compendium', () => compendiumFinds(state, (id) => { journal.open(id); })); // the BAG's FINDS tab is the journal (E314 C: JOURNAL became FINDS)
   document.addEventListener('keydown', (e) => {
     if (e.code !== 'KeyN' || e.repeat || !hud.entered || menu.isOpen || journal.isOpen) return;
     e.preventDefault(); journal.open();

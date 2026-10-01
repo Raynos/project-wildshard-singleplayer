@@ -69,8 +69,8 @@ async function buildSession(manifest: ShardManifest, stage: LoadStage, engine: B
   const { default: Plugin } = await stage('manifest.load', manifest.load);
   const plugin = new Plugin();
   const game: GameServices = { runtime: boot.runtime, shard: manifest, rows: new Map(), bag: {
-    tab: () => { throw new Error('Bag plugin tabs are not installed'); },
-    fragment: (tab, fragment) => { const menu = boot.runtime.play?.menu; if (menu === undefined) throw new Error('Bag plugin fragments require the play host'); return menu.addBagFragment(tab, fragment); },
+    tab: (spec) => { const menu = boot.runtime.play?.menu; if (menu === undefined) throw new Error('Bag plugin tabs require the play host'); return menu.addTab(spec); },
+    fragment: (tab, fragment) => { const menu = boot.runtime.play?.menu; if (menu === undefined) throw new Error('Bag plugin fragments require the play host'); return menu.addTabFragment(tab, fragment); },
   } };
   let context: ShardContext | undefined;
   const ctx = (level: LevelContext): ShardContext => { context ??= shardContext(level, manifest, game); return context; };
@@ -91,6 +91,7 @@ async function buildSession(manifest: ShardManifest, stage: LoadStage, engine: B
         world: (level) => boot.worldHook(async () => { await plugin.world?.(ctx(level)); }),
         kit: async (level) => {
           ctx(level).rows.item(kit.items);
+          ctx(level).rows.tool(kit.tools);
           await plugin.kit?.(ctx(level));
           boot.skins = [...(game.rows.get('skin')?.values() ?? [])] as SkinDef[];
           boot.items = game.rows.get('item') ?? new Map(); boot.featTotal = game.rows.get('feat')?.size;

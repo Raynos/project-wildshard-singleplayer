@@ -25,7 +25,7 @@
 #hud.intro .ws-quest-obj { display: none; }
 
 /* ── dialogue: a glass panel above the touch bar / the bottom of the screen ── */
-.ws-quest-talk { position: absolute; z-index: 7; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 150px); width: min(92vw, 560px); transform: translate(-50%, 12px); opacity: 0; transition: opacity 0.25s, transform 0.25s; pointer-events: none; padding: 12px 16px 12px 16px; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4), 0 14px 40px rgba(0, 0, 0, 0.45); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+.ws-quest-talk { position: absolute; z-index: calc(var(--ws-layer-hud) + 7); left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 150px); width: min(92vw, 560px); transform: translate(-50%, 12px); opacity: 0; transition: opacity 0.25s, transform 0.25s; pointer-events: none; padding: 12px 16px 12px 16px; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4), 0 14px 40px rgba(0, 0, 0, 0.45); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
 .ws-quest-talk.show { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; cursor: pointer; }
 .ws-quest-talk::before { content: ''; position: absolute; left: -1px; top: -1px; width: 18px; height: 18px; border-left: 1px solid var(--ws-cyan); border-top: 1px solid var(--ws-cyan); }
 .ws-quest-talk-name { font-family: var(--ws-mono); font-size: 9.5px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--ws-cyan); margin-bottom: 6px; }

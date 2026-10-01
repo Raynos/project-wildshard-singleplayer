@@ -1,3 +1,4 @@
+import { uiScope, mountUi } from './ownership';
 import { app } from '../app/runtime';
 import { engineString } from '#engine/strings';
 import './styles/combat.css';
@@ -23,6 +24,7 @@ const HOLD = 0.35;
 interface Slot { el: HTMLElement; x: number; z: number; t: number; strength: number; active: boolean }
 
 export class HurtArc {
+  readonly scope = uiScope('HurtArc');
   private layer: HTMLElement;
   private slots: Slot[] = [];
 
@@ -36,7 +38,7 @@ export class HurtArc {
       this.slots.push({ el, x: 0, z: 0, t: 0, strength: 0, active: false });
     }
     const hud = document.getElementById('hud');
-    if (hud) hud.prepend(this.layer); else document.body.append(this.layer);
+    mountUi(this.layer, this.scope, hud ?? document.body, hud?.firstChild);
   }
 
   /** a hit from world (x, z); `damage` sizes the arc (8 → a thin one, 18+ → a thick one) */

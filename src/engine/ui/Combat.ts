@@ -1,3 +1,4 @@
+import { uiScope, mountUi } from './ownership';
 import { engineString } from '#engine/strings';
 import * as THREE from 'three';
 import { app } from '../app/runtime';
@@ -70,6 +71,7 @@ function tap<T extends object>(obj: T, key: keyof T, hook: (...args: unknown[]) 
 }
 
 export class Combat {
+  readonly scope = uiScope('Combat');
   /** the animal under the crosshair this frame (within AIM_TOL of the aim ray), or null */
   aimed: Animal | null = null;
   private layer: HTMLElement;
@@ -89,7 +91,7 @@ export class Combat {
     this.layer = document.createElement('div');
     this.layer.className = 'ws-combat-layer';
     const hud = document.getElementById('hud');
-    if (hud) hud.prepend(this.layer); else document.body.append(this.layer);
+    mountUi(this.layer, this.scope, hud ?? document.body, hud?.firstChild);
 
     for (let i = 0; i < BAR_MAX; i++) {
       const el = document.createElement('div'); el.className = 'ws-combat-hp';
@@ -108,7 +110,7 @@ export class Combat {
     for (let i = 0; i < PENDING_MAX; i++) this.pending.push({ animal: null, t: 0, deadline: 0, active: false });
 
     const measure = (): void => { this.w = window.innerWidth; this.h = viewportHeight(); };
-    measure(); window.addEventListener('resize', measure);
+    measure(); this.scope.listen(window, 'resize', measure);
 
     tap(weapon, 'onFire', () => { this.fired(); });
     tap(weapon, 'onImpact', (surface, point) => { this.impact(surface as string, point as THREE.Vector3); });

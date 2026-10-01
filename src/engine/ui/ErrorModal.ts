@@ -1,3 +1,5 @@
+import type { UiHandle } from './layers';
+import { uiScope, mountUi } from './ownership';
 import { engineString } from '#engine/strings';
 import { saveStorage } from '#engine/saves/slots';
 import { app } from '../app/runtime';
@@ -37,11 +39,16 @@ import { bootDiagnostic, bootDiagnosticJson } from '../boot/bootTrace';
 // RELOAD HERE stops returning to the spot: one shared budget
 import { RELOADS_MAX, countReload, recentReloads } from '../core/reloadGuard';
 
+
+const scope = uiScope('ErrorModal', app.engineScope);
+let fatalLayer: UiHandle | null = null;
+
 declare const __BUILD_ID__: string; // vite.config.ts define
 
 const CHIP_MS = 7000;
 
 let root: HTMLElement | null = null;
+const closeFatal = (): void => { fatalLayer?.dispose(); fatalLayer = null; root?.remove(); root = null; };
 let count = 0;
 let firstText = '';
 let chipShown = false;
@@ -55,7 +62,7 @@ function session(): ReturnType<typeof saveStorage> { return saveStorage('session
 function local(): ReturnType<typeof saveStorage> { return saveStorage('device'); }
 
 const STYLE = `
-  #wserr { position: fixed; inset: 0; z-index: 2147482500; display: flex; align-items: center; justify-content: center; box-sizing: border-box; padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom)); background: rgba(4, 9, 14, 0.62); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); color: #e6f2f8; font: 12px/1.5 "JetBrains Mono", ui-monospace, Menlo, monospace; }
+  #wserr { position: fixed; inset: 0; z-index: calc(var(--ws-layer-error, 2147482500) + 0); display: flex; align-items: center; justify-content: center; box-sizing: border-box; padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom)); background: rgba(4, 9, 14, 0.62); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); color: #e6f2f8; font: 12px/1.5 "JetBrains Mono", ui-monospace, Menlo, monospace; }
   #wserr .box { position: relative; box-sizing: border-box; width: min(440px, 100%); max-height: 100%; overflow: auto; padding: 22px 18px 16px; background: rgba(13, 27, 38, 0.82); border: 1px solid rgba(143, 227, 255, 0.35); box-shadow: 0 24px 80px rgba(0, 0, 0, 0.55); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
   #wserr .br { position: absolute; width: 12px; height: 12px; border: 0 solid #8fe3ff; pointer-events: none; }
   #wserr .br.tl { top: -1px; left: -1px; border-top-width: 2px; border-left-width: 2px; }
@@ -84,7 +91,7 @@ const STYLE = `
   #wserr .meta { margin-bottom: 8px; color: rgba(230, 242, 248, 0.45); font-size: 10px; white-space: pre-wrap; word-break: break-word; -webkit-user-select: text; user-select: text; }
   #wserr .n { color: #ffb86b; font-size: 10px; letter-spacing: 0.12em; }
   #wserr button.copy { width: auto; padding: 9px 12px; font-size: 10px; }
-  #wserr-chip { position: fixed; left: 50%; top: calc(22vh + env(safe-area-inset-top, 0px)); z-index: 2147482400; transform: translateX(-50%); display: flex; align-items: center; gap: 8px; padding: 6px 11px; background: rgba(13, 27, 38, 0.72); border: 1px solid rgba(143, 227, 255, 0.35); color: rgba(230, 242, 248, 0.85); font: 10px/1.2 "JetBrains Mono", ui-monospace, monospace; letter-spacing: 0.2em; text-transform: uppercase; white-space: nowrap; cursor: pointer; transition: opacity 0.4s ease; -webkit-user-select: none; user-select: none; }
+  #wserr-chip { position: fixed; left: 50%; top: calc(22vh + env(safe-area-inset-top, 0px)); z-index: calc(var(--ws-layer-error, 2147482500) + -100); transform: translateX(-50%); display: flex; align-items: center; gap: 8px; padding: 6px 11px; background: rgba(13, 27, 38, 0.72); border: 1px solid rgba(143, 227, 255, 0.35); color: rgba(230, 242, 248, 0.85); font: 10px/1.2 "JetBrains Mono", ui-monospace, monospace; letter-spacing: 0.2em; text-transform: uppercase; white-space: nowrap; cursor: pointer; transition: opacity 0.4s ease; -webkit-user-select: none; user-select: none; }
   #wserr-chip::before { content: ''; width: 5px; height: 5px; background: #ffb86b; box-shadow: 0 0 6px #ffb86b; }
   #wserr-chip.out { opacity: 0; pointer-events: none; }
   #wserr-chip b { color: #7ef0b0; font-weight: 400; }
@@ -101,7 +108,7 @@ function ensureStyle(): void {
 
 function mount(el: HTMLElement): void {
   const doc: { body: HTMLElement | null } = document; // null when we run from <head>
-  (doc.body ?? document.documentElement).append(el);
+  mountUi(el, scope, doc.body ?? document.documentElement);
 }
 
 function meta(): string {
@@ -143,16 +150,16 @@ function build(): HTMLElement {
   const pose = currentPose();
   if (looped) here.textContent = engineString('s_078b1e7bbe5e');
   else if (!pose) here.textContent = engineString('s_bdc090ec61e3');
-  here.onclick = () => { here.disabled = true; here.textContent = engineString('s_ea456dcf3d90'); reloadHere(!looped); };
-  q(el, '.title').onclick = () => { toTitle(); };
-  q(el, '.keep').onclick = () => { el.remove(); root = null; };
+  scope.listen(here, 'click', () => { here.disabled = true; here.textContent = engineString('s_ea456dcf3d90'); reloadHere(!looped); });
+  scope.listen(q(el, '.title'), 'click', () => { toTitle(); });
+  scope.listen(q(el, '.keep'), 'click', closeFatal);
   const copyBtn = q(el, '.copy');
   const copy = async (): Promise<void> => {
     const clip = nav.clipboard; if (!clip) return;
     const text = `${q(el, '.msg').textContent}\n\n${q(el, '.stack').textContent}\n\n${q(el, '.meta').textContent}`;
     try { await clip.writeText(text); copyBtn.textContent = engineString('s_8d525e5f158b'); } catch { copyBtn.textContent = engineString('s_5b50e7a693fe'); }
   };
-  copyBtn.onclick = () => { void copy(); };
+  scope.listen(copyBtn, 'click', () => { void copy(); });
   return el;
 }
 
@@ -171,6 +178,7 @@ function showFatal(message: string, stack: string, sent: Promise<ReportOutcome> 
     if (!root) {
       root = build();
       mount(root);
+      fatalLayer = app.ui.push('error', { root, order: 1000, back: () => { if (loopState() === 'running') closeFatal(); } }, scope);
       firstText = message;
       const alive = loopState() === 'running';
       const looped = recentReloads().length >= RELOADS_MAX;
@@ -201,10 +209,10 @@ function showChip(sent: Promise<ReportOutcome>): void {
     chip.id = 'wserr-chip';
     chip.setAttribute('role', 'status');
     chip.textContent = engineString('s_f589420f0639');
-    const out = (): void => { chip.classList.add('out'); window.setTimeout(() => { chip.remove(); }, 500); };
-    chip.addEventListener('click', out);
+    const out = (): void => { chip.classList.add('out'); scope.timeout(500, () => { chip.remove(); }); };
+    scope.listen(chip, 'click', out);
     mount(chip);
-    window.setTimeout(out, CHIP_MS);
+    scope.timeout(CHIP_MS, out);
     void (async () => { const o = await sent; if (o === 'sent' || o === 'dup') { const b = document.createElement('b'); b.textContent = engineString('s_456509849d2d'); chip.append(b); } })();
   } catch { /* never throw from here */ }
 }
@@ -262,7 +270,7 @@ export function installErrorModal(): void {
   onFault(handle);
   // the app-switch trace (E135): a long return / a boot after one reports as system `lifecycle` — no chip, no modal
   installLifeTrace((message, trace) => { void report('lifecycle', new DescribedError(message, trace), {}); });
-  window.addEventListener('error', (e) => {
+  scope.listen(window, 'error', (e) => {
     const err: unknown = e.error;
     // An opaque cross-origin error ("Script error.", no file, no error object) is never ours: every game script is
     // same-origin. On iOS it comes from a Safari extension / content blocker injected into the page — log it, keep playing.
@@ -273,8 +281,8 @@ export function installErrorModal(): void {
     const error = err ?? Object.assign(new Error(e.message), { stack: `${e.filename.split('/').pop() ?? ''}:${e.lineno}:${e.colno}` });
     emitFault({ system: 'window', error, verdict: 'uncaught' });
   });
-  window.addEventListener('unhandledrejection', (e) => { emitFault({ system: 'promise', error: e.reason, verdict: 'uncaught' }); });
+  scope.listen(window, 'unhandledrejection', (e) => { emitFault({ system: 'promise', error: e.reason, verdict: 'uncaught' }); });
   // what an offline page queued goes once the network is back (and a little after boot, off the critical path)
-  window.addEventListener('online', () => { void reporter?.flushQueue(); });
-  window.setTimeout(() => { void reporter?.flushQueue(); }, 8000);
+  scope.listen(window, 'online', () => { void reporter?.flushQueue(); });
+  scope.timeout(8000, () => { void reporter?.flushQueue(); });
 }

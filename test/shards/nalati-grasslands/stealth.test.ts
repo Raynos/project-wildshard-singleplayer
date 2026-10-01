@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { Events, Scope } from '#engine';
+import { Events, Scope, InputService } from '#engine';
 import { Stealth } from '#shards/nalati-grasslands/stealth';
 import { fakeWorld } from '../../fake/world';
 
@@ -10,7 +10,7 @@ beforeEach(() => { document.body.innerHTML = '<div id="hud"></div>'; grass.heigh
 function setup() {
   const { player } = fakeWorld();
   player.keys = new Set(); player.touchMove = { x: 0, y: 0 }; player.touchJump = false;
-  player.hover = false; player.swimming = false; player.inputService = null;
+  player.hover = false; player.swimming = false; player.inputService = new InputService(() => 0);
   let mounted = false, taming = false;
   const stealth = new Stealth({ player, wildlife: () => null, isMounted: () => mounted, crouchHere: () => taming });
   const events = new Events(), scope = new Scope('stealth-test');
@@ -37,7 +37,7 @@ describe('Nalati crouch through the motor ask', () => {
   it.each(['grass', 'sprint', 'jump', 'mounted'] as const)('drops the latch for %s', (reason) => {
     const f = setup(); f.ask(true); f.ask(false);
     if (reason === 'grass') { grass.height = 0; f.stealth.crouchStep(1.1); }
-    if (reason === 'sprint') { f.player.keys.add('ShiftLeft'); f.player.keys.add('KeyW'); }
+    if (reason === 'sprint') { f.player.inputService?.setHeld('sprint', true); f.player.inputService?.setHeld('move.forward', true); }
     if (reason === 'jump') f.player.touchJump = true;
     if (reason === 'mounted') { f.mount(); f.stealth.crouchStep(0); }
     expect(f.ask(false).latched).toBe(false); f.scope.dispose();

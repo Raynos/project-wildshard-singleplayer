@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import * as THREE from 'three';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { EquipmentService, Weapon, Scope, Tool, quiverState, type EquipmentRow, type WeaponId, type WeaponState } from '#engine';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { app as inputApp, EquipmentService, Weapon, Scope, Tool, quiverState, type EquipmentRow, type WeaponId, type WeaponState } from '#engine';
 import { SABRE, BOW, SPEAR } from '#shards/nalati-grasslands/weapons/equipment';
 import { CROSSBOW } from '#shards/pine-hollow/weapons/equipment';
 import { App } from '#engine/app/app';
@@ -20,7 +20,14 @@ class FixtureWeapon extends Weapon {
   override reload = vi.fn((): void => undefined);
   override inputAllowed(): boolean { return true; }
 }
-beforeEach(() => { vi.stubGlobal('document', new EventTarget()); vi.stubGlobal('window', new EventTarget()); });
+let inputScope: Scope;
+beforeEach(() => {
+  vi.stubGlobal('document', new EventTarget()); vi.stubGlobal('window', new EventTarget());
+  inputScope = new Scope('equipment-input'); inputApp.input.install(inputScope);
+  inputApp.input.register({ id: 'test.swap', actions: ['swap', 'swap.slot.1', 'swap.slot.2', 'swap.slot.3'], keys: { swap: ['KeyQ'], 'swap.slot.1': ['Digit1'], 'swap.slot.2': ['Digit2'], 'swap.slot.3': ['Digit3'] } }, inputScope);
+  inputApp.input.push('test.swap', inputScope);
+});
+afterEach(() => { inputScope.dispose(); });
 function fixture() {
   const a = new FixtureWeapon(SABRE, 'sabre'), b = new FixtureWeapon(BOW, 'bow', true), c = new FixtureWeapon(SPEAR, 'spear'), game = new FakeGame();
   const weapons = new EquipmentService(a, { order: ['bow', 'sabre', 'spear'] });
@@ -30,6 +37,7 @@ function fixture() {
 }
 function key(code: string, repeat = false): void {
   document.dispatchEvent(new KeyboardEvent('keydown', { code, repeat }));
+  document.dispatchEvent(new KeyboardEvent('keyup', { code }));
 }
 
 describe('legacy equipment service behavior to retain in S1.2', () => {
@@ -114,7 +122,7 @@ describe('equipment contracts and lifecycle', () => {
   it('owns its action bindings/listeners and equipment through the supplied scope', () => {
     const parent = new Scope('level'), a = new FixtureWeapon(SABRE, 'sabre'), b = new FixtureWeapon(BOW, 'bow', true);
     const weapons = new EquipmentService(a, { scope: parent }); weapons.add(b, { locked: false });
-    expect(parent.census.listeners).toBe(2); key('KeyQ'); weapons.update(0.5, 0.5); expect(weapons.current).toBe(b);
+    expect(parent.census.listeners).toBe(0); key('KeyQ'); weapons.update(0.5, 0.5); expect(weapons.current).toBe(b);
     const camera = new THREE.Group(); camera.add(a.model, b.model);
     parent.dispose(); expect(parent.census.listeners).toBe(0); expect(a.enabled).toBe(false); expect(b.enabled).toBe(false);
     expect(camera.children).toHaveLength(0); expect(a.model.visible).toBe(false); expect(b.model.visible).toBe(false);

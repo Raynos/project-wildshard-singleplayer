@@ -1,3 +1,4 @@
+import { Scope } from '#engine/app/scope';
 // @vitest-environment happy-dom
 import { afterEach, expect, it, vi } from 'vitest';
 import { app } from '#engine';
@@ -7,7 +8,7 @@ import { Crossbow } from '#kit/weapons/crossbow/Crossbow';
 afterEach(() => { document.body.replaceChildren(); app.setState('boot'); });
 it('contains a resume tap and compatibility mouse events while allowing its target click to resume', () => {
   const root = document.createElement('div'), button = document.createElement('button');
-  root.append(button); document.body.append(root); containMenuInput(root);
+  root.append(button); document.body.append(root); containMenuInput(root, new Scope('menu'));
   const shot = vi.fn<() => void>(), resume = vi.fn(() => app.setState('play'));
   const controller = new AbortController();
   for (const type of ['mousedown', 'mouseup', 'pointerdown', 'pointerup', 'click']) document.addEventListener(type, shot, { signal: controller.signal });
@@ -23,6 +24,10 @@ it('blocks the real crossbow input predicate while the pause menu is open', () =
   if (typeof method !== 'function') throw new Error('Missing crossbow input predicate');
   const allowed = method as (this: typeof state) => boolean;
   app.setState('play'); expect(allowed.call(state)).toBe(true);
+  const scope = new Scope('menu-block');
+  app.input.register({ id: 'test.menu', actions: ['back'], blocks: 'below' }, scope);
+  app.input.push('test.menu', scope);
   app.setState('paused'); expect(allowed.call(state)).toBe(false);
+  app.input.pop('test.menu'); scope.dispose();
   app.setState('play'); expect(allowed.call(state)).toBe(true);
 });

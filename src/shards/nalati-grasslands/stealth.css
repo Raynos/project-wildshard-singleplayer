@@ -1,7 +1,7 @@
 /* ─── Nalati grass stealth (src/shards/nalati-grasslands/stealth.ts, plan row B9) ─── prefix ws-stealth- ───
    mockups: art/nalati-grasslands/round-2/3-features/stealth-1-crouched-hidden.png, stealth-2-detected.png,
    art/nalati-grasslands/round-3/3-crouch-disc/*.png. The root carries data-state = none | visible | hidden | noticed | detected. */
-.ws-stealth { position: absolute; inset: 0; pointer-events: none; z-index: 4; }
+.ws-stealth { position: absolute; inset: 0; pointer-events: none; z-index: calc(var(--ws-layer-hud) + 4); }
 #hud.intro .ws-stealth { display: none; }
 
 /* the eye pip, just under the crosshair: icon + label */

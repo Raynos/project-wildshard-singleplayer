@@ -1,3 +1,4 @@
+import { Sword } from '#kit';
 import { JIAN_ROW } from './vm/jianRow';
 import { FEI_ZHUA_ROW } from './grapple/row';
 import { FeiZhua } from './grapple/FeiZhua';
@@ -25,7 +26,20 @@ async function buildWorld(ctx: ShardContext): ReturnType<WorldBuilder> {
 
 /** The world hook can be exercised with a stub build without a DOM or GPU. */
 export class NdPlugin extends ShardPlugin {
-  override async kit(ctx: ShardContext): Promise<void> { await installAudio(ctx); ctx.rows.weapon(JIAN_ROW); ctx.rows.tool(FEI_ZHUA_ROW); }
+  override async kit(ctx: ShardContext): Promise<void> {
+    await installAudio(ctx);
+    ctx.rows.weapon(JIAN_ROW);
+    ctx.rows.tool(FEI_ZHUA_ROW);
+    const shell = ctx.game.runtime;
+    if (shell === undefined) throw new Error('Nine Dragon equipment requires the game session');
+    shell.buildEquipment = (targets, nolock, viewmodel) => {
+      const world = shell.world;
+      if (world === null) throw new Error('Nine Dragon equipment requires its world');
+      const { ironArms: _ironArms, swim: _swim, ...ownSword } = viewmodel ?? {};
+      return Promise.resolve({ primary: new Sword(world, targets, { row: JIAN_ROW, profile: JIAN_ROW, allowUnlocked: nolock, ...ownSword,
+        ...(world.game.level.camera === undefined ? {} : { portraitFov: world.game.level.camera.portraitFov }) }), rifle: null, secondary: null });
+    };
+  }
   override play(ctx: ShardContext): void {
     const equipment = ctx.app.equipment;
     if (equipment === null) throw new Error('Nine Dragon needs its loadout before play');

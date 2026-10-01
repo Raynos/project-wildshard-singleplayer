@@ -30,7 +30,7 @@ describe('Nine Dragon full shard manifest', () => {
     const level = toLevelSpec(manifest);
     expect(level.ground.structures).toBe(true);
     expect(level.mechanisms).toEqual(['hover', 'explore', 'practice']);
-    expect(level.loadout).toMatchObject({ weapons: ['weapon.jian'], tools: ['tool.fei-zhua'], start: ['weapon.jian'] });
+    expect(level.loadout).toMatchObject({ weapons: ['weapon.jian'], tools: ['tool.fei-zhua', 'tool.hoverboard'], start: ['weapon.jian', 'tool.hoverboard'] });
     expect(manifest.bag).toEqual({ tabs: ['map', 'gear'], pack: { slots: 0 } });
     expect(level.species).toEqual([]);
     expect(level.spawns).toEqual([]);

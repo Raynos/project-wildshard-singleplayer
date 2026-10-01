@@ -1,3 +1,5 @@
+import type { Scope } from '../app/scope';
+import { uiScope } from './ownership';
 import { engineString } from '#engine/strings';
 import { saveStorage } from '#engine/saves/slots';
 /**
@@ -45,6 +47,7 @@ function frameCause(f: FrameRecord): string {
 }
 
 interface Run {
+  scope: Scope;
   host: PerfLapHost;
   start: { x: number; y: number; z: number; yaw: number; pitch: number };
   t0: number; startedAt: string;
@@ -56,6 +59,7 @@ interface Run {
 }
 
 export class PerfLap {
+  readonly scope = uiScope('PerfLap');
   private run: Run | null = null;
   private readonly onInput = (): void => { this.cancel('touch / key'); };
   private readonly onHidden = (): void => { if (document.visibilityState === 'hidden') this.cancel('the app went to the background'); };
@@ -82,17 +86,18 @@ export class PerfLap {
     const p = host.player;
     const now = performance.now();
     const raf = { n: 0, id: 0, t0: now };
-    const count = (): void => { raf.n++; raf.id = requestAnimationFrame(count); };
-    raf.id = requestAnimationFrame(count);
+    const scope = this.scope.child('run');
+    const count = (): void => { raf.n++; raf.id = scope.raf(count); };
+    raf.id = scope.raf(count);
     this.run = {
-      host, start: { x: p.position.x, y: p.position.y, z: p.position.z, yaw: p.yaw, pitch: p.pitch },
+      scope, host, start: { x: p.position.x, y: p.position.y, z: p.position.z, yaw: p.yaw, pitch: p.pitch },
       t0: now, startedAt: localIso(new Date()), i: 0, phase: 'settle', phaseT0: now, frames: [], worst: -1, done: [], raf, frameCostWas: frameCost.on,
     };
     perfLap.active = true;
     host.hold(true);
     // any touch or key cancels (capture: before the look layer or a button sees it)
-    for (const t of ['pointerdown', 'touchstart', 'keydown'] as const) window.addEventListener(t, this.onInput, { capture: true });
-    document.addEventListener('visibilitychange', this.onHidden);
+    for (const t of ['pointerdown', 'touchstart', 'keydown'] as const) scope.listen(window, t, this.onInput, { capture: true });
+    scope.listen(document, 'visibilitychange', this.onHidden);
     this.goTo(0, now);
     return null;
   }
@@ -169,9 +174,7 @@ export class PerfLap {
     this.run = null;
     frameCost.onFrame = null;
     frameCost.on = r.frameCostWas;
-    cancelAnimationFrame(r.raf.id);
-    for (const t of ['pointerdown', 'touchstart', 'keydown'] as const) window.removeEventListener(t, this.onInput, { capture: true });
-    document.removeEventListener('visibilitychange', this.onHidden);
+    r.scope.dispose();
     const s = r.start;
     r.host.player.spawn(s.x, s.z, s.yaw, s.y);
     r.host.player.pitch = s.pitch;

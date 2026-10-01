@@ -1,3 +1,4 @@
+import { uiScope, mountUi } from './ownership';
 import { saveStorage } from '#engine/saves/slots';
 
 const savedStorage = saveStorage('session');
@@ -26,6 +27,7 @@ export const SHOT_KEY = 'resume.shot';
 export const BRAND_KEY = 'resume.brand';
 
 class ResumeScreen {
+  readonly scope = uiScope('resume');
   private readonly root: HTMLElement;
   private readonly shot: HTMLElement | null;
   private readonly line: HTMLElement | null;
@@ -33,7 +35,7 @@ class ResumeScreen {
   private readonly btn: HTMLButtonElement | null;
   private heroImg: HTMLImageElement | null = null; // keeps the title art decoded: a hidden page loads nothing
   private onButton: (() => void) | null = null;
-  private outTimer = 0;
+  private outTimer: ReturnType<typeof setTimeout> | 0 = 0;
 
   constructor() {
     let root = document.querySelector<HTMLElement>('.ws-resume');
@@ -41,16 +43,16 @@ class ResumeScreen {
       root = document.createElement('div');
       root.className = 'ws-resume';
       root.innerHTML = RESUME_HTML;
-      document.body.append(root);
+      mountUi(root, this.scope, document.body);
     }
     this.root = root;
     this.shot = root.querySelector('.ws-resume-shot');
     this.line = root.querySelector('.ws-resume-line');
     this.bar = root.querySelector('.ws-resume-bar');
     this.btn = root.querySelector('.ws-resume-btn');
-    this.btn?.addEventListener('click', () => { this.onButton?.(); });
+    if (this.btn) this.scope.listen(this.btn, 'click', () => { this.onButton?.(); });
     // nothing behind it takes a touch or a key while it is up
-    for (const type of ['pointerdown', 'touchstart', 'keydown', 'wheel']) root.addEventListener(type, (e) => { if (e.target !== this.btn) e.stopPropagation(); });
+    for (const type of ['pointerdown', 'touchstart', 'keydown', 'wheel']) this.scope.listen(root, type, (e) => { if (e.target !== this.btn) e.stopPropagation(); });
   }
 
   get visible(): boolean { return this.root.classList.contains('show') && !this.root.classList.contains('out'); }
@@ -101,7 +103,7 @@ class ResumeScreen {
     if (!this.root.classList.contains('show')) return;
     this.root.classList.add('out');
     clearTimeout(this.outTimer);
-    this.outTimer = window.setTimeout(() => { this.root.classList.remove('show', 'out'); }, 180);
+    this.outTimer = this.scope.timeout(180, () => { this.root.classList.remove('show', 'out'); });
   }
 }
 

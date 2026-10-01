@@ -1,3 +1,5 @@
+import { uiScope } from './ownership';
+import type { Scope } from '../app/scope';
 import { engineString } from '#engine/strings';
 import { saveStorage } from '#engine/saves/slots';
 /**
@@ -47,11 +49,11 @@ const ARM_MS = 6000;
 const seen = (e: HTMLElement): boolean => e.isConnected && e.getClientRects().length > 0;
 
 /** a button row: one tap runs it, or (with `confirm`, E172) the first tap arms it and a second within ARM_MS runs it */
-function renderAction(r: DebugRow, a: DebugActionSpec, row: HTMLElement, label: HTMLElement, onPick: (id: string) => void): Rendered {
+function renderAction(r: DebugRow, a: DebugActionSpec, row: HTMLElement, label: HTMLElement, onPick: (id: string) => void, scope: Scope): Rendered {
   const b = make('ws-gmenu-segbtn ws-dbg-action', a.text, 'button') as HTMLButtonElement; b.type = 'button';
   const status = make('ws-gmenu-note ws-dbg-status');
   const say = (text: string, line: string): void => { b.textContent = text; status.textContent = line; status.hidden = line === ''; };
-  let armed = false, disarm = 0;
+  let armed = false; let disarm: ReturnType<typeof setTimeout> | 0 = 0;
   const rest = (): void => { armed = false; b.classList.remove('armed'); say(a.text, a.status?.() ?? ''); };
   const run = (): void => {
     b.disabled = true;
@@ -60,13 +62,13 @@ function renderAction(r: DebugRow, a: DebugActionSpec, row: HTMLElement, label: 
       if (r.reload) { markUnload(`debug action ${r.id} (reloads)`); location.href = settingsReloadUrl(location.href); }
     });
   };
-  b.addEventListener('click', () => {
+  scope.listen(b, 'click', () => {
     const confirm = a.confirm;
-    if (confirm === undefined || armed) { window.clearTimeout(disarm); armed = false; b.classList.remove('armed'); run(); return; }
+    if (confirm === undefined || armed) { clearTimeout(disarm); armed = false; b.classList.remove('armed'); run(); return; }
     b.disabled = true; b.textContent = engineString('s_a1f421df5e50');
     void confirm().then((text) => {
       b.disabled = false; armed = true; b.classList.add('armed'); b.textContent = text;
-      window.clearTimeout(disarm); disarm = window.setTimeout(rest, ARM_MS);
+      clearTimeout(disarm); disarm = scope.timeout(ARM_MS, rest);
       return undefined;
     }).catch((e: unknown) => { console.warn(`[debug] ${r.id} confirm failed`, e); rest(); b.disabled = false; });
   });
@@ -75,18 +77,18 @@ function renderAction(r: DebugRow, a: DebugActionSpec, row: HTMLElement, label: 
   return { el: row, extra: [status], rebuild: () => undefined, paint: () => undefined };
 }
 
-function renderRow(r: DebugRow, onPick: (id: string) => void): Rendered {
+function renderRow(r: DebugRow, onPick: (id: string) => void, scope: Scope): Rendered {
   const row = make('ws-gmenu-row ws-dbg-row');
   const label = make('ws-gmenu-swlabel', r.label, 'span');
   if (r.reload) label.append(make('ws-dbg-reload', engineString('s_4027f515418b'), 'i'));
   label.append(make('ws-dbg-note', r.note, 'small'));
-  if (r.action) return renderAction(r, r.action, row, label, onPick);
+  if (r.action) return renderAction(r, r.action, row, label, onPick, scope);
   const box = make('ws-gmenu-seg ws-dbg-seg');
   const paint = (): void => { for (const c of box.children) if (c instanceof HTMLElement) c.classList.toggle('active', c.dataset['v'] === r.get()); };
   const build = (): void => {
     box.replaceChildren(...r.choices().map((c) => {
       const b = make('ws-gmenu-segbtn', c.text, 'button') as HTMLButtonElement; b.type = 'button'; b.dataset['v'] = c.v;
-      b.addEventListener('click', () => {
+      scope.listen(b, 'click', () => {
         if (r.get() === c.v) return;
         r.set(c.v); paint(); onPick(r.id);
         if (r.reload) { markUnload(`debug row ${r.id} → ${c.v} (reloads)`); location.href = settingsReloadUrl(location.href); }
@@ -104,16 +106,17 @@ function renderRow(r: DebugRow, onPick: (id: string) => void): Rendered {
   return { el: row, extra: out ? [out] : [], rebuild: build, paint: paintOut };
 }
 
-export function buildDebugMenu(card: HTMLElement, opts: { onPick?: (id: string) => void } = {}): DebugMenu {
+export function buildDebugMenu(card: HTMLElement, opts: { onPick?: (id: string) => void; scope?: Scope } = {}): DebugMenu {
+  const scope = opts.scope?.child('debug') ?? uiScope('debug');
   const onPick = opts.onPick ?? ((): void => undefined);
   const open = loadOpen();
   const byId = new Map<string, HTMLElement>();
   const filter = document.createElement('input');
   filter.type = 'search'; filter.className = 'ws-gmenu-input ws-dbg-filter'; filter.placeholder = engineString('s_b16f4cef43e2'); filter.autocomplete = 'off'; filter.enterKeyHint = 'done';
   // the menu listens for M / Esc and the player for WASD on document: typing a filter must not reach them
-  filter.addEventListener('keydown', (e) => { if (e.code !== 'Escape') e.stopPropagation(); });
-  filter.addEventListener('keyup', (e) => { e.stopPropagation(); });
-  filter.addEventListener('pointerdown', (e) => { e.stopPropagation(); });
+  scope.listen(filter, 'keydown', (e) => { if (e.code !== 'Escape') e.stopPropagation(); });
+  scope.listen(filter, 'keyup', (e) => { e.stopPropagation(); });
+  scope.listen(filter, 'pointerdown', (e) => { e.stopPropagation(); });
   const filterRow = make('ws-dbg-filterrow'); filterRow.append(filter);
   const empty = make('ws-gmenu-note ws-dbg-empty', engineString('s_6abb96d68c35')); empty.hidden = true;
   card.append(filterRow);
@@ -132,7 +135,7 @@ export function buildDebugMenu(card: HTMLElement, opts: { onPick?: (id: string) 
     head.append(make('ws-dbg-caret', '', 'i'), make('ws-dbg-title', g.label, 'span'), count);
     const body = make('ws-dbg-body');
     const rows = defs.map((def) => {
-      const r = renderRow(def, (id) => { onPick(id); paintAll(); });
+      const r = renderRow(def, (id) => { onPick(id); paintAll(); }, scope);
       byId.set(def.id, r.el); body.append(r.el, ...r.extra);
       return { def, r, text: `${def.label} ${def.note} ${g.label} ${def.id}`.toLowerCase() };
     });
@@ -140,7 +143,7 @@ export function buildDebugMenu(card: HTMLElement, opts: { onPick?: (id: string) 
     box.append(head, body);
     card.append(box);
     const s: Section = { id: g.id, box, head, count, rows };
-    head.addEventListener('click', () => {
+    scope.listen(head, 'click', () => {
       if (filter.value.trim() !== '') return; // while filtering, the matches decide what is open
       if (open.has(g.id)) open.delete(g.id); else open.add(g.id);
       saveOpen(open); paintOpen(s); paintAll();
@@ -171,7 +174,7 @@ export function buildDebugMenu(card: HTMLElement, opts: { onPick?: (id: string) 
     }
     empty.hidden = any;
   };
-  filter.addEventListener('input', repaint);
+  scope.listen(filter, 'input', repaint);
   repaint();
   return {
     applies: (c) => { ctx = c; for (const s of sections) for (const r of s.rows) r.r.rebuild(); repaint(); paintAll(); },

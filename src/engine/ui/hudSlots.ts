@@ -1,3 +1,4 @@
+import type { Scope } from '../app/scope';
 import { engineString } from '#engine/strings';
 
 
@@ -18,11 +19,21 @@ export interface DiscOpts {
 /** the status column's order: the base's rows first, then whatever a shard adds, then the pills */
 export const ROW = { vitals: 0, ammo: 1, content: 2, pill: 10 } as const;
 
-class HudSlots {
+export type HudBand = 'band.1' | 'band.2' | 'band.3' | 'band.4' | 'band.5' | 'band.6';
+export class HudSlots {
   private layer: HTMLElement | null = null;
   private status: HTMLElement | null = null;
   private readonly cancels = new WeakMap<HTMLElement, () => void>();
   private pending: ((layer: HTMLElement, status: HTMLElement) => void)[] = [];
+
+  /** Numbered bands have no wrapper: existing HUD geometry and selectors stay identical. */
+  widget(band: HudBand, el: HTMLElement, order: number, scope: Scope, root?: HTMLElement): void {
+    if (scope.disposed) return;
+    if (band === 'band.2' || band === 'band.3' || band === 'band.4' || band === 'band.5') {
+      this.statusRow(el, order, false);
+    } else (root ?? document.getElementById('hud') ?? document.body).append(el);
+    scope.capture('nodes', () => { this.discard(el); });
+  }
 
   /** TouchControls, once its layer is in #hud */
   mount(layer: HTMLElement, status: HTMLElement): void {
@@ -53,26 +64,28 @@ class HudSlots {
   }
 
   /** a tappable tag under the status column (it flows with the rows above it) */
-  pill(el: HTMLElement, onTap: () => void): void {
+  pill(el: HTMLElement, onTap: () => void, scope: Scope): void {
     el.classList.add('ws-touch-tag');
     el.style.order = String(ROW.pill);
     // the layer cancels its touch events (TouchControls, E46), so there is no click: act on the pointer's release
-    el.addEventListener('pointerdown', (e) => { e.stopPropagation(); e.preventDefault(); });
-    el.addEventListener('pointerup', (e) => { e.stopPropagation(); onTap(); });
+    scope.listen(el, 'pointerdown', (e) => { e.stopPropagation(); e.preventDefault(); });
+    scope.listen(el, 'pointerup', (e) => { e.stopPropagation(); onTap(); });
     this.cancels.set(el, this.run((_l, status) => { status.append(el); }));
+    scope.capture('nodes', () => { this.discard(el); });
   }
 
   /** a round control disc at `spot`, with the base's press plumbing; hidden until `.show` */
-  disc(o: DiscOpts): HTMLButtonElement {
+  disc(o: DiscOpts, scope: Scope): HTMLButtonElement {
     const b = document.createElement('button');
     b.type = 'button';
     b.className = `ws-touch-disc at at-${o.spot} ${o.cls}`;
     b.innerHTML = engineString('s_b7546cf3d24c', [o.icon, o.label]);
     b.setAttribute('draggable', 'false');
-    b.addEventListener('pointerdown', (e) => { e.stopPropagation(); e.preventDefault(); b.classList.add('down'); o.press?.(); });
+    scope.listen(b, 'pointerdown', (e) => { e.stopPropagation(); e.preventDefault(); b.classList.add('down'); o.press?.(); });
     const end = (e: Event): void => { e.stopPropagation(); if (!b.classList.contains('down')) return; b.classList.remove('down'); o.release?.(); };
-    b.addEventListener('pointerup', end); b.addEventListener('pointercancel', end); b.addEventListener('pointerleave', end);
+    scope.listen(b, 'pointerup', end); scope.listen(b, 'pointercancel', end); scope.listen(b, 'pointerleave', end);
     this.cancels.set(b, this.run((layer) => { layer.append(b); }));
+    scope.capture('nodes', () => { this.discard(b); });
     return b;
   }
 

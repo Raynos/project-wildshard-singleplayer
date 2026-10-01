@@ -11,6 +11,7 @@ export function installGameplayInput(player: Player, canvas: HTMLCanvasElement, 
   input.install(scope, canvas, (x, y) => { player.look(x, y); });
   for (const def of contexts) input.register(def, scope);
   input.push('onFoot', scope);
+  app.ui.connectInput(input, app.engineScope);
   scope.listen(document, 'pointerlockchange', () => { player.locked = document.pointerLockElement === canvas; });
   const mode = (id: string, on: boolean): void => { if (on) input.push(id, scope); else input.pop(id); };
   app.addSystem({ id: 'engine.input.contexts', phase: 'input', before: ['engine.input.collect', 'engine.player.input'], run: () => {

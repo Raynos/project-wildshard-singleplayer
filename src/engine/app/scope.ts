@@ -99,12 +99,14 @@ export class Scope {
     });
   }
 
-  listen(target: EventTarget, type: string, fn: EventListener, opts?: AddEventListenerOptions): void {
+  listen<K extends string>(target: EventTarget, type: K,
+    fn: (event: K extends keyof (GlobalEventHandlersEventMap & WindowEventMap) ? (GlobalEventHandlersEventMap & WindowEventMap)[K] : Event) => void,
+    opts?: AddEventListenerOptions): void {
     if (this.closed || opts?.signal?.aborted) return;
     let forget = () => { /* Filled after the listener is registered. */ };
     const listener: EventListener = (event) => {
       if (opts?.once) { forget(); opts.signal?.removeEventListener('abort', abort); }
-      fn(event);
+      fn(event as K extends keyof (GlobalEventHandlersEventMap & WindowEventMap) ? (GlobalEventHandlersEventMap & WindowEventMap)[K] : Event);
     };
     function abort(): void {
       target.removeEventListener(type, listener, opts?.capture);
@@ -118,22 +120,25 @@ export class Scope {
     });
   }
 
-  timeout(ms: number, fn: () => void): void {
-    if (this.closed) return;
+  timeout(ms: number, fn: () => void): ReturnType<typeof setTimeout> | 0 {
+    if (this.closed) return 0;
     let forget = () => { /* Filled before the timer can fire. */ };
     const id = setTimeout(() => { forget(); if (!this.closed) fn(); }, ms);
     forget = this.track('timers', () => clearTimeout(id));
+    return id;
   }
-  interval(ms: number, fn: () => void): void {
-    if (this.closed) return;
+  interval(ms: number, fn: () => void): ReturnType<typeof setInterval> | 0 {
+    if (this.closed) return 0;
     const id = setInterval(() => { if (!this.closed) fn(); }, ms);
     this.track('timers', () => clearInterval(id));
+    return id;
   }
-  raf(fn: FrameRequestCallback): void {
-    if (this.closed) return;
+  raf(fn: FrameRequestCallback): number {
+    if (this.closed) return 0;
     let forget = () => { /* Filled before the frame can fire. */ };
     const id = requestAnimationFrame((time) => { forget(); if (!this.closed) fn(time); });
     forget = this.track('rafs', () => cancelAnimationFrame(id));
+    return id;
   }
   onDispose(fn: () => void): void { this.track('disposers', fn); }
 

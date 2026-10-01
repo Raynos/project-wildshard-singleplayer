@@ -201,7 +201,7 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
   // ── Developer tools ──
   { ...action('calibrate', 'tools', engineString('s_252526ecd431'), engineString('s_e6539473d9a0'), () => { saveSetting('calibrate', 'run'); location.reload(); }, { ask: 'E357', reviewBy: '2026-12-30', note: engineString('s_7d857a36f6c1') }), choices: () => [{ v: 'off', text: engineString('s_ab0171ca0494') }, { v: 'run', text: engineString('s_00d60e31a4e6') }] },
   action('budgetReadout', 'perf', engineString('s_2461f265574b'), engineString('s_eff6d457bfb5'), (say) => {
-    if (!Object.hasOwn(window, '__wildshard')) { say('READ BUDGETS', 'Enter a level to read its budgets.'); return; }
+    if (window.__wildshard === undefined) { say('READ BUDGETS', 'Enter a level to read its budgets.'); return; }
     const rows = window.__wildshard.budgets(['current']), current = rows['current'];
     say('READ BUDGETS', current ? `${JSON.stringify(current.derived ?? current.ceiling)} · ${current.formula.assumption}` : 'F2 ceilings and stable M5 calibration are not published yet.');
   }, { ask: 'E357', reviewBy: '2026-12-30', note: engineString('s_2ed7f7dcebc2') }),

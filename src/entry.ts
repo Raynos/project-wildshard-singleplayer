@@ -68,6 +68,7 @@ export async function start(): Promise<void> {
   const { startSession } = await import('#game/session/session');
   await startSession(manifest, engine, {
     items: kit.KIT_ITEMS,
+    tools: [kit.HOVERBOARD_TOOL],
     combatCues: (audio, silent) => sharedCombatCues(kit.sharedWeaponVoices(audio), silent),
   });
 }

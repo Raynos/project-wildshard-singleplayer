@@ -2,7 +2,7 @@
    Over the running world: a top bar ([× CLOSE] · "MAREN'S COUNTER / DRIFTWOOD ISLE"), the world and the trader left
    visible in the middle, and one glass sheet at the bottom — her line, "n / 6" and the purse, one good per card between
    ‹ ›, the dots, a big BUY. Phone portrait first; with a mouse the sheet is a 440 px column at the bottom centre. */
-.ws-shop { position: absolute; inset: 0; z-index: 40; display: flex; flex-direction: column; justify-content: space-between; padding: calc(var(--ws-top) + 6px) 12px calc(12px + env(safe-area-inset-bottom, 0px)); background: linear-gradient(to bottom, rgba(6, 10, 18, 0.55), rgba(6, 10, 18, 0) 18%, rgba(6, 10, 18, 0) 38%, rgba(6, 10, 18, 0.5)); opacity: 0; pointer-events: none; transition: opacity 0.18s; font-family: var(--ws-mono); color: var(--ws-text); }
+.ws-shop { position: absolute; inset: 0; z-index: calc(var(--ws-layer-hud) + 40); display: flex; flex-direction: column; justify-content: space-between; padding: calc(var(--ws-top) + 6px) 12px calc(12px + env(safe-area-inset-bottom, 0px)); background: linear-gradient(to bottom, rgba(6, 10, 18, 0.55), rgba(6, 10, 18, 0) 18%, rgba(6, 10, 18, 0) 38%, rgba(6, 10, 18, 0.5)); opacity: 0; pointer-events: none; transition: opacity 0.18s; font-family: var(--ws-mono); color: var(--ws-text); }
 .ws-shop.show { opacity: 1; pointer-events: auto; }
 .ws-shop button { appearance: none; -webkit-appearance: none; font: inherit; color: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 

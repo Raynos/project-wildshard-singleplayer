@@ -1,3 +1,4 @@
+import { uiScope, mountUi } from './ownership';
 import { app } from '../app/runtime';
 import './styles/combat.css';
 
@@ -34,6 +35,7 @@ export interface DeathHooks {
 const smooth = (k: number): number => { const c = Math.min(1, Math.max(0, k)); return c * c * (3 - 2 * c); };
 
 export class DeathFade {
+  readonly scope = uiScope('DeathFade');
   private readonly root: HTMLElement;
   private readonly cause: HTMLElement;
   private readonly where: HTMLElement;
@@ -58,8 +60,7 @@ export class DeathFade {
     this.where.className = 'ws-combat-death-where';
     this.card.append(this.cause, rule, this.where);
     this.root.append(this.card);
-    const hud = document.getElementById('hud');
-    if (hud) hud.append(this.root); else document.body.append(this.root);
+    mountUi(this.root, this.scope);
   }
 
   /** from play() until the view is back */

@@ -1,3 +1,4 @@
+import { uiScope, mountUi } from '#engine';
 /**
  * BagButton — the INVENTORY button that squares out the minimap's top-right corner (E124, the user: "a button that squares out
  * the minimap … top and right straight edge, and on the minimap the button has like a reverse moon edge").
@@ -51,6 +52,7 @@ const PACK = `
 const PAD = 5, GLYPH = 37;
 
 export class BagButton {
+  readonly scope = uiScope('BagButton');
   readonly root: HTMLButtonElement;
 
   constructor(minimap: HTMLElement, onTap: () => void) {
@@ -71,13 +73,13 @@ export class BagButton {
     </svg>`;
     // the minimap is itself a button (Map.bindMinimap: pointerdown swallowed, pointerup opens MAP): stop ours before it
     const up = () => { b.classList.remove('down'); };
-    b.addEventListener('pointerdown', () => { b.classList.add('down'); });
-    b.addEventListener('pointerup', (e) => { e.stopPropagation(); up(); onTap(); });
-    b.addEventListener('pointercancel', up);
-    b.addEventListener('pointerleave', up);
-    b.addEventListener('click', (e) => { e.stopPropagation(); if (e.detail === 0) onTap(); }); // keyboard (Enter / Space) only
+    this.scope.listen(b, 'pointerdown', () => { b.classList.add('down'); });
+    this.scope.listen(b, 'pointerup', (e) => { e.stopPropagation(); up(); onTap(); });
+    this.scope.listen(b, 'pointercancel', up);
+    this.scope.listen(b, 'pointerleave', up);
+    this.scope.listen(b, 'click', (e) => { e.stopPropagation(); if (e.detail === 0) onTap(); }); // keyboard (Enter / Space) only
     this.root = b;
     minimap.classList.add('bag'); // the phone steps the circle in so the square clears the screen edge (minimap.css)
-    minimap.append(b);
+    mountUi(b, this.scope, minimap);
   }
 }

@@ -12,6 +12,7 @@ import { fakeWorld } from '../../fake/world';
 
 function fixture() {
   const app = new App(), scope = new Scope('ride-test');
+  app.input.install(scope);
   const whistle = vi.fn<() => null>(() => null), gallop = vi.fn<() => void>();
   const mount = legacyDouble<Mount>({ input: null, equipment: null, breaking: false, onMountChange: undefined,
     whistle, gallopTap: gallop, dismount: () => { mount.onMountChange?.(null); } });

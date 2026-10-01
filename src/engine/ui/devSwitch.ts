@@ -1,3 +1,4 @@
+import { uiScope } from './ownership';
 import { engineString } from '#engine/strings';
 /**
  * Settings ▸ DEVELOPER (E140, the user's 1c): the one visible switch for developer mode (src/engine/core/devMode.ts), in the pause
@@ -7,6 +8,7 @@ import { engineString } from '#engine/strings';
 import { isDev, onDev, setDev } from '../core/devMode';
 
 export function devSwitchRows(): HTMLElement[] {
+  const scope = uiScope('devSwitch');
   const label = document.createElement('div');
   label.className = 'ws-gmenu-label';
   label.textContent = engineString('s_3fb7b39416f1');
@@ -17,7 +19,7 @@ export function devSwitchRows(): HTMLElement[] {
   b.innerHTML = engineString('s_008ede743530');
   const sync = (on: boolean): void => { b.classList.toggle('on', on); b.setAttribute('aria-checked', String(on)); };
   sync(isDev()); onDev(sync);
-  b.addEventListener('click', () => { setDev(!isDev()); });
+  scope.listen(b, 'click', () => { setDev(!isDev()); });
   const note = document.createElement('div');
   note.className = 'ws-gmenu-note';
   note.textContent = engineString('s_f427cd6641a5');

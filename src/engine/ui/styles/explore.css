@@ -2,7 +2,7 @@
    an overlay on document.body over the live canvas: top bar (wordmark + EXPLORE tag, MODELS | WORLD tabs, ✕), the
    p02 hub cards, the god-mode flight rail (▲ ▼ speed, the phone's FLY stick), one ✎ and a toast. Imported by the
    lazy Explore chunk, so the title never pays for it. The canvas under it takes the desktop mouse (FreeCam). */
-.ws-x { position: fixed; inset: 0; z-index: 40; display: none; pointer-events: none; font-family: var(--ws-mono); color: var(--ws-text); user-select: none; -webkit-user-select: none; }
+.ws-x { position: fixed; inset: 0; z-index: calc(var(--ws-layer-hud) + 40); display: none; pointer-events: none; font-family: var(--ws-mono); color: var(--ws-text); user-select: none; -webkit-user-select: none; }
 .ws-x.show { display: block; }
 .ws-x button { font-family: inherit; color: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 
@@ -225,14 +225,14 @@
 .ws-x-map-board { position: relative; aspect-ratio: 1; overflow: hidden; border: 1px solid var(--ws-cyan-line); border-radius: 6px; background: #0b3448; cursor: crosshair; }
 .ws-x-map-board canvas { display: block; width: 100%; height: 100%; image-rendering: auto; }
 .ws-x-map-board::after { content: ''; position: absolute; inset: 0; pointer-events: none; box-shadow: inset 0 0 40px rgba(4, 14, 22, 0.55); }
-.ws-x-pin { position: absolute; z-index: 1; transform: translate(-9px, -50%); display: flex; align-items: center; gap: 0; padding: 0; background: none; border: 0; }
-.ws-x-pin i { position: relative; z-index: 1; flex: 0 0 auto; width: 18px; height: 18px; border-radius: 50%; background: #06121c; border: 3px solid var(--ws-cyan); box-shadow: 0 0 10px rgba(143, 227, 255, 0.7); }
+.ws-x-pin { position: absolute; z-index: calc(var(--ws-layer-hud) + 1); transform: translate(-9px, -50%); display: flex; align-items: center; gap: 0; padding: 0; background: none; border: 0; }
+.ws-x-pin i { position: relative; z-index: calc(var(--ws-layer-hud) + 1); flex: 0 0 auto; width: 18px; height: 18px; border-radius: 50%; background: #06121c; border: 3px solid var(--ws-cyan); box-shadow: 0 0 10px rgba(143, 227, 255, 0.7); }
 .ws-x-pin i::after { content: ''; position: absolute; left: 50%; top: 50%; width: 6px; height: 6px; margin: -3px 0 0 -3px; border-radius: 50%; background: #eaf8ff; }
 .ws-x-pin span { margin-left: -4px; padding: 3px 8px 3px 10px; font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; white-space: nowrap; color: #eaf8ff; background: rgba(8, 18, 28, 0.86); border: 1px solid var(--ws-cyan-line); border-radius: 0 4px 4px 0; }
 .ws-x-pin.flip { flex-direction: row-reverse; transform: translate(calc(-100% + 9px), -50%); }
 .ws-x-pin.flip span { margin: 0 -4px 0 0; padding: 3px 10px 3px 8px; border-radius: 4px 0 0 4px; }
 .ws-x-pin:hover span, .ws-x-pin:focus-visible span { border-color: var(--ws-cyan); color: var(--ws-cyan); }
-.ws-x-map-me { position: absolute; z-index: 2; width: 72px; height: 72px; pointer-events: none; filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.7)); }
+.ws-x-map-me { position: absolute; z-index: calc(var(--ws-layer-hud) + 2); width: 72px; height: 72px; pointer-events: none; filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.7)); }
 .ws-x-map-me svg { display: block; width: 100%; height: 100%; }
 .ws-x-map-north { position: absolute; left: 12px; bottom: 44px; display: flex; flex-direction: column; align-items: center; font-family: var(--ws-display); font-size: 15px; color: #eaf8ff; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8); pointer-events: none; }
 .ws-x-map-north svg { width: 12px; height: 12px; }

@@ -1,3 +1,4 @@
+import { INPUT_CONTEXTS } from '../inputContexts';
 import type { Audio as LevelAudio, Music as LevelMusic, LevelContext } from '#engine';
 import { toLevelSpec } from '../index';
 import type * as THREE from 'three';
@@ -7,7 +8,7 @@ async function buildWorld(ctx: Awaited<ReturnType<typeof dataStage>>, level: Lev
   const { engine, manifest, boot, session, audioProfile, plan, step } = ctx;
   const { app, loadWorldContent, bootstrap, hasPond, heightAt, normalAt, TRAILS, Boundary, Horizon, HorizonMatte, macrotask, Audio, Music, showError, TIER, pathRampDescs, markBootContextLost, markBootHandledError, asShell } = engine;
 
-  const world = Object.assign(await bootstrap(step, toLevelSpec({ ...manifest, spawn: boot.handoff?.arrive ?? manifest.spawn })), { chunk: manifest });
+  const world = Object.assign(await bootstrap(step, toLevelSpec({ ...manifest, spawn: boot.handoff?.arrive ?? manifest.spawn }), INPUT_CONTEXTS), { chunk: manifest });
   const { game, sky, player, forest, params, chunk, registry } = world;
   app.params = params;
   boot.runtime.world = world; boot.runtime.step = step;

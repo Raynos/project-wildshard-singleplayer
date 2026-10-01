@@ -1,9 +1,12 @@
+import { app } from '../app/runtime';
+import { uiScope, mountUi } from './ownership';
 /** Renderer-free opening title: the shared title deck (src/game/titleDeck.ts, E318 — the same deck "Exit to main" shows).
  *  Only the selected shard's hero art is decoded. */
 import { previousBootLine } from '../boot/bootTrace';
 import { buildTitleDeck, titleCards, travel, type TitleCard } from '#game/titleDeck';
 
 export function showStartTitle(): void {
+  const scope = uiScope('StartTitle', app.engineScope);
   const hud = document.getElementById('hud');
   if (hud === null) throw new Error('Start title: missing #hud');
   hud.classList.add('intro');
@@ -16,7 +19,8 @@ export function showStartTitle(): void {
     onSettings: () => { void import('./BootSettings').then(({ openBootSettings }) => openBootSettings()); },
     ...(interrupted ? { notice: `${interrupted}\nReturned to shard select. Choose a world when ready.` } : {}),
   });
-  hud.append(deck.root);
+  mountUi(deck.root, scope, hud);
+  scope.onDispose(() => { deck.dispose(); });
   deck.start();
   document.dispatchEvent(new Event('ws:ready'));
 }

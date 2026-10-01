@@ -1,3 +1,4 @@
+import { uiScope } from './ownership';
 
 
 const MAX = 3;
@@ -9,12 +10,13 @@ const OBSTACLES = [
   '.ws-quest-obj.show', '.ws-minimap', '.ws-game-feed',
 ].join(', ');
 
-interface Toast { el: HTMLElement; timer: number; text: string }
+interface Toast { el: HTMLElement; timer: ReturnType<typeof setTimeout> | 0; text: string }
 
 /** where the toasts are on screen right now (viewport px; empty = none up) — the elite's floating name dims under them */
 export const toastArea = { left: 0, right: 0, top: 0, bottom: 0 };
 
 export class ToastStack {
+  readonly scope = uiScope('ToastStack');
   private live: Toast[] = [];
   private lastLayout = -1e9;
   private shift = 0;
@@ -45,10 +47,10 @@ export class ToastStack {
   private arm(t: Toast): void {
     clearTimeout(t.timer);
     t.el.classList.remove('out');
-    t.timer = window.setTimeout(() => {
+    t.timer = this.scope.timeout(LIFE, () => {
       t.el.classList.add('out');
-      t.timer = window.setTimeout(() => { t.el.remove(); const i = this.live.indexOf(t); if (i !== -1) this.live.splice(i, 1); }, OUT);
-    }, LIFE);
+      t.timer = this.scope.timeout(OUT, () => { t.el.remove(); const i = this.live.indexOf(t); if (i !== -1) this.live.splice(i, 1); });
+    });
   }
 
   /** push the column below every shown top bar that shares its horizontal band */

@@ -136,7 +136,7 @@ export const DRIFTWOOD_ISLE: ShardManifest = {
   card: { thumb: thumbnail, portrait: heroPortrait, landscape: heroLandscape },
   style: 'toon',
   weapon: 'sword',
-  loadout: { weapons: ['weapon.sword', 'weapon.sword-iron'], tools: [], start: ['weapon.sword'],
+  loadout: { weapons: ['weapon.sword', 'weapon.sword-iron'], tools: ['tool.hoverboard'], start: ['weapon.sword', 'tool.hoverboard'],
     pickups: [{ id: 'weapon.sword-iron', at: 'wreck.deck' }] },
   // the castaway's skinned arms (E334, Jake's board-2 A / board-3 A): the wooden and the iron sword on the same hands, and
   // the same arms swimming (driftwood-isle/fpArms.ts); the engine's code-built sword and white gloves if the rig does not load
@@ -277,7 +277,7 @@ export const DRIFTWOOD_ISLE: ShardManifest = {
   // anything (brown bear 45 → 20, boars 25 / 32 / 40 → 20, the drowned captain's swing 24 → 20; the sailor's cutlass is 14 in sailor.ts)
   // E297 (Jake's yes, 2026-09-29): one set of fight rules — at most 2 enemies attack at once, boars circle back instead of
   // fleeing, an off-screen wind-up is flagged at the screen edge, no animal's body swallows the camera
-  fight: { telegraphed: true, maxHitDamage: 20, capExempt: ['captain'], attackers: 2 },
+  fight: { input: { bufferMs: 120, coyoteMs: 100 }, telegraphed: true, maxHitDamage: 20, capExempt: ['captain'], attackers: 2 },
    // the final boss hits harder than the cap (Jake, 2026-09-30)
   // E314 (Jake's picks, 2026-09-30): kills burst doubloons that fly to you (crab 1 … captain 25, src/game/loot/coins.ts)
   loot: { coins: true },

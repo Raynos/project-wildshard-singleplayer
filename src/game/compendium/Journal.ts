@@ -1,3 +1,4 @@
+import { uiScope, mountUi, type UiHandle, app } from '#engine';
 /**
  * The Compendium's book — one full-screen overlay, the same DOM for every shard; the skin (CompendiumSkin) adds its
  * modifier class, its tab words, its stamp and its stats row. Pine Hollow's is the leather hunter's journal (board B4 A,
@@ -47,6 +48,9 @@ export function loadHandFont(): Promise<void> {
 type Dir = 1 | -1;
 
 export class Journal {
+  readonly scope = uiScope('journal');
+  private layer: UiHandle | null = null;
+  private get _open(): boolean { return this.layer?.active === true; }
   readonly root: HTMLElement;
   private tabBar: HTMLElement;
   private leaf: HTMLElement;
@@ -54,7 +58,7 @@ export class Journal {
   private tab: string;
   /** the page index per tab (the book remembers where you were in each) */
   private at = new Map<string, number>();
-  private _open = false;
+
   private swipe: { x: number; y: number; id: number } | null = null;
   onOpen?: () => void;
   onClose?: () => void;
@@ -68,12 +72,12 @@ export class Journal {
     this.root.setAttribute('aria-label', skin.title);
     this.root.inert = true;
     const close = el('ws-cmp-close', 'Close', 'button') as HTMLButtonElement; close.type = 'button';
-    close.addEventListener('click', () => { this.close(); });
+    this.scope.listen(close, 'click', () => { this.close(); });
     const book = el('ws-cmp-book');
     this.tabBar = el('ws-cmp-tabs');
     for (const t of skin.tabs) {
       const b = el('ws-cmp-tab', `${GLYPH[t.id] ?? ''}<span>${esc(t.label)}</span>`, 'button') as HTMLButtonElement; b.type = 'button'; b.dataset['tab'] = t.id;
-      b.addEventListener('click', () => { this.select(t.id); });
+      this.scope.listen(b, 'click', () => { this.select(t.id); });
       this.tabBar.append(b);
     }
     this.leaf = el('ws-cmp-leaf');
@@ -81,26 +85,21 @@ export class Journal {
     this.leaf.append(this.page);
     book.append(this.tabBar, this.leaf);
     this.root.append(book, close);
-    document.body.append(this.root);
+    mountUi(this.root, this.scope, document.body);
 
     // a swipe on the page turns it (touch and mouse drag alike); taps fall through to the buttons
-    this.leaf.addEventListener('pointerdown', (e) => { this.swipe = { x: e.clientX, y: e.clientY, id: e.pointerId }; });
-    this.leaf.addEventListener('pointerup', (e) => {
+    this.scope.listen(this.leaf, 'pointerdown', (e) => { this.swipe = { x: e.clientX, y: e.clientY, id: e.pointerId }; });
+    this.scope.listen(this.leaf, 'pointerup', (e) => {
       const s = this.swipe; this.swipe = null;
       if (!s || s.id !== e.pointerId) return;
       const dx = e.clientX - s.x, dy = e.clientY - s.y;
       if (Math.abs(dx) > 48 && Math.abs(dx) > Math.abs(dy) * 1.4) this.turn(dx < 0 ? 1 : -1);
     });
-    this.leaf.addEventListener('pointercancel', () => { this.swipe = null; });
-    // every keydown stops at the book while it is open (window, capture phase: before the player and the menu see it)
-    window.addEventListener('keydown', (e) => {
-      if (!this._open) return;
-      e.stopPropagation();
-      if (e.code === 'Escape' || e.code === 'KeyN') { e.preventDefault(); this.close(); }
-      else if (e.code === 'ArrowRight' || e.code === 'KeyD') this.turn(1);
-      else if (e.code === 'ArrowLeft' || e.code === 'KeyA') this.turn(-1);
-      else if (e.code === 'Tab') { e.preventDefault(); this.cycleTab(e.shiftKey ? -1 : 1); }
-    }, true);
+    this.scope.listen(this.leaf, 'pointercancel', () => { this.swipe = null; });
+    app.input.bind('nav.right', () => { this.turn(1); }, this.scope, () => this.layer?.top === true);
+    app.input.bind('nav.left', () => { this.turn(-1); }, this.scope, () => this.layer?.top === true);
+    app.input.bind('tab', () => { this.cycleTab(1); }, this.scope, () => this.layer?.top === true);
+    app.input.bind('note', () => { this.close(); }, this.scope, () => this.layer?.top === true);
     state.onUpdate = () => { if (this._open) this.render(); };
   }
 
@@ -112,14 +111,14 @@ export class Journal {
     if (entryId !== undefined) this.goTo(entryId);
     this.render();
     if (this._open) return;
-    this._open = true;
+    this.layer = app.ui.push('gameMenu', { root: this.root, order: 5, back: () => { this.close(); } }, this.scope);
     this.root.inert = false;
     this.root.classList.add('show');
     this.onOpen?.();
   }
   close(): void {
     if (!this._open) return;
-    this._open = false;
+    this.layer?.dispose(); this.layer = null;
     this.root.classList.remove('show');
     this.root.inert = true;
     this.onClose?.();
@@ -158,8 +157,8 @@ export class Journal {
     this.leaf.append(old);
     const fresh = this.page;
     const done = (): void => { old.remove(); fresh.classList.remove('ws-cmp-turnin'); };
-    (dir > 0 ? old : fresh).addEventListener('animationend', done, { once: true });
-    setTimeout(done, 700); // reduced motion / a hidden tab never fires animationend
+    this.scope.listen((dir > 0 ? old : fresh), 'animationend', done, { once: true });
+    this.scope.timeout(700, done); // reduced motion / a hidden tab never fires animationend
   }
 
   private get isTrophyTab(): boolean { return this.tab === this.state.def.skin.trophyTab; }
@@ -189,7 +188,7 @@ export class Journal {
     const model = e.plate.model, onView = this.onViewModel;
     if (drawn && model && onView) {
       const b = el('ws-cmp-3d', `${GLYPH_3D}<span>3D</span>`, 'button') as HTMLButtonElement; b.type = 'button';
-      b.addEventListener('click', () => { onView(model, e); });
+      this.scope.listen(b, 'click', () => { onView(model, e); });
       plate.append(b);
     }
     page.append(plate);
@@ -216,7 +215,7 @@ export class Journal {
     const src = drawn || e.kind === 'place' ? e.plate.sketch : silhouetteOf(e.plate.sketch);
     const b = el(`ws-cmp-nb${drawn ? '' : ' sil'}${e.kind === 'place' ? ' place' : ''}`, `<img alt="" draggable="false" decoding="async" src="${esc(src)}"><span>${named ? esc(e.name) : '???'}</span>`, 'button') as HTMLButtonElement;
     b.type = 'button'; b.dataset['dir'] = String(dir);
-    b.addEventListener('click', () => { this.turn(dir); });
+    this.scope.listen(b, 'click', () => { this.turn(dir); });
     return b;
   }
 
@@ -236,7 +235,7 @@ export class Journal {
         <b>${named ? esc(e.name) : '???'}</b>
         <span>${got ? esc(t.title) : 'Not yet taken'}</span>`, 'button') as HTMLButtonElement;
       card.type = 'button';
-      card.addEventListener('click', () => { this.goTo(t.entry); this.render(); });
+      this.scope.listen(card, 'click', () => { this.goTo(t.entry); this.render(); });
       grid.append(card);
     }
     page.append(grid);

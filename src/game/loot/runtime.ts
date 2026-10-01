@@ -67,7 +67,7 @@ export function installLoot<A extends LootBody>(h: ScopedLootHost<A>): ScopedLoo
   };
   applyChart();
   const shop = view.shop?.(purse) ?? null;
-  h.menu.setLoot({ gear: () => view.gear(purse), finds: view.finds,
+  const offBag = h.menu.addLoot('loot', { gear: () => view.gear(purse), finds: view.finds,
     wear: (id) => { if (isOwnedId(id) && isCosmetic(id)) owned.toggleWorn(id); } });
   const refresh = (): void => { if (h.menu.isOpen) h.menu.refresh(); };
   const offOwned = owned.onChange(() => { applyChart(); refresh(); });
@@ -77,7 +77,7 @@ export function installLoot<A extends LootBody>(h: ScopedLootHost<A>): ScopedLoo
     if (!live) return;
     live = false; flush(); offOwned(); offPurse();
     lifetime.dispose();
-    h.menu.setLoot(null); if (charted) h.minimap?.setMarks(null);
+    offBag(); if (charted) h.minimap?.setMarks(null);
     shop?.dispose(); chip.dispose(); burst.dispose();
   };
   ctx.scope.onDispose(dispose);

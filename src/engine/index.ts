@@ -273,3 +273,9 @@ export type { StepProgress } from './boot/plan';
 export type { TrainingArena } from './practice/TrainingArena';
 export { buildHoverboard } from './render/hoverboardGeometry';
 export { installGameplayInput, weaponInputContext } from './input/gameplay';
+
+export { uiScope, mountUi } from './ui/ownership';
+
+export { UiLayers, type UiLayer, type UiView, type UiHandle } from './ui/layers';
+
+export { TabRegistry, type TabId, type TabSpec, type TabFragment } from './ui/tabs';

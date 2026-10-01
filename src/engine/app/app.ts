@@ -148,7 +148,7 @@ export class App {
   readonly gradeFor = resolveGrade;
   readonly saves = saves;
   readonly debug = new AppDebug();
-  readonly ui = new AppUi(() => this.levelScope);
+  readonly ui = new AppUi(() => this.levelScope, () => this.clock.real * 1000);
   readonly scheduler = new TickScheduler();
 
   constructor(events = new Events()) { this.events = events; this.combat = new CombatPipeline(events, this.engineScope, () => this.physics); this.aggression = new AggressionService(events, this.engineScope); }

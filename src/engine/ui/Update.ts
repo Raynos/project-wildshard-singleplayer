@@ -1,3 +1,4 @@
+import { uiScope, mountUi } from './ownership';
 import { engineString } from '#engine/strings';
 /**
  * Build pill on the title screen: shows the running build and reloads on tap.
@@ -16,6 +17,9 @@ import { engineString } from '#engine/strings';
 import { isDev, onDev } from '../core/devMode';
 import { markUnload } from '../boot/lastEnd';
 
+
+const scope = uiScope('Update');
+
 declare const __BUILD_ID__: string;
 
 /** `<sha>-<stamp>` → the sha, or the time token: Vercel CLI builds have no git checkout */
@@ -25,7 +29,7 @@ const el = document.createElement('button');
 el.className = 'ws-update';
 el.type = 'button';
 el.innerHTML = engineString('s_85c05389552b');
-document.body.append(el);
+mountUi(el, scope, document.body);
 
 let busy = false;
 const reload = async (): Promise<void> => {
@@ -46,8 +50,8 @@ const reload = async (): Promise<void> => {
 };
 // pointerup as well as click: iOS drops the synthesized click when a tap jitters (index.html cancels touchmove for the
 // rubber-band), so the pill answers the lift itself; `busy` keeps the pair from running twice
-el.addEventListener('pointerup', () => { void reload(); });
-el.addEventListener('click', () => { void reload(); });
+scope.listen(el, 'pointerup', () => { void reload(); });
+scope.listen(el, 'click', () => { void reload(); });
 
 let newer = false;
 let newLabel = '';
@@ -66,7 +70,7 @@ const lightUp = (label: string): void => {
 };
 paint();
 // the worker found a new build (installed, waiting) — same pill, no toast
-window.addEventListener('ws-sw-waiting', () => { lightUp(engineString('s_44575cf5b285')); });
+scope.listen(window, 'ws-sw-waiting', () => { lightUp(engineString('s_44575cf5b285')); });
 
 async function check(): Promise<void> {
   if (newer || !navigator.onLine) return; // offline (the PWA plays from its cache): no request that can only fail
@@ -78,8 +82,8 @@ async function check(): Promise<void> {
   } catch { /* offline — keep the plain reload pill */ }
 }
 void check();
-document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') void check(); });
-setInterval(() => { void check(); }, 5 * 60 * 1000);
+scope.listen(document, 'visibilitychange', () => { if (document.visibilityState === 'visible') void check(); });
+scope.interval(5 * 60 * 1000, () => { void check(); });
 
 // Only show while on the loading / title screen; hide once the player has entered the chunk. Players: only when a new build waits.
 // The running shard's #hud (E155: each resident shard has its own; a switch swaps them in <body>, which runs sync below)
@@ -98,5 +102,5 @@ function sync(): void {
 sync();
 onDev(() => { paint(); sync(); });
 // the pause menu opened or closed: it says so, because its class lives on an element this module never sees created
-window.addEventListener('ws-menu', () => { sync(); });
+scope.listen(window, 'ws-menu', () => { sync(); });
 new MutationObserver(sync).observe(document.body, { childList: true, subtree: false, attributes: true, attributeFilter: ['class'] });

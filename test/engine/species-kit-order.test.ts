@@ -13,14 +13,14 @@ import { fakeWorld } from '../fake/world';
  * animals after that hook. Built before it (S2.3), every Pine creature fell back to the procedural body: 337 skinned
  * meshes instead of 170, +24 geometries and the coats' atlases gone.
  */
-const main = Object.values(import.meta.glob<string>('../../src/main.ts', { query: '?raw', import: 'default', eager: true }))[0] ?? '';
+const session = Object.values(import.meta.glob<string>('../../src/game/session/session.ts', { query: '?raw', import: 'default', eager: true }))[0] ?? '';
 
 describe('creature hulls follow the kit rows', () => {
   it('builds the animals in the loadout section, after the plugin kit hook registered its rows', () => {
-    const stages = main.slice(main.indexOf('async function* buildShardStages'));
-    const kit = stages.indexOf("yield 'kit'"), loadout = stages.indexOf("yield 'loadout'"), animals = stages.indexOf("step('animals'");
+    const stages = session;
+    const kit = stages.indexOf("yield 'kit'"), loadout = stages.indexOf("yield 'loadout'"), animals = stages.indexOf('await loadoutStage(');
     expect(kit).toBeGreaterThan(-1); expect(animals).toBeGreaterThan(-1);
-    // driver.kit runs main from `yield 'kit'` to `yield 'loadout'`, then the plugin's kit hook; driver.loadout runs the rest
+    // The engine completes the plugin kit hook at the loadout yield before advancing the session adapter.
     expect(loadout).toBeGreaterThan(kit);
     expect(animals).toBeGreaterThan(loadout);
   });

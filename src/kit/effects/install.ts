@@ -18,7 +18,7 @@ export function installStarterEffects(ctx: StarterContext, host: { player: Statu
     if (id !== null) { elapsed += dt; if (elapsed >= 5) { elapsed %= 5; effects.apply(health, id); } }
     const active = effects.active(health);
     const status = active.some((effect) => effect.def.tags.some((tag) => tag.startsWith('status.')));
-    if (status && icons === null) { icons = new StatusIcons(); ctx.hud.widget('status', icons.root, 80); }
+    if (status && icons === null) { icons = new StatusIcons(); ctx.hud.widget('band.3', icons.root, 80); }
     if (icons !== null) { icons.update(active); icons.root.style.display = status ? '' : 'none'; }
   } });
   ctx.on('player.died', ({ actor }) => {

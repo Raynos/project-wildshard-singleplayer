@@ -52,7 +52,7 @@ abstract class Panel {
     scope.listen(close, 'click', (e) => { e.stopPropagation(); this.close(); });
     scope.listen(this.root, 'pointerdown', (e) => { e.stopPropagation(); });
     scope.listen(document, 'keydown', (event) => {
-      const e = event as KeyboardEvent;
+      const e = event;
       if (!this.open_ || e.repeat) return;
       if (e.code === 'Escape' || e.code === 'KeyE') { e.preventDefault(); e.stopPropagation(); this.close(); }
     }, { capture: true });

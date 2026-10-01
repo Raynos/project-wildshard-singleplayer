@@ -127,9 +127,6 @@ export interface WildshardProbe<W extends ProbeWorld = ProbeWorld> {
   budgets: (poses?: readonly string[]) => ReturnType<typeof poseBudgets>;
   readonly app: ProbeApp;
 }
-declare global {
-  interface Window { __wildshard: WildshardProbe; __wildshardHarness?: HarnessPins }
-}
 
 const rounded = (n: number): number => Math.round(n * 1000) / 1000;
 const point = (v: Vec3): Vec3 => ({ x: rounded(v.x), y: rounded(v.y), z: rounded(v.z) });
@@ -329,7 +326,7 @@ export function installProbe<W extends ProbeWorld>(world: W, deps: ProbeDeps): W
   const pose = async (p: ProbePose): Promise<void> => {
     requireHarness(); const pl = world.player, spawn = world.game.level.spawn;
     pl.spawn(p.x ?? spawn.x, p.z ?? spawn.z, p.yaw ?? spawn.yaw, p.y);
-    land(); pl.pitch = p.pitch ?? 0; pl.velocity.set(0, 0, 0); pl.keys.clear();
+    land(); pl.pitch = p.pitch ?? 0; pl.velocity.set(0, 0, 0); game.app.input.clear();
     await new Promise<void>((resolve) => { requestAnimationFrame(() => { resolve(); }); });
   };
   const shard: WildshardProbe['shard'] = { slug: world.game.level.id };
@@ -374,28 +371,28 @@ export function installProbe<W extends ProbeWorld>(world: W, deps: ProbeDeps): W
         await new Promise<void>((resolve) => {
           let stop: () => void = () => { /* assigned before any simulation frame */ };
           const tick = (dt: number): void => {
-            if (world.hud.paused) { p.keys.clear(); return; }
-            if (wi >= leg.waypoints.length || t > (leg.timeout ?? 60)) { p.keys.clear(); stop(); resolve(); return; }
+            if (world.hud.paused) { game.app.input.clear(); return; }
+            if (wi >= leg.waypoints.length || t > (leg.timeout ?? 60)) { game.app.input.clear(); stop(); resolve(); return; }
             t += dt; const wp = leg.waypoints[wi]; if (!wp) { stop(); resolve(); return; }
             const dx = wp.x - p.position.x, dz = wp.z - p.position.z, d = Math.hypot(dx, dz), q = p.position;
             trace.push([rounded(t), rounded(q.x), rounded(q.y), rounded(q.z), rounded(p.velocity.y), p.onGround ? 1 : 0, p.onPlatform ? 1 : 0, p.swimming ? 1 : 0, p.sliding ? 1 : 0, wi]);
             maxY = Math.max(maxY, q.y); const box = leg.inside;
             if (box && (q.x < box.x0 || q.x > box.x1 || q.z < box.z0 || q.z > box.z1 || q.y < box.floor)) out++;
-            if (d < 0.8) { wi++; lastProg = { t, d: Infinity }; p.keys.delete('Space'); jumpT = 0; jump2 = false; }
+            if (d < 0.8) { wi++; lastProg = { t, d: Infinity }; game.app.input.setHeld('jump', false); jumpT = 0; jump2 = false; }
             else if (d < lastProg.d - 0.3) lastProg = { t, d };
-            else if (box && t - lastProg.t > 1.2) { wi++; lastProg = { t, d: Infinity }; p.keys.delete('Space'); jumpT = 0; jump2 = false; }
+            else if (box && t - lastProg.t > 1.2) { wi++; lastProg = { t, d: Infinity }; game.app.input.setHeld('jump', false); jumpT = 0; jump2 = false; }
             else if (t - lastProg.t > (leg.stuckSeconds ?? 2)) { stuck.push({ wp: wi, ...point(q) }); p.spawn(wp.x, wp.z, p.yaw); land(); wi++; lastProg = { t, d: Infinity }; }
-            p.yaw = Math.atan2(-dx, -dz); p.keys.add('KeyW');
+            p.yaw = Math.atan2(-dx, -dz); game.app.input.setHeld('move.forward', true);
             const jumps = wp.jump === true ? 1 : typeof wp.jump === 'number' ? wp.jump : 0;
-            if (jumps > 0 && d < (wp.jumpAt ?? 1.6) && jumpT === 0) { p.keys.add('Space'); jumpT = 1; }
-            else if (jumpT > 0 && jumpT++ > 3) p.keys.delete('Space');
-            if (jumps > 1 && jumpT > 5 && !jump2 && p.velocity.y < 1.5) { p.keys.add('Space'); jump2 = true; jumpT = 1; }
+            if (jumps > 0 && d < (wp.jumpAt ?? 1.6) && jumpT === 0) { game.app.input.setHeld('jump', true); jumpT = 1; }
+            else if (jumpT > 0 && jumpT++ > 3) game.app.input.setHeld('jump', false);
+            if (jumps > 1 && jumpT > 5 && !jump2 && p.velocity.y < 1.5) { game.app.input.setHeld('jump', true); jump2 = true; jumpT = 1; }
             if (jumps === 0) jumpT = 0;
           };
           stop = world.game.watchFrames(tick);
         });
         return { name: leg.name, stuck, end: point(p.position), maxY: rounded(maxY), out, seconds: (performance.now() - t0) / 1000, trace };
-      } finally { p.keys.clear(); if (leg.start.hover === true) p.setHover(false); world.animals.animals.forEach((a, i) => { a.harnessHold = held[i] ?? false; }); }
+      } finally { game.app.input.clear(); if (leg.start.hover === true) p.setHover(false); world.animals.animals.forEach((a, i) => { a.harnessHold = held[i] ?? false; }); }
     },
     combat: {
       equip: (id) => { requireHarness(); const weapon = world.weapons.list.find((w) => w.id === id); if (!weapon) throw new Error(`Weapon ${id} absent from ${world.game.level.id}`); world.weapons.select(weapon.id, true); },

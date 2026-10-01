@@ -7,7 +7,7 @@ import type { SystemSpec } from '../app/systems';
 import type { StepProgress } from '../boot/plan';
 import type { AskInput, AskMap, AskOutput, EventMap } from '../events/maps';
 import type { ListenerOptions } from '../events/events';
-import type { DiscOpts, DiscSpot, TouchRelabel } from '../ui/hudSlots';
+import type { DiscOpts, DiscSpot, TouchRelabel, HudBand } from '../ui/hudSlots';
 import type { Piece } from '../world/registry';
 import type { TierKnobs } from './spec';
 import type { EncounterDefinition, SpawnTableRow } from '../ai/encounters';
@@ -32,7 +32,7 @@ export interface InputContextDef {
   keys?: Partial<Record<Action, readonly string[]>>;
   touch?: { relabel: Partial<Record<DiscSpot, TouchRelabel>>; verbs?: Partial<Record<'verb.1' | 'verb.2', Action>> };
 }
-export type HudBand = 'status' | 'pill' | 'verbs';
+export type { HudBand } from '../ui/hudSlots';
 export interface VerbSlotOpts { label: string; icon: string; press: () => void; release?: () => void }
 export interface HudVerbs {
   widget: (band: HudBand, el: HTMLElement, order: number) => void;

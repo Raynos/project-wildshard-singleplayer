@@ -70,7 +70,7 @@
    card names the killer and where you come back, the respawn happens under the dark, the view fades back in ── */
 .ws-combat-death {
   --ws-death-veil: 0;
-  position: absolute; inset: 0; z-index: 58; display: none; align-items: center; justify-content: center;
+  position: absolute; inset: 0; z-index: calc(var(--ws-layer-hud) + 58); display: none; align-items: center; justify-content: center;
   padding: calc(env(safe-area-inset-top, 0px) + 24px) 22px calc(env(safe-area-inset-bottom, 0px) + 24px);
   pointer-events: none; font-family: var(--ws-mono); color: var(--ws-text);
 }

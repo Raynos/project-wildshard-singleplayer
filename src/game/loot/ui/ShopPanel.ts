@@ -1,3 +1,4 @@
+import { uiScope, mountUi, type UiHandle, app, icon, type IconId } from '#engine';
 /**
  * ShopPanel — the trader's counter on Driftwood (E314 stage 2, Jake's pick board 5 **C**: one good per card, flipped with
  * ‹ ›, a big BUY button; buy only). DOM in `#hud`, styled by src/game/loot/ui/shop.css (prefix ws-shop-), in the baseline UI
@@ -13,7 +14,6 @@
  * Input: ‹ › (or a swipe on the card, ← →) flips; BUY (or Enter / Space) buys the card shown; CLOSE, Esc or E closes.
  */
 import './shop.css';
-import { icon, type IconId } from '#engine';
 
 export interface ShopGood { id: string; name: string; does: string; icon: IconId; price: number }
 export type ShopState = 'owned' | 'locked' | 'short' | 'buy';
@@ -40,25 +40,18 @@ const el = <K extends keyof HTMLElementTagNameMap>(tag: K, cls: string, parent?:
 const esc = (s: string): string => s.replaceAll('&', '&amp;').replaceAll('<', '&lt;');
 
 export class ShopPanel<G extends ShopGood> {
+  readonly scope = uiScope('shop');
+  private layer: UiHandle | null = null;
+  private get open_(): boolean { return this.layer?.active === true; }
   readonly root: HTMLDivElement;
   onBuy?: (g: G) => boolean;
   onOpen?: () => void;
   onClose?: () => void;
-  private open_ = false;
+
   private i = 0;
   private line: HTMLElement; private count: HTMLElement; private purse: HTMLElement;
   private card: HTMLElement; private dots: HTMLElement; private buy: HTMLButtonElement;
   private swipeX: number | null = null;
-  private readonly onKey = (e: KeyboardEvent): void => {
-    if (!this.open_ || e.repeat) return;
-    if (e.code === 'Escape' || e.code === 'KeyE') this.close();
-    else if (e.code === 'ArrowLeft' || e.code === 'KeyA') this.flip(-1);
-    else if (e.code === 'ArrowRight' || e.code === 'KeyD') this.flip(1);
-    else if (e.code === 'Enter' || e.code === 'Space') this.tryBuy();
-    else return;
-    e.preventDefault(); e.stopPropagation();
-  };
-
   private readonly o: ShopOpts<G>;
   constructor(o: ShopOpts<G>) {
     this.o = o;
@@ -66,7 +59,7 @@ export class ShopPanel<G extends ShopGood> {
     const top = el('div', 'ws-shop-top', this.root);
     const close = el('button', 'ws-shop-close', top, `<i>${CROSS}</i>Close`);
     close.type = 'button';
-    close.addEventListener('click', (e) => { e.stopPropagation(); this.close(); });
+    this.scope.listen(close, 'click', (e) => { e.stopPropagation(); this.close(); });
     el('div', 'ws-shop-title', top, `<b>${esc(o.trader)}'s counter</b><span>${esc(o.place)}</span>`);
 
     const sheet = el('div', 'ws-shop-sheet ws-glass', this.root);
@@ -79,24 +72,27 @@ export class ShopPanel<G extends ShopGood> {
     const prev = el('button', 'ws-shop-flip', deck, CHEV_L); prev.type = 'button'; prev.setAttribute('aria-label', 'Previous');
     this.card = el('div', 'ws-shop-card', deck);
     const next = el('button', 'ws-shop-flip', deck, CHEV_R); next.type = 'button'; next.setAttribute('aria-label', 'Next');
-    prev.addEventListener('click', (e) => { e.stopPropagation(); this.flip(-1); });
-    next.addEventListener('click', (e) => { e.stopPropagation(); this.flip(1); });
+    this.scope.listen(prev, 'click', (e) => { e.stopPropagation(); this.flip(-1); });
+    this.scope.listen(next, 'click', (e) => { e.stopPropagation(); this.flip(1); });
     this.dots = el('div', 'ws-shop-dots', sheet);
     this.buy = el('button', 'ws-shop-buy', sheet);
     this.buy.type = 'button';
-    this.buy.addEventListener('click', (e) => { e.stopPropagation(); this.tryBuy(); });
+    this.scope.listen(this.buy, 'click', (e) => { e.stopPropagation(); this.tryBuy(); });
 
     // a swipe across the card flips it (the phone's natural gesture; ‹ › stay for a tap)
-    this.card.addEventListener('pointerdown', (e) => { this.swipeX = e.clientX; });
-    this.card.addEventListener('pointerup', (e) => {
+    this.scope.listen(this.card, 'pointerdown', (e) => { this.swipeX = e.clientX; });
+    this.scope.listen(this.card, 'pointerup', (e) => {
       if (this.swipeX === null) return;
       const dx = e.clientX - this.swipeX; this.swipeX = null;
       if (Math.abs(dx) > 40) this.flip(dx < 0 ? 1 : -1);
     });
-    this.root.addEventListener('pointerdown', (e) => { e.stopPropagation(); });   // the touch pads under it never see a tap
-    this.root.addEventListener('touchstart', (e) => { e.stopPropagation(); }, { passive: true });
-    document.addEventListener('keydown', this.onKey, true);
-    (document.getElementById('hud') ?? document.body).append(this.root);
+    this.scope.listen(this.root, 'pointerdown', (e) => { e.stopPropagation(); });   // the touch pads under it never see a tap
+    this.scope.listen(this.root, 'touchstart', (e) => { e.stopPropagation(); }, { passive: true });
+    app.input.bind('nav.left', () => { this.flip(-1); }, this.scope, () => this.layer?.top === true);
+    app.input.bind('nav.right', () => { this.flip(1); }, this.scope, () => this.layer?.top === true);
+    app.input.bind('confirm', () => { this.tryBuy(); }, this.scope, () => this.layer?.top === true);
+    app.input.bind('use', () => { this.close(); }, this.scope, () => this.layer?.top === true);
+    mountUi(this.root, this.scope);
   }
 
   get isOpen(): boolean { return this.open_; }
@@ -105,7 +101,7 @@ export class ShopPanel<G extends ShopGood> {
 
   open(): void {
     if (this.open_) return;
-    this.open_ = true;
+    this.layer = app.ui.push('modal', { root: this.root, order: -40, back: () => { this.close(); } }, this.scope);
     // open on the first good still to buy (all bought: the first)
     const first = this.o.goods.findIndex((g) => this.o.state(g) !== 'owned');
     this.i = first === -1 ? 0 : first;
@@ -118,7 +114,7 @@ export class ShopPanel<G extends ShopGood> {
 
   close(): void {
     if (!this.open_) return;
-    this.open_ = false;
+    this.layer?.dispose(); this.layer = null;
     this.root.classList.remove('show');
     this.hideHud(false);
     this.onClose?.();
@@ -176,5 +172,5 @@ export class ShopPanel<G extends ShopGood> {
     this.purse.classList.remove('spent'); void this.purse.offsetWidth; this.purse.classList.add('spent');
   }
 
-  dispose(): void { this.close(); document.removeEventListener('keydown', this.onKey, true); this.root.remove(); }
+  dispose(): void { this.close(); this.scope.dispose(); }
 }

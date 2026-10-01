@@ -13,9 +13,13 @@ export class Hoverboard extends Tool {
   private pulse: THREE.MeshStandardMaterial;
   private glow: THREE.MeshBasicMaterial;
 
-  constructor(private camera: THREE.PerspectiveCamera, private top: number, private player: Player) {
+  private readonly camera: THREE.PerspectiveCamera;
+  private readonly top: number;
+  private readonly player: Player;
+  constructor(camera: THREE.PerspectiveCamera, top: number, player: Player) {
     super({ id: 'tool.hoverboard', meta: { name: 'Hoverboard', icon: 'crossbow', blurb: 'Ride above the ground', category: 'tool' },
       ui: { name: 'Hoverboard', icon: 'crossbow', touch: 'ranged', lockOn: false, melee: false, tracers: false, swapIcon: '', swapName: 'Hover' } });
+    this.camera = camera; this.top = top; this.player = player;
     const g = this.model;
     const { pulse, glow } = buildHoverboard(g);
     this.pulse = pulse; this.glow = glow;
@@ -80,3 +84,5 @@ export class Hoverboard extends Tool {
     this.glow.opacity = Math.min(1, (0.28 + Math.sin(this.t * 9) * 0.06 + sp * 0.25 + flash * 0.15) * this.blend);
   }
 }
+
+export const HOVERBOARD_TOOL = { id: 'tool.hoverboard', create: (camera: THREE.PerspectiveCamera, player: Player): Hoverboard => new Hoverboard(camera, 14, player) };

@@ -1,3 +1,4 @@
+import { uiScope, mountUi } from './ownership';
 import * as THREE from 'three';
 import './styles/combat.css';
 
@@ -34,6 +35,7 @@ interface Slot<T> { el: HTMLElement; who: T | null; t: number; dur: number; show
 const _p = new THREE.Vector3();
 
 export class WindupWarn<T extends Warned = Warned> {
+  readonly scope = uiScope('windup');
   private readonly layer: HTMLElement;
   private readonly slots: Slot<T>[] = [];
   /** the layer's size (px): the screen less the safe areas (combat.css), kept by a ResizeObserver */
@@ -50,7 +52,7 @@ export class WindupWarn<T extends Warned = Warned> {
       this.slots.push({ el, who: null, t: 0, dur: 0.6, shown: false, tf: '' });
     }
     const hud = document.getElementById('hud');
-    if (hud) hud.prepend(this.layer); else document.body.append(this.layer);
+    mountUi(this.layer, this.scope, hud ?? document.body, hud?.firstChild);
     const layer = this.layer;
     const measure = (): void => { this.w = layer.clientWidth || innerWidth; this.h = layer.clientHeight || innerHeight; };
     this.resize = new ResizeObserver(measure);

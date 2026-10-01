@@ -10,7 +10,7 @@ export type Action = Extract<keyof ActionMap, string> | EquipmentAction | 'crouc
   | 'move.forward' | 'move.back' | 'move.left' | 'move.right'
   | 'move' | 'look' | 'dodge' | 'pause' | 'map' | 'journal' | 'note' | 'confirm' | 'back' | 'nav.left' | 'nav.right' | 'tab'
   | 'dive' | 'surface' | 'fly.up' | 'fly.down' | 'fly.boost' | 'pane.1' | 'pane.2' | 'pane.3' | 'autoFire'
-  | 'ride.whistle' | 'ride.offer' | 'ride.gallop' | 'ride.horseTab' | 'lean.left' | 'lean.right';
+  | 'quickNote' | 'ride.whistle' | 'ride.offer' | 'ride.gallop' | 'ride.horseTab' | 'lean.left' | 'lean.right';
 interface Context { def: InputContextDef; scope: Scope }
 /** Additive contexts and a shared press buffer. Consuming a press removes it for every later system. */
 export class InputService {
@@ -20,6 +20,9 @@ export class InputService {
   private readonly manual = new Set<Action>();
   private readonly callbacks = new Set<{ action: Action; run: () => void; enabled: () => boolean }>();
   private readonly releases = new Set<{ action: Action; run: () => void }>();
+  private readonly motion = new Set<(x: number, y: number) => void>();
+  private readonly wheels = new Set<(dy: number) => void>();
+  private readonly gestures = new Set<() => void>();
   private readonly resets = new Set<() => void>();
   private readonly axes = new Map<Action, { x: number; y: number }>();
   readonly bindings = new Bindings(() => { this.refresh(); });
@@ -45,10 +48,10 @@ export class InputService {
     const entry = this.definitions.get(id);
     if (entry === undefined) throw new Error(`Unknown input context: ${id}`);
     if (scope.disposed || this.stack.includes(entry)) return;
-    this.stack.push(entry); this.refresh(); this.repaint();
+    this.stack.push(entry); this.refresh(false); this.repaint();
     this.pushed.set(id, scope.capture('disposers', () => { this.pop(id); }));
   }
-  pop(id: string): void { const at = this.stack.findIndex((entry) => entry.def.id === id); if (at === -1) return; this.stack.splice(at, 1); this.refresh(); this.pushed.get(id)?.(); this.pushed.delete(id); this.repaint(); }
+  pop(id: string): void { const at = this.stack.findIndex((entry) => entry.def.id === id); if (at === -1) return; this.stack.splice(at, 1); this.refresh(false); this.pushed.get(id)?.(); this.pushed.delete(id); this.repaint(); }
   get top(): string { return this.stack.at(-1)?.def.id ?? ''; }
   allowed(action: Action): boolean {
     for (const { def } of [...this.stack].reverse()) {
@@ -70,21 +73,27 @@ export class InputService {
   bindRelease(action: Action, run: () => void, scope: Scope): void {
     const binding = { action, run }; this.releases.add(binding); scope.onDispose(() => { this.releases.delete(binding); });
   }
+  observeLook(run: (x: number, y: number) => void, scope: Scope): void { this.motion.add(run); scope.onDispose(() => { this.motion.delete(run); }); }
+  observeWheel(run: (dy: number) => void, scope: Scope): void { this.wheels.add(run); scope.onDispose(() => { this.wheels.delete(run); }); }
+  firstGesture(run: () => void, scope: Scope): void { this.gestures.add(run); scope.onDispose(() => { this.gestures.delete(run); }); }
+  private gesture(): void { const callbacks = [...this.gestures]; this.gestures.clear(); for (const run of callbacks) run(); }
   onReset(run: () => void, scope: Scope): void { this.resets.add(run); scope.onDispose(() => { this.resets.delete(run); }); }
   hasContext(id: string): boolean { return this.has(id); }
   has(id: string): boolean { return this.definitions.has(id); }
   active(id: string): boolean { return this.stack.some(({ def }) => def.id === id && def.enabled?.() !== false); }
   get contexts(): readonly string[] { return this.stack.filter(({ def }) => def.enabled?.() !== false).map(({ def }) => def.id); }
-  refresh(): void {
+  refresh(edges = true): void {
     const wanted = new Set(this.manual);
     for (const { def } of this.stack) if (def.enabled?.() !== false) for (const [action, codes] of Object.entries(this.bindings.keys(def.id))) {
-      if (codes.some((code) => this.physical.has(code))) wanted.add(action as Action);
+      if (codes.some((code) => code === '*' ? [...this.physical].some((key) => !['Escape', 'ArrowLeft', 'ArrowRight', 'MetaLeft', 'MetaRight', 'ControlLeft', 'ControlRight', 'ShiftLeft', 'ShiftRight', 'AltLeft', 'AltRight'].includes(key)) : this.physical.has(code))) wanted.add(action as Action);
     }
-    for (const action of new Set([...this.down, ...wanted])) this.transition(action, wanted.has(action));
+    for (const action of new Set([...this.down, ...wanted])) this.transition(action, wanted.has(action), edges);
   }
   setHeld(action: Action, on: boolean): void { if (on) this.manual.add(action); else this.manual.delete(action); this.refresh(); }
-  private transition(action: Action, on: boolean): void {
-    if (on && !this.down.has(action)) this.press(action);
+  private transition(action: Action, on: boolean, edges: boolean): void {
+    const newlyDown = on && !this.down.has(action);
+    if (on) this.down.add(action);
+    if (newlyDown && edges) this.press(action);
     if (!on && this.down.has(action)) { this.ups.add(action); for (const binding of this.releases) if (binding.action === action) binding.run(); }
     if (on) this.down.add(action); else this.down.delete(action);
   }
@@ -116,16 +125,18 @@ export class InputService {
       if (!(event instanceof KeyboardEvent)) return;
       if (this.keyCapture !== undefined && on) { event.preventDefault(); event.stopImmediatePropagation(); const run = this.keyCapture; this.keyCapture = undefined; run(event.code); return; }
       const target = event.target;
-      if (target instanceof HTMLElement && (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName))) return;
-      if (on && event.repeat) return;
+      if (event.code !== 'Escape' && target instanceof HTMLElement && (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName))) return;
+      if (on && (event.repeat || event.metaKey || event.ctrlKey)) return;
+      if (on) this.gesture();
       if (on) this.physical.add(event.code); else this.physical.delete(event.code); this.refresh();
       if (['Space', 'AltLeft', 'Tab'].includes(event.code)) event.preventDefault();
     };
-    scope.listen(document, 'keydown', (event) => { keyboard(event, true); });
-    scope.listen(document, 'keyup', (event) => { keyboard(event, false); });
+    scope.listen(document, 'keydown', (event) => { keyboard(event, true); }, { capture: true });
+    scope.listen(document, 'keyup', (event) => { keyboard(event, false); }, { capture: true });
     const mouse = (event: Event, on: boolean): void => {
       if (!(event instanceof MouseEvent)) return;
       if (on && document.pointerLockElement === null && !(event.target instanceof HTMLCanvasElement)) return;
+      if (on) this.gesture();
       const code = `Mouse${event.button}`; if (on) this.physical.add(code); else this.physical.delete(code); this.refresh();
     };
     scope.listen(document, 'mousedown', (event) => { mouse(event, true); });
@@ -133,12 +144,13 @@ export class InputService {
     scope.listen(document, 'mousemove', (event) => {
       if (!(event instanceof MouseEvent) || (canvas !== undefined && document.pointerLockElement !== canvas)) return;
       const previous = this.axes.get('look') ?? { x: 0, y: 0 }; this.setAxis('look', previous.x + event.movementX, previous.y + event.movementY);
-      if (this.allowed('look')) look?.(event.movementX, event.movementY);
+      if (this.allowed('look')) { look?.(event.movementX, event.movementY); for (const run of this.motion) run(event.movementX, event.movementY); }
     });
     scope.listen(document, 'contextmenu', (event) => { if (document.pointerLockElement !== null || event.target instanceof HTMLCanvasElement) event.preventDefault(); });
     let wheel = 0, wheelAt = 0;
     scope.listen(document, 'wheel', (event) => {
       if (!(event instanceof WheelEvent) || (document.pointerLockElement === null && !(event.target instanceof HTMLCanvasElement))) return;
+      for (const run of this.wheels) run(event.deltaY);
       if (Math.sign(event.deltaY) !== Math.sign(wheel)) wheel = 0;
       wheel += event.deltaMode === 1 ? event.deltaY * 20 : event.deltaY;
       if (Math.abs(wheel) < 60 || event.timeStamp - wheelAt < 180) return;

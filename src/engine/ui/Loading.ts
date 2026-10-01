@@ -1,3 +1,4 @@
+import { uiScope, mountUi } from './ownership';
 import { engineString } from '#engine/strings';
 import { saveStorage } from '#engine/saves/slots';
 import { formatMB, type ProgressView } from '../boot/plan';
@@ -28,6 +29,7 @@ type ElKey = 'clock' | 'dlFact' | 'dlPct' | 'dlBar' | 'suFact' | 'suPct' | 'suBa
 const set = (el: HTMLElement, text: string): void => { if (el.textContent !== text) el.textContent = text; };
 
 export class Loading {
+  readonly scope = uiScope('Loading');
   root: HTMLElement;
   private els: Record<ElKey, HTMLElement>;
   private rowsEl: HTMLElement;
@@ -48,12 +50,12 @@ export class Loading {
     const nav: { hardwareConcurrency?: number | undefined } = navigator; // Safari < 15.4 has no hardwareConcurrency
     // index.html paints this panel from its first bytes (src/engine/boot/shell.ts): adopt it; a page without it gets a fresh one
     const shell = document.querySelector<HTMLElement>('.ws-load[data-shell]');
-    if (shell) { this.root = shell; delete shell.dataset['shell']; }
+    if (shell) { this.root = shell; delete shell.dataset['shell']; mountUi(shell, this.scope, document.body); }
     else {
       this.root = document.createElement('div');
       this.root.className = 'ws-load';
       this.root.innerHTML = LOAD_SHELL_HTML;
-      document.body.append(this.root);
+      mountUi(this.root, this.scope, document.body);
     }
     const el = (key: ElKey): HTMLElement => { const e = this.root.querySelector<HTMLElement>(`[data-el="${key}"]`); if (!e) throw new Error(`Loading: no [data-el="${key}"]`); return e; };
     this.els = { slug: el('slug'), tier: el('tier'), clock: el('clock'), dlFact: el('dlFact'), dlPct: el('dlPct'), dlBar: el('dlBar'), suFact: el('suFact'), suPct: el('suPct'), suBar: el('suBar'), rows: el('rows'), foot: el('foot'), bar: el('bar'), line: el('line'), diagnostics: el('diagnostics') };
@@ -72,7 +74,7 @@ export class Loading {
     } catch { /* a storage-denied PWA still gets the loader */ }
     this.attempt = attempt;
     this.rowsEl = this.els.rows;
-    const tick = (): void => { this.tickClock(); this.raf = requestAnimationFrame(tick); };
+    const tick = (): void => { this.tickClock(); this.raf = this.scope.raf(tick); };
     tick();
   }
 
@@ -170,7 +172,7 @@ export class Loading {
   done(): Promise<void> {
     return new Promise((resolve) => {
       this.root.classList.add('hide');
-      setTimeout(() => { cancelAnimationFrame(this.raf); this.root.remove(); resolve(); }, 250);
+      this.scope.timeout(250, () => { cancelAnimationFrame(this.raf); this.scope.dispose(); resolve(); });
     });
   }
 }

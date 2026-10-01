@@ -1,3 +1,4 @@
+import { uiScope, mountUi } from './ownership';
 import { engineString } from '#engine/strings';
 /**
  * LockOn — the target frame over enemies (mockups: art/hud/round-7-sword-touch/B-lunge.jpg, art/combat/round-1-lockon/N.jpg):
@@ -24,6 +25,7 @@ import { viewportHeight } from '../core/viewport';
 const _c = new THREE.Vector3(), _e = new THREE.Vector3(), _right = new THREE.Vector3(), _top = new THREE.Vector3();
 
 export class LockOn {
+  readonly scope = uiScope('LockOn');
   private readonly el: HTMLElement;
   private readonly cand: HTMLElement;
   private readonly edges: { l: HTMLElement; r: HTMLElement };
@@ -32,7 +34,6 @@ export class LockOn {
   private edgeText = { l: '', r: '' }; private edgeY = { l: -1, r: -1 }; private edgeShown = { l: false, r: false };
 
   constructor(private camera: THREE.PerspectiveCamera) {
-    const hud = document.getElementById('hud') ?? document.body;
     this.el = document.createElement('div');
     this.el.className = 'ws-game-lock';
     this.el.innerHTML = engineString('s_5b2adc2f66ea');
@@ -40,7 +41,7 @@ export class LockOn {
     this.cand.className = 'ws-game-lockcand';
     const edge = (side: 'l' | 'r') => { const e = document.createElement('div'); e.className = `ws-game-lockedge ${side}`; e.innerHTML = engineString('s_8779ab060e33', [side === 'l' ? engineString('s_0685a836e461') : engineString('s_7bb37df5cb36')]); return e; };
     this.edges = { l: edge('l'), r: edge('r') };
-    hud.append(this.el, this.cand, this.edges.l, this.edges.r);
+    for (const el of [this.el, this.cand, this.edges.l, this.edges.r]) mountUi(el, this.scope);
   }
 
   update(): void {

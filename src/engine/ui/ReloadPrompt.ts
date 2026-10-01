@@ -1,3 +1,4 @@
+import { uiScope, mountUi } from './ownership';
 import { engineString } from '#engine/strings';
 /**
  * The reload prompt (E65 Look Lab): a pick that only takes effect on a fresh page (the lighting model, the sky) asks
@@ -41,6 +42,7 @@ let open: HTMLElement | null = null;
 export function askReload(host: HTMLElement, what: string): void {
   const line = `${what} needs a reload to apply.`;
   if (open?.isConnected) { const t = open.querySelector('.ws-reload-text'); if (t) t.textContent = line; return; }
+  const scope = uiScope('reloadPrompt');
   const sheet = document.createElement('div');
   sheet.className = 'ws-reload';
   sheet.setAttribute('role', 'alertdialog');
@@ -50,9 +52,9 @@ export function askReload(host: HTMLElement, what: string): void {
   const later = document.createElement('button'); later.type = 'button'; later.className = 'ws-reload-later'; later.textContent = engineString('s_73b6e48a1b55');
   const row = document.createElement('div'); row.className = 'ws-reload-row'; row.append(later, go);
   sheet.append(text, row);
-  go.addEventListener('click', (e) => { e.stopPropagation(); go.disabled = true; go.textContent = engineString('s_ea456dcf3d90'); reloadWithPicks(); });
-  later.addEventListener('click', (e) => { e.stopPropagation(); sheet.remove(); open = null; });
-  host.append(sheet);
+  scope.listen(go, 'click', (e) => { e.stopPropagation(); go.disabled = true; go.textContent = engineString('s_ea456dcf3d90'); reloadWithPicks(); });
+  scope.listen(later, 'click', (e) => { e.stopPropagation(); scope.dispose(); open = null; });
+  mountUi(sheet, scope, host);
   open = sheet;
   go.focus();
 }

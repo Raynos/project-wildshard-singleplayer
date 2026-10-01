@@ -1,3 +1,4 @@
+import { uiScope, type Scope } from '#engine';
 /**
  * The Bag's GEAR and FINDS panels (E314 L5, Jake's picks: board 6 C, a paper doll; board 7 B, a sticker book). One
  * shared implementation for every shard: src/engine/ui/Menu.ts calls these renderers with what the shard has, and a part the
@@ -86,6 +87,7 @@ function figure(hat: boolean, cape: boolean): string {
 }
 
 export interface GearOpts {
+  scope?: Scope;
   weapons: KitEntry[];
   skins: SkinRow[];
   /** the skins row's heading: SKINS (Nalati), FINISHES (Pine Hollow) */
@@ -99,6 +101,7 @@ export interface GearOpts {
 }
 
 export function renderGear(p: HTMLElement, o: GearOpts): void {
+  const scope = o.scope ?? uiScope('gear');
   p.replaceChildren();
   const loot = o.loot;
   const held = o.weapons.find((w) => w.equipped) ?? o.weapons[0];
@@ -114,7 +117,7 @@ export function renderGear(p: HTMLElement, o: GearOpts): void {
       <span class="ws-gmenu-kitname">${esc(w.name)}</span>${sub}
       <span class="ws-gmenu-chip">${w.equipped ? 'Held' : 'Hold'}</span>`, 'button') as HTMLButtonElement;
     b.type = 'button';
-    b.addEventListener('click', () => { if (!w.equipped) o.onEquip(w.id); });
+    scope.listen(b, 'click', () => { if (!w.equipped) o.onEquip(w.id); });
     return b;
   };
   const slot = (side: 'l' | 'r', cls: string, ic: IconId, name: string, sub: string, locked = false): HTMLElement =>
@@ -157,7 +160,7 @@ export function renderGear(p: HTMLElement, o: GearOpts): void {
         <span class="ws-gmenu-kitname">${esc(c.name)}</span>
         ${c.owned ? `<span class="ws-gmenu-chip">${c.worn ? 'Worn' : 'Wear'}</span>` : `<span class="ws-gmenu-kitsub">${esc(c.how)}</span>`}`, 'button') as HTMLButtonElement;
       b.type = 'button'; b.disabled = !c.owned;
-      b.addEventListener('click', () => { if (c.owned) o.onWear(c.id); });
+      scope.listen(b, 'click', () => { if (c.owned) o.onWear(c.id); });
       row.append(b);
     }
     p.append(row);
@@ -174,7 +177,7 @@ export function renderGear(p: HTMLElement, o: GearOpts): void {
         <span class="ws-gmenu-kitsub">${esc(s.blurb)}</span>
         ${locked ? '' : `<span class="ws-gmenu-chip">${s.worn ? 'Worn' : 'Wear'}</span>`}`, 'button') as HTMLButtonElement;
       b.type = 'button'; b.disabled = locked;
-      b.addEventListener('click', () => { if (!locked) o.onWearSkin(s.id); });
+      scope.listen(b, 'click', () => { if (!locked) o.onWearSkin(s.id); });
       row.append(b);
     }
     p.append(row);
@@ -185,13 +188,13 @@ export function renderGear(p: HTMLElement, o: GearOpts): void {
   }
 }
 
-export function renderFinds(p: HTMLElement, v: FindsView): void {
+export function renderFinds(p: HTMLElement, v: FindsView, scope: Scope = uiScope('finds')): void {
   p.replaceChildren();
   if (v.open) {
     const o = v.open;
     const row = el('ws-gmenu-done ws-gmenu-openbook', `<i class="ws-gmenu-done-icon">${icon('book')}</i><div class="ws-gmenu-abody"><div class="ws-gmenu-aname">${esc(o.title)}</div><div class="ws-gmenu-agoal">${esc(o.sub)}</div></div><span class="ws-gmenu-chip">Open</span>`, 'button') as HTMLButtonElement;
     row.type = 'button';
-    row.addEventListener('click', () => { o.onPick(); });
+    scope.listen(row, 'click', () => { o.onPick(); });
     p.append(row);
   }
   const strip = el('ws-gmenu-counters');
@@ -208,7 +211,7 @@ export function renderFinds(p: HTMLElement, v: FindsView): void {
       if (pick !== undefined && id !== undefined) {
         const b = el(`ws-gmenu-sticker tap${it.found ? ' found' : ''}`, html, 'button') as HTMLButtonElement;
         b.type = 'button';
-        b.addEventListener('click', () => { pick(id); });
+        scope.listen(b, 'click', () => { pick(id); });
         grid.append(b);
       } else grid.append(el(`ws-gmenu-sticker${it.found ? ' found' : ''}`, html));
     }

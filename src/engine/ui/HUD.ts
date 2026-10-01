@@ -1,3 +1,4 @@
+import { uiScope, mountUi } from './ownership';
 import { engineString } from '#engine/strings';
 import type { WeaponUi } from '../combat/Equipment';
 import { app } from '../app/runtime';
@@ -106,6 +107,7 @@ function q(root: ParentNode, sel: string): HTMLElement {
 }
 
 export class HUD {
+  readonly scope = uiScope('HUD');
   root: HTMLElement;
   onResume?: () => void;
   onExitToMenu?: () => void;
@@ -114,6 +116,7 @@ export class HUD {
   get entered(): boolean { return this._entered; }
   set entered(value: boolean) {
     this._entered = value;
+    if (app.input.hasContext('title')) { if (value) app.input.pop('title'); else app.input.push('title', app.levelScope ?? app.engineScope); }
     if (app.state !== 'loading') app.setState(value ? 'play' : 'title');
   }
   private onEnter?: () => void;
@@ -155,7 +158,7 @@ export class HUD {
   /** the review composer (src/engine/ui/Feedback.ts) is up: losing the pointer lock does not open the pause menu */
   holdPause = false;
   /** when the menu last closed (performance.now) — see the pointerlockchange listener */
-  private menuClosedAt = -Infinity;
+  
 
   /** The exact text currently displayed by the interaction prompt. */
   get promptText(): string { return this.prompt.classList.contains('show') ? this.prompt.textContent : ''; }
@@ -164,25 +167,24 @@ export class HUD {
     this.opts = { pointerLock: true, ...opts };
     const hud = document.getElementById('hud');
     this.root = hud ?? el('div');
-    if (!hud) document.body.append(this.root);
+    if (!hud) mountUi(this.root, this.scope, document.body);
     this.root.id = 'hud';
     this.build();
     this.mountBar();
-    document.addEventListener('pointerlockchange', () => {
-      if (!this.opts.pointerLock || !this.entered || this.holdPause) return;
+    this.scope.listen(document, 'pointerlockchange', () => {
+      if (!this.opts.pointerLock || !this.entered || this.holdPause || (app.ui.blocking && app.ui.top !== 'gameMenu')) return;
       const locked = Boolean(document.pointerLockElement); // undefined where pointer lock is absent (iOS)
       // the lock came back: close the menu. It went away: pause — unless the menu is already up. M / I / the minimap open it
       // on their tab and release the lock themselves (Menu.onOpen); that release used to flip it to Settings (E130)
       // A lock lost within a moment of the menu closing is the Esc that closed it (the browser's own Esc handling
       // releases the lock the close had just re-taken): stay closed, a click on the canvas takes the lock back
-      if (locked) this.setPaused(false); else if (!this.paused && performance.now() - this.menuClosedAt > 400) this.setPaused(true);
+      if (locked) this.setPaused(false); else if (!this.paused && app.clock.real * 1000 - app.ui.closedAt > 400) this.setPaused(true);
     });
-    document.addEventListener('keydown', (e) => {
-      if (!this.intro || this.entered || e.metaKey || e.ctrlKey || e.code === 'Escape') return;
-      const deck = this.deck;
-      if (e.code === 'ArrowLeft' || e.code === 'ArrowRight') { e.preventDefault(); deck?.select(deck.index + (e.code === 'ArrowLeft' ? -1 : 1)); return; }
-      if (deck) deck.activate(); else this.enter();
-    });
+    const titleScope = (app.levelScope ?? app.engineScope).child('input.title');
+    const title = (): boolean => this.intro !== undefined && !this.entered && !app.ui.blocking;
+    app.input.bind('nav.left', () => { this.deck?.select(this.deck.index - 1); }, titleScope, title);
+    app.input.bind('nav.right', () => { this.deck?.select(this.deck.index + 1); }, titleScope, title);
+    app.input.bind('confirm', () => { if (this.deck) this.deck.activate(); else this.enter(); }, titleScope, title);
   }
 
   private build(): void {
@@ -190,84 +192,84 @@ export class HUD {
     // (the desktop chunk panel — chunk:// id, grid, pos, "local build" — is gone: E140, the user's verdict on dead item 1)
 
     // compass: a slim band; the strip sits at the band's centre and slides by the heading (see setState)
-    const compass = el('div', 'ws-game-compass');
+    const compass = el('div', engineString('s_0a9eab204b28'));
     compass.innerHTML = engineString('s_cfa898107d6c');
-    const band = el('div', 'ws-game-band');
-    this.compassStrip = el('div', 'ws-game-strip');
+    const band = el('div', engineString('s_2108e241e445'));
+    this.compassStrip = el('div', engineString('s_e9739b46a53c'));
     for (let deg = -360; deg < 720; deg += 15) {
       const major = deg % 45 === 0;
-      const tick = el('i', `ws-game-tick${major ? ' major' : ''}`);
+      const tick = el('i', engineString('s_596ce7910054', [major ? engineString('s_a318b285a298') : '']));
       tick.style.left = `calc(${deg + 360} * var(--ppd))`;
       this.compassStrip.append(tick);
     }
     for (let lap = -1; lap <= 1; lap++) for (const [deg, label, major] of CARDINALS) {
-      const c = el('div', `ws-game-cardinal${major ? '' : ' minor'}${label === 'N' ? ' n' : ''}`, label);
+      const c = el('div', engineString('s_002ee98b1117', [major ? '' : engineString('s_09961a79c5fc'), label === 'N' ? engineString('s_ac5b2b82539a') : '']), label);
       c.style.left = `calc(${deg + lap * 360 + 360} * var(--ppd))`;
       this.compassStrip.append(c);
     }
     this.band = band;
     band.append(this.compassStrip);
-    this.markHouse = el('div', 'ws-game-mark house', SVG_HOUSE); band.append(this.markHouse);
-    this.markPaw = el('div', 'ws-game-mark paw', SVG_PAW); band.append(this.markPaw);
-    band.append(el('div', 'ws-game-centre'));
+    this.markHouse = el('div', engineString('s_aeeaee77b482'), SVG_HOUSE); band.append(this.markHouse);
+    this.markPaw = el('div', engineString('s_a075e0ecc9be'), SVG_PAW); band.append(this.markPaw);
+    band.append(el('div', engineString('s_b249b8043764')));
     compass.append(band);
-    compass.append(el('div', 'ws-game-notch'));
+    compass.append(el('div', engineString('s_6da8a22f6082')));
     // px/deg scales with the band (90 vw on a phone, fixed on desktop): ticks and cardinals are laid out in `--ppd` units
     const fit = (): void => { const w = band.clientWidth; this.bandW = w; if (!w) return; this.ppd = w / BAND_DEGREES; band.style.setProperty('--ppd', `${this.ppd}px`); this.last.headingDeg = undefined; this.lastMark.house = this.lastMark.paw = Number.NaN; };
     new ResizeObserver(fit).observe(band);
     fit();
-    this.range = el('div', 'ws-game-range'); compass.append(this.range);
-    r.append(compass);
+    this.range = el('div', engineString('s_3552e88da7e6')); compass.append(this.range);
+    mountUi(compass, this.scope, r);
 
-    this.feed = el('div', 'ws-game-feed'); r.append(this.feed);
+    this.feed = el('div', engineString('s_3b5ab2caa819')); mountUi(this.feed, this.scope, r);
 
     // health
-    const health = el('div', 'ws-glass ws-game-health');
+    const health = el('div', engineString('s_c05bd7c3364f'));
     health.innerHTML = engineString('s_ac30287e22b2');
     this.healthVal = q(health, '.v'); this.healthBar = q(health, '.ws-bar i'); this.healthMax = q(health, '.ws-game-hval small');
     this.healthPanel = health; health.classList.add('hp-fade', 'hp-gone'); // E319: hidden at full health (setState)
-    r.append(health);
+    mountUi(health, this.scope, r);
 
     // ammo
-    const ammo = el('div', 'ws-glass ws-game-ammo');
+    const ammo = el('div', engineString('s_bc430be3e44e'));
     ammo.innerHTML = engineString('s_257c5b64d234', [this.opts.weaponUi.name, this.opts.weaponUi.ammo?.label ?? '', this.opts.maxBolts, this.opts.maxBolts]);
     this.ammoPanel = ammo;
     this.ammoCount = q(ammo, '.ws-game-count'); this.ammoNum = q(this.ammoCount, '.c'); this.ammoStatus = q(ammo, '.ws-game-status'); this.ammoStatusText = q(ammo, '.ws-game-status .s'); this.reloadBar = q(ammo, '.ws-game-rbar i');
     this.ammoLabel = q(ammo, '.ws-label .l'); this.ammoWeapon = q(ammo, '.ws-game-weapon'); this.ammoMax = q(ammo, '.m'); this.ammoReserve = q(ammo, '.ws-game-reserve');
     this.pipBox = q(ammo, '.ws-game-pips');
     this.buildPips(this.opts.maxBolts);
-    r.append(ammo);
+    mountUi(ammo, this.scope, r);
 
     // crosshair
-    this.cross = el('div', 'ws-game-cross', engineString('s_0b94de84aa21'));
+    this.cross = el('div', engineString('s_bd0231f0183c'), engineString('s_0b94de84aa21'));
     this.killX = q(this.cross, '.ws-game-x');
-    r.append(this.cross);
-    this.hitRing = el('div', 'ws-game-hitring'); r.append(this.hitRing);
-    this.aim = el('div', 'ws-game-aim'); r.append(this.aim);
+    mountUi(this.cross, this.scope, r);
+    this.hitRing = el('div', engineString('s_4e8f738d8c5f')); mountUi(this.hitRing, this.scope, r);
+    this.aim = el('div', engineString('s_d1e1eef88c48')); mountUi(this.aim, this.scope, r);
 
-    this.prompt = el('div', 'ws-glass ws-game-prompt'); r.append(this.prompt);
-    this.boundary = el('div', 'ws-game-boundary', engineString('s_9029b332a959')); r.append(this.boundary);
-    const toasts = el('div', 'ws-game-toasts'); r.append(toasts); this.toasts = new ToastStack(toasts); this.toastBox = toasts;
-    this.flash = el('div', 'ws-game-flash'); r.append(this.flash);
+    this.prompt = el('div', engineString('s_98730d3255b2')); mountUi(this.prompt, this.scope, r);
+    this.boundary = el('div', engineString('s_befab9df4f5c'), engineString('s_9029b332a959')); mountUi(this.boundary, this.scope, r);
+    const toasts = el('div', engineString('s_dcccdb8a40d1')); mountUi(toasts, this.scope, r); this.toasts = new ToastStack(toasts); this.toastBox = toasts;
+    this.flash = el('div', engineString('s_18547caf898d')); mountUi(this.flash, this.scope, r);
 
     // pause = the in-game menu on its Settings tab (src/engine/ui/Menu.ts, attached by main.ts as `hud.menu`):
     // the touch PAUSE button (TouchControls) and a released pointer lock; Escape (and M / I) is the menu's own key listener,
     // gated by `keyGate` below (E130 — the HUD's Esc here opened the menu the menu's listener then closed, E32)
-    document.addEventListener('ws:pause', () => { if (this.entered) this.setPaused(!this.paused); });
+    this.scope.listen(document, 'ws:pause', () => { if (this.entered) this.setPaused(!this.paused); });
     // native shells (src/engine/native/lifecycle.ts): the app went to the background → pause, never unpause;
     // Android Back → close the menu or pause; preventDefault() tells the shell it was used (else it minimizes the app)
-    document.addEventListener('ws:background', () => { if (this.entered && !this.paused) this.setPaused(true); });
-    document.addEventListener('ws:back', (e) => { if (!this.entered) return; e.preventDefault(); this.setPaused(!this.paused); });
-    document.addEventListener(WEATHER_EVENT, (e) => { if (e instanceof CustomEvent) this.setWeather(e.detail as WeatherHUD); });
+    this.scope.listen(document, 'ws:background', () => { if (this.entered && !this.paused) this.setPaused(true); });
+    this.scope.listen(document, 'ws:back', (e) => { if (!this.entered) return; e.preventDefault(); this.setPaused(!this.paused); });
+    this.scope.listen(document, WEATHER_EVENT, (e) => { if (e instanceof CustomEvent) this.setWeather(e.detail as WeatherHUD); });
   }
 
   /** the storm chip + GET LOW warning (see WeatherHUD); normally driven by the `ws:weather` event */
   setWeather(w: WeatherHUD): void {
     if (!this.weather) {
       if (!w.chip && !w.getLow) return;
-      const chip = el('div', 'ws-game-weather', engineString('s_0280c7c593d6', [SVG_STORM]));
-      const low = el('div', 'ws-game-getlow', engineString('s_d6d50babe1cf', [SVG_WARN]));
-      this.root.append(chip, low);
+      const chip = el('div', engineString('s_03ce5d3c17e3'), engineString('s_0280c7c593d6', [SVG_STORM]));
+      const low = el('div', engineString('s_ee89d1fa2407'), engineString('s_d6d50babe1cf', [SVG_WARN]));
+      mountUi(chip, this.scope, this.root); mountUi(low, this.scope, this.root);
       this.weather = { chip, title: q(chip, '.ws-game-wt'), sub: q(chip, '.ws-game-ws'), low, last: '' };
     }
     const W = this.weather;
@@ -360,9 +362,9 @@ export class HUD {
    *  The base's first two rows of the status column (src/engine/ui/hudSlots.ts; docked whenever the touch layer mounts — never
    *  on a mouse device); the numbers are HUD state, so the HUD owns them. */
   private mountBar(): void {
-    const vitals = el('div', 'ws-game-vitals', engineString('s_92890f1e67f6', [SVG_HEART]));
+    const vitals = el('div', engineString('s_4c6b96a54dfa'), engineString('s_92890f1e67f6', [SVG_HEART]));
     const L = this.last, segN = L.segments ?? this.opts.weaponUi.ammo?.segments ?? 0, reserve = L.reserve ?? 0;
-    const bolts = el('div', 'ws-game-bolts', engineString('s_adf21edee32f', [L.weaponName ?? this.opts.weaponUi.name, L.ammoLabel ?? this.opts.weaponUi.ammo?.label ?? '', '<i></i>'.repeat(segN), this.opts.maxBolts, L.maxBolts ?? this.opts.maxBolts, reserve > 0 ? engineString('s_850875985389', [reserve]) : '', SVG_BOLT]));
+    const bolts = el('div', engineString('s_e99685b6c3aa'), engineString('s_adf21edee32f', [L.weaponName ?? this.opts.weaponUi.name, L.ammoLabel ?? this.opts.weaponUi.ammo?.label ?? '', '<i></i>'.repeat(segN), this.opts.maxBolts, L.maxBolts ?? this.opts.maxBolts, reserve > 0 ? engineString('s_850875985389', [reserve]) : '', SVG_BOLT]));
     hudSlots.statusRow(vitals, ROW.vitals, false); hudSlots.statusRow(bolts, ROW.ammo, false);
     if (this.last.noAmmo) bolts.style.display = 'none';
     this.bar = { vitals, hval: q(vitals, '.ws-game-num'), hbar: q(vitals, '.ws-game-vbar i'), bolts, bcount: q(bolts, '.c'), segs: Array.from(bolts.querySelectorAll<HTMLElement>('.ws-game-segs i')), segBox: q(bolts, '.ws-game-segs'), label: q(bolts, '.ws-game-tiny .l'), weapon: q(bolts, '.ws-game-weapon'), max: q(bolts, '.m'), reserve: q(bolts, '.ws-game-reserve') };
@@ -454,10 +456,10 @@ export class HUD {
   }
 
   killFeed(text: string): void {
-    const item = el('div', 'ws-game-feed-item', text.replaceAll(/\b(headshot|kill|killed)\b/gi, '<b>$1</b>'));
+    const item = el('div', engineString('s_b48e7827330f'), text.replaceAll(/\b(headshot|kill|killed)\b/gi, '<b>$1</b>'));
     this.feed.prepend(item);
     while (this.feed.children.length > 4) this.feed.lastElementChild?.remove();
-    setTimeout(() => { item.classList.add('out'); setTimeout(() => { item.remove(); }, 500); }, 4200);
+    this.scope.timeout(4200, () => { item.classList.add('out'); this.scope.timeout(500, () => { item.remove(); }); });
   }
 
   /** one queue (src/engine/ui/ToastStack.ts: ≤ 3 up, the older ones dimmed, stepping down under the elite / boss bars), placed per
@@ -481,7 +483,7 @@ export class HUD {
    *  frame, so the Developer switch shows / hides it live. */
   setBoundaryWarning(visible: boolean): void { this.boundary.classList.toggle('show', visible && isDev()); }
 
-  set menu(m: GameMenu) { this._menu = m; m.keyGate = () => this.entered && !this.holdPause; m.onClose = () => { this.menuClosedAt = performance.now(); this.onResume?.(); tap.resumed?.(); }; m.onExit = () => { if (m.inPractice) this.exitToExplore(); else this.exitToMenu(); }; }
+  set menu(m: GameMenu) { this._menu = m; m.onClose = () => { this.onResume?.(); tap.resumed?.(); }; m.onExit = () => { if (m.inPractice) this.exitToExplore(); else this.exitToMenu(); }; }
   get menu(): GameMenu { const m = this._menu; if (!m) throw new Error('HUD: no menu attached (hud.menu = …)'); return m; }
   setPaused(paused: boolean): void { if (!this._menu || !this.entered) return; if (paused) this._menu.open('settings'); else this._menu.close(); }
   get paused(): boolean { return this._menu?.isOpen ?? false; }
@@ -504,7 +506,7 @@ export class HUD {
       onExplore: (c) => { if (c !== own) { travel({ to: c.slug, mode: 'explore' }); return; } this.leaveForExplore(); },
       onSettings: () => { openBootSettings(); }, // E55: the reload-to-apply picks
     });
-    this.root.append(deck.root);
+    mountUi(deck.root, this.scope, this.root);
     this.intro = deck.root;
     this.deck = deck;
     deck.start();
@@ -515,7 +517,7 @@ export class HUD {
     if (!this.intro) return;
     const intro = this.intro; this.intro = undefined; this.deck?.dispose(); this.deck = undefined;
     intro.classList.add('hide');
-    setTimeout(() => { intro.remove(); }, Math.max(700, HERO_FADE_MS * 2));
+    this.scope.timeout(Math.max(700, HERO_FADE_MS * 2), () => { intro.remove(); });
     this.onExplore?.();
   }
 
@@ -526,7 +528,7 @@ export class HUD {
     if (!this.intro) return;
     const intro = this.intro; this.intro = undefined; this.deck?.dispose(); this.deck = undefined;
     intro.classList.add('hide');
-    setTimeout(() => { intro.remove(); }, Math.max(700, HERO_FADE_MS * 2));
+    this.scope.timeout(Math.max(700, HERO_FADE_MS * 2), () => { intro.remove(); });
     this.root.classList.remove('intro');
     this.entered = true;
     this.onEnter?.();

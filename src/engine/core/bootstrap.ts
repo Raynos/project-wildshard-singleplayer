@@ -1,3 +1,5 @@
+import { installGameplayInput } from '../input/gameplay';
+import type { InputContextDef } from '../level/context';
 import { app } from '../app/runtime';
 import type * as THREE from 'three';
 import { Game } from './Game';
@@ -51,7 +53,7 @@ export interface World {
  * URL params: ?chunk=<slug>  which shard (default driftwood-isle, see src/game/shard/registry.ts)
  *             ?x=&z=&yaw=&pitch=  spawn pose (metres / radians)
  */
-export async function bootstrap(step: StepRunner, level: LevelSpec): Promise<World> {
+export async function bootstrap(step: StepRunner, level: LevelSpec, inputContexts: readonly InputContextDef[] = []): Promise<World> {
   applyLevelTier(level.tiers?.[TIER]);
   const params = new URLSearchParams(location.search);
   const num = (k: string, d: number): number => { const v = params.get(k); return v === null ? d : Number.parseFloat(v); };
@@ -102,6 +104,9 @@ export async function bootstrap(step: StepRunner, level: LevelSpec): Promise<Wor
   installPhysicsDebug(physics, game.scene, params);
 
   const player = new Player(game.camera, physics, canvas);
+  if (inputContexts.length > 0) installGameplayInput(player, canvas, game.levelScope, inputContexts);
+  app.input.buffer.ms = level.fight.input?.bufferMs ?? 120;
+  player.coyoteMs = level.fight.input?.coyoteMs ?? 100;
   setActiveBodies(new Bodies(physics, player.position).attach(game)); // PHYSICS P7: items as bodies (src/engine/physics/bodies.ts), stepped in the fixed phases, capped near the player
   // the registry's listeners: a registered piece is drawn, collides, and (until P4 / P3) lends the player its floor
   const registry = activeRegistry(); // the one list of built things: scene, physics, floors and Explore's catalog read it

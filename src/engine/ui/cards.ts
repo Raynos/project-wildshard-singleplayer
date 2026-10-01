@@ -1,3 +1,4 @@
+import { uiScope } from './ownership';
 import { saveStorage } from '#engine/saves/slots';
 
 const savedStorage = saveStorage('device');
@@ -17,6 +18,7 @@ const key = (id: string): string => `ui.fold:${id}`;
 const wasOpen = (id: string): boolean => { try { return savedStorage.getItem(key(id)) === 'open'; } catch { return false; } };
 
 export function foldCard(id: string, title: string, sub = ''): HTMLElement {
+  const scope = uiScope('cards');
   const card = document.createElement('div');
   card.className = 'ws-gmenu-card debug fold';
   const head = document.createElement('button');
@@ -29,7 +31,7 @@ export function foldCard(id: string, title: string, sub = ''): HTMLElement {
   card.append(head);
   const paint = (open: boolean): void => { card.classList.toggle('folded', !open); head.setAttribute('aria-expanded', String(open)); };
   paint(wasOpen(id));
-  head.addEventListener('click', () => {
+  scope.listen(head, 'click', () => {
     const open = card.classList.contains('folded');
     paint(open);
     try { savedStorage.setItem(key(id), open ? 'open' : 'shut'); } catch { /* storage blocked: the fold is just not remembered */ }

@@ -1,4 +1,4 @@
-import type { LevelContext } from '#engine';
+import { uiScope, type LevelContext } from '#engine';
 import * as THREE from 'three';
 import './ride.css';
 import type { Mount } from './Mount';
@@ -56,6 +56,7 @@ const arcPath = (cx: number, cy: number, r: number, a0: number, a1: number): str
 const _p = new THREE.Vector3();
 
 export class RideHUD {
+  readonly scope = uiScope('RideHUD');
   /** touch discs held: LEAN (−1 left, +1 right, 0 none) and OFFER */
   lean = 0;
   offer = false;
@@ -99,7 +100,7 @@ export class RideHUD {
 
   /** the phone's discs and STEED row, through the base HUD's slots */
   private buildTouch(): RideHUD['t'] {
-    const disc = (opts: DiscOpts): HTMLButtonElement => this.ctx ? this.ctx.hud.disc(opts) : hudSlots.disc(opts);
+    const disc = (opts: DiscOpts): HTMLButtonElement => this.ctx ? this.ctx.hud.disc(opts) : hudSlots.disc(opts, this.scope);
     const gallop = disc({ cls: 'ws-ride-gallop', icon: SVG_SHOE, label: 'Gallop', spot: 'r0', press: () => { if (this.ctx) this.ctx.app.input.setHeld('ride.gallop', true); else { this.mount.touchGallop = true; this.mount.gallopTap(); } }, release: () => { if (this.ctx) this.ctx.app.input.setHeld('ride.gallop', false); else this.mount.touchGallop = false; } });
     // HORSE ⇄ DISMOUNT (N17): one tab on the left edge over HOVER (E319, Jake: HORSE right and HOVER left "makes no sense")
     // — on foot it whistles your horse (shown only once one is bonded), in the saddle it reads DISMOUNT and gets you off
@@ -112,7 +113,7 @@ export class RideHUD {
     const steed = document.createElement('div');
     steed.className = 'ws-ride-steed ws-ride-touch';
     steed.innerHTML = `<i class="ws-ride-glyph">${SVG_HORSE}</i><span class="ws-ride-name">Steed</span><span class="ws-ride-sbar"><i style="width:100%"></i></span><span class="ws-ride-gait">stand</span>`;
-    if (this.ctx) this.ctx.hud.widget('status', steed, 2); else hudSlots.statusRow(steed, 2);
+    if (this.ctx) this.ctx.hud.widget('band.3', steed, 2); else hudSlots.statusRow(steed, 2);
     const unlayer = hudSlots.onLayer((layer) => {
       this.layer = layer;
       this.use = layer.querySelector<HTMLElement>('.ws-touch-use');

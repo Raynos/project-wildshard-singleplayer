@@ -1,3 +1,4 @@
+import { uiScope, mountUi, type UiHandle, app, type Scope } from '#engine';
 import './ride.css';
 import { cleanHorseName, HORSE_NAME_MAX } from './horseNames';
 
@@ -15,11 +16,14 @@ import { cleanHorseName, HORSE_NAME_MAX } from './horseNames';
  *   prompt.isOpen
  */
 export class HorseNamePrompt {
+  private viewScope: Scope | null = null;
+  private layer: UiHandle | null = null;
   private root: HTMLElement | null = null;
-  get isOpen(): boolean { return this.root !== null; }
+  get isOpen(): boolean { return this.layer?.active === true; }
 
   open(current: string, onSave: (name: string) => void): void {
     this.close();
+    const scope = uiScope('horseName'); this.viewScope = scope;
     const root = document.createElement('div');
     root.className = 'ws-glass ws-ride-namebox';
     const cap = document.createElement('div');
@@ -42,19 +46,20 @@ export class HorseNamePrompt {
       if (ok && name.length > 0) onSave(name);
     };
     for (const t of ['keydown', 'keypress'] as const) {
-      root.addEventListener(t, (e) => {
+      scope.listen(root, t, (e) => {
         e.stopPropagation();
         if (t !== 'keydown' || !(e instanceof KeyboardEvent)) return;
-        if (e.code === 'Enter' || e.code === 'NumpadEnter') { e.preventDefault(); done(true); } else if (e.code === 'Escape') { e.preventDefault(); done(false); }
+        if (e.code === 'Enter' || e.code === 'NumpadEnter') { e.preventDefault(); done(true); } 
       });
     }
     // the USE key that opened the box lands its character in the field it focused: drop what arrives in the first 150 ms
     const opened = performance.now();
-    input.addEventListener('beforeinput', (e) => { if (performance.now() - opened < 150) e.preventDefault(); });
-    for (const t of ['pointerdown', 'touchstart', 'mousedown'] as const) root.addEventListener(t, (e) => { e.stopPropagation(); });
-    cancel.addEventListener('click', () => { done(false); });
-    save.addEventListener('click', () => { done(true); });
-    (document.getElementById('hud') ?? document.body).append(root);
+    scope.listen(input, 'beforeinput', (e) => { if (performance.now() - opened < 150) e.preventDefault(); });
+    for (const t of ['pointerdown', 'touchstart', 'mousedown'] as const) scope.listen(root, t, (e) => { e.stopPropagation(); });
+    scope.listen(cancel, 'click', () => { done(false); });
+    scope.listen(save, 'click', () => { done(true); });
+    mountUi(root, scope);
+    this.layer = app.ui.push('modal', { root, order: -20, back: () => { done(false); } }, scope);
     this.root = root;
     input.focus();
     input.select();
@@ -66,6 +71,7 @@ export class HorseNamePrompt {
     if (r === null) return;
     const f = document.activeElement;
     if (f instanceof HTMLElement && r.contains(f)) f.blur();
+    this.layer?.dispose(); this.layer = null; this.viewScope?.dispose(); this.viewScope = null;
     r.remove();
   }
 }

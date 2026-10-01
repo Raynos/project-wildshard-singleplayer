@@ -1,3 +1,4 @@
+import { uiScope, mountUi } from './ownership';
 import { engineString } from '#engine/strings';
 /**
  * Minimap — the circular top-down map top-right of the HUD (mockup B, art/minimap/round-1/minimap-k1-B-terrain.png).
@@ -134,6 +135,7 @@ const SVG_SUN = '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.4" fill="
 const SVG_MOON = '<svg viewBox="0 0 24 24"><path d="M15.5 3.2a8.8 8.8 0 1 0 5.3 13.9A7.2 7.2 0 0 1 15.5 3.2z" fill="currentColor"/></svg>';
 
 export class Minimap {
+  readonly scope = uiScope('Minimap');
   readonly root: HTMLDivElement;
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
@@ -169,7 +171,7 @@ export class Minimap {
     this.nLabel.className = 'ws-minimap-n';
     this.nLabel.textContent = engineString('s_8ce86a6ae65d');
     this.root.append(this.canvas, this.nLabel);
-    (parent ?? document.body).append(this.root);
+    mountUi(this.root, this.scope, parent ?? document.body);
     this.ctx = ctx2d(this.canvas);
 
     this.stamp = this.buildStamp();

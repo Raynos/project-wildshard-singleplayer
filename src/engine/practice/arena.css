@@ -1,4 +1,4 @@
-.ws-practice { position: absolute; inset: 0; display: none; pointer-events: none; z-index: 13; font-family: var(--ws-mono); }
+.ws-practice { position: absolute; inset: 0; display: none; pointer-events: none; z-index: calc(var(--ws-layer-hud) + 13); font-family: var(--ws-mono); }
 .ws-practice.show { display: block; }
 .ws-practice-preparing { position: absolute; top: 48%; left: 50%; transform: translate(-50%, -50%); padding: 9px 12px; border: 1px solid rgba(117, 217, 255, 0.65); background: rgba(5, 15, 28, 0.86); color: #bceeff; font-size: 10px; letter-spacing: 0.15em; white-space: nowrap; }
 .ws-practice-preparing[hidden] { display: none; }

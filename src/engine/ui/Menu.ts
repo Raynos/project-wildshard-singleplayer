@@ -1,39 +1,16 @@
+import type { Scope } from '../app/scope';
+import type { UiHandle } from './layers';
+import { TabRegistry, type TabSpec, type TabFragment } from './tabs';
+import { uiScope, mountUi } from './ownership';
 import { buildControlsPanel } from '../input/ControlsPanel';
 import { engineString } from '#engine/strings';
 import { buildSavePanel } from './SavePanel';
 import { app } from '../app/runtime';
 import type { AppState } from '../app/systems';
 import { containMenuInput } from '../input/menuInput';
-/**
- * The in-game MENU — one overlay: the BAG (MAP · GEAR · FINDS · PACK · FEATS, E314) and PAUSE (SETTINGS), plus FEEDBACK once
- * a reviewer has unlocked the review inbox in Settings → REVIEW (src/engine/ui/review.ts; the tab's composer is the lazy Feedback.ts).
- * Replaces the old pause box and the stand-alone full-map screen: tapping the minimap (or M) opens it on
- * the Map tab, the pause button / Esc opens it on Settings (the switches live there; RESUME and EXIT TO MAIN are the
- * header bar's two buttons since E178). Styled by src/engine/ui/styles/gmenu.css (prefix ws-gmenu-). The world keeps running underneath, as the
- * full map always did; the overlay swallows touch so the pads don't move you.
- *
- *   const menu = new GameMenu({ fullMap, progress, inventory, kit, volume });
- *   hud.menu = menu;                          // HUD.setPaused → menu.open('settings'); menu.onClose → hud.onResume
- *   menu.open('map') / menu.close() / menu.isOpen / menu.tab
- *   menu.onExit = () => hud.exitToMenu();     // the PAUSE header's EXIT TO MAIN (E178)
- *   menu.refresh()                            // re-render the data tabs (kills, harvests, unlocks)
- *   menu.openBag()                            // the BAG on GEAR (the minimap corner's bag button)
- *   menu.setLoot({ gear, finds, wear })       // a shard's loot (src/game/loot/install.ts): GEAR's extras + the FINDS tab
- *   menu.onFeedbackTab = (panel) => …          // the FEEDBACK tab was selected: mount the composer into `panel`
- *
- * Two menus in one overlay (E124, the user: "two menu buttons, inventory and pause. Pause takes you to settings and
- * feedback. Inventory to map / inventory / trophies"; shipped: "I think we can ship that"): it shows one GROUP of tabs at
- * a time — PAUSE: Settings (+ Feedback), titled PAUSED; BAG (the minimap's corner button, src/game/bag/BagButton.ts; the minimap
- * tap and M too): Map · Inventory · Achievements, titled BAG. (The old one-menu-with-every-tab, `?bagbtn=0`, went in E162.)
- * E314 (Jake's picks, project/archive/2026-09-30-driftwood-loot.md): the BAG is five icon tabs on every shard — MAP · GEAR (the paper doll:
- * the weapons and skins that used to head the Inventory, and the shard's loot) · FINDS (Driftwood's sticker book, hidden
- * where a shard has none) · PACK (the Inventory's junk grid) · FEATS (Achievements); Pine Hollow's JOURNAL sits before
- * FEATS. The panels are src/game/bag/bag.ts. Pine Hollow (E314 C): its hunter's journal is its FINDS (`setFinds`, from
- * src/game/compendium/install.ts), GEAR's skins row is FINISHES, and each PACK item says what Mott gives for it (`pack`).
- * Nalati (E314 C, src/shards/nalati-grasslands/bag.ts): MAP · GEAR · FINDS · FEATS — no PACK (its Inventory has 0 slots), GEAR's SKINS row
- * lists every skin (the locked ones dim), FINDS is the elites and their prizes plus the places (`setFinds`).
- * A shard with no inventory slots or achievements gets MAP · GEAR;
- * GEAR names the Neon Jian and shows the Fei Zhua grapple as a card (`tools`). Which tabs a shard gets: bag.ts `bagTabs`.
+/** The in-game menu renders registered data views, settings and feedback.
+ * The highest visible layer owns navigation and back; its child scope owns each open session.
+ * Tab and fragment registrations keep stable order and return owner disposers.
  */
 import { activeLevel } from '../level/selection';
 import type { LevelSpec } from '../level/spec';
@@ -53,7 +30,8 @@ import { foldCard } from './cards';
 import { buildDebugMenu, type DebugMenu } from './DebugMenu';
 import { bagTabs, renderFinds, renderGear, type FindsView, type GearLoot, type GearTool } from '#game/bag/bag';
 
-export type MenuTab = 'map' | 'gear' | 'finds' | 'inventory' | 'achievements' | 'settings' | 'feedback';
+type BuiltInTab = 'map' | 'gear' | 'finds' | 'inventory' | 'achievements' | 'settings' | 'feedback';
+export type MenuTab = string;
 /** the BAG's tabs are icon tabs, one short word each (E314, Jake's pick board 8 A): MAP · GEAR · FINDS · PACK · FEATS on
  *  every shard (FINDS only where the shard has finds: Driftwood today; `inventory` is PACK, `achievements` FEATS) */
 const TABS: { id: MenuTab; label: string; icon?: IconId }[] = [
@@ -66,16 +44,17 @@ export type MenuGroup = 'pause' | 'bag';
 const GROUP: Record<MenuTab, MenuGroup> = { map: 'bag', gear: 'bag', finds: 'bag', inventory: 'bag', achievements: 'bag', settings: 'pause', feedback: 'pause' };
 const TITLE: Record<MenuGroup, string> = { pause: engineString('s_e159b06187d3'), bag: engineString('s_b053c961f2ac') };
 /** the menu's keys (Esc is handled apart: it pauses, and closes whatever tab is open) */
-const KEY_TAB: Partial<Record<string, MenuTab>> = { KeyM: 'map', KeyI: 'inventory' };
+
 /** what a Settings row's "applies when" reads: the weapons you hold now and the shard */
 interface SettingsCtx { weapons: ReadonlySet<string>; melee: boolean; tracers: boolean; huntersEye: boolean; chunk: LevelSpec }
 type When = (c: SettingsCtx) => boolean;
-const HINTS: Record<MenuTab, string> = { map: engineString('s_90238ffb7476'), gear: engineString('s_d6a37d4c0ef4'), finds: engineString('s_77fb830f183c'), inventory: engineString('s_f60c27a1ad27'), achievements: engineString('s_b86de6f1d8e0'), settings: engineString('s_de1b7705e971'), feedback: engineString('s_1806a5739ce4') };
+const HINTS: Record<BuiltInTab, string> & Partial<Record<string, string>> = { map: engineString('s_90238ffb7476'), gear: engineString('s_d6a37d4c0ef4'), finds: engineString('s_77fb830f183c'), inventory: engineString('s_f60c27a1ad27'), achievements: engineString('s_b86de6f1d8e0'), settings: engineString('s_de1b7705e971'), feedback: engineString('s_1806a5739ce4') };
 
 /** the weapons as the GEAR tab shows them — read live from Weapons (src/engine/player/Weapons.ts) */
 export interface KitEntry { id: string; name: string; ammoLabel: string; ammo: number; magazine: number; reserve: number; equipped: boolean; icon: IconId; melee: boolean; tracers: boolean; huntersEye: boolean }
 
 export interface GameMenuOptions {
+  tabs?: readonly string[];
   /** The game supplies its presentation title when constructing this level menu. */
   levelName?: string;
   fullMap: FullMap;
@@ -109,6 +88,7 @@ const esc = (s: string): string => s.replaceAll('&', '&amp;').replaceAll('<', '&
 const tabHtml = (label: string, ic?: IconId): string => (ic ? `<i class="ws-gmenu-ticon">${icon(ic)}</i><span class="ws-gmenu-tword">${esc(label)}</span>` : esc(label));
 
 export class GameMenu {
+  readonly scope = uiScope('GameMenu');
   private savePanel: ReturnType<typeof buildSavePanel> | null = null;
   readonly root: HTMLElement;
   private sheet: HTMLElement;
@@ -119,20 +99,23 @@ export class GameMenu {
   /** the header bar's two actions (E178): RESUME (PAUSE) / CLOSE (BAG) on the left, EXIT TO MAIN on the right (PAUSE only) */
   private closeBtn: HTMLElement;
   private exitBtn: HTMLElement;
-  private panels: Record<MenuTab, HTMLElement>;
+  private panels: Record<BuiltInTab, HTMLElement> & Partial<Record<string, HTMLElement>>;
   private hint: HTMLElement;
   private mapMeta: HTMLElement;
   private mapQuest: HTMLElement;
   private zoomChips: HTMLButtonElement[] = [];
   private _tab: MenuTab = 'settings';
-  private _open = false;
+  private layer: UiHandle | null = null;
+  private openScope: Scope | null = null;
+  private readonly tabsRegistry = new TabRegistry();
+  private get _open(): boolean { return this.layer?.active === true; }
   private resumeState: AppState = 'play';
   onOpen?: (tab: MenuTab) => void;
   onClose?: () => void;
   onExit?: () => void;
   onFeedbackTab?: (panel: HTMLElement) => void;
   /** may a key open the menu now — the HUD says: in the world, no composer up (`hud.menu = …` sets it); closed until then */
-  keyGate: () => boolean = () => false;
+
   /** the Settings rows that apply only sometimes (E130: hidden, not greyed, when they do not apply) — see `applies()` */
   private controlsPanel: ReturnType<typeof buildControlsPanel> | undefined;
   private gated: { el: HTMLElement; when: When }[] = [];
@@ -150,18 +133,18 @@ export class GameMenu {
     this.tabBar = el('ws-gmenu-tabs');
     for (const t of TABS) {
       const b = el('ws-gmenu-tab', tabHtml(t.label, t.icon), 'button') as HTMLButtonElement; b.type = 'button'; b.dataset['tab'] = t.id;
-      b.addEventListener('click', () => this.select(t.id));
+      this.scope.listen(b, 'click', () => this.select(t.id));
       this.tabBar.append(b);
     }
     this.sheet.append(this.tabBar);
     const body = el('ws-gmenu-body');
     this.panels = { map: el('ws-gmenu-panel map'), gear: el('ws-gmenu-panel scroll'), finds: el('ws-gmenu-panel scroll'), inventory: el('ws-gmenu-panel scroll'), achievements: el('ws-gmenu-panel scroll'), settings: el('ws-gmenu-panel scroll'), feedback: el('ws-gmenu-panel scroll') };
-    for (const p of Object.values(this.panels)) { if (p.classList.contains('scroll')) p.dataset['scroll'] = ''; body.append(p); } // index.html swallows touchmove outside [data-scroll]
+    for (const p of Object.values(this.panels)) { if (p === undefined) continue; if (p.classList.contains('scroll')) p.dataset['scroll'] = ''; body.append(p); } // index.html swallows touchmove outside [data-scroll]
     this.sheet.append(body);
     this.hint = el('ws-gmenu-hint');
     this.sheet.append(this.hint);
     this.root.append(this.sheet);
-    document.body.append(this.root);
+    mountUi(this.root, this.scope, document.body);
 
     // ── MAP: the FullMap canvas lives inside this panel (Map.ts embedded mode) ──
     this.mapMeta = el('ws-gmenu-mapmeta', esc(levelName)); // E318: the shard's name, no chunk size
@@ -172,9 +155,10 @@ export class GameMenu {
     const zooms = el('ws-gmenu-zooms');
     for (const z of [1, 2, 4]) {
       const b = el('ws-gmenu-zoom', engineString('s_03a5f0ef36b4', [z]), 'button') as HTMLButtonElement; b.type = 'button'; b.dataset['z'] = String(z);
-      b.addEventListener('click', () => { opts.fullMap.setZoom(z); this.syncZoom(); });
+      this.scope.listen(b, 'click', () => { opts.fullMap.setZoom(z); this.syncZoom(); });
       zooms.append(b); this.zoomChips.push(b);
-    }
+      this.renderTabFragments('achievements');
+  }
     foot.append(zooms, el('ws-gmenu-legend', engineString('s_dd35e28aa4b1', [icon('poi'), icon('you')])));
     this.panels.map.append(this.mapMeta, this.mapQuest, frame, foot);
     opts.fullMap.onZoom = () => this.syncZoom();
@@ -188,24 +172,19 @@ export class GameMenu {
     const title = this.sheet.querySelector<HTMLElement>('.ws-gmenu-title'); if (!title) throw new Error('GameMenu: no .ws-gmenu-title');
     const subtitle = this.sheet.querySelector<HTMLElement>('.ws-gmenu-sub'); if (!subtitle) throw new Error('GameMenu: no .ws-gmenu-sub');
     this.title = title; this.subtitle = subtitle; this.closeBtn = closeBtn; this.exitBtn = exitBtn;
-    closeBtn.addEventListener('click', () => { this.close(); });
-    exitBtn.addEventListener('click', () => { this.close(true); this.onExit?.(); }); // silent: the HUD brings the title back itself
-    this.root.addEventListener('pointerdown', (e) => { if (e.target === this.root) this.close(); });
-    containMenuInput(this.root);
-    // the keyboard's menu keys, all here (E130): M = the Map, I = the Inventory, Esc = pause (Settings); the same key again
-    // closes, another one switches tab. One listener, so a key is handled once — main.ts's own M listener re-opened the
-    // map the M had just closed, and the HUD's Esc (nolock) opened the menu that this listener then closed (E32)
-    document.addEventListener('keydown', (e) => {
-      if (e.repeat || e.metaKey || e.ctrlKey || e.altKey) return;
-      const t = e.target, typing = t instanceof HTMLElement && (t.isContentEditable || t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT');
-      const tab = e.code === 'Escape' ? 'settings' : typing ? undefined : KEY_TAB[e.code];
-      if (tab === undefined) return;
-      if (this._open) { if (tab === this._tab || e.code === 'Escape') this.close(); else this.open(tab); }
-      else if (this.keyGate()) this.open(tab);
-      else return;
-      e.preventDefault(); e.stopImmediatePropagation();
-    });
-    window.addEventListener('resize', () => { if (this._open && this._tab === 'map') opts.fullMap.fit(); });
+    this.scope.listen(closeBtn, 'click', () => { this.close(); });
+    this.scope.listen(exitBtn, 'click', () => { this.close(true); this.onExit?.(); }); // silent: the HUD brings the title back itself
+    this.scope.listen(this.root, 'pointerdown', (e) => { if (e.target === this.root) this.close(); });
+    containMenuInput(this.root, this.scope);
+    const toggle = (tab: MenuTab): void => {
+      if (!this._open && app.state !== 'play' && app.state !== 'practice') return;
+      if (app.ui.blocking && this.layer?.top !== true) return;
+      this.toggle(tab);
+    };
+    app.input.bind('pause', () => { toggle('settings'); }, this.scope);
+    app.input.bind('map', () => { toggle('map'); }, this.scope);
+    app.input.bind('bag', () => { toggle('inventory'); }, this.scope);
+    this.scope.listen(window, 'resize', () => { if (this._open && this._tab === 'map') opts.fullMap.fit(); });
     opts.progress.onChange = () => { if (this._open) this.renderAchievements(); };
     opts.inventory.onChange = () => { if (this._open) this.renderInventory(); };
     this.select('settings');
@@ -219,13 +198,13 @@ export class GameMenu {
   }
   /** which tabs show: FEEDBACK only while the review inbox is unlocked; only the open group's (one tab = no bar) */
   private syncTabs(): void {
-    const review = reviewUnlocked(), group = GROUP[this._tab];
-    const bag = bagTabs({ finds: this.hasFinds, pack: this.hasPack, feats: this.hasFeats }); // E314: the tabs this shard fills
+    const review = reviewUnlocked(), group = GROUP[this._tab] ?? 'bag';
+    const bag = new Set([...(this.opts.tabs?.map((tab) => tab === 'pack' ? 'inventory' : tab === 'feats' ? 'achievements' : tab) ?? bagTabs({ finds: this.hasFinds, pack: this.hasPack, feats: this.hasFeats })), ...this.tabsRegistry.registeredTabs.map((tab) => tab.id)]); // E314: the tabs this shard fills
     let shown = 0;
     for (const b of this.tabBar.children) {
-      const d = (b as HTMLElement).dataset, id = d['tab'] as MenuTab | undefined;
-      const g = (d['group'] as MenuGroup | undefined) ?? (id === undefined ? 'bag' : GROUP[id]); // an action tab carries its group
-      const inBag = id === undefined || GROUP[id] !== 'bag' || bag.includes(id);
+      const d = (b as HTMLElement).dataset, id = d['tab'];
+      const g = d['group'] ?? (id === undefined ? 'bag' : (GROUP[id] ?? 'bag')); // an action tab carries its group
+      const inBag = id === undefined || (GROUP[id] ?? 'bag') !== 'bag' || bag.has(id);
       const on = (id !== 'feedback' || review) && inBag && g === group && !(id === 'map' && this.noMap);
       (b as HTMLElement).hidden = !on;
       if (on) shown++;
@@ -265,7 +244,7 @@ export class GameMenu {
 
   /** pause ▸ Settings ▸ Debug, the grouped registry (E162; the title's Settings mounts the same one, E172) */
   private debug: DebugMenu | null = null;
-  private memTimer = 0;
+
   /** the Debug rows' readouts (Shards in memory, E155; debugOptions.ts DEBUG_READOUTS) — only while this menu is open on
    *  Settings; DebugMenu reads only the ones that can be seen (not while the card is folded, E177) */
   private paintMemory(): void {
@@ -278,10 +257,11 @@ export class GameMenu {
     this.select(selected);
     if (this._open) return;
     this.resumeState = app.state;
-    this._open = true;
+    this.openScope = this.scope.child('open');
+    this.layer = app.ui.push('gameMenu', { root: this.root, order: 0, back: () => { this.close(); } }, this.openScope);
     app.setState('paused');
     this.paintMemory();
-    this.memTimer = window.setInterval(() => { this.paintMemory(); }, 2000); // while open only (close() stops it)
+    this.openScope.interval(2000, () => { this.paintMemory(); }); // while open only (close() stops it)
     this.root.classList.add('show');
     this.root.inert = false;
     window.dispatchEvent(new Event('ws-menu')); // E176: the build pill follows the pause menu
@@ -294,9 +274,10 @@ export class GameMenu {
   /** `silent` = no onClose (exit to the main menu: the HUD handles the world itself) */
   close(silent = false): void {
     if (!this._open) return;
-    this._open = false;
+    this.layer?.dispose(); this.layer = null;
+    this.openScope?.dispose(); this.openScope = null;
     app.setState(this.resumeState);
-    window.clearInterval(this.memTimer); this.memTimer = 0;
+
     this.root.classList.remove('show');
     window.dispatchEvent(new Event('ws-menu')); // E176
     this.root.inert = true; // faded to opacity 0 but still in the DOM: out of the tab order and the accessibility tree (VoiceOver / XCUITest)
@@ -306,13 +287,14 @@ export class GameMenu {
   toggle(tab: MenuTab): void { if (this._open && this._tab === tab) this.close(); else this.open(tab); }
   /** a BAG tab this shard doesn't have lands on GEAR: no pack (Nalati, Nine Dragon) — I / PACK; no feats (Nine Dragon) */
   private land(want: MenuTab): MenuTab {
+    if (this.panels[want] === undefined) return 'gear';
     return (want === 'inventory' && !this.hasPack) || (want === 'achievements' && !this.hasFeats) ? 'gear' : want;
   }
   select(want: MenuTab): void {
     const tab = this.land(want);
     this._tab = tab;
     for (const b of this.tabBar.children) (b as HTMLElement).classList.toggle('active', (b as HTMLElement).dataset['tab'] === tab);
-    for (const [id, p] of Object.entries(this.panels)) p.classList.toggle('active', id === tab);
+    for (const [id, p] of Object.entries(this.panels)) p?.classList.toggle('active', id === tab);
     this.hint.textContent = this.hintFor(tab);
     this.syncTabs();
     if (this._open) { if (tab === 'map') { this.opts.fullMap.show(); this.syncZoom(); this.renderQuest(); } else this.opts.fullMap.hide(); }
@@ -321,6 +303,7 @@ export class GameMenu {
     if (tab === 'inventory') this.renderInventory();
     if (tab === 'achievements') this.renderAchievements();
     if (tab === 'settings') this.applies();
+    const panel = this.panels[tab]; if (panel !== undefined && this.tabsRegistry.registeredTabs.some((row) => row.id === tab)) { panel.replaceChildren(); this.tabsRegistry.render(tab, panel); }
     if (tab === 'feedback' && this._open) this.onFeedbackTab?.(this.panels.feedback);
   }
 
@@ -331,45 +314,53 @@ export class GameMenu {
   openBag(): void { this.open('gear'); }
 
   /** a shard's loot (Driftwood, src/game/loot/install.ts): GEAR's coins / hearts / charms / cosmetics and the FINDS tab */
-  private loot: BagLoot | null = null;
+  private readonly lootRows = new Map<string, BagLoot>();
+  private get loot(): BagLoot | null { return this.lootRows.values().next().value ?? null; }
   /** a shard's FINDS without loot: Pine Hollow's hunter's journal (src/game/compendium/install.ts, E314 C) */
-  private bagFragments = new Map<MenuTab, Map<string, (host: HTMLElement) => void>>();
-  addBagFragment(tab: 'map' | 'gear' | 'pack' | 'finds' | 'feats', fragment: { id: string; render: (host: HTMLElement) => void }): () => void {
+  addTab(spec: TabSpec): () => void {
+    const off = this.tabsRegistry.tab(spec);
+    const panel = el('ws-gmenu-panel scroll'); panel.dataset['scroll'] = '';
+    const button = el('ws-gmenu-tab', tabHtml(spec.title, spec.icon), 'button') as HTMLButtonElement;
+    button.type = 'button'; button.dataset['tab'] = spec.id;
+    this.scope.listen(button, 'click', () => { this.select(spec.id); });
+    this.panels[spec.id] = panel;
+    this.panels.gear.parentElement?.append(panel); this.tabBar.append(button); this.syncTabs();
+    return () => { off(); panel.remove(); button.remove(); delete this.panels[spec.id]; if (this._tab === spec.id) this.select('gear'); else this.syncTabs(); };
+  }
+  addTabFragment(tab: string, fragment: TabFragment): () => void {
     const panel = tab === 'pack' ? 'inventory' : tab === 'feats' ? 'achievements' : tab;
-    let rows = this.bagFragments.get(panel);
-    if (rows === undefined) { rows = new Map(); this.bagFragments.set(panel, rows); }
-    rows.set(fragment.id, fragment.render);
-    this.syncTabs();
-    return () => { if (rows.get(fragment.id) === fragment.render) rows.delete(fragment.id); if (rows.size === 0) this.bagFragments.delete(panel); this.syncTabs(); };
+    const off = this.tabsRegistry.fragment(panel, fragment); this.syncTabs();
+    return () => { off(); this.syncTabs(); };
   }
-  private renderBagFragments(tab: MenuTab): void {
-    for (const render of this.bagFragments.get(tab)?.values() ?? []) render(this.panels[tab]);
+  private renderTabFragments(tab: MenuTab): void {
+    const panel = this.panels[tab]; if (panel !== undefined) this.tabsRegistry.render(tab, panel);
   }
-  private finds: (() => FindsView) | null = null;
-  private get findsView(): (() => FindsView) | null { return this.loot?.finds ?? this.finds; }
-  private get hasFinds(): boolean { return this.findsView !== null || this.bagFragments.get('finds')?.size !== undefined; }
+  private readonly findsRows = new Map<string, () => FindsView>();
+  private get findsView(): (() => FindsView) | null { return this.loot?.finds ?? this.findsRows.values().next().value ?? null; }
+  private get hasFinds(): boolean { return this.findsView !== null || this.tabsRegistry.hasFragments('finds'); }
   /** a shard with no pack (Nalati, E314 C: `inventory.slots` 0) has no PACK tab */
   private get hasPack(): boolean { return this.opts.inventory.slots > 0; }
   /** a shard with no achievements (Nine Dragon, E314 A) has no FEATS tab */
   private get hasFeats(): boolean { return this.opts.progress.rows.length > 0; }
-  setFinds(finds: (() => FindsView) | null): void {
-    this.finds = finds;
-    if (this._tab === 'finds' && !this.hasFinds) this.select('gear'); else this.syncTabs();
-    if (this._open) this.refresh();
+  addFinds(id: string, finds: () => FindsView): () => void {
+    if (this.findsRows.has(id)) throw new Error(`Duplicate Bag finds: ${id}`);
+    this.findsRows.set(id, finds); this.syncTabs();
+    const off = (): void => { this.findsRows.delete(id); if (this._tab === 'finds' && !this.hasFinds) this.select('gear'); else this.syncTabs(); };
+    this.scope.onDispose(off); return off;
   }
   /** the hint line: a shard's own for GEAR / FINDS / PACK where it has one (Pine Hollow, E314 C) */
   private hintFor(tab: MenuTab): string {
     if (tab === 'finds') return this.findsView?.().hint ?? HINTS.finds;
     if (tab === 'inventory') return this.opts.pack?.hint ?? HINTS.inventory;
     if (tab === 'gear') return this.opts.pack?.gearHint ?? HINTS.gear;
-    return HINTS[tab];
+    return this.tabsRegistry.registeredTabs.find((row) => row.id === tab)?.hint ?? HINTS[tab] ?? '';
   }
-  setLoot(loot: BagLoot | null): void {
-    this.loot = loot;
-    if (this._tab === 'finds' && !this.hasFinds) this.select('gear'); else this.syncTabs();
-    if (this._open) this.refresh();
+  addLoot(id: string, loot: BagLoot): () => void {
+    if (this.lootRows.has(id)) throw new Error(`Duplicate Bag loot: ${id}`);
+    this.lootRows.set(id, loot); this.syncTabs(); if (this._open) this.refresh();
+    const off = (): void => { this.lootRows.delete(id); if (this._tab === 'finds' && !this.hasFinds) this.select('gear'); else this.syncTabs(); if (this._open) this.refresh(); };
+    this.scope.onDispose(off); return off;
   }
-
   /** the quest card over the map: chapter title, the full objective, its sub-steps (the HUD shows only the short chip, E51) */
   private renderQuest(): void {
     const q = this.opts.fullMap.quest;
@@ -388,17 +379,25 @@ export class GameMenu {
     renderGear(this.panels.gear, {
       weapons: this.opts.kit(), skins: this.opts.skins?.() ?? [], loot: this.loot?.gear() ?? null, ...(this.opts.skinsTitle !== undefined ? { skinsTitle: this.opts.skinsTitle } : {}),
       tools: this.opts.tools?.() ?? [],
+      scope: this.scope,
       onEquip: (id) => { this.opts.onEquip?.(id); this.renderGear(); },
       onWearSkin: (id) => { this.opts.onWearSkin?.(id); this.renderGear(); },
       onWear: (id) => { this.loot?.wear(id); this.renderGear(); },
     });
+    this.renderTabFragments('gear');
   }
 
   // ── FINDS (E314, board 7 B): the sticker book — only on a shard with finds ──
   private renderFinds(): void {
-    const f = this.findsView;
-    if (f) renderFinds(this.panels.finds, f()); else this.panels.finds.replaceChildren();
-    this.renderBagFragments('finds');
+    const sources = [...this.findsRows.values()];
+    if (this.loot?.finds) sources.unshift(this.loot.finds);
+    this.panels.finds.replaceChildren();
+    for (const source of sources) {
+      const host = sources.length === 1 ? this.panels.finds : document.createElement('div');
+      renderFinds(host, source(), this.scope);
+      if (host !== this.panels.finds) this.panels.finds.append(host);
+    }
+    this.renderTabFragments('finds');
   }
 
   // ── PACK (the Inventory): the junk the hunt leaves you, as before; its weapon cards moved to GEAR (E314) ──
@@ -417,7 +416,7 @@ export class GameMenu {
         ? el('ws-gmenu-slot', engineString('s_96ae14555109', [icon(it.icon), it.count, esc(it.label), line !== null ? engineString('s_b5f268a201a9', [esc(line)]) : '']))
         : el('ws-gmenu-slot empty'));
     }
-    p.append(grid);
+    p.append(grid); this.renderTabFragments('inventory');
   }
 
   // ── ACHIEVEMENTS ──
@@ -430,7 +429,7 @@ export class GameMenu {
     if (done) {
       const row = el('ws-gmenu-done', engineString('s_07078891e4d4', [icon('laurel'), esc(done.label), esc(done.sub)]), 'button');
       (row as HTMLButtonElement).type = 'button';
-      row.addEventListener('click', () => { this.close(true); done.open(); });   // silent: the card resumes play itself
+      this.scope.listen(row, 'click', () => { this.close(true); done.open(); });   // silent: the card resumes play itself
       p.append(row);
     }
     p.append(el('ws-gmenu-label', engineString('s_19898a95936f', [esc(levelName), e, n])));
@@ -443,7 +442,7 @@ export class GameMenu {
     for (const r of rows) {
       const row = el(`ws-gmenu-ach${r.earned ? ' earned' : ''}${r.active ? ' active' : ''}`, engineString('s_7f1998be1049', [r.def.icon, icon(r.def.icon), esc(r.def.name), esc(r.def.goal), r.count, r.def.count, (r.count / r.def.count) * 100, icon(r.earned ? 'check' : 'lock'), esc(r.def.title), r.active ? engineString('s_c965a4b3b12e') : '']), 'button');
       (row as HTMLButtonElement).type = 'button';
-      row.addEventListener('click', () => { if (r.earned) pr.wear(r.def.id); });
+      this.scope.listen(row, 'click', () => { if (r.earned) pr.wear(r.def.id); });
       p.append(row);
     }
   }
@@ -467,7 +466,7 @@ export class GameMenu {
       const b = el('ws-gmenu-switch', engineString('s_d652c0be6be8', [label]), 'button') as HTMLButtonElement; b.type = 'button'; b.setAttribute('role', 'switch');
       const sync = (v: boolean) => { b.classList.toggle('on', v); b.setAttribute('aria-checked', String(v)); };
       sync(getSetting(key)); onSetting(key, sync);
-      b.addEventListener('click', () => setSetting(key, !getSetting(key)));
+      this.scope.listen(b, 'click', () => setSetting(key, !getSetting(key)));
       return b;
     };
     // "applies when" (E130): a row that does not apply to the weapons you hold or to this shard is hidden (re-read on every
@@ -493,8 +492,8 @@ export class GameMenu {
       const s = document.createElement('input'); s.type = 'range'; s.className = 'ws-gmenu-slider';
       s.min = String(lo * 100); s.max = String(hi * 100); s.step = '5'; s.value = String(Math.round(getNumber(key) * 100));
       const paint = () => { if (val) val.textContent = engineString('s_03a5f0ef36b4', [(Number(s.value) / 100).toFixed(2)]); };
-      s.addEventListener('input', () => { setNumber(key, Number(s.value) / 100); paint(); });
-      s.addEventListener('pointerdown', (e) => e.stopPropagation());
+      this.scope.listen(s, 'input', () => { setNumber(key, Number(s.value) / 100); paint(); });
+      this.scope.listen(s, 'pointerdown', (e) => e.stopPropagation());
       paint(); row.append(s); return row;
     };
     section(p, engineString('s_799c26913574'), mult('look', engineString('s_64e57bf9ef8a')), [(c) => c.melee, mult('swingLook', engineString('s_e532946ea0dd'))]); // a swing's turn: the blades
@@ -503,15 +502,15 @@ export class GameMenu {
     const vol = el('ws-gmenu-row', engineString('s_31a1802e19b8'));
     const slider = document.createElement('input'); slider.type = 'range'; slider.min = '0'; slider.max = '100'; slider.className = 'ws-gmenu-slider';
     slider.value = String(Math.round(getNumber('volume') * 100));
-    slider.addEventListener('input', () => setNumber('volume', Number(slider.value) / 100));
-    slider.addEventListener('pointerdown', (e) => e.stopPropagation());
+    this.scope.listen(slider, 'input', () => setNumber('volume', Number(slider.value) / 100));
+    this.scope.listen(slider, 'pointerdown', (e) => e.stopPropagation());
     vol.append(slider);
     // music volume (Settings 'music', 0..1) — src/engine/audio/Music.ts drives its bus from it
     const mus = el('ws-gmenu-row', engineString('s_4db5c63706fd'));
     const mslider = document.createElement('input'); mslider.type = 'range'; mslider.min = '0'; mslider.max = '100'; mslider.className = 'ws-gmenu-slider';
     mslider.value = String(Math.round(getNumber('music') * 100));
-    mslider.addEventListener('input', () => setNumber('music', Number(mslider.value) / 100));
-    mslider.addEventListener('pointerdown', (e) => e.stopPropagation());
+    this.scope.listen(mslider, 'input', () => setNumber('music', Number(mslider.value) / 100));
+    this.scope.listen(mslider, 'pointerdown', (e) => e.stopPropagation());
     mus.append(mslider);
     // music style (Settings 'musicStyle', project/archive/2026-09-23-music.md v3): the MiniMax-Music3 scores or the v1 synth — Music.ts crossfades on a bar;
     // sound effects (Settings 'sfxSet'): the generated set (MOSS-SoundEffect v2 + Stable Audio 3 Medium) or all-synth — Audio.ts swaps them
@@ -521,7 +520,7 @@ export class GameMenu {
       const paint = () => { for (const c of box.children) (c as HTMLElement).classList.toggle('active', (c as HTMLElement).dataset['v'] === get()); };
       for (const o of options) {
         const b = el('ws-gmenu-segbtn', o.text, 'button') as HTMLButtonElement; b.type = 'button'; b.dataset['v'] = o.v;
-        b.addEventListener('click', () => { set(o.v); paint(); });
+        this.scope.listen(b, 'click', () => { set(o.v); paint(); });
         box.append(b);
       }
       paint(); on(paint); row.append(box); return row;
@@ -574,18 +573,18 @@ export class GameMenu {
           note.textContent = r === 'bad' ? engineString('s_08e7aa3eae21') : r === 'offline' ? engineString('s_76856232ac38') : '';
         };
         // the menu listens for M / Esc and the player for WASD on document: typing a password must not reach them
-        input.addEventListener('keydown', (e) => { if (e.code !== 'Escape') e.stopPropagation(); if (e.code === 'Enter') void tryUnlock(); });
-        input.addEventListener('keyup', (e) => { e.stopPropagation(); });
-        go.addEventListener('click', () => { void tryUnlock(); });
+        this.scope.listen(input, 'keydown', (e) => { if (e.code !== 'Escape') e.stopPropagation(); if (e.code === 'Enter') void tryUnlock(); });
+        this.scope.listen(input, 'keyup', (e) => { e.stopPropagation(); });
+        this.scope.listen(go, 'click', () => { void tryUnlock(); });
         row.append(input, go);
         box.append(row, note);
         return;
       }
       const sw = el('ws-gmenu-switch', engineString('s_e1e76f890568'), 'button') as HTMLButtonElement; sw.type = 'button'; sw.setAttribute('role', 'switch');
       sw.classList.toggle('on', quickNote()); sw.setAttribute('aria-checked', String(quickNote()));
-      sw.addEventListener('click', () => setQuickNote(!quickNote()));
+      this.scope.listen(sw, 'click', () => setQuickNote(!quickNote()));
       const lock = el('ws-gmenu-unlock', engineString('s_db44b8db4f05'), 'button') as HTMLButtonElement; lock.type = 'button';
-      lock.addEventListener('click', () => lockReview());
+      this.scope.listen(lock, 'click', () => lockReview());
       const row = el('ws-gmenu-row', engineString('s_b39f8f67f676'));
       row.append(lock);
       box.append(sw, row, el('ws-gmenu-note', engineString('s_806c6e56a7d8')));

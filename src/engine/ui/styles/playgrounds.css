@@ -2,7 +2,7 @@
    the run chip: the playground's short name, the run time, ↺ back to the start; under them the status (READY · RUNNING ·
    a pad · a lap) and the best. On the phone a row of the status column (hudSlots, under VITALS: the toasts keep the right
    side), on a desktop top centre. Navy glass, a cyan hairline, monospace capitals. */
-.ws-pg { position: absolute; left: 50%; top: 16px; transform: translateX(-50%); z-index: 14; display: none; flex-direction: column; align-items: stretch; gap: 3px; min-width: 168px; max-width: 58vw; box-sizing: border-box; padding: 5px 6px 6px 9px; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); border-top-color: var(--ws-cyan); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); font-family: var(--ws-mono); color: var(--ws-text); pointer-events: none; }
+.ws-pg { position: absolute; left: 50%; top: 16px; transform: translateX(-50%); z-index: calc(var(--ws-layer-hud) + 14); display: none; flex-direction: column; align-items: stretch; gap: 3px; min-width: 168px; max-width: 58vw; box-sizing: border-box; padding: 5px 6px 6px 9px; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); border-top-color: var(--ws-cyan); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); font-family: var(--ws-mono); color: var(--ws-text); pointer-events: none; }
 .ws-pg.show { display: flex; }
 .ws-pg .ws-pg-row { display: flex; align-items: center; gap: 8px; }
 .ws-pg b { flex: 1; font-size: 8.5px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ws-cyan); white-space: nowrap; }

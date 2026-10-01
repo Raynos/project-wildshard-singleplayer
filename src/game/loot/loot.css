@@ -13,7 +13,7 @@
 .ws-loot-chip.bump .ws-loot-num { color: #ffe39a; transition: color 0.6s; }
 @keyframes ws-loot-bump { 0% { transform: scale(1); } 35% { transform: scale(1.14); border-color: rgba(242, 196, 77, 0.8); } 100% { transform: scale(1); } }
 
-.ws-loot-pop { position: absolute; left: 0; top: 0; z-index: 3; display: flex; align-items: center; gap: 4px; opacity: 0; pointer-events: none; transform: translate(-50%, -50%); font-family: var(--ws-display); font-weight: 700; font-size: 22px; line-height: 1; color: #ffe39a; text-shadow: 0 0 6px rgba(0, 0, 0, 0.8), 0 0 12px rgba(242, 196, 77, 0.5); white-space: nowrap; }
+.ws-loot-pop { position: absolute; left: 0; top: 0; z-index: calc(var(--ws-layer-hud) + 3); display: flex; align-items: center; gap: 4px; opacity: 0; pointer-events: none; transform: translate(-50%, -50%); font-family: var(--ws-display); font-weight: 700; font-size: 22px; line-height: 1; color: #ffe39a; text-shadow: 0 0 6px rgba(0, 0, 0, 0.8), 0 0 12px rgba(242, 196, 77, 0.5); white-space: nowrap; }
 .ws-loot-pop .ws-loot-coin { width: 16px; height: 16px; }
 .ws-loot-pop.show { animation: ws-loot-rise 1.3s ease-out forwards; }
 @keyframes ws-loot-rise { 0% { opacity: 0; transform: translate(-50%, -30%) scale(0.7); } 15% { opacity: 1; transform: translate(-50%, -60%) scale(1.1); } 70% { opacity: 1; transform: translate(-50%, -150%) scale(1); } 100% { opacity: 0; transform: translate(-50%, -200%) scale(1); } }

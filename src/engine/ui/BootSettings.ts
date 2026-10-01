@@ -1,3 +1,7 @@
+import { uiScope, mountUi } from './ownership';
+import { app } from '../app/runtime';
+import type { UiHandle } from './layers';
+import type { Scope } from '../app/scope';
 import { engineString } from '#engine/strings';
 /**
  * Main menu ▸ SETTINGS (E55): the picks that are read once while the page loads — renderer, quality tier, render scale,
@@ -12,7 +16,7 @@ import { engineString } from '#engine/strings';
  * ones that skip the title, so the reload lands back on this title screen. Reuses the in-game menu's look (gmenu.css).
  */
 import { AUTO_TIER, TIER, gfxPrefs, saveGfxPrefs } from '../core/tier';
-import { asShell } from '../app/legacyCapture';
+
 import { isDev, onDev } from '../core/devMode';
 import { activeLevel } from '../level/selection';
 import { askReload } from './ReloadPrompt';
@@ -39,22 +43,24 @@ const BOOT_GFX = { ...gfxPrefs };
 let root: HTMLElement | undefined;
 /** the Debug registry (E162), the same one the pause menu renders (E172) */
 let debug: DebugMenu | null = null;
-let memTimer = 0;
+const scope = uiScope('bootSettings', app.engineScope);
+let openScope: Scope | null = null;
+let layer: UiHandle | null = null;
 
 export function openBootSettings(): void {
-  const r = root ?? asShell(build); // the page's one panel (src/engine/app/legacyCapture.ts): its Esc listener is not a shard's
+  const r = root ?? build(); // the page's one panel (src/engine/app/legacyCapture.ts): its Esc listener is not a shard's
   root = r;
   // re-read which Debug rows apply to the selected level, and their choices
   // (GPU textures' "Auto · now …"), for the one behind it now. No weapons in hand on the title
   debug?.applies({ chunk: activeLevel(), weapons: new Set() });
-  asShell(() => { window.clearInterval(memTimer); memTimer = window.setInterval(() => { debug?.paint(); }, 2000); }); // the readouts, while open only
+  if (layer?.active !== true) { openScope = scope.child('open'); layer = app.ui.push('menu', { root: r, order: 0, back: close }, openScope); openScope.interval(2000, () => { debug?.paint(); }); }
   r.classList.add('show');
   r.inert = false;
 }
 
 function close(): void {
   if (!root) return;
-  window.clearInterval(memTimer); memTimer = 0;
+  layer?.dispose(); layer = null; openScope?.dispose(); openScope = null;
   root.classList.remove('show');
   root.inert = true;
 }
@@ -71,7 +77,7 @@ function build(): HTMLElement {
   body.append(p);
   sheet.append(body, el('ws-gmenu-hint', engineString('s_1d538697a99a')));
   r.append(sheet);
-  document.body.append(r);
+  mountUi(r, scope, document.body);
 
   const running = el('ws-gmenu-note');
   running.textContent = engineString('s_a348737554c0', [TIER]);
@@ -92,7 +98,7 @@ function build(): HTMLElement {
     const box = el('ws-gmenu-seg');
     for (const o of options) {
       const b = el('ws-gmenu-segbtn', o.text, 'button') as HTMLButtonElement; b.type = 'button'; b.dataset['v'] = o.v;
-      b.addEventListener('click', () => { set(o.v); repaint(); });
+      scope.listen(b, 'click', () => { set(o.v); repaint(); });
       box.append(b);
     }
     paints.push(() => { for (const c of box.children) (c as HTMLElement).classList.toggle('active', (c as HTMLElement).dataset['v'] === get()); });
@@ -128,20 +134,14 @@ function build(): HTMLElement {
   // print them under the cards; they live here now, and in the pause menu ▸ Settings ▸ Audio next to the pickers
   p.append(el('ws-gmenu-label', engineString('s_2a6b24ad2872')), ...[MUSIC_CREDIT, sfxCredit(getSfxSet())].filter((t) => t !== '').map((t) => el('ws-gmenu-note', t)));
 
-  apply.addEventListener('click', () => {
+  scope.listen(apply, 'click', () => {
     const next = settingsReloadUrl(location.href, TITLE_SKIPPERS);
     markUnload('main menu settings: apply & reload');
     if (next === location.href) location.reload(); else location.replace(next);
   });
   const closeBtn = sheet.querySelector('.ws-gmenu-close');
-  closeBtn?.addEventListener('click', close);
-  r.addEventListener('pointerdown', (e) => { if (e.target === r) close(); });
-  // the title's "any key enters" listens on document: while this is open, keys stop here (Esc closes)
-  window.addEventListener('keydown', (e) => {
-    if (!r.classList.contains('show')) return;
-    e.stopPropagation();
-    if (e.code === 'Escape') { e.preventDefault(); close(); }
-  }, true);
+  if (closeBtn) scope.listen(closeBtn, 'click', close);
+  scope.listen(r, 'pointerdown', (e) => { if (e.target === r) close(); });
   repaint();
   return r;
 }

@@ -1,3 +1,7 @@
+import { uiScope } from './ownership';
+
+const scope = uiScope('RotateGate');
+
 /**
  * Rotate gate (E38): Wildshard is portrait-only on phones. The page itself is index.html's `.ws-rotate`, shown by a
  * media query in src/engine/ui/styles/rotate.css the instant the device turns (no JS needed to paint it); this module does
@@ -21,7 +25,7 @@ const mq = matchMedia(QUERY);
 /** true while the rotate page covers the game */
 export const rotateGated = (): boolean => mq.matches;
 
-mq.addEventListener('change', () => {
+scope.listen(mq, 'change', () => {
   if (mq.matches) document.dispatchEvent(new Event('ws:background'));
 });
 
@@ -31,5 +35,5 @@ const swallow = (e: Event): void => {
   if (e.cancelable) e.preventDefault();
 };
 for (const type of ['pointerdown', 'mousedown', 'touchstart', 'click', 'dblclick', 'contextmenu', 'keydown', 'wheel']) {
-  window.addEventListener(type, swallow, { capture: true, passive: false });
+  scope.listen(window, type, swallow, { capture: true, passive: false });
 }

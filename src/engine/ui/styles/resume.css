@@ -4,7 +4,7 @@
    (loading.css): nothing to read, nothing to wait on. Linked from index.html, so it is styled from the first paint of a
    GPU-recovery reload. Only the rotate page sits above it. prefix ws-resume- ─── */
 .ws-resume {
-  display: none; position: fixed; inset: 0; z-index: 2147482000; overflow: hidden;
+  display: none; position: fixed; inset: 0; z-index: calc(var(--ws-layer-error) + -500); overflow: hidden;
   background: #0d1b26; color: var(--ws-text); font-family: var(--ws-mono);
   pointer-events: auto; touch-action: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
 }
@@ -24,7 +24,7 @@
 
 /* the wordmark, the title's portrait lockup: PROJECT small over WILDSHARD, a short cyan rule under it */
 .ws-resume-word {
-  position: absolute; z-index: 1; left: 16px; top: calc(14px + env(safe-area-inset-top, 0px));
+  position: absolute; z-index: calc(var(--ws-layer-hud) + 1); left: 16px; top: calc(14px + env(safe-area-inset-top, 0px));
   font-family: var(--ws-display); font-size: 13px; font-weight: 600; line-height: 1.05; letter-spacing: 0.3em;
   text-transform: uppercase; color: rgba(230, 242, 248, 0.85); text-shadow: 0 4px 30px rgba(0, 0, 0, 0.6);
 }
@@ -32,7 +32,7 @@
 .ws-resume-word::after { content: ''; display: block; width: 26px; height: 2px; margin-top: 6px; background: var(--ws-cyan); box-shadow: 0 0 10px var(--ws-cyan); }
 
 .ws-resume-card {
-  position: absolute; z-index: 1; left: 50%; bottom: 18vh; transform: translateX(-50%);
+  position: absolute; z-index: calc(var(--ws-layer-hud) + 1); left: 50%; bottom: 18vh; transform: translateX(-50%);
   display: flex; flex-direction: column; align-items: center; gap: 12px; width: 240px;
 }
 .ws-resume-line { font-size: 11px; line-height: 1.5; letter-spacing: 0.32em; text-indent: 0.32em; text-transform: uppercase; color: var(--ws-cyan); text-align: center; text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6); }

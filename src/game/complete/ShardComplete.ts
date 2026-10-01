@@ -1,3 +1,4 @@
+import { uiScope, mountUi, type UiHandle, app, type Scope } from '#engine';
 /**
  * ShardComplete — the "<shard> complete" card (E132, mockup A: art/quest/round-2-complete-screen/A.jpg): a centred glass
  * card over the dimmed last frame. It shows the shard's title, a stats grid, the "still to find" chips and three buttons:
@@ -60,17 +61,15 @@ const hudRoot = (): HTMLElement => document.getElementById('hud') ?? document.bo
 export class ShardComplete {
   private root: HTMLElement | null = null;
   private handlers: CompleteHandlers | null = null;
-  private readonly onKey = (e: KeyboardEvent): void => {
-    if (e.code !== 'Escape' && e.code !== 'Enter') return;
-    e.preventDefault(); e.stopImmediatePropagation();   // before the menu's own Esc (a document listener)
-    this.handlers?.keep();
-  };
+  private viewScope: Scope | null = null;
+  private layer: UiHandle | null = null;
 
-  get isOpen(): boolean { return this.root !== null; }
+  get isOpen(): boolean { return this.layer?.active === true; }
 
   open(data: ShardCompleteData, handlers: CompleteHandlers): void {
     this.close();
     this.handlers = handlers;
+    const scope = uiScope('complete'); this.viewScope = scope;
     const root = document.createElement('div');
     root.className = 'ws-complete';
     const stats = data.stats.map((s) => {
@@ -97,7 +96,7 @@ export class ShardComplete {
         <div class="ws-complete-row2${next === '' ? ' one' : ''}">${next}<button type="button" class="ws-complete-btn sec" data-act="title">Title screen</button></div>
       </div>
     </div>`;
-    root.addEventListener('click', (e) => {
+    scope.listen(root, 'click', (e) => {
       const t = e.target instanceof Element ? e.target.closest('[data-act]') : null;
       const act = t instanceof HTMLElement ? t.dataset['act'] : undefined;
       if (act === 'keep') handlers.keep();
@@ -105,12 +104,14 @@ export class ShardComplete {
       else if (act === 'title') handlers.title();
     });
     const hud = hudRoot();
-    hud.append(root);
+    mountUi(root, scope, hud);
+    this.layer = app.ui.push('modal', { root, order: -20, back: () => { this.handlers?.keep(); } }, scope);
+    app.input.bind('confirm', () => { this.handlers?.keep(); }, scope, () => this.layer?.top === true);
     hud.classList.add('ws-complete-up');
     this.root = root;
     up++;
-    window.addEventListener('keydown', this.onKey, true);
-    requestAnimationFrame(() => {
+
+    scope.raf(() => {
       root.classList.add('show');
       if (matchMedia('(hover: hover)').matches) root.querySelector<HTMLButtonElement>('[data-act="keep"]')?.focus({ preventScroll: true }); // keyboards only: a phone would draw the focus ring
     });
@@ -123,6 +124,6 @@ export class ShardComplete {
     this.handlers = null;
     up = Math.max(0, up - 1);
     if (up === 0) hudRoot().classList.remove('ws-complete-up');
-    window.removeEventListener('keydown', this.onKey, true);
+    this.layer?.dispose(); this.layer = null; this.viewScope?.dispose(); this.viewScope = null;
   }
 }

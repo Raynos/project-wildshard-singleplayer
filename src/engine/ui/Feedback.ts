@@ -1,3 +1,6 @@
+import { uiScope, mountUi } from './ownership';
+import { app } from '../app/runtime';
+import type { UiHandle } from './layers';
 import { engineString } from '#engine/strings';
 /**
  * The review inbox's composer (project/archive/2026-09-22-feedback-inbox.md, mockups art/feedback/round-1-inbox/) — loaded lazily on the first
@@ -85,6 +88,9 @@ export function bake(shot: HTMLCanvasElement, strokes: readonly Stroke[]): strin
 }
 
 export class Feedback {
+  readonly scope = uiScope('Feedback');
+  private layer: UiHandle | null = null;
+  private viewScope = this.scope.child('view');
   private root: HTMLElement | null = null;
   private mode: Mode | null = null;
   private shot: HTMLCanvasElement | null = null;
@@ -125,6 +131,7 @@ export class Feedback {
 
   close(): void {
     const wasOverlay = this.isOpen;
+    this.layer?.dispose(); this.layer = null; this.viewScope.dispose();
     this.root?.remove();
     this.root = null; this.mode = null;
     if (wasOverlay && this.held) { this.held = false; this.host.hold(false); }
@@ -140,23 +147,24 @@ export class Feedback {
 
   // ── rendering ──
   private render(mode: Mode, panel?: HTMLElement): void {
+    this.layer?.dispose(); this.layer = null; this.viewScope.dispose(); this.viewScope = this.scope.child('view');
     this.root?.remove();
     this.mode = mode;
     const root = mode === 'tab' ? el('ws-fb-tab') : el(`ws-fb ${mode}${this.host.touch() ? ' phone' : ''}`);
     this.root = root;
     // the composer owns the keyboard: nothing typed here reaches Player / Weapons / HUD (they listen on document)
     // (in the menu tab Esc still goes through, so it closes the menu as everywhere else)
-    for (const t of ['keydown', 'keyup'] as const) root.addEventListener(t, (e) => { if (mode === 'tab' && e.code === 'Escape') return; e.stopPropagation(); if (t === 'keydown') this.onKey(e); });
+    for (const t of ['keydown', 'keyup'] as const) this.viewScope.listen(root, t, (e) => { if (e.code === 'Escape') return; e.stopPropagation(); if (t === 'keydown') this.onKey(e); });
     if (mode === 'bar') this.buildBar(root);
     else this.buildSheet(root, mode);
-    if (panel) panel.replaceChildren(root); else document.body.append(root);
+    if (panel) panel.replaceChildren(root); else { mountUi(root, this.viewScope, document.body); this.layer = app.ui.push('modal', { root, order: 0, back: () => { this.close(); } }, this.viewScope); }
     const field = root.querySelector<HTMLInputElement | HTMLTextAreaElement>('.ws-fb-input, .ws-fb-text');
     if (field && mode !== 'tab') { field.focus(); field.setSelectionRange(field.value.length, field.value.length); }
   }
 
   private onKey(e: KeyboardEvent): void {
     if (this.mode === 'tab') return; // the menu owns Esc there
-    if (e.code === 'Escape') { e.preventDefault(); this.close(); return; }
+
     if (e.code === 'Tab' && this.mode === 'bar') { e.preventDefault(); void this.openSheet(); return; }
     if (e.code === 'Enter' && !e.shiftKey) { e.preventDefault(); void this.send(); }
   }
@@ -165,7 +173,7 @@ export class Feedback {
     const box = el('ws-fb-chips');
     for (const c of CATEGORIES) {
       const b = button(`ws-fb-chip${c === this.category ? ' on' : ''}`, LABEL[c]);
-      b.addEventListener('click', () => { this.category = c; for (const x of box.children) x.classList.toggle('on', x === b); });
+      this.viewScope.listen(b, 'click', () => { this.category = c; for (const x of box.children) x.classList.toggle('on', x === b); });
       box.append(b);
     }
     return box;
@@ -179,7 +187,7 @@ export class Feedback {
     bar.append(el('ws-fb-cam', engineString('s_3e64ed0c89f6')));
     const input = document.createElement('input'); input.className = 'ws-fb-input'; input.type = 'text'; input.maxLength = 4000;
     input.placeholder = engineString('s_a3ef944b5384'); input.value = this.text; input.enterKeyHint = 'send';
-    input.addEventListener('input', () => { this.text = input.value; });
+    this.viewScope.listen(input, 'input', () => { this.text = input.value; });
     bar.append(input, this.chips(), el('ws-fb-keys', engineString('s_66aec2a7867c')));
     wrap.append(bar);
     root.append(wrap);
@@ -188,14 +196,14 @@ export class Feedback {
   private buildSheet(root: HTMLElement, mode: Mode): void {
     if (mode === 'sheet') {
       const dim = el('ws-fb-dim');
-      dim.addEventListener('pointerdown', () => this.close());
+      this.viewScope.listen(dim, 'pointerdown', () => this.close());
       root.append(dim);
     }
     const sheet = el(mode === 'tab' ? 'ws-fb-body' : 'ws-fb-sheet ws-glass');
     if (mode === 'sheet') {
       const head = el('ws-fb-head', engineString('s_cf9f0a909975'));
       if (!this.host.touch()) head.append(el('ws-fb-key', engineString('s_a39b6e5111fa')));
-      const x = button('ws-fb-close', engineString('s_8db71ed28b0f')); x.setAttribute('aria-label', engineString('s_7d9eb7acb13e')); x.addEventListener('click', () => this.close());
+      const x = button('ws-fb-close', engineString('s_8db71ed28b0f')); x.setAttribute('aria-label', engineString('s_7d9eb7acb13e')); this.viewScope.listen(x, 'click', () => this.close());
       head.append(x);
       sheet.append(head);
     }
@@ -204,15 +212,15 @@ export class Feedback {
     const img = document.createElement('img'); img.alt = 'Screenshot of the frame';
     if (this.shot) img.src = bake(this.shot, this.strokes);
     const draw = button('ws-fb-draw', engineString('s_8a0bfe95dbb7'));
-    draw.addEventListener('click', () => this.openPen(img));
+    this.viewScope.listen(draw, 'click', () => this.openPen(img));
     shotBox.append(img, draw);
     const kb = this.shot ? Math.round((bake(this.shot, this.strokes).length * 0.75) / 1024) : 0;
     sheet.append(shotBox, el('ws-fb-meta', this.shot ? engineString('s_38b529db98ff', [this.shot.width, this.shot.height, kb]) : engineString('s_197f0e1f610e')));
     sheet.append(this.chips());
     const text = document.createElement('textarea'); text.className = 'ws-fb-text'; text.rows = mode === 'tab' ? 4 : 3; text.maxLength = 4000;
     text.placeholder = engineString('s_9cffd32a0061'); text.value = this.text;
-    text.addEventListener('input', () => { this.text = text.value; });
-    if (mode === 'tab') text.addEventListener('keydown', (e) => { if (e.code === 'Enter' && !e.shiftKey) { e.preventDefault(); void this.send(); } });
+    this.viewScope.listen(text, 'input', () => { this.text = text.value; });
+    if (mode === 'tab') this.viewScope.listen(text, 'keydown', (e) => { if (e.code === 'Enter' && !e.shiftKey) { e.preventDefault(); void this.send(); } });
     sheet.append(text);
     const c = this.ctx, pos = c['pos'], cam = c['cam'];
     // Explore World notes (src/engine/explore/Explore.ts context) describe the viewer: mode, camera, what is on the turntable / selected
@@ -235,7 +243,7 @@ export class Feedback {
     ];
     sheet.append(el('ws-fb-ctx', kv.map(([k, v]) => `<span class="ws-fb-kv"><i>${k}</i>${esc(v)}</span>`).join('')));
     const send = button('ws-fb-send', engineString('s_8675c04a5f9a'));
-    send.addEventListener('click', () => { void this.send(); });
+    this.viewScope.listen(send, 'click', () => { void this.send(); });
     sheet.append(send);
     const q = queuedCount();
     const queued = q > 0 ? `<b class="ws-fb-queued">${q} queued · sends when online</b>` : '';
@@ -248,10 +256,11 @@ export class Feedback {
   private openPen(thumb: HTMLImageElement): void {
     const shot = this.shot;
     if (!shot) return;
+    const penScope = this.viewScope.child('pen');
     const pen = el('ws-fb-pen');
     const cv = document.createElement('canvas'); cv.className = 'ws-fb-pencanvas';
     const tools = el('ws-fb-tools');
-    const tool = (label: string, fn: () => void, cls = ''): HTMLButtonElement => { const b = button(`ws-fb-tool${cls}`, label); b.addEventListener('click', fn); tools.append(b); return b; };
+    const tool = (label: string, fn: () => void, cls = ''): HTMLButtonElement => { const b = button(`ws-fb-tool${cls}`, label); this.viewScope.listen(b, 'click', fn); tools.append(b); return b; };
     pen.append(cv, tools, el('ws-fb-penhint', engineString('s_01300aa1b588')));
     const fit = (): { w: number; h: number } => {
       const k = Math.min(innerWidth / shot.width, innerHeight / shot.height);
@@ -273,21 +282,22 @@ export class Feedback {
     fit(); paint();
     let live: Stroke | null = null;
     const at = (e: PointerEvent): [number, number] => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height]; };
-    cv.addEventListener('pointerdown', (e) => { e.preventDefault(); cv.setPointerCapture(e.pointerId); live = { pts: at(e) }; this.strokes.push(live); paint(); });
-    cv.addEventListener('pointermove', (e) => { if (!live) return; live.pts.push(...at(e)); paint(); });
+    this.viewScope.listen(cv, 'pointerdown', (e) => { e.preventDefault(); cv.setPointerCapture(e.pointerId); live = { pts: at(e) }; this.strokes.push(live); paint(); });
+    this.viewScope.listen(cv, 'pointermove', (e) => { if (!live) return; live.pts.push(...at(e)); paint(); });
     const end = (): void => { live = null; };
-    cv.addEventListener('pointerup', end); cv.addEventListener('pointercancel', end);
+    this.viewScope.listen(cv, 'pointerup', end); this.viewScope.listen(cv, 'pointercancel', end);
     const onResize = (): void => { fit(); paint(); };
-    const done = (): void => { removeEventListener('resize', onResize); pen.remove(); thumb.src = bake(shot, this.strokes); };
-    addEventListener('resize', onResize);
+    const done = (): void => { penScope.dispose(); pen.remove(); thumb.src = bake(shot, this.strokes); };
+    penScope.listen(window, 'resize', onResize);
     tool(engineString('s_a04bd35be167'), () => undefined, ' on');
     tool(engineString('s_a8283ade3185'), () => { this.strokes.pop(); paint(); });
     tool(engineString('s_83b12c2216ef'), () => { this.strokes = []; paint(); });
     tool(engineString('s_11a6767d5674'), done, ' done');
     // on <body>, not inside the composer: the menu's backdrop-filter would make a fixed child fixed to the menu sheet
-    for (const t of ['keydown', 'keyup'] as const) pen.addEventListener(t, (e) => { e.stopPropagation(); if (t === 'keydown' && e.code === 'Escape') done(); });
+    for (const t of ['keydown', 'keyup'] as const) penScope.listen(pen, t, (e) => { if (e.code !== 'Escape') e.stopPropagation(); });
     pen.tabIndex = -1;
-    document.body.append(pen);
+    mountUi(pen, penScope, document.body);
+    app.ui.push('modal', { root: pen, order: 10, back: done }, penScope);
     pen.focus();
   }
 

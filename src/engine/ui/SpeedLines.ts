@@ -1,3 +1,4 @@
+import { uiScope, mountUi } from './ownership';
 /**
  * SpeedLines — radial speed streaks at the screen edges while a dash runs (E27, mockup art/hud/round-7-sword-touch/B-lunge.jpg):
  * a dodge shows them lightly, a sword lunge fully. Pure CSS (a repeating conic gradient masked to the edges, styled in
@@ -13,18 +14,18 @@
 import { dodgeFx, dodgeEnv } from '../player/Player';
 
 export class SpeedLines {
+  readonly scope = uiScope('SpeedLines');
   private readonly el: HTMLElement;
   private readonly smear: HTMLElement;
   private level = 0; private shown = -1;
   private smearShown = -1; private sideShown = 0;
 
   constructor() {
-    const hud = document.getElementById('hud') ?? document.body;
     this.el = document.createElement('div');
     this.el.className = 'ws-game-speed';
     this.smear = document.createElement('div');
     this.smear.className = 'ws-game-smear';
-    hud.append(this.el, this.smear);
+    mountUi(this.el, this.scope); mountUi(this.smear, this.scope);
   }
 
   update(dt: number, dashing: boolean, lunging: boolean): void {
