@@ -16,7 +16,7 @@ export class InputService {
   readonly buffer = { ms: 120 };
   private readonly now: () => number;
   private paint: ((labels: Partial<Record<DiscSpot, TouchRelabel>>) => void) | undefined;
-  constructor(now: () => number = () => performance.now()) { this.now = now; }
+  constructor(now: () => number) { this.now = now; }
   register(def: InputContextDef, scope: Scope): void {
     if (this.definitions.has(def.id)) throw new Error(`Duplicate input context: ${def.id}`);
     const entry = { def, scope }; this.definitions.set(def.id, entry);
