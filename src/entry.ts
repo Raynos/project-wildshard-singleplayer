@@ -1,3 +1,4 @@
+import { startTelemetry } from '#engine/telemetry/runtime';
 import { persistHomeScreen } from '#engine/saves/runtime';
 /**
  * The page's module entry. Everything the game imports statically is evaluated in ONE task when a module graph
@@ -30,6 +31,7 @@ async function retried<T>(load: () => Promise<T>): Promise<T> {
 }
 
 /** The plain home URL paints only the title. No renderer, world, or Three.js is imported until a shard is chosen. */
+startTelemetry();
 persistHomeScreen();
 const search = new URLSearchParams(location.search);
 // Do not depend on the sibling sw.ts module finishing first; both entry points share the same consumed record.

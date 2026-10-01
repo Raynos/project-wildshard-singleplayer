@@ -1,4 +1,4 @@
-import { BossBrain, type BossScript } from '#engine';
+import { app, BossBrain, type BossScript } from '#engine';
 import { bossesSave, saveSlug } from './saves';
 import * as THREE from 'three';
 import type { BossBar } from '#engine/ui/BossBar';
@@ -113,6 +113,7 @@ export class Boss extends BossBrain {
     super(def, script, { player: host.player, lockInput: host.lockInput, respawn: host.respawn,
       skipHeld: host.skipHeld, feed: host.feed, toast: host.toast, music: host.music,
       faceToward: (target, dt) => { this.faceToward(target, dt); }, spawnReward: () => { this.spawnReward(); },
+      events: app.events,
       persist: (value) => { const all = bossesSave.read(slug); all[key] = value; bossesSave.write(all, slug); },
     }, ui, saved);
     this.def = def; this.renderHost = host; this.renderUi = ui;

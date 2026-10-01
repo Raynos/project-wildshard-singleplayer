@@ -55,6 +55,7 @@ for f in docs/plans/*.md; do
 done
 [ "$found" = 1 ] || echo "(none)"
 echo ""
+node scripts/telemetry-brief.mjs 2>/dev/null || true
 echo "-- recent commits --"
 git log --oneline -8 2>/dev/null || true
 if [ "$(git config core.hooksPath 2>/dev/null)" != ".githooks" ]; then

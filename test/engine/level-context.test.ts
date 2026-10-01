@@ -42,7 +42,7 @@ describe('scope-bound context service adapters', () => {
       ctx.inputContext({ id: 'fixture.input', priority: 1, enabled: () => true, actions: {} });
       ctx.hud.widget('status', el, 1); expect(ctx.hud.disc({ cls: 'fixture', spot: 'edge-l', icon: '', label: 'Fixture' })).toBeInstanceOf(HTMLButtonElement);
       ctx.hud.relabel('r0', 'Fixture', ''); ctx.hud.verb('verb.1', { label: 'Fixture', icon: '', press: noop }); ctx.hud.pin(() => null, el);
-      ctx.debugRow({ id: 'fixture.debug', group: 'tools', label: 'Fixture', initial: 'off', choices: [], change: noop, note: 'E357' });
+      ctx.debugRow({ ask: 'E357', reviewBy: '2026-12-30', id: 'fixture.debug', group: 'tools', label: 'Fixture', initial: 'off', choices: [], change: noop, note: 'E357' });
       ctx.playground({ id: 'fixture.playground', title: 'Fixture', blurb: '', icon: '', load: () => Promise.resolve({}) });
     } });
     expect(active.size).toBe(8); await app.unloadLevel(); await app.unloadLevel(); expect(active.size).toBe(0);

@@ -43,6 +43,7 @@ export interface DebugRowSpec {
   id: string; group: 'look' | 'cover' | 'sky' | 'audio' | 'combat' | 'creatures' | 'perf' | 'loading' | 'tools';
   label: string; choices: readonly { value: string; text: string }[]; initial: string;
   change: (value: string) => void; reload?: boolean; note: string;
+  ask: `E${number}`; reviewBy: string;
 }
 export interface PlaygroundSpec { id: string; title: string; blurb: string; icon: string; art?: string; load: () => Promise<object> }
 export type StringTable = Readonly<Record<string, string>>;

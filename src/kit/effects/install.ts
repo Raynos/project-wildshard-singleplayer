@@ -10,7 +10,7 @@ export function installStarterEffects(ctx: StarterContext, host: { player: Statu
   if (health === null || effects === null) throw new Error('Starter effects need player health and effects services');
   bindStarterEffects({ effects, target: health, movement: player, combat: ctx.app.combat, position: () => player.position, scope: ctx.scope });
   let pick = 'off', elapsed = 0, icons: StatusIcons | null = null;
-  ctx.debugRow({ id: 'effects.apply', group: 'combat', label: 'Apply effect', initial: 'off',
+  ctx.debugRow({ ask: 'E357', reviewBy: '2026-12-30', id: 'effects.apply', group: 'combat', label: 'Apply effect', initial: 'off',
     choices: STARTER_CHOICES.map((value) => ({ value, text: value === 'off' ? 'Off' : value[0]?.toUpperCase() + value.slice(1) })),
     change: (value) => { pick = value; elapsed = 0; }, note: 'E357 starter effects · applies to the player every 5 seconds' });
   ctx.system({ id: 'engine.effects.debug', phase: 'update', run: (dt) => {

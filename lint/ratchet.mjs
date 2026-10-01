@@ -78,7 +78,7 @@ function debugCount(root) {
           if (array?.type !== 'ArrayExpression' || array.elements.some((element) => !element || element.type === 'SpreadElement')) throw new Error(`DEBUG_ROWS must be a literal row array: ${file}`);
           count += array.elements.length;
         }
-        if (node.type === 'CallExpression' && node.callee?.type === 'MemberExpression' && !node.callee.computed && node.callee.property?.name === 'debugRow') count += 1;
+        if (node.type === 'CallExpression' && node.callee?.type === 'MemberExpression' && !node.callee.computed && node.callee.property?.name === 'debugRow' && node.callee.object?.name !== 'adapters') count += 1;
       });
     }
   };

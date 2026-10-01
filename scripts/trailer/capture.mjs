@@ -20,7 +20,7 @@ const INSTALL = `(() => {
   const w = window.__wildshard?.world, g = w.game;
   window.__go = 0;
   g.frameGate = () => { if (window.__go > 0) { window.__go--; return true; } return false; };
-  g.clock.getDelta = () => { g.clock.elapsedTime += 1 / ${FPS}; return 1 / ${FPS}; };
+  g.app.clock.setCapture(${FPS});
   for (const sel of ['.ws-perf', '.ws-debug', '.ws-update', '#wserr', '#wserr-chip']) document.querySelectorAll(sel).forEach((e) => e.remove());
   for (const el of document.body.querySelectorAll('*')) if (el.children.length === 0 && el.textContent?.trim() === 'DBG') el.remove();
   window.__step = () => new Promise((res) => { window.__go = 1; requestAnimationFrame(() => requestAnimationFrame(() => requestAnimationFrame(res))); });
@@ -103,6 +103,7 @@ for (const s of shots) {
   if (ONLY.length > 0 && !ONLY.includes(s.name)) continue;
   const dir = `${OUT}/${s.name}`; mkdirSync(dir, { recursive: true });
   const page = await browser.newPage({ viewport: { width: W, height: H }, deviceScaleFactor: 1 });
+  await page.addInitScript(() => { window.__wildshardHarness = { seed: 0x2545f491, capture: 30 }; });
   page.on('pageerror', (e) => console.log(`[${s.name}] pageerror`, e.message));
   await page.goto(`${BASE}?${s.url}`, { waitUntil: 'load' });
   await page.waitForFunction(() => Boolean(window.__wildshard?.world) && Boolean(window.__hf), null, { timeout: 180000 });

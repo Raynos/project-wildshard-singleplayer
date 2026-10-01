@@ -55,7 +55,7 @@ export function installAiDebug(ctx: Pick<LevelContext, 'app' | 'scope' | 'debugR
       run: () => { labels.update(); } }, scope);
   };
   ctx.scope.onDispose(() => { stop(); });
-  ctx.debugRow({ id: 'ai.brains', group: 'tools', label: 'AI brains', initial: 'off',
+  ctx.debugRow({ ask: 'E357', reviewBy: '2026-12-30', id: 'ai.brains', group: 'tools', label: 'AI brains', initial: 'off',
     choices: [{ value: 'off', text: 'Off' }, { value: 'on', text: 'On' }], change,
     note: 'E357 · state, top three utility picks, tick rate and pinned status within 60 m' });
 }

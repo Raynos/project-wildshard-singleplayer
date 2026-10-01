@@ -1,0 +1,65 @@
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { parseSync } from 'vite';
+
+const object = (value) => value !== null && typeof value === 'object';
+const unwrap = (node) => { let current = node; while (current?.expression) current = current.expression; return current; };
+const literal = (node) => unwrap(node)?.value;
+const field = (node, key) => unwrap(node)?.properties?.find((property) => (property.key?.name ?? property.key?.value) === key)?.value;
+function walk(node, visit) {
+  if (!object(node)) return;
+  if (typeof node.type === 'string') visit(node);
+  for (const [key, value] of Object.entries(node)) if (key !== 'parent') {
+    if (Array.isArray(value)) { for (const child of value) walk(child, visit); }
+    else if (object(value)) walk(value, visit);
+  }
+}
+/** Read authored rows without executing the game or loading its renderer. */
+export function debugFlags(root) {
+  const rows = [];
+  function scan(dir) {
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      const file = resolve(dir, entry.name);
+      if (entry.isDirectory()) { scan(file); continue; }
+      if (!file.endsWith('.ts')) continue;
+      const program = parseSync(file, readFileSync(file, 'utf8')).program, definitions = new Map();
+      walk(program, (node) => { if (node.type === 'VariableDeclarator') definitions.set(node.id?.name, node.init); });
+      const row = (value) => {
+        const node = unwrap(value);
+        if (node?.type === 'Identifier') return row(definitions.get(node.name));
+        if (node?.type === 'CallExpression') {
+          const options = node.arguments.find((argument) => field(argument, 'ask'));
+          return { id: literal(node.arguments[0]), ask: literal(field(options, 'ask')), reviewBy: literal(field(options, 'reviewBy')) };
+        }
+        if (node?.type === 'ObjectExpression') {
+          const spread = node.properties.find((property) => property.type === 'SpreadElement');
+          return { ...(spread ? row(spread.argument) : {}),
+            ...(field(node, 'id') ? { id: literal(field(node, 'id')) } : {}),
+            ...(field(node, 'ask') ? { ask: literal(field(node, 'ask')) } : {}),
+            ...(field(node, 'reviewBy') ? { reviewBy: literal(field(node, 'reviewBy')) } : {}) };
+        }
+        throw new Error(`Unresolvable Debug row in ${file}`);
+      };
+      walk(program, (node) => {
+        if (node.type === 'VariableDeclarator' && node.id?.name === 'DEBUG_ROWS') for (const value of unwrap(node.init).elements) rows.push({ ...row(value), file });
+        if (node.type === 'CallExpression' && node.callee?.type === 'MemberExpression' && node.callee.property?.name === 'debugRow' && node.callee.object?.name !== 'adapters') rows.push({ ...row(node.arguments[0]), file });
+      });
+    }
+  }
+  scan(resolve(root, 'src')); return rows;
+}
+export function validateFlags(rows, { today, max, raisedBy = [], askExists: hasAsk }) {
+  const errors = [], overdue = [], now = Date.parse(`${today}T00:00:00Z`);
+  for (const row of rows) {
+    if (typeof row.id !== 'string' || typeof row.ask !== 'string' || !/^E\d+$/u.test(row.ask) || !hasAsk(row.ask)) errors.push(`Unknown ask on ${row.id}: ${row.ask}`);
+    const date = Date.parse(`${row.reviewBy}T00:00:00Z`);
+    if (!/^\d{4}-\d{2}-\d{2}$/u.test(row.reviewBy ?? '') || !Number.isFinite(date) || new Date(date).toISOString().slice(0, 10) !== row.reviewBy || date - now > 90 * 86_400_000) errors.push(`Invalid reviewBy on ${row.id}: ${row.reviewBy}`);
+    else if (date < now) overdue.push(`${row.id} | ${row.ask} | ${row.reviewBy}`);
+  }
+  if (rows.length > max) errors.push(`debugRows: was ${max}, now ${rows.length}; raise max and record the new ask in raisedBy`);
+  for (const ask of raisedBy) if (!hasAsk(ask)) errors.push(`Unknown raisedBy ask: ${ask}`);
+  return { errors, overdue };
+}
+export function askExists(root, id) {
+  return existsSync(resolve(root, `docs/tasks/asks/${id}.md`)) || readFileSync(resolve(root, 'docs/tasks/ASKS.md'), 'utf8').includes(`| ${id} |`);
+}

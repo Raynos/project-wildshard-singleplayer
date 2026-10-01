@@ -1,0 +1,4 @@
+export interface DebugFlag { id: string; ask: string; reviewBy: string; file?: string }
+export function debugFlags(root: string): DebugFlag[];
+export function askExists(root: string, id: string): boolean;
+export function validateFlags(rows: readonly DebugFlag[], options: { today: string; max: number; raisedBy?: readonly string[]; askExists: (id: string) => boolean }): { errors: string[]; overdue: string[] };

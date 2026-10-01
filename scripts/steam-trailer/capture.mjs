@@ -49,14 +49,8 @@ for (const s of SETS) {
 const RUNTIME = String.raw`(() => {
   const w = window.__wildshard?.world, g = w.game, cam = g.camera;
   const tr = window.__tr = { go: 0, t: 0, rig: null, dt: 1 / 60, lastPose: null, armed: false, vt: 0 };
-  // The clock advances only on a frame the gate let through (the loop also reads getDelta on skipped frames — the old
-  // capture's elapsedTime drift), and performance.now / Date.now follow the same virtual time, so the code that reads the
-  // wall clock (animal reactions, the gallop bob) runs at sim speed. A tiny per-call creep keeps any time-budget loop finite.
-  g.frameGate = () => { if (tr.go > 0) { tr.go--; tr.armed = true; return true; } return false; };
-  g.clock.getDelta = () => { if (!tr.armed) return 0; tr.armed = false; g.clock.elapsedTime += tr.dt; tr.vt += tr.dt; return tr.dt; };
-  const pn0 = performance.now(), dn0 = Date.now(); let creep = 0;
-  performance.now = () => pn0 + tr.vt * 1000 + (creep += 0.0002);
-  Date.now = () => Math.round(dn0 + tr.vt * 1000);
+  g.app.clock.setCapture(60);
+  g.frameGate = () => { if (tr.go > 0) { tr.go--; return true; } return false; };
   // centripetal-ish Catmull-Rom on a key array, time-parametrised with a smoothstep per span edge
   const cr = (p0, p1, p2, p3, u) => { const u2 = u * u, u3 = u2 * u; return 0.5 * ((2 * p1) + (-p0 + p2) * u + (2 * p0 - 5 * p1 + 4 * p2 - p3) * u2 + (-p0 + 3 * p1 - 3 * p2 + p3) * u3); };
   const easeIO = (x) => x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
@@ -142,6 +136,7 @@ for (const grp of groups) {
   const first = todo[0];
   const ctx = await browser.newContext({ viewport: VIEW, deviceScaleFactor: SCALE });
   await saveFixture(ctx, { scope: 'global', key: 'gfx', data: { dpr: 'native', aa: 'on' } });
+  await ctx.addInitScript(() => { window.__wildshardHarness = { seed: 0x2545f491, capture: 60 }; });
   if (first.init) await ctx.addInitScript(first.init);
   const page = await ctx.newPage();
   let errors = [];

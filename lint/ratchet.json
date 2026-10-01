@@ -1047,5 +1047,9 @@
     "src/game/travel/switch.ts": 1,
     "src/kit/looks/grassField.ts": 2,
     "src/main.ts": 97
+  },
+  "debugRows": {
+    "max": 25,
+    "raisedBy": []
   }
 }

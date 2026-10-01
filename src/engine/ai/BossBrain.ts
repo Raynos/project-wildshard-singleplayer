@@ -1,3 +1,4 @@
+import type { Events } from '../events/events';
 import type { Vector3 } from 'three';
 import { Hfsm } from './hfsm';
 
@@ -10,6 +11,7 @@ export interface BossDefinition {
   reward: { trophy?: () => void };
 }
 export interface BossPorts {
+  events?: Events;
   player: { position: Vector3 };
   lockInput: (on: boolean) => void; respawn: (pos: Vector3, yaw: number) => void;
   skipHeld: () => boolean; faceToward: (target: Vector3, dt: number) => void;
@@ -97,7 +99,7 @@ export class BossBrain {
 
   /** the player left: forget the fight (a later visit starts from phase I; a beaten boss is back in his coffin) */
   disarm(): void {
-    if (this.engaged) this.host.lockInput(false);
+    if (this.engaged) { this.host.events?.emit('boss.attempt', { boss: this.def.id, outcome: 'left' }); this.host.lockInput(false); }
     this.ui.hideBar(); this.ui.hideNameCard(); this.ui.hideReward();
     this.checkpoint = 0; this.attempts = 1;
     this.state = 'dormant';
@@ -106,6 +108,7 @@ export class BossBrain {
   /** the player died. In this fight → back at the checkpoint (true); anywhere else → not ours (false) */
   onPlayerDeath(): boolean {
     if (!this.engaged) return false;
+    this.host.events?.emit('boss.attempt', { boss: this.def.id, outcome: 'died' });
     this.host.lockInput(false);
     this.attempts++;
     this.ui.hideBar(); this.ui.hideNameCard();
@@ -179,6 +182,7 @@ export class BossBrain {
   }
 
   private startIntro(): void {
+    this.host.events?.emit('boss.attempt', { boss: this.def.id, outcome: 'started' });
     this.short = this.attempts > 1 || this.saved.defeated;
     this.script.seal(true);
     this.host.lockInput(true);
@@ -199,6 +203,7 @@ export class BossBrain {
   }
 
   private win(): void {
+    this.host.events?.emit('boss.attempt', { boss: this.def.id, outcome: 'won' });
     this.state = 'victory'; this.t = 0;
     this.ui.setHp(0); this.ui.setShield(false);
     this.script.victory();
