@@ -1,7 +1,7 @@
 import { registerLevelDebugRow } from '#engine/ui/debugOptions';
 import { hudAdapters } from '#engine/ui/hudAdapters';
 import { equipmentEntry, toolEntries } from '#game/bag/equipment';
-import { SWORD_WOOD, SWORD_IRON, type MeleeProfile, Rifle } from '#kit';
+import { SWORD_WOOD, SWORD_IRON, type MeleeProfile, Rifle, loadParticles } from '#kit';
 import { AR15 } from '#shards/nalati-grasslands/weapons/equipment';
 import { reportError } from '#engine/core/errorReport';
 import { showLoadFailure } from '#engine/ui/errorScreen';
@@ -495,8 +495,17 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
     : null;
   if (blenderIsland) { game.onUpdate(() => { blenderIsland.update(sky); }, 'main.4'); dressing.cover?.excludeArea(islandArea); } // E156: the cove dresses its own area
 
-  const grass = manifest.load === undefined && !isOcean && built === undefined
-    ? await step('grass', () => { const field = new Grass(sky, forest).build(); game.scene.add(field.group); return field; }) : null;
+  const carpet = manifest.load === undefined && !isOcean && built === undefined
+    ? await step('grass', async () => {
+      const grass = new Grass(sky, forest).build();
+      await macrotask();
+      const { Particles } = await loadParticles();
+      const particles = new Particles(sky, forest).build();
+      game.scene.add(grass.group, particles.group);
+      return { grass, particles };
+    }) : null;
+  const grass = carpet?.grass ?? null;
+  const legacyParticles = carpet?.particles ?? null;
   const interactables = boot.runtime.interactables;
   const props = manifest.load === undefined ? await step('props', async (p) => {
     if (painterly) { nalati = await wireNalati({ game, sky, player, forest, chunk }); addPaths(); return null; } // the Nalati world (src/shards/nalati-grasslands/index.ts)
@@ -1039,7 +1048,7 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
     const t1 = performance.now();
     recordBootCheckpoint('explore:imported');
     explore ??= new X({ world, onExit: exitExplore, onPractice: () => { hud.enterArenaNow(); }, onPlayground: (id) => { void enterPlayground(id); }, openFeedback: () => { void noteSheet(); }, hide: [boundary.group], creatures: animals.animals,
-      overhead: [grass?.group, ...boot.runtime.overhead, gulls?.group, dressing.cover?.group].filter((g) => g !== undefined) });
+      overhead: [grass?.group, ...boot.runtime.overhead, legacyParticles?.group, gulls?.group, dressing.cover?.group].filter((g) => g !== undefined) });
     const t2 = performance.now();
     recordBootCheckpoint('explore:constructed');
     explore.open(mode, opts);
@@ -1122,6 +1131,7 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
     mark('player');
     horizon.update(dt, game.camera);
     grass?.update(dt, viewer());
+    legacyParticles?.update(dt, viewer(), game.camera);
     boot.runtime.hooks.worldUpdate?.(dt, t);
     nalati?.update(dt, t);
     mark('world');
@@ -1274,7 +1284,7 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
     if (chunk.explore !== undefined) void import('#engine/explore/Explore');
     game.primeFrame();
   }, TITLE_IDLE_MS);
-  const handle = { ...world, boundary, water, streams: dressing.streams, ocean, pier, jetties, boat, hut, lookout, wreck, shrine, bushes, gulls, bridge, bridgeDeck, cove, enemies, hands, grass, props, animals, interactables, crossbow, hud, audio, music, shrineHum, islandSfx, surfaces, ambience, lockSys, lockState, wildlife, nalati: nalatiNow(), ride, weapons, arena, playground: (): Playground | null => playground, ...boot.runtime.objects };
+  const handle = { ...world, boundary, water, streams: dressing.streams, ocean, pier, jetties, boat, hut, lookout, wreck, shrine, bushes, gulls, bridge, bridgeDeck, cove, enemies, hands, grass, particles: legacyParticles, props, animals, interactables, crossbow, hud, audio, music, shrineHum, islandSfx, surfaces, ambience, lockSys, lockState, wildlife, nalati: nalatiNow(), ride, weapons, arena, playground: (): Playground | null => playground, ...boot.runtime.objects };
   app.audio = audio;
   game.retainKitResources();
   game.captureLevelResources();

@@ -72,7 +72,7 @@ export const forestTree = defineModel<ForestTreeParams>({
     return [{ kind: 'capsule', x: 0, y: c.y / s, z: 0, halfHeight: c.halfHeight / s, radius: c.radius / s }];
   },
   lods: [
-    { from: FOREST_BANDS.hi, build: (ctx, p) => band(ctx, p.v, 'far') },
-    { from: FOREST_BANDS.far, fade: FOREST_BANDS.fade, build: (ctx, p) => band(ctx, p.v, 'impostor') },
+    { get from() { return FOREST_BANDS.hi; }, build: (ctx, p) => band(ctx, p.v, 'far') },
+    { get from() { return FOREST_BANDS.far; }, fade: FOREST_BANDS.fade, build: (ctx, p) => band(ctx, p.v, 'impostor') },
   ],
 });
