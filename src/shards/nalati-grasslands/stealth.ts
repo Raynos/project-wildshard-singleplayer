@@ -1,13 +1,13 @@
-import { EffectService, sourceMultiplier, type LevelContext, type EffectTarget, type Player, type TargetHit } from '#engine';
+import { EffectService, sourceMultiplier, type Scope, type LevelContext, type EffectTarget, type Player, type TargetHit } from '#engine';
 import { SNEAK_SHOT, NALATI_SOURCE_MULTIPLIERS } from './weapons/effects';
 
 import type { Wildlife } from '#engine/entities/Wildlife';
 
-import type { NalatiKit } from './weapons/nalatiKit';
+import type { NalatiLoadout } from './weapons/loadout';
 import { grassHeightAt } from '#kit/looks/trample';
 import { grassBaseHeightAt } from '#kit/looks/grassField';
 import './stealth.css';
-import { ROW, hudSlots } from '#engine/ui/hudSlots';
+import { hudSlots } from '#engine/ui/hudSlots';
 import { practiceRoom } from '#engine/core/practiceRoom';
 
 /**
@@ -76,6 +76,7 @@ function q2(root: HTMLElement, sel: string): HTMLElement {
 }
 
 export class Stealth {
+  private readonly scope: Scope | undefined;
   state: StealthState = 'none';
   /** grass cover at the player, 0..1 (the stealth doc's `cover`) */
   cover = 0;
@@ -108,6 +109,7 @@ export class Stealth {
   private lastCover = -1; private lastThreat = -1;
 
   constructor(opts: StealthOpts) {
+    this.scope = opts.ctx?.scope;
     this.player = opts.player; this.wildlife = opts.wildlife; this.isMounted = opts.isMounted ?? (() => false); this.crouchHere = opts.crouchHere ?? (() => false);
     const hud = document.getElementById('hud') ?? document.body;
     this.root = document.createElement('div');
@@ -129,20 +131,21 @@ export class Stealth {
     this.row.className = 'ws-stealth-row'; this.row.dataset['state'] = 'none';
     this.row.innerHTML = '<i class="ws-stealth-eye"></i><span class="ws-stealth-label"></span>';
     this.rowIcon = q2(this.row, '.ws-stealth-eye'); this.rowLabel = q2(this.row, '.ws-stealth-label');
-    if (opts.ctx) opts.ctx.hud.widget('status', this.row, ROW.stealth); else hudSlots.statusRow(this.row, ROW.stealth);
+    if (opts.ctx) opts.ctx.hud.widget('status', this.row, 3); else hudSlots.statusRow(this.row, 3);
     this.grassRow = document.createElement('div');
     this.grassRow.className = 'ws-stealth-grassrow';
     this.grassRow.innerHTML = '<span>Grass</span><b><i></i></b>';
     this.grassRowFill = q2(this.grassRow, 'i');
-    if (opts.ctx) opts.ctx.hud.widget('status', this.grassRow, ROW.grass); else hudSlots.statusRow(this.grassRow, ROW.grass);
-    hudSlots.onLayer(() => { this.hint.textContent = 'Tall grass'; this.hint.classList.add('touch'); });
+    if (opts.ctx) opts.ctx.hud.widget('status', this.grassRow, 4); else hudSlots.statusRow(this.grassRow, 4);
+    const unlayer = hudSlots.onLayer(() => { this.hint.textContent = 'Tall grass'; this.hint.classList.add('touch'); });
+    opts.ctx?.scope.onDispose(unlayer);
     opts.ctx?.scope.onDispose(() => { this.root.remove(); this.latched = false; });
   }
   /** dev: the grass height (m, trampling included) at (x, z) */
   grassAt(x: number, z: number): number { return grassHeightAt(x, z); }
 
   /** the sneak shot: arrows (Bow.damageMultiplier) and javelins (Spear.damageMultiplier) loosed from HIDDEN do × 2 */
-  bindKit(kit: NalatiKit): void {
+  bindKit(kit: NalatiLoadout): void {
     const bow = kit.bow, spear = kit.spear;
     const prevBow = bow.damageMultiplier;
     bow.damageMultiplier = (hit: TargetHit) => (prevBow?.(hit) ?? 1) * this.sneakMultiplier();
@@ -264,7 +267,8 @@ export class Stealth {
       this.hinted = true;
       this.disc.classList.add('pulse');
       this.hint.classList.add('on');
-      setTimeout(() => { this.hint.classList.remove('on'); this.disc.classList.remove('pulse'); }, 3200);
+      const endHint = (): void => { this.hint.classList.remove('on'); this.disc.classList.remove('pulse'); };
+      if (this.scope) this.scope.timeout(3200, endHint); else setTimeout(endHint, 3200);
     }
   }
 }

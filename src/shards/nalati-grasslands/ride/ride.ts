@@ -107,7 +107,7 @@ export function wireRide(ctx: RideCtx): Ride {
   });
 
   // B1: the reins (from the hands just under the frame along the neck to the bit, E320); they drop while the bow draws or the stallion bucks
-  const reins = new Reins(ctx.camera);
+  const reins = new Reins(ctx.camera, ctx.ctx?.scope);
   // B1: wolves raiding the flock, the mounted shepherd
   const raid = new SheepRaid({ animals: ctx.animals, wildlife: ctx.wildlife, toast: (t) => { play?.toast(t); } });
 

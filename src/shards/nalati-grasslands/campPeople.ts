@@ -29,6 +29,7 @@
  *   people.fig.elder.headWorld                       // where its "[E] Talk" prompt sits
  */
 import * as THREE from 'three';
+import type { Scope } from '#engine';
 import { PaintKit, pole, v3, lathe, poiMaterial } from './world/paint';
 import type { Sky } from '#engine/world/Sky';
 import type { WorldRegistry, ColliderDesc } from '#engine/world/registry';
@@ -245,7 +246,7 @@ interface Live extends Person {
 
 const CHILD_RING = 2.3;
 
-export function buildCampPeople(sky: Sky, floorAt: (x: number, z: number) => number, registry: WorldRegistry | null): CampPeople {
+export function buildCampPeople(sky: Sky, floorAt: (x: number, z: number) => number, registry: WorldRegistry | null, scope?: Scope): CampPeople {
   const built: Record<PersonId, Parts> = { elder: BUILD.elder(), herderGate: BUILD.herderGate(), herderRail: BUILD.herderRail(), child: BUILD.child(), cook: BUILD.cook() };
   const ids = Object.keys(built) as PersonId[];
   let verts = 0;
@@ -309,6 +310,12 @@ export function buildCampPeople(sky: Sky, floorAt: (x: number, z: number) => num
   // the image-to-3D figures (N20, the user's pick): the procedural batch stands until they have loaded (and stays if they fail)
   for (const id of ids) pose(fig[id]);
   void loadPeopleRig(sky, frames).then((r) => {
+    scope?.own(r.mesh.geometry); scope?.own(r.mesh.skeleton);
+    for (const material of Array.isArray(r.mesh.material) ? r.mesh.material : [r.mesh.material]) {
+      if (material instanceof THREE.MeshLambertMaterial && material.map) scope?.own(material.map);
+      scope?.own(material);
+    }
+    if (scope?.disposed === true) return r;
     group.add(r.mesh);
     rig = r; batch.visible = false;
     for (const id of ids) pose(fig[id]);

@@ -40,7 +40,7 @@ export class PlaygroundChip {
     restart.addEventListener('pointerup', go);
     restart.addEventListener('click', go);
     restart.addEventListener('pointerdown', (e) => { e.stopPropagation(); });
-    if (hudSlots.touch) { el.dataset['slot'] = 'row'; hudSlots.statusRow(el, ROW.grass + 1, false); } // after the shard's own rows
+    if (hudSlots.touch) { el.dataset['slot'] = 'row'; hudSlots.statusRow(el, ROW.content + 3, false); } // after the shard's own rows
     else (document.getElementById('hud') ?? document.body).append(el);
     this.el = el;
   }

@@ -22,8 +22,8 @@ export function hudAdapters(game: Game, scope: Scope, root: HTMLElement,
   } }, scope);
   const labels = new Map<DiscSpot, { hint: TouchRelabel }[]>();
   return {
-    widget: (band, el, order) => { if (band === 'status') hudSlots.statusRow(el, order); else root.append(el); return () => el.remove(); },
-    disc: (opts) => { const button = hudSlots.disc(opts); return { button, dispose: () => button.remove() }; },
+    widget: (band, el, order) => { if (band === 'status') hudSlots.statusRow(el, order); else root.append(el); return () => { hudSlots.discard(el); }; },
+    disc: (opts) => { const button = hudSlots.disc(opts); return { button, dispose: () => { hudSlots.discard(button); } }; },
     relabel: (spot, label, icon, appearance) => {
       const entry = { hint: appearance ?? { label, icon, tone: 'rest' as const } };
       const list = labels.get(spot) ?? []; labels.set(spot, list); list.push(entry); relabel(spot, entry.hint);
@@ -31,7 +31,7 @@ export function hudAdapters(game: Game, scope: Scope, root: HTMLElement,
     },
     verb: (slot, opts) => {
       const button = hudSlots.disc({ ...opts, cls: 'ws-verb', spot: slot === 'verb.1' ? 'lean-l' : 'lean-r' });
-      hudSlots.show(button, true); return () => button.remove();
+      hudSlots.show(button, true); return () => { hudSlots.discard(button); };
     },
     pin: (at, el) => {
       Object.assign(el.style, { position: 'fixed', left: '0', top: '0', display: 'none', pointerEvents: 'none', willChange: 'transform' });

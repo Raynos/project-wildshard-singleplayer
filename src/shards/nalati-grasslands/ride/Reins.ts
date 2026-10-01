@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import type { Scope } from '#engine';
 import type { Animal } from '#engine/entities/Animal';
 import { horseBones } from '#engine/entities/species/horse';
 import { painterlyMaterial } from '#engine/world/painterly';
@@ -110,7 +111,7 @@ export class Reins {
   /** the muzzle in the head bone's frame, once per horse */
   private readonly muzzleLocal = new WeakMap<Animal, THREE.Vector3>();
 
-  constructor(private readonly camera: THREE.PerspectiveCamera) {
+  constructor(private readonly camera: THREE.PerspectiveCamera, scope?: Scope) {
     const { mesh, pos, attr } = buildReinsRibbon();
     this.pos = pos; this.posAttr = attr; this.ribbon = mesh;
     this.ribbon.frustumCulled = false; this.ribbon.castShadow = false; this.ribbon.receiveShadow = false;
@@ -119,6 +120,9 @@ export class Reins {
     this.group.name = 'reins';
     this.group.visible = false;
     camera.add(this.group);
+    scope?.own(mesh.geometry);
+    for (const material of Array.isArray(mesh.material) ? mesh.material : [mesh.material]) scope?.own(material);
+    scope?.onDispose(() => { this.group.removeFromParent(); });
   }
 
   /** the muzzle in the head bone's frame: of the vertices the head bone moves most, the one farthest from it (bind pose:

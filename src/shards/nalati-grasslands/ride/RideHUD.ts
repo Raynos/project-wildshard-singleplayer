@@ -2,7 +2,7 @@ import type { LevelContext } from '#engine';
 import * as THREE from 'three';
 import './ride.css';
 import type { Mount } from './Mount';
-import { ROW, hudSlots, type DiscOpts } from '#engine/ui/hudSlots';
+import { hudSlots, type DiscOpts } from '#engine/ui/hudSlots';
 
 /**
  * RideHUD — the riding and taming HUD atoms (Nalati B7 / B8; mockups art/nalati-grasslands/round-2/1-combat/
@@ -112,8 +112,8 @@ export class RideHUD {
     const steed = document.createElement('div');
     steed.className = 'ws-ride-steed ws-ride-touch';
     steed.innerHTML = `<i class="ws-ride-glyph">${SVG_HORSE}</i><span class="ws-ride-name">Steed</span><span class="ws-ride-sbar"><i style="width:100%"></i></span><span class="ws-ride-gait">stand</span>`;
-    if (this.ctx) this.ctx.hud.widget('status', steed, ROW.steed); else hudSlots.statusRow(steed, ROW.steed);
-    hudSlots.onLayer((layer) => {
+    if (this.ctx) this.ctx.hud.widget('status', steed, 2); else hudSlots.statusRow(steed, 2);
+    const unlayer = hudSlots.onLayer((layer) => {
       this.layer = layer;
       this.use = layer.querySelector<HTMLElement>('.ws-touch-use');
       if (this.use !== null) {
@@ -122,6 +122,7 @@ export class RideHUD {
         this.ctx?.scope.onDispose(() => { observer.disconnect(); });
       }
     });
+    this.ctx?.scope.onDispose(unlayer);
     return { gallop, horse, leanL, leanR, offer, steed, sbar: this.q(steed, '.ws-ride-sbar i'), sname: this.q(steed, '.ws-ride-name'), gait: this.q(steed, '.ws-ride-gait') };
   }
 
