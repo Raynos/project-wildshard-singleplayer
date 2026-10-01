@@ -1,3 +1,5 @@
+import type { TexMode } from '../boot/gpuFiles';
+import type { ChunkFiles } from '../boot/bytes';
 import type { LookStrategy } from '../render/look';
 import type { Tier } from '../core/tier';
 import type { HuntTuning } from '../entities/AnimalManager';
@@ -16,6 +18,8 @@ export type { BudgetInputs } from '../render/budgets';
 export interface AudioSpec { ambience: string; score: string; cues?: () => Promise<object>; preload?: () => Promise<LevelAudioProfile> }
 export interface BootSpec {
   files: (tier: Tier) => readonly string[];
+  sources?: (tier: Tier, tex: TexMode) => ChunkFiles;
+  bakedUnread?: RegExp;
   steps?: Readonly<Record<string, { label: string; weight: number }>>;
   audio?: () => Promise<readonly string[]>;
   explore?: { art: readonly string[] };

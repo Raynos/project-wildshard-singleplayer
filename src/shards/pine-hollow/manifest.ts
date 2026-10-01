@@ -1,3 +1,4 @@
+import { bootFiles, bootSources, BAKED_UNREAD } from './boot/files';
 import exploreWorld from './explore/world-pine-hollow.webp';
 import exploreModels from './explore/models-pine-hollow.webp';
 import exploreSets from './explore/sets-pine-hollow.webp';
@@ -20,6 +21,7 @@ import heroLandscape from './thumbs/pine-hollow-landscape.jpg';
 
 export const PINE_HOLLOW: ShardManifest = {
   api: 1,
+  boot: { files: bootFiles, sources: bootSources, bakedUnread: BAKED_UNREAD },
   kitLook: 'pbr',
   assetGlobs: ['public/assets/models/pine-hollow-crags/**', 'public/assets/models/pine-hollow-hero/**', 'public/assets/models/pine-hollow-trees/**', 'public/assets/gpu/models/pine-hollow-hero/**', 'public/assets/gpu/models/pine-hollow-trees/**', 'public/assets/gpu/pine-hollow/**', 'public/assets/gpu/baked/pine-hollow/**', 'public/assets/music/pine-hollow-folk/**', 'public/assets/music/pine-hollow-orchestral/**', 'public/assets/music/pine-hollow-piano/**', 'public/assets/sfx/pine-hollow/**', 'public/assets/horizon/pine-hollow-*', 'public/assets/gpu/horizon/pine-hollow-*', 'public/assets/lut/pine-hollow.bin', 'public/assets/title/pine-hollow-portrait.jpg'],
   ktx2: () => import('./ktx2.generated'),

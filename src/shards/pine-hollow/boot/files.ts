@@ -1,0 +1,34 @@
+import { filePolicy, PUBLIC_BYTES } from '#engine/boot/filePolicy';
+import type { ChunkFiles } from '#engine/boot/bytes';
+import type { Tier } from '#engine/core/tier';
+import type { TexMode } from '#engine/boot/gpuFiles';
+import { GPU_FILES } from '../ktx2.generated';
+import { pineHeroUrls } from '../world/heroFiles';
+import { pineSkyKeyUrls } from '../look/skyKeys';
+
+const uniq = (urls: readonly string[]): string[] => [...new Set(urls)];
+const rigNames = ['deer-hind', 'deer-stag', 'boar', 'elk-cow', 'elk-bull', 'bear-black', 'bear-brown', 'antler-king-rig'];
+const treeSet = '/assets/models/pine-hollow-trees';
+const bakedDir = '/assets/baked/pine-hollow/';
+const hdri = '/assets/hdri/qwantani_sunset_puresky_2k';
+export const BAKED_UNREAD = /\/fur-[^/]*$/;
+export function bootSources(tier: Tier, tex: TexMode = 'img'): ChunkFiles {
+  const { gpu, layer, pbr } = filePolicy(tier, tex, GPU_FILES);
+  const gltf = (id: string): string[] => [`/assets/models/${id}/${id}.gltf`, `/assets/models/${id}/${id}.bin`, ...['diff', 'nor_gl', 'arm'].map((kind) => `/assets/models/${id}/textures/${id}_${kind}_1k.jpg`)];
+  const lod = (id: string): string => `/assets/models/${id}/${id}_lod.glb`;
+  const baked = `${bakedDir}terrain.bin`;
+  const terrain = uniq([...(baked in PUBLIC_BYTES ? [baked] : []), ...['forrest_ground_03', 'leafy_grass', 'rock_ground', 'stony_dirt_path'].flatMap(pbr).map(layer), ...pbr('rock_ground')]);
+  const trees = uniq(['trees.glb', 'cards-albedo.png', 'cards-normal.jpg', 'cards-arm.jpg', 'impostor-albedo.png', 'impostor-normal.jpg'].map((name) => `${treeSet}/${name}`).concat(['pine_bark', 'fir_bark', 'metasequoia_bark', 'birch_bark', 'bark_willow_02'].flatMap(pbr).map(layer)));
+  const layered = new Set([...terrain, ...trees].map(gpu));
+  const cabins = uniq([...['wood_trunk_wall', 'wood_planks_grey', 'wood_planks_dirt', 'rough_pine_door', 'stone_wall', 'pine_bark'].flatMap(pbr), ...['stone_fire_pit', 'wooden_crate_02', 'wine_barrel_01', 'wooden_bucket_01', 'hatchet'].flatMap(gltf), lod('Lantern_01')].map(gpu)).filter((url) => !layered.has(url));
+  const props = uniq(['rock_moss_set_01', 'tree_stump_01', 'dead_tree_trunk'].map(lod));
+  const skyJson = `${bakedDir}sky.json`, color = `${hdri}.sky.jpg`, gain = `${hdri}.gain.png`;
+  return {
+    sky: [...(color in PUBLIC_BYTES && gain in PUBLIC_BYTES ? [color, gain] : [`${hdri}.hdr`]), ...(skyJson in PUBLIC_BYTES ? [skyJson] : []), ...pineSkyKeyUrls().filter((url) => url in PUBLIC_BYTES)].map(gpu),
+    baked: Object.keys(PUBLIC_BYTES).filter((url) => url.startsWith(`${bakedDir}tex/`) && !url.includes('.phone.') && !BAKED_UNREAD.test(url)).map(gpu),
+    terrain: terrain.map(gpu), trees: trees.map(gpu), physics: ['/assets/physics/rapier.wasm', ...(`${bakedDir}navmesh.bin` in PUBLIC_BYTES ? [`${bakedDir}navmesh.bin`] : [])], cabins,
+    props: [...props, ...pineHeroUrls().filter((url) => url in PUBLIC_BYTES), ...rigNames.map((name) => `/assets/pine-hollow/creatures/${name}${tier === 'phone' ? '.phone' : ''}.rigged.glb`).filter((url) => url in PUBLIC_BYTES)].map(gpu),
+    art: [], music: [], sfx: [],
+  };
+}
+export const bootFiles = (tier: Tier): readonly string[] => Object.values(bootSources(tier)).flat();

@@ -29,16 +29,9 @@ if (typeof window !== 'undefined') Object.defineProperty(window, '__bakeExport',
 
 const dir = (slug: string) => `/assets/baked/${slug}/tex/`;
 
-/**
- * Baked textures a chunk's build has but its boot never reads (PH-P3). Pine Hollow's creatures are its generated hulls
- * (src/engine/entities/pineCreatures.ts), which carry their own coats: the procedural fur's maps are only read by the
- * Debug ▸ Creatures = Procedural fallback, which then draws them at runtime like any unbaked texture (0.7 MB of the phone's cold boot).
- */
-const UNREAD: Readonly<Record<string, RegExp>> = { 'pine-hollow': /\/fur-[^/]*$/ };
-
 /** Every baked texture file the build has for this chunk that its boot reads (declared in the boot manifest). */
-export function bakedTextureUrls(slug: string): string[] {
-  const p = dir(slug), unread = UNREAD[slug];
+export function bakedTextureUrls(slug: string, unread?: RegExp): string[] {
+  const p = dir(slug);
   // phone copies: through tierUrl
   return Object.keys(PUBLIC_BYTES).filter((k) => k.startsWith(p) && !k.includes('.phone.') && (unread === undefined || !unread.test(k)));
 }
@@ -53,7 +46,7 @@ function urlFor(slug: string, name: string): string | null {
 export async function preloadBakedTextures(): Promise<number> {
   if (NOBAKE) return 0;
   const slug = getActiveChunk().slug;
-  const urls = bakedTextureUrls(slug);
+  const urls = bakedTextureUrls(slug, getActiveChunk().boot?.bakedUnread);
   await Promise.all(urls.map(async (u) => {
     // E157: the KTX2 stand-in when there is one (Y-flipped at encode, like fetchImage's bitmap)
     try { loaded.set(u, (await ktx2Texture(tierUrl(u))) ?? await fetchImage(u, Infinity, true)); }
