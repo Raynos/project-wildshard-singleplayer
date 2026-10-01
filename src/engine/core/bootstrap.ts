@@ -85,7 +85,7 @@ export async function bootstrap(step: StepRunner, level: LevelSpec): Promise<Wor
   const sky = await step('sky', () => game.buildSky());
   game.retainEngineScene();
   const terrain = await step('terrain', async (p) => {
-    const t = await new Terrain().build(level.ground);
+    const t = await new Terrain().build(level.ground, game.look?.terrainPainter); // a look with its own ground paints it (LookStrategy.terrainPainter)
     t.group.traverse((o) => { const m = (o as THREE.Mesh).material as THREE.Material | undefined; if (m) sky.setupMaterial(m); });
     game.scene.add(t.group);
     p.detail(`${TERRAIN_RES}² heightfield${def.assets ? ` · ${def.assets.groundLayers.length} splat layers` : ''}`);

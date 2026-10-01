@@ -11,7 +11,8 @@ import type { Forest } from './forest/Forest';
 import { TIER_CONFIG } from '../core/tier';
 import { getActiveChunk } from '#game/shard/registry';
 import { groundSet } from './lookFlags';
-import { GrassV2 } from '#shards/nalati-grasslands/look/grass';
+import { app } from '../app/runtime';
+import type { GrassLayer } from '../render/look';
 import { trample, TRAMPLE_GLSL } from '#kit/looks/trample';
 import { practiceRoom } from '../core/practiceRoom';
 
@@ -48,8 +49,8 @@ import { practiceRoom } from '../core/practiceRoom';
  * Hollow) part it and leave it flattened a while. Only Pine Hollow's programs carry the code (their own cache keys);
  * Driftwood's carpet is the same shader as before.
  *
- * On the painterly shard (Nalati) `build()` builds the GPU blade rings instead (`GrassV2`, src/shards/nalati-grasslands/look/grass.ts,
- * exposed as `v2`; `mesh` / `material` / `flowers` stay unset) and `update()` forwards to it — the Pine Hollow /
+ * A level look with its own grass (`LookStrategy.grass`, a GrassDriver: GPU blade rings, say) is built instead
+ * (exposed as `driven`; `mesh` / `material` / `flowers` stay unset) and `update()` forwards to it — the Pine Hollow /
  * Driftwood path below is untouched.
  */
 
@@ -95,8 +96,8 @@ export class Grass {
   readonly radius = RADIUS;
   /** live tunables */
   params = { budget: 6, windStrength: 1.0 };
-  /** Nalati: the GPU blade rings + shader flowers (src/shards/nalati-grasslands/look/grass.ts); then nothing below is built */
-  v2: GrassV2 | null = null;
+  /** the level look's own grass (LookStrategy.grass); then nothing below is built */
+  driven: GrassLayer | null = null;
 
   private slotKeyX = new Int32Array(N * N).fill(0x7fffffff);
   private slotKeyZ = new Int32Array(N * N).fill(0x7fffffff);
@@ -125,7 +126,8 @@ export class Grass {
   constructor(private sky: Sky, private forest: Forest) {}
 
   build(): this {
-    if (getActiveChunk().style === 'painterly') { this.v2 = new GrassV2(this.sky, this.forest).build(); this.group.add(this.v2.group); return this; } // Nalati: the GPU blade rings (src/shards/nalati-grasslands/look/grass.ts)
+    const driver = app.render?.look?.grass;
+    if (driver !== undefined) { this.driven = driver.build(this.sky, this.forest); this.group.add(this.driven.group); return this; } // the level look's own grass
     const geo = buildClumpGeometry();
     this.trampleAble = getActiveChunk().slug === 'pine-hollow';
     this.material = this.buildMaterial();
@@ -288,7 +290,7 @@ export class Grass {
   }
 
   update(dt: number, playerPos: THREE.Vector3): void {
-    if (this.v2) { this.v2.update(dt, playerPos); return; }
+    if (this.driven) { this.driven.update(dt, playerPos); return; }
     grassUniforms.uGrassWind.value = this.params.windStrength;
     if (this.trampleAble) this.trampleStep(dt, playerPos);
     const pcx = Math.floor(playerPos.x / CELL), pcz = Math.floor(playerPos.z / CELL);

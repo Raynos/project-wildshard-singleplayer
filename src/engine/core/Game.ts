@@ -278,7 +278,7 @@ export class Game {
     this.app.scene = this.scene;
     this.app.render = this;
     const legacy = currentScope(); if (legacy) legacy.owner = this.engineScope;
-    installAtmosphere(level.atmosphere); // the engine fog (slot 100); a shard's own fog (LookStrategy.fog, slot 300) installs in buildSky, before anything compiles
+    installAtmosphere(level.atmosphere); // the engine fog (slot 100); a level look's own fog (LookStrategy.fog, slot 300) installs in buildSky, before anything compiles
     installViewport(); // --ws-vh: the real height (an iOS home-screen app reports innerHeight a status bar short — viewport.ts)
     const tracedBoot = bootTraceActive();
     if (tracedBoot) recordBootCheckpoint('renderer:before', { userAgent: navigator.userAgent.slice(0, 250), devicePixelRatio: window.devicePixelRatio });
@@ -385,7 +385,7 @@ export class Game {
   }
 
   buildComposer(): void {
-    if (this.lookStrategy?.mode === 'replace') { this._composer = this.replaceComposer(this.lookStrategy); return; } // the shard's whole chain (Nalati: MSAA → the one grade)
+    if (this.lookStrategy?.mode === 'replace') { this._composer = this.replaceComposer(this.lookStrategy); return; } // the level look's whole chain
     const { atmosphere: A } = getActiveChunk();
     const { grade: G, look } = activeGrade(getActiveChunk()); // + the look loop's layer (PH-L1 / L4)
     const composer = new EffectComposer(this.renderer, { frameBufferType: THREE.HalfFloatType, multisampling: 0 });

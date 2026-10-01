@@ -602,6 +602,9 @@ export const NALATI_GRASSLANDS: ShardManifest = {
   blurb: 'SUPER EXPERIMENTAL — the Tian Shan steppe, painted: cross the braided Kunes, tame a steppe horse and hunt wolves from the saddle across the golden bowl of the Sky Grassland, break the Golden King in his kurgan, and ride out a storm to face the Storm Titan. Snow Lotus Valley waits in the snow ring. Built live, rough edges everywhere.',
   card: { thumb: thumbnail, portrait: heroPortrait, landscape: heroLandscape },
   style: 'painterly',
+  // the painterly look (look/render.ts, E357 S3.2): its own composer, fog, painted ground and grass
+  render: async () => (await import('./look/render')).shardRender(),
+  tiers: { phone: { msaa: 2 }, desktop: { msaa: 4 } }, // the look's composer MSAA (phone ×2: the fill rate of ×4 at DPR 1.5 on a tile GPU)
   // EXPLORE WORLD (NALATI-MERGE P1, wave 8): the viewer over the steppe — every registered POI is in the Model Explorer
   // (src/shards/nalati-grasslands/world/index.ts), the World Explorer map pins the map's named places
   explore: { world: exploreWorld, models: exploreModels, sets: exploreSets, practice: explorePractice },

@@ -11,9 +11,10 @@
  * (`V2_UNGRADE` in GLSL, `ungrade()` on the CPU): they write the scene-linear value the grade maps back onto the
  * painting. The dome and the fog share it, so 3D fades into the painting with no step.
  */
-import * as THREE from 'three';
-import { Effect, BlendFunction, EffectComposer, RenderPass, EffectPass, BloomEffect } from 'postprocessing';
-import { TIER, TIER_CONFIG } from '#engine/core/tier';
+import type * as THREE from 'three';
+import { Effect, BlendFunction, RenderPass, EffectPass, BloomEffect, type Pass } from 'postprocessing';
+import { TIER_CONFIG } from '#engine/core/tier';
+import type { LookReplaceContext } from '#engine/render/look';
 
 /** the grade's live knobs (shared uniform objects: the grade effect and every inverse read them) */
 export const gradeUniforms = {
@@ -110,20 +111,17 @@ export class GradeV2Effect extends Effect {
 }
 
 /**
- * The v2 composer: RenderPass (MSAA ×4, phone ×2, unless the player turned anti-aliasing off) → one EffectPass (desktop: bloom,
- * then the grade; phone: the grade alone). `Game.buildComposer` returns this in v2 (one line).
+ * The v2 chain, the look's `mode: 'replace'` compose (render.ts): RenderPass → one EffectPass (desktop: bloom, then the
+ * grade; phone: the grade alone). The engine's one composer holds them; its MSAA (×4, phone ×2 — the fill rate of ×4 at
+ * DPR 1.5 on a tile GPU, for edges the grass hides anyway — none while the player turned anti-aliasing off) is the
+ * manifest's `msaa` tier knob.
  */
-export function buildLookV2Chain(renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.PerspectiveCamera): EffectComposer {
-  // phone: MSAA ×2 (the fill rate of ×4 at DPR 1.5 on a tile GPU, for edges the grass hides anyway); desktop ×4
-  const msaa = TIER_CONFIG.smaa === 'off' ? 0 : TIER === 'phone' ? 2 : 4;
-  const composer = new EffectComposer(renderer, { frameBufferType: THREE.HalfFloatType, multisampling: Math.min(msaa, renderer.capabilities.maxSamples) });
-  composer.addPass(new RenderPass(scene, camera));
+export function lookV2Passes(c: LookReplaceContext): Pass[] {
+  const scene = new RenderPass(c.scene, c.camera);
   const grade = new GradeV2Effect();
-  if (TIER === 'desktop') {
+  if (c.tier === 'desktop') {
     const bloom = new BloomEffect({ intensity: 0.28, luminanceThreshold: 0.95, luminanceSmoothing: 0.3, mipmapBlur: true, radius: 0.7, levels: TIER_CONFIG.bloomLevels });
-    composer.addPass(new EffectPass(camera, bloom, grade));
-  } else {
-    composer.addPass(new EffectPass(camera, grade));
+    return [scene, new EffectPass(c.camera, bloom, grade)];
   }
-  return composer;
+  return [scene, new EffectPass(c.camera, grade)];
 }
