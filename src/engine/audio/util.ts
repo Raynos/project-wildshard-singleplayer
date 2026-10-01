@@ -1,5 +1,7 @@
 import { Rng } from '../core/rng';
 
+declare module '../core/rng' { interface RngStreams { audio: true } }
+
 const fallback = new Rng(0);
 let draw: () => number = () => fallback.next();
 export function bindAudioRandom(random: () => number): void { draw = random; }

@@ -154,6 +154,7 @@ export class Audio extends PlayerVoices {
     return { activeVoices: currentScope()?.resources.census.sounds ?? 0, beds: this.liveBeds?.() ?? (this.bedNodes.length > 0 ? 1 : 0), buses: this.g ? 8 : 0 };
   }
   unloadLevel(): void {
+    this.started = false;
     this.stopBed();
     this.hum?.stop(); this.hum = undefined; this.humOn = false;
     for (const source of this.underFeed) { try { source.stop(); } catch { /* May have already ended. */ } source.disconnect(); }
@@ -257,7 +258,14 @@ export class Audio extends PlayerVoices {
   private switchSet(v: SfxSet): void {
     if (v === this.sfxSet) return;
     this.sfxSet = v;
-    void (async () => { this.useSamples(await trackBusy('sfx', decodeSfxSet(v, this.bed, cachedBytes, undefined, undefined, this.profile.samples))); })();
+    const decoded = this.sampleDecoder?.(v) ?? decodeSfxSet(v, this.bed, cachedBytes, undefined, undefined, this.profile.samples);
+    void (async () => { this.useSamples(await trackBusy('sfx', decoded)); })();
+  }
+  private sampleDecoder: ((set: SfxSet) => Promise<SfxBank>) | undefined;
+  /** A level can decode its owned samples alongside the shared bank when Settings changes the set. */
+  installSampleDecoder(decode: (set: SfxSet) => Promise<SfxBank>, scope: Scope): void {
+    this.sampleDecoder = decode;
+    scope.onDispose(() => { if (this.sampleDecoder === decode) this.sampleDecoder = undefined; });
   }
   /** a random variant of `family` with a little pitch / gain jitter, routed like the synth call; false = not sampled, play the synth */
   override shot(family: string, o: { pan?: number; gain?: number; out?: AudioNode; t?: number; rate?: number } = {}): boolean {

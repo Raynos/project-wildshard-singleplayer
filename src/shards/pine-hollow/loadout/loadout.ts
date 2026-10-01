@@ -6,6 +6,7 @@ import * as THREE from 'three';
 
 
 import { sharedWeaponVoices, MAX_BOLTS, PLAIN_BOLT, type BoltMod, type Crossbow, type Bow } from '#kit';
+import { bindLongbowCharge } from './events';
 import type { LeverRifle } from '../weapons/LeverRifle';
 import { QUIVER_MAX } from '#shards/pine-hollow/weapons/Longbow';
 import type { Inventory } from '#game/Inventory';
@@ -188,11 +189,7 @@ export function installPineLoadout(h: PineLoadoutHost): PineLoadout {
   events?.on('weapon.reload', ({ id, phase }) => {
     if (id === rifle.row.id && phase === 'round' && !cues.cue('cue.lever.round')) sharedWeaponVoices(audio).dryFire();
   }, h.scope);
-  events?.on('weapon.charge', ({ id, phase, value }) => {
-    if (id !== longbow.row.id) return;
-    if (phase === 'recover') hud.toast(value === 1 ? 'Arrow recovered' : 'Arrow broke');
-    else cues.charge(longbow.row, phase);
-  }, h.scope);
+  if (events) bindLongbowCharge(events, h.scope, longbow.row, cues, (ok) => { hud.toast(ok ? 'Arrow recovered' : 'Arrow broke'); });
 
   // ── the longbow: the King's reward, and the lever-action: kept in Owned, never in a pack slot (E314 C) ──
   const keep = restoreKept(inventory, owned);
