@@ -1,3 +1,4 @@
+import type { TreeSpec } from '../../level/data';
 /**
  * Where the forest and the forest floor go — the pure part of Forest / Undergrowth, shared by the game
  * and by the build (scripts/bake-chunk.mjs, project/archive/2026-09-22-load-perf.md). Nothing here touches the GPU or
@@ -49,7 +50,7 @@ export function treeSetOf(trees: { set?: string | undefined }, has?: (url: strin
 }
 
 /** The variants placement plants for a shard's trees (the bakes; TreeFactory builds the same list with geometry). */
-export function plantSpecs(trees: { factory: string; set?: string | undefined }): PlantSpec[] {
+export function plantSpecs(trees: { factory: TreeSpec['factory']; set?: string | undefined }): PlantSpec[] {
   if (trees.factory === 'none') return [];
   if (treeSetOf(trees) !== null) return TREE_SPECS_V2.map((s) => ({ trunkRadius: s.trunk, height: s.height, species: s.species, collider: s.collider }));
   return TREE_SPECS.map((s) => ({ trunkRadius: s.trunk, height: s.height }));

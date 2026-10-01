@@ -162,3 +162,5 @@ export { loft, tube, skinPlain, S, boneIndex, srgb, mix, sstep as speciesSstep, 
 export { boarPaintLow, bearPaintLow, crestSpikes } from './entities/lowpoly';
 
 export { fxMaterial, annulus, FX, type FxMaterial, type FxMode } from './fx/groundFx';
+
+export type { TreeFactory } from './world/TreeFactory';

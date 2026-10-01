@@ -1,4 +1,4 @@
-import type { Ktx2Table, LevelSpec, EngineMechanism, TierOverrides, BootSpec, LoadoutSpec, LookStrategy, ExploreSpec } from '#engine';
+import type { TreeFactory, Ktx2Table, LevelSpec, EngineMechanism, TierOverrides, BootSpec, LoadoutSpec, LookStrategy, ExploreSpec } from '#engine';
 import type { ShardSlug } from './shards.generated';
 import type { ShardPlugin } from './plugin';
 /**
@@ -161,7 +161,7 @@ export interface ChunkTrees {
    * shard has no forest trees — no tree textures, geometry or branch-card bake at launch, an empty Forest
    * (collision / culling hooks still work). `'spruce'` → `src/shards/nalati-grasslands/world/Spruce.ts` (painterly Tian Shan spruce, no textures).
    */
-  factory: 'pine' | 'spruce' | 'none';
+  factory: 'pine' | 'none' | (() => Promise<(renderer: WebGLRenderer, sky: Sky) => Promise<TreeFactory>>);
   /** PBR set for the trunks (the `'pine'` factory's; omitted by a shard without pines) */
   bark?: string;
   /** folder under `public/assets/tex/` holding `twig_rgba.png`, `twig_nor_gl.jpg`, `twig_arm.jpg` (the `'pine'` factory's) */
@@ -421,7 +421,7 @@ export interface ShardManifest {
   /** Migrated manifests declare their plugin and level policy; legacy hooks retire per shard phase. */
   load?: () => Promise<{ default: new () => ShardPlugin }>;
   kitLook?: LevelSpec['kitLook'];
-  uses?: readonly (EngineMechanism | 'quests' | 'coins' | 'loot' | 'compendium' | 'feats' | 'pack')[];
+  uses?: readonly (EngineMechanism | 'bosses' | 'elites' | 'spawns' | 'swim' | 'quests' | 'coins' | 'loot' | 'compendium' | 'feats' | 'pack')[];
   tiers?: TierOverrides;
   boot?: BootSpec;
   loadout?: LoadoutSpec;
@@ -429,7 +429,7 @@ export interface ShardManifest {
   audio?: LevelSpec['audio'];
   species?: LevelSpec['species'];
   encounters?: readonly string[];
-  bag?: { tabs: readonly ('map' | 'gear' | 'finds' | 'pack' | 'feats')[]; pack: { slots: number; keeps?: readonly string[] } };
+  bag?: { tabs: readonly ('map' | 'gear' | 'finds' | 'pack' | 'feats')[]; pack: { slots: number; keeps?: readonly string[] }; skinsTitle?: string };
   dev?: { poses: () => Promise<Readonly<Record<string, { eye: readonly [number, number, number]; yaw: number; pitch: number; feet?: readonly [number, number, number]; mockup: string; frame: string }>>> };
   /** Plugin API version; mismatches fail before the first asset load. */
   api: 1;
@@ -453,8 +453,9 @@ export interface ShardManifest {
   /** picker thumbnail and full-bleed title-screen stills, imported from the shard's thumbs folder */
   card: { thumb: string; portrait: string; landscape: string };
   /** landscape terrain, a structure-first world, or both; every shard supplies at least one */
-  ground: { terrain: ChunkTerrain; structures?: true | ChunkStructures }
-    | { terrain?: ChunkTerrain; structures: true | ChunkStructures };
+  ground: {
+    paths?: 'plugin'; terrain: ChunkTerrain; structures?: true | ChunkStructures }
+    | { paths?: 'plugin'; terrain?: ChunkTerrain; structures: true | ChunkStructures };
   /** the PBR ground's texture sets; omitted by a shard that loads none (the low-poly Driftwood, E318) */
   assets?: ChunkAssets;
   assetGlobs?: readonly string[];

@@ -8,7 +8,7 @@ const engineMechanism = (value: string): value is EngineMechanism => ENGINE_MECH
 export function toLevelSpec(manifest: ShardManifest): LevelSpec {
   return {
     id: manifest.slug,
-    ground: { ...(manifest.ground.terrain === undefined ? {} : { terrain: manifest.ground.terrain }),
+    ground: { ...(manifest.ground.paths === undefined ? {} : { paths: manifest.ground.paths }), ...(manifest.ground.terrain === undefined ? {} : { terrain: manifest.ground.terrain }),
       ...(manifest.ground.structures === undefined ? {} : { structures: true }) },
     spawn: manifest.spawn,
     sky: manifest.sky, atmosphere: manifest.atmosphere, grade: manifest.grade,

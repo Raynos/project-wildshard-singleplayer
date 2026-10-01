@@ -1,3 +1,6 @@
+import type { WebGLRenderer } from 'three';
+import type { Sky } from '../world/Sky';
+import type { TreeFactory } from '../world/TreeFactory';
 import type { Noise2D } from '../core/noise';
 import type { SpeciesWeights } from '../world/forest/treeSpecies';
 // Engine-owned level data; structurally compatible with the transitional manifests.
@@ -38,7 +41,7 @@ export interface LevelAssets {
   boreal?: { normalK: [number, number, number, number]; trailDust: [number, number, number, number]; grassTint: RGB };
 }
 export interface TreeSpec {
-  factory: string;
+  factory: string | (() => Promise<(renderer: WebGLRenderer, sky: Sky) => Promise<TreeFactory>>);
   bark?: string;
   twigAtlas?: string;
   noun: string;

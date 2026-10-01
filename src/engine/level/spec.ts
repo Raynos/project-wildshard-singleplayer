@@ -20,6 +20,7 @@ export interface AudioSpec { ambience: string; score: string; cues?: () => Promi
 export interface BootSpec {
   /** The plugin runs grass, cabins and props as separate counted world steps. */
   stagedWorld?: boolean;
+  lateReads?: (tier: Tier, tex?: TexMode) => readonly string[];
   files: (tier: Tier) => readonly string[];
   sources?: (tier: Tier, tex: TexMode) => ChunkFiles;
   bakedUnread?: RegExp;
@@ -42,7 +43,7 @@ export interface LoadoutSpec {
 /** The engine consumes opaque level data; game presentation and discovery stay above this boundary. */
 export interface LevelSpec {
   id: string;
-  ground: { terrain?: TerrainField; structures?: true };
+  ground: { terrain?: TerrainField; structures?: true; paths?: 'plugin' };
   spawn: SpawnPose; bounds?: Bounds; camera?: { portraitFov: number };
   sky: SkySpec; atmosphere: AtmosphereSpec; grade: GradeSpec;
   look?: () => Promise<LookStrategy>; lookLayer?: GradeLook; tiers?: TierOverrides; budgets: BudgetInputs;

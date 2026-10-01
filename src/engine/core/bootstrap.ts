@@ -9,7 +9,6 @@ import { Terrain } from '../world/Terrain';
 import { TreeFactory } from '../world/TreeFactory';
 import { treeSetOf } from '../world/forest/placement';
 import { PUBLIC_BYTES } from '../boot/bytes.generated';
-import { SpruceFactory } from '#shards/nalati-grasslands/world/Spruce';
 import { Forest } from '../world/forest/Forest';
 import { Player } from '../player/Player';
 import type { Sky } from '../world/Sky';
@@ -35,7 +34,6 @@ import { withScopeOwner } from '../app/legacyCapture';
 /** Tree builders by `ChunkTrees.factory` id. Add a species here when a shard needs one. */
 const TREE_FACTORIES = {
   pine: (renderer: THREE.WebGLRenderer, def: ShardManifest, _sky: Sky) => new TreeFactory(renderer, { ...(def.trees.bark !== undefined ? { bark: def.trees.bark } : {}), ...(def.trees.twigAtlas !== undefined ? { twigAtlas: def.trees.twigAtlas } : {}), set: treeSetOf(def.trees, (u) => u in PUBLIC_BYTES) }).build(),
-  spruce: (renderer: THREE.WebGLRenderer, _def: ShardManifest, sky: Sky) => new SpruceFactory(renderer, sky).build(), // Nalati: painterly Tian Shan spruce (src/shards/nalati-grasslands/world/Spruce.ts)
   none: (renderer: THREE.WebGLRenderer, _def: ShardManifest, _sky: Sky) => new TreeFactory(renderer).buildEmpty(),
 } as const;
 
@@ -91,7 +89,7 @@ export async function bootstrap(step: StepRunner, level: LevelSpec): Promise<Wor
     p.detail(`${TERRAIN_RES}² heightfield${def.assets ? ` · ${def.assets.groundLayers.length} splat layers` : ''}`);
     return t;
   });
-  const factory = await step('cards', () => TREE_FACTORIES[def.trees.factory](game.renderer, def, sky));
+  const factory = await step('cards', async () => typeof def.trees.factory === 'function' ? (await def.trees.factory())(game.renderer, sky) : TREE_FACTORIES[def.trees.factory](game.renderer, def, sky));
   const forest = await step('forest', (p) => {
     const f = new Forest(factory, sky).build({ drawnBy: def.trees.drawnBy ?? 'self' }); // 'model': the shard's tree model draws them (E315)
     if (f.trees.length === 0) f.group.visible = false; // an ocean shard: the empty needle / twig batches still cost 24k tris + shadow draws on the phone

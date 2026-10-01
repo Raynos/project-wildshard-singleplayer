@@ -264,3 +264,6 @@ export class SpruceFactory extends TreeFactory {
     return Promise.resolve(this);
   }
 }
+
+/** Deferred authored tree factory, built by the engine cards step. */
+export function spruceFactory(renderer: THREE.WebGLRenderer, sky: Sky): Promise<TreeFactory> { return new SpruceFactory(renderer, sky).build(); }

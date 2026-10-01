@@ -42,7 +42,6 @@ import { PUBLIC_BYTES } from './bytes.generated';
 import { TIER } from '../core/tier';
 import { lutUrl } from '../world/lut';
 import { horizonStrips } from '../world/HorizonMatte';
-import { PERSON_FILE, peopleModelUrl, type PersonKey } from '#shards/nalati-grasslands/campPeopleModels';
 import { blenderModelsBase } from '../world/blenderArea';
 import { CAPTAIN_GLB_URL } from '../entities/species/captainMesh';
 import { shell } from '../app/legacyCapture';
@@ -74,7 +73,7 @@ export function shardBootRequests(def: ShardManifest, tex: TexMode = texMode()):
  * downloaded ~1–4 MB of them. Each name comes from the module that loads it; a file the build does not ship is left out.
  */
 export function lateReads(def: ShardManifest, tex: TexMode = texMode()): string[] {
-  const out: string[] = [];
+  const out: string[] = [...(def.boot?.lateReads?.(TIER, tex) ?? [])];
   const lut = lutUrl(def.slug);
   if (lut !== null) out.push(lut);
   const strips = horizonStrips(def.slug);
@@ -83,7 +82,6 @@ export function lateReads(def: ShardManifest, tex: TexMode = texMode()): string[
     const base = blenderModelsBase('driftwood-isle'), lm = TIER === 'phone' ? '.phone.webp' : '.webp';
     out.push(tierUrl(`${base}island.glb`, tex), `${base}island.json`, `${base}placements.bin`, gpuUrl(`${base}lm-ao${lm}`, tex), gpuUrl(`${base}lm-bounce${lm}`, tex), tierUrl(CAPTAIN_GLB_URL, tex));
   }
-  if (def.style === 'painterly') out.push(...Object.keys(PERSON_FILE).filter((k): k is PersonKey => k in PERSON_FILE).map(peopleModelUrl));
   const declared = new Set(Object.values(bootFiles(def, tex)).flat());
   return out.filter((p) => p in PUBLIC_BYTES && !declared.has(p)).map(versionedUrl);
 }

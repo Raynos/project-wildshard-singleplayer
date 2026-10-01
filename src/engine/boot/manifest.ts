@@ -5,7 +5,7 @@
  * shards that build none (see the end of chunkFiles).
  */
 import type { ShardManifest } from '#game/shard/manifest';
-import { gpuLayerUrl, gpuUrl, phoneUrl, type ChunkFiles } from './bytes';
+import { gpuLayerUrl, gpuUrl, type ChunkFiles } from './bytes';
 import { texMode, type TexMode } from './gpuFiles';
 import { pbrUrls } from '../core/assets';
 import { bakedTerrainUrl } from '../world/BakedTerrain';
@@ -13,37 +13,17 @@ import { bakedCardUrls } from '../world/BakedCards';
 import { bakedSkyUrls } from '../world/BakedSky';
 import { bakedTextureUrls } from './bakedTextures';
 import { PUBLIC_BYTES } from './bytes.generated';
-import { nalatiUrl } from '#shards/nalati-grasslands/look/nalatiTextures';
 import { TIER } from '../core/tier';
 import { RAPIER_WASM_URL } from '../physics/wasmUrl';
 import { navmeshUrl } from '../physics/navmeshUrl';
 import { groundSet } from '../world/lookFlags';
 import { treeSetOf } from '../world/forest/placement';
 import { BARK_LAYERS, treeSetFiles } from '../world/forest/treeSet';
-import { CREATURE_RIGS, creatureRigUrl } from '../entities/creatureRigs';
 
 const pbr = pbrUrls; // tier-aware: the phone's _1k files are what it downloads, so they are what it declares
 const gltf = (id: string) => [`/assets/models/${id}/${id}.gltf`, `/assets/models/${id}/${id}.bin`, ...['diff', 'nor_gl', 'arm'].map((k) => `/assets/models/${id}/textures/${id}_${k}_1k.jpg`)];
 const lod = (id: string) => [`/assets/models/${id}/${id}_lod.glb`];
 const uniq = (xs: string[]) => [...new Set(xs)];
-
-/**
- * The painterly shard's (Nalati's) boot reads, all inside its `props` step (wireNalati): the painted ground tiles, the
- * grass-card atlas, the sky panorama and the GLB props — measured off a phone-tier load's network log (2026-09-23,
- * 2.1 MB of the boot's 2.7 MB). Declared so DOWNLOAD counts them and the prefetch starts them with the boot; a model
- * added to the camp later belongs here too (an undeclared file still loads, it is just invisible to the bar).
- */
-const painterlyBoot = (): string[] => [
-  ...['meadow', 'path', 'gravel', 'rock', 'snow', 'felt'].map((n) => nalatiUrl(`tex/${n}`)), nalatiUrl('cards'), nalatiUrl('panorama'),
-  ...['eagle', 'cauldron', 'firewood', 'kumis-churn', 'chest', 'saddle', 'balbal', 'boulder-1', 'boulder-2', 'boulder-3'].map((m) => `/assets/nalati/models/${m}.glb`),
-  // layout v2 (src/shards/nalati-grasslands/world/Bowl.ts): the watchtower, snow lotus, the kokpar field's spectators + riders (the phone
-  // draws the riders' far LOD), the far herds (the far LOD, one file on every tier)
-  ...['watchtower', 'snow-lotus', 'horse-saddled', 'kokpar-rider'].map((m) => `/assets/nalati/models/${m}.glb`),
-  '/assets/nalati/models/horse-wild.far.glb', '/assets/nalati/models/kokpar-rider.far.glb',
-  // the six rigged creature hulls (src/engine/entities/glbCreatures.ts, ~4 MB desktop / ~1.4 MB phone): read in the animals step,
-  // declared here so DOWNLOAD counts them and the offline cache holds them (NALATI-MERGE F4)
-  ...CREATURE_RIGS.map(creatureRigUrl),
-].filter((f) => phoneUrl(f) in PUBLIC_BYTES || f in PUBLIC_BYTES);
 
 /** the pine twig atlas's three files (none without one) */
 const twigFiles = (atlas: string | undefined): string[] => (atlas === undefined ? [] : ['twig_rgba.png', 'twig_nor_gl.jpg', 'twig_arm.jpg'].map((f) => `/assets/tex/${atlas}/${f}`));
@@ -80,7 +60,7 @@ export function chunkFiles(def: ShardManifest, tex: TexMode = texMode()): ChunkF
   // a painterly one (Nalati) paints its ground and builds no cabins or props either
   // a structure-first one (ShardManifest.ground.structures, Nine Dragon Stack) draws no ground and builds no cabins or props: its world's own files instead
   const built = def.ground.structures !== undefined;
-  const lowpoly = def.style === 'toon' || def.style === 'painterly', treeless = def.trees.factory !== 'pine', ocean = def.ocean !== undefined || def.style === 'painterly' || built;
+  const lowpoly = def.style === 'toon', treeless = def.trees.factory !== 'pine', ocean = def.ocean !== undefined || built;
   // the phone tier's .phone.webp / .phone.glb copies (fetchImage and three's loaders fetch through the same map), and the
   // KTX2 stand-ins when textures ride as KTX2 (E157, src/engine/boot/gpuFiles.ts) — only the default path's files are declared
   const t = (xs: string[]) => xs.map((u) => gpuUrl(u, tex));
@@ -92,7 +72,7 @@ export function chunkFiles(def: ShardManifest, tex: TexMode = texMode()): ChunkF
     trees: t(treeless ? [] : trees),
     physics: [RAPIER_WASM_URL, ...(nav ? [nav] : [])], // Rapier's WASM, every shard (src/engine/physics/rapier.ts); the shard's baked navmesh (src/engine/physics/navmesh.ts)
     cabins: t(ocean ? [] : cabins),
-    props: t(def.boot !== undefined ? [...def.boot.files(TIER)].filter((f) => f in PUBLIC_BYTES) : typeof def.ground.structures === 'object' ? def.ground.structures.files.filter((f) => f in PUBLIC_BYTES) : def.style === 'painterly' ? painterlyBoot() : ocean ? [] : props),
+    props: t(def.boot !== undefined ? [...def.boot.files(TIER)].filter((f) => f in PUBLIC_BYTES) : typeof def.ground.structures === 'object' ? def.ground.structures.files.filter((f) => f in PUBLIC_BYTES) : ocean ? [] : props),
     // filled by src/engine/boot/extras.ts `bootFiles` (project/archive/2026-09-23-preload-offline.md): the title / explore art (bundled, hashed URLs)
     // and every audio file of every style and set (the lists follow the menu's Settings, a module Node's type stripping cannot
     // load — this file also runs in scripts/bake-packs.mjs, and neither goes in a shard's boot pack)
