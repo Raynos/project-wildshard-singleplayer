@@ -10,7 +10,7 @@ export type Action = Extract<keyof ActionMap, string> | EquipmentAction | 'crouc
   | 'move.forward' | 'move.back' | 'move.left' | 'move.right'
   | 'move' | 'look' | 'dodge' | 'pause' | 'map' | 'journal' | 'note' | 'confirm' | 'back' | 'nav.left' | 'nav.right' | 'tab'
   | 'dive' | 'surface' | 'fly.up' | 'fly.down' | 'fly.boost' | 'pane.1' | 'pane.2' | 'pane.3' | 'autoFire'
-  | 'quickNote' | 'ride.whistle' | 'ride.offer' | 'ride.gallop' | 'ride.horseTab' | 'lean.left' | 'lean.right';
+  | 'focus' | 'quickNote' | 'ride.whistle' | 'ride.offer' | 'ride.gallop' | 'ride.horseTab' | 'lean.left' | 'lean.right';
 interface Context { def: InputContextDef; scope: Scope }
 /** Additive contexts and a shared press buffer. Consuming a press removes it for every later system. */
 export class InputService {

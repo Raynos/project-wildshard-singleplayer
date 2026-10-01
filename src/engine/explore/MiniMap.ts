@@ -1,3 +1,4 @@
+import { listenDom } from '../input/dom';
 /**
  * MiniMap — the World Explorer's map (project/archive/2026-09-23-explore-world.md X5; E67 to the round-6 midway bar,
  * art/build-world/round-6-midway/05-world-map.jpg): a MAP button slides up a glass bottom sheet with the shard seen from
@@ -26,6 +27,7 @@ const SCALE_M = 100; // the scale bar's length
 const html = (tag: string, cls: string, inner = ''): HTMLElement => { const e = document.createElement(tag); e.className = cls; e.innerHTML = inner; return e; };
 
 export class MiniMap {
+  private readonly uiScope = (app.levelScope ?? app.engineScope).child('explore-widget');
   readonly button: HTMLElement;
   private readonly sheet: HTMLElement;
   private readonly board: HTMLElement;
@@ -65,18 +67,18 @@ export class MiniMap {
       (pin as HTMLButtonElement).type = 'button';
       const [u, v] = this.toMap(p.x, p.z);
       pin.style.left = `${u * 100}%`; pin.style.top = `${v * 100}%`;
-      pin.addEventListener('click', (e) => { e.stopPropagation(); this.flyToPoi(p); });
+      listenDom(this.uiScope, pin, 'click', (e) => { e.stopPropagation(); this.flyToPoi(p); });
       this.board.append(pin);
     }
     this.layoutTags();
-    this.board.addEventListener('click', (e) => {
+    listenDom(this.uiScope, this.board, 'click', (e) => {
       const r = this.board.getBoundingClientRect();
       const [x, z] = this.fromMap((e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height);
       this.flyOver(x, z);
     });
-    this.button.addEventListener('click', () => { this.toggle(); });
-    this.sheet.querySelector('.ws-x-map-close')?.addEventListener('click', () => { this.close(); });
-    this.sheet.querySelector('.ws-x-map-spawn')?.addEventListener('click', () => { this.home(); });
+    listenDom(this.uiScope, this.button, 'click', () => { this.toggle(); });
+    listenDom(this.uiScope, this.sheet.querySelector('.ws-x-map-close'), 'click', () => { this.close(); });
+    listenDom(this.uiScope, this.sheet.querySelector('.ws-x-map-spawn'), 'click', () => { this.home(); });
     explore.root.append(this.button, this.sheet);
   }
 

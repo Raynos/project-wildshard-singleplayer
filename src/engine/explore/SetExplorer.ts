@@ -1,3 +1,5 @@
+import { listenDom } from '../input/dom';
+import { app } from '../app/runtime';
 import { engineString } from '#engine/strings';
 /**
  * Set Explorer (E306 / E315 M7, project/archive/2026-09-30-model-architecture.md): the Explore pane between single models and the whole
@@ -67,6 +69,7 @@ interface SetInfo {
 }
 
 export class SetExplorer implements ExplorePane {
+  private readonly uiScope = (app.levelScope ?? app.engineScope).child('explore-widget');
   readonly el: HTMLElement;
   private readonly listEl: HTMLElement;
   private readonly cards: HTMLElement;
@@ -118,7 +121,7 @@ export class SetExplorer implements ExplorePane {
       <div class="ws-x-setcards"></div>`);
     this.cards = this.listEl.querySelector<HTMLElement>('.ws-x-setcards') ?? this.listEl;
     this.listEl.querySelectorAll<HTMLElement>('.ws-x-setsort button').forEach((b) => {
-      b.addEventListener('click', () => { this.order = ORDERS.find(([o]) => o === b.dataset['o'])?.[0] ?? 'map'; this.renderList(); this.shots = this.listed().filter((i) => i.thumb === null && !i.set.bounds.isEmpty()); });
+      listenDom(this.uiScope, b, 'click', () => { this.order = ORDERS.find(([o]) => o === b.dataset['o'])?.[0] ?? 'map'; this.renderList(); this.shots = this.listed().filter((i) => i.thumb === null && !i.set.bounds.isEmpty()); });
     });
     this.sheet = html('div', 'ws-x-setsheet', `
       <div class="ws-x-sethead"><button class="ws-x-setback" type="button">‹ Sets</button><b class="ws-x-setname"></b><span class="ws-x-setstep"><button class="ws-x-setprev" type="button" aria-label="Previous set">‹</button><button class="ws-x-setnext" type="button" aria-label="Next set">›</button></span><span class="ws-x-setfile"></span></div>
@@ -131,10 +134,10 @@ export class SetExplorer implements ExplorePane {
     this.el.append(this.listEl, this.sheet);
     // index.html swallows touchmove outside [data-scroll]: without the mark the list can't scroll on a phone (E109)
     this.cards.dataset['scroll'] = ''; this.members.dataset['scroll'] = '';
-    this.sheet.querySelector('.ws-x-setback')?.addEventListener('click', () => { this.openList(); });
-    this.sheet.querySelector('.ws-x-setprev')?.addEventListener('click', () => { this.step(-1); });
-    this.sheet.querySelector('.ws-x-setnext')?.addEventListener('click', () => { this.step(1); });
-    this.sheet.querySelector('.ws-x-setworld')?.addEventListener('click', () => {
+    listenDom(this.uiScope, this.sheet.querySelector('.ws-x-setback'), 'click', () => { this.openList(); });
+    listenDom(this.uiScope, this.sheet.querySelector('.ws-x-setprev'), 'click', () => { this.step(-1); });
+    listenDom(this.uiScope, this.sheet.querySelector('.ws-x-setnext'), 'click', () => { this.step(1); });
+    listenDom(this.uiScope, this.sheet.querySelector('.ws-x-setworld'), 'click', () => {
       const c = this.current;
       if (c) this.explore.viewSetInWorld(this.world.game.camera.position.clone(), this.centre.clone(), c.set.name);
     });
@@ -147,11 +150,11 @@ export class SetExplorer implements ExplorePane {
     world.game.scene.add(this.marks);
 
     const canvas = world.game.canvas;
-    canvas.addEventListener('pointerdown', this.onDown);
-    window.addEventListener('pointermove', this.onMove);
-    window.addEventListener('pointerup', this.onUp);
-    window.addEventListener('pointercancel', this.onUp);
-    canvas.addEventListener('wheel', this.onWheel, { passive: false });
+    listenDom(this.uiScope, canvas, 'pointerdown', this.onDown);
+    listenDom(this.uiScope, window, 'pointermove', this.onMove);
+    listenDom(this.uiScope, window, 'pointerup', this.onUp);
+    listenDom(this.uiScope, window, 'pointercancel', this.onUp);
+    listenDom(this.uiScope, canvas, 'wheel', this.onWheel, { passive: false });
     new ResizeObserver(() => { this.refit(); }).observe(this.sheet);
   }
 
@@ -246,7 +249,7 @@ export class SetExplorer implements ExplorePane {
     (card as HTMLButtonElement).disabled = empty;
     card.dataset['id'] = set.id;
     if (info.thumb) card.querySelector('.ws-x-set-thumb')?.prepend(info.thumb);
-    card.addEventListener('click', () => { if (!empty) this.openSet(info); });
+    listenDom(this.uiScope, card, 'click', () => { if (!empty) this.openSet(info); });
     return card;
   }
 
@@ -320,8 +323,8 @@ export class SetExplorer implements ExplorePane {
         <button class="ws-x-locate" type="button" aria-label="Show its copies"><i></i></button>
         <button class="ws-x-member-open" type="button"${f.drawnAs === null ? ' disabled' : ''}><em>${badge(f.pipeline)}</em><b>${esc(f.name)}</b><small>${this.memberLine(f)}</small><strong class="ws-x-member-tris">${this.memberTris(f)}</strong><span>›</span></button>`);
       row.dataset['model'] = f.model;
-      row.querySelector('.ws-x-locate')?.addEventListener('click', () => { this.locate(this.locatedModel === f.model ? null : f.model); });
-      row.querySelector('.ws-x-member-open')?.addEventListener('click', () => { const c = this.current; if (c && f.drawnAs !== null) this.explore.openModelFromSet(f.model, c.set.id); });
+      listenDom(this.uiScope, row.querySelector('.ws-x-locate'), 'click', () => { this.locate(this.locatedModel === f.model ? null : f.model); });
+      listenDom(this.uiScope, row.querySelector('.ws-x-member-open'), 'click', () => { const c = this.current; if (c && f.drawnAs !== null) this.explore.openModelFromSet(f.model, c.set.id); });
       this.members.append(row);
     }
     const pending = pendingOf(info.set);

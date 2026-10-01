@@ -1,3 +1,4 @@
+import { app } from '../app/runtime';
 import type { InputService } from '../input/InputService';
 /**
  * LockOnTarget — the Zelda-style lock-on (E50, project/archive/2026-09-23-lock-on.md; Jake's picks: the J disc, the N locked HUD, a
@@ -145,20 +146,20 @@ export class LockOnSystem {
     const prev = player.preUpdate;
     player.preUpdate = (dt) => { prev?.(dt); this.update(dt); };
     // desktop (§2.1 / L9): Z or the middle mouse button toggles; while locked a mouse flick or the wheel switches
-    document.addEventListener('keydown', (e) => { if (e.code === 'KeyZ' && !e.repeat && player.locked) this.toggle(); });
-    document.addEventListener('mousedown', (e) => { if (e.button === 1 && player.locked) { e.preventDefault(); this.toggle(); } });
-    document.addEventListener('wheel', (e) => { if (player.locked && lockOn.state === 'locked' && Math.abs(e.deltaY) > 4) this.flick(e.deltaY < 0 ? 'right' : 'left'); }, { passive: true });
-    document.addEventListener('mousemove', (e) => {
+    const scope = (app.levelScope ?? app.engineScope).child('lock-input');
+    scope.onDispose(() => { if (prev === undefined) delete player.preUpdate; else player.preUpdate = prev; });
+    app.input.observeWheel((dy) => { if (player.locked && lockOn.state === 'locked' && Math.abs(dy) > 4) this.flick(dy < 0 ? 'right' : 'left'); }, scope);
+    app.input.observeLook((dx, dy) => {
       if (!player.locked || lockOn.state !== 'locked') return;
       const t = performance.now();
-      this.mouseSamples.push({ t, dx: e.movementX, dy: e.movementY });
+      this.mouseSamples.push({ t, dx, dy });
       while (this.mouseSamples.length > 0 && t - (this.mouseSamples[0]?.t ?? t) > 60) this.mouseSamples.shift();
-      let sx = 0, sy = 0; for (const s of this.mouseSamples) { sx += s.dx; sy += s.dy; }
+      let sx = 0, sy = 0; for (const sample of this.mouseSamples) { sx += sample.dx; sy += sample.dy; }
       if (Math.max(Math.abs(sx), Math.abs(sy)) > 40 && this.refractoryT <= 0) {
         this.mouseSamples.length = 0;
         this.flick(Math.abs(sx) >= Math.abs(sy) ? (sx > 0 ? 'right' : 'left') : (sy < 0 ? 'up' : 'down'));
       }
-    });
+    }, scope);
   }
 
   /** a melee weapon in hand, the game running, on foot */

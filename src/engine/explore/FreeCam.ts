@@ -1,3 +1,5 @@
+import { app } from '../app/runtime';
+import { listenDom } from '../input/dom';
 /**
  * FreeCam — Unity scene-view camera controls (the Explore World god camera on desktop).
  *
@@ -50,6 +52,8 @@ const DEFAULT_KEYS: FreeCamKeys = {
   up: ['KeyE', 'Space'], down: ['KeyQ'], boost: ['ShiftLeft', 'ShiftRight'], focus: ['KeyF'],
 };
 
+const cameraContextIds = { next: 0 };
+
 const _box = new Box3();
 const _sphere = new Sphere();
 const _offset = new Vector3();
@@ -59,6 +63,8 @@ const _matrix = new Matrix4();
 type Drag = 'none' | 'look' | 'pan' | 'orbit';
 
 export class FreeCam {
+  private readonly scope = (app.levelScope ?? app.engineScope).child('free-camera');
+  private readonly context = `camera.${this.scope.name}.${cameraContextIds.next++}`;
   enabled = true;
   moveSpeed: number;
   boost: number;
@@ -82,7 +88,6 @@ export class FreeCam {
   clearance = 0.4;
 
   private readonly keymap: FreeCamKeys;
-  private readonly held = new Set<string>();
   private readonly euler = new Euler(0, 0, 0, 'YXZ');
   private readonly velocity = new Vector3();
   private readonly scratch = new Vector3();
@@ -105,25 +110,28 @@ export class FreeCam {
     this.keymap = { ...DEFAULT_KEYS, ...options.keys };
     this.euler.setFromQuaternion(camera.quaternion);
     this.syncPivot();
-    dom.addEventListener('pointerdown', this.onPointerDown);
-    dom.addEventListener('wheel', this.onWheel, { passive: false });
-    dom.addEventListener('contextmenu', this.onContextMenu);
-    window.addEventListener('pointermove', this.onPointerMove);
-    window.addEventListener('pointerup', this.onPointerUp);
-    window.addEventListener('keydown', this.onKeyDown);
-    window.addEventListener('keyup', this.onKeyUp);
-    window.addEventListener('blur', this.onBlur);
-    document.addEventListener('pointerlockchange', this.onPointerLockChange);
+    app.input.register({ id: this.context, actions: ['move.forward', 'move.back', 'move.left', 'move.right', 'fly.up', 'fly.down', 'fly.boost', 'focus'],
+      enabled: () => this.enabled, keys: { 'move.forward': this.keymap.forward, 'move.back': this.keymap.back, 'move.left': this.keymap.left, 'move.right': this.keymap.right,
+        'fly.up': this.keymap.up, 'fly.down': this.keymap.down, 'fly.boost': this.keymap.boost, focus: this.keymap.focus } }, this.scope);
+    app.input.push(this.context, this.scope);
+    app.input.bind('focus', () => { this.focus(this.pivot); }, this.scope, () => this.enabled);
+    listenDom(this.scope, dom, 'pointerdown', this.onPointerDown);
+    listenDom(this.scope, dom, 'wheel', this.onWheel, { passive: false });
+    listenDom(this.scope, dom, 'contextmenu', this.onContextMenu);
+    listenDom(this.scope, window, 'pointermove', this.onPointerMove);
+    listenDom(this.scope, window, 'pointerup', this.onPointerUp);
+    app.input.onReset(() => { this.drag = 'none'; this.releaseLock(); }, this.scope);
+    listenDom(this.scope, document, 'pointerlockchange', this.onPointerLockChange);
   }
 
   /** once per frame */
   update(dt: number): void {
     if (!this.enabled) return;
-    const speed = this.moveSpeed * (this.isHeld(this.keymap.boost) || this.boosted ? this.boost : 1);
+    const speed = this.moveSpeed * (app.input.held('fly.boost') || this.boosted ? this.boost : 1);
     const move = this.scratch.set(
-      this.axis(this.keymap.right, this.keymap.left) + this.move.x,
-      this.axis(this.keymap.up, this.keymap.down) + this.move.y,
-      this.axis(this.keymap.back, this.keymap.forward) - this.move.z,
+      Number(app.input.held('move.right')) - Number(app.input.held('move.left')) + this.move.x,
+      Number(app.input.held('fly.up')) - Number(app.input.held('fly.down')) + this.move.y,
+      Number(app.input.held('move.back')) - Number(app.input.held('move.forward')) - this.move.z,
     );
     if (move.lengthSq() > 0) {
       if (move.lengthSq() > 1) move.normalize();
@@ -200,19 +208,7 @@ export class FreeCam {
   get pitch(): number { return this.euler.x; }
   setAngles(yaw: number, pitch: number): void { this.euler.set(pitch, yaw, 0, 'YXZ'); this.camera.quaternion.setFromEuler(this.euler); this.syncPivot(); }
 
-  dispose(): void {
-    this.releaseLock();
-    this.dom.removeEventListener('pointerdown', this.onPointerDown);
-    this.dom.removeEventListener('wheel', this.onWheel);
-    this.dom.removeEventListener('contextmenu', this.onContextMenu);
-    window.removeEventListener('pointermove', this.onPointerMove);
-    window.removeEventListener('pointerup', this.onPointerUp);
-    window.removeEventListener('keydown', this.onKeyDown);
-    window.removeEventListener('keyup', this.onKeyUp);
-    window.removeEventListener('blur', this.onBlur);
-    document.removeEventListener('pointerlockchange', this.onPointerLockChange);
-    this.held.clear();
-  }
+  dispose(): void { this.releaseLock(); this.scope.dispose(); }
 
   private clampToFloor(): void {
     if (!this.floor) return;
@@ -220,8 +216,7 @@ export class FreeCam {
     if (p.y < y) p.y = y;
   }
 
-  private isHeld(codes: string[]): boolean { for (const code of codes) if (this.held.has(code)) return true; return false; }
-  private axis(positive: string[], negative: string[]): number { return (this.isHeld(positive) ? 1 : 0) - (this.isHeld(negative) ? 1 : 0); }
+
   private syncPivot(): void { this.pivot.set(0, 0, -this.pivotDistance).applyQuaternion(this.camera.quaternion).add(this.camera.position); }
 
   private readonly onPointerDown = (event: PointerEvent): void => {
@@ -275,16 +270,6 @@ export class FreeCam {
     this.dolly(this.zoomSpeed * notches);
   };
 
-  private readonly onKeyDown = (event: KeyboardEvent): void => {
-    if (!this.enabled) return;
-    const t = event.target;
-    if (t instanceof HTMLInputElement || t instanceof HTMLTextAreaElement) return; // typing a note
-    this.held.add(event.code);
-    if (this.keymap.focus.includes(event.code)) this.focus(this.pivot);
-  };
-
-  private readonly onKeyUp = (event: KeyboardEvent): void => { this.held.delete(event.code); };
-  private readonly onBlur = (): void => { this.held.clear(); this.drag = 'none'; this.releaseLock(); };
   private readonly onContextMenu = (event: MouseEvent): void => { if (this.enabled) event.preventDefault(); };
   private readonly onPointerLockChange = (): void => { this.locked = document.pointerLockElement === this.dom; };
   private releaseLock(): void { if (this.locked) document.exitPointerLock(); this.locked = false; }

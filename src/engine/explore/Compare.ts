@@ -1,3 +1,5 @@
+import { listenDom } from '../input/dom';
+import { app } from '../app/runtime';
 /**
  * World Explorer's static image comparison. Each target has a capture from the same authored
  * camera. Opening it never flies or moves the live camera. Images are requested only when
@@ -13,6 +15,7 @@ export function hasCompareTargets(world: World): boolean { return (world.game.le
 const html = (tag: string, cls: string, inner = ''): HTMLElement => { const e = document.createElement(tag); e.className = cls; e.innerHTML = inner; return e; };
 
 export class Compare {
+  private readonly uiScope = (app.levelScope ?? app.engineScope).child('explore-widget');
   readonly button: HTMLElement;
   private readonly picker: HTMLElement;
   private readonly overlay: HTMLElement;
@@ -37,13 +40,13 @@ export class Compare {
     this.liveImg = this.overlay.querySelector<HTMLImageElement>('.ws-x-compare-live') ?? document.createElement('img');
     this.targetImg = this.overlay.querySelector<HTMLImageElement>('.ws-x-compare-target') ?? document.createElement('img');
     this.divider = this.overlay.querySelector<HTMLElement>('.ws-x-divider') ?? this.overlay;
-    this.button.addEventListener('click', () => { this.togglePicker(); });
-    this.picker.querySelector('.ws-x-picker-close')?.addEventListener('click', () => { this.picker.classList.remove('show'); });
-    this.picker.querySelectorAll<HTMLElement>('.ws-x-target').forEach((b) => { b.addEventListener('click', () => { const t = this.targets.find((x) => x.id === b.dataset['id']); if (t) this.show(t); }); });
-    this.overlay.querySelector('.ws-x-compare-close')?.addEventListener('click', () => { this.close(); });
-    this.divider.addEventListener('pointerdown', (e) => { this.divider.setPointerCapture(e.pointerId); this.splitAt(e.clientX); e.preventDefault(); });
-    this.divider.addEventListener('pointermove', (e) => { if (this.divider.hasPointerCapture(e.pointerId)) this.splitAt(e.clientX); });
-    this.divider.addEventListener('keydown', (e) => {
+    listenDom(this.uiScope, this.button, 'click', () => { this.togglePicker(); });
+    listenDom(this.uiScope, this.picker.querySelector('.ws-x-picker-close'), 'click', () => { this.picker.classList.remove('show'); });
+    this.picker.querySelectorAll<HTMLElement>('.ws-x-target').forEach((b) => { listenDom(this.uiScope, b, 'click', () => { const t = this.targets.find((x) => x.id === b.dataset['id']); if (t) this.show(t); }); });
+    listenDom(this.uiScope, this.overlay.querySelector('.ws-x-compare-close'), 'click', () => { this.close(); });
+    listenDom(this.uiScope, this.divider, 'pointerdown', (e) => { this.divider.setPointerCapture(e.pointerId); this.splitAt(e.clientX); e.preventDefault(); });
+    listenDom(this.uiScope, this.divider, 'pointermove', (e) => { if (this.divider.hasPointerCapture(e.pointerId)) this.splitAt(e.clientX); });
+    listenDom(this.uiScope, this.divider, 'keydown', (e) => {
       if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
       this.split = Math.min(0.98, Math.max(0.02, this.split + (e.key === 'ArrowLeft' ? -0.05 : 0.05)));
       this.apply(); e.preventDefault();

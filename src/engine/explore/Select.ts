@@ -1,3 +1,5 @@
+import { listenDom } from '../input/dom';
+import { app } from '../app/runtime';
 import { engineString } from '#engine/strings';
 /**
  * Select — tap / click a model in the World Explorer (project/archive/2026-09-23-explore-world.md X4; mockups round-3 p09, round-4 g09 / g13;
@@ -23,6 +25,7 @@ export type { SelectTarget } from './pick';
 const html = (tag: string, cls: string, inner = ''): HTMLElement => { const e = document.createElement(tag); e.className = cls; e.innerHTML = inner; return e; };
 
 export class Select {
+  private readonly uiScope = (app.levelScope ?? app.engineScope).child('explore-widget');
   private readonly ray = new THREE.Raycaster();
   /** VIEW IN WORLD's eye test (a tap's own `ray` is left alone) */
   private readonly probe = new THREE.Raycaster();
@@ -48,13 +51,13 @@ export class Select {
       <div class="ws-x-select-actions"><button type="button" class="ws-x-open">Open in model explorer</button><button type="button" class="ws-x-orbit">Orbit</button><button type="button" class="ws-x-deselect" aria-label="Deselect">✕</button></div>`);
     this.dim = html('div', 'ws-x-select-dim');
     explore.root.append(this.dim, this.card);
-    this.card.querySelector('.ws-x-open')?.addEventListener('click', () => { const c = this.current; if (c) { this.clear(); this.explore.setMode('model', { model: c.entry.id }); } });
-    this.card.querySelector('.ws-x-orbit')?.addEventListener('click', () => { this.orbit(); });
-    this.card.querySelector('.ws-x-deselect')?.addEventListener('click', () => { this.clear(); });
+    listenDom(this.uiScope, this.card.querySelector('.ws-x-open'), 'click', () => { const c = this.current; if (c) { this.clear(); this.explore.setMode('model', { model: c.entry.id }); } });
+    listenDom(this.uiScope, this.card.querySelector('.ws-x-orbit'), 'click', () => { this.orbit(); });
+    listenDom(this.uiScope, this.card.querySelector('.ws-x-deselect'), 'click', () => { this.clear(); });
     // desktop: a left click that did not drag (FreeCam owns right / middle / Alt+left)
     const canvas = world.game.canvas;
-    canvas.addEventListener('pointerdown', (e) => { if (e.pointerType === 'mouse' && e.button === 0 && !e.altKey) this.down = { x: e.clientX, y: e.clientY, t: performance.now() }; });
-    canvas.addEventListener('pointerup', (e) => {
+    listenDom(this.uiScope, canvas, 'pointerdown', (e) => { if (e.pointerType === 'mouse' && e.button === 0 && !e.altKey) this.down = { x: e.clientX, y: e.clientY, t: performance.now() }; });
+    listenDom(this.uiScope, canvas, 'pointerup', (e) => {
       const d = this.down; this.down = null;
       if (!d || e.pointerType !== 'mouse' || e.button !== 0) return;
       if (Math.hypot(e.clientX - d.x, e.clientY - d.y) < 6 && performance.now() - d.t < 400) this.pick(e.clientX, e.clientY);

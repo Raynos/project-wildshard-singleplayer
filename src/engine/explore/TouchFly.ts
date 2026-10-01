@@ -1,3 +1,5 @@
+import { listenDom } from '../input/dom';
+import { app } from '../app/runtime';
 import { engineString } from '#engine/strings';
 /**
  * TouchFly — the phone's god-mode flight controls for the World Explorer (project/archive/2026-09-23-explore-world.md X2, mockups
@@ -38,8 +40,10 @@ function capture(el: HTMLElement, id: number): void {
  * phase), so a hold still ends if the rail hides under the finger and the capture is lost. Lit `.on` while held.
  */
 export function holdButton(b: HTMLElement, onHold: (held: boolean) => void): void {
+  const scope = (app.levelScope ?? app.engineScope).child('fly-held-button');
+  scope.onDispose(() => { onHold(false); });
   const ids = new Set<number>();
-  b.addEventListener('pointerdown', (e) => {
+  listenDom(scope, b, 'pointerdown', (e) => {
     e.preventDefault();
     if (e.pointerType === 'mouse' && e.button !== 0) return;
     capture(b, e.pointerId);
@@ -50,8 +54,8 @@ export function holdButton(b: HTMLElement, onHold: (held: boolean) => void): voi
     if (!ids.delete(e.pointerId) || ids.size > 0) return;
     b.classList.remove('on'); onHold(false);
   };
-  window.addEventListener('pointerup', up, true);
-  window.addEventListener('pointercancel', up, true);
+  listenDom(scope, window, 'pointerup', up, true);
+  listenDom(scope, window, 'pointercancel', up, true);
 }
 
 interface PendingTap { btn: HTMLButtonElement; x: number; y: number; shared: boolean }
@@ -65,24 +69,21 @@ interface PendingTap { btn: HTMLButtonElement; x: number; y: number; shared: boo
  * The listeners are passive observers in the capture phase: nothing is prevented, stopped or released.
  */
 class MultiTouchTaps {
+  private readonly uiScope = (app.levelScope ?? app.engineScope).child('explore-widget');
   private readonly down = new Set<number>();
   private readonly taps = new Map<number, PendingTap>();
   private relayed: { btn: HTMLElement; until: number } | null = null;
 
   constructor(private readonly overlay: HTMLElement) {
-    window.addEventListener('pointerdown', this.onDown, true);
-    window.addEventListener('pointerup', this.onUp, true);
-    window.addEventListener('pointercancel', this.onCancel, true);
-    window.addEventListener('click', this.onClick, true);
-    document.addEventListener('visibilitychange', this.onHidden);
+    listenDom(this.uiScope, window, 'pointerdown', this.onDown, true);
+    listenDom(this.uiScope, window, 'pointerup', this.onUp, true);
+    listenDom(this.uiScope, window, 'pointercancel', this.onCancel, true);
+    listenDom(this.uiScope, window, 'click', this.onClick, true);
+    listenDom(this.uiScope, document, 'visibilitychange', this.onHidden);
   }
 
   dispose(): void {
-    window.removeEventListener('pointerdown', this.onDown, true);
-    window.removeEventListener('pointerup', this.onUp, true);
-    window.removeEventListener('pointercancel', this.onCancel, true);
-    window.removeEventListener('click', this.onClick, true);
-    document.removeEventListener('visibilitychange', this.onHidden);
+    this.uiScope.dispose(); this.down.clear(); this.taps.clear(); this.relayed = null;
   }
 
   private readonly onDown = (e: PointerEvent): void => {
@@ -123,6 +124,7 @@ class MultiTouchTaps {
 interface Finger { id: number; x: number; y: number; x0: number; y0: number; t0: number; moved: boolean }
 
 export class TouchFly {
+  private readonly uiScope = (app.levelScope ?? app.engineScope).child('explore-widget');
   onTap?: (x: number, y: number) => void;
   /** one finger orbits `cam.pivot` instead of turning the head (a selected object) */
   orbiting = false;
@@ -142,11 +144,12 @@ export class TouchFly {
     const label = document.createElement('b'); label.textContent = engineString('s_31bbe05d4315'); this.stick.append(label);
     host.append(this.stick);
     this.taps = new MultiTouchTaps(host.closest<HTMLElement>('.ws-x') ?? host);
-    this.stick.addEventListener('pointerdown', this.onStickDown);
-    surface.addEventListener('pointerdown', this.onDown);
-    window.addEventListener('pointermove', this.onMove);
-    window.addEventListener('pointerup', this.onUp);
-    window.addEventListener('pointercancel', this.onUp);
+    listenDom(this.uiScope, this.stick, 'pointerdown', this.onStickDown);
+    listenDom(this.uiScope, surface, 'pointerdown', this.onDown);
+    listenDom(this.uiScope, window, 'pointermove', this.onMove);
+    listenDom(this.uiScope, window, 'pointerup', this.onUp);
+    listenDom(this.uiScope, window, 'pointercancel', this.onUp);
+    this.uiScope.onDispose(() => { this.taps.dispose(); this.stick.remove(); this.fingers.clear(); this.stickId = null; this.cam.move.set(0, 0, 0); });
   }
 
   /** hold a vertical button: +1 up, −1 down, 0 released */
@@ -155,10 +158,7 @@ export class TouchFly {
   dispose(): void {
     this.taps.dispose();
     this.stick.remove();
-    this.surface.removeEventListener('pointerdown', this.onDown);
-    window.removeEventListener('pointermove', this.onMove);
-    window.removeEventListener('pointerup', this.onUp);
-    window.removeEventListener('pointercancel', this.onUp);
+    this.uiScope.dispose(); this.fingers.clear(); this.stickId = null;
     this.cam.move.set(0, 0, 0);
   }
 

@@ -1,3 +1,4 @@
+import { listenDom } from '../input/dom';
 import { engineString } from '#engine/strings';
 /**
  * Model Explorer (project/archive/2026-09-23-explore-world.md X3; mockups round-3 p04 catalog, p03 turntable, p17 close-up): the Explore pane that
@@ -92,6 +93,7 @@ function setShadowMapSize(l: THREE.DirectionalLight, n: number): void {
 const html = (tag: string, cls: string, inner = ''): HTMLElement => { const e = document.createElement(tag); e.className = cls; e.innerHTML = inner; return e; };
 
 export class ModelExplorer implements ExplorePane {
+  private readonly uiScope = (app.levelScope ?? app.engineScope).child('explore-widget');
   readonly el: HTMLElement;
   private readonly grid: HTMLElement;
   private readonly sheet: HTMLElement;
@@ -173,7 +175,7 @@ export class ModelExplorer implements ExplorePane {
     // The bottom sheet changes height with iPhone viewport, safe area, text wrapping and localization. Keep the
     // variant and clip controls above its *measured* top, rather than a fixed 208 px from the screen bottom.
     this.sheetObserver = new ResizeObserver(() => { this.placeVariantControls(); this.refit(false); });
-    document.addEventListener('ws:model-ready', (event) => {
+    listenDom(this.uiScope, document, 'ws:model-ready', (event) => {
       const id = (event as CustomEvent<{ id: string }>).detail.id;
       const entry = this.entries.find((candidate) => candidate.id === id);
       if (!entry) return;
@@ -194,20 +196,20 @@ export class ModelExplorer implements ExplorePane {
     });
     // index.html swallows touchmove outside [data-scroll]: without the mark the catalog can't scroll on a phone (E109)
     for (const s of this.el.querySelectorAll<HTMLElement>('.ws-x-grid, .ws-x-filter, .ws-x-variants, .ws-x-clips')) s.dataset['scroll'] = '';
-    this.grid.querySelectorAll<HTMLElement>('.ws-x-filter button').forEach((b) => { b.addEventListener('click', () => { this.filter = (b.dataset['f'] ?? 'all') as Category | 'all'; this.renderGrid(); }); });
-    this.sheet.querySelectorAll<HTMLElement>('.ws-x-views button').forEach((b) => { b.addEventListener('click', () => { this.setView((b.dataset['v'] ?? 'solid') as View); }); });
-    this.sheet.querySelectorAll<HTMLElement>('.ws-x-lights button').forEach((b) => { b.addEventListener('click', () => { this.setLight(Number(b.dataset['l'] ?? -1)); }); });
-    this.sheet.querySelector('.ws-x-back')?.addEventListener('click', () => { this.openCatalog(); });
+    this.grid.querySelectorAll<HTMLElement>('.ws-x-filter button').forEach((b) => { listenDom(this.uiScope, b, 'click', () => { this.filter = (b.dataset['f'] ?? 'all') as Category | 'all'; this.renderGrid(); }); });
+    this.sheet.querySelectorAll<HTMLElement>('.ws-x-views button').forEach((b) => { listenDom(this.uiScope, b, 'click', () => { this.setView((b.dataset['v'] ?? 'solid') as View); }); });
+    this.sheet.querySelectorAll<HTMLElement>('.ws-x-lights button').forEach((b) => { listenDom(this.uiScope, b, 'click', () => { this.setLight(Number(b.dataset['l'] ?? -1)); }); });
+    listenDom(this.uiScope, this.sheet.querySelector('.ws-x-back'), 'click', () => { this.openCatalog(); });
     // the path is one line (its folder gives way in the middle): a tap shows the whole of it
-    this.sheet.querySelector('.ws-x-file')?.addEventListener('click', () => { const e = this.current; if (e) this.explore.toast(e.file); });
+    listenDom(this.uiScope, this.sheet.querySelector('.ws-x-file'), 'click', () => { const e = this.current; if (e) this.explore.toast(e.file); });
     // E181 (Jake: "there's no buttons to go left or right in the catalog"): step through the list the catalog is showing
-    this.sheet.querySelector('.ws-x-prev')?.addEventListener('click', () => { this.step(-1); });
-    this.sheet.querySelector('.ws-x-next')?.addEventListener('click', () => { this.step(1); });
-    this.grid.querySelector('.ws-x-lineup')?.addEventListener('click', () => { this.openLineup(); });
-    this.sheet.querySelectorAll<HTMLElement>('.ws-x-clips button').forEach((b) => { b.addEventListener('click', () => { this.playClip((b.dataset['c'] ?? 'idle') as Clip); }); });
-    this.sheet.querySelector('.ws-x-skel')?.addEventListener('click', () => { this.setSkeleton(!this.skeleton); });
-    this.sheet.querySelector('.ws-x-slow')?.addEventListener('click', (ev) => { this.slow = !this.slow; (ev.currentTarget as HTMLElement).classList.toggle('on', this.slow); });
-    this.sheet.querySelector('.ws-x-inworld')?.addEventListener('click', () => { const e = this.current; if (e) this.explore.viewInWorld(e); });
+    listenDom(this.uiScope, this.sheet.querySelector('.ws-x-prev'), 'click', () => { this.step(-1); });
+    listenDom(this.uiScope, this.sheet.querySelector('.ws-x-next'), 'click', () => { this.step(1); });
+    listenDom(this.uiScope, this.grid.querySelector('.ws-x-lineup'), 'click', () => { this.openLineup(); });
+    this.sheet.querySelectorAll<HTMLElement>('.ws-x-clips button').forEach((b) => { listenDom(this.uiScope, b, 'click', () => { this.playClip((b.dataset['c'] ?? 'idle') as Clip); }); });
+    listenDom(this.uiScope, this.sheet.querySelector('.ws-x-skel'), 'click', () => { this.setSkeleton(!this.skeleton); });
+    listenDom(this.uiScope, this.sheet.querySelector('.ws-x-slow'), 'click', (ev) => { this.slow = !this.slow; (ev.currentTarget as HTMLElement).classList.toggle('on', this.slow); });
+    listenDom(this.uiScope, this.sheet.querySelector('.ws-x-inworld'), 'click', () => { const e = this.current; if (e) this.explore.viewInWorld(e); });
 
     // the studio (X11, target art/build-world/round-6-midway/07): a dark floor whose grid fades into the dark, a raised
     // glass disc with a glowing cyan rim (HDR colour → the bloom picks it up), a soft contact shadow; the day sky is
@@ -231,11 +233,11 @@ export class ModelExplorer implements ExplorePane {
     world.game.scene.add(this.studio);
 
     const canvas = world.game.canvas;
-    canvas.addEventListener('pointerdown', this.onDown);
-    window.addEventListener('pointermove', this.onMove);
-    window.addEventListener('pointerup', this.onUp);
-    window.addEventListener('pointercancel', this.onUp);
-    canvas.addEventListener('wheel', this.onWheel, { passive: false });
+    listenDom(this.uiScope, canvas, 'pointerdown', this.onDown);
+    listenDom(this.uiScope, window, 'pointermove', this.onMove);
+    listenDom(this.uiScope, window, 'pointerup', this.onUp);
+    listenDom(this.uiScope, window, 'pointercancel', this.onUp);
+    listenDom(this.uiScope, canvas, 'wheel', this.onWheel, { passive: false });
     this.renderGrid();
   }
 
@@ -316,7 +318,7 @@ export class ModelExplorer implements ExplorePane {
       (card as HTMLButtonElement).type = 'button';
       const thumb = this.thumbs.get(e.id);
       if (thumb) card.querySelector('.ws-x-model-thumb')?.append(thumb);
-      card.addEventListener('click', () => { this.openModel(e); });
+      listenDom(this.uiScope, card, 'click', () => { this.openModel(e); });
       card.dataset['id'] = e.id;
       box.append(card);
     }
@@ -372,7 +374,7 @@ export class ModelExplorer implements ExplorePane {
       const b = html('button', '', s.name);
       (b as HTMLButtonElement).type = 'button';
       b.dataset['set'] = s.id;
-      b.addEventListener('click', () => { this.explore.openSet(s.id); });
+      listenDom(this.uiScope, b, 'click', () => { this.explore.openSet(s.id); });
       return b;
     }));
   }
@@ -624,7 +626,7 @@ export class ModelExplorer implements ExplorePane {
     for (const v of e.variants ?? []) {
       const b = html('button', '', v.label);
       (b as HTMLButtonElement).type = 'button';
-      b.addEventListener('click', () => {
+      listenDom(this.uiScope, b, 'click', () => {
         const p = e.animal ? this.pin.get(e.animal) : undefined;
         e.rebuild?.(v.id); this.adopt(e, p);
         if (!e.animal) {

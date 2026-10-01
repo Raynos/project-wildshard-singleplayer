@@ -1,3 +1,4 @@
+import { listenDom, mountDom } from '../input/dom';
 import { engineString } from '#engine/strings';
 import { app } from '../app/runtime';
 /**
@@ -127,6 +128,7 @@ const touchDevice = (): boolean => document.getElementById('hud')?.classList.con
 
 /** A shard can have world geometry without any close-up specimens registered yet. Keep the Models tab useful and honest. */
 class EmptyModels implements ExplorePane {
+  private readonly uiScope = (app.levelScope ?? app.engineScope).child('explore-widget');
   readonly el: HTMLElement;
 
   constructor(explore: Explore, shardName: string) {
@@ -140,7 +142,7 @@ class EmptyModels implements ExplorePane {
         <button type="button">Explore the world <span aria-hidden="true">›</span></button>
         <small>The model catalog will appear here as assets are added.</small>
       </div>`);
-    this.el.querySelector('button')?.addEventListener('click', () => { explore.setMode('world'); });
+    listenDom(this.uiScope, this.el.querySelector('button'), 'click', () => { explore.setMode('world'); });
   }
 
   show(): void { this.el.classList.add('show'); }
@@ -150,6 +152,8 @@ class EmptyModels implements ExplorePane {
 }
 
 export class Explore {
+  private readonly uiScope = (app.levelScope ?? app.engineScope).child('explore-widget');
+  private readonly inputScope = (app.levelScope ?? app.engineScope).child('explore-input');
   active = false;
   mode: ExploreMode = 'hub';
   readonly cam: FreeCam;
@@ -168,7 +172,7 @@ export class Explore {
   private held = false;
   private readoutT = 0;
   private readonly parkedFrom = new THREE.Vector3();
-  private toastTimer = 0;
+  private toastScope = this.uiScope.child('toast');
 
   /** the level's name and picker art */
   readonly title: ExploreTitle;
@@ -178,6 +182,7 @@ export class Explore {
     this.title = host.title;
     this.cam = new FreeCam(game.camera, game.canvas, { moveSpeed: SPEEDS[1][1], damping: 0.82, pointerLock: true });
     this.cam.enabled = false;
+    this.uiScope.onDispose(() => { this.cam.dispose(); });
     this.cam.floor = (x, z) => heightAt(x, z);
 
     this.root = html('div', 'ws-x');
@@ -225,12 +230,12 @@ export class Explore {
     note.setAttribute('aria-label', engineString('s_a04a8fb11d48'));
     this.toastEl = html('div', 'ws-x-toast');
     this.root.append(top, this.readout, this.hubEl, this.flyEl, note, this.toastEl);
-    document.body.append(this.root);
+    mountDom(this.uiScope, document.body, this.root);
 
-    this.closeBtn.addEventListener('click', () => { this.back(); }); // E182 (Jake: "the X button kicks you back out to level select")
-    this.tabs.querySelectorAll<HTMLElement>('button').forEach((b) => { b.addEventListener('click', () => { this.setMode(asMode(b.dataset['m'])); }); });
+    listenDom(this.uiScope, this.closeBtn, 'click', () => { this.back(); }); // E182 (Jake: "the X button kicks you back out to level select")
+    this.tabs.querySelectorAll<HTMLElement>('button').forEach((b) => { listenDom(this.uiScope, b, 'click', () => { this.setMode(asMode(b.dataset['m'])); }); });
     this.hubEl.querySelectorAll<HTMLElement>('.ws-x-card').forEach((b) => {
-      b.addEventListener('click', () => {
+      listenDom(this.uiScope, b, 'click', () => {
         const pg = asPlaygroundId(b.dataset['pg']);
         if (pg !== null) this.startPlayground(pg);
         else if (b.dataset['m'] === 'practice') this.startPractice();
@@ -238,15 +243,24 @@ export class Explore {
       });
     });
     // a tap on it while flying (another finger holds the stick) comes through TouchFly's MultiTouchTaps (E329)
-    this.speedBtn.addEventListener('click', () => { this.setSpeed((this.speed + 1) % SPEEDS.length); });
-    note.addEventListener('click', () => { void this.note(); });
+    listenDom(this.uiScope, this.speedBtn, 'click', () => { this.setSpeed((this.speed + 1) % SPEEDS.length); });
+    listenDom(this.uiScope, note, 'click', () => { void this.note(); });
     // ▲ / ▼: each held by its own fingers beside the stick and a look drag (E329, TouchFly.ts holdButton); both held = level
     const rise = { up: false, down: false };
     for (const [sel, key] of [['.ws-x-up', 'up'], ['.ws-x-down', 'down']] as const) {
       const b = this.flyEl.querySelector<HTMLElement>(sel);
       if (b) holdButton(b, (on) => { rise[key] = on; this.cam.move.y = (rise.up ? 1 : 0) - (rise.down ? 1 : 0); });
     }
-    document.addEventListener('keydown', this.onKey);
+    for (const action of ['back', 'map', 'pane.1', 'pane.2', 'pane.3', 'quickNote'] as const) {
+      app.input.bind(action, () => {
+        if (action === 'back' && !this.held) this.back();
+        else if (action === 'map' && this.mode === 'world') this.map?.toggle();
+        else if (action === 'pane.1') this.setMode('model');
+        else if (action === 'pane.2') this.setMode('sets');
+        else if (action === 'pane.3') this.setMode('world');
+        else if (action === 'quickNote') void this.note();
+      }, this.inputScope, () => this.active);
+    }
     game.onUpdate((dt) => { this.update(dt); }, 'engine.explore.constructor');
     if ((game.level.pois ?? []).length > 0) this.map = new MiniMap(this, host.world, host.overhead ?? []);
     if (hasCompareTargets(host.world)) this.compare = new Compare(this, host.world);
@@ -506,8 +520,8 @@ export class Explore {
   toast(text: string): void {
     this.toastEl.textContent = text;
     this.toastEl.classList.add('show');
-    clearTimeout(this.toastTimer);
-    this.toastTimer = window.setTimeout(() => { this.toastEl.classList.remove('show'); }, 2600);
+    this.toastScope.dispose(); this.toastScope = this.uiScope.child('toast');
+    this.toastScope.timeout(2600, () => { this.toastEl.classList.remove('show'); });
   }
 
   /** the note's context: what you were looking at, and the URL that reopens it (`?explore=` — main.ts) */
@@ -530,29 +544,17 @@ export class Explore {
     const box = html('form', 'ws-x-unlock', `<b>Feedback needs the review password</b><input type="password" autocomplete="current-password" placeholder="Review password"><div><button type="submit">Unlock</button><button type="button" class="ws-x-unlock-cancel">Cancel</button></div><small></small>`);
     const input = box.querySelector('input'), msg = box.querySelector('small');
     const done = (): void => { box.remove(); this.hold(false); };
-    box.querySelector('.ws-x-unlock-cancel')?.addEventListener('click', done);
+    listenDom(this.uiScope, box.querySelector('.ws-x-unlock-cancel'), 'click', done);
     const submit = async (): Promise<void> => {
       const r = await unlockReview(input?.value ?? '');
       if (r === 'ok') { done(); this.host.openFeedback(); return; }
       if (msg) msg.textContent = r === 'bad' ? engineString('s_2dde10bde49e') : engineString('s_69cf0e392d1e');
     };
-    box.addEventListener('submit', (e) => { e.preventDefault(); void submit(); });
+    listenDom(this.uiScope, box, 'submit', (e) => { e.preventDefault(); void submit(); });
     this.root.append(box);
     this.hold(true);
     input?.focus();
   }
-
-  private readonly onKey = (e: KeyboardEvent): void => {
-    if (!this.active || e.repeat) return;
-    const t = e.target;
-    if (t instanceof HTMLInputElement || t instanceof HTMLTextAreaElement) return;
-    if (e.code === 'F8') { e.preventDefault(); void this.note(); }
-    else if (e.code === 'Escape' && !this.held) this.back(); // E182: Esc and ✕ are the same one step back
-    else if (e.code === 'KeyM' && this.mode === 'world') this.map?.toggle();
-    else if (e.code === 'Digit1') this.setMode('model');
-    else if (e.code === 'Digit2') this.setMode('sets');
-    else if (e.code === 'Digit3') this.setMode('world');
-  };
 
   private update(dt: number): void {
     if (!this.active) return;
