@@ -15,6 +15,8 @@ engine / game / kit / shards. The lead session (Claude, herdr agent `wildshard-9
 - **No parity runs, no browser runs** unless your job brief explicitly allows one smoke run. Parity and every slow test
   belong to the lead, in batches (decision 104). You run only fast checks: `pnpm exec tsc --noEmit -p .` (~1 s),
   `pnpm exec oxlint <your files>` (~1 s), and focused `pnpm exec vitest run <your test files>`.
+- **No new ask file.** Your job is an E357 row, not a user ask: never run `scripts/ask-new.sh` (E366, E369, E371 were
+  claimed by builders and dropped). Your Handoff goes in `docs/tasks/asks/E357.md`.
 - **`docs/tasks/asks/E357.md` is append-only from HEAD** (three handoffs were lost to stale copies on 2026-10-01): commit
   it only as HEAD's blob plus your own section's lines (a private index), never the working-tree copy wholesale.
 - **Boot before you land runtime code** (2026-10-01: four commits passed tsc / lint / tests and left a shard unbootable):
