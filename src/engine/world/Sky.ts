@@ -383,7 +383,7 @@ export class Sky {
     this.dressing?.update?.(dt);
   }
 
-  // ── runtime setters (the day/night clock + weather, src/engine/world/DayClock.ts; nothing calls them on a fixed-time shard) ──
+  // ── runtime setters (a level's day/night sky rig + weather; nothing calls them on a fixed-time shard) ──
 
   /**
    * Move the key light (the sun, or the moon at night) and recolour it: the CSM direction + colour × intensity, the
