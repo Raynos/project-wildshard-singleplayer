@@ -7,3 +7,5 @@ export { toLevelSpec } from './shard/spec';
 export type { ShardManifest } from './shard/manifest';
 
 export { progressSave, inventorySave, purseSave, ownedSave, bountySave, compendiumSave, bossesSave, elitesSave, saveSlug, shardSave } from './saves';
+
+export type { OwnedId } from './loot/Owned';

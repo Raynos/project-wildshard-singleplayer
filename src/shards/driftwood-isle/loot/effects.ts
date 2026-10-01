@@ -1,5 +1,5 @@
 import { EffectService, type EffectDef, type EffectId, type EffectTarget, type Scope, type PlayerHealth, type AttributeSet } from '#engine';
-import type { OwnedId } from '#game/loot/Owned';
+import type { OwnedId } from '#game';
 
 const permanent = (id: EffectId, modifiers: EffectDef['modifiers'] = [], grants: EffectDef['grants'] = []): EffectDef =>
   ({ id, kind: 'permanent', tags: [], modifiers, grants, stacking: 'none' });
@@ -43,7 +43,7 @@ export function driftwoodAttributes(owned: OwnedEffects): { attributes: Attribut
   return { attributes: { ...player.attributes, ...weapon.attributes }, tags: player.effectTags ?? [] };
 }
 export function bindDriftwoodEffects(o: {
-  effects: EffectService; scope: Scope; owned: OwnedEffects & { onChange: (fn: () => void) => void };
+  effects: EffectService; scope: Scope; owned: OwnedEffects & { onChange: (fn: () => void) => () => void };
   health: PlayerHealth; player: { dodgeCooldownScale: number };
   swords: readonly (EffectTarget & { damage: number; heavyMult: number })[]; hitCap: number;
 }): void {
@@ -64,5 +64,5 @@ export function bindDriftwoodEffects(o: {
     effects.sync(health, [...driftwoodPlayerGrants(o.owned), ...(Number.isFinite(o.hitCap) ? [{ id: 'effect.hit-cap' as const }] : [])]);
     for (const sword of o.swords) effects.sync(sword, driftwoodWeaponGrants(o.owned));
   };
-  apply(); o.owned.onChange(apply);
+  apply(); scope.onDispose(o.owned.onChange(apply));
 }
