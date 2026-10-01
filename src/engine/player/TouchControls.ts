@@ -139,6 +139,7 @@ export class TouchControls {
   private lockLinger = 0; private lockIdle = false; // E319: s left before LOCK hides with nothing to lock / `.lock-idle` as last painted
   private wasRiding = false; // in Nalati's saddle MOVE steers the horse: it never reads ORBIT (`.riding`)
   private hintLock?: HintDisc; private hintJump?: HintDisc; // LOCK / JUMP as a shard's traversal verb re-dresses them (E286)
+  private hintAttackMelee?: HintDisc; private hintAttackRanged?: HintDisc;
 
   constructor(private player: Player, private weapons: EquipmentService, force = false, private lock?: LockOnSystem) {
     this.active = force || IS_TOUCH;
@@ -162,15 +163,6 @@ export class TouchControls {
     for (const n of root.querySelectorAll('*')) n.setAttribute('draggable', 'false');
     // E154: the one base layer every shard shares — whatever a shard adds (a status row, a disc in a named slot, a tag) goes
     // through src/engine/ui/hudSlots.ts, which docks it here and nowhere else
-    app.input.touchStackSink((layout) => {
-      this.touchMode = layout.mode; this.touchLockable = layout.lockable;
-      const live = new Set(layout.actions);
-      for (const [selector, action] of [['.ws-touch-attack', 'attack'], ['.aim', 'aim'], ['.jump', 'jump'], ['.dodge', 'dodge'], ['.ws-touch-hover', 'hover']] as const) {
-        el(root, selector).style.visibility = live.has(action) || (action === 'jump' && live.has('dive')) || (action === 'dodge' && live.has('surface')) ? '' : 'hidden';
-      }
-      for (const spot of ['lock', 'jump'] as const) this.relabel(spot, layout.labels[spot] ?? null);
-      this.paintVerbs(root, layout.verbs);
-    }, this.scope);
     hudSlots.mount(root, el(root, '.ws-touch-status'));
     const stick = this.stick = el(root, '.ws-touch-stick');
     this.knob = el(stick, 'i');
@@ -179,6 +171,22 @@ export class TouchControls {
     const hintDisc = (btn: HTMLElement): HintDisc => { const svg = el(btn, 'svg'); return { btn, label: el(btn, 'span'), svg, ownIcon: svg.innerHTML, hint: null }; };
     const hintLock = this.hintLock = hintDisc(lockBtn);
     this.hintJump = hintDisc(el(root, '.ws-touch-disc.jump'));
+    const attackDisc = el(root, '.ws-touch-attack');
+    for (const mode of ['melee', 'ranged'] as const) {
+      const svg = el(attackDisc, `svg.${mode}`);
+      const hint: HintDisc = { btn: attackDisc, label: el(attackDisc, `span.${mode}`), svg, ownIcon: svg.innerHTML, hint: null };
+      if (mode === 'melee') this.hintAttackMelee = hint; else this.hintAttackRanged = hint;
+    }
+    // Build hint targets before the sink's first synchronous layout paint.
+    app.input.touchStackSink((layout) => {
+      this.touchMode = layout.mode; this.touchLockable = layout.lockable;
+      const live = new Set(layout.actions);
+      for (const [selector, action] of [['.ws-touch-attack', 'attack'], ['.aim', 'aim'], ['.jump', 'jump'], ['.dodge', 'dodge'], ['.ws-touch-hover', 'hover']] as const) {
+        el(root, selector).style.visibility = live.has(action) || (action === 'jump' && live.has('dive')) || (action === 'dodge' && live.has('surface')) ? '' : 'hidden';
+      }
+      for (const spot of ['r0', 'lock', 'jump'] as const) this.relabel(spot, layout.labels[spot] ?? null);
+      this.paintVerbs(root, layout.verbs);
+    }, this.scope);
 
     // ── aim assist: runs at the top of every player update (before the camera is posed) so a nudge shows the same frame ──
     const assist = this.assist = new AimAssist(root);
@@ -457,11 +465,19 @@ export class TouchControls {
   private readonly verbSpecs: Partial<Record<'verb.1' | 'verb.2', { hold?: boolean }>> = {};
 
   /**
-   * A shard's traversal verb re-dresses LOCK and JUMP (scoped HUD relabels, E286: Nine Dragon's
+   * A shard re-dresses ATTACK/FIRE (r0), LOCK and JUMP (scoped HUD relabels, E286: Nine Dragon's
    * GRAPPLE / LOCKED / ZIP): the label, the icon and a tone class (`.hint.hint-rest|ready|active`, accent `--hint`); null
    * gives the disc its own back. Only a change touches the DOM. A no-op without the touch layer.
    */
   relabel(spot: DiscSpot, hint: TouchRelabel | null): void {
+    if (spot === 'r0') {
+      const attack = engineString('s_852b889c1d23'), fire = engineString('s_8c1280a20004');
+      const own = this.touchMode === 'melee' ? attack : fire;
+      // A baseline label keeps the existing markup/classes; only authored differences dress the disc.
+      const authored = hint?.label === own && hint.icon === undefined && hint.tone === 'rest' && hint.accent === undefined ? null : hint;
+      if (this.hintAttackMelee !== undefined) this.applyHint(this.hintAttackMelee, authored, attack);
+      if (this.hintAttackRanged !== undefined) this.applyHint(this.hintAttackRanged, authored, fire);
+    }
     if (spot === 'lock' && this.hintLock !== undefined) this.applyHint(this.hintLock, hint, lockOn.state === 'locked' ? 'Locked' : 'Lock');
     if (spot === 'jump' && this.hintJump !== undefined) this.applyHint(this.hintJump, hint, 'Jump');
   }

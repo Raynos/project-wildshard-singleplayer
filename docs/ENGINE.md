@@ -576,6 +576,25 @@ sits on top of the weapon's and the weapon keeps firing.
 with `ctx.app.input.push(id, ctx.scope)`. A weapon names its context in its row (`ui.inputContext`), and the
 equipment service pushes it on draw.
 
+**Touch labels and spots.** `touch.relabel.r0` labels the existing ATTACK / FIRE disc (including a melee
+weapon's SWING label); `lock` and `jump` label their named controls. Labels and optional icons restore to the
+lower context on pop and to the built-in defaults when none remain. `tone` / `accent` dress LOCK / JUMP;
+the attack disc keeps its existing charge/ready appearance. A context already active when the touch layer mounts
+paints immediately.
+
+For added discs, `ctx.hud.disc({ spot, … })` uses placement anchors instead:
+
+| `DiscSpot` | Added-disc placement |
+|---|---|
+| `r0`, `jump` | lower-right JUMP position (the added-disc anchor differs from the attack relabel key above) |
+| `r1` | DODGE / SURFACE position, one step left |
+| `r2`, `lock` | LOCK position, two steps left |
+| `r3` | fourth lower-row position |
+| `aim` | AIM position |
+| `up0` | above JUMP |
+| `lean-l`, `lean-r` | left / right edges just above the bottom bar |
+| `edge-l`, `edge-r` | left / right edge tabs |
+
 ```ts
 ctx.inputContext({ id: 'template.whip', actions: ['attack', 'heavy', 'lock'], touch: { mode: 'melee', lockable: true, relabel: {} } });
 ctx.inputContext({ id: 'template.lantern', priority: 20, enabled: () => ctx.app.state === 'play',

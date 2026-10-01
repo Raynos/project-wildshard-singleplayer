@@ -1,0 +1,35 @@
+// @vitest-environment happy-dom
+import { expect, it } from 'vitest';
+import { EquipmentService, Scope, app } from '#engine';
+import { INPUT_CONTEXTS } from '#game/inputContexts';
+import { TouchControls } from '#engine/player/TouchControls';
+import { TemplateWhip } from '#shards/_template/weapons/TemplateWhip';
+import { fakeWorld } from '../fake/world';
+
+it('paints an already active attack relabel, respects an overlay and restores labels/icons on pop', () => {
+  const scope = new Scope('G5-touch'), previous = app.levelScope;
+  app.levelScope = scope;
+  const f = fakeWorld();
+  for (const key of ['preUpdate', 'onHoverChange', 'onSwimChange']) Reflect.set(f.player, key, undefined);
+  for (const key of ['hover', 'swimming', 'submerged']) Reflect.set(f.player, key, false);
+  const weapons = new EquipmentService(new TemplateWhip(app), { scope });
+  try {
+    for (const context of INPUT_CONTEXTS) app.input.register(context, scope);
+    app.input.register({ id: 'g5.fan', actions: ['attack', 'heavy', 'lock'], touch: { mode: 'melee', relabel: { r0: { label: 'SWING', tone: 'rest' } } } }, scope);
+    const overlay = new Scope('G5-overlay');
+    app.input.register({ id: 'g5.overlay', actions: ['attack'], touch: { relabel: { r0: { label: 'CRACK', icon: '<path d="M0 0L1 1"/>', tone: 'ready' } } } }, overlay);
+    app.input.push('onFoot', scope); app.input.push('weapon.melee', scope); app.input.push('g5.fan', scope);
+    new TouchControls(f.player, weapons, true);
+    const attack = document.querySelector('.ws-touch-attack');
+    if (!(attack instanceof HTMLElement)) throw new Error('attack disc missing');
+    const label = attack.querySelector('span.melee'), ranged = attack.querySelector('span.ranged'), svg = attack.querySelector('svg.melee');
+    if (!(label instanceof HTMLElement) || !(ranged instanceof HTMLElement) || svg === null) throw new Error('attack markup missing');
+    const ownIcon = svg.innerHTML;
+    expect(label.textContent).toBe('SWING'); expect(ranged.textContent).toBe('SWING');
+    app.input.push('g5.overlay', overlay); expect(label.textContent).toBe('CRACK'); expect(svg.innerHTML).not.toBe(ownIcon);
+    overlay.dispose(); expect(label.textContent).toBe('SWING'); expect(svg.innerHTML).toBe(ownIcon);
+    app.input.pop('g5.fan'); expect(label.textContent).toBe('Attack'); expect(ranged.textContent).toBe('Fire'); expect(attack.classList.contains('hint')).toBe(false);
+    app.input.pop('weapon.melee'); app.input.push('weapon.ranged', scope);
+    expect(label.textContent).toBe('Attack'); expect(ranged.textContent).toBe('Fire');
+  } finally { scope.dispose(); app.levelScope = previous; app.input.clear(); document.body.replaceChildren(); }
+});
