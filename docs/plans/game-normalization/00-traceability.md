@@ -150,6 +150,8 @@ The numbers are E357's. A revision sits right after the decision it replaces.
 | 91 | The Drowned Captain gets the shared BossBar (look board, S4.2) | 08 §6.2 (S4.2); IDX S4.2, §5 Look; 12 §6 Look row | covered (G21 resolved) |
 | 92 | The council's convergence protocol (frozen ledger, one bar, a cross-round register, diff-scoped rounds, a growing battery, plan-lint, minimal fixes, falling counts or stop) | 12 §1; reviews/register.md; reviews/battery.md; scripts/plan-lint.mjs | covered |
 | 93 | At most 4 rounds, then Jake decides what's open | 12 §1 item 8; reviews/register.md | covered |
+| 94 | Creature strikes on the body clock, incl. Driftwood's self-thinking creatures at S4.2, on the M4 board | 01 §12; 09 §5.7; 08 §6.2 / §8; 13 R1-32 | covered |
+| 95 | A rollback past F10 may reset saves a second time (stated on the rollback) | 03 §13; 12 §8; 13 R1-16 | covered |
 
 ## 3. The audit (`docs/audits/game-normalization-2026-09-30.md`) and the bugs found later
 
