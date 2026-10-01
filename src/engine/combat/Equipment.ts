@@ -4,6 +4,12 @@ import type { CombatTag } from './pipeline';
 import type { HitStopProfile } from './cues';
 import type { Events } from '../events/events';
 
+export interface RangedFeelProfile {
+  kick: { body: number; head: number; kill: number; side: number; killSide: number };
+  trauma: { kill: number; head: number; killKinds: readonly string[]; headKinds: readonly string[] };
+}
+
+
 
 /** Hosts declare their slot, icon and touch-layout vocabularies without importing content into simulation. */
 // oxlint-disable-next-line typescript/no-empty-object-type, typescript/no-empty-interface -- Host extension point populated by declaration merging.
@@ -26,7 +32,7 @@ export interface WeaponUi {
 }
 export interface EquipmentMeta { name: string; icon: EquipmentIcon; blurb: string; category: string }
 export interface EquipmentCues { fire: CueId; reload: CueId; impact: CueId; dry?: CueId; hit?: CueId; heavy?: CueId; charge?: Readonly<Record<string, CueId>> }
-export interface EquipmentRow { cues?: EquipmentCues; hitStop?: HitStopProfile; tags?: readonly CombatTag[]; id: EquipmentId; legacySlot?: WeaponId; ui: WeaponUi; meta: EquipmentMeta }
+export interface EquipmentRow { rangedFeel?: RangedFeelProfile; cues?: EquipmentCues; hitStop?: HitStopProfile; tags?: readonly CombatTag[]; id: EquipmentId; legacySlot?: WeaponId; ui: WeaponUi; meta: EquipmentMeta }
 export interface EquipmentBlock { dispose: () => void }
 export type BlockSet = Partial<Record<'vm' | 'aim' | 'ads' | 'melee' | 'projectile' | 'hitStop' | 'ammo' | 'brass', EquipmentBlock>>;
 /** The scope is sufficient for the legacy families; block/input/combat ports expand as their migration rows land. */

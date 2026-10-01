@@ -1,4 +1,5 @@
-import { saves, CombatCues, type EquipmentService, type Sky, fixIBL, VIEWMODEL_GROUP, worldHit } from '#engine';
+import { AMMO_ROWS } from './effects';
+import { saves, type CombatCues, type EquipmentService, type Scope, app, type Sky, fixIBL, VIEWMODEL_GROUP, worldHit } from '#engine';
 import { pineCombatCues } from '../audio/combatCues';
 import * as valibot from 'valibot';
 import * as THREE from 'three';
@@ -11,7 +12,7 @@ import type { Inventory } from '#game/Inventory';
 import type { HUD } from '#engine/ui/HUD';
 import type { Audio } from '#engine/audio/Audio';
 import type { PineHollowSfx } from '../audio/sfx';
-import { BOLT_KINDS, BOLT_LABEL, BOLT_NAME, POUCH_MAX, Quiver, boltDamage, boltFlight, type AmmoKind, type BoltKind } from './ammo';
+import { BOLT_KINDS, BOLT_LABEL, BOLT_NAME, POUCH_MAX, Quiver, boltDamage, type AmmoKind, type BoltKind } from './ammo';
 import type { Owned } from '#game/loot/Owned';
 
 const savedSlot = saves.define({ key: 'loadout', scope: 'shard', version: 1, schema: valibot.object({ pitch: valibot.optional(valibot.pipe(valibot.number(), valibot.finite())), broadhead: valibot.optional(valibot.pipe(valibot.number(), valibot.finite())), rounds: valibot.optional(valibot.pipe(valibot.number(), valibot.finite())), arrows: valibot.optional(valibot.pipe(valibot.number(), valibot.finite())) }), initial: () => ({}) });
@@ -36,17 +37,16 @@ const savedSlot = saves.define({ key: 'loadout', scope: 'shard', version: 1, sch
  *     says whether a trade's ammunition fits, so Mott never sells bolts into a full quiver;
  *     its draw creak (`longbowDraw`), its loose (`longbowLoose`; Audio.crossbowFire until the set decodes).
  *   · STONE — a bolt, an arrow or a round landing on rock / stone plays `boltImpact-rock` (the crack + the ricochet).
- *   · FEEL — nothing here: the combat feel (feel.ts: hit-stop, kick, trauma, debris) hooks `EquipmentService.onHit / onImpact`,
- *     which every kit weapon forwards, so the rifle and the bow land with it like the crossbow.
+ *   · FEEL — weapon events resolve row hit-stop, kick, trauma and debris through installRangedFeel.
  *
  *   loadout.addAmmo('pitch', 10)     the trader, the contracts ('iron' / 'pitch' / 'broadhead' / 'cartridge' / 'arrow')
  *   loadout.onPlayerDeath()          back to iron bolts before main.ts's refill tops up the loaded stack
- *   loadout.useSfx(sfx)  loadout.useRain(() => rain)   once the ambience / the weather exist
+ *   loadout.useSfx(sfx)   once ambience exists; weather answers projectile.modify during flight
  *   dev: `?weapon=lever|longbow|crossbow` (held at start), `?ammo=pitch|broadhead` (10 loaded), `window.__loadout`
  */
 
 export interface PineLoadoutHost {
-  scene: THREE.Scene; sky: Sky; weapons: EquipmentService; crossbow: Crossbow | null; rifle: LeverRifle; longbow: Longbow;
+  scope: Scope; cues: CombatCues; scene: THREE.Scene; sky: Sky; weapons: EquipmentService; crossbow: Crossbow | null; rifle: LeverRifle; longbow: Longbow;
   inventory: Inventory; owned: Owned; hud: HUD; audio: Audio; params: URLSearchParams;
 }
 
@@ -64,7 +64,6 @@ export interface PineLoadout {
   readonly hasRifle: boolean;
   onPlayerDeath: () => void;
   useSfx: (sfx: PineHollowSfx) => void;
-  useRain: (rain: () => number) => void;
   update: (dt: number) => void;
 }
 
@@ -103,7 +102,6 @@ export function installPineLoadout(h: PineLoadoutHost): PineLoadout {
   if (arrows !== null) longbow.state.bolts = Math.min(QUIVER_MAX, arrows);
   const kept = { rounds: rifle.state.reserve, arrows: longbow.state.bolts };
   let sfx: PineHollowSfx | null = null;
-  let rain: () => number = () => 0;
   let dirty = false, saveT = 0;
   const live = (): number => crossbow?.state.bolts ?? 0;
 
@@ -124,7 +122,10 @@ export function installPineLoadout(h: PineLoadoutHost): PineLoadout {
   for (const k of BOLT_KINDS) mods.set(k, { gravity: 1, drag: 1, damage: (animal) => boltDamage(k, animal), material: dress.get(k) });
   const applyBolt = (): void => {
     if (!crossbow) return;
-    const k = quiver.selected, m = mods.get(k) ?? PLAIN_BOLT, f = boltFlight(k, rain());
+    const k = quiver.selected, m = mods.get(k) ?? PLAIN_BOLT, row = AMMO_ROWS.find((ammo) => ammo.id === `ammo.${k}`);
+    if (row === undefined) throw new Error(`Unknown ammo ${k}`);
+    crossbow.selectedAmmo = row;
+    const f = row.flight;
     m.gravity = f.gravity; m.drag = f.drag;
     crossbow.boltMod = m; crossbow.ammoLabel = BOLT_LABEL[k];
   };
@@ -159,36 +160,39 @@ export function installPineLoadout(h: PineLoadoutHost): PineLoadout {
   const room = (kind: AmmoKind, n: number): boolean => count(kind) + n <= CAP[kind];
 
   // ── input: B cycles the bolt kind while the crossbow is held; the touch ammo strip, tapped, does the same ──
-  document.addEventListener('keydown', (e) => {
+  app.input.register({ id: 'crossbow.bolts', actions: ['bolt.cycle'], enabled: () => weapons.current.ammoSelect !== undefined && weapons.current.inputAllowed() }, h.scope);
+  app.input.push('crossbow.bolts', h.scope);
+  h.scope.listen(document, 'keydown', (event) => {
+    if (!(event instanceof KeyboardEvent)) return;
+    const e = event;
     if (e.repeat || e.code !== 'KeyB' || weapons.current.ammoSelect === undefined || !weapons.current.inputAllowed()) return;
-    weapons.current.ammoSelect();
+    app.input.press('bolt.cycle');
+    if (app.input.consume('bolt.cycle')) weapons.current.ammoSelect();
   });
-  document.addEventListener('pointerdown', (e) => {
+  h.scope.listen(document, 'pointerdown', (e) => {
     const t = e.target;
     if (!(t instanceof Element) || t.closest('.ws-game-bolts') === null || weapons.current.ammoSelect === undefined || !weapons.enabled) return;
     e.stopPropagation(); weapons.current.ammoSelect();
-  }, true);
+  }, { capture: true });
 
   // ── sounds (chained over main.ts's: the held weapon decides) ──
-  const cues = new CombatCues(pineCombatCues({
+  const cues = h.cues;
+  cues.use(pineCombatCues({
     shot: (name, opts) => sfx?.shot(name, opts) ?? false, stony,
-    later: (fn, seconds) => { window.setTimeout(fn, seconds * 1000); }, echoDelay: ECHO_DELAY, echoGain: ECHO_GAIN,
-  }));
-  const prevFire = weapons.onFire;
-  weapons.onFire = () => { if (!cues.fire(weapons.current.row)) prevFire?.(); };
-  const prevReload = weapons.onReloadStart;
-  weapons.onReloadStart = () => { if (!cues.reload(weapons.current.row)) prevReload?.(); };
-  rifle.onCycle = () => { cues.cue('cue.lever.cycle'); };
-  rifle.onRoundIn = () => {
-    weapons.events?.emit('weapon.reload', { id: rifle.row.id, phase: 'round' });
-    if (!cues.cue('cue.lever.round')) audio.dryFire();
-  };
-  const prevDry = weapons.onDry;
-  weapons.onDry = () => { if (!cues.cue(weapons.current.row.cues?.dry ?? 'cue.dry')) prevDry?.(); };
-  const prevImpact = weapons.onImpact;
-  weapons.onImpact = (surface, point) => { if (!cues.impact(weapons.current.row, { surface, point })) prevImpact?.(surface, point); };
-  longbow.onDrawStart = () => { longbow.chargeEvent('draw'); cues.charge(longbow.row, 'draw'); };
-  longbow.onRecover = (ok) => { longbow.chargeEvent('recover', ok ? 1 : 0); hud.toast(ok ? 'Arrow recovered' : 'Arrow broke'); };
+    later: (fn, seconds) => { h.scope.timeout(seconds * 1000, fn); }, echoDelay: ECHO_DELAY, echoGain: ECHO_GAIN,
+  }), h.scope);
+  const events = weapons.events;
+  events?.on('weapon.action', ({ id, phase }) => {
+    if (id === rifle.row.id && phase === 'cycle') cues.cue('cue.lever.cycle');
+  }, h.scope);
+  events?.on('weapon.reload', ({ id, phase }) => {
+    if (id === rifle.row.id && phase === 'round' && !cues.cue('cue.lever.round')) audio.dryFire();
+  }, h.scope);
+  events?.on('weapon.charge', ({ id, phase, value }) => {
+    if (id !== longbow.row.id) return;
+    if (phase === 'recover') hud.toast(value === 1 ? 'Arrow recovered' : 'Arrow broke');
+    else cues.charge(longbow.row, phase);
+  }, h.scope);
 
   // ── the longbow: the King's reward, and the lever-action: kept in Owned, never in a pack slot (E314 C) ──
   const keep = restoreKept(inventory, owned);
@@ -216,7 +220,6 @@ export function installPineLoadout(h: PineLoadoutHost): PineLoadout {
     get hasRifle() { return owned.has('lever-rifle'); },
     onPlayerDeath: () => { if (quiver.selected !== 'iron') selectBolt('iron', true); },
     useSfx: (s) => { sfx = s; s.prewarm(['leverShot', 'leverEcho', 'leverCycle', 'leverDry', 'leverRoundIn', 'longbowDraw', 'longbowLoose', 'boltImpact-rock']); },
-    useRain: (r) => { rain = r; },
     update: (dt) => {
       if (!crossbow) return;
       quiver.stash(live());
@@ -236,6 +239,6 @@ export function installPineLoadout(h: PineLoadoutHost): PineLoadout {
       }
     },
   };
-  Object.assign(window, { __loadout: api, __lever: rifle, __longbow: longbow }); // dev: `__lever.freezeCycle = 0.45`, `__longbow.freezeDraw = 1`
+  h.scope.onDispose(app.debug.scopedExpose('loadout', api)); h.scope.onDispose(app.debug.scopedExpose('lever', rifle)); h.scope.onDispose(app.debug.scopedExpose('longbow', longbow)); // dev: `__lever.freezeCycle = 0.45`, `__longbow.freezeDraw = 1`
   return api;
 }

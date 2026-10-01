@@ -104,6 +104,7 @@ export function projectileFlightStep(pos: THREE.Vector3, vel: THREE.Vector3, h: 
 
 export class Projectiles {
   wind: WindField | null = null;
+  onTargetHit?: ((hit: TargetHit) => void) | undefined;
   onHit?: ((kind: string, headshot: boolean, killed: boolean, point: THREE.Vector3, damage: number) => void) | undefined;
   onImpact?: ((surface: ImpactSurface, point: THREE.Vector3) => void) | undefined;
   /** a stuck one was picked up: survived → +1 in the quiver; false = it broke */
@@ -291,6 +292,7 @@ export class Projectiles {
     if (this.targets && this.kind.hitsAnimals !== false) {
       const hit = this.targets.raycast(prev, _dir, wall ? wall.distance : segLen);   // an animal short of the wall
       if (hit) {
+        this.onTargetHit?.(hit);
         const a = hit.animal;
         const dmg = Math.max(1, Math.round(a.damageFor(hit.headshot, hit.point.distanceTo(f.origin)) * f.scale * (f.hitScale?.(hit) ?? 1)));
         const killed = a.applyDamage(dmg, hit.point, _dir);

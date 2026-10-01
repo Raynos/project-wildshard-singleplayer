@@ -51,10 +51,10 @@ export interface RifleOptions extends CrossbowOptions {
  * (1.3× zoom, the crossbow's numbers, Hor+ on portrait through fovForAspect).
  */
 
-const MAGAZINE = 30, RESERVE_START = 90;
+
 const FLASH_FRAMES = 2, FLASH_LIGHT_TIME = 0.05, FLASH_LIGHT = 30;
 const TRACER_TIME = 0.09;
-const ADS_MOTION = 0.3, ADS_NEAR_MARGIN = 0.03;
+
 /** sight line height over the bore (m): the front post tip and the rear aperture centre both sit here */
 const SIGHT_Y = 0.064;
 const REAR_Z = 0.10, FRONT_Z = -0.455, MUZZLE_Z = -0.645, PORT = new THREE.Vector3(0.03, 0.008, 0.0);
@@ -161,7 +161,7 @@ export function buildRifleParts(sky: Sky): RifleParts {
 
 export class Rifle extends Firearm {
   readonly profile: FirearmProfile;
-  readonly state: WeaponState & { ammo: number } = { ammo: MAGAZINE, magazine: MAGAZINE, reserve: RESERVE_START, loaded: true, reloading: false, reloadProgress: 0, ads: false };
+  readonly state: WeaponState & { ammo: number };
   enabled = true;
   allowUnlocked = false;
   adsHeld = false;
@@ -205,6 +205,7 @@ export class Rifle extends Firearm {
   constructor(world: CrossbowWorld, targets: Targets | undefined, opts: RifleOptions) {
     super(opts.row);
     this.profile = opts.profile ?? AR15;
+    this.state = { ammo: this.profile.magazine, magazine: this.profile.magazine, reserve: this.profile.reserve, loaded: true, reloading: false, reloadProgress: 0, ads: false };
     this.game = world.game; this.sky = world.sky; this.player = world.player;
     // the muzzle light is a pooled scene light (B7), taken now, at boot: in the viewmodel it came and went with the
     // model's visibility, and every change of the scene's light count recompiled every lit program in view (taking the
@@ -257,14 +258,14 @@ export class Rifle extends Firearm {
   /** the pooled muzzle light, just ahead of the muzzle, in world space (the pool's group sits at the scene origin) */
   private placeFlashLight(): void {
     this.model.updateWorldMatrix(true, false);
-    this.model.localToWorld(this.flashLight.position.set(0, 0.03, MUZZLE_Z + 0.1));
+    this.model.localToWorld(this.flashLight.position.set(0, 0.03, this.profile.ads.muzzleZ + 0.1));
   }
 
   /** Pull the trigger: one round if the mag has one, else a dry click and (after a beat) a reload. */
   protected override actionReady(): boolean { return this.cooldown <= 0; }
 
   override reload(): void {
-    if (this.state.reloading || this.state.ammo >= MAGAZINE || this.state.reserve <= 0) return;
+    if (this.state.reloading || this.state.ammo >= this.profile.magazine || this.state.reserve <= 0) return;
     this.state.reloading = true; this.reloadT = 0; this.state.reloadProgress = 0;
     this.onReloadStart?.();
   }
@@ -302,7 +303,7 @@ export class Rifle extends Firearm {
     if (getSetting('tracers')) {
       const tr = this.tracers.reduce((acc, x) => (x.t0 < acc.t0 ? x : acc));
       this.model.updateMatrixWorld();
-      this.model.localToWorld(_v3.set(0, 0.004, MUZZLE_Z));
+      this.model.localToWorld(_v3.set(0, 0.004, this.profile.ads.muzzleZ));
       tr.show(_v3, point, this.time);
     }
     if (surface) {
@@ -328,7 +329,7 @@ export class Rifle extends Firearm {
     const q1 = new THREE.Mesh(fq, flashMat); const q2 = new THREE.Mesh(fq, flashMat); q2.rotation.y = Math.PI / 2; q2.position.z = -0.06; q2.scale.set(1.4, 0.6, 1);
     this.flashQuads.push(q1, q2);
     this.flash.add(q1, q2);
-    this.flash.position.set(0, 0.002, MUZZLE_Z - 0.02);
+    this.flash.position.set(0, 0.002, this.profile.ads.muzzleZ - 0.02);
     this.flash.visible = false;
     this.model.add(this.flash);
 
@@ -393,9 +394,9 @@ export class Rifle extends Firearm {
     const o = this.adsPose, cam = this.game.camera;
     if (o.scale === scale && o.rearDepth > 0) return o;
     o.scale = scale;
-    o.rearDepth = cam.near + ADS_NEAR_MARGIN;
-    o.px = 0; o.py = -SIGHT_Y * scale; o.pz = -o.rearDepth - REAR_Z * scale;
-    o.frontDepth = -(o.pz + FRONT_Z * scale); o.muzzleDepth = -(o.pz + MUZZLE_Z * scale);
+    o.rearDepth = cam.near + this.profile.ads.nearMargin;
+    o.px = 0; o.py = -this.profile.ads.sightY * scale; o.pz = -o.rearDepth - this.profile.ads.rearZ * scale;
+    o.frontDepth = -(o.pz + this.profile.ads.frontZ * scale); o.muzzleDepth = -(o.pz + this.profile.ads.muzzleZ * scale);
     return o;
   }
 
@@ -408,28 +409,9 @@ export class Rifle extends Firearm {
     this.bloom = Math.max(0, this.bloom - dt * 2.4);
 
     // auto reload: the mag ran dry on a trigger pull
-    if (!s.reloading && s.ammo <= 0 && s.reserve > 0 && this.sinceEmpty > this.profile.autoReload && this.active && this.enabled) this.reload();
-    if (s.reloading) {
-      this.reloadT += dt;
-      const pr = Math.min(1, this.reloadT / this.profile.reload);
-      s.reloadProgress = pr;
-      if (pr >= 1) {
-        const take = Math.min(MAGAZINE - s.ammo, s.reserve);
-        s.ammo += take; s.reserve -= take; s.loaded = s.ammo > 0;
-        s.reloading = false; s.reloadProgress = 0;
-        this.onReloadEnd?.();
-      }
-    }
-    // magazine: drops out (0–30 %), gone (30–60 %), the fresh one comes up (60–85 %); charging handle racks at 88–100 %
-    {
-      const pr = s.reloading ? s.reloadProgress : 0;
-      const out = s.reloading ? (pr < 0.3 ? sstep(0.05, 0.3, pr) : pr < 0.6 ? 1 : 1 - sstep(0.6, 0.85, pr)) : 0;
-      this.mag.position.set(this.magRest.x, this.magRest.y - out * 0.16, this.magRest.z - out * 0.03);
-      this.mag.rotation.x = out * 0.3;
-      this.mag.visible = out < 0.999;
-      const rack = s.reloading ? Math.sin(sstep(0.88, 1, pr) * Math.PI) : 0;
-      this.handle.position.z = rack * 0.05; this.bolt.position.z = rack * 0.05;
-    }
+    if (this.autoReloadDue()) this.reload();
+    this.reloadStep(dt);
+    this.animateAction(t, dt);
 
     // muzzle flash: FLASH_FRAMES frames of quads, the light for FLASH_LIGHT_TIME
     if (this.flashFrames > 0 && --this.flashFrames === 0) this.flash.visible = false;
@@ -482,7 +464,7 @@ export class Rifle extends Firearm {
     pz += rc * 0.045; py += rc * 0.008; rx += rc * 0.06; rz += rc * -0.015; // kick back + muzzle up
     px *= 1 - port * 0.35; py *= 1 + port * 0.25; pz *= 1 + port * 0.35;
     if (a > 0) {
-      const ads = this.solveAds(scale), m = ADS_MOTION;
+      const ads = this.solveAds(scale), m = this.profile.ads.motion;
       const ax = ads.px + (swX + bobX + lagX) * m, ay = ads.py + (swY + bobY + lagY) * m + rc * 0.004, az = ads.pz + rc * 0.02;
       const arx = (bobRx + lagRx) * m + rc * 0.035, ary = lagRy * m, arz = (swRz + bobRz) * m + rc * -0.01;
       px += (ax - px) * a; py += (ay - py) * a; pz += (az - pz) * a; rx += (arx - rx) * a; ry += (ary - ry) * a; rz += (arz - rz) * a;
@@ -510,6 +492,35 @@ export class Rifle extends Firearm {
     this.puffs.update(dt, this.game.renderer, cam);
     this.game.renderer.getDrawingBufferSize(this.tracerRes);
     for (const tr of this.tracers) tr.update(t, this.tracerRes, this.tracerLife);
+  }
+  protected override animateAction(_t: number, _dt: number): void {
+    const s = this.state;
+    // magazine: drops out (0–30 %), gone (30–60 %), the fresh one comes up (60–85 %); charging handle racks at 88–100 %
+      const pr = s.reloading ? s.reloadProgress : 0;
+      const out = s.reloading ? (pr < 0.3 ? sstep(0.05, 0.3, pr) : pr < 0.6 ? 1 : 1 - sstep(0.6, 0.85, pr)) : 0;
+      this.mag.position.set(this.magRest.x, this.magRest.y - out * 0.16, this.magRest.z - out * 0.03);
+      this.mag.rotation.x = out * 0.3;
+      this.mag.visible = out < 0.999;
+      const rack = s.reloading ? Math.sin(sstep(0.88, 1, pr) * Math.PI) : 0;
+      this.handle.position.z = rack * 0.05; this.bolt.position.z = rack * 0.05;
+  }
+  protected override autoReloadDue(): boolean {
+    const s = this.state;
+    return !s.reloading && s.ammo <= 0 && s.reserve > 0 && this.sinceEmpty > this.profile.autoReload && this.active && this.enabled;
+  }
+  protected override reloadStep(dt: number): void {
+    const s = this.state;
+    if (s.reloading) {
+      this.reloadT += dt;
+      const pr = Math.min(1, this.reloadT / this.profile.reload);
+      s.reloadProgress = pr;
+      if (pr >= 1) {
+        const take = Math.min(this.profile.magazine - s.ammo, s.reserve);
+        s.ammo += take; s.reserve -= take; s.loaded = s.ammo > 0;
+        s.reloading = false; s.reloadProgress = 0;
+        this.onReloadEnd?.();
+      }
+    }
   }
 }
 

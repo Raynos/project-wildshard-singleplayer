@@ -1,4 +1,5 @@
-import { type EquipContext, Puffs, worldHit, impactSurfaceOf, FOV_HIP, FOV_ADS, rangedFovForAspect as fovForAspect, dataTexture, viewmodelTexSet, remapUV, makeCord, makeBoltAtlas, fixIBL, VIEWMODEL_GROUP, viewmodelMaterial, isMesh, box, cyl, edgeWear, whiteColors, stripExtra, TRACER_ORDER, TRACER_RED, clamp01, sstep, type CrossbowWorld, type CrossbowOptions, type Targets, Weapon, quiverState, type ImpactSurface, app, gameplayRandom, type Game, type Sky, type Player, sticksIn, CHUNK_HALF, getSetting, BUCKSKIN, HANDS_MATERIAL, WeaponHands, coatMaterialParams, holdDef, type HandHold } from '#engine';
+import { type EquipContext, type AmmoRow, type TargetHit, blendAds, Puffs, worldHit, impactSurfaceOf, FOV_HIP, FOV_ADS, rangedFovForAspect as fovForAspect, dataTexture, viewmodelTexSet, remapUV, makeCord, makeBoltAtlas, fixIBL, VIEWMODEL_GROUP, viewmodelMaterial, isMesh, box, cyl, edgeWear, whiteColors, stripExtra, TRACER_ORDER, TRACER_RED, sstep, type CrossbowWorld, type CrossbowOptions, type Targets, Weapon, quiverState, type ImpactSurface, app, gameplayRandom, type Game, type Sky, type Player, sticksIn, CHUNK_HALF, getSetting } from '#engine';
+import { BUCKSKIN, HANDS_MATERIAL, WeaponHands, coatMaterialParams, holdDef, type HandHold } from '../../viewmodel/hunterHands';
 import { CROSSBOW_PROFILE, type CrossbowProfile } from './profiles';
 
 
@@ -50,15 +51,9 @@ import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
 
 export type { ImpactSurface } from '#engine';
 export const MAX_BOLTS = 30;
-const BOLT_DRAG = 0.012;
-const GRAVITY = 9.8;
-const MAX_FLYING = 8;
 /** Stuck bolts are PERMANENT (target practice): no lifetime — only the cap evicts, oldest first. */
-const MAX_STUCK = 200;
 /** how deep the broadhead sits in wood / ground (m); the rest of the bolt stands proud of the surface */
-const STUCK_BURY = 0.08;
 /** a flying bolt is swept through the physics world as a ball this big (m) — the broadhead's reach */
-const BOLT_RADIUS = 0.03;
 /** a bolt glancing off stone / rock / metal keeps this much of its speed along the surface, bounces off it with this
  *  much of its speed into it, and never leaves faster than GLANCE_MAX (m/s): a short skip, then it falls and lies */
 const GLANCE_KEEP = 0.2, GLANCE_BOUNCE = 0.25, GLANCE_MAX = 9, GLANCE_LIFT = 0.01;
@@ -90,9 +85,9 @@ const PEEP_Z = 0.10, PEEP_R = 0.01, PEEP_TUBE = 0.12, PEEP_R_WORLD = 0.0105, PEE
 
 /** Deterministic bolt substep, including the selected ammo/weather multipliers. */
 export function boltFlightStep(pos: THREE.Vector3, vel: THREE.Vector3, h: number,
-  mod: { gravity: number; drag: number }): void {
-  vel.y -= GRAVITY * mod.gravity * h;
-  vel.multiplyScalar(1 - BOLT_DRAG * mod.drag * h * vel.length() * 0.1);
+  mod: { gravity: number; drag: number }, profile: Pick<CrossbowProfile, 'gravity' | 'drag'> = CROSSBOW_PROFILE): void {
+  vel.y -= profile.gravity * mod.gravity * h;
+  vel.multiplyScalar(1 - profile.drag * mod.drag * h * vel.length() * 0.1);
   pos.addScaledVector(vel, h);
 }
 
@@ -259,7 +254,7 @@ class Tracer {
 
 // ───────────────────────────── the crossbow ─────────────────────────────
 
-interface Bolt { mesh: THREE.Mesh; pos: THREE.Vector3; vel: THREE.Vector3; active: boolean; age: number; roll: number; traced: boolean; tracer: Tracer | null; glow: THREE.Mesh; glanced: boolean; mod: BoltMod }
+interface Bolt { mesh: THREE.Mesh; pos: THREE.Vector3; vel: THREE.Vector3; active: boolean; age: number; roll: number; traced: boolean; tracer: Tracer | null; glow: THREE.Mesh; glanced: boolean; mod: BoltMod; ammo?: AmmoRow | undefined }
 /**
  * Special bolts (optional — Pine Hollow's loadout, src/shards/pine-hollow/loadout/loadout.ts): the flight + damage of the NEXT bolt to leave
  * the rail, captured by each bolt as it launches. `gravity` / `drag` multiply the flight's, `damage(kind)` the damage model's
@@ -462,7 +457,7 @@ export function buildCrossbow(sky: Sky, into: { readonly model: THREE.Group; rea
 
 export class Crossbow extends Weapon {
   readonly profile: CrossbowProfile;
-  state = quiverState({ bolts: MAX_BOLTS, loaded: true, reloading: false, reloadProgress: 0, ads: false }, MAX_BOLTS);
+  readonly state: ReturnType<typeof quiverState>;
   enabled = true;
   allowUnlocked = false;
   /** hold ADS externally (dev `?ads=1`) — OR'ed with the right mouse button */
@@ -479,6 +474,10 @@ export class Crossbow extends Weapon {
   private aimCache = { kind: 'deer', distance: 0 };
   /** the bolt on the rail (special bolts, BoltMod above): read at each loose; PLAIN_BOLT = iron */
   boltMod: BoltMod = PLAIN_BOLT;
+  selectedAmmo: AmmoRow | undefined;
+  protected nextAmmo(): AmmoRow | undefined { return this.selectedAmmo; }
+  protected onShot(_bolt: { pos: THREE.Vector3; vel: THREE.Vector3 }): void { /* custom bolt hook */ }
+  protected onBoltHit(_hit: TargetHit): void { /* custom hit hook */ }
   /** the HUD strip's ammo label (Weapons.ts BaseLike override): the loaded kind's ("Pitch bolts") */
   override get ammoLabel(): string { return this.row.ui.ammo?.label ?? ''; }
   override set ammoLabel(label: string) { if (this.row.ui.ammo) this.row = { ...this.row, ui: { ...this.row.ui, ammo: { ...this.row.ui.ammo, label } } }; }
@@ -536,6 +535,7 @@ export class Crossbow extends Weapon {
   constructor(world: CrossbowWorld, targets: Targets | undefined, opts: CrossbowOptions & { profile?: CrossbowProfile }) {
     super(opts.row);
     this.profile = opts.profile ?? CROSSBOW_PROFILE;
+    this.state = quiverState({ bolts: this.profile.quiver, loaded: true, reloading: false, reloadProgress: 0, ads: false }, this.profile.quiver);
     this.game = world.game; this.sky = world.sky; this.player = world.player;
     this.targets = targets;
     this.allowUnlocked = opts.allowUnlocked ?? false;
@@ -610,7 +610,7 @@ export class Crossbow extends Weapon {
     this.onReloadStart?.();
   }
 
-  override addBolts(n: number): void { this.state.bolts = Math.min(MAX_BOLTS, this.state.bolts + n); }
+  override addBolts(n: number): void { this.state.bolts = Math.min(this.profile.quiver, this.state.bolts + n); }
 
   // ── viewmodel ──
   private buildViewmodel(): void {
@@ -641,7 +641,7 @@ export class Crossbow extends Weapon {
   }
 
   private buildProjectiles(): void {
-    for (let i = 0; i < MAX_FLYING; i++) {
+    for (let i = 0; i < this.profile.maxFlying; i++) {
       const mesh = new THREE.Mesh(this.boltGeo, this.boltMat);
       mesh.visible = false; mesh.castShadow = true; mesh.frustumCulled = false;
       // red glow riding on the flying bolt (a child, so it hides with it; shown only on traced shots)
@@ -696,7 +696,7 @@ export class Crossbow extends Weapon {
     b.pos.copy(this.spawnPos).lerp(this.tipWorld(_v2), a);
     b.vel.copy(_dir).multiplyScalar(this.profile.speed);
     b.active = true; b.age = 0; b.roll = 0; b.glanced = false;
-    b.mod = this.boltMod; b.mesh.material = b.mod.material ?? this.boltMat;
+    b.mod = this.boltMod; b.ammo = this.nextAmmo(); this.onShot(b); b.mesh.material = b.mod.material ?? this.boltMat;
     b.mesh.visible = true;
     b.mesh.position.copy(b.pos);
     b.mesh.quaternion.setFromUnitVectors(NEG_Z, _dir);
@@ -771,7 +771,7 @@ export class Crossbow extends Weapon {
     // ADS + FOV
     if (p.sprinting || !this.enabled) this.mouseAds = false; // sprinting / pause / holster drop the RMB toggle
     this.state.ads = (this.mouseAds || this.adsHeld) && this.enabled && !this.state.reloading && !p.sprinting;
-    { const step = dt / this.profile.adsBlend; this.adsBlend = clamp01(this.adsBlend + THREE.MathUtils.clamp((this.state.ads ? 1 : 0) - this.adsBlend, -step, step)); }
+    this.adsBlend = blendAds(this.adsBlend, this.state.ads, dt, this.profile.adsBlend);
     const targetFov = fovForAspect(FOV_HIP + (FOV_ADS - FOV_HIP) * sstep(0, 1, this.adsBlend), cam.aspect);
     if (Math.abs(targetFov - this.fov) > 0.01) {
       this.fov = targetFov; cam.fov = this.fov; cam.updateProjectionMatrix(); this.sky.csm.updateFrustums();
@@ -894,7 +894,8 @@ export class Crossbow extends Weapon {
       let stopped = false;
       for (let s = 0; s < sub; s++) {
         _v1.copy(b.pos); // previous
-        boltFlightStep(b.pos, b.vel, h, b.mod);
+        const flight = b.ammo && this.equipEvents ? this.equipEvents.ask('projectile.modify', { ammo: b.ammo, gravity: b.ammo.flight.gravity, drag: b.ammo.flight.drag }) : b.mod;
+        boltFlightStep(b.pos, b.vel, h, flight, this.profile);
         if (this.testHit(b, _v1)) { stopped = true; break; }
         b.tracer?.addPoint(b.pos);
       }
@@ -910,7 +911,7 @@ export class Crossbow extends Weapon {
 
   /**
    * The step prev → b.pos: the nearer of an animal (AnimalManager.raycast, cut short at the world hit so a wall in
-   * front wins) and the world (a BOLT_RADIUS ball swept through the physics world — terrain, trunks, rocks,
+   * front wins) and the world (a this.profile.radius ball swept through the physics world — terrain, trunks, rocks,
    * structures). By the surface's material the bolt sticks (wood, planks, ground, sand, grass), or glances off
    * (stone, rock, metal, shell): a short skip with most of its speed lost, then it lies on the first floor it falls on
    * (knocking off any wall on the way).
@@ -921,17 +922,18 @@ export class Crossbow extends Weapon {
     const segLen = _dir.length();
     if (segLen < 1e-6) return false;
     _dir.multiplyScalar(1 / segLen);
-    const wall = worldHit(prev, b.pos, BOLT_RADIUS);
+    const wall = worldHit(prev, b.pos, this.profile.radius);
 
     // animals, short of the wall
     if (this.targets) {
       const hit = this.targets.raycast(prev, _dir, wall ? wall.distance : segLen);
       if (hit) {
+        this.onBoltHit(hit);
         const killed = hit.animal.applyDamage(hit.animal.damageFor(hit.headshot, hit.point.distanceTo(this.game.camera.position)) * b.mod.damage(hit.animal.kind), hit.point, _dir);
         this.onHit?.(hit.animal.kind, hit.headshot, killed);
         const frame = hit.animal.stuckFrame?.(hit.point) ?? null; // a practice dummy keeps the bolt, on the bone it hit
         const attached = frame instanceof THREE.Object3D ? frame : null;
-        this.stopBolt(b, hit.point, _dir, 'flesh', attached !== null, STUCK_BURY, false, attached);
+        this.stopBolt(b, hit.point, _dir, 'flesh', attached !== null, this.profile.bury, false, attached);
         return true;
       }
     }
@@ -943,8 +945,8 @@ export class Crossbow extends Weapon {
     const surface = impactSurfaceOf(wall.material);
     if (!b.glanced && sticksIn(wall.material)) {
       // the ball touches one radius off the surface: the tip carries on along the flight to it
-      at.addScaledVector(_dir, BOLT_RADIUS / Math.max(0.25, -n.dot(_dir)));
-      this.stopBolt(b, at, _dir, surface, true, STUCK_BURY, false, movingOwner(wall.owner));
+      at.addScaledVector(_dir, this.profile.radius / Math.max(0.25, -n.dot(_dir)));
+      this.stopBolt(b, at, _dir, surface, true, this.profile.bury, false, movingOwner(wall.owner));
       return true;
     }
     // glance: off the surface with little of the speed left, then gravity has it
@@ -964,12 +966,12 @@ export class Crossbow extends Weapon {
     if (along.lengthSq() < 1e-6) along.crossVectors(n, Math.abs(n.y) < 0.9 ? Y_AXIS : X_AXIS); // fell straight down: any way along the surface
     along.normalize();
     // the tip half a bolt ahead of the contact so the shaft lies across it, on the surface instead of a radius above it
-    at.addScaledVector(n, -BOLT_RADIUS * 0.8).addScaledVector(along, (this.nockZ - this.tipLocal.z) * 0.5);
+    at.addScaledVector(n, -this.profile.radius * 0.8).addScaledVector(along, (this.nockZ - this.tipLocal.z) * 0.5);
     this.stopBolt(b, at, along, 'ground', true, 0, true);
   }
 
   /** `bury`: how deep the broadhead goes in; `quiet`: no puff / impact event (a spent bolt settling) */
-  private stopBolt(b: Bolt, point: THREE.Vector3, dir: THREE.Vector3, surface: ImpactSurface, stick: boolean, bury = STUCK_BURY, quiet = false, rideOn: THREE.Object3D | null = null): void {
+  private stopBolt(b: Bolt, point: THREE.Vector3, dir: THREE.Vector3, surface: ImpactSurface, stick: boolean, bury = this.profile.bury, quiet = false, rideOn: THREE.Object3D | null = null): void {
     b.active = false; b.mesh.visible = false;
     this.endTracer(b, point);
     if (!quiet) {
@@ -977,10 +979,10 @@ export class Crossbow extends Weapon {
       this.onImpact?.(surface, point);
     }
     if (!stick) return;
-    // stick: a static mesh, permanent, with the broadhead STUCK_BURY into the surface and the shaft + fletching
+    // stick: a static mesh, permanent, with the broadhead this.profile.bury into the surface and the shaft + fletching
     // standing proud. The geometry origin sits -tipLocal.z (≈ 21.5 cm, measured from the bounding box) behind
-    // the tip, so the origin goes STUCK_BURY + tipLocal.z along the flight direction from the hit point.
-    if (this.stuck.length >= MAX_STUCK) this.removeStuck(0);
+    // the tip, so the origin goes this.profile.bury + tipLocal.z along the flight direction from the hit point.
+    if (this.stuck.length >= this.profile.maxStuck) this.removeStuck(0);
     const mesh = new THREE.Mesh(this.boltGeo, b.mod.material ?? this.boltMat);
     mesh.castShadow = true;
     mesh.position.copy(point).addScaledVector(dir, bury + this.tipLocal.z);

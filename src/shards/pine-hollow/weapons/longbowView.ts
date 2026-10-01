@@ -1,8 +1,9 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { type Sky, type ProjectileKind, gloveFist, riderArm, fixIBL, viewmodelMaterial, withHunterPalette } from '#engine';
+import { type Sky, type ProjectileKind, gloveFist, riderArm, fixIBL, viewmodelMaterial } from '#engine';
+import { withHunterPalette, type BowView, type GripPose } from '#kit';
 
-import type { BowView, GripPose } from '#kit';
+
 
 
 

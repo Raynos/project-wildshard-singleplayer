@@ -5,7 +5,7 @@ import { FakeGame } from '../fake/FakeGame';
 
 function fixture(tube = 0, chambered = false, reserve = 21) {
   const game = new FakeGame(), fired = vi.fn(), rounds = vi.fn(), ended = vi.fn(), cycles = vi.fn();
-  const lever = legacyActor(LeverRifle.prototype, {
+  const lever = legacyActor(LeverRifle.prototype, { equipEvents: undefined,
     tube, chambered, state: { reserve, ammo: tube + (chambered ? 1 : 0), reloadProgress: 0, loaded: chambered, reloading: false },
     phase: 'idle', phaseT: 0, fed: 0, stopAfter: false, dryAtStart: false, planned: 0, freezeCycle: null,
     sinceEmpty: 99, active: true, enabled: true, caseInChamber: false, hammerCocked: false,

@@ -1,4 +1,5 @@
 import type { Vector3 } from 'three';
+import type { Scope } from '../app/scope';
 import type { CueOpts, CueMap } from '../audio/Cues';
 import type { EquipmentRow, EquipmentId } from './Equipment';
 import type { ImpactSurface } from './Weapon';
@@ -13,6 +14,7 @@ export type WeaponChargePhase = 'heavy' | 'draw' | 'letdown' | 'loose' | 'throw'
 declare module '../events/maps' {
   interface EventMap {
     'weapon.fired': { id: EquipmentId; move?: string };
+    'weapon.action': { id: EquipmentId; phase: string };
     'weapon.hit': { id: EquipmentId; kind: string; headshot: boolean; killed: boolean };
     'weapon.impact': { id: EquipmentId; surface: ImpactSurface; point: Vector3 };
     'weapon.reload': { id: EquipmentId; phase: 'start' | 'end' | 'round' };
@@ -25,8 +27,12 @@ declare module '../events/maps' {
 }
 /** Content maps own literal sound taps; routing never creates a second sound-log source. */
 export class CombatCues {
-  private readonly maps: readonly CombatCueMap[];
-  constructor(...maps: readonly CombatCueMap[]) { this.maps = maps; }
+  private readonly maps: CombatCueMap[];
+  constructor(...maps: readonly CombatCueMap[]) { this.maps = [...maps]; }
+  use(map: CombatCueMap, scope: Scope): void {
+    this.maps.unshift(map);
+    scope.onDispose(() => { const at = this.maps.indexOf(map); if (at !== -1) this.maps.splice(at, 1); });
+  }
   cue(id: CueId, opts: CombatCueOpts = {}): boolean { return this.maps.some((map) => map(id, opts)); }
   fire(row: EquipmentRow, opts: CombatCueOpts = {}): boolean { return row.cues !== undefined && this.cue(row.cues.fire, opts); }
   impact(row: EquipmentRow, opts: CombatCueOpts = {}): boolean { return row.cues !== undefined && this.cue(row.cues.impact, opts); }

@@ -24,3 +24,5 @@ export { AR15, type FirearmProfile } from './weapons/firearm/profiles';
 export { Rifle, buildRifleParts, type RifleParts, type RifleOptions } from './weapons/firearm/Rifle';
 export { rainCurtain, type RainProgram, type RainCurtainSpec } from './weather/rainCurtain';
 export { fogGLSL } from './looks/fogProgram';
+
+export { BUCKSKIN, HANDS_MATERIAL, WeaponHands, coatMaterialParams, holdDef, withHunterPalette, blendGrip, gripPose, type HandHold } from './viewmodel/hunterHands';

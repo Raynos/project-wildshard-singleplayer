@@ -95,8 +95,7 @@ export { Puffs, worldHit, impactSurfaceOf, FOV_HIP, FOV_ADS, fovForAspect as ran
 export { getSetting, getNumber, onNumber, onSettingChange, setting } from './ui/Settings';
 export { LightPool } from './fx/LightPool';
 export { painterlyMaterial, syncPainterlySun, updatePainterly, setPainterlyLook, painterlyUniforms } from './world/painterly';
-export { gloveFist, riderArm, placeArm, forearm } from './player/nalatiArms';
-export { BUCKSKIN, HANDS_MATERIAL, WeaponHands, coatMaterialParams, holdDef, withHunterPalette, blendGrip, gripPose, type HandHold } from './player/hunterHands';
+export { ARM_PAL, gloveFist, riderArm, placeArm, forearm } from './player/nalatiArms';
 export { wind } from './world/steppeWind';
 export { WIND_DIR, windGustAt } from './world/wind';
 export { sticksIn } from './physics/query';
@@ -141,3 +140,4 @@ export type { FullMap } from './ui/Map';
 export type { SkinLocker, SkinDef } from './player/Skins';
 export { loadWorldContent } from './contentApi';
 export type { Animal } from './entities/Animal';
+export { installRangedFeel, type RangedFeelProfile } from './combat/view/rangedFeel';

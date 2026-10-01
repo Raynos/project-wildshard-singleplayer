@@ -130,11 +130,12 @@ export class Bow extends Weapon {
     if (!cam.parent) this.game.scene.add(cam);
 
     this.arrows = new Projectiles(world, targets, this.profile.arrow(this.sky));
+    this.arrows.onTargetHit = (hit) => this.onArrowHit(hit);
     this.arrows.onHit = (kind, headshot, killed) => this.onHit?.(kind, headshot, killed);
     this.arrows.onImpact = (s, pt) => this.onImpact?.(s, pt);
     this.arrows.wind = this.profile.wind; // the one wind (grass, clouds, arrows); `bow.wind = null` for a still-air test
     this.arrows.canRecover = () => this.state.bolts < this.profile.quiver;
-    this.arrows.onRecover = (ok) => { if (ok) this.state.bolts = Math.min(this.profile.quiver, this.state.bolts + 1); this.onRecover?.(ok); };
+    this.arrows.onRecover = (ok) => { if (ok) this.state.bolts = Math.min(this.profile.quiver, this.state.bolts + 1); this.chargeEvent('recover', ok ? 1 : 0); this.onRecover?.(ok); };
     this.arc = new DropArc(this.game.scene, this.profile.arcColour);
 
   }
@@ -276,9 +277,9 @@ export class Bow extends Weapon {
     if (!held) this.mouseCancel = false;
     if (blocked) this.autoShot = false;
     const ev = this.draw.step(dt, held, blocked, this.drawSpeedScale * this.mountDraw);
-    if (ev === 'start') this.onDrawStart?.();
+    if (ev === 'start') { this.chargeEvent('draw'); this.onDrawStart?.(); }
     else if (ev === 'full') this.onFullDraw?.();
-    else if (ev === 'letdown' || ev === 'tired') this.onLetDown?.();
+    else if (ev === 'letdown' || ev === 'tired') { this.chargeEvent('letdown'); this.onLetDown?.(); }
     this.p = this.freezeDraw ?? this.draw.p;
     if (ev === 'loose') this.loose();
     this.state.loaded = this.state.bolts > 0;

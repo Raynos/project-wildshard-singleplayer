@@ -14,6 +14,16 @@ import { Scope } from '#engine/app/scope';
 import type { CueOpts } from '#engine/audio/Cues';
 
 describe('combat cues preserve existing sound boundaries', () => {
+  it('a resident cue map overrides fallback exactly once and leaves no route after disposal', () => {
+    const fallback = vi.fn(() => true), resident = vi.fn(() => true);
+    const cues = new CombatCues(fallback), scope = new Scope('resident-cues');
+    cues.use(resident, scope);
+    cues.fire(CROSSBOW);
+    expect(resident).toHaveBeenCalledTimes(1); expect(fallback).not.toHaveBeenCalled();
+    scope.dispose(); cues.fire(CROSSBOW);
+    expect(resident).toHaveBeenCalledTimes(1); expect(fallback).toHaveBeenCalledTimes(1);
+  });
+
   it('the shared fallback calls one existing tap-owning method and ocean melee stays silent here', () => {
     const audio = { rifleFire: vi.fn(), crossbowFire: vi.fn(), swordSwing: vi.fn(), swordHeavy: vi.fn(), swordHit: vi.fn(), boltImpact: vi.fn(), dryFire: vi.fn(), rifleReload: vi.fn(), reload: vi.fn(), weaponSwap: vi.fn() };
     const cues = new CombatCues(sharedCombatCues(audio, false));

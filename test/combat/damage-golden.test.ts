@@ -1,3 +1,4 @@
+import { CROSSBOW_PROFILE } from '#kit/weapons/crossbow/profiles';
 import { AR15 } from '#kit/weapons/firearm/profiles';
 import { LEVER_PROFILE, LeverRifle } from '#shards/pine-hollow/weapons/LeverRifle';
 import { Thrown } from '#kit';
@@ -45,11 +46,11 @@ function dealt(source: Source, rule: Rule, headshot: boolean, distance: number, 
     if (source === 'golden' || source === 'sun') {
       const upgrade = legacyActor(GoldenBow.prototype, { bow: null, recolour: noop, sunShot: source === 'sun' }); upgrade.apply(bow);
     }
-    const pool = legacyActor(Projectiles.prototype, { kind: {}, targets: { raycast }, onHit: undefined, stop: noop });
+    const pool = legacyActor(Projectiles.prototype, { kind: {}, onTargetHit: undefined, targets: { raycast }, onHit: undefined, stop: noop });
     invokeLegacy(pool, 'testHit', { pos: new THREE.Vector3(0, 1, -1), origin: new THREE.Vector3(),
       scale: source === 'longbow' ? 1.35 : 1.2, hitScale: bow.damageMultiplier }, new THREE.Vector3(0, 1, 0));
   } else if (source === 'iron' || source === 'broadhead') {
-    const bolt = legacyActor(Crossbow.prototype, { targets: { raycast }, game: f.game.asGame(), onHit: undefined, stopBolt: noop });
+    const bolt = legacyActor(Crossbow.prototype, { onBoltHit: () => undefined, profile: CROSSBOW_PROFILE, targets: { raycast }, game: f.game.asGame(), onHit: undefined, stopBolt: noop });
     invokeLegacy(bolt, 'testHit', { pos: new THREE.Vector3(0, 1, -1), mod: { damage: (kind: string) => boltDamage(source, kind) } }, new THREE.Vector3(0, 1, 0));
   } else if (source === 'javelin') {
     const jav = { state: 1, age: 0, pos: new THREE.Vector3(0, 1, -1), vel: new THREE.Vector3(0, 0, -55) };

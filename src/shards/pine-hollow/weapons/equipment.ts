@@ -1,10 +1,14 @@
-import type { EquipmentRow } from '#game';
+import type { EquipmentRow, RangedFeelProfile } from '#engine';
 import { SWAP_GLYPHS } from '#kit';
 
 export const PINE_BOLT_HIT_STOP = { body: 0.035, head: 0.055, kill: 0.075 } as const;
+export const PINE_RANGED_FEEL: RangedFeelProfile = {
+  kick: { body: 0.35, head: 0.6, kill: 0.9, side: 0.6, killSide: 1.2 },
+  trauma: { kill: 0.28, head: 0.15, killKinds: ['bear', 'elk', 'antler-king'], headKinds: ['antler-king'] },
+};
 
 export const CROSSBOW: EquipmentRow = {
-  hitStop: PINE_BOLT_HIT_STOP,
+  hitStop: PINE_BOLT_HIT_STOP, rangedFeel: PINE_RANGED_FEEL,
   cues: {"fire": "cue.crossbow.fire", "reload": "cue.reload", "impact": "cue.projectile.hit"},
   "id": "weapon.crossbow",
   "legacySlot": "crossbow",
@@ -33,7 +37,7 @@ export const CROSSBOW: EquipmentRow = {
 };
 
 export const LONGBOW: EquipmentRow = {
-  hitStop: PINE_BOLT_HIT_STOP,
+  hitStop: PINE_BOLT_HIT_STOP, rangedFeel: PINE_RANGED_FEEL,
   cues: {"fire": "cue.longbow.loose", "reload": "cue.reload", "impact": "cue.projectile.hit", "charge": { "draw": "cue.longbow.draw" }},
   "id": "weapon.longbow",
   "legacySlot": "bow",
@@ -61,7 +65,7 @@ export const LONGBOW: EquipmentRow = {
 };
 
 export const LEVER: EquipmentRow = {
-  hitStop: PINE_BOLT_HIT_STOP,
+  hitStop: PINE_BOLT_HIT_STOP, rangedFeel: PINE_RANGED_FEEL,
   cues: {"fire": "cue.lever.fire", "reload": "cue.lever.reload", "impact": "cue.projectile.hit", "dry": "cue.lever.dry"},
   "id": "weapon.lever",
   "legacySlot": "rifle",
@@ -85,3 +89,5 @@ export const LEVER: EquipmentRow = {
     "category": "weapon"
   }
 };
+
+declare module '#engine/core/rng' { interface RngStreams { loot: true } }

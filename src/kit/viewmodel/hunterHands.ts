@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { ARM_PAL, gloveFist } from './nalatiArms';
+import { ARM_PAL, gloveFist } from '#engine';
 
 /**
  * hunterHands — the Pine Hollow hunter's first-person hands: the Longbow's dark-tan leather gloves (nalatiArms.gloveFist in

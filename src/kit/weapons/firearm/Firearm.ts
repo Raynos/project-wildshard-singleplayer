@@ -8,6 +8,7 @@ export abstract class Firearm extends Weapon {
     if (!this.actionReady()) return;
     if (!this.roundReady()) { this.onDry?.(); this.sinceEmpty = 0; this.onEmptyTrigger(); return; }
     this.fire();
+    this.onShot();
   }
   protected reloadingAction(): boolean { return this.state.reloading; }
   protected abstract actionReady(): boolean;
@@ -17,7 +18,7 @@ export abstract class Firearm extends Weapon {
   protected abstract fire(): void;
   protected cycle(_dt: number): void { /* semi-automatic default */ }
   protected reloadStep(_dt: number): void { /* magazine or custom action */ }
-  protected animateAction(_t: number): void { /* authored moving parts */ }
+  protected animateAction(_t: number, _dt: number): void { /* authored moving parts */ }
   protected onShot(): void { /* custom action hook */ }
   protected autoReloadDue(): boolean { return false; }
 }

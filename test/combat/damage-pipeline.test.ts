@@ -1,9 +1,10 @@
+import { CROSSBOW_PROFILE } from '#kit/weapons/crossbow/profiles';
 import * as THREE from 'three';
 import { describe, expect, it, vi } from 'vitest';
 import { app } from '#engine/app/runtime';
 import { damageFor } from '#engine/entities/Animal';
 import { Crossbow } from '#kit/weapons/crossbow/Crossbow';
-import type { TargetHit } from '#engine/combat/types';
+import type { TargetHit } from '#engine/combat/view/targets';
 import { Projectiles } from '#engine/combat/view/projectile';
 import { boltDamage } from '#shards/pine-hollow/loadout/ammo';
 import { legacyActor, invokeLegacy, damageTarget } from '../fake/legacyActor';
@@ -72,7 +73,7 @@ describe('current executable damage rules (09 §3.6)', () => {
   it('sneak arrow multiplication rounds once before variant/species rules and is never overwritten', () => {
     const target = damageTarget({ bodyMul: 0.6, speciesMul: 1.25 }), world = fakeWorld();
     const hit: TargetHit = { animal: target.animal, point: target.body, distance: 20, headshot: false };
-    const pool = legacyActor(Projectiles.prototype, { kind: {}, targets: { raycast: () => hit }, onHit: undefined, stop: () => undefined });
+    const pool = legacyActor(Projectiles.prototype, { kind: {}, onTargetHit: undefined, targets: { raycast: () => hit }, onHit: undefined, stop: () => undefined });
     const flying = { pos: new THREE.Vector3(0, 0.8, -1), origin: new THREE.Vector3(), scale: 1.2, hitScale: () => 2 };
     expect(invokeLegacy(pool, 'testHit', flying, new THREE.Vector3(0, 0.8, 0))).toBe(true);
     expect(target.dealt).toEqual([66]); // round(37*1.2*2)=89 → round(89*.6)=53 → round(53*1.25)=66
@@ -81,7 +82,7 @@ describe('current executable damage rules (09 §3.6)', () => {
   it('broadhead product stays unrounded until the real applyDamage rules run', () => {
     const target = damageTarget({ bodyMul: 0.6, speciesMul: 1.25 }), world = fakeWorld();
     const hit: TargetHit = { animal: target.animal, point: target.body, distance: 20, headshot: false };
-    const bolt = legacyActor(Crossbow.prototype, { targets: { raycast: () => hit }, game: world.game.asGame(), onHit: undefined, stopBolt: () => undefined });
+    const bolt = legacyActor(Crossbow.prototype, { onBoltHit: () => undefined, profile: CROSSBOW_PROFILE, targets: { raycast: () => hit }, game: world.game.asGame(), onHit: undefined, stopBolt: () => undefined });
     const b = { pos: new THREE.Vector3(0, 0.8, -1), mod: { damage: (kind: string) => boltDamage('broadhead', kind) } };
     expect(invokeLegacy(bolt, 'testHit', b, new THREE.Vector3(0, 0.8, 0))).toBe(true);
     expect(target.dealt).toEqual([39]); // 37*1.4=51.8 → round(*.6)=31 → round(*1.25)=39

@@ -138,7 +138,7 @@ describe('wall bug baselines (owning migrations intentionally change B1/B2 expec
     wall(); const f = fakeWorld(), a = target(), from = new THREE.Vector3(0, 0.8, 0), to = new THREE.Vector3(0, 0.8, -3);
     const weapon = kind === 'arrow'
       ? legacyActor(Projectiles.prototype, { kind: {}, targets: { raycast: a.raycast }, stop: noop, onImpact: undefined })
-      : legacyActor(Crossbow.prototype, { profile: CROSSBOW_PROFILE, game: f.game.asGame(), targets: { raycast: a.raycast }, stopBolt: noop, onImpact: undefined });
+      : legacyActor(Crossbow.prototype, { onBoltHit: () => undefined, profile: CROSSBOW_PROFILE, game: f.game.asGame(), targets: { raycast: a.raycast }, stopBolt: noop, onImpact: undefined });
     invokeLegacy(weapon, 'testHit', kind === 'arrow' ? { pos: to, origin: from, scale: 1 } : { pos: to, mod: {} }, from);
     expect(a.dealt).toEqual([]);
   });

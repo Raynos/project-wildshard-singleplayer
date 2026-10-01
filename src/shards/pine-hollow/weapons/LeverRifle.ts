@@ -1,5 +1,5 @@
-import { type EquipContext, hitscan, stepBrass, brassFloor, type WeaponState, type AimInfo, app, getSetting, LightPool, Puffs, viewmodelMaterial, viewmodelTexSet, whiteColors, edgeWear, rangedFovForAspect as fovForAspect, FOV_HIP, FOV_ADS, box, cyl, stripExtra, sstep, clamp01, isMesh, worldHit, fixIBL, VIEWMODEL_GROUP, type TexSet, type CrossbowWorld, type CrossbowOptions, type Targets, makeFlashTexture, HitLine, type Sky, SHADOW_LAYER, BUCKSKIN, HANDS_MATERIAL, WeaponHands, blendGrip, gripPose, holdDef, type HandHold } from '#engine';
-import { Firearm, AR15, type FirearmProfile } from '#kit';
+import { type EquipContext, blendAds, hitscan, stepBrass, brassFloor, type WeaponState, type AimInfo, app, getSetting, LightPool, Puffs, viewmodelMaterial, viewmodelTexSet, whiteColors, edgeWear, rangedFovForAspect as fovForAspect, FOV_HIP, FOV_ADS, box, cyl, stripExtra, sstep, clamp01, isMesh, worldHit, fixIBL, VIEWMODEL_GROUP, type TexSet, type CrossbowWorld, type CrossbowOptions, type Targets, makeFlashTexture, HitLine, type Sky, SHADOW_LAYER } from '#engine';
+import { BUCKSKIN, HANDS_MATERIAL, WeaponHands, blendGrip, gripPose, holdDef, type HandHold, Firearm, AR15, type FirearmProfile } from '#kit';
 
 
 
@@ -79,7 +79,7 @@ const KICK_PITCH = THREE.MathUtils.degToRad(1.25);
 const FLASH_FRAMES = 2, FLASH_LIGHT_TIME = 0.06, FLASH_LIGHT = 34;
 const BRASS_COUNT = 4, BRASS_LIFE = 1.8;
 const TRACER_COUNT = 2, TRACER_TIME = 0.09;
-const ADS_BLEND_TIME = 0.17, ADS_MOTION = 0.3;
+const ADS_MOTION = 0.3;
 /** the lever's throw (rad about X at its pivot), the bolt's travel (m), the hammer down / cocked (rad) */
 const LEVER_OPEN = 0.92, BOLT_TRAVEL = 0.058, HAMMER_DOWN = -0.12, HAMMER_COCKED = 0.5;
 
@@ -524,6 +524,7 @@ export class LeverRifle extends Firearm {
 
   private startCycle(): void {
     this.phase = 'cycle'; this.phaseT = 0;
+    this.equipEvents?.emit('weapon.action', { id: this.row.id, phase: 'cycle' });
     this.onCycle?.();
   }
 
@@ -632,13 +633,8 @@ export class LeverRifle extends Firearm {
     this.stepAction(dt);
 
     // the parts: lever, bolt, hammer from the cycle; the cartridge in hand on a reload
-    const u = this.cycleU, open = this.freezeCycle !== null || this.phase === 'cycle' ? leverOpen(u) : 0;
-    this.lever.rotation.x = LEVER_OPEN * open;
-    this.bolt.position.z = BOLT_TRAVEL * open;
-    const cocked = this.freezeCycle !== null ? u >= 0.2 : this.hammerCocked;
-    this.hammer.rotation.x += ((cocked ? HAMMER_COCKED : HAMMER_DOWN) - this.hammer.rotation.x) * Math.min(1, dt * (cocked ? 18 : 60));
-    this.poseRound();
-    this.poseRightHand(open);
+    const open = this.freezeCycle !== null || this.phase === 'cycle' ? leverOpen(this.cycleU) : 0;
+    this.animateAction(t, dt);
 
     // muzzle flash
     if (this.flashFrames > 0 && --this.flashFrames === 0) this.flash.visible = false;
@@ -648,7 +644,7 @@ export class LeverRifle extends Firearm {
     const s = this.state;
     if (p.sprinting || !this.enabled) this.mouseAds = false;
     s.ads = (this.mouseAds || this.adsHeld) && this.enabled && this.phase !== 'reload' && !p.sprinting;
-    { const step = dt / ADS_BLEND_TIME; this.adsBlend = clamp01(this.adsBlend + THREE.MathUtils.clamp((s.ads ? 1 : 0) - this.adsBlend, -step, step)); }
+    this.adsBlend = blendAds(this.adsBlend, s.ads, dt, this.profile.ads.blend);
     const targetFov = fovForAspect(FOV_HIP + (FOV_ADS - FOV_HIP) * sstep(0, 1, this.adsBlend), cam.aspect);
     if (this.active && Math.abs(targetFov - this.fov) > 0.01) { this.fov = targetFov; cam.fov = this.fov; cam.updateProjectionMatrix(); this.sky.csm.updateFrustums(); }
 
@@ -723,9 +719,13 @@ export class LeverRifle extends Firearm {
 
   /** the action's clock: the recoil beat → the lever cycle → idle; the reload's rounds */
   private stepAction(dt: number): void {
-    const s = this.state;
     if (this.freezeCycle !== null) return;
     this.phaseT += dt;
+    if (this.phase === 'beat' || this.phase === 'cycle') this.cycle(dt);
+    else if (this.phase === 'reload') this.reloadStep(dt);
+    else if (this.autoReloadDue()) this.reload();
+  }
+  protected override cycle(_dt: number): void {
     if (this.phase === 'beat' && this.phaseT >= CYCLE_DELAY) this.startCycle();
     else if (this.phase === 'cycle') {
       const u = this.phaseT / LEVER_TIME;
@@ -737,12 +737,16 @@ export class LeverRifle extends Firearm {
         this.phase = 'idle'; this.phaseT = 0;
         this.syncState();
       }
-    } else if (this.phase === 'reload') {
+    }
+  }
+  protected override reloadStep(_dt: number): void {
+    const s = this.state;
       const inT = this.phaseT - RELOAD_IN;
       const done = Math.max(0, Math.floor(inT / ROUND_TIME));
       while (this.fed < Math.min(done, this.planned)) {
         const next = feedRound(this.action);
         this.tube = next.tube; s.reserve = next.reserve; this.fed++;
+        this.equipEvents?.emit('weapon.reload', { id: this.row.id, phase: 'round' });
         this.onRoundIn?.();
         if (this.stopAfter || this.tube >= TUBE_MAX || s.reserve <= 0) { this.planned = this.fed; break; }
       }
@@ -755,12 +759,21 @@ export class LeverRifle extends Firearm {
         return;
       }
       this.syncState();
-    } else if (this.phase === 'idle' && !this.chambered && this.tube === 0 && s.reserve > 0 && this.sinceEmpty > AUTO_RELOAD_DELAY && this.sinceEmpty < 5 && this.active && this.enabled) {
-      this.reload(); // auto reload: the gun ran dry on a trigger pull
-    }
+  }
+  protected override animateAction(_t: number, dt: number): void {
+    const u = this.cycleU, open = this.freezeCycle !== null || this.phase === 'cycle' ? leverOpen(u) : 0;
+    this.lever.rotation.x = LEVER_OPEN * open;
+    this.bolt.position.z = BOLT_TRAVEL * open;
+    const cocked = this.freezeCycle !== null ? u >= 0.2 : this.hammerCocked;
+    this.hammer.rotation.x += ((cocked ? HAMMER_COCKED : HAMMER_DOWN) - this.hammer.rotation.x) * Math.min(1, dt * (cocked ? 18 : 60));
+    this.poseRound();
+    this.poseRightHand(open);
+
+  }
+  protected override autoReloadDue(): boolean {
+    return this.phase === 'idle' && !this.chambered && this.tube === 0 && this.state.reserve > 0 && this.sinceEmpty > AUTO_RELOAD_DELAY && this.sinceEmpty < 5 && this.active && this.enabled;
   }
 
-  /** the cartridge in hand during a reload: in from the right, nose first into the gate, then gone into the tube */
   private poseRound(): void {
     if (this.phase !== 'reload') { this.round.visible = false; return; }
     const inT = this.phaseT - RELOAD_IN;

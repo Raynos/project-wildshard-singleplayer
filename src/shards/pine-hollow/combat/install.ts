@@ -15,10 +15,10 @@ import type { Audio } from '#engine/audio/Audio';
 import type { Music } from '#engine/audio/Music';
 import type { PineHollowSfx } from '../audio/sfx';
 import type { Interactable } from '../world/homestead';
-import { Elites, type EliteRule } from '#game/Elite';
+import { Elites, GroundTell, type EliteRule } from '#game/Elite';
 import { EliteBar } from '#engine/ui/EliteBar';
 import { voice, type PineCtx } from './ctx';
-import { installPineFeel } from './feel';
+import { installPinePresentation } from './chargeTells';
 import { makePineElites, swapRolledElites, isPineElite } from './elites';
 import { AntlerKing, KING_KIND } from './antlerKing';
 import { activePhysics } from '#engine/physics/active';
@@ -103,7 +103,7 @@ export function installPineCombat(h: PineCombatHost): PineCombat {
     } : null,
   };
 
-  const feel = installPineFeel({ game, weapons, animals });
+  const feel = installPinePresentation({ game, weapons, animals, makeTell: (color) => new GroundTell(game.scene, 'lane', color) });
 
   // ── the elites ──
   swapRolledElites(animals);

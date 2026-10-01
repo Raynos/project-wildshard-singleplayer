@@ -889,7 +889,7 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
     if (!item) return;
     applySkin(item, skin, sky);
     const label = skin.weapon === 'rifle' ? (isPine ? 'lever-action' : 'AR-15') : 'crossbow';
-    const toss = Math.random() * Math.PI * 2; // PHYSICS P7-L2: it pops out of the carcass, bounces and settles where it lands
+    const toss = app.rng.stream('loot').next() * Math.PI * 2; // PHYSICS P7-L2: it pops out of the carcass, bounces and settles where it lands
     const drop = new WeaponPickup({ scene: game.scene, item, position: new THREE.Vector3(at.x, Math.max(at.y, heightAt(at.x, at.z)), at.z), tier: 'rare', prompt: `Take the ${skin.name} ${label}`, scale: skin.weapon === 'rifle' ? 1.35 : 1.6, // big — a legendary fills its orb
       toss: { x: Math.sin(toss) * 1.2, y: 3.5, z: Math.cos(toss) * 1.2 } });
     interactables.push(drop.interactable);
@@ -904,7 +904,7 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   };
   // Pine Hollow's fights (src/pinehollow/): PH-C3 the four named elites, PH-C2 the Antler King, PH-F1 the ranged kit's feel
   // PH-C11 the loadout: special bolts / cartridges / arrows, the lever gun's + the bow's sounds, the Longbow's grant
-  const pineLoadout = rifle instanceof LeverRifle && longbow ? installPineLoadout({ scene: game.scene, sky, weapons, crossbow: crossbow instanceof Crossbow ? crossbow : null, rifle, longbow, inventory, owned, hud, audio, params }) : null;
+  const pineLoadout = rifle instanceof LeverRifle && longbow ? installPineLoadout({ scope: game.levelScope, cues: combatCues, scene: game.scene, sky, weapons, crossbow: crossbow instanceof Crossbow ? crossbow : null, rifle, longbow, inventory, owned, hud, audio, params }) : null;
   if (pineLoadout?.hasRifle === true) rifleDrop?.dispose(); // E314 C: the lever-action is kept once taken — no second one in the cabin
   const pineFights = chunk.slug === 'pine-hollow' && rifle !== null ? installPineCombat({ game, sky, player, animals, weapons, crossbow, rifle, skins, wearSkin, inventory, hud, audio, music, interactables, params,
     longbow: longbow && pineLoadout ? { displayModel: () => longbow.displayModel(), grant: () => { pineLoadout.grantLongbow(); } } : null, ironFirst: () => { pineLoadout?.onPlayerDeath(); } }) : null;
@@ -999,8 +999,7 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   // PH-B2: the cave's bed and reverb deeper in than the mouth's spot (the passage, the squeeze, the room)
   if (ambience instanceof ForestAmbience) for (const s of landmarks?.crags?.caveSpots() ?? []) ambience.addSpot({ zone: 'cave', ...s, fade: 3 });
   // PH-L10 / C7: the dawn fog + the showers (the sky, the fog, the wet PBR, the rain, the puddles, the rings, the herds' shelter)
-  const pineWeather = chunk.slug === 'pine-hollow' ? installPineWeather({ game, sky, trees: forest.trees, animals, particles, ambience: ambience instanceof ForestAmbience ? ambience : null, roofAt: (x, z) => cabins?.floorHeightAt(x, z) !== undefined || (landmarks?.crags?.inCave(x, z) ?? false), stagAt: () => pineQuest?.stagAt() ?? null, viewer, horizonVeil: dressing.horizon.painted?.veil ?? null }) : null;
-  if (pineWeather) pineLoadout?.useRain(() => pineWeather.weather.rain); // wet bolts drop, pitch-tipped ones fly true
+  if (chunk.slug === 'pine-hollow') installPineWeather({ game, sky, trees: forest.trees, animals, particles, ambience: ambience instanceof ForestAmbience ? ambience : null, roofAt: (x, z) => cabins?.floorHeightAt(x, z) !== undefined || (landmarks?.crags?.inCave(x, z) ?? false), stagAt: () => pineQuest?.stagAt() ?? null, viewer, horizonVeil: dressing.horizon.painted?.veil ?? null });
   // PH-M5 / F2: the forest's small life (ravens to a kill, the owl, a woodpecker, hares, the ravens' breadcrumbs) in one draw,
   // and the harvest's skinning beat; the carcass waits for the ravens (src/shards/pine-hollow/life/)
   const pineLife = chunk.slug === 'pine-hollow' ? installPineLife({ game, sky, player, animals, weapons, audio, sfx: ambience instanceof ForestAmbience ? ambience.sfx : null, trees: forest.trees, trunks: forest.factory.variants, params,
