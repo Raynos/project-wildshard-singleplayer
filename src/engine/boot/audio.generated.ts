@@ -104,6 +104,45 @@ export const MUSIC_MANIFESTS: Readonly<Record<string, unknown>> = {
    "pickup": "sting-pickup-7ebca9f6.m4a"
   }
  },
+ "nine-dragon-stack": {
+  "style": "nine-dragon-stack",
+  "model": "MiniMax-Music3",
+  "credit": "Music: MiniMax-Music3",
+  "slots": {
+   "nd-market": {
+    "calm": "nd-market-calm-4a5af233.m4a",
+    "tension": "nd-market-tension-5a01320f.m4a",
+    "bpm": 88.746,
+    "beatsPerBar": 4,
+    "loopStart": 8.3127,
+    "loopEnd": 48.878,
+    "duration": 51.584
+   },
+   "nd-well": {
+    "calm": "nd-well-calm-4dcde431.m4a",
+    "tension": "nd-well-tension-b91dc9e0.m4a",
+    "bpm": 79.507,
+    "beatsPerBar": 4,
+    "loopStart": 19.8066,
+    "loopEnd": 71.1227,
+    "duration": 74.1547
+   },
+   "nd-fight": {
+    "calm": "nd-fight-calm-f81a3489.m4a",
+    "tension": "nd-fight-tension-56031d7b.m4a",
+    "bpm": 81.869,
+    "beatsPerBar": 4,
+    "loopStart": 18.367,
+    "loopEnd": 41.8191,
+    "duration": 44.7573
+   }
+  },
+  "stings": {
+   "death": "sting-death-bf5c76c6.m4a",
+   "chunk": "sting-chunk-d9289a49.m4a",
+   "pickup": "sting-pickup-8516b7e3.m4a"
+  }
+ },
  "orchestral": {
   "style": "orchestral",
   "model": "MiniMax-Music3",
@@ -1098,6 +1137,365 @@ export const SFX_MANIFESTS: Readonly<Record<string, unknown>> = {
     ],
     "gain": 1,
     "shard": "nalati"
+   }
+  }
+ },
+ "nine-dragon-stack": {
+  "model": "MOSS-SoundEffect v2 + Stable Audio 3 Medium",
+  "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+  "licence": "Per file (see provenance.source): MOSS-SoundEffect v2.0 is Apache-2.0; Stable Audio 3 Medium is the Stability AI Community License (free below USD 1M revenue, register with Stability AI for commercial use, show 'Powered by Stability AI').",
+  "set": "nine-dragon-stack",
+  "beds": {
+   "nd.market": {
+    "file": "bed.nd.market-1-71d8fdc0.m4a",
+    "loopStart": 7.75,
+    "loopEnd": 16.75,
+    "duration": 17.7707,
+    "gain": 0.5,
+    "zone": "market",
+    "live": true
+   },
+   "nd.well": {
+    "file": "bed.nd.well-1-ccb30904.m4a",
+    "loopStart": 11.75,
+    "loopEnd": 23.75,
+    "duration": 24.768,
+    "gain": 0.5,
+    "zone": "well",
+    "live": true
+   }
+  },
+  "hums": {
+   "lantern": {
+    "file": "hum.lantern-1-d0f0aab8.m4a",
+    "loopStart": 2.75,
+    "loopEnd": 4.75,
+    "duration": 5.76,
+    "gain": 0.5
+   }
+  },
+  "oneshots": {
+   "step.stone.1": {
+    "files": [
+     "step.stone.1-3-d2e5f930.m4a",
+     "step.stone.1-1-24f1abcf.m4a"
+    ],
+    "gain": 1
+   },
+   "step.stone.2": {
+    "files": [
+     "step.stone.2-3-18b33984.m4a",
+     "step.stone.2-1-1f90842c.m4a"
+    ],
+    "gain": 1
+   },
+   "step.stone.3": {
+    "files": [
+     "step.stone.3-3-e04d8b86.m4a"
+    ],
+    "gain": 1
+   },
+   "step.stone.4": {
+    "files": [
+     "step.stone.4-2-ecebfadb.m4a",
+     "step.stone.4-1-53d88f81.m4a"
+    ],
+    "gain": 1
+   },
+   "step.wood.1": {
+    "files": [
+     "step.wood.1-3-ed1e71ff.m4a",
+     "step.wood.1-2-1e8a14e8.m4a"
+    ],
+    "gain": 1
+   },
+   "step.wood.2": {
+    "files": [
+     "step.wood.2-2-e5ab47f3.m4a",
+     "step.wood.2-1-404d1b37.m4a"
+    ],
+    "gain": 1
+   },
+   "step.wood.3": {
+    "files": [
+     "step.wood.3-3-3e90a949.m4a",
+     "step.wood.3-2-df5fd9f7.m4a"
+    ],
+    "gain": 1
+   },
+   "step.wood.4": {
+    "files": [
+     "step.wood.4-1-58b790f4.m4a",
+     "step.wood.4-3-d6692081.m4a"
+    ],
+    "gain": 1
+   },
+   "step.metal.2": {
+    "files": [
+     "step.metal.2-1-7e7947a9.m4a"
+    ],
+    "gain": 1
+   },
+   "step.metal.3": {
+    "files": [
+     "step.metal.3-3-dc3f0309.m4a",
+     "step.metal.3-2-97b72120.m4a"
+    ],
+    "gain": 1
+   },
+   "step.metal.4": {
+    "files": [
+     "step.metal.4-2-76cb29fb.m4a",
+     "step.metal.4-3-16dcd94d.m4a"
+    ],
+    "gain": 1
+   },
+   "jian.swing": {
+    "files": [
+     "jian.swing-3-35be6573.m4a",
+     "jian.swing-1-3dc41e6d.m4a"
+    ],
+    "gain": 1
+   },
+   "jian.swing.heavy": {
+    "files": [
+     "jian.swing.heavy-1-a7d7699b.m4a",
+     "jian.swing.heavy-3-c6c8879a.m4a"
+    ],
+    "gain": 1
+   },
+   "jian.hit.stone": {
+    "files": [
+     "jian.hit.stone-3-ecca1003.m4a",
+     "jian.hit.stone-1-ac9fb424.m4a"
+    ],
+    "gain": 1
+   },
+   "jian.hit.wood": {
+    "files": [
+     "jian.hit.wood-1-c35f80c3.m4a",
+     "jian.hit.wood-2-19f2cf31.m4a"
+    ],
+    "gain": 1
+   },
+   "jian.clang": {
+    "files": [
+     "jian.clang-1-f481b623.m4a",
+     "jian.clang-2-a1d64012.m4a"
+    ],
+    "gain": 1
+   },
+   "feizhua.fire": {
+    "files": [
+     "feizhua.fire-2-b084bf8c.m4a",
+     "feizhua.fire-3-19900bdc.m4a"
+    ],
+    "gain": 1
+   },
+   "feizhua.bite": {
+    "files": [
+     "feizhua.bite-1-cf340fc8.m4a",
+     "feizhua.bite-2-95a5973d.m4a"
+    ],
+    "gain": 1
+   },
+   "feizhua.reel": {
+    "files": [
+     "feizhua.reel-1-62feefcb.m4a",
+     "feizhua.reel-3-5cc5fe5a.m4a"
+    ],
+    "gain": 1
+   },
+   "feizhua.dock": {
+    "files": [
+     "feizhua.dock-2-6669a863.m4a"
+    ],
+    "gain": 1
+   },
+   "feizhua.zip": {
+    "files": [
+     "feizhua.zip-3-00c1262f.m4a",
+     "feizhua.zip-2-3e53be88.m4a"
+    ],
+    "gain": 1
+   },
+   "chime.gust": {
+    "files": [
+     "chime.gust-1-31ac5a64.m4a",
+     "chime.gust-3-0207c408.m4a"
+    ],
+    "gain": 1
+   }
+  },
+  "sprite": {
+   "file": "oneshots-2a6c7882.m4a",
+   "gap": 0.2,
+   "duration": 34.043,
+   "clips": {
+    "step.stone.1-3-d2e5f930.m4a": [
+     0.2,
+     0.4
+    ],
+    "step.stone.1-1-24f1abcf.m4a": [
+     0.8,
+     0.4
+    ],
+    "step.stone.2-3-18b33984.m4a": [
+     1.4,
+     0.4
+    ],
+    "step.stone.2-1-1f90842c.m4a": [
+     2,
+     0.4
+    ],
+    "step.stone.3-3-e04d8b86.m4a": [
+     2.6,
+     0.375812
+    ],
+    "step.stone.4-2-ecebfadb.m4a": [
+     3.175813,
+     0.4
+    ],
+    "step.stone.4-1-53d88f81.m4a": [
+     3.775812,
+     0.4
+    ],
+    "step.wood.1-3-ed1e71ff.m4a": [
+     4.375813,
+     0.192646
+    ],
+    "step.wood.1-2-1e8a14e8.m4a": [
+     4.768458,
+     0.4
+    ],
+    "step.wood.2-2-e5ab47f3.m4a": [
+     5.368458,
+     0.4
+    ],
+    "step.wood.2-1-404d1b37.m4a": [
+     5.968458,
+     0.4
+    ],
+    "step.wood.3-3-3e90a949.m4a": [
+     6.568458,
+     0.139417
+    ],
+    "step.wood.3-2-df5fd9f7.m4a": [
+     6.907875,
+     0.176896
+    ],
+    "step.wood.4-1-58b790f4.m4a": [
+     7.284771,
+     0.4
+    ],
+    "step.wood.4-3-d6692081.m4a": [
+     7.884771,
+     0.4
+    ],
+    "step.metal.2-1-7e7947a9.m4a": [
+     8.484771,
+     0.349021
+    ],
+    "step.metal.3-3-dc3f0309.m4a": [
+     9.033792,
+     0.385437
+    ],
+    "step.metal.3-2-97b72120.m4a": [
+     9.619229,
+     0.399958
+    ],
+    "step.metal.4-2-76cb29fb.m4a": [
+     10.219188,
+     0.4
+    ],
+    "step.metal.4-3-16dcd94d.m4a": [
+     10.819187,
+     0.4
+    ],
+    "jian.swing-3-35be6573.m4a": [
+     11.419187,
+     0.549083
+    ],
+    "jian.swing-1-3dc41e6d.m4a": [
+     12.168271,
+     0.406104
+    ],
+    "jian.swing.heavy-1-a7d7699b.m4a": [
+     12.774375,
+     1.116854
+    ],
+    "jian.swing.heavy-3-c6c8879a.m4a": [
+     14.091229,
+     0.851854
+    ],
+    "jian.hit.stone-3-ecca1003.m4a": [
+     15.143083,
+     0.744417
+    ],
+    "jian.hit.stone-1-ac9fb424.m4a": [
+     16.0875,
+     0.232479
+    ],
+    "jian.hit.wood-1-c35f80c3.m4a": [
+     16.519979,
+     0.475187
+    ],
+    "jian.hit.wood-2-19f2cf31.m4a": [
+     17.195167,
+     0.541958
+    ],
+    "jian.clang-1-f481b623.m4a": [
+     17.937125,
+     0.885104
+    ],
+    "jian.clang-2-a1d64012.m4a": [
+     19.022229,
+     0.957104
+    ],
+    "feizhua.fire-2-b084bf8c.m4a": [
+     20.179333,
+     0.44175
+    ],
+    "feizhua.fire-3-19900bdc.m4a": [
+     20.821083,
+     0.5
+    ],
+    "feizhua.bite-1-cf340fc8.m4a": [
+     21.521083,
+     0.300021
+    ],
+    "feizhua.bite-2-95a5973d.m4a": [
+     22.021104,
+     0.300021
+    ],
+    "feizhua.reel-1-62feefcb.m4a": [
+     22.521125,
+     1.5
+    ],
+    "feizhua.reel-3-5cc5fe5a.m4a": [
+     24.221125,
+     1.5
+    ],
+    "feizhua.dock-2-6669a863.m4a": [
+     25.921125,
+     0.38175
+    ],
+    "feizhua.zip-3-00c1262f.m4a": [
+     26.502875,
+     1.5
+    ],
+    "feizhua.zip-2-3e53be88.m4a": [
+     28.202875,
+     1.441417
+    ],
+    "chime.gust-1-31ac5a64.m4a": [
+     29.844292,
+     2
+    ],
+    "chime.gust-3-0207c408.m4a": [
+     32.044292,
+     1.799292
+    ]
    }
   }
  },

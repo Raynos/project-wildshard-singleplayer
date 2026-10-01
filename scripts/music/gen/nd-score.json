@@ -1,0 +1,1400 @@
+{
+  "rule": "rank 1 of each slot ships until the user picks (art/music/round-1-nine-dragon-stack/index.html)",
+  "weights": {
+    "instruments": 0.35,
+    "groove": 0.2,
+    "seam": 0.2,
+    "clean": 0.15,
+    "full": 0.1
+  },
+  "verdict": {},
+  "test": {},
+  "slots": {
+    "nd-market": {
+      "pick": "minimax3-404",
+      "takes": [
+        {
+          "id": "minimax3-404",
+          "folder": "nd-nd-market",
+          "side": {
+            "model": "MiniMax Music 3",
+            "variant": "MiniMaxAI/MiniMax-Music3 (8B global LM + 0.6B local LM + 2.4B flow-matching DiT)",
+            "code_commit": "diffusers 0.40.0, torch 2.14.0",
+            "backend": "PyTorch mps bf16",
+            "style": "nd",
+            "slot": "nd-market",
+            "seed": 404,
+            "prompt": "Genre: Chinese-inspired cinematic video game soundtrack, intimate acoustic instruments over soft analog ambient electronics. BPM: 84. Key: D minor, pentatonic colour. Instrumental only, no vocals, no choir. Setting: Nine Dragon Stack, a neon night market high above a deep stone Well; warm paper lanterns, rain on tiled roofs, crowded stair-streets and sizzling food stalls. Arrangement: a clear, gently plucked guzheng lead playing a memorable short rising pentatonic motif; a bowed erhu answers with a warm, lyrical counter-line, over a soft sustained analog synth pad. From the second bar to the end a quiet steady pulse of muted low drums and rounded bass supports the melody, separable as a tension layer. Wonder and human warmth, unhurried exploration, a little nocturnal mystery. Let the motif resolve into a bright plucked onset and a final held chord, with one measured swell before the resolve. No fade-out: the final bar remains full for a seamless loop. Production: detailed close strings, soft neon warmth, short stone-courtyard reverb; no rain or crowd sound effects in the music.",
+            "lyrics": "[Intro]\n[Instrumental]\n[Instrumental]\n[Solo]\n[Instrumental]",
+            "duration_s": 75,
+            "steps": 30,
+            "gen_time_s": 199.8,
+            "model_load_s": 9.0,
+            "mps_driver_gb": 27.19
+          },
+          "metrics": {
+            "duration_s": 57.59,
+            "sample_rate": 44100,
+            "channels": 2,
+            "loudness": {
+              "lufs": -13.8,
+              "lra": 4.1,
+              "true_peak_dbfs": 0.1
+            },
+            "clipping": {
+              "clipped_samples": 115,
+              "clipped_frac": 2.2642074092741936e-05,
+              "peak": 1.0
+            },
+            "silence": {
+              "longest_internal_gap_s": 0.0,
+              "internal_gaps": 0,
+              "head_silence_s": 0.0,
+              "tail_silence_s": 0.0,
+              "total_silence_s": 0
+            },
+            "spectrum": {
+              "centroid_hz": 1612.0,
+              "rolloff95_hz": 6411.1,
+              "flatness": 0.0004,
+              "hf_above_12k": 2e-05,
+              "sub_below_60": 0.1184,
+              "stereo_corr": 0.527
+            },
+            "tempo": {
+              "estimated_bpm": 172.3,
+              "brief_bpm": 84.0,
+              "rel_err": 0.025
+            },
+            "key": {
+              "best_key": "D# major",
+              "best_r": 0.754,
+              "d_major_r": 0.04,
+              "d_major_rank": 10,
+              "key_ok": false
+            },
+            "loop": {
+              "min_bars": 8,
+              "score": 0.437,
+              "similarity": 0.443,
+              "level_match": 0.954,
+              "start_s": 9.0,
+              "end_s": 31.86,
+              "bars": 8,
+              "loop_s": 22.86,
+              "grid_bpm": 84.0
+            },
+            "vocals": {
+              "vocal_energy_share": 0.0,
+              "vocal_active_frac": 0.0,
+              "stem_share": {
+                "drums": 0.398,
+                "bass": 0.1673,
+                "other": 0.4347,
+                "vocals": 0.0
+              },
+              "groove_active_frac": 0.912,
+              "drums_active_frac": 0.912
+            },
+            "instruments": {
+              "instrument_prob": {
+                "guzheng": 0.0,
+                "erhu": 0.003,
+                "pad": 0.39
+              },
+              "foil_prob": {
+                "orchestral strings and brass": 0.283,
+                "piano": 0.074,
+                "acoustic guitar": 0.0,
+                "electronic synthesizer music": 0.217,
+                "a rock band with electric guitar and drums": 0.016,
+                "a person singing a melody with words": 0.017
+              },
+              "instrument_prob_total": 0.393,
+              "best_match": "a soft analog synth pad"
+            }
+          },
+          "score": 0.509,
+          "parts": {
+            "instruments": 0.393,
+            "groove": 0.912,
+            "seam": 0.562,
+            "clean": 0.8,
+            "full": 0.63,
+            "drone": 0.0
+          },
+          "dq": null,
+          "rank": 1,
+          "m4a": "nd-market/nd-market-404.mp3",
+          "bytes": 691871
+        },
+        {
+          "id": "minimax3-401",
+          "folder": "nd-nd-market",
+          "side": {
+            "model": "MiniMax Music 3",
+            "variant": "MiniMaxAI/MiniMax-Music3 (8B global LM + 0.6B local LM + 2.4B flow-matching DiT)",
+            "code_commit": "diffusers 0.40.0, torch 2.14.0",
+            "backend": "PyTorch mps bf16",
+            "style": "nd",
+            "slot": "nd-market",
+            "seed": 401,
+            "prompt": "Genre: Chinese-inspired cinematic video game soundtrack, intimate acoustic instruments over soft analog ambient electronics. BPM: 84. Key: D minor, pentatonic colour. Instrumental only, no vocals, no choir. Setting: Nine Dragon Stack, a neon night market high above a deep stone Well; warm paper lanterns, rain on tiled roofs, crowded stair-streets and sizzling food stalls. Arrangement: a clear, gently plucked guzheng lead playing a memorable short rising pentatonic motif; a bowed erhu answers with a warm, lyrical counter-line, over a soft sustained analog synth pad. From the second bar to the end a quiet steady pulse of muted low drums and rounded bass supports the melody, separable as a tension layer. Wonder and human warmth, unhurried exploration, a little nocturnal mystery. Let the motif resolve into a bright plucked onset and a final held chord, with one measured swell before the resolve. No fade-out: the final bar remains full for a seamless loop. Production: detailed close strings, soft neon warmth, short stone-courtyard reverb; no rain or crowd sound effects in the music.",
+            "lyrics": "[Intro]\n[Instrumental]\n[Instrumental]\n[Solo]\n[Instrumental]",
+            "duration_s": 75,
+            "steps": 30,
+            "gen_time_s": 214.4,
+            "model_load_s": 9.0,
+            "mps_driver_gb": 27.15
+          },
+          "metrics": {
+            "duration_s": 66.32,
+            "sample_rate": 44100,
+            "channels": 2,
+            "loudness": {
+              "lufs": -14.1,
+              "lra": 11.4,
+              "true_peak_dbfs": 0.4
+            },
+            "clipping": {
+              "clipped_samples": 47,
+              "clipped_frac": 8.035440738795518e-06,
+              "peak": 1.0
+            },
+            "silence": {
+              "longest_internal_gap_s": 1.75,
+              "internal_gaps": 1,
+              "head_silence_s": 0.0,
+              "tail_silence_s": 0.0,
+              "total_silence_s": 1.75
+            },
+            "spectrum": {
+              "centroid_hz": 3152.7,
+              "rolloff95_hz": 11059.0,
+              "flatness": 0.0025,
+              "hf_above_12k": 0.00069,
+              "sub_below_60": 0.0259,
+              "stereo_corr": 0.232
+            },
+            "tempo": {
+              "estimated_bpm": 152.0,
+              "brief_bpm": 84.0,
+              "rel_err": 0.095
+            },
+            "key": {
+              "best_key": "D minor",
+              "best_r": 0.828,
+              "d_major_r": 0.515,
+              "d_major_rank": 2,
+              "key_ok": true
+            },
+            "loop": {
+              "min_bars": 16,
+              "score": 0.354,
+              "similarity": 0.366,
+              "level_match": 0.891,
+              "start_s": 26.0,
+              "end_s": 54.42,
+              "bars": 18,
+              "loop_s": 28.42,
+              "grid_bpm": 152.0
+            },
+            "vocals": {
+              "vocal_energy_share": 0.0001,
+              "vocal_active_frac": 0.03,
+              "stem_share": {
+                "drums": 0.0104,
+                "bass": 0.1036,
+                "other": 0.8859,
+                "vocals": 0.0001
+              },
+              "groove_active_frac": 0.485,
+              "drums_active_frac": 0.136
+            },
+            "instruments": {
+              "instrument_prob": {
+                "guzheng": 0.019,
+                "erhu": 0.241,
+                "pad": 0.018
+              },
+              "foil_prob": {
+                "orchestral strings and brass": 0.119,
+                "piano": 0.017,
+                "acoustic guitar": 0.418,
+                "electronic synthesizer music": 0.047,
+                "a rock band with electric guitar and drums": 0.007,
+                "a person singing a melody with words": 0.114
+              },
+              "instrument_prob_total": 0.278,
+              "best_match": "acoustic guitar"
+            }
+          },
+          "score": 0.361,
+          "parts": {
+            "instruments": 0.278,
+            "groove": 0.31,
+            "seam": 0.423,
+            "clean": 1.0,
+            "full": 1.0,
+            "drone": 0.0
+          },
+          "dq": null,
+          "rank": 2,
+          "m4a": "nd-market/nd-market-401.mp3",
+          "bytes": 720711
+        },
+        {
+          "id": "minimax3-402",
+          "folder": "nd-nd-market",
+          "side": {
+            "model": "MiniMax Music 3",
+            "variant": "MiniMaxAI/MiniMax-Music3 (8B global LM + 0.6B local LM + 2.4B flow-matching DiT)",
+            "code_commit": "diffusers 0.40.0, torch 2.14.0",
+            "backend": "PyTorch mps bf16",
+            "style": "nd",
+            "slot": "nd-market",
+            "seed": 402,
+            "prompt": "Genre: Chinese-inspired cinematic video game soundtrack, intimate acoustic instruments over soft analog ambient electronics. BPM: 84. Key: D minor, pentatonic colour. Instrumental only, no vocals, no choir. Setting: Nine Dragon Stack, a neon night market high above a deep stone Well; warm paper lanterns, rain on tiled roofs, crowded stair-streets and sizzling food stalls. Arrangement: a clear, gently plucked guzheng lead playing a memorable short rising pentatonic motif; a bowed erhu answers with a warm, lyrical counter-line, over a soft sustained analog synth pad. From the second bar to the end a quiet steady pulse of muted low drums and rounded bass supports the melody, separable as a tension layer. Wonder and human warmth, unhurried exploration, a little nocturnal mystery. Let the motif resolve into a bright plucked onset and a final held chord, with one measured swell before the resolve. No fade-out: the final bar remains full for a seamless loop. Production: detailed close strings, soft neon warmth, short stone-courtyard reverb; no rain or crowd sound effects in the music.",
+            "lyrics": "[Intro]\n[Instrumental]\n[Instrumental]\n[Solo]\n[Instrumental]",
+            "duration_s": 75,
+            "steps": 30,
+            "gen_time_s": 241.9,
+            "model_load_s": 9.0,
+            "mps_driver_gb": 27.19
+          },
+          "metrics": {
+            "duration_s": 75.08,
+            "sample_rate": 44100,
+            "channels": 2,
+            "loudness": {
+              "lufs": -14.8,
+              "lra": 8.6,
+              "true_peak_dbfs": 0.0
+            },
+            "clipping": {
+              "clipped_samples": 3,
+              "clipped_frac": 4.530211071594248e-07,
+              "peak": 1.0
+            },
+            "silence": {
+              "longest_internal_gap_s": 0.0,
+              "internal_gaps": 0,
+              "head_silence_s": 0.0,
+              "tail_silence_s": 0.0,
+              "total_silence_s": 0
+            },
+            "spectrum": {
+              "centroid_hz": 2663.0,
+              "rolloff95_hz": 9960.2,
+              "flatness": 0.0024,
+              "hf_above_12k": 0.00177,
+              "sub_below_60": 0.0927,
+              "stereo_corr": 0.535
+            },
+            "tempo": {
+              "estimated_bpm": 129.2,
+              "brief_bpm": 84.0,
+              "rel_err": 0.231
+            },
+            "key": {
+              "best_key": "G major",
+              "best_r": 0.726,
+              "d_major_r": 0.537,
+              "d_major_rank": 5,
+              "key_ok": false
+            },
+            "loop": {
+              "min_bars": 16,
+              "score": 0.321,
+              "similarity": 0.323,
+              "level_match": 0.972,
+              "start_s": 3.75,
+              "end_s": 39.04,
+              "bars": 19,
+              "loop_s": 35.29,
+              "grid_bpm": 129.2
+            },
+            "vocals": {
+              "vocal_energy_share": 0.0222,
+              "vocal_active_frac": 0.067,
+              "stem_share": {
+                "drums": 0.0827,
+                "bass": 0.1013,
+                "other": 0.7938,
+                "vocals": 0.0222
+              },
+              "groove_active_frac": 0.533,
+              "drums_active_frac": 0.467
+            },
+            "instruments": {
+              "instrument_prob": {
+                "guzheng": 0.213,
+                "erhu": 0.009,
+                "pad": 0.013
+              },
+              "foil_prob": {
+                "orchestral strings and brass": 0.003,
+                "piano": 0.088,
+                "acoustic guitar": 0.331,
+                "electronic synthesizer music": 0.187,
+                "a rock band with electric guitar and drums": 0.033,
+                "a person singing a melody with words": 0.124
+              },
+              "instrument_prob_total": 0.234,
+              "best_match": "acoustic guitar"
+            }
+          },
+          "score": 0.351,
+          "parts": {
+            "instruments": 0.234,
+            "groove": 0.5,
+            "seam": 0.368,
+            "clean": 1.0,
+            "full": 1.0,
+            "drone": 0.0
+          },
+          "dq": null,
+          "rank": 3,
+          "m4a": "nd-market/nd-market-402.mp3",
+          "bytes": 720711
+        },
+        {
+          "id": "minimax3-403",
+          "folder": "nd-nd-market",
+          "side": {
+            "model": "MiniMax Music 3",
+            "variant": "MiniMaxAI/MiniMax-Music3 (8B global LM + 0.6B local LM + 2.4B flow-matching DiT)",
+            "code_commit": "diffusers 0.40.0, torch 2.14.0",
+            "backend": "PyTorch mps bf16",
+            "style": "nd",
+            "slot": "nd-market",
+            "seed": 403,
+            "prompt": "Genre: Chinese-inspired cinematic video game soundtrack, intimate acoustic instruments over soft analog ambient electronics. BPM: 84. Key: D minor, pentatonic colour. Instrumental only, no vocals, no choir. Setting: Nine Dragon Stack, a neon night market high above a deep stone Well; warm paper lanterns, rain on tiled roofs, crowded stair-streets and sizzling food stalls. Arrangement: a clear, gently plucked guzheng lead playing a memorable short rising pentatonic motif; a bowed erhu answers with a warm, lyrical counter-line, over a soft sustained analog synth pad. From the second bar to the end a quiet steady pulse of muted low drums and rounded bass supports the melody, separable as a tension layer. Wonder and human warmth, unhurried exploration, a little nocturnal mystery. Let the motif resolve into a bright plucked onset and a final held chord, with one measured swell before the resolve. No fade-out: the final bar remains full for a seamless loop. Production: detailed close strings, soft neon warmth, short stone-courtyard reverb; no rain or crowd sound effects in the music.",
+            "lyrics": "[Intro]\n[Instrumental]\n[Instrumental]\n[Solo]\n[Instrumental]",
+            "duration_s": 75,
+            "steps": 30,
+            "gen_time_s": 139.6,
+            "model_load_s": 9.0,
+            "mps_driver_gb": 27.19
+          },
+          "metrics": {
+            "duration_s": 42.32,
+            "sample_rate": 44100,
+            "channels": 2,
+            "loudness": {
+              "lufs": -17.0,
+              "lra": 7.3,
+              "true_peak_dbfs": -0.2
+            },
+            "clipping": {
+              "clipped_samples": 0,
+              "clipped_frac": 0.0,
+              "peak": 0.9727
+            },
+            "silence": {
+              "longest_internal_gap_s": 0.0,
+              "internal_gaps": 0,
+              "head_silence_s": 0.0,
+              "tail_silence_s": 0.0,
+              "total_silence_s": 0
+            },
+            "spectrum": {
+              "centroid_hz": 1913.1,
+              "rolloff95_hz": 7943.8,
+              "flatness": 0.0005,
+              "hf_above_12k": 4e-05,
+              "sub_below_60": 0.0749,
+              "stereo_corr": 0.397
+            },
+            "tempo": {
+              "estimated_bpm": 161.5,
+              "brief_bpm": 84.0,
+              "rel_err": 0.039
+            },
+            "key": {
+              "best_key": "A# major",
+              "best_r": 0.963,
+              "d_major_r": -0.308,
+              "d_major_rank": 17,
+              "key_ok": false
+            },
+            "loop": {
+              "min_bars": 8,
+              "score": 0.292,
+              "similarity": 0.348,
+              "level_match": 0.47,
+              "start_s": 15.25,
+              "end_s": 38.11,
+              "bars": 8,
+              "loop_s": 22.86,
+              "grid_bpm": 84.0
+            },
+            "vocals": {
+              "vocal_energy_share": 0.1493,
+              "vocal_active_frac": 0.119,
+              "stem_share": {
+                "drums": 0.0218,
+                "bass": 0.097,
+                "other": 0.7319,
+                "vocals": 0.1493
+              },
+              "groove_active_frac": 0.357,
+              "drums_active_frac": 0.167
+            },
+            "instruments": {
+              "instrument_prob": {
+                "guzheng": 0.118,
+                "erhu": 0.029,
+                "pad": 0.015
+              },
+              "foil_prob": {
+                "orchestral strings and brass": 0.006,
+                "piano": 0.005,
+                "acoustic guitar": 0.707,
+                "electronic synthesizer music": 0.053,
+                "a rock band with electric guitar and drums": 0.005,
+                "a person singing a melody with words": 0.063
+              },
+              "instrument_prob_total": 0.162,
+              "best_match": "acoustic guitar"
+            }
+          },
+          "score": 0.146,
+          "parts": {
+            "instruments": 0.162,
+            "groove": 0.262,
+            "seam": 0.32,
+            "clean": 1.0,
+            "full": 0.0,
+            "drone": 0.0
+          },
+          "dq": null
+        }
+      ]
+    },
+    "nd-well": {
+      "pick": "minimax3-402",
+      "takes": [
+        {
+          "id": "minimax3-402",
+          "folder": "nd-nd-well",
+          "side": {
+            "model": "MiniMax Music 3",
+            "variant": "MiniMaxAI/MiniMax-Music3 (8B global LM + 0.6B local LM + 2.4B flow-matching DiT)",
+            "code_commit": "diffusers 0.40.0, torch 2.14.0",
+            "backend": "PyTorch mps bf16",
+            "style": "nd",
+            "slot": "nd-well",
+            "seed": 402,
+            "prompt": "Genre: sparse Chinese-inspired ambient video game soundtrack, bowed acoustic melody over soft analog electronics. BPM: 72. Key: D minor, pentatonic colour. Instrumental only, no vocals, no choir. Setting: the rim, galleries and narrow crossings of Nine Dragon's deep stone Well at night, lantern reflections far below and suspended wind chimes. Arrangement: one lonely erhu alone carries a spacious variation of the market's short rising pentatonic motif over a soft analog synth pad and a restrained low drone; leave long breaths between phrases. Tiny high bell-like tones add wind-chime colour without an actual field recording. From bar two a very quiet low drum heartbeat and rounded bass pulse remain under the piece, separable as the tension stem. Suspended, deep, contemplative and mysterious, never horror. No guzheng lead here, no busy percussion. No fade-out: the last bar is as full as the rest, with a gentle sustained resolution for a seamless loop. Production: intimate bowed strings, dark shaft reverb, warm soft pad; no environmental rain, voices or wind sound effects.",
+            "lyrics": "[Intro]\n[Instrumental]\n[Instrumental]\n[Solo]\n[Instrumental]",
+            "duration_s": 75,
+            "steps": 30,
+            "gen_time_s": 260.9,
+            "model_load_s": 3.0,
+            "mps_driver_gb": 28.18
+          },
+          "metrics": {
+            "duration_s": 75.08,
+            "sample_rate": 44100,
+            "channels": 2,
+            "loudness": {
+              "lufs": -12.8,
+              "lra": 15.5,
+              "true_peak_dbfs": -0.1
+            },
+            "clipping": {
+              "clipped_samples": 0,
+              "clipped_frac": 0.0,
+              "peak": 0.9922
+            },
+            "silence": {
+              "longest_internal_gap_s": 0.0,
+              "internal_gaps": 0,
+              "head_silence_s": 0.0,
+              "tail_silence_s": 0.0,
+              "total_silence_s": 0
+            },
+            "spectrum": {
+              "centroid_hz": 2689.5,
+              "rolloff95_hz": 10569.2,
+              "flatness": 0.0009,
+              "hf_above_12k": 5e-05,
+              "sub_below_60": 0.2663,
+              "stereo_corr": 0.43
+            },
+            "tempo": {
+              "estimated_bpm": 80.7,
+              "brief_bpm": 72.0,
+              "rel_err": 0.122
+            },
+            "key": {
+              "best_key": "F minor",
+              "best_r": 0.346,
+              "d_major_r": -0.074,
+              "d_major_rank": 18,
+              "key_ok": false
+            },
+            "loop": {
+              "min_bars": 16,
+              "score": 0.522,
+              "similarity": 0.549,
+              "level_match": 0.838,
+              "start_s": 2.25,
+              "end_s": 52.78,
+              "bars": 17,
+              "loop_s": 50.53,
+              "grid_bpm": 80.7
+            },
+            "vocals": {
+              "vocal_energy_share": 0.0001,
+              "vocal_active_frac": 0.067,
+              "stem_share": {
+                "drums": 0.19,
+                "bass": 0.1235,
+                "other": 0.6864,
+                "vocals": 0.0001
+              },
+              "groove_active_frac": 0.653,
+              "drums_active_frac": 0.653
+            },
+            "instruments": {
+              "instrument_prob": {
+                "guzheng": 0.001,
+                "erhu": 0.071,
+                "pad": 0.057
+              },
+              "foil_prob": {
+                "orchestral strings and brass": 0.116,
+                "piano": 0.018,
+                "acoustic guitar": 0.004,
+                "electronic synthesizer music": 0.306,
+                "a rock band with electric guitar and drums": 0.013,
+                "a person singing a melody with words": 0.414
+              },
+              "instrument_prob_total": 0.129,
+              "best_match": "a person singing a melody with words"
+            }
+          },
+          "score": 0.344,
+          "parts": {
+            "instruments": 0.129,
+            "groove": 0.653,
+            "seam": 0.703,
+            "clean": 1.0,
+            "full": 1.0,
+            "drone": 0.0
+          },
+          "dq": null,
+          "rank": 1,
+          "m4a": "nd-well/nd-well-402.mp3",
+          "bytes": 720711
+        },
+        {
+          "id": "minimax3-401",
+          "folder": "nd-nd-well",
+          "side": {
+            "model": "MiniMax Music 3",
+            "variant": "MiniMaxAI/MiniMax-Music3 (8B global LM + 0.6B local LM + 2.4B flow-matching DiT)",
+            "code_commit": "diffusers 0.40.0, torch 2.14.0",
+            "backend": "PyTorch mps bf16",
+            "style": "nd",
+            "slot": "nd-well",
+            "seed": 401,
+            "prompt": "Genre: sparse Chinese-inspired ambient video game soundtrack, bowed acoustic melody over soft analog electronics. BPM: 72. Key: D minor, pentatonic colour. Instrumental only, no vocals, no choir. Setting: the rim, galleries and narrow crossings of Nine Dragon's deep stone Well at night, lantern reflections far below and suspended wind chimes. Arrangement: one lonely erhu alone carries a spacious variation of the market's short rising pentatonic motif over a soft analog synth pad and a restrained low drone; leave long breaths between phrases. Tiny high bell-like tones add wind-chime colour without an actual field recording. From bar two a very quiet low drum heartbeat and rounded bass pulse remain under the piece, separable as the tension stem. Suspended, deep, contemplative and mysterious, never horror. No guzheng lead here, no busy percussion. No fade-out: the last bar is as full as the rest, with a gentle sustained resolution for a seamless loop. Production: intimate bowed strings, dark shaft reverb, warm soft pad; no environmental rain, voices or wind sound effects.",
+            "lyrics": "[Intro]\n[Instrumental]\n[Instrumental]\n[Solo]\n[Instrumental]",
+            "duration_s": 75,
+            "steps": 30,
+            "gen_time_s": 166.8,
+            "model_load_s": 3.0,
+            "mps_driver_gb": 26.84
+          },
+          "metrics": {
+            "duration_s": 50.77,
+            "sample_rate": 44100,
+            "channels": 2,
+            "loudness": {
+              "lufs": -18.8,
+              "lra": 12.9,
+              "true_peak_dbfs": 1.2
+            },
+            "clipping": {
+              "clipped_samples": 164,
+              "clipped_frac": 3.662388520466499e-05,
+              "peak": 1.0
+            },
+            "silence": {
+              "longest_internal_gap_s": 0.0,
+              "internal_gaps": 0,
+              "head_silence_s": 1.14,
+              "tail_silence_s": 0.0,
+              "total_silence_s": 1.13
+            },
+            "spectrum": {
+              "centroid_hz": 3499.2,
+              "rolloff95_hz": 14384.4,
+              "flatness": 0.0026,
+              "hf_above_12k": 0.00104,
+              "sub_below_60": 0.1832,
+              "stereo_corr": 0.412
+            },
+            "tempo": {
+              "estimated_bpm": 143.6,
+              "brief_bpm": 72.0,
+              "rel_err": 0.003
+            },
+            "key": {
+              "best_key": "C minor",
+              "best_r": 0.809,
+              "d_major_r": -0.37,
+              "d_major_rank": 16,
+              "key_ok": false
+            },
+            "loop": {
+              "min_bars": 8,
+              "score": 0.357,
+              "similarity": 0.357,
+              "level_match": 0.995,
+              "start_s": 11.75,
+              "end_s": 48.42,
+              "bars": 11,
+              "loop_s": 36.67,
+              "grid_bpm": 72.0
+            },
+            "vocals": {
+              "vocal_energy_share": 0.046,
+              "vocal_active_frac": 0.1,
+              "stem_share": {
+                "drums": 0.6019,
+                "bass": 0.0,
+                "other": 0.352,
+                "vocals": 0.046
+              },
+              "groove_active_frac": 0.4,
+              "drums_active_frac": 0.4
+            },
+            "instruments": {
+              "instrument_prob": {
+                "guzheng": 0.013,
+                "erhu": 0.162,
+                "pad": 0.007
+              },
+              "foil_prob": {
+                "orchestral strings and brass": 0.103,
+                "piano": 0.076,
+                "acoustic guitar": 0.333,
+                "electronic synthesizer music": 0.095,
+                "a rock band with electric guitar and drums": 0.009,
+                "a person singing a melody with words": 0.203
+              },
+              "instrument_prob_total": 0.182,
+              "best_match": "acoustic guitar"
+            }
+          },
+          "score": 0.258,
+          "parts": {
+            "instruments": 0.182,
+            "groove": 0.4,
+            "seam": 0.428,
+            "clean": 1.0,
+            "full": 0.289,
+            "drone": 0.0
+          },
+          "dq": null,
+          "rank": 2,
+          "m4a": "nd-well/nd-well-401.mp3",
+          "bytes": 610056
+        },
+        {
+          "id": "minimax3-403",
+          "folder": "nd-nd-well",
+          "side": {
+            "model": "MiniMax Music 3",
+            "variant": "MiniMaxAI/MiniMax-Music3 (8B global LM + 0.6B local LM + 2.4B flow-matching DiT)",
+            "code_commit": "diffusers 0.40.0, torch 2.14.0",
+            "backend": "PyTorch mps bf16",
+            "style": "nd",
+            "slot": "nd-well",
+            "seed": 403,
+            "prompt": "Genre: sparse Chinese-inspired ambient video game soundtrack, bowed acoustic melody over soft analog electronics. BPM: 72. Key: D minor, pentatonic colour. Instrumental only, no vocals, no choir. Setting: the rim, galleries and narrow crossings of Nine Dragon's deep stone Well at night, lantern reflections far below and suspended wind chimes. Arrangement: one lonely erhu alone carries a spacious variation of the market's short rising pentatonic motif over a soft analog synth pad and a restrained low drone; leave long breaths between phrases. Tiny high bell-like tones add wind-chime colour without an actual field recording. From bar two a very quiet low drum heartbeat and rounded bass pulse remain under the piece, separable as the tension stem. Suspended, deep, contemplative and mysterious, never horror. No guzheng lead here, no busy percussion. No fade-out: the last bar is as full as the rest, with a gentle sustained resolution for a seamless loop. Production: intimate bowed strings, dark shaft reverb, warm soft pad; no environmental rain, voices or wind sound effects.",
+            "lyrics": "[Intro]\n[Instrumental]\n[Instrumental]\n[Solo]\n[Instrumental]",
+            "duration_s": 75,
+            "steps": 30,
+            "gen_time_s": 222.9,
+            "model_load_s": 3.0,
+            "mps_driver_gb": 28.18
+          },
+          "metrics": {
+            "duration_s": 67.79,
+            "sample_rate": 44100,
+            "channels": 2,
+            "loudness": {
+              "lufs": -15.1,
+              "lra": 9.0,
+              "true_peak_dbfs": 0.2
+            },
+            "clipping": {
+              "clipped_samples": 19,
+              "clipped_frac": 3.1777166466860765e-06,
+              "peak": 1.0
+            },
+            "silence": {
+              "longest_internal_gap_s": 0.0,
+              "internal_gaps": 0,
+              "head_silence_s": 0.0,
+              "tail_silence_s": 0.0,
+              "total_silence_s": 0
+            },
+            "spectrum": {
+              "centroid_hz": 2399.2,
+              "rolloff95_hz": 8356.0,
+              "flatness": 0.0011,
+              "hf_above_12k": 5e-05,
+              "sub_below_60": 0.2301,
+              "stereo_corr": 0.38
+            },
+            "tempo": {
+              "estimated_bpm": 99.4,
+              "brief_bpm": 72.0,
+              "rel_err": 0.31
+            },
+            "key": {
+              "best_key": "G minor",
+              "best_r": 0.884,
+              "d_major_r": 0.06,
+              "d_major_rank": 10,
+              "key_ok": false
+            },
+            "loop": {
+              "min_bars": 16,
+              "score": 0.487,
+              "similarity": 0.513,
+              "level_match": 0.831,
+              "start_s": 22.5,
+              "end_s": 61.14,
+              "bars": 16,
+              "loop_s": 38.64,
+              "grid_bpm": 99.4
+            },
+            "vocals": {
+              "vocal_energy_share": 0.1656,
+              "vocal_active_frac": 0.388,
+              "stem_share": {
+                "drums": 0.2585,
+                "bass": 0.1244,
+                "other": 0.4515,
+                "vocals": 0.1656
+              },
+              "groove_active_frac": 0.821,
+              "drums_active_frac": 0.836
+            },
+            "instruments": {
+              "instrument_prob": {
+                "guzheng": 0.0,
+                "erhu": 0.006,
+                "pad": 0.053
+              },
+              "foil_prob": {
+                "orchestral strings and brass": 0.044,
+                "piano": 0.007,
+                "acoustic guitar": 0.0,
+                "electronic synthesizer music": 0.196,
+                "a rock band with electric guitar and drums": 0.011,
+                "a person singing a melody with words": 0.681
+              },
+              "instrument_prob_total": 0.059,
+              "best_match": "a person singing a melody with words"
+            }
+          },
+          "score": 0.243,
+          "parts": {
+            "instruments": 0.059,
+            "groove": 0.829,
+            "seam": 0.645,
+            "clean": 1.0,
+            "full": 1.0,
+            "drone": 0.0
+          },
+          "dq": null,
+          "rank": 3,
+          "m4a": "nd-well/nd-well-403.mp3",
+          "bytes": 720711
+        },
+        {
+          "id": "minimax3-404",
+          "folder": "nd-nd-well",
+          "side": {
+            "model": "MiniMax Music 3",
+            "variant": "MiniMaxAI/MiniMax-Music3 (8B global LM + 0.6B local LM + 2.4B flow-matching DiT)",
+            "code_commit": "diffusers 0.40.0, torch 2.14.0",
+            "backend": "PyTorch mps bf16",
+            "style": "nd",
+            "slot": "nd-well",
+            "seed": 404,
+            "prompt": "Genre: sparse Chinese-inspired ambient video game soundtrack, bowed acoustic melody over soft analog electronics. BPM: 72. Key: D minor, pentatonic colour. Instrumental only, no vocals, no choir. Setting: the rim, galleries and narrow crossings of Nine Dragon's deep stone Well at night, lantern reflections far below and suspended wind chimes. Arrangement: one lonely erhu alone carries a spacious variation of the market's short rising pentatonic motif over a soft analog synth pad and a restrained low drone; leave long breaths between phrases. Tiny high bell-like tones add wind-chime colour without an actual field recording. From bar two a very quiet low drum heartbeat and rounded bass pulse remain under the piece, separable as the tension stem. Suspended, deep, contemplative and mysterious, never horror. No guzheng lead here, no busy percussion. No fade-out: the last bar is as full as the rest, with a gentle sustained resolution for a seamless loop. Production: intimate bowed strings, dark shaft reverb, warm soft pad; no environmental rain, voices or wind sound effects.",
+            "lyrics": "[Intro]\n[Instrumental]\n[Instrumental]\n[Solo]\n[Instrumental]",
+            "duration_s": 75,
+            "steps": 30,
+            "gen_time_s": 283.6,
+            "model_load_s": 3.0,
+            "mps_driver_gb": 28.18
+          },
+          "metrics": {
+            "duration_s": 75.08,
+            "sample_rate": 44100,
+            "channels": 2,
+            "loudness": {
+              "lufs": -13.6,
+              "lra": 9.3,
+              "true_peak_dbfs": 0.2
+            },
+            "clipping": {
+              "clipped_samples": 172,
+              "clipped_frac": 2.597321014380702e-05,
+              "peak": 1.0
+            },
+            "silence": {
+              "longest_internal_gap_s": 0.0,
+              "internal_gaps": 0,
+              "head_silence_s": 1.03,
+              "tail_silence_s": 0.0,
+              "total_silence_s": 1.03
+            },
+            "spectrum": {
+              "centroid_hz": 2264.4,
+              "rolloff95_hz": 8189.5,
+              "flatness": 0.0012,
+              "hf_above_12k": 0.00019,
+              "sub_below_60": 0.2439,
+              "stereo_corr": 0.454
+            },
+            "tempo": {
+              "estimated_bpm": 89.1,
+              "brief_bpm": 72.0,
+              "rel_err": 0.238
+            },
+            "key": {
+              "best_key": "C major",
+              "best_r": 0.818,
+              "d_major_r": -0.244,
+              "d_major_rank": 17,
+              "key_ok": false
+            },
+            "loop": {
+              "min_bars": 16,
+              "score": 0.441,
+              "similarity": 0.449,
+              "level_match": 0.943,
+              "start_s": 23.5,
+              "end_s": 71.98,
+              "bars": 18,
+              "loop_s": 48.48,
+              "grid_bpm": 89.1
+            },
+            "vocals": {
+              "vocal_energy_share": 0.1223,
+              "vocal_active_frac": 0.187,
+              "stem_share": {
+                "drums": 0.3146,
+                "bass": 0.1577,
+                "other": 0.4055,
+                "vocals": 0.1223
+              },
+              "groove_active_frac": 0.733,
+              "drums_active_frac": 0.387
+            },
+            "instruments": {
+              "instrument_prob": {
+                "guzheng": 0.048,
+                "erhu": 0.022,
+                "pad": 0.004
+              },
+              "foil_prob": {
+                "orchestral strings and brass": 0.053,
+                "piano": 0.015,
+                "acoustic guitar": 0.19,
+                "electronic synthesizer music": 0.079,
+                "a rock band with electric guitar and drums": 0.394,
+                "a person singing a melody with words": 0.193
+              },
+              "instrument_prob_total": 0.075,
+              "best_match": "a rock band with electric guitar and drums"
+            }
+          },
+          "score": 0.236,
+          "parts": {
+            "instruments": 0.075,
+            "groove": 0.56,
+            "seam": 0.568,
+            "clean": 1.0,
+            "full": 1.0,
+            "drone": 0.0
+          },
+          "dq": null
+        }
+      ]
+    },
+    "nd-fight": {
+      "pick": "minimax3-404",
+      "takes": [
+        {
+          "id": "minimax3-404",
+          "folder": "nd-nd-fight",
+          "side": {
+            "model": "MiniMax Music 3",
+            "variant": "MiniMaxAI/MiniMax-Music3 (8B global LM + 0.6B local LM + 2.4B flow-matching DiT)",
+            "code_commit": "diffusers 0.40.0, torch 2.14.0",
+            "backend": "PyTorch mps bf16",
+            "style": "nd",
+            "slot": "nd-fight",
+            "seed": 404,
+            "prompt": "Genre: Chinese-inspired cinematic action video game soundtrack, acoustic strings and analog synth. BPM: 112. Key: D minor, pentatonic colour. Instrumental only, no vocals, no choir. Setting: a fight in Nine Dragon Stack's rain-lit neon night market, a jian flashing and a brass grapple carrying the player between high galleries. Arrangement: the market's short rising pentatonic guzheng motif returns in urgent tremolo and crisp repeated plucks; erhu answers with a strong soaring counter-line over a driving but soft-edged analog synth pad. Deep taiko-like low drums and rounded pulsing bass enter from bar two and carry the rise throughout, the drums and bass cleanly separable as a tension layer while the melodic calm stem remains coherent by itself. Athletic, determined and escalating, no bombastic brass, no rock guitar, no EDM drop. Keep the energy through the last bar with no fade-out and a clean bar-aligned resolution for a seamless loop. Production: close detailed strings, warm analog pad, tight low drums with short stone-courtyard reverb; no weapon, crowd or rain sound effects.",
+            "lyrics": "[Intro]\n[Instrumental]\n[Instrumental]\n[Solo]\n[Instrumental]",
+            "duration_s": 60,
+            "steps": 30,
+            "gen_time_s": 219.6,
+            "model_load_s": 3.6,
+            "mps_driver_gb": 27.59
+          },
+          "metrics": {
+            "duration_s": 60.07,
+            "sample_rate": 44100,
+            "channels": 2,
+            "loudness": {
+              "lufs": -14.5,
+              "lra": 5.6,
+              "true_peak_dbfs": 0.2
+            },
+            "clipping": {
+              "clipped_samples": 98,
+              "clipped_frac": 1.8496931774255894e-05,
+              "peak": 1.0
+            },
+            "silence": {
+              "longest_internal_gap_s": 0.0,
+              "internal_gaps": 0,
+              "head_silence_s": 0.0,
+              "tail_silence_s": 0.0,
+              "total_silence_s": 0
+            },
+            "spectrum": {
+              "centroid_hz": 2665.0,
+              "rolloff95_hz": 9062.3,
+              "flatness": 0.004,
+              "hf_above_12k": 0.00052,
+              "sub_below_60": 0.1317,
+              "stereo_corr": 0.659
+            },
+            "tempo": {
+              "estimated_bpm": 161.5,
+              "brief_bpm": 112.0,
+              "rel_err": 0.279
+            },
+            "key": {
+              "best_key": "C major",
+              "best_r": 0.711,
+              "d_major_r": -0.093,
+              "d_major_rank": 13,
+              "key_ok": false
+            },
+            "loop": {
+              "min_bars": 16,
+              "score": 0.521,
+              "similarity": 0.525,
+              "level_match": 0.973,
+              "start_s": 24.0,
+              "end_s": 47.78,
+              "bars": 16,
+              "loop_s": 23.78,
+              "grid_bpm": 161.5
+            },
+            "vocals": {
+              "vocal_energy_share": 0.0,
+              "vocal_active_frac": 0.0,
+              "stem_share": {
+                "drums": 0.5223,
+                "bass": 0.1384,
+                "other": 0.3393,
+                "vocals": 0.0
+              },
+              "groove_active_frac": 0.917,
+              "drums_active_frac": 0.9
+            },
+            "instruments": {
+              "instrument_prob": {
+                "guzheng": 0.0,
+                "erhu": 0.003,
+                "pad": 0.042
+              },
+              "foil_prob": {
+                "orchestral strings and brass": 0.845,
+                "piano": 0.034,
+                "acoustic guitar": 0.0,
+                "electronic synthesizer music": 0.053,
+                "a rock band with electric guitar and drums": 0.023,
+                "a person singing a melody with words": 0.001
+              },
+              "instrument_prob_total": 0.045,
+              "best_match": "orchestral strings and brass"
+            }
+          },
+          "score": 0.303,
+          "parts": {
+            "instruments": 0.045,
+            "groove": 0.909,
+            "seam": 0.702,
+            "clean": 1.0,
+            "full": 0.754,
+            "drone": 0.0
+          },
+          "dq": null,
+          "rank": 1,
+          "m4a": "nd-fight/nd-fight-404.mp3",
+          "bytes": 720711
+        },
+        {
+          "id": "minimax3-403",
+          "folder": "nd-nd-fight",
+          "side": {
+            "model": "MiniMax Music 3",
+            "variant": "MiniMaxAI/MiniMax-Music3 (8B global LM + 0.6B local LM + 2.4B flow-matching DiT)",
+            "code_commit": "diffusers 0.40.0, torch 2.14.0",
+            "backend": "PyTorch mps bf16",
+            "style": "nd",
+            "slot": "nd-fight",
+            "seed": 403,
+            "prompt": "Genre: Chinese-inspired cinematic action video game soundtrack, acoustic strings and analog synth. BPM: 112. Key: D minor, pentatonic colour. Instrumental only, no vocals, no choir. Setting: a fight in Nine Dragon Stack's rain-lit neon night market, a jian flashing and a brass grapple carrying the player between high galleries. Arrangement: the market's short rising pentatonic guzheng motif returns in urgent tremolo and crisp repeated plucks; erhu answers with a strong soaring counter-line over a driving but soft-edged analog synth pad. Deep taiko-like low drums and rounded pulsing bass enter from bar two and carry the rise throughout, the drums and bass cleanly separable as a tension layer while the melodic calm stem remains coherent by itself. Athletic, determined and escalating, no bombastic brass, no rock guitar, no EDM drop. Keep the energy through the last bar with no fade-out and a clean bar-aligned resolution for a seamless loop. Production: close detailed strings, warm analog pad, tight low drums with short stone-courtyard reverb; no weapon, crowd or rain sound effects.",
+            "lyrics": "[Intro]\n[Instrumental]\n[Instrumental]\n[Solo]\n[Instrumental]",
+            "duration_s": 60,
+            "steps": 30,
+            "gen_time_s": 169.7,
+            "model_load_s": 3.6,
+            "mps_driver_gb": 27.57
+          },
+          "metrics": {
+            "duration_s": 50.13,
+            "sample_rate": 44100,
+            "channels": 2,
+            "loudness": {
+              "lufs": -14.4,
+              "lra": 8.1,
+              "true_peak_dbfs": -0.8
+            },
+            "clipping": {
+              "clipped_samples": 0,
+              "clipped_frac": 0.0,
+              "peak": 0.9062
+            },
+            "silence": {
+              "longest_internal_gap_s": 0.0,
+              "internal_gaps": 0,
+              "head_silence_s": 0.0,
+              "tail_silence_s": 0.0,
+              "total_silence_s": 0
+            },
+            "spectrum": {
+              "centroid_hz": 2530.1,
+              "rolloff95_hz": 7225.8,
+              "flatness": 0.0009,
+              "hf_above_12k": 0.0001,
+              "sub_below_60": 0.0756,
+              "stereo_corr": 0.452
+            },
+            "tempo": {
+              "estimated_bpm": 95.7,
+              "brief_bpm": 112.0,
+              "rel_err": 0.146
+            },
+            "key": {
+              "best_key": "D minor",
+              "best_r": 0.859,
+              "d_major_r": 0.564,
+              "d_major_rank": 2,
+              "key_ok": true
+            },
+            "loop": {
+              "min_bars": 8,
+              "score": 0.693,
+              "similarity": 0.693,
+              "level_match": 0.999,
+              "start_s": 17.0,
+              "end_s": 37.06,
+              "bars": 8,
+              "loop_s": 20.06,
+              "grid_bpm": 95.7
+            },
+            "vocals": {
+              "vocal_energy_share": 0.0,
+              "vocal_active_frac": 0.0,
+              "stem_share": {
+                "drums": 0.1033,
+                "bass": 0.1447,
+                "other": 0.7521,
+                "vocals": 0.0
+              },
+              "groove_active_frac": 0.8,
+              "drums_active_frac": 0.74
+            },
+            "instruments": {
+              "instrument_prob": {
+                "guzheng": 0.0,
+                "erhu": 0.004,
+                "pad": 0.021
+              },
+              "foil_prob": {
+                "orchestral strings and brass": 0.329,
+                "piano": 0.143,
+                "acoustic guitar": 0.001,
+                "electronic synthesizer music": 0.355,
+                "a rock band with electric guitar and drums": 0.111,
+                "a person singing a melody with words": 0.036
+              },
+              "instrument_prob_total": 0.025,
+              "best_match": "electronic synthesizer music"
+            }
+          },
+          "score": 0.279,
+          "parts": {
+            "instruments": 0.025,
+            "groove": 0.77,
+            "seam": 0.988,
+            "clean": 1.0,
+            "full": 0.257,
+            "drone": 0.0
+          },
+          "dq": null,
+          "rank": 2,
+          "m4a": "nd-fight/nd-fight-403.mp3",
+          "bytes": 602533
+        },
+        {
+          "id": "minimax3-402",
+          "folder": "nd-nd-fight",
+          "side": {
+            "model": "MiniMax Music 3",
+            "variant": "MiniMaxAI/MiniMax-Music3 (8B global LM + 0.6B local LM + 2.4B flow-matching DiT)",
+            "code_commit": "diffusers 0.40.0, torch 2.14.0",
+            "backend": "PyTorch mps bf16",
+            "style": "nd",
+            "slot": "nd-fight",
+            "seed": 402,
+            "prompt": "Genre: Chinese-inspired cinematic action video game soundtrack, acoustic strings and analog synth. BPM: 112. Key: D minor, pentatonic colour. Instrumental only, no vocals, no choir. Setting: a fight in Nine Dragon Stack's rain-lit neon night market, a jian flashing and a brass grapple carrying the player between high galleries. Arrangement: the market's short rising pentatonic guzheng motif returns in urgent tremolo and crisp repeated plucks; erhu answers with a strong soaring counter-line over a driving but soft-edged analog synth pad. Deep taiko-like low drums and rounded pulsing bass enter from bar two and carry the rise throughout, the drums and bass cleanly separable as a tension layer while the melodic calm stem remains coherent by itself. Athletic, determined and escalating, no bombastic brass, no rock guitar, no EDM drop. Keep the energy through the last bar with no fade-out and a clean bar-aligned resolution for a seamless loop. Production: close detailed strings, warm analog pad, tight low drums with short stone-courtyard reverb; no weapon, crowd or rain sound effects.",
+            "lyrics": "[Intro]\n[Instrumental]\n[Instrumental]\n[Solo]\n[Instrumental]",
+            "duration_s": 60,
+            "steps": 30,
+            "gen_time_s": 202.3,
+            "model_load_s": 3.6,
+            "mps_driver_gb": 26.5
+          },
+          "metrics": {
+            "duration_s": 60.07,
+            "sample_rate": 44100,
+            "channels": 2,
+            "loudness": {
+              "lufs": -13.7,
+              "lra": 3.0,
+              "true_peak_dbfs": 0.0
+            },
+            "clipping": {
+              "clipped_samples": 14,
+              "clipped_frac": 2.6424188248936994e-06,
+              "peak": 1.0
+            },
+            "silence": {
+              "longest_internal_gap_s": 0.0,
+              "internal_gaps": 0,
+              "head_silence_s": 0.0,
+              "tail_silence_s": 0.0,
+              "total_silence_s": 0
+            },
+            "spectrum": {
+              "centroid_hz": 1872.2,
+              "rolloff95_hz": 6951.5,
+              "flatness": 0.0006,
+              "hf_above_12k": 8e-05,
+              "sub_below_60": 0.046,
+              "stereo_corr": 0.551
+            },
+            "tempo": {
+              "estimated_bpm": 117.5,
+              "brief_bpm": 112.0,
+              "rel_err": 0.049
+            },
+            "key": {
+              "best_key": "G minor",
+              "best_r": 0.678,
+              "d_major_r": 0.173,
+              "d_major_rank": 10,
+              "key_ok": false
+            },
+            "loop": {
+              "min_bars": 16,
+              "score": 0.33,
+              "similarity": 0.335,
+              "level_match": 0.951,
+              "start_s": 18.75,
+              "end_s": 53.49,
+              "bars": 17,
+              "loop_s": 34.74,
+              "grid_bpm": 117.5
+            },
+            "vocals": {
+              "vocal_energy_share": 0.0,
+              "vocal_active_frac": 0.0,
+              "stem_share": {
+                "drums": 0.0864,
+                "bass": 0.3413,
+                "other": 0.5723,
+                "vocals": 0.0
+              },
+              "groove_active_frac": 0.85,
+              "drums_active_frac": 0.5
+            },
+            "instruments": {
+              "instrument_prob": {
+                "guzheng": 0.001,
+                "erhu": 0.002,
+                "pad": 0.102
+              },
+              "foil_prob": {
+                "orchestral strings and brass": 0.375,
+                "piano": 0.182,
+                "acoustic guitar": 0.001,
+                "electronic synthesizer music": 0.262,
+                "a rock band with electric guitar and drums": 0.068,
+                "a person singing a melody with words": 0.007
+              },
+              "instrument_prob_total": 0.105,
+              "best_match": "orchestral strings and brass"
+            }
+          },
+          "score": 0.261,
+          "parts": {
+            "instruments": 0.105,
+            "groove": 0.675,
+            "seam": 0.383,
+            "clean": 0.8,
+            "full": 0.754,
+            "drone": 0.0
+          },
+          "dq": null,
+          "rank": 3,
+          "m4a": "nd-fight/nd-fight-402.mp3",
+          "bytes": 720711
+        },
+        {
+          "id": "minimax3-401",
+          "folder": "nd-nd-fight",
+          "side": {
+            "model": "MiniMax Music 3",
+            "variant": "MiniMaxAI/MiniMax-Music3 (8B global LM + 0.6B local LM + 2.4B flow-matching DiT)",
+            "code_commit": "diffusers 0.40.0, torch 2.14.0",
+            "backend": "PyTorch mps bf16",
+            "style": "nd",
+            "slot": "nd-fight",
+            "seed": 401,
+            "prompt": "Genre: Chinese-inspired cinematic action video game soundtrack, acoustic strings and analog synth. BPM: 112. Key: D minor, pentatonic colour. Instrumental only, no vocals, no choir. Setting: a fight in Nine Dragon Stack's rain-lit neon night market, a jian flashing and a brass grapple carrying the player between high galleries. Arrangement: the market's short rising pentatonic guzheng motif returns in urgent tremolo and crisp repeated plucks; erhu answers with a strong soaring counter-line over a driving but soft-edged analog synth pad. Deep taiko-like low drums and rounded pulsing bass enter from bar two and carry the rise throughout, the drums and bass cleanly separable as a tension layer while the melodic calm stem remains coherent by itself. Athletic, determined and escalating, no bombastic brass, no rock guitar, no EDM drop. Keep the energy through the last bar with no fade-out and a clean bar-aligned resolution for a seamless loop. Production: close detailed strings, warm analog pad, tight low drums with short stone-courtyard reverb; no weapon, crowd or rain sound effects.",
+            "lyrics": "[Intro]\n[Instrumental]\n[Instrumental]\n[Solo]\n[Instrumental]",
+            "duration_s": 60,
+            "steps": 30,
+            "gen_time_s": 99.3,
+            "model_load_s": 3.6,
+            "mps_driver_gb": 26.33
+          },
+          "metrics": {
+            "duration_s": 25.43,
+            "sample_rate": 44100,
+            "channels": 2,
+            "loudness": {
+              "lufs": -15.4,
+              "lra": 8.9,
+              "true_peak_dbfs": 0.0
+            },
+            "clipping": {
+              "clipped_samples": 5,
+              "clipped_frac": 2.2295947488584474e-06,
+              "peak": 1.0
+            },
+            "silence": {
+              "longest_internal_gap_s": 0.0,
+              "internal_gaps": 0,
+              "head_silence_s": 0.0,
+              "tail_silence_s": 0.0,
+              "total_silence_s": 0
+            },
+            "spectrum": {
+              "centroid_hz": 2912.6,
+              "rolloff95_hz": 11613.8,
+              "flatness": 0.0051,
+              "hf_above_12k": 0.0009,
+              "sub_below_60": 0.0343,
+              "stereo_corr": 0.408
+            },
+            "tempo": {
+              "estimated_bpm": 112.3,
+              "brief_bpm": 112.0,
+              "rel_err": 0.003
+            },
+            "key": {
+              "best_key": "A major",
+              "best_r": 0.728,
+              "d_major_r": 0.065,
+              "d_major_rank": 8,
+              "key_ok": false
+            },
+            "loop": {
+              "min_bars": 2,
+              "score": 0.295,
+              "similarity": 0.303,
+              "level_match": 0.905,
+              "start_s": 2.5,
+              "end_s": 6.79,
+              "bars": 2,
+              "loop_s": 4.29,
+              "grid_bpm": 112.0
+            },
+            "vocals": {
+              "vocal_energy_share": 0.0,
+              "vocal_active_frac": 0.0,
+              "stem_share": {
+                "drums": 0.0514,
+                "bass": 0.2902,
+                "other": 0.6584,
+                "vocals": 0.0
+              },
+              "groove_active_frac": 0.8,
+              "drums_active_frac": 0.76
+            },
+            "instruments": {
+              "instrument_prob": {
+                "guzheng": 0.006,
+                "erhu": 0.001,
+                "pad": 0.002
+              },
+              "foil_prob": {
+                "orchestral strings and brass": 0.006,
+                "piano": 0.929,
+                "acoustic guitar": 0.009,
+                "electronic synthesizer music": 0.005,
+                "a rock band with electric guitar and drums": 0.029,
+                "a person singing a melody with words": 0.014
+              },
+              "instrument_prob_total": 0.009,
+              "best_match": "piano"
+            }
+          },
+          "score": 0.19,
+          "parts": {
+            "instruments": 0.009,
+            "groove": 0.78,
+            "seam": 0.325,
+            "clean": 1.0,
+            "full": 0.0,
+            "drone": 0.0
+          },
+          "dq": null
+        }
+      ]
+    }
+  }
+}

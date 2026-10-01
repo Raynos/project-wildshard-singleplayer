@@ -1,0 +1,62 @@
+{
+  "slots": {
+    "nd-market": {
+      "take": "minimax3-404",
+      "loop": {
+        "score": 0.5414,
+        "similarity": 0.574,
+        "level_match": 0.811,
+        "loopStart": 8.312743764172335,
+        "loopEnd": 48.87800453514739,
+        "bars": 15,
+        "bpm": 88.746,
+        "beat_jitter_s": 0.044,
+        "best_seam_score": 0.5916
+      },
+      "voice_share": 0.0,
+      "bytes": {
+        "calm": 631028,
+        "tension": 427270
+      }
+    },
+    "nd-well": {
+      "take": "minimax3-402",
+      "loop": {
+        "score": 0.3315,
+        "similarity": 0.405,
+        "level_match": 0.397,
+        "loopStart": 19.806621315192743,
+        "loopEnd": 71.12272108843537,
+        "bars": 17,
+        "bpm": 79.507,
+        "beat_jitter_s": 0.104,
+        "best_seam_score": 0.3315
+      },
+      "voice_share": 0.0002,
+      "bytes": {
+        "calm": 908074,
+        "tension": 613563
+      }
+    },
+    "nd-fight": {
+      "take": "minimax3-404",
+      "loop": {
+        "score": 0.8111,
+        "similarity": 0.861,
+        "level_match": 0.808,
+        "loopStart": 18.36698412698413,
+        "loopEnd": 41.81913832199547,
+        "bars": 8,
+        "bpm": 81.869,
+        "beat_jitter_s": 0.036,
+        "best_seam_score": 0.8111
+      },
+      "voice_share": 0.0,
+      "bytes": {
+        "calm": 547920,
+        "tension": 372387
+      }
+    }
+  },
+  "total_bytes": 3624645
+}
