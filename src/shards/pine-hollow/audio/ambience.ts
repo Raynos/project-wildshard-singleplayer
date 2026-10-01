@@ -1,4 +1,4 @@
-import { app, AmbienceZones, type ZoneVoice } from '#engine';
+import { audioRandom, AmbienceZones, type ZoneVoice } from '#engine';
 import { tap, ambientTick } from '#engine/core/harnessTap';
 /**
  * ForestAmbience — Pine Hollow's zoned soundscape and reverb zones (PINE-HOLLOW-REMASTER PH-A2 / PH-A5), the IslandAmbience
@@ -100,7 +100,7 @@ export class ForestAmbience {
   private timers: number[] = [];
 
   constructor(private readonly audio: Audio, private readonly o: ForestAmbienceOpts) {
-    this.zones = new AmbienceZones(audio, () => app.rng.stream('cosmetic').next());
+    this.zones = new AmbienceZones(audio, audioRandom);
     this.sfx = new PineHollowSfx(audio);
     this.spots = [...(o.spots ?? [])];
   }

@@ -1,4 +1,4 @@
-import { app, AmbienceZones, audioRandom } from '#engine';
+import { AmbienceZones, audioRandom } from '#engine';
 import { tap, ambientTick } from '#engine/core/harnessTap';
 /**
  * SteppeAmbience — Nalati's zoned soundscape (NALATI-MERGE A4), the IslandAmbience pattern for the steppe.
@@ -70,7 +70,7 @@ export class SteppeAmbience {
   private herdT = rnd(8, 18); private marmotT = rnd(6, 14); private eagleT = rnd(15, 30);
 
   constructor(private readonly audio: Audio) {
-    this.zones = new AmbienceZones(audio, () => app.rng.stream('cosmetic').next());
+    this.zones = new AmbienceZones(audio, audioRandom);
     steppeVoices(audio).stormSink = (rain, wind) => {
       if (!this.sampled('rain') && !this.sampled('stormwind')) return false;
       this.storm.rain = rain; this.storm.wind = wind;
