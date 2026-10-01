@@ -11,6 +11,16 @@ export default defineConfig({
   test: {
     include: ['test/**/*.test.ts', 'api-tests/**/*.test.ts'], // API tests live outside api/ so Vercel does not deploy them as functions.
     environment: 'node',
+    // Actor and engine contracts stay in Node. Only the legacy sword viewmodel opts into happy-dom via its header.
+    // F6 removes the legacy folder glob when every engine module has moved under src/engine/.
+    coverage: {
+      provider: 'v8',
+      include: [
+        'src/{audio,boot,core,entities,explore,fx,models,native,physics,player,playgrounds,practice,shard,telemetry,ui,world}/**/*.ts',
+        'src/engine/**/*.ts',
+      ],
+      reporter: ['json-summary'],
+    },
     setupFiles: ['test/setup.ts'],
     restoreMocks: true,
   },
