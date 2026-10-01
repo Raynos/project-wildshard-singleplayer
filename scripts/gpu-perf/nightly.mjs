@@ -1,4 +1,5 @@
 // E357 launchd poller. No GitHub-supplied command or shared-checkout mutation.
+import { shardFolders } from '../gen-shards.mjs';
 import { spawn, execFileSync } from 'node:child_process';
 import { mkdirSync, existsSync, readFileSync, writeFileSync, readdirSync, rmSync, openSync, closeSync } from 'node:fs';
 import { homedir } from 'node:os';
@@ -84,9 +85,8 @@ try {
     execFileSync('tar', ['-xf', archive, '-C', tree]); rmSync(archive);
     const pending = jsonAt(sha, 'docs/plans/game-normalization/reviews/pending.json', []);
     writeFileSync(join(tree, 'memory-pending.json'), JSON.stringify(pending));
-    const manifestShards = git('ls-tree', '--name-only', '-r', sha, '--', 'src/shards').split('\n').flatMap((path) => { const match = /^src\/shards\/([^/]+)\/manifest\.ts$/.exec(path); return match ? [match[1]] : []; });
-    let shards = [...new Set([...Object.keys(jsonAt(sha, 'scripts/physics-route.json', {})).filter((key) => !key.startsWith('$')), ...manifestShards])];
-    if (shards.length === 0) throw new Error('empty shard registry/routes');
+    let shards = shardFolders(tree);
+    if (shards.length === 0) throw new Error('empty shard registry');
     if (plant) {
       const entry = jsonAt(sha, 'test/parity/plants/index.json', []).find((row) => row.id === plant);
       if (!entry) throw new Error(`unknown plant ${plant}`);
@@ -99,7 +99,7 @@ try {
       } else throw new Error(`nightly supports patch/nightly plants only: ${plant}`);
     }
     // Harness code comes from main's committed head; runtime and baselines remain the selected SHA's.
-    const harnessPaths = ['scripts/parity.mjs', 'scripts/parity', 'scripts/gpu-perf', 'scripts/types', 'scripts/soak.mjs', 'scripts/sim-memory.mjs'];
+    const harnessPaths = ['scripts/parity.mjs', 'scripts/parity', 'scripts/gpu-perf', 'scripts/types', 'scripts/soak.mjs', 'scripts/sim-memory.mjs', 'scripts/gen-shards.mjs', 'scripts/gen-shards.d.mts'];
     const carried = harnessPaths.filter((path) => { try { git('cat-file', '-e', `${harnessSha}:${path}`); return true; } catch { return false; } });
     execFileSync('git', [`--git-dir=${mirror}`, 'archive', '-o', archive, harnessSha, '--', ...carried]);
     execFileSync('tar', ['-xf', archive, '-C', tree]); rmSync(archive);

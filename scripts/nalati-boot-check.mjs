@@ -3,6 +3,7 @@
 // For the Nalati ⇄ main merges (project/archive/2026-09-24-nalati-merge.md): every shard must still boot clean after a merge.
 //
 //   node scripts/nalati-boot-check.mjs [--url=http://127.0.0.1:5188] [--out=<dir>] [--shards=nalati-grasslands,driftwood-isle,pine-hollow] [--touch]
+import { readShards } from './shards.mjs';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve as resolvePath } from 'node:path';
 
@@ -11,7 +12,8 @@ const argv = process.argv.slice(2);
 const flag = (n, d) => { const a = argv.find((x) => x.startsWith(`--${n}=`)); return a ? a.slice(n.length + 3) : d; };
 const URL_BASE = flag('url', 'http://127.0.0.1:5188');
 const OUT = resolvePath(flag('out', 'progress/nalati-merge'));
-const SHARDS = flag('shards', 'nalati-grasslands,driftwood-isle,pine-hollow').split(',');
+const manifests = await readShards();
+const SHARDS = flag('shards', manifests.filter((m) => m.status === 'live' || m.status === 'earlyAccess').map((m) => m.slug).join(',')).split(',');
 const TOUCH = argv.includes('--touch');
 mkdirSync(OUT, { recursive: true });
 

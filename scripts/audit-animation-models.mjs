@@ -2,13 +2,14 @@
  * Run through scripts/browser-lane.sh. This reads skins, bones and weights; it does not infer clip quality.
  * node scripts/audit-animation-models.mjs http://127.0.0.1:4400 docs/audits/animation-models.json
  */
+import { readShards } from './shards.mjs';
 import { chromium } from 'playwright';
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
 
 const [base, output] = process.argv.slice(2);
 if (!base || !output) throw new Error('Usage: audit-animation-models.mjs <served URL> <output.json>');
-const shards = ['driftwood-isle', 'pine-hollow', 'nalati-grasslands', 'nine-dragon-stack'];
+const shards = (await readShards()).filter((m) => m.status !== 'hidden').map((m) => m.slug);
 const browser = await chromium.launch({ headless: true, args: ['--use-angle=metal'] });
 const report = { date: '2026-09-30', method: 'Live Model Explorer registry, all cards and all variants; structural inspection only', shards: [] };
 try {

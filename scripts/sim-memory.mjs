@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 // E357: per-shard cold Safari phases; the caller holds sim-lane.sh.
+import { shardFolders } from './gen-shards.mjs';
 import { spawn, spawnSync, execFileSync } from 'node:child_process';
 import { mkdirSync, writeFileSync, readFileSync, existsSync, createWriteStream, readdirSync, unlinkSync } from 'node:fs';
 import { resolve as resolvePath, join } from 'node:path';
@@ -276,7 +277,7 @@ async function main() {
   const out = resolvePath(flag('out', `/private/tmp/wildshard-sim-memory/${Date.now()}`));
   mkdirSync(out, { recursive: true });
   if (readdirSync(out).length > 0) throw new Error(`${out} is not empty`);
-  const shards = flag('shards', 'nine-dragon-stack,pine-hollow,nalati-grasslands,driftwood-isle').split(',');
+  const shards = flag('shards', shardFolders(resolvePath(import.meta.dirname, '..')).join(',')).split(',');
   const count = Number(flag('runs', '1'));
   const opts = { out, play: Number(flag('play', '60')), fly: Number(flag('fly', '60')), settings: flags('setting') };
   if (!Number.isInteger(count) || count < 1 || !Number.isFinite(opts.play) || opts.play <= 0 || !Number.isFinite(opts.fly) || opts.fly <= 0) throw new Error('invalid run count/duration');

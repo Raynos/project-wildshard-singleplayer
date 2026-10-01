@@ -29,6 +29,7 @@
  *   node scripts/check-models.mjs --quiet    # the rules only
  * test/shards/driftwood-isle/models-contract.test.ts runs the rules in vitest, so CI and the pre-push gate enforce them.
  */
+import { shardFolders } from './gen-shards.mjs';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
 
@@ -212,7 +213,7 @@ export const NAMED_PLACES = {
   'nine-dragon-stack': [{ file: 'src/shards/nine-dragon-stack/places.ts', list: 'NINE_DRAGON_PLACES' }],
 };
 /** the shards whose every named place must have its set (the rest are reported) */
-export const PLACES_ENFORCED = ['pine-hollow', 'nalati-grasslands', 'nine-dragon-stack', 'driftwood-isle'];
+export const PLACES_ENFORCED = shardFolders(ROOT);
 
 /** the text of the array `name` (`name = [` or `name: [`), brackets matched; null when absent */
 function arrayText(code, name) {

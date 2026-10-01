@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { shardFolders } from './gen-shards.mjs';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { copyFileSync, existsSync, mkdirSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
@@ -142,7 +143,7 @@ async function main(opts) {
   let preview=/** @type {{url:string,close:()=>void}|null} */(null),browser=/** @type {import('playwright').Browser|null} */(null);
   try {
     const plants=array(readJson(join(root,'test/parity/plants/index.json'))).map(object);
-    let registry=['driftwood-isle','pine-hollow','nalati-grasslands','nine-dragon-stack'];const shardRoot=join(root,'src/shards');if(existsSync(shardRoot)){const found=readdirSync(shardRoot).filter((s)=>existsSync(join(shardRoot,s,'manifest.ts')));if(found.length > 0)registry=found;}
+    const registry=shardFolders(root);if(registry.length===0)throw new Error('empty shard registry');
     const shards=opts.shards&&opts.shards!=='all'?opts.shards.split(','):registry;if(shards.some((s)=>!registry.includes(s)))throw new Error('usage: unknown shard');
     if(opts.rebaseline && !registry.includes(opts.rebaseline))throw new Error('usage: unknown rebaseline shard');
     if(opts.prove){

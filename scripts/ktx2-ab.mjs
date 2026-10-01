@@ -11,6 +11,7 @@
 //   node scripts/ktx2-ab.mjs --url=http://localhost:4760 --out=<dir> [--shards=pine-hollow,nalati-grasslands,driftwood-isle] [--modes=img,img2,ktx2] [--tier=phone|desktop]
 //
 // One headless Chromium on Metal, muted (`--mute-audio`, `mute=1`), closed at the end. Writes <out>/<shard>-<pose>-<mode>.png.
+import { readShards } from './shards.mjs';
 import { mkdirSync } from 'node:fs';
 import { resolve as resolvePath } from 'node:path';
 
@@ -19,7 +20,8 @@ const argv = process.argv.slice(2);
 const flag = (n, d) => { const a = argv.find((x) => x.startsWith(`--${n}=`)); return a ? a.slice(n.length + 3) : d; };
 const URL_BASE = flag('url', 'http://localhost:4760');
 const OUT = resolvePath(flag('out', 'ktx2-ab'));
-const SHARDS = flag('shards', 'pine-hollow,nalati-grasslands,driftwood-isle').split(',');
+const manifests = await readShards();
+const SHARDS = flag('shards', manifests.filter((m) => m.status === 'live' || m.status === 'earlyAccess').map((m) => m.slug).join(',')).split(',');
 const MODES = flag('modes', 'img,img2,ktx2').split(',');
 const TIER = flag('tier', 'phone');
 mkdirSync(OUT, { recursive: true });
@@ -58,7 +60,7 @@ const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=meta
 try {
   const iphone = devices['iPhone 16 Pro'];
   for (const shard of SHARDS) {
-    const spec = SHARD[shard];
+    const spec = SHARD[shard] ?? { q: 'tod=0.45', poses: [{ id: 'spawn', pitch: -0.05 }] };
     for (const mode of MODES) {
       const tex = mode.startsWith('img') ? 'img' : 'ktx2';
       const ctx = await browser.newContext(TIER === 'phone'

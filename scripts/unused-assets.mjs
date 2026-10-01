@@ -30,19 +30,18 @@ const argv = process.argv.slice(2);
 const has = (f) => argv.includes(`--${f}`);
 const collect = argv.find((a) => a.startsWith('--collect='))?.slice(10);
 
-// ── child mode: one tier's boot files (the modules read the tier from the page URL at import time) ──
+// ── child mode: one tier's boot files; initialize its row explicitly before reading assets ──
 if (collect) {
-  globalThis.location = { search: `?tier=${collect}`, href: 'http://audit.invalid/', pathname: '/' };
   const imp = (p) => import(pathToFileURL(resolve(ROOT, p)).href);
   const { initializeTier } = await import('../src/engine/core/tier.ts');
-  initializeTier();
+  initializeTier(collect);
   const { SHARDS } = await imp('src/game/shard/shards.generated.ts');
-const { playable } = await imp('src/game/shard/registry.ts');
-const PLAYABLE_SHARDS = SHARDS.filter(playable);
+  const { playable } = await imp('src/game/shard/registry.ts');
+  const PLAYABLE_SHARDS = SHARDS.filter(playable);
   const { prepareShardAssets } = await imp('src/game/shard/load.ts');
-const { registerGpuFiles } = await imp('src/engine/boot/gpuFiles.ts');
-await Promise.all(SHARDS.map((m) => prepareShardAssets(m, registerGpuFiles)));
-const { chunkFiles } = await imp('src/engine/boot/manifest.ts');
+  const { registerGpuFiles } = await imp('src/engine/boot/gpuFiles.ts');
+  await Promise.all(SHARDS.map((m) => prepareShardAssets(m, registerGpuFiles)));
+  const { chunkFiles } = await imp('src/engine/boot/manifest.ts');
   const out = new Set();
   for (const def of PLAYABLE_SHARDS) for (const list of Object.values(chunkFiles(def))) for (const f of list) out.add(f);
   process.stdout.write(JSON.stringify([...out]));

@@ -34,6 +34,7 @@
 //
 // Output: progress/scorecard/<tag>.json (every row + raw), progress/scorecard/<tag>.md (the tables), the pose shots in
 // progress/scorecard/<tag>/ (the goldens when --goldens: progress/scorecard/baseline/).
+import { readShards } from './shards.mjs';
 import { spawn, execSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, readFileSync, writeFileSync, existsSync, copyFileSync, symlinkSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -46,8 +47,9 @@ const { chromium } = await import('playwright');
 const ROOT = resolvePath(new URL('..', import.meta.url).pathname);
 const OUT_DIR = resolvePath(ROOT, 'progress/scorecard');
 const BUDGET_FILE = resolvePath(ROOT, 'scorecard.budget.json');
-const SHARDS = ['driftwood-isle', 'nalati-grasslands', 'pine-hollow'];
-const NAMES = { 'driftwood-isle': 'Driftwood Isle', 'nalati-grasslands': 'Nalati Grasslands', 'pine-hollow': 'Pine Hollow' };
+const manifests = (await readShards()).filter((m) => m.status === 'live' || m.status === 'earlyAccess');
+const SHARDS = manifests.map((m) => m.slug);
+const NAMES = Object.fromEntries(manifests.map((m) => [m.slug, m.name]));
 const VIEWPORTS = {
   phone: { ctx: { viewport: { width: 390, height: 844 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true }, query: 'touch=1&tier=phone' },
   desktop: { ctx: { viewport: { width: 1600, height: 900 }, deviceScaleFactor: 1 }, query: 'tier=desktop' },
@@ -58,6 +60,7 @@ const POSES = {
   'nalati-grasslands': [{ name: 'camp', x: 60, z: 214, yaw: -1.5708 }, { name: 'bridge', x: 0, z: 200, yaw: 0 }, { name: 'plains', x: 65, z: 0, yaw: 3.1416 }],
   'pine-hollow': [{ name: 'gate', x: 0, z: -200, yaw: 3.1416 }, { name: 'cabin', x: -14, z: -62, yaw: 3.1416 }, { name: 'pond', x: -56, z: 95, yaw: 3.1416 }],
 };
+const shardPoses = (slug) => POSES[slug] ?? [{ name: 'spawn' }];
 // the switch route (E155 / E159, 2 resident): a first build, a resident return, a build that evicts the least recently
 // used shard, and the evicted one's rebuild. Step 1 (Driftwood → Nalati) keeps the key of the old navigation route.
 const ROUTE = ['driftwood-isle', 'nalati-grasslands', 'driftwood-isle', 'pine-hollow', 'nalati-grasslands'];
@@ -83,7 +86,7 @@ const HELP = `scorecard — the regression scorecard (docs/design/scorecard.md)
   --port=4281           the preview port (the next free one is taken)
 
   --tag=<name>          output name (default: the build id)            --runs=1      repeat everything, report the median
-  --shards=a,b          default all three                               --viewports=phone,desktop
+  --shards=a,b          default all playable                               --viewports=phone,desktop
   --sample=10           seconds of frames per pose                      --settle=5    seconds after a teleport / load
   --net=wifi            wifi | 4g | none (CDP throttle, service worker too)   --cpu=1  CDP CPU throttle
   --no-poses --no-switch --no-load --no-4g   skip a section             --retouch[=/assets/…]   the one-texture-change row
@@ -516,7 +519,7 @@ async function measureShard(shard, vp, run, shots) {
       console.error(`    memory heap ${fmtMB(out.memory.heapBytes)} MB · GL tex ${fmtMB(out.memory.glTexBytes)} MB · rb ${fmtMB(out.memory.glRbBytes)} MB · buf ${fmtMB(out.memory.glBufBytes)} MB · scene tex est ${fmtMB(out.memory.sceneTexBytes)} MB · ${out.memory.textures} tex / ${out.memory.geometries} geo / ${out.memory.programs} programs`);
       if (!has('no-poses')) {
         out.poses = [];
-        for (const pose of POSES[shard]) out.poses.push(await measurePose(page, shard, vp, pose, run, shots));
+        for (const pose of shardPoses(shard)) out.poses.push(await measurePose(page, shard, vp, pose, run, shots));
       }
     }
     out.pageErrors = [...new Set([...cold.errors, ...warm.errors])];
@@ -1000,7 +1003,7 @@ function renderMarkdown(res) {
     out += `| ${s}/${vp} | ${v(`${p}.heapBytes`)} | ${v(`${p}.glTexBytes`)} | ${v(`${p}.glRbBytes`)} | ${v(`${p}.glBufBytes`)} | ${v(`${p}.sceneTexBytes`)} | ${v(`${p}.textures`)} | ${v(`${p}.geometries`)} | ${v(`${p}.programs`)} |\n`;
   }
   out += '\n## runtime + look (per pose)\n\n| shard / viewport / pose | fps | p95 frame ms | main-thread ms p50 / p95 | draw calls | tris k | SSIM vs golden |\n|---|---|---|---|---|---|---|\n';
-  for (const s of ONLY_SHARDS) for (const vp of ONLY_VPS) for (const pose of POSES[s]) {
+  for (const s of ONLY_SHARDS) for (const vp of ONLY_VPS) for (const pose of shardPoses(s)) {
     const p = `${s}/${vp}/pose.${pose.name}`;
     out += `| ${s}/${vp}/${pose.name} | ${v(`${p}.fps`)} | ${v(`${p}.frameP95Ms`)} | ${v(`${p}.cpuP50Ms`)} / ${v(`${p}.cpuP95Ms`)} | ${v(`${p}.calls`)} | ${v(`${p}.trisK`)} | ${v(`${p}.ssim`)} |\n`;
   }

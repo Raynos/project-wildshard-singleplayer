@@ -42,38 +42,11 @@ import { boxEntry, firstView, physicsClear, roundBlocker, viewCandidates } from 
 import { placedGroups } from '../models/place';
 import { MiniMap } from './MiniMap';
 import { Compare, hasCompareTargets } from './Compare';
-import practiceDriftwood from '#shards/driftwood-isle/explore/practice-driftwood-isle.webp';
-import practicePine from '#shards/pine-hollow/explore/practice-pine-hollow.webp';
-import practiceNalati from '#shards/nalati-grasslands/explore/practice-nalati-grasslands.webp';
-import practiceNine from '#shards/nine-dragon-stack/explore/practice-nine-dragon-stack.webp';
-import worldDriftwood from '#shards/driftwood-isle/explore/world-driftwood-isle.webp';
-import worldPine from '#shards/pine-hollow/explore/world-pine-hollow.webp';
-import worldNalati from '#shards/nalati-grasslands/explore/world-nalati-grasslands.webp';
-import worldNine from '#shards/nine-dragon-stack/explore/world-nine-dragon-stack.webp';
-import modelsDriftwood from '#shards/driftwood-isle/explore/models-driftwood-isle.webp';
-import modelsPine from '#shards/pine-hollow/explore/models-pine-hollow.webp';
-import modelsNalati from '#shards/nalati-grasslands/explore/models-nalati-grasslands.webp';
-import modelsNine from '#shards/nine-dragon-stack/explore/models-nine-dragon-stack.webp';
 import playgroundGrapple from '#shards/nine-dragon-stack/explore/playground-grapple.webp';
 import playgroundHorse from '#shards/nalati-grasslands/explore/playground-horse.webp';
-import setsDriftwood from '#shards/driftwood-isle/explore/sets-driftwood-isle.webp';
-import setsPine from '#shards/pine-hollow/explore/sets-pine-hollow.webp';
-import setsNalati from '#shards/nalati-grasslands/explore/sets-nalati-grasslands.webp';
-import setsNine from '#shards/nine-dragon-stack/explore/sets-nine-dragon-stack.webp';
 import { isDev, onDev } from '../core/devMode';
 import { asPlaygroundId, playgroundsFor, type PlaygroundCard, type PlaygroundId } from '../practice/playground/catalog';
 
-/** the Practice card's art, one per shard: the arena in that shard's grade with its weapon (E292) */
-const PRACTICE_ART: Record<string, string> = { 'driftwood-isle': practiceDriftwood, 'pine-hollow': practicePine, 'nalati-grasslands': practiceNalati, 'nine-dragon-stack': practiceNine };
-/** the World card: the shard from the god-mode camera; the Models card: six of the catalog's own thumbnails (E293) */
-const WORLD_ART: Record<string, string> = { 'driftwood-isle': worldDriftwood, 'pine-hollow': worldPine, 'nalati-grasslands': worldNalati, 'nine-dragon-stack': worldNine };
-const MODELS_ART: Record<string, string> = { 'driftwood-isle': modelsDriftwood, 'pine-hollow': modelsPine, 'nalati-grasslands': modelsNalati, 'nine-dragon-stack': modelsNine };
-/**
- * the Sets card (E315 M7, Jake: "Set Explorer does not have a hero card"): four of the Set Explorer's own aerials of the
- * shard's sets, each in its deep-blue box — a 2 × 2 to the Models card's 3 × 2 and the World card's one wide aerial. A shard
- * with none yet: the World card's art under a dashed set outline
- */
-const SETS_ART: Record<string, string> = { 'driftwood-isle': setsDriftwood, 'pine-hollow': setsPine, 'nalati-grasslands': setsNalati, 'nine-dragon-stack': setsNine };
 /** a playground's card (E325): its course in play, shot live in its shard's grade — Nine Dragon's Fei Zhua mid-zip toward
  *  BASE with the tower behind, Nalati's rider at a canter down the jump lane's rails. None yet → the verb's glyph on a
  *  dev tile (explore.css .ws-x-pg-art) */
@@ -205,10 +178,10 @@ export class Explore {
     this.tabs = top.querySelector<HTMLElement>('.ws-x-tabs') ?? top;
     this.readout = html('div', 'ws-x-readout');
     const shard = host.world.chunk;
-    const worldArt = WORLD_ART[shard.slug] ?? shard.card.landscape, modelsArt = MODELS_ART[shard.slug] ?? shard.card.thumb; // a shard with none yet shows its picker art
-    const setsArt = SETS_ART[shard.slug] ?? worldArt; // E315 M7: one of the shard's sets from the air
+    const worldArt = shard.explore?.world ?? shard.card.landscape, modelsArt = shard.explore?.models ?? shard.card.thumb; // a shard with none yet shows its picker art
+    const setsArt = shard.explore?.sets ?? worldArt; // E315 M7: one of the shard's sets from the air
     // the Practice card is this shard's own arena: the room takes each shard's grade and weapon (E292)
-    const practiceArt = PRACTICE_ART[shard.slug] ?? practiceDriftwood;
+    const practiceArt = shard.explore?.practice ?? shard.card.thumb;
     // E307: the shard's own feature playgrounds under the shared cards (placeholder art: the verb's glyph on a dev tile)
     const playgrounds = playgroundsFor(shard.slug);
     const pgArt = (c: PlaygroundCard): string => {
@@ -220,7 +193,7 @@ export class Explore {
     this.hubEl = html('div', 'ws-x-hub', `<div class="ws-x-hub-list">
       <div class="ws-x-hub-heading">Choose an explorer</div>
       <button class="ws-x-card" type="button" data-m="model"><span class="ws-x-card-art" style="background-image:url('${modelsArt}')"></span><span class="ws-x-card-text"><b>Model explorer</b><small>Inspect every model up close</small></span><span class="ws-x-card-go">›</span></button>
-      <button class="ws-x-card" type="button" data-m="sets"><span class="ws-x-card-art${SETS_ART[shard.slug] === undefined ? ' ws-x-sets-art' : ''}" style="background-image:url('${setsArt}')"></span><span class="ws-x-card-text"><b>Set explorer</b><small>Camps, squares, fields: groups of models where they stand</small></span><span class="ws-x-card-go">›</span></button>
+      <button class="ws-x-card" type="button" data-m="sets"><span class="ws-x-card-art${shard.explore?.sets === undefined ? ' ws-x-sets-art' : ''}" style="background-image:url('${setsArt}')"></span><span class="ws-x-card-text"><b>Set explorer</b><small>Camps, squares, fields: groups of models where they stand</small></span><span class="ws-x-card-go">›</span></button>
       <button class="ws-x-card" type="button" data-m="world"><span class="ws-x-card-art" style="background-image:url('${worldArt}')"></span><span class="ws-x-card-text"><b>World explorer</b><small>Fly over ${shard.name} in god mode</small></span><span class="ws-x-card-go">›</span></button>
       <button class="ws-x-card" type="button" data-m="practice" data-dev><span class="ws-x-card-art ws-x-practice-art" style="background-image:url('${practiceArt}')"></span><span class="ws-x-card-text"><b>Practice arena</b><small>HUD · weapon explorer</small></span><span class="ws-x-card-go">›</span></button>
       ${playgrounds.length > 0 ? `<div class="ws-x-hub-heading ws-x-hub-shard" data-dev>${shard.name} · playgrounds</div>${pgCards}` : ''}</div>`);

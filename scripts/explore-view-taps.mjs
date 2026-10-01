@@ -15,6 +15,7 @@
 // The cost (E345): `land` ms from VIEW IN WORLD to the model selected (the 1.1 s flight, the landing's check, any search
 // and hop), the landing's worst frame (`frame`, ms: a frame that ran the check's pick or a search's), and `tap` ms — one
 // tap's pick (pointerdown / up on the canvas, the median of three) where the camera landed.
+import { readShards } from './shards.mjs';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join, resolve as resolvePath } from 'node:path';
 import { chromium } from 'playwright';
@@ -22,7 +23,8 @@ import { chromium } from 'playwright';
 const argv = process.argv.slice(2);
 const flag = (n, d) => { const a = argv.find((x) => x.startsWith(`--${n}=`)); return a === undefined ? d : a.slice(n.length + 3); };
 const BASE = flag('url', 'http://127.0.0.1:4400/');
-const SHARDS = flag('shards', 'driftwood-isle,nalati-grasslands,pine-hollow,nine-dragon-stack').split(',');
+const manifests = await readShards();
+const SHARDS = flag('shards', manifests.filter((m) => m.status !== 'hidden').map((m) => m.slug).join(',')).split(',');
 const OUT = resolvePath(flag('out', 'explore-view-taps.json'));
 const MAX = Number(flag('max', '20'));
 const SHOTS = flag('shots', '');

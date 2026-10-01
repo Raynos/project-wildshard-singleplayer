@@ -2,15 +2,11 @@
 // its fauna spawns is some roster model's species (the Explorer's species list, not the live animals), the ids are unique
 // and every entry is a defined model in a known tab; shared/… models are the ones several shards list.
 import { describe, expect, it } from 'vitest';
-import { DRIFTWOOD_ISLE } from '#shards/driftwood-isle/manifest';
-import { PINE_HOLLOW } from '#shards/pine-hollow/manifest';
-import { NALATI_GRASSLANDS } from '#shards/nalati-grasslands/manifest';
-import { NINE_DRAGON_STACK } from '#shards/nine-dragon-stack/manifest';
+import { SHARDS } from '#game/shard/shards.generated';
 import type { ShardManifest } from '#game/shard/manifest';
 import type { RosterEntry } from '#engine/models/live';
 import { definedModels } from '#engine/models/model';
 
-const SHARDS: readonly ShardManifest[] = [DRIFTWOOD_ISLE, PINE_HOLLOW, NALATI_GRASSLANDS, NINE_DRAGON_STACK];
 const TABS = new Set(['buildings', 'nature', 'creatures', 'people', 'gear', 'props']);
 
 const defined = (id: string): ReturnType<typeof definedModels>[number] | undefined => definedModels().find((m) => m.id === id);
@@ -22,7 +18,7 @@ async function rosterOf(def: ShardManifest): Promise<readonly RosterEntry[]> {
 }
 
 describe('shard rosters (E315 M5)', () => {
-  for (const def of SHARDS) {
+  for (const def of SHARDS.filter((m) => m.roster !== undefined)) {
     it(`${def.slug}: every fauna species is on the roster; ids unique; every entry a defined model`, async () => {
       const roster = await rosterOf(def);
       const ids = roster.map((r) => r.id);
