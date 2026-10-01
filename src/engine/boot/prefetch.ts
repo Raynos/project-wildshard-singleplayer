@@ -36,7 +36,7 @@ const EXTRA_CONCURRENCY = 16;
 export function bootFetches(def: ShardManifest, files: ChunkFiles): string[] {
   const painted = def.style === 'toon' || def.style === 'painterly'; // no ground textures: only the baked terrain
   const terrain = painted ? files.terrain.filter((f) => f.startsWith('/assets/baked/')) : files.terrain;
-  const trees = def.trees.factory !== 'pine' ? [] : files.trees; // only the pine reads textures ('spruce' is painted, 'none' is none)
+  const trees = files.trees; // the shard's boot manifest declares its tree textures
   // a painterly shard (Nalati) builds no cabins; its `props` are its own boot reads (manifest.ts `painterlyBoot`)
   const homestead = def.style === 'painterly' ? files.props : def.ocean === undefined ? [...files.cabins, ...files.props] : [];
   return [...files.sky, ...files.baked, ...terrain, ...trees, ...homestead]; // not files.physics: Rapier fetches its own WASM at boot start (streamed compile), outside the uncompressed pack

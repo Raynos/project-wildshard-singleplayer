@@ -163,7 +163,7 @@ export { boarPaintLow, bearPaintLow, crestSpikes } from './entities/lowpoly';
 
 export { fxMaterial, annulus, FX, type FxMaterial, type FxMode } from './fx/groundFx';
 
-export type { TreeFactory } from './world/TreeFactory';
+export { TreeFactory, patchFade, patchWind, type TreeVariant, type FadeBand } from './world/TreeFactory';
 
 // Audio graph mechanisms are content-independent and safe at the public data boundary.
 export { AmbienceZones, type ZoneVoice } from './audio/ambience';
@@ -176,3 +176,11 @@ export { addFogUniforms, paintedAir } from './world/Atmosphere';
 export { CHUNK_SIZE, CHUNK_DEPTH, TERRAIN_RES } from './core/config';
 export { Noise2D } from './core/noise';
 export type { Terrain } from './world/Terrain';
+
+export { loadTexture, loadPBRArray } from './core/assets';
+export { loadBakedCards, exportCardTextures } from './world/BakedCards';
+export { markGpuOnly } from './core/gpuOnly';
+export { treeSetOf, TREE_SPECS } from './world/forest/treeSpec';
+export { BARK_LAYERS, loadTreeSetGeometry, patchBarkArrays, patchCardCrownTop, patchImpostorCrownTop, standIn, treeSetUrls } from './world/forest/treeSet';
+export { PUBLIC_BYTES } from './boot/bytes.generated';
+export { TREE_SPECS_V2 } from './world/forest/treeSpecies';

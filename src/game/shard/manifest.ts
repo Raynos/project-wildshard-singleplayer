@@ -161,7 +161,7 @@ export interface ChunkTrees {
    * shard has no forest trees — no tree textures, geometry or branch-card bake at launch, an empty Forest
    * (collision / culling hooks still work). `'spruce'` → `src/shards/nalati-grasslands/world/Spruce.ts` (painterly Tian Shan spruce, no textures).
    */
-  factory: 'pine' | 'none' | (() => Promise<(renderer: WebGLRenderer, sky: Sky) => Promise<TreeFactory>>);
+  factory: 'none' | (() => Promise<(renderer: WebGLRenderer, sky: Sky) => Promise<TreeFactory>>);
   /** PBR set for the trunks (the `'pine'` factory's; omitted by a shard without pines) */
   bark?: string;
   /** folder under `public/assets/tex/` holding `twig_rgba.png`, `twig_nor_gl.jpg`, `twig_arm.jpg` (the `'pine'` factory's) */

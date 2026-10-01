@@ -14,3 +14,5 @@ export type { ItemId } from './Inventory';
 
 export type { ShardRuntime } from './shard/runtime';
 export { installCompendium } from './compendium/install';
+
+export { getActiveChunk } from './shard/registry';

@@ -1,3 +1,4 @@
+import { TREE_SPECS, treeSetOf } from './treeSpec';
 import type { TreeSpec } from '../../level/data';
 /**
  * Where the forest and the forest floor go — the pure part of Forest / Undergrowth, shared by the game
@@ -21,33 +22,13 @@ import { heightAt, normalAt, splatAt, trailDistance, cabinMask, inChunk, pondMas
 import { getActiveChunk } from '#game/shard/registry';
 import { TREE_SPECIES, TREE_SPECS_V2, type TreeSpecies, type SpeciesWeights } from './treeSpecies';
 
+export { TREE_SPECS, treeSetOf } from './treeSpec';
 export { TREE_SPECIES, TREE_SPECS_V2, type TreeSpecies, type SpeciesWeights } from './treeSpecies';
 
 export interface TreeInstance { x: number; y: number; z: number; r: number; variant: number; scale: number; rot: number; height: number; tint: THREE.Color; species?: TreeSpecies | undefined }
 
-/** The pine variants TreeFactory builds (heights / trunk radii are all placement needs of them). */
-export const TREE_SPECS = [
-  { height: 22, trunk: 0.42, seed: 1 },
-  { height: 17, trunk: 0.34, seed: 2 },
-  { height: 26, trunk: 0.5, seed: 3 },
-  { height: 13, trunk: 0.27, seed: 4 },
-] as const;
-
 /** What placement needs of a variant (TreeFactory's variants carry these; the build's bakes pass them from the specs). */
 export interface PlantSpec { trunkRadius: number; height: number; species?: TreeSpecies | undefined; collider?: number | undefined }
-
-/**
- * The Blender species set a shard plants (`ChunkTrees.set`), or null for the runtime pines — a shard without a set, or
- * (`has`: the byte table's lookup) a build that does not have the set's files, or scripts/bake-cards.mjs's page
- * (`?bakecards`: it bakes the runtime pines' branch card, which a shard planting its set never builds). Pure: the build's
- * bakes call it with no `location`.
- */
-export function treeSetOf(trees: { set?: string | undefined }, has?: (url: string) => boolean): string | null {
-  if (trees.set === undefined) return null;
-  if (has && !has(`/assets/models/${trees.set}/trees.glb`)) return null; // a build without the set's files: the runtime pines
-  const q = typeof location === 'undefined' ? '' : location.search;
-  return new URLSearchParams(q).has('bakecards') ? null : trees.set;
-}
 
 /** The variants placement plants for a shard's trees (the bakes; TreeFactory builds the same list with geometry). */
 export function plantSpecs(trees: { factory: TreeSpec['factory']; set?: string | undefined }): PlantSpec[] {

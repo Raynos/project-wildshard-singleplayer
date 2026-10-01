@@ -61,7 +61,7 @@ export const PINE_HOLLOW: ShardManifest = {
       grassTint: [0.8, 0.74, 0.55],
     },
   },
-  trees: { factory: 'pine', bark: 'pine_bark', twigAtlas: 'pine_tree_01', noun: 'trees', set: 'pine-hollow-trees', drawnBy: 'model' }, // the forest tree model draws them (E315)
+  trees: { factory: () => import('./world/treeFactory').then((m) => m.pineFactory), bark: 'pine_bark', twigAtlas: 'pine_tree_01', noun: 'trees', set: 'pine-hollow-trees', drawnBy: 'model' }, // the forest tree model draws them (E315)
   forest: {
     spacing: 8.5,
     densityFreq: 0.008,
