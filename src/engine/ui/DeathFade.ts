@@ -1,3 +1,4 @@
+import { smoothstep } from '../core/noise';
 import { uiScope, mountUi } from './ownership';
 import { app } from '../app/runtime';
 import './styles/combat.css';
@@ -32,7 +33,6 @@ export interface DeathHooks {
   done: () => void;
 }
 
-const smooth = (k: number): number => { const c = Math.min(1, Math.max(0, k)); return c * c * (3 - 2 * c); };
 
 export class DeathFade {
   readonly scope = uiScope('DeathFade');
@@ -94,8 +94,8 @@ export class DeathFade {
 
   private paint(): void {
     const t = this.t;
-    const veil = t < FADE_OUT ? smooth(t / FADE_OUT) : t < DARK_UNTIL ? 1 : 1 - smooth((t - DARK_UNTIL) / FADE_IN);
-    const card = t < CARD_IN ? 0 : t < CARD_ON ? smooth((t - CARD_IN) / (CARD_ON - CARD_IN)) : t < DARK_UNTIL + 0.1 ? 1 : 1 - smooth((t - DARK_UNTIL - 0.1) / (FADE_IN - 0.15));
+    const veil = t < FADE_OUT ? smoothstep(0, 1, t / FADE_OUT) : t < DARK_UNTIL ? 1 : 1 - smoothstep(0, 1, (t - DARK_UNTIL) / FADE_IN);
+    const card = t < CARD_IN ? 0 : t < CARD_ON ? smoothstep(0, 1, (t - CARD_IN) / (CARD_ON - CARD_IN)) : t < DARK_UNTIL + 0.1 ? 1 : 1 - smoothstep(0, 1, (t - DARK_UNTIL - 0.1) / (FADE_IN - 0.15));
     this.root.style.opacity = '1';
     this.root.style.setProperty('--ws-death-veil', veil.toFixed(3));
     this.card.style.opacity = card.toFixed(3);

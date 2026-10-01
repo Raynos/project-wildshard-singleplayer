@@ -932,6 +932,8 @@ The kit's starter set is `effect.poison`, `effect.burn`, `effect.bleed`, `effect
 
 `GroundTell` (`#game`) supports ring, lane and wedge decals. `GroundTellWedgeStyle` supplies the cone and authored material/fill/alpha uniforms; `wedge(x, z, yaw, reach, fill, alpha, lift?)` uses animal yaw convention and drapes the sector onto terrain. Existing ring/lane shader behavior remains unchanged.
 
+`smoothstep` (`#engine/data`) also drives DeathFade and the bow/spear authored curves; the normalized fade uses edges zero and one. Unclamped and early-return curves retain their distinct behavior.
+
 ## 19. Creatures and AI
 
 A creature is two rows: a `SpeciesRow` (simulation) and a `SpeciesLook` (render). Register both in `kit`.

@@ -1,3 +1,4 @@
+import { smoothstep as sstep } from '#engine/data';
 import { weaponActionGate, type EquipContext, Weapon, quiverState, app, gameplayRandom, type Game, type Sky, type Player, type Forest, getSetting, rangedFovForAspect as fovForAspect, FOV_HIP, isMesh, type Targets, type TargetHit, Projectiles, type WindField, DropArc, placeArm } from '#engine';
 import type { EquipmentRow } from '#game';
 
@@ -19,8 +20,6 @@ import { BOW } from './profiles';
 
 export interface BowWorld { game: Game; sky: Sky; player: Player; forest: Forest }
 export interface BowOptions { row: EquipmentRow; profile?: BowProfile; allowUnlocked?: boolean }
-const clamp01 = (x: number) => Math.min(1, Math.max(0, x));
-const sstep = (a: number, b: number, x: number) => { const t = clamp01((x - a) / (b - a)); return t * t * (3 - 2 * t); };
 const V = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
 const _v1 = V(0,0,0), _v2 = V(0,0,0), _v3 = V(0,0,0), _fwd = V(0,0,0), _dir = V(0,0,0), _rDir = V(0,0,0);
 const _q1 = new THREE.Quaternion(), _q2 = new THREE.Quaternion(), _q3 = new THREE.Quaternion();

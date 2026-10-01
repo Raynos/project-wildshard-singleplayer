@@ -1,3 +1,4 @@
+import { smoothstep as sstep } from '#engine/data';
 import { weaponActionGate, quiverState, type WeaponState, type AimInfo, gameplayRandom, app, aimRay, viewmodel, fovForAspect, type EquipContext, type Game, type Sky, type Player, type Forest, impactSurfaceOf, worldHit, type ImpactSurface, type Targets, type TargetAnimal, type TargetHit, floorBelow, sticksIn, gloveFist, riderArm, placeArm, painterlyMaterial, lin } from '#engine';
 import { Melee, SWORD_WOOD, Thrown, type ThrownProfile, type MeleeProfile } from '#kit';
 import { SPEAR } from './equipment';
@@ -74,8 +75,6 @@ export function javelinFlightStep(pos: THREE.Vector3, vel: THREE.Vector3, h: num
   pos.addScaledVector(vel, h);
 }
 
-const clamp01 = (v: number) => (v < 0 ? 0 : Math.min(1, v));
-const sstep = (a: number, b: number, x: number) => { const t = clamp01((x - a) / (b - a)); return t * t * (3 - 2 * t); };
 
 // ───────────────────────────── geometry (+Y = toward the head; origin = the right hand's grip) ─────────────────────────────
 
