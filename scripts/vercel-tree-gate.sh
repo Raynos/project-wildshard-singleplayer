@@ -17,7 +17,7 @@ ROOT="$PWD"
 
 sha="$(git rev-parse --verify "${1:-HEAD}^{commit}")" || exit 1
 short="$(git rev-parse --short "$sha")"
-stamp_dir="$(git rev-parse --git-common-dir)/vercel-gate"
+stamp_dir="$(git rev-parse --path-format=absolute --git-common-dir)/vercel-gate"
 if [ -f "$stamp_dir/$sha" ]; then echo "vercel-gate: $short already passed"; exit 0; fi
 
 work="$(mktemp -d -t vercel-gate)" || exit 1
