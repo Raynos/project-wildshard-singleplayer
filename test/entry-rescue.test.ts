@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const mocks = vi.hoisted(() => ({ line: '', guard: vi.fn(), title: vi.fn(), three: vi.fn(), main: vi.fn() }));
+const mocks = vi.hoisted(() => ({ line: '', telemetry: vi.fn(), guard: vi.fn(), title: vi.fn(), three: vi.fn(), main: vi.fn() }));
+vi.mock('#engine/telemetry/runtime', () => ({ startTelemetry: mocks.telemetry }));
 vi.mock('#engine/boot/stuck', () => ({ guardBoot: mocks.guard }));
 vi.mock('#engine/boot/bootTrace', () => ({ inspectPreviousBoot: vi.fn(), previousBootLine: () => mocks.line, previousBootLevel: () => 'nine-dragon-stack' }));
 vi.mock('#engine/ui/StartTitle', () => { mocks.title(); return {}; });
@@ -14,7 +15,7 @@ const replaced = vi.fn((_state: unknown, _unused: string, url: URL) => { vi.stub
 beforeEach(() => {
   vi.resetModules();
   mocks.line = '';
-  mocks.guard.mockClear(); mocks.title.mockClear(); mocks.three.mockClear(); mocks.main.mockClear();
+  mocks.telemetry.mockClear(); mocks.guard.mockClear(); mocks.title.mockClear(); mocks.three.mockClear(); mocks.main.mockClear();
   titleClass.add.mockClear(); resumeClass.remove.mockClear(); replaced.mockClear();
   vi.stubGlobal('document', { documentElement: { classList: titleClass }, querySelector: () => ({ classList: resumeClass }) });
   vi.stubGlobal('history', { state: null, replaceState: replaced });
@@ -26,6 +27,7 @@ describe('entry after a Nine Dragon page restart', () => {
     vi.stubGlobal('location', new URL('https://wildshard.example/?chunk=nine-dragon-stack&glreload=1&v=old'));
     const entry = await import('../src/entry');
     await entry.entered;
+    expect(mocks.telemetry).toHaveBeenCalledOnce();
     expect(replaced).toHaveBeenCalledOnce();
     expect(location.href).toBe('https://wildshard.example/');
     expect(titleClass.add).toHaveBeenCalledWith('title-first');
@@ -39,6 +41,7 @@ describe('entry after a Nine Dragon page restart', () => {
     vi.stubGlobal('location', new URL('https://wildshard.example/?chunk=nine-dragon-stack'));
     const entry = await import('../src/entry');
     await entry.entered;
+    expect(mocks.telemetry).toHaveBeenCalledOnce();
     expect(replaced).not.toHaveBeenCalled();
     expect(titleClass.add).not.toHaveBeenCalled();
     expect(mocks.title).not.toHaveBeenCalled();

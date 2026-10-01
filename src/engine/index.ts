@@ -114,12 +114,12 @@ export type { SkyBackdrop, SkyBackdropContext, SkyBackdropFactory, SkyBackdropTa
 export { MIDDAY_SKY, type SkyPalette } from './world/StylizedSky';
 export type { OptionValue } from './ui/Settings';
 
-export { attachFogUniforms } from './world/Atmosphere';
+export { attachFogUniforms, fogUniforms } from './world/Atmosphere';
 export { preloadBakedTextures, loadBakedSky, loadLUT } from './boot/bakedApi';
 
 export type { SkyKey } from './world/DayClock';
 export type { RGB } from './level/data';
-export type { ScheduleSeg } from './world/dayCycle';
+export { compassDir, type ScheduleSeg } from './world/dayCycle';
 
 // Authored static content and gameplay host ports (E357 S2.1).
 export { loadPBR, loadGLTF, pbrMaterial, type PBRSet } from './core/assets';
@@ -205,3 +205,6 @@ export { SpeciesService } from './entities/species/look';
 export { TIER } from './core/tier';
 export type { RigAnimCtx, FurStyle } from './entities/species/registry';
 export { EncounterService, type SpawnTableRow, type SpawnEntry, type SpawnContext, type SpawnPoint, type Spawner } from './ai/encounters';
+export type { SlotAudio, StyleBank, StemSting, BossPhase } from './audio/Stems';
+export type { MusicStyle } from './ui/Settings';
+export { Synth } from './audio/synth';

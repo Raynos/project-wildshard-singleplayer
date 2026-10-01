@@ -3427,7 +3427,7 @@ const ORIGINAL = [
 function data(value: unknown): unknown {
   if (typeof value === 'function') return '@function';
   if (Array.isArray(value)) return value.map((item: unknown) => data(item));
-  if (typeof value === 'object' && value !== null) return Object.fromEntries(Object.entries(value).map(([key, item]: [string, unknown]) => [key, data(item)]));
+  if (typeof value === 'object' && value !== null) return Object.fromEntries(Object.entries(value).filter(([, item]) => item !== undefined).map(([key, item]: [string, unknown]) => [key, data(item)]));
   return value;
 }
 
@@ -3461,6 +3461,12 @@ function originalShape(m: ShardManifest, fixture: (typeof ORIGINAL)[number]['dat
   projected['atmosphere'] = atmosphere;
   // The lazy shard factory replaces the historical selector; authored assets stay exact.
   if (typeof m.trees.factory === 'function') projected['trees'] = { ...m.trees, factory: fixture.trees.factory };
+  // Nalati's palette moved from the engine map into its manifest. Other map data stays frozen.
+  if (minimap?.palette !== undefined) {
+    const { palette: _palette, ...map } = minimap;
+    if (Object.keys(map).length === 0 && !('map' in fixture)) delete projected['map'];
+    else projected['map'] = map;
+  }
   if (!('style' in fixture)) delete projected['style'];
   else projected['style'] = m.style === 'toon' ? 'lowpoly' : m.style === 'jiehua' ? 'pbr' : m.style;
   if (!('weapon' in fixture)) delete projected['weapon'];
@@ -3471,6 +3477,12 @@ describe('ChunkDef → ShardManifest preserves all 48 field mappings', () => {
   it.each(ORIGINAL)('$data.slug retains its authored data, save key, hooks and terrain', (fixture) => {
     const m = SHARDS.find((entry) => entry.slug === fixture.data.slug);
     if (!m) throw new Error(`Missing manifest ${fixture.data.slug}`);
+    if (fixture.data.slug === 'pine-hollow' || fixture.data.slug === 'nalati-grasslands') expect(typeof m.trees.factory).toBe('function');
+    if (fixture.data.slug === 'nalati-grasslands') {
+      expect(typeof m.minimap?.palette?.ground).toBe('function');
+      expect(typeof m.minimap?.palette?.overlay).toBe('function');
+      expect(typeof m.minimap?.palette?.pois).toBe('function');
+    }
     expect(m.label).toBe(fixture.data.gridCoords);
     expect(formatGrid(m.placement.grid)).toBe(m.label);
     expect(m.placement.size).toEqual([500, 500, 500]);

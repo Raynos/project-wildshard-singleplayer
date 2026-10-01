@@ -46,4 +46,5 @@ export { installKitSpecies } from './species/install';
 export { fitNpcFigure, mergeNpcFigures, type NpcFigureFrame, type NpcFigureBones, type NpcFigureRig } from './npc/figureRig';
 export { stepNpcFigure, npcFigurePose, type NpcFigureState, type NpcFigureMotionProfile } from './npc/figureMotion';
 
+export { KIT_ITEMS } from './bag/items';
 export { loadGrassField } from './lookApi';

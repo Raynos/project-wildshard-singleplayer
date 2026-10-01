@@ -60,7 +60,7 @@ export function chunkFiles(def: ShardManifest, tex: TexMode = texMode()): ChunkF
   // a painterly one (Nalati) paints its ground and builds no cabins or props either
   // a structure-first one (ShardManifest.ground.structures, Nine Dragon Stack) draws no ground and builds no cabins or props: its world's own files instead
   const built = def.ground.structures !== undefined;
-  const lowpoly = def.style === 'toon', treeless = def.trees.bark === undefined && def.trees.twigAtlas === undefined && def.trees.set === undefined, ocean = def.ocean !== undefined || built;
+  const lowpoly = def.style === 'toon', treeless = def.trees.factory === 'none' || (def.trees.bark === undefined && def.trees.twigAtlas === undefined && def.trees.set === undefined), ocean = def.ocean !== undefined || built;
   // the phone tier's .phone.webp / .phone.glb copies (fetchImage and three's loaders fetch through the same map), and the
   // KTX2 stand-ins when textures ride as KTX2 (E157, src/engine/boot/gpuFiles.ts) — only the default path's files are declared
   const t = (xs: string[]) => xs.map((u) => gpuUrl(u, tex));

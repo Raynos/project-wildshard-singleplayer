@@ -1,12 +1,19 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 import { toLevelSpec } from '#game';
 import { SHARDS, playable } from '#game/shard/registry';
 import { PUBLIC_BYTES } from '#engine/boot/bytes.generated';
 import { PACKS } from '#engine/boot/packs.generated';
+import { gpuUrl } from '#engine/boot/bytes';
+import { chunkFiles } from '#engine/boot/manifest';
+import { initializeTier, TIER } from '#engine/core/tier';
 import manifest from '#shards/nine-dragon-stack/manifest';
+
+const originalTier = TIER;
+afterEach(() => { initializeTier(originalTier); });
 
 describe('Nine Dragon full shard manifest', () => {
   it.each(['phone', 'desktop'] as const)('declares byte-counted %s files and a complete world pack', (tier) => {
+    initializeTier(tier);
     const files = manifest.boot?.files(tier);
     if (files === undefined) throw new Error('Nine Dragon must declare its boot');
     expect(files.length).toBeGreaterThan(0);
@@ -15,7 +22,8 @@ describe('Nine Dragon full shard manifest', () => {
     for (const file of files) expect(bytes[file], file).toBeGreaterThan(0);
     const pack = PACKS[manifest.slug]?.[tier];
     expect(pack).toBeDefined();
-    expect(pack?.files.length).toBe(files.length);
+    expect(chunkFiles(manifest, 'img').trees).toEqual([]);
+    expect(pack?.files.map(([url]) => url).sort()).toEqual(files.map((url) => gpuUrl(url, 'img')).sort());
   });
   it('discovers the experimental shard and projects only engine data', () => {
     expect(SHARDS.filter(playable)).toContain(manifest);

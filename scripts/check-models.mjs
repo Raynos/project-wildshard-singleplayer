@@ -101,6 +101,7 @@ export const DONE = {
     'src/shards/nine-dragon-stack/vm/geo.ts': { why: "the viewmodel's geometry library (`Geo`, merged per rigid group): the fp arms' knot, the jian's parts and the facade kit's pieces build with it; it draws nothing of its own — the arms are the Gear model nine-dragon-stack/fp-arms (models/gear.ts, M5)", counts: { mergeGeometries: 1 } },
   },
   'pine-hollow': {
+    'src/shards/pine-hollow/world/treeFactory.ts': { why: "the forest field's authored tree geometry, moved from TreeFactory (world, not a placed thing)", counts: { mergeGeometries: 1 } },
     'src/shards/pine-hollow/weapons/longbowView.ts': { why: "Gear: the held weapon's own first-person build (M5 lists it on the Gear tab)", counts: { mergeGeometries: 2 } },
     'src/shards/pine-hollow/world/trophyWall.ts': { why: "the trophy wall's mounts: each a creature's head built from its rig (creatures, M5)", counts: { mergeGeometries: 2 } },
     'src/shards/pine-hollow/weapons/LeverRifle.ts': { why: "Gear: the held weapon's own first-person build (M5 lists it on the Gear tab)", counts: { mergeGeometries: 8 } },
@@ -134,7 +135,6 @@ export const DONE = {
     'src/engine/world/forest/Forest.ts': { why: 'the forest field: a scatter (world, §1); Pine Hollow places its trees as the forest tree model, the other forests are the field', counts: { InstancedMesh: 1, BatchedMesh: 1 } },
     'src/engine/world/Grass.ts': { why: 'the grass blades: a shader-drawn field (world, §1)', counts: { InstancedMesh: 2 } },
     'src/kit/looks/particles.ts': { why: 'mist and needle fall: an effect', counts: { InstancedMesh: 2 } },
-    'src/engine/world/TreeFactory.ts': { why: "the forest field's tree geometry (world, §1: the field's own kinds)", counts: { mergeGeometries: 1 } },
     'src/engine/world/interact/Interactables.ts': { why: "draws the interactables' copies (models in src/engine/models/interact.ts, placed drawnInto its batches)", counts: { BatchedMesh: 2 } },
     'src/engine/world/lowpolyKit.ts': { why: "a geometry kit the models' builders share (no thing of its own)", counts: { mergeGeometries: 2 } },
   },

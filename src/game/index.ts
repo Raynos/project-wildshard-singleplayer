@@ -18,5 +18,6 @@ export { travel, bindTravelInventory, applyTravelCarry, consumeTravelHandoff, se
 export { normalizeItemRow, type ItemRow, type RegisteredItemRow } from './bag/items';
 
 
+export { registerItemRow } from './bag/itemCatalog';
 export type { AchievementDef } from './achievements';
 export type { CompendiumHost, CompendiumWallPort } from './compendium/install';
