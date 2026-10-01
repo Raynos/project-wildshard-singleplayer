@@ -44,6 +44,12 @@ describe('Nine Dragon world hook', () => {
     expect(app.registry.get('nds-fronts')?.colliders).toEqual(fragmentColliders().fronts);
     const guard = app.registry.get('nds-grapple-guard');
     expect(guard?.colliders).toEqual(fragmentGrappleGuard());
+    expect(app.events.census().listeners).toBe(1);
+    app.events.emit('explore.turntable', { on: true, key: { x: 1, y: 0, z: 0 } });
+    app.events.flush('update');
+    expect(world.shared.u.uDry.value).toBe(1);
+    app.events.emit('explore.turntable', { on: false });
+    app.events.flush('update');
     const runtime = ndRuntime(); expect(runtime.world).toBe(world); expect(runtime.camera).toBe(fake.camera);
     expect(guard?.active?.()).toBe(true); runtime.guardOpen = true; expect(guard?.active?.()).toBe(false);
     const system = app.systemsByPhase().update[0];
@@ -53,6 +59,7 @@ describe('Nine Dragon world hook', () => {
     const ambient = world.shared.u.uLpAmb.value;
     runtime.specimenLight(true); expect(world.shared.u.uLpAmb.value).toBeGreaterThan(ambient);
     await app.unloadLevel();
+    expect(app.events.census().listeners).toBe(0);
     expect(world.shared.u.uLpAmb.value).toBe(ambient); expect(runtime.guardOpen).toBe(false);
     expect(app.registry.pieces).toEqual([]); expect(app.systemsByPhase().update).toEqual([]);
     expect(() => ndRuntime()).toThrow('world hook');

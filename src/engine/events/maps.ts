@@ -5,6 +5,9 @@ export interface EventMap {
   'app.state': { prev: AppState; next: AppState };
   'level.loaded': { id: string };
   'level.unloaded': { id: string };
+  'practice.active': boolean;
+  'explore.studio': boolean;
+  'explore.turntable': { on: boolean; key?: { x: number; y: number; z: number } };
   'fault': FaultEvent;
 }
 // oxlint-disable-next-line typescript/no-empty-interface, typescript/no-empty-object-type -- Consumers extend this registry by declaration merging.

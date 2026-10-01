@@ -285,7 +285,8 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   const brand = (): void => { resumeScreen().brand(manifest.name, manifest.card.portrait); };
   brand();
   await stage('ktx2', () => prepareShardAssets(manifest, registerGpuFiles));
-  const files = bootFiles(getActiveChunk()); // + the title / explore art and every audio file (project/archive/2026-09-23-preload-offline.md)
+  const audioProfile = await stage('audio.preload', () => manifest.audio?.preload?.());
+  const files = bootFiles(getActiveChunk(), undefined, audioProfile); // + the title / explore art and every audio file (project/archive/2026-09-23-preload-offline.md)
   useShardSteps(getActiveChunk().slug); // the shard's own loading nouns + weights (src/engine/boot/steps.ts)
   const bootSteps: Record<string, number> = {}; // each step's wall ms (the host's timings: what a build / rebuild spends where)
   const plan = createBootPlan((view) => { loading.paint(view); resumeProgress(view.setup); for (const r of view.rows) if (r.state === 'ok') bootSteps[r.key] = Math.round(r.ms); }, { totals: declareTotals(files) });
@@ -314,13 +315,13 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   // High-peak builds may defer extras decoding until their later loading steps.
   const deferExtras = manifest.boot?.phone?.deferExtras === true && TIER === 'phone';
   const menuLoad = deferExtras ? null : startMenuPreload(files, getActiveChunk());
-  const audioLoad = deferExtras ? null : startAudioPreload(files, getActiveChunk());
-  const deferredAudio = deferExtras ? startDeferredAudioPreload(files, getActiveChunk()) : null;
+  const audioLoad = deferExtras ? null : startAudioPreload(files, getActiveChunk(), audioProfile);
+  const deferredAudio = deferExtras ? startDeferredAudioPreload(files, getActiveChunk(), audioProfile) : null;
   startViewmodelTextures((getActiveChunk().weapon) === 'crossbow'); // the crossbow's + rifle's textures, drawn in a worker while the world builds
   if (getActiveChunk().slug === 'pine-hollow') void preloadLeverModel(); // the lever-action's Blender model (PH-C11), fetched while the world builds
   const fieldModels = getActiveChunk().fieldModels?.() ?? null; // the shard's field models' code (ShardManifest.fieldModels, E349), fetched while the world builds
   const level = yield 'world';
-  const world = await bootstrap(step);
+  const world = await bootstrap(step, toLevelSpec(manifest));
   const { game, sky, player, forest, params, chunk, registry } = world;
   if (level !== undefined) game.scene.add(level.root);
   // Fragile phone builds need a GPU guard before normal in-game recovery is installed.
@@ -554,6 +555,18 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
     statics.push(...propsBuilt.colliders);
     return propsBuilt;
   }) : null;
+  const audio = new Audio();
+  if (params.has('mute')) { audio.muted = true; audio.master.disconnect(); } // headless tests / captures: never make a sound
+  // the Wildshard theme (project/archive/2026-09-23-music.md): the same score as the trailer, adaptive in play — menu / calm / alert / combat / underwater + stings
+  // the page's one score (the shell's): built with the first shard, routed through the running shard's master (Music.attach)
+  const music = shell.music ?? asShell(() => new Music(audio));
+  shell.music = music;
+  music.attach(audio);
+  const mood = chunk.ocean ? 'island' : chunk.style === 'painterly' ? 'steppe' : 'pine';
+  music.setState({ shard: mood, mode: 'menu', intensity: 0, underwater: false });
+  audio.music = music;
+  audio.listenerPosition = player.position;
+  app.audio = audio;
   yield 'kit';
 
   const animals = await step('animals', async (p) => {
@@ -653,15 +666,6 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
     await (menuLoad ?? startMenuPreload(files, chunk)).wait(p);
     await practice;
   });
-  const audio = new Audio();
-  if (params.has('mute')) { audio.muted = true; audio.master.disconnect(); } // headless tests / captures: never make a sound
-  // the Wildshard theme (project/archive/2026-09-23-music.md): the same score as the trailer, adaptive in play — menu / calm / alert / combat / underwater + stings
-  // the page's one score (the shell's): built with the first shard, routed through the running shard's master (Music.attach)
-  const music = shell.music ?? asShell(() => new Music(audio));
-  shell.music = music;
-  music.attach(audio);
-  const mood = chunk.ocean ? 'island' : chunk.style === 'painterly' ? 'steppe' : 'pine';
-  music.setState({ shard: mood, mode: 'menu', intensity: 0, underwater: false });
   // the ring shrine hums by proximity and ducks the score up close (project/archive/2026-09-23-music.md v3 row 9)
   const shrineHum = shrine ? new ShrineHum(audio, music, { x: SHRINE.x, y: heightAt(SHRINE.x, SHRINE.z) + 2.5, z: SHRINE.z }) : null;
   const toSpawn = () => { player.spawn(chunk.spawn.x, chunk.spawn.z, chunk.spawn.yaw, chunk.spawn.y); if (pier) { const y = pier.floorHeightAt(player.position.x, player.position.z); if (y !== undefined) player.position.y = y; } };
@@ -1323,10 +1327,10 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
     // same selected style again if the player taps before the deferred decode finishes.
     music.useBank({ style: deferredAudio.style, set: 'base', slots: new Map(), stings: new Map(), log: [] });
   } else {
-    const banks = await step('audio', (p) => (audioLoad ?? startAudioPreload(files, chunk)).wait(p));
+    const banks = await step('audio', (p) => (audioLoad ?? startAudioPreload(files, chunk, audioProfile)).wait(p));
     if (banks.music) music.useBank(banks.music); // the title theme's first gesture plays the stems at once
     if (banks.steppe) music.steppe.useBank(banks.steppe); // Nalati's own score: its first slot + stings (NALATI-MERGE A2)
-    audio.useSamples(banks.sfx);
+    if (banks.profile) audio.useLevelBank(banks.profile); else audio.useSamples(banks.sfx);
   }
   (plan as unknown as { done: () => void }).done(); // throws unless both tracks are exactly 1
   releaseByteCounter();
@@ -1352,7 +1356,7 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
       try {
         const banks = await deferredAudio.decode();
         if (banks.music) music.useBank(banks.music);
-        audio.useSamples(banks.sfx);
+        if (banks.profile) audio.useLevelBank(banks.profile); else audio.useSamples(banks.sfx);
       } catch (error) {
         console.info(`[audio] deferred level decode: ${error instanceof Error ? error.message : String(error)} — the synth plays`);
       }

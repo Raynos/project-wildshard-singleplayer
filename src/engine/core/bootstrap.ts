@@ -13,7 +13,8 @@ import { Player } from '../player/Player';
 import type { Sky } from '../world/Sky';
 import { Tour } from './Tour';
 import * as Heightfield from '../world/Heightfield';
-import { runDirect, type StepRunner } from '../boot/plan';
+import type { StepRunner } from '../boot/plan';
+import { needsTerrainCollider, type LevelSpec } from '../level/spec';
 import { getActiveChunk } from '#game/shard/registry';
 import type { ShardManifest } from '#game/shard/manifest';
 import { loadRapier } from '../physics/rapier';
@@ -62,7 +63,7 @@ export interface World {
  * URL params: ?chunk=<slug>  which shard (default driftwood-isle, see src/game/shard/registry.ts)
  *             ?x=&z=&yaw=&pitch=  spawn pose (metres / radians)
  */
-export async function bootstrap(step: StepRunner = runDirect): Promise<World> {
+export async function bootstrap(step: StepRunner, level: LevelSpec): Promise<World> {
   const params = new URLSearchParams(location.search);
   const num = (k: string, d: number): number => { const v = params.get(k); return v === null ? d : Number.parseFloat(v); };
   // The selected shard was resolved before main.ts removes ?chunk from a standalone PWA URL.
@@ -75,7 +76,7 @@ export async function bootstrap(step: StepRunner = runDirect): Promise<World> {
       progress.detail('Waiting for graphics to recover');
       recordBootCheckpoint('renderer:waiting', { ...state });
     });
-    return new Game(canvas, context);
+    return new Game(canvas, context, level);
   });
   game.app.clock.setCapture(window.__wildshardHarness?.capture ?? null);
   const sky = await step('sky', () => game.buildSky());
@@ -101,7 +102,7 @@ export async function bootstrap(step: StepRunner = runDirect): Promise<World> {
     const ph = new Physics(await rapier);
     await navmesh;
     withScopeOwner(game.levelScope, () => {
-      if (def.ground.structures === undefined) addTerrain(ph); // a structure-first shard walks on its built floors only
+      if (needsTerrainCollider(level)) addTerrain(ph); // a structure-first shard walks on its built floors only
       addEdgeWalls(ph);
     });
     p.detail(`${ph.world.colliders.len()} colliders`);

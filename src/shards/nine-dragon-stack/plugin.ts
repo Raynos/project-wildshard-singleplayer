@@ -27,7 +27,7 @@ export class NdPlugin extends ShardPlugin {
     const { world, camera } = await this.build(ctx);
     if (ctx.scope.disposed) throw new Error('Nine Dragon was unloaded during its world build');
     const rt = installWorld(ctx, world, camera);
-    if (typeof document !== 'undefined') installSpecimenLight(ctx.scope, (on, key) => { rt.specimenLight(on, key); });
+    installSpecimenLight(ctx.app.events, ctx.scope, (on, key) => { rt.specimenLight(on, key); });
   }
 }
 

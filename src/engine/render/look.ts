@@ -2,6 +2,9 @@ import type { PerspectiveCamera, Scene, WebGLRenderer } from 'three';
 import type { BloomEffect, BrightnessContrastEffect, ChromaticAberrationEffect, Effect, EffectComposer, GodRaysEffect, HueSaturationEffect, LUT3DEffect, NoiseEffect, Pass, ToneMappingEffect, VignetteEffect } from 'postprocessing';
 import type { N8AOPostPass } from 'n8ao';
 import type { GradeEffect } from '../core/Grade';
+import type { App } from '../app/app';
+import type { Scope } from '../app/scope';
+import type { LevelContext } from '../level/context';
 import type { Tier } from '../core/tier';
 import type { VolumetricsEffect } from '../core/Volumetrics';
 
@@ -25,6 +28,9 @@ export interface EngineEffects {
 }
 
 export interface LookComposeContext {
+  app: App;
+  scope: Scope;
+  debug: LevelContext['debug'];
   renderer: WebGLRenderer;
   scene: Scene;
   camera: PerspectiveCamera;

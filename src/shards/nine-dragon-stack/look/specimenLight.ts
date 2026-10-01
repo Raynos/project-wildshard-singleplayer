@@ -8,7 +8,7 @@
 // toward), and the washes drawn dry. All four are put back when it closes. Uniform values only: no program recompiles, and
 // the world is hidden while a model is on show.
 import { Color, type Vector3 } from 'three';
-import type { Scope } from '#engine';
+import type { Events, Scope } from '#engine';
 import type { Shared } from './style';
 
 /** the turntable's light: the ambient, how far the shade wash is lifted toward white (0 = the city's, 1 = unshaded), the
@@ -43,9 +43,6 @@ export function specimenLight(shared: Shared, on: boolean, key?: { x: number; z:
 }
 
 /** Legacy boot adapter; a repeated level load gets its own listener. */
-export function installSpecimenLight(scope: Scope, apply: (on: boolean, key?: { x: number; z: number }) => void): void {
-  scope.listen(document, 'ws:turntable', (event) => {
-    const t = (event as CustomEvent<Turntable>).detail;
-    apply(t.on, t.key);
-  });
+export function installSpecimenLight(events: Events, scope: Scope, apply: (on: boolean, key?: { x: number; z: number }) => void): void {
+  events.on('explore.turntable', (t) => { apply(t.on, t.key); }, scope);
 }

@@ -146,6 +146,7 @@ export class GrapplePlayground implements Playground {
     setGrappleCourse(this.course);               // the claw bites these hooks now (before the practice flag, which it reads)
     practiceFps.on = true;                        // a tiny scene: mobile runs it at 60 (tier.ts, as the Practice arena)
     document.dispatchEvent(new CustomEvent('ws:practice-active', { detail: true }));
+    app.events.emit('practice.active', true);
     document.getElementById('hud')?.classList.add('playground-active');
     player.setHover(false);
     this.chip.show(true);
@@ -160,6 +161,7 @@ export class GrapplePlayground implements Playground {
     this.chip.show(false);
     document.getElementById('hud')?.classList.remove('playground-active');
     document.dispatchEvent(new CustomEvent('ws:practice-active', { detail: false }));
+    app.events.emit('practice.active', false);
     practiceFps.on = false;
     setGrappleCourse(null);
   }

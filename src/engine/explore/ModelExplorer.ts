@@ -394,8 +394,9 @@ export class ModelExplorer implements ExplorePane {
       this.savedBackground = scene.background; scene.background = studioBackdrop();
       // the studio is indoors: a shard's weather drawn in its post (Nine Dragon's drizzle) stops while a model is on show (E306)
       document.dispatchEvent(new CustomEvent('ws:studio-active', { detail: true }));
+    this.world.game.app.events.emit('explore.studio', true);
       // (the Model Explorer's own: a shard's specimen light, keyed from the side the turntable opens on — frameModel)
-      document.dispatchEvent(new CustomEvent('ws:turntable', { detail: { on: true, key: this.world.game.sky.sunDir.clone() } }));
+      this.world.game.app.events.emit('explore.turntable', { on: true, key: this.world.game.sky.sunDir.clone() });
     }
     // every level from the model up to the scene: its siblings go (one cabin out of the homestead group, one jetty
     // out of the pier), the lights stay
@@ -425,7 +426,8 @@ export class ModelExplorer implements ExplorePane {
     if (this.savedBackground !== undefined) {
       this.world.game.scene.background = this.savedBackground; this.savedBackground = undefined;
       document.dispatchEvent(new CustomEvent('ws:studio-active', { detail: false }));
-      document.dispatchEvent(new CustomEvent('ws:turntable', { detail: { on: false } }));
+    this.world.game.app.events.emit('explore.studio', false);
+      this.world.game.app.events.emit('explore.turntable', { on: false });
     }
   }
 

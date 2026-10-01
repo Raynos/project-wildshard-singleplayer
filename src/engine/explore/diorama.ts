@@ -160,7 +160,8 @@ export class Diorama {
     this.saved = { planes: renderer.clippingPlanes, background: scene.background };
     renderer.clippingPlanes = planes;
     scene.background = this.backdrop();
-    document.dispatchEvent(new CustomEvent('ws:studio-active', { detail: true })); // (a shard's post weather stops, as in the studio)
+    document.dispatchEvent(new CustomEvent('ws:studio-active', { detail: true }));
+    this.world.game.app.events.emit('explore.studio', true); // (a shard's post weather stops, as in the studio)
     // what the cut leaves out, off the camera's layer; a custom shader in it, patched to clip
     const skip = new Set<THREE.Object3D>([this.group, ...keep]);
     const s = new THREE.Sphere(), patched = new Set<THREE.ShaderMaterial>();
@@ -197,6 +198,7 @@ export class Diorama {
     if (this.saved) { renderer.clippingPlanes = this.saved.planes; scene.background = this.saved.background; this.saved = null; }
     // (the post weather comes back — unless the Model Explorer's turntable, opened from this set, has it held)
     if (document.querySelector('.ws-x-models.show[data-view="model"]') === null) document.dispatchEvent(new CustomEvent('ws:studio-active', { detail: false }));
+    this.world.game.app.events.emit('explore.studio', false);
     if (this.skirt) { this.skirt.removeFromParent(); this.skirt.geometry.dispose(); this.skirt = null; }
     this.group.visible = false;
     this.vol = null;

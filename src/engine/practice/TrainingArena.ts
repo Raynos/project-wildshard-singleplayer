@@ -368,6 +368,7 @@ export class TrainingArena {
     this.player = player;
     for (const t of this.targets) { t.attacker = player.position; t.bodies?.setEnabled(true); }
     document.dispatchEvent(new CustomEvent('ws:practice-active', { detail: true }));
+    app.events.emit('practice.active', true);
     this.overlay.parentElement?.classList.add('practice-active');
     // still loading: the procedural figures stand in at once, never an empty room; the meshes replace them on arrival
     if (!this.modelsReady) for (const t of this.targets) if (!t.ready) t.install(dummyStandIn(t.variant), this.game.renderer);
@@ -390,6 +391,7 @@ export class TrainingArena {
     this.weapons?.endLoan(); this.weapons = null; // the world's own unlocks again
     this.player = null;
     document.dispatchEvent(new CustomEvent('ws:practice-active', { detail: false }));
+    app.events.emit('practice.active', false);
     this.overlay.parentElement?.classList.remove('practice-active');
     for (const f of this.floats) f.el.remove();
     this.floats.length = 0;

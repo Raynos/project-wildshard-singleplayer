@@ -11,7 +11,8 @@ import {
   type Effect, type Pass,
 } from 'postprocessing';
 import { N8AOPostPass } from 'n8ao';
-import type { EngineEffects, ShardComposition, ShardRender } from '#game/shard/manifest';
+import type { EngineEffects, LookComposition, LookStrategy } from '../render/look';
+import { resolveTierKnobs, type LevelSpec, type TierKnobs } from '../level/spec';
 import { installAtmosphere } from '../world/Atmosphere';
 import { setAnisotropy } from './assets';
 import { Sky } from '../world/Sky';
@@ -253,11 +254,11 @@ export class Game {
   /** A shard's per-frame render uniforms, re-read for the camera as it stands now: a render outside the loop from a
    *  moved camera (Model Explorer's catalog thumbnail) must call it first. Nine Dragon's silk fog is measured from the
    *  camera `frame()` saw, so a thumbnail fogged from the turntable's eye came out a white silhouette (E289). */
-  shardFrame(): void { this.camera.updateMatrixWorld(); this.shardRender?.frame?.(0, this.clock.elapsedTime); }
+  shardFrame(): void { this.camera.updateMatrixWorld(); this.lookStrategy?.frame?.(0, this.clock.elapsedTime); }
 
   snapshot(maxW: number): HTMLCanvasElement | null {
     if (this._composer === null || this.hold || this.renderer.getContext().isContextLost()) return null;
-    this.shardRender?.frame?.(0, this.clock.elapsedTime);
+    this.lookStrategy?.frame?.(0, this.clock.elapsedTime);
     this._composer.render(0);
     const src = this.canvas, k = Math.min(1, maxW / Math.max(1, src.width));
     const c = document.createElement('canvas'); c.width = Math.max(1, Math.round(src.width * k)); c.height = Math.max(1, Math.round(src.height * k));
@@ -273,7 +274,9 @@ export class Game {
   /** the sky — set by buildSky() */
   get sky(): Sky { if (this._sky === null) throw new Error('Game.sky read before buildSky()'); return this._sky; }
 
-  constructor(public canvas: HTMLCanvasElement, context: WebGL2RenderingContext) {
+  readonly level: LevelSpec;
+  constructor(public canvas: HTMLCanvasElement, context: WebGL2RenderingContext, level: LevelSpec) {
+    this.level = level;
     this.app.scene = this.scene;
     this.app.render = this;
     const legacy = currentScope(); if (legacy) legacy.owner = this.engineScope;
@@ -325,33 +328,33 @@ export class Game {
   }
 
   /** the shard's render strategy (ShardManifest.render), loaded by buildSky; null = the engine's chain as it is */
-  private shardRender: ShardRender | null = null;
+  private lookStrategy: LookStrategy | null = null;
   private levelId = '';
   /** where the strategy put its passes (asked once, in buildComposer) */
-  private composition: ShardComposition | null = null;
+  private composition: LookComposition | null = null;
 
   async buildSky(): Promise<Sky> {
-    const def = getActiveChunk();
-    this.levelId = def.slug;
-    const render = def.render?.() ?? null; // the render code downloads while the sky builds; buildComposer reads both
+    this.levelId = this.level.id;
+    const render = this.level.look?.() ?? null; // the render code downloads while the sky builds; buildComposer reads both
     this._sky = await new Sky(this.scene, this.camera, this.renderer).build();
-    this.shardRender = await render;
-    this.levelScope.onDispose(() => { this.shardRender?.dispose?.(); this.shardRender = null; });
+    this.lookStrategy = await render;
+    this.levelScope.onDispose(() => { this.lookStrategy?.dispose?.(); this.lookStrategy = null; });
     return this._sky;
   }
 
   /**
    * The colour chain's pass: the engine's `order` — or, with a shard render strategy, the order it composes from the
-   * engine's effects (and its own), asked here, once, when every effect is built (ShardManifest.ShardRender.compose).
+   * engine's effects (and its own), asked here, once, when every effect is built (ShardManifest.LookStrategy.compose).
    */
   private colourPass(composer: EffectComposer, order: Effect[], fx: Omit<EngineEffects, 'order'>): EffectPass {
-    const R = this.shardRender;
+    const R = this.lookStrategy;
     if (R === null) return new EffectPass(this.camera, ...order);
-    this.composition = R.compose({ renderer: this.renderer, scene: this.scene, camera: this.camera, composer, tier: TIER, fx: { ...fx, order } });
+    const scope = this.levelScope.child('look');
+    this.composition = R.compose({ app: this.app, scope, debug: { expose: (name, value) => { scope.onDispose(this.app.debug.scopedExpose(name, value)); } }, renderer: this.renderer, scene: this.scene, camera: this.camera, composer, tier: TIER, fx: { ...fx, order } });
     return new EffectPass(this.camera, ...(this.composition.chain ?? order));
   }
 
-  /** the strategy's passes into their slots around the engine's (ShardManifest.ShardComposition): scene → AO → colour → SMAA */
+  /** the strategy's passes into their slots around the engine's (ShardManifest.LookComposition): scene → AO → colour → SMAA */
   private placeShardPasses(composer: EffectComposer, colour: EffectPass): void {
     const C = this.composition;
     if (C === null) return;
@@ -360,6 +363,12 @@ export class Game {
     insert(C.afterChain, composer.passes.indexOf(colour) + 1);
     insert(C.afterScene, composer.passes.indexOf(this.renderPass) + 1);
     insert(C.beforeScene, 0);
+  }
+
+  private renderKnobs(): TierKnobs {
+    const kit: TierKnobs = {};
+    for (const schema of this.app.levelRegistrations.knobSchemas()) Object.assign(kit, schema.defaults);
+    return resolveTierKnobs({ ao: TIER_CONFIG.ao, slices: phonePictureCuts(), warmTurns: WARM_TURNS }, kit, this.level.tiers, TIER);
   }
 
   buildComposer(): void {
@@ -371,15 +380,14 @@ export class Game {
     // the viewmodels' depth clear used to leave them the weapon alone (worldDepth.ts)
     // E142: on Pine Hollow's phone tier the viewmodels draw into near depth slices instead of clearing, so the world's
     // depth needs no mid-pass copy (worldDepth.ts)
-    const R = this.shardRender; // a shard's render strategy (ShardManifest.render) may pick the slices and the AO; null = the tier's
-    const level = getActiveChunk(), knobs = level.tiers?.[TIER];
-    const slices = knobs?.slices ?? R?.slices ?? phonePictureCuts(); // E142 / E189: Pine Hollow's and Driftwood's phone tier
+    const level = getActiveChunk(), knobs = this.renderKnobs();
+    const slices = knobs.slices ?? phonePictureCuts(); // E142 / E189: Pine Hollow's and Driftwood's phone tier
     this.renderPass = new WorldRenderPass(this.scene, this.camera, composer, slices);
     composer.addPass(this.renderPass);
 
     let aoPass: N8AOPostPass | null = null;
     // A level's tier data can keep its compositor below the transient boot peak.
-    if (knobs?.ao ?? R?.ao ?? TIER_CONFIG.ao) {
+    if (knobs.ao ?? TIER_CONFIG.ao) {
       const ao = new N8AOPostPass(this.scene, this.camera, window.innerWidth, viewportHeight());
       aoPass = ao;
       ao.configuration.aoRadius = 2.5;
@@ -438,7 +446,7 @@ export class Game {
     // frame runs one FXAA pass on the graded frame instead of SMAA's three, and leaves out its faint (12 %) god rays. The
     // warm iPhone's grass frame was 48 ms with the post chain and 17 without; desktop keeps SMAA and the rays
     const dwPhone = level.style === 'toon' && TIER === 'phone';
-    const fxaa = (dwPhone || (knobs?.aa ?? R?.aa) === 'fxaa') && TIER_CONFIG.smaa !== 'off' ? new FXAAEffect() : null; // (or a shard's render strategy asks for it)
+    const fxaa = (dwPhone || knobs.aa === 'fxaa') && TIER_CONFIG.smaa !== 'off' ? new FXAAEffect() : null; // (or a shard's render strategy asks for it)
     const raysOn = !dwPhone;
     const chain = (clean: boolean): EffectPass => {
       const godRays = new GodRaysEffect(this.camera, this.sky.sunDisc, {
@@ -613,11 +621,11 @@ export class Game {
     // Large instanced worlds may request culling before the first draw and fewer warm views.
     const tracedBoot = bootTraceActive();
     const checkpoint = (operation: string): void => { if (tracedBoot) recordGpuCheckpoint(this.renderer, operation); };
-    const warmTurns = getActiveChunk().tiers?.[TIER]?.warmTurns ?? WARM_TURNS;
+    const warmTurns = this.renderKnobs().warmTurns ?? WARM_TURNS;
     onProgress?.(0, warmTurns + 2, 'world + shadows');
     await frame();
     checkpoint('cull:before');
-    if (getActiveChunk().boot?.cullBeforeFirstDraw === true) this.shardRender?.frame?.(0.016, 0);
+    if (this.level.boot.cullBeforeFirstDraw === true) this.lookStrategy?.frame?.(0.016, 0);
     checkpoint('cull:after');
     // into the composer's input buffer, not the canvas: the canvas target would be a second set of program variants
     const target = (this.composer as unknown as { inputBuffer?: THREE.WebGLRenderTarget }).inputBuffer ?? null;
@@ -641,7 +649,7 @@ export class Game {
     }
     onProgress?.(warmTurns + 1, warmTurns + 2, 'post chain');
     t0 = performance.now(); before = PERFLOAD ? snapshotPrograms(this.renderer) : null;
-    this.shardRender?.frame?.(0.016, 0);
+    this.lookStrategy?.frame?.(0.016, 0);
     checkpoint('post:before');
     if (tracedBoot) traceBootPasses(this.composer.passes, checkpoint, () => { this.composer.render(0.016); });
     else this.composer.render(0.016);
@@ -754,7 +762,7 @@ export class Game {
         sky.update(realDt);
         // planet + sun disc travel with the camera so they stay "infinitely" far
         sky.clouds.position.copy(this.camera.position); sky.planet.position.copy(this.camera.position).addScaledVector(sky.planetDir, 1700); sky.sunDisc.position.copy(this.camera.position).addScaledVector(sky.sunDir, 1500);
-        this.shardRender?.frame?.(realDt, t); // a shard's per-frame uniforms, with the camera final (ShardManifest.ShardRender)
+        this.lookStrategy?.frame?.(realDt, t); // a shard's per-frame uniforms, with the camera final (ShardManifest.LookStrategy)
         cullPlaced(this.camera); // placed models' per-copy culling and LODs for this view (src/engine/models/place.ts; nothing when none cull)
         composer.render(realDt);
         if (exploreEntryPending() && !this.renderer.getContext().isContextLost()) recordExploreFrame();
@@ -783,7 +791,7 @@ export class Game {
     this.engineScope.dispose();
     this.scene.traverse((o) => { (o as Partial<THREE.Mesh>).geometry?.dispose(); });
     try { this._composer?.dispose(); } catch (e) { console.warn('[shard] the composer did not dispose', e); }
-    try { this.shardRender?.dispose?.(); } catch (e) { console.warn('[shard] the render strategy did not dispose', e); }
+    try { this.lookStrategy?.dispose?.(); } catch (e) { console.warn('[shard] the render strategy did not dispose', e); }
     this.renderer.renderLists.dispose();
     this.renderer.dispose();
     this.renderer.forceContextLoss();

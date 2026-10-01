@@ -1,13 +1,13 @@
-// Nine Dragon Stack's render strategy (ShardManifest.render → ShardRender, core/Game.ts buildComposer): the Jiehua Neon look
+// Nine Dragon Stack's render strategy (manifest.render → LookStrategy, core/Game.ts buildComposer): the Jiehua Neon look
 // on the engine's composer. The engine's passes stay (the scene pass with the viewmodels in their depth slices, SMAA);
 // the shard adds the bleed pyramid before the colour chain and replaces the chain with its own composite (ink
 // silhouette, 晕染 bleed, window glow, drizzle, shoulder, the learned LUT, grain) — the clean room's frame, rebuilt on
 // the engine (the clean room's post.ts, deleted in E357 F7; git show b1b8f9c9:src/chunks/nine-dragon-stack/look/post.ts).
-// `window.__ndRender` (captures / A/B, no URL switch): the live pieces and their switches.
+// `window.__wildshard.shard['nd.render']` (captures / A/B, no URL switch): the live pieces and their switches.
 import { Color, Fog, type IUniform, Mesh, type Object3D, type PerspectiveCamera, ShaderMaterial, Vector4, type WebGLRenderer } from 'three';
-import type { ShardComposeContext, ShardComposition, ShardRender } from '#game/shard/manifest';
+import type { LookComposeContext, LookComposition, LookStrategy } from '#engine';
+import { installRenderEvents } from './renderEvents';
 import { ndRuntime } from '../runtime';
-import { TIER } from '#engine/core/tier';
 import { glowUniforms } from './light/glow';
 import { gradeUniforms, loadLut } from './light/grade';
 import { LUT_URL, lightSources } from './light/install';
@@ -62,36 +62,8 @@ function hideEngineClouds(scene: Object3D): boolean {
   return found;
 }
 
-export function createRender(): ShardRender {
+export function shardRender(): LookStrategy {
   let handle: NdRenderHandle | null = null;
-  const onPractice = (event: Event): void => {
-    if (handle === null) return;
-    const active = (event as CustomEvent<boolean>).detail;
-    handle.jiehua.u.uRain.value.x = active ? 0 : BLEED.rain;
-    handle.jiehua.blendMode.opacity.value = active ? 0 : 1;
-  };
-  document.addEventListener('ws:practice-active', onPractice); // the enclosed arena has no outdoor drizzle / city grade
-  // the Model Explorer's studio (E306): no drizzle across the turntable or its thumbnails; the grade stays (it is the look).
-  // No city air either (E315): a specimen framed whole stands 30–60 m from the camera, and the base air (from 16 m) and the
-  // silk bands washed the big ones grey (the banyan's crown read as fog). The air's density and the bands' depths are put
-  // back as they were when the studio closes; nothing else writes them after the build
-  let air: { base: number; depths: number[] } | null = null;
-  const onStudio = (event: Event): void => {
-    if (handle === null) return;
-    const on = (event as CustomEvent<boolean>).detail, u = handle.shared.u;
-    handle.jiehua.u.uRain.value.x = on ? 0 : BLEED.rain;
-    if (on && air === null) {
-      air = { base: u.uFogBase.value, depths: u.uBands.value.map((b) => b.z) };
-      u.uFogBase.value = 0;
-      for (const b of u.uBands.value) b.z = 0;
-    } else if (!on && air !== null) {
-      const was = air;
-      u.uFogBase.value = was.base;
-      u.uBands.value.forEach((b, i) => { b.z = was.depths[i] ?? b.z; });
-      air = null;
-    }
-  };
-  document.addEventListener('ws:studio-active', onStudio);
   const glow = glowUniforms();
   const grade = gradeUniforms();
   void (async (): Promise<void> => { const t = await loadLut(LUT_URL); if (t !== null) { grade.uLut.value = t; grade.uLutAmt.value = 1; } })();
@@ -99,15 +71,7 @@ export function createRender(): ShardRender {
   let clouds: Object3D | null = null;
 
   return {
-    // n8ao on the phone tier too (the tier row has it off): the city's corners, eaves, awnings and feet. With it, the
-    // viewmodel's depth slices must go: n8ao swaps the composer's buffers, so the colour chain would then draw into the
-    // scene target while sampling that target's own depth texture (a feedback loop — GL_INVALID_OPERATION, a dropped
-    // chain). Without slices the depth readers read the composer's stable depth copy (worldDepth.ts)
-    slices: false,
-    ao: true,
-    // the phone's draw budget: one FXAA pass on the graded frame instead of SMAA's three
-    ...(TIER === 'phone' ? { aa: 'fxaa' as const } : {}),
-    compose(c: ShardComposeContext): ShardComposition {
+    compose(c: LookComposeContext): LookComposition {
       const world = ndRuntime().world;
       // AO at the city's scale: 2.2 m reaches the eave's underside, the awning's shadow on the wall, the step's riser and
       // the feet; an ink-blue occlusion (never black: the wash stays a wash); half res with a depth-aware upsample. It
@@ -133,7 +97,7 @@ export function createRender(): ShardRender {
       let reflect: ReflectPass | null = null;
       let haze: HazePass | null = null;
       let bleed: BleedPass | null = null;
-      const beforeChain: NonNullable<ShardComposition['beforeChain']> = [];
+      const beforeChain: NonNullable<LookComposition['beforeChain']> = [];
       // Emergency phone profile: avoid the three custom passes while isolating the iPhone load failure.
       // At 402×812, DPR 2, their half-float RGBA targets total an estimated 7,550,992 bytes (7.20 MiB);
       // actual driver allocation and whether this causes the crash remain unconfirmed.
@@ -176,7 +140,8 @@ export function createRender(): ShardRender {
       const sky = world.root.getObjectByName('sky');
       if (sky !== undefined) sky.renderOrder = SKY_ORDER;
       handle = { reflect, haze, bleed, jiehua, camera: c.camera, renderer: c.renderer, shared: world.shared, setCardOn, streaks, halos, streakPerf: STREAK_PERF };
-      Reflect.set(window, '__ndRender', handle);
+      installRenderEvents(c, handle);
+      c.debug.expose('nd.render', handle);
       return { beforeChain, chain: [jiehua] };
     },
     frame(): void {
@@ -202,10 +167,7 @@ export function createRender(): ShardRender {
       updateLanterns(handle.camera);
     },
     dispose(): void {
-      document.removeEventListener('ws:practice-active', onPractice);
-      document.removeEventListener('ws:studio-active', onStudio);
       if (handle?.halos) { handle.halos.mesh.removeFromParent(); handle.halos.mesh.geometry.dispose(); handle.halos.mesh.material.dispose(); }
-      if (handle !== null && Reflect.get(window, '__ndRender') === handle) Reflect.deleteProperty(window, '__ndRender');
       handle = null;
       clearLanterns();
     },

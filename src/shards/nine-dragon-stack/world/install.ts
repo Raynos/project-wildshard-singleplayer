@@ -49,6 +49,6 @@ export const NINE_DRAGON_WORLD = {
     const world = await buildNineDragonWorld(ctx.renderer, ctx.progress, render.tier);
     const rt = installWorld({ scope, piece: (piece) => { ctx.registry.add(piece); },
       system: (system) => { ctx.onUpdate(system.run, system.id); } }, world, ctx.camera);
-    installSpecimenLight(scope, (on, key) => { rt.specimenLight(on, key); });
+    installSpecimenLight(app.events, scope, (on, key) => { rt.specimenLight(on, key); });
   },
 };

@@ -152,7 +152,7 @@ export const NINE_DRAGON_STACK: ShardManifest = {
   // the Jiehua look under the engine's composer (look/render.ts, the render agent's): the ink silhouette, the 晕染 bleed,
   // the window glow, the drizzle, the clean room's LUT in place of the engine's colour chain
   // The look culls its instanced batches right before drawing, with the camera final.
-  render: async () => (await import('./look/render')).createRender(),
+  render: async () => (await import('./look/render')).shardRender(),
   // the fragment's limits: its footprint (the Well and its run north west of the square, the street north to its end
   // wall, the stair-street east to its top landing) and a floor under the Well's lowest crossing (Y0 − 93, well-plan.ts).
   // The walls and parapets keep the player in; past these (a grapple gone wrong, a fall into the shaft) they are put

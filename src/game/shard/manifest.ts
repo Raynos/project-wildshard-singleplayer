@@ -1,4 +1,4 @@
-import type { Ktx2Table, LevelSpec, EngineMechanism, TierOverrides, BootSpec, LoadoutSpec } from '#engine';
+import type { Ktx2Table, LevelSpec, EngineMechanism, TierOverrides, BootSpec, LoadoutSpec, LookStrategy } from '#engine';
 import type { ShardSlug } from './shards.generated';
 import type { ShardPlugin } from './plugin';
 /**
@@ -19,15 +19,7 @@ import type { ShardPlugin } from './plugin';
  * To add a shard: see `docs/SHARDS.md`.
  */
 import type { PerspectiveCamera, Scene, WebGLRenderer } from 'three';
-import type {
-  BloomEffect, BrightnessContrastEffect, ChromaticAberrationEffect, Effect, EffectComposer, GodRaysEffect, HueSaturationEffect,
-  LUT3DEffect, NoiseEffect, Pass, ToneMappingEffect, VignetteEffect,
-} from 'postprocessing';
-import type { N8AOPostPass } from 'n8ao';
 import type { Noise2D } from '#engine/core/noise';
-import type { GradeEffect } from '#engine/core/Grade';
-import type { Tier } from '#engine/core/tier';
-import type { VolumetricsEffect } from '#engine/core/Volumetrics';
 import type { HuntTuning } from '#engine/entities/AnimalManager';
 import type { SpeciesWeights } from '#engine/world/forest/treeSpecies';
 import type { WorldRegistry } from '#engine/world/registry';
@@ -454,80 +446,8 @@ export const meleeShard = (def: { weapon?: ChunkWeapon | undefined }): boolean =
 export const hitDamage = (def: { fight?: { maxHitDamage?: number | undefined; capExempt?: readonly string[] | undefined } | undefined }, damage: number, kind?: string): number =>
   def.fight?.maxHitDamage === undefined || (kind !== undefined && def.fight.capExempt?.includes(kind) === true) ? damage : Math.min(damage, def.fight.maxHitDamage);
 
-/**
- * The engine's post chain as a shard's render strategy sees it (`ShardRender.compose`, called once by
- * Game.buildComposer): every effect the engine made from the def's data (`grade`, `look`, `atmosphere`, the tier), live
- * and not yet assembled into its pass. Tune any of them in place (a write to `ao.configuration` re-tunes n8ao, the
- * effects' uniforms are live). `ao` is null when AO is off; `chroma` and `grain` are null on the low-poly shard's clean
- * chain, which has neither (and does not draw `vol`).
- */
-export interface EngineEffects {
-  ao: N8AOPostPass | null;
-  vol: VolumetricsEffect;
-  godRays: GodRaysEffect;
-  bloom: BloomEffect;
-  chroma: ChromaticAberrationEffect | null;
-  vignette: VignetteEffect;
-  tone: ToneMappingEffect;
-  saturation: HueSaturationEffect;
-  contrast: BrightnessContrastEffect;
-  /** the split-tone / look grade (src/engine/core/Grade.ts) */
-  grade: GradeEffect;
-  /** the shard's learned LUT (src/engine/world/lut.ts), null when it has none */
-  lut: LUT3DEffect | null;
-  grain: NoiseEffect | null;
-  /** the engine's effect order for this chain: what `ShardComposition.chain` defaults to */
-  order: Effect[];
-}
-
-export interface ShardComposeContext {
-  renderer: WebGLRenderer;
-  scene: Scene;
-  camera: PerspectiveCamera;
-  composer: EffectComposer;
-  tier: Tier;
-  fx: EngineEffects;
-}
-
-/**
- * Where a shard's own passes go in the engine's one composer. The engine's passes are, in order: the scene pass
- * (worldDepth.ts) → n8ao → the colour chain (one EffectPass) → SMAA. Every slot is optional; each list keeps its order.
- * A pass that reads depth sets `needsDepthTexture` and gets the scene's (the viewmodels' depth slices included).
- */
-export interface ShardComposition {
-  /** before the scene pass: renders into targets of its own (a planar reflection the ground then samples) */
-  beforeScene?: Pass[];
-  /** after the scene pass, before the AO (HDR; the AO darkens what they draw) */
-  afterScene?: Pass[];
-  /** after the AO, before the colour chain (HDR; bloom, tone and grade still to come: a light-haze march) */
-  beforeChain?: Pass[];
-  /** the colour chain's effects in order: the engine's from `fx` (re-ordered, some left out) and the shard's own Effects.
-   *  Omitted = `fx.order` */
-  chain?: Effect[];
-  /** after the colour chain, before SMAA (display space) */
-  afterChain?: Pass[];
-}
-
-/**
- * A shard's render strategy (GAME-NORMALIZATION §1: a shard varies core by data or by a strategy it hands to core, never
- * by a `slug ===` in core). Game.buildComposer asks it once where the shard's passes go and lets it tune the engine's
- * effects; Game's loop calls `frame` before every draw. Not consulted by the painterly shard's own chain.
- */
-export interface ShardRender {
-  /** the viewmodels in near depth slices instead of a depth clear (worldDepth.ts); omitted = the tier's picture cuts */
-  slices?: boolean;
-  /** n8ao on or off whatever the tier's `ao`; omitted = the tier's */
-  ao?: boolean;
-  /** 'fxaa': one FXAA pass on the graded frame instead of SMAA's three (the phone's draw budget); omitted = the tier's */
-  aa?: 'fxaa';
-  /** once, in Game.buildComposer, with every engine effect built (and n8ao, when on): tune them, make the shard's own */
-  compose: (c: ShardComposeContext) => ShardComposition;
-  /** every frame, right before the composer draws (after the updaters, the late hooks and the sky: the camera is final) —
-   *  per-frame uniforms of the shard's materials */
-  frame?: (dt: number, t: number) => void;
-  /** with the Game (an evicted shard): what `compose` made outside the composer (the composer disposes its passes) */
-  dispose?: () => void;
-}
+/** Compatibility names for manifests not yet migrated to the engine look contract. */
+export type { EngineEffects, LookComposeContext as ShardComposeContext, LookComposition as ShardComposition, LookStrategy as ShardRender } from '#engine/render/look';
 
 export interface ShardManifest {
   /** Migrated manifests declare their plugin and level policy; legacy hooks retire per shard phase. */
@@ -629,7 +549,7 @@ export interface ShardManifest {
    * `render: async () => (await import('./look/render')).createRender()` — a fresh strategy per call (a rebuilt shard gets
    * a new one). Game.buildSky awaits it. Omitted = the engine's chain as it is.
    */
-  render?: () => Promise<ShardRender>;
+  render?: () => Promise<LookStrategy>;
   /**
    * A built fragment's limits (the landscape shards have the terrain's edge walls instead): below `floor` or outside the
    * box, on foot or on the board, the player is put back on the last floor they stood on inside them (a registry floor;
