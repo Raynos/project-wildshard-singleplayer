@@ -39,7 +39,7 @@ export interface AdventureWorld<A extends AdvAnimal = AdvAnimal> {
   prompts: Interactable[];
   /** the HUD: toasts; the complete card (E132) resumes play through `onResume` (the pause menu's close) and leaves by `exitToMenu` */
   hud: { toast: (text: string) => void; onResume?: (() => void) | undefined; exitToMenu?: () => void; readonly entered?: boolean; readonly paused?: boolean };
-  /** the game's Audio: the kit's sounds are IslandSfx.interact (S4) — chests, locks, levers, plates, doors, pickups, the beacon */
+  /** the game's Audio: the kit's sounds are InteractSfx.interact (S4) — chests, locks, levers, plates, doors, pickups, the beacon */
   audio: Audio;
   music: { sting: (name: 'pickup' | 'death' | 'chunk') => void; combat?: (intensity: number) => void };
   inventory: { add: (id: ItemId, n?: number) => void };
@@ -100,7 +100,7 @@ const FRAMES: Record<Exclude<PoiId, 'world'>, { x: number; z: number; rot: numbe
 /** Driftwood Isle's adventure (plan Track A): the castaway spine, feats, places, the captain's finale, the zipline */
 export async function installAdventure<A extends AdvAnimal>(ctx: ShardContext, source: AdventureWorld<A>): Promise<Adventure> {
   const { Interactables } = await loadWorldContent();
-  const { IslandSfx } = await loadAudio();
+  const { InteractSfx } = await loadAudio();
   const w: AdventureWorld<A> = { ...source, scope: ctx.scope, debug: ctx.debug, game: { ...source.game, onUpdate: (run, label) => { ctx.system({ id: label ?? 'shard.driftwood.adventure', phase: 'update', run }); } },
     onDeath: (run, order) => { ctx.on('actor.died', ({ actor }) => { const animal = source.animals.animals?.find((a) => a.combatActor?.() === actor); if (animal !== undefined) run(animal); }, { order }); } };
   const flags = new Flags(w.chunk.slug);
@@ -136,7 +136,7 @@ export async function installAdventure<A extends AdvAnimal>(ctx: ShardContext, s
   w.game.onUpdate((dt, t) => kit.update(dt, t), 'shard.driftwood.adventure');
 
   const isItem = (id: string | undefined): id is ItemId => id !== undefined && id in ITEMS;
-  const sfx = new IslandSfx(w.audio);
+  const sfx = new InteractSfx(w.audio);
   function onInteract(e: InteractEvent): void {
     switch (e.type) {
       case 'locked': w.hud.toast(e.text ?? 'Locked'); sfx.interact('locked', e.at); break;

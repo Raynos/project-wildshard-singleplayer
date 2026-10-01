@@ -65,7 +65,7 @@ import { REST, CHARGE, SPRINT, COMBO, SLASH, FINISHER, HEAVY, type Move } from '
 
 /**
  * The combat events of whichever sword is in hand — both rigs (wooden, iron) publish here, so main.ts wires the island's
- * sound layers (IslandSfx, S3) once instead of per rig:
+ * sound layers (its voice table, S3) once instead of per rig:
  *   onSwing(speed 0..1, heavy, dir)          every swing as it starts: dir −1 = the blade sweeps right → left, +1 left → right
  *   onStrike(kind, point, strength, killed)  every blade hit: the struck species, the world point, 0.5 combo … 1 heavy
  *   onClang(point, strength, clang)          the blade tip met a wall / trunk / rock (once per swing; hit-stop + debris too):

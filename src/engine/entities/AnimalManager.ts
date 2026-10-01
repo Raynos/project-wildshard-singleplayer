@@ -70,7 +70,7 @@ declare module '../events/maps' {
  *   animals.onCharge = (animal, damage) => …          a boar reached the player
  *   animals.onSound  = (name, position) => …          'deer_call' | 'boar_grunt' | 'hoofsteps' | 'boar_squeal'
  *   animals.onWindup = (animal) => …                  melee shards: an attack's wind-up began (the charge telegraph, a crab's
- *                                                     claw raise, the sailor's cutlass) — play its cue (IslandSfx.windup)
+ *                                                     claw raise, the sailor's cutlass) — play its cue (the level's wind-up voice)
  *   animals.animals: Animal[]   animals.alive (count)
  *
  * Species + variants: every kind comes from the species registry (`src/engine/entities/species/<kind>.ts`, see

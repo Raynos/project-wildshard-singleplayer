@@ -18,4 +18,4 @@ export { manifestFiles, musicDir, sfxDir, DRIFTWOOD_SOUNDS } from '../boot/audio
 
 export { audioLog } from './audioLog';
 
-export { IslandSfx } from './IslandSfx';
+export { InteractSfx } from './interactSfx';
