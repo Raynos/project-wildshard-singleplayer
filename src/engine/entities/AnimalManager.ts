@@ -27,7 +27,6 @@ import { worldTime } from '../core/time';
 import { frameCost } from '../core/frameCost';
 import { practiceRoom } from '../core/practiceRoom';
 import { AnimalGroup } from './animalMatrices';
-import { trample } from '#kit/looks/trample';
 import { reengage, backoffPoint, aroundPoint, RING, RING_DEFAULT, BACKOFF_MAX_T, BREAK_OFF_HP, BREAK_OFF_CHANCE, RULES_CD_HIT, RULES_CD_MISS } from './fightRules';
 
 export interface WanderGoalQuery { herd: number; goal: { x: number; z: number; r: number } | null }
@@ -454,7 +453,6 @@ export class AnimalManager {
     return fight?.attackers === undefined || !Number.isFinite(fight.attackers) ? null : fight;
   })();
   /** E322 F-L4: Pine Hollow's animals part the grass (Nalati's Wildlife feeds the same map its own way) */
-  private readonly trampling = getActiveChunk().slug === 'pine-hollow';
   /** E297: the attack tokens — at most `rules.maxAttackers` attacking at once */
   readonly tokens = new AggressionDirector<Animal>(this.rules?.attackers ?? Infinity);
   /** a token holder still attacking: a charger while it charges, a self-thinking species while its strike runs */
@@ -719,7 +717,7 @@ export class AnimalManager {
       const dx = a.position.x - p.x, dz = a.position.z - p.z;
       if (dx * dx + dz * dz > 70 * 70) continue;
       const r = TRAMPLE_R[a.kind] ?? 0.4;
-      trample.push(a.position.x, a.position.z, r, Math.min(1, 0.35 + Math.abs(a.speed) / 5), Math.sin(a.yaw) * a.speed, Math.cos(a.yaw) * a.speed);
+      app.world.trample?.push(a.position.x, a.position.z, r, Math.min(1, 0.35 + Math.abs(a.speed) / 5), Math.sin(a.yaw) * a.speed, Math.cos(a.yaw) * a.speed);
     }
   }
 
@@ -728,7 +726,7 @@ export class AnimalManager {
     this.playerSprinting = playerSprinting;
     this.scheduler.beginFrame(dt, playerPos);
     this.clock += dt;
-    if (this.trampling && !practiceRoom.open) this.trampleGrass(playerPos); // E322 F-L4: Pine Hollow's grass trample
+    if (app.world.trample !== null && !practiceRoom.open) this.trampleGrass(playerPos); // E322 F-L4: Pine Hollow's grass trample
     // hitboxes posed from last frame's bones, bodies handed out / back by distance (PHYSICS P6)
     this.bodiesFor()?.sync(this.animals, playerPos);
     // Decisions and bodies have independent per-subject clocks; the free camera never wakes a herd.

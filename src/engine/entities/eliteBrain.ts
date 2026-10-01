@@ -9,8 +9,12 @@ import type { ThinkCtx } from './species/registry';
  * animal. A tiny module on purpose: species files import it, and it imports nothing at runtime.
  */
 const brains = new WeakMap<Animal, (a: Animal, c: ThinkCtx) => void>();
+const acts = new WeakMap<Animal, (a: Animal, c: ThinkCtx) => void>();
 const damage = new WeakMap<Animal, (a: Animal, hitPoint: THREE.Vector3, dir: THREE.Vector3) => number>();
 export function setEliteBrain(a: Animal, fn: (a: Animal, c: ThinkCtx) => void): void { brains.set(a, fn); }
 export function setEliteDamage(a: Animal, fn: (a: Animal, hitPoint: THREE.Vector3, dir: THREE.Vector3) => number): void { damage.set(a, fn); }
 export function eliteThink(a: Animal, c: ThinkCtx): void { brains.get(a)?.(a, c); }
 export function eliteDamageMul(a: Animal, hitPoint: THREE.Vector3, dir: THREE.Vector3): number { return damage.get(a)?.(a, hitPoint, dir) ?? 1; }
+
+export function setEliteAct(a: Animal, fn: (a: Animal, c: ThinkCtx) => void): void { acts.set(a, fn); }
+export function eliteAct(a: Animal, c: ThinkCtx): void { acts.get(a)?.(a, c); }
