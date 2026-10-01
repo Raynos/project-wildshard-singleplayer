@@ -1,3 +1,4 @@
+import { WeightedTable, type WeightedRow } from '#engine';
 import { findShard } from './shard/registry';
 import { inventorySave, saveSlug } from './saves';
 /**
@@ -62,19 +63,18 @@ export const ITEMS: Record<ItemId, { label: string; icon: IconId }> = {
   'lodge-ribbon': { label: 'Lodge ribbon', icon: 'laurel' },
 };
 
+/** Every eligible harvest row drops once, in the original pack order. */
+const HARVEST: Readonly<Record<string, readonly WeightedRow<ItemId, string>[]>> = {
+  deer: [{ item: 'venison', weight: 1 }, { item: 'deer-hide', weight: 1 }, { item: 'antlers', weight: 1, when: (v) => /stag|ghost/.test(v) }],
+  boar: [{ item: 'boar-meat', weight: 1 }, { item: 'boar-hide', weight: 1 }, { item: 'boar-tusk', weight: 1, when: (v) => v !== 'sow' }],
+  elk: [{ item: 'elk-meat', weight: 1 }, { item: 'elk-hide', weight: 1 }, { item: 'antlers', weight: 1, when: (v) => /bull|imperial/.test(v) }],
+  bear: [{ item: 'bear-pelt', weight: 1 }, { item: 'bear-claw', weight: 1 }],
+  crab: [{ item: 'crab-meat', weight: 1 }, { item: 'crab-claw', weight: 1 }, { item: 'crab-shell', weight: 1, when: (v) => v === 'big' }],
+  monkey: [{ item: 'coconut', weight: 1 }, { item: 'silver-fur', weight: 1, when: (v) => v === 'elder' }, { item: 'monkey-fur', weight: 1, when: (v) => v !== 'elder' }],
+};
 /** what a carcass of (kind, variant) yields when harvested */
 export function harvestOf(kind: string, variant?: string): ItemId[] {
-  switch (kind) {
-    case 'deer': return /stag|ghost/.test(variant ?? '') ? ['venison', 'deer-hide', 'antlers'] : ['venison', 'deer-hide'];
-    case 'boar': return variant === 'sow' ? ['boar-meat', 'boar-hide'] : ['boar-meat', 'boar-hide', 'boar-tusk'];
-    case 'elk': return /bull|imperial/.test(variant ?? '') ? ['elk-meat', 'elk-hide', 'antlers'] : ['elk-meat', 'elk-hide']; // cows carry no rack
-    case 'bear': return ['bear-pelt', 'bear-claw'];
-    case 'crab': return variant === 'big' ? ['crab-meat', 'crab-claw', 'crab-shell'] : ['crab-meat', 'crab-claw']; // only the big one's shell is worth keeping
-    case 'monkey': return variant === 'elder' ? ['coconut', 'silver-fur'] : ['coconut', 'monkey-fur']; // every monkey was carrying one
-    // Nalati Grasslands: nothing (E314 C — its pelts, fangs, horsehair, shards, dust and the elites' trophies were never
-    // read by anything; its prizes are skins and titles), so no carcass there shows [E] Harvest
-    default: return [];
-  }
+  return new WeightedTable({ mode: 'each', rows: HARVEST[kind] ?? [] }).roll(variant ?? '', () => 0).flatMap((drop) => Array.from({ length: drop.count }, () => drop.item));
 }
 
 export const PACK_SLOTS = 12;

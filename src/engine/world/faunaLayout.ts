@@ -1,3 +1,4 @@
+import { WeightedTable, type WeightedRow } from '../ai/weighted';
 import { Rng } from '../core/rng';
 import type { HerdPlan } from '#game/shard/manifest';
 
@@ -66,11 +67,9 @@ export function layoutFaunaCells(o: FaunaLayoutOpts): FaunaCell[] {
   const n = Math.max(1, Math.floor(usable / spacing) + 1);
   const start = -((n - 1) * spacing) / 2;
   const roll = (td: number, allowEmpty: boolean, r: number): FaunaGroup | null => {
-    const weights = o.groups.map((g) => Math.max(0, g.weight * (g.prefer ? g.prefer(td) : 1)));
-    const total = weights.reduce((a, b) => a + b, 0) + (allowEmpty ? emptyW : 0);
-    let acc = r * total;
-    for (let i = 0; i < o.groups.length; i++) { acc -= weights[i] ?? 0; if (acc <= 0) return o.groups[i] ?? null; }
-    return null;
+    const rows: WeightedRow<FaunaGroup | null, undefined>[] = o.groups.map((g) => ({ item: g, weight: g.weight * (g.prefer ? g.prefer(td) : 1) }));
+    if (allowEmpty) rows.push({ item: null, weight: emptyW });
+    return new WeightedTable({ mode: 'weighted', rows }).pick(undefined, r)?.item ?? null;
   };
   const cells: (FaunaCell | null)[] = [];   // null = skipped (in an avoid disc)
   const draws: number[] = [];

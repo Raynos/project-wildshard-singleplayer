@@ -1,0 +1,184 @@
+{
+  "before": "74c61a710b1e90096205aed3664553c89f568278",
+  "after": "c3132402c7626dc8859bfd0bf8f0ddca8fc8b85e",
+  "shards": {
+    "pine-hollow.phone.json": {
+      "endpointsEqual": true,
+      "endpoints": {
+        "cabin-porch": {
+          "x": -10.388,
+          "y": 3.833,
+          "z": -34.359
+        },
+        "lookout-climb": {
+          "x": 34.926,
+          "y": 57.477,
+          "z": 211.28
+        },
+        "creek-bridge": {
+          "x": -135.826,
+          "y": 1.473,
+          "z": -5.323
+        }
+      },
+      "hitCountsEqual": true,
+      "hitCounts": {
+        "shot": 3,
+        "shot2": 3
+      },
+      "killsEqual": true,
+      "combatSoundEventsEqual": true,
+      "classDFailures": [],
+      "scope": {
+        "geometries": 0,
+        "materials": 0,
+        "textures": 0,
+        "renderTargets": 0,
+        "meshes": 0,
+        "resources": 0,
+        "bodies": 0,
+        "sounds": 0,
+        "listeners": 0,
+        "timers": 0,
+        "rafs": 0,
+        "disposers": 0,
+        "systems": 0,
+        "colliders": 0,
+        "nodes": 0
+      }
+    },
+    "nalati-grasslands.phone.json": {
+      "endpointsEqual": true,
+      "endpoints": {
+        "road-camp": {
+          "x": 94.221,
+          "y": -4.336,
+          "z": 204.071
+        },
+        "great-kurgan-door": {
+          "x": -172.985,
+          "y": 34.935,
+          "z": 75
+        },
+        "leopard-cave": {
+          "x": 137.23,
+          "y": 54.117,
+          "z": -66.035
+        }
+      },
+      "hitCountsEqual": true,
+      "hitCounts": {
+        "swing": 3,
+        "shot": 2
+      },
+      "killsEqual": true,
+      "combatSoundEventsEqual": true,
+      "classDFailures": [],
+      "scope": {
+        "geometries": 0,
+        "materials": 0,
+        "textures": 0,
+        "renderTargets": 0,
+        "meshes": 0,
+        "resources": 0,
+        "bodies": 0,
+        "sounds": 0,
+        "listeners": 0,
+        "timers": 0,
+        "rafs": 0,
+        "disposers": 0,
+        "systems": 0,
+        "colliders": 0,
+        "nodes": 0
+      }
+    },
+    "driftwood-isle.phone.json": {
+      "endpointsEqual": true,
+      "endpoints": {
+        "pier": {
+          "x": -19.773,
+          "y": 1.339,
+          "z": -150.548
+        },
+        "lookout": {
+          "x": 93.842,
+          "y": 41.174,
+          "z": 93.766
+        },
+        "cave": {
+          "x": 142.004,
+          "y": 1.22,
+          "z": 18.686
+        }
+      },
+      "hitCountsEqual": true,
+      "hitCounts": {
+        "swing": 3
+      },
+      "killsEqual": true,
+      "combatSoundEventsEqual": true,
+      "classDFailures": [],
+      "scope": {
+        "geometries": 0,
+        "materials": 0,
+        "textures": 0,
+        "renderTargets": 0,
+        "meshes": 0,
+        "resources": 0,
+        "bodies": 0,
+        "sounds": 0,
+        "listeners": 0,
+        "timers": 0,
+        "rafs": 0,
+        "disposers": 0,
+        "systems": 0,
+        "colliders": 0,
+        "nodes": 0
+      }
+    },
+    "nine-dragon-stack.phone.json": {
+      "endpointsEqual": true,
+      "endpoints": {
+        "stair-street": {
+          "x": 75.421,
+          "y": 146.02,
+          "z": 6
+        },
+        "crossing-gate-bridge": {
+          "x": -6.419,
+          "y": 107.019,
+          "z": -25.4
+        },
+        "escape-square-balustrade": {
+          "x": 0.498,
+          "y": 126.138,
+          "z": -7.405
+        }
+      },
+      "hitCountsEqual": true,
+      "hitCounts": {
+        "swing": 1
+      },
+      "killsEqual": true,
+      "combatSoundEventsEqual": true,
+      "classDFailures": [],
+      "scope": {
+        "geometries": 0,
+        "materials": 0,
+        "textures": 0,
+        "renderTargets": 0,
+        "meshes": 0,
+        "resources": 0,
+        "bodies": 0,
+        "sounds": 0,
+        "listeners": 0,
+        "timers": 0,
+        "rafs": 0,
+        "disposers": 0,
+        "systems": 0,
+        "colliders": 0,
+        "nodes": 0
+      }
+    }
+  }
+}

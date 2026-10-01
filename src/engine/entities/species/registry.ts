@@ -1,3 +1,4 @@
+import { WeightedTable } from '../../ai/weighted';
 import type * as THREE from 'three';
 import type { Rng } from '../../core/rng';
 import type { DamageRequest } from '../../combat/pipeline';
@@ -320,13 +321,9 @@ export function rollVariant(species: SpeciesDef, rng: Rng, allowed?: string[], e
   let pool = allowed !== undefined && allowed.length > 0 ? species.variants.filter((v) => allowed.includes(v.id)) : species.variants;
   if (pool.length === 0) pool = species.variants;
   const pick = (list: VariantDef[]): VariantDef => {
-    let total = 0;
-    for (const v of list) total += Math.max(0, v.weight);
-    let r = rng.next() * total;
-    for (const v of list) { r -= Math.max(0, v.weight); if (r <= 0) return v; }
-    const last = list[list.length - 1];
-    if (last === undefined) throw new Error(`species '${species.kind}' has no variants`);   // every list passed in is non-empty
-    return last;
+    const row = new WeightedTable({ mode: 'weighted', rows: list.map((v) => ({ item: v, weight: v.weight })) }).pick(undefined, rng.next());
+    if (row === null) throw new Error(`species '${species.kind}' has no variants`);
+    return row.item;
   };
   let v = pick(pool);
   if (excludeLegendary && v.rarity === 'legendary') {

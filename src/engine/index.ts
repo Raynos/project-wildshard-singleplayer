@@ -144,3 +144,6 @@ export { installRangedFeel, type RangedFeelProfile } from './combat/view/rangedF
 
 export { inspectBrain, pinBrain, brainInspection, type BrainInspection } from './ai/inspect';
 export { installAiDebug, type AiDebugHost, type AiDebugView } from './ai/view/DebugOverlay';
+
+export { WeightedTable, type WeightedRow, type TableDrop, type TableSpec } from './ai/weighted';
+export { NightBrain, type NightActor, type NightSpec, type NightPorts } from './ai/NightBrain';
