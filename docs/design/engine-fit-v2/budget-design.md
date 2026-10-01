@@ -21,7 +21,7 @@ first calibration run replaces its inputs. Nothing here was run: no browser, no 
 
 | Practice | Who | What it means here |
 |---|---|---|
-| **A named device, a frame rate, a measured capacity, then division** | Epic's mobile guideline (≤ 700 draws, ≤ 500 k tris per view): the triangle figure "has been determined to be the maximum poly count that can hit 30fps on both iPad4 and iPad Air" ([Epic][ue-mobile]) | a calibration on a reference device, not a taste call: ours is Jake's iPhone 17 Pro, hot |
+| **A named device, a frame rate, a measured capacity, then division** | Epic's mobile guideline (≤ 700 draws, ≤ 500 k tris per view): the triangle figure "has been determined to be the maximum poly count that can hit 30fps on both iPad4 and iPad Air" ([Epic][ue-mobile]) | a calibration against a reference device, not a taste call: ours is Jake's iPhone 17 Pro, hot, reached as the M5's measured unit costs × the E283 hot phone : M5 ratio (~10×), an assumption, since there is no phone run (E357 decision 99) |
 | **GPU budget as arithmetic** | Arm: fragment cycles per pixel = cores × Hz ÷ (fps × pixels); a Mali-T880 MP12 at 650 MHz has ~63 at 1080p60, ~35 at QHD ([Arm][arm-gpu]). Mobile Studio holds a budget per metric group, checked daily in CI ([Arm][arm-ci]) | the same division with a *measured* rate (§4 sweep 4) instead of a spec sheet |
 | **Thermal headroom** | Unity: spend ~65 % of the frame on mobile, 22 ms at 30 fps, and profile the lowest device per tier ([Unity][unity]). The 17 Pro keeps **64 %** in 3DMark Wild Life Extreme's 20-loop stress test ([GSMArena][gsm]). Apple: 30 fps is the minimum, hold one rate consistently ([Metal guide][apple-fps]); lock 30 if 60 can't hold 10 min (WWDC18 612, E189) | on this phone Unity's 65 % *is* "budget at the throttled clock"; we measure the hot clock directly |
 | **Per-system ms on a named device** | Genshin: 0.5 ms of AI on an A12 at 60 fps ([GDC 2021][genshin]). Unreal's Animation Budget Allocator: a fixed per-platform ms, met by throttling tick rates ([Epic][ue-aba]). CoD Mobile steps art-approved knobs as the phone heats ([Samsung][codm]) | §6.2's split, and the decision-23 scheduler meets it |
@@ -73,8 +73,8 @@ bytes     ≤ (T_play − k × T_fixed) × throughput      (T_play = Jake's time
 
 **The scene.** `engine/calibrate`: no shard, synthetic content, started from Debug ▸ Developer tools ▸ RUN CALIBRATION
 (a button row like the perf probe's RUN PROBE; no URL switch; scripts set it with `debugSettings`). It runs uncapped
-(`frameProbe.uncapped`), at the phone's fixed 2× (804×1748 = 1.41 Mpx), and **posts its JSON to the inbox itself**, so
-Jake's only step is one tap on battery (not charging) and ~6 minutes of not touching the phone.
+(`frameProbe.uncapped`), at the phone's fixed 2× (804×1748 = 1.41 Mpx). **It runs on the M5 only, headless**
+(`scripts/calibrate.mjs`; E357 decision 99: no phone run, no Jake step); the Debug button stays for a later ask.
 
 | # | Sweep | Varies | Reads | Gives |
 |---|---|---|---|---|
@@ -87,11 +87,12 @@ Jake's only step is one tap on battery (not charging) and ~6 minutes of not touc
 | 7 | JS | N skinned rigs, Rapier bodies + character controllers, navmesh queries | frameCost buckets | `c_rig`, `c_body`, `c_agent` |
 | 8 | Link | compile + link N programs with `KHR_parallel_shader_compile` | wall ms | `c_link` |
 
-**Protocol.** Cold pass first (the first 30 s); then a pre-heat of sweep 4 at full load until the frame stops rising
-(< 2 % per 30 s; E189 saw 17 → 24 ms in 1–2 min); then every sweep hot, each row against an interleaved baseline (the
-warm phone flips between a fast and a slow state, E189). θ = cold ÷ hot per unit. Low Power Mode is detected and
-flagged; since Jake playtests in it, one extra LPM pass records θ_LPM. The same scene runs headless on the M5
-(`scripts/calibrate.mjs`, browser lane, Metal, frozen-frame timing as `pine-hollow-gpu.mjs`), which gives `R` per unit.
+**Protocol (E357 decision 99).** The scene runs headless on the M5 (`scripts/calibrate.mjs`, browser lane, Metal,
+frozen-frame timing as `pine-hollow-gpu.mjs`): a cold pass, a pre-heat of sweep 4 until the frame stops rising
+(< 2 % per 30 s), then every sweep against an interleaved baseline. The phone's hot unit costs are the M5's × `R` = 10
+(E283's measured hot phone : M5 ratio; ~6× cool), written into `budgets/calibration.json` with the ratio, its source
+and the word "assumption". There is no phone pass, so no measured θ or θ_LPM: Low Power Mode's 30 fps cap is the
+OS's, not a budget input.
 **It never probes the memory limit** (that kills the page): `L` comes from the phone's jetsam log.
 
 **Re-calibrate when** iOS or WebKit changes (the game sees the UA change and nudges in developer mode), three.js is

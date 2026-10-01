@@ -598,7 +598,9 @@ S4.2 commit):
   opening (54 steps: today's 0.9 s at 60 Hz) until the window closes, and never outside a window. **The closing edge
   is keyed too (R4-18; C4-6):** his sink is decided in his think (`captain.ts:266`: `m.subT >
   SINK_EVERY[phase] && m.cd <= 0`), 10 Hz today and 20 Hz from S4.2, so its step moves by up to 6 frames between the
-  builds. The script starts a swing only while the probe's `mem.subT + SWING_HIT_S ≤ SINK_EVERY[phase] − 0.12`
+  builds. Inside a hittable window, the script starts a swing only while `SINK_EVERY[phase] === 0 || mem.subT + SWING_HIT_S
+  ≤ SINK_EVERY[phase] − 0.12` (the probe's `mem.subT`; a zero threshold means no sink, as `captain.ts:266` reads it;
+  K5-10)
   (`SWING_HIT_S`: the wooden sword's start-to-hit time from its profile; 0.12 s = 7 steps, more than one think
   period of either build; `phase` read on that step, so a drop into phase III mid-window is covered), so every swing
   lands before the earliest step either build can sink. Phase I has no sink (`SINK_EVERY[1] = 0`): its window ends at
@@ -835,7 +837,8 @@ scripted walk, the HUD slots, the save keys.
 **Expected to differ.** Each row is a pending item (05 §8, R1-13, R2-18): the change commit adds it to
 `reviews/pending.json` with `expect: null`; `parity --pending-fill=<ids> --export=<sha>` on that commit's SHA fills
 `expect` per tier in a follow-up commit; the gate shows it yellow; and only after Jake's OK at the milestone does
-`parity --accept=<ids>` re-baseline it and remove the entry. Otherwise it is fixed or reverted before the pin moves.
+`parity --accept=<ids>` re-baseline it and remove the entry. Otherwise it is reverted, or fixed and boarded again
+for his OK (R4-13), before the pin moves.
 
 | Difference | Row | Where it is shown |
 |---|---|---|
@@ -850,11 +853,11 @@ scripted walk, the HUD slots, the save keys.
 
 | Step | Detail |
 |---|---|
-| Flow | As M1 (05 §9, R1-15): gate green on the candidate → boards to Jake → Jake OKs the board items (or they are fixed / reverted) → the fix and revert commits land first → **`parity --accept=<ids>` runs last**, re-recording the OKed ones over 3 runs (R3-14) → the pin moves to **the newest `gpu-gate`-green SHA after that step, with `reviews/pending.json` empty** (R2-27) → deploy → Jake plays it live → **Jake's go starts the X rows**. The go is not a ship gate (R1-15); a "no" holds the X rows (Decision asked) |
+| Flow | As M1 (05 §9, R1-15): gate green on the candidate → boards to Jake → Jake OKs the board items, or they are reverted, or fixed and boarded again for his OK (R4-13) → the fix and revert commits land first → **`parity --accept=<ids>` runs last**, re-recording the OKed ones over 3 runs (R3-14) → the pin moves to **the newest `gpu-gate`-green SHA after that step, with `reviews/pending.json` empty** (R2-27) → deploy → Jake plays it live → **Jake's go starts the X rows**. The go is not a ship gate (R1-15); a "no" holds the X rows (Decision asked) |
 | Gate | `gpu-gate` green on the candidate SHA, every shard's budget check on its derived budgets (S1.6, S2.6, S3.5, S4.4; R1-14); parity green on 4 shards; `pnpm test` green; `lint/ratchet.json`'s shard-branch, engine-word and `getActiveChunk` counts at 0 |
 | Pin | After step 3 (Jake's OKs, then any fix or revert commits, then the `--accept` commit last, R3-14), with `reviews/pending.json` empty (R1-13, R1-15): the pin moves to the newest SHA after step 3 whose `gpu-gate` is green (R2-27), never to the pre-accept candidate: `node scripts/deploy-pin.mjs set <that sha> --milestone M4 --go "<where>"` writes `.github/deploy-pin.json` (committed alone; 13-lead-resolutions G7), then `gh workflow run deploy`, confirm `version.json`, record the build id in E357 (12-process §3, 03 §13.4) |
 | Summary | What moved (§1: ~12k lines from engine folders), what was deleted (`main.ts` 1,336 → `boot.ts` ≤ 150, `ChunkDef.ts`, `DayNight.ts`, `stylize.ts` / `StylizedSky.ts` out of the engine, the adventure registry, `legacyIsland.ts`), the ratchets before / after since F4, Driftwood's derived budgets and ceilings (the pier pose's 868 desktop draws as a ceiling, budget-design §6.4) |
-| Boards | **Creatures** (the big crab at 14; the crab / monkey / sailor tick bands; the strike-timing shift, with a clip of the Captain's cuts before / after, R1-32) and **Look** (the Drowned Captain on the shared BossBar, decision 91). iPhone portrait, clips ≤ 10 s, from the harness's capture of the candidate SHA (R1-15). Each item stays pending until Jake OKs it (re-baselined) or it is fixed / reverted (R1-13). No weapons or audio board (nothing else changes) |
+| Boards | **Creatures** (the big crab at 14; the crab / monkey / sailor tick bands; the strike-timing shift, with a clip of the Captain's cuts before / after, R1-32) and **Look** (the Drowned Captain on the shared BossBar, decision 91). iPhone portrait, clips ≤ 10 s, from the harness's capture of the candidate SHA (R1-15). Each item stays pending until Jake OKs it (re-baselined) or it is reverted; a fix he asks for is refilled and boarded again for his OK (03 §8 pending step 5; R1-13, R4-13). No weapons or audio board (nothing else changes) |
 | Jake plays | Driftwood **live** on the pinned build, after the deploy (R1-15): the pier, the practice crab, the hut, the wreck's iron sword, a monkey troop, a big crab, the shrine, the Drowned Captain, the reward at golden hour. To play before the pin moves: a Vercel preview deployment of the candidate (`vercel deploy --prebuilt`, which keeps `/api`), not `release-url.sh` (R1-15) |
 | Milestone checks | Recorded in E357 by the lead; **no physical-iPhone reading** (decision 98, R3-11′). **Memory** (12 §3, §8): the memory evidence is the nightly Simulator memory run (03 §14.1) plus the budgets (the Gate row): **a reading of the pin's own SHA** (or of a runtime-equal ancestor; R4-15, 03 §13.2: the lead runs `scripts/gpu-perf/nightly.sh --memory-only --sha=<sha>` when there is none) reads Driftwood at ≤ 1.8 GB loading and ≤ 1.0 GB in world (decimal), with `gpu-perf/memory` `success` on it. Over a limit means **stop the line** (R1-53): the pin doesn't move (`deploy-pin.mjs set` refuses a SHA without that `success`), the next commit fixes or reverts, and the X rows wait. The accepted risk, stated in 12 §8: an iPhone-only memory death (the E271 class) can reach Jake's phone undetected |
 | Decision asked | Two AskUserQuestions (R1-15): the summary + boards first (each item OK / fix / revert), whose OKs move the pin; then, after he has played it live, "Driftwood M4: go?" (recommended: yes). **A "no"** (R2-29, 12 §3): the X rows wait. Jake's reasons become rows in this milestone, each fixed on main, gated, boarded if visible, and then the go is asked again. The pinned build stays live unless it is broken (then Rollback) |

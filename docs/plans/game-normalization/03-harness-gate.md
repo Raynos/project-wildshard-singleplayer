@@ -150,7 +150,7 @@ node scripts/parity.mjs [source] [--lane=m5|gh-macos15] [--shards=a,b|all] [--ti
 | `arena()` | F2 | `hud.enterArenaNow()` (the practice room, for Nine Dragon's dummies) |
 | `state()` | F2 | the gameplay snapshot the pause → resume step compares (§5.6): `{ appState, clockNow, player: { pos, yaw, pitch, vel, health }, weapon: { id, state, ammo }, creatures: [{ id, kind, pos, hp, brain }] (sorted by id), quest }`; positions rounded to 1 mm. Plus `onResume(fn)`: a one-shot callback fired by `tap.resumed`, after every resume handler has run (after `hud.onResume`, `src/ui/HUD.ts:472`) and before the loop runs its next frame (02 F2 step 2; R2-13) |
 | `saves` | F2 | `{ read, written }`, filled by the init script's `Storage` wrapper |
-| `sounds()` | F2 | the sound-play log since the last call, as `{ event: { <sound id>: count }, ambient: <sound id>[] sorted }`, then cleared. Its one source for the whole plan is `tap.sound`, which every sound-play path calls (`Audio.ts`'s cue methods and private schedulers and the 9 modules that play sound outside it, 02 F2 step 2), and from S1.5 the `AudioService` too, with the same ids and kinds: a call with `kind: 'ambient'` (a timer-driven one-shot) goes into `ambient`, every other call into `event` (§2.3; R1-45, R2-26, R3-13) |
+| `sounds()` | F2 | the sound-play log since the last call, as `{ event: { <sound id>: count }, ambient: <sound id>[] sorted }`, then cleared. Its one source for the whole plan is `tap.sound`, which every sound-play path calls (`Audio.ts`'s cue methods and private schedulers and the 9 modules that play sound outside it, 02 F2 step 2), and from S1.5 the `AudioService` too, with the same ids and kinds: a call with `kind: 'ambient'` (a scheduler's tick, `ambientTick`) goes into `ambient`, every other call into `event`, except an event call made inside an `ambientTick` body, which is dropped (02 F2 step 2; K5-6) (§2.3; R1-45, R2-26, R3-13) |
 | `used()` | F2 | the labels `tap.use` received since the last call (the one use dispatch, `src/main.ts:1093`; 02 F2 step 2), then cleared: the touch leg's `used` read (§4; B3-10) |
 | `nav` | F3.2 | `{ randomPoint(near, min, max), path(a, b) }` over the engine's navmesh query (`src/physics/navmesh.ts` today) with the harness seed, for the soak bot (§14.2); `null` on a shard with no baked navmesh (Nine Dragon) |
 | `app` | F8 | a read-only view of the `App`: state, systems by phase, clock, RNG seed, census |
@@ -970,8 +970,8 @@ The milestone flow (R1-15), in order:
    both tiers (m5, `--export=<sha>`) is green.
 2. **Boards to Jake** (decision 42): the summary, and the boards built from the harness's capture of that SHA (its
    pose images and clips).
-3. **Jake OKs the board items**, or they're fixed or reverted. The reverts and the fixes land first (a fix refills
-   its entry, §8 pending step 4); then, last, the OKed items are accepted with `node scripts/parity.mjs
+3. **Jake OKs the board items**, or they're reverted, or fixed and boarded again for his OK (§8 pending step 5;
+   R4-13). The reverts and the fixes land first (a fix refills its entry, §8 pending step 4); then, last, the OKed items are accepted with `node scripts/parity.mjs
    --accept=<ids> --export=<the newest sha>` (3 runs; §8 case 1; R2-18, R3-14), committed with `pending.json`, so
    the file is empty.
 4. **The pin moves to the newest `gpu-gate`-green SHA after step 3** (R2-27): step 3's accept, fix and revert
@@ -1033,11 +1033,13 @@ asks Jake, with one recommended option, to board the pending items early or to w
   `index.json` entry, §9),
   prints the verdict, writes the report under `~/.wildshard/gpu-perf/plant-<id>-<date>.md` and posts no status (a
   plant never marks a real commit, as in the gate). `--memory-only --sha=<sha>` (R4-15: the pin's own memory reading,
-  §13.2) runs steps 2, 4 and 7 on that SHA, compares with the newest earlier reading, writes
+  §13.2) refreshes the mirror (`git --git-dir=<mirror> fetch origin main`, step 1's fetch without its pick or skip),
+  checks that `<sha>` is there (`git --git-dir=<mirror> cat-file -e <sha>^{commit}`), runs steps 2, 4 and 7 on that
+  SHA (K5-8), compares with the newest earlier reading, writes
   `~/.wildshard/gpu-perf/memory-<date>-<sha7>.json` and posts only `gpu-perf/memory` on it:
   1. `git --git-dir=<mirror> fetch origin main`; pick the newest of the last 30 commits whose `gpu-gate` is `success`;
      stop if a report for it exists (`~/.wildshard/gpu-perf/*-<sha7>.json`, the name step 6 writes).
-  2. `git archive <sha>` into `~/.cache/wildshard-gpu-perf/tree-<sha7>/`; `pnpm install --frozen-lockfile
+  2. `git --git-dir=<mirror> archive <sha>` into `~/.cache/wildshard-gpu-perf/tree-<sha7>/`; `pnpm install --frozen-lockfile
      --prefer-offline --config.enable-global-virtual-store=false`; `scripts/serve-build.sh --hours 5 --name gpu-perf`
      from that tree (a registered preview the reaper knows; the whole nightly is ≤ 4 h, §10).
   3. Three lane calls, one after another (R1-43):

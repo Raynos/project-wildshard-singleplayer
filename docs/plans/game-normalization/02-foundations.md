@@ -262,11 +262,12 @@ resolver, the `wildshard/no-url-switch` rule, `scripts/bake-loader.mjs`); a path
    - **The derived copies (R4-05, C4-9).** The phone copies (`*.phone.webp`, written by `scripts/tex-tiers.mjs`,
      ImageMagick + `cwebp`, Mac-only) and the KTX2 files (`scripts/bake-ktx2.mjs` → `public/assets/gpu/<the source's
      path>`, keyed by source hash + settings in `scripts/bake-ktx2.cache.json`) derive from the baked files. After a
-     cards or textures re-bake, the same commit runs `node scripts/tex-tiers.mjs`, then `node scripts/bake-ktx2.mjs`,
+     cards or textures re-bake, the same commit runs `node scripts/tex-tiers.mjs`, then `node --import
+     ./scripts/bake-loader.mjs scripts/bake-ktx2.mjs` (its own documented command, `bake-ktx2.mjs:42`; K5-3),
      and carries the phone copies, the KTX2 files, the cache hunk and the shard's `ktx2.generated.ts`.
      `tex-tiers.mjs` gains `--check` (it encodes into a scratch folder and exits 1 naming each copy that differs) and
      `bake-ktx2.mjs` gains `--check` (exit 1 when a listed source's current hash + settings has no cache entry, or
-     its output file is missing); `bake-check` runs both on the Mac after the GPU bakers, and skips them with a
+     its output file is missing); `bake-check` runs both on the Mac after the GPU bakers (the KTX2 one with the same `--import`), and skips them with a
      printed line where the tools are missing.
    - **A tool upgrade that changes bytes (R4-04).** Homebrew's ImageMagick or `cwebp`, Playwright's Chromium (the
      GPU bakers) or node's zlib can change output bytes with no source change. `bake-check` prints the tool versions
@@ -340,10 +341,11 @@ right after the probe commit. Nine Dragon joins (it is outside scorecard's `SHAR
      returning the `label` of every `GameSystem` in `inputs`, `fixed.pre/step/post`, `updaters`, `lates` (lines 125-128),
      in list order.
    - `src/world/registry.ts`: `pieces(): readonly Piece[]` (the registry's internal list, as registered).
-   - `src/core/harnessTap.ts` (new, 12 lines): `export const tap: { hit: ((kind: string, amount: number) => void) | null;
+   - `src/core/harnessTap.ts` (new, ~20 lines): `export const tap: { hit: ((kind: string, amount: number) => void) | null;
      kill: ((kind: string) => void) | null; resumed: (() => void) | null; sound: ((id: string, kind?: 'ambient') =>
-     void) | null; use: ((label: string) => void) | null } = { hit: null, kill: null, resumed: null, sound: null, use:
-     null };`. One call each at the two damage sites:
+     void) | null; use: ((label: string) => void) | null; ambientDepth: number } = { hit: null, kill: null, resumed:
+     null, sound: null, use: null, ambientDepth: 0 };` and `export function ambientTick(id: string, body: () => void):
+     void { tap.sound?.(id, 'ambient'); tap.ambientDepth++; try { body(); } finally { tap.ambientDepth--; } }` (K5-6). One call each at the two damage sites:
      `Animal.applyDamage` (`src/entities/Animal.ts`) calls `tap.hit?.(this.kind, amount)`, and the TrainingTarget damage
      method (`src/practice/TrainingArena.ts`, the method that calls `this.motion.hit(…)` at line 125) calls
      `tap.hit?.('training-dummy', amount)`. `AnimalManager`'s kill path calls `tap.kill?.(a.kind)` where it calls
@@ -373,11 +375,16 @@ right after the probe commit. Nine Dragon joins (it is outside scorecard's `SHAR
      (`SteppeAmbience.ts:139-157`: the `herdT` / `marmotT` / `eagleT` countdowns), and `Audio.ts`'s own private
      schedulers: `scheduleBubble` (`:740`), `scheduleLark` (`:1409`), `scheduleCricket` (`:1430`) and
      `scheduleCrackle` (`:1447`). **The tap sits at the scheduler's tick, not at the gated play (R4-12; C4-5):** the
-     first statement of each timer callback, or of each countdown's expiry branch, is
-     `tap.sound?.('<module>.<scheduler>', 'ambient')` (`audio.cricket`, `island.bird`, `steppe.herd` …), before the
-     condition that decides whether a sound plays (night, a camp, the jungle bed's level, a zone). The id so says
-     "this scheduler is armed and ticking", whatever the time of day or the player's position, and the log
-     compares the ambient ids as a **set** (03 §2.3). A scheduler whose longest interval (its constants in the code)
+     body of each timer callback, or of each countdown's expiry branch, becomes one call,
+     `ambientTick('<module>.<scheduler>', () => { …today's body… })` (`audio.cricket`, `island.bird`, `steppe.herd` …;
+     the helper sits beside `tap` in the new `harnessTap.ts` above). It calls `tap.sound?.(id, 'ambient')` first, before
+     the condition that decides whether a sound plays (night, a camp, the jungle bed's level, a zone), then runs the
+     body with `tap.ambientDepth` raised (a counter, restored in a `finally`). **While `ambientDepth > 0`, the probe's
+     `sound` hook drops an event-kind call** (K5-6): the shared cue and SFX methods a scheduler reaches
+     (`SteppeAmbience` → `Audio.animal`, `ForestAmbience` → `PineHollowSfx.shot('thrall_call')`) keep their event taps
+     for gameplay callers, and a scheduler-driven play adds nothing to the event multiset. The id so says "this
+     scheduler is armed and ticking", whatever the time of day or the player's position, and the log compares the
+     ambient ids as a **set** (03 §2.3). A scheduler whose longest interval (its constants in the code)
      is longer than the shortest scripted run that logs sounds (03 §4) may not tick inside it: F2 computes that list
      and commits it as `test/parity/ambient-info.json`, and those ids are printed as information, never compared.
      A dropped scheduler (one lost in S3.5's split of `Audio.ts`, a cricket timer at midday included) still shows as
@@ -385,7 +392,7 @@ right after the probe commit. Nine Dragon joins (it is outside scorecard's `SHAR
      use too.
      A row that moves a sound path keeps its id literal and its kind: the `AudioService` built at S1.5 (01 §15)
      calls `tap.sound?.(id)` on every event play with the id of the path it replaced, and a moved scheduler keeps its
-     tick tap as its callback's first statement (R4-12). The log therefore has
+     `ambientTick` as its callback's only statement (R4-12, K5-6). The log therefore has
      one source for the whole plan, and `walk.sounds` / `combat.sounds` stay comparable across S1.5 and S3.5 with no
      rename map and no source switch. The probe sets the functions only when `window.__wildshardHarness` exists
      (03 §6).
@@ -436,8 +443,10 @@ pre-push tree gate's `vitest run` would not have them), and a missing `test/pari
 agree (a type-level check through `tsc -p scripts`). `test/sound-tap.test.ts` (R2-26, R3-13): lists every
 `src/**/*.ts` file that calls `createBufferSource` or `createOscillator` (a non-empty assert) and fails on any of them
 that has no `tap.sound?.(` call, so a new sound module can't bypass the log, and fails when any of `Audio.ts`'s four
-`schedule*` methods has no `tap.sound?.(…, 'ambient')` call. It also parses each ambient scheduler's callback (the
-list in step 2) and fails unless `tap.sound?.(…, 'ambient')` is its first statement, ahead of any condition (R4-12).
+`schedule*` methods has no `ambientTick(` call. It also parses each ambient scheduler's callback (the list in step 2)
+and fails unless its body is one `ambientTick(…)` call (R4-12). `test/ambient-tick.test.ts` (K5-6): with a recording
+`tap.sound`, a gated ambient path run inside `ambientTick` (the steppe herd call reaching `Audio.animal`) logs only
+its scheduler id, and the same `Audio.animal` called outside a tick logs one event.
 
 **Done when.**
 - `node scripts/parity.mjs --export=<the follow-up sha> --lane=m5 --tiers=phone,desktop` exits 0 twice in a row

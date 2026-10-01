@@ -231,6 +231,16 @@ One row per finding, across every round (decision 92). The ID stays the same for
 | C4-12 | 4 | C | nit | 12 §1 item 1 ("1–98"); index §9 ("1–98") | E357 has decision 99 (no phone calibration), which 05 S1.6, 00 and R3-F4 cite, but the frozen ledger's range stops at 98 | nit, fixed (R4-N) | d815aaf1 |
 | C4-13 | 4 | C | nit | 13 R3-F6 bullet 2 vs 03 §9 (03:612-617) | R3-F6 calls `flag` "the Debug row a `flag` plant flips"; 03 §9 makes it the plant's launch argument (`metal-off`: `--angle=swiftshader`), which is right: no Debug row tu… | nit, fixed (R4-03) | d815aaf1 |
 | C4-14 | 4 | C | nit | 02 F1 step 7 (`bake-check` in `pnpm test`); 03 §10 budgets; 12 §5 step 1 | Every Mac `pnpm test` (every commit, every subagent) now runs a `vite build`, a preview, three headless game boots (cards on Pine, textures on Pine and Driftwood, each u… | nit, fixed (R4-04) | d815aaf1 |
+| K5-1 | check | A (Codex) | must | budget-design §4, lines 74–99; R4-01 | The calibration recipe still requires the phone work that decision 99 forbids. | fixed (K5-1, 13 "Round 4 check pass") | round-5 close |
+| K5-2 | check | A (Codex) | should | `move-map.json:1044`; `13:84`; R4-02 | The reviewed JSON still tells the F6 executor that the sky baker's source move re-stamps every sky JSON, contradicting the corrected Markdown and F1's removal of input di | fixed (K5-2, 13 "Round 4 check pass") | round-5 close |
+| K5-3 | check | A (Codex) | must | `02:265–271`, F1 derived-copy chain; R4-05 | The new KTX2 command cannot load the game modules without the repository's Node loader. | fixed (K5-3, 13 "Round 4 check pass") | round-5 close |
+| K5-4 | check | A (Codex) | should | `06:105`, §2.1 `preloadLeverModel()` row; R4-06 | A second Pine migration row still directs a data-stage GLB prefetch. | fixed (K5-4, 13 "Round 4 check pass") | round-5 close |
+| K5-5 | check | A (Codex) | should | `13:302`, R3-06 default-list resolution; R4-09 | The settled default-list row still gives the exact paths R4-09 corrected, leaving an executor consulting the ledger with two definitions of the new-shard allowlist. | fixed (K5-5, 13 "Round 4 check pass") | round-5 close |
+| K5-6 | check | A (Codex) | should | `02:357–388`, F2 sound taps; `03:153,228`; R4-12 | Moving the ambient tap to the scheduler does not exempt the downstream shared sound methods from the still-required event taps. | fixed (K5-6, 13 "Round 4 check pass") | round-5 close |
+| K5-7 | check | A (Codex) | should | `05:703`, `06:706`, `07:874`, `08:857`, plus their §8 / Flow summaries; R4-13 | The shard milestone recipes still describe fixing an item as an alternative that ends pending status, despite the new rule that a fix must return to Jake before acceptanc | fixed (K5-7, 13 "Round 4 check pass") | round-5 close |
+| K5-8 | check | A (Codex) | should | `03:1023–1042`, memory-only route; R4-15 | The on-demand route skips the only specified refresh of the dedicated mirror before exporting a newly green SHA. | fixed (K5-8, 13 "Round 4 check pass") | round-5 close |
+| K5-9 | check | A (Codex) | should | `13:324`, R3-F6 persistence bullet; R4-17 | The amended settled resolution still instructs a Simulator home-screen persistence reading that R4-17 removed. | fixed (K5-9, 13 "Round 4 check pass") | round-5 close |
+| K5-10 | check | A (Codex) | must | `08:601–605`; `13:355`, R4-18 | The new unconditional swing-admission inequality blocks all phase-I swings, so the scripted fight never reaches phase II or kills the Captain. | fixed (K5-10, 13 "Round 4 check pass") | round-5 close |
 
 ## Round summary
 
@@ -240,3 +250,4 @@ One row per finding, across every round (decision 92). The ID stays the same for
 | 2 | A (Codex) · B · C | 17 | 29 | ~40 unique (36 resolutions R2-01…R2-36 + 5 follow-ups) | 46 | 0 (11 nits logged) | 9 / 23 | no |
 | 3 | A (Codex) · B · C | 7 | 15 | ~17 unique (16 resolutions R3-01…R3-16) | 22 | 0 (16 nits, fixed where free) | 16 / 26 | no |
 | 4 | A (Codex) · B · C | 7 | 18 | ~18 unique (18 resolutions R4-01…R4-18; did not fall) | 25 | 0 (7 nits, fixed) | 17 / 29 (16 / 26 on 1–26; A 24 / 26, C 18 / 29) | no |
+| check (decision 100) | A (Codex), R4 fixes only | 3 | 7 | 10 (K5-1…K5-10) | 10 | 0 | — (not walked) | fixed; plan ready for the F0 go |

@@ -134,7 +134,7 @@ lane's terrain and tree-card edit against the bakers, and the sound log over tim
 - **At each milestone** (M1–M4, then Z3's shard 5 and the archive), the flow is (R1-15; 03 §13.4):
   1. the gate is green on the candidate SHA (dispatched with the offline boot check, 03 §11.1);
   2. the boards go to Jake, with clips and images from the harness's capture of that SHA;
-  3. Jake OKs the board items, or they're fixed or reverted. The reverts and fixes land first, and a fix he asked for
+  3. Jake OKs the board items, or they're reverted, or fixed and boarded again. The reverts and fixes land first, and a fix he asked for
      goes back to him for an OK (R4-13; 03 §8 pending step 5); then, last and only for his OKs, `node scripts/parity.mjs --accept=<ids> --export=<the newest sha>` re-records them with 3 runs (R2-18,
      R3-14; 03 §8), so nothing is pending;
   4. the pin moves to **the newest `gpu-gate`-green SHA after step 3** (R2-27): step 3's accept, fix and revert
