@@ -61,9 +61,9 @@ export function sunscarLook(): LookStrategy {
   return { mode: 'extend', dispose: () => { if (built) { built.removeFromParent(); built.geometry.dispose(); built.material.dispose(); built = null; } }, compose: ({ engineChain }) => ({ chain: engineChain('clean') }),
     sky: { clouds: false, planet: false },
     shadows: { rig: 'tier', normalBias: 0.08, radius: 2 },
-    backdrop: ({ sky, scene }) => {
+    backdrop: ({ sky }) => {
       const clock = duskClock(), dome = buildDome(), keyColor = new Color().copy(DUSK.key);
-      built = dome; scene.add(dome); // the engine keeps `clouds` on the camera; the backdrop puts it in the scene
+      built = dome; // the engine attaches and centres the backdrop dome
       let hemi: { color: Color; groundColor: Color; intensity: number } | null = null, fog: Color | null = null;
       return Promise.resolve({ clock, horizon: new Color().copy(DUSK.fog), lut: null, clouds: dome, fadesPlanet: false,
         bind: (targets) => {

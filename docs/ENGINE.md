@@ -716,6 +716,8 @@ export const BUDGETS: LevelSpec['budgets'] = { phone: tier(30), desktop: tier(60
 
 `Bucket` is the frame-cost bucket type the budget report uses.
 
+`SkyRig` is the engine lighting/shadow mechanism, exposed through the compatible `Sky` name. `SkyBackdropView` owns the default background/IBL and the clouds, disc, planet and their drawing uniforms. Authored `SkyBackdrop.clouds` domes are attached to the scene by the engine and kept on the camera; a backdrop does not need to attach its dome. These engine handles are type exports to preserve Node-safe manifests. The backdrop strategy still owns its clock, colors and disposal.
+
 ## 14. Physics
 
 `src/engine/physics/` is the only code that imports Rapier. Nothing else hand-rolls a collision test.
@@ -1176,7 +1178,7 @@ sections above describe what to use; this list is the complete inventory.
 
 ### `#engine` (`src/engine/index.ts`)
 
-683 exports, grouped by the module they come from.
+686 exports, grouped by the module they come from.
 
 - `./core/devMode`: `isDev`, `onDev`, `setDev`
 - `./core/config`: `CHUNK_HALF`, `ROAD_LENGTH`, `SEED`, `CHUNK_SIZE`, `CHUNK_DEPTH`, `TERRAIN_RES`
@@ -1373,6 +1375,8 @@ sections above describe what to use; this list is the complete inventory.
 - `./ui/authoredDebugRows`: `registerGlobalDebugAction`, `GlobalDebugActionSpec`
 - `./models/live`: `live`, `listModel`, `RosterEntry`
 - `./combat/view/slashTrail`: `SlashTrail`, `SlashTrailProfile`
+- `./world/skyRig`: `SkyRig`
+- `./world/skyBackdrop`: `SkyBackdropView`
 - `(local)`: `ENGINE_API`
 
 ### `#engine/data` (`src/engine/data.ts`)

@@ -229,7 +229,6 @@
     "src/engine/world/shadowChunks.ts": 1,
     "src/engine/world/shadowFilter.ts": 1,
     "src/engine/world/shadowVariants.ts": 1,
-    "src/engine/world/Sky.ts": 14,
     "src/engine/world/steppeWind.ts": 7,
     "src/engine/world/Terrain.ts": 7,
     "src/engine/world/terrainField.ts": 4,

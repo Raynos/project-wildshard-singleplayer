@@ -294,3 +294,6 @@ export { registerGlobalDebugAction, type GlobalDebugActionSpec } from './ui/auth
 export { live, listModel, type RosterEntry } from './models/live';
 
 export { SlashTrail, type SlashTrailProfile } from './combat/view/slashTrail';
+
+export type { SkyRig } from './world/skyRig';
+export type { SkyBackdropView } from './world/skyBackdrop';
