@@ -385,3 +385,5 @@ Every gap the plan didn't cover, every deviation a builder made, and every board
 | B3 | F1–F5 | the lead pre-landed every `package.json` change (a26bad51) with stub `check-paths` / `bake-check` / `coverage-ratchet`, and F1's alias spike (5b7d6093) | parallel builders never edit one shared file | the rows replace the stubs |
 | B4 | F2 step 2 | `registry.pieceList()` (read-only) instead of `pieces()` | `pieces` is already a public array (Minimap, tests) | rename at F8 if wanted |
 | B5 | F0 / 105 | subagent cap 20 and browser lane 8 while `.github/lock.json` is locked (`guard-subagents.sh`, `browser-lane.sh`) | decision 105 | the archive commit sets `locked: false` |
+| B6 | F7 step 2 | `public/assets/nine-dragon/lab/grade-lut*.bin` kept | `look/light/grade.ts:5` still names `lab/grade-lut.bin` in a comment; the spec deletes it only when grep finds nothing | delete with the comment at S1.1 |
+| B7 | F7 | steps 1–3 run before F2's baselines (a83e63f7) | they delete only unreachable code; doing it first keeps it out of every builder's way | the baseline simply never had the 3 preloaded explore images; `renames/F7.json` is not needed |
