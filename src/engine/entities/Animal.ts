@@ -122,6 +122,7 @@ const combatActors = new WeakMap<Animal, Actor>();
 
 export class Animal {
   private readonly flight: FlightMotion | null;
+  private readonly impulseVelocity = new THREE.Vector3();
   /** Only the parity probe sets this: the selected target skips its AI and motor. */
   harnessHold = false;
   kind: AnimalKind;
@@ -276,6 +277,15 @@ export class Animal {
   setMotion(desiredYaw: number, desiredSpeed: number, turnRate = 2.5): void {
     this.desiredYaw = desiredYaw; this.desiredSpeed = desiredSpeed; this.turnRate = turnRate;
   }
+
+  /** Add world velocity (m/s), decaying at 3.5/s. Ground bodies use XZ through their collision motor; flyers use XYZ. */
+  impulse(velocity: THREE.Vector3): void {
+    if (![velocity.x, velocity.y, velocity.z].every(Number.isFinite)) throw new Error('Creature impulse must be finite');
+    if (!this.alive) return;
+    this.impulseVelocity.add(velocity);
+    if (this.flight === null) this.impulseVelocity.y = 0;
+  }
+  get hasImpulse(): boolean { return this.impulseVelocity.lengthSq() > 0; }
   /** Public flight command; the species must declare its flight body. */
   fly(yaw: number, speed: number, altitude: number, turnRate = 2.5): void {
     if (this.flight === null) throw new Error('Species must declare flight before flying');
@@ -497,6 +507,10 @@ export class Animal {
       }
     } else { this.speed = 0; this.strafe = 0; }
 
+    if (this.alive && this.hasImpulse) {
+      this.position.x += this.impulseVelocity.x * dt; this.position.z += this.impulseVelocity.z * dt;
+    }
+
     // near the player the move goes through the physics body (PHYSICS P6): walls, rocks, trunks, the player and other
     // animals stop it — the walk, the charge and a knock-back alike
     if (this.motor !== null && this.alive && !this.driven && this.flight === null) {
@@ -523,6 +537,12 @@ export class Animal {
       this.groundY += (gy - this.groundY) * Math.min(1, dt * 12);
       this.position.y = this.groundY + this.yOffset;
     }
+
+    if (this.alive && this.hasImpulse) {
+      if (this.flight !== null) this.position.y += this.impulseVelocity.y * dt;
+      this.impulseVelocity.multiplyScalar(Math.exp(-3.5 * dt));
+      if (this.impulseVelocity.lengthSq() < 0.05) this.impulseVelocity.set(0, 0, 0);
+    } else if (!this.alive) this.impulseVelocity.set(0, 0, 0);
 
     // gait weights from speed
     const gw = this.gaitTarget;

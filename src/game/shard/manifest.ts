@@ -422,6 +422,7 @@ export interface ShardManifest {
   load?: () => Promise<{ default: new () => ShardPlugin }>;
   kitLook?: LevelSpec['kitLook'];
   creatures?: LevelSpec['creatures'];
+  world?: LevelSpec['world'];
   debugOptions?: LevelSpec['debugOptions'];
   uses?: readonly (EngineMechanism | 'coins' | 'loot' | 'compendium' | 'feats' | 'pack' | 'bag.pack' | 'water' | 'creatures')[];
   tiers?: TierOverrides;

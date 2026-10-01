@@ -12,6 +12,7 @@ export function toLevelSpec(manifest: ShardManifest): LevelSpec {
     ...(dev === undefined ? {} : { capturePoses: async () => Object.fromEntries(Object.entries(await dev.poses()).map(([name, pose]) => [name, { eye: pose.eye, yaw: pose.yaw, pitch: pose.pitch, ...(pose.feet === undefined ? {} : { feet: pose.feet }) }])) }),
     ...(manifest.horizonStrips === undefined ? {} : { horizonStrips: manifest.horizonStrips }),
     creatureStyle,
+    ...(manifest.world === undefined ? {} : { world: manifest.world }),
     ...(manifest.creatures === undefined ? {} : { creatures: manifest.creatures }),
     ...(manifest.debugOptions === undefined ? {} : { debugOptions: manifest.debugOptions }),
     ...(manifest.blender === undefined ? {} : { blender: manifest.blender }),

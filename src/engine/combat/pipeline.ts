@@ -8,6 +8,7 @@ import type { AttributeSet } from './effects/types';
 export type CombatTag = `${string}.${string}`;
 export type StringKey = string;
 export interface DeathCause { kind: string; label: StringKey; text?: StringKey }
+export interface FallCause extends DeathCause { kind: 'fall' | 'out-of-world' }
 export interface HealthAttributes extends AttributeSet { health: number; maxHealth: number; damageTakenMul?: number; incomingCap?: number }
 /** Simulation port. The legacy creature adapter owns flinch/ragdoll presentation until the AI migration. */
 export interface Actor {
@@ -109,6 +110,18 @@ export class CombatPipeline {
     const dealt = { req: modified, dealt: modified.amount, killed };
     this.events.emit('damage.dealt', dealt);
     if (killed) this.events.emit('actor.died', { actor: modified.target, req: modified });
+    return dealt;
+  }
+  /** Terminal environmental fall. Damage modifiers and cover cannot rescue a body beyond the world boundary. */
+  fall(target: Actor, point: Vector3, cause: FallCause): DamageDealt | null {
+    if (!target.alive) return null;
+    const req: DamageRequest = { source: 'env', sourceTags: ['env.fall'], target, amount: Math.max(0, target.attributes.health),
+      point: point.clone(), dir: point.clone().set(0, -1, 0), throughWalls: true, cause: { ...cause } };
+    target.onDamageRequest?.(req);
+    const killed = target.applyDamage(req);
+    const dealt = { req, dealt: req.amount, killed };
+    this.events.emit('damage.dealt', dealt);
+    if (killed) this.events.emit('actor.died', { actor: target, req });
     return dealt;
   }
 }

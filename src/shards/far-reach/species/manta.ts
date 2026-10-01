@@ -17,7 +17,7 @@ export type MantaState = 'circle' | 'dive' | 'rise';
 /** Pure flight state, apart from the Animal so a test can fly it. */
 export class MantaFlight {
   readonly pos = new Vector3(); yaw = 0; speed = 0; bank = 0; flap = 0.6; angle = 0; diveFrom = MANTA.cruise;
-  readonly knock = new Vector3(); falling = false;
+  falling = false;
   constructor(x: number, z: number, y: number) { this.pos.set(x, y, z); this.angle = Math.atan2(x - MANTA_HOME.x, z - MANTA_HOME.z); }
 }
 
@@ -46,7 +46,7 @@ export class MantaBrain extends CreatureBrain<MantaState> {
   }
   /** A GUST: a ray in its dive is thrown off the lane and climbs away. */
   push(dir: Vector3, power: number): void {
-    const f = this.flight; f.knock.addScaledVector(dir, power).setY(Math.max(f.knock.y, power * 0.4));
+    this.actor.impulse(dir.clone().multiplyScalar(power).setY(Math.max(dir.y * power, power * 0.4)));
     if (this.state === 'dive') { this.strikes.cancel(); this.actor.cancelAttack(); this.transition('rise'); }
   }
   override act(ctx: ThinkCtx): void {
@@ -72,11 +72,6 @@ export class MantaBrain extends CreatureBrain<MantaState> {
       const tx = MANTA_HOME.x + Math.sin(f.angle) * MANTA.circleR, tz = MANTA_HOME.z + Math.cos(f.angle) * MANTA.circleR, ty = MANTA.cruise + Math.sin(ctx.t * 0.4) * 1.5;
       const want = Math.atan2(tx - f.pos.x, tz - f.pos.z); f.yaw = turn(f.yaw, want, 1.5 * dt);
       altitude = ty;
-    }
-    if (f.knock.lengthSq() > 1e-4) {
-      const vx = Math.sin(f.yaw) * speed + f.knock.x, vz = Math.cos(f.yaw) * speed + f.knock.z;
-      f.yaw = Math.atan2(vx, vz); speed = Math.hypot(vx, vz); altitude += f.knock.y * dt;
-      f.knock.multiplyScalar(Math.max(0, 1 - dt * 3));
     }
     ctx.flight.steer(a, f.yaw, speed, altitude, 20);
     f.bank += ((this.state === 'circle' ? -0.35 : 0) - f.bank) * Math.min(1, dt * 3);

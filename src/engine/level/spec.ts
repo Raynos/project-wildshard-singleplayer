@@ -1,4 +1,5 @@
 import type { SetName } from '../player/viewmodelTextures';
+import type { FallCause } from '../combat/pipeline';
 import type { HorizonStrips } from '../world/HorizonMatte';
 import type { ByteKey } from '../boot/steps';
 import type { TexMode } from '../boot/gpuFiles';
@@ -64,6 +65,8 @@ export interface LevelSpec {
   /** `water`: the level's water bodies, registered in `app.world.water` at level.data (before any world step reads them) */
   ground: { terrain?: TerrainField; structures?: true; paths?: 'plugin'; water?: readonly WaterBody[] };
   spawn: SpawnPose; bounds?: Bounds; camera?: { portraitFov: number };
+  /** Optional creature death plane; absent keeps existing worlds unchanged. */
+  world?: { killY: number; fallCause?: FallCause };
   sky: SkySpec; atmosphere: AtmosphereSpec; grade: GradeSpec;
   look?: () => Promise<LookStrategy>; lookLayer?: GradeLook; tiers?: TierOverrides; budgets: BudgetInputs;
   mechanisms: readonly EngineMechanism[]; fight: FightRules; input?: readonly InputContextDef[];

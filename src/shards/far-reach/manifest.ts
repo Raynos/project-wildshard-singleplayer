@@ -1,7 +1,7 @@
 import { buildTerrain } from '#engine/data';
 import type { ShardManifest } from '#game';
 import { STRINGS } from './strings';
-import { TRAIL, SPAWN, FALL_Y, skyLandscape } from './layout';
+import { TRAIL, SPAWN, FALL_Y, CLOUD_Y, skyLandscape } from './layout';
 import { BUDGETS } from './budgets';
 import { SKY_CARD, EXPLORE } from './explore/art';
 import { bootFiles, bootSources } from './boot/files';
@@ -16,6 +16,7 @@ export const FAR_REACH: ShardManifest = {
   card: { thumb: SKY_CARD, portrait: SKY_CARD, landscape: SKY_CARD },
   style: 'toon', kitLook: 'toon', weapon: 'custom', treeCount: 0, trees: { factory: 'none', noun: 'islands' },
   ground: { paths: 'plugin', terrain }, horizon: { rings: [], cloudSea: false },
+  world: { killY: CLOUD_Y },
   groundColor: (_x, _z, h, slope, _terrain, out) => { const grass = h > 10 && slope < 0.6; out[0] = grass ? 0.46 : 0.5; out[1] = grass ? 0.56 : 0.42; out[2] = grass ? 0.22 : 0.34; return out; },
   spawn: { x: SPAWN.x, z: SPAWN.z, yaw: SPAWN.yaw }, bounds: { x0: -110, x1: 110, z0: -110, z1: 110, floor: FALL_Y },
   sky: { sunColor: [1, 0.78, 0.52], sunIntensity: 2.2, envIntensity: 0.55, bgIntensity: 1, fogSunColor: [1, 0.72, 0.48], cloudSunColor: [1, 0.8, 0.6],

@@ -1,5 +1,6 @@
 /** English engine UI strings. Content-owned overrides are installed by the composition root. */
 export const ENGINE_STRINGS = {
+  "s_out_of_world": "Out of world",
   "s_input_binding": "⟦0⟧ · ⟦1⟧",
   "s_852b889c1d23": "Attack",
   "s_8c1280a20004": "Fire",

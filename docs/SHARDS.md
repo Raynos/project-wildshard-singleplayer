@@ -211,6 +211,10 @@ A kit species (`BOAR`, `BEAR` and their looks) needs no code: register the rows.
 
 Creature tags are `creature.<kind>`. Quests and loot listen for `actor.died` and read the tags.
 
+Push creatures with `animal.impulse(worldVelocity)` (metres per second), rather than writing their positions.
+For worlds with a void, declare `world: { killY: 6 }` in the manifest; the engine kills creatures below it with an
+`out-of-world` cause. Read `actor.died.req.cause` for the result. Omit `world` on normal ground worlds.
+
 ## 7. The look
 
 Your look is a `LookStrategy` in `look/render.ts`, loaded through `manifest.render`

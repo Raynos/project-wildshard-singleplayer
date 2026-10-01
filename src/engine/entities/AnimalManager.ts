@@ -19,6 +19,7 @@ import type { Forest } from '../world/forest/Forest';
 import type { Sky } from '../world/Sky';
 import { AnimalFactory, speciesDef, variantDef, rollVariant, type AnimalKind, type AnimalModel, type AnimalStyle, type EnemyWorld, type ThinkCtx } from './AnimalFactory';
 import { Animal, damageFor } from './Animal';
+import { killBelowWorld } from './killHeight';
 import { attachShadowCaster } from './animalShadow';
 import { FarHerd, type FarMember } from './farHerd';
 import { activeLevel } from '../level/selection';
@@ -762,6 +763,7 @@ export class AnimalManager {
         const act = speciesDef(a.kind).act;
         if (act !== undefined && a.alive && !a.stunned) act(a, this.customContext(a, bodyDt, playerPos, this.playerSprinting));
         a.update(bodyDt, t, near);
+        if (a.alive) killBelowWorld(a, activeLevel().world, app.combat);
         if (this.melee && a.state === 'charge' && a.alive && !a.stunned) this.chargeContact(a, playerPos);
         if (this.rules !== null && a.alive && a.position.distanceToSquared(playerPos) < 36) this.clearBody(a, playerPos);
       }

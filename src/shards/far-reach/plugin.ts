@@ -26,7 +26,7 @@ export class FarReachPlugin extends ShardPlugin {
   /** Where each walking creature last stood on an island: a walker that strays over the void is put back (only a GUST throws one off). */
   readonly safe = new Map<Animal, Vector3>();
   /** Bodies a GUST threw: they slide until the push dies, and fall off an edge into the clouds. */
-  readonly blown = new Map<Animal, Vector3>();
+  readonly blown = new Set<Animal>();
   override world(ctx: ShardContext): void {
     ctx.strings(STRINGS);
     this.sky = buildSkyWorld(ctx, () => this.isHovering(ctx), () => undefined);
@@ -54,7 +54,7 @@ export class FarReachPlugin extends ShardPlugin {
       if (!a.alive) continue;
       out.push({ position: a.position, actor: a.combatActor(), push: (dir, power) => {
         if (a === this.manta) { mantaBrain(a).push(dir, power); return; }
-        this.blown.set(a, dir.clone().setY(0).multiplyScalar(power));
+        a.impulse(dir.clone().multiplyScalar(power)); this.blown.add(a);
       } });
     }
     return out;
@@ -66,6 +66,7 @@ export class FarReachPlugin extends ShardPlugin {
     if (equipmentHost !== null && fan !== null) { equipmentHost.viewmodel.add(fan.model); ctx.scope.onDispose(() => { fan.model.removeFromParent(); }); }
     if (rt?.play) { installSilentScore(rt.play.music, ctx.scope); installForestAmbience(rt.play.audio, ctx.scope); installSkyCues(rt.play.audio, rt.play.cues, ctx.scope); }
     const quest = installQuest(ctx, position); this.quest = quest.quest; this.flags = quest.flags;
+    ctx.app.events.on('actor.died', ({ req }) => { if (req.cause?.kind === 'out-of-world') this.fell++; }, ctx.scope);
     if (quest.saved) { sky.fallen.raise = 1; sky.fallen.raised = true; sky.fallen.pivot.rotation.x = sky.fallen.deck.pitch; sky.winch.label = STRINGS.fallen; }
     if (rt) rt.hooks.questFlags = () => this.quest?.isComplete ? ['farReach.complete'] : [];
     ctx.inputContext({ id: 'farReach.fan', actions: ['attack', 'heavy', 'lock', 'farReach.gust'], keys: { attack: ['Mouse0', 'KeyF'], heavy: ['Mouse2'], 'farReach.gust': ['KeyG'] },
@@ -85,20 +86,16 @@ export class FarReachPlugin extends ShardPlugin {
       for (const bridge of sky.hover) for (const crystal of bridge.crystals) crystal.rotation.y += dt * 1.2;
       sky.sails.rotation.z += dt * 0.6;
     } });
-    // GUST pushes, and anything that ends up over the void falls into the clouds
-    ctx.system({ id: 'farReach.edges', phase: 'update', run: (dt) => {
-      for (const [a, v] of this.blown) {
-        a.position.x += v.x * dt; a.position.z += v.z * dt; v.multiplyScalar(Math.max(0, 1 - dt * 3.5));
-        if (v.lengthSq() < 0.05) this.blown.delete(a);
-      }
+    // Island walkers stay on their last safe island unless a GUST throws them; the engine owns movement and fall death.
+    ctx.system({ id: 'farReach.edges', phase: 'update', run: () => {
+      for (const a of this.blown) if (!a.alive || !a.hasImpulse) this.blown.delete(a);
       const ground = ctx.manifest.ground.terrain;
       for (const a of rt?.play?.animals.animals ?? []) {
         if (!a.alive || a === this.manta || ground === undefined) continue;
         const safe = this.safe.get(a);
         if (ground.heightAt(a.position.x, a.position.z) > CLOUD_Y) { if (safe) safe.copy(a.position); else this.safe.set(a, a.position.clone()); continue; }
-        if (!this.blown.has(a) && safe) { a.position.x = safe.x; a.position.z = safe.z; continue; }
-        this.blown.delete(a); this.safe.delete(a); this.fell++;
-        ctx.app.combat.hit({ source: 'env', sourceTags: ['farReach.fall'], target: a.combatActor(), amount: 1e4, point: a.position.clone(), dir: new Vector3(0, -1, 0), throughWalls: true });
+        if (!this.blown.has(a) && safe) { a.place(safe.x, safe.z, a.yaw); continue; }
+        this.blown.delete(a); this.safe.delete(a);
       }
     } });
     if (rt?.play) {

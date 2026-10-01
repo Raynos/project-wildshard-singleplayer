@@ -324,6 +324,7 @@ are the row types; `EngineRows` is the verb set.
 |---|---|
 | `ground` | `{ terrain?, structures?, paths?, water? }`, at least one of terrain / structures. `terrain` comes from `buildTerrain(seed, spec)` (`#engine/data`). `water` is `WaterBody` rows (§17) |
 | `spawn`, `bounds?`, `camera?` | where the player starts; a soft-respawn box; the portrait FOV |
+| `world?` | `{ killY, fallCause? }`: optional creature death plane (§19); the engine reports an out-of-world cause below it |
 | `sky`, `atmosphere`, `grade`, `look?` | pure-data look fields |
 | `style` | `'toon' · 'painterly' · 'pbr' · 'jiehua' · 'greybox'`: data only, never branched on |
 | `kitLook?` | `'toon' · 'painterly' · 'pbr'`: the look shared kit pieces render in |
@@ -918,6 +919,18 @@ The kit's starter set is `effect.poison`, `effect.burn`, `effect.bleed`, `effect
 
 A creature is two rows: a `SpeciesRow` (simulation) and a `SpeciesLook` (render). Register both in `kit`.
 
+`animal.impulse(worldVelocity)` copies and adds a velocity in metres per second, then decays it at 3.5/s on the body
+clock. Ground bodies resolve its XZ displacement through their normal collision motor; flying bodies also use Y.
+`animal.hasImpulse` reads whether that transient motion remains. It does not change the existing melee stagger or
+`DamageRequest.knockback` semantics. Do not update an Animal's position from a shard to push it.
+
+`manifest.world: { killY, fallCause? }` declares a creature death plane. The engine body clock calls
+`app.combat.fall(actor, point, cause)` below it; without `world.killY`, no automatic fall death runs.
+The default cause is `{ kind: 'out-of-world', label: 'Out of world' }`; an authored `FallCause` can use
+`kind: 'fall' | 'out-of-world'`, `label` and optional `text`. `fall` consumes the target's remaining health directly,
+bypasses damage modifiers and cover, runs its damage/death presentation, and emits `damage.dealt` and `actor.died`
+once with that cause. A shard may call it for an authored pit instead of supplying a magic damage amount.
+
 | Export | What it is |
 |---|---|
 | `SpeciesRow` | `{ id, kind, label, variants, aggressive?, tuning?, sounds?, flight?, think?(animal, ctx), act?(animal, ctx), tick?, blood?, parent? … }` |
@@ -1146,7 +1159,7 @@ sections above describe what to use; this list is the complete inventory.
 
 ### `#engine` (`src/engine/index.ts`)
 
-676 exports, grouped by the module they come from.
+677 exports, grouped by the module they come from.
 
 - `./core/config`: `CHUNK_HALF`, `ROAD_LENGTH`, `SEED`, `CHUNK_SIZE`, `CHUNK_DEPTH`, `TERRAIN_RES`
 - `./world/terrainField`: `buildTerrain`
@@ -1194,7 +1207,7 @@ sections above describe what to use; this list is the complete inventory.
 - `./input/equipmentInput`: `EquipmentInput`
 - `./ui/icons`: `IconId`, `icon`
 - `./ui/Menu`: `KitEntry`, `GameMenu`, `GameMenuOptions`
-- `./combat/pipeline`: `CombatPipeline`, `Actor`, `CombatTag`, `DamageRequest`, `DamageDealt`, `DamageRuleDef`, `DeathCause`, `HealthAttributes`, `StringKey`
+- `./combat/pipeline`: `CombatPipeline`, `Actor`, `CombatTag`, `DamageRequest`, `DamageDealt`, `DamageRuleDef`, `DeathCause`, `FallCause`, `HealthAttributes`, `StringKey`
 - `./combat/health`: `PlayerHealth`, `PlayerHealthPorts`, `PlayerMode`
 - `./combat/effects/EffectService`: `EffectService`
 - `./combat/effects/types`: `sourceMultiplier`, `matchesTag`, `AttributeSet`, `EffectDef`, `EffectTarget`, `EffectId`, `ActiveEffect`, `SourceMulDef`, `CueId`
