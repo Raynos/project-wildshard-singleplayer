@@ -1,3 +1,4 @@
+import { app } from '../app/runtime';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { LineSegments2 } from 'three/examples/jsm/lines/LineSegments2.js';
@@ -289,7 +290,7 @@ export class Rifle implements KitWeapon {
   }
 
   // ── input ──
-  inputAllowed(): boolean { return this.enabled && (this.player.locked || this.allowUnlocked); }
+  inputAllowed(): boolean { return app.state !== 'paused' && this.enabled && (this.player.locked || this.allowUnlocked); }
   private bindInput(): void {
     document.addEventListener('mousedown', (e) => {
       if (!this.inputAllowed()) return;

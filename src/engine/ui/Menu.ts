@@ -1,5 +1,6 @@
 import { app } from '../app/runtime';
 import type { AppState } from '../app/systems';
+import { containMenuInput } from '../input/menuInput';
 /**
  * The in-game MENU — one overlay: the BAG (MAP · GEAR · FINDS · PACK · FEATS, E314) and PAUSE (SETTINGS), plus FEEDBACK once
  * a reviewer has unlocked the review inbox in Settings → REVIEW (src/engine/ui/review.ts; the tab's composer is the lazy Feedback.ts).
@@ -191,6 +192,7 @@ export class GameMenu {
     closeBtn.addEventListener('click', () => { this.close(); });
     exitBtn.addEventListener('click', () => { this.close(true); this.onExit?.(); }); // silent: the HUD brings the title back itself
     this.root.addEventListener('pointerdown', (e) => { if (e.target === this.root) this.close(); });
+    containMenuInput(this.root);
     // the keyboard's menu keys, all here (E130): M = the Map, I = the Inventory, Esc = pause (Settings); the same key again
     // closes, another one switches tab. One listener, so a key is handled once — main.ts's own M listener re-opened the
     // map the M had just closed, and the HUD's Esc (nolock) opened the menu that this listener then closed (E32)

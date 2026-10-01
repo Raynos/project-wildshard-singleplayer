@@ -1,3 +1,4 @@
+import { app } from '../app/runtime';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { LineSegments2 } from 'three/examples/jsm/lines/LineSegments2.js';
@@ -869,7 +870,7 @@ export class Crossbow implements Weapon {
   get handsCost(): WeaponHands['cost'] | null { return this.hands?.cost ?? null; }
 
   // ── input ──
-  inputAllowed(): boolean { return this.enabled && (this.player.locked || this.allowUnlocked); }
+  inputAllowed(): boolean { return app.state !== 'paused' && this.enabled && (this.player.locked || this.allowUnlocked); }
   private bindInput(): void {
     document.addEventListener('mousedown', (e) => {
       if (!this.inputAllowed()) return;

@@ -1,3 +1,4 @@
+import { app } from '#engine';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
@@ -449,7 +450,7 @@ export class LeverRifle implements KitWeapon {
   }
 
   // ── input ──
-  inputAllowed(): boolean { return this.enabled && (this.player.locked || this.allowUnlocked); }
+  inputAllowed(): boolean { return app.state !== 'paused' && this.enabled && (this.player.locked || this.allowUnlocked); }
   private bindInput(): void {
     document.addEventListener('mousedown', (e) => {
       if (!this.inputAllowed()) return;

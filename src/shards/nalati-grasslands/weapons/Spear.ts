@@ -1,3 +1,4 @@
+import { app } from '#engine';
 import * as THREE from 'three';
 import type { Game } from '#engine/core/Game';
 import type { Sky } from '#engine/world/Sky';
@@ -284,7 +285,7 @@ export class Spear implements Weapon {
   get thrusting(): boolean { return this.thrustT >= 0; }
   /** javelins in flight or stuck in the world (dev / HUD) */
   get javelinsOut(): number { let n = 0; for (const j of this.javs) if (j.state !== 0) n++; return n; }
-  inputAllowed(): boolean { return this.enabled && (this.player.locked || this.allowUnlocked); }
+  inputAllowed(): boolean { return app.state !== 'paused' && this.enabled && (this.player.locked || this.allowUnlocked); }
   addBolts(n: number): void { this.javelins = Math.min(this.maxJavelins, this.javelins + Math.max(0, n)); }
   reload(): void { /* nothing to reload: javelins are picked up */ }
   aimRay(origin: THREE.Vector3, dir: THREE.Vector3): THREE.Vector3 { const cam = this.game.camera; cam.getWorldDirection(dir); origin.copy(cam.position); return dir; }

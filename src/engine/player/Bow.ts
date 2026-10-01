@@ -1,3 +1,4 @@
+import { app } from '../app/runtime';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type { Game } from '../core/Game';
@@ -705,7 +706,7 @@ export class Bow implements Weapon {
   aimOn = false;
 
   // ── input ──
-  inputAllowed(): boolean { return this.enabled && (this.player.locked || this.allowUnlocked); }
+  inputAllowed(): boolean { return app.state !== 'paused' && this.enabled && (this.player.locked || this.allowUnlocked); }
   private bindInput(): void {
     document.addEventListener('mousedown', (e) => {
       if (!this.inputAllowed()) return;

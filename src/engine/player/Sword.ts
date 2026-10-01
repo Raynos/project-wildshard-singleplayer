@@ -1,3 +1,4 @@
+import { app } from '../app/runtime';
 import * as THREE from 'three';
 import { BladeGlow } from './bladeGlow';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
@@ -538,7 +539,7 @@ export class Sword implements Weapon {
   }
 
   // ── input ──
-  inputAllowed(): boolean { return this.enabled && (this.player.locked || this.allowUnlocked); }
+  inputAllowed(): boolean { return app.state !== 'paused' && this.enabled && (this.player.locked || this.allowUnlocked); }
   private bindInput(): void {
     document.addEventListener('mousedown', (e) => {
       if (!this.inputAllowed()) return;
