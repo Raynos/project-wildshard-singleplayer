@@ -1,0 +1,5648 @@
+{
+  "row": "F6",
+  "touchedPaths": [
+    ".claude/skills/drain-inbox/SKILL.md",
+    ".claude/skills/mockup-to-model/SKILL.md",
+    ".claude/skills/prepare-to-exit/SKILL.md",
+    ".oxlintrc.json",
+    "AGENTS.md",
+    "docs/AAA-PLAN.md",
+    "docs/design/audit-e108/driftwood.md",
+    "docs/design/audit-e108/engines.md",
+    "docs/design/audit-e108/game.md",
+    "docs/design/blender-practice.md",
+    "docs/design/cache-policy.md",
+    "docs/design/engine-fit-v2/budget-design.md",
+    "docs/design/engine-fit-v2/ci-gpu-options.md",
+    "docs/design/engine-fit-v2/engine-fit.md",
+    "docs/design/engine-fit-v2/engine-internals-audit.md",
+    "docs/design/engine-fit-v2/tooling-pipeline-audit.md",
+    "docs/design/engine-fit/driftwood.md",
+    "docs/design/engine-fit/engines.md",
+    "docs/design/engine-fit/nalati.md",
+    "docs/design/engine-fit/physics.md",
+    "docs/design/LOOK-LOOP.md",
+    "docs/design/nalati/bow-research.md",
+    "docs/design/nalati/combat.md",
+    "docs/design/nalati/controls.md",
+    "docs/design/nalati/elites-and-bosses.md",
+    "docs/design/nalati/geography-and-map.md",
+    "docs/design/nalati/handoff/b15-items-map.md",
+    "docs/design/nalati/handoff/creatures-riding.md",
+    "docs/design/nalati/handoff/dressing.md",
+    "docs/design/nalati/handoff/port-v2.md",
+    "docs/design/nalati/handoff/storm-titan.md",
+    "docs/design/nalati/layout-v2.md",
+    "docs/design/nalati/look-pass.md",
+    "docs/design/nalati/merge/review-engine.md",
+    "docs/design/nalati/merge/review-experience.md",
+    "docs/design/nalati/riding-research.md",
+    "docs/design/nalati/stealth-and-storms.md",
+    "docs/design/nalati/wolves-horses-taming.md",
+    "docs/design/nine-dragon-stack/ART-STYLE-RESEARCH.md",
+    "docs/design/nine-dragon-stack/TECHNIQUES.md",
+    "docs/design/scorecard.md",
+    "docs/MOVED.md",
+    "docs/plans/DRIFTWOOD-REMASTER-V2.md",
+    "docs/plans/EXPLORE-V2.md",
+    "docs/plans/FINISH-LINE.md",
+    "docs/plans/GAME-NORMALIZATION.md",
+    "docs/plans/game-normalization/00-traceability.md",
+    "docs/plans/game-normalization/01-architecture.md",
+    "docs/plans/game-normalization/02-foundations.md",
+    "docs/plans/game-normalization/03-harness-gate.md",
+    "docs/plans/game-normalization/04-move-map.md",
+    "docs/plans/game-normalization/05-nine-dragon.md",
+    "docs/plans/game-normalization/06-pine-hollow.md",
+    "docs/plans/game-normalization/07-nalati.md",
+    "docs/plans/game-normalization/08-driftwood.md",
+    "docs/plans/game-normalization/09-combat-ai.md",
+    "docs/plans/game-normalization/10-sweeps.md",
+    "docs/plans/game-normalization/11-finish.md",
+    "docs/plans/game-normalization/13-lead-resolutions.md",
+    "docs/plans/game-normalization/briefs/F1a.md",
+    "docs/plans/game-normalization/briefs/F1b.md",
+    "docs/plans/game-normalization/briefs/F2a.md",
+    "docs/plans/game-normalization/briefs/F2b.md",
+    "docs/plans/game-normalization/briefs/F3g.md",
+    "docs/plans/game-normalization/briefs/F3n.md",
+    "docs/plans/game-normalization/briefs/F4.md",
+    "docs/plans/game-normalization/briefs/F5.md",
+    "docs/plans/game-normalization/briefs/F6c.md",
+    "docs/plans/game-normalization/briefs/F6m.md",
+    "docs/plans/game-normalization/briefs/F8a.md",
+    "docs/plans/game-normalization/reviews/register.md",
+    "docs/plans/game-normalization/reviews/round-1-seat-A.md",
+    "docs/plans/game-normalization/reviews/round-1-seat-B.md",
+    "docs/plans/game-normalization/reviews/round-1-seat-C.md",
+    "docs/plans/game-normalization/reviews/round-2-seat-A.md",
+    "docs/plans/game-normalization/reviews/round-2-seat-B.md",
+    "docs/plans/game-normalization/reviews/round-2-seat-C.md",
+    "docs/plans/game-normalization/reviews/round-3-seat-A.md",
+    "docs/plans/game-normalization/reviews/round-3-seat-B.md",
+    "docs/plans/game-normalization/reviews/round-3-seat-C.md",
+    "docs/plans/game-normalization/reviews/round-4-seat-A.md",
+    "docs/plans/game-normalization/reviews/round-4-seat-B.md",
+    "docs/plans/game-normalization/reviews/round-4-seat-C.md",
+    "docs/plans/game-normalization/reviews/round-5-check.md",
+    "docs/plans/NATIVE-APPS.md",
+    "docs/plans/NINE-DRAGON-STACK.md",
+    "docs/plans/PHYSICS-POLISH.md",
+    "docs/RUNNING.md",
+    "docs/SHARDS.md",
+    "docs/SUBAGENT-BRIEF.md",
+    "index.html",
+    "lint/ratchet.json",
+    "README.md",
+    "scripts/bake-cards.mjs",
+    "scripts/bake-chunk.mjs",
+    "scripts/bake-ktx2.mjs",
+    "scripts/bake-loader.mjs",
+    "scripts/bake-navmesh.mjs",
+    "scripts/bake-packs.mjs",
+    "scripts/bake-sky-keys.mjs",
+    "scripts/bake-sky.mjs",
+    "scripts/bake-textures.mjs",
+    "scripts/bench-shard-switch.mjs",
+    "scripts/blender/driftwood-isle/export.mjs",
+    "scripts/blender/driftwood-isle/fp-arms/bake.mjs",
+    "scripts/blender/lib/export-scene.mjs",
+    "scripts/blender/nine-dragon-stack/viewmodel/rig/check-clips.mjs",
+    "scripts/blender/pine-hollow/crags/build_cave.py",
+    "scripts/blender/pine-hollow/crags/build_crags_b.py",
+    "scripts/blender/pine-hollow/crags/build_crags.py",
+    "scripts/blender/pine-hollow/crags/export-cave.mjs",
+    "scripts/blender/pine-hollow/export.mjs",
+    "scripts/blender/pine-hollow/trees/treegen.py",
+    "scripts/blender/pine-hollow/weapons/lever_rifle.py",
+    "scripts/blender/targets.json",
+    "scripts/check-css.mjs",
+    "scripts/check-models.mjs",
+    "scripts/check-paths.allow.json",
+    "scripts/creature-lineup.mjs",
+    "scripts/debug-settings.mjs",
+    "scripts/e155-shard-switch.mjs",
+    "scripts/e350-hale-web.mjs",
+    "scripts/e350-king-measure.mjs",
+    "scripts/fetch-assets.mjs",
+    "scripts/fit-lut.py",
+    "scripts/img2mesh/birds/birds_fix_preview.mjs",
+    "scripts/img2mesh/driftwood_post.py",
+    "scripts/img2mesh/face_remaster.py",
+    "scripts/img2mesh/pine_hollow_phone.sh",
+    "scripts/inbox-pull.mjs",
+    "scripts/iphone-mem-reading.sh",
+    "scripts/king-rig-bake.mjs",
+    "scripts/king-rig-gate.mjs",
+    "scripts/model-spin.mjs",
+    "scripts/music/export-midi.mjs",
+    "scripts/music/gen/sfx_nalati.py",
+    "scripts/music/gen/sfx_sprite.py",
+    "scripts/music/render.mjs",
+    "scripts/nalati-hud-capture.mjs",
+    "scripts/nalati-panorama.py",
+    "scripts/nalati-ragdoll-check.mjs",
+    "scripts/nalati-reach.mjs",
+    "scripts/nalati-ride-b1.mjs",
+    "scripts/nalati-ride-physics.mjs",
+    "scripts/native-android-e2e.mjs",
+    "scripts/nine-dragon-budget.mjs",
+    "scripts/nine-dragon-domes.mjs",
+    "scripts/nine-dragon-gpu.mjs",
+    "scripts/nine-dragon-grapple-touch.mjs",
+    "scripts/nine-sim-memory.mjs",
+    "scripts/ota-release.mjs",
+    "scripts/pine-hollow-audio-wiring.mjs",
+    "scripts/pine-hollow-hero-shots.mjs",
+    "scripts/pine-hollow-perf-lap.mjs",
+    "scripts/pine-hollow-sound-gaps.mjs",
+    "scripts/pine-hollow-walkcheck.mjs",
+    "scripts/playground-hubs.mjs",
+    "scripts/practice/rig_dummy.py",
+    "scripts/practice/verify_unimate_skin.mjs",
+    "scripts/scorecard.mjs",
+    "scripts/sim-memory.mjs",
+    "scripts/tex-tiers.mjs",
+    "scripts/unused-assets.mjs",
+    "scripts/webkit-mem-reading.mjs",
+    "src/audio/Audio.ts",
+    "src/audio/audioLog.ts",
+    "src/audio/credits.ts",
+    "src/audio/dsp.ts",
+    "src/audio/ForestAmbience.ts",
+    "src/audio/gen.ts",
+    "src/audio/IslandAmbience.ts",
+    "src/audio/IslandSfx.ts",
+    "src/audio/Music.ts",
+    "src/audio/PineHollowSfx.ts",
+    "src/audio/preload.ts",
+    "src/audio/score/wildshard-theme.ts",
+    "src/audio/ShrineHum.ts",
+    "src/audio/Stems.ts",
+    "src/audio/SteppeAmbience.ts",
+    "src/audio/SteppeScore.ts",
+    "src/audio/Surface.ts",
+    "src/audio/Voices.ts",
+    "src/boot/art.generated.ts",
+    "src/boot/audio.generated.ts",
+    "src/boot/audioFiles.ts",
+    "src/boot/bakedTextures.ts",
+    "src/boot/bytes.generated.ts",
+    "src/boot/bytes.ts",
+    "src/boot/clearDownloads.ts",
+    "src/boot/entry.ts",
+    "src/boot/extras.ts",
+    "src/boot/gpu.generated.ts",
+    "src/boot/gpuFiles.ts",
+    "src/boot/lastEnd.ts",
+    "src/boot/manifest.ts",
+    "src/boot/nineBootTrace.ts",
+    "src/boot/nineGpuTrace.ts",
+    "src/boot/pack.ts",
+    "src/boot/packs.generated.ts",
+    "src/boot/perflog.ts",
+    "src/boot/plan.ts",
+    "src/boot/precompile.ts",
+    "src/boot/prefetch.ts",
+    "src/boot/shardPrefetch.ts",
+    "src/boot/shell.ts",
+    "src/boot/steps.ts",
+    "src/boot/stuck.ts",
+    "src/boot/sw.ts",
+    "src/boot/timing.ts",
+    "src/boot/titleArrival.ts",
+    "src/boot/versions.generated.ts",
+    "src/chunks/ChunkDef.ts",
+    "src/chunks/driftwood-isle.ts",
+    "src/chunks/driftwood-isle/firstMinutes.ts",
+    "src/chunks/driftwood-isle/fpArms.ts",
+    "src/chunks/driftwood-isle/models/boat.ts",
+    "src/chunks/driftwood-isle/models/captainHat.ts",
+    "src/chunks/driftwood-isle/models/cargo.ts",
+    "src/chunks/driftwood-isle/models/cove.ts",
+    "src/chunks/driftwood-isle/models/creatures.ts",
+    "src/chunks/driftwood-isle/models/driftLog.ts",
+    "src/chunks/driftwood-isle/models/gear.ts",
+    "src/chunks/driftwood-isle/models/hibiscusBush.ts",
+    "src/chunks/driftwood-isle/models/hut.ts",
+    "src/chunks/driftwood-isle/models/lookout.ts",
+    "src/chunks/driftwood-isle/models/palm.ts",
+    "src/chunks/driftwood-isle/models/people.ts",
+    "src/chunks/driftwood-isle/models/pier.ts",
+    "src/chunks/driftwood-isle/models/reef.ts",
+    "src/chunks/driftwood-isle/models/reefFish.ts",
+    "src/chunks/driftwood-isle/models/reefRock.ts",
+    "src/chunks/driftwood-isle/models/ropeBridge.ts",
+    "src/chunks/driftwood-isle/models/sailclothCape.ts",
+    "src/chunks/driftwood-isle/models/seaGlassChime.ts",
+    "src/chunks/driftwood-isle/models/shipwreck.ts",
+    "src/chunks/driftwood-isle/models/shoreBoulder.ts",
+    "src/chunks/driftwood-isle/models/shrine.ts",
+    "src/chunks/driftwood-isle/models/smallRock.ts",
+    "src/chunks/driftwood-isle/models/trader.ts",
+    "src/chunks/driftwood-isle/models/trailside.ts",
+    "src/chunks/driftwood-isle/models/trophyPlaques.ts",
+    "src/chunks/driftwood-isle/models/zipline.ts",
+    "src/chunks/driftwood-isle/roster.ts",
+    "src/chunks/driftwood-isle/world/places.ts",
+    "src/chunks/fauna-layout.ts",
+    "src/chunks/nalati-grasslands.ts",
+    "src/chunks/nalati-grasslands/models/ambientLife.ts",
+    "src/chunks/nalati-grasslands/models/balbal.ts",
+    "src/chunks/nalati-grasslands/models/campGenerated.ts",
+    "src/chunks/nalati-grasslands/models/campProps.ts",
+    "src/chunks/nalati-grasslands/models/cragLedge.ts",
+    "src/chunks/nalati-grasslands/models/cragRock.ts",
+    "src/chunks/nalati-grasslands/models/creatures.ts",
+    "src/chunks/nalati-grasslands/models/dressing.ts",
+    "src/chunks/nalati-grasslands/models/dressingProps.ts",
+    "src/chunks/nalati-grasslands/models/eagleRock.ts",
+    "src/chunks/nalati-grasslands/models/fence.ts",
+    "src/chunks/nalati-grasslands/models/fieldstone.ts",
+    "src/chunks/nalati-grasslands/models/gear.ts",
+    "src/chunks/nalati-grasslands/models/glacierSnout.ts",
+    "src/chunks/nalati-grasslands/models/herdHorse.ts",
+    "src/chunks/nalati-grasslands/models/kokparGoal.ts",
+    "src/chunks/nalati-grasslands/models/kokparPost.ts",
+    "src/chunks/nalati-grasslands/models/kokparRider.ts",
+    "src/chunks/nalati-grasslands/models/kunesBridge.ts",
+    "src/chunks/nalati-grasslands/models/kurganEntrance.ts",
+    "src/chunks/nalati-grasslands/models/kurganKerb.ts",
+    "src/chunks/nalati-grasslands/models/leopardCave.ts",
+    "src/chunks/nalati-grasslands/models/outcrop.ts",
+    "src/chunks/nalati-grasslands/models/people.ts",
+    "src/chunks/nalati-grasslands/models/reins.ts",
+    "src/chunks/nalati-grasslands/models/saddledHorse.ts",
+    "src/chunks/nalati-grasslands/models/signpost.ts",
+    "src/chunks/nalati-grasslands/models/snowLotus.ts",
+    "src/chunks/nalati-grasslands/models/stoneStep.ts",
+    "src/chunks/nalati-grasslands/models/watchtower.ts",
+    "src/chunks/nalati-grasslands/models/windCairn.ts",
+    "src/chunks/nalati-grasslands/models/yurt.ts",
+    "src/chunks/nalati-grasslands/roster.ts",
+    "src/chunks/nalatiEdge.ts",
+    "src/chunks/nalatiLayout.ts",
+    "src/chunks/nine-dragon-stack/bag.ts",
+    "src/chunks/nine-dragon-stack/def.ts",
+    "src/chunks/nine-dragon-stack/grapple/course.ts",
+    "src/chunks/nine-dragon-stack/grapple/fx.ts",
+    "src/chunks/nine-dragon-stack/grapple/line.ts",
+    "src/chunks/nine-dragon-stack/grapple/Traversal.ts",
+    "src/chunks/nine-dragon-stack/index.ts",
+    "src/chunks/nine-dragon-stack/layout.ts",
+    "src/chunks/nine-dragon-stack/look/emitters.ts",
+    "src/chunks/nine-dragon-stack/look/facadeMaterial.ts",
+    "src/chunks/nine-dragon-stack/look/glyphs.ts",
+    "src/chunks/nine-dragon-stack/look/lanterns.ts",
+    "src/chunks/nine-dragon-stack/look/light/glow.ts",
+    "src/chunks/nine-dragon-stack/look/light/grade.ts",
+    "src/chunks/nine-dragon-stack/look/light/halos.ts",
+    "src/chunks/nine-dragon-stack/look/light/install.ts",
+    "src/chunks/nine-dragon-stack/look/light/lightvol.ts",
+    "src/chunks/nine-dragon-stack/look/light/pools.ts",
+    "src/chunks/nine-dragon-stack/look/neonsigns.ts",
+    "src/chunks/nine-dragon-stack/look/paint.ts",
+    "src/chunks/nine-dragon-stack/look/render.ts",
+    "src/chunks/nine-dragon-stack/look/render/bleed.ts",
+    "src/chunks/nine-dragon-stack/look/render/haze.ts",
+    "src/chunks/nine-dragon-stack/look/render/jiehua.ts",
+    "src/chunks/nine-dragon-stack/look/render/reflect.ts",
+    "src/chunks/nine-dragon-stack/look/scroll.ts",
+    "src/chunks/nine-dragon-stack/look/signs.ts",
+    "src/chunks/nine-dragon-stack/look/specimenLight.ts",
+    "src/chunks/nine-dragon-stack/look/streaks.ts",
+    "src/chunks/nine-dragon-stack/look/style.ts",
+    "src/chunks/nine-dragon-stack/mockupCameras.ts",
+    "src/chunks/nine-dragon-stack/models/balustradePanel.ts",
+    "src/chunks/nine-dragon-stack/models/banyan.ts",
+    "src/chunks/nine-dragon-stack/models/bridgePosts.ts",
+    "src/chunks/nine-dragon-stack/models/crowd.ts",
+    "src/chunks/nine-dragon-stack/models/facade.ts",
+    "src/chunks/nine-dragon-stack/models/feiZhuaHook.ts",
+    "src/chunks/nine-dragon-stack/models/gear.ts",
+    "src/chunks/nine-dragon-stack/models/inKit.ts",
+    "src/chunks/nine-dragon-stack/models/landingPlanter.ts",
+    "src/chunks/nine-dragon-stack/models/laundry.ts",
+    "src/chunks/nine-dragon-stack/models/lion.ts",
+    "src/chunks/nine-dragon-stack/models/lotusFinial.ts",
+    "src/chunks/nine-dragon-stack/models/market.ts",
+    "src/chunks/nine-dragon-stack/models/movers.ts",
+    "src/chunks/nine-dragon-stack/models/paifang.ts",
+    "src/chunks/nine-dragon-stack/models/paperLantern.ts",
+    "src/chunks/nine-dragon-stack/models/signs.ts",
+    "src/chunks/nine-dragon-stack/models/stalls.ts",
+    "src/chunks/nine-dragon-stack/models/wallKit.ts",
+    "src/chunks/nine-dragon-stack/models/wellBalustrade.ts",
+    "src/chunks/nine-dragon-stack/places.ts",
+    "src/chunks/nine-dragon-stack/roster.ts",
+    "src/chunks/nine-dragon-stack/util.ts",
+    "src/chunks/nine-dragon-stack/vm/arms.ts",
+    "src/chunks/nine-dragon-stack/vm/cloth.ts",
+    "src/chunks/nine-dragon-stack/vm/fpArms.ts",
+    "src/chunks/nine-dragon-stack/vm/geo.ts",
+    "src/chunks/nine-dragon-stack/vm/jian.ts",
+    "src/chunks/nine-dragon-stack/vm/materials.ts",
+    "src/chunks/nine-dragon-stack/vm/rig.ts",
+    "src/chunks/nine-dragon-stack/vm/trail.ts",
+    "src/chunks/nine-dragon-stack/world/banyan.ts",
+    "src/chunks/nine-dragon-stack/world/build.ts",
+    "src/chunks/nine-dragon-stack/world/canopy.ts",
+    "src/chunks/nine-dragon-stack/world/colliders.ts",
+    "src/chunks/nine-dragon-stack/world/crowd.ts",
+    "src/chunks/nine-dragon-stack/world/ctx.ts",
+    "src/chunks/nine-dragon-stack/world/cull.ts",
+    "src/chunks/nine-dragon-stack/world/dressing.ts",
+    "src/chunks/nine-dragon-stack/world/facade/batch.ts",
+    "src/chunks/nine-dragon-stack/world/facade/geo.ts",
+    "src/chunks/nine-dragon-stack/world/facade/grammar.ts",
+    "src/chunks/nine-dragon-stack/world/facade/pieces.ts",
+    "src/chunks/nine-dragon-stack/world/facade/rng.ts",
+    "src/chunks/nine-dragon-stack/world/facades.ts",
+    "src/chunks/nine-dragon-stack/world/gate.ts",
+    "src/chunks/nine-dragon-stack/world/hero/figures.ts",
+    "src/chunks/nine-dragon-stack/world/hero/glb.ts",
+    "src/chunks/nine-dragon-stack/world/hero/kitx.ts",
+    "src/chunks/nine-dragon-stack/world/hero/vm-material.ts",
+    "src/chunks/nine-dragon-stack/world/hero/weapon-parts.ts",
+    "src/chunks/nine-dragon-stack/world/inKit.ts",
+    "src/chunks/nine-dragon-stack/world/jian.ts",
+    "src/chunks/nine-dragon-stack/world/kit.ts",
+    "src/chunks/nine-dragon-stack/world/lod.ts",
+    "src/chunks/nine-dragon-stack/world/modelLook.ts",
+    "src/chunks/nine-dragon-stack/world/props.ts",
+    "src/chunks/nine-dragon-stack/world/props3d.ts",
+    "src/chunks/nine-dragon-stack/world/sets.ts",
+    "src/chunks/nine-dragon-stack/world/square.ts",
+    "src/chunks/nine-dragon-stack/world/squareProps.ts",
+    "src/chunks/nine-dragon-stack/world/stairstreet-upper.ts",
+    "src/chunks/nine-dragon-stack/world/stairstreet.ts",
+    "src/chunks/nine-dragon-stack/world/stalls.ts",
+    "src/chunks/nine-dragon-stack/world/towers.ts",
+    "src/chunks/nine-dragon-stack/world/well-bridges.ts",
+    "src/chunks/nine-dragon-stack/world/well-galleries.ts",
+    "src/chunks/nine-dragon-stack/world/well-lower-deep.ts",
+    "src/chunks/nine-dragon-stack/world/well-lower-life.ts",
+    "src/chunks/nine-dragon-stack/world/well-lower.ts",
+    "src/chunks/nine-dragon-stack/world/well-mid.ts",
+    "src/chunks/nine-dragon-stack/world/well-plan.ts",
+    "src/chunks/nine-dragon-stack/world/well-rim.ts",
+    "src/chunks/nine-dragon-stack/world/well.ts",
+    "src/chunks/nine-dragon-stack/world/words.ts",
+    "src/chunks/pine-hollow.ts",
+    "src/chunks/pine-hollow/models/antlerKing.ts",
+    "src/chunks/pine-hollow/models/beaverDam.ts",
+    "src/chunks/pine-hollow/models/birds.ts",
+    "src/chunks/pine-hollow/models/canoe.ts",
+    "src/chunks/pine-hollow/models/caveArch.ts",
+    "src/chunks/pine-hollow/models/contractBoard.ts",
+    "src/chunks/pine-hollow/models/cragBoulder.ts",
+    "src/chunks/pine-hollow/models/cragCliff.ts",
+    "src/chunks/pine-hollow/models/creatures.ts",
+    "src/chunks/pine-hollow/models/creekFootbridge.ts",
+    "src/chunks/pine-hollow/models/fallenLog.ts",
+    "src/chunks/pine-hollow/models/fern.ts",
+    "src/chunks/pine-hollow/models/fireLookout.ts",
+    "src/chunks/pine-hollow/models/forestTree.ts",
+    "src/chunks/pine-hollow/models/gear.ts",
+    "src/chunks/pine-hollow/models/hamletShed.ts",
+    "src/chunks/pine-hollow/models/hatchet.ts",
+    "src/chunks/pine-hollow/models/hollowLog.ts",
+    "src/chunks/pine-hollow/models/huntingLodge.ts",
+    "src/chunks/pine-hollow/models/logCabin.ts",
+    "src/chunks/pine-hollow/models/millersHouse.ts",
+    "src/chunks/pine-hollow/models/moss.ts",
+    "src/chunks/pine-hollow/models/mossyBoulder.ts",
+    "src/chunks/pine-hollow/models/needleLitter.ts",
+    "src/chunks/pine-hollow/models/pebbles.ts",
+    "src/chunks/pine-hollow/models/people.ts",
+    "src/chunks/pine-hollow/models/porchLantern.ts",
+    "src/chunks/pine-hollow/models/reeds.ts",
+    "src/chunks/pine-hollow/models/scree.ts",
+    "src/chunks/pine-hollow/models/shrub.ts",
+    "src/chunks/pine-hollow/models/skinningKnife.ts",
+    "src/chunks/pine-hollow/models/standingStone.ts",
+    "src/chunks/pine-hollow/models/stoneFirePit.ts",
+    "src/chunks/pine-hollow/models/tokenShelf.ts",
+    "src/chunks/pine-hollow/models/traderStall.ts",
+    "src/chunks/pine-hollow/models/treeStump.ts",
+    "src/chunks/pine-hollow/models/watermill.ts",
+    "src/chunks/pine-hollow/models/waystone.ts",
+    "src/chunks/pine-hollow/models/wildlife.ts",
+    "src/chunks/pine-hollow/models/wineBarrel.ts",
+    "src/chunks/pine-hollow/models/woodenBucket.ts",
+    "src/chunks/pine-hollow/models/woodenCrate.ts",
+    "src/chunks/pine-hollow/models/zipCable.ts",
+    "src/chunks/pine-hollow/models/ziplineLanding.ts",
+    "src/chunks/pine-hollow/roster.ts",
+    "src/chunks/pine-hollow/world/cabinKit.ts",
+    "src/chunks/pine-hollow/world/cabins.ts",
+    "src/chunks/pine-hollow/world/context.ts",
+    "src/chunks/pine-hollow/world/cragKit.ts",
+    "src/chunks/pine-hollow/world/drawnModels.ts",
+    "src/chunks/pine-hollow/world/hero.ts",
+    "src/chunks/pine-hollow/world/places.ts",
+    "src/chunks/pine-hollow/world/props.ts",
+    "src/chunks/pine-hollow/world/timber.ts",
+    "src/chunks/pine-hollow/world/undergrowthKit.ts",
+    "src/chunks/pineHollowLayout.ts",
+    "src/chunks/registry.ts",
+    "src/chunks/terrain.ts",
+    "src/chunks/thumbs/driftwood-isle-landscape.jpg",
+    "src/chunks/thumbs/driftwood-isle-portrait.jpg",
+    "src/chunks/thumbs/driftwood-isle.jpg",
+    "src/chunks/thumbs/nalati-grasslands-landscape.jpg",
+    "src/chunks/thumbs/nalati-grasslands-portrait.jpg",
+    "src/chunks/thumbs/nalati-grasslands.jpg",
+    "src/chunks/thumbs/nine-dragon-stack-landscape.jpg",
+    "src/chunks/thumbs/nine-dragon-stack-portrait.jpg",
+    "src/chunks/thumbs/nine-dragon-stack.jpg",
+    "src/chunks/thumbs/pine-hollow-landscape.jpg",
+    "src/chunks/thumbs/pine-hollow-portrait.jpg",
+    "src/chunks/thumbs/pine-hollow.jpg",
+    "src/core/assets.ts",
+    "src/core/bootstrap.ts",
+    "src/core/config.ts",
+    "src/core/crashFlag.ts",
+    "src/core/devMode.ts",
+    "src/core/errorReport.ts",
+    "src/core/faults.ts",
+    "src/core/fixedStep.ts",
+    "src/core/frameCost.ts",
+    "src/core/Game.ts",
+    "src/core/gpuOnly.ts",
+    "src/core/GpuRecovery.ts",
+    "src/core/Grade.ts",
+    "src/core/harnessTap.ts",
+    "src/core/KeepAlive.ts",
+    "src/core/ktx2.ts",
+    "src/core/lifeTrace.ts",
+    "src/core/noise.ts",
+    "src/core/perfLap.ts",
+    "src/core/practiceRoom.ts",
+    "src/core/probe.ts",
+    "src/core/reloadGuard.ts",
+    "src/core/rng.ts",
+    "src/core/shadowLayer.ts",
+    "src/core/shardScope.ts",
+    "src/core/shardState.ts",
+    "src/core/tier.ts",
+    "src/core/time.ts",
+    "src/core/Tour.ts",
+    "src/core/viewport.ts",
+    "src/core/Volumetrics.ts",
+    "src/core/webglStartup.ts",
+    "src/core/worldDepth.ts",
+    "src/engine/audio/Audio.ts",
+    "src/engine/audio/audioLog.ts",
+    "src/engine/audio/credits.ts",
+    "src/engine/audio/dsp.ts",
+    "src/engine/audio/gen.ts",
+    "src/engine/audio/IslandSfx.ts",
+    "src/engine/audio/Music.ts",
+    "src/engine/audio/preload.ts",
+    "src/engine/audio/score/wildshard-theme.ts",
+    "src/engine/audio/Stems.ts",
+    "src/engine/audio/Surface.ts",
+    "src/engine/audio/Voices.ts",
+    "src/engine/boot/art.generated.ts",
+    "src/engine/boot/audio.generated.ts",
+    "src/engine/boot/audioFiles.ts",
+    "src/engine/boot/bakedTextures.ts",
+    "src/engine/boot/bytes.generated.ts",
+    "src/engine/boot/bytes.ts",
+    "src/engine/boot/clearDownloads.ts",
+    "src/engine/boot/extras.ts",
+    "src/engine/boot/gpu.generated.ts",
+    "src/engine/boot/gpuFiles.ts",
+    "src/engine/boot/lastEnd.ts",
+    "src/engine/boot/manifest.ts",
+    "src/engine/boot/nineBootTrace.ts",
+    "src/engine/boot/nineGpuTrace.ts",
+    "src/engine/boot/pack.ts",
+    "src/engine/boot/packs.generated.ts",
+    "src/engine/boot/perflog.ts",
+    "src/engine/boot/plan.ts",
+    "src/engine/boot/precompile.ts",
+    "src/engine/boot/prefetch.ts",
+    "src/engine/boot/shardPrefetch.ts",
+    "src/engine/boot/shell.ts",
+    "src/engine/boot/steps.ts",
+    "src/engine/boot/stuck.ts",
+    "src/engine/boot/sw.ts",
+    "src/engine/boot/timing.ts",
+    "src/engine/boot/titleArrival.ts",
+    "src/engine/boot/versions.generated.ts",
+    "src/engine/core/assets.ts",
+    "src/engine/core/bootstrap.ts",
+    "src/engine/core/config.ts",
+    "src/engine/core/crashFlag.ts",
+    "src/engine/core/devMode.ts",
+    "src/engine/core/errorReport.ts",
+    "src/engine/core/faults.ts",
+    "src/engine/core/fixedStep.ts",
+    "src/engine/core/frameCost.ts",
+    "src/engine/core/Game.ts",
+    "src/engine/core/gpuOnly.ts",
+    "src/engine/core/GpuRecovery.ts",
+    "src/engine/core/Grade.ts",
+    "src/engine/core/harnessTap.ts",
+    "src/engine/core/KeepAlive.ts",
+    "src/engine/core/ktx2.ts",
+    "src/engine/core/lifeTrace.ts",
+    "src/engine/core/noise.ts",
+    "src/engine/core/perfLap.ts",
+    "src/engine/core/practiceRoom.ts",
+    "src/engine/core/reloadGuard.ts",
+    "src/engine/core/rng.ts",
+    "src/engine/core/shadowLayer.ts",
+    "src/engine/core/shardScope.ts",
+    "src/engine/core/shardState.ts",
+    "src/engine/core/tier.ts",
+    "src/engine/core/time.ts",
+    "src/engine/core/Tour.ts",
+    "src/engine/core/viewport.ts",
+    "src/engine/core/Volumetrics.ts",
+    "src/engine/core/webglStartup.ts",
+    "src/engine/core/worldDepth.ts",
+    "src/engine/debug/probe.ts",
+    "src/engine/entities/Animal.ts",
+    "src/engine/entities/AnimalFactory.ts",
+    "src/engine/entities/AnimalManager.ts",
+    "src/engine/entities/animalMatrices.ts",
+    "src/engine/entities/animalShadow.ts",
+    "src/engine/entities/bearFix.ts",
+    "src/engine/entities/creatureCoats.ts",
+    "src/engine/entities/creatureKit.ts",
+    "src/engine/entities/creatureRigBake.ts",
+    "src/engine/entities/creatureRigs.ts",
+    "src/engine/entities/eliteBrain.ts",
+    "src/engine/entities/farHerd.ts",
+    "src/engine/entities/fightRules.ts",
+    "src/engine/entities/Flock.ts",
+    "src/engine/entities/glbCreatures.ts",
+    "src/engine/entities/Herd.ts",
+    "src/engine/entities/humanoidRigBake.ts",
+    "src/engine/entities/lowpoly.ts",
+    "src/engine/entities/Marmots.ts",
+    "src/engine/entities/Pack.ts",
+    "src/engine/entities/painterlyAnimals.ts",
+    "src/engine/entities/pineCoats.ts",
+    "src/engine/entities/pineCreatureRigs.ts",
+    "src/engine/entities/pineCreatures.ts",
+    "src/engine/entities/species/balbal.ts",
+    "src/engine/entities/species/bear.ts",
+    "src/engine/entities/species/boar.ts",
+    "src/engine/entities/species/captain.ts",
+    "src/engine/entities/species/captainMesh.ts",
+    "src/engine/entities/species/crab.ts",
+    "src/engine/entities/species/deer.ts",
+    "src/engine/entities/species/eagle.ts",
+    "src/engine/entities/species/elk.ts",
+    "src/engine/entities/species/ghostRider.ts",
+    "src/engine/entities/species/goldenKing.ts",
+    "src/engine/entities/species/horse.ts",
+    "src/engine/entities/species/kokbori.ts",
+    "src/engine/entities/species/kurganBalbal.ts",
+    "src/engine/entities/species/leopard.ts",
+    "src/engine/entities/species/loft.ts",
+    "src/engine/entities/species/monkey.ts",
+    "src/engine/entities/species/registry.ts",
+    "src/engine/entities/species/rigs.ts",
+    "src/engine/entities/species/sailor.ts",
+    "src/engine/entities/species/sheep.ts",
+    "src/engine/entities/species/sheepdog.ts",
+    "src/engine/entities/species/thrall.ts",
+    "src/engine/entities/species/wolf.ts",
+    "src/engine/entities/wildEnv.ts",
+    "src/engine/entities/Wildlife.ts",
+    "src/engine/explore/catalog.ts",
+    "src/engine/explore/Compare.ts",
+    "src/engine/explore/diorama.ts",
+    "src/engine/explore/Explore.ts",
+    "src/engine/explore/fatLines.ts",
+    "src/engine/explore/FreeCam.ts",
+    "src/engine/explore/img/mockups/driftwood-overlook-live.jpg",
+    "src/engine/explore/img/mockups/driftwood-overlook-target.jpg",
+    "src/engine/explore/img/mockups/driftwood-right-live.jpg",
+    "src/engine/explore/img/mockups/driftwood-right-target.jpg",
+    "src/engine/explore/img/mockups/driftwood-spawn-live.jpg",
+    "src/engine/explore/img/mockups/driftwood-spawn-target.jpg",
+    "src/engine/explore/img/mockups/nalati-camp-live.jpg",
+    "src/engine/explore/img/mockups/nalati-camp-target.jpg",
+    "src/engine/explore/img/mockups/nalati-gully-live.jpg",
+    "src/engine/explore/img/mockups/nalati-gully-target.jpg",
+    "src/engine/explore/img/mockups/nalati-rail-live.jpg",
+    "src/engine/explore/img/mockups/nalati-rail-target.jpg",
+    "src/engine/explore/img/mockups/nine-gate-live.jpg",
+    "src/engine/explore/img/mockups/nine-gate-target.jpg",
+    "src/engine/explore/img/mockups/nine-stair-live.jpg",
+    "src/engine/explore/img/mockups/nine-stair-target.jpg",
+    "src/engine/explore/img/mockups/pine-den-live.jpg",
+    "src/engine/explore/img/mockups/pine-den-target.jpg",
+    "src/engine/explore/img/mockups/pine-hamlet-live.jpg",
+    "src/engine/explore/img/mockups/pine-hamlet-target.jpg",
+    "src/engine/explore/img/mockups/pine-ridge-live.jpg",
+    "src/engine/explore/img/mockups/pine-ridge-target.jpg",
+    "src/engine/explore/MiniMap.ts",
+    "src/engine/explore/ModelExplorer.ts",
+    "src/engine/explore/pick.ts",
+    "src/engine/explore/registry.ts",
+    "src/engine/explore/Select.ts",
+    "src/engine/explore/SetExplorer.ts",
+    "src/engine/explore/setView.ts",
+    "src/engine/explore/tiers.ts",
+    "src/engine/explore/TouchFly.ts",
+    "src/engine/explore/viewPoint.ts",
+    "src/engine/fx/Impacts.ts",
+    "src/engine/fx/LightPool.ts",
+    "src/engine/models/colliders.ts",
+    "src/engine/models/creature.ts",
+    "src/engine/models/creatures.ts",
+    "src/engine/models/cull.ts",
+    "src/engine/models/gear.ts",
+    "src/engine/models/glb.ts",
+    "src/engine/models/hoverboard.ts",
+    "src/engine/models/hull.ts",
+    "src/engine/models/interact.ts",
+    "src/engine/models/live.ts",
+    "src/engine/models/model.ts",
+    "src/engine/models/place.ts",
+    "src/engine/models/roster.ts",
+    "src/engine/models/sets.ts",
+    "src/engine/models/slots.ts",
+    "src/engine/models/swimHands.ts",
+    "src/engine/models/trainingDummy.ts",
+    "src/engine/models/weld.ts",
+    "src/engine/native/boot.ts",
+    "src/engine/native/lifecycle.ts",
+    "src/engine/native/ota-config.ts",
+    "src/engine/native/ota.ts",
+    "src/engine/native/saves.ts",
+    "src/engine/native/updates.ts",
+    "src/engine/physics/active.ts",
+    "src/engine/physics/bodies.ts",
+    "src/engine/physics/bridge.ts",
+    "src/engine/physics/CharacterMotor.ts",
+    "src/engine/physics/creatures.ts",
+    "src/engine/physics/debug.ts",
+    "src/engine/physics/groups.ts",
+    "src/engine/physics/heightPatch.ts",
+    "src/engine/physics/navmesh.ts",
+    "src/engine/physics/navmeshUrl.ts",
+    "src/engine/physics/paths.ts",
+    "src/engine/physics/Physics.ts",
+    "src/engine/physics/pieces.ts",
+    "src/engine/physics/query.ts",
+    "src/engine/physics/ragdoll.ts",
+    "src/engine/physics/rapier-bg.d.ts",
+    "src/engine/physics/rapier.ts",
+    "src/engine/physics/rapierBindings.ts",
+    "src/engine/physics/ropeChain.ts",
+    "src/engine/physics/surface.ts",
+    "src/engine/physics/terrain.ts",
+    "src/engine/physics/trainingTargets.ts",
+    "src/engine/physics/wasmUrl.ts",
+    "src/engine/player/AimAssist.ts",
+    "src/engine/player/AimTargets.ts",
+    "src/engine/player/bladeGlow.ts",
+    "src/engine/player/BodyShadow.ts",
+    "src/engine/player/Bow.ts",
+    "src/engine/player/bowDraw.ts",
+    "src/engine/player/CameraFX.ts",
+    "src/engine/player/Cosmetics.ts",
+    "src/engine/player/Crossbow.ts",
+    "src/engine/player/Hands.ts",
+    "src/engine/player/Hoverboard.ts",
+    "src/engine/player/hunterHands.ts",
+    "src/engine/player/LockOnTarget.ts",
+    "src/engine/player/Longbow.ts",
+    "src/engine/player/MeleeSweep.ts",
+    "src/engine/player/nalatiArms.ts",
+    "src/engine/player/Player.ts",
+    "src/engine/player/Projectiles.ts",
+    "src/engine/player/riding.ts",
+    "src/engine/player/Rifle.ts",
+    "src/engine/player/Skins.ts",
+    "src/engine/player/Sword.ts",
+    "src/engine/player/SwordMoves.ts",
+    "src/engine/player/TouchControls.ts",
+    "src/engine/player/viewmodelTextures.ts",
+    "src/engine/player/viewmodelTextures.worker.ts",
+    "src/engine/player/WaterLine.ts",
+    "src/engine/player/Weapon.ts",
+    "src/engine/player/WeaponPickup.ts",
+    "src/engine/player/Weapons.ts",
+    "src/engine/practice/arena.css",
+    "src/engine/practice/DummyClips.ts",
+    "src/engine/practice/DummyMotion.ts",
+    "src/engine/practice/DummyStudio.ts",
+    "src/engine/practice/lineup.ts",
+    "src/engine/practice/playground/catalog.ts",
+    "src/engine/practice/playground/devGrid.ts",
+    "src/engine/practice/playground/hud.ts",
+    "src/engine/practice/playground/load.ts",
+    "src/engine/practice/playground/Playground.ts",
+    "src/engine/practice/TrainingArena.ts",
+    "src/engine/practice/TrainingDummy.ts",
+    "src/engine/practice/TrainingDummyAssets.ts",
+    "src/engine/pwa/sw.js",
+    "src/engine/shard/disposeListeners.ts",
+    "src/engine/shard/ShardHost.ts",
+    "src/engine/telemetry/bootInbox.ts",
+    "src/engine/telemetry/browserErrors.ts",
+    "src/engine/types/meshopt-simplifier.d.ts",
+    "src/engine/types/n8ao.d.ts",
+    "src/engine/ui/BootSettings.ts",
+    "src/engine/ui/BossBar.ts",
+    "src/engine/ui/cards.ts",
+    "src/engine/ui/Combat.ts",
+    "src/engine/ui/DeathFade.ts",
+    "src/engine/ui/DebugMenu.ts",
+    "src/engine/ui/debugOptions.ts",
+    "src/engine/ui/devSwitch.ts",
+    "src/engine/ui/EliteBar.ts",
+    "src/engine/ui/ErrorModal.ts",
+    "src/engine/ui/Feedback.ts",
+    "src/engine/ui/FirstHints.ts",
+    "src/engine/ui/haptics.ts",
+    "src/engine/ui/HUD.ts",
+    "src/engine/ui/hudSlots.ts",
+    "src/engine/ui/HurtArc.ts",
+    "src/engine/ui/icons.ts",
+    "src/engine/ui/loading.css",
+    "src/engine/ui/Loading.ts",
+    "src/engine/ui/LockOn.ts",
+    "src/engine/ui/Map.ts",
+    "src/engine/ui/mapShapes.ts",
+    "src/engine/ui/Menu.ts",
+    "src/engine/ui/Minimap.ts",
+    "src/engine/ui/perf.css",
+    "src/engine/ui/Perf.ts",
+    "src/engine/ui/perfHud.ts",
+    "src/engine/ui/perfLap.ts",
+    "src/engine/ui/perfLapSummary.ts",
+    "src/engine/ui/perfProbe.ts",
+    "src/engine/ui/ReloadPrompt.ts",
+    "src/engine/ui/Resume.ts",
+    "src/engine/ui/review.ts",
+    "src/engine/ui/roomMap.ts",
+    "src/engine/ui/RotateGate.ts",
+    "src/engine/ui/Settings.ts",
+    "src/engine/ui/SpeedLines.ts",
+    "src/engine/ui/StartTitle.ts",
+    "src/engine/ui/styles/base.css",
+    "src/engine/ui/styles/boss.css",
+    "src/engine/ui/styles/combat.css",
+    "src/engine/ui/styles/debug.css",
+    "src/engine/ui/styles/elite.css",
+    "src/engine/ui/styles/explore.css",
+    "src/engine/ui/styles/feedback.css",
+    "src/engine/ui/styles/game.css",
+    "src/engine/ui/styles/gmenu.css",
+    "src/engine/ui/styles/hints.css",
+    "src/engine/ui/styles/menu.css",
+    "src/engine/ui/styles/minimap.css",
+    "src/engine/ui/styles/playgrounds.css",
+    "src/engine/ui/styles/quest.css",
+    "src/engine/ui/styles/reload.css",
+    "src/engine/ui/styles/resume.css",
+    "src/engine/ui/styles/rotate.css",
+    "src/engine/ui/styles/touch.css",
+    "src/engine/ui/styles/update.css",
+    "src/engine/ui/ToastStack.ts",
+    "src/engine/ui/Update.ts",
+    "src/engine/ui/WeaponStrip.ts",
+    "src/engine/ui/WindupWarn.ts",
+    "src/engine/world/Atmosphere.ts",
+    "src/engine/world/BakedCards.ts",
+    "src/engine/world/BakedSky.ts",
+    "src/engine/world/BakedTerrain.ts",
+    "src/engine/world/blenderArea.ts",
+    "src/engine/world/Boundary.ts",
+    "src/engine/world/Cabin.ts",
+    "src/engine/world/cascadeCull.ts",
+    "src/engine/world/DayClock.ts",
+    "src/engine/world/DayNight.ts",
+    "src/engine/world/faceHeads.ts",
+    "src/engine/world/faunaLayout.ts",
+    "src/engine/world/forest/Forest.ts",
+    "src/engine/world/forest/placement.ts",
+    "src/engine/world/forest/treeSet.ts",
+    "src/engine/world/forest/treeSpecies.ts",
+    "src/engine/world/fx.ts",
+    "src/engine/world/Grass.ts",
+    "src/engine/world/Heightfield.ts",
+    "src/engine/world/Horizon.ts",
+    "src/engine/world/HorizonMatte.ts",
+    "src/engine/world/interact/flags.ts",
+    "src/engine/world/interact/Interactables.ts",
+    "src/engine/world/interact/models.ts",
+    "src/engine/world/interact/types.ts",
+    "src/engine/world/interact/validate.ts",
+    "src/engine/world/lookFlags.ts",
+    "src/engine/world/lowpolyKit.ts",
+    "src/engine/world/lut.ts",
+    "src/engine/world/painterly.ts",
+    "src/engine/world/PainterlySky.ts",
+    "src/engine/world/pointLightSkip.ts",
+    "src/engine/world/registry.ts",
+    "src/engine/world/shadowChunks.ts",
+    "src/engine/world/shadowFade.ts",
+    "src/engine/world/shadowFilter.ts",
+    "src/engine/world/shadowVariants.ts",
+    "src/engine/world/Sky.ts",
+    "src/engine/world/steppeWind.ts",
+    "src/engine/world/stylize.ts",
+    "src/engine/world/StylizedSky.ts",
+    "src/engine/world/Terrain.ts",
+    "src/engine/world/terrainField.ts",
+    "src/engine/world/TreeFactory.ts",
+    "src/engine/world/waterSurface.ts",
+    "src/engine/world/waves.ts",
+    "src/engine/world/wind.ts",
+    "src/engine/world/WorldClock.ts",
+    "src/entities/Animal.ts",
+    "src/entities/AnimalFactory.ts",
+    "src/entities/AnimalManager.ts",
+    "src/entities/animalMatrices.ts",
+    "src/entities/animalShadow.ts",
+    "src/entities/bearFix.ts",
+    "src/entities/creatureCoats.ts",
+    "src/entities/creatureKit.ts",
+    "src/entities/creatureRigBake.ts",
+    "src/entities/creatureRigs.ts",
+    "src/entities/eliteBrain.ts",
+    "src/entities/Enemies.ts",
+    "src/entities/farHerd.ts",
+    "src/entities/fightRules.ts",
+    "src/entities/Flock.ts",
+    "src/entities/glbCreatures.ts",
+    "src/entities/Herd.ts",
+    "src/entities/humanoidRigBake.ts",
+    "src/entities/lowpoly.ts",
+    "src/entities/Marmots.ts",
+    "src/entities/npc/Castaway.ts",
+    "src/entities/npc/Trader.ts",
+    "src/entities/Pack.ts",
+    "src/entities/painterlyAnimals.ts",
+    "src/entities/pineCoats.ts",
+    "src/entities/pineCreatureRigs.ts",
+    "src/entities/pineCreatures.ts",
+    "src/entities/species/balbal.ts",
+    "src/entities/species/bear.ts",
+    "src/entities/species/boar.ts",
+    "src/entities/species/captain.ts",
+    "src/entities/species/captainMesh.ts",
+    "src/entities/species/crab.ts",
+    "src/entities/species/deer.ts",
+    "src/entities/species/eagle.ts",
+    "src/entities/species/elk.ts",
+    "src/entities/species/ghostRider.ts",
+    "src/entities/species/goldenKing.ts",
+    "src/entities/species/horse.ts",
+    "src/entities/species/kokbori.ts",
+    "src/entities/species/kurganBalbal.ts",
+    "src/entities/species/leopard.ts",
+    "src/entities/species/loft.ts",
+    "src/entities/species/monkey.ts",
+    "src/entities/species/registry.ts",
+    "src/entities/species/rigs.ts",
+    "src/entities/species/sailor.ts",
+    "src/entities/species/sheep.ts",
+    "src/entities/species/sheepdog.ts",
+    "src/entities/species/thrall.ts",
+    "src/entities/species/wolf.ts",
+    "src/entities/wildEnv.ts",
+    "src/entities/Wildlife.ts",
+    "src/entry.ts",
+    "src/explore/catalog.ts",
+    "src/explore/Compare.ts",
+    "src/explore/diorama.ts",
+    "src/explore/Explore.ts",
+    "src/explore/fatLines.ts",
+    "src/explore/FreeCam.ts",
+    "src/explore/img/mockups/driftwood-overlook-live.jpg",
+    "src/explore/img/mockups/driftwood-overlook-target.jpg",
+    "src/explore/img/mockups/driftwood-right-live.jpg",
+    "src/explore/img/mockups/driftwood-right-target.jpg",
+    "src/explore/img/mockups/driftwood-spawn-live.jpg",
+    "src/explore/img/mockups/driftwood-spawn-target.jpg",
+    "src/explore/img/mockups/nalati-camp-live.jpg",
+    "src/explore/img/mockups/nalati-camp-target.jpg",
+    "src/explore/img/mockups/nalati-gully-live.jpg",
+    "src/explore/img/mockups/nalati-gully-target.jpg",
+    "src/explore/img/mockups/nalati-rail-live.jpg",
+    "src/explore/img/mockups/nalati-rail-target.jpg",
+    "src/explore/img/mockups/nine-gate-live.jpg",
+    "src/explore/img/mockups/nine-gate-target.jpg",
+    "src/explore/img/mockups/nine-stair-live.jpg",
+    "src/explore/img/mockups/nine-stair-target.jpg",
+    "src/explore/img/mockups/pine-den-live.jpg",
+    "src/explore/img/mockups/pine-den-target.jpg",
+    "src/explore/img/mockups/pine-hamlet-live.jpg",
+    "src/explore/img/mockups/pine-hamlet-target.jpg",
+    "src/explore/img/mockups/pine-ridge-live.jpg",
+    "src/explore/img/mockups/pine-ridge-target.jpg",
+    "src/explore/img/models-driftwood-isle.webp",
+    "src/explore/img/models-nalati-grasslands.webp",
+    "src/explore/img/models-nine-dragon-stack.webp",
+    "src/explore/img/models-pine-hollow.webp",
+    "src/explore/img/playground-grapple.webp",
+    "src/explore/img/playground-horse.webp",
+    "src/explore/img/practice-driftwood-isle.webp",
+    "src/explore/img/practice-nalati-grasslands.webp",
+    "src/explore/img/practice-nine-dragon-stack.webp",
+    "src/explore/img/practice-pine-hollow.webp",
+    "src/explore/img/sets-driftwood-isle.webp",
+    "src/explore/img/sets-nalati-grasslands.webp",
+    "src/explore/img/sets-nine-dragon-stack.webp",
+    "src/explore/img/sets-pine-hollow.webp",
+    "src/explore/img/world-driftwood-isle.webp",
+    "src/explore/img/world-nalati-grasslands.webp",
+    "src/explore/img/world-nine-dragon-stack.webp",
+    "src/explore/img/world-pine-hollow.webp",
+    "src/explore/MiniMap.ts",
+    "src/explore/ModelExplorer.ts",
+    "src/explore/pick.ts",
+    "src/explore/registry.ts",
+    "src/explore/Select.ts",
+    "src/explore/SetExplorer.ts",
+    "src/explore/setView.ts",
+    "src/explore/tiers.ts",
+    "src/explore/TouchFly.ts",
+    "src/explore/viewPoint.ts",
+    "src/fx/Impacts.ts",
+    "src/fx/LightPool.ts",
+    "src/game/achievements.ts",
+    "src/game/bag/bag.ts",
+    "src/game/bag/BagButton.ts",
+    "src/game/Boss.ts",
+    "src/game/compendium/compendium.css",
+    "src/game/compendium/finds.ts",
+    "src/game/compendium/install.ts",
+    "src/game/compendium/Journal.ts",
+    "src/game/compendium/registry.ts",
+    "src/game/compendium/state.ts",
+    "src/game/compendium/tracker.ts",
+    "src/game/compendium/types.ts",
+    "src/game/complete/complete.css",
+    "src/game/complete/ShardComplete.ts",
+    "src/game/Elite.ts",
+    "src/game/Inventory.ts",
+    "src/game/loot/CoinBurst.ts",
+    "src/game/loot/CoinChip.ts",
+    "src/game/loot/finds.ts",
+    "src/game/loot/install.ts",
+    "src/game/loot/keepsakes.ts",
+    "src/game/loot/loot.css",
+    "src/game/loot/Owned.ts",
+    "src/game/loot/perks.ts",
+    "src/game/loot/shop.ts",
+    "src/game/quest/Adventure.ts",
+    "src/game/quest/Complete.ts",
+    "src/game/quest/core.ts",
+    "src/game/quest/driftwood.ts",
+    "src/game/quest/Ecology.ts",
+    "src/game/quest/Feats.ts",
+    "src/game/quest/Finale.ts",
+    "src/game/quest/guards.ts",
+    "src/game/quest/gullGuide.ts",
+    "src/game/quest/nalati.ts",
+    "src/game/quest/Places.ts",
+    "src/game/quest/quest.ts",
+    "src/game/quest/QuestUI.ts",
+    "src/game/quest/Spine.ts",
+    "src/game/quest/TraderStall.ts",
+    "src/game/shard/manifest.ts",
+    "src/game/shard/registry.ts",
+    "src/game/Taming.ts",
+    "src/game/titleDeck.ts",
+    "src/game/travel/switch.ts",
+    "src/kit/looks/grassField.ts",
+    "src/kit/looks/particles.ts",
+    "src/kit/looks/trample.ts",
+    "src/kit/viewmodel/armRig.ts",
+    "src/kit/viewmodel/rigArms.ts",
+    "src/main.ts",
+    "src/meshopt-simplifier.d.ts",
+    "src/models/colliders.ts",
+    "src/models/creature.ts",
+    "src/models/creatures.ts",
+    "src/models/cull.ts",
+    "src/models/gear.ts",
+    "src/models/glb.ts",
+    "src/models/hoverboard.ts",
+    "src/models/hull.ts",
+    "src/models/interact.ts",
+    "src/models/live.ts",
+    "src/models/model.ts",
+    "src/models/place.ts",
+    "src/models/roster.ts",
+    "src/models/sets.ts",
+    "src/models/slots.ts",
+    "src/models/swimHands.ts",
+    "src/models/trainingDummy.ts",
+    "src/models/weld.ts",
+    "src/n8ao.d.ts",
+    "src/nalati/adventure.ts",
+    "src/nalati/bag.ts",
+    "src/nalati/balbalWarriors.ts",
+    "src/nalati/campPeople.ts",
+    "src/nalati/campPeopleModels.ts",
+    "src/nalati/cragRock.ts",
+    "src/nalati/elites.ts",
+    "src/nalati/ghostRiders.ts",
+    "src/nalati/index.ts",
+    "src/nalati/kokpar.ts",
+    "src/nalati/kurganBoss.ts",
+    "src/nalati/look/bake.ts",
+    "src/nalati/look/cloudSea.ts",
+    "src/nalati/look/fog.ts",
+    "src/nalati/look/grade.ts",
+    "src/nalati/look/grass.ts",
+    "src/nalati/look/horizon.ts",
+    "src/nalati/look/index.ts",
+    "src/nalati/look/light.ts",
+    "src/nalati/look/panoramaData.ts",
+    "src/nalati/look/sky.ts",
+    "src/nalati/look/tint.ts",
+    "src/nalati/look/zones.ts",
+    "src/nalati/nightEnemies.ts",
+    "src/nalati/nightFx.ts",
+    "src/nalati/outcrops.ts",
+    "src/nalati/ride.ts",
+    "src/nalati/sheepRaid.ts",
+    "src/nalati/sound.ts",
+    "src/nalati/stealth.ts",
+    "src/nalati/stormTitan.ts",
+    "src/nalati/stormTitanLook.ts",
+    "src/nalati/terrainSurface.ts",
+    "src/nalati/water.ts",
+    "src/nalati/weather.ts",
+    "src/nalati/wet.ts",
+    "src/native/boot.ts",
+    "src/native/lifecycle.ts",
+    "src/native/ota-config.ts",
+    "src/native/ota.ts",
+    "src/native/saves.ts",
+    "src/native/updates.ts",
+    "src/physics/active.ts",
+    "src/physics/bodies.ts",
+    "src/physics/bridge.ts",
+    "src/physics/CharacterMotor.ts",
+    "src/physics/creatures.ts",
+    "src/physics/debug.ts",
+    "src/physics/groups.ts",
+    "src/physics/heightPatch.ts",
+    "src/physics/navmesh.ts",
+    "src/physics/navmeshUrl.ts",
+    "src/physics/paths.ts",
+    "src/physics/Physics.ts",
+    "src/physics/pieces.ts",
+    "src/physics/query.ts",
+    "src/physics/ragdoll.ts",
+    "src/physics/rapier-bg.d.ts",
+    "src/physics/rapier.ts",
+    "src/physics/rapierBindings.ts",
+    "src/physics/ropeChain.ts",
+    "src/physics/surface.ts",
+    "src/physics/terrain.ts",
+    "src/physics/trainingTargets.ts",
+    "src/physics/wasmUrl.ts",
+    "src/pinehollow/ammo.ts",
+    "src/pinehollow/antlerKing.ts",
+    "src/pinehollow/audioWiring.ts",
+    "src/pinehollow/combatMath.ts",
+    "src/pinehollow/ctx.ts",
+    "src/pinehollow/elites.ts",
+    "src/pinehollow/feel.ts",
+    "src/pinehollow/finishes.ts",
+    "src/pinehollow/fxKit.ts",
+    "src/pinehollow/index.ts",
+    "src/pinehollow/kingRig.ts",
+    "src/pinehollow/life/birdFix.ts",
+    "src/pinehollow/life/birdModels.ts",
+    "src/pinehollow/life/index.ts",
+    "src/pinehollow/life/lifeMath.ts",
+    "src/pinehollow/life/trunks.ts",
+    "src/pinehollow/loadout.ts",
+    "src/pinehollow/perfLapHost.ts",
+    "src/pinehollow/quest/beats.ts",
+    "src/pinehollow/quest/contracts.ts",
+    "src/pinehollow/quest/hollowLog.ts",
+    "src/pinehollow/quest/index.ts",
+    "src/pinehollow/quest/nightThralls.ts",
+    "src/pinehollow/quest/npcModels.ts",
+    "src/pinehollow/quest/npcRig.ts",
+    "src/pinehollow/quest/rides.ts",
+    "src/pinehollow/quest/stagLead.ts",
+    "src/pinehollow/quest/table.ts",
+    "src/pinehollow/quest/tokenShelf.ts",
+    "src/pinehollow/quest/trades.ts",
+    "src/pinehollow/quest/ui.ts",
+    "src/pinehollow/quest/wardensHollow.ts",
+    "src/pinehollow/weather.ts",
+    "src/player/AimAssist.ts",
+    "src/player/AimTargets.ts",
+    "src/player/bladeGlow.ts",
+    "src/player/BodyShadow.ts",
+    "src/player/Bow.ts",
+    "src/player/bowDraw.ts",
+    "src/player/CameraFX.ts",
+    "src/player/Cosmetics.ts",
+    "src/player/Crossbow.ts",
+    "src/player/GoldenBow.ts",
+    "src/player/Hands.ts",
+    "src/player/horseNames.ts",
+    "src/player/Hoverboard.ts",
+    "src/player/hunterHands.ts",
+    "src/player/IronSword.ts",
+    "src/player/LeverRifle.ts",
+    "src/player/LockOnTarget.ts",
+    "src/player/Longbow.ts",
+    "src/player/meleeGeo.ts",
+    "src/player/MeleeSweep.ts",
+    "src/player/Mount.ts",
+    "src/player/Naizagai.ts",
+    "src/player/nalatiArms.ts",
+    "src/player/nalatiKit.ts",
+    "src/player/nalatiSkins.ts",
+    "src/player/Player.ts",
+    "src/player/Projectiles.ts",
+    "src/player/Reins.ts",
+    "src/player/rideAssist.ts",
+    "src/player/riding.ts",
+    "src/player/Rifle.ts",
+    "src/player/rigArms.ts",
+    "src/player/Sabre.ts",
+    "src/player/Skins.ts",
+    "src/player/Spear.ts",
+    "src/player/Sword.ts",
+    "src/player/SwordMoves.ts",
+    "src/player/TouchControls.ts",
+    "src/player/viewmodelTextures.ts",
+    "src/player/viewmodelTextures.worker.ts",
+    "src/player/WaterLine.ts",
+    "src/player/Weapon.ts",
+    "src/player/WeaponPickup.ts",
+    "src/player/Weapons.ts",
+    "src/playgrounds/catalog.ts",
+    "src/playgrounds/devGrid.ts",
+    "src/playgrounds/grappleCourse.ts",
+    "src/playgrounds/GrapplePlayground.ts",
+    "src/playgrounds/horseCourse.ts",
+    "src/playgrounds/HorsePlayground.ts",
+    "src/playgrounds/hud.ts",
+    "src/playgrounds/load.ts",
+    "src/playgrounds/Playground.ts",
+    "src/practice/arena.css",
+    "src/practice/DummyClips.ts",
+    "src/practice/DummyMotion.ts",
+    "src/practice/DummyStudio.ts",
+    "src/practice/lineup.ts",
+    "src/practice/TrainingArena.ts",
+    "src/practice/TrainingDummy.ts",
+    "src/practice/TrainingDummyAssets.ts",
+    "src/pwa/sw.js",
+    "src/shard/disposeListeners.ts",
+    "src/shard/ShardHost.ts",
+    "src/shard/switch.ts",
+    "src/shards/driftwood-isle/audio/ambience.ts",
+    "src/shards/driftwood-isle/audio/shrineHum.ts",
+    "src/shards/driftwood-isle/creatures/Enemies.ts",
+    "src/shards/driftwood-isle/explore/models-driftwood-isle.webp",
+    "src/shards/driftwood-isle/explore/practice-driftwood-isle.webp",
+    "src/shards/driftwood-isle/explore/sets-driftwood-isle.webp",
+    "src/shards/driftwood-isle/explore/world-driftwood-isle.webp",
+    "src/shards/driftwood-isle/firstMinutes.ts",
+    "src/shards/driftwood-isle/fpArms.ts",
+    "src/shards/driftwood-isle/loot/finds.ts",
+    "src/shards/driftwood-isle/loot/keepsakes.ts",
+    "src/shards/driftwood-isle/loot/perks.ts",
+    "src/shards/driftwood-isle/loot/shop.css",
+    "src/shards/driftwood-isle/loot/shop.ts",
+    "src/shards/driftwood-isle/loot/ShopPanel.ts",
+    "src/shards/driftwood-isle/manifest.ts",
+    "src/shards/driftwood-isle/models/boat.ts",
+    "src/shards/driftwood-isle/models/captainHat.ts",
+    "src/shards/driftwood-isle/models/cargo.ts",
+    "src/shards/driftwood-isle/models/cove.ts",
+    "src/shards/driftwood-isle/models/creatures.ts",
+    "src/shards/driftwood-isle/models/driftLog.ts",
+    "src/shards/driftwood-isle/models/gear.ts",
+    "src/shards/driftwood-isle/models/hibiscusBush.ts",
+    "src/shards/driftwood-isle/models/hut.ts",
+    "src/shards/driftwood-isle/models/lookout.ts",
+    "src/shards/driftwood-isle/models/palm.ts",
+    "src/shards/driftwood-isle/models/people.ts",
+    "src/shards/driftwood-isle/models/pier.ts",
+    "src/shards/driftwood-isle/models/reef.ts",
+    "src/shards/driftwood-isle/models/reefFish.ts",
+    "src/shards/driftwood-isle/models/reefRock.ts",
+    "src/shards/driftwood-isle/models/ropeBridge.ts",
+    "src/shards/driftwood-isle/models/sailclothCape.ts",
+    "src/shards/driftwood-isle/models/seaGlassChime.ts",
+    "src/shards/driftwood-isle/models/shipwreck.ts",
+    "src/shards/driftwood-isle/models/shoreBoulder.ts",
+    "src/shards/driftwood-isle/models/shrine.ts",
+    "src/shards/driftwood-isle/models/smallRock.ts",
+    "src/shards/driftwood-isle/models/trader.ts",
+    "src/shards/driftwood-isle/models/trailside.ts",
+    "src/shards/driftwood-isle/models/trophyPlaques.ts",
+    "src/shards/driftwood-isle/models/zipline.ts",
+    "src/shards/driftwood-isle/npc/Castaway.ts",
+    "src/shards/driftwood-isle/npc/Trader.ts",
+    "src/shards/driftwood-isle/quest/Complete.ts",
+    "src/shards/driftwood-isle/quest/Ecology.ts",
+    "src/shards/driftwood-isle/quest/Feats.ts",
+    "src/shards/driftwood-isle/quest/Finale.ts",
+    "src/shards/driftwood-isle/quest/guards.ts",
+    "src/shards/driftwood-isle/quest/gullGuide.ts",
+    "src/shards/driftwood-isle/quest/interactables.ts",
+    "src/shards/driftwood-isle/quest/Places.ts",
+    "src/shards/driftwood-isle/quest/questLine.ts",
+    "src/shards/driftwood-isle/quest/Spine.ts",
+    "src/shards/driftwood-isle/quest/TraderStall.ts",
+    "src/shards/driftwood-isle/roster.ts",
+    "src/shards/driftwood-isle/thumbs/driftwood-isle-landscape.jpg",
+    "src/shards/driftwood-isle/thumbs/driftwood-isle-portrait.jpg",
+    "src/shards/driftwood-isle/thumbs/driftwood-isle.jpg",
+    "src/shards/driftwood-isle/weapons/IronSword.ts",
+    "src/shards/driftwood-isle/world/BlenderIsland.ts",
+    "src/shards/driftwood-isle/world/Boat.ts",
+    "src/shards/driftwood-isle/world/Boulders.ts",
+    "src/shards/driftwood-isle/world/Bushes.ts",
+    "src/shards/driftwood-isle/world/Cove.ts",
+    "src/shards/driftwood-isle/world/coverTint.ts",
+    "src/shards/driftwood-isle/world/driftLogs.ts",
+    "src/shards/driftwood-isle/world/GroundCover.ts",
+    "src/shards/driftwood-isle/world/Gulls.ts",
+    "src/shards/driftwood-isle/world/Hut.ts",
+    "src/shards/driftwood-isle/world/Lookout.ts",
+    "src/shards/driftwood-isle/world/Ocean.ts",
+    "src/shards/driftwood-isle/world/Palms.ts",
+    "src/shards/driftwood-isle/world/Pier.ts",
+    "src/shards/driftwood-isle/world/places.ts",
+    "src/shards/driftwood-isle/world/rockKit.ts",
+    "src/shards/driftwood-isle/world/RopeBridge.ts",
+    "src/shards/driftwood-isle/world/Seabed.ts",
+    "src/shards/driftwood-isle/world/Shrine.ts",
+    "src/shards/driftwood-isle/world/Trailside.ts",
+    "src/shards/driftwood-isle/world/Waterfall.ts",
+    "src/shards/driftwood-isle/world/Wreck.ts",
+    "src/shards/driftwood-isle/world/Zipline.ts",
+    "src/shards/nalati-grasslands/adventure.ts",
+    "src/shards/nalati-grasslands/audio/SteppeAmbience.ts",
+    "src/shards/nalati-grasslands/audio/SteppeScore.ts",
+    "src/shards/nalati-grasslands/bag.ts",
+    "src/shards/nalati-grasslands/balbalWarriors.ts",
+    "src/shards/nalati-grasslands/campPeople.ts",
+    "src/shards/nalati-grasslands/campPeopleModels.ts",
+    "src/shards/nalati-grasslands/cragRock.ts",
+    "src/shards/nalati-grasslands/edge.ts",
+    "src/shards/nalati-grasslands/elites.ts",
+    "src/shards/nalati-grasslands/explore/models-nalati-grasslands.webp",
+    "src/shards/nalati-grasslands/explore/playground-horse.webp",
+    "src/shards/nalati-grasslands/explore/practice-nalati-grasslands.webp",
+    "src/shards/nalati-grasslands/explore/sets-nalati-grasslands.webp",
+    "src/shards/nalati-grasslands/explore/world-nalati-grasslands.webp",
+    "src/shards/nalati-grasslands/ghostRiders.ts",
+    "src/shards/nalati-grasslands/index.ts",
+    "src/shards/nalati-grasslands/kokpar.ts",
+    "src/shards/nalati-grasslands/kurganBoss.ts",
+    "src/shards/nalati-grasslands/layout.ts",
+    "src/shards/nalati-grasslands/look/bake.ts",
+    "src/shards/nalati-grasslands/look/cloudSea.ts",
+    "src/shards/nalati-grasslands/look/fog.ts",
+    "src/shards/nalati-grasslands/look/grade.ts",
+    "src/shards/nalati-grasslands/look/grass.ts",
+    "src/shards/nalati-grasslands/look/horizon.ts",
+    "src/shards/nalati-grasslands/look/index.ts",
+    "src/shards/nalati-grasslands/look/light.ts",
+    "src/shards/nalati-grasslands/look/nalatiTextures.ts",
+    "src/shards/nalati-grasslands/look/panoramaData.ts",
+    "src/shards/nalati-grasslands/look/sky.ts",
+    "src/shards/nalati-grasslands/look/tint.ts",
+    "src/shards/nalati-grasslands/look/zones.ts",
+    "src/shards/nalati-grasslands/manifest.ts",
+    "src/shards/nalati-grasslands/models/ambientLife.ts",
+    "src/shards/nalati-grasslands/models/balbal.ts",
+    "src/shards/nalati-grasslands/models/campGenerated.ts",
+    "src/shards/nalati-grasslands/models/campProps.ts",
+    "src/shards/nalati-grasslands/models/cragLedge.ts",
+    "src/shards/nalati-grasslands/models/cragRock.ts",
+    "src/shards/nalati-grasslands/models/creatures.ts",
+    "src/shards/nalati-grasslands/models/dressing.ts",
+    "src/shards/nalati-grasslands/models/dressingProps.ts",
+    "src/shards/nalati-grasslands/models/eagleRock.ts",
+    "src/shards/nalati-grasslands/models/fence.ts",
+    "src/shards/nalati-grasslands/models/fieldstone.ts",
+    "src/shards/nalati-grasslands/models/gear.ts",
+    "src/shards/nalati-grasslands/models/glacierSnout.ts",
+    "src/shards/nalati-grasslands/models/herdHorse.ts",
+    "src/shards/nalati-grasslands/models/kokparGoal.ts",
+    "src/shards/nalati-grasslands/models/kokparPost.ts",
+    "src/shards/nalati-grasslands/models/kokparRider.ts",
+    "src/shards/nalati-grasslands/models/kunesBridge.ts",
+    "src/shards/nalati-grasslands/models/kurganEntrance.ts",
+    "src/shards/nalati-grasslands/models/kurganKerb.ts",
+    "src/shards/nalati-grasslands/models/leopardCave.ts",
+    "src/shards/nalati-grasslands/models/outcrop.ts",
+    "src/shards/nalati-grasslands/models/people.ts",
+    "src/shards/nalati-grasslands/models/reins.ts",
+    "src/shards/nalati-grasslands/models/saddledHorse.ts",
+    "src/shards/nalati-grasslands/models/signpost.ts",
+    "src/shards/nalati-grasslands/models/snowLotus.ts",
+    "src/shards/nalati-grasslands/models/stoneStep.ts",
+    "src/shards/nalati-grasslands/models/watchtower.ts",
+    "src/shards/nalati-grasslands/models/windCairn.ts",
+    "src/shards/nalati-grasslands/models/yurt.ts",
+    "src/shards/nalati-grasslands/nightEnemies.ts",
+    "src/shards/nalati-grasslands/nightFx.ts",
+    "src/shards/nalati-grasslands/outcrops.ts",
+    "src/shards/nalati-grasslands/playground/horseCourse.ts",
+    "src/shards/nalati-grasslands/playground/HorsePlayground.ts",
+    "src/shards/nalati-grasslands/quest.ts",
+    "src/shards/nalati-grasslands/ride/HorseNamePrompt.ts",
+    "src/shards/nalati-grasslands/ride/horseNames.ts",
+    "src/shards/nalati-grasslands/ride/Mount.ts",
+    "src/shards/nalati-grasslands/ride/Reins.ts",
+    "src/shards/nalati-grasslands/ride/ride.css",
+    "src/shards/nalati-grasslands/ride/ride.ts",
+    "src/shards/nalati-grasslands/ride/rideAssist.ts",
+    "src/shards/nalati-grasslands/ride/RideHUD.ts",
+    "src/shards/nalati-grasslands/ride/Taming.ts",
+    "src/shards/nalati-grasslands/roster.ts",
+    "src/shards/nalati-grasslands/sheepRaid.ts",
+    "src/shards/nalati-grasslands/sound.ts",
+    "src/shards/nalati-grasslands/stealth.css",
+    "src/shards/nalati-grasslands/stealth.ts",
+    "src/shards/nalati-grasslands/stormTitan.ts",
+    "src/shards/nalati-grasslands/stormTitanLook.ts",
+    "src/shards/nalati-grasslands/terrainSurface.ts",
+    "src/shards/nalati-grasslands/thumbs/nalati-grasslands-landscape.jpg",
+    "src/shards/nalati-grasslands/thumbs/nalati-grasslands-portrait.jpg",
+    "src/shards/nalati-grasslands/thumbs/nalati-grasslands.jpg",
+    "src/shards/nalati-grasslands/water.ts",
+    "src/shards/nalati-grasslands/weapons/GoldenBow.ts",
+    "src/shards/nalati-grasslands/weapons/meleeGeo.ts",
+    "src/shards/nalati-grasslands/weapons/Naizagai.ts",
+    "src/shards/nalati-grasslands/weapons/nalatiKit.ts",
+    "src/shards/nalati-grasslands/weapons/nalatiSkins.ts",
+    "src/shards/nalati-grasslands/weapons/Sabre.ts",
+    "src/shards/nalati-grasslands/weapons/Spear.ts",
+    "src/shards/nalati-grasslands/weather.ts",
+    "src/shards/nalati-grasslands/wet.ts",
+    "src/shards/nalati-grasslands/world/Balbals.ts",
+    "src/shards/nalati-grasslands/world/Bowl.ts",
+    "src/shards/nalati-grasslands/world/Bridge.ts",
+    "src/shards/nalati-grasslands/world/Cairn.ts",
+    "src/shards/nalati-grasslands/world/clearings.ts",
+    "src/shards/nalati-grasslands/world/Crags.ts",
+    "src/shards/nalati-grasslands/world/dressing/index.ts",
+    "src/shards/nalati-grasslands/world/dressing/layer.ts",
+    "src/shards/nalati-grasslands/world/dressing/life.ts",
+    "src/shards/nalati-grasslands/world/dressing/place.ts",
+    "src/shards/nalati-grasslands/world/dressing/statics.ts",
+    "src/shards/nalati-grasslands/world/EagleRock.ts",
+    "src/shards/nalati-grasslands/world/Flutter.ts",
+    "src/shards/nalati-grasslands/world/glbPaint.ts",
+    "src/shards/nalati-grasslands/world/granite.ts",
+    "src/shards/nalati-grasslands/world/index.ts",
+    "src/shards/nalati-grasslands/world/KurganDungeon.ts",
+    "src/shards/nalati-grasslands/world/KurganField.ts",
+    "src/shards/nalati-grasslands/world/layout.ts",
+    "src/shards/nalati-grasslands/world/NomadCamp.ts",
+    "src/shards/nalati-grasslands/world/paint.ts",
+    "src/shards/nalati-grasslands/world/painted.ts",
+    "src/shards/nalati-grasslands/world/places.ts",
+    "src/shards/nalati-grasslands/world/props.ts",
+    "src/shards/nalati-grasslands/world/RoadFurniture.ts",
+    "src/shards/nalati-grasslands/world/Smoke.ts",
+    "src/shards/nalati-grasslands/world/solid.ts",
+    "src/shards/nalati-grasslands/world/Spruce.ts",
+    "src/shards/nalati-grasslands/world/Stair.ts",
+    "src/shards/nalati-grasslands/world/SummerCamp.ts",
+    "src/shards/nalati-grasslands/world/types.ts",
+    "src/shards/nalati-grasslands/world/Weather.ts",
+    "src/shards/nalati-grasslands/world/WeatherFX.ts",
+    "src/shards/nalati-grasslands/world/Yard.ts",
+    "src/shards/nine-dragon-stack/bag.ts",
+    "src/shards/nine-dragon-stack/explore/models-nine-dragon-stack.webp",
+    "src/shards/nine-dragon-stack/explore/playground-grapple.webp",
+    "src/shards/nine-dragon-stack/explore/practice-nine-dragon-stack.webp",
+    "src/shards/nine-dragon-stack/explore/sets-nine-dragon-stack.webp",
+    "src/shards/nine-dragon-stack/explore/world-nine-dragon-stack.webp",
+    "src/shards/nine-dragon-stack/grapple/course.ts",
+    "src/shards/nine-dragon-stack/grapple/FeiZhua.ts",
+    "src/shards/nine-dragon-stack/grapple/fx.ts",
+    "src/shards/nine-dragon-stack/grapple/line.ts",
+    "src/shards/nine-dragon-stack/layout.ts",
+    "src/shards/nine-dragon-stack/look/emitters.ts",
+    "src/shards/nine-dragon-stack/look/facadeMaterial.ts",
+    "src/shards/nine-dragon-stack/look/glyphs.ts",
+    "src/shards/nine-dragon-stack/look/lanterns.ts",
+    "src/shards/nine-dragon-stack/look/light/glow.ts",
+    "src/shards/nine-dragon-stack/look/light/grade.ts",
+    "src/shards/nine-dragon-stack/look/light/halos.ts",
+    "src/shards/nine-dragon-stack/look/light/install.ts",
+    "src/shards/nine-dragon-stack/look/light/lightvol.ts",
+    "src/shards/nine-dragon-stack/look/light/pools.ts",
+    "src/shards/nine-dragon-stack/look/neonsigns.ts",
+    "src/shards/nine-dragon-stack/look/paint.ts",
+    "src/shards/nine-dragon-stack/look/render.ts",
+    "src/shards/nine-dragon-stack/look/render/bleed.ts",
+    "src/shards/nine-dragon-stack/look/render/haze.ts",
+    "src/shards/nine-dragon-stack/look/render/jiehua.ts",
+    "src/shards/nine-dragon-stack/look/render/reflect.ts",
+    "src/shards/nine-dragon-stack/look/scroll.ts",
+    "src/shards/nine-dragon-stack/look/signs.ts",
+    "src/shards/nine-dragon-stack/look/specimenLight.ts",
+    "src/shards/nine-dragon-stack/look/streaks.ts",
+    "src/shards/nine-dragon-stack/look/style.ts",
+    "src/shards/nine-dragon-stack/manifest.ts",
+    "src/shards/nine-dragon-stack/mockupCameras.ts",
+    "src/shards/nine-dragon-stack/models/balustradePanel.ts",
+    "src/shards/nine-dragon-stack/models/banyan.ts",
+    "src/shards/nine-dragon-stack/models/bridgePosts.ts",
+    "src/shards/nine-dragon-stack/models/crowd.ts",
+    "src/shards/nine-dragon-stack/models/facade.ts",
+    "src/shards/nine-dragon-stack/models/feiZhuaHook.ts",
+    "src/shards/nine-dragon-stack/models/gear.ts",
+    "src/shards/nine-dragon-stack/models/inKit.ts",
+    "src/shards/nine-dragon-stack/models/landingPlanter.ts",
+    "src/shards/nine-dragon-stack/models/laundry.ts",
+    "src/shards/nine-dragon-stack/models/lion.ts",
+    "src/shards/nine-dragon-stack/models/lotusFinial.ts",
+    "src/shards/nine-dragon-stack/models/market.ts",
+    "src/shards/nine-dragon-stack/models/movers.ts",
+    "src/shards/nine-dragon-stack/models/paifang.ts",
+    "src/shards/nine-dragon-stack/models/paperLantern.ts",
+    "src/shards/nine-dragon-stack/models/signs.ts",
+    "src/shards/nine-dragon-stack/models/stalls.ts",
+    "src/shards/nine-dragon-stack/models/wallKit.ts",
+    "src/shards/nine-dragon-stack/models/wellBalustrade.ts",
+    "src/shards/nine-dragon-stack/places.ts",
+    "src/shards/nine-dragon-stack/playground/grappleCourse.ts",
+    "src/shards/nine-dragon-stack/playground/GrapplePlayground.ts",
+    "src/shards/nine-dragon-stack/roster.ts",
+    "src/shards/nine-dragon-stack/thumbs/nine-dragon-stack-landscape.jpg",
+    "src/shards/nine-dragon-stack/thumbs/nine-dragon-stack-portrait.jpg",
+    "src/shards/nine-dragon-stack/thumbs/nine-dragon-stack.jpg",
+    "src/shards/nine-dragon-stack/util.ts",
+    "src/shards/nine-dragon-stack/vm/arms.ts",
+    "src/shards/nine-dragon-stack/vm/cloth.ts",
+    "src/shards/nine-dragon-stack/vm/fpArms.ts",
+    "src/shards/nine-dragon-stack/vm/geo.ts",
+    "src/shards/nine-dragon-stack/vm/jian.ts",
+    "src/shards/nine-dragon-stack/vm/materials.ts",
+    "src/shards/nine-dragon-stack/vm/trail.ts",
+    "src/shards/nine-dragon-stack/world/banyan.ts",
+    "src/shards/nine-dragon-stack/world/build.ts",
+    "src/shards/nine-dragon-stack/world/canopy.ts",
+    "src/shards/nine-dragon-stack/world/colliders.ts",
+    "src/shards/nine-dragon-stack/world/crowd.ts",
+    "src/shards/nine-dragon-stack/world/ctx.ts",
+    "src/shards/nine-dragon-stack/world/cull.ts",
+    "src/shards/nine-dragon-stack/world/dressing.ts",
+    "src/shards/nine-dragon-stack/world/facade/batch.ts",
+    "src/shards/nine-dragon-stack/world/facade/geo.ts",
+    "src/shards/nine-dragon-stack/world/facade/grammar.ts",
+    "src/shards/nine-dragon-stack/world/facade/pieces.ts",
+    "src/shards/nine-dragon-stack/world/facade/rng.ts",
+    "src/shards/nine-dragon-stack/world/facades.ts",
+    "src/shards/nine-dragon-stack/world/gate.ts",
+    "src/shards/nine-dragon-stack/world/hero/figures.ts",
+    "src/shards/nine-dragon-stack/world/hero/glb.ts",
+    "src/shards/nine-dragon-stack/world/hero/kitx.ts",
+    "src/shards/nine-dragon-stack/world/hero/vm-material.ts",
+    "src/shards/nine-dragon-stack/world/hero/weapon-parts.ts",
+    "src/shards/nine-dragon-stack/world/inKit.ts",
+    "src/shards/nine-dragon-stack/world/install.ts",
+    "src/shards/nine-dragon-stack/world/jian.ts",
+    "src/shards/nine-dragon-stack/world/kit.ts",
+    "src/shards/nine-dragon-stack/world/lod.ts",
+    "src/shards/nine-dragon-stack/world/modelLook.ts",
+    "src/shards/nine-dragon-stack/world/props.ts",
+    "src/shards/nine-dragon-stack/world/props3d.ts",
+    "src/shards/nine-dragon-stack/world/sets.ts",
+    "src/shards/nine-dragon-stack/world/square.ts",
+    "src/shards/nine-dragon-stack/world/squareProps.ts",
+    "src/shards/nine-dragon-stack/world/stairstreet-upper.ts",
+    "src/shards/nine-dragon-stack/world/stairstreet.ts",
+    "src/shards/nine-dragon-stack/world/stalls.ts",
+    "src/shards/nine-dragon-stack/world/towers.ts",
+    "src/shards/nine-dragon-stack/world/well-bridges.ts",
+    "src/shards/nine-dragon-stack/world/well-galleries.ts",
+    "src/shards/nine-dragon-stack/world/well-lower-deep.ts",
+    "src/shards/nine-dragon-stack/world/well-lower-life.ts",
+    "src/shards/nine-dragon-stack/world/well-lower.ts",
+    "src/shards/nine-dragon-stack/world/well-mid.ts",
+    "src/shards/nine-dragon-stack/world/well-plan.ts",
+    "src/shards/nine-dragon-stack/world/well-rim.ts",
+    "src/shards/nine-dragon-stack/world/well.ts",
+    "src/shards/nine-dragon-stack/world/words.ts",
+    "src/shards/pine-hollow/audio/ambience.ts",
+    "src/shards/pine-hollow/audio/sfx.ts",
+    "src/shards/pine-hollow/audio/wiring.ts",
+    "src/shards/pine-hollow/combat/antlerKing.ts",
+    "src/shards/pine-hollow/combat/combatMath.ts",
+    "src/shards/pine-hollow/combat/ctx.ts",
+    "src/shards/pine-hollow/combat/elites.ts",
+    "src/shards/pine-hollow/combat/feel.ts",
+    "src/shards/pine-hollow/combat/fxKit.ts",
+    "src/shards/pine-hollow/combat/install.ts",
+    "src/shards/pine-hollow/combat/kingRig.ts",
+    "src/shards/pine-hollow/compendium.ts",
+    "src/shards/pine-hollow/dev/perfLap.ts",
+    "src/shards/pine-hollow/explore/models-pine-hollow.webp",
+    "src/shards/pine-hollow/explore/practice-pine-hollow.webp",
+    "src/shards/pine-hollow/explore/sets-pine-hollow.webp",
+    "src/shards/pine-hollow/explore/world-pine-hollow.webp",
+    "src/shards/pine-hollow/layout.ts",
+    "src/shards/pine-hollow/life/birdFix.ts",
+    "src/shards/pine-hollow/life/birdModels.ts",
+    "src/shards/pine-hollow/life/index.ts",
+    "src/shards/pine-hollow/life/lifeMath.ts",
+    "src/shards/pine-hollow/life/trunks.ts",
+    "src/shards/pine-hollow/loadout/ammo.ts",
+    "src/shards/pine-hollow/loadout/finishes.ts",
+    "src/shards/pine-hollow/loadout/loadout.ts",
+    "src/shards/pine-hollow/look/PineDayNight.ts",
+    "src/shards/pine-hollow/look/skyKeys.ts",
+    "src/shards/pine-hollow/manifest.ts",
+    "src/shards/pine-hollow/models/antlerKing.ts",
+    "src/shards/pine-hollow/models/beaverDam.ts",
+    "src/shards/pine-hollow/models/birds.ts",
+    "src/shards/pine-hollow/models/canoe.ts",
+    "src/shards/pine-hollow/models/caveArch.ts",
+    "src/shards/pine-hollow/models/contractBoard.ts",
+    "src/shards/pine-hollow/models/cragBoulder.ts",
+    "src/shards/pine-hollow/models/cragCliff.ts",
+    "src/shards/pine-hollow/models/creatures.ts",
+    "src/shards/pine-hollow/models/creekFootbridge.ts",
+    "src/shards/pine-hollow/models/fallenLog.ts",
+    "src/shards/pine-hollow/models/fern.ts",
+    "src/shards/pine-hollow/models/fireLookout.ts",
+    "src/shards/pine-hollow/models/forestTree.ts",
+    "src/shards/pine-hollow/models/gear.ts",
+    "src/shards/pine-hollow/models/hamletShed.ts",
+    "src/shards/pine-hollow/models/hatchet.ts",
+    "src/shards/pine-hollow/models/hollowLog.ts",
+    "src/shards/pine-hollow/models/huntingLodge.ts",
+    "src/shards/pine-hollow/models/logCabin.ts",
+    "src/shards/pine-hollow/models/millersHouse.ts",
+    "src/shards/pine-hollow/models/moss.ts",
+    "src/shards/pine-hollow/models/mossyBoulder.ts",
+    "src/shards/pine-hollow/models/needleLitter.ts",
+    "src/shards/pine-hollow/models/pebbles.ts",
+    "src/shards/pine-hollow/models/people.ts",
+    "src/shards/pine-hollow/models/porchLantern.ts",
+    "src/shards/pine-hollow/models/reeds.ts",
+    "src/shards/pine-hollow/models/scree.ts",
+    "src/shards/pine-hollow/models/shrub.ts",
+    "src/shards/pine-hollow/models/skinningKnife.ts",
+    "src/shards/pine-hollow/models/standingStone.ts",
+    "src/shards/pine-hollow/models/stoneFirePit.ts",
+    "src/shards/pine-hollow/models/tokenShelf.ts",
+    "src/shards/pine-hollow/models/traderStall.ts",
+    "src/shards/pine-hollow/models/treeStump.ts",
+    "src/shards/pine-hollow/models/watermill.ts",
+    "src/shards/pine-hollow/models/waystone.ts",
+    "src/shards/pine-hollow/models/wildlife.ts",
+    "src/shards/pine-hollow/models/wineBarrel.ts",
+    "src/shards/pine-hollow/models/woodenBucket.ts",
+    "src/shards/pine-hollow/models/woodenCrate.ts",
+    "src/shards/pine-hollow/models/zipCable.ts",
+    "src/shards/pine-hollow/models/ziplineLanding.ts",
+    "src/shards/pine-hollow/quest/beats.ts",
+    "src/shards/pine-hollow/quest/contracts.ts",
+    "src/shards/pine-hollow/quest/hollowLog.ts",
+    "src/shards/pine-hollow/quest/index.ts",
+    "src/shards/pine-hollow/quest/nightThralls.ts",
+    "src/shards/pine-hollow/quest/npcModels.ts",
+    "src/shards/pine-hollow/quest/npcRig.ts",
+    "src/shards/pine-hollow/quest/pinehollow.css",
+    "src/shards/pine-hollow/quest/rides.ts",
+    "src/shards/pine-hollow/quest/stagLead.ts",
+    "src/shards/pine-hollow/quest/table.ts",
+    "src/shards/pine-hollow/quest/tokenShelf.ts",
+    "src/shards/pine-hollow/quest/trades.ts",
+    "src/shards/pine-hollow/quest/ui.ts",
+    "src/shards/pine-hollow/quest/wardensHollow.ts",
+    "src/shards/pine-hollow/roster.ts",
+    "src/shards/pine-hollow/thumbs/pine-hollow-landscape.jpg",
+    "src/shards/pine-hollow/thumbs/pine-hollow-portrait.jpg",
+    "src/shards/pine-hollow/thumbs/pine-hollow.jpg",
+    "src/shards/pine-hollow/weapons/LeverRifle.ts",
+    "src/shards/pine-hollow/world/beaverPool.ts",
+    "src/shards/pine-hollow/world/cabinKit.ts",
+    "src/shards/pine-hollow/world/cabins.ts",
+    "src/shards/pine-hollow/world/context.ts",
+    "src/shards/pine-hollow/world/cragKit.ts",
+    "src/shards/pine-hollow/world/crags.ts",
+    "src/shards/pine-hollow/world/drawnModels.ts",
+    "src/shards/pine-hollow/world/hero.ts",
+    "src/shards/pine-hollow/world/heroFiles.ts",
+    "src/shards/pine-hollow/world/landmarks.ts",
+    "src/shards/pine-hollow/world/PineWeather.ts",
+    "src/shards/pine-hollow/world/PineWeatherFX.ts",
+    "src/shards/pine-hollow/world/places.ts",
+    "src/shards/pine-hollow/world/pond.ts",
+    "src/shards/pine-hollow/world/props.ts",
+    "src/shards/pine-hollow/world/streams.ts",
+    "src/shards/pine-hollow/world/timber.ts",
+    "src/shards/pine-hollow/world/trophyWall.ts",
+    "src/shards/pine-hollow/world/undergrowth.ts",
+    "src/shards/pine-hollow/world/undergrowthKit.ts",
+    "src/shards/pine-hollow/world/weather.ts",
+    "src/telemetry/bootInbox.ts",
+    "src/telemetry/browserErrors.ts",
+    "src/ui/bag.ts",
+    "src/ui/BagButton.ts",
+    "src/ui/BootSettings.ts",
+    "src/ui/BossBar.ts",
+    "src/ui/cards.ts",
+    "src/ui/CoinChip.ts",
+    "src/ui/Combat.ts",
+    "src/ui/compendium/finds.ts",
+    "src/ui/compendium/install.ts",
+    "src/ui/compendium/Journal.ts",
+    "src/ui/compendium/registry.ts",
+    "src/ui/compendium/shards/pine-hollow.ts",
+    "src/ui/compendium/state.ts",
+    "src/ui/compendium/tracker.ts",
+    "src/ui/compendium/types.ts",
+    "src/ui/DeathFade.ts",
+    "src/ui/DebugMenu.ts",
+    "src/ui/debugOptions.ts",
+    "src/ui/devSwitch.ts",
+    "src/ui/EliteBar.ts",
+    "src/ui/ErrorModal.ts",
+    "src/ui/Feedback.ts",
+    "src/ui/FirstHints.ts",
+    "src/ui/haptics.ts",
+    "src/ui/HorseNamePrompt.ts",
+    "src/ui/HUD.ts",
+    "src/ui/hudSlots.ts",
+    "src/ui/HurtArc.ts",
+    "src/ui/icons.ts",
+    "src/ui/loading.css",
+    "src/ui/Loading.ts",
+    "src/ui/LockOn.ts",
+    "src/ui/Map.ts",
+    "src/ui/mapShapes.ts",
+    "src/ui/Menu.ts",
+    "src/ui/Minimap.ts",
+    "src/ui/perf.css",
+    "src/ui/Perf.ts",
+    "src/ui/perfHud.ts",
+    "src/ui/perfLap.ts",
+    "src/ui/perfLapSummary.ts",
+    "src/ui/perfProbe.ts",
+    "src/ui/ReloadPrompt.ts",
+    "src/ui/Resume.ts",
+    "src/ui/review.ts",
+    "src/ui/RideHUD.ts",
+    "src/ui/roomMap.ts",
+    "src/ui/RotateGate.ts",
+    "src/ui/Settings.ts",
+    "src/ui/ShardComplete.ts",
+    "src/ui/ShopPanel.ts",
+    "src/ui/SpeedLines.ts",
+    "src/ui/StartTitle.ts",
+    "src/ui/styles/base.css",
+    "src/ui/styles/boss.css",
+    "src/ui/styles/combat.css",
+    "src/ui/styles/compendium.css",
+    "src/ui/styles/complete.css",
+    "src/ui/styles/debug.css",
+    "src/ui/styles/elite.css",
+    "src/ui/styles/explore.css",
+    "src/ui/styles/feedback.css",
+    "src/ui/styles/game.css",
+    "src/ui/styles/gmenu.css",
+    "src/ui/styles/hints.css",
+    "src/ui/styles/loot.css",
+    "src/ui/styles/menu.css",
+    "src/ui/styles/minimap.css",
+    "src/ui/styles/pinehollow.css",
+    "src/ui/styles/playgrounds.css",
+    "src/ui/styles/quest.css",
+    "src/ui/styles/reload.css",
+    "src/ui/styles/resume.css",
+    "src/ui/styles/ride.css",
+    "src/ui/styles/rotate.css",
+    "src/ui/styles/shop.css",
+    "src/ui/styles/stealth.css",
+    "src/ui/styles/touch.css",
+    "src/ui/styles/update.css",
+    "src/ui/titleDeck.ts",
+    "src/ui/ToastStack.ts",
+    "src/ui/Update.ts",
+    "src/ui/WeaponStrip.ts",
+    "src/ui/WindupWarn.ts",
+    "src/world/Atmosphere.ts",
+    "src/world/BakedCards.ts",
+    "src/world/BakedSky.ts",
+    "src/world/BakedTerrain.ts",
+    "src/world/BeaverPool.ts",
+    "src/world/blenderArea.ts",
+    "src/world/BlenderIsland.ts",
+    "src/world/Boat.ts",
+    "src/world/Boulders.ts",
+    "src/world/Boundary.ts",
+    "src/world/Bushes.ts",
+    "src/world/Cabin.ts",
+    "src/world/cascadeCull.ts",
+    "src/world/Cove.ts",
+    "src/world/coverTint.ts",
+    "src/world/DayClock.ts",
+    "src/world/DayNight.ts",
+    "src/world/driftwood.ts",
+    "src/world/faceHeads.ts",
+    "src/world/Forest.ts",
+    "src/world/fx.ts",
+    "src/world/Grass.ts",
+    "src/world/GrassField.ts",
+    "src/world/GrassTrample.ts",
+    "src/world/GroundCover.ts",
+    "src/world/Gulls.ts",
+    "src/world/Heightfield.ts",
+    "src/world/Horizon.ts",
+    "src/world/HorizonMatte.ts",
+    "src/world/Hut.ts",
+    "src/world/interact/driftwood.ts",
+    "src/world/interact/flags.ts",
+    "src/world/interact/Interactables.ts",
+    "src/world/interact/models.ts",
+    "src/world/interact/types.ts",
+    "src/world/interact/validate.ts",
+    "src/world/lookFlags.ts",
+    "src/world/Lookout.ts",
+    "src/world/lowpolyKit.ts",
+    "src/world/lut.ts",
+    "src/world/nalati/Balbals.ts",
+    "src/world/nalati/Bowl.ts",
+    "src/world/nalati/Bridge.ts",
+    "src/world/nalati/Cairn.ts",
+    "src/world/nalati/clearings.ts",
+    "src/world/nalati/Crags.ts",
+    "src/world/nalati/dressing/index.ts",
+    "src/world/nalati/dressing/layer.ts",
+    "src/world/nalati/dressing/life.ts",
+    "src/world/nalati/dressing/place.ts",
+    "src/world/nalati/dressing/statics.ts",
+    "src/world/nalati/EagleRock.ts",
+    "src/world/nalati/Flutter.ts",
+    "src/world/nalati/glbPaint.ts",
+    "src/world/nalati/granite.ts",
+    "src/world/nalati/index.ts",
+    "src/world/nalati/KurganDungeon.ts",
+    "src/world/nalati/KurganField.ts",
+    "src/world/nalati/layout.ts",
+    "src/world/nalati/NomadCamp.ts",
+    "src/world/nalati/paint.ts",
+    "src/world/nalati/painted.ts",
+    "src/world/nalati/places.ts",
+    "src/world/nalati/props.ts",
+    "src/world/nalati/RoadFurniture.ts",
+    "src/world/nalati/Smoke.ts",
+    "src/world/nalati/solid.ts",
+    "src/world/nalati/Stair.ts",
+    "src/world/nalati/SummerCamp.ts",
+    "src/world/nalati/types.ts",
+    "src/world/nalati/Yard.ts",
+    "src/world/nalatiTextures.ts",
+    "src/world/Ocean.ts",
+    "src/world/painterly.ts",
+    "src/world/PainterlySky.ts",
+    "src/world/Palms.ts",
+    "src/world/Particles.ts",
+    "src/world/Pier.ts",
+    "src/world/PineCrags.ts",
+    "src/world/PineDayNight.ts",
+    "src/world/pineHero.ts",
+    "src/world/PineLandmarks.ts",
+    "src/world/pineSkyKeys.ts",
+    "src/world/PineStreams.ts",
+    "src/world/PineWeather.ts",
+    "src/world/PineWeatherFX.ts",
+    "src/world/placement.ts",
+    "src/world/pointLightSkip.ts",
+    "src/world/registry.ts",
+    "src/world/rockKit.ts",
+    "src/world/RopeBridge.ts",
+    "src/world/Seabed.ts",
+    "src/world/shadowChunks.ts",
+    "src/world/shadowFade.ts",
+    "src/world/shadowFilter.ts",
+    "src/world/shadowVariants.ts",
+    "src/world/Shrine.ts",
+    "src/world/Sky.ts",
+    "src/world/Spruce.ts",
+    "src/world/steppeWind.ts",
+    "src/world/stylize.ts",
+    "src/world/StylizedSky.ts",
+    "src/world/Terrain.ts",
+    "src/world/Trailside.ts",
+    "src/world/TreeFactory.ts",
+    "src/world/treeSet.ts",
+    "src/world/treeSpecies.ts",
+    "src/world/TrophyWall.ts",
+    "src/world/Undergrowth.ts",
+    "src/world/Water.ts",
+    "src/world/Waterfall.ts",
+    "src/world/waterSurface.ts",
+    "src/world/waves.ts",
+    "src/world/Weather.ts",
+    "src/world/WeatherFX.ts",
+    "src/world/wind.ts",
+    "src/world/WorldClock.ts",
+    "src/world/Wreck.ts",
+    "src/world/Zipline.ts",
+    "test/actor/loop.test.ts",
+    "test/actor/saves-roundtrip.test.ts",
+    "test/actor/strike-timing.test.ts",
+    "test/actor/sword-combo.test.ts",
+    "test/alias.test.ts",
+    "test/ambient-tick.test.ts",
+    "test/animal-matrices.test.ts",
+    "test/audio-gen.test.ts",
+    "test/bag-tabs.test.ts",
+    "test/boot-plan.test.ts",
+    "test/bow-draw.test.ts",
+    "test/chunks.test.ts",
+    "test/compendium.test.ts",
+    "test/cosmetics.test.ts",
+    "test/debug-options.test.ts",
+    "test/diorama.test.ts",
+    "test/ecology.test.ts",
+    "test/engine/clock.test.ts",
+    "test/engine/events.test.ts",
+    "test/engine/scope.test.ts",
+    "test/engine/states.test.ts",
+    "test/engine/systems.test.ts",
+    "test/entry-rescue.test.ts",
+    "test/error-report.test.ts",
+    "test/explore-view-point.test.ts",
+    "test/explore.test.ts",
+    "test/facade-no-multidraw.test.ts",
+    "test/fake/FakeGame.ts",
+    "test/fake/world.ts",
+    "test/faults.test.ts",
+    "test/fight-rules.test.ts",
+    "test/fixtures/lint/cases.json",
+    "test/gpu-gate-matrix.test.ts",
+    "test/gpu-perf.test.ts",
+    "test/guards.test.ts",
+    "test/gull-guide.test.ts",
+    "test/hit-damage.test.ts",
+    "test/horse-names.test.ts",
+    "test/hurt.test.ts",
+    "test/interact-sight.test.ts",
+    "test/interact.test.ts",
+    "test/inventory.test.ts",
+    "test/keepsakes.test.ts",
+    "test/ktx2-auto.test.ts",
+    "test/last-end.test.ts",
+    "test/last-place.test.ts",
+    "test/lint-ratchet.test.ts",
+    "test/lockon.test.ts",
+    "test/loot.test.ts",
+    "test/map-shapes.test.ts",
+    "test/melee-sweep.test.ts",
+    "test/models-check-rules.test.ts",
+    "test/models-contract.test.ts",
+    "test/models-driftwood.test.ts",
+    "test/models-interact.test.ts",
+    "test/models-live.test.ts",
+    "test/models-pine-hollow.test.ts",
+    "test/models-places.test.ts",
+    "test/models-rosters.test.ts",
+    "test/models-weld.test.ts",
+    "test/nalati-bag.test.ts",
+    "test/nalati-models.test.ts",
+    "test/nalati-navmesh.test.ts",
+    "test/nalati-roster.test.ts",
+    "test/native-updates.test.ts",
+    "test/nd-specimen-light.test.ts",
+    "test/nine-boot-trace.test.ts",
+    "test/nine-dragon-models.test.ts",
+    "test/nine-gpu-trace.test.ts",
+    "test/parity-compare.test.ts",
+    "test/perf-lap.test.ts",
+    "test/physics-barrel.test.ts",
+    "test/physics-bodies.test.ts",
+    "test/physics-dash-stall.test.ts",
+    "test/physics-drop.test.ts",
+    "test/physics-hitbox-owners.test.ts",
+    "test/physics-motor.test.ts",
+    "test/physics-navmesh.test.ts",
+    "test/physics-pieces.test.ts",
+    "test/physics-ragdoll.test.ts",
+    "test/physics-ranged.test.ts",
+    "test/physics-ropechain.test.ts",
+    "test/physics-terrain.test.ts",
+    "test/pine-audio-wiring.test.ts",
+    "test/pine-bag.test.ts",
+    "test/pine-beaver-pool.test.ts",
+    "test/pine-combat.test.ts",
+    "test/pine-crags.test.ts",
+    "test/pine-day-night.test.ts",
+    "test/pine-hollow-roster.test.ts",
+    "test/pine-life.test.ts",
+    "test/pine-loadout.test.ts",
+    "test/pine-npc-rig.test.ts",
+    "test/pine-quest.test.ts",
+    "test/pine-sfx-sprite.test.ts",
+    "test/pine-weather.test.ts",
+    "test/playgrounds.test.ts",
+    "test/practice-dummy-clips.test.ts",
+    "test/practice-dummy-motion.test.ts",
+    "test/practice-dummy-physics.test.ts",
+    "test/practice-lineup.test.ts",
+    "test/precompile-batching.test.ts",
+    "test/probe-shape.test.ts",
+    "test/progress.test.ts",
+    "test/quest-nalati.test.ts",
+    "test/quest.test.ts",
+    "test/registry-models.test.ts",
+    "test/resume.test.ts",
+    "test/review.test.ts",
+    "test/ride-assist.test.ts",
+    "test/rng-noise.test.ts",
+    "test/room-map.test.ts",
+    "test/select-pick.test.ts",
+    "test/sets-explorer.test.ts",
+    "test/settings.test.ts",
+    "test/shadow-variants.test.ts",
+    "test/shard-prefetch.test.ts",
+    "test/shard-state.test.ts",
+    "test/shard-tools.test.ts",
+    "test/shards/driftwood-isle/ecology.test.ts",
+    "test/shards/driftwood-isle/guards.test.ts",
+    "test/shards/driftwood-isle/gull-guide.test.ts",
+    "test/shards/driftwood-isle/keepsakes.test.ts",
+    "test/shards/driftwood-isle/models-contract.test.ts",
+    "test/shards/driftwood-isle/models-driftwood.test.ts",
+    "test/shards/driftwood-isle/shop.test.ts",
+    "test/shards/nalati-grasslands/horse-names.test.ts",
+    "test/shards/nalati-grasslands/nalati-bag.test.ts",
+    "test/shards/nalati-grasslands/nalati-models.test.ts",
+    "test/shards/nalati-grasslands/nalati-navmesh.test.ts",
+    "test/shards/nalati-grasslands/nalati-roster.test.ts",
+    "test/shards/nalati-grasslands/quest-nalati.test.ts",
+    "test/shards/nalati-grasslands/ride-assist.test.ts",
+    "test/shards/nalati-grasslands/steppe-score.test.ts",
+    "test/shards/nalati-grasslands/weather.test.ts",
+    "test/shards/nine-dragon-stack/bag-tabs.test.ts",
+    "test/shards/nine-dragon-stack/nd-specimen-light.test.ts",
+    "test/shards/nine-dragon-stack/nine-dragon-models.test.ts",
+    "test/shards/pine-hollow/models-pine-hollow.test.ts",
+    "test/shards/pine-hollow/pine-audio-wiring.test.ts",
+    "test/shards/pine-hollow/pine-bag.test.ts",
+    "test/shards/pine-hollow/pine-beaver-pool.test.ts",
+    "test/shards/pine-hollow/pine-combat.test.ts",
+    "test/shards/pine-hollow/pine-crags.test.ts",
+    "test/shards/pine-hollow/pine-day-night.test.ts",
+    "test/shards/pine-hollow/pine-hollow-roster.test.ts",
+    "test/shards/pine-hollow/pine-life.test.ts",
+    "test/shards/pine-hollow/pine-loadout.test.ts",
+    "test/shards/pine-hollow/pine-npc-rig.test.ts",
+    "test/shards/pine-hollow/pine-quest.test.ts",
+    "test/shards/pine-hollow/pine-sfx-sprite.test.ts",
+    "test/shards/pine-hollow/pine-weather.test.ts",
+    "test/shards/pine-hollow/token-shelf.test.ts",
+    "test/shell.test.ts",
+    "test/shop.test.ts",
+    "test/sound-tap.test.ts",
+    "test/species.test.ts",
+    "test/species.ts",
+    "test/steppe-score.test.ts",
+    "test/title-arrival.test.ts",
+    "test/title-deck.test.ts",
+    "test/token-shelf.test.ts",
+    "test/tree-species.test.ts",
+    "test/weather.test.ts",
+    "test/webgl-startup.test.ts",
+    "test/wind.test.ts",
+    "test/worldClock.test.ts",
+    "vite.config.ts",
+    "vite/assetHashes.ts",
+    "vite/basis.ts",
+    "vite/pwa-plugin.ts",
+    "vite/rapier.ts"
+  ],
+  "gitMoves": [
+    {
+      "from": "src/core/harnessTap.ts",
+      "to": "src/engine/core/harnessTap.ts"
+    },
+    {
+      "from": "src/core/probe.ts",
+      "to": "src/engine/debug/probe.ts"
+    },
+    {
+      "from": "src/audio/Audio.ts",
+      "to": "src/engine/audio/Audio.ts"
+    },
+    {
+      "from": "src/audio/ForestAmbience.ts",
+      "to": "src/shards/pine-hollow/audio/ambience.ts"
+    },
+    {
+      "from": "src/audio/IslandAmbience.ts",
+      "to": "src/shards/driftwood-isle/audio/ambience.ts"
+    },
+    {
+      "from": "src/audio/IslandSfx.ts",
+      "to": "src/engine/audio/IslandSfx.ts"
+    },
+    {
+      "from": "src/audio/Music.ts",
+      "to": "src/engine/audio/Music.ts"
+    },
+    {
+      "from": "src/audio/PineHollowSfx.ts",
+      "to": "src/shards/pine-hollow/audio/sfx.ts"
+    },
+    {
+      "from": "src/audio/ShrineHum.ts",
+      "to": "src/shards/driftwood-isle/audio/shrineHum.ts"
+    },
+    {
+      "from": "src/audio/Stems.ts",
+      "to": "src/engine/audio/Stems.ts"
+    },
+    {
+      "from": "src/audio/SteppeAmbience.ts",
+      "to": "src/shards/nalati-grasslands/audio/SteppeAmbience.ts"
+    },
+    {
+      "from": "src/audio/SteppeScore.ts",
+      "to": "src/shards/nalati-grasslands/audio/SteppeScore.ts"
+    },
+    {
+      "from": "src/audio/Surface.ts",
+      "to": "src/engine/audio/Surface.ts"
+    },
+    {
+      "from": "src/audio/Voices.ts",
+      "to": "src/engine/audio/Voices.ts"
+    },
+    {
+      "from": "src/audio/audioLog.ts",
+      "to": "src/engine/audio/audioLog.ts"
+    },
+    {
+      "from": "src/audio/credits.ts",
+      "to": "src/engine/audio/credits.ts"
+    },
+    {
+      "from": "src/audio/dsp.ts",
+      "to": "src/engine/audio/dsp.ts"
+    },
+    {
+      "from": "src/audio/gen.ts",
+      "to": "src/engine/audio/gen.ts"
+    },
+    {
+      "from": "src/audio/preload.ts",
+      "to": "src/engine/audio/preload.ts"
+    },
+    {
+      "from": "src/audio/score/wildshard-theme.ts",
+      "to": "src/engine/audio/score/wildshard-theme.ts"
+    },
+    {
+      "from": "src/boot/art.generated.ts",
+      "to": "src/engine/boot/art.generated.ts"
+    },
+    {
+      "from": "src/boot/audio.generated.ts",
+      "to": "src/engine/boot/audio.generated.ts"
+    },
+    {
+      "from": "src/boot/audioFiles.ts",
+      "to": "src/engine/boot/audioFiles.ts"
+    },
+    {
+      "from": "src/boot/bakedTextures.ts",
+      "to": "src/engine/boot/bakedTextures.ts"
+    },
+    {
+      "from": "src/boot/bytes.generated.ts",
+      "to": "src/engine/boot/bytes.generated.ts"
+    },
+    {
+      "from": "src/boot/bytes.ts",
+      "to": "src/engine/boot/bytes.ts"
+    },
+    {
+      "from": "src/boot/clearDownloads.ts",
+      "to": "src/engine/boot/clearDownloads.ts"
+    },
+    {
+      "from": "src/boot/entry.ts",
+      "to": "src/entry.ts"
+    },
+    {
+      "from": "src/boot/extras.ts",
+      "to": "src/engine/boot/extras.ts"
+    },
+    {
+      "from": "src/boot/gpu.generated.ts",
+      "to": "src/engine/boot/gpu.generated.ts"
+    },
+    {
+      "from": "src/boot/gpuFiles.ts",
+      "to": "src/engine/boot/gpuFiles.ts"
+    },
+    {
+      "from": "src/boot/lastEnd.ts",
+      "to": "src/engine/boot/lastEnd.ts"
+    },
+    {
+      "from": "src/boot/manifest.ts",
+      "to": "src/engine/boot/manifest.ts"
+    },
+    {
+      "from": "src/boot/nineBootTrace.ts",
+      "to": "src/engine/boot/nineBootTrace.ts"
+    },
+    {
+      "from": "src/boot/nineGpuTrace.ts",
+      "to": "src/engine/boot/nineGpuTrace.ts"
+    },
+    {
+      "from": "src/boot/pack.ts",
+      "to": "src/engine/boot/pack.ts"
+    },
+    {
+      "from": "src/boot/packs.generated.ts",
+      "to": "src/engine/boot/packs.generated.ts"
+    },
+    {
+      "from": "src/boot/perflog.ts",
+      "to": "src/engine/boot/perflog.ts"
+    },
+    {
+      "from": "src/boot/plan.ts",
+      "to": "src/engine/boot/plan.ts"
+    },
+    {
+      "from": "src/boot/precompile.ts",
+      "to": "src/engine/boot/precompile.ts"
+    },
+    {
+      "from": "src/boot/prefetch.ts",
+      "to": "src/engine/boot/prefetch.ts"
+    },
+    {
+      "from": "src/boot/shardPrefetch.ts",
+      "to": "src/engine/boot/shardPrefetch.ts"
+    },
+    {
+      "from": "src/boot/shell.ts",
+      "to": "src/engine/boot/shell.ts"
+    },
+    {
+      "from": "src/boot/steps.ts",
+      "to": "src/engine/boot/steps.ts"
+    },
+    {
+      "from": "src/boot/stuck.ts",
+      "to": "src/engine/boot/stuck.ts"
+    },
+    {
+      "from": "src/boot/sw.ts",
+      "to": "src/engine/boot/sw.ts"
+    },
+    {
+      "from": "src/boot/timing.ts",
+      "to": "src/engine/boot/timing.ts"
+    },
+    {
+      "from": "src/boot/titleArrival.ts",
+      "to": "src/engine/boot/titleArrival.ts"
+    },
+    {
+      "from": "src/boot/versions.generated.ts",
+      "to": "src/engine/boot/versions.generated.ts"
+    },
+    {
+      "from": "src/chunks/ChunkDef.ts",
+      "to": "src/game/shard/manifest.ts"
+    },
+    {
+      "from": "src/chunks/driftwood-isle.ts",
+      "to": "src/shards/driftwood-isle/manifest.ts"
+    },
+    {
+      "from": "src/chunks/driftwood-isle/firstMinutes.ts",
+      "to": "src/shards/driftwood-isle/firstMinutes.ts"
+    },
+    {
+      "from": "src/chunks/driftwood-isle/fpArms.ts",
+      "to": "src/shards/driftwood-isle/fpArms.ts"
+    },
+    {
+      "from": "src/chunks/driftwood-isle/models/boat.ts",
+      "to": "src/shards/driftwood-isle/models/boat.ts"
+    },
+    {
+      "from": "src/chunks/driftwood-isle/models/captainHat.ts",
+      "to": "src/shards/driftwood-isle/models/captainHat.ts"
+    },
+    {
+      "from": "src/chunks/driftwood-isle/models/cargo.ts",
+      "to": "src/shards/driftwood-isle/models/cargo.ts"
+    },
+    {
+      "from": "src/chunks/driftwood-isle/models/cove.ts",
+      "to": "src/shards/driftwood-isle/models/cove.ts"
+    },
+    {
+      "from": "src/chunks/driftwood-isle/models/creatures.ts",
+      "to": "src/shards/driftwood-isle/models/creatures.ts"
+    },
+    {
+      "from": "src/chunks/driftwood-isle/models/driftLog.ts",
+      "to": "src/shards/driftwood-isle/models/driftLog.ts"
+    },
+    {
+      "from": "src/chunks/driftwood-isle/models/gear.ts",
+      "to": "src/shards/driftwood-isle/models/gear.ts"
+    },
+    {
+      "from": "src/chunks/driftwood-isle/models/hibiscusBush.ts",
+      "to": "src/shards/driftwood-isle/models/hibiscusBush.ts"
+    },
+    {
+      "from": "src/chunks/driftwood-isle/models/hut.ts",
+      "to": "src/shards/driftwood-isle/models/hut.ts"
+    },
+    {
+      "from": "src/chunks/driftwood-isle/models/lookout.ts",
+      "to": "src/shards/driftwood-isle/models/lookout.ts"
+    },
+    {
+      "from": "src/chunks/driftwood-isle/models/palm.ts",
+      "to": "src/shards/driftwood-isle/models/palm.ts"
+    },
+    {
+      "from": "src/chunks/driftwood-isle/models/people.ts",
+      "to": "src/shards/driftwood-isle/models/people.ts"
+    },
+    {
+      "from": "src/chunks/driftwood-isle/models/pier.ts",
+      "to": "src/shards/driftwood-isle/models/pier.ts"
+    },
+    {
+      "from": "src/chunks/driftwood-isle/models/reef.ts",
+      "to": "src/shards/driftwood-isle/models/reef.ts"
+    },
+    {
+      "from": "src/chunks/driftwood-isle/models/reefFish.ts",
+      "to": "src/shards/driftwood-isle/models/reefFish.ts"
+    },
+    {
+      "from": "src/chunks/driftwood-isle/models/reefRock.ts",
+      "to": "src/shards/driftwood-isle/models/reefRock.ts"
+    },
+    {
+      "from": "src/chunks/driftwood-isle/models/ropeBridge.ts",
+      "to": "src/shards/driftwood-isle/models/ropeBridge.ts"
+    },
+    {
+      "from": "src/chunks/driftwood-isle/models/sailclothCape.ts",
+      "to": "src/shards/driftwood-isle/models/sailclothCape.ts"
+    },
+    {
+      "from": "src/chunks/driftwood-isle/models/seaGlassChime.ts",
+      "to": "src/shards/driftwood-isle/models/seaGlassChime.ts"
+    },
+    {
+      "from": "src/chunks/driftwood-isle/models/shipwreck.ts",
+      "to": "src/shards/driftwood-isle/models/shipwreck.ts"
+    },
+    {
+      "from": "src/chunks/driftwood-isle/models/shoreBoulder.ts",
+      "to": "src/shards/driftwood-isle/models/shoreBoulder.ts"
+    },
+    {
+      "from": "src/chunks/driftwood-isle/models/shrine.ts",
+      "to": "src/shards/driftwood-isle/models/shrine.ts"
+    },
+    {
+      "from": "src/chunks/driftwood-isle/models/smallRock.ts",
+      "to": "src/shards/driftwood-isle/models/smallRock.ts"
+    },
+    {
+      "from": "src/chunks/driftwood-isle/models/trader.ts",
+      "to": "src/shards/driftwood-isle/models/trader.ts"
+    },
+    {
+      "from": "src/chunks/driftwood-isle/models/trailside.ts",
+      "to": "src/shards/driftwood-isle/models/trailside.ts"
+    },
+    {
+      "from": "src/chunks/driftwood-isle/models/trophyPlaques.ts",
+      "to": "src/shards/driftwood-isle/models/trophyPlaques.ts"
+    },
+    {
+      "from": "src/chunks/driftwood-isle/models/zipline.ts",
+      "to": "src/shards/driftwood-isle/models/zipline.ts"
+    },
+    {
+      "from": "src/chunks/driftwood-isle/roster.ts",
+      "to": "src/shards/driftwood-isle/roster.ts"
+    },
+    {
+      "from": "src/chunks/driftwood-isle/world/places.ts",
+      "to": "src/shards/driftwood-isle/world/places.ts"
+    },
+    {
+      "from": "src/chunks/fauna-layout.ts",
+      "to": "src/engine/world/faunaLayout.ts"
+    },
+    {
+      "from": "src/chunks/nalati-grasslands.ts",
+      "to": "src/shards/nalati-grasslands/manifest.ts"
+    },
+    {
+      "from": "src/chunks/nalati-grasslands/models/ambientLife.ts",
+      "to": "src/shards/nalati-grasslands/models/ambientLife.ts"
+    },
+    {
+      "from": "src/chunks/nalati-grasslands/models/balbal.ts",
+      "to": "src/shards/nalati-grasslands/models/balbal.ts"
+    },
+    {
+      "from": "src/chunks/nalati-grasslands/models/campGenerated.ts",
+      "to": "src/shards/nalati-grasslands/models/campGenerated.ts"
+    },
+    {
+      "from": "src/chunks/nalati-grasslands/models/campProps.ts",
+      "to": "src/shards/nalati-grasslands/models/campProps.ts"
+    },
+    {
+      "from": "src/chunks/nalati-grasslands/models/cragLedge.ts",
+      "to": "src/shards/nalati-grasslands/models/cragLedge.ts"
+    },
+    {
+      "from": "src/chunks/nalati-grasslands/models/cragRock.ts",
+      "to": "src/shards/nalati-grasslands/models/cragRock.ts"
+    },
+    {
+      "from": "src/chunks/nalati-grasslands/models/creatures.ts",
+      "to": "src/shards/nalati-grasslands/models/creatures.ts"
+    },
+    {
+      "from": "src/chunks/nalati-grasslands/models/dressing.ts",
+      "to": "src/shards/nalati-grasslands/models/dressing.ts"
+    },
+    {
+      "from": "src/chunks/nalati-grasslands/models/dressingProps.ts",
+      "to": "src/shards/nalati-grasslands/models/dressingProps.ts"
+    },
+    {
+      "from": "src/chunks/nalati-grasslands/models/eagleRock.ts",
+      "to": "src/shards/nalati-grasslands/models/eagleRock.ts"
+    },
+    {
+      "from": "src/chunks/nalati-grasslands/models/fence.ts",
+      "to": "src/shards/nalati-grasslands/models/fence.ts"
+    },
+    {
+      "from": "src/chunks/nalati-grasslands/models/fieldstone.ts",
+      "to": "src/shards/nalati-grasslands/models/fieldstone.ts"
+    },
+    {
+      "from": "src/chunks/nalati-grasslands/models/gear.ts",
+      "to": "src/shards/nalati-grasslands/models/gear.ts"
+    },
+    {
+      "from": "src/chunks/nalati-grasslands/models/glacierSnout.ts",
+      "to": "src/shards/nalati-grasslands/models/glacierSnout.ts"
+    },
+    {
+      "from": "src/chunks/nalati-grasslands/models/herdHorse.ts",
+      "to": "src/shards/nalati-grasslands/models/herdHorse.ts"
+    },
+    {
+      "from": "src/chunks/nalati-grasslands/models/kokparGoal.ts",
+      "to": "src/shards/nalati-grasslands/models/kokparGoal.ts"
+    },
+    {
+      "from": "src/chunks/nalati-grasslands/models/kokparPost.ts",
+      "to": "src/shards/nalati-grasslands/models/kokparPost.ts"
+    },
+    {
+      "from": "src/chunks/nalati-grasslands/models/kokparRider.ts",
+      "to": "src/shards/nalati-grasslands/models/kokparRider.ts"
+    },
+    {
+      "from": "src/chunks/nalati-grasslands/models/kunesBridge.ts",
+      "to": "src/shards/nalati-grasslands/models/kunesBridge.ts"
+    },
+    {
+      "from": "src/chunks/nalati-grasslands/models/kurganEntrance.ts",
+      "to": "src/shards/nalati-grasslands/models/kurganEntrance.ts"
+    },
+    {
+      "from": "src/chunks/nalati-grasslands/models/kurganKerb.ts",
+      "to": "src/shards/nalati-grasslands/models/kurganKerb.ts"
+    },
+    {
+      "from": "src/chunks/nalati-grasslands/models/leopardCave.ts",
+      "to": "src/shards/nalati-grasslands/models/leopardCave.ts"
+    },
+    {
+      "from": "src/chunks/nalati-grasslands/models/outcrop.ts",
+      "to": "src/shards/nalati-grasslands/models/outcrop.ts"
+    },
+    {
+      "from": "src/chunks/nalati-grasslands/models/people.ts",
+      "to": "src/shards/nalati-grasslands/models/people.ts"
+    },
+    {
+      "from": "src/chunks/nalati-grasslands/models/reins.ts",
+      "to": "src/shards/nalati-grasslands/models/reins.ts"
+    },
+    {
+      "from": "src/chunks/nalati-grasslands/models/saddledHorse.ts",
+      "to": "src/shards/nalati-grasslands/models/saddledHorse.ts"
+    },
+    {
+      "from": "src/chunks/nalati-grasslands/models/signpost.ts",
+      "to": "src/shards/nalati-grasslands/models/signpost.ts"
+    },
+    {
+      "from": "src/chunks/nalati-grasslands/models/snowLotus.ts",
+      "to": "src/shards/nalati-grasslands/models/snowLotus.ts"
+    },
+    {
+      "from": "src/chunks/nalati-grasslands/models/stoneStep.ts",
+      "to": "src/shards/nalati-grasslands/models/stoneStep.ts"
+    },
+    {
+      "from": "src/chunks/nalati-grasslands/models/watchtower.ts",
+      "to": "src/shards/nalati-grasslands/models/watchtower.ts"
+    },
+    {
+      "from": "src/chunks/nalati-grasslands/models/windCairn.ts",
+      "to": "src/shards/nalati-grasslands/models/windCairn.ts"
+    },
+    {
+      "from": "src/chunks/nalati-grasslands/models/yurt.ts",
+      "to": "src/shards/nalati-grasslands/models/yurt.ts"
+    },
+    {
+      "from": "src/chunks/nalati-grasslands/roster.ts",
+      "to": "src/shards/nalati-grasslands/roster.ts"
+    },
+    {
+      "from": "src/chunks/nalatiEdge.ts",
+      "to": "src/shards/nalati-grasslands/edge.ts"
+    },
+    {
+      "from": "src/chunks/nalatiLayout.ts",
+      "to": "src/shards/nalati-grasslands/layout.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/bag.ts",
+      "to": "src/shards/nine-dragon-stack/bag.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/def.ts",
+      "to": "src/shards/nine-dragon-stack/manifest.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/grapple/Traversal.ts",
+      "to": "src/shards/nine-dragon-stack/grapple/FeiZhua.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/grapple/course.ts",
+      "to": "src/shards/nine-dragon-stack/grapple/course.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/grapple/fx.ts",
+      "to": "src/shards/nine-dragon-stack/grapple/fx.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/grapple/line.ts",
+      "to": "src/shards/nine-dragon-stack/grapple/line.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/index.ts",
+      "to": "src/shards/nine-dragon-stack/world/install.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/layout.ts",
+      "to": "src/shards/nine-dragon-stack/layout.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/look/emitters.ts",
+      "to": "src/shards/nine-dragon-stack/look/emitters.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/look/facadeMaterial.ts",
+      "to": "src/shards/nine-dragon-stack/look/facadeMaterial.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/look/glyphs.ts",
+      "to": "src/shards/nine-dragon-stack/look/glyphs.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/look/lanterns.ts",
+      "to": "src/shards/nine-dragon-stack/look/lanterns.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/look/light/glow.ts",
+      "to": "src/shards/nine-dragon-stack/look/light/glow.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/look/light/grade.ts",
+      "to": "src/shards/nine-dragon-stack/look/light/grade.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/look/light/halos.ts",
+      "to": "src/shards/nine-dragon-stack/look/light/halos.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/look/light/install.ts",
+      "to": "src/shards/nine-dragon-stack/look/light/install.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/look/light/lightvol.ts",
+      "to": "src/shards/nine-dragon-stack/look/light/lightvol.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/look/light/pools.ts",
+      "to": "src/shards/nine-dragon-stack/look/light/pools.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/look/neonsigns.ts",
+      "to": "src/shards/nine-dragon-stack/look/neonsigns.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/look/paint.ts",
+      "to": "src/shards/nine-dragon-stack/look/paint.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/look/render.ts",
+      "to": "src/shards/nine-dragon-stack/look/render.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/look/render/bleed.ts",
+      "to": "src/shards/nine-dragon-stack/look/render/bleed.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/look/render/haze.ts",
+      "to": "src/shards/nine-dragon-stack/look/render/haze.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/look/render/jiehua.ts",
+      "to": "src/shards/nine-dragon-stack/look/render/jiehua.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/look/render/reflect.ts",
+      "to": "src/shards/nine-dragon-stack/look/render/reflect.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/look/scroll.ts",
+      "to": "src/shards/nine-dragon-stack/look/scroll.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/look/signs.ts",
+      "to": "src/shards/nine-dragon-stack/look/signs.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/look/specimenLight.ts",
+      "to": "src/shards/nine-dragon-stack/look/specimenLight.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/look/streaks.ts",
+      "to": "src/shards/nine-dragon-stack/look/streaks.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/look/style.ts",
+      "to": "src/shards/nine-dragon-stack/look/style.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/mockupCameras.ts",
+      "to": "src/shards/nine-dragon-stack/mockupCameras.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/models/balustradePanel.ts",
+      "to": "src/shards/nine-dragon-stack/models/balustradePanel.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/models/banyan.ts",
+      "to": "src/shards/nine-dragon-stack/models/banyan.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/models/bridgePosts.ts",
+      "to": "src/shards/nine-dragon-stack/models/bridgePosts.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/models/crowd.ts",
+      "to": "src/shards/nine-dragon-stack/models/crowd.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/models/facade.ts",
+      "to": "src/shards/nine-dragon-stack/models/facade.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/models/feiZhuaHook.ts",
+      "to": "src/shards/nine-dragon-stack/models/feiZhuaHook.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/models/gear.ts",
+      "to": "src/shards/nine-dragon-stack/models/gear.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/models/inKit.ts",
+      "to": "src/shards/nine-dragon-stack/models/inKit.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/models/landingPlanter.ts",
+      "to": "src/shards/nine-dragon-stack/models/landingPlanter.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/models/laundry.ts",
+      "to": "src/shards/nine-dragon-stack/models/laundry.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/models/lion.ts",
+      "to": "src/shards/nine-dragon-stack/models/lion.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/models/lotusFinial.ts",
+      "to": "src/shards/nine-dragon-stack/models/lotusFinial.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/models/market.ts",
+      "to": "src/shards/nine-dragon-stack/models/market.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/models/movers.ts",
+      "to": "src/shards/nine-dragon-stack/models/movers.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/models/paifang.ts",
+      "to": "src/shards/nine-dragon-stack/models/paifang.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/models/paperLantern.ts",
+      "to": "src/shards/nine-dragon-stack/models/paperLantern.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/models/signs.ts",
+      "to": "src/shards/nine-dragon-stack/models/signs.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/models/stalls.ts",
+      "to": "src/shards/nine-dragon-stack/models/stalls.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/models/wallKit.ts",
+      "to": "src/shards/nine-dragon-stack/models/wallKit.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/models/wellBalustrade.ts",
+      "to": "src/shards/nine-dragon-stack/models/wellBalustrade.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/places.ts",
+      "to": "src/shards/nine-dragon-stack/places.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/roster.ts",
+      "to": "src/shards/nine-dragon-stack/roster.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/util.ts",
+      "to": "src/shards/nine-dragon-stack/util.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/vm/arms.ts",
+      "to": "src/shards/nine-dragon-stack/vm/arms.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/vm/cloth.ts",
+      "to": "src/shards/nine-dragon-stack/vm/cloth.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/vm/fpArms.ts",
+      "to": "src/shards/nine-dragon-stack/vm/fpArms.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/vm/geo.ts",
+      "to": "src/shards/nine-dragon-stack/vm/geo.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/vm/jian.ts",
+      "to": "src/shards/nine-dragon-stack/vm/jian.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/vm/materials.ts",
+      "to": "src/shards/nine-dragon-stack/vm/materials.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/vm/rig.ts",
+      "to": "src/kit/viewmodel/armRig.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/vm/trail.ts",
+      "to": "src/shards/nine-dragon-stack/vm/trail.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/world/banyan.ts",
+      "to": "src/shards/nine-dragon-stack/world/banyan.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/world/build.ts",
+      "to": "src/shards/nine-dragon-stack/world/build.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/world/canopy.ts",
+      "to": "src/shards/nine-dragon-stack/world/canopy.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/world/colliders.ts",
+      "to": "src/shards/nine-dragon-stack/world/colliders.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/world/crowd.ts",
+      "to": "src/shards/nine-dragon-stack/world/crowd.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/world/ctx.ts",
+      "to": "src/shards/nine-dragon-stack/world/ctx.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/world/cull.ts",
+      "to": "src/shards/nine-dragon-stack/world/cull.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/world/dressing.ts",
+      "to": "src/shards/nine-dragon-stack/world/dressing.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/world/facade/batch.ts",
+      "to": "src/shards/nine-dragon-stack/world/facade/batch.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/world/facade/geo.ts",
+      "to": "src/shards/nine-dragon-stack/world/facade/geo.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/world/facade/grammar.ts",
+      "to": "src/shards/nine-dragon-stack/world/facade/grammar.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/world/facade/pieces.ts",
+      "to": "src/shards/nine-dragon-stack/world/facade/pieces.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/world/facade/rng.ts",
+      "to": "src/shards/nine-dragon-stack/world/facade/rng.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/world/facades.ts",
+      "to": "src/shards/nine-dragon-stack/world/facades.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/world/gate.ts",
+      "to": "src/shards/nine-dragon-stack/world/gate.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/world/hero/figures.ts",
+      "to": "src/shards/nine-dragon-stack/world/hero/figures.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/world/hero/glb.ts",
+      "to": "src/shards/nine-dragon-stack/world/hero/glb.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/world/hero/kitx.ts",
+      "to": "src/shards/nine-dragon-stack/world/hero/kitx.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/world/hero/vm-material.ts",
+      "to": "src/shards/nine-dragon-stack/world/hero/vm-material.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/world/hero/weapon-parts.ts",
+      "to": "src/shards/nine-dragon-stack/world/hero/weapon-parts.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/world/inKit.ts",
+      "to": "src/shards/nine-dragon-stack/world/inKit.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/world/jian.ts",
+      "to": "src/shards/nine-dragon-stack/world/jian.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/world/kit.ts",
+      "to": "src/shards/nine-dragon-stack/world/kit.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/world/lod.ts",
+      "to": "src/shards/nine-dragon-stack/world/lod.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/world/modelLook.ts",
+      "to": "src/shards/nine-dragon-stack/world/modelLook.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/world/props.ts",
+      "to": "src/shards/nine-dragon-stack/world/props.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/world/props3d.ts",
+      "to": "src/shards/nine-dragon-stack/world/props3d.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/world/sets.ts",
+      "to": "src/shards/nine-dragon-stack/world/sets.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/world/square.ts",
+      "to": "src/shards/nine-dragon-stack/world/square.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/world/squareProps.ts",
+      "to": "src/shards/nine-dragon-stack/world/squareProps.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/world/stairstreet-upper.ts",
+      "to": "src/shards/nine-dragon-stack/world/stairstreet-upper.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/world/stairstreet.ts",
+      "to": "src/shards/nine-dragon-stack/world/stairstreet.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/world/stalls.ts",
+      "to": "src/shards/nine-dragon-stack/world/stalls.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/world/towers.ts",
+      "to": "src/shards/nine-dragon-stack/world/towers.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/world/well-bridges.ts",
+      "to": "src/shards/nine-dragon-stack/world/well-bridges.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/world/well-galleries.ts",
+      "to": "src/shards/nine-dragon-stack/world/well-galleries.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/world/well-lower-deep.ts",
+      "to": "src/shards/nine-dragon-stack/world/well-lower-deep.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/world/well-lower-life.ts",
+      "to": "src/shards/nine-dragon-stack/world/well-lower-life.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/world/well-lower.ts",
+      "to": "src/shards/nine-dragon-stack/world/well-lower.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/world/well-mid.ts",
+      "to": "src/shards/nine-dragon-stack/world/well-mid.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/world/well-plan.ts",
+      "to": "src/shards/nine-dragon-stack/world/well-plan.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/world/well-rim.ts",
+      "to": "src/shards/nine-dragon-stack/world/well-rim.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/world/well.ts",
+      "to": "src/shards/nine-dragon-stack/world/well.ts"
+    },
+    {
+      "from": "src/chunks/nine-dragon-stack/world/words.ts",
+      "to": "src/shards/nine-dragon-stack/world/words.ts"
+    },
+    {
+      "from": "src/chunks/pine-hollow.ts",
+      "to": "src/shards/pine-hollow/manifest.ts"
+    },
+    {
+      "from": "src/chunks/pine-hollow/models/antlerKing.ts",
+      "to": "src/shards/pine-hollow/models/antlerKing.ts"
+    },
+    {
+      "from": "src/chunks/pine-hollow/models/beaverDam.ts",
+      "to": "src/shards/pine-hollow/models/beaverDam.ts"
+    },
+    {
+      "from": "src/chunks/pine-hollow/models/birds.ts",
+      "to": "src/shards/pine-hollow/models/birds.ts"
+    },
+    {
+      "from": "src/chunks/pine-hollow/models/canoe.ts",
+      "to": "src/shards/pine-hollow/models/canoe.ts"
+    },
+    {
+      "from": "src/chunks/pine-hollow/models/caveArch.ts",
+      "to": "src/shards/pine-hollow/models/caveArch.ts"
+    },
+    {
+      "from": "src/chunks/pine-hollow/models/contractBoard.ts",
+      "to": "src/shards/pine-hollow/models/contractBoard.ts"
+    },
+    {
+      "from": "src/chunks/pine-hollow/models/cragBoulder.ts",
+      "to": "src/shards/pine-hollow/models/cragBoulder.ts"
+    },
+    {
+      "from": "src/chunks/pine-hollow/models/cragCliff.ts",
+      "to": "src/shards/pine-hollow/models/cragCliff.ts"
+    },
+    {
+      "from": "src/chunks/pine-hollow/models/creatures.ts",
+      "to": "src/shards/pine-hollow/models/creatures.ts"
+    },
+    {
+      "from": "src/chunks/pine-hollow/models/creekFootbridge.ts",
+      "to": "src/shards/pine-hollow/models/creekFootbridge.ts"
+    },
+    {
+      "from": "src/chunks/pine-hollow/models/fallenLog.ts",
+      "to": "src/shards/pine-hollow/models/fallenLog.ts"
+    },
+    {
+      "from": "src/chunks/pine-hollow/models/fern.ts",
+      "to": "src/shards/pine-hollow/models/fern.ts"
+    },
+    {
+      "from": "src/chunks/pine-hollow/models/fireLookout.ts",
+      "to": "src/shards/pine-hollow/models/fireLookout.ts"
+    },
+    {
+      "from": "src/chunks/pine-hollow/models/forestTree.ts",
+      "to": "src/shards/pine-hollow/models/forestTree.ts"
+    },
+    {
+      "from": "src/chunks/pine-hollow/models/gear.ts",
+      "to": "src/shards/pine-hollow/models/gear.ts"
+    },
+    {
+      "from": "src/chunks/pine-hollow/models/hamletShed.ts",
+      "to": "src/shards/pine-hollow/models/hamletShed.ts"
+    },
+    {
+      "from": "src/chunks/pine-hollow/models/hatchet.ts",
+      "to": "src/shards/pine-hollow/models/hatchet.ts"
+    },
+    {
+      "from": "src/chunks/pine-hollow/models/hollowLog.ts",
+      "to": "src/shards/pine-hollow/models/hollowLog.ts"
+    },
+    {
+      "from": "src/chunks/pine-hollow/models/huntingLodge.ts",
+      "to": "src/shards/pine-hollow/models/huntingLodge.ts"
+    },
+    {
+      "from": "src/chunks/pine-hollow/models/logCabin.ts",
+      "to": "src/shards/pine-hollow/models/logCabin.ts"
+    },
+    {
+      "from": "src/chunks/pine-hollow/models/millersHouse.ts",
+      "to": "src/shards/pine-hollow/models/millersHouse.ts"
+    },
+    {
+      "from": "src/chunks/pine-hollow/models/moss.ts",
+      "to": "src/shards/pine-hollow/models/moss.ts"
+    },
+    {
+      "from": "src/chunks/pine-hollow/models/mossyBoulder.ts",
+      "to": "src/shards/pine-hollow/models/mossyBoulder.ts"
+    },
+    {
+      "from": "src/chunks/pine-hollow/models/needleLitter.ts",
+      "to": "src/shards/pine-hollow/models/needleLitter.ts"
+    },
+    {
+      "from": "src/chunks/pine-hollow/models/pebbles.ts",
+      "to": "src/shards/pine-hollow/models/pebbles.ts"
+    },
+    {
+      "from": "src/chunks/pine-hollow/models/people.ts",
+      "to": "src/shards/pine-hollow/models/people.ts"
+    },
+    {
+      "from": "src/chunks/pine-hollow/models/porchLantern.ts",
+      "to": "src/shards/pine-hollow/models/porchLantern.ts"
+    },
+    {
+      "from": "src/chunks/pine-hollow/models/reeds.ts",
+      "to": "src/shards/pine-hollow/models/reeds.ts"
+    },
+    {
+      "from": "src/chunks/pine-hollow/models/scree.ts",
+      "to": "src/shards/pine-hollow/models/scree.ts"
+    },
+    {
+      "from": "src/chunks/pine-hollow/models/shrub.ts",
+      "to": "src/shards/pine-hollow/models/shrub.ts"
+    },
+    {
+      "from": "src/chunks/pine-hollow/models/skinningKnife.ts",
+      "to": "src/shards/pine-hollow/models/skinningKnife.ts"
+    },
+    {
+      "from": "src/chunks/pine-hollow/models/standingStone.ts",
+      "to": "src/shards/pine-hollow/models/standingStone.ts"
+    },
+    {
+      "from": "src/chunks/pine-hollow/models/stoneFirePit.ts",
+      "to": "src/shards/pine-hollow/models/stoneFirePit.ts"
+    },
+    {
+      "from": "src/chunks/pine-hollow/models/tokenShelf.ts",
+      "to": "src/shards/pine-hollow/models/tokenShelf.ts"
+    },
+    {
+      "from": "src/chunks/pine-hollow/models/traderStall.ts",
+      "to": "src/shards/pine-hollow/models/traderStall.ts"
+    },
+    {
+      "from": "src/chunks/pine-hollow/models/treeStump.ts",
+      "to": "src/shards/pine-hollow/models/treeStump.ts"
+    },
+    {
+      "from": "src/chunks/pine-hollow/models/watermill.ts",
+      "to": "src/shards/pine-hollow/models/watermill.ts"
+    },
+    {
+      "from": "src/chunks/pine-hollow/models/waystone.ts",
+      "to": "src/shards/pine-hollow/models/waystone.ts"
+    },
+    {
+      "from": "src/chunks/pine-hollow/models/wildlife.ts",
+      "to": "src/shards/pine-hollow/models/wildlife.ts"
+    },
+    {
+      "from": "src/chunks/pine-hollow/models/wineBarrel.ts",
+      "to": "src/shards/pine-hollow/models/wineBarrel.ts"
+    },
+    {
+      "from": "src/chunks/pine-hollow/models/woodenBucket.ts",
+      "to": "src/shards/pine-hollow/models/woodenBucket.ts"
+    },
+    {
+      "from": "src/chunks/pine-hollow/models/woodenCrate.ts",
+      "to": "src/shards/pine-hollow/models/woodenCrate.ts"
+    },
+    {
+      "from": "src/chunks/pine-hollow/models/zipCable.ts",
+      "to": "src/shards/pine-hollow/models/zipCable.ts"
+    },
+    {
+      "from": "src/chunks/pine-hollow/models/ziplineLanding.ts",
+      "to": "src/shards/pine-hollow/models/ziplineLanding.ts"
+    },
+    {
+      "from": "src/chunks/pine-hollow/roster.ts",
+      "to": "src/shards/pine-hollow/roster.ts"
+    },
+    {
+      "from": "src/chunks/pine-hollow/world/cabinKit.ts",
+      "to": "src/shards/pine-hollow/world/cabinKit.ts"
+    },
+    {
+      "from": "src/chunks/pine-hollow/world/cabins.ts",
+      "to": "src/shards/pine-hollow/world/cabins.ts"
+    },
+    {
+      "from": "src/chunks/pine-hollow/world/context.ts",
+      "to": "src/shards/pine-hollow/world/context.ts"
+    },
+    {
+      "from": "src/chunks/pine-hollow/world/cragKit.ts",
+      "to": "src/shards/pine-hollow/world/cragKit.ts"
+    },
+    {
+      "from": "src/chunks/pine-hollow/world/drawnModels.ts",
+      "to": "src/shards/pine-hollow/world/drawnModels.ts"
+    },
+    {
+      "from": "src/chunks/pine-hollow/world/hero.ts",
+      "to": "src/shards/pine-hollow/world/hero.ts"
+    },
+    {
+      "from": "src/chunks/pine-hollow/world/places.ts",
+      "to": "src/shards/pine-hollow/world/places.ts"
+    },
+    {
+      "from": "src/chunks/pine-hollow/world/props.ts",
+      "to": "src/shards/pine-hollow/world/props.ts"
+    },
+    {
+      "from": "src/chunks/pine-hollow/world/timber.ts",
+      "to": "src/shards/pine-hollow/world/timber.ts"
+    },
+    {
+      "from": "src/chunks/pine-hollow/world/undergrowthKit.ts",
+      "to": "src/shards/pine-hollow/world/undergrowthKit.ts"
+    },
+    {
+      "from": "src/chunks/pineHollowLayout.ts",
+      "to": "src/shards/pine-hollow/layout.ts"
+    },
+    {
+      "from": "src/chunks/registry.ts",
+      "to": "src/game/shard/registry.ts"
+    },
+    {
+      "from": "src/chunks/terrain.ts",
+      "to": "src/engine/world/terrainField.ts"
+    },
+    {
+      "from": "src/chunks/thumbs/driftwood-isle-landscape.jpg",
+      "to": "src/shards/driftwood-isle/thumbs/driftwood-isle-landscape.jpg"
+    },
+    {
+      "from": "src/chunks/thumbs/driftwood-isle-portrait.jpg",
+      "to": "src/shards/driftwood-isle/thumbs/driftwood-isle-portrait.jpg"
+    },
+    {
+      "from": "src/chunks/thumbs/driftwood-isle.jpg",
+      "to": "src/shards/driftwood-isle/thumbs/driftwood-isle.jpg"
+    },
+    {
+      "from": "src/chunks/thumbs/nalati-grasslands-landscape.jpg",
+      "to": "src/shards/nalati-grasslands/thumbs/nalati-grasslands-landscape.jpg"
+    },
+    {
+      "from": "src/chunks/thumbs/nalati-grasslands-portrait.jpg",
+      "to": "src/shards/nalati-grasslands/thumbs/nalati-grasslands-portrait.jpg"
+    },
+    {
+      "from": "src/chunks/thumbs/nalati-grasslands.jpg",
+      "to": "src/shards/nalati-grasslands/thumbs/nalati-grasslands.jpg"
+    },
+    {
+      "from": "src/chunks/thumbs/nine-dragon-stack-landscape.jpg",
+      "to": "src/shards/nine-dragon-stack/thumbs/nine-dragon-stack-landscape.jpg"
+    },
+    {
+      "from": "src/chunks/thumbs/nine-dragon-stack-portrait.jpg",
+      "to": "src/shards/nine-dragon-stack/thumbs/nine-dragon-stack-portrait.jpg"
+    },
+    {
+      "from": "src/chunks/thumbs/nine-dragon-stack.jpg",
+      "to": "src/shards/nine-dragon-stack/thumbs/nine-dragon-stack.jpg"
+    },
+    {
+      "from": "src/chunks/thumbs/pine-hollow-landscape.jpg",
+      "to": "src/shards/pine-hollow/thumbs/pine-hollow-landscape.jpg"
+    },
+    {
+      "from": "src/chunks/thumbs/pine-hollow-portrait.jpg",
+      "to": "src/shards/pine-hollow/thumbs/pine-hollow-portrait.jpg"
+    },
+    {
+      "from": "src/chunks/thumbs/pine-hollow.jpg",
+      "to": "src/shards/pine-hollow/thumbs/pine-hollow.jpg"
+    },
+    {
+      "from": "src/core/Game.ts",
+      "to": "src/engine/core/Game.ts"
+    },
+    {
+      "from": "src/core/GpuRecovery.ts",
+      "to": "src/engine/core/GpuRecovery.ts"
+    },
+    {
+      "from": "src/core/Grade.ts",
+      "to": "src/engine/core/Grade.ts"
+    },
+    {
+      "from": "src/core/KeepAlive.ts",
+      "to": "src/engine/core/KeepAlive.ts"
+    },
+    {
+      "from": "src/core/Tour.ts",
+      "to": "src/engine/core/Tour.ts"
+    },
+    {
+      "from": "src/core/Volumetrics.ts",
+      "to": "src/engine/core/Volumetrics.ts"
+    },
+    {
+      "from": "src/core/assets.ts",
+      "to": "src/engine/core/assets.ts"
+    },
+    {
+      "from": "src/core/bootstrap.ts",
+      "to": "src/engine/core/bootstrap.ts"
+    },
+    {
+      "from": "src/core/config.ts",
+      "to": "src/engine/core/config.ts"
+    },
+    {
+      "from": "src/core/crashFlag.ts",
+      "to": "src/engine/core/crashFlag.ts"
+    },
+    {
+      "from": "src/core/devMode.ts",
+      "to": "src/engine/core/devMode.ts"
+    },
+    {
+      "from": "src/core/errorReport.ts",
+      "to": "src/engine/core/errorReport.ts"
+    },
+    {
+      "from": "src/core/faults.ts",
+      "to": "src/engine/core/faults.ts"
+    },
+    {
+      "from": "src/core/fixedStep.ts",
+      "to": "src/engine/core/fixedStep.ts"
+    },
+    {
+      "from": "src/core/frameCost.ts",
+      "to": "src/engine/core/frameCost.ts"
+    },
+    {
+      "from": "src/core/gpuOnly.ts",
+      "to": "src/engine/core/gpuOnly.ts"
+    },
+    {
+      "from": "src/core/ktx2.ts",
+      "to": "src/engine/core/ktx2.ts"
+    },
+    {
+      "from": "src/core/lifeTrace.ts",
+      "to": "src/engine/core/lifeTrace.ts"
+    },
+    {
+      "from": "src/core/noise.ts",
+      "to": "src/engine/core/noise.ts"
+    },
+    {
+      "from": "src/core/perfLap.ts",
+      "to": "src/engine/core/perfLap.ts"
+    },
+    {
+      "from": "src/core/practiceRoom.ts",
+      "to": "src/engine/core/practiceRoom.ts"
+    },
+    {
+      "from": "src/core/reloadGuard.ts",
+      "to": "src/engine/core/reloadGuard.ts"
+    },
+    {
+      "from": "src/core/rng.ts",
+      "to": "src/engine/core/rng.ts"
+    },
+    {
+      "from": "src/core/shadowLayer.ts",
+      "to": "src/engine/core/shadowLayer.ts"
+    },
+    {
+      "from": "src/core/shardScope.ts",
+      "to": "src/engine/core/shardScope.ts"
+    },
+    {
+      "from": "src/core/shardState.ts",
+      "to": "src/engine/core/shardState.ts"
+    },
+    {
+      "from": "src/core/tier.ts",
+      "to": "src/engine/core/tier.ts"
+    },
+    {
+      "from": "src/core/time.ts",
+      "to": "src/engine/core/time.ts"
+    },
+    {
+      "from": "src/core/viewport.ts",
+      "to": "src/engine/core/viewport.ts"
+    },
+    {
+      "from": "src/core/webglStartup.ts",
+      "to": "src/engine/core/webglStartup.ts"
+    },
+    {
+      "from": "src/core/worldDepth.ts",
+      "to": "src/engine/core/worldDepth.ts"
+    },
+    {
+      "from": "src/entities/Animal.ts",
+      "to": "src/engine/entities/Animal.ts"
+    },
+    {
+      "from": "src/entities/AnimalFactory.ts",
+      "to": "src/engine/entities/AnimalFactory.ts"
+    },
+    {
+      "from": "src/entities/AnimalManager.ts",
+      "to": "src/engine/entities/AnimalManager.ts"
+    },
+    {
+      "from": "src/entities/Enemies.ts",
+      "to": "src/shards/driftwood-isle/creatures/Enemies.ts"
+    },
+    {
+      "from": "src/entities/Flock.ts",
+      "to": "src/engine/entities/Flock.ts"
+    },
+    {
+      "from": "src/entities/Herd.ts",
+      "to": "src/engine/entities/Herd.ts"
+    },
+    {
+      "from": "src/entities/Marmots.ts",
+      "to": "src/engine/entities/Marmots.ts"
+    },
+    {
+      "from": "src/entities/Pack.ts",
+      "to": "src/engine/entities/Pack.ts"
+    },
+    {
+      "from": "src/entities/Wildlife.ts",
+      "to": "src/engine/entities/Wildlife.ts"
+    },
+    {
+      "from": "src/entities/animalMatrices.ts",
+      "to": "src/engine/entities/animalMatrices.ts"
+    },
+    {
+      "from": "src/entities/animalShadow.ts",
+      "to": "src/engine/entities/animalShadow.ts"
+    },
+    {
+      "from": "src/entities/bearFix.ts",
+      "to": "src/engine/entities/bearFix.ts"
+    },
+    {
+      "from": "src/entities/creatureCoats.ts",
+      "to": "src/engine/entities/creatureCoats.ts"
+    },
+    {
+      "from": "src/entities/creatureKit.ts",
+      "to": "src/engine/entities/creatureKit.ts"
+    },
+    {
+      "from": "src/entities/creatureRigBake.ts",
+      "to": "src/engine/entities/creatureRigBake.ts"
+    },
+    {
+      "from": "src/entities/creatureRigs.ts",
+      "to": "src/engine/entities/creatureRigs.ts"
+    },
+    {
+      "from": "src/entities/eliteBrain.ts",
+      "to": "src/engine/entities/eliteBrain.ts"
+    },
+    {
+      "from": "src/entities/farHerd.ts",
+      "to": "src/engine/entities/farHerd.ts"
+    },
+    {
+      "from": "src/entities/fightRules.ts",
+      "to": "src/engine/entities/fightRules.ts"
+    },
+    {
+      "from": "src/entities/glbCreatures.ts",
+      "to": "src/engine/entities/glbCreatures.ts"
+    },
+    {
+      "from": "src/entities/humanoidRigBake.ts",
+      "to": "src/engine/entities/humanoidRigBake.ts"
+    },
+    {
+      "from": "src/entities/lowpoly.ts",
+      "to": "src/engine/entities/lowpoly.ts"
+    },
+    {
+      "from": "src/entities/npc/Castaway.ts",
+      "to": "src/shards/driftwood-isle/npc/Castaway.ts"
+    },
+    {
+      "from": "src/entities/npc/Trader.ts",
+      "to": "src/shards/driftwood-isle/npc/Trader.ts"
+    },
+    {
+      "from": "src/entities/painterlyAnimals.ts",
+      "to": "src/engine/entities/painterlyAnimals.ts"
+    },
+    {
+      "from": "src/entities/pineCoats.ts",
+      "to": "src/engine/entities/pineCoats.ts"
+    },
+    {
+      "from": "src/entities/pineCreatureRigs.ts",
+      "to": "src/engine/entities/pineCreatureRigs.ts"
+    },
+    {
+      "from": "src/entities/pineCreatures.ts",
+      "to": "src/engine/entities/pineCreatures.ts"
+    },
+    {
+      "from": "src/entities/species/balbal.ts",
+      "to": "src/engine/entities/species/balbal.ts"
+    },
+    {
+      "from": "src/entities/species/bear.ts",
+      "to": "src/engine/entities/species/bear.ts"
+    },
+    {
+      "from": "src/entities/species/boar.ts",
+      "to": "src/engine/entities/species/boar.ts"
+    },
+    {
+      "from": "src/entities/species/captain.ts",
+      "to": "src/engine/entities/species/captain.ts"
+    },
+    {
+      "from": "src/entities/species/captainMesh.ts",
+      "to": "src/engine/entities/species/captainMesh.ts"
+    },
+    {
+      "from": "src/entities/species/crab.ts",
+      "to": "src/engine/entities/species/crab.ts"
+    },
+    {
+      "from": "src/entities/species/deer.ts",
+      "to": "src/engine/entities/species/deer.ts"
+    },
+    {
+      "from": "src/entities/species/eagle.ts",
+      "to": "src/engine/entities/species/eagle.ts"
+    },
+    {
+      "from": "src/entities/species/elk.ts",
+      "to": "src/engine/entities/species/elk.ts"
+    },
+    {
+      "from": "src/entities/species/ghostRider.ts",
+      "to": "src/engine/entities/species/ghostRider.ts"
+    },
+    {
+      "from": "src/entities/species/goldenKing.ts",
+      "to": "src/engine/entities/species/goldenKing.ts"
+    },
+    {
+      "from": "src/entities/species/horse.ts",
+      "to": "src/engine/entities/species/horse.ts"
+    },
+    {
+      "from": "src/entities/species/kokbori.ts",
+      "to": "src/engine/entities/species/kokbori.ts"
+    },
+    {
+      "from": "src/entities/species/kurganBalbal.ts",
+      "to": "src/engine/entities/species/kurganBalbal.ts"
+    },
+    {
+      "from": "src/entities/species/leopard.ts",
+      "to": "src/engine/entities/species/leopard.ts"
+    },
+    {
+      "from": "src/entities/species/loft.ts",
+      "to": "src/engine/entities/species/loft.ts"
+    },
+    {
+      "from": "src/entities/species/monkey.ts",
+      "to": "src/engine/entities/species/monkey.ts"
+    },
+    {
+      "from": "src/entities/species/registry.ts",
+      "to": "src/engine/entities/species/registry.ts"
+    },
+    {
+      "from": "src/entities/species/rigs.ts",
+      "to": "src/engine/entities/species/rigs.ts"
+    },
+    {
+      "from": "src/entities/species/sailor.ts",
+      "to": "src/engine/entities/species/sailor.ts"
+    },
+    {
+      "from": "src/entities/species/sheep.ts",
+      "to": "src/engine/entities/species/sheep.ts"
+    },
+    {
+      "from": "src/entities/species/sheepdog.ts",
+      "to": "src/engine/entities/species/sheepdog.ts"
+    },
+    {
+      "from": "src/entities/species/thrall.ts",
+      "to": "src/engine/entities/species/thrall.ts"
+    },
+    {
+      "from": "src/entities/species/wolf.ts",
+      "to": "src/engine/entities/species/wolf.ts"
+    },
+    {
+      "from": "src/entities/wildEnv.ts",
+      "to": "src/engine/entities/wildEnv.ts"
+    },
+    {
+      "from": "src/explore/Compare.ts",
+      "to": "src/engine/explore/Compare.ts"
+    },
+    {
+      "from": "src/explore/Explore.ts",
+      "to": "src/engine/explore/Explore.ts"
+    },
+    {
+      "from": "src/explore/FreeCam.ts",
+      "to": "src/engine/explore/FreeCam.ts"
+    },
+    {
+      "from": "src/explore/MiniMap.ts",
+      "to": "src/engine/explore/MiniMap.ts"
+    },
+    {
+      "from": "src/explore/ModelExplorer.ts",
+      "to": "src/engine/explore/ModelExplorer.ts"
+    },
+    {
+      "from": "src/explore/Select.ts",
+      "to": "src/engine/explore/Select.ts"
+    },
+    {
+      "from": "src/explore/SetExplorer.ts",
+      "to": "src/engine/explore/SetExplorer.ts"
+    },
+    {
+      "from": "src/explore/TouchFly.ts",
+      "to": "src/engine/explore/TouchFly.ts"
+    },
+    {
+      "from": "src/explore/catalog.ts",
+      "to": "src/engine/explore/catalog.ts"
+    },
+    {
+      "from": "src/explore/diorama.ts",
+      "to": "src/engine/explore/diorama.ts"
+    },
+    {
+      "from": "src/explore/fatLines.ts",
+      "to": "src/engine/explore/fatLines.ts"
+    },
+    {
+      "from": "src/explore/img/mockups/driftwood-overlook-live.jpg",
+      "to": "src/engine/explore/img/mockups/driftwood-overlook-live.jpg"
+    },
+    {
+      "from": "src/explore/img/mockups/driftwood-overlook-target.jpg",
+      "to": "src/engine/explore/img/mockups/driftwood-overlook-target.jpg"
+    },
+    {
+      "from": "src/explore/img/mockups/driftwood-right-live.jpg",
+      "to": "src/engine/explore/img/mockups/driftwood-right-live.jpg"
+    },
+    {
+      "from": "src/explore/img/mockups/driftwood-right-target.jpg",
+      "to": "src/engine/explore/img/mockups/driftwood-right-target.jpg"
+    },
+    {
+      "from": "src/explore/img/mockups/driftwood-spawn-live.jpg",
+      "to": "src/engine/explore/img/mockups/driftwood-spawn-live.jpg"
+    },
+    {
+      "from": "src/explore/img/mockups/driftwood-spawn-target.jpg",
+      "to": "src/engine/explore/img/mockups/driftwood-spawn-target.jpg"
+    },
+    {
+      "from": "src/explore/img/mockups/nalati-camp-live.jpg",
+      "to": "src/engine/explore/img/mockups/nalati-camp-live.jpg"
+    },
+    {
+      "from": "src/explore/img/mockups/nalati-camp-target.jpg",
+      "to": "src/engine/explore/img/mockups/nalati-camp-target.jpg"
+    },
+    {
+      "from": "src/explore/img/mockups/nalati-gully-live.jpg",
+      "to": "src/engine/explore/img/mockups/nalati-gully-live.jpg"
+    },
+    {
+      "from": "src/explore/img/mockups/nalati-gully-target.jpg",
+      "to": "src/engine/explore/img/mockups/nalati-gully-target.jpg"
+    },
+    {
+      "from": "src/explore/img/mockups/nalati-rail-live.jpg",
+      "to": "src/engine/explore/img/mockups/nalati-rail-live.jpg"
+    },
+    {
+      "from": "src/explore/img/mockups/nalati-rail-target.jpg",
+      "to": "src/engine/explore/img/mockups/nalati-rail-target.jpg"
+    },
+    {
+      "from": "src/explore/img/mockups/nine-gate-live.jpg",
+      "to": "src/engine/explore/img/mockups/nine-gate-live.jpg"
+    },
+    {
+      "from": "src/explore/img/mockups/nine-gate-target.jpg",
+      "to": "src/engine/explore/img/mockups/nine-gate-target.jpg"
+    },
+    {
+      "from": "src/explore/img/mockups/nine-stair-live.jpg",
+      "to": "src/engine/explore/img/mockups/nine-stair-live.jpg"
+    },
+    {
+      "from": "src/explore/img/mockups/nine-stair-target.jpg",
+      "to": "src/engine/explore/img/mockups/nine-stair-target.jpg"
+    },
+    {
+      "from": "src/explore/img/mockups/pine-den-live.jpg",
+      "to": "src/engine/explore/img/mockups/pine-den-live.jpg"
+    },
+    {
+      "from": "src/explore/img/mockups/pine-den-target.jpg",
+      "to": "src/engine/explore/img/mockups/pine-den-target.jpg"
+    },
+    {
+      "from": "src/explore/img/mockups/pine-hamlet-live.jpg",
+      "to": "src/engine/explore/img/mockups/pine-hamlet-live.jpg"
+    },
+    {
+      "from": "src/explore/img/mockups/pine-hamlet-target.jpg",
+      "to": "src/engine/explore/img/mockups/pine-hamlet-target.jpg"
+    },
+    {
+      "from": "src/explore/img/mockups/pine-ridge-live.jpg",
+      "to": "src/engine/explore/img/mockups/pine-ridge-live.jpg"
+    },
+    {
+      "from": "src/explore/img/mockups/pine-ridge-target.jpg",
+      "to": "src/engine/explore/img/mockups/pine-ridge-target.jpg"
+    },
+    {
+      "from": "src/explore/img/models-driftwood-isle.webp",
+      "to": "src/shards/driftwood-isle/explore/models-driftwood-isle.webp"
+    },
+    {
+      "from": "src/explore/img/models-nalati-grasslands.webp",
+      "to": "src/shards/nalati-grasslands/explore/models-nalati-grasslands.webp"
+    },
+    {
+      "from": "src/explore/img/models-nine-dragon-stack.webp",
+      "to": "src/shards/nine-dragon-stack/explore/models-nine-dragon-stack.webp"
+    },
+    {
+      "from": "src/explore/img/models-pine-hollow.webp",
+      "to": "src/shards/pine-hollow/explore/models-pine-hollow.webp"
+    },
+    {
+      "from": "src/explore/img/playground-grapple.webp",
+      "to": "src/shards/nine-dragon-stack/explore/playground-grapple.webp"
+    },
+    {
+      "from": "src/explore/img/playground-horse.webp",
+      "to": "src/shards/nalati-grasslands/explore/playground-horse.webp"
+    },
+    {
+      "from": "src/explore/img/practice-driftwood-isle.webp",
+      "to": "src/shards/driftwood-isle/explore/practice-driftwood-isle.webp"
+    },
+    {
+      "from": "src/explore/img/practice-nalati-grasslands.webp",
+      "to": "src/shards/nalati-grasslands/explore/practice-nalati-grasslands.webp"
+    },
+    {
+      "from": "src/explore/img/practice-nine-dragon-stack.webp",
+      "to": "src/shards/nine-dragon-stack/explore/practice-nine-dragon-stack.webp"
+    },
+    {
+      "from": "src/explore/img/practice-pine-hollow.webp",
+      "to": "src/shards/pine-hollow/explore/practice-pine-hollow.webp"
+    },
+    {
+      "from": "src/explore/img/sets-driftwood-isle.webp",
+      "to": "src/shards/driftwood-isle/explore/sets-driftwood-isle.webp"
+    },
+    {
+      "from": "src/explore/img/sets-nalati-grasslands.webp",
+      "to": "src/shards/nalati-grasslands/explore/sets-nalati-grasslands.webp"
+    },
+    {
+      "from": "src/explore/img/sets-nine-dragon-stack.webp",
+      "to": "src/shards/nine-dragon-stack/explore/sets-nine-dragon-stack.webp"
+    },
+    {
+      "from": "src/explore/img/sets-pine-hollow.webp",
+      "to": "src/shards/pine-hollow/explore/sets-pine-hollow.webp"
+    },
+    {
+      "from": "src/explore/img/world-driftwood-isle.webp",
+      "to": "src/shards/driftwood-isle/explore/world-driftwood-isle.webp"
+    },
+    {
+      "from": "src/explore/img/world-nalati-grasslands.webp",
+      "to": "src/shards/nalati-grasslands/explore/world-nalati-grasslands.webp"
+    },
+    {
+      "from": "src/explore/img/world-nine-dragon-stack.webp",
+      "to": "src/shards/nine-dragon-stack/explore/world-nine-dragon-stack.webp"
+    },
+    {
+      "from": "src/explore/img/world-pine-hollow.webp",
+      "to": "src/shards/pine-hollow/explore/world-pine-hollow.webp"
+    },
+    {
+      "from": "src/explore/pick.ts",
+      "to": "src/engine/explore/pick.ts"
+    },
+    {
+      "from": "src/explore/registry.ts",
+      "to": "src/engine/explore/registry.ts"
+    },
+    {
+      "from": "src/explore/setView.ts",
+      "to": "src/engine/explore/setView.ts"
+    },
+    {
+      "from": "src/explore/tiers.ts",
+      "to": "src/engine/explore/tiers.ts"
+    },
+    {
+      "from": "src/explore/viewPoint.ts",
+      "to": "src/engine/explore/viewPoint.ts"
+    },
+    {
+      "from": "src/fx/Impacts.ts",
+      "to": "src/engine/fx/Impacts.ts"
+    },
+    {
+      "from": "src/fx/LightPool.ts",
+      "to": "src/engine/fx/LightPool.ts"
+    },
+    {
+      "from": "src/game/Taming.ts",
+      "to": "src/shards/nalati-grasslands/ride/Taming.ts"
+    },
+    {
+      "from": "src/game/loot/finds.ts",
+      "to": "src/shards/driftwood-isle/loot/finds.ts"
+    },
+    {
+      "from": "src/game/loot/keepsakes.ts",
+      "to": "src/shards/driftwood-isle/loot/keepsakes.ts"
+    },
+    {
+      "from": "src/game/loot/perks.ts",
+      "to": "src/shards/driftwood-isle/loot/perks.ts"
+    },
+    {
+      "from": "src/game/loot/shop.ts",
+      "to": "src/shards/driftwood-isle/loot/shop.ts"
+    },
+    {
+      "from": "src/game/quest/Complete.ts",
+      "to": "src/shards/driftwood-isle/quest/Complete.ts"
+    },
+    {
+      "from": "src/game/quest/Ecology.ts",
+      "to": "src/shards/driftwood-isle/quest/Ecology.ts"
+    },
+    {
+      "from": "src/game/quest/Feats.ts",
+      "to": "src/shards/driftwood-isle/quest/Feats.ts"
+    },
+    {
+      "from": "src/game/quest/Finale.ts",
+      "to": "src/shards/driftwood-isle/quest/Finale.ts"
+    },
+    {
+      "from": "src/game/quest/Places.ts",
+      "to": "src/shards/driftwood-isle/quest/Places.ts"
+    },
+    {
+      "from": "src/game/quest/Spine.ts",
+      "to": "src/shards/driftwood-isle/quest/Spine.ts"
+    },
+    {
+      "from": "src/game/quest/TraderStall.ts",
+      "to": "src/shards/driftwood-isle/quest/TraderStall.ts"
+    },
+    {
+      "from": "src/game/quest/driftwood.ts",
+      "to": "src/shards/driftwood-isle/quest/questLine.ts"
+    },
+    {
+      "from": "src/game/quest/guards.ts",
+      "to": "src/shards/driftwood-isle/quest/guards.ts"
+    },
+    {
+      "from": "src/game/quest/gullGuide.ts",
+      "to": "src/shards/driftwood-isle/quest/gullGuide.ts"
+    },
+    {
+      "from": "src/game/quest/nalati.ts",
+      "to": "src/shards/nalati-grasslands/quest.ts"
+    },
+    {
+      "from": "src/meshopt-simplifier.d.ts",
+      "to": "src/engine/types/meshopt-simplifier.d.ts"
+    },
+    {
+      "from": "src/models/colliders.ts",
+      "to": "src/engine/models/colliders.ts"
+    },
+    {
+      "from": "src/models/creature.ts",
+      "to": "src/engine/models/creature.ts"
+    },
+    {
+      "from": "src/models/creatures.ts",
+      "to": "src/engine/models/creatures.ts"
+    },
+    {
+      "from": "src/models/cull.ts",
+      "to": "src/engine/models/cull.ts"
+    },
+    {
+      "from": "src/models/gear.ts",
+      "to": "src/engine/models/gear.ts"
+    },
+    {
+      "from": "src/models/glb.ts",
+      "to": "src/engine/models/glb.ts"
+    },
+    {
+      "from": "src/models/hoverboard.ts",
+      "to": "src/engine/models/hoverboard.ts"
+    },
+    {
+      "from": "src/models/hull.ts",
+      "to": "src/engine/models/hull.ts"
+    },
+    {
+      "from": "src/models/interact.ts",
+      "to": "src/engine/models/interact.ts"
+    },
+    {
+      "from": "src/models/live.ts",
+      "to": "src/engine/models/live.ts"
+    },
+    {
+      "from": "src/models/model.ts",
+      "to": "src/engine/models/model.ts"
+    },
+    {
+      "from": "src/models/place.ts",
+      "to": "src/engine/models/place.ts"
+    },
+    {
+      "from": "src/models/roster.ts",
+      "to": "src/engine/models/roster.ts"
+    },
+    {
+      "from": "src/models/sets.ts",
+      "to": "src/engine/models/sets.ts"
+    },
+    {
+      "from": "src/models/slots.ts",
+      "to": "src/engine/models/slots.ts"
+    },
+    {
+      "from": "src/models/swimHands.ts",
+      "to": "src/engine/models/swimHands.ts"
+    },
+    {
+      "from": "src/models/trainingDummy.ts",
+      "to": "src/engine/models/trainingDummy.ts"
+    },
+    {
+      "from": "src/models/weld.ts",
+      "to": "src/engine/models/weld.ts"
+    },
+    {
+      "from": "src/n8ao.d.ts",
+      "to": "src/engine/types/n8ao.d.ts"
+    },
+    {
+      "from": "src/nalati/adventure.ts",
+      "to": "src/shards/nalati-grasslands/adventure.ts"
+    },
+    {
+      "from": "src/nalati/bag.ts",
+      "to": "src/shards/nalati-grasslands/bag.ts"
+    },
+    {
+      "from": "src/nalati/balbalWarriors.ts",
+      "to": "src/shards/nalati-grasslands/balbalWarriors.ts"
+    },
+    {
+      "from": "src/nalati/campPeople.ts",
+      "to": "src/shards/nalati-grasslands/campPeople.ts"
+    },
+    {
+      "from": "src/nalati/campPeopleModels.ts",
+      "to": "src/shards/nalati-grasslands/campPeopleModels.ts"
+    },
+    {
+      "from": "src/nalati/cragRock.ts",
+      "to": "src/shards/nalati-grasslands/cragRock.ts"
+    },
+    {
+      "from": "src/nalati/elites.ts",
+      "to": "src/shards/nalati-grasslands/elites.ts"
+    },
+    {
+      "from": "src/nalati/ghostRiders.ts",
+      "to": "src/shards/nalati-grasslands/ghostRiders.ts"
+    },
+    {
+      "from": "src/nalati/index.ts",
+      "to": "src/shards/nalati-grasslands/index.ts"
+    },
+    {
+      "from": "src/nalati/kokpar.ts",
+      "to": "src/shards/nalati-grasslands/kokpar.ts"
+    },
+    {
+      "from": "src/nalati/kurganBoss.ts",
+      "to": "src/shards/nalati-grasslands/kurganBoss.ts"
+    },
+    {
+      "from": "src/nalati/look/bake.ts",
+      "to": "src/shards/nalati-grasslands/look/bake.ts"
+    },
+    {
+      "from": "src/nalati/look/cloudSea.ts",
+      "to": "src/shards/nalati-grasslands/look/cloudSea.ts"
+    },
+    {
+      "from": "src/nalati/look/fog.ts",
+      "to": "src/shards/nalati-grasslands/look/fog.ts"
+    },
+    {
+      "from": "src/nalati/look/grade.ts",
+      "to": "src/shards/nalati-grasslands/look/grade.ts"
+    },
+    {
+      "from": "src/nalati/look/grass.ts",
+      "to": "src/shards/nalati-grasslands/look/grass.ts"
+    },
+    {
+      "from": "src/nalati/look/horizon.ts",
+      "to": "src/shards/nalati-grasslands/look/horizon.ts"
+    },
+    {
+      "from": "src/nalati/look/index.ts",
+      "to": "src/shards/nalati-grasslands/look/index.ts"
+    },
+    {
+      "from": "src/nalati/look/light.ts",
+      "to": "src/shards/nalati-grasslands/look/light.ts"
+    },
+    {
+      "from": "src/nalati/look/panoramaData.ts",
+      "to": "src/shards/nalati-grasslands/look/panoramaData.ts"
+    },
+    {
+      "from": "src/nalati/look/sky.ts",
+      "to": "src/shards/nalati-grasslands/look/sky.ts"
+    },
+    {
+      "from": "src/nalati/look/tint.ts",
+      "to": "src/shards/nalati-grasslands/look/tint.ts"
+    },
+    {
+      "from": "src/nalati/look/zones.ts",
+      "to": "src/shards/nalati-grasslands/look/zones.ts"
+    },
+    {
+      "from": "src/nalati/nightEnemies.ts",
+      "to": "src/shards/nalati-grasslands/nightEnemies.ts"
+    },
+    {
+      "from": "src/nalati/nightFx.ts",
+      "to": "src/shards/nalati-grasslands/nightFx.ts"
+    },
+    {
+      "from": "src/nalati/outcrops.ts",
+      "to": "src/shards/nalati-grasslands/outcrops.ts"
+    },
+    {
+      "from": "src/nalati/ride.ts",
+      "to": "src/shards/nalati-grasslands/ride/ride.ts"
+    },
+    {
+      "from": "src/nalati/sheepRaid.ts",
+      "to": "src/shards/nalati-grasslands/sheepRaid.ts"
+    },
+    {
+      "from": "src/nalati/sound.ts",
+      "to": "src/shards/nalati-grasslands/sound.ts"
+    },
+    {
+      "from": "src/nalati/stealth.ts",
+      "to": "src/shards/nalati-grasslands/stealth.ts"
+    },
+    {
+      "from": "src/nalati/stormTitan.ts",
+      "to": "src/shards/nalati-grasslands/stormTitan.ts"
+    },
+    {
+      "from": "src/nalati/stormTitanLook.ts",
+      "to": "src/shards/nalati-grasslands/stormTitanLook.ts"
+    },
+    {
+      "from": "src/nalati/terrainSurface.ts",
+      "to": "src/shards/nalati-grasslands/terrainSurface.ts"
+    },
+    {
+      "from": "src/nalati/water.ts",
+      "to": "src/shards/nalati-grasslands/water.ts"
+    },
+    {
+      "from": "src/nalati/weather.ts",
+      "to": "src/shards/nalati-grasslands/weather.ts"
+    },
+    {
+      "from": "src/nalati/wet.ts",
+      "to": "src/shards/nalati-grasslands/wet.ts"
+    },
+    {
+      "from": "src/native/boot.ts",
+      "to": "src/engine/native/boot.ts"
+    },
+    {
+      "from": "src/native/lifecycle.ts",
+      "to": "src/engine/native/lifecycle.ts"
+    },
+    {
+      "from": "src/native/ota-config.ts",
+      "to": "src/engine/native/ota-config.ts"
+    },
+    {
+      "from": "src/native/ota.ts",
+      "to": "src/engine/native/ota.ts"
+    },
+    {
+      "from": "src/native/saves.ts",
+      "to": "src/engine/native/saves.ts"
+    },
+    {
+      "from": "src/native/updates.ts",
+      "to": "src/engine/native/updates.ts"
+    },
+    {
+      "from": "src/physics/CharacterMotor.ts",
+      "to": "src/engine/physics/CharacterMotor.ts"
+    },
+    {
+      "from": "src/physics/Physics.ts",
+      "to": "src/engine/physics/Physics.ts"
+    },
+    {
+      "from": "src/physics/active.ts",
+      "to": "src/engine/physics/active.ts"
+    },
+    {
+      "from": "src/physics/bodies.ts",
+      "to": "src/engine/physics/bodies.ts"
+    },
+    {
+      "from": "src/physics/bridge.ts",
+      "to": "src/engine/physics/bridge.ts"
+    },
+    {
+      "from": "src/physics/creatures.ts",
+      "to": "src/engine/physics/creatures.ts"
+    },
+    {
+      "from": "src/physics/debug.ts",
+      "to": "src/engine/physics/debug.ts"
+    },
+    {
+      "from": "src/physics/groups.ts",
+      "to": "src/engine/physics/groups.ts"
+    },
+    {
+      "from": "src/physics/heightPatch.ts",
+      "to": "src/engine/physics/heightPatch.ts"
+    },
+    {
+      "from": "src/physics/navmesh.ts",
+      "to": "src/engine/physics/navmesh.ts"
+    },
+    {
+      "from": "src/physics/navmeshUrl.ts",
+      "to": "src/engine/physics/navmeshUrl.ts"
+    },
+    {
+      "from": "src/physics/paths.ts",
+      "to": "src/engine/physics/paths.ts"
+    },
+    {
+      "from": "src/physics/pieces.ts",
+      "to": "src/engine/physics/pieces.ts"
+    },
+    {
+      "from": "src/physics/query.ts",
+      "to": "src/engine/physics/query.ts"
+    },
+    {
+      "from": "src/physics/ragdoll.ts",
+      "to": "src/engine/physics/ragdoll.ts"
+    },
+    {
+      "from": "src/physics/rapier-bg.d.ts",
+      "to": "src/engine/physics/rapier-bg.d.ts"
+    },
+    {
+      "from": "src/physics/rapier.ts",
+      "to": "src/engine/physics/rapier.ts"
+    },
+    {
+      "from": "src/physics/rapierBindings.ts",
+      "to": "src/engine/physics/rapierBindings.ts"
+    },
+    {
+      "from": "src/physics/ropeChain.ts",
+      "to": "src/engine/physics/ropeChain.ts"
+    },
+    {
+      "from": "src/physics/surface.ts",
+      "to": "src/engine/physics/surface.ts"
+    },
+    {
+      "from": "src/physics/terrain.ts",
+      "to": "src/engine/physics/terrain.ts"
+    },
+    {
+      "from": "src/physics/trainingTargets.ts",
+      "to": "src/engine/physics/trainingTargets.ts"
+    },
+    {
+      "from": "src/physics/wasmUrl.ts",
+      "to": "src/engine/physics/wasmUrl.ts"
+    },
+    {
+      "from": "src/pinehollow/ammo.ts",
+      "to": "src/shards/pine-hollow/loadout/ammo.ts"
+    },
+    {
+      "from": "src/pinehollow/antlerKing.ts",
+      "to": "src/shards/pine-hollow/combat/antlerKing.ts"
+    },
+    {
+      "from": "src/pinehollow/audioWiring.ts",
+      "to": "src/shards/pine-hollow/audio/wiring.ts"
+    },
+    {
+      "from": "src/pinehollow/combatMath.ts",
+      "to": "src/shards/pine-hollow/combat/combatMath.ts"
+    },
+    {
+      "from": "src/pinehollow/ctx.ts",
+      "to": "src/shards/pine-hollow/combat/ctx.ts"
+    },
+    {
+      "from": "src/pinehollow/elites.ts",
+      "to": "src/shards/pine-hollow/combat/elites.ts"
+    },
+    {
+      "from": "src/pinehollow/feel.ts",
+      "to": "src/shards/pine-hollow/combat/feel.ts"
+    },
+    {
+      "from": "src/pinehollow/finishes.ts",
+      "to": "src/shards/pine-hollow/loadout/finishes.ts"
+    },
+    {
+      "from": "src/pinehollow/fxKit.ts",
+      "to": "src/shards/pine-hollow/combat/fxKit.ts"
+    },
+    {
+      "from": "src/pinehollow/index.ts",
+      "to": "src/shards/pine-hollow/combat/install.ts"
+    },
+    {
+      "from": "src/pinehollow/kingRig.ts",
+      "to": "src/shards/pine-hollow/combat/kingRig.ts"
+    },
+    {
+      "from": "src/pinehollow/life/birdFix.ts",
+      "to": "src/shards/pine-hollow/life/birdFix.ts"
+    },
+    {
+      "from": "src/pinehollow/life/birdModels.ts",
+      "to": "src/shards/pine-hollow/life/birdModels.ts"
+    },
+    {
+      "from": "src/pinehollow/life/index.ts",
+      "to": "src/shards/pine-hollow/life/index.ts"
+    },
+    {
+      "from": "src/pinehollow/life/lifeMath.ts",
+      "to": "src/shards/pine-hollow/life/lifeMath.ts"
+    },
+    {
+      "from": "src/pinehollow/life/trunks.ts",
+      "to": "src/shards/pine-hollow/life/trunks.ts"
+    },
+    {
+      "from": "src/pinehollow/loadout.ts",
+      "to": "src/shards/pine-hollow/loadout/loadout.ts"
+    },
+    {
+      "from": "src/pinehollow/perfLapHost.ts",
+      "to": "src/shards/pine-hollow/dev/perfLap.ts"
+    },
+    {
+      "from": "src/pinehollow/quest/beats.ts",
+      "to": "src/shards/pine-hollow/quest/beats.ts"
+    },
+    {
+      "from": "src/pinehollow/quest/contracts.ts",
+      "to": "src/shards/pine-hollow/quest/contracts.ts"
+    },
+    {
+      "from": "src/pinehollow/quest/hollowLog.ts",
+      "to": "src/shards/pine-hollow/quest/hollowLog.ts"
+    },
+    {
+      "from": "src/pinehollow/quest/index.ts",
+      "to": "src/shards/pine-hollow/quest/index.ts"
+    },
+    {
+      "from": "src/pinehollow/quest/nightThralls.ts",
+      "to": "src/shards/pine-hollow/quest/nightThralls.ts"
+    },
+    {
+      "from": "src/pinehollow/quest/npcModels.ts",
+      "to": "src/shards/pine-hollow/quest/npcModels.ts"
+    },
+    {
+      "from": "src/pinehollow/quest/npcRig.ts",
+      "to": "src/shards/pine-hollow/quest/npcRig.ts"
+    },
+    {
+      "from": "src/pinehollow/quest/rides.ts",
+      "to": "src/shards/pine-hollow/quest/rides.ts"
+    },
+    {
+      "from": "src/pinehollow/quest/stagLead.ts",
+      "to": "src/shards/pine-hollow/quest/stagLead.ts"
+    },
+    {
+      "from": "src/pinehollow/quest/table.ts",
+      "to": "src/shards/pine-hollow/quest/table.ts"
+    },
+    {
+      "from": "src/pinehollow/quest/tokenShelf.ts",
+      "to": "src/shards/pine-hollow/quest/tokenShelf.ts"
+    },
+    {
+      "from": "src/pinehollow/quest/trades.ts",
+      "to": "src/shards/pine-hollow/quest/trades.ts"
+    },
+    {
+      "from": "src/pinehollow/quest/ui.ts",
+      "to": "src/shards/pine-hollow/quest/ui.ts"
+    },
+    {
+      "from": "src/pinehollow/quest/wardensHollow.ts",
+      "to": "src/shards/pine-hollow/quest/wardensHollow.ts"
+    },
+    {
+      "from": "src/pinehollow/weather.ts",
+      "to": "src/shards/pine-hollow/world/weather.ts"
+    },
+    {
+      "from": "src/player/AimAssist.ts",
+      "to": "src/engine/player/AimAssist.ts"
+    },
+    {
+      "from": "src/player/AimTargets.ts",
+      "to": "src/engine/player/AimTargets.ts"
+    },
+    {
+      "from": "src/player/BodyShadow.ts",
+      "to": "src/engine/player/BodyShadow.ts"
+    },
+    {
+      "from": "src/player/Bow.ts",
+      "to": "src/engine/player/Bow.ts"
+    },
+    {
+      "from": "src/player/CameraFX.ts",
+      "to": "src/engine/player/CameraFX.ts"
+    },
+    {
+      "from": "src/player/Cosmetics.ts",
+      "to": "src/engine/player/Cosmetics.ts"
+    },
+    {
+      "from": "src/player/Crossbow.ts",
+      "to": "src/engine/player/Crossbow.ts"
+    },
+    {
+      "from": "src/player/GoldenBow.ts",
+      "to": "src/shards/nalati-grasslands/weapons/GoldenBow.ts"
+    },
+    {
+      "from": "src/player/Hands.ts",
+      "to": "src/engine/player/Hands.ts"
+    },
+    {
+      "from": "src/player/Hoverboard.ts",
+      "to": "src/engine/player/Hoverboard.ts"
+    },
+    {
+      "from": "src/player/IronSword.ts",
+      "to": "src/shards/driftwood-isle/weapons/IronSword.ts"
+    },
+    {
+      "from": "src/player/LeverRifle.ts",
+      "to": "src/shards/pine-hollow/weapons/LeverRifle.ts"
+    },
+    {
+      "from": "src/player/LockOnTarget.ts",
+      "to": "src/engine/player/LockOnTarget.ts"
+    },
+    {
+      "from": "src/player/Longbow.ts",
+      "to": "src/engine/player/Longbow.ts"
+    },
+    {
+      "from": "src/player/MeleeSweep.ts",
+      "to": "src/engine/player/MeleeSweep.ts"
+    },
+    {
+      "from": "src/player/Mount.ts",
+      "to": "src/shards/nalati-grasslands/ride/Mount.ts"
+    },
+    {
+      "from": "src/player/Naizagai.ts",
+      "to": "src/shards/nalati-grasslands/weapons/Naizagai.ts"
+    },
+    {
+      "from": "src/player/Player.ts",
+      "to": "src/engine/player/Player.ts"
+    },
+    {
+      "from": "src/player/Projectiles.ts",
+      "to": "src/engine/player/Projectiles.ts"
+    },
+    {
+      "from": "src/player/Reins.ts",
+      "to": "src/shards/nalati-grasslands/ride/Reins.ts"
+    },
+    {
+      "from": "src/player/Rifle.ts",
+      "to": "src/engine/player/Rifle.ts"
+    },
+    {
+      "from": "src/player/Sabre.ts",
+      "to": "src/shards/nalati-grasslands/weapons/Sabre.ts"
+    },
+    {
+      "from": "src/player/Skins.ts",
+      "to": "src/engine/player/Skins.ts"
+    },
+    {
+      "from": "src/player/Spear.ts",
+      "to": "src/shards/nalati-grasslands/weapons/Spear.ts"
+    },
+    {
+      "from": "src/player/Sword.ts",
+      "to": "src/engine/player/Sword.ts"
+    },
+    {
+      "from": "src/player/SwordMoves.ts",
+      "to": "src/engine/player/SwordMoves.ts"
+    },
+    {
+      "from": "src/player/TouchControls.ts",
+      "to": "src/engine/player/TouchControls.ts"
+    },
+    {
+      "from": "src/player/WaterLine.ts",
+      "to": "src/engine/player/WaterLine.ts"
+    },
+    {
+      "from": "src/player/Weapon.ts",
+      "to": "src/engine/player/Weapon.ts"
+    },
+    {
+      "from": "src/player/WeaponPickup.ts",
+      "to": "src/engine/player/WeaponPickup.ts"
+    },
+    {
+      "from": "src/player/Weapons.ts",
+      "to": "src/engine/player/Weapons.ts"
+    },
+    {
+      "from": "src/player/bladeGlow.ts",
+      "to": "src/engine/player/bladeGlow.ts"
+    },
+    {
+      "from": "src/player/bowDraw.ts",
+      "to": "src/engine/player/bowDraw.ts"
+    },
+    {
+      "from": "src/player/horseNames.ts",
+      "to": "src/shards/nalati-grasslands/ride/horseNames.ts"
+    },
+    {
+      "from": "src/player/hunterHands.ts",
+      "to": "src/engine/player/hunterHands.ts"
+    },
+    {
+      "from": "src/player/meleeGeo.ts",
+      "to": "src/shards/nalati-grasslands/weapons/meleeGeo.ts"
+    },
+    {
+      "from": "src/player/nalatiArms.ts",
+      "to": "src/engine/player/nalatiArms.ts"
+    },
+    {
+      "from": "src/player/nalatiKit.ts",
+      "to": "src/shards/nalati-grasslands/weapons/nalatiKit.ts"
+    },
+    {
+      "from": "src/player/nalatiSkins.ts",
+      "to": "src/shards/nalati-grasslands/weapons/nalatiSkins.ts"
+    },
+    {
+      "from": "src/player/rideAssist.ts",
+      "to": "src/shards/nalati-grasslands/ride/rideAssist.ts"
+    },
+    {
+      "from": "src/player/riding.ts",
+      "to": "src/engine/player/riding.ts"
+    },
+    {
+      "from": "src/player/rigArms.ts",
+      "to": "src/kit/viewmodel/rigArms.ts"
+    },
+    {
+      "from": "src/player/viewmodelTextures.ts",
+      "to": "src/engine/player/viewmodelTextures.ts"
+    },
+    {
+      "from": "src/player/viewmodelTextures.worker.ts",
+      "to": "src/engine/player/viewmodelTextures.worker.ts"
+    },
+    {
+      "from": "src/playgrounds/GrapplePlayground.ts",
+      "to": "src/shards/nine-dragon-stack/playground/GrapplePlayground.ts"
+    },
+    {
+      "from": "src/playgrounds/HorsePlayground.ts",
+      "to": "src/shards/nalati-grasslands/playground/HorsePlayground.ts"
+    },
+    {
+      "from": "src/playgrounds/Playground.ts",
+      "to": "src/engine/practice/playground/Playground.ts"
+    },
+    {
+      "from": "src/playgrounds/catalog.ts",
+      "to": "src/engine/practice/playground/catalog.ts"
+    },
+    {
+      "from": "src/playgrounds/devGrid.ts",
+      "to": "src/engine/practice/playground/devGrid.ts"
+    },
+    {
+      "from": "src/playgrounds/grappleCourse.ts",
+      "to": "src/shards/nine-dragon-stack/playground/grappleCourse.ts"
+    },
+    {
+      "from": "src/playgrounds/horseCourse.ts",
+      "to": "src/shards/nalati-grasslands/playground/horseCourse.ts"
+    },
+    {
+      "from": "src/playgrounds/hud.ts",
+      "to": "src/engine/practice/playground/hud.ts"
+    },
+    {
+      "from": "src/playgrounds/load.ts",
+      "to": "src/engine/practice/playground/load.ts"
+    },
+    {
+      "from": "src/practice/DummyClips.ts",
+      "to": "src/engine/practice/DummyClips.ts"
+    },
+    {
+      "from": "src/practice/DummyMotion.ts",
+      "to": "src/engine/practice/DummyMotion.ts"
+    },
+    {
+      "from": "src/practice/DummyStudio.ts",
+      "to": "src/engine/practice/DummyStudio.ts"
+    },
+    {
+      "from": "src/practice/TrainingArena.ts",
+      "to": "src/engine/practice/TrainingArena.ts"
+    },
+    {
+      "from": "src/practice/TrainingDummy.ts",
+      "to": "src/engine/practice/TrainingDummy.ts"
+    },
+    {
+      "from": "src/practice/TrainingDummyAssets.ts",
+      "to": "src/engine/practice/TrainingDummyAssets.ts"
+    },
+    {
+      "from": "src/practice/arena.css",
+      "to": "src/engine/practice/arena.css"
+    },
+    {
+      "from": "src/practice/lineup.ts",
+      "to": "src/engine/practice/lineup.ts"
+    },
+    {
+      "from": "src/pwa/sw.js",
+      "to": "src/engine/pwa/sw.js"
+    },
+    {
+      "from": "src/shard/ShardHost.ts",
+      "to": "src/engine/shard/ShardHost.ts"
+    },
+    {
+      "from": "src/shard/disposeListeners.ts",
+      "to": "src/engine/shard/disposeListeners.ts"
+    },
+    {
+      "from": "src/shard/switch.ts",
+      "to": "src/game/travel/switch.ts"
+    },
+    {
+      "from": "src/telemetry/bootInbox.ts",
+      "to": "src/engine/telemetry/bootInbox.ts"
+    },
+    {
+      "from": "src/telemetry/browserErrors.ts",
+      "to": "src/engine/telemetry/browserErrors.ts"
+    },
+    {
+      "from": "src/ui/BagButton.ts",
+      "to": "src/game/bag/BagButton.ts"
+    },
+    {
+      "from": "src/ui/BootSettings.ts",
+      "to": "src/engine/ui/BootSettings.ts"
+    },
+    {
+      "from": "src/ui/BossBar.ts",
+      "to": "src/engine/ui/BossBar.ts"
+    },
+    {
+      "from": "src/ui/CoinChip.ts",
+      "to": "src/game/loot/CoinChip.ts"
+    },
+    {
+      "from": "src/ui/Combat.ts",
+      "to": "src/engine/ui/Combat.ts"
+    },
+    {
+      "from": "src/ui/DeathFade.ts",
+      "to": "src/engine/ui/DeathFade.ts"
+    },
+    {
+      "from": "src/ui/DebugMenu.ts",
+      "to": "src/engine/ui/DebugMenu.ts"
+    },
+    {
+      "from": "src/ui/EliteBar.ts",
+      "to": "src/engine/ui/EliteBar.ts"
+    },
+    {
+      "from": "src/ui/ErrorModal.ts",
+      "to": "src/engine/ui/ErrorModal.ts"
+    },
+    {
+      "from": "src/ui/Feedback.ts",
+      "to": "src/engine/ui/Feedback.ts"
+    },
+    {
+      "from": "src/ui/FirstHints.ts",
+      "to": "src/engine/ui/FirstHints.ts"
+    },
+    {
+      "from": "src/ui/HUD.ts",
+      "to": "src/engine/ui/HUD.ts"
+    },
+    {
+      "from": "src/ui/HorseNamePrompt.ts",
+      "to": "src/shards/nalati-grasslands/ride/HorseNamePrompt.ts"
+    },
+    {
+      "from": "src/ui/HurtArc.ts",
+      "to": "src/engine/ui/HurtArc.ts"
+    },
+    {
+      "from": "src/ui/Loading.ts",
+      "to": "src/engine/ui/Loading.ts"
+    },
+    {
+      "from": "src/ui/LockOn.ts",
+      "to": "src/engine/ui/LockOn.ts"
+    },
+    {
+      "from": "src/ui/Map.ts",
+      "to": "src/engine/ui/Map.ts"
+    },
+    {
+      "from": "src/ui/Menu.ts",
+      "to": "src/engine/ui/Menu.ts"
+    },
+    {
+      "from": "src/ui/Minimap.ts",
+      "to": "src/engine/ui/Minimap.ts"
+    },
+    {
+      "from": "src/ui/Perf.ts",
+      "to": "src/engine/ui/Perf.ts"
+    },
+    {
+      "from": "src/ui/ReloadPrompt.ts",
+      "to": "src/engine/ui/ReloadPrompt.ts"
+    },
+    {
+      "from": "src/ui/Resume.ts",
+      "to": "src/engine/ui/Resume.ts"
+    },
+    {
+      "from": "src/ui/RideHUD.ts",
+      "to": "src/shards/nalati-grasslands/ride/RideHUD.ts"
+    },
+    {
+      "from": "src/ui/RotateGate.ts",
+      "to": "src/engine/ui/RotateGate.ts"
+    },
+    {
+      "from": "src/ui/Settings.ts",
+      "to": "src/engine/ui/Settings.ts"
+    },
+    {
+      "from": "src/ui/ShardComplete.ts",
+      "to": "src/game/complete/ShardComplete.ts"
+    },
+    {
+      "from": "src/ui/ShopPanel.ts",
+      "to": "src/shards/driftwood-isle/loot/ShopPanel.ts"
+    },
+    {
+      "from": "src/ui/SpeedLines.ts",
+      "to": "src/engine/ui/SpeedLines.ts"
+    },
+    {
+      "from": "src/ui/StartTitle.ts",
+      "to": "src/engine/ui/StartTitle.ts"
+    },
+    {
+      "from": "src/ui/ToastStack.ts",
+      "to": "src/engine/ui/ToastStack.ts"
+    },
+    {
+      "from": "src/ui/Update.ts",
+      "to": "src/engine/ui/Update.ts"
+    },
+    {
+      "from": "src/ui/WeaponStrip.ts",
+      "to": "src/engine/ui/WeaponStrip.ts"
+    },
+    {
+      "from": "src/ui/WindupWarn.ts",
+      "to": "src/engine/ui/WindupWarn.ts"
+    },
+    {
+      "from": "src/ui/bag.ts",
+      "to": "src/game/bag/bag.ts"
+    },
+    {
+      "from": "src/ui/cards.ts",
+      "to": "src/engine/ui/cards.ts"
+    },
+    {
+      "from": "src/ui/compendium/Journal.ts",
+      "to": "src/game/compendium/Journal.ts"
+    },
+    {
+      "from": "src/ui/compendium/finds.ts",
+      "to": "src/game/compendium/finds.ts"
+    },
+    {
+      "from": "src/ui/compendium/install.ts",
+      "to": "src/game/compendium/install.ts"
+    },
+    {
+      "from": "src/ui/compendium/registry.ts",
+      "to": "src/game/compendium/registry.ts"
+    },
+    {
+      "from": "src/ui/compendium/shards/pine-hollow.ts",
+      "to": "src/shards/pine-hollow/compendium.ts"
+    },
+    {
+      "from": "src/ui/compendium/state.ts",
+      "to": "src/game/compendium/state.ts"
+    },
+    {
+      "from": "src/ui/compendium/tracker.ts",
+      "to": "src/game/compendium/tracker.ts"
+    },
+    {
+      "from": "src/ui/compendium/types.ts",
+      "to": "src/game/compendium/types.ts"
+    },
+    {
+      "from": "src/ui/debugOptions.ts",
+      "to": "src/engine/ui/debugOptions.ts"
+    },
+    {
+      "from": "src/ui/devSwitch.ts",
+      "to": "src/engine/ui/devSwitch.ts"
+    },
+    {
+      "from": "src/ui/haptics.ts",
+      "to": "src/engine/ui/haptics.ts"
+    },
+    {
+      "from": "src/ui/hudSlots.ts",
+      "to": "src/engine/ui/hudSlots.ts"
+    },
+    {
+      "from": "src/ui/icons.ts",
+      "to": "src/engine/ui/icons.ts"
+    },
+    {
+      "from": "src/ui/loading.css",
+      "to": "src/engine/ui/loading.css"
+    },
+    {
+      "from": "src/ui/mapShapes.ts",
+      "to": "src/engine/ui/mapShapes.ts"
+    },
+    {
+      "from": "src/ui/perf.css",
+      "to": "src/engine/ui/perf.css"
+    },
+    {
+      "from": "src/ui/perfHud.ts",
+      "to": "src/engine/ui/perfHud.ts"
+    },
+    {
+      "from": "src/ui/perfLap.ts",
+      "to": "src/engine/ui/perfLap.ts"
+    },
+    {
+      "from": "src/ui/perfLapSummary.ts",
+      "to": "src/engine/ui/perfLapSummary.ts"
+    },
+    {
+      "from": "src/ui/perfProbe.ts",
+      "to": "src/engine/ui/perfProbe.ts"
+    },
+    {
+      "from": "src/ui/review.ts",
+      "to": "src/engine/ui/review.ts"
+    },
+    {
+      "from": "src/ui/roomMap.ts",
+      "to": "src/engine/ui/roomMap.ts"
+    },
+    {
+      "from": "src/ui/styles/base.css",
+      "to": "src/engine/ui/styles/base.css"
+    },
+    {
+      "from": "src/ui/styles/boss.css",
+      "to": "src/engine/ui/styles/boss.css"
+    },
+    {
+      "from": "src/ui/styles/combat.css",
+      "to": "src/engine/ui/styles/combat.css"
+    },
+    {
+      "from": "src/ui/styles/compendium.css",
+      "to": "src/game/compendium/compendium.css"
+    },
+    {
+      "from": "src/ui/styles/complete.css",
+      "to": "src/game/complete/complete.css"
+    },
+    {
+      "from": "src/ui/styles/debug.css",
+      "to": "src/engine/ui/styles/debug.css"
+    },
+    {
+      "from": "src/ui/styles/elite.css",
+      "to": "src/engine/ui/styles/elite.css"
+    },
+    {
+      "from": "src/ui/styles/explore.css",
+      "to": "src/engine/ui/styles/explore.css"
+    },
+    {
+      "from": "src/ui/styles/feedback.css",
+      "to": "src/engine/ui/styles/feedback.css"
+    },
+    {
+      "from": "src/ui/styles/game.css",
+      "to": "src/engine/ui/styles/game.css"
+    },
+    {
+      "from": "src/ui/styles/gmenu.css",
+      "to": "src/engine/ui/styles/gmenu.css"
+    },
+    {
+      "from": "src/ui/styles/hints.css",
+      "to": "src/engine/ui/styles/hints.css"
+    },
+    {
+      "from": "src/ui/styles/loot.css",
+      "to": "src/game/loot/loot.css"
+    },
+    {
+      "from": "src/ui/styles/menu.css",
+      "to": "src/engine/ui/styles/menu.css"
+    },
+    {
+      "from": "src/ui/styles/minimap.css",
+      "to": "src/engine/ui/styles/minimap.css"
+    },
+    {
+      "from": "src/ui/styles/pinehollow.css",
+      "to": "src/shards/pine-hollow/quest/pinehollow.css"
+    },
+    {
+      "from": "src/ui/styles/playgrounds.css",
+      "to": "src/engine/ui/styles/playgrounds.css"
+    },
+    {
+      "from": "src/ui/styles/quest.css",
+      "to": "src/engine/ui/styles/quest.css"
+    },
+    {
+      "from": "src/ui/styles/reload.css",
+      "to": "src/engine/ui/styles/reload.css"
+    },
+    {
+      "from": "src/ui/styles/resume.css",
+      "to": "src/engine/ui/styles/resume.css"
+    },
+    {
+      "from": "src/ui/styles/ride.css",
+      "to": "src/shards/nalati-grasslands/ride/ride.css"
+    },
+    {
+      "from": "src/ui/styles/rotate.css",
+      "to": "src/engine/ui/styles/rotate.css"
+    },
+    {
+      "from": "src/ui/styles/shop.css",
+      "to": "src/shards/driftwood-isle/loot/shop.css"
+    },
+    {
+      "from": "src/ui/styles/stealth.css",
+      "to": "src/shards/nalati-grasslands/stealth.css"
+    },
+    {
+      "from": "src/ui/styles/touch.css",
+      "to": "src/engine/ui/styles/touch.css"
+    },
+    {
+      "from": "src/ui/styles/update.css",
+      "to": "src/engine/ui/styles/update.css"
+    },
+    {
+      "from": "src/ui/titleDeck.ts",
+      "to": "src/game/titleDeck.ts"
+    },
+    {
+      "from": "src/world/Atmosphere.ts",
+      "to": "src/engine/world/Atmosphere.ts"
+    },
+    {
+      "from": "src/world/BakedCards.ts",
+      "to": "src/engine/world/BakedCards.ts"
+    },
+    {
+      "from": "src/world/BakedSky.ts",
+      "to": "src/engine/world/BakedSky.ts"
+    },
+    {
+      "from": "src/world/BakedTerrain.ts",
+      "to": "src/engine/world/BakedTerrain.ts"
+    },
+    {
+      "from": "src/world/BeaverPool.ts",
+      "to": "src/shards/pine-hollow/world/beaverPool.ts"
+    },
+    {
+      "from": "src/world/BlenderIsland.ts",
+      "to": "src/shards/driftwood-isle/world/BlenderIsland.ts"
+    },
+    {
+      "from": "src/world/Boat.ts",
+      "to": "src/shards/driftwood-isle/world/Boat.ts"
+    },
+    {
+      "from": "src/world/Boulders.ts",
+      "to": "src/shards/driftwood-isle/world/Boulders.ts"
+    },
+    {
+      "from": "src/world/Boundary.ts",
+      "to": "src/engine/world/Boundary.ts"
+    },
+    {
+      "from": "src/world/Bushes.ts",
+      "to": "src/shards/driftwood-isle/world/Bushes.ts"
+    },
+    {
+      "from": "src/world/Cabin.ts",
+      "to": "src/engine/world/Cabin.ts"
+    },
+    {
+      "from": "src/world/Cove.ts",
+      "to": "src/shards/driftwood-isle/world/Cove.ts"
+    },
+    {
+      "from": "src/world/DayClock.ts",
+      "to": "src/engine/world/DayClock.ts"
+    },
+    {
+      "from": "src/world/DayNight.ts",
+      "to": "src/engine/world/DayNight.ts"
+    },
+    {
+      "from": "src/world/Forest.ts",
+      "to": "src/engine/world/forest/Forest.ts"
+    },
+    {
+      "from": "src/world/Grass.ts",
+      "to": "src/engine/world/Grass.ts"
+    },
+    {
+      "from": "src/world/GrassField.ts",
+      "to": "src/kit/looks/grassField.ts"
+    },
+    {
+      "from": "src/world/GrassTrample.ts",
+      "to": "src/kit/looks/trample.ts"
+    },
+    {
+      "from": "src/world/GroundCover.ts",
+      "to": "src/shards/driftwood-isle/world/GroundCover.ts"
+    },
+    {
+      "from": "src/world/Gulls.ts",
+      "to": "src/shards/driftwood-isle/world/Gulls.ts"
+    },
+    {
+      "from": "src/world/Heightfield.ts",
+      "to": "src/engine/world/Heightfield.ts"
+    },
+    {
+      "from": "src/world/Horizon.ts",
+      "to": "src/engine/world/Horizon.ts"
+    },
+    {
+      "from": "src/world/HorizonMatte.ts",
+      "to": "src/engine/world/HorizonMatte.ts"
+    },
+    {
+      "from": "src/world/Hut.ts",
+      "to": "src/shards/driftwood-isle/world/Hut.ts"
+    },
+    {
+      "from": "src/world/Lookout.ts",
+      "to": "src/shards/driftwood-isle/world/Lookout.ts"
+    },
+    {
+      "from": "src/world/Ocean.ts",
+      "to": "src/shards/driftwood-isle/world/Ocean.ts"
+    },
+    {
+      "from": "src/world/PainterlySky.ts",
+      "to": "src/engine/world/PainterlySky.ts"
+    },
+    {
+      "from": "src/world/Palms.ts",
+      "to": "src/shards/driftwood-isle/world/Palms.ts"
+    },
+    {
+      "from": "src/world/Particles.ts",
+      "to": "src/kit/looks/particles.ts"
+    },
+    {
+      "from": "src/world/Pier.ts",
+      "to": "src/shards/driftwood-isle/world/Pier.ts"
+    },
+    {
+      "from": "src/world/PineCrags.ts",
+      "to": "src/shards/pine-hollow/world/crags.ts"
+    },
+    {
+      "from": "src/world/PineDayNight.ts",
+      "to": "src/shards/pine-hollow/look/PineDayNight.ts"
+    },
+    {
+      "from": "src/world/PineLandmarks.ts",
+      "to": "src/shards/pine-hollow/world/landmarks.ts"
+    },
+    {
+      "from": "src/world/PineStreams.ts",
+      "to": "src/shards/pine-hollow/world/streams.ts"
+    },
+    {
+      "from": "src/world/PineWeather.ts",
+      "to": "src/shards/pine-hollow/world/PineWeather.ts"
+    },
+    {
+      "from": "src/world/PineWeatherFX.ts",
+      "to": "src/shards/pine-hollow/world/PineWeatherFX.ts"
+    },
+    {
+      "from": "src/world/RopeBridge.ts",
+      "to": "src/shards/driftwood-isle/world/RopeBridge.ts"
+    },
+    {
+      "from": "src/world/Seabed.ts",
+      "to": "src/shards/driftwood-isle/world/Seabed.ts"
+    },
+    {
+      "from": "src/world/Shrine.ts",
+      "to": "src/shards/driftwood-isle/world/Shrine.ts"
+    },
+    {
+      "from": "src/world/Sky.ts",
+      "to": "src/engine/world/Sky.ts"
+    },
+    {
+      "from": "src/world/Spruce.ts",
+      "to": "src/shards/nalati-grasslands/world/Spruce.ts"
+    },
+    {
+      "from": "src/world/StylizedSky.ts",
+      "to": "src/engine/world/StylizedSky.ts"
+    },
+    {
+      "from": "src/world/Terrain.ts",
+      "to": "src/engine/world/Terrain.ts"
+    },
+    {
+      "from": "src/world/Trailside.ts",
+      "to": "src/shards/driftwood-isle/world/Trailside.ts"
+    },
+    {
+      "from": "src/world/TreeFactory.ts",
+      "to": "src/engine/world/TreeFactory.ts"
+    },
+    {
+      "from": "src/world/TrophyWall.ts",
+      "to": "src/shards/pine-hollow/world/trophyWall.ts"
+    },
+    {
+      "from": "src/world/Undergrowth.ts",
+      "to": "src/shards/pine-hollow/world/undergrowth.ts"
+    },
+    {
+      "from": "src/world/Water.ts",
+      "to": "src/shards/pine-hollow/world/pond.ts"
+    },
+    {
+      "from": "src/world/Waterfall.ts",
+      "to": "src/shards/driftwood-isle/world/Waterfall.ts"
+    },
+    {
+      "from": "src/world/Weather.ts",
+      "to": "src/shards/nalati-grasslands/world/Weather.ts"
+    },
+    {
+      "from": "src/world/WeatherFX.ts",
+      "to": "src/shards/nalati-grasslands/world/WeatherFX.ts"
+    },
+    {
+      "from": "src/world/WorldClock.ts",
+      "to": "src/engine/world/WorldClock.ts"
+    },
+    {
+      "from": "src/world/Wreck.ts",
+      "to": "src/shards/driftwood-isle/world/Wreck.ts"
+    },
+    {
+      "from": "src/world/Zipline.ts",
+      "to": "src/shards/driftwood-isle/world/Zipline.ts"
+    },
+    {
+      "from": "src/world/blenderArea.ts",
+      "to": "src/engine/world/blenderArea.ts"
+    },
+    {
+      "from": "src/world/cascadeCull.ts",
+      "to": "src/engine/world/cascadeCull.ts"
+    },
+    {
+      "from": "src/world/coverTint.ts",
+      "to": "src/shards/driftwood-isle/world/coverTint.ts"
+    },
+    {
+      "from": "src/world/driftwood.ts",
+      "to": "src/shards/driftwood-isle/world/driftLogs.ts"
+    },
+    {
+      "from": "src/world/faceHeads.ts",
+      "to": "src/engine/world/faceHeads.ts"
+    },
+    {
+      "from": "src/world/fx.ts",
+      "to": "src/engine/world/fx.ts"
+    },
+    {
+      "from": "src/world/interact/Interactables.ts",
+      "to": "src/engine/world/interact/Interactables.ts"
+    },
+    {
+      "from": "src/world/interact/driftwood.ts",
+      "to": "src/shards/driftwood-isle/quest/interactables.ts"
+    },
+    {
+      "from": "src/world/interact/flags.ts",
+      "to": "src/engine/world/interact/flags.ts"
+    },
+    {
+      "from": "src/world/interact/models.ts",
+      "to": "src/engine/world/interact/models.ts"
+    },
+    {
+      "from": "src/world/interact/types.ts",
+      "to": "src/engine/world/interact/types.ts"
+    },
+    {
+      "from": "src/world/interact/validate.ts",
+      "to": "src/engine/world/interact/validate.ts"
+    },
+    {
+      "from": "src/world/lookFlags.ts",
+      "to": "src/engine/world/lookFlags.ts"
+    },
+    {
+      "from": "src/world/lowpolyKit.ts",
+      "to": "src/engine/world/lowpolyKit.ts"
+    },
+    {
+      "from": "src/world/lut.ts",
+      "to": "src/engine/world/lut.ts"
+    },
+    {
+      "from": "src/world/nalati/Balbals.ts",
+      "to": "src/shards/nalati-grasslands/world/Balbals.ts"
+    },
+    {
+      "from": "src/world/nalati/Bowl.ts",
+      "to": "src/shards/nalati-grasslands/world/Bowl.ts"
+    },
+    {
+      "from": "src/world/nalati/Bridge.ts",
+      "to": "src/shards/nalati-grasslands/world/Bridge.ts"
+    },
+    {
+      "from": "src/world/nalati/Cairn.ts",
+      "to": "src/shards/nalati-grasslands/world/Cairn.ts"
+    },
+    {
+      "from": "src/world/nalati/Crags.ts",
+      "to": "src/shards/nalati-grasslands/world/Crags.ts"
+    },
+    {
+      "from": "src/world/nalati/EagleRock.ts",
+      "to": "src/shards/nalati-grasslands/world/EagleRock.ts"
+    },
+    {
+      "from": "src/world/nalati/Flutter.ts",
+      "to": "src/shards/nalati-grasslands/world/Flutter.ts"
+    },
+    {
+      "from": "src/world/nalati/KurganDungeon.ts",
+      "to": "src/shards/nalati-grasslands/world/KurganDungeon.ts"
+    },
+    {
+      "from": "src/world/nalati/KurganField.ts",
+      "to": "src/shards/nalati-grasslands/world/KurganField.ts"
+    },
+    {
+      "from": "src/world/nalati/NomadCamp.ts",
+      "to": "src/shards/nalati-grasslands/world/NomadCamp.ts"
+    },
+    {
+      "from": "src/world/nalati/RoadFurniture.ts",
+      "to": "src/shards/nalati-grasslands/world/RoadFurniture.ts"
+    },
+    {
+      "from": "src/world/nalati/Smoke.ts",
+      "to": "src/shards/nalati-grasslands/world/Smoke.ts"
+    },
+    {
+      "from": "src/world/nalati/Stair.ts",
+      "to": "src/shards/nalati-grasslands/world/Stair.ts"
+    },
+    {
+      "from": "src/world/nalati/SummerCamp.ts",
+      "to": "src/shards/nalati-grasslands/world/SummerCamp.ts"
+    },
+    {
+      "from": "src/world/nalati/Yard.ts",
+      "to": "src/shards/nalati-grasslands/world/Yard.ts"
+    },
+    {
+      "from": "src/world/nalati/clearings.ts",
+      "to": "src/shards/nalati-grasslands/world/clearings.ts"
+    },
+    {
+      "from": "src/world/nalati/dressing/index.ts",
+      "to": "src/shards/nalati-grasslands/world/dressing/index.ts"
+    },
+    {
+      "from": "src/world/nalati/dressing/layer.ts",
+      "to": "src/shards/nalati-grasslands/world/dressing/layer.ts"
+    },
+    {
+      "from": "src/world/nalati/dressing/life.ts",
+      "to": "src/shards/nalati-grasslands/world/dressing/life.ts"
+    },
+    {
+      "from": "src/world/nalati/dressing/place.ts",
+      "to": "src/shards/nalati-grasslands/world/dressing/place.ts"
+    },
+    {
+      "from": "src/world/nalati/dressing/statics.ts",
+      "to": "src/shards/nalati-grasslands/world/dressing/statics.ts"
+    },
+    {
+      "from": "src/world/nalati/glbPaint.ts",
+      "to": "src/shards/nalati-grasslands/world/glbPaint.ts"
+    },
+    {
+      "from": "src/world/nalati/granite.ts",
+      "to": "src/shards/nalati-grasslands/world/granite.ts"
+    },
+    {
+      "from": "src/world/nalati/index.ts",
+      "to": "src/shards/nalati-grasslands/world/index.ts"
+    },
+    {
+      "from": "src/world/nalati/layout.ts",
+      "to": "src/shards/nalati-grasslands/world/layout.ts"
+    },
+    {
+      "from": "src/world/nalati/paint.ts",
+      "to": "src/shards/nalati-grasslands/world/paint.ts"
+    },
+    {
+      "from": "src/world/nalati/painted.ts",
+      "to": "src/shards/nalati-grasslands/world/painted.ts"
+    },
+    {
+      "from": "src/world/nalati/places.ts",
+      "to": "src/shards/nalati-grasslands/world/places.ts"
+    },
+    {
+      "from": "src/world/nalati/props.ts",
+      "to": "src/shards/nalati-grasslands/world/props.ts"
+    },
+    {
+      "from": "src/world/nalati/solid.ts",
+      "to": "src/shards/nalati-grasslands/world/solid.ts"
+    },
+    {
+      "from": "src/world/nalati/types.ts",
+      "to": "src/shards/nalati-grasslands/world/types.ts"
+    },
+    {
+      "from": "src/world/nalatiTextures.ts",
+      "to": "src/shards/nalati-grasslands/look/nalatiTextures.ts"
+    },
+    {
+      "from": "src/world/painterly.ts",
+      "to": "src/engine/world/painterly.ts"
+    },
+    {
+      "from": "src/world/pineHero.ts",
+      "to": "src/shards/pine-hollow/world/heroFiles.ts"
+    },
+    {
+      "from": "src/world/pineSkyKeys.ts",
+      "to": "src/shards/pine-hollow/look/skyKeys.ts"
+    },
+    {
+      "from": "src/world/placement.ts",
+      "to": "src/engine/world/forest/placement.ts"
+    },
+    {
+      "from": "src/world/pointLightSkip.ts",
+      "to": "src/engine/world/pointLightSkip.ts"
+    },
+    {
+      "from": "src/world/registry.ts",
+      "to": "src/engine/world/registry.ts"
+    },
+    {
+      "from": "src/world/rockKit.ts",
+      "to": "src/shards/driftwood-isle/world/rockKit.ts"
+    },
+    {
+      "from": "src/world/shadowChunks.ts",
+      "to": "src/engine/world/shadowChunks.ts"
+    },
+    {
+      "from": "src/world/shadowFade.ts",
+      "to": "src/engine/world/shadowFade.ts"
+    },
+    {
+      "from": "src/world/shadowFilter.ts",
+      "to": "src/engine/world/shadowFilter.ts"
+    },
+    {
+      "from": "src/world/shadowVariants.ts",
+      "to": "src/engine/world/shadowVariants.ts"
+    },
+    {
+      "from": "src/world/steppeWind.ts",
+      "to": "src/engine/world/steppeWind.ts"
+    },
+    {
+      "from": "src/world/stylize.ts",
+      "to": "src/engine/world/stylize.ts"
+    },
+    {
+      "from": "src/world/treeSet.ts",
+      "to": "src/engine/world/forest/treeSet.ts"
+    },
+    {
+      "from": "src/world/treeSpecies.ts",
+      "to": "src/engine/world/forest/treeSpecies.ts"
+    },
+    {
+      "from": "src/world/waterSurface.ts",
+      "to": "src/engine/world/waterSurface.ts"
+    },
+    {
+      "from": "src/world/waves.ts",
+      "to": "src/engine/world/waves.ts"
+    },
+    {
+      "from": "src/world/wind.ts",
+      "to": "src/engine/world/wind.ts"
+    },
+    {
+      "from": "test/bag-tabs.test.ts",
+      "to": "test/shards/nine-dragon-stack/bag-tabs.test.ts"
+    },
+    {
+      "from": "test/ecology.test.ts",
+      "to": "test/shards/driftwood-isle/ecology.test.ts"
+    },
+    {
+      "from": "test/guards.test.ts",
+      "to": "test/shards/driftwood-isle/guards.test.ts"
+    },
+    {
+      "from": "test/gull-guide.test.ts",
+      "to": "test/shards/driftwood-isle/gull-guide.test.ts"
+    },
+    {
+      "from": "test/horse-names.test.ts",
+      "to": "test/shards/nalati-grasslands/horse-names.test.ts"
+    },
+    {
+      "from": "test/keepsakes.test.ts",
+      "to": "test/shards/driftwood-isle/keepsakes.test.ts"
+    },
+    {
+      "from": "test/models-contract.test.ts",
+      "to": "test/shards/driftwood-isle/models-contract.test.ts"
+    },
+    {
+      "from": "test/models-driftwood.test.ts",
+      "to": "test/shards/driftwood-isle/models-driftwood.test.ts"
+    },
+    {
+      "from": "test/models-pine-hollow.test.ts",
+      "to": "test/shards/pine-hollow/models-pine-hollow.test.ts"
+    },
+    {
+      "from": "test/nalati-bag.test.ts",
+      "to": "test/shards/nalati-grasslands/nalati-bag.test.ts"
+    },
+    {
+      "from": "test/nalati-models.test.ts",
+      "to": "test/shards/nalati-grasslands/nalati-models.test.ts"
+    },
+    {
+      "from": "test/nalati-navmesh.test.ts",
+      "to": "test/shards/nalati-grasslands/nalati-navmesh.test.ts"
+    },
+    {
+      "from": "test/nalati-roster.test.ts",
+      "to": "test/shards/nalati-grasslands/nalati-roster.test.ts"
+    },
+    {
+      "from": "test/nd-specimen-light.test.ts",
+      "to": "test/shards/nine-dragon-stack/nd-specimen-light.test.ts"
+    },
+    {
+      "from": "test/nine-dragon-models.test.ts",
+      "to": "test/shards/nine-dragon-stack/nine-dragon-models.test.ts"
+    },
+    {
+      "from": "test/pine-audio-wiring.test.ts",
+      "to": "test/shards/pine-hollow/pine-audio-wiring.test.ts"
+    },
+    {
+      "from": "test/pine-bag.test.ts",
+      "to": "test/shards/pine-hollow/pine-bag.test.ts"
+    },
+    {
+      "from": "test/pine-beaver-pool.test.ts",
+      "to": "test/shards/pine-hollow/pine-beaver-pool.test.ts"
+    },
+    {
+      "from": "test/pine-combat.test.ts",
+      "to": "test/shards/pine-hollow/pine-combat.test.ts"
+    },
+    {
+      "from": "test/pine-crags.test.ts",
+      "to": "test/shards/pine-hollow/pine-crags.test.ts"
+    },
+    {
+      "from": "test/pine-day-night.test.ts",
+      "to": "test/shards/pine-hollow/pine-day-night.test.ts"
+    },
+    {
+      "from": "test/pine-hollow-roster.test.ts",
+      "to": "test/shards/pine-hollow/pine-hollow-roster.test.ts"
+    },
+    {
+      "from": "test/pine-life.test.ts",
+      "to": "test/shards/pine-hollow/pine-life.test.ts"
+    },
+    {
+      "from": "test/pine-loadout.test.ts",
+      "to": "test/shards/pine-hollow/pine-loadout.test.ts"
+    },
+    {
+      "from": "test/pine-npc-rig.test.ts",
+      "to": "test/shards/pine-hollow/pine-npc-rig.test.ts"
+    },
+    {
+      "from": "test/pine-quest.test.ts",
+      "to": "test/shards/pine-hollow/pine-quest.test.ts"
+    },
+    {
+      "from": "test/pine-sfx-sprite.test.ts",
+      "to": "test/shards/pine-hollow/pine-sfx-sprite.test.ts"
+    },
+    {
+      "from": "test/pine-weather.test.ts",
+      "to": "test/shards/pine-hollow/pine-weather.test.ts"
+    },
+    {
+      "from": "test/quest-nalati.test.ts",
+      "to": "test/shards/nalati-grasslands/quest-nalati.test.ts"
+    },
+    {
+      "from": "test/ride-assist.test.ts",
+      "to": "test/shards/nalati-grasslands/ride-assist.test.ts"
+    },
+    {
+      "from": "test/shop.test.ts",
+      "to": "test/shards/driftwood-isle/shop.test.ts"
+    },
+    {
+      "from": "test/steppe-score.test.ts",
+      "to": "test/shards/nalati-grasslands/steppe-score.test.ts"
+    },
+    {
+      "from": "test/token-shelf.test.ts",
+      "to": "test/shards/pine-hollow/token-shelf.test.ts"
+    },
+    {
+      "from": "test/weather.test.ts",
+      "to": "test/shards/nalati-grasslands/weather.test.ts"
+    }
+  ],
+  "manual": [
+    {
+      "file": "test/sound-tap.test.ts",
+      "lines": [
+        36
+      ],
+      "literals": [
+        "src/audio/${module}.ts"
+      ],
+      "edit": "E357 F6m: computed scheduler source paths split across engine/Audio and Driftwood/Pine ambience; replace old src/audio template with explicit Audio/IslandAmbience/ForestAmbience destination lookup (retain callback assertions)"
+    },
+    {
+      "file": "scripts/bake-chunk.mjs",
+      "lines": [
+        39,
+        75,
+        80,
+        90,
+        95
+      ],
+      "edit": "shard discovery → src/shards/*/manifest.ts with ground.terrain; localImports next to the manifest; EXTRA_DEPS by slug",
+      "literals": [
+        "src/chunks"
+      ]
+    },
+    {
+      "file": "scripts/bake-sky.mjs",
+      "lines": [
+        24,
+        26
+      ],
+      "edit": "shard discovery → src/shards/*/manifest.ts",
+      "literals": [
+        "src/chunks"
+      ]
+    },
+    {
+      "file": "scripts/bake-navmesh.mjs",
+      "lines": [
+        124
+      ],
+      "edit": "src(`world/${m}.ts`) over 10 Driftwood builders → explicit new paths"
+    },
+    {
+      "file": "scripts/check-css.mjs",
+      "lines": [
+        30,
+        60
+      ],
+      "edit": "STYLES + join(STYLES, name) → a table of full paths",
+      "literals": [
+        "src/ui/styles"
+      ]
+    },
+    {
+      "file": "scripts/check-models.mjs",
+      "lines": [
+        6,
+        10,
+        214,
+        217
+      ],
+      "edit": "folder rules 1–5 and SHARD_MODELS → src/{engine,kit}/models/, src/shards/<slug>/models/ (TP10)",
+      "literals": [
+        "src/world",
+        "src/player",
+        "src/entities"
+      ]
+    },
+    {
+      "file": "vite.config.ts",
+      "lines": [
+        118
+      ],
+      "edit": "writeArtModule folders → src/shards/*/thumbs, src/shards/*/explore, src/engine/explore/img",
+      "literals": [
+        "src/chunks/thumbs",
+        "src/explore/img"
+      ]
+    },
+    {
+      "file": "src/engine/boot/extras.ts",
+      "lines": [
+        61
+      ],
+      "edit": "ART_BYTES key: resolve the glob key against src/engine/boot/",
+      "literals": [
+        "src/${key.slice"
+      ]
+    },
+    {
+      "file": "test/shards/driftwood-isle/models-driftwood.test.ts",
+      "lines": [
+        21
+      ],
+      "edit": "source key prefix ../ → ../../../"
+    },
+    {
+      "file": "test/shards/pine-hollow/models-pine-hollow.test.ts",
+      "lines": [
+        19
+      ],
+      "edit": "source key prefix ../ → ../../../"
+    }
+  ]
+}
