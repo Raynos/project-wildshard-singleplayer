@@ -2,7 +2,7 @@ import { ShardPlugin, type ShardContext, installCompendium, type ShardRuntime } 
 import { loadWorldContent, macrotask, heightAt, installAiDebug } from '#engine';
 import * as THREE from 'three';
 import { CABIN_SITES } from './layout';
-import { Crossbow, loadParticles, type Particles } from '#kit';
+import { Crossbow, STARTER_EFFECTS, installStarterEffects, loadParticles, type Particles } from '#kit';
 import { Cabins } from './world/homestead';
 import { Undergrowth } from './world/undergrowth';
 import { Props } from './world/props';
