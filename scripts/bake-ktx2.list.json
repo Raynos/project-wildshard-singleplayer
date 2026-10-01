@@ -1,7 +1,6 @@
 {
  "$doc": "URLs each tier was seen to load (scripts/gpu-texmem.mjs --record, one boot per shard, the boot pack off): what scripts/bake-ktx2.mjs bakes to KTX2 (E157)",
  "phone": [
-  "/assets/baked/driftwood-isle/tex/clouds.phone.webp",
   "/assets/baked/driftwood-isle/tex/giant.phone.webp",
   "/assets/baked/pine-hollow/tex/clouds.phone.webp",
   "/assets/baked/pine-hollow/tex/planet.phone.webp",
@@ -172,7 +171,6 @@
   "/assets/tex/wood_trunk_wall/nor_gl_1k.phone.webp"
  ],
  "desktop": [
-  "/assets/baked/driftwood-isle/tex/clouds.jpg",
   "/assets/baked/driftwood-isle/tex/giant.jpg",
   "/assets/baked/pine-hollow/tex/clouds.jpg",
   "/assets/baked/pine-hollow/tex/planet.jpg",

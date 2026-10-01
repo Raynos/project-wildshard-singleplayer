@@ -29,7 +29,7 @@
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",
     "lint:ratchet": "node lint/ratchet.mjs",
-    "test": "node scripts/check-model-sources.mjs && node scripts/check-paths.mjs && node lint/ratchet.mjs && node scripts/bake-check.mjs && vitest run",
+    "test": "node scripts/check-model-sources.mjs && node scripts/check-paths.mjs && node lint/ratchet.mjs && node scripts/normalize/liveness.mjs --readme --check && node scripts/bake-check.mjs && vitest run",
     "test:coverage": "vitest run --coverage && node scripts/coverage-ratchet.mjs",
     "test:gpu-boot": "bash scripts/test-nine-gpu-boot.sh",
     "preview": "vite preview",

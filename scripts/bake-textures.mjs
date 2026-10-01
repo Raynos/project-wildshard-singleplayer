@@ -24,7 +24,16 @@ const browser = await chromium.launch({ headless: true, args: ['--mute-audio', '
 try {
   const page = await (await browser.newContext({ viewport: { width: 1280, height: 720 } })).newPage();
   await page.goto(`${URL_BASE}/?chunk=${SLUG}&tier=desktop&skipintro=1&nolock=1&nobake=1&bakeexport=1`);
-  await page.waitForFunction(() => Boolean(window.__world), null, { timeout: 120000 });
+  await page.waitForFunction(() => Boolean(window.__wildshard?.world), null, { timeout: 120000 });
+  // The probe exists before the world has built everything (E357 F2 installs it ahead of `ws:ready`; the sky's clouds
+  // come later): wait until the export has stopped growing for 2 s, so no procedural source is missed (13 B9).
+  let count = -1;
+  for (let stable = 0, waited = 0; stable < 4 && waited < 60_000; waited += 500) {
+    await page.waitForTimeout(500);
+    const now = await page.evaluate(() => Object.keys(window.__bakeExport ?? {}).length);
+    stable = now === count ? stable + 1 : 0;
+    count = now;
+  }
   const out = await page.evaluate(() => window.__bakeExport);
   const files = {};
   const buffers = [];

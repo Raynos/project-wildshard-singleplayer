@@ -2,7 +2,6 @@
 // Images → .ktx2 (UASTC / ETC1S, full mips); GLB / glTF → a copy whose textures are KTX2 (KHR_texture_basisu).
 export const GPU_FILES: { readonly phone: Readonly<Record<string, string>>; readonly desktop: Readonly<Record<string, string>> } = {
   phone: {
-    "/assets/baked/driftwood-isle/tex/clouds.phone.webp": "/assets/gpu/baked/pine-hollow/tex/clouds.phone-2c362fd0.ktx2",
     "/assets/baked/driftwood-isle/tex/giant.phone.webp": "/assets/gpu/baked/driftwood-isle/tex/giant-db470988.ktx2",
     "/assets/baked/pine-hollow/tex/clouds.phone.webp": "/assets/gpu/baked/pine-hollow/tex/clouds.phone-2c362fd0.ktx2",
     "/assets/baked/pine-hollow/tex/planet.phone.webp": "/assets/gpu/baked/pine-hollow/tex/planet-eb9b99ec.ktx2",
@@ -150,7 +149,6 @@ export const GPU_FILES: { readonly phone: Readonly<Record<string, string>>; read
     "/assets/tex/wood_trunk_wall/nor_gl_1k.phone.webp": "/assets/gpu/tex/wood_trunk_wall/nor_gl_1k.phone-d83dea27.ktx2",
   },
   desktop: {
-    "/assets/baked/driftwood-isle/tex/clouds.jpg": "/assets/gpu/baked/pine-hollow/tex/clouds.phone-2c362fd0.ktx2",
     "/assets/baked/driftwood-isle/tex/giant.jpg": "/assets/gpu/baked/driftwood-isle/tex/giant-db470988.ktx2",
     "/assets/baked/pine-hollow/tex/clouds.jpg": "/assets/gpu/baked/pine-hollow/tex/clouds.phone-2c362fd0.ktx2",
     "/assets/baked/pine-hollow/tex/planet.jpg": "/assets/gpu/baked/pine-hollow/tex/planet-eb9b99ec.ktx2",

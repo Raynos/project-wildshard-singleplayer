@@ -9,12 +9,11 @@ export const PACKS: Readonly<Record<string, Readonly<Record<string, PackDef>>>> 
   "driftwood-isle": {
     "phone": pack([
       {
-        url: "/assets/packs/driftwood-isle.phone-e13e9824.bin",
-        bytes: 548788,
+        url: "/assets/packs/driftwood-isle.phone-4e843806.bin",
+        bytes: 531800,
         files: [
-          ["/assets/baked/driftwood-isle/tex/clouds.phone.webp",0,16988,"image/webp"],
-          ["/assets/baked/driftwood-isle/tex/giant.phone.webp",16988,7488,"image/webp"],
-          ["/assets/baked/driftwood-isle/terrain.bin",24476,524312,"application/octet-stream"],
+          ["/assets/baked/driftwood-isle/tex/giant.phone.webp",0,7488,"image/webp"],
+          ["/assets/baked/driftwood-isle/terrain.bin",7488,524312,"application/octet-stream"],
         ],
       },
     ]),
