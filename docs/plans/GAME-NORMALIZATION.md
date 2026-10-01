@@ -477,3 +477,14 @@ The verbatim table (decisions 1–100 and the revisions 12′, 28′, 55′, 90�
 | **Game layer** | Coins per shard. Items self-contained, travel-ready. Progress per shard + a Wildshard summary. Abilities per shard. String tables (English). Analytics from the event bus. Capture mode. No accessibility features in this plan |
 | **Council** | Not `ready` until 3 clean-room seats (Codex GPT 6.1 Sol + 2 Claude) find nothing two rounds in a row. Jake sees only the decisions that need him |
 | **Scope** | ENGINE-FIT folded in. Nine Dragon's own audio. Save safety + session health. Input actions. Delete dead + dev copies. Scripts: one-offs of finished asks and anything not run in 5 days go, unless referenced (88). The permanent gate. The template shard + docs + shard 5 by a fresh agent. Doors kept open for multiplayer and seamless travel |
+
+## Rows from Jake's picks (2026-10-01, [NORMALIZATION-PICKS](NORMALIZATION-PICKS.md))
+
+| Row | What | Pick | Owner | State |
+|---|---|---|---|---|
+| J1 | Pine's shared sound listener follows the player for every voice (fixes B58's silent distant samples); Pine's sound log re-records at the milestone | P5 | sol-r9 | open |
+| J2 | Nalati's far marmots pause (reverses B63); the whistle timing re-records at the milestone | P6 | sol-r9 | open |
+| J3 | One more chunk-group try now `main.ts` is the 3-line entry; boots all four shards off-branch before it lands (B69) | P7 | after J5 | open |
+| J4 | Delete the 54 unreferenced original textures (27.05 MiB, `progress/normalization/x3-asset-deltas.json`) | P9 | lead | open |
+| J5 | ARCH-GUARDS first batch ([ARCH-GUARDS](ARCH-GUARDS.md): AG16, AG17, AG1, AG14, AG13, AG11, AG20, AG9) as Z4 rows, before Z1 / Z3 | P1 | sol-ag | open |
+| J6 | The calibration publish at the next quiet gap | P12 | lead | open |

@@ -1,6 +1,6 @@
 # NORMALIZATION-PICKS — every pick, decision, question and review for Jake (E357)
 
-**State:** `blocked` 2026-10-01 — 4 rows open (P1, P3, P10, P13); 9 answered 2026-10-01, waiting on Jake; the lead asks them with the question tool; must be empty before GAME-NORMALIZATION is archived.
+**State:** `blocked` 2026-10-01 — 3 rows open (P3, P10, P13); 10 answered 2026-10-01, waiting on Jake; the lead asks them with the question tool; must be empty before GAME-NORMALIZATION is archived.
 
 A mini plan beside [GAME-NORMALIZATION](GAME-NORMALIZATION.md). Each row is one question the lead asks Jake through
 the question tool (AskUserQuestion), with its options and the evidence to look at. Builders never decide a row: when
@@ -17,7 +17,6 @@ continue on the recommended option, but the row stays open until Jake has answer
 
 | # | What | Options (recommended first) | Where to look | Since |
 |---|---|---|---|---|
-| P1 | **E362 ARCH-GUARDS**: which static-analysis guards to build (lint rules, TS boundaries, import graph, shard layout, fast pre-commit) | the recommended first batch in the doc · a subset · none | `docs/plans/ARCH-GUARDS.md` (Opus subagent drafting) | 2026-10-01 |
 | P3 | **X1 input board**: the 120 ms input buffer + 100 ms coyote time (decision 40), the Controls / rebinding screen | ship as built · tune the two numbers · revert | `progress/normalization/x1-board/` (sol-x1b making the clips) | 2026-10-01 |
 | P10 | **B35 / X9** title-deck Wildshard summary strip variant (A shipped as default, B a Debug row) | A · B | `progress/normalization/x9/title-{a,b}.jpg` | 2026-09-30 |
 | P13 | **Z3 shard 5 concepts**: the fresh agent proposes 3 portrait mockups per new shard (desert + whip; agent's choice) and Jake picks (decision 73) | — (comes at Z3) | — | later |
@@ -35,3 +34,4 @@ continue on the recommended option, but the row stays open until Jake has answer
 | P9 | **X3 T3**: 54 unreferenced original texture files, 27.05 MiB | Delete the 54 unreferenced original textures (27 MB) | 2026-10-01 |
 | P11 | **Earlier wave boards** still unseen: weapons (B1 / B2 wall fixes), creatures (big crab 14, decision 86), look (the shared Captain BossBar, decision 91) | Same review page as P2 | 2026-10-01 |
 | P12 | **Calibration publish** needs a quiet machine (budgets become measured, not projected) | Run it at the next quiet gap (no builders live), before the milestone pin if possible | 2026-10-01 |
+| P1 | **E362 ARCH-GUARDS**: which static-analysis guards to build (lint rules, TS boundaries, import graph, shard layout, fast pre-commit) | First batch now, in E357 (AG16, AG17, AG1, AG14, AG13, AG11, AG20, AG9 as Z4 rows, before the template + new shards); second batch after | 2026-10-01 |
