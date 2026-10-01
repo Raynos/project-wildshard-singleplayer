@@ -8,14 +8,19 @@ import type { Vector3 } from 'three';
 interface LoopVoice { gain: GainNode; pan: StereoPannerNode; stop: () => void }
 function loopVoice(audio: AudioMixer, sample: SampleLoop, scope: Scope, random: () => number): LoopVoice {
   const ctx = audio.ctx, source = ctx.createBufferSource(), gain = ctx.createGain(), pan = ctx.createStereoPanner();
-  source.buffer = sample.buffer; source.loop = true; source.loopStart = sample.loopStart; source.loopEnd = sample.loopEnd;
   gain.gain.value = 0;
   source.connect(gain).connect(pan).connect(audio.bus('ambience'));
-  let stopped = false;
+  let started = false, stopped = false;
   let forget = (): void => { /* Installed below before playback. */ };
-  const stop = (): void => { if (stopped) return; stopped = true; source.stop(); source.disconnect(); gain.disconnect(); pan.disconnect(); forget(); };
+  const stop = (): void => {
+    if (stopped) return;
+    stopped = true;
+    try { if (started) source.stop(); }
+    finally { source.disconnect(); gain.disconnect(); pan.disconnect(); forget(); }
+  };
   forget = scope.capture('sounds', stop);
-  loopAt(source, sample.buffer, sample, random, ctx.currentTime);
+  try { loopAt(source, sample.buffer, sample, random, ctx.currentTime); started = true; }
+  catch (error) { stop(); throw error; }
   return { gain, pan, stop };
 }
 export interface BedDef { id: string; zone: string; sample: () => SampleLoop | undefined; started: () => void }

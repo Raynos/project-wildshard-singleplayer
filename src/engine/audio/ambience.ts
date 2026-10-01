@@ -36,12 +36,24 @@ export class AmbienceZones {
     let scaled: GainNode | undefined;
     if (scale !== 1) { scaled = c.createGain(); scaled.gain.value = scale; source.connect(scaled).connect(bed.gain); }
     else source.connect(bed.gain);
+    let started = false, ended = false;
+    const endedSignal = new AbortController();
+    let forget = (): void => { /* Installed before playback. */ };
+    const cleanup = (): void => {
+      source.disconnect(); scaled?.disconnect(); forget(); endedSignal.abort();
+      if (bed.src === source) { bed.src = undefined; bed.buf = undefined; }
+    };
+    const stop = (): void => {
+      if (ended) return;
+      ended = true;
+      try { if (started) source.stop(); } finally { cleanup(); }
+    };
     if (this.scope) {
-      let ended = false;
-      const forget = this.scope.capture('sounds', () => { if (!ended) source.stop(); source.disconnect(); scaled?.disconnect(); if (bed.src === source) bed.src = undefined; });
-      this.scope.listen(source, 'ended', () => { ended = true; forget(); source.disconnect(); scaled?.disconnect(); }, { once: true });
+      forget = this.scope.capture('sounds', stop);
+      this.scope.listen(source, 'ended', () => { ended = true; cleanup(); }, { once: true, signal: endedSignal.signal });
     }
-    loopAt(source, sample.buffer, sample, this.random, time);
+    try { loopAt(source, sample.buffer, sample, this.random, time); started = true; }
+    catch (error) { stop(); throw error; }
     bed.src = source; bed.buf = sample.buffer; bed.quiet = 0; def.started(); return bed;
   }
   mix(def: ZoneBed, sample: SampleLoop | undefined, level: number, tau: number, threshold = 0.002): void {
