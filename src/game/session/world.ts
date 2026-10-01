@@ -6,7 +6,7 @@ import type { dataStage } from './data';
 
 async function buildWorld(ctx: Awaited<ReturnType<typeof dataStage>>, level: LevelContext | undefined) {
   const { engine, manifest, boot, session, audioProfile, plan, step } = ctx;
-  const { app, loadWorldContent, bootstrap, hasPond, heightAt, normalAt, TRAILS, Boundary, Horizon, HorizonMatte, macrotask, Audio, Music, showError, TIER, pathRampDescs, markBootContextLost, markBootHandledError, asShell } = engine;
+  const { app, loadWorldContent, bootstrap, hasPond, Boundary, Horizon, HorizonMatte, macrotask, Audio, Music, showError, TIER, pathRampDescs, markBootContextLost, markBootHandledError, asShell } = engine;
 
   const world = Object.assign(await bootstrap(step, toLevelSpec({ ...manifest, spawn: boot.handoff?.arrive ?? manifest.spawn }), INPUT_CONTEXTS), { chunk: manifest });
   const { game, sky, player, forest, params, chunk, registry } = world;
@@ -65,8 +65,10 @@ async function buildWorld(ctx: Awaited<ReturnType<typeof dataStage>>, level: Lev
   boot.runtime.horizonVeil = horizon.painted?.veil ?? null;
   // the paths as walkways where they cross ground steeper than the motor climbs (PHYSICS P4) — now that the decks are
   // registered, none where a deck carries the path (a board there pokes up through the bridge's planks); Nalati's decks
-  // register in its props step (NALATI-MERGE P1), so its paths are laid after that
-  const addPaths = (): void => { registry.add({ id: 'paths', name: 'Paths', category: 'ground', file: 'src/engine/physics/paths.ts', surface: 'ground',
+  // register in its props step (NALATI-MERGE P1), so its paths are laid after that. The field is read off the runtime
+  // module when they are laid, not destructured above: bootstrap installs the baked grid after that destructure, and the
+  // analytic field laid 12 more ramps on Pine (R5)
+  const addPaths = (): void => { const { heightAt, normalAt, TRAILS } = engine; registry.add({ id: 'paths', name: 'Paths', category: 'ground', file: 'src/engine/physics/paths.ts', surface: 'ground',
     colliders: pathRampDescs(TRAILS, heightAt, (x, z) => normalAt(x, z)[1], { carried: (x, z) => registry.floorAt(x, z) !== undefined }) }); };
   if (chunk.ground.paths !== 'plugin' && built === undefined) addPaths();
 
