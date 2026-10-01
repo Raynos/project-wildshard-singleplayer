@@ -322,6 +322,7 @@ are the row types; `EngineRows` is the verb set.
 
 | Field | Meaning |
 |---|---|
+| `style` | an open, opaque string authored by the shard; familiar `pbr`, `toon`, `painterly`, `jiehua`, `greybox` words retain editor completion. Render choices use `render`, `creatures` and `kitLook` |
 | `ground` | `{ terrain?, structures?, paths?, water? }`, at least one of terrain / structures. `terrain` comes from `buildTerrain(seed, spec)` (`#engine/data`). `water` is `WaterBody` rows (§17) |
 | `spawn`, `bounds?`, `camera?` | where the player starts; a soft-respawn box; the portrait FOV |
 | `world?` | `{ killY, fallCause? }`: optional creature death plane (§19); the engine reports an out-of-world cause below it |

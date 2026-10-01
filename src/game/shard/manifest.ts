@@ -379,7 +379,9 @@ export interface OceanDef {
  * (Driftwood Isle), or soft cel-banded vertex/gradient colour with painted shadows and rim light, no textures
  * (Nalati Grasslands — every mesh on the shared `src/engine/world/painterly.ts` material).
  */
-export type ChunkStyle = 'pbr' | 'toon' | 'painterly' | 'jiehua' | 'greybox';
+export type KnownChunkStyle = 'pbr' | 'toon' | 'painterly' | 'jiehua' | 'greybox';
+/** Opaque authored look label; keep familiar words in editor completion without closing the vocabulary. */
+export type ChunkStyle = KnownChunkStyle | (string & Record<never, never>);
 
 /**
  * One azimuth band of a horizon ring (`ChunkHorizon`): a bump in the ring's height profile centred on a compass

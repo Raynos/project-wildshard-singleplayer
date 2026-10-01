@@ -14,7 +14,7 @@ export const FAR_REACH: ShardManifest = {
   budgets: BUDGETS, api: 1, slug: 'far-reach', order: 6, status: 'experimental', name: STRINGS.name, label: '(+0, −2)', seed: SEED,
   biome: STRINGS.biome, blurb: STRINGS.blurb, placement: { grid: [0, -2], size: [200, 200, 200] },
   card: { thumb: SKY_CARD, portrait: SKY_CARD, landscape: SKY_CARD },
-  style: 'toon', kitLook: 'toon', weapon: 'custom', treeCount: 0, trees: { factory: 'none', noun: 'islands' },
+  style: 'skyReach', kitLook: 'toon', weapon: 'custom', treeCount: 0, trees: { factory: 'none', noun: 'islands' },
   ground: { paths: 'plugin', terrain }, horizon: { rings: [], cloudSea: false },
   world: { killY: CLOUD_Y },
   groundColor: (_x, _z, h, slope, _terrain, out) => { const grass = h > 10 && slope < 0.6; out[0] = grass ? 0.46 : 0.5; out[1] = grass ? 0.56 : 0.42; out[2] = grass ? 0.22 : 0.34; return out; },

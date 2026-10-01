@@ -218,7 +218,9 @@ For worlds with a void, declare `world: { killY: 6 }` in the manifest; the engin
 ## 7. The look
 
 Your look is a `LookStrategy` in `look/render.ts`, loaded through `manifest.render`
-([ENGINE.md §13.1](ENGINE.md#131-lookstrategy)).
+([ENGINE.md §13.1](ENGINE.md#131-lookstrategy)). It may declare its own `manifest.style` string.
+`style` is a label; use `kitLook`, `creatures` and your
+`LookStrategy` to declare rendering behavior, as Sky Reach does with `style: 'skyReach'` and `kitLook: 'toon'`.
 
 - **`extend`** (most shards): add passes around the engine's chain; `c.engineChain('clean' \| 'cinematic')` is the
   engine's. Driftwood, Pine Hollow, Nine Dragon and the template extend.
