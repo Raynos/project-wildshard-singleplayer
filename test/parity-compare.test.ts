@@ -30,6 +30,13 @@ describe('parity comparison', () => {
     const n=clone(); n['boot']={...n['boot'] as RecordValue,systems:{'fixed.pre':['physics.bodies.pre'],'fixed.post':['physics.bodies.post'],update:['bodies']}};
     expect(rows(b,n,{renames:[{systems:{'physics.bodies':'bodies'},phaseSystems:{'fixed.pre':{'physics.bodies':'physics.bodies.pre'},'fixed.post':{'physics.bodies':'physics.bodies.post'}}}]}).verdict).toBe('green');
   });
+  it('keeps dotted phase keys flat when it renames (no phantom boot.systems.fixed row)', () => {
+    const b=clone(); b['boot']={...b['boot'] as RecordValue,systems:{'fixed.pre':['physics.bodies'],update:['x']}};
+    const n=clone(); n['boot']={...n['boot'] as RecordValue,systems:{'fixed.pre':['physics.bodies.pre'],update:['x']}};
+    const out=rows(b,n,{renames:[{phaseSystems:{'fixed.pre':{'physics.bodies':'physics.bodies.pre'}}}]});
+    expect(out.verdict).toBe('green');
+    expect(out.rows.some((r)=>r.field==='boot.systems.fixed')).toBe(false);
+  });
   it('uses shard-specific anonymous system renames before phase and flat maps (F8)',()=>{
     const b=clone();b['boot']={...b['boot'] as RecordValue,systems:{update:['update#1']}};
     const n=clone();n['boot']={...n['boot'] as RecordValue,systems:{update:['pine.life']}};

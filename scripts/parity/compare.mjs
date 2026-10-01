@@ -17,7 +17,10 @@ export function renameBaseline(baseline, current, maps) {
   for (const map of maps) {
     const shardSystems = object(object(map.shardSystems)[string(get(current, 'boot.shard'))]);
     const systems = object(map.systems), phaseSystems = object(map.phaseSystems), saves = object(map.saves), registry = object(map.registry);
-    for (const [phase, list] of Object.entries(object(get(b, 'boot.systems')))) set(b, `boot.systems.${phase}`, array(list).map((id) => object(shardSystems[phase])[string(id)] ?? object(phaseSystems[phase])[string(id)] ?? systems[string(id)] ?? id));
+    // phase keys hold dots ('fixed.pre'): assign on the systems object itself, never through a dotted set() path,
+    // which would build a nested 'fixed' key (E357 lead: it turned every record red on boot.systems.fixed)
+    const bootSystems = object(get(b, 'boot.systems'));
+    for (const [phase, list] of Object.entries(bootSystems)) bootSystems[phase] = array(list).map((id) => object(shardSystems[phase])[string(id)] ?? object(phaseSystems[phase])[string(id)] ?? systems[string(id)] ?? id);
     for (const path of ['boot.saves.read', 'boot.saves.written', 'combat.loot.written']) {
       const list = get(b, path); if (list !== undefined) set(b, path, array(list).map((id) => {
         const key = string(id), prefix = /^(local:|session:)/.exec(key)?.[0] ?? '';
