@@ -11,6 +11,7 @@ export interface PlayerHealthPorts {
 export class PlayerHealth implements Actor {
   readonly id = 'actor.player';
   readonly tags = ['actor.player'] as const;
+  effectTags: readonly CombatTag[] = [];
   readonly attributes: HealthAttributes = { health: 100, maxHealth: 100, incomingCap: Infinity };
   lastHurt = 0;
   cause: DeathCause | undefined;
@@ -21,7 +22,7 @@ export class PlayerHealth implements Actor {
   constructor(events: Events, ports: PlayerHealthPorts) { this.events = events; this.ports = ports; }
   get alive(): boolean { return this.attributes.health > 0; }
   get state(): readonly CombatTag[] {
-    return [...(this.lifecycle?.fading() === true ? ['state.death-fade' as const] : []),
+    return [...this.effectTags, ...(this.lifecycle?.fading() === true ? ['state.death-fade' as const] : []),
       ...(this.ports.dodging() ? ['state.dodging' as const] : []), ...(this.ports.dodgeGuard() ? ['guard.dodge' as const] : [])];
   }
   setMaxHealth(max: number): void {

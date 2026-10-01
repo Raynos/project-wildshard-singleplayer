@@ -1,4 +1,7 @@
 import type { Scope } from '../app/scope';
+import type { AttributeSet, CueId } from './effects/types';
+import type { CombatTag } from './pipeline';
+import type { HitStopProfile } from './cues';
 
 
 /** Hosts declare their slot, icon and touch-layout vocabularies without importing content into simulation. */
@@ -21,14 +24,16 @@ export interface WeaponUi {
   huntersEye?: boolean;
 }
 export interface EquipmentMeta { name: string; icon: EquipmentIcon; blurb: string; category: 'weapon' | 'tool' }
-export interface EquipmentCues { fire: string; reload: string; impact: string; dry?: string }
-export interface EquipmentRow { cues?: EquipmentCues; id: EquipmentId; legacySlot?: WeaponId; ui: WeaponUi; meta: EquipmentMeta }
+export interface EquipmentCues { fire: CueId; reload: CueId; impact: CueId; dry?: CueId; hit?: CueId; heavy?: CueId; charge?: Readonly<Record<string, CueId>> }
+export interface EquipmentRow { cues?: EquipmentCues; hitStop?: HitStopProfile; tags?: readonly CombatTag[]; id: EquipmentId; legacySlot?: WeaponId; ui: WeaponUi; meta: EquipmentMeta }
 export interface EquipmentBlock { dispose: () => void }
 export type BlockSet = Partial<Record<'vm' | 'aim' | 'ads' | 'melee' | 'projectile' | 'hitStop' | 'ammo' | 'brass', EquipmentBlock>>;
 /** The scope is sufficient for the legacy families; block/input/combat ports expand as their migration rows land. */
 export interface EquipContext { scope: Scope }
 
 export abstract class Equipment {
+  readonly attributes: AttributeSet = {};
+  effectTags: readonly CombatTag[] = [];
   abstract readonly id: WeaponId | ToolId;
   abstract holster: number;
   abstract enabled: boolean;

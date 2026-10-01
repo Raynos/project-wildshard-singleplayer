@@ -3,11 +3,12 @@ import type { Scope } from '../app/scope';
 import type { Events } from '../events/events';
 import type { Physics } from '../physics/Physics';
 import { lineOfSight } from '../physics/query';
+import type { AttributeSet } from './effects/types';
 
 export type CombatTag = `${string}.${string}`;
 export type StringKey = string;
 export interface DeathCause { kind: string; label: StringKey; text?: StringKey }
-export interface HealthAttributes { health: number; maxHealth: number; damageTakenMul?: number; incomingCap?: number }
+export interface HealthAttributes extends AttributeSet { health: number; maxHealth: number; damageTakenMul?: number; incomingCap?: number }
 /** Simulation port. The legacy creature adapter owns flinch/ragdoll presentation until the AI migration. */
 export interface Actor {
   readonly id: string;
@@ -15,6 +16,7 @@ export interface Actor {
   readonly state: readonly CombatTag[];
   readonly attributes: HealthAttributes;
   readonly alive: boolean;
+  effectTags?: readonly CombatTag[];
   onDamageRequest?: (req: DamageRequest) => void;
   applyDamage: (req: DamageRequest) => boolean;
   isHeadshot?: (req: DamageRequest) => boolean;
@@ -96,7 +98,7 @@ export class CombatPipeline {
     // Raycast/weapon scratch vectors are reused; queued listeners must see this hit's contact frame.
     const req: DamageRequest = { ...input, point: input.point.clone(), dir: input.dir.clone(),
       ...(input.from === undefined ? {} : { from: input.from.clone() }),
-      sourceTags: input.source === 'env' ? [...input.sourceTags] : [...input.sourceTags, ...input.source.tags, ...input.source.state] };
+      sourceTags: input.source === 'env' ? [...input.sourceTags] : [...input.sourceTags, ...input.source.tags, ...input.source.state, ...input.source.effectTags ?? []] };
     const physics = this.physics();
     if (req.from !== undefined && !req.throughWalls && !matches(req.sourceTags, 'through.walls') && !matches(req.sourceTags, 'cover.checked')
       && physics !== null && !lineOfSight(physics, req.from, req.point)) return null;
