@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { WaterBodies, swellBody } from '../../src/engine/world/water/body';
+import { WaterBodies, swellBody, basinBody } from '../../src/engine/world/water/body';
+import { waterView } from '../../src/engine/world/water/view';
+import pine from '#shards/pine-hollow/manifest';
+import nalati from '#shards/nalati-grasslands/manifest';
 import { Scope } from '../../src/engine/app/scope';
 import { waveHeight } from '../../src/engine/world/waves';
 import { App, type LevelDriver } from '#engine';
@@ -58,5 +61,40 @@ describe('app.world.water (E357 S4.1)', () => {
     expect(app.world.water.sea).toBe(sea);
     await app.unloadLevel();
     expect(app.world.water.sea).toBeNull();
+  });
+
+  it('swims against the same surface as the terrain formula it replaced (X5: pond, creek, river)', () => {
+    for (const m of [pine, nalati]) {
+      const T = m.ground.terrain, water = new WaterBodies(), scope = new Scope('level');
+      if (T === undefined) throw new Error(`${m.slug} has no terrain`);
+      for (const body of m.ground.water ?? []) water.add(body, scope);
+      let wet = 0;
+      for (let x = -250; x <= 250; x += 2.5) for (let z = -250; z <= 250; z += 2.5) {
+        const old = T.pondMask(x, z) > 0 ? T.waterLevel() : (T.streamAt?.(x, z) ?? null);
+        expect(water.restAt(x, z)).toBe(old);
+        if (old !== null) { wet++; expect(water.inside(x, z, old - 0.01)).not.toBeNull(); expect(water.inside(x, z, old + 0.01)).toBeNull(); }
+      }
+      expect(wet).toBeGreaterThan(100);
+      scope.dispose();
+    }
+  });
+
+  it('a basin answers only over its mask; the sea answers everywhere at its rest level; reflect reaches each hook', () => {
+    const terrain = { pondMask: (x: number): number => x < 0 ? 1 : 0, waterLevel: (): number => 2 };
+    const water = new WaterBodies(), scope = new Scope('level'), views: string[] = [];
+    water.add(basinBody('pond', terrain, (v) => { views.push(v); }), scope);
+    expect(water.restAt(-1, 0)).toBe(2);
+    expect(water.restAt(1, 0)).toBeNull();
+    water.add(swellBody('sea', 0.8), scope);
+    expect(water.restAt(1, 0)).toBe(0.8);
+    water.reflect('top-down'); water.reflect('eye');
+    expect(views).toEqual(['top-down', 'eye']);
+    const pineWater = new WaterBodies();
+    for (const body of pine.ground.water ?? []) pineWater.add(body, scope);
+    pineWater.reflect('top-down');
+    expect(waterView.uTopDown.value).toBe(1);
+    pineWater.reflect('eye');
+    expect(waterView.uTopDown.value).toBe(0);
+    scope.dispose();
   });
 });

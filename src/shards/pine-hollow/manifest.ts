@@ -23,6 +23,7 @@ import { CHUNK_HALF, CHUNK_SIZE, TERRAIN_RES } from '#engine/core/config';
 import { layoutFauna } from '#engine/world/faunaLayout';
 import type { ShardManifest } from '#game/shard/manifest';
 import { TERRAIN, forestDensity, oldGrowthMask, speciesMix } from './world/terrain';
+import { PINE_WATER } from './world/water';
 import { SPAWN, CABIN_SITES, POND, HAMLET, KINGS_CLEARING, DEN, ridgeFootZ, PINE_HOLLOW_POIS, inBeaverPool } from './layout';
 import thumbnail from './thumbs/pine-hollow.jpg';
 import heroPortrait from './thumbs/pine-hollow-portrait.jpg';
@@ -72,7 +73,8 @@ export const PINE_HOLLOW: ShardManifest = {
   // the forest's trees and the forest floor's kinds drawn as its models (E315 M2), once core has built the fields (E349)
   pois: PINE_HOLLOW_POIS.map(({ id, name, x, z, r }) => ({ id, name, x, z, r })),
 
-  ground: { terrain: TERRAIN },
+  // the pond and the creek are water bodies (app.world.water, world/water.ts): swimming and wading ask them
+  ground: { terrain: TERRAIN, water: PINE_WATER },
   // Provisional coverage on the procedural grid, retained for the Blender export pipeline.
   blender: { area: { x0: -CHUNK_HALF + 87 * CELL, x1: -CHUNK_HALF + 168 * CELL, z0: -CHUNK_HALF + 66 * CELL, z1: -CHUNK_HALF + 148 * CELL }, models: [] },
 

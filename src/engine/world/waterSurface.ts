@@ -29,6 +29,7 @@ import { patchWindField, windUniforms, WIND_DIR } from './wind';
 import type { Sky } from './Sky';
 import type { TreeInstance } from './forest/placement';
 import { PATCH_ORDER, patchShader } from '../render/shaderPatches';
+import { waterView } from './water/view';
 
 /** the skyline texture's encoding: R = occluder top above the water (/ SKY_TOP m), G = its distance (/ SKY_DIST m) */
 const SKY_TOP = 80, SKY_DIST = 400, SKY_BINS = 512;
@@ -44,12 +45,6 @@ export interface WaterMaterialOptions {
 
 /** the rain on the water (PH-L10, src/shards/pine-hollow/world/weather.ts): 0 … 1 rings on every water surface (pond, creek, puddles) */
 export const waterWeather = { uRainRings: { value: 0 } };
-/**
- * The World Explorer map's top-down shot (src/engine/explore/MiniMap.ts, EXPLORE-V2 V3): 1 while it renders. Straight down the
- * Fresnel term is its 2 % floor, so the pond showed its near-black deep body: a black hole on the map. For the shot the
- * surface reflects like a map reads water: most of the clock's sky over the pond (dawn, noon, night follow on their own).
- */
-export const waterView = { uTopDown: { value: 0 } };
 
 export interface WaterMaterial { material: THREE.MeshPhysicalMaterial }
 

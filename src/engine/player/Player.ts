@@ -2,7 +2,7 @@ import type { InputService } from '../input/InputService';
 import type { Events } from '../events/events';
 import { dodgeFx, dodgeEnv } from './dodge';
 import * as THREE from 'three';
-import { heightAt, pondMask, waterLevel, streamAt } from '../world/Heightfield';
+import { heightAt } from '../world/Heightfield';
 import { app } from '../app/runtime';
 import { WaterLine } from './WaterLine';
 import { setUnderwater, updateUnderwater } from '../world/Atmosphere';
@@ -108,7 +108,7 @@ export class Player {
   private jumpWasDown = false; private jumpsLeft = 0;
   onHoverChange?: (on: boolean) => void;
   // ── water ──
-  /** height of the water surface under the player (the chunk's ocean, or the pond where `pondMask > 0`); null on dry land */
+  /** height of the water surface under the player (app.world.water: the sea, a pond / river, a creek); null on dry land */
   waterSurface: number | null = null;
   /** metres of water above the feet (0 when dry or the feet are above the surface) */
   depth = 0;
@@ -240,12 +240,10 @@ export class Player {
     this.onHoverChange?.(on);
   }
 
-  /** water surface height at (x, z): the shard's ocean if it has one, else the pond where the basin mask is set, else running
-   *  water (Pine Hollow's creek, PH-L9), else null */
+  /** water surface height at (x, z): the level's water bodies' rest surface (app.world.water, in registration order: the
+   *  sea, a pond / river basin, running water such as a creek), else null */
   waterSurfaceAt(x: number, z: number): number | null {
-    const sea = app.world.water.sea;
-    if (sea) return sea.level;
-    return pondMask(x, z) > 0 ? waterLevel() : streamAt(x, z);
+    return app.world.water.restAt(x, z);
   }
 
   private setSwimming(on: boolean): void {

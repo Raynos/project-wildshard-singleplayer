@@ -1,10 +1,11 @@
 import type { Scope } from '../../app/scope';
 import { waveHeight } from '../waves';
+import type { WaterView } from './view';
 
 /**
- * A body of water a level registers with the engine (01 §6, §17; 08 §6.1 step 4). S4.1 builds the subset the sea needs:
- * its rest `level`, the moving surface height and an inside test. X5 converts the other bodies (a pond, a river)
- * and adds `reflect`.
+ * A body of water a level registers with the engine (01 §6, §17; 08 §6.1 step 4): the sea (S4.1), a still basin (a
+ * pond, a river channel) and running water (a creek) (X5). Swimming, wading and the camera's water line ask
+ * `app.world.water`; each body's mesh stays its builder's.
  */
 export interface WaterBody {
   /** `sea` for an open-water level's ocean (the one generic readers ask for), else a level-chosen id */
@@ -15,6 +16,10 @@ export interface WaterBody {
   readonly surfaceAt: (x: number, z: number) => number;
   /** whether the point (x, y, z) is under this body's surface */
   readonly inside: (x: number, z: number, y: number) => boolean;
+  /** the rest surface over (x, z) — what the player swims and wades against — or null where the body doesn't reach */
+  readonly restAt: (x: number, z: number) => number | null;
+  /** the reflect hook: the surface's shading for a view (Explore's top-down shot); omitted = it looks the same from anywhere */
+  readonly reflect?: (view: WaterView) => void;
 }
 
 /** `app.world.water`: the level's registered bodies; each leaves with the scope that added it. */
@@ -41,6 +46,20 @@ export class WaterBodies {
     return null;
   }
 
+  /** the first body's rest surface over (x, z) in registration order (the sea covers everything), or null off the water */
+  restAt(x: number, z: number): number | null {
+    for (const body of this.bodies.values()) {
+      const y = body.restAt(x, z);
+      if (y !== null) return y;
+    }
+    return null;
+  }
+
+  /** shade every body's surface for `view` (each body's own reflect hook) */
+  reflect(view: WaterView): void {
+    for (const body of this.bodies.values()) body.reflect?.(view);
+  }
+
   /** the sea's moving surface at (x, z), or null on a level without one */
   surfaceAt(x: number, z: number): number | null {
     const sea = this.sea;
@@ -56,5 +75,21 @@ export function swellBody(id: string, level: number): WaterBody {
     id, level,
     surfaceAt: (x, z) => level + waveHeight(x, z),
     inside: (x, z, y) => y < level + waveHeight(x, z),
+    restAt: () => level,
+  };
+}
+
+/**
+ * A still basin cut into the terrain (a pond, a river channel): water wherever the terrain's
+ * `pondMask` is above 0, standing flat at its `waterLevel()` (both read from the terrain at call time).
+ */
+export function basinBody(id: string, terrain: { pondMask: (x: number, z: number) => number; waterLevel: () => number },
+  reflect?: (view: WaterView) => void): WaterBody {
+  const restAt = (x: number, z: number): number | null => terrain.pondMask(x, z) > 0 ? terrain.waterLevel() : null;
+  return {
+    id, get level() { return terrain.waterLevel(); }, restAt,
+    surfaceAt: () => terrain.waterLevel(),
+    inside: (x, z, y) => { const s = restAt(x, z); return s !== null && y < s; },
+    ...(reflect === undefined ? {} : { reflect }),
   };
 }

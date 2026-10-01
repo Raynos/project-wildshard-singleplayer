@@ -15,7 +15,6 @@ import { app } from '../app/runtime';
 import { CHUNK_HALF } from '../core/config';
 import { heightAt, normalAt } from '../world/Heightfield';
 import { fogUniforms } from '../world/Atmosphere';
-import { waterView } from '../world/waterSurface';
 import type { PoiSpec } from '../level/data';
 import type { Explore } from './Explore';
 
@@ -169,7 +168,7 @@ export class MiniMap {
     cam.position.set(vx, EYE, vz); cam.up.set(0, 0, 1); cam.lookAt(vx, 0, vz); // up = +Z: north at the top, screen right = −X (east)
     cam.updateProjectionMatrix(); cam.updateMatrixWorld();
     fogUniforms.fogDistDensity.value = 0; fogUniforms.fogHeightDensity.value = 0;
-    waterView.uTopDown.value = 1; // the pond reflects its sky from up here, not its black deep body (V3)
+    app.world.water.reflect('top-down'); // the pond reflects its sky from up here, not its black deep body (V3)
     game.look?.fogControl?.suspend(); // a level look's own haze (LookStrategy.fogControl)
     for (const [o] of hidden) o.visible = false;
     const ao = composer.passes.filter((q) => q.enabled && 'configuration' in q); // N8AO: its screen-space radius means nothing from 1.4 km up
@@ -189,7 +188,7 @@ export class MiniMap {
       for (const [s, k] of suns) s.intensity = k;
       fogUniforms.fogDistDensity.value = fog.dist; fogUniforms.fogHeightDensity.value = fog.height;
       game.look?.fogControl?.resume();
-      waterView.uTopDown.value = 0;
+      app.world.water.reflect('eye');
       cam.position.copy(saved.pos); cam.quaternion.copy(saved.quat); cam.up.copy(saved.up);
       cam.fov = saved.fov; cam.near = saved.near; cam.far = saved.far;
       cam.updateProjectionMatrix(); cam.updateMatrixWorld();
