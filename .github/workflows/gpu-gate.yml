@@ -107,6 +107,13 @@ jobs:
           # record and bootstrap upload the baseline files themselves, never the parity-out report (R2-33)
           path: ${{ (matrix.mode == 'record' || matrix.mode == 'bootstrap') && format('test/parity/baselines/gh-macos15/{0}.*', matrix.shard) || 'parity-out' }}
           retention-days: 14
+      - uses: actions/upload-artifact@v4   # a record / bootstrap's report too, under its own name, so a red record can be read (E357 lead)
+        if: always() && (matrix.mode == 'record' || matrix.mode == 'bootstrap')
+        with:
+          name: ${{ format('parity-record-report-{0}', matrix.shard) }}
+          path: parity-out
+          if-no-files-found: ignore
+          retention-days: 14
   asset-case:                    # §11.6: Linux, case-sensitive disk (ci-gpu-options §6.2; 13-lead-resolutions G15)
     if: ${{ !inputs.record }}
     runs-on: ubuntu-latest
