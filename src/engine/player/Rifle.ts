@@ -1,3 +1,4 @@
+import { Weapon, type WeaponState, type AimInfo } from '#engine/combat/Weapon';
 import { app, gameplayRandom } from '../app/runtime';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
@@ -13,7 +14,7 @@ import {
   Puffs, viewmodelMaterial, viewmodelTexSet, whiteColors, fovForAspect, FOV_HIP, FOV_ADS, box, cyl, stripExtra, sstep, clamp01,
   TRACER_RED, TRACER_ORDER, isMesh, worldHit, impactSurfaceOf, type TexSet, type Targets, type ImpactSurface, type CrossbowWorld, type CrossbowOptions,
 } from './Crossbow';
-import type { KitWeapon, WeaponState, AimInfo } from './Weapons';
+
 import type { Sky } from '../world/Sky';
 
 export interface RifleOptions extends CrossbowOptions {
@@ -219,11 +220,7 @@ export function buildRifleParts(sky: Sky): RifleParts {
   return { alu: meshA, poly: meshP, steel: meshS, handle, bolt, mag, magRest, glowRing, glow, aluMat, polyMat, steelMat, brassMat };
 }
 
-export class Rifle implements KitWeapon {
-  readonly id = 'rifle' as const;
-  readonly name = 'AR-15';
-  readonly ammoLabel = 'Rounds';
-  readonly segments = 6;
+export class Rifle extends Weapon {
   readonly state: WeaponState & { ammo: number } = { ammo: MAGAZINE, magazine: MAGAZINE, reserve: RESERVE_START, loaded: true, reloading: false, reloadProgress: 0, ads: false };
   enabled = true;
   allowUnlocked = false;
@@ -233,12 +230,6 @@ export class Rifle implements KitWeapon {
   private aimFrame = 0;
   private aimCache: AimInfo = { kind: 'deer', distance: 0 };
 
-  onFire?: () => void;
-  onHit?: (kind: string, headshot: boolean, killed: boolean) => void;
-  onImpact?: (surface: ImpactSurface, point: THREE.Vector3) => void;
-  onReloadStart?: () => void;
-  onReloadEnd?: () => void;
-  onDry?: () => void;
 
   readonly model = new THREE.Group();
   private game: CrossbowWorld['game']; private sky: CrossbowWorld['sky']; private player: CrossbowWorld['player'];
@@ -271,7 +262,8 @@ export class Rifle implements KitWeapon {
   /** the solved shouldered pose (dev / verification: `__weapons.get('rifle').adsPose`) */
   readonly adsPose = { px: 0, py: 0, pz: 0, scale: 1, rearDepth: 0, frontDepth: 0, muzzleDepth: 0 };
 
-  constructor(world: CrossbowWorld, targets?: Targets, opts: RifleOptions = {}) {
+  constructor(world: CrossbowWorld, targets: Targets | undefined, opts: RifleOptions) {
+    super(opts.row);
     this.game = world.game; this.sky = world.sky; this.player = world.player;
     // the muzzle light is a pooled scene light (B7), taken now, at boot: in the viewmodel it came and went with the
     // model's visibility, and every change of the scene's light count recompiled every lit program in view (taking the
@@ -290,7 +282,7 @@ export class Rifle implements KitWeapon {
   }
 
   // ── input ──
-  inputAllowed(): boolean { return app.state !== 'paused' && this.enabled && (this.player.locked || this.allowUnlocked); }
+  override inputAllowed(): boolean { return app.state !== 'paused' && this.enabled && (this.player.locked || this.allowUnlocked); }
   private bindInput(): void {
     document.addEventListener('mousedown', (e) => {
       if (!this.inputAllowed()) return;
@@ -306,7 +298,7 @@ export class Rifle implements KitWeapon {
     window.addEventListener('blur', () => { this.mouseAds = false; });
   }
 
-  setActive(on: boolean): void {
+  override setActive(on: boolean): void {
     this.active = on;
     this.model.visible = on;
     if (!on) { this.enabled = false; this.mouseAds = false; }
@@ -325,7 +317,7 @@ export class Rifle implements KitWeapon {
     this.fire();
   }
 
-  reload(): void {
+  override reload(): void {
     if (this.state.reloading || this.state.ammo >= MAGAZINE || this.state.reserve <= 0) return;
     this.state.reloading = true; this.reloadT = 0; this.state.reloadProgress = 0;
     this.onReloadStart?.();
@@ -348,7 +340,7 @@ export class Rifle implements KitWeapon {
   }
 
   /** The aim line is the camera forward, hip or sighted (the crosshair / the ring's centre). */
-  aimRay(origin: THREE.Vector3, dir: THREE.Vector3): THREE.Vector3 {
+  override aimRay(origin: THREE.Vector3, dir: THREE.Vector3): THREE.Vector3 {
     const cam = this.game.camera;
     cam.getWorldDirection(dir);
     origin.copy(cam.position);

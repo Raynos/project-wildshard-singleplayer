@@ -1,23 +1,33 @@
+// @vitest-environment happy-dom
 import * as THREE from 'three';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { Weapons, type BaseLike } from '#engine/player/Weapons';
+import { EquipmentService, Weapon, Scope, Tool, quiverState, type EquipmentRow, type WeaponId, type WeaponState } from '#engine';
+import { SABRE, BOW, SPEAR } from '#shards/nalati-grasslands/weapons/equipment';
+import { equipmentEntry } from '#game/bag/equipment';
 import { FakeGame } from '../fake/FakeGame';
 
-function base(ammo = false): BaseLike {
-  return { model: new THREE.Group(), enabled: true, adsHeld: false, altHeld: false, holster: 0, hasAmmo: ammo,
-    state: { ...(ammo ? { bolts: 24 } : {}), loaded: true, reloading: false, reloadProgress: 0, ads: false }, aimInfo: null,
-    tryFire: vi.fn((): void => undefined), update: vi.fn((): void => undefined), addBolts: vi.fn((): void => undefined), reload: vi.fn((): void => undefined), inputAllowed: () => true };
+class FixtureWeapon extends Weapon {
+  readonly model = new THREE.Group(); enabled = true; adsHeld = false; holster = 0;
+  readonly state: WeaponState; aimInfo = null;
+  tryFire = vi.fn((): void => undefined);
+  update = vi.fn((): void => undefined);
+  constructor(row: EquipmentRow, id: WeaponId, ammo = false) {
+    super({ ...row, legacySlot: id });
+    this.state = { ammo: ammo ? 24 : undefined, magazine: 30, reserve: 0, loaded: true, reloading: false, reloadProgress: 0, ads: false };
+  }
+  override reload = vi.fn((): void => undefined);
+  override inputAllowed(): boolean { return true; }
 }
 beforeEach(() => { vi.stubGlobal('document', new EventTarget()); vi.stubGlobal('window', new EventTarget()); });
 function fixture() {
-  const a = base(), b = base(true), c = base(), game = new FakeGame();
-  const weapons = new Weapons(a, null, [{ weapon: b, id: 'bow', name: 'Bow' }, { weapon: c, id: 'spear', name: 'Spear' }],
-    { baseId: 'sabre', baseName: 'Sabre', order: ['bow', 'sabre', 'spear'] });
+  const a = new FixtureWeapon(SABRE, 'sabre'), b = new FixtureWeapon(BOW, 'bow', true), c = new FixtureWeapon(SPEAR, 'spear'), game = new FakeGame();
+  const weapons = new EquipmentService(a, { order: ['bow', 'sabre', 'spear'] });
+  weapons.add(b, { locked: true }); weapons.add(c, { locked: true });
   game.onUpdate((dt, t) => weapons.update(dt, t));
   return { weapons, game, a, b, c };
 }
 function key(code: string, repeat = false): void {
-  document.dispatchEvent(Object.assign(new Event('keydown'), { code, repeat }));
+  document.dispatchEvent(new KeyboardEvent('keydown', { code, repeat }));
 }
 
 describe('legacy equipment service behavior to retain in S1.2', () => {
@@ -58,7 +68,7 @@ describe('legacy equipment service behavior to retain in S1.2', () => {
     const { weapons } = fixture(); // fixture does not replace globals
     weapons.unlock('bow'); weapons.unlock('spear');
     const now = vi.spyOn(performance, 'now').mockReturnValue(1000);
-    const wheel = (pixels: number): void => { const event = Object.assign(new Event('wheel'), { deltaY: pixels, deltaMode: 0 }); Object.defineProperty(event, 'target', { value: canvas }); document.dispatchEvent(event); };
+    const wheel = (pixels: number): void => { const event = new WheelEvent('wheel', { deltaY: pixels, deltaMode: 0 }); Object.defineProperty(event, 'target', { value: canvas }); Object.defineProperty(event, 'timeStamp', { value: performance.now() }); document.dispatchEvent(event); };
     wheel(59); expect(weapons.swappingNow).toBe(false); wheel(1); weapons.update(0.5, 1); expect(weapons.current.id).toBe('spear');
     now.mockReturnValue(1179); wheel(60); expect(weapons.swappingNow).toBe(false);
     now.mockReturnValue(1180); wheel(1); weapons.update(0.5, 2); expect(weapons.current.id).toBe('bow');
@@ -66,8 +76,64 @@ describe('legacy equipment service behavior to retain in S1.2', () => {
   });
   it('practice loan is idempotent, returns to an owned slot, and preserves ammo', () => {
     const { weapons, b } = fixture(); weapons.lendAll(); weapons.lendAll(); expect(weapons.available).toHaveLength(3);
-    weapons.select('bow', true); if (b.state.bolts !== undefined) b.state.bolts = 7;
+    weapons.select('bow', true); if (b.state.ammo !== undefined) b.state.ammo = 7;
     weapons.endLoan(); expect(weapons.available.map((w) => w.id)).toEqual(['sabre']); expect(weapons.current.id).toBe('sabre');
-    expect(b.state.bolts).toBe(7); weapons.endLoan(); expect(weapons.current.id).toBe('sabre');
+    expect(b.state.ammo).toBe(7); weapons.endLoan(); expect(weapons.current.id).toBe('sabre');
+  });
+});
+
+
+describe('equipment contracts and lifecycle', () => {
+  it('replaces the held upgrade in-place, preserving ammo, ADS, order and ownership', () => {
+    const { weapons, b } = fixture(); weapons.unlock('bow'); weapons.select('bow', true);
+    weapons.adsHeld = true; weapons.altHeld = true; b.state.ammo = 7; b.state.reserve = 11;
+    const next = new FixtureWeapon({ ...BOW, id: 'weapon.golden-bow', ui: { ...BOW.ui, name: 'Golden Bow' }, meta: { ...BOW.meta, name: 'Golden Bow' } }, 'bow', true);
+    const disposed = vi.spyOn(b, 'dispose'); weapons.replace('bow', next);
+    expect(disposed).toHaveBeenCalledOnce(); expect(b.enabled).toBe(false);
+    expect(weapons.current).toBe(next); expect(next.enabled).toBe(true); expect(next.adsHeld).toBe(true); expect(next.altHeld).toBe(true);
+    expect(next.state).toMatchObject({ ammo: 7, reserve: 11 }); expect(weapons.has('bow')).toBe(true);
+    expect(weapons.available.map((w) => w.id)).toEqual(['bow', 'sabre']);
+    expect(equipmentEntry(next, next)).toMatchObject({ name: 'Golden Bow', melee: false, icon: 'longbow', equipped: true, ammo: 7 });
+    weapons.dispose();
+  });
+  it('replaces a locked slot during a practice loan without granting it permanently', () => {
+    const { weapons, b } = fixture(); weapons.lendAll(); b.state.ammo = 9;
+    const next = new FixtureWeapon(BOW, 'bow', true); weapons.replace('bow', next); weapons.select('bow', true);
+    weapons.endLoan(); expect(weapons.current.id).toBe('sabre'); expect(weapons.has('bow')).toBe(false); expect(next.state.ammo).toBe(9);
+    weapons.dispose();
+  });
+  it('finishes an in-progress swap using the replacement, with the original swap clock', () => {
+    const { weapons } = fixture(); weapons.unlock('bow'); weapons.select('bow'); weapons.update(0.1, 0.1);
+    const next = new FixtureWeapon(BOW, 'bow', true); weapons.replace('bow', next);
+    weapons.update(0.15, 0.25); expect(weapons.current).toBe(next); expect(next.holster).toBe(1);
+    weapons.update(0.25, 0.5); expect(weapons.current).toBe(next); expect(next.holster).toBe(0); expect(next.enabled).toBe(true);
+    weapons.dispose();
+  });
+  it('owns its action bindings/listeners and equipment through the supplied scope', () => {
+    const parent = new Scope('level'), a = new FixtureWeapon(SABRE, 'sabre'), b = new FixtureWeapon(BOW, 'bow', true);
+    const weapons = new EquipmentService(a, { scope: parent }); weapons.add(b, { locked: false });
+    expect(parent.census.listeners).toBe(2); key('KeyQ'); weapons.update(0.5, 0.5); expect(weapons.current).toBe(b);
+    parent.dispose(); expect(parent.census.listeners).toBe(0); expect(a.enabled).toBe(false); expect(b.enabled).toBe(false);
+    key('KeyQ'); expect(weapons.swappingNow).toBe(false); expect(weapons.current).toBe(b);
+  });
+  it('runs owned tools alongside every weapon and returns borrowed tools at the end of a loan', () => {
+    class Hook extends Tool {
+      readonly id = 'tool.fei-zhua' as const; readonly slot = 'offhand'; readonly actions = ['lock', 'jump'] as const;
+      holster = 0; enabled = true; update = vi.fn((): void => undefined);
+    }
+    const { weapons, a } = fixture(); const tool = new Hook({ ...SABRE, id: 'tool.fei-zhua', meta: { name: 'Fei Zhua', icon: 'grapple', blurb: 'Lock a hook, then jump', category: 'tool' } });
+    weapons.add(tool, { locked: true }); weapons.update(0.1, 0.1); expect(tool.update).not.toHaveBeenCalled();
+    weapons.lendAll(); weapons.update(0.1, 0.2); expect(tool.update).toHaveBeenCalledOnce(); expect(a.update).toHaveBeenCalledTimes(2);
+    weapons.endLoan(); weapons.update(0.1, 0.3); expect(tool.update).toHaveBeenCalledOnce(); expect(weapons.has(tool.id)).toBe(false);
+    weapons.dispose(); expect(tool.enabled).toBe(false);
+  });
+  it('keeps quiver and normalized ammo synchronized without a manager cache', () => {
+    const state = quiverState({ bolts: 24, loaded: true, reloading: false, reloadProgress: 0, ads: false }, 24);
+    state.bolts = 7; expect(state.ammo).toBe(7); state.ammo = 5; expect(state.bolts).toBe(5);
+    expect(state).toMatchObject({ magazine: 24, reserve: 0 });
+  });
+  it('reads Bag names and flags from metadata regardless of the legacy slot id', () => {
+    const a = new FixtureWeapon({ ...SABRE, meta: { ...SABRE.meta, name: 'Custom weapon', icon: 'grapple' } }, 'rifle');
+    expect(equipmentEntry(a, a, ' · Bright')).toMatchObject({ name: 'Custom weapon · Bright', icon: 'grapple', melee: true, tracers: false });
   });
 });

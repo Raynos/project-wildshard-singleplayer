@@ -8,7 +8,7 @@ import type { Physics } from '../physics/Physics';
 import { addTrainingTarget, trainingTargetRaycast, type TrainingTargetBodies } from '../physics/trainingTargets';
 import type { Player } from '../player/Player';
 import type { TargetAnimal, TargetHit } from '../player/Crossbow';
-import type { Weapons } from '../player/Weapons';
+import type { EquipmentService } from '../combat/EquipmentService';
 import type { WorldRegistry, ColliderDesc } from '../world/registry';
 import { BOSS_NAMES } from '../ui/Combat';
 import { DummyMotion, DummyPose } from './DummyMotion';
@@ -276,7 +276,7 @@ export class TrainingArena {
   /** the room's centre (world x, z); the lineup and the spawn are laid out from it */
   readonly center: { x: number; z: number };
   private player: Player | null = null;
-  private weapons: Weapons | null = null;
+  private weapons: EquipmentService | null = null;
 
   constructor(private readonly game: Game, registry: WorldRegistry, private readonly physics: Physics, center: { x: number; z: number }) {
     this.center = center;
@@ -361,7 +361,7 @@ export class TrainingArena {
     return Math.min(11, need);
   }
 
-  enter(player: Player, weapons: Weapons): void {
+  enter(player: Player, weapons: EquipmentService): void {
     this.active = true; this.root.visible = true; this.overlay.classList.add('show');
     app.setState('practice');
     practiceFps.on = true; // mobile targets 60 in here (E290, tier.ts frameCapFps)

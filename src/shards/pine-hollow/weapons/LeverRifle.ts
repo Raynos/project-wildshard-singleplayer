@@ -1,3 +1,5 @@
+import { LEVER } from './equipment';
+import { Weapon, type WeaponState, type AimInfo } from '#engine/combat/Weapon';
 import { gameplayRandom, app } from '#engine';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
@@ -10,7 +12,7 @@ import {
   isMesh, worldHit, impactSurfaceOf, fixIBL, VIEWMODEL_GROUP, type TexSet, type Targets, type ImpactSurface, type CrossbowWorld, type CrossbowOptions,
 } from '#engine/player/Crossbow';
 import { makeFlashTexture, HitLine, brassFloor } from '#engine/player/Rifle';
-import type { KitWeapon, WeaponState, AimInfo } from '#engine/player/Weapons';
+
 import type { Sky } from '#engine/world/Sky';
 import { SHADOW_LAYER } from '#engine/core/shadowLayer';
 import { BUCKSKIN, HANDS_MATERIAL, WeaponHands, blendGrip, gripPose, holdDef, type HandHold } from '#engine/player/hunterHands';
@@ -264,11 +266,7 @@ export function leverSpecimen(sky: Sky, model: LeverModel | null): THREE.Group {
   return g;
 }
 
-export class LeverRifle implements KitWeapon {
-  readonly id = 'rifle' as const;
-  readonly name = 'Lever-action';
-  readonly ammoLabel = 'Cartridges';
-  readonly segments = MAGAZINE;
+export class LeverRifle extends Weapon {
   readonly state: WeaponState & { ammo: number } = { ammo: MAGAZINE, magazine: MAGAZINE, reserve: RESERVE_START, loaded: true, reloading: false, reloadProgress: 0, ads: false };
   enabled = true;
   allowUnlocked = false;
@@ -278,12 +276,6 @@ export class LeverRifle implements KitWeapon {
   private aimFrame = 0;
   private aimCache: AimInfo = { kind: 'deer', distance: 0 };
 
-  onFire?: () => void;
-  onHit?: (kind: string, headshot: boolean, killed: boolean) => void;
-  onImpact?: (surface: ImpactSurface, point: THREE.Vector3) => void;
-  onReloadStart?: () => void;
-  onReloadEnd?: () => void;
-  onDry?: () => void;
   /** the lever is thrown (a cycle starts) — the 'leverCycle' sound */
   onCycle?: () => void;
   /** a cartridge went through the loading gate */
@@ -348,7 +340,8 @@ export class LeverRifle implements KitWeapon {
   /** the solved sighted pose (dev / verification) */
   readonly adsPose = { px: 0, py: 0, pz: 0, scale: 0, rearDepth: 0, frontDepth: 0 };
 
-  constructor(world: CrossbowWorld, targets?: Targets, opts: LeverRifleOptions = {}) {
+  constructor(world: CrossbowWorld, targets: Targets | undefined, opts: LeverRifleOptions) {
+    super(LEVER);
     this.game = world.game; this.sky = world.sky; this.player = world.player;
     this.flashLight = opts.muzzleLight === false ? new THREE.PointLight(0xffb060, 0, 8, 2) : LightPool.for(this.game.scene).acquire(0xffb060, 0, 8, 2);
     this.targets = targets;
@@ -448,7 +441,7 @@ export class LeverRifle implements KitWeapon {
   }
 
   // ── input ──
-  inputAllowed(): boolean { return app.state !== 'paused' && this.enabled && (this.player.locked || this.allowUnlocked); }
+  override inputAllowed(): boolean { return app.state !== 'paused' && this.enabled && (this.player.locked || this.allowUnlocked); }
   private bindInput(): void {
     document.addEventListener('mousedown', (e) => {
       if (!this.inputAllowed()) return;
@@ -464,7 +457,7 @@ export class LeverRifle implements KitWeapon {
     window.addEventListener('blur', () => { this.mouseAds = false; });
   }
 
-  setActive(on: boolean): void {
+  override setActive(on: boolean): void {
     this.active = on;
     this.model.visible = on;
     if (!on) { this.enabled = false; this.mouseAds = false; }
@@ -494,7 +487,7 @@ export class LeverRifle implements KitWeapon {
     this.fire();
   }
 
-  reload(): void {
+  override reload(): void {
     if (this.phase !== 'idle' || this.tube >= TUBE_MAX || this.state.reserve <= 0) return;
     this.phase = 'reload'; this.phaseT = 0; this.fed = 0; this.stopAfter = false; this.dryAtStart = !this.chambered;
     this.planned = Math.min(TUBE_MAX - this.tube, this.state.reserve);
@@ -504,7 +497,7 @@ export class LeverRifle implements KitWeapon {
   }
 
   addRounds(n: number): void { this.state.reserve += n; }
-  addBolts(n: number): void { this.addRounds(n); }
+  override addBolts(n: number): void { this.addRounds(n); }
 
   private fire(): void {
     this.chambered = false; this.caseInChamber = true; this.hammerCocked = false;
@@ -529,7 +522,7 @@ export class LeverRifle implements KitWeapon {
   }
 
   /** the aim line is the camera forward, hip or sighted */
-  aimRay(origin: THREE.Vector3, dir: THREE.Vector3): THREE.Vector3 {
+  override aimRay(origin: THREE.Vector3, dir: THREE.Vector3): THREE.Vector3 {
     const cam = this.game.camera;
     cam.getWorldDirection(dir);
     origin.copy(cam.position);

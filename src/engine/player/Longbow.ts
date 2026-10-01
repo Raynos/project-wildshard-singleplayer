@@ -1,3 +1,5 @@
+import type { EquipmentRow } from '../combat/Equipment';
+import { Weapon, quiverState } from '#engine/combat/Weapon';
 import { app, gameplayRandom } from '../app/runtime';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
@@ -6,12 +8,12 @@ import type { Sky } from '../world/Sky';
 import type { Player } from './Player';
 import type { Forest } from '../world/forest/Forest';
 import { WIND_DIR, windGustAt } from '../world/wind';
-import { fixIBL, fovForAspect, isMesh, viewmodelMaterial, FOV_HIP, type ImpactSurface, type Targets, type TargetHit } from './Crossbow';
+import { fixIBL, fovForAspect, isMesh, viewmodelMaterial, FOV_HIP, type Targets, type TargetHit } from './Crossbow';
 import { Projectiles, type ProjectileKind, type WindField } from './Projectiles';
 import { BowDraw, RENOCK_TIME } from './bowDraw';
 import { gloveFist, riderArm, placeArm } from './nalatiArms';
 import { withHunterPalette } from './hunterHands';
-import type { Weapon } from './Weapon';
+
 
 /**
  * Longbow — THE WARDEN'S LONGBOW, the Antler King's reward on Pine Hollow (PINE-HOLLOW-REMASTER PH-U15 / PH-C2 / PH-C11):
@@ -46,7 +48,7 @@ export const AIM_ZOOM = 1.6, AIM_VM_ZOOM = 0.85, AIM_SWAY = 0.5, AIM_SPREAD = 0.
 const ARC_MAX = 56, ARC_SPACING = 0.8, ARC_SKIP = 0.5, ARC_BLEND = 11, ARC_AMBER = 0xffc070;
 
 export interface LongbowWorld { game: Game; sky: Sky; player: Player; forest: Forest }
-export interface LongbowOptions { allowUnlocked?: boolean }
+export interface LongbowOptions { row: EquipmentRow; allowUnlocked?: boolean }
 
 const clamp01 = (x: number) => Math.min(1, Math.max(0, x));
 const sstep = (a: number, b: number, x: number) => { const t = clamp01((x - a) / (b - a)); return t * t * (3 - 2 * t); };
@@ -452,17 +454,14 @@ export function longbowSpecimen(sky: Sky): THREE.Group {
   return g;
 }
 
-export class Longbow implements Weapon {
-  readonly hasAmmo = true;
-  readonly ammoLabel = 'Arrows';
-  readonly segments = 4;
+export class Longbow extends Weapon {
   readonly magazine = QUIVER_MAX;
-  state = { bolts: QUIVER_MAX, loaded: true, reloading: false, reloadProgress: 1, ads: false };
+  state = quiverState({ bolts: QUIVER_MAX, loaded: true, reloading: false, reloadProgress: 1, ads: false }, QUIVER_MAX);
   enabled = true;
   allowUnlocked = false;
   adsHeld = false;
   /** the draw, held (Weapons.altHeld — the touch FIRE disc) */
-  altHeld = false;
+
   holster = 0;
   aimInfo: { kind: string; distance: number } | null = null;
   /** dev: > 0 = the bow held up close and turned (`inspectYaw` rad) */
@@ -470,12 +469,6 @@ export class Longbow implements Weapon {
   /** dev: hold the draw at this value (0..1) for a still — `__weapons.get('bow')` does not reach it; `window.__longbow.freezeDraw = 1` */
   freezeDraw: number | null = null;
 
-  onFire?: (() => void) | undefined;
-  onHit?: ((kind: string, headshot: boolean, killed: boolean) => void) | undefined;
-  onImpact?: ((surface: ImpactSurface, point: THREE.Vector3) => void) | undefined;
-  onReloadStart?: (() => void) | undefined;
-  onReloadEnd?: (() => void) | undefined;
-  onDry?: (() => void) | undefined;
   onDrawStart?: (() => void) | undefined;
   onLetDown?: (() => void) | undefined;
   onFullDraw?: (() => void) | undefined;
@@ -515,7 +508,8 @@ export class Longbow implements Weapon {
   private readonly gripPos = new THREE.Vector3(); private readonly gripQuat = new THREE.Quaternion();
   aimOn = false;
 
-  constructor(world: LongbowWorld, targets?: Targets, opts: LongbowOptions = {}) {
+  constructor(world: LongbowWorld, targets: Targets | undefined, opts: LongbowOptions) {
+    super(opts.row);
     this.game = world.game; this.sky = world.sky; this.player = world.player;
     this.targets = targets;
     this.allowUnlocked = opts.allowUnlocked ?? false;
@@ -561,12 +555,12 @@ export class Longbow implements Weapon {
 
   get wind(): WindField | null { return this.arrows.wind; }
   set wind(w: WindField | null) { this.arrows.wind = w; }
-  get charge(): number { return this.p; }
+  override get charge(): number { return this.p; }
   get drawing(): boolean { return this.p > 0.01; }
   get fullDraw(): boolean { return this.draw.full; }
   get aimed(): number { return this.aimBlend; }
 
-  inputAllowed(): boolean { return app.state !== 'paused' && this.enabled && (this.player.locked || this.allowUnlocked); }
+  override inputAllowed(): boolean { return app.state !== 'paused' && this.enabled && (this.player.locked || this.allowUnlocked); }
   private bindInput(): void {
     document.addEventListener('mousedown', (e) => {
       if (!this.inputAllowed()) return;
@@ -616,15 +610,15 @@ export class Longbow implements Weapon {
     vel.copy(dir).multiplyScalar(SPEED_BASE + SPEED_DRAW);
   }
 
-  aimRay(origin: THREE.Vector3, dir: THREE.Vector3): THREE.Vector3 {
+  override aimRay(origin: THREE.Vector3, dir: THREE.Vector3): THREE.Vector3 {
     const cam = this.game.camera;
     cam.getWorldDirection(dir);
     origin.setFromMatrixPosition(cam.matrixWorld);
     return dir;
   }
 
-  addBolts(n: number): void { this.state.bolts = Math.min(QUIVER_MAX, this.state.bolts + n); }
-  reload(): void { /* the draw is the reload */ }
+  override addBolts(n: number): void { this.state.bolts = Math.min(QUIVER_MAX, this.state.bolts + n); }
+  override reload(): void { /* the draw is the reload */ }
 
   /** A world-space copy for the King's reward orb: the braced stave (+ the left glove on it) on the same material. */
   displayModel(): THREE.Group {

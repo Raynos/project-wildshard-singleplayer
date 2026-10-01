@@ -1,3 +1,4 @@
+import type { WeaponUi } from '../combat/Equipment';
 import { app } from '../app/runtime';
 import { tap } from '../core/harnessTap';
 import { getActiveChunk } from '#game/shard/registry';
@@ -41,6 +42,7 @@ import { ROW, hudSlots } from './hudSlots';
  */
 
 export interface HUDState {
+  weaponUi: WeaponUi;
   /** bolts carried; undefined = no ammo on this weapon (melee) → the ammo readouts are hidden */
   bolts?: number | undefined; loaded: boolean; reloading: boolean; reloadProgress?: number | undefined;
   health: number; pos: { x: number; z: number }; yaw: number; kills: number;
@@ -53,7 +55,7 @@ export interface HUDState {
   /** nearest animal for the compass paw: `bearing` in compass degrees (0 = north = +Z, 90 = east = −X) — see `bearingTo` */
   nearest?: { bearing: number; distance: number; kind: string } | undefined;
 }
-export interface HUDOptions { pointerLock?: boolean; maxBolts?: number }
+export interface HUDOptions { pointerLock?: boolean; weaponUi: WeaponUi; maxBolts: number }
 /** the `ws:weather` event's detail — sent on change only (src/shards/nalati-grasslands/weather.ts) */
 export interface WeatherHUD {
   /** the chip under the minimap: `title` "STORM IN 0:45" / "STORM 2:10", `sub` "WIND 22 m/s"; null hides it */
@@ -154,8 +156,8 @@ export class HUD {
   /** when the menu last closed (performance.now) — see the pointerlockchange listener */
   private menuClosedAt = -Infinity;
 
-  constructor(opts: HUDOptions = {}) {
-    this.opts = { pointerLock: true, maxBolts: 30, ...opts };
+  constructor(opts: HUDOptions) {
+    this.opts = { pointerLock: true, ...opts };
     const hud = document.getElementById('hud');
     this.root = hud ?? el('div');
     if (!hud) document.body.append(this.root);
@@ -224,13 +226,13 @@ export class HUD {
 
     // ammo
     const ammo = el('div', 'ws-glass ws-game-ammo');
-    ammo.innerHTML = `<div class="ws-game-arow"><span class="ws-label"><span class="ws-game-weapon">Crossbow</span><span class="l">Bolts</span></span><span class="ws-game-count"><span class="c">30</span> <small>/ <span class="m">${this.opts.maxBolts}</span></small><small class="ws-game-reserve"></small></span></div>
+    ammo.innerHTML = `<div class="ws-game-arow"><span class="ws-label"><span class="ws-game-weapon">${this.opts.weaponUi.name}</span><span class="l">${this.opts.weaponUi.ammo?.label ?? ''}</span></span><span class="ws-game-count"><span class="c">${this.opts.maxBolts}</span> <small>/ <span class="m">${this.opts.maxBolts}</span></small><small class="ws-game-reserve"></small></span></div>
       <div class="ws-game-pips"></div><div class="ws-game-rbar"><i></i></div><div class="ws-game-status"><span class="s">Loaded</span><i></i></div>`;
     this.ammoPanel = ammo;
     this.ammoCount = q(ammo, '.ws-game-count'); this.ammoNum = q(this.ammoCount, '.c'); this.ammoStatus = q(ammo, '.ws-game-status'); this.ammoStatusText = q(ammo, '.ws-game-status .s'); this.reloadBar = q(ammo, '.ws-game-rbar i');
     this.ammoLabel = q(ammo, '.ws-label .l'); this.ammoWeapon = q(ammo, '.ws-game-weapon'); this.ammoMax = q(ammo, '.m'); this.ammoReserve = q(ammo, '.ws-game-reserve');
     this.pipBox = q(ammo, '.ws-game-pips');
-    this.buildPips(this.opts.maxBolts ?? 30);
+    this.buildPips(this.opts.maxBolts);
     r.append(ammo);
 
     // crosshair
@@ -287,7 +289,7 @@ export class HUD {
     const L = this.last;
     this.toasts.tick();
     // the held weapon: label / name / magazine size / reserve (Weapons.ts) — rebuilds the pips + bars when the weapon changes
-    const maxBolts = s.maxBolts ?? this.opts.maxBolts ?? 30, label = s.ammoLabel ?? 'Bolts', name = s.weaponName ?? 'Crossbow', segments = s.segments ?? 4, reserve = s.reserve ?? 0;
+    const maxBolts = s.maxBolts ?? this.opts.maxBolts, label = s.weaponUi.ammo?.label ?? '', name = s.weaponUi.name, segments = s.weaponUi.ammo?.segments ?? 0, reserve = s.reserve ?? 0;
     if (maxBolts !== L.maxBolts || label !== L.ammoLabel || name !== L.weaponName || segments !== L.segments) {
       L.maxBolts = maxBolts; L.ammoLabel = label; L.weaponName = name; L.segments = segments; L.statusKey = undefined; L.bolts = undefined;
       this.ammoLabel.textContent = label; this.ammoWeapon.textContent = name; this.ammoMax.textContent = String(maxBolts);
@@ -356,8 +358,8 @@ export class HUD {
    *  on a mouse device); the numbers are HUD state, so the HUD owns them. */
   private mountBar(): void {
     const vitals = el('div', 'ws-game-vitals', `<i class="ws-game-glyph">${SVG_HEART}</i><b class="ws-game-num">100</b><span class="ws-game-vbar"><i></i></span><span class="ws-game-tiny">Vitals</span>`);
-    const L = this.last, segN = L.segments ?? 4, reserve = L.reserve ?? 0;
-    const bolts = el('div', 'ws-game-bolts', `<span class="ws-game-tiny"><span class="ws-game-weapon">${L.weaponName ?? 'Crossbow'}</span><span class="l">${L.ammoLabel ?? 'Bolts'}</span></span><span class="ws-game-segs">${'<i></i>'.repeat(segN)}</span><b class="ws-game-num"><span class="c">30</span><small> / <span class="m">${L.maxBolts ?? this.opts.maxBolts}</span></small><small class="ws-game-reserve">${reserve > 0 ? `+ ${reserve}` : ''}</small></b><i class="ws-game-glyph">${SVG_BOLT}</i>`);
+    const L = this.last, segN = L.segments ?? this.opts.weaponUi.ammo?.segments ?? 0, reserve = L.reserve ?? 0;
+    const bolts = el('div', 'ws-game-bolts', `<span class="ws-game-tiny"><span class="ws-game-weapon">${L.weaponName ?? this.opts.weaponUi.name}</span><span class="l">${L.ammoLabel ?? this.opts.weaponUi.ammo?.label ?? ''}</span></span><span class="ws-game-segs">${'<i></i>'.repeat(segN)}</span><b class="ws-game-num"><span class="c">${this.opts.maxBolts}</span><small> / <span class="m">${L.maxBolts ?? this.opts.maxBolts}</span></small><small class="ws-game-reserve">${reserve > 0 ? `+ ${reserve}` : ''}</small></b><i class="ws-game-glyph">${SVG_BOLT}</i>`);
     hudSlots.statusRow(vitals, ROW.vitals, false); hudSlots.statusRow(bolts, ROW.ammo, false);
     if (this.last.noAmmo) bolts.style.display = 'none';
     this.bar = { vitals, hval: q(vitals, '.ws-game-num'), hbar: q(vitals, '.ws-game-vbar i'), bolts, bcount: q(bolts, '.c'), segs: Array.from(bolts.querySelectorAll<HTMLElement>('.ws-game-segs i')), segBox: q(bolts, '.ws-game-segs'), label: q(bolts, '.ws-game-tiny .l'), weapon: q(bolts, '.ws-game-weapon'), max: q(bolts, '.m'), reserve: q(bolts, '.ws-game-reserve') };
@@ -386,7 +388,7 @@ export class HUD {
       b.hbar.style.width = `${pct}%`;
       b.hbar.classList.toggle('low', pct <= 30);
     } else if (what === 'bolts') {
-      const max = L.maxBolts ?? this.opts.maxBolts ?? 30, n = L.bolts ?? max;
+      const max = L.maxBolts ?? this.opts.maxBolts, n = L.bolts ?? max;
       b.bcount.textContent = String(n);
       const lit = n <= 0 ? 0 : Math.max(1, Math.floor((n / max) * b.segs.length + 1e-6));
       b.segs.forEach((seg, i) => { seg.classList.toggle('off', i >= lit); });

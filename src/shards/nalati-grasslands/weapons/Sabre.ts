@@ -1,3 +1,4 @@
+import { SABRE } from './equipment';
 import * as THREE from 'three';
 import { Sword, type SwordWorld, type SwordRig, type SwordMoveSet } from '#engine/player/Sword';
 import type { Targets } from '#engine/player/Crossbow';
@@ -209,7 +210,7 @@ export class Sabre extends Sword {
 
   constructor(world: SwordWorld, targets?: Targets, opts: SabreOptions = {}) {
     const rig = buildSabre(meleeMaterial(world.sky), steelMaterial(world.sky));
-    super(world, targets, { allowUnlocked: opts.allowUnlocked ?? false, rig, moves: SABRE_MOVES, damage: DAMAGE, portraitPullX: 0.85 }); // portrait: the hand clear of the CROUCH / DODGE discs
+    super(world, targets, { row: SABRE, allowUnlocked: opts.allowUnlocked ?? false, rig, moves: SABRE_MOVES, damage: DAMAGE, portraitPullX: 0.85 }); // portrait: the hand clear of the CROUCH / DODGE discs
     this.swingScale = SPEED;
     this.onMoveHit = (move) => {
       if (move !== PASS_LEFT && move !== PASS_RIGHT) return;

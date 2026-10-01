@@ -1,3 +1,5 @@
+import type { EquipmentRow } from '../combat/Equipment';
+import { Weapon, quiverState } from '#engine/combat/Weapon';
 import { app, gameplayRandom } from '../app/runtime';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
@@ -8,11 +10,11 @@ import type { Forest } from '../world/forest/Forest';
 import { painterlyMaterial } from '../world/painterly';
 import { wind as worldWind } from '../world/steppeWind';
 import { getSetting } from '../ui/Settings';
-import { fovForAspect, FOV_HIP, type ImpactSurface, type Targets, type TargetHit } from './Crossbow';
+import { fovForAspect, FOV_HIP, type Targets, type TargetHit } from './Crossbow';
 import { Projectiles, type ProjectileKind, type WindField } from './Projectiles';
 import { BowDraw, DRAW_TIME, RENOCK_TIME } from './bowDraw';
 import { gloveFist, riderArm, placeArm } from './nalatiArms';
-import type { Weapon } from './Weapon';
+
 
 /**
  * Bow — Nalati's composite recurve (horn-and-sinew, style-B painterly), the shard's main weapon (NALATI.md B2,
@@ -89,7 +91,7 @@ export const AIM_ZOOM = 2, AIM_VM_ZOOM = 0.85, AIM_SWAY = 0.5, AIM_SPREAD = 0.5,
 const ARC_MAX = 56, ARC_SPACING = 0.8, ARC_SKIP = 0.5, ARC_BLEND = 11, ARC_CYAN = 0x8fe3ff;
 
 export interface BowWorld { game: Game; sky: Sky; player: Player; forest: Forest }
-export interface BowOptions { allowUnlocked?: boolean }
+export interface BowOptions { row: EquipmentRow; allowUnlocked?: boolean }
 
 const clamp01 = (x: number) => Math.min(1, Math.max(0, x));
 const sstep = (a: number, b: number, x: number) => { const t = clamp01((x - a) / (b - a)); return t * t * (3 - 2 * t); };
@@ -575,19 +577,16 @@ export function bowSpecimen(sky: Sky, style: BowStyle): THREE.Group {
   return g;
 }
 
-export class Bow implements Weapon {
-  readonly hasAmmo = true;
+export class Bow extends Weapon {
   /** the HUD strip (Weapons.ts BaseLike overrides): ARROWS n / 24 */
-  readonly ammoLabel = 'Arrows';
-  readonly segments = 4;
   readonly magazine = QUIVER_MAX;
-  state = { bolts: QUIVER_MAX, loaded: true, reloading: false, reloadProgress: 1, ads: false };
+  state = quiverState({ bolts: QUIVER_MAX, loaded: true, reloading: false, reloadProgress: 1, ads: false }, QUIVER_MAX);
   enabled = true;
   allowUnlocked = false;
   /** the AIM toggle (Weapons.adsHeld — the touch AIM disc; `?ads=1` forces it): the zoom down the arrow, never a draw */
   adsHeld = false;
   /** the draw, held (Weapons.altHeld — the touch FIRE disc): hold = draw, release at full = loose, early = let-down */
-  altHeld = false;
+
   /** 0..1 weapon-swap blend driven by Weapons.ts (1 = dropped out of the frame) */
   holster = 0;
   aimInfo: { kind: string; distance: number } | null = null;
@@ -601,12 +600,6 @@ export class Bow implements Weapon {
   arcAllowed = true;
   damageMultiplier: ((hit: TargetHit) => number) | undefined;
 
-  onFire?: (() => void) | undefined;
-  onHit?: ((kind: string, headshot: boolean, killed: boolean) => void) | undefined;
-  onImpact?: ((surface: ImpactSurface, point: THREE.Vector3) => void) | undefined;
-  onReloadStart?: (() => void) | undefined;
-  onReloadEnd?: (() => void) | undefined;
-  onDry?: (() => void) | undefined;
   /** bow-only: the string starts coming back / a draw was let down / a stuck arrow was picked up (survived or broke) */
   onDrawStart?: (() => void) | undefined;
   onLetDown?: (() => void) | undefined;
@@ -647,7 +640,8 @@ export class Bow implements Weapon {
   private readonly spawnPos = new THREE.Vector3(); private readonly launchVel = new THREE.Vector3();
   private readonly gripPos = new THREE.Vector3(); private readonly gripQuat = new THREE.Quaternion();
 
-  constructor(world: BowWorld, targets?: Targets, opts: BowOptions = {}) {
+  constructor(world: BowWorld, targets: Targets | undefined, opts: BowOptions) {
+    super(opts.row);
     this.game = world.game; this.sky = world.sky; this.player = world.player;
     this.targets = targets;
     this.allowUnlocked = opts.allowUnlocked ?? false;
@@ -696,7 +690,7 @@ export class Bow implements Weapon {
   get wind(): WindField | null { return this.arrows.wind; }
   set wind(w: WindField | null) { this.arrows.wind = w; }
   /** the draw, 0..1 — the touch FIRE disc's ring (Weapons' `charge`) */
-  get charge(): number { return this.p; }
+  override get charge(): number { return this.p; }
   get drawing(): boolean { return this.p > 0.01; }
   /** the draw is at full: a release now looses (the FIRE ring's `.ready`) */
   get fullDraw(): boolean { return this.draw.full; }
@@ -706,7 +700,7 @@ export class Bow implements Weapon {
   aimOn = false;
 
   // ── input ──
-  inputAllowed(): boolean { return app.state !== 'paused' && this.enabled && (this.player.locked || this.allowUnlocked); }
+  override inputAllowed(): boolean { return app.state !== 'paused' && this.enabled && (this.player.locked || this.allowUnlocked); }
   private bindInput(): void {
     document.addEventListener('mousedown', (e) => {
       if (!this.inputAllowed()) return;
@@ -756,7 +750,7 @@ export class Bow implements Weapon {
   }
 
   /** the aim is the CAMERA forward — the rider's head, not the horse / body */
-  aimRay(origin: THREE.Vector3, dir: THREE.Vector3): THREE.Vector3 {
+  override aimRay(origin: THREE.Vector3, dir: THREE.Vector3): THREE.Vector3 {
     const cam = this.game.camera;
     cam.getWorldDirection(dir);
     origin.setFromMatrixPosition(cam.matrixWorld);
@@ -794,8 +788,8 @@ export class Bow implements Weapon {
   /** the view is > 110° off the horse's heading (the HUD's REAR SHOT chip; a hit on a pursuer staggers — B7's `damageMultiplier`) */
   parthian = false;
 
-  addBolts(n: number): void { this.state.bolts = Math.min(QUIVER_MAX, this.state.bolts + n); }
-  reload(): void { /* the draw is the reload */ }
+  override addBolts(n: number): void { this.state.bolts = Math.min(QUIVER_MAX, this.state.bolts + n); }
+  override reload(): void { /* the draw is the reload */ }
 
   // ── per frame ──
   update(dt: number, t: number): void {

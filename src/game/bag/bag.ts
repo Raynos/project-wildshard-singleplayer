@@ -106,7 +106,7 @@ export function renderGear(p: HTMLElement, o: GearOpts): void {
   const carried = o.weapons.filter((w) => w !== held);
 
   const weaponSlot = (w: KitEntry, side: 'l' | 'r'): HTMLElement => {
-    const sword = w.icon === 'sword';
+    const sword = w.melee;
     const sub = sword && loot?.sharpen !== undefined
       ? `<span class="ws-gmenu-kitsub">${loot.sharpen > 0 ? `Sharpened ${ROMAN[loot.sharpen] ?? ''}` : 'Not sharpened'}</span>${pips(loot.sharpen, 2)}`
       : w.ammoLabel ? `<span class="ws-gmenu-kitsub">${esc(w.ammoLabel)} · ${w.ammo} / ${w.magazine}${w.reserve ? ` + ${w.reserve}` : ''}</span>` : '<span class="ws-gmenu-kitsub">Melee</span>';

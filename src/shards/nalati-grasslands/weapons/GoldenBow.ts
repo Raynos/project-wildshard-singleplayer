@@ -76,6 +76,7 @@ export class GoldenBow {
 
   /** upgrade the bow in place (idempotent) */
   apply(bow: Bow): void {
+    bow.row = { ...bow.row, id: 'weapon.golden-bow', ui: { ...bow.row.ui, name: 'Golden Bow' }, meta: { ...bow.meta, name: 'Golden Bow' } };
     if (this.bow === bow) return;
     this.bow = bow;
     this.recolour(bow);

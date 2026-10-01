@@ -4,8 +4,7 @@ import type { Sky } from '#engine/world/Sky';
 import type { Player } from '#engine/player/Player';
 import type { AnimalManager } from '#engine/entities/AnimalManager';
 import type { Animal } from '#engine/entities/Animal';
-import type { Weapons } from '#engine/player/Weapons';
-import type { Weapon } from '#engine/player/Weapon';
+import type { EquipmentService,Weapon } from '#engine';
 import { Crossbow, MAX_BOLTS } from '#engine/player/Crossbow';
 import { SKINS, applySkin, crossbowDisplayModel, type SkinDef, type SkinId, type SkinLocker } from '#engine/player/Skins';
 import { CameraFX } from '#engine/player/CameraFX';
@@ -41,7 +40,7 @@ import { registerPineLap } from '../dev/perfLap';
  */
 
 export interface PineCombatHost {
-  game: Game; sky: Sky; player: Player; animals: AnimalManager; weapons: Weapons;
+  game: Game; sky: Sky; player: Player; animals: AnimalManager; weapons: EquipmentService;
   crossbow: Weapon; rifle: { displayModel: () => THREE.Group }; skins: SkinLocker; wearSkin: (s: SkinDef) => void;
   /** the Warden's Longbow (PH-C11): the King's orb shows it, taking it hands it over (loadout.grantLongbow) */
   longbow?: { displayModel: () => THREE.Group; grant: () => void } | null;

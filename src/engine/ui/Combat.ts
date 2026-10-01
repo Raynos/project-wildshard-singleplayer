@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import type { Game } from '../core/Game';
 import type { AnimalManager } from '../entities/AnimalManager';
 import type { Animal } from '../entities/Animal';
-import type { Weapon } from '../player/Weapon';
+import type { Weapon } from '../combat/Weapon';
 import { TIER } from '../core/tier';
 import { riding, pastRidden } from '../player/riding';
 import { viewportHeight } from '../core/viewport';

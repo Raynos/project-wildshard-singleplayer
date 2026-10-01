@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import type { Game } from '#engine/core/Game';
 import type { AnimalManager } from '#engine/entities/AnimalManager';
-import type { Weapons } from '#engine/player/Weapons';
+import type { EquipmentService } from '#engine';
 import { worldHit } from '#engine/player/Crossbow';
 import { CameraFX } from '#engine/player/CameraFX';
 import { Impacts, type ImpactKind } from '#engine/fx/Impacts';
@@ -33,7 +33,7 @@ const _dir = new THREE.Vector3(), _a = new THREE.Vector3(), _b = new THREE.Vecto
 
 export interface PineFeel { update: (dt: number, t: number) => void }
 
-export function installPineFeel(o: { game: Game; weapons: Weapons; animals: AnimalManager }): PineFeel {
+export function installPineFeel(o: { game: Game; weapons: EquipmentService; animals: AnimalManager }): PineFeel {
   const { game, weapons, animals } = o;
   const fx = CameraFX.for(game);
   const impacts = Impacts.for(game); // built into the scene now, before the boot's precompile

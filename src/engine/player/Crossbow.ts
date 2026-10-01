@@ -1,3 +1,5 @@
+import type { EquipmentRow } from '../combat/Equipment';
+import { Weapon, quiverState, type ImpactSurface } from '#engine/combat/Weapon';
 import { app, gameplayRandom } from '../app/runtime';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
@@ -16,7 +18,7 @@ import { getSetting } from '../ui/Settings';
 import { makePixels, clamp01, sstep, CROSSBOW_SETS, RIFLE_SETS, type Pixels, type SetName, type Ctx2D } from './viewmodelTextures';
 // oxlint-disable-next-line import/default -- a Vite `?worker&inline` import: its default export is the worker constructor (typed by vite/client), which oxlint's resolver cannot see
 import TexturesWorker from './viewmodelTextures.worker?worker&inline';
-import type { Weapon } from './Weapon';
+
 import { BUCKSKIN, HANDS_MATERIAL, WeaponHands, coatMaterialParams, holdDef, type HandHold } from './hunterHands';
 
 /**
@@ -62,7 +64,7 @@ export interface TargetAnimal {
 }
 export interface TargetHit { animal: TargetAnimal; point: THREE.Vector3; distance: number; headshot: boolean }
 export interface Targets { raycast: (origin: THREE.Vector3, dir: THREE.Vector3, maxDist: number) => TargetHit | null }
-export type ImpactSurface = 'wood' | 'ground' | 'flesh';
+export type { ImpactSurface } from '../combat/Weapon';
 /** The impact sound / puff family of what was hit (three sample sets): bark and planks are wood, everything else ground. */
 export function impactSurfaceOf(m: Material): ImpactSurface {
   return m === 'flesh' ? 'flesh' : m === 'wood' || m === 'planks' ? 'wood' : 'ground';
@@ -93,7 +95,7 @@ export function worldHit(a: Vec3, b: Vec3, radius: number): Hit | null {
   return null;
 }
 export interface CrossbowWorld { game: Game; sky: Sky; player: Player; forest: Forest }
-export interface CrossbowOptions { allowUnlocked?: boolean }
+export interface CrossbowOptions { row: EquipmentRow; allowUnlocked?: boolean }
 
 
 
@@ -776,9 +778,8 @@ export function buildCrossbow(sky: Sky, into: { readonly model: THREE.Group; rea
   return { stringLeft, stringRight, serving, loadedBolt, boltGeo, boltMat, peepPost, peepMats, tipL, tipR, nockRest, nockDrawn, tipLocal, tipModel, nockZ };
 }
 
-export class Crossbow implements Weapon {
-  readonly hasAmmo = true;
-  state = { bolts: MAX_BOLTS, loaded: true, reloading: false, reloadProgress: 0, ads: false };
+export class Crossbow extends Weapon {
+  state = quiverState({ bolts: MAX_BOLTS, loaded: true, reloading: false, reloadProgress: 0, ads: false }, MAX_BOLTS);
   enabled = true;
   allowUnlocked = false;
   /** hold ADS externally (dev `?ads=1`) — OR'ed with the right mouse button */
@@ -796,14 +797,9 @@ export class Crossbow implements Weapon {
   /** the bolt on the rail (special bolts, BoltMod above): read at each loose; PLAIN_BOLT = iron */
   boltMod: BoltMod = PLAIN_BOLT;
   /** the HUD strip's ammo label (Weapons.ts BaseLike override): the loaded kind's ("Pitch bolts") */
-  ammoLabel = 'Bolts';
+  override get ammoLabel(): string { return this.row.ui.ammo?.label ?? ''; }
+  override set ammoLabel(label: string) { if (this.row.ui.ammo) this.row = { ...this.row, ui: { ...this.row.ui, ammo: { ...this.row.ui.ammo, label } } }; }
 
-  onFire?: () => void;
-  onHit?: (kind: string, headshot: boolean, killed: boolean) => void;
-  onImpact?: (surface: ImpactSurface, point: THREE.Vector3) => void;
-  onReloadStart?: () => void;
-  onReloadEnd?: () => void;
-  onDry?: () => void;
 
   readonly model = new THREE.Group();
   private game: Game; private sky: Sky; private player: Player;
@@ -854,7 +850,8 @@ export class Crossbow implements Weapon {
   private time = 0;
   private spawnPos = new THREE.Vector3();
 
-  constructor(world: CrossbowWorld, targets?: Targets, opts: CrossbowOptions = {}) {
+  constructor(world: CrossbowWorld, targets: Targets | undefined, opts: CrossbowOptions) {
+    super(opts.row);
     this.game = world.game; this.sky = world.sky; this.player = world.player;
     this.targets = targets;
     this.allowUnlocked = opts.allowUnlocked ?? false;
@@ -880,7 +877,7 @@ export class Crossbow implements Weapon {
   get handsCost(): WeaponHands['cost'] | null { return this.hands?.cost ?? null; }
 
   // ── input ──
-  inputAllowed(): boolean { return app.state !== 'paused' && this.enabled && (this.player.locked || this.allowUnlocked); }
+  override inputAllowed(): boolean { return app.state !== 'paused' && this.enabled && (this.player.locked || this.allowUnlocked); }
   private bindInput(): void {
     document.addEventListener('mousedown', (e) => {
       if (!this.inputAllowed()) return;
@@ -914,13 +911,13 @@ export class Crossbow implements Weapon {
     this.onFire?.();
   }
 
-  reload(): void {
+  override reload(): void {
     if (this.state.reloading || this.state.loaded || this.state.bolts <= 0) return;
     this.state.reloading = true; this.reloadT = 0; this.state.reloadProgress = 0;
     this.onReloadStart?.();
   }
 
-  addBolts(n: number): void { this.state.bolts = Math.min(MAX_BOLTS, this.state.bolts + n); }
+  override addBolts(n: number): void { this.state.bolts = Math.min(MAX_BOLTS, this.state.bolts + n); }
 
   // ── viewmodel ──
   private buildViewmodel(): void {
@@ -981,7 +978,7 @@ export class Crossbow implements Weapon {
   /** The aim line is ALWAYS the camera forward (the crosshair / the peep ring's centre), hip or sighted — the user
    *  found sighted shots landing low when they flew along the eye→tip ray. Sighted bolts start at the tip, which is
    *  a few cm under the eye, and fly parallel to the forward: at any range that is the same point as the hip shot. */
-  aimRay(origin: THREE.Vector3, dir: THREE.Vector3): THREE.Vector3 {
+  override aimRay(origin: THREE.Vector3, dir: THREE.Vector3): THREE.Vector3 {
     const cam = this.game.camera;
     cam.getWorldDirection(dir);
     origin.copy(cam.position);

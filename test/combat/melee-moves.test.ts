@@ -1,3 +1,4 @@
+import { SWORD } from '#kit';
 import * as THREE from 'three';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { onFault } from '#engine/core/faults';
@@ -39,7 +40,7 @@ describe('complete move tables and keyframes (09 §1.8)', () => {
       const moves = name === 'sabre' ? SABRE_MOVES : { combo: COMBO, heavy: HEAVY, rest: REST, charge: CHARGE, sprint: SPRINT };
       const sword = new Sword({ game, sky: world.sky, player: world.player, forest: world.forest },
         { raycast: () => ({ animal, point: animal.position, distance: 1.5, headshot: false }) },
-        { arms, damage, moves, blade: name === 'iron' ? 'iron' : 'wood', portraitFov: name === 'jian' ? 78 : 72 });
+        { row: SWORD, arms, damage, moves, blade: name === 'iron' ? 'iron' : 'wood', portraitFov: name === 'jian' ? 78 : 72 });
       const faults: unknown[] = []; const off = onFault((fault) => { faults.push(fault.error); });
       sword.swingScale = scale; world.game.onUpdate((dt, t) => sword.update(dt, t));
       for (const move of [...moves.combo, moves.heavy]) {

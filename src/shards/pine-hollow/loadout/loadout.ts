@@ -1,8 +1,7 @@
+import { saves, type EquipmentService } from '#engine';
 import * as valibot from 'valibot';
-import { saves } from '#engine';
 import * as THREE from 'three';
 import type { Sky } from '#engine/world/Sky';
-import type { Weapons } from '#engine/player/Weapons';
 import { fixIBL, MAX_BOLTS, VIEWMODEL_GROUP, PLAIN_BOLT, worldHit, type BoltMod, type Crossbow } from '#engine/player/Crossbow';
 import type { LeverRifle } from '../weapons/LeverRifle';
 import { QUIVER_MAX, type Longbow } from '#engine/player/Longbow';
@@ -35,7 +34,7 @@ const savedSlot = saves.define({ key: 'loadout', scope: 'shard', version: 1, sch
  *     says whether a trade's ammunition fits, so Mott never sells bolts into a full quiver;
  *     its draw creak (`longbowDraw`), its loose (`longbowLoose`; Audio.crossbowFire until the set decodes).
  *   · STONE — a bolt, an arrow or a round landing on rock / stone plays `boltImpact-rock` (the crack + the ricochet).
- *   · FEEL — nothing here: the combat feel (feel.ts: hit-stop, kick, trauma, debris) hooks `Weapons.onHit / onImpact`,
+ *   · FEEL — nothing here: the combat feel (feel.ts: hit-stop, kick, trauma, debris) hooks `EquipmentService.onHit / onImpact`,
  *     which every kit weapon forwards, so the rifle and the bow land with it like the crossbow.
  *
  *   loadout.addAmmo('pitch', 10)     the trader, the contracts ('iron' / 'pitch' / 'broadhead' / 'cartridge' / 'arrow')
@@ -45,7 +44,7 @@ const savedSlot = saves.define({ key: 'loadout', scope: 'shard', version: 1, sch
  */
 
 export interface PineLoadoutHost {
-  scene: THREE.Scene; sky: Sky; weapons: Weapons; crossbow: Crossbow | null; rifle: LeverRifle; longbow: Longbow;
+  scene: THREE.Scene; sky: Sky; weapons: EquipmentService; crossbow: Crossbow | null; rifle: LeverRifle; longbow: Longbow;
   inventory: Inventory; owned: Owned; hud: HUD; audio: Audio; params: URLSearchParams;
 }
 

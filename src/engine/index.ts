@@ -41,3 +41,13 @@ export type { LevelAudioProfile } from './audio/levelAudio';
 export type { MusicState } from './audio/Music';
 export { tap } from './core/harnessTap';
 export { castRay } from './physics/query';
+
+export { Equipment, type EquipmentRow, type EquipmentMeta, type WeaponUi, type EquipContext, type BlockSet, type EquipmentId, type WeaponId, type ToolId } from './combat/Equipment';
+export { Weapon, quiverState, type WeaponState, type AimInfo, type WeaponHooks } from './combat/Weapon';
+export { Tool, type EquipmentAction } from './combat/Tool';
+export { EquipmentService } from './combat/EquipmentService';
+export type { EquipmentInput } from './input/equipmentInput';
+
+export type { IconId } from './ui/icons';
+export type { KitEntry } from './ui/Menu';
+

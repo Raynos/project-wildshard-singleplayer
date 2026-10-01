@@ -1,5 +1,5 @@
+import { app, ownAudioSource, type EquipmentService } from '#engine';
 import { tap, ambientTick } from '#engine/core/harnessTap';
-import { app, ownAudioSource } from '#engine';
 /**
  * Pine Hollow's ambient life without wolves (PINE-HOLLOW-REMASTER PH-M5) and the harvest's skinning beat (PH-F2), in one
  * call from main.ts (`installPineLife`, before the boot's precompile: the one draw below is parked in the scene then).
@@ -41,7 +41,6 @@ import * as THREE from 'three';
 import type { Game } from '#engine/core/Game';
 import type { Sky } from '#engine/world/Sky';
 import type { Player } from '#engine/player/Player';
-import type { Weapons } from '#engine/player/Weapons';
 import type { Audio } from '#engine/audio/Audio';
 import type { PhShot, PineHollowSfx } from '../audio/sfx';
 import type { AnimalManager } from '#engine/entities/AnimalManager';
@@ -58,7 +57,7 @@ import { BEAT, RAVEN_CARCASS, beatEnvelope, carcassMayGo, nearestUnvisited, rave
 import { setting } from '#engine/ui/Settings';
 
 export interface PineLifeHost {
-  game: Game; sky: Sky; player: Player; animals: AnimalManager; weapons: Weapons; audio: Audio;
+  game: Game; sky: Sky; player: Player; animals: AnimalManager; weapons: EquipmentService; audio: Audio;
   trees: readonly TreeInstance[];
   /** the tree variants' bark geometry (Forest's factory): where a trunk really is (`TrunkProbe`) */
   trunks: readonly { trunk: THREE.BufferGeometry }[];

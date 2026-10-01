@@ -1,3 +1,5 @@
+import { SPEAR } from './equipment';
+import { Weapon, quiverState, type WeaponState, type AimInfo } from '#engine/combat/Weapon';
 import { gameplayRandom, app } from '#engine';
 import * as THREE from 'three';
 import type { Game } from '#engine/core/Game';
@@ -7,7 +9,7 @@ import type { Forest } from '#engine/world/forest/Forest';
 import { impactSurfaceOf, worldHit, type Targets, type ImpactSurface, type TargetAnimal, type TargetHit } from '#engine/player/Crossbow';
 import { floorBelow, sticksIn } from '#engine/physics/query';
 import { activePhysics } from '#engine/physics/active';
-import type { Weapon, WeaponState, AimInfo } from '#engine/player/Weapon';
+
 import { heightAt } from '#engine/world/Heightfield';
 import { getAimTargets, targetRadius, type AimTarget } from '#engine/player/AimTargets';
 import { tube, blob, xf, merge, lin, meleeMaterial, steelMaterial, withUV, sweep, helix, section, type ColorAt } from './meleeGeo';
@@ -207,17 +209,15 @@ const _qSway = new THREE.Quaternion(), _qHol = new THREE.Quaternion(), _vArm = n
 /** where the sleeves run back to (camera space): the elbows, just off the bottom corners of the frame */
 const L_ELBOW = new THREE.Vector3(-0.3, -0.62, 0.05), R_ELBOW = new THREE.Vector3(0.36, -0.6, 0.08);
 
-export class Spear implements Weapon {
-  readonly hasAmmo = true;
-  readonly reach = REACH;
-  readonly ammoLabel = 'Javelins';
-  readonly state: WeaponState = { bolts: 3, loaded: true, reloading: false, reloadProgress: 0, ads: false };
+export class Spear extends Weapon {
+  override readonly reach = REACH;
+  readonly state: WeaponState = quiverState({ bolts: 3, loaded: true, reloading: false, reloadProgress: 0, ads: false }, 3);
   enabled = true;
   allowUnlocked = false;
   /** the touch THROW disc (held): press = wind up, release = throw */
   adsHeld = false;
   /** the touch BRACE disc (held) */
-  altHeld = false;
+
   /** 0..1 weapon-swap blend (the kit drives it): 1 = dropped out of the frame */
   holster = 0;
   /** the riding row's hook (B7): horse speed / heading while mounted, null on foot */
@@ -233,15 +233,9 @@ export class Spear implements Weapon {
   /** dev: showcase pose */
   inspect = 0;
 
-  onFire?: () => void;
   onThrow?: () => void;
   onBrace?: (on: boolean) => void;
   onPickup?: (n: number) => void;
-  onHit?: (kind: string, headshot: boolean, killed: boolean) => void;
-  onImpact?: (surface: ImpactSurface, point: THREE.Vector3) => void;
-  onReloadStart?: () => void;
-  onReloadEnd?: () => void;
-  onDry?: () => void;
 
   readonly model = new THREE.Group();
   private game: Game; private sky: Sky; private player: Player;
@@ -272,6 +266,7 @@ export class Spear implements Weapon {
   private prevPos = new Map<object, THREE.Vector3>();
 
   constructor(w: SpearWorld, targets?: Targets, opts: SpearOptions = {}) {
+    super(SPEAR);
     this.game = w.game; this.sky = w.sky; this.player = w.player;
     this.targets = targets;
     this.allowUnlocked = opts.allowUnlocked ?? false;
@@ -284,17 +279,17 @@ export class Spear implements Weapon {
   }
 
   // ── kit surface ──
-  get segments(): number { return this.maxJavelins; }
+  override get segments(): number { return this.maxJavelins; }
   get magazine(): number { return this.maxJavelins; }
   get bracing(): boolean { return this.braced; }
   get winding(): boolean { return this.windT >= 0; }
   get thrusting(): boolean { return this.thrustT >= 0; }
   /** javelins in flight or stuck in the world (dev / HUD) */
   get javelinsOut(): number { let n = 0; for (const j of this.javs) if (j.state !== 0) n++; return n; }
-  inputAllowed(): boolean { return app.state !== 'paused' && this.enabled && (this.player.locked || this.allowUnlocked); }
-  addBolts(n: number): void { this.javelins = Math.min(this.maxJavelins, this.javelins + Math.max(0, n)); }
-  reload(): void { /* nothing to reload: javelins are picked up */ }
-  aimRay(origin: THREE.Vector3, dir: THREE.Vector3): THREE.Vector3 { const cam = this.game.camera; cam.getWorldDirection(dir); origin.copy(cam.position); return dir; }
+  override inputAllowed(): boolean { return app.state !== 'paused' && this.enabled && (this.player.locked || this.allowUnlocked); }
+  override addBolts(n: number): void { this.javelins = Math.min(this.maxJavelins, this.javelins + Math.max(0, n)); }
+  override reload(): void { /* nothing to reload: javelins are picked up */ }
+  override aimRay(origin: THREE.Vector3, dir: THREE.Vector3): THREE.Vector3 { const cam = this.game.camera; cam.getWorldDirection(dir); origin.copy(cam.position); return dir; }
 
   private bindInput(): void {
     document.addEventListener('mousedown', (e) => {

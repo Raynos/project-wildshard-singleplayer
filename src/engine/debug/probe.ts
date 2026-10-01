@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import type { World } from '../core/bootstrap';
 import type { Animal } from '../entities/Animal';
 import type { AnimalManager } from '../entities/AnimalManager';
-import type { Weapons, WeaponState } from '../player/Weapons';
+import type { EquipmentService, WeaponState } from '../combat/EquipmentService';
 import type { TrainingArena } from '../practice/TrainingArena';
 import type { HUD } from '../ui/HUD';
 import type { Audio } from '../audio/Audio';
@@ -57,7 +57,7 @@ export interface HarnessPins {
   resources?: () => ResourceCounts;
 }
 export type ProbeWorld = World & {
-  animals: AnimalManager; weapons: Weapons; hud: HUD; audio: Audio; music: Music; arena: TrainingArena;
+  animals: AnimalManager; weapons: EquipmentService; hud: HUD; audio: Audio; music: Music; arena: TrainingArena;
   interactables: readonly Interactable[];
 } & Record<string, unknown>;
 export interface ProbePose { name?: string; x?: number; y?: number; z?: number; yaw?: number; pitch?: number }

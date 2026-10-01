@@ -1,4 +1,4 @@
-import type { WeaponId, Weapons } from '../player/Weapons';
+import type { WeaponId, EquipmentService } from '../combat/EquipmentService';
 
 /**
  * WeaponStrip — the one weapon-swap control of every shard, built once by main.ts.
@@ -16,22 +16,11 @@ import type { WeaponId, Weapons } from '../player/Weapons';
  * ring, one per owned weapon (icon, name, ammo), the held one lit. Slide toward a wedge and let go to hold it; let go on
  * the hub (or cancel) to keep what you have. The wedge is picked by direction, so a short slide is enough.
  * Desktop (`.desk`): a hotbar bottom-centre with the key numbers, names and ammo (keys 1…N, Q = next, the mouse wheel =
- * next / previous: Weapons.ts). A slot can be clicked too.
+ * next / previous: EquipmentService.ts). A slot can be clicked too.
  * Both show only once a second weapon is owned; the practice room's loan shows them too.
  * Styles: src/engine/ui/styles/touch.css (`ws-touch-swap*`, `ws-touch-pie*`, `ws-touch-strip.desk`, `ws-touch-slot*`).
  */
 
-const ICONS: Partial<Record<WeaponId, string>> = {
-  bow: '<path d="M6 3c7 3.5 7 14.5 0 18"/><path d="M6 3v18" stroke-width="0.9"/><path d="M4 12h15M16.5 9.5 19 12l-2.5 2.5"/>',
-  sabre: '<path d="M5 19c4-3.5 9.5-9.5 13.5-15.5-1 5-5.5 11.5-11.5 16.5"/><path d="M3.5 16.5l4.5 4.5M4.5 21.5l2-2"/>',
-  spear: '<path d="M4 20 16 8"/><path d="M16 8c.8-2.6 2.6-4.4 5-5-.6 2.4-2.4 4.2-5 5z"/><path d="M13.2 8.6l2.2 2.2"/>',
-  rifle: '<path d="M3 13h14l3-2h1v3h-4l-2 2H9l-1 3H5l1-3H3z"/>',
-  crossbow: '<path d="M4 7c4 3 12 3 16 0M12 5v15M8 17h8"/>',
-};
-/** the sword slot (Driftwood's wooden / iron sword, Nine Dragon's jian) — and any weapon without its own icon */
-const SWORD_ICON = '<path d="M20.5 3.5 9.2 14.8M20.5 3.5l-.6 4.2M20.5 3.5l-4.2.6"/><path d="M6.6 12.2l5.2 5.2M8.4 15.6 4 20"/>';
-/** the rifle slot's name is the kit weapon's own (`name`: Nalati's AR-15, Pine Hollow's lever-action) */
-const NAMES: Partial<Record<WeaponId, string>> = { bow: 'Bow', sabre: 'Sabre', spear: 'Spear', crossbow: 'Crossbow' };
 /** the two curved arrows around the ring (viewBox 0 0 56 56; the ring's centre is 28, 28) */
 const RING_ARROWS = '<path d="M9.5 21A20 20 0 0 1 40 11.5"/><path d="M40 11.5l-5.6-.6M40 11.5l-1.3 5.4"/><path d="M46.5 35A20 20 0 0 1 16 44.5"/><path d="M16 44.5l5.6.6M16 44.5l1.3-5.4"/>';
 /** the pie's hub icon (the swap arrows) */
@@ -46,7 +35,6 @@ const PICK_MIN = 30;
 interface Slot { id: WeaponId; el: HTMLElement; ammo: HTMLElement; shownAmmo: number | undefined | null; on: boolean }
 interface Wedge { id: WeaponId; el: SVGPathElement; label: HTMLElement }
 
-const iconOf = (id: WeaponId): string => ICONS[id] ?? SWORD_ICON;
 const SVGNS = 'http://www.w3.org/2000/svg';
 
 export class WeaponStrip {
@@ -66,7 +54,7 @@ export class WeaponStrip {
   private pick: WeaponId | null = null;
   private press: { id: number; timer: number; open: boolean } | null = null;
 
-  constructor(private weapons: Weapons) {
+  constructor(private weapons: EquipmentService) {
     const hud = document.getElementById('hud') ?? document.body;
     const layer = hud.querySelector<HTMLElement>('.ws-touch');
     this.touch = layer !== null && hud.classList.contains('touch');
@@ -127,7 +115,7 @@ export class WeaponStrip {
     list.forEach((k, i) => {
       const b = document.createElement('button');
       b.type = 'button'; b.className = 'ws-touch-slot';
-      b.innerHTML = `<i class="ws-touch-slot-key">${i + 1}</i><svg viewBox="0 0 24 24">${iconOf(k.id)}</svg><span class="ws-touch-slot-name">${NAMES[k.id] ?? k.name}</span><b class="ws-touch-slot-ammo"></b>`;
+      b.innerHTML = `<i class="ws-touch-slot-key">${i + 1}</i><svg viewBox="0 0 24 24">${k.row.ui.swapIcon}</svg><span class="ws-touch-slot-name">${k.row.ui.swapName ?? k.row.ui.name}</span><b class="ws-touch-slot-ammo"></b>`;
       const ammo = b.querySelector<HTMLElement>('.ws-touch-slot-ammo');
       if (ammo === null) return;
       b.addEventListener('pointerdown', (e) => {
@@ -142,7 +130,7 @@ export class WeaponStrip {
   /** the ring shows the held weapon; its dot lights */
   private drawRing(held: WeaponId): void {
     this.heldKey = held;
-    if (this.ringIcon !== null) this.ringIcon.innerHTML = iconOf(held);
+    if (this.ringIcon !== null) this.ringIcon.innerHTML = this.weapons.current.row.ui.swapIcon;
     const list = this.weapons.available, dots = this.dots?.children;
     if (dots !== undefined) list.forEach((w, i) => { dots[i]?.classList.toggle('on', w.id === held); });
   }
@@ -217,7 +205,7 @@ export class WeaponStrip {
       label.style.transform = `translate(${(Math.cos(mid) * r).toFixed(1)}px, ${(Math.sin(mid) * r).toFixed(1)}px)`;
       const ammo = this.weapons.get(k.id).state.ammo;
       const count = ammo === undefined ? '' : ` <b class="${ammo === 0 ? 'empty' : ''}">${ammo}</b>`;
-      label.innerHTML = `<svg viewBox="0 0 24 24">${iconOf(k.id)}</svg><span>${NAMES[k.id] ?? k.name}${count}</span>`;
+      label.innerHTML = `<svg viewBox="0 0 24 24">${k.row.ui.swapIcon}</svg><span>${k.row.ui.swapName ?? k.row.ui.name}${count}</span>`;
       pie.append(label);
       this.wedges.push({ id: k.id, el: path, label });
     });

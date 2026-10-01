@@ -66,12 +66,12 @@ const TITLE: Record<MenuGroup, string> = { pause: 'Paused', bag: 'Bag' };
 /** the menu's keys (Esc is handled apart: it pauses, and closes whatever tab is open) */
 const KEY_TAB: Partial<Record<string, MenuTab>> = { KeyM: 'map', KeyI: 'inventory' };
 /** what a Settings row's "applies when" reads: the weapons you hold now and the shard */
-interface SettingsCtx { weapons: ReadonlySet<string>; melee: boolean; chunk: ShardManifest }
+interface SettingsCtx { weapons: ReadonlySet<string>; melee: boolean; tracers: boolean; huntersEye: boolean; chunk: ShardManifest }
 type When = (c: SettingsCtx) => boolean;
 const HINTS: Record<MenuTab, string> = { map: 'Drag to pan · pinch to zoom', gear: 'Tap a weapon to hold it', finds: 'Found = bright · missing = dashed', inventory: 'What the hunt leaves you', achievements: 'Tap an earned title to wear it', settings: 'Tap outside or Esc to resume', feedback: 'Enter sends · the frame under the menu goes with it' };
 
 /** the weapons as the GEAR tab shows them — read live from Weapons (src/engine/player/Weapons.ts) */
-export interface KitEntry { id: string; name: string; ammoLabel: string; ammo: number; magazine: number; reserve: number; equipped: boolean; icon: IconId }
+export interface KitEntry { id: string; name: string; ammoLabel: string; ammo: number; magazine: number; reserve: number; equipped: boolean; icon: IconId; melee: boolean; tracers: boolean; huntersEye: boolean }
 
 export interface GameMenuOptions {
   fullMap: FullMap;
@@ -482,10 +482,10 @@ export class GameMenu {
       this.gated.push({ el: head, when: (c) => whens.some((w) => w(c)) });
       card.append(head, ...els);
     };
-    const ranged: When = (c) => c.weapons.has('crossbow') || c.weapons.has('rifle'); // the bolts / rounds draw tracers: Nalati's bow draws none (NALATI-MERGE F7)
+    const ranged: When = (c) => c.tracers; // the bolts / rounds draw tracers: Nalati's bow draws none (NALATI-MERGE F7)
     section(p, 'Gameplay', sw('aimAssist', 'Aim assist'),
       [ranged, sw('tracers', 'Tracer bolts')],
-      [(c) => c.weapons.has('bow'), sw('huntersEye', "Hunter's eye")], // the bow's drop arc (Bow.ts): on by default on touch
+      [(c) => c.huntersEye, sw('huntersEye', "Hunter's eye")], // the bow's drop arc (Bow.ts): on by default on touch
       [() => CAN_VIBRATE, sw('haptics', 'Vibration')]); // Android only — iOS Safari has no vibrate (src/engine/ui/haptics.ts)
 
     // controls: the 0.5–2× look multipliers (Settings 'look' / 'swingLook') — read live by TouchControls + Player's mouse look
@@ -553,7 +553,7 @@ export class GameMenu {
   /** show only the Settings rows that apply now (E130: the weapons you hold, the shard) — every open and every Settings select */
   private applies(): void {
     this.savePanel?.refresh();
-    const kit = this.opts.kit(), c: SettingsCtx = { weapons: new Set(kit.map((k) => k.id)), melee: kit.some((k) => k.icon === 'sword'), chunk: getActiveChunk() };
+    const kit = this.opts.kit(), c: SettingsCtx = { weapons: new Set(kit.map((k) => k.id)), melee: kit.some((k) => k.melee), tracers: kit.some((k) => k.tracers), huntersEye: kit.some((k) => k.huntersEye), chunk: getActiveChunk() };
     for (const g of this.gated) g.el.hidden = !g.when(c);
     this.debug?.applies(c);
   }

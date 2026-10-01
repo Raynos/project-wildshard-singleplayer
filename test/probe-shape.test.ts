@@ -1,3 +1,4 @@
+import { type EquipmentService, type Weapon, App, Scope } from '#engine';
 // @vitest-environment happy-dom
 import { afterEach, describe, expect, expectTypeOf, it, vi } from 'vitest';
 import * as THREE from 'three';
@@ -13,11 +14,9 @@ import type { Music } from '#engine/audio/Music';
 import type { HUD } from '#engine/ui/HUD';
 import type { Animal } from '#engine/entities/Animal';
 import type { AnimalManager } from '#engine/entities/AnimalManager';
-import type { Weapons, KitWeapon } from '#engine/player/Weapons';
 import type { TrainingArena } from '#engine/practice/TrainingArena';
 import { WorldRegistry } from '#engine/world/registry';
 import { ambientTick, tap } from '#engine/core/harnessTap';
-import { App, Scope } from '#engine';
 
 function fake<T extends object>(fields: Partial<T>): T {
   return new Proxy(fields, { get: (target, key) => {
@@ -41,7 +40,7 @@ function fixture(): ProbeWorld {
   const animal = fake<Animal>({ kind: 'wolf', alive: true, hp: 20, position: new THREE.Vector3(5, 0, 6), state: 'idle', harnessHold: false });
   const animals = fake<AnimalManager>({ animals: [animal] });
   const state = { ammo: 2, magazine: 3, reserve: 0, loaded: true, reloading: false, reloadProgress: 0, ads: false };
-  const weapon = fake<KitWeapon>({ id: 'sword', state }), weapons = fake<Weapons>({ current: weapon, list: [weapon], select: vi.fn<() => void>() });
+  const weapon = fake<Weapon>({ id: 'sword', state }), weapons = fake<EquipmentService>({ current: weapon, list: [weapon], select: vi.fn<() => void>() });
   const arena = fake<TrainingArena>({ targets: [], isActive: false });
   const registry = new WorldRegistry(); registry.add({ id: 'deck', name: 'Deck', category: 'buildings', file: 'fixture', surface: 'stone', colliders: [{ kind: 'box', x: 0, y: 0, z: 0, hx: 1, hy: 1, hz: 1 }] });
   return fake<ProbeWorld>({ game, player, physics, hud, animals, weapons, arena, registry,

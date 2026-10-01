@@ -1,3 +1,5 @@
+import type { EquipmentRow } from '#engine/combat/Equipment';
+import { Weapon, type WeaponState, type AimInfo } from '#engine/combat/Weapon';
 import { app } from '../app/runtime';
 import * as THREE from 'three';
 import { BladeGlow } from './bladeGlow';
@@ -6,8 +8,8 @@ import type { Game } from '../core/Game';
 import type { Sky } from '../world/Sky';
 import { dodgeFx, dodgeEnv, type Player } from './Player';
 import type { Forest } from '../world/forest/Forest';
-import type { Targets, TargetHit, ImpactSurface } from './Crossbow';
-import type { Weapon, WeaponState, AimInfo } from './Weapon';
+import type { Targets, TargetHit } from './Crossbow';
+
 import { REST, CHARGE, SPRINT, COMBO, SLASH, FINISHER, HEAVY, type Move, type Key } from './SwordMoves';
 import { getAimTargets, lockOn, meleeLock, targetRadius, type AimTarget } from './AimTargets';
 import { bladeBlocked, bladeContact, type Clang } from './MeleeSweep';
@@ -132,6 +134,7 @@ export interface SwordFraming { shrink: number; dx: number; dy: number; tilt: nu
 /** the poses + moves a rig swings (default: SwordMoves.ts's REST / CHARGE / SPRINT / COMBO / HEAVY) */
 export interface SwordMoveSet { rest: Key; charge: Key; sprint: Key; combo: Move[]; heavy: Move }
 export interface SwordOptions {
+  row: EquipmentRow;
   allowUnlocked?: boolean; blade?: 'wood' | 'iron';
   /** a custom viewmodel + moves + numbers (the sabre); omitted = the wooden / iron sword exactly as before */
   rig?: SwordRig; moves?: SwordMoveSet; damage?: number; reach?: number;
@@ -424,12 +427,11 @@ class Glint {
   }
 }
 
-export class Sword implements Weapon {
-  readonly hasAmmo = false;
-  readonly reach: number;
+export class Sword extends Weapon {
+  override readonly reach: number;
   private portraitPullX: number;
   private portraitFov: number;
-  readonly state: WeaponState = { loaded: true, reloading: false, reloadProgress: 0, ads: false };
+  readonly state: WeaponState = { ammo: undefined, magazine: 30, reserve: 0, loaded: true, reloading: false, reloadProgress: 0, ads: false };
   enabled = true;
   allowUnlocked = false;
   /** the heavy's charge held externally (the touch HEAVY disc, or dev `?ads=1`); OR'ed with the right mouse button. On = charging, off = release. */
@@ -452,14 +454,8 @@ export class Sword implements Weapon {
   /** always null: a melee weapon shows no range readout — the aimed enemy's plate is its label (Combat.ts) */
   readonly aimInfo: AimInfo | null = null;
 
-  onFire?: () => void;
   /** the heavy's release (after onFire): a deeper whoosh — Audio.swordHeavy() */
   onHeavy?: () => void;
-  onHit?: (kind: string, headshot: boolean, killed: boolean) => void;
-  onImpact?: (surface: ImpactSurface, point: THREE.Vector3) => void;
-  onReloadStart?: () => void;
-  onReloadEnd?: () => void;
-  onDry?: () => void;
   /** a swing connected (after onHit): the move and whether it killed — for a subclass's own bookkeeping (the sabre's pass
    *  chain); the kit manager never touches it, unlike onHit */
   onMoveHit?: (move: Move, killed: boolean) => void;
@@ -512,7 +508,8 @@ export class Sword implements Weapon {
   private glint = new Glint();
   private time = 0;
 
-  constructor(world: SwordWorld, targets?: Targets, opts: SwordOptions = {}) {
+  constructor(world: SwordWorld, targets: Targets | undefined, opts: SwordOptions) {
+    super(opts.row);
     this.game = world.game; this.sky = world.sky; this.player = world.player;
     this.targets = targets;
     this.allowUnlocked = opts.allowUnlocked ?? false;
@@ -538,7 +535,7 @@ export class Sword implements Weapon {
   }
 
   // ── input ──
-  inputAllowed(): boolean { return app.state !== 'paused' && this.enabled && (this.player.locked || this.allowUnlocked); }
+  override inputAllowed(): boolean { return app.state !== 'paused' && this.enabled && (this.player.locked || this.allowUnlocked); }
   private bindInput(): void {
     document.addEventListener('mousedown', (e) => {
       if (!this.inputAllowed()) return;
@@ -623,12 +620,12 @@ export class Sword implements Weapon {
   private releaseHeavy(): void { this.charging = false; this.releaseQueued = false; this.comboIdx = 0; this.startSwing(this.mv.heavy); }
 
   /** no ammo to add / nothing to reload */
-  addBolts(_n: number): void { /* melee */ }
-  reload(): void { /* melee */ }
+  override addBolts(_n: number): void { /* melee */ }
+  override reload(): void { /* melee */ }
   /** the aim line: the camera forward from the eye (what the crosshair shows) */
-  aimRay(origin: THREE.Vector3, dir: THREE.Vector3): THREE.Vector3 { const cam = this.game.camera; cam.getWorldDirection(dir); origin.copy(cam.position); return dir; }
+  override aimRay(origin: THREE.Vector3, dir: THREE.Vector3): THREE.Vector3 { const cam = this.game.camera; cam.getWorldDirection(dir); origin.copy(cam.position); return dir; }
   /** shown + held (true) or holstered (false: hidden, input off) */
-  setActive(on: boolean): void {
+  override setActive(on: boolean): void {
     this.model.visible = on;
     if (!on) { this.enabled = false; this.move = null; this.queued = false; this.charging = false; this.chargePending = false; this.releaseQueued = false; this.trailN = 0; this.trail.visible = false; }
   }
@@ -641,7 +638,7 @@ export class Sword implements Weapon {
   /** true while the heavy is being charged (RMB / HEAVY disc toggled on) */
   get chargingHeavy(): boolean { return this.charging; }
   /** 0..1 heavy charge (1 = ready to release) */
-  get charge(): number { return this.charging ? clamp01(this.chargeT / HEAVY_CHARGE) : 0; }
+  override get charge(): number { return this.charging ? clamp01(this.chargeT / HEAVY_CHARGE) : 0; }
   /** which light swing the next tap throws (1..3) */
   get comboStep(): number { return this.comboIdx >= this.mv.combo.length || (this.move === null && this.time - this.lastSwingEnd > COMBO_GAP) ? 1 : this.comboIdx + 1; }
 

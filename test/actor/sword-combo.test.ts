@@ -1,3 +1,4 @@
+import { SWORD } from '#kit';
 // @vitest-environment happy-dom
 // S1.2: these contracts move from Sword's viewmodel-owning class to the renderer-free Melee family.
 import * as THREE from 'three';
@@ -41,7 +42,7 @@ function swordFixture(contact: boolean): {
   const legacyGame = world.game.asGame();
   // Record contact stops separately so window measurements use an unscaled clock; loop.test proves the slowdown.
   legacyGame.hitStop = (seconds): void => { stops.push(seconds); };
-  const sword = new Sword({ game: legacyGame, player: world.player, sky: world.sky, forest: world.forest }, targets, { arms, allowUnlocked: true });
+  const sword = new Sword({ game: legacyGame, player: world.player, sky: world.sky, forest: world.forest }, targets, { row: SWORD, arms, allowUnlocked: true });
   sword.onMoveHit = (move: Move): void => { hits.push({ move: move.name, at: world.game.clock.elapsedTime, damage: pendingDamage }); };
   world.game.onUpdate((dt, t) => { sword.update(dt, t); });
   // The fake rig's clip is the observation surface, rather than Sword's private combo state.
