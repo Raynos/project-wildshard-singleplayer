@@ -7,3 +7,11 @@
  */
 export type GroundSurface = 'sand' | 'wetSand' | 'grass' | 'rock' | 'planks' | 'stone' | 'water';
 export type StepSurface = GroundSurface | 'litter' | 'gravel' | 'mud' | 'wet' | 'metal';
+
+/** The unanswered request retains the caller's default surface. */
+export interface StepSurfaceRequest { x: number; y: number; z: number; surface: StepSurface }
+declare module '../events/maps' {
+  interface AskMap {
+    'player.stepSurface': readonly [StepSurfaceRequest, StepSurfaceRequest];
+  }
+}

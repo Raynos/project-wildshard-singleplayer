@@ -90,4 +90,15 @@ export class ShrineHum {
     for (const s of n.srcs) s.stop(t + 0.45);
     this.scope.timeout(600, () => { try { n.panner.disconnect(); } catch { /* gone */ } });
   }
+
+  dispose(): void {
+    const n = this.nodes;
+    this.nodes = undefined;
+    if (n) {
+      for (const source of n.srcs) { try { source.stop(); } catch { /* Already stopped. */ } source.disconnect(); }
+      n.out.disconnect(); n.panner.disconnect();
+    }
+    this.scope.dispose();
+    this.music.duck(1);
+  }
 }

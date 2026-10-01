@@ -64,7 +64,7 @@ export class IslandSfx {
   /** diagnostics: the last footstep's surface / gain / rate */
   lastStep: { surface: Surface; gain: number; rate: number } | undefined;
 
-  constructor(private readonly audio: Audio) { audio.voices.register(ISLAND_VOICES); }
+  constructor(private readonly audio: Audio, scope?: Scope) { audio.voices.register(ISLAND_VOICES, scope); }
 
   /** render the island's one-shots in the background (call once the graph exists: after audio.resume()) */
   prewarm(): void { this.audio.voices.prewarm(ISLAND_FAMILIES); }

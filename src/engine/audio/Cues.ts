@@ -5,10 +5,14 @@ import type { AudioMixer } from './levelAudio';
 import type { AudioRead, AudioDecode } from './SetScore';
 import type { VoicePool } from './Voices';
 import type { Scope } from '../app/scope';
+import type { Vector3 } from 'three';
 
 export interface SampleClip { buffer: AudioBuffer; offset: number; duration: number; gain: number }
 export interface CueBank { loops: Map<string, SampleLoop>; shots: Map<string, SampleClip[]> }
-export interface CueOpts { pan?: number; gain?: number; strength?: number; sprinting?: boolean; surface?: string }
+export interface CueOpts {
+  pan?: number; gain?: number; strength?: number; sprinting?: boolean; surface?: string;
+  point?: Vector3; dir?: Vector3 | -1 | 1; speed?: number; heavy?: boolean; kind?: string;
+}
 export type CueMap = (id: string, opts: CueOpts) => boolean;
 const obj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
 const num = (v: unknown, d: number): number => typeof v === 'number' && Number.isFinite(v) ? v : d;
