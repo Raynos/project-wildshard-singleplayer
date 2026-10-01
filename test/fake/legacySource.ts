@@ -51,6 +51,16 @@ export function legacyMethods(file: string, className: string, globals: Record<s
   return result;
 }
 
+/** Private top-level helper, evaluated with its production body and explicit module globals. */
+export function legacyFunction(file: string, name: string, globals: Record<string, unknown> = {}): (...args: unknown[]) => unknown {
+  const source = legacySource(file);
+  const decl = source.statements.find((s) => ts.isFunctionDeclaration(s) && s.name?.text === name);
+  if (decl === undefined) throw new Error(`${file}: missing function ${name}`);
+  const fn = executeLegacy(`${decl.getText(source)}\n${name};`, globals);
+  if (typeof fn !== 'function') throw new Error('legacy helper did not return a function');
+  return (...args) => Reflect.apply(fn, undefined, args) as unknown;
+}
+
 /** Inline constructor tuning, read as data from the actual new-expression rather than copied into an oracle. */
 export function legacyNewOptions(file: string, ctor: string, globals: Record<string, unknown> = {}): Record<string, number>[] {
   const source = legacySource(file);

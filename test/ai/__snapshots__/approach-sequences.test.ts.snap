@@ -1,0 +1,153 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`scripted approach and departure through current manager brains > a ground monkey returns to its palm and climbs when the player leaves > monkey returns and climbs 1`] = `
+[
+  "perch",
+  "charge",
+  "wander",
+  "rise",
+  "perch",
+]
+`;
+
+exports[`scripted approach and departure through current manager brains > bear/black keeps its seeded states and damage contacts > bear approach and leave 1`] = `
+{
+  "hits": [
+    35,
+    35,
+    35,
+  ],
+  "states": [
+    {
+      "frame": 1,
+      "state": "idle",
+    },
+    {
+      "frame": 127,
+      "state": "alert",
+    },
+    {
+      "frame": 193,
+      "state": "stalk",
+    },
+    {
+      "frame": 301,
+      "state": "charge",
+    },
+    {
+      "frame": 307,
+      "state": "stalk",
+    },
+    {
+      "frame": 397,
+      "state": "charge",
+    },
+    {
+      "frame": 421,
+      "state": "stalk",
+    },
+    {
+      "frame": 511,
+      "state": "charge",
+    },
+    {
+      "frame": 517,
+      "state": "stalk",
+    },
+    {
+      "frame": 601,
+      "state": "wander",
+    },
+  ],
+}
+`;
+
+exports[`scripted approach and departure through current manager brains > boar/boar keeps its seeded states and damage contacts > boar approach and leave 1`] = `
+{
+  "hits": [
+    25,
+  ],
+  "states": [
+    {
+      "frame": 1,
+      "state": "idle",
+    },
+    {
+      "frame": 181,
+      "state": "wander",
+    },
+    {
+      "frame": 301,
+      "state": "charge",
+    },
+    {
+      "frame": 349,
+      "state": "flee",
+    },
+    {
+      "frame": 601,
+      "state": "alert",
+    },
+    {
+      "frame": 841,
+      "state": "graze",
+    },
+  ],
+}
+`;
+
+exports[`scripted approach and departure through current manager brains > deer/doe keeps its seeded states and damage contacts > deer approach and leave 1`] = `
+{
+  "hits": [],
+  "states": [
+    {
+      "frame": 1,
+      "state": "idle",
+    },
+    {
+      "frame": 181,
+      "state": "wander",
+    },
+    {
+      "frame": 301,
+      "state": "flee",
+    },
+    {
+      "frame": 601,
+      "state": "alert",
+    },
+    {
+      "frame": 811,
+      "state": "graze",
+    },
+  ],
+}
+`;
+
+exports[`scripted approach and departure through current manager brains > elk/cow keeps its seeded states and damage contacts > elk approach and leave 1`] = `
+{
+  "hits": [],
+  "states": [
+    {
+      "frame": 1,
+      "state": "idle",
+    },
+    {
+      "frame": 181,
+      "state": "alert",
+    },
+    {
+      "frame": 301,
+      "state": "flee",
+    },
+    {
+      "frame": 601,
+      "state": "alert",
+    },
+    {
+      "frame": 841,
+      "state": "graze",
+    },
+  ],
+}
+`;

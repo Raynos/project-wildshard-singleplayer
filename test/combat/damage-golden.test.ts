@@ -36,7 +36,8 @@ function dealt(source: Source, rule: Rule, headshot: boolean, distance: number, 
   const hit: TargetHit = { animal: target.animal, point, distance, headshot };
   const raycast = () => hit;
   if (source === 'bow' || source === 'longbow' || source === 'golden' || source === 'sun') {
-    const bow = legacyActor(Bow.prototype, { drawSpeedScale: 1, onLoose: undefined, damageMultiplier: () => sneak ? 2 : 1 });
+    const bow = legacyActor(Bow.prototype, { row: { id: 'weapon.bow', ui: { name: 'Bow' }, meta: { name: 'Bow' } },
+      drawSpeedScale: 1, onLoose: undefined, damageMultiplier: () => sneak ? 2 : 1 });
     if (source === 'golden' || source === 'sun') {
       const upgrade = legacyActor(GoldenBow.prototype, { bow: null, recolour: noop, sunShot: source === 'sun' }); upgrade.apply(bow);
     }

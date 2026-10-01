@@ -1,0 +1,40 @@
+import { describe, expect, it } from 'vitest';
+import { Weapon } from '#engine';
+import { WOODEN_SWORD, IRON_SWORD } from '#kit';
+import { JIAN } from '#shards/nine-dragon-stack/weapons/jian';
+import { SABRE, SPEAR, BOW, AR15 } from '#shards/nalati-grasslands/weapons/equipment';
+import { CROSSBOW, LONGBOW, LEVER } from '#shards/pine-hollow/weapons/equipment';
+import { Sword } from '#engine/player/Sword';
+import { Bow } from '#engine/player/Bow';
+import { Crossbow } from '#engine/player/Crossbow';
+import { Longbow } from '#engine/player/Longbow';
+import { Rifle } from '#engine/player/Rifle';
+import { Sabre } from '#shards/nalati-grasslands/weapons/Sabre';
+import { Spear } from '#shards/nalati-grasslands/weapons/Spear';
+import { LeverRifle } from '#shards/pine-hollow/weapons/LeverRifle';
+
+const rows = [WOODEN_SWORD, IRON_SWORD, JIAN, SABRE, SPEAR, BOW, AR15, CROSSBOW, LONGBOW, LEVER];
+describe('C2 concrete weapon and UI row contracts', () => {
+  it('registered base rows have unique namespaced ids and complete gameplay UI declarations', () => {
+    expect(new Set(rows.map((row) => row.id)).size).toBe(rows.length);
+    for (const row of rows) {
+      expect(row.id.startsWith('weapon.')).toBe(true); expect(row.ui.name).not.toBe('');
+      expect(row.ui.icon).not.toBe(''); expect(row.ui.swapIcon).not.toBe('');
+      for (const key of ['lockOn', 'melee', 'tracers'] as const) expect(row.ui[key]).toBeTypeOf('boolean');
+      expect(['melee', 'spear', 'bow', 'ranged']).toContain(row.ui.touch);
+      expect(row.meta.category).toBe('weapon'); expect(row.meta.name).not.toBe('');
+      if (row.ui.ammo !== undefined) { expect(row.ui.ammo.label).not.toBe(''); expect(row.ui.ammo.segments).toBeGreaterThan(0); }
+    }
+    expect(rows.map((row) => [row.id, row.ui.touch, row.ui.lockOn, row.ui.melee, row.ui.tracers, row.ui.ammo?.segments ?? 0])).toEqual([
+      ['weapon.sword', 'melee', true, true, false, 0], ['weapon.sword-iron', 'melee', true, true, false, 0],
+      ['weapon.jian', 'melee', true, true, false, 0], ['weapon.sabre', 'melee', true, true, false, 0],
+      ['weapon.spear', 'spear', true, true, false, 3], ['weapon.bow', 'bow', false, false, false, 4],
+      ['weapon.rifle', 'ranged', false, false, true, 6], ['weapon.crossbow', 'ranged', false, false, true, 4],
+      ['weapon.longbow', 'bow', false, false, false, 4], ['weapon.lever', 'ranged', false, false, true, 7],
+    ]);
+  });
+  it.each([Sword, Bow, Crossbow, Longbow, Rifle, Sabre, Spear, LeverRifle])('%s inherits the concrete Weapon class', (weapon) => {
+    expect(Object.prototype.isPrototypeOf.call(Weapon.prototype, weapon.prototype)).toBe(true);
+    for (const method of ['install', 'dispose', 'setActive', 'tryFire', 'update']) expect(Reflect.get(weapon.prototype, method)).toBeTypeOf('function');
+  });
+});
