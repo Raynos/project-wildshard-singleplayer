@@ -15,19 +15,19 @@
 import * as THREE from 'three';
 import { defineModel, type ModelDef } from '#engine/models/model';
 import { creature, type CreatureParams } from '#engine/models/creature';
-import { LEOPARD } from '#engine/entities/species/leopard';
-import { KOKBORI } from '#engine/entities/species/kokbori';
-import { EAGLE } from '#engine/entities/species/eagle';
-import { GHOST_RIDER } from '#engine/entities/species/ghostRider';
-import { BALBAL } from '#engine/entities/species/balbal';
-import { GOLDEN_KING } from '#engine/entities/species/goldenKing';
-import { ARGYMAQ, registerArgymaq } from '../elites';
-import { Flock } from '#engine/entities/Flock';
-import { loadCreatureRig } from '#engine/entities/glbCreatures';
+import { LEOPARD } from '../species/leopard';
+import { KOKBORI } from '../species/kokbori';
+import { EAGLE } from '../species/eagle';
+import { GHOST_RIDER } from '../species/ghostRider';
+import { BALBAL } from '../species/balbal';
+import { GOLDEN_KING } from '../species/goldenKing';
+import { ARGYMAQ, registerArgymaq } from '../combat/elites';
+import { Flock } from '../creatures/flock';
+import { loadCreatureRig } from '../species/hulls';
 import { modelsOn } from '../world/glbPaint';
-import { buildMarmotGeometry } from '#engine/entities/Marmots';
-import { painterlyAnimalMaterial } from '#engine/entities/painterlyAnimals';
-import { TitanBody } from '../stormTitan';
+import { buildMarmotGeometry } from '../creatures/marmots';
+import { painterlyAnimalMaterial } from '../look/creatureMaterial';
+import { TitanBody } from '../combat/stormTitan';
 
 const FILE = 'src/shards/nalati-grasslands/models/creatures.ts';
 

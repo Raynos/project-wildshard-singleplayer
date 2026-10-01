@@ -1,3 +1,4 @@
+import { wildEnv } from '../creatures/env';
 import { clockForSun, steppeClock, nightKeys, blendSteppeKey, type SteppeKey } from '../look/dayKeys';
 /**
  * Nalati weather + day/night wiring (row B10 of project/archive/2026-09-23-nalati.md): the clock, the storm state machine, the storm's
@@ -19,7 +20,7 @@ import { clockForSun, steppeClock, nightKeys, blendSteppeKey, type SteppeKey } f
  * herds / packs: `w.weather.onStrike((s) => wildlife.scare(s.x, s.z, 60))` (or pass `scare` to `bind`).
  */
 import * as THREE from 'three';
-import { heightAt, wind, wildEnv, TIER, setting, onSettingChange, type Game, type Sky, type Player, type BoxSpec as Collider, type DayCycle, type Forest, type Audio, type HUD } from '#engine';
+import { heightAt, wind, TIER, setting, onSettingChange, type Game, type Sky, type Player, type BoxSpec as Collider, type DayCycle, type Forest, type Audio, type HUD } from '#engine';
 import type { ShardContext, ShardManifest } from '#game';
 import { SkyRig, makeLook, copyLook, lightLevel, type SkyLook, type DayPhase } from '../look/skyRig';
 import { SteppeStorm as Weather, STORM_PHASES, type Exposed, type LightningPlayer } from './Weather';

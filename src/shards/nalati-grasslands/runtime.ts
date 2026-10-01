@@ -1,8 +1,11 @@
+import { Wildlife, type SheepHit } from './creatures/wildlife';
+import { wildEnv } from './creatures/env';
+import { isLunging } from './creatures/pack';
 import { Spear } from './weapons/Spear';
 import type { ShardContext, ShardManifest } from '#game';
 import { installRide } from './ride/input';
 import { Color, Vector3, type Object3D } from 'three';
-import { type Game, type Sky, type Player, type Forest, syncPainterlySun, updatePainterly, setPainterlyLook, painterlyUniforms, wind, type ImpactSurface, type TargetAnimal, type TargetHit, type AnimalManager, loadMeadow, type Wildlife, type SheepHit, windUniforms, macrotask, heightAt } from '#engine';
+import { type Game, type Sky, type Player, type Forest, syncPainterlySun, updatePainterly, setPainterlyLook, painterlyUniforms, wind, type ImpactSurface, type TargetAnimal, type TargetHit, type AnimalManager, loadMeadow, windUniforms, macrotask, heightAt } from '#engine';
 
 
 
@@ -14,21 +17,21 @@ import { buildOutcrops } from './outcrops';
 import { buildCragRock } from './cragRock';
 import { NalatiPOIs } from './world/index';
 import { NalatiDressing } from './world/dressing/index';
-import { wireKurgan, type KurganBoss } from './kurganBoss';
-import { wireElites, type NalatiElites } from './elites';
+import { wireKurgan, type KurganBoss } from './combat/goldenKing';
+import { wireElites, type NalatiElites } from './combat/elites';
 import { wireWeather, type NalatiWeather } from './world/installWeather';
 
 
 import type { NalatiLoadout } from './weapons/loadout';
 import { nalatiWetAt } from './wet';
-import { wireNightEnemies } from './nightEnemies';
+import { wireNightEnemies } from './combat/night';
 import { installStealth, type Stealth } from './stealth';
 import { wireSound, type NalatiSound } from './audio/sound';
 import { loadGrassField } from '#kit';
 import { wireLookV2 } from './look/index';
 import { reseedGrassV2 } from './look/grass';
 import { wireRide, type Ride } from './ride/ride';
-import { wireStormTitan, type StormTitan } from './stormTitan';
+import { wireStormTitan, type StormTitan } from './combat/stormTitan';
 import { NalatiSkinLocker, NalatiSkinPainter } from './weapons/nalatiSkins';
 import { HITCHING_RAIL } from './world/layout';
 import { registerNalatiPlaces } from './world/places';
@@ -97,7 +100,7 @@ export interface Nalati {
 
 export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext): Promise<Nalati> {
   const { game, sky } = ctx;
-  const { Wildlife, wildEnv, isLunging, practiceRoom, modelContext } = await loadMeadow();
+  const { practiceRoom, modelContext } = await loadMeadow();
   const { trample, grassHeightAt, grassBaseHeightAt } = await loadGrassField();
   const updates: ((dt: number, t: number) => void)[] = [];
   const groups: Record<string, Object3D> = {};

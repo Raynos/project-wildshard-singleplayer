@@ -1,3 +1,13 @@
+import './species/horse';
+import './species/wolf';
+import './species/sheep';
+import './species/sheepdog';
+import './species/balbal';
+import './species/goldenKing';
+import './species/leopard';
+import './species/eagle';
+import './species/ghostRider';
+import './species/kokbori';
 import { NALATI_FEATS } from './feats';
 import { TERRAIN } from './world/terrain';
 import { renderFinds, ShardPlugin, type ShardContext, type ShardRuntime } from '#game';

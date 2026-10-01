@@ -17,7 +17,7 @@ import { defineModel, type ModelDef } from '#engine/models/model';
 import { creatureFactory } from '#engine/models/creature';
 import { personFigure, type PersonId } from '../campPeople';
 import { loadPeopleRig, type PersonFrame } from '../campPeopleModels';
-import { shepherdRider } from '../sheepRaid';
+import { shepherdRider } from '../creatures/sheepRaid';
 
 export interface CampPersonParams { readonly person: PersonId }
 

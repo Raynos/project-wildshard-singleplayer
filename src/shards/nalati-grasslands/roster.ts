@@ -5,7 +5,7 @@
  * drawing and animating every copy as before.
  */
 import { live, type RosterEntry } from '#engine/models/live';
-import { NALATI_WILDLIFE } from '#engine/entities/Wildlife';
+import { NALATI_WILDLIFE } from './creatures/wildlife';
 import { CAMP_PEOPLE } from './quest';
 import { aqbars, argymaq, balbalWarrior, ghostRider, goldenKing, horse, kokbori, marmot, qyran, sheep, sheepdog, stormTitan, wolf } from './models/creatures';
 import { campPeople, shepherd } from './models/people';

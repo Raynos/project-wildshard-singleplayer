@@ -16,7 +16,7 @@ import type { IconId } from '#engine/ui/icons';
 import type { SkinRow } from '#engine/ui/Menu';
 import { NALATI_PLACES } from './quest';
 import { NALATI_SKINS, type NalatiSkinEntry } from './weapons/nalatiSkins';
-import { ELITE_DEFS } from './elites';
+import { ELITE_DEFS } from './combat/elites';
 
 export const NALATI_CHUNK_ID = 'chunk://local/nalati-grasslands';
 
