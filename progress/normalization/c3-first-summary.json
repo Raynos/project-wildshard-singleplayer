@@ -1,0 +1,136 @@
+[
+  {
+    "shard": "driftwood-isle",
+    "sha": "fb0c2e938a426a97b199fc8d28c31602ad29c1c9",
+    "build": "fb0c2e9-mupb38bo",
+    "verdict": "red",
+    "errors": [],
+    "red": [
+      {
+        "field": "leak.events.answerers",
+        "baseline": 0,
+        "now": 3,
+        "class": "D",
+        "band": "B1 = B0",
+        "verdict": "red"
+      }
+    ],
+    "walk": {
+      "walk.stuck": 0,
+      "walk.legs.pier.stuck": [],
+      "walk.legs.pier.out": 0,
+      "walk.legs.lookout.stuck": [],
+      "walk.legs.lookout.out": 0,
+      "walk.legs.cave.stuck": [],
+      "walk.legs.cave.out": 0
+    },
+    "combat": {
+      "combat.hitsToKill.swing": 3
+    }
+  },
+  {
+    "shard": "nalati-grasslands",
+    "sha": "fb0c2e938a426a97b199fc8d28c31602ad29c1c9",
+    "build": "fb0c2e9-mupb38bo",
+    "verdict": "red",
+    "errors": [],
+    "red": [
+      {
+        "field": "leak.events.answerers",
+        "baseline": 0,
+        "now": 3,
+        "class": "D",
+        "band": "B1 = B0",
+        "verdict": "red"
+      },
+      {
+        "field": "leak.weather.events.answerers",
+        "baseline": 0,
+        "now": 3,
+        "class": "D",
+        "band": "weather B1 = B0",
+        "verdict": "red"
+      }
+    ],
+    "walk": {
+      "walk.stuck": 0,
+      "walk.legs.road-camp.stuck": [],
+      "walk.legs.road-camp.out": 0,
+      "walk.legs.great-kurgan-door.stuck": [],
+      "walk.legs.great-kurgan-door.out": 0,
+      "walk.legs.leopard-cave.stuck": [],
+      "walk.legs.leopard-cave.out": 0
+    },
+    "combat": {
+      "combat.hitsToKill.swing": 3,
+      "combat.hitsToKill.shot": 2
+    }
+  },
+  {
+    "shard": "nine-dragon-stack",
+    "sha": "fb0c2e938a426a97b199fc8d28c31602ad29c1c9",
+    "build": "fb0c2e9-mupb38bo",
+    "verdict": "red",
+    "errors": [],
+    "red": [
+      {
+        "field": "leak.events.answerers",
+        "baseline": 0,
+        "now": 3,
+        "class": "D",
+        "band": "B1 = B0",
+        "verdict": "red"
+      }
+    ],
+    "walk": {
+      "walk.stuck": 0,
+      "walk.legs.stair-street.stuck": [],
+      "walk.legs.stair-street.out": 0,
+      "walk.legs.crossing-gate-bridge.stuck": [],
+      "walk.legs.crossing-gate-bridge.out": 0,
+      "walk.legs.escape-square-balustrade.stuck": [],
+      "walk.legs.escape-square-balustrade.out": 0
+    },
+    "combat": {
+      "combat.hitsToKill.swing": 1
+    }
+  },
+  {
+    "shard": "pine-hollow",
+    "sha": "fb0c2e938a426a97b199fc8d28c31602ad29c1c9",
+    "build": "fb0c2e9-mupb38bo",
+    "verdict": "red",
+    "errors": [],
+    "red": [
+      {
+        "field": "leak.events.answerers",
+        "baseline": 0,
+        "now": 3,
+        "class": "D",
+        "band": "B1 = B0",
+        "verdict": "red"
+      },
+      {
+        "field": "leak.weather.events.answerers",
+        "baseline": 0,
+        "now": 3,
+        "class": "D",
+        "band": "weather B1 = B0",
+        "verdict": "red"
+      }
+    ],
+    "walk": {
+      "walk.stuck": 0,
+      "walk.legs.cabin-porch.stuck": [],
+      "walk.legs.cabin-porch.out": 0,
+      "walk.legs.lookout-climb.stuck": [],
+      "walk.legs.lookout-climb.out": 0,
+      "walk.legs.creek-bridge.stuck": [],
+      "walk.legs.creek-bridge.out": 0
+    },
+    "combat": {
+      "combat.hitsToKill.shot": 3,
+      "combat.hitsToKill.shot2": 3
+    }
+  }
+]

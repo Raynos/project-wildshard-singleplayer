@@ -1,0 +1,186 @@
+{
+  "sha": "2cba0f9be5a03f642cd1d4b607fe16e7361d164a",
+  "status": "pending",
+  "completed": [
+    {
+      "shard": "driftwood-isle",
+      "sha": "2cba0f9be5a03f642cd1d4b607fe16e7361d164a",
+      "build": "2cba0f9-mupbqblg",
+      "verdict": "green",
+      "errors": [],
+      "red": [],
+      "checks": {
+        "walk.stuck": {
+          "baseline": null,
+          "now": 0,
+          "verdict": "green"
+        },
+        "walk.legs.pier.stuck": {
+          "baseline": null,
+          "now": [],
+          "verdict": "green"
+        },
+        "walk.legs.pier.out": {
+          "baseline": null,
+          "now": 0,
+          "verdict": "green"
+        },
+        "walk.legs.lookout.stuck": {
+          "baseline": null,
+          "now": [],
+          "verdict": "green"
+        },
+        "walk.legs.lookout.out": {
+          "baseline": null,
+          "now": 0,
+          "verdict": "green"
+        },
+        "walk.legs.cave.stuck": {
+          "baseline": null,
+          "now": [],
+          "verdict": "green"
+        },
+        "walk.legs.cave.out": {
+          "baseline": null,
+          "now": 0,
+          "verdict": "green"
+        },
+        "leak.events.answerers": {
+          "baseline": 3,
+          "now": 3,
+          "verdict": "green"
+        },
+        "combat.hitsToKill.swing": {
+          "baseline": null,
+          "now": 3,
+          "verdict": "new"
+        }
+      }
+    },
+    {
+      "shard": "nalati-grasslands",
+      "sha": "2cba0f9be5a03f642cd1d4b607fe16e7361d164a",
+      "build": "2cba0f9-mupbqblg",
+      "verdict": "green",
+      "errors": [],
+      "red": [],
+      "checks": {
+        "walk.stuck": {
+          "baseline": null,
+          "now": 0,
+          "verdict": "green"
+        },
+        "walk.legs.road-camp.stuck": {
+          "baseline": null,
+          "now": [],
+          "verdict": "green"
+        },
+        "walk.legs.road-camp.out": {
+          "baseline": null,
+          "now": 0,
+          "verdict": "green"
+        },
+        "walk.legs.great-kurgan-door.stuck": {
+          "baseline": null,
+          "now": [],
+          "verdict": "green"
+        },
+        "walk.legs.great-kurgan-door.out": {
+          "baseline": null,
+          "now": 0,
+          "verdict": "green"
+        },
+        "walk.legs.leopard-cave.stuck": {
+          "baseline": null,
+          "now": [],
+          "verdict": "green"
+        },
+        "walk.legs.leopard-cave.out": {
+          "baseline": null,
+          "now": 0,
+          "verdict": "green"
+        },
+        "leak.events.answerers": {
+          "baseline": 3,
+          "now": 3,
+          "verdict": "green"
+        },
+        "leak.weather.events.answerers": {
+          "baseline": 3,
+          "now": 3,
+          "verdict": "green"
+        },
+        "combat.hitsToKill.swing": {
+          "baseline": null,
+          "now": 3,
+          "verdict": "new"
+        },
+        "combat.hitsToKill.shot": {
+          "baseline": null,
+          "now": 2,
+          "verdict": "new"
+        }
+      }
+    },
+    {
+      "shard": "nine-dragon-stack",
+      "sha": "2cba0f9be5a03f642cd1d4b607fe16e7361d164a",
+      "build": "2cba0f9-mupbqblg",
+      "verdict": "green",
+      "errors": [],
+      "red": [],
+      "checks": {
+        "walk.stuck": {
+          "baseline": null,
+          "now": 0,
+          "verdict": "green"
+        },
+        "walk.legs.stair-street.stuck": {
+          "baseline": null,
+          "now": [],
+          "verdict": "green"
+        },
+        "walk.legs.stair-street.out": {
+          "baseline": null,
+          "now": 0,
+          "verdict": "green"
+        },
+        "walk.legs.crossing-gate-bridge.stuck": {
+          "baseline": null,
+          "now": [],
+          "verdict": "green"
+        },
+        "walk.legs.crossing-gate-bridge.out": {
+          "baseline": null,
+          "now": 0,
+          "verdict": "green"
+        },
+        "walk.legs.escape-square-balustrade.stuck": {
+          "baseline": null,
+          "now": [],
+          "verdict": "green"
+        },
+        "walk.legs.escape-square-balustrade.out": {
+          "baseline": null,
+          "now": 0,
+          "verdict": "green"
+        },
+        "leak.events.answerers": {
+          "baseline": 3,
+          "now": 3,
+          "verdict": "green"
+        },
+        "combat.hitsToKill.swing": {
+          "baseline": null,
+          "now": 1,
+          "verdict": "new"
+        }
+      }
+    }
+  ],
+  "remaining": [
+    "nine-dragon-stack",
+    "pine-hollow"
+  ],
+  "raw": "/private/tmp/e357-c3/2"
+}
