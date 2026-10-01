@@ -110,6 +110,7 @@ export const DONE = {
   // M6: the code every shard shares — systems, effects, gear, the fields that scatter — declared, so a new thing drawn or
   // registered by hand here fails too
   'shared (src/world, src/player, src/entities, …)': {
+    'src/engine/render/calibrationGpu.ts': { why: 'E357 S1.6 synthetic unit-cost scene: temporary calibration geometry, never shard content or a Model Explorer asset', counts: { InstancedMesh: 1 } },
     'src/engine/entities/AnimalFactory.ts': { why: "the species rigs' builder: a creature's parts merged per bone (creatures are models, M5: each shard's roster)", counts: { mergeGeometries: 4 } },
     'src/engine/entities/Flock.ts': { why: 'a bird flock drawn as one instanced mesh by its live system (creatures, M5)', counts: { InstancedMesh: 1 } },
     'src/engine/entities/Marmots.ts': { why: 'the marmot colony drawn instanced by its live system (creatures, M5)', counts: { InstancedMesh: 1, mergeGeometries: 1 } },

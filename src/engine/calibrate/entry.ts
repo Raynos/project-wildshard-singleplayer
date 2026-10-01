@@ -5,7 +5,6 @@ import { sendNote } from '../ui/review';
 import { runCalibration, type CalibrationRun } from './run';
 
 declare const __BUILD_ID__: string;
-declare global { interface Window { __calibration?: { status: string; result: CalibrationRun | null; error: string | null; inbox: string } } }
 export async function enterCalibration(): Promise<void> {
   saveSetting('calibrate', 'off');
   app.setState('capture'); frameProbe.uncapped = true;

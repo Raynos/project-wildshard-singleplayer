@@ -16,6 +16,7 @@ import { aggregate, imageScore, writeBaseline } from './parity/record.mjs';
 import { array, flatten, get, object, set, string } from './parity/value.mjs';
 import { within } from './parity/timeout.mjs';
 import { advance } from './parity/frames.mjs';
+import { budgetLines, budgetViews } from './parity/budgets.mjs';
 
 /** @typedef {import('./parity/value.mjs').RecordValue} RecordValue */
 const ROOT=resolve(import.meta.dirname,'..');
@@ -51,6 +52,7 @@ function gitJson(ref){try{return JSON.parse(execFileSync('git',['show',ref],{cwd
 function report(reports,sha,out,ms) {
   const lines=[`# Parity ${sha}`, '',`Verdict: ${reports.some((r)=>r.verdict==='red')?'red':'green'}`, ''];
   for(const r of reports){lines.push(`## ${string(get(r,'boot.shard'))} × ${string(get(r,'boot.tier'))}`,'',`Verdict: ${string(r.verdict)}${r.flaked?` · flaked ${JSON.stringify(r.flaked)}`:''}`,'','| Field | Baseline | Now | Band | Verdict |','|---|---|---|---|---|');for(const v of array(r.fields)){const row=object(v);if(!ms&&row.class==='C')continue;const show=/** @param {unknown} val */(val)=>JSON.stringify(val??null).replaceAll('|',String.raw`\|`).slice(0,600);lines.push(`| ${string(row.field)} | ${show(row.baseline)} | ${show(row.now)} | ${string(row.band)} | ${string(row.verdict)} |`);}lines.push('');}
+  for (const r of reports) lines.push(`## Budget derivation ${string(get(r, 'boot.shard'))} × ${string(get(r, 'boot.tier'))}`, '', ...budgetLines(r));
   writeFileSync(join(out,'report.md'),`${lines.join('\n')}\n`);
 }
 /** @param {import('playwright').Browser} browser @param {string} url @param {{shard:string,tier:string,lane:string,sha:string,root:string,out:string,timeout:number,full:boolean,only:string|undefined,offline:boolean}} opts */
@@ -77,14 +79,17 @@ async function capture(browser,url,opts) {
     await page.waitForFunction(()=>!document.querySelector('.ws-load') && !document.getElementById('hud')?.classList.contains('intro'));
     if(opts.offline){await page.evaluate(()=>window.__wildshard.world.hud.startExplore());await page.locator('.ws-x').waitFor({state:'visible'});result.offline={title:true,play:true,explore:true};return result;}
     if(opts.only!=='walk+combat+leak'){console.error(`parity: ${opts.shard}.${opts.tier} poses`);result.poses=await within(poses(page,opts),opts.timeout*1000,'poses');}
+    const hasBudgets=await page.evaluate(()=>Object.hasOwn(window.__wildshard,'budgets'));
+    const extra=opts.only==='walk+combat+leak'||!hasBudgets?{}:await budgetViews(page);
+    result.budgets=object(await page.evaluate((names)=>{const p=/** @type {{budgets?:typeof window.__wildshard.budgets}} */(window.__wildshard);return p.budgets?.(names)??{};}, [...Array.isArray(result.poses) ? result.poses.map((p)=>string(object(p).name)) : [], ...Object.keys(extra)]));
+    for(const [name,observed] of Object.entries(extra))object(object(result.budgets)[name]).observed=object(observed);
     writeFileSync(join(opts.out,`${opts.shard}.${opts.tier}.partial.json`),JSON.stringify(result,null,2));
     if(opts.only!=='fingerprint+poses') {
       console.error(`parity: ${opts.shard}.${opts.tier} walk`);result.walk=object(await within(walk(page,opts),opts.timeout*1000*(opts.full?10:1),'walk'));
       writeFileSync(join(opts.out,`${opts.shard}.${opts.tier}.partial.json`),JSON.stringify(result,null,2));
       console.error(`parity: ${opts.shard}.${opts.tier} combat`);result.combat=await within(combat(page,opts),opts.timeout*1000,'combat');
       console.error(`parity: ${opts.shard}.${opts.tier} pause/resume`);result.pauseResume=object(await within(pauseResume(page,opts.tier),opts.timeout*1000,'pause/resume'));
-      const optional=await page.evaluate(async()=>{const p=/** @type {typeof window.__wildshard & {budgets?:()=>unknown}} */(window.__wildshard);return {leak:await p.leak(),budgets:p.budgets?.()??null};});
-      result.leak=object(optional.leak);if(optional.budgets)result.budgets=object(optional.budgets);
+      result.leak=object(await page.evaluate(()=>window.__wildshard.leak()));
     }
     const session=await context.newCDPSession(page);await session.send('Performance.enable');const metrics=await session.send('Performance.getMetrics');object(result.boot).heapMB=(metrics.metrics.find((m)=>m.name==='JSHeapUsedSize')?.value??0)/2**20;await session.detach();
     object(result.boot).errors=[...new Set([...boot.errors,...errors])];

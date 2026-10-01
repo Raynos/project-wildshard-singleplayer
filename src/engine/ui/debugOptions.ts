@@ -178,6 +178,11 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
 
   // ── Developer tools ──
   { ...action('calibrate', 'tools', 'Calibration', 'RUN CALIBRATION', () => { saveSetting('calibrate', 'run'); location.reload(); }, { note: 'E357 S1.6 · synthetic M5 unit costs; consumes the one-shot setting at entry' }), choices: () => [{ v: 'off', text: 'Idle' }, { v: 'run', text: 'Run' }] },
+  action('budgetReadout', 'perf', 'Calibrated budgets', 'READ BUDGETS', (say) => {
+    if (!Object.hasOwn(window, '__wildshard')) { say('READ BUDGETS', 'Enter a level to read its budgets.'); return; }
+    const rows = window.__wildshard.budgets(['current']), current = rows['current'];
+    say('READ BUDGETS', current ? `${JSON.stringify(current.derived ?? current.ceiling)} · ${current.formula.assumption}` : 'F2 ceilings and stable M5 calibration are not published yet.');
+  }, { note: 'E357 S1.6 · derived targets, current enforced ceilings and the phone:M5 assumption' }),
   opt('cragView', 'tools', 'Crag channel', [['shaded', 'Shaded'], ['ao', 'AO'], ['sun', 'Sun'], ['wet', 'Wet'], ['normal', 'Normal'], ['albedo', 'Albedo']], { when: pineHollow, note: 'PH-U31 · the crags drawn as one channel (was ?cragdebug)' }),
 ];
 

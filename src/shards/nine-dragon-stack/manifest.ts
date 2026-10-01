@@ -18,6 +18,7 @@ import explorePractice from './explore/practice-nine-dragon-stack.webp';
  */
 import { TERRAIN } from './terrain';
 import type { ShardManifest } from '#game/shard/manifest';
+import { ND_BUDGET_INPUTS } from './budgets';
 import { PLAZA, STAIR, STREET, WELL, Y0 } from './layout';
 import thumbnail from './thumbs/nine-dragon-stack.jpg';
 import heroPortrait from './thumbs/nine-dragon-stack-portrait.jpg';
@@ -47,6 +48,7 @@ const FILES = [
 export const NINE_DRAGON_STACK: ShardManifest = {
   api: 1,
   kitLook: 'pbr',
+  budgets: ND_BUDGET_INPUTS,
   uses: ['hover', 'explore', 'practice'],
   fight: { attackers: Infinity },
   loadout: { weapons: ['weapon.jian'], tools: ['tool.fei-zhua'], start: ['weapon.jian'], pickups: [] },
@@ -56,7 +58,7 @@ export const NINE_DRAGON_STACK: ShardManifest = {
   dev: { poses: () => import('./mockupCameras').then((m) => m.MOCKUP_CAMERAS) },
   load: () => import('./plugin'),
   boot: { steps: {}, files: () => FILES, audio: async () => (await import('./audio/files')).BOOT_AUDIO(), explore: { art: [explorePractice, exploreWorld, exploreModels, exploreSets] }, precache: [], barrier: true, phone: { deferExtras: true, fragile: true, trace: true }, cullBeforeFirstDraw: true },
-  audio: { ambience: 'ambience.nd', score: 'score.nd', preload: async () => (await import('./audio/files')).ND_AUDIO },
+  audio: { ambience: 'ambience.nd', score: 'score.nd', preload: async () => (await import('./audio/files')).createNdAudio() },
   tiers: { phone: { ao: false, slices: false, aa: 'fxaa', warmTurns: 0, textures: 'img' }, desktop: { ao: true, slices: false } },
   assetGlobs: ['public/assets/nine-dragon/**', 'public/assets/gpu/nine-dragon/**', 'public/assets/music/nine-dragon-stack/**', 'public/assets/sfx/nine-dragon-stack/**', 'public/assets/title/nine-dragon-stack-portrait.jpg'],
   ktx2: () => import('./ktx2.generated'),

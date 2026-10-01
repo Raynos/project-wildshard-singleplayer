@@ -3,5 +3,5 @@
     "allowJs": true, "checkJs": true, "strict": true, "noEmit": true, "module": "ESNext",
     "moduleResolution": "bundler", "target": "ES2022", "types": ["node"], "lib": ["ES2022", "DOM"]
   },
-  "include": ["types/*.d.ts", "parity.mjs", "parity/**/*.mjs", "gpu-gate/**/*.mjs", "deploy-pin.mjs"]
+  "include": ["types/*.d.ts", "parity.mjs", "parity/**/*.mjs", "gpu-gate/**/*.mjs", "deploy-pin.mjs", "calibrate.mjs", "budget-ceilings.mjs"]
 }

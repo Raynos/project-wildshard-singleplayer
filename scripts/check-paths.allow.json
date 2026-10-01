@@ -1,5 +1,15 @@
 [
   {
+    "path": "../../../budgets/calibration.json",
+    "file": "src/engine/render/budgetReport.ts",
+    "why": "E357 S1.6 optional current calibration: Vite returns an empty glob until a thermally stable run publishes it; reports explicitly state the missing calibration and retain F2 ceilings."
+  },
+  {
+    "path": "test/parity/baselines",
+    "file": "scripts/budget-ceilings.mjs",
+    "why": "F2 recording creates this input directory; the importer fails explicitly if a requested recording lane has not landed yet."
+  },
+  {
     "path": "src/shards",
     "file": "scripts/gpu-gate/matrix.mjs",
     "why": "Git ls-tree pathspec prefix on the target commit; the fallback handles commits before F6 creates this folder."

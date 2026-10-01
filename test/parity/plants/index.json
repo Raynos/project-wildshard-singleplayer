@@ -1,5 +1,12 @@
 [
   {
+    "id": "budget-over",
+    "kind": "patch",
+    "shards": ["nine-dragon-stack"],
+    "patch": "budget-over.patch",
+    "expect": ["budgets.*.draws"]
+  },
+  {
     "id": "render-throw",
     "kind": "patch",
     "shards": ["nine-dragon-stack"],

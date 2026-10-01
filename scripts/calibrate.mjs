@@ -7,7 +7,9 @@ import { chromium } from 'playwright';
 import { debugSettings } from './debug-settings.mjs';
 import { exportTree, serve } from './parity/serve.mjs';
 
+/** @typedef {import('../src/engine/calibrate/run').CalibrationRun} CalibrationRun */
 const root = resolve(import.meta.dirname, '..');
+/** @type {Record<string, string | undefined>} */
 const args = Object.fromEntries(process.argv.slice(2).map((s) => { const m = /^--(export|url|out)=(.+)$/.exec(s); if (!m) throw new Error(`Unknown argument ${s}`); return [m[1], m[2]]; }));
 let ancestor = process.ppid, inLane = false;
 for (let i = 0; i < 8 && ancestor > 1; i++) {
@@ -25,7 +27,9 @@ try {
   await debugSettings(context, { calibrate: 'run', prefetch: 'off' });
   const page = await context.newPage();
   page.on('pageerror', (e) => console.error(e.message));
-  await page.goto(args.url ?? server.url, { waitUntil: 'domcontentloaded' });
+  const targetUrl = args.url ?? server?.url;
+  if (!targetUrl) throw new Error('No calibration preview origin');
+  await page.goto(targetUrl, { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => ['done', 'error'].includes(window.__calibration?.status ?? ''), undefined, { timeout: 210000 });
   const handle = await page.evaluate(() => window.__calibration);
   const out = resolve(args.out ?? root); mkdirSync(join(out, 'budgets/calibration'), { recursive: true });

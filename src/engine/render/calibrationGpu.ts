@@ -23,11 +23,11 @@ export class CalibrationGpu {
     const submit: number[] = [], samples: number[] = [];
     for (let repeat = 0; repeat < 5; repeat++) {
       r.info.reset(); this.sync(); const start = performance.now();
-      for (let i = 0; i < 16; i++) work.draw();
-      const cpu = (performance.now() - start) / 16; this.sync();
-      submit.push(cpu); samples.push((performance.now() - start) / 16);
+      for (let i = 0; i < 128; i++) work.draw();
+      const cpu = (performance.now() - start) / 128; this.sync();
+      submit.push(cpu); samples.push((performance.now() - start) / 128);
     }
-    return { submitMs: median(submit), throughputMs: median(samples), samples, calls: r.info.render.calls / 16, tris: r.info.render.triangles / 16 };
+    return { submitMs: median(submit), throughputMs: median(samples), samples, calls: r.info.render.calls / 128, tris: r.info.render.triangles / 128 };
   }
   sceneWork(scene: THREE.Scene, disposables: { dispose: () => void }[]): Work {
     return { draw: () => { this.renderer.setRenderTarget(null); this.renderer.render(scene, this.camera); }, dispose: () => { for (const d of disposables) d.dispose(); } };

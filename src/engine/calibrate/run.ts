@@ -8,18 +8,18 @@ export interface Observation { sweep: string; kind: string; n: number; baseline:
 export interface CalibrationRun extends Calibration {
   renderer: string; userAgent: string; pixels: number;
   cold: Observation[]; hot: Observation[]; js: Awaited<ReturnType<typeof measureJs>>;
+  coldJs: Awaited<ReturnType<typeof measureJs>>; coldLinks: { n: number; ms: number }[]; links: { n: number; ms: number }[];
   heat: { seconds: number; ms: number; change: number | null }[];
   stable: boolean; lowPowerMode: 'unknown'; flags: string[];
   protocol: { timing: string; combine: string; vertexClasses: string; js: string };
 }
-const scope = new Scope('calibration');
-const yieldTask = (): Promise<void> => new Promise((resolve) => { scope.timeout(0, resolve); });
-async function sweeps(g: CalibrationGpu, progress: (s: string) => void): Promise<Observation[]> {
+declare global { interface Window { __calibration?: { status: string; result: CalibrationRun | null; error: string | null; inbox: string } } }
+async function sweeps(g: CalibrationGpu, scope: Scope, progress: (s: string) => void): Promise<Observation[]> {
   const rows: Observation[] = [];
   const sample = async (sweep: string, kind: string, n: number, work: Work): Promise<void> => {
     progress(`${sweep} · ${kind} · ${n}`); const empty = g.draws(0);
     try { const baseline = g.measure(empty); const timing = g.measure(work); rows.push({ sweep, kind, n, baseline, work: timing }); } finally { empty.dispose(); work.dispose(); }
-    await yieldTask();
+    await new Promise<void>((resolve) => { scope.timeout(0, resolve); });
   };
   for (const n of [0, 100, 200, 400, 800]) await sample('draws', 'one-program', n, g.draws(n));
   for (const programs of [1, 8, 32]) for (const textures of [1, 16]) await sample('state', `${textures}-textures`, programs, g.draws(400, programs, textures));
@@ -33,26 +33,28 @@ async function sweeps(g: CalibrationGpu, progress: (s: string) => void): Promise
   return rows;
 }
 export async function runCalibration(progress: (s: string) => void = () => undefined): Promise<CalibrationRun> {
-  const g = new CalibrationGpu(), previous = document.querySelector('canvas');
-  if (previous) throw new Error('Calibration requires the empty capture state');
+  if (document.querySelector('canvas')) throw new Error('Calibration requires the empty capture state');
+  const g = new CalibrationGpu(), scope = new Scope('calibration');
   const parent = document.body; scope.capture('nodes', () => { g.renderer.domElement.remove(); }); parent.append(g.renderer.domElement);
   try {
     const gl = g.renderer.getContext(), dbg = gl.getExtension('WEBGL_debug_renderer_info');
     const renderer: string = dbg ? String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL)) : 'unavailable';
-    const cold = await sweeps(g, (s) => { progress(`Cold · ${s}`); });
+    const cold = await sweeps(g, scope, (s) => { progress(`Cold · ${s}`); });
+    progress('Cold · JS'); const coldJs = await measureJs(), coldLinks = [];
+    for (const n of [8, 32, 64]) { progress(`Cold · Link · ${n}`); coldLinks.push({ n, ms: await g.link(n) }); }
     const heater = g.fill(8, 'pbr'), heat: CalibrationRun['heat'] = [];
     let stable = false;
     try {
       const start = performance.now(); let lastWindow = start, windowMs: number[] = [];
       while (performance.now() - start < 120000) {
-        progress('Preheat · full-screen PBR'); windowMs.push(g.measure(heater).throughputMs); await yieldTask();
+        progress('Preheat · full-screen PBR'); windowMs.push(g.measure(heater).throughputMs); await new Promise<void>((resolve) => { scope.timeout(0, resolve); });
         if (performance.now() - lastWindow < 30000) continue;
         const ms = median(windowMs), previousMs = heat[heat.length - 1]?.ms, change = previousMs === undefined ? null : Math.abs(ms / previousMs - 1);
         heat.push({ seconds: (performance.now() - start) / 1000, ms, change }); windowMs = []; lastWindow = performance.now();
         if (change !== null && change < 0.02) { stable = true; break; }
       }
     } finally { heater.dispose(); }
-    const hot = await sweeps(g, (s) => { progress(`Hot · ${s}`); });
+    const hot = await sweeps(g, scope, (s) => { progress(`Hot · ${s}`); });
     progress('JS · rigs, bodies, navigation'); const js = await measureJs();
     const links = [];
     for (const n of [8, 32, 64]) { progress(`Link · ${n} programs`); links.push({ n, ms: await g.link(n) }); }
@@ -66,9 +68,9 @@ export async function runCalibration(progress: (s: string) => void = () => undef
     };
     return { schema: 1, measuredAt: new Date().toISOString(), device: 'Apple M5 Max', renderer, userAgent: navigator.userAgent, pixels: 804 * 1748,
       source: 'budgets/calibration.json (scripts/calibrate.mjs)', phone: { ratio: 10, source: 'docs/tasks/asks/E283.md; hot phone:M5 ≈10× (cool ≈6×)', assumption: 'ASSUMPTION: hot iPhone costs equal measured M5 costs × 10; no phone calibration was run (decision 99)' },
-      combine: 'serial', costs, cold, hot, js, heat, stable, lowPowerMode: 'unknown',
+      combine: 'serial', costs, cold, hot, js, coldJs, coldLinks, links, heat, stable, lowPowerMode: 'unknown',
       flags: [...stable ? [] : ['preheat did not converge below 2% in 30-second windows'], 'Low Power Mode cannot be detected reliably by Web APIs; unknown'],
-      protocol: { timing: '5 batches ×16 frozen draws, pending 1px write/readPixels sync; p50; interleaved empty baselines. Throughput is a GPU ruler including submission, not timer-query GPU time.',
+      protocol: { timing: '5 batches ×128 frozen draws, pending 1px write/readPixels sync; p50; interleaved empty baselines. Throughput is a GPU ruler including submission, not timer-query GPU time.',
         combine: 'serial (conservative): frozen throughput overlap sweep cannot establish live CPU/GPU overlap; do not infer pipelining from throughput alone', vertexClasses: 'static and wind; skinned is synthetic two-matrix vertex blending, not a production creature shader', js: '16-bone skeleton pose/skin-matrix update; Rapier step plus capsule character-controller queries; nearest-poly query on a synthetic 64-poly tile' } };
   } finally { g.dispose(); scope.dispose(); }
 }

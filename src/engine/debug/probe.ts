@@ -15,6 +15,7 @@ import { TIER } from '../core/tier';
 import { tap } from '../core/harnessTap';
 import { currentScope, levelRegistrations, retainedRegistrations, registrationTimerIds, asShell } from '../app/legacyCapture';
 import { ExternalTimerBaseline } from './timerBaseline';
+import { poseBudgets } from '../render/budgetReport';
 import type { ScopeCensus } from '../app/scope';
 import type { AppState, Phase } from '../app/systems';
 
@@ -123,6 +124,7 @@ export interface WildshardProbe<W extends ProbeWorld = ProbeWorld> {
   used: () => string[];
   nav: ProbeNav | null;
   leak: () => Promise<LeakResult>;
+  budgets: (poses?: readonly string[]) => ReturnType<typeof poseBudgets>;
   readonly app: ProbeApp;
 }
 declare global {
@@ -350,6 +352,7 @@ export function installProbe<W extends ProbeWorld>(world: W, deps: ProbeDeps): W
     }),
     version: 1, world, get shard() { return { ...shard, ...app.debug.scopedSnapshot(), slug: world.chunk.slug }; },
     boot: fingerprint(world, deps, saves), fingerprint: () => fingerprint(world, deps, saves), pose, nav,
+    budgets: (poses = []) => poseBudgets(world.chunk.slug, TIER, world.chunk.budgets ?? {}, poses),
     leak: async () => {
       requireHarness();
       if (!pins?.resources) throw new Error('Leak census requires independent harness resource counters');
