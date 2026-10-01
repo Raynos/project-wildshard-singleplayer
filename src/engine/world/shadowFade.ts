@@ -1,7 +1,7 @@
 /**
  * E147: the sun's shadow steps crossfade instead of popping (the user's pick A; Bethesda's `fSunShadowUpdateTime`).
  *
- * The day / night clock turns the shadow light in steps (DayNight.ts SHADOW_STEP, E89): a map that turns a hair every
+ * The day / night clock turns the shadow light in steps (a stepped clock's SHADOW_STEP, E89): a map that turns a hair every
  * frame re-rasterizes every edge every frame and the shadows crawl. On the phone's 2c2k rig (1.6 cm texels) each step
  * moved the pier pennant's shadow ~3 cm at once, a jump every ~2 s in the middle of the view. Now a step starts a fade:
  *
@@ -13,7 +13,7 @@
  *   Its casters move with the frame (the pennant's flutter): it is a live second light, not a frozen snapshot.
  * - The last cascade steps without a fade: its texel is ~9 cm, larger than one step's move.
  *
- * DayNight holds its next step until the fade ends (`busy`). A turn larger than MAX_FADE (the sun ↔ moon swap, a Time of
+ * The clock holds its next step until the fade ends (`busy`). A turn larger than MAX_FADE (the sun ↔ moon swap, a Time of
  * day pick) moves at once. The fading-out ghost is sampled with the 3×3 tent, 4 taps (E153's B, the user's pick A+B:
  * "they all look the same, use the cheapest").
  */

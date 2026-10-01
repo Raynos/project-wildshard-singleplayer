@@ -116,8 +116,8 @@ export interface LightingRig { install: () => void }
  * radius 2, steps that pop.
  */
 export interface ShadowStyle {
-  /** 'stylized': on a one-cascade tier (the phone), three 2048² cascades to 7 / 22 / 80 m (E123, E147) */
-  rig: 'tier' | 'stylized';
+  /** 'phoneSplits': on a one-cascade tier (the phone), three 2048² cascades to 7 / 22 / 80 m (E123, E147) */
+  rig: 'tier' | 'phoneSplits';
   /** 'tent': the phone rig's 7×7 / 5×5 tent filter (E138, shadowFilter.ts) */
   filter?: 'tent';
   /** each step of the key light's shadow crossfades (E147 / E153, shadowFade.ts) */

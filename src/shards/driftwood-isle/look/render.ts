@@ -7,9 +7,9 @@
  *   lighting        the toon light model (toon.ts, D1), patched in before anything compiles
  *   fog             the colour-ramp fog (toon.ts, L3), slot 200; the toon uniforms ride every fogged material
  *   fogControl      Explore's overhead map switches the ramp haze off for its shot
- *   shadows         the phone's stylized rig (E123 / E147), tent filter (E138), stepped-sun crossfade (E147 / E153),
+ *   shadows         the phone's three split cascades (E123 / E147), tent filter (E138), stepped-sun crossfade (E147 / E153),
  *                   16-bit maps (E174), the deck-acne biases
- *   backdrop        the stylized dome and the day / night clock (backdrop.ts, dayNight.ts)
+ *   backdrop        the stylized dome and the day / night clock (backdrop.ts; the keys in dayKeys.ts)
  *   terrainPainter  the faceted ground coloured by height and slope (terrainPainter.ts)
  */
 import type { LookStrategy } from '#engine';
@@ -18,7 +18,7 @@ import { LOWPOLY_TERRAIN } from './terrainPainter';
 import { installRampFog, installToonLighting, resumeRampFog, suspendRampFog } from './toon';
 
 /** the island's shadow rig: a low sun (golden hour, dawn) grazes the flat decks, so more normal bias, or the planks speckle */
-const DRIFTWOOD_SHADOWS: LookStrategy['shadows'] = { rig: 'stylized', filter: 'tent', fade: true, normalBias: 0.14, radius: 0.6, texelBias: 'phone', depth16: 'phone' };
+const DRIFTWOOD_SHADOWS: LookStrategy['shadows'] = { rig: 'phoneSplits', filter: 'tent', fade: true, normalBias: 0.14, radius: 0.6, texelBias: 'phone', depth16: 'phone' };
 
 export const shardRender = (): LookStrategy => ({
   mode: 'extend',

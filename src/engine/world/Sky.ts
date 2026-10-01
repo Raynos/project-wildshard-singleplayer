@@ -22,14 +22,14 @@ import { horizonLight } from './Horizon';
 import { loadLUT } from './lut';
 import type { LookupTexture } from 'postprocessing';
 
-/** the key light's shadow direction steps (E89, src/engine/world/DayNight.ts SHADOW_STEP): ≤ ~1 shadow texel about every 1.5 s */
+/** the key light's shadow direction steps (E89, as a stepped day / night clock's): ≤ ~1 shadow texel about every 1.5 s */
 const KEY_SHADOW_STEP = 0.25 * Math.PI / 180;
 
 /** the sun's shadow map(s): cascade count, map size (px), how far they reach (m), the caster margin (m) and, for two
  *  cascades, where the near one ends (m) */
 export interface ShadowRig { cascades: number; size: number; far: number; margin: number; /** where each cascade but the last ends (m); empty = CSM's practical splits */ splits: number[]; /** the phone's low-poly rig (E123): normal bias in texels */ phone: boolean }
 
-/** the phone's `stylized` rig (ShadowStyle.rig). E123 (the user's pick `2c2k`, "both 2048 and 2c"): cascades at 2048². E147 (the
+/** the phone's `phoneSplits` rig (ShadowStyle.rig). E123 (the user's pick `2c2k`, "both 2048 and 2c"): cascades at 2048². E147 (the
  *  user's pick C, crisper near shadows): three of them, to 7 / 22 / 80 m — 0.8 cm a texel near you, half E123's 1.6 cm, for
  *  ~+0.08 ms a frame on the M5 */
 // Its filter and radii are shadowFilter.ts's since E138
@@ -40,10 +40,10 @@ const PHONE_SHADOW: Omit<ShadowRig, 'margin' | 'phone'> = { cascades: 3, size: 2
  * wider than its reach: the one 80 m cascade was 189 m across, so a 1024² texel was 18.5 cm and every shadow edge a
  * row of 18 cm steps smeared by the PCF (E123: "blocky, blobby, pixelated, bleeding").
  */
-export function shadowRig(stylized: boolean): ShadowRig {
+export function shadowRig(phoneSplits: boolean): ShadowRig {
   const T = TIER_CONFIG;
   const base: ShadowRig = { cascades: T.cascades, size: T.shadowMapSize, far: T.shadowFar, margin: T.shadowMargin, splits: [], phone: false };
-  if (T.cascades !== 1 || !stylized) return base; // desktop / a level without the stylized rig: the tier table
+  if (T.cascades !== 1 || !phoneSplits) return base; // desktop / a level without the split rig: the tier table
   const splits = PHONE_SHADOW.splits;
   return { ...PHONE_SHADOW, cascades: splits.length + 1, splits, margin: base.margin, phone: true };
 }
@@ -73,7 +73,7 @@ export class Sky {
   sunDisc!: THREE.Mesh;
   planet = new THREE.Group();
   planetDir = new THREE.Vector3(-0.75, 0.33, 0.55).normalize();
-  /** the fill light (ChunkSky.hemiSky / hemiGround / hemiIntensity) — a runtime handle for the day/night clocks (DayNight.ts, DayClock.ts) */
+  /** the fill light (ChunkSky.hemiSky / hemiGround / hemiIntensity) — a runtime handle for the day/night clocks */
   hemi!: THREE.HemisphereLight;
   private materials = new Set<THREE.Material>();
 
@@ -105,7 +105,7 @@ export class Sky {
     fogUniforms.fogHeightDensity.value = A.fogHeightDensity;
     fogUniforms.fogDistDensity.value = A.fogDistDensity;
 
-    const rig = shadowRig(shadows?.rig === 'stylized');
+    const rig = shadowRig(shadows?.rig === 'phoneSplits');
     this.csm = new CSM({
       camera: this.camera, parent: this.scene, cascades: rig.cascades, mode: rig.splits.length > 0 ? 'custom' : 'practical',
       // the near cascade ends at `splits[0]` m: a tight square round the player (the deck, the pier under foot), the last one takes the rest
@@ -116,7 +116,7 @@ export class Sky {
     this.csm.fade = true;
     installCascadeCull(this.csm, this.camera); // each cascade draws only the casters its own slice can see the shadow of (PH-P2)
     if (!TIER_CONFIG.softShadows) this.renderer.shadowMap.type = THREE.PCFShadowMap; // 16-tap PCFSoft → 9-tap PCF on the phone
-    // E138: the phone's stylized rig may filter its shadows with a 7×7 / 5×5 tent, not three's 5 noisy taps
+    // E138: the phone's split rig may filter its shadows with a 7×7 / 5×5 tent, not three's 5 noisy taps
     // (shadowFilter.ts) — here, at boot, before a material compiles
     const filter = shadows?.filter === 'tent' && rig.phone;
     if (filter) this.renderer.shadowMap.type = installShadowFilter();
@@ -343,7 +343,7 @@ export class Sky {
    * Move the key light (the sun, or the moon at night) and recolour it: the CSM direction + colour × intensity, the
    * fog's in-scatter direction, the cloud / planet lighting direction. `sunDir` is updated in place (Game.ts places
    * the sun disc along it every frame; a level's own materials read it from here).
-   * The shadow direction moves in KEY_SHADOW_STEP steps, not every frame (E89, as DayNight does it: a sun sliding a
+   * The shadow direction moves in KEY_SHADOW_STEP steps, not every frame (E89, as a stepped clock does it: a sun sliding a
    * fraction of a texel per frame made every shadow edge crawl); the disc, the fog and the clouds stay continuous.
    */
   setKeyLight(dir: THREE.Vector3, color: THREE.Color, intensity: number): void {

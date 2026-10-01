@@ -268,7 +268,7 @@ export class Game {
   }
   private renderPass!: RenderPass;
   volumetrics!: VolumetricsEffect;
-  /** runtime handles on the colour chain (set by buildComposer) — the day/night clock + weather retune them (src/engine/world/DayNight.ts) */
+  /** runtime handles on the colour chain (set by buildComposer) — the day/night clock + weather retune them */
   post: { grade: GradeEffect; saturation: HueSaturationEffect; contrast: BrightnessContrastEffect; bloom: BloomEffect } | null = null;
   /** the post chain — set by buildComposer(); resize() and the loop hold the nullable field directly */
   get composer(): EffectComposer { if (this._composer === null) throw new Error('Game.composer read before buildComposer()'); return this._composer; }
@@ -497,7 +497,7 @@ export class Game {
         const order: Effect[] = [vol, ...(raysOn ? [godRays] : []), bloom, chroma, vignette, tone, grade, contrast, split, ...(lut ? [lut] : []), grain];
         return { clean, order, fx: { ao: aoPass, vol, godRays, bloom, chroma, vignette, tone, saturation: grade, contrast, grade: split, lut, grain } };
       }
-      // the stylized look (DRIFTWOOD-REMASTER L5): no volumetric haze, grain or fringe washing the toon bands to low
+      // the clean look (DRIFTWOOD-REMASTER L5): no volumetric haze, grain or fringe washing the toon bands to low
       // contrast — the colour-ramp fog does the aerial perspective; the god rays stay faint, the vignette light
       godRays.blendMode.opacity.value = 0.12; // faint: looking into a midday sun must not wash the sand and lagoon to white
       bloom.luminanceMaterial.smoothing = 0.08; // bloom only what is really over 1.0 (the def's threshold): the sun, glints, glyphs, fireflies

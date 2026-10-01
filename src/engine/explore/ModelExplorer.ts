@@ -39,7 +39,7 @@ import { bandWindow, fitOrbit, lensReset, lensShift, setsOf } from './setView';
 
 type View = 'solid' | 'wire' | 'facets' | 'paint' | 'tiers';
 const VIEWS: readonly [View, string][] = [['solid', 'Solid'], ['wire', 'Wireframe'], ['facets', 'Facets'], ['paint', 'Paint'], ['tiers', 'Tiers']];
-/** the light presets: held on the shard's day clock (src/engine/world/WorldClock.ts — Driftwood's DayNight or Nalati's DayClock) */
+/** the light presets: held on the shard's day clock (src/engine/world/WorldClock.ts — a level backdrop's or Nalati's sky rig) */
 const LIGHTS: readonly [string, LightPreset][] = [['Dawn', 'dawn'], ['Noon', 'noon'], ['Dusk', 'dusk'], ['Night', 'night']];
 const THUMB_W = 240, THUMB_H = 180;
 /** what the creature viewer can play — a gait speed on the treadmill, or an event (stagger, death) */

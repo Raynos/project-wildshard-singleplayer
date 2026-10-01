@@ -22,7 +22,7 @@ import { saveStorage } from '#engine/saves/slots';
 //   BOOT_OPTIONS (quality tier, touch) are read once while the page loads: saving one changes only the
 //   saved pick — main menu ▸ Settings (src/engine/ui/BootSettings.ts) shows them with APPLY & RELOAD (settingsReloadUrl drops
 //   the overriding params so the reload builds the saved pick). The rest are LIVE (pause menu ▸ Settings, src/engine/ui/Menu.ts):
-//   saving one changes setting() at once and notifies (main.ts hands it to DayNight.setTime).
+//   saving one changes setting() at once and notifies (main.ts hands it to the day clock's setTime).
 //   The Look Lab switches the user has picked a winner for are gone (E136: island, edge, lighting, sky, post, lut, matte):
 //   a value a player saved for one before is never read, and the next save drops it from savedStorage.
 //
@@ -110,7 +110,7 @@ const sfxSet = new Choice<SfxSet>('sfxSet', SFX_SETS, 'best', () => null);
 export const OPTION_VALUES = {
   tier: ['auto', 'phone', 'desktop'],                  // quality tier (src/engine/core/tier.ts); auto = phone on a mobile UA
   touch: ['auto', 'on'],                               // on-screen controls (main.ts → TouchControls): auto = coarse pointer
-  time: ['live', 'midday', 'golden', 'sunset', 'night'], // the day / night clock (src/engine/world/DayNight.ts) — live
+  time: ['live', 'midday', 'golden', 'sunset', 'night'], // the day / night clock (the level backdrop's) — live
   weather: ['live', 'clear', 'fog', 'rain'],           // Pine Hollow: the weather (PH-L10, src/shards/pine-hollow/world/weather.ts) — live: dawn fog + showers; clear = none (the before); fog / rain hold one — live
   fps: ['auto', '30', '60'],                           // frame cap (Game.start, tier.ts frameCapFps): mobile is locked at 30 whatever the pick (E193); desktop: auto = the display's rate — live
   // E158: download the other shards' files in the background once this one is playable (src/engine/boot/shardPrefetch.ts) — the

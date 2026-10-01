@@ -17,7 +17,7 @@
  *   clouds and the planet stay in front and the sea covers everything below its own horizon line. One draw call.
  * - **look**: the day texture × the cumulus' lit colour relative to midday (golden hour warms it, dusk dims it), faded into
  *   the night texture by the clock's `night`, then hazed toward the dome's live horizon colour near the sea and lit by
- *   the sun glow — so it rides every DayNight preset without a third texture. The alpha fades into the sky at the top.
+ *   the sun glow — so it rides every day / night preset without a third texture. The alpha fades into the sky at the top.
  * - **textures**: the shard's strips (`horizonStrips(slug)`, below): two 4096 × 512 WebPs with alpha
  *   (`public/assets/horizon/<slug>-{day,night}.webp`, made by scripts/horizon-matte/ with `--shard <slug>`), fetched after
  *   boot; the band fades in over ~1.5 s once both are decoded. A shard without strips builds nothing; Pine Hollow's
