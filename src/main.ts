@@ -1,4 +1,6 @@
 import * as THREE from 'three';
+import { ENGINE_API } from '#engine';
+import aliasArt from '#engine/aliasFixture.webp';
 import { bootstrap } from './core/bootstrap';
 import { installGpuRecovery, RELOAD_PARAM } from './core/GpuRecovery';
 import { setPoseProvider } from './ui/ReloadPrompt';
@@ -176,6 +178,7 @@ const TITLE_IDLE_MS = 1200;
 const SHARD_CAP = 1;
 
 async function main() {
+  void ENGINE_API; void aliasArt; // GAME-NORMALIZATION F1's alias spike; removed in F6 when real engine imports exist
   const selected = getActiveChunk().slug;
   // Consume the title's one-shot intent before building. A WebContent crash cannot replay it.
   bootArrival = consumeTitleArrival(selected);
