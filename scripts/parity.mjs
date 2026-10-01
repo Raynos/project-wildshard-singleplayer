@@ -81,7 +81,7 @@ async function capture(browser,url,opts) {
       console.error(`parity: ${opts.shard}.${opts.tier} combat`);result.combat=await within(combat(page,opts),opts.timeout*1000,'combat');
       console.error(`parity: ${opts.shard}.${opts.tier} pause/resume`);result.pauseResume=object(await within(pauseResume(page,opts.tier),opts.timeout*1000,'pause/resume'));
       const optional=await page.evaluate(async()=>{const p=/** @type {typeof window.__wildshard & {budgets?:()=>unknown}} */(window.__wildshard);return {leak:await p.leak(),budgets:p.budgets?.()??null};});
-      if(optional.leak)result.leak=object(optional.leak);if(optional.budgets)result.budgets=object(optional.budgets);
+      result.leak=object(optional.leak);if(optional.budgets)result.budgets=object(optional.budgets);
     }
     const session=await context.newCDPSession(page);await session.send('Performance.enable');const metrics=await session.send('Performance.getMetrics');object(result.boot).heapMB=(metrics.metrics.find((m)=>m.name==='JSHeapUsedSize')?.value??0)/2**20;await session.detach();
     object(result.boot).errors=[...new Set([...boot.errors,...errors])];
