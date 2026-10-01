@@ -4,6 +4,9 @@ NEW WORLD: a frozen northern ice shelf at the edge of the world, "Far Reach". Lo
 
 HELD WEAPON (bottom right, first person): a bone-and-iron harpoon held in the right hand, a coiled rope tied to its shaft, the barbed tip pointing forward-left.
 
-HUD TEXT, exactly these strings: top-left chip "PAUSE". Weapon panel under it, a wide dark strip: a two-line small label "HARPOON" over "ROPE", then the big number "3 / 3". Button under it: "JOURNAL". Quest pill under the minimap: "LIGHT THE BEACON". Above the bottom bar on the right, a diamond cluster of four round dark buttons exactly like the reference: top button "REEL", bottom row left to right "AIM", "DODGE", "JUMP". Left edge button: "HOVER". Bottom bar: "MOVE" stick on the left, big round button "THROW" in the middle, dashed square "LOOK" on the right. The round minimap at top right shows white snow and a blue sea.
+HUD TEXT, exactly these strings: top-left chip "PAUSE". Weapon panel under it, a wide dark strip: a two-line small label "HARPOON" over "ROPE", then the big number "1 / 1". Button under it: "JOURNAL". Quest pill under the minimap: "LIGHT THE BEACON". Above the bottom bar on the right, a diamond cluster of four round dark buttons exactly like the reference: top button "REEL", bottom row left to right "AIM", "DODGE", "JUMP". Left edge button: "HOVER". Bottom bar: "MOVE" stick on the left, big round button "THROW" in the middle, dashed square "LOOK" on the right. The round minimap at top right shows white snow and a blue sea.
 
 It must look like a real in-game print-screen on a phone, not concept art. No phone frame, no browser chrome, no watermark, no extra text.
+
+--- then a masked fix (white box over the ammo number), seed 7:
+Edit only the number in the dark weapon panel at the top left of this game screenshot. The panel's big number must read exactly "3 / 3": a large white monospace "3", a small slash, a small "3", the same font, size and position as the existing number. Keep the dark navy panel background. Change nothing else.
