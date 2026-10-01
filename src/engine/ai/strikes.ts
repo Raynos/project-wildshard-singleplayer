@@ -1,0 +1,122 @@
+import type { CombatTag } from '../combat/pipeline';
+import { Hfsm } from './hfsm';
+
+export interface BrainPoint { x: number; y: number; z: number }
+export interface StrikeActor {
+  readonly position: BrainPoint; readonly alive: boolean; readonly scale: number; readonly yaw: number;
+  startAttack: (seconds: number) => void; cancelAttack: () => void;
+  setMotion: (yaw: number, speed: number, turn: number) => void;
+}
+export type StrikeShape =
+  | { kind: 'arc'; radius: number; halfAngle: number }
+  | { kind: 'lane'; length: number; width: number }
+  | { kind: 'ring'; inner: number; outer: number }
+  | { kind: 'wedge'; length: number; halfAngle: number }
+  | { kind: 'point'; radius: number };
+export interface StrikeContext {
+  readonly actor: StrikeActor; readonly target: BrainPoint;
+  readonly airborne?: boolean;
+  canReach: () => boolean;
+  hit: (spec: StrikeSpec) => void;
+}
+export interface StrikeSpec {
+  id: string; shape: StrikeShape; windup: number; active: number; recover: number; cooldown: number;
+  range: number; damage: number; tags: readonly CombatTag[];
+  weight: (ctx: StrikeContext) => number;
+  motion?: { speed?: number; delay?: number; track?: 'none' | 'lead' | 'follow'; overshoot?: number; skid?: number };
+  eligibility?: { maxDy?: number; jumpDodges?: boolean };
+}
+export interface UtilityScore { id: string; score: number }
+export type StrikePhase = 'idle' | 'windup' | 'active' | 'recover' | 'cooldown';
+const PHASES = { idle: {}, windup: {}, active: {}, recover: {}, cooldown: {} };
+const distance = (a: BrainPoint, b: BrainPoint): number => Math.hypot(b.x - a.x, b.z - a.z);
+const wrap = (angle: number): number => Math.atan2(Math.sin(angle), Math.cos(angle));
+
+/** One simulation clock, with presentation supplied by the owning creature's view. */
+export class StrikeRunner {
+  private readonly hfsm = new Hfsm<StrikePhase>(PHASES, 'idle', undefined);
+  private current: StrikeSpec | null = null;
+  private hit = false;
+  private elapsed = 0;
+  private speedMul = 1;
+  private readonly deadlines = new Map<string, number>();
+  private clock = 0;
+  private readonly scores: UtilityScore[] = [];
+  x0 = 0; z0 = 0; x1 = 0; z1 = 0; yaw = 0; length = 0;
+  get state(): StrikePhase { return this.hfsm.state; }
+  get time(): number { return this.elapsed; }
+  get spec(): StrikeSpec | null { return this.current; }
+  get busy(): boolean { return this.state !== 'idle'; }
+  get lastPick(): readonly UtilityScore[] { return this.scores; }
+
+  /** Stable list order breaks equal-score ties. Cooling and out-of-range rows are ineligible. */
+  pick(specs: readonly StrikeSpec[], ctx: StrikeContext): StrikeSpec | null {
+    let best: StrikeSpec | null = null, score = -Infinity; this.scores.length = 0;
+    for (const spec of specs) {
+      if ((this.deadlines.get(spec.id) ?? 0) > this.clock || distance(ctx.actor.position, ctx.target) > spec.range) continue;
+      const value = spec.weight(ctx); if (!Number.isFinite(value)) continue;
+      this.scores.push({ id: spec.id, score: value });
+      if (value > score) { best = spec; score = value; }
+    }
+    this.scores.sort((a, b) => b.score - a.score); return best;
+  }
+  start(spec: StrikeSpec, actor: StrikeActor, target: BrainPoint, speedMul = 1): void {
+    this.current = spec; this.elapsed = 0; this.hit = false; this.speedMul = speedMul;
+    this.x0 = actor.position.x; this.z0 = actor.position.z;
+    const dx = target.x - this.x0, dz = target.z - this.z0, d = Math.hypot(dx, dz) || 1;
+    this.length = spec.shape.kind === 'lane' ? (spec.motion?.track === 'lead' ? d : spec.shape.length) + (spec.motion?.overshoot ?? 0) : 0;
+    this.x1 = this.x0 + dx / d * this.length; this.z1 = this.z0 + dz / d * this.length;
+    this.yaw = Math.atan2(dx, dz); this.hfsm.transition('windup'); actor.startAttack(spec.windup);
+  }
+  cancel(): void { this.hfsm.transition('idle'); this.current = null; this.elapsed = 0; }
+  update(dt: number, ctx: StrikeContext): void {
+    this.clock += dt; const spec = this.current; if (spec === null || this.state === 'idle') return;
+    this.elapsed += dt; const a = ctx.actor;
+    if (!a.alive) { this.cancel(); a.cancelAttack(); return; }
+    if (this.state === 'windup') {
+      if (spec.shape.kind === 'lane') a.setMotion(this.yaw, 0, 6);
+      if (this.elapsed >= spec.windup) { this.phase('active'); a.cancelAttack(); }
+      return;
+    }
+    if (this.state === 'active') {
+      if (spec.shape.kind === 'lane') a.setMotion(this.yaw, (spec.motion?.speed ?? 0) * this.speedMul, 0.35);
+      if (!this.hit && this.elapsed >= (spec.motion?.delay ?? 0) && this.contains(spec, ctx) &&
+          (spec.tags.includes('cover.exempt') || ctx.canReach())) { this.hit = true; ctx.hit(spec); }
+      if (spec.shape.kind === 'lane') {
+        const along = ((a.position.x - this.x0) * (this.x1 - this.x0) + (a.position.z - this.z0) * (this.z1 - this.z0)) / (this.length * this.length);
+        if (along >= 1 || this.elapsed > this.length / Math.max(1, (spec.motion?.speed ?? 0) * this.speedMul) + 1.2) this.phase('recover');
+      } else if (this.elapsed >= spec.active) this.phase('recover');
+      return;
+    }
+    if (this.state === 'recover') {
+      if (spec.shape.kind === 'lane') a.setMotion(a.yaw, 0, 1.5);
+      if (this.elapsed >= (spec.motion?.skid ?? spec.recover)) {
+        this.deadlines.set(spec.id, this.clock + spec.cooldown);
+        if (spec.cooldown > 0) this.phase('cooldown'); else this.cancel();
+      }
+      return;
+    }
+    if (this.elapsed >= spec.cooldown) this.cancel();
+  }
+  private phase(state: StrikePhase): void { this.hfsm.transition(state); this.elapsed = 0; }
+  private contains(spec: StrikeSpec, ctx: StrikeContext): boolean {
+    const { actor: a, target: p } = ctx, shape = spec.shape, scale = Math.max(1, a.scale);
+    if (spec.eligibility?.maxDy !== undefined && Math.abs(p.y - a.position.y) > spec.eligibility.maxDy) return false;
+    if (spec.eligibility?.jumpDodges === true && ctx.airborne === true) return false;
+    const d = distance(a.position, p);
+    if (shape.kind === 'lane') {
+      if (d >= spec.range * scale) return false;
+      const dx = this.x1 - this.x0, dz = this.z1 - this.z0, len2 = dx * dx + dz * dz;
+      if (len2 < 1e-9) return Math.hypot(p.x - this.x0, p.z - this.z0) <= shape.width * 0.5 + 0.4;
+      const t = ((p.x - this.x0) * dx + (p.z - this.z0) * dz) / len2;
+      return t >= 0 && t <= 1 && Math.hypot(p.x - (this.x0 + dx * t), p.z - (this.z0 + dz * t)) <= shape.width * 0.5 + 0.4;
+    }
+    if (shape.kind === 'point') return d <= shape.radius * scale;
+    if (shape.kind === 'ring') {
+      const r = (spec.motion?.speed ?? 0) * this.elapsed;
+      return d >= shape.inner + r && d <= shape.outer + r;
+    }
+    const radius = shape.kind === 'arc' ? shape.radius : shape.length;
+    return d <= radius * scale && Math.abs(wrap(Math.atan2(p.x - a.position.x, p.z - a.position.z) - a.yaw)) <= shape.halfAngle;
+  }
+}

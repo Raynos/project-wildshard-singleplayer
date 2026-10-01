@@ -1,0 +1,181 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`S2.3 StrikeRunner replays the current Pine body-clock lanes > blackpaw retains every body frame, phase boundary and damage 1`] = `
+{
+  "bodyHash": 3703376909,
+  "hits": [
+    {
+      "damage": 28,
+      "frame": 96,
+    },
+  ],
+  "transitions": [
+    {
+      "frame": 1,
+      "state": "windup",
+    },
+    {
+      "frame": 45,
+      "state": "active",
+    },
+    {
+      "frame": 142,
+      "state": "recover",
+    },
+    {
+      "frame": 214,
+      "state": "idle",
+    },
+  ],
+}
+`;
+
+exports[`S2.3 StrikeRunner replays the current Pine body-clock lanes > imperial retains every body frame, phase boundary and damage 1`] = `
+{
+  "bodyHash": 2220172927,
+  "hits": [
+    {
+      "damage": 34,
+      "frame": 109,
+    },
+  ],
+  "transitions": [
+    {
+      "frame": 1,
+      "state": "windup",
+    },
+    {
+      "frame": 60,
+      "state": "active",
+    },
+    {
+      "frame": 174,
+      "state": "recover",
+    },
+    {
+      "frame": 252,
+      "state": "idle",
+    },
+  ],
+}
+`;
+
+exports[`S2.3 StrikeRunner replays the current Pine body-clock lanes > ironhide retains every body frame, phase boundary and damage 1`] = `
+{
+  "bodyHash": 3097863707,
+  "hits": [
+    {
+      "damage": 30,
+      "frame": 104,
+    },
+  ],
+  "transitions": [
+    {
+      "frame": 1,
+      "state": "windup",
+    },
+    {
+      "frame": 54,
+      "state": "active",
+    },
+    {
+      "frame": 161,
+      "state": "recover",
+    },
+    {
+      "frame": 227,
+      "state": "idle",
+    },
+  ],
+}
+`;
+
+exports[`S2.3 StrikeRunner replays the current Pine body-clock lanes > king retains every body frame, phase boundary and damage 1`] = `
+{
+  "bodyHash": 1507518556,
+  "hits": [
+    {
+      "damage": 32,
+      "frame": 112,
+    },
+  ],
+  "transitions": [
+    {
+      "frame": 1,
+      "state": "windup",
+    },
+    {
+      "frame": 66,
+      "state": "active",
+    },
+    {
+      "frame": 187,
+      "state": "recover",
+    },
+    {
+      "frame": 284,
+      "state": "idle",
+    },
+  ],
+}
+`;
+
+exports[`S2.3 StrikeRunner replays the current Pine body-clock lanes > rival retains every body frame, phase boundary and damage 1`] = `
+{
+  "bodyHash": 3383121502,
+  "hits": [
+    {
+      "damage": 18,
+      "frame": 104,
+    },
+  ],
+  "transitions": [
+    {
+      "frame": 1,
+      "state": "windup",
+    },
+    {
+      "frame": 54,
+      "state": "active",
+    },
+    {
+      "frame": 159,
+      "state": "recover",
+    },
+    {
+      "frame": 243,
+      "state": "idle",
+    },
+  ],
+}
+`;
+
+exports[`S2.3 StrikeRunner replays the current Pine body-clock lanes > thrall retains every body frame, phase boundary and damage 1`] = `
+{
+  "bodyHash": 257518853,
+  "hits": [
+    {
+      "damage": 14,
+      "frame": 92,
+    },
+  ],
+  "transitions": [
+    {
+      "frame": 1,
+      "state": "windup",
+    },
+    {
+      "frame": 42,
+      "state": "active",
+    },
+    {
+      "frame": 142,
+      "state": "recover",
+    },
+    {
+      "frame": 214,
+      "state": "idle",
+    },
+  ],
+}
+`;
