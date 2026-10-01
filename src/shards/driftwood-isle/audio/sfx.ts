@@ -1,4 +1,4 @@
-import { Scope, tap, ambientTick, audioRandom, panFromYaw, type Audio } from '#engine';
+import { Scope, tap, ambientTick, audioRandom, panFromYaw, vocal, windup, impact, type Audio, type VoiceTable } from '#engine';
 import type { Vector3 } from 'three';
 import type { Surface } from './surface';
 /**
@@ -48,13 +48,23 @@ export const ISLAND_FAMILIES = [
   'ui-chime', 'ui-chest', 'ui-locked', 'ui-lever', 'ui-plate', 'ui-door', 'ui-grate', 'ui-glyph', 'ui-ignite',
 ] as const;
 
+const ENEMIES: readonly Enemy[] = ['boar', 'crab', 'monkey', 'sailor'];
+/** the island's own families on the procedural bank (08 §6.3 C.2; the engine's FAMILIES rows until S4.3: same counts, rates, seeds) */
+export const ISLAND_VOICES: VoiceTable = {
+  'impact-shell': { n: 4, ch: 1, half: false, gen: (sr: number, seed: number) => impact('shell', sr, seed) },
+  ...Object.fromEntries(ENEMIES.map((e) => [`vocal-${e}`, { n: 3, ch: 1, half: e === 'sailor' || e === 'boar', gen: (sr: number, seed: number) => vocal(e, sr, seed) }])),
+  'windup-boar': { n: 2, ch: 1, half: false, gen: (sr: number, seed: number) => windup('boar', sr, seed) },
+  'windup-crab': { n: 2, ch: 1, half: false, gen: (sr: number, seed: number) => windup('crab', sr, seed) },
+  'windup-sailor': { n: 2, ch: 1, half: true, gen: (sr: number, seed: number) => windup('sailor', sr, seed) },
+};
+
 export class IslandSfx {
   private side = 1;
   private armed = false;
   /** diagnostics: the last footstep's surface / gain / rate */
   lastStep: { surface: Surface; gain: number; rate: number } | undefined;
 
-  constructor(private readonly audio: Audio) {}
+  constructor(private readonly audio: Audio) { audio.voices.register(ISLAND_VOICES); }
 
   /** render the island's one-shots in the background (call once the graph exists: after audio.resume()) */
   prewarm(): void { this.audio.voices.prewarm(ISLAND_FAMILIES); }

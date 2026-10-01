@@ -7,7 +7,7 @@
  *     centre: new Vector3(0, 0, -215), radius: 80,       // the wheeling flocks live over this circle (beach + lagoon)
  *   });
  *   scene.add(gulls.group);
- *   gulls.onCall = (pos) => audio.gullCallAt(pos, player.position, player.yaw);   // optional squawk hook
+ *   gulls.onCall = (pos) => sfx.gullCallAt(pos, player.position, player.yaw);     // optional squawk hook (../audio/sfx.ts)
  *   game.onUpdate((dt) => gulls.update(dt, player.position));
  *
  * Behaviour: (a) perched gulls (posts, gunwale, rocks, sand) idle with head turns and the odd hop;
@@ -99,7 +99,7 @@ export class Gulls {
   group = new THREE.Group();
   mesh!: THREE.InstancedMesh;
   count = 0;
-  /** a gull squawked at `pos` — wire to `audio.gullCallAt(pos, player.position, player.yaw)` */
+  /** a gull squawked at `pos` — wire to `IslandSfx.gullCallAt(pos, player.position, player.yaw)` */
   onCall?: (pos: THREE.Vector3) => void;
   private gulls: Gull[] = [];
   private flocks: Flock[] = [];

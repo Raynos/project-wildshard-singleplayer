@@ -1,16 +1,16 @@
 /**
  * What every collider is made of and who owns it (PHYSICS.md §Architecture). Queries return this with a hit, so a bolt
  * knows to stick in planks and glance off stone, a footstep knows its sound, and a hit knows which animal / door /
- * pickup it touched. The material names extend the footstep system's `Surface` (src/engine/audio/Surface.ts).
+ * pickup it touched. The material names extend the footstep system's `GroundSurface` (src/engine/audio/surface.ts).
  *
  * `ground` is the terrain heightfield: its material is not one value, so a query classifies it by position
- * (`SurfaceMap`'s terrain rules); `edge` is the invisible chunk wall.
+ * (the level's step map); `edge` is the invisible chunk wall.
  */
 import type { Collider } from '@dimforge/rapier3d-simd';
-import type { Surface } from '../audio/Surface';
+import type { GroundSurface } from '../audio/surface';
 
 /** `felt` (a yurt's walls) and `earth` (a kurgan's turf, a kokpar goal mound): Nalati's soft surfaces — arrows stick, blades thud */
-export type Material = Surface | 'wood' | 'metal' | 'flesh' | 'shell' | 'ground' | 'edge' | 'felt' | 'earth';
+export type Material = GroundSurface | 'wood' | 'metal' | 'flesh' | 'shell' | 'ground' | 'edge' | 'felt' | 'earth';
 
 export interface ColliderTag { material: Material; owner: unknown }
 

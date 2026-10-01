@@ -1,5 +1,6 @@
 import { loopAt, audioRandom, panFromYaw } from './util';
-import { LegacyIsland } from './legacyIsland';
+import { PlayerVoices } from './playerVoices';
+import type { StepSurface } from './surface';
 import { ownAudioSource } from './ownership';
 import { currentScope } from '../app/legacyCapture';
 import { tap, ambientTick } from '../core/harnessTap';
@@ -29,16 +30,15 @@ import type { LevelAudioBank } from './levelAudio';
  *   audio.splash(impact)  audio.wadeStep(depth, sprinting)  audio.swimStroke()  audio.waterExit()   // water (Player.onEnterWater / onStep while wading / onStroke / onExitWater)
  *   audio.dive()  audio.surface()  audio.setUnderwater(on)   // diving (Player.onSubmerge / onSurface): plunge + gasp, and the whole mix muffled (master lowpass) with a low hum + bubbles while under
  *   audio.animal('deer_call'|'boar_grunt'|'hoofsteps'|'boar_squeal'|'bear_growl'|'bear_roar'|'bear_hurt', position, listenerPos, yaw?)
- *   audio.gullCall(pan?, gain?)  audio.gullCallAt(position, listenerPos, yaw?)   // gulls (src/shards/driftwood-isle/world/Gulls.ts onCall)
  *   audio.footstep(sprinting, 'litter'|'planks'|'sand'|'grass'|'gravel')         // surface: pine litter (default), the pier deck, the beach, grass, a road
  *   audio.setAmbient(true|false)  audio.setAmbient(bedId)   audio.muted = true|false   audio.master.gain (0.6)
  *   audio.registerCalls(table, scope)   // a level's own creature calls (reach, gap, synth after the sampled take) — audio.animal plays them
  *   audio.installSynthBed(id, bed, scope)   // a level's synth bed for `setAmbient(id)` when no sampled bed of that id decoded
  *   audio.counts                                          // { [sound]: calls } — a debug tally (headless checks)
  *   audio.worldMuted = true|false        // sfx + ambient only (the title screen: the music plays, the frozen world is quiet)
- *   audio.world                          // the bus sfx + ambient share (IslandAmbience sends its reverb returns here)
+ *   audio.world                          // the bus sfx + ambient share (a zoned ambience sends its reverb returns here)
  *   audio.hurt(strength, pan)  audio.death()   // the player takes a hit (strength = dmg / 20, pan toward the attacker) / dies — both shards (B3)
- *   audio.voices                         // the procedural one-shot bank (src/engine/audio/Voices.ts + gen.ts): Driftwood's footsteps + combat layers (IslandSfx)
+ *   audio.voices                         // the procedural one-shot bank (src/engine/audio/Voices.ts + gen.ts): a level's footsteps + combat layers (its voice table)
  *
  * Samples (project/archive/2026-09-23-music.md v3 row 7): `audio.useSamples(bank)` — the loading bar decoded (src/engine/audio/preload.ts,
  * project/archive/2026-09-23-preload-offline.md; nothing is fetched after it) the selected set's public/assets/sfx/<set>/sfx.json (Settings 'sfxSet': 'best' — the better take per sound of MOSS-SoundEffect v2 and Stable Audio 3 Medium — · 'synth')
@@ -75,8 +75,7 @@ export interface CallVoice {
 }
 /** a level's synth bed (`installSynthBed`): started when its id is the bed and no sampled bed of that id decoded */
 export interface SynthBed { start: () => void; stop: () => void }
-/** 'litter' = pine needles (the default); mud (a pond's edge), rock and wet (rain); grass / gravel: open ground and roads */
-export type StepSurface = 'litter' | 'planks' | 'sand' | 'grass' | 'gravel' | 'mud' | 'rock' | 'wet' | 'metal';
+export type { StepSurface } from './surface';
 /** sfx.json `oneshots` keys: the method each replaces (`footstep-sand`, `boltImpact-wood`, `land-hard`, the AnimalSound ids, `gull`);
  *  a level's own families are plain strings */
 export type OneShot = 'crossbowFire' | 'dryFire' | `boltImpact-${ImpactKind}` | 'swordSwing' | 'swordHeavy' | `swordHit-${'flesh' | 'wood'}`
@@ -96,8 +95,8 @@ interface Graph { ctx: AudioContext; master: GainNode; world: GainNode; sfx: Gai
  */
 let sharedCtx: AudioContext | undefined;
 
-export class Audio extends LegacyIsland {
-  override listenerYaw = 0;
+export class Audio extends PlayerVoices {
+  listenerYaw = 0;
   listenerPosition: Vector3 | null = null;
   music: Music | null = null;
   private cueMap: CueMap | undefined;
@@ -132,7 +131,7 @@ export class Audio extends LegacyIsland {
     if (bank.title) this.music?.useBank(bank.title);
     for (const fn of this.levelBankFns) fn(bank);
   }
-  /** the procedural one-shot bank (gen.ts rendered to AudioBuffers after the first gesture) — src/engine/audio/IslandSfx.ts plays it */
+  /** the procedural one-shot bank (gen.ts rendered to AudioBuffers after the first gesture) — a level's voice table plays it */
   override readonly voices = new Voices(this);
   voice(): Voices { return this.voices; }
   /** the WebAudio graph, built on the first gesture (resume) — creating the first AudioContext is a ~150 ms main-thread

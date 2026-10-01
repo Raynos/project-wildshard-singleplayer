@@ -7,7 +7,7 @@ import type { Scope } from '../app/scope';
  *
  *   audio.voices.prewarm(['step-sand', 'hurt', …])   // after the first gesture: one variant rendered per idle slice
  *   audio.voices.play('impact-shell', { at: pos, gain: 0.8, rate: 1.1 })   // a random variant, ±5 % pitch, placed in the world
- *   audio.voices.setListener(x, y, z, yaw)           // per frame (IslandAmbience does it) — for `at` plays
+ *   audio.voices.setListener(x, y, z, yaw)           // per frame (a zoned ambience does it) — for `at` plays
  *   audio.voices.buffer('ir-cave')                   // a stereo buffer (the ConvolverNodes take these)
  *
  * A family is rendered the first time it is asked for if prewarm has not reached it yet (a few ms on desktop). A play is
@@ -15,7 +15,7 @@ import type { Scope } from '../app/scope';
  * runs per frame; setListener only stores four numbers.
  */
 import type { Vector3 } from 'three';
-import { footstep, whoosh, impact, vocal, windup, hurt, death, plunge, bubbleBed, noiseLoop, impulseChannel, interact, STEP_KINDS, MATERIALS, ENEMIES, INTERACT_SOUNDS, type Room } from './gen';
+import { footstep, whoosh, impact, hurt, death, plunge, bubbleBed, noiseLoop, impulseChannel, interact, STEP_KINDS, MATERIALS, INTERACT_SOUNDS, type Room } from './gen';
 
 interface Host { readonly ctx: BaseAudioContext; readonly sfx: GainNode; readonly ready: boolean }
 type Gen = (sr: number, seed: number) => Float32Array;
@@ -31,12 +31,8 @@ export const FAMILIES: Record<string, Family> = {
   ...Object.fromEntries(STEP_KINDS.map((k) => [`step-${k}`, fam(5, (sr, s) => footstep(k, sr, s))])),
   whoosh: fam(4, (sr, s) => whoosh(sr, s)),
   'whoosh-heavy': fam(3, (sr, s) => whoosh(sr, s, true)),
-  ...Object.fromEntries(MATERIALS.map((m) => [`impact-${m}`, fam(4, (sr, s) => impact(m, sr, s))])),
-  // S4.3 content table: vocal, windup and impact-shell ownership moves with its audio.
-  ...Object.fromEntries(ENEMIES.map((e) => [`vocal-${e}`, fam(3, (sr, s) => vocal(e, sr, s), e === 'sailor' || e === 'boar')])),
-  'windup-boar': fam(2, (sr, s) => windup('boar', sr, s)),
-  'windup-crab': fam(2, (sr, s) => windup('crab', sr, s)),
-  'windup-sailor': fam(2, (sr, s) => windup('sailor', sr, s), true),
+  // a level's own families (creature vocals, wind-ups, its own impact materials) are its voice table (`voices.register`)
+  ...Object.fromEntries(MATERIALS.filter((m) => m !== 'shell').map((m) => [`impact-${m}`, fam(4, (sr, s) => impact(m, sr, s))])),
   hurt: fam(3, (sr, s) => hurt(sr, s), true),
   death: fam(2, (sr, s) => death(sr, s), true),
   'plunge-down': fam(2, (sr, s) => plunge(sr, s, false)),

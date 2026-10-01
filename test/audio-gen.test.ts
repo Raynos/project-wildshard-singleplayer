@@ -4,7 +4,7 @@
 import { describe, expect, test } from 'vitest';
 import * as G from '#engine/audio/gen';
 import { Biquad, bandEnergy, centroid, rt60 } from '#engine/audio/dsp';
-import { SurfaceMap } from '#engine/audio/Surface';
+import { SurfaceMap } from '../src/shards/driftwood-isle/audio/surface';
 
 const sr = 48000;
 const db = (e: number) => 10 * Math.log10(Math.max(1e-20, e));
