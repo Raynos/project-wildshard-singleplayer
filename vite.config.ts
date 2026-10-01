@@ -9,7 +9,7 @@ import { rapierAlias, rapierPreviewPlugin } from './vite/rapier';
 import { assetIndex } from './vite/gen';
 import { genShardsPlugin } from './vite/genShards';
 import { backdropPrefixPlugin } from './vite/backdropPrefix';
-import { chunkReport, shardChunkGroups } from './vite/chunkReport';
+import { chunkReport } from './vite/chunkReport';
 
 // Build stamp: short git sha + build time. Baked into the bundle as __BUILD_ID__ and
 // emitted as /version.json so the running app can tell when the server has a newer build
@@ -87,8 +87,7 @@ export default defineConfig(({ mode }) => {
       // one stylesheet: src/entry.ts splits three.js from the game's graph, and code-split CSS would add a request
       : {
         target: 'es2022', chunkSizeWarningLimit: 4000, sourcemap: 'hidden' as const, cssCodeSplit: false, manifest: true,
-        // B64: keep the dynamic main facade outside engine; merging it emits an undefined namespace.
-        rolldownOptions: { output: { codeSplitting: { groups: shardChunkGroups() } } },
+        // Manual groups remain disabled: Rolldown 1.2.9 emits circular chunks with invalid runtime bindings.
       },
     assetsInclude: ['**/*.hdr', '**/*.gltf', '**/*.bin'],
     resolve: { alias: rapierAlias }, // Rapier's wasm-importing module → plain bindings (vite/rapier.ts)
