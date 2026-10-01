@@ -1,3 +1,4 @@
+import { COMPARE } from './explore/compare';
 import exploreHorse from './explore/playground-horse.webp';
 import { NALATI_BUDGET_INPUTS } from './budgets';
 import type { ShardManifest } from '#game/shard/manifest';
@@ -29,7 +30,7 @@ export const NALATI_GRASSLANDS: ShardManifest = {
   loadout: { weapons: ['bow', 'sabre', 'spear', 'rifle'], tools: [], start: ['bow', 'sabre', 'spear'], held: 'bow', loans: [{ id: 'rifle', in: 'practice' }] },
   budgets: NALATI_BUDGET_INPUTS,
   audio: { bed: 'steppe', ambience: 'ambience.nalati', score: 'score.nalati', alertOnlyHostile: true, preload: () => import('./audio/files').then((m) => m.createNalatiAudio()) },
-  boot: { explore: { art: [...Object.values(EXPLORE), exploreHorse] }, precache: [], stagedWorld: true, files: bootFiles, sources: bootSources, steps: BOOT_STEPS, bytes: { trees: 'spruce bark' }, lateReads },
+  boot: { audio: async () => (await import('./audio/files')).BOOT_AUDIO(), explore: { art: [...Object.values(EXPLORE), exploreHorse, ...COMPARE.flatMap(({ live, image }) => [live, image])] }, precache: [], stagedWorld: true, files: bootFiles, sources: bootSources, steps: BOOT_STEPS, bytes: { trees: 'spruce bark' }, lateReads },
   bag: { tabs: ['map', 'gear', 'finds', 'feats'], pack: { slots: 0 }, skinsTitle: 'Skins' },
   kitLook: 'painterly',
   fight: { telegraphed: true },
@@ -55,7 +56,7 @@ export const NALATI_GRASSLANDS: ShardManifest = {
   tiers: { phone: { msaa: 2 }, desktop: { msaa: 4 } }, // the look's composer MSAA (phone ×2: the fill rate of ×4 at DPR 1.5 on a tile GPU)
   // EXPLORE WORLD (NALATI-MERGE P1, wave 8): the viewer over the steppe — every registered POI is in the Model Explorer
   // (src/shards/nalati-grasslands/world/index.ts), the World Explorer map pins the map's named places
-  explore: EXPLORE,
+  explore: { art: EXPLORE, compare: COMPARE },
   // its live models in the Model Explorer (E315 M5): the creatures it spawns, alive now or not, its people, its gear
   roster: async () => (await import('./roster')).ROSTER,
   pois: NALATI_MAP.pois.map((p) => ({ id: p.label.toLowerCase().replaceAll(' ', '-'), name: p.label.charAt(0) + p.label.slice(1).toLowerCase(), x: p.x, z: p.z, r: 24 })),
