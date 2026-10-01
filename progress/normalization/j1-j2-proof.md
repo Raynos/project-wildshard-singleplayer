@@ -2,6 +2,8 @@
 
 2026-10-01, sol-r9. Jake's answers P5/P6 deliberately reverse B58/B63.
 
+Landed source/proof/handoff: `47ce62e7fab8b51a1008059434c9dabd9083e267`. Its exported build-input identity equals the fully validated publication candidate `6fa5ee0b34b82ebfad0b11537d9102f82341bd60`; later lead/R6 documentation is retained.
+
 ## Change
 
 - **J1:** Pine's per-frame soundscape listener now moves the shared VoicePool. Pine sampled shots and shared procedural/sample voices use that same ear. The per-play listener override is removed. Pine retains its 220 m sampled-shot reach and roll-off; shared voices retain their 150 m reach.
