@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import type { Renderer } from '../render/renderer';
 import { TIER, TIER_CONFIG } from '../core/tier';
 import { CSM } from 'three/examples/jsm/csm/CSM.js';
 import { cullToSlice, installCascadeCull } from './cascadeCull';
@@ -81,7 +82,7 @@ export class Sky {
   /** the level this sky lights (handed to build()) */
   private level!: LevelSpec;
 
-  constructor(private scene: THREE.Scene, private camera: THREE.PerspectiveCamera, private renderer: THREE.WebGLRenderer) {}
+  constructor(private scene: THREE.Scene, private camera: THREE.PerspectiveCamera, private renderer: Renderer) {}
 
   /** the scene the sky lights (the LightPool's home) */
   get sceneRoot(): THREE.Scene { return this.scene; }

@@ -19,7 +19,7 @@ import { CHUNK_HALF, TREE_COUNT, SEED } from '../../core/config';
 import { Rng } from '../../core/rng';
 import { Noise2D, smoothstep, lerp } from '../../core/noise';
 import { heightAt, normalAt, splatAt, trailDistance, cabinMask, inChunk, pondMask, waterLevel, POND } from '../Heightfield';
-import { getActiveChunk } from '#game/shard/registry';
+import { activeLevel } from '../../level/selection';
 import { TREE_SPECIES, TREE_SPECS_V2, type TreeSpecies, type SpeciesWeights } from './treeSpecies';
 
 export { TREE_SPECS, treeSetOf } from './treeSpec';
@@ -66,7 +66,7 @@ export function placeForest(variants: readonly PlantSpec[]): { trees: TreeInstan
   const trees: TreeInstance[] = [];
   const grid = new TreeGrid();
   if (variants.length === 0) return { trees, grid };
-  const F = getActiveChunk().forest;
+  const F = activeLevel().forest;
   if (!F) return { trees, grid }; // no ShardManifest.forest: no forest to place
   const rng = new Rng(SEED + 99);
   const density = new Noise2D(SEED + 5);
@@ -206,8 +206,9 @@ export function* placeUndergrowth(trees: TreeInstance[], grid: { nearby: (x: num
   const ferns: Placement[] = [], shrubs: Placement[] = [], litter: Placement[] = [], stones: Placement[] = [], moss: Placement[] = [], reeds: Placement[] = [];
   const half = CHUNK_HALF - 8;
   const wl = waterLevel();
-  const bare = getActiveChunk().forest?.density;
-  const us = getActiveChunk().forest?.understory;
+  const forest = activeLevel().forest;
+  const bare = forest?.density;
+  const us = forest?.understory;
   const fernK = us?.ferns ?? 1, shrubK = us?.shrubs ?? 1, fernCanopy = us?.fernCanopy === true;
   /** the tests: pure, no rng — so a candidate's outcome is the one bit the log keeps */
   const accepts = (kind: Kind, x: number, z: number): boolean => {

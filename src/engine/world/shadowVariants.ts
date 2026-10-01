@@ -13,6 +13,7 @@
  * the target is initialised (a depth-only framebuffer is complete in WebGL 2; three only ever samples the depth texture).
  */
 import * as THREE from 'three';
+import type { Renderer } from '../render/renderer';
 import type { CSM } from 'three/examples/jsm/csm/CSM.js';
 
 /** the rig's shadow map bytes: `cascades` + `ghosts` maps at `size`², 2 bytes a texel (16-bit depth, no colour) */
@@ -27,7 +28,7 @@ export class ShadowMaps {
   /** the lights whose map this module made (a light missing here holds three's own map, or none yet) */
   private readonly made = new Set<THREE.DirectionalLight>();
 
-  constructor(private readonly renderer: THREE.WebGLRenderer, private readonly csm: CSM, private readonly ghosts: readonly THREE.DirectionalLight[], readonly size: number) {}
+  constructor(private readonly renderer: Renderer, private readonly csm: CSM, private readonly ghosts: readonly THREE.DirectionalLight[], readonly size: number) {}
 
   /** the GPU bytes of the rig's shadow maps */
   get bytes(): number { return shadowBytes(this.size, this.csm.lights.length, this.ghosts.length); }

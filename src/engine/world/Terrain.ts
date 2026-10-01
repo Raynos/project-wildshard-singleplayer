@@ -3,11 +3,12 @@ import { CHUNK_SIZE, CHUNK_HALF, CHUNK_DEPTH, TERRAIN_RES } from '../core/config
 import { heightAt, normalAt, splatAt, trailDistance, TRAILS } from './Heightfield';
 import { loadPBR, loadPBRArray, pbrMaterial } from '../core/assets';
 import { attachFogUniforms } from './Atmosphere';
-import { getActiveChunk } from '#game/shard/registry';
+import { activeLevel } from '../level/selection';
 import { loadBakedTerrain } from './BakedTerrain';
 import { macrotask } from '../boot/plan';
 import { groundSet } from './lookFlags';
 import type { PainterField, TerrainPainter } from '../render/look';
+import type { LevelAssets } from '../level/data';
 import { PATCH_ORDER, patchShader } from '../render/shaderPatches';
 
 /**
@@ -175,13 +176,14 @@ export class Terrain {
   async build(ground: { structures?: true }, painter?: TerrainPainter): Promise<this> {
     if (ground.structures === true) return this.buildNone();
     if (painter !== undefined) { await painter.build(this, PAINTER_FIELD); return this; }
-    const [layers] = await Promise.all([loadPBRArray([...groundSet(getActiveChunk()).layers], 1024), loadBakedTerrain()]); // baked heights/splat → Heightfield lookups (BakedTerrain.ts)
+    const { assets } = activeLevel();
+    const [layers] = await Promise.all([loadPBRArray([...groundSet({ assets }).layers], 1024), loadBakedTerrain()]); // baked heights/splat → Heightfield lookups (BakedTerrain.ts)
     await macrotask(); // the layer copies above and the mesh below were one ~110 ms task at 4x CPU
-    this.mesh = new THREE.Mesh(this.buildGeometry(), this.buildMaterial(layers));
+    this.mesh = new THREE.Mesh(this.buildGeometry(), this.buildMaterial(layers, assets));
     this.mesh.receiveShadow = true;
     this.mesh.castShadow = false;
     this.group.add(this.mesh);
-    this.group.add(await this.buildSlab());
+    this.group.add(await this.buildSlab(assets));
     return this;
   }
 
@@ -217,11 +219,11 @@ export class Terrain {
     return geo;
   }
 
-  private buildMaterial(layers: { map: THREE.Texture; normalMap: THREE.Texture; armMap: THREE.Texture }) { // texture arrays: DataArrayTexture, or CompressedArrayTexture from KTX2 (E157)
+  private buildMaterial(layers: { map: THREE.Texture; normalMap: THREE.Texture; armMap: THREE.Texture }, assets: LevelAssets | undefined) { // texture arrays: DataArrayTexture, or CompressedArrayTexture from KTX2 (E157)
     // a dummy 1×1 normal map keeps three's USE_NORMALMAP path (tbn) alive; the real layers are the arrays
     const dummy = new THREE.DataTexture(new Uint8Array([128, 128, 255, 255]), 1, 1); dummy.needsUpdate = true;
     const mat = new THREE.MeshStandardMaterial({ normalMap: dummy, metalness: 0, roughness: 1, normalScale: new THREE.Vector2(1, 1) });
-    const ground = groundSet(getActiveChunk());
+    const ground = groundSet({ assets });
     const u = {
       tDiff: { value: layers.map },
       tNorm: { value: layers.normalMap },
@@ -308,8 +310,7 @@ export class Terrain {
   }
 
   /** The chunk is a floating shard: rock walls from the surface down to -CHUNK_DEPTH. */
-  private async buildSlab() {
-    const assets = getActiveChunk().assets;
+  private async buildSlab(assets: LevelAssets | undefined) {
     if (!assets) throw new Error('Terrain: a slab needs ShardManifest.assets.slabRock');
     const rock = await loadPBR(assets.slabRock);
     const mat = pbrMaterial(rock, { color: new THREE.Color(0.55, 0.52, 0.5), side: THREE.FrontSide });

@@ -12,7 +12,8 @@
  * or malformed file leaves the analytic functions in place (a warning, never a failure).
  */
 import { _installBakedTerrain } from './Heightfield';
-import { getActiveChunk } from '#game/shard/registry';
+import { activeLevel } from '../level/selection';
+import { SEED } from '../core/config';
 import { PUBLIC_BYTES } from '../boot/bytes.generated';
 import type { ChunkTerrain } from '#game/shard/manifest';
 
@@ -98,31 +99,31 @@ export function bakedSamplers(g: BakedGrid): Pick<ChunkTerrain, 'heightAt' | 'no
 }
 
 let installedFor: string | null = null;
-let installedPlacement: { slug: string; placement: BakedPlacement } | null = null;
+let installedPlacement: { levelId: string; placement: BakedPlacement } | null = null;
 
 /** The active chunk's undergrowth decision log from its installed bake, if it has one (src/shards/pine-hollow/world/undergrowth.ts). */
 export function bakedUndergrowth(): BakedPlacement | null {
-  return installedPlacement !== null && installedPlacement.slug === getActiveChunk().slug ? installedPlacement.placement : null;
+  return installedPlacement !== null && installedPlacement.levelId === activeLevel().id ? installedPlacement.placement : null;
 }
 
 /** Fetch the active chunk's bake and install it; resolves either way. Idempotent per chunk. */
 export async function loadBakedTerrain(): Promise<boolean> {
-  const def = getActiveChunk();
-  if (installedFor === def.slug) return true;
-  const url = bakedTerrainUrl(def.slug);
+  const levelId = activeLevel().id, seed = SEED; // the level's master seed (core/config, set with the level)
+  if (installedFor === levelId) return true;
+  const url = bakedTerrainUrl(levelId);
   if (!url || new URLSearchParams(location.search).has('nobake')) return false; // ?nobake=1: A/B against the analytic field
   try {
     const res = await fetch(url);
     if (!res.ok) throw new Error(`${res.status}`);
     const grid = parseBakedTerrain(await res.arrayBuffer());
-    if (!grid || grid.seed !== (def.seed >>> 0)) throw new Error('bad header / seed');
-    if (getActiveChunk() !== def) return false;
+    if (!grid || grid.seed !== (seed >>> 0)) throw new Error('bad header / seed');
+    if (activeLevel().id !== levelId) return false;
     _installBakedTerrain(bakedSamplers(grid));
-    installedFor = def.slug;
-    installedPlacement = grid.undergrowth ? { slug: def.slug, placement: grid.undergrowth } : null;
+    installedFor = levelId;
+    installedPlacement = grid.undergrowth ? { levelId, placement: grid.undergrowth } : null;
     return true;
   } catch (e) {
-    console.warn(`[baked] terrain for ${def.slug} not used (${(e as Error).message}); computing at launch`);
+    console.warn(`[baked] terrain for ${levelId} not used (${(e as Error).message}); computing at launch`);
     return false;
   }
 }

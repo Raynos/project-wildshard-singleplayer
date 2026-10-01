@@ -1,7 +1,7 @@
 /**
  * Hands — the first-person viewmodel while swimming: no weapon, just the player's two forearms and hands doing a
  * looping breaststroke at the water line. The hands ALWAYS wear white gloves (a mitten shape with a thumb, over a plain
- * sleeve cuff — no finger detail by design). Styled per shard: `getActiveChunk().style ?? 'pbr'` —
+ * sleeve cuff — no finger detail by design). Styled per level: its `LevelSpec.kitLook` —
  *   'pbr'     smooth-shaded, on the viewmodels' shared lit program (Crossbow.viewmodelMaterial), IBL-fixed like the crossbow
  *   'toon' faceted: non-indexed geometry, flat vertex colours with a per-facet jitter, `flatShading: true`
  * Both are lit through `sky.setupMaterial()` (CSM shadows + fog). Parented to the camera with its own depth clear
@@ -23,7 +23,7 @@
 import * as THREE from 'three';
 import type { Sky } from '../world/Sky';
 import { SWIM_SPEED, STROKE_PERIOD, type Player } from './Player';
-import { getActiveChunk } from '#game/shard/registry';
+import { activeLevel } from '../level/selection';
 import { isMesh, viewmodelMaterial, whiteColors } from '#engine/combat/view/ranged';
 import { Rng } from '../core/rng';
 
@@ -61,8 +61,8 @@ export interface SwimArms {
  * on the viewmodels' shared lit program; `lowpoly`: faceted, a flat jittered colour per facet. `Hands` poses them every
  * frame; the Model Explorer's card (src/engine/models/swimHands.ts, E348) builds its own pair and stands them in the tread pose.
  */
-export function buildSwimGloves(sky: Sky, style: SwimStyle): [THREE.Group, THREE.Group] {
-  const low = style === 'toon';
+export function buildSwimGloves(sky: Sky, look: SwimStyle): [THREE.Group, THREE.Group] {
+  const low = look === 'toon';
   const rng = new Rng(0x5a1d);
   const seg = low ? 7 : 18;
 
@@ -127,7 +127,7 @@ export class Hands {
   private tmp = { p: new THREE.Vector3(), q: new THREE.Vector3(), e: new THREE.Vector3(), d: new THREE.Vector3(), fwd: new THREE.Vector3(0, 0, -1) };
 
   constructor(sky: Sky, private camera: THREE.PerspectiveCamera, private rig: SwimArms | null = null) {
-    this.style = getActiveChunk().style === 'toon' ? 'toon' : 'pbr'; // painterly (Nalati): the smooth hands
+    this.style = activeLevel().kitLook === 'toon' ? 'toon' : 'pbr'; // a painterly kit look: the smooth hands
     if (rig !== null) rig.setup(sky);
     else this.buildGloves(sky);
 

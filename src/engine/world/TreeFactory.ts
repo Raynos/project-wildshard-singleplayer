@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import type { Renderer } from '../render/renderer';
 import type { TreeSpecies } from './forest/placement';
 import { crownTopUniforms, type CrownTop } from './forest/treeSet';
 import { windUniforms as sharedWind, patchWindField, windStrength } from './wind';
@@ -86,7 +87,7 @@ export class TreeFactory {
 
   /** Renderer capability for the forest's existing batching path. */
   readonly multiDraw: boolean;
-  constructor(renderer: THREE.WebGLRenderer) {
+  constructor(renderer: Renderer) {
     this.multiDraw = renderer.extensions.has('WEBGL_multi_draw');
   }
 

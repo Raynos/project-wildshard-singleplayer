@@ -7,6 +7,7 @@ import { app } from '../app/runtime';
  *   const g = groundSet(def);                   // Terrain.build, the boot manifest
  */
 import type { ShardManifest, ChunkGrade, ChunkLook, RGB } from '#game/shard/manifest';
+import type { LevelAssets } from '../level/data';
 
 /** the grade the composer builds: the chunk's own, with its look-loop layer when it has one */
 export function activeGrade(def: ShardManifest): { grade: ChunkGrade; look: ChunkLook | null } {
@@ -14,7 +15,7 @@ export function activeGrade(def: ShardManifest): { grade: ChunkGrade; look: Chun
 }
 
 /** the ground layers the terrain loads, with the boreal set (canopy litter, moss, tiling breakup) when the shard has one */
-export function groundSet(def: ShardManifest): { layers: readonly string[]; tints: readonly RGB[]; boreal: { normalK: readonly number[]; trailDust: readonly number[]; grassTint: readonly number[] } | null } {
+export function groundSet(def: { assets?: LevelAssets | undefined }): { layers: readonly string[]; tints: readonly RGB[]; boreal: { normalK: readonly number[]; trailDust: readonly number[]; grassTint: readonly number[] } | null } {
   const a = def.assets;
   if (!a) return { layers: [], tints: [], boreal: null }; // no PBR ground (Driftwood)
   const b = a.boreal;

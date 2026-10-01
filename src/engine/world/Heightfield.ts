@@ -1,60 +1,78 @@
 import { setTerrainHeight, setTerrainPlacement } from './terrainHeight';
-import { terrainFor, type ChunkTerrain, type PondDef } from '#game/shard/manifest';
-// The chunk's terrain shape. Pure functions so the same field drives the mesh,
+import type { PondDef, TerrainField } from '../level/data';
+import type { LevelSpec } from '../level/spec';
+import { activeLevel, onLevelChange, selectedLevel } from '../level/selection';
+// The level's terrain shape. Pure functions so the same field drives the mesh,
 // player collision, tree placement and grass.
 //
-// Since the multi-shard refactor the actual field lives in the active ShardManifest
-// (src/shards/*/manifest.ts, compiled by src/engine/world/terrainField.ts); this module re-exports it under the
-// names every consumer already imports. The exports are live `let` bindings resolved once here
-// and again on setActiveChunk() — no per-call lookup, so heightAt() stays as cheap as before.
+// The field itself is the selected level's `LevelSpec.ground.terrain` (compiled by src/engine/world/terrainField.ts);
+// this module re-exports it under the names every consumer already imports. The exports are live `let` bindings
+// resolved when a level is configured (src/engine/level/selection.ts) and again on every level change — no per-call
+// lookup, so heightAt() stays as cheap as before. Read before any level is configured, a function resolves the active
+// level on its first call.
 import { CHUNK_HALF } from '../core/config';
-import { getActiveChunk, onActiveChunkChange } from '#game/shard/registry';
 
 const NO_POND: PondDef = { x: 0, z: 0, r: 0 };
 
-let T: ChunkTerrain = terrainFor(getActiveChunk());
+function terrainOf(level: LevelSpec): TerrainField {
+  const terrain = level.ground.terrain;
+  if (!terrain) throw new Error(`No terrain for ${level.id}`);
+  return terrain;
+}
 
-/** surface height, metres */
-export let heightAt: ChunkTerrain['heightAt'] = T.heightAt;
-setTerrainHeight(heightAt);
-/** unit surface normal by central differences */
-export let normalAt: ChunkTerrain['normalAt'] = T.normalAt;
-/** splat weights for the four ground layers of the active chunk */
-export let splatAt: ChunkTerrain['splatAt'] = T.splatAt;
-/** distance to the nearest trail centreline */
-export let trailDistance: ChunkTerrain['trailDistance'] = T.trailDistance;
-/** 0 off the cabin pads → 1 on them */
-export let cabinMask: ChunkTerrain['cabinMask'] = T.cabinMask;
-/** 0 outside the pond basin → 1 at its centre */
-export let pondMask: ChunkTerrain['pondMask'] = T.pondMask;
-/** still-water surface height (far below the terrain when the chunk has no pond) */
-export let waterLevel: ChunkTerrain['waterLevel'] = T.waterLevel;
-setTerrainPlacement((x, z) => normalAt(x, z), () => waterLevel());
+/** the bound field; `null` until a level is configured */
+const bound: { T: TerrainField | null } = { T: null };
+/** the bound field, binding the active level's on first use */
+function field(): TerrainField { return bound.T ?? bind(terrainOf(activeLevel())); }
+
 const noStream = (): number | null => null;
-/** running water's surface at (x, z) (Pine Hollow's creek), or null off it */
-export let streamAt: NonNullable<ChunkTerrain['streamAt']> = T.streamAt ?? noStream;
+/** surface height, metres */
+export let heightAt: TerrainField['heightAt'] = (x, z) => field().heightAt(x, z);
+/** unit surface normal by central differences */
+export let normalAt: TerrainField['normalAt'] = (x, z, eps) => field().normalAt(x, z, eps);
+/** splat weights for the four ground layers of the level */
+export let splatAt: TerrainField['splatAt'] = (x, z) => field().splatAt(x, z);
+/** distance to the nearest trail centreline */
+export let trailDistance: TerrainField['trailDistance'] = (x, z) => field().trailDistance(x, z);
+/** 0 off the cabin pads → 1 on them */
+export let cabinMask: TerrainField['cabinMask'] = (x, z) => field().cabinMask(x, z);
+/** 0 outside the pond basin → 1 at its centre */
+export let pondMask: TerrainField['pondMask'] = (x, z) => field().pondMask(x, z);
+/** still-water surface height (far below the terrain when the level has no pond) */
+export let waterLevel: TerrainField['waterLevel'] = () => field().waterLevel();
+/** running water's surface at (x, z) (a creek), or null off it */
+export let streamAt: NonNullable<TerrainField['streamAt']> = (x, z) => (field().streamAt ?? noStream)(x, z);
 /** Trail polylines (xz). The first four enter at the edge midpoints. */
-export let TRAILS: ChunkTerrain['trails'] = T.trails;
-export let CABIN_SITES: ChunkTerrain['cabinSites'] = T.cabinSites;
-/** The chunk's pond (r = 0 when it has none — check `hasPond()`). */
-export let POND: PondDef = T.pond ?? NO_POND;
+export let TRAILS: TerrainField['trails'] = [];
+export let CABIN_SITES: TerrainField['cabinSites'] = [];
+/** The level's pond (r = 0 when it has none — check `hasPond()`). */
+export let POND: PondDef = NO_POND;
 
-export function hasPond(): boolean { return T.pond !== null; }
+export function hasPond(): boolean { return field().pond !== null; }
 
-onActiveChunkChange((def) => {
-  T = terrainFor(def);
+function bind(T: TerrainField): TerrainField {
+  bound.T = T;
   heightAt = T.heightAt; setTerrainHeight(heightAt); normalAt = T.normalAt; splatAt = T.splatAt;
   trailDistance = T.trailDistance; cabinMask = T.cabinMask; pondMask = T.pondMask; waterLevel = T.waterLevel; streamAt = T.streamAt ?? noStream;
   TRAILS = T.trails; CABIN_SITES = T.cabinSites; POND = T.pond ?? NO_POND;
-});
+  return T;
+}
+
+const initial = selectedLevel();
+if (initial !== null) bind(terrainOf(initial));
+else setTerrainHeight(heightAt);
+setTerrainPlacement((x, z) => normalAt(x, z), () => waterLevel());
+// a new level rebinds the analytic field (its bake is installed when it loads); the same field configured again keeps
+// whatever is bound, an installed bake included
+onLevelChange((level) => { const T = level.ground.terrain; if (T !== undefined && T !== bound.T) bind(T); });
 
 /**
  * The baked grid (src/engine/world/BakedTerrain.ts, public/assets/baked/<slug>/terrain.bin) replaces the
  * analytic field with lookups over the terrain mesh's own vertices — the same numbers the mesh is
- * built from, so collision and planting sit exactly on the rendered surface. setActiveChunk()
- * rebinds the analytic functions again (the next chunk's bake is installed when it loads).
+ * built from, so collision and planting sit exactly on the rendered surface. A level change
+ * rebinds the analytic functions again (the next level's bake is installed when it loads).
  */
-export function _installBakedTerrain(baked: Pick<ChunkTerrain, 'heightAt' | 'normalAt' | 'splatAt'>): void {
+export function _installBakedTerrain(baked: Pick<TerrainField, 'heightAt' | 'normalAt' | 'splatAt'>): void {
   heightAt = baked.heightAt; setTerrainHeight(heightAt); normalAt = baked.normalAt; splatAt = baked.splatAt;
 }
 

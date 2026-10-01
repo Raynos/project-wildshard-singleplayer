@@ -9,7 +9,7 @@ import { patchWindField } from './wind';
 import type { Sky } from './Sky';
 import type { Forest } from './forest/Forest';
 import { TIER_CONFIG } from '../core/tier';
-import { getActiveChunk } from '#game/shard/registry';
+import { activeLevel } from '../level/selection';
 import { groundSet } from './lookFlags';
 import { app } from '../app/runtime';
 import type { GrassLayer } from '../render/look';
@@ -115,7 +115,7 @@ export class Grass {
   private tmpN = new THREE.Vector3();
   private tmpC = new THREE.Color();
   /** × every tuft's colour: the chunk's boreal grass tint (PH-L1 round 3; 1 without a boreal set) */
-  private tint = new THREE.Color(...(groundSet(getActiveChunk()).boreal?.grassTint ?? [1, 1, 1]));
+  private tint = new THREE.Color(...(groundSet(activeLevel()).boreal?.grassTint ?? [1, 1, 1]));
   private zeroM = new THREE.Matrix4().makeScale(0, 0, 0);
   private meshColor!: THREE.InstancedBufferAttribute;
   private flowerColor!: THREE.InstancedBufferAttribute;

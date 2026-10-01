@@ -12,6 +12,7 @@
  * to the same bottom-left texel the runtime bake did.
  */
 import * as THREE from 'three';
+import type { Renderer } from '../render/renderer';
 import { PUBLIC_BYTES } from '../boot/bytes.generated';
 import { loadTexture } from '../core/assets';
 
@@ -48,7 +49,7 @@ export async function loadBakedCards(slug: string): Promise<CardTextures | null>
  * as data URLs for scripts/bake-cards.mjs (PNG for the albedo — its alpha is the card's cut-out —
  * JPEG for the normal and ARM planes).
  */
-export function exportCardTextures(renderer: THREE.WebGLRenderer, card: CardTextures): void {
+export function exportCardTextures(renderer: Renderer, card: CardTextures): void {
   const toDataUrl = (tex: THREE.Texture, mime: string, quality?: number): string => {
     const rt = (tex as THREE.Texture & { __rt?: THREE.WebGLRenderTarget }).__rt;
     const { width, height } = tex.image as { width: number; height: number };
