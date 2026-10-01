@@ -1,4 +1,3 @@
-import '#game/rng';
 import { app } from '#engine/app/runtime';
 import { pageSeed } from '#engine';
 import { legacyShardId, meleeShard, hitDamage } from '#game/shard/manifest';

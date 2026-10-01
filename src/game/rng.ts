@@ -2,4 +2,4 @@
 declare module '#engine/core/rng' {
   interface RngStreams { loot: true }
 }
-export {};
+export const GAME_RNG_STREAM = 'loot';
