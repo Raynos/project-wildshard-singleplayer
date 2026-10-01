@@ -390,7 +390,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext): Pr
     });
 
   // ── sound (B16 audio): wraps attachAnimals / bindPlay / wildEnv.onEvent for the creatures and the kit — src/shards/nalati-grasslands/sound.ts ──
-  const sound = wireSound(nalati, { player: ctx.player, weather, scope: plugin.scope, on: plugin.on });
+  const sound = wireSound(nalati, { player: ctx.player, weather, scope: plugin.scope, on: plugin.on, debug: plugin.debug });
   nalati.sound = sound;
   updates.push((dt) => { sound.update(dt); });
 

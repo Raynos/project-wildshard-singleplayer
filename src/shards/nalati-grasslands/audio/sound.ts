@@ -8,14 +8,13 @@ import { createSteppeScore, type SteppeScene } from './SteppeScore';
  * dusk / night howl chorus, and the kit's own voices (bow twang + arrow whoosh / thud, javelin throw / impact, the
  * sabre's steel, the spear's thrust). The voices are audio/synth.ts's (SteppeVoices) on the engine mixer; this file decides what and where.
  *
- *   const sound = wireSound(nalati, { player, weather, scope, on });   // src/shards/nalati-grasslands/runtime.ts: scoped creature and weapon signals; the flock / dog /
+ *   const sound = wireSound(nalati, { player, weather, scope, on, debug });   // src/shards/nalati-grasslands/runtime.ts: scoped creature and weapon signals; the flock / dog /
  *                                                            // marmot sounds reach the bound Wildlife callback
  *   sound.bind(audio, music)      // main.ts, once the audio exists: the hoof ground, the steppe bed, the music's 'steppe' mood
  *   sound.fire(weaponId)          // main's weapons.onFire: true = handled here (the kit), false = the old sounds
  *   sound.impact(weaponId, surface, pan, gain)   // main's weapons.onImpact: true = handled here
  *   sound.update(dt)              // every frame (index.ts pushes it)
- *   audio.counts                  // the tally of every sound played (`window.__nalatiSound.counts()` in a headless check;
- *                                 // `window.__nalatiSound.voices` is the SteppeVoices)
+ *   app.debug.snapshot()['nalati.sound']()  // the scoped live reader: counts, voices, ambience and score
  *
  * NALATI-MERGE A1 / A2 / A4: the bow's draw creak / full-draw click / let-down (Bow.onDrawStart / onFullDraw / onLetDown);
  * the zoned sample beds (src/shards/nalati-grasslands/audio/SteppeAmbience.ts: Nalati Grasslands / Sky Grassland / Snow Lotus Valley, fed from here at
@@ -77,7 +76,7 @@ function brookDistance(x: number, z: number): number {
   return best;
 }
 
-export function wireSound(nalati: Pick<Nalati, 'boss' | 'titan'>, ctx: { player: Player; weather: NalatiWeather; scope: Scope; on: ShardContext['on'] }): NalatiSound {
+export function wireSound(nalati: Pick<Nalati, 'boss' | 'titan'>, ctx: { player: Player; weather: NalatiWeather; scope: Scope; on: ShardContext['on']; debug: ShardContext['debug'] }): NalatiSound {
   const { player, weather } = ctx;
   let audio: Audio | null = null;
   let voices: SteppeVoices | null = null;
@@ -222,6 +221,6 @@ export function wireSound(nalati: Pick<Nalati, 'boss' | 'titan'>, ctx: { player:
       }
     },
   };
-  Object.assign(window, { __nalatiSound: sound });
+  ctx.debug.expose('nalati.sound', () => ({ counts: sound.counts(), voices, ambience: amb, score }));
   return sound;
 }

@@ -29,7 +29,7 @@ page.on('pageerror', (e) => { report.errors.push(String(e)); });
 page.on('requestfailed', (r) => { const u = new URL(r.url()); if (/^\/assets\/(music|sfx)\//.test(u.pathname)) report.failedAudio.push({ path: u.pathname, err: r.failure()?.errorText }); });
 
 const probe = () => page.evaluate(() => {
-  const w = window.__wildshard?.world, m = w.music, st = m.steppe, d = m.deck, ctx = m.rig?.ctx;
+  const w = window.__wildshard?.world, m = w.music, st = w.game.app.debug.snapshot()['nalati.sound']().score, d = m.deck, ctx = m.rig?.ctx;
   const rms = (b) => { if (!b) return null; const x = b.getChannelData(0); let s = 0, pk = 0; for (let i = 0; i < x.length; i += 7) { s += x[i] * x[i]; pk = Math.max(pk, Math.abs(x[i])); } return { rms: Number(Math.sqrt(s / (x.length / 7)).toFixed(4)), peak: Number(pk.toFixed(3)) }; };
   const buf = (b) => (b ? { duration: Number(b.duration.toFixed(3)), channels: b.numberOfChannels, sampleRate: b.sampleRate, ...rms(b) } : null);
   const king = st.slots.get('steppe-king');
@@ -89,7 +89,7 @@ try {
       out[f] = set ? set.bufs.map((b) => { const x = b.getChannelData(0); let pk = 0, s = 0; for (const v of x) { pk = Math.max(pk, Math.abs(v)); s += v * v; } return { duration: Number(b.duration.toFixed(3)), peak: Number(pk.toFixed(3)), rms: Number(Math.sqrt(s / x.length).toFixed(4)) }; }) : 'synth (no file)';
     }
     const before = { ...a.counts };
-    const v = window.__nalatiSound.voices; // the steppe weapons' voices (src/shards/nalati-grasslands/audio/synth.ts)
+    const v = window.__wildshard.world.game.app.debug.snapshot()['nalati.sound']().voices; // the steppe weapons' voices (src/shards/nalati-grasslands/audio/synth.ts)
     v.spearThrust(); v.javelinImpact('flesh');
     out.fired = { spearThrust: (a.counts.spearThrust ?? 0) - (before.spearThrust ?? 0), 'javelinImpact:flesh': (a.counts['javelinImpact:flesh'] ?? 0) - (before['javelinImpact:flesh'] ?? 0) };
     return out;
