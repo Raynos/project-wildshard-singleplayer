@@ -226,14 +226,8 @@ export class Bow extends Weapon {
     return dir;
   }
 
-  /**
-   * The saddle's per-frame hand-off (loadout mount data → here; `null` on foot). From the horse's speed (m/s) and heading
-   * (`yaw`, Player.yaw convention) it sets the knobs above per combat.md §A: the draw 0.9 s mounted (0.75 on foot), the
-   * gait's spread cone (walk 0.8° · trot 3.0° · canter 1.5° · gallop 1.8°), the horse's velocity added to every arrow,
-   * no drop arc from the saddle, and the Parthian shot — the view > 110° off the heading: the draw 0.2 s slower and
-   * +0.5° spread. (The gallop's "float" halving of the spread needs the stride phase: the Mount can lower
-   * `extraSpreadDeg` itself after this call.)
-   */
+  /** Apply authored mounting data (draw, spread, rear shots and arc) without changing an unmounted profile.
+   * Carrier velocity belongs to the saddle; external source and draw multipliers keep their own share. */
   setMount(m: { speed: number; yaw: number } | null): void {
     if (m === null) { this.mountDraw = 1; this.mountSpread = 0; this.carrierVelocity.set(0, 0, 0); this.mountArc = true; this.parthian = false; this.mounted = false; return; }
     const mounted = this.profile.mounted;

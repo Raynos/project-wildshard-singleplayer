@@ -14,23 +14,9 @@ import { fxMaterial, FX, type FxMaterial } from '../world/KurganDungeon';
  * a string of light … it draws 20 % faster than the recurve. A full draw fires a SUN ARROW that pierces through one target
  * and leaves a gold streak. A sun arrow into a balbal's amber crack shatters it."
  *
- * It is NOT a fork of the bow: it is B2's `Bow` (src/engine/player/Bow.ts) reconfigured through its public API — the same
- * weapon in the same slot, upgraded in place:
- *   · the viewmodel recoloured gold (the bow mesh's vertex colours: limbs → gold, the string → light), the grip / fist kept;
- *   · `drawSpeedScale` × 1.2;
- *   · `onLoose(p)`: a full draw (p ≥ 0.95) is a sun arrow — the same `Projectiles.predict` path the arrow will fly
- *     becomes a gold streak (one ribbon mesh, fades in 1.1 s), and the SECOND animal along that path takes a pierce hit
- *     when the arrow gets there (the first is hit by the arrow itself, through Projectiles as always);
- *   · `damageMultiplier`: balbals (B11's `balbal`, the King's `kurgan-balbal`) take ×2 from a golden arrow, ×3 from a
- *     sun arrow (composed with whatever multiplier was already set).
- *
- *   const golden = new GoldenBow({ scene, sky, camera, raycast: (o, d, max) => animals.raycast(o, d, max) });
- *   golden.apply(kit.bow);            // the upgrade (idempotent) — Boss reward grant, and at boot when already owned
- *   game.onUpdate((dt) => golden.update(dt));
- *   goldenBowModel(sky)               // the display model for the reward orb
- *
- * (B2 added `Bow.setStyle('golden')` for the recolour, and `Bow.setMount` keeps the saddle's share apart, so the golden
- * ×1.2 draw survives riding.)
+ * GoldenBow extends the shared Bow family. The reward replaces the original bow in its slot and keeps its quiver,
+ * mounted state and composed source multipliers. GoldenBowPower owns the preloaded sun streak and piercing timeline;
+ * its update clock stays with the boss runtime. The golden draw boost survives mounted gait and rear-shot adjustments.
  */
 
 export interface GoldenBowDeps {

@@ -1,6 +1,11 @@
 import type { NpcFigureMotionProfile } from '#kit';
 import { CAMP_PEOPLE } from './quest';
+import { peopleModelUrl, type PersonFrame } from './campPeopleModels';
 
+export interface CampPersonProfile {
+  id: keyof typeof CAMP_PEOPLE; model: string; frame: PersonFrame; motion: NpcFigureMotionProfile;
+  phase: number; glanceAfter: number; collider: { height: number; radius: number };
+}
 /** Authored idle secondary motion; the shared NPC rig owns focus and talking. */
 export const CAMP_MOTION: Record<keyof typeof CAMP_PEOPLE, NpcFigureMotionProfile> = {
   elder: {}, herderGate: {}, herderRail: {},
@@ -15,3 +20,10 @@ export const CAMP_MOTION: Record<keyof typeof CAMP_PEOPLE, NpcFigureMotionProfil
       z: { offset: -0.2, amplitude: 0.14, frequency: 2.4, clock: 'time', cosine: true } },
   },
 };
+
+/** Per-person content rows share the rig's focus and talking clips. */
+export function campPersonProfile(id: keyof typeof CAMP_PEOPLE, frame: PersonFrame, radius: number, index: number): CampPersonProfile {
+  return { id, model: peopleModelUrl(id), frame, motion: CAMP_MOTION[id], phase: index * 1.7, glanceAfter: 2 + index,
+    collider: { height: frame.height, radius } };
+}
+

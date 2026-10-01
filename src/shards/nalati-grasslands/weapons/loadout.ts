@@ -18,21 +18,8 @@ export const NALATI_BOW = { ...BOW_PROFILE, mounted: {
     { below: 10.5, spread: 1.5 }, { below: Infinity, spread: 1.8 }],
 } };
 
-/**
- * nalatiKit — the Nalati Grasslands weapon set (plan row B3; decision: 3 slots — bow · sabre · spear, javelins thrown from
- * the spear slot). main.ts builds it for `chunk.slug === 'nalati-grasslands'` instead of the crossbow / sword:
- *
- *   const kit = buildNalatiKit({ game, sky, player, forest }, targets, nolock);
- *   const weapons = new EquipmentService(kit.base, rifle, kit.extras, kit.options);   // the AR-15 stays in the kit, locked
- *   kit.install(weapons);                                                    // every slot owned, the bow in hand (the weapon strip
- *                                                                            // is the base HUD's: ShardManifest.hud.weaponStrip, E154)
- *   kit.refill();                                                            // on respawn: the javelins back
- *
- * Slots (keys 1 / 2 / 3, the strip, Q = the last weapon): bow (B2's Bow.ts — held first), sabre (Sabre.ts, the kit's base
- * weapon: `EquipmentService` needs one), spear (Spear.ts). The bow's wind (`kit.bow.wind = wind`, src/world/Wind.ts) is the world's. `setMount(m)` is the riding row's (B7) one
- * call per frame: it hands the horse's speed / heading to every weapon that reads it (null on foot).
- */
-
+/** Nalati's authored three-slot loadout. The plugin registers the rifle as a practice loan;
+ * the normal equipment service owns selection, swaps and reward replacements. */
 export interface NalatiWorld { game: Game; sky: Sky; player: Player; forest: Forest }
 export interface NalatiLoadout {
   base: Sabre;

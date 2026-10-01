@@ -51,12 +51,12 @@ export function peopleModelUrl(key: PersonKey): string {
  * pivots; campPeople.ts). The bones' world matrices are the runtime's to write (`matrixWorld`, no parents): root = the
  * body matrix, head = root × (neck, the head turn), arm = root × (shoulder, the arm swing) — as the BatchedMesh pieces.
  */
-export async function loadPeopleRig<K extends PersonKey>(sky: Sky, frames: Record<K, PersonFrame>): Promise<PeopleRig<K>> {
+export async function loadPeopleRig<K extends PersonKey>(sky: Sky, frames: Record<K, PersonFrame>, models?: Record<K, string>): Promise<PeopleRig<K>> {
   if (!loader) { loader = new GLTFLoader(); loader.setMeshoptDecoder(MeshoptDecoder); }
   const gl = loader;
   const keys = Object.keys(frames) as K[];
   const figs = await Promise.all(keys.map(async (key) => {
-    const gltf = await gl.loadAsync(peopleModelUrl(key));
+    const gltf = await gl.loadAsync(models?.[key] ?? peopleModelUrl(key));
     const r = rawFromGltf(gltf.scene, `person ${key}`);
     const cuts: number[] = [];
     gltf.scene.traverse((o) => { const v: unknown = o.userData['neckCut']; if (typeof v === 'number') cuts.push(v * frames[key].height); });

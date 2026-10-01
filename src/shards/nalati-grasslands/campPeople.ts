@@ -36,7 +36,7 @@ import type { WorldRegistry, ColliderDesc } from '#engine/world/registry';
 import { CAMP_PEOPLE } from './quest';
 import { loadPeopleRig, type PersonFrame, type PeopleRig } from './campPeopleModels';
 import { stepNpcFigure, npcFigurePose } from '#kit';
-import { CAMP_MOTION } from './campPeopleProfiles';
+import { campPersonProfile, type CampPersonProfile } from './campPeopleProfiles';
 
 export type PersonId = keyof typeof CAMP_PEOPLE;
 
@@ -232,6 +232,7 @@ export function personFigure(sky: Sky, id: PersonId): { group: THREE.Group; fram
 // ── the runtime ──────────────────────────────────────────────────────────────────────────────────────────────────────
 
 interface Live extends Person {
+  profile: CampPersonProfile;
   parts: Parts;
   ids: { body: number; head: number; arm: number };
   idleYaw: number;
@@ -261,21 +262,21 @@ export function buildCampPeople(sky: Sky, floorAt: (x: number, z: number) => num
 
   const fig = {} as Record<PersonId, Live>;
   for (const id of ids) {
-    const parts = built[id], spot = CAMP_PEOPLE[id];
+    const parts = built[id], spot = CAMP_PEOPLE[id], profile = campPersonProfile(id, parts, parts.radius, ids.indexOf(id));
     const g = { body: batch.addGeometry(parts.body), head: batch.addGeometry(parts.head), arm: batch.addGeometry(parts.arm) };
     parts.body.dispose(); parts.head.dispose(); parts.arm.dispose();
     const x = id === 'child' ? spot.x + CHILD_RING : spot.x, z = spot.z;
     fig[id] = {
-      id, parts, feet: v3(x, floorAt(x, z), z), headWorld: new THREE.Vector3(), talking: false, yaw: spot.yaw,
+      id, parts, profile, feet: v3(x, floorAt(x, z), z), headWorld: new THREE.Vector3(), talking: false, yaw: spot.yaw,
       ids: { body: batch.addInstance(g.body), head: batch.addInstance(g.head), arm: batch.addInstance(g.arm) },
-      idleYaw: spot.yaw, headYaw: 0, headPitch: 0, armX: 0, armZ: 0, glanceT: 2 + ids.indexOf(id), glance: 0, phase: ids.indexOf(id) * 1.7, ring: 0, anchor: null,
+      idleYaw: spot.yaw, headYaw: 0, headPitch: 0, armX: 0, armZ: 0, glanceT: profile.glanceAfter, glance: 0, phase: profile.phase, ring: 0, anchor: null,
     };
   }
 
   // colliders: a capsule per figure; the four who stay put as one static piece, the child on a body that follows her
   const capsule = (p: Live, local: boolean): ColliderDesc => {
-    const r = p.parts.radius, hh = Math.max(0.05, p.parts.height / 2 - r);
-    return { kind: 'capsule', x: local ? 0 : p.feet.x, y: (local ? 0 : p.feet.y) + p.parts.height / 2, z: local ? 0 : p.feet.z, halfHeight: hh, radius: r, surface: 'flesh' };
+    const { radius: r, height } = p.profile.collider, hh = Math.max(0.05, height / 2 - r);
+    return { kind: 'capsule', x: local ? 0 : p.feet.x, y: (local ? 0 : p.feet.y) + height / 2, z: local ? 0 : p.feet.z, halfHeight: hh, radius: r, surface: 'flesh' };
   };
   const still = ids.filter((id) => id !== 'child').map((id) => capsule(fig[id], false));
   const childAnchor = new THREE.Object3D();
@@ -292,7 +293,8 @@ export function buildCampPeople(sky: Sky, floorAt: (x: number, z: number) => num
 
   // D2: the generated + rigged figures (campPeopleModels.ts) on the procedural figures' frames
   const frames = {} as Record<PersonId, PersonFrame>;
-  for (const id of ids) { const pp = fig[id].parts; frames[id] = { height: pp.height, neck: pp.neck, shoulder: pp.shoulder }; }
+  const models = {} as Record<PersonId, string>;
+  for (const id of ids) { frames[id] = fig[id].profile.frame; models[id] = fig[id].profile.model; }
   let rig: PeopleRig<PersonId> | null = null;
 
   const writePose = npcFigurePose();
@@ -309,7 +311,7 @@ export function buildCampPeople(sky: Sky, floorAt: (x: number, z: number) => num
 
   // the image-to-3D figures (N20, the user's pick): the procedural batch stands until they have loaded (and stays if they fail)
   for (const id of ids) pose(fig[id]);
-  void loadPeopleRig(sky, frames).then((r) => {
+  void loadPeopleRig(sky, frames, models).then((r) => {
     scope?.own(r.mesh.geometry); scope?.own(r.mesh.skeleton);
     for (const material of Array.isArray(r.mesh.material) ? r.mesh.material : [r.mesh.material]) {
       if (material instanceof THREE.MeshLambertMaterial && material.map) scope?.own(material.map);
@@ -329,7 +331,7 @@ export function buildCampPeople(sky: Sky, floorAt: (x: number, z: number) => num
     if (asleep) asleep = false;
     for (const id of ids) {
       const p = fig[id];
-      if (stepNpcFigure(p, p.parts, CAMP_MOTION[id], dt, t, player, floorAt)) place(p);
+      if (stepNpcFigure(p, p.profile.frame, p.profile.motion, dt, t, player, floorAt)) place(p);
       pose(p);
     }
   };
