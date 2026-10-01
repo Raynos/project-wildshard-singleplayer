@@ -6,7 +6,7 @@
  *
  *   const clock = new DayClock({ start: DayClock.hourOfSun(def.sky.sun) });   // start where the def's sun stands
  *   clock.update(dt)                    // every frame
- *   clock.hour / clock.phase            // 0..24 · 'dawn' | 'day' | 'golden' | 'dusk' | 'night'
+ *   clock.hour / clock.dayPhase            // 0..24 · 'dawn' | 'day' | 'golden' | 'dusk' | 'night'
  *   clock.sunElevation / sunAzimuth     // degrees (compass azimuth: 0 = north = +Z, 90 = east = −X)
  *   clock.onDusk(fn) · onNight(fn) · onDawn(fn) · onDay(fn) · onGolden(fn)   // fire on entering the phase (fn(phase, prev))
  *   clock.onPhase(fn)                   // every phase change
@@ -35,138 +35,11 @@ import { painterlyUniforms, syncPainterlySun } from './painterly';
 import { fogUniforms } from './Atmosphere';
 import type { RGB } from '#game/shard/manifest';
 
-export type DayPhase = 'dawn' | 'day' | 'golden' | 'dusk' | 'night';
-export type PhaseListener = (phase: DayPhase, prev: DayPhase) => void;
+import { compassDir } from './dayCycle';
+import type { DayCycle } from './dayCycle';
 
-/** one stretch of the day: the phase, the hours it spans (end may pass 24), and how many minutes of play it lasts */
-export interface ScheduleSeg { phase: DayPhase; from: number; to: number; minutes: number }
-
-/** ≈ 26 min of play per day: day 10 · golden 3 · dusk 3.5 · night 7 · dawn 2.5 */
-export const DEFAULT_SCHEDULE: ScheduleSeg[] = [
-  { phase: 'dawn', from: 4.5, to: 7, minutes: 2.5 },
-  { phase: 'day', from: 7, to: 16.5, minutes: 10 },
-  { phase: 'golden', from: 16.5, to: 18, minutes: 3 },
-  { phase: 'dusk', from: 18, to: 19.75, minutes: 3.5 },
-  { phase: 'night', from: 19.75, to: 28.5, minutes: 7 },
-];
-
-const D2R = Math.PI / 180;
-/** compass degrees (0 = north = +Z, 90 = east = −X) + elevation → unit direction (Sky.ts's convention) */
-export function compassDir(azimuth: number, elevation: number, out = new THREE.Vector3()): THREE.Vector3 {
-  const az = azimuth * D2R, el = elevation * D2R;
-  return out.set(-Math.sin(az) * Math.cos(el), Math.sin(el), Math.cos(az) * Math.cos(el)).normalize();
-}
-
-export interface DayClockOpts {
-  /** starting hour (0..24) */
-  start?: number;
-  schedule?: ScheduleSeg[];
-  /** the sun's elevation at noon, degrees */
-  maxElevation?: number;
-  /** added to the sun's azimuth (a shard can swing its sun path) */
-  azimuthOffset?: number;
-}
-
-export class DayClock {
-  /** hour of the day, 0..24 */
-  hour: number;
-  phase: DayPhase;
-  /** play-time multiplier (1 = the schedule's minutes) */
-  scale = 1;
-  paused = false;
-  readonly maxElevation: number;
-  readonly azimuthOffset: number;
-  private readonly schedule: ScheduleSeg[];
-  private listeners: { phase: DayPhase | null; fn: PhaseListener }[] = [];
-
-  constructor(opts: DayClockOpts = {}) {
-    this.schedule = opts.schedule ?? DEFAULT_SCHEDULE;
-    this.maxElevation = opts.maxElevation ?? 58;
-    this.azimuthOffset = opts.azimuthOffset ?? 0;
-    this.hour = wrap24(opts.start ?? 16);
-    this.phase = this.segAt(this.hour).phase;
-  }
-
-  /**
-   * The clock for a shard whose def places the sun by hand (`ChunkSky.sun`): the afternoon hour at which the arc puts
-   * the sun at that elevation, and the azimuth offset that swings the arc through the def's azimuth — so the clock
-   * starts on exactly the def's look.
-   */
-  static forSun(sun: { azimuth: number; elevation: number }, opts: Omit<DayClockOpts, 'start' | 'azimuthOffset'> = {}): DayClock {
-    const maxEl = opts.maxElevation ?? 58;
-    const x = Math.PI - Math.asin(Math.min(1, Math.max(-1, sun.elevation / maxEl))); // the descending (afternoon) side
-    const hour = 6 + (x * 12) / Math.PI;
-    const az = 90 + (hour - 6) * 15;
-    return new DayClock({ ...opts, start: hour, azimuthOffset: sun.azimuth - az });
-  }
-
-  /** degrees above the horizon (negative at night) */
-  get sunElevation(): number { return this.maxElevation * Math.sin((Math.PI * (this.hour - 6)) / 12); }
-  /** compass degrees */
-  get sunAzimuth(): number { return 90 + (this.hour - 6) * 15 + this.azimuthOffset; }
-  /** the moon: roughly opposite the sun, never below 18° while the sun is down */
-  get moonElevation(): number { return 18 + 0.35 * Math.max(0, -this.sunElevation); }
-  get moonAzimuth(): number { return this.sunAzimuth + 180; }
-
-  /** minutes of play one full day takes at scale 1 */
-  get dayMinutes(): number { return this.schedule.reduce((a, s) => a + s.minutes, 0); }
-
-  onPhase(fn: PhaseListener): () => void { return this.on(null, fn); }
-  onDawn(fn: PhaseListener): () => void { return this.on('dawn', fn); }
-  onDay(fn: PhaseListener): () => void { return this.on('day', fn); }
-  onGolden(fn: PhaseListener): () => void { return this.on('golden', fn); }
-  onDusk(fn: PhaseListener): () => void { return this.on('dusk', fn); }
-  onNight(fn: PhaseListener): () => void { return this.on('night', fn); }
-
-  /** jump to an hour or to the middle-ish of a phase ('dusk' = just after sunset, 'night' = 22:30, 'noon' = 12:00) */
-  set(to: number | DayPhase | 'noon' | 'midnight'): void {
-    const named: Record<string, number> = { dawn: 5.6, day: 10, noon: 12, golden: 17.1, dusk: 18.15, night: 22.5, midnight: 0 };
-    this.hour = wrap24(typeof to === 'number' ? to : named[to] ?? this.hour);
-    this.checkPhase();
-  }
-
-  update(dt: number): void {
-    if (this.paused || dt <= 0) return;
-    const seg = this.segAt(this.hour);
-    const hoursPerSecond = (seg.to - seg.from) / Math.max(1e-3, seg.minutes * 60);
-    this.hour = wrap24(this.hour + dt * this.scale * hoursPerSecond);
-    this.checkPhase();
-  }
-
-  /** 0..1 progress through the current phase */
-  get phaseProgress(): number {
-    const s = this.segAt(this.hour);
-    let h = this.hour; if (h < s.from) h += 24;
-    return (h - s.from) / (s.to - s.from);
-  }
-
-  private on(phase: DayPhase | null, fn: PhaseListener): () => void {
-    const l = { phase, fn };
-    this.listeners.push(l);
-    return () => { this.listeners = this.listeners.filter((x) => x !== l); };
-  }
-
-  private checkPhase(): void {
-    const p = this.segAt(this.hour).phase;
-    if (p === this.phase) return;
-    const prev = this.phase;
-    this.phase = p;
-    for (const l of this.listeners.slice()) if (l.phase === null || l.phase === p) l.fn(p, prev);
-  }
-
-  private segAt(hour: number): ScheduleSeg {
-    for (const s of this.schedule) {
-      if (hour >= s.from && hour < s.to) return s;
-      if (hour + 24 >= s.from && hour + 24 < s.to) return s;
-    }
-    const first = this.schedule[0];
-    if (!first) throw new Error('DayClock: empty schedule');
-    return first;
-  }
-}
-
-function wrap24(h: number): number { return ((h % 24) + 24) % 24; }
-
+export { compassDir } from './dayCycle';
+export type { DayPhase } from './dayCycle';
 // ─────────────────────────────────────────────── the look ───────────────────────────────────────────────
 
 /** everything the sky rig paints, as plain numbers (lerpable) — the clock builds one, weather modifies it, `apply` writes it */
@@ -405,7 +278,7 @@ export class SkyRig {
   private readonly bright: number;
 
   /** the time-of-day look at the clock's hour → out */
-  look(clock: DayClock, out: SkyLook): SkyLook {
+  look(clock: DayCycle, out: SkyLook): SkyLook {
     const el = clock.sunElevation;
     compassDir(clock.sunAzimuth, el, out.sunDir);
     // find the two keys around the elevation (keys run from high to low)
@@ -527,7 +400,7 @@ export function copyLook(out: SkyLook, L: SkyLook): SkyLook {
 }
 
 /** a sky-light level 0..1 (day 1 · dusk ~0.7 · night ~0.4) — the stealth `light` factor reads it */
-export function lightLevel(clock: DayClock): number {
+export function lightLevel(clock: DayCycle): number {
   const el = clock.sunElevation;
   return 0.4 + 0.3 * smooth(-14, -2, el) + 0.3 * smooth(-2, 10, el);
 }

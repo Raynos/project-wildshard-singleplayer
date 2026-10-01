@@ -1,3 +1,5 @@
+import { clockForSun, steppeClock } from './look/dayKeys';
+import type { DayCycle } from '#engine/world/dayCycle';
 /**
  * Nalati weather + day/night wiring (row B10 of project/archive/2026-09-23-nalati.md): the clock, the storm state machine, the storm's
  * visuals, and everything they touch — the sky rig (sun / moon, sky, fog, grade), the one Wind, the creatures'
@@ -25,8 +27,8 @@ import type { Forest } from '#engine/world/forest/Forest';
 import type { Audio } from '#engine/audio/Audio';
 import { getActiveChunk } from '#game/shard/registry';
 import { heightAt } from '#engine/world/Heightfield';
-import { DayClock, SkyRig, makeLook, copyLook, lightLevel, type SkyLook, type DayPhase } from '#engine/world/DayClock';
-import { Weather, STORM_PHASES, type Exposed, type LightningPlayer } from './world/Weather';
+import { SkyRig, makeLook, copyLook, lightLevel, type SkyLook, type DayPhase } from '#engine/world/DayClock';
+import { SteppeStorm as Weather, STORM_PHASES, type Exposed, type LightningPlayer } from './world/Weather';
 import { WeatherFX } from './world/WeatherFX';
 import { wind } from '#engine/world/steppeWind';
 import { waterOf } from './water';
@@ -62,7 +64,7 @@ export interface WeatherHooks {
 }
 
 export interface NalatiWeather {
-  clock: DayClock;
+  clock: DayCycle;
   weather: Weather;
   rig: SkyRig;
   fx: WeatherFX;
@@ -174,9 +176,9 @@ export function wireWeather(ctx: WeatherCtx): NalatiWeather {
   let indoors = false;
 
   // ── the clock: starts on the def's own sun, so the first frame is the look the shard was painted with ──
-  const clock = def.sky.sun ? DayClock.forSun(def.sky.sun) : new DayClock();
+  const clock = def.sky.sun ? clockForSun(def.sky.sun) : steppeClock();
   const tq = qs.get('time');
-  if (tq) { const h = Number.parseFloat(tq); if (Number.isFinite(h)) clock.set(h); else if (isTimeName(tq)) clock.set(tq); }
+  if (tq) { const h = Number.parseFloat(tq); if (Number.isFinite(h)) void clock.set(h); else if (isTimeName(tq)) void clock.set(tq); }
   // Debug ▸ Sky & weather ▸ Clock speed (E162, live)
   clock.scale = Number(setting('clockSpeed'));
   onSettingChange('clockSpeed', (v) => { clock.scale = Number(v); });

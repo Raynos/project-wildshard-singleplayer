@@ -95,8 +95,6 @@ import { sharedCombatCues } from '#kit/audio/combatCues';
 import { driftwoodCombatCues } from '#shards/driftwood-isle/audio/combatCues';
 import { installBodyShadow } from '#engine/player/BodyShadow';
 import { getNumber, onNumber, onSettingChange, setting } from '#engine/ui/Settings';
-import { dayClockClock, dayNightClock, setActiveClock } from '#engine/world/WorldClock';
-import { DayNight } from '#engine/world/DayNight';
 import { KeepAlive } from '#engine/core/KeepAlive';
 import { Combat, aimReadout } from '#engine/ui/Combat';
 import { HurtArc, deathCause, respawnWhere } from '#engine/ui/HurtArc';
@@ -610,8 +608,9 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   // Settings ▸ Time of day, Explore's light presets and the HUD's sun / moon glyph reach either (a URL ?time= wins on Nalati)
   const nalatiClock = nalatiNow()?.weather.clock;
   // Pine Hollow's clock (PineDayNight) keeps its own Settings (Debug ▸ Time of day): only Driftwood's DayNight goes through WorldClock
-  const worldClock = dayNight instanceof DayNight ? dayNightClock(dayNight) : nalatiClock ? dayClockClock(nalatiClock, params.has('time') ? 'live' : setting('time')) : null;
-  setActiveClock(worldClock);
+  const worldClock = dayNight ?? nalatiClock ?? null;
+  if (nalatiClock && !params.has('time')) nalatiClock.setTime(setting('time'));
+  app.registerDayCycle(worldClock, game.levelScope);
   if (worldClock) onSettingChange('time', (t) => { worldClock.setTime(t); }); // pause menu ▸ Settings ▸ Time of day (E55)
 
   yield 'loadout';
@@ -1234,7 +1233,7 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
     seabed?.update(dt);
     cove?.update(dt); shrine?.update(dt); enemies?.update(dt, t, player.position);
     if (dayNight) { shrine?.setDusk(dayNight.dusk); if (ambience) ambience.night = dayNight.night; }
-    if (sky.pine && ambience instanceof ForestAmbience) ambience.dawn = sky.pine.dawn; // PH-L2: the dawn chorus on Pine Hollow's clock
+    if (sky.dayNight && ambience instanceof ForestAmbience) ambience.dawn = sky.dayNight.dawn; // PH-L2: the dawn chorus on Pine Hollow's clock
     mark('world');
     hands.update(dt, player);
     mark('player');

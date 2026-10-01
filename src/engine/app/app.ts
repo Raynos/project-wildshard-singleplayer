@@ -6,7 +6,7 @@ import type { Game } from '../core/Game';
 import type { Physics } from '../physics/Physics';
 import type { Bodies } from '../physics/bodies';
 import type { Navmesh } from '../physics/navmesh';
-import type { WorldClock } from '../world/WorldClock';
+import type { DayCycleClock } from '../world/dayCycle';
 import type { WorldRegistry } from '../world/registry';
 import type { AimTarget } from '../player/AimTargets';
 import type { Audio } from '../audio/Audio';
@@ -26,6 +26,12 @@ import type { EffectService } from '../combat/effects/EffectService';
 
 interface StateHook { state: AppState; run: () => void }
 export type SystemsByPhase = Readonly<Record<Phase, readonly SystemSpec[]>>;
+
+class AppWorld {
+  private readonly readClock: () => DayCycleClock | null;
+  constructor(readClock: () => DayCycleClock | null) { this.readClock = readClock; }
+  get dayCycle(): DayCycleClock | null { return this.readClock(); }
+}
 
 export class App {
   private currentState: AppState = 'boot';
@@ -85,7 +91,14 @@ export class App {
   bodies: Bodies | null = null;
   navmesh: Navmesh | null = null;
   navmeshId: string | null = null;
-  dayCycle: WorldClock | null = null;
+  private readonly clocks = new WeakMap<Scope, DayCycleClock>();
+  readonly world = new AppWorld(() => this.dayCycle);
+  get dayCycle(): DayCycleClock | null { return this.levelScope === null ? null : this.clocks.get(this.levelScope) ?? null; }
+  registerDayCycle(clock: DayCycleClock | null, scope: Scope): void {
+    if (clock === null) this.clocks.delete(scope);
+    else this.clocks.set(scope, clock);
+    scope.onDispose(() => { this.clocks.delete(scope); });
+  }
   aimTargets: readonly AimTarget[] = [];
   registryValue: WorldRegistry | null = null;
   registryFactory: (() => WorldRegistry) | null = null;

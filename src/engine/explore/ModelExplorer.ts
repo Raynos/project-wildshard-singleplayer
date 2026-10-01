@@ -32,7 +32,8 @@ import { BUDGET, CURRENT_TIER, TIERS } from './tiers';
 import type { Tier } from '../core/tier';
 import type { Animal } from '../entities/Animal';
 import type { DrawnAs, Pipeline } from '../world/registry';
-import { activeClock, type LightPreset, type WorldClock } from '../world/WorldClock';
+import type { LightPreset, DayCycleClock } from '../world/dayCycle';
+import { app } from '../app/runtime';
 import { registeredSets } from './registry';
 import { bandWindow, fitOrbit, lensReset, lensShift, setsOf } from './setView';
 
@@ -239,7 +240,7 @@ export class ModelExplorer implements ExplorePane {
   get entryList(): readonly CatalogEntry[] { return this.entries; }
 
   /** the shard's day clock (src/engine/world/WorldClock.ts) when it has one: the light presets hold it */
-  private clock(): WorldClock | null { return activeClock(); }
+  private clock(): DayCycleClock | null { return app.world.dayCycle; }
 
   show(opts: Record<string, string>): void {
     this.el.classList.add('show');

@@ -45,7 +45,7 @@ import { nalatiWetAt } from '#shards/nalati-grasslands/wet';
 import { NALATI_WILDLIFE } from '../entities/Wildlife';
 import { activeRegistry } from '../world/registry';
 import { mapShapes, mapWants, type MapPoly, type MapShapes } from './mapShapes';
-import { activeClock } from '../world/WorldClock';
+import { app } from '../app/runtime';
 import { scopesInstalled } from '../app/legacyCapture';
 import { ROOM_BG, arenaMap, fitRoom, paintRoom, type RoomMap } from './roomMap';
 
@@ -303,10 +303,10 @@ export class Minimap {
   }
   private day: { el: HTMLElement; body: string; phase: string } | null = null;
   private paintDay(): void {
-    const d = this.day, c = activeClock();
+    const d = this.day, c = app.world.dayCycle;
     if (d === null || c === null) return;
     if (c.body !== d.body) { d.body = c.body; d.el.innerHTML = c.body === 'sun' ? SVG_SUN : SVG_MOON; d.el.classList.toggle('moon', c.body === 'moon'); }
-    if (c.phase !== d.phase) { d.phase = c.phase; d.el.dataset['phase'] = c.phase; }
+    if (c.dayPhase !== d.phase) { d.phase = c.dayPhase; d.el.dataset['phase'] = c.dayPhase; }
   }
 
   // ── per frame ──

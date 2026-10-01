@@ -27,8 +27,11 @@
 import * as THREE from 'three';
 import { PINE_SKY_KEYS, type SkyKeyName } from './skyKeys';
 import { loadBakedSky } from '#engine/world/BakedSky';
+import { DayCycle } from '#engine/world/dayCycle';
+import { PINE_DAY, PINE_PHASES, FIXED_PHASE, P, clonePreset, pineSunAt, pineMoonAt, pineNightAt, type Preset } from './dayKeys';
 import { setting, type OptionValue } from '#engine/ui/Settings';
-import { pinePhoneCuts } from '#engine/core/tier';
+import { TIER } from '#engine/core/tier';
+import { getActiveChunk } from '#game/shard/registry';
 
 /** the PMREMGenerator (r186) internals the stepped refresh drives, one call a frame (PineDayNight.stepEnvironment) */
 interface PmremSteps {
@@ -43,106 +46,7 @@ function hasSteps(gen: object): gen is PmremSteps {
 }
 
 const DAY = 20 / 24;
-const d2r = Math.PI / 180;
-/** the shadow-casting light turns in steps of this (DayNight.ts SHADOW_STEP, E89) */
-const SHADOW_STEP = 0.25 * d2r;
-/** the sun's path: rises in the NE (compass 54°), 52° up in the south at noon, sets in the NW (306°: the old sunset's azimuth) */
-const RISE_AZ = 54, SET_AZ = 306, NOON_EL = 52;
-/** named phases for `?tod=` and Settings ▸ Time of day */
-export const PINE_PHASES = { sunrise: 0.008, morning: 0.085, day: 0.4167, midday: 0.4167, noon: 0.4167, golden: 0.735, sunset: 0.8, dusk: 0.85, night: 0.92, dawn: 0.985 } as const;
-const FIXED_PHASE: Record<Exclude<OptionValue<'time'>, 'live'>, number> = { midday: PINE_PHASES.midday, golden: PINE_PHASES.golden, sunset: PINE_PHASES.sunset, night: PINE_PHASES.night };
-
-interface Preset {
-  /** the HDRI key */
-  key: SkyKeyName;
-  /** the key's gain: sky brightness relative to the photo (Poly Haven normalises every exposure) */
-  bg: number;
-  /** scene.environmentIntensity over the rendered sky */
-  env: number;
-  /** the light body (sun by day, moon by night): colour, intensity */
-  light: THREE.Color; lightI: number;
-  hemiSky: THREE.Color; hemiGround: THREE.Color; hemiI: number;
-  /** the fog's in-scatter toward the light, its distance and height densities */
-  fogSun: THREE.Color; fogDist: number; fogHeight: number;
-  /** volumetric shafts (VolumetricsEffect uStrength) and their colour; god-ray opacity */
-  vol: number; volColor: THREE.Color; rays: number;
-  /** the dome's aureole around the light, the disc, the corona sprite (colour × opacity) */
-  glow: THREE.Color; disc: THREE.Color; halo: THREE.Color; haloO: number;
-  /** the cloud layer: the tint toward the light, the lit / shade multiplier and its opacity */
-  cloudSun: THREE.Color; cloudLit: THREE.Color; cloudA: number;
-  /** the far ridges' haze colour (Horizon.ts) */
-  far: THREE.Color;
-  /** the night lights (cabin windows, lanterns): 0 day … 1 full night */
-  lamps: number;
-  /** the grade's saturation (HueSaturationEffect; the fixed look's 0.18): night drains colour, as the eye does in the dark */
-  sat: number;
-}
-
-const c = (r: number, g: number, b: number): THREE.Color => new THREE.Color(r, g, b);
-const hex = (h: number): THREE.Color => new THREE.Color(h);
-const P: Record<'sunrise' | 'golden' | 'day' | 'sunset' | 'dusk' | 'night' | 'dawn', Preset> = {
-  sunrise: {
-    key: 'sunrise', bg: 0.8, env: 1.1, light: c(1.0, 0.62, 0.38), lightI: 2.8, hemiSky: hex(0x8a98c0), hemiGround: hex(0x3a3026), hemiI: 0.36,
-    fogSun: c(1.0, 0.66, 0.42), fogDist: 0.00055, fogHeight: 0.009, vol: 0.55, volColor: c(1.0, 0.66, 0.4), rays: 0.85,
-    glow: c(2.2, 1.15, 0.55), disc: c(1.0, 0.78, 0.55), halo: c(1.0, 0.72, 0.5), haloO: 0.95, cloudSun: c(1.0, 0.72, 0.52), cloudLit: c(0.95, 0.82, 0.78), cloudA: 0.8, far: c(0.5, 0.5, 0.6), lamps: 0.35, sat: 0.16,
-  },
-  golden: {
-    key: 'golden', bg: 1.3, env: 1.05, light: c(1.0, 0.66, 0.36), lightI: 4.2, hemiSky: hex(0x9aa4c0), hemiGround: hex(0x5c3e20), hemiI: 0.4,
-    fogSun: c(1.0, 0.7, 0.4), fogDist: 0.00042, fogHeight: 0.005, vol: 0.66, volColor: c(1.0, 0.7, 0.4), rays: 1,
-    glow: c(2.2, 1.15, 0.5), disc: c(1.0, 0.88, 0.7), halo: c(1.0, 0.76, 0.5), haloO: 0.9, cloudSun: c(1.0, 0.72, 0.48), cloudLit: c(1.0, 0.92, 0.84), cloudA: 0.75, far: c(0.56, 0.58, 0.68), lamps: 0, sat: 0.24,
-  },
-  day: {
-    key: 'day', bg: 1.8, env: 1.1, light: c(1.0, 0.96, 0.9), lightI: 4.4, hemiSky: hex(0xa0b8e0), hemiGround: hex(0x4d4232), hemiI: 0.5,
-    fogSun: c(1.0, 0.96, 0.88), fogDist: 0.00035, fogHeight: 0.004, vol: 0.42, volColor: c(1.0, 0.95, 0.85), rays: 0.8,
-    glow: c(1.3, 1.25, 1.15), disc: c(1.0, 0.98, 0.95), halo: c(1.0, 0.95, 0.88), haloO: 0.55, cloudSun: c(1.0, 0.97, 0.92), cloudLit: c(1.05, 1.05, 1.05), cloudA: 0.6, far: c(0.55, 0.64, 0.8), lamps: 0, sat: 0.14,
-  },
-  sunset: { // the pre-remaster fixed look's numbers (pine-hollow.ts sky / atmosphere): sun 3.8, hemi 0x8fa8d0 / 0x4a3a28 × 0.45, env 1.1, bg 0.95
-    key: 'sunset', bg: 0.95, env: 1.16, light: c(1.0, 0.76, 0.5), lightI: 3.8, hemiSky: hex(0x8fa8d0), hemiGround: hex(0x4a3a28), hemiI: 0.45,
-    fogSun: c(1.0, 0.78, 0.5), fogDist: 0.00045, fogHeight: 0.005, vol: 0.55, volColor: c(1.0, 0.72, 0.42), rays: 1,
-    glow: c(2.4, 1.3, 0.55), disc: c(1.0, 0.95, 0.85), halo: c(1.0, 1.0, 1.0), haloO: 1, cloudSun: c(1.0, 0.82, 0.62), cloudLit: c(1.0, 1.0, 1.0), cloudA: 1, far: c(0.5, 0.58, 0.74), lamps: 0.55, sat: 0.18,
-  },
-  dusk: {
-    key: 'dusk', bg: 0.42, env: 1.2, light: c(0.55, 0.6, 0.85), lightI: 0.0, hemiSky: hex(0x5d6694), hemiGround: hex(0x2a2430), hemiI: 0.3,
-    fogSun: c(0.85, 0.55, 0.58), fogDist: 0.0006, fogHeight: 0.008, vol: 0.28, volColor: c(0.7, 0.55, 0.75), rays: 0.3,
-    glow: c(0.45, 0.28, 0.3), disc: c(0.9, 0.93, 1.0), halo: c(0.6, 0.62, 0.8), haloO: 0.25, cloudSun: c(0.8, 0.5, 0.55), cloudLit: c(0.48, 0.44, 0.56), cloudA: 0.55, far: c(0.24, 0.24, 0.34), lamps: 1, sat: -0.05,
-  },
-  night: {
-    key: 'night', bg: 0.11, env: 3.0, light: c(0.6, 0.72, 1.0), lightI: 3.2, hemiSky: hex(0x4a5e9c), hemiGround: hex(0x1e2434), hemiI: 0.95,
-    fogSun: c(0.32, 0.4, 0.58), fogDist: 0.0007, fogHeight: 0.009, vol: 0.4, volColor: c(0.42, 0.52, 0.78), rays: 0.55,
-    glow: c(0.1, 0.13, 0.2), disc: c(1.7, 1.8, 2.0), halo: c(0.5, 0.6, 0.9), haloO: 0.35, cloudSun: c(0.3, 0.36, 0.5), cloudLit: c(0.16, 0.19, 0.27), cloudA: 0.18, far: c(0.05, 0.065, 0.1), lamps: 1, sat: -0.3,
-  },
-  dawn: {
-    key: 'dawn', bg: 0.5, env: 1.2, light: c(0.55, 0.62, 0.9), lightI: 0.0, hemiSky: hex(0x6d7aa8), hemiGround: hex(0x2c2a30), hemiI: 0.3,
-    fogSun: c(0.95, 0.75, 0.68), fogDist: 0.0006, fogHeight: 0.012, vol: 0.35, volColor: c(0.85, 0.72, 0.7), rays: 0.3,
-    glow: c(0.7, 0.5, 0.42), disc: c(0.9, 0.93, 1.0), halo: c(0.8, 0.7, 0.7), haloO: 0.3, cloudSun: c(0.95, 0.7, 0.62), cloudLit: c(0.62, 0.58, 0.64), cloudA: 0.6, far: c(0.34, 0.37, 0.48), lamps: 0.9, sat: -0.02,
-  },
-};
-
-/** keyframes over the phase (sorted; wraps 1 → 0): the sky key and every knob are blended between neighbours */
-const KEYS: readonly [number, Preset][] = [
-  [PINE_PHASES.sunrise, P.sunrise], [PINE_PHASES.morning, P.golden], [0.2, P.day], [0.62, P.day], [PINE_PHASES.golden, P.golden],
-  [PINE_PHASES.sunset, P.sunset], [DAY + 0.017, P.dusk], [0.885, P.night], [0.962, P.night], [PINE_PHASES.dawn, P.dawn],
-];
-
-/** compass azimuth (0 = north = +Z, 90 = east = −X) + elevation (deg) → unit vector toward the body */
-function dirFrom(az: number, el: number, out: THREE.Vector3): THREE.Vector3 {
-  return out.set(-Math.sin(az * d2r) * Math.cos(el * d2r), Math.sin(el * d2r), Math.cos(az * d2r) * Math.cos(el * d2r));
-}
-/** the sun: an east → south → west arc by day, on round under the north by night (its glow leads the dawn) */
-export function pineSunAt(p: number, out: THREE.Vector3): THREE.Vector3 {
-  if (p < DAY) { const s = p / DAY; return dirFrom(RISE_AZ + (SET_AZ - RISE_AZ) * s, NOON_EL * Math.sin(Math.PI * s), out); }
-  const s = (p - DAY) / (1 - DAY); return dirFrom(SET_AZ + (360 + RISE_AZ - SET_AZ) * s, -Math.sin(Math.PI * s) * 24, out);
-}
-/** the moon: up through the night, high in the south (≈ 58°, where the night key's moon is) */
-export function pineMoonAt(p: number, out: THREE.Vector3): THREE.Vector3 {
-  const s = p < DAY ? 0 : (p - DAY) / (1 - DAY);
-  return dirFrom(115 + 130 * s, 26 + 32 * Math.sin(Math.PI * s), out);
-}
-/** 0 at day … 1 at full night (the ambience, the lamps) */
-export function pineNightAt(p: number): number {
-  return THREE.MathUtils.smoothstep(p, DAY - 0.012, DAY + 0.04) * (1 - THREE.MathUtils.smoothstep(p, 0.962, 0.997));
-}
-
+const SHADOW_STEP = 0.25 * Math.PI / 180;
 const SKY_GLSL = /* glsl */`
   uniform sampler2D tA; uniform sampler2D tB; uniform float uMix;
   uniform vec2 uRotA; uniform vec2 uRotB; uniform float uGainA; uniform float uGainB;
@@ -203,9 +107,11 @@ export interface PineSkyMod {
   mist: number;
 }
 
-export class PineDayNight {
-  phase: number;
-  readonly cycle: number;
+export class PineSkyBackdrop {
+  readonly clock: DayCycle<Preset>;
+  get phase(): number { return this.clock.phase; }
+  set phase(p: number) { this.clock.phase = p; }
+  get cycle(): number { return this.clock.cycle; }
   night = 0;
   dusk = 0;
   dawn = 0;
@@ -223,7 +129,6 @@ export class PineDayNight {
     uRotA: { value: new THREE.Vector2(1, 0) }, uRotB: { value: new THREE.Vector2(1, 0) }, uGainA: { value: 1 }, uGainB: { value: 1 },
     uLightDir: { value: new THREE.Vector3(0, 1, 0) }, uGlow: { value: new THREE.Color() }, uGrey: { value: 0 }, uFlat: { value: new THREE.Color() },
   };
-  private frozen = false;
   private T: PineTargets | null = null;
   private post: PinePost | null = null;
   private cur: Preset = clonePreset(P.day);
@@ -253,10 +158,12 @@ export class PineDayNight {
    * -1 = idle, 0 = the top level, i = GGX level i.
    */
   private envStep = -1;
-  private readonly envSteps = pinePhoneCuts();
+  private readonly envSteps = getActiveChunk().tiers?.[TIER]?.envSteps === true;
 
   private constructor(private renderer: THREE.WebGLRenderer, private scene: THREE.Scene, phase: number, cycle: number, frozen: boolean) {
-    this.phase = phase; this.cycle = cycle; this.frozen = frozen;
+    this.clock = new DayCycle({ ...PINE_DAY, start: phase });
+    this.clock.cycle = cycle; this.clock.paused = frozen;
+    this.clock.onSet = () => this.jump();
     const dome = new THREE.Mesh(new THREE.SphereGeometry(2300, 64, 32), new THREE.ShaderMaterial({
       uniforms: this.u, side: THREE.BackSide, depthWrite: false, depthTest: false, fog: false,
       vertexShader: /* glsl */`
@@ -295,7 +202,7 @@ export class PineDayNight {
   }
 
   /** the clock at the URL's / Settings' time, its first two keys decoded, the environment rendered */
-  static async create(renderer: THREE.WebGLRenderer, scene: THREE.Scene): Promise<PineDayNight> {
+  static async create(renderer: THREE.WebGLRenderer, scene: THREE.Scene): Promise<PineSkyBackdrop> {
     const qs = new URLSearchParams(location.search);
     const todRaw = qs.get('tod') ?? '';
     const named = (PINE_PHASES as Record<string, number | undefined>)[todRaw];
@@ -304,7 +211,7 @@ export class PineDayNight {
     const time = setting('time'); // 'live' whenever ?tod / ?clock are in the URL
     const frozen = time !== 'live';
     const phase = frozen ? FIXED_PHASE[time] : Number.isFinite(tod) ? ((tod % 1) + 1) % 1 : PINE_PHASES.morning + 0.05;
-    const dn = new PineDayNight(renderer, scene, phase, Number.isFinite(clock) && clock > 1 ? clock : 24 * 60, frozen);
+    const dn = new PineSkyBackdrop(renderer, scene, phase, Number.isFinite(clock) && clock > 1 ? clock : 24 * 60, frozen);
     const [a, b] = dn.segment(phase);
     await Promise.all([dn.ensure(a[1].key), dn.ensure(b[1].key)]);
     return dn;
@@ -317,16 +224,10 @@ export class PineDayNight {
 
   /** Settings ▸ Time of day: park the sun at a pick, or run the clock on from where it stands */
   setTime(t: OptionValue<'time'>): void {
-    this.frozen = t !== 'live';
-    if (t === 'live') return;
-    this.phase = FIXED_PHASE[t];
-    void this.jump();
+    this.clock.setTime(t);
   }
-  /** dev / captures: jump to a phase (0..1) */
-  setPhase(p: number): Promise<void> {
-    this.phase = ((p % 1) + 1) % 1;
-    return this.jump();
-  }
+  /** Captures and porch/King transitions await the two decoded keys. */
+  setPhase(p: number): Promise<void> { return this.clock.set(p); }
   /** decode the current segment's keys, then snap every knob and the environment to the phase */
   private async jump(): Promise<void> {
     const [a, b] = this.segment(this.phase);
@@ -335,7 +236,7 @@ export class PineDayNight {
   }
 
   update(dt: number, camera: THREE.Camera): void {
-    if (!this.frozen) this.phase = (this.phase + dt / this.cycle) % 1;
+    this.clock.update(dt);
     this.dome.position.copy(camera.position);
     this.frame++;
     this.apply();
@@ -382,13 +283,7 @@ export class PineDayNight {
 
   /** the keyframes around phase p: [a, b] and the blend t */
   private segment(p: number): [readonly [number, Preset], readonly [number, Preset], number] {
-    const n = KEYS.length;
-    let i = n - 1;
-    for (let k = 0; k < n; k++) { const e = KEYS[k]; if (e && e[0] <= p) i = k; }
-    const a = KEYS[i] ?? KEYS[0], b = KEYS[(i + 1) % n] ?? KEYS[0];
-    if (a === undefined || b === undefined) throw new Error('PineDayNight: no keys');
-    const pa = a[0], pb = b[0] <= pa ? b[0] + 1 : b[0], pp = p < pa ? p + 1 : p;
-    return [a, b, THREE.MathUtils.smoothstep(pp, pa, pb)];
+    return this.clock.segment(p);
   }
 
   private blobsOf(k: SkyKeyName): Promise<{ color: Blob; gain: Blob }> {
@@ -463,7 +358,7 @@ export class PineDayNight {
   private apply(snap = false): void {
     const p = this.phase;
     const [a, b, t] = this.segment(p);
-    lerpPreset(this.cur, a[1], b[1], t);
+    this.clock.key(this.cur);
     const C = this.cur;
     const ov = weatherOver(C, this.mod);
     C.vol *= this.look.vol; C.fogDist *= this.look.fogDist; C.sat += this.look.sat;
@@ -587,23 +482,3 @@ function weatherOver(C: Preset, mod: PineSkyMod): number {
   return ov;
 }
 
-function clonePreset(p: Preset): Preset {
-  return {
-    ...p, light: p.light.clone(), hemiSky: p.hemiSky.clone(), hemiGround: p.hemiGround.clone(), fogSun: p.fogSun.clone(), volColor: p.volColor.clone(),
-    glow: p.glow.clone(), disc: p.disc.clone(), halo: p.halo.clone(), cloudSun: p.cloudSun.clone(), cloudLit: p.cloudLit.clone(), far: p.far.clone(),
-  };
-}
-
-function lerpPreset(out: Preset, a: Preset, b: Preset, t: number): void {
-  const L = (o: THREE.Color, x: THREE.Color, y: THREE.Color): void => { o.copy(x).lerp(y, t); };
-  const n = (x: number, y: number): number => x + (y - x) * t;
-  out.key = t < 0.5 ? a.key : b.key;
-  out.bg = n(a.bg, b.bg); out.env = n(a.env, b.env);
-  L(out.light, a.light, b.light); out.lightI = n(a.lightI, b.lightI);
-  L(out.hemiSky, a.hemiSky, b.hemiSky); L(out.hemiGround, a.hemiGround, b.hemiGround); out.hemiI = n(a.hemiI, b.hemiI);
-  L(out.fogSun, a.fogSun, b.fogSun); out.fogDist = n(a.fogDist, b.fogDist); out.fogHeight = n(a.fogHeight, b.fogHeight);
-  out.vol = n(a.vol, b.vol); L(out.volColor, a.volColor, b.volColor); out.rays = n(a.rays, b.rays);
-  L(out.glow, a.glow, b.glow); L(out.disc, a.disc, b.disc); L(out.halo, a.halo, b.halo); out.haloO = n(a.haloO, b.haloO);
-  L(out.cloudSun, a.cloudSun, b.cloudSun); L(out.cloudLit, a.cloudLit, b.cloudLit); out.cloudA = n(a.cloudA, b.cloudA); L(out.far, a.far, b.far);
-  out.lamps = n(a.lamps, b.lamps); out.sat = n(a.sat, b.sat);
-}

@@ -100,7 +100,7 @@ export function installPineAudio(h: PineAudioHost): void {
   const prev = new WeakMap<Animal, Animal['state']>();
   let night = false, slowT = 0, snortAt = -99, elite = false, eliteT = 0;
   game.onUpdate((dt, t) => {
-    const dn = sky.pine;
+    const dn = sky.dayNight;
     if (dn) amb.night = dn.night;
     slowT += dt;
     if (slowT < 0.2) return;

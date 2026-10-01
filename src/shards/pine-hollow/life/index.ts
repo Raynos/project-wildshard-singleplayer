@@ -724,7 +724,7 @@ export function installPineLife(h: PineLifeHost): PineLife | null {
     wild.begin();
     updateBeat(dt);
     cam.getWorldDirection(fwd); fwd.y = 0; fwd.normalize();
-    const night = sky.pine?.night ?? 0, t = now();
+    const night = sky.dayNight?.night ?? 0, t = now();
     updateCarcasses(t, dt);
     for (const r of ravens) { if (r.mode === 'off') continue; updateRaven(r, dt); if (flying(r)) wild.add(r.pose); }
     updateOwl(dt, night); if (owl.mode !== 'off') wild.add(owl.pose);

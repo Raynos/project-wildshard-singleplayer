@@ -19,9 +19,11 @@ import { SOFT_RADII, installShadowFilter } from './shadowFilter';
 import { ShadowFade, installShadowFadeChunk, sunFadeUniform } from './shadowFade';
 import { patchPointLightSkip } from './pointLightSkip';
 import { StylizedSky } from './StylizedSky';
-import { DayNight, type DayClock } from './DayNight';
+import type { DayCycleClock } from './dayCycle';
+import { DriftwoodSky } from '#shards/driftwood-isle/look/dayNight';
 import { ShadowMaps } from './shadowVariants';
-import { PineDayNight, pineSunAt, type PinePost } from '#shards/pine-hollow/look/PineDayNight';
+import { PineSkyBackdrop, type PinePost } from '#shards/pine-hollow/look/skyBackdrop';
+import { pineSunAt } from '#shards/pine-hollow/look/dayKeys';
 import { horizonLight } from './Horizon';
 import { loadLUT } from './lut';
 import { activeGrade } from './lookFlags';
@@ -157,7 +159,7 @@ export class Sky {
       const st = this.stylized, fog = this.scene.fog;
       this.clouds = st.dome; // Game.ts keeps `clouds` on the camera: the dome and its cumulus ring
       // the day / night clock (L7, D3) turns every knob above from here on
-      if (fog instanceof THREE.Fog) this.dayNight = this.stylizedClock = new DayNight({
+      if (fog instanceof THREE.Fog) this.stylizedClock = new DriftwoodSky({
         sunDir: this.sunDir, lights: this.csm.lights, lightDirection: this.csm.lightDirection, hemi: this.hemi, fog,
         fogSunDir: fogUniforms.fogSunDir.value, fogSunColor: fogUniforms.fogSunColor.value, toon: toonUniforms,
         setSkyPalette: (pal, dir) => { st.setPalette(pal); st.u.uSunDir.value.copy(dir); },
@@ -165,11 +167,12 @@ export class Sky {
         refreshEnvironment: () => { this.refreshEnvironment(); },
         shadowBusy: () => this.shadowFade?.busy ?? false,
       }, S.sunIntensity / 2.7);
+      this.dayNight = this.stylizedClock?.clock ?? null;
     } else {
       this.buildClouds();
       const pine = this.pine, fog = this.scene.fog, halo = this.sunDisc.children[0];
       if (pine && fog instanceof THREE.Fog) {
-        this.dayNight = pine;
+        this.dayNight = pine.clock;
         pine.bind({
           sunDir: this.sunDir, sunColor: this.sunColor, lights: this.csm.lights, lightDirection: this.csm.lightDirection, hemi: this.hemi, fog,
           fogU: fogUniforms, underwater: isUnderwater, disc: this.sunDisc, halo: halo instanceof THREE.Sprite ? halo : null,
@@ -184,9 +187,9 @@ export class Sky {
    * Pine Hollow's clock (PineDayNight.ts, PH-L2): the photographic sky keys blended on a dome, the environment rendered from
    * the blend. Returns the fog colour (the clock sets it every frame from here on).
    */
-  pine: PineDayNight | null = null;
+  pine: PineSkyBackdrop | null = null;
   private async setupPine(): Promise<THREE.Color> {
-    const [pine, , lut] = await Promise.all([PineDayNight.create(this.renderer, this.scene), preloadBakedTextures(), loadLUT(getActiveChunk().slug)]);
+    const [pine, , lut] = await Promise.all([PineSkyBackdrop.create(this.renderer, this.scene), preloadBakedTextures(), loadLUT(getActiveChunk().slug)]);
     this.lut = lut;
     this.pine = pine;
     const { look } = activeGrade(getActiveChunk()); // the look loop's haze / saturation layer (PH-L1 / L4)
@@ -250,8 +253,8 @@ export class Sky {
   /** the shard's learned colour LUT (lut.ts, X1; per shard) — Game.buildComposer ends the grade with it; null without a file */
   lut: LookupTexture | null = null;
   /** the day / night clock: the low-poly shard's (DayNight.ts) or Pine Hollow's (PineDayNight.ts); null on a fixed sky */
-  dayNight: DayClock | null = null;
-  private stylizedClock: DayNight | null = null;
+  dayNight: DayCycleClock | null = null;
+  private stylizedClock: DriftwoodSky | null = null;
   private pmrem: THREE.PMREMGenerator | null = null;
   private envRT: THREE.WebGLRenderTarget | null = null;
   private async setupStylized(): Promise<THREE.Color> {

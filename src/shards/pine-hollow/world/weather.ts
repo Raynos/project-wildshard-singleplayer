@@ -29,7 +29,7 @@ import type { TreeInstance } from '#engine/world/forest/placement';
 import type { AnimalManager, Herd } from '#engine/entities/AnimalManager';
 import type { Particles } from '#kit/looks/particles';
 import type { ForestAmbience } from '../audio/ambience';
-import { PineWeather, type PineWeatherMode } from './PineWeather';
+import { PineWeather, type PineWeatherMode } from './weatherProfile';
 import { PineWeatherFX } from './PineWeatherFX';
 import { fogUniforms, weatherUniforms, volumetricFog } from '#engine/world/Atmosphere';
 import { waterWeather } from '#engine/world/waterSurface';
@@ -158,7 +158,7 @@ export function installPineWeather(h: PineWeatherHost): PineWeatherRig | null {
   const dev = { paused: false };
   h.game.onUpdate((dt) => {
     if (dev.paused) return; // dev: the numbers below left as they are, to poke at one by hand
-    weather.update(dt, pine.phase);
+    weather.update(dt, pine.clock);
     const eye = h.viewer();
     const stay = 1 - THREE.MathUtils.clamp(weatherHold.k, 0, 1); // a sealed boss room's own fog wins (F-L7)
     const fog = weather.fog * stay, haze = weather.rain * stay, og = oldGrowthAt(eye.x, eye.z);
@@ -191,7 +191,7 @@ export function installPineWeather(h: PineWeatherHost): PineWeatherRig | null {
   }, 'world.weather');
 
   const rig: PineWeatherRig = { weather, fx, setMode: (m, t = 0.5) => { weather.setMode(m, t); } };
-  (window as unknown as { __pineWeather: unknown }).__pineWeather = {
+  h.game.app.debug.expose('pine.weather', {
     ...rig, dev, uniforms: { weatherUniforms, fogUniforms, waterWeather, windBoost, mod: pine.mod },
     /** dev (C7's evidence): every grazer's distance to the nearest big tree — the mean, and how many stand within 6 m */
     herdShelter: () => {
@@ -203,6 +203,6 @@ export function installPineWeather(h: PineWeatherHost): PineWeatherRig | null {
       }
       return { n: d.length, mean: Math.round(d.reduce((a, b) => a + b, 0) / Math.max(1, d.length) * 10) / 10, under6: d.filter((v) => v < 6).length, sheltering: [...shelters.values()].filter((s) => s.spot !== null).length };
     },
-  };
+  });
   return rig;
 }

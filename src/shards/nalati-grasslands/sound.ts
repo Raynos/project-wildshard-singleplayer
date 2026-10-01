@@ -217,7 +217,7 @@ export function wireSound(nalati: Nalati, ctx: { player: Player; weather: Nalati
       amb?.update(dt, p, player.yaw);
       chorusT -= dt;
       if (chorusT <= 0) {
-        const dark = clock.phase === 'dusk' || clock.phase === 'night';
+        const dark = clock.dayPhase === 'dusk' || clock.dayPhase === 'night';
         chorusT = dark ? 35 + Math.random() * 55 : 20;
         if (dark && !weather.weather.stormActive && !nalati.boss.inside) chorus();
       }

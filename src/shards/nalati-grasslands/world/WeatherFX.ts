@@ -1,3 +1,5 @@
+import { rainCurtain } from '#kit/weather/rainCurtain';
+import { RAIN_PROGRAM } from './rainProgram';
 /**
  * WeatherFX — what the steppe storm looks like (Nalati B10): the storm deck and its shelf cloud rolling in from one
  * horizon, rain curtains hanging off it over the far hills, the rain itself around the camera, lightning (the bolt,
@@ -21,7 +23,7 @@ import * as THREE from 'three';
 import { Rng } from '#engine/core/rng';
 import { attachFogUniforms } from '#engine/world/Atmosphere';
 import { heightAt, trailDistance, inChunk } from '#engine/world/Heightfield';
-import type { Weather, Strike } from './Weather';
+import type { SteppeStorm as Weather, Strike } from './Weather';
 import type { SkyLook } from '#engine/world/DayClock';
 
 export interface WeatherFXOpts { phone: boolean; seed: number }
@@ -287,63 +289,7 @@ export class WeatherFX {
 
   // ─────────────────────────── rain around the camera ───────────────────────────
   private buildRain(): THREE.Mesh {
-    const n = this.rainCount, rng = new Rng(this.opts.seed ^ 0x2a1);
-    const seed = new Float32Array(n * 4 * 4), corner = new Float32Array(n * 4 * 2), idx = new Uint32Array(n * 6);
-    for (let i = 0; i < n; i++) {
-      const sx = rng.next(), sy = rng.next(), sz = rng.next(), sp = rng.range(0.85, 1.2);
-      for (let k = 0; k < 4; k++) {
-        const v = i * 4 + k;
-        seed[v * 4] = sx; seed[v * 4 + 1] = sy; seed[v * 4 + 2] = sz; seed[v * 4 + 3] = sp;
-        corner[v * 2] = k & 1 ? 1 : -1; corner[v * 2 + 1] = k < 2 ? 0 : 1;
-      }
-      const b = i * 4;
-      idx.set([b, b + 1, b + 2, b + 1, b + 3, b + 2], i * 6);
-    }
-    const geo = new THREE.BufferGeometry();
-    geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(n * 4 * 3), 3)); // unused (the shader builds it)
-    geo.setAttribute('seed', new THREE.BufferAttribute(seed, 4));
-    geo.setAttribute('corner', new THREE.BufferAttribute(corner, 2));
-    geo.setIndex(new THREE.BufferAttribute(idx, 1));
-    geo.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 1e6);
-    const uniforms: Record<string, THREE.IUniform> = { ...THREE.UniformsUtils.merge([THREE.UniformsLib.fog]), ...this.rainU };
-    attachFogUniforms({ uniforms });
-    const mat = new THREE.ShaderMaterial({
-      uniforms, transparent: true, depthWrite: false, fog: true, side: THREE.DoubleSide, // screen-built quads: either winding
-      vertexShader: /* glsl */`
-        attribute vec4 seed; attribute vec2 corner;
-        uniform vec3 uOffset; uniform float uR; uniform vec3 uVel; uniform float uLen; uniform float uWidth;
-        varying float vA; varying vec3 vW;
-        void main() {
-          float R = uR;
-          vec3 p = seed.xyz * 2.0 * R + uOffset * seed.w;
-          vec3 c = cameraPosition + vec3(0.0, 2.0, 0.0);
-          vec3 w = mod(p - c + R, 2.0 * R) - R + c;
-          vec3 v = normalize(uVel);
-          vec3 a = w + v * (corner.y * uLen * seed.w);
-          vW = a;
-          vec4 mv = viewMatrix * vec4(a, 1.0);
-          vec3 vv = (viewMatrix * vec4(v, 0.0)).xyz;
-          vec2 side = normalize(vec2(-vv.y, vv.x) + 1e-5);
-          float dist = length(mv.xyz);
-          mv.xy += side * corner.x * uWidth * max(dist, 1.0) * 0.12 * (0.6 + 0.4 * seed.w);
-          vec3 off = abs(w - c);
-          float edge = 1.0 - smoothstep(R * 0.65, R * 0.98, max(max(off.x, off.y), off.z));
-          vA = edge * smoothstep(0.6, 2.5, dist) * (corner.y > 0.5 ? 1.0 : 0.15);
-          gl_Position = projectionMatrix * mv;
-        }`,
-      fragmentShader: /* glsl */`
-        ${FOG_GLSL}
-        uniform vec3 uCol; uniform float uAlpha;
-        varying float vA; varying vec3 vW;
-        void main() {
-          float a = vA * uAlpha;
-          vec3 col = mix(uCol, fogColor, atmosFogFactor(vW) * 0.6);
-          gl_FragColor = vec4(col, a);
-        }`,
-    });
-    const m = new THREE.Mesh(geo, mat);
-    m.frustumCulled = false; m.renderOrder = 20; m.visible = false; m.name = 'rain';
-    return m;
+    return rainCurtain({ count: this.rainCount, seed: this.opts.seed, uniforms: this.rainU, program: RAIN_PROGRAM });
   }
 
   // ─────────────────────────────── the bolt ───────────────────────────────

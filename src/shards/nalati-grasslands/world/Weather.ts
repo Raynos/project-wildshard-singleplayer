@@ -26,10 +26,12 @@
  * height (+1.5 m for a mounted rider, +1 m on a ridge crest), and the highest one takes the bolt. Anything sheltered
  * (inside / beside a yurt) scores nothing.
  */
+import { Weather as EngineWeather } from '#engine/world/weather';
 import { Rng } from '#engine/core/rng';
+import { LEN, steppeProfile, type SteppeNumbers, type StormPhase } from './weatherProfile';
 
-export type StormPhase = 'clear' | 'building' | 'gust' | 'storm' | 'clearing' | 'after';
-export const STORM_PHASES: readonly StormPhase[] = ['clear', 'building', 'gust', 'storm', 'clearing', 'after'];
+export { STORM_PHASES } from './weatherProfile';
+export type { StormPhase } from './weatherProfile';
 
 /** something tall the lightning may pick (a spruce, a balbal, a yurt's crown) */
 export interface Exposed { x: number; z: number; top: number; kind: 'tree' | 'thing'; ref?: unknown }
@@ -63,9 +65,6 @@ export interface WeatherOpts {
   clear?: [number, number];
 }
 
-const LEN: Record<StormPhase, [number, number]> = {
-  clear: [20 * 60, 30 * 60], building: [90, 90], gust: [20, 20], storm: [120, 180], clearing: [60, 60], after: [180, 180],
-};
 const TELEGRAPH = 1.2;
 const STRIKE_DAMAGE = 60;
 const STRIKE_RADIUS = 4;
@@ -78,25 +77,9 @@ const mix = (a: number, b: number, t: number): number => a + (b - a) * t;
 
 type Fn<A extends unknown[]> = (...a: A) => void;
 
-export class Weather {
-  state: StormPhase = 'clear';
-  /** seconds into the phase / the phase's length */
-  phaseT = 0;
-  phaseLen: number;
-  /** a boss fight in progress: the clear phase will not end */
-  hold = false;
-
-  // ── the outputs (recomputed every update) ──
-  /** 0 clear … 1 full storm deck overhead */
-  overcast = 0;
-  /** 0 … 1 heavy rain */
-  rain = 0;
-  /** the shelf cloud's advance: 0 on the horizon … 1 overhead … 1.5 its back edge gone past */
-  front = 0;
-  /** 0 … 1 soaked ground (lags the rain, lingers through the after) */
-  wet = 0;
-  /** 0 … 1 the rainbow's strength (the after, sun up) */
-  rainbow = 0;
+export class SteppeStorm extends EngineWeather<StormPhase, SteppeNumbers> {
+  get front(): number { return this.n.front; }
+  get rainbow(): number { return this.n.rainbow; }
   /** 0 … 1 the lightning flash (decays in ~0.25 s) */
   flash = 0;
   /** the wind the storm asks for, m/s (null = leave the wind to itself) */
@@ -109,33 +92,27 @@ export class Weather {
   /** an armed strike (telegraphing) */
   pending: (Strike & { t: number }) | null = null;
 
-  private readonly rng: Rng;
   private readonly world: LightningWorld;
-  private readonly clearRange: [number, number];
   private nextBolt = 0;
   private nextGust = 0;
   private windTarget = 5;
   private getLowFor = 0;
   private getLowTick = 0;
   private readonly cand: Exposed[] = [];
-  private readonly phaseFns: Fn<[StormPhase, StormPhase]>[] = [];
   private readonly telegraphFns: Fn<[Strike]>[] = [];
   private readonly strikeFns: Fn<[Strike]>[] = [];
   private readonly flashFns: Fn<[number, number]>[] = [];
   private readonly hitFns: Fn<[number]>[] = [];
 
   constructor(opts: WeatherOpts) {
-    this.rng = new Rng(opts.seed ^ 0x57a3);
+    super(steppeProfile(opts), new Rng(opts.seed ^ 0x57a3));
     this.world = opts.world;
-    this.clearRange = opts.clear ?? [20, 30];
-    const first = opts.firstClear ?? [12, 18];
-    this.phaseLen = this.rng.range(first[0], first[1]) * 60;
   }
 
   /** gust front or storm proper — the AI's "a storm is on" */
   get stormActive(): boolean { return this.state === 'gust' || this.state === 'storm'; }
   /** seconds left in this phase */
-  get phaseLeft(): number { return Math.max(0, this.phaseLen - this.phaseT); }
+  override get phaseLeft(): number { return Math.max(0, this.phaseLen - this.phaseT); }
   /** seconds until the gust front hits (0 once it has) */
   get untilStorm(): number {
     if (this.state === 'clear') return this.phaseLeft + LEN.building[0];
@@ -143,7 +120,6 @@ export class Weather {
     return 0;
   }
 
-  onPhase(fn: Fn<[StormPhase, StormPhase]>): void { this.phaseFns.push(fn); }
   onTelegraph(fn: Fn<[Strike]>): void { this.telegraphFns.push(fn); }
   onStrike(fn: Fn<[Strike]>): void { this.strikeFns.push(fn); }
   /** (distance m, world bearing atan2(z, x) of the flash seen from the player) */
@@ -151,77 +127,35 @@ export class Weather {
   onPlayerHit(fn: Fn<[number]>): void { this.hitFns.push(fn); }
 
   /** jump into a phase (dev switch). `at` = 0..1 how far into it. */
-  force(phase: StormPhase, at = 0): void {
-    this.enter(phase);
-    this.phaseT = this.phaseLen * Math.min(0.999, Math.max(0, at));
-    // the ground is already as wet as it would be by now
-    this.wet = phase === 'storm' ? Math.max(this.wet, sm(0, 40, this.phaseT)) : phase === 'clearing' || phase === 'after' ? 1 : this.wet;
-    this.nextBolt = phase === 'storm' ? 2.5 : 4;
-    this.outputs(0);
-  }
 
-  update(dt: number): void {
+  override update(dt: number): void {
     if (dt <= 0) return;
-    this.phaseT += dt;
-    if (this.phaseT >= this.phaseLen && !(this.state === 'clear' && this.hold)) {
-      const i = STORM_PHASES.indexOf(this.state);
-      this.enter(STORM_PHASES[(i + 1) % STORM_PHASES.length] ?? 'clear');
-    }
-    this.outputs(dt);
+    super.update(dt);
     this.lightning(dt);
     this.getLowTick -= dt;
     if (this.getLowTick <= 0) { this.getLowTick = 0.25; this.getLow = this.checkGetLow(); }
     this.getLowFor = this.getLow ? this.getLowFor + dt : 0;
   }
 
-  private enter(phase: StormPhase): void {
-    const prev = this.state;
-    this.state = phase;
-    this.phaseT = 0;
-    const [a, b] = phase === 'clear' ? [this.clearRange[0] * 60, this.clearRange[1] * 60] : LEN[phase];
-    this.phaseLen = a === b ? a : this.rng.range(a, b);
+  protected override entered(phase: StormPhase): void {
     this.nextBolt = phase === 'storm' ? this.rng.range(2, 5) : this.rng.range(6, 14);
     this.nextGust = 0;
     this.pending = null;
-    if (prev !== phase) for (const f of this.phaseFns) f(phase, prev);
   }
+  protected override afterForce(phase: StormPhase): void { this.nextBolt = phase === 'storm' ? 2.5 : 4; }
 
   /** every continuous number, from the phase and how far into it we are */
-  private outputs(dt: number): void {
-    const t = this.phaseT, L = this.phaseLen, u = L > 0 ? t / L : 0;
-    let front = 0, overcast = 0, rain = 0, rainbow = 0;
-    let wind: number | null = null, gustiness = 0.6;
-    switch (this.state) {
+  protected override outputs(dt: number): void {
+    super.outputs(dt, 0);
+    const t=this.phaseT, u=this.phaseLen>0?t/this.phaseLen:0;
+    let wind: number | null=null, gustiness=0.6;
+    switch(this.state) {
+      case 'building': wind=mix(7,12,sm(0,1,u));gustiness=0.7;break;
+      case 'gust': wind=mix(14,18,sm(0,0.4,u));gustiness=0.95;break;
+      case 'storm': gustiness=0.9;break;
+      case 'clearing': wind=mix(12,6,sm(0,1,u));gustiness=0.7;break;
+      case 'after': wind=mix(5,3.5,u);gustiness=0.5;break;
       case 'clear': break;
-      case 'building':
-        front = mix(0, 0.55, sm(0, 1, u));
-        overcast = 0.35 * sm(0.35, 1, u);
-        wind = mix(7, 12, sm(0, 1, u)); gustiness = 0.7;
-        break;
-      case 'gust':
-        front = mix(0.55, 1, sm(0, 1, u));
-        overcast = mix(0.35, 0.88, sm(0, 0.8, u));
-        rain = 0.35 * sm(0.45, 1, u);
-        wind = mix(14, 18, sm(0, 0.4, u)); gustiness = 0.95;
-        break;
-      case 'storm':
-        front = 1;
-        overcast = mix(0.88, 1, sm(0, 10, t));
-        rain = mix(0.35, 1, sm(0, 15, t)) * mix(1, 0.8, sm(0.85, 1, u));
-        wind = null; gustiness = 0.9; // varied below
-        break;
-      case 'clearing':
-        front = mix(1, 1.5, sm(0, 1, u));
-        overcast = mix(1, 0.2, sm(0, 1, u));
-        rain = 0.8 * (1 - sm(0, 0.8, u));
-        wind = mix(12, 6, sm(0, 1, u)); gustiness = 0.7;
-        break;
-      case 'after':
-        front = 1.5;
-        overcast = 0.2 * (1 - sm(0, 0.5, u));
-        rainbow = sm(0, 0.08, u) * (1 - sm(0.75, 1, u));
-        wind = mix(5, 3.5, u); gustiness = 0.5;
-        break;
       default: break;
     }
     if (this.state === 'storm') {
@@ -230,13 +164,7 @@ export class Weather {
       if (this.nextGust <= 0) { this.nextGust = this.rng.range(3, 7); this.windTarget = this.rng.range(18, 24); }
       wind = this.windTarget;
     }
-    this.front = front; this.overcast = overcast; this.rain = rain; this.rainbow = rainbow;
     this.windSpeed = wind; this.windGustiness = gustiness;
-    // wet: soaks up with the rain, holds through the clearing, dries through the after and the first minute of clear
-    if (this.state === 'storm' || this.state === 'gust') this.wet = Math.min(1, this.wet + dt * rain / 30);
-    else if (this.state === 'clearing') this.wet = Math.max(this.wet, 0.9);
-    else if (this.state === 'after') this.wet = Math.min(this.wet, 1 - 0.4 * sm(0.3, 1, u));
-    else this.wet = Math.max(0, this.wet - dt / 90);
     this.flash = Math.max(0, this.flash - dt * 4.5);
   }
 

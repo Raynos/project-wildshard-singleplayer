@@ -38,7 +38,7 @@ import type { FullMap, MapPoi } from '#engine/ui/Map';
 import type { CompendiumState } from '#game/compendium/state';
 import type { TreeInstance } from '#engine/world/forest/placement';
 import { heightAt } from '#engine/world/Heightfield';
-import { PINE_PHASES } from '../look/PineDayNight';
+import { PINE_PHASES } from '../look/dayKeys';
 import { waystoneSites, contractBoardSite, CANOE_SITE, ZIP_YAW, pineHamletBuildings, type PineLandmarks } from '../world/landmarks';
 import { Flags, test } from '#engine/world/interact/flags';
 import { Interactables, type InteractEvent } from '#engine/world/interact/Interactables';
@@ -282,7 +282,7 @@ export function installPineQuest(h: PineQuestHost): PineQuest {
       swing();
     };
   }
-  const night = (): number => sky.pine?.night ?? 0;
+  const night = (): number => sky.dayNight?.night ?? 0;
   const thralls = new NightThralls({
     animals, scene: game.scene, night,
     errand: () => flags.has('errand:asked') && !flags.has('errand:done'),
@@ -445,7 +445,7 @@ export function installPineQuest(h: PineQuestHost): PineQuest {
   const reward = new RewardCaption('Dawn over the Hollow', "The Warden's Hollow", 'Every lantern burns. The fog is going home.');
   let ff: { from: number; span: number; t: number; dur: number; to: number } | null = null;
   const fastForward = (to: number, dur: number): void => {
-    const dn = sky.pine; if (!dn) return;
+    const dn = sky.dayNight; if (!dn) return;
     const span = (((to - dn.phase) % 1) + 1) % 1;
     ff = { from: dn.phase, span, t: 0, dur, to };
   };
@@ -453,7 +453,7 @@ export function installPineQuest(h: PineQuestHost): PineQuest {
     if (!on) return;
     if (f === 'wait:night') {
       flags.clear('wait:night');
-      if (night() < 0.5 && sky.pine) { hud.toast('You sit with Hale on the porch while the light goes out of the Hollow…'); fastForward(PINE_PHASES.night, 6); }
+      if (night() < 0.5 && sky.dayNight) { hud.toast('You sit with Hale on the porch while the light goes out of the Hollow…'); fastForward(PINE_PHASES.night, 6); }
     }
     if (f.startsWith('lit:')) syncLanterns();
   });
@@ -467,7 +467,7 @@ export function installPineQuest(h: PineQuestHost): PineQuest {
     if (dawnT < 0) return;
     const was = dawnT; dawnT += dt;
     const at = (s: number): boolean => was < s && dawnT >= s;
-    if (at(2.5) && sky.pine) fastForward(PINE_PHASES.sunrise + 0.012, 7);
+    if (at(2.5) && sky.dayNight) fastForward(PINE_PHASES.sunrise + 0.012, 7);
     if (at(4)) { for (const f of LANTERN_FLAGS) flags.set(f); if (lm) for (const id of ['pond', 'ridge', 'den'] as const) lm.setLit(id, true); h.music.sting('dawn'); }
     if (at(5)) { reward.show(true); objective.root.classList.add('ws-quest-hide'); }
     if (at(12)) {
@@ -538,11 +538,11 @@ export function installPineQuest(h: PineQuestHost): PineQuest {
     }
     zip?.update(dt, player, game.camera);
     canoe?.update(dt, t, player);
-    if (ff && sky.pine) {
+    if (ff && sky.dayNight) {
       ff.t += dt;
       const k = Math.min(1, ff.t / ff.dur), e = k * k * (3 - 2 * k);
-      sky.pine.phase = (ff.from + ff.span * e) % 1;
-      if (k >= 1) { const to = ff.to; ff = null; void sky.pine.setPhase(to); }
+      sky.dayNight.phase = (ff.from + ff.span * e) % 1;
+      if (k >= 1) { const to = ff.to; ff = null; void sky.dayNight.set(to); }
     }
     dawnTick(dt);
     if (!perfLap.active) { // E350 F-J1: the PERF LAP's teleports call no stag and no thralls
@@ -581,8 +581,8 @@ export function installPineQuest(h: PineQuestHost): PineQuest {
     const look = b.at === 'ranger' ? rangerAt : b.at === 'launch' && lm ? { x: lm.zip.bottom.x, z: lm.zip.bottom.z } : b.at === 'lodge' ? bs : b.look;
     player.spawn(at.x, at.z, Math.atan2(-(look.x - at.x), -(look.z - at.z)));
     if (b.at === 'deck' || b.at === 'launch') player.position.y = deckY + 0.05;
-    if (b.night && sky.pine) void sky.pine.setPhase(PINE_PHASES.night);
-    if (b.day && sky.pine) void sky.pine.setPhase(PINE_PHASES.day);
+    if (b.night && sky.dayNight) void sky.dayNight.set(PINE_PHASES.night);
+    if (b.day && sky.dayNight) void sky.dayNight.set(PINE_PHASES.day);
   };
   if (beat) standAt(beat);
   const goto = (bt: string): void => {

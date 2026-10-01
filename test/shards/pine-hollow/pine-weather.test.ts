@@ -1,6 +1,6 @@
 // src/shards/pine-hollow/world/PineWeather.ts (PINE-HOLLOW-REMASTER PH-L10): the showers' state machine and the dawn fog's clock.
 import { describe, expect, it } from 'vitest';
-import { PineWeather, dawnFogAt, PINE_WEATHER_LEN } from '#shards/pine-hollow/world/PineWeather';
+import { PineWeather, dawnFogAt, PINE_WEATHER_LEN } from '#shards/pine-hollow/world/weatherProfile';
 
 /** run `secs` of weather in 1 s steps at a fixed clock phase; the states seen, in order (no repeats) */
 function run(w: PineWeather, secs: number, phase = 0.4): string[] {

@@ -5,12 +5,12 @@ import type { Player } from '#engine/player/Player';
 import type { Forest } from '#engine/world/forest/Forest';
 import type { Animal } from '#engine/entities/Animal';
 import type { AnimalManager } from '#engine/entities/AnimalManager';
-import type { DayClock } from '#engine/world/DayClock';
-import type { TargetAnimal, TargetHit } from '#engine/player/Crossbow';
+import type { DayCycle } from '#engine/world/dayCycle';
+import type { TargetAnimal, TargetHit } from '#engine/combat/view/targets';
 import { heightAt } from '#engine/world/Heightfield';
 import { HORSE_SPEED } from '#engine/entities/species/horse';
 import { GHOST_RIDER, riderGeometry, ghostSeat, ghostRiderPoints } from '#engine/entities/species/ghostRider';
-import { Projectiles, type ProjectileKind } from '#engine/player/Projectiles';
+import { Projectiles, type ProjectileKind } from '#engine/combat/view/projectile';
 import { NightParticles, FLAG_RISE, FLAG_GROW } from './nightFx';
 import { BOWL } from './layout';
 import { setting } from '#engine/ui/Settings';
@@ -45,7 +45,7 @@ import { setting } from '#engine/ui/Settings';
  * output is replaced by a fresnel glow (additive, self-lit, no fog, no shadows): 2 programs (skinned / static).
  */
 
-export interface GhostRidersCtx { game: Game; sky: Sky; player: Player; forest: Forest; clock: DayClock }
+export interface GhostRidersCtx { game: Game; sky: Sky; player: Player; forest: Forest; clock: DayCycle }
 export type GhostVariant = 'rider' | 'captain';
 interface Rider {
   a: Animal; mats: GhostMat[]; line: Line | null; slot: number;
@@ -203,7 +203,7 @@ export class GhostRiders {
     this.animals = animals;
     animals.factory.model(GHOST_RIDER, 'rider');
     const q = setting('ghosts'); // Debug ▸ Creatures & NPCs ▸ Ghost riders (E162): a line now / never / at night
-    if (q === 'line' || (this.ctx.clock.phase === 'night' && q !== 'off')) this.respawnT = 0.5;
+    if (q === 'line' || (this.ctx.clock.dayPhase === 'night' && q !== 'off')) this.respawnT = 0.5;
   }
 
   living(): number { let n = 0; for (const r of this.riders) if (!r.dead) n++; return n; }
@@ -311,7 +311,7 @@ export class GhostRiders {
     // a new line: at nightfall, and a minute after the last one fell
     if (this.respawnT >= 0 && !this.hold) {
       this.respawnT -= dt;
-      if (this.respawnT < 0 && (this.ctx.clock.phase === 'night' || setting('ghosts') === 'line')) this.spawnLine();
+      if (this.respawnT < 0 && (this.ctx.clock.dayPhase === 'night' || setting('ghosts') === 'line')) this.spawnLine();
     }
     for (const line of this.lines) this.steerLine(line, dt);
     if (this.freeze) for (const r of this.riders) { r.a.mem['tx'] = r.a.position.x; r.a.mem['tz'] = r.a.position.z; r.fireT = 99; }
@@ -356,7 +356,7 @@ export class GhostRiders {
       const line = this.lines[i];
       if (line?.riders.every((r) => r.dead || r.a.hidden || !this.riders.includes(r)) === true) {
         this.lines.splice(i, 1);
-        if (this.living() === 0 && this.ctx.clock.phase === 'night') this.respawnT = RESPAWN;
+        if (this.living() === 0 && this.ctx.clock.dayPhase === 'night') this.respawnT = RESPAWN;
       }
     }
     this.arrows.update(dt);

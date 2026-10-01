@@ -1,8 +1,8 @@
-// src/shards/pine-hollow/look/PineDayNight.ts — Pine Hollow's day / night clock (PH-L2): the sun's path, the night curve, the named phases
+// src/shards/pine-hollow/look/dayKeys.ts — Pine Hollow's day / night clock (PH-L2): the sun's path, the night curve, the named phases
 // and the sky key table.
 import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
-import { PINE_PHASES, pineMoonAt, pineNightAt, pineSunAt } from '#shards/pine-hollow/look/PineDayNight';
+import { PINE_PHASES, pineMoonAt, pineNightAt, pineSunAt } from '#shards/pine-hollow/look/dayKeys';
 import { PINE_SKY_KEYS } from '#shards/pine-hollow/look/skyKeys';
 
 const DAY = 20 / 24;

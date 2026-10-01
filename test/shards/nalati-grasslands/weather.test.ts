@@ -1,8 +1,9 @@
 // src/shards/nalati-grasslands/world/Weather.ts + the clock in src/engine/world/DayNight.ts (Nalati B10): the storm cycle's phases and lengths, the
 // lightning's target choice (the highest thing), the GET LOW rule, and the day clock's schedule / sun / phase events.
 import { describe, expect, it } from 'vitest';
-import { Weather, STORM_PHASES, type Exposed, type LightningPlayer, type LightningWorld, type Strike } from '#shards/nalati-grasslands/world/Weather';
-import { DayClock, DEFAULT_SCHEDULE, lightLevel } from '#engine/world/DayClock';
+import { SteppeStorm as Weather, STORM_PHASES, type Exposed, type LightningPlayer, type LightningWorld, type Strike } from '#shards/nalati-grasslands/world/Weather';
+import { steppeClock, clockForSun, DEFAULT_SCHEDULE } from '#shards/nalati-grasslands/look/dayKeys';
+import { lightLevel } from '#engine/world/DayClock';
 
 function world(opts: { trees?: Exposed[]; player?: Partial<LightningPlayer>; ground?: (x: number, z: number) => number } = {}): LightningWorld {
   const p: LightningPlayer = { x: 0, y: 0, z: 0, crouched: false, mounted: false, sheltered: false, ...opts.player };
@@ -125,7 +126,7 @@ describe('Weather — lightning', () => {
 
 describe('DayClock', () => {
   it('a day is ~26 minutes of play and the phases come in order', () => {
-    const c = new DayClock({ start: 7.01 });
+    const c = steppeClock({ start: 7.01 });
     expect(c.dayMinutes).toBeCloseTo(DEFAULT_SCHEDULE.reduce((a, s) => a + s.minutes, 0));
     expect(c.dayMinutes).toBeGreaterThanOrEqual(24);
     expect(c.dayMinutes).toBeLessThanOrEqual(30);
@@ -136,26 +137,26 @@ describe('DayClock', () => {
   });
 
   it('onDusk / onNight / onDawn fire on entering their phase, and set() fires too', () => {
-    const c = new DayClock({ start: 12 });
+    const c = steppeClock({ start: 12 });
     const got: string[] = [];
     c.onDusk(() => { got.push('dusk'); }); c.onNight(() => { got.push('night'); }); c.onDawn(() => { got.push('dawn'); });
-    c.set('dusk'); c.set('night'); c.set('dawn');
+    void c.set('dusk'); void c.set('night'); void c.set('dawn');
     expect(got).toEqual(['dusk', 'night', 'dawn']);
   });
 
   it('forSun starts on the def sun (Nalati: azimuth 250, elevation 26)', () => {
-    const c = DayClock.forSun({ azimuth: 250, elevation: 26 });
+    const c = clockForSun({ azimuth: 250, elevation: 26 });
     expect(c.sunElevation).toBeCloseTo(26, 5);
     expect(c.sunAzimuth).toBeCloseTo(250, 5);
-    expect(c.phase).toBe('day');
+    expect(c.dayPhase).toBe('day');
   });
 
   it('the sun rises in the east, stands south at noon, sets in the west; light 1 by day, 0.4 at night', () => {
-    const c = new DayClock({ start: 6 });
+    const c = steppeClock({ start: 6 });
     expect(c.sunElevation).toBeCloseTo(0, 5); expect(c.sunAzimuth).toBeCloseTo(90, 5);
-    c.set(12); expect(c.sunElevation).toBeCloseTo(58, 5); expect(c.sunAzimuth).toBeCloseTo(180, 5);
+    void c.set(12); expect(c.sunElevation).toBeCloseTo(58, 5); expect(c.sunAzimuth).toBeCloseTo(180, 5);
     expect(lightLevel(c)).toBeCloseTo(1, 5);
-    c.set(18); expect(c.sunElevation).toBeCloseTo(0, 5); expect(c.sunAzimuth).toBeCloseTo(270, 5);
-    c.set(0); expect(c.sunElevation).toBeLessThan(-50); expect(lightLevel(c)).toBeCloseTo(0.4, 5);
+    void c.set(18); expect(c.sunElevation).toBeCloseTo(0, 5); expect(c.sunAzimuth).toBeCloseTo(270, 5);
+    void c.set(0); expect(c.sunElevation).toBeLessThan(-50); expect(lightLevel(c)).toBeCloseTo(0.4, 5);
   });
 });

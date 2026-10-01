@@ -103,7 +103,7 @@ export class Particles {
     this.uSunColor.value.copy(this.sky.sunColor).multiplyScalar((this.sky.csm.lights[0]?.intensity ?? this.baseKeyI) / this.baseKeyI);
     this.uMote.value = this.params.moteIntensity;
     this.uNight.value = this.sky.night;
-    const lowSun = this.sky.pine?.dusk ?? 1; // 1 at dawn / dusk / night (and on a fixed sky), 0 under a high sun
+    const lowSun = this.sky.dayNight?.dusk ?? 1; // 1 at dawn / dusk / night (and on a fixed sky), 0 under a high sun
     this.uMist.value = this.params.mistOpacity * (this.dayMist + (1 - this.dayMist) * lowSun);
     if (playerPos.distanceToSquared(this.lastNeedlePos) > 8 * 8) {
       this.lastNeedlePos.copy(playerPos);

@@ -3,10 +3,10 @@ import type { Game } from '#engine/core/Game';
 import type { Sky } from '#engine/world/Sky';
 import type { Player } from '#engine/player/Player';
 import type { Forest } from '#engine/world/forest/Forest';
-import type { DayClock } from '#engine/world/DayClock';
+import type { DayCycle } from '#engine/world/dayCycle';
 import type { Balbals } from './world/Balbals';
 import type { AnimalManager } from '#engine/entities/AnimalManager';
-import type { TargetHit } from '#engine/player/Crossbow';
+import type { TargetHit } from '#engine/combat/view/targets';
 import type { NalatiKit } from './weapons/nalatiKit';
 import { wildEnv } from '#engine/entities/wildEnv';
 import { BalbalWarriors } from './balbalWarriors';
@@ -30,7 +30,7 @@ import { GhostRiders } from './ghostRiders';
  * Debug ▸ Creatures & NPCs ▸ Balbal warriors / Ghost riders (wake now · never); `window.__balbals`, `window.__ghosts`.
  */
 
-export interface NightEnemiesCtx { game: Game; sky: Sky; player: Player; forest: Forest; balbals: Balbals | null; clock: DayClock }
+export interface NightEnemiesCtx { game: Game; sky: Sky; player: Player; forest: Forest; balbals: Balbals | null; clock: DayCycle }
 export interface NightEnemies {
   balbals: BalbalWarriors;
   riders: GhostRiders;

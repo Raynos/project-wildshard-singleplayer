@@ -1,14 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { DayClock } from '#engine/world/DayClock';
-import { dayClockClock, phaseOfHour } from '#engine/world/WorldClock';
+import { steppeClock } from '#shards/nalati-grasslands/look/dayKeys';
+import { phaseOfHour } from '#engine/world/dayCycle';
 
 describe('WorldClock over DayClock (NALATI-MERGE F8)', () => {
   it('Settings ▸ Time of day parks the clock at a pick and "live" lets it run on', () => {
-    const c = new DayClock({ start: 10 });
-    const w = dayClockClock(c);
+    const c = steppeClock({ start: 10 });
+    const w = c;
     w.setTime('night');
     expect(c.paused).toBe(true);
-    expect(w.phase).toBe('night');
+    expect(w.dayPhase).toBe('night');
     expect(w.body).toBe('moon');
     expect(w.night).toBe(1);
     w.setTime('midday');
@@ -19,16 +19,16 @@ describe('WorldClock over DayClock (NALATI-MERGE F8)', () => {
     expect(c.paused).toBe(false);
   });
   it('a saved pick parks the clock on boot', () => {
-    const c = new DayClock({ start: 10 });
-    dayClockClock(c, 'golden');
-    expect(c.phase).toBe('golden');
+    const c = steppeClock({ start: 10 });
+    c.setTime('golden');
+    expect(c.dayPhase).toBe('golden');
     expect(c.paused).toBe(true);
   });
   it("Explore's light presets hold the clock and give it back as it was", () => {
-    const c = new DayClock({ start: 9.5 });
-    const w = dayClockClock(c);
+    const c = steppeClock({ start: 9.5 });
+    const w = c;
     w.pin('dusk');
-    expect(w.phase).toBe('dusk');
+    expect(w.dayPhase).toBe('dusk');
     expect(c.paused).toBe(true);
     w.pin('dusk'); // held every frame: no jump
     w.pin(null);
