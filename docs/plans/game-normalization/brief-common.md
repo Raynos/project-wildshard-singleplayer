@@ -15,6 +15,8 @@ engine / game / kit / shards. The lead session (Claude, herdr agent `wildshard-9
 - **No parity runs, no browser runs** unless your job brief explicitly allows one smoke run. Parity and every slow test
   belong to the lead, in batches (decision 104). You run only fast checks: `pnpm exec tsc --noEmit -p .` (~1 s),
   `pnpm exec oxlint <your files>` (~1 s), and focused `pnpm exec vitest run <your test files>`.
+- **Parity runs go straight to `node scripts/parity.mjs …`** (P1, a166dd8b): it takes a browser-lane slot per browser itself.
+  Drop any `scripts/browser-lane.sh --max N` prefix a job brief shows; an outer wrapper wastes a slot and can stall a full lane.
 - Where a spec says "the per-commit parity run", skip it and write `Parity: queued for the lead` in the commit message.
 - Where a spec needs a long run (a browser capture, a bake in a GPU page, a model job, a CI dispatch), don't wait for it:
   commit what is done and report `queued: <exact command>`. The lead runs it.
