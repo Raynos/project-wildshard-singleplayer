@@ -17,6 +17,11 @@ engine / game / kit / shards. The lead session (Claude, herdr agent `wildshard-9
   `pnpm exec oxlint <your files>` (~1 s), and focused `pnpm exec vitest run <your test files>`.
 - **`docs/tasks/asks/E357.md` is append-only from HEAD** (three handoffs were lost to stale copies on 2026-10-01): commit
   it only as HEAD's blob plus your own section's lines (a private index), never the working-tree copy wholesale.
+- **Boot before you land runtime code** (2026-10-01: four commits passed tsc / lint / tests and left a shard unbootable):
+  a commit that changes runtime code in `src/` first boots all four shards on a clean export of HEAD + your change
+  (`node scripts/parity.mjs --export=<candidate sha> --lane=m5 --shards=all --tiers=phone --only=fingerprint`, ~2 min,
+  no browser-lane wrapper) with `boot.errors` empty, and the whole-tree `npx oxlint` (not per file) and full `vitest`
+  pass. Build the candidate as an off-main ref (`refs/<you>/…`), land it with update-ref, delete the ref.
 - **Parity runs go straight to `node scripts/parity.mjs …`** (P1, a166dd8b): it takes a browser-lane slot per browser itself.
   Drop any `scripts/browser-lane.sh --max N` prefix a job brief shows; an outer wrapper wastes a slot and can stall a full lane.
   Since ca907933 the default clock is the proven fast driver (P1: full record 36 m → 6 m); `--clock=raf` only to compare
