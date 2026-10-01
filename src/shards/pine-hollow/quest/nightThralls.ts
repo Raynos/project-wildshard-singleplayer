@@ -22,6 +22,7 @@ import { OLD_GROWTH, KINGS_CLEARING, HAMLET_SITES, POND } from '../layout';
 import { TIER } from '#engine/core/tier';
 import { Puffs } from '../combat/fxKit';
 import { own, release, retire } from '../combat/ctx';
+import { thrallSpawner, spawnThrallFrom } from '../combat/spawns';
 
 const MOSS = new THREE.Color(0.5, 0.62, 0.42);
 /** a thrall of `kind`: the creature lane's variant, else the moss-tinted stand-in the King's fight uses */
@@ -58,12 +59,14 @@ export class NightThralls {
   private readonly puffs: Puffs;
   private readonly point = new THREE.Vector3();
   constructor(h: NightHost) {
+    const spawner = thrallSpawner(h.animals, (kind, x, z, yaw) => spawnThrall(h.animals, kind, x, z, yaw));
     this.puffs = new Puffs(h.scene, new THREE.Color(0.55, 0.7, 0.62), 3);
     this.brain = new NightBrain<Animal>({
       night: h.night, errand: h.errand, onErrandDone: h.onErrandDone, next: Math.random, height: heightAt,
       shot: (name, actor) => { h.shot(name, actor.position); },
-      spawn: (kind, x, z, yaw) => spawnThrall(h.animals, kind === 'elk' ? 'elk' : 'boar', x, z, yaw), own, release,
-      retire: (actor) => { retire(h.animals, actor); },
+      spawn: (kind, x, z, yaw) => spawnThrallFrom(spawner, kind === 'elk' ? 'elk' : 'boar', x, z, yaw,
+        () => spawnThrall(h.animals, kind === 'elk' ? 'elk' : 'boar', x, z, yaw)), own, release,
+      retire: (actor) => { if (spawner === null) retire(h.animals, actor); else spawner.retire(actor); },
       burst: (actor) => { this.puffs.burst(this.point.copy(actor.position).setY(actor.position.y + 1), 1.2, 3.4, 0.8, 0.8); },
     }, { max: MAX, region: OLD_GROWTH, exclude: KINGS_CLEARING, face: HAMLET_SITES.wheel,
       mill: HAMLET_SITES.mill, water: POND.level, roamKinds: ['elk', 'boar'], race: RACE.map(([x, z], i) => ({ kind: i === 1 ? 'elk' : 'boar', x, z })) });

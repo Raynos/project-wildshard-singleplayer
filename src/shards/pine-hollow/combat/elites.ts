@@ -1,5 +1,6 @@
+import { ironhideGoal, ghostGoal, blackpawGoal, imperialGoal } from './EliteGoals';
 import { PINE_LANES } from './strikes';
-import { EliteBrain, canReach, inspectBrain, pinBrain } from '#engine';
+import { app, EliteBrain, inspectBrain, pinBrain } from '#engine';
 import * as THREE from 'three';
 import type { Animal } from '#engine/entities/Animal';
 import type { AnimalManager } from '#engine/entities/AnimalManager';
@@ -11,7 +12,7 @@ import type { SkinId } from '../loadout/skins';
 import { Impacts } from '#engine/fx/Impacts';
 import { Puffs } from './fxKit';
 import { own, release, retire, voice, LaneCharge, type PineCtx } from './ctx';
-import { behindPlayer, bugleHour, fadeCooldown, fleeHeading, headingTo, inArc } from './combatMath';
+import { behindPlayer, fadeCooldown, headingTo } from './combatMath';
 
 /**
  * Pine Hollow's four NAMED ELITES (PINE-HOLLOW-REMASTER PH-C3; Jake's PH-U13). Each is an `EliteScript` over the engine's
@@ -120,9 +121,16 @@ interface Env extends PineCtx { elites: () => Elites; puffs: Puffs }
 const _v = new THREE.Vector3();
 
 abstract class PineElite extends EliteBrain<Animal> implements EliteScript {
+  override mode = 'idle';
+  override modeT = 0;
+  override p2 = false;
+  override setMode(mode: string): void { super.setMode(mode); }
+  override toPlayer(a: Animal): { d: number; yaw: number } { return super.toPlayer(a); }
+  voice(name: string, a: Animal): void { voice(this.env.animals, name, a.position); }
+  next(): number { return Math.random(); }
   protected readonly who: { kind: string; variant: string; trophy: ItemId };
   override readonly def: EliteDef;
-  constructor(def: EliteDef, protected readonly env: Env) {
+  constructor(def: EliteDef, readonly env: Env) {
     super(def, { player: env.player, random: () => Math.random() }); this.def = def;
     const who = PINE_ELITE_ANIMALS[def.id];
     if (who === undefined) throw new Error(`pine elite '${def.id}' has no animal`);
@@ -141,85 +149,40 @@ abstract class PineElite extends EliteBrain<Animal> implements EliteScript {
   // the trophy is the kill feed's line and the journal's wall (TAKEN), not a pack item: Mott has no use for it (E314 C)
   trophy(): void { this.clearTells(); this.env.feed(`${this.def.drop.trophyName ?? 'Felled'} — ${this.def.name}`); }
   dropModel(): THREE.Object3D { return this.env.skinModel(this.def.drop.skin as SkinId); }
-  protected sig(): void { this.env.elites().signature(this.def.id); }
-  protected hurt(a: Animal, dmg: number, throughWalls = false): void { this.env.hurt(a, dmg, throughWalls); }
+  sig(): void { this.env.elites().signature(this.def.id); }
+  hurt(a: Animal, dmg: number, throughWalls = false): void { this.env.hurt(a, dmg, throughWalls); }
 }
 
 // ─────────────────────────────── Old Ironhide ───────────────────────────────
 
 class Ironhide extends PineElite {
-  private readonly lane: LaneCharge;
-  private again = false;
+  readonly lane: LaneCharge;
+  again = false;
   constructor(def: EliteDef, env: Env) {
     super(def, env);
     this.lane = new LaneCharge(env.game.scene, TELL_RED, PINE_LANES.ironhide);
   }
   protected override clearTells(): void { this.lane.cancel(); }
   force(): void { const a = this.animal; if (a) { const p = this.env.player.position; this.lane.start(a, p.x, p.z, 60); this.setMode('charge'); } }
-  protected fight(a: Animal, dt: number, t: number): void {
-    const p = this.env.player.position, { d, yaw } = this.toPlayer(a);
-    a.lookTarget.copy(p); a.lookWeight = 1;
-    if (this.mode === 'charge') {
-      this.lane.update(a, dt, t, p, (dmg) => { this.hurt(a, dmg); this.env.trauma(0.45); });
-      if (this.lane.state === 'run' && this.lane.t < dt * 1.5) voice(this.env.animals, 'boar_squeal', a.position);
-      if (!this.lane.busy) {
-        if (this.again) { this.again = false; this.lane.start(a, p.x, p.z, 0.55, 1.1); return; }
-        this.setMode('circle');
-      }
-      return;
-    }
-    // circle: trot round you at ~13 m (the tangent, bent in or out to hold the radius), then charge
-    const want = 13, side = Math.sin(a.seed * 31) > 0 ? 1 : -1;
-    const tangent = yaw + side * Math.PI / 2, bend = THREE.MathUtils.clamp((d - want) / 8, -1, 1) * 0.9 * side;
-    a.setMotion(tangent - bend, 4.2, 2.8);
-    if (this.mode === 'idle' || this.mode === 'home') this.setMode('circle');
-    if (this.modeT > (this.p2 ? 1.4 : 2.6) && d < 30) {
-      this.lane.start(a, p.x, p.z, this.p2 ? 0.62 : 0.9, this.p2 ? 1.12 : 1);
-      this.again = this.p2 && Math.random() < 0.55;
-      voice(this.env.animals, 'boar_grunt', a.position);
-      this.setMode('charge'); this.sig();
-    }
-  }
+  protected fight(a: Animal, dt: number, t: number): void { ironhideGoal(this, a, dt, t); }
 }
 
 // ─────────────────────────────── the Ghost Stag ───────────────────────────────
 
 class GhostStag extends PineElite {
-  private cd = 3;
-  private lastHit = -Infinity;
-  private fadeT = 0;
-  private autoT = 5;
+  cd = 3;
+  lastHit = -Infinity;
+  fadeT = 0;
+  autoT = 5;
   protected override onSpawn(a: Animal): void { this.lastHit = a.lastHitT; this.cd = 3; }
   protected override clearTells(): void {
     const a = this.animal;
     if (a && this.mode === 'faded') this.reappear(a, a.position.x, a.position.z);
   }
   force(): void { const a = this.animal; if (a) this.fade(a); }
-  protected fight(a: Animal, dt: number, t: number): void {
-    void t;
-    const p = this.env.player.position, { d, yaw } = this.toPlayer(a);
-    this.cd -= dt;
-    const hit = a.lastHitT > this.lastHit; if (hit) this.lastHit = a.lastHitT;
-    if (this.mode === 'faded') {
-      this.fadeT -= dt;
-      if (this.fadeT <= 0) this.comeBack(a);
-      return;
-    }
-    if (this.cd <= 0 && (hit || d < 12)) { this.fade(a); return; }
-    if (this.p2 && this.mode === 'flee') { this.autoT -= dt; if (this.autoT <= 0 && this.cd <= 0) { this.autoT = 3.5 + Math.random() * 1.5; this.fade(a); return; } }
-    if (this.mode === 'stare') {
-      a.setMotion(yaw, 0, 4); a.lookTarget.copy(p); a.lookWeight = 1;
-      if (this.modeT > (this.p2 ? 1.1 : 1.6) || hit) this.setMode('flee');
-      return;
-    }
-    if (this.mode !== 'flee') this.setMode('flee');
-    const L = this.def.lair;
-    a.setMotion(fleeHeading(a.position.x, a.position.z, p.x, p.z, L.x, L.z, this.def.leashR * 0.55), 7, 3.2);
-    a.lookWeight = 0;
-    if (this.modeT > 2.6 + (a.seed % 1) * 1.4) this.setMode('stare');
-  }
+  protected fight(a: Animal, dt: number, t: number): void { ghostGoal(this, a, dt, t); }
   /** the fade: a pale burst, gone — no hitbox, no aim assist, no bar — for 2 s */
-  private fade(a: Animal): void {
+  fade(a: Animal): void {
     _v.copy(a.position); _v.y += 1.1 * a.scale;
     this.env.puffs.burst(_v, 0.6, 3.2, 0.7, 0.95);
     voice(this.env.animals, 'deer_call', a.position);
@@ -228,7 +191,7 @@ class GhostStag extends PineElite {
     this.setMode('faded'); this.sig();
   }
   /** back behind you, 14–18 m off, on dry walkable ground inside its leash */
-  private comeBack(a: Animal): void {
+  comeBack(a: Animal): void {
     const p = this.env.player.position, L = this.def.lair;
     for (const side of [0, 0.6, -0.6, 1.2, -1.2, 1.8, -1.8, Math.PI]) {
       const q = behindPlayer(p.x, p.z, this.env.player.yaw, 14 + Math.random() * 4, side);
@@ -251,10 +214,10 @@ class GhostStag extends PineElite {
 // ─────────────────────────────── Old Blackpaw ───────────────────────────────
 
 class Blackpaw extends PineElite {
-  private readonly ring: GroundTell;
-  private readonly lane: LaneCharge;
-  private roarCd = 0;
-  private swipeT = -1;
+  readonly ring: GroundTell;
+  readonly lane: LaneCharge;
+  roarCd = 0;
+  swipeT = -1;
   constructor(def: EliteDef, env: Env) {
     super(def, env);
     this.ring = new GroundTell(env.game.scene, 'ring', TELL_RED);
@@ -262,7 +225,7 @@ class Blackpaw extends PineElite {
   }
   protected override onSpawn(a: Animal): void { this.lurk(a); }
   protected override clearTells(): void { this.ring.hide(); this.lane.cancel(); this.swipeT = -1; }
-  private get ringR(): number { return this.p2 ? 11 : 8; }
+  get ringR(): number { return this.p2 ? 11 : 8; }
   /** in the cave: out of sight at the mouth */
   private lurk(a: Animal): void {
     a.place(MOUTH.x, MOUTH.z, BEAR_CAVE.rot + Math.PI);
@@ -281,7 +244,7 @@ class Blackpaw extends PineElite {
     if (d > 2.5) { a.setMotion(headingTo(a.position.x, a.position.z, MOUTH.x, MOUTH.z), 2.2, 2); return; }
     if (a.position.distanceTo(this.env.player.position) > 35) this.lurk(a); else super.idle(a, dt);
   }
-  private burstOut(a: Animal): void {
+  burstOut(a: Animal): void {
     const p = this.env.player.position;
     a.place(MOUTH.x - Math.sin(BEAR_CAVE.rot) * 2.5, MOUTH.z - Math.cos(BEAR_CAVE.rot) * 2.5, headingTo(MOUTH.x, MOUTH.z, p.x, p.z));
     a.hidden = false; a.mesh.visible = true;
@@ -289,47 +252,8 @@ class Blackpaw extends PineElite {
     Impacts.for(this.env.game).burst('dirt', _v, _v.set(p.x - a.position.x, 0, p.z - a.position.z), 18);
     this.sig();
   }
-  protected fight(a: Animal, dt: number, t: number): void {
-    const p = this.env.player.position, { d, yaw } = this.toPlayer(a);
-    this.roarCd -= dt;
-    this.ring.setTime(t);
-    a.lookTarget.copy(p); a.lookWeight = 1;
-    if (this.mode === 'lurk') { this.burstOut(a); this.setMode('roar'); a.startAttack(1.1); voice(this.env.animals, 'bear_growl', a.position); return; }
-    if (this.mode === 'roar') {
-      // the tell: the ring round him swells and pulses; the roar roots anyone still in it
-      a.setMotion(yaw, 0, 3);
-      const k = Math.min(1, this.modeT / 1.1);
-      this.ring.ring(a.position.x, a.position.z, this.ringR * (0.7 + 0.3 * k), 0.35 + 0.6 * k * (0.7 + 0.3 * Math.sin(t * 20)));
-      if (this.modeT >= 1.1) {
-        this.ring.hide();
-        voice(this.env.animals, 'bear_roar', a.position);
-        a.headWorld(_v);
-        this.env.puffs.burst(_v, 1, this.ringR, 0.55, 0.5);
-        this.env.trauma(0.3);
-        if (d <= this.ringR && !this.env.god) { this.env.stun(1.3); this.hurt(a, 12, true); this.env.trauma(0.4); }
-        this.roarCd = this.p2 ? 5.5 : 10;
-        if (d > 5) { this.lane.start(a, p.x, p.z, this.p2 ? 0.6 : 0.75, this.p2 ? 1.12 : 1); this.setMode('charge'); } else this.setMode('stalk');
-      }
-      return;
-    }
-    if (this.mode === 'charge') {
-      this.lane.update(a, dt, t, p, (dmg) => { this.hurt(a, dmg); this.env.trauma(0.5); });
-      if (!this.lane.busy) this.setMode('stalk');
-      return;
-    }
-    if (this.mode === 'swipe') {
-      a.setMotion(yaw, 0, 2.5);
-      if (this.swipeT >= 0) { this.swipeT -= dt; if (this.swipeT < 0) { voice(this.env.animals, 'bear_growl', a.position); if (canReach(a, p) && inArc(a.position.x, a.position.z, a.yaw, p.x, p.z, 1.1, 3.8 * a.scale / 1.65)) { this.hurt(a, 22); this.env.trauma(0.35); } } }
-      if (this.modeT > 1.2) this.setMode('stalk');
-      return;
-    }
-    // stalk: walk you down, then pick a move
-    if (this.mode !== 'stalk') this.setMode('stalk');
-    a.setMotion(yaw, d > 3 ? (this.p2 ? 4 : 3.2) : 0, 2.2);
-    if (this.roarCd <= 0 && d < 12) { this.setMode('roar'); a.startAttack(1.1); voice(this.env.animals, 'bear_growl', a.position); }
-    else if (d < 3.6) { this.setMode('swipe'); this.swipeT = 0.55; a.startAttack(0.55); }
-    else if (d > 7 && d < 22 && this.modeT > 2.2) { this.lane.start(a, p.x, p.z, this.p2 ? 0.6 : 0.75, this.p2 ? 1.12 : 1); this.setMode('charge'); }
-  }
+  roarFx(a: Animal): void { a.headWorld(_v); this.env.puffs.burst(_v, 1, this.ringR, 0.55, 0.5); }
+  protected fight(a: Animal, dt: number, t: number): void { blackpawGoal(this, a, dt, t); }
 }
 
 // ─────────────────────────────── the Imperial Bull ───────────────────────────────
@@ -337,10 +261,10 @@ class Blackpaw extends PineElite {
 interface Rival { a: Animal; lane: LaneCharge; mode: 'approach' | 'charge' }
 
 class ImperialBull extends PineElite {
-  private readonly lane: LaneCharge;
+  readonly lane: LaneCharge;
   private readonly rivalLanes: LaneCharge[];
-  private rivals: Rival[] = [];
-  private bugledPhase = -1;
+  rivals: Rival[] = [];
+  bugledPhase = -1;
   constructor(def: EliteDef, env: Env) {
     super(def, env);
     this.lane = new LaneCharge(env.game.scene, TELL_RED, PINE_LANES.imperial);
@@ -356,7 +280,7 @@ class ImperialBull extends PineElite {
     if (move === 'bugle') this.setMode('bugle');
     else { const p = this.env.player.position; this.lane.start(a, p.x, p.z, 60); this.setMode('charge'); }
   }
-  private callRivals(a: Animal): void {
+  callRivals(a: Animal): void {
     const p = this.env.player.position, { yaw } = this.toPlayer(a);
     for (const [i, side] of [1, -1].entries()) {
       const ang = yaw + side * Math.PI / 2;
@@ -369,7 +293,7 @@ class ImperialBull extends PineElite {
       voice(this.env.animals, 'elk_bugle', r.position);
     }
   }
-  private tickRivals(dt: number, t: number): void {
+  tickRivals(dt: number, t: number): void {
     const p = this.env.player.position;
     for (const r of this.rivals) {
       if (!r.a.alive) { r.lane.cancel(); continue; }
@@ -381,33 +305,7 @@ class ImperialBull extends PineElite {
     }
     this.rivals = this.rivals.filter((r) => r.a.alive || r.lane.busy);
   }
-  protected fight(a: Animal, dt: number, t: number): void {
-    const p = this.env.player.position, { d, yaw } = this.toPlayer(a);
-    this.tickRivals(dt, t);
-    a.lookTarget.copy(p); a.lookWeight = 1;
-    const phase = this.p2 ? 1 : 0;
-    if (this.mode === 'bugle') {
-      // head up, the long call; the rivals answer out of the trees
-      a.setMotion(yaw, 0, 2); a.lookTarget.y += 12;
-      if (this.modeT > 0.2 && this.modeT - dt <= 0.2) voice(this.env.animals, 'elk_bugle', a.position);
-      if (this.modeT >= 1.8) { this.callRivals(a); this.setMode('posture'); }
-      return;
-    }
-    if (this.mode === 'charge') {
-      this.lane.update(a, dt, t, p, (dmg) => { this.hurt(a, dmg); this.env.trauma(0.5); });
-      if (!this.lane.busy) this.setMode('posture');
-      return;
-    }
-    if (this.mode !== 'posture') this.setMode('posture');
-    if (this.bugledPhase < phase && this.rivals.length === 0 && bugleHour(this.env.dusk(), this.env.night())) {
-      this.bugledPhase = phase; this.setMode('bugle'); this.sig(); return;
-    }
-    // posture: hold 18–26 m off, side-on steps, facing you
-    const back = d < 18 ? -1 : d > 26 ? 1 : 0;
-    const side = Math.sin(t * 0.7 + a.seed * 9) > 0 ? 1 : -1;
-    a.setMotion(back === 0 ? yaw + side * 1.2 : back > 0 ? yaw : yaw + Math.PI, back === 0 ? 1.2 : 3.5, 2.2);
-    if (this.modeT > (this.p2 ? 2 : 3.2)) { this.lane.start(a, p.x, p.z, this.p2 ? 0.75 : 1.0, this.p2 ? 1.12 : 1); voice(this.env.animals, 'deer_call', a.position); this.setMode('charge'); }
-  }
+  protected fight(a: Animal, dt: number, t: number): void { imperialGoal(this, a, dt, t); }
 }
 
 // ─────────────────────────────── the wiring ───────────────────────────────
@@ -424,7 +322,11 @@ type Forceable = PineElite & { force: (move: string) => void };
 export function makePineElites(ctx: PineCtx, elites: Elites): PineElitesHandle {
   const env: Env = { ...ctx, elites: () => elites, puffs: new Puffs(ctx.game.scene, new THREE.Color(0.75, 1.6, 2.0)) };
   const scripts: Forceable[] = [];
-  const add = (s: Forceable): void => { elites.add(s); scripts.push(s); };
+  const add = (s: Forceable): void => {
+    const scope = app.levelScope;
+    if (scope !== null) app.encounters.elite(s.def.id, s, scope);
+    elites.add(s); scripts.push(s);
+  };
   const def = (id: string): EliteDef => { const d = PINE_ELITE_DEFS[id]; if (d === undefined) throw new Error(`no elite '${id}'`); return d; };
   add(new Ironhide(def('ironhide'), env));
   add(new GhostStag(def('ghost-stag'), env));

@@ -1,3 +1,4 @@
+import { setSpeciesResolver } from '../entities/species/registry';
 import { bindTelemetry } from '../telemetry/runtime';
 import { bindAudioRandom } from '../audio/util';
 import { App } from './app';
@@ -9,3 +10,5 @@ bindAudioRandom(() => app.rng.stream('cosmetic').next());
 
 /** One gameplay draw from the seeded `gameplay` stream (01 §2): aim spread and other rolls that change a hit. */
 export function gameplayRandom(): number { return app.rng.stream('gameplay').next(); }
+
+setSpeciesResolver((kind) => app.species.get(kind));

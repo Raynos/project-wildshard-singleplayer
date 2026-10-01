@@ -1,6 +1,7 @@
 import type * as THREE from 'three';
 import type { SpeciesRow } from '../../ai/species';
-import type { SpeciesDef, VariantDef, BoneDef, FurStyle } from './registry';
+import { registeredSpecies, type SpeciesDef, type VariantDef, type BoneDef, type FurStyle } from './registry';
+import type { Scope } from '../../app/scope';
 
 export interface EyeSpot { centre: THREE.Vector3; radius: number }
 export interface CreatureHull {
@@ -17,6 +18,52 @@ export interface SpeciesLook extends Pick<SpeciesDef, 'fur' | 'build' | 'pose' |
 /** The legacy view/body adapter is assembled at the factory boundary, after kit registration. */
 export function speciesWithLook(row: SpeciesRow, look: SpeciesLook): SpeciesDef {
   const variant = (value: VariantDef): VariantDef => ({ ...value, ...look.variants?.[value.id] });
-  return { ...row, ...look, variants: row.variants.map(variant),
+  return { ...look, ...row, variants: row.variants.map(variant),
     ...(row.spawnOnly === undefined ? {} : { spawnOnly: row.spawnOnly.map(variant) }) };
+}
+
+interface Scoped<T> { value: T; scope: Scope }
+/** Row/look registrations are resident-owned; resolution and cached adapters follow the active level. */
+export class SpeciesService {
+  private readonly rows: Scoped<SpeciesRow>[] = [];
+  private readonly looks: Scoped<SpeciesLook>[] = [];
+  private cache = new WeakMap<Scope, Map<string, SpeciesDef>>();
+  private readonly active: () => Scope | null;
+  constructor(active: () => Scope | null) { this.active = active; }
+  registerRow(value: SpeciesRow, scope: Scope): void { this.add(this.rows, value, scope); }
+  registerLook(value: SpeciesLook, scope: Scope): void { this.add(this.looks, value, scope); }
+  private add<T extends { id: string }>(list: Scoped<T>[], value: T, scope: Scope): void {
+    if (scope.disposed) throw new Error('Cannot register species on a disposed scope');
+    if (list.some((entry) => entry.scope === scope && entry.value.id === value.id)) throw new Error(`Duplicate species row: ${value.id}`);
+    const entry = { value, scope }; list.push(entry); this.cache = new WeakMap();
+    scope.onDispose(() => { const i = list.indexOf(entry); if (i !== -1) list.splice(i, 1); this.cache = new WeakMap(); });
+  }
+  get(kind: string): SpeciesDef | undefined {
+    const scope = this.active(); if (scope === null) return undefined;
+    const cached = this.cache.get(scope)?.get(kind); if (cached !== undefined) return cached;
+    const row = this.rows.slice().reverse().find((entry) => entry.scope.belongsTo(scope) && entry.value.kind === kind)?.value;
+    const look = this.looks.slice().reverse().find((entry) => entry.scope.belongsTo(scope) && entry.value.kind === kind)?.value;
+    if (row === undefined && look === undefined) return undefined;
+    let resolved: SpeciesDef;
+    if (row !== undefined && look !== undefined) resolved = speciesWithLook(row, look);
+    else {
+      const base = registeredSpecies(kind);
+      resolved = row !== undefined ? speciesWithLook(row, { ...base, id: `default.look.${kind}`, species: row.id,
+        variants: Object.fromEntries([...base.variants, ...(base.spawnOnly ?? [])].map((v) => [v.id, {
+          ...(v.tint === undefined ? {} : { tint: v.tint }), ...(v.fur === undefined ? {} : { fur: v.fur }),
+          ...(v.traits === undefined ? {} : { traits: v.traits }),
+        }])) })
+        : look !== undefined ? speciesWithLook({ ...base, id: kind }, look) : base;
+    }
+    const map = this.cache.get(scope) ?? new Map<string, SpeciesDef>(); map.set(kind, resolved); this.cache.set(scope, map);
+    return resolved;
+  }
+  look(kind: string): SpeciesLook | undefined {
+    const scope = this.active();
+    return scope === null ? undefined : this.looks.slice().reverse().find((entry) => entry.scope.belongsTo(scope) && entry.value.kind === kind)?.value;
+  }
+  preloads(): readonly (() => Promise<void>)[] {
+    const scope = this.active(); if (scope === null) return [];
+    return [...new Set(this.looks.filter((entry) => entry.scope.belongsTo(scope)).flatMap((entry) => entry.value.preload ? [entry.value.preload] : []))];
+  }
 }

@@ -3,7 +3,8 @@ import { AnimalFactory } from '#engine/entities/AnimalFactory';
 import { speciesDef, rollVariant, type AnimalSpecies } from '#engine/entities/species/registry';
 import { Rng } from '#engine/core/rng';
 import { setLowPoly } from '#engine/entities/species/loft';
-import { speciesWithLook } from '#engine/entities/species/look';
+import { SpeciesService, speciesWithLook } from '#engine/entities/species/look';
+import { Scope } from '#engine/app/scope';
 import { BOAR } from '#kit/species/boar';
 import { BEAR } from '#kit/species/bear';
 import { BOAR_LOOK } from '#kit/species/view/boar';
@@ -66,5 +67,26 @@ describe('shared hunting rows and authored children', () => {
       expect(row).not.toHaveProperty('build'); expect(row).not.toHaveProperty('fur');
       for (const variant of row.variants) { expect(variant).not.toHaveProperty('traits'); expect(variant).not.toHaveProperty('tint'); }
     }
+  });
+  it('resolves independent resident looks, reuses adapters and forgets disposed child overrides', () => {
+    const root = new Scope('engine'), pine = root.child('pine'), island = root.child('island');
+    let active: Scope | null = pine;
+    const catalog = new SpeciesService(() => active);
+    catalog.registerRow(ISLAND_BOAR, island);
+    active = island;
+    expect(catalog.get('boar')?.tuning?.sightRange).toBe(42);
+    active = pine;
+    catalog.registerRow(PINE_BOAR, pine); catalog.registerLook(BOAR_LOOK, pine);
+    catalog.registerLook(BOAR_LOOK, island);
+    const first = catalog.get('boar'); expect(first?.tuning?.sightRange).toBe(22);
+    expect(catalog.get('boar')).toBe(first);
+    active = island; expect(catalog.get('boar')?.tuning?.sightRange).toBe(42);
+    const child = island.child('copy');
+    catalog.registerRow({ ...ISLAND_BOAR, id: 'copy', chargeDamage: 99 }, child);
+    expect(catalog.get('boar')?.chargeDamage).toBe(99);
+    child.dispose(); expect(catalog.get('boar')?.chargeDamage).toBe(25);
+    island.dispose(); active = pine; expect(catalog.get('boar')?.chargeDamage).toBe(25);
+    pine.dispose(); expect(catalog.get('boar')).toBeUndefined(); active = null;
+    expect(catalog.preloads()).toEqual([]); root.dispose();
   });
 });

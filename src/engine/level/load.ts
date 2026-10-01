@@ -77,10 +77,24 @@ export class LevelLoader {
       answer: (name, fn, options) => { live(); this.app.events.answer(name, fn, scope, options); },
       rows: {
         weapon: (values) => register('weapon', values), tool: (values) => register('tool', values),
-        ammo: (values) => register('ammo', values), species: (values) => register('species', values),
-        speciesLook: (values) => register('speciesLook', values), effect: (values) => register('effect', values),
+        ammo: (values) => register('ammo', values),
+        species: (values) => {
+          register('species', values);
+          const rows: readonly ContentRowMap['species'][] = Array.isArray(values) ? values : [values as ContentRowMap['species']];
+          for (const row of rows) this.app.species.registerRow(row, scope);
+        },
+        speciesLook: (values) => {
+          register('speciesLook', values);
+          const rows: readonly ContentRowMap['speciesLook'][] = Array.isArray(values) ? values : [values as ContentRowMap['speciesLook']];
+          for (const row of rows) this.app.species.registerLook(row, scope);
+        },
+        effect: (values) => register('effect', values),
         damageRule: (values) => register('damageRule', values), encounter: (values) => register('encounter', values),
-        spawnTable: (values) => register('spawnTable', values),
+        spawnTable: (values) => {
+          register('spawnTable', values);
+          const rows: readonly ContentRowMap['spawnTable'][] = Array.isArray(values) ? values : [values as ContentRowMap['spawnTable']];
+          for (const row of rows) this.app.encounters.registerSpawn(row, scope);
+        },
         creatureLook: (name, factory) => {
           live(); if (!kitOpen) throw new Error('Creature looks may only register during level.kit');
           this.app.levelRegistrations.creatureLook(name, factory, scope);

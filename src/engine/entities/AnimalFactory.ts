@@ -8,12 +8,13 @@ import { bakedTexture } from '../boot/bakedTextures';
 import { speciesDef, variantDef, type SpeciesDef, type VariantDef, type AnimalDims, type BoneDef, type FurStyle } from './species/registry';
 import { setLowPoly } from './species/loft';
 import { facetGeometry, lowPolyMaterials, oneMaterial, patchEyeGlow } from './lowpoly';
-import { preloadPineCreatures, skinPineHull, type EyeSpot } from './pineCreatures';
+import type { EyeSpot } from './species/look';
+import { app } from '../app/runtime';
 import { preloadCreatureGlbs, creatureHull, skinCreatureGlb, loadCreatureRig } from './glbCreatures';
 import { painterlyAnimalMaterial } from './painterlyAnimals';
 
 // every species file registers itself on import: drop `src/engine/entities/species/<kind>.ts` in and it exists
-import.meta.glob(['./species/*.ts', '!./species/registry.ts', '!./species/loft.ts'], { eager: true });
+import.meta.glob(['./species/*.ts', '!./species/registry.ts', '!./species/loft.ts', '!./species/look.ts'], { eager: true });
 
 export { registerSpecies, speciesDef, hasSpecies, speciesKinds, variantDef, variantMods, rollVariant, RARITY_ORDER } from './species/registry';
 export type { SpeciesDef, VariantDef, VariantMods, Rarity, AnimalDims, BoneDef, AnimalSpecies, FurStyle, RigAnimCtx, ThinkCtx, EnemyWorld } from './species/registry';
@@ -292,7 +293,7 @@ export class AnimalFactory {
 
   constructor(private readonly sky: Sky, opts: { style?: AnimalStyle | undefined } = {}) {
     this.style = opts.style ?? 'pbr';
-    this.ready = this.style === 'pbr' ? preloadPineCreatures() : Promise.resolve();
+    this.ready = this.style === 'pbr' ? Promise.all(app.species.preloads().map((preload) => preload())).then(() => undefined) : Promise.resolve();
     if (this.style === 'painterly') preloadCreatureGlbs();
   }
 
@@ -361,7 +362,7 @@ export class AnimalFactory {
     // a generated hull skinned to this skeleton (Pine Hollow PH-M1, pineCreatures.ts; Debug ▸ Creatures = Procedural = the procedural
     // animal): one group drawn with the same fur material over the hull's photoreal atlas (the variant's coat) + normal
     // map, so the program is the procedural fur's own; no fur shells
-    const hull = skinPineHull(kind, v.id, sp.bones, eyes);
+    const hull = app.species.look(kind)?.skin?.(v, sp.bones, eyes) ?? null;
     if (hull !== null && hull.map !== null) {
       geometry.dispose();
       if (hull.fur !== undefined) style = { ...style, ...hull.fur };   // the coat's own sheen / rim (E322 F-M2's fixed bears)

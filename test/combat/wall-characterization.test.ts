@@ -8,6 +8,8 @@ import { LaneCharge } from '#shards/pine-hollow/combat/ctx';
 import { AntlerKingFight } from '#shards/pine-hollow/combat/antlerKing';
 import { canReach } from '#engine/ai/reach';
 import { headingTo, inArc } from '#shards/pine-hollow/combat/combatMath';
+import { pineContact, PINE_STRIKES } from '#shards/pine-hollow/combat/strikes';
+import { blackpawGoal } from '#shards/pine-hollow/combat/EliteGoals';
 import { legacyMethods } from '../fake/legacySource';
 import { Spear, SPEAR_PROFILE } from '#shards/nalati-grasslands/weapons/Spear';
 import { NaizagaiPower } from '#shards/nalati-grasslands/weapons/Naizagai';
@@ -89,7 +91,7 @@ describe('wall bug baselines (owning migrations intentionally change B1/B2 expec
   });
   it('B4 Blackpaw swipe rejects cover and retains22 in the open', () => {
     setActiveChunk('pine-hollow'); wall(); const f = manager(), a = f.manager.spawn('boar', 0, -2.5, 0, 'boar');
-    const path = 'src/shards/pine-hollow/combat/elites.ts', globals = { canReach, headingTo, inArc, THREE, voice: noop, _v: new THREE.Vector3() };
+    const path = 'src/shards/pine-hollow/combat/elites.ts', globals = { canReach, headingTo, inArc, pineContact, PINE_STRIKES, blackpawGoal, THREE, voice: noop, _v: new THREE.Vector3() };
     const proto = legacyMethods(path, 'Blackpaw', globals), base = legacyMethods(path, 'PineElite', globals);
     Object.setPrototypeOf(base, EliteBrain.prototype); Object.setPrototypeOf(proto, base);
     const hurt = vi.fn(noop), fight = legacyActor(proto, { ports: { player: { position: new THREE.Vector3(0, 0, -1.2) } }, mode: 'swipe', modeT: 0, swipeT: 0.01, roarCd: 0, p2: false,
@@ -118,7 +120,7 @@ describe('wall bug baselines (owning migrations intentionally change B1/B2 expec
   it('B2 Naizagai rejects a crag and preserves40 to a creature10m out in the open', () => {
     wall(); const f = fakeWorld(), a = target(); a.animal.position.z = a.body.z = a.head.z = -10;
     const blade = legacyActor(NaizagaiPower.prototype, { crescent: new THREE.Object3D(), crescentFrom: new THREE.Vector3(), crescentDir: new THREE.Vector3(), arcs: [],
-      deps: { camera: f.game.camera, animals: { animals: [a.animal] }, storm: () => false } });
+      deps: { camera: f.game.camera, player: { mountedOn: null }, animals: { animals: [a.animal] }, storm: () => false } });
     invokeLegacy(blade, 'throwCrescent'); expect(a.dealt).toEqual([]);
     setActivePhysics(null); invokeLegacy(blade, 'throwCrescent'); expect(a.dealt).toEqual([40]);
   });
@@ -128,7 +130,7 @@ describe('wall bug baselines (owning migrations intentionally change B1/B2 expec
       a.animal.position.z = a.body.z = a.head.z = z;
     }
     const blade = legacyActor(NaizagaiPower.prototype, { crescent: new THREE.Object3D(), crescentFrom: new THREE.Vector3(), crescentDir: new THREE.Vector3(), arcs: [],
-      deps: { camera: f.game.camera, animals: { animals: [first.animal, next.animal, third.animal] }, storm: () => storm } });
+      deps: { camera: f.game.camera, player: { mountedOn: null }, animals: { animals: [first.animal, next.animal, third.animal] }, storm: () => storm } });
     invokeLegacy(blade, 'throwCrescent');
     expect(first.dealt).toEqual([storm ? 50 : 40]); expect(next.dealt).toEqual([]); expect(third.dealt).toEqual([]);
     setActivePhysics(null); invokeLegacy(blade, 'throwCrescent');

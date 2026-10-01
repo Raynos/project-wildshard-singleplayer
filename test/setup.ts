@@ -23,4 +23,12 @@ const { registerAchievements } = await import('#game/achievements');
 const { PINE_FEATS } = await import('#shards/pine-hollow/feats');
 registerAchievements('pine-hollow', PINE_FEATS);
 
+// The composition root owns shared species; the engine has no upward kit import.
+const { registerSpecies, speciesWithLook } = await import('#engine');
+const { installKitSpecies } = await import('#kit');
+installKitSpecies();
+// Legacy fixtures include Pine's spawn-only thrall, without activating a rendered level.
+const { PINE_BOAR } = await import('#shards/pine-hollow/species/rows');
+const { PINE_BOAR_LOOK } = await import('#shards/pine-hollow/species/looks');
+registerSpecies(speciesWithLook(PINE_BOAR, PINE_BOAR_LOOK));
 beforeEach(() => { localStorage.clear(); });

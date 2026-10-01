@@ -26,6 +26,7 @@ import type { LevelSpec } from '../level/spec';
 import { CombatPipeline } from '../combat/pipeline';
 import { AggressionService } from '../ai/director';
 import { EncounterRegistry } from '../ai/encounters';
+import { SpeciesService } from '../entities/species/look';
 import type { PlayerHealth } from '../combat/health';
 import type { EffectService } from '../combat/effects/EffectService';
 
@@ -51,6 +52,7 @@ export class App {
   readonly combat: CombatPipeline;
   readonly aggression: AggressionService;
   readonly encounters = new EncounterRegistry(() => this.levelScope);
+  readonly species = new SpeciesService(() => this.levelScope);
   private readonly equipmentByLevel = new WeakMap<Scope, EquipmentService>();
   get equipment(): EquipmentService | null { return this.levelScope === null ? null : this.equipmentByLevel.get(this.levelScope) ?? null; }
   registerEquipment(equipment: EquipmentService, scope: Scope): void {

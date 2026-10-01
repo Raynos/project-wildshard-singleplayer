@@ -1,4 +1,4 @@
-import { PINE_LANES } from '#shards/pine-hollow/combat/strikes';
+import { PINE_LANES, PINE_STRIKES } from '#shards/pine-hollow/combat/strikes';
 import * as THREE from 'three';
 import { describe, expect, it, vi } from 'vitest';
 import type * as Heightfield from '#engine/world/Heightfield';
@@ -35,10 +35,14 @@ const tuning = [
   ['S25 Titan wind charge', `${nalati}stormTitan.ts`, { CHARGE_DMG: 30, LANE_T: 1.2, FLANK_T: 2, STUN_T: 4 }],
   ['S26 Titan chain', `${nalati}stormTitan.ts`, { CHAIN_DMG: 18, CHAIN_R: 3, CHAIN_LAND: 0.6 }],
   ['S27 Titan fire', `${nalati}stormTitan.ts`, { CELL: 4, BURN_T: 7, FIRE_DPS: 8 }],
-  ['S35 Antler King sweep', `${pine}antlerKing.ts`, { SWEEP_NEAR: 4, SWEEP_NEAR_ARC: 1.31, SWEEP_REACH: 7.1, SWEEP_AIM: -0.26, SWEEP_ARC: 0.52 }],
   ['S36 Antler King stomp', `${pine}antlerKing.ts`, { STOMP_R: 4.4 }],
 ] as const;
 describe('strike tuning from current production declarations', () => {
+  it('S35 keeps both measured Antler King sweep regions and damage24', () => {
+    expect(PINE_STRIKES.sweep.shape).toEqual({ kind: 'arc', radius: 4, halfAngle: 1.31 });
+    expect(PINE_STRIKES.sweep.alternatives).toEqual([{ kind: 'arc', radius: 7.1, halfAngle: 0.52, yawOffset: -0.26 }]);
+    expect(PINE_STRIKES.sweep.damage).toBe(24); expect(PINE_STRIKES.sweep.windup).toBe(0.9);
+  });
   it.each(tuning)('%s', (_name, file, expected) => {
     expect(legacyConstants(file, Object.keys(expected), { THREE })).toEqual(expected);
   });

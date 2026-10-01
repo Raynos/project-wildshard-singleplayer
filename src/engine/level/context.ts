@@ -10,13 +10,15 @@ import type { ListenerOptions } from '../events/events';
 import type { DiscOpts, DiscSpot, TouchRelabel } from '../ui/hudSlots';
 import type { Piece } from '../world/registry';
 import type { TierKnobs } from './spec';
-import type { EncounterDefinition } from '../ai/encounters';
+import type { EncounterDefinition, SpawnTableRow } from '../ai/encounters';
+import type { SpeciesRow } from '../ai/species';
+import type { SpeciesLook } from '../entities/species/look';
 
 export interface ContentRow { id: string }
 /** Subsystems refine their registration contracts here as their row implementations land. */
 export interface ContentRowMap {
-  weapon: ContentRow; tool: ContentRow; ammo: ContentRow; species: ContentRow; speciesLook: ContentRow;
-  effect: EffectDef; damageRule: ContentRow; encounter: EncounterDefinition; spawnTable: ContentRow;
+  weapon: ContentRow; tool: ContentRow; ammo: ContentRow; species: SpeciesRow; speciesLook: SpeciesLook;
+  effect: EffectDef; damageRule: ContentRow; encounter: EncounterDefinition; spawnTable: SpawnTableRow;
 }
 export type RowVerb<T> = (row: T | readonly T[]) => void;
 export type EngineRows = { [K in keyof ContentRowMap]: RowVerb<ContentRowMap[K]> } & {

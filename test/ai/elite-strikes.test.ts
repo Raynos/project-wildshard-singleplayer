@@ -9,6 +9,7 @@ import { invokeLegacy, legacyActor } from '../fake/legacyActor';
 import { legacyMethods } from '../fake/legacySource';
 import { creature } from '../fake/creature';
 import { inArc, headingTo, fadeCooldown, behindPlayer, fleeHeading } from '#shards/pine-hollow/combat/combatMath';
+import { blackpawGoal, ghostGoal, ironhideGoal, imperialGoal } from '#shards/pine-hollow/combat/EliteGoals';
 
 vi.mock('#engine/world/Heightfield', async (original) => ({ ...await original<typeof Heightfield>(),
   heightAt: (): number => 0, normalAt: (): [number, number, number] => [0, 1, 0], waterLevel: (): number => -100, streamAt: (): null => null }));
@@ -74,7 +75,7 @@ describe('private Nalati elite strikes executed from their production class meth
 describe('Pine elite contacts and the nonattacking Ghost Stag', () => {
   function pine(name: string, fields: Record<string, unknown>) {
     const f = creature('crab', 'small'), hits: number[] = [], path = 'src/shards/pine-hollow/combat/elites.ts';
-    const globals = { THREE, Math, canReach, headingTo, inArc, fadeCooldown, behindPlayer, fleeHeading, heightAt: () => 0,
+    const globals = { THREE, Math, canReach, headingTo, inArc, fadeCooldown, behindPlayer, fleeHeading, blackpawGoal, ghostGoal, ironhideGoal, imperialGoal, heightAt: () => 0,
       inChunk: () => true, voice: (): void => undefined, _v: new THREE.Vector3() };
     const proto = legacyMethods(path, name, globals), base = legacyMethods(path, 'PineElite', globals);
     Object.setPrototypeOf(base, EliteBrain.prototype); Object.setPrototypeOf(proto, base);

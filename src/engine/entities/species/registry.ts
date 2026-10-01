@@ -275,6 +275,9 @@ export interface SpeciesDef {
 }
 
 const SPECIES = new Map<string, SpeciesDef>();
+let resolveSpecies: ((kind: string) => SpeciesDef | undefined) | undefined;
+/** The composition root supplies active, scoped rows; legacy tooling can keep its standalone catalog. */
+export function setSpeciesResolver(resolve: (kind: string) => SpeciesDef | undefined): void { resolveSpecies = resolve; }
 
 /** Register a species (call once at module top level of `species/<kind>.ts`). Re-registering replaces it. */
 export function registerSpecies(def: SpeciesDef): SpeciesDef {
@@ -284,6 +287,10 @@ export function registerSpecies(def: SpeciesDef): SpeciesDef {
 }
 
 export function speciesDef(kind: string): SpeciesDef {
+  return resolveSpecies?.(kind) ?? registeredSpecies(kind);
+}
+
+export function registeredSpecies(kind: string): SpeciesDef {
   const d = SPECIES.get(kind);
   if (!d) throw new Error(`unknown animal kind '${kind}' (registered: ${[...SPECIES.keys()].join(', ') || 'none'})`);
   return d;

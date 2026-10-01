@@ -1,6 +1,8 @@
+import { AntlerKingGoals } from './KingGoals';
 import { pineBackdrop } from '../look/skyBackdrop';
-import { PINE_LANES } from './strikes';
-import { canReach, inspectBrain, pinBrain } from '#engine';
+import { PINE_LANES, PINE_STRIKES, pineContact } from './strikes';
+import { app, inspectBrain, pinBrain, type Spawner } from '#engine';
+import { thrallSpawner, spawnThrallFrom } from './spawns';
 import * as THREE from 'three';
 import type { Animal } from '#engine/entities/Animal';
 import { registerSpecies, speciesDef, variantDef, hasSpecies, type SpeciesDef } from '#engine/entities/species/registry';
@@ -20,7 +22,7 @@ import { FogWall, Puffs, flameCard } from './fxKit';
 import { KING_VARIANT, dressAntlerKing, makeKingKit, kingOwnSpecies, type KingKit, type KingLook } from '../models/antlerKing';
 import { ACT_BRACE, ACT_ROAR, ACT_STRIKE, ACT_SWEEP } from './kingRig';
 import { own, retire, voice, LaneCharge, type PineCtx } from './ctx';
-import { KING_PHASE_AT, burnTick, headingTo, inArc, ringCatches, wallPush } from './combatMath';
+import { KING_PHASE_AT, burnTick, headingTo, wallPush } from './combatMath';
 import type { FxMaterial } from '#engine/world/fx';
 
 /**
@@ -68,15 +70,13 @@ const ARENA_IN = 22, WALL_R = 27.5, FOG_R = 31, KING_R = 24;
  * m from his origin, the point between his hooves). The fight was tuned on the elk-rig King (a 10 m sweep, a 3.5 m stomp, a
  * 4.2 m lane); these put every hit where his body visibly is. Timings and damage are unchanged. The player is 0.38 m wide.
  */
-const PLAYER_R = 0.38;
 /** the sweep: he dives and scythes the rack through a standing player's height (kingRig.ts clipSweep). His mesh touches a
  *  standing player (scripts/e350-king-measure.mjs --sweepmap: the skinned hull over the swing, both tiers) everywhere
  *  within 4 m and ±75° of his heading (his forelegs, chest and face come down on you), and out to 7.1 m from 45° to his
  *  right to 15° to his left (the rack's scythe): the blow is those two regions (7 % of the map's cells disagree, all on
  *  their edges; the old single arc disagreed on 19 %). The ring tells the scythe's reach; he stops walking in at 0.9 of it
  *  (the old 9 of 10 m) */
-const SWEEP_NEAR = 4, SWEEP_NEAR_ARC = 1.31, SWEEP_REACH = 7.1, SWEEP_AIM = -0.26, SWEEP_ARC = 0.52;
-const SWEEP_R = SWEEP_REACH - PLAYER_R, STALK_NEAR = 0.9 * SWEEP_REACH;
+
 /** the rearing strike's slam: the forehooves land 4.0 m ahead, ±1.7 m off his line (4.4 m out): the root ring bursts from there */
 const STOMP_R = 4.4;
 /** the lane charge: galloping past, his mesh touches a standing player up to 3.0 m off his line (his forelegs and the
@@ -94,7 +94,7 @@ let kingDamage: ((a: Animal, p: THREE.Vector3) => number) | null = null;
 
 /** the King's species: the elk's fields re-registered as 'antler-king' — its own AI (the fight drives it), no blood (bark) —
  *  on his own upright rig (E322 F-M1, kingOwnSpecies) */
-function registerKing(): void {
+export function registerKing(): void {
   if (hasSpecies(KING_KIND)) return;
   const elk = speciesDef('elk');
   const def: SpeciesDef = {
@@ -134,18 +134,14 @@ class Dim {
 
 const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _col = new THREE.Color();
 
-export class AntlerKingFight implements BossScript {
+export class AntlerKingFight extends AntlerKingGoals implements BossScript {
   king: Animal | null = null;
   look: KingLook | null = null;
-  phase = 0;
-  mode = 'dormant';
-  private modeT = 0;
   private invuln = false; private lockHp = 0;
-  private sweepCd = 2; private stompCd = 4; private callCd = 0; private laneN = 0;
   private readonly kit: KingKit;
-  private readonly tellRing: GroundTell;
-  private readonly waves: { g: GroundTell; r: number; on: boolean; hit: boolean; delay: number }[];
-  private readonly lane: LaneCharge;
+  protected override readonly tellRing: GroundTell;
+  protected override readonly waves: { g: GroundTell; r: number; on: boolean; hit: boolean; delay: number }[];
+  protected override readonly lane: LaneCharge;
   private readonly fallen: Fallen[] = [];
   private thralls: Thrall[] = [];
   private readonly thrallLanes: LaneCharge[];
@@ -154,7 +150,7 @@ export class AntlerKingFight implements BossScript {
   private light: THREE.PointLight | null = null;
   private sealK = 0; private sealed = false;
   get weatherHold(): number { return this.sealK; }
-  private darkK = 0; private glow = 0; private open = 0;
+  private darkK = 0; private glow = 0; 
   private present = false;
   private won = false;
   // the dimmers (the sky rewrites these every frame; the fight scales them after it)
@@ -164,8 +160,15 @@ export class AntlerKingFight implements BossScript {
   private fogCol = new THREE.Color(); private fogLast = new THREE.Color(-1, -1, -1);
   /** thralls parked at boot so their programs compile with the rest (never shown) */
   private readonly parked: Animal[] = [];
+  private readonly spawner: Spawner<Animal> | null;
 
-  constructor(private readonly ctx: PineCtx) {
+  constructor(protected override readonly ctx: PineCtx) {
+    super();
+    this.spawner = thrallSpawner(ctx.animals, (kind, x, z, yaw) => {
+      const v = thrallVariant(kind), actor = ctx.animals.spawn(kind, x, z, yaw, v.variant);
+      if (v.tinted) tintThrall(actor);
+      return actor;
+    });
     const scene = ctx.game.scene;
     this.kit = makeKingKit(ctx.sky);
     this.tellRing = new GroundTell(scene, 'ring', AMBER_TELL);
@@ -359,78 +362,14 @@ export class AntlerKingFight implements BossScript {
     }
   }
 
-  private setMode(m: string): void { this.mode = m; this.modeT = 0; }
-
-  private fight(k: Animal, dt: number, t: number): void {
-    const p = this.ctx.player.position;
-    const d = Math.hypot(p.x - k.position.x, p.z - k.position.z), yaw = headingTo(k.position.x, k.position.z, p.x, p.z);
-    this.sweepCd -= dt; this.stompCd -= dt; this.callCd -= dt;
-    this.tellRing.setTime(t);
-    k.lookTarget.copy(p); k.lookWeight = 1;
-    const wantOpen = this.mode === 'open' || (this.mode === 'stalk3' && this.lane.state === 'skid') ? 1 : 0;
-    this.open = THREE.MathUtils.clamp(this.open + (wantOpen > this.open ? dt * 4 : -dt * 2.5), 0, 1);
-    this.tickWaves(k, dt, t);
-    switch (this.mode) {
-      case 'stalk': {
-        k.setMotion(yaw, d > STALK_NEAR ? (this.phase === 1 ? 2.8 : 2.3) : 0, 1.4);
-        if (this.phase >= 1 && this.callCd <= 0 && this.aliveThralls() < 3) { this.setMode('call'); act(k, ACT_ROAR); k.startAttack(1.6); this.ctx.shot('king_bells', k.position); break; }
-        if (d < SWEEP_REACH && this.sweepCd <= 0) { this.setMode('sweep'); act(k, ACT_SWEEP); k.startAttack(0.9); break; }
-        if (this.stompCd <= 0 && this.modeT > 1) { this.setMode('stomp'); act(k, ACT_STRIKE); k.startAttack(1.0); }
-        break;
-      }
-      case 'sweep': {
-        k.setMotion(yaw, 0, 1.2);
-        const kk = Math.min(1, this.modeT / 0.9);
-        this.tellRing.ring(k.position.x, k.position.z, SWEEP_R, 0.3 + 0.6 * kk * (0.75 + 0.25 * Math.sin(t * 24)));
-        if (this.modeT >= 0.9) {
-          this.tellRing.hide();
-          if (canReach(k, p) && (inArc(k.position.x, k.position.z, k.yaw, p.x, p.z, SWEEP_NEAR_ARC, SWEEP_NEAR) || inArc(k.position.x, k.position.z, k.yaw + SWEEP_AIM, p.x, p.z, SWEEP_ARC, SWEEP_REACH))) { this.ctx.hurt(k, 24); this.ctx.trauma(0.45); }
-          this.ctx.trauma(0.15);
-          this.sweepCd = 5; this.setMode('stalk');
-        }
-        break;
-      }
-      case 'stomp': {
-        k.setMotion(yaw, 0, 1.2);
-        const kk = Math.min(1, this.modeT / 1.0);
-        this.tellRing.ring(k.position.x, k.position.z, STOMP_R + kk, 0.4 + 0.5 * kk * (0.7 + 0.3 * Math.sin(t * 26)));
-        if (this.modeT >= 1.0) { this.tellRing.hide(); this.stompNow(k); this.setMode('waves'); }
-        break;
-      }
-      case 'waves': {
-        k.setMotion(yaw, 0, 1);
-        if (this.waves.every((w) => !w.on)) { this.setMode('open'); this.ctx.shot('king_roar', k.position); }
-        break;
-      }
-      case 'open': {
-        k.setMotion(yaw, 0, 0.8);
-        if (this.modeT >= (this.phase === 1 ? 2.6 : 3.2)) { this.stompCd = this.phase === 1 ? 7.5 : 9; this.setMode(this.phase === 2 ? 'stalk3' : 'stalk'); }
-        break;
-      }
-      case 'call': {
-        k.setMotion(yaw, 0, 1);
-        if (this.modeT >= 1.6) { this.callThralls(2); this.callCd = 20; this.setMode('stalk'); }
-        break;
-      }
-      case 'stalk3': {
-        // the Last Light: hold off, then down a lane at you — two or three in a row, the ribcage flaring at every skid
-        if (this.lane.busy) {
-          this.lane.update(k, dt, t, p, (dmg) => { this.ctx.hurt(k, dmg); this.ctx.trauma(0.6); });
-          if (this.lane.state === 'run' && this.lane.t < dt * 1.5) this.ctx.shot('king_stomp', k.position);
-          if (this.lane.idle()) { this.laneN++; this.modeT = this.laneN % 3 === 0 ? -1.5 : 0.4; }
-          break;
-        }
-        k.setMotion(yaw, d > 18 ? 2.4 : 0, 1.6);
-        if (this.stompCd <= 0 && d < 14) { this.setMode('stomp'); act(k, ACT_STRIKE); k.startAttack(1.0); break; }
-        if (this.modeT > 1.2) { act(k, ACT_BRACE); this.lane.start(k, p.x, p.z, 1.1); voice(this.ctx.animals, 'bear_roar', k.position); }
-        break;
-      }
-      default: this.setMode(this.phase === 2 ? 'stalk3' : 'stalk');
-    }
+  protected override action(k: Animal, move: 'roar' | 'sweep' | 'strike' | 'brace'): void {
+    act(k, { roar: ACT_ROAR, sweep: ACT_SWEEP, strike: ACT_STRIKE, brace: ACT_BRACE }[move]);
   }
+  protected override roar(k: Animal): void { voice(this.ctx.animals, 'bear_roar', k.position); }
+
 
   /** the stomp lands: dust, a shake, the root ring(s) race out */
-  private stompNow(k: Animal): void {
+  protected override stompNow(k: Animal): void {
     _v.set(k.position.x, k.position.y + 0.3, k.position.z);
     Impacts.for(this.ctx.game).burst('dirt', _v, _w.set(0, 1, 0), 24);
     this.ctx.shot('king_stomp', k.position);
@@ -438,7 +377,7 @@ export class AntlerKingFight implements BossScript {
     const n = this.phase >= 1 ? 2 : 1;
     this.waves.forEach((w, i) => { w.on = i < n; w.r = STOMP_R; w.hit = false; w.delay = i * 0.8; });
   }
-  private tickWaves(k: Animal, dt: number, t: number): void {
+  protected override tickWaves(k: Animal, dt: number, t: number): void {
     const p = this.ctx.player.position;
     const pd = Math.hypot(p.x - C.x, p.z - C.z) < FOG_R ? Math.hypot(p.x - k.position.x, p.z - k.position.z) : Infinity;
     for (const w of this.waves) {
@@ -447,23 +386,25 @@ export class AntlerKingFight implements BossScript {
       w.r += dt * 10.5;
       w.g.setTime(t);
       w.g.ring(k.position.x, k.position.z, w.r, 0.95, 0.25);
-      if (!w.hit && ringCatches(pd, w.r, 0.9, !this.ctx.player.onGround)) { w.hit = true; this.ctx.hurt(k, 20, true); this.ctx.trauma(0.4); }
+      if (!w.hit && pd !== Infinity) w.hit = pineContact(k, p, PINE_STRIKES.roots, (damage) => { this.ctx.hurt(k, damage, true); this.ctx.trauma(0.4); }, { ringRadius: w.r, airborne: !this.ctx.player.onGround });
       if (w.r > FOG_R) { w.on = false; w.g.hide(); }
     }
   }
 
   // ── thralls ──
-  private aliveThralls(): number { return this.thralls.filter((th) => th.a.alive).length; }
-  private callThralls(n: number): void {
+  protected override aliveThralls(): number { return this.thralls.filter((th) => th.a.alive).length; }
+  protected override callThralls(n: number): void {
     const p = this.ctx.player.position;
     for (let i = 0; i < n; i++) {
       const lane = this.thrallLanes.find((l) => !this.thralls.some((th) => th.lane === l && th.a.alive));
       if (!lane) break;
       const ang = Math.random() * Math.PI * 2, x = C.x + Math.sin(ang) * 27, z = C.z + Math.cos(ang) * 27;
       const kind = i % 2 === 0 ? 'elk' : 'boar';
-      const v = thrallVariant(kind);
-      const a = this.ctx.animals.spawn(kind, x, z, headingTo(x, z, p.x, p.z), v.variant);
-      if (v.tinted) tintThrall(a);
+      const a = spawnThrallFrom(this.spawner, kind, x, z, headingTo(x, z, p.x, p.z), () => {
+        const v = thrallVariant(kind), actor = this.ctx.animals.spawn(kind, x, z, headingTo(x, z, p.x, p.z), v.variant);
+        if (v.tinted) tintThrall(actor);
+        return actor;
+      });
       own(a);
       this.thralls = this.thralls.filter((th) => th.lane !== lane);
       this.thralls.push({ a, lane, mode: 'approach' });
@@ -533,11 +474,13 @@ export class AntlerKingFight implements BossScript {
       f.ring.setTime(t);
       f.ring.ring(f.x, f.z, 3.2, (0.35 + 0.15 * Math.sin(t * 5 + f.x)) * ember, 0.2);
       if (fighting && !this.won) {
-        const inside = Math.hypot(p.x - f.x, p.z - f.z) < 3.0;
+        let inside = false;
+        const actor = this.king;
+        if (actor) pineContact(actor, p, PINE_STRIKES.lantern, () => { inside = true; }, { origin: { x: f.x, y: f.y, z: f.z } });
         const r = burnTick(f.acc, dt, inside, 0.8);
         f.acc = r.acc;
         const k = this.king;
-        if (r.bites > 0 && k) { this.ctx.hurt(k, 9 * r.bites, true); }
+        if (r.bites > 0 && k) { this.ctx.hurt(k, PINE_STRIKES.lantern.damage * r.bites, true); }
       }
     }
   }
@@ -644,6 +587,8 @@ export class AntlerKing {
       toast: ctx.toast, feed: ctx.feed, pickupHum: host.pickupHum,
       music: (e) => this.music(e),
     }, this.ui, 'pine-hollow');
+    const scope = app.levelScope;
+    if (scope !== null) app.encounters.boss(KING_KIND, this.boss, scope);
     window.addEventListener('pointerdown', () => { this.touchSkip = true; });
     window.addEventListener('pointerup', () => { this.touchSkip = false; });
     window.addEventListener('pointercancel', () => { this.touchSkip = false; });

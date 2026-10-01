@@ -201,3 +201,7 @@ export { loadMeadow } from './meadowApi';
 export type { PlaygroundHost, Playground } from './practice/playground/Playground';
 export { pathRampDescs } from './physics/paths';
 export { AnalyticsSink, type AnalyticsEvent, type AnalyticsMap, type AnalyticsBatch } from './analytics';
+export { SpeciesService } from './entities/species/look';
+export { TIER } from './core/tier';
+export type { RigAnimCtx, FurStyle } from './entities/species/registry';
+export { EncounterService, type SpawnTableRow, type SpawnEntry, type SpawnContext, type SpawnPoint, type Spawner } from './ai/encounters';

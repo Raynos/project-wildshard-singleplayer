@@ -8,14 +8,16 @@ export interface StrikeActor {
   setMotion: (yaw: number, speed: number, turn: number) => void;
 }
 export type StrikeShape =
-  | { kind: 'arc'; radius: number; halfAngle: number }
+  | { kind: 'arc'; radius: number; halfAngle: number; yawOffset?: number }
   | { kind: 'lane'; length: number; width: number }
   | { kind: 'ring'; inner: number; outer: number }
   | { kind: 'wedge'; length: number; halfAngle: number }
-  | { kind: 'point'; radius: number };
+  | { kind: 'point'; radius: number; exclusive?: boolean };
 export interface StrikeContext {
   readonly actor: StrikeActor; readonly target: BrainPoint;
   readonly airborne?: boolean;
+  readonly origin?: BrainPoint;
+  readonly ringRadius?: number;
   canReach: () => boolean;
   hit: (spec: StrikeSpec) => void;
 }
@@ -23,6 +25,8 @@ export interface StrikeSpec {
   id: string; shape: StrikeShape; windup: number; active: number; recover: number; cooldown: number;
   range: number; damage: number; tags: readonly CombatTag[];
   weight: (ctx: StrikeContext) => number;
+  units?: 'world' | 'actor';
+  alternatives?: readonly StrikeShape[];
   motion?: { speed?: number; delay?: number; track?: 'none' | 'lead' | 'follow'; overshoot?: number; skid?: number };
   eligibility?: { maxDy?: number; jumpDodges?: boolean };
 }
@@ -71,6 +75,11 @@ export class StrikeRunner {
   cancel(): void { this.hfsm.transition('idle'); this.current = null; this.elapsed = 0; }
   /** An authored arena edge can end a committed lane without cancelling its recovery window. */
   recoverNow(): void { if (this.state === 'active') this.phase('recover'); }
+  /** Contact on an authored goal/hazard clock; no timing or random draw is consumed. */
+  contact(spec: StrikeSpec, ctx: StrikeContext): boolean {
+    if (!this.contains(spec, ctx) || (!spec.tags.includes('cover.exempt') && !ctx.canReach())) return false;
+    ctx.hit(spec); return true;
+  }
   update(dt: number, ctx: StrikeContext): void {
     this.clock += dt; const spec = this.current; if (spec === null || this.state === 'idle') return;
     this.elapsed += dt; const a = ctx.actor;
@@ -82,8 +91,7 @@ export class StrikeRunner {
     }
     if (this.state === 'active') {
       if (spec.shape.kind === 'lane') a.setMotion(this.yaw, (spec.motion?.speed ?? 0) * this.speedMul, 0.35);
-      if (!this.hit && this.elapsed >= (spec.motion?.delay ?? 0) && this.contains(spec, ctx) &&
-          (spec.tags.includes('cover.exempt') || ctx.canReach())) { this.hit = true; ctx.hit(spec); }
+      if (!this.hit && this.elapsed >= (spec.motion?.delay ?? 0)) this.hit = this.contact(spec, ctx);
       if (spec.shape.kind === 'lane') {
         const along = ((a.position.x - this.x0) * (this.x1 - this.x0) + (a.position.z - this.z0) * (this.z1 - this.z0)) / (this.length * this.length);
         if (along >= 1 || this.elapsed > this.length / Math.max(1, (spec.motion?.speed ?? 0) * this.speedMul) + 1.2) this.phase('recover');
@@ -102,10 +110,16 @@ export class StrikeRunner {
   }
   private phase(state: StrikePhase): void { this.hfsm.transition(state); this.elapsed = 0; }
   private contains(spec: StrikeSpec, ctx: StrikeContext): boolean {
-    const { actor: a, target: p } = ctx, shape = spec.shape, scale = Math.max(1, a.scale);
+    const { actor: a, target: p } = ctx;
+    const origin = ctx.origin ?? a.position;
+    const scale = spec.units === 'world' ? 1 : spec.units === 'actor' ? a.scale : Math.max(1, a.scale);
     if (spec.eligibility?.maxDy !== undefined && Math.abs(p.y - a.position.y) > spec.eligibility.maxDy) return false;
     if (spec.eligibility?.jumpDodges === true && ctx.airborne === true) return false;
-    const d = distance(a.position, p);
+    const d = distance(origin, p);
+    return this.containsShape(spec.shape, spec, ctx, d, scale, origin) || (spec.alternatives?.some((shape) => this.containsShape(shape, spec, ctx, d, scale, origin)) ?? false);
+  }
+  private containsShape(shape: StrikeShape, spec: StrikeSpec, ctx: StrikeContext, d: number, scale: number, origin: BrainPoint): boolean {
+    const { actor: a, target: p } = ctx;
     if (shape.kind === 'lane') {
       if (d >= spec.range * scale) return false;
       const dx = this.x1 - this.x0, dz = this.z1 - this.z0, len2 = dx * dx + dz * dz;
@@ -113,12 +127,13 @@ export class StrikeRunner {
       const t = ((p.x - this.x0) * dx + (p.z - this.z0) * dz) / len2;
       return t >= 0 && t <= 1 && Math.hypot(p.x - (this.x0 + dx * t), p.z - (this.z0 + dz * t)) <= shape.width * 0.5 + 0.4;
     }
-    if (shape.kind === 'point') return d <= shape.radius * scale;
+    if (shape.kind === 'point') return shape.exclusive === true ? d < shape.radius * scale : d <= shape.radius * scale;
     if (shape.kind === 'ring') {
-      const r = (spec.motion?.speed ?? 0) * this.elapsed;
+      const r = ctx.ringRadius ?? (spec.motion?.speed ?? 0) * this.elapsed;
       return d >= shape.inner + r && d <= shape.outer + r;
     }
     const radius = shape.kind === 'arc' ? shape.radius : shape.length;
-    return d <= radius * scale && Math.abs(wrap(Math.atan2(p.x - a.position.x, p.z - a.position.z) - a.yaw)) <= shape.halfAngle;
+    const offset = shape.kind === 'arc' ? shape.yawOffset ?? 0 : 0;
+    return d <= radius * scale && (d < 1e-4 || Math.abs(wrap(Math.atan2(p.x - origin.x, p.z - origin.z) - a.yaw - offset)) <= shape.halfAngle);
   }
 }

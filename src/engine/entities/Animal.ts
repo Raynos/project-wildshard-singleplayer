@@ -411,6 +411,11 @@ export class Animal {
 
   /** the physics body while near the player (src/engine/physics/creatures.ts hands it out and takes it back) */
   motor: CharacterMotor | null = null;
+  /** Explicit retirement releases a corpse's ragdoll even when it receives no later update. */
+  retireBody(): void {
+    this.ragdoll?.dispose(); this.ragdoll = null;
+    this.motor?.dispose(); this.motor = null;
+  }
   /** the last update left the skeleton's pose as it was (the far LOD): the animals' group may keep its bones' world
    *  matrices while the root stands still too (src/engine/entities/animalMatrices.ts) */
   poseFrozen = false;

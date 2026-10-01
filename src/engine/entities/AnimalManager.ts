@@ -636,6 +636,16 @@ export class AnimalManager {
    * Add one animal (also used by the dev showcase). `variant`: a variant id (exact, even a second legendary),
    * an id list to roll from by weight, or nothing for the species' whole table.
    */
+  /** Retire a scripted creature through the same body and manager ownership boundary. */
+  retire(a: Animal): void {
+    a.hidden = true; a.mesh.visible = false; a.alive = false; a.position.y = -9999;
+    const i = this.animals.indexOf(a); if (i !== -1) this.animals.splice(i, 1);
+    this.brains.delete(a); this.farRigs.delete(a); this.casters.delete(a); this.tokens.release(a); this.scheduler.forget(a);
+    this.bodies?.remove(a);
+    a.retireBody();
+    a.mesh.removeFromParent();
+  }
+
   spawn(kind: AnimalKind, x: number, z: number, yaw: number, variant?: string | string[]): Animal {
     const sp = speciesDef(kind);
     const v = typeof variant === 'string' ? variantDef(kind, variant) : rollVariant(sp, this.rng, variant, this.hasLegendary(kind));

@@ -60,9 +60,7 @@ export function release(a: Animal): void { owned.delete(a); if (a.alive && a.sta
 /** out of the world for good: hidden, out of the manager's list (minimap, prompts, aim assist, AI) */
 export function retire(animals: AnimalManager, a: Animal): void {
   owned.delete(a);
-  a.hidden = true; a.mesh.visible = false; a.alive = false; a.position.y = -9999;
-  const i = animals.animals.indexOf(a); if (i !== -1) animals.animals.splice(i, 1);
-  a.mesh.removeFromParent();
+  animals.retire(a);
 }
 
 /** an AnimalManager sound by name (the manager's own names, plus the species' strings like 'elk_bugle') */
