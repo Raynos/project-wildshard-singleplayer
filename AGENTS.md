@@ -8,6 +8,22 @@
 - Production is pinned (`.github/deploy-pin.json`, row F3.1) and moves only at a milestone.
 - Bug fixes land on main and ship with the next milestone (decision 53).
 
+## Engine layers (E357)
+
+- The code is four layers: `src/engine/` (`#engine`, plus the node-safe `#engine/data`) → `src/game/` (`#game`) →
+  `src/kit/` (`#kit`) → `src/shards/<slug>/`. Imports point down the arrow only; a shard never imports another shard.
+- **[docs/ENGINE.md](docs/ENGINE.md)** is the public API of the three layers, one section per 01-architecture §.
+  `test/engine-docs.test.ts` fails when an index export is missing from it: after an index change, run
+  `ENGINE_DOC_WRITE=1 pnpm exec vitest run test/engine-docs.test.ts` and describe the new API in its section.
+- **[docs/SHARDS.md](docs/SHARDS.md)** is how to write a shard: copy `src/shards/_template/`, fill the manifest, the
+  plugin verbs, weapons, creatures, the look, audio, budgets, saves, strings, and the checklist to `live`. Every shard
+  folder has a `README.md` (what it declares, its custom code and why, budgets, look, open asks).
+- **The guards** ([ARCH-GUARDS](docs/plans/ARCH-GUARDS.md), `lint/wildshard-plugin.js`): `wildshard/layer` (public
+  indexes only), `shard-sandbox` (no globals, own settings and assets), `no-level-identity` and `no-shard-branch` (no
+  branching on a level's name or style outside its folder), the `no-raw-*` rules, the ratchet (`lint/ratchet.json`),
+  the layout check (`scripts/check-shards.mjs`, `lint/shard-layout.json`) and the pre-commit runner
+  (`scripts/precommit-guards.mjs`). ENGINE.md §24 lists them all.
+
 ## The user's asks
 
 - Every user ask → **its own file** before you start: `scripts/ask-new.sh "<the user's words>"`
@@ -79,24 +95,36 @@ Jake plays the game as an iOS home-screen PWA. It has no address bar, so a `?foo
 
 - **Never add a query-string param** for a variant, a look, a tuning value or a feature toggle. Not "just for the
   A/B", not "temporary".
-- **Every variant goes in pause ▸ Settings ▸ Debug, declared once in the registry** (E162, Jake: "we are going to have an
-  ungodly amount of toggles and we need to organize them"):
-  1. `src/engine/ui/Settings.ts`: a key in `OPTION_VALUES` (the first value is the default) and `OPTION_SPECS` → `DEBUG_ONLY`.
-  2. `src/engine/ui/debugOptions.ts`: one `opt(key, group, label, choices, { reload?, when?, note, ask: 'E<n>', reviewBy: 'YYYY-MM-DD' })` row in `DEBUG_ROWS`, under the
-     group whose domain it is. `pnpm gen` updates `lint/ask-ids.json`; commit that inventory when a new ask owns a flag (Vercel excludes docs).
-     `when` shows it only on its shard / with its weapon; `reload: true` if the thing is built
-     once; `note` is one line with the ask id. `src/engine/ui/DebugMenu.ts` renders it (collapsible groups, a filter) — no Menu.ts
-     edit. `test/debug-options.test.ts` fails an option with no row.
-  3. The game reads it with `setting(key)` (at load for a reload row) and `onSettingChange(key, fn)` (live).
-  4. A test / capture script sets it before the load: `debugSettings(page, { key: 'value' })` (`scripts/debug-settings.mjs`).
+- **Every variant goes in pause ▸ Settings ▸ Debug** (E162, Jake: "we are going to have an ungodly amount of toggles
+  and we need to organize them"). Its owner declares it, in one of two places:
+  - **A shard's toggle: `ctx.debugRow` in the shard's own folder** (13-lead-resolutions 05/06#12). The shard declares
+    its own key and row; no shard name ever lands in `src/engine/ui/Settings.ts` or `debugOptions.ts`.
+    1. In the plugin's `play` hook (or the shard's `debug.ts`): `ctx.debugRow({ id: '<slug-prefix>.<name>', group,
+       label, choices: [{ value, text }], initial, change(value), reload?, note, ask: 'E<n>', reviewBy: 'YYYY-MM-DD' })`.
+       Strings come from the shard's `strings.ts`.
+    2. The row shows only on that shard. Its value is a per-device save (`debug.plugin.<slug>.<id>`); `change` runs on
+       a pick, and once at load when the saved value differs from `initial`. The row goes when the shard unloads.
+    3. A test or capture drives it through a handle the shard exposes with `ctx.debug.expose(name, value)`
+       (`window.__wildshard.shard[name]`).
+    4. A shard never reads an engine option it doesn't own (`wildshard/shard-sandbox`). To show an existing engine row
+       on a shard, list its key in the manifest's `debugOptions`.
+  - **An engine-wide toggle: the registry.** Only for a variant of engine code, never named after a shard:
+    1. `src/engine/ui/Settings.ts`: a key in `OPTION_VALUES` (the first value is the default) and `OPTION_SPECS` → `DEBUG_ONLY`.
+    2. `src/engine/ui/debugOptions.ts`: one `opt(key, group, label, choices, { reload?, when?, note, ask: 'E<n>', reviewBy: 'YYYY-MM-DD' })`
+       row in `DEBUG_ROWS`, under the group whose domain it is. `when` shows it only where it applies; `reload: true` if
+       the thing is built once. `src/engine/ui/DebugMenu.ts` renders it — no Menu.ts edit. `test/debug-options.test.ts`
+       fails an option with no row.
+    3. The game reads it with `setting(key)` (at load for a reload row) and `onSettingChange(key, fn)` (live).
+    4. A test / capture script sets it before the load: `debugSettings(page, { key: 'value' })` (`scripts/debug-settings.mjs`).
+  - Both routes: `pnpm gen` updates `lint/ask-ids.json`; commit that inventory when a new ask owns a flag (Vercel
+    excludes docs). Every row raises the Debug-row count capped in `lint/ratchet.json` (`debugRows.max`, the ask in
+    `raisedBy`); a reopened shard's lane can't edit `lint/`, so it asks the lead.
   - **Never add a new group without need.** The groups are Look · Ground cover & foliage · Sky & weather · Audio ·
     Combat & weapons · Creatures & NPCs · Performance · Loading & memory · Developer tools; lighting, shadows, post and
     water are Look. A new group is for a new domain with several rows, not for one toggle.
   - When Jake picks a winner, delete the row, the option and the losing code in one commit (E136 / E162 style).
-  - **Under the E357 lock** (GAME-NORMALIZATION): a new toggle's owner adds it through `ctx.debugRow` (plan spec 01 §7)
-    once that owner is a shard plugin, else through the registry above. During the lock a new toggle is added only for
-    an E357 row or a Jake ask: by the lead, or by a content agent through `ctx.debugRow` inside its reopened shard
-    folder.
+  - **Under the E357 lock** (GAME-NORMALIZATION) a new toggle is added only for an E357 row or a Jake ask: by the lead,
+    or by a content agent through `ctx.debugRow` inside its reopened shard folder.
 - **The params the game may read are a fixed allowlist**, `lint/url-params.json`. `harness` is what the test, capture
   and bench scripts pass to drive the game headless (tier, touch, chunk, spawn, skipintro, mute, …). Adding to it needs
   Jake's explicit OK. `legacy` (the old switches, E162) is empty: never add to it.
@@ -145,11 +173,15 @@ the cloud. Mockups are the exception: they still come from codex. Two repos next
     North and South America only (see the rule at the top), so never raise a territory licence caveat.
   - Then fetch it with `fetch-repo.sh`, add a `MODELS.md` row, and write down its speed and memory in a localai doc.
 - **Blender models: the script is the source, the GLB is committed, a `.blend` never is** (M10, E315;
-  [why](docs/design/blender-practice.md)). A Blender model is a headless `bpy` script in `scripts/blender/<shard>/` with a
+  [why](docs/design/blender-practice.md)). A Blender model is a headless `bpy` script in `scripts/blender/<slug>/` with a
   row in `scripts/blender/targets.json`. Build it with `bash scripts/blender/build.sh <target>` (Blender 5.2.1,
   `--python-exit-code 1`, the model lock) and commit the GLB. `--check` rebuilds and compares with the committed GLB;
   `--save-blend` puts an inspection `.blend` in `~/.cache/wildshard-blender/`. `scripts/check-model-sources.mjs` (in
   `pnpm test`) refuses a Blender GLB with no script, an orphan script and a tracked `.blend`.
+- **Where a shard's generated assets go:** its own folders, `public/assets/<slug>/`, `public/assets/music/<slug>/`,
+  `public/assets/sfx/<slug>/` (and the folders in its manifest's `assetGlobs`). Its code loads them by those paths;
+  an `/assets/…` path outside them fails `wildshard/shard-sandbox`. A model it shows is a `defineModel` row in
+  `src/shards/<slug>/models/` and a `live(model)` entry in its `roster.ts` (`#engine`).
 
 ## Plans (`docs/plans/`) and their state
 
@@ -378,28 +410,31 @@ game.css / ride.css.
 ## Physics (Rapier, PHYSICS.md — since the physics merge)
 
 - **`src/engine/physics/` owns collision.** It is the only code that imports Rapier. Nothing else hand-rolls a collision test:
-  no ray-vs-box maths, no terrain bisection, no push-out loops. Ask `src/engine/physics/query.ts` (`castRay`,
-  `castSegment`, `lineOfSight`, `sweepBall`, `floorBelow`). Code that isn't handed the world gets it from
-  `activePhysics()`. `heightAt()` stays for placement and drawing only.
-- **A new static thing collides by registering.** The builder emits `colliderDescs(): ColliderDesc[]` beside the
-  geometry it draws:
+  no ray-vs-box maths, no terrain bisection, no push-out loops. Ask the queries: a shard imports `castRay`,
+  `castSegment`, `lineOfSight`, `floorBelow` and `sticksIn` from `#engine`; engine code also has `sweepBall`
+  (`src/engine/physics/query.ts`). Engine code gets the world from `app.physics`; `activePhysics()` is a legacy
+  singleton the `wildshard/no-active-singleton` ratchet is retiring. `heightAt()` stays for placement and drawing only.
+- **A new static thing collides by registering.** The builder emits `ColliderDesc`s (`boxDesc` on `#engine`) beside
+  the geometry it draws:
   - box / capsule / ball / hull;
   - `treads` for any stair: rise ≤ 0.35 m and tread depth ≥ 0.36 m, or the capsule rides the edges;
   - trimesh only for walk-inside shapes.
-  Then register it with `registry.add({ id, name, category, file, object, colliders, surface, floor?, solidFloor,
-  model? })` (src/engine/world/registry.ts). A moving piece `follows` its Object3D, which puts it on a kinematic body. `model`
-  puts it in Explore's catalog: it is the one registry, so never register a built thing a second time for Explore.
-  Don't push into `player.colliders`: that list is the legacy bridge for boxes that move (interactables, NPCs, dev
-  scenes).
+  A shard registers it with `ctx.piece({ id, name, category, file, object, colliders, surface, floor?, active?,
+  model? })` in its plugin's `world` hook; the piece leaves with the shard's scope. Engine code registers with
+  `app.registry.add(…)` (`WorldRegistry`, `src/engine/world/registry.ts`). A moving piece `follows` its Object3D, which
+  puts it on a kinematic body; a door is a piece whose `active()` is false while it is open. `model` puts it in
+  Explore's catalog: it is the one registry, so never register a built thing a second time for Explore. The old
+  `player.colliders` bridge is retired (F11).
 - **The player walks on colliders.** Step 0.35 m, max climb 40° (the user's picks). A walkable surface needs real
   geometry. A path over a crag is graded into the terrain (`TerrainSpec.graded`, never inside the Blender cove's
-  baked area); a steep one gets a walkway from `src/engine/physics/paths.ts`. After changing a builder's colliders, re-run
+  baked area); a steep one gets a walkway from `pathRampDescs` (`#engine`, `src/engine/physics/paths.ts`). After changing a builder's colliders, re-run
   `node scripts/physics-baseline.mjs --no-build --mode=walk` (and `--trails`): 0 stuck is the bar. If structures
   moved, re-bake the navmesh (`node --experimental-transform-types --import ./scripts/bake-loader.mjs
   scripts/bake-navmesh.mjs`; `--check` tells you when it's stale).
-- **Moving things** go in Game's fixed step (`game.onFixed('pre' | 'step' | 'post')`, 60 Hz, hit-stop slows it) and
-  are interpolated with `game.alpha`. Dynamic bodies go through `src/engine/physics/bodies.ts`, which enforces the per-tier
-  caps (phone 40 awake / 2 ragdolls).
+- **Moving things** go in the fixed step: a system in phase `'fixed.pre'`, `'fixed.step'` or `'fixed.post'`
+  (`ctx.system` in a shard; 60 Hz, hit-stop slows it), interpolated with `game.alpha`. Dynamic bodies go through
+  `activeBodies` (`#engine`, `src/engine/physics/bodies.ts`), which enforces the per-tier caps (phone 40 awake /
+  2 ragdolls).
 
 ## Deploy
 

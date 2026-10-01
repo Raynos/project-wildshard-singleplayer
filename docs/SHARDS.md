@@ -1,4 +1,347 @@
-# Shards — Driftwood Isle, Pine Hollow, Nalati Grasslands (and how to add a fourth)
+# How to write a shard
+
+A shard is one Wildshard level: a folder `src/shards/<slug>/` with a manifest (data) and a plugin (code). The engine,
+the game layer and the kit do the rest. This guide takes you from a copy of the template to a shard that is `live` on
+the title deck.
+
+- **The template** is [`src/shards/_template/`](../src/shards/_template/). It is small, grey and uses every plugin verb
+  once. Copy it; don't start from a real shard.
+- **The API reference** is [ENGINE.md](ENGINE.md). Each step below links to its section.
+- **The rules** are in [AGENTS.md](../AGENTS.md). The ones a shard author hits most are repeated where they apply.
+
+| Shard | Slug | Status | Style | Look | README |
+|---|---|---|---|---|---|
+| Driftwood Isle | `driftwood-isle` | `live`, deck 1 | `toon` | extend: the clean chain, toon light and fog | [README](../src/shards/driftwood-isle/README.md) |
+| Pine Hollow | `pine-hollow` | `live`, deck 2 | `pbr` | extend: the engine chain, a sky backdrop | [README](../src/shards/pine-hollow/README.md) |
+| Nalati Grasslands | `nalati-grasslands` | `earlyAccess`, deck 3 | `painterly` | replace: its own composer | [README](../src/shards/nalati-grasslands/README.md) |
+| Nine Dragon Stack | `nine-dragon-stack` | `experimental`, deck 4 | `jiehua` | extend: the engine passes, its own colour chain | [README](../src/shards/nine-dragon-stack/README.md) |
+| Template | `_template` | `hidden` (Debug only) | `greybox` | extend: the engine chain only | [README](../src/shards/_template/README.md) |
+
+## 0. Before you start
+
+- **Your lane.** While GAME-NORMALIZATION's lock is on, you may commit only inside your shard's allowlist: your
+  `src/shards/<slug>/`, `test/shards/<slug>/`, `art/<slug>/`, `public/assets/<slug>/` and the asset folders in your
+  manifest's `assetGlobs`, `scripts/blender/<slug>/`, and `docs/tasks/asks/`. The lead adds your slug to
+  `.github/lock.json` first. `scripts/check-lock.mjs` (the `commit-msg` hook) refuses any other path.
+- **Zero engine edits.** You never change `src/engine`, `src/game`, `src/kit`, `lint`, `scripts` or `.github`. When
+  you need something outside your folder, **stop and file an API gap** in your ask file: what you needed, where, and
+  why the public API can't do it. The lead fixes the API. Don't work around it with a deep import or a global.
+- **Generated files outside your lane.** Three committed files under `lint/` change when a shard is added, and only
+  the lead commits them. Name them in your ask file as soon as they change, so the lead lands them:
+  - `lint/shard-words.generated.json`: `pnpm gen` adds your slug, your shard's name and your species and weapon ids.
+    The pre-commit hook checks it (`gen-shards --check`) whenever a commit touches your `manifest.ts`.
+  - `lint/ratchet.json` `debugRows`: every new `ctx.debugRow` raises the Debug-row cap.
+  - `lint/ask-ids.json`: `pnpm gen` adds an ask id that a new Debug row names.
+- **Your own look.** Every shard keeps its own style (PH-U1). Shards share the engine and the pipelines, never each
+  other's shading. Pick the look with a mockup board first (`art/<slug>/round-<n>-<label>/`); Jake picks.
+- **The HUD is shared.** Use the baseline HUD and map your verbs onto existing controls. A HUD change needs Jake's pick
+  (E332).
+- **No URL switches.** A variant is a Debug row (`ctx.debugRow`, §13), never a `?param`.
+
+## 1. Copy the template
+
+```bash
+cp -R src/shards/_template src/shards/<slug>
+cp -R test/shards/_template test/shards/<slug>        # the headless contract test; point its imports at #shards/<slug>/
+```
+
+Then, in the copy:
+
+1. `manifest.ts`: set `slug: '<slug>'` (it must equal the folder name), `name`, `blurb`, `biome`, a fresh `seed`,
+   `order` (after the existing shards), and `status: 'experimental'`. Rename `TEMPLATE` and the plugin class.
+2. Rename every `template.*` id (systems, events, actions, rows, save keys, Debug rows) to your own prefix. Ids are
+   global: two shards with the same row id collide.
+3. Delete what you won't use. The template has one of everything on purpose; a real shard lists only the mechanisms
+   and verbs it runs.
+4. `pnpm gen` regenerates `src/game/shard/shards.generated.ts` (git-ignored). Your shard is now in the registry.
+5. `pnpm exec tsc --noEmit -p .` and `pnpm exec vitest run test/shards/<slug>` must pass before you go on.
+
+A folder whose name starts with `_` is hidden: it gets no title card and no layout check. Yours must not.
+
+## 2. The folder layout
+
+The layout check (`scripts/check-shards.mjs`, from `lint/shard-layout.json`) runs at every commit that touches
+`src/shards/**`. A file or folder outside this list fails it.
+
+**Required files**
+
+| File | What it holds |
+|---|---|
+| `manifest.ts` | the `ShardManifest`, default-exported. Node-safe: data and lazy thunks only |
+| `plugin.ts` | the `ShardPlugin` subclass, default-exported |
+| `README.md` | what the shard declares, its custom code and why, budgets, look, open asks |
+| `roster.ts` | the Model Explorer roster (`live(model)` entries) |
+| `budgets.ts` | the budget inputs (§9) |
+
+**Allowed files**
+
+| File | What it holds |
+|---|---|
+| `strings.ts` | every player-facing string (§11) |
+| `layout.ts` | every coordinate: sites, trails, spawn points |
+| `debug.ts` | your Debug rows |
+| `budgetCeilings.ts` | recorded F2 ceilings (the four existing shards only) |
+| `ktx2.generated.ts` | your KTX2 table, written by `bake-ktx2` once you bake KTX2 art. The one generated file you commit |
+
+**Folders**
+
+| Folder | What goes in it |
+|---|---|
+| `audio/` | the cue map, ambience, score wiring |
+| `boot/` | the boot file plan |
+| `explore/` | Explore art |
+| `look/` | the `LookStrategy` and its shaders |
+| `models/` | model definitions (`defineModel`) only |
+| `thumbs/` | the title card images |
+| `weapons/` | equipment rows and classes |
+| `world/` | world building: pieces, terrain dressing, water, climate |
+| `combat/` | encounters: bosses, elites, spawns (optional) |
+| `creatures/` | creature wiring (optional) |
+| `quest/` | quests; `quest/Places.ts` lists named places (optional) |
+| `species/` | species rows, looks and brains (optional) |
+| `npc/` | NPCs (optional) |
+| `loadout/` | loadout wiring, finishes, ammo (optional) |
+| `playground/` | playgrounds (optional) |
+
+One name per concept: `quest/` or `quest.ts`, never both.
+
+## 3. Fill the manifest
+
+The manifest is data. Fill it top to bottom ([ENGINE.md §6](ENGINE.md#6-the-shard-manifest-game) has every field).
+
+1. **Identity:** `api: 1`, `slug`, `name`, `blurb`, `biome`, `label`, `order`, `status`, `seed`, `placement`.
+2. **Card art:** `card: { thumb, portrait, landscape }` from `thumbs/`. A portrait first: the game is an iPhone PWA.
+3. **Ground:** `ground.terrain = buildTerrain(seed, { landscape, trails, cabinSites })` from `#engine/data`, or
+   `ground.structures: true` for a built world, or both. `ground.water` lists `WaterBody` rows. `spawn`, `bounds`.
+4. **Look data:** `sky`, `atmosphere`, `grade`, `style`, `kitLook`, and `render: async () => (await import('./look/render')).myLook()`.
+5. **Mechanisms:** `uses` lists only what you run, from the 15: engine `weather dayCycle bosses elites spawns quests
+   swim hover explore practice`, game `coins loot compendium feats bag.pack`. Anything not listed isn't built.
+6. **Content:** `loadout`, `weapon: 'custom'`, `species`, `encounters`, `spawns`, `fight`, `bag`, `loot`, `creatures`.
+7. **Audio:** `audio: { ambience, score, cues, preload? }` (§8).
+8. **Tiers and budgets:** `tiers`, `budgets` (§9).
+9. **Boot:** `boot: { files, sources, audio, precache, … }` (§14).
+10. **Assets:** `assetGlobs` (the folders your lane commits), `ktx2` once you have a table, `explore`, `roster`.
+11. **Plugin:** `load: () => import('./plugin')`.
+
+Keep every coordinate in `layout.ts` and import it. The manifest must import in bare node
+(`test/manifests-node-safe.test.ts`): no three.js objects, no DOM, no `#engine` runtime (use `#engine/data`).
+
+## 4. The plugin verbs
+
+The plugin has three hooks, each awaited in its boot stage ([ENGINE.md §5a, §7](ENGINE.md#7-the-shard-plugin-and-the-registry)).
+Every verb is bound to your scope: what you register goes away when the level unloads.
+
+| Hook | Stage | Put here |
+|---|---|---|
+| `world(ctx)` | `level.world` | `ctx.strings`, `ctx.tiers.knobs`, world building with `ctx.piece`, interactables, `ctx.playground` |
+| `kit(ctx)` | `level.kit` | every row: `ctx.rows.weapon / tool / ammo / effect / damageRule / species / speciesLook / encounter / spawnTable / item / lootTable / skin / feat / shop / compendium / places`; set `ctx.game.runtime.buildEquipment` |
+| `play(ctx)` | `level.play` | systems (`ctx.system`), events (`ctx.on`, `ctx.answer`), input contexts, HUD, Bag tabs, quests, encounters, Debug rows, `ctx.debug.expose` |
+
+**Rows only in `kit`.** A row verb called in `world` or `play` throws. The loadout is built from the rows when `kit`
+returns, so `play` can't add a weapon.
+
+**`ctx.game.runtime`** is the shell's handoff while the API grows: the built world (`runtime.world`), the player kit
+and UI (`runtime.play`), `buildEquipment`, `hooks`, `interactables`. It is `undefined` in the headless contract test,
+so read it with `?.`.
+
+**Never** add a DOM input listener, write to `window`, append to `#hud` or `document.body`, read `localStorage`, call
+`Math.random` for gameplay, or patch a shader with `onBeforeCompile`. Each has a verb (§15 lists the rules).
+
+## 5. Weapons and Tools
+
+Pick the lowest rung of the ladder that works ([ENGINE.md §18](ENGINE.md#18-combat-equipment-weapon-tool-gas-lite)):
+
+| Rung | When | Example |
+|---|---|---|
+| **Profile** | a kit family does it; you change numbers | `new Sword(world, targets, { row: IRON_SWORD, profile: SWORD_IRON })`; `new Bow(world, targets, { row: LONGBOW, profile: LONGBOW_PROFILE })` |
+| **Extend** | a kit family almost does it | `class LeverRifle extends Firearm` (Pine Hollow) |
+| **Custom** | nothing in the kit is close | `class TemplateWhip extends Weapon` built from `blocks.viewmodel` + `blocks.melee` |
+
+For each weapon:
+
+1. **A row** (`EquipmentRow`, in `weapons/rows.ts`): `id: 'weapon.<name>'`, `ui` (name, icon, touch mode, lock-on,
+   its `inputContext`), `meta` (name, icon, blurb, category), `cues`.
+2. **Register it** in `kit`: `ctx.rows.weapon(ROW)`, and list its id in `manifest.loadout`.
+3. **Build it** in `ctx.game.runtime.buildEquipment`: return `{ primary, secondary, rifle, install }`. `install` adds
+   tools and unlocks.
+4. **Its input context:** `ctx.inputContext({ id, actions: ['attack', 'heavy', 'lock'], touch: { mode: 'melee', … } })`.
+   The shell pushes the held weapon's context (named in `row.ui.inputContext`).
+5. **Its slot type:** merge the legacy slot into `EquipmentSlotMap` (`declare module '#engine'`).
+6. **Damage** goes through the pipeline (`blocks.melee(app.combat).hit(req)` or a family's own path). An effect on a
+   hit is `app.effects.apply(actor, 'effect.poison')`.
+
+**A Tool** (`extends Tool`) runs beside the weapon: `slot: 'offhand'` or `'tool'`, its own `actions`. Register it with
+`ctx.rows.tool(ROW)`, add it in `install` (`equipment.add(tool, { locked: false })`), give it an input context and push
+it yourself: `ctx.app.input.push('<slug>.lantern', ctx.scope)`. The template's lantern and Nine Dragon's Fei Zhua are
+the examples. The kit's hoverboard (`tool.hoverboard`) is on every shard.
+
+## 6. Creatures
+
+A creature is two rows plus, usually, a brain ([ENGINE.md §19](ENGINE.md#19-creatures-and-ai)).
+
+1. **A `SpeciesRow`** (`species/<name>.ts`): `id`, `kind`, `label`, `variants`, `aggressive`, and `think` / `act`
+   that call your brain. Simulation only: no three.js beyond math.
+2. **A `SpeciesLook`**: `species`, `kind`, `rig`, `rigContract` (skeleton, sockets, clips), `build()`, `animate()`.
+3. **A brain**: `class MyBrain extends CreatureBrain<'idle' | 'fight'>` with `think` (decisions) and `act` (the body).
+4. **Strikes as data**: `StrikeSpec` rows with a shape (`arc`, `lane`, `ring`, `wedge`, `point`), timings, damage,
+   tags and a utility `weight`. A `StrikeRunner` picks and runs them on the body clock.
+5. **Register** in `kit`: `ctx.rows.species([...])`, `ctx.rows.speciesLook([...])`. List the kind in
+   `manifest.species`.
+
+A kit species (`BOAR`, `BEAR` and their looks) needs no code: register the rows. Spread a row to add a variant:
+`{ ...BOAR, variants: [...BOAR.variants, { id: 'greyback', … }] }`.
+
+**Encounters.** Register the ids in `kit` (`ctx.rows.encounter`, `ctx.rows.spawnTable`), then in `play`:
+
+| What | How |
+|---|---|
+| an elite | `class MyElite extends EliteBrain<Animal>`; `ctx.app.encounters.elite(id, brain, ctx.scope).spawn()` |
+| a boss | `class MyBoss extends BossBrain` with a `BossScript` and HP-threshold phases; `encounters.boss(id, brain, scope).arm()`; answer `death.checkpoint` |
+| a spawn table | `ctx.rows.spawnTable({ id, table: { mode: 'each' \| 'weighted', rows } })`; `encounters.spawn(id, scope, { create, retire })` |
+
+Creature tags are `creature.<kind>`. Quests and loot listen for `actor.died` and read the tags.
+
+## 7. The look
+
+Your look is a `LookStrategy` in `look/render.ts`, loaded through `manifest.render`
+([ENGINE.md §13.1](ENGINE.md#131-lookstrategy)).
+
+- **`extend`** (most shards): add passes around the engine's chain; `c.engineChain('clean' \| 'cinematic')` is the
+  engine's. Driftwood, Pine Hollow, Nine Dragon and the template extend.
+- **`replace`**: build the whole chain (`{ chain: Pass[] }`). Nalati does, for its painterly composer.
+- The parts: `backdrop` (sky and day clock), `sky` (`{ clouds, planet }`), `lighting`, `shadows`, `fog` (slot 300),
+  `fogControl`, `terrainPainter`, `grass`, `frame`, `dispose`.
+- Every shader edit goes through `patchShader(material, id, PATCH_ORDER.decorate, fn, { scope })`.
+- Tier differences (FXAA on phone, no god rays) are tier knobs in the manifest, not code in the look.
+- **No facade multi-draw** anywhere (E271): instance repeated geometry.
+- Work the look in the mockup loop: a live capture, a mockup board, Jake's pick, then build to match. Driftwood stays
+  low-poly; each shard's look is its own.
+
+## 8. Audio
+
+- **Cues.** Weapons and the engine emit `cue.*` ids. Your cue map (`audio/cues.ts`) plays a sound for each:
+  `runtime.play.cues.use((id, opts) => { … return true; }, ctx.scope)`. Return `false` for a cue you don't handle.
+- **Ambience and score.** `manifest.audio.ambience` and `.score` name them; `preload` builds the audio profile. The
+  kit has a forest ambience (`installForestAmbience`) and a silent score (`installSilentScore`).
+- **New sound is made locally.** Music: MiniMax Music 3. SFX: MOSS-SoundEffect v2 and Stable Audio 3 Medium, the
+  better take per sound. Both run under the shared model lock (AGENTS.md "Local models"). Put the files in
+  `public/assets/music/<slug>/` and `public/assets/sfx/<slug>/`.
+- The credits "Music: MiniMax-Music3" and "Powered by Stability AI" stay.
+
+## 9. Budgets and tiers
+
+- **Targets:** 30 fps on the phone tier, 60 on desktop. Memory: 1.8 GB while loading, 1.0 GB in the world, hard.
+- **`budgets.ts`** holds inputs only: per tier `fps`, `variability`, `cpuMs`, `gcMs`, `systems`, `vertexShare`, `lanes`,
+  `linkMs`, plus `load`. The engine derives draws, triangles, programs and GPU MB. The gate fails a shard over them.
+  Copy the template's numbers and adjust the system split to what your shard runs.
+- **Tier knobs** in `manifest.tiers.phone` / `.desktop` override engine defaults (`aa`, `ao`, `godRays`, `msaa`,
+  `shadowFar` …). Declare your own with `ctx.tiers.knobs({ id, defaults })` and merge the key into `TierKnobMap`.
+- Never cut render resolution to make a number. Optimise until it holds.
+
+## 10. Saves
+
+- Define a key with `ctx.app.saves.define({ key, scope, version, schema, initial })`. Keys are dot-case and prefixed
+  with your shard: `<slug>.notes`.
+- Shard state is `scope: 'shard'`; read and write with your slug: `slot.read(ctx.manifest.slug)`.
+- The shared game keys (purse, progress, bosses, elites, compendium, owned) come from `#game`; bind them with
+  `shardSave(purseSave, ctx.manifest.slug)`.
+- Change a shape → bump `version`, add a `migrate` step. Never touch `localStorage`.
+
+## 11. Strings
+
+Every line a player reads lives in `strings.ts`, one `as const` object. Register it in `world` with
+`ctx.strings(STRINGS)` and use `STRINGS.<key>` everywhere: card text, HUD labels, toasts, quest steps, Debug rows.
+English only.
+
+## 12. Quests, Bag, coins, compendium, feats
+
+These are game mechanisms: list them in `uses`, then wire them in `play`.
+
+| Mechanism | How |
+|---|---|
+| quests | `new QuestState({ id, title, completeFlag, steps }, new Flags(slug), ctx.app.events, ctx.scope)`; set flags from systems and events |
+| coins, loot | `installLoot({ ctx, manifest, … })`; `CoinBurst` for a reward; rows `ctx.rows.lootTable`, `ctx.rows.shop` |
+| compendium | `ctx.rows.compendium(row)` in `kit`, `installCompendium({ … })` in `play` |
+| feats | `ctx.rows.feat({ id, name, goal, count, event, … })`; `progress.recordEvent(event, 1)` counts it |
+| Bag | `manifest.bag.tabs`; `ctx.bag.tab(spec)`, `ctx.bag.fragment(tab, fragment)` |
+| items | `ctx.rows.item(row)`; set `travels: true` only for an item that crosses shards |
+
+## 13. Debug rows, playgrounds, Explore
+
+- **Debug rows:** `ctx.debugRow({ id, group, label, choices, initial, change, note, ask: 'E<n>', reviewBy })` in an
+  existing group. The row shows only on your shard and its value is saved per device. Every new row raises the
+  Debug-row count in `lint/ratchet.json` (`debugRows.max`), which is outside your lane: ask the lead (an API gap) when
+  you add one. When Jake picks a winner, delete the row and the losing code in one commit.
+- **Debug handles:** `ctx.debug.expose('<name>', value)` puts a handle on `window.__wildshard.shard[name]` for
+  captures and tests.
+- **Playgrounds:** `ctx.playground({ id, title, blurb, icon, load })`; the class implements `Playground`. Its pieces
+  are registry pieces with `active: () => this.entered`.
+- **Explore:** `manifest.explore.art` and `manifest.roster`. Every model a player can see belongs in the roster.
+
+## 14. Assets
+
+- Your assets live in your folders: `public/assets/<slug>/`, `gpu/<slug>/`, `baked/<slug>/`, `music/<slug>/`,
+  `sfx/<slug>/`, `horizon/<slug>-*`, `lut/<slug>.bin`, `title/<slug>-portrait.jpg`. List the extra ones in
+  `assetGlobs`. An `/assets/…` path outside them fails `wildshard/shard-sandbox`.
+- Declare every file the boot needs in `boot.files(tier)` / `boot.sources`, audio in `boot.audio`, Explore art in
+  `boot.explore`. The loading bar and the offline cache read these lists.
+- **Models:** follow the `mockup-to-model` skill. A Blender model is a script in `scripts/blender/<slug>/` with a row
+  in `scripts/blender/targets.json`; commit the GLB, never a `.blend`.
+- KTX2: once you bake KTX2 art, commit your `ktx2.generated.ts` and add `ktx2: () => import('./ktx2.generated')`.
+- Commit images as JPEG; a `progress/` image over 500 KB is refused.
+
+## 15. The guards it must pass
+
+| Guard | Runs | Run it yourself |
+|---|---|---|
+| `wildshard/layer` | pre-commit, `pnpm test` | `node lint/ratchet.mjs`. Imports: `#engine`, `#engine/data`, `#game`, `#kit`, and `./` inside your folder. Nothing deeper, no other shard |
+| `wildshard/shard-sandbox` | pre-commit, `pnpm test` | same. No `window` / `globalThis`, no window or document input listeners, only your own settings and asset folders |
+| `wildshard/no-level-identity`, `no-shard-branch` | pre-commit, lint | they guard the engine and game against branching on your slug; in your folder, keep identity checks out of shared helpers |
+| the hard rules (`no-raw-save`, `no-raw-input`, `no-raw-hud`, `no-raw-shader-patch`, `no-raw-animation-mixer`, `no-url-switch`) | lint, pre-commit | `pnpm exec oxlint src/shards/<slug>` |
+| the ratchet | pre-commit, `pnpm test` | `node lint/ratchet.mjs`: a new shard's files start at 0 on every ratcheted rule |
+| the layout check (AG9) | pre-commit when `src/shards/**` changes | `node scripts/check-shards.mjs` |
+| `gen-shards --check` | pre-commit when a manifest changes, the gate | `node scripts/gen-shards.mjs --check` |
+| node-safe manifest | `pnpm test` | `pnpm exec vitest run test/manifests-node-safe.test.ts` |
+| your contract test | `pnpm test` | `pnpm exec vitest run test/shards/<slug>` |
+| the lock | every commit (`commit-msg`) | commit only inside your allowlist |
+| the pre-push gate | every push | `scripts/vercel-tree-gate.sh` runs check-css, gen, tsc, oxlint, the ratchet, vitest and `vite build` on a clean export |
+| the gate | every push to main | one `macos-15` job per shard: boot, walk, combat, the leak test, budgets. A new shard's first run records its baselines |
+
+Strictness holds: no `any`, `!`, `as unknown as`, ts-ignore, and no blanket `oxlint-disable`.
+
+## 16. The checklist: template → playable → live
+
+### Template copied
+- [ ] Folder copied, slug = folder name, `status: 'experimental'`, ids renamed, unused verbs deleted.
+- [ ] `pnpm gen`, `tsc`, your contract test and `node scripts/check-shards.mjs` pass.
+- [ ] `README.md` says what the shard is (it grows with the shard).
+
+### Playable
+- [ ] Ground, spawn, bounds; the player walks with 0 stuck (`node scripts/physics-baseline.mjs --no-build --mode=walk`).
+- [ ] The look: a `LookStrategy` matching Jake's picked mockup.
+- [ ] At least one weapon (rung 2 or 3 for a new idea), its cues and input context.
+- [ ] At least one creature with its own brain and strikes.
+- [ ] One quest step and its reward; strings for every line.
+- [ ] Budgets and tier knobs; it holds 30 fps on the phone tier in a capture.
+- [ ] It boots on a served build (`scripts/serve-build.sh`) with no errors; unload and reload leave the census clean.
+- [ ] Portrait iPhone captures of every new thing, as boards in `art/<slug>/` for Jake.
+
+### Live
+- [ ] The gate's job for your shard is green on every push.
+- [ ] Jake has played it and picked the board items.
+- [ ] Open leftovers are ask files, linked from your README.
+- [ ] `status` moves `experimental` → `earlyAccess` → `live` on Jake's word, one commit each. `hidden` is for the template only.
+- [ ] The README lists what the shard declares, its custom code and why, budgets, look and open asks.
+
+---
+
+## History: the pre-normalization shard guide
+
+This is the guide as it stood before GAME-NORMALIZATION (E357), kept as written for its history: the three shards'
+first looks and systems, the Wildshard fundamentals, and Driftwood's low-poly pieces. **Its paths and steps are out of
+date** (`ChunkDef`, `src/chunks/`, `CHUNKS`, `main.ts` branches, `?chunk=` links). Follow the sections above.
+
+### Shards — Driftwood Isle, Pine Hollow, Nalati Grasslands (and how to add a fourth)
 
 The demo runs one Wildshard *chunk* (we call an authored chunk a **shard**) at a time. Every shard is a 500 m × 500 m
 floating slab with its own biome, built by the same engine from a `ChunkDef` (`src/game/shard/manifest.ts`) and listed in
@@ -15,7 +358,7 @@ its remaster (PINE-HOLLOW-REMASTER PH-S2).
 image-to-3D, the learned LUT fit, horizon painting, the rig bake), never each other's shading. A fourth shard picks a
 look of its own.
 
-## The three shards
+### The three shards
 
 | | Driftwood Isle | Pine Hollow | Nalati Grasslands |
 |---|---|---|---|
@@ -24,7 +367,7 @@ look of its own.
 | Style | **Faceted low-poly toon** (`style: 'lowpoly'`) | **Photoreal PBR** (`style` omitted = `'pbr'`) | **Painterly** (`style: 'painterly'`) |
 | Deck | first, the default | second (graduated) | third (EARLY ACCESS) |
 
-### Driftwood Isle — faceted toon
+#### Driftwood Isle — faceted toon
 
 - **Look:** no textures at all — flat-shaded, vertex-coloured facets (`Terrain.ts` by height / slope, `world/lowpolyKit.ts`
   for every model); a two-band toon ramp with coloured shadows and a rim (`world/stylize.ts`); a stylized gradient sky
@@ -39,7 +382,7 @@ look of its own.
 - **Code:** the low-poly modules in `src/world/` (the table at the end), wired in `main.ts` under `if (chunk.ocean)`; the
   adventure through `ADVENTURES` in `game/quest/Adventure.ts`; `src/dev/driftwood.ts` is the reference wiring.
 
-### Pine Hollow — photoreal PBR
+#### Pine Hollow — photoreal PBR
 
 - **Look:** Poly Haven PBR sets on a splat terrain with the boreal ground shader; the Blender-built species set (the hero
   Scots pine, fir, the old-growth giants, birch, snags, saplings — `world/treeSpecies.ts`, `world/treeSet.ts`,
@@ -67,7 +410,7 @@ look of its own.
   `main.ts`), the `Pine*` modules in `src/world/`. Captures: `scripts/pine-hollow-views.mjs` (the 9-angle anchors),
   `scripts/pine-hollow-perf.mjs` (the phone / desktop ruler).
 
-### Nalati Grasslands — painterly
+#### Nalati Grasslands — painterly
 
 - **Look:** every mesh on the painterly shading (`world/painterly.ts`); a painted panorama sky + a day clock, a cloud sea,
   fog, the grade and the zone tints (`src/shards/nalati-grasslands/look/`); its own spruce factory (`trees.factory: 'spruce'`); three zones,
@@ -81,7 +424,7 @@ look of its own.
 - **Code:** `src/nalati/`, `src/shards/nalati-grasslands/world/`, `src/ui/NalatiHUD.ts`, `src/dev/nalati-*.ts`. (On main since v0.3.0;
   the Pine Hollow branch picks it up when it merges main in.)
 
-## What the shards share (the engine)
+### What the shards share (the engine)
 
 `bootstrap()` and the boot plan (`core/bootstrap.ts`, `boot/`), Rapier physics and the navmesh (`physics/`), the player and
 the weapons, `Animal` / `AnimalManager` / the species registry (`entities/species/`), `Elite` / `Boss` and their bars, the
@@ -90,7 +433,7 @@ Compendium, Progress + achievements, Explore World (`explore/`), the HUD and the
 The pipelines take the shard as an argument: `scripts/blender/build.sh <slug>/<target>` (`scripts/blender/<slug>/`), `fit-lut.py --shard`,
 `scripts/horizon-matte/`, `scripts/img2mesh/`.
 
-## Adding a fourth shard
+### Adding a fourth shard
 
 1. **Pick its style.** Not one of the three (PH-U1). Run a mockup loop first (`art/<shard>/round-<n>-<label>/`) and let
    the user pick from a board.
@@ -114,7 +457,7 @@ The pipelines take the shard as an argument: `scripts/blender/build.sh <slug>/<t
 Nothing outside `src/chunks/` has to change for a shard that reuses the engine's pieces as they are; new trees,
 creatures, dressing or a new style are engine work (below).
 
-## What is fixed by the Wildshard fundamentals
+### What is fixed by the Wildshard fundamentals
 
 These live in `src/engine/core/config.ts` and `src/engine/world/terrainField.ts` and are **not** per shard:
 
@@ -132,7 +475,7 @@ These live in `src/engine/core/config.ts` and `src/engine/world/terrainField.ts`
 break the contract by accident — but keep the first segment of the four entry trails exactly as in
 the template so the dirt texture and prop placement follow the road.
 
-## What each `ChunkDef` field does
+### What each `ChunkDef` field does
 
 | Field | Drives | Notes |
 |---|---|---|
@@ -167,7 +510,7 @@ the template so the dirt texture and prop placement follow the road.
 | `ocean` | open water over the whole shard: `level` (sea surface, m), `shallowColor` / `deepColor` (linear RGB albedo — keep them dark, the midday sun + sky here add up to ~3×), `deepDepth` (m below the surface at which the water is fully deep) | `src/shards/driftwood-isle/world/Ocean.ts` (faceted, animated, depth-coloured, foam band) replaces `Water`; `Boundary` / `Horizon` sit on the surface and draw islets instead of ridges; pass `oceanLevel: ocean.level` to `buildTerrain` so `waterLevel()` agrees |
 | `terrain` spec → `oceanLevel` | `waterLevel()` for an open-water shard (no pond dish) | the entry roads are still forced to y = 0, so a level a little above 0 makes them submerged sandbars under the piers |
 
-## Tuning tips
+### Tuning tips
 
 - **Look first at the landscape.** `?chunk=pine-hollow&x=0&z=-235&yaw=3.1416&pitch=0&nolock=1&skipintro=1` is
   the south gate looking in; the pond pose is `?chunk=pine-hollow&x=-56&z=95&yaw=3.1416` (yaw 0 faces −z, away
@@ -182,7 +525,7 @@ the template so the dirt texture and prop placement follow the road.
   (pull them from its sun pixel), or the fog reads as a different time of day than the sky.
 - The whole def is deterministic: same seed, same shard, every load.
 
-## What is engine work (not a def field)
+### What is engine work (not a def field)
 
 - **A new style** — `style` picks the terrain and material path (`'pbr'`, `'lowpoly'`, `'painterly'`); a fourth look is a
   new branch in `Terrain.ts` / `Sky.ts` and its own shading module, the way `stylize.ts` and `painterly.ts` are.
@@ -200,7 +543,7 @@ the template so the dirt texture and prop placement follow the road.
 - **A shard's code as one module** (`ShardModule { build, look, quest, audio, fauna, loadSteps }`, ENGINE-FIT E5) is not
   built yet: each shard still branches in `main.ts` (moved to PINE-HOLLOW-FOLLOWUPS by PH-U32, archived `project/archive/2026-09-30-pine-hollow-followups.md`).
 
-## Driftwood Isle — the low-poly pieces
+### Driftwood Isle — the low-poly pieces
 
 The second shard (`src/shards/driftwood-isle/manifest.ts`, `style: 'lowpoly'`, `ocean`) is built from
 flat-shaded vertex-coloured modules, each one mesh, each exposing `colliders` for
