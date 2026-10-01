@@ -1,7 +1,7 @@
 // The audio-wiring lane (PINE-HOLLOW-REMASTER A-rows): Pine Hollow's own music + SFX ride on its loading bar only (E44 —
 // Driftwood's list is unchanged), and the layout's zones become ambience spots.
 import { describe, expect, it } from 'vitest';
-import { audioFiles, DRIFTWOOD_SOUNDS } from '#engine/boot/audioFiles';
+import { audioFiles, DRIFTWOOD_SOUNDS, manifestFiles } from '#engine/boot/audioFiles';
 import { MUSIC_MANIFESTS, SFX_MANIFESTS } from '#engine/boot/audio.generated';
 import { pineZoneSpots } from '#shards/pine-hollow/audio/wiring';
 
@@ -23,20 +23,22 @@ describe('the loading bar\'s audio per shard', () => {
     expect(own.some((f) => f.includes('/oneshots-'))).toBe(true); // the one-shots + barks: one sprite (test/shards/pine-hollow/pine-sfx-sprite.test.ts)
     // every base set still comes along — but for another shard's own sounds: the one set's `shard: 'nalati'` entries and
     // Driftwood's untagged own (DRIFTWOOD_SOUNDS: its creatures, the gulls, the shrine's hum, the island bed — PH-P3)
-    const best = SFX_MANIFESTS['best'], steppe = new Set<string>(), drift = new Set<string>();
+    const best = SFX_MANIFESTS['best'], steppe = manifestFiles(SFX_MANIFESTS['nalati-grasslands']), drift = new Set<string>();
     for (const sec of ['beds', 'hums', 'oneshots'] as const) {
       const entries: unknown = typeof best === 'object' && best !== null ? (best as Record<string, unknown>)[sec] : undefined;
       for (const [k, v] of Object.entries(typeof entries === 'object' && entries !== null ? entries : {})) {
         const e = v as { shard?: unknown; files?: unknown; file?: unknown };
-        const into = e.shard === 'nalati' ? steppe : DRIFTWOOD_SOUNDS[sec].includes(k) ? drift : null;
+        expect(e.shard).toBeUndefined();
+        const into = DRIFTWOOD_SOUNDS[sec].includes(k) ? drift : null;
         if (!into) continue;
         for (const f of Array.isArray(e.files) ? e.files : [e.file]) into.add(`/assets/sfx/best/${String(f)}`);
       }
     }
-    expect(steppe.size).toBeGreaterThan(0);
+    expect(steppe).toHaveLength(83);
+    for (const file of steppe) { expect(p.sfx).not.toContain(`/assets/sfx/nalati-grasslands/${file}`); expect(d.sfx).not.toContain(`/assets/sfx/best/${file}`); }
     expect(drift.size).toBeGreaterThan(10);
     for (const f of drift) expect(d.sfx).toContain(f); // Driftwood keeps every one of its own
-    for (const f of d.sfx) { if (steppe.has(f) || drift.has(f)) expect(p.sfx).not.toContain(f); else expect(p.sfx).toContain(f); }
+    for (const f of d.sfx) { if (drift.has(f)) expect(p.sfx).not.toContain(f); else expect(p.sfx).toContain(f); }
   });
 });
 
