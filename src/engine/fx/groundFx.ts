@@ -77,8 +77,8 @@ export function fxMaterial(mode: FxMode, color: THREE.ColorRepresentation, alpha
     transparent: true, depthWrite: false, side: THREE.DoubleSide, fog: false, toneMapped: false,
     blending: additive ? THREE.AdditiveBlending : THREE.NormalBlending,
   }) as FxMaterial;
-  // oxlint-disable-next-line wildshard/layer -- Retain the existing shared shader cache key verbatim for program parity.
-  m.customProgramCacheKey = () => 'kurgan-fx';
+  // one program for every ground fx material (the parity probe keys programs by their compiled sources, not this key)
+  m.customProgramCacheKey = () => 'ground-fx';
   return m;
 }
 
