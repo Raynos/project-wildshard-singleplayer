@@ -1,4 +1,4 @@
-import { EffectService, sourceMultiplier, type EffectTarget, type Player, type TargetHit } from '#engine';
+import { EffectService, sourceMultiplier, type LevelContext, type EffectTarget, type Player, type TargetHit } from '#engine';
 import { SNEAK_SHOT, NALATI_SOURCE_MULTIPLIERS } from './weapons/effects';
 
 import type { Wildlife } from '#engine/entities/Wildlife';
@@ -45,6 +45,7 @@ import { practiceRoom } from '#engine/core/practiceRoom';
 export type StealthState = 'none' | 'visible' | 'hidden' | 'noticed' | 'detected';
 export interface StealthOpts {
   player: Player;
+  ctx?: LevelContext;
   wildlife: () => Wildlife | null;
   /** riding (B7): no crouch in the saddle */
   isMounted?: () => boolean;
@@ -91,7 +92,7 @@ export class Stealth {
   private isMounted: () => boolean;
   private crouchHere: () => boolean;
   private onT = 0; private offT = 0;
-  private toggleReq = false; private ctrlDown = false;
+  private toggleWas = false; private touchToggle = false;
   private t = 0;
   private readonly shotEffects = new EffectService([SNEAK_SHOT]);
   private readonly shotTarget: EffectTarget = { attributes: {} };
@@ -122,29 +123,20 @@ export class Stealth {
     this.chev = q('.ws-stealth-chev'); this.meter = q('.ws-stealth-grass'); this.meterFill = q('.ws-stealth-grass i'); this.hint = q('.ws-stealth-hint');
     this.hint.textContent = 'Tall grass · C crouch';
     // the phone: the base HUD's slots (src/engine/ui/hudSlots.ts) — nothing here is placed by this module
-    this.disc = hudSlots.disc({ cls: 'ws-stealth-crouch', icon: CROUCH_ICON, label: 'Crouch', spot: 'up0', press: () => { this.toggleReq = true; } });
+    const disc = (value: Parameters<typeof hudSlots.disc>[0]): HTMLButtonElement => opts.ctx ? opts.ctx.hud.disc(value) : hudSlots.disc(value);
+    this.disc = disc({ cls: 'ws-stealth-crouch', icon: CROUCH_ICON, label: 'Crouch', spot: 'up0', press: () => { this.touchToggle = true; } });
     this.row = document.createElement('div');
     this.row.className = 'ws-stealth-row'; this.row.dataset['state'] = 'none';
     this.row.innerHTML = '<i class="ws-stealth-eye"></i><span class="ws-stealth-label"></span>';
     this.rowIcon = q2(this.row, '.ws-stealth-eye'); this.rowLabel = q2(this.row, '.ws-stealth-label');
-    hudSlots.statusRow(this.row, ROW.stealth);
+    if (opts.ctx) opts.ctx.hud.widget('status', this.row, ROW.stealth); else hudSlots.statusRow(this.row, ROW.stealth);
     this.grassRow = document.createElement('div');
     this.grassRow.className = 'ws-stealth-grassrow';
     this.grassRow.innerHTML = '<span>Grass</span><b><i></i></b>';
     this.grassRowFill = q2(this.grassRow, 'i');
-    hudSlots.statusRow(this.grassRow, ROW.grass);
+    if (opts.ctx) opts.ctx.hud.widget('status', this.grassRow, ROW.grass); else hudSlots.statusRow(this.grassRow, ROW.grass);
     hudSlots.onLayer(() => { this.hint.textContent = 'Tall grass'; this.hint.classList.add('touch'); });
-    // desktop: C toggles, Ctrl holds — both gated to long grass (preUpdate)
-    document.addEventListener('keydown', (e) => {
-      if (e.code === 'KeyC' && !e.repeat) this.toggleReq = true;
-      if (e.code === 'ControlLeft') this.ctrlDown = true;
-    });
-    document.addEventListener('keyup', (e) => { if (e.code === 'ControlLeft') this.ctrlDown = false; });
-    window.addEventListener('blur', () => { this.ctrlDown = false; });
-    // the crouch decision runs first thing in the player's update, before it reads its keys
-    const prev = this.player.preUpdate;
-    this.player.preUpdate = (dt) => { prev?.(dt); this.crouchStep(dt); };
-    Object.assign(window, { __stealth: this }); // dev / screenshot hook
+    opts.ctx?.scope.onDispose(() => { this.root.remove(); this.latched = false; });
   }
   /** dev: the grass height (m, trampling included) at (x, z) */
   grassAt(x: number, z: number): number { return grassHeightAt(x, z); }
@@ -166,25 +158,27 @@ export class Stealth {
   sneakMultiplier(): number { return sourceMultiplier(NALATI_SOURCE_MULTIPLIERS, { sourceTags: this.shotTarget.effectTags ?? [] }); }
 
   // ── the crouch: long grass, the toggle, what stands you up ──
-  private crouchStep(dt: number): void {
-    const p = this.player, k = p.keys;
-    // a practice room (the arena, a playground: 3 km over the steppe) has no grass — the grass under its x / z is not yours (E321)
+  crouchStep(dt: number): void {
+    const p = this.player;
     const blocked = p.hover || p.swimming || this.isMounted() || practiceRoom.open;
-    // your own footprint doesn't count: the grass round you as it stands (E287)
     const long = !blocked && grassBaseHeightAt(p.position.x, p.position.z) >= LONG_GRASS;
     if (long) { this.onT += dt; this.offT = 0; } else { this.offT += dt; this.onT = 0; }
     this.inLongGrass = blocked ? false : this.inLongGrass ? this.offT < OUT_AFTER : this.onT >= IN_AFTER;
     this.canCrouch = !blocked && (this.inLongGrass || this.crouchHere());
-    if (this.toggleReq) { this.toggleReq = false; if (this.canCrouch || this.latched) this.latched = !this.latched; }
-    // a full push on the phone's stick is not a sprint while crouched (you creep; E288: it stood you up in front of the
-    // stallion) — on touch the CROUCH disc or JUMP stands you up
-    const sprint = k.has('ShiftLeft') && (k.has('KeyW') || p.touchMove.y > 0.1);
-    const jump = k.has('Space') || p.touchJump;
-    if (!this.canCrouch || sprint || jump) this.latched = false; // leaving the grass / sprinting / jumping stands you up
-    const crouch = this.latched || (this.ctrlDown && this.canCrouch);
-    // Player crouches on its held 'KeyC' / 'ControlLeft': this module owns both keys in Nalati
-    k.delete('ControlLeft');
-    if (crouch) k.add('KeyC'); else k.delete('KeyC');
+  }
+
+  answerCrouch(request: { want: boolean; via: 'toggle' | 'hold' }): { allowed: boolean; latched: boolean } {
+    const want = request.want || (request.via === 'toggle' && this.touchToggle);
+    if (request.via === 'toggle') {
+      if (want && !this.toggleWas && (this.canCrouch || this.latched)) this.latched = !this.latched;
+      this.toggleWas = request.want;
+      this.touchToggle = false;
+    }
+    const p = this.player;
+    const sprint = p.keys.has('ShiftLeft') && (p.keys.has('KeyW') || p.touchMove.y > 0.1);
+    const jump = p.keys.has('Space') || p.touchJump || (p.inputService?.pressed('jump') ?? false);
+    if (!this.canCrouch || sprint || jump) this.latched = false;
+    return { allowed: request.via === 'hold' && this.canCrouch, latched: this.latched };
   }
 
   // ── detection → the eye pip ──
@@ -273,4 +267,15 @@ export class Stealth {
       setTimeout(() => { this.hint.classList.remove('on'); this.disc.classList.remove('pulse'); }, 3200);
     }
   }
+}
+
+/** The shard owns eligibility and latch; the engine motor owns the crouch action. */
+export function installStealth(ctx: LevelContext, opts: StealthOpts): Stealth {
+  const stealth = new Stealth({ ...opts, ctx });
+  ctx.inputContext({ id: 'stealth', actions: ['crouch', 'crouch.hold'], keys: { crouch: ['KeyC'], 'crouch.hold': ['ControlLeft'] } });
+  ctx.app.input.push('stealth', ctx.scope);
+  ctx.answer('player.crouch', (request) => stealth.answerCrouch(request));
+  ctx.system({ id: 'shard.nalati.stealth.crouch', phase: 'input', before: ['engine.player.input'], run: (dt) => { stealth.crouchStep(Math.min(dt, 0.05)); } });
+  ctx.debug.expose('nalati.stealth', stealth);
+  return stealth;
 }

@@ -84,6 +84,9 @@ export class Player {
   pitch = 0;
   onGround = true;
   crouching = false;
+  /** The actor carried by the current traversal, excluded from player targeting. */
+  mountedOn: object | null = null;
+  private crouchWanted = false;
   sprinting = false;
   speedFactor = 0;   // for headbob / audio
   bobTime = 0;
@@ -356,6 +359,14 @@ export class Player {
   input(dtRaw: number): void {
     const dt = Math.min(dtRaw, 0.05);
     this.preUpdate?.(dt);
+    const crouch = (want: boolean, via: 'toggle' | 'hold'): boolean => {
+      const answer = this.traversalEvents?.ask('player.crouch', { want, via });
+      return answer === undefined ? want : answer.latched || (want && answer.allowed);
+    };
+    const toggle = crouch(this.keys.has('KeyC') || (this.inputService?.held('crouch') ?? false), 'toggle');
+    const hold = crouch(this.keys.has('ControlLeft') || (this.inputService?.held('crouch.hold') ?? false), 'hold');
+    this.crouchWanted = toggle || hold;
+    if (this.mountedOn !== null) this.crouching = false;
     if (this.ride !== null) { this.ride.drive(dt); return; }
     const k = this.keys;
     this.inFwd = Math.max(-1, Math.min(1, (k.has('KeyW') ? 1 : 0) - (k.has('KeyS') ? 1 : 0) + this.touchMove.y));
@@ -394,7 +405,7 @@ export class Player {
     const swim = this.swimming && !hover;
     // wading: how deep the feet are right now (last step's resolve) — slows walking, kills sprint past the knee
     const wadeT = !hover && !swim && this.onGround ? Math.min(1, this.depth / WADE_MAX) : 0;
-    this.crouching = !hover && !swim && (k.has('ControlLeft') || k.has('KeyC'));
+    this.crouching = !hover && !swim && this.crouchWanted;
     this.sprinting = !hover && !swim && this.depth < NO_SPRINT_DEPTH && (k.has('ShiftLeft') || this.touchSprint) && fwd > 0 && !this.crouching;
     const speed = (this.crouching ? 2.2 : this.sprinting ? 7.2 : 4.3) * (1 - 0.55 * wadeT) * this.moveScale * this.effectMoveScale;
     this.waveTime += dt;

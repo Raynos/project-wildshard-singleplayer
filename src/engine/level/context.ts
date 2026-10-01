@@ -27,7 +27,8 @@ export interface InputContextDef {
   id: string; priority?: number; enabled?: () => boolean;
   actions: readonly Action[] | Readonly<Record<string, (pressed: boolean) => void>>;
   blocks?: 'below' | readonly Action[];
-  touch?: { relabel: Partial<Record<DiscSpot, TouchRelabel>> };
+  keys?: Partial<Record<Action, readonly string[]>>;
+  touch?: { relabel: Partial<Record<DiscSpot, TouchRelabel>>; verbs?: Partial<Record<'verb.1' | 'verb.2', Action>> };
 }
 export type HudBand = 'status' | 'pill' | 'verbs';
 export interface VerbSlotOpts { label: string; icon: string; press: () => void; release?: () => void }

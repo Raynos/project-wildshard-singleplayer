@@ -10,7 +10,12 @@ export interface EventMap {
   'explore.turntable': { on: boolean; key?: { x: number; y: number; z: number } };
   'fault': FaultEvent;
 }
-export interface AskMap { 'player.traversal': readonly [number | boolean, boolean] }
+export interface CrouchRequest { want: boolean; via: 'toggle' | 'hold' }
+export interface CrouchAnswer { allowed: boolean; latched: boolean }
+export interface AskMap {
+  'player.traversal': readonly [number | boolean, boolean];
+  'player.crouch': readonly [CrouchRequest, CrouchAnswer];
+}
 // oxlint-disable-next-line typescript/no-empty-interface, typescript/no-empty-object-type -- Consumers extend this registry by declaration merging.
 export interface TagMap {}
 export type AskInput<K extends keyof AskMap> = AskMap[K] extends readonly [infer Input, unknown] ? Input : never;

@@ -3,7 +3,9 @@ import type { EquipmentAction } from '../combat/Tool';
 import type { InputContextDef } from '../level/context';
 import type { DiscSpot, TouchRelabel } from '../ui/hudSlots';
 
-export type Action = EquipmentAction;
+export type Action = EquipmentAction | 'crouch' | 'crouch.hold' | 'sprint' | 'use'
+  | 'move.forward' | 'move.back' | 'move.left' | 'move.right'
+  | 'ride.whistle' | 'ride.offer' | 'ride.gallop' | 'ride.horseTab' | 'lean.left' | 'lean.right';
 interface Context { def: InputContextDef; scope: Scope }
 /** Additive contexts and a shared press buffer. Consuming a press removes it for every later system. */
 export class InputService {
@@ -20,6 +22,24 @@ export class InputService {
   register(def: InputContextDef, scope: Scope): void {
     if (this.definitions.has(def.id)) throw new Error(`Duplicate input context: ${def.id}`);
     const entry = { def, scope }; this.definitions.set(def.id, entry);
+    if (def.keys !== undefined && typeof document !== 'undefined') {
+      const heldKeys = new Set<string>();
+      const sample = (): void => {
+        for (const [action, codes] of Object.entries(def.keys ?? {})) {
+          this.setHeld(action as Action, this.stack.includes(entry) && codes.some((code) => heldKeys.has(code)));
+        }
+      };
+      scope.listen(document, 'keydown', (event) => {
+        if (!(event instanceof KeyboardEvent)) return;
+        heldKeys.add(event.code); sample();
+      });
+      scope.listen(document, 'keyup', (event) => {
+        if (!(event instanceof KeyboardEvent)) return;
+        heldKeys.delete(event.code); sample();
+      });
+      scope.listen(window, 'blur', () => { heldKeys.clear(); sample(); });
+      scope.onDispose(() => { heldKeys.clear(); sample(); });
+    }
     scope.onDispose(() => { this.pop(def.id); this.definitions.delete(def.id); });
   }
   push(id: string, scope: Scope): void {
