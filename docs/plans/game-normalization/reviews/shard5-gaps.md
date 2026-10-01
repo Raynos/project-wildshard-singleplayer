@@ -28,16 +28,16 @@ edits and zero gaps**.
 
 | ID | Gap | From | Wanted | Status |
 |---|---|---|---|---|
-| G13 | A custom creature boots only with named body/head bones; ENGINE §19 and SHARDS §6 omit the requirement | E364 round 2 (drift ray boot) | document required hit bones and reject missing declarations at registration, with built-bone validation and regression tests | built (sol-g13 private candidate; landing pending) |
-| G14 | Manifest budget edits stale the computed `derived` entries in `budgets/ceiling-sources.json`, blocking the gate; content lanes cannot safely regenerate measured provenance | E363 / E364 round 2, manifest-budgets test | scoped `pnpm gen --shard=<slug>`, freshness check before gate generation, and lock permission for only reopened derived entries; measured GL re-records remain lead-approved | built (sol-g13 private candidate; landing pending) |
+| G13 | A custom creature boots only with named body/head bones; ENGINE §19 and SHARDS §6 omit the requirement | E364 round 2 (drift ray boot) | document required hit bones and reject missing declarations at registration, with built-bone validation and regression tests | fixed (0d2f81b4) |
+| G14 | Manifest budget edits stale the computed `derived` entries in `budgets/ceiling-sources.json`, blocking the gate; content lanes cannot safely regenerate measured provenance | E363 / E364 round 2, manifest-budgets test | scoped `pnpm gen --shard=<slug>`, freshness check before gate generation, and lock permission for only reopened derived entries; measured GL re-records remain lead-approved | fixed (73c51589; cold fix 4e1f61b6) |
 
-| G15 | Creature bone positions and forward axis are undocumented; parent-local positions or facing −Z produce incorrect rigs | E363 round 2 | ENGINE §19 / SHARDS §6 state absolute bind-space `BoneDef.pos` and +Z forward, with an example | built (sol-g13 private candidate; landing pending) |
+| G15 | Creature bone positions and forward axis are undocumented; parent-local positions or facing −Z produce incorrect rigs | E363 round 2 | ENGINE §19 / SHARDS §6 state absolute bind-space `BoneDef.pos` and +Z forward, with an example | fixed (0c0aa439) |
 
-| G16 | Capture controls require undisclosed pre-load harness pins; parity ignores new-shard dev.poses and leaves current draws/tris unmeasured | E363 round 2 | document capture pins / manifest.dev.poses; move legacy cameras into manifests exactly; parity reads authored poses with generic spawn fallback and measures current ceilings | built (sol-g13 private candidate; landing pending) |
+| G16 | Capture controls require undisclosed pre-load harness pins; parity ignores new-shard dev.poses and leaves current draws/tris unmeasured | E363 round 2 | document capture pins / manifest.dev.poses; move legacy cameras into manifests exactly; parity reads authored poses with generic spawn fallback and measures current ceilings | fixed (3fc2c21f) |
 
-| G17 | TerrainPainter.build receives no scope for shader patches and resource ownership | E363 round 2 | pass the live owning level scope as build’s third parameter and document ownership; regression covers cleanup | built (sol-g13 private candidate; landing pending) |
+| G17 | TerrainPainter.build receives no scope for shader patches and resource ownership | E363 round 2 | pass the live owning level scope as build’s third parameter and document ownership; regression covers cleanup | fixed (54497aa0) |
 
-| G18 | No documented value means a shard intentionally has no ambience; builders invent silence ids | E363 round 2 | document `audio.ambience: 'none'`, omit bed / ambience installers, and retain independent cues / score | built (sol-g13 private candidate; landing pending) |
+| G18 | No documented value means a shard intentionally has no ambience; builders invent silence ids | E363 round 2 | document `audio.ambience: 'none'`, omit bed / ambience installers, and retain independent cues / score | fixed (f3a4a933) |
 
 ## Shard findings for the rebuild (not API gaps)
 
