@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Events, Scope } from '#engine';
 import { Stealth } from '#shards/nalati-grasslands/stealth';
 import { fakeWorld } from '../../fake/world';
+
 const grass = vi.hoisted(() => ({ height: 1 }));
 vi.mock('#kit/looks/grassField', () => ({ grassBaseHeightAt: () => grass.height }));
 beforeEach(() => { document.body.innerHTML = '<div id="hud"></div>'; grass.height = 1; });
