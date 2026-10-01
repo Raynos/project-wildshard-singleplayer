@@ -148,7 +148,7 @@ Grouped by today's folder. Territory folders (`src/chunks/<slug>/`, `src/nalati/
 | `clearDownloads.ts` | 117 | `E:boot/clearDownloads.ts` | = | engine | F | F6 |  |  |
 | `entry.ts` | 51 | `E:boot/entry.ts` | = | engine | F | F6 |  |  |
 | `extras.ts` | 282 | `E:boot/extras.ts` | = | engine | F | F6 (+S1–S4, X3) | engine boot; its shard branches become manifest boot data (01 §8; 05 §2.3; X3) |  |
-| `gpu.generated.ts` | 300 | `E:boot/gpu.generated.ts` | = | engine | F | F6 |  |  |
+| `gpu.generated.ts` | 300 | `E:boot/gpu.generated.ts` | ✗ (split at F9) | deleted | SPLIT | F6 → F9 | split into one committed `ktx2.generated.ts` per shard (`src/shards/<slug>/`) + the engine's own (`src/engine/boot/ktx2.generated.ts`); it needs `basisu`, so it stays committed and `pnpm gen` doesn't touch it (R2-04) |  |
 | `gpuFiles.ts` | 84 | `E:boot/gpuFiles.ts` | = | engine | F | F6 (+S1–S4, X3) | engine boot; its shard branches become manifest boot data (01 §8; 05 §2.3; X3) |  |
 | `lastEnd.ts` | 152 | `E:boot/lastEnd.ts` | = | engine | F | F6 |  |  |
 | `manifest.ts` | 107 | `E:boot/manifest.ts` | = | engine | F | F6 (+S1–S4, X3) | engine boot; its shard branches become manifest boot data (01 §8; 05 §2.3; X3) |  |
@@ -1587,7 +1587,7 @@ The generated modules live in `src/boot/`, so the folder rule already sends them
 | `versions.generated.ts`, `audio.generated.ts` | `vite.config.ts` | `E:boot/` | unchanged |
 | `art.generated.ts` | `vite.config.ts` `writeArtModule` | `E:boot/art.generated.ts` | **keys change** (they are `src/…` paths of the thumbs and hub art): regenerated and committed in the F6 commit. `writeArtModule`'s folder list and `extras.ts:61`'s key arithmetic are manual edits (§7.3) |
 | `packs.generated.ts` | `bake-packs.mjs` | `E:boot/` | must be byte-identical (§7.5): pack payloads do not change |
-| `gpu.generated.ts` | `bake-ktx2.mjs` | `E:boot/` | unchanged |
+| `gpu.generated.ts` → per-shard `ktx2.generated.ts` (R2-04) | `bake-ktx2.mjs` | `src/shards/<slug>/` + `E:boot/` | committed (needs `basisu`) |
 | `src/game/shard/shards.generated.ts` | `scripts/gen-shards.mjs` | — | new at F9 (01 §7) |
 
 Readers rewritten by the string pass: `scripts/scorecard.mjs`, `scripts/unused-assets.mjs`, `scripts/bake-ktx2.mjs`,

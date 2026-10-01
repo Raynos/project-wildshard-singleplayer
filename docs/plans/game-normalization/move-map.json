@@ -32,7 +32,7 @@
   {"from":"src/boot/clearDownloads.ts","lines":117,"bytes":6902,"f6":"src/engine/boot/clearDownloads.ts","final":"src/engine/boot/clearDownloads.ts","layer":"engine","rule":"F","row":"F6","why":"folder default: engine (02 F6 rule 6)"},
   {"from":"src/boot/entry.ts","lines":51,"bytes":3191,"f6":"src/entry.ts","final":"src/entry.ts","layer":"root","rule":"composition root","row":"F6","why":"the page entry is a composition root, outside the layers (01 §0, 13 C6)"},
   {"from":"src/boot/extras.ts","lines":282,"bytes":17211,"f6":"src/engine/boot/extras.ts","final":"src/engine/boot/extras.ts","layer":"engine","rule":"F","row":"F6 (+S1–S4, X3)","why":"engine boot; its shard branches become manifest boot data (01 §8; 05 §2.3; X3)"},
-  {"from":"src/boot/gpu.generated.ts","lines":300,"bytes":34869,"f6":"src/engine/boot/gpu.generated.ts","final":"src/engine/boot/gpu.generated.ts","layer":"engine","rule":"F","row":"F6","why":"folder default: engine (02 F6 rule 6)"},
+  {"from":"src/boot/gpu.generated.ts","lines":300,"bytes":34869,"f6":"src/engine/boot/gpu.generated.ts","final":null,"layer":"deleted","rule":"SPLIT","row":"F6 → F9","why":"split at F9 into one committed ktx2.generated.ts per shard (src/shards/<slug>/) + src/engine/boot/ktx2.generated.ts; needs basisu so it stays committed and pnpm gen does not touch it (R2-04)"},
   {"from":"src/boot/gpuFiles.ts","lines":84,"bytes":6225,"f6":"src/engine/boot/gpuFiles.ts","final":"src/engine/boot/gpuFiles.ts","layer":"engine","rule":"F","row":"F6 (+S1–S4, X3)","why":"engine boot; its shard branches become manifest boot data (01 §8; 05 §2.3; X3)"},
   {"from":"src/boot/lastEnd.ts","lines":152,"bytes":9342,"f6":"src/engine/boot/lastEnd.ts","final":"src/engine/boot/lastEnd.ts","layer":"engine","rule":"F","row":"F6","why":"folder default: engine (02 F6 rule 6)"},
   {"from":"src/boot/manifest.ts","lines":107,"bytes":9095,"f6":"src/engine/boot/manifest.ts","final":"src/engine/boot/manifest.ts","layer":"engine","rule":"F","row":"F6 (+S1–S4, X3)","why":"engine boot; its shard branches become manifest boot data (01 §8; 05 §2.3; X3)"},
@@ -1108,6 +1108,6 @@
   {"file":"src/boot/audio.generated.ts","writer":"vite.config.ts","f6":"src/engine/boot/audio.generated.ts","content":"unchanged"},
   {"file":"src/boot/art.generated.ts","writer":"vite.config.ts writeArtModule","f6":"src/engine/boot/art.generated.ts","content":"keys re-pathed, regenerated in the F6 commit"},
   {"file":"src/boot/packs.generated.ts","writer":"scripts/bake-packs.mjs","f6":"src/engine/boot/packs.generated.ts","content":"byte-identical"},
-  {"file":"src/boot/gpu.generated.ts","writer":"scripts/bake-ktx2.mjs","f6":"src/engine/boot/gpu.generated.ts","content":"unchanged"}
+  {"file":"src/boot/gpu.generated.ts","writer":"scripts/bake-ktx2.mjs","f6":"src/engine/boot/gpu.generated.ts","content":"unchanged at F6; split per shard at F9 (R2-04)"}
  ]
 }

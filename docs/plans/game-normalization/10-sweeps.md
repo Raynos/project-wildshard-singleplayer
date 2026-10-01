@@ -177,7 +177,7 @@ branches in `src/engine/boot/` and adds the checks.
 4. **T3 of DEPLOYMENT_ASSET_TRIM** falls out of the audit: the list of original `assets/tex/` textures each shard's
    manifests reference versus their GPU KTX2 variants. Unreferenced originals are listed in a report for Jake; nothing
    is deleted without his pick.
-5. **TP17:** `unused-assets` counts `gpu.generated.ts` as a reference, so the 171 MB of shipped KTX2 is no longer
+5. **TP17:** `unused-assets` counts the `ktx2.generated.ts` tables (per shard + the engine's, R2-04) as references, so the 171 MB of shipped KTX2 is no longer
    called "dev-only".
 6. (Nine Dragon already joined the boot packs, the prefetch and the every-shard tests in S1.1.)
 7. **The chunk layout** (decision 2, MW13, EF10; 13-lead-resolutions G1). X3 runs after S4.4, when every shard is a
@@ -320,7 +320,7 @@ also gets a byte-identical vertex-colour test on one model per baker.
    [budget-design](../../design/engine-fit-v2/budget-design.md). `Perf.ts:36`'s single draw budget and the three
    unrelated phone budgets (110 / 150 / 180 draws) are deleted.
 3. **The gate reads the derived numbers** (03-harness-gate). The rollout ceilings live in `lint/ratchet.json` under
-   `budgets.<slug>.<tier>`.
+   its `budgets` section, keyed `<shard>.<tier>.<pose>.<metric>` (R2-23).
 4. **The in-game budget readout** (Debug ▸ Performance) shows derived versus measured per pose.
 5. **Tier selection** (decision 36: "a mid gaming PC (RTX 3060 class) at 60 fps; laptops below it fall back to the
    phone tier"; 13-lead-resolutions G3). `src/engine/render/tierSelect.ts` replaces `core/tier.ts`'s
