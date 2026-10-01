@@ -239,7 +239,7 @@ export class SheepRaid {
         if (app.rng.stream('ai').next() < dt * 0.02) this.restT = 6 + app.rng.stream('ai').next() * 8;
       }
     }
-    h.state = speed > 6 ? 'flee' : speed > 0.2 ? 'wander' : Math.sin(performance.now() * 0.0003 + h.seed * 5) > 0.3 ? 'graze' : 'idle';
+    h.state = speed > 6 ? 'flee' : speed > 0.2 ? 'wander' : Math.sin(app.clock.now * 0.3 + h.seed * 5) > 0.3 ? 'graze' : 'idle';
     h.setMotion(yaw, speed, speed > 6 ? 3.2 : 2.2);
     // the rider leans into a gallop; the whip arm swings up and cracks down
     this.lean += ((h.speed > 9 ? 0.28 : h.speed > 5 ? 0.12 : 0) - this.lean) * Math.min(1, dt * 3);

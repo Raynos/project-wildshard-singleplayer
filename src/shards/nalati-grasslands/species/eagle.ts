@@ -1,4 +1,4 @@
-import { engineString, type Rng, type SpeciesDef, type AnimalSpecies, type BoneDef, type VariantDef, type RigAnimCtx, loft, skinPlain, S, boneIndex, mix, speciesSstep as sstep, paletteColors, paintNoise, type Paint, type SpeciesRGB as RGB, NO_FUR, smooth01, rigClamp as clamp, eliteThink, eliteDamageMul, heightAt } from '#engine';
+import { engineString, type Rng, type SpeciesDef, type AnimalSpecies, type BoneDef, type VariantDef, type RigAnimCtx, loft, skinPlain, S, boneIndex, mix, speciesSstep as sstep, paletteColors, paintNoise, type Paint, type SpeciesRGB as RGB, NO_FUR, smooth01, rigClamp as clamp, eliteThink, eliteAct, eliteDamageMul, heightAt } from '#engine';
 
 import * as THREE from 'three';
 
@@ -156,6 +156,8 @@ export const EAGLE_SPECIES: SpeciesDef = {
   ],
   build: buildEagle,
   animate: animateEagle,
+  tick: 'ai',
+  act: eliteAct,
   think: eliteThink,
   damageMul: eliteDamageMul,
 };

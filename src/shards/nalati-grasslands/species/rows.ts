@@ -35,7 +35,7 @@ export function nalatiLook(def: SpeciesDef): SpeciesLook {
       ...(v.traits === undefined ? {} : { traits: v.traits }),
     }])),
     material: painterlyAnimalMaterial,
-    preload: async () => { preloadCreatureGlbs(); },
+    preload: () => { preloadCreatureGlbs(); return Promise.resolve(); },
     hasSkin: v => creatureHull(def.kind, v.id) !== null,
     loadSkin: async v => { const name = creatureHull(def.kind, v.id); if (name !== null) await loadCreatureRig(name); },
     skin: (v, bones) => { const hull = skinCreatureGlb(def.kind, v.id, bones); return hull === null ? null : { ...hull, normalMap: null, thrall: false }; },

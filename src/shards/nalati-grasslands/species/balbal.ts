@@ -393,20 +393,7 @@ function thinkBalbal(a: Animal, c: ThinkCtx): void {
       else a.setMotion(toPlayer, d > SWING_R * 0.8 ? WALK : 0, 2.2);
       break;
     }
-    case ST_ATTACK: {
-      a.state = 'attack';
-      const p = a.attackPhase;
-      // it can still turn through most of the wind-up (slowly): side-stepping late is how you beat it
-      a.setMotion(toPlayer, 0, p < W_END * 0.8 ? 1.1 : 0);
-      if (p >= (W_END + S_END) / 2 && m.hit !== 1) {
-        m.hit = 1; m.slamT = 1;
-        let off = toPlayer - a.yaw; off = Math.atan2(Math.sin(off), Math.cos(off));
-        if (d <= HIT_R * a.scale / 1.18 + 0.4 && Math.abs(off) < HIT_CONE && Math.abs(c.player.y - a.position.y) < 2.2) { c.hurt(m.dmg ?? (field ? DAMAGE : KURGAN_DAMAGE)); c.sound('sailor_slash'); }
-        c.sound('coconut_land');
-      }
-      if (p >= 1 || p < 0) { a.cancelAttack(); m.st = ST_STALK; m.cd = COOLDOWN; }
-      break;
-    }
+    case ST_ATTACK: break;
     case ST_RETURN: {
       a.state = 'wander';
       if (!field) { m.st = ST_STALK; break; }
@@ -432,6 +419,27 @@ function thinkBalbal(a: Animal, c: ThinkCtx): void {
   if (m.minX !== undefined && m.maxX !== undefined && m.minZ !== undefined && m.maxZ !== undefined && m.st !== ST_EMERGE) {
     a.position.x = clamp(a.position.x, m.minX, m.maxX); a.position.z = clamp(a.position.z, m.minZ, m.maxZ);
   }
+}
+
+export function actBalbal(a: Animal, c: ThinkCtx): void {
+  const m = a.mem as BalbalMem;
+  if (m.st !== ST_ATTACK) return;
+  const dx = c.player.x - a.position.x, dz = c.player.z - a.position.z, d = Math.hypot(dx, dz), toPlayer = Math.atan2(dx, dz);
+  const field = m.field === 1;
+
+      a.state = 'attack';
+      const p = a.attackPhase;
+      // it can still turn through most of the wind-up (slowly): side-stepping late is how you beat it
+      a.setMotion(toPlayer, 0, p < W_END * 0.8 ? 1.1 : 0);
+      if (p >= (W_END + S_END) / 2 && m.hit !== 1) {
+        m.hit = 1; m.slamT = 1;
+        let off = toPlayer - a.yaw; off = Math.atan2(Math.sin(off), Math.cos(off));
+        if (d <= HIT_R * a.scale / 1.18 + 0.4 && Math.abs(off) < HIT_CONE && Math.abs(c.player.y - a.position.y) < 2.2) { c.hurt(m.dmg ?? (field ? DAMAGE : KURGAN_DAMAGE)); c.sound('sailor_slash'); }
+        c.sound('coconut_land');
+      }
+      if (p >= 1 || p < 0) { a.cancelAttack(); m.st = ST_STALK; m.cd = COOLDOWN; }
+      return;
+    
 }
 
 /** the damage model (see the header) */
@@ -478,6 +486,8 @@ export const BALBAL_SPECIES: SpeciesDef = {
   ],
   build: (v, rng) => { const sp = buildBalbal(v, rng); bindBones = sp.bones; return sp; },
   animate: animateBalbal,
+  tick: 'ai',
+  act: actBalbal,
   think: thinkBalbal,
   damageMul: balbalDamageMul,
   blood: false,   // stone: the controller throws chips / sparks instead

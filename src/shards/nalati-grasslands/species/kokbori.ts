@@ -1,4 +1,4 @@
-import { engineString, type SpeciesDef, type SpeciesRGB as RGB, NO_FUR, eliteThink, eliteDamageMul } from '#engine';
+import { engineString, type SpeciesDef, type SpeciesRGB as RGB, NO_FUR, eliteThink, eliteAct, eliteDamageMul } from '#engine';
 
 
 
@@ -37,6 +37,8 @@ export const KOKBORI_SPECIES: SpeciesDef = {
   ],
   build: buildCanid,
   postPose: canidPostPose,
+  tick: 'ai',
+  act: eliteAct,
   think: eliteThink,
   damageMul: eliteDamageMul,
 };

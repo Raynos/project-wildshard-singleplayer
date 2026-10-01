@@ -8,7 +8,7 @@ import type { Balbals } from '../world/Balbals';
 
 
 import { BALBAL, BALBAL_SLAM, balbalCombat, onBalbalCrack } from '../species/balbal';
-import { NightParticles, FLAG_GRAVITY, FLAG_BOUNCE, FLAG_GROW } from './nightFx';
+import { type FxRenderer, NightParticles, FLAG_GRAVITY, FLAG_BOUNCE, FLAG_GROW } from './nightFx';
 
 
 /**
@@ -187,7 +187,7 @@ export class BalbalWarriors {
     if (b !== null) for (const w of this.awake) if (!w.a.alive && w.a.hidden) b.setAwake(w.statue, false);
   }
 
-  update(dt: number, _t: number, camera: THREE.PerspectiveCamera, renderer: THREE.WebGLRenderer, light: number): void {
+  update(dt: number, _t: number, camera: THREE.PerspectiveCamera, renderer: FxRenderer, light: number): void {
     const k = this.kit;
     if (k !== null) {
       const equipment = app.equipment;

@@ -1,7 +1,9 @@
-import { app, heightAt } from '#engine';
+import { type Game, app, heightAt } from '#engine';
 
 import * as THREE from 'three';
 
+
+export type FxRenderer = Pick<Game['renderer'], 'getDrawingBufferSize'>;
 
 /**
  * Night FX — the particle systems the dusk and night enemies share (row B11): one pooled `THREE.Points` each, one draw
@@ -90,7 +92,7 @@ export class NightParticles {
     }
   }
 
-  update(dt: number, renderer: THREE.WebGLRenderer, camera: THREE.PerspectiveCamera): void {
+  update(dt: number, renderer: FxRenderer, camera: THREE.PerspectiveCamera): void {
     this.uLight.value = this.light;
     if (this.live <= 0) return;
     renderer.getDrawingBufferSize(this.tmpSize);

@@ -1,5 +1,5 @@
-import { registerNalatiDefinition, NALATI_DEFINITIONS } from '../species/rows';
-import { app, EliteBrain, type Game, type Sky, type Player, type AnimalManager, type Animal, speciesDef, type ThinkCtx, type Interactable, heightAt, setEliteBrain, setEliteDamage, eliteThink, eliteDamageMul, EliteBar, painterlyMaterial } from '#engine';
+import { registerNalatiDefinition } from '../species/rows';
+import { app, EliteBrain, hasSpecies as hasLegacySpecies, type Game, type Sky, type Player, type AnimalManager, type Animal, speciesDef, type ThinkCtx, type Interactable, heightAt, setEliteBrain, setEliteAct, setEliteDamage, eliteThink, eliteDamageMul, EliteBar, painterlyMaterial } from '#engine';
 
 import { encounterHit } from './damage';
 import * as THREE from 'three';
@@ -148,11 +148,13 @@ abstract class Base extends EliteBrain<Animal> implements EliteScript {
     const a = this.env.animals.spawn(kind, x, z, yaw, variant);
     a.herd = -1;
     this.animal = a;
+    setEliteAct(a, (an, c) => { this.act(an, c); });
     setEliteBrain(a, (an, c) => { this.think(an, c); });
     setEliteDamage(a, (an, p, d) => this.damage(an, p, d));
     return a;
   }
   /** the 10 Hz brain (the species' think forwards here) */
+  protected act(_a: Animal, _c: ThinkCtx): void { /* committed strike, per elite */ }
   protected think(_a: Animal, _c: ThinkCtx): void { /* per elite */ }
   protected damage(_a: Animal, _p: THREE.Vector3, _d: THREE.Vector3): number { return 1; }
   protected override toPlayer(a: Animal): { d: number; yaw: number } {
@@ -234,16 +236,19 @@ class Aqbars extends Base {
       }
       case 'tell': a.setMotion(Math.atan2(this.to.x - a.position.x, this.to.z - a.position.z), 0, 6); break;
       case 'leap': case 'open': a.setMotion(a.yaw, 0, 2); break;
-      case 'swipe': {
+      case 'swipe': break;
+      default: break;
+    }
+  }
+  protected override act(a: Animal, _c: ThinkCtx): void {
+    if (this.st !== 'swipe') return;
+    const tp = this.toPlayer(a);
+
         a.setMotion(tp.yaw, 0, 5);
         const k = a.attackPhase;
         if (k >= 0.45 && this.hitDone === 0) { this.hitDone = 1; if (tp.d < 2.9) this.env.hurt(a, 14); }
         if (k >= 0.8 && this.hitDone === 1) { this.hitDone = 2; if (tp.d < 2.9) this.env.hurt(a, 14); }
         if (k >= 1 || k < 0) { a.cancelAttack(); this.st = this.p2 ? 'perch' : 'stalk'; this.cd = 1.4; if (this.p2) this.retreat(a); }
-        break;
-      }
-      default: break;
-    }
   }
   private startTell(a: Animal, pl: THREE.Vector3): void {
     this.st = 'tell'; this.stT = 0;
@@ -359,18 +364,21 @@ class Kokbori extends Base {
       case 'howl': a.setMotion(a.yaw, 0, 1); break;
       case 'hunt': {
         a.mem['low'] = 0; a.mem['snarl'] = tp.d < 8 ? 1 : 0;
-        if (a.attackPhase >= 0) {
-          a.setMotion(tp.yaw, 6, 4);
-          if (a.attackPhase >= 0.7 && !this.bit) { this.bit = true; if (tp.d < 3.2) this.env.hurt(a, 22); }
-          if (a.attackPhase >= 1) { a.cancelAttack(); this.cd = 1.8; }
-          break;
-        }
+        if (a.attackPhase >= 0) break;
         if (tp.d < 3.5 && this.cd <= 0) { this.bit = false; a.startAttack(0.9); break; }
         a.setMotion(this.chase(a, c, tp.d, tp.yaw), tp.d > 2.5 ? 8 : 0, 3.5);
         break;
       }
       default: break;
     }
+  }
+  protected override act(a: Animal, _c: ThinkCtx): void {
+    if (this.st !== 'hunt' || a.attackPhase < 0) return;
+    const tp = this.toPlayer(a);
+
+          a.setMotion(tp.yaw, 6, 4);
+          if (a.attackPhase >= 0.7 && !this.bit) { this.bit = true; if (tp.d < 3.2) this.env.hurt(a, 22); }
+          if (a.attackPhase >= 1) { a.cancelAttack(); this.cd = 1.8; }
   }
   override tick(dt: number, t: number, engaged: boolean, leashing: boolean): void {
     const a = this.animal;
@@ -897,4 +905,4 @@ function fail(id: string): never { throw new Error(`elites: no def '${id}'`); }
 
 export function wireElites(ctx: ElitesCtx): NalatiElites { return new NalatiElites(ctx); }
 
-function hasNalatiSpecies(kind: string): boolean { return app.species.get(kind) !== undefined || NALATI_DEFINITIONS.some(def => def.kind === kind); }
+function hasNalatiSpecies(kind: string): boolean { return app.species.get(kind) !== undefined || hasLegacySpecies(kind); }

@@ -23,5 +23,6 @@ export const SHEEPDOG_SPECIES: SpeciesDef = {
   variants: [{ id: 'collie', label: engineString('s_062ffea0e911'), weight: 1, rarity: 'common', scale: [0.7, 0.72], hp: 60, tint: COLLIE_TINT, traits: { dog: 1, ruff: 1.1 } }],
   build: buildCanid,
   postPose: canidPostPose,
+  tick: 'ai',
   think: thinkSheepdog,
 };

@@ -1,4 +1,4 @@
-import { engineString, type Rng, type SpeciesDef, type AnimalSpecies, type BoneDef, type VariantDef, type RigAnimCtx, loft, skinPlain, S, boneIndex, mix, speciesSstep as sstep, paletteColors, paintNoise, type Paint, type SpeciesRGB as RGB, type Station, NO_FUR, bump, rigClamp as clamp, eliteThink, eliteDamageMul } from '#engine';
+import { engineString, type Rng, type SpeciesDef, type AnimalSpecies, type BoneDef, type VariantDef, type RigAnimCtx, loft, skinPlain, S, boneIndex, mix, speciesSstep as sstep, paletteColors, paintNoise, type Paint, type SpeciesRGB as RGB, type Station, NO_FUR, bump, rigClamp as clamp, eliteThink, eliteAct, eliteDamageMul } from '#engine';
 
 import * as THREE from 'three';
 
@@ -236,6 +236,8 @@ export const LEOPARD_SPECIES: SpeciesDef = {
   ],
   build: buildFelid,
   postPose: felidPostPose,
+  tick: 'ai',
+  act: eliteAct,
   think: eliteThink,
   damageMul: eliteDamageMul,
 };

@@ -6,7 +6,7 @@ import * as THREE from 'three';
 
 
 import { tuft, hash01, type V3, type Skin } from './shape';
-import { thinkWolf } from '../creatures/pack';
+import { thinkWolf, actWolf } from '../creatures/pack';
 
 /**
  * Steppe wolf (Nalati, row B4) — grey-tawny, a dark saddle over a buff coat, cream mask / throat / belly, a thick ruff on
@@ -383,5 +383,7 @@ export const WOLF_SPECIES: SpeciesDef = {
   ],
   build: buildCanid,
   postPose: canidPostPose,
+  tick: 'ai',
+  act: actWolf,
   think: thinkWolf,
 };

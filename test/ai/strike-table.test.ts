@@ -14,7 +14,7 @@ import { invokeLegacy, legacyActor } from '../fake/legacyActor';
 
 vi.mock('#engine/world/Heightfield', async (original) => ({ ...await original<typeof Heightfield>(),
   heightAt: (): number => 0, normalAt: (): [number, number, number] => [0, 1, 0], waterLevel: (): number => -100, streamAt: (): null => null }));
-const island = 'src/shards/driftwood-isle/species/', species = 'src/engine/entities/species/', nalati = 'src/shards/nalati-grasslands/', pine = 'src/shards/pine-hollow/combat/';
+const island = 'src/shards/driftwood-isle/species/', species = 'src/shards/nalati-grasslands/species/', nalati = 'src/shards/nalati-grasslands/combat/', pine = 'src/shards/pine-hollow/combat/';
 const tuning = [
   ['S1 crab snap', `${island}crab.ts`, { SNAP_R: 1.6, SNAP_DAMAGE: 10, WINDUP: 0.5, SNAP_DUR: 0.78, HOLD_R: 3.6 }],
   ['S2 monkey bite', `${island}monkey.ts`, { BITE_R: 1.3, BITE_DAMAGE: 6, BITE_DUR: 0.9 }],
@@ -27,9 +27,9 @@ const tuning = [
   ['S11 balbal slam', `${species}balbal.ts`, { ATK_T: 2.9, W_END: 0.52, S_END: 0.58, HIT_R: 3.1, HIT_CONE: 0.96, DAMAGE: 30, KURGAN_DAMAGE: 18, COOLDOWN: 1.4 }],
   ['S12 ghost rider arrow', `${nalati}ghostRiders.ts`, { SPACING: 11, CIRCLE_R: 34, ENGAGE: 70, DISENGAGE: 115, SHOOT: 62, ARROW_SPEED: 34, ARROW_G: 5, ARROW_DMG: 10, RESPAWN: 60 }],
   ['S18 horse charge', 'src/shards/nalati-grasslands/creatures/herd.ts', { CHARGE: 12 }],
-  ['S19 Golden King cuts', `${nalati}kurganBoss.ts`, { STRIKE_DMG: [14, 14, 22, 22], REACH: 3 }],
-  ['S20 Golden King sunburst', `${nalati}kurganBoss.ts`, { SUNBURST_DMG: 25, RING_SPEED: 8.5, RING_MAX: 17 }],
-  ['S21 Golden King beam', `${nalati}kurganBoss.ts`, { BEAM_R: 6.2, BEAM_HIT_R: 1.15, BEAM_DMG: 15 }],
+  ['S19 Golden King cuts', `${nalati}goldenKing.ts`, { STRIKE_DMG: [14, 14, 22, 22], REACH: 3 }],
+  ['S20 Golden King sunburst', `${nalati}goldenKing.ts`, { SUNBURST_DMG: 25, RING_SPEED: 8.5, RING_MAX: 17 }],
+  ['S21 Golden King beam', `${nalati}goldenKing.ts`, { BEAM_R: 6.2, BEAM_HIT_R: 1.15, BEAM_DMG: 15 }],
   ['S23 Titan spear', `${nalati}stormTitan.ts`, { SPEAR_DMG: 40, SPEAR_R: 4.5, SPEAR_AIM: 1.5, SPEAR_LOCK: 0.5, SPEAR_STUCK: 3 }],
   ['S24 Titan whirl', `${nalati}stormTitan.ts`, { WHIRL_DMG: 15, WHIRL_R: 3.2 }],
   ['S25 Titan wind charge', `${nalati}stormTitan.ts`, { CHARGE_DMG: 30, LANE_T: 1.2, FLANK_T: 2, STUN_T: 4 }],

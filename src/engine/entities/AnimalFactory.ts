@@ -322,7 +322,7 @@ export class AnimalFactory {
     const look = app.species.look(kind);
     if (look?.material !== undefined) {
       // Nalati: the smooth loft, vertex colours only, no fur texture / shells — and fur, hooves and eyes in ONE group so a
-      // wolf / horse is a single draw call; the soft cel light is the material's (src/shards/nalati-grasslands/look/creatureMaterial.ts)
+      // wolf / horse is a single draw call; the view supplies the material and its soft light
       const count = geometry.index !== null ? geometry.index.count : (geometry.getAttribute('position') as THREE.BufferAttribute).count;
       geometry.clearGroups(); geometry.addGroup(0, count, 0);
       const mat = look.material(this.sky, species.eyeGlow, species.eyeGlowIntensity);

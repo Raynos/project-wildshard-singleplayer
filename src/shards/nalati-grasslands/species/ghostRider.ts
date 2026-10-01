@@ -1,10 +1,9 @@
 import { engineString, type SpeciesDef, type ThinkCtx, NO_FUR, type Animal, eliteDamageMul } from '#engine';
-import { HORSE_SPECIES } from './horse';
 
 import * as THREE from 'three';
 
 
-import { HORSE_SPEED, horseBones } from './horse';
+import { HORSE_SPECIES, HORSE_SPEED, horseBones } from './horse';
 
 
 
@@ -122,6 +121,7 @@ export const GHOSTRIDER_SPECIES: SpeciesDef = {
     { id: 'captain', label: engineString('s_d77473617820'), weight: 0, rarity: 'legendary', scale: [1.12, 1.12], hp: 800, traits: { tack: 1, mane: 2.2, stallion: 1 } },
   ],
   build: (v, rng) => horse.build(v, rng),
+  tick: 'ai',
   think: thinkGhost,
   // arrows land in full; a blade from the ground or the saddle ×1.5 (the design's "ride them down");
   // × the named elite's window (B12: Qara Batyr's back is OPEN after a missed charge — ×3; 1 for an ordinary rider)

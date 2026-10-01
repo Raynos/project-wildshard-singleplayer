@@ -336,8 +336,10 @@ export class HorseHerd extends GroupBrain<Animal> {
   }
 
   /** steer one horse for this tick (after `tick`) */
-  drive(a: Animal, c: ThinkCtx): void {
+  drive(a: Animal, c: ThinkCtx, body = false): void {
     const m = a.mem;
+    const committed = a === this.stallion && this.stallionState === 'charge';
+    if (body !== committed) return;
     if (a === this.ridden || (m['ridden'] ?? 0) === 1) return;
     // R3 (D8 (c)): a stampede — and the stallion's charge — runs THROUGH a player on foot (the knock-down in `trample` /
     // the charge is the hit, not a pile-up against his capsule), but a rider's horse is a body it collides with (Mount
@@ -528,3 +530,8 @@ export function horseDamageMul(a: Animal): number {
 }
 
 function inChunk(x: number, z: number, margin = 0): boolean { return Math.abs(x) <= 250 - margin && Math.abs(z) <= 250 - margin; }
+
+export function actHorse(a: Animal, c: ThinkCtx): void {
+  const herd = HorseHerd.forThink(a, c); if (herd === null || !a.alive) return;
+  herd.drive(a, c, true);
+}

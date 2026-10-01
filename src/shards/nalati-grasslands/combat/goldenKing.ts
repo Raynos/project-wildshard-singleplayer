@@ -1,4 +1,4 @@
-import { app, type Game, type Sky, type Player, type AnimalManager, type Animal, type ThinkCtx, type Interactable, BossBar, activeRegistry } from '#engine';
+import { app, type Game, type Sky, type Player, type AnimalManager, type Animal, type ThinkCtx, type Interactable, BossBar, type WorldRegistry } from '#engine';
 import { encounterHit } from './damage';
 import * as THREE from 'three';
 
@@ -95,6 +95,7 @@ export class GoldenKingFight implements BossScript {
   private readonly baseEmissive = 0.035;
 
   constructor(private readonly dungeon: KurganDungeon, private readonly host: FightHost) {
+    goldenKingBrain.act = (a, c) => { if (a === this.king && this.mode === 'fight') this.strikeBody(a, c); };
     goldenKingBrain.think = (a, c) => { if (a === this.king) this.think(a, c); };
     goldenKingBrain.damageMul = (a, hitPoint) => (a === this.king ? this.damageMul(a, hitPoint) : 1);
   }
@@ -250,8 +251,26 @@ export class GoldenKingFight implements BossScript {
 
   private fightTick(a: Animal, dist: number, toPlayer: number): void {
     const m = a.mem, p3 = this.phase >= 2;
-    const act = m['act'] ?? 0, atk = a.attackPhase;
-    if (atk >= 0) {
+    const atk = a.attackPhase;
+    if (atk >= 0) return;
+    if (this.burstCd <= 0 && dist < 13 && dist > 2.2) {
+      m['act'] = 2; m['hitDone'] = 0; a.startAttack(p3 ? 2.0 : 2.4);
+      return;
+    }
+    if (dist <= REACH + 0.2 && this.comboCd <= 0) {
+      this.comboLeft = p3 ? 4 : 3;
+      this.startStrike(a, 0);
+      return;
+    }
+    a.setMotion(toPlayer, dist > 2.3 ? (p3 ? 2.6 : 1.75) : 0, 2.8);
+  }
+
+  /** Committed strikes follow the body clock before its pose advances. */
+  private strikeBody(a: Animal, c: ThinkCtx): void {
+    if (a.attackPhase < 0) return;
+    const m = a.mem, p3 = this.phase >= 2, act = m['act'] ?? 0, atk = a.attackPhase;
+    const dx = c.player.x - a.position.x, dz = c.player.z - a.position.z, dist = Math.hypot(dx, dz), toPlayer = Math.atan2(dx, dz);
+
       // committed: turn slowly through the wind-up, not at all through the cut
       a.setMotion(toPlayer, 0, atk < 0.45 ? 1.8 : 0.2);
       if (act === 1) {
@@ -281,18 +300,6 @@ export class GoldenKingFight implements BossScript {
         if (act === 4) m['cape'] = 0;
         a.cancelAttack(); m['act'] = 0;
       } else if (act === 4 && atk > 0.45) m['cape'] = Math.max(0, 1 - (atk - 0.45) * 4);
-      return;
-    }
-    if (this.burstCd <= 0 && dist < 13 && dist > 2.2) {
-      m['act'] = 2; m['hitDone'] = 0; a.startAttack(p3 ? 2.0 : 2.4);
-      return;
-    }
-    if (dist <= REACH + 0.2 && this.comboCd <= 0) {
-      this.comboLeft = p3 ? 4 : 3;
-      this.startStrike(a, 0);
-      return;
-    }
-    a.setMotion(toPlayer, dist > 2.3 ? (p3 ? 2.6 : 1.75) : 0, 2.8);
   }
 
   private startStrike(a: Animal, i: number): void {
@@ -618,7 +625,7 @@ export interface KurganPlay {
   params: URLSearchParams;
 }
 
-export interface KurganCtx { game: Game; sky: Sky; player: Player; entrance: KurganEntrance | null }
+export interface KurganCtx { game: Game; sky: Sky; player: Player; entrance: KurganEntrance | null; registry: WorldRegistry }
 
 /** Authored arena and reward adapter; the encounter clock is BossBrain. */
 export class GoldenKing extends Boss {}
@@ -645,7 +652,7 @@ export class KurganBoss {
   build(): this {
     this.dungeon.build();
     this.ctx.game.scene.add(this.dungeon.group);
-    this.dungeon.register(activeRegistry());   // NALATI-MERGE P1: the interior's collision, the seal, the sand drifts
+    this.dungeon.register(this.ctx.registry);   // NALATI-MERGE P1: the interior's collision, the seal, the sand drifts
     this.spareLight.position.set(DUNGEON.x, DUNGEON.y - 30, DUNGEON.z);
     this.ctx.game.scene.add(this.spareLight);
     return this;

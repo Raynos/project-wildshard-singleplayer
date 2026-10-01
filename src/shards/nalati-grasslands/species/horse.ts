@@ -5,7 +5,7 @@ import * as THREE from 'three';
 
 
 
-import { thinkHorse, horseDamageMul } from '../creatures/herd';
+import { thinkHorse, actHorse, horseDamageMul } from '../creatures/herd';
 
 import { lock, hash01, wrapPatch, type V3, type Skin, type Section } from './shape';
 import { wildEnv } from '../creatures/env';
@@ -611,6 +611,8 @@ export const HORSE_SPECIES: SpeciesDef = {
   },
   build: buildHorse,
   postPose: horsePostPose,
+  tick: 'ai',
+  act: actHorse,
   think: thinkHorse,
   damageMul: horseDamageMul,
 };

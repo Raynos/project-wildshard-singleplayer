@@ -286,14 +286,16 @@ export class Pack extends GroupBrain<Animal> {
     const director = this.groupDirector(tokens, (actor) => actor.alive && ((actor.mem['lunge'] ?? 0) === 1 || (actor.mem['lunge'] ?? 0) === 2));
     app.aggression.register(best, director, app.levelScope ?? undefined);
     if (!c.claim(best)) return;
-    best.mem['lunge'] = 1; best.mem['lt'] = TELEGRAPH; best.mem['bit'] = 0;
+    best.mem['lhit'] = best.lastHitT; best.mem['lunge'] = 1; best.mem['lt'] = TELEGRAPH; best.mem['bit'] = 0;
     this.sound(c, best, 'wolf_snarl');
     this.nextTokenT = c.t + (this.boldT > 0 ? c.rng.range(1.2, 2.0) : c.rng.range(2.5, 4.0));
   }
 
   /** steer one wolf for this tick (after `tick`) */
-  drive(a: Animal, c: ThinkCtx): void {
+  drive(a: Animal, c: ThinkCtx, body = false): void {
     const m = a.mem;
+    const committed = this.phase === 'encircle' && (m['lunge'] ?? 0) !== 0;
+    if (body !== committed) return;
     const dt = c.dt;
     const tgt = this.target(c);
     const dx = tgt.x - a.position.x, dz = tgt.z - a.position.z, d = Math.hypot(dx, dz);
@@ -303,7 +305,7 @@ export class Pack extends GroupBrain<Animal> {
     a.lookTarget.copy(tgt); a.lookWeight = this.phase === 'roam' ? 0 : 0.8;
     // a hit mid-lunge staggers it and breaks the lunge off
     const lunge = m['lunge'] ?? 0;
-    if ((lunge === 1 || lunge === 2) && a.lastHitT > (m['lhit'] ?? -Infinity) && performance.now() - a.lastHitT < 400) {
+    if ((lunge === 1 || lunge === 2) && a.lastHitT > (m['lhit'] ?? -Infinity)) {
       _t.set(-dx, 0, -dz).normalize();
       a.stagger(_t, 0.7); a.cancelAttack();
       m['lunge'] = 3; m['lt'] = BREAKOFF + 0.5;
@@ -457,3 +459,8 @@ export function thinkWolf(a: Animal, c: ThinkCtx): void {
 }
 
 function inChunk(x: number, z: number, margin = 0): boolean { return Math.abs(x) <= 250 - margin && Math.abs(z) <= 250 - margin; }
+
+export function actWolf(a: Animal, c: ThinkCtx): void {
+  const p = Pack.forThink(a, c); if (p === null || !a.alive) return;
+  p.drive(a, c, true); c.confine(a);
+}

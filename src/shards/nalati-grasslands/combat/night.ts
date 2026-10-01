@@ -1,4 +1,4 @@
-import { type Game, type Sky, type Player, type Forest, type TargetHit, type DayCycleClock, type AnimalManager } from '#engine';
+import type { Game, Sky, Player, Forest, TargetHit, DayCycleClock, AnimalManager } from '#engine';
 import { encounterHit } from './damage';
 import type * as THREE from 'three';
 

@@ -55,8 +55,9 @@ interface KingMem extends Record<string, number | undefined> {
  *  (the gold scale takes half from arrows, the face full, a shield nothing; the script knows which) */
 export const goldenKingBrain: {
   think: ((a: Animal, c: ThinkCtx) => void) | null;
+  act: ((a: Animal, c: ThinkCtx) => void) | null;
   damageMul: ((a: Animal, hitPoint: THREE.Vector3, dir: THREE.Vector3) => number) | null;
-} = { think: null, damageMul: null };
+} = { think: null, act: null, damageMul: null };
 
 const fract = (x: number) => x - Math.floor(x);
 const hash = (a: number, b: number) => fract(Math.sin(a * 127.1 + b * 311.7) * 43758.5453);
@@ -434,6 +435,8 @@ export const GOLDENKING_SPECIES: SpeciesDef = {
   ],
   build: buildKing,
   animate: animateKing,
+  tick: 'always',
+  act: (a, c) => { goldenKingBrain.act?.(a, c); },
   think: thinkKing,
   damageMul: (a, hitPoint, dir) => goldenKingBrain.damageMul?.(a, hitPoint, dir) ?? 1,
 };
