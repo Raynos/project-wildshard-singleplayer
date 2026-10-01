@@ -60,6 +60,12 @@ describe('level unload keeps the engine usable', () => {
     await new Promise<void>((resolve) => { window.setTimeout(resolve, 0); });
     withScopeOwner(engine, () => { /* Flush the body's mutations before inspecting ownership. */ });
     expect(level.census).toMatchObject({ listeners: 2, timers: 2, nodes: 1 });
+    const another = document.createElement('button'); another.addEventListener('click', removed);
+    another.addEventListener('click', removed);
+    expect(level.census.listeners).toBe(3);
+    const abort = new AbortController(); document.addEventListener('aborted', removed, { signal: abort.signal });
+    abort.abort(); expect(level.census.listeners).toBe(3);
+    another.removeEventListener('click', removed); expect(level.census.listeners).toBe(2);
     button.click(); expect(removed).toHaveBeenCalledOnce();
     level.dispose();
     document.dispatchEvent(new Event('ownership-test')); button.click(); window.dispatchEvent(new Event('ownership-test'));

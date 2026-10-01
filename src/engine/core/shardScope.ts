@@ -67,7 +67,7 @@ const windowAdd: unknown = typeof window === 'undefined' ? null : Reflect.get(wi
 const windowRemove: unknown = typeof window === 'undefined' ? null : Reflect.get(window, 'removeEventListener');
 /** listener → its wrappers, by `type|capture` (the DOM keys a listener the same way) and by scope (a module-level
  *  handler two shards both add is two registrations, one per shard) */
-const wrappers = new WeakMap<object, Map<string, Map<ShardScope, EventListener>>>();
+const wrappers = new WeakMap<object, WeakMap<EventTarget, Map<string, Map<ShardScope, EventListener>>>>();
 
 /** the scope a registration made now belongs to (null: the shell) */
 export function currentScope(): ShardScope | null { return current; }
@@ -141,8 +141,10 @@ function scopeTarget(target: EventTarget): void {
     if (scope === null || listener === null) { add(type, listener, options); return; }
     if (scope.owner.disposed || (typeof options === 'object' && options.signal?.aborted)) return;
     const key = keyOf(type, options);
-    let byKey = wrappers.get(listener);
-    if (!byKey) { byKey = new Map(); wrappers.set(listener, byKey); }
+    let byTarget = wrappers.get(listener);
+    if (!byTarget) { byTarget = new WeakMap(); wrappers.set(listener, byTarget); }
+    let byKey = byTarget.get(target);
+    if (!byKey) { byKey = new Map(); byTarget.set(target, byKey); }
     let byScope = byKey.get(key);
     if (!byScope) { byScope = new Map(); byKey.set(key, byScope); }
     if (byScope.has(scope)) return; // the DOM ignores a second add of the same listener too
@@ -153,24 +155,30 @@ function scopeTarget(target: EventTarget): void {
     let forget = () => { /* Bound after registration. */ };
     const fn: EventListener = function fn(this: unknown, e: Event): void {
       if (!scope.active || owner.disposed) return;
-      if (once) {
-        remove(type, fn, capture); mine.delete(scope); forget();
-        const at = scope.regs.findIndex((r) => r.fn === fn); if (at !== -1) scope.regs.splice(at, 1);
-      }
+      if (once) cleanup();
       withScopeOwner(owner, () => { if (typeof listener === 'function') listener.call(this, e); else listener.handleEvent(e); });
     };
     byScope.set(scope, fn);
-    const reg = { target, type, fn, capture, listener, key, owner, forget: () => { forget(); } };
+    const signal = typeof options === 'object' ? options.signal : undefined;
+    const capturedScope = scope;
+    const reg = { target, type, fn, capture, listener, key, owner, forget: cleanup };
     scope.regs.push(reg);
-    forget = owner.capture('listeners', () => {
-      remove(type, fn, capture); mine.delete(scope);
-      const at = scope.regs.indexOf(reg); if (at !== -1) scope.regs.splice(at, 1);
-    });
+    function cleanup(): void {
+      remove(type, fn, capture); mine.delete(capturedScope); forget();
+      signal?.removeEventListener('abort', cleanup);
+      const at = capturedScope.regs.indexOf(reg); if (at !== -1) capturedScope.regs.splice(at, 1);
+    }
+    forget = owner.capture('listeners', cleanup);
     // `once` is ours to keep (once while active): a parked shard must not lose a one-shot to another shard's event
-    add(type, fn, typeof options === 'object' ? { ...options, once: false } : options);
+    if (typeof options === 'object') {
+      const nativeOptions = { ...options, once: false };
+      delete nativeOptions.signal; // Our abort handler removes both the native listener and its scope record.
+      add(type, fn, nativeOptions);
+    } else add(type, fn, options);
+    signal?.addEventListener('abort', cleanup, { once: true });
   };
   const scopedRemove: RemoveFn = (type, listener, options) => {
-    const byScope = listener === null ? undefined : wrappers.get(listener)?.get(keyOf(type, options));
+    const byScope = listener === null ? undefined : wrappers.get(listener)?.get(target)?.get(keyOf(type, options));
     if (byScope !== undefined && byScope.size > 0) {
       // the current scope's registration, else the one there is (a shard removing its own listener)
       const scope = current !== null && byScope.has(current) ? current : byScope.keys().next().value;
@@ -330,7 +338,7 @@ export function disposeScope(s: ShardScope): void {
   flush();
   s.active = false;
   s.resources.dispose();
-  for (const r of s.regs) { origRemove.get(r.target)?.call(r.target, r.type, r.fn, r.capture); wrappers.get(r.listener)?.get(r.key)?.delete(s); }
+  for (const r of s.regs) { origRemove.get(r.target)?.call(r.target, r.type, r.fn, r.capture); wrappers.get(r.listener)?.get(r.target)?.get(r.key)?.delete(s); }
   s.regs.length = 0;
   for (const id of s.intervals) clearIntervalNow(id);
   s.intervals.clear();
