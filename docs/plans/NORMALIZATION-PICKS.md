@@ -19,7 +19,7 @@ continue on the recommended option, but the row stays open until Jake has answer
 |---|---|---|---|---|
 | P3 | **X1 input board**: the 120 ms input buffer + 100 ms coyote time (decision 40), the Controls / rebinding screen | ship as built · tune the two numbers · revert | **`progress/normalization/x1-board/README.md`** (ready: Nine roof jump before/after, Driftwood mid-swing dodge before/after, 3 Controls images, Pine / Nalati reserved-verb A/B, trace); `x1-board/r6-coyote.md`: coyote adds one jump on Nine Dragon's route, which shifts its combat footsteps (desktop metal steps absent → 2, phone 2 → 1); grace audited exact (100 / 120 ms) | 2026-10-01 |
 | P10 | **B35 / X9** title-deck Wildshard summary strip variant (A shipped as default, B a Debug row) | A · B | `progress/normalization/x9/title-{a,b}.jpg` | 2026-09-30 |
-| P13 | **Z3 shard 5 concepts**: the fresh agent proposes 3 portrait mockups per new shard (desert + whip; agent's choice) and Jake picks (decision 73) | — (comes at Z3) | — | later |
+| P13 | **Z3 shard 6 concept** (agent's choice): the fresh agent's 3 portrait mockups | — (page coming) | `art/far-reach/round-1-proposals/` | later |
 
 ## Answered
 
@@ -35,6 +35,8 @@ continue on the recommended option, but the row stays open until Jake has answer
 | P11 | **Earlier wave boards** still unseen: weapons (B1 / B2 wall fixes), creatures (big crab 14, decision 86), look (the shared Captain BossBar, decision 91) | Same review page as P2 | 2026-10-01 |
 | P12 | **Calibration publish** needs a quiet machine (budgets become measured, not projected) | Run it at the next quiet gap (no builders live), before the milestone pin if possible | 2026-10-01 |
 | P1 | **E362 ARCH-GUARDS**: which static-analysis guards to build (lint rules, TS boundaries, import graph, shard layout, fast pre-commit) | First batch now, in E357 (AG16, AG17, AG1, AG14, AG13, AG11, AG20, AG9 as Z4 rows, before the template + new shards); second batch after | 2026-10-01 |
+
+| P13a | Z3 shard 5 concept (desert + whip) | **A · Sunscar Mesa** (salt flat + red mesas, leather bullwhip, diving vultures, 'Ring the well bell') | 2026-10-01 |
 
 ## Milestone board items found by sol-m2 on 39223a5f (go on the review page with P2 / P3)
 
