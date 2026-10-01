@@ -16,13 +16,11 @@ import { bootstrap } from '#engine/core/bootstrap';
 import { installGpuRecovery, RELOAD_PARAM } from '#engine/core/GpuRecovery';
 import { setPoseProvider } from '#engine/ui/ReloadPrompt';
 
-import { hasPond, heightAt, normalAt, trailDistance, TRAILS } from '#engine/world/Heightfield';
+import { hasPond, heightAt, normalAt, TRAILS } from '#engine/world/Heightfield';
 import { Boundary } from '#engine/world/Boundary';
-import { SHRINE } from '#shards/driftwood-isle/manifest';
 import { driftwoodWorld } from '#shards/driftwood-isle/world/build';
-import { Cove } from '#shards/driftwood-isle/world/Cove';
 import { Hands } from '#engine/player/Hands';
-import { Sword, swordEvents } from '#kit/weapons/melee/SweptMelee';
+import { Sword } from '#kit/weapons/melee/SweptMelee';
 import { CameraFX } from '#engine/player/CameraFX';
 import { Horizon } from '#engine/world/Horizon';
 import { HorizonMatte } from '#engine/world/HorizonMatte';
@@ -52,7 +50,6 @@ import { Inventory, ITEMS } from '#game/Inventory';
 import { Owned } from '#game/loot/Owned';
 import { practiceRoom } from '#engine/core/practiceRoom';
 import { sharedCombatCues } from '#kit/audio/combatCues';
-import { driftwoodCombatCues } from '#shards/driftwood-isle/audio/combatCues';
 
 import { KeepAlive } from '#engine/core/KeepAlive';
 import { Combat, aimReadout } from '#engine/ui/Combat';
@@ -78,10 +75,6 @@ import { runShardLoad, withShardHooks, ShardLoadError, type LoadStage, prepareSh
 import { registerGpuFiles, setTexturePolicy } from '#engine/boot/gpuFiles';
 import { Audio } from '#engine/audio/Audio';
 import { Music } from '#engine/audio/Music';
-import { ShrineHum } from '#shards/driftwood-isle/audio/shrineHum';
-import { IslandSfx } from '#shards/driftwood-isle/audio/sfx';
-import { SurfaceMap } from '#shards/driftwood-isle/audio/surface';
-import { IslandAmbience } from '#shards/driftwood-isle/audio/ambience';
 import { installErrorModal, showError } from '#engine/ui/ErrorModal';
 import { onReview, queuedCount, quickNote } from '#engine/ui/review';
 import { rotateGated } from '#engine/ui/RotateGate';
@@ -382,8 +375,7 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
     const music = shell.music ?? asShell(() => new Music(audio));
     shell.music = music;
     music.attach(audio);
-    const mood = chunk.ocean ? 'island' : 'pine';
-    music.setState({ shard: mood, mode: 'menu', intensity: 0, underwater: false });
+    music.setState({ mode: 'menu', intensity: 0, underwater: false });
     audio.music = music;
     audio.listenerPosition = player.position;
     app.audio = audio;
@@ -398,7 +390,7 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   // Driftwood's world, built by its plugin's world hook (src/shards/driftwood-isle/world/build.ts, E357 S4.1); its readers
   // below move into the plugin at S4.2–S4.4 (nothing built off Driftwood)
   const dressing = { ...edgeDressing, ...driftwoodWorld(boot.runtime) };
-  const { ocean, pier, jetties, boat, palmSpecs, cove, hut, lookout, wreck, shrine, bushes, gulls, bridge, bridgeDeck } = dressing;
+  const { ocean, pier, jetties, boat, cove, hut, lookout, wreck, shrine, bushes, gulls, bridge, bridgeDeck } = dressing;
   const animals = await step('animals', async (p) => {
     const a = await new AnimalManager(game.scene, sky, forest).buildAsync(macrotask); // a task per herd, not one long one
     p.detail(`${a.animals.length} animals`);
@@ -486,8 +478,6 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
     await practice;
   });
   const { audio, music } = prepareAudio();
-  // the ring shrine hums by proximity and ducks the score up close (project/archive/2026-09-23-music.md v3 row 9)
-  const shrineHum = shrine ? new ShrineHum(audio, music, { x: SHRINE.x, y: heightAt(SHRINE.x, SHRINE.z) + 2.5, z: SHRINE.z }) : null;
   const arrivalSpawn = boot.handoff?.arrive ?? chunk.spawn;
   const toSpawn = () => { player.spawn(arrivalSpawn.x, arrivalSpawn.z, arrivalSpawn.yaw, arrivalSpawn.y); if (pier && !boot.handoff?.arrive) { const y = pier.floorHeightAt(player.position.x, player.position.z); if (y !== undefined) player.position.y = y; } };
   const respawn = () => { toSpawn(); music.sting('death'); };
@@ -570,10 +560,7 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
     const q = queuedCount(); noteDisc.classList.toggle('queued', q > 0); if (noteBadge) noteBadge.textContent = String(q);
   };
   onReview(syncNoteDisc);
-  // the island's sound bank (IslandSfx: footsteps, the sword's layers, the adventure kit's sounds) — null off Driftwood
-  const islandSfx = sea ? new IslandSfx(audio) : null;
-  // an achievement: the island's interact chime there (E318 row 14: not the combat hit-tick), the hit-tick elsewhere
-  progress.onEarned = (d) => { if (app.events.ask('feat.toast', { id: d.id, ...(d.event === undefined ? {} : { event: d.event }), allowed: true }).allowed) hud.toast(`Achievement · ${d.name} — title unlocked: ${d.title}`); if (islandSfx) islandSfx.interact('chime'); else audio.hitMarker(); }; // a Nalati chapter's own caption announces its title
+  progress.onEarned = (d) => { if (app.events.ask('feat.toast', { id: d.id, ...(d.event === undefined ? {} : { event: d.event }), allowed: true }).allowed) hud.toast(`Achievement · ${d.name} — title unlocked: ${d.title}`); if (!audio.cue('cue.feat.earned')) audio.hitMarker(); }; // a Nalati chapter's own caption announces its title
   const masterGain = () => { if (!audio.muted) audio.master.gain.setTargetAtTime(0.6 * getNumber('volume'), audio.ctx.currentTime, 0.05); };
   onNumber('volume', masterGain);
 
@@ -643,27 +630,13 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
     trauma: (value) => CameraFX.for(game).addTrauma(value),
   });
   animals.onCharge = (a, raw) => playerHurt.creature(a, raw);
-  // footsteps (B9): the island asks its surface map — planks on every deck, stone on the shrine dais, sand / wet sand / grass /
-  // rock off them as the terrain paints it, an ankle splash in the shallows — pitched and levelled by speed; Pine Hollow as before
-  const surfaces = sea ? new SurfaceMap({ sea: sea.level, heightAt, trailDistance, decks: [pier, ...jetties, boat, hut, lookout, bridge, wreck], stone: [shrine] }) : null;
-  // the island's zoned soundscape + reverb rooms (S1 / S2): surf on the shoreline, palms, jungle, cove + waterfall, lookout wind; hold / cave / shrine reverb
-  animals.onSound = (name, pos) => { audio.animal(name, pos, player.position, player.yaw); }; // the generated samples (E318 row 23: the island's crab / monkey / sailor / boar calls too, not the procedural bank)
-  // the sword's combat layers on the island (S3 bank via IslandSfx; Pine Hollow has no sword): a whoosh per swing, an impact per blade
-  // hit by material (+ a death bark), a clang where the blade meets a wall / trunk, each enemy wind-up's cue (C5)
-  if (islandSfx) {
-    const islandCues = new CombatCues(driftwoodCombatCues(islandSfx));
-    swordEvents.onSwing = (speed, heavy, dir) => { islandCues.cue('cue.sword.swing', { speed, heavy, dir }); };
-    swordEvents.onStrike = (kind, point, strength, killed) => { islandCues.cue('cue.sword.hit', { kind, point, strength, killed }); };
-    swordEvents.onClang = (point, strength, clang) => { islandCues.cue('cue.sword.clang', { point, strength, clang }); }; // stone / wood by what the tip met (P5)
-    animals.onWindup = (a) => { const e = a.kind === 'crab' ? 'crab' : a.kind === 'sailor' ? 'sailor' : a.kind === 'boar' || a.kind === 'bear' ? 'boar' : null; if (e !== null) islandSfx.windup(e, a.position); };
-  }
+  animals.onSound = (name, pos) => { audio.animal(name, pos, player.position, player.yaw); };
   // E297 fight rules (Driftwood): an amber edge chevron toward an enemy winding up where you can't see it (src/engine/ui/WindupWarn.ts);
   // chained after the wind-up's sound cue
   const windupWarn = Number.isFinite(game.level.fight.attackers) ? new WindupWarn<(typeof animals.animals)[number]>() : null;
   // one chain: the typed 'ai.windup' event first, then the wind-up's sound cue, then the edge chevron (today's order)
   const windupCue = animals.onWindup;
-  animals.onWindup = (a, duration) => { app.events.emit('ai.windup', { actor: a.combatActor(), duration }); windupCue?.(a, duration); windupWarn?.start(a, duration); };
-  const ambience = sea ? new IslandAmbience(audio, { sea: sea.level, heightAt, palms: palmSpecs, wreck, cove: Cove.forIsland() }) : null;
+  animals.onWindup = (a, duration) => { app.events.emit('ai.windup', { actor: a.combatActor(), duration }); windupCue?.(a, duration); audio.cue('cue.ai.windup', { kind: a.kind, point: a.position }); windupWarn?.start(a, duration); };
   // the dev fps panel's COUNTS (src/engine/ui/perfHud.ts; read ≤ 4× a second while it is open): who is running AI near you
   perf.addCounts(() => {
     let alive = 0, near = 0, motors = 0, chase = 0, flee = 0;
@@ -681,14 +654,14 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   });
   player.onStep = (sprinting) => {
     const p = player.position;
-    if (islandSfx && surfaces && !(player.wading && player.depth > 0.3)) islandSfx.footstep(player.wading ? 'water' : surfaces.surfaceAt(p.x, p.z, p.y), Math.hypot(player.velocity.x, player.velocity.z));
-    else if (player.wading) audio.wadeStep(player.depth, sprinting);
-    else { const hoof = audio.hoofSurfaceAt?.(p.x, p.z); audio.footstep(sprinting, hoof !== undefined ? (hoof === 'wood' ? 'planks' : hoof) : pier?.floorHeightAt(p.x, p.z) !== undefined ? 'planks' : sea !== undefined && heightAt(p.x, p.z) - sea.level < 2.6 ? 'sand' : boot.runtime.hooks.stepSurface?.(p) ?? 'litter'); } // Nalati: its hoof ground (src/shards/nalati-grasslands/sound.ts); Pine Hollow: ForestAmbience's ground (PH-A3)
+    const surface = app.events.ask('player.stepSurface', { x: p.x, y: p.y, z: p.z, surface: boot.runtime.hooks.stepSurface?.(p) ?? 'litter' }).surface;
+    if (!(player.wading && player.depth > 0.3) && audio.cue(`cue.step.${player.wading ? 'water' : surface}`, { speed: Math.hypot(player.velocity.x, player.velocity.z) })) return;
+    if (player.wading) audio.wadeStep(player.depth, sprinting);
+    else { const hoof = audio.hoofSurfaceAt?.(p.x, p.z); audio.footstep(sprinting, hoof !== undefined ? (hoof === 'wood' ? 'planks' : hoof) : surface); }
   };
-  if (gulls && islandSfx) gulls.onCall = (pos) => { islandSfx.gullCallAt(pos, player.position, player.yaw); };
   player.onEnterWater = (impact) => audio.splash(impact);
-  player.onSubmerge = () => { audio.dive(); islandSfx?.plunge(false); audio.setUnderwater(true); ambience?.setUnderwater(true); music.setState({ underwater: true }); };
-  player.onSurface = () => { audio.surface(); islandSfx?.plunge(true); audio.setUnderwater(false); ambience?.setUnderwater(false); music.setState({ underwater: false }); };
+  player.onSubmerge = () => { audio.dive(); audio.cue('cue.player.dive'); audio.setUnderwater(true); music.setState({ underwater: true }); };
+  player.onSurface = () => { audio.surface(); audio.cue('cue.player.surface'); audio.setUnderwater(false); music.setState({ underwater: false }); };
   player.onExitWater = () => audio.waterExit();
   player.onStroke = () => audio.swimStroke();
   player.onJump = () => audio.jump();
@@ -881,7 +854,6 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
     }
     boundary.update(dt, t);
     // Driftwood's ocean · boat · palms · gulls · bridge planks · seabed · cove · shrine: its plugin's systems (src/shards/driftwood-isle/world/systems.ts)
-    if (dayNight) { shrine?.setDusk(dayNight.dusk); if (ambience) ambience.night = dayNight.night; }
     mark('world');
     hands.update(dt, player);
     mark('player');
@@ -892,20 +864,22 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
     if (player.swimming !== swimHold) { swimHold = player.swimming; weapons.visible = !swimHold; weapons.setEnabled(!swimHold); }
     unmark();
   }, 'main.world');
-  app.addSystem({ id: 'engine.creatures.update', phase: 'update', after: ['main.world'], before: ['main.frame'], run: (dt, t) => {
+  app.addSystem({ id: 'engine.creatures.update', phase: 'update', after: ['main.world'], before: ['main.equipment'], run: (dt, t) => {
     animals.update(dt, t, player.position, player.sprinting, viewer(), game.camera);
     aimList.length = 0; aimList.push(...app.events.ask('combat.aimTargets', animals.animals.filter((a) => a !== player.mountedOn)));
   } }, game.levelScope);
-  app.addSystem({ id: 'main.frame', phase: 'update', after: ['engine.creatures.update'], before: ['engine.player.hud'], run: (dt, t) => {
+  app.addSystem({ id: 'main.equipment', phase: 'update', after: ['engine.creatures.update'], before: ['engine.audio.listener'], run: (dt, t) => {
     mark('animals');
     weapons.update(dt, t); // every weapon ticks (bolts in flight keep flying while the rifle is out)
     boot.runtime.hooks.equipmentUpdate?.(dt); weaponStrip.update();
     boot.runtime.hooks.updatePickups?.(dt, t);
     weapons.updatePickups(dt, t);
     mark('player');
+  } }, game.levelScope);
+  app.addSystem({ id: 'engine.audio.listener', phase: 'update', after: ['main.equipment'], before: ['main.frame'], run: () => {
     audio.listenerYaw = player.yaw;
-    shrineHum?.update(game.camera);
-    ambience?.update(dt, game.camera);
+  } }, game.levelScope);
+  app.addSystem({ id: 'main.frame', phase: 'update', after: ['engine.audio.listener'], before: ['engine.player.hud'], run: (dt) => {
     boot.runtime.hooks.audioUpdate?.(dt);
     mark('audio');
 
@@ -1036,11 +1010,11 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
     if (chunk.explore !== undefined) void import('#engine/explore/Explore');
     game.primeFrame();
   }, TITLE_IDLE_MS);
-  const handle = { ...world, boundary, water, streams: dressing.streams, ocean, pier, jetties, boat, hut, lookout, wreck, shrine, bushes, gulls, bridge, bridgeDeck, cove, hands, props, animals, interactables, crossbow, hud, audio, music, shrineHum, islandSfx, surfaces, ambience, lockSys, lockState, weapons, arena, playground: (): Playground | null => playground, ...boot.runtime.objects };
+  const handle = { ...world, boundary, water, streams: dressing.streams, ocean, pier, jetties, boat, hut, lookout, wreck, shrine, bushes, gulls, bridge, bridgeDeck, cove, hands, props, animals, interactables, crossbow, hud, audio, music, lockSys, lockState, weapons, arena, playground: (): Playground | null => playground, ...boot.runtime.objects };
   app.audio = audio;
   game.retainKitResources();
   game.captureLevelResources();
-  game.levelScope.onDispose(() => { windupWarn?.dispose(); weapons.setEnabled(false); ambience?.dispose(); boot.runtime.hooks.dispose?.(); audio.unloadLevel(); });
+  game.levelScope.onDispose(() => { windupWarn?.dispose(); weapons.setEnabled(false); boot.runtime.hooks.dispose?.(); audio.unloadLevel(); });
   installProbe(handle, { bootSteps, health: () => playerHealth.attributes.health, quest: () => ({ driftwood: boot.runtime.hooks.adventureFlags?.() ?? [], nalati: boot.runtime.hooks.questFlags?.() ?? [] }) });
   document.dispatchEvent(new Event('ws:ready')); // booted to the title: the native shell's update watchdog (src/engine/native/boot.ts) waits for this
   // E158: the other shards' boot files into the worker's cache, in the background — once a page (the shell's, not a shard's)

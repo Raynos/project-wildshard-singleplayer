@@ -99,7 +99,8 @@ export const PRACTICE_CRAB = { x: -7, z: -143 };
 /** the boar variants the island rolls (E318): the common four, never Pine Hollow's Scarback or Old Ironhide (whose drop is a gun) */
 
 export const DRIFTWOOD_ISLE: ShardManifest = {
-  audio: { bed: 'island', samples: { loopGains: { island: 0.5 } }, ambience: 'legacy', score: 'legacy' },
+  audio: { bed: 'island', samples: { loopGains: { island: 0.5 } }, ambience: 'ambience.driftwood', score: 'score.driftwood',
+    preload: () => import('./audio/files').then((m) => m.createDriftwoodAudio()) },
   uses: ['dayCycle'],
   api: 1,
   kitLook: 'toon',

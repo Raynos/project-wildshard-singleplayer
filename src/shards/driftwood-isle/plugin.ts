@@ -1,6 +1,7 @@
 import { ShardPlugin, type ShardContext } from '#game';
 import { buildDriftwoodWorld, keepDriftwoodWorld, type DriftwoodWorld } from './world/build';
 import { islandSystems } from './world/systems';
+import { installDriftwoodAudio } from './audio/install';
 import type { World } from '#engine';
 import type { Vector3 } from 'three';
 import { DRIFTWOOD_FEATS, DRIFTWOOD_ITEMS } from './quest/rows';
@@ -52,6 +53,7 @@ export class DriftwoodPlugin extends ShardPlugin {
   }
 
   override async play(ctx: ShardContext): Promise<void> {
+    await installDriftwoodAudio(ctx);
     this.adventure = await installDriftwoodAdventure(ctx);
     ctx.scope.onDispose(() => { this.adventure = null; });
   }
