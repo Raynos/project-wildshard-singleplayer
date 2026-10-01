@@ -77,6 +77,7 @@ export function fxMaterial(mode: FxMode, color: THREE.ColorRepresentation, alpha
     transparent: true, depthWrite: false, side: THREE.DoubleSide, fog: false, toneMapped: false,
     blending: additive ? THREE.AdditiveBlending : THREE.NormalBlending,
   }) as FxMaterial;
+  // oxlint-disable-next-line wildshard/layer -- Retain the existing shared shader cache key verbatim for program parity.
   m.customProgramCacheKey = () => 'kurgan-fx';
   return m;
 }
@@ -98,4 +99,3 @@ export function annulus(inner: number, outer: number, seg: number, arc = Math.PI
   g.setIndex(idx);
   return g;
 }
-
