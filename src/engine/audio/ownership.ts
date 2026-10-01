@@ -11,6 +11,6 @@ export function ownAudioSource<T extends AudioScheduledSourceNode>(source: T): T
     }
     source.disconnect();
   });
-  source.addEventListener('ended', () => { ended = true; forget(); source.disconnect(); }, { once: true });
+  scope.listen(source, 'ended', () => { ended = true; forget(); source.disconnect(); }, { once: true });
   return source;
 }

@@ -29,6 +29,7 @@ import { tierUrl, versionedUrl, type ChunkFiles } from './bytes';
 import { PACKS, type PackDef, type PackPart } from './packs.generated';
 import { TIER } from '../core/tier';
 import { setting } from '../ui/Settings';
+import { Scope } from '../app/scope';
 
 const pathOf = (url: string): string => { try { return new URL(url, location.href).pathname; } catch { return url; } };
 
@@ -67,10 +68,9 @@ function handToWorker(url: string, blob: Blob): void {
   const sw = navigator.serviceWorker;
   const post = (): void => { sw.controller?.postMessage({ type: 'STORE', url, blob }); };
   if (sw.controller) { post(); return; }
-  const expiry: { timer?: ReturnType<typeof setTimeout> } = {};
-  const onClaim = (): void => { clearTimeout(expiry.timer); post(); };
-  expiry.timer = setTimeout(() => { sw.removeEventListener('controllerchange', onClaim); }, 60_000);
-  sw.addEventListener('controllerchange', onClaim, { once: true });
+  const scope = new Scope('pack-cache-claim');
+  scope.timeout(60_000, () => { scope.dispose(); });
+  scope.listen(sw, 'controllerchange', () => { scope.dispose(); post(); }, { once: true });
 }
 
 /**

@@ -1,4 +1,6 @@
 /** Wait for WebKit's graphics context to be usable before Three reads its capabilities. */
+import { Scope } from '../app/scope';
+
 export const GAME_CONTEXT_ATTRIBUTES: WebGLContextAttributes = {
   // E257: on the physical iPhone, even an empty 16px canvas immediately loses a
   // high-performance context after the crash; default and low-power remain usable.
@@ -16,7 +18,8 @@ export async function readyWebGLContext(
   // This must precede getContext(): loss can happen during context creation itself.
   // Without preventDefault the browser is not permitted to restore that context.
   const allowRestore = (event: Event): void => { event.preventDefault(); };
-  canvas.addEventListener('webglcontextlost', allowRestore);
+  const scope = new Scope('webgl-startup');
+  scope.listen(canvas, 'webglcontextlost', allowRestore);
   const start = performance.now();
   let attempt = 0;
   try {
@@ -34,7 +37,7 @@ export async function readyWebGLContext(
       waiting(state);
       if (state.elapsedMs >= 10_000) throw new Error(`Graphics context did not recover during startup (${contextLost ? 'context lost' : gl === null ? 'context unavailable' : 'shader capabilities unavailable'})`);
       // Yield for GPU-process restart / webglcontextrestored instead of reloading the document.
-      await new Promise<void>((resolve) => { setTimeout(resolve, 250); });
+      await new Promise<void>((resolve) => { scope.timeout(250, resolve); });
     }
-  } finally { canvas.removeEventListener('webglcontextlost', allowRestore); }
+  } finally { scope.dispose(); }
 }

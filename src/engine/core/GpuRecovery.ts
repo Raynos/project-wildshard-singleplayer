@@ -40,6 +40,7 @@ import { saveStorage } from '#engine/saves/slots';
  *
  */
 import type { Game } from './Game';
+import type { Scope } from '../app/scope';
 import { gpuOnlyContent, rebakeGpuContent } from './gpuOnly';
 import { resumeScreen, SHOT_KEY } from '../ui/Resume';
 import { layout, trace, traceReturn, traceWorldReady } from './lifeTrace';
@@ -93,6 +94,7 @@ type Phase = 'ok' | 'lost' | 'restoring' | 'reloading' | 'stuck';
 
 export function installGpuRecovery(host: RecoveryHost): void {
   const { game } = host;
+  const scope = game.levelScope.child('gpu-recovery');
   const canvas = game.renderer.domElement;
   if (canvas !== game.canvas) return; // an offscreen canvas of our own, not the one the player sees
   const gl = game.renderer.getContext();
@@ -103,7 +105,7 @@ export function installGpuRecovery(host: RecoveryHost): void {
   let hiddenAt = hidden ? Date.now() : 0; // wall clock: performance.now() does not run while iOS suspends the page
   let epoch = 0; // a newer loss abandons an in-flight restore / reveal
   let visibleMs = 0; // visible time spent in the current lost / restoring phase
-  let timer = 0;
+  let timer: ReturnType<typeof setTimeout> | 0 = 0;
   let shot: string | null = null;
   try { shot = savedStorage.getItem(SHOT_KEY); } catch { /* no still: the dark glass alone */ }
 
@@ -123,7 +125,7 @@ export function installGpuRecovery(host: RecoveryHost): void {
     const mine = epoch;
     const t0 = performance.now();
     const drop = (): void => { if (mine === epoch && phase === 'ok' && !gl.isContextLost()) screen.hide(); };
-    requestAnimationFrame(() => { requestAnimationFrame(() => { window.setTimeout(drop, Math.max(0, minMs - (performance.now() - t0))); }); });
+    scope.raf(() => { scope.raf(() => { scope.timeout(Math.max(0, minMs - (performance.now() - t0)), drop); }); });
   };
 
   /**
@@ -138,7 +140,7 @@ export function installGpuRecovery(host: RecoveryHost): void {
     try { shot = still.toDataURL('image/jpeg', 0.7); savedStorage.setItem(SHOT_KEY, shot); } catch { /* keep the last one */ }
   };
 
-  const stopTimer = (): void => { if (timer !== 0) { clearInterval(timer); timer = 0; } };
+  const stopTimer = (): void => { if (timer !== 0) { scope.cancelTimer(timer); timer = 0; } };
   /** `away`: the long-absence reload — a player on the title gets the title back, and a waiting newer build is taken */
   const reload = (why: string, away = false): void => {
     if (phase === 'reloading' || phase === 'stuck') return;
@@ -181,11 +183,11 @@ export function installGpuRecovery(host: RecoveryHost): void {
   /** count visible time in the current phase; past `max` seconds, reload */
   const watch = (max: number, why: string): void => {
     stopTimer(); visibleMs = 0;
-    timer = window.setInterval(() => {
+    timer = scope.interval(500, () => {
       if (document.visibilityState !== 'visible') return;
       visibleMs += 500;
       if (visibleMs > max * 1000) reload(why);
-    }, 500);
+    });
   };
 
   const lose = (why: string): void => {
@@ -237,21 +239,21 @@ export function installGpuRecovery(host: RecoveryHost): void {
     // the scene must actually draw again: no frame on a live, open gate within a few visible seconds → reload
     game.lastFrame.calls = -1;
     let waited = 0;
-    const check = window.setInterval(() => {
-      if (mine !== epoch || phase !== 'ok') { clearInterval(check); return; }
+    const check = scope.interval(500, () => {
+      if (mine !== epoch || phase !== 'ok') { scope.cancelTimer(check); return; }
       if (document.visibilityState !== 'visible' || !game.frameGate()) return;
       waited += 500;
-      if (game.lastFrame.calls > 0) clearInterval(check);
-      else if (waited > 4000) { clearInterval(check); reload('no frame after the restore'); }
-    }, 500);
+      if (game.lastFrame.calls > 0) scope.cancelTimer(check);
+      else if (waited > 4000) { scope.cancelTimer(check); reload('no frame after the restore'); }
+    });
   };
 
-  canvas.addEventListener('webglcontextlost', (e) => {
+  scope.listen(canvas, 'webglcontextlost', (e) => {
     e.preventDefault();
     if (host.parked?.() === true) { console.warn('[gl] a parked shard lost its context'); host.onLostParked?.(); return; }
     lose('context lost');
   });
-  canvas.addEventListener('webglcontextrestored', () => { if (host.parked?.() !== true) void restore(); });
+  scope.listen(canvas, 'webglcontextrestored', () => { if (host.parked?.() !== true) void restore(); });
 
   const hide = (): void => {
     if (hidden) return; // visibilitychange and pagehide both land here
@@ -267,7 +269,7 @@ export function installGpuRecovery(host: RecoveryHost): void {
     if (!hidden) return;
     hidden = false;
     const away = Date.now() - hiddenAt;
-    repaint();
+    repaint(scope);
     if (hiddenAt > 0 && away > AWAY_MAX_MS && (phase === 'ok' || phase === 'lost')) { traceReturn(away, 'away-reload'); reload(`back after ${Math.round(away / 60_000)} min away`, true); return; }
     if (phase !== 'ok') { traceReturn(away, `phase ${phase}`); return; } // lost / restoring / reloading: the screen stays until that path ends
     if (gl.isContextLost()) { traceReturn(away, 'lost while hidden'); lose('context lost while hidden (no event)'); return; }
@@ -275,12 +277,13 @@ export function installGpuRecovery(host: RecoveryHost): void {
     game.kickLoop(); // the frame loop, if the browser dropped its animation frame across the switch
     revealWhenDrawn(MIN_SHOW_MS);
     const mine = epoch;
-    window.setTimeout(() => { if (mine === epoch && phase === 'ok' && !gl.isContextLost()) screen.hide(); }, 1500); // never leave it up
+    scope.timeout(1500, () => { if (mine === epoch && phase === 'ok' && !gl.isContextLost()) screen.hide(); }); // never leave it up
   };
-  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') hide(); else show(); });
-  window.addEventListener('pagehide', hide);
-  window.addEventListener('blur', () => { if (!hidden) takeStill(); });
-  window.addEventListener('pageshow', (e) => { if (e.persisted) show(); });
+  scope.listen(document, 'visibilitychange', () => { if (document.visibilityState === 'hidden') hide(); else show(); });
+  scope.listen(window, 'pagehide', hide);
+  scope.listen(window, 'blur', () => { if (!hidden) takeStill(); });
+  scope.listen(window, 'pageshow', (e) => { if (e.persisted) show(); });
+  scope.onDispose(() => { epoch++; stopTimer(); });
 
   // a recovery reload: index.html put the screen up before any of this ran; the world is built and drawing now
   // (still in the background: show() drops it on the way back)
@@ -294,10 +297,11 @@ export function installGpuRecovery(host: RecoveryHost): void {
  * a suspended page's tile backing stores and not repaint them. A two-frame opacity change on <html> makes it a
  * compositing layer and back, which repaints its contents; the player sees nothing (0.999).
  */
-function repaint(): void {
+function repaint(scope: Scope): void {
   const s = document.documentElement.style;
   s.opacity = '0.999';
-  requestAnimationFrame(() => { requestAnimationFrame(() => { s.opacity = ''; }); });
+  scope.raf(() => { scope.raf(() => { s.opacity = ''; }); });
+  scope.onDispose(() => { s.opacity = ''; });
 }
 
 /** a still with nothing drawn in it: every sampled pixel near black (a transparent buffer encodes as black) */

@@ -26,7 +26,7 @@ export function installCrashFlag(game: Game, params: URLSearchParams): void {
     case 'boot': boom(); break;
     case 'system': game.onUpdate((_dt, t) => { if (t > AFTER_S) boom(); }, 'crash-test'); break;
     case 'fatal': game.onUpdate((_dt, t) => { if (t > AFTER_S) boom(); }, 'crash-test.core', true); break;
-    case 'window': window.setTimeout(boom, AFTER_S * 1000); break;
+    case 'window': game.levelScope.timeout(AFTER_S * 1000, boom); break;
     default: console.warn(`[crash] unknown mode "${mode}": system | fatal | window | boot`);
   }
 }

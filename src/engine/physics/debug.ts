@@ -9,6 +9,7 @@ import * as THREE from 'three';
 import type { Physics } from './Physics';
 import { tagOf } from './surface';
 import { activeNavmesh } from './navmesh';
+import { app } from '../app/runtime';
 
 const LIFT = 0.02;
 
@@ -36,7 +37,7 @@ export function installPhysicsDebug(physics: Physics, scene: THREE.Scene, params
     geo.computeBoundingSphere();
   };
   rebuild();
-  setInterval(rebuild, 500);
+  (app.levelScope ?? app.engineScope).interval(500, rebuild);
 }
 
 /**
