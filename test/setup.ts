@@ -19,4 +19,8 @@ export class MemoryStorage {
 vi.stubGlobal('localStorage', new MemoryStorage());
 vi.stubGlobal('location', new URL('http://localhost:5173/'));
 
+const { registerAchievements } = await import('#game/achievements');
+const { PINE_FEATS } = await import('#shards/pine-hollow/feats');
+registerAchievements('pine-hollow', PINE_FEATS);
+
 beforeEach(() => { localStorage.clear(); });
