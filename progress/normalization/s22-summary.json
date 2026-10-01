@@ -269,6 +269,50 @@
           ]
         }
       ]
+    },
+    "pine-hollow": {
+      "verdict": "red",
+      "checks": 168,
+      "red": [
+        {
+          "field": "boot.systems.input",
+          "baseline": [
+            "player.input"
+          ],
+          "now": [
+            "engine.input.collect",
+            "engine.lockon.input",
+            "engine.player.input"
+          ]
+        },
+        {
+          "field": "boot.systems.late",
+          "baseline": [],
+          "now": [
+            "engine.hud.pins"
+          ]
+        },
+        {
+          "field": "boot.gpuBytes.buffers",
+          "baseline": 41667444,
+          "now": 41678964
+        },
+        {
+          "field": "boot.gpuBytes.total",
+          "baseline": 609397324,
+          "now": 609408844
+        },
+        {
+          "field": "walk.legs.cabin-porch.end.x",
+          "baseline": -10.388,
+          "now": -10.386
+        },
+        {
+          "field": "walk.legs.cabin-porch.end.z",
+          "baseline": -34.359,
+          "now": -34.36
+        }
+      ]
     }
   }
 }
