@@ -166,6 +166,7 @@ The numbers are E357's. A revision sits right after the decision it replaces.
 | 107 | Build until 10 % of the weekly quota is left; delegate to Codex panes over herdr | 12 §0 | covered |
 | 108 | Gaps: pick, log in 13, keep going | 12 §0; 13 | covered |
 | 109 | Codex CLI (GPT 6.1 Sol) sibling agents via herdr, round-robin with Opus by weekly usage left; visuals → Opus, engine / TS → Sol | 12 §0 | covered |
+| 110 | No worktrees; hot files sequenced; Opus / Sol ~50/50 by usage; visual work always Opus; faster parity (P1) | 12 §0 | covered |
 
 ## 3. The audit (`docs/audits/game-normalization-2026-09-30.md`) and the bugs found later
 

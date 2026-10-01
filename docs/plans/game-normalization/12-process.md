@@ -20,6 +20,10 @@
   `.resources.weekly.remaining`). **Graphics, three.js, GPU and visual work → Opus 5.5; the engine, the refactors and all
   other TypeScript → GPT 6.1 Sol.** Each side stops at 10 % left (107). A Sol pane gets the same brief template (§4)
   and the same caps; its commits carry `E357-Lead: yes`.
+- **Hot files and the split** (110): no worktrees; one builder holds a hot file (`src/main.ts`, `Game.ts`,
+  `bootstrap.ts`, the manifest type, the layer index files) at a time, the others send it their change over herdr. New
+  jobs split ~50/50 between Opus 5.5 subagents and Sol panes by the weekly usage left; graphics, look, feel, GPU and
+  visual work is always Opus.
 - **Z3 builds two shards** (106) by two fresh agents in parallel: shard 5 desert + whip (+ a flying creature, a quest
   step), shard 6 the agent's choice.
 - **A gap the plan doesn't cover** (108): the lead picks the option most faithful to E127 / E357, logs it in 13 with its
