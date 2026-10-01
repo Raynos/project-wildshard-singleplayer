@@ -1,0 +1,173 @@
+{
+  "parent": "875b82f63c293114664b13a5f67777cc566461fc",
+  "final": "126f33478521d4f6e7fa89e3aadb41515eade8fd",
+  "shards": [
+    {
+      "shard": "driftwood-isle",
+      "changedFingerprintFields": [],
+      "bootErrors": [],
+      "programs": [
+        95,
+        95
+      ],
+      "resources": [
+        {
+          "geometries": 436,
+          "textures": 83
+        },
+        {
+          "geometries": 436,
+          "textures": 83
+        }
+      ],
+      "poseCallsTrianglesBoxesExact": true
+    },
+    {
+      "shard": "pine-hollow",
+      "changedFingerprintFields": [],
+      "bootErrors": [],
+      "programs": [
+        109,
+        109
+      ],
+      "resources": [
+        {
+          "geometries": 227,
+          "textures": 404
+        },
+        {
+          "geometries": 227,
+          "textures": 404
+        }
+      ],
+      "poseCallsTrianglesBoxesExact": true
+    },
+    {
+      "shard": "nalati-grasslands",
+      "changedFingerprintFields": [],
+      "bootErrors": [],
+      "programs": [
+        100,
+        100
+      ],
+      "resources": [
+        {
+          "geometries": 120,
+          "textures": 126
+        },
+        {
+          "geometries": 120,
+          "textures": 126
+        }
+      ],
+      "poseCallsTrianglesBoxesExact": true
+    },
+    {
+      "shard": "nine-dragon-stack",
+      "changedFingerprintFields": [],
+      "bootErrors": [],
+      "programs": [
+        67,
+        67
+      ],
+      "resources": [
+        {
+          "geometries": 135,
+          "textures": 55
+        },
+        {
+          "geometries": 135,
+          "textures": 55
+        }
+      ],
+      "poseCallsTrianglesBoxesExact": true
+    }
+  ],
+  "images": [
+    {
+      "shard": "driftwood-isle",
+      "pose": "pier",
+      "ssim": 0.997740927730098,
+      "full": 0.9978017795798546,
+      "masked": 0.027
+    },
+    {
+      "shard": "driftwood-isle",
+      "pose": "beach",
+      "ssim": 0.9910857273912442,
+      "full": 0.9915488212382014,
+      "masked": 0.052
+    },
+    {
+      "shard": "driftwood-isle",
+      "pose": "wreck",
+      "ssim": 0.9999730265620919,
+      "full": 0.9999765098096901,
+      "masked": 0.129
+    },
+    {
+      "shard": "pine-hollow",
+      "pose": "gate",
+      "ssim": 1,
+      "full": 1,
+      "masked": 0.086
+    },
+    {
+      "shard": "pine-hollow",
+      "pose": "cabin",
+      "ssim": 0.9993520082499209,
+      "full": 0.9993929245696835,
+      "masked": 0.063
+    },
+    {
+      "shard": "pine-hollow",
+      "pose": "pond",
+      "ssim": 0.9997277550669281,
+      "full": 0.9997348608532525,
+      "masked": 0.026
+    },
+    {
+      "shard": "nalati-grasslands",
+      "pose": "camp",
+      "ssim": 1,
+      "full": 1,
+      "masked": 0.271
+    },
+    {
+      "shard": "nalati-grasslands",
+      "pose": "bridge",
+      "ssim": 0.9999947092372163,
+      "full": 0.9999947799030378,
+      "masked": 0.013
+    },
+    {
+      "shard": "nalati-grasslands",
+      "pose": "plains",
+      "ssim": 0.9999566642957188,
+      "full": 0.9999615312667827,
+      "masked": 0.112
+    },
+    {
+      "shard": "nine-dragon-stack",
+      "pose": "spawn-rail",
+      "ssim": 1,
+      "full": 1,
+      "masked": 0
+    },
+    {
+      "shard": "nine-dragon-stack",
+      "pose": "well-edge",
+      "ssim": 1,
+      "full": 1,
+      "masked": 0
+    },
+    {
+      "shard": "nine-dragon-stack",
+      "pose": "stair-street",
+      "ssim": 0.9995843882691443,
+      "full": 0.9995843882691443,
+      "masked": 0
+    }
+  ],
+  "method": "Original capture run-1 raw fields, scripts/parity/compare.mjs comparator. Offline JPEG SSIM follows scripts/parity/ssim.mjs 7x7 luma windows, sample covariance, combined creature boxes; no extra browser."
+}
