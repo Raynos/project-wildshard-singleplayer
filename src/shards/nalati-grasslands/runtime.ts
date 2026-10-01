@@ -414,7 +414,6 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext): Pr
     return filtered;
   });
   plugin.debug.expose('nalati', nalati);
-  plugin.debug.expose('nalati.balbals', night.balbals);
   plugin.debug.expose('nalati.ghosts', night.riders);
   plugin.debug.expose('nalati.dressing', dressing);
   return nalati;
