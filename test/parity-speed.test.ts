@@ -110,11 +110,16 @@ describe('P1 capture-frame driver', () => {
   it('draws exactly requested steps, samples each frame, and waits through pause without advancing simulation', async () => {
     const native = new Map<number, FrameRequestCallback>(), messages: (() => void)[] = [];
     const listeners = new Map<string, () => void>(); let nativeId = 0, frameNo = 0;
+    const wallTimers = new Map<number, TimerHandler>(); let timerId = 0;
     const control: { free: boolean; remaining: number; cpu: number; on: boolean; advance: (n: number) => Promise<void>;
       wait?: (n: number) => Promise<void>; observe?: (fn: () => void) => () => void } = {
       free: false, remaining: 0, cpu: 0, on: false, advance: () => Promise.reject(new Error('not ready')),
     };
     const window = { __parity: control, __wildshard: { world: { game: { get frameNo() { return frameNo; } } } },
+      setTimeout: (handler: TimerHandler, _delay?: number, ..._args: unknown[]) => { wallTimers.set(++timerId, handler); return timerId; },
+      setInterval: (handler: TimerHandler, _delay?: number, ..._args: unknown[]) => { wallTimers.set(++timerId, handler); return timerId; },
+      clearTimeout: (id?: number) => { if (id !== undefined) wallTimers.delete(id); },
+      clearInterval: (id?: number) => { if (id !== undefined) wallTimers.delete(id); },
       // oxlint-disable-next-line promise/prefer-await-to-callbacks -- This fixture implements the browser rAF callback API.
       requestAnimationFrame: (callback: FrameRequestCallback) => { native.set(++nativeId, callback); return nativeId; },
       cancelAnimationFrame: (id: number) => { native.delete(id); } };
@@ -131,11 +136,19 @@ describe('P1 capture-frame driver', () => {
       window.requestAnimationFrame(loop);
       if (!paused && (control.free || control.remaining > 0)) { if (!control.free) control.remaining--; frameNo++; timestamps.push(time); }
     };
+    const fired: string[] = [];
+    window.setTimeout(() => { fired.push('boot migrated'); }, 100);
+    expect(wallTimers.size).toBe(1);
     window.requestAnimationFrame(loop); listeners.get('ws:ready')?.();
+    expect(wallTimers.size).toBe(0);
+    window.setTimeout(() => { fired.push('toast expired'); }, 100);
+    const cancelled = window.setTimeout(() => { fired.push('cancelled'); }, 100); window.clearInterval(cancelled);
+    let intervalTicks = 0; const repeating = window.setInterval(() => { intervalTicks++; }, 60);
     let samples = 0; control.observe?.(() => { samples++; });
     const advancing = control.advance(4);
     while (messages.length > 0) messages.shift()?.(); await advancing;
     expect(frameNo).toBe(4); expect(samples).toBe(4); expect(timestamps[3]).toBeCloseTo(4 * 1000 / 30);
+    expect(fired).toEqual(['boot migrated', 'toast expired']); expect(intervalTicks).toBe(2); window.clearTimeout(repeating);
     paused = true; control.free = true;
     if (!control.wait) throw new Error('wait not installed');
     const waiting = control.wait(60); for (let n = 0; n < 60; n++) messages.shift()?.(); await waiting; control.free = false; while (messages.length > 0) messages.shift()?.();

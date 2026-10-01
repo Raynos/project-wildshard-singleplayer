@@ -22,8 +22,9 @@ export async function poses(page,opts) {
       const g=window.__wildshard.world.game,iv=/** @type {number[]} */ ([]),cpu=/** @type {number[]} */ ([]),calls=/** @type {number[]} */ ([]),tris=/** @type {number[]} */ ([]);
       const instrument=window.__parity; instrument.cpu=0;instrument.on=true;
       const drawnNo=()=>Number(Reflect.get(g,'frameNo'));
-      let last=performance.now(),lastNo=drawnNo(),first=true;
-      const sample=()=> {const now=performance.now();if(drawnNo()!==lastNo){if(!first){iv.push(now-last);cpu.push(instrument.cpu);}first=false;instrument.cpu=0;last=now;lastNo=drawnNo();calls.push(g.lastFrame.calls);tris.push(g.lastFrame.triangles);}};
+      const wallNow=instrument.now??performance.now.bind(performance);
+      let last=wallNow(),lastNo=drawnNo(),first=true;
+      const sample=()=> {const now=wallNow();if(drawnNo()!==lastNo){if(!first){iv.push(now-last);cpu.push(instrument.cpu);}first=false;instrument.cpu=0;last=now;lastNo=drawnNo();calls.push(g.lastFrame.calls);tris.push(g.lastFrame.triangles);}};
       if(instrument.observe){const stop=instrument.observe(sample);try{await instrument.advance(150);}finally{stop();}}
       else {const end=drawnNo()+150;instrument.remaining=150;await new Promise((resolve)=>{const tick=()=>{sample();if(drawnNo()>=end)resolve(undefined);else instrument.rawRAF(tick);};instrument.rawRAF(tick);});}
       instrument.on=false;
