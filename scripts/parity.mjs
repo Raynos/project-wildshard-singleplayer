@@ -143,7 +143,12 @@ async function main(opts) {
     for(let i=0;i<8&&parent>1;i++){try{const cmd=execFileSync('ps',['-o','command=','-p',String(parent)],{encoding:'utf8'});if(cmd.includes('browser-lane.sh _slot')){inLane=true;break;}parent=Number(execFileSync('ps',['-o','ppid=','-p',String(parent)],{encoding:'utf8'}).trim());}catch{break;}}
     if(!inLane){const run=spawnSync(join(ROOT,'scripts/browser-lane.sh'),['--max',opts.prove?'240':'90',process.execPath,import.meta.filename,...process.argv.slice(2)],{stdio:'inherit',env:{...process.env,PARITY_IN_LANE:'1'}});return run.status??3;}
   }
-  const sha=opts.export??string(object(await (await fetch(`${opts.url}/version.json`)).json()).sha);
+  // --url: the build's version.json carries `build` = `<sha7>-<time>` (no full sha): the job's SHA env wins, else the sha7
+  // is resolved in this checkout (E357 F3.2: every runner record exited 3 here).
+  const versionSha=async()=>{const v=object(await (await fetch(`${opts.url}/version.json`)).json());const full=string(v.sha);if(full)return full;
+    if(process.env.SHA&&/^[0-9a-f]{40}$/.test(process.env.SHA))return process.env.SHA;
+    const short=/^([0-9a-f]{7,})-/.exec(string(v.build))?.[1];if(!short)return '';try{return execFileSync('git',['rev-parse',short],{cwd:ROOT,encoding:'utf8'}).trim();}catch{return '';}};
+  const sha=opts.export??await versionSha();
   if(!sha)throw new Error('infrastructure: version.json has no sha');
   const out=resolve(opts.out??join(ROOT,'progress/parity',sha.slice(0,7)));mkdirSync(out,{recursive:true});
   const exported=opts.export?exportTree(ROOT,sha):null,root=exported?.tree??ROOT;
