@@ -7,8 +7,7 @@ import { heightAt, POND, waterLevel } from '#engine/world/Heightfield';
 import { attachFogUniforms } from '#engine/world/Atmosphere';
 import type { Sky } from '#engine/world/Sky';
 import type { Forest } from '#engine/world/forest/Forest';
-import { getActiveChunk } from '#game/shard/registry';
-import { activeGrade } from '#engine/world/lookFlags';
+import { app, activeLevel } from '#engine';
 
 /**
  * Atmosphere particles: sun-lit dust motes, drifting ground mist and falling pine needles.
@@ -56,7 +55,7 @@ export class Particles {
   private uMote = { value: 1.0 };
   private uMist = { value: 1.0 };
   /** the look loop's daytime mist (ChunkLook.dayMist, PH-L1; 1 without a look layer): × the mist while the sun stands high */
-  private dayMist = activeGrade(getActiveChunk()).look?.dayMist ?? 1;
+  private dayMist = (() => { const level = activeLevel(); return app.gradeFor({ grade: level.grade, ...(level.lookLayer === undefined ? {} : { look: level.lookLayer }) }).look?.dayMist ?? 1; })();
   private needleOrigin!: THREE.InstancedBufferAttribute;
   private needleInfo!: THREE.InstancedBufferAttribute;
   private lastNeedlePos = new THREE.Vector3(1e9, 0, 0);

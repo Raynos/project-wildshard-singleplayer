@@ -17,9 +17,7 @@ import { installAtmosphere } from '../world/Atmosphere';
 import { setAnisotropy } from './assets';
 import { Sky } from '../world/Sky';
 import { GradeEffect } from './Grade';
-import { activeGrade } from '../world/lookFlags';
 import { VolumetricsEffect, makeNoiseTexture } from './Volumetrics';
-import { getActiveChunk } from '#game/shard/registry';
 import { TIER, TIER_CONFIG, frameCapFps, type Tier } from './tier';
 import { chunkShadowCasters } from '../world/shadowChunks';
 import { PERFLOAD, snapshotPrograms, newProgramsSince, describeProgram, perfLog, dumpPrograms, parallelCompile } from '../boot/perflog';
@@ -396,8 +394,8 @@ export class Game {
 
   buildComposer(): void {
     if (this.lookStrategy?.mode === 'replace') { this._composer = this.replaceComposer(this.lookStrategy); return; } // the level look's whole chain
-    const { atmosphere: A } = getActiveChunk();
-    const { grade: G, look } = activeGrade(getActiveChunk()); // + the look loop's layer (PH-L1 / L4)
+    const { atmosphere: A } = this.level;
+    const { grade: G, look } = this.app.gradeFor({ grade: this.level.grade, ...(this.level.lookLayer === undefined ? {} : { look: this.level.lookLayer }) }); // + the look loop's layer (PH-L1 / L4)
     const composer = new EffectComposer(this.renderer, { frameBufferType: THREE.HalfFloatType, multisampling: 0 });
     // the scene pass keeps the world's depth for the depth readers below (AO, the volumetric march, the god rays' sun mask):
     // the viewmodels' depth clear used to leave them the weapon alone (worldDepth.ts)

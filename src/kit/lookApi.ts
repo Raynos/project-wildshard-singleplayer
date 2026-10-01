@@ -5,4 +5,4 @@ import type * as ParticleModule from './looks/particles';
 export function loadParticles(): Promise<typeof ParticleModule> { return import('./looks/particles'); }
 
 /** Meadow placement and trampling are runtime services. */
-export async function loadGrassField(): Promise<typeof TrampleModule & Pick<typeof GrassField, 'grassBaseHeightAt'>> { const a = await import('./looks/trample'); const b = await import('./looks/grassField'); return { ...a, grassBaseHeightAt: b.grassBaseHeightAt }; }
+export async function loadGrassField(): Promise<typeof TrampleModule & Pick<typeof GrassField, 'grassBaseHeightAt' | 'configureGrassField'>> { const a = await import('./looks/trample'); const b = await import('./looks/grassField'); return { ...a, grassBaseHeightAt: b.grassBaseHeightAt, configureGrassField: b.configureGrassField }; }

@@ -17,6 +17,7 @@ export interface ShardPlayHost {
   bodyShadow?: BodyShadow | null;
 }
 export interface ShardPlayHooks {
+  spawnFloor?: (x: number, z: number) => number | undefined;
   wearFinish?: (id: string) => void;
   updatePickups?: (dt: number, t: number) => void;
   disposeRifleDrop?: () => void;

@@ -132,7 +132,7 @@ export async function installAdventure<A extends AdvAnimal>(ctx: ShardContext, s
   };
 
   const kit = new Interactables({ scene: w.game.scene, sky: w.sky, player: w.player, flags, place, floorAt, prompts: w.prompts }).build(DRIFTWOOD_INTERACT);
-  ctx.scope.onDispose(() => { kit.dispose(); });
+  ctx.scope.onDispose(() => { kit.dispose({ batches: false }); });
   kit.onEvent = (e) => onInteract(e);
   w.game.onUpdate((dt, t) => kit.update(dt, t), 'shard.driftwood.adventure');
 

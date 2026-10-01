@@ -18,7 +18,6 @@ import { setPoseProvider } from '#engine/ui/ReloadPrompt';
 
 import { hasPond, heightAt, normalAt, TRAILS } from '#engine/world/Heightfield';
 import { Boundary } from '#engine/world/Boundary';
-import { driftwoodWorld } from '#shards/driftwood-isle/world/build';
 import { Hands } from '#engine/player/Hands';
 import { Sword } from '#kit/weapons/melee/SweptMelee';
 import { CameraFX } from '#engine/player/CameraFX';
@@ -241,7 +240,7 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   boot.handoff = consumeTravelHandoff(manifest.slug);
   if (boot.handoff !== null) bootArrival = { slug: boot.handoff.to, mode: boot.handoff.mode };
   setTexturePolicy(manifest.tiers?.[TIER]?.textures);
-  const loading = new Loading();
+  const loading = new Loading({ id: manifest.slug, name: manifest.name, trace: manifest.boot?.phone?.trace === true });
   app.setState('loading');
   if (manifest.slug !== slug) throw new Error(`buildShard: ${slug} is not the active chunk`);
   // The boot plan: DOWNLOAD = bytes read / bytes declared, SETUP = weighted steps (src/engine/boot/plan.ts).
@@ -387,10 +386,6 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   // Species and their looks must be installed by plugin.kit before animals build (E357 R1).
   yield 'loadout';
 
-  // Driftwood's world, built by its plugin's world hook (src/shards/driftwood-isle/world/build.ts, E357 S4.1); its readers
-  // below move into the plugin at S4.2–S4.4 (nothing built off Driftwood)
-  const dressing = { ...edgeDressing, ...driftwoodWorld(boot.runtime) };
-  const { ocean, pier, jetties, boat, cove, hut, lookout, wreck, shrine, bushes, gulls, bridge, bridgeDeck } = dressing;
   const animals = await step('animals', async (p) => {
     const a = await new AnimalManager(game.scene, sky, forest).buildAsync(macrotask); // a task per herd, not one long one
     p.detail(`${a.animals.length} animals`);
@@ -479,7 +474,7 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   });
   const { audio, music } = prepareAudio();
   const arrivalSpawn = boot.handoff?.arrive ?? chunk.spawn;
-  const toSpawn = () => { player.spawn(arrivalSpawn.x, arrivalSpawn.z, arrivalSpawn.yaw, arrivalSpawn.y); if (pier && !boot.handoff?.arrive) { const y = pier.floorHeightAt(player.position.x, player.position.z); if (y !== undefined) player.position.y = y; } };
+  const toSpawn = () => { player.spawn(arrivalSpawn.x, arrivalSpawn.z, arrivalSpawn.yaw, arrivalSpawn.y); if (!boot.handoff?.arrive) { const y = boot.runtime.hooks.spawnFloor?.(player.position.x, player.position.z); if (y !== undefined) player.position.y = y; } };
   const respawn = () => { toSpawn(); music.sting('death'); };
   installBounds(app, game.levelScope, game.level.bounds, { player, toSpawn,
     floorAt: (x, z) => registry.floorAt(x, z), suspended: () => world.freeCamera || world.tour.active || away() });
@@ -783,7 +778,7 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
     const t1 = performance.now();
     recordBootCheckpoint('explore:imported');
     explore ??= new X({ world, onExit: exitExplore, onPractice: () => { hud.enterArenaNow(); }, onPlayground: (id) => { void enterPlayground(id); }, openFeedback: () => { void noteSheet(); }, hide: [boundary.group], creatures: animals.animals,
-      overhead: [...boot.runtime.overhead, gulls?.group, dressing.cover?.group].filter((g) => g !== undefined) });
+      overhead: boot.runtime.overhead });
     const t2 = performance.now();
     recordBootCheckpoint('explore:constructed');
     explore.open(mode, opts);
@@ -1011,7 +1006,7 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
     if (chunk.explore !== undefined) void import('#engine/explore/Explore');
     game.primeFrame();
   }, TITLE_IDLE_MS);
-  const handle = { ...world, boundary, water, streams: dressing.streams, ocean, pier, jetties, boat, hut, lookout, wreck, shrine, bushes, gulls, bridge, bridgeDeck, cove, hands, props, animals, interactables, crossbow, hud, audio, music, lockSys, lockState, weapons, arena, playground: (): Playground | null => playground, ...boot.runtime.objects };
+  const handle = { ...world, boundary, water, streams: edgeDressing.streams, hands, props, animals, interactables, crossbow, hud, audio, music, lockSys, lockState, weapons, arena, playground: (): Playground | null => playground, ...boot.runtime.objects };
   app.audio = audio;
   game.retainKitResources();
   game.captureLevelResources();

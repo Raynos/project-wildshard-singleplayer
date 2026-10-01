@@ -327,9 +327,10 @@ export class Interactables {
     for (const r of [chest, key, ...Object.values(pickups), door, lever, plate, barrel, beacon, bench, altar]) r.place();
   }
 
-  dispose(): void {
+  /** The level scene owner may already own the batch GPU resources. */
+  dispose(opts: { batches?: boolean } = {}): void {
     this.unsub?.();
-    for (const bm of Object.values(this.batches)) { this.host.scene.remove(bm); bm.dispose(); }
+    for (const bm of Object.values(this.batches)) { this.host.scene.remove(bm); if (opts.batches !== false) bm.dispose(); }
     for (const lv of this.lives) { if (lv.prompt) { const i = this.host.prompts.indexOf(lv.prompt); if (i !== -1) this.host.prompts.splice(i, 1); } if (lv.collider) Object.assign(lv.collider, OFF); if (lv.body) { activeBodies()?.remove(lv.body); lv.body = null; } }
   }
 

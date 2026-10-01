@@ -28,7 +28,7 @@ import { ErrorReporter, safeUrl, sendReport as send, type ReportOutcome } from '
 import { RELOAD_PARAM } from '../core/GpuRecovery';
 import { installLifeTrace } from '../core/lifeTrace';
 import { currentPose } from './ReloadPrompt';
-import { getActiveChunk } from '#game/shard/registry';
+import { activeLevel } from '../level/selection';
 import { TIER } from '../core/tier';
 import { markUnload } from '../boot/lastEnd';
 import { captureBrowserError } from '../telemetry/browserErrors';
@@ -212,7 +212,7 @@ function showChip(sent: Promise<ReportOutcome>): void {
 function report(system: string, error: unknown, flags: { fatal?: boolean; disabled?: boolean }): Promise<ReportOutcome> {
   if (system !== 'lifecycle') {
     let shard = '';
-    try { shard = getActiveChunk().slug; } catch { /* the registry may not be ready during early boot */ }
+    try { shard = activeLevel().id; } catch { /* the registry may not be ready during early boot */ }
     captureBrowserError(error, {
       system,
       build: buildId(),
@@ -243,7 +243,7 @@ export function showError(message: string, stack = ''): void {
 
 function context(): Record<string, string | number | boolean | number[] | null> {
   const pose = currentPose();
-  let shard = ''; try { shard = getActiveChunk().slug; } catch { /* before the registry */ }
+  let shard = ''; try { shard = activeLevel().id; } catch { /* before the registry */ }
   const touch = (typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches) || new URLSearchParams(location.search).has('touch');
   return {
     build: buildId(), shard, tier: TIER, touch, url: safeUrl(location.href),

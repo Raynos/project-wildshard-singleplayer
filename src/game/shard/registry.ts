@@ -3,6 +3,8 @@ import type { ShardManifest } from './manifest';
 import { SHARDS } from './shards.generated';
 import { _applyChunkConstants } from '#engine/core/config';
 import { onScopeDispose } from '#engine/app/legacyCapture';
+import { configureLevel } from '#engine';
+import { toLevelSpec } from './spec';
 
 export { SHARDS } from './shards.generated';
 export { SHARD_API } from './api';
@@ -19,7 +21,7 @@ export function shardSlugFromUrl(search?: string): string {
   return named ?? DEFAULT_SHARD;
 }
 
-export function findShard(slug: string): ShardManifest | undefined { return SHARDS.find((manifest) => manifest.slug === slug); }
+export function findShard(slug: string): ShardManifest | undefined { return new Map<string, ShardManifest>(SHARDS.map((manifest) => [manifest.slug, manifest])).get(slug); }
 
 function initialShard(): ShardManifest {
   const manifest = findShard(shardSlugFromUrl()) ?? findShard(DEFAULT_SHARD);
@@ -30,6 +32,7 @@ function initialShard(): ShardManifest {
 /** The game layer owns the running manifest; engine compatibility readers mirror it until S4.4. */
 export const game = { shard: initialShard() };
 _applyChunkConstants(game.shard);
+configureLevel(toLevelSpec(game.shard));
 
 const listeners: ((def: ShardManifest) => void)[] = [];
 
@@ -44,6 +47,7 @@ export function setActiveChunk(slug: string): ShardManifest {
   if (next !== game.shard) {
     game.shard = next;
     _applyChunkConstants(game.shard);
+    configureLevel(toLevelSpec(game.shard));
     for (const fn of listeners) fn(game.shard);
   }
   return game.shard;

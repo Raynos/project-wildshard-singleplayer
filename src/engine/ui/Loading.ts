@@ -1,6 +1,5 @@
 import { engineString } from '#engine/strings';
 import { saveStorage } from '#engine/saves/slots';
-import { getActiveChunk } from '#game/shard/registry';
 import { formatMB, type ProgressView } from '../boot/plan';
 import { TIER } from '../core/tier';
 import { PERFLOAD, barTrace } from '../boot/perflog';
@@ -44,9 +43,8 @@ export class Loading {
   private textureBytes = 0;
   private readonly attempt: number;
 
-  constructor() {
-    const chunk = getActiveChunk();
-    startBoot({ id: chunk.slug, name: chunk.name }, TIER === 'phone' && chunk.boot?.phone?.trace === true);
+  constructor(chunk: { id: string; name: string; trace?: boolean }) {
+    startBoot({ id: chunk.id, name: chunk.name }, TIER === 'phone' && chunk.trace === true);
     const nav: { hardwareConcurrency?: number | undefined } = navigator; // Safari < 15.4 has no hardwareConcurrency
     // index.html paints this panel from its first bytes (src/engine/boot/shell.ts): adopt it; a page without it gets a fresh one
     const shell = document.querySelector<HTMLElement>('.ws-load[data-shell]');
@@ -59,18 +57,18 @@ export class Loading {
     }
     const el = (key: ElKey): HTMLElement => { const e = this.root.querySelector<HTMLElement>(`[data-el="${key}"]`); if (!e) throw new Error(`Loading: no [data-el="${key}"]`); return e; };
     this.els = { slug: el('slug'), tier: el('tier'), clock: el('clock'), dlFact: el('dlFact'), dlPct: el('dlPct'), dlBar: el('dlBar'), suFact: el('suFact'), suPct: el('suPct'), suBar: el('suBar'), rows: el('rows'), foot: el('foot'), bar: el('bar'), line: el('line'), diagnostics: el('diagnostics') };
-    this.els.slug.textContent = isDev() ? chunk.slug : chunk.name;
+    this.els.slug.textContent = isDev() ? chunk.id : chunk.name;
     this.els.tier.textContent = engineString('s_783b614ae363', [TIER, Math.round(innerWidth * devicePixelRatio), Math.round(innerHeight * devicePixelRatio), nav.hardwareConcurrency ?? engineString('s_8a8de823d5ed'), window.__ws_sw ? engineString('s_5c75b0e90774') : '']);
     const key = 'loadAttempt';
     let attempt = 1;
     try {
       const previous: unknown = JSON.parse(savedStorage.getItem(key) ?? 'null');
-      if (typeof previous === 'object' && previous !== null && Reflect.get(previous, 'slug') === chunk.slug) {
+      if (typeof previous === 'object' && previous !== null && Reflect.get(previous, 'slug') === chunk.id) {
         const when: unknown = Reflect.get(previous, 'at');
         const count: unknown = Reflect.get(previous, 'count');
         if (typeof when === 'number' && Date.now() - when < 120_000 && typeof count === 'number') attempt = count + 1;
       }
-      savedStorage.setItem(key, JSON.stringify({ slug: chunk.slug, at: Date.now(), count: attempt }));
+      savedStorage.setItem(key, JSON.stringify({ slug: chunk.id, at: Date.now(), count: attempt }));
     } catch { /* a storage-denied PWA still gets the loader */ }
     this.attempt = attempt;
     this.rowsEl = this.els.rows;

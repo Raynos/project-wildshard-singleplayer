@@ -16,7 +16,7 @@ import * as THREE from 'three';
 import { PUBLIC_BYTES } from './bytes.generated';
 import { fetchImage, tierUrl } from './bytes';
 import { ktx2Texture } from '../core/ktx2';
-import { getActiveChunk } from '#game/shard/registry';
+import { activeLevel } from '../level/selection';
 
 const params = typeof location !== 'undefined' ? new URLSearchParams(location.search) : new URLSearchParams();
 export const BAKE_EXPORT = params.has('bakeexport');
@@ -45,9 +45,9 @@ function urlFor(slug: string, name: string): string | null {
 /** Fetch + decode every baked texture of the active chunk (one round of parallel fetches, ~ms from the SW cache). */
 export async function preloadBakedTextures(): Promise<number> {
   if (NOBAKE) return 0;
-  const level = getActiveChunk();
-  const slug = level.slug;
-  const urls = bakedTextureUrls(slug, level.boot?.bakedUnread);
+  const level = activeLevel();
+  const slug = level.id;
+  const urls = bakedTextureUrls(slug, level.boot.bakedUnread);
   await Promise.all(urls.map(async (u) => {
     // E157: the KTX2 stand-in when there is one (Y-flipped at encode, like fetchImage's bitmap)
     try { loaded.set(u, (await ktx2Texture(tierUrl(u))) ?? await fetchImage(u, Infinity, true)); }
@@ -61,7 +61,7 @@ export async function preloadBakedTextures(): Promise<number> {
  * `make()`'s result. `lossless` picks PNG over JPEG at export (normal maps, masks).
  */
 export function bakedTexture(name: string, make: () => THREE.Texture, opts: { lossless?: boolean } = {}): THREE.Texture {
-  const slug = getActiveChunk().slug;
+  const slug = activeLevel().id;
   const url = NOBAKE ? null : urlFor(slug, name);
   const image = url ? loaded.get(url) : undefined;
   if (image instanceof THREE.CompressedTexture) { // mips come with the file; callers set wrap / filters / colorSpace as for an image
