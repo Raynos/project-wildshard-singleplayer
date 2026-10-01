@@ -23,7 +23,7 @@ existing controls).
 ## The rules that make this run count
 - **Zero engine edits.** Change nothing under `src/engine`, `src/game`, `src/kit`, `lint`, `.github` or `scripts`, and no
   generated file, except your own `src/shards/<slug>/ktx2.generated.ts` and `lint/shard-words.generated.json`'s entry
-  for your slug (write it with `pnpm gen --shard=<slug>`). Your commits carry **no** `E357-Lead` trailer; the
+  for your slug (write it with `pnpm gen --shard=<slug>`; if that flag doesn't exist yet, write an API gap and update only your slug's entry by hand). Your commits carry **no** `E357-Lead` trailer; the
   commit-msg lock check holds you to your folder, your tests, your art and asset folders and `docs/tasks/asks/**`.
 - **An API gap is not a hack.** If you need something the public API doesn't offer or the docs don't explain, stop
   and write it under `## API gaps (round 2)` in your ask file: what you needed, where you looked, what you'd want.
