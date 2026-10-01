@@ -76,7 +76,7 @@ const STRIDE = 8; // per corner: height, tone, flower drift, drift species, grou
 let lattice = new Float32Array(LN * LN * STRIDE).fill(Number.NaN);
 // read lazily: a top-level getActiveChunk() runs at import time and breaks on a barrel's import order (E357)
 let nalatiCache: boolean | null = null;
-const isNalati = (): boolean => (nalatiCache ??= getActiveChunk().slug === 'nalati-grasslands');
+const onSteppe = (): boolean => (nalatiCache ??= getActiveChunk().slug === 'nalati-grasslands');
 onActiveChunkChange((def) => {
   nalatiCache = def.slug === 'nalati-grasslands';
   noise = new Noise2D(SEED + 911); noise2 = new Noise2D(SEED + 912);
@@ -99,11 +99,11 @@ function evalField(x: number, z: number, out: Float32Array, o: number): void {
   out[o + 4] = rgb[0]; out[o + 5] = rgb[1]; out[o + 6] = rgb[2];
   if (!inChunk(x, z, 0.5)) { out[o] = 0; out[o + 1] = 0; out[o + 2] = 0; out[o + 3] = 0; out[o + 7] = 0; return; }
   const n1 = noise.fbm(x * 0.021, z * 0.021, 3);     // meadow undulation
-  const tone0 = isNalati() ? smoothstep(2, 26, y) : 0.35;
+  const tone0 = onSteppe() ? smoothstep(2, 26, y) : 0.35;
   let tone = Math.min(1, Math.max(0, tone0 + 0.22 * noise2.fbm(x * 0.013, z * 0.013, 2)));
   // base meadow
-  let h = (isNalati() ? lerp(MEADOW_VALLEY, MEADOW_PLATEAU, tone0) : 0.55) * (1 + 0.16 * n1);
-  if (isNalati()) {
+  let h = (onSteppe() ? lerp(MEADOW_VALLEY, MEADOW_PLATEAU, tone0) : 0.55) * (1 + 0.16 * n1);
+  if (onSteppe()) {
     // plateau folds: elongated E–W bands of feather grass (x stretched 2.4×)
     if (y > 22) {
       const band = smoothstep(0.18, 0.42, noise.fbm(x * 0.0085 + 17.3, z * 0.021 - 4.1, 3));
@@ -164,7 +164,7 @@ function sample(x: number, z: number, ch: number): number {
 export function trailGrass(h: number, td: number): number {
   // Nalati's roads are painted dirt ~3.6–4.4 m either side of the centreline (the def's groundColor)
   // a lush verge right up to the dirt: a short fringe for half a metre, the full meadow a metre and a half out
-  const bed = isNalati() ? 3.9 : 1.6;
+  const bed = onSteppe() ? 3.9 : 1.6;
   if (td >= bed + 1.8) return h;
   return td < bed ? 0 : lerp(Math.min(h, 0.22), h, smoothstep(bed + 0.3, bed + 1.8, td)) * smoothstep(bed, bed + 0.35, td);
 }
@@ -178,7 +178,7 @@ export function grassBaseHeightAt(x: number, z: number, td = trailDistance(x, z)
   if (!inChunk(x, z, 0.5)) return 0;
   if (heightAt(x, z) < waterLevel() + 0.15) return 0;
   const h = trailGrass(sample(x, z, 0), td);
-  if (!isNalati() || h <= 0) return h;
+  if (!onSteppe() || h <= 0) return h;
   // the yurt floors stay bare
   for (const y of NALATI_YURTS) { const dx = x - y.x, dz = z - y.z; if (dx * dx + dz * dz < (y.r + 0.3) ** 2) return 0; }
   // `exact`: also read the painted ground at the point (a road bed / gravel bar edge the 4 m lattice blurs)
