@@ -11,8 +11,7 @@
     "Driftwood Isle",
     "driftwood-isle",
     "far-reach",
-    "farReach.creature.skyManta",
-    "kit.creature.boar",
+    "far.creature.driftRay",
     "Nalati Grasslands",
     "nalati-grasslands",
     "Nine Dragon Stack",
@@ -36,7 +35,7 @@
     "sunscar.creature.duneRay",
     "weapon.bow",
     "weapon.crossbow",
-    "weapon.far-reach-fan",
+    "weapon.far-fan",
     "weapon.jian",
     "weapon.lever",
     "weapon.longbow",
@@ -87,14 +86,11 @@
     "far-reach": {
       "name": "Sky Reach",
       "ids": [
-        "farReach.creature.skyManta",
-        "kit.creature.boar",
-        "weapon.far-reach-fan"
+        "far.creature.driftRay",
+        "weapon.far-fan"
       ],
       "settings": [],
-      "assets": [
-        "public/assets/far-reach/**"
-      ]
+      "assets": []
     },
     "nalati-grasslands": {
       "name": "Nalati Grasslands",

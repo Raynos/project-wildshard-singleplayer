@@ -1,74 +1,59 @@
 # Sky Reach (`far-reach`)
 
-Shard 6 (E364, concept **B**, Jake's pick 2026-10-01): grass islands adrift on a sea of cloud at golden hour. Rope
-bridges join some islands; glowing **hover bridges** join others, and carry you only while you ride the hoverboard.
-On foot you fall straight through them into the clouds. The windmill isle's bridge has fallen: raising it is the
-quest. A drift ray (a flying manta) hunts from the sky. Your weapon is a war fan. Mockup:
-`art/far-reach/round-1-proposals/B-sky-reach.jpg`. Built from `src/shards/_template/`, `docs/SHARDS.md` and
-`docs/ENGINE.md` only, with zero engine edits.
+Floating islands over a sea of cloud at golden hour (Jake's pick **B · Sky Reach**, ask E364). Built in E357 Z3 round 2
+from `docs/SHARDS.md`, the template and `docs/ENGINE.md` alone, with zero engine edits. `experimental`, deck 6.
 
 ## What it declares
 
 | Field | Value |
 |---|---|
 | `status`, `order` | `experimental`, 6 |
-| `style`, `kitLook` | `toon`, `toon` (the look is its own `LookStrategy`, below) |
-| `uses` | `spawns`, `quests`, `hover`, `explore` |
-| `ground` | `buildTerrain` over five round islands (`layout.ts` `skyLandscape`); the void between them drops to −40 m under the cloud sea (y 6); `bounds.floor` 2 respawns a fall |
-| `loadout` | the war fan (held) and the kit hoverboard |
-| `species` | the kit boar (a `cliff` variant, two on Fern rock) and `skyManta` (the drift ray) |
-| `bag` | MAP · GEAR · NOTES |
-| `tiers` | no god rays, no AO; no shard knobs |
-| `assets` | none: primitive / procedural geometry, SVG cards, kit sounds |
-| saves | one shard key, `far-reach.bridge` (the bridge is up and its reward paid) |
+| `style`, `kitLook` | `skyReach` (its own word), `toon` |
+| `ground` | `structures: true`: every island and bridge is a registry piece; the terrain is a flat datum at y −8, hidden under the cloud sea (y 0) |
+| `bounds`, `world` | ±140 m, soft respawn below y 6 (the player); creatures die below y −40 (`world.killY`, cause `fall`) |
+| `horizon`, `boundary` | `{ rings: [], cloudSea: false }`, `{ visible: false }`: the look draws its own sky and cloud sea |
+| `uses` | `quests`, `hover`, `coins` |
+| `loadout` | the war fan (held, custom) and the kit hoverboard |
+| `species` | `driftRay` (its own row, look and brain; a flyer over the void) |
+| `tiers` | `far.farIsles` (far scenery islands: phone 8, desktop 12); no god rays, no AO |
+| saves | `far-reach.rewarded` (shard) and the quest flags (`Flags`) |
+| assets | none: every mesh is code, the card is an inline SVG |
 
-## The islands and bridges
+## The world (`layout.ts`, `world/`)
 
-| Island | Reached by |
-|---|---|
-| Landing isle (spawn) | — |
-| Fern rock (east) | rope bridge from the landing isle |
-| Windmill isle (north) | the fallen bridge, once the winch raises it (the quest) |
-| Ray roost (west) | **hover bridge only**, from the landing isle |
-| Lantern rock (south-east) | **hover bridge only**, from Fern rock |
+Five islands (Sunrest, the spawn; Windmill isle; Fernhold; the Ray roost; Tern rock), each a flat grass top on a jittered
+polygon (a hull collider) over a faceted rock cone with stalactites, merged into one vertex-coloured mesh.
 
-- **Rope bridge:** wooden planks, rope rails and posts; a deck collider plus two rail colliders, always on.
-- **Hover bridge:** gapped glowing glass tiles, gold edge bars and a floating crystal on a stone post at each corner,
-  no ropes, and a HUD pin "HOVER BRIDGE · BOARD ONLY" at its start. Its deck collider is a registry piece whose
-  `active()` is "the player is on the hoverboard", so the hover spring rides it and feet fall through it. The glass
-  brightens while you ride and dims to a ghost on foot.
-- **Fallen bridge:** a rope bridge hanging off the landing isle's north rim. The winch beside it swings it up over 4 s;
-  its colliders turn on when it is up.
+- **Rope bridge** (Sunrest → Fernhold): planks, posts, sagging rope rails; a deck and two rail colliders.
+- **Hover bridges** (Sunrest → roost, Sunrest → Tern rock): glass decks with glowing rungs and crystal pylons. Jake's
+  rule: they carry only a hoverboard rider. The deck piece's `active()` is `app.player?.mode === 'board'`; on foot it
+  doesn't collide and you fall through. Each deck starts clear of the island rim and its lip (the first run's board), so
+  on foot you drop straight down rather than sliding down a cliff, into the soft respawn.
+- **The fallen bridge** (Sunrest → Windmill isle) hangs from Sunrest's north rim until the winch raises it; it collides
+  only once it is up.
 
 ## Its custom code, and why
 
 | File | What |
 |---|---|
-| `plugin.ts` | the three hooks; the GUST targets; the bridge raise, hover-glow and edge systems; spawns the ray and the boars |
-| `weapons/WarFan.ts` | rung 3 (custom, `extends Weapon` from `blocks.viewmodel` + `blocks.melee`): SWING is a 4 m slash; GUST throws every foe in a 10 m, ±35° cone back (damage 6 + a push the plugin integrates). Anything pushed over the void falls into the clouds and dies |
-| `species/manta.ts` | the drift ray: a `SpeciesRow`, a custom-rig `SpeciesLook` (body · head · wings · tail, skinned, wing flap and bank) and `MantaBrain` (`circle → dive → rise`). The dive is a `StrikeSpec` lane run by a `StrikeRunner`: a 1.1 s telegraph (it pulls up, wings beating), a straight dive down to the player's chest, then it rises back to 36 m, out of reach. A GUST in its dive breaks it off |
-| `world/build.ts` | the island undersides, rope / hover / fallen bridges, the winch, the windmill |
-| `look/render.ts` | an `extend` look: a gradient sky dome with a low gold sun, a procedural cloud sea to the horizon, warm linear fog, and a terrain painter that draws only the island tops (flat-shaded, vertex-coloured) |
-| `world/climate.ts` | a `DayCycle` held at golden hour (17.4 h; a day lasts a week) |
-| `quest/install.ts` | the one-step quest, its 10-coin reward and its save |
-| `audio/cues.ts` | the fan's cues on kit sword voices |
+| `plugin.ts` | the three hooks; the fan's input context (SWING relabel on `r0`, GUST on `verb.1` and G); the hover glow; spawns the ray |
+| `weapons/WarFan.ts`, `fanModel.ts` | the war fan (rung 3, `extends Weapon` from `blocks.viewmodel` + `blocks.melee`): SWING arc, held heavy cut, GUST cone that `impulse`s creatures and breaks a ray's dive |
+| `species/driftRay.ts` | the drift ray: `flight: { above: 'world' }`, a `CreatureBrain` (circle → telegraphed hover → sphere dive with `track: 'lead'` → rise), skinned wings |
+| `quest/install.ts` | *The fallen bridge*: raise it at the winch, cross to the windmill; 10 coins once |
+| `world/build.ts`, `islands.ts`, `bridges.ts`, `facets.ts` | the islands, bridges, windmill and winch as registry pieces |
+| `look/render.ts` | an `extend` look: a golden-hour gradient dome with a sun (`backdrop.clouds`), an fbm cloud sea that follows the camera, a warm linear haze through `patchShader` |
+| `audio/cues.ts` | kit voices for every fan beat |
 
 ## Budgets
 
-The template's: phone 30 fps (9.6 ms CPU), desktop 60 fps (4.8 ms). No `ceilings`: a new shard has none. See
-`budgets.ts`. Draws are small: the planks and tiles are instanced (no multi-draw).
+Phone 30 fps (9.6 ms CPU), desktop 60 (4.8 ms), the template's split (`budgets.ts`). About a dozen draws for the world.
 
 ## Look
 
-Procedural and faceted, in the mockup's palette (deep blue zenith, peach horizon, pink-gold clouds, teal fan). The
-mockup is painterly-realistic; the shipped look is still to be picked on a look board.
-
-## Tests
-
-- `test/shards/far-reach/contract.test.ts`: boots every stage and unloads clean; hover bridges collide only while
-  hovering; the roost and lantern rock are reachable only by hover bridges over a void; the winch raises the bridge and
-  pays the quest once; GUST throws only the foes in its cone.
+Faceted low-poly, flat-shaded vertex colours; peach horizon to lavender zenith; the low sun ahead-left of the spawn view;
+pink-white cloud sea; teal war fan. Matches `art/far-reach/round-2-build/board-8dbba343.jpg` (Jake: the look stands).
 
 ## Open asks
 
-- E364: the build itself, its API gaps and its leftovers (`docs/tasks/asks/E364.md`).
+- E364: Jake's board `art/far-reach/round-3-rebuild/`; the API gaps are in `docs/tasks/asks/E364.md`.
+- Its own SFX (MOSS + Stable Audio) and a wind ambience; a ground creature to GUST off an edge.

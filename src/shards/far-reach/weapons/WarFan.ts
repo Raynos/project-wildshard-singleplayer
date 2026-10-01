@@ -1,96 +1,95 @@
-import { Weapon, blocks, type Actor, type Targets, type TargetAnimal, type WeaponState, type App, type EquipContext } from '#engine';
-import { BoxGeometry, DoubleSide, Group, Mesh, MeshStandardMaterial, RingGeometry, Vector2, Vector3 } from 'three';
+import { Weapon, blocks, type Actor, type App, type EquipContext, type Targets, type WeaponState } from '#engine';
+import { MeshBasicMaterial, Vector2, Vector3, type Group, type Mesh } from 'three';
 import { FAN_ROW } from './rows';
+import { buildFan } from './fanModel';
 
-/** Something a GUST can throw: where it is, its combat actor, and how to push its body. */
-export interface GustTarget { readonly position: Vector3; readonly actor: Actor | null; readonly push: (dir: Vector3, power: number) => void }
-export const FAN = { swingRange: 4, swingDamage: 16, swingCooldown: 0.42, gustRange: 10, gustHalfAngle: 0.62, gustDamage: 6, gustCooldown: 1.4, gustPower: 14 } as const;
+/** What GUST can push: the level's live creatures, and what a gust does to one beyond the shove (a ray's dive breaks). */
+/** The part of a creature GUST touches (an engine `Animal` is one). */
+export interface Gustable { readonly alive: boolean; readonly position: Vector3; readonly kind: string; impulse: (velocity: Vector3) => void }
+export interface GustPorts<T extends Gustable = Gustable> { animals: () => readonly T[]; actorFor: (animal: { position: Vector3 }) => Actor | null; onGust?: (animal: T) => void }
 
-/** The fan's leaf and ribs: a 150° teal fan on dark wood ribs (the mockup's gale fan). */
-export function buildFan(): Group {
-  const fan = new Group(), wood = new MeshStandardMaterial({ color: 0x4a2e1c, flatShading: true }), spread = 2.6, ribs = 9;
-  const leaf = new Mesh(new RingGeometry(0.07, 0.31, 18, 1, Math.PI / 2 - spread / 2, spread),
-    new MeshStandardMaterial({ color: 0x2f8f8a, emissive: 0x0b2a28, flatShading: true, side: DoubleSide, roughness: 0.6 }));
-  fan.add(leaf);
-  for (let i = 0; i < ribs; i++) {
-    const a = Math.PI / 2 - spread / 2 + spread * i / (ribs - 1), rib = new Mesh(new BoxGeometry(0.008, 0.33, 0.006), wood);
-    rib.position.set(Math.cos(a) * 0.165, Math.sin(a) * 0.165, 0.004); rib.rotation.z = a - Math.PI / 2; fan.add(rib);
-  }
-  const grip = new Mesh(new BoxGeometry(0.03, 0.1, 0.03), wood); grip.position.y = -0.04; fan.add(grip);
-  return fan;
-}
+export const GUST = { range: 13, halfAngle: 0.5, push: 20, lift: 3, damage: 4, cooldown: 1.4 } as const;
 
-/** Rung 3 (custom): SWING is a short melee lane; GUST throws every foe in a cone back along the view, off edges too. */
+/**
+ * The war fan (rung 3, custom): SWING is a short arc through the damage pipeline; holding SWING charges a heavy cut;
+ * GUST throws a cone of wind that shoves every creature in it (`animal.impulse`) and breaks a drift ray's dive.
+ */
 export class WarFan extends Weapon {
-  override readonly model = new Group(); override readonly state: WeaponState = { ammo: undefined, magazine: 0, reserve: 0, loaded: true, reloading: false, reloadProgress: 0, ads: false };
+  override readonly model: Group; override readonly state: WeaponState = { ammo: undefined, magazine: 0, reserve: 0, loaded: true, reloading: false, reloadProgress: 0, ads: false };
   override holster = 0; override enabled = true; override adsHeld = false; override aimInfo = null;
-  onSwing: ((gust: boolean) => void) | null = null;
-  private cooldown = 0; private gustCooldown = 0; private swingT = 0; private gustT = 0;
-  private readonly app: App; private readonly targets: Targets | null; private readonly actorFor: (animal: TargetAnimal) => Actor | null;
-  private readonly foes: () => readonly GustTarget[];
+  onSwing: ((heavy: boolean) => void) | null = null; onGustCue: (() => void) | null = null;
+  gusts = 0;
+  private cooldown = 0; private gustCooldown = 0; private swingT = 1; private gustT = 1; private held = 0; private wasHeld = false;
+  private readonly leaf: Group; private readonly gust: Mesh;
   private readonly spring = { yaw: 0, pitch: 0, yawVelocity: 0, pitchVelocity: 0 };
-  private readonly vm = blocks.viewmodel({ gain: 0.01, clampYaw: 0.1, clampPitch: 0.1, k: 50, c: 12 });
+  private readonly vm = blocks.viewmodel({ gain: 0.012, clampYaw: 0.12, clampPitch: 0.1, k: 45, c: 11 });
   private readonly contact: ReturnType<typeof blocks.melee>;
-  private readonly fan = buildFan();
-  constructor(app: App, targets: Targets | null = null, actorFor: (animal: TargetAnimal) => Actor | null = () => null, foes: () => readonly GustTarget[] = () => []) {
-    super(FAN_ROW); this.app = app; this.targets = targets; this.actorFor = actorFor; this.foes = foes; this.contact = blocks.melee(app.combat);
-    this.blocks.vm = this.vm; this.blocks.melee = this.contact;
-    this.model.add(this.fan); this.fan.scale.setScalar(0.45); this.model.position.set(0.13, -0.25, -0.55); this.model.rotation.set(-0.2, -0.35, -0.25);
+  constructor(private readonly app: App, private readonly targets: Targets | null = null, private readonly ports: GustPorts | null = null) {
+    super(FAN_ROW); this.contact = blocks.melee(app.combat); this.blocks.vm = this.vm; this.blocks.melee = this.contact;
+    const built = buildFan(); this.model = built.model; this.leaf = built.leaf; this.gust = built.gust;
   }
+  override get charge(): number { return Math.min(1, this.held / 0.6); }
   override install(ctx: EquipContext): void {
     super.install(ctx);
     this.app.input.bind('attack', () => { this.tryFire(); }, ctx.scope, () => this.enabled);
-    this.app.input.bind('heavy', () => { this.gust(); }, ctx.scope, () => this.enabled);
-    this.app.input.bind('farReach.gust', () => { this.gust(); }, ctx.scope, () => this.enabled);
+    this.app.input.bind('heavy', () => { this.swing(true); }, ctx.scope, () => this.enabled);
+    this.app.input.bind('far.gust', () => { this.blow(); }, ctx.scope, () => this.enabled);
+    ctx.scope.onDispose(() => { this.wasHeld = false; this.held = 0; });
   }
-  /** SWING: a slash along the view. */
-  override tryFire(): void {
-    if (this.cooldown > 0 || !this.enabled) return; this.cooldown = FAN.swingCooldown; this.swingT = 0.28; this.onSwing?.(false);
-    const host = this.app.equipmentHost; if (host === null || this.targets === null) return;
+  override tryFire(): void { this.swing(false); }
+  private swing(heavy: boolean): void {
+    if (this.cooldown > 0 || !this.enabled) return; this.cooldown = heavy ? 0.8 : 0.42; this.swingT = 0;
+    this.onSwing?.(heavy);
+    const host = this.app.equipmentHost; if (host === null || this.targets === null || this.ports === null) return;
     const from = host.game.camera.position.clone(), dir = new Vector3(); host.game.camera.getWorldDirection(dir);
-    const hit = this.targets.raycast(from, dir, FAN.swingRange); if (hit?.animal === undefined) return;
-    const actor = this.actorFor(hit.animal); if (actor === null) return; this.slash(actor, hit.point, dir, from); this.onFire?.();
+    const hit = this.targets.raycast(from, dir, 4.5); if (hit?.animal === undefined) return;
+    const actor = this.ports.actorFor(hit.animal); if (actor === null) return;
+    this.strike(actor, hit.point, dir, from, heavy); this.onFire?.();
   }
-  slash(actor: Actor, point: Vector3, dir: Vector3, from: Vector3): boolean {
+  /** One SWING contact: a 4.5 m arc in front of the camera. */
+  strike(actor: Actor, point: Vector3, dir: Vector3, from: Vector3, heavy: boolean): boolean {
     const delta = point.clone().sub(from), forward = delta.dot(dir);
-    if (forward < 0 || forward > FAN.swingRange || delta.addScaledVector(dir, -forward).length() > 0.8) return false;
-    const result = this.contact.hit({ source: 'env', sourceTags: ['actor.player', 'weapon.far-reach-fan', 'dmg.melee'], target: actor, amount: FAN.swingDamage,
-      point, dir, from, weaponId: this.row.id, moveId: 'farReach.fan.swing', surface: 'flesh' });
+    if (forward < 0 || forward > 4.5 || delta.addScaledVector(dir, -forward).length() > 1.4) return false;
+    const result = this.contact.hit({ source: 'env', sourceTags: ['actor.player', 'weapon.far-fan', 'dmg.melee'], target: actor, amount: heavy ? 26 : 14,
+      point, dir, from, weaponId: this.row.id, moveId: heavy ? 'far.fan.heavy' : 'far.fan.swing', surface: 'flesh', ...(heavy ? { stagger: 0.4 } : {}) });
     if (result !== null) this.onHit?.(actor.id, false, result.killed);
     return result !== null;
   }
-  /** GUST: every foe in the cone takes a little damage and is thrown back (the push is the plugin's: it knows edges). */
-  gust(): number {
-    if (this.gustCooldown > 0 || !this.enabled) return 0; this.gustCooldown = FAN.gustCooldown; this.gustT = 0.45; this.onSwing?.(true);
-    const host = this.app.equipmentHost; if (host === null) return 0;
-    const from = host.game.camera.position.clone(), dir = new Vector3(); host.game.camera.getWorldDirection(dir);
-    return this.blow(from, dir);
-  }
-  /** The cone test and the push, apart from the camera so a test can drive it. Returns how many foes it threw. */
-  blow(from: Vector3, dir: Vector3): number {
-    const flat = new Vector3(dir.x, 0, dir.z); if (flat.lengthSq() < 1e-6) flat.set(0, 0, -1); flat.normalize();
-    let thrown = 0;
-    for (const foe of this.foes()) {
-      const to = foe.position.clone().sub(from), d = Math.hypot(to.x, to.z); if (d > FAN.gustRange || d < 1e-3) continue;
-      const along = (to.x * flat.x + to.z * flat.z) / d; if (along < Math.cos(FAN.gustHalfAngle)) continue;
-      const push = new Vector3(to.x / d, 0.25, to.z / d).normalize(), power = FAN.gustPower * (1 - 0.5 * d / FAN.gustRange);
-      if (foe.actor !== null) {
-        const result = this.contact.hit({ source: 'env', sourceTags: ['actor.player', 'weapon.far-reach-fan', 'dmg.melee'], target: foe.actor, amount: FAN.gustDamage,
-          point: foe.position.clone(), dir: push, from, weaponId: this.row.id, moveId: 'farReach.fan.gust', surface: 'flesh', knockback: power, throughWalls: true });
-        if (result !== null) this.onHit?.(foe.actor.id, false, result.killed);
-      }
-      foe.push(push, power); thrown++;
+  /** GUST: every live creature inside the cone is shoved away and up; returns how many it caught. */
+  blow(from?: Vector3, dir?: Vector3): number {
+    if (this.gustCooldown > 0 || !this.enabled || this.ports === null) return 0;
+    this.gustCooldown = GUST.cooldown; this.gustT = 0; this.gusts++; this.onGustCue?.();
+    const host = this.app.equipmentHost, eye = from ?? host?.game.camera.position.clone() ?? new Vector3(), look = dir ?? new Vector3(0, 0, -1);
+    if (dir === undefined && host !== null) host.game.camera.getWorldDirection(look);
+    let caught = 0;
+    for (const animal of this.ports.animals()) {
+      if (!animal.alive) continue;
+      const to = animal.position.clone().sub(eye), d = to.length();
+      if (d > GUST.range || d < 1e-3 || to.clone().divideScalar(d).dot(look) < Math.cos(GUST.halfAngle)) continue;
+      const push = new Vector3(to.x, 0, to.z).normalize().multiplyScalar(GUST.push * (1 - d / (GUST.range * 1.6)));
+      push.y = GUST.lift; animal.impulse(push); caught++;
+      const actor = this.ports.actorFor(animal);
+      if (actor) this.contact.hit({ source: 'env', sourceTags: ['actor.player', 'weapon.far-fan', 'dmg.wind'], target: actor, amount: GUST.damage,
+        point: animal.position.clone(), dir: look.clone(), from: eye, weaponId: this.row.id, moveId: 'far.fan.gust', surface: 'flesh' });
+      this.ports.onGust?.(animal);
     }
-    return thrown;
+    return caught;
   }
   override update(dt: number): void {
     this.cooldown = Math.max(0, this.cooldown - dt); this.gustCooldown = Math.max(0, this.gustCooldown - dt);
-    this.swingT = Math.max(0, this.swingT - dt); this.gustT = Math.max(0, this.gustT - dt);
+    if (!this.enabled || this.holster > 0.001) { this.wasHeld = false; this.held = 0; }
+    else if (this.adsHeld) this.held += dt;
+    else if (this.wasHeld) { this.cooldown = 0; this.swing(true); this.held = 0; }
+    this.wasHeld = this.enabled && this.holster <= 0.001 && this.adsHeld;
     this.vm.step(this.spring, new Vector2(), dt);
-    const swing = Math.sin(this.swingT / 0.28 * Math.PI), gust = Math.sin(this.gustT / 0.45 * Math.PI);
-    this.model.rotation.y = -0.35 + this.spring.yaw + swing * 0.9;
-    this.model.rotation.z = -0.25 - swing * 0.6;
-    this.model.position.z = -0.55 - gust * 0.1;
-    this.fan.rotation.x = -gust * 0.9;
+    // presentation: the swing sweeps the fan across, the gust snaps it forward and throws a fading ring
+    this.swingT = Math.min(1, this.swingT + dt / 0.32); this.gustT = Math.min(1, this.gustT + dt / 0.45);
+    const sweep = Math.sin(this.swingT * Math.PI), snap = Math.sin(Math.min(1, this.gustT * 2) * Math.PI);
+    this.model.rotation.set(-0.15 * snap, this.spring.yaw + sweep * 0.9, sweep * 0.5);
+    this.model.position.set(-sweep * 0.25, -this.holster * 0.6 + this.charge * 0.04, -snap * 0.12);
+    this.leaf.scale.setScalar(1 + this.charge * 0.06);
+    const ring = this.gust, material = ring.material;
+    ring.visible = this.gustT < 1; ring.scale.setScalar(1 + this.gustT * 5); ring.position.z = -1.4 - this.gustT * 4;
+    if (material instanceof MeshBasicMaterial) material.opacity = (1 - this.gustT) * 0.5;
   }
 }
