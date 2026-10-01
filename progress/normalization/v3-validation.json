@@ -1,0 +1,50 @@
+{
+  "gateCandidate": "da0e95a4a56b4edfbee798b9ef0b068d036c756d",
+  "runtimeKey": "86e542ddbb142005c903ca7b4a4e63ba66893f55c98d8a2e49d34acbbb77f821",
+  "gate": "all clean export stages pass",
+  "captures": "/private/tmp/e357-sol-v3/boot-combined",
+  "includes": [
+    "85b816e5 X2",
+    "dc82a0a3 X7",
+    "2e7df645 R7"
+  ],
+  "historicalParity": "red; not accepted or re-recorded by V3",
+  "shards": [
+    {
+      "shard": "driftwood-isle",
+      "sha": "da0e95a4a56b4edfbee798b9ef0b068d036c756d",
+      "bootErrors": [],
+      "stuck": 0,
+      "pauseDiff": [],
+      "disposalErrors": [],
+      "scopeRemaining": 0
+    },
+    {
+      "shard": "nalati-grasslands",
+      "sha": "da0e95a4a56b4edfbee798b9ef0b068d036c756d",
+      "bootErrors": [],
+      "stuck": 0,
+      "pauseDiff": [],
+      "disposalErrors": [],
+      "scopeRemaining": 0
+    },
+    {
+      "shard": "nine-dragon-stack",
+      "sha": "da0e95a4a56b4edfbee798b9ef0b068d036c756d",
+      "bootErrors": [],
+      "stuck": 0,
+      "pauseDiff": [],
+      "disposalErrors": [],
+      "scopeRemaining": 0
+    },
+    {
+      "shard": "pine-hollow",
+      "sha": "da0e95a4a56b4edfbee798b9ef0b068d036c756d",
+      "bootErrors": [],
+      "stuck": 0,
+      "pauseDiff": [],
+      "disposalErrors": [],
+      "scopeRemaining": 0
+    }
+  ]
+}

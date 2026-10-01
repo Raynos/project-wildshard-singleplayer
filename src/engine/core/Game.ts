@@ -111,10 +111,9 @@ export class Game {
   hudBaseline = 0;
   hudRetained: ReadonlySet<Element> = new Set();
   retainedHudCount(): number {
-    const legacy = currentScope();
     return [...document.querySelectorAll('#hud *')].filter((node) => {
-      const owner = legacy?.nodeOwners.get(node);
-      return this.hudRetained.has(node) || (owner !== undefined && !owner.belongsTo(this.levelScope));
+      const owner = this.app.ui.hud.ownerOf(node);
+      return this.hudRetained.has(node) || (owner !== null && !owner.belongsTo(this.levelScope));
     }).length;
   }
   /** Snapshot the engine rig before any level geometry is built. */
@@ -305,8 +304,7 @@ export class Game {
         const key = `renderer:shadow:${material.uuid}`;
         if (!app.assets.has(key)) {
           app.assets.register(key, material, { retain: true });
-          const released = (): void => { app.assets.forgetDisposed(key); material.removeEventListener('dispose', released); };
-          material.addEventListener('dispose', released);
+          this.engineScope.listenOnceEmitter(material, 'dispose', () => { app.assets.forgetDisposed(key); });
         }
       }
       draw(camera, scene, geometry, material, object, group);
@@ -322,7 +320,7 @@ export class Game {
       try { renderShadows(lights, scene, camera); } finally { camera.layers.mask = mask; }
     };
     this.camera = new THREE.PerspectiveCamera(72, window.innerWidth / viewportHeight(), 0.08, 2600);
-    window.addEventListener('resize', () => this.resize());
+    this.engineScope.listen(window, 'resize', () => this.resize());
   }
 
   /** the shard's render strategy (ShardManifest.render), loaded by buildSky; null = the engine's chain as it is */
@@ -622,7 +620,7 @@ export class Game {
    * every pipeline), then the full composer (screen-quad shaders compileAsync cannot reach).
    */
   async firstFrame(onProgress?: (done: number, total: number, detail: string) => void): Promise<void> {
-    const frame = (): Promise<void> => new Promise((resolve) => { requestAnimationFrame(() => { setTimeout(resolve, 0); }); }); // rAF alone resumes before the paint
+    const frame = (): Promise<void> => new Promise((resolve) => { this.engineScope.raf(() => { this.engineScope.timeout(0, resolve); }); }); // rAF alone resumes before the paint
     // Large instanced worlds may request culling before the first draw and fewer warm views.
     const tracedBoot = bootTraceActive();
     const checkpoint = (operation: string): void => { if (tracedBoot) recordGpuCheckpoint(this.renderer, operation); };
@@ -711,11 +709,11 @@ export class Game {
     // iOS app switch is iOS restoring a suspended standalone web app before any of this runs — investigated
     // and accepted (overlay / mirror / hidden canvas / wake lock / keep-alive audio made no difference).
     let forceFrame = false;
-    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') forceFrame = true; });
-    this.canvas.addEventListener('webglcontextlost', () => { this.gl.lostAt = performance.now(); this.gl.events++; console.warn('[gl] context lost'); });
-    this.canvas.addEventListener('webglcontextrestored', () => { this.gl.restoredAt = performance.now(); console.warn('[gl] context restored after', Math.round(this.gl.restoredAt - this.gl.lostAt), 'ms'); });
+    this.engineScope.listen(document, 'visibilitychange', () => { if (document.visibilityState === 'visible') forceFrame = true; });
+    this.engineScope.listen(this.canvas, 'webglcontextlost', () => { this.gl.lostAt = performance.now(); this.gl.events++; console.warn('[gl] context lost'); });
+    this.engineScope.listen(this.canvas, 'webglcontextrestored', () => { this.gl.restoredAt = performance.now(); console.warn('[gl] context restored after', Math.round(this.gl.restoredAt - this.gl.lostAt), 'ms'); });
     // (A timer-driven loop was tried for iOS Low Power Mode: timers are throttled to ~30 ms there too. rAF it is.)
-    const schedule = (fn: () => void) => { requestAnimationFrame(fn); };
+    const schedule = (fn: () => void) => { this.engineScope.raf(fn); };
     // One chain only: every animation-frame callback of a frame gets the same timestamp, so a second chain (kickLoop
     // restarting a loop that was merely paused) finds its frame taken and ends there.
     let lastNow = -1, lastRun = performance.now();
@@ -785,7 +783,7 @@ export class Game {
       this.stats.frames++; this.stats.acc += realDt;
       if (this.stats.acc >= 0.5) { this.stats.fps = Math.round(this.stats.frames / this.stats.acc); this.stats.frames = 0; this.stats.acc = 0; }
     };
-    this.kickLoop = () => { if (!this.dead && performance.now() - lastRun > 1000) requestAnimationFrame(loop); };
+    this.kickLoop = () => { if (!this.dead && performance.now() - lastRun > 1000) this.engineScope.raf(loop); };
     this.primeFrame = () => { if (!this.dead) forceFrame = true; };
     setLoopState('running');
     loop();

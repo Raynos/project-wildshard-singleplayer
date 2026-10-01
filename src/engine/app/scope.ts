@@ -123,6 +123,18 @@ export class Scope {
   private readonly timerCancels = new Map<ReturnType<typeof setTimeout>, () => void>();
   cancelTimer(id: ReturnType<typeof setTimeout> | 0): void { if (id !== 0) this.timerCancels.get(id)?.(); }
 
+  /** One emitter event, released on delivery or owner disposal (including renderer resource events). */
+  listenOnceEmitter<K extends string>(target: {
+    addEventListener: (type: K, fn: () => void) => void;
+    removeEventListener: (type: K, fn: () => void) => void;
+  }, type: K, fn: () => void): void {
+    if (this.closed) return;
+    let forget = () => { /* Filled after registration. */ };
+    const listener = (): void => { target.removeEventListener(type, listener); forget(); fn(); };
+    target.addEventListener(type, listener);
+    forget = this.track('listeners', () => { target.removeEventListener(type, listener); forget(); });
+  }
+
   timeout(ms: number, fn: () => void): ReturnType<typeof setTimeout> | 0 {
     if (this.closed) return 0;
     let forget = () => { /* Filled before the timer can fire. */ };

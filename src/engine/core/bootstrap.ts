@@ -128,7 +128,7 @@ export async function bootstrap(step: StepRunner, level: LevelSpec, inputContext
   const tour = new Tour(game.camera);
   tour.active = params.has('tour');
   const world: World = { game, sky, terrain, forest, player, physics, registry, tour, params, num, freeCamera: false };
-  canvas.addEventListener('click', () => { if (!params.has('nolock') && !world.freeCamera) player.lock(); }); // Explore's free camera keeps the cursor
+  game.levelScope.listen(canvas, 'click', () => { if (!params.has('nolock') && !world.freeCamera) player.lock(); }); // Explore's free camera keeps the cursor
   // frame phases (Game.ts): input → fixed steps (pre: move the boxes, step: advance the world, post: the player's move) → update → late
   const playing = () => !tour.active && !world.freeCamera;
   // labels name them in error reports; `true` = core: the world step and the player's move can't be switched off (src/engine/core/faults.ts)

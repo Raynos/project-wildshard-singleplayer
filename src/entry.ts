@@ -18,9 +18,11 @@ import { persistHomeScreen } from '#engine/saves/runtime';
 import { guardBoot } from '#engine/boot/stuck';
 import { inspectPreviousBoot, previousBootLine, previousBootLevel } from '#engine/boot/bootTrace';
 import { setting } from '#engine/ui/Settings';
+import { Scope } from '#engine/app/scope';
 
-const task = (): Promise<void> => new Promise((resolve) => { setTimeout(resolve, 0); });
-const sleep = (ms: number): Promise<void> => new Promise((resolve) => { setTimeout(resolve, ms); });
+const entryScope = new Scope('entry');
+const task = (): Promise<void> => new Promise((resolve) => { entryScope.timeout(0, resolve); });
+const sleep = (ms: number): Promise<void> => new Promise((resolve) => { entryScope.timeout(ms, resolve); });
 
 /** `load()`, and again after 0.8 s and 2.5 s if it rejects: the last try's rejection is the one stuck.ts sees */
 async function retried<T>(load: () => Promise<T>): Promise<T> {

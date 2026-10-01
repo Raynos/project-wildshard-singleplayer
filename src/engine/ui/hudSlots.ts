@@ -22,6 +22,14 @@ export const ROW = { vitals: 0, ammo: 1, content: 2, pill: 10 } as const;
 export type HudBand = 'band.1' | 'band.2' | 'band.3' | 'band.4' | 'band.5' | 'band.6';
 const DEFAULT_BANDS: readonly HudBand[] = ['band.1', 'band.2', 'band.3', 'band.4', 'band.5', 'band.6'];
 export class HudSlots {
+  private readonly owners = new WeakMap<Element, Scope>();
+  ownerOf(el: Element): Scope | null {
+    for (let node: Element | null = el; node !== null; node = node.parentElement) {
+      const owner = this.owners.get(node);
+      if (owner !== undefined) return owner;
+    }
+    return null;
+  }
   private bands = DEFAULT_BANDS;
   private placements = new Map<HTMLElement, { band: HudBand; order: number }>();
   configure(bands: readonly HudBand[] = DEFAULT_BANDS): void {
@@ -39,6 +47,7 @@ export class HudSlots {
   /** Numbered bands have no wrapper: existing HUD geometry and selectors stay identical. */
   widget(band: HudBand, el: HTMLElement, order: number, scope: Scope, root?: HTMLElement): void {
     if (scope.disposed) return;
+    this.owners.set(el, scope);
     if (band === 'band.2' || band === 'band.3' || band === 'band.4' || band === 'band.5') {
       this.placements.set(el, { band, order });
       this.statusRow(el, this.rowOrder(band, order), band !== 'band.2');
@@ -64,7 +73,7 @@ export class HudSlots {
   onLayer(f: (layer: HTMLElement) => void): () => void { return this.run((layer) => { f(layer); }); }
 
   /** Cancel delayed placement as well as removing the node; parked snapshots cannot resurrect it. */
-  discard(el: HTMLElement): void { this.cancels.get(el)?.(); this.cancels.delete(el); this.placements.delete(el); el.remove(); }
+  discard(el: HTMLElement): void { this.cancels.get(el)?.(); this.cancels.delete(el); this.placements.delete(el); this.owners.delete(el); el.remove(); }
 
   /** a row of the top-left status column; `order` from ROW (a shard's own rows go after the base's). `box: false` keeps
    *  the element's own box (the base's VITALS / ammo strips, game.css) instead of the shared row glass */
@@ -76,6 +85,7 @@ export class HudSlots {
 
   /** a tappable tag under the status column (it flows with the rows above it) */
   pill(el: HTMLElement, onTap: () => void, scope: Scope): void {
+    this.owners.set(el, scope);
     el.classList.add('ws-touch-tag');
     el.style.order = String(ROW.pill);
     // the layer cancels its touch events (TouchControls, E46), so there is no click: act on the pointer's release
@@ -88,6 +98,7 @@ export class HudSlots {
   /** a round control disc at `spot`, with the base's press plumbing; hidden until `.show` */
   disc(o: DiscOpts, scope: Scope): HTMLButtonElement {
     const b = document.createElement('button');
+    this.owners.set(b, scope);
     b.type = 'button';
     b.className = `ws-touch-disc at at-${o.spot} ${o.cls}`;
     b.innerHTML = engineString('s_b7546cf3d24c', [o.icon, o.label]);
