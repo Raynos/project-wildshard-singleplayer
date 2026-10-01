@@ -15,11 +15,6 @@ const pair = (id: string, name: string, prefix: string, file: string): Target =>
 
 /** The source path in each row is carried into review notes. */
 const TARGETS: Readonly<Record<string, readonly Target[]>> = {
-  'driftwood-isle': [
-    pair('spawn', 'Spawn · pier', 'driftwood-spawn', 'art/driftwood-isle/round-4-remaster/mockup-1-fp-front.jpg'),
-    pair('right', 'Spawn · right', 'driftwood-right', 'art/driftwood-isle/round-4-remaster/mockup-3-fp-right.jpg'),
-    pair('overlook', 'Island overlook', 'driftwood-overlook', 'art/driftwood-isle/round-4-remaster/mockup-6-diag-front.jpg'),
-  ],
   'nalati-grasslands': [
     pair('camp', 'Camp', 'nalati-camp', 'art/nalati-grasslands/round-5-paintover/camp-po-phone.jpg'),
     pair('rail', 'River rail', 'nalati-rail', 'art/nalati-grasslands/round-5-paintover/rail-po-phone.jpg'),
