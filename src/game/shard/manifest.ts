@@ -379,7 +379,7 @@ export interface StructureContext {
   /** the world registry (src/engine/world/registry.ts): what the shard registers is drawn, collides, and lends its floor */
   registry: WorldRegistry;
   /** a per-frame callback after the player's move (the camera is placed): time since the build (s), frame dt */
-  onUpdate: (fn: (dt: number, t: number) => void) => void;
+  onUpdate: (fn: (dt: number, t: number) => void, label?: string) => void;
   /** the step's progress bar, 0..1 */
   progress: (f: number, detail?: string) => void;
 }

@@ -407,7 +407,7 @@ export class PineLandmarks implements PineLandmarksHandle {
  * Build Pine Hollow's landmarks, register them (drawn, colliding, the decks as floors) and keep them updated. The hamlet's
  * buildings are not here: `new Cabins(sky, pineHamletBuildings())` builds them with the cabins.
  */
-export async function installPineLandmarks(h: { sky: Sky; registry: WorldRegistry; cabins: Cabins | null; onUpdate: (fn: (dt: number, t: number) => void) => void; trees?: readonly { x: number; z: number }[] }): Promise<PineLandmarks> {
+export async function installPineLandmarks(h: { sky: Sky; registry: WorldRegistry; cabins: Cabins | null; onUpdate: (fn: (dt: number, t: number) => void, label?: string) => void; trees?: readonly { x: number; z: number }[] }): Promise<PineLandmarks> {
   const lm = await new PineLandmarks(h.sky).build(h.cabins, h.trees, h.registry); // the models register themselves (E315 M2)
   // what is left is light: the waystones' flames and anchors, the cave's shaft and drips
   h.registry.add({ id: 'pine-landmarks', name: 'Landmark lights', category: 'props', file: 'src/shards/pine-hollow/world/landmarks.ts', object: lm.group });
