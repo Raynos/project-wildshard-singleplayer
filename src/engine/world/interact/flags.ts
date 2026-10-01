@@ -2,13 +2,13 @@ import * as v from 'valibot';
 import { saves } from '../../saves/runtime';
 /**
  * Flags — the one piece of world state the interactables kit and the quests share: a set of strings, persisted per
- * shard in localStorage ('ws.flags.v1'), with change listeners. Transient flags (`plate:*`, see types.ts) live in
+ * level in localStorage ('ws.flags.v1'), with change listeners. Transient flags (`plate:*`, see types.ts) live in
  * memory only. The in-memory set is the truth for the session (iOS private mode throws on write).
  *
  *   const flags = new Flags(chunk.id);
  *   flags.set('talked:castaway');  flags.has('open:hold-grate');  flags.clear('lever:hold-a');
  *   flags.onChange((flag, on) => …);   test(flags, { all: ['a'], none: ['b'] })
- *   flags.reset()                      // dev: `?resetquest` — forget this shard's progress
+ *   flags.reset()                      // dev: `?resetquest` — forget this level's progress
  */
 import { TRANSIENT_PREFIXES, type Cond } from './types';
 
@@ -21,15 +21,15 @@ export class Flags {
   private set_ = new Set<string>();
   private listeners: FlagListener[] = [];
   private persist: boolean;
-  readonly shard: string;
+  readonly level: string;
 
   // no parameter property: node's type stripping (the bakers' loader) rejects them
-  constructor(shard: string, persist = true) {
-    this.shard = shard;
+  constructor(level: string, persist = true) {
+    this.level = level;
     this.persist = persist;
     if (!persist) return;
     try {
-      const mine = flagsSave.read(shard.replace(/^chunk:\/\/local\//u, ''));
+      const mine = flagsSave.read(level.replace(/^chunk:\/\/local\//u, ''));
       if (Array.isArray(mine)) for (const f of mine) if (typeof f === 'string') this.set_.add(f);
     } catch { /* fresh */ }
   }
@@ -53,7 +53,7 @@ export class Flags {
     return () => { const i = this.listeners.indexOf(fn); if (i !== -1) this.listeners.splice(i, 1); };
   }
 
-  /** forget everything this shard remembers */
+  /** forget everything this level remembers */
   reset(): void {
     const had = [...this.set_];
     this.set_.clear();
@@ -64,7 +64,7 @@ export class Flags {
   private save(): void {
     if (!this.persist) return;
     try {
-      flagsSave.write([...this.set_].filter((f) => !TRANSIENT_PREFIXES.some((p) => f.startsWith(p))), this.shard.replace(/^chunk:\/\/local\//u, ''));
+      flagsSave.write([...this.set_].filter((f) => !TRANSIENT_PREFIXES.some((p) => f.startsWith(p))), this.level.replace(/^chunk:\/\/local\//u, ''));
     } catch { /* not persisted this session */ }
   }
 }
