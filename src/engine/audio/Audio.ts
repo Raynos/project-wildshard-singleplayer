@@ -7,7 +7,7 @@ import type { Vector3 } from 'three';
 import { getActiveChunk } from '#game/shard/registry';
 import { getSfxSet, onSfxSet, type SfxSet } from '../ui/Settings';
 import { setSfxCredit } from './credits';
-import { cachedBytes, decodeSfxSet, trackBusy, type SfxBank } from './preload';
+import { cachedBytes, decodeSfxSet, trackBusy, DEFAULT_BED, type SfxBank } from './preload';
 import { Voices } from './Voices';
 import type { Scope } from '../app/scope';
 import type { CueMap, CueOpts } from './Cues';
@@ -97,8 +97,6 @@ interface Graph { ctx: AudioContext; master: GainNode; world: GainNode; sfx: Gai
  * context; iOS unlocks a context once, and a parked shard's graph is simply cut from the speakers, see `park`).
  */
 let sharedCtx: AudioContext | undefined;
-/** the bed a land level starts with until it sets its own (the set's sampled bed of this id, or the synth pine wind) */
-const DEFAULT_BED: AmbientBed = 'forest';
 
 export class Audio extends LegacyIsland {
   override listenerYaw = 0;

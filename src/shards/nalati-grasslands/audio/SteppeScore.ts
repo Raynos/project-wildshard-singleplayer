@@ -16,7 +16,10 @@
 // every other slot decodes from the offline cache (the bar downloaded all of them, on the steppe only) when it is first wanted
 // while the old one plays on, then crossfades in.
 import { SetScore, decodeScore, scoreFiles, scoreManifest, type AudioRead, type AudioDecode, type ScoreBank } from '#engine/audio/SetScore';
-import type { SteppeSlot, MusicManifest } from '#engine/audio/Stems';
+import type { MusicManifest } from '#engine/audio/Stems';
+/** NALATI-MERGE A2: Nalati's own score (public/assets/music/nalati/music.json — one Kazakh-folk score whatever the style):
+ *  a theme per zone, the night, the storm (Jel Ata's cue), the Golden King */
+export type SteppeSlot = 'steppe-grass' | 'steppe-sky' | 'steppe-snow' | 'steppe-night' | 'steppe-storm' | 'steppe-king';
 
 export type SteppeZone = 'grass' | 'sky' | 'snow';
 export interface SteppeScene { zone: SteppeZone; night: boolean; storm: boolean; boss: 'king' | null }

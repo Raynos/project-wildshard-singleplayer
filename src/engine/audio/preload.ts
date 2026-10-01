@@ -21,6 +21,9 @@ import { sfxDir, DRIFTWOOD_SOUNDS } from '../boot/audioFiles';
 import { onScopeDispose } from '../app/legacyCapture';
 
 export const DECODE_RATE = 48000;
+/** the bed a land level starts with until it sets its own (the set's sampled bed of this id, or the synth pine wind);
+ *  its levels never play the ocean level's own sounds (DRIFTWOOD_SOUNDS) */
+export const DEFAULT_BED: AmbientBed = 'forest';
 let offline: OfflineAudioContext | undefined;
 function decodeContext(): OfflineAudioContext {
   offline ??= new OfflineAudioContext(2, 1, DECODE_RATE); // the 3-argument form: Safari's constructor
@@ -87,8 +90,8 @@ function sfxJobs(set: string, bed: AmbientBed): Job[] {
   };
   const beds = isObj(j['beds']) ? j['beds'] : {}, hums = isObj(j['hums']) ? j['hums'] : {}, shots = isObj(j['oneshots']) ? j['oneshots'] : {};
   // this shard's bed first (never the other shard's: a shard change reloads the page), then the rest
-  // Pine Hollow (the 'forest' bed) has none of Driftwood's own sounds (DRIFTWOOD_SOUNDS: its creatures, the gulls, the shrine's hum)
-  const drift = bed === 'forest';
+  // the default land bed has none of Driftwood's own sounds (DRIFTWOOD_SOUNDS: its creatures, the gulls, the shrine's hum)
+  const drift = bed === DEFAULT_BED;
   loop(bed, beds[bed]); loop('underwater', beds['underwater']); loop('pickup', hums['pickup']); if (!drift) loop('shrine', hums['shrine']);
   for (const [family, v] of Object.entries(shots)) {
     if (drift && DRIFTWOOD_SOUNDS.oneshots.includes(family)) continue;

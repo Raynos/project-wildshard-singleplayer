@@ -4,7 +4,7 @@ import { tap, ambientTick } from '../core/harnessTap';
 //
 //   const music = new Music(audio);                 // its own `music` gain → audio.master; shares the AudioContext
 //   music.play('theme');                            // on ENTER (after audio.resume()); loops D → B for as long as it plays
-//   music.setState({ shard: 'pine' | 'island' | 'steppe', mode: 'menu' | 'calm' | 'alert' | 'combat', intensity: 0..1, underwater: false });
+//   music.setState({ shard: 'pine' | 'island' | <a level's mood>, mode: 'menu' | 'calm' | 'alert' | 'combat', intensity: 0..1, underwater: false });
 //   music.sting('pickup' | 'death' | 'chunk');      // the bell motif · the minor turn then 6 s of silence · the resolve chord
 //   music.stop();                                   // fades the bus over a bar and silences every voice
 //   music.volume = 0.7;                             // persisted as Settings 'music' (the pause menu's MUSIC slider drives it)
@@ -47,8 +47,9 @@ import {
   type Arrangement, type ArrangementName, type ChordName, type LayerId, type MixKey, type NoteEv, type Segment,
 } from './score/wildshard-theme';
 
-/** the shard's mood: 'steppe' = Nalati — its own score (SteppeScore, NALATI-MERGE A2 / A3), not a style slot: themeSlot is null */
-export type Shard = 'pine' | 'island' | 'steppe';
+/** the shard's mood: 'pine' / 'island' = the base set's theme slot of that name; any other id = a level with its own score
+ *  source (`setScore`), not a style slot: themeSlot is null */
+export type Shard = string;
 /** the stems slot a shard plays in game; null = none yet (the synth theme) */
 export function themeSlot(shard: Shard): SlotName | null { return shard === 'island' ? 'island' : shard === 'pine' ? 'pine' : null; }
 export type MusicMode = 'menu' | 'calm' | 'alert' | 'combat';
@@ -640,7 +641,7 @@ export class Music {
 
   // ─────────────── the stems (project/archive/2026-09-23-music.md v3 row 7) ───────────────
   /** the slot the state asks for: the title cut on the menu, else the shard's theme; null = no stems for this shard yet —
-   *  the steppe (Nalati) plays the synth theme's plucked lead until its own score lands, never Pine Hollow's stems (NALATI-MERGE F6) */
+   *  a level with its own score plays the synth theme's plucked lead until that score lands, never another level's stems (F6) */
   private wantSlot(): SlotName | null {
     const s = this.state;
     if (s.mode !== 'menu' && this.scoreSource()) return this.scoreSource()?.target(s) ?? null;

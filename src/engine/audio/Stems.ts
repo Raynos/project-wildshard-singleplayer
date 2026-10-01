@@ -2,7 +2,7 @@ import { ownAudioSource } from './ownership';
 import { tap } from '../core/harnessTap';
 // src/engine/audio/Stems.ts — the MiniMax-Music3 stem player behind src/engine/audio/Music.ts (project/archive/2026-09-23-music.md v3, row 7).
 //
-//   public/assets/music/<style>/music.json   { style, model, credit, slots: { pine | island: { calm, tension, bpm, beatsPerBar,
+//   public/assets/music/<style>/music.json   { style, model, credit, slots: { <slot>: { calm, tension, bpm, beatsPerBar,
 //                                            loopStart, loopEnd, duration }, title: { full, … } }, stings: { pickup, death, chunk } }
 //
 // A *deck* is one slot playing: the calm stem (melody / harmony + soft bass) always, the tension stem (drums + bass, the same
@@ -15,9 +15,8 @@ import { tap } from '../core/harnessTap';
 // `decodeStyle` decodes one style's slots + stings; a slot whose file is missing or will not decode is left out, and Music
 // keeps the synth for it.
 //
-// Pine Hollow's own set (PINE-HOLLOW-REMASTER PH-A1): public/assets/music/pine-hollow-<style>/music.json (stems.py --set
-// pine-hollow) — slots `night` (calm + tension, like pine) and `boss` (the Antler King: `calm` = the base, `layers` = [bass,
-// drums], `phases` = each boss phase's layer gains), sting `dawn`. `decodeStyle(style, slots, …, 'pine-hollow')` reads it.
+// A level's own set (`stems.py --set <set>`): public/assets/music/<set>-<style>/music.json — the same manifest; a boss slot
+// carries `layers` (bass, drums) and `phases` (each boss phase's layer gains). `decodeStyle(style, slots, …, set)` reads it.
 // A deck of the boss plays its layers at the current phase's gains (Deck.setPhase), moved on the bar like the tension stem.
 import type { MusicStyle } from '../ui/Settings';
 import { PUBLIC_BYTES } from '../boot/bytes.generated';
@@ -27,20 +26,14 @@ import { MUSIC_MANIFESTS } from '../boot/audio.generated';
  *  no 404 in the console, no request at all while the generated music has not landed */
 export const shipped = (path: string): boolean => path in PUBLIC_BYTES;
 
-/** NALATI-MERGE A2: Nalati's own score (public/assets/music/nalati/music.json — one Kazakh-folk score whatever the style,
- *  src/shards/nalati-grasslands/audio/SteppeScore.ts): a theme per zone, the night, the storm (Jel Ata's cue), the Golden King */
-export type SteppeSlot = 'steppe-grass' | 'steppe-sky' | 'steppe-snow' | 'steppe-night' | 'steppe-storm' | 'steppe-king';
-export const STEPPE_SLOTS: readonly SteppeSlot[] = ['steppe-grass', 'steppe-sky', 'steppe-snow', 'steppe-night', 'steppe-storm', 'steppe-king'];
-export const isSteppeSlot = (s: string | null | undefined): s is SteppeSlot => s?.startsWith('steppe-') === true;
-/** 'night' / 'boss': Pine Hollow's (PH-A1, the `pine-hollow` music set) */
 /** Score-source slot names are content data, including sets registered by a level. */
 export type SlotName = string;
 export type StemSting = 'pickup' | 'death' | 'chunk' | 'dawn';
-/** a music set: the style's own folder, or Pine Hollow's (`pine-hollow-<style>/`) */
-export type MusicSet = 'base' | 'pine-hollow';
+/** a music set: 'base' = the style's own folder (`<style>/`), any other id = a level's set folder (`<set>-<style>/`) */
+export type MusicSet = string;
 export type BossPhase = 1 | 2 | 3;
 export interface SlotSpec {
-  /** the calm stem (pine / island / night), the full mix (title) or the base (boss) — file names relative to the manifest */
+  /** the calm stem (a theme slot), the full mix (title) or the base (boss) — file names relative to the manifest */
   calm: string; tension: string | undefined;
   /** the boss's extra layers (bass, drums), each gained per phase by `phases` */
   layers: string[];
@@ -87,11 +80,11 @@ export interface StyleBank {
   log: { file: string; bytes: number; ms: number }[];
 }
 
-/** the folder a set of `style` lives in: public/assets/music/<style>/ or public/assets/music/pine-hollow-<style>/ */
-export const musicSetDir = (style: MusicStyle, set: MusicSet = 'base'): string => (set === 'base' ? style : `pine-hollow-${style}`);
+/** the folder a set of `style` lives in: public/assets/music/<style>/ or public/assets/music/<set>-<style>/ */
+export const musicSetDir = (style: MusicStyle, set: MusicSet = 'base'): string => (set === 'base' ? style : `${set}-${style}`);
 /** this build's manifest for `style` (compiled in from public/assets/music/<dir>/music.json), or undefined */
 export function musicManifest(style: MusicStyle, set: MusicSet = 'base'): MusicManifest | undefined { return parseManifest(MUSIC_MANIFESTS[musicSetDir(style, set)]); }
-/** every file of a set (URLs) — Pine Hollow fetches its own set into the offline cache while the player is in (Music.prefetchPine) */
+/** every file of a set (URLs) — a level fetches its own set into the offline cache while the player is in */
 export function setFiles(style: MusicStyle, set: MusicSet): string[] {
   const m = musicManifest(style, set);
   if (!m) return [];
