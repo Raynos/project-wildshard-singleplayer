@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { VoicePool } from '#engine/audio/Voices';
 import type { AudioMixer } from '#engine/audio/levelAudio';
+import type { Audio } from '#engine/audio/Audio';
+import { PineHollowSfx } from '#shards/pine-hollow/audio/sfx';
+import { legacyDouble } from '../../fake/FakeGame';
 
 const buffer = (duration = 100): AudioBuffer => ({ duration } as AudioBuffer);
 class Param implements AudioParam {
@@ -48,19 +51,23 @@ function fake(): { audio: AudioMixer; nodes: Node[]; bus: Node } {
   return { audio, nodes, bus };
 }
 
-// Pine's sampled bank owns its ear. Nearby samples must not wake a distant procedural quest glyph.
-describe('independent content listener', () => {
-  it('places the sample at its own ear while preserving the procedural listener', () => {
-    const {audio,nodes} = fake();
-    Object.assign(audio,{ready:true});
-    const voices = audio.voice();
-    const clip = {buffer:buffer(),offset:0,duration:1};
-    voices.register({'sample.test':{clips:()=>[clip],policy:{jitter:0}}});
-    expect(voices.sample([clip],{at:{x:200,y:0,z:0},listener:{x:200,y:0,z:0,yaw:0}},{jitter:0,cutoffScale:Infinity})).toBeDefined();
+describe('Pine shared listener (E357 J1 / P5)', () => {
+  it('moves every sample voice with Pine and keeps its distinct roll-off policy', () => {
+    const { audio, nodes } = fake();
+    Object.assign(audio, { ready: true });
+    const voices = audio.voice(), sfx = new PineHollowSfx(legacyDouble<Audio>({ voices }));
+    const clip = { buffer: buffer(), offset: 0, duration: 1 };
+    voices.register({ 'sample.test': { clips: () => [clip], policy: { jitter: 0 } } });
+    expect(voices.play('sample.test', { at: { x: 200, y: 0, z: 0 } })).toBeUndefined();
+    sfx.setListener(200, 0, 0, 0);
+    expect(voices.sample([clip], { at: { x: 200, y: 0, z: 0 } }, { jitter: 0 })).toBeDefined();
     expect(nodes[1]?.gain.value).toBe(1);
-    expect(nodes[0]?.starts).toEqual([[10,0,1]]);
-    expect(voices.play('sample.test',{at:{x:200,y:0,z:0}})).toBeUndefined();
-    expect(voices.play('ui-glyph',{at:{x:200,y:0,z:0}})).toBeUndefined();
-    expect(nodes[0]?.starts).toHaveLength(1);
+    expect(voices.play('sample.test', { at: { x: 200, y: 0, z: 0 } })).toBeDefined();
+    expect(nodes[4]?.gain.value).toBe(1);
+    expect(voices.sample([clip], { at: { x: 360, y: 0, z: 0 } }, { reach: 220, scale: 10, power: 1.3, jitter: 0 })).toBeDefined();
+    expect(nodes[7]?.gain.value).toBeCloseTo(1 / 17 ** 1.3);
+    expect(voices.play('sample.test', { at: { x: 360, y: 0, z: 0 } })).toBeUndefined();
+    sfx.setListener(0, 0, 0, 0);
+    expect(voices.play('sample.test', { at: { x: 200, y: 0, z: 0 } })).toBeUndefined();
   });
 });

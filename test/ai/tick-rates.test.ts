@@ -85,7 +85,7 @@ describe('distance-banded creature clocks', () => {
     for (let frame = 0; frame < 120; frame++) flock.update(1 / 60, frame / 60, f.player.position, 0, []);
     expect(think).toHaveBeenCalledTimes(brains); expect(draw).toHaveBeenCalledTimes(bodies);
   });
-  it('keeps the far marmot colony simulation running while FX holds drawn transforms (B63)', () => {
+  it('pauses far marmot decisions and motion, then resumes nearby (J2)', () => {
     const f = manager(), marmots = new Marmots(f.sky, 357).build([{ x: 0, z: 0 }]);
     const list: unknown = Reflect.get(marmots, 'list'); if (!Array.isArray(list)) throw new Error('marmots moved');
     const m: unknown = list[0]; if (typeof m !== 'object' || m === null) throw new Error('marmot missing');
@@ -93,17 +93,17 @@ describe('distance-banded creature clocks', () => {
     const pose = Array.from(marmots.mesh.instanceMatrix.array);
     f.player.position.z = 200;
     for (let frame = 0; frame < 30; frame++) marmots.update(1 / 30, f.player.position, 0, true);
-    expect(Reflect.get(m, 't')).toBeCloseTo(99);
-    expect(Reflect.get(m, 'x')).toBeCloseTo(0.35);
-    expect(Reflect.get(m, 'sink')).toBeGreaterThan(0);
+    expect(Reflect.get(m, 't')).toBe(100);
+    expect(Reflect.get(m, 'x')).toBe(0);
+    expect(Reflect.get(m, 'sink')).toBe(0);
     expect(Array.from(marmots.mesh.instanceMatrix.array)).toEqual(pose);
     f.player.position.z = 30;
     for (let frame = 0; frame < 30; frame++) marmots.update(1 / 30, f.player.position, 0, true);
-    expect(Reflect.get(m, 't')).toBeCloseTo(98);
-    expect(Reflect.get(m, 'x')).toBeCloseTo(0.7);
+    expect(Reflect.get(m, 't')).toBeCloseTo(99);
+    expect(Reflect.get(m, 'x')).toBeCloseTo(0.35);
     expect(Array.from(marmots.mesh.instanceMatrix.array)).not.toEqual(pose);
   });
-  it('a far marmot reaches its burrow and rolls its hidden timer before FX resumes (B63)', () => {
+  it('holds a far burrow arrival until the colony resumes nearby (J2)', () => {
     const f = manager(), marmots = new Marmots(f.sky, 357).build([{ x: 0, z: 0 }]);
     const list: unknown = Reflect.get(marmots, 'list'); if (!Array.isArray(list)) throw new Error('marmots moved');
     const m: unknown = list[0]; if (typeof m !== 'object' || m === null) throw new Error('marmot missing');
@@ -111,9 +111,14 @@ describe('distance-banded creature clocks', () => {
     const pose = Array.from(marmots.mesh.instanceMatrix.array);
     f.player.position.z = 200;
     for (let frame = 0; frame < 9; frame++) marmots.update(1 / 30, f.player.position, 0, true);
+    expect(Reflect.get(m, 'state')).toBe(2);
+    expect(Reflect.get(m, 't')).toBe(3);
+    expect(Array.from(marmots.mesh.instanceMatrix.array)).toEqual(pose);
+    f.player.position.z = 30;
+    for (let frame = 0; frame < 9; frame++) marmots.update(1 / 30, f.player.position, 0, true);
     expect(Reflect.get(m, 'state')).toBe(3);
     expect(Reflect.get(m, 't')).toBeGreaterThanOrEqual(10);
     expect(Reflect.get(m, 't')).toBeLessThan(18);
-    expect(Array.from(marmots.mesh.instanceMatrix.array)).toEqual(pose);
+    expect(Array.from(marmots.mesh.instanceMatrix.array)).not.toEqual(pose);
   });
 });

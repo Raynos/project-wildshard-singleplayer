@@ -102,15 +102,19 @@ export class Marmots {
 
   update(dt: number, player: THREE.Vector3, playerSpeed: number, crouched: boolean): void {
     this.scheduler.beginFrame(dt, player);
-    // The colony shares one decision/RNG history; far FX culling must not reorder sentry rolls (E357 B63).
+    // Keep the authored near decision clock; far colonies pause with FX (E357 J2 / P6).
     this.acc += dt;
     const think = this.acc >= 0.1;
     if (think) this.acc = 0;
     const rng = this.rng;
     let whistled = false;
+    const active: Marmot[] = [];
     for (const m of this.list) {
-      const tickDt = this.scheduler.takeBrainDtAt('fx', m, { x: m.x, y: heightAt(m.x, m.z), z: m.z });
+      const point = { x: m.x, y: heightAt(m.x, m.z), z: m.z };
+      const tickDt = this.scheduler.takeBrainDtAt('fx', m, point);
       this.poseDue.set(m, tickDt > 0);
+      if (this.scheduler.brainHz('fx', { position: point }) === 0) continue;
+      active.push(m);
       const d = Math.hypot(player.x - m.x, player.z - m.z);
       if (think) {
         m.t -= 0.1;
@@ -126,8 +130,7 @@ export class Marmots {
         else if (m.state === 2 && Math.hypot(m.x - m.bx, m.z - m.bz) < 0.3) { m.state = 3; m.t = rng.range(10, 18); }
         else if (m.state === 3 && m.t <= 0 && d > 25) { m.state = 1; m.t = rng.range(4, 8); }
       }
-      // Position is also decision history: reaching the burrow consumes the next shared RNG roll.
-      // Keep the authored simulation step; FX holds only its presented instance pose.
+      // Active colonies retain their authored motion step; paused time is never replayed.
       const run = m.state === 2;
       const tx = run || m.state === 3 ? m.bx : m.tx, tz = run || m.state === 3 ? m.bz : m.tz;
       const dx = tx - m.x, dz = tz - m.z, dd = Math.hypot(dx, dz);
@@ -139,7 +142,7 @@ export class Marmots {
       m.stand += ((m.state === 1 ? 1 : 0) - m.stand) * Math.min(1, dt * 6);
       m.sink += ((m.state === 3 ? 1 : 0) - m.sink) * Math.min(1, dt * 5);
     }
-    if (whistled) for (const m of this.list) if (m.state === 0 || m.state === 1) { m.state = 2; m.t = 3; }
+    if (whistled) for (const m of active) if (m.state === 0 || m.state === 1) { m.state = 2; m.t = 3; }
     this.write(true);
   }
 
