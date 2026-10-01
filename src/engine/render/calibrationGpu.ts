@@ -1,11 +1,12 @@
 import * as THREE from 'three';
 import { median } from '../calibrate/math';
 
-export interface Timing { submitMs: number; throughputMs: number; samples: number[]; calls: number; tris: number }
+export interface Timing { submitMs: number; throughputMs: number; samples: number[]; batchDraws: number; calls: number; tris: number }
 export interface Work { draw: () => void; dispose: () => void }
 export class CalibrationGpu {
   readonly renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: 'high-performance' });
   readonly camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.01, 20);
+  private linkSerial = 0;
   private readonly pixel = new Uint8Array(4);
   constructor() {
     this.renderer.setPixelRatio(2); this.renderer.setSize(402, 874);
@@ -20,14 +21,17 @@ export class CalibrationGpu {
   }
   measure(work: Work): Timing {
     const r = this.renderer; work.draw(); this.sync();
+    // Amortize the fence across frames, but bound heavy pass sweeps to about 100ms per batch.
+    const pilotStart = performance.now(); for (let i = 0; i < 128; i++) work.draw(); this.sync();
+    const batchDraws = Math.max(16, Math.min(128, Math.floor(128 * 100 / Math.max(1, performance.now() - pilotStart))));
     const submit: number[] = [], samples: number[] = [];
     for (let repeat = 0; repeat < 5; repeat++) {
       r.info.reset(); this.sync(); const start = performance.now();
-      for (let i = 0; i < 128; i++) work.draw();
-      const cpu = (performance.now() - start) / 128; this.sync();
-      submit.push(cpu); samples.push((performance.now() - start) / 128);
+      for (let i = 0; i < batchDraws; i++) work.draw();
+      const cpu = (performance.now() - start) / batchDraws; this.sync();
+      submit.push(cpu); samples.push((performance.now() - start) / batchDraws);
     }
-    return { submitMs: median(submit), throughputMs: median(samples), samples, calls: r.info.render.calls / 128, tris: r.info.render.triangles / 128 };
+    return { submitMs: median(submit), throughputMs: median(samples), samples, batchDraws, calls: r.info.render.calls / batchDraws, tris: r.info.render.triangles / batchDraws };
   }
   sceneWork(scene: THREE.Scene, disposables: { dispose: () => void }[]): Work {
     return { draw: () => { this.renderer.setRenderTarget(null); this.renderer.render(scene, this.camera); }, dispose: () => { for (const d of disposables) d.dispose(); } };
@@ -67,11 +71,14 @@ export class CalibrationGpu {
     const mat = new THREE.MeshBasicMaterial({ map: a.texture, depthTest: false, depthWrite: false }); scene.add(new THREE.Mesh(geo, mat));
     return { draw: () => { for (let i = 0; i < n; i++) { mat.map = i % 2 === 0 ? a.texture : b.texture; this.renderer.setRenderTarget(i % 2 === 0 ? b : a); this.renderer.render(scene, this.camera); } this.renderer.setRenderTarget(null); }, dispose: () => { geo.dispose(); mat.dispose(); a.dispose(); b.dispose(); } };
   }
-  async link(n: number): Promise<number> {
-    const scene = new THREE.Scene(), geo = new THREE.PlaneGeometry(1, 1), mats: THREE.ShaderMaterial[] = [];
-    for (let i = 0; i < n; i++) { const mat = new THREE.ShaderMaterial({ vertexShader: 'void main(){gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}', fragmentShader: `void main(){gl_FragColor=vec4(${(i / (n + 1)).toFixed(6)},0.2,0.4,1.);}` }); mats.push(mat); scene.add(new THREE.Mesh(geo, mat)); }
-    const t = performance.now(); await this.renderer.compileAsync(scene, this.camera); const ms = performance.now() - t;
-    geo.dispose(); for (const m of mats) m.dispose(); return ms;
+  link(n: number): number {
+    const scene = new THREE.Scene(), geo = new THREE.PlaneGeometry(0.005, 0.005), mats: THREE.ShaderMaterial[] = [];
+    for (let i = 0; i < n; i++) { const mat = new THREE.ShaderMaterial({ vertexShader: 'void main(){gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}', fragmentShader: `void main(){gl_FragColor=vec4(${((++this.linkSerial) / 1000000).toFixed(9)},0.2,0.4,1.);}` }); mats.push(mat); scene.add(new THREE.Mesh(geo, mat)); }
+    // compileAsync polls KHR completion every 10ms: small batches measure its timer, not linking.
+    // First use plus readback fences compilation on Metal, with fresh source in every cold/hot batch.
+    this.sync(); const t = performance.now();
+    try { this.renderer.compile(scene, this.camera); this.renderer.render(scene, this.camera); this.sync(); return performance.now() - t; }
+    finally { geo.dispose(); for (const m of mats) m.dispose(); }
   }
   dispose(): void { this.renderer.dispose(); this.renderer.forceContextLoss(); this.renderer.domElement.remove(); }
 }
