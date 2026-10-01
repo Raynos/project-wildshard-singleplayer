@@ -143,13 +143,13 @@ export function installPineCombat(h: PineCombatHost): PineCombat {
     }
   }
 
-  game.onUpdate((dt, t) => {
+  game.app.addSystem({ id: 'elites', phase: 'update', before: ['main.frame'], run: (dt, t) => {
     legs();
     feel.update(dt, t);
     if (perfLap.active) return; // E350 F-J1: the PERF LAP's teleports find no lair and wake no King
     pineElites.update(dt, t);
     king.update(dt, t);
-  }, 'elites');
+  } }, game.levelScope);
   Object.assign(window, { __pineElites: pineElites, __antlerKing: king });
   registerPineLap({ game, player, animals, music: h.music, hud: h.hud, elites, king }); // E350 F-J1: the fps panel's PERF LAP
 
