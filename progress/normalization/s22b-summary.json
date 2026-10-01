@@ -1,0 +1,1434 @@
+{
+  "source": {
+    "beforeRanged": "152c5409",
+    "beforeCosmetics": "d5e19295",
+    "afterCosmetics": "6f424757",
+    "finalRanged": "89001f56"
+  },
+  "captures": {
+    "driftwood-isle": {
+      "before": {
+        "verdict": "red",
+        "checks": 139,
+        "red": [
+          {
+            "field": "boot.steps",
+            "baseline": [
+              "renderer",
+              "sky",
+              "terrain",
+              "cards",
+              "forest",
+              "physics",
+              "edge",
+              "grass",
+              "cabins",
+              "props",
+              "animals",
+              "weapon",
+              "menu",
+              "shaders",
+              "firstFrame",
+              "audio"
+            ],
+            "now": [
+              "renderer",
+              "sky",
+              "terrain",
+              "cards",
+              "forest",
+              "physics",
+              "edge",
+              "props",
+              "grass",
+              "cabins",
+              "animals",
+              "weapon",
+              "menu",
+              "shaders",
+              "firstFrame",
+              "audio"
+            ]
+          },
+          {
+            "field": "boot.systems.input",
+            "baseline": [
+              "player.input"
+            ],
+            "now": [
+              "engine.input.collect",
+              "engine.lockon.input",
+              "engine.player.input"
+            ]
+          },
+          {
+            "field": "boot.systems.update",
+            "baseline": [
+              "player.update",
+              "main.1",
+              "main.2",
+              "main.4",
+              "world.impacts",
+              "engine.player.for",
+              "training-arena",
+              "hud.perf",
+              "main.6",
+              "engine.quest.installDriftwoodAdventure",
+              "shard.driftwood-isle.installSpine",
+              "shard.driftwood-isle.installTrader",
+              "engine.quest.installDriftwoodAdventure.2",
+              "shard.driftwood-isle.installGullGuide",
+              "shard.driftwood-isle.installComplete",
+              "shard.driftwood-isle.installFinale",
+              "shard.driftwood-isle.installEcology",
+              "engine.quest.installDriftwoodAdventure.3",
+              "engine.quest.installDriftwoodAdventure.4",
+              "loot",
+              "body-shadow",
+              "keepsakes",
+              "hud.combat",
+              "last place",
+              "first hints",
+              "main.frame",
+              "engine.player.regen",
+              "engine.player.hud"
+            ],
+            "now": [
+              "player.update",
+              "main.1",
+              "main.2",
+              "main.4",
+              "world.impacts",
+              "engine.player.for",
+              "training-arena",
+              "hud.perf",
+              "engine.effects",
+              "main.6",
+              "engine.quest.installDriftwoodAdventure",
+              "shard.driftwood-isle.installSpine",
+              "shard.driftwood-isle.installTrader",
+              "engine.quest.installDriftwoodAdventure.2",
+              "shard.driftwood-isle.installGullGuide",
+              "shard.driftwood-isle.installComplete",
+              "shard.driftwood-isle.installFinale",
+              "shard.driftwood-isle.installEcology",
+              "engine.quest.installDriftwoodAdventure.3",
+              "engine.quest.installDriftwoodAdventure.4",
+              "loot",
+              "body-shadow",
+              "keepsakes",
+              "hud.combat",
+              "last place",
+              "first hints",
+              "main.frame",
+              "engine.player.regen",
+              "engine.player.hud"
+            ]
+          },
+          {
+            "field": "boot.systems.late",
+            "baseline": [],
+            "now": [
+              "engine.hud.pins"
+            ]
+          }
+        ],
+        "governedVerdict": "red",
+        "ambientInfo": [
+          "steppe.herd",
+          "steppe.eagle",
+          "forest.thrall"
+        ]
+      },
+      "after2": {
+        "verdict": "red",
+        "checks": 139,
+        "red": [
+          {
+            "field": "boot.steps",
+            "baseline": [
+              "renderer",
+              "sky",
+              "terrain",
+              "cards",
+              "forest",
+              "physics",
+              "edge",
+              "grass",
+              "cabins",
+              "props",
+              "animals",
+              "weapon",
+              "menu",
+              "shaders",
+              "firstFrame",
+              "audio"
+            ],
+            "now": [
+              "renderer",
+              "sky",
+              "terrain",
+              "cards",
+              "forest",
+              "physics",
+              "edge",
+              "props",
+              "grass",
+              "cabins",
+              "animals",
+              "weapon",
+              "menu",
+              "shaders",
+              "firstFrame",
+              "audio"
+            ]
+          },
+          {
+            "field": "boot.systems.update",
+            "baseline": [
+              "player.update",
+              "main.1",
+              "main.2",
+              "main.4",
+              "world.impacts",
+              "engine.player.for",
+              "training-arena",
+              "hud.perf",
+              "main.6",
+              "engine.quest.installDriftwoodAdventure",
+              "shard.driftwood-isle.installSpine",
+              "shard.driftwood-isle.installTrader",
+              "engine.quest.installDriftwoodAdventure.2",
+              "shard.driftwood-isle.installGullGuide",
+              "shard.driftwood-isle.installComplete",
+              "shard.driftwood-isle.installFinale",
+              "shard.driftwood-isle.installEcology",
+              "engine.quest.installDriftwoodAdventure.3",
+              "engine.quest.installDriftwoodAdventure.4",
+              "loot",
+              "body-shadow",
+              "keepsakes",
+              "hud.combat",
+              "last place",
+              "first hints",
+              "main.frame",
+              "engine.player.regen",
+              "engine.player.hud"
+            ],
+            "now": [
+              "player.update",
+              "main.1",
+              "main.2",
+              "main.4",
+              "world.impacts",
+              "engine.player.for",
+              "training-arena",
+              "hud.perf",
+              "engine.effects",
+              "main.6",
+              "engine.quest.installDriftwoodAdventure",
+              "shard.driftwood-isle.installSpine",
+              "shard.driftwood-isle.installTrader",
+              "engine.quest.installDriftwoodAdventure.2",
+              "shard.driftwood-isle.installGullGuide",
+              "shard.driftwood-isle.installComplete",
+              "shard.driftwood-isle.installFinale",
+              "shard.driftwood-isle.installEcology",
+              "engine.quest.installDriftwoodAdventure.3",
+              "engine.quest.installDriftwoodAdventure.4",
+              "loot",
+              "body-shadow",
+              "keepsakes",
+              "hud.combat",
+              "last place",
+              "first hints",
+              "main.frame",
+              "engine.player.regen",
+              "engine.player.hud"
+            ]
+          }
+        ],
+        "governedVerdict": "red",
+        "ambientInfo": [
+          "steppe.herd",
+          "steppe.eagle",
+          "forest.thrall"
+        ]
+      },
+      "before-cosmetics": {
+        "verdict": "green",
+        "checks": 139,
+        "red": [],
+        "governedVerdict": "green",
+        "ambientInfo": [
+          "steppe.herd",
+          "steppe.eagle",
+          "forest.thrall"
+        ]
+      }
+    },
+    "nalati-grasslands": {
+      "before": {
+        "verdict": "red",
+        "checks": 168,
+        "red": [
+          {
+            "field": "boot.steps",
+            "baseline": [
+              "renderer",
+              "sky",
+              "terrain",
+              "cards",
+              "forest",
+              "physics",
+              "edge",
+              "grass",
+              "cabins",
+              "props",
+              "animals",
+              "weapon",
+              "menu",
+              "shaders",
+              "firstFrame",
+              "audio"
+            ],
+            "now": [
+              "renderer",
+              "sky",
+              "terrain",
+              "cards",
+              "forest",
+              "physics",
+              "edge",
+              "grass",
+              "props",
+              "cabins",
+              "animals",
+              "weapon",
+              "menu",
+              "shaders",
+              "firstFrame",
+              "audio"
+            ]
+          },
+          {
+            "field": "boot.systems.input",
+            "baseline": [
+              "player.input"
+            ],
+            "now": [
+              "engine.input.collect",
+              "engine.lockon.input",
+              "engine.player.input"
+            ]
+          },
+          {
+            "field": "boot.systems.update",
+            "baseline": [
+              "player.update",
+              "world.impacts",
+              "engine.player.for",
+              "training-arena",
+              "hud.perf",
+              "main.6",
+              "shard.nalati-grasslands.installNalatiAdventure",
+              "hud.combat",
+              "shard.nalati-grasslands.bind",
+              "first hints",
+              "main.frame",
+              "engine.player.regen",
+              "engine.player.hud"
+            ],
+            "now": [
+              "player.update",
+              "world.impacts",
+              "engine.player.for",
+              "training-arena",
+              "hud.perf",
+              "engine.effects",
+              "main.6",
+              "shard.nalati-grasslands.installNalatiAdventure",
+              "hud.combat",
+              "shard.nalati-grasslands.bind",
+              "first hints",
+              "main.frame",
+              "engine.player.regen",
+              "engine.player.hud"
+            ]
+          },
+          {
+            "field": "boot.systems.late",
+            "baseline": [
+              "nalati-reins"
+            ],
+            "now": [
+              "nalati-reins",
+              "engine.hud.pins"
+            ]
+          },
+          {
+            "field": "boot.scene.totals.mesh",
+            "baseline": 315,
+            "now": 313
+          },
+          {
+            "field": "boot.scene.totals.instanced",
+            "baseline": 44,
+            "now": 42
+          },
+          {
+            "field": "boot.scene.totals.instances",
+            "baseline": 1722,
+            "now": 1450
+          },
+          {
+            "field": "boot.scene.totals.points",
+            "baseline": 12,
+            "now": 11
+          },
+          {
+            "field": "boot.render.programs",
+            "baseline": 102,
+            "now": 99
+          },
+          {
+            "field": "boot.render.programKeys",
+            "baseline": "3c7fd5d6d3ca837d5213826e6e0a4971a9dbd3e7419ec74a1b393ad1b8682c06",
+            "now": "864cb78bc6fdaf9455ae25eae0837216b8ff66bdf1c68715e30424c471f89f48"
+          },
+          {
+            "field": "boot.render.memory.geometries",
+            "baseline": 120,
+            "now": 117
+          },
+          {
+            "field": "boot.render.memory.textures",
+            "baseline": 128,
+            "now": 125
+          },
+          {
+            "field": "boot.gpuBytes.textures",
+            "baseline": 136202680,
+            "now": 135825844
+          },
+          {
+            "field": "boot.gpuBytes.buffers",
+            "baseline": 73219036,
+            "now": 73152596
+          },
+          {
+            "field": "boot.gpuBytes.total",
+            "baseline": 250481940,
+            "now": 250038664
+          }
+        ],
+        "governedVerdict": "red",
+        "ambientInfo": [
+          "steppe.herd",
+          "steppe.eagle",
+          "forest.thrall"
+        ]
+      },
+      "after2": {
+        "verdict": "red",
+        "checks": 168,
+        "red": [
+          {
+            "field": "boot.steps",
+            "baseline": [
+              "renderer",
+              "sky",
+              "terrain",
+              "cards",
+              "forest",
+              "physics",
+              "edge",
+              "grass",
+              "cabins",
+              "props",
+              "animals",
+              "weapon",
+              "menu",
+              "shaders",
+              "firstFrame",
+              "audio"
+            ],
+            "now": [
+              "renderer",
+              "sky",
+              "terrain",
+              "cards",
+              "forest",
+              "physics",
+              "edge",
+              "grass",
+              "props",
+              "cabins",
+              "animals",
+              "weapon",
+              "menu",
+              "shaders",
+              "firstFrame",
+              "audio"
+            ]
+          },
+          {
+            "field": "boot.systems.update",
+            "baseline": [
+              "player.update",
+              "world.impacts",
+              "engine.player.for",
+              "training-arena",
+              "hud.perf",
+              "main.6",
+              "shard.nalati-grasslands.installNalatiAdventure",
+              "hud.combat",
+              "shard.nalati-grasslands.bind",
+              "first hints",
+              "main.frame",
+              "engine.player.regen",
+              "engine.player.hud"
+            ],
+            "now": [
+              "player.update",
+              "world.impacts",
+              "engine.player.for",
+              "training-arena",
+              "hud.perf",
+              "engine.effects",
+              "main.6",
+              "shard.nalati-grasslands.installNalatiAdventure",
+              "hud.combat",
+              "shard.nalati-grasslands.bind",
+              "first hints",
+              "main.frame",
+              "engine.player.regen",
+              "engine.player.hud"
+            ]
+          },
+          {
+            "field": "boot.scene.totals.mesh",
+            "baseline": 315,
+            "now": 313
+          },
+          {
+            "field": "boot.scene.totals.instanced",
+            "baseline": 44,
+            "now": 42
+          },
+          {
+            "field": "boot.scene.totals.instances",
+            "baseline": 1722,
+            "now": 1450
+          },
+          {
+            "field": "boot.scene.totals.points",
+            "baseline": 12,
+            "now": 11
+          },
+          {
+            "field": "boot.render.programs",
+            "baseline": 102,
+            "now": 99
+          },
+          {
+            "field": "boot.render.programKeys",
+            "baseline": "3c7fd5d6d3ca837d5213826e6e0a4971a9dbd3e7419ec74a1b393ad1b8682c06",
+            "now": "864cb78bc6fdaf9455ae25eae0837216b8ff66bdf1c68715e30424c471f89f48"
+          },
+          {
+            "field": "boot.render.memory.geometries",
+            "baseline": 120,
+            "now": 117
+          },
+          {
+            "field": "boot.render.memory.textures",
+            "baseline": 128,
+            "now": 125
+          },
+          {
+            "field": "boot.gpuBytes.textures",
+            "baseline": 136202680,
+            "now": 135825844
+          },
+          {
+            "field": "boot.gpuBytes.buffers",
+            "baseline": 73219036,
+            "now": 73152596
+          },
+          {
+            "field": "boot.gpuBytes.total",
+            "baseline": 250481940,
+            "now": 250038664
+          }
+        ],
+        "governedVerdict": "red",
+        "ambientInfo": [
+          "steppe.herd",
+          "steppe.eagle",
+          "forest.thrall"
+        ]
+      },
+      "before-cosmetics": {
+        "verdict": "green",
+        "checks": 168,
+        "red": [],
+        "governedVerdict": "green",
+        "ambientInfo": [
+          "steppe.herd",
+          "steppe.eagle",
+          "forest.thrall"
+        ]
+      }
+    },
+    "nine-dragon-stack": {
+      "before": {
+        "verdict": "red",
+        "checks": 142,
+        "red": [
+          {
+            "field": "boot.steps",
+            "baseline": [
+              "renderer",
+              "sky",
+              "terrain",
+              "cards",
+              "forest",
+              "physics",
+              "edge",
+              "grass",
+              "cabins",
+              "props",
+              "animals",
+              "weapon",
+              "menu",
+              "shaders",
+              "firstFrame",
+              "audio"
+            ],
+            "now": [
+              "renderer",
+              "sky",
+              "terrain",
+              "cards",
+              "forest",
+              "physics",
+              "edge",
+              "props",
+              "grass",
+              "cabins",
+              "animals",
+              "weapon",
+              "menu",
+              "shaders",
+              "firstFrame",
+              "audio"
+            ]
+          },
+          {
+            "field": "boot.systems.input",
+            "baseline": [
+              "player.input"
+            ],
+            "now": [
+              "engine.input.collect",
+              "shard.nd.feizhua.input",
+              "engine.lockon.input",
+              "engine.player.input"
+            ]
+          },
+          {
+            "field": "boot.systems.update",
+            "baseline": [
+              "player.update",
+              "shard.nd.world",
+              "shard.nd.audio",
+              "world.impacts",
+              "engine.player.for",
+              "training-arena",
+              "fei-zhua",
+              "hud.perf",
+              "engine.world.bounds",
+              "main.6",
+              "hud.combat",
+              "first hints",
+              "main.frame",
+              "engine.player.regen",
+              "engine.player.hud"
+            ],
+            "now": [
+              "player.update",
+              "shard.nd.world",
+              "shard.nd.audio",
+              "world.impacts",
+              "engine.player.for",
+              "training-arena",
+              "hud.perf",
+              "engine.world.bounds",
+              "engine.effects",
+              "main.6",
+              "hud.combat",
+              "first hints",
+              "main.frame",
+              "engine.player.regen",
+              "engine.player.hud",
+              "fei-zhua"
+            ]
+          },
+          {
+            "field": "boot.systems.late",
+            "baseline": [],
+            "now": [
+              "engine.hud.pins"
+            ]
+          }
+        ],
+        "governedVerdict": "red",
+        "ambientInfo": [
+          "steppe.herd",
+          "steppe.eagle",
+          "forest.thrall"
+        ]
+      },
+      "after2": {
+        "verdict": "red",
+        "checks": 142,
+        "red": [
+          {
+            "field": "boot.steps",
+            "baseline": [
+              "renderer",
+              "sky",
+              "terrain",
+              "cards",
+              "forest",
+              "physics",
+              "edge",
+              "grass",
+              "cabins",
+              "props",
+              "animals",
+              "weapon",
+              "menu",
+              "shaders",
+              "firstFrame",
+              "audio"
+            ],
+            "now": [
+              "renderer",
+              "sky",
+              "terrain",
+              "cards",
+              "forest",
+              "physics",
+              "edge",
+              "props",
+              "grass",
+              "cabins",
+              "animals",
+              "weapon",
+              "menu",
+              "shaders",
+              "firstFrame",
+              "audio"
+            ]
+          },
+          {
+            "field": "boot.systems.update",
+            "baseline": [
+              "player.update",
+              "shard.nd.world",
+              "shard.nd.audio",
+              "world.impacts",
+              "engine.player.for",
+              "training-arena",
+              "hud.perf",
+              "engine.world.bounds",
+              "main.6",
+              "hud.combat",
+              "first hints",
+              "main.frame",
+              "engine.player.regen",
+              "engine.player.hud",
+              "fei-zhua"
+            ],
+            "now": [
+              "player.update",
+              "shard.nd.world",
+              "shard.nd.audio",
+              "world.impacts",
+              "engine.player.for",
+              "training-arena",
+              "hud.perf",
+              "engine.world.bounds",
+              "engine.effects",
+              "main.6",
+              "hud.combat",
+              "first hints",
+              "main.frame",
+              "engine.player.regen",
+              "engine.player.hud",
+              "fei-zhua"
+            ]
+          }
+        ],
+        "governedVerdict": "red",
+        "ambientInfo": [
+          "steppe.herd",
+          "steppe.eagle",
+          "forest.thrall"
+        ]
+      },
+      "before-cosmetics": {
+        "verdict": "green",
+        "checks": 142,
+        "red": [],
+        "governedVerdict": "green",
+        "ambientInfo": [
+          "steppe.herd",
+          "steppe.eagle",
+          "forest.thrall"
+        ]
+      }
+    },
+    "pine-hollow": {
+      "before": {
+        "verdict": "red",
+        "checks": 168,
+        "red": [
+          {
+            "field": "boot.systems.input",
+            "baseline": [
+              "player.input"
+            ],
+            "now": [
+              "engine.input.collect",
+              "engine.lockon.input",
+              "engine.player.input"
+            ]
+          },
+          {
+            "field": "boot.systems.update",
+            "baseline": [
+              "player.update",
+              "main.5",
+              "training-arena",
+              "hud.perf",
+              "main.6",
+              "engine.player.for",
+              "world.impacts",
+              "elites",
+              "engine.compendium.installCompendium",
+              "quest.kit",
+              "quest.pool",
+              "quest.shelf",
+              "quest",
+              "hud.combat",
+              "audio",
+              "world.weather",
+              "world.life",
+              "first hints",
+              "main.frame",
+              "engine.player.regen",
+              "engine.player.hud"
+            ],
+            "now": [
+              "player.update",
+              "pine.landmarks",
+              "training-arena",
+              "hud.perf",
+              "engine.effects",
+              "main.6",
+              "hud.combat",
+              "first hints",
+              "main.frame",
+              "engine.player.regen",
+              "engine.player.hud",
+              "engine.effects.debug",
+              "engine.player.for",
+              "world.impacts",
+              "elites",
+              "engine.compendium.installCompendium",
+              "quest.kit",
+              "quest.pool",
+              "quest.shelf",
+              "quest",
+              "audio",
+              "shard.pine.weather",
+              "world.life"
+            ]
+          },
+          {
+            "field": "boot.systems.late",
+            "baseline": [],
+            "now": [
+              "engine.hud.pins"
+            ]
+          },
+          {
+            "field": "boot.physics.colliders",
+            "baseline": 2417,
+            "now": 2409
+          },
+          {
+            "field": "boot.render.memory.textures",
+            "baseline": 404,
+            "now": 408
+          },
+          {
+            "field": "boot.gpuBytes.textures",
+            "baseline": 567729880,
+            "now": 570530688
+          },
+          {
+            "field": "boot.gpuBytes.buffers",
+            "baseline": 41667444,
+            "now": 41678964
+          },
+          {
+            "field": "boot.gpuBytes.total",
+            "baseline": 609397324,
+            "now": 612209652
+          },
+          {
+            "field": "walk.legs.cabin-porch.end.x",
+            "baseline": -10.388,
+            "now": -10.386
+          },
+          {
+            "field": "walk.legs.cabin-porch.end.z",
+            "baseline": -34.359,
+            "now": -34.36
+          },
+          {
+            "field": "walk.legs.lookout-climb.end.x",
+            "baseline": 34.926,
+            "now": 34.916
+          },
+          {
+            "field": "walk.legs.lookout-climb.end.z",
+            "baseline": 211.28,
+            "now": 211.286
+          },
+          {
+            "field": "walk.legs.lookout-climb.maxY",
+            "baseline": 57.48,
+            "now": 57.478
+          },
+          {
+            "field": "combat.sounds.ambient",
+            "baseline": [
+              "forest.thrall"
+            ],
+            "now": []
+          }
+        ],
+        "governedVerdict": "red",
+        "ambientInfo": [
+          "steppe.herd",
+          "steppe.eagle",
+          "forest.thrall"
+        ]
+      },
+      "after2": {
+        "verdict": "red",
+        "checks": 168,
+        "red": [
+          {
+            "field": "boot.systems.update",
+            "baseline": [
+              "player.update",
+              "main.5",
+              "training-arena",
+              "hud.perf",
+              "main.6",
+              "engine.player.for",
+              "world.impacts",
+              "elites",
+              "engine.compendium.installCompendium",
+              "quest.kit",
+              "quest.pool",
+              "quest.shelf",
+              "quest",
+              "hud.combat",
+              "audio",
+              "world.weather",
+              "world.life",
+              "first hints",
+              "main.frame",
+              "engine.player.regen",
+              "engine.player.hud"
+            ],
+            "now": [
+              "player.update",
+              "pine.landmarks",
+              "training-arena",
+              "hud.perf",
+              "engine.effects",
+              "main.6",
+              "hud.combat",
+              "first hints",
+              "main.frame",
+              "engine.player.regen",
+              "engine.player.hud",
+              "engine.effects.debug",
+              "engine.player.for",
+              "world.impacts",
+              "elites",
+              "engine.compendium.installCompendium",
+              "quest.kit",
+              "quest.pool",
+              "quest.shelf",
+              "quest",
+              "audio",
+              "shard.pine.weather",
+              "world.life"
+            ]
+          },
+          {
+            "field": "boot.physics.colliders",
+            "baseline": 2417,
+            "now": 2409
+          },
+          {
+            "field": "boot.render.memory.textures",
+            "baseline": 404,
+            "now": 408
+          },
+          {
+            "field": "boot.gpuBytes.textures",
+            "baseline": 567729880,
+            "now": 570530688
+          },
+          {
+            "field": "boot.gpuBytes.total",
+            "baseline": 609408844,
+            "now": 612209652
+          },
+          {
+            "field": "walk.legs.lookout-climb.end.x",
+            "baseline": 34.926,
+            "now": 34.916
+          },
+          {
+            "field": "walk.legs.lookout-climb.end.z",
+            "baseline": 211.28,
+            "now": 211.286
+          },
+          {
+            "field": "walk.legs.lookout-climb.maxY",
+            "baseline": 57.48,
+            "now": 57.478
+          },
+          {
+            "field": "combat.sounds.ambient",
+            "baseline": [
+              "forest.thrall"
+            ],
+            "now": []
+          }
+        ],
+        "governedVerdict": "red",
+        "ambientInfo": [
+          "steppe.herd",
+          "steppe.eagle",
+          "forest.thrall"
+        ]
+      },
+      "before-cosmetics": {
+        "verdict": "red",
+        "checks": 168,
+        "red": [
+          {
+            "field": "combat.sounds.ambient",
+            "baseline": [
+              "forest.thrall"
+            ],
+            "now": []
+          }
+        ],
+        "governedVerdict": "green",
+        "ambientInfo": [
+          "steppe.herd",
+          "steppe.eagle",
+          "forest.thrall"
+        ]
+      }
+    }
+  },
+  "smoke": {
+    "before": {
+      "sha": "152c5409",
+      "combat": {
+        "swing": "n/a",
+        "shot": {
+          "weapon": "crossbow",
+          "target": "boar",
+          "hits": 3,
+          "hitWithinS": 0.5693333333333352,
+          "killed": true,
+          "killWithinS": 4.409333333333322,
+          "hitLimit": 20,
+          "killLimit": 20
+        },
+        "shot2": {
+          "weapon": "bow",
+          "target": "boar",
+          "hits": 3,
+          "hitWithinS": 1.4693333333333278,
+          "killed": true,
+          "killWithinS": 4.3759999999999835,
+          "hitLimit": 20,
+          "killLimit": 20
+        },
+        "hitsToKill": {
+          "shot": 3,
+          "shot2": 3,
+          "shot3": 2
+        },
+        "kills": [
+          "boar",
+          "boar",
+          "boar"
+        ],
+        "loot": {
+          "written": [
+            "local:wildshard.save.v2.global",
+            "local:wildshard.save.v2.pine-hollow",
+            "session:wildshard.save.v2.session"
+          ]
+        },
+        "shot3": {
+          "weapon": "rifle",
+          "target": "boar",
+          "hits": 2,
+          "hitWithinS": 0.5693333333333648,
+          "killed": true,
+          "killWithinS": 1.7400000000000944,
+          "hitLimit": 20,
+          "killLimit": 20
+        },
+        "sounds": {
+          "event": {
+            "forest.bed:hollow": 1,
+            "crossbowFire": 3,
+            "animal:boar_squeal": 8,
+            "animal:boar_grunt": 3,
+            "hitMarker": 8,
+            "boltImpact:flesh": 8,
+            "dryFire": 2,
+            "reload": 3,
+            "kill": 3,
+            "pineSfx:longbowDraw": 3,
+            "pineSfx:longbowLoose": 3,
+            "land": 1,
+            "pineSfx:leverShot": 2,
+            "pineSfx:leverCycle": 2,
+            "pineSfx:leverEcho": 2
+          },
+          "ambient": [
+            "forest.thrall",
+            "pineLife.drum",
+            "pineLife.woodpecker"
+          ]
+        }
+      },
+      "errors": [],
+      "pass": true
+    },
+    "after": {
+      "sha": "89001f56",
+      "pickup": {
+        "before": {
+          "rifle": false,
+          "bow": false
+        },
+        "rifle": {
+          "unlocked": true,
+          "selected": "rifle"
+        },
+        "bow": {
+          "unlocked": true,
+          "selected": "bow",
+          "row": "weapon.longbow"
+        }
+      },
+      "combat": {
+        "swing": "n/a",
+        "shot": {
+          "weapon": "crossbow",
+          "target": "boar",
+          "hits": 3,
+          "hitWithinS": 0.569333333333331,
+          "killed": true,
+          "killWithinS": 4.409333333333317,
+          "hitLimit": 20,
+          "killLimit": 20
+        },
+        "shot2": {
+          "weapon": "bow",
+          "target": "boar",
+          "hits": 3,
+          "hitWithinS": 1.4693333333333278,
+          "killed": true,
+          "killWithinS": 4.3759999999999835,
+          "hitLimit": 20,
+          "killLimit": 20
+        },
+        "hitsToKill": {
+          "shot": 3,
+          "shot2": 3,
+          "shot3": 2
+        },
+        "kills": [
+          "boar",
+          "boar",
+          "boar"
+        ],
+        "loot": {
+          "written": [
+            "local:wildshard.save.v2.global",
+            "local:wildshard.save.v2.pine-hollow",
+            "session:wildshard.save.v2.session"
+          ]
+        },
+        "shot3": {
+          "weapon": "rifle",
+          "target": "boar",
+          "hits": 2,
+          "hitWithinS": 0.5693333333333648,
+          "killed": true,
+          "killWithinS": 1.7400000000000944,
+          "hitLimit": 20,
+          "killLimit": 20
+        },
+        "sounds": {
+          "event": {
+            "crossbowFire": 3,
+            "animal:boar_squeal": 8,
+            "animal:boar_grunt": 3,
+            "hitMarker": 8,
+            "boltImpact:flesh": 8,
+            "dryFire": 2,
+            "reload": 3,
+            "kill": 3,
+            "pineSfx:longbowDraw": 3,
+            "pineSfx:longbowLoose": 3,
+            "land": 1,
+            "pineSfx:leverShot": 2,
+            "pineSfx:leverCycle": 2,
+            "pineSfx:leverEcho": 2
+          },
+          "ambient": [
+            "forest.thrall",
+            "pineLife.drum",
+            "pineLife.woodpecker"
+          ]
+        }
+      },
+      "drop": {
+        "killed": true,
+        "before": 0,
+        "after": {
+          "count": 1,
+          "skin": {
+            "wildshard.save.v2.pine-hollow": {
+              "keys": {
+                "owned": {
+                  "v": 1,
+                  "data": {
+                    "owned": [
+                      "lever-rifle",
+                      "warden-longbow"
+                    ],
+                    "worn": []
+                  }
+                },
+                "compendium": {
+                  "v": 1,
+                  "data": {
+                    "boar": {
+                      "s": 3,
+                      "n": 3,
+                      "t": 2,
+                      "b": 78
+                    },
+                    "red-deer": {
+                      "s": 2,
+                      "n": 1,
+                      "t": 0,
+                      "b": 0
+                    },
+                    "black-boar": {
+                      "s": 3,
+                      "n": 1,
+                      "t": 1,
+                      "b": 127
+                    },
+                    "piebald": {
+                      "s": 1,
+                      "n": 0,
+                      "t": 0,
+                      "b": 0
+                    },
+                    "white-deer": {
+                      "s": 2,
+                      "n": 1,
+                      "t": 0,
+                      "b": 0
+                    },
+                    "gate": {
+                      "s": 1,
+                      "n": 0,
+                      "t": 0,
+                      "b": 0
+                    },
+                    "elk": {
+                      "s": 1,
+                      "n": 0,
+                      "t": 0,
+                      "b": 0
+                    },
+                    "ironhide": {
+                      "s": 1,
+                      "n": 0,
+                      "t": 0,
+                      "b": 0
+                    },
+                    "ghost-stag": {
+                      "s": 3,
+                      "n": 0,
+                      "t": 1,
+                      "b": 271
+                    }
+                  }
+                },
+                "progress": {
+                  "v": 1,
+                  "data": {
+                    "counts": {
+                      "boar5": 3,
+                      "deer5": 1,
+                      "ghost": 1
+                    },
+                    "earned": [
+                      "ghost"
+                    ],
+                    "title": "ghost",
+                    "playS": 22.02533333333359
+                  }
+                },
+                "elites": {
+                  "v": 1,
+                  "data": {
+                    "ironhide": {
+                      "timer": 0,
+                      "discovered": false,
+                      "skinTaken": false,
+                      "kills": 0,
+                      "retired": false
+                    },
+                    "ghost-stag": {
+                      "timer": 0,
+                      "discovered": false,
+                      "skinTaken": false,
+                      "kills": 0,
+                      "retired": false
+                    },
+                    "blackpaw": {
+                      "timer": 0,
+                      "discovered": false,
+                      "skinTaken": false,
+                      "kills": 0,
+                      "retired": false
+                    },
+                    "imperial-bull": {
+                      "timer": 0,
+                      "discovered": false,
+                      "skinTaken": false,
+                      "kills": 0,
+                      "retired": false
+                    }
+                  }
+                },
+                "loadout": {
+                  "v": 1,
+                  "data": {
+                    "pitch": 0,
+                    "broadhead": 0,
+                    "rounds": 21,
+                    "arrows": 17
+                  }
+                },
+                "lodge": {
+                  "v": 1,
+                  "data": {
+                    "next": 3,
+                    "slots": [
+                      {
+                        "serial": 0,
+                        "kind": "species",
+                        "target": "deer",
+                        "have": 1
+                      },
+                      {
+                        "serial": 1,
+                        "kind": "rarity",
+                        "target": "uncommon",
+                        "have": 1
+                      },
+                      {
+                        "serial": 2,
+                        "kind": "thrall",
+                        "target": "thrall",
+                        "have": 0
+                      }
+                    ],
+                    "claimed": 0,
+                    "streak": 0,
+                    "best": 0
+                  }
+                },
+                "skins": {
+                  "v": 1,
+                  "data": {
+                    "owned": [
+                      "ghost-stag"
+                    ],
+                    "worn": {
+                      "crossbow": "ghost-stag"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "death": {
+        "before": {
+          "bolt": "pitch",
+          "pitch": 4,
+          "broadhead": 0
+        },
+        "after": {
+          "bolt": "iron",
+          "iron": 30,
+          "pitch": 4,
+          "broadhead": 0
+        }
+      },
+      "errors": [],
+      "pass": true
+    }
+  },
+  "notes": [
+    "Raw direct comparisons retained; governed verdict uses lead ambient-info source0f8824fe.",
+    "All four cosmetic comparisons green; only raw Pine forest.thrall wall-clock timer observation differs.",
+    "Broader Pine collider/texture/lookout differences predate cosmetics and remain S21b shared integration work.",
+    "Shot3 extends the existing combat helper to rifle; pickup/grant settle30frames before selection assertions.",
+    "Death fixture uses performance.now for lastHurt, matching the PlayerHealth port; app.clock has a different epoch.",
+    "The crossbow shot hit/kill timing differs by less than1e-14s; bow and rifle timing match exactly.",
+    "Browser/preview/export lifetimes ended in finally blocks."
+  ]
+}
