@@ -14,8 +14,9 @@ export function matches(pattern, path) {
 export function renameBaseline(baseline, current, maps) {
   const b = structuredClone(baseline);
   for (const map of maps) {
+    const shardSystems = object(object(map.shardSystems)[string(get(current, 'boot.shard'))]);
     const systems = object(map.systems), phaseSystems = object(map.phaseSystems), saves = object(map.saves), registry = object(map.registry);
-    for (const [phase, list] of Object.entries(object(get(b, 'boot.systems')))) set(b, `boot.systems.${phase}`, array(list).map((id) => object(phaseSystems[phase])[string(id)] ?? systems[string(id)] ?? id));
+    for (const [phase, list] of Object.entries(object(get(b, 'boot.systems')))) set(b, `boot.systems.${phase}`, array(list).map((id) => object(shardSystems[phase])[string(id)] ?? object(phaseSystems[phase])[string(id)] ?? systems[string(id)] ?? id));
     for (const path of ['boot.saves.read', 'boot.saves.written', 'combat.loot.written']) {
       const list = get(b, path); if (list !== undefined) set(b, path, array(list).map((id) => {
         const key = string(id), prefix = /^(local:|session:)/.exec(key)?.[0] ?? '';

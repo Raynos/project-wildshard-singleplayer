@@ -172,7 +172,7 @@ async function main(opts) {
     await scoreContext.close();
     if(reports.some((r)=>r.verdict==='red'))return 1;
     for(const w of writes)writeBaseline(ROOT,lane,w.shard,w.tier,w.baseline,w.fields);
-    if(opts.record){const dir=join(ROOT,'test/parity/baselines',lane);mkdirSync(dir,{recursive:true});writeFileSync(join(dir,'meta.json'),`${JSON.stringify({harness:1,sha,recorded:new Date().toISOString(),browser:browser.version(),runnerImage:process.env.ImageVersion??'local'},null,2)}\n`);}
+    if(opts.record){const dir=join(ROOT,'test/parity/baselines',lane);mkdirSync(dir,{recursive:true});writeFileSync(join(dir,'meta.json'),`${JSON.stringify({harness:2,sha,recorded:new Date().toISOString(),browser:browser.version(),runnerImage:process.env.ImageVersion??'local'},null,2)}\n`);}
     if(opts.accept||opts.rebaseline){const changed=new Set(writes.map((w)=>w.shard)),dir=join(ROOT,'test/parity/baselines/gh-macos15');if(existsSync(dir))for(const file of readdirSync(dir))if([...changed].some((s)=>file.startsWith(`${s}.`)))rmSync(join(dir,file));}
     if(opts.accept||opts['pending-fill']){mkdirSync(dirname(pendingPath),{recursive:true});writeFileSync(pendingPath,`${JSON.stringify(opts.accept?pending.filter((p)=>!ids.includes(string(p.id))):pending,null,2)}\n`);}
     return 0;

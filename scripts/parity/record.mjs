@@ -23,7 +23,7 @@ export async function aggregate(page,runs,meta) {
     for(const record of records.slice(1)) {const p=object(get(record,`poses.${name}`)),score=await imageScore(page,golden,string(p.shot),[...boxes,.../** @type {number[][]} */ (array(p.boxes))]);scores.push(score.ssim ?? 0);}
     selfMin[name]=Math.min(1,...scores);object(pose).ssim=1;
   }
-  return {...base,spread,selfMin,harness:1,sha:meta.sha,recorded:new Date().toISOString(),browser:meta.browser};
+  return {...base,spread,selfMin,harness:2,sha:meta.sha,recorded:new Date().toISOString(),browser:meta.browser};
 }
 /** @param {string} root @param {string} lane @param {string} shard @param {string} tier @param {import('./value.mjs').RecordValue} baseline @param {string[]|undefined} fields */
 export function writeBaseline(root,lane,shard,tier,baseline,fields) {

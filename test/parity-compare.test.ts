@@ -30,6 +30,14 @@ describe('parity comparison', () => {
     const n=clone(); n['boot']={...n['boot'] as RecordValue,systems:{'fixed.pre':['physics.bodies.pre'],'fixed.post':['physics.bodies.post'],update:['bodies']}};
     expect(rows(b,n,{renames:[{systems:{'physics.bodies':'bodies'},phaseSystems:{'fixed.pre':{'physics.bodies':'physics.bodies.pre'},'fixed.post':{'physics.bodies':'physics.bodies.post'}}}]}).verdict).toBe('green');
   });
+  it('uses shard-specific anonymous system renames before phase and flat maps (F8)',()=>{
+    const b=clone();b['boot']={...b['boot'] as RecordValue,systems:{update:['update#1']}};
+    const n=clone();n['boot']={...n['boot'] as RecordValue,systems:{update:['pine.life']}};
+    const map={systems:{'update#1':'generic'},phaseSystems:{update:{'update#1':'phase'}},shardSystems:{'pine-hollow':{update:{'update#1':'pine.life'}}}};
+    expect(rows(b,n,{renames:[map]}).verdict).toBe('green');
+    n['boot']={...object(n['boot']),systems:{update:['phase']}};
+    expect(rows(b,n,{renames:[map]}).rows.find((r)=>r.field==='boot.systems.update')?.verdict).toBe('red');
+  });
   it('compares event counts and requires each baseline ambient id, allowing extras', () => {
     const n = clone(); n['walk'] = {...n['walk'] as RecordValue,sounds:{event:{step:5},ambient:['new','forest.thrall']}};
     expect(rows(fixture,n).verdict).toBe('green');

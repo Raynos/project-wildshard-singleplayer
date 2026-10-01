@@ -46,7 +46,7 @@ export async function touchLeg(page) {
       await poseAt(page,{x:nearest.position.x+ox,z:nearest.position.z+oz,y:nearest.position.y,yaw:Math.atan2(ox,oz)});
       const shown=await page.locator(`${TOUCH.use}.show`).waitFor({state:'visible',timeout:1500}).then(()=>true,()=>false);
       if(!shown)continue;
-      await page.evaluate(()=>window.__wildshard.used());await touch(page,TOUCH.use);
+      await page.evaluate(()=>window.__wildshard.used());await touch(page,TOUCH.use,{consume:false});
       used=await page.evaluate((label)=>window.__wildshard.used().includes(label),nearest.label);
       break;
     }
