@@ -10,7 +10,7 @@ Pine now runs the engine QuestLine/QuestState, shared chip and NPC dialogue, sco
 - Every authored harness beat resumes the same flags and step; completion emits the eight expected ordered transitions. NPC measurements preserve all three profiles at both tiers.
 - Panel tests rerender board/trades and reset the count timer fifty times with unchanged Scope census, reject detached-button callbacks, and cannot reopen after disposal.
 - Latest cleanup passes TypeScript in a clean e6b0d938 export with only the two owned cleanup files overlaid. The same 74 cases pass there and in the working tree after S23's transient species edits settle. Owned oxlint and whole ratchet pass; no allowances changed.
-- Full committed-tree gate, final two-tier parity, milestone push and tuning board belong to the lead.
+- Clean committed Vercel tree gate passes on final source daf74fa5386872d0086f28de1778c4af7335e066: CSS, generation/check, app/API TypeScript, oxlint, ratchet, vitest and production build. Final two-tier parity, milestone push and tuning board belong to the lead.
 
 ## Own before/after phone run
 
