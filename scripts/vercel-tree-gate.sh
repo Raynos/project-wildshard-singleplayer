@@ -58,6 +58,7 @@ run ratchet node lint/ratchet.mjs
 [ -f scripts/normalize/liveness.mjs ] && [ -f scripts/README.md ] && run liveness node scripts/normalize/liveness.mjs --readme --check
 run vitest pnpm exec vitest run
 run vite-build pnpm exec vite build --outDir "$work/dist" --emptyOutDir
+run check-chunks node scripts/check-chunks.mjs "$work/dist"
 
 mkdir -p "$stamp_dir" && touch "$stamp_dir/$sha"
 echo "vercel-gate: $short passed"

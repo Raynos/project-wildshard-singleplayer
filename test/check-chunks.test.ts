@@ -10,13 +10,13 @@ import { join, resolve } from 'node:path';
 import { execPath } from 'node:process';
 import { describe, it, expect } from 'vitest';
 
-function check(rows: Record<string, { name: string; moduleIds: string[]; gzBytes: number }>, imports: string[] = []): { status: number | null; output: string } {
+function check(rows: Record<string, { name: string; moduleIds: string[]; gzBytes: number }>, imports: string[] = [], links: Record<string, { imports?: string[]; dynamicImports?: string[] }> = {}): { status: number | null; output: string } {
   const root = mkdtempSync(join(tmpdir(), 'chunk-check-'));
   try {
     mkdirSync(join(root, 'dist/.vite'), { recursive: true });
     mkdirSync(join(root, 'src/game/shard'), { recursive: true });
     writeFileSync(join(root, 'src/game/shard/manifest-closure.generated.json'), JSON.stringify({ alpha: ['src/shards/alpha/manifest.ts', 'src/shards/alpha/data.ts'] }));
-    const manifest = { 'index.html': { isEntry: true, file: 'entry.js', imports: ['main'] }, main: { src: 'src/main.ts', file: 'engine.js', imports }, ...Object.fromEntries(Object.keys(rows).filter((f) => f !== 'entry.js' && f !== 'engine.js').map((file) => [file, { file }])) };
+    const manifest = { 'index.html': { isEntry: true, file: 'entry.js', imports: ['main'] }, main: { src: 'src/main.ts', file: 'engine.js', imports }, ...Object.fromEntries(Object.keys(rows).filter((f) => f !== 'entry.js' && f !== 'engine.js').map((file) => [file, { file, ...links[file] }])) };
     writeFileSync(join(root, 'dist/.vite/manifest.json'), JSON.stringify(manifest));
     writeFileSync(join(root, 'dist/.vite/chunk-modules.json'), JSON.stringify(rows));
     const run = spawnSync(execPath, [resolve('scripts/check-chunks.mjs'), 'dist'], { cwd: root, encoding: 'utf8' });
@@ -34,10 +34,25 @@ describe('chunk isolation gate', () => {
     const result = check({ ...base, 'alpha.js': row('shard-alpha', 'src/shards/alpha/plugin.ts') }, ['alpha.js']);
     expect(result.status).toBe(1); expect(result.output).toContain('cold-boot');
   });
-  it('rejects a plugin in main, a split shard, and cross-shard content', () => {
+  it('allows a shard split over its own lazy chunks without requiring grouped names', () => {
+    expect(check({ ...base, 'alpha.js': row('plugin', 'src/shards/alpha/plugin.ts'), 'extra.js': row('world', 'src/shards/alpha/world.ts') }, [], { 'alpha.js': { imports: ['extra.js'] } }).status).toBe(0);
+  });
+  it('rejects a plugin in main and mixed shard owners', () => {
     expect(check({ ...base, 'engine.js': row('engine', 'src/shards/alpha/plugin.ts') }).status).toBe(1);
-    expect(check({ ...base, 'alpha.js': row('shard-alpha', 'src/shards/alpha/plugin.ts'), 'extra.js': row('shard-alpha', 'src/shards/alpha/world.ts') }).output).toContain('split across');
-    expect(check({ ...base, 'alpha.js': row('shard-alpha', 'src/shards/beta/plugin.ts') }).status).toBe(1);
+    expect(check({ ...base, 'alpha.js': row('plugin', 'src/shards/alpha/plugin.ts', 'src/shards/beta/plugin.ts') }).output).toContain('mixes shard owners');
+  });
+  it.each(['imports', 'dynamicImports'] as const)('rejects a planted cross-shard %s edge', (edge) => {
+    const result = check({ ...base, 'alpha.js': row('plugin', 'src/shards/alpha/plugin.ts'), 'beta.js': row('plugin', 'src/shards/beta/plugin.ts') }, [], { 'alpha.js': { [edge]: ['beta.js'] } });
+    expect(result.status).toBe(1); expect(result.output).toContain('imports another shard (beta)');
+  });
+  it('rejects an import whose chunk is missing from the manifest', () => {
+    const result = check({ ...base, 'alpha.js': row('plugin', 'src/shards/alpha/plugin.ts') }, [], { 'alpha.js': { imports: ['missing.js'] } });
+    expect(result.status).toBe(1); expect(result.output).toContain('imports missing chunk');
+  });
+  it('rejects App or Three in the pre-entry graph, before retry can run', () => {
+    for (const id of ['src/engine/app/runtime.ts', 'node_modules/three/build/three.module.js']) {
+      expect(check({ ...base, 'engine.js': row('engine', id) }).output).toContain('pre-entry static graph');
+    }
   });
   it('fails closed when the module report misses the entry chunk', () => {
     const result = check({ 'engine.js': base['engine.js'] });

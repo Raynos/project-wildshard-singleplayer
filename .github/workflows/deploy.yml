@@ -116,7 +116,10 @@ jobs:
 
       - name: Test
         if: steps.live.outputs.skip != 'true'
-        run: pnpm test
+        run: |
+          pnpm test
+          pnpm exec vite build
+          node scripts/check-chunks.mjs dist
 
       - name: Coverage ratchet
         if: github.event_name == 'push' || github.event_name == 'pull_request'
