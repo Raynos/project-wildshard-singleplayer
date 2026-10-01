@@ -15,7 +15,7 @@
  * while its file loads.
  */
 import * as THREE from 'three';
-import { SKINS, applySkin, type SkinId, type WeaponKind } from '../player/Skins';
+import { applySkin, type SkinId, type WeaponKind, type SkinDef } from '../player/Skins';
 import type { Sky } from '../world/Sky';
 import type { ModelVariant } from './model';
 
@@ -26,14 +26,15 @@ import type { ModelVariant } from './model';
 export interface GearSkinParams { readonly skin: SkinId | null }
 
 /** a skinnable weapon's variants: plain, then every legendary skin made for it (Skins.ts SKINS, by `weapon`) */
-export function skinVariants(kind: WeaponKind): readonly ModelVariant<GearSkinParams>[] {
-  const skins = Object.values(SKINS).filter((s) => s.weapon === kind).map((s) => ({ id: s.id, label: s.name, params: { skin: s.id } }));
+export function skinVariants(kind: WeaponKind, rows: readonly SkinDef[]): readonly ModelVariant<GearSkinParams>[] {
+  const skins = rows.filter((s) => s.weapon === kind).map((s) => ({ id: s.id, label: s.name, params: { skin: s.id } }));
   return [{ id: 'plain', label: 'Plain', params: { skin: null } }, ...skins];
 }
 
 /** dress a specimen in its variant's skin: Skins.applySkin clones the materials the skin changes, for this root alone */
-export function wearSkin(root: THREE.Object3D, p: GearSkinParams, sky: Sky): THREE.Object3D {
-  if (p.skin !== null) applySkin(root, SKINS[p.skin], sky);
+export function wearSkin(root: THREE.Object3D, p: GearSkinParams, sky: Sky, rows: readonly SkinDef[]): THREE.Object3D {
+  const skin = rows.find((row) => row.id === p.skin);
+  if (skin !== undefined) applySkin(root, skin, sky);
   return root;
 }
 

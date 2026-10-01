@@ -11,7 +11,8 @@ import { TRADES, ammoOf, mottLine, tradeState } from '#shards/pine-hollow/quest/
 import { ELITE_TARGETS, contractFor, draw } from '#shards/pine-hollow/quest/contracts';
 import { restoreKept } from '#shards/pine-hollow/loadout/loadout';
 import { finishPick, pineFinishes } from '#shards/pine-hollow/loadout/finishes';
-import { SKINS, SkinLocker } from '#engine/player/Skins';
+import { SkinLocker } from '#engine/player/Skins';
+import { SKINS, PINE_FINISHES } from '#shards/pine-hollow/loadout/skins';
 
 const PINE = 'chunk://local/pine-hollow';
 const DRIFT = 'chunk://local/driftwood-isle';
@@ -128,7 +129,7 @@ describe('a full pack', () => {
 
 describe('GEAR ▸ FINISHES', () => {
   it('lists every crossbow / lever-action finish, the unowned ones locked with where they come from', () => {
-    const locker = new SkinLocker('pine-hollow');
+    const locker = new SkinLocker('pine-hollow', PINE_FINISHES);
     locker.own('hollow-ash'); locker.wear('crossbow', 'hollow-ash'); locker.own('ghost-stag');
     const rows = pineFinishes(locker);
     expect(rows.map((r) => r.id).sort()).toEqual(Object.keys(SKINS).sort());
@@ -139,7 +140,7 @@ describe('GEAR ▸ FINISHES', () => {
   });
 
   it('a tap wears an owned finish, takes off the worn one, and does nothing for a locked one', () => {
-    const locker = new SkinLocker('pine-hollow');
+    const locker = new SkinLocker('pine-hollow', PINE_FINISHES);
     locker.own('hollow-ash'); locker.own('ghost-stag'); locker.wear('crossbow', 'ghost-stag');
     expect(finishPick(locker, 'hollow-ash')?.act).toBe('wear');
     expect(finishPick(locker, 'ghost-stag')?.act).toBe('off');

@@ -218,12 +218,13 @@ function buildShard(slug: string): Promise<BuiltWorld> {
 
 interface StagedBoot {
   runtime: ShardRuntime;
+  skins: readonly SkinDef[];
   progress: StepProgress;
   worldHook: (work: () => Promise<void>) => Promise<void>;
 }
 
 async function buildShardWorld(slug: string, manifest: ShardManifest, stage: LoadStage): Promise<BuiltWorld> {
-  const boot: StagedBoot = { runtime: { world: null, step: null, play: null, interactables: [], overhead: [], objects: {}, hooks: {}, viewer: () => new THREE.Vector3(), horizonVeil: null }, progress: { set: () => undefined, detail: () => undefined }, worldHook: (work) => work() };
+  const boot: StagedBoot = { skins: [], runtime: { world: null, step: null, play: null, interactables: [], overhead: [], objects: {}, hooks: {}, viewer: () => new THREE.Vector3(), horizonVeil: null }, progress: { set: () => undefined, detail: () => undefined }, worldHook: (work) => work() };
   const sequence = buildShardStages(slug, manifest, stage, boot);
   if (manifest.load === undefined) {
     let next = await sequence.next();
@@ -257,7 +258,10 @@ async function buildShardWorld(slug: string, manifest: ShardManifest, stage: Loa
   try {
     await app.loadLevel(toLevelSpec(manifest), {
       world: (level) => boot.worldHook(async () => { await plugin.world?.(ctx(level)); }),
-      kit: (level) => plugin.kit?.(ctx(level)),
+      kit: async (level) => {
+        await plugin.kit?.(ctx(level));
+        boot.skins = [...(game.rows.get('skin')?.values() ?? [])] as SkinDef[];
+      },
       play: (level) => plugin.play?.(ctx(level)),
     });
   } catch (error) {
@@ -658,10 +662,10 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   // ── the in-game menu: MAP · INVENTORY · ACHIEVEMENTS · SETTINGS (src/engine/ui/Menu.ts) ──
   const progress = new Progress(getActiveChunk().slug);     // shard achievements → titles (src/game/achievements.ts)
   const inventory = new Inventory(getActiveChunk().slug);   // the pack: harvest drops
-  const skins = new SkinLocker(chunk.slug);                          // legendary skins owned / worn (persisted; wired below)
+  const skins = new SkinLocker(chunk.slug, boot.skins);                          // legendary skins owned / worn (persisted; wired below)
   const menu = new GameMenu({
     fullMap, progress, inventory,
-    kit: () => weapons.available.map((w) => { const worn = w.id === 'crossbow' || w.id === 'rifle' ? skins.wearing(w.id) : null; return equipmentEntry(w, weapons.current, worn ? ` · ${worn.name}` : ''); }),
+    kit: () => weapons.available.map((w) => { const worn = skins.wearing(w.id); return equipmentEntry(w, weapons.current, worn ? ` · ${worn.name}` : ''); }),
     onEquip: (id) => weapons.select(id as WeaponId),
     tools: () => toolEntries(weapons.tools, (key) => app.levelRegistrations.findText(key) ?? key),
     ...(boot.runtime.menu ?? { skins: () => { const nl = nalatiNow(); return nl ? nalatiSkinRows(nl.skins) : []; }, onWearSkin: (id: string) => { nalatiNow()?.skins.toggle(id); } }),
@@ -788,15 +792,12 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   // src/shards/nalati-grasslands/adventure.ts on the shared quest core) — null on any other shard ──
   const nalatiAdventure = installNalatiAdventure({ game, sky, player, chunk, prompts: interactables, registry, hud, audio, music, progress, fullMap, ride, animals, nalati: nalatiNow(), params });
   if (nalatiAdventure) menu.setFinds(() => nalatiFinds(nalatiAdventure.flags)); // Nalati's FINDS: the elites + their prizes, the places (E314 C)
-  // ── legendary skins (src/engine/player/Skins.ts): the Ghost stag drops the GHOST STAG crossbow, Old Ironhide the IRONHIDE AR-15 —
-  // a big purple floating pickup where the animal fell (WeaponPickup tier 'rare'); taking it swaps the skin (and hands you the
-  // rifle if you had not found it). What you own / wear persists; `?skin=ghost-stag` previews, `?drop=ironhide` spawns one ahead.
-  const weaponModel = (w: 'crossbow' | 'rifle') => { const model = weapons.get(w).model; return model instanceof THREE.Group ? model : null; };
+  // Registered cosmetics restyle the held model and persist in this shard's locker.
+  const weaponModel = (w: SkinDef['weapon']) => { const model = weapons.get(w).model; return model instanceof THREE.Group ? model : null; };
   const wearSkin = (skin: SkinDef) => { const m = weaponModel(skin.weapon); if (m) { applySkin(m, skin, sky); effects.sync(weapons.get(skin.weapon), [{ id: `effect.finish.${skin.id}` }]); } skins.wear(skin.weapon, skin.id); };
   animals.onKill = (a) => {
     // a sword kill is at arm's length: "Reef crab · 1 m" read as a marker to crabs 30 m off (E296); a shot keeps its distance
     hud.killFeed(meleeShard(chunk) ? `${a.label} killed` : `${a.label} · ${Math.round(a.position.distanceTo(player.position))} m`); progress.recordKill(a.kind, a.variant);
-    boot.runtime.hooks.actorKilled?.(a);
   };
   // E314 stage 1 (src/game/loot/install.ts): the purse + coin chip + kill coin bursts on a shard with `loot.coins` (Driftwood),
   // the Bag's GEAR extras and FINDS tab; chains onKill, so it comes after main's own onKill and the quests' chains
@@ -823,7 +824,7 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
     : null;
   if (adventure !== null && isOcean) installKeepsakes({ owned, adventure, sky, game, player, animals, hud, audio, music, registry, body: bodyShadow,
     swords: perkSwords, effectsManaged: true });
-  for (const w of ['crossbow', 'rifle'] as const) { const s = skins.wearing(w); if (s) wearSkin(s); }
+  for (const { id: w } of weapons.list) { const s = skins.wearing(w); if (s) wearSkin(s); }
   new Combat(game, animals, weapons, game.camera); // health bars over animals + MMO-style damage / MISS floats (self-wiring); Combat only taps onFire / onImpact, which the manager forwards for every weapon
   // taking a hit (B3): the arc points at the attacker (src/engine/ui/HurtArc.ts), a hurt grunt panned toward it (Audio.hurt — it
   // used to be the landing thud), and the killer is remembered for the death toast (B2)
@@ -1190,7 +1191,7 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   app.events.on('player.respawned', () => {
     if (app.player !== playerHealth) return;
     if (crossbow.hasAmmo) crossbow.addBolts(30 - (crossbow.state.bolts ?? 30));
-    nalatiKit?.refill(); boot.runtime.hooks.playerDeath?.();
+    nalatiKit?.refill();
   }, game.levelScope);
   app.addSystem({ id: 'engine.player.regen', phase: 'update', after: ['main.frame'], before: ['engine.player.hud'], run: (dt) => playerHealth.update(dt) }, game.levelScope);
 

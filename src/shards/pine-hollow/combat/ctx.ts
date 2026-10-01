@@ -5,7 +5,7 @@ import type { Game } from '#engine/core/Game';
 import type { Sky } from '#engine/world/Sky';
 import type { Player } from '#engine/player/Player';
 import type { ItemId } from '#game/Inventory';
-import type { SkinId } from '#engine/player/Skins';
+import type { SkinId } from '../loadout/skins';
 import type { PhShot } from '../audio/sfx';
 import { GroundTell } from '#game/Elite';
 import { StrikeRunner, canReach, inspectBrain, type StrikeSpec } from '#engine';

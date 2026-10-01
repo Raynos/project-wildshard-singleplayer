@@ -1,12 +1,12 @@
 import type { ShardRuntime } from './runtime';
-import type { ContentRow, EngineRows, LevelContext } from '#engine';
+import type { ContentRow, SkinDef, EngineRows, LevelContext } from '#engine';
 import type { ShardManifest } from './manifest';
 
 export type BagTabId = 'map' | 'gear' | 'pack' | 'finds' | 'feats';
 export interface BagTabSpec { id: BagTabId; title: string }
 export interface BagFragment { id: string; render: (host: HTMLElement) => void }
 export interface BagVerbs { tab: (spec: BagTabSpec) => void; fragment: (tab: BagTabId, fragment: BagFragment) => void }
-export interface GameRowMap { item: ContentRow; lootTable: ContentRow; skin: ContentRow; feat: ContentRow; shop: ContentRow; compendium: ContentRow; places: ContentRow }
+export interface GameRowMap { item: ContentRow; lootTable: ContentRow; skin: SkinDef; feat: ContentRow; shop: ContentRow; compendium: ContentRow; places: ContentRow }
 export type GameRows = { [K in keyof GameRowMap]: (value: GameRowMap[K] | readonly GameRowMap[K][]) => void };
 export interface GameServices {
   readonly runtime?: ShardRuntime;

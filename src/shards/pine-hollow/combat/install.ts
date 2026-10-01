@@ -6,8 +6,9 @@ import * as THREE from 'three';
 import type { AnimalManager } from '#engine/entities/AnimalManager';
 import type { Animal } from '#engine/entities/Animal';
 
-import { Crossbow, MAX_BOLTS } from '#kit';
-import { SKINS, applySkin, crossbowDisplayModel, type SkinDef, type SkinId, type SkinLocker } from '#engine/player/Skins';
+import { Crossbow, MAX_BOLTS, crossbowDisplayModel } from '#kit';
+import { applySkin, type SkinDef, type SkinLocker } from '#engine/player/Skins';
+import { SKINS, type SkinId } from '../loadout/skins';
 import { CameraFX } from '#engine/player/CameraFX';
 import type { Inventory } from '#game/Inventory';
 import type { HUD } from '#engine/ui/HUD';

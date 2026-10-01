@@ -9,7 +9,8 @@ import { pineFinishEffect } from './effects';
  *   pineFinishes(locker) → SkinRow[]           (Menu's `skins`)
  *   finishPick(locker, id) → 'wear' | 'off' | null   (what a tap does: main.ts applies it to the weapon's model)
  */
-import { SKINS, type SkinDef, type SkinId, type SkinLocker } from '#engine/player/Skins';
+import type { SkinLocker } from '#engine/player/Skins';
+import { SKINS, type SkinId } from './skins';
 import type { SkinRow } from '#engine/ui/Menu';
 
 /** the row's order: the crossbow's first (the hero), then the lever-action's; and where each one comes from */
@@ -25,7 +26,7 @@ const FINISHES: readonly { id: SkinId; from: string }[] = [
 
 export const PINE_FINISH_EFFECTS: readonly EffectDef[] = FINISHES.map(({ id }) => pineFinishEffect(id, SKINS[id].weapon));
 
-const WEAPON_WORD: Record<SkinDef['weapon'], string> = { crossbow: 'Crossbow', rifle: 'Lever-action' };
+const WEAPON_WORD: Record<'crossbow' | 'rifle', string> = { crossbow: 'Crossbow', rifle: 'Lever-action' };
 
 export const isSkinId = (id: string): id is SkinId => Object.hasOwn(SKINS, id);
 
@@ -41,7 +42,7 @@ export function pineFinishes(locker: Pick<SkinLocker, 'has' | 'wearing'>): SkinR
 }
 
 /** a tap on finish `id`: wear it, take it off (it is worn), or nothing (not owned / not a finish) */
-export function finishPick(locker: Pick<SkinLocker, 'has' | 'wearing'>, id: string): { skin: SkinDef; act: 'wear' | 'off' } | null {
+export function finishPick(locker: Pick<SkinLocker, 'has' | 'wearing'>, id: string): { skin: (typeof SKINS)[SkinId]; act: 'wear' | 'off' } | null {
   if (!isSkinId(id) || !locker.has(id)) return null;
   const skin = SKINS[id];
   return { skin, act: locker.wearing(skin.weapon)?.id === id ? 'off' : 'wear' };

@@ -32,3 +32,5 @@ export type { Particles } from './looks/particles';
 
 export { STARTER_EFFECTS, STARTER_CHOICES, starterId, type StarterChoice } from './effects/starter';
 export { installStarterEffects } from './effects/install';
+
+export { crossbowDisplayModel } from './weapons/crossbow/display';

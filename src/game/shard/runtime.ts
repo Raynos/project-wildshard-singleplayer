@@ -13,7 +13,6 @@ export interface ShardPlayHost {
 }
 export interface ShardPlayHooks {
   wearFinish?: (id: string) => void;
-  actorKilled?: (animal: Animal) => void;
   updatePickups?: (dt: number, t: number) => void;
   disposeRifleDrop?: () => void;
   worldUpdate?: (dt: number, t: number) => void;
@@ -21,7 +20,6 @@ export interface ShardPlayHooks {
   audioUpdate?: (dt: number) => void;
   dispose?: () => void;
   checkpoint?: () => boolean;
-  playerDeath?: () => void;
   eliteEngaged?: () => boolean;
   isElite?: (animal: Animal) => boolean;
   harvestBusy?: () => boolean;

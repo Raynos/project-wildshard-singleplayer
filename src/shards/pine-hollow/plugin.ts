@@ -23,6 +23,8 @@ import { Longbow } from './weapons/Longbow';
 import { CROSSBOW, LEVER, LONGBOW } from './weapons/equipment';
 import { AMMO_ROWS } from './loadout/effects';
 import { PINE_FINISH_EFFECTS, pineFinishes, finishPick } from './loadout/finishes';
+import { SKINS, PINE_FINISHES } from './loadout/skins';
+import { bindLoadoutDeath } from './loadout/events';
 import { mottLine } from './quest/trades';
 import { isPineItem } from './items';
 import { KING_KIND } from './combat/antlerKing';
@@ -110,7 +112,7 @@ export class PineHollow extends ShardPlugin {
   }
 
   override async play(ctx: ShardContext): Promise<void> {
-    const { WeaponPickup, applySkin, clearSkin, crossbowDisplayModel, skinFor } = await loadWorldContent();
+    const { WeaponPickup, applySkin, clearSkin } = await loadWorldContent();
     const rt = runtime(ctx), world = rt.world, h = rt.play;
     if (world === null || h === null) throw new Error('Pine gameplay needs its player host');
     const { game, sky, player, forest, registry, params } = world;
@@ -126,8 +128,10 @@ export class PineHollow extends ShardPlugin {
       ctx.app.effects?.sync(weapons.get(pick.skin.weapon), []); skins.wear(pick.skin.weapon, null);
     };
     const skinDrops: InstanceType<typeof WeaponPickup>[] = [];
-    rt.hooks.actorKilled = (animal) => {
-      const skin = skinFor(animal.kind, animal.variant);
+    ctx.on('actor.died', ({ actor }) => {
+      const animal = animals.animals.find((a) => a.combatActor() === actor);
+      if (animal === undefined) return;
+      const skin = Object.values(SKINS).find((row) => row.dropsFrom?.kind === animal.kind && row.dropsFrom.variant === animal.variant);
       if (!skin || skins.has(skin.id) || rt.hooks.isElite?.(animal) === true) return;
       const item = skin.weapon === 'rifle' ? rifle.displayModel() : crossbowDisplayModel(crossbow, sky);
       applySkin(item, skin, sky);
@@ -137,7 +141,7 @@ export class PineHollow extends ShardPlugin {
       const drop = new WeaponPickup({ scene: game.scene, item, position: new THREE.Vector3(at.x, Math.max(at.y, heightAt(at.x, at.z)), at.z), tier: 'rare', prompt: `Take the ${skin.name} ${label}`, scale: skin.weapon === 'rifle' ? 1.35 : 1.6, toss: { x: Math.sin(toss) * 1.2, y: 3.5, z: Math.cos(toss) * 1.2 } });
       rt.interactables.push(drop.interactable); skinDrops.push(drop);
       drop.onPickup = () => { skins.own(skin.id); wearSkin(skin); if (skin.weapon === 'rifle') { weapons.unlock('rifle'); weapons.select('rifle'); } audio.hitMarker(); hud.toast(`${skin.name} ${label} — ${skin.blurb}`); skinDrops.splice(skinDrops.indexOf(drop), 1); };
-    };
+    });
     const loadout = installPineLoadout({ scene: game.scene, sky, weapons, crossbow, rifle, longbow, inventory, owned, hud, audio, params, scope: ctx.scope, cues: h.cues });
     const rifleDrop = (() => {
       const site = CABIN_SITES[0];
@@ -175,7 +179,8 @@ export class PineHollow extends ShardPlugin {
     rt.hooks.audioUpdate = (dt) => { ambience.update(dt, game.camera); };
     rt.hooks.dispose = () => { ambience.dispose(); };
     rt.hooks.checkpoint = () => fights.onPlayerDeath();
-    rt.hooks.playerDeath = () => { loadout.onPlayerDeath(); };
+    const health = ctx.app.player;
+    bindLoadoutDeath(ctx.app.events, ctx.scope, health, { active: () => ctx.app.player === health, reset: () => { loadout.onPlayerDeath(); } });
     rt.hooks.eliteEngaged = () => fights.eliteEngaged();
     rt.hooks.isElite = (animal) => fights.isElite(animal);
     rt.hooks.harvestBusy = () => life?.busy ?? false;

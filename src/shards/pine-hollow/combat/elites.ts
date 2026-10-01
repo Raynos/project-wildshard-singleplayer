@@ -7,7 +7,7 @@ import { GroundTell, type Elites, type EliteDef, type EliteScript } from '#game/
 import { heightAt, inChunk } from '#engine/world/Heightfield';
 import { DEN, BEAR_CAVE } from '../layout';
 import type { ItemId } from '#game/Inventory';
-import type { SkinId } from '#engine/player/Skins';
+import type { SkinId } from '../loadout/skins';
 import { Impacts } from '#engine/fx/Impacts';
 import { Puffs } from './fxKit';
 import { own, release, retire, voice, LaneCharge, type PineCtx } from './ctx';
