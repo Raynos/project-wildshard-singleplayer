@@ -39,7 +39,7 @@ import type { StyleBank } from '../audio/Stems';
 import { getMusicStyle, getSfxSet } from '../ui/Settings';
 import { SHARDS } from '#game/shard/registry';
 import { TIER } from '../core/tier';
-import type { LevelAudioProfile, LevelAudioBank } from '../audio/levelAudio';
+import { NO_AUDIO, type LevelAudioProfile, type LevelAudioBank } from '../audio/levelAudio';
 import { bootAudioFiles } from './audioInventory';
 
 
@@ -157,10 +157,10 @@ const downloaded = new Set<string>();
 export interface AudioBanks { music: StyleBank | undefined; sfx: SfxBank; profile?: LevelAudioBank }
 
 /** Nine Dragon's phone boot: count/cache every file, then decode the selected banks after the world starts. */
-export function startDeferredAudioPreload(files: ChunkFiles, def: ShardManifest, profile?: LevelAudioProfile): Preload<void> & { readonly style: ReturnType<typeof getMusicStyle>; decode: () => Promise<AudioBanks> } {
+export function startDeferredAudioPreload(files: ChunkFiles, _def: ShardManifest, profile?: LevelAudioProfile): Preload<void> & { readonly style: ReturnType<typeof getMusicStyle>; decode: () => Promise<AudioBanks> } {
   const style = getMusicStyle(), set = getSfxSet();
-  if (profile === undefined) throw new Error(`${def.slug}: boot audio requires the authored preload profile`);
-  const selected = new Set(profile.bootFiles(style));
+  // E357 G19: an asset-free level omits audio.preload (ENGINE §15)
+  const selected = new Set((profile ?? NO_AUDIO).bootFiles(style));
   const urls = [...new Set([...files.music, ...files.sfx])];
   const c = counter(urls.length);
   // Keep only the selected compressed bytes until decode. That makes the post-bar decode work offline even if
@@ -199,7 +199,7 @@ export function startDeferredAudioPreload(files: ChunkFiles, def: ShardManifest,
           return Promise.resolve(bytes.slice(0)); // decodeAudioData detaches its argument
         };
         try {
-          const bank = await profile.decode(style, read, oneAtATime);
+          const bank = await (profile ?? NO_AUDIO).decode(style, read, oneAtATime);
           return { music: undefined, sfx: { set, credit: undefined, loops: new Map(), shots: new Map() }, profile: bank };
         } finally { selectedBytes.clear(); }
       })();

@@ -20,3 +20,10 @@ export interface LevelAudioProfile {
   bootFiles: (style: MusicStyle) => readonly string[];
   decode: (style: MusicStyle, read: AudioRead, decode: AudioDecode, onFile?: () => void) => Promise<LevelAudioBank>;
 }
+
+/** A level with no audio files leaves `audio.preload` out; boot uses this (no music, no SFX samples, nothing to decode). */
+export const NO_AUDIO: LevelAudioProfile = {
+  files: () => ({ music: [], sfx: [] }),
+  bootFiles: () => [],
+  decode: () => Promise.resolve({ title: undefined, score: { slots: new Map(), stings: new Map() }, cues: { loops: new Map(), shots: new Map() } }),
+};
