@@ -698,6 +698,7 @@
     "src/game/complete/ShardComplete.ts": 3,
     "src/game/Elite.ts": 1,
     "src/game/loot/install.ts": 2,
+    "src/game/loot/ui/ShopPanel.ts": 9,
     "src/game/Progress.ts": 2,
     "src/game/titleDeck.ts": 13,
     "src/main.ts": 14,
@@ -710,8 +711,7 @@
     "src/shards/pine-hollow/audio/ambience.ts": 1,
     "src/shards/pine-hollow/audio/sfx.ts": 1,
     "src/shards/pine-hollow/combat/antlerKing.ts": 3,
-    "src/shards/pine-hollow/quest/index.ts": 2,
-    "src/game/loot/ui/ShopPanel.ts": 9
+    "src/shards/pine-hollow/quest/index.ts": 2
   },
   "wildshard/no-hook-chain": {
     "src/engine/core/gpuOnly.ts": 1,
@@ -734,6 +734,7 @@
     "src/shards/pine-hollow/life/index.ts": 1,
     "src/shards/pine-hollow/quest/index.ts": 1
   },
+  "wildshard/no-raw-animation-mixer": {},
   "wildshard/no-raw-input": {
     "src/engine/explore/Compare.ts": 3,
     "src/engine/explore/Explore.ts": 1,
@@ -762,10 +763,10 @@
     "src/game/compendium/install.ts": 1,
     "src/game/compendium/Journal.ts": 4,
     "src/game/complete/ShardComplete.ts": 1,
+    "src/game/loot/ui/ShopPanel.ts": 5,
     "src/game/titleDeck.ts": 6,
     "src/main.ts": 4,
-    "src/shards/pine-hollow/combat/antlerKing.ts": 3,
-    "src/game/loot/ui/ShopPanel.ts": 5
+    "src/shards/pine-hollow/combat/antlerKing.ts": 3
   },
   "wildshard/no-raw-random-time": {
     "src/engine/audio/audioLog.ts": 1,
