@@ -340,7 +340,7 @@ export class Game {
     const render = this.level.look?.() ?? null; // the render code downloads while the sky builds; buildComposer reads both
     this.lookStrategy = await render;
     const fog = this.lookStrategy?.fog; // after installAtmosphere (the constructor), before the sky or anything compiles (01 §13.2: its slot)
-    if (fog !== undefined) installFogPatch(`level.fog.${this.level.id}`, fog.order, fog.install);
+    if (fog !== undefined) installFogPatch(`level.fog.${this.level.id}`, fog.order, fog.install, this.level.id);
     this._sky = await new Sky(this.scene, this.camera, this.renderer).build(this.lookStrategy, { level: this.level, tier: TIER, look: this.level.lookLayer ?? null }); // its lighting, shadows, backdrop and sky dressing
     this.levelScope.onDispose(() => { this.lookStrategy?.dispose?.(); this.lookStrategy = null; });
     return this._sky;
