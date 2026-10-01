@@ -98,17 +98,21 @@ async function weatherLeak(browser,url,opts) {
     await installInit(context,{lane:opts.lane,sha:opts.sha,browser:browser.version(),capture:30});
     await debugSettings(context,{time:'midday',weather:opts.shard==='pine-hollow'?'rain':'clear'});
     const page=await context.newPage();
+    /** @type {string[]} */ const errors=[];
+    page.on('pageerror',(error)=>{if(relevantError(error.message))errors.push(error.message);});
+    page.on('console',(message)=>{if(message.type()==='error'&&relevantError(message.text()))errors.push(message.text());});
     const params=new URLSearchParams({chunk:opts.shard,tier:opts.tier,skipintro:'1',nolock:'1',mute:'1',sw:'0',weather:opts.shard==='nalati-grasslands'?'storm':'rain',...opts.tier==='phone'?{touch:'1'}:{}});
     await page.goto(`${url}/?${params}`);
     await page.waitForFunction(()=>Boolean(window.__wildshard)&&!document.querySelector('.ws-load'),undefined,{timeout:opts.timeout*1000});
     const available=await page.evaluate(()=>Object.hasOwn(window.__wildshard,'leak'));
-    if(!available)return null;
+    if(!available)return {before:{ready:true},after:{ready:false}};
     console.error(`parity: ${opts.shard}.${opts.tier} weather leak`);
     await advance(page,900);
-    return await page.evaluate(()=>{
+    const result=object(await page.evaluate(()=>{
       const p=/** @type {typeof window.__wildshard & {leak:()=>Promise<unknown>}} */(window.__wildshard);
       return p.leak();
-    });
+    }));
+    object(result.before).errors=[];object(result.after).errors=[...new Set(errors)];return result;
   }finally{await context.close();}
 }
 
@@ -177,7 +181,7 @@ async function main(opts) {
         const captured=object(await capture(browser,url,{shard,tier,lane,sha,root,out:dir,timeout,full:Boolean(opts.full),only:opts.only,offline:Boolean(opts.offline)}));
         if(captured.leak && ['pine-hollow','nalati-grasslands'].includes(shard)){
           const weather=await weatherLeak(browser,url,{shard,tier,lane,sha,timeout});
-          if(weather)object(captured.leak).weather=object(weather);
+          object(captured.leak).weather=object(weather);
         }
         rawRuns.push(captured);
       }
@@ -194,7 +198,7 @@ async function main(opts) {
       let checked=compare(isRecord&&!opts.accept?{}:baseline,currentNormalized,options);
       if(isRecord&&!opts.accept)for(const r of rawRuns){const consistency=compare(current,normalize(r),{...options,ignore:[...ignore,...Object.keys(flatten(current)).filter((p)=>p.endsWith('.ssim'))]});if(consistency.verdict==='red')checked=consistency;}
       if(isRecord&&opts.accept)for(const r of rawRuns){const normalized=normalize(r);await scorePoses(normalized);const consistency=compare(baseline,normalized,options);if(consistency.verdict==='red')checked=consistency;}
-      if(!isRecord&&checked.verdict==='red'&&retry){const firstRed=checked.rows.filter((r)=>r.verdict==='red').map((r)=>r.field),dir=join(out,'retry');mkdirSync(dir,{recursive:true});const again=normalize(await capture(browser,url,{shard,tier,lane,sha,root,out:dir,timeout,full:Boolean(opts.full),only:opts.only,offline:Boolean(opts.offline)}));await scorePoses(again);const retried=compare(baseline,again,options);checked=retried;currentNormalized=again;if(retried.verdict!=='red')currentNormalized.flaked=firstRed;}
+      if(!isRecord&&checked.verdict==='red'&&retry){const firstRed=checked.rows.filter((r)=>r.verdict==='red').map((r)=>r.field),dir=join(out,'retry');mkdirSync(dir,{recursive:true});const again=normalize(await capture(browser,url,{shard,tier,lane,sha,root,out:dir,timeout,full:Boolean(opts.full),only:opts.only,offline:Boolean(opts.offline)}));if(again.leak&&['pine-hollow','nalati-grasslands'].includes(shard)){const weather=await weatherLeak(browser,url,{shard,tier,lane,sha,timeout});object(again.leak).weather=object(weather);}await scorePoses(again);const retried=compare(baseline,again,options);checked=retried;currentNormalized=again;if(retried.verdict!=='red')currentNormalized.flaked=firstRed;}
       currentNormalized.verdict=checked.verdict;currentNormalized.fields=checked.rows.map((r)=>object(r));reports.push(currentNormalized);
       for(const [name,p] of Object.entries(object(currentNormalized.poses)))if(existsSync(string(object(p).shot)))copyFileSync(string(object(p).shot),join(out,`${shard}.${tier}.${name}.jpg`));
       writeFileSync(join(out,`${shard}.${tier}.json`),`${JSON.stringify(currentNormalized,null,2)}\n`);report(reports,sha,out,Boolean(opts.ms));
