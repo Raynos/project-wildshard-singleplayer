@@ -3,8 +3,8 @@
 import * as THREE from 'three';
 import { RenderPass, EffectPass } from 'postprocessing';
 import { describe, expect, it } from 'vitest';
-import { installAtmosphere, attachFogUniforms, isPaintedAir, paintedAir } from '#engine/world/Atmosphere';
-import { installPaintedAir } from '#shards/nalati-grasslands/look/air';
+import { installAtmosphere, attachFogUniforms } from '#engine/world/Atmosphere';
+import { installPaintedAir, isPaintedAir, paintedAir, patchCloudShadows, NALATI_SKY } from '#shards/nalati-grasslands/look/air';
 import { installLookV2Fog, fogLut } from '#shards/nalati-grasslands/look/fog';
 import { lookV2Passes } from '#shards/nalati-grasslands/look/grade';
 
@@ -26,6 +26,19 @@ describe('Nalati look strategy', () => {
     const lut = shader.uniforms['fogLutV2']?.value as THREE.DataTexture | undefined;
     expect(lut).toBe(fogLut);
     expect(Array.from(lut?.image.data ?? [])).toEqual(Array.from(fogLut.image.data ?? []));
+  });
+
+  it('builds no engine cloud layer; the cloud fbm drives the cloud shadows in the sun loop', () => {
+    expect(NALATI_SKY.clouds).toBe(false);
+    const field = new THREE.Texture();
+    patchCloudShadows();
+    expect(THREE.ShaderChunk.lights_fragment_begin).toContain('directLight.color *= pCloudShadow();');
+    const build = NALATI_SKY.build;
+    if (build) Reflect.apply(build, undefined, [null, field]);
+    expect(paintedAir.fogCloudTex.value).toBe(field);
+    const off = paintedAir.fogCloudOff.value.clone();
+    NALATI_SKY.update?.(1);
+    expect(paintedAir.fogCloudOff.value.equals(off)).toBe(false);
   });
 
   it("composes today's chain: RenderPass, then one EffectPass (bloom + grade on desktop)", () => {

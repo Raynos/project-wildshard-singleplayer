@@ -6,10 +6,11 @@
  *   fog             the painted air (air.ts), then the panorama-coloured fog (fog.ts), slot 300, after the engine fog
  *   terrainPainter  the painted ground (terrainPainter.ts)
  *   grass           the GPU blade rings + shader flowers (grass.ts `GrassV2`)
- * The sky backdrop, the day keys and the per-frame look are still wired by `wireLookV2` (index.ts) until 07 §6.2 steps 5–6.
+ *   sky             no engine cloud layer; the cloud shadows' field + drift (air.ts `NALATI_SKY`)
+ * The panorama dome, the day keys and the per-frame look are still wired by `wireLookV2` (index.ts) until 07 §6.2 step 6.
  */
 import type { LookStrategy } from '#engine';
-import { installPaintedAir } from './air';
+import { installPaintedAir, NALATI_SKY } from './air';
 import { installLookV2Fog } from './fog';
 import { lookV2Passes } from './grade';
 import { GrassV2 } from './grass';
@@ -21,4 +22,5 @@ export const shardRender = (): LookStrategy => ({
   fog: { order: 300, install: () => { installPaintedAir(); installLookV2Fog(); } },
   terrainPainter: NALATI_TERRAIN_PAINTER,
   grass: { build: (sky, forest) => new GrassV2(sky, forest).build() },
+  sky: NALATI_SKY,
 });

@@ -3,9 +3,7 @@ import { TIER, TIER_CONFIG } from '../core/tier';
 import { CSM } from 'three/examples/jsm/csm/CSM.js';
 import { cullToSlice, installCascadeCull } from './cascadeCull';
 import { loadHDR } from '../core/assets';
-import { fogUniforms, isUnderwater, paintedAir, patchCloudShadows, isPaintedAir } from './Atmosphere';
-import { buildPainterlyClouds, skyLayerUniforms, type SkyLayerUniforms } from './PainterlySky';
-import { wind } from './steppeWind';
+import { fogUniforms, isUnderwater } from './Atmosphere';
 import { Noise2D } from '../core/noise';
 import { Rng } from '../core/rng';
 import { getActiveChunk } from '#game/shard/registry';
@@ -22,7 +20,7 @@ import { StylizedSky } from './StylizedSky';
 import type { DayCycleClock } from './dayCycle';
 import { DriftwoodSky } from '#shards/driftwood-isle/look/dayNight';
 import { ShadowMaps } from './shadowVariants';
-import type { SkyBackdrop, SkyBackdropFactory, SkyBackdropContext, SkyBackdropPost } from '../render/look';
+import type { SkyBackdrop, SkyBackdropFactory, SkyBackdropContext, SkyBackdropPost, SkyDressing } from '../render/look';
 import { horizonLight } from './Horizon';
 import { loadLUT } from './lut';
 import type { LookupTexture } from 'postprocessing';
@@ -92,7 +90,8 @@ export class Sky {
   /** the player's camera (world modules cull against it) */
   get viewCamera(): THREE.PerspectiveCamera { return this.camera; }
 
-  async build(backdropFactory?: SkyBackdropFactory, backdropData?: Pick<SkyBackdropContext, 'level' | 'tier' | 'look'>): Promise<this> {
+  async build(backdropFactory?: SkyBackdropFactory, backdropData?: Pick<SkyBackdropContext, 'level' | 'tier' | 'look'>, dressing?: SkyDressing): Promise<this> {
+    this.dressing = dressing ?? null;
     const { sky: S, atmosphere: A, style } = getActiveChunk();
     // Look Lab (E65): the low-poly shard's toon lighting (E87) and stylized sky (E83) are the user's picks, the only looks
     // since E136; the other shards light from their HDRI
@@ -132,7 +131,6 @@ export class Sky {
       for (const [i, g] of this.shadowFade.ghosts.entries()) cullToSlice(this.csm, this.camera, g.shadow, i); // E153: a ghost draws only its cascade's casters
     }
     if (getActiveChunk().tiers?.[TIER]?.pointLightSkip === true) patchPointLightSkip(); // E142: a far / dark point light skips its BRDF (pointLightSkip.ts)
-    patchCloudShadows(); // painterly shards: the drifting cloud shadows in the sun loop (a no-op elsewhere)
     // the stylized shard's low sun (golden hour, dawn) grazes the flat decks: more normal bias or the planks speckle with acne
     for (const l of this.csm.lights) { l.color.copy(this.sunColor); l.shadow.normalBias = this.stylized ? 0.14 : 0.05; l.shadow.radius = this.stylized ? 0.6 : 2; }
     this.texelBias = this.stylized !== null && rig.phone;
@@ -318,16 +316,12 @@ export class Sky {
     mat.needsUpdate = true;
   }
 
-  /** the cloud layer(s) — Game.ts keeps them centred on the camera */
-  clouds!: THREE.Object3D;
+  /** the cloud layer(s) — Game.ts keeps them centred on the camera; null when the level's sky dressing paints its own */
+  clouds: THREE.Object3D | null = null;
+  /** the level look's own sky layer (LookStrategy.sky): built in place of / beside the cloud layer, updated every frame */
+  private dressing: SkyDressing | null = null;
   /** uCloudLit / uCloudAlpha: the lit / shade tint and the cover's opacity (Pine Hollow's clock turns them; 1 = the fixed sky) */
-  private cloudUniforms = { uTime: { value: 0 }, uSunDir: { value: new THREE.Vector3() }, uSunColor: { value: new THREE.Color() }, uLight: { value: new THREE.Color(1, 1, 1) }, uDrift: { value: new THREE.Vector2() }, uCloudLit: { value: new THREE.Color(1, 1, 1) }, uCloudAlpha: { value: 1 } };
-  /** a painted sky's layer uniforms for SKY_LAYER_GLSL (PainterlySky.ts): a backdrop / far-range shader shares the air + the hour */
-  skyLayer: SkyLayerUniforms | null = null;
-  /** the painterly air's uniforms (aerial perspective, cloud shadows — Atmosphere.ts `paintedAir`), for live tuning (`__wildshard.world.sky.air`) */
-  readonly air = paintedAir;
-  /** a painted sky (Nalati): the painterly clouds + the cloud shadows drift with the one Wind */
-  private painterly = false;
+  private cloudUniforms = { uTime: { value: 0 }, uSunDir: { value: new THREE.Vector3() }, uSunColor: { value: new THREE.Color() }, uLight: { value: new THREE.Color(1, 1, 1) }, uCloudLit: { value: new THREE.Color(1, 1, 1) }, uCloudAlpha: { value: 1 } };
 
   /** E174: the phone rig's shadow maps (shadowVariants.ts); null off the low-poly shard's phone rig */
   shadowMaps: ShadowMaps | null = null;
@@ -386,13 +380,7 @@ export class Sky {
     }
     this.cloudUniforms.uTime.value += dt; this.giantUniforms.uTime.value += dt;
     if (this.stylized) { this.stylizedClock?.update(dt); this.stylized.update(dt); toonUniforms.uCloudTime.value += dt; }
-    if (this.painterly) {
-      // the sky's clouds and their shadows on the ground drift downwind (the shadows at ~1.6× the wind, as clouds aloft do)
-      const s = (wind.speed * 1.6 + 2) * dt;
-      this.cloudUniforms.uDrift.value.x += wind.dirX * s * 0.00004; this.cloudUniforms.uDrift.value.y += wind.dirZ * s * 0.00004;
-      const k = paintedAir.fogCloud.value.x;
-      paintedAir.fogCloudOff.value.x -= wind.dirX * s * k; paintedAir.fogCloudOff.value.y -= wind.dirZ * s * k;
-    }
+    this.dressing?.update?.(dt);
   }
 
   // ── runtime setters (the day/night clock + weather, src/engine/world/DayClock.ts; nothing calls them on a fixed-time shard) ──
@@ -400,7 +388,7 @@ export class Sky {
   /**
    * Move the key light (the sun, or the moon at night) and recolour it: the CSM direction + colour × intensity, the
    * fog's in-scatter direction, the cloud / planet lighting direction. `sunDir` is updated in place (Game.ts places
-   * the sun disc along it every frame; the painterly material reads it through `syncPainterlySun`).
+   * the sun disc along it every frame; a level's own materials read it from here).
    * The shadow direction moves in KEY_SHADOW_STEP steps, not every frame (E89, as DayNight does it: a sun sliding a
    * fraction of a texel per frame made every shadow edge crawl); the disc, the fog and the clouds stay continuous.
    */
@@ -431,18 +419,12 @@ export class Sky {
     const geo = new THREE.SphereGeometry(1400, 48, 24, 0, Math.PI * 2, 0, Math.PI * 0.52);
     const tex = bakedTexture('clouds', makeCloudTexture); // 512² six-octave simplex on a torus: ~200 ms of phone CPU when not baked
     tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
-    if (getActiveChunk().sky.painted && isPaintedAir()) {
-      // Nalati: cel-shaded cumulus round the horizon + high puffs (PainterlySky.ts), and the same fbm drives the cloud shadows
-      this.painterly = true;
+    const dressing = this.dressing;
+    if (dressing !== null) {
+      // a level's own sky (LookStrategy.sky): the cloud fbm is its to use (Nalati's cloud shadows); `clouds: false` = no layer
       tex.needsUpdate = true;
-      paintedAir.fogCloudTex.value = tex;
-      this.cloudUniforms.uSunDir.value.copy(this.sunDir);
-      this.cloudUniforms.uSunColor.value.set(...getActiveChunk().sky.cloudSunColor);
-      const haze = (this.scene.fog as THREE.Fog).color; // live: the day/night rig recolours it
-      this.clouds = buildPainterlyClouds(this.cloudUniforms, haze, tex);
-      this.skyLayer = skyLayerUniforms(this.cloudUniforms, haze);
-      this.scene.add(this.clouds);
-      return;
+      dressing.build?.(this, tex);
+      if (!dressing.clouds) return;
     }
     // a painted sky (Nalati) gets big painted cumulus: larger cells, crisper edges, bright sunlit tops over soft blue-grey bellies
     const big = getActiveChunk().sky.painted ? 1.0 : 0.0;
@@ -697,7 +679,7 @@ export class Sky {
     this.planet.traverse((o) => { o.frustumCulled = false; });
     this.scene.add(this.planet);
   }
-  /** uHazeAmt / uGain / uFar: Driftwood's giant is 1 / 1 / 0; the painterly sky draws it brighter, clearer and at the far plane (behind the ranges); uCrisp: the stylized (low-poly) sky's crisp, opaque disc */
+  /** uHazeAmt / uGain / uFar: Driftwood's giant is 1 / 1 / 0; a `ChunkSky.painted` sky draws it brighter, clearer and at the far plane (behind the ranges); uCrisp: the stylized (low-poly) sky's crisp, opaque disc */
   private giantUniforms = { uTime: { value: 0 }, uSunDir: { value: new THREE.Vector3() }, uHaze: { value: new THREE.Color() }, uAxis: { value: new THREE.Vector3(0, 1, 0) }, uRadius: { value: 1 }, uLight: { value: new THREE.Color(1, 1, 1) }, uOpacity: { value: 1 }, uHazeAmt: { value: 1 }, uGain: { value: 1 }, uFar: { value: 0 }, uCrisp: { value: 0 } };
 }
 

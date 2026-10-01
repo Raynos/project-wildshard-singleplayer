@@ -1,4 +1,4 @@
-import type { Color, DirectionalLight, Fog, Group, HemisphereLight, Mesh, Object3D, Sprite, Vector3, PerspectiveCamera, Scene, WebGLRenderer } from 'three';
+import type { Color, DirectionalLight, Fog, Group, HemisphereLight, Mesh, Object3D, Sprite, Texture, Vector3, PerspectiveCamera, Scene, WebGLRenderer } from 'three';
 import type { BloomEffect, BrightnessContrastEffect, ChromaticAberrationEffect, Effect, EffectComposer, GodRaysEffect, HueSaturationEffect, LookupTexture, LUT3DEffect, NoiseEffect, Pass, ToneMappingEffect, VignetteEffect } from 'postprocessing';
 import type { N8AOPostPass } from 'n8ao';
 import type { GradeEffect } from '../core/Grade';
@@ -86,8 +86,23 @@ export interface GrassLayer { group: Group | Object3D; update: (dt: number, play
 /** a level's own grass in place of the engine's carpet (Grass.build) */
 export interface GrassDriver { build: (sky: Sky, forest: Forest) => GrassLayer }
 
+/**
+ * A level's own sky layer on the engine's sky rig (07 §6.2 step 5). Sky.build runs `build` where it builds its cloud
+ * layer, after the shadow cascades exist (a light-loop patch goes there) and before anything compiles; `update` runs in
+ * Sky.update every frame, after the clock.
+ */
+export interface SkyDressing {
+  /** false: the engine's cloud layer is not built (`sky.clouds` stays null) — the level paints its own sky */
+  clouds: boolean;
+  /** `cloudField`: the engine's tileable cloud fbm (R), for a level's cloud shadows */
+  build?: (sky: Sky, cloudField: Texture) => void;
+  update?: (dt: number) => void;
+}
+
 interface LookParts {
   backdrop?: SkyBackdropFactory;
+
+  sky?: SkyDressing;
 
   frame?: (dt: number, t: number) => void;
 

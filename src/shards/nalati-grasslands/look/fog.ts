@@ -13,7 +13,7 @@
  * `attachFogUniforms` hands to every fogged material.
  */
 import * as THREE from 'three';
-import { paintedAir } from '#engine/world/Atmosphere';
+import { paintedAir } from './air';
 import { V2_TINT_GLSL, tintUniforms } from './tint';
 import { ungrade } from './grade';
 import { PANO_FOG_SRGB } from './panoramaData';

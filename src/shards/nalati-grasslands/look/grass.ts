@@ -35,7 +35,8 @@ import { grassBaseHeightAt, trailGrass, grassToneAt, groundColorAt, grassBloomAt
 import { wind, WIND_GLSL } from '#engine/world/steppeWind';
 import { trample, TRAMPLE_GLSL } from '#kit/looks/trample';
 import { painterlyUniforms } from '#engine/world/painterly';
-import { fogUniforms, paintedAir } from '#engine/world/Atmosphere';
+import { fogUniforms } from '#engine/world/Atmosphere';
+import { paintedAir } from './air';
 import { dressingCover } from '../world/dressing/index';
 import type { Sky } from '#engine/world/Sky';
 import type { Forest } from '#engine/world/forest/Forest';

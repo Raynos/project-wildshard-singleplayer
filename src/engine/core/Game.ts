@@ -337,7 +337,7 @@ export class Game {
     const render = this.level.look?.() ?? null; // the render code downloads while the sky builds; buildComposer reads both
     this.lookStrategy = await render;
     this.lookStrategy?.fog?.install(); // after installAtmosphere (the constructor), before the sky or anything compiles (01 §13.2: slot 300)
-    this._sky = await new Sky(this.scene, this.camera, this.renderer).build(this.lookStrategy?.backdrop, { level: this.level, tier: TIER, look: this.level.lookLayer ?? null });
+    this._sky = await new Sky(this.scene, this.camera, this.renderer).build(this.lookStrategy?.backdrop, { level: this.level, tier: TIER, look: this.level.lookLayer ?? null }, this.lookStrategy?.sky);
     this.levelScope.onDispose(() => { this.lookStrategy?.dispose?.(); this.lookStrategy = null; });
     return this._sky;
   }
@@ -778,7 +778,7 @@ export class Game {
       try {
         sky.update(realDt);
         // planet + sun disc travel with the camera so they stay "infinitely" far
-        sky.clouds.position.copy(this.camera.position); sky.planet.position.copy(this.camera.position).addScaledVector(sky.planetDir, 1700); sky.sunDisc.position.copy(this.camera.position).addScaledVector(sky.sunDir, 1500);
+        sky.clouds?.position.copy(this.camera.position); sky.planet.position.copy(this.camera.position).addScaledVector(sky.planetDir, 1700); sky.sunDisc.position.copy(this.camera.position).addScaledVector(sky.sunDir, 1500);
         this.lookStrategy?.frame?.(realDt, t); // a shard's per-frame uniforms, with the camera final (ShardManifest.LookStrategy)
         cullPlaced(this.camera); // placed models' per-copy culling and LODs for this view (src/engine/models/place.ts; nothing when none cull)
         composer.render(realDt);

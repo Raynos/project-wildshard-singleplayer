@@ -44,11 +44,11 @@ const smooth = (a: number, b: number, x: number): number => { const t = Math.min
 export async function wireLookV2(ctx: LookV2Ctx): Promise<void> {
   const { game, sky, weather } = ctx;
   const dome = await SkyDomeV2.load(game.renderer, fogLut);
-  if (dome === null) { console.warn('[look v2] no panorama: the painted-cloud sky stays'); return; }
+  if (dome === null) { console.warn('[look v2] no panorama: the plain sky stays'); return; }
   game.scene.add(dome.mesh);
   ctx.groups['skyV2'] = dome.mesh;
-  // the painting is the sky, the clouds, the planet, the sun and the far range: the sky's own layers stand down
-  sky.clouds.visible = false;
+  // the painting is the sky, the clouds, the planet, the sun and the far range: the sky's own layers stand down (it builds no
+  // cloud layer: render.ts `sky`)
   sky.planet.visible = false;
   // A3: the cloud sea rises to hug the slab's rocky wall — a painted cumulus deck, not a pale panel (cloudSea.ts)
   const sea = game.scene.getObjectByName('cloud-sea');
