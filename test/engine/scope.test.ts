@@ -91,6 +91,7 @@ describe('scope ownership', () => {
     expect(failure instanceof Error ? failure.message : '').toBe('Scope parent disposal failed: parent sound is stopped; child body is already removed');
     expect(disposalErrorMessages(failure)).toEqual(['parent sound is stopped', 'child body is already removed']);
     expect(disposalErrorMessages('non-Error failure')).toEqual(['non-Error failure']);
+    expect(disposalErrorMessages(new AggregateError([], 'empty aggregate failure'))).toEqual(['empty aggregate failure']);
     expect(released).toHaveBeenCalledOnce();
     expect(parent.census.disposers).toBe(0);
     expect(() => { parent.dispose(); child.dispose(); }).not.toThrow();

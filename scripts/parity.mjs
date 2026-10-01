@@ -62,6 +62,7 @@ async function capture(browser,url,opts) {
   try {
     await installInit(context,{lane:opts.lane,sha:opts.sha,browser:browser.version(),capture:30});await debugSettings(context,{time:'midday',weather:'clear'});
     const page=await context.newPage();page.setDefaultTimeout(opts.timeout*1000);
+    page.on('response',(response)=>{if(response.status()>=400)console.error(`parity: ${opts.shard}.${opts.tier} HTTP ${response.status()} ${response.url()}`);});
     /** @type {string[]} */const errors=[];page.on('pageerror',(e)=>{if(relevantError(e.message))errors.push(e.message);});page.on('console',(m)=>{if(m.type()==='error'&&relevantError(m.text()))errors.push(m.text());});
     const params=new URLSearchParams({chunk:opts.shard,tier:opts.tier,skipintro:'1',nolock:'1',mute:'1',weather:'clear',...opts.tier==='phone'?{touch:'1'}:{},...opts.offline?{}:{sw:'0'}});
     if(opts.offline){

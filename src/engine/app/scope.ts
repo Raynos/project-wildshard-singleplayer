@@ -22,7 +22,7 @@ type Kind = keyof ScopeCensus;
 interface Cleanup { kind: Kind; run: () => void }
 /** Preserve nested disposal failures across browser/JSON error boundaries. */
 export function disposalErrorMessages(error: unknown): string[] {
-  if (error instanceof AggregateError) return error.errors.flatMap((inner: unknown) => disposalErrorMessages(inner));
+  if (error instanceof AggregateError && error.errors.length > 0) return error.errors.flatMap((inner: unknown) => disposalErrorMessages(inner));
   return [error instanceof Error ? error.message : String(error)];
 }
 function emptyCensus(): ScopeCensus {
