@@ -1,4 +1,4 @@
-import { weaponActionGate, type EquipmentRow, type WeaponState, type AimInfo, type DrawingBuffer, type EquipContext, type SwordWorld, type SwordRig, type SwordArms, type SwordFraming, type SwordMoveSet, app, BladeGlow, type Game, type Sky, dodgeFx, dodgeEnv, type Player, type Targets, type TargetHit, lockOn, meleeLock, targetRadius, type AimTarget, bladeBlocked, bladeContact, type Clang, worldTime, CameraFX, Impacts, aimRay, viewmodel, fovForAspect, setProgramKey, lin, ParticlePool, pointScale } from '#engine';
+import { SlashTrail, weaponActionGate, type EquipmentRow, type WeaponState, type AimInfo, type DrawingBuffer, type EquipContext, type SwordWorld, type SwordRig, type SwordArms, type SwordFraming, type SwordMoveSet, app, BladeGlow, type Game, type Sky, dodgeFx, dodgeEnv, type Player, type Targets, type TargetHit, lockOn, meleeLock, targetRadius, type AimTarget, bladeBlocked, bladeContact, type Clang, worldTime, CameraFX, Impacts, aimRay, viewmodel, fovForAspect, setProgramKey, lin, ParticlePool, pointScale } from '#engine';
 import { Melee, isMeleeProfile, type MeleeProfile } from './Melee';
 import { SWORD_WOOD, SWORD_IRON } from './profiles';
 import * as THREE from 'three';
@@ -299,7 +299,6 @@ class Stars {
 
 const _v1 = new THREE.Vector3(), _v2 = new THREE.Vector3(), _v3 = new THREE.Vector3(), _dir = new THREE.Vector3(), _fwd = new THREE.Vector3(), _push = new THREE.Vector3();
 const _q = new THREE.Quaternion(), _q2 = new THREE.Quaternion(), _e = new THREE.Euler();
-const _ta0 = new THREE.Vector3(), _ta1 = new THREE.Vector3(), _tb0 = new THREE.Vector3(), _tb1 = new THREE.Vector3();
 const _b = new THREE.Vector3(), _g0 = new THREE.Vector3(), _g1 = new THREE.Vector3(), _t0 = new THREE.Vector3(), _t1 = new THREE.Vector3(), _hitPoint = new THREE.Vector3();
 const Y_AXIS = new THREE.Vector3(0, 1, 0);
 
@@ -411,9 +410,8 @@ export class Sword extends Melee {
   private sweepGrip = new THREE.Vector3(); private sweepTip = new THREE.Vector3(); private sweepHave = false;
 
   // trail
-  private trail!: THREE.Mesh; private trailMat!: THREE.ShaderMaterial; private trailPos!: Float32Array; private trailAlpha!: Float32Array;
-  private trailPosAttr!: THREE.BufferAttribute; private trailAlphaAttr!: THREE.BufferAttribute;
-  private trailT = new Float32Array(this.profile.trail.samples).fill(-1); private trailHead = 0; private trailN = 0;
+  private trail!: THREE.Mesh; private trailMat!: THREE.ShaderMaterial;
+  private ribbon!: SlashTrail;
   private trailStyle = SLASH.trail;
   private trailColor: THREE.IUniform<THREE.Color> = { value: new THREE.Color(1, 1, 1) };
   private trailInner: THREE.IUniform<number> = { value: 0 };
@@ -505,7 +503,7 @@ export class Sword extends Melee {
     this.move = move; this.swingT = 0; this.hitDone = false; this.kicked = false; this.clanged = false; app.input.consume('attack');
     this.struckN = 0; this.struck.fill(null); this.sweepHave = false;
     this.fromPos.copy(this.basePos); this.fromQ.copy(this.baseQ);
-    this.trailN = 0; this.trail.visible = false;
+    this.ribbon.reset(); this.trail.visible = false;
     this.trailStyle = move.trail; this.trailColor.value.copy(move.trail.color);
     // lunge onto the locked animal (a chained combo swing re-locks, so a fleeing target is chased swing by swing)
     const lock = lunge ? this.findLunge(move === this.mv.heavy ? this.profile.lunge.heavyRange : this.profile.lunge.range) : null;
@@ -555,7 +553,7 @@ export class Sword extends Melee {
   /** shown + held (true) or holstered (false: hidden, input off) */
   override setActive(on: boolean): void {
     this.model.visible = on;
-    if (!on) { this.enabled = false; this.move = null; this.charging = false; this.chargePending = false; this.releaseQueued = false; this.trailN = 0; this.trail.visible = false; }
+    if (!on) { this.enabled = false; this.move = null; this.charging = false; this.chargePending = false; this.releaseQueued = false; this.ribbon.reset(); this.trail.visible = false; }
   }
   /** true while a swing is running (dev / tests) */
   get swinging(): boolean { return this.move !== null; }
@@ -621,17 +619,8 @@ export class Sword extends Melee {
   }
 
   private buildTrail(): void {
-    const g = new THREE.BufferGeometry();
-    const quads = (this.profile.trail.samples - 1) * this.profile.trail.subdivisions;
-    this.trailPos = new Float32Array(quads * 6 * 3); this.trailAlpha = new Float32Array(quads * 6);
-    const edge = new Float32Array(quads * 6);
-    for (let q = 0; q < quads; q++) { edge[q * 6] = 0; edge[q * 6 + 1] = 1; edge[q * 6 + 2] = 1; edge[q * 6 + 3] = 0; edge[q * 6 + 4] = 1; edge[q * 6 + 5] = 0; }
-    g.setAttribute('position', (this.trailPosAttr = new THREE.BufferAttribute(this.trailPos, 3)));
-    g.setAttribute('aAlpha', (this.trailAlphaAttr = new THREE.BufferAttribute(this.trailAlpha, 1)));
-    g.setAttribute('aEdge', new THREE.BufferAttribute(edge, 1));
-    this.trailPosAttr.setUsage(THREE.DynamicDrawUsage); this.trailAlphaAttr.setUsage(THREE.DynamicDrawUsage);
-    g.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 1e6);
-    g.setDrawRange(0, 0);
+    this.ribbon = new SlashTrail({ samples: this.profile.trail.samples, subdivisions: this.profile.trail.subdivisions, movementSq: 1e-4, channel: 'alpha' });
+    const g = this.ribbon.geometry;
     this.trailMat = new THREE.ShaderMaterial({
       uniforms: { uColor: this.trailColor, uInner: this.trailInner },
       vertexShader: `attribute float aAlpha; attribute float aEdge; varying float vA; varying float vE; void main(){ vA = aAlpha; vE = aEdge; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
@@ -645,7 +634,6 @@ export class Sword extends Melee {
     this.trail.frustumCulled = false; this.trail.renderOrder = 1001; this.trail.visible = false;
     this.model.add(this.trail); // camera space, like the rig — the ribbon is the sword's own motion, not the world's
   }
-  private trailA = new Float32Array(this.profile.trail.samples * 3); private trailB = new Float32Array(this.profile.trail.samples * 3);
   private trailSample(): void {
     // the ribbon spans the blade from the move's `from` fraction to the tip, in the model's (camera) space
     const from = this.trailStyle.from;
@@ -658,55 +646,11 @@ export class Sword extends Melee {
       _v1.set(this.tipX * from * from, this.baseY + (this.tipY - this.baseY) * from, 0).applyMatrix4(this.rig.matrix); // a curved blade: the offset grows ~ quadratically
       _v2.set(this.tipX, this.tipY + 0.03, 0).applyMatrix4(this.rig.matrix);
     }
-    if (this.trailN > 0) { // skip a sample the tip has not moved for (hit-stop): no zero-width quads
-      const l = (this.trailHead - 1 + this.profile.trail.samples) % this.profile.trail.samples;
-      if (_v2.distanceToSquared(_v3.set(this.trailB[l * 3] ?? 0, this.trailB[l * 3 + 1] ?? 0, this.trailB[l * 3 + 2] ?? 0)) < 1e-4) return;
-    }
-    const i = this.trailHead; this.trailHead = (this.trailHead + 1) % this.profile.trail.samples; this.trailN = Math.min(this.profile.trail.samples, this.trailN + 1);
-    this.trailA[i * 3] = _v1.x; this.trailA[i * 3 + 1] = _v1.y; this.trailA[i * 3 + 2] = _v1.z;
-    this.trailB[i * 3] = _v2.x; this.trailB[i * 3 + 1] = _v2.y; this.trailB[i * 3 + 2] = _v2.z;
-    this.trailT[i] = this.time;
-  }
-  /** ring slot of the k-th oldest live sample, clamped into [0, n) (the curve's end tangents repeat the end points) */
-  private trailIdx(k: number, n: number): number { const c = k < 0 ? 0 : k >= n ? n - 1 : k; return (this.trailHead - n + c + this.profile.trail.samples) % this.profile.trail.samples; }
-  /** Catmull-Rom through ring samples k-1 … k+2 of `src` at u ∈ [0, 1] → out */
-  private trailCurve(src: Float32Array, k: number, n: number, u: number, out: THREE.Vector3): THREE.Vector3 {
-    const i0 = this.trailIdx(k - 1, n) * 3, i1 = this.trailIdx(k, n) * 3, i2 = this.trailIdx(k + 1, n) * 3, i3 = this.trailIdx(k + 2, n) * 3;
-    const u2 = u * u, u3 = u2 * u;
-    const b0 = -0.5 * u3 + u2 - 0.5 * u, b1 = 1.5 * u3 - 2.5 * u2 + 1, b2 = -1.5 * u3 + 2 * u2 + 0.5 * u, b3 = 0.5 * u3 - 0.5 * u2;
-    return out.set(
-      (src[i0] ?? 0) * b0 + (src[i1] ?? 0) * b1 + (src[i2] ?? 0) * b2 + (src[i3] ?? 0) * b3,
-      (src[i0 + 1] ?? 0) * b0 + (src[i1 + 1] ?? 0) * b1 + (src[i2 + 1] ?? 0) * b2 + (src[i3 + 1] ?? 0) * b3,
-      (src[i0 + 2] ?? 0) * b0 + (src[i1 + 2] ?? 0) * b1 + (src[i2 + 2] ?? 0) * b2 + (src[i3 + 2] ?? 0) * b3,
-    );
+    this.ribbon.sample(_v1, _v2, this.time);
   }
   private trailRebuild(): void {
-    // walk the ring oldest → newest; each gap is this.profile.trail.subdivisions quads on the curve; alpha fades with age (the edge fade is in the shader)
-    let live = 0, q = 0;
-    const P = this.trailPos, A = this.trailAlpha, n = this.trailN, st = this.trailStyle;
-    const life = st.life * this.swingScale, outer = st.alpha;
-    this.trailInner.value = st.inner;
-    for (let k = 0; k < n - 1; k++) {
-      const t0 = this.trailT[this.trailIdx(k, n)] ?? 0, t1 = this.trailT[this.trailIdx(k + 1, n)] ?? 0;
-      const g0 = clamp01(1 - (this.time - t0) / life), g1 = clamp01(1 - (this.time - t1) / life);
-      if (g0 <= 0 && g1 <= 0) continue;
-      live++;
-      for (let sub = 0; sub < this.profile.trail.subdivisions; sub++) {
-        const u0 = sub / this.profile.trail.subdivisions, u1 = (sub + 1) / this.profile.trail.subdivisions;
-        const aa = (g0 + (g1 - g0) * u0) * outer, ab = (g0 + (g1 - g0) * u1) * outer;
-        this.trailCurve(this.trailA, k, n, u0, _ta0); this.trailCurve(this.trailB, k, n, u0, _tb0);
-        this.trailCurve(this.trailA, k, n, u1, _ta1); this.trailCurve(this.trailB, k, n, u1, _tb1);
-        const o = q * 18, oa = q * 6; q++;
-        // tri 1: A0 B0 B1 · tri 2: A0 B1 A1  (A = inner edge, B = tip) — aEdge is baked in that order
-        P[o] = _ta0.x; P[o + 1] = _ta0.y; P[o + 2] = _ta0.z; P[o + 3] = _tb0.x; P[o + 4] = _tb0.y; P[o + 5] = _tb0.z;
-        P[o + 6] = _tb1.x; P[o + 7] = _tb1.y; P[o + 8] = _tb1.z; P[o + 9] = _ta0.x; P[o + 10] = _ta0.y; P[o + 11] = _ta0.z;
-        P[o + 12] = _tb1.x; P[o + 13] = _tb1.y; P[o + 14] = _tb1.z; P[o + 15] = _ta1.x; P[o + 16] = _ta1.y; P[o + 17] = _ta1.z;
-        A[oa] = aa * aa / Math.max(outer, 1e-3); A[oa + 1] = aa; A[oa + 2] = ab; A[oa + 3] = aa * aa / Math.max(outer, 1e-3); A[oa + 4] = ab; A[oa + 5] = ab * ab / Math.max(outer, 1e-3);
-      }
-    }
-    this.trail.geometry.setDrawRange(0, q * 6);
-    this.trail.visible = live > 0;
-    if (live) { this.trailPosAttr.needsUpdate = true; this.trailAlphaAttr.needsUpdate = true; }
+    this.trailInner.value = this.trailStyle.inner;
+    this.trail.visible = this.ribbon.rebuild(this.time, this.trailStyle.life * this.swingScale, this.trailStyle.alpha);
   }
 
   // ── melee hit test: the blade swept from last frame's pose to this one (see the header) ──
@@ -954,10 +898,9 @@ export class Sword extends Melee {
     // trail: sample through the slash, then fade (an animated rig draws its own, unless it asks for the engine's)
     const ownTrail = this.arms !== null && this.arms.engineTrail !== true;
     if (active && !ownTrail) this.trailSample();
-    if (this.trailN > 0) {
+    if (this.ribbon.count > 0) {
       this.trailRebuild();
-      const newest = (this.trailHead - 1 + this.profile.trail.samples) % this.profile.trail.samples;
-      if (t - (this.trailT[newest] ?? t) > this.trailStyle.life * this.swingScale) this.trailN = 0; // every sample has faded: drop the ribbon
+      if (t - this.ribbon.newest > this.trailStyle.life * this.swingScale) this.ribbon.reset(); // every sample has faded: drop the ribbon
     }
     // the heavy's tip glint: on through the chop's active window, then winks out
     const glintOn = move === this.mv.heavy && active && !ownTrail;

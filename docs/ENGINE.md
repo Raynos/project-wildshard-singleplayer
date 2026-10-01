@@ -916,6 +916,8 @@ The kit's starter set is `effect.poison`, `effect.burn`, `effect.bleed`, `effect
 **Arms ports**: `ARM_PAL`, `gloveFist`, `riderArm`, `placeArm`, `forearm` (Nalati's arms, waiting to move);
 `buildHoverboard` (the hoverboard's geometry).
 
+`SlashTrail` (`#engine`) is the shared melee ribbon drawing block. `SlashTrailProfile` supplies capacity, subdivisions, motion threshold and the age/alpha channel. `sample(inner, tip, time)`, `reset()` and `rebuild(time, life, alpha?)` keep caller-owned materials and clocks; `geometry`, `count` and `newest` expose drawing and expiry handles.
+
 ## 19. Creatures and AI
 
 A creature is two rows: a `SpeciesRow` (simulation) and a `SpeciesLook` (render). Register both in `kit`.
@@ -1162,7 +1164,7 @@ sections above describe what to use; this list is the complete inventory.
 
 ### `#engine` (`src/engine/index.ts`)
 
-679 exports, grouped by the module they come from.
+681 exports, grouped by the module they come from.
 
 - `./core/devMode`: `isDev`, `onDev`, `setDev`
 - `./core/config`: `CHUNK_HALF`, `ROAD_LENGTH`, `SEED`, `CHUNK_SIZE`, `CHUNK_DEPTH`, `TERRAIN_RES`
@@ -1357,6 +1359,7 @@ sections above describe what to use; this list is the complete inventory.
 - `./input/dom`: `listenDom`
 - `./ui/authoredDebugRows`: `registerGlobalDebugAction`, `GlobalDebugActionSpec`
 - `./models/live`: `live`, `listModel`, `RosterEntry`
+- `./combat/view/slashTrail`: `SlashTrail`, `SlashTrailProfile`
 - `(local)`: `ENGINE_API`
 
 ### `#engine/data` (`src/engine/data.ts`)

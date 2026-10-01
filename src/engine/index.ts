@@ -291,3 +291,5 @@ export { listenDom } from './input/dom';
 export { registerGlobalDebugAction, type GlobalDebugActionSpec } from './ui/authoredDebugRows';
 
 export { live, listModel, type RosterEntry } from './models/live';
+
+export { SlashTrail, type SlashTrailProfile } from './combat/view/slashTrail';
