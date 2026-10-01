@@ -1002,6 +1002,25 @@ build a `DamageRequest` → occlusion (`lineOfSight`, unless `throughWalls`) →
 | `Targets`, `TargetAnimal`, `TargetHit`, `authoredTargets`, `RayTargets`, `getAimTargets`, `lockOn`, `meleeLock`, `targetRadius`, `AimTarget`, `bladeBlocked`, `bladeContact`, `Clang` | what a weapon can hit, aim assist and lock-on, blade occlusion |
 | `CameraFX`, `Impacts`, `BladeGlow`, `dodgeFx`, `dodgeEnv`, `fxMaterial`, `annulus`, `FX`, `FxMaterial`, `FxMode`, `LightPool`, `ParticlePool`, `ParticlePoolSpec`, `ParticleAttr`, `pointScale` | feel and FX |
 
+**Damage request motion fields (G21).** These optional fields are currently metadata, not movement commands.
+`CombatPipeline.hit` preserves them through modifiers and in `DamageDealt.req`, but neither the built-in Animal
+actor adapter nor `PlayerHealth.applyDamage` reads them. A custom actor or listener must define its own semantics
+before using them; do not assume a request with either field pushes or interrupts its target.
+
+| Field | Type, unit and range | Built-in Animal / player effect |
+|---|---|---|
+| `stagger` | `number` (optional). No runtime unit, range validation or clamping is defined for this request field; it is not a duration in seconds. | Neither target applies a stun, push or attack cancellation from it. An Animal still gets the normal damage flinch. |
+| `knockback` | `number` (optional), not a vector. No runtime unit, range validation or clamping is defined for this request field; it is not a distance or velocity command. | Neither target moves from it. |
+
+For an Animal, after an accepted, nonlethal hit, call `animal.stagger(dir, strength)` explicitly for a melee
+interruption. Here `strength` **is** a dimensionless number clamped to `[0, 1]`: 0 gives a 0.6 m push and 0.4 s
+stun; 1 gives 1.5 m and 0.8 s, with linear interpolation between them. Push distance is divided by
+`Math.max(1, animal.scale)`, the world direction is flattened to XZ and normalized, and the push takes 0.25 s.
+The call cancels the Animal's attack and holds its AI/body steering while stunned; dead Animals ignore it.
+The kit melee weapons call this separately from their damage request. For a velocity push, use
+`animal.impulse(worldVelocity)` (§19), which does not itself stun or cancel attacks. Neither Animal method is a
+player health/motor port; the request fields do not give the player either behaviour.
+
 **GAS-lite: effects.** `EffectService` (`app.effects`) applies `EffectDef` rows to an actor or a piece of equipment.
 
 | Export | What it is |
@@ -1062,16 +1081,76 @@ once with that cause. A shard may call it for an authored pit instead of supplyi
 | `SpeciesFlight` | `{ altitude, above?: 'ground' \| 'world', climbRate, diveRate }`; rates are metres per second |
 | `SpeciesVariant` | `{ id, label, weight, rarity, scale, hp?, mods? }` |
 | `deriveSpecies(parent, patch)` | a row that overrides its parent field by field |
-| `SpeciesLook`, `speciesWithLook`, `CreatureHull`, `EyeSpot` | the render row: `{ id, species, kind, rig, fur, rigContract, build(), animate() }` |
+| `SpeciesLook`, `speciesWithLook`, `CreatureHull`, `EyeSpot` | the render row: `{ id, species, kind, rig, fur, rigContract, build(variant: VariantDef, rng: Rng): AnimalSpecies, animate(ctx: RigAnimCtx) }` |
 | `SpeciesService` | `app.species` |
 | `CreatureBrain<S>` | a state machine: `think(ctx)` (decisions, on the brain tick) and `act(ctx)` (the body, every body tick); `transition(state)` |
 | `ThinkCtx`, `EnemyWorld`, `AnimalDims`, `VariantMods`, `RigAnimCtx`, `FurStyle` | what a brain and a look receive |
 | `StrikeRunner`, `StrikeSpec`, `StrikeContext`, `StrikeActor`, `StrikePhase`, `UtilityScore` | strikes as data: `pick(specs, ctx)`, `start(spec, actor, target)`, `update(dt, ctx)` |
-| `canReach`, `ReachActor` | occlusion + nav: can this actor reach the target |
+| `canReach`, `ReachActor` | occlusion only: a WORLD ray from target feet + 1.2 m to the creature aim point; no navmesh test |
 | `Hfsm`, `StateDef`, `StateChange` | the hierarchical state machine under the brains |
 | `GroupBrain`, `GroupMember`, `NightBrain`, `NightActor`, `NightSpec`, `NightPorts` | herds and night spawns |
 | `WeightedTable`, `WeightedRow`, `TableDrop`, `TableSpec` | spawn and loot tables (`mode: 'weighted' \| 'each'`) |
 | `inspectBrain`, `pinBrain`, `brainInspection`, `BrainInspection`, `installAiDebug`, `AiDebugHost`, `AiDebugView` | the AI debug overlay |
+
+**Brain context (`ThinkCtx`, G20).** `think(animal, ctx)` receives the scheduled decision delta;
+`act(animal, ctx)` receives the scheduled body delta. Do not hard-code 0.1 s: cadence depends on the species tick
+policy and scheduler (§17). The manager reuses one context object across Animals/callbacks, including its
+per-animal `hurt`/`sound` closures and player reference. Read it during the callback; copy positions or values
+needed later rather than retaining `ctx`.
+
+| Field | Type | Meaning |
+|---|---|---|
+| `dt`, `t` | `number`, `number` | Seconds for this callback; elapsed simulation seconds (`app.clock.now`), not wall-clock milliseconds. |
+| `player` | `Vector3` | Player **feet**, in world metres. It is not the camera/chest. Clone before adding a chest-height offset for a sphere's target. |
+| `playerSpeed` | `number` | Smoothed horizontal movement speed in m/s (sample capped at 9); while sprinting the manager supplies 7.2 rather than that measurement. |
+| `rng` | `Rng` | Manager's shared seeded random stream (`next`, `range`, `int`, `chance`, `pick`, `weighted`, `fork`). Drawing advances it. |
+| `calm` | `boolean` | Debug unawareness: the player should be invisible to this brain. Custom thinkers must honour it themselves; it does not veto `hurt`. |
+| `herd` | `Animal[] \| null` | Spawn herd members, including dead members; `null` when not in a herd. |
+| `hurt` | `(damage: number) => void` | Player damage via the manager's wired charge callback, attributed to this Animal. Rechecks reach; on melee shards also requires facing within ±70°. It checks neither distance nor strike shape nor attack tokens; the brain/runner supplies those. |
+| `sound` | `(name: string) => void` | Routes an authored Animal sound name to the manager's sound callback at this Animal's position. |
+| `world` | `EnemyWorld` | Optional shard-supplied `perches`, matching `perchBases`, `throwCoconut(from, target, thrower)`, `splash(at, strength)`, `hold: { x, z, r, guardR, floorAt }` (floor height or `undefined`), and `night()` (0 midday to 1 night). Test for missing pieces. |
+| `heightAt` | `(x: number, z: number) => number` | Terrain height in world metres; not a raycast for a bridge/deck floor. |
+| `waterLevel` | `() => number` | Current world water height in metres. |
+| `steer` | `(a: Animal, yaw: number, speed: number, turnRate: number) => void` | Ground steering: yaw in radians (0 faces +Z), speed in m/s, maximum turn rate in rad/s (further capped during an attack). Avoids trunks, slopes, edges and water; uses nav avoidance when the manager enables `navSteer`. Sets motion. |
+| `flight.steer` | `(a: Animal, yaw: number, speed: number, altitude: number, turnRate?: number) => void` | Sets flight target altitude in metres under `flight.above`, heading and speed, without ground/nav avoidance. Default maximum turn rate 2.5 rad/s. Requires a species `flight` declaration. |
+| `pathYaw` | `(a: Animal, tx: number, tz: number, every?: number) => number` | Radian heading to the next ground-nav path corner. Replans after goal movement >2 m or `every` seconds (default 1); limited to 8 plans per manager frame. No nav/path means straight heading. Not aerial routing. |
+| `confine` | `(a: Animal) => void` | Ground containment: backs out of water, clamps XZ inside chunk edges and pushes off trunks. Do not use as aerial obstacle avoidance. |
+| `reach` | `(a: Animal) => boolean` | Exactly `canReach(a, ctx.player)`: WORLD occlusion, with no distance, facing, navmesh or ground-connectivity test. Works for a flyer as well as a ground creature. |
+| `claim` | `(a: Animal) => boolean` | Takes/retains an attack token; false means wait. Without a registered finite cap it returns true. The manager reclaims a custom thinker's token when its attack presentation ends (`attackPhase < 0`), dies or hides. |
+| `mayAttack` | `(a: Animal) => boolean` | Checks for a free token or this Animal's held token without taking one; unlimited/unregistered policies return true. |
+
+**`canReach` does not query navigation.** Both it and `ctx.reach` ray from the target feet plus 1.2 m to the
+creature's scaled body centre (averaged with head height when body height exceeds 0.9 m), with slack equal to the
+scaled body radius plus 0.1 m at the creature. Other creatures and sensors do not block this WORLD-only ray. With no physics world
+they return true; ranged shards do not unconditionally bypass cover. Use `ctx.reach(a)` for a flyer's strike cover
+callback, or `canReach(a, feet)` for an explicit feet target. Passing an already elevated chest point to `canReach`
+adds another 1.2 m. Neither helper proves a ground path or a clear flight trajectory.
+
+**Strike context (`StrikeContext`, G20).** The shard constructs this context; the manager does not fill it in.
+A point is `{ x: number, y: number, z: number }` in world metres. Keep `target` and `origin` current on body ticks.
+
+| Field | Type | Meaning |
+|---|---|---|
+| `actor` | `StrikeActor` | Live attacker: `position` (world point), `alive` (boolean), `scale` (dimensionless number), `yaw` (radians), plus `startAttack(seconds)`, `cancelAttack()` and `setMotion(yaw, speed, turnRate)`. An Animal supplies these ports. |
+| `target` | world point | Point tested by the shape and selection range. A sphere tests this point, not a player capsule; choose feet or a copied chest-height point deliberately. |
+| `airborne?` | `boolean` | **Target's** airborne state, supplied by the shard, not the flyer's state. Only `eligibility.jumpDodges: true` reads it: `true` rejects contact, omitted/false does not. It changes no distance, shape, steering or cover rule. |
+| `origin?` | world point | Override for shape-distance/angle tests (default `actor.position`). Does not replace the actor point in `pick`'s range test or `eligibility.maxDy`, or the committed lane endpoints. |
+| `ringRadius?` | `number` | World-metre expansion added to ring inner/outer radii; default `motion.speed * runner.time` (or 0). |
+| `canReach` | `() => boolean` | Cover check at contact, after shape/eligibility. Called unless `spec.tags` contains `cover.exempt`. It is not checked by `pick`. |
+| `hit` | `(spec: StrikeSpec) => void` | Apply damage/presentation for the accepted contact, e.g. `ctx.hurt(spec.damage)`. The runner does not apply `damage` itself. `update` consumes its one hit per active window even if this callback's damage is vetoed downstream. Direct `contact` calls have no one-hit latch. |
+
+`StrikeSpec.eligibility` is optional and applies to contact (including alternative shapes), **not** selection:
+
+| Field | Type / unit | Rule |
+|---|---|---|
+| `maxDy?` | `number`, metres | Reject when `abs(target.y - actor.position.y) > maxDy`; equality passes. No actor scaling or `origin` override. Author a nonnegative value; there is no validation. Omitted means no vertical limit, including for XZ shapes. |
+| `jumpDodges?` | `boolean` | Only `true` combined with `ctx.airborne === true` rejects contact. No automatic player-grounded lookup. |
+
+`pick` filters only cooldown and range, then chooses the greatest finite `weight(ctx)` (list order breaks ties).
+Sphere range uses 3-D actor-to-target distance; other shapes use XZ distance. Selection range is unscaled even
+when a contact shape uses `units: 'actor'` (scale) or the omitted default (`max(1, actor.scale)`);
+`units: 'world'` uses scale 1. Use `weight` or brain logic for any selection-time cover/height/jump restriction.
+Ground XZ shapes otherwise ignore target height; a sphere measures 3-D contact distance from `origin`.
 
 **Flight.** Declare `flight: { altitude: 17, above: 'ground', climbRate: 7, diveRate: 28 }` on the species.
 In `act`, call `ctx.flight.steer(animal, yaw, speed, altitude, turnRate?)` (or `animal.fly` with the same arguments).
@@ -1081,7 +1160,7 @@ and adds the requested altitude. A missing floor or one more than 200 metres bel
 Use `above: 'world'` to fly over a void at an absolute height. Climb/dive rates cap vertical movement;
 species without `flight` retain their ground body. Dead flyers descend to the sampled floor (or keep falling over a void).
 
-A `StrikeSpec` is `{ id, shape, windup, active, recover, cooldown, range, damage, tags, weight, telegraph?, motion?,
+A `StrikeSpec` is `{ id, shape, windup, active, recover, cooldown, range, damage, tags, weight, units?, alternatives?, motion?,
 eligibility? }`. Shapes: `arc` (radius, halfAngle), `lane` (length, width), `ring` (inner, outer), `wedge` (length,
 halfAngle), `point` (radius), `sphere` (radius). A sphere tests three-dimensional distance from the live actor
 or `ctx.origin`, obeys normal cover and eligibility rules, and lands once per active window. Its selection `range`
@@ -1100,6 +1179,34 @@ export class GreyBlobBrain extends CreatureBrain<'idle' | 'fight'> {
 export const GREY_BLOB: SpeciesRow = { id: 'template.creature.greyBlob', kind: 'greyBlob', label: STRINGS.blob, aggressive: true,
   variants: [{ id: 'grey', label: STRINGS.blob, weight: 1, rarity: 'common', scale: [1, 1], hp: 60 }],
   think: (a, ctx) => { brain(a).think(ctx); }, act: (a, ctx) => { brain(a).act(ctx); } };
+```
+
+**Short flyer example.** A species with `flight.above: 'world'` can use this body callback after its own
+approach/circle brain has brought it into swoop range. Keep one `StrikeRunner` per Animal. The sphere targets a
+copied chest point; reach still receives the original feet. Airborne is omitted because this swoop does not grant
+a jump dodge. This simple non-lane sphere leaves horizontal/vertical movement to the flight brain:
+
+```ts
+import { type Animal, type ThinkCtx, type StrikeContext, type StrikeSpec, StrikeRunner } from '#engine';
+
+const SWOOP: StrikeSpec = {
+  id: 'example.ray.swoop', shape: { kind: 'sphere', radius: 1.6 },
+  windup: 0.3, active: 0.2, recover: 0.8, cooldown: 2,
+  range: 2.2, damage: 14, tags: ['creature.exampleRay'], units: 'world', weight: () => 1,
+};
+function swoopBody(a: Animal, ctx: ThinkCtx, strikes: StrikeRunner): void {
+  if (ctx.calm) { strikes.cancel(); a.cancelAttack(); return; }
+  const chest = ctx.player.clone(); chest.y += 1.2;
+  const strike: StrikeContext = {
+    actor: a, target: chest, canReach: () => ctx.reach(a), hit: (spec) => { ctx.hurt(spec.damage); },
+  };
+  ctx.flight.steer(a, Math.atan2(chest.x - a.position.x, chest.z - a.position.z), 5, chest.y, 4);
+  if (!strikes.busy) {
+    const next = strikes.pick([SWOOP], strike);
+    if (next !== null && ctx.reach(a) && ctx.claim(a)) strikes.start(next, a, chest);
+  }
+  strikes.update(ctx.dt, strike);
+}
 ```
 
 **Encounters.** `app.encounters` (`EncounterRegistry`, also exported as `EncounterService`) runs bosses, elites and
