@@ -103,6 +103,8 @@ export interface GrassDriver { build: (sky: Sky, forest: Forest) => GrassLayer }
 export interface SkyDressing {
   /** false: the engine's cloud layer is not built (`sky.clouds` stays null) — the level paints its own sky */
   clouds: boolean;
+  /** false: the engine's planet is not built (`sky.planet` stays an empty group outside the scene) — the level paints its own */
+  planet: boolean;
   /** `cloudField`: the engine's tileable cloud fbm (R), for a level's cloud shadows */
   build?: (sky: Sky, cloudField: Texture) => void;
   update?: (dt: number) => void;

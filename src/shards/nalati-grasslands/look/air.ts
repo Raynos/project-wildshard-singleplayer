@@ -59,9 +59,10 @@ export function patchCloudShadows(): void {
     .replaceAll('getDirectionalLightInfo( directionalLights[0], directLight );', hook('getDirectionalLightInfo( directionalLights[0], directLight );'));
 }
 
-/** the sky dressing: no engine cloud layer (the dome paints the sky); the engine's cloud fbm drives the cloud shadows */
+/** the sky dressing: no engine cloud layer and no planet (the dome paints the sky); the engine's cloud fbm drives the cloud shadows */
 export const NALATI_SKY: SkyDressing = {
   clouds: false,
+  planet: false,
   build: (_sky, cloudField) => {
     patchCloudShadows();
     paintedAir.fogCloudTex.value = cloudField;

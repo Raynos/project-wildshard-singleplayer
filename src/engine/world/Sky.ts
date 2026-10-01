@@ -373,10 +373,11 @@ export class Sky {
 
   /** Thin procedural cirrus/cumulus layer on a sky dome — the HDRI has none, and a forest needs a sky with some drama. */
   private buildClouds() {
+    const dressing = this.dressing;
+    if (dressing !== null && !dressing.clouds && dressing.build === undefined) return; // no layer and no cloud field asked for
     const geo = new THREE.SphereGeometry(1400, 48, 24, 0, Math.PI * 2, 0, Math.PI * 0.52);
     const tex = bakedTexture('clouds', makeCloudTexture); // 512² six-octave simplex on a torus: ~200 ms of phone CPU when not baked
     tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
-    const dressing = this.dressing;
     if (dressing !== null) {
       // a level's own sky (LookStrategy.sky): the cloud fbm is its to use (Nalati's cloud shadows); `clouds: false` = no layer
       tex.needsUpdate = true;
@@ -491,6 +492,7 @@ export class Sky {
   }
 
   private buildPlanet() {
+    if (this.dressing?.planet === false) return; // the level's sky dressing paints its own
     const P = this.level.sky.planet;
     if (P) { this.buildGasGiant(P); return; }
     // A gas giant with rings sits low over the east horizon — the world's signature skyline.

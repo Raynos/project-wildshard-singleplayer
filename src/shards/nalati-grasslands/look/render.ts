@@ -6,7 +6,7 @@
  *   fog             the painted air (air.ts), then the panorama-coloured fog (fog.ts), slot 300, after the engine fog
  *   terrainPainter  the painted ground (terrainPainter.ts)
  *   grass           the GPU blade rings + shader flowers (grass.ts `GrassV2`)
- *   sky             no engine cloud layer; the cloud shadows' field + drift (air.ts `NALATI_SKY`)
+ *   sky             no engine cloud layer or planet; the cloud shadows' field + drift (air.ts `NALATI_SKY`)
  * The panorama dome, the day keys and the per-frame look are still wired by `wireLookV2` (index.ts) until 07 §6.2 step 6.
  */
 import type { LookStrategy } from '#engine';

@@ -47,8 +47,7 @@ export async function wireLookV2(ctx: LookV2Ctx): Promise<void> {
   game.scene.add(dome.mesh);
   ctx.groups['skyV2'] = dome.mesh;
   // the painting is the sky, the clouds, the planet, the sun and the far range: the sky's own layers stand down (it builds no
-  // cloud layer: render.ts `sky`)
-  sky.planet.visible = false;
+  // cloud layer and no planet: air.ts NALATI_SKY)
   // A3: the cloud sea rises to hug the slab's rocky wall — a painted cumulus deck, not a pale panel (cloudSea.ts)
   const sea = game.scene.getObjectByName('cloud-sea');
   if (sea) applyCloudSeaV2(sea, grassV2Uniforms.uSunView);

@@ -51,26 +51,17 @@ const PHONE_CARD_GAIN = 1;
  *  test at the far plane it then shades only where the sky shows — the skyline's layers cost nothing under the city */
 const SKY_ORDER = 900;
 
-/** (E281) the engine's cloud layer (world/Sky.ts: a white cumulus dome for the daylight shards) has no place in a
- *  blue-hour sky under the sky screens; the shard's own painted sky (look/style.ts) is the whole sky. Hiding it also
- *  drops its draw and its full-sky fill */
-function hideEngineClouds(scene: Object3D): boolean {
-  let found = false;
-  for (const o of scene.children) {
-    if (o instanceof Mesh && o.material instanceof ShaderMaterial && o.material.uniforms['tClouds'] !== undefined) { o.visible = false; found = true; }
-  }
-  return found;
-}
-
 export function shardRender(): LookStrategy {
   let handle: NdRenderHandle | null = null;
   const glow = glowUniforms();
   const grade = gradeUniforms();
   void (async (): Promise<void> => { const t = await loadLut(LUT_URL); if (t !== null) { grade.uLut.value = t; grade.uLutAmt.value = 1; } })();
   let lastPr = 0;
-  let clouds: Object3D | null = null;
 
   return {
+    // (E281) the engine's cloud layer (a white cumulus dome for the daylight shards) has no place in a blue-hour sky
+    // under the sky screens; the shard's own painted sky (look/style.ts) is the whole sky: the layer is never built
+    sky: { clouds: false, planet: true },
     compose(c: LookComposeContext): LookComposition {
       const world = ndRuntime().world;
       // AO at the city's scale: 2.2 m reaches the eave's underside, the awning's shadow on the wall, the step's riser and
@@ -135,8 +126,6 @@ export function shardRender(): LookStrategy {
       const src = lightSources();
       const halos = bleed === null && src !== null ? buildHalos(world.shared, src) : null;
       if (halos !== null) world.root.add(halos.mesh);
-      clouds = c.scene;
-      if (hideEngineClouds(c.scene)) clouds = null;
       const sky = world.root.getObjectByName('sky');
       if (sky !== undefined) sky.renderOrder = SKY_ORDER;
       handle = { reflect, haze, bleed, jiehua, camera: c.camera, renderer: c.renderer, shared: world.shared, setCardOn, streaks, halos, streakPerf: STREAK_PERF };
@@ -148,8 +137,6 @@ export function shardRender(): LookStrategy {
       ndRuntime().cull();
       const world = ndRuntime().world;
       if (handle === null) return;
-      // (the cloud layer may be made after the composer: look once more on the first frame)
-      if (clouds !== null) { hideEngineClouds(clouds); clouds = null; }
       // line widths are authored at 3× (look/style.ts uDpr); the drawing buffer's size for the screen-space pieces
       // line widths are authored at 3× (look/style.ts uDpr). Below 3× a ruled line is thinner in buffer pixels and the
       // upscale to the screen softens it further: the phone's 2× draws them 20 % heavier, so they read at the clean

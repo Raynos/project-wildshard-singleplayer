@@ -30,6 +30,7 @@ describe('Nalati look strategy', () => {
 
   it('builds no engine cloud layer; the cloud fbm drives the cloud shadows in the sun loop', () => {
     expect(NALATI_SKY.clouds).toBe(false);
+    expect(NALATI_SKY.planet).toBe(false);
     const field = new THREE.Texture();
     patchCloudShadows();
     expect(THREE.ShaderChunk.lights_fragment_begin).toContain('directLight.color *= pCloudShadow();');
