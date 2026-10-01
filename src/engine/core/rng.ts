@@ -42,7 +42,8 @@ export function fnv1a32(text: string): number {
   for (let i = 0; i < text.length; i++) hash = Math.imul(hash ^ (text.codePointAt(i) ?? 0), 0x01000193);
   return hash >>> 0;
 }
-export type RngStream = 'gameplay' | 'ai' | 'loot' | 'spawn' | 'cosmetic';
+export interface RngStreams { gameplay: true; ai: true; spawn: true; cosmetic: true }
+export type RngStream = keyof RngStreams;
 export class RngService {
   private streams = new Map<RngStream, Rng>();
   private value: number;
@@ -61,4 +62,3 @@ export function pageSeed(seed: number, harnessSeed?: number): number {
   if (harnessSeed !== undefined) return harnessSeed >>> 0;
   return (seed ^ (crypto.getRandomValues(new Uint32Array(1))[0] ?? 0)) >>> 0;
 }
-
