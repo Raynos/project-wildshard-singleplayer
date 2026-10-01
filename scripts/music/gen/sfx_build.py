@@ -6,7 +6,7 @@ build the side-by-side comparison page.
 
 --jobs / --stage (PINE-HOLLOW-REMASTER PH-A2..A4): rank another families file; each model's set is written to <dir>/<set>/
 (a staging area outside public/, for sfx_merge.py --jobs to pick the winners from) and the rankings to
-scripts/music/gen/sfx-ph-<set>.json; no comparison page (scripts/music/gen/ph_page.py makes Pine Hollow's). A family's
+scripts/music/gen/sfx-<tag>-<set>.json (--tag defaults to ph); no comparison page (ph_page.py / nd_page.py make it). A family's
 optional `group` (an NPC's barks, the footstep surfaces) keeps its siblings out of its CLAP competitors, so near-identical
 descriptions do not rank each other down. With --stage, beds encode stereo at BED_KBPS (Pine Hollow has 14 of them).
 
@@ -43,15 +43,14 @@ import json
 import subprocess
 import sys
 from pathlib import Path
+from typing import TYPE_CHECKING
 
-import librosa
-import numpy as np
-import soundfile as sf
+if TYPE_CHECKING:
+    import numpy as np
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
-from analyze import CLAP_DIR, _tensor, loop_seam  # noqa: E402
-from stems import decode_offset, encode, lufs, seam, shipped_name  # noqa: E402
+from audio_jobs import family_key, read_sfx, tag_name  # noqa: E402
 
 REPO = HERE.parents[2]
 OUT = REPO / "public/assets/sfx"
@@ -79,6 +78,8 @@ GAIN = {"bed-forest": 0.5, "bed-island": 0.5, "bed-underwater": 0.5, "hum-pickup
 
 
 def trim(x: np.ndarray, sr: int, max_s: float) -> np.ndarray:
+    import numpy as np
+
     env = np.abs(x).max(0)
     idx = np.where(env > env.max() * 10 ** (-45 / 20))[0]
     a, b = max(int(idx[0]) - int(0.005 * sr), 0), min(int(idx[-1]) + int(0.03 * sr), x.shape[1], int(idx[0]) + int(max_s * sr))
@@ -89,23 +90,48 @@ def trim(x: np.ndarray, sr: int, max_s: float) -> np.ndarray:
 
 
 def main() -> None:
-    import torch
-    from transformers import ClapModel, ClapProcessor
-
     import argparse
 
     ap = argparse.ArgumentParser()
-    ap.add_argument("raw")
+    ap.add_argument("raw", nargs="?")
     ap.add_argument("--jobs", default="sfx-jobs.json")
     ap.add_argument("--stage", default=None, help="write each model's set under this dir instead of public/assets/sfx/")
     ap.add_argument("--only", default="", help="with --stage: rank and ship only these families (comma list); the rest keep their round's")
+    ap.add_argument("--tag", default="ph", type=tag_name, help="staged ranking prefix sfx-<tag>-<model>.json (default ph)")
+    ap.add_argument("--list", action="store_true", help="validate and print job families; no model imports")
+    ap.add_argument("--dry", action="store_true", help="replay cached ranking JSON without loading models or writing files")
     args = ap.parse_args()
     only = {f for f in args.only.split(",") if f}
     if only and not args.stage:
         raise SystemExit("--only needs --stage")
+    fams = read_sfx(HERE / args.jobs)["families"]
+    if only - fams.keys():
+        ap.error(f"unknown --only families: {sorted(only - fams.keys())}")
+    out_root, prefix = (Path(args.stage), f"sfx-{args.tag}-") if args.stage else (OUT, "sfx-")
+    if args.list:
+        print(json.dumps(fams, indent=2, ensure_ascii=False))
+        return
+    if args.dry:
+        cached = {meta["set"] or model: (HERE / f"{prefix}{meta['set'] or model}.json") for model, meta in SETS.items()}
+        cached = {model: p for model, p in cached.items() if p.exists()}
+        if not cached:
+            ap.error("--dry needs cached rankings from a previous run; use --list to validate new jobs")
+        for p in cached.values():
+            rows = json.loads(p.read_text())["families"]
+            if not (only or set(fams)) <= rows.keys():
+                ap.error(f"{p}: missing cached families (run the model ranking first)")
+        print(json.dumps({str(p): p.read_text() for p in cached.values()}, indent=2, ensure_ascii=False))
+        return
+    if args.raw is None:
+        ap.error("raw is required unless --list or --dry is used")
     raw = Path(args.raw)
-    fams = json.loads((HERE / args.jobs).read_text())["families"]
-    out_root, prefix = (Path(args.stage), "sfx-ph-") if args.stage else (OUT, "sfx-")
+    import librosa
+    import numpy as np
+    import soundfile as sf
+    import torch
+    from transformers import ClapModel, ClapProcessor
+    from analyze import CLAP_DIR, _tensor, loop_seam
+    from stems import decode_offset, encode, lufs, seam, shipped_name
     clap = ClapModel.from_pretrained(str(CLAP_DIR)).eval()
     proc = ClapProcessor.from_pretrained(str(CLAP_DIR))
     scale = float(clap.logit_scale_a.detach().exp())
@@ -178,7 +204,7 @@ def main() -> None:
             gone: list[str] = []
             for fam in only:
                 kind = fams[fam]["kind"]
-                sec, key = (man["oneshots"], fam) if kind == "oneshot" else (man["beds" if kind == "bed" else "hums"], fam.split("-", 1)[1])
+                sec, key = (man["oneshots"], fam) if kind == "oneshot" else (man["beds" if kind == "bed" else "hums"], family_key(fam))
                 e = sec.pop(key, None)
                 if e is not None:
                     gone += e["files"] if "files" in e else [e["file"]]
@@ -213,7 +239,7 @@ def main() -> None:
                     entry = {"file": fname, "loopStart": round(r["seam"]["start_s"] + lag, 4), "loopEnd": round(r["seam"]["end_s"] + lag, 4),
                              "duration": round(dlen, 4), "gain": GAIN.get(fam, 0.5)}
                     assert entry["loopEnd"] <= dlen and entry["loopEnd"] - entry["loopStart"] > 0.5
-                    man["beds" if kind == "bed" else "hums"][fam.split("-", 1)[1]] = entry
+                    man["beds" if kind == "bed" else "hums"][family_key(fam)] = entry
                 else:
                     man["oneshots"].setdefault(fam, {"files": [], "gain": 1.0})["files"].append(fname)
                 man["provenance"].append({"file": fname, "model": r["side"]["repo"], "code": r["side"]["code_commit"], "prompt": r["side"]["prompt"],
@@ -231,7 +257,7 @@ def main() -> None:
     if args.stage and only:
         return
     if args.stage:
-        (HERE / "sfx-ph-summary.json").write_text(json.dumps(summary, indent=2) + "\n")
+        (HERE / f"sfx-{args.tag}-summary.json").write_text(json.dumps(summary, indent=2) + "\n")
         return
     (HERE / "sfx-summary.json").write_text(json.dumps(summary, indent=2) + "\n")
     page(raw, picks, summary, names, fams)

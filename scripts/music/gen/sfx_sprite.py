@@ -4,9 +4,9 @@ load lane: the bar fetched the set one file at a time, 228 requests on a phone c
     python3 scripts/music/gen/sfx_sprite.py                          # pack public/assets/sfx/pine-hollow/ (from the shipped files)
     ~/ml/music/analysis/.venv/bin/python scripts/music/gen/sfx_sprite.py --raw <sfx-raw-dir>   # from the lossless takes
 
-Run at the end of sfx_merge.py's merge_ph (which rebuilds public/assets/sfx/pine-hollow/ from the stage dir and would
+Run at the end of sfx_merge.py's merge_set (which rebuilds an own set from the stage dir and would
 otherwise un-pack it), and by hand. Idempotent: a set whose sfx.json already has a `sprite` and none of the packed files is
-left as it is (the beds step skips a bed that is already mono). A set with a sprite AND new one-shot files (merge_ph
+left as it is (the beds step skips a bed that is already mono). A set with a sprite AND new one-shot files (merge_set
 --only: a later round added families) is re-packed: a take already in the sprite is sourced from its lossless take as
 ever, or else from its slice of the old sprite's decode; the old clips keep their order (and so their offsets), the new
 ones follow, and a clip no family lists any more is dropped.
@@ -50,6 +50,8 @@ from pathlib import Path
 import numpy as np
 
 HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE))
+from audio_jobs import tag_name  # noqa: E402
 REPO = HERE.parents[2]
 PH = REPO / "public/assets/sfx/pine-hollow"
 SR = 48000
@@ -173,7 +175,7 @@ def xlag(a: np.ndarray, b: np.ndarray, search: int) -> tuple[int, float]:
 class Lossless:
     """a shipped file re-derived from its raw take exactly as sfx_build.py made it (before its AAC encode)"""
 
-    def __init__(self, raw: Path) -> None:
+    def __init__(self, raw: Path, tag: str = "ph") -> None:
         sys.path.insert(0, str(HERE))
         import librosa
         import soundfile as sf
@@ -181,7 +183,7 @@ class Lossless:
         from stems import lufs, seam
 
         self.raw, self.librosa, self.sf, self.LEVEL, self.trim, self.lufs, self.seam = raw, librosa, sf, LEVEL, trim, lufs, seam
-        self.rank = {s: json.loads((HERE / f"sfx-ph-{s}.json").read_text())["families"] for s in RAW_DIR}
+        self.rank = {s: json.loads((HERE / f"sfx-{tag}-{s}.json").read_text())["families"] for s in RAW_DIR}
 
     def wav(self, prov: dict, fam: str) -> Path:
         return self.raw / RAW_DIR[prov["set_of_origin"]] / fam / f"{prov['seed']}.wav"
@@ -234,6 +236,9 @@ def pack(ph: Path, lossless: Lossless | None) -> None:
     missing = [f for f, _ in order if not (ph / f).exists() and f not in old_clips]
     if missing:
         raise SystemExit(f"sprite: {len(missing)} one-shot files are missing and there is no sprite to keep: {missing[:5]}")
+    if not order:
+        print("sprite: no shipped one-shots - nothing to pack")
+        return
     rates = {int(probe(ph / f)["bit_rate"]) for f, _ in order if (ph / f).exists()}
     print(f"sprite: {len(order)} one-shots, their rates {min(rates) // 1000}-{max(rates) // 1000} kb/s -> one file, {KBPS} kb/s where it sounds")
 
@@ -391,14 +396,18 @@ def fidelity(src: np.ndarray, dec: np.ndarray) -> tuple[float, float]:
     return float(f[np.where(r > -6)[0].max()] / 1000), float(np.abs(r[k]).mean())
 
 
-def run(ph: Path = PH, raw: Path | None = None) -> None:
-    """the whole step (sfx_merge.py's merge_ph calls this last): the beds (with the lossless takes), then the sprite"""
-    lossless = Lossless(raw) if raw is not None else None
-    if lossless is not None:
+def run(ph: Path = PH, raw: Path | None = None, *, set_name: str = "pine-hollow", tag: str = "ph", dry: bool = False) -> None:
+    """the whole step (sfx_merge.py's merge_set calls this last): the beds (with the lossless takes), then the sprite"""
+    if dry:
+        # Planning must never decode/re-encode or alter the shipped manifest. The normal pack proves offsets in both decoders.
+        print(json.dumps({str(ph / "sfx.json"): (ph / "sfx.json").read_text()}, indent=2, ensure_ascii=False))
+        return
+    lossless = Lossless(raw, tag) if raw is not None else None
+    if lossless is not None and set_name == "pine-hollow":
         print("beds:")
         beds(ph, lossless)
     else:
-        print("beds: no --raw (the lossless takes) - left as they are")
+        print("beds: no --raw or no declared panning contract for this set - left as they are")
     pack(ph, lossless)
 
 
@@ -406,8 +415,13 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--raw", default=None, help="the sfx raw dir sfx_build.py read (<raw>/<model>/<family>/<seed>.wav): lossless sources")
     ap.add_argument("--dir", default=str(PH), help="the set to pack (default public/assets/sfx/pine-hollow)")
+    ap.add_argument("--set", default="pine-hollow", type=tag_name, help="public/assets/sfx/<set>/ (default pine-hollow)")
+    ap.add_argument("--tag", type=tag_name, help="ranking tag (default ph; nine-dragon-stack uses nd)")
+    ap.add_argument("--dry", action="store_true", help="replay the existing manifest JSON, no decoding or changes")
     args = ap.parse_args()
-    run(Path(args.dir), Path(args.raw) if args.raw else None)
+    dest = Path(args.dir) if args.dir != str(PH) else REPO / "public/assets/sfx" / args.set
+    tag = args.tag or ("nd" if args.set == "nine-dragon-stack" else "ph")
+    run(dest, Path(args.raw) if args.raw else None, set_name=args.set, tag=tag, dry=args.dry)
 
 
 if __name__ == "__main__":

@@ -1,9 +1,9 @@
 """NALATI-MERGE A3: the Nalati score - measure, rank, preview and build MiniMax Music 3 takes.
 
     PY=~/ml/music/analysis/.venv/bin/python
-    $PY scripts/music/gen/nalati_score.py analyze <raw>              # metrics per take (+ the Kazakh-instrument CLAP check)
-    $PY scripts/music/gen/nalati_score.py rank <raw>                 # ranks, previews, art/music/round-4-nalati/index.html
-    $PY scripts/music/gen/nalati_score.py build <raw> [--pick grass=minimax3-305 ...]   # the picks -> public/assets/music/nalati/
+    $PY scripts/music/gen/own_score.py analyze <raw> [--set nalati|nine-dragon-stack]
+    $PY scripts/music/gen/own_score.py rank <raw> [--dry]            # --dry: JSON only, no files or models
+    $PY scripts/music/gen/own_score.py build <raw> [--pick grass=minimax3-305 ...]
 
 <raw>/<group>-<name>/minimax3-<seed>.wav + .json come from gen_minimax.py --jobs nalati-jobs.json (test/* = the six-take
 instrument test, nalati/<slot> = the score). Nobody can listen from here, so the ranking is measurement (the user picks by ear
@@ -36,11 +36,9 @@ import sys
 import tempfile
 from pathlib import Path
 
-import numpy as np
-import soundfile as sf
-
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
+from audio_jobs import read_score  # noqa: E402
 REPO = HERE.parents[2]
 ART = REPO / "art/music/round-4-nalati"
 OUT = REPO / "public/assets/music/nalati"
@@ -70,6 +68,38 @@ SLOT_NOTE = {"grass": "the green Kunes valley and the camp: the calm exploration
              "sky": "the golden bowl: the same theme, higher and wider", "snow": "the snow ring: the theme, cold and sparse",
              "night": "every zone after dusk: the throat drone lives here", "storm": "a storm rolling in, and Jel Ata's fight",
              "king": "the kurgan: a dirge that rises into battle (the tension stem is the battle)"}
+SET = "nalati"
+GROUP = "nalati"
+METRIC = "kazakh"
+PROB = "kazakh_prob"
+STING_SLOT = "grass"
+SCORE_FILE = HERE / "nalati-score.json"
+BUILD_FILE = HERE / "nalati-score-build.json"
+
+
+def configure(name: str, art: Path | None = None) -> None:
+    """Keep Nalati's defaults and its JSON schema; select Nine Dragon's instrument probes and destinations."""
+    global SET, GROUP, METRIC, PROB, STING_SLOT, SCORE_FILE, BUILD_FILE, ART, OUT, JOBS, SLOTS, VOICE_OK
+    global INSTR, HEARD, TEST_TARGET, W_LOOP, SLOT_TITLE, SLOT_NOTE
+    SET = name
+    if name == "nine-dragon-stack":
+        GROUP, METRIC, PROB, STING_SLOT = "nd", "instruments", "instrument_prob_total", "nd-market"
+        JOBS = read_score(HERE / "nd-score-jobs.json")
+        SLOTS = tuple(j["slot"] for j in JOBS["jobs"].values())
+        VOICE_OK = ()
+        INSTR = {"guzheng": "a plucked Chinese zither (guzheng)", "erhu": "a bowed two-string Chinese fiddle (erhu)",
+                 "pad": "a soft analog synth pad"}
+        HEARD = {"guzheng": "guzheng", "erhu": "erhu", "pad": "analog pad"}
+        TEST_TARGET = {}
+        W_LOOP = {"instruments": 0.35, "groove": 0.2, "seam": 0.2, "clean": 0.15, "full": 0.1}
+        SLOT_TITLE = {"nd-market": "Neon night market", "nd-well": "The Well", "nd-fight": "The market rises"}
+        SLOT_NOTE = {"nd-market": "guzheng and erhu over a soft analog pad, rain-lit streets",
+                     "nd-well": "erhu, a low drone and wind-chime colour in the deep shaft",
+                     "nd-fight": "the market theme rising into a fight, drums and guzheng tremolo"}
+    ART = art or REPO / ("art/music/round-4-nalati" if name == "nalati" else f"art/music/round-1-{name}")
+    OUT = REPO / "public/assets/music" / name
+    stem = "nalati" if name == "nalati" else "nd"
+    SCORE_FILE, BUILD_FILE = HERE / f"{stem}-score.json", HERE / f"{stem}-score-build.json"
 
 
 def takes(raw: Path, folder: str) -> list[dict]:
@@ -85,6 +115,8 @@ def takes(raw: Path, folder: str) -> list[dict]:
 
 def cmd_analyze(raw: Path, force: bool) -> None:
     import librosa
+    import numpy as np
+    import soundfile as sf
     import torch
     from analyze import CLAP_DIR, Vocals, _tensor, analyze
     from transformers import ClapModel, ClapProcessor
@@ -115,11 +147,11 @@ def cmd_analyze(raw: Path, force: bool) -> None:
             ae = torch.nn.functional.normalize(_tensor(clap.get_audio_features(**a)), dim=-1).mean(0, keepdim=True)
             sims = (torch.nn.functional.normalize(ae, dim=-1) @ te.T)[0]
         p = torch.softmax(sims * scale, 0).tolist()
-        m["kazakh"] = {"instrument_prob": {k: round(p[i], 3) for i, k in enumerate(names)},
+        m[METRIC] = {"instrument_prob": {k: round(p[i], 3) for i, k in enumerate(names)},
                        "foil_prob": {FOILS[i]: round(p[len(names) + i], 3) for i in range(len(FOILS))},
-                       "kazakh_prob": round(sum(p[: len(names)]), 3), "best_match": texts[int(sims.argmax())]}
+                       PROB: round(sum(p[: len(names)]), 3), "best_match": texts[int(sims.argmax())]}
         out.write_text(json.dumps(m, indent=2))
-        print(f"{wav.parent.name}/{wav.name}: kazakh {m['kazakh']['kazakh_prob']} {m['kazakh']['instrument_prob']} voice "
+        print(f"{wav.parent.name}/{wav.name}: {METRIC} {m[METRIC][PROB]} {m[METRIC]['instrument_prob']} voice "
               f"{m['vocals']['vocal_energy_share']} seam {m['loop'].get('score')} len {m['duration_s']}", flush=True)
 
 
@@ -141,17 +173,17 @@ def score(m: dict, slot: str) -> tuple[float, dict, str | None]:
     if voice > lim:
         return -1.0, {}, f"voice {voice * 100:.0f}% of the energy"
     parts = {
-        "kazakh": m.get("kazakh", {}).get("kazakh_prob", 0.0),
+        METRIC: m.get(METRIC, {}).get(PROB, 0.0),
         "groove": 0.5 * v.get("groove_active_frac", 0.0) + 0.5 * v.get("drums_active_frac", 0.0),
         "seam": max(0.0, min(1.0, (m["loop"].get("score", -1) - 0.1) / 0.6)) if m["loop"].get("score", -1) > 0 else 0.0,
         "clean": clean_part(m),
         "full": max(0.0, min(1.0, (m["duration_s"] - m["silence"]["tail_silence_s"] - 45) / 20)),
     }
-    parts["drone"] = m.get("kazakh", {}).get("instrument_prob", {}).get("throat", 0.0)
+    parts["drone"] = m.get(METRIC, {}).get("instrument_prob", {}).get("throat", 0.0)
     pen = 0.0 if slot in VOICE_OK else 0.5 * max(0.0, voice - 0.03)
     w = W_DRONE if slot in VOICE_OK else W_LOOP
     # a take that does not sound Kazakh is down-weighted as a whole (the orchestral / rock-band drift): x0.5 at 0, x1 from 0.6
-    folk = 0.5 + 0.5 * min(1.0, parts["kazakh"] / 0.6)
+    folk = 0.5 + 0.5 * min(1.0, parts[METRIC] / 0.6)
     return round(sum(w[k] * parts[k] for k in w) * folk - pen, 3), {k: round(x, 3) for k, x in parts.items()}, None
 
 
@@ -159,14 +191,25 @@ def preview(wav: Path, m: dict, dest: Path) -> int:
     """AAC 64 kb/s stereo, the first 60 s, gain-matched to -18 LUFS (the page's players)"""
     dest.parent.mkdir(parents=True, exist_ok=True)
     gain = min(-18.0 - (m["loudness"]["lufs"] or -18.0), -1.0 - (m["loudness"]["true_peak_dbfs"] or -1.0))
+    codec = ["-c:a", "aac", "-b:a", "64k", "-movflags", "+faststart"] if SET == "nalati" else ["-c:a", "libmp3lame", "-b:a", "96k"]
     subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", str(wav), "-t", "60", "-af", f"volume={gain:.2f}dB,afade=t=out:st=58:d=2",
-                    "-c:a", "aac", "-b:a", "64k", "-movflags", "+faststart", str(dest)], check=True)
+                    *codec, str(dest)], check=True)
     return dest.stat().st_size
 
 
-def cmd_rank(raw: Path, verdict: dict) -> dict:
-    for old in ART.glob("*/*.m4a"):  # this folder holds only this script's output
-        old.unlink()
+def cmd_rank(raw: Path, verdict: dict, dry: bool = False) -> dict:
+    ext = "m4a" if SET == "nalati" else "mp3"
+    if not dry:
+        for old in ART.glob(f"*/*.{ext}"):  # this folder holds only this script's output
+            old.unlink()
+
+    def preview_size(t: dict) -> int:
+        dest = ART / t["m4a"]
+        if dry:
+            if not dest.exists():
+                raise SystemExit(f"--dry needs the existing preview to preserve bytes: {dest}")
+            return dest.stat().st_size
+        return preview(Path(t["wav"]), t["metrics"], dest)
     rec: dict = {"test": {}, "slots": {}, "weights": W_LOOP, "voice": {"disqualify": 0.2, "disqualify_night_king": 0.6}}
     for name, targets in TEST_TARGET.items():
         for t in takes(raw, f"test-{name}"):
@@ -175,27 +218,33 @@ def cmd_rank(raw: Path, verdict: dict) -> dict:
             k = t["metrics"].get("kazakh", {})
             t["target_prob"] = round(sum(k.get("instrument_prob", {}).get(x, 0.0) for x in targets), 3)
             t["m4a"] = f"test/{name}-{t['side']['seed']}.m4a"
-            t["bytes"] = preview(Path(t["wav"]), t["metrics"], ART / t["m4a"])
+            t["bytes"] = preview_size(t)
             rec["test"].setdefault(name, []).append(t)
     for slot in SLOTS:
-        ts = [t for t in takes(raw, f"nalati-{slot}") if t["metrics"] is not None]
+        ts = [t for t in takes(raw, f"{GROUP}-{slot}") if t["metrics"] is not None]
         for t in ts:
             t["score"], t["parts"], t["dq"] = score(t["metrics"], slot)
         ts.sort(key=lambda t: -t["score"])
         ok = [t for t in ts if t["dq"] is None]
         for i, t in enumerate(ok[:3]):
             t["rank"] = i + 1
-            t["m4a"] = f"{slot}/{slot}-{t['side']['seed']}.m4a"
-            t["bytes"] = preview(Path(t["wav"]), t["metrics"], ART / t["m4a"])
+            t["m4a"] = f"{slot}/{slot}-{t['side']['seed']}.{ext}"
+            t["bytes"] = preview_size(t)
         rec["slots"][slot] = ts
-        print(f"{slot:6s} {len(ts)} takes, {len(ok)} ok, ranked {[t['id'] for t in ok[:3]]}", flush=True)
+        print(f"{slot:6s} {len(ts)} takes, {len(ok)} ok, ranked {[t['id'] for t in ok[:3]]}", file=sys.stderr if dry else sys.stdout, flush=True)
     slim = lambda t: {k: v for k, v in t.items() if k not in ("wav",)}  # noqa: E731
-    doc = {"rule": "rank 1 of each slot ships until the user picks (art/music/round-4-nalati/index.html)", "weights": W_LOOP,
+    page_dir = ART.relative_to(REPO) if ART.is_relative_to(REPO) else ART
+    rule = "rank 1 of each slot ships until the user picks (art/music/round-4-nalati/index.html)" if SET == "nalati" else f"rank 1 of each slot ships until the user picks ({page_dir}/index.html)"
+    doc = {"rule": rule, "weights": W_LOOP,
            "verdict": verdict, "test": {k: [slim(t) for t in v] for k, v in rec["test"].items()},
            "slots": {s: {"pick": next((t["id"] for t in v if t.get("rank") == 1), None), "takes": [slim(t) for t in v]} for s, v in rec["slots"].items()}}
-    (HERE / "nalati-score.json").write_text(json.dumps(doc, indent=2, ensure_ascii=False) + "\n")
+    if dry:
+        print(json.dumps(doc, indent=2, ensure_ascii=False))
+        return doc
+    SCORE_FILE.write_text(json.dumps(doc, indent=2, ensure_ascii=False) + "\n")
+    ART.mkdir(parents=True, exist_ok=True)
     (ART / "index.html").write_text(page(rec, verdict))
-    total = sum(p.stat().st_size for p in ART.glob("*/*.m4a"))
+    total = sum(p.stat().st_size for p in ART.glob(f"*/*.{ext}"))
     print(f"previews {total / 1e6:.1f} MB -> {ART}")
     return doc
 
@@ -209,11 +258,11 @@ def esc(x: object) -> str:
 def chips(t: dict, slot: str | None) -> str:
     from build_page import chip
 
-    m, v, k = t["metrics"], t["metrics"].get("vocals", {}), t["metrics"].get("kazakh", {})
-    kp = k.get("kazakh_prob", 0.0)
+    m, v, k = t["metrics"], t["metrics"].get("vocals", {}), t["metrics"].get(METRIC, {})
+    kp = k.get(PROB, 0.0)
     ip = k.get("instrument_prob", {})
     out = [chip("length", f"{m['duration_s']:.0f} s"),
-           chip("Kazakh instruments", f"{kp * 100:.0f}%", "good" if kp >= 0.6 else ("warn" if kp < 0.35 else "")),
+           chip("Kazakh instruments" if SET == "nalati" else "guzheng / erhu / pad", f"{kp * 100:.0f}%", "good" if kp >= 0.6 else ("warn" if kp < 0.35 else "")),
            chip("heard as", ", ".join(f"{HEARD[n]} {ip.get(n, 0) * 100:.0f}%" for n in sorted(ip, key=lambda n: -ip[n])[:2])),
            chip("tempo", f"{m['tempo']['estimated_bpm']:.0f} bpm"),
            chip("loop seam", f"{m['loop'].get('score', -1):.2f}", "" if m["loop"].get("score", -1) > 0.35 else "warn")]
@@ -256,7 +305,7 @@ def page(rec: dict, verdict: dict) -> str:
         ts = [t for t in rec["slots"].get(slot, []) if t.get("rank")]
         n, dq = len(rec["slots"].get(slot, [])), sum(1 for t in rec["slots"].get(slot, []) if t.get("dq"))
         cards = "".join(card(t, "Pick (ships now)" if t["rank"] == 1 else "Alternate", slot, t["rank"]) for t in sorted(ts, key=lambda t: t["rank"]))
-        prompt = JOBS["jobs"].get(f"nalati/{slot}", {}).get("prompt", "")
+        prompt = JOBS["jobs"].get(f"{GROUP}/{slot}", {}).get("prompt", "")
         secs.append(f"""
   <section class="style" id="{slot}">
     <header class="style-head"><h2>{esc(SLOT_TITLE[slot])}</h2><p class="ref">{esc(SLOT_NOTE[slot])}</p>
@@ -265,6 +314,11 @@ def page(rec: dict, verdict: dict) -> str:
     <details><summary>Prompt</summary><p class="prompt">{esc(prompt)}</p></details>
   </section>""")
     nav = "".join(f'<a href="#{s}">{esc(SLOT_TITLE[s])}</a>' for s in SLOTS)
+    if SET != "nalati":
+        return f'''<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nine Dragon score takes</title><style>{PAGE_CSS}</style><div class="wrap"><header><h1>Nine Dragon score takes</h1>
+<p class="lede">Guzheng and erhu over a soft analog pad, rising in fights. These are ranked raw takes;
+nd_page.py builds the listening board with the shipped calm and tension stems, stings and both SFX engines.</p><nav>{nav}</nav></header>{''.join(secs)}</div>'''
     return f"""<title>Nalati Score Round 4</title>
 <meta name="description" content="The Nalati Grasslands score: a MiniMax Music 3 instrument test (dombra, kobyz, sybyzgy, throat drone) and the takes for each slot, for the user's pick.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -302,13 +356,15 @@ def cmd_build(raw: Path, picks: dict[str, str]) -> None:
     from stems import CALM_LUFS, LICENCE, PEAK_DB, STING_LUFS, _fade, decode_offset, downbeat, encode, find_loop, grid, limiter, lufs, seam, separate, shipped_name
 
     import librosa
+    import numpy as np
+    import soundfile as sf
 
-    doc = json.loads((HERE / "nalati-score.json").read_text())
+    doc = json.loads(SCORE_FILE.read_text())
     OUT.mkdir(parents=True, exist_ok=True)
     for old in OUT.glob("*.m4a"):  # this folder holds only this script's output
         old.unlink()
     tmpd = Path(tempfile.mkdtemp())
-    man: dict = {"style": "nalati", "model": "MiniMax-Music3", "credit": "Music: MiniMax-Music3", "slots": {}, "stings": {}, "provenance": []}
+    man: dict = {"style": SET, "model": "MiniMax-Music3", "credit": "Music: MiniMax-Music3", "slots": {}, "stings": {}, "provenance": []}
     report: dict = {"slots": {}}
     total, grass = 0, None
     for slot in SLOTS:
@@ -317,7 +373,7 @@ def cmd_build(raw: Path, picks: dict[str, str]) -> None:
             print(f"{slot}: no usable take - the chain falls back in the game", flush=True)
             continue
         take = next(t for t in doc["slots"][slot]["takes"] if t["id"] == pid)
-        x, sr = sf.read(str(raw / f"nalati-{slot}" / f"{pid}.wav"), always_2d=True)
+        x, sr = sf.read(str(raw / f"{GROUP}-{slot}" / f"{pid}.wav"), always_2d=True)
         x = x.T.astype(np.float64)
         g = grid(x, sr)
         st = separate(x, sr)
@@ -340,7 +396,7 @@ def cmd_build(raw: Path, picks: dict[str, str]) -> None:
         lag_c, len_c = decode_offset(tmpd / "c.m4a", calm_o, sr)
         lag_t, len_t = decode_offset(tmpd / "t.m4a", ten_o, sr)
         assert abs(len_c - len_t) < 0.05 and abs(lag_c - lag_t) < 0.002, f"{slot}: stems decode apart"
-        name = f"steppe-{slot}"
+        name = f"steppe-{slot}" if SET == "nalati" else slot
         cn, tn = shipped_name(OUT, tmpd / "c.m4a", f"{name}-calm"), shipped_name(OUT, tmpd / "t.m4a", f"{name}-tension")
         nc, nt = (OUT / cn).stat().st_size, (OUT / tn).stat().st_size
         total += nc + nt
@@ -352,11 +408,11 @@ def cmd_build(raw: Path, picks: dict[str, str]) -> None:
             man["provenance"].append({"file": f, "model": "MiniMaxAI/MiniMax-Music3", "diffusers": "0.40.0", "prompt": side["prompt"], "lyrics": side["lyrics"],
                                       "seed": side["seed"], "steps": side["steps"], "licence": LICENCE, "take": pid, "stem": part})
         report["slots"][slot] = {"take": pid, "loop": loop, "voice_share": round(voice, 4), "bytes": {"calm": nc, "tension": nt}}
-        if slot == "grass":
-            grass = (x, loop, take)
+        if slot == STING_SLOT:
+            grass = (x, loop, take, sr)
         print(f"{slot}: {pid} bpm {loop['bpm']:.1f} loop {loop['loopStart']:.2f}-{loop['loopEnd']:.2f} ({loop['bars']} bars) {(nc + nt) / 1e6:.2f} MB", flush=True)
     if grass is not None:  # stings cut from the grass theme (the score's own instruments)
-        x, loop, take = grass
+        x, loop, take, sr = grass
         env = np.abs(x).max(0)
         last = int(np.where(env > env.max() * 10 ** (-40 / 20))[0][-1])
         cuts = {"death": (_fade(x[:, max(0, last - int(4.5 * sr)):last], sr, 0.35, 0.6), "its last 4.5 s")}
@@ -390,26 +446,38 @@ def cmd_build(raw: Path, picks: dict[str, str]) -> None:
             total += (OUT / name).stat().st_size
             man["stings"][sting] = name
             man["provenance"].append({"file": name, "model": "MiniMaxAI/MiniMax-Music3", "prompt": take["side"]["prompt"], "seed": take["side"]["seed"],
-                                      "licence": LICENCE, "take": take["id"], "cut_from": f"grass: {why}"})
+                                      "licence": LICENCE, "take": take["id"], "cut_from": f"{STING_SLOT}: {why}"})
     (OUT / "music.json").write_text(json.dumps(man, indent=2, ensure_ascii=False) + "\n")
     report["total_bytes"] = total
-    (HERE / "nalati-score-build.json").write_text(json.dumps(report, indent=2, default=float) + "\n")
-    print(f"nalati: {total / 1e6:.2f} MB -> {OUT}")
+    BUILD_FILE.write_text(json.dumps(report, indent=2, default=float) + "\n")
+    print(f"{SET}: {total / 1e6:.2f} MB -> {OUT}")
 
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("cmd", choices=["analyze", "rank", "build"])
-    ap.add_argument("raw")
+    ap.add_argument("cmd", choices=["analyze", "rank", "build", "list"])
+    ap.add_argument("raw", nargs="?")
+    ap.add_argument("--set", choices=["nalati", "nine-dragon-stack"], default="nalati")
+    ap.add_argument("--art", type=Path, help="override the listening-page folder (default keeps Nalati round 4)")
+    ap.add_argument("--dry", action="store_true", help="rank only: reproduce decision JSON using existing preview sizes, write nothing")
     ap.add_argument("--force", action="store_true")
     ap.add_argument("--verdict", default=None, help="a JSON file: {summary, instruments: {name: text}} for the page")
     ap.add_argument("--pick", nargs="*", default=[], help="slot=take-id overrides (the user's picks)")
     a = ap.parse_args()
+    configure(a.set, a.art)
+    if a.cmd == "list":
+        read_score(HERE / ("nalati-jobs.json" if a.set == "nalati" else "nd-score-jobs.json"))
+        print(json.dumps(JOBS, indent=2, ensure_ascii=False))
+        return
+    if a.raw is None:
+        ap.error("raw is required for analyze, rank and build")
+    if a.dry and a.cmd != "rank":
+        ap.error("--dry is supported by rank only (analyze and build load models)")
     raw = Path(a.raw)
     if a.cmd == "analyze":
         cmd_analyze(raw, a.force)
     elif a.cmd == "rank":
-        cmd_rank(raw, json.loads(Path(a.verdict).read_text()) if a.verdict else {})
+        cmd_rank(raw, json.loads(Path(a.verdict).read_text()) if a.verdict else {}, a.dry)
     else:
         cmd_build(raw, dict(p.split("=", 1) for p in a.pick))
 
