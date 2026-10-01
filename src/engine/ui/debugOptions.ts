@@ -67,7 +67,6 @@ export interface DebugRow {
 }
 
 const authoredRows = new Set<DebugRow>();
-export function levelDebugRows(): readonly DebugRow[] { return [...DEBUG_ROWS, ...authoredRows]; }
 /** A level owns its debug choices and their inverse; menus resolve the live catalog when opened. */
 export function registerLevelDebugRow(spec: DebugRowSpec, slug: string): () => void {
   const saved = jsonSlot(`debug.plugin.${slug}.${spec.id}`, 'device');
@@ -232,3 +231,5 @@ function storageReadout(): string {
   }
   return `Persisted: ${jsonSlot('storage.persisted', 'device').read() === true ? 'yes' : 'no'} · ${storageEstimate}`;
 }
+
+export function levelDebugRows(): readonly DebugRow[] { return [...DEBUG_ROWS, ...authoredRows]; }
