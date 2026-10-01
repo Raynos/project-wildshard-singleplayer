@@ -5,6 +5,11 @@
     "why": "E357 S1.6 optional current calibration: Vite returns an empty glob until a thermally stable run publishes it; reports explicitly state the missing calibration and retain F2 ceilings."
   },
   {
+    "path": "../../../budgets/calibration.json",
+    "file": "src/engine/render/tierBoot.ts",
+    "why": "E357 X7 optional current calibration (same as budgetReport.ts): until a stable run publishes it, tier selection uses the DESKTOP_REFERENCE floor; the glob is empty, not an error."
+  },
+  {
     "path": "test/parity/baselines",
     "file": "scripts/budget-ceilings.mjs",
     "why": "F2 recording creates this input directory; the importer fails explicitly if a requested recording lane has not landed yet."
@@ -815,7 +820,7 @@
     "why": "E357 F6m: source-export scratch directory under WORK, not the game source tree."
   },
   {
-    "path": "shared (src/world, src/player, src/entities, …)",
+    "path": "shared (src/world, src/player, src/entities, \u2026)",
     "file": "scripts/check-models.mjs",
     "why": "E357 F6m: human-readable report area label, not three repository paths; the actual model folder rules remain manual F6 edits."
   },
