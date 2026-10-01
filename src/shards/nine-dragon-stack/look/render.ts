@@ -4,8 +4,8 @@
 // silhouette, 晕染 bleed, window glow, drizzle, shoulder, the learned LUT, grain) — the clean room's frame, rebuilt on
 // the engine (the clean room's post.ts, deleted in E357 F7; git show b1b8f9c9:src/chunks/nine-dragon-stack/look/post.ts).
 // `window.__wildshard.shard['nd.render']` (captures / A/B, no URL switch): the live pieces and their switches.
-import { Color, Fog, type IUniform, Mesh, type Object3D, type PerspectiveCamera, ShaderMaterial, Vector4, type WebGLRenderer } from 'three';
-import type { LookComposeContext, LookComposition, LookStrategy } from '#engine';
+import { Color, Fog, type IUniform, Mesh, type Object3D, type PerspectiveCamera, ShaderMaterial, Vector4 } from 'three';
+import type { LookComposeContext, LookComposition, LookStrategy, Renderer } from '#engine';
 import { installRenderEvents } from './renderEvents';
 import { ndRuntime } from '../runtime';
 import { glowUniforms } from './light/glow';
@@ -27,7 +27,7 @@ export interface NdRenderHandle {
   bleed: BleedPass | null;
   jiehua: JiehuaEffect;
   camera: PerspectiveCamera;
-  renderer: WebGLRenderer;
+  renderer: Renderer;
   /** the look's shared uniforms (the light pools' gains, the ambient) */
   shared: Shared;
   /** the emitter streak cards' gain for an emitter on screen (the reflection mirrors those) */

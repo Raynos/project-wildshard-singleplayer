@@ -1,4 +1,4 @@
-import { app, BossBrain, type BossScript } from '#engine';
+import { app, BossBrain, type BossScript, type Renderer } from '#engine';
 import { bossesSave, saveSlug } from './saves';
 import * as THREE from 'three';
 import type { BossBar } from '#engine/ui/BossBar';
@@ -77,7 +77,7 @@ export interface BossHost {
   scene: THREE.Scene;
   player: Player;
   camera: THREE.PerspectiveCamera;
-  renderer?: THREE.WebGLRenderer;
+  renderer?: Renderer;
   /** a point light that is always in the scene from boot (intensity 0): hidden while the reward orb's own light is up,
    *  so the scene's light count — part of every lit program's key — never changes (no recompile hitch at the victory) */
   spareLight?: THREE.Light;

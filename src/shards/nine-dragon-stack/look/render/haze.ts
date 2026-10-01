@@ -9,12 +9,13 @@
 //     bleed so the halos bloom and soak the paper like any light.
 import {
   AddEquation, CustomBlending, HalfFloatType, LinearFilter, Matrix4, NoBlending, OneFactor, type PerspectiveCamera, ShaderMaterial,
-  type Texture, type TextureDataType, UnsignedByteType, Vector2, Vector4, type WebGLRenderer, WebGLRenderTarget, ZeroFactor,
+  type Texture, type TextureDataType, UnsignedByteType, Vector2, Vector4, WebGLRenderTarget, ZeroFactor,
 } from 'three';
 import { Pass } from 'postprocessing';
 import { LIGHTVOL_GLSL } from '../light/lightvol';
 import type { Shared } from '../style';
 import { VM_SLICE } from './bleed';
+import type { Renderer } from '#engine';
 
 const VS = /* glsl */ `
 varying vec2 vUv;
@@ -143,7 +144,7 @@ export class HazePass extends Pass {
     }
   }
 
-  override initialize(renderer: WebGLRenderer, _alpha: boolean, frameBufferType: number): void {
+  override initialize(renderer: Renderer, _alpha: boolean, frameBufferType: number): void {
     const ext = renderer.extensions;
     this.type = frameBufferType === UnsignedByteType || !(ext.has('EXT_color_buffer_float') || ext.has('EXT_color_buffer_half_float')) ? UnsignedByteType : HalfFloatType;
   }
@@ -161,13 +162,13 @@ export class HazePass extends Pass {
     this.texture = this.rt.texture;
   }
 
-  private draw(renderer: WebGLRenderer, mat: ShaderMaterial, target: WebGLRenderTarget): void {
+  private draw(renderer: Renderer, mat: ShaderMaterial, target: WebGLRenderTarget): void {
     this.fullscreenMaterial = mat;
     renderer.setRenderTarget(target);
     renderer.render(this.scene, this.camera);
   }
 
-  override render(renderer: WebGLRenderer, inputBuffer: WebGLRenderTarget | null): void {
+  override render(renderer: Renderer, inputBuffer: WebGLRenderTarget | null): void {
     const rt = this.rt, s = this.settings;
     if (inputBuffer === null || rt === null || s.density <= 0) return;
     const u = this.uMarch, cam = this.view;

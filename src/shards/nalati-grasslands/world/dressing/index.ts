@@ -45,6 +45,7 @@ import {
   boulder, slab, stone, juniper, wildRose, dwarfWillow, lupin, daisy, reeds, fitRock, GENERATED_ROCK, ROCK_LOOK,
   boulderGeo, slabGeo, stoneGeo, juniperGeo, roseGeo, willowGeo, lupinGeo, daisyGeo, reedGeo,
 } from '../../models/dressing';
+import type { Renderer } from '#engine';
 
 const PHONE = TIER === 'phone';
 
@@ -236,7 +237,7 @@ export class NalatiDressing {
     return out;
   }
 
-  update(dt: number, camera: THREE.PerspectiveCamera, player: THREE.Vector3, renderer: THREE.WebGLRenderer): void {
+  update(dt: number, camera: THREE.PerspectiveCamera, player: THREE.Vector3, renderer: Renderer): void {
     camera.getWorldPosition(this.camPos);
     camera.getWorldDirection(this.dir);
     const moved = this.camPos.distanceToSquared(this.lastPos) > 1;

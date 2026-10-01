@@ -8,6 +8,7 @@ import { defineModel, type ModelDef } from '#engine/models/model';
 import { loadingSpecimen } from '#engine/models/gear';
 import { live, type RosterEntry } from '#engine/models/live';
 import { NineDragonArms } from '../vm/fpArms';
+import type { Renderer } from '#engine';
 
 /** fp-rig.glb's clips (scripts/blender/nine-dragon-stack/viewmodel/rig/check-clips.mjs holds them to moves.ts): the right
  *  arm's base loops, cuts, charge and parry, the draw and sheathe; the left arm's loops and the grapple's poses */
@@ -25,11 +26,11 @@ const SETTLE_FRAMES = 45;
  * left there. Its ink hulls and the edge halo are sized in drawing-buffer pixels: every mesh re-reads the buffer it is
  * drawn into (the held rig's arms.ts does it per frame). Out of n8ao's transparency pre-pass, as the held rig is (arms.ts).
  */
-function standStill(rig: NineDragonArms, renderer: THREE.WebGLRenderer | null): THREE.Object3D {
+function standStill(rig: NineDragonArms, renderer: Renderer | null): THREE.Object3D {
   const still = { speed: 0, lookVel: new THREE.Vector2(), gravity: new THREE.Vector3(0, -9.8, 0) };
   for (let i = 0; i < SETTLE_FRAMES; i++) rig.update(1 / 60, still);
   let bw = 0, bh = 0, pr = 0;
-  const fit = (r: THREE.WebGLRenderer): void => {
+  const fit = (r: Renderer): void => {
     const c = r.domElement, p = r.getPixelRatio();
     if (c.width === bw && c.height === bh && p === pr) return;
     bw = c.width; bh = c.height; pr = p;

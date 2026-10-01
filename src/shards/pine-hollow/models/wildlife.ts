@@ -22,7 +22,7 @@ import { attachFogUniforms } from '#engine/world/Atmosphere';
 import type { Sky } from '#engine/world/Sky';
 import type { BirdMesh, BirdSet } from '../life/birdModels';
 import { defineModel, type ModelContext, type ModelDef } from '#engine/models/model';
-import { PATCH_ORDER, patchShader } from '#engine';
+import { PATCH_ORDER, patchShader, type Renderer } from '#engine';
 
 export const KIND = { raven: 0, owl: 1, woodpecker: 2, hare: 4 } as const;
 export type WildKind = (typeof KIND)[keyof typeof KIND];
@@ -410,7 +410,7 @@ float wlEye(vec3 t) { return smoothstep(0.3, 0.5, t.r) * smoothstep(0.18, 0.3, t
 
   /** the modelled birds (birdModels.ts) in place of the procedural ones: same draw, same program — a new geometry and the
    *  atlas bound to the sampler that was there from the start (uploaded now, not on the first frame that draws one) */
-  useBirds(birds: BirdSet, renderer: THREE.WebGLRenderer): void {
+  useBirds(birds: BirdSet, renderer: Renderer): void {
     const old = this.mesh.geometry;
     this.mesh.geometry = this.build(birds);
     this.atlas.value = birds.atlas;

@@ -4,6 +4,7 @@ import type { Interactable } from '#engine/world/interact/types';
 import type { Sky } from '#engine/world/Sky';
 import { WRECK } from '../manifest';
 import { LightPool } from '#engine/fx/LightPool';
+import type { Renderer } from '#engine';
 
 /**
  * IronSword — the iron sword as LOOT on Driftwood Isle ("the whole point of Project Wildshard is that you can find
@@ -295,7 +296,7 @@ export class IronSwordPickup {
   }
 
   /** `playerPos` = the player's feet: inside `takeRadius` of the floor point (and on its level) the sword is taken */
-  update(dt: number, t: number, renderer?: THREE.WebGLRenderer, camera?: THREE.PerspectiveCamera, playerPos?: THREE.Vector3): void {
+  update(dt: number, t: number, renderer?: Renderer, camera?: THREE.PerspectiveCamera, playerPos?: THREE.Vector3): void {
     this.pickup.update(dt, t, renderer, camera);
     if (!this.pickup.taken) {
       if (playerPos && this.takeRadius > 0 && (this.guard?.() ?? null) === null) {

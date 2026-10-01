@@ -9,7 +9,7 @@
 // `Lanterns`). The kits — the square, the towers, the Well's bands — are the fragment's built fabric (world).
 import {
   BufferGeometry, Color, Float32BufferAttribute, Group, type Matrix4, Mesh, type Object3D, type PerspectiveCamera, PlaneGeometry, Quaternion,
-  SphereGeometry, Uint32BufferAttribute, Vector3, Vector4, type WebGLRenderer,
+  SphereGeometry, Uint32BufferAttribute, Vector3, Vector4,
 } from 'three';
 import { Ctx, type Piece } from './ctx';
 import { Kit } from './kit';
@@ -49,7 +49,7 @@ import { Shared, jiehuaMaterial, neonMaterial, sheetMaterial, skyMaterial, steam
 import { WORDS, buildTowers } from './towers';
 import { chars } from '../util';
 import type { NdTier } from '../tier';
-import { Rng } from '#engine';
+import { Rng, type Renderer } from '#engine';
 import { type HandedBatch, type InstancedCuller, type Placed, place } from '#engine/models/place';
 import type { ModelDef, Placement } from '#engine/models/model';
 import { ndModelContext } from './modelLook';
@@ -151,7 +151,7 @@ export interface NineDragonWorld {
 }
 
 /** build the fragment's world; `progress(0..1)` as it goes */
-export async function buildNineDragonWorld(renderer: WebGLRenderer, progress: (f: number, detail?: string) => void, tier: NdTier): Promise<NineDragonWorld> {
+export async function buildNineDragonWorld(renderer: Renderer, progress: (f: number, detail?: string) => void, tier: NdTier): Promise<NineDragonWorld> {
   const shared = new Shared();
   const root = new Group();
   root.name = 'nine-dragon-stack';

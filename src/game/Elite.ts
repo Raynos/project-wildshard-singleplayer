@@ -2,7 +2,7 @@ import { elitesSave } from './saves';
 import * as THREE from 'three';
 import type { Animal } from '#engine/entities/Animal';
 import { heightAt } from '#engine/world/Heightfield';
-import { fxMaterial, annulus, FX, type FxMaterial } from '#engine';
+import { fxMaterial, annulus, FX, type FxMaterial, type Renderer } from '#engine';
 import { WeaponPickup } from '#engine/player/WeaponPickup';
 import type { Interactable } from '#engine/world/interact/types';
 import type { EliteBar } from '#engine/ui/EliteBar';
@@ -87,7 +87,7 @@ export interface EliteScript {
 export interface EliteHost {
   scene: THREE.Scene;
   camera: THREE.PerspectiveCamera;
-  renderer?: THREE.WebGLRenderer;
+  renderer?: Renderer;
   player: { position: THREE.Vector3 };
   condition: (rule: EliteRule) => boolean;
   addInteractable: (it: Interactable) => void;

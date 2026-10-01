@@ -14,6 +14,7 @@ import { BOULDER_SHAPES, ROCK_SOLID_ABOVE, boulderSizes, loadMossyBoulder, mossy
 import { loadTreeStump, treeStump } from '../models/treeStump';
 import { fallenLog, fallenLogSize, loadFallenLog } from '../models/fallenLog';
 import { pineModels } from './context';
+import type { Renderer } from '#engine';
 
 /**
  * Pine Hollow's forest props (E315 M2: the scatter; the things are models in ../models/): mossy boulders
@@ -49,7 +50,7 @@ export class Props {
   /** the three place calls: boulders, stumps, logs */
   readonly placed: Placed[] = [];
 
-  constructor(private sky: Sky, private forest: PropsForest, private renderer: THREE.WebGLRenderer | null = null) {}
+  constructor(private sky: Sky, private forest: PropsForest, private renderer: Renderer | null = null) {}
 
   /** load the scans, scatter them and place them — registered on `registry` (the colliders a task apart), or only built */
   async build(registry: WorldRegistry | null = null, yieldTask: () => Promise<void> = () => Promise.resolve()): Promise<THREE.Group> {

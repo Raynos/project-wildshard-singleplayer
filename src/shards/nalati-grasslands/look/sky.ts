@@ -29,6 +29,7 @@ import { nalatiUrl } from './nalatiTextures';
 import { V2_GRADE_GLSL, gradeUniforms } from './grade';
 import { V2_TINT_GLSL, tintUniforms } from './tint';
 import { PANO_HORIZON_V, PANO_DEG_PER_V, PANO_RIDGE_V } from './panoramaData';
+import type { Renderer } from '#engine';
 
 /** inside the camera's far plane (2600) with room; the vertex shader puts it at the far plane anyway */
 const R = 2300;
@@ -161,7 +162,7 @@ export class SkyDomeV2 {
   }
 
   /** fetch the tier's strip and build the dome (null when the file is missing) */
-  static async load(renderer: THREE.WebGLRenderer, fogLut: THREE.Texture): Promise<SkyDomeV2 | null> {
+  static async load(renderer: Renderer, fogLut: THREE.Texture): Promise<SkyDomeV2 | null> {
     const k = await SkyDomeV2.loadKtx2(renderer, fogLut);
     if (k) return k;
     let image: ImageBitmap | HTMLImageElement;
@@ -198,7 +199,7 @@ export class SkyDomeV2 {
    * E157: the panorama's KTX2 stand-in (Y-flipped at encode, like the bitmap above), or null. A compressed texture has no
    * pixels to draw on a canvas, so the zenith's top rows are read back through the GPU (the same 64×12 average).
    */
-  private static async loadKtx2(renderer: THREE.WebGLRenderer, fogLut: THREE.Texture): Promise<SkyDomeV2 | null> {
+  private static async loadKtx2(renderer: Renderer, fogLut: THREE.Texture): Promise<SkyDomeV2 | null> {
     let tex: THREE.CompressedTexture | null;
     try { tex = await ktx2Texture(nalatiUrl('panorama')); } catch { return null; }
     if (!tex) return null;

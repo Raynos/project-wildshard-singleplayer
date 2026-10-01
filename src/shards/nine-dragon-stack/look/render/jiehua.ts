@@ -5,12 +5,13 @@
 // inverse depth from the scene's depth texture (the engine's scene target has no MSAA and no near / viewZ alpha): its
 // lines alias where the clean room's resolved; SMAA, after this pass, takes them.
 // The LUT is display-referred: the effect ends in display sRGB and hands the chain linear back (the SMAA pass encodes).
-import { type Color, Matrix4, type PerspectiveCamera, type Texture, Uniform, Vector2, Vector3, Vector4, type WebGLRenderer, type WebGLRenderTarget } from 'three';
+import { type Color, Matrix4, type PerspectiveCamera, type Texture, Uniform, Vector2, Vector3, Vector4, type WebGLRenderTarget } from 'three';
 import { BlendFunction, Effect, EffectAttribute } from 'postprocessing';
 import { FOG_GLSL, NOISE_GLSL, type Shared } from '../style';
 import { GLOW_COMP_GLSL, type glowUniforms } from '../light/glow';
 import { GRADE_GLSL, type gradeUniforms } from '../light/grade';
 import { VM_SLICE } from './bleed';
+import type { Renderer } from '#engine';
 
 /** the neon lab's final bleed look (round-7-lab-neon README §3), as the clean room ran it (post.ts BLEED); round 14: the
  *  shadow lift toward ink-blue 0.35 → 0.12 (the mockups' darks are warm: style-A's mean is r > g > b, ours was blue) */
@@ -235,7 +236,7 @@ export class JiehuaEffect extends Effect {
   /** the unsharp mask's strength below 3× */
   sharpen = 0.35;
 
-  override update(renderer: WebGLRenderer, inputBuffer: WebGLRenderTarget): void {
+  override update(renderer: Renderer, inputBuffer: WebGLRenderTarget): void {
     const u = this.u, s = this.shared.u, cam = this.view;
     u.tTight.value = this.source?.tight ?? null;
     u.tWide.value = this.source?.wide ?? null;

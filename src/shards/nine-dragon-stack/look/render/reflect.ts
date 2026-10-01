@@ -19,12 +19,13 @@
 //  a full-screen additive draw into the scene. Reflected neon no longer feeds the bleed pyramid.)
 import {
   HalfFloatType, LinearFilter, Matrix4, NearestFilter, NoBlending, type PerspectiveCamera, ShaderMaterial,
-  type Texture, type TextureDataType, UnsignedByteType, Vector2, Vector4, type WebGLRenderer, WebGLRenderTarget,
+  type Texture, type TextureDataType, UnsignedByteType, Vector2, Vector4, WebGLRenderTarget,
 } from 'three';
 import { Pass } from 'postprocessing';
 import { NOISE_GLSL, STONES_GLSL } from '../style';
 import { FLAG_GLSL } from '../paint';
 import { VM_SLICE } from './bleed';
+import type { Renderer } from '#engine';
 
 const VS = /* glsl */ `
 varying vec2 vUv;
@@ -229,7 +230,7 @@ export class ReflectPass extends Pass {
     }
   }
 
-  override initialize(renderer: WebGLRenderer, _alpha: boolean, frameBufferType: number): void {
+  override initialize(renderer: Renderer, _alpha: boolean, frameBufferType: number): void {
     const ext = renderer.extensions;
     this.type = frameBufferType === UnsignedByteType || !(ext.has('EXT_color_buffer_float') || ext.has('EXT_color_buffer_half_float')) ? UnsignedByteType : HalfFloatType;
   }
@@ -252,13 +253,13 @@ export class ReflectPass extends Pass {
     this.rtB = mk('NdReflect.b', LinearFilter);
   }
 
-  private draw(renderer: WebGLRenderer, mat: ShaderMaterial, target: WebGLRenderTarget | null): void {
+  private draw(renderer: Renderer, mat: ShaderMaterial, target: WebGLRenderTarget | null): void {
     this.fullscreenMaterial = mat;
     renderer.setRenderTarget(target);
     renderer.render(this.scene, this.camera);
   }
 
-  override render(renderer: WebGLRenderer, inputBuffer: WebGLRenderTarget | null): void {
+  override render(renderer: Renderer, inputBuffer: WebGLRenderTarget | null): void {
     const s = this.settings, tr = this.rtTrace, b = this.rtB;
     this.texture = null;
     if (inputBuffer === null || tr === null || b === null || s.gain <= 0) return;

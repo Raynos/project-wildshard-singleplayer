@@ -43,6 +43,7 @@ import type { Forest } from '#engine/world/forest/Forest';
 import { macrotask } from '#engine/boot/plan';
 import { LOOK_BAKE_GLSL, bakeUniforms } from './bake';
 import { GRASS_CARDS, loadGrassCardAtlas } from './nalatiTextures';
+import type { Renderer } from '#engine';
 
 const PHONE = TIER === 'phone';
 
@@ -648,7 +649,7 @@ export class GrassV2 {
    * As the frame renders (the camera is final — the first of the four draws calls it, once per render): snap the rings
    * to the camera, cull their tiles against its frustum, fill the tile lists and the instance counts.
    */
-  private place(renderer: THREE.WebGLRenderer, camera: THREE.Camera): void {
+  private place(renderer: Renderer, camera: THREE.Camera): void {
     const frame = renderer.info.render.frame;
     if (frame === this.placedFrame) return;
     this.placedFrame = frame;

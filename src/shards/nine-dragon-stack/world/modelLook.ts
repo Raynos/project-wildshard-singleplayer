@@ -3,10 +3,11 @@
 // context's `once` (src/engine/models/model.ts). One context per built fragment: build.ts makes it first, fills the look as
 // each phase has made its part (the materials are created at the same points as before, so their order — which three's
 // opaque sort keys on — is unchanged), and places the models; the Model Explorer's specimens read the same look later.
-import type { BufferGeometry, Material, ShaderMaterial, WebGLRenderer } from 'three';
+import type { BufferGeometry, Material, ShaderMaterial } from 'three';
 import { modelContext, type ModelContext } from '#engine/models/model';
 import { type SignAtlas, SignBuilder } from '../look/signs';
 import type { NeonSigns } from '../look/neonsigns';
+import type { Renderer } from '#engine';
 
 export interface NdLook {
   /** the Jiehua kit program (build.ts `mat`): the kits, the square's props and sets, the crowd, the dressing, the movers */
@@ -46,7 +47,7 @@ export class NoSigns extends SignBuilder {
 const KEY = 'nine-dragon-stack:look';
 
 /** the fragment's model context and its (still empty) look */
-export function ndModelContext(renderer: WebGLRenderer | null): { ctx: ModelContext; look: NdLook } {
+export function ndModelContext(renderer: Renderer | null): { ctx: ModelContext; look: NdLook } {
   const look: NdLook = { mat: null, facade: null, lantern: null, neon: null, canLod: false, geo: new Map(), hookMat: null, canopy: null, calligraphy: null };
   const ctx = modelContext(null, renderer);
   ctx.once(KEY, () => look);

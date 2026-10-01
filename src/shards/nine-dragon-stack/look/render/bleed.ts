@@ -7,10 +7,11 @@
 // It writes only its own targets (needsSwap false): JiehuaEffect samples `tight` and `wide`.
 import {
   HalfFloatType, LinearFilter, NoBlending, type PerspectiveCamera, ShaderMaterial, type Texture, type TextureDataType, UnsignedByteType,
-  Vector2, type WebGLRenderer, WebGLRenderTarget,
+  Vector2, WebGLRenderTarget,
 } from 'three';
 import { Pass } from 'postprocessing';
 import { GLOW_PRE_GLSL, type glowUniforms } from '../light/glow';
+import type { Renderer } from '#engine';
 
 const VS = /* glsl */ `
 varying vec2 vUv;
@@ -136,7 +137,7 @@ export class BleedPass extends Pass {
     this.fullscreenMaterial = this.mPre;
   }
 
-  override initialize(renderer: WebGLRenderer, _alpha: boolean, frameBufferType: number): void {
+  override initialize(renderer: Renderer, _alpha: boolean, frameBufferType: number): void {
     const ext = renderer.extensions;
     this.type = frameBufferType === UnsignedByteType || !(ext.has('EXT_color_buffer_float') || ext.has('EXT_color_buffer_half_float')) ? UnsignedByteType : HalfFloatType;
   }
@@ -172,13 +173,13 @@ export class BleedPass extends Pass {
     this.wide = this.ups[0]?.texture ?? null;
   }
 
-  private draw(renderer: WebGLRenderer, mat: ShaderMaterial, target: WebGLRenderTarget): void {
+  private draw(renderer: Renderer, mat: ShaderMaterial, target: WebGLRenderTarget): void {
     this.fullscreenMaterial = mat;
     renderer.setRenderTarget(target);
     renderer.render(this.scene, this.camera);
   }
 
-  override render(renderer: WebGLRenderer, inputBuffer: WebGLRenderTarget | null): void {
+  override render(renderer: Renderer, inputBuffer: WebGLRenderTarget | null): void {
     const [m0, m1, m2] = this.mips;
     const [u0, u1] = this.ups;
     if (inputBuffer === null || m0 === undefined || m1 === undefined || m2 === undefined || u0 === undefined || u1 === undefined) return;
