@@ -1,6 +1,7 @@
-import { engineString } from '#engine/strings';
-import { registerSpecies } from '#engine/entities/species/registry';
-import { NO_FUR } from '#engine/entities/species/rigs';
+import { engineString, type SpeciesDef, NO_FUR } from '#engine';
+
+
+
 import { buildCanid, canidPostPose, COLLIE_TINT } from './wolf';
 import { thinkSheepdog } from '../creatures/flock';
 
@@ -10,7 +11,7 @@ import { thinkSheepdog } from '../creatures/flock';
  * (`thinkSheepdog` in src/shards/nalati-grasslands/creatures/flock.ts — `flock.setDog(dog)`): circles the flock, fetches stragglers, stands
  * between the sheep and a wolf barking. Not hostile; not a quarry.
  */
-registerSpecies({
+export const SHEEPDOG_SPECIES: SpeciesDef = {
   kind: 'sheepdog',
   label: engineString('s_062ffea0e911'),
   fur: NO_FUR,
@@ -23,4 +24,4 @@ registerSpecies({
   build: buildCanid,
   postPose: canidPostPose,
   think: thinkSheepdog,
-});
+};

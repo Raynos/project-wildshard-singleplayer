@@ -4,10 +4,10 @@ import type { Player } from '#engine/player/Player';
 import type { Mount } from './Mount';
 import type { Animal } from '#engine/entities/Animal';
 import type { AnimalManager } from '#engine/entities/AnimalManager';
-import type { HorseHerd } from '#engine/entities/Herd';
+import type { HorseHerd } from '../creatures/herd';
 import type { Interactable } from '#engine/world/interact/types';
 import type { RideHUD, TamingView } from './RideHUD';
-import { wildEnv } from '#engine/entities/wildEnv';
+import { wildEnv } from '../creatures/env';
 import { heightAt } from '#engine/world/Heightfield';
 
 import { tulparSave as savedSlot } from './saves';

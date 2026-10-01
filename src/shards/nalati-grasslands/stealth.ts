@@ -1,7 +1,7 @@
 import { EffectService, sourceMultiplier, type Scope, type LevelContext, type EffectTarget, type Player, type TargetHit } from '#engine';
 import { SNEAK_SHOT, NALATI_SOURCE_MULTIPLIERS } from './weapons/effects';
 
-import type { Wildlife } from '#engine/entities/Wildlife';
+import type { Wildlife } from './creatures/wildlife';
 
 import type { NalatiLoadout } from './weapons/loadout';
 import { grassHeightAt } from '#kit/looks/trample';
@@ -26,8 +26,8 @@ import { practiceRoom } from '#engine/core/practiceRoom';
  * you take flattens it to 15 % for ~20 s, so the trampled height hid the disc from anyone who walked in (E287). Touch: a CROUCH disc fades in in the base HUD's slot over
  * JUMP (hudSlots `up0`; the first time per session with a pulse ring + a TALL GRASS chip) and is a TOGGLE. Desktop: C toggles, Ctrl holds —
  * both gated to long grass like the disc. Jumping (stand + jump in one), sprinting, leaving the grass, the hoverboard,
- * swimming, mounting and a practice room (the arena, a playground, 3 km over the grass: `practiceRoom.open`, E321) all stand you up. Driven through `player.keys` ('KeyC' = crouched: Player's own crouch — eye
- * 1.03 m, 2.2 m/s), so Player.ts needs no change and Pine Hollow / Driftwood never see any of this.
+ * swimming, mounting and a practice room (the arena, a playground, 3 km over the grass: `practiceRoom.open`, E321) all stand you up.
+ * The scoped player.crouch answer gates the shared motor's crouch (eye 1.03 m, 2.2 m/s); other shards use its default answer.
  *
  * DETECTION: the creatures own their senses (Pack / Herd via wildEnv.playerVisibility — grass cover at you and along the
  * line to them, your speed, the light, hearing with the grass rustle, the wolves' and the stallion's smell from downwind

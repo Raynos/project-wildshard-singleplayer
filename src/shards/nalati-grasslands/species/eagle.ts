@@ -1,11 +1,12 @@
-import { engineString } from '#engine/strings';
+import { engineString, type Rng, type SpeciesDef, type AnimalSpecies, type BoneDef, type VariantDef, type RigAnimCtx, loft, skinPlain, S, boneIndex, mix, speciesSstep as sstep, paletteColors, paintNoise, type Paint, type SpeciesRGB as RGB, NO_FUR, smooth01, rigClamp as clamp, eliteThink, eliteDamageMul, heightAt } from '#engine';
+
 import * as THREE from 'three';
-import type { Rng } from '#engine/core/rng';
-import { registerSpecies, type AnimalSpecies, type BoneDef, type VariantDef, type RigAnimCtx } from '#engine/entities/species/registry';
-import { loft, skinPlain, S, boneIndex, mix, sstep, paletteColors, paintNoise, type Paint, type RGB } from '#engine/entities/species/loft';
-import { NO_FUR, smooth01, clamp } from '#engine/entities/species/rigs';
-import { eliteThink, eliteDamageMul } from '#engine/entities/eliteBrain';
-import { heightAt } from '#engine/world/Heightfield';
+
+
+
+
+
+
 
 /**
  * Golden eagle (Nalati named elite E3 — Qyran the Storm-Wing, Berkut of the High Wind; row B12; mockup
@@ -141,7 +142,7 @@ function animateEagle(c: RigAnimCtx): void {
   b.head.rotation.set(0.2 * fold - 0.3 * ground + 0.1 * Math.sin(c.t * 2 + c.seed), 0.3 * Math.sin(c.t * 0.7 + c.seed), 0);
 }
 
-registerSpecies({
+export const EAGLE_SPECIES: SpeciesDef = {
   kind: EAGLE,
   label: engineString('s_c0752fe7f23a'),
   fur: NO_FUR,
@@ -157,4 +158,4 @@ registerSpecies({
   animate: animateEagle,
   think: eliteThink,
   damageMul: eliteDamageMul,
-});
+};

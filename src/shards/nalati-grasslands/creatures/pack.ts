@@ -1,9 +1,10 @@
-import { GroupBrain } from '#engine/ai/GroupBrain';
-import { app } from '#engine/app/runtime';
+import { GroupBrain, app, type Animal, type ThinkCtx, terrainNormal as normalAt } from '#engine';
+
+
 import * as THREE from 'three';
-import type { Animal } from '#engine/entities/Animal';
-import type { ThinkCtx } from '#engine/entities/species/registry';
-import { inChunk, normalAt } from '#engine/world/Heightfield';
+
+
+
 import { wildEnv, playerVisibility, downwindOf, hearingRadius, angDiff } from './env';
 
 /**
@@ -454,3 +455,5 @@ export function thinkWolf(a: Animal, c: ThinkCtx): void {
   p.drive(a, c);
   c.confine(a);
 }
+
+function inChunk(x: number, z: number, margin = 0): boolean { return Math.abs(x) <= 250 - margin && Math.abs(z) <= 250 - margin; }

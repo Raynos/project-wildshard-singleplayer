@@ -1,3 +1,4 @@
+import { type SpeciesRGB as RGB, variantDef } from '#engine';
 /**
  * creatureCoats — one rigged hull, every coat: the hull's atlas recoloured per variant (glbCreatures.ts), so a herd of
  * bay, chestnut, grey and black mares, or a pack of grey, tawny and dark wolves, all wear the generated model.
@@ -15,10 +16,10 @@
  * (the red saddle cloth, the gold ornament) as they are.
  */
 import * as THREE from 'three';
-import type { RGB } from '#engine/entities/species/loft';
+
 import { HORSE } from './horse';
 import { WOLF } from './wolf';
-import { variantDef } from '#engine/entities/species/registry';
+
 
 export interface CoatSpec {
   /** the species default palette (the variant's `tint` overrides keys of it) */

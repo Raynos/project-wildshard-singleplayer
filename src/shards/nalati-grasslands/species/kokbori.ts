@@ -1,9 +1,10 @@
-import { engineString } from '#engine/strings';
-import { registerSpecies } from '#engine/entities/species/registry';
-import type { RGB } from '#engine/entities/species/loft';
-import { NO_FUR } from '#engine/entities/species/rigs';
+import { engineString, type SpeciesDef, type SpeciesRGB as RGB, NO_FUR, eliteThink, eliteDamageMul } from '#engine';
+
+
+
+
 import { buildCanid, canidPostPose } from './wolf';
-import { eliteThink, eliteDamageMul } from '#engine/entities/eliteBrain';
+
 
 /**
  * Kokbori, Mother of the Pack (Nalati named elite E2; row B12; mockup
@@ -20,7 +21,7 @@ const SKY: Record<string, RGB> = {
   eye: [0.78, 0.9, 0.96], earIn: [0.7, 0.7, 0.74],
 };
 
-registerSpecies({
+export const KOKBORI_SPECIES: SpeciesDef = {
   kind: KOKBORI,
   label: engineString('s_1dcfb937c1e2'),
   fur: NO_FUR,
@@ -38,4 +39,4 @@ registerSpecies({
   postPose: canidPostPose,
   think: eliteThink,
   damageMul: eliteDamageMul,
-});
+};

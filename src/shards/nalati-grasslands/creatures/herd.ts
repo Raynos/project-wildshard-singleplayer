@@ -1,12 +1,13 @@
-import { GroupBrain } from '#engine/ai/GroupBrain';
-import { app } from '#engine/app/runtime';
+import { GroupBrain, app, type Animal, type ThinkCtx, terrainNormal as normalAt, type GroupName } from '#engine';
+
+
 import * as THREE from 'three';
-import type { Animal } from '#engine/entities/Animal';
-import type { ThinkCtx } from '#engine/entities/species/registry';
-import { inChunk, normalAt } from '#engine/world/Heightfield';
+
+
+
 import { wildEnv, playerVisibility, downwindOf, hearingRadius, angDiff } from './env';
 import { Pack } from './pack';
-import type { GroupName } from '#engine/physics/groups';
+
 
 /** the kinds a stampeding horse's body lets through (R3): the player on foot · none */
 const THROUGH_PLAYER: readonly GroupName[] = ['PLAYER'], BLOCKED: readonly GroupName[] = [];
@@ -525,3 +526,5 @@ export function horseDamageMul(a: Animal): number {
   if (a.variant !== 'stallion') return 1;
   return THREE.MathUtils.clamp((f - 0.2) / 0.8, 0, 1);
 }
+
+function inChunk(x: number, z: number, margin = 0): boolean { return Math.abs(x) <= 250 - margin && Math.abs(z) <= 250 - margin; }

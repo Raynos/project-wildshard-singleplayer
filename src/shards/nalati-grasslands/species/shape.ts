@@ -1,5 +1,6 @@
+import { loft, type Paint, type Station } from '#engine';
 import * as THREE from 'three';
-import { loft, type Paint, type Station } from '#engine/entities/species/loft';
+
 
 /**
  * Shape helpers for the Nalati creatures' painterly models (the look pass, docs/design/nalati/look-pass.md lever 7):

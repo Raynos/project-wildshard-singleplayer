@@ -1,6 +1,7 @@
-import { app } from '#engine';
+import { app, heightAt } from '#engine';
+
 import * as THREE from 'three';
-import { heightAt } from '#engine/world/Heightfield';
+
 
 /**
  * Night FX — the particle systems the dusk and night enemies share (row B11): one pooled `THREE.Points` each, one draw

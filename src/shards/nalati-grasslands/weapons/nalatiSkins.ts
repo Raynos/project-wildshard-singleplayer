@@ -4,8 +4,8 @@ import * as THREE from 'three';
 import type { Animal } from '#engine/entities/Animal';
 import type { Bow } from '#kit';
 import type { Sabre } from './Sabre';
-import { horseBones } from '#engine/entities/species/horse';
-import { skyMarkedAtlas } from '#engine/entities/creatureCoats';
+import { horseBones } from '../species/horse';
+import { skyMarkedAtlas } from '../species/coats';
 
 import { nalatiSkinsSave as savedSlot } from './saves';
 

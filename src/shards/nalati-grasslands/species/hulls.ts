@@ -1,4 +1,5 @@
-import { retainCachedResources } from '#engine/app/cachedAssets';
+import { retainCachedResources, variantDef, type BoneDef } from '#engine';
+
 /**
  * glbCreatures — the generated creature hulls, pre-skinned to the procedural species' skeletons, so the species' own
  * bones, gaits and AI drive them (AnimalFactory 'painterly' style, Nalati; behind `?creatures=glb`).
@@ -22,7 +23,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { creatureRigUrl, type CreatureRigName } from './rigs';
 import { modelsOn } from '../world/glbPaint';
-import { variantDef, type BoneDef } from '#engine/entities/species/registry';
+
 import { coatAtlas, HULL_COATS } from './coats';
 
 /** the rigged hulls (scripts/nalati-rig-bake.mjs RIG_BAKES; the names + URLs in creatureRigs.ts, which the boot manifest declares) */

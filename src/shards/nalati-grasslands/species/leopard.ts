@@ -1,10 +1,11 @@
-import { engineString } from '#engine/strings';
+import { engineString, type Rng, type SpeciesDef, type AnimalSpecies, type BoneDef, type VariantDef, type RigAnimCtx, loft, skinPlain, S, boneIndex, mix, speciesSstep as sstep, paletteColors, paintNoise, type Paint, type SpeciesRGB as RGB, type Station, NO_FUR, bump, rigClamp as clamp, eliteThink, eliteDamageMul } from '#engine';
+
 import * as THREE from 'three';
-import type { Rng } from '#engine/core/rng';
-import { registerSpecies, type AnimalSpecies, type BoneDef, type VariantDef, type RigAnimCtx } from '#engine/entities/species/registry';
-import { loft, skinPlain, S, boneIndex, mix, sstep, paletteColors, paintNoise, type Paint, type RGB, type Station } from '#engine/entities/species/loft';
-import { NO_FUR, bump, clamp } from '#engine/entities/species/rigs';
-import { eliteThink, eliteDamageMul } from '#engine/entities/eliteBrain';
+
+
+
+
+
 
 /**
  * Snow leopard (Nalati named elite E1 — Aqbars the Pale, Irbis of the Crags; row B12; mockup
@@ -219,7 +220,7 @@ function felidPostPose(c: RigAnimCtx): void {
   t2.rotation.copy(_e);
 }
 
-registerSpecies({
+export const LEOPARD_SPECIES: SpeciesDef = {
   kind: LEOPARD,
   label: engineString('s_db2b04607d7a'),
   fur: NO_FUR,
@@ -237,4 +238,4 @@ registerSpecies({
   postPose: felidPostPose,
   think: eliteThink,
   damageMul: eliteDamageMul,
-});
+};

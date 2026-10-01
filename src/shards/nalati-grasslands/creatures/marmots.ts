@@ -1,11 +1,12 @@
+import { type Sky, heightAt, terrainNormal as normalAt, Rng, loft, S, mix, speciesSstep as sstep, srgb, type Paint, TickScheduler } from '#engine';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import type { Sky } from '#engine/world/Sky';
-import { heightAt, inChunk, normalAt } from '#engine/world/Heightfield';
-import { Rng } from '#engine/core/rng';
-import { loft, S, mix, sstep, srgb, type Paint } from '#engine/entities/species/loft';
+
+
+
+
 import { painterlyAnimalMaterial } from '../look/creatureMaterial';
-import { TickScheduler } from '#engine/app/scheduler';
+
 
 /**
  * Marmots — the steppe's ambient sentries (docs/design/nalati/wolves-horses-taming.md "Sheep (ambient life)"): small
@@ -159,3 +160,5 @@ export class Marmots {
     return out;
   }
 }
+
+function inChunk(x: number, z: number, margin = 0): boolean { return Math.abs(x) <= 250 - margin && Math.abs(z) <= 250 - margin; }

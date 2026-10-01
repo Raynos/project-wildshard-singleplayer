@@ -1,16 +1,21 @@
 import type * as THREE from 'three';
 import type { SpeciesRow } from '../../ai/species';
 import { registeredSpecies, type SpeciesDef, type VariantDef, type BoneDef, type FurStyle } from './registry';
+import type { Sky } from '../../world/Sky';
+import type { AnimalMaterial } from '../AnimalFactory';
 import type { Scope } from '../../app/scope';
 
 export interface EyeSpot { centre: THREE.Vector3; radius: number }
 export interface CreatureHull {
   geometry: THREE.BufferGeometry; map: THREE.Texture | null; normalMap: THREE.Texture | null;
-  bones: BoneDef[]; thrall: boolean; fur?: Partial<FurStyle>;
+  bones: BoneDef[]; thrall: boolean; doubleSided?: boolean; fur?: Partial<FurStyle>;
 }
 export interface SpeciesLook extends Pick<SpeciesDef, 'fur' | 'build' | 'pose' | 'gait' | 'postPose' | 'rig' | 'animate' | 'damageMul' | 'eyeGlow' | 'eyeGlowIntensity'> {
   id: string; species: string; kind: string;
   variants?: Readonly<Record<string, Pick<VariantDef, 'tint' | 'fur' | 'traits'>>>;
+  material?: (sky: Sky, glow?: [number, number, number], intensity?: number) => AnimalMaterial;
+  hasSkin?: (variant: VariantDef) => boolean;
+  loadSkin?: (variant: VariantDef) => Promise<void>;
   preload?: () => Promise<void>;
   skin?: (variant: VariantDef, bones: readonly BoneDef[], eyes: readonly EyeSpot[]) => CreatureHull | null;
 }

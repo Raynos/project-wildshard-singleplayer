@@ -1,4 +1,5 @@
-import { app } from '#engine';
+import { app, TIER } from '#engine';
+
 /**
  * The Storm Titan's look (NALATI.md B14 "look is a first pass"; mockups art/nalati-grasslands/round-3/2-storm-titan/):
  * a towering giant of DARK cumulus with lightning veins crawling over him and a glowing spiral heart, and the phase-3
@@ -17,7 +18,7 @@ import { app } from '#engine';
  * No billboards: the tongues and the smoke are 3D meshes seen from any side (the user's look rule 1).
  */
 import * as THREE from 'three';
-import { TIER } from '#engine/core/tier';
+
 
 const PHONE = TIER === 'phone';
 

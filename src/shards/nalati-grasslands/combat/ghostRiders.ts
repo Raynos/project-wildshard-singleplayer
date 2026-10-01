@@ -1,13 +1,14 @@
+import { app, type Game, type Sky, type Player, type Forest, type TargetAnimal, type TargetHit, Projectiles, type ProjectileKind, setting, type Animal, type AnimalManager, type DayCycleClock, heightAt } from '#engine';
 import * as THREE from 'three';
-import { app, type Game, type Sky, type Player, type Forest, type TargetAnimal, type TargetHit, Projectiles, type ProjectileKind, setting } from '#engine';
 
 
 
-import type { Animal } from '#engine/entities/Animal';
-import type { AnimalManager } from '#engine/entities/AnimalManager';
-import type { DayCycleClock } from '#engine/world/dayCycle';
 
-import { heightAt } from '#engine/world/Heightfield';
+
+
+
+
+
 import { HORSE_SPEED } from '../species/horse';
 import { GHOST_RIDER, riderGeometry, ghostSeat, ghostRiderPoints } from '../species/ghostRider';
 

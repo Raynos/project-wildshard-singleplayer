@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import type { Player } from '#engine/player/Player';
 import type { Forest } from '#engine/world/forest/Forest';
 import type { AnimalManager, AnimalSound } from '#engine/entities/AnimalManager';
-import type { Wildlife } from '#engine/entities/Wildlife';
+import type { Wildlife } from '../creatures/wildlife';
 import type { Animal } from '#engine/entities/Animal';
 import { heightAt } from '#engine/world/Heightfield';
 import type { Interactable } from '#engine/world/interact/types';
@@ -14,7 +14,7 @@ import { RideHUD } from './RideHUD';
 import { HITCH_HORSE_SPOTS, HITCHING_RAIL } from '../world/layout';
 import { N_ROAD_PTS, S_ROAD_PTS, W_ROAD_PTS, E_ROAD_PTS, SKY_ROAD, CAMP_SPUR, BOWL_TRACKS, EAGLE_TRAIL, CAVE_TRAIL, ARGYMAQ_TRAIL } from '../layout';
 import { Reins } from './Reins';
-import { SheepRaid } from '../sheepRaid';
+import { SheepRaid } from '../creatures/sheepRaid';
 import { HorseNamePrompt } from './HorseNamePrompt';
 
 /** B1: the roads and tracks a horse keeps to with the stick let go (the chunk's trails: nalati-grasslands.ts `trails`) */

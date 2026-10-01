@@ -1,0 +1,53 @@
+import { app, registerSpecies, speciesWithLook, type SpeciesDef, type SpeciesRow, type SpeciesLook, type SpeciesVariant, type VariantDef, type Scope } from '#engine';
+import { painterlyAnimalMaterial } from '../look/creatureMaterial';
+import { creatureHull, skinCreatureGlb, loadCreatureRig, preloadCreatureGlbs } from './hulls';
+import { HORSE_SPECIES } from './horse';
+import { WOLF_SPECIES } from './wolf';
+import { SHEEPDOG_SPECIES } from './sheepdog';
+import { BALBAL_SPECIES } from './balbal';
+import { GOLDENKING_SPECIES } from './goldenKing';
+import { LEOPARD_SPECIES } from './leopard';
+import { EAGLE_SPECIES } from './eagle';
+import { GHOSTRIDER_SPECIES } from './ghostRider';
+import { KOKBORI_SPECIES } from './kokbori';
+
+export const NALATI_DEFINITIONS: readonly SpeciesDef[] = [HORSE_SPECIES, WOLF_SPECIES, SHEEPDOG_SPECIES, BALBAL_SPECIES, GOLDENKING_SPECIES, LEOPARD_SPECIES, EAGLE_SPECIES, GHOSTRIDER_SPECIES, KOKBORI_SPECIES];
+function variantRow(v: VariantDef): SpeciesVariant {
+  const { tint: _tint, fur: _fur, traits: _traits, ...row } = v;
+  return row;
+}
+export function nalatiRow(def: SpeciesDef): SpeciesRow {
+  const { fur: _fur, build: _build, pose: _pose, gait: _gait, postPose: _postPose, rig: _rig, animate: _animate,
+    damageMul: _damageMul, eyeGlow: _eyeGlow, eyeGlowIntensity: _eyeGlowIntensity, variants, spawnOnly, ...row } = def;
+  return { ...row, id: `species.nalati.${def.kind}`, variants: variants.map(variantRow),
+    ...(spawnOnly === undefined ? {} : { spawnOnly: spawnOnly.map(variantRow) }) };
+}
+export function nalatiLook(def: SpeciesDef): SpeciesLook {
+  const row = nalatiRow(def);
+  const { fur, build, pose, gait, postPose, rig, animate, damageMul, eyeGlow, eyeGlowIntensity } = def;
+  return { id: `look.nalati.${def.kind}`, species: row.id, kind: def.kind, fur, build,
+    ...(pose === undefined ? {} : { pose }), ...(gait === undefined ? {} : { gait }),
+    ...(postPose === undefined ? {} : { postPose }), ...(rig === undefined ? {} : { rig }),
+    ...(animate === undefined ? {} : { animate }), ...(damageMul === undefined ? {} : { damageMul }),
+    ...(eyeGlow === undefined ? {} : { eyeGlow }), ...(eyeGlowIntensity === undefined ? {} : { eyeGlowIntensity }),
+    variants: Object.fromEntries([...def.variants, ...(def.spawnOnly ?? [])].map(v => [v.id, {
+      ...(v.tint === undefined ? {} : { tint: v.tint }), ...(v.fur === undefined ? {} : { fur: v.fur }),
+      ...(v.traits === undefined ? {} : { traits: v.traits }),
+    }])),
+    material: painterlyAnimalMaterial,
+    preload: async () => { preloadCreatureGlbs(); },
+    hasSkin: v => creatureHull(def.kind, v.id) !== null,
+    loadSkin: async v => { const name = creatureHull(def.kind, v.id); if (name !== null) await loadCreatureRig(name); },
+    skin: (v, bones) => { const hull = skinCreatureGlb(def.kind, v.id, bones); return hull === null ? null : { ...hull, normalMap: null, thrall: false }; },
+  };
+}
+export const NALATI_SPECIES = NALATI_DEFINITIONS.map(nalatiRow);
+export const NALATI_LOOKS = NALATI_DEFINITIONS.map(nalatiLook);
+/** Dynamically derived elite kinds belong to the same resident scope as their parent. */
+export function registerNalatiDefinition(def: SpeciesDef, scope: Scope | null = app.levelScope): void {
+  if (scope === null) { registerSpecies(def); return; }
+  app.species.registerRow(nalatiRow(def), scope); app.species.registerLook(nalatiLook(def), scope);
+}
+export function installNalatiSpeciesForTests(): void {
+  for (const def of NALATI_DEFINITIONS) registerSpecies(speciesWithLook(nalatiRow(def), nalatiLook(def)));
+}

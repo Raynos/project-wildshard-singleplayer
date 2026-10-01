@@ -429,6 +429,8 @@ export class AnimalManager {
   private get unaware(): boolean { return this.calm || practiceRoom.open; }
   /** the shard's pieces for the self-thinking enemy species (see the header; Enemies.ts fills it) */
   enemyWorld: EnemyWorld = {};
+  get habitat(): EnemyWorld { return this.enemyWorld; }
+  set habitat(value: EnemyWorld) { this.enemyWorld = value; }
   /** a place a herd animal's wander walks to instead of a random point (within r m of it), or null for the usual wander —
    *  Pine Hollow's rain sends the grazers in under the big trees (src/shards/pine-hollow/world/weather.ts, PH-C7) */
   wanderGoal: ((a: Animal) => { x: number; z: number; r: number } | null) | null = null;

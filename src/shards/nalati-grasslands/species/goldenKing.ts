@@ -1,11 +1,12 @@
-import { engineString } from '#engine/strings';
+import { engineString, type Rng, type SpeciesDef, type AnimalSpecies, type BoneDef, type VariantDef, type RigAnimCtx, type ThinkCtx, loft, skinPlain, S, boneIndex, mix, speciesSstep as sstep, paletteColors, paintNoise, type Paint, type SpeciesRGB as RGB, type Station, type Animal, NO_FUR, lookAngles, smooth01, bump, step, rigClamp as clamp, heightAt } from '#engine';
+
 import * as THREE from 'three';
-import type { Rng } from '#engine/core/rng';
-import { registerSpecies, type AnimalSpecies, type BoneDef, type VariantDef, type RigAnimCtx, type ThinkCtx } from '#engine/entities/species/registry';
-import { loft, skinPlain, S, boneIndex, mix, sstep, paletteColors, paintNoise, type Paint, type RGB, type Station } from '#engine/entities/species/loft';
-import type { Animal } from '#engine/entities/Animal';
-import { NO_FUR, lookAngles, smooth01, bump, step, clamp } from '#engine/entities/species/rigs';
-import { heightAt } from '#engine/world/Heightfield';
+
+
+
+
+
+
 
 /**
  * The Golden King — Nalati's first boss (docs/design/nalati/elites-and-bosses.md §2, plan row B13; mockups
@@ -417,7 +418,7 @@ function thinkKing(a: Animal, c: ThinkCtx): void {
   goldenKingBrain.think?.(a, c);
 }
 
-registerSpecies({
+export const GOLDENKING_SPECIES: SpeciesDef = {
   kind: GOLDEN_KING,
   label: engineString('s_5e6771dbba8c'),
   fur: NO_FUR,
@@ -435,4 +436,4 @@ registerSpecies({
   animate: animateKing,
   think: thinkKing,
   damageMul: (a, hitPoint, dir) => goldenKingBrain.damageMul?.(a, hitPoint, dir) ?? 1,
-});
+};

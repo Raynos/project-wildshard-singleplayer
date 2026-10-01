@@ -1,20 +1,21 @@
-import { GroupBrain } from '#engine/ai/GroupBrain';
-import { app } from '#engine/app/runtime';
+import { GroupBrain, app, type Sky, heightAt, terrainNormal as normalAt, Rng, attachFogUniforms, type Animal, type ThinkCtx, TIER, TickScheduler } from '#engine';
+
+
 import * as THREE from 'three';
-import type { Sky } from '#engine/world/Sky';
-import { heightAt, inChunk, normalAt } from '#engine/world/Heightfield';
-import { Rng } from '#engine/core/rng';
-import { attachFogUniforms } from '#engine/world/Atmosphere';
-import type { Animal } from '#engine/entities/Animal';
-import type { ThinkCtx } from '#engine/entities/species/registry';
+
+
+
+
+
+
 import type { PackPrey } from './pack';
 import { buildSheepGeometry, SHEEP_PIVOTS, SHEEP_PART_NAMES } from '../species/sheep';
 import { loadCreatureRig, type RigAsset } from '../species/hulls';
 import { modelsOn } from '../world/glbPaint';
-import { TIER } from '#engine/core/tier';
+
 import { painterlyAnimalMaterial } from '../look/creatureMaterial';
 import { wildEnv, angDiff } from './env';
-import { TickScheduler } from '#engine/app/scheduler';
+
 
 /**
  * Flock — the camp's sheep (docs/design/nalati/wolves-horses-taming.md "Sheep"): 20–60 fat-tailed sheep as ONE
@@ -486,3 +487,5 @@ export function thinkSheepdog(a: Animal, c: ThinkCtx): void {
   a.lookTarget.copy(c.player); a.lookWeight = pd < 6 ? 0.8 : 0;
   c.confine(a);
 }
+
+function inChunk(x: number, z: number, margin = 0): boolean { return Math.abs(x) <= 250 - margin && Math.abs(z) <= 250 - margin; }

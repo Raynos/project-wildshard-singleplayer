@@ -1,16 +1,17 @@
-import { app } from '#engine';
+import { app, type Animal, type AnimalManager, painterlyMaterial, TIER, practiceRoom } from '#engine';
+
 import * as THREE from 'three';
-import type { Animal } from '#engine/entities/Animal';
-import type { AnimalManager, AnimalSound } from '#engine/entities/AnimalManager';
+
+
 import type { Wildlife } from './wildlife';
 import type { SheepPrey, Flock } from './flock';
 import { Pack } from './pack';
 import { HORSE_SPEED, horseBones } from '../species/horse';
 import { PaintKit, pole, v3, lathe } from '../world/paint';
-import { painterlyMaterial } from '#engine/world/painterly';
-import { inChunk } from '#engine/world/Heightfield';
-import { TIER } from '#engine/core/tier';
-import { practiceRoom } from '#engine/core/practiceRoom';
+
+
+
+
 
 /**
  * Wolves raiding the flock, and the mounted shepherd who rides out to defend it (NALATI-FINISH B1, N13 — the archived
@@ -56,6 +57,7 @@ const GUARD = 50, CRACK_R = 4.2, CRACK_CD = 1.3, CRACKS_TO_BREAK = 2;
 const RING = 22;                       // m: his slow ring round the flock
 /** the valley pack's den from the flock (m) and its wolves; spawned at most this many times a session */
 const DEN = { dx: -80, dz: -8 }, RAIDERS = ['grey', 'tawny', 'scout'], MAX_PACKS = 2;
+type AnimalSound = Parameters<NonNullable<AnimalManager['onSound']>>[0];
 const voice = (name: string): AnimalSound => name as AnimalSound;
 const rand = (r: readonly [number, number]): number => r[0] + app.rng.stream('ai').next() * (r[1] - r[0]);
 
@@ -264,3 +266,5 @@ export class SheepRaid {
     if (this.cracksNow % CRACKS_TO_BREAK === 0) Pack.of(wolf)?.scare(wolf.position.x, wolf.position.z, 25);
   }
 }
+
+function inChunk(x: number, z: number, margin = 0): boolean { return Math.abs(x) <= 250 - margin && Math.abs(z) <= 250 - margin; }

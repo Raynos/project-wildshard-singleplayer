@@ -1,7 +1,8 @@
+import { loft, S, mix, speciesSstep as sstep, srgb, setShag, setShapeFn, paintNoise, type Paint, type Station, type BoneDef } from '#engine';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { loft, S, mix, sstep, srgb, setShag, setShapeFn, paintNoise, type Paint, type Station } from '#engine/entities/species/loft';
-import type { BoneDef } from '#engine/entities/species/registry';
+
+
 
 /**
  * Fat-tailed steppe sheep — the MODEL of the camp flock (Nalati, row B4). Sheep are not AnimalManager animals: a flock

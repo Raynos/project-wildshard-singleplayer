@@ -1,9 +1,10 @@
-import { engineString } from '#engine/strings';
+import { engineString, type Rng, type SpeciesDef, type AnimalSpecies, type BoneDef, type VariantDef, type RigAnimCtx, loft, skinPlain, S, boneIndex, mix, speciesSstep as sstep, srgb, paletteColors, paintNoise, type Paint, type SpeciesRGB as RGB, NO_FUR, smooth01, bump, rigClamp as clamp } from '#engine';
+
 import * as THREE from 'three';
-import type { Rng } from '#engine/core/rng';
-import { registerSpecies, type AnimalSpecies, type BoneDef, type VariantDef, type RigAnimCtx } from '#engine/entities/species/registry';
-import { loft, skinPlain, S, boneIndex, mix, sstep, srgb, paletteColors, paintNoise, type Paint, type RGB } from '#engine/entities/species/loft';
-import { NO_FUR, smooth01, bump, clamp } from '#engine/entities/species/rigs';
+
+
+
+
 import { tuft, hash01, type V3, type Skin } from './shape';
 import { thinkWolf } from '../creatures/pack';
 
@@ -352,7 +353,7 @@ export function canidPostPose(c: RigAnimCtx): void {
   t2.rotation.copy(_e);
 }
 
-registerSpecies({
+export const WOLF_SPECIES: SpeciesDef = {
   kind: 'wolf',
   label: engineString('s_8e59a599f422'),
   fur: NO_FUR,
@@ -383,4 +384,4 @@ registerSpecies({
   build: buildCanid,
   postPose: canidPostPose,
   think: thinkWolf,
-});
+};

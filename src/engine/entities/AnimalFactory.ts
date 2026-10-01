@@ -10,8 +10,6 @@ import { setLowPoly } from './species/loft';
 import { facetGeometry, lowPolyMaterials, oneMaterial, patchEyeGlow } from './lowpoly';
 import type { EyeSpot } from './species/look';
 import { app } from '../app/runtime';
-import { preloadCreatureGlbs, creatureHull, skinCreatureGlb, loadCreatureRig } from '#shards/nalati-grasslands/species/hulls';
-import { painterlyAnimalMaterial } from '#shards/nalati-grasslands/look/creatureMaterial';
 
 // every species file registers itself on import: drop `src/engine/entities/species/<kind>.ts` in and it exists
 import.meta.glob(['./species/*.ts', '!./species/registry.ts', '!./species/loft.ts', '!./species/look.ts'], { eager: true });
@@ -264,10 +262,10 @@ export class AnimalFactory {
     const m = this.models.get(key), rigs = this.pendingRigs.get(key);
     this.pendingRigs.delete(key);
     if (!m) return;
-    const hull = skinCreatureGlb(m.kind, m.variant, m.bones);
+    const hull = app.species.look(m.kind)?.skin?.(m.variantDef, m.bones, []);
     if (!hull) return;
     const old = m.geometry;
-    m.geometry = hull.geometry; m.map = hull.map; m.bones = hull.bones; m.doubleSided = hull.doubleSided;
+    m.geometry = hull.geometry; m.map = hull.map; m.bones = hull.bones; m.doubleSided = hull.doubleSided ?? false;
     for (const r of rigs ?? []) {
       r.mesh.geometry = hull.geometry;
       r.fur.map = hull.map; if (hull.doubleSided) r.fur.side = THREE.DoubleSide; r.fur.needsUpdate = true;
@@ -294,7 +292,7 @@ export class AnimalFactory {
   constructor(private readonly sky: Sky, opts: { style?: AnimalStyle | undefined } = {}) {
     this.style = opts.style ?? 'pbr';
     this.ready = this.style === 'pbr' ? Promise.all(app.species.preloads().map((preload) => preload())).then(() => undefined) : Promise.resolve();
-    if (this.style === 'painterly') preloadCreatureGlbs();
+    if (this.style !== 'pbr') for (const preload of app.species.preloads()) void preload().catch(() => undefined);
   }
 
   /** The cached model for (kind, variant id). An unknown variant id falls back to the species' first variant. */
@@ -321,22 +319,22 @@ export class AnimalFactory {
     if (geometry.boundingSphere !== null) geometry.boundingSphere.radius += 0.6; // animated legs / neck / corpse roll never leave this
     geometry.computeBoundingBox();
 
-    if (this.style === 'painterly') {
+    const look = app.species.look(kind);
+    if (look?.material !== undefined) {
       // Nalati: the smooth loft, vertex colours only, no fur texture / shells — and fur, hooves and eyes in ONE group so a
       // wolf / horse is a single draw call; the soft cel light is the material's (src/shards/nalati-grasslands/look/creatureMaterial.ts)
       const count = geometry.index !== null ? geometry.index.count : (geometry.getAttribute('position') as THREE.BufferAttribute).count;
       geometry.clearGroups(); geometry.addGroup(0, count, 0);
-      const mat = painterlyAnimalMaterial(this.sky, species.eyeGlow, species.eyeGlowIntensity);
+      const mat = look.material(this.sky, species.eyeGlow, species.eyeGlowIntensity);
       // a generated hull skinned to this skeleton (Debug ▸ Creatures = Models, glbCreatures.ts). While it is still loading the
       // procedural mesh stands in, and every rig made from it is upgraded in place when the hull arrives (upgradeHull)
-      const hullName = creatureHull(kind, v.id);
-      const hull = hullName !== null ? skinCreatureGlb(kind, v.id, sp.bones) : null;
+      const hull = look.skin?.(v, sp.bones, eyes) ?? null;
       if (hull) { geometry.dispose(); geometry = hull.geometry; }
-      m = { kind, variant: v.id, style: 'painterly', species, variantDef: v, geometry, bones: hull?.bones ?? sp.bones, dims: sp.dims, fur: mat, hard: mat, eye: mat, shells: [], map: hull?.map ?? null, doubleSided: hull?.doubleSided ?? false };
+      m = { kind, variant: v.id, style: this.style, species, variantDef: v, geometry, bones: hull?.bones ?? sp.bones, dims: sp.dims, fur: mat, hard: mat, eye: mat, shells: [], map: hull?.map ?? null, doubleSided: hull?.doubleSided ?? false };
       this.models.set(key, m);
-      if (hullName !== null && !hull) {
+      if (look.hasSkin?.(v) === true && !hull) {
         this.pendingRigs.set(key, []);
-        loadCreatureRig(hullName).then(() => { this.upgradeHull(key); return null; }).catch(() => { this.pendingRigs.delete(key); });
+        look.loadSkin?.(v).then(() => { this.upgradeHull(key); return null; }).catch(() => { this.pendingRigs.delete(key); });
       }
       return m;
     }
@@ -537,7 +535,7 @@ export class AnimalFactory {
       }
     }
     // painterly: a fresh material (a clone would drop the painterly shader patch)
-    const fur = model.style === 'painterly' ? painterlyAnimalMaterial(this.sky, model.species.eyeGlow, model.species.eyeGlowIntensity) : model.fur.clone();
+    const fur = app.species.look(model.kind)?.material?.(this.sky, model.species.eyeGlow, model.species.eyeGlowIntensity) ?? model.fur.clone();
     if (model.map) fur.map = model.map;
     if (model.doubleSided === true) fur.side = THREE.DoubleSide;
     if (model.style === 'pbr' && model.rim !== undefined) {

@@ -1,12 +1,13 @@
+import { type Game, type Sky, type Player, type Forest, type TargetHit, type DayCycleClock, type AnimalManager } from '#engine';
 import { encounterHit } from './damage';
 import type * as THREE from 'three';
-import type { Game, Sky, Player, Forest, TargetHit } from '#engine';
 
 
 
-import type { DayCycleClock } from '#engine/world/dayCycle';
+
+
 import type { Balbals } from '../world/Balbals';
-import type { AnimalManager } from '#engine/entities/AnimalManager';
+
 
 import type { NalatiLoadout } from '../weapons/loadout';
 import { wildEnv } from '../creatures/env';

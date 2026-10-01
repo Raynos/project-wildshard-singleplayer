@@ -1,14 +1,15 @@
+import { app, type Animal, type AnimalManager, type DayCycleClock, heightAt, setting } from '#engine';
 import { balbalPiercing } from '../weapons/effects';
-import { app } from '#engine';
+
 import * as THREE from 'three';
-import type { Animal } from '#engine/entities/Animal';
-import type { AnimalManager } from '#engine/entities/AnimalManager';
+
+
 import type { Balbals } from '../world/Balbals';
-import type { DayCycleClock } from '#engine/world/dayCycle';
-import { heightAt } from '#engine/world/Heightfield';
+
+
 import { BALBAL, BALBAL_SLAM, balbalCombat, onBalbalCrack } from '../species/balbal';
 import { NightParticles, FLAG_GRAVITY, FLAG_BOUNCE, FLAG_GROW } from './nightFx';
-import { setting } from '#engine/ui/Settings';
+
 
 /**
  * Balbal warriors — the dusk half of row B11 (project/archive/2026-09-23-nalati.md): at dusk some of the shard's balbal statues (the POI

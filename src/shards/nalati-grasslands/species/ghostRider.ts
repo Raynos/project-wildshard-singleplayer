@@ -1,10 +1,12 @@
-import { engineString } from '#engine/strings';
+import { engineString, type SpeciesDef, type ThinkCtx, NO_FUR, type Animal, eliteDamageMul } from '#engine';
+import { HORSE_SPECIES } from './horse';
+
 import * as THREE from 'three';
-import { registerSpecies, speciesDef, type ThinkCtx } from '#engine/entities/species/registry';
-import { NO_FUR } from '#engine/entities/species/rigs';
+
+
 import { HORSE_SPEED, horseBones } from './horse';
-import type { Animal } from '#engine/entities/Animal';
-import { eliteDamageMul } from '#engine/entities/eliteBrain';
+
+
 
 /**
  * Ghost rider — the night half of row B11 (NALATI.md; elites-and-bosses.md E5 "the ghost-rider line"; mockups
@@ -102,8 +104,8 @@ export function ghostRiderPoints(a: Animal, chest: THREE.Vector3, head: THREE.Ve
   head.copy(_p.set(0, 0.9, 0.14).add(GHOST_SEAT)).applyMatrix4(m);
 }
 
-const horse = speciesDef('horse');
-registerSpecies({
+const horse = HORSE_SPECIES;
+export const GHOSTRIDER_SPECIES: SpeciesDef = {
   kind: GHOST_RIDER,
   label: engineString('s_1ccc05aa1f07'),
   fur: NO_FUR,
@@ -128,4 +130,4 @@ registerSpecies({
     return (p !== undefined && q !== undefined && Math.hypot(hitPoint.x - p, hitPoint.z - q) < 4 ? 1.5 : 1) * eliteDamageMul(a, hitPoint, dir);
   },
   blood: false,
-});
+};

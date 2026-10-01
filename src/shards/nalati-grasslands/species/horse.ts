@@ -1,11 +1,12 @@
-import { engineString } from '#engine/strings';
+import { engineString, type Rng, type SpeciesDef, type AnimalSpecies, type BoneDef, type VariantDef, type RigAnimCtx, loft, tube, skinPlain, S, boneIndex, mix, speciesSstep as sstep, srgb, paletteColors, type Station, type SpeciesRGB as RGB, type Paint, NO_FUR, smooth01, bump, rigClamp as clamp, type Animal } from '#engine';
+
 import * as THREE from 'three';
-import type { Rng } from '#engine/core/rng';
-import { registerSpecies, type AnimalSpecies, type BoneDef, type VariantDef, type RigAnimCtx } from '#engine/entities/species/registry';
-import { loft, tube, skinPlain, S, boneIndex, mix, sstep, srgb, paletteColors, type Station, type RGB, type Paint } from '#engine/entities/species/loft';
-import { NO_FUR, smooth01, bump, clamp } from '#engine/entities/species/rigs';
+
+
+
+
 import { thinkHorse, horseDamageMul } from '../creatures/herd';
-import type { Animal } from '#engine/entities/Animal';
+
 import { lock, hash01, wrapPatch, type V3, type Skin, type Section } from './shape';
 import { wildEnv } from '../creatures/env';
 
@@ -572,7 +573,7 @@ export function horseEye(a: Animal, out: THREE.Vector3): THREE.Vector3 {
   return out.copy(EYE_LOCAL).applyMatrix4(horseBones(a).head.matrixWorld);
 }
 
-registerSpecies({
+export const HORSE_SPECIES: SpeciesDef = {
   kind: 'horse',
   label: engineString('s_5b662777562c'),
   fur: NO_FUR,
@@ -612,4 +613,4 @@ registerSpecies({
   postPose: horsePostPose,
   think: thinkHorse,
   damageMul: horseDamageMul,
-});
+};

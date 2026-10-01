@@ -1,12 +1,13 @@
-import { engineString } from '#engine/strings';
-import type { DamageRequest } from '#engine/combat/pipeline';
+import { engineString, type DamageRequest, type Rng, type SpeciesDef, type AnimalSpecies, type BoneDef, type VariantDef, type RigAnimCtx, type ThinkCtx, loft, tube, skinPlain, S, boneIndex, mix, speciesSstep as sstep, paletteColors, paintNoise, setShapeFn, type Paint, type SpeciesRGB as RGB, type Animal, NO_FUR, lookAngles, smooth01, step, rigClamp as clamp, heightAt } from '#engine';
+
+
 import * as THREE from 'three';
-import type { Rng } from '#engine/core/rng';
-import { registerSpecies, type AnimalSpecies, type BoneDef, type VariantDef, type RigAnimCtx, type ThinkCtx } from '#engine/entities/species/registry';
-import { loft, tube, skinPlain, S, boneIndex, mix, sstep, paletteColors, paintNoise, setShapeFn, type Paint, type RGB } from '#engine/entities/species/loft';
-import type { Animal } from '#engine/entities/Animal';
-import { NO_FUR, lookAngles, smooth01, step, clamp } from '#engine/entities/species/rigs';
-import { heightAt } from '#engine/world/Heightfield';
+
+
+
+
+
+
 
 /**
  * Balbal — THE stone warrior (NALATI.md B11; elites-and-bosses.md E4: "they wake at dusk, 2.5 m, 220 hp, amber cracks
@@ -461,7 +462,7 @@ export function onBalbalCrack(a: Animal, hitPoint: THREE.Vector3): boolean {
   return BALBAL_WEAK.some((w) => _lp.distanceTo(w) < WEAK_R);
 }
 
-registerSpecies({
+export const BALBAL_SPECIES: SpeciesDef = {
   kind: BALBAL,
   label: engineString('s_21d824fec935'),
   fur: NO_FUR,
@@ -480,4 +481,4 @@ registerSpecies({
   think: thinkBalbal,
   damageMul: balbalDamageMul,
   blood: false,   // stone: the controller throws chips / sparks instead
-});
+};

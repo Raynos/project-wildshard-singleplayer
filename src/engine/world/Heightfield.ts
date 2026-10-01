@@ -1,4 +1,4 @@
-import { setTerrainHeight } from './terrainHeight';
+import { setTerrainHeight, setTerrainPlacement } from './terrainHeight';
 import { terrainFor, type ChunkTerrain, type PondDef } from '#game/shard/manifest';
 // The chunk's terrain shape. Pure functions so the same field drives the mesh,
 // player collision, tree placement and grass.
@@ -29,6 +29,7 @@ export let cabinMask: ChunkTerrain['cabinMask'] = T.cabinMask;
 export let pondMask: ChunkTerrain['pondMask'] = T.pondMask;
 /** still-water surface height (far below the terrain when the chunk has no pond) */
 export let waterLevel: ChunkTerrain['waterLevel'] = T.waterLevel;
+setTerrainPlacement((x, z) => normalAt(x, z), () => waterLevel());
 const noStream = (): number | null => null;
 /** running water's surface at (x, z) (Pine Hollow's creek), or null off it */
 export let streamAt: NonNullable<ChunkTerrain['streamAt']> = T.streamAt ?? noStream;

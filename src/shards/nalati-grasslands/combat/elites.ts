@@ -1,27 +1,29 @@
-import { app, EliteBrain } from '#engine';
+import { registerNalatiDefinition, NALATI_DEFINITIONS } from '../species/rows';
+import { app, EliteBrain, type Game, type Sky, type Player, type AnimalManager, type Animal, speciesDef, type ThinkCtx, type Interactable, heightAt, setEliteBrain, setEliteDamage, eliteThink, eliteDamageMul, EliteBar, painterlyMaterial } from '#engine';
+
 import { encounterHit } from './damage';
 import * as THREE from 'three';
-import type { Game } from '#engine/core/Game';
-import type { Sky } from '#engine/world/Sky';
-import type { Player } from '#engine/player/Player';
-import type { AnimalManager } from '#engine/entities/AnimalManager';
-import type { Animal } from '#engine/entities/Animal';
-import { registerSpecies, speciesDef, hasSpecies, type ThinkCtx } from '#engine/entities/species/registry';
+
+
+
+
+
+
 import type { Wildlife } from '../creatures/wildlife';
 import type { Pack } from '../creatures/pack';
 import type { HorseHerd } from '../creatures/herd';
-import type { Interactable } from '#engine/world/interact/types';
+
 import type { Ledge } from '../world/Crags';
-import { heightAt } from '#engine/world/Heightfield';
+
 import { wildEnv } from '../creatures/env';
-import { setEliteBrain, setEliteDamage, eliteThink, eliteDamageMul } from '#engine/entities/eliteBrain';
+
 import { horseSaddle } from '../species/horse';
 import { LEOPARD } from '../species/leopard';
 import { EAGLE } from '../species/eagle';
 import { KOKBORI } from '../species/kokbori';
 import { Elites, GroundTell, type EliteDef, type EliteScript, type EliteRule } from '#game/Elite';
-import { EliteBar } from '#engine/ui/EliteBar';
-import { painterlyMaterial } from '#engine/world/painterly';
+
+
 import { fxMaterial, FX, type FxMaterial } from '../world/KurganDungeon';
 import { PaintKit, M, pole, v3, blob } from '../world/paint';
 import { EAGLE_ROCK, CRAG_CAVE } from '../world/layout';
@@ -528,11 +530,11 @@ class Qyran extends Base {
 export const GHOST_HORSE = 'ghost-rider';   // B11's kind: when B11 is in the tree its captain rig IS this species
 /** the ghost captain's horse: the creature row's horse rig, its own kind (the herd AI leaves it to the elite) */
 function registerGhostHorse(): void {
-  if (hasSpecies(GHOST_HORSE) || !hasSpecies('horse')) return;
+  if (hasNalatiSpecies(GHOST_HORSE) || !hasNalatiSpecies('horse')) return;
   const H = speciesDef('horse');
   const base = H.variants.find((v) => v.id === 'black') ?? H.variants[0];
   if (base === undefined) return;
-  registerSpecies({
+  registerNalatiDefinition({
     ...H, kind: GHOST_HORSE, label: 'Qara Batyr',
     variants: [{ ...base, id: 'captain', label: 'Qara Batyr the Unburied', weight: 1, rarity: 'legendary', scale: [1.15, 1.15], hp: 800, traits: { ...base.traits, mane: 1.8 } }],
     think: eliteThink, damageMul: eliteDamageMul,
@@ -698,12 +700,12 @@ function riderModel(sky: Sky): THREE.Group {
 
 export const ARGYMAQ = 'argymaq';
 export function registerArgymaq(): void {
-  if (hasSpecies(ARGYMAQ) || !hasSpecies('horse')) return;
+  if (hasNalatiSpecies(ARGYMAQ) || !hasNalatiSpecies('horse')) return;
   const H = speciesDef('horse');
   const base = H.variants.find((v) => v.id === 'stallion') ?? H.variants[0];
   if (base === undefined) return;
   // his own kind, the horse's rig + the HERD's brain (he leads his herd): variant id 'stallion' so HorseHerd reads him so
-  registerSpecies({ ...H, kind: ARGYMAQ, label: 'Argymaq', variants: [{ ...base, id: 'stallion', label: 'Argymaq the Unbroken', weight: 1, rarity: 'legendary', scale: [1.3, 1.3], hp: 750, traits: { ...base.traits, mane: 2.2, scar: 1 } }] });
+  registerNalatiDefinition({ ...H, kind: ARGYMAQ, label: 'Argymaq', variants: [{ ...base, id: 'stallion', label: 'Argymaq the Unbroken', weight: 1, rarity: 'legendary', scale: [1.3, 1.3], hp: 750, traits: { ...base.traits, mane: 2.2, scar: 1 } }] });
 }
 
 class Argymaq extends Base {
@@ -715,7 +717,7 @@ class Argymaq extends Base {
   override spawn(): void {
     registerArgymaq();
     const w = this.env.wildlife, c = this.def.lair;
-    if (w === null || !hasSpecies(ARGYMAQ)) return;
+    if (w === null || !hasNalatiSpecies(ARGYMAQ)) return;
     const herd = w.spawnHerd(c.x - 8, c.z + 6, 8, 1, false);
     const a = this.env.animals.spawn(ARGYMAQ, c.x, c.z, 0, 'stallion');
     const hi = herd.members[0]?.herd ?? -1;
@@ -894,3 +896,5 @@ export class NalatiElites {
 function fail(id: string): never { throw new Error(`elites: no def '${id}'`); }
 
 export function wireElites(ctx: ElitesCtx): NalatiElites { return new NalatiElites(ctx); }
+
+function hasNalatiSpecies(kind: string): boolean { return app.species.get(kind) !== undefined || NALATI_DEFINITIONS.some(def => def.kind === kind); }

@@ -1,9 +1,10 @@
+import { type Sky, heightAt, terrainNormal as normalAt, terrainWaterLevel as waterLevel, Rng, type AnimalManager, type Animal } from '#engine';
 import * as THREE from 'three';
-import type { Sky } from '#engine/world/Sky';
-import { heightAt, inChunk, normalAt, waterLevel } from '#engine/world/Heightfield';
-import { Rng } from '#engine/core/rng';
-import type { AnimalManager } from '#engine/entities/AnimalManager';
-import type { Animal } from '#engine/entities/Animal';
+
+
+
+
+
 import { Pack } from './pack';
 import { HorseHerd } from './herd';
 import { Flock, dogWolves } from './flock';
@@ -237,3 +238,5 @@ export class Wildlife {
   /** living wolves (for the HUD's threat chevrons / minimap) */
   get livingWolves(): readonly Animal[] { return dogWolves; }
 }
+
+function inChunk(x: number, z: number, margin = 0): boolean { return Math.abs(x) <= 250 - margin && Math.abs(z) <= 250 - margin; }

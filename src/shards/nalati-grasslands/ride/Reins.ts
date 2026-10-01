@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import type { Scope } from '#engine';
 import type { Animal } from '#engine/entities/Animal';
-import { horseBones } from '#engine/entities/species/horse';
+import { horseBones } from '../species/horse';
 import { painterlyMaterial } from '#engine/world/painterly';
 
 /**
