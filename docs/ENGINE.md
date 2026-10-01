@@ -716,7 +716,7 @@ Both shapes take these optional parts:
 | `sky` (`SkyDressing`) | `{ clouds, planet, build?, update? }`: which engine sky objects to build |
 | `lighting` (`LightingRig`), `shadows` (`ShadowStyle`) | the light model and shadow rig |
 | `fog` (`FogModel`), `fogControl` | your fog patch (`{ order, install }`) and suspend / resume for Explore and playgrounds |
-| `terrainPainter` (`TerrainPainter`, `PainterField`) | builds the ground mesh |
+| `terrainPainter` (`TerrainPainter`, `PainterField`) | `build(terrain, field, scope)` builds the ground mesh; `scope` is the owning level scope |
 | `grass` (`GrassDriver`, `GrassLayer`) | grass |
 | `frame(dt, t)`, `dispose()` | per-frame work and cleanup |
 
@@ -728,10 +728,18 @@ export function templateLook(): LookStrategy {
     compose: ({ engineChain, scene, scope }) => { /* a gradient dome, linear fog */ return { chain: engineChain('clean') }; },
     sky: { clouds: false, planet: false },
     backdrop: ({ sky }) => { const clock = createDay(); return Promise.resolve({ clock, horizon: new Color(0xa9afb5), lut: null, /* … */ }); },
-    terrainPainter: { build: (terrain, field) => { /* a flat-shaded PlaneGeometry on field.heightAt */ return Promise.resolve(); } },
+    terrainPainter: { build: (terrain, field, scope) => { /* a flat-shaded PlaneGeometry on field.heightAt */ return Promise.resolve(); } },
   };
 }
 ```
+
+A `TerrainPainter.build(terrain, field, scope)` receives the same live level `Scope` used by the engine’s boot.
+Pass it to `patchShader(..., { scope })`, and register painter-created geometry, material, texture and other
+resources with `scope.own(resource)` as you create them (before an await can fail). Add meshes to `terrain.group`,
+and set `terrain.mesh` / `terrain.material` if downstream ground code needs them. Do not own a shared asset
+acquired through `app.assets`; its lease owns it. No global or hidden module scope is needed by a painter.
+Direct `Terrain.build(ground, painter, scope)` callers must provide that scope; missing or disposed scopes fail
+before invoking a custom painter.
 
 `#game` re-exports the old names `ShardRender`, `ShardComposeContext`, `ShardComposition` for manifests not yet moved.
 

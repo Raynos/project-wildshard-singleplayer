@@ -311,6 +311,11 @@ Your look is a `LookStrategy` in `look/render.ts`, loaded through `manifest.rend
 - Work the look in the mockup loop: a live capture, a mockup board, Jake's pick, then build to match. Driftwood stays
   low-poly; each shard's look is its own.
 
+A custom `terrainPainter.build(terrain, field, scope)` receives the live owning level scope. Use
+`scope.own` for resources you create and `patchShader(..., { scope })` for its shader edits; add your meshes to
+`terrain.group`. The scope releases them on failed boot or level unload. Shared asset leases retain their own
+ownership; do not also own those resources. See [ENGINE §13.1](ENGINE.md#131-lookstrategy).
+
 ## 8. Audio
 
 - **Cues.** Weapons and the engine emit `cue.*` ids. Your cue map (`audio/cues.ts`) plays a sound for each:

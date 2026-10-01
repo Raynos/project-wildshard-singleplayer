@@ -88,7 +88,7 @@ export interface PainterField {
   trailDistance: (x: number, z: number) => number;
 }
 /** a level's own ground: it builds the terrain's mesh(es) into `t.group` and sets `t.mesh` / `t.material` (Terrain.build) */
-export interface TerrainPainter { build: (t: Terrain, field: PainterField) => Promise<void> }
+export interface TerrainPainter { build: (t: Terrain, field: PainterField, scope: Scope) => Promise<void> }
 
 /** what a `GrassDriver` builds: its group goes in the scene, `update` runs every frame from the engine's Grass */
 export interface GrassLayer { group: Group | Object3D; update: (dt: number, playerPos: Vector3) => void }

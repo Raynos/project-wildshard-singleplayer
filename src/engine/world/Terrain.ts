@@ -8,6 +8,7 @@ import { loadBakedTerrain } from './BakedTerrain';
 import { macrotask } from '../boot/plan';
 import { groundSet } from './lookFlags';
 import type { PainterField, TerrainPainter } from '../render/look';
+import type { Scope } from '../app/scope';
 import type { LevelAssets } from '../level/data';
 import { PATCH_ORDER, patchShader } from '../render/shaderPatches';
 
@@ -173,9 +174,13 @@ export class Terrain {
   }
 
   /** `painter`: the level look's own ground (LookStrategy.terrainPainter), built in place of the default */
-  async build(ground: { structures?: true }, painter?: TerrainPainter): Promise<this> {
+  async build(ground: { structures?: true }, painter?: TerrainPainter, scope?: Scope): Promise<this> {
     if (ground.structures === true) return this.buildNone();
-    if (painter !== undefined) { await painter.build(this, PAINTER_FIELD); return this; }
+    if (painter !== undefined) {
+      if (scope === undefined || scope.disposed) throw new Error('TerrainPainter.build requires a live owning level scope');
+      await painter.build(this, PAINTER_FIELD, scope);
+      return this;
+    }
     const { assets } = activeLevel();
     const [layers] = await Promise.all([loadPBRArray([...groundSet({ assets }).layers], 1024), loadBakedTerrain()]); // baked heights/splat → Heightfield lookups (BakedTerrain.ts)
     await macrotask(); // the layer copies above and the mesh below were one ~110 ms task at 4x CPU

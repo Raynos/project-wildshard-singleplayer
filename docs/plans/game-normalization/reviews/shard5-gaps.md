@@ -35,6 +35,8 @@ edits and zero gaps**.
 
 | G16 | Capture controls require undisclosed pre-load harness pins; parity ignores new-shard dev.poses and leaves current draws/tris unmeasured | E363 round 2 | document capture pins / manifest.dev.poses; move legacy cameras into manifests exactly; parity reads authored poses with generic spawn fallback and measures current ceilings | built (sol-g13 private candidate; landing pending) |
 
+| G17 | TerrainPainter.build receives no scope for shader patches and resource ownership | E363 round 2 | pass the live owning level scope as build’s third parameter and document ownership; regression covers cleanup | built (sol-g13 private candidate; landing pending) |
+
 ## Shard findings for the rebuild (not API gaps)
 
 From the first-look boards (`art/sunscar-dunes/round-3-build/board-c2fdc72d.jpg`,
