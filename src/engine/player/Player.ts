@@ -363,8 +363,7 @@ export class Player {
     const k = this.keys, move = this.moveInput();
     this.inFwd = move.y; this.inStr = move.x;
     // jump is an EDGE (press), not a held state — so holding Space can't chain a double jump
-    if (this.inputService !== null) { if (this.inputService.consume('jump')) this.jumpQueued = true; }
-    else {
+    if (this.inputService === null) {
       const jumpDown = k.has('Space') || this.touchJump; this.touchJump = false;
       if (jumpDown && !this.jumpWasDown) this.jumpQueued = true;
       this.jumpWasDown = jumpDown;
@@ -418,7 +417,7 @@ export class Player {
     }
     const len = Math.hypot(mx, mz);
     if (len > 1) { mx /= len; mz /= len; }
-    const jump = this.jumpQueued && !swim; this.jumpQueued = false;
+    const jump = (this.inputService?.pressed('jump') ?? this.jumpQueued) && !swim; this.jumpQueued = false;
     // while swimming Space / the DIVE disc and Shift / the SURFACE disc are HELD controls (the swim branch reads them)
     this.diveHeld = swim && ((this.inputService?.held('dive') ?? k.has('Space')) || this.touchDive);
     this.surfaceHeld = swim && ((this.inputService?.held('surface') ?? (k.has('ShiftLeft') || k.has('ShiftRight'))) || this.touchSurface);
@@ -483,7 +482,7 @@ export class Player {
       const target = g + HOVER_HEIGHT;
       const err = target - this.position.y;
       this.hoverLanded = 0; this.hoverJumpKick = Math.max(0, this.hoverJumpKick - dt * 4);
-      if (jump && this.onGround && !this.hoverAir) { v.y = HOVER_JUMP; this.hoverAir = true; this.hoverJumpKick = 1; this.onGround = false; this.onJump?.(); }
+      if (jump && this.onGround && !this.hoverAir) { this.inputService?.consume('jump'); v.y = HOVER_JUMP; this.hoverAir = true; this.hoverJumpKick = 1; this.onGround = false; this.onJump?.(); }
       if (this.hoverAir) {
         // ── airborne: the repulsors can't reach the ground — ballistic, a little floaty, until we fall back to the ride height
         v.y -= HOVER_JUMP_GRAVITY * dt;
@@ -615,8 +614,8 @@ export class Player {
       this.groundedAgo = this.onGround ? 0 : this.groundedAgo + dt * 1000;
       if (this.onGround) this.jumpsLeft = 1; // one more jump available once you've left the ground
       const jumpV = 7.2 * (1 - 0.35 * wadeT); // wading: the water saps the push-off
-      if (jump && (this.onGround || this.groundedAgo <= this.coyoteMs) && !this.crouching && !this.sliding) { this.groundedAgo = Infinity; this.velocity.y = jumpV; this.onGround = false; this.onJump?.(); }
-      else if (jump && !this.onGround && this.jumpsLeft > 0) { this.jumpsLeft--; this.velocity.y = Math.max(this.velocity.y, 0) * 0.3 + DOUBLE_JUMP; this.onJump?.(); } // double jump
+      if (jump && (this.onGround || this.groundedAgo <= this.coyoteMs) && !this.crouching && !this.sliding) { this.inputService?.consume('jump'); this.groundedAgo = Infinity; this.velocity.y = jumpV; this.onGround = false; this.onJump?.(); }
+      else if (jump && !this.onGround && this.jumpsLeft > 0) { this.inputService?.consume('jump'); this.jumpsLeft--; this.velocity.y = Math.max(this.velocity.y, 0) * 0.3 + DOUBLE_JUMP; this.onJump?.(); } // double jump
       this.velocity.y -= GRAVITY * dt;
 
       // the move: walls, posts, trunks and the terrain stop it, steps ≤ 0.35 m are climbed, the feet snap down slopes
