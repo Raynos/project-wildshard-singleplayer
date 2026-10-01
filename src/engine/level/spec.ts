@@ -17,6 +17,8 @@ export type TierOverrides = Partial<Record<Tier, TierKnobs>>;
 export type { BudgetInputs } from '../render/budgets';
 export interface AudioSpec { ambience: string; score: string; cues?: () => Promise<object>; preload?: () => Promise<LevelAudioProfile> }
 export interface BootSpec {
+  /** The plugin runs grass, cabins and props as separate counted world steps. */
+  stagedWorld?: boolean;
   files: (tier: Tier) => readonly string[];
   sources?: (tier: Tier, tex: TexMode) => ChunkFiles;
   bakedUnread?: RegExp;

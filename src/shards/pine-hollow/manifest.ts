@@ -24,7 +24,7 @@ export const PINE_HOLLOW: ShardManifest = {
   render: async () => (await import('./look/render')).shardRender(),
   api: 1,
   load: () => import('./plugin'),
-  boot: { files: bootFiles, sources: bootSources, bakedUnread: BAKED_UNREAD },
+  boot: { stagedWorld: true, files: bootFiles, sources: bootSources, bakedUnread: BAKED_UNREAD },
   kitLook: 'pbr',
   assetGlobs: ['public/assets/models/pine-hollow-crags/**', 'public/assets/models/pine-hollow-hero/**', 'public/assets/models/pine-hollow-trees/**', 'public/assets/gpu/models/pine-hollow-hero/**', 'public/assets/gpu/models/pine-hollow-trees/**', 'public/assets/gpu/pine-hollow/**', 'public/assets/gpu/baked/pine-hollow/**', 'public/assets/music/pine-hollow-folk/**', 'public/assets/music/pine-hollow-orchestral/**', 'public/assets/music/pine-hollow-piano/**', 'public/assets/sfx/pine-hollow/**', 'public/assets/horizon/pine-hollow-*', 'public/assets/gpu/horizon/pine-hollow-*', 'public/assets/lut/pine-hollow.bin', 'public/assets/title/pine-hollow-portrait.jpg'],
   ktx2: () => import('./ktx2.generated'),

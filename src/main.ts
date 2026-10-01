@@ -293,7 +293,7 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   window.addEventListener('unhandledrejection', (e) => plan.fail(`BOOT FAILED · ${String((e.reason as { message?: string } | null | undefined)?.message ?? e.reason)}`.slice(0, 300)));
   window.addEventListener('error', (e) => plan.fail(`BOOT FAILED · ${e.message} @ ${e.filename.split('/').pop()}:${e.lineno}`.slice(0, 300)));
   const step: StepRunner = (key, work) => stage(key, () => plan.step(key, work).then((p) => p.value));
-  boot.worldHook = (work) => step('props', (p) => { boot.progress = p; return work(); });
+  boot.worldHook = manifest.boot?.stagedWorld === true ? (work) => work() : (work) => step('props', (p) => { boot.progress = p; return work(); });
   // let the service worker take control first (≤ 2.5 s, never fatal) so the first visit's bytes are cached (a shard built
   // later in the page finds it long settled)
   await window.__ws_sw?.ready;
@@ -506,6 +506,10 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
     }) : null;
   const grass = carpet?.grass ?? null;
   const legacyParticles = carpet?.particles ?? null;
+  if (manifest.boot?.stagedWorld !== true) {
+    if (carpet === null) await step('grass', () => undefined);
+    await step('cabins', () => undefined);
+  }
   const interactables = boot.runtime.interactables;
   const props = manifest.load === undefined ? await step('props', async (p) => {
     if (painterly) { nalati = await wireNalati({ game, sky, player, forest, chunk }); addPaths(); return null; } // the Nalati world (src/shards/nalati-grasslands/index.ts)
@@ -539,7 +543,6 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   };
   if (audioProfile) prepareAudio();
   yield 'kit';
-  for (const key of ['grass', 'cabins'] as const) if (bootSteps[key] === undefined) await step(key, () => undefined);
 
   const animals = await step('animals', async (p) => {
     const a = await new AnimalManager(game.scene, sky, forest).buildAsync(macrotask); // a task per herd, not one long one

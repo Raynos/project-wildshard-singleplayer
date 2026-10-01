@@ -81,8 +81,11 @@ export class PineHollow extends ShardPlugin {
       for (const item of cabins.interactables) setSight(item, { slack: 0.75 });
       this.cabins = cabins; this.landmarks = landmarks;
     });
-    const props = new Props(sky, forest, game.renderer);
-    await props.build(registry, macrotask);
+    const props = await step('props', async () => {
+      const placed = new Props(sky, forest, game.renderer);
+      await placed.build(registry, macrotask);
+      return placed;
+    });
     placeDrawnModels({ sky, renderer: game.renderer, forest, under: carpet.under, registry });
     Object.assign(rt.objects, { cabins: this.cabins, props, streams, ...carpet });
     rt.hooks.worldUpdate = (dt, t) => {
