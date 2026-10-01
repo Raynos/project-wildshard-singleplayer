@@ -18,6 +18,7 @@ mkdirSync(out, { recursive: true });
 const errors = [], stuck = [], samples = [];
 const browser = await chromium.launch({ channel: 'chromium', headless: true, args: ['--use-angle=metal', '--mute-audio'] });
 const control = { stop: false, wandering: false };
+for (const signal of ['SIGINT', 'SIGTERM']) process.once(signal, () => { control.stop = true; void browser.close(); });
 try {
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, serviceWorkers: 'block' });
   const page = await context.newPage();
@@ -26,7 +27,7 @@ try {
   const { installInit } = await import('./parity/init.mjs');
   const version = await (await fetch(new URL('version.json', flag('url', '')))).json();
   await installInit(context, { lane: 'm5', sha: version.sha ?? version.commit ?? '', browser: browser.version(), capture: null });
-  await debugSettings(page, { developer: 'on', ...(args.includes('--weather') && shard === 'pine-hollow' ? { weather: 'rain' } : {}) });
+  await debugSettings(page, shard === 'pine-hollow' ? { weather: args.includes('--weather') ? 'rain' : 'clear' } : {});
   const url = new URL(flag('url', ''));
   url.search = new URLSearchParams({ chunk: shard, tier: 'phone', touch: '1', skipintro: '1', nolock: '1', mute: '1', sw: '0', ...(args.includes('--weather') && shard === 'nalati-grasslands' ? { weather: 'storm' } : {}) }).toString();
   await page.goto(url.href);
@@ -80,7 +81,8 @@ try {
       await page.evaluate(() => {
         const p = window.__wildshard, state = p.state(), near = state.player.pos;
         const creatures = state.creatures.filter((c) => c.hp > 0 && Math.hypot(c.pos.x - near.x, c.pos.y - near.y, c.pos.z - near.z) <= 15).toSorted((a, b) => Math.hypot(a.pos.x - near.x, a.pos.z - near.z) - Math.hypot(b.pos.x - near.x, b.pos.z - near.z));
-        const target = creatures[0]; if (!target) return;
+        const dummies = p.world.arena.isActive ? p.world.arena.targets.filter((dummy) => Math.hypot(dummy.position.x - near.x, dummy.position.z - near.z) <= 15).toSorted((a, b) => a.position.distanceToSquared(p.world.player.position) - b.position.distanceToSquared(p.world.player.position)) : [];
+        const target = creatures[0] ?? (dummies[0] ? { pos: dummies[0].position } : null); if (!target) return;
         const player = p.world.player; player.yaw = Math.atan2(-(target.pos.x - near.x), -(target.pos.z - near.z));
         const disc = document.querySelector('.ws-touch-attack'); if (!disc) throw new Error('missing attack disc');
         for (const type of ['pointerdown', 'pointerup']) disc.dispatchEvent(new PointerEvent(type, { pointerId: 81, pointerType: 'touch', isPrimary: true, bubbles: true }));
@@ -88,7 +90,9 @@ try {
     }
     if (seconds >= nextPause) {
       await page.evaluate(() => document.dispatchEvent(new Event('ws:pause'))); await sleep(5000);
+      if (await page.evaluate(() => window.__wildshard.state().appState) !== 'paused') throw new Error('pause did not enter paused state');
       await page.evaluate(() => document.dispatchEvent(new Event('ws:pause')));
+      if (await page.evaluate(() => window.__wildshard.state().appState) === 'paused') throw new Error('resume stayed paused');
       progressAt = Date.now(); lastPos = await position(); nextPause += 300;
     }
     const nowPos = await position();

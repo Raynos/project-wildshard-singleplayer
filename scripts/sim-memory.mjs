@@ -91,11 +91,13 @@ function connect(wsUrl, onMemory) {
     inner(m);
   });
   const opened = new Promise((resolve, reject) => { ws.addEventListener('open', resolve); ws.addEventListener('error', reject); });
+  /** @param {string} expression @param {unknown} [fallback] */
   const evaluate = async (expression, fallback = null) => {
     try {
       const r = await Promise.race([send('Runtime.evaluate', { expression, returnByValue: true }), sleep(4000).then(() => null)]);
+      if (!r || r.wasThrown) throw new Error(`Web Inspector evaluation failed: ${expression.slice(0, 120)}`);
       return r?.result?.value ?? fallback;
-    } catch { return fallback; }
+    } catch (error) { if (fallback !== null) return fallback; throw error; }
   };
   return { opened, send, track, evaluate, close: () => { ws.close(); } };
 }
@@ -169,7 +171,7 @@ async function oneRun(udid, run, opts) {
       const s = JSON.parse(localStorage.getItem('ws.settings.v1') || '{}'); Object.assign(s, ${JSON.stringify(settings)}); localStorage.setItem('ws.settings.v1', JSON.stringify(s)); return 1; })()`);
     setPhase('loading');
     const loadStart = Date.now();
-    await evaluate(`location.href = ${JSON.stringify(`${run.base}?chunk=${run.shard}&mute=1`)}; 1`);
+    await evaluate(`location.href = ${JSON.stringify(`${run.base}?chunk=${run.shard}&mute=1`)}; 1`, 1);
     await sleep(2000);
     for (let last = '';;) {
       const v = JSON.parse(await evaluate('JSON.stringify({ step: document.querySelector(".ws-load")?.getAttribute("data-step") ?? null, world: Boolean(window.__wildshard?.world), loading: Boolean(document.querySelector(".ws-load")), err: document.querySelector("#wserr .msg")?.textContent ?? null })', 'null'));
@@ -205,7 +207,8 @@ async function oneRun(udid, run, opts) {
     result.phases.play = { fps: await fpsOver(opts.play, () => evaluate(`(() => { const p = window.__wildshard?.world?.player; if (p && typeof p.yaw === 'number') p.yaw += ${turn}; return 1; })()`)) };
 
     setPhase('menu');
-    await evaluate('document.querySelector(".ws-gmenu-exit")?.click(); 1');
+    await evaluate('document.dispatchEvent(new Event("ws:pause")); 1');
+    await evaluate('(() => { const exit = document.querySelector(".ws-gmenu-exit"); if (!exit) throw new Error("missing EXIT TO MAIN"); exit.click(); return 1; })()');
     await sleep(3000);
     setPhase('explorer');
     await evaluate('document.querySelector(".ws-menu-explore")?.click(); 1');
@@ -247,7 +250,7 @@ async function oneRun(udid, run, opts) {
     result.inspectorPeakGB = Object.fromEntries(PHASES.map((ph) => [ph, Math.round(peak(ph).bytes / 1e6) / 1000]));
     result.inspectorAtPeakMB = Object.fromEntries(PHASES.map((ph) => [ph, Object.fromEntries(peak(ph).cats.map((c) => [c.type, Math.round(c.size / 1e6)]))]));
     write({ kind: 'summary', result });
-    log.end();
+    await new Promise((resolve) => { log.end(resolve); });
     proxy.kill();
     const png = join(out, `${run.tag}.end.png`);
     spawnSync('xcrun', ['simctl', 'io', udid, 'screenshot', png]);

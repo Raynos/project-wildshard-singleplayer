@@ -17,7 +17,7 @@ if (!existsSync(mirror)) throw new Error('run scripts/gpu-perf/install.sh first'
 const lock = join(cache, 'nightly.lock');
 try { const fd = openSync(lock, 'wx'); writeFileSync(fd, String(process.pid)); closeSync(fd); }
 catch { const pid = Number(readFileSync(lock, 'utf8')); let alive = false; try { process.kill(pid, 0); alive = true; } catch { /* stale pid */ } if (alive) throw new Error('gpu-perf already running'); rmSync(lock); const fd = openSync(lock, 'wx'); writeFileSync(fd, String(process.pid)); closeSync(fd); }
-const started = Date.now(), deadline = started + 240 * 60_000;
+const started = Date.now(), deadline = started + (memoryOnly ? 40 : 240) * 60_000;
 const stamp = new Date().toISOString().replaceAll(/[:.]/g, '-');
 let tree = '', port = '', sha = '', harnessSha = '', active = null;
 const control = { abort: false };
@@ -42,7 +42,7 @@ const run = async (command, argv, options = {}) => {
     return { code: timing.timedOut || control.abort ? 124 : code ?? 1, stdout, stderr };
   } finally { clearTimeout(timer); clearTimeout(onTimeout); if (fd !== null) closeSync(fd); active = null; }
 };
-const git = (...argv) => execFileSync('git', [`--git-dir=${mirror}`, ...argv], { encoding: 'utf8', maxBuffer: 16 * 1024 ** 2 }).trim();
+const git = (...argv) => execFileSync('git', [`--git-dir=${mirror}`, ...argv], { encoding: 'utf8', maxBuffer: 16 * 1024 ** 2, timeout: Math.max(1, Math.min(10 * 60_000, deadline - Date.now())) }).trim();
 const jsonAt = (revision, path, fallback) => { try { return JSON.parse(git('show', `${revision}:${path}`)); } catch { return fallback; } };
 const status = async (context, state, description) => {
   if (plant) return;
@@ -72,9 +72,9 @@ try {
     else if (!plant && readdirSync(reports).some((file) => /^\d.*\.json$/.test(file) && file.endsWith(`-${sha.slice(0, 7)}.json`))) { console.log(`Already reported ${sha}`); sha = ''; }
   }
   if (sha) {
-    tree = join(cache, `tree-${sha.slice(0, 7)}`);
-    if (existsSync(tree)) throw new Error(`stale export ${tree}; inspect it before retrying`);
-    mkdirSync(tree);
+    const candidateTree = join(cache, `tree-${sha.slice(0, 7)}`);
+    if (existsSync(candidateTree)) throw new Error(`stale export ${candidateTree}; inspect it before retrying`);
+    mkdirSync(candidateTree); tree = candidateTree;
     // Archive build inputs plus target parity, not the multi-GB art/progress history.
     const excluded = ['art/', 'progress/', 'sources/', 'docs/', 'ios/', 'android/', 'dist/', 'dist-native/', '.native-build/'];
     const paths = git('ls-tree', '--name-only', '-r', sha).split('\n').filter((path) => !excluded.some((prefix) => path.startsWith(prefix)));
@@ -133,7 +133,7 @@ try {
         }
       }
       // Gate artifacts are read as data only.
-      const listed = await run(gh, ['run', 'list', '-w', 'gpu-gate.yml', '--limit', '100', '--json', 'databaseId,createdAt,status'], { max: 2 });
+      const listed = await run(gh, ['run', 'list', '-w', 'gpu-gate.yml', '--limit', '1000', '--json', 'databaseId,createdAt,status'], { max: 2 });
       if (listed.code !== 0) steps.push({ name: 'flake tally unavailable', code: listed.code, verdict: 'failure' });
       else for (const gateRun of JSON.parse(listed.stdout).filter((row) => row.status === 'completed' && Date.parse(row.createdAt) >= started - 7 * 86_400_000)) {
         const dir = join(reports, `${stamp}-gate-${gateRun.databaseId}`); mkdirSync(dir);
@@ -178,7 +178,8 @@ if (sha) {
   lines.push('', 'Memory: native ≤ loading 1.8 / play 1.0 / explorer 1.0 decimal GB; native/previous − 1 ≤ 0.10. Pending allows growth only below the absolute cap.', '', '| shard | soak | GPU growth bytes | heap growth bytes | fps first/last | failures |', '|---|---|---:|---:|---|---|');
   for (const row of soaks) lines.push(`| ${row.shard} | ${row.verdict} | ${row.gpuGrowthBytes} | ${row.heapGrowthBytes} | ${row.fpsFirst}/${row.fpsLast} | ${(row.failures ?? []).join(', ')} |`);
   lines.push('', 'Soak: least-squares bytes/second over minutes 5–20 × 900 s; GPU ≤ 8 MiB, heap ≤ minute-5 × 10%; geometry/texture counts ≤ minute-5 × 1.05. FPS is informational.', '', 'GPU ruler budget: M5 P = 1.6 ms per pose.', ...measurements.map((row) => `${row.pose}: ${row.gpuMs} ms / ${row.budgetMs}: ${row.verdict}`), '', ...steps.map((row) => `${row.name}: ${row.verdict} (exit ${row.code})`));
-  lines.push('', 'Flakes in seven days (≥3 needs lead repair/quarantine):', ...Object.entries(flakes).map(([id, count]) => `${id}: ${count}${count >= 3 ? ' — ACTION' : ''}`), '', ...artifacts.filter((entry) => entry.name.endsWith('.md') === true || entry.name === 'rulers-scorecard').map((entry) => `${entry.name}\n\n${entry.text}`));
+  const textArtifacts = artifacts.filter((entry) => { if (entry.name === 'rulers-scorecard') return true; return entry.name.endsWith('.md'); });
+  lines.push('', 'Flakes in seven days (≥3 needs lead repair/quarantine):', ...Object.entries(flakes).map(([id, count]) => `${id}: ${count}${count >= 3 ? ' — ACTION' : ''}`), '', ...textArtifacts.map((entry) => `${entry.name}\n\n${entry.text}`));
   writeFileSync(join(reports, `${name}.md`), `${lines.join('\n')}\n`);
   if (!plant) { if (!memoryOnly) await status('gpu-perf', verdict, description); await status('gpu-perf/memory', memoryState, `Simulator memory ${memoryState}`); }
   console.log(`${description}\n${join(reports, `${name}.md`)}`);
