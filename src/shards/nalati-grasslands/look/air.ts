@@ -6,7 +6,7 @@
  * Installed by the look's `fog.install` (render.ts), right after the engine's `installAtmosphere`, before anything compiles.
  */
 import * as THREE from 'three';
-import { addFogUniforms, paintedAir } from '#engine/world/Atmosphere';
+import { addFogUniforms, paintedAir } from '#engine';
 
 /** the painterly fog chunks (aerial perspective + the cloud-shadow function the sun loop calls — see `paintedAir`) */
 export function installPaintedAir(): void {

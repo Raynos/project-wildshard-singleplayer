@@ -71,8 +71,15 @@ export interface LookComposition {
  */
 export interface FogModel { order: number; install: () => void }
 
+/** the heightfield a painter samples (live: the baked terrain replaces the procedural one once `ready()` resolves) */
+export interface PainterField {
+  ready: () => Promise<boolean>;
+  heightAt: (x: number, z: number) => number;
+  normalAt: (x: number, z: number, eps?: number) => [number, number, number];
+  trails: () => readonly (readonly [number, number])[][];
+}
 /** a level's own ground: it builds the terrain's mesh(es) into `t.group` and sets `t.mesh` / `t.material` (Terrain.build) */
-export interface TerrainPainter { build: (t: Terrain) => Promise<void> }
+export interface TerrainPainter { build: (t: Terrain, field: PainterField) => Promise<void> }
 
 /** what a `GrassDriver` builds: its group goes in the scene, `update` runs every frame from the engine's Grass */
 export interface GrassLayer { group: Group | Object3D; update: (dt: number, playerPos: Vector3) => void }

@@ -8,7 +8,7 @@
  *   grass           the GPU blade rings + shader flowers (grass.ts `GrassV2`)
  * The sky backdrop, the day keys and the per-frame look are still wired by `wireLookV2` (index.ts) until 07 §6.2 steps 5–6.
  */
-import type { LookStrategy } from '#engine/render/look';
+import type { LookStrategy } from '#engine';
 import { installPaintedAir } from './air';
 import { installLookV2Fog } from './fog';
 import { lookV2Passes } from './grade';

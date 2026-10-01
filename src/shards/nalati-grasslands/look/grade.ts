@@ -13,8 +13,7 @@
  */
 import type * as THREE from 'three';
 import { Effect, BlendFunction, RenderPass, EffectPass, BloomEffect, type Pass } from 'postprocessing';
-import { TIER_CONFIG } from '#engine/core/tier';
-import type { LookReplaceContext } from '#engine/render/look';
+import { TIER_CONFIG, type LookReplaceContext } from '#engine';
 
 /** the grade's live knobs (shared uniform objects: the grade effect and every inverse read them) */
 export const gradeUniforms = {

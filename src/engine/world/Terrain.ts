@@ -1,13 +1,13 @@
 import * as THREE from 'three';
 import { CHUNK_SIZE, CHUNK_HALF, CHUNK_DEPTH, TERRAIN_RES } from '../core/config';
-import { heightAt, normalAt, splatAt, trailDistance } from './Heightfield';
+import { heightAt, normalAt, splatAt, trailDistance, TRAILS } from './Heightfield';
 import { loadPBR, loadPBRArray, pbrMaterial } from '../core/assets';
 import { attachFogUniforms } from './Atmosphere';
 import { getActiveChunk } from '#game/shard/registry';
 import { loadBakedTerrain } from './BakedTerrain';
 import { macrotask } from '../boot/plan';
 import { groundSet } from './lookFlags';
-import type { TerrainPainter } from '../render/look';
+import type { PainterField, TerrainPainter } from '../render/look';
 
 // ── low-poly palette (sRGB in, linear out via THREE.Color) ──
 const LP = {
@@ -140,6 +140,14 @@ const BOREAL_MAP = /* glsl */`
           vec3 splatNormal = dot(nrm, nrm) > 1e-8 ? normalize(nrm) : vec3(0.0, 0.0, 1.0);
           vec3 splatArm = arm;`;
 
+/** what a level look's terrain painter samples: the live heightfield (its bindings swap when the bake lands) */
+const PAINTER_FIELD: PainterField = {
+  ready: loadBakedTerrain,
+  heightAt: (x, z) => heightAt(x, z),
+  normalAt: (x, z, eps) => normalAt(x, z, eps),
+  trails: () => TRAILS,
+};
+
 export class Terrain {
   group = new THREE.Group();
   mesh!: THREE.Mesh;
@@ -181,7 +189,7 @@ export class Terrain {
   async build(ground: { structures?: true }, painter?: TerrainPainter): Promise<this> {
     if (ground.structures === true) return this.buildNone();
     if (getActiveChunk().style === 'toon') return this.buildLowPoly();
-    if (painter !== undefined) { await painter.build(this); return this; }
+    if (painter !== undefined) { await painter.build(this, PAINTER_FIELD); return this; }
     const [layers] = await Promise.all([loadPBRArray([...groundSet(getActiveChunk()).layers], 1024), loadBakedTerrain()]); // baked heights/splat → Heightfield lookups (BakedTerrain.ts)
     await macrotask(); // the layer copies above and the mesh below were one ~110 ms task at 4x CPU
     this.mesh = new THREE.Mesh(this.buildGeometry(), this.buildMaterial(layers));
