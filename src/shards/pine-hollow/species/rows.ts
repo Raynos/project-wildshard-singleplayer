@@ -1,6 +1,5 @@
-import { deriveSpecies } from '#engine/ai/species';
-import { BOAR } from '#kit/species/boar';
-import { BEAR } from '#kit/species/bear';
+import { deriveSpecies } from '#engine';
+import { BOAR, BEAR } from '#kit';
 
 /** The night-only thrall is authored by Pine; ordinary weighted variants retain their original order. */
 export const PINE_BOAR = deriveSpecies(BOAR, {

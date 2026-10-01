@@ -1,5 +1,4 @@
-import { registerSpecies } from '#engine/entities/species/registry';
-import { speciesWithLook } from '#engine/entities/species/look';
+import { registerSpecies, speciesWithLook } from '#engine';
 import { BOAR } from './boar';
 import { BEAR } from './bear';
 import { BOAR_LOOK } from './view/boar';

@@ -1,9 +1,5 @@
 import * as THREE from 'three';
-import type { Rng } from '#engine/core/rng';
-import type { AnimalSpecies, BoneDef, VariantDef } from '#engine/entities/species/registry';
-import type { SpeciesLook } from '#engine/entities/species/look';
-import { loft, tube, skinPlain, S, boneIndex, mix, sstep, paintNoise, setShag, isLowPoly, paletteColors, type Paint, type RGB } from '#engine/entities/species/loft';
-import { bearPaintLow } from '#engine/entities/lowpoly';
+import { loft, tube, skinPlain, S, boneIndex, mix, speciesSstep as sstep, paintNoise, setShag, isLowPoly, paletteColors, bearPaintLow, type Rng, type AnimalSpecies, type BoneDef, type VariantDef, type SpeciesLook, type Paint, type SpeciesRGB as RGB } from '#engine';
 
 /**
  * Bear — black bear (scale 1: ~1.0 m at the shoulder, ~2.0 m nose to rump) and the bigger humped brown /

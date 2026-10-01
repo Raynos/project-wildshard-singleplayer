@@ -1,9 +1,5 @@
 import * as THREE from 'three';
-import type { Rng } from '#engine/core/rng';
-import type { AnimalSpecies, BoneDef, VariantDef } from '#engine/entities/species/registry';
-import type { SpeciesLook } from '#engine/entities/species/look';
-import { loft, tube, skinPlain, S, boneIndex, srgb, mix, sstep, paintNoise, setShag, isLowPoly, paletteColors, type Paint, type RGB } from '#engine/entities/species/loft';
-import { boarPaintLow, crestSpikes } from '#engine/entities/lowpoly';
+import { loft, tube, skinPlain, S, boneIndex, mix, speciesSstep as sstep, paintNoise, setShag, isLowPoly, paletteColors, srgb, boarPaintLow, crestSpikes, type Rng, type AnimalSpecies, type BoneDef, type VariantDef, type SpeciesLook, type Paint, type SpeciesRGB as RGB } from '#engine';
 
 /**
  * Wild boar — 0.62 m at the spine, shoulder hump, bristle crest, tusks, held-low wedge head.

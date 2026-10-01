@@ -1,6 +1,5 @@
-import { deriveSpecies } from '#engine/ai/species';
-import { BOAR, BOAR_TUNING } from '#kit/species/boar';
-import { BEAR } from '#kit/species/bear';
+import { deriveSpecies } from '#engine';
+import { BOAR, BOAR_TUNING, BEAR } from '#kit';
 
 /** The beach's long sight lines and variant pool, kept out of the shared hunting family. */
 export const ISLAND_BOARS = ['boar', 'sow', 'black', 'big'];

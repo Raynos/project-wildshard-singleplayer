@@ -1,5 +1,4 @@
-import type { SpeciesRow } from '#engine/ai/species';
-import type { HuntTuning } from '#engine/entities/AnimalManager';
+import type { SpeciesRow, HuntTuning } from '#engine';
 
 export const BOAR_TUNING: HuntTuning = {
   hp: 100, sightRange: 22, sightRangeGraze: 14, sightCone: 60 * Math.PI / 180,

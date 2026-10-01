@@ -36,3 +36,9 @@ export { installStarterEffects } from './effects/install';
 export { crossbowDisplayModel } from './weapons/crossbow/display';
 
 export { rigLegs, legRigOf, legBones, legPose, footPlan, LEG_BONE_NAMES, WALK, type LegBuilt, type NpcRigProfile } from './npc/npcRig';
+
+export { BOAR, BOAR_TUNING } from './species/boar';
+export { BEAR, BEAR_TUNING } from './species/bear';
+export { BOAR_LOOK, BOAR_PALETTE } from './species/view/boar';
+export { BEAR_LOOK, BEAR_PALETTE } from './species/view/bear';
+export { installKitSpecies } from './species/install';
