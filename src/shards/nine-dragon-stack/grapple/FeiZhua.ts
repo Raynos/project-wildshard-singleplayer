@@ -16,7 +16,7 @@ import {
 import type { ShardTraversalContext, TouchDiscHint } from '#game/shard/manifest';
 import { castRay, castSegment, floorBelow, lineOfSight } from '#engine/physics/query';
 import { WELL, Y0 } from '../layout';
-import { nineDragonWorld, setGrappleGuardOpen } from '../world/install';
+import { ndRuntime } from '../runtime';
 import { RIM } from '../world/well-plan';
 import { Filament, Rope } from './line';
 import { Flash, Sparks } from './fx';
@@ -82,7 +82,7 @@ function seePastWellRail(ctx: ShardTraversalContext, eye: Vector3, hook: Vector3
 function fragmentCourse(): GrappleCourse {
   return {
     name: 'Nine Dragon Stack',
-    hooks: nineDragonWorld()?.ctx.hooks ?? [],
+    hooks: ndRuntime().world.ctx.hooks,
     seePast: seePastWellRail,
     lifts: (p, landing) => p.z > RIM.z0 && landing.z < RIM.z0 && p.x >= WELL.x0 && p.x <= WELL.x1 && p.y >= Y0 - 1,
     // lift high enough that the straight pull to the approach point clears the rim's stone parapet (its top + a
@@ -92,7 +92,7 @@ function fragmentCourse(): GrappleCourse {
       const t = Math.min(0.9, Math.max(0, (p.z - past) / Math.max(0.01, p.z - a.z)));
       return Math.min(Y0 + 11, Math.max(p.y + 3.5, (RIM_WALL + 0.35 - a.y * t) / (1 - t)));
     },
-    guard: setGrappleGuardOpen,
+    guard: (open) => { ndRuntime().guardOpen = open; },
   };
 }
 

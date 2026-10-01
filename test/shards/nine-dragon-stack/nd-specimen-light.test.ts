@@ -5,6 +5,14 @@ import { Shared } from '#shards/nine-dragon-stack/look/style';
 import { SPECIMEN_LIGHT, specimenLight } from '#shards/nine-dragon-stack/look/specimenLight';
 
 describe("Nine Dragon's specimen light (E315)", () => {
+  it('keeps the saved city light separate for different level builds', () => {
+    const a = new Shared(), b = new Shared();
+    a.u.uLpAmb.value = 0.5; b.u.uLpAmb.value = 0.8;
+    specimenLight(a, true); specimenLight(b, true);
+    specimenLight(a, false); expect(a.u.uLpAmb.value).toBe(0.5);
+    expect(b.u.uLpAmb.value).toBe(SPECIMEN_LIGHT.ambient);
+    specimenLight(b, false); expect(b.u.uLpAmb.value).toBe(0.8);
+  });
   it('raises the ambient, lifts the shade, keys from the turntable side, dries the washes — then puts all four back', () => {
     const s = new Shared(), u = s.u;
     const city = { amb: u.uLpAmb.value, shade: u.uShade.value.clone(), light: u.uLightDir.value.clone(), dry: u.uDry.value };

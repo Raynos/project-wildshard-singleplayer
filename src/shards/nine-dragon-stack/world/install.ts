@@ -1,57 +1,52 @@
-// Nine Dragon Stack's world in the engine (P0-5c): the structure builder its def hands core (`ShardManifest.ground.structures`).
-// It builds the fragment (world/build.ts), registers its collision (world/colliders.ts) as pieces of the world registry —
-// drawn, colliding, lending their floor, footprinted on the maps (def.ts `map`) — and drives the look's per-frame
-// uniforms and the movers. `nineDragonWorld()` is the built world for the render strategy (look/): the shared uniforms,
-// the layout records.
+// The world hook installs the fragment's pieces and update system; NdRuntime supplies the look and traversal.
 import { Group, type PerspectiveCamera } from 'three';
+import { app, type LevelContext } from '#engine';
 import type { StructureContext } from '#game/shard/manifest';
 import { type NineDragonWorld, buildNineDragonWorld } from './build';
 import { fragmentColliders, fragmentFloor, fragmentGrappleGuard } from './colliders';
 import { crossingColliders } from './well-mid';
 import { installSpecimenLight } from '../look/specimenLight';
-
-let current: NineDragonWorld | null = null;
-let camera: PerspectiveCamera | null = null;
-let grappleGuardOpen = false;
-/** The south rim's high safety cap opens for one committed Fei Zhua crossing, then closes. */
-export function setGrappleGuardOpen(open: boolean): void { grappleGuardOpen = open; }
-/** the running fragment's world (null until it is built) */
-export function nineDragonWorld(): NineDragonWorld | null { return current; }
-/**
- * the world's per-frame culling, with the camera final: def.ts calls it from the render hook's `frame` (the updaters run
- * before the late hooks pose the camera — a capture's or the free camera's — so culling there would cull a stale view)
- */
-export function cullNineDragonWorld(): void { if (current !== null && camera !== null) current.cull(camera); }
+import { NdRuntime, ownNdRuntime } from '../runtime';
 
 const FILE = 'src/shards/nine-dragon-stack/world/colliders.ts';
 
-export const NINE_DRAGON_WORLD = {
-  async build(ctx: StructureContext): Promise<void> {
-    const world = await buildNineDragonWorld(ctx.renderer, ctx.progress);
-    current = world;
-    camera = ctx.camera;
-    installSpecimenLight(() => current?.shared ?? null); // the Model Explorer's turntable lights the specimens (E315)
-    grappleGuardOpen = false;
+/** Legacy and staged boots share identical piece fields. */
+export function installWorld(ctx: Pick<LevelContext, 'scope' | 'piece' | 'system'>, world: NineDragonWorld, camera: PerspectiveCamera): NdRuntime {
+    const rt = new NdRuntime(world, camera);
+    ownNdRuntime(ctx.scope, rt);
     const c = fragmentColliders();
-    ctx.registry.add({
+    ctx.piece({
       id: 'nds-floors', name: 'Lantern Square', category: 'buildings', file: 'src/shards/nine-dragon-stack/world/build.ts',
       object: world.root, surface: 'stone', colliders: c.floors, floor: fragmentFloor, solidFloor: true,
     });
-    ctx.registry.add({ id: 'nds-fronts', name: 'The towers', category: 'buildings', file: FILE, surface: 'stone', colliders: c.fronts });
+    ctx.piece({ id: 'nds-fronts', name: 'The towers', category: 'buildings', file: FILE, surface: 'stone', colliders: c.fronts });
     // (the balustrade over the Well collides as its model since E346: models/wellBalustrade.ts, placed by world/build.ts)
-    ctx.registry.add({
+    ctx.piece({
       id: 'nds-grapple-guard', name: 'The Well safety cap', category: 'buildings', file: FILE, surface: 'stone',
-      colliders: fragmentGrappleGuard(), follows: new Group(), active: () => !grappleGuardOpen,
+      colliders: fragmentGrappleGuard(), follows: new Group(), active: () => !rt.guardOpen,
     });
     // (the props collide as their models: registered as the world places them, world/build.ts)
     // the Well's crossings (dome B2's well-mid.ts: each deck's slabs following its hump / sag, its rail walls; every box
     // names its own surface; the gate bridges' paifang posts are the paifang model's, E346): filled while the world
     // builds, so read after it
-    ctx.registry.add({
+    ctx.piece({
       id: 'nds-crossings', name: 'The Well\'s crossings', category: 'buildings', file: 'src/shards/nine-dragon-stack/world/well-mid.ts',
       surface: 'stone', colliders: [...crossingColliders()],
     });
     // (the fragment's models register themselves as they are placed: world/build.ts, src/engine/models/place.ts)
-    ctx.onUpdate((_dt, t) => { world.update(t, ctx.camera); });
+    ctx.system({ id: 'shard.nd.world', phase: 'update', after: ['engine.player.update'],
+      run: (_dt, t) => { rt.world.update(t, rt.camera); } });
+    return rt;
+}
+
+/** Removed when the production LevelDriver owns the world stage. */
+export const NINE_DRAGON_WORLD = {
+  async build(ctx: StructureContext): Promise<void> {
+    const scope = app.levelScope;
+    if (scope === null) throw new Error('Nine Dragon world needs a level scope');
+    const world = await buildNineDragonWorld(ctx.renderer, ctx.progress);
+    const rt = installWorld({ scope, piece: (piece) => { ctx.registry.add(piece); },
+      system: (system) => { ctx.onUpdate(system.run, system.id); } }, world, ctx.camera);
+    installSpecimenLight(scope, (on, key) => { rt.specimenLight(on, key); });
   },
 };

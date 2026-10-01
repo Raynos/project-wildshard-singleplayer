@@ -8,6 +8,7 @@
 // toward), and the washes drawn dry. All four are put back when it closes. Uniform values only: no program recompiles, and
 // the world is hidden while a model is on show.
 import { Color, type Vector3 } from 'three';
+import type { Scope } from '#engine';
 import type { Shared } from './style';
 
 /** the turntable's light: the ambient, how far the shade wash is lifted toward white (0 = the city's, 1 = unshaded), the
@@ -15,41 +16,36 @@ import type { Shared } from './style';
 export const SPECIMEN_LIGHT = { ambient: 1.45, lift: 0.6, keyUp: 0.8 } as const;
 
 /** what the turntable says (ModelExplorer.ts isolate / unisolate): on or off, and the direction it opens toward */
-interface Turntable { on: boolean; key?: { x: number; y: number; z: number } }
+export interface Turntable { on: boolean; key?: { x: number; y: number; z: number } }
 
 const WHITE = new Color(1, 1, 1);
-let saved: { shared: Shared; ambient: number; shade: Color; light: Vector3; dry: number } | null = null;
-let current: () => Shared | null = () => null;
-let listening = false;
+interface SavedLight { ambient: number; shade: Color; light: Vector3; dry: number }
+const savedLights = new WeakMap<Shared, SavedLight>();
 
 /** light the Model Explorer's specimens (`on`, keyed from `key`'s side) or put the city's light back */
 export function specimenLight(shared: Shared, on: boolean, key?: { x: number; z: number }): void {
-  const u = shared.u;
-  if (on && saved === null) {
-    saved = { shared, ambient: u.uLpAmb.value, shade: u.uShade.value.clone(), light: u.uLightDir.value.clone(), dry: u.uDry.value };
+  const u = shared.u, saved = savedLights.get(shared);
+  if (on && saved === undefined) {
+    savedLights.set(shared, { ambient: u.uLpAmb.value, shade: u.uShade.value.clone(), light: u.uLightDir.value.clone(), dry: u.uDry.value });
     u.uLpAmb.value = SPECIMEN_LIGHT.ambient;
     u.uShade.value.lerp(WHITE, SPECIMEN_LIGHT.lift);
     u.uDry.value = 1;
     const h = key === undefined ? 0 : Math.hypot(key.x, key.z);
     if (key !== undefined && h > 1e-3) u.uLightDir.value.set((key.x / h) * (1 - SPECIMEN_LIGHT.keyUp), SPECIMEN_LIGHT.keyUp, (key.z / h) * (1 - SPECIMEN_LIGHT.keyUp)).normalize();
-  } else if (!on && saved !== null) {
-    const s = saved.shared.u;
+  } else if (!on && saved !== undefined) {
+    const s = shared.u;
     s.uLpAmb.value = saved.ambient;
     s.uShade.value.copy(saved.shade);
     s.uLightDir.value.copy(saved.light);
     s.uDry.value = saved.dry;
-    saved = null;
+    savedLights.delete(shared);
   }
 }
 
-/** listen for the turntable (once per page); `world` hands the running fragment's shared uniforms (null: none built) */
-export function installSpecimenLight(world: () => Shared | null): void {
-  current = world;
-  if (listening) return;
-  listening = true;
-  document.addEventListener('ws:turntable', (event) => {
+/** Legacy boot adapter; a repeated level load gets its own listener. */
+export function installSpecimenLight(scope: Scope, apply: (on: boolean, key?: { x: number; z: number }) => void): void {
+  scope.listen(document, 'ws:turntable', (event) => {
     const t = (event as CustomEvent<Turntable>).detail;
-    const shared = saved?.shared ?? current();
-    if (shared !== null) specimenLight(shared, t.on, t.key);
+    apply(t.on, t.key);
   });
 }

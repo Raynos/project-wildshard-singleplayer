@@ -6,7 +6,7 @@
 // `window.__ndRender` (captures / A/B, no URL switch): the live pieces and their switches.
 import { Color, Fog, type IUniform, Mesh, type Object3D, type PerspectiveCamera, ShaderMaterial, Vector4, type WebGLRenderer } from 'three';
 import type { ShardComposeContext, ShardComposition, ShardRender } from '#game/shard/manifest';
-import { nineDragonWorld } from '../world/install';
+import { ndRuntime } from '../runtime';
 import { TIER } from '#engine/core/tier';
 import { glowUniforms } from './light/glow';
 import { gradeUniforms, loadLut } from './light/grade';
@@ -108,8 +108,7 @@ export function createRender(): ShardRender {
     // the phone's draw budget: one FXAA pass on the graded frame instead of SMAA's three
     ...(TIER === 'phone' ? { aa: 'fxaa' as const } : {}),
     compose(c: ShardComposeContext): ShardComposition {
-      const world = nineDragonWorld();
-      if (world === null) return {}; // the fragment did not build: the engine's chain as it is
+      const world = ndRuntime().world;
       // AO at the city's scale: 2.2 m reaches the eave's underside, the awning's shadow on the wall, the step's riser and
       // the feet; an ink-blue occlusion (never black: the wash stays a wash); half res with a depth-aware upsample. It
       // runs before the ink silhouette (the composite), so the lines stay crisp over it
@@ -181,8 +180,9 @@ export function createRender(): ShardRender {
       return { beforeChain, chain: [jiehua] };
     },
     frame(): void {
-      const world = nineDragonWorld();
-      if (world === null || handle === null) return;
+      ndRuntime().cull();
+      const world = ndRuntime().world;
+      if (handle === null) return;
       // (the cloud layer may be made after the composer: look once more on the first frame)
       if (clouds !== null) { hideEngineClouds(clouds); clouds = null; }
       // line widths are authored at 3× (look/style.ts uDpr); the drawing buffer's size for the screen-space pieces
