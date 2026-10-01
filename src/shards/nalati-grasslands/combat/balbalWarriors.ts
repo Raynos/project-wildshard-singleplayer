@@ -1,3 +1,4 @@
+import { GroundTell, type GroundTellWedgeStyle } from '#game';
 import { nightSpawner } from './spawns';
 import { app, type Animal, type AnimalManager, type DayCycleClock, type Scope, type Spawner, heightAt, setting } from '#engine';
 import { balbalPiercing } from '../weapons/effects';
@@ -34,7 +35,7 @@ import { type FxRenderer, NightParticles, FLAG_GRAVITY, FLAG_BOUNCE, FLAG_GROW }
 
 export interface BalbalWarriorsCtx { scene: THREE.Scene; balbals: Balbals | null; clock: DayCycleClock; scope: Scope }
 interface KitLike { sabre: { model: THREE.Object3D }; spear: { model: THREE.Object3D } }
-interface Warrior { a: Animal; statue: number; deadT: number; sparkT: number; lastHp: number; wedge: Wedge }
+interface Warrior { a: Animal; statue: number; deadT: number; sparkT: number; lastHp: number; wedge: GroundTell }
 
 const RING = 9;
 const SOIL: readonly [number, number, number] = [0.26, 0.19, 0.12], TURF: readonly [number, number, number] = [0.3, 0.36, 0.14];
@@ -42,39 +43,11 @@ const STONE: readonly [number, number, number] = [0.55, 0.53, 0.49], DUST: reado
 const AMBER: readonly [number, number, number] = [2.4, 1.1, 0.25];
 const _v = new THREE.Vector3(), _w = new THREE.Vector3();
 
-/** the telegraph: a ground wedge (a pie slice of the slam's reach), conformed to the terrain while it shows */
-class Wedge {
-  readonly mesh: THREE.Mesh;
-  private readonly uFill: THREE.IUniform<number> = { value: 0 };
-  private readonly uAlpha: THREE.IUniform<number> = { value: 0 };
-  private readonly local: Float32Array;
-  private readonly attr: THREE.BufferAttribute;
-  private static geo: THREE.BufferGeometry | null = null;
-  private static readonly RINGS = 7; private static readonly SEGS = 14;
-
-  constructor(scene: THREE.Scene, cone: number) {
-    const R = Wedge.RINGS, N = Wedge.SEGS;
-    if (Wedge.geo === null) {
-      // unit sector around +z: (angle, radius) per vertex in uv; the shape is rebuilt into world space each frame
-      const uv: number[] = [], idx: number[] = [];
-      for (let r = 0; r <= R; r++) for (let s = 0; s <= N; s++) uv.push(s / N, r / R);
-      for (let r = 0; r < R; r++) for (let s = 0; s < N; s++) { const a = r * (N + 1) + s, b = a + N + 1; idx.push(a, b, a + 1, a + 1, b, b + 1); }
-      const g = new THREE.BufferGeometry();
-      g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(uv.length / 2 * 3), 3));
-      g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
-      g.setIndex(idx);
-      Wedge.geo = g;
-    }
-    const geo = Wedge.geo.clone();
-    this.attr = geo.getAttribute('position') as THREE.BufferAttribute; this.attr.setUsage(THREE.DynamicDrawUsage);
-    this.local = new Float32Array((R + 1) * (N + 1) * 2);
-    for (let r = 0; r <= R; r++) for (let s = 0; s <= N; s++) {
-      const a = (s / N - 0.5) * 2 * cone, rr = r / R;
-      const i = r * (N + 1) + s;
-      this.local[i * 2] = Math.sin(a) * rr; this.local[i * 2 + 1] = Math.cos(a) * rr;
-    }
+/** Nalati's amber fill/rim shader; GroundTell owns sector geometry and terrain draping. */
+function wedgeStyle(): GroundTellWedgeStyle {
+  const fill = { value: 0 }, alpha = { value: 0 };
     const mat = new THREE.ShaderMaterial({
-      uniforms: { uFill: this.uFill, uAlpha: this.uAlpha, uColor: { value: new THREE.Color(2.2, 0.95, 0.2) } },
+      uniforms: { uFill: fill, uAlpha: alpha, uColor: { value: new THREE.Color(2.2, 0.95, 0.2) } },
       vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
       // the rim + the edges always; the body fills from the balbal's feet toward the tip as the wind-up runs; a crackle of noise
       fragmentShader: `varying vec2 vUv; uniform float uFill; uniform float uAlpha; uniform vec3 uColor;
@@ -92,26 +65,8 @@ class Wedge {
       transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false,
       polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4,
     });
-    mat.name = 'balbal-telegraph';
-    this.mesh = new THREE.Mesh(geo, mat);
-    this.mesh.frustumCulled = false; this.mesh.visible = false; this.mesh.renderOrder = 9;
-    scene.add(this.mesh);
-  }
-
-  /** place it at (x, z) facing `yaw` (Animal convention: forward = (sin, cos)), `reach` m long */
-  show(x: number, z: number, yaw: number, reach: number, fill: number, alpha: number): void {
-    const m = this.mesh, p = this.attr.array as Float32Array;
-    const c = Math.cos(yaw), s = Math.sin(yaw);
-    for (let i = 0; i < this.local.length / 2; i++) {
-      const lx = (this.local[i * 2] ?? 0) * reach, lz = (this.local[i * 2 + 1] ?? 0) * reach;
-      const wx = x + lx * c + lz * s, wz = z - lx * s + lz * c;
-      p[i * 3] = wx; p[i * 3 + 1] = heightAt(wx, wz) + 0.06; p[i * 3 + 2] = wz;
-    }
-    this.attr.needsUpdate = true;
-    this.uFill.value = fill; this.uAlpha.value = alpha;
-    m.visible = true;
-  }
-  hide(): void { this.mesh.visible = false; }
+  mat.name = 'balbal-telegraph';
+  return { cone: BALBAL_SLAM.cone, material: mat, fill, alpha };
 }
 
 export class BalbalWarriors {
@@ -121,7 +76,7 @@ export class BalbalWarriors {
   onBroken?: ((a: Animal) => void) | undefined;
   private animals: AnimalManager | null = null;
   private kit: KitLike | null = null;
-  private readonly wedges: Wedge[] = [];
+  private readonly wedges: GroundTell[] = [];
   private spawner: Spawner<Animal> | null = null;
   private night = 0;
   private soilAcc = 0;
@@ -129,7 +84,7 @@ export class BalbalWarriors {
   constructor(private readonly ctx: BalbalWarriorsCtx) {
     balbalCombat.isPiercing = balbalPiercing;
     this.debris = new NightParticles(ctx.scene, 'debris');
-    for (let i = 0; i < 6; i++) this.wedges.push(new Wedge(ctx.scene, BALBAL_SLAM.cone));
+    for (let i = 0; i < 6; i++) this.wedges.push(new GroundTell(ctx.scene, 'wedge', 0, wedgeStyle()));
     ctx.clock.onDusk(() => { this.wake(); });
     ctx.clock.onDawn(() => { this.dawn(); });
     ctx.clock.onDay(() => { this.dawn(); });
@@ -254,7 +209,7 @@ export class BalbalWarriors {
       const reach = BALBAL_SLAM.reach * sc / 1.18;
       if (p >= 0) {
         const wind = BALBAL_SLAM.windup / 2.9, strike = BALBAL_SLAM.strike / 2.9;
-        if (p < strike + 0.08) w.wedge.show(a.position.x, a.position.z, a.yaw, reach, Math.min(1, p / wind), p < strike ? 0.6 + 0.4 * (p / wind) : 1.4);
+        if (p < strike + 0.08) w.wedge.wedge(a.position.x, a.position.z, a.yaw, reach, Math.min(1, p / wind), p < strike ? 0.6 + 0.4 * (p / wind) : 1.4);
         else w.wedge.hide();
         if (m['slamT'] === 1) {
           m['slamT'] = 2;

@@ -919,6 +919,8 @@ The kit's starter set is `effect.poison`, `effect.burn`, `effect.bleed`, `effect
 
 `SlashTrail` (`#engine`) is the shared melee ribbon drawing block. `SlashTrailProfile` supplies capacity, subdivisions, motion threshold and the age/alpha channel. `sample(inner, tip, time)`, `reset()` and `rebuild(time, life, alpha?)` keep caller-owned materials and clocks; `geometry`, `count` and `newest` expose drawing and expiry handles.
 
+`GroundTell` (`#game`) supports ring, lane and wedge decals. `GroundTellWedgeStyle` supplies the cone and authored material/fill/alpha uniforms; `wedge(x, z, yaw, reach, fill, alpha, lift?)` uses animal yaw convention and drapes the sector onto terrain. Existing ring/lane shader behavior remains unchanged.
+
 ## 19. Creatures and AI
 
 A creature is two rows: a `SpeciesRow` (simulation) and a `SpeciesLook` (render). Register both in `kit`.
@@ -1382,7 +1384,7 @@ sections above describe what to use; this list is the complete inventory.
 
 ### `#game` (`src/game/index.ts`)
 
-98 exports, grouped by the module they come from.
+100 exports, grouped by the module they come from.
 
 - `./equipmentTypes`: `EquipmentRow`
 - `./shard/plugin`: `ShardPlugin`
@@ -1414,6 +1416,7 @@ sections above describe what to use; this list is the complete inventory.
 - `./shard/templateDebug`: `installTemplateDebug`
 - `./loot/CoinBurst`: `CoinBurst`
 - `./cosmetics/locker`: `CosmeticsLocker`, `SkinLocker`, `CosmeticDef`, `CosmeticProfile`, `CosmeticState`
+- `./Elite`: `GroundTell`, `GroundTellWedgeStyle`
 - `(local)`: `GAME_API`
 
 ### `#kit` (`src/kit/index.ts`)
