@@ -1,0 +1,9 @@
+Edit this iPhone portrait screenshot of a first-person browser game. Keep the camera height, the composition and the whole HUD layout exactly as in the reference (same dark navy glass panels, thin cyan hairlines, monospace uppercase labels, same positions), and replace the world and the held weapon.
+
+NEW WORLD: a frozen northern ice shelf at the edge of the world, "Far Reach". Low-poly stylized 3D with crisp faceted shapes. A packed-snow path leads ahead between pale blue glacier ice blocks and deep blue crevasses; jagged white ice cliffs on both sides, a frozen black sea with broken ice floes on the right, a tall stone cairn with an unlit beacon brazier on a ridge in the distance. Low cold sun, long blue shadows, pale aqua sky with a faint green aurora band. In the mid-distance on the snow path, a large grey-white tusked walrus-like beast is bursting up through a cracked ice hole, shards of ice flying.
+
+HELD WEAPON (bottom right, first person): a bone-and-iron harpoon held in the right hand, a coiled rope tied to its shaft, the barbed tip pointing forward-left.
+
+HUD TEXT, exactly these strings: top-left chip "PAUSE". Weapon panel under it, a wide dark strip: a two-line small label "HARPOON" over "ROPE", then the big number "3 / 3". Button under it: "JOURNAL". Quest pill under the minimap: "LIGHT THE BEACON". Above the bottom bar on the right, a diamond cluster of four round dark buttons exactly like the reference: top button "REEL", bottom row left to right "AIM", "DODGE", "JUMP". Left edge button: "HOVER". Bottom bar: "MOVE" stick on the left, big round button "THROW" in the middle, dashed square "LOOK" on the right. The round minimap at top right shows white snow and a blue sea.
+
+It must look like a real in-game print-screen on a phone, not concept art. No phone frame, no browser chrome, no watermark, no extra text.

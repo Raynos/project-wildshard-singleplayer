@@ -1,0 +1,9 @@
+Edit this iPhone portrait screenshot of a first-person browser game. Keep the camera height, the composition and the whole HUD layout exactly as in the reference (same dark navy glass panels, thin cyan hairlines, monospace uppercase labels, same positions), and replace the world and the held weapon.
+
+NEW WORLD: "Far Reach", a bioluminescent mangrove swamp at night. Stylized 3D, dark and moody but readable. A narrow boardwalk of old wet planks leads ahead over still black water; twisted mangrove roots arch over it, giant glowing mushrooms in teal and violet line the banks, floating glowing spores drift in the air, soft mist on the water reflecting the lights. Deep indigo night sky with a big pale moon behind the trees. On the boardwalk ahead, a fat round toad creature the size of a boar is puffing up its throat sac, which glows bright yellow-green like a lantern, its back covered in glowing spots.
+
+HELD WEAPON (bottom right, first person): a leather sling with a carved wooden grip held in the right hand, a glowing green spore pod loaded in its pouch.
+
+HUD TEXT, exactly these strings: top-left chip "PAUSE". Weapon panel under it, a wide dark strip: a two-line small label "SPORE" over "SLING", then the big number "12 / 12". Button under it: "JOURNAL". Quest pill under the minimap: "FIND THE LOST LIGHT". Above the bottom bar on the right, a diamond cluster of four round dark buttons exactly like the reference: top button "PODS", bottom row left to right "AIM", "DODGE", "JUMP". Left edge button: "HOVER". Bottom bar: "MOVE" stick on the left, big round button "FIRE" in the middle, dashed square "LOOK" on the right. The round minimap at top right shows dark water and green land.
+
+It must look like a real in-game print-screen on a phone, not concept art. No phone frame, no browser chrome, no watermark, no extra text.

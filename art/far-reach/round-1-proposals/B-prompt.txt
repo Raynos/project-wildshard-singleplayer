@@ -1,0 +1,9 @@
+Edit this iPhone portrait screenshot of a first-person browser game. Keep the camera height, the composition and the whole HUD layout exactly as in the reference (same dark navy glass panels, thin cyan hairlines, monospace uppercase labels, same positions), and replace the world and the held weapon.
+
+NEW WORLD: "Far Reach", floating sky islands high above a sea of clouds at golden hour. Stylized 3D with soft painted textures. The player stands on a grassy floating rock island with wind-bent short grass and small white flowers; a sagging wooden rope bridge with plank steps leads ahead to the next floating island, which carries a ruined white stone windmill tower with torn cloth sails. More floating islands with hanging roots and little waterfalls spilling into the clouds below. Warm orange sun low on the horizon, pink and gold clouds, long soft light. Ahead in the air beside the bridge, a large manta-ray-shaped sky creature with pale blue translucent fins and a glowing tail glides toward the player.
+
+HELD WEAPON (bottom right, first person): a large folding war fan of bronze ribs and teal silk, held open in the right hand, a faint swirl of wind lines around it.
+
+HUD TEXT, exactly these strings: top-left chip "PAUSE". Weapon panel under it, a wide dark strip: a two-line small label "GALE" over "FAN", then the big number "3 / 3". Button under it: "JOURNAL". Quest pill under the minimap: "RAISE THE BRIDGE". Above the bottom bar on the right, a diamond cluster of four round dark buttons exactly like the reference: top button "GUST", bottom row left to right "AIM", "DODGE", "JUMP". Left edge button: "HOVER". Bottom bar: "MOVE" stick on the left, big round button "SWING" in the middle, dashed square "LOOK" on the right. The round minimap at top right shows small islands in white cloud.
+
+It must look like a real in-game print-screen on a phone, not concept art. No phone frame, no browser chrome, no watermark, no extra text.
