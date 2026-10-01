@@ -25,6 +25,11 @@ describe('parity comparison', () => {
     const n = clone(); n['boot'] = {...n['boot'] as RecordValue, systems:{update:['physics.mover','animals']}, saves:{read:['local:ws.purse.v2'],written:[]}};
     expect(rows(fixture,n,{renames:[{systems:{'physics.movers':'physics.mover'},saves:{'ws.purse.v1':'ws.purse.v2'}}]}).verdict).toBe('green');
   });
+  it('applies phase-specific system renames before the flat map (F8)', () => {
+    const b=clone(); b['boot']={...b['boot'] as RecordValue,systems:{'fixed.pre':['physics.bodies'],'fixed.post':['physics.bodies'],update:['physics.bodies']}};
+    const n=clone(); n['boot']={...n['boot'] as RecordValue,systems:{'fixed.pre':['physics.bodies.pre'],'fixed.post':['physics.bodies.post'],update:['bodies']}};
+    expect(rows(b,n,{renames:[{systems:{'physics.bodies':'bodies'},phaseSystems:{'fixed.pre':{'physics.bodies':'physics.bodies.pre'},'fixed.post':{'physics.bodies':'physics.bodies.post'}}}]}).verdict).toBe('green');
+  });
   it('compares event counts and requires each baseline ambient id, allowing extras', () => {
     const n = clone(); n['walk'] = {...n['walk'] as RecordValue,sounds:{event:{step:5},ambient:['new','forest.thrall']}};
     expect(rows(fixture,n).verdict).toBe('green');
@@ -46,7 +51,24 @@ describe('parity comparison', () => {
     const n=clone(); n['walk']={...n['walk'] as RecordValue,stuck:1};
     expect(rows({},n,{lanePending:true,pending:[{shard:'pine-hollow',fields:['walk.stuck'],expect:null}]}).verdict).toBe('red');
     n['boot']={...n['boot'] as RecordValue,scene:{totals:{mesh:100,batched:1}}};
-    expect(rows({},n).rows).toContainEqual(expect.objectContaining({field:'boot.scene.totals.batched',verdict:'red'}));
+    expect(rows(fixture,n,{lanePending:true}).rows).toContainEqual(expect.objectContaining({field:'boot.scene.totals.batched',verdict:'red'}));
+  });
+  it('ratchets existing non-facade batches but keeps Nine Dragon at zero (B15)', () => {
+    const b=clone(); b['boot']={...b['boot'] as RecordValue,scene:{totals:{batched:2}}};
+    const n=structuredClone(b);
+    expect(rows(b,n).rows.find((r)=>r.field==='boot.scene.totals.batched')?.verdict).toBe('green');
+    n['boot']={...n['boot'],scene:{totals:{batched:1}}};
+    expect(rows(b,n).rows.find((r)=>r.field==='boot.scene.totals.batched')?.verdict).toBe('green');
+    n['boot']={...n['boot'],scene:{totals:{batched:3}}};
+    expect(rows(b,n).rows.find((r)=>r.field==='boot.scene.totals.batched')?.verdict).toBe('red');
+    n['boot']={...n['boot'] as RecordValue,shard:'nine-dragon-stack',scene:{totals:{batched:2}}};
+    expect(rows(b,n).rows.find((r)=>r.field==='boot.scene.totals.batched')?.verdict).toBe('red');
+  });
+  it('fails equal stuck and out counts when both violate their absolute rules', () => {
+    const n=clone(); n['walk']={stuck:1,legs:[{name:'escape',stuck:[],out:838}]};
+    const red=rows(n,n).rows.filter((r)=>r.verdict==='red').map((r)=>r.field);
+    expect(red).toContain('walk.stuck');
+    expect(red).toContain('walk.legs.escape.out');
   });
   it('marks genuinely new fields, but detects removed baseline fields', () => {
     const n=clone(); n['extra']='new'; expect(rows(fixture,n).rows.find((r)=>r.field==='extra')?.verdict).toBe('new');

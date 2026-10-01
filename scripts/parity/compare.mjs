@@ -14,8 +14,8 @@ export function matches(pattern, path) {
 export function renameBaseline(baseline, current, maps) {
   const b = structuredClone(baseline);
   for (const map of maps) {
-    const systems = object(map.systems), saves = object(map.saves), registry = object(map.registry);
-    for (const [phase, list] of Object.entries(object(get(b, 'boot.systems')))) set(b, `boot.systems.${phase}`, array(list).map((id) => systems[string(id)] ?? id));
+    const systems = object(map.systems), phaseSystems = object(map.phaseSystems), saves = object(map.saves), registry = object(map.registry);
+    for (const [phase, list] of Object.entries(object(get(b, 'boot.systems')))) set(b, `boot.systems.${phase}`, array(list).map((id) => object(phaseSystems[phase])[string(id)] ?? systems[string(id)] ?? id));
     for (const path of ['boot.saves.read', 'boot.saves.written', 'combat.loot.written']) {
       const list = get(b, path); if (list !== undefined) set(b, path, array(list).map((id) => {
         const key = string(id), prefix = /^(local:|session:)/.exec(key)?.[0] ?? '';
@@ -105,7 +105,7 @@ export function compare(rawBaseline, rawCurrent, options = {}) {
   const d = /** @type {Array<[string, boolean, string]>} */ ([
     ['boot.errors', array(get(current, 'boot.errors')).length === 0, '[]'],
     ['boot.renderer', string(get(current, 'boot.renderer')).includes('ANGLE (Apple, ANGLE Metal Renderer'), 'ANGLE Metal'],
-    ['boot.scene.totals.batched', get(current, 'boot.scene.totals.batched') === 0, '0'],
+    ['boot.scene.totals.batched', Number.isInteger(get(current, 'boot.scene.totals.batched')) && number(get(current, 'boot.scene.totals.batched')) >= 0 && (shard === 'nine-dragon-stack' ? get(current, 'boot.scene.totals.batched') === 0 : get(baseline, 'boot.scene.totals.batched') === undefined || number(get(current, 'boot.scene.totals.batched')) <= number(get(baseline, 'boot.scene.totals.batched'))), shard === 'nine-dragon-stack' ? '0 (facade prohibition)' : get(baseline, 'boot.scene.totals.batched') === undefined ? 'record initial count (B15)' : `≤ ${number(get(baseline, 'boot.scene.totals.batched'))} (B15 ratchet)`],
   ]);
   if (get(current, 'boot.facade') !== undefined) d.push(['boot.facade', get(current, 'boot.facade.multiDraw') === true && get(current, 'boot.facade.batches') === 0 && number(get(current, 'boot.facade.instances')) > 0, 'multiDraw available; 0 batches; >0 instances']);
   if (get(current, 'walk') !== undefined) d.push(['walk.stuck', get(current, 'walk.stuck') === 0, '0']);

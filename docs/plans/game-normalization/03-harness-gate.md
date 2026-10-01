@@ -183,7 +183,7 @@ it is class A.
 | `registry` | `[{ id, category, surface, floor, solidFloor, follows, shapes: { cuboid, ball, capsule, convex, trimesh, treads } }]` sorted by `id` | `registry.pieces()`; `shapes` counts the piece's `colliders` by kind | A | — |
 | `registryModels` | `{ models, sets }` | `registry.models().length`, the sets count | A | — |
 | `physics` | `{ fixed, kinematic, dynamic, colliders }` | Rapier `world.bodies` by type, `world.colliders.len()` | A | — |
-| `scene.totals` | `{ mesh, instanced, instances, skinned, points, lines, sprites, lights, batched }` | one `scene.traverse`; `instances` = Σ `InstancedMesh.count` | A; and D: `batched === 0` on every shard (E271 / E272: no `BatchedMesh` anywhere) | — |
+| `scene.totals` | `{ mesh, instanced, instances, skinned, points, lines, sprites, lights, batched }` | one `scene.traverse`; `instances` = Σ `InstancedMesh.count` | A; and D: `batched` may only fall against the baseline; Nine Dragon must stay 0 (13 B15, F2c: E271 / E272 prohibit facade multi-draw; existing non-facade batches ratchet) | — |
 | `scene.named` | `[{ path, type, n }]` | every named Object3D at depth ≤ 2 under the scene (`path` = names joined by `/`), `n` = its descendant mesh count | A | — |
 | `render.programs` | number | `renderer.info.programs.length` | B | floor 0 |
 | `render.programKeys` | sha256 hex | sha256 of the sorted `cacheKey`s of `renderer.info.programs` | A per lane | — |
