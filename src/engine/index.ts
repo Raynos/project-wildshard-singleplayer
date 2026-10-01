@@ -79,7 +79,7 @@ export { defineModel, type ModelContext, type ModelPart } from './models/model';
 export { DayCycle, type DayCycleSpec, type DayCycleClock, type DayKeys, type DayPhase, type TimePick, type LightPreset } from './world/dayCycle';
 export { Weather, type WeatherProfile, type WeatherNumbers } from './world/weather';
 
-export { InputService, type Action } from './input/InputService';
+export { InputService, type Action, type ActionMap } from './input/InputService';
 export type { EquipmentHost } from './combat/view/EquipmentHost';
 export { hudSlots, type TouchRelabel, type DiscSpot } from './ui/hudSlots';
 
@@ -268,3 +268,5 @@ export { loadBootRuntime, type BootRuntime } from './boot/contentApi';
 export { levelSequenceDriver, type LevelSequence, type LevelBoundary } from './boot';
 export type { StepProgress } from './boot/plan';
 export type { TrainingArena } from './practice/TrainingArena';
+export { buildHoverboard } from './render/hoverboardGeometry';
+export { installGameplayInput, weaponInputContext } from './input/gameplay';

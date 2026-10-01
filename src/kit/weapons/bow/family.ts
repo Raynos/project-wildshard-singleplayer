@@ -98,6 +98,7 @@ export class Bow extends Weapon {
 
   constructor(world: BowWorld, targets: Targets | undefined, opts: BowOptions) {
     super(opts.row);
+    this.row = { ...this.row, ui: { ...this.row.ui, inputContext: 'weapon.bow' } };
     this.profile = opts.profile ?? BOW;
     this.magazine = this.profile.quiver;
     this.state = quiverState({ bolts: this.profile.quiver, loaded: true, reloading: false, reloadProgress: 1, ads: false }, this.profile.quiver);
@@ -154,35 +155,19 @@ export class Bow extends Weapon {
   aimOn = false;
 
   // ── input ──
-  override inputAllowed(): boolean { return app.state !== 'paused' && this.enabled && (this.player.locked || this.allowUnlocked); }
+  override inputAllowed(): boolean { return this.enabled && (this.player.locked || this.allowUnlocked) && app.input.allowed('attack'); }
   override install(ctx: EquipContext): void {
     super.install(ctx);
     this.bindInput(ctx);
     ctx.scope.onDispose(() => { this.model.removeFromParent(); });
   }
   private bindInput(ctx: EquipContext): void {
-    ctx.scope.listen(document, 'mousedown', (event) => {
-      if (!(event instanceof MouseEvent)) return;
-      const e = event;
-      if (!this.inputAllowed()) return;
-      if (e.button === 0) { if (this.state.bolts <= 0) this.onDry?.(); else { this.mouseDraw = true; this.mouseCancel = false; } }
-      if (e.button === 2) this.mouseAds = !this.mouseAds;
-    });
-    ctx.scope.listen(document, 'mouseup', (event) => {
-      if (!(event instanceof MouseEvent)) return;
-      const e = event;
-      if (e.button !== 0 || !this.mouseDraw) return;
-      this.mouseDraw = false;
-      if (!this.inputAllowed()) this.mouseCancel = true; // the pointer lock went (Esc, the menu): let the draw down, no arrow
-    });
-    ctx.scope.listen(document, 'contextmenu', (e) => { if (this.inputAllowed()) e.preventDefault(); });
-    if (this.profile.autoShot) ctx.scope.listen(document, 'keydown', (event) => {
-      if (!(event instanceof KeyboardEvent)) return;
-      const e = event;
-      if (!this.inputAllowed() || e.repeat || e.code !== 'KeyF') return;
-      if (this.state.bolts <= 0) this.onDry?.(); else if (!this.mouseDraw && !this.altHeld) this.autoShot = true;
-    });
-    ctx.scope.listen(window, 'blur', () => { if (this.mouseDraw) this.mouseCancel = true; this.mouseDraw = false; this.mouseAds = false; this.autoShot = false; });
+    const allowed = (): boolean => this.enabled && (this.player.locked || this.allowUnlocked) && app.input.allowed('attack');
+    app.input.bind('attack', () => { if (this.state.bolts <= 0) this.onDry?.(); else { this.mouseDraw = true; this.mouseCancel = false; } }, ctx.scope, allowed);
+    app.input.bind('aim', () => { this.mouseAds = !this.mouseAds; }, ctx.scope, allowed);
+    app.input.bindRelease('attack', () => { if (!this.mouseDraw) return; this.mouseDraw = false; if (!allowed()) this.mouseCancel = true; }, ctx.scope);
+    if (this.profile.autoShot) app.input.bind('autoFire', () => { if (this.state.bolts <= 0) this.onDry?.(); else if (!this.mouseDraw && !this.altHeld) this.autoShot = true; }, ctx.scope, allowed);
+    app.input.onReset(() => { if (this.mouseDraw) this.mouseCancel = true; this.mouseDraw = false; this.mouseAds = false; this.autoShot = false; }, ctx.scope);
   }
 
   /** the FIRE disc's touch-down (Weapons.tryFire): the draw itself is the hold (`altHeld`), so this only clicks dry on an

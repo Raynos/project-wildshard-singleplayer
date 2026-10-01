@@ -349,6 +349,7 @@ export class LeverRifle extends Firearm {
 
   constructor(world: CrossbowWorld, targets: Targets | undefined, opts: LeverRifleOptions) {
     super(LEVER);
+    this.row = { ...this.row, ui: { ...this.row.ui, inputContext: 'weapon.ranged' } };
     this.game = world.game; this.sky = world.sky; this.player = world.player;
     this.flashLight = opts.muzzleLight === false ? new THREE.PointLight(0xffb060, 0, 8, 2) : LightPool.for(this.game.scene).acquire(0xffb060, 0, 8, 2);
     this.targets = targets;
@@ -448,29 +449,18 @@ export class LeverRifle extends Firearm {
   }
 
   // ── input ──
-  override inputAllowed(): boolean { return app.state !== 'paused' && this.enabled && (this.player.locked || this.allowUnlocked); }
+  override inputAllowed(): boolean { return this.enabled && (this.player.locked || this.allowUnlocked) && app.input.allowed('attack'); }
   override install(ctx: EquipContext): void {
     super.install(ctx);
     this.bindInput(ctx);
     ctx.scope.onDispose(() => { this.model.removeFromParent(); });
   }
   private bindInput(ctx: EquipContext): void {
-    ctx.scope.listen(document, 'mousedown', (event) => {
-      if (!(event instanceof MouseEvent)) return;
-      const e = event;
-      if (!this.inputAllowed()) return;
-      if (e.button === 0) this.tryFire();
-      if (e.button === 2) this.mouseAds = !this.mouseAds;
-    });
-    ctx.scope.listen(document, 'contextmenu', (e) => { if (this.inputAllowed()) e.preventDefault(); });
-    ctx.scope.listen(document, 'keydown', (event) => {
-      if (!(event instanceof KeyboardEvent)) return;
-      const e = event;
-      if (!this.inputAllowed() || e.repeat) return;
-      if (e.code === 'KeyF') this.tryFire();
-      if (e.code === 'KeyR') this.reload();
-    });
-    ctx.scope.listen(window, 'blur', () => { this.mouseAds = false; });
+    const allowed = (): boolean => this.enabled && (this.player.locked || this.allowUnlocked) && app.input.allowed('attack');
+    app.input.bind('attack', () => { this.tryFire(); }, ctx.scope, allowed);
+    app.input.bind('aim', () => { this.mouseAds = !this.mouseAds; }, ctx.scope, allowed);
+    app.input.bind('reload', () => { this.reload(); }, ctx.scope, allowed);
+    app.input.onReset(() => { this.mouseAds = false; }, ctx.scope);
   }
 
   override setActive(on: boolean): void {

@@ -1,3 +1,6 @@
+import { app } from '../app/runtime';
+import { listenDom } from '../input/dom';
+import type { Action } from '../input/InputService';
 import { engineString } from '#engine/strings';
 /**
  * TouchControls — on-screen first-person controls for coarse-pointer devices (phones, tablets).
@@ -112,6 +115,7 @@ function el(parent: ParentNode, sel: string): HTMLElement {
 }
 
 export class TouchControls {
+  private readonly scope = (app.levelScope ?? app.engineScope).child('touch');
   readonly active: boolean;
   private stickPointer = -1; private lookPointer = -1; private attackPointer = -1;
   private stickBase = { x: 0, y: 0 };
@@ -144,18 +148,27 @@ export class TouchControls {
     root.className = 'ws-touch';
     root.innerHTML = engineString('s_d27c19bf3c27');
     hud.append(root);
+    this.scope.onDispose(() => { root.remove(); });
     // ── iOS WebKit hardening (E46 — Jake's iPhone): a long press on a button lifted a drag preview of the ATTACK disc (and
     //    fired pointercancel, so the heavy never charged), a quick double tap zoomed, a press selected text. Pointer events
     //    still fire when the touch events are cancelled, so: cancel every touch on the layer (kills double-tap zoom, the
     //    long-press selection / callout / loupe / drag lift), no pinch, nothing draggable, no context menu or selection.
     //    touch.css adds touch-action: none + user-select / touch-callout / user-drag none on every element of the layer. ──
     const cancel = (e: Event): void => { if (e.cancelable) e.preventDefault(); };
-    for (const t of ['touchstart', 'touchmove', 'touchend'] as const) root.addEventListener(t, cancel, { passive: false });
-    for (const t of ['dragstart', 'contextmenu', 'selectstart'] as const) root.addEventListener(t, cancel);
-    for (const t of ['gesturestart', 'gesturechange', 'gestureend']) document.addEventListener(t, cancel, { passive: false });
+    for (const t of ['touchstart', 'touchmove', 'touchend'] as const) listenDom(this.scope, root, t, cancel, { passive: false });
+    for (const t of ['dragstart', 'contextmenu', 'selectstart'] as const) listenDom(this.scope, root, t, cancel);
+    for (const t of ['gesturestart', 'gesturechange', 'gestureend']) listenDom(this.scope, document, t, cancel, { passive: false });
     for (const n of root.querySelectorAll('*')) n.setAttribute('draggable', 'false');
     // E154: the one base layer every shard shares — whatever a shard adds (a status row, a disc in a named slot, a tag) goes
     // through src/engine/ui/hudSlots.ts, which docks it here and nowhere else
+    app.input.touchStackSink((layout) => {
+      const live = new Set(layout.actions);
+      for (const [selector, action] of [['.ws-touch-attack', 'attack'], ['.aim', 'aim'], ['.jump', 'jump'], ['.dodge', 'dodge'], ['.ws-touch-hover', 'hover']] as const) {
+        el(root, selector).style.visibility = live.has(action) ? '' : 'hidden';
+      }
+      for (const spot of ['lock', 'jump'] as const) this.relabel(spot, layout.labels[spot] ?? null);
+      this.paintVerbs(root, layout.verbs);
+    }, this.scope);
     hudSlots.mount(root, el(root, '.ws-touch-status'));
     const stick = this.stick = el(root, '.ws-touch-stick');
     this.knob = el(stick, 'i');
@@ -169,6 +182,7 @@ export class TouchControls {
     const assist = this.assist = new AimAssist(root);
     const aim = el(root, '.aim'), attack = el(root, '.ws-touch-attack'), dodge = el(root, '.dodge');
     const prevPre = player.preUpdate;
+    this.scope.onDispose(() => { if (prevPre === undefined) delete player.preUpdate; else player.preUpdate = prevPre; });
     player.preUpdate = (dt) => {
       prevPre?.(dt);
       const speed = dt > 0 ? this.lookFrameDist / dt : 0; this.lookFrameDist = 0;
@@ -238,7 +252,7 @@ export class TouchControls {
     };
 
     // ── stick + look: pointer events on the layer itself (buttons stop propagation; ATTACK hands its touch back via capture) ──
-    root.addEventListener('pointerdown', (e) => {
+    listenDom(this.scope, root, 'pointerdown', (e) => {
       if (e.pointerType === 'mouse' && !force) return;
       const zone = moveZone.getBoundingClientRect();
       const inBar = e.clientY >= zone.top, inMove = inBar && e.clientX <= zone.right;
@@ -262,7 +276,7 @@ export class TouchControls {
       root.setPointerCapture(e.pointerId);
       e.preventDefault();
     });
-    root.addEventListener('pointermove', (e) => {
+    listenDom(this.scope, root, 'pointermove', (e) => {
       if (e.pointerId === this.stickPointer) {
         this.applyStick(e.clientX - this.stickBase.x, e.clientY - this.stickBase.y);
       } else if (e.pointerId === this.lookPointer) {
@@ -306,14 +320,14 @@ export class TouchControls {
         }
       }
     };
-    root.addEventListener('pointerup', release);
-    root.addEventListener('pointercancel', release);
+    listenDom(this.scope, root, 'pointerup', release);
+    listenDom(this.scope, root, 'pointercancel', release);
 
     // ── ATTACK / FIRE: fires on touch-down; the disc then captures the touch (its move / up events bubble to the layer's
     //    handlers above), so a drag from it turns the camera while the finger is held and a still hold (melee) becomes the
     //    heavy — see preUpdate. Only a lift (pointerup) or a cancel ends it: no pointerleave, so a thumb rolling off the
     //    disc's edge keeps the charge, and a lost capture doesn't end it either. ──
-    attack.addEventListener('pointerdown', (e) => {
+    listenDom(this.scope, attack, 'pointerdown', (e) => {
       e.stopPropagation(); e.preventDefault();
       if (e.pointerType === 'mouse' && !force) return;
       if (this.attackPointer >= 0) return; // one finger on the disc at a time
@@ -330,19 +344,19 @@ export class TouchControls {
     // ── buttons ──
     const btn = (sel: string, down: () => void, up?: () => void) => {
       const b = el(root, sel);
-      b.addEventListener('pointerdown', (e) => { e.stopPropagation(); e.preventDefault(); b.classList.add('down'); down(); });
+      listenDom(this.scope, b, 'pointerdown', (e) => { e.stopPropagation(); e.preventDefault(); b.classList.add('down'); down(); });
       const end = (e: Event) => { e.stopPropagation(); b.classList.remove('down'); up?.(); };
-      b.addEventListener('pointerup', end); b.addEventListener('pointercancel', end); b.addEventListener('pointerleave', end);
+      listenDom(this.scope, b, 'pointerup', end); listenDom(this.scope, b, 'pointercancel', end); listenDom(this.scope, b, 'pointerleave', end);
     };
     // AIM (ranged only) is a toggle, not a hold: each press flips the iron-sights latch and the disc stays lit (.on) while latched
-    aim.addEventListener('pointerdown', (e) => { e.stopPropagation(); e.preventDefault(); this.weapons.adsHeld = !this.weapons.adsHeld; aim.classList.toggle('on', this.weapons.adsHeld); });
-    aim.addEventListener('pointerup', (e) => e.stopPropagation());
+    listenDom(this.scope, aim, 'pointerdown', (e) => { e.stopPropagation(); e.preventDefault(); this.weapons.adsHeld = !this.weapons.adsHeld; aim.classList.toggle('on', this.weapons.adsHeld); });
+    listenDom(this.scope, aim, 'pointerup', (e) => e.stopPropagation());
     // LOCK (E50, the J disc): a toggle — lock the enemy nearest the centre, tap again to release; with nothing lockable it
     // flashes NO TARGET and the view re-levels (LockOnTarget.toggle)
     btn('.ws-touch-disc.lock', () => { if (this.weapons.enabled) this.lock?.toggle(); });
     if (this.lock) {
       const prevNone = this.lock.onNoTarget;
-      this.lock.onNoTarget = () => { prevNone?.(); lockBtn.classList.remove('none'); void lockBtn.offsetWidth; lockBtn.classList.add('none'); lockLabel.textContent = engineString('s_4b33d955f9a8'); setTimeout(() => { if (lockOn.state !== 'locked') lockLabel.textContent = hintLock.hint?.label ?? engineString('s_db44b8db4f05'); }, 700); };
+      this.lock.onNoTarget = () => { prevNone?.(); lockBtn.classList.remove('none'); void lockBtn.offsetWidth; lockBtn.classList.add('none'); lockLabel.textContent = engineString('s_4b33d955f9a8'); this.scope.timeout(700, () => { if (lockOn.state !== 'locked') lockLabel.textContent = hintLock.hint?.label ?? engineString('s_db44b8db4f05'); }); };
     }
     // DODGE (Player.dodge, project/archive/2026-09-29-dodge-feel.md — E63's T feel, V deleted in E82). A tap during the cooldown only
     // shakes the disc (.deny) — no dodge is queued (E59)
@@ -350,18 +364,18 @@ export class TouchControls {
       const d = el(root, '.dodge');
       btn('.dodge', () => {
         if (!this.weapons.enabled) return;
-        if (this.player.dodgeCooldown > 0) { d.classList.remove('deny'); void d.offsetWidth; d.classList.add('deny'); return; }
-        this.player.touchDodge = true;
+        if (this.player.dodgeCooldown > 0) { d.classList.remove('deny'); void d.offsetWidth; d.classList.add('deny'); }
+        app.input.press('dodge');
       });
     }
     // HOVER (the tab over MOVE, E80) is a toggle too; the H key flips the same state, so the lit look follows the player, not the button
     const hover = el(root, '.ws-touch-hover');
-    hover.addEventListener('pointerdown', (e) => { e.stopPropagation(); e.preventDefault(); this.player.setHover(!this.player.hover); });
-    hover.addEventListener('pointerup', (e) => e.stopPropagation());
+    listenDom(this.scope, hover, 'pointerdown', (e) => { e.stopPropagation(); e.preventDefault(); app.input.press('hover'); });
+    listenDom(this.scope, hover, 'pointerup', (e) => e.stopPropagation());
     const prevHover = this.player.onHoverChange;
     this.player.onHoverChange = (on) => { hover.classList.toggle('on', on); prevHover?.(on); };
     hover.classList.toggle('on', this.player.hover);
-    btn('.jump', () => { this.player.touchJump = true; });
+    btn('.jump', () => { app.input.press('jump'); });
     // the spear (Nalati): THROW = hold to wind a javelin up, release to throw; BRACE = hold to plant the spear (Spear.ts)
     btn('.throw', () => { if (this.weapons.enabled) this.weapons.adsHeld = true; }, () => { this.weapons.adsHeld = false; });
     btn('.brace', () => { if (this.weapons.enabled) this.weapons.altHeld = true; }, () => { this.weapons.altHeld = false; });
@@ -375,8 +389,8 @@ export class TouchControls {
     // main.ts can assign those callbacks freely (audio) without having to chain ours.
     btn('.surface', () => { this.player.touchSurface = true; }, () => { this.player.touchSurface = false; });
     root.classList.toggle('submerged', this.player.submerged);
-    btn('.ws-touch-pause', () => { document.dispatchEvent(new Event('ws:pause')); });
-    btn('.ws-touch-use', () => { document.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyE', key: 'e', bubbles: true })); });
+    btn('.ws-touch-pause', () => { app.input.press('pause'); });
+    btn('.ws-touch-use', () => { app.input.press('use'); });
     // the interact prompt ("[E] Open door") becomes a big USE band above the right-thumb arc, labelled with the action
     const use = el(root, '.ws-touch-use');
     const bindPrompt = (prompt: HTMLElement) => {
@@ -385,7 +399,9 @@ export class TouchControls {
         use.classList.toggle('show', on);
         if (on) use.textContent = prompt.textContent.replace(/^[A-Z]\s*/, '').trim() || engineString('s_c36d819e7bc6');
       };
-      new MutationObserver(sync).observe(prompt, { attributes: true, attributeFilter: ['class'], childList: true, subtree: true });
+      const observer = new MutationObserver(sync);
+      this.scope.onDispose(() => { observer.disconnect(); });
+      observer.observe(prompt, { attributes: true, attributeFilter: ['class'], childList: true, subtree: true });
       sync();
     };
     // the HUD may be built after this layer (main.ts order) — wait for the prompt element to appear
@@ -393,9 +409,25 @@ export class TouchControls {
     if (found) bindPrompt(found);
     else {
       const mo = new MutationObserver(() => { const p = hud.querySelector<HTMLElement>('.ws-game-prompt'); if (p) { mo.disconnect(); bindPrompt(p); } });
+      this.scope.onDispose(() => { mo.disconnect(); });
       mo.observe(hud, { childList: true });
     }
   }
+
+  private readonly verbs = new Map<string, HTMLButtonElement>();
+  private paintVerbs(root: HTMLElement, verbs: Partial<Record<'verb.1' | 'verb.2', Action>>): void {
+    for (const slot of ['verb.1', 'verb.2'] as const) {
+      const action = verbs[slot]; let button = this.verbs.get(slot);
+      if (action === undefined) { if (button !== undefined) button.hidden = true; continue; }
+      if (button === undefined) {
+        button = document.createElement('button'); button.type = 'button'; button.className = `ws-touch-disc ws-input-verb ${slot === 'verb.1' ? 'verb-one' : 'verb-two'}`;
+        const own = button; root.append(own); this.verbs.set(slot, own);
+        listenDom(this.scope, own, 'pointerdown', (event) => { event.preventDefault(); event.stopPropagation(); const current = this.verbActions[slot]; if (current !== undefined) app.input.press(current); });
+      }
+      button.hidden = false; button.textContent = action === 'bolt.cycle' ? engineString('s_ef45d30581ee') : action === 'ride.whistle' ? engineString('s_88dfd05bf93c') : engineString('s_536e55ed07ae'); this.verbActions[slot] = action;
+    }
+  }
+  private readonly verbActions: Partial<Record<'verb.1' | 'verb.2', Action>> = {};
 
   /**
    * A shard's traversal verb re-dresses LOCK and JUMP (scoped HUD relabels, E286: Nine Dragon's

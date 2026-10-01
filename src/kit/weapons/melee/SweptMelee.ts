@@ -392,7 +392,6 @@ export class Sword extends Melee {
   private swingT = 0;
   private fromPos = new THREE.Vector3(); private fromQ = new THREE.Quaternion();   // where the sword was when this swing started
   private basePos = new THREE.Vector3().copy(REST.pos); private baseQ = new THREE.Quaternion().copy(REST.q); // this frame's pose before sway / portrait
-  private queued = false;
   private comboIdx = 0;          // index into COMBO of the NEXT light swing
   private lastSwingEnd = -1e9;
   private cooldown = 0;
@@ -433,6 +432,7 @@ export class Sword extends Melee {
   constructor(world: SwordWorld, targets: Targets | undefined, opts: SwordOptions) {
     const profile = opts.profile ?? (isMeleeProfile(opts.row) ? opts.row : opts.blade === 'iron' ? SWORD_IRON : SWORD_WOOD);
     super({ ...profile, ...opts.row });
+    this.row = { ...this.row, ui: { ...this.row.ui, inputContext: 'weapon.melee' } };
     this.game = world.game; this.sky = world.sky; this.player = world.player;
     this.targets = targets;
     this.aimBlock = aimRay(this.game.camera);
@@ -462,7 +462,7 @@ export class Sword extends Melee {
   }
 
   // ── input ──
-  override inputAllowed(): boolean { return app.state !== 'paused' && this.enabled && (this.player.locked || this.allowUnlocked); }
+  override inputAllowed(): boolean { return this.enabled && (this.player.locked || this.allowUnlocked) && app.input.allowed('attack'); }
   override install(ctx: EquipContext): void {
     super.install(ctx);
     this.bindInput(ctx);
@@ -475,21 +475,10 @@ export class Sword extends Melee {
     });
   }
   private bindInput(ctx: EquipContext): void {
-    ctx.scope.listen(document, 'mousedown', (event) => {
-      if (!(event instanceof MouseEvent)) return;
-      const e = event;
-      if (!this.inputAllowed()) return;
-      if (e.button === 0) this.tryFire();
-      if (e.button === 2) this.mouseHeld = !this.mouseHeld; // toggle, not hold (trackpad), like the touch HEAVY latch
-    });
-    ctx.scope.listen(document, 'contextmenu', (e) => { if (this.inputAllowed()) e.preventDefault(); });
-    ctx.scope.listen(document, 'keydown', (event) => {
-      if (!(event instanceof KeyboardEvent)) return;
-      const e = event;
-      if (!this.inputAllowed() || e.repeat) return;
-      if (e.code === 'KeyF') this.tryFire();
-    });
-    ctx.scope.listen(window, 'blur', () => { this.mouseHeld = false; });
+    const allowed = (): boolean => this.enabled && (this.player.locked || this.allowUnlocked) && app.input.allowed('attack');
+    app.input.bind('attack', () => { this.tryFire(); }, ctx.scope, allowed);
+    app.input.bind('heavy', () => { this.mouseHeld = !this.mouseHeld; }, ctx.scope, allowed);
+    app.input.onReset(() => { this.mouseHeld = false; }, ctx.scope);
   }
 
   /**
@@ -500,10 +489,11 @@ export class Sword extends Melee {
   tryFire(): void {
     if (!this.enabled || this.charging) return;
     if (this.move) {
-      if (this.move !== this.mv.heavy && this.comboIdx < this.mv.combo.length) this.queued = true;
+      if (this.move !== this.mv.heavy && this.comboIdx < this.mv.combo.length) app.input.queue('attack');
       return;
     }
     if (this.cooldown > 0) return;
+    app.input.consume('attack');
     if (this.comboIdx >= this.mv.combo.length || this.time - this.lastSwingEnd > this.profile.comboGap) this.comboIdx = 0;
     const next = this.pickMove('attack'); this.comboIdx++;
     if (next !== null) this.startSwing(next);
@@ -523,7 +513,7 @@ export class Sword extends Melee {
     return this.damage * move.damage * (move === this.mv.heavy ? this.heavyMult : 1);
   }
   private startSwing(move: Move, lunge = true): void {
-    this.move = move; this.swingT = 0; this.hitDone = false; this.kicked = false; this.clanged = false; this.queued = false;
+    this.move = move; this.swingT = 0; this.hitDone = false; this.kicked = false; this.clanged = false; app.input.consume('attack');
     this.struckN = 0; this.struck.fill(null); this.sweepHave = false;
     this.fromPos.copy(this.basePos); this.fromQ.copy(this.baseQ);
     this.trailN = 0; this.trail.visible = false;
@@ -576,7 +566,7 @@ export class Sword extends Melee {
   /** shown + held (true) or holstered (false: hidden, input off) */
   override setActive(on: boolean): void {
     this.model.visible = on;
-    if (!on) { this.enabled = false; this.move = null; this.queued = false; this.charging = false; this.chargePending = false; this.releaseQueued = false; this.trailN = 0; this.trail.visible = false; }
+    if (!on) { this.enabled = false; this.move = null; this.charging = false; this.chargePending = false; this.releaseQueued = false; this.trailN = 0; this.trail.visible = false; }
   }
   /** true while a swing is running (dev / tests) */
   get swinging(): boolean { return this.move !== null; }
@@ -881,7 +871,7 @@ export class Sword extends Melee {
     let move = this.move;
     if (move) {
       this.swingT += dt / this.swingScale;
-      const next = this.queued && this.swingT >= move.slashEnd + this.profile.chainLag && this.comboIdx < this.mv.combo.length ? this.mv.combo[this.comboIdx++] : undefined;
+      const next = this.swingT >= move.slashEnd + this.profile.chainLag && this.comboIdx < this.mv.combo.length && app.input.consume('attack') ? this.mv.combo[this.comboIdx++] : undefined;
       if (next !== undefined) { this.startSwing(next); move = this.move; }
       else if (this.swingT >= move.total) { this.move = move = null; this.lastSwingEnd = t; this.cooldown = this.profile.cooldown; }
     }

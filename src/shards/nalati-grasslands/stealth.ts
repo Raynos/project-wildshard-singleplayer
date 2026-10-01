@@ -178,8 +178,8 @@ export class Stealth {
       this.touchToggle = false;
     }
     const p = this.player;
-    const sprint = p.keys.has('ShiftLeft') && (p.keys.has('KeyW') || p.touchMove.y > 0.1);
-    const jump = p.keys.has('Space') || p.touchJump || (p.inputService?.pressed('jump') ?? false);
+    const sprint = (p.inputService?.held('sprint') ?? false) && ((p.inputService?.held('move.forward') ?? false) || p.touchMove.y > 0.1);
+    const jump = p.touchJump || (p.inputService?.pressed('jump') ?? false);
     if (!this.canCrouch || sprint || jump) this.latched = false;
     return { allowed: request.via === 'hold' && this.canCrouch, latched: this.latched };
   }

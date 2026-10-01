@@ -1,3 +1,4 @@
+import { buildControlsPanel } from '../input/ControlsPanel';
 import { engineString } from '#engine/strings';
 import { buildSavePanel } from './SavePanel';
 import { app } from '../app/runtime';
@@ -133,6 +134,7 @@ export class GameMenu {
   /** may a key open the menu now — the HUD says: in the world, no composer up (`hud.menu = …` sets it); closed until then */
   keyGate: () => boolean = () => false;
   /** the Settings rows that apply only sometimes (E130: hidden, not greyed, when they do not apply) — see `applies()` */
+  private controlsPanel: ReturnType<typeof buildControlsPanel> | undefined;
   private gated: { el: HTMLElement; when: When }[] = [];
 
   constructor(private opts: GameMenuOptions) {
@@ -544,10 +546,12 @@ export class GameMenu {
     // Review is not debug (E140): playtesters unlock notes with it, so it stays in Settings, with the Developer switch
     p.append(this.buildReview(), ...devSwitchRows());
     this.savePanel = buildSavePanel(); panel.append(this.savePanel);
+    this.controlsPanel = buildControlsPanel(app.levelScope ?? app.engineScope); panel.append(this.controlsPanel);
   }
   /** show only the Settings rows that apply now (E130: the weapons you hold, the shard) — every open and every Settings select */
   private applies(): void {
     this.savePanel?.refresh();
+    this.controlsPanel?.refresh();
     const kit = this.opts.kit(), c: SettingsCtx = { weapons: new Set(kit.map((k) => k.id)), melee: kit.some((k) => k.melee), tracers: kit.some((k) => k.tracers), huntersEye: kit.some((k) => k.huntersEye), chunk: activeLevel() };
     for (const g of this.gated) g.el.hidden = !g.when(c);
     this.debug?.applies(c);

@@ -289,6 +289,7 @@ export class Spear extends Melee<typeof SPEAR_PROFILE> {
 
   constructor(w: SpearWorld, targets?: Targets, opts: SpearOptions = {}) {
     super(opts.profile ?? SPEAR_PROFILE);
+    this.row = { ...this.row, ui: { ...this.row.ui, inputContext: 'weapon.spear' } };
     this.game = w.game; this.sky = w.sky; this.player = w.player;
     this.targets = targets;
     this.allowUnlocked = opts.allowUnlocked ?? false;
@@ -308,7 +309,7 @@ export class Spear extends Melee<typeof SPEAR_PROFILE> {
   get thrusting(): boolean { return this.thrustT >= 0; }
   /** javelins in flight or stuck in the world (dev / HUD) */
   get javelinsOut(): number { let n = 0; for (const j of this.javs) if (j.state !== 0) n++; return n; }
-  override inputAllowed(): boolean { return app.state !== 'paused' && this.enabled && (this.player.locked || this.allowUnlocked); }
+  override inputAllowed(): boolean { return this.enabled && (this.player.locked || this.allowUnlocked) && app.input.allowed('attack'); }
   override addBolts(n: number): void { this.javelins = Math.min(this.maxJavelins, this.javelins + Math.max(0, n)); }
   override reload(): void { /* nothing to reload: javelins are picked up */ }
   override aimRay(origin: THREE.Vector3, dir: THREE.Vector3): THREE.Vector3 { return this.aimBlock.solve(origin, dir); }
@@ -322,21 +323,11 @@ export class Spear extends Melee<typeof SPEAR_PROFILE> {
     ctx.scope.onDispose(() => { this.model.removeFromParent(); this.world.removeFromParent(); this.arc.removeFromParent(); });
   }
   private bindInput(ctx: EquipContext): void {
-    ctx.scope.listen(document, 'mousedown', (e) => {
-      if (!(e instanceof MouseEvent)) return;
-      if (!this.inputAllowed()) return;
-      if (e.button === 0) this.tryFire();
-      if (e.button === 2) { this.rmbDown = true; this.rmbT = 0; }
-    });
-    ctx.scope.listen(document, 'mouseup', (e) => {
-      if (!(e instanceof MouseEvent)) return;
-      if (e.button !== 2 || !this.rmbDown) return;
-      this.rmbDown = false;
-      if (this.inputAllowed() && this.rmbT < this.profile.brace.set) this.requestThrow(); // a tap throws; a hold was a brace
-    });
-    ctx.scope.listen(document, 'contextmenu', (e) => { if (this.inputAllowed()) e.preventDefault(); });
-    ctx.scope.listen(document, 'keydown', (e) => { if (!(e instanceof KeyboardEvent)) return; if (!this.inputAllowed() || e.repeat) return; if (e.code === 'KeyF') this.tryFire(); });
-    ctx.scope.listen(window, 'blur', () => { this.rmbDown = false; });
+    const allowed = (): boolean => this.enabled && (this.player.locked || this.allowUnlocked) && app.input.allowed('attack');
+    app.input.bind('attack', () => { this.tryFire(); }, ctx.scope, allowed);
+    app.input.bind('aim', () => { this.rmbDown = true; this.rmbT = 0; }, ctx.scope, allowed);
+    app.input.bindRelease('aim', () => { if (!this.rmbDown) return; this.rmbDown = false; if (allowed() && this.rmbT < this.profile.brace.set) this.requestThrow(); }, ctx.scope);
+    app.input.onReset(() => { this.rmbDown = false; }, ctx.scope);
   }
 
   /** a thrust (LMB / F / LOOK tap); mid-thrust queues one; ignored while bracing or throwing */

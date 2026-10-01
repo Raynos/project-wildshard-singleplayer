@@ -25,6 +25,7 @@ export type EquipmentId = `weapon.${string}` | ToolId;
 export interface WeaponUi {
   name: string; icon: EquipmentIcon;
   ammo?: { label: string; segments: number; bagLabel?: string; bagLabelFor?: string };
+  inputContext?: string;
   touch: keyof EquipmentTouchMap;
   lockOn: boolean; melee: boolean; tracers: boolean;
   /** The existing 24px swap glyph and short label; menu icons use the shared 64px icon library. */

@@ -4,7 +4,6 @@ import { dodgeFx, dodgeEnv } from './dodge';
 import * as THREE from 'three';
 import { heightAt, pondMask, waterLevel, streamAt } from '../world/Heightfield';
 import { app } from '../app/runtime';
-import { Hoverboard } from './Hoverboard';
 import { WaterLine } from './WaterLine';
 import { setUnderwater, updateUnderwater } from '../world/Atmosphere';
 import { getNumber } from '../ui/Settings';
@@ -147,7 +146,9 @@ export class Player {
   onStroke?: () => void;
   private inWater = false; private strokeTime = 0; private climbTo: number | null = null; private climbCooldown = 0; private entryKeep = 0.3;
   private readonly waterLine = new WaterLine();
-  readonly board: Hoverboard;
+  /** Ground grace window, authored by the active level. */
+  coyoteMs = 100;
+  private groundedAgo = Infinity;
   private eyeOffset = EYE;
   private landImpulse = 0;
   private roll = 0; private pitchLean = 0;
@@ -211,26 +212,22 @@ export class Player {
 
   constructor(public camera: THREE.PerspectiveCamera, private readonly physics: Physics, private canvas: HTMLCanvasElement) {
     this.motor = new CharacterMotor(physics, { radius: RADIUS, height: BODY_HEIGHT, step: STEP_UP, maxClimbDeg: MAX_CLIMB_DEG, snap: 0.3, group: 'PLAYER', blockedBy: ['WORLD', 'CREATURE', 'ITEM'], owner: this, weight: 80 });
-    document.addEventListener('keydown', (e) => {
-      this.keys.add(e.code);
-      if (e.code === 'Space') e.preventDefault();
-      if (e.code === 'KeyH' && !e.repeat) this.setHover(!this.hover);
-      if (e.code === 'AltLeft') { e.preventDefault(); if (!e.repeat && this.locked) this.dodge(); } // Alt alone would focus the browser's menu bar
-    });
-    document.addEventListener('keyup', (e) => { this.keys.delete(e.code); });
-    document.addEventListener('mousemove', (e) => {
-      if (!this.locked) return;
-      const s = 0.0022 * this.lookMult;
-      if (lockOn.state === 'locked') { addLockOffset(-e.movementX * s, -e.movementY * s); return; } // locked (E50): a glance, not a turn
-      this.yaw -= e.movementX * s;
-      this.pitch -= e.movementY * s;
-      this.pitch = Math.max(-1.45, Math.min(1.45, this.pitch));
-    });
-    document.addEventListener('pointerlockchange', () => { this.locked = document.pointerLockElement === this.canvas; if (!this.locked) this.keys.clear(); });
-    window.addEventListener('blur', () => this.keys.clear());
-    this.board = new Hoverboard(camera, HOVER_TOP);
   }
 
+  /** The input service owns mouse events; the player owns look sensitivity and lock offsets. */
+  look(x: number, y: number): void {
+    if (!this.locked) return;
+    const s = 0.0022 * this.lookMult;
+    if (lockOn.state === 'locked') { addLockOffset(-x * s, -y * s); return; }
+    this.yaw -= x * s; this.pitch = Math.max(-1.45, Math.min(1.45, this.pitch - y * s));
+  }
+  private moveInput(): { x: number; y: number } {
+    const input = this.inputService;
+    if (input !== null) { input.setAxis('move', this.touchMove.x, this.touchMove.y); return input.axis2('move'); }
+    const k = this.keys;
+    return { x: Math.max(-1, Math.min(1, Number(k.has('KeyD')) - Number(k.has('KeyA')) + this.touchMove.x)),
+      y: Math.max(-1, Math.min(1, Number(k.has('KeyW')) - Number(k.has('KeyS')) + this.touchMove.y)) };
+  }
   // absent on iOS Safari; present but rejecting ("UnknownError") in the Android WebView — touch input never needs it,
   // and an unhandled rejection would raise the uncaught-exception modal on ENTER WORLD
   lock(): void { if ('requestPointerLock' in this.canvas) this.canvas.requestPointerLock().catch(() => { /* no pointer lock here: touch play */ }); }
@@ -291,9 +288,7 @@ export class Player {
    *  DODGE_COOLDOWN s between. The feel is E63's T "lean + smear" — the user locked it in and V was deleted (E82) */
   dodge(): boolean {
     if (this.dodgeCd > 0 || !this.canDash) return false;
-    const k = this.keys;
-    const fwd = Math.max(-1, Math.min(1, (k.has('KeyW') ? 1 : 0) - (k.has('KeyS') ? 1 : 0) + this.touchMove.y));
-    const str = Math.max(-1, Math.min(1, (k.has('KeyD') ? 1 : 0) - (k.has('KeyA') ? 1 : 0) + this.touchMove.x));
+    const move = this.moveInput(), fwd = move.y, str = move.x;
     const sin = Math.sin(this.yaw), cos = Math.cos(this.yaw);
     let mx = -sin * fwd + cos * str, mz = -cos * fwd - sin * str;
     const len = Math.hypot(mx, mz);
@@ -367,9 +362,8 @@ export class Player {
     this.crouchWanted = toggle || hold;
     if (this.mountedOn !== null) this.crouching = false;
     if (this.ride !== null) { this.ride.drive(dt); return; }
-    const k = this.keys;
-    this.inFwd = Math.max(-1, Math.min(1, (k.has('KeyW') ? 1 : 0) - (k.has('KeyS') ? 1 : 0) + this.touchMove.y));
-    this.inStr = Math.max(-1, Math.min(1, (k.has('KeyD') ? 1 : 0) - (k.has('KeyA') ? 1 : 0) + this.touchMove.x));
+    const k = this.keys, move = this.moveInput();
+    this.inFwd = move.y; this.inStr = move.x;
     // jump is an EDGE (press), not a held state — so holding Space can't chain a double jump
     if (this.inputService !== null) { if (this.inputService.consume('jump')) this.jumpQueued = true; }
     else {
@@ -377,14 +371,13 @@ export class Player {
       if (jumpDown && !this.jumpWasDown) this.jumpQueued = true;
       this.jumpWasDown = jumpDown;
     }
+    if (this.inputService?.pressed('dodge') === true && this.dodge()) this.inputService.consume('dodge');
     if (this.touchDodge) { this.touchDodge = false; this.dodge(); }
   }
 
   /** Sample jump edges before contexts claim them; movement still reads at its original input point. */
   collectActions(): void {
-    const jumpDown = this.keys.has('Space') || this.touchJump; this.touchJump = false;
-    if (jumpDown && !this.jumpWasDown) this.inputService?.press('jump');
-    this.jumpWasDown = jumpDown;
+    if (this.touchJump) { this.inputService?.press('jump'); this.touchJump = false; }
   }
 
   /** Explore's free camera / the tour own the view: the body leaves the world's way until they hand it back (and it
@@ -405,7 +398,7 @@ export class Player {
     // wading: how deep the feet are right now (last step's resolve) — slows walking, kills sprint past the knee
     const wadeT = !hover && !swim && this.onGround ? Math.min(1, this.depth / WADE_MAX) : 0;
     this.crouching = !hover && !swim && this.crouchWanted;
-    this.sprinting = !hover && !swim && this.depth < NO_SPRINT_DEPTH && (k.has('ShiftLeft') || this.touchSprint) && fwd > 0 && !this.crouching;
+    this.sprinting = !hover && !swim && this.depth < NO_SPRINT_DEPTH && ((this.inputService?.held('sprint') ?? k.has('ShiftLeft')) || this.touchSprint) && fwd > 0 && !this.crouching;
     const speed = (this.crouching ? 2.2 : this.sprinting ? 7.2 : 4.3) * (1 - 0.55 * wadeT) * this.moveScale * this.effectMoveScale;
     this.waveTime += dt;
 
@@ -429,8 +422,8 @@ export class Player {
     if (len > 1) { mx /= len; mz /= len; }
     const jump = this.jumpQueued && !swim; this.jumpQueued = false;
     // while swimming Space / the DIVE disc and Shift / the SURFACE disc are HELD controls (the swim branch reads them)
-    this.diveHeld = swim && (k.has('Space') || this.touchDive);
-    this.surfaceHeld = swim && (k.has('ShiftLeft') || k.has('ShiftRight') || this.touchSurface);
+    this.diveHeld = swim && ((this.inputService?.held('dive') ?? k.has('Space')) || this.touchDive);
+    this.surfaceHeld = swim && ((this.inputService?.held('surface') ?? (k.has('ShiftLeft') || k.has('ShiftRight'))) || this.touchSurface);
     this.dodgeCd = Math.max(0, this.dodgeCd - dt);
     this.dodgeT = this.dashT > 0 ? Math.max(0, this.dodgeT - dt) : 0; // a shove / the water ends the burst: the guard with it
     if (hover || swim) this.dashT = 0;
@@ -621,9 +614,10 @@ export class Player {
         this.velocity.z += (wz - this.velocity.z) * Math.min(1, accel * dt);
       }
 
+      this.groundedAgo = this.onGround ? 0 : this.groundedAgo + dt * 1000;
       if (this.onGround) this.jumpsLeft = 1; // one more jump available once you've left the ground
       const jumpV = 7.2 * (1 - 0.35 * wadeT); // wading: the water saps the push-off
-      if (jump && this.onGround && !this.crouching && !this.sliding) { this.velocity.y = jumpV; this.onGround = false; this.onJump?.(); }
+      if (jump && (this.onGround || this.groundedAgo <= this.coyoteMs) && !this.crouching && !this.sliding) { this.groundedAgo = Infinity; this.velocity.y = jumpV; this.onGround = false; this.onJump?.(); }
       else if (jump && !this.onGround && this.jumpsLeft > 0) { this.jumpsLeft--; this.velocity.y = Math.max(this.velocity.y, 0) * 0.3 + DOUBLE_JUMP; this.onJump?.(); } // double jump
       this.velocity.y -= GRAVITY * dt;
 
@@ -732,7 +726,6 @@ export class Player {
     this.camera.rotation.x = this.pitch + this.pitchLean + dodgePitch;
     this.camera.rotation.z = Math.sin(this.bobTime) * bobAmp * 0.25 - this.inStr * 0.012 * (1 - this.hoverBlend) + this.roll + this.dashRoll;
 
-    this.board.update(dt, this);
     // water line: tint the bottom of the view as the eye nears / dips under the surface; under it, the underwater look
     const eyeAbove = this.waterSurface === null ? Infinity : this.camera.position.y - this.waterSurface;
     const submerged = eyeAbove < 0;
