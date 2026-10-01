@@ -1,16 +1,21 @@
 // @vitest-environment happy-dom
 import { describe, expect, it, vi } from 'vitest';
+// oxlint-disable-next-line import/no-nodejs-modules -- Vitest runs in Node; DOM globals do not change the binary's filesystem source.
+import { readFileSync } from 'node:fs';
+// oxlint-disable-next-line import/no-nodejs-modules -- Resolve the real dependency outside the symlinked clean-export tree in this Node test.
+import { createRequire } from 'node:module';
 import { BoxGeometry, Group, Mesh, MeshBasicMaterial, Scene, Texture } from 'three';
 import { App, Scope, AssetService } from '#engine';
 import { SceneOwnership } from '#engine/app/sceneOwnership';
 import { ShardScope, enterScope, installScopes, withScopeOwner } from '#engine/core/shardScope';
 import { Physics } from '#engine/physics/Physics';
 import { loadRapier } from '#engine/physics/rapier';
-import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';
 
 describe('level unload keeps the engine usable', () => {
   it('removes real Rapier handles and scene ownership, releases acquired textures, and runs another engine frame', async () => {
-    const R = await loadRapier(await (await fetch(wasmInline)).arrayBuffer());
+    // happy-dom uses Vite's client asset resolver: a symlinked dependency outside a clean export is denied.
+    // Resolve the package with Node, as this is a Node test with DOM globals, and pass the actual binary unchanged.
+    const R = await loadRapier(readFileSync(createRequire(import.meta.url).resolve('@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm')));
     const legacy = new ShardScope('test'), level = legacy.resources, app = new App();
     enterScope(legacy); legacy.owner = app.engineScope;
     const physics = new Physics(R), player = physics.world.createRigidBody(R.RigidBodyDesc.dynamic());
