@@ -1,5 +1,5 @@
 import { type EquipmentRow, type WeaponState, type AimInfo, type DrawingBuffer, type EquipContext, type SwordWorld, type SwordRig, type SwordArms, type SwordFraming, type SwordMoveSet, app, BladeGlow, type Game, type Sky, dodgeFx, dodgeEnv, type Player, type Targets, type TargetHit, lockOn, meleeLock, targetRadius, type AimTarget, bladeBlocked, bladeContact, type Clang, worldTime, CameraFX, Impacts, aimRay, viewmodel, fovForAspect } from '#engine';
-import { Melee, type MeleeProfile } from './Melee';
+import { Melee, isMeleeProfile, type MeleeProfile } from './Melee';
 import { SWORD_WOOD, SWORD_IRON } from './profiles';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
@@ -432,7 +432,7 @@ export class Sword extends Melee {
   private time = 0;
 
   constructor(world: SwordWorld, targets: Targets | undefined, opts: SwordOptions) {
-    const profile = opts.profile ?? (opts.blade === 'iron' ? SWORD_IRON : SWORD_WOOD);
+    const profile = opts.profile ?? (isMeleeProfile(opts.row) ? opts.row : opts.blade === 'iron' ? SWORD_IRON : SWORD_WOOD);
     super({ ...profile, ...opts.row });
     this.game = world.game; this.sky = world.sky; this.player = world.player;
     this.targets = targets;

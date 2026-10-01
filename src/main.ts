@@ -629,7 +629,7 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   // Driftwood's castaway rig (E334) also carries the iron sword's arms and the swimming hands: those go to their own owners
   const { ironArms, swim: swimArms, ...ownSword } = shardSword ?? {};
   const crossbow: Weapon = nalatiKit ? nalatiKit.base : chunk.weapon === 'sword'
-    ? new Sword({ game, sky, player, forest }, targets, { row: chunk.slug === 'nine-dragon-stack' ? JIAN : SWORD_WOOD, profile: chunk.slug === 'nine-dragon-stack' ? JIAN : SWORD_WOOD, allowUnlocked: nolock, ...ownSword, ...(chunk.camera ? { portraitFov: chunk.camera.portraitFov } : {}) })
+    ? new Sword({ game, sky, player, forest }, targets, { row: chunk.slug === 'nine-dragon-stack' ? JIAN : SWORD_WOOD, allowUnlocked: nolock, ...ownSword, ...(chunk.camera ? { portraitFov: chunk.camera.portraitFov } : {}) })
     : new Crossbow({ game, sky, player, forest }, targets, { row: CROSSBOW, allowUnlocked: nolock });
   await macrotask(); // each viewmodel in its own task
   // the rifle slot: Pine Hollow's lever-action (PH-U5, LeverRifle.ts — the crossbow's walnut, shared), the AR-15 on Nalati

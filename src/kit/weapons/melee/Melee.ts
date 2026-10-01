@@ -20,6 +20,11 @@ export interface MeleeProfile extends EquipmentRow {
   dodgeKick: { kick: number; k: number; c: number }; armFollow: number;
 }
 
+/** Internal rows use a discriminated family field; legacy UI-only rows retain default sword tuning. */
+export function isMeleeProfile(row: EquipmentRow): row is MeleeProfile {
+  return 'family' in row && row.family === 'melee';
+}
+
 interface ContactTarget extends TargetAnimal { combatActor?: () => Actor }
 const adapters = new WeakMap<TargetAnimal, Actor>();
 /** Native creatures expose their pipeline actor; custom practice targets keep their own damage behavior. */
