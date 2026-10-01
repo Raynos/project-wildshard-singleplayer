@@ -1,5 +1,5 @@
 import { tap, ambientTick } from '#engine/core/harnessTap';
-import { ownAudioSource } from '#engine';
+import { app, ownAudioSource } from '#engine';
 /**
  * Pine Hollow's ambient life without wolves (PINE-HOLLOW-REMASTER PH-M5) and the harvest's skinning beat (PH-F2), in one
  * call from main.ts (`installPineLife`, before the boot's precompile: the one draw below is parked in the scene then).
@@ -208,14 +208,14 @@ export function installPineLife(h: PineLifeHost): PineLife | null {
   let ravenVoiceT = 0, flapT = 0;
   /** a raven's croak from `r` (two ravens trading croaks when `pair`): one at a time across the flock, a few seconds apart */
   const caw = (r: Bird, pair = false): void => {
-    const t = performance.now() / 1000;
+    const t = app.clock.now; // the game clock: seeded runs repeat (E357 F2)
     if (t < ravenVoiceT) return;
     ravenVoiceT = t + rng.range(3, 6);
     voice(pair ? 'raven_pair' : 'raven_caw', r.pose, 0.9);
   };
   /** a raven's wings as it lifts off (one clatter for a flock going up together) */
   const flap = (r: Bird): void => {
-    const t = performance.now() / 1000;
+    const t = app.clock.now; // the game clock: seeded runs repeat (E357 F2)
     if (t < flapT) return;
     flapT = t + 0.6;
     voice('raven_flap', r.pose, 0.8);
@@ -274,7 +274,7 @@ export function installPineLife(h: PineLifeHost): PineLife | null {
 
   // ── the ravens at a carcass ──
   const carcasses: Carcass[] = [];
-  const now = (): number => performance.now() / 1000;
+  const now = (): number => app.clock.now; // the game clock (E357 F2): wall time made the harness's sound log flaky
   const prevKill = animals.onKill;
   animals.onKill = (a) => {
     prevKill?.(a);
