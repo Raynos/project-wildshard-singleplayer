@@ -19,7 +19,8 @@ ln -s "$REPO/node_modules" "$WORK/src/node_modules"
 cd "$WORK/src"
 VERCEL_GIT_COMMIT_SHA="$SHA" npx vite build >"$WORK/build.log" 2>&1 || { tail -30 "$WORK/build.log"; exit 1; }
 find dist/assets -maxdepth 1 -name '*.map' -print0 | xargs -0 rm -f
-cp vercel.json dist/
+# the folder is already built: keep vercel.json's headers, drop its buildCommand (34bacad1 added it for main's prebuilt CI deploys)
+node -e "const c=JSON.parse(require('fs').readFileSync('vercel.json','utf8')); delete c.buildCommand; c.framework=null; c.buildCommand=''; require('fs').writeFileSync('dist/vercel.json', JSON.stringify(c, null, 2))"
 mv dist "$WORK/$NAME"                                   # the folder name names the Vercel project
 cd "$WORK/$NAME"
 vercel deploy --prod --yes --scope raynos-projects 2>&1 | grep -E 'Aliased|Production|Error' || true
