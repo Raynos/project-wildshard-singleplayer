@@ -22,6 +22,10 @@ import heroLandscape from './thumbs/pine-hollow-landscape.jpg';
 
 export const PINE_HOLLOW: ShardManifest = {
   uses: ['dayCycle', 'weather'],
+  horizonStrips: {
+    day: '/assets/horizon/pine-hollow-day.webp', night: '/assets/horizon/pine-hollow-night.webp', elMin: -30, elMax: 14, scale: 4,
+    phone: { day: '/assets/horizon/pine-hollow-day-phone.webp', night: '/assets/horizon/pine-hollow-night-phone.webp' },
+  },
   render: async () => (await import('./look/render')).shardRender(),
   api: 1,
   audio: { ambience: 'ambience.pine', score: 'score.pine', preload: () => import('./audio/files').then((m) => m.createPineAudio()) },

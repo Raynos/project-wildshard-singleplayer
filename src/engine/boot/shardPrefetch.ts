@@ -76,7 +76,7 @@ export function lateReads(def: ShardManifest, tex: TexMode = texMode()): string[
   const out: string[] = [...(def.boot?.lateReads?.(TIER, tex) ?? [])];
   const lut = lutUrl(def.slug);
   if (lut !== null) out.push(lut);
-  const strips = horizonStrips(def.slug);
+  const strips = horizonStrips(def);
   if (strips) { const s = TIER === 'phone' && strips.phone ? strips.phone : strips; out.push(gpuUrl(s.day, tex), gpuUrl(s.night, tex)); }
   if (def.ocean !== undefined) { // the Blender-built island (main.ts: every open-water shard installs it) and the finale's captain
     const base = blenderModelsBase('driftwood-isle'), lm = TIER === 'phone' ? '.phone.webp' : '.webp';

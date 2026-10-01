@@ -123,13 +123,13 @@ export class Grass {
   private lastPX = Number.NaN;
   private lastPZ = Number.NaN;
 
-  constructor(private sky: Sky, private forest: Forest) {}
+  constructor(private sky: Sky, private forest: Forest, private readonly policy: { trample?: boolean } = {}) {}
 
   build(): this {
     const driver = app.render?.look?.grass;
     if (driver !== undefined) { this.driven = driver.build(this.sky, this.forest); this.group.add(this.driven.group); return this; } // the level look's own grass
     const geo = buildClumpGeometry();
-    this.trampleAble = getActiveChunk().slug === 'pine-hollow';
+    this.trampleAble = this.policy.trample ?? false;
     this.material = this.buildMaterial();
     this.mesh = new THREE.InstancedMesh(geo, this.material, N * N * this.slots);
     this.mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);

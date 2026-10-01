@@ -60,7 +60,7 @@ export class PineHollow extends ShardPlugin {
     const streams = new PineStreams(sky).build();
     game.scene.add(streams.group);
     const carpet = await step('grass', async () => {
-      const grass = new Grass(sky, forest).build();
+      const grass = new Grass(sky, forest, { trample: true }).build();
       await macrotask();
       const under = await new Undergrowth(sky, forest).buildAsync(macrotask);
       const particles = new ParticleField(sky, forest).build();

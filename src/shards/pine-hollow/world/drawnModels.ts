@@ -17,7 +17,7 @@
 import * as THREE from 'three';
 import { place } from '#engine/models/place';
 import type { Placement } from '#engine/models/model';
-import { matrixOf, UNDER_CELLS } from './undergrowth';
+import { matrixOf, UNDER_CELLS, type Undergrowth } from './undergrowth';
 import type { FieldModelsContext } from '#game/shard/manifest';
 import { TREE_SPECS_V2 } from '#engine/world/forest/treeSpecies';
 import type { Placement as UnderPlacement } from '#engine/world/forest/placement';
@@ -31,7 +31,7 @@ import { pebbles } from '../models/pebbles';
 import { moss } from '../models/moss';
 import { reeds } from '../models/reeds';
 
-export function placeDrawnModels(h: FieldModelsContext): void {
+export function placeDrawnModels(h: FieldModelsContext<Undergrowth>): void {
   const ctx = pineModels(h.sky, h.renderer);
   const { forest, under, registry } = h;
   if (forest && forest.trees.length > 0) {

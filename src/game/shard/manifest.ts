@@ -25,7 +25,6 @@ import type { SpeciesWeights } from '#engine/world/forest/treeSpecies';
 import type { WorldRegistry } from '#engine/world/registry';
 import type { Sky } from '#engine/world/Sky';
 import type { Forest } from '#engine/world/forest/Forest';
-import type { Undergrowth } from '#shards/pine-hollow/world/undergrowth';
 import type { SwordArms, SwordFraming, SwordMoveSet, SwordRig } from '#engine/combat/view/melee';
 import type { SwimArms } from '#engine/player/Hands';
 import type { RosterEntry } from '#engine/models/live';
@@ -41,13 +40,13 @@ export interface ShardSword {
 }
 
 /** What core hands a shard's field models (`ShardManifest.fieldModels`): the fields it built, the shard's sky and registry. */
-export interface FieldModelsContext {
+export interface FieldModelsContext<Floor = unknown> {
   sky: Sky;
   renderer: WebGLRenderer | null;
   /** the forest field (its trees' placements and view) */
   forest: Forest | null;
   /** the forest floor's field (its kinds' copies and cells); null where none was built */
-  under: Undergrowth | null;
+  under: Floor | null;
   registry: WorldRegistry;
 }
 
@@ -493,6 +492,8 @@ export interface ShardManifest {
   hud?: ChunkHud;
   /** a painted horizon of its own (Nalati: the plateau rolling on, the snow range south); omitted = the default ridge rings */
   horizon?: ChunkHorizon;
+  /** Authored far-field imagery; consumed by the generic painted-horizon renderer. */
+  horizonStrips?: { day: string; night: string; elMin: number; elMax: number; scale?: number; phone?: { day: string; night: string } };
   /**
    * `style: 'painterly'`: the ground's painted colour (linear RGB, written into `out` and returned) at (x, z), given the
    * surface height `h` and `slope` (0 flat → 1 vertical) — height, slope and noise → a palette ramp. `src/engine/world/Terrain.ts` calls it once per terrain vertex; no textures are loaded.

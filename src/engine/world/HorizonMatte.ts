@@ -51,15 +51,11 @@ export interface HorizonStrips {
 
 const STRIPS: Readonly<Partial<Record<string, HorizonStrips>>> = {
   'driftwood-isle': { day: '/assets/horizon/driftwood-isle-day.webp', night: '/assets/horizon/driftwood-isle-night.webp', elMin: -4, elMax: 24 },
-  // PH-L5: photoreal far boreal country from the fire lookout (art/pine-hollow/round-10-horizon), drawn at infinity (PaintedHorizon)
-  'pine-hollow': {
-    day: '/assets/horizon/pine-hollow-day.webp', night: '/assets/horizon/pine-hollow-night.webp', elMin: -30, elMax: 14, scale: 4,
-    phone: { day: '/assets/horizon/pine-hollow-day-phone.webp', night: '/assets/horizon/pine-hollow-night-phone.webp' },
-  },
+
 };
 
 /** the shard's painted horizon, or null when it has none */
-export function horizonStrips(slug: string): HorizonStrips | null { return STRIPS[slug] ?? null; }
+export function horizonStrips(level: { slug: string; horizonStrips?: HorizonStrips }): HorizonStrips | null { return level.horizonStrips ?? STRIPS[level.slug] ?? null; }
 
 export class HorizonMatte {
   mesh: THREE.Mesh | null = null;
@@ -82,7 +78,7 @@ export class HorizonMatte {
   };
 
   /** `strips`: the painting to show — the active shard's by default; null builds nothing */
-  constructor(private sky: Sky, private seaLevel = 0, private strips: HorizonStrips | null = horizonStrips(getActiveChunk().slug)) {}
+  constructor(private sky: Sky, private seaLevel = 0, private strips: HorizonStrips | null = horizonStrips(getActiveChunk())) {}
 
   build(): this {
     const st = this.sky.stylized;
