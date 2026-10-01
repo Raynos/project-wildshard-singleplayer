@@ -19,6 +19,8 @@
 export interface MockupCamera {
   /** the mockup's file (under art/nine-dragon-stack/round-6-baseline-hud/) */
   mockup: string;
+  /** Exact engine-radian standing pose used by parity; metadata preserves the historical baseline names. */
+  probe?: { name: string; x: number; y: number; z: number; yaw: number; pitch: number };
   eye: readonly [number, number, number];
   feet?: readonly [number, number, number];
   yaw: number;
@@ -29,16 +31,19 @@ export interface MockupCamera {
 
 export const MOCKUP_CAMERAS: Readonly<Record<'A' | 'B' | 'C' | 'D', MockupCamera>> = {
   A: {
+    probe: {name:'spawn-rail',x:0.95,z:7.5,y:125,yaw:-12*Math.PI/180,pitch:-4*Math.PI/180},
     mockup: 'style-A-jiehua-neon.jpg',
     eye: [0.95, 126.68, 7.5], feet: [0.95, 125, 7.5], yaw: 12, pitch: -4,
     frame: 'the spawn by the balustrade, looking north along it at the paifang (a third of the width) and the banyan',
   },
   B: {
+    probe: {name:'well-edge',x:-19.5,z:13.3,y:125,yaw:0,pitch:-10*Math.PI/180},
     mockup: 'comp-B-well-edge.jpg',
     eye: [-19.5, 126.68, 13.3], feet: [-19.5, 125, 13.3], yaw: 0, pitch: -10,
     frame: 'on the Well\'s south rim two metres back from the balustrade (its carved rail and a post across the lower third; at a metre the 57° phone frame held one bay of it, E281), looking north down the axis of the canyon\'s run north (x −28…−12; at x −10.5 the stub wall fills the frame): the crossings like ladder rungs receding into the mist to the far gate at z −95, the dragon hook on the right-hand gallery',
   },
   C: {
+    probe: {name:'stair-street',x:18,z:6,y:125,yaw:-Math.PI/2,pitch:10*Math.PI/180},
     mockup: 'comp-C-stair-street.jpg',
     eye: [18, 126.68, 6], feet: [18, 125, 6], yaw: 90, pitch: 10,
     frame: 'Lantern Square at the stair-street\'s foot, looking east up the flights to the stair gate',

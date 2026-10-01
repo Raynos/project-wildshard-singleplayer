@@ -2,17 +2,18 @@ import { join } from 'node:path';
 import { poseAt, advance } from './frames.mjs';
 import { percentile } from './value.mjs';
 
-/** @type {Record<string, import('../types/wildshard-probe.d.ts').ProbePose[]>} */
-export const POSES = {
-  'driftwood-isle':[{name:'pier',x:0,z:-194,yaw:Math.PI,pitch:0},{name:'beach',x:-10,z:-150,yaw:4.3,pitch:0},{name:'wreck',x:105,z:0,yaw:-Math.PI/2,pitch:0}],
-  'pine-hollow':[{name:'gate',x:0,z:-200,yaw:Math.PI,pitch:0},{name:'cabin',x:-14,z:-62,yaw:Math.PI,pitch:0},{name:'pond',x:-56,z:95,yaw:Math.PI,pitch:0}],
-  'nalati-grasslands':[{name:'camp',x:60,z:214,yaw:-Math.PI/2,pitch:0},{name:'bridge',x:0,z:200,yaw:0,pitch:0},{name:'plains',x:65,z:0,yaw:Math.PI,pitch:0}],
-  'nine-dragon-stack':[{name:'spawn-rail',x:0.95,z:7.5,y:125,yaw:-12*Math.PI/180,pitch:-4*Math.PI/180},{name:'well-edge',x:-19.5,z:13.3,y:125,yaw:0,pitch:-10*Math.PI/180},{name:'stair-street',x:18,z:6,y:125,yaw:-Math.PI/2,pitch:10*Math.PI/180}],
-};
+/** Convert authored standing cameras; free eye-only views belong to budgetViews, not player poses.
+ * @param {Readonly<Record<string, { eye: readonly [number, number, number], feet?: readonly [number, number, number], yaw: number, pitch: number, probe?: import('../types/wildshard-probe.d.ts').ProbePose }>>} cameras
+ * @returns {import('../types/wildshard-probe.d.ts').ProbePose[]} */
+export function declaredProbePoses(cameras) {
+  return Object.entries(cameras).flatMap(([name, camera]) => camera.probe ? [{ ...camera.probe, name: camera.probe.name ?? name }] : camera.feet ? [{ name, x: camera.feet[0], y: camera.feet[1], z: camera.feet[2], yaw: -camera.yaw * Math.PI / 180, pitch: camera.pitch * Math.PI / 180 }] : []);
+}
 /** @param {import('playwright').Page} page @param {{shard:string,tier:string,out:string,fast?:boolean}} opts */
 export async function poses(page,opts) {
   const result=[];
-  for(const [index,pose] of (POSES[opts.shard] ?? []).entries()) {
+  const cameras = await page.evaluate(async () => await window.__wildshard.world.game.level.capturePoses?.() ?? {});
+  const authored = declaredProbePoses(cameras);
+  for(const [index,pose] of (authored.length > 0 ? authored : [{ name: 'current' }]).entries()) {
     await poseAt(page,pose);
     await advance(page,90);
     // P1 fast omits pose observations, while keeping the exact full-profile game-time trajectory.

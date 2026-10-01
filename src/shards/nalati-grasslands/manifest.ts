@@ -25,6 +25,11 @@ export { RIVER, BRIDGE, BROOK, RIM_Z, riverMask, rimZAt, brookMask, zoneAt, glac
 const EXPLORE = { world: exploreWorld, models: exploreModels, sets: exploreSets, practice: explorePractice } satisfies NonNullable<ShardManifest['explore']>;
 
 export const NALATI_GRASSLANDS: ShardManifest = {
+  // Migrated verbatim from parity’s camera table; omitted y keeps the existing ground/land placement.
+  dev: { poses: () => Promise.resolve(Object.fromEntries([{name:'camp',x:60,z:214,yaw:-Math.PI/2,pitch:0},{name:'bridge',x:0,z:200,yaw:0,pitch:0},{name:'plains',x:65,z:0,yaw:Math.PI,pitch:0}].map((probe) => [probe.name, {
+    probe, eye: [probe.x, (NALATI_GRASSLANDS.ground.terrain?.heightAt(probe.x, probe.z) ?? 0) + 1.68, probe.z] as const, yaw: -probe.yaw * 180 / Math.PI, pitch: probe.pitch * 180 / Math.PI,
+    mockup: '', frame: probe.name,
+  }]))) },
   uses: ['dayCycle', 'weather', 'bosses', 'elites', 'spawns', 'quests', 'swim', 'hover', 'explore', 'practice', 'loot', 'feats'],
   api: 1,
   load: () => import('./plugin'),

@@ -402,6 +402,29 @@ export default TEMPLATE;
 `#game` also exports `ShardSword` (a legacy `sword` field's viewmodel), `ChunkTerrain` (the built terrain functions),
 and `RGB` / `Vec2` (`#engine/data` has `Vec2`, `TerrainNoise` too).
 
+### 6.1 Authored diagnostic cameras
+
+`manifest.dev.poses()` returns a map of named `{ eye: [x,y,z], feet?: [x,y,z], yaw, pitch, mockup, frame }` cameras.
+`eye` is the world-space camera; `feet` is an optional standing player position. Camera yaw and pitch are **degrees**:
+0 yaw faces −Z, +90 faces +X; positive pitch looks up. Eye-only cameras are free views (budget captures), while
+standing cameras are parity poses. The game exposes them as `LevelSpec.capturePoses`; parity reads that declaration,
+so a new shard needs no camera table entry in scripts. Without standing poses it samples the spawn as `current`.
+If the budget declares a `current` ceiling, parity also measures its frozen render counts.
+
+An optional `probe: { name?, x?, y?, z?, yaw?, pitch? }` overrides player placement for an exact existing harness pose.
+These yaw/pitch values are **engine radians**; omitted `y` preserves ground-following spawn / collider landing.
+It is useful when migrating an existing baseline without floating-point degree round-trips. Free camera `eye` still
+uses the normal degree fields, and parity keeps `probe.name` when present.
+
+Capture controls (`__wildshard.pose`, walk/combat/arena) require `window.__wildshardHarness` installed **before**
+the game loads; setting it after `ws:ready` cannot unlock a probe created without it. Use parity’s
+`installInit(context, pins)` from `scripts/parity/init.mjs` for deterministic captures (it also installs frame control,
+resource counters and seeded saves). Ad-hoc board scripts may use `context.addInitScript` to install
+`{ seed: 0x2545f491, capture: null, lane: 'board', sha, browser, errors: [], saves: { read: [], written: [] } }`
+before navigation; wait for `ws:ready` / `__wildshard` and the loading overlay to clear before posing. `capture: null`
+keeps normal RAF timing for boards. Pose APIs use engine radians; convert a camera’s degree yaw with
+`-camera.yaw * Math.PI / 180` and pitch with `camera.pitch * Math.PI / 180`.
+
 ## 7. The shard plugin and the registry
 
 ```ts

@@ -435,7 +435,7 @@ export interface ShardManifest {
   species?: LevelSpec['species'];
   encounters?: readonly string[];
   bag?: { tabs: readonly string[]; pack: { slots: number; keeps?: readonly string[] }; skinsTitle?: string };
-  dev?: { poses: () => Promise<Readonly<Record<string, { eye: readonly [number, number, number]; yaw: number; pitch: number; feet?: readonly [number, number, number]; mockup: string; frame: string }>>> };
+  dev?: { poses: () => Promise<Readonly<Record<string, { eye: readonly [number, number, number]; yaw: number; pitch: number; feet?: readonly [number, number, number]; mockup: string; frame: string; probe?: { name?: string; x?: number; y?: number; z?: number; yaw?: number; pitch?: number } }>>> };
   /** Plugin API version; mismatches fail before the first asset load. */
   api: 1;
   /** title-card order, starting at one */

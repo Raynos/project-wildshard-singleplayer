@@ -29,7 +29,7 @@ describe('budget rollout and report', () => {
       renderer: { info: { render, programs: [1, 2], reset: (): void => { render.calls = 0; render.triangles = 0; } } },
       composer: { render: (): void => { render.calls += 7; render.triangles += 31; } } };
     const priorWindow: unknown = Reflect.get(globalThis, 'window');
-    vi.stubGlobal('window', { __wildshard: { world: { game } }, __wildshardHarness: { gpuBytes: () => ({ total: 4 * 2 ** 20 }) } });
+    vi.stubGlobal('window', { __wildshard: { world: { game }, budgets: () => ({}) }, __wildshardHarness: { gpuBytes: () => ({ total: 4 * 2 ** 20 }) } });
     const page = legacyDouble<Page>({ evaluate: (fn: (value: unknown) => unknown, value: unknown) => Promise.resolve(fn(value)) });
     try {
       expect(await budgetViews(page)).toEqual({});
@@ -37,6 +37,18 @@ describe('budget rollout and report', () => {
       expect(views).toEqual({ current: { draws: 7, tris: 31, programs: 2, gpuMB: 4 } });
       expect(budgetChecks({ boot: { shard: '_template', tier: 'phone' }, poses: {}, budgets: { current: { derived: { draws: 8, tris: 32 }, observed: views['current'] } } }).every((check) => check.pass)).toBe(true);
     } finally { vi.stubGlobal('window', priorWindow); }
+  });
+  it('measures the current ceiling even when the new shard also declares standing cameras', async () => {
+    const render = { calls: 0, triangles: 0 };
+    const game = { camera: new THREE.PerspectiveCamera(),
+      level: { capturePoses: () => Promise.resolve({ spawn: { eye: [1, 4, 3], feet: [1, 2.32, 3], yaw: 90, pitch: 0 } }) },
+      shardFrame: vi.fn(), renderer: { info: { render, programs: [1], reset: (): void => { render.calls = 0; render.triangles = 0; } } },
+      composer: { render: (): void => { render.calls += 9; render.triangles += 53; } } };
+    const priorWindow: unknown = Reflect.get(globalThis, 'window');
+    vi.stubGlobal('window', { __wildshard: { world: { game }, budgets: () => ({ current: {} }) }, __wildshardHarness: { gpuBytes: () => ({ total: 5 * 2 ** 20 }) } });
+    const page = legacyDouble<Page>({ evaluate: (fn: (value: unknown) => unknown, value: unknown) => Promise.resolve(fn(value)) });
+    try { expect(await budgetViews(page)).toEqual({ current: { draws: 9, tris: 53, programs: 1, gpuMB: 5 } }); }
+    finally { vi.stubGlobal('window', priorWindow); }
   });
   it('enforces ceilings even when derived targets are absent', () => {
     const current = { ...base, budgets: { a: { derived: null, ceiling: { draws: 99 } } } };

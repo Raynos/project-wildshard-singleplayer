@@ -29,7 +29,9 @@ export function budgetViews(page, captureCurrent = false) {
     const position = g.camera.position.clone(), quaternion = g.camera.quaternion.clone();
     try {
       // A starter with no authored camera still needs measured counts for its current budget.
-      const views = cameras && Object.keys(cameras).length > 0 ? cameras : current ? { current: null } : {};
+      const includeCurrent = current || Object.hasOwn(window.__wildshard.budgets([]), 'current');
+      /** @type {Record<string, Awaited<ReturnType<NonNullable<typeof g.level.capturePoses>>>[string] | null>} */
+      const views = { ...cameras, ...(includeCurrent ? { current: null } : {}) };
       for (const [name, c] of Object.entries(views)) {
         if (c === null) {
           g.shardFrame(); g.composer.render(0);
@@ -37,7 +39,7 @@ export function budgetViews(page, captureCurrent = false) {
           result[name] = { draws: g.renderer.info.render.calls, tris: g.renderer.info.render.triangles, programs: g.renderer.info.programs?.length ?? 0, gpuMB: (window.__wildshardHarness?.gpuBytes?.().total ?? Number.NaN) / 2 ** 20 };
           continue;
         }
-        if (c.feet) continue;
+        if (c.feet || c.probe) continue;
         g.camera.position.set(...c.eye); g.camera.rotation.set(c.pitch * Math.PI / 180, -c.yaw * Math.PI / 180, 0, 'YXZ'); g.shardFrame();
         g.composer.render(0); // settle uploads/programs with no simulation tick
         g.renderer.info.reset(); g.composer.render(0);

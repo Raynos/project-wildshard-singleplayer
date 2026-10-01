@@ -165,7 +165,12 @@ The manifest is data. Fill it top to bottom ([ENGINE.md §6](ENGINE.md#6-the-sha
 5. **Mechanisms:** `uses` lists only what you run, from the 15: engine `weather dayCycle bosses elites spawns quests
    swim hover explore practice`, game `coins loot compendium feats bag.pack`. Anything not listed isn't built.
 6. **Content:** `loadout`, `weapon: 'custom'`, `species`, `encounters`, `spawns`, `fight`, `bag`, `loot`, `creatures`.
-7. **Audio:** `audio: { ambience, score, cues, preload? }` (§8).
+7. **Captures:** declare `dev.poses: () => Promise.resolve({ spawn: { eye: [0, 2, 0], feet: [0, 0.32, 0],
+   yaw: 0, pitch: 0, mockup: '', frame: 'Spawn view' } })`. Eye/feet are world coordinates; camera angles are degrees
+   (0 faces −Z, +90 faces +X). Standing poses are sampled by parity; eye-only poses are free budget views.
+   Without standing poses parity samples spawn as `current`. Install `__wildshardHarness` before loading for board
+   captures; see [ENGINE §6.1](ENGINE.md#61-authored-diagnostic-cameras) for pins, units and exact legacy probe overrides.
+8. **Audio:** `audio: { ambience, score, cues, preload? }` (§8).
 8. **Tiers and budgets:** `tiers`, `budgets` (§9).
 9. **Boot:** `boot: { files, sources, audio, precache, … }` (§14).
 10. **Assets:** `assetGlobs` (the folders your lane commits), `ktx2` once you have a table, `explore`, `roster`.

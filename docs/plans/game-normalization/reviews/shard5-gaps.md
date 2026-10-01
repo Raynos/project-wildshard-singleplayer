@@ -33,6 +33,8 @@ edits and zero gaps**.
 
 | G15 | Creature bone positions and forward axis are undocumented; parent-local positions or facing −Z produce incorrect rigs | E363 round 2 | ENGINE §19 / SHARDS §6 state absolute bind-space `BoneDef.pos` and +Z forward, with an example | built (sol-g13 private candidate; landing pending) |
 
+| G16 | Capture controls require undisclosed pre-load harness pins; parity ignores new-shard dev.poses and leaves current draws/tris unmeasured | E363 round 2 | document capture pins / manifest.dev.poses; move legacy cameras into manifests exactly; parity reads authored poses with generic spawn fallback and measures current ceilings | built (sol-g13 private candidate; landing pending) |
+
 ## Shard findings for the rebuild (not API gaps)
 
 From the first-look boards (`art/sunscar-dunes/round-3-build/board-c2fdc72d.jpg`,
