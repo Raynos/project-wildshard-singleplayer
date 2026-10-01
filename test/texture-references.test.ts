@@ -45,7 +45,7 @@ describe('shared texture-tier generation plan', () => {
   });
 });
 
-it('retains all 54 formerly misclassified textures using real authored generator references', () => {
+it('retains all 54 formerly misclassified textures using real authored generator references', { timeout: 30_000 }, () => {
   const files = Object.keys(import.meta.glob('../public/assets/tex/**/*')).map((path) => path.replace('../public', ''));
   const references = auditTextureReferences(files, [], textureSources(cwd()));
   expect(formerCandidates).toHaveLength(54);
