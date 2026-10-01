@@ -35,3 +35,9 @@ continue on the recommended option, but the row stays open until Jake has answer
 | P11 | **Earlier wave boards** still unseen: weapons (B1 / B2 wall fixes), creatures (big crab 14, decision 86), look (the shared Captain BossBar, decision 91) | Same review page as P2 | 2026-10-01 |
 | P12 | **Calibration publish** needs a quiet machine (budgets become measured, not projected) | Run it at the next quiet gap (no builders live), before the milestone pin if possible | 2026-10-01 |
 | P1 | **E362 ARCH-GUARDS**: which static-analysis guards to build (lint rules, TS boundaries, import graph, shard layout, fast pre-commit) | First batch now, in E357 (AG16, AG17, AG1, AG14, AG13, AG11, AG20, AG9 as Z4 rows, before the template + new shards); second batch after | 2026-10-01 |
+
+## Milestone board items found by sol-m2 on 39223a5f (go on the review page with P2 / P3)
+
+- **Pine BOLTS HUD + gate / cabin pose SSIM** (3 fields): the X1 reserved-verb A/B; recommended A (as built). Evidence: `progress/normalization/x1-board/`.
+- **Pine ambient drum** (1 field): the Creatures-board fx cadence row; recommended as built.
+- The intended deltas Jake already picked: coyote (P3, 12 fields), J1 glyph (P5), J2 marmot whistles (P6).
