@@ -942,6 +942,7 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   // back from a GPU-recovery reload (E54): the pose is applied; take it off the address so a later reload spawns as usual
   if (params.has(RELOAD_PARAM)) { const u = new URL(location.href); u.searchParams.delete(RELOAD_PARAM); u.searchParams.delete('at'); history.replaceState(history.state, '', u); }
 
+  app.ui.bind(game.levelScope, () => hud.promptText);
   boot.runtime.play = { animals, weapons, primary: crossbow, rifle, secondary: longbow, inventory, owned, progress, hud, menu, fullMap, audio, music, skins, wearSkin, touchUi, nolock, disposeRifleDrop: () => { boot.runtime.hooks.disposeRifleDrop?.(); }, cues: combatCues, firstHints, minimap, bodyShadow };
   yield 'finish';
   await macrotask();
