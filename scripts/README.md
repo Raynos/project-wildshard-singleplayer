@@ -200,6 +200,8 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [stutter-run.mjs](./stutter-run.mjs)
 - [telemetry-brief.mjs](./telemetry-brief.mjs)
 - [texmem-probe.mjs](./texmem-probe.mjs)
+- [texture-inputs.d.mts](./texture-inputs.d.mts)
+- [texture-inputs.mjs](./texture-inputs.mjs)
 - [timelapse.sh](./timelapse.sh)
 - [tsconfig.json](./tsconfig.json)
 - [webkit-mem-reading.mjs](./webkit-mem-reading.mjs)

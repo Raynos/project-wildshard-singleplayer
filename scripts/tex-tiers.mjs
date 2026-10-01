@@ -24,6 +24,7 @@ import { tmpdir } from 'node:os';
 import { byteWriter, outputHash, jsonBytes } from './bake-output.mjs';
 import { execFileSync } from 'node:child_process';
 import { join } from 'node:path';
+import { textureTierJobs } from './texture-inputs.mjs';
 
 const ROOT = 'public/assets/tex';
 let made = 0;
@@ -68,18 +69,16 @@ let scratchId = 0;
 process.on('exit', () => rmSync(scratch, { recursive: true, force: true }));
 
 // ── 1. Poly Haven set _1k siblings ──
-for (const id of readdirSync(ROOT)) {
-  const dir = join(ROOT, id);
-  if (!statSync(dir).isDirectory()) continue;
-  for (const kind of ['diffuse', 'nor_gl', 'arm']) {
-    const src = join(dir, `${kind}.jpg`), out = join(dir, `${kind}_1k.jpg`);
-    if (!existsSync(src)) continue;
-    copy(src, out, { format: 'jpg', max: 1024, quality: 82, strip: true, byteLimit: 350 * 1024 }, () => {
-      if (Number(identify('%w', src)) <= 1024 && statSync(src).size < 350 * 1024) return null;
-      made++;
-      return execFileSync('magick', [src, '-resize', '1024x1024', '-quality', '82', '-strip', 'jpg:-'], { maxBuffer: 64 << 20 });
-    });
-  }
+const textureFiles = [];
+const textureWalk = (dir) => { for (const entry of readdirSync(dir, { withFileTypes: true })) { const path = join(dir, entry.name); if (entry.isDirectory()) textureWalk(path); else textureFiles.push(path); } };
+textureWalk(ROOT);
+const tierJobs = textureTierJobs(textureFiles);
+for (const { source: src, output: out } of tierJobs.filter((job) => job.kind === 'resize')) {
+  copy(src, out, { format: 'jpg', max: 1024, quality: 82, strip: true, byteLimit: 350 * 1024 }, () => {
+    if (Number(identify('%w', src)) <= 1024 && statSync(src).size < 350 * 1024) return null;
+    made++;
+    return execFileSync('magick', [src, '-resize', '1024x1024', '-quality', '82', '-strip', 'jpg:-'], { maxBuffer: 64 << 20 });
+  });
 }
 
 // ── 2. model textures, in place ──
@@ -168,17 +167,7 @@ function phoneJobs() {
   const jobs = [];
   const walk = (dir) => { for (const n of readdirSync(dir)) { const p = join(dir, n); if (statSync(p).isDirectory()) walk(p); else if (/\.(png|jpg)$/.test(n) && !n.includes('.phone.')) jobs.push([p, p, PHONE_MAX]); } };
   walk('public/assets/baked');
-  for (const id of readdirSync(ROOT)) {
-    const d = join(ROOT, id);
-    if (!statSync(d).isDirectory()) continue;
-    for (const n of readdirSync(d)) if (/^twig_(rgba|nor_gl|arm)\.(png|jpg)$/.test(n)) jobs.push([join(d, n), join(d, n), PHONE_MAX]);
-    for (const kind of ['diffuse', 'nor_gl', 'arm']) {
-      const src = join(d, `${kind}.jpg`);
-      if (!existsSync(src)) continue;
-      const served = existsSync(join(d, `${kind}_1k.jpg`)) ? join(d, `${kind}_1k.jpg`) : src; // what texUrl() names
-      jobs.push([served, src, kind === 'arm' ? ARM_MAX : PHONE_MAX]);
-    }
-  }
+  for (const { source, served, max } of textureTierJobs([...new Set([...textureFiles, ...tierJobs.map((job) => job.output)])].filter(existsSync)).filter((job) => job.kind === 'phone')) jobs.push([served, source, max]);
   for (const id of readdirSync(MODELS)) {
     const t = join(MODELS, id, 'textures');
     if (existsSync(t)) for (const n of readdirSync(t)) if (n.endsWith('.jpg') && !n.includes('.phone.')) jobs.push([join(t, n), join(t, n), isArm(n) ? ARM_MAX : PHONE_MAX]);

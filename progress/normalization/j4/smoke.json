@@ -1,0 +1,99 @@
+{
+  "candidate": "8357b323bc34e1013db3f53c76186802f7345e39",
+  "gate": "passed",
+  "phone": {
+    "_template": {
+      "errors": []
+    },
+    "driftwood-isle": {
+      "errors": []
+    },
+    "far-reach": {
+      "errors": []
+    },
+    "nalati-grasslands": {
+      "errors": []
+    },
+    "nine-dragon-stack": {
+      "errors": []
+    },
+    "pine-hollow": {
+      "errors": []
+    },
+    "sunscar-dunes": {
+      "errors": []
+    }
+  },
+  "offline": {
+    "_template": {
+      "errors": [],
+      "checks": {
+        "title": true,
+        "play": true,
+        "explore": true
+      }
+    },
+    "driftwood-isle": {
+      "errors": [],
+      "checks": {
+        "title": true,
+        "play": true,
+        "explore": true
+      }
+    },
+    "far-reach": {
+      "errors": [],
+      "checks": {
+        "title": true,
+        "play": true,
+        "explore": true
+      }
+    },
+    "nalati-grasslands": {
+      "errors": [],
+      "checks": {
+        "title": true,
+        "play": true,
+        "explore": true
+      }
+    },
+    "nine-dragon-stack": {
+      "errors": [],
+      "checks": {
+        "title": true,
+        "play": true,
+        "explore": true
+      }
+    },
+    "pine-hollow": {
+      "errors": [],
+      "checks": {
+        "title": true,
+        "play": true,
+        "explore": true
+      }
+    },
+    "sunscar-dunes": {
+      "errors": [],
+      "checks": {
+        "title": true,
+        "play": true,
+        "explore": true
+      }
+    }
+  },
+  "treeHashes": {
+    "src": "4c6568117b90f1006bdf4275969c27d66caaf077",
+    "public": "db28329608098d03a8c9c86f59544b62776321dc"
+  },
+  "comparison": "Both commands exit red. Phone compares to older baselines; offline comparison also asks for uncaptured walk/combat/pose fields. No baseline accepted.",
+  "offlineFlake": {
+    "shard": "driftwood-isle",
+    "initialErrors": [
+      "Failed to load resource: net::ERR_FAILED"
+    ],
+    "retryErrors": [],
+    "log": "/private/tmp/sol-j4/texture-offline/run-1/driftwood-isle.phone.raw.json",
+    "owner": "sol-x3b, L7.5"
+  }
+}
