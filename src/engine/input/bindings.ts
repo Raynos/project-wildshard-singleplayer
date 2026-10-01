@@ -15,16 +15,32 @@ export interface BindingTableDef { groups?: readonly BindingGroupDef[]; rows?: r
 /** Context-local overrides retain unmodified defaults and swap conflicts explicitly. */
 export class Bindings {
   private readonly defaults = new Map<string, Keys>();
+  private readonly parents = new Map<string, { context: string; actions: readonly Action[] }>();
   private overrides = controls.read();
   private readonly changed: () => void;
   private readonly groupDefs: BindingGroupDef[] = [];
   private readonly rowDefs: BindingRowDef[] = [];
   constructor(changed: () => void) { this.changed = changed; }
-  define(context: string, keys: Keys): void { this.defaults.set(context, keys); }
-  remove(context: string): void { this.defaults.delete(context); }
+  define(context: string, keys: Keys, parent?: { context: string; actions: readonly Action[] }): void {
+    if (parent !== undefined) {
+      if (!this.defaults.has(parent.context)) throw new Error(`Unknown key source context: ${parent.context}`);
+      for (let id: string | undefined = parent.context; id !== undefined; id = this.parents.get(id)?.context) {
+        if (id === context) throw new Error(`Cyclic key inheritance: ${context}`);
+      }
+      this.parents.set(context, parent);
+    } else this.parents.delete(context);
+    this.defaults.set(context, keys);
+  }
+  remove(context: string): void { this.defaults.delete(context); this.parents.delete(context); }
   /** The registered contexts, in registration order. */
   contexts(): readonly string[] { return [...this.defaults.keys()]; }
-  defaultKeys(context: string): Keys { return { ...this.defaults.get(context) }; }
+  defaultKeys(context: string): Keys { return this.resolve(context, true); }
+  /** The context owning this action's binding; inherited actions share their parent's saved choice. */
+  keySource(context: string, action: Action): string {
+    const parent = this.parents.get(context);
+    if (Object.hasOwn(this.defaults.get(context) ?? {}, action) || parent === undefined || !parent.actions.includes(action)) return context;
+    return this.keySource(parent.context, action);
+  }
   /** Adds table groups and rows for as long as `scope` lives (the game's own, a level's riding rows). */
   describe(table: BindingTableDef, scope: Scope): void {
     const groups = [...(table.groups ?? [])], rows = [...(table.rows ?? [])];
@@ -38,12 +54,18 @@ export class Bindings {
   /** Saves `codes` as the action's keys in one context; the empty list unbinds it. */
   assign(context: string, action: Action, codes: readonly string[]): void {
     if (!this.defaults.has(context)) throw new Error(`Unknown binding context ${context}`);
-    this.overrides = { ...this.overrides, [context]: { ...this.overrides[context], [action]: [...codes] } }; controls.write(this.overrides); this.changed();
+    const source = this.keySource(context, action);
+    this.overrides = { ...this.overrides, [source]: { ...this.overrides[source], [action]: [...codes] } }; controls.write(this.overrides); this.changed();
   }
-  keys(context: string): Keys {
+  keys(context: string): Keys { return this.resolve(context, false); }
+  private resolve(context: string, defaultsOnly: boolean): Keys {
+    const parent = this.parents.get(context);
+    const inherited = parent === undefined ? {} : Object.fromEntries(Object.entries(this.resolve(parent.context, defaultsOnly)).filter(([action]) => parent.actions.includes(action as Action)));
     // Saved overrides cannot restore actions removed from a context's defaults.
-    const defaults = this.defaults.get(context) ?? {};
-    const overrides = Object.fromEntries(Object.entries(this.overrides[context] ?? {}).filter(([action]) => Object.hasOwn(defaults, action)));
+    const defaults = { ...inherited, ...this.defaults.get(context) };
+    if (defaultsOnly) return defaults;
+    // Old copies of inherited keys never shadow the parent's current saved choice.
+    const overrides = Object.fromEntries(Object.entries(this.overrides[context] ?? {}).filter(([action]) => Object.hasOwn(this.defaults.get(context) ?? {}, action)));
     return { ...defaults, ...overrides };
   }
   entries(): readonly { context: string; action: Action; codes: readonly string[] }[] {
@@ -54,6 +76,7 @@ export class Bindings {
   }
   rebind(context: string, action: Action, code: string, swap = false): Action | undefined {
     if (!this.defaults.has(context)) throw new Error(`Unknown binding context ${context}`);
+    const source = this.keySource(context, action); if (source !== context) return this.rebind(source, action, code, swap);
     const conflict = this.conflict(context, action, code); if (conflict !== undefined && !swap) return conflict;
     const previous = this.keys(context)[action] ?? [], edits = { ...this.overrides[context], [action]: [code] };
     if (conflict !== undefined) edits[conflict] = [...previous];

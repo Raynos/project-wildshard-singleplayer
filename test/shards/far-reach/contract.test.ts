@@ -9,11 +9,13 @@ import { WarFan, type GustTarget } from '#shards/far-reach/weapons/WarFan';
 import { ISLANDS, SPANS, CLOUD_Y, skyLandscape, spanEnds } from '#shards/far-reach/layout';
 import { FALLEN } from '#shards/far-reach/world/build';
 import { FakeGame } from '../../fake/FakeGame';
+import { INPUT_CONTEXTS } from '#game/inputContexts';
 
 const noop = (): void => undefined;
 async function boot(): Promise<{ app: App; plugin: FarReachPlugin; stages: string[]; active: Set<string>; bag: TabRegistry; fake: FakeGame }> {
   const fake = new FakeGame();
   const app = new App(), plugin = new FarReachPlugin(), stages: string[] = [], active = new Set<string>(), bag = new TabRegistry();
+  for (const context of INPUT_CONTEXTS) app.input.register(context, app.engineScope);
   const game: GameServices = { shard: manifest, rows: new Map(), bag };
   app.registryValue = new WorldRegistry();
   const add = (name: string): (() => void) => { active.add(name); return () => { active.delete(name); }; };

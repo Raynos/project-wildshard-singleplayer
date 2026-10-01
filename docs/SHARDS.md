@@ -220,8 +220,15 @@ For each weapon:
 2. **Register it** in `kit`: `ctx.rows.weapon(ROW)`, and list its id in `manifest.loadout`.
 3. **Build it** in `ctx.game.runtime.buildEquipment`: return `{ primary, secondary, rifle, install }`. `install` adds
    tools and unlocks.
-4. **Its input context:** `ctx.inputContext({ id, actions: ['attack', 'heavy', 'lock'], touch: { mode: 'melee', … } })`.
-   The shell pushes the held weapon's context (named in `row.ui.inputContext`).
+4. **Its input context:** `ctx.inputContext({ id, actions: ['attack', 'heavy', 'lock'], keysFrom: 'weapon.melee',
+   touch: { mode: 'melee', lockable: true, relabel: {} } })`. The baseline keys are Attack = Mouse0 / F,
+   Heavy = Mouse2; `keysFrom` follows the player's rebinds. Add only your extra `keys`, or override a baseline action
+   explicitly (`[]` unbinds it). The shell pushes the held weapon's context (named in `row.ui.inputContext`).
+   Bind both actions in your weapon's `install`: `app.input.bind('attack', () => this.tryFire(), scope)` and
+   `app.input.bind('heavy', () => this.swing(true), scope)`, gated by `this.enabled`. On touch, a still ATTACK hold
+   raises `adsHeld`, fills your `charge` readout, and its true → false transition releases the heavy. A light tap
+   already fires on touch-down; do not read `altHeld` for melee heavy (that field serves a bow's draw).
+   The template's `TemplateWhip.install/update` shows both paths and cancels a pending charge when holstered.
 5. **Its slot type:** merge the legacy slot into `EquipmentSlotMap` (`declare module '#engine'`).
 6. **Damage** goes through the pipeline (`blocks.melee(app.combat).hit(req)` or a family's own path). An effect on a
    hit is `app.effects.apply(actor, 'effect.poison')`.

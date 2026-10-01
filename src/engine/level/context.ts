@@ -30,6 +30,8 @@ export interface InputContextDef {
   actions: readonly Action[] | Readonly<Record<string, (pressed: boolean) => void>>;
   blocks?: 'below' | readonly Action[];
   keys?: Partial<Record<Action, readonly string[]>>;
+  /** Inherit keys for this context's actions from an already registered context; explicit keys win. */
+  keysFrom?: string;
   touch?: { mode?: string; lockable?: boolean; relabel: Partial<Record<DiscSpot, TouchRelabel>>; verbs?: Partial<Record<'verb.1' | 'verb.2', TouchVerbSpec>> };
 }
 export type { HudBand } from '../ui/hudSlots';

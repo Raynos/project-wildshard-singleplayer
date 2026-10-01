@@ -43,7 +43,8 @@ export class BindingTable {
       const defaults = this.bindings.defaultKeys(context);
       for (const action of actions) {
         const key = foldKeys(defaults[action] ?? [])[0];
-        if (key !== undefined) found.push({ target: { context, action }, key });
+        const source = this.bindings.keySource(context, action);
+        if (key !== undefined && !found.some((entry) => entry.target.context === source && entry.target.action === action)) found.push({ target: { context: source, action }, key });
       }
     }
     const anchor = found[0]?.key;
@@ -83,10 +84,14 @@ export class BindingTable {
     const listed = rows.flatMap((other) => other.cells.flatMap((c) => c.targets));
     const codes = expandKey(key), own = row.cells[cell]?.targets ?? [];
     for (const target of own) {
-      for (const [action, bound] of Object.entries(this.bindings.keys(target.context))) {
-        const hidden = { context: target.context, action: action as Action };
-        if (action === target.action || listed.some((t) => sameTarget(t, hidden)) || !bound.some((code) => codes.includes(code))) continue;
-        return { label: humanize(action), hidden };
+      for (const context of this.bindings.contexts()) {
+        if (this.bindings.keySource(context, target.action) !== target.context) continue;
+        for (const [action, bound] of Object.entries(this.bindings.keys(context))) {
+          const hidden = { context, action: action as Action };
+          const source = { context: this.bindings.keySource(context, hidden.action), action: hidden.action };
+          if (action === target.action || listed.some((t) => sameTarget(t, source)) || !bound.some((code) => codes.includes(code))) continue;
+          return { label: humanize(action), hidden };
+        }
       }
     }
     return undefined;

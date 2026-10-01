@@ -11,11 +11,13 @@ import { TemplatePlugin } from '#shards/_template/plugin';
 import { TemplateWhip } from '#shards/_template/weapons/TemplateWhip';
 import { HUT } from '#shards/_template/layout';
 import { FakeGame } from '../../fake/FakeGame';
+import { INPUT_CONTEXTS } from '#game/inputContexts';
 
 const noop = (): void => undefined;
 async function boot(): Promise<{ app: App; plugin: TemplatePlugin; stages: string[]; active: Set<string>; bag: TabRegistry; fake: FakeGame }> {
   const fake = new FakeGame();
   const app = new App(), plugin = new TemplatePlugin(), stages: string[] = [], active = new Set<string>(), bag = new TabRegistry();
+  for (const context of INPUT_CONTEXTS) app.input.register(context, app.engineScope);
   const game: GameServices = { shard: manifest, rows: new Map(), bag };
   app.registryValue = new WorldRegistry();
   const add = (name: string): (() => void) => { active.add(name); return () => { active.delete(name); }; };

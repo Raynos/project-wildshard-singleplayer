@@ -69,7 +69,7 @@ export class FarReachPlugin extends ShardPlugin {
     ctx.app.events.on('actor.died', ({ req }) => { if (req.cause?.kind === 'out-of-world') this.fell++; }, ctx.scope);
     if (quest.saved) { sky.fallen.raise = 1; sky.fallen.raised = true; sky.fallen.pivot.rotation.x = sky.fallen.deck.pitch; sky.winch.label = STRINGS.fallen; }
     if (rt) rt.hooks.questFlags = () => this.quest?.isComplete ? ['farReach.complete'] : [];
-    ctx.inputContext({ id: 'farReach.fan', actions: ['attack', 'heavy', 'lock', 'farReach.gust'], keys: { attack: ['Mouse0', 'KeyF'], heavy: ['Mouse2'], 'farReach.gust': ['KeyG'] },
+    ctx.inputContext({ id: 'farReach.fan', actions: ['attack', 'heavy', 'lock', 'farReach.gust'], keysFrom: 'weapon.melee', keys: { 'farReach.gust': ['KeyG'] },
       touch: { mode: 'melee', lockable: true, relabel: { r0: { label: STRINGS.swing, tone: 'rest' } }, verbs: { 'verb.1': { action: 'farReach.gust', label: STRINGS.gust, icon: GUST_ICON } } } });
     // the fallen bridge swings up over FALLEN.seconds once the winch is turned
     ctx.system({ id: 'farReach.bridge', phase: 'update', run: (dt) => {

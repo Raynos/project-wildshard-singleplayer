@@ -73,7 +73,7 @@ export class TemplatePlugin extends ShardPlugin {
     }
     this.quest = installQuest(ctx, position, loot?.purse ? (share) => { loot.purse?.add(share); } : undefined).quest;
     if (rt) rt.hooks.questFlags = () => this.quest?.isComplete ? ['template.complete'] : [];
-    ctx.inputContext({ id: 'template.whip', actions: ['attack', 'heavy', 'lock'], touch: { mode: 'melee', lockable: true, relabel: {} } });
+    ctx.inputContext({ id: 'template.whip', actions: ['attack', 'heavy', 'lock'], keysFrom: 'weapon.melee', touch: { mode: 'melee', lockable: true, relabel: {} } });
     ctx.inputContext({ id: 'template.lantern', priority: 20, enabled: () => ctx.app.state === 'play', actions: ['template.lantern.toggle'], keys: { 'template.lantern.toggle': ['KeyL'] },
       touch: { relabel: {}, verbs: { 'verb.1': { action: 'template.lantern.toggle', label: STRINGS.toggle, icon: '', show: () => ctx.app.state === 'play' } } } });
     ctx.app.input.push('template.lantern', ctx.scope);

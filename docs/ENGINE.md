@@ -554,7 +554,7 @@ if (!notes.read(ctx.manifest.slug)) notes.write(true, ctx.manifest.slug);
 |---|---|
 | `Action` | the action union: the engine's (`move`, `look`, `dodge`, `jump`, `use`, `crouch`, `sprint`, `pause`, `map`, …), `EquipmentAction` (`attack`, `heavy`, `aim`, `reload`, `lock`, `swap.*` …) and everything merged into `ActionMap` (`bag` from `#game`, your own) |
 | `ActionMap` | merge your actions into it (§3) |
-| `InputContextDef` | `{ id, actions, blocks?, keys?, touch?, priority?, enabled? }` |
+| `InputContextDef` | `{ id, actions, blocks?, keys?, keysFrom?, touch?, priority?, enabled? }` |
 | `TouchVerb`, `TouchVerbSpec` | a touch verb button: `{ action, label, icon, hold?, show? }` |
 | `EquipmentInput` | what equipment reads from input |
 | `installGameplayInput`, `weaponInputContext`, `weaponActionGate` | the shell's gameplay contexts (ports) |
@@ -576,6 +576,13 @@ sits on top of the weapon's and the weapon keeps firing.
 with `ctx.app.input.push(id, ctx.scope)`. A weapon names its context in its row (`ui.inputContext`), and the
 equipment service pushes it on draw.
 
+`keysFrom: 'weapon.melee'` inherits keyboard/mouse bindings for only the actions declared in your context.
+The source must already be registered; it does not need to be pushed. Only keys are inherited (no actions,
+blocks, touch layout or enabled predicate). The player's saved rebinds of Attack/Heavy stay live on custom
+melee weapons; the Key bindings table keeps one row and one saved source for each inherited action.
+Explicit `keys` override the inherited binding per action, and `[]` unbinds it. Legacy saved copies of keys that
+are now inherited cannot shadow the source. This is generic: any registered context may be a key source.
+
 **Touch labels and spots.** `touch.relabel.r0` labels the existing ATTACK / FIRE disc (including a melee
 weapon's SWING label); `lock` and `jump` label their named controls. Labels and optional icons restore to the
 lower context on pop and to the built-in defaults when none remain. `tone` / `accent` dress LOCK / JUMP;
@@ -596,7 +603,7 @@ For added discs, `ctx.hud.disc({ spot, … })` uses placement anchors instead:
 | `edge-l`, `edge-r` | left / right edge tabs |
 
 ```ts
-ctx.inputContext({ id: 'template.whip', actions: ['attack', 'heavy', 'lock'], touch: { mode: 'melee', lockable: true, relabel: {} } });
+ctx.inputContext({ id: 'template.whip', actions: ['attack', 'heavy', 'lock'], keysFrom: 'weapon.melee', touch: { mode: 'melee', lockable: true, relabel: {} } });
 ctx.inputContext({ id: 'template.lantern', priority: 20, enabled: () => ctx.app.state === 'play',
   actions: ['template.lantern.toggle'], keys: { 'template.lantern.toggle': ['KeyL'] },
   touch: { relabel: {}, verbs: { 'verb.1': { action: 'template.lantern.toggle', label: STRINGS.toggle, icon: '' } } } });

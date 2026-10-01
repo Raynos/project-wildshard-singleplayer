@@ -9,11 +9,13 @@ import { SignalWhip, CRACK } from '#shards/sunscar-dunes/weapons/SignalWhip';
 import { RAY_STRIKES, rayGeometry } from '#shards/sunscar-dunes/species/duneRay';
 import { CREST, SPAWN } from '#shards/sunscar-dunes/layout';
 import { FakeGame } from '../../fake/FakeGame';
+import { INPUT_CONTEXTS } from '#game/inputContexts';
 
 const noop = (): void => undefined;
 async function boot(): Promise<{ app: App; plugin: SunscarDunesPlugin; stages: string[]; active: Set<string>; fake: FakeGame }> {
   const fake = new FakeGame();
   const app = new App(), plugin = new SunscarDunesPlugin(), stages: string[] = [], active = new Set<string>(), bag = new TabRegistry();
+  for (const context of INPUT_CONTEXTS) app.input.register(context, app.engineScope);
   const game: GameServices = { shard: manifest, rows: new Map(), bag };
   app.registryValue = new WorldRegistry();
   const add = (name: string): (() => void) => { active.add(name); return () => { active.delete(name); }; };

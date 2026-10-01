@@ -49,7 +49,7 @@ export class SunscarDunesPlugin extends ShardPlugin {
     if (signal.wasLit) this.built?.light();
     if (rt) rt.hooks.questFlags = () => this.quest?.isComplete ? ['sunscar.complete'] : [];
     // the whip's own context carries the melee defaults (LMB / F light, RMB heavy); the held weapon's context is pushed by the shell
-    ctx.inputContext({ id: 'sunscar.whip', actions: ['attack', 'heavy', 'lock'], keys: { attack: ['Mouse0', 'KeyF'], heavy: ['Mouse2'] }, touch: { mode: 'melee', lockable: true, relabel: {} } });
+    ctx.inputContext({ id: 'sunscar.whip', actions: ['attack', 'heavy', 'lock'], keysFrom: 'weapon.melee', touch: { mode: 'melee', lockable: true, relabel: {} } });
     if (this.built) { const pin = document.createElement('span'); pin.textContent = STRINGS.tower; ctx.hud.pin(this.built.beaconAt, pin); }
     const animals = rt?.play?.animals;
     this.ray = animals?.spawn('duneRay', RAY.x, RAY.z, 0, 'dusk') ?? null;

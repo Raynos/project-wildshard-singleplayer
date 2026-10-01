@@ -43,8 +43,10 @@ export class InputService {
   constructor(now: () => number) { this.now = now; }
   register(def: InputContextDef, scope: Scope): void {
     if (this.definitions.has(def.id)) throw new Error(`Duplicate input context: ${def.id}`);
+    if (def.keysFrom !== undefined && !this.definitions.has(def.keysFrom)) throw new Error(`Unknown key source context: ${def.keysFrom}`);
     const entry = { def, scope }; this.definitions.set(def.id, entry);
-    this.bindings.define(def.id, def.keys ?? {});
+    const actions = Array.isArray(def.actions) ? def.actions as readonly Action[] : Object.keys(def.actions) as Action[];
+    this.bindings.define(def.id, def.keys ?? {}, def.keysFrom === undefined ? undefined : { context: def.keysFrom, actions });
     scope.onDispose(() => { this.pop(def.id); this.definitions.delete(def.id); this.bindings.remove(def.id); });
   }
   push(id: string, scope: Scope): void {
