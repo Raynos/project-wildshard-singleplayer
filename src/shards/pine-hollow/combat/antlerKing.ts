@@ -329,7 +329,7 @@ export class AntlerKingFight extends AntlerKingGoals implements BossScript {
   victory(): void {
     this.won = true; this.mode = 'dead';
     this.hideTells(); this.lane.cancel();
-    for (const th of this.thralls) { if (th.a.alive) { this.puffs.burst(_v.copy(th.a.position).setY(th.a.position.y + 1), 0.5, 2.5, 0.6, 0.7); retire(this.ctx.animals, th.a); } th.lane.cancel(); }
+    for (const th of this.thralls) { if (th.a.alive) { this.puffs.burst(_v.copy(th.a.position).setY(th.a.position.y + 1), 0.5, 2.5, 0.6, 0.7); this.retireThrall(th.a); } th.lane.cancel(); }
     this.thralls = [];
     this.setHazards(false);
     this.glow = 0.25; this.look?.setGlow(this.glow); this.look?.setOpen(0, 0);
@@ -428,8 +428,12 @@ export class AntlerKingFight extends AntlerKingGoals implements BossScript {
       if (ad > WALL_R + 1) { a.position.x = C.x + (a.position.x - C.x) / ad * (WALL_R + 1); a.position.z = C.z + (a.position.z - C.z) / ad * (WALL_R + 1); }
     }
   }
+  private retireThrall(actor: Animal): void {
+    if (this.spawner === null) retire(this.ctx.animals, actor);
+    else this.spawner.retire(actor);
+  }
   private clearAdds(): void {
-    for (const th of this.thralls) { th.lane.cancel(); retire(this.ctx.animals, th.a); }
+    for (const th of this.thralls) { th.lane.cancel(); this.retireThrall(th.a); }
     this.thralls = [];
   }
 
