@@ -110,6 +110,8 @@ export const DRIFTWOOD_ISLE: ShardManifest = {
   uses: ['dayCycle'],
   api: 1,
   kitLook: 'toon',
+  creatures: { lowPoly: true, waitForModels: false, furRim: false, tintRange: 0.3, oneMaterial: true },
+  debugOptions: [],
   assetGlobs: ['public/assets/models/driftwood-blender/**', 'public/assets/models/driftwood-cc0/**', 'public/assets/models/driftwood-fp/**', 'public/assets/models/driftwood-hero/**', 'public/assets/gpu/models/driftwood-blender/**', 'public/assets/gpu/models/driftwood-hero/**', 'public/assets/gpu/baked/driftwood-isle/**', 'public/assets/horizon/driftwood-isle-*', 'public/assets/gpu/horizon/driftwood-isle-*', 'public/assets/lut/driftwood-isle.bin', 'public/assets/title/driftwood-isle-portrait.jpg', 'public/assets/sfx/driftwood-isle/**'],
   ktx2: () => import('./ktx2.generated'),
   boot: { explore: { art: [...Object.values(EXPLORE.art), ...EXPLORE.compare.flatMap(({ live, image }) => [live, image])] }, precache: [], files: (tier) => Object.values(bootSources(tier)).flat(), sources: bootSources, lateReads }, // what its boot reads (./boot/sources.ts: no props of its own); the island's late reads (./boot/lateReads.ts)
@@ -155,6 +157,8 @@ export const DRIFTWOOD_ISLE: ShardManifest = {
   // registers them under these ids) — palms as crowns, the decks as planks, the hut / tower / wreck / zipline as timber, the
   // shrine as stone, the sea cave's vault as rock
   minimap: {
+    openWater: { level: OCEAN.level, deepDepth: OCEAN.deepDepth },
+    outside: 'rgb(22,74,128)',
     paths: PATHS,
     pieces: [
       { ids: ['palms'], look: 'dot' },
@@ -273,7 +277,7 @@ export const DRIFTWOOD_ISLE: ShardManifest = {
   // anything (brown bear 45 → 20, boars 25 / 32 / 40 → 20, the drowned captain's swing 24 → 20; the sailor's cutlass is 14 in sailor.ts)
   // E297 (Jake's yes, 2026-09-29): one set of fight rules — at most 2 enemies attack at once, boars circle back instead of
   // fleeing, an off-screen wind-up is flagged at the screen edge, no animal's body swallows the camera
-  fight: { maxHitDamage: 20, capExempt: ['captain'], attackers: 2 },
+  fight: { telegraphed: true, maxHitDamage: 20, capExempt: ['captain'], attackers: 2 },
    // the final boss hits harder than the cap (Jake, 2026-09-30)
   // E314 (Jake's picks, 2026-09-30): kills burst doubloons that fly to you (crab 1 … captain 25, src/game/loot/coins.ts)
   loot: { coins: true },

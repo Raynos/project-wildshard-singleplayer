@@ -55,9 +55,11 @@ const EXPLORE = { art: { world: exploreWorld, models: exploreModels, sets: explo
 export const NINE_DRAGON_STACK: ShardManifest = {
   api: 1,
   kitLook: 'pbr',
+  creatures: { lowPoly: false, waitForModels: false, furRim: false, tintRange: 0.2, oneMaterial: false },
+  debugOptions: [],
   budgets: ND_BUDGET_INPUTS,
   uses: ['hover', 'explore', 'practice'],
-  fight: { attackers: Infinity },
+  fight: { telegraphed: true, attackers: Infinity },
   loadout: { weapons: ['weapon.jian'], tools: ['tool.fei-zhua'], start: ['weapon.jian'], pickups: [] },
   bag: { tabs: ['map', 'gear'], pack: { slots: 0 } },
   species: [],

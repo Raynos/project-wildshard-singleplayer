@@ -422,6 +422,8 @@ export interface ShardManifest {
   /** Migrated manifests declare their plugin and level policy; legacy hooks retire per shard phase. */
   load?: () => Promise<{ default: new () => ShardPlugin }>;
   kitLook?: LevelSpec['kitLook'];
+  creatures?: LevelSpec['creatures'];
+  debugOptions?: LevelSpec['debugOptions'];
   uses?: readonly (EngineMechanism | 'bosses' | 'elites' | 'spawns' | 'swim' | 'quests' | 'coins' | 'loot' | 'compendium' | 'feats' | 'pack')[];
   tiers?: TierOverrides;
   boot?: BootSpec;
@@ -472,7 +474,7 @@ export interface ShardManifest {
   faunaTuning?: Partial<Record<FaunaKind, Partial<HuntTuning>>>;
   /** hit cap, exempt enemy kinds, and simultaneous attackers (E294 / E297); omitted = the old fights.
    * Driftwood caps hits at 20 except the Drowned Captain, and permits two attackers at once. */
-  fight?: { maxHitDamage?: number; capExempt?: readonly string[]; attackers?: number };
+  fight?: LevelSpec['fight'];
   /** the shard's loot rules (E314, project/archive/2026-09-30-driftwood-loot.md; src/game/loot/): `coins` = kills burst doubloons into a
    *  saved purse, shown by a coin chip under VITALS (src/game/loot/coins.ts has the values). Omitted = no coins */
   loot?: { coins?: boolean };
@@ -570,6 +572,8 @@ export interface ChunkMapDef {
   ground?: [number, number, number];
   /** the level's own map look (07 §6.2 step 7): its ground colours, its overlay, its named places (Minimap.ts) */
   palette?: MinimapPalette;
+  openWater?: { level: number; deepDepth: number };
+  outside?: string;
 }
 export type MapLook = 'planks' | 'timber' | 'stone' | 'rock' | 'dot';
 

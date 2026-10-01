@@ -6,8 +6,12 @@ const engineMechanism = (value: string): value is EngineMechanism => ENGINE_MECH
 
 /** Pure, node-safe boundary. Only authored engine policy crosses it, never title or game metadata. */
 export function toLevelSpec(manifest: ShardManifest): LevelSpec {
+  const { style: creatureStyle } = manifest; // opaque authored metadata, copied without a rendering decision
   return {
     id: manifest.slug,
+    creatureStyle,
+    ...(manifest.creatures === undefined ? {} : { creatures: manifest.creatures }),
+    ...(manifest.debugOptions === undefined ? {} : { debugOptions: manifest.debugOptions }),
     ...(manifest.blender === undefined ? {} : { blender: manifest.blender }),
     ground: { ...(manifest.ground.paths === undefined ? {} : { paths: manifest.ground.paths }), ...(manifest.ground.terrain === undefined ? {} : { terrain: manifest.ground.terrain }),
       ...(manifest.ground.structures === undefined ? {} : { structures: true }), ...(manifest.ground.water === undefined ? {} : { water: manifest.ground.water }) },
