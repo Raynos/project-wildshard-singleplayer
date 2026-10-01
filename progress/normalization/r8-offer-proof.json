@@ -1,0 +1,202 @@
+{
+  "ask": "E357",
+  "group": "R8",
+  "agent": "sol-r11",
+  "candidate": "aad84593d8f557fbbf7ffbf7605b3703d0760d9c",
+  "parent": "a4ecfc1e3cfb5d7f12ff664fcfd4e6d3f4d99b03",
+  "cause": "inputVerbs.show exposed last.offer=true, which is a first-paint sentinel rather than actual taming availability",
+  "fix": "offerAvailable starts false and is assigned from the real taming view and mounted state. The first-paint cache and X1 contextual verb action/slot/class logic are preserved.",
+  "checks": {
+    "cleanExport": true,
+    "gen": 0,
+    "tsc": 0,
+    "wholeOxlint": 0,
+    "css": 0,
+    "vitest": {
+      "exit": 0,
+      "files": 306,
+      "tests": 2236
+    },
+    "viteBuild": 0
+  },
+  "capture": {
+    "driver": "clean candidate HEAD export, not the stale shared working-tree scripts",
+    "command": "node scripts/parity.mjs --export=5937e413f6add7d8ba68efd683c83d331e723024 --lane=m5 --shards=all --tiers=phone --only=fingerprint+poses --out=/private/tmp/e357-sol-r11/parity-head-driver",
+    "exit": 1,
+    "all4BootErrors": {
+      "nine-dragon-stack": [],
+      "pine-hollow": [],
+      "nalati-grasslands": [],
+      "driftwood-isle": []
+    },
+    "extraTemplateBootErrors": [],
+    "nalatiOfferBaseline": [
+      {
+        "cls": "ws-ride-offer ws-touch-disc",
+        "spot": "at-aim",
+        "shown": false
+      }
+    ],
+    "nalatiOfferCandidate": [
+      {
+        "cls": "ws-ride-offer ws-touch-disc",
+        "spot": "at-aim",
+        "shown": false
+      }
+    ],
+    "offerRowExactlyBaseline": true,
+    "browsersClosed": true,
+    "paths": "/private/tmp/e357-sol-r11/parity-head-driver"
+  },
+  "poses": {
+    "comparison": "matched parent versus candidate (not a re-recorded m5 baseline)",
+    "threshold": 0.99,
+    "count": 12,
+    "minimumSsim": 0.996752529535659,
+    "allPass": true,
+    "rows": [
+      {
+        "shard": "nine-dragon-stack",
+        "tier": "phone",
+        "pose": "spawn-rail",
+        "ssim": 1,
+        "passed": true,
+        "masks": "unchanged parent + candidate pose boxes",
+        "parentM5": 0.9909858838931062,
+        "candidateM5": 0.9909858838931062
+      },
+      {
+        "shard": "nine-dragon-stack",
+        "tier": "phone",
+        "pose": "well-edge",
+        "ssim": 1,
+        "passed": true,
+        "masks": "unchanged parent + candidate pose boxes",
+        "parentM5": 0.9912813069933039,
+        "candidateM5": 0.9912813069933039
+      },
+      {
+        "shard": "nine-dragon-stack",
+        "tier": "phone",
+        "pose": "stair-street",
+        "ssim": 0.999711668185745,
+        "passed": true,
+        "masks": "unchanged parent + candidate pose boxes",
+        "parentM5": 0.9985934632600515,
+        "candidateM5": 0.9986384832528464
+      },
+      {
+        "shard": "pine-hollow",
+        "tier": "phone",
+        "pose": "gate",
+        "ssim": 1,
+        "passed": true,
+        "masks": "unchanged parent + candidate pose boxes",
+        "parentM5": 0.9898408710677667,
+        "candidateM5": 0.9898408710677667
+      },
+      {
+        "shard": "pine-hollow",
+        "tier": "phone",
+        "pose": "cabin",
+        "ssim": 0.9982482499900291,
+        "passed": true,
+        "masks": "unchanged parent + candidate pose boxes",
+        "parentM5": 0.9875264615782451,
+        "candidateM5": 0.9892781536345541
+      },
+      {
+        "shard": "pine-hollow",
+        "tier": "phone",
+        "pose": "pond",
+        "ssim": 0.996752529535659,
+        "passed": true,
+        "masks": "unchanged parent + candidate pose boxes",
+        "parentM5": 0.9867081571933133,
+        "candidateM5": 0.9899262747015873
+      },
+      {
+        "shard": "nalati-grasslands",
+        "tier": "phone",
+        "pose": "camp",
+        "ssim": 1,
+        "passed": true,
+        "masks": "unchanged parent + candidate pose boxes",
+        "parentM5": 0.9999999999999839,
+        "candidateM5": 0.9999999999999839
+      },
+      {
+        "shard": "nalati-grasslands",
+        "tier": "phone",
+        "pose": "bridge",
+        "ssim": 0.9999941342373889,
+        "passed": true,
+        "masks": "unchanged parent + candidate pose boxes",
+        "parentM5": 0.999975582502715,
+        "candidateM5": 0.9999762171597223
+      },
+      {
+        "shard": "nalati-grasslands",
+        "tier": "phone",
+        "pose": "plains",
+        "ssim": 0.9999864500494503,
+        "passed": true,
+        "masks": "unchanged parent + candidate pose boxes",
+        "parentM5": 0.9969684704037345,
+        "candidateM5": 0.9969844355773725
+      },
+      {
+        "shard": "driftwood-isle",
+        "tier": "phone",
+        "pose": "pier",
+        "ssim": 0.9984075909399449,
+        "passed": true,
+        "masks": "unchanged parent + candidate pose boxes",
+        "parentM5": 0.9914371710437996,
+        "candidateM5": 0.9915819596748281
+      },
+      {
+        "shard": "driftwood-isle",
+        "tier": "phone",
+        "pose": "beach",
+        "ssim": 0.999016734998823,
+        "passed": true,
+        "masks": "unchanged parent + candidate pose boxes",
+        "parentM5": 0.9950215415571704,
+        "candidateM5": 0.9949801792762387
+      },
+      {
+        "shard": "driftwood-isle",
+        "tier": "phone",
+        "pose": "wreck",
+        "ssim": 0.9999874957157898,
+        "passed": true,
+        "masks": "unchanged parent + candidate pose boxes",
+        "parentM5": 0.9997509096053641,
+        "candidateM5": 0.9997596770746026
+      }
+    ],
+    "maskPolicy": "only original parent + candidate captured pose boxes; no extra BOLTS or other diagnostic mask",
+    "baselineCaveat": "Nine non-Pine poses >= .99 against stored m5. Pine gate/cabin retain approved B3 BOLTS board differences; pond has pre-existing timing/threshold variation. sol-m2 confirmed B3 covers gate/cabin, while full392 pond .9899566 passes its measured m5 threshold. No baseline, pending pattern, harness threshold or pin was changed."
+  },
+  "visualInspection": {
+    "all12": "/private/tmp/e357-sol-r11/contact.jpg",
+    "result": "Inspected all twelve final frames: Nalati OFFER absent, HUD controls visible and no new clipping or re-layout."
+  },
+  "firstRun": "A shared-working-tree parity driver run in /private/tmp/e357-sol-r11/parity was superseded by the clean committed driver run. A transient driver .git symlink typo was fixed before committed-driver capture.",
+  "next": "Lead owns full milestone parity, classified board acceptance, push and deployment; no remaining R8 runtime work.",
+  "previousTestedCandidate": "5937e413f6add7d8ba68efd683c83d331e723024",
+  "matchedParentCapture": "7550f81b20bc2c413410c1fef92cd07c1e80019c",
+  "rebasedOntoClassification": {
+    "head": "a4ecfc1e3cfb5d7f12ff664fcfd4e6d3f4d99b03",
+    "runtimeAndTestsUnchanged": true,
+    "freshCandidateBootCommand": "node scripts/parity.mjs --export=aad84593d8f557fbbf7ffbf7605b3703d0760d9c --lane=m5 --shards=all --tiers=phone --only=fingerprint+poses --out=/private/tmp/e357-sol-r11/rebased",
+    "all4BootErrors": {
+      "nine-dragon-stack": [],
+      "pine-hollow": [],
+      "nalati-grasslands": [],
+      "driftwood-isle": []
+    },
+    "offerRowExactlyBaseline": true
+  }
+}
