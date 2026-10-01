@@ -1,1 +1,1 @@
-export function installFrameDriver(opts:{accelerated:boolean}):void;
+export function installFrameDriver(opts:{accelerated:boolean,timerHz?:number}):void;

@@ -1,6 +1,6 @@
 /** Harness-only rAF driver: one 30 Hz timestamp per callback batch, scheduled by GPU/task throughput.
  * Native rAF remains the idle scheduler; the driver never changes the game's capture dt or input steps.
- * @param {{accelerated:boolean}} opts */
+ * @param {{accelerated:boolean,timerHz?:number}} opts */
 export function installFrameDriver(opts) {
   if (!opts.accelerated) return;
   const w = /** @type {Window} */ (window);
@@ -11,6 +11,7 @@ export function installFrameDriver(opts) {
   const clearTimeout = window.clearTimeout.bind(window), clearInterval = window.clearInterval.bind(window);
   /** @type {Map<number,{run:()=>void,due:number,repeat:number,native:number}>} */ const timers = new Map();
   let nextTimer = -1, virtualNow = realNow();
+  const timerStep = 1000 / (opts.timerHz ?? 30);
   control.now = realNow;
   /** @param {TimerHandler} handler @param {number|undefined} delay @param {unknown[]} args @param {boolean} repeat */
   const scheduleTimer = (handler, delay, args, repeat) => {
@@ -38,7 +39,7 @@ export function installFrameDriver(opts) {
   };
   function tick() {
     posted = false; nativeId = 0;
-    if (active()) virtualNow += 1000 / 30;
+    if (active()) virtualNow += timerStep;
     timestamp = Math.max(timestamp + 1000 / 30, realNow());
     const drawn=()=>ready?Number(Reflect.get(window.__wildshard.world.game,'frameNo')):0, before=drawn();
     const batch = [...callbacks]; callbacks.clear();

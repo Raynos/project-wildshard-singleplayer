@@ -6,7 +6,7 @@ import { installResources } from './resources.mjs';
 
 /** All observations are installed before boot, using scorecard's RNG and GPU byte hooks.
  * @param {import('playwright').BrowserContext} context
- * @param {{lane:string,sha:string,browser:string,capture?:number|null,accelerated?:boolean}} meta */
+ * @param {{lane:string,sha:string,browser:string,capture?:number|null,accelerated?:boolean,tier?:string}} meta */
 export async function installInit(context, meta) {
   await context.addInitScript(GL_INIT);
   await context.addInitScript(`window.__parityTelemetryOnly = (${telemetryOnlyWrite.toString()});`);
@@ -52,6 +52,6 @@ export async function installInit(context, meta) {
     window.addEventListener('unhandledrejection',(e)=>{errors.push(String(e.reason));});
     console.error=new Proxy(console.error,{apply(target,self,args){errors.push(args.map(String).join(' '));Reflect.apply(target,self,args);}});
   },meta);
-  await context.addInitScript(installFrameDriver,{accelerated:meta.accelerated??false});
+  await context.addInitScript(installFrameDriver,{accelerated:meta.accelerated??false,timerHz:meta.tier==='desktop'?60:30});
   await context.addInitScript(installResources);
 }

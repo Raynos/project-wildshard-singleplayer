@@ -14,6 +14,7 @@ import { cachedTree, runtimeTree } from '../scripts/parity/serve.mjs';
 import { fastSelection, nextRotation } from '../scripts/parity/profile.mjs';
 import { telemetryOnlyWrite } from '../scripts/parity/saves.mjs';
 import { installFrameDriver } from '../scripts/parity/clock.mjs';
+import { telemetryFixtureAccepts } from '../scripts/parity/telemetry.mjs';
 
 describe('P1 bounded capture scheduling', () => {
   it('runs record repetitions concurrently and preserves input order', async () => {
@@ -104,10 +105,20 @@ describe('P1 telemetry observation', () => {
     expect(telemetryOnlyWrite(envelope({'life.alive': 1}), envelope({'life.alive': 2}), 'wildshard.save.v2.session')).toBe(true);
     expect(telemetryOnlyWrite(before, 'broken', 'wildshard.save.v2.session')).toBe(false);
   });
+  it('limits the proof-only preview fixture to recognized telemetry POST bodies', () => {
+    const payload={kind:'analytics',build:'proof-sha',install:'anonymous',events:[{name:'weapon.used',data:{weapon:'bow'}}]};
+    expect(telemetryFixtureAccepts('POST',payload)).toBe(true);
+    expect(telemetryFixtureAccepts('GET',payload)).toBe(false);
+    expect(telemetryFixtureAccepts('POST',{...payload,events:[{name:'unknown',data:{}}]})).toBe(false);
+    expect(telemetryFixtureAccepts('POST',{kind:'analytics'})).toBe(false);
+    expect(telemetryFixtureAccepts('POST',{...payload,events:[{name:'boss.attempt',data:{outcome:'invalid'}}]})).toBe(false);
+    expect(telemetryFixtureAccepts('POST',{...payload,kind:'session',heartbeat:{session:'proof'},end:'clean'})).toBe(true);
+    expect(telemetryFixtureAccepts('POST',{...payload,kind:'session',heartbeat:{session:'proof'},end:'invalid'})).toBe(false);
+  });
 });
 
 describe('P1 capture-frame driver', () => {
-  it('draws exactly requested steps, samples each frame, and waits through pause without advancing simulation', async () => {
+  it.each([30,60])('preserves exact simulation steps with %i Hz wall-timer pacing and paused callbacks', async (timerHz) => {
     const native = new Map<number, FrameRequestCallback>(), messages: (() => void)[] = [];
     const listeners = new Map<string, () => void>(); let nativeId = 0, frameNo = 0;
     const wallTimers = new Map<number, TimerHandler>(); let timerId = 0;
@@ -127,7 +138,7 @@ describe('P1 capture-frame driver', () => {
       port1: { onmessage: (() => void) | null } = { onmessage: null };
       port2 = { postMessage: () => { messages.push(() => { this.port1.onmessage?.(); }); } };
     }
-    runInNewContext(`(${installFrameDriver.toString()})({accelerated:true})`, { window, MessageChannel: Channel,
+    runInNewContext(`(${installFrameDriver.toString()})({accelerated:true,timerHz:${timerHz}})`, { window, MessageChannel: Channel,
       performance: { now: () => 0 }, document: {
       // oxlint-disable-next-line promise/prefer-await-to-callbacks -- This fixture implements the browser event callback API.
       addEventListener: (name: string, callback: () => void) => { listeners.set(name, callback); } } });
@@ -148,11 +159,12 @@ describe('P1 capture-frame driver', () => {
     const advancing = control.advance(4);
     while (messages.length > 0) messages.shift()?.(); await advancing;
     expect(frameNo).toBe(4); expect(samples).toBe(4); expect(timestamps[3]).toBeCloseTo(4 * 1000 / 30);
-    expect(fired).toEqual(['boot migrated', 'toast expired']); expect(intervalTicks).toBe(2); window.clearTimeout(repeating);
+    expect(fired).toEqual(timerHz===30?['boot migrated', 'toast expired']:[]); expect(intervalTicks).toBe(timerHz===30?2:1); window.clearTimeout(repeating);
     paused = true; control.free = true;
     if (!control.wait) throw new Error('wait not installed');
     const waiting = control.wait(60); for (let n = 0; n < 60; n++) messages.shift()?.(); await waiting; control.free = false; while (messages.length > 0) messages.shift()?.();
     expect(frameNo).toBe(4); expect(control.remaining).toBe(0);
+    expect(fired).toEqual(['boot migrated','toast expired']);
     expect(native.size).toBe(1);
   });
 });

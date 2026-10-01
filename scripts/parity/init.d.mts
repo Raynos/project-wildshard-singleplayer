@@ -1,6 +1,6 @@
 import type {BrowserContext} from 'playwright';
 
-export function installInit(context:BrowserContext,meta:{lane:string;sha:string;browser:string;capture?:number|null;accelerated?:boolean}):Promise<void>;
+export function installInit(context:BrowserContext,meta:{lane:string;sha:string;browser:string;capture?:number|null;accelerated?:boolean;tier?:string}):Promise<void>;
 declare global {
   interface Window {
     __parityTelemetryOnly:(before:string|null,after:string,key:string)=>boolean;

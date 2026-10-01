@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, writeFileSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { capture, weatherLeak } from '../parity.mjs';
 import { shardFolders } from '../gen-shards.mjs';
@@ -13,7 +13,7 @@ import { array, get, object, string } from './value.mjs';
 const root = resolve(import.meta.dirname, '../..');
 /** @type {Record<string,string|undefined>} */ const opts = Object.fromEntries(process.argv.slice(2).map((arg) => arg.replace(/^--/, '').split('=')));
 const sha = opts.export ?? '', jobs = Number(opts.jobs ?? 3), tiers = (opts.tiers ?? 'phone,desktop').split(',');
-if (!/^[a-f0-9]{40}$/.test(sha) || !Number.isInteger(jobs) || jobs < 1 || jobs > 8 || tiers.some((tier) => !['phone', 'desktop'].includes(tier))) throw new Error('usage: prove-speed --export=<full SHA> [--jobs=3] [--tiers=phone,desktop] [--out=<dir>]');
+if (!/^[a-f0-9]{40}$/.test(sha) || !Number.isInteger(jobs) || jobs < 1 || jobs > 8 || tiers.some((tier) => !['phone', 'desktop'].includes(tier)) || (opts.fixture !== undefined && opts.fixture !== 'telemetry')) throw new Error('usage: prove-speed --export=<full SHA> [--jobs=3] [--tiers=phone,desktop] [--fixture=telemetry] [--out=<dir>]');
 const out = resolve(opts.out ?? `/tmp/wildshard-speed-proof-${sha.slice(0,7)}`); mkdirSync(out, { recursive: true });
 const started = performance.now(), exported = await cachedTree(root, sha), preview = await serve(exported.tree, sha, true), pool = browserPool(root, jobs, 'metal');
 /** @type {Record<string,number|boolean>} */ const timings = { cacheHit: exported.hit, buildMs: performance.now() - started };
@@ -25,8 +25,14 @@ try {
     const begin = performance.now();
     const tasks = pairs.flatMap((pair) => Array.from({ length: 3 }, (_, run) => ({ ...pair, run })));
     const results = await parallel(tasks, jobs, async (task, _, slot) => {
+      if(clock==='raf'&&opts['reuse-native']){
+        const source=join(opts['reuse-native'],`run-${task.run+1}`,`${task.shard}.${task.tier}`);
+        const captured=object(JSON.parse(readFileSync(`${source}.raw.json`,'utf8'))),boot=object(captured.boot);
+        if(boot.sha!==sha||boot.shard!==task.shard||boot.tier!==task.tier||boot.lane!=='m5')throw new Error(`infrastructure: incompatible native proof capture ${source}`);
+        return {key:`${task.shard}.${task.tier}`,captured};
+      }
       const browser = await pool.browser(slot), dir = join(out, clock, `run-${task.run+1}`); mkdirSync(dir, { recursive: true });
-      const options = { ...task, lane: 'm5', sha, root: exported.tree, out: dir, timeout: 240, full: false, only: undefined, offline: false, accelerated: clock === 'fast' };
+      const options = { ...task, lane: 'm5', sha, root: exported.tree, out: dir, timeout: 240, full: false, only: undefined, offline: false, accelerated: clock === 'fast', telemetryFixture:opts.fixture==='telemetry' };
       const captured = object(await capture(browser, preview.url, options));
       if (captured.leak && ['pine-hollow', 'nalati-grasslands'].includes(task.shard)) object(captured.leak).weather = object(await weatherLeak(browser, preview.url, options));
       writeFileSync(join(dir, `${task.shard}.${task.tier}.raw.json`), JSON.stringify(captured, null, 2));
@@ -61,7 +67,7 @@ try {
       summary.push({ key, verdict: checked.some((r) => r.verdict === 'red') ? 'red' : 'green',
         red: checked.flatMap((r) => r.rows.filter((row) => row.verdict === 'red').map((row) => {const tagged={mode:r.mode,run:r.run};return Object.assign(tagged,row);})) });
     }
-    writeFileSync(join(out, 'proof.json'), JSON.stringify({ sha, verdict: summary.some((r) => r.verdict === 'red') ? 'red' : 'green', summary },null,2));
+    writeFileSync(join(out, 'proof.json'), JSON.stringify({ sha,fixture:opts.fixture??null,reusedNative:opts['reuse-native']??null, verdict: summary.some((r) => r.verdict === 'red') ? 'red' : 'green', summary },null,2));
     process.exitCode = summary.some((r) => r.verdict === 'red') ? 1 : 0;
     console.log(`speed proof: ${process.exitCode ? 'red' : 'green'}; ${out}/proof.json`);
   } finally { await context.close(); }

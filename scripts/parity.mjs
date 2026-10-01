@@ -19,6 +19,7 @@ import { advance } from './parity/frames.mjs';
 import { browserPool, parallel } from './parity/pool.mjs';
 import { fastSelection, nextRotation } from './parity/profile.mjs';
 import { budgetLines, budgetViews } from './parity/budgets.mjs';
+import { telemetryFixtureAccepts } from './parity/telemetry.mjs';
 
 /** @typedef {import('./parity/value.mjs').RecordValue} RecordValue */
 const ROOT=resolve(import.meta.dirname,'..');
@@ -58,14 +59,20 @@ function report(reports,sha,out,ms) {
   for (const r of reports) lines.push(`## Budget derivation ${string(get(r, 'boot.shard'))} × ${string(get(r, 'boot.tier'))}`, '', ...budgetLines(r));
   writeFileSync(join(out,'report.md'),`${lines.join('\n')}\n`);
 }
-/** @param {import('playwright').Browser} browser @param {string} url @param {{shard:string,tier:string,lane:string,sha:string,root:string,out:string,timeout:number,full:boolean,only:string|undefined,offline:boolean,fast?:boolean,accelerated?:boolean}} opts */
+/** @param {import('playwright').Browser} browser @param {string} url @param {{shard:string,tier:string,lane:string,sha:string,root:string,out:string,timeout:number,full:boolean,only:string|undefined,offline:boolean,fast?:boolean,accelerated?:boolean,telemetryFixture?:boolean}} opts */
 export async function capture(browser,url,opts) {
   const phaseStart=performance.now(),phases=/** @type {Record<string,number>} */({});let phase=phaseStart;
   const mark=(/** @type {string} */ name)=>{const now=performance.now();phases[name]=now-phase;phase=now;};
   console.error(`parity: ${opts.shard}.${opts.tier} boot`);
   const context=await browser.newContext(opts.tier==='phone'?{viewport:{width:390,height:844},deviceScaleFactor:3,isMobile:true,hasTouch:true,serviceWorkers:opts.offline?'allow':'block'}:{viewport:{width:1600,height:900},deviceScaleFactor:1,serviceWorkers:opts.offline?'allow':'block'});
   try {
-    await installInit(context,{lane:opts.lane,sha:opts.sha,browser:browser.version(),capture:30,accelerated:opts.accelerated});await debugSettings(context,{time:'midday',weather:'clear'});
+    if(opts.telemetryFixture){phases.telemetryFixturePosts=0;await context.route(`${url}/api/telemetry`,async(route)=>{
+      const request=route.request(); let payload=/** @type {unknown} */(null);
+      try{payload=request.postDataJSON();}catch{/* malformed POST remains an observed server error */}
+      if(telemetryFixtureAccepts(request.method(),payload)){phases.telemetryFixturePosts++;await route.fulfill({status:200,json:{id:'parity-clock-proof'}});}
+      else await route.continue();
+    });}
+    await installInit(context,{lane:opts.lane,sha:opts.sha,browser:browser.version(),capture:30,accelerated:opts.accelerated,tier:opts.tier});await debugSettings(context,{time:'midday',weather:'clear'});
     const page=await context.newPage();page.setDefaultTimeout(opts.timeout*1000);
     page.on('response',(response)=>{if(response.status()>=400)console.error(`parity: ${opts.shard}.${opts.tier} HTTP ${response.status()} ${response.url()}`);});
     /** @type {string[]} */const errors=[];page.on('pageerror',(e)=>{if(relevantError(e.message))errors.push(e.message);});page.on('console',(m)=>{if(m.type()==='error'&&relevantError(m.text()))errors.push(m.text());});
@@ -110,7 +117,7 @@ export async function capture(browser,url,opts) {
 export async function weatherLeak(browser,url,opts) {
   const context=await browser.newContext(opts.tier==='phone'?{viewport:{width:390,height:844},deviceScaleFactor:3,isMobile:true,hasTouch:true,serviceWorkers:'block'}:{viewport:{width:1600,height:900},serviceWorkers:'block'});
   try {
-    await installInit(context,{lane:opts.lane,sha:opts.sha,browser:browser.version(),capture:30,accelerated:opts.accelerated});
+    await installInit(context,{lane:opts.lane,sha:opts.sha,browser:browser.version(),capture:30,accelerated:opts.accelerated,tier:opts.tier});
     await debugSettings(context,{time:'midday',weather:opts.shard==='pine-hollow'?'rain':'clear'});
     const page=await context.newPage();
     /** @type {string[]} */ const errors=[];
