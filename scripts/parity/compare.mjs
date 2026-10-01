@@ -54,7 +54,7 @@ function numericBand(expected,actual,noise,field) {
   return {pass:typeof actual==='number'&&Number.isFinite(actual)&&Math.abs(actual-number(expected))<=band,band:`± ${band}`};
 }
 /** @param {string} p */
-function info(p) { return /^(harness$|sha$|recorded$|browser$|spread|selfMin|verdict|boot\.(sha|build|browser|playMs|stepMs|heapMB)|poses\.[^.]+\.(fps|frameP|cpuP|frames|creatureBoxes|boxes|shot)|walk\.legs\.[^.]+\.(seconds|trace)|leak\.scope)/.test(p); }
+function info(p) { return /^(harness$|sha$|recorded$|browser$|spread|selfMin|verdict|boot\.(?:sha|build|browser|playMs|stepMs|heapMB)(?:\.|$)|poses\.[^.]+\.(fps|frameP|cpuP|frames|creatureBoxes|boxes|shot)|walk\.legs\.[^.]+\.(seconds|trace)|leak\.scope)/.test(p); }
 /** @param {RecordValue} value */
 export function normalize(value) {
   const result = structuredClone(value);

@@ -1,4 +1,5 @@
 import { join } from 'node:path';
+import { poseAt, advance } from './frames.mjs';
 import { percentile } from './value.mjs';
 
 /** @type {Record<string, import('../types/wildshard-probe.d.ts').ProbePose[]>} */
@@ -12,15 +13,15 @@ export const POSES = {
 export async function poses(page,opts) {
   const result=[];
   for(const pose of POSES[opts.shard] ?? []) {
-    await page.evaluate((p)=>window.__wildshard.pose(p),pose);
-    await page.waitForTimeout(3000);
+    await poseAt(page,pose);
+    await advance(page,90);
     // scorecard's sampler: only frames whose game.frameNo moved are drawn frames.
     const sampled=await page.evaluate(async()=> {
       const g=window.__wildshard.world.game,iv=/** @type {number[]} */ ([]),cpu=/** @type {number[]} */ ([]),calls=/** @type {number[]} */ ([]),tris=/** @type {number[]} */ ([]);
       const instrument=window.__parity; instrument.cpu=0;instrument.on=true;
       const drawnNo=()=>Reflect.get(g,'frameNo');
-      let last=performance.now(),lastNo=drawnNo(),first=true; const end=last+5000;
-      await new Promise((resolve)=> {const tick=()=> {const now=performance.now();if(drawnNo()!==lastNo){if(!first){iv.push(now-last);cpu.push(instrument.cpu);}first=false;instrument.cpu=0;last=now;lastNo=drawnNo();calls.push(g.lastFrame.calls);tris.push(g.lastFrame.triangles);}if(now>=end)resolve(undefined);else instrument.rawRAF(tick);};instrument.rawRAF(tick);});
+      let last=performance.now(),lastNo=drawnNo(),first=true; const end=drawnNo()+150;instrument.remaining=150;
+      await new Promise((resolve)=> {const tick=()=> {const now=performance.now();if(drawnNo()!==lastNo){if(!first){iv.push(now-last);cpu.push(instrument.cpu);}first=false;instrument.cpu=0;last=now;lastNo=drawnNo();calls.push(g.lastFrame.calls);tris.push(g.lastFrame.triangles);}if(drawnNo()>=end)resolve(undefined);else instrument.rawRAF(tick);};instrument.rawRAF(tick);});
       instrument.on=false;
       const p=window.__wildshard.world.player.position;
       return {iv,cpu,calls,tris,pos:[p.x,p.y,p.z]};

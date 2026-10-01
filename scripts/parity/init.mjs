@@ -23,12 +23,23 @@ export async function installInit(context, meta) {
       const textures = gl.reduce((sum,r)=>sum+r.texBytes,0), renderbuffers=gl.reduce((sum,r)=>sum+r.rbBytes,0), buffers=gl.reduce((sum,r)=>sum+r.bufBytes,0);
       return {textures,renderbuffers,buffers,total:textures+renderbuffers+buffers};
     }};
-    const rawRAF=window.requestAnimationFrame.bind(window); w.__parity={cpu:0,on:false,rawRAF};
+    const rawRAF=window.requestAnimationFrame.bind(window); w.__parity={cpu:0,on:false,rawRAF,free:false,remaining:0,advance:()=>Promise.reject(new Error('frame control not installed'))};
+    document.addEventListener('ws:ready',()=>{
+      const g=w.__wildshard.world.game,control=w.__parity,original=g.frameGate.bind(g);
+      g.frameGate=()=>{if(!original() || (!control.free && control.remaining===0))return false;if(!control.free)control.remaining--;return true;};
+      control.advance=async(frames)=>{
+        if(!Number.isInteger(frames)||frames<0||control.remaining>0)throw new Error('invalid concurrent frame advance');
+        const drawn=()=>Number(Reflect.get(g,'frameNo'));const end=drawn()+frames;control.remaining=frames;
+        await new Promise((resolve)=>{const check=()=>{if(drawn()>=end)resolve(undefined);else rawRAF(check);};rawRAF(check);});
+      };
+      for(const animal of w.__wildshard.world.animals.animals)animal.harnessHold=true;
+    },{once:true});
     // oxlint-disable-next-line promise/prefer-await-to-callbacks -- requestAnimationFrame is a browser callback API; this wrapper measures synchronous frame work.
     window.requestAnimationFrame=(cb)=>rawRAF((time)=>{ const start=performance.now(); try {cb(time);} finally {if(w.__parity.on) w.__parity.cpu+=performance.now()-start;} });
-    const updateRequests=()=> { for(const entry of performance.getEntriesByType('resource')) if (/\/assets\/(music|sfx|audio)\//.test(entry.name)) {const url=new URL(entry.name);url.searchParams.delete('v');const key=url.pathname+url.search;if(!audioRequests.includes(key)) audioRequests.push(key);} };
-    new PerformanceObserver(updateRequests).observe({type:'resource',buffered:true});
-    document.addEventListener('ws:ready',updateRequests);
+    // Observe request initiation, not PerformanceObserver delivery: the latter may arrive after the boot barrier.
+    const requestAudio=/** @param {string} request */(request)=>{const url=new URL(request,location.href);if(/\/assets\/(music|sfx|audio)\//.test(url.pathname)){url.searchParams.delete('v');const key=url.pathname+url.search;if(!audioRequests.includes(key))audioRequests.push(key);}};
+    const rawFetch=window.fetch.bind(window);
+    window.fetch=(input,options)=>{requestAudio(typeof input==='string'?input:input instanceof URL?input.href:input.url);return rawFetch(input,options);};
     window.addEventListener('error',(e)=>{errors.push(e.message);});
     window.addEventListener('unhandledrejection',(e)=>{errors.push(String(e.reason));});
     console.error=new Proxy(console.error,{apply(target,self,args){errors.push(args.map(String).join(' '));Reflect.apply(target,self,args);}});

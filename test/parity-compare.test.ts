@@ -103,6 +103,10 @@ describe('parity comparison', () => {
     n['poses']=[{name:'gate',calls:100,tris:10000,pos:[0,1,0],ssim:0.86}];
     expect(rows(fixture,n,{pending}).verdict).toBe('red');
   });
+  it('does not confuse the shard id with the informational SHA field',()=>{
+    const n=clone();n['boot']={...n['boot'] as RecordValue,shard:'nalati-grasslands'};
+    expect(rows(fixture,n).rows.find((r)=>r.field==='boot.shard')?.verdict).toBe('red');
+  });
   it('holds kill limits, pause state, leak census and budgets without a baseline',()=>{
     const n=clone();n['combat']={shot:{hits:1,hitWithinS:1,hitLimit:20,killed:false,killWithinS:null,killLimit:20}};
     n['pauseResume']={diff:['player.vel'],appStates:['paused','play']};

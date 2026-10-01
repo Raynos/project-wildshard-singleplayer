@@ -56,7 +56,7 @@ async function capture(browser,url,opts) {
   console.error(`parity: ${opts.shard}.${opts.tier} boot`);
   const context=await browser.newContext(opts.tier==='phone'?{viewport:{width:390,height:844},deviceScaleFactor:3,isMobile:true,hasTouch:true,serviceWorkers:opts.offline?'allow':'block'}:{viewport:{width:1600,height:900},deviceScaleFactor:1,serviceWorkers:opts.offline?'allow':'block'});
   try {
-    await installInit(context,{lane:opts.lane,sha:opts.sha,browser:browser.version()});await debugSettings(context,{time:'midday',weather:'clear'});
+    await installInit(context,{lane:opts.lane,sha:opts.sha,browser:browser.version(),capture:30});await debugSettings(context,{time:'midday',weather:'clear'});
     const page=await context.newPage();page.setDefaultTimeout(opts.timeout*1000);
     /** @type {string[]} */const errors=[];page.on('pageerror',(e)=>{if(relevantError(e.message))errors.push(e.message);});page.on('console',(m)=>{if(m.type()==='error'&&relevantError(m.text()))errors.push(m.text());});
     const params=new URLSearchParams({chunk:opts.shard,tier:opts.tier,skipintro:'1',nolock:'1',mute:'1',weather:'clear',...opts.tier==='phone'?{touch:'1'}:{},...opts.offline?{}:{sw:'0'}});

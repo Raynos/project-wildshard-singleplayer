@@ -1,25 +1,27 @@
 import { join } from 'node:path';
 import { readJson } from './serve.mjs';
 import { array, object } from './value.mjs';
+import { advance, poseAt } from './frames.mjs';
 import { within } from './timeout.mjs';
 
 export const TOUCH={move:'.ws-touch-zone.move',look:'.ws-touch-zone.look',dodge:'.ws-touch-disc.dodge',use:'.ws-touch-use',pause:'.ws-touch-pause',attack:'.ws-touch-attack'};
 /** Dispatch actual touch pointers through the controls' existing handlers.
- * @param {import('playwright').Page} page @param {string} selector @param {{dx?:number,dy?:number,hold?:number}} [opts] */
+ * @param {import('playwright').Page} page @param {string} selector @param {{dx?:number,dy?:number,hold?:number,consume?:boolean}} [opts] */
 export async function touch(page,selector,opts={}) {
   const bounds=await page.locator(selector).boundingBox();if(!bounds)throw new Error(`touch control absent: ${selector}`);
   const start={x:bounds.x+bounds.width/2,y:bounds.y+bounds.height/2},end={x:start.x+(opts.dx??0),y:start.y+(opts.dy??0)};
   const session=await page.context().newCDPSession(page);
   try {
     await session.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{...start,id:7}]});
-    if(opts.dx || opts.dy)for(let i=1;i<=6;i++){await session.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:start.x+(end.x-start.x)*i/6,y:start.y+(end.y-start.y)*i/6,id:7}]});await page.waitForTimeout(16);}
-    if(opts.hold)await page.waitForTimeout(opts.hold);
+    if(opts.dx || opts.dy)for(let i=1;i<=6;i++){await session.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:start.x+(end.x-start.x)*i/6,y:start.y+(end.y-start.y)*i/6,id:7}]});await advance(page,1);}
+    if(opts.hold)await advance(page,Math.ceil(opts.hold*30/1000));
     await session.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+    if(opts.consume!==false)await advance(page,1);
   } finally {await session.detach();}
 }
 /** @param {import('playwright').Page} page */
 export async function touchLeg(page) {
-  await page.evaluate(()=>window.__wildshard.pose(window.__wildshard.world.chunk.spawn));
+  await poseAt(page,await page.evaluate(()=>window.__wildshard.world.chunk.spawn));
   const before=await page.evaluate(()=>window.__wildshard.state().player);
   await touch(page,TOUCH.move,{dy:-80,hold:2000});
   const moved=await page.evaluate((b)=>{const p=window.__wildshard.world.player.position;return Math.hypot(p.x-b.pos.x,p.z-b.pos.z);},before);
@@ -41,7 +43,7 @@ export async function touchLeg(page) {
     // along -Z), until the button shows; a shard whose nearest prompt never shows records 'hidden' (deterministic per build).
     used='hidden';
     for(const [ox,oz] of [[0,1],[1,0],[0,-1],[-1,0]]){
-      await page.evaluate(({at,dx,dz})=>window.__wildshard.pose({x:at.x+dx,z:at.z+dz,y:at.y,yaw:Math.atan2(dx,dz)}),{at:nearest.position,dx:ox,dz:oz});
+      await poseAt(page,{x:nearest.position.x+ox,z:nearest.position.z+oz,y:nearest.position.y,yaw:Math.atan2(ox,oz)});
       const shown=await page.locator(`${TOUCH.use}.show`).waitFor({state:'visible',timeout:1500}).then(()=>true,()=>false);
       if(!shown)continue;
       await page.evaluate(()=>window.__wildshard.used());await touch(page,TOUCH.use);
@@ -60,7 +62,11 @@ export async function walk(page,opts) {
     const raw=/** @type {unknown} */ (v);
     const route=/** @type {import('../types/wildshard-probe.d.ts').WalkLeg} */ (raw);
     console.error(`parity: ${opts.shard}.${opts.tier} walk ${route.name}`);
-    legs.push(await within(page.evaluate((leg)=>window.__wildshard.walkLeg(leg),route),240000,`walk ${route.name}`));
+    // An escape attempt must start on its own floor, never on the preceding bridge.
+    if(route.inside)await poseAt(page,route.start);
+    legs.push(await within(page.evaluate(async(leg)=>{window.__parity.free=true;try{return await window.__wildshard.walkLeg(leg);}finally{window.__parity.free=false;}},route),240000,`walk ${route.name}`));
+    // Finish a door's queued fade before the next leg teleports away (Nalati's dromos).
+    await advance(page,15);
   }
   if(opts.full) {
     const trails=await page.evaluate(()=> {

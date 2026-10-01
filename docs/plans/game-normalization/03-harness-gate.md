@@ -391,7 +391,7 @@ seconds, doubled on the `gh-macos15` lane (the M1 VM runs ≈ 2× slower than th
 
 Loot differs per shard today (Driftwood's coins and bounty, Pine Hollow's compendium, progress counters elsewhere), so
 the harness checks it the shard-agnostic way: `combat.loot.written` = the storage keys written in the 2 s after each
-kill, which must equal the baseline (class A, renames applied). On today's tree that is Driftwood `ws.purse.v1`,
+kill, which must equal the baseline (class A, renames applied); exclude only `session:ws.alive`, the wall-timed telemetry heartbeat, from this loot list while retaining it in raw storage observations (F2c, lead-approved). On today's tree that is Driftwood `ws.purse.v1`,
 `ws.bounty.v1` and whatever else the kill chain saves; the baseline records the actual list. Nine Dragon has no kill,
 so no loot. A context starts with empty storage (a fresh context per shard × tier), so "each enemy pays once" pays.
 
