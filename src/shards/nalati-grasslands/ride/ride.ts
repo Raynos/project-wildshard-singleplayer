@@ -78,7 +78,7 @@ export function wireRide(ctx: RideCtx): Ride {
         text: ctx.ctx.app.levelRegistrations.text('cause.ride.text', ctx.ctx.scope) } });
 
   };
-  const isDrawing = (): boolean => { const weapon = ctx.ctx?.app.equipment.current; return weapon instanceof Bow && (weapon.adsHeld || weapon.drawing); };
+  const isDrawing = (): boolean => { const weapon = ctx.ctx?.app.equipment?.current; return weapon instanceof Bow && (weapon.adsHeld || weapon.drawing); };
   const rest = HITCH_HORSE_SPOTS[0] ?? { x: HITCHING_RAIL.x - 1.9, z: HITCHING_RAIL.z, face: { x: 1, z: 0 } };
   const mount = new Mount({
     player: ctx.player, forest: ctx.forest,
