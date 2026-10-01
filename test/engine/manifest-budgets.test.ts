@@ -58,7 +58,7 @@ describe('manifest budget ownership', () => {
     }
   });
   it('re-records only explicitly accepted measured GL changes with causal commits', () => {
-    expect(sources.reRecords.map((row) => `${row.shard}.${row.tier}.${row.metric}`).sort()).toEqual(['_template.desktop.gpuMB', '_template.phone.gpuMB', 'pine-hollow.phone.gpuMB']);
+    expect(sources.reRecords.map((row) => `${row.shard}.${row.tier}.${row.metric}`).sort()).toEqual(['_template.desktop.gpuMB', '_template.phone.gpuMB', 'pine-hollow.desktop.gpuMB', 'pine-hollow.phone.gpuMB']);
     for (const row of sources.reRecords) {
       expect(row.ask).toBe('E357'); expect(row.approvedBy).toBe('wildshard-9');
       expect(row.commit).toMatch(/^[a-f0-9]{40}$/); expect(row.captureSha256).toMatch(/^[a-f0-9]{64}$/);

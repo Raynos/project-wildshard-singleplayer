@@ -238,6 +238,11 @@ For each weapon:
 it yourself: `ctx.app.input.push('<slug>.lantern', ctx.scope)`. The template's lantern and Nine Dragon's Fei Zhua are
 the examples. The kit's hoverboard (`tool.hoverboard`) is on every shard.
 
+After changing `manifest.budgets`, run `pnpm gen --shard=<slug>` and commit your slug’s generated
+`derived` entry in `budgets/ceiling-sources.json`. This command preserves every other slug and all measured
+GL ceilings and approval evidence. The gate checks freshness before generation. Measured GL re-records still
+require the lead’s approval and `scripts/budget-ceilings.mjs --accept=<approval>`.
+
 ## 6. Creatures
 
 A creature is two rows plus, usually, a brain ([ENGINE.md §19](ENGINE.md#19-creatures-and-ai)).

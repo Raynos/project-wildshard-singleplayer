@@ -145,6 +145,8 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [fetch-assets.mjs](./fetch-assets.mjs)
 - [fit-lut.py](./fit-lut.py)
 - [gen-ask-ids.mjs](./gen-ask-ids.mjs)
+- [gen-budget-derivations.d.mts](./gen-budget-derivations.d.mts)
+- [gen-budget-derivations.mjs](./gen-budget-derivations.mjs)
 - [gen-shard-words.d.mts](./gen-shard-words.d.mts)
 - [gen-shard-words.mjs](./gen-shard-words.mjs)
 - [gen-shards.d.mts](./gen-shards.d.mts)

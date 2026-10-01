@@ -55,6 +55,7 @@ export function allowGlobs(slug, extra) {
 /** The shared files a lane may change only in the lines that name its slug, checked before / after. */
 export const LINE_SCOPED = [
   'scripts/blender/targets.json',
+  'budgets/ceiling-sources.json',
   'art/README.md',
   'scripts/bake-ktx2.list.json',
   'scripts/bake-ktx2.cache.json',
@@ -125,6 +126,19 @@ export function lineScopedRefusals(path, before, after, slugs) {
   const b = parse(before);
   const a = parse(after);
   if (b === null || a === null) return ['not valid JSON'];
+  if (path === 'budgets/ceiling-sources.json') {
+    for (const k of new Set([...Object.keys(b), ...Object.keys(a)])) {
+      if (k !== 'derived' && !same(b[k], a[k])) out.push(`field "${k}" (lead-approved provenance)`);
+    }
+    const bd = b.derived, ad = a.derived;
+    if (!bd || !ad || typeof bd !== 'object' || typeof ad !== 'object' || Array.isArray(bd) || Array.isArray(ad)) return [...out, 'invalid derived entries'];
+    for (const slug of new Set([...Object.keys(bd), ...Object.keys(ad)])) {
+      if (same(bd[slug], ad[slug])) continue;
+      if (!slugs.some(([own]) => own === slug)) out.push(`derived entry "${slug}"`);
+      else if (!(slug in ad)) out.push(`deleted derived entry "${slug}"`);
+    }
+    return out;
+  }
   if (path === 'scripts/blender/targets.json') {
     for (const k of new Set([...Object.keys(b), ...Object.keys(a)])) {
       if (k === 'targets' || same(b[k], a[k])) continue;

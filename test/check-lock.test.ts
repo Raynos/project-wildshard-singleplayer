@@ -83,6 +83,23 @@ describe('lockVerdict', () => {
     expect(lockVerdict(PLAIN, [cache], nd, { [cache]: { before: cb, after: cDropNone } }).ok).toBe(false);
   });
 
+  it('allows only reopened derived entries and keeps measured GL provenance lead-only', () => {
+    const p = 'budgets/ceiling-sources.json';
+    const before = JSON.stringify({ derived: { 'nine-dragon-stack': { phone: 1 }, 'pine-hollow': { phone: 2 } }, reRecords: [{ ceiling: 7 }], baselines: ['proof'], calibration: 'fixed' });
+    const data: { derived: Record<string, { phone: number }>; reRecords: { ceiling: number }[]; baselines: string[]; calibration: string } = JSON.parse(before) as { derived: Record<string, { phone: number }>; reRecords: { ceiling: number }[]; baselines: string[]; calibration: string };
+    const verdict = (after: string): boolean => lockVerdict(PLAIN, [p], nd, { [p]: { before, after } }).ok;
+    data.derived['nine-dragon-stack'] = { phone: 3 };
+    expect(verdict(JSON.stringify(data))).toBe(true);
+    data.derived['pine-hollow'] = { phone: 3 };
+    expect(verdict(JSON.stringify(data))).toBe(false);
+    data.derived['pine-hollow'] = { phone: 2 };
+    for (const patch of [{ reRecords: [] }, { baselines: [] }, { calibration: 'changed' }, { calibrationSha256: 'new' }, { derived: [] }]) expect(verdict(JSON.stringify({ ...data, ...patch }))).toBe(false);
+    delete data.derived['nine-dragon-stack'];
+    expect(verdict(JSON.stringify(data))).toBe(false);
+    expect(verdict('broken JSON')).toBe(false);
+    expect(lockVerdict(LEAD, [p], nd, { [p]: { before, after: JSON.stringify({ ...data, reRecords: [] }) } }).ok).toBe(true);
+  });
+
   it('always passes a sweepguard-ledger-only commit', () => {
     expect(lockVerdict(PLAIN, ['project/sweepguard-ledger.md'], locked(), {}).ok).toBe(true);
     expect(lockVerdict(PLAIN, ['project/sweepguard-ledger.md', 'src/main.ts'], locked(), {}).ok).toBe(false);

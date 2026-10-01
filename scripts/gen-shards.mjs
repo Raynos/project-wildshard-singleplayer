@@ -72,6 +72,11 @@ export function genShards(root = resolve(import.meta.dirname, '..'), check = fal
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href) {
-  try { genShards(undefined, process.argv.includes('--check'), false, process.argv.find((arg) => arg.startsWith('--shard='))?.slice(8)); }
+  try {
+    const shard = process.argv.find((arg) => arg.startsWith('--shard='))?.slice(8);
+    genShards(undefined, process.argv.includes('--check'), false, shard);
+    const { genBudgetDerivations } = await import('./gen-budget-derivations.mjs');
+    await genBudgetDerivations(undefined, process.argv.includes('--check'), shard);
+  }
   catch (error) { console.error(error instanceof Error ? error.message : String(error)); process.exitCode = 1; }
 }

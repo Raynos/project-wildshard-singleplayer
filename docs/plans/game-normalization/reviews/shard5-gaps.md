@@ -24,6 +24,12 @@ edits and zero gaps**.
 | G11 | `pnpm gen` writes every slug's `lint/shard-words.generated.json` entry from the shared tree; a shard agent has to splice HEAD + its slug by hand through a private index | E363 #1 | `gen-shards` writes one slug's entry (or one file per slug) | fixed (c2e5e76a) |
 | G12 | A `git archive` check export is 3 GB with `public/` (ENOSPC mid-session) | E364 #10 | SHARDS documents a check export that skips `public/` (symlink it) | fixed (de9f91ff) |
 
+## Round 2 (2026-10-01)
+
+| ID | Gap | From | Wanted | Status |
+|---|---|---|---|---|
+| G14 | Manifest budget edits stale the computed `derived` entries in `budgets/ceiling-sources.json`, blocking the gate; content lanes cannot safely regenerate measured provenance | E363 / E364 round 2, manifest-budgets test | scoped `pnpm gen --shard=<slug>`, freshness check before gate generation, and lock permission for only reopened derived entries; measured GL re-records remain lead-approved | built (sol-g13 private candidate; landing pending) |
+
 ## Shard findings for the rebuild (not API gaps)
 
 From the first-look boards (`art/sunscar-dunes/round-3-build/board-c2fdc72d.jpg`,

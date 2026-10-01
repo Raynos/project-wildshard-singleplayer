@@ -1245,7 +1245,7 @@
     "sunscar-dunes": {
       "phone": {
         "limits": {
-          "draws": 1867,
+          "draws": 1855,
           "tris": 18779873,
           "programs": 148,
           "gpuMB": null
@@ -1255,7 +1255,7 @@
         "gpuM5Ms": 1.6041025641025641,
         "systemsMs": {
           "physics": 0.3,
-          "ai": 0.15,
+          "ai": 0.2,
           "animation": 0.2,
           "player": 0.2,
           "world": 0.3,
@@ -1265,7 +1265,7 @@
         "entities": {
           "rigs": 12,
           "bodies": 0,
-          "agents": 12
+          "agents": 16
         },
         "lanesMs": {
           "opaque": 7.218461538461539,
@@ -1285,7 +1285,7 @@
               "gcMs": 0.3,
               "systems": {
                 "physics": 0.3,
-                "ai": 0.15,
+                "ai": 0.2,
                 "animation": 0.2,
                 "player": 0.2,
                 "world": 0.3,
@@ -1310,7 +1310,7 @@
               "gcMs": 0.3,
               "systems": {
                 "physics": 0.3,
-                "ai": 0.15,
+                "ai": 0.2,
                 "animation": 0.2,
                 "player": 0.2,
                 "world": 0.3,
@@ -1340,7 +1340,7 @@
           "expressions": {
             "frame": "1000 / 30 / 1.3",
             "gpu": "25.641025641025642 - 9.6",
-            "draws": "floor((9.6 - 1.35 - 0.3) / (0.0004257812537252903 × 10))",
+            "draws": "floor((9.6 - 1.4000000000000001 - 0.3) / (0.0004257812537252903 × 10))",
             "tris": "floor(16.04102564102564 × 0.5 / (4.2708022548417234e-8 × 10))",
             "programs": "floor(1000 / (0.6720833336313565 × 10))",
             "gpuMB": "GL bytes retain measured baseline ceiling; native footprint is a separate Simulator gate",
@@ -1350,7 +1350,7 @@
       },
       "desktop": {
         "limits": {
-          "draws": 4110,
+          "draws": 4045,
           "tris": 52174145,
           "programs": 826,
           "gpuMB": null
@@ -1360,7 +1360,7 @@
         "gpuM5Ms": 4.456509178540323,
         "systemsMs": {
           "physics": 0.3,
-          "ai": 0.15,
+          "ai": 0.2,
           "animation": 0.2,
           "player": 0.2,
           "world": 0.3,
@@ -1370,7 +1370,7 @@
         "entities": {
           "rigs": 71,
           "bodies": 4,
-          "agents": 66
+          "agents": 88
         },
         "lanesMs": {
           "opaque": 3.6092307692307695,
@@ -1390,7 +1390,7 @@
               "gcMs": 0.3,
               "systems": {
                 "physics": 0.3,
-                "ai": 0.15,
+                "ai": 0.2,
                 "animation": 0.2,
                 "player": 0.2,
                 "world": 0.3,
@@ -1415,7 +1415,7 @@
               "gcMs": 0.3,
               "systems": {
                 "physics": 0.3,
-                "ai": 0.15,
+                "ai": 0.2,
                 "animation": 0.2,
                 "player": 0.2,
                 "world": 0.3,
@@ -1445,7 +1445,7 @@
           "expressions": {
             "frame": "1000 / 60 / 1.3",
             "gpu": "12.820512820512821 - 4.8",
-            "draws": "floor((4.8 - 1.35 - 0.3) / (0.0004257812537252903 × 1.7997299005092244))",
+            "draws": "floor((4.8 - 1.4000000000000001 - 0.3) / (0.0004257812537252903 × 1.7997299005092244))",
             "tris": "floor(8.02051282051282 × 0.5 / (4.2708022548417234e-8 × 1.7997299005092244))",
             "programs": "floor(1000 / (0.6720833336313565 × 1.7997299005092244))",
             "gpuMB": "GL bytes retain measured baseline ceiling; native footprint is a separate Simulator gate",
