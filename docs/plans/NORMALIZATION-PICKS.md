@@ -1,6 +1,6 @@
 # NORMALIZATION-PICKS — every pick, decision, question and review for Jake (E357)
 
-**State:** `blocked` 2026-10-01 — open: J13 reload-button mockups, J14 spear brace+jump mockups (Jake to pick); 10 answered 2026-10-01, waiting on Jake; the lead asks them with the question tool; must be empty before GAME-NORMALIZATION is archived.
+**State:** `blocked` 2026-10-01 — open: P14–P15 (J13 reload / J14 brace+jump mockups being made), P16–P19 (review wave 4: Signal Dunes first look, B1/B2 cover fixes, Pine drum), P20 (Sky Reach board being captured); waiting on Jake; asked in plain chat while herdr builders are live; must be empty before GAME-NORMALIZATION is archived.
 
 A mini plan beside [GAME-NORMALIZATION](GAME-NORMALIZATION.md). Each row is one question the lead asks Jake through
 the question tool (AskUserQuestion), with its options and the evidence to look at. Builders never decide a row: when
@@ -17,13 +17,20 @@ continue on the recommended option, but the row stays open until Jake has answer
 
 | # | What | Options (recommended first) | Where to look | Since |
 |---|---|---|---|---|
-| P3 | **X1 input board**: the 120 ms input buffer + 100 ms coyote time (decision 40), the Controls / rebinding screen | ship as built · tune the two numbers · revert | **`progress/normalization/x1-board/README.md`** (ready: Nine roof jump before/after, Driftwood mid-swing dodge before/after, 3 Controls images, Pine / Nalati reserved-verb A/B, trace); `x1-board/r6-coyote.md`: coyote adds one jump on Nine Dragon's route, which shifts its combat footsteps (desktop metal steps absent → 2, phone 2 → 1); grace audited exact (100 / 120 ms) | 2026-10-01 |
-| P10 | **B35 / X9** title-deck Wildshard summary strip variant (A shipped as default, B a Debug row) | A · B | `progress/normalization/x9/title-{a,b}.jpg` | 2026-09-30 |
+| P14 | **J13** a touch RELOAD button for magazine weapons (Pine lever rifle, practice rifle) | mockups first (Opus making them) | next review wave | 2026-10-01 |
+| P15 | **J14** jump while holding the spear (BRACE takes JUMP's place on touch) | mockups first (Opus making them) | next review wave | 2026-10-01 |
+| P16 | **Z3 shard 5** Signal Dunes first build: right direction? | right direction · change the look | review wave 4 (https://claude.ai/artifact/8fMvfeXwKBKnM3BGnpcbkz) Q1; `art/sunscar-dunes/round-3-build/board-c2fdc72d.jpg` | 2026-10-01 |
+| P17 | **B1** spear thrust blocked by cover (was hitting through walls) | keep the fix · revert | review wave 4 (https://claude.ai/artifact/8fMvfeXwKBKnM3BGnpcbkz) Q2; `progress/normalization/wave2/b1-*.mp4` | 2026-10-01 |
+| P18 | **B2** Naizagai crescent blocked by cover | keep the fix · revert | review wave 4 (https://claude.ai/artifact/8fMvfeXwKBKnM3BGnpcbkz) Q3; `progress/normalization/wave2/b2-*.mp4` | 2026-10-01 |
+| P19 | **Pine drum cadence** (the woodpecker scheduler moved) | fine · sounds off | review wave 4 (https://claude.ai/artifact/8fMvfeXwKBKnM3BGnpcbkz) Q4; `progress/normalization/wave2/pine-drum-*.mp3` | 2026-10-01 |
+| P20 | **Z3 shard 6** Sky Reach first-look board | right direction · change the look | next review wave (board being captured) | 2026-10-01 |
 
 ## Answered
 
 | # | What | Jake's answer | Date |
 |---|---|---|---|
+| P3 | **X1 input board** | Wave 3: keep 100 ms coyote time (Q1), keep the dodge buffer (Q2), desktop key bindings layout A (Q3, J10 building) | 2026-10-01 |
+| P10 | **B35 / X9** title-deck summary strip | Wave 1 Q5: neither: the selected shard's line + the Wildshard total; built J8 (6c352b12), shipped in wave 2 Q1 | 2026-10-01 |
 | P2 | **M1–M4 milestone board items** (11 differences the classifier won't auto-accept, e.g. Nine Dragon's walk with jump buffer / coyote, Pine's fx cadence drum) | One review page later: before/after images + clips per board item with the milestone build (decision 102 defaults meanwhile) | 2026-10-01 |
 | P4 | **B47** Driftwood phone keeps FXAA with Settings ▸ anti-aliasing Off (as Nine Dragon already does) | Keep: the tier wins (FXAA on phone even with the setting Off), same rule on every shard | 2026-10-01 |
 | P5 | **B58** Pine's shared sound listener kept at the origin for parity (distant quest-glyph sound stays silent, as before) | Fix now: one listener for every voice inside this plan; Pine's sound log re-records at the milestone | 2026-10-01 |
