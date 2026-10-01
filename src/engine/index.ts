@@ -193,3 +193,11 @@ export type { AnimalSound, HoofSurface, ImpactKind } from './audio/Audio';
 export { audioRandom } from './audio/util';
 
 export { wildEnv } from './entities/wildEnv';
+
+export { authoredTargets, type RayTargets } from './combat/targets';
+export { windUniforms } from './world/TreeFactory';
+export type { Wildlife, SheepHit } from './entities/Wildlife';
+export { loadMeadow } from './meadowApi';
+export type { PlaygroundHost, Playground } from './practice/playground/Playground';
+export { pathRampDescs } from './physics/paths';
+export { AnalyticsSink, type AnalyticsEvent, type AnalyticsMap, type AnalyticsBatch } from './analytics';
