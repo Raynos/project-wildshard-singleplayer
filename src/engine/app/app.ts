@@ -60,6 +60,8 @@ export class App {
   get effects(): EffectService | null { return this.levelScope === null ? null : this.effectsByLevel.get(this.levelScope) ?? null; }
   registerEffects(effects: EffectService, scope: Scope): void {
     this.effectsByLevel.set(scope, effects);
+    // Registered before plugin play systems; timed statuses expire before encounter legs are sampled.
+    this.addSystem({ id: 'engine.effects', phase: 'update', run: (dt) => { effects.update(dt); } }, scope);
     scope.onDispose(() => { this.effectsByLevel.delete(scope); });
   }
   private readonly players = new WeakMap<Scope, PlayerHealth>();

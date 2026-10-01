@@ -1,5 +1,6 @@
 import * as v from 'valibot';
-import { saves, jsonSchema,boxInFrame } from '#engine';
+import { saves, jsonSchema, boxInFrame, QuestLine, loadQuest, type NpcDef, type NpcTalk, type SkinDef, type SkinLocker } from '#engine';
+import type { ShardContext } from '#game';
 /**
  * Pine Hollow's adventure layer, wired in one call from main.ts (PINE-HOLLOW-REMASTER: PH-C1 the quest *The Warden's
  * Hollow*, PH-C6 the mill hamlet, PH-C7 night play, PH-C8 collectibles + secrets, PH-C10's event achievements, the C9
@@ -23,7 +24,6 @@ import type { Game } from '#engine/core/Game';
 import type { Sky } from '#engine/world/Sky';
 import type { Player } from '#engine/player/Player';
 import type { AnimalManager } from '#engine/entities/AnimalManager';
-import type { Animal } from '#engine/entities/Animal';
 import type { Interactable, Cabins } from '../world/homestead';
 import type { WorldRegistry } from '#engine/world/registry';
 import type { HUD } from '#engine/ui/HUD';
@@ -33,7 +33,7 @@ import type { PineHollowSfx } from '../audio/sfx';
 import { IslandSfx } from '#engine/audio/IslandSfx';
 import type { Inventory, ItemId } from '#game/Inventory';
 import type { Progress } from '#game/Progress';
-import { SKINS, type SkinDef, type SkinLocker } from '#engine/player/Skins';
+import { SKINS } from '../loadout/skins';
 import type { FullMap, MapPoi } from '#engine/ui/Map';
 import type { CompendiumState } from '#game/compendium/state';
 import type { TreeInstance } from '#engine/world/forest/placement';
@@ -43,8 +43,6 @@ import { waystoneSites, contractBoardSite, CANOE_SITE, ZIP_YAW, pineHamletBuildi
 import { Flags, test } from '#engine/world/interact/flags';
 import { Interactables, type InteractEvent } from '#engine/world/interact/Interactables';
 import type { Place } from '#engine/world/interact/types';
-import { QuestState, lineFor, type NpcDef } from '#game/quest/quest';
-import { DialogueBox, ObjectiveLine, RewardCaption } from '#game/quest/QuestUI';
 import { BEAVER_DAM, CREEK, CABIN_SITES, HAMLET_SITES, ISLET, LOOKOUT, PINE_HOLLOW_POIS, PINE_HOLLOW_ZONES, POND, STANDING_STONES, KINGS_CLEARING, WATERFALL, CREEK_BRIDGE } from '../layout';
 import { KING_KIND } from '../combat/antlerKing';
 import { WARDENS_HOLLOW, RANGER, MILLER, TRADER, QUEST_DONE, LANTERN_FLAGS, type LanternId } from './wardensHollow';
@@ -62,13 +60,13 @@ import { StagLead } from './stagLead';
 import { NightThralls, isThrall } from './nightThralls';
 import { BEATS, beatFlags, isBeat, type Beat } from './beats';
 import { placeTokenShelf } from './tokenShelf';
-import { markUnload } from '#engine/boot/lastEnd';
 import { BeaverPool } from '../world/beaverPool';
 import { perfLap } from '#engine/core/perfLap';
 
 const lodgeSave = saves.define({ key: 'lodge', scope: 'shard', version: 1, schema: jsonSchema, initial: () => null });
 
 export interface PineQuestHost {
+  ctx: ShardContext;
   game: Game; sky: Sky; player: Player; animals: AnimalManager;
   hud: HUD; audio: Audio; music: Music;
   inventory: Inventory; progress: Progress; skins: SkinLocker; wearSkin: (s: SkinDef) => void;
@@ -98,13 +96,19 @@ export interface PineQuest {
 const TALK_R = 3.2;
 const _v = new THREE.Vector3();
 
-export function installPineQuest(h: PineQuestHost): PineQuest {
+export async function installPineQuest(h: PineQuestHost): Promise<PineQuest> {
+  const { DialogueBox, QuestChip, NpcTalk, RewardCaption } = await loadQuest();
+  const { ctx } = h;
   const { game, sky, player, animals, hud, inventory, progress } = h;
   const flags = new Flags(h.chunkId);
   if (h.params.has('resetquest')) flags.reset();
   const beatParam = h.params.get('quest');
   const beat: Beat | null = beatParam !== null && isBeat(beatParam) ? beatParam : null;
   if (beat) { flags.reset(); for (const f of beatFlags(beat)) flags.set(f); }
+  const chapter = new QuestLine([WARDENS_HOLLOW], flags, ctx.app.events, ctx.scope);
+  const quest = chapter.chapters[0];
+  if (quest === undefined) throw new Error("Pine quest chapter is missing");
+
   let sfx: PineHollowSfx | null = null;
   const kitSfx = new IslandSfx(h.audio);
   const shot = (name: Parameters<PineHollowSfx['shot']>[0], at?: THREE.Vector3): void => { sfx?.shot(name, at ? { at } : {}); };
@@ -162,7 +166,7 @@ export function installPineQuest(h: PineQuestHost): PineQuest {
   const pool = new BeaverPool(sky).build();
   game.scene.add(pool.group);
   pool.setOpen(flags.has('open:dam-sluice'), true);
-  flags.onChange((f, on) => { if (f === 'open:dam-sluice') pool.setOpen(on); });
+  ctx.scope.onDispose(flags.onChange((f, on) => { if (f === 'open:dam-sluice') pool.setOpen(on); }));
   game.onUpdate((dt) => { pool.update(dt); }, 'quest.pool');
 
   // ── the counters, the toasts ──
@@ -319,7 +323,7 @@ export function installPineQuest(h: PineQuestHost): PineQuest {
   // ── the trader's slate ──
   const traderVoice = new THREE.Vector3();   // his head (set once he stands in his stall, below)
   const pack = { count: (id: TradeItem): number => inventory.count(id) };
-  const trade = new TradePanel(pack, (s) => s in SKINS && h.skins.has(s as keyof typeof SKINS), (k, n) => h.crossbow.room?.(k, n) ?? true);
+  const trade = new TradePanel(pack, (s) => s in SKINS && h.skins.has(s), (k, n) => h.crossbow.room?.(k, n) ?? true);
   trade.onTrade = (t: Trade) => {
     for (const g of t.give) inventory.take(g.item, g.n);
     const got = t.get;
@@ -351,24 +355,19 @@ export function installPineQuest(h: PineQuestHost): PineQuest {
 
   // ── the people ──
   const dialogue = new DialogueBox();
-  interface Person { kind: NpcKind; def: NpcDef; fig: NpcFigure; prompt: Interactable; barked: boolean; after: (() => void) | undefined }
+  interface Person { kind: NpcKind; def: NpcDef; fig: NpcFigure; prompt: Interactable; talk: NpcTalk; barked: boolean; after: (() => void) | undefined }
   const people: Person[] = [];
   const addPerson = (kind: NpcKind, def: NpcDef, feet: { x: number; z: number }, yaw: number, label: string, after?: () => void): Person => {
     const y = floorAt(feet.x, feet.z);
     const fig = makeNpcFigure(kind, sky, { x: feet.x, y, z: feet.z }, yaw);
     game.scene.add(fig.group);
     h.registry.add({ id: `npc-${kind}`, name: def.name, category: 'people', file: 'src/shards/pine-hollow/quest/index.ts', colliders: [boxInFrame(fig.collider, fig.group, 'wood', false)], follows: fig.group, followRotation: false });
-    const talk = (): void => {
-      if (dialogue.isOpen) { dialogue.advance(); return; }
-      const entry = lineFor(def, flags);
-      if (!entry) { after?.(); return; }
-      fig.talking = true;
-      sfx?.bark(kind, fig.talkPoint);
-      dialogue.open(def.name, entry.lines, () => { fig.talking = false; for (const f of entry.sets ?? []) flags.set(f); after?.(); });
-    };
-    const prompt: Interactable = { position: fig.talkPoint.clone(), get radius() { return dialogue.isOpen ? 0 : TALK_R; }, label, onInteract: talk };
+    const talk = new NpcTalk({ dialogue, flags, npc: def, at: fig.talkPoint, radius: TALK_R, label, speaker: fig,
+      onOpen: () => { sfx?.bark(kind, fig.talkPoint); }, onDone: () => { after?.(); }, onEmpty: () => { after?.(); } });
+    // Mott's hatch moves the cloned prompt out in front of the stall.
+    const prompt = talk.prompt; prompt.position = fig.talkPoint.clone();
     h.interactables.push(prompt);
-    const person: Person = { kind, def, fig, prompt, barked: false, after };
+    const person: Person = { kind, def, fig, prompt, talk, barked: false, after };
     people.push(person);
     return person;
   };
@@ -386,9 +385,9 @@ export function installPineQuest(h: PineQuestHost): PineQuest {
   { const f = front(HAMLET_SITES.trader, 2.6); traderPerson.prompt.position.set(f.x, floorAt(f.x, f.z) + 1.4, f.z); traderVoice.copy(traderPerson.fig.talkPoint); }
 
   // ── kills: the King, thralls, the contracts ──
-  const prevKill = animals.onKill;
-  animals.onKill = (a: Animal) => {
-    prevKill?.(a);
+  ctx.on('actor.died', ({ actor }) => {
+    const a = animals.animals.find((animal) => animal.combatActor() === actor);
+    if (a === undefined) return;
     if (a.kind === KING_KIND) flags.set('dead:king');
     const thrall = isThrall(a);
     if (thrall) progress.recordEvent('thrall');
@@ -400,7 +399,7 @@ export function installPineQuest(h: PineQuestHost): PineQuest {
         if (c) hud.toast(isFilled(c) ? `Contract filled · ${c.goal} — claim it at the lodge` : `Contract · ${c.goal} · ${c.have} / ${c.need}`);
       }
     }
-  };
+  });
 
   // ── the rides ──
   let zip: ZipRide | null = null, canoe: CanoeRide | null = null;
@@ -441,7 +440,8 @@ export function installPineQuest(h: PineQuestHost): PineQuest {
   });
 
   // ── the clock: Hale's watch till dark, the dawn ──
-  const objective = new ObjectiveLine();
+  const questChip = new QuestChip({ chip: () => quest.chip(), markers: () => quest.markers().map((m) => ({ id: m.id, label: m.label, short: m.short ?? m.label, x: m.at.x, z: m.at.z })) });
+  const objective = questChip.line;
   const reward = new RewardCaption('Dawn over the Hollow', "The Warden's Hollow", 'Every lantern burns. The fog is going home.');
   let ff: { from: number; span: number; t: number; dur: number; to: number } | null = null;
   const fastForward = (to: number, dur: number): void => {
@@ -449,14 +449,14 @@ export function installPineQuest(h: PineQuestHost): PineQuest {
     const span = (((to - dn.phase) % 1) + 1) % 1;
     ff = { from: dn.phase, span, t: 0, dur, to };
   };
-  flags.onChange((f, on) => {
+  ctx.scope.onDispose(flags.onChange((f, on) => {
     if (!on) return;
     if (f === 'wait:night') {
       flags.clear('wait:night');
       if (night() < 0.5 && sky.dayNight) { hud.toast('You sit with Hale on the porch while the light goes out of the Hollow…'); fastForward(PINE_PHASES.night, 6); }
     }
     if (f.startsWith('lit:')) syncLanterns();
-  });
+  }));
   let dawnT = -1;
   const runDawn = (): void => {
     if (dawnT >= 0 || flags.has('seen:dawn')) return;
@@ -480,7 +480,6 @@ export function installPineQuest(h: PineQuestHost): PineQuest {
   };
 
   // ── the quest ──
-  const quest = new QuestState(WARDENS_HOLLOW, flags);
   h.fullMap.setQuest(() => ({ title: quest.isStarted ? WARDENS_HOLLOW.title : 'Pine Hollow', objective: quest.objective(), hint: quest.isComplete ? '' : quest.hint() }));
   quest.onStep = (step, prev) => {
     if (prev === null && step?.id === 'pond') hud.toast(`New quest · ${WARDENS_HOLLOW.title}`);
@@ -518,21 +517,21 @@ export function installPineQuest(h: PineQuestHost): PineQuest {
     if (flags.has(QUEST_DONE)) progress.recordEvent('quest', 1);
   };
   syncFeats();
-  flags.onChange((f, on) => { if (on && !f.startsWith('plate:') && !f.startsWith('lever:')) syncFeats(); });
+  ctx.scope.onDispose(flags.onChange((f, on) => { if (on && !f.startsWith('plate:') && !f.startsWith('lever:')) syncFeats(); }));
   const journalFull = (): boolean => {
     const st = h.compendium; if (!st) return false;
     return st.def.entries.every((e) => { const s = st.stats(e.id).state; return s === 'seen' || s === 'taken'; });
   };
 
   // ── per frame ──
-  let slowT = 0, navT = 0;
+  let slowT = 0;
   game.onUpdate((dt, t) => {
     const pp = player.position;
     dialogue.update(dt);
     for (const p of people) {
       p.fig.update(dt, t, pp);
       const d2 = p.fig.talkPoint.distanceToSquared(pp);
-      if (dialogue.isOpen && p.fig.talking && d2 > (TALK_R + 2.5) ** 2) { dialogue.close(false); p.fig.talking = false; }
+      p.talk.update(pp);
       if (!p.barked && d2 < 7 * 7) { p.barked = true; sfx?.bark(p.kind, p.fig.talkPoint); }
       else if (p.barked && d2 > 16 * 16) p.barked = false;
     }
@@ -549,18 +548,7 @@ export function installPineQuest(h: PineQuestHost): PineQuest {
       stag.update(dt, t, quest.current?.id === 'stag' && night() > 0.5, pp);
       thralls.update(dt, t, pp);
     }
-    objective.update(t);
-    if (t - navT > 0.1) {
-      navT = t;
-      const c = quest.chip();
-      objective.set(c.label, c.count);
-      let best: { short: string; x: number; z: number } | null = null, bd = Infinity;
-      for (const m of liveMarkers()) { const d = Math.hypot(m.x - pp.x, m.z - pp.z); if (d < bd) { bd = d; best = m; } }
-      if (best && bd > 6) {
-        const dx = best.x - pp.x, dz = best.z - pp.z, sy = Math.sin(player.yaw), cy = Math.cos(player.yaw);
-        objective.setNav(best.short, bd, Math.atan2(dx * cy - dz * sy, -dx * sy - dz * cy));
-      } else objective.setNav(null, 0, 0);
-    }
+    questChip.update(t, player);
     if (t - slowT > 0.5) {
       slowT = t;
       const cam = game.camera.position;
@@ -594,7 +582,7 @@ export function installPineQuest(h: PineQuestHost): PineQuest {
   };
   const debug = {
     flags, quest, board, kit, stag, thralls, people,
-    jump: (bt: string): void => { const u = new URL(location.href); u.searchParams.set('quest', bt); markUnload(`debug quest jump to ${bt}`); location.href = u.toString(); }, goto,
+    jump: goto, goto,
     dawn: runDawn, night: (): void => { fastForward(PINE_PHASES.night, 2); },
     zip, canoe, lanterns: lanternPrompts, hollow: (): HollowLog | null => hollow,
     openBoard: (): void => { boardUi.open(); }, openTrade: (): void => { trade.open(); },
@@ -603,7 +591,14 @@ export function installPineQuest(h: PineQuestHost): PineQuest {
     fill: (i: number): void => { const c = board.slots[i]; if (c) { c.have = c.need; saveBoard(board, store); } },
     test: (c: { all?: string[] }): boolean => test(flags, c),
   };
+  ctx.debug.expose('pine.quest', debug);
   Object.assign(window, { __pineQuest: debug });
+  ctx.scope.onDispose(() => {
+    if (Reflect.get(window, '__pineQuest') === debug) Reflect.deleteProperty(window, '__pineQuest');
+    objective.root.remove(); reward.root.remove(); dialogue.close(false); dialogue.root.remove();
+    boardUi.root.remove(); trade.root.remove(); chip.root.remove();
+    window.clearTimeout(holdTimer);
+  });
   if (quest.current?.id === 'dawn') runDawn();   // an early kill (or `?quest=dawn`): the dawn plays now
   return { useSfx: (s) => { sfx = s; }, stagAt: () => stag.position };
 }

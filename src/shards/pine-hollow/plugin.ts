@@ -106,7 +106,7 @@ export class PineHollow extends ShardPlugin {
     ctx.rows.encounter({ id: KING_KIND, displayName: 'The Antler King', showHeadBar: false });
     ctx.rows.weapon([CROSSBOW, LEVER, LONGBOW]);
     ctx.rows.ammo(AMMO_ROWS);
-    ctx.rows.effect(PINE_FINISH_EFFECTS);
+    ctx.rows.effect([...PINE_FINISH_EFFECTS, ...STARTER_EFFECTS]);
   }
 
   override async play(ctx: ShardContext): Promise<void> {
@@ -153,10 +153,11 @@ export class PineHollow extends ShardPlugin {
     if (loadout.hasRifle || params.get('weapon') === 'rifle' || params.get('weapon') === 'lever') rifleDrop?.dispose();
     rt.hooks.disposeRifleDrop = () => { rifleDrop?.dispose(); };
     rt.hooks.updatePickups = (dt, t) => { rifleDrop?.update(dt, t, game.renderer, game.camera); for (const drop of skinDrops) drop.update(dt, t, game.renderer, game.camera); };
+    installStarterEffects(ctx, { player, health: ctx.app.player, effects: ctx.app.effects });
     const fights = installPineCombat({ game, sky, player, animals, weapons, crossbow, rifle, skins, wearSkin, inventory, hud, audio, music, interactables: rt.interactables, params,
       longbow: { displayModel: () => longbow.displayModel(), grant: () => { loadout.grantLongbow(); } }, ironFirst: () => { loadout.onPlayerDeath(); } });
     const compendium = installCompendium({ chunkId: ctx.manifest.slug, game, camera: game.camera, hud, menu, animals, cabins, interactables: rt.interactables, weapons, touchUi, nolock });
-    const quest = installPineQuest({ game, sky, player, animals, hud, audio, music, inventory, progress, skins, wearSkin, weapons,
+    const quest = await installPineQuest({ ctx, game, sky, player, animals, hud, audio, music, inventory, progress, skins, wearSkin, weapons,
       crossbow: { addBolts: (n) => { loadout.addAmmo('iron', n); }, addAmmo: (kind, n) => { loadout.addAmmo(kind, n); }, room: (kind, n) => loadout.room(kind, n) },
       menu, interactables: rt.interactables, registry, cabins, landmarks, trees: forest.trees, fullMap, compendium: compendium?.state ?? null, chunkId: ctx.manifest.slug, params, touchUi, nolock });
     placePineHollowSets(registry);

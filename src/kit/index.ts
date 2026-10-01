@@ -29,3 +29,6 @@ export { BUCKSKIN, HANDS_MATERIAL, WeaponHands, coatMaterialParams, holdDef, wit
 
 export { loadParticles } from './lookApi';
 export type { Particles } from './looks/particles';
+
+export { STARTER_EFFECTS, STARTER_CHOICES, starterId, type StarterChoice } from './effects/starter';
+export { installStarterEffects } from './effects/install';

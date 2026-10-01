@@ -169,6 +169,9 @@ export class Player {
   touchDodge = false;
   /** walking speed multiplier a weapon may pin (the Nalati spear's BRACE: 0 = planted, the view still turns) */
   moveScale = 1;
+  /** Status effects have their own channels; weapons keep moveScale. */
+  effectMoveScale = 1;
+  effectMoveLocked = false;
   /** a sword swing is running (Sword.ts sets it every frame): the look speed takes the 'swingLook' factor */
   swinging = false;
   /** the held weapon's zoom slows the look by this (Nalati's bow sets 1 / its AIM zoom; nothing else touches it) */
@@ -384,7 +387,7 @@ export class Player {
     // in the saddle the horse carries you (Mount.step, on the horse's own motor): no walk, no motor of yours
     if (this.ride !== null) { this.ride.step(dt); return; }
     if (this.traversalEvents?.ask('player.traversal', dt) === true) { this.jumpQueued = false; return; }
-    if (this.carried) { this.velocity.set(0, 0, 0); this.onGround = false; return; }
+    if (this.carried || this.effectMoveLocked) { this.velocity.set(0, 0, 0); this.onGround = false; return; }
     const k = this.keys;
     const fwd = this.inFwd, str = this.inStr;
     const hover = this.hover;
@@ -393,7 +396,7 @@ export class Player {
     const wadeT = !hover && !swim && this.onGround ? Math.min(1, this.depth / WADE_MAX) : 0;
     this.crouching = !hover && !swim && (k.has('ControlLeft') || k.has('KeyC'));
     this.sprinting = !hover && !swim && this.depth < NO_SPRINT_DEPTH && (k.has('ShiftLeft') || this.touchSprint) && fwd > 0 && !this.crouching;
-    const speed = (this.crouching ? 2.2 : this.sprinting ? 7.2 : 4.3) * (1 - 0.55 * wadeT) * this.moveScale;
+    const speed = (this.crouching ? 2.2 : this.sprinting ? 7.2 : 4.3) * (1 - 0.55 * wadeT) * this.moveScale * this.effectMoveScale;
     this.waveTime += dt;
 
     const sin = Math.sin(this.yaw), cos = Math.cos(this.yaw);
