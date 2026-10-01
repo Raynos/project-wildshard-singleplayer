@@ -7,7 +7,7 @@ import { dirname, join, resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Temporary test repositories live outside the checkout.
 import { tmpdir } from 'node:os';
 // oxlint-disable-next-line import/no-nodejs-modules -- Child processes use the Vitest worker's Node executable.
-import { execPath } from 'node:process';
+import { env, execPath } from 'node:process';
 import { afterAll, describe, expect, it } from 'vitest';
 
 interface Case { id: string; file: string; rule: string; code: string; count: number }
@@ -25,7 +25,11 @@ function put(root: string, file: string, code: string): void { const path = join
 const cases = JSON.parse(readFileSync('test/fixtures/lint/cases.json', 'utf8')) as Case[];
 const fixtureRoot = temp();
 for (const item of cases) put(fixtureRoot, item.file, item.code);
-const lint = spawnSync(execPath, [resolve('node_modules/oxlint/bin/oxlint'), '-c', resolve('.oxlintrc.ratchet.json'), '-f', 'json', 'src'], { cwd: fixtureRoot, encoding: 'utf8' });
+const fixtureBaseline = join(fixtureRoot, 'ratchet.json');
+writeFileSync(fixtureBaseline, JSON.stringify({ allow: { 'wildshard/no-raw-random-time': { 'src/ui/perfHud.ts': 'fixture diagnostic stopwatch' } } }));
+const lint = spawnSync(execPath, [resolve('node_modules/oxlint/bin/oxlint'), '-c', resolve('.oxlintrc.ratchet.json'), '-f', 'json', 'src'], {
+  cwd: fixtureRoot, encoding: 'utf8', env: { ...env, WILDSHARD_RATCHET_FILE: fixtureBaseline },
+});
 const diagnostics = (JSON.parse(lint.stdout) as { diagnostics: Diagnostic[] }).diagnostics;
 
 describe('F4 rules through the real oxlint plugin', () => {
