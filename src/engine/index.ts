@@ -211,7 +211,6 @@ export { WaterBodies, swellBody, type WaterBody } from './world/water/body';
 
 export type { ThinkCtx, EnemyWorld, AnimalDims, VariantMods } from './entities/species/registry';
 export { NO_FUR, lookAngles, smooth01, bump, step, clamp as rigClamp, squashBody } from './entities/species/rigs';
-export { faceHead, loadFaceHead, type FaceHead } from './world/faceHeads';
 export { BossBar } from './ui/BossBar';
 
 export { pondGrid } from './world/pondGrid';
@@ -242,7 +241,6 @@ export type { PoiId, Place } from './world/interact/types';
 export type { MapPoi as FullMapPoi, MapQuest } from './ui/Map';
 export type { MapMark } from './ui/Minimap';
 export type { FirstHints } from './ui/FirstHints';
-export type { BodyShadow } from './player/BodyShadow';
 export { modelContext } from './models/model';
 
 export { activeBodies, type Body, type BodySpec } from './physics/bodies';

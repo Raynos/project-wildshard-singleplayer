@@ -38,13 +38,12 @@ import { buildTrophy, trophyPlaques, TrophyPlaques } from '../models/trophyPlaqu
 import { buildCaptainHat } from '../models/captainHat';
 import { buildSailclothCape } from '../models/sailclothCape';
 import { ItemPickup, type PickupTier } from '#engine/player/WeaponPickup';
-import type { BodyShadow } from '#engine/player/BodyShadow';
 import { practiceRoom } from '#engine/core/practiceRoom';
 import type { Sky } from '#engine/world/Sky';
 import type { WorldRegistry } from '#engine/world/registry';
 import { SEA_GLASS_COUNT, SEA_GLASS_FLAG } from '../quest/interactables';
 import type { Adventure } from '../quest/adventure';
-import type { ShardContext } from '#game';
+import type { BodyShadow, ShardContext } from '#game';
 import { seaGlassFound } from './finds';
 import type { Owned } from '#game/loot/Owned';
 import { charmsFor, chimeCount, dodgeCooldownScale, heavyMult, nightGlow } from './perks';

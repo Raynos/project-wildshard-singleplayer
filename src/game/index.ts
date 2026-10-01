@@ -42,3 +42,5 @@ export { installLoot, type ScopedLootHost, type ScopedLoot, type LootPresentatio
 export { onCreatureDeath, DEATH_ORDER, type CreatureDeathSource } from './loot/deaths';
 
 export { ShopPanel, type ShopGood, type ShopState, type ShopOpts } from './loot/ui/ShopPanel';
+
+export { BodyShadow, installBodyShadow } from './cosmetics/bodyShadow';

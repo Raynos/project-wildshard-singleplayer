@@ -28,7 +28,7 @@ import { LowPolyKit, log, rock, plank, lowPolyMaterial } from '#engine/world/low
 import type { Sky } from '#engine/world/Sky';
 import type { BoxSpec as Collider } from '#engine/physics/box';
 import { attachFogUniforms } from '#engine/world/Atmosphere';
-import { loadFaceHead, type FaceHead } from '#engine';
+import { loadFaceHead, type FaceHead } from '#kit';
 
 const C = {
   skin: '#c98d62', skinDark: '#a8704a', beard: '#cfcac0', beardDark: '#a9a39a', hat: '#d8b867', hatDark: '#b8964a', band: '#7a3b2a',

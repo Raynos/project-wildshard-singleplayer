@@ -1,4 +1,5 @@
-import type { World, StepRunner, Interactable, Animal, AnimalManager, EquipmentService, WeaponId, Weapon, Audio, StepSurface, Music, HUD, GameMenu, FullMap, SkinLocker, SkinDef, CombatCues, Targets, GameMenuOptions, FirstHints, MapMark, BodyShadow } from '#engine';
+import type { BodyShadow } from '../cosmetics/bodyShadow';
+import type { World, StepRunner, Interactable, Animal, AnimalManager, EquipmentService, WeaponId, Weapon, Audio, StepSurface, Music, HUD, GameMenu, FullMap, SkinLocker, SkinDef, CombatCues, Targets, GameMenuOptions, FirstHints, MapMark } from '#engine';
 import type { Group, Vector2, Vector3 } from 'three';
 import type { Inventory } from '../Inventory';
 import type { Progress } from '../Progress';

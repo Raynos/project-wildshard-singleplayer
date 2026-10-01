@@ -6,7 +6,7 @@ import { reportError } from '#engine/core/errorReport';
 import { showLoadFailure } from '#engine/ui/errorScreen';
 import { app, EffectService, CombatCues, pageSeed, LevelLoadError, installBounds, EquipmentService, type WeaponId, type Weapon, type LevelContext, type DiscSpot, CHUNK_HALF, startViewmodelTextures, viewmodelTexturesReady, loadWorldContent, authoredTargets, type Targets, getNumber, onNumber, onSettingChange, setting, floorBelow, lineOfSight } from '#engine';
 
-import { isOwnedId, shardContext, toLevelSpec, consumeTravelHandoff, bindTravelInventory, applyTravelCarry, setShardSwitcher, type TravelHandoff, type ItemRow, type ShardContext, type GameServices, type ShardRuntime } from '#game';
+import { installBodyShadow, isOwnedId, shardContext, toLevelSpec, consumeTravelHandoff, bindTravelInventory, applyTravelCarry, setShardSwitcher, type TravelHandoff, type ItemRow, type ShardContext, type GameServices, type ShardRuntime } from '#game';
 import { levelSequenceDriver, type LevelSequence } from '#game/shard/sequence';
 import { meleeShard, type ShardManifest } from '#game/shard/manifest';
 import { installProbe } from '#engine/debug/probe';
@@ -53,7 +53,6 @@ import { Owned } from '#game/loot/Owned';
 import { practiceRoom } from '#engine/core/practiceRoom';
 import { sharedCombatCues } from '#kit/audio/combatCues';
 import { driftwoodCombatCues } from '#shards/driftwood-isle/audio/combatCues';
-import { installBodyShadow } from '#engine/player/BodyShadow';
 
 import { KeepAlive } from '#engine/core/KeepAlive';
 import { Combat, aimReadout } from '#engine/ui/Combat';

@@ -52,3 +52,5 @@ export { loadGrassField } from './lookApi';
 export { NpcRig, type NpcRow, type NpcModel, type NpcFace } from './npc/npcRig';
 
 export { sharedWeaponVoices } from './audio/weaponVoices';
+
+export { faceHead, loadFaceHead, type FaceHead } from './npc/faceHeads';
