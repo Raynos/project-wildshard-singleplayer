@@ -44,7 +44,7 @@ export function fnv1a32(text: string): number {
 }
 export interface RngStreams { gameplay: true; ai: true; spawn: true; cosmetic: true }
 export type RngStream = keyof RngStreams;
-export class RngService {
+class RandomStreams {
   private streams = new Map<RngStream, Rng>();
   private value: number;
   constructor(seed = 0) { this.value = seed >>> 0; }
@@ -56,6 +56,7 @@ export class RngService {
     return rng;
   }
 }
+export { RandomStreams as RngService };
 
 /** Harness pins every stream; a live page gets one crypto salt without consuming gameplay draws. */
 export function pageSeed(seed: number, harnessSeed?: number): number {

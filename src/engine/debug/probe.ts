@@ -15,6 +15,7 @@ import { TIER } from '../core/tier';
 import { tap } from '../core/harnessTap';
 import { currentScope, levelRegistrations, asShell } from '../core/shardScope';
 import type { ScopeCensus } from '../app/scope';
+import type { AppState, Phase } from '../app/systems';
 
 declare const __BUILD_ID__: string;
 export interface Vec3 { x: number; y: number; z: number }
@@ -82,6 +83,7 @@ export interface Fingerprint {
   viewport: { w: number; h: number; dpr: number; touch: boolean };
   renderer: string; browser: string; errors: string[]; steps: string[];
   systems: ReturnType<World['game']['systemLabels']>;
+  appStates: AppState[];
   registry: { id: string; category: string; surface: string; floor: boolean; solidFloor: boolean; follows: boolean;
     shapes: { cuboid: number; ball: number; capsule: number; convex: number; trimesh: number; treads: number } }[];
   registryModels: { models: number; sets: number };
@@ -97,6 +99,13 @@ export interface Fingerprint {
   playMs: number; stepMs: Record<string, number>; heapMB: number;
 }
 export interface ProbeDeps { bootSteps: Record<string, number>; health: () => number; quest: () => unknown }
+export interface ProbeApp {
+  readonly state: AppState;
+  readonly systems: Readonly<Record<Phase, readonly string[]>>;
+  readonly clock: Readonly<{ now: number; real: number; frame: number; mode: 'live' | 'capture' }>;
+  readonly rngSeed: number;
+  readonly census: Readonly<{ engine: Readonly<ScopeCensus>; level: Readonly<ScopeCensus> }>;
+}
 export interface WildshardProbe<W extends ProbeWorld = ProbeWorld> {
   version: 1; world: W; shard: { slug: string } & Record<string, unknown>; boot: Fingerprint;
   fingerprint: () => Fingerprint;
@@ -112,6 +121,7 @@ export interface WildshardProbe<W extends ProbeWorld = ProbeWorld> {
   used: () => string[];
   nav: ProbeNav | null;
   leak: () => Promise<LeakResult>;
+  readonly app: ProbeApp;
 }
 declare global {
   interface Window { __wildshard: WildshardProbe; __wildshardHarness?: HarnessPins }
@@ -178,6 +188,15 @@ export function programHash(input: string): string {
   }
   return h.map((v) => v.toString(16).padStart(8, '0')).join('');
 }
+/** Cache keys contain JavaScript callback source, which changes under bundling; linked GLSL is the stable input. */
+export function compiledProgramHash<Shader>(programs: readonly { vertexShader: Shader; fragmentShader: Shader }[], read: (shader: Shader) => string | null): string {
+  const sources = programs.map((program) => {
+    const vertex = read(program.vertexShader), fragment = read(program.fragmentShader);
+    if (vertex === null || fragment === null) throw new Error('Compiled program source unavailable');
+    return JSON.stringify([vertex, fragment]);
+  }).sort();
+  return programHash(sources.join('\n'));
+}
 
 function fingerprint(world: ProbeWorld, deps: ProbeDeps, saves: Saves): Fingerprint {
   const { game, registry, physics, music, audio } = world, pins = window.__wildshardHarness;
@@ -221,9 +240,9 @@ function fingerprint(world: ProbeWorld, deps: ProbeDeps, saves: Saves): Fingerpr
     schema: 1, lane: pins?.lane ?? '', sha: pins?.sha ?? build.split('-')[0] ?? '', build, shard: world.chunk.slug, tier: TIER,
     viewport: { w: window.innerWidth, h: window.innerHeight, dpr: window.devicePixelRatio, touch: navigator.maxTouchPoints > 0 },
     renderer: typeof renderer === 'string' ? renderer : '', browser: pins?.browser ?? navigator.userAgent, errors: [...(pins?.errors ?? [])],
-    steps: Object.keys(deps.bootSteps), systems: game.systemLabels(), registry: pieces, registryModels: { models: registry.models().length, sets: registry.sets.length },
+    steps: Object.keys(deps.bootSteps), systems: game.systemLabels(), appStates: [...game.app.stateHistory], registry: pieces, registryModels: { models: registry.models().length, sets: registry.sets.length },
     physics: counts, scene: { totals, named },
-    render: { programs: programs.length, programKeys: programHash(programs.map((p) => p.cacheKey).sort().join('\n')), memory: { ...game.renderer.info.memory } },
+    render: { programs: programs.length, programKeys: compiledProgramHash(programs, (shader) => gl.getShaderSource(shader)), memory: { ...game.renderer.info.memory } },
     gpuBytes: pins?.gpuBytes?.() ?? { textures: 0, renderbuffers: 0, buffers: 0, total: 0 },
     audio: { requests: [...new Set(pins?.audioRequests)].map((url) => url.replace(/\?v=[^&]*$/, '')).sort(), state: { style: music.style, set: audio.samples.set, mood: music.state.mode } },
     hud, saves: { read: [...new Set(saves.read)].sort(), written: [...new Set(saves.written)].sort() },
@@ -307,6 +326,18 @@ export function installProbe<W extends ProbeWorld>(world: W, deps: ProbeDeps): W
   const shard: WildshardProbe['shard'] = { slug: world.chunk.slug };
   for (const key of SHARD_KEYS[world.chunk.slug] ?? []) shard[key] = world[key];
   const probe: WildshardProbe<W> = {
+    app: Object.freeze({
+      get state() { return app.state; },
+      get systems() {
+        const phases = app.systemsByPhase();
+        return Object.freeze({ input: Object.freeze(phases.input.map((s) => s.id)), 'fixed.pre': Object.freeze(phases['fixed.pre'].map((s) => s.id)),
+          'fixed.step': Object.freeze(phases['fixed.step'].map((s) => s.id)), 'fixed.post': Object.freeze(phases['fixed.post'].map((s) => s.id)),
+          update: Object.freeze(phases.update.map((s) => s.id)), late: Object.freeze(phases.late.map((s) => s.id)), render: Object.freeze(phases.render.map((s) => s.id)) });
+      },
+      get clock() { return Object.freeze({ now: app.clock.now, real: app.clock.real, frame: app.clock.frame, mode: app.clock.mode }); },
+      get rngSeed() { return app.rng.seedValue; },
+      get census() { return Object.freeze({ engine: Object.freeze(app.engineScope.census), level: Object.freeze(game.levelScope.census) }); },
+    }),
     version: 1, world, shard, boot: fingerprint(world, deps, saves), fingerprint: () => fingerprint(world, deps, saves), pose, nav,
     leak: async () => {
       requireHarness();

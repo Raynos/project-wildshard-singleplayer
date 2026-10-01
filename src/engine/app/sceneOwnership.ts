@@ -13,6 +13,7 @@ export function containerResources(container: unknown): Set<Disposable3> {
       if (value instanceof Texture || value instanceof BufferGeometry) return;
     }
     if (value instanceof Object3D || Reflect.get(value, 'isWebGLRenderer') === true || (typeof Node !== 'undefined' && value instanceof Node)) return;
+    if (value instanceof Map || value instanceof Set) { for (const child of value.values()) visit(child); return; }
     for (const child of Object.values(value)) visit(child);
   };
   visit(container);

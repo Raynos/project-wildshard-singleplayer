@@ -101,7 +101,7 @@ export class App {
     this.systems.set(system.id, system);
     this.systemScopes.set(system.id, scope);
     this.sorted = null;
-    try { this.systemsByPhase(); } catch (error) { this.systems.delete(system.id); this.sorted = null; throw error; }
+    try { this.systemsByPhase(); } catch (error) { this.systems.delete(system.id); this.systemScopes.delete(system.id); this.sorted = null; throw error; }
     scope.capture('systems', () => { this.systems.delete(system.id); this.systemScopes.delete(system.id); this.sorted = null; });
   }
   systemIds(scope: Scope): string[] { return [...this.systemScopes].filter(([, owner]) => owner.belongsTo(scope)).map(([id]) => id); }

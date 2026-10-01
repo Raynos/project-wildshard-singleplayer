@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { afterEach, describe, expect, expectTypeOf, it, vi } from 'vitest';
 import * as THREE from 'three';
-import { installProbe, programHash, type ProbeWorld, type WildshardProbe } from '#engine/debug/probe';
+import { installProbe, programHash, compiledProgramHash, type ProbeWorld, type WildshardProbe } from '#engine/debug/probe';
 import type { WildshardProbe as ScriptProbe } from '../scripts/types/wildshard-probe';
 import type { Game } from '#engine/core/Game';
 import type { Player } from '#engine/player/Player';
@@ -59,7 +59,7 @@ describe('probe contract', () => {
   it('shares its exact declared type with scripts and captures the boot synchronously', () => {
     expectTypeOf<ScriptProbe>().toEqualTypeOf<WildshardProbe>();
     const world = fixture(), probe = installProbe(world, deps);
-    expect(Object.keys(probe).sort()).toEqual(['version', 'world', 'shard', 'boot', 'fingerprint', 'pose', 'walkLeg', 'combat', 'arena', 'state', 'onResume', 'saves', 'sounds', 'used', 'nav', 'leak'].sort());
+    expect(Object.keys(probe).sort()).toEqual(['version', 'world', 'shard', 'boot', 'fingerprint', 'pose', 'walkLeg', 'combat', 'arena', 'state', 'onResume', 'saves', 'sounds', 'used', 'nav', 'leak', 'app'].sort());
     expect(window.__wildshard).toBe(probe);
     expect(Reflect.has(window, '__world')).toBe(false);
     expect(probe.shard).toMatchObject({ slug: 'driftwood-isle', ocean: 'ocean-handle' });
@@ -98,5 +98,24 @@ describe('probe contract', () => {
   it('hashes sorted program keys using standard SHA-256', () => {
     expect(programHash('')).toBe('e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855');
     expect(programHash('abc')).toBe('ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad');
+  });
+  it('hashes sorted linked shader pairs independently of cache keys and observes GLSL changes', () => {
+    const a = { vertexShader: 'vertex-a', fragmentShader: 'fragment-a', cacheKey: 'callback source' };
+    const b = { vertexShader: 'vertex-b', fragmentShader: 'fragment-b', cacheKey: 'minified callback' };
+    const read = (source: string): string => source;
+    expect(compiledProgramHash([a, b], read)).toBe(compiledProgramHash([b, { ...a, cacheKey: 'rewritten callback' }], read));
+    expect(compiledProgramHash([a], read)).not.toBe(compiledProgramHash([{ ...a, fragmentShader: 'new fragment' }], read));
+    expect(compiledProgramHash([a], read)).not.toBe(compiledProgramHash([{ vertexShader: a.fragmentShader, fragmentShader: a.vertexShader }], read));
+    expect(() => compiledProgramHash([a], () => null)).toThrow('source unavailable');
+  });
+  it('exposes frozen observations that follow app services without exposing service mutators', () => {
+    const world = fixture(), probe = installProbe(world, deps);
+    expect(Object.isFrozen(probe.app)).toBe(true); expect(Object.isFrozen(probe.app.clock)).toBe(true);
+    expect(Object.isFrozen(probe.app.systems.update)).toBe(true); expect(Object.isFrozen(probe.app.census.level)).toBe(true);
+    expect(probe.app.state).toBe('play'); expect(probe.app.clock.now).toBe(10);
+    world.game.app.setState('paused'); world.game.app.rng.seed(77);
+    expect(probe.app.state).toBe('paused'); expect(probe.app.rngSeed).toBe(77);
+    expect(Reflect.has(probe.app, 'setState')).toBe(false); expect(Reflect.has(probe.app.clock, 'tick')).toBe(false);
+    expect(probe.boot.appStates).toEqual(['boot', 'play']);
   });
 });

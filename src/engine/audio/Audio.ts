@@ -144,7 +144,7 @@ export class Audio {
   private shots = new Map<string, { bufs: AudioBuffer[]; gain: number }>();
   private sampleBed = false;
   census(): { activeVoices: number; beds: number; buses: number } {
-    return { activeVoices: currentScope()?.resources.census.sounds ?? 0, beds: this.bedNodes.length > 0 ? 1 : 0, buses: this.g ? 7 : 0 };
+    return { activeVoices: currentScope()?.resources.census.sounds ?? 0, beds: this.bedNodes.length > 0 ? 1 : 0, buses: this.g ? 8 : 0 };
   }
   unloadLevel(): void {
     this.stopBed();
