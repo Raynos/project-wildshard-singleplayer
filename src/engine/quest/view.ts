@@ -1,21 +1,3 @@
-/**
- * The shared quest core (NALATI-MERGE Q1): the pieces of Driftwood's adventure layer that are not Driftwood's, so a
- * second shard runs its quest line on the same machinery, look and saves. A shard's install (Driftwood: Adventure.ts
- * + Spine.ts + Places.ts; Nalati: src/shards/nalati-grasslands/adventure.ts) owns its data and its NPCs and wires these:
- *
- *   QuestChip        the quest chip under the minimap (QuestUI.ObjectiveLine, E51): the goal + its counter, and the
- *                    nearest live marker's short name, metres and bearing. `chip.update(t, player)` every frame.
- *   NpcTalk          one NPC's "[E] Talk to …" prompt over a DialogueBox (several NPCs may share one box): picks the
- *                    first dialogue entry whose `when` holds (quest.ts `lineFor`), raises its `sets` when the talk ends,
- *                    closes it if you walk off. `talk.update(playerPos)` every frame.
- *   placesWithDiscovery   named places: walk within `r` and the place is DISCOVERED — a saved `seen:<id>` flag (so it
- *                    persists across reloads), a "Discovered · X" toast, its name on the full map (a dim "?" until
- *                    then) and the live quest markers on top.
- *   QuestLine        chained chapters (QuestDefs whose `startWhen` reads the previous one's `completeFlag`): the active
- *                    chapter is the first one not complete; step / complete callbacks for every chapter.
- *
- * Flags (src/engine/world/interact/flags.ts) stay the one store: per shard, `ws.flags.v1`, `?resetquest` clears them.
- */
 import type * as THREE from 'three';
 import { ObjectiveLine, type DialogueBox } from './view/ui';
 import { lineFor, type DialogueEntry, type NpcDef } from './core';
@@ -136,7 +118,7 @@ export function placesWithDiscovery(pts: PlacePoint[], flags: Flags, toast: (t: 
     points: pts,
     discovered: (id) => flags.has(`seen:${id}`),
     update: (x, z) => {
-      if (practiceRoom.open) return; // the arena / a playground hangs over the shard: its x / z is no place on it (E307)
+      if (practiceRoom.open) return; // an arena / playground has no discovery locations (E307)
       for (const p of pts) {
         if (flags.has(`seen:${p.id}`)) continue;
         if ((p.x - x) ** 2 + (p.z - z) ** 2 < p.r * p.r) { flags.set(`seen:${p.id}`); if (p.quiet !== true) toast(`Discovered · ${p.label}`); }

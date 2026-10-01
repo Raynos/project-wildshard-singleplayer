@@ -1,17 +1,3 @@
-/**
- * Quests — the data schema and the pure state machine (A1). A quest is a list of steps; each step is DONE when its
- * condition over the shard's flags holds (src/engine/world/interact/flags.ts); the CURRENT step is the first step not done.
- * No step has code: the objective text, the counter, the map markers and the dialogue are all data, so a chunk's
- * quest can be shipped as validated config (sources/wildshard/FUNDAMENTALS.md).
- *
- *   const q = new QuestState(DRIFTWOOD_QUEST, flags);
- *   q.current            → the step you are on (null when the quest is complete)
- *   q.objective()        → "Recover the glyph shards · 1 / 3"   (the full line: the map tab, the step toast)
- *   q.chip()             → { label: 'Glyph shards', count: '1/3' }  (the HUD's compact chip under the minimap, E51)
- *   q.markers()          → the live map / compass markers of the current step
- *   q.onStep = (step, prev) => …   // fires when the current step changes (a flag moved it on)
- *   lineFor(DIALOGUE.castaway, flags) → the first dialogue entry whose `when` holds
- */
 import { test, type Flags } from '../world/interact/flags';
 import type { Scope } from '../app/scope';
 import type { Events } from '../events/events';
@@ -20,10 +6,10 @@ import type { Cond, Place } from '../world/interact/types';
 export interface QuestMarker {
   id: string;
   label: string;
-  /** the HUD chip's short name for it ("SEA CAVE" for "SEA CAVE SHARD"); the map keeps `label` */
+  /** the HUD chip's short name for it ("SEA CAVE" for "SEA CAVE KEY"); the map keeps `label` */
   short?: string;
   at: Place;
-  /** hidden once this holds (the shard at this spot was taken) */
+  /** hidden once this holds (the level at this spot was taken) */
   hideWhen?: Cond;
 }
 
@@ -67,7 +53,7 @@ export function lineFor(npc: NpcDef, flags: { has: (f: string) => boolean }): Di
 
 declare module '../events/maps' {
   interface EventMap {
-    'quest.step': { shard: string; quest: string; step: string | null; previous: string | null };
+    'quest.step': { level: string; quest: string; step: string | null; previous: string | null };
   }
 }
 
@@ -107,7 +93,7 @@ export class QuestState {
     this.started = started; this.cur = next;
     if (!started) return;
     if (next === null && !this.flags.has(this.def.completeFlag)) { this.flags.set(this.def.completeFlag); this.onComplete?.(); }
-    this.events?.emit('quest.step', { shard: this.flags.shard, quest: this.def.id, step: next?.id ?? null, previous: prev?.id ?? null });
+    this.events?.emit('quest.step', { level: this.flags.level, quest: this.def.id, step: next?.id ?? null, previous: prev?.id ?? null });
     this.onStep?.(next, prev);
   }
 

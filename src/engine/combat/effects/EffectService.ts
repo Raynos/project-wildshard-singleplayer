@@ -128,7 +128,10 @@ export class EffectService {
       const span = Math.min(dt, effect.remaining);
       effect.remaining = Math.max(0, effect.remaining - dt); effect.elapsed += span;
       const period = effect.def.period;
-      if (period !== undefined) while (effect.elapsed >= period) { effect.elapsed -= period; this.tick?.(target, effect); for (const fn of this.tickListeners) fn(target, effect); }
+      if (period !== undefined) while (effect.elapsed + 1e-12 >= period) {
+        effect.elapsed = Math.max(0, effect.elapsed - period);
+        this.tick?.(target, effect); for (const fn of this.tickListeners) fn(target, effect);
+      }
       if (effect.remaining <= 1e-12) this.remove(target, effect.def.id);
     }
   }

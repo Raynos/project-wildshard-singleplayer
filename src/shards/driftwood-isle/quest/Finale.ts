@@ -25,7 +25,7 @@ export function installFinale<A extends AdvAnimal>(adv: Adventure, w: AdventureW
   void preloadCaptainMesh(); // the generated captain (v0.2): loads in the background, long before the altar raises him
   const pool = place({ poi: 'shrine', anchor: 'shrine.pool', x: 0, z: 8 });
   const ringP = place({ poi: 'shrine', anchor: 'shrine.ring', x: 0, z: 0, dy: 3.8 });
-  const bar = new BossBar();
+  const bar = new BossBar('The Drowned Captain');
   const caption = new RewardCaption('The Sealed Ring · opened', 'Driftwood Isle', 'The planet in the ring, at golden hour');
   let captain: A | null = null;
 

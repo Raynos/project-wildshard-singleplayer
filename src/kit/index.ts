@@ -34,3 +34,5 @@ export { STARTER_EFFECTS, STARTER_CHOICES, starterId, type StarterChoice } from 
 export { installStarterEffects } from './effects/install';
 
 export { crossbowDisplayModel } from './weapons/crossbow/display';
+
+export { rigLegs, legRigOf, legBones, legPose, footPlan, LEG_BONE_NAMES, WALK, type LegBuilt, type NpcRigProfile } from './npc/npcRig';

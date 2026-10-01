@@ -11,6 +11,8 @@
  *   RewardCaption — the big centred caption over the golden-hour reward view.
  */
 import '../../ui/styles/quest.css';
+import { Scope } from '../../app/scope';
+import { app } from '../../app/runtime';
 
 const hudRoot = (): HTMLElement => document.getElementById('hud') ?? document.body;
 const el = <K extends keyof HTMLElementTagNameMap>(tag: K, cls: string, parent?: HTMLElement): HTMLElementTagNameMap[K] => {
@@ -87,27 +89,33 @@ export class DialogueBox {
   private i = 0;
   private shown = 0;
   private open_ = false;
-  private onDone: (() => void) | null = null;
+  private finish_: (() => void) | null = null;
   private openT = 0;
+  private readonly scope: Scope;
   /** chars per second of the type-out */
   cps = 60;
 
   /** E (desktop) and a tap anywhere on the box (touch) advance it; the game's "[E]" prompt is hidden while it is open */
-  constructor() {
+  constructor(scope = new Scope('quest.dialogue')) {
+    this.scope = scope;
     hudRoot().append(this.root);
-    this.root.addEventListener('pointerdown', (e) => { e.stopPropagation(); e.preventDefault(); this.advance(); });
-    document.addEventListener('keydown', (e) => {
-      if (e.code !== 'KeyE' || !this.open_ || e.repeat || performance.now() - this.openT < 150) return; // not the press that opened it
+    scope.listen(this.root, 'pointerdown', (e) => { e.stopPropagation(); e.preventDefault(); this.advance(); });
+    scope.listen(document, 'keydown', (event) => {
+      const e = event as KeyboardEvent;
+      if (e.code !== 'KeyE' || !this.open_ || e.repeat || app.clock.now * 1000 - this.openT < 150) return;
       this.advance();
     });
+    scope.onDispose(() => { this.close(false); this.root.remove(); });
   }
+
+  dispose(): void { this.scope.dispose(); }
 
   get isOpen(): boolean { return this.open_; }
 
   open(name: string, lines: string[], onDone: () => void): void {
     if (lines.length === 0) { onDone(); return; }
     this.name.textContent = name;
-    this.lines = lines; this.i = 0; this.shown = 0; this.onDone = onDone; this.open_ = true; this.openT = performance.now();
+    this.lines = lines; this.i = 0; this.shown = 0; this.finish_ = onDone; this.open_ = true; this.openT = app.clock.now * 1000;
     this.root.classList.add('show');
     this.render();
   }
@@ -126,7 +134,7 @@ export class DialogueBox {
     if (!this.open_) return;
     this.open_ = false;
     this.root.classList.remove('show');
-    const done = this.onDone; this.onDone = null;
+    const done = this.finish_; this.finish_ = null;
     if (finished) done?.();
   }
 
@@ -147,7 +155,7 @@ export class DialogueBox {
   }
 }
 
-/** the boss's health across the top of the screen: name, phase pips, a draining bar (the Drowned Captain, A6) */
+/** the boss's health across the top of the screen: name, phase pips, a draining bar (quest encounter) */
 export class BossBar {
   readonly root = el('div', 'ws-quest-boss');
   private fill: HTMLElement;
@@ -155,7 +163,7 @@ export class BossBar {
   private shown = false;
   private lastF = -1;
   private lastP = -1;
-  constructor(name = 'The Drowned Captain') {
+  constructor(name = 'Boss') {
     const head = el('div', 'ws-quest-boss-head', this.root);
     el('span', 'ws-quest-boss-name', head).textContent = name;
     const pips = el('span', 'ws-quest-boss-pips', head);
