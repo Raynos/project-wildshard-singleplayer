@@ -26,7 +26,7 @@ the shard's own budgets.
 | C7 | **Boards for Jake**: a look + play board after C1–C3, a boss clip after C5; iPhone portrait | open |
 
 ## How it runs
-One fresh Opus subagent per chunk (≤ 400k context, ≤ 90 min, ~200 turns), each reading the last Handoff in
+**Opus 5.5 subagents only, never GPT-6.1 Sol / Codex** (Jake, 2026-10-01). One fresh Opus subagent per chunk (≤ 400k context, ≤ 90 min, ~200 turns), each reading the last Handoff in
 `docs/tasks/asks/E374.md`. A subagent never edits `src/engine`, `src/game`, `src/kit`, `lint`, `.github` or `scripts`:
 it asks the lead (SendMessage to the main session) for a public-API change, which the lead builds and lands. Commits stay
 inside the shard's lock allowlist (`.github/lock.json` reopened `sunscar-dunes`), pathspec only; the lead pushes.
