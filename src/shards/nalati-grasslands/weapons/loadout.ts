@@ -1,5 +1,5 @@
 import { GoldenBow, type GoldenBowPower } from './GoldenBow';
-import { BOW as BOW_PROFILE } from '#kit/weapons/bow/profiles';
+import { BOW as BOW_PROFILE } from '#kit';
 import { Naizagai, type NaizagaiPower } from './Naizagai';
 import type { Game, Sky, Player, Forest, Targets, Weapon, WeaponId, EquipmentService } from '#engine';
 

@@ -15,15 +15,11 @@ export function installRide(ctx: LevelContext, ride: Ride): void {
     keys: { 'lean.left': ['KeyA'], 'lean.right': ['KeyD'] } });
   input.push('ride.foot', ctx.scope);
   mount.input = input; mount.equipment = () => ctx.app.equipment; ride.taming.input = input;
-  const previous = mount.onMountChange;
   mount.onMountChange = (horse) => {
-    previous?.(horse);
     if (horse) input.push('ride', ctx.scope);
     else { input.pop('ride.break'); input.pop('ride'); if (ctx.app.equipment) ctx.app.equipment.stowed = false; }
   };
-  const breaking = ride.taming.onBreaking;
   ride.taming.onBreaking = (on) => {
-    breaking?.(on);
     if (on) input.push('ride.break', ctx.scope); else input.pop('ride.break');
     if (ctx.app.equipment) ctx.app.equipment.stowed = on;
   };
