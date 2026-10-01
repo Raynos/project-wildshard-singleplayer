@@ -1,7 +1,7 @@
 import baselineFixture from './fixtures/parity/baseline.json';
 import { describe, expect, it } from 'vitest';
 import { compare, validateQuarantine } from '../scripts/parity/compare.mjs';
-import type { RecordValue } from '../scripts/parity/value.mjs';
+import { object, type RecordValue } from '../scripts/parity/value.mjs';
 
 const fixture: RecordValue = baselineFixture;
 const clone = (): RecordValue => structuredClone(fixture);
@@ -57,11 +57,11 @@ describe('parity comparison', () => {
     const b=clone(); b['boot']={...b['boot'] as RecordValue,scene:{totals:{batched:2}}};
     const n=structuredClone(b);
     expect(rows(b,n).rows.find((r)=>r.field==='boot.scene.totals.batched')?.verdict).toBe('green');
-    n['boot']={...n['boot'],scene:{totals:{batched:1}}};
+    n['boot']={...object(n['boot']),scene:{totals:{batched:1}}};
     expect(rows(b,n).rows.find((r)=>r.field==='boot.scene.totals.batched')?.verdict).toBe('green');
-    n['boot']={...n['boot'],scene:{totals:{batched:3}}};
+    n['boot']={...object(n['boot']),scene:{totals:{batched:3}}};
     expect(rows(b,n).rows.find((r)=>r.field==='boot.scene.totals.batched')?.verdict).toBe('red');
-    n['boot']={...n['boot'] as RecordValue,shard:'nine-dragon-stack',scene:{totals:{batched:2}}};
+    n['boot']={...object(n['boot']),shard:'nine-dragon-stack',scene:{totals:{batched:2}}};
     expect(rows(b,n).rows.find((r)=>r.field==='boot.scene.totals.batched')?.verdict).toBe('red');
   });
   it('fails equal stuck and out counts when both violate their absolute rules', () => {
