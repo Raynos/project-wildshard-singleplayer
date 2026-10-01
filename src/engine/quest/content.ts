@@ -1,1 +1,1 @@
-export { QuestChip, NpcTalk, placesWithDiscovery, ObjectiveLine, DialogueBox, RewardCaption, BossBar } from './view';
+export { QuestChip, NpcTalk, placesWithDiscovery, ObjectiveLine, DialogueBox, RewardCaption } from './view';

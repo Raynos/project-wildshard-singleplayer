@@ -135,4 +135,4 @@ export function placesWithDiscovery(pts: PlacePoint[], flags: Flags, toast: (t: 
 }
 
 
-export { ObjectiveLine, DialogueBox, RewardCaption, BossBar } from './view/ui';
+export { ObjectiveLine, DialogueBox, RewardCaption } from './view/ui';
