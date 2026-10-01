@@ -56,6 +56,9 @@ Log: `/private/tmp/e357-sol-s23b/source-gate.log`. A separate clean export build
 in 26 files: `/private/tmp/e357-sol-s23b/final-focused.log`.
 The published `386ff9a7` gate also passes every pre-test stage; 1891/1901 tests pass (10 sibling failures).
 Log: `/private/tmp/e357-sol-s23b/published-gate.log`. The obsolete `pineCreatures.ts` is absent from this committed tree.
+Final documentation checkpoint `18bcbb31` passes all pre-test stages and 1909/1910 tests. The remaining test,
+debug-flag-hygiene, reads docs/tasks/ASKS.md excluded from the clean Vercel export; V1 owns the correction.
+Log: `/private/tmp/e357-sol-s23b/final-gate.log`.
 
 Contact tests compare the sweep with the old union of arcs across 4225 points, roots with the old expanding
 ring and jump exemption, and strict lantern/roar distances and damage. Real Rapier wall controls preserve B4
@@ -69,3 +72,11 @@ proof of this source. The next builder/lead must run direct all-four phone finge
 before and after this checkpoint, preserving the predecessor's exact-field and 2 mm Pine porch caveats above.
 The previous eight removed disabled hitboxes identified by S2.1 are distinct from new explicit retirement cleanup.
 Deer/elk remain legacy engine rows/views behind a scoped Pine hull adapter; no full species-directory migration is claimed.
+
+At the stop, the retry has complete first-pass raw fingerprints and three poses for all four shards, all with
+empty boot.errors: `/private/tmp/e357-sol-s23b/after-poses-retry/run-1`. The direct before run in
+`/private/tmp/e357-sol-s23b/before-poses/run-1` has Nalati, Nine Dragon and Pine captured. Nine Dragon physics,
+render, GPU bytes and scene are exact. Nalati collider count stays 2772 but scene/render/GPU fields differ.
+Pine colliders are 2409 before and 2417 after; scene/render/GPU fields differ (S2.1 notified). These are
+cross-builder integrated changes, not an accepted direct parity result. The first-pass screenshots are evidence;
+default raw SSIM fields are not a computed direct image comparison. Walk/combat/leak remains queued.
