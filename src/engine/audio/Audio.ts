@@ -7,6 +7,10 @@ import { getSfxSet, onSfxSet, type SfxSet } from '../ui/Settings';
 import { setSfxCredit } from './credits';
 import { cachedBytes, decodeSfxSet, trackBusy, type SfxBank } from './preload';
 import { Voices } from './Voices';
+import type { Scope } from '../app/scope';
+import type { CueMap, CueOpts } from './Cues';
+import type { Music } from './Music';
+import type { LevelAudioBank } from './levelAudio';
 
 /**
  * Audio — every sound is synthesised with WebAudio (no files).
@@ -89,7 +93,7 @@ const REACH: Partial<Record<AnimalSound, [number, number]>> = {
 };
 /** 'litter' = pine needles (Pine Hollow's default); Pine Hollow adds mud (the pond's edge), rock and wet (rain) — PH-A3;
  *  grass / gravel: Nalati's steppe and roads */
-export type StepSurface = 'litter' | 'planks' | 'sand' | 'grass' | 'gravel' | 'mud' | 'rock' | 'wet';
+export type StepSurface = 'litter' | 'planks' | 'sand' | 'grass' | 'gravel' | 'mud' | 'rock' | 'wet' | 'metal';
 /** sfx.json `oneshots` keys: the method each replaces (`footstep-sand`, `boltImpact-wood`, `land-hard`, the AnimalSound ids, `gull`) */
 export type OneShot = 'crossbowFire' | 'dryFire' | `boltImpact-${ImpactKind}` | 'swordSwing' | 'swordHeavy' | `swordHit-${'flesh' | 'wood'}`
   | 'dodge' | 'lunge' | 'reload' | 'rifleFire' | 'rifleReload' | 'weaponSwap' | `footstep-${StepSurface}` | 'jump' | 'land' | 'land-hard'
@@ -118,6 +122,38 @@ let sharedCtx: AudioContext | undefined;
 
 export class Audio {
   listenerYaw = 0;
+  listenerPosition: Vector3 | null = null;
+  music: Music | null = null;
+  stepSurface: (() => StepSurface) | undefined;
+  private cueMap: CueMap | undefined;
+  private ownBeds: readonly string[] | undefined;
+  private levelBank: LevelAudioBank | undefined;
+  private readonly levelBankFns = new Set<(bank: LevelAudioBank) => void>();
+  /** Named mixer buses preserve the existing gains while audio subsystems migrate. */
+  bus(id: 'music' | 'ambience' | 'sfx' | 'voice' | 'ui'): GainNode {
+    return id === 'music' ? this.master : id === 'ambience' ? this.ambient : this.sfx;
+  }
+  cue(id: string, opts: CueOpts = {}): boolean { return this.cueMap?.(id, opts) ?? false; }
+  installCues(map: CueMap, scope: Scope): void {
+    this.cueMap = map;
+    scope.onDispose(() => { if (this.cueMap === map) this.cueMap = undefined; });
+  }
+  installBeds(ids: readonly string[], scope: Scope): void {
+    this.ownBeds = ids;
+    if (this.g) this.stopBed();
+    scope.onDispose(() => { this.ownBeds = undefined; this.levelBank = undefined; });
+  }
+  get bedIds(): readonly string[] | undefined { return this.ownBeds; }
+  onLevelBank(fn: (bank: LevelAudioBank) => void, scope: Scope): void {
+    this.levelBankFns.add(fn);
+    scope.onDispose(() => { this.levelBankFns.delete(fn); });
+    if (this.levelBank) fn(this.levelBank);
+  }
+  useLevelBank(bank: LevelAudioBank): void {
+    this.levelBank = bank;
+    if (bank.title) this.music?.useBank(bank.title);
+    for (const fn of this.levelBankFns) fn(bank);
+  }
   /** the procedural one-shot bank (gen.ts rendered to AudioBuffers after the first gesture) — src/engine/audio/IslandSfx.ts plays it */
   readonly voices = new Voices(this);
   /** the WebAudio graph, built on the first gesture (resume) — creating the first AudioContext is a ~150 ms main-thread
@@ -407,6 +443,7 @@ export class Audio {
   /** sword swing: a whoosh — bandpass noise sweeping up then down over ~0.2 s, a hair of low air under it (src/engine/player/Sword.ts onFire) */
   swordSwing(): void {
     tap.sound?.('swordSwing');
+    if (this.cue('melee.swing')) return;
     if (!this.g || this.shot('swordSwing')) return;
     const t = this.ctx.currentTime;
     this.burst({ t, type: 'bandpass', freq: 500, freqEnd: 2200, q: 0.6, gain: 0.32, attack: 0.05, decay: 0.09, rate: 1.1 });
@@ -436,6 +473,7 @@ export class Audio {
   /** the heavy's release (Sword.onHeavy, on top of swordSwing): a longer, deeper whoosh — a low rush that climbs, a chest-thump of effort, a breathy tail */
   swordHeavy(): void {
     tap.sound?.('swordHeavy');
+    if (this.cue('melee.heavy')) return;
     if (!this.g || this.shot('swordHeavy')) return;
     const t = this.ctx.currentTime;
     this.burst({ t, type: 'bandpass', freq: 220, freqEnd: 900, q: 0.8, gain: 0.45, attack: 0.09, decay: 0.22, rate: 0.9 });
@@ -447,6 +485,7 @@ export class Audio {
   /** sword hit: a wooden thud on flesh (or a knock on wood) — low thump, a damp mid knock, a short bright crack; panned like boltImpact */
   swordHit(kind: ImpactKind = 'flesh', pan = 0, gain = 1): void {
     tap.sound?.(`swordHit:${kind}`);
+    if (this.cue('melee.hit', { surface: kind, pan, gain })) return;
     if (!this.g || this.shot(kind === 'wood' ? 'swordHit-wood' : 'swordHit-flesh', { pan, gain })) return;
     const t = this.ctx.currentTime;
     if (kind === 'wood') {
@@ -570,7 +609,9 @@ export class Audio {
   }
 
   // ─────────────── movement ───────────────
-  footstep(sprinting: boolean, surface: StepSurface = 'litter'): void {
+  footstep(sprinting: boolean, requestedSurface: StepSurface = 'litter'): void {
+    const surface = this.stepSurface?.() ?? requestedSurface;
+    if (this.cue('step', { surface, sprinting })) return;
     tap.sound?.(`footstep:${surface}`);
     if (!this.g) return;
     const t = this.ctx.currentTime;
@@ -797,6 +838,7 @@ export class Audio {
    *  hurt). `strength` ≈ dmg / 20 (0.1 … 1.5): louder and a little lower / heavier as it grows; `pan` −1 … 1 toward the attacker. */
   hurt(strength = 0.5, pan = 0): void {
     tap.sound?.('hurt');
+    if (this.cue('hurt', { strength, pan })) return;
     if (!this.g) return;
     const s = Math.max(0.1, Math.min(1, strength));
     this.voices.play('hurt', { gain: 0.45 + 0.4 * s, rate: 1.05 - 0.12 * s, pan: Math.max(-1, Math.min(1, pan)) * 0.6 });
@@ -1543,6 +1585,7 @@ export class Audio {
   }
 
   private startBed() {
+    if (this.ownBeds) return;
     const l = this.loops.get(this.bed);
     this.sampleBed = l !== undefined;
     if (l) this.startSampleBed(l);
