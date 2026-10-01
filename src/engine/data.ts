@@ -9,3 +9,4 @@ export type { ChunkFiles } from './boot/bytes';
 export type { Tier } from './core/tier';
 export type { TexMode } from './boot/gpuFiles';
 export type { TerrainNoise, Vec2 } from './level/data';
+export { swellBody, type WaterBody } from './world/water/body';

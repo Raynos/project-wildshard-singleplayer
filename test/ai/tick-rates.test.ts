@@ -56,7 +56,7 @@ describe('distance-banded creature clocks', () => {
   });
   it('public app pins and interrupts reach the manager clock immediately', () => {
     const f = manager(), a = f.manager.spawn('boar', 0, 200, 0, 'boar'), scope = new Scope('quest');
-    const think = vi.fn<() => void>(), body = vi.fn(); Reflect.set(f.manager, 'think', think); Reflect.set(a, 'update', body);
+    const think = vi.fn<(actor: Animal, dt: number) => void>(), body = vi.fn(); Reflect.set(f.manager, 'think', think); Reflect.set(a, 'update', body);
     app.scheduler.pin(a, scope); f.advance(60);
     expect(think).toHaveBeenCalledTimes(20); expect(body).toHaveBeenCalledTimes(60);
     scope.dispose(); f.advance(1); app.scheduler.interrupt(a, 'target.dodge');
