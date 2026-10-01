@@ -75,8 +75,11 @@ if (process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.ar
   try {
     const shard = process.argv.find((arg) => arg.startsWith('--shard='))?.slice(8);
     genShards(undefined, process.argv.includes('--check'), false, shard);
-    const { genBudgetDerivations } = await import('./gen-budget-derivations.mjs');
-    await genBudgetDerivations(undefined, process.argv.includes('--check'), shard);
+    // Vite runs discovery before boot byte tables exist. Budget generation belongs to pnpm gen after those tables.
+    if (process.argv.includes('--check')) {
+      const { genBudgetDerivations } = await import('./gen-budget-derivations.mjs');
+      await genBudgetDerivations(undefined, true, shard);
+    }
   }
   catch (error) { console.error(error instanceof Error ? error.message : String(error)); process.exitCode = 1; }
 }

@@ -1,14 +1,33 @@
+// oxlint-disable-next-line import/no-nodejs-modules -- Cold generator fixtures execute the CLI.
+import { execFileSync } from 'node:child_process';
+// oxlint-disable-next-line import/no-nodejs-modules -- Select the current Node executable for CLI regression coverage.
+import process from 'node:process';
 // oxlint-disable-next-line import/no-nodejs-modules -- Generator integration fixtures own temporary directories.
-import { mkdtempSync, mkdirSync, readFileSync, rmSync, unlinkSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, readFileSync, rmSync, symlinkSync, unlinkSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Generator fixtures stay outside the shared working tree.
 import { tmpdir } from 'node:os';
 // oxlint-disable-next-line import/no-nodejs-modules -- Generator fixtures require host filesystem paths.
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { genShards, manifestClosure } from '../scripts/gen-shards.mjs';
 import { splitKtx2 } from '../scripts/ktx2-tables.mjs';
 
 describe('shard generation', () => {
+  it('runs cold CLI discovery without importing manifests or requiring generated boot modules', () => {
+    const root = mkdtempSync(join(tmpdir(), 'gen-shards-cold-'));
+    try {
+      mkdirSync(join(root, 'scripts'));
+      mkdirSync(join(root, 'src/shards/cold'), { recursive: true });
+      for (const file of ['gen-shards.mjs', 'gen-shard-words.mjs', 'gen-budget-derivations.mjs']) writeFileSync(join(root, 'scripts', file), readFileSync(resolve('scripts', file)));
+      symlinkSync(resolve('node_modules'), join(root, 'node_modules'));
+      writeFileSync(join(root, 'src/shards/cold/manifest.ts'), "import { bytes } from './bytes.generated'; export default { slug: 'cold', name: 'Cold', bytes }; ");
+      // Nothing *.generated exists yet, and budget inputs must not be loaded during discovery.
+      expect(() => execFileSync(process.execPath, [join(root, 'scripts/gen-shards.mjs')], { cwd: root, stdio: 'pipe' })).not.toThrow();
+      expect(readFileSync(join(root, 'src/game/shard/shards.generated.ts'), 'utf8')).toContain("#shards/cold/manifest");
+      expect(readFileSync(join(root, 'lint/shard-words.generated.json'), 'utf8')).toContain('"cold"');
+    } finally { rmSync(root, { recursive: true, force: true }); }
+  });
+
   it('follows static runtime imports and re-exports, excluding types and lazy plugin thunks', () => {
     const root = mkdtempSync(join(tmpdir(), 'manifest-closure-'));
     try {
