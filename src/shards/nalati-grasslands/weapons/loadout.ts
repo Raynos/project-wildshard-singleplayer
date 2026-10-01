@@ -67,5 +67,3 @@ export function buildNalatiLoadout(world: NalatiWorld, targets: Targets, allowUn
   return kit;
 }
 
-export type NalatiKit = NalatiLoadout;
-export const buildNalatiKit = buildNalatiLoadout;

@@ -57,7 +57,7 @@ import { horseKey, savedHorseName, saveHorseName } from './horseNames';
  *
  * The camera sits at the rider's eye (2.55 m × the horse's scale) over the saddle, with a gait bob (walk nod, trot
  * bounce, canter rock, gallop drive) and a lean into turns; the horse's own head, ears and mane are in the lower frame.
- * Weapons from the saddle (`kit`): `setMount({ speed, yaw })` every frame — the sabre's pass slash, the couched lance, the
+ * Weapons from the saddle (`EquipmentService.available`): `setMount({ speed, yaw })` every frame — the sabre's pass slash, the couched lance, the
  * bow's mounted draw / gait spread / carrier velocity / no arc (Bow.setMount) — and the spread halved on the gallop's float.
  *
  * The horse's body (NALATI-MERGE R2, the user's pick D1 (a)): while ridden the horse is a capsule lying along it, on its own
@@ -74,18 +74,9 @@ import { horseKey, savedHorseName, saveHorseName } from './horseNames';
  * (`restAt`) and rests for 3 min, then is whole again. `onThrown`, `onMountChange`, `onBolt` for the HUD / audio.
  */
 
-/** the weapon kit's riding hook (nalatiKit.ts): `setMount` hands the horse to the sabre, spear and bow (the bow sets its
- *  own mounted draw speed / spread / carrier velocity / no arc from it — multiplicatively, so a Golden Bow keeps its bonus) */
-export interface MountKit {
-  setMount: (m: MountState | null) => void;
-  bow: { extraSpreadDeg: number };
-}
-
 export interface MountOpts {
   player: Player;
   forest: Forest;
-  /** the Nalati weapon kit (nalatiKit.ts) — null in a harness without weapons */
-  kit?: MountKit | null;
   /** DRAW latched / the bow drawing: the horse holds its heading */
   isDrawing?: () => boolean;
   /** the player takes damage (thrown: 10) */
@@ -223,11 +214,9 @@ export class Mount {
         if (weapon instanceof Bow) weapon.setMount(mount);
         else if (weapon instanceof Sabre || weapon instanceof Spear) weapon.mount = mount;
       }
-    } else this.opts.kit?.setMount(mount);
+    }
   }
 
-  /** hand over the weapon kit once it exists (the wiring builds the mount before main.ts builds the kit) */
-  setKit(kit: MountKit | null): void { this.opts.kit = kit; }
   /** a spot the horse refuses to ride into (the Storm Titan's fire line) — checked a stride ahead */
   refuse: ((x: number, z: number) => boolean) | null = null;
   /** E307: a playground's track, kept to instead of the shard's roads while it is open (null: the shard's again) */

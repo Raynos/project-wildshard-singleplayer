@@ -7,7 +7,8 @@ import type { Wildlife } from '#engine/entities/Wildlife';
 import type { Animal } from '#engine/entities/Animal';
 import { heightAt } from '#engine/world/Heightfield';
 import type { Interactable } from '#engine/world/interact/types';
-import { Mount, type MountKit } from './Mount';
+import { Mount } from './Mount';
+import { Bow } from '#kit';
 import { Taming } from './Taming';
 import { RideHUD } from './RideHUD';
 import { HITCH_HORSE_SPOTS, HITCHING_RAIL } from '../world/layout';
@@ -30,7 +31,7 @@ const BOLT_PANIC = 35;
  *   const ride = wireRide({ player, forest, animals, wildlife, camera });
  *   interactables.push(ride.interactable)   // main.ts: ONE prompt that is always the nearest horse action —
  *                                           //   "Mount Camp horse" / "Mount Tulpar" / "Dismount" / "Mount the stallion"
- *   ride.bind({ kit, toast })                // once the weapon kit + HUD exist (nalati.bindPlay); hurt → animals.onCharge
+ *   ride.bind({ toast })                     // once the HUD exists; combat owns damage
  *   ride.update(dt)                          // every frame
  *   game.onLate((dt) => ride.late(dt))       // B1: the reins in your hand, from this frame's final horse pose + camera
  *   ride.noteShot(x, z)                      // an arrow / javelin landed (TRUST)
@@ -49,8 +50,7 @@ const BOLT_PANIC = 35;
 function voice(name: string): AnimalSound { return name as AnimalSound; }
 
 export interface RideCtx { ctx?: LevelContext; player: Player; forest: Forest; animals: AnimalManager; wildlife: Wildlife; camera: THREE.PerspectiveCamera }
-/** `hurt` defaults to the animals' onCharge (main.ts's damage path); `isDrawing` to the kit bow's DRAW latch / draw */
-export interface RidePlay { kit: (MountKit & { bow: { drawing: boolean; adsHeld: boolean } }) | null; toast: (text: string) => void; hurt?: (damage: number) => void; isDrawing?: () => boolean }
+export interface RidePlay { toast: (text: string) => void }
 
 export interface Ride {
   mount: Mount;
@@ -72,15 +72,17 @@ export function wireRide(ctx: RideCtx): Ride {
   let play: RidePlay | null = null;
   const hurt = (d: number): void => {
     const player = ctx.ctx?.app.player;
-    if (player) ctx.ctx?.app.combat.hit({ source: 'env', sourceTags: ['env.ride'], target: player, amount: d, throughWalls: true,
+    if (player && ctx.ctx) ctx.ctx.app.combat.hit({ source: 'env', sourceTags: ['env.ride'], target: player, amount: d, throughWalls: true,
       point: ctx.player.position, dir: new THREE.Vector3(),
-      cause: { kind: 'env.ride', label: 'cause.ride', text: 'cause.ride.text' } });
-    else play?.hurt?.(d);
+      cause: { kind: 'env.ride', label: ctx.ctx.app.levelRegistrations.text('cause.ride', ctx.ctx.scope),
+        text: ctx.ctx.app.levelRegistrations.text('cause.ride.text', ctx.ctx.scope) } });
+
   };
+  const isDrawing = (): boolean => { const weapon = ctx.ctx?.app.equipment.current; return weapon instanceof Bow && (weapon.adsHeld || weapon.drawing); };
   const rest = HITCH_HORSE_SPOTS[0] ?? { x: HITCHING_RAIL.x - 1.9, z: HITCHING_RAIL.z, face: { x: 1, z: 0 } };
   const mount = new Mount({
     player: ctx.player, forest: ctx.forest,
-    isDrawing: () => { const b = play?.kit?.bow; return play?.isDrawing?.() ?? (b !== undefined && (b.adsHeld || b.drawing)); },
+    isDrawing,
     hurt: (d) => { hurt(d); },
     restAt: { x: rest.x, z: rest.z },
     roads: ROADS,
@@ -161,7 +163,7 @@ export function wireRide(ctx: RideCtx): Ride {
   return {
     mount, taming, hud, interactable: ix, reins, raid,
     get mounted() { return mount.mounted; },
-    bind(p) { play = p; mount.setKit(p.kit); },
+    bind(p) { play = p; },
     update(dt) {
       mount.update(dt);
       taming.update(dt);
@@ -171,8 +173,7 @@ export function wireRide(ctx: RideCtx): Ride {
       choose();
     },
     late(dt) {
-      const b = play?.kit?.bow;
-      const busy = mount.breaking || (play?.isDrawing?.() ?? (b !== undefined && (b.adsHeld || b.drawing)));
+      const busy = mount.breaking || isDrawing();
       reins.update(dt, mount.horse, mount.mounted, busy);
     },
     noteShot(x, z) { taming.noteShot(x, z); },

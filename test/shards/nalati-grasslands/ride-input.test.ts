@@ -1,12 +1,14 @@
 // @vitest-environment happy-dom
 import { describe, expect, it, vi } from 'vitest';
 import { App, Scope, type LevelContext, type InputContextDef } from '#engine';
+import * as THREE from 'three';
 import { installRide } from '#shards/nalati-grasslands/ride/input';
 import type { Ride } from '#shards/nalati-grasslands/ride/ride';
-import type { Mount } from '#shards/nalati-grasslands/ride/Mount';
+import { Mount } from '#shards/nalati-grasslands/ride/Mount';
 import type { Taming } from '#shards/nalati-grasslands/ride/Taming';
 import { legacyDouble } from '../../fake/FakeGame';
 import { damageTarget } from '../../fake/legacyActor';
+import { fakeWorld } from '../../fake/world';
 
 function fixture() {
   const app = new App(), scope = new Scope('ride-test');
@@ -25,6 +27,16 @@ function fixture() {
 }
 
 describe('scoped riding controls', () => {
+  it('the real saddle publishes mount ownership without hiding the horse, then clears it on dismount', () => {
+    const f = fakeWorld(), horse = damageTarget().animal;
+    f.player.camera = f.game.camera; f.player.velocity = new THREE.Vector3();
+    f.player.setHover = () => undefined; f.player.setBodyEnabled = () => undefined;
+    horse.mem = {}; horse.hidden = false; Object.defineProperty(horse, 'gaitPhase', { value: 0 }); horse.yaw = 0; horse.setMotion = () => undefined;
+    const mount = new Mount({ player: f.player, forest: f.forest });
+    expect(mount.mount(horse)).toBe(true); expect(f.player.mountedOn).toBe(horse); expect(f.player.ride).toBe(mount);
+    expect(horse.hidden).toBe(false); expect(horse.driven).toBe(true);
+    mount.dismount(); expect(f.player.mountedOn).toBeNull(); expect(f.player.ride).toBeNull(); expect(horse.driven).toBe(false);
+  });
   it('keeps foot verbs additive, scores a buffered spur and blocks combat only during breaking', () => {
     const f = fixture(), horse = damageTarget().animal;
     expect(f.app.input.top).toBe('ride.foot'); f.key('keydown', 'KeyX'); f.tick(); f.tick();
