@@ -2,7 +2,7 @@ import { elitesSave } from './saves';
 import * as THREE from 'three';
 import type { Animal } from '#engine/entities/Animal';
 import { heightAt } from '#engine/world/Heightfield';
-import { fxMaterial, annulus, FX, type FxMaterial } from '#shards/nalati-grasslands/world/KurganDungeon';
+import { fxMaterial, annulus, FX, type FxMaterial } from '#engine';
 import { WeaponPickup } from '#engine/player/WeaponPickup';
 import type { Interactable } from '#engine/world/interact/types';
 import type { EliteBar } from '#engine/ui/EliteBar';
