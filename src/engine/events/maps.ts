@@ -1,0 +1,16 @@
+import type { AppState, Phase } from '../app/systems';
+
+export interface FaultEvent { source: string; message: string; phase?: Phase; limit?: number; error?: unknown }
+export interface EventMap {
+  'app.state': { prev: AppState; next: AppState };
+  'level.loaded': { id: string };
+  'level.unloaded': { id: string };
+  'fault': FaultEvent;
+}
+// oxlint-disable-next-line typescript/no-empty-interface, typescript/no-empty-object-type -- Consumers extend this registry by declaration merging.
+export interface AskMap {}
+// oxlint-disable-next-line typescript/no-empty-interface, typescript/no-empty-object-type -- Consumers extend this registry by declaration merging.
+export interface TagMap {}
+export type AskInput<K extends keyof AskMap> = AskMap[K] extends readonly [infer Input, unknown] ? Input : never;
+export type AskOutput<K extends keyof AskMap> = AskMap[K] extends readonly [unknown, infer Output] ? Output : never;
+export type Tag = Extract<keyof TagMap, string>;
