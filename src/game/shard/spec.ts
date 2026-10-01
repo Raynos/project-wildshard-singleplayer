@@ -9,7 +9,7 @@ export function toLevelSpec(manifest: ShardManifest): LevelSpec {
   return {
     id: manifest.slug,
     ground: { ...(manifest.ground.paths === undefined ? {} : { paths: manifest.ground.paths }), ...(manifest.ground.terrain === undefined ? {} : { terrain: manifest.ground.terrain }),
-      ...(manifest.ground.structures === undefined ? {} : { structures: true }) },
+      ...(manifest.ground.structures === undefined ? {} : { structures: true }), ...(manifest.ground.water === undefined ? {} : { water: manifest.ground.water }) },
     spawn: manifest.spawn,
     sky: manifest.sky, atmosphere: manifest.atmosphere, grade: manifest.grade,
     budgets: manifest.budgets ?? {}, fight: manifest.fight ?? {},

@@ -144,7 +144,10 @@ export class LevelLoader {
     };
     try {
       this.app.setState('loading');
-      await run('level.data', async () => { await driver.data(spec, ctx); });
+      await run('level.data', async () => {
+        for (const body of spec.ground.water ?? []) this.app.world.water.add(body, scope); // the level's water, known before its world builds
+        await driver.data(spec, ctx);
+      });
       await run('level.world', async () => { await driver.world(spec, ctx); await hooks.world?.(ctx); });
       await run('level.kit', async () => {
         await driver.kit(spec, ctx);

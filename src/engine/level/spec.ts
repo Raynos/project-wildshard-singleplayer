@@ -2,6 +2,7 @@ import type { ByteKey } from '../boot/steps';
 import type { TexMode } from '../boot/gpuFiles';
 import type { ChunkFiles } from '../boot/bytes';
 import type { LookStrategy } from '../render/look';
+import type { WaterBody } from '../world/water/body';
 import type { Tier } from '../core/tier';
 import type { HuntTuning } from '../entities/AnimalManager';
 import type { RosterEntry } from '../models/live';
@@ -45,7 +46,8 @@ export interface LoadoutSpec {
 /** The engine consumes opaque level data; game presentation and discovery stay above this boundary. */
 export interface LevelSpec {
   id: string;
-  ground: { terrain?: TerrainField; structures?: true; paths?: 'plugin' };
+  /** `water`: the level's water bodies, registered in `app.world.water` at level.data (before any world step reads them) */
+  ground: { terrain?: TerrainField; structures?: true; paths?: 'plugin'; water?: readonly WaterBody[] };
   spawn: SpawnPose; bounds?: Bounds; camera?: { portraitFov: number };
   sky: SkySpec; atmosphere: AtmosphereSpec; grade: GradeSpec;
   look?: () => Promise<LookStrategy>; lookLayer?: GradeLook; tiers?: TierOverrides; budgets: BudgetInputs;
