@@ -1,0 +1,74 @@
+import { CalibrationGpu, type Timing, type Work } from '../render/calibrationGpu';
+import { measureJs } from './js';
+import { median, slope } from './math';
+import { Scope } from '../app/scope';
+import type { Calibration, CalibrationCosts } from '../render/budgets';
+
+export interface Observation { sweep: string; kind: string; n: number; baseline: Timing; work: Timing }
+export interface CalibrationRun extends Calibration {
+  renderer: string; userAgent: string; pixels: number;
+  cold: Observation[]; hot: Observation[]; js: Awaited<ReturnType<typeof measureJs>>;
+  heat: { seconds: number; ms: number; change: number | null }[];
+  stable: boolean; lowPowerMode: 'unknown'; flags: string[];
+  protocol: { timing: string; combine: string; vertexClasses: string; js: string };
+}
+const scope = new Scope('calibration');
+const yieldTask = (): Promise<void> => new Promise((resolve) => { scope.timeout(0, resolve); });
+async function sweeps(g: CalibrationGpu, progress: (s: string) => void): Promise<Observation[]> {
+  const rows: Observation[] = [];
+  const sample = async (sweep: string, kind: string, n: number, work: Work): Promise<void> => {
+    progress(`${sweep} · ${kind} · ${n}`); const empty = g.draws(0);
+    try { const baseline = g.measure(empty); const timing = g.measure(work); rows.push({ sweep, kind, n, baseline, work: timing }); } finally { empty.dispose(); work.dispose(); }
+    await yieldTask();
+  };
+  for (const n of [0, 100, 200, 400, 800]) await sample('draws', 'one-program', n, g.draws(n));
+  for (const programs of [1, 8, 32]) for (const textures of [1, 16]) await sample('state', `${textures}-textures`, programs, g.draws(400, programs, textures));
+  for (const kind of ['static', 'skinned', 'wind'] as const) for (const n of [250000, 1000000, 4000000]) await sample('triangles', kind, n, g.triangles(n, kind));
+  for (const kind of ['flat', 'toon', 'pbr', 'alphaTest', 'blend'] as const) for (const n of [1, 2, 4, 8]) await sample('fill', kind, n, g.fill(n, kind));
+  for (const halfFloat of [false, true]) for (const scale of [1, 0.5, 0.25]) for (const n of [1, 4, 8]) await sample('passes', `${halfFloat ? 'RGBA16F' : 'RGBA8'}@${scale}`, n, g.passes(n, scale, halfFloat));
+  for (const n of [100, 400, 800]) {
+    const draws = g.draws(n), fill = g.fill(4, 'pbr');
+    await sample('overlap', 'draws+fill', n, { draw: () => { draws.draw(); fill.draw(); }, dispose: () => { draws.dispose(); fill.dispose(); } });
+  }
+  return rows;
+}
+export async function runCalibration(progress: (s: string) => void = () => undefined): Promise<CalibrationRun> {
+  const g = new CalibrationGpu(), previous = document.querySelector('canvas');
+  if (previous) throw new Error('Calibration requires the empty capture state');
+  const parent = document.body; scope.capture('nodes', () => { g.renderer.domElement.remove(); }); parent.append(g.renderer.domElement);
+  try {
+    const gl = g.renderer.getContext(), dbg = gl.getExtension('WEBGL_debug_renderer_info');
+    const renderer: string = dbg ? String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL)) : 'unavailable';
+    const cold = await sweeps(g, (s) => { progress(`Cold · ${s}`); });
+    const heater = g.fill(8, 'pbr'), heat: CalibrationRun['heat'] = [];
+    let stable = false;
+    try {
+      const start = performance.now(); let lastWindow = start, windowMs: number[] = [];
+      while (performance.now() - start < 120000) {
+        progress('Preheat · full-screen PBR'); windowMs.push(g.measure(heater).throughputMs); await yieldTask();
+        if (performance.now() - lastWindow < 30000) continue;
+        const ms = median(windowMs), previousMs = heat[heat.length - 1]?.ms, change = previousMs === undefined ? null : Math.abs(ms / previousMs - 1);
+        heat.push({ seconds: (performance.now() - start) / 1000, ms, change }); windowMs = []; lastWindow = performance.now();
+        if (change !== null && change < 0.02) { stable = true; break; }
+      }
+    } finally { heater.dispose(); }
+    const hot = await sweeps(g, (s) => { progress(`Hot · ${s}`); });
+    progress('JS · rigs, bodies, navigation'); const js = await measureJs();
+    const links = [];
+    for (const n of [8, 32, 64]) { progress(`Link · ${n} programs`); links.push({ n, ms: await g.link(n) }); }
+    const points = (sweep: string, kind: string, cpu = false): { n: number; ms: number }[] => hot.filter((r) => r.sweep === sweep && r.kind === kind).map((r) => ({ n: sweep === 'triangles' ? r.work.tris : r.n, ms: cpu ? r.work.submitMs - r.baseline.submitMs : r.work.throughputMs - r.baseline.throughputMs }));
+    const costs: CalibrationCosts = {
+      drawCpuMs: slope(points('draws', 'one-program', true)),
+      triangleGpuMs: { static: slope(points('triangles', 'static')), skinned: slope(points('triangles', 'skinned')), wind: slope(points('triangles', 'wind')) },
+      fragmentGpuMs: { flat: slope(points('fill', 'flat')) / (804 * 1748), toon: slope(points('fill', 'toon')) / (804 * 1748), pbr: slope(points('fill', 'pbr')) / (804 * 1748), alphaTest: slope(points('fill', 'alphaTest')) / (804 * 1748), blend: slope(points('fill', 'blend')) / (804 * 1748) },
+      passGpuMs: Object.fromEntries([...new Set(hot.filter((r) => r.sweep === 'passes').map((r) => r.kind))].map((kind) => [kind, slope(points('passes', kind))])),
+      linkMs: slope(links), rigCpuMs: slope(js.rig), bodyCpuMs: slope(js.body), agentCpuMs: slope(js.agent),
+    };
+    return { schema: 1, measuredAt: new Date().toISOString(), device: 'Apple M5 Max', renderer, userAgent: navigator.userAgent, pixels: 804 * 1748,
+      source: 'budgets/calibration.json (scripts/calibrate.mjs)', phone: { ratio: 10, source: 'docs/tasks/asks/E283.md; hot phone:M5 ≈10× (cool ≈6×)', assumption: 'ASSUMPTION: hot iPhone costs equal measured M5 costs × 10; no phone calibration was run (decision 99)' },
+      combine: 'serial', costs, cold, hot, js, heat, stable, lowPowerMode: 'unknown',
+      flags: [...stable ? [] : ['preheat did not converge below 2% in 30-second windows'], 'Low Power Mode cannot be detected reliably by Web APIs; unknown'],
+      protocol: { timing: '5 batches ×16 frozen draws, pending 1px write/readPixels sync; p50; interleaved empty baselines. Throughput is a GPU ruler including submission, not timer-query GPU time.',
+        combine: 'serial (conservative): frozen throughput overlap sweep cannot establish live CPU/GPU overlap; do not infer pipelining from throughput alone', vertexClasses: 'static and wind; skinned is synthetic two-matrix vertex blending, not a production creature shader', js: '16-bone skeleton pose/skin-matrix update; Rapier step plus capsule character-controller queries; nearest-poly query on a synthetic 64-poly tile' } };
+  } finally { g.dispose(); scope.dispose(); }
+}

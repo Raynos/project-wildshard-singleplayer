@@ -177,6 +177,7 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
   clearDownloadsRow,
 
   // ── Developer tools ──
+  { ...action('calibrate', 'tools', 'Calibration', 'RUN CALIBRATION', () => { saveSetting('calibrate', 'run'); location.reload(); }, { note: 'E357 S1.6 · synthetic M5 unit costs; consumes the one-shot setting at entry' }), choices: () => [{ v: 'off', text: 'Idle' }, { v: 'run', text: 'Run' }] },
   opt('cragView', 'tools', 'Crag channel', [['shaded', 'Shaded'], ['ao', 'AO'], ['sun', 'Sun'], ['wet', 'Wet'], ['normal', 'Normal'], ['albedo', 'Albedo']], { when: pineHollow, note: 'PH-U31 · the crags drawn as one channel (was ?cragdebug)' }),
 ];
 

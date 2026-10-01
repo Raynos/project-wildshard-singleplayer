@@ -123,6 +123,7 @@ export const OPTION_VALUES = {
   // ── E162: the old URL switches, now pause ▸ Settings ▸ Debug rows only (declared with their group in src/engine/ui/debugOptions.ts).
   // The first value is the default. A test / capture script sets one in the saved settings before the page loads ──
   showHiddenShards: ['off', 'on'],
+  calibrate: ['off', 'run'],                          // E357 S1.6 one-shot empty capture state; consumed at entry
   loadProfile: ['off', 'on'],                          // load-path shader instrumentation (src/engine/boot/perflog.ts) — a reload
   bootPack: ['on', 'off'],                             // the shard's boot files as one pack (src/engine/boot/pack.ts); off = one by one (the KTX2 record run) — a reload
   learnedLut: ['on', 'off'],
@@ -151,6 +152,7 @@ const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K> | null; params: re
   prefetch: { def: 'on', params: [], url: () => null },
   tex: { def: 'auto', params: [], url: () => null },
   showHiddenShards: DEBUG_ONLY,
+  calibrate: DEBUG_ONLY,
   loadProfile: DEBUG_ONLY, bootPack: DEBUG_ONLY, learnedLut: DEBUG_ONLY, cragView: DEBUG_ONLY,
   creatures: DEBUG_ONLY, pineLife: DEBUG_ONLY, pineScore: DEBUG_ONLY,
   aimRing: DEBUG_ONLY, balbals: DEBUG_ONLY, ghosts: DEBUG_ONLY, clockSpeed: DEBUG_ONLY,
@@ -167,6 +169,7 @@ const options: { [K in OptionKey]: Choice<OptionValue<K>> } = {
   prefetch: option('prefetch'),
   tex: option('tex'),
   showHiddenShards: option('showHiddenShards'),
+  calibrate: option('calibrate'),
   loadProfile: option('loadProfile'), bootPack: option('bootPack'), learnedLut: option('learnedLut'), cragView: option('cragView'),
   creatures: option('creatures'), pineLife: option('pineLife'), pineScore: option('pineScore'),
   aimRing: option('aimRing'), balbals: option('balbals'), ghosts: option('ghosts'), clockSpeed: option('clockSpeed'),

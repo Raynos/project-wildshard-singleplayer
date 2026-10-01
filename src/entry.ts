@@ -16,6 +16,7 @@ import { persistHomeScreen } from '#engine/saves/runtime';
  */
 import { guardBoot } from '#engine/boot/stuck';
 import { inspectPreviousBoot, previousBootLine, previousBootLevel } from '#engine/boot/bootTrace';
+import { setting } from '#engine/ui/Settings';
 
 const task = (): Promise<void> => new Promise((resolve) => { setTimeout(resolve, 0); });
 const sleep = (ms: number): Promise<void> => new Promise((resolve) => { setTimeout(resolve, ms); });
@@ -45,7 +46,7 @@ if (rescueBoot) {
 const titleOnly = rescueBoot || search.size === 0 || (search.size === 1 && search.has('v'));
 
 /** resolves once the title or the selected shard's entry has been evaluated */
-export const entered: Promise<unknown> = titleOnly ? retried(() => import('#engine/ui/StartTitle')) : (async () => {
+export const entered: Promise<unknown> = setting('calibrate') === 'run' ? import('#engine/calibrate/entry').then((m) => m.enterCalibration()) : titleOnly ? retried(() => import('#engine/ui/StartTitle')) : (async () => {
   const { initializeTier } = await retried(() => import('#engine/core/tier'));
   initializeTier();
   await retried(() => import('three'));

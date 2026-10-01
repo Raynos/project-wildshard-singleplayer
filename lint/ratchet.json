@@ -12,7 +12,10 @@
       "src/engine/ui/perfLap.ts": "performance.now measures elapsed cost or diagnostic timing; never gameplay state.",
       "src/engine/ui/perfProbe.ts": "performance.now measures elapsed cost or diagnostic timing; never gameplay state.",
       "src/engine/boot/bootTrace.ts": "performance.now measures elapsed cost or diagnostic timing; never gameplay state.",
-      "src/engine/boot/gpuTrace.ts": "performance.now measures elapsed cost or diagnostic timing; never gameplay state."
+      "src/engine/boot/gpuTrace.ts": "performance.now measures elapsed cost or diagnostic timing; never gameplay state.",
+      "src/engine/calibrate/js.ts": "E357 S1.6 synthetic calibration elapsed-cost measurement only; no gameplay state.",
+      "src/engine/calibrate/run.ts": "E357 S1.6 synthetic calibration elapsed-cost measurement only; no gameplay state.",
+      "src/engine/render/calibrationGpu.ts": "E357 S1.6 synthetic calibration elapsed-cost measurement only; no gameplay state."
     }
   },
   "budgets": {},
