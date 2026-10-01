@@ -290,7 +290,7 @@ export function installProbe<W extends ProbeWorld>(world: W, deps: ProbeDeps): W
     geometries: 0, textures: 0, programs: 0, bodies: 0, colliders: 0,
     listeners: { window: 0, document: 0, canvas: 0, other: 0 }, timers: { timeouts: 0, intervals: 0, raf: 0 },
     audio: { activeVoices: 0, beds: 0, buses: 0 }, systems: { input: 0, fixed: { pre: 0, step: 0, post: 0 }, update: 0, late: 0, render: 0 },
-    events: { listeners: 0, answerers: 0 }, dom: { hud: 0, body: 0 }, sceneObjects: 0,
+    events: app.events.census(game.levelScope), dom: { hud: 0, body: 0 }, sceneObjects: 0,
   };
   const retainedPhysics = { bodies: world.physics.world.bodies.len() - game.levelScope.census.bodies,
     colliders: world.physics.world.colliders.len() - game.levelScope.census.colliders };

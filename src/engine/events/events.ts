@@ -2,7 +2,7 @@ import type { Scope } from '../app/scope';
 import type { Phase } from '../app/systems';
 import type { AskInput, AskMap, AskOutput, EventMap } from './maps';
 
-interface Listener { order: number; active: boolean; run: (value: unknown) => unknown }
+interface Listener { order: number; active: boolean; scope: Scope; run: (value: unknown) => unknown }
 interface QueuedEvent { name: keyof EventMap; payload: unknown }
 export interface ListenerOptions { order?: number }
 export const EVENT_FLUSH_LIMIT = 1000;
@@ -16,9 +16,14 @@ export class Events {
   private frameBound = false;
   /** All phase drains share one frame budget; isolated callers retain the standalone drain contract. */
   beginFrame(): void { this.frameCount = 0; this.frameBound = true; }
-  census(): { listeners: number; answerers: number } {
-    return { listeners: [...this.listeners.values()].reduce((n, list) => n + list.length, 0),
-      answerers: [...this.answerers.values()].reduce((n, list) => n + list.length, 0) };
+  /** Independent live counts; exclude a level subtree to measure retained engine registrations before unload. */
+  census(exclude?: Scope): { listeners: number; answerers: number } {
+    const count = (lists: Iterable<Listener[]>): number => {
+      let total = 0;
+      for (const list of lists) for (const listener of list) if (exclude === undefined || !listener.scope.belongsTo(exclude)) total++;
+      return total;
+    };
+    return { listeners: count(this.listeners.values()), answerers: count(this.answerers.values()) };
   }
 
   emit<K extends keyof EventMap>(name: K, payload: EventMap[K]): void {
@@ -26,7 +31,7 @@ export class Events {
   }
   private subscribe<K>(map: Map<K, Listener[]>, name: K, run: Listener['run'], scope: Scope, opts?: ListenerOptions): void {
     if (scope.disposed) return;
-    const listener: Listener = { order: opts?.order ?? 0, active: true, run };
+    const listener: Listener = { order: opts?.order ?? 0, active: true, scope, run };
     const list = map.get(name) ?? [];
     list.push(listener);
     list.sort((a, b) => a.order - b.order);

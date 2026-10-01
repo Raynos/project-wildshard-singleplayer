@@ -62,6 +62,7 @@ describe('staged level load on the fake Game', () => {
 
   it('unloads every scoped registration and supports a second load without a renderer', async () => {
     const { app, spec } = setup();
+    const engineEvents = app.events.census();
     const onLoaded = vi.fn<() => void>(), engine = vi.fn<() => void>();
     app.addSystem({ id: 'engine.frame', phase: 'update', run: engine }, app.engineScope);
     let context: LevelContext | undefined;
@@ -81,11 +82,12 @@ describe('staged level load on the fake Game', () => {
     expect(app.registry.pieces).toEqual([]); expect(app.levelRegistrations.list('weapon')).toEqual([]);
     expect(app.levelRegistrations.list('tool')).toEqual([]); expect(app.debug.snapshot()).toEqual({});
     expect(app.levelRegistrations.knobSchemas()).toEqual([]); expect(app.levelRegistrations.look('fixture')).toBeUndefined();
-    expect(app.events.census()).toEqual({ listeners: 0, answerers: 0 });
+    expect(app.events.census()).toEqual(engineEvents);
     expect(Object.values(context?.scope.census ?? {}).every((count) => count === 0)).toBe(true);
     for (const system of app.systemsByPhase().update) system.run(1 / 60, 0);
     expect(engine).toHaveBeenCalledOnce();
     await app.loadLevel(spec, { kit }); await app.unloadLevel();
+    expect(app.events.census()).toEqual(engineEvents);
   });
 
   it('refuses engine rows outside kit and after unload, including callbacks retained from kit', async () => {

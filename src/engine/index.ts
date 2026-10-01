@@ -51,3 +51,7 @@ export type { EquipmentInput } from './input/equipmentInput';
 export type { IconId } from './ui/icons';
 export type { KitEntry } from './ui/Menu';
 
+
+// Combat simulation ports (E357 S1.3a); source formulas remain with their weapon families.
+export { CombatPipeline, type Actor, type CombatTag, type DamageRequest, type DamageDealt, type DamageRuleDef, type DeathCause, type HealthAttributes, type StringKey } from './combat/pipeline';
+export { PlayerHealth, type PlayerHealthPorts } from './combat/health';

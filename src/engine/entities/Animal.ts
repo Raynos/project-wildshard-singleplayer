@@ -931,26 +931,26 @@ function eyesInHard(g: THREE.BufferGeometry): THREE.BufferGeometry | null {
 }
 
 function animalCombatActor(animal: Animal, model: AnimalModel): Actor {
-    const cached = combatActors.get(animal);
-    if (cached !== undefined) return cached;
-    const actor: Actor = {
-      id: `creature.${animal.kind}`, tags: ['actor.creature', `creature.${animal.kind}`], state: [],
-      get alive() { return animal.alive; },
-      onDamageRequest: (req) => { tap.hit?.(animal.kind, req.amount); },
-      attributes: {
-        get health() { return animal.hp; }, set health(value) { animal.hp = value; },
-        get maxHealth() { return animal.maxHp; },
-        get damageTakenMul() { return animal.mods.damageTaken; },
-      },
-      isHeadshot: (req) => {
-        animal.headWorld(_v);
-        return _v.distanceToSquared(req.point) < (model.dims.headRadius * animal.scale + 0.06) ** 2;
-      },
-      ...(model.species.damageMul === undefined ? {} : {
-        damageMul: (req: DamageRequest) => model.species.damageMul?.(animal, req.point, req.dir) ?? 1,
-      }),
-      applyDamage: (req) => animal.applyFinalDamage(req.amount, req.point, req.dir),
-    };
-    combatActors.set(animal, actor);
-    return actor;
+  const cached = combatActors.get(animal);
+  if (cached !== undefined) return cached;
+  const actor: Actor = {
+    id: `creature.${animal.kind}`, tags: ['actor.creature', `creature.${animal.kind}`], state: [],
+    get alive() { return animal.alive; },
+    onDamageRequest: (req) => { tap.hit?.(animal.kind, req.amount); },
+    attributes: {
+      get health() { return animal.hp; }, set health(value) { animal.hp = value; },
+      get maxHealth() { return animal.maxHp; },
+      get damageTakenMul() { return animal.mods.damageTaken; },
+    },
+    isHeadshot: (req) => {
+      animal.headWorld(_v);
+      return _v.distanceToSquared(req.point) < (model.dims.headRadius * animal.scale + 0.06) ** 2;
+    },
+    ...(model.species.damageMul === undefined ? {} : {
+      damageMul: (req: DamageRequest) => model.species.damageMul?.(animal, req.point, req.dir) ?? 1,
+    }),
+    applyDamage: (req) => animal.applyFinalDamage(req.amount, req.point, req.dir),
+  };
+  combatActors.set(animal, actor);
+  return actor;
 }

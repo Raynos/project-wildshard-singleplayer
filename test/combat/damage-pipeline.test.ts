@@ -8,6 +8,9 @@ import { boltDamage } from '#shards/pine-hollow/loadout/ammo';
 import { legacyActor, invokeLegacy, damageTarget } from '../fake/legacyActor';
 import { legacyHurtFixture } from '../fake/legacyHurt';
 import { fakeWorld } from '../fake/world';
+import { App } from '#engine/app/app';
+import { Scope } from '#engine/app/scope';
+import type { Actor, CombatTag, DamageRequest, DamageDealt } from '#engine/combat/pipeline';
 
 const attacker = (kind = 'boar') => ({ kind, label: kind, position: new THREE.Vector3(2, 0, 0) });
 describe('current executable damage rules (09 §3.6)', () => {
@@ -81,5 +84,89 @@ describe('current executable damage rules (09 §3.6)', () => {
     const b = { pos: new THREE.Vector3(0, 0.8, -1), mod: { damage: (kind: string) => boltDamage('broadhead', kind) } };
     expect(invokeLegacy(bolt, 'testHit', b, new THREE.Vector3(0, 0.8, 0))).toBe(true);
     expect(target.dealt).toEqual([39]); // 37*1.4=51.8 → round(*.6)=31 → round(*1.25)=39
+  });
+});
+
+describe('public combat.hit rules, events and player health', () => {
+  const request = (f: ReturnType<typeof legacyHurtFixture>, tags: readonly CombatTag[], amount: number): DamageRequest => ({
+    source: 'env', sourceTags: tags, target: f.health, amount, point: new THREE.Vector3(2, 0, 0), dir: new THREE.Vector3(),
+  });
+  it('R0b vetoes boss/elite/add damage before the cap, while a creature and a fall remain live', () => {
+    const f = legacyHurtFixture({ bossGod: true });
+    for (const source of ['boss.storm-titan', 'elite.blackpaw', 'add.thrall'] as const) {
+      expect(f.combat.hit(request(f, [source], 40))).toBeNull();
+    }
+    expect(f.api.health).toBe(100); expect(f.api.lastHurt).toBe(0);
+    expect(f.combat.hit(request(f, ['creature.boar'], 25))?.dealt).toBe(20);
+    expect(f.combat.hit(request(f, ['env.fall'], 8))?.dealt).toBe(8); expect(f.api.health).toBe(72);
+  });
+  it('boss-tag R1/R2 work, while the Titan adapter keeps its S3.4-boarded bypass', () => {
+    const f = legacyHurtFixture({ tusk: true });
+    expect(f.combat.hit(request(f, ['boss.storm-titan'], 40))?.dealt).toBe(20);
+    f.player.dodging = true;
+    expect(f.combat.hit(request(f, ['boss.storm-titan'], 40))).toBeNull();
+    expect(f.combat.hit(request(f, ['env.lightning'], 60))?.dealt).toBe(60);
+    f.api.healthSet(100); f.api.titan(40); expect(f.api.health).toBe(60);
+  });
+  it.each([[false, 39], [true, 65]] as const)('R8 then R7 apply only once to a broadhead product, head=%s', (headshot, expected) => {
+    const f = legacyHurtFixture(), target = damageTarget({ bodyMul: 0.6, speciesMul: 1.25 });
+    const result = f.combat.hit({ ...request(f, ['dmg.ranged', 'ammo.broadhead'], 37 * 1.4),
+      target: target.animal.combatActor(), point: headshot ? target.head : target.body, headshot });
+    expect(result?.dealt).toBe(expected); expect(target.dealt).toEqual([expected]);
+  });
+  it('source actor tags/state join request tags before the ordered asks', () => {
+    const f = legacyHurtFixture({ tusk: true, guarded: true });
+    const source: Actor = { id: 'boss.test', tags: ['boss.test'], state: ['state.enraged'],
+      attributes: { health: 100, maxHealth: 100 }, alive: true, applyDamage: () => false };
+    expect(f.combat.hit({ ...request(f, ['dmg.melee'], 40), source })).toBeNull();
+    f.player.dodging = false;
+    expect(f.combat.hit({ ...request(f, ['dmg.melee'], 40), source })?.req.sourceTags).toEqual(['dmg.melee', 'boss.test', 'state.enraged']);
+  });
+  it('damage/death events are queued in order; a veto and a dead target produce none', () => {
+    const f = legacyHurtFixture(), log: string[] = [];
+    f.events.on('damage.dealt', (event) => { log.push(`damage:${event.dealt}`); }, f.scope);
+    f.events.on('actor.died', () => { log.push('actor.died'); }, f.scope);
+    f.events.on('player.died', () => { log.push('player.died'); }, f.scope);
+    f.events.on('player.respawned', () => { log.push('player.respawned'); }, f.scope);
+    f.api.healthSet(10);
+    const hit = request(f, ['creature.boar'], 25);
+    expect(f.combat.hit(hit)?.killed).toBe(true); expect(log).toEqual([]);
+    expect(f.combat.hit(hit)).toBeNull();
+    f.health.update(1 / 60); expect(log).toEqual([]);
+    f.events.flush('update'); expect(log).toEqual(['damage:20', 'actor.died', 'player.died', 'player.respawned']);
+  });
+  it('a health gain/shrink preserves the old max-health arithmetic', () => {
+    const f = legacyHurtFixture(); f.api.healthSet(70);
+    f.health.setMaxHealth(120); expect(f.api.health).toBe(90);
+    f.health.setMaxHealth(80); expect(f.api.health).toBe(80);
+    f.health.setMaxHealth(100); expect(f.api.health).toBe(100);
+  });
+  it('resident player rules filter target identity and disposal releases the answerers/subscribers', () => {
+    const a = new App(), f = legacyHurtFixture(), g = legacyHurtFixture({ cap: 50 });
+    const s1 = new Scope('first'), s2 = new Scope('second');
+    a.registerPlayer(f.health, s1); a.registerPlayer(g.health, s2);
+    a.combat.playerRules(s1, { target: f.health }); a.combat.playerRules(s2, { target: g.health });
+    const retained = a.events.census();
+    const nested = s2.child('nested');
+    a.events.on('damage.dealt', () => undefined, nested);
+    const outside = a.events.census(s2);
+    expect(outside).toEqual({ listeners: 0, answerers: retained.answerers - 2 });
+    a.levelScope = s1; expect(a.player).toBe(f.health);
+    a.levelScope = s2; expect(a.player).toBe(g.health);
+    expect(a.combat.hit(request(g, ['creature.boar'], 40))?.dealt).toBe(40);
+    const before = a.events.census().answerers; s2.dispose(); expect(a.player).toBeNull();
+    expect(a.events.census().answerers).toBe(before - 2);
+    expect(a.events.census()).toEqual(outside);
+    f.scope.dispose(); expect(f.events.census()).toEqual({ listeners: 0, answerers: 0 });
+  });
+  it('ordered simple rows can veto or modify without mutating the source request', () => {
+    const f = legacyHurtFixture(), seen: DamageDealt[] = [];
+    f.events.on('damage.dealt', (event) => { seen.push(event); }, f.scope);
+    f.combat.rule({ id: 'rule.test', order: 20, when: { sourceTags: ['env.test'] }, op: 'mul', value: 2 }, f.scope);
+    const req = request(f, ['env.test'], 7);
+    expect(f.combat.hit(req)?.dealt).toBe(14); expect(req.amount).toBe(7);
+    f.events.flush('update'); expect(seen).toHaveLength(1);
+    f.combat.rule({ id: 'rule.veto', order: 21, when: { sourceTags: ['env.test'] }, op: 'negate', value: 0 }, f.scope);
+    expect(f.combat.hit(req)).toBeNull(); f.events.flush('update'); expect(seen).toHaveLength(1);
   });
 });
