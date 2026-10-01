@@ -61,7 +61,7 @@ export const DUNE_RAY: SpeciesRow = { id: 'sunscar.creature.duneRay', kind: 'dun
   think: (a, ctx) => { rayBrain(a).think(ctx); }, act: (a, ctx) => { rayBrain(a).act(ctx); } };
 
 const BODY_Y = 0.4, SPAN = 2.7;
-/** Bones: 0 body, 1 left wing, 2 right wing, 3 tail. Wing weight ramps in from the body's edge. */
+/** Bones: 0 body, 1 head (the engine needs `body` and `head` on a custom rig), 2 left wing, 3 right wing, 4 tail. Wing weight ramps in from the body's edge. */
 function skin(geometry: BufferGeometry, tail: boolean): BufferGeometry {
   const pos = geometry.getAttribute('position'), count = pos.count, colors: number[] = [], index = new Uint16Array(count * 4), weight = new Float32Array(count * 4);
   for (let i = 0; i < count; i++) {
@@ -69,7 +69,7 @@ function skin(geometry: BufferGeometry, tail: boolean): BufferGeometry {
     const shade = tail ? 0.05 : top ? 0.07 + 0.03 * Math.abs(x) / SPAN : 0.16;
     colors.push(shade * 1.2, shade * 0.95, shade);
     const w = tail ? 1 : Math.min(1, Math.max(0, (Math.abs(x) - 0.35) / 0.6));
-    index[i * 4] = tail ? 3 : x > 0 ? 1 : 2; index[i * 4 + 1] = 0; weight[i * 4] = w; weight[i * 4 + 1] = 1 - w;
+    index[i * 4] = tail ? 4 : x > 0 ? 2 : 3; index[i * 4 + 1] = 0; weight[i * 4] = w; weight[i * 4 + 1] = 1 - w;
   }
   geometry.setAttribute('color', new Float32BufferAttribute(colors, 3));
   geometry.setAttribute('skinIndex', new Uint16BufferAttribute(index, 4));
@@ -83,17 +83,17 @@ export function rayBody(): BufferGeometry {
     const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i), ax = Math.abs(x);
     pos.setXYZ(i, x * SPAN, BODY_Y + y * 0.22 * (1 - 0.85 * ax), z * (1.1 - 0.7 * ax) + ax * ax * 0.9 - (z < 0 ? 0.25 * (1 - ax) : 0));
   }
-  body.computeVertexNormals();
+  body.rotateY(Math.PI); body.computeVertexNormals();   // the snout to +Z, the animal's forward
   return skin(body, false);
 }
 export function rayTail(): BufferGeometry {
-  const tail = new CylinderGeometry(0.012, 0.06, 2.2, 5); tail.rotateX(Math.PI / 2); tail.translate(0, BODY_Y, 2.0);
+  const tail = new CylinderGeometry(0.012, 0.06, 2.2, 5); tail.rotateX(-Math.PI / 2); tail.translate(0, BODY_Y, -2.0);
   return skin(tail, true);
 }
 export const DUNE_RAY_LOOK: SpeciesLook = { id: 'sunscar.look.duneRay', species: DUNE_RAY.id, kind: 'duneRay', rig: 'custom', fur: NO_FUR,
-  rigContract: { skeleton: 'sunscar.duneRay', sockets: ['body', 'wingL', 'wingR', 'tail'], clips: ['idle', 'fly', 'attack', 'hit', 'die'] },
-  build: () => ({ bones: [{ name: 'body', parent: null, pos: [0, BODY_Y, 0] }, { name: 'wingL', parent: 'body', pos: [0.5, BODY_Y, 0] },
-    { name: 'wingR', parent: 'body', pos: [-0.5, BODY_Y, 0] }, { name: 'tail', parent: 'body', pos: [0, BODY_Y, 0.9] }],
+  rigContract: { skeleton: 'sunscar.duneRay', sockets: ['body', 'head', 'wingL', 'wingR', 'tail'], clips: ['idle', 'fly', 'attack', 'hit', 'die'] },
+  build: () => ({ bones: [{ name: 'body', parent: null, pos: [0, BODY_Y, 0] }, { name: 'head', parent: 'body', pos: [0, BODY_Y, 1.0] }, { name: 'wingL', parent: 'body', pos: [0.5, BODY_Y, 0] },
+    { name: 'wingR', parent: 'body', pos: [-0.5, BODY_Y, 0] }, { name: 'tail', parent: 'body', pos: [0, BODY_Y, -0.9] }],
     furParts: [], hardParts: [rayBody(), rayTail()], eyeParts: [],
     dims: { bodyY: BODY_Y, bodyHalfLen: 1.1, bodyRadius: 1.1, headRadius: 0.5, legLen: 0.6, feet: [], halfWidth: SPAN } }),
   animate: ({ bones, t, alive, attack, speed }) => {
