@@ -42,3 +42,7 @@ continue on the recommended option, but the row stays open until Jake has answer
 - **Pine BOLTS HUD + gate / cabin pose SSIM** (3 fields): the X1 reserved-verb A/B; recommended A (as built). Evidence: `progress/normalization/x1-board/`.
 - **Pine ambient drum** (1 field): the Creatures-board fx cadence row; recommended as built.
 - The intended deltas Jake already picked: coyote (P3, 12 fields), J1 glyph (P5), J2 marmot whistles (P6).
+
+## Re-confirmed in plain chat (2026-10-01)
+
+The pop-up answers can be typed over by a builder's herdr message (that is how the withdrawn shard picks happened). Jake re-confirmed P1 (guards), P5 (Pine listener), P6 (far marmots), P4, P8, P7, P9 (delete after a re-audit) and the staggered review pages in plain chat: all his. P13 (the two shard concepts) is still open.
