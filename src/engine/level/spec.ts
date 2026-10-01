@@ -1,3 +1,4 @@
+import type { SetName } from '../player/viewmodelTextures';
 import type { HorizonStrips } from '../world/HorizonMatte';
 import type { ByteKey } from '../boot/steps';
 import type { TexMode } from '../boot/gpuFiles';
@@ -23,6 +24,8 @@ export type TierOverrides = Partial<Record<Tier, TierKnobs>>;
 export type { BudgetInputs } from '../render/budgets';
 export interface AudioSpec { bed?: string; samples?: SfxDecodePolicy; alertOnlyHostile?: boolean; ambience: string; score: string; cues?: () => Promise<object>; preload?: () => Promise<LevelAudioProfile> }
 export interface BootSpec {
+  viewmodelSets?: readonly SetName[];
+  shaders?: { scene?: boolean; shadows?: boolean; background?: boolean; post?: boolean };
   /** The plugin runs grass, cabins and props as separate counted world steps. */
   stagedWorld?: boolean;
   lateReads?: (tier: Tier, tex?: TexMode) => readonly string[];

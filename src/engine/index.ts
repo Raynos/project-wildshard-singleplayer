@@ -257,3 +257,14 @@ export { loadRigFile, loadRig, bindRig, ClipChannel, AnimMachine, type ClipName,
 export { activeLevel, selectedLevel, onLevelChange, configureLevel } from './level/selection';
 
 export { type Renderer, probeRenderer, isRenderer } from './render/renderer';
+
+export type { Feedback } from './ui/Feedback';
+export type { Explore } from './explore/Explore';
+export type { ExploreMode } from './explore/Explore';
+export type { PlaygroundId } from './practice/playground/catalog';
+export type { Bucket } from './core/frameCost';
+export type { TitleArrival } from './boot/titleArrival';
+export { loadBootRuntime, type BootRuntime } from './boot/contentApi';
+export { levelSequenceDriver, type LevelSequence, type LevelBoundary } from './boot';
+export type { StepProgress } from './boot/plan';
+export type { TrainingArena } from './practice/TrainingArena';

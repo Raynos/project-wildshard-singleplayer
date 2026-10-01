@@ -46,7 +46,7 @@ export const PINE_HOLLOW: ShardManifest = {
   api: 1,
   audio: { bed: FOREST_AUDIO.bed, samples: FOREST_AUDIO.samples, ambience: 'ambience.pine', score: 'score.pine', preload: () => import('./audio/files').then((m) => m.createPineAudio()) },
   load: () => import('./plugin'),
-  boot: { audio: async () => (await import('./audio/files')).BOOT_AUDIO(), explore: { art: [...Object.values(EXPLORE.art), ...EXPLORE.compare.flatMap(({ live, image }) => [live, image])] }, precache: [], stagedWorld: true, files: bootFiles, sources: bootSources, bakedUnread: BAKED_UNREAD, steps: PINE_STEPS, bytes: PINE_BYTES },
+  boot: { viewmodelSets: ['walnut', 'steel-xbow', 'leather', 'cord', 'bolt', 'anodised', 'polymer', 'steel-rifle'], audio: async () => (await import('./audio/files')).BOOT_AUDIO(), explore: { art: [...Object.values(EXPLORE.art), ...EXPLORE.compare.flatMap(({ live, image }) => [live, image])] }, precache: [], stagedWorld: true, files: bootFiles, sources: bootSources, bakedUnread: BAKED_UNREAD, steps: PINE_STEPS, bytes: PINE_BYTES },
   kitLook: 'pbr',
   fight: { telegraphed: false },
   creatures: { lowPoly: false, waitForModels: true, furRim: true, tintRange: 0.2, oneMaterial: false },

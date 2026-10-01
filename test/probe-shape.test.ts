@@ -1,5 +1,4 @@
-import { type EquipmentService, type Weapon, App, Scope } from '#engine';
-// @vitest-environment happy-dom
+import { type EquipmentService, type Weapon, App, Scope, type LevelSpec } from '#engine';
 import { afterEach, describe, expect, expectTypeOf, it, vi } from 'vitest';
 import * as THREE from 'three';
 import { installProbe, programHash, compiledProgramHash, type ProbeWorld, type WildshardProbe } from '#engine/debug/probe';
@@ -8,7 +7,6 @@ import type { Game } from '#engine/core/Game';
 import type { Player } from '#engine/player/Player';
 import type { Physics } from '#engine/physics/Physics';
 import type { World as RapierWorld, RigidBodySet, ColliderSet } from '@dimforge/rapier3d-simd';
-import type { ShardManifest } from '#game/shard/manifest';
 import type { Audio } from '#engine/audio/Audio';
 import type { Music } from '#engine/audio/Music';
 import type { HUD } from '#engine/ui/HUD';
@@ -17,6 +15,25 @@ import type { AnimalManager } from '#engine/entities/AnimalManager';
 import type { TrainingArena } from '#engine/practice/TrainingArena';
 import { WorldRegistry } from '#engine/world/registry';
 import { ambientTick, tap } from '#engine/core/harnessTap';
+
+// @vitest-environment happy-dom
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 function fake<T extends object>(fields: Partial<T>): T {
   return new Proxy(fields, { get: (target, key) => {
@@ -33,7 +50,7 @@ function fixture(): ProbeWorld {
     getContext: () => fake<WebGL2RenderingContext>({ getExtension: () => null, getParameter: () => 'ANGLE (Apple, ANGLE Metal Renderer)', RENDERER: 7937 }),
   });
   const app = new App(), levelScope = new Scope('level'); app.setState('play'); app.clock.tick(10);
-  const game = fake<Game>({ app, levelScope, hudBaseline: 0, scene, renderer, frameTime: 10, levelSystemIds: () => [], systemLabels: () => ({ input: ['input'], 'fixed.pre': [], 'fixed.step': ['physics'], 'fixed.post': [], update: [], late: [] }) });
+  const game = fake<Game>({ level: fake<LevelSpec>({ id: 'driftwood-isle', budgets: {}, spawn: { x: 0, z: 0, yaw: 0 } }), app, levelScope, hudBaseline: 0, scene, renderer, frameTime: 10, levelSystemIds: () => [], systemLabels: () => ({ input: ['input'], 'fixed.pre': [], 'fixed.step': ['physics'], 'fixed.post': [], update: [], late: [] }) });
   const player = fake<Player>({ position: new THREE.Vector3(1.0004, 2, 3), velocity: new THREE.Vector3(), yaw: 0.1, pitch: 0.2, keys: new Set<string>(), spawn: vi.fn<() => void>(), setHover: vi.fn<() => void>() });
   const physics = fake<Physics>({ world: fake<RapierWorld>({ bodies: fake<RigidBodySet>({ len: () => 1, forEach: () => { /* observation fixture has no side effects */ } }), colliders: fake<ColliderSet>({ len: () => 2 }) }) });
   const hud = fake<HUD>({ paused: false, entered: true, enterArenaNow: vi.fn<() => void>() });
@@ -44,7 +61,6 @@ function fixture(): ProbeWorld {
   const arena = fake<TrainingArena>({ targets: [], isActive: false });
   const registry = new WorldRegistry(); registry.add({ id: 'deck', name: 'Deck', category: 'buildings', file: 'fixture', surface: 'stone', colliders: [{ kind: 'box', x: 0, y: 0, z: 0, hx: 1, hy: 1, hz: 1 }] });
   return fake<ProbeWorld>({ game, player, physics, hud, animals, weapons, arena, registry,
-    chunk: fake<ShardManifest>({ slug: 'driftwood-isle', budgets: {}, spawn: { x: 0, z: 0, yaw: 0 } }),
     audio: fake<Audio>({ bedIds: undefined, samples: { set: 'best', loops: [], oneshots: [], sampleBed: false, underSample: false } }), music: fake<Music>({ scoreId: undefined, genre: 'synth', state: { mode: 'menu', intensity: 0, underwater: false } }), ocean: 'ocean-handle', pier: null, jetties: [], boat: null, hut: null, lookout: null, wreck: null, shrine: null, bushes: null, gulls: null, bridge: null, bridgeDeck: null, cove: null, enemies: null, shrineHum: null, islandSfx: null,
   });
 }
@@ -56,7 +72,7 @@ afterEach(() => {
 
 describe('probe contract', () => {
   it('reads authored handles and quest flags from this level and forgets scoped readers on disposal', () => {
-    const world = fixture(), debug = world.game.app.debug, slug = world.chunk.slug, scope = world.game.levelScope;
+    const world = fixture(), debug = world.game.app.debug, slug = world.game.level.id, scope = world.game.levelScope;
     const handles = { cabins: { id: 'authored-building' }, pineLife: { alive: true } }, flags = ['second', 'first'];
     const inactive = vi.fn(() => ['inactive']);
     scope.onDispose(debug.scopedExpose(`harness.shard.${slug}`, handles));

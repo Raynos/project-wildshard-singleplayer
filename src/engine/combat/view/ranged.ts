@@ -71,9 +71,10 @@ let texturesReady: Promise<void> = Promise.resolve();
 const WORKER_TIMEOUT_MS = 20000;
 
 
-export function startViewmodelTextures(withCrossbow: boolean): void {
+export function startViewmodelTextures(requested: boolean | readonly SetName[]): void {
   
-  const sets = (withCrossbow ? [...CROSSBOW_SETS, ...RIFLE_SETS] : [...RIFLE_SETS]).filter((n) => !pixelCache.has(n));
+  const names = typeof requested === 'boolean' ? (requested ? [...CROSSBOW_SETS, ...RIFLE_SETS] : [...RIFLE_SETS]) : requested;
+  const sets = names.filter((n) => !pixelCache.has(n));
   if (sets.length === 0) { texturesReady = Promise.resolve(); return; }
   texturesReady = (async () => {
   let worker: Worker;

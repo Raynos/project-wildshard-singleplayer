@@ -1,5 +1,6 @@
+import type { ShardWorld } from './world';
 import type { BodyShadow } from '../cosmetics/bodyShadow';
-import type { World, StepRunner, Interactable, Animal, AnimalManager, EquipmentService, WeaponId, Weapon, Audio, StepSurface, Music, HUD, GameMenu, FullMap, SkinLocker, SkinDef, CombatCues, Targets, GameMenuOptions, FirstHints, MapMark } from '#engine';
+import type { StepRunner, Interactable, Animal, AnimalManager, EquipmentService, WeaponId, Weapon, Audio, StepSurface, Music, HUD, GameMenu, FullMap, SkinLocker, SkinDef, CombatCues, Targets, GameMenuOptions, FirstHints, MapMark } from '#engine';
 import type { Group, Vector2, Vector3 } from 'three';
 import type { Inventory } from '../Inventory';
 import type { Progress } from '../Progress';
@@ -17,6 +18,7 @@ export interface ShardPlayHost {
   bodyShadow?: BodyShadow | null;
 }
 export interface ShardPlayHooks {
+  meleeSilent?: boolean;
   spawnFloor?: (x: number, z: number) => number | undefined;
   wearFinish?: (id: string) => void;
   updatePickups?: (dt: number, t: number) => void;
@@ -39,7 +41,7 @@ export interface ShardPlayHooks {
 }
 /** Typed, per-build handoff between the staged shell and an authored plugin. */
 export interface ShardRuntime {
-  world: World | null; step: StepRunner | null; play: ShardPlayHost | null;
+  world: ShardWorld | null; step: StepRunner | null; play: ShardPlayHost | null;
   readonly interactables: Interactable[];
   readonly overhead: Group[];
   readonly hooks: ShardPlayHooks;

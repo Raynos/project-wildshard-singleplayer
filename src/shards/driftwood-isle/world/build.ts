@@ -6,7 +6,7 @@
  */
 import * as THREE from 'three';
 import { CHUNK_HALF, ROAD_LENGTH, heightAt, macrotask, slicer, loadWorldContent, RopeChain, pathRampDescs, type World, type BoxSpec as Collider } from '#engine';
-import { OCEAN, HUT, LOOKOUT, WRECK, SHRINE, JETTIES, BRIDGE, BOAT_MOOR, PIER_PENNANT_AT } from '../manifest';
+import manifest, { OCEAN, HUT, LOOKOUT, WRECK, SHRINE, JETTIES, BRIDGE, BOAT_MOOR, PIER_PENNANT_AT } from '../manifest';
 import { Ocean } from './Ocean';
 import { Pier } from './Pier';
 import { Boat } from './Boat';
@@ -44,7 +44,7 @@ export function noDriftwoodWorld(): DriftwoodWorld {
 
 /** main.ts:366-467's Driftwood builders, verbatim (`sea` is the manifest's OCEAN). */
 export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vector3): Promise<DriftwoodWorld> {
-  const { game, sky, player, chunk, registry } = world;
+  const { game, sky, player, registry } = world;
   const { cutTerrain, normalAt, TRAILS } = await loadWorldContent(); // the deferred world code (cut, the live baked heightfield)
   const sea = OCEAN;
   // the built things' legacy boxes, for the ocean's foam rings (every one registers itself: models through
@@ -66,7 +66,7 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   if (boat.ropes) game.scene.add(boat.ropes);
   await slice();
   // faceted shore boulders along the beach
-  const rockSpecs = Boulders.scatterShore(chunk.seed);
+  const rockSpecs = Boulders.scatterShore(manifest.seed);
   // E306 M0b: a model (../models/shoreBoulder.ts) placed through src/engine/models/place.ts, which registers piece `rocks`
   const rocks = new Boulders(sky).place(rockSpecs, registry);
   statics.push(...rocks.colliders);
@@ -93,7 +93,7 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   for (const [i, j] of JETTIES.entries()) { const jetty = new Pier(sky, { x: j.x, z: j.z, rot: j.rot, length: j.length, width: 3, deckY: sea.level + 1.2 }).place(registry, `jetty-${i}`); statics.push(...jetty.colliders); jetties.push(jetty); await slice(); }
   await slice();
   const AVOID = [{ x: HUT.x, z: HUT.z, r: 11 }, { x: LOOKOUT.x, z: LOOKOUT.z, r: 12 }, { x: SHRINE.x, z: SHRINE.z, r: 13 }, { x: WRECK.x, z: WRECK.z, r: 14 }];
-  const bushes = new Bushes(sky).place(Bushes.scatterIsland(chunk.seed, undefined, AVOID), registry);
+  const bushes = new Bushes(sky).place(Bushes.scatterIsland(manifest.seed, undefined, AVOID), registry);
   await slice();
   // gulls: perched on the pier posts / bollards, the boat's bow and stern, the big shore rocks and the wet sand; flocks wheel over the lagoon
   const gulls = new Gulls(sky).build({
@@ -102,7 +102,7 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
       ...pier.bollards.map((p) => new THREE.Vector3(p.x, pier.deckY + 1.41, p.z)),
       new THREE.Vector3(-4.2, sea.level + 0.78, -CHUNK_HALF + 6 - 3.0), new THREE.Vector3(-4.2, sea.level + 0.7, -CHUNK_HALF + 6 + 3.0),
       ...rockSpecs.filter((b) => b.r > 1.8).map((b) => new THREE.Vector3(b.x, heightAt(b.x, b.z) + b.r * (b.squash ?? 0.7) * 1.3, b.z)),
-      ...Gulls.beachPerches(chunk.seed, 10, { x: 0, z: -195, r: 90 }),
+      ...Gulls.beachPerches(manifest.seed, 10, { x: 0, z: -195, r: 90 }),
     ],
     centre: new THREE.Vector3(0, 0, -205), radius: 90,
   });
@@ -119,11 +119,11 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   statics.push(...bridge.colliders);
   await slice();
   // coral, kelp, starfish and a fish school on the lagoon shelf (what you dive for)
-  const seabed = new Seabed(sky).build(Seabed.scatterLagoon(chunk.seed, 360, [{ x: WRECK.x, z: WRECK.z, r: 18 }]));
+  const seabed = new Seabed(sky).build(Seabed.scatterLagoon(manifest.seed, 360, [{ x: WRECK.x, z: WRECK.z, r: 18 }]));
   game.scene.add(seabed.mesh); if (seabed.fish) game.scene.add(seabed.fish);
   await slice();
   // coconut palms: where they stand (the palm itself is a model, placed below — one draw call, fronds sway in update)
-  const palmSpecs = Palms.scatterIsland(chunk.seed, undefined, AVOID);
+  const palmSpecs = Palms.scatterIsland(manifest.seed, undefined, AVOID);
   await slice();
   // Wreck Cove dressing: tidepools (the reef crabs' homes), the cascade + plunge pool, the glowing cave mouth
   // E315 M1: the cove is world (piece `cove`); its reef rocks are the reef-rock model

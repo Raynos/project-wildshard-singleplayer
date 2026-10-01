@@ -142,9 +142,9 @@ export class Diorama {
   /** cut the world round `bounds`; `keep` (the explorer's own marks) is never hidden */
   enter(bounds: THREE.Box3, keep: readonly THREE.Object3D[]): DioramaVolume {
     this.exit();
-    const { game, chunk } = this.world;
+    const { game } = this.world;
     const sea = app.world.water.level ?? -Infinity;
-    const built = chunk.spawn.y !== undefined; // a structure-first shard (Nine Dragon): its ground is what it built, not heightAt
+    const built = game.level.spawn.y !== undefined; // a structure-first shard (Nine Dragon): its ground is what it built, not heightAt
     const ground = (x: number, z: number): number => (built ? bounds.min.y : Math.max(heightAt(x, z), sea));
     const vol = dioramaVolume(bounds, ground, built);
     this.vol = vol;

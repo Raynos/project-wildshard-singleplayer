@@ -1,7 +1,6 @@
+import type { ShardWorld as World, ShardRuntime } from '#game';
 import { describe, expect, it } from 'vitest';
 import { Vector3 } from 'three';
-import type { World } from '#engine';
-import type { ShardRuntime } from '#game';
 import { driftwoodLoadoutRows, ironSwordDrop } from '#shards/driftwood-isle/loadout/rows';
 import { ironSwordSite } from '#shards/driftwood-isle/weapons/IronSword';
 

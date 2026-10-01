@@ -219,7 +219,7 @@ export function startShardPrefetch(active: ShardManifest): PrefetchHandle {
     await sleep(START_DELAY_MS);
     // A phone keeps only one shard in play. Cache this shard (including its KTX2 set for the next launch),
     // but do not download the other worlds while the iOS WebContent process is under memory pressure.
-    const order = TIER === 'phone' ? [active] : [active, ...PLAYABLE_SHARDS.filter((c) => c.slug !== active.slug)];
+    const order = TIER === 'phone' ? [active] : [active, ...PLAYABLE_SHARDS.filter((c) => c !== active)];
     await Promise.all(order.filter((def) => def !== active).map((def) => prepareBootAudio(def.boot)));
     await Promise.all(order.map(async (def) => { if (def.ktx2 !== undefined) registerGpuFiles((await def.ktx2()).GPU_FILES); }));
     const jobs: { slug: string; url: string; set: 'boot' | 'ktx2' }[] = [];
@@ -228,7 +228,7 @@ export function startShardPrefetch(active: ShardManifest): PrefetchHandle {
     const picked = setting('tex');
     const modeFor = (def: ShardManifest): TexMode => (picked !== 'auto' ? picked : ktx2Ready(def) ? 'ktx2' : 'img');
     for (const def of order) {
-      const urls = shardPrefetchList(def, def.slug === active.slug ? texMode() : modeFor(def));
+      const urls = shardPrefetchList(def, def === active ? texMode() : modeFor(def));
       state.shards[def.slug] = { files: urls.length, hit: 0, stored: 0, failed: 0, bytes: 0 };
       for (const url of urls) jobs.push({ slug: def.slug, url, set: 'boot' });
     }

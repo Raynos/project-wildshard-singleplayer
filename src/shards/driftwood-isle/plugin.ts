@@ -32,6 +32,7 @@ export class DriftwoodPlugin extends ShardPlugin {
     const built = await this.build(world, shell.viewer);
     if (ctx.scope.disposed) throw new Error('Driftwood Isle was unloaded during its world build');
     keepDriftwoodWorld(shell, built);
+    shell.hooks.meleeSilent = true;
     const { ocean, pier, jetties, boat, hut, lookout, wreck, shrine, bushes, gulls, bridge, bridgeDeck, cove } = built;
     Object.assign(shell.objects, { ocean, pier, jetties, boat, hut, lookout, wreck, shrine, bushes, gulls, bridge, bridgeDeck, cove });
     shell.hooks.spawnFloor = (x, z) => pier?.floorHeightAt(x, z);

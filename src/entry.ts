@@ -56,3 +56,18 @@ export const entered: Promise<unknown> = setting('calibrate') === 'run' ? import
   return retried(() => import('./main'));
 })();
 guardBoot(entered);
+
+/** Composition root: select authored content and inject reusable kit recipes. */
+export async function start(): Promise<void> {
+  const [{ game }, kit, { loadBootRuntime }, { sharedCombatCues }] = await Promise.all([
+    import('#game'), import('#kit'), import('#engine'), import('#kit/audio/combatCues'),
+  ]);
+  const manifest = game.shard;
+  kit.installKitSpecies();
+  const engine = await loadBootRuntime();
+  const { startSession } = await import('#game/session/session');
+  await startSession(manifest, engine, {
+    items: kit.KIT_ITEMS,
+    combatCues: (audio, silent) => sharedCombatCues(kit.sharedWeaponVoices(audio), silent),
+  });
+}

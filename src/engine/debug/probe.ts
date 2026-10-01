@@ -155,7 +155,7 @@ export function createProbeNav(mesh: Pick<Navmesh, 'randomPointNear' | 'findPath
 /** Authored harness values use a level-keyed scoped exposure, without reading browser globals. */
 const isFlagsReader = (value: unknown): value is (() => unknown) => typeof value === 'function';
 function authoredQuestFlags(world: ProbeWorld): string[] {
-  const read: unknown = world.game.app.debug.snapshot()[`harness.quest.${world.chunk.slug}`];
+  const read: unknown = world.game.app.debug.snapshot()[`harness.quest.${world.game.level.id}`];
   const flags: unknown = isFlagsReader(read) ? read() : [];
   return Array.isArray(flags) ? flags.filter((flag): flag is string => typeof flag === 'string').sort() : [];
 }
@@ -238,7 +238,7 @@ function fingerprint(world: ProbeWorld, deps: ProbeDeps, saves: Saves): Fingerpr
   }).sort((a, b) => a.cls.localeCompare(b.cls) || a.spot.localeCompare(b.spot));
   const build = typeof __BUILD_ID__ === 'string' ? __BUILD_ID__ : '';
   const record: Fingerprint = {
-    schema: 1, lane: pins?.lane ?? '', sha: pins?.sha ?? build.split('-')[0] ?? '', build, shard: world.chunk.slug, tier: TIER,
+    schema: 1, lane: pins?.lane ?? '', sha: pins?.sha ?? build.split('-')[0] ?? '', build, shard: world.game.level.id, tier: TIER,
     viewport: { w: window.innerWidth, h: window.innerHeight, dpr: window.devicePixelRatio, touch: navigator.maxTouchPoints > 0 },
     renderer: typeof renderer === 'string' ? renderer : '', browser: pins?.browser ?? navigator.userAgent, errors: [...(pins?.errors ?? [])],
     steps: Object.keys(deps.bootSteps), systems: game.systemLabels(), appStates: [...game.app.stateHistory], registry: pieces, registryModels: { models: registry.models().length, sets: registry.sets.length },
@@ -327,14 +327,14 @@ export function installProbe<W extends ProbeWorld>(world: W, deps: ProbeDeps): W
     if (floor !== undefined) p.spawn(p.position.x, p.position.z, p.yaw, Math.max(p.position.y, floor));
   };
   const pose = async (p: ProbePose): Promise<void> => {
-    requireHarness(); const pl = world.player, spawn = world.chunk.spawn;
+    requireHarness(); const pl = world.player, spawn = world.game.level.spawn;
     pl.spawn(p.x ?? spawn.x, p.z ?? spawn.z, p.yaw ?? spawn.yaw, p.y);
     land(); pl.pitch = p.pitch ?? 0; pl.velocity.set(0, 0, 0); pl.keys.clear();
     await new Promise<void>((resolve) => { requestAnimationFrame(() => { resolve(); }); });
   };
-  const shard: WildshardProbe['shard'] = { slug: world.chunk.slug };
-  for (const key of SHARD_KEYS[world.chunk.slug] ?? []) shard[key] = world[key];
-  const authored: unknown = app.debug.snapshot()[`harness.shard.${world.chunk.slug}`];
+  const shard: WildshardProbe['shard'] = { slug: world.game.level.id };
+  for (const key of SHARD_KEYS[world.game.level.id] ?? []) shard[key] = world[key];
+  const authored: unknown = app.debug.snapshot()[`harness.shard.${world.game.level.id}`];
   if (authored !== null && typeof authored === 'object') Object.assign(shard, authored);
   const probe: WildshardProbe<W> = {
     app: Object.freeze({
@@ -349,9 +349,9 @@ export function installProbe<W extends ProbeWorld>(world: W, deps: ProbeDeps): W
       get rngSeed() { return app.rng.seedValue; },
       get census() { return Object.freeze({ engine: Object.freeze(app.engineScope.census), level: Object.freeze(game.levelScope.census) }); },
     }),
-    version: 1, world, get shard() { return { ...shard, ...app.debug.scopedSnapshot(), slug: world.chunk.slug }; },
+    version: 1, world, get shard() { return { ...shard, ...app.debug.scopedSnapshot(), slug: world.game.level.id }; },
     boot: fingerprint(world, deps, saves), fingerprint: () => fingerprint(world, deps, saves), pose, nav,
-    budgets: (poses = []) => poseBudgets(world.chunk.slug, TIER, world.chunk.budgets ?? {}, poses),
+    budgets: (poses = []) => poseBudgets(world.game.level.id, TIER, world.game.level.budgets, poses),
     leak: async () => {
       requireHarness();
       if (!pins?.resources) throw new Error('Leak census requires independent harness resource counters');
@@ -398,11 +398,11 @@ export function installProbe<W extends ProbeWorld>(world: W, deps: ProbeDeps): W
       } finally { p.keys.clear(); if (leg.start.hover === true) p.setHover(false); world.animals.animals.forEach((a, i) => { a.harnessHold = held[i] ?? false; }); }
     },
     combat: {
-      equip: (id) => { requireHarness(); const weapon = world.weapons.list.find((w) => w.id === id); if (!weapon) throw new Error(`Weapon ${id} absent from ${world.chunk.slug}`); world.weapons.select(weapon.id, true); },
+      equip: (id) => { requireHarness(); const weapon = world.weapons.list.find((w) => w.id === id); if (!weapon) throw new Error(`Weapon ${id} absent from ${world.game.level.id}`); world.weapons.select(weapon.id, true); },
       target: (kind, near) => {
         requireHarness(); const candidates: CombatTarget[] = kind === 'training-dummy' ? world.arena.targets : world.animals.animals;
         const target = candidates.filter((a) => a.alive && a.kind === kind).sort((a, b) => Math.hypot(a.position.x - near.x, a.position.z - near.z) - Math.hypot(b.position.x - near.x, b.position.z - near.z))[0];
-        if (!target) throw new Error(`No live ${kind} in ${world.chunk.slug}`);
+        if (!target) throw new Error(`No live ${kind} in ${world.game.level.id}`);
         target.harnessHold = true; return target;
       },
       hold: (a, on) => { requireHarness(); a.harnessHold = on; }, hits, kills,

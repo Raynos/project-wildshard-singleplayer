@@ -1,3 +1,4 @@
+import { precompileLevel } from '../render/precompile';
 import { saveStorage } from '#engine/saves/slots';
 /**
  * GPU recovery (E54) and the app-switch resume (E61): what the game does when the phone takes its graphics away — the
@@ -214,7 +215,7 @@ export function installGpuRecovery(host: RecoveryHost): void {
     screen.progress(0);
     const t0 = performance.now();
     try {
-      await game.precompile((done, total) => { if (mine === epoch) screen.progress(total > 0 ? 0.9 * done / total : 0); });
+      await precompileLevel(game, (done, total) => { if (mine === epoch) screen.progress(total > 0 ? 0.9 * done / total : 0); });
       if (mine !== epoch) return;
       host.rebuild();
       rebakeGpuContent(); // the runtime bakes that can paint themselves again (gpuOnly.ts onGpuRestored)

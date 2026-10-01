@@ -14,8 +14,6 @@ import { Tour } from './Tour';
 import * as Heightfield from '../world/Heightfield';
 import type { StepRunner } from '../boot/plan';
 import { needsTerrainCollider, type LevelSpec } from '../level/spec';
-import { getActiveChunk } from '#game/shard/registry';
-import type { ShardManifest } from '#game/shard/manifest';
 import { loadRapier } from '../physics/rapier';
 import { Physics } from '../physics/Physics';
 import { setActivePhysics } from '../physics/active';
@@ -40,8 +38,6 @@ export interface World {
   /** every built thing, registered once (src/engine/world/registry.ts): the scene, physics and the floors listen here */
   registry: WorldRegistry;
   tour: Tour;
-  /** the shard being played (src/game/shard/registry.ts) */
-  chunk: ShardManifest;
   /** Explore World owns the camera (src/engine/explore/Explore.ts): the player is not updated and does not drive it */
   freeCamera: boolean;
   params: URLSearchParams;
@@ -60,9 +56,9 @@ export async function bootstrap(step: StepRunner, level: LevelSpec): Promise<Wor
   const params = new URLSearchParams(location.search);
   const num = (k: string, d: number): number => { const v = params.get(k); return v === null ? d : Number.parseFloat(v); };
   // The selected shard was resolved before main.ts removes ?chunk from a standalone PWA URL.
-  const def = getActiveChunk();
+  const def = level;
   const rapier = loadRapier(); // streamed compile from the first moment of boot; the `physics` step below awaits it
-  const navmesh = loadNavmesh(def.slug); // the shard's baked navmesh (P6b), a declared boot file; the `physics` step awaits it
+  const navmesh = loadNavmesh(def.id); // the shard's baked navmesh (P6b), a declared boot file; the `physics` step awaits it
   const canvas = document.getElementById('game') as HTMLCanvasElement;
   const game = await step('renderer', async (progress) => {
     const context = await readyWebGLContext(canvas, (state) => {
@@ -81,13 +77,13 @@ export async function bootstrap(step: StepRunner, level: LevelSpec): Promise<Wor
     p.detail(`${TERRAIN_RES}² heightfield${def.assets ? ` · ${def.assets.groundLayers.length} splat layers` : ''}`);
     return t;
   });
-  const factory = await step('cards', async () => typeof def.trees.factory === 'function' ? (await def.trees.factory())(game.renderer, sky) : new TreeFactory(game.renderer).buildEmpty());
+  const factory = await step('cards', async () => typeof def.trees?.factory === 'function' ? (await def.trees.factory())(game.renderer, sky) : new TreeFactory(game.renderer).buildEmpty());
   const forest = await step('forest', (p) => {
-    const f = new Forest(factory, sky).build({ drawnBy: def.trees.drawnBy ?? 'self' }); // 'model': the shard's tree model draws them (E315)
+    const f = new Forest(factory, sky).build({ drawnBy: def.trees?.drawnBy ?? 'self' }); // 'model': the shard's tree model draws them (E315)
     if (f.trees.length === 0) f.group.visible = false; // an ocean shard: the empty needle / twig batches still cost 24k tris + shadow draws on the phone
     else game.scene.add(f.group);
     terrain.applyCanopy(f.canopyMap);
-    p.detail(`${f.trees.length.toLocaleString()} ${def.trees.noun}`);
+    p.detail(`${f.trees.length.toLocaleString()} ${def.trees?.noun ?? 'trees'}`);
     return f;
   });
 
@@ -126,7 +122,7 @@ export async function bootstrap(step: StepRunner, level: LevelSpec): Promise<Wor
 
   const tour = new Tour(game.camera);
   tour.active = params.has('tour');
-  const world: World = { game, sky, terrain, forest, player, physics, registry, tour, chunk: getActiveChunk(), params, num, freeCamera: false };
+  const world: World = { game, sky, terrain, forest, player, physics, registry, tour, params, num, freeCamera: false };
   canvas.addEventListener('click', () => { if (!params.has('nolock') && !world.freeCamera) player.lock(); }); // Explore's free camera keeps the cursor
   // frame phases (Game.ts): input → fixed steps (pre: move the boxes, step: advance the world, post: the player's move) → update → late
   const playing = () => !tour.active && !world.freeCamera;

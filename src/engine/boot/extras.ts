@@ -49,7 +49,7 @@ const cardArt = new Set<string>();
 
 function artFor(def: ShardManifest): { urls: string[]; bytes: Record<string, number> } {
   const urls: string[] = [], bytes: Record<string, number> = {};
-  const cards = SHARDS.flatMap((card) => [card.card.thumb, card.card.portrait, ...(TIER === 'desktop' || card.slug === def.slug ? [card.card.landscape] : [])]);
+  const cards = SHARDS.flatMap((card) => [card.card.thumb, card.card.portrait, ...(TIER === 'desktop' || card === def ? [card.card.landscape] : [])]);
   const cardUrls = new Set(cards);
   for (const url of new Set([...cards, ...(def.boot?.explore?.art ?? []), ...(def.boot?.precache ?? [])])) {
     if (url.startsWith('data:')) continue; // inlined into the bundle: nothing to fetch

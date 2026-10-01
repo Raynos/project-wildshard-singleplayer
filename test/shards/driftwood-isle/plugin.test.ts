@@ -1,7 +1,7 @@
+import { type ShardWorld as World, shardContext, toLevelSpec, type GameServices, type ShardRuntime } from '#game';
 import { afterEach, describe, expect, it } from 'vitest';
 import { Vector3 } from 'three';
-import { App, type LevelDriver, type World } from '#engine';
-import { shardContext, toLevelSpec, type GameServices, type ShardRuntime } from '#game';
+import { App, type LevelDriver, type World as EngineWorld } from '#engine';
 import manifest, { OCEAN } from '#shards/driftwood-isle/manifest';
 import { DriftwoodPlugin } from '#shards/driftwood-isle/plugin';
 import { driftwoodWorld, noDriftwoodWorld } from '#shards/driftwood-isle/world/build';
@@ -20,7 +20,7 @@ describe('Driftwood world hook (E357 S4.1)', () => {
     const bootstrapped = {} as World;
     const runtime: ShardRuntime = { world: bootstrapped, step: null, play: null, interactables: [], overhead: [], hooks: {}, objects: {}, viewer: () => new Vector3(), horizonVeil: null };
     const built = { ...noDriftwoodWorld(), palmSpecs: [] };
-    const calls: World[] = [];
+    const calls: EngineWorld[] = [];
     const plugin = new DriftwoodPlugin((world) => { calls.push(world); return Promise.resolve(built); });
     const game: GameServices = { runtime, shard: manifest, rows: new Map(), bag: { tab: () => noop, fragment: () => noop } };
     loaded.add(app);

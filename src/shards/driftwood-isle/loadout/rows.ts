@@ -34,7 +34,7 @@ export function installDriftwoodLoadout(world: World, shell: ShardRuntime, rows:
     const { ironArms, swim: _swim, ...woodArms } = viewmodel ?? {};
     const [wood, iron] = rows;
     const primary = new Sword(world, targets, { row: wood, profile: wood, allowUnlocked: nolock, ...woodArms,
-      ...(world.chunk.camera ? { portraitFov: world.chunk.camera.portraitFov } : {}) });
+      ...(world.game.level.camera ? { portraitFov: world.game.level.camera.portraitFov } : {}) });
     await macrotask();
     const extra = new Sword(world, targets, { row: iron, profile: iron, allowUnlocked: nolock, blade: 'iron', ...(ironArms ? { arms: ironArms } : {}) });
     return { primary, rifle: null, secondary: null, extras: [extra] };

@@ -5,6 +5,7 @@ import { UploadOwnership } from '../render/uploadOwnership';
 import type { Phase } from '../app/systems';
 import { currentScope } from '../app/legacyCapture';
 import * as THREE from 'three';
+import { createRenderer, type Renderer } from '../render/renderer';
 import {
   EffectComposer, type RenderPass, EffectPass, BloomEffect, SMAAEffect, FXAAEffect, VignetteEffect, ToneMappingEffect,
   ToneMappingMode, BlendFunction, GodRaysEffect, LUT3DEffect, KernelSize, SMAAPreset, EdgeDetectionMode, ChromaticAberrationEffect, HueSaturationEffect, BrightnessContrastEffect, NoiseEffect,
@@ -20,9 +21,7 @@ import { Sky } from '../world/Sky';
 import { GradeEffect } from './Grade';
 import { VolumetricsEffect, makeNoiseTexture } from './Volumetrics';
 import { TIER, TIER_CONFIG, frameCapFps, type Tier } from './tier';
-import { chunkShadowCasters } from '../world/shadowChunks';
-import { PERFLOAD, snapshotPrograms, newProgramsSince, describeProgram, perfLog, dumpPrograms, parallelCompile } from '../boot/perflog';
-import { sceneJobs, shadowJobs, backgroundJob, postJobs, runPrecompile } from '../boot/precompile';
+import { PERFLOAD, snapshotPrograms, newProgramsSince, describeProgram, perfLog, dumpPrograms } from '../boot/perflog';
 import { worldTime } from './time';
 import { installViewport, viewportHeight } from './viewport';
 import { FIXED_STEP } from './fixedStep';
@@ -94,7 +93,7 @@ interface BuiltChain { clean: boolean; order: Effect[]; fx: Omit<EngineEffects, 
 
 export class Game {
   readonly app = app;
-  renderer: THREE.WebGLRenderer;
+  renderer: Renderer;
   scene = new THREE.Scene();
   camera: THREE.PerspectiveCamera;
   private _composer: EffectComposer | null = null;
@@ -285,7 +284,7 @@ export class Game {
     const tracedBoot = bootTraceActive();
     if (tracedBoot) recordBootCheckpoint('renderer:before', { userAgent: navigator.userAgent.slice(0, 250), devicePixelRatio: window.devicePixelRatio });
     try {
-      this.renderer = new THREE.WebGLRenderer({ canvas, context, antialias: false, stencil: false, depth: true });
+      this.renderer = createRenderer(canvas, context);
     } catch (error) {
       if (tracedBoot) recordBootCheckpoint('renderer:failed', { message: error instanceof Error ? error.message.slice(0, 250) : String(error).slice(0, 250) });
       throw error;
@@ -617,28 +616,6 @@ export class Game {
    * materials, the shadow-depth variants, the sky background and the post chain — with progress
    * (src/engine/boot/precompile.ts). Returns the distinct material count.
    */
-  async precompile(onProgress?: (done: number, total: number, detail: string) => void): Promise<number> {
-    const tracedBoot = bootTraceActive();
-    if (tracedBoot) recordGpuCheckpoint(this.renderer, 'compile:before');
-    // r186 removed PCFSoftShadowMap: the first shadow pass silently flips the type to PCF, and
-    // shadowMapType is in every program's cache key — so everything compiled here would be
-    // compiled AGAIN by the first frame (desktop 105 → 179 programs). Settle it before compiling.
-    // oxlint-disable-next-line typescript/no-deprecated -- the guard exists to migrate away from the deprecated value
-    if (this.renderer.shadowMap.type === THREE.PCFSoftShadowMap) this.renderer.shadowMap.type = THREE.PCFShadowMap;
-    // E153: island-wide casters draw into each shadow map in pieces, culled per cascade (shadowChunks.ts)
-    const cut = chunkShadowCasters(this.scene);
-    if (cut.meshes > 0) console.info(`[shadow] ${String(cut.meshes)} casters in ${String(cut.pieces)} pieces (${String(cut.tris)} tris)`);
-    const rt = (this.composer as unknown as { inputBuffer?: THREE.WebGLRenderTarget }).inputBuffer ?? null;
-    const { jobs, materials } = sceneJobs(this.scene, rt);
-    jobs.push(...shadowJobs(this.scene, rt));
-    const bg = backgroundJob(this.scene, rt);
-    if (bg) jobs.push(bg);
-    jobs.push(...postJobs(this.composer, rt));
-    if (PERFLOAD) perfLog('precompile:start', 0, this.renderer, `${materials} materials · ${jobs.length} jobs · parallel=${parallelCompile(this.renderer)}`);
-    const report = await runPrecompile(this.renderer, this.camera, jobs, materials, onProgress);
-    if (tracedBoot) recordGpuCheckpoint(this.renderer, 'compile:after');
-    return report.materials;
-  }
 
   /**
    * The first frames, as a step: a scene-only draw (shadow-depth programs + the GPU's first draw of

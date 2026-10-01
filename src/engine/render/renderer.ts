@@ -18,3 +18,8 @@ export function probeRenderer(): Renderer {
 export function isRenderer(value: object): boolean {
   return Reflect.get(value, 'isWebGLRenderer') === true;
 }
+
+/** Create the game's renderer on its recovered WebGL context. */
+export function createRenderer(canvas: HTMLCanvasElement, context: WebGL2RenderingContext): Renderer {
+  return new THREE.WebGLRenderer({ canvas, context, antialias: false, stencil: false, depth: true });
+}

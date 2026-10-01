@@ -63,7 +63,7 @@ export interface ExploreTitle { name: string; landscape: string; thumb: string }
 export interface ExploreHost {
   world: World;
   /** the level's name and picker art (the composition root's; until it passes one, read from the world's manifest) */
-  title?: ExploreTitle;
+  title: ExploreTitle;
   /** ✕ / ◀ TITLE: main.ts shows the title again */
   onExit: () => void;
   /** the hub's Practice Arena card returns to play with the current shard's starter weapon */
@@ -82,11 +82,6 @@ export interface ExploreHost {
   overhead?: THREE.Object3D[];
 }
 
-/** the bridge until the composition root passes `ExploreHost.title`: the world's manifest's name and card art */
-function manifestTitle(world: World): ExploreTitle {
-  const m = world.chunk;
-  return { name: m.name, landscape: m.card.landscape, thumb: m.card.thumb };
-}
 
 /** a mode that lives in its own module (Model Explorer, …): shown / hidden with its tab, ticked while shown */
 export interface ExplorePane {
@@ -180,7 +175,7 @@ export class Explore {
 
   constructor(private readonly host: ExploreHost) {
     const { game } = host.world;
-    this.title = host.title ?? manifestTitle(host.world);
+    this.title = host.title;
     this.cam = new FreeCam(game.camera, game.canvas, { moveSpeed: SPEEDS[1][1], damping: 0.82, pointerLock: true });
     this.cam.enabled = false;
     this.cam.floor = (x, z) => heightAt(x, z);

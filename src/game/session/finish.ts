@@ -1,0 +1,92 @@
+import type { BuiltWorld } from './context';
+import type { playStage } from './play';
+
+export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): Promise<BuiltWorld> {
+  const { engine, manifest, boot, slug, loading, audioProfile, files, bootSteps, plan, step, audioLoad, deferredAudio, world, game, sky, player, chunk, fragileBoot, failGpuBoot, onBootContextLost, edgeDressing, boundary, water, interactables, props, disableBootGpuGuard, level, animals, arena, crossbow, weapons, lockSys, hud, perf, audio, music, playerHealth, exploring, hands, windupWarn, resuming, arrival, menuFirst, enter, getPlayground } = ctx;
+  const { app, installProbe, installGpuRecovery, setPoseProvider, lockState, macrotask, releaseByteCounter, startAudioPreload, startShardPrefetch, TIER, textureBytes, asShell } = engine;
+
+  await macrotask();
+  game.buildComposer();
+  // Compile programs in batches with a visible count, then draw the first frames as a step —
+  // instead of the first render() compiling ~100 programs in one stall (minutes on iOS).
+  const programs = () => `${game.renderer.info.programs?.length ?? 0} programs`;
+  try {
+    await step('shaders', (p) => engine.precompileLevel(game, (d, n, what) => p.set(d, n, `${what} · ${programs()}`)));
+    if (fragileBoot && game.renderer.getContext().isContextLost()) throw new Error('WebGL context lost during shader compile');
+    await step('firstFrame', (p) => game.firstFrame((d, n, what) => p.set(d, n, `${what} · ${programs()}`)));
+    if (fragileBoot && game.renderer.getContext().isContextLost()) throw new Error('WebGL context lost during first frame');
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    if (fragileBoot && /WebGLShader|WebGL context lost|shaderSource/i.test(message)) failGpuBoot(message.slice(0, 120), error instanceof Error ? error.stack ?? '' : '');
+    throw error;
+  }
+  loading.setTextureBytes(textureBytes(game.scene));
+  // Nine Dragon phone counts and caches the same files, then decodes selected audio after the loader's peak.
+  if (deferredAudio) {
+    await step('audio', (p) => deferredAudio.wait(p));
+    // The synth bridges the short delay. This empty bank prevents Music.prepare() from decoding the
+    // same selected style again if the player taps before the deferred decode finishes.
+    music.useBank({ genre: deferredAudio.style, set: 'base', slots: new Map(), stings: new Map(), log: [] });
+  } else {
+    const banks = await step('audio', (p) => (audioLoad ?? startAudioPreload(files, chunk, audioProfile)).wait(p));
+    if (banks.music) music.useBank(banks.music); // the title theme's first gesture plays the stems at once
+    if (banks.profile) audio.useLevelBank(banks.profile); else audio.useSamples(banks.sfx);
+  }
+  const finishPlan: unknown = Reflect.get(plan, 'done');
+  if (typeof finishPlan !== 'function') throw new Error('Boot plan cannot finish');
+  Reflect.apply(finishPlan, plan, []); // throws unless both tracks are exactly 1
+  releaseByteCounter();
+  // an app switch that takes the GPU (iOS): hold the loop, restore in place or reload where the player stood (E54)
+  if (resuming) hud.setPaused(true); // RESUME is the gesture that brings the audio back (enter)
+  const recoveryInstalledAt = performance.now();
+  installGpuRecovery({ game, rebuild: () => { sky.rebuildEnvironment(); }, pose: () => (hud.entered ? { x: player.position.x, y: player.position.y, z: player.position.z, yaw: player.yaw, pitch: player.pitch } : null), resumed: resuming,
+    fragileBoot: () => TIER === 'phone' && performance.now() - recoveryInstalledAt < 20_000,
+  });
+  disableBootGpuGuard();
+  if (fragileBoot) game.canvas.removeEventListener('webglcontextlost', onBootContextLost);
+  setPoseProvider(() => (hud.entered ? { x: player.position.x, y: player.position.y, z: player.position.z, yaw: player.yaw, pitch: player.pitch } : null)); // the Look Lab's reload prompt comes back right here (E65)
+  await loading.done();
+  if (level === undefined) app.events.emit('level.loaded', { id: slug });
+  app.setState(hud.entered ? 'play' : 'title');
+  game.start(); // keep the full render loop out of the loader's 100% fade and its transient boot-memory peak
+  if (arrival?.mode === 'enter' || arrival?.mode === 'arena') enter();
+  else if (arrival?.mode === 'explore') hud.startExplore(); // import the viewer only after shader compilation and the loader's peak
+  if (arrival?.mode === 'arena') hud.enterArenaNow();
+  if (deferredAudio) {
+    const decodeAfterBoot = async (): Promise<void> => {
+      try {
+        const banks = await deferredAudio.decode();
+        if (banks.music) music.useBank(banks.music);
+        if (banks.profile) audio.useLevelBank(banks.profile); else audio.useSamples(banks.sfx);
+      } catch (error) {
+        console.info(`[audio] deferred level decode: ${error instanceof Error ? error.message : String(error)} — the synth plays`);
+      }
+    };
+    requestAnimationFrame(() => { window.setTimeout(() => { void decodeAfterBoot(); }, 0); });
+  }
+  // E183: while the title idles, fetch the Explore code and draw the world's first frame once under the title art. The
+  // first frame after the title paid every first-time cost at once — Pine Hollow's four elites built, the cover filled,
+  // textures that arrived after the boot uploaded: EXPLORE WORLD's first tap stalled ~1.3 s at 4× CPU (and ENTER WORLD's
+  // first frame the same). A return from the background already draws such a frame on the title (Game.start).
+  if (menuFirst) window.setTimeout(() => {
+    if (hud.entered || exploring()) return;
+    if (chunk.explore !== undefined) void engine.loadExplore();
+    game.primeFrame();
+  }, 1200);
+  const handle = { ...world, boundary, water, streams: edgeDressing.streams, hands, props, animals, interactables, crossbow, hud, audio, music, lockSys, lockState, weapons, arena, playground: getPlayground, ...boot.runtime.objects };
+  app.audio = audio;
+  game.retainKitResources();
+  game.captureLevelResources();
+  game.levelScope.onDispose(() => { windupWarn?.dispose(); weapons.setEnabled(false); boot.runtime.hooks.dispose?.(); audio.unloadLevel(); });
+  installProbe(handle, { bootSteps, health: () => playerHealth.attributes.health, quest: () => ({ driftwood: boot.runtime.hooks.adventureFlags?.() ?? [], nalati: boot.runtime.hooks.questFlags?.() ?? [] }) });
+  document.dispatchEvent(new Event('ws:ready')); // booted to the title: the native shell's update watchdog (src/engine/native/boot.ts) waits for this
+  // E158: the other shards' boot files into the worker's cache, in the background — once a page (the shell's, not a shard's)
+  asShell(() => { startShardPrefetch(manifest); });
+
+
+  const levelWorld: BuiltWorld = { scene: game.scene, dispose: () => {
+    weapons.setEnabled(false); perf.setActive(false); audio.unloadLevel();
+  } };
+  game.levelScope.onDispose(levelWorld.dispose);
+  return levelWorld;
+}

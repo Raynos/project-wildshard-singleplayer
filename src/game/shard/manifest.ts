@@ -403,8 +403,6 @@ export interface ChunkHud {
   /** the sun / moon badge on the minimap's rim (Minimap.showDayBadge) */
   dayBadge?: boolean;
 }
-/** a shard whose weapons are melee-first (Driftwood's swords, Nalati's sabre / spear): AnimalManager's telegraphed charges, the hurt arc */
-export const meleeShard = (def: { weapon?: ChunkWeapon | undefined }): boolean => def.weapon === 'sword' || def.weapon === 'custom';
 /**
  * What one enemy hit takes off the player's 100 health on this shard: the hit's own damage, capped at `ShardManifest.maxHitDamage`
  * when the shard sets one (E294: Driftwood caps every hit at 20, so any common enemy needs ~5 hits to kill you). Falls and

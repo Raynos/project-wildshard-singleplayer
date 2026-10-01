@@ -44,3 +44,6 @@ export { onCreatureDeath, DEATH_ORDER, type CreatureDeathSource } from './loot/d
 export { ShopPanel, type ShopGood, type ShopState, type ShopOpts } from './loot/ui/ShopPanel';
 
 export { BodyShadow, installBodyShadow } from './cosmetics/bodyShadow';
+
+export { game } from './shard/registry';
+export type { ShardWorld } from './shard/world';
