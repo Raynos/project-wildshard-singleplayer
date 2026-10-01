@@ -3,6 +3,7 @@
 // Run from the repository root; tests run this same CLI from a small temporary tree.
 import { existsSync, globSync, readFileSync, statSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
+import { checkShards } from './check-shards.mjs';
 
 const ROOT = process.cwd();
 const failures = new Set();
@@ -68,6 +69,9 @@ for (const file of globSync(['src/**/*.ts', 'test/**/*.ts'], { cwd: ROOT })) {
     check(file, text, pattern.startsWith('/') ? pattern.slice(1) : pattern, call.index, folder);
   }
 }
+
+// E362 AG9: the same policy also runs in pnpm test, beyond pre-commit and the Vitest CI check.
+if (existsSync(resolve(ROOT, 'lint/shard-layout.json'))) for (const failure of checkShards(ROOT)) failures.add(failure);
 
 if (failures.size > 0) {
   console.error(`check-paths: ${failures.size} failure(s)\n${[...failures].sort((a, b) => a.localeCompare(b)).join('\n')}`);

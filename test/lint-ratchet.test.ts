@@ -95,8 +95,22 @@ describe('ratchet CLI', () => {
     expect(f.read().debugRows).toEqual({ max: 2, raisedBy: ['E357'] });
     expect(f.run('--add-rule', 'wildshard/no-raw-save').status).toBe(1);
     expect(f.run('--add-rule', 'wildshard/missing').status).toBe(1);
-    expect(f.run('--add-rule', 'wildshard/layer').status).toBe(0);
+    expect(f.run('--add-rule', 'wildshard/layer').stderr).toContain('promote');
     expect(f.run('--add-rule', 'wildshard/layer').status).toBe(1);
+  });
+  it('rebaselines only an explicitly named existing widened rule', () => {
+    const f = fixture(); expect(f.run('--init').status).toBe(0);
+    const baseline = f.read();
+    baseline['wildshard/no-raw-random-time'] = { 'src/other.ts': 2 };
+    baseline['wildshard/no-raw-save'] = { 'src/ui/example.ts': 1, 'src/old.ts': 3 };
+    f.write(baseline);
+    put(f.root, 'src/ui/example.ts', "localStorage.getItem('x'); sessionStorage.getItem('y');");
+    expect(f.run('--rebaseline-rule', 'wildshard/no-raw-save').status).toBe(0);
+    expect(f.read()['wildshard/no-raw-save']).toEqual({ 'src/ui/example.ts': 2, 'src/old.ts': 3 });
+    expect(f.read()['wildshard/no-raw-random-time']).toEqual(baseline['wildshard/no-raw-random-time']);
+    expect(f.run('--rebaseline-rule', 'wildshard/missing').status).toBe(1);
+    expect(f.run('--rebaseline-rule', 'wildshard/no-raw-hud').status).toBe(1);
+    expect(f.run('--rebaseline-rule', 'wildshard/no-raw-save', '--update').status).toBe(1);
   });
   it('counts static registry entries and plugin rows, and refuses a Debug-row rise', () => {
     const f = fixture('export const DEBUG_ROWS = [opt(), { id: "x" }]; ctx.debugRow({});');

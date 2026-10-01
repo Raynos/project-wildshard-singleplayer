@@ -6,6 +6,7 @@ import { relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseSync } from 'vite';
 import { TIME_ALLOW } from './wildshard-plugin.js';
+import { compareCounts, hardRules } from '../scripts/guard-counts.mjs';
 
 const REPO = fileURLToPath(new URL('../', import.meta.url));
 const NON_FILE = new Set(['allow', 'budgets', 'debugRows']);
@@ -91,12 +92,12 @@ function main() {
   const args = process.argv.slice(2);
   for (let i = 0; i < args.length; i += 1) {
     const arg = args[i];
-    if (arg === '--root' || arg === '--baseline' || arg === '--add-rule') {
+    if (arg === '--root' || arg === '--baseline' || arg === '--add-rule' || arg === '--rebaseline-rule') {
       const value = args[++i];
       if (!value || value.startsWith('--')) throw new Error(`Missing value for ${arg}`);
       if (arg === '--root') root = resolve(value);
       else if (arg === '--baseline') baselineFile = resolve(value);
-      else { if (mode !== 'check') throw new Error('Only one write mode is allowed'); mode = 'add'; addRule = value; }
+      else { if (mode !== 'check') throw new Error('Only one write mode is allowed'); mode = arg === '--add-rule' ? 'add' : 'rebaseline'; addRule = value; }
     } else if (arg === '--init' || arg === '--update') {
       if (mode !== 'check') throw new Error('Only one write mode is allowed');
       mode = arg.slice(2);
@@ -109,19 +110,19 @@ function main() {
   validate(baseline);
   const current = counts(root, baselineFile);
   if (mode === 'init') { save(baselineFile, { ...baseline, ...current }); console.log(`Ratchet initialized: ${baselineFile}`); return; }
-  if (mode === 'add') {
+  if (mode === 'add' || mode === 'rebaseline') {
     if (!ruleNames.has(addRule)) throw new Error(`Unknown configured rule: ${addRule}`);
-    if (Object.hasOwn(baseline, addRule)) throw new Error(`Refusing --add-rule: ${addRule} already has entries`);
-    save(baselineFile, { ...baseline, [addRule]: current[addRule] ?? {} });
+    if (mode === 'add' && Object.hasOwn(baseline, addRule)) throw new Error(`Refusing --add-rule: ${addRule} already has entries`);
+    if (mode === 'rebaseline' && !Object.hasOwn(baseline, addRule)) throw new Error(`Refusing --rebaseline-rule: ${addRule} has no baseline`);
+    if (!current[addRule] && !hardRules(resolve(REPO, '.oxlintrc.json')).has(addRule)) throw new Error(`${addRule} is zero: promote it in .oxlintrc.json instead of recording an empty section`);
+    const recorded = { ...(mode === 'rebaseline' ? baseline[addRule] : {}) };
+    for (const [file, count] of Object.entries(current[addRule] ?? {})) recorded[file] = Math.max(recorded[file] ?? 0, count);
+    // A widening command adds only new detections. Ordinary --update owns all debt reductions.
+    save(baselineFile, { ...baseline, [addRule]: recorded });
     console.log(`Ratchet recorded ${addRule}`); return;
   }
-  const failures = [];
-  for (const [key, files] of Object.entries(current)) {
-    for (const [file, now] of Object.entries(files)) {
-      const was = baseline[key]?.[file] ?? 0;
-      if (now > was) failures.push(`${file}: ${key} was ${was}, now ${now}`);
-    }
-  }
+  const { failures, warnings } = compareCounts(baseline, current, hardRules(resolve(REPO, '.oxlintrc.json')), undefined, mode === 'update');
+  for (const warning of warnings) console.warn(warning);
   const rows = baseline.debugRows ? debugCount(root) : null;
   if (rows !== null && rows > baseline.debugRows.max) failures.push(`debugRows: was ${baseline.debugRows.max}, now ${rows}`);
   if (failures.length > 0) throw new Error(`Ratchet rose:\n${failures.join('\n')}`);

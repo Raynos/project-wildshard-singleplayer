@@ -275,12 +275,15 @@ const modulePath = (filename, source) => {
   return relative(REPO, resolve(dirname(filename), source)).replaceAll('\\', '/').replace(/^.*\/src\//u, 'src/');
 };
 const layerOf = (path) => {
-  const match = /^src\/(engine|game|kit|shards)\/([^/]+)?/u.exec(path);
-  if (!match) return null;
+  const match = /^src\/(engine|game|kit|shards)(?:\/([^/]+)?)?$/u.exec(path) ?? /^src\/(engine|game|kit|shards)\/([^/]+)?/u.exec(path);
+  if (!match) return /^src\/[^/]+$/u.test(path) ? { name: 'app', rank: 4, slug: null } : null;
   return { name: match[1], rank: ['engine', 'game', 'kit', 'shards'].indexOf(match[1]), slug: match[1] === 'shards' ? match[2] : null };
 };
 const engineWords = JSON.parse(readFileSync(new URL('engine-words.json', import.meta.url), 'utf8'));
-const WORDS = new RegExp(`\\b(?:${engineWords.join('|')})\\b`, 'giu');
+const generatedWordsFile = new URL('shard-words.generated.json', import.meta.url);
+const shardWords = JSON.parse(readFileSync(generatedWordsFile, 'utf8'));
+const escapeRegex = (text) => text.replaceAll(/[.*+?^${}()|[\]\\]/gu, String.raw`\$&`);
+const WORDS = new RegExp(`\\b(?:${[...new Set([...engineWords, ...shardWords.words])].map(escapeRegex).join('|')})\\b`, 'giu');
 const rule = (description, create) => ({ meta: { type: 'problem', docs: { description }, schema: [] }, create });
 const report = (context, node, message) => { context.report({ node, message }); };
 const importsVisitor = (fn) => ({
@@ -289,6 +292,11 @@ const importsVisitor = (fn) => ({
   ExportAllDeclaration: fn,
   ImportExpression: fn,
 });
+const importPrefix = (node) => stringOf(node) ?? (unwrap(node)?.type === 'TemplateLiteral' ? unwrap(node).quasis[0]?.value.cooked : null);
+const globCall = (node) => {
+  const callee = unwrap(node.callee), object = unwrap(callee?.object);
+  return callee?.type === 'MemberExpression' && ['glob', 'globEager'].includes(propName(callee)) && object?.type === 'MetaProperty' && object.meta.name === 'import' && object.property.name === 'meta';
+};
 
 const layer = rule('Layer direction, public APIs and engine vocabulary (E357)', (context) => {
   const own = layerOf(pathOf(context));
@@ -303,18 +311,27 @@ const layer = rule('Layer direction, public APIs and engine vocabulary (E357)', 
       report(context, node, `Engine contains Wildshard word: ${match[0]}`);
     }
   };
+  const checkImport = (node, source, dynamic = false) => {
+    if (typeof source !== 'string' || source === '') return;
+    const targetPath = modulePath(context.filename, source);
+    const target = layerOf(targetPath);
+    if (!target) return;
+    const publicPath = !dynamic && (new RegExp(`^src/${target.name}(?:/index(?:\\.[jt]s)?)?$`, 'u').test(targetPath) || /^src\/engine\/data(?:\.[jt]s)?$/u.test(targetPath));
+    if (target.rank > own.rank || (own.name === 'shards' && target.name === 'shards' && own.slug !== target.slug)) {
+      report(context, node, `Layer import ${own.name} → ${target.name}: ${source}`);
+    } else if (own.name !== target.name && ['engine', 'game', 'kit'].includes(target.name) && !publicPath) {
+      report(context, node, `Cross-layer imports use the public index: ${source}`);
+    }
+  };
   return {
     ...importsVisitor((node) => {
-      const source = stringOf(node.source);
-      if (source === null) return;
-      const target = layerOf(modulePath(context.filename, source));
-      if (!target) return;
-      if (target.rank > own.rank || (own.name === 'shards' && target.name === 'shards' && own.slug !== target.slug)) {
-        report(context, node, `Layer import ${own.name} → ${target.name}: ${source}`);
-      } else if (own.name !== target.name && source !== '#engine/data' && /^#(?:engine|game|kit)\//u.test(source)) {
-        report(context, node, `Cross-layer imports use the public index: ${source}`);
-      }
+      checkImport(node, importPrefix(node.source), unwrap(node.source)?.type === 'TemplateLiteral' && unwrap(node.source).expressions.length > 0);
     }),
+    CallExpression(node) {
+      if (!globCall(node)) return;
+      const arg = unwrap(node.arguments[0]);
+      for (const pattern of arg?.type === 'ArrayExpression' ? arg.elements : [arg]) checkImport(node, importPrefix(pattern)?.replace(/^!/u, ''));
+    },
     Identifier(node) { if (own.name === 'engine') words(node, node.name); },
     Literal(node) { if (own.name === 'engine' && typeof node.value === 'string') words(node, node.value); },
     TemplateElement(node) { if (own.name === 'engine') words(node, node.value.cooked ?? node.value.raw); },
@@ -335,7 +352,7 @@ export const SHARD_BRANCH = {
   comparisons: new Set(['slug', 'style']),
   members: new Set(['structures', 'weapon', 'style', 'ocean']),
   objects: new Set(['chunk', 'def', 'manifest']),
-  slugs: new Set(['driftwood-isle', 'nalati-grasslands', 'pine-hollow', 'nine-dragon-stack']),
+  slugs: new Set(shardWords.slugs),
 };
 const nameOf = (node) => {
   const x = unwrap(node);
@@ -365,7 +382,9 @@ const noShardBranch = rule('Shard decisions belong in plugins (E357)', (context)
           (['===', '!=='].includes(node.operator) && [node.left, node.right].some((side) => SHARD_BRANCH.comparisons.has(nameOf(side))))) hits.add(node);
     },
     SwitchCase(node) { if (node.test && SHARD_BRANCH.slugs.has(stringOf(node.test))) hits.add(node); },
+    Property(node) { if (layerOf(path)?.name !== 'engine' && SHARD_BRANCH.slugs.has(stringOf(node.key) ?? node.key?.name)) hits.add(node); },
     MemberExpression(node) {
+      if (layerOf(path)?.name !== 'engine' && node.computed && SHARD_BRANCH.slugs.has(stringOf(node.property))) hits.add(node);
       if (!SHARD_BRANCH.members.has(propName(node))) return;
       if (node.parent?.type === 'AssignmentExpression' && node.parent.left === node && node.parent.operator === '=') return;
       const object = unwrap(node.object);
@@ -549,6 +568,89 @@ const noRawHud = rule('HUD nodes mount through scope-owned numbered slots (E357 
   };
 });
 
+const LEVEL_FIELDS = new Set(['id', 'slug', 'levelId', 'kitLook', 'style', 'creatureStyle', 'look', 'biome']);
+const LEVEL_NAMES = new Set(['level', 'spec', 'manifest', 'chunk', 'def']);
+const noLevelIdentity = rule('Level identity and style dispatch belong in content data (E362 AG13)', (context) => {
+  if (pathOf(context).startsWith('src/shards/')) return {};
+  const aliases = new Set(), tables = new Set();
+  const levelValue = (raw) => {
+    const n = unwrap(raw);
+    return n?.type === 'Identifier' ? LEVEL_NAMES.has(n.name) || aliases.has(n.name)
+      : n?.type === 'MemberExpression' ? (propName(n) ?? stringOf(n.property)) === 'level'
+      : n?.type === 'CallExpression' && ['activeLevel', 'getActiveChunk'].includes(calleeName(n.callee));
+  };
+  const identity = (raw) => {
+    const n = unwrap(raw);
+    return n?.type === 'MemberExpression' && LEVEL_FIELDS.has(propName(n) ?? stringOf(n.property)) && levelValue(n.object);
+  };
+  const hit = (node) => report(context, node, 'Pass capabilities or a data-provided strategy instead of dispatching on level identity/style');
+  return {
+    VariableDeclarator(node) {
+      if (node.id.type !== 'Identifier') return;
+      if (levelValue(node.init)) aliases.add(node.id.name);
+      if (unwrap(node.init)?.type === 'ObjectExpression' && ['Program', 'ExportNamedDeclaration'].includes(node.parent?.parent?.type)) tables.add(node.id.name);
+    },
+    BinaryExpression(node) {
+      if (['===', '!==', '==', '!='].includes(node.operator) && ((identity(node.left) && stringOf(node.right) !== null) || (identity(node.right) && stringOf(node.left) !== null))) hit(node);
+    },
+    SwitchStatement(node) { if (identity(node.discriminant) && node.cases.some((c) => stringOf(c.test) !== null)) hit(node); },
+    CallExpression(node) {
+      const callee = unwrap(node.callee);
+      if (callee?.type !== 'MemberExpression' || !['includes', 'startsWith', 'endsWith', 'indexOf', 'match'].includes(propName(callee) ?? stringOf(callee.property))) return;
+      const receiver = unwrap(callee.object);
+      const styleTag = receiver?.type === 'MemberExpression' && (propName(receiver) ?? stringOf(receiver.property)) === 'tags' && levelValue(receiver.object) && ['ocean', 'toon', 'painterly', 'pbr'].includes(stringOf(node.arguments[0]));
+      if (identity(receiver) || styleTag) hit(node);
+    },
+    MemberExpression(node) { if (node.computed && identity(node.property) && (tables.has(nameOf(node.object)) || unwrap(node.object)?.type === 'ObjectExpression')) hit(node); },
+  };
+});
+
+const GLOBAL_OBJECTS = new Set(['window', 'globalThis', 'self']);
+const globalObject = (raw) => { const n = unwrap(raw); return n?.type === 'Identifier' && GLOBAL_OBJECTS.has(n.name); };
+const shardSandbox = rule('Shard services, globals, settings and assets stay inside their context (E362 AG11)', (context) => {
+  const own = layerOf(pathOf(context));
+  if (own?.name !== 'shards') return {};
+  const meta = shardWords.shards[own.slug] ?? { settings: [], assets: [] };
+  const settings = new Set(meta.settings), globals = new Set(), documents = new Set(), strings = new Map();
+  const text = (raw) => stringOf(raw) ?? (unwrap(raw)?.type === 'Identifier' ? strings.get(unwrap(raw).name) ?? null : null);
+  const isGlobal = (raw) => globalObject(raw) || (unwrap(raw)?.type === 'Identifier' && globals.has(unwrap(raw).name));
+  const isDocument = (raw) => nameOf(raw) === 'document' || documents.has(nameOf(raw));
+  const assetPatterns = [...meta.assets, ...(shardWords.sharedAssets ?? [])].map((glob) => new RegExp(`^${glob.split('*').map(escapeRegex).join('.*')}$`, 'u'));
+  const hit = (node, what) => report(context, node, `Shard sandbox: ${what}; use the owning ShardContext service`);
+  return {
+    ImportDeclaration(node) {
+      for (const spec of node.specifiers) {
+        if (spec.type !== 'ImportSpecifier') continue;
+        const value = importedConst(context.filename, node.source.value, nameOf(spec.imported));
+        if (value !== null) strings.set(spec.local.name, value);
+      }
+    },
+    VariableDeclarator(node) {
+      if (node.id.type !== 'Identifier') return;
+      if (isGlobal(node.init)) globals.add(node.id.name);
+      if (isDocument(node.init)) documents.add(node.id.name);
+      const value = text(node.init);
+      if (value !== null) strings.set(node.id.name, value);
+    },
+    MemberExpression(node) { if (isGlobal(node.object)) hit(node, 'global member access'); },
+    AssignmentExpression(node) { if (isGlobal(node.left)) hit(node, 'global write'); },
+    CallExpression(node) {
+      const name = calleeName(node.callee);
+      if (['assign', 'defineProperty', 'defineProperties', 'set', 'deleteProperty'].includes(name) && isGlobal(node.arguments[0])) hit(node, 'global write');
+      if (node.arguments.some((arg) => isGlobal(arg) || isDocument(arg)) && node.arguments.some((arg) => INPUT_EVENTS.has(text(arg)))) hit(node, 'global input listener');
+      if (name === 'addEventListener' && (isGlobal(node.callee.object) || isDocument(node.callee.object)) && INPUT_EVENTS.has(text(node.arguments[0]))) hit(node, 'global input listener');
+      if (name === 'setting' && !settings.has(text(node.arguments[0]))) hit(node, 'setting key is not owned by this shard');
+    },
+    Literal(node) {
+      if (typeof node.value === 'string' && node.value.startsWith('/assets/') && !assetPatterns.some((pattern) => pattern.test(`public${node.value}`))) hit(node, 'asset path is not owned by this shard or the shared kit');
+    },
+    TemplateLiteral(node) {
+      const prefix = node.quasis[0]?.value.cooked ?? '';
+      if (prefix.startsWith('/assets/') && (node.expressions.length > 0 || !assetPatterns.some((pattern) => pattern.test(`public${prefix}`)))) hit(node, 'asset path must be statically owned');
+    },
+  };
+});
+
 const plugin = {
   meta: { name: 'wildshard' },
   rules: {
@@ -561,6 +663,8 @@ const plugin = {
     'no-raw-hud': noRawHud,
     'no-inline-ui-string': noInlineUiString,
     'no-raw-animation-mixer': noRawAnimationMixer,
+    'no-level-identity': noLevelIdentity,
+    'shard-sandbox': shardSandbox,
   },
 };
 export default plugin; // oxlint loads a JS plugin from its default export

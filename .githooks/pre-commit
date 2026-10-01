@@ -39,4 +39,6 @@ Save them as JPEG / WebP instead:
 EOF
   exit 1
 fi
+# E362 AG20: the commit's temporary/private index, so unrelated agents' WIP never participates.
+node scripts/precommit-guards.mjs || exit 1
 exit 0

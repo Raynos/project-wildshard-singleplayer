@@ -1,0 +1,103 @@
+{
+  "requiredFiles": [
+    "manifest.ts",
+    "plugin.ts",
+    "README.md",
+    "roster.ts",
+    "budgets.ts"
+  ],
+  "allowedFiles": [
+    "ktx2.generated.ts",
+    "budgetCeilings.ts",
+    "strings.ts",
+    "layout.ts",
+    "debug.ts"
+  ],
+  "folders": [
+    "audio",
+    "boot",
+    "explore",
+    "look",
+    "models",
+    "thumbs",
+    "weapons",
+    "world",
+    "combat",
+    "creatures",
+    "quest",
+    "species",
+    "npc",
+    "loadout",
+    "playground"
+  ],
+  "legacy": {
+    "driftwood-isle": {
+      "entries": [
+        "fpArms.ts",
+        "loot/",
+        "onboarding/",
+        "tiers.ts"
+      ],
+      "missing": [
+        "README.md"
+      ]
+    },
+    "nalati-grasslands": {
+      "entries": [
+        "adventure.ts",
+        "bag.ts",
+        "campPeople.ts",
+        "campPeopleModels.ts",
+        "campPeopleProfiles.ts",
+        "cragRock.ts",
+        "edge.ts",
+        "feats.ts",
+        "index.ts",
+        "kokpar.ts",
+        "outcrops.ts",
+        "quest.ts",
+        "ride/",
+        "runtime.ts",
+        "sound.ts",
+        "stealth.css",
+        "stealth.ts",
+        "terrainSurface.ts",
+        "water.ts",
+        "weather.ts",
+        "wet.ts"
+      ],
+      "missing": [
+        "README.md"
+      ]
+    },
+    "nine-dragon-stack": {
+      "entries": [
+        "grapple/",
+        "mockupCameras.ts",
+        "places.ts",
+        "runtime.ts",
+        "terrain.ts",
+        "tier.ts",
+        "util.ts",
+        "vm/"
+      ],
+      "missing": [
+        "README.md"
+      ]
+    },
+    "pine-hollow": {
+      "entries": [
+        "compendium.ts",
+        "compendium/",
+        "debug/",
+        "dev/",
+        "feats.ts",
+        "items.ts",
+        "life/"
+      ],
+      "missing": [
+        "README.md"
+      ]
+    }
+  }
+}

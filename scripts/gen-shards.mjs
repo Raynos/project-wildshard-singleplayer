@@ -1,8 +1,9 @@
 // E357 F9: folder discovery is the sole authored shard list.
-import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, readdirSync, realpathSync, writeFileSync } from 'node:fs';
 import { dirname, resolve, relative } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import ts from '@typescript/typescript6';
+import { genShardWords } from './gen-shard-words.mjs';
 
 /** Static runtime imports only: lazy plugin/look thunks and erased types stay out of the startup closure. */
 export function manifestClosure(root) {
@@ -56,17 +57,21 @@ export type ShardSlug = ${slugs.map((slug) => JSON.stringify(slug)).join(' | ')}
 `;
 }
 
-export function genShards(root = resolve(import.meta.dirname, '..'), check = false) {
+export function genShards(root = resolve(import.meta.dirname, '..'), check = false, initializeMissing = false) {
+  genShardWords(root, check);
   const outputs = { 'shards.generated.ts': shardSource(root), 'manifest-closure.generated.json': `${JSON.stringify(manifestClosure(root), null, 2)}\n` };
   for (const [name, source] of Object.entries(outputs)) {
     const out = resolve(root, 'src/game/shard', name);
-    const same = existsSync(out) && readFileSync(out, 'utf8') === source;
-    if (check && !same) throw new Error(`gen-shards: stale src/game/shard/${name} (run pnpm gen)`);
-    if (!check && !same) { mkdirSync(dirname(out), { recursive: true }); writeFileSync(out, source); }
+    const exists = existsSync(out), same = exists && readFileSync(out, 'utf8') === source;
+    // A staged-tree export lacks these untracked tables. Only that caller initializes missing outputs;
+    // committed vocabulary above and any existing runtime table still have strict --check semantics.
+    const initialize = initializeMissing && !exists;
+    if (check && !same && !initialize) throw new Error(`gen-shards: stale src/game/shard/${name} (run pnpm gen)`);
+    if ((!check || initialize) && !same) { mkdirSync(dirname(out), { recursive: true }); writeFileSync(out, source); }
   }
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href) {
   try { genShards(undefined, process.argv.includes('--check')); }
   catch (error) { console.error(error instanceof Error ? error.message : String(error)); process.exitCode = 1; }
 }

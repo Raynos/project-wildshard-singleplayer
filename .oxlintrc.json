@@ -148,7 +148,18 @@
       // No URL switches, ever (Jake, 2026-09-25): the game reads only the query params on the fixed allowlist in
       // lint/url-params.json; every variant goes in pause ▸ Settings ▸ Debug. See AGENTS.md "No URL switches".
       "files": ["src/**"],
-      "rules": { "wildshard/no-url-switch": "error", "wildshard/no-inline-ui-string": "error" }
+      "rules": {
+        "wildshard/no-url-switch": "error", "wildshard/no-inline-ui-string": "error",
+        // E362 AG16: zero stays zero in editors and the ordinary lint gate too.
+        "wildshard/no-shard-branch": "error",
+        "wildshard/no-raw-save": "error",
+        "wildshard/no-raw-input": "error",
+        "wildshard/no-raw-shader-patch": "error",
+        "wildshard/sim-no-render": "error",
+        "wildshard/no-active-chunk": "error",
+        "wildshard/no-raw-hud": "error",
+        "wildshard/no-raw-animation-mixer": "error"
+      }
     },
     {
       "files": ["vite.config.ts", "vitest.config.ts", "capacitor.config.ts"],

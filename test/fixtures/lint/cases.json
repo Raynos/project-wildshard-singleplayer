@@ -53,7 +53,7 @@
     "file": "src/main.ts",
     "rule": "layer",
     "code": "import { value } from '#kit/item';",
-    "count": 0
+    "count": 1
   },
   {
     "id": "words-code",

@@ -1,5 +1,5 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Generator integration fixtures own temporary directories.
-import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, readFileSync, rmSync, unlinkSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Generator fixtures stay outside the shared working tree.
 import { tmpdir } from 'node:os';
 // oxlint-disable-next-line import/no-nodejs-modules -- Generator fixtures require host filesystem paths.
@@ -40,8 +40,13 @@ describe('shard generation', () => {
       genShards(root);
       expect(readFileSync(out, 'utf8')).toBe(source);
       expect(() => genShards(root, true)).not.toThrow();
+      unlinkSync(out);
+      expect(() => genShards(root, true)).toThrow('stale');
+      expect(() => genShards(root, true, true)).not.toThrow();
+      expect(readFileSync(out, 'utf8')).toBe(source);
       writeFileSync(out, 'stale');
       expect(() => genShards(root, true)).toThrow('stale');
+      expect(() => genShards(root, true, true)).toThrow('stale');
     } finally { rmSync(root, { recursive: true, force: true }); }
   });
 

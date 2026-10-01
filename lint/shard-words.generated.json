@@ -1,0 +1,138 @@
+{
+  "slugs": [
+    "driftwood-isle",
+    "nalati-grasslands",
+    "nine-dragon-stack",
+    "pine-hollow"
+  ],
+  "words": [
+    "Driftwood Isle",
+    "driftwood-isle",
+    "Nalati Grasslands",
+    "nalati-grasslands",
+    "Nine Dragon Stack",
+    "nine-dragon-stack",
+    "Pine Hollow",
+    "pine-hollow",
+    "pine.creature.bear",
+    "pine.creature.boar",
+    "species.nalati.balbal",
+    "species.nalati.eagle",
+    "species.nalati.ghost-rider",
+    "species.nalati.golden-king",
+    "species.nalati.horse",
+    "species.nalati.kokbori",
+    "species.nalati.leopard",
+    "species.nalati.sheepdog",
+    "species.nalati.wolf",
+    "weapon.bow",
+    "weapon.crossbow",
+    "weapon.jian",
+    "weapon.lever",
+    "weapon.longbow",
+    "weapon.rifle",
+    "weapon.sabre",
+    "weapon.spear"
+  ],
+  "sharedAssets": [
+    "public/assets/tex/**",
+    "public/assets/gpu/tex/**",
+    "public/assets/hdri/**",
+    "public/assets/gpu/hdri/**",
+    "public/assets/sfx/best/**",
+    "public/assets/practice/**"
+  ],
+  "shards": {
+    "driftwood-isle": {
+      "name": "Driftwood Isle",
+      "ids": [],
+      "settings": [],
+      "assets": [
+        "public/assets/models/driftwood-blender/**",
+        "public/assets/models/driftwood-cc0/**",
+        "public/assets/models/driftwood-fp/**",
+        "public/assets/models/driftwood-hero/**",
+        "public/assets/gpu/models/driftwood-blender/**",
+        "public/assets/gpu/models/driftwood-hero/**",
+        "public/assets/gpu/baked/driftwood-isle/**",
+        "public/assets/horizon/driftwood-isle-*",
+        "public/assets/gpu/horizon/driftwood-isle-*",
+        "public/assets/lut/driftwood-isle.bin",
+        "public/assets/title/driftwood-isle-portrait.jpg",
+        "public/assets/sfx/driftwood-isle/**"
+      ]
+    },
+    "nalati-grasslands": {
+      "name": "Nalati Grasslands",
+      "ids": [
+        "species.nalati.balbal",
+        "species.nalati.eagle",
+        "species.nalati.ghost-rider",
+        "species.nalati.golden-king",
+        "species.nalati.horse",
+        "species.nalati.kokbori",
+        "species.nalati.leopard",
+        "species.nalati.sheepdog",
+        "species.nalati.wolf",
+        "weapon.bow",
+        "weapon.rifle",
+        "weapon.sabre",
+        "weapon.spear"
+      ],
+      "settings": [
+        "balbals",
+        "clockSpeed",
+        "ghosts"
+      ],
+      "assets": [
+        "public/assets/nalati/**",
+        "public/assets/gpu/nalati/**",
+        "public/assets/music/nalati/**",
+        "public/assets/sfx/nalati-grasslands/**",
+        "public/assets/title/nalati-grasslands-portrait.jpg"
+      ]
+    },
+    "nine-dragon-stack": {
+      "name": "Nine Dragon Stack",
+      "ids": [
+        "weapon.jian"
+      ],
+      "settings": [],
+      "assets": [
+        "public/assets/nine-dragon/**",
+        "public/assets/gpu/nine-dragon/**",
+        "public/assets/music/nine-dragon-stack/**",
+        "public/assets/sfx/nine-dragon-stack/**",
+        "public/assets/title/nine-dragon-stack-portrait.jpg"
+      ]
+    },
+    "pine-hollow": {
+      "name": "Pine Hollow",
+      "ids": [
+        "pine.creature.bear",
+        "pine.creature.boar",
+        "weapon.crossbow",
+        "weapon.lever",
+        "weapon.longbow"
+      ],
+      "settings": [],
+      "assets": [
+        "public/assets/models/pine-hollow-crags/**",
+        "public/assets/models/pine-hollow-hero/**",
+        "public/assets/models/pine-hollow-trees/**",
+        "public/assets/gpu/models/pine-hollow-hero/**",
+        "public/assets/gpu/models/pine-hollow-trees/**",
+        "public/assets/gpu/pine-hollow/**",
+        "public/assets/gpu/baked/pine-hollow/**",
+        "public/assets/music/pine-hollow-folk/**",
+        "public/assets/music/pine-hollow-orchestral/**",
+        "public/assets/music/pine-hollow-piano/**",
+        "public/assets/sfx/pine-hollow/**",
+        "public/assets/horizon/pine-hollow-*",
+        "public/assets/gpu/horizon/pine-hollow-*",
+        "public/assets/lut/pine-hollow.bin",
+        "public/assets/title/pine-hollow-portrait.jpg"
+      ]
+    }
+  }
+}
