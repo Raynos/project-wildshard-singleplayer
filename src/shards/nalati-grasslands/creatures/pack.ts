@@ -1,3 +1,4 @@
+import { NALATI_STRIKES, sampleStrike } from '../combat/strikes';
 import { GroupBrain, app, type Animal, type ThinkCtx, terrainNormal as normalAt } from '#engine';
 
 
@@ -365,7 +366,7 @@ export class Pack extends GroupBrain<Animal> {
             m['bit'] = 1; this.bites++;
             this.sound(c, a, 'wolf_bite');
             if (this.prey !== null) { _t.set(dx, 0, dz).normalize(); this.prey.applyDamage(role === ROLE_ALPHA ? 22 : 15, this.prey.position, _t); }
-            else { c.hurt(a.mods.chargeDamage); if (wildEnv.playerMounted) wildEnv.onEvent?.('rider-bitten', a.position.x, a.position.z); }   // B1: the horse panics
+            else { sampleStrike(NALATI_STRIKES.wolf, a, c.player, () => { c.hurt(a.mods.chargeDamage); }, { shape: { kind: 'point', radius: BITE_R * Math.max(1, a.scale) + 0.25, exclusive: true }, reach: () => c.reach(a) }); if (wildEnv.playerMounted) wildEnv.onEvent?.('rider-bitten', a.position.x, a.position.z); }   // B1: the horse panics
             m['lunge'] = 3; m['lt'] = BREAKOFF;
           } else if ((m['lt'] ?? 0) <= 0) { m['lunge'] = 3; m['lt'] = BREAKOFF * 0.6; }
           break;

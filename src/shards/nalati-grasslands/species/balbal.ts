@@ -1,3 +1,4 @@
+import { NALATI_STRIKES, sampleStrike } from '../combat/strikes';
 import { engineString, type DamageRequest, type Rng, type SpeciesDef, type AnimalSpecies, type BoneDef, type VariantDef, type RigAnimCtx, type ThinkCtx, loft, tube, skinPlain, S, boneIndex, mix, speciesSstep as sstep, paletteColors, paintNoise, setShapeFn, type Paint, type SpeciesRGB as RGB, type Animal, NO_FUR, lookAngles, smooth01, step, rigClamp as clamp, heightAt } from '#engine';
 
 
@@ -434,12 +435,11 @@ export function actBalbal(a: Animal, c: ThinkCtx): void {
       if (p >= (W_END + S_END) / 2 && m.hit !== 1) {
         m.hit = 1; m.slamT = 1;
         let off = toPlayer - a.yaw; off = Math.atan2(Math.sin(off), Math.cos(off));
-        if (d <= HIT_R * a.scale / 1.18 + 0.4 && Math.abs(off) < HIT_CONE && Math.abs(c.player.y - a.position.y) < 2.2) { c.hurt(m.dmg ?? (field ? DAMAGE : KURGAN_DAMAGE)); c.sound('sailor_slash'); }
+        if (d <= HIT_R * a.scale / 1.18 + 0.4 && Math.abs(off) < HIT_CONE && Math.abs(c.player.y - a.position.y) < 2.2) { sampleStrike(NALATI_STRIKES.balbal, a, c.player, () => { c.hurt(m.dmg ?? (field ? DAMAGE : KURGAN_DAMAGE)); }, { shape: { kind: 'wedge', length: HIT_R * a.scale / 1.18 + 0.4, halfAngle: HIT_CONE }, reach: () => c.reach(a) }); c.sound('sailor_slash'); }
         c.sound('coconut_land');
       }
       if (p >= 1 || p < 0) { a.cancelAttack(); m.st = ST_STALK; m.cd = COOLDOWN; }
-      return;
-    
+
 }
 
 /** the damage model (see the header) */

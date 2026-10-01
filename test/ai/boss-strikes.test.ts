@@ -40,7 +40,7 @@ describe('boss contacts executed through original production methods', () => {
     const fight = legacyActor(GoldenKingFight.prototype, { phase: index === 3 ? 2 : 0, dungeon: { arc: { mesh: { visible: true } } },
       host: { player: { position: f.ctx.player }, hurt }, comboLeft: 0, burstCd: 10, comboCd: 0, shove });
     for (let i = 0; i < 61; i++) {
-      invokeLegacy(fight, 'fightTick', f.animal, 1, 0); f.animal.update(1 / 60, i / 60, true);
+      invokeLegacy(fight, 'strikeBody', f.animal, { ...f.ctx, dt: 1 / 60 }); f.animal.update(1 / 60, i / 60, true);
       if (i / 60 < 0.62 * (index === 3 ? 0.78 : 0.95)) expect(hurt).not.toHaveBeenCalled();
     }
     expect(hurt).toHaveBeenCalledExactlyOnceWith(index >= 2 ? 22 : 14);

@@ -1,3 +1,4 @@
+import { NALATI_STRIKES, sampleStrike } from './strikes';
 import type { Game, Sky, Player, Forest, TargetHit, DayCycleClock, AnimalManager } from '#engine';
 import { encounterHit } from './damage';
 import type * as THREE from 'three';
@@ -43,7 +44,7 @@ export interface NightEnemies {
 }
 
 export function wireNightEnemies(ctx: NightEnemiesCtx): NightEnemies {
-  const balbals = new BalbalWarriors({ scene: ctx.game.scene, balbals: ctx.balbals, clock: ctx.clock });
+  const balbals = new BalbalWarriors({ scene: ctx.game.scene, balbals: ctx.balbals, clock: ctx.clock, scope: ctx.game.levelScope });
   const riders = new GhostRiders({ game: ctx.game, sky: ctx.sky, player: ctx.player, forest: ctx.forest, clock: ctx.clock });
   return {
     balbals, riders,
@@ -58,7 +59,7 @@ export function wireNightEnemies(ctx: NightEnemiesCtx): NightEnemies {
       // a ghost arrow hurts like any creature's blow (the pipeline: health, the red flash, the sound)
       riders.hurt = (damage, from) => {
         const a = from ?? riders.riders[0]?.a;
-        if (a !== undefined) encounterHit(a, damage, 'creature.ghost-rider', ctx.player.position);
+        if (a !== undefined) sampleStrike(NALATI_STRIKES.arrow, a, ctx.player.position, () => { encounterHit(a, damage, 'creature.ghost-rider', ctx.player.position); }, { origin: ctx.player.position });
       };
     },
     bindKit(kit) { balbals.bindKit(kit); },

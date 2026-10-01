@@ -1,3 +1,4 @@
+import { NALATI_STRIKES, sampleArena } from '#shards/nalati-grasslands/combat/strikes';
 import { app, PlayerHealth, Scope } from '#engine';
 import { encounterHit } from '#shards/nalati-grasslands/combat/damage';
 import * as THREE from 'three';
@@ -64,5 +65,19 @@ describe('Nalati encounter contact routes through the same cover query and playe
       arena(2, 'stone');
       expect(encounterHit(a, 4, tag, new THREE.Vector3(), true)).toBe(true); expect(health.attributes.health).toBe(82);
     } finally { scope.dispose(); app.levelScope = previousScope; }
+  });
+});
+
+describe('Titan arena contact cover policy', () => {
+  it.each([NALATI_STRIKES.spear, NALATI_STRIKES.whirl, NALATI_STRIKES.wind])('$id uses the real wall at the contact frame', spec => {
+    const origin = new THREE.Vector3(0, 0, 2.5), player = new THREE.Vector3(); let hits = 0;
+    const hit = (): void => { hits++; };
+    arena(1.2, 'felt'); expect(sampleArena(spec, origin, player, hit)).toBe(false); expect(hits).toBe(0);
+    arena(null); expect(sampleArena(spec, origin, player, hit)).toBe(true); expect(hits).toBe(1);
+  });
+  it.each([NALATI_STRIKES.chain, NALATI_STRIKES.fire, NALATI_STRIKES.wall])('$id retains its authored arena exemption', spec => {
+    arena(1.2, 'stone'); let hits = 0;
+    expect(sampleArena(spec, new THREE.Vector3(0, 0, 2.5), new THREE.Vector3(), () => { hits++; })).toBe(true);
+    expect(hits).toBe(1);
   });
 });

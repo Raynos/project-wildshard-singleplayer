@@ -1,4 +1,5 @@
-import { app, type Game, type Sky, type Player, type Forest, type TargetAnimal, type TargetHit, Projectiles, type ProjectileKind, setting, type Animal, type AnimalManager, type DayCycleClock, heightAt } from '#engine';
+import { nightSpawner } from './spawns';
+import { GroupBrain, app, type Game, type Sky, type Player, type Forest, type TargetAnimal, type TargetHit, Projectiles, type ProjectileKind, setting, type Animal, type AnimalManager, type Spawner, type DayCycleClock, heightAt } from '#engine';
 import * as THREE from 'three';
 
 
@@ -163,7 +164,7 @@ function nearestS(x: number, z: number): number {
 }
 const MIST: readonly [number, number, number] = [0.18, 0.75, 0.85];
 
-export class GhostRiders {
+export class GhostRiders extends GroupBrain<Animal> {
   readonly riders: Rider[] = [];
   readonly lines: Line[] = [];
   readonly arrows: Projectiles;
@@ -177,6 +178,7 @@ export class GhostRiders {
   /** the player takes damage (set by the wiring: main's health, flash) */
   hurt?: ((damage: number, from: Animal | null) => void) | undefined;
   private animals: AnimalManager | null = null;
+  private spawner: Spawner<Animal> | null = null;
   private respawnT = -1;
   private readonly lastPlayer = new THREE.Vector3();
   private readonly playerVel = new THREE.Vector3();
@@ -184,6 +186,7 @@ export class GhostRiders {
   private shooter: Animal | null = null;
 
   constructor(private readonly ctx: GhostRidersCtx) {
+    super([]);
     this.arrows = new Projectiles({ game: ctx.game, sky: ctx.sky, player: ctx.player, forest: ctx.forest }, undefined, ghostArrowKind());
     this.arrows.mesh.renderOrder = 13; this.arrows.mesh.receiveShadow = false;
     this.arrows.onPlayerHit = (p, d) => { this.hurt?.(ARROW_DMG, this.shooter); this.mist.burst(p, 10, 1.5, 0.6, 0.8, 0.25, MIST, 0.2, FLAG_GROW, 0.2); void d; };
@@ -193,7 +196,7 @@ export class GhostRiders {
     ctx.clock.onNight(() => { this.killsTonight = 0; if (!this.hold && this.living() === 0) this.respawnT = 2; });
     ctx.clock.onDawn(() => { this.dawn(); });
     ctx.clock.onDay(() => { this.dawn(); });
-    Object.assign(window, { __ghosts: this }); // dev / screenshots
+    ctx.game.levelScope.onDispose(app.debug.scopedExpose('nalati.ghosts', this)); // dev / screenshots
   }
 
   private placeholder(): TargetAnimal {
@@ -202,6 +205,7 @@ export class GhostRiders {
 
   attach(animals: AnimalManager): void {
     this.animals = animals;
+    this.spawner = nightSpawner('spawn.nalati.ghost-riders', this.ctx.game.levelScope, animals);
     animals.factory.model(GHOST_RIDER, 'rider');
     const q = setting('ghosts'); // Debug ▸ Creatures & NPCs ▸ Ghost riders (E162): a line now / never / at night
     if (q === 'line' || (this.ctx.clock.dayPhase === 'night' && q !== 'off')) this.respawnT = 0.5;
@@ -216,7 +220,9 @@ export class GhostRiders {
     const animals = this.animals;
     if (animals === null) return null;
     const variant = o.variant ?? 'rider';
-    const a = animals.spawn(GHOST_RIDER, o.x, o.z, o.yaw, variant);
+    const a = this.spawner?.spawn({ tags: [this.ctx.clock.dayPhase, 'force', variant] }, o, () => app.rng.stream('ai').next())[0];
+    if (a === undefined) return null;
+    this.members.push(a);
     a.herd = -1;
     // the ghost look: one material on the whole horse (not the painterly three), a hooded rider on the body bone
     const look = o.storm === true ? 'storm' : variant;
@@ -422,11 +428,8 @@ export class GhostRiders {
 
   private retire(r: Rider): void {
     const a = r.a;
-    a.hidden = true; a.mesh.visible = false;
-    a.position.y = -9999;
-    const list = this.animals?.animals, i = list?.indexOf(a) ?? -1;
-    if (list !== undefined && i !== -1) list.splice(i, 1);
-    a.mesh.removeFromParent();
+    this.spawner?.retire(a);
+    const i = this.members.indexOf(a); if (i !== -1) this.members.splice(i, 1);
     for (const m of r.mats) m.mat.dispose();
   }
 }

@@ -1,4 +1,5 @@
-import { app, type Animal, type AnimalManager, type DayCycleClock, heightAt, setting } from '#engine';
+import { nightSpawner } from './spawns';
+import { app, type Animal, type AnimalManager, type DayCycleClock, type Scope, type Spawner, heightAt, setting } from '#engine';
 import { balbalPiercing } from '../weapons/effects';
 
 import * as THREE from 'three';
@@ -31,7 +32,7 @@ import { type FxRenderer, NightParticles, FLAG_GRAVITY, FLAG_BOUNCE, FLAG_GROW }
  * filling toward the tip through the 1.5 s wind-up, exactly the area the blow will hit.
  */
 
-export interface BalbalWarriorsCtx { scene: THREE.Scene; balbals: Balbals | null; clock: DayCycleClock }
+export interface BalbalWarriorsCtx { scene: THREE.Scene; balbals: Balbals | null; clock: DayCycleClock; scope: Scope }
 interface KitLike { sabre: { model: THREE.Object3D }; spear: { model: THREE.Object3D } }
 interface Warrior { a: Animal; statue: number; deadT: number; sparkT: number; lastHp: number; wedge: Wedge }
 
@@ -121,6 +122,7 @@ export class BalbalWarriors {
   private animals: AnimalManager | null = null;
   private kit: KitLike | null = null;
   private readonly wedges: Wedge[] = [];
+  private spawner: Spawner<Animal> | null = null;
   private night = 0;
   private soilAcc = 0;
 
@@ -131,11 +133,12 @@ export class BalbalWarriors {
     ctx.clock.onDusk(() => { this.wake(); });
     ctx.clock.onDawn(() => { this.dawn(); });
     ctx.clock.onDay(() => { this.dawn(); });
-    Object.assign(window, { __balbals: this }); // dev / screenshots
+    ctx.scope.onDispose(app.debug.scopedExpose('nalati.balbals', this)); // dev / screenshots
   }
 
   attach(animals: AnimalManager): void {
     this.animals = animals;
+    this.spawner = nightSpawner('spawn.nalati.balbals', this.ctx.scope, animals);
     animals.factory.model(BALBAL, 'warrior'); animals.factory.model(BALBAL, 'capped'); // build now, not at dusk
     const ph = this.ctx.clock.dayPhase;
     const q = setting('balbals'); // Debug ▸ Creatures & NPCs ▸ Balbal warriors (E162): wake now / never / at dusk
@@ -166,7 +169,9 @@ export class BalbalWarriors {
       b.setAwake(i, true);
       // the statue faces −z at yaw 0; an animal faces +z at yaw 0
       const yaw = s.yaw + Math.PI;
-      const a = animals.spawn(BALBAL, s.x, s.z, yaw, s.variant === 1 ? 'capped' : 'warrior');
+      const variant = s.variant === 1 ? 'capped' : 'warrior';
+      const a = this.spawner?.spawn({ tags: [this.ctx.clock.dayPhase, 'force', variant] }, { x: s.x, z: s.z, yaw }, () => app.rng.stream('ai').next())[0];
+      if (a === undefined) continue;
       a.herd = -1;
       const m = a.mem;
       m['field'] = 1; m['homeX'] = s.x; m['homeZ'] = s.z; m['homeYaw'] = yaw; m['rise'] = 0;
@@ -268,10 +273,6 @@ export class BalbalWarriors {
 
   /** out of the world: hidden, out of the animals list (the minimap, the harvest prompt, the aim assist) */
   private retire(a: Animal): void {
-    a.hidden = true; a.mesh.visible = false;
-    a.position.y = -9999;
-    const list = this.animals?.animals, i = list?.indexOf(a) ?? -1;
-    if (list !== undefined && i !== -1) list.splice(i, 1);
-    a.mesh.removeFromParent();
+    this.spawner?.retire(a);
   }
 }

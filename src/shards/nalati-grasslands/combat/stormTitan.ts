@@ -1,3 +1,4 @@
+import { NALATI_STRIKES, sampleArena } from './strikes';
 import { app, type Game, type Player, type TargetAnimal, type TargetHit, wind, type Animal, type AnimalManager, type Interactable, type AimTarget, BossBar, heightAt, terrainNormal as normalAt, setEliteDamage, TIER } from '#engine';
 import * as THREE from 'three';
 
@@ -637,7 +638,7 @@ export class StormTitanFight implements BossScript {
           this.spearAt.y = heightAt(this.spearAt.x, this.spearAt.z);
           this.spearRing.hide(); this.spearFork.hide();
           this.bolt(this.spearAt.x, this.spearAt.z);
-          if (Math.hypot(p.x - this.spearAt.x, p.z - this.spearAt.z) < SPEAR_R) { this.host.hurt(SPEAR_DMG, 'The Sky Spear — keep turning at a canter'); this.host.throwRider(); }
+          if (Math.hypot(p.x - this.spearAt.x, p.z - this.spearAt.z) < SPEAR_R && sampleArena(NALATI_STRIKES.spear, this.spearAt, p, () => { this.host.hurt(SPEAR_DMG, 'The Sky Spear — keep turning at a canter'); })) this.host.throwRider();
           if (this.phase === 2) this.ignite(this.spearAt.x, this.spearAt.z);
         }
         break;
@@ -720,7 +721,7 @@ export class StormTitanFight implements BossScript {
         case 'charge': {
           m['tx'] = r.x1; m['tz'] = r.z1; m['v'] = 21; m['turn'] = 6;
           r.lane.lane(r.x0, r.z0, r.x1, r.z1, 4.2, Math.max(0, 0.5 - r.t * 0.3));
-          if (!r.hit && Math.hypot(p.x - a.position.x, p.z - a.position.z) < 3.4) { r.hit = true; this.host.hurt(CHARGE_DMG, 'Wind Charge — swerve out of the lane'); this.host.throwRider(); }
+          if (!r.hit && Math.hypot(p.x - a.position.x, p.z - a.position.z) < 3.4) { r.hit = true; if (sampleArena(NALATI_STRIKES.wind, a.position, p, () => { this.host.hurt(CHARGE_DMG, 'Wind Charge — swerve out of the lane'); })) this.host.throwRider(); }
           if (Math.hypot(r.x1 - a.position.x, r.z1 - a.position.z) < 4 || r.t > 3.2) { r.mode = 'open'; r.t = 0; r.lane.hide(); }
           break;
         }
@@ -829,7 +830,7 @@ export class StormTitanFight implements BossScript {
     // the player in fire: 8 / s; the horse panics near it
     const p = this.host.player.position;
     this.fireDmgT -= dt;
-    if (this.burningAt(p.x, p.z) && this.fireDmgT <= 0) { this.fireDmgT = 0.5; this.host.hurt(FIRE_DPS * 0.5, 'The grass is burning — ride upwind onto the black'); }
+    if (this.burningAt(p.x, p.z) && this.fireDmgT <= 0) { this.fireDmgT = 0.5; sampleArena(NALATI_STRIKES.fire, p, p, () => { this.host.hurt(FIRE_DPS * 0.5, 'The grass is burning — ride upwind onto the black'); }); }
     if (this.host.mounted()) {
       let near = false;
       for (let a = 0; a < 6 && !near; a++) near = this.burningAt(p.x + Math.cos(a) * 5, p.z + Math.sin(a) * 5);
@@ -863,7 +864,7 @@ export class StormTitanFight implements BossScript {
         c.on = false; c.tell.hide();
         this.bolt(c.x, c.z);
         this.ignite(c.x, c.z);
-        if (Math.hypot(p.x - c.x, p.z - c.z) < CHAIN_R) this.host.hurt(CHAIN_DMG, 'Chain lightning — keep moving');
+        if (Math.hypot(p.x - c.x, p.z - c.z) < CHAIN_R) sampleArena(NALATI_STRIKES.chain, _v.set(c.x, p.y, c.z), p, () => { this.host.hurt(CHAIN_DMG, 'Chain lightning — keep moving'); });
       }
     }
   }
@@ -901,8 +902,7 @@ export class StormTitanFight implements BossScript {
       // touching it lifts you out of the saddle
       if (live && this.whirlCd <= 0 && Math.hypot(p.x - w.x, p.z - w.z) < WHIRL_R) {
         this.whirlCd = 2;
-        this.host.hurt(WHIRL_DMG, 'A whirlwind — ride around them');
-        this.host.throwRider();
+        if (sampleArena(NALATI_STRIKES.whirl, _v.set(w.x, gy, w.z), p, () => { this.host.hurt(WHIRL_DMG, 'A whirlwind — ride around them'); })) this.host.throwRider();
       }
     }
     this.debris.count = n; this.debris.instanceMatrix.needsUpdate = true;
@@ -964,7 +964,7 @@ export class StormTitan {
   private play: TitanPlay | null = null;
   private readonly prompt: Interactable;
   private wallT = 0;
-  private skipTouch = false;
+  private skipTouch = false; private skipEnter = false;
   private hurtWhy = ''; private hurtT = 0;
 
   constructor(private readonly ctx: TitanCtx) {
@@ -1023,7 +1023,7 @@ export class StormTitan {
       respawn: (pos, yaw) => { this.respawnMounted(pos, yaw); play.refill(); },
       addInteractable: (it) => { play.interactables.push(it); },
       removeInteractable: (it) => { const i = play.interactables.indexOf(it); if (i !== -1) play.interactables.splice(i, 1); },
-      skipHeld: () => this.skipTouch || app.input.held('jump') || app.input.held('use'),
+      skipHeld: () => this.skipEnter || this.skipTouch || app.input.held('jump') || app.input.held('use'),
       toast: play.toast, feed: play.feed,
       ...(play.music ? { music: play.music } : {}),
       ...(play.pickupHum ? { pickupHum: play.pickupHum } : {}),
@@ -1034,6 +1034,8 @@ export class StormTitan {
     // the horse refuses the storm wall and the fire line
     const mount = play.ride?.mount;
     if (mount) { const prev = mount.refuse; mount.refuse = (x, z) => this.fight.refuses(x, z) || (prev?.(x, z) ?? false); }
+    game.levelScope.listen(window, 'keydown', event => { if (event instanceof KeyboardEvent && event.code === 'Enter') this.skipEnter = true; });
+    game.levelScope.listen(window, 'keyup', event => { if (event instanceof KeyboardEvent && event.code === 'Enter') this.skipEnter = false; });
     game.levelScope.listen(window, 'pointerdown', () => { this.skipTouch = true; });
     game.levelScope.listen(window, 'pointerup', () => { this.skipTouch = false; });
     game.levelScope.listen(window, 'pointercancel', () => { this.skipTouch = false; });
@@ -1100,7 +1102,7 @@ export class StormTitan {
     if (this.engaged && this.fight.sealedNow && away > ARENA_R - 2.5 && !mounted) {
       const k = (ARENA_R - 4) / away;
       p.x = CENTER.x + (p.x - CENTER.x) * k; p.z = CENTER.z + (p.z - CENTER.z) * k;
-      if (this.wallT <= 0) { this.wallT = 1.2; play.hurt(10, 'The storm wall throws you back'); }
+      if (this.wallT <= 0) { this.wallT = 1.2; sampleArena(NALATI_STRIKES.wall, p, p, () => { play.hurt(10, 'The storm wall throws you back'); }); }
     }
     if (boss.state === 'victory' && this.fight.tied) {
       // the rain curtain: the storm lets go and clears

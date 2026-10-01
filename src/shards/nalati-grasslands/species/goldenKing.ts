@@ -18,7 +18,7 @@ import * as THREE from 'three';
  * scaled to ~0 collapses its skin (phase III tears off the cloak; shooting the headdress off drops it).
  *
  * This file is the BODY only: the rig, the paint and the poses. The brain lives with the fight
- * (`src/shards/nalati-grasslands/combat/goldenKing.ts` sets `goldenKingBrain.think`), because the King's AI is the boss script — phases, the
+ * (`src/shards/nalati-grasslands/combat/goldenKing.ts` sets `bindGoldenKing`), because the King's AI is the boss script — phases, the
  * shield, the adds and the hazards all read the arena. The species' `think` just forwards to it.
  *
  * `Animal.mem` (numbers only) is the contract between the brain and the poses:
@@ -53,11 +53,13 @@ interface KingMem extends Record<string, number | undefined> {
 
 /** the fight script's brain (src/shards/nalati-grasslands/combat/goldenKing.ts) — the species forwards its 10 Hz tick and its damage rule here
  *  (the gold scale takes half from arrows, the face full, a shield nothing; the script knows which) */
-export const goldenKingBrain: {
-  think: ((a: Animal, c: ThinkCtx) => void) | null;
-  act: ((a: Animal, c: ThinkCtx) => void) | null;
-  damageMul: ((a: Animal, hitPoint: THREE.Vector3, dir: THREE.Vector3) => number) | null;
-} = { think: null, act: null, damageMul: null };
+export interface GoldenKingPorts {
+  think: (a: Animal, c: ThinkCtx) => void;
+  act: (a: Animal, c: ThinkCtx) => void;
+  damageMul: (a: Animal, hitPoint: THREE.Vector3, dir: THREE.Vector3) => number;
+}
+const kingBrains = new WeakMap<Animal, GoldenKingPorts>();
+export function bindGoldenKing(a: Animal, ports: GoldenKingPorts): void { kingBrains.set(a, ports); }
 
 const fract = (x: number) => x - Math.floor(x);
 const hash = (a: number, b: number) => fract(Math.sin(a * 127.1 + b * 311.7) * 43758.5453);
@@ -416,7 +418,7 @@ function thinkKing(a: Animal, c: ThinkCtx): void {
     m.init = 1; m.pose ??= 0; m.rise ??= 0; m.cape ??= 1; m.crown ??= 1;
     m.floorY ??= c.heightAt(a.position.x, a.position.z);
   }
-  goldenKingBrain.think?.(a, c);
+  kingBrains.get(a)?.think(a, c);
 }
 
 export const GOLDENKING_SPECIES: SpeciesDef = {
@@ -436,7 +438,7 @@ export const GOLDENKING_SPECIES: SpeciesDef = {
   build: buildKing,
   animate: animateKing,
   tick: 'always',
-  act: (a, c) => { goldenKingBrain.act?.(a, c); },
+  act: (a, c) => { kingBrains.get(a)?.act(a, c); },
   think: thinkKing,
-  damageMul: (a, hitPoint, dir) => goldenKingBrain.damageMul?.(a, hitPoint, dir) ?? 1,
+  damageMul: (a, hitPoint, dir) => kingBrains.get(a)?.damageMul(a, hitPoint, dir) ?? 1,
 };

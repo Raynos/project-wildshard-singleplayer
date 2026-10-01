@@ -32,7 +32,7 @@ describe('private Nalati elite strikes executed from their production class meth
   it('S13 Aqbars swipes twice at .45/.8 and recovers for1.4 seconds', () => {
     const f = elite('Aqbars', { st: 'swipe', hitDone: 0 }); f.animal.startAttack(1);
     for (let i = 0; i < 61; i++) {
-      invokeLegacy(f.actor, 'think', f.animal, { ...f.ctx, dt: 1 / 60 }); f.animal.update(1 / 60, i / 60, true);
+      invokeLegacy(f.actor, 'act', f.animal, { ...f.ctx, dt: 1 / 60 }); f.animal.update(1 / 60, i / 60, true);
       if (i < 27) expect(f.hits).toEqual([]);
     }
     expect(f.hits).toEqual([14, 14]); expect(Reflect.get(f.actor, 'cd')).toBe(1.4); expect(f.animal.attackPhase).toBe(-1);
@@ -50,11 +50,11 @@ describe('private Nalati elite strikes executed from their production class meth
   it('S15 Kokbori hits22 at .7 of a .9s bite then takes1.8 seconds to recover', () => {
     const f = elite('Kokbori', { st: 'hunt', bit: false, chase: (_a: Animal, _c: unknown, _d: number, yaw: number) => yaw }); f.animal.startAttack(0.9);
     for (let i = 0; i < 56; i++) {
-      invokeLegacy(f.actor, 'think', f.animal, { ...f.ctx, dt: 1 / 60 }); f.animal.update(1 / 60, i / 60, true);
+      invokeLegacy(f.actor, 'act', f.animal, { ...f.ctx, dt: 1 / 60 }); f.animal.update(1 / 60, i / 60, true);
       f.animal.position.set(0, 0, 0);
       if (i < 38) expect(f.hits).toEqual([]);
     }
-    expect(f.hits).toEqual([22]); expect(Reflect.get(f.actor, 'cd')).toBeCloseTo(1.8 - 1 / 60);
+    expect(f.hits).toEqual([22]); expect(Reflect.get(f.actor, 'cd')).toBeCloseTo(1.8);
   });
   it.each([2.39, 2.41])('S16 Qyran landing separation%s keeps the2.4m radius', (offset) => {
     const f = elite('Qyran', { st: 'stoop', centre: { x: 0, z: 0 }, lineMat: { uniforms: { uTime: { value: 0 } } },

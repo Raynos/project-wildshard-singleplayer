@@ -117,8 +117,8 @@ describe('species strikes retain current hit timing and damage', () => {
     const f = creature('crab', 'small'), a = f.animal;
     Object.assign(a.mem, { lunge: 1, lt: 0.4, bit: 0, role: 1 }); a.mods.chargeDamage = 12;
     const pack = legacyActor(Pack.prototype, { prey: null, phase: 'encircle', members: [a], bites: 0 });
-    for (let i = 0; i < 4; i++) { pack.drive(a, f.ctx); expect(f.hits).toEqual([]); }
-    pack.drive(a, f.ctx); expect(f.hits).toEqual([]); pack.drive(a, f.ctx);
+    for (let i = 0; i < 4; i++) { pack.drive(a, f.ctx, true); expect(f.hits).toEqual([]); }
+    pack.drive(a, f.ctx, true); expect(f.hits).toEqual([]); pack.drive(a, f.ctx, true);
     expect(f.hits.map((h) => h.damage)).toEqual([12]); expect(a.mem['lunge']).toBe(3); expect(a.mem['lt']).toBe(1.1);
   });
   it('S18 stallion charge deals its25 modifier once and wheels with5s cooldown', () => {

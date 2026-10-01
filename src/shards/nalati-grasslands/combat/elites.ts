@@ -1,5 +1,6 @@
+import { NALATI_STRIKES, sampleStrike } from './strikes';
 import { registerNalatiDefinition } from '../species/rows';
-import { app, EliteBrain, hasSpecies as hasLegacySpecies, type Game, type Sky, type Player, type AnimalManager, type Animal, speciesDef, type ThinkCtx, type Interactable, heightAt, setEliteBrain, setEliteAct, setEliteDamage, eliteThink, eliteDamageMul, EliteBar, painterlyMaterial } from '#engine';
+import { app, EliteBrain, canReach, hasSpecies as hasLegacySpecies, type Game, type Sky, type Player, type AnimalManager, type Animal, speciesDef, type ThinkCtx, type Interactable, heightAt, setEliteBrain, setEliteAct, setEliteDamage, eliteThink, eliteDamageMul, EliteBar, painterlyMaterial } from '#engine';
 
 import { encounterHit } from './damage';
 import * as THREE from 'three';
@@ -868,7 +869,10 @@ export class NalatiElites {
     this.elites = elites;
     const env: Env = {
       game, sky, player, animals: play.animals, elites, bar, wildlife: play.wildlife, taming: play.taming, ghosts: play.ghosts ?? this.ghosts, ledges: this.ctx.ledges,
-      hurt: (a, dmg) => { encounterHit(a, dmg, `elite.${a.variant}`, player.position); },
+      hurt: (a, dmg) => {
+        const spec = dmg === 14 ? NALATI_STRIKES.swipe : dmg === 35 ? NALATI_STRIKES.pounce : dmg === 22 ? NALATI_STRIKES.bite : dmg === 30 ? NALATI_STRIKES.stoop : NALATI_STRIKES.captain;
+        sampleStrike(spec, a, player.position, () => { encounterHit(a, dmg, `elite.${a.variant}`, player.position); }, { reach: () => canReach(a, player.position) });
+      },
       knock: (dx, dz) => { const l = Math.hypot(dx, dz) || 1; wildEnv.onKnockdown?.(dx / l, dz / l, 1); },
       feed: play.feed, record: play.record,
       sound: (name, at) => { play.sound?.(name, at); },

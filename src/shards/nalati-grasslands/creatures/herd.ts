@@ -1,3 +1,4 @@
+import { NALATI_STRIKES, sampleStrike } from '../combat/strikes';
 import { GroupBrain, app, type Animal, type ThinkCtx, terrainNormal as normalAt, type GroupName } from '#engine';
 
 
@@ -465,7 +466,7 @@ export class HorseHerd extends GroupBrain<Animal> {
             m['kicks'] = (m['kicks'] ?? 0) + 1;
             if (p !== null && (m['kicks'] ?? 0) >= 2) { p.scare(w.position.x, w.position.z, 40); wildEnv.onEvent?.('pack-driven-off', w.position.x, w.position.z); m['kicks'] = 0; }
           } else if (this.knockCd <= 0) {
-            c.hurt(a.mods.chargeDamage); this.knockCd = 1.5;
+            sampleStrike(NALATI_STRIKES.stallion, a, c.player, () => { c.hurt(a.mods.chargeDamage); }, { shape: { kind: 'point', radius: 1.9 * a.scale, exclusive: true }, reach: () => c.reach(a) }); this.knockCd = 1.5;
             wildEnv.onKnockdown?.(_t.x, _t.z, 1);
           }
           m['kick'] = 1; c.sound('horse_squeal');

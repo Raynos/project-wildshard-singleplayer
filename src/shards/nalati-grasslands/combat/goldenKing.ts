@@ -1,4 +1,5 @@
-import { app, type Game, type Sky, type Player, type AnimalManager, type Animal, type ThinkCtx, type Interactable, BossBar, type WorldRegistry } from '#engine';
+import { NALATI_STRIKES, sampleStrike, sampleArena } from './strikes';
+import { app, type Game, type Sky, type Player, type AnimalManager, type Animal, type ThinkCtx, type Interactable, BossBar, canReach, type WorldRegistry } from '#engine';
 import { encounterHit } from './damage';
 import * as THREE from 'three';
 
@@ -10,7 +11,7 @@ import * as THREE from 'three';
 import type { Bow } from '#kit';
 
 import type { KurganEntrance } from '../world/KurganField';
-import { GOLDEN_KING, goldenKingBrain } from '../species/goldenKing';
+import { GOLDEN_KING, bindGoldenKing } from '../species/goldenKing';
 import { KURGAN_BALBAL } from '../species/kurganBalbal';
 import { KurganDungeon, DUNGEON, CH, COFFIN, PEDESTAL, NICHES, STREAMS, CHECKPOINT, DROMOS_SPAWN, DROMOS_END } from '../world/KurganDungeon';
 import { Boss, type BossDef, type BossScript } from '#game/Boss';
@@ -22,7 +23,7 @@ import { GoldenBowPower, goldenBowModel } from '../weapons/GoldenBow';
  * The Golden King fight (plan row B13; design docs/design/nalati/elites-and-bosses.md §2 "The Golden King fight, step by
  * step"; mockups art/nalati-grasslands/round-2/5-bosses/). Two pieces:
  *
- *   GoldenKingFight — the `BossScript` (src/game/Boss.ts): the King's brain (`goldenKingBrain`, the species forwards its
+ *   GoldenKingFight — the `BossScript` (src/game/Boss.ts): the King's brain (`bindGoldenKing`, the species forwards its
  *     10 Hz tick here), his damage rule, the three phases and what each does to the room:
  *       I   "The King's Court" (100 → 60 %): he duels you on the open floor — the akinakes combo (14 / 14 / 22; the blade
  *           glints before each cut, the third's wide arc is painted on the floor) and the SUNBURST (sword up, gold spirals
@@ -94,11 +95,7 @@ export class GoldenKingFight implements BossScript {
   private victoryT = -1;
   private readonly baseEmissive = 0.035;
 
-  constructor(private readonly dungeon: KurganDungeon, private readonly host: FightHost) {
-    goldenKingBrain.act = (a, c) => { if (a === this.king && this.mode === 'fight') this.strikeBody(a, c); };
-    goldenKingBrain.think = (a, c) => { if (a === this.king) this.think(a, c); };
-    goldenKingBrain.damageMul = (a, hitPoint) => (a === this.king ? this.damageMul(a, hitPoint) : 1);
-  }
+  constructor(private readonly dungeon: KurganDungeon, private readonly host: FightHost) {}
 
   // ── BossScript ──
   get hpFrac(): number { return this.king ? Math.max(0, this.king.hp / this.king.maxHp) : 0; }
@@ -123,6 +120,11 @@ export class GoldenKingFight implements BossScript {
       standOnFloor(k);
       this.king = k;
     }
+    bindGoldenKing(k, {
+      think: (a, c) => { this.think(a, c); },
+      act: (a, c) => { if (this.mode === 'fight') this.strikeBody(a, c); },
+      damageMul: (a, point) => this.damageMul(a, point),
+    });
     const at = KING_DEF_PHASES[phase]?.at ?? 1;
     k.hp = Math.round(k.maxHp * at); this.lastHp = k.hp; this.lockHp = k.hp;
     d.world(COFFIN.x, 0, COFFIN.z, _v);
@@ -282,8 +284,8 @@ export class GoldenKingFight implements BossScript {
           const wide = i >= 2;
           const pl = this.host.player.position;
           if (dist <= REACH * (wide ? 1.1 : 1) && Math.abs(off) < (wide ? 1.35 : 0.95) && pl.y < a.position.y + 2.6) {
-            this.host.hurt(STRIKE_DMG[i] ?? 14);
-            this.shove(a, wide ? 5 : 3);
+            const spec = NALATI_STRIKES.cuts[i] ?? NALATI_STRIKES.cuts[0];
+            if (spec !== undefined && sampleStrike(spec, a, pl, () => { this.host.hurt(STRIKE_DMG[i] ?? 14); }, { reach: () => canReach(a, pl) })) this.shove(a, wide ? 5 : 3);
           }
         }
         if (atk >= 1) {
@@ -445,7 +447,7 @@ export class GoldenKingFight implements BossScript {
       const dp = Math.hypot(pl.x - r.cx, pl.z - r.cz);
       if (!r.hit && Math.abs(dp - r.r) < 0.5 && pl.y - floorY < 0.4) {
         r.hit = true;
-        this.host.hurt(SUNBURST_DMG, true);
+        sampleArena(NALATI_STRIKES.sunburst, _v.set(r.cx, pl.y, r.cz), pl, () => { this.host.hurt(SUNBURST_DMG, true); }, { ringRadius: r.r });
         this.host.player.dash((pl.x - r.cx) / Math.max(0.1, dp) * 9, (pl.z - r.cz) / Math.max(0.1, dp) * 9, 0.18);
       }
       vis.mesh.visible = true;
@@ -510,7 +512,7 @@ export class GoldenKingFight implements BossScript {
         d.addSand(vis.x, vis.z, 2.4, 0.2 * dt * k, 0.95);
         // standing under it: the sand beats down on you
         const pl = this.host.player.position;
-        if (Math.hypot(pl.x - DUNGEON.x - vis.x, pl.z - DUNGEON.z - vis.z) < 0.55 && app.rng.stream('ai').next() < dt * 2) this.host.hurt(4, true);
+        if (Math.hypot(pl.x - DUNGEON.x - vis.x, pl.z - DUNGEON.z - vis.z) < 0.55 && app.rng.stream('ai').next() < dt * 2) sampleArena(NALATI_STRIKES.sand, _v.set(DUNGEON.x + vis.x, pl.y, DUNGEON.z + vis.z), pl, () => { this.host.hurt(4, true); });
         if (s.t > 6 || !pouring) { s.st = 0; s.t = 0; }
       }
     }
@@ -541,7 +543,7 @@ export class GoldenKingFight implements BossScript {
     // it burns: you (15, once a second) and him (50 when you lure him through it)
     const pl = this.host.player.position;
     this.beamHitCd -= dt; this.beamKingCd -= dt;
-    if (this.beamHitCd <= 0 && Math.hypot(pl.x - DUNGEON.x - cx, pl.z - DUNGEON.z - cz) < BEAM_HIT_R) { this.beamHitCd = 1; this.host.hurt(BEAM_DMG, true); }
+    if (this.beamHitCd <= 0 && Math.hypot(pl.x - DUNGEON.x - cx, pl.z - DUNGEON.z - cz) < BEAM_HIT_R) { this.beamHitCd = 1; sampleArena(NALATI_STRIKES.beam, _v.set(DUNGEON.x + cx, pl.y, DUNGEON.z + cz), pl, () => { this.host.hurt(BEAM_DMG, true); }); }
     const k = this.king;
     if (k && k.alive && this.beamKingCd <= 0 && !this.invuln && Math.hypot(k.position.x - DUNGEON.x - cx, k.position.z - DUNGEON.z - cz) < BEAM_HIT_R + 0.3) {
       this.beamKingCd = 3;
@@ -696,6 +698,8 @@ export class KurganBoss {
     this.fight.reset(0);
     this.fight.setPresent(false);
     if (this.boss.rewardTaken && play.bow) { play.upgradeBow(this.golden); }
+    game.levelScope.listen(window, 'keydown', event => { if (event instanceof KeyboardEvent && event.code === 'Enter') this.skipKeys = true; });
+    game.levelScope.listen(window, 'keyup', event => { if (event instanceof KeyboardEvent && event.code === 'Enter') this.skipKeys = false; });
     game.levelScope.listen(window, 'pointerdown', () => { this.skipTouch = true; });
     game.levelScope.listen(window, 'pointerup', () => { this.skipTouch = false; });
     game.levelScope.listen(window, 'pointercancel', () => { this.skipTouch = false; });
