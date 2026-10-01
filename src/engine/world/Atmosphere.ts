@@ -3,6 +3,7 @@
 // (terrain, instanced trees, glTF props, animals) gets it for free.
 import * as THREE from 'three';
 import { setInheritedPatch } from '../render/shaderPatches';
+import { FOG_SLOT, installFogPatch } from '../render/fogPatches';
 
 export const fogUniforms = {
   fogSunDir: { value: new THREE.Vector3(0, 1, 0) },
@@ -48,11 +49,12 @@ export const volumetricFog: { height: number | null; falloff: number | null } = 
 const fogExtras: Record<string, THREE.IUniform>[] = [];
 export function addFogUniforms(set: Record<string, THREE.IUniform>): void { if (!fogExtras.includes(set)) fogExtras.push(set); }
 
-let installed = false;
-/** the engine's fog chunks (slot 100); a shard's own fog (`LookStrategy.fog`) is installed after it (Game.buildSky) */
+/** the engine's fog chunks (slot 100, once a page: render/fogPatches.ts); a level's own fog (`LookStrategy.fog`) is installed after it (Game.buildSky) */
 export function installAtmosphere(policy: { edgeHaze?: boolean; wetSurfaces?: boolean } = {}): void {
-  if (installed) return;
-  installed = true;
+  installFogPatch('engine.fog', FOG_SLOT.engine, () => { writeAtmosphere(policy); });
+}
+
+function writeAtmosphere(policy: { edgeHaze?: boolean; wetSurfaces?: boolean }): void {
   // Pine Hollow's slab edge haze (fogEdge): only its fog chunk carries it, every other shard's source stays byte-for-byte
   const edge = policy.edgeHaze === true;
   pineWeather = policy.wetSurfaces === true;
