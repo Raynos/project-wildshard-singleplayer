@@ -1,0 +1,1055 @@
+{
+  "parent": "97453d22f5a75a294fc2e1372fde77af1b297546",
+  "candidate": "f8c3f37cf7e91596d20427bcf704ae55773fb2b6",
+  "rows": [
+    {
+      "shard": "nine-dragon-stack",
+      "tier": "phone",
+      "bootErrors": [],
+      "deltas": [
+        {
+          "field": "boot.hud",
+          "baseline": [
+            {
+              "cls": "ws-touch-disc",
+              "spot": "",
+              "shown": false
+            }
+          ],
+          "now": [],
+          "class": "A",
+          "band": "exact",
+          "verdict": "red"
+        }
+      ],
+      "inheritedReds": [],
+      "posesIdentical": true
+    },
+    {
+      "shard": "nine-dragon-stack",
+      "tier": "desktop",
+      "bootErrors": [],
+      "deltas": [],
+      "inheritedReds": [],
+      "posesIdentical": true
+    },
+    {
+      "shard": "pine-hollow",
+      "tier": "phone",
+      "bootErrors": [],
+      "deltas": [
+        {
+          "field": "boot.hud",
+          "baseline": [
+            {
+              "cls": "ws-touch-disc",
+              "spot": "",
+              "shown": false
+            }
+          ],
+          "now": [],
+          "class": "A",
+          "band": "exact",
+          "verdict": "red"
+        }
+      ],
+      "inheritedReds": [
+        {
+          "field": "budgets.gate.gpuMB",
+          "baseline": 583.8486213684082,
+          "now": 587.1324214935303,
+          "class": "D",
+          "band": "\u2264 583.8486213684082",
+          "verdict": "red"
+        },
+        {
+          "field": "budgets.cabin.draws",
+          "baseline": 146,
+          "now": 147,
+          "class": "D",
+          "band": "\u2264 146",
+          "verdict": "red"
+        },
+        {
+          "field": "budgets.cabin.tris",
+          "baseline": 1324294,
+          "now": 1324374,
+          "class": "D",
+          "band": "\u2264 1324294",
+          "verdict": "red"
+        },
+        {
+          "field": "budgets.cabin.gpuMB",
+          "baseline": 583.8486213684082,
+          "now": 587.1324214935303,
+          "class": "D",
+          "band": "\u2264 583.8486213684082",
+          "verdict": "red"
+        },
+        {
+          "field": "budgets.pond.gpuMB",
+          "baseline": 583.8486213684082,
+          "now": 587.1324214935303,
+          "class": "D",
+          "band": "\u2264 583.8486213684082",
+          "verdict": "red"
+        }
+      ],
+      "posesIdentical": true
+    },
+    {
+      "shard": "pine-hollow",
+      "tier": "desktop",
+      "bootErrors": [],
+      "deltas": [],
+      "inheritedReds": [
+        {
+          "field": "budgets.gate.gpuMB",
+          "baseline": 1308.288724899292,
+          "now": 1318.5415477752686,
+          "class": "D",
+          "band": "\u2264 1308.288724899292",
+          "verdict": "red"
+        },
+        {
+          "field": "budgets.cabin.draws",
+          "baseline": 276,
+          "now": 277,
+          "class": "D",
+          "band": "\u2264 276",
+          "verdict": "red"
+        },
+        {
+          "field": "budgets.cabin.tris",
+          "baseline": 7991860,
+          "now": 7991940,
+          "class": "D",
+          "band": "\u2264 7991860",
+          "verdict": "red"
+        },
+        {
+          "field": "budgets.cabin.gpuMB",
+          "baseline": 1308.288724899292,
+          "now": 1318.5415477752686,
+          "class": "D",
+          "band": "\u2264 1308.288724899292",
+          "verdict": "red"
+        },
+        {
+          "field": "budgets.pond.gpuMB",
+          "baseline": 1308.288724899292,
+          "now": 1318.5415477752686,
+          "class": "D",
+          "band": "\u2264 1308.288724899292",
+          "verdict": "red"
+        }
+      ],
+      "posesIdentical": true
+    },
+    {
+      "shard": "nalati-grasslands",
+      "tier": "phone",
+      "bootErrors": [],
+      "deltas": [
+        {
+          "field": "boot.scene.totals.mesh",
+          "baseline": 311,
+          "now": 310,
+          "class": "A",
+          "band": "exact",
+          "verdict": "red"
+        },
+        {
+          "field": "boot.hud",
+          "baseline": [
+            {
+              "cls": "ws-touch-disc",
+              "spot": "",
+              "shown": false
+            }
+          ],
+          "now": [],
+          "class": "A",
+          "band": "exact",
+          "verdict": "red"
+        }
+      ],
+      "inheritedReds": [],
+      "posesIdentical": true
+    },
+    {
+      "shard": "nalati-grasslands",
+      "tier": "desktop",
+      "bootErrors": [],
+      "deltas": [
+        {
+          "field": "boot.scene.totals.mesh",
+          "baseline": 583,
+          "now": 582,
+          "class": "A",
+          "band": "exact",
+          "verdict": "red"
+        }
+      ],
+      "inheritedReds": [],
+      "posesIdentical": true
+    },
+    {
+      "shard": "driftwood-isle",
+      "tier": "phone",
+      "bootErrors": [],
+      "deltas": [
+        {
+          "field": "boot.hud",
+          "baseline": [
+            {
+              "cls": "ws-touch-disc",
+              "spot": "",
+              "shown": false
+            }
+          ],
+          "now": [],
+          "class": "A",
+          "band": "exact",
+          "verdict": "red"
+        }
+      ],
+      "inheritedReds": [],
+      "posesIdentical": true
+    },
+    {
+      "shard": "driftwood-isle",
+      "tier": "desktop",
+      "bootErrors": [],
+      "deltas": [],
+      "inheritedReds": [],
+      "posesIdentical": true
+    }
+  ],
+  "imageComparison": [
+    {
+      "pose": "driftwood-isle.desktop.beach.jpg",
+      "normalizedRMSE": 0.0,
+      "byteIdentical": true
+    },
+    {
+      "pose": "driftwood-isle.desktop.pier.jpg",
+      "normalizedRMSE": 0.0,
+      "byteIdentical": true
+    },
+    {
+      "pose": "driftwood-isle.desktop.wreck.jpg",
+      "normalizedRMSE": 0.0,
+      "byteIdentical": true
+    },
+    {
+      "pose": "driftwood-isle.phone.beach.jpg",
+      "normalizedRMSE": 0.0108742,
+      "byteIdentical": false
+    },
+    {
+      "pose": "driftwood-isle.phone.pier.jpg",
+      "normalizedRMSE": 0.0116212,
+      "byteIdentical": false
+    },
+    {
+      "pose": "driftwood-isle.phone.wreck.jpg",
+      "normalizedRMSE": 0.000426498,
+      "byteIdentical": false
+    },
+    {
+      "pose": "nalati-grasslands.desktop.bridge.jpg",
+      "normalizedRMSE": 1.60097e-05,
+      "byteIdentical": false
+    },
+    {
+      "pose": "nalati-grasslands.desktop.camp.jpg",
+      "normalizedRMSE": 0.0,
+      "byteIdentical": true
+    },
+    {
+      "pose": "nalati-grasslands.desktop.plains.jpg",
+      "normalizedRMSE": 0.0,
+      "byteIdentical": true
+    },
+    {
+      "pose": "nalati-grasslands.phone.bridge.jpg",
+      "normalizedRMSE": 0.0,
+      "byteIdentical": true
+    },
+    {
+      "pose": "nalati-grasslands.phone.camp.jpg",
+      "normalizedRMSE": 0.0,
+      "byteIdentical": true
+    },
+    {
+      "pose": "nalati-grasslands.phone.plains.jpg",
+      "normalizedRMSE": 0.0,
+      "byteIdentical": true
+    },
+    {
+      "pose": "nine-dragon-stack.desktop.spawn-rail.jpg",
+      "normalizedRMSE": 0.0,
+      "byteIdentical": true
+    },
+    {
+      "pose": "nine-dragon-stack.desktop.stair-street.jpg",
+      "normalizedRMSE": 0.0,
+      "byteIdentical": true
+    },
+    {
+      "pose": "nine-dragon-stack.desktop.well-edge.jpg",
+      "normalizedRMSE": 0.0,
+      "byteIdentical": true
+    },
+    {
+      "pose": "nine-dragon-stack.phone.spawn-rail.jpg",
+      "normalizedRMSE": 0.0,
+      "byteIdentical": true
+    },
+    {
+      "pose": "nine-dragon-stack.phone.stair-street.jpg",
+      "normalizedRMSE": 0.00220971,
+      "byteIdentical": false
+    },
+    {
+      "pose": "nine-dragon-stack.phone.well-edge.jpg",
+      "normalizedRMSE": 0.0,
+      "byteIdentical": true
+    },
+    {
+      "pose": "pine-hollow.desktop.cabin.jpg",
+      "normalizedRMSE": 0.0,
+      "byteIdentical": true
+    },
+    {
+      "pose": "pine-hollow.desktop.gate.jpg",
+      "normalizedRMSE": 0.0,
+      "byteIdentical": true
+    },
+    {
+      "pose": "pine-hollow.desktop.pond.jpg",
+      "normalizedRMSE": 0.000420423,
+      "byteIdentical": false
+    },
+    {
+      "pose": "pine-hollow.phone.cabin.jpg",
+      "normalizedRMSE": 0.0,
+      "byteIdentical": true
+    },
+    {
+      "pose": "pine-hollow.phone.gate.jpg",
+      "normalizedRMSE": 0.0,
+      "byteIdentical": true
+    },
+    {
+      "pose": "pine-hollow.phone.pond.jpg",
+      "normalizedRMSE": 0.00195858,
+      "byteIdentical": false
+    }
+  ],
+  "checks": {
+    "tsc": 0,
+    "wholeTreeOxlint": 0,
+    "checkCss": 0,
+    "vitestFiles": 318,
+    "vitestTests": 2298,
+    "cleanExportR9IsolatedTests": 6,
+    "cleanExportGate": "R9 preload load timeouts; lead accepted isolated pass, sol-fin hardens tests"
+  },
+  "walkCombatLeak": {
+    "parent": "79407c64db240642fdc9175f13d7ed3ab1036b9c",
+    "candidate": "7fa68e42a9fecba059549cfbbe75ca3f6d4ee429",
+    "rows": [
+      {
+        "tier": "phone",
+        "bootErrors": [],
+        "walkStuck": 0,
+        "walkLegs": {
+          "road-camp": {
+            "parent": {
+              "stuck": [],
+              "end": {
+                "x": 94.221,
+                "y": -4.336,
+                "z": 204.071
+              },
+              "maxY": 0.021,
+              "out": 0,
+              "seconds": 26.633333333333024
+            },
+            "candidate": {
+              "stuck": [],
+              "end": {
+                "x": 94.221,
+                "y": -4.336,
+                "z": 204.071
+              },
+              "maxY": 0.021,
+              "out": 0,
+              "seconds": 26.633333333333116
+            },
+            "traceIdentical": true
+          },
+          "great-kurgan-door": {
+            "parent": {
+              "stuck": [],
+              "end": {
+                "x": -172.985,
+                "y": 34.935,
+                "z": 75
+              },
+              "maxY": 34.938,
+              "out": 0,
+              "seconds": 3.466666666666919
+            },
+            "candidate": {
+              "stuck": [],
+              "end": {
+                "x": -172.985,
+                "y": 34.935,
+                "z": 75
+              },
+              "maxY": 34.938,
+              "out": 0,
+              "seconds": 3.466666666666919
+            },
+            "traceIdentical": true
+          },
+          "leopard-cave": {
+            "parent": {
+              "stuck": [],
+              "end": {
+                "x": 137.23,
+                "y": 54.117,
+                "z": -66.035
+              },
+              "maxY": 54.119,
+              "out": 0,
+              "seconds": 39.766666666666644
+            },
+            "candidate": {
+              "stuck": [],
+              "end": {
+                "x": 137.23,
+                "y": 54.117,
+                "z": -66.035
+              },
+              "maxY": 54.119,
+              "out": 0,
+              "seconds": 39.76666666666629
+            },
+            "traceIdentical": true
+          }
+        },
+        "combatIdenticalToParent": true,
+        "combat": {
+          "swing": {
+            "weapon": "sabre",
+            "target": "wolf",
+            "hits": 3,
+            "hitWithinS": 0.5693333333333044,
+            "killed": true,
+            "killWithinS": 4.2413333333331025,
+            "hitLimit": 3,
+            "killLimit": 15
+          },
+          "shot": {
+            "weapon": "bow",
+            "target": "wolf",
+            "hits": 2,
+            "hitWithinS": 1.5333333333332462,
+            "killed": true,
+            "killWithinS": 3.0666666666664923,
+            "hitLimit": 20,
+            "killLimit": 20
+          },
+          "shot2": "n/a",
+          "hitsToKill": {
+            "swing": 3,
+            "shot": 2
+          },
+          "kills": [
+            "wolf",
+            "wolf"
+          ],
+          "loot": {
+            "written": [
+              "local:wildshard.save.v2.global",
+              "local:wildshard.save.v2.nalati-grasslands"
+            ]
+          },
+          "sounds": {
+            "event": {
+              "land": 2,
+              "footstep:grass": 1,
+              "sabreSwing": 7,
+              "animal:wolf_yelp": 5,
+              "hitMarker": 5,
+              "sabreHit:flesh": 3,
+              "animal:marmot_whistle": 1,
+              "kill": 2,
+              "bowDraw": 2,
+              "bowFullDraw": 2,
+              "bowTwang": 2,
+              "arrowWhoosh": 2,
+              "arrowImpact:flesh": 2
+            },
+            "ambient": [
+              "steppe.herd",
+              "steppe.marmot"
+            ]
+          }
+        },
+        "pauseResumeIdenticalToParent": true,
+        "leak": {
+          "base": {
+            "before": {
+              "geometries": 0,
+              "textures": 0,
+              "programs": 0,
+              "bodies": 0,
+              "colliders": 0,
+              "listeners": {
+                "window": 0,
+                "document": 0,
+                "canvas": 0,
+                "other": 0
+              },
+              "timers": {
+                "timeouts": 0,
+                "intervals": 0,
+                "raf": 0
+              },
+              "audio": {
+                "activeVoices": 0,
+                "beds": 0,
+                "buses": 0
+              },
+              "systems": {
+                "input": 0,
+                "fixed": {
+                  "pre": 0,
+                  "step": 0,
+                  "post": 0
+                },
+                "update": 0,
+                "late": 0,
+                "render": 0
+              },
+              "events": {
+                "listeners": 7,
+                "answerers": 5
+              },
+              "dom": {
+                "hud": 0,
+                "body": 0
+              },
+              "sceneObjects": 0
+            },
+            "after": {
+              "geometries": 0,
+              "textures": 0,
+              "programs": 0,
+              "bodies": 0,
+              "colliders": 0,
+              "listeners": {
+                "window": 0,
+                "document": 0,
+                "canvas": 0,
+                "other": 0
+              },
+              "timers": {
+                "timeouts": 0,
+                "intervals": 0,
+                "raf": 0
+              },
+              "audio": {
+                "activeVoices": 0,
+                "beds": 0,
+                "buses": 0
+              },
+              "systems": {
+                "input": 0,
+                "fixed": {
+                  "pre": 0,
+                  "step": 0,
+                  "post": 0
+                },
+                "update": 0,
+                "late": 0,
+                "render": 0
+              },
+              "events": {
+                "listeners": 7,
+                "answerers": 5
+              },
+              "dom": {
+                "hud": 0,
+                "body": 0
+              },
+              "sceneObjects": 0
+            },
+            "censusIdenticalToParent": true,
+            "disposalErrors": [],
+            "retained": {
+              "parent": 268,
+              "candidate": 266
+            },
+            "gpuResources": {
+              "parent": 196,
+              "candidate": 195
+            }
+          },
+          "weather": {
+            "before": {
+              "geometries": 0,
+              "textures": 0,
+              "programs": 0,
+              "bodies": 0,
+              "colliders": 0,
+              "listeners": {
+                "window": 0,
+                "document": 0,
+                "canvas": 0,
+                "other": 0
+              },
+              "timers": {
+                "timeouts": 0,
+                "intervals": 0,
+                "raf": 0
+              },
+              "audio": {
+                "activeVoices": 0,
+                "beds": 0,
+                "buses": 0
+              },
+              "systems": {
+                "input": 0,
+                "fixed": {
+                  "pre": 0,
+                  "step": 0,
+                  "post": 0
+                },
+                "update": 0,
+                "late": 0,
+                "render": 0
+              },
+              "events": {
+                "listeners": 7,
+                "answerers": 5
+              },
+              "dom": {
+                "hud": 0,
+                "body": 0
+              },
+              "sceneObjects": 0,
+              "errors": []
+            },
+            "after": {
+              "geometries": 0,
+              "textures": 0,
+              "programs": 0,
+              "bodies": 0,
+              "colliders": 0,
+              "listeners": {
+                "window": 0,
+                "document": 0,
+                "canvas": 0,
+                "other": 0
+              },
+              "timers": {
+                "timeouts": 0,
+                "intervals": 0,
+                "raf": 0
+              },
+              "audio": {
+                "activeVoices": 0,
+                "beds": 0,
+                "buses": 0
+              },
+              "systems": {
+                "input": 0,
+                "fixed": {
+                  "pre": 0,
+                  "step": 0,
+                  "post": 0
+                },
+                "update": 0,
+                "late": 0,
+                "render": 0
+              },
+              "events": {
+                "listeners": 7,
+                "answerers": 5
+              },
+              "dom": {
+                "hud": 0,
+                "body": 0
+              },
+              "sceneObjects": 0,
+              "errors": []
+            },
+            "censusIdenticalToParent": true,
+            "disposalErrors": [],
+            "retained": {
+              "parent": 269,
+              "candidate": 267
+            },
+            "gpuResources": {
+              "parent": 186,
+              "candidate": 185
+            }
+          }
+        }
+      },
+      {
+        "tier": "desktop",
+        "bootErrors": [],
+        "walkStuck": 0,
+        "walkLegs": {
+          "road-camp": {
+            "parent": {
+              "stuck": [],
+              "end": {
+                "x": 94.221,
+                "y": -4.336,
+                "z": 204.071
+              },
+              "maxY": 0.021,
+              "out": 0,
+              "seconds": 13.316666666666876
+            },
+            "candidate": {
+              "stuck": [],
+              "end": {
+                "x": 94.221,
+                "y": -4.336,
+                "z": 204.071
+              },
+              "maxY": 0.021,
+              "out": 0,
+              "seconds": 13.316666666667109
+            },
+            "traceIdentical": true
+          },
+          "great-kurgan-door": {
+            "parent": {
+              "stuck": [],
+              "end": {
+                "x": -172.985,
+                "y": 34.935,
+                "z": 75
+              },
+              "maxY": 34.938,
+              "out": 0,
+              "seconds": 1.7333333333334595
+            },
+            "candidate": {
+              "stuck": [],
+              "end": {
+                "x": -172.985,
+                "y": 34.935,
+                "z": 75
+              },
+              "maxY": 34.938,
+              "out": 0,
+              "seconds": 1.7333333333334595
+            },
+            "traceIdentical": true
+          },
+          "leopard-cave": {
+            "parent": {
+              "stuck": [],
+              "end": {
+                "x": 137.223,
+                "y": 54.117,
+                "z": -66.051
+              },
+              "maxY": 54.119,
+              "out": 0,
+              "seconds": 19.883333333332143
+            },
+            "candidate": {
+              "stuck": [],
+              "end": {
+                "x": 137.223,
+                "y": 54.117,
+                "z": -66.051
+              },
+              "maxY": 54.119,
+              "out": 0,
+              "seconds": 19.883333333331677
+            },
+            "traceIdentical": true
+          }
+        },
+        "combatIdenticalToParent": true,
+        "combat": {
+          "swing": {
+            "weapon": "sabre",
+            "target": "wolf",
+            "hits": 3,
+            "hitWithinS": 0.5693333333333044,
+            "killed": true,
+            "killWithinS": 1.7079999999999131,
+            "hitLimit": 3,
+            "killLimit": 15
+          },
+          "shot": {
+            "weapon": "bow",
+            "target": "wolf",
+            "hits": 2,
+            "hitWithinS": 1.5333333333332462,
+            "killed": true,
+            "killWithinS": 3.0666666666664923,
+            "hitLimit": 20,
+            "killLimit": 20
+          },
+          "shot2": "n/a",
+          "hitsToKill": {
+            "swing": 3,
+            "shot": 2
+          },
+          "kills": [
+            "wolf",
+            "wolf"
+          ],
+          "loot": {
+            "written": [
+              "local:wildshard.save.v2.global",
+              "local:wildshard.save.v2.nalati-grasslands"
+            ]
+          },
+          "sounds": {
+            "event": {
+              "steppe.bed:steppe-wind": 1,
+              "steppe.bed:steppe-larks": 1,
+              "steppe.bed:river": 1,
+              "steppe.bed:highwind": 1,
+              "lunge": 1,
+              "sabreSwing": 3,
+              "animal:wolf_yelp": 5,
+              "hitMarker": 5,
+              "sabreHit:flesh": 3,
+              "kill": 2,
+              "animal:marmot_whistle": 1,
+              "land": 1,
+              "bowDraw": 2,
+              "bowFullDraw": 2,
+              "bowTwang": 2,
+              "arrowWhoosh": 2,
+              "arrowImpact:flesh": 2
+            },
+            "ambient": [
+              "steppe.marmot"
+            ]
+          }
+        },
+        "pauseResumeIdenticalToParent": true,
+        "leak": {
+          "base": {
+            "before": {
+              "geometries": 0,
+              "textures": 0,
+              "programs": 0,
+              "bodies": 0,
+              "colliders": 0,
+              "listeners": {
+                "window": 0,
+                "document": 0,
+                "canvas": 0,
+                "other": 0
+              },
+              "timers": {
+                "timeouts": 0,
+                "intervals": 0,
+                "raf": 0
+              },
+              "audio": {
+                "activeVoices": 0,
+                "beds": 0,
+                "buses": 0
+              },
+              "systems": {
+                "input": 0,
+                "fixed": {
+                  "pre": 0,
+                  "step": 0,
+                  "post": 0
+                },
+                "update": 0,
+                "late": 0,
+                "render": 0
+              },
+              "events": {
+                "listeners": 7,
+                "answerers": 5
+              },
+              "dom": {
+                "hud": 0,
+                "body": 0
+              },
+              "sceneObjects": 0
+            },
+            "after": {
+              "geometries": 0,
+              "textures": 0,
+              "programs": 0,
+              "bodies": 0,
+              "colliders": 0,
+              "listeners": {
+                "window": 0,
+                "document": 0,
+                "canvas": 0,
+                "other": 0
+              },
+              "timers": {
+                "timeouts": 0,
+                "intervals": 0,
+                "raf": 0
+              },
+              "audio": {
+                "activeVoices": 0,
+                "beds": 0,
+                "buses": 0
+              },
+              "systems": {
+                "input": 0,
+                "fixed": {
+                  "pre": 0,
+                  "step": 0,
+                  "post": 0
+                },
+                "update": 0,
+                "late": 0,
+                "render": 0
+              },
+              "events": {
+                "listeners": 7,
+                "answerers": 5
+              },
+              "dom": {
+                "hud": 0,
+                "body": 0
+              },
+              "sceneObjects": 0
+            },
+            "censusIdenticalToParent": true,
+            "disposalErrors": [],
+            "retained": {
+              "parent": 297,
+              "candidate": 295
+            },
+            "gpuResources": {
+              "parent": 231,
+              "candidate": 230
+            }
+          },
+          "weather": {
+            "before": {
+              "geometries": 0,
+              "textures": 0,
+              "programs": 0,
+              "bodies": 0,
+              "colliders": 0,
+              "listeners": {
+                "window": 0,
+                "document": 0,
+                "canvas": 0,
+                "other": 0
+              },
+              "timers": {
+                "timeouts": 0,
+                "intervals": 0,
+                "raf": 0
+              },
+              "audio": {
+                "activeVoices": 0,
+                "beds": 0,
+                "buses": 0
+              },
+              "systems": {
+                "input": 0,
+                "fixed": {
+                  "pre": 0,
+                  "step": 0,
+                  "post": 0
+                },
+                "update": 0,
+                "late": 0,
+                "render": 0
+              },
+              "events": {
+                "listeners": 7,
+                "answerers": 5
+              },
+              "dom": {
+                "hud": 0,
+                "body": 0
+              },
+              "sceneObjects": 0,
+              "errors": []
+            },
+            "after": {
+              "geometries": 0,
+              "textures": 0,
+              "programs": 0,
+              "bodies": 0,
+              "colliders": 0,
+              "listeners": {
+                "window": 0,
+                "document": 0,
+                "canvas": 0,
+                "other": 0
+              },
+              "timers": {
+                "timeouts": 0,
+                "intervals": 0,
+                "raf": 0
+              },
+              "audio": {
+                "activeVoices": 0,
+                "beds": 0,
+                "buses": 0
+              },
+              "systems": {
+                "input": 0,
+                "fixed": {
+                  "pre": 0,
+                  "step": 0,
+                  "post": 0
+                },
+                "update": 0,
+                "late": 0,
+                "render": 0
+              },
+              "events": {
+                "listeners": 7,
+                "answerers": 5
+              },
+              "dom": {
+                "hud": 0,
+                "body": 0
+              },
+              "sceneObjects": 0,
+              "errors": []
+            },
+            "censusIdenticalToParent": true,
+            "disposalErrors": [],
+            "retained": {
+              "parent": 298,
+              "candidate": 296
+            },
+            "gpuResources": {
+              "parent": 224,
+              "candidate": 223
+            }
+          }
+        }
+      }
+    ],
+    "diagnosticDifferences": "Retained ring geometry/material -2; GPU material -1. Stack URLs/build hashes and timer sample order vary; walk seconds are informational."
+  },
+  "landingCode": "1555b2f72f0c9e0ad8cf491d271a8d99497d7c55"
+}
