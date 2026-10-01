@@ -1,3 +1,4 @@
+import { weaponActionGate } from '#engine/input/weaponActions';
 import { type EquipContext, HitLine, makeFlashTexture, hitscan, brassFloor, stepBrass, blendAds, type WeaponState, type AimInfo, app, getSetting, LightPool, Puffs, viewmodelMaterial, viewmodelTexSet, whiteColors, rangedFovForAspect as fovForAspect, FOV_HIP, FOV_ADS, box, cyl, stripExtra, sstep, clamp01, isMesh, worldHit, type TexSet, type Targets, type CrossbowWorld, type CrossbowOptions, type Sky } from '#engine';
 
 import { Firearm } from './Firearm';
@@ -225,14 +226,13 @@ export class Rifle extends Firearm {
   }
 
   // ── input ──
-  override inputAllowed(): boolean { return this.enabled && (this.player.locked || this.allowUnlocked) && app.input.allowed('attack'); }
   override install(ctx: EquipContext): void {
     super.install(ctx);
     this.bindInput(ctx);
     ctx.scope.onDispose(() => { this.model.removeFromParent(); });
   }
   private bindInput(ctx: EquipContext): void {
-    const allowed = (): boolean => this.enabled && (this.player.locked || this.allowUnlocked) && app.input.allowed('attack');
+    const allowed = weaponActionGate(this, this.player);
     app.input.bind('attack', () => { this.tryFire(); }, ctx.scope, allowed);
     app.input.bind('aim', () => { this.mouseAds = !this.mouseAds; }, ctx.scope, allowed);
     app.input.bind('reload', () => { this.reload(); }, ctx.scope, allowed);

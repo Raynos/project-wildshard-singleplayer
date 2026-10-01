@@ -3,7 +3,10 @@ import { Scope } from '#engine/app/scope';
 import { afterEach, expect, it, vi } from 'vitest';
 import { app } from '#engine';
 import { containMenuInput } from '#engine/input/menuInput';
-import { Crossbow } from '#kit/weapons/crossbow/Crossbow';
+import { weaponActionGate } from '#engine/input/weaponActions';
+import type { Weapon } from '#engine/combat/Weapon';
+import { CROSSBOW } from '#shards/pine-hollow/weapons/equipment';
+import { legacyDouble } from '../fake/FakeGame';
 
 afterEach(() => { document.body.replaceChildren(); app.setState('boot'); });
 it('contains a resume tap and compatibility mouse events while allowing its target click to resume', () => {
@@ -18,16 +21,16 @@ it('contains a resume tap and compatibility mouse events while allowing its targ
   expect(resume).toHaveBeenCalledOnce(); expect(app.state).toBe('play'); expect(shot).not.toHaveBeenCalled();
   controller.abort();
 });
-it('blocks the real crossbow input predicate while the pause menu is open', () => {
-  const state = { enabled: true, player: { locked: false }, allowUnlocked: true };
-  const method: unknown = Reflect.get(Crossbow.prototype, 'inputAllowed');
-  if (typeof method !== 'function') throw new Error('Missing crossbow input predicate');
-  const allowed = method as (this: typeof state) => boolean;
-  app.setState('play'); expect(allowed.call(state)).toBe(true);
-  const scope = new Scope('menu-block');
+it('keeps weapon actions under an additive context and blocks them under a menu', () => {
+  const scope = new Scope('weapon-input'), shots = vi.fn<() => void>();
+  const weapon = legacyDouble<Weapon & { allowUnlocked: boolean }>({ enabled: true, allowUnlocked: true, row: CROSSBOW });
+  app.input.register({ id: 'weapon.ranged', actions: ['attack'] }, scope);
+  app.input.register({ id: 'test.tool', actions: ['jump'] }, scope);
   app.input.register({ id: 'test.menu', actions: ['back'], blocks: 'below' }, scope);
-  app.input.push('test.menu', scope);
-  app.setState('paused'); expect(allowed.call(state)).toBe(false);
-  app.input.pop('test.menu'); scope.dispose();
-  app.setState('play'); expect(allowed.call(state)).toBe(true);
+  app.input.push('weapon.ranged', scope); app.input.push('test.tool', scope);
+  app.input.bind('attack', shots, scope, weaponActionGate(weapon, { locked: false }));
+  app.input.press('attack'); expect(shots).toHaveBeenCalledOnce();
+  app.input.push('test.menu', scope); app.input.press('attack'); expect(shots).toHaveBeenCalledOnce();
+  app.input.pop('test.menu'); app.input.press('attack'); expect(shots).toHaveBeenCalledTimes(2);
+  scope.dispose();
 });

@@ -1,3 +1,4 @@
+import { weaponActionGate } from '#engine/input/weaponActions';
 import { type EquipContext, blendAds, hitscan, stepBrass, brassFloor, type WeaponState, type AimInfo, app, getSetting, LightPool, Puffs, viewmodelMaterial, viewmodelTexSet, whiteColors, edgeWear, rangedFovForAspect as fovForAspect, FOV_HIP, FOV_ADS, box, cyl, stripExtra, sstep, clamp01, isMesh, worldHit, fixIBL, VIEWMODEL_GROUP, type TexSet, type CrossbowWorld, type CrossbowOptions, type Targets, makeFlashTexture, HitLine, type Sky, SHADOW_LAYER } from '#engine';
 import { BUCKSKIN, HANDS_MATERIAL, WeaponHands, blendGrip, gripPose, holdDef, type HandHold, Firearm, AR15, type FirearmProfile } from '#kit';
 
@@ -449,14 +450,13 @@ export class LeverRifle extends Firearm {
   }
 
   // ── input ──
-  override inputAllowed(): boolean { return this.enabled && (this.player.locked || this.allowUnlocked) && app.input.allowed('attack'); }
   override install(ctx: EquipContext): void {
     super.install(ctx);
     this.bindInput(ctx);
     ctx.scope.onDispose(() => { this.model.removeFromParent(); });
   }
   private bindInput(ctx: EquipContext): void {
-    const allowed = (): boolean => this.enabled && (this.player.locked || this.allowUnlocked) && app.input.allowed('attack');
+    const allowed = weaponActionGate(this, this.player);
     app.input.bind('attack', () => { this.tryFire(); }, ctx.scope, allowed);
     app.input.bind('aim', () => { this.mouseAds = !this.mouseAds; }, ctx.scope, allowed);
     app.input.bind('reload', () => { this.reload(); }, ctx.scope, allowed);

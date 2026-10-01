@@ -10,6 +10,6 @@ import { LeverRifle } from '#shards/pine-hollow/weapons/LeverRifle';
 // Today's public behavior surface: the new equipment class / ids / UI rows are introduced in S1.2.
 describe('all current weapon behaviors expose the shared action surface', () => {
   it.each([Sword, Crossbow, Bow, Rifle, Spear, Sabre, LeverRifle])('%s', (weapon) => {
-    for (const method of ['tryFire', 'update', 'inputAllowed', 'aimRay']) expect(Reflect.get(weapon.prototype, method), `${weapon.name}.${method}`).toBeTypeOf('function');
+    for (const method of ['tryFire', 'update', 'aimRay']) expect(Reflect.get(weapon.prototype, method), `${weapon.name}.${method}`).toBeTypeOf('function');
   });
 });

@@ -161,7 +161,7 @@ export function installPineLoadout(h: PineLoadoutHost): PineLoadout {
   const room = (kind: AmmoKind, n: number): boolean => count(kind) + n <= CAP[kind];
 
   // ── input: B cycles the bolt kind while the crossbow is held; the touch ammo strip, tapped, does the same ──
-  app.input.register({ id: 'crossbow.bolts', actions: ['bolt.cycle'], keys: { 'bolt.cycle': ['KeyB'] }, touch: { relabel: {} }, enabled: () => weapons.current.ammoSelect !== undefined && weapons.enabled && weapons.current.enabled }, h.scope);
+  app.input.register({ id: 'crossbow.bolts', actions: ['bolt.cycle'], keys: { 'bolt.cycle': ['KeyB'] }, touch: { relabel: {}, verbs: { 'verb.1': { action: 'bolt.cycle', label: 'Bolts', icon: '<svg viewBox="0 0 24 24"><path d="M5 19 19 5m-6 0h6v6M5 14v5h5" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>' } } }, enabled: () => weapons.current.ammoSelect !== undefined && weapons.enabled && weapons.current.enabled }, h.scope);
   app.input.push('crossbow.bolts', h.scope);
   app.input.bind('bolt.cycle', () => { weapons.current.ammoSelect?.(); }, h.scope, () => weapons.enabled && weapons.current.ammoSelect !== undefined);
 

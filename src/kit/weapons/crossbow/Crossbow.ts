@@ -1,3 +1,4 @@
+import { weaponActionGate } from '#engine/input/weaponActions';
 import { type EquipContext, type AmmoRow, type TargetHit, blendAds, Puffs, worldHit, impactSurfaceOf, FOV_HIP, FOV_ADS, rangedFovForAspect as fovForAspect, dataTexture, viewmodelTexSet, remapUV, makeCord, makeBoltAtlas, fixIBL, VIEWMODEL_GROUP, viewmodelMaterial, isMesh, box, cyl, edgeWear, whiteColors, stripExtra, TRACER_ORDER, TRACER_RED, sstep, type CrossbowWorld, type CrossbowOptions, type Targets, Weapon, quiverState, type ImpactSurface, app, gameplayRandom, type Game, type Sky, type Player, sticksIn, CHUNK_HALF, getSetting } from '#engine';
 import { BUCKSKIN, HANDS_MATERIAL, WeaponHands, coatMaterialParams, holdDef, type HandHold } from '../../viewmodel/hunterHands';
 import { CROSSBOW_PROFILE, type CrossbowProfile } from './profiles';
@@ -562,14 +563,13 @@ export class Crossbow extends Weapon {
   get handsCost(): WeaponHands['cost'] | null { return this.hands?.cost ?? null; }
 
   // ── input ──
-  override inputAllowed(): boolean { return this.enabled && (this.player.locked || this.allowUnlocked) && app.input.allowed('attack'); }
   override install(ctx: EquipContext): void {
     super.install(ctx);
     this.bindInput(ctx);
     ctx.scope.onDispose(() => { this.model.removeFromParent(); });
   }
   private bindInput(ctx: EquipContext): void {
-    const allowed = (): boolean => this.enabled && (this.player.locked || this.allowUnlocked) && app.input.allowed('attack');
+    const allowed = weaponActionGate(this, this.player);
     app.input.bind('attack', () => { this.tryFire(); }, ctx.scope, allowed);
     app.input.bind('aim', () => { this.mouseAds = !this.mouseAds; }, ctx.scope, allowed);
     app.input.bind('reload', () => { this.reload(); }, ctx.scope, allowed);

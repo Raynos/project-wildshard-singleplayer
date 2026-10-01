@@ -1,3 +1,4 @@
+import { weaponActionGate } from '#engine/input/weaponActions';
 import { type EquipmentRow, type WeaponState, type AimInfo, type DrawingBuffer, type EquipContext, type SwordWorld, type SwordRig, type SwordArms, type SwordFraming, type SwordMoveSet, app, BladeGlow, type Game, type Sky, dodgeFx, dodgeEnv, type Player, type Targets, type TargetHit, lockOn, meleeLock, targetRadius, type AimTarget, bladeBlocked, bladeContact, type Clang, worldTime, CameraFX, Impacts, aimRay, viewmodel, fovForAspect, setProgramKey, lin, ParticlePool, pointScale } from '#engine';
 import { Melee, isMeleeProfile, type MeleeProfile } from './Melee';
 import { SWORD_WOOD, SWORD_IRON } from './profiles';
@@ -454,7 +455,6 @@ export class Sword extends Melee {
   }
 
   // ── input ──
-  override inputAllowed(): boolean { return this.enabled && (this.player.locked || this.allowUnlocked) && app.input.allowed('attack'); }
   override install(ctx: EquipContext): void {
     super.install(ctx);
     this.bindInput(ctx);
@@ -467,7 +467,7 @@ export class Sword extends Melee {
     });
   }
   private bindInput(ctx: EquipContext): void {
-    const allowed = (): boolean => this.enabled && (this.player.locked || this.allowUnlocked) && app.input.allowed('attack');
+    const allowed = weaponActionGate(this, this.player);
     app.input.bind('attack', () => { this.tryFire(); }, ctx.scope, allowed);
     app.input.bind('heavy', () => { this.mouseHeld = !this.mouseHeld; }, ctx.scope, allowed);
     app.input.onReset(() => { this.mouseHeld = false; }, ctx.scope);

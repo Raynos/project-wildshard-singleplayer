@@ -10,7 +10,9 @@ export type Action = Extract<keyof ActionMap, string> | EquipmentAction | 'crouc
   | 'move.forward' | 'move.back' | 'move.left' | 'move.right'
   | 'move' | 'look' | 'dodge' | 'pause' | 'map' | 'journal' | 'note' | 'confirm' | 'back' | 'nav.left' | 'nav.right' | 'tab'
   | 'dive' | 'surface' | 'fly.up' | 'fly.down' | 'fly.boost' | 'pane.1' | 'pane.2' | 'pane.3' | 'autoFire'
-  | 'focus' | 'quickNote' | 'ride.whistle' | 'ride.offer' | 'ride.gallop' | 'ride.horseTab' | 'lean.left' | 'lean.right';
+  | 'skip' | 'focus' | 'quickNote' | 'ride.whistle' | 'ride.offer' | 'ride.gallop' | 'ride.horseTab' | 'lean.left' | 'lean.right';
+export interface TouchVerb { action: Action; label: string; icon: string; hold?: boolean; element?: HTMLButtonElement; show?: () => boolean }
+export type TouchVerbSpec = Action | TouchVerb;
 interface Context { def: InputContextDef; scope: Scope }
 /** Additive contexts and a shared press buffer. Consuming a press removes it for every later system. */
 export class InputService {
@@ -67,6 +69,8 @@ export class InputService {
     this.recent.push({ action, at: this.now() }); if (this.recent.length > 20) this.recent.shift();
     if (this.allowed(action)) for (const binding of this.callbacks) if (binding.action === action && binding.enabled()) binding.run();
   }
+  /** A real touch gesture unlocks audio before its interaction; scripted actions do not. */
+  pressGesture(action: Action): void { this.gesture(); this.press(action); }
   bind(action: Action, run: () => void, scope: Scope, enabled: () => boolean = () => true): void {
     const binding = { action, run, enabled }; this.callbacks.add(binding); scope.onDispose(() => { this.callbacks.delete(binding); });
   }
@@ -139,6 +143,11 @@ export class InputService {
       if (on) this.gesture();
       const code = `Mouse${event.button}`; if (on) this.physical.add(code); else this.physical.delete(code); this.refresh();
     };
+    const pointers = new Set<number>();
+    scope.listen(document, 'pointerdown', (event) => { pointers.add(event.pointerId); this.setHeld('skip', true); });
+    const endPointer = (event: PointerEvent): void => { pointers.delete(event.pointerId); this.setHeld('skip', pointers.size > 0); };
+    scope.listen(document, 'pointerup', endPointer); scope.listen(document, 'pointercancel', endPointer);
+    this.onReset(() => { pointers.clear(); }, scope);
     scope.listen(document, 'mousedown', (event) => { mouse(event, true); });
     scope.listen(document, 'mouseup', (event) => { mouse(event, false); });
     scope.listen(document, 'mousemove', (event) => {
@@ -171,8 +180,11 @@ export class InputService {
       if (Array.isArray(def.actions)) for (const action of def.actions as readonly Action[]) actions.add(action);
       Object.assign(labels, def.touch?.relabel); Object.assign(verbs, def.touch?.verbs);
     }
-    for (const slot of ['verb.1', 'verb.2'] as const) { const action = verbs[slot]; if (action !== undefined && !this.allowed(action)) delete verbs[slot]; }
-    return { labels, verbs, actions: [...actions], contexts: this.contexts };
+    for (const slot of ['verb.1', 'verb.2'] as const) { const verb = verbs[slot]; if (verb !== undefined && !this.allowed(typeof verb === 'string' ? verb : verb.action)) delete verbs[slot]; }
+    const active = this.stack.filter(({ def }) => def.enabled?.() !== false);
+    let mode = '', lockable = false;
+    for (const { def } of active) { if (def.blocks === 'below') { mode = ''; lockable = false; } if (def.touch?.mode !== undefined) mode = def.touch.mode; if (def.touch?.lockable !== undefined) lockable = def.touch.lockable; }
+    return { labels, verbs, mode, lockable, actions: [...actions].filter((action) => this.allowed(action)), contexts: this.contexts };
   }
   touchSink(paint: (labels: Partial<Record<DiscSpot, TouchRelabel>>) => void, scope: Scope): void {
     this.paint = paint; this.repaint(); scope.onDispose(() => { if (this.paint === paint) { paint({}); this.paint = undefined; } });
@@ -181,6 +193,6 @@ export class InputService {
 }
 export interface TouchStack {
   labels: Partial<Record<DiscSpot, TouchRelabel>>;
-  verbs: Partial<Record<'verb.1' | 'verb.2', Action>>;
+  verbs: Partial<Record<'verb.1' | 'verb.2', TouchVerbSpec>>; mode: string; lockable: boolean;
   actions: readonly Action[]; contexts: readonly string[];
 }

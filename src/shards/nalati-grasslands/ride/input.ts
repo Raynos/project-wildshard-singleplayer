@@ -6,12 +6,12 @@ export function installRide(ctx: LevelContext, ride: Ride): void {
   const input = ctx.app.input, mount = ride.mount;
   ctx.inputContext({ id: 'ride.foot', actions: ['ride.whistle', 'ride.offer'],
     keys: { 'ride.whistle': ['KeyX'], 'ride.offer': ['KeyG'] },
-    touch: { relabel: {} } });
+    touch: { relabel: {}, verbs: ride.hud.inputVerbs() } });
   ctx.inputContext({ id: 'ride', actions: ['move.forward', 'move.back', 'move.left', 'move.right', 'ride.gallop', 'ride.horseTab', 'use'],
     keys: { 'move.forward': ['KeyW'], 'move.back': ['KeyS'], 'move.left': ['KeyA'], 'move.right': ['KeyD'],
       'ride.gallop': ['ShiftLeft', 'ShiftRight'] },
-    touch: { relabel: { 'edge-l': { label: 'Dismount', tone: 'ready' } } } });
-  ctx.inputContext({ id: 'ride.break', actions: ['lean.left', 'lean.right'], blocks: ['attack', 'aim', 'swap'],
+    touch: { relabel: { 'edge-l': { label: 'Dismount', tone: 'ready' } }, verbs: ride.hud.inputVerbs(true) } });
+  ctx.inputContext({ id: 'ride.break', actions: ['lean.left', 'lean.right'], blocks: ['attack', 'aim', 'swap', 'ride.whistle', 'ride.offer', 'ride.horseTab'],
     keys: { 'lean.left': ['KeyA'], 'lean.right': ['KeyD'] } });
   input.push('ride.foot', ctx.scope);
   mount.input = input; mount.equipment = () => ctx.app.equipment; ride.taming.input = input;

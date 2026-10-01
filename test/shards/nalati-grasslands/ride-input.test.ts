@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import { installRide } from '#shards/nalati-grasslands/ride/input';
 import type { Ride } from '#shards/nalati-grasslands/ride/ride';
 import { Mount } from '#shards/nalati-grasslands/ride/Mount';
+import type { RideHUD } from '#shards/nalati-grasslands/ride/RideHUD';
 import type { Taming } from '#shards/nalati-grasslands/ride/Taming';
 import { legacyDouble } from '../../fake/FakeGame';
 import { damageTarget } from '../../fake/legacyActor';
@@ -21,7 +22,7 @@ function fixture() {
   const ctx = legacyDouble<LevelContext>({ app, scope,
     inputContext: (def: InputContextDef) => { app.input.register(def, scope); },
     system: (spec) => { app.addSystem(spec, scope); }, debug: { expose: () => undefined } });
-  installRide(ctx, legacyDouble<Ride>({ mount, taming }));
+  installRide(ctx, legacyDouble<Ride>({ mount, taming, hud: legacyDouble<RideHUD>({ inputVerbs: () => ({}) }) }));
   const tick = () => { for (const s of app.systemsByPhase().input) s.run(1 / 60, 0); };
   const key = (type: 'keydown' | 'keyup', code: string) => document.dispatchEvent(new KeyboardEvent(type, { code, bubbles: true }));
   return { app, scope, mount, taming, whistle, gallop, tick, key };

@@ -18,7 +18,6 @@ class FixtureWeapon extends Weapon {
     this.state = { ammo: ammo ? 24 : undefined, magazine: 30, reserve: 0, loaded: true, reloading: false, reloadProgress: 0, ads: false };
   }
   override reload = vi.fn((): void => undefined);
-  override inputAllowed(): boolean { return true; }
 }
 let inputScope: Scope;
 beforeEach(() => {

@@ -1,4 +1,5 @@
 import { uiScope, type LevelContext } from '#engine';
+import type { TouchVerbSpec } from '#engine/input/InputService';
 import * as THREE from 'three';
 import './ride.css';
 import type { Mount } from './Mount';
@@ -67,7 +68,7 @@ export class RideHUD {
   private readonly hold: HTMLElement; private readonly holdRound: HTMLElement; private readonly holdMark: SVGGElement;
   private readonly tags = new Map<object, { el: HTMLElement; name: HTMLElement }>();   // per horse (a rename at the rail re-labels it)
   /** the phone's controls + STEED row (hudSlots: detached, and never shown, on a mouse / trackpad device) */
-  private readonly t: { gallop: HTMLElement; horse: HTMLElement; leanL: HTMLElement; leanR: HTMLElement; offer: HTMLElement; steed: HTMLElement; sbar: HTMLElement; sname: HTMLElement; gait: HTMLElement };
+  private readonly t: { gallop: HTMLElement; horse: HTMLButtonElement; leanL: HTMLElement; leanR: HTMLElement; offer: HTMLButtonElement; steed: HTMLElement; sbar: HTMLElement; sname: HTMLElement; gait: HTMLElement };
   private layer: HTMLElement | null = null; private use: HTMLElement | null = null;
   private last = { mounted: true, breaking: true, offer: true, horseTab: true, steed: -1, gait: '', winded: false, beat: false, spur: 0 }; // ≠ the first frame's: paint it
   private spurUntil = 0;
@@ -94,6 +95,17 @@ export class RideHUD {
       for (const tag of this.tags.values()) tag.el.remove();
       this.tags.clear();
     });
+  }
+
+  /** Context fragments retain E319's HORSE edge tab and give OFFER the reserved second verb disc. */
+  inputVerbs(mounted = false): Partial<Record<'verb.1' | 'verb.2', TouchVerbSpec>> {
+    return {
+      'verb.1': { action: mounted ? 'ride.horseTab' : 'ride.whistle', label: mounted ? 'Dismount' : 'Horse',
+        icon: mounted ? `${SVG_HORSE}<b class="ws-ride-darrow">${SVG_DOWN}</b>` : SVG_HORSE, element: this.t.horse,
+        show: () => !this.mount.breaking && (this.mount.mounted || this.mount.mountables.some((mt) => (mt.a.mem['whistle'] ?? 0) === 1)) },
+      'verb.2': { action: 'ride.offer', label: 'Offer', icon: SVG_HAND, hold: true, element: this.t.offer,
+        show: () => this.last.offer },
+    };
   }
 
   private q(r: HTMLElement, s: string): HTMLElement { const e = r.querySelector<HTMLElement>(s); if (e === null) throw new Error(`RideHUD: ${s}`); return e; }

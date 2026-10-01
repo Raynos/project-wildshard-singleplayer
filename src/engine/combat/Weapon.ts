@@ -59,7 +59,6 @@ export abstract class Weapon extends Equipment implements WeaponHooks {
     camera.getWorldDirection(dir); origin.setFromMatrixPosition(camera.matrixWorld); return dir;
   }
   setActive(on: boolean): void { this.model.visible = on; if (!on) this.enabled = false; }
-  inputAllowed(): boolean { return this.enabled; }
 }
 /** Keep the actual bolt/quiver object: legacy code mutates bolts while the service/HUD reads ammo. */
 export function quiverState(state: { bolts: number; loaded: boolean; reloading: boolean; reloadProgress: number; ads: boolean }, magazine: number): WeaponState & { bolts: number; ammo: number } {

@@ -1,3 +1,4 @@
+import { weaponActionGate } from '#engine/input/weaponActions';
 import { type EquipContext, Weapon, quiverState, app, gameplayRandom, type Game, type Sky, type Player, type Forest, getSetting, rangedFovForAspect as fovForAspect, FOV_HIP, isMesh, type Targets, type TargetHit, Projectiles, type WindField, DropArc, placeArm } from '#engine';
 import type { EquipmentRow } from '#game';
 
@@ -155,14 +156,13 @@ export class Bow extends Weapon {
   aimOn = false;
 
   // ── input ──
-  override inputAllowed(): boolean { return this.enabled && (this.player.locked || this.allowUnlocked) && app.input.allowed('attack'); }
   override install(ctx: EquipContext): void {
     super.install(ctx);
     this.bindInput(ctx);
     ctx.scope.onDispose(() => { this.model.removeFromParent(); });
   }
   private bindInput(ctx: EquipContext): void {
-    const allowed = (): boolean => this.enabled && (this.player.locked || this.allowUnlocked) && app.input.allowed('attack');
+    const allowed = weaponActionGate(this, this.player);
     app.input.bind('attack', () => { if (this.state.bolts <= 0) this.onDry?.(); else { this.mouseDraw = true; this.mouseCancel = false; } }, ctx.scope, allowed);
     app.input.bind('aim', () => { this.mouseAds = !this.mouseAds; }, ctx.scope, allowed);
     app.input.bindRelease('attack', () => { if (!this.mouseDraw) return; this.mouseDraw = false; if (!allowed()) this.mouseCancel = true; }, ctx.scope);

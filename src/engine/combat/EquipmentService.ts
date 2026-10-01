@@ -82,7 +82,7 @@ export class EquipmentService implements WeaponHooks {
     this.events = opts.events;
     this.list = []; this.current = first; this.order = opts.order;
     this.add(first, { locked: false });
-    const input = opts.input ?? new EquipmentActionInput(this.scope, () => this.current.inputAllowed());
+    const input = opts.input ?? new EquipmentActionInput(this.scope, () => this.current.enabled);
     input.bind('swap', () => this.swap(), this.scope);
     input.bind('swap.next', () => this.step(1), this.scope);
     input.bind('swap.prev', () => this.step(-1), this.scope);

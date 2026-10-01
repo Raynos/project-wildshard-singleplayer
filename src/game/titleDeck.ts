@@ -1,3 +1,4 @@
+import { listenDom } from '#engine/input/dom';
 /**
  * The title screen's shard deck — ONE implementation for both ways in (E318, Jake: "lol wtf why do we have two title
  * screens, one only please"): the cold launch (src/engine/ui/StartTitle.ts, renderer-free, before any shard loads) and pause ▸
@@ -16,7 +17,7 @@
  * test/title-deck.test.ts keeps each card's name, label (the def's `biome`), badge and art equal to its ShardManifest.
  */
 import { SHARDS, type ShardSlug } from './shard/shards.generated';
-import { setting, onSettingChange } from '#engine';
+import { app, setting, onSettingChange } from '#engine';
 import { readSummary, summaryView } from './summary';
 import { GAME_STRINGS } from './strings';
 import './summary.css';
@@ -89,6 +90,7 @@ function hintFor(card: TitleCard, active: boolean): string {
 }
 
 export function buildTitleDeck(opts: TitleDeckOptions): TitleDeck {
+  const scope = app.engineScope.child('title-deck');
   const { cards } = opts;
   const activeIndex = cards.map((card): string => card.slug).indexOf(opts.active ?? '');
   const root = document.createElement('div');
@@ -175,12 +177,12 @@ export function buildTitleDeck(opts: TitleDeckOptions): TitleDeck {
 
   // swipe → the track follows the finger (rubber-banded at the ends), release = one page in the swipe direction
   let drag: { id: number; x0: number; t0: number; dx: number } | null = null;
-  list.addEventListener('pointerdown', (e) => {
+  listenDom(scope, list, 'pointerdown', (e) => {
     if (drag) return;
     drag = { id: e.pointerId, x0: e.clientX, t0: performance.now(), dx: 0 };
     list.setPointerCapture(e.pointerId);
   });
-  list.addEventListener('pointermove', (e) => {
+  listenDom(scope, list, 'pointermove', (e) => {
     if (!drag || e.pointerId !== drag.id) return;
     drag.dx = e.clientX - drag.x0;
     const atEnd = (drag.dx > 0 && index === 0) || (drag.dx < 0 && index === cards.length - 1);
@@ -194,20 +196,20 @@ export function buildTitleDeck(opts: TitleDeckOptions): TitleDeck {
     if (Math.abs(dx) > 36 || (Math.abs(v) > 0.35 && Math.abs(dx) > 14)) { swipedAt = performance.now(); select(index + (dx < 0 ? 1 : -1)); }
     else place(index);
   };
-  list.addEventListener('pointerup', endDrag); list.addEventListener('pointercancel', endDrag);
-  cardEls.forEach((e, i) => { e.addEventListener('click', (ev) => { ev.stopPropagation(); if (i !== index && performance.now() - swipedAt > 400) select(i); }); });
-  dots.forEach((d, i) => { d.addEventListener('click', (ev) => { ev.stopPropagation(); select(i); }); });
-  required(root, '.ws-menu-play').addEventListener('click', (ev) => { ev.stopPropagation(); activate(); });
-  required(root, '.ws-menu-explore').addEventListener('click', (ev) => { ev.stopPropagation(); const c = cards[index]; if (c) opts.onExplore(c); });
-  required(root, '.ws-menu-settings').addEventListener('click', (ev) => { ev.stopPropagation(); opts.onSettings(); });
+  listenDom(scope, list, 'pointerup', endDrag); listenDom(scope, list, 'pointercancel', endDrag);
+  cardEls.forEach((e, i) => { listenDom(scope, e, 'click', (ev) => { ev.stopPropagation(); if (i !== index && performance.now() - swipedAt > 400) select(i); }); });
+  dots.forEach((d, i) => { listenDom(scope, d, 'click', (ev) => { ev.stopPropagation(); select(i); }); });
+  listenDom(scope, required(root, '.ws-menu-play'), 'click', (ev) => { ev.stopPropagation(); activate(); });
+  listenDom(scope, required(root, '.ws-menu-explore'), 'click', (ev) => { ev.stopPropagation(); const c = cards[index]; if (c) opts.onExplore(c); });
+  listenDom(scope, required(root, '.ws-menu-settings'), 'click', (ev) => { ev.stopPropagation(); opts.onSettings(); });
 
   // hero art is ~0.2–0.3 MB a file and every card has two (portrait + landscape): only the selected card's, in the
   // orientation on screen, loads with the deck. A neighbour's loads when a swipe or a dot press starts toward it, so the
   // crossfade on release is usually instant (LOAD-PERF, first-launch transfer)
   const warmed = new Set<string>();
   const warm = (i: number): void => { const c = cards[i]; const u = c ? heroUrl(c) : ''; if (u && !warmed.has(u)) { warmed.add(u); new Image().src = u; } };
-  list.addEventListener('pointerdown', () => { warm(index - 1); warm(index + 1); });
-  dots.forEach((d, i) => { d.addEventListener('pointerdown', () => { warm(i); }); });
+  listenDom(scope, list, 'pointerdown', () => { warm(index - 1); warm(index + 1); });
+  dots.forEach((d, i) => { listenDom(scope, d, 'pointerdown', () => { warm(i); }); });
 
   // orientation flips swap the hero file and re-centre the selected card (card width is viewport-relative). iOS (E131): a
   // rotation can fire `resize` before the new layout settles, and may leave the strip natively scrolled — so re-centre
@@ -217,16 +219,17 @@ export function buildTitleDeck(opts: TitleDeckOptions): TitleDeck {
     place(index, 0, false);
     if (portrait() !== wasPortrait) { wasPortrait = portrait(); apply(); }
   };
-  addEventListener('resize', onResize);
+  scope.listen(window, 'resize', onResize);
   const strip = new ResizeObserver(() => { list.scrollLeft = 0; if (!drag) place(index, 0, false); });
   strip.observe(list);
+  scope.onDispose(() => { strip.disconnect(); });
 
   apply();
   return {
     root, cards,
     get index() { return index; },
     select, activate,
-    start: () => { place(index, 0, false); requestAnimationFrame(() => { place(index, 0, false); }); },
-    dispose: () => { stopSummary(); removeEventListener('resize', onResize); strip.disconnect(); },
+    start: () => { place(index, 0, false); scope.raf(() => { place(index, 0, false); }); },
+    dispose: () => { stopSummary(); scope.dispose(); },
   };
 }

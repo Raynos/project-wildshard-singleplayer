@@ -564,7 +564,6 @@ export class AntlerKing {
   readonly boss: Boss;
   readonly ui = new BossBar();
   private forcedNight = false;
-  private touchSkip = false;
 
   constructor(private readonly host: AntlerKingHost) {
     const { ctx } = host;
@@ -588,15 +587,12 @@ export class AntlerKing {
       respawn: (pos, yaw) => { pl.spawn(pos.x, pos.z, yaw); pl.pitch = 0; host.refill(); },
       addInteractable: (it) => { host.interactables.push(it); },
       removeInteractable: (it) => { const i = host.interactables.indexOf(it); if (i !== -1) host.interactables.splice(i, 1); },
-      skipHeld: () => this.touchSkip || pl.keys.has('Space') || pl.keys.has('KeyE') || pl.keys.has('Enter'),
+      skipHeld: () => app.input.held('skip') || app.input.held('jump') || app.input.held('use') || app.input.held('confirm'),
       toast: ctx.toast, feed: ctx.feed, pickupHum: host.pickupHum,
       music: (e) => this.music(e),
     }, this.ui, 'pine-hollow');
     const scope = app.levelScope;
     if (scope !== null) app.encounters.boss(KING_KIND, this.boss, scope);
-    window.addEventListener('pointerdown', () => { this.touchSkip = true; });
-    window.addEventListener('pointerup', () => { this.touchSkip = false; });
-    window.addEventListener('pointercancel', () => { this.touchSkip = false; });
     // dev: `?boss=antler-king` — night, you at the stones' N gap; `&bossPhase=2|3` at that checkpoint
     if (host.params.get('boss') === KING_KIND) {
       this.forcedNight = true;

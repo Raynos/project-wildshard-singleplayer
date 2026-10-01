@@ -1,7 +1,7 @@
 import { mountUi } from '../ui/ownership';
 import { app } from '../app/runtime';
 import { listenDom } from '../input/dom';
-import type { Action } from '../input/InputService';
+import type { Action, TouchVerbSpec } from '../input/InputService';
 import { engineString } from '#engine/strings';
 /**
  * TouchControls — on-screen first-person controls for coarse-pointer devices (phones, tablets).
@@ -116,6 +116,7 @@ function el(parent: ParentNode, sel: string): HTMLElement {
 }
 
 export class TouchControls {
+  private touchMode = ''; private touchLockable = false;
   private readonly scope = (app.levelScope ?? app.engineScope).child('touch');
   readonly active: boolean;
   private stickPointer = -1; private lookPointer = -1; private attackPointer = -1;
@@ -163,9 +164,10 @@ export class TouchControls {
     // E154: the one base layer every shard shares — whatever a shard adds (a status row, a disc in a named slot, a tag) goes
     // through src/engine/ui/hudSlots.ts, which docks it here and nowhere else
     app.input.touchStackSink((layout) => {
+      this.touchMode = layout.mode; this.touchLockable = layout.lockable;
       const live = new Set(layout.actions);
       for (const [selector, action] of [['.ws-touch-attack', 'attack'], ['.aim', 'aim'], ['.jump', 'jump'], ['.dodge', 'dodge'], ['.ws-touch-hover', 'hover']] as const) {
-        el(root, selector).style.visibility = live.has(action) ? '' : 'hidden';
+        el(root, selector).style.visibility = live.has(action) || (action === 'jump' && live.has('dive')) || (action === 'dodge' && live.has('surface')) ? '' : 'hidden';
       }
       for (const spot of ['lock', 'jump'] as const) this.relabel(spot, layout.labels[spot] ?? null);
       this.paintVerbs(root, layout.verbs);
@@ -191,7 +193,7 @@ export class TouchControls {
       if (weapons.enabled && lockOn.state !== 'locked') assist.update(dt, player, weapons.adsHeld, this.lookSpeed); // locked (E50): the lock aims, not the assist
       // AIM (ranged latch) and the ATTACK hold-heavy (melee) share `weapons.adsHeld`; crossing between the two drops it, so a
       // sword never comes up charging and a crossbow never comes up sighted from the other's latch
-      const melee = weapons.current.row.ui.touch === 'melee', spear = weapons.current.row.ui.touch === 'spear';
+      const melee = this.touchMode === 'melee', spear = this.touchMode === 'spear';
       if (melee !== this.wasMelee || spear !== this.wasSpear) {
         this.wasMelee = melee; this.wasSpear = spear; root.classList.toggle('melee', melee); root.classList.toggle('spear', spear);
         if (weapons.adsHeld) weapons.adsHeld = false;
@@ -199,10 +201,10 @@ export class TouchControls {
         this.heavyHeld = false;
         aim.classList.remove('on'); attack.classList.remove('on');
       }
-      const lockable = weapons.current.row.ui.lockOn, riding = player.ride !== null;
+      const lockable = this.touchLockable, riding = player.ride !== null;
       if (lockable !== this.wasLockable) { this.wasLockable = lockable; root.classList.toggle('lockable', lockable); }
       if (riding !== this.wasRiding) { this.wasRiding = riding; root.classList.toggle('riding', riding); this.lockShown = ''; }
-      const bow = weapons.current.row.ui.touch === 'bow';
+      const bow = this.touchMode === 'bow';
       if (bow !== this.wasBow) {
         this.wasBow = bow; root.classList.toggle('bow', bow);
         if (!bow && this.drawHeld) { this.drawHeld = false; weapons.altHeld = false; }
@@ -391,7 +393,7 @@ export class TouchControls {
     btn('.surface', () => { this.player.touchSurface = true; }, () => { this.player.touchSurface = false; });
     root.classList.toggle('submerged', this.player.submerged);
     btn('.ws-touch-pause', () => { app.input.press('pause'); });
-    btn('.ws-touch-use', () => { app.input.press('use'); });
+    btn('.ws-touch-use', () => { app.input.pressGesture('use'); });
     // the interact prompt ("[E] Open door") becomes a big USE band above the right-thumb arc, labelled with the action
     const use = el(root, '.ws-touch-use');
     const bindPrompt = (prompt: HTMLElement) => {
@@ -416,19 +418,45 @@ export class TouchControls {
   }
 
   private readonly verbs = new Map<string, HTMLButtonElement>();
-  private paintVerbs(root: HTMLElement, verbs: Partial<Record<'verb.1' | 'verb.2', Action>>): void {
+  private readonly verbActions: Partial<Record<'verb.1' | 'verb.2', Action>> = {};
+  private readonly heldVerbs = new Map<string, Action>();
+  private paintVerbs(root: HTMLElement, verbs: Partial<Record<'verb.1' | 'verb.2', TouchVerbSpec>>): void {
     for (const slot of ['verb.1', 'verb.2'] as const) {
-      const action = verbs[slot]; let button = this.verbs.get(slot);
-      if (action === undefined) { if (button !== undefined) button.hidden = true; continue; }
-      if (button === undefined) {
-        button = document.createElement('button'); button.type = 'button'; button.className = `ws-touch-disc ws-input-verb ${slot === 'verb.1' ? 'verb-one' : 'verb-two'}`;
-        const own = button; root.append(own); this.verbs.set(slot, own);
-        listenDom(this.scope, own, 'pointerdown', (event) => { event.preventDefault(); event.stopPropagation(); const current = this.verbActions[slot]; if (current !== undefined) app.input.press(current); });
+      const spec = verbs[slot], verb = typeof spec === 'string' ? { action: spec, label: spec, icon: '' } : spec;
+      let button = this.verbs.get(slot);
+      const visible = verb !== undefined && verb.show?.() !== false;
+      if (!visible) {
+        if (button !== undefined) { button.style.display = 'none'; button.classList.remove('show'); }
+        const held = this.heldVerbs.get(slot); if (held !== undefined) { this.heldVerbs.delete(slot); app.input.setHeld(held, false); }
+        continue;
       }
-      button.hidden = false; button.textContent = action === 'bolt.cycle' ? engineString('s_ef45d30581ee') : action === 'ride.whistle' ? engineString('s_88dfd05bf93c') : engineString('s_536e55ed07ae'); this.verbActions[slot] = action;
+      if (verb.element !== undefined) { button = verb.element; this.verbs.set(slot, button); }
+      if (button === undefined) {
+        button = document.createElement('button'); button.type = 'button';
+        const own = button; root.append(own); this.verbs.set(slot, own);
+        const pointers = new Set<number>();
+        listenDom(this.scope, own, 'pointerdown', (event) => {
+          event.preventDefault(); event.stopPropagation(); pointers.add(event.pointerId); own.setPointerCapture(event.pointerId);
+          const current = this.verbActions[slot]; if (current === undefined || pointers.size !== 1) return;
+          const live = this.verbSpecs[slot];
+          if (live?.hold === true) { this.heldVerbs.set(slot, current); app.input.setHeld(current, true); } else app.input.press(current);
+        });
+        const release = (event: PointerEvent): void => {
+          event.stopPropagation(); pointers.delete(event.pointerId); if (pointers.size > 0) return;
+          const held = this.heldVerbs.get(slot); if (held !== undefined) { this.heldVerbs.delete(slot); app.input.setHeld(held, false); }
+        };
+        listenDom(this.scope, own, 'pointerup', release); listenDom(this.scope, own, 'pointercancel', release);
+        this.scope.onDispose(() => { const held = this.heldVerbs.get(slot); if (held !== undefined) app.input.setHeld(held, false); });
+      }
+      button.classList.add('ws-touch-verb', slot === 'verb.1' ? 'verb-one' : 'verb-two');
+      if (!button.classList.contains('at-edge-l')) button.classList.remove('at', 'at-aim');
+      if (verb.element === undefined) button.classList.add('ws-touch-disc');
+      button.style.display = ''; button.classList.add('show'); button.hidden = false;
+      const markup = `${verb.icon}<span>${verb.label}</span>`; if (button.innerHTML !== markup) button.innerHTML = markup;
+      this.verbActions[slot] = verb.action; this.verbSpecs[slot] = verb;
     }
   }
-  private readonly verbActions: Partial<Record<'verb.1' | 'verb.2', Action>> = {};
+  private readonly verbSpecs: Partial<Record<'verb.1' | 'verb.2', { hold?: boolean }>> = {};
 
   /**
    * A shard's traversal verb re-dresses LOCK and JUMP (scoped HUD relabels, E286: Nine Dragon's

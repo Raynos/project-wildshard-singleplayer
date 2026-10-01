@@ -1,3 +1,4 @@
+import { weaponActionGate } from '#engine/input/weaponActions';
 import { Melee, SWORD_WOOD, Thrown, type ThrownProfile, type MeleeProfile } from '#kit';
 import { SPEAR } from './equipment';
 import { quiverState, type WeaponState, type AimInfo, gameplayRandom, app, aimRay, viewmodel, fovForAspect, type EquipContext, type Game, type Sky, type Player, type Forest, impactSurfaceOf, worldHit, type ImpactSurface, type Targets, type TargetAnimal, type TargetHit, floorBelow, sticksIn, gloveFist, riderArm, placeArm, painterlyMaterial, lin } from '#engine';
@@ -49,7 +50,7 @@ import { tube, blob, xf, merge, meleeMaterial, steelMaterial, withUV, sweep, hel
  * COUCHED LANCE (mounted — `spear.mount = { speed, yaw }`, set by the riding row B7): at canter or faster (≥ 8 m/s) the
  * spear levels by itself; an animal inside 2.5 m ahead ±15° of the horse's heading takes 40 + 6 × v (once per 1.2 s).
  *
- * Implements `Weapon` (+ the kit hooks `holster`, `reload`, `aimRay`, `inputAllowed`, `altHeld`, `ammoLabel`, `segments`,
+ * Implements `Weapon` (+ the kit hooks `holster`, `reload`, `aimRay`, `altHeld`, `ammoLabel`, `segments`,
  * `magazine`). Events: onFire on every thrust and throw · onThrow on a throw (after onFire) · onBrace(on) · onHit ·
  * onImpact · onDry (THROW with none left) · onPickup (a javelin recovered).
  */
@@ -309,7 +310,6 @@ export class Spear extends Melee<typeof SPEAR_PROFILE> {
   get thrusting(): boolean { return this.thrustT >= 0; }
   /** javelins in flight or stuck in the world (dev / HUD) */
   get javelinsOut(): number { let n = 0; for (const j of this.javs) if (j.state !== 0) n++; return n; }
-  override inputAllowed(): boolean { return this.enabled && (this.player.locked || this.allowUnlocked) && app.input.allowed('attack'); }
   override addBolts(n: number): void { this.javelins = Math.min(this.maxJavelins, this.javelins + Math.max(0, n)); }
   override reload(): void { /* nothing to reload: javelins are picked up */ }
   override aimRay(origin: THREE.Vector3, dir: THREE.Vector3): THREE.Vector3 { return this.aimBlock.solve(origin, dir); }
@@ -323,7 +323,7 @@ export class Spear extends Melee<typeof SPEAR_PROFILE> {
     ctx.scope.onDispose(() => { this.model.removeFromParent(); this.world.removeFromParent(); this.arc.removeFromParent(); });
   }
   private bindInput(ctx: EquipContext): void {
-    const allowed = (): boolean => this.enabled && (this.player.locked || this.allowUnlocked) && app.input.allowed('attack');
+    const allowed = weaponActionGate(this, this.player);
     app.input.bind('attack', () => { this.tryFire(); }, ctx.scope, allowed);
     app.input.bind('aim', () => { this.rmbDown = true; this.rmbT = 0; }, ctx.scope, allowed);
     app.input.bindRelease('aim', () => { if (!this.rmbDown) return; this.rmbDown = false; if (allowed() && this.rmbT < this.profile.brace.set) this.requestThrow(); }, ctx.scope);

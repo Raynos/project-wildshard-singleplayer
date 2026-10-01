@@ -1,5 +1,5 @@
 import type { EffectDef } from '../combat/effects/types';
-import type { Action } from '../input/InputService';
+import type { Action, TouchVerbSpec } from '../input/InputService';
 import type { Group, Vector3 } from 'three';
 import type { App } from '../app/app';
 import type { Scope } from '../app/scope';
@@ -30,7 +30,7 @@ export interface InputContextDef {
   actions: readonly Action[] | Readonly<Record<string, (pressed: boolean) => void>>;
   blocks?: 'below' | readonly Action[];
   keys?: Partial<Record<Action, readonly string[]>>;
-  touch?: { relabel: Partial<Record<DiscSpot, TouchRelabel>>; verbs?: Partial<Record<'verb.1' | 'verb.2', Action>> };
+  touch?: { mode?: string; lockable?: boolean; relabel: Partial<Record<DiscSpot, TouchRelabel>>; verbs?: Partial<Record<'verb.1' | 'verb.2', TouchVerbSpec>> };
 }
 export type { HudBand } from '../ui/hudSlots';
 export interface VerbSlotOpts { label: string; icon: string; press: () => void; release?: () => void }

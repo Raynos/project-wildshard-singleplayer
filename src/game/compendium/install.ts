@@ -1,3 +1,4 @@
+import { app } from '#engine';
 /**
  * installCompendium — wires the active shard's compendium into the game (one call from main.ts; nothing happens on a
  * shard that registered none). It owns: the state + its save, the tracker's hooks, the book, the ways in, the trophy wall.
@@ -63,15 +64,12 @@ export function installCompendium(host: CompendiumHost): { state: CompendiumStat
   disc.innerHTML = `${GLYPH_BOOK}Journal`;
   hudSlots.pill(disc, () => { if (hud.entered) journal.open(); }, journal.scope);
   menu.addFinds('compendium', () => compendiumFinds(state, (id) => { journal.open(id); })); // the BAG's FINDS tab is the journal (E314 C: JOURNAL became FINDS)
-  document.addEventListener('keydown', (e) => {
-    if (e.code !== 'KeyN' || e.repeat || !hud.entered || menu.isOpen || journal.isOpen) return;
-    e.preventDefault(); journal.open();
-  });
+  app.input.bind('journal', () => { journal.open(); }, journal.scope, () => hud.entered && !menu.isOpen && !journal.isOpen);
 
   // ── open / close: release the lock + the weapons, then resume the way the pause menu does ──
-  let holdTimer = 0;
+  let holdScope = journal.scope.child('resume-hold');
   journal.onOpen = () => {
-    window.clearTimeout(holdTimer);
+    holdScope.dispose(); holdScope = journal.scope.child('resume-hold');
     hud.holdPause = true;
     weapons.setEnabled(false);
     if (menu.isOpen) menu.close(true);
@@ -80,10 +78,10 @@ export function installCompendium(host: CompendiumHost): { state: CompendiumStat
   };
   journal.onClose = () => {
     hud.onResume?.(); // main.ts's enter(): weapons back on, the pointer re-locked (the CLOSE click / the key is the gesture)
-    holdTimer = window.setTimeout(() => {
+    holdScope.timeout(450, () => {
       hud.holdPause = false;
       if (!host.nolock && !host.touchUi() && !document.pointerLockElement && hud.entered && !menu.isOpen && !journal.isOpen) hud.setPaused(true);
-    }, 450);
+    });
   };
 
   const wall = host.wall?.(state, journal) ?? null;

@@ -263,6 +263,11 @@
 .ws-touch:not(.lockable) .ws-touch-disc.aim, .ws-touch:not(.lockable) .ws-touch-disc.throw, .ws-touch:not(.lockable) .ws-touch-disc.at-aim { left: calc(var(--r0) - var(--rslot) * 2); bottom: var(--row); }
 .ws-touch.lockable .ws-touch-disc.aim, .ws-touch.lockable .ws-touch-disc.throw, .ws-touch.lockable .ws-touch-disc.at-aim { left: calc(var(--r0) - var(--rslot) * 3); bottom: var(--row); }
 .ws-touch-disc.at-up0 { left: var(--r0); bottom: calc(var(--row) + var(--rslot)); }
+/* E357 X1 reserved verbs share the row over DODGE/LOCK; the HORSE edge tab keeps E319's placement. */
+.ws-touch-disc.ws-touch-verb:not(.at-edge-l) { bottom: calc(var(--row) + var(--rslot)); }
+.ws-touch-disc.ws-touch-verb.verb-one:not(.at-edge-l) { left: calc(var(--r0) - var(--rslot)); }
+.ws-touch-disc.ws-touch-verb.verb-two:not(.at-edge-l) { left: calc(var(--r0) - var(--rslot) * 2); }
+.ws-touch:has(.ws-touch-verb.show:not(.at-edge-l)) .ws-touch-use { bottom: calc(var(--row) + var(--rslot) + var(--disc) + 14px); }
 .ws-touch-disc.at-lean-l { left: calc(var(--disc) / 2 + 14px); bottom: var(--row); }
 .ws-touch-disc.at-lean-r { left: var(--r0); bottom: var(--row); }
 .ws-touch-disc.at-edge-r { left: auto; right: 0; bottom: auto; top: calc(46% - 60px); margin-left: 0; width: 52px; height: 52px; border-radius: 12px 0 0 12px; border-right: none; font-size: 7px; gap: 2px; }
