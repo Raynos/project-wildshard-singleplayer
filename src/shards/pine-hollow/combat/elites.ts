@@ -1,4 +1,5 @@
-import { canReach } from '#engine/ai/reach';
+import { PINE_LANES } from './strikes';
+import { EliteBrain, canReach } from '#engine';
 import * as THREE from 'three';
 import type { Animal } from '#engine/entities/Animal';
 import type { AnimalManager } from '#engine/entities/AnimalManager';
@@ -118,19 +119,16 @@ interface Env extends PineCtx { elites: () => Elites; puffs: Puffs }
 
 const _v = new THREE.Vector3();
 
-abstract class PineElite implements EliteScript {
-  animal: Animal | null = null;
-  protected p2 = false;
-  protected mode = 'idle';
-  protected modeT = 0;
-  protected wx = 0; protected wz = 0; protected wanderT = 0;
+abstract class PineElite extends EliteBrain<Animal> implements EliteScript {
   protected readonly who: { kind: string; variant: string; trophy: ItemId };
-  constructor(readonly def: EliteDef, protected readonly env: Env) {
+  override readonly def: EliteDef;
+  constructor(def: EliteDef, protected readonly env: Env) {
+    super(def, { player: env.player, random: () => Math.random() }); this.def = def;
     const who = PINE_ELITE_ANIMALS[def.id];
     if (who === undefined) throw new Error(`pine elite '${def.id}' has no animal`);
     this.who = who;
   }
-  spawn(): void {
+  override spawn(): void {
     const L = this.def.lair;
     const a = this.env.animals.spawn(this.who.kind, L.x, L.z, Math.random() * Math.PI * 2, this.who.variant);
     own(a); elitesOwned.add(a);
@@ -138,47 +136,12 @@ abstract class PineElite implements EliteScript {
     this.onSpawn(a);
   }
   protected onSpawn(_a: Animal): void { /* per elite */ }
-  despawn(): void { this.clearTells(); if (this.animal) retire(this.env.animals, this.animal); this.animal = null; }
-  reset(): void { this.p2 = false; this.clearTells(); this.setMode('home'); }
-  enterPhase2(): void { this.p2 = true; }
+  override despawn(): void { this.clearTells(); if (this.animal) retire(this.env.animals, this.animal); this.animal = null; }
   // the trophy is the kill feed's line and the journal's wall (TAKEN), not a pack item: Mott has no use for it (E314 C)
   trophy(): void { this.clearTells(); this.env.feed(`${this.def.drop.trophyName ?? 'Felled'} — ${this.def.name}`); }
   dropModel(): THREE.Object3D { return this.env.skinModel(this.def.drop.skin as SkinId); }
-  tick(dt: number, t: number, engaged: boolean, leashing: boolean): void {
-    const a = this.animal;
-    if (!a?.alive) { this.clearTells(); return; }
-    this.modeT += dt;
-    if (leashing) { this.clearTells(); this.goHome(a); return; }
-    if (engaged) this.fight(a, dt, t); else this.idle(a, dt);
-  }
-  protected abstract fight(a: Animal, dt: number, t: number): void;
-  protected clearTells(): void { /* per elite */ }
-  protected setMode(m: string): void { this.mode = m; this.modeT = 0; }
   protected sig(): void { this.env.elites().signature(this.def.id); }
-  protected toPlayer(a: Animal): { d: number; yaw: number } {
-    const p = this.env.player.position;
-    return { d: Math.hypot(p.x - a.position.x, p.z - a.position.z), yaw: headingTo(a.position.x, a.position.z, p.x, p.z) };
-  }
   protected hurt(a: Animal, dmg: number, throughWalls = false): void { this.env.hurt(a, dmg, throughWalls); }
-  /** unengaged: stroll between spots in the lair, glance at a player who is near */
-  protected idle(a: Animal, dt: number): void {
-    const L = this.def.lair;
-    this.wanderT -= dt;
-    if (this.wanderT <= 0) {
-      this.wanderT = 7 + Math.random() * 8;
-      const ang = Math.random() * Math.PI * 2, r = Math.random() * L.r * 0.6;
-      this.wx = L.x + Math.cos(ang) * r; this.wz = L.z + Math.sin(ang) * r;
-    }
-    const d = Math.hypot(this.wx - a.position.x, this.wz - a.position.z);
-    a.setMotion(headingTo(a.position.x, a.position.z, this.wx, this.wz), d > 1.5 && this.wanderT < 5 ? 1.1 : 0, 1.5);
-    const p = this.env.player.position;
-    a.lookTarget.copy(p); a.lookWeight = a.position.distanceTo(p) < this.def.awareR ? 0.8 : 0;
-  }
-  protected goHome(a: Animal): void {
-    const L = this.def.lair, d = Math.hypot(L.x - a.position.x, L.z - a.position.z);
-    a.setMotion(headingTo(a.position.x, a.position.z, L.x, L.z), d > 3 ? 4 : 0, 2.5);
-    a.lookWeight = 0;
-  }
 }
 
 // ─────────────────────────────── Old Ironhide ───────────────────────────────
@@ -188,7 +151,7 @@ class Ironhide extends PineElite {
   private again = false;
   constructor(def: EliteDef, env: Env) {
     super(def, env);
-    this.lane = new LaneCharge(env.game.scene, TELL_RED, { width: 2.4, speed: 12.5, overshoot: 7, dmg: 30, skid: 1.1, reach: 1.7 });
+    this.lane = new LaneCharge(env.game.scene, TELL_RED, PINE_LANES.ironhide);
   }
   protected override clearTells(): void { this.lane.cancel(); }
   force(): void { const a = this.animal; if (a) { const p = this.env.player.position; this.lane.start(a, p.x, p.z, 60); this.setMode('charge'); } }
@@ -294,7 +257,7 @@ class Blackpaw extends PineElite {
   constructor(def: EliteDef, env: Env) {
     super(def, env);
     this.ring = new GroundTell(env.game.scene, 'ring', TELL_RED);
-    this.lane = new LaneCharge(env.game.scene, TELL_RED, { width: 2.6, speed: 10.5, overshoot: 5, dmg: 28, skid: 1.2, reach: 1.6 });
+    this.lane = new LaneCharge(env.game.scene, TELL_RED, PINE_LANES.blackpaw);
   }
   protected override onSpawn(a: Animal): void { this.lurk(a); }
   protected override clearTells(): void { this.ring.hide(); this.lane.cancel(); this.swipeT = -1; }
@@ -379,8 +342,8 @@ class ImperialBull extends PineElite {
   private bugledPhase = -1;
   constructor(def: EliteDef, env: Env) {
     super(def, env);
-    this.lane = new LaneCharge(env.game.scene, TELL_RED, { width: 2.8, speed: 11, overshoot: 8, dmg: 34, skid: 1.3, reach: 1.8 });
-    this.rivalLanes = [0, 1].map(() => new LaneCharge(env.game.scene, TELL_RED, { width: 2.4, speed: 9.5, overshoot: 6, dmg: 18, skid: 1.4, reach: 1.7 }));
+    this.lane = new LaneCharge(env.game.scene, TELL_RED, PINE_LANES.imperial);
+    this.rivalLanes = [0, 1].map(() => new LaneCharge(env.game.scene, TELL_RED, PINE_LANES.rival));
   }
   protected override clearTells(): void { this.lane.cancel(); }
   override reset(): void { super.reset(); this.releaseRivals(); this.bugledPhase = -1; }

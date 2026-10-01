@@ -1,5 +1,4 @@
-import { app, type Game, type Sky, type Player, type EquipmentService, type Weapon, lineOfSight } from '#engine';
-import { canReach } from '#engine/ai/reach';
+import { app, type Game, type Sky, type Player, type EquipmentService, type Weapon, lineOfSight, canReach } from '#engine';
 import * as THREE from 'three';
 
 
@@ -22,7 +21,6 @@ import { voice, type PineCtx } from './ctx';
 import { installPineFeel } from './feel';
 import { makePineElites, swapRolledElites, isPineElite } from './elites';
 import { AntlerKing, KING_KIND } from './antlerKing';
-import { BOSS_NAMES } from '#engine/ui/Combat';
 import { activePhysics } from '#engine/physics/active';
 
 import { perfLap } from '#engine/core/perfLap';
@@ -97,7 +95,7 @@ export function installPineCombat(h: PineCombatHost): PineCombat {
     addItem: (id, n) => { h.inventory.add(id, n); },
     ownSkin: (id) => { const s = SKINS[id]; h.skins.own(id); h.wearSkin(s); if (s.weapon === 'rifle') weapons.unlock('rifle'); },
     skinModel: (id) => { const m = parked.get(id); if (m) { parked.delete(id); m.removeFromParent(); m.visible = true; return m; } return buildSkin(id); },
-    dusk: () => sky.pine?.clock.dusk ?? 0, night: () => sky.pine?.clock.night ?? 0,
+    dusk: () => sky.dayNight?.dusk ?? 0, night: () => sky.dayNight?.night ?? 0,
     longbow: h.longbow ? {
       // the stave stands along the orb's item axis (−Z, tip up) at half size: a 1.7 m bow in a legendary's orb
       model: () => { const w = new THREE.Group(), m = h.longbow?.displayModel(); if (m) { m.rotation.x = -Math.PI / 2; m.scale.setScalar(0.5); w.add(m); } return w; },
@@ -124,7 +122,7 @@ export function installPineCombat(h: PineCombatHost): PineCombat {
   const pineElites = makePineElites(ctx, elites);
 
   // ── the Antler King ── (his name, not his kind, in the aim readout; no floating plate: he has the boss bar)
-  BOSS_NAMES.set(KING_KIND, 'The Antler King');
+  app.encounters.register({ id: KING_KIND, displayName: 'The Antler King', showHeadBar: false }, game.levelScope);
   const king = new AntlerKing({
     ctx, interactables: h.interactables, params, music: h.music,
     refill: () => { h.ironFirst?.(); h.crossbow.addBolts(MAX_BOLTS - (h.crossbow.state.bolts ?? MAX_BOLTS)); },

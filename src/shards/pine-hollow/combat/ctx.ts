@@ -8,8 +8,7 @@ import type { ItemId } from '#game/Inventory';
 import type { SkinId } from '#engine/player/Skins';
 import type { PhShot } from '../audio/sfx';
 import { GroundTell } from '#game/Elite';
-import { StrikeRunner, type StrikeSpec } from '#engine/ai/strikes';
-import { canReach } from '#engine/ai/reach';
+import { StrikeRunner, canReach, type StrikeSpec } from '#engine';
 
 /**
  * What Pine Hollow's fights share (src/shards/pine-hollow/: the elites, the Antler King, the combat feel): the world, the player,
@@ -75,13 +74,26 @@ export function voice(animals: AnimalManager, name: string, at: THREE.Vector3): 
  * `tell` s while it paws (Animal.startAttack's wind-up pose); then it runs the lane flat out and hits you once if you are
  * still in it when it arrives; then it skids to a stop (the shot window).
  */
+interface LaneOptions { width: number; speed: number; overshoot: number; dmg: number; skid: number; reach: number }
 export class LaneCharge {
   private readonly runner = new StrikeRunner();
-  private readonly o: { width: number; speed: number; overshoot: number; dmg: number; skid: number; reach: number };
+  private readonly o: LaneOptions;
+  private readonly spec: StrikeSpec;
   private tellT = 1;
   readonly tellDecal: GroundTell;
-  constructor(scene: THREE.Scene, color: THREE.ColorRepresentation, o: { width: number; speed: number; overshoot: number; dmg: number; skid: number; reach: number }) {
-    this.o = o; this.tellDecal = new GroundTell(scene, 'lane', color);
+  constructor(scene: THREE.Scene, color: THREE.ColorRepresentation, row: LaneOptions | StrikeSpec) {
+    if ('shape' in row) {
+      if (row.shape.kind !== 'lane') throw new Error('Lane view requires a lane strike');
+      this.spec = row; this.o = { width: row.shape.width, speed: row.motion?.speed ?? 0, overshoot: row.motion?.overshoot ?? 0,
+        dmg: row.damage, skid: row.recover, reach: row.range };
+    } else {
+      this.o = row;
+      this.spec = { id: 'strike.lane', shape: { kind: 'lane', length: 0, width: row.width },
+        windup: 1, active: 0, recover: row.skid, cooldown: 0, range: row.reach, damage: row.dmg,
+        tags: ['creature.charge'], weight: () => 1,
+        motion: { speed: row.speed, track: 'lead', overshoot: row.overshoot, skid: row.skid } };
+    }
+    this.tellDecal = new GroundTell(scene, 'lane', color);
   }
   get state(): 'none' | 'tell' | 'run' | 'skid' {
     return this.runner.state === 'windup' ? 'tell' : this.runner.state === 'active' ? 'run' : this.runner.state === 'recover' ? 'skid' : 'none';
@@ -97,10 +109,7 @@ export class LaneCharge {
   idle(): boolean { return !this.busy; }
   start(a: Animal, px: number, pz: number, tell: number, speedMul = 1): void {
     this.tellT = tell;
-    const spec: StrikeSpec = { id: 'strike.pine.lane', shape: { kind: 'lane', length: 0, width: this.o.width },
-      windup: tell, active: 0, recover: this.o.skid, cooldown: 0, range: this.o.reach, damage: this.o.dmg,
-      tags: ['creature.charge'], weight: () => 1,
-      motion: { speed: this.o.speed, track: 'lead', overshoot: this.o.overshoot, skid: this.o.skid } };
+    const spec: StrikeSpec = { ...this.spec, windup: tell };
     this.runner.start(spec, a, { x: px, y: a.position.y, z: pz }, speedMul);
   }
   cancel(): void { this.runner.cancel(); this.tellDecal.hide(); }

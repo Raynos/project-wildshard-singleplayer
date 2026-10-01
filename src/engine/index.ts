@@ -102,3 +102,11 @@ export { WIND_DIR, windGustAt } from './world/wind';
 export { sticksIn } from './physics/query';
 export { SHADOW_LAYER } from './core/shadowLayer';
 export type { AmmoId, AmmoRow, ProjectileModification } from './combat/ammo';
+
+export { Hfsm, type StateDef, type StateChange } from './ai/hfsm';
+export { StrikeRunner, type StrikeSpec, type StrikeContext, type StrikeActor, type StrikePhase, type UtilityScore } from './ai/strikes';
+export { canReach, type ReachActor } from './ai/reach';
+export { AggressionDirector, AggressionService } from './ai/director';
+export { BossBrain, type BossDefinition, type BossSaved, type BossPorts, type BossPresentation, type BossScript, type BossState } from './ai/BossBrain';
+export { EliteBrain, type EliteDefinition, type EliteActor, type ElitePorts } from './ai/EliteBrain';
+export { EncounterRegistry, type EncounterDefinition } from './ai/encounters';

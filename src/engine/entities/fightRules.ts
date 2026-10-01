@@ -14,54 +14,7 @@
  * Pure (no THREE, no DOM): the vitests in test/fight-rules.test.ts drive it directly.
  */
 
-/** A fixed pool of attack tokens: at most `max` holders at once. No allocation after construction. */
-export class AttackTokens<T> {
-  private readonly held: (T | null)[];
-  private n = 0;
-
-  constructor(readonly max: number) {
-    this.held = Array.from({ length: Math.max(0, max) }, (): T | null => null);
-  }
-
-  /** how many tokens are out */
-  get count(): number { return this.n; }
-
-  /** `who` holds a token */
-  holds(who: T): boolean {
-    for (const h of this.held) if (h === who) return true;
-    return false;
-  }
-
-  /** `who` may attack now: it holds a token, or one is free */
-  free(who: T): boolean { return this.n < this.max || this.holds(who); }
-
-  /** take a token for `who` (true if it holds one afterwards; a holder asking again keeps its own) */
-  take(who: T): boolean {
-    if (this.holds(who)) return true;
-    for (let i = 0; i < this.held.length; i++) {
-      if (this.held[i] !== null) continue;
-      this.held[i] = who; this.n++;
-      return true;
-    }
-    return false;
-  }
-
-  /** give `who`'s token back (a no-op if it holds none) */
-  release(who: T): void {
-    for (let i = 0; i < this.held.length; i++) if (this.held[i] === who) { this.held[i] = null; this.n--; }
-  }
-
-  /** take back every token whose holder is no longer attacking (`still(holder)` false) */
-  sweep(still: (who: T) => boolean): void {
-    for (let i = 0; i < this.held.length; i++) {
-      const h = this.held[i];
-      if (h === null || h === undefined || still(h)) continue;
-      this.held[i] = null; this.n--;
-    }
-  }
-
-  clear(): void { this.held.fill(null); this.n = 0; }
-}
+export { AttackTokens } from '../ai/director';
 
 /** below this fraction of its health a non-relentless charger may break off after a hit … */
 export const BREAK_OFF_HP = 0.25;

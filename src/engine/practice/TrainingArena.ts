@@ -10,7 +10,6 @@ import type { Player } from '../player/Player';
 import type { TargetAnimal, TargetHit } from '#engine/combat/types';
 import type { EquipmentService } from '../combat/EquipmentService';
 import type { WorldRegistry, ColliderDesc } from '../world/registry';
-import { BOSS_NAMES } from '../ui/Combat';
 import { DummyMotion, DummyPose } from './DummyMotion';
 import { DummyClips, loadDummyClips } from './DummyClips';
 import { applyDummyStudio } from './DummyStudio';
@@ -23,7 +22,6 @@ import './arena.css';
 const HALF_WIDTH = 50, HALF_DEPTH = 50, WALL_HEIGHT = 9;
 const Y = 900; // an isolated room high over each shard; existing world geometry and AI never enter it
 const CYAN = 0x75d9ff;
-BOSS_NAMES.set('training-dummy', 'Training dummy'); // the aim readout's name (E285: it read the raw kind, "TRAINING-DUMMY · 12 M")
 
 /** the lineup (./lineup.ts: placements of the shared dummy model, room-local) */
 const LINEUP = ARENA_LINEUP;
@@ -279,6 +277,7 @@ export class TrainingArena {
   private weapons: EquipmentService | null = null;
 
   constructor(private readonly game: Game, registry: WorldRegistry, private readonly physics: Physics, center: { x: number; z: number }) {
+    app.encounters.register({ id: 'training-dummy', displayName: 'Training dummy', showHeadBar: false }, game.levelScope);
     this.center = center;
     const { root, colliders } = makeRoom(center.x, center.z);
     this.root = root;

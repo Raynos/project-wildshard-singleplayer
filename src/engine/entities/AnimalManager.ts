@@ -3,6 +3,7 @@ import { tap } from '../core/harnessTap';
 import * as THREE from 'three';
 import { activePhysics } from '../physics/active';
 import { canReach } from '../ai/reach';
+import { AggressionDirector } from '../ai/director';
 import { activeNavmesh } from '../physics/navmesh';
 import { castRay, floorBelow } from '../physics/query';
 import { CreatureBodies } from '../physics/creatures';
@@ -24,7 +25,7 @@ import { frameCost } from '../core/frameCost';
 import { practiceRoom } from '../core/practiceRoom';
 import { AnimalGroup } from './animalMatrices';
 import { trample } from '#kit/looks/trample';
-import { AttackTokens, reengage, backoffPoint, aroundPoint, RING, RING_DEFAULT, BACKOFF_MAX_T, BREAK_OFF_HP, BREAK_OFF_CHANCE, RULES_CD_HIT, RULES_CD_MISS } from './fightRules';
+import { reengage, backoffPoint, aroundPoint, RING, RING_DEFAULT, BACKOFF_MAX_T, BREAK_OFF_HP, BREAK_OFF_CHANCE, RULES_CD_HIT, RULES_CD_MISS } from './fightRules';
 
 export interface WanderGoalQuery { herd: number; goal: { x: number; z: number; r: number } | null }
 declare module '../events/maps' {
@@ -447,7 +448,7 @@ export class AnimalManager {
   /** E322 F-L4: Pine Hollow's animals part the grass (Nalati's Wildlife feeds the same map its own way) */
   private readonly trampling = getActiveChunk().slug === 'pine-hollow';
   /** E297: the attack tokens — at most `rules.maxAttackers` attacking at once */
-  readonly tokens = new AttackTokens<Animal>(this.rules?.attackers ?? 0);
+  readonly tokens = new AggressionDirector<Animal>(this.rules?.attackers ?? Infinity);
   /** a token holder still attacking: a charger while it charges, a self-thinking species while its strike runs */
   private readonly stillAttacking = (a: Animal): boolean =>
     a.alive && !a.hidden && (speciesDef(a.kind).think !== undefined ? a.attackPhase >= 0 : a.state === 'charge');
@@ -644,6 +645,7 @@ export class AnimalManager {
     if (fur !== undefined) this.farRigs.set(a, { mesh: a.mesh, tint: fur.color, model, mask: null });
     this.group.add(a.mesh); this.group.own(a);
     this.animals.push(a);
+    app.aggression.register(a, this.tokens, app.levelScope ?? undefined);
     const tune = this.tuningFor(a);
     this.brains.set(a, {
       timer: this.rng.range(1, 4), tx: x, tz: z, fleeT: 0, fleeUntil: this.rng.range(tune.fleeUntil, tune.fleeUntilMax), chargeCd: 0,
@@ -1042,8 +1044,8 @@ export class AnimalManager {
     pathYaw: (a, tx, tz, every = 1) => { const br = this.brains.get(a); return br === undefined ? Math.atan2(tx - a.position.x, tz - a.position.z) : this.pathYaw(a, br, tx, tz, every); },
     confine: (a) => this.confine(a),
     reach: (a) => this.canReach(a, this.thinkCtx.player),
-    claim: (a) => this.rules === null || this.tokens.take(a),
-    mayAttack: (a) => this.rules === null || this.tokens.free(a),
+    claim: (a) => app.events.ask('ai.claim', a),
+    mayAttack: (a) => app.events.ask('ai.mayAttack', a),
   };
 
   private enter(a: Animal, br: Brain, s: Animal['state']): void {

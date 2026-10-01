@@ -1,3 +1,4 @@
+import { BossBrain, type BossScript } from '#engine';
 import { bossesSave, saveSlug } from './saves';
 import * as THREE from 'three';
 import type { BossBar } from '#engine/ui/BossBar';
@@ -70,35 +71,7 @@ export interface BossDef {
   intro: number; introShort: number;
 }
 
-/** what one fight implements (the arena, the boss, the adds, the hazards) */
-export interface BossScript {
-  /** the player (feet) is past the threshold: inside the sealed volume */
-  inArena: (p: THREE.Vector3) => boolean;
-  /** set the room and the boss up at the START of phase `phase` (0-based), boss dormant, seal open */
-  reset: (phase: number) => void;
-  /** seal / unseal the arena */
-  seal: (on: boolean) => void;
-  /** the intro, `t` seconds in: pose the boss (rise, eyes ignite …); returns the world point the camera eases to face */
-  intro: (t: number, short: boolean) => THREE.Vector3;
-  /** the intro ended (or was skipped): the boss is up and fighting in `phase` */
-  begin: (phase: number) => void;
-  /** a phase change: the room changes, the new moves unlock (the beat's invulnerability is `setInvulnerable`) */
-  enterPhase: (phase: number) => void;
-  /** the fight's own tick (AI glue, hazards) while intro / fight / beat / victory */
-  update: (dt: number, t: number, fighting: boolean) => void;
-  /** boss health 0..1 of max; `shielded` shows the bar's gold shimmer; `dead` ends the fight */
-  readonly hpFrac: number;
-  readonly shielded: boolean;
-  readonly dead: boolean;
-  /** clamp the boss's health to exactly `frac` (a phase threshold is never skipped by one big hit) */
-  clampHp: (frac: number) => void;
-  setInvulnerable: (on: boolean) => void;
-  /** the boss fell: the arena's victory dressing (the heap of plaques, the seal drains, the light on the pedestal) */
-  victory: () => void;
-  /** where the reward orb floats, and where a dead player comes back (feet + yaw) */
-  rewardPoint: () => THREE.Vector3;
-  respawnPoint: () => { pos: THREE.Vector3; yaw: number };
-}
+export type { BossScript, BossState } from '#engine';
 
 export interface BossHost {
   scene: THREE.Scene;
@@ -125,202 +98,56 @@ export interface BossHost {
   pickupHum?: (inside: boolean) => void;
 }
 
-export type BossState = 'dormant' | 'armed' | 'intro' | 'fight' | 'beat' | 'victory';
-
-interface Saved { defeated: boolean; rewardTaken: boolean; kills: number }
-
-
-const BEAT = 1.5, SKIP_HOLD = 0.6;
 const _to = new THREE.Vector3();
 
-export class Boss {
-  state: BossState = 'dormant';
-  /** the phase being fought (0-based) and the checkpoint (the phase a death sends you back to the start of) */
-  phase = 0;
-  checkpoint = 0;
-  /** attempts this visit (the retry card counts them) */
-  attempts = 1;
-  private t = 0;
-  private skipT = 0;
-  private short = false;
+/** Scene, reward and persistence adapter around the pure encounter clock. */
+export class Boss extends BossBrain {
+  override readonly def: BossDef;
+  private readonly renderHost: BossHost;
+  private readonly renderUi: BossBar;
   private drop: WeaponPickup | null = null;
-  private readonly key: string;
-  private readonly slug: string;
-  private saved: Saved;
-  /** the reward orb (while it floats) — update() ticks it */
   get reward(): WeaponPickup | null { return this.drop; }
-
-  constructor(readonly def: BossDef, readonly script: BossScript, private readonly host: BossHost, private readonly ui: BossBar, chunkId = 'local') {
-    this.slug = saveSlug(chunkId);
-    this.key = def.id;
-    this.saved = bossesSave.read(this.slug)[this.key] ?? { defeated: false, rewardTaken: false, kills: 0 };
+  constructor(def: BossDef, script: BossScript, host: BossHost, ui: BossBar, chunkId = 'local') {
+    const slug = saveSlug(chunkId), key = def.id;
+    const saved = bossesSave.read(slug)[key] ?? { defeated: false, rewardTaken: false, kills: 0 };
+    super(def, script, { player: host.player, lockInput: host.lockInput, respawn: host.respawn,
+      skipHeld: host.skipHeld, feed: host.feed, toast: host.toast, music: host.music,
+      faceToward: (target, dt) => { this.faceToward(target, dt); }, spawnReward: () => { this.spawnReward(); },
+      persist: (value) => { const all = bossesSave.read(slug); all[key] = value; bossesSave.write(all, slug); },
+    }, ui, saved);
+    this.def = def; this.renderHost = host; this.renderUi = ui;
   }
-
-  /** beaten at least once / the reward taken (persisted) */
-  get defeated(): boolean { return this.saved.defeated; }
-  get rewardTaken(): boolean { return this.saved.rewardTaken; }
-  get engaged(): boolean { return this.state === 'intro' || this.state === 'fight' || this.state === 'beat'; }
-
-  private save(): void {
-    const all = bossesSave.read(this.slug); all[this.key] = this.saved; bossesSave.write(all, this.slug);
-  }
-
-  /** ready at the threshold: the room at the checkpoint phase, the seal open */
-  arm(): void {
-    if (this.state === 'victory' || this.state === 'armed') return;
-    this.script.setInvulnerable(false);
-    this.script.reset(this.checkpoint);
-    this.script.seal(false);
-    this.phase = this.checkpoint;
-    this.state = 'armed';
-  }
-
-  /** the player left: forget the fight (a later visit starts from phase I; a beaten boss is back in his coffin) */
-  disarm(): void {
-    if (this.engaged) this.host.lockInput(false);
-    this.ui.hideBar(); this.ui.hideNameCard(); this.ui.hideReward();
-    this.checkpoint = 0; this.attempts = 1;
-    this.state = 'dormant';
-  }
-
-  /** the player died. In this fight → back at the checkpoint (true); anywhere else → not ours (false) */
-  onPlayerDeath(): boolean {
-    if (!this.engaged) return false;
-    this.host.lockInput(false);
-    this.attempts++;
-    this.ui.hideBar(); this.ui.hideNameCard();
-    this.ui.showRetry(this.def.retryTitle, this.attempts);
-    this.host.music?.('death');
-    const r = this.script.respawnPoint();
-    this.host.respawn(r.pos, r.yaw);
-    this.state = 'dormant';
-    this.arm();
-    return true;
-  }
-
-  /** dev: jump straight into phase `phase` (0-based) as if the checkpoint were there */
-  devStartAt(phase: number): void {
-    this.checkpoint = Math.max(0, Math.min(this.def.phases.length - 1, phase));
-    this.state = 'dormant'; this.arm();
-  }
-
-  update(dt: number, t: number): void {
-    this.ui.update(dt);
-    const p = this.host.player.position;
-    switch (this.state) {
-      case 'dormant': break;
-      case 'armed':
-        if (this.script.inArena(p)) this.startIntro();
-        break;
-      case 'intro': {
-        this.t += dt;
-        const len = this.short ? this.def.introShort : this.def.intro;
-        const focus = this.script.intro(this.t, this.short);
-        this.faceToward(focus, dt);
-        this.skipT = this.host.skipHeld() ? this.skipT + dt : 0;
-        this.ui.setSkip(this.skipT / SKIP_HOLD);
-        if (this.t >= len || this.skipT >= SKIP_HOLD) this.beginFight();
-        break;
-      }
-      case 'beat':
-        this.t += dt;
-        if (this.t >= BEAT) { this.script.setInvulnerable(false); this.state = 'fight'; }
-        this.syncBar();
-        break;
-      case 'fight': {
-        this.syncBar();
-        if (this.script.dead) { this.win(); break; }
-        const next = this.def.phases[this.phase + 1];
-        if (next !== undefined && this.script.hpFrac <= next.at) {
-          this.phase++;
-          this.checkpoint = this.phase;
-          this.script.clampHp(next.at);
-          this.script.setInvulnerable(true);
-          this.script.enterPhase(this.phase);
-          this.ui.setPhase(this.phase, next.caption);
-          this.host.feed?.(`${this.def.name} · ${next.name}`);
-          this.host.music?.('phase', 1);
-          this.state = 'beat'; this.t = 0;
-        }
-        break;
-      }
-      case 'victory':
-        this.t += dt;
-        if (this.t > 1.4 && this.ui.barShown) this.ui.hideBar();
-        break;
-      default: break;
-    }
-    if (this.state !== 'dormant') this.script.update(dt, t, this.state === 'fight' || this.state === 'beat');
+  override update(dt: number, t: number): void {
+    super.update(dt, t);
     if (this.drop !== null) {
-      this.drop.update(dt, t, this.host.renderer, this.host.camera);
-      // the orb burst and removed itself (its light with it): the spare light takes its place in the same frame
-      if (this.drop.group.parent === null) { this.drop = null; if (this.host.spareLight) this.host.spareLight.visible = true; }
+      this.drop.update(dt, t, this.renderHost.renderer, this.renderHost.camera);
+      if (this.drop.group.parent === null) { this.drop = null; if (this.renderHost.spareLight) this.renderHost.spareLight.visible = true; }
     }
-  }
-
-  private syncBar(): void {
-    this.ui.setHp(this.script.hpFrac);
-    this.ui.setShield(this.script.shielded || this.state === 'beat');
-  }
-
-  private startIntro(): void {
-    this.short = this.attempts > 1 || this.saved.defeated;
-    this.script.seal(true);
-    this.host.lockInput(true);
-    this.ui.showNameCard(this.def.name, this.def.title, this.short);
-    this.host.music?.('intro', 1);
-    this.t = 0; this.skipT = 0;
-    this.state = 'intro';
-  }
-
-  private beginFight(): void {
-    this.ui.hideNameCard();
-    this.host.lockInput(false);
-    this.script.begin(this.phase);
-    this.ui.showBar(this.def.name, this.def.phases.slice(1).map((ph) => ph.at));
-    this.syncBar();
-    if (this.phase > 0) { const ph = this.def.phases[this.phase]; if (ph) this.ui.setPhase(this.phase, ph.caption); }
-    this.state = 'fight';
-  }
-
-  private win(): void {
-    this.state = 'victory'; this.t = 0;
-    this.ui.setHp(0); this.ui.setShield(false);
-    this.script.victory();
-    this.script.seal(false);
-    this.host.music?.('victory');
-    this.saved.kills++;
-    const first = !this.saved.rewardTaken;
-    this.saved.defeated = true;
-    this.save();
-    this.def.reward.trophy?.();
-    if (first) this.spawnReward();
-    else this.host.toast?.(`${this.def.name} falls again — the gold is already yours`);
   }
 
   private spawnReward(): void {
     const r = this.def.reward;
-    if (this.host.spareLight) this.host.spareLight.visible = false;
-    const drop = new WeaponPickup({ scene: this.host.scene, item: r.model(), position: this.script.rewardPoint(), tier: 'legendary', prompt: r.prompt, scale: 1.7, radius: 2.6 });
+    if (this.renderHost.spareLight) this.renderHost.spareLight.visible = false;
+    const drop = new WeaponPickup({ scene: this.renderHost.scene, item: r.model(), position: this.script.rewardPoint(), tier: 'legendary', prompt: r.prompt, scale: 1.7, radius: 2.6 });
     this.drop = drop;
-    this.host.addInteractable(drop.interactable);
-    drop.onNear = (inside) => this.host.pickupHum?.(inside);
+    this.renderHost.addInteractable(drop.interactable);
+    drop.onNear = (inside) => this.renderHost.pickupHum?.(inside);
     drop.onPickup = () => {
       this.saved.rewardTaken = true; this.save();
       r.grant();
-      this.host.removeInteractable(drop.interactable);
-      this.host.pickupHum?.(false);
-      this.host.music?.('pickup');
-      this.ui.hideReward();
-      this.host.toast?.(`${r.name} — ${r.flavour}`);
+      this.renderHost.removeInteractable(drop.interactable);
+      this.renderHost.pickupHum?.(false);
+      this.renderHost.music?.('pickup');
+      this.renderUi.hideReward();
+      this.renderHost.toast?.(`${r.name} — ${r.flavour}`);
     };
-    this.ui.showReward(r.tier, r.name, r.flavour);
+    this.renderUi.showReward(r.tier, r.name, r.flavour);
   }
 
   /** ease the camera toward a world point (the intro: "the camera stays first person but eases to face the boss") */
   private faceToward(target: THREE.Vector3, dt: number): void {
-    const pl = this.host.player;
-    _to.copy(target).sub(this.host.camera.position);
+    const pl = this.renderHost.player;
+    _to.copy(target).sub(this.renderHost.camera.position);
     const yaw = Math.atan2(-_to.x, -_to.z), pitch = Math.atan2(_to.y, Math.hypot(_to.x, _to.z));
     let dy = yaw - pl.yaw; dy = Math.atan2(Math.sin(dy), Math.cos(dy));
     const k = 1 - Math.exp(-dt * 3.2);

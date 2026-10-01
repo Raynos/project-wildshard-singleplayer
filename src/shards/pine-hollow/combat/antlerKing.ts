@@ -1,4 +1,6 @@
-import { canReach } from '#engine/ai/reach';
+import { pineBackdrop } from '../look/skyBackdrop';
+import { PINE_LANES } from './strikes';
+import { canReach } from '#engine';
 import * as THREE from 'three';
 import type { Animal } from '#engine/entities/Animal';
 import { registerSpecies, speciesDef, variantDef, hasSpecies, type SpeciesDef } from '#engine/entities/species/registry';
@@ -82,7 +84,6 @@ const STOMP_R = 4.4;
  *  shoulders over them; --lanemap, every gait phase), so the lane is 5.2 m wide (LaneCharge catches you within half of it
  *  + 0.4 = 3.0 m; the elk-rig King's caught at 2.5); the contact reach 2.0 × his 2.6 scale = 5.2 m, his front (4.8 m) + the
  *  player */
-const LANE_W = 5.2, LANE_REACH = 2.0;
 const AMBER_TELL = new THREE.Color(1.5, 0.62, 0.12), EMBER = new THREE.Color(2.6, 1.1, 0.3);
 const PHASES: BossDef['phases'] = [
   { at: KING_PHASE_AT[0], caption: 'I · THE WARDEN', name: 'The Warden' },
@@ -169,8 +170,8 @@ export class AntlerKingFight implements BossScript {
     this.kit = makeKingKit(ctx.sky);
     this.tellRing = new GroundTell(scene, 'ring', AMBER_TELL);
     this.waves = [0, 1].map(() => ({ g: new GroundTell(scene, 'ring', EMBER), r: 0, on: false, hit: false, delay: 0 }));
-    this.lane = new LaneCharge(scene, AMBER_TELL, { width: LANE_W, speed: 13, overshoot: 10, dmg: 32, skid: 1.6, reach: LANE_REACH });
-    this.thrallLanes = [0, 1, 2].map(() => new LaneCharge(scene, EMBER, { width: 2.4, speed: 9, overshoot: 5, dmg: 14, skid: 1.2, reach: 1.7 }));
+    this.lane = new LaneCharge(scene, AMBER_TELL, PINE_LANES.king);
+    this.thrallLanes = [0, 1, 2].map(() => new LaneCharge(scene, EMBER, PINE_LANES.thrall));
     this.wall = new FogWall(scene, C.x, heightAt(C.x, C.z) - 2.5, C.z, FOG_R, 22);
     this.puffs = new Puffs(scene, new THREE.Color(2.0, 1.1, 0.4), 3);
     for (let i = 0; i < 3; i++) {
@@ -570,7 +571,7 @@ export class AntlerKingFight implements BossScript {
     const lk = 1 - 0.8 * dark;
     sky.hemi.intensity = this.dimHemi.apply(sky.hemi.intensity, lk);
     scene.environmentIntensity = this.dimEnv.apply(scene.environmentIntensity, 1 - 0.75 * dark);
-    const dome = sky.pine?.dome.material;
+    const dome = pineBackdrop(sky)?.dome.material;
     if (dome instanceof THREE.ShaderMaterial) {
       const ga = dome.uniforms['uGainA'], gb = dome.uniforms['uGainB'], dk = 1 - 0.85 * dark;
       if (ga && typeof ga.value === 'number') ga.value = this.dimDome[0]?.apply(ga.value, dk) ?? ga.value;
@@ -649,7 +650,7 @@ export class AntlerKing {
     // dev: `?boss=antler-king` — night, you at the stones' N gap; `&bossPhase=2|3` at that checkpoint
     if (host.params.get('boss') === KING_KIND) {
       this.forcedNight = true;
-      void ctx.sky.pine?.setPhase(PINE_PHASES.night);
+      void ctx.sky.dayNight?.set(PINE_PHASES.night);
       const from = Number(host.params.get('from') ?? '26');
       pl.spawn(C.x, C.z + (Number.isFinite(from) ? from : 26), 0);
       this.fight.setPresent(true); this.boss.arm();

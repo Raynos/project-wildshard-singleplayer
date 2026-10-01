@@ -23,6 +23,8 @@ import { LevelRegistrations } from '../level/registrations';
 import type { LevelAdapters, LevelHooks } from '../level/context';
 import type { LevelSpec } from '../level/spec';
 import { CombatPipeline } from '../combat/pipeline';
+import { AggressionService } from '../ai/director';
+import { EncounterRegistry } from '../ai/encounters';
 import type { PlayerHealth } from '../combat/health';
 import type { EffectService } from '../combat/effects/EffectService';
 
@@ -46,6 +48,8 @@ export class App {
   readonly stateHistory: AppState[] = ['boot'];
   readonly events: Events;
   readonly combat: CombatPipeline;
+  readonly aggression: AggressionService;
+  readonly encounters = new EncounterRegistry(() => this.levelScope);
   private readonly equipmentByLevel = new WeakMap<Scope, EquipmentService>();
   get equipment(): EquipmentService | null { return this.levelScope === null ? null : this.equipmentByLevel.get(this.levelScope) ?? null; }
   registerEquipment(equipment: EquipmentService, scope: Scope): void {
@@ -64,7 +68,7 @@ export class App {
     this.players.set(scope, player);
     scope.onDispose(() => { this.players.delete(scope); });
   }
-  readonly input = new InputService();
+  readonly input = new InputService(() => this.clock.now * 1000);
   private readonly equipmentHosts = new WeakMap<Scope, EquipmentHost>();
   get equipmentHost(): EquipmentHost | null { return this.levelScope === null ? null : this.equipmentHosts.get(this.levelScope) ?? null; }
   registerEquipmentHost(host: EquipmentHost, scope: Scope): void {
@@ -121,7 +125,7 @@ export class App {
   readonly debug = new AppDebug();
   readonly scheduler = new EveryFrameScheduler();
 
-  constructor(events = new Events()) { this.events = events; this.combat = new CombatPipeline(events, this.engineScope, () => this.physics); }
+  constructor(events = new Events()) { this.events = events; this.combat = new CombatPipeline(events, this.engineScope, () => this.physics); this.aggression = new AggressionService(events, this.engineScope); }
   get state(): AppState { return this.currentState; }
 
   setState(next: AppState): void {

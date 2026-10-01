@@ -1,10 +1,11 @@
+import { PINE_LANES } from '#shards/pine-hollow/combat/strikes';
 import * as THREE from 'three';
 import { describe, expect, it, vi } from 'vitest';
 import type * as Heightfield from '#engine/world/Heightfield';
 import { LaneCharge } from '#shards/pine-hollow/combat/ctx';
 import { Animal } from '#engine/entities/Animal';
 import { AnimalFactory } from '#engine/entities/AnimalFactory';
-import { legacyConstants, legacyNewOptions } from '../fake/legacySource';
+import { legacyConstants } from '../fake/legacySource';
 import { creature } from '../fake/creature';
 import { fakeWorld } from '../fake/world';
 import { HorseHerd } from '#engine/entities/Herd';
@@ -43,7 +44,7 @@ describe('strike tuning from current production declarations', () => {
   });
 });
 
-const laneRows: { name: string; file: string; index: number; tell: number; options: ConstructorParameters<typeof LaneCharge>[2] }[] = [
+const laneRows: { name: string; file: string; index: number; tell: number; options: { width: number; speed: number; overshoot: number; dmg: number; skid: number; reach: number } }[] = [
   { name: 'S29 Ironhide', file: `${pine}elites.ts`, index: 0, tell: 0.9, options: { width: 2.4, speed: 12.5, overshoot: 7, dmg: 30, skid: 1.1, reach: 1.7 } },
   { name: 'S31 Blackpaw', file: `${pine}elites.ts`, index: 1, tell: 0.75, options: { width: 2.6, speed: 10.5, overshoot: 5, dmg: 28, skid: 1.2, reach: 1.6 } },
   { name: 'S33 Imperial Bull', file: `${pine}elites.ts`, index: 2, tell: 1, options: { width: 2.8, speed: 11, overshoot: 8, dmg: 34, skid: 1.3, reach: 1.8 } },
@@ -53,7 +54,12 @@ const laneRows: { name: string; file: string; index: number; tell: number; optio
 ];
 describe('real Pine lane strikes at the body clock', () => {
   it.each(laneRows)('$name holds its tell, hits once and finishes recovery', ({ file, index, options, tell }) => {
-    const actual = legacyNewOptions(file, 'LaneCharge', { LANE_W: 5.2, LANE_REACH: 2 })[index];
+    const key = file.endsWith('elites.ts') ? ['ironhide', 'blackpaw', 'imperial', 'rival'][index] : ['king', 'thrall'][index];
+    if (key === undefined || !(key in PINE_LANES)) throw new Error('Missing authored lane row');
+    const spec = PINE_LANES[key as keyof typeof PINE_LANES];
+    if (spec.shape.kind !== 'lane') throw new Error('Expected lane shape');
+    const actual = { width: spec.shape.width, speed: spec.motion?.speed, overshoot: spec.motion?.overshoot, dmg: spec.damage, skid: spec.recover, reach: spec.range };
+    expect(spec.windup).toBe(tell);
     expect(actual).toEqual(options);
     const f = fakeWorld(), factory = new AnimalFactory(f.sky, { style: 'toon' }), model = factory.model('boar', 'sow');
     const a = new Animal(factory.instantiate(model, 0.5), model, 0.5), player = new THREE.Vector3(0, 0, 4);

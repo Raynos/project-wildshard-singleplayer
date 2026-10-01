@@ -1,5 +1,5 @@
 import { Vector3 } from 'three';
-import { activePhysics } from '../physics/active';
+import { app } from '../app/runtime';
 import { lineOfSight } from '../physics/query';
 
 export interface ReachActor {
@@ -8,9 +8,9 @@ export interface ReachActor {
   headWorld: (out: Vector3) => Vector3;
 }
 const from = new Vector3(), to = new Vector3(), head = new Vector3();
-/** Same chest/aim-point/slack query on every shard, evaluated at the contact frame. */
+/** Same chest/aim-point/slack query in every level, evaluated at the contact frame. */
 export function canReach(actor: ReachActor, target: { x: number; y: number; z: number }): boolean {
-  const physics = activePhysics(); if (physics === null) return true;
+  const physics = app.physics; if (physics === null) return true;
   const bodyY = actor.dims.bodyY * actor.scale;
   to.copy(actor.position); to.y += bodyY;
   if (bodyY > 0.9) to.y = (to.y + actor.headWorld(head).y) / 2;

@@ -1,3 +1,4 @@
+import { EliteBrain } from '#engine/ai/EliteBrain';
 import { canReach } from '#engine/ai/reach';
 import * as THREE from 'three';
 import { describe, expect, it, vi } from 'vitest';
@@ -76,10 +77,10 @@ describe('Pine elite contacts and the nonattacking Ghost Stag', () => {
     const globals = { THREE, Math, canReach, headingTo, inArc, fadeCooldown, behindPlayer, fleeHeading, heightAt: () => 0,
       inChunk: () => true, voice: (): void => undefined, _v: new THREE.Vector3() };
     const proto = legacyMethods(path, name, globals), base = legacyMethods(path, 'PineElite', globals);
-    Object.setPrototypeOf(proto, base);
+    Object.setPrototypeOf(base, EliteBrain.prototype); Object.setPrototypeOf(proto, base);
     const env = { player: { position: f.ctx.player, yaw: 0 }, hurt: (_a: Animal, d: number): void => { hits.push(d); },
       puffs: { burst: noOp }, trauma: noOp, stun: vi.fn(noOp), god: false, animals: {} };
-    const actor = legacyActor(proto, { env, p2: false, modeT: 0, sig: noOp, def: { lair: { x: 0, z: 0 }, leashR: 110 }, ...fields });
+    const actor = legacyActor(proto, { env, ports: { player: env.player, random: Math.random }, p2: false, modeT: 0, sig: noOp, def: { lair: { x: 0, z: 0 }, leashR: 110 }, ...fields });
     return { ...f, actor, env, hits };
   }
   it.each([false, true])('S30 Blackpaw roar god%s hits12 and stuns1.3s after1.1s', (god) => {

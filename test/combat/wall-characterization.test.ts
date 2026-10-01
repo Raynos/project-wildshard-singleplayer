@@ -1,3 +1,5 @@
+import { CROSSBOW_PROFILE } from '#kit/weapons/crossbow/profiles';
+import { EliteBrain } from '#engine/ai/EliteBrain';
 import * as THREE from 'three';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import type * as Heightfield from '#engine/world/Heightfield';
@@ -89,8 +91,8 @@ describe('wall bug baselines (owning migrations intentionally change B1/B2 expec
     setActiveChunk('pine-hollow'); wall(); const f = manager(), a = f.manager.spawn('boar', 0, -2.5, 0, 'boar');
     const path = 'src/shards/pine-hollow/combat/elites.ts', globals = { canReach, headingTo, inArc, THREE, voice: noop, _v: new THREE.Vector3() };
     const proto = legacyMethods(path, 'Blackpaw', globals), base = legacyMethods(path, 'PineElite', globals);
-    Object.setPrototypeOf(proto, base);
-    const hurt = vi.fn(noop), fight = legacyActor(proto, { mode: 'swipe', modeT: 0, swipeT: 0.01, roarCd: 0, p2: false,
+    Object.setPrototypeOf(base, EliteBrain.prototype); Object.setPrototypeOf(proto, base);
+    const hurt = vi.fn(noop), fight = legacyActor(proto, { ports: { player: { position: new THREE.Vector3(0, 0, -1.2) } }, mode: 'swipe', modeT: 0, swipeT: 0.01, roarCd: 0, p2: false,
       env: { player: { position: new THREE.Vector3(0, 0, -1.2) }, hurt, trauma: noop }, ring: { setTime: noop, hide: noop } });
     invokeLegacy(fight, 'fight', a, 0.02, 0); expect(hurt).not.toHaveBeenCalled();
     setActivePhysics(null); Reflect.set(fight, 'swipeT', 0.01);
@@ -136,7 +138,7 @@ describe('wall bug baselines (owning migrations intentionally change B1/B2 expec
     wall(); const f = fakeWorld(), a = target(), from = new THREE.Vector3(0, 0.8, 0), to = new THREE.Vector3(0, 0.8, -3);
     const weapon = kind === 'arrow'
       ? legacyActor(Projectiles.prototype, { kind: {}, targets: { raycast: a.raycast }, stop: noop, onImpact: undefined })
-      : legacyActor(Crossbow.prototype, { game: f.game.asGame(), targets: { raycast: a.raycast }, stopBolt: noop, onImpact: undefined });
+      : legacyActor(Crossbow.prototype, { profile: CROSSBOW_PROFILE, game: f.game.asGame(), targets: { raycast: a.raycast }, stopBolt: noop, onImpact: undefined });
     invokeLegacy(weapon, 'testHit', kind === 'arrow' ? { pos: to, origin: from, scale: 1 } : { pos: to, mod: {} }, from);
     expect(a.dealt).toEqual([]);
   });

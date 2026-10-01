@@ -53,6 +53,10 @@ export class LevelLoader {
       live();
       if (!kitOpen) throw new Error(`${kind} rows may only register during level.kit`);
       this.app.levelRegistrations.add(kind, values, scope);
+      if (kind === 'encounter') {
+        const rows: readonly ContentRowMap[K][] = Array.isArray(values) ? values : [values as ContentRowMap[K]];
+        for (const row of rows) this.app.encounters.register(row, scope);
+      }
     };
     const own = (dispose: () => void): void => { scope.onDispose(dispose); };
     const hud = (): NonNullable<LevelAdapters['hud']> => {
