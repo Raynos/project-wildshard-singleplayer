@@ -497,6 +497,7 @@ The verbatim table (decisions 1–100 and the revisions 12′, 28′, 55′, 90�
 | J12 | Drop the Pine longbow auto-shot (F) | wave 3 Q4d | sol-j11 | done (ff2a4896) |
 | J13 | Touch reload for part-empty magazines: Jake picked **tap the ammo chip** (wave 5); three chip takes → pick (P21) → build | wave 3 Q4b, wave 5 Q1 | mockups: Opus (round 17) | open |
 | J14 | Spear: **drop BRACE** (Jake, 2026-10-01, P22): JUMP returns with the spear out on touch, RMB hold no longer braces on desktop (RMB tap still throws), the braced-spear wolf kill goes; dodge answers a charge | wave 3 Q4c, wave 5 Q2 | sol-j14 | open |
+| J15 | Play the template from developer mode (E373): with Settings ▸ Developer on, the title deck shows the hidden template at the end; its card has a "DEVELOPER ONLY" ribbon and the level a "DEVELOPER ONLY · TEMPLATE" banner; the `showHiddenShards` Debug row goes. Phone captures for Jake | E373 (typed) | sol-j15 | open |
 
 ## Finish rows (lead audit 2026-10-01 on 97453d22)
 
