@@ -1,50 +1,48 @@
 # Sky Reach (`far-reach`)
 
-Floating grass-topped islands above a sea of cloud at golden hour (E364, Jake's pick **B · Sky Reach**). Rope bridges
-walk; the glowing **hover bridges carry only a hoverboard rider** (Jake's rule: on foot you fall through). The war fan
-SWINGs and GUSTs; a drift ray circles, dives along a lane at you and glides back out of reach. One quest: raise the
-fallen bridge to the windmill island. Built from `docs/SHARDS.md`, `src/shards/_template/` and `docs/ENGINE.md` (E357 Z3,
-round 3 clean-room rebuild).
+Floating grass islands over a sea of cloud at golden hour (Jake's pick **B · Sky Reach**, E364). Rope bridges carry
+you on foot; the glowing hover bridges carry only a hoverboard rider, so on foot you fall straight through. Built from
+`docs/SHARDS.md`, the template and `docs/ENGINE.md` alone (E357 Z3 round 4).
 
 ## What it declares
 
 | Field | Value |
 |---|---|
-| `status`, `order` | `experimental`, 6 |
+| `status`, `order` | `experimental`, 60 |
 | `style`, `kitLook` | `skyReach` (its own label), `toon` |
-| `uses` | `quests`, `hover`, `explore`, `coins`, `loot`, `feats` |
-| `ground` | `structures: true`: four islands, bridges and props are registry pieces. The `terrain` field is never drawn or collided; it answers placement with the island tops (y 30) and the void |
-| `world` | `killY: 10` (creatures below die `out-of-world`); `bounds.floor` 14 soft-respawns a falling player |
+| `ground` | `structures: true`: four islands and their bridges are registry pieces (`world/build.ts`); no terrain |
+| `world`, `bounds` | `killY` 6 m (creature death plane); a soft-respawn floor 12 m for a player who falls |
 | `horizon`, `boundary` | no ridge rings, the engine's cloud sea; no drawn edge |
+| `uses` | `hover`, `quests`, `coins`, `loot` |
 | `loadout` | the war fan (held) and the kit hoverboard |
-| `species` | `driftRay` (flying, `above: 'world'`) |
-| `audio` | `ambience: 'none'`, silent score `far.silent`, kit blade voices for the fan's cues |
-| `assets` | none: inline SVG card, everything else built in code |
-| saves | `far-reach.rewarded` (shard scope) and the quest flags (`far.bridge`, `far.windmill`) |
+| `species` | `driftRay` (a flyer, `flight.above: 'world'`) |
+| `audio` | `ambience: 'none'`, a silent score, kit sword cues; no `preload` (asset-free) |
+| `assets` | none: code-built models, an inline SVG card, no KTX2, no asset globs |
+| saves | one shard key, `far-reach.rewarded` |
 
 ## Its custom code, and why
 
 | File | What |
 |---|---|
-| `layout.ts` | every coordinate: islands, bridges (`bridgeEnds` puts a hover deck `HOVER_GAP` clear of each rim), winch, mill, ray orbit |
-| `world/islands.ts` | one faceted vertex-colour island mesh (grass top, lip, rock cone) and its walkable hull collider |
-| `world/build.ts` | the pieces: islands, rope bridge (deck + rail colliders), hover bridges (`active: () => app.player?.mode === 'board'`), the fallen bridge (`active` once raised), instanced pines and rocks, the windmill, the winch |
-| `look/render.ts`, `world/climate.ts` | the `LookStrategy`: a golden-hour gradient dome with a low sun as the backdrop's `clouds`, a fixed key light, rose linear fog via `patchShader`, an empty terrain painter |
-| `weapons/WarFan.ts`, `fanModel.ts`, `rows.ts` | rung 3 (`extends Weapon`): SWING via `blocks.melee`, held = heavy; GUST (`far.gust`, verb 1 / G) gives every body in a 50° cone an `impulse` |
-| `species/driftRay.ts` | the species (`flight`), a custom rig (`body`, `head`, wings, tail) and `DriftRayBrain`: circle → telegraph hover → `sphere` dive along a `lead` lane → rise |
-| `quest/install.ts` | "The fallen bridge": raise it, cross to the windmill; 10 coins once |
-| `plugin.ts` | the hooks; the winch lift, the hover-deck glow, the gust ring, the ray's spawn and respawn |
+| `layout.ts` | every coordinate: the islands, the three spans, the winch, the rays' homes; `HOVER_GAP` keeps a hover deck clear of every rim |
+| `world/shapes.ts` | flat-shaded vertex-coloured islands (12-gon grass top, violet keel), instanced pines, plank bridges, the windmill, the winch |
+| `world/build.ts` | the pieces: island tops (six box strips cover the 12-gon), the rope bridge (deck + rails), the hover bridge (`active` only while `app.player.mode === 'board'`), the fallen bridge (`active` once raised), the windmill, the winch interactable |
+| `weapons/WarFan.ts` | the war fan (rung 3, `extends Weapon`): SWING arc slash and the held / HEAVY slash through `blocks.melee`; GUST (touch `verb.1`, key G) gives every creature in a 9 m cone `animal.impulse` away and a 4-point hit |
+| `species/driftRay.ts` | the drift ray: species + custom rig (body, head, wings, tail) + `DriftRayBrain` (circle → stalk → hang → dive → rise) with a `sphere` dive strike |
+| `quest/install.ts` | *The fallen bridge*: raise it with the winch, cross to the windmill; 10 coins once |
+| `look/render.ts` | `extend` look: the clean engine chain, a violet → rose → gold dome with a sun glow, a warm raking key, rose distance fog |
+| `plugin.ts` | the hooks, the fan's input context (SWING relabel on `r0`, GUST verb), the winch, the hover-deck glow, the gust ring, the rays |
 
 ## Budgets
 
-`budgets.ts` keeps the template's inputs and the generated `ceilings` (`budgetCeilings.ts`, measured data, not edited).
+The template's inputs (phone 30 fps / 9.6 ms, desktop 60 fps / 4.8 ms); `ceilings` are the recorded ones in
+`budgetCeilings.ts`.
 
 ## Look
 
-Low-poly, flat-shaded vertex colour (Driftwood-like facets, its own palette): lavender zenith, rose band, peach
-horizon, olive grass tops over plum rock, a pale cloud sea. Matches the round-3 board Jake kept
-(`art/far-reach/round-3-rebuild/board-b3d04ba7.jpg`); round 4 is `art/far-reach/round-4-rebuild/`.
+Low-poly and flat-shaded: lavender-to-gold sky, sage grass, violet rock keels, dusk-purple pines, a cyan glass hover
+bridge. Matches `art/far-reach/round-4-rebuild/board-3aac2db1.jpg` (Jake: the look stands).
 
 ## Open asks
 
-- E364: Jake's board picks and polish (own SFX and a wind bed; waterfalls off the rims).
+- E364: the shard (this rebuild, Z3 round 4); own SFX and a wind bed are a later polish ask.

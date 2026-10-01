@@ -1,25 +1,20 @@
-import { BufferGeometry, DoubleSide, Float32BufferAttribute, Group, Mesh, MeshStandardMaterial, BoxGeometry } from 'three';
+import { BoxGeometry, BufferGeometry, Float32BufferAttribute, Group, Mesh, MeshStandardMaterial } from 'three';
 
-const RIBS = 7, SPREAD = 1.9, LENGTH = 0.3;
-
-/** The war fan in camera space: dark lacquer ribs and a deep-blue cloth leaf, small in the lower right of a portrait frame. */
-export function buildFan(): Group {
-  const fan = new Group(), leaf = new Group();
-  const rib = new MeshStandardMaterial({ color: 0x1d1a20, flatShading: true, roughness: 0.5 });
-  const cloth = new MeshStandardMaterial({ color: 0x1f5f86, flatShading: true, roughness: 0.8, side: DoubleSide });
-  const pos: number[] = [];
-  for (let i = 0; i < RIBS; i++) {
-    const a = -SPREAD / 2 + (i / (RIBS - 1)) * SPREAD;
-    const bar = new Mesh(new BoxGeometry(0.012, LENGTH, 0.008), rib); bar.position.set(Math.sin(a) * LENGTH / 2, Math.cos(a) * LENGTH / 2, 0); bar.rotation.z = -a; leaf.add(bar);
-    if (i === RIBS - 1) continue;
-    const b = a + SPREAD / (RIBS - 1), r0 = LENGTH * 0.35, r1 = LENGTH * 0.97;
-    pos.push(Math.sin(a) * r0, Math.cos(a) * r0, 0, Math.sin(a) * r1, Math.cos(a) * r1, 0, Math.sin(b) * r1, Math.cos(b) * r1, 0,
-      Math.sin(a) * r0, Math.cos(a) * r0, 0, Math.sin(b) * r1, Math.cos(b) * r1, 0, Math.sin(b) * r0, Math.cos(b) * r0, 0);
+/** The war fan: seven navy silk panels between iron ribs, opened in a half circle, on a short grip. */
+export function fanModel(): Group {
+  const group = new Group(), silk = new MeshStandardMaterial({ color: 0x2b3f78, flatShading: true, roughness: 0.8, side: 2 });
+  const iron = new MeshStandardMaterial({ color: 0x2a2530, flatShading: true, roughness: 0.5, metalness: 0.4 });
+  const ribs = 8, reach = 0.42, from = -Math.PI * 0.45, to = Math.PI * 0.45, pos: number[] = [];
+  for (let i = 0; i < ribs - 1; i++) {
+    const a = from + ((to - from) * i) / (ribs - 1), b = from + ((to - from) * (i + 1)) / (ribs - 1);
+    pos.push(0, 0.06, 0, Math.sin(a) * reach, Math.cos(a) * reach, 0, Math.sin(b) * reach, Math.cos(b) * reach, 0);
   }
-  const geometry = new BufferGeometry(); geometry.setAttribute('position', new Float32BufferAttribute(pos, 3)); geometry.computeVertexNormals();
-  leaf.add(new Mesh(geometry, cloth));
-  const grip = new Mesh(new BoxGeometry(0.03, 0.12, 0.03), rib); grip.position.y = -0.05; leaf.add(grip);
-  leaf.rotation.set(-0.5, 0.35, -0.55);
-  fan.add(leaf); fan.position.set(0.24, -0.27, -0.5);
-  return fan;
+  const panels = new BufferGeometry(); panels.setAttribute('position', new Float32BufferAttribute(pos, 3)); panels.computeVertexNormals();
+  group.add(new Mesh(panels, silk));
+  for (let i = 0; i < ribs; i++) {
+    const a = from + ((to - from) * i) / (ribs - 1), rib = new Mesh(new BoxGeometry(0.014, reach, 0.014), iron);
+    rib.position.set(Math.sin(a) * reach / 2, Math.cos(a) * reach / 2, 0.004); rib.rotation.z = -a; group.add(rib);
+  }
+  const grip = new Mesh(new BoxGeometry(0.035, 0.16, 0.035), iron); grip.position.y = -0.05; group.add(grip);
+  return group;
 }

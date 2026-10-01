@@ -1,44 +1,43 @@
 import { BackSide, Color, Fog, Mesh, ShaderMaterial, SphereGeometry, Vector3, type Object3D } from 'three';
-import { patchShader, PATCH_ORDER, type LookStrategy } from '#engine';
-import { createDay, SUN_DIR } from '../world/climate';
+import { DayCycle, patchShader, PATCH_ORDER, type LookStrategy } from '#engine';
 
-/** Golden-hour palette (the round-3 board Jake kept): lavender zenith, rose band, peach horizon, a pale cloud sea. */
-export const PALETTE = { zenith: new Color(0x7f7cb2), band: new Color(0xd9a7ae), horizon: new Color(0xf2cdb4),
-  cloud: new Color(0xf4e3da), sun: new Color(0xffe2bc), fog: new Color(0xe9c3b8) } as const;
-const FOG_NEAR = 80, FOG_FAR = 340;
+/** Golden hour, fixed: the sun sits low in the west-north-west and rakes across the island tops. */
+export const SUN_DIR = new Vector3(0.75, 0.26, -0.4).normalize();
+export const SKY = { zenith: 0x7d76a8, mid: 0xd4a1ae, horizon: 0xf3c690, below: 0xefe0d8, sun: 0xffd9a0, key: 0xffc488, fog: 0xdcb2b2 } as const;
+export const FOG = { near: 110, far: 460 } as const;
 
-const VERT = 'varying vec3 vDir; void main(){ vDir = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }';
-const FRAG = `uniform vec3 uZenith; uniform vec3 uBand; uniform vec3 uHorizon; uniform vec3 uCloud; uniform vec3 uSun; uniform vec3 uSunDir;
-varying vec3 vDir;
-void main(){
-  vec3 d = normalize(vDir); float h = d.y;
-  vec3 c = mix(uHorizon, uBand, smoothstep(0.0, 0.18, h));
-  c = mix(c, uZenith, smoothstep(0.16, 0.75, h));
-  c = mix(c, uCloud, smoothstep(0.02, -0.12, h));
-  float s = max(dot(d, normalize(uSunDir)), 0.0);
-  c += uSun * (pow(s, 6.0) * 0.35 + pow(s, 400.0) * 1.2);
-  gl_FragColor = vec4(c, 1.0);
-}`;
-
-function isMesh(object: Object3D): object is Mesh { return object instanceof Mesh; }
+/** A fixed golden-hour clock: Sky Reach does not run a day cycle (no `dayCycle` in `uses`). */
+export function createDay(): DayCycle {
+  return new DayCycle({ units: 'hour', start: 17.5, schedule: [{ phase: 'day', from: 0, to: 24, minutes: 1440 }],
+    sun: { maxElevation: 20, azimuthOffset: 300 }, fixed: { midday: 12, golden: 17.5, sunset: 18.5, night: 0 }, presets: { dawn: 6, noon: 12, dusk: 17.5, night: 0 } });
+}
+function hex(value: number): string { const c = new Color(value); return `vec3(${c.r.toFixed(4)},${c.g.toFixed(4)},${c.b.toFixed(4)})`; }
+function primitive(object: Object3D): object is Mesh { return object instanceof Mesh; }
 
 /**
- * Sky Reach's look: it extends the engine's clean chain. Its own parts are a golden-hour gradient dome with a low sun
- * (the backdrop's `clouds`, kept on the camera by the engine), a fixed golden-hour key light, linear rose fog patched
- * into every lit material, and no ground painter (the islands are registry pieces; the terrain field only serves
- * placement and is never drawn).
+ * Sky Reach's look (extend): the engine's clean chain, a gradient dome from violet zenith through rose to a gold horizon
+ * with a soft sun glow, a warm raking key light and a rose distance fog that melts the far islands into the cloud sea.
  */
 export function skyReachLook(): LookStrategy {
   return { mode: 'extend',
     compose: ({ engineChain, scene, scope }) => {
-      scene.fog = new Fog(PALETTE.fog.clone(), FOG_NEAR, FOG_FAR);
+      const dome = new Mesh(new SphereGeometry(900, 32, 16), new ShaderMaterial({ side: BackSide, depthWrite: false, fog: false,
+        uniforms: { sunDir: { value: SUN_DIR } },
+        vertexShader: 'varying vec3 d; void main(){ d=normalize(position); vec4 p=modelViewMatrix*vec4(position,1.0); gl_Position=projectionMatrix*p; }',
+        fragmentShader: `uniform vec3 sunDir; varying vec3 d; void main(){ float h=d.y;
+          vec3 c=mix(${hex(SKY.horizon)},${hex(SKY.mid)},smoothstep(0.0,0.22,h)); c=mix(c,${hex(SKY.zenith)},smoothstep(0.22,0.75,h));
+          c=mix(c,${hex(SKY.below)},smoothstep(0.0,-0.12,h));
+          float s=max(dot(normalize(d),sunDir),0.0); c+=${hex(SKY.sun)}*(pow(s,48.0)*0.9+pow(s,6.0)*0.22);
+          gl_FragColor=vec4(c,1.0); }` }));
+      dome.renderOrder = -10; dome.frustumCulled = false; scene.add(dome);
+      scope.own(dome.geometry); scope.own(dome.material); scope.onDispose(() => { dome.removeFromParent(); });
+      scene.fog = new Fog(new Color(SKY.fog), FOG.near, FOG.far);
       scene.traverse((object) => {
-        if (!isMesh(object)) return;
+        if (!primitive(object) || object === dome) return;
         for (const material of Array.isArray(object.material) ? object.material : [object.material]) {
-          if (material instanceof ShaderMaterial) continue;
-          patchShader(material, 'far.linear-fog', PATCH_ORDER.decorate, (shader) => {
+          patchShader(material, 'far.rose-fog', PATCH_ORDER.decorate, (shader) => {
             shader.fragmentShader = shader.fragmentShader.replace('#include <fog_fragment>',
-              `#ifdef USE_FOG\n gl_FragColor.rgb = mix(gl_FragColor.rgb, fogColor, clamp((length(vFogWorldPos - cameraPosition) - ${FOG_NEAR.toFixed(1)}) / ${(FOG_FAR - FOG_NEAR).toFixed(1)}, 0.0, 1.0));\n#endif`);
+              `#ifdef USE_FOG\n gl_FragColor.rgb=mix(gl_FragColor.rgb,fogColor,clamp((length(vFogWorldPos-cameraPosition)-${FOG.near.toFixed(1)})/${(FOG.far - FOG.near).toFixed(1)},0.0,1.0)*0.85);\n#endif`);
           }, { scope });
         }
       });
@@ -46,17 +45,10 @@ export function skyReachLook(): LookStrategy {
     },
     sky: { clouds: false, planet: false },
     backdrop: ({ sky }) => {
-      const clock = createDay(), key = new Color(1, 0.8, 0.62), dir = SUN_DIR.clone();
-      const material = new ShaderMaterial({ side: BackSide, depthWrite: false, fog: false, vertexShader: VERT, fragmentShader: FRAG,
-        uniforms: { uZenith: { value: PALETTE.zenith }, uBand: { value: PALETTE.band }, uHorizon: { value: PALETTE.horizon },
-          uCloud: { value: PALETTE.cloud }, uSun: { value: PALETTE.sun }, uSunDir: { value: new Vector3().copy(dir) } } });
-      const dome = new Mesh(new SphereGeometry(900, 32, 16), material);
-      dome.renderOrder = -10; dome.frustumCulled = false;
-      return Promise.resolve({ clock, horizon: PALETTE.horizon.clone(), lut: null, clouds: dome,
-        bind: () => undefined,
-        update: (dt: number) => { clock.update(dt); sky.setKeyLight(dir, key, 2.4); },
+      const clock = createDay(), key = new Color(SKY.key);
+      return Promise.resolve({ clock, horizon: new Color(SKY.horizon), lut: null,
+        bind: () => undefined, update: (dt: number) => { clock.update(dt); sky.setKeyLight(SUN_DIR, key, 2.3); },
         rebuild: () => undefined, attachPost: () => undefined });
     },
-    terrainPainter: { build: () => Promise.resolve() },
   };
 }

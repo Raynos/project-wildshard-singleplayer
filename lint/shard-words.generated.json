@@ -35,14 +35,14 @@
     "sunscar.creature.duneRay",
     "weapon.bow",
     "weapon.crossbow",
+    "weapon.far-fan",
     "weapon.jian",
     "weapon.lever",
     "weapon.longbow",
     "weapon.rifle",
     "weapon.sabre",
     "weapon.spear",
-    "weapon.sunscar-whip",
-    "weapon.war-fan"
+    "weapon.sunscar-whip"
   ],
   "sharedAssets": [
     "public/assets/tex/**",
@@ -87,7 +87,7 @@
       "name": "Sky Reach",
       "ids": [
         "far.creature.driftRay",
-        "weapon.war-fan"
+        "weapon.far-fan"
       ],
       "settings": [],
       "assets": []

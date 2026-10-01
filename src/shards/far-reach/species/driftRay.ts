@@ -1,96 +1,115 @@
-import { CreatureBrain, StrikeRunner, canReach, NO_FUR, type SpeciesRow, type SpeciesLook, type Animal, type ThinkCtx, type StrikeSpec, type StrikeContext } from '#engine';
-import { BufferGeometry, Float32BufferAttribute, Uint16BufferAttribute } from 'three';
-import { RAY } from '../layout';
+import { CreatureBrain, StrikeRunner, NO_FUR, type Animal, type SpeciesLook, type SpeciesRow, type StrikeContext, type StrikeSpec, type ThinkCtx } from '#engine';
+import { Color, Float32BufferAttribute, BufferGeometry, Uint16BufferAttribute, Vector3 } from 'three';
+import { DECK, RAY_HOMES } from '../layout';
 import { STRINGS } from '../strings';
 
-/** The dive: a committed lane toward where you stand, contact in 3-D (a sphere round the ray), then a glide back up. */
-export const RAY_STRIKES: readonly StrikeSpec[] = [
-  { id: 'far.ray.dive', shape: { kind: 'sphere', radius: 2.4 }, windup: 1.3, active: 1.6, recover: 0.9, cooldown: 6, range: 48, damage: 10,
-    tags: ['creature.driftRay'], motion: { track: 'lead', speed: 17, overshoot: 7 }, eligibility: { maxDy: 30 }, weight: () => 1 },
-];
-/** how high above the player the ray hangs while it telegraphs, and where its dive lane runs */
-export const TELEGRAPH_UP = 7, DIVE_UP = 1.1;
+/** The dive: a 3-D sphere contact around the ray, tested against the player's chest (ENGINE §19 "Short flyer"). */
+export const DIVE: StrikeSpec = { id: 'far.ray.dive', shape: { kind: 'sphere', radius: 1.9 }, windup: 1.1, active: 1.1, recover: 0.6, cooldown: 5,
+  range: 14, damage: 10, tags: ['creature.driftRay'], units: 'world', weight: () => 1 };
+/** How the ray flies: its circle speed, how high it hangs over the player before the dive, its dive speed, its rest after one. */
+export const RAY = { circleSpeed: 8, hang: 9, stalkSpeed: 10, diveSpeed: 16, rest: 6, notice: 40, giveUp: 60 } as const;
+type RayState = 'circle' | 'stalk' | 'dive' | 'rise';
 
-type RayState = 'circle' | 'dive' | 'rise';
-/** Circles its roost high above Sunrest, dives at the player along a lane, then rises back out of reach. */
 export class DriftRayBrain extends CreatureBrain<RayState> {
   private readonly strikes = new StrikeRunner();
-  private angle = 0; private calmFor = 4; private riseFor = 0;
-  constructor(actor: Animal) { super(actor, ['circle', 'dive', 'rise']); this.angle = Math.atan2(actor.position.x - RAY.x, actor.position.z - RAY.z); }
-  private context(ctx: ThinkCtx): StrikeContext {
-    const a = this.actor;
-    return { actor: a, target: ctx.player, canReach: () => canReach(a, ctx.player), hit: (strike) => { ctx.hurt(strike.damage); } };
+  private readonly home: { x: number; z: number; r: number; y: number };
+  private angle = 0; private rest = 3; private timer = 0; private diving = 0;
+  private readonly chest = new Vector3();
+  constructor(actor: Animal, home: { x: number; z: number; r: number; y: number }) {
+    super(actor, ['circle', 'stalk', 'dive', 'rise']); this.home = home; this.angle = Math.atan2(actor.position.z - home.z, actor.position.x - home.x);
   }
-  get phase(): string { return this.strikes.state; }
+  private strike(ctx: ThinkCtx): StrikeContext {
+    const a = this.actor; this.chest.copy(ctx.player); this.chest.y += 1.2;
+    return { actor: a, target: this.chest, canReach: () => ctx.reach(a), hit: (spec) => { ctx.hurt(spec.damage); } };
+  }
   override think(ctx: ThinkCtx): void {
     const a = this.actor; if (!a.alive) return;
-    if (this.state === 'dive' && !this.strikes.busy) { this.transition('rise'); this.riseFor = 3.5; return; }
-    if (this.state !== 'circle' || ctx.calm || this.calmFor > 0) return;
-    const pick = this.strikes.pick(RAY_STRIKES, this.context(ctx));
-    if (pick) { this.strikes.start(pick, a, ctx.player); this.transition('dive'); }
+    if (ctx.calm) { if (this.state !== 'circle') { this.strikes.cancel(); a.cancelAttack(); this.transition('circle'); } return; }
+    this.rest -= ctx.dt; this.timer += ctx.dt;
+    const d = Math.hypot(ctx.player.x - a.position.x, ctx.player.z - a.position.z);
+    if (this.state === 'circle' && this.rest <= 0 && d < RAY.notice && ctx.mayAttack(a)) { this.timer = 0; this.transition('stalk'); }
+    else if (this.state === 'stalk' && (d > RAY.giveUp || this.timer > 12)) this.transition('rise');
+    else if (this.state === 'rise' && a.position.y > this.home.y - 2) this.transition('circle');
   }
   override act(ctx: ThinkCtx): void {
-    const a = this.actor; this.calmFor = Math.max(0, this.calmFor - ctx.dt);
-    if (this.state === 'dive') {
-      const windup = this.strikes.state === 'windup', active = this.strikes.state === 'active';
-      // Altitude first; the runner's lane heading (set inside update) wins over this steer's heading.
-      ctx.flight.steer(a, a.yaw, 0, ctx.player.y + (windup ? TELEGRAPH_UP : active ? DIVE_UP : RAY.altitude), 3);
-      this.strikes.update(ctx.dt, this.context(ctx));
-      return;
+    const a = this.actor; if (!a.alive) return;
+    const p = ctx.player, dx = p.x - a.position.x, dz = p.z - a.position.z, d = Math.hypot(dx, dz), toPlayer = Math.atan2(dx, dz);
+    const strike = this.strike(ctx);
+    if (this.state === 'circle') {
+      this.angle += (ctx.dt * RAY.circleSpeed) / this.home.r;
+      const tx = this.home.x + Math.cos(this.angle) * this.home.r, tz = this.home.z + Math.sin(this.angle) * this.home.r;
+      ctx.flight.steer(a, Math.atan2(tx - a.position.x, tz - a.position.z), RAY.circleSpeed, this.home.y, 1.6);
+    } else if (this.state === 'stalk') {
+      const over = p.y + RAY.hang;
+      ctx.flight.steer(a, toPlayer, Math.min(RAY.stalkSpeed, d * 1.5), over, 3);
+      if (d < 3 && Math.abs(a.position.y - over) < 1.6 && !this.strikes.busy && ctx.reach(a) && ctx.claim(a)) {
+        this.strikes.start(DIVE, a, this.chest); this.diving = 0; this.transition('dive');
+      }
+    } else if (this.state === 'dive') {
+      this.diving += ctx.dt;
+      // The windup is the telegraph: the ray hangs still over the player, then drops onto the chest.
+      if (this.diving < DIVE.windup) ctx.flight.steer(a, toPlayer, 0, p.y + RAY.hang, 3);
+      else ctx.flight.steer(a, toPlayer, RAY.diveSpeed, this.chest.y, 4);
+      this.strikes.update(ctx.dt, strike);
+      if (!this.strikes.busy) { this.rest = RAY.rest; this.transition('rise'); }
+    } else {
+      ctx.flight.steer(a, toPlayer + Math.PI, RAY.circleSpeed, this.home.y, 2);
     }
-    this.strikes.update(ctx.dt, this.context(ctx));
-    if (this.state === 'rise') {
-      this.riseFor -= ctx.dt;
-      const back = Math.atan2(RAY.x - a.position.x, RAY.z - a.position.z);
-      ctx.flight.steer(a, back, 9, RAY.altitude, 1.6);
-      if (this.riseFor <= 0) { this.transition('circle'); this.calmFor = 5; this.angle = Math.atan2(a.position.x - RAY.x, a.position.z - RAY.z); }
-      return;
-    }
-    this.angle += ctx.dt * 0.32;
-    const tx = RAY.x + Math.sin(this.angle) * RAY.radius, tz = RAY.z + Math.cos(this.angle) * RAY.radius;
-    ctx.flight.steer(a, Math.atan2(tx - a.position.x, tz - a.position.z), 8.5, RAY.altitude, 1.8);
   }
 }
 const brains = new WeakMap<Animal, DriftRayBrain>();
-export const rayBrain = (a: Animal): DriftRayBrain => { let value = brains.get(a); if (!value) { value = new DriftRayBrain(a); brains.set(a, value); } return value; };
-
+const brain = (a: Animal): DriftRayBrain => {
+  let value = brains.get(a);
+  if (!value) {
+    const home = RAY_HOMES.reduce((best, h) => Math.hypot(h.x - a.position.x, h.z - a.position.z) < Math.hypot(best.x - a.position.x, best.z - a.position.z) ? h : best, RAY_HOMES[0]);
+    value = new DriftRayBrain(a, home); brains.set(a, value);
+  }
+  return value;
+};
 export const DRIFT_RAY: SpeciesRow = { id: 'far.creature.driftRay', kind: 'driftRay', label: STRINGS.ray, aggressive: true, blood: false,
-  flight: { altitude: RAY.altitude, above: 'world', climbRate: 7, diveRate: 16 },
-  variants: [{ id: 'dusk', label: STRINGS.ray, weight: 1, rarity: 'common', scale: [1, 1], hp: 70 }],
-  think: (a, ctx) => { rayBrain(a).think(ctx); }, act: (a, ctx) => { rayBrain(a).act(ctx); } };
+  flight: { altitude: DECK + 14, above: 'world', climbRate: 6, diveRate: 20 },
+  variants: [{ id: 'dusk', label: STRINGS.ray, weight: 1, rarity: 'common', scale: [1, 1], hp: 50 }],
+  think: (a, ctx) => { brain(a).think(ctx); }, act: (a, ctx) => { brain(a).act(ctx); } };
 
-/** Bone order: body (first, required), head (required), the two wings, the tail. */
-const BONES = ['body', 'head', 'wingL', 'wingR', 'tail'] as const;
-function rayGeometry(): BufferGeometry {
-  const top = [0.18, 0.14, 0.24], belly = [0.62, 0.52, 0.58], edge = [0.3, 0.22, 0.32];
-  const nose = [0, 0, 1.7], tipL = [-2.8, 0.05, -0.3], tipR = [2.8, 0.05, -0.3], back = [0, 0, -1.2], hump = [0, 0.38, 0.2], keel = [0, -0.22, 0.2];
-  const tail = [0, 0.02, -3.6], tailL = [-0.12, 0, -1.25], tailR = [0.12, 0, -1.25];
-  const pos: number[] = [], col: number[] = [], bone: number[] = [];
-  const boneOf = (p: number[]): number => { const x = p[0] ?? 0, z = p[2] ?? 0; return z < -1.3 ? 4 : x < -0.7 ? 2 : x > 0.7 ? 3 : z > 1.2 ? 1 : 0; };
-  const tri = (a: number[], b: number[], c: number[], color: number[]): void => {
-    for (const p of [a, b, c]) { pos.push(...p); col.push(...color); bone.push(boneOf(p)); }
+/** Bone indices in build().bones order. */
+const BODY = 0, HEAD = 1, WING_L = 2, WING_R = 3, TAIL = 4;
+/** A flat manta: an eight-point outline lofted to a ridge on top and a pale belly, a whip tail. Faces +Z. */
+export function rayGeometry(): BufferGeometry {
+  const y = 0.3, v = (x: number, yy: number, z: number, bone: number): [Vector3, number] => [new Vector3(x, yy, z), bone];
+  const outline = [v(0, y, 1.8, HEAD), v(1.3, y + 0.08, 0.9, BODY), v(2.7, y + 0.06, -0.4, WING_L), v(1, y + 0.03, -0.9, BODY),
+    v(0, y, -1.2, BODY), v(-1, y + 0.03, -0.9, BODY), v(-2.7, y + 0.06, -0.4, WING_R), v(-1.3, y + 0.08, 0.9, BODY)];
+  const top = v(0, y + 0.42, 0.2, BODY), belly = v(0, y - 0.2, 0.2, BODY);
+  const pos: number[] = [], col: number[] = [], bones: number[] = [], c = new Color();
+  const face = (corners: [Vector3, number][], color: number, up: boolean): void => {
+    const [a, b, d] = corners; if (!a || !b || !d) return;
+    const n = b[0].clone().sub(a[0]).cross(d[0].clone().sub(a[0]));
+    const ordered = (n.y > 0) === up ? [a, b, d] : [a, d, b]; c.setHex(color);
+    for (const [p, bone] of ordered) { pos.push(p.x, p.y, p.z); col.push(c.r, c.g, c.b); bones.push(bone); }
   };
-  tri(nose, tipR, hump, top); tri(hump, tipR, back, top); tri(nose, hump, tipL, top); tri(hump, back, tipL, top);
-  tri(nose, keel, tipR, belly); tri(keel, back, tipR, belly); tri(nose, tipL, keel, belly); tri(keel, tipL, back, belly);
-  tri(tailL, tail, tailR, edge); tri(tailL, tailR, tail, edge);
-  const geometry = new BufferGeometry();
-  geometry.setAttribute('position', new Float32BufferAttribute(pos, 3)); geometry.setAttribute('color', new Float32BufferAttribute(col, 3));
-  const count = pos.length / 3, index = new Uint16Array(count * 4), weight = new Float32Array(count * 4);
-  for (let i = 0; i < count; i++) { index[i * 4] = bone[i] ?? 0; weight[i * 4] = 1; }
-  geometry.setAttribute('skinIndex', new Uint16BufferAttribute(index, 4)); geometry.setAttribute('skinWeight', new Float32BufferAttribute(weight, 4));
-  geometry.computeVertexNormals();
-  return geometry;
+  for (let i = 0; i < outline.length; i++) {
+    const a = outline[i], b = outline[(i + 1) % outline.length]; if (!a || !b) continue;
+    face([a, b, top], i % 2 ? 0x3b3550 : 0x463e5e, true); face([a, b, belly], 0xd8c4c0, false);
+  }
+  const tailRoot = outline[4]?.[0] ?? new Vector3(), tip = v(0, y, -3.4, TAIL);
+  face([v(0.1, y, tailRoot.z, BODY), v(-0.1, y, tailRoot.z, BODY), tip], 0x2e2940, true);
+  face([v(0.1, y, tailRoot.z, BODY), v(-0.1, y, tailRoot.z, BODY), tip], 0x2e2940, false);
+  const g = new BufferGeometry(), count = pos.length / 3;
+  g.setAttribute('position', new Float32BufferAttribute(pos, 3)); g.setAttribute('color', new Float32BufferAttribute(col, 3));
+  const index = new Uint16Array(count * 4), weight = new Float32Array(count * 4);
+  for (let i = 0; i < count; i++) { index[i * 4] = bones[i] ?? BODY; weight[i * 4] = 1; }
+  g.setAttribute('skinIndex', new Uint16BufferAttribute(index, 4)); g.setAttribute('skinWeight', new Float32BufferAttribute(weight, 4));
+  g.computeVertexNormals(); return g;
 }
-
 export const DRIFT_RAY_LOOK: SpeciesLook = { id: 'far.look.driftRay', species: DRIFT_RAY.id, kind: 'driftRay', rig: 'custom', fur: NO_FUR,
-  rigContract: { skeleton: 'far.driftRay', sockets: [...BONES], clips: ['idle', 'fly', 'attack', 'hit', 'die'] },
+  rigContract: { skeleton: 'far.driftRay', sockets: ['body', 'head', 'wingL', 'wingR', 'tail'], clips: ['idle', 'fly', 'attack', 'hit', 'die'] },
   build: () => ({
-    bones: [{ name: 'body', parent: null, pos: [0, 0, 0] }, { name: 'head', parent: 'body', pos: [0, 0.05, 1.4] },
-      { name: 'wingL', parent: 'body', pos: [-0.7, 0, 0] }, { name: 'wingR', parent: 'body', pos: [0.7, 0, 0] }, { name: 'tail', parent: 'body', pos: [0, 0, -1.3] }],
+    bones: [{ name: 'body', parent: null, pos: [0, 0.3, 0] }, { name: 'head', parent: 'body', pos: [0, 0.3, 1.5] },
+      { name: 'wingL', parent: 'body', pos: [1, 0.3, 0] }, { name: 'wingR', parent: 'body', pos: [-1, 0.3, 0] }, { name: 'tail', parent: 'body', pos: [0, 0.3, -1.2] }],
     furParts: [], hardParts: [rayGeometry()], eyeParts: [],
-    dims: { bodyY: 0, bodyHalfLen: 1.4, bodyRadius: 0.7, headRadius: 0.35, legLen: 0, feet: [], halfWidth: 2.8 } }),
+    dims: { bodyY: 0.3, bodyHalfLen: 1.4, bodyRadius: 0.9, headRadius: 0.4, legLen: 0.1, feet: [], halfWidth: 2.7 } }),
   animate: ({ bones, t, alive }) => {
-    const flap = alive ? Math.sin(t * 2.1) * 0.32 : -0.6, l = bones['wingL'], r = bones['wingR'], tail = bones['tail'];
-    if (l) l.rotation.z = -flap; if (r) r.rotation.z = flap; if (tail) tail.rotation.y = alive ? Math.sin(t * 1.3) * 0.25 : 0;
+    const flap = alive ? Math.sin(t * 2.3) * 0.38 : 0.6;
+    const left = bones['wingL'], right = bones['wingR'], tail = bones['tail'];
+    if (left) left.rotation.z = flap; if (right) right.rotation.z = -flap; if (tail) tail.rotation.y = alive ? Math.sin(t * 1.4) * 0.25 : 0;
   },
 };

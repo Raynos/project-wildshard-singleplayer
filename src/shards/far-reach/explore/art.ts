@@ -1,11 +1,11 @@
-// An inline SVG card: golden-hour sky, the cloud sea and two floating islands. No downloadable art.
-const SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="390" height="844" viewBox="0 0 390 844">'
-  + '<defs><linearGradient id="s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8f88b8"/><stop offset="0.55" stop-color="#e8b8b0"/><stop offset="1" stop-color="#f6d6b8"/></linearGradient></defs>'
-  + '<rect width="390" height="844" fill="url(#s)"/><circle cx="270" cy="470" r="46" fill="#ffe7c2" opacity="0.85"/>'
-  + '<path d="M0 600 Q100 570 200 600 T390 590 V844 H0Z" fill="#f3e2d6"/>'
-  + '<path d="M40 420h170l-30 20-55 120-30-120z" fill="#5a3f4a"/><path d="M40 420h170v-8H40z" fill="#6f8a4a"/>'
-  + '<path d="M240 330h110l-20 14-35 80-22-80z" fill="#5a3f4a"/><path d="M240 330h110v-6H240z" fill="#6f8a4a"/>'
-  + '<path d="M150 412l6-60h8l6 60z" fill="#4b3a40"/><path d="M160 352l-40-30 4-4 40 30zM160 352l30-40 5 4-30 40z" fill="#3a2c33"/>'
-  + '<path d="M210 418L240 334" stroke="#7fe0ff" stroke-width="4" opacity="0.8"/></svg>';
-export const SKY_CARD = `data:image/svg+xml,${encodeURIComponent(SVG)}`;
+// An inline SVG card: a golden-hour sky, the cloud sea and three floating islands. No download (ENGINE §8).
+const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="390" height="844"><defs><linearGradient id="s" x1="0" y1="0" x2="0" y2="1">'
+  + '<stop offset="0" stop-color="#8e86b4"/><stop offset="0.55" stop-color="#d9a3a8"/><stop offset="0.8" stop-color="#f3c98c"/></linearGradient></defs>'
+  + '<rect width="390" height="844" fill="url(#s)"/><circle cx="300" cy="560" r="40" fill="#fbe2a6"/>'
+  + '<rect y="640" width="390" height="204" fill="#efe1dc"/>'
+  + '<path d="M40 470h150l-40 120h-70z" fill="#4b3a58"/><path d="M40 470h150v-10H40z" fill="#8a9a5b"/>'
+  + '<path d="M230 400h120l-30 90h-60z" fill="#4b3a58"/><path d="M230 400h120v-8H230z" fill="#8a9a5b"/>'
+  + '<path d="M190 466L232 398" stroke="#9fe6f2" stroke-width="4"/><path d="M290 392v-60l12 60z" fill="#3a2f45"/>'
+  + '<path d="M296 336l-26-20M296 336l26-20M296 336l-20 26M296 336l20 26" stroke="#3a2f45" stroke-width="5"/></svg>';
+export const SKY_CARD = `data:image/svg+xml,${encodeURIComponent(svg)}`;
 export const EXPLORE = { art: { world: SKY_CARD, models: SKY_CARD, sets: SKY_CARD, practice: SKY_CARD } };

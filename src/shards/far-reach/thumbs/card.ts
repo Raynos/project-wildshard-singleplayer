@@ -1,2 +1,2 @@
-/** The title card is the inline SVG in `explore/art.ts`: no asset fetch. */
+/** The title card is the inline SVG from explore/art.ts: no asset download. */
 export { SKY_CARD } from '../explore/art';
