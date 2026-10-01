@@ -24,7 +24,7 @@
  */
 import * as THREE from 'three';
 import type { Player } from './Player';
-import type { WeaponId, Weapons } from './Weapons';
+import type { EquipmentService } from '../combat/EquipmentService';
 import { getAimTargets, lockOn, targetRadius, type AimTarget } from './AimTargets';
 import { lineOfSight } from '../physics/query';
 import { activePhysics } from '../physics/active';
@@ -54,7 +54,6 @@ export const LOCK = {
 const HOSTILE: ReadonlySet<string> = new Set(['crab', 'boar', 'monkey', 'sailor', 'bear', 'captain',
   'wolf', 'kokbori', 'leopard', 'eagle', 'ghost-rider', 'balbal', 'golden-king', 'storm-titan', 'training-dummy']);
 /** the weapons that lock: the Driftwood swords and Nalati's sabre + spear (H3). The bow waits for its own lock (H4 / N18) */
-export const LOCK_WEAPONS: ReadonlySet<WeaponId> = new Set<WeaponId>(['sword', 'sword-iron', 'sabre', 'spear']);
 
 export type FlickDir = 'left' | 'right' | 'up' | 'down';
 const SECTOR = Math.tan(60 * DEG); // a flick takes what lies within ±60° of its direction
@@ -141,7 +140,7 @@ export class LockOnSystem {
   private cands: Cand[] = [];
   private mouseSamples: { t: number; dx: number; dy: number }[] = [];
 
-  constructor(private player: Player, private weapons: Weapons, private camera: THREE.PerspectiveCamera) {
+  constructor(private player: Player, private weapons: EquipmentService, private camera: THREE.PerspectiveCamera) {
     const prev = player.preUpdate;
     player.preUpdate = (dt) => { prev?.(dt); this.update(dt); };
     // desktop (§2.1 / L9): Z or the middle mouse button toggles; while locked a mouse flick or the wheel switches
@@ -164,7 +163,7 @@ export class LockOnSystem {
   /** a melee weapon in hand, the game running, on foot */
   private get usable(): boolean {
     const p = this.player;
-    return this.weapons.enabled && LOCK_WEAPONS.has(this.weapons.current.id) && !p.swimming && !p.hover;
+    return this.weapons.enabled && this.weapons.current.row.ui.lockOn && !p.swimming && !p.hover;
   }
 
   toggle(): void {

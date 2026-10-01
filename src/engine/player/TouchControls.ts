@@ -72,15 +72,15 @@
  * locks it. A shard's traversal verb may re-dress LOCK and JUMP (`hint()`, ShardManifest TouchDiscHint, E286: Nine Dragon's
  * GRAPPLE / LOCKED / ZIP in the grapple's gold); every other shard keeps them as they are.
  * Talks to the player through `player.touchMove / touchSprint / touchJump / touchDodge / touchDive / touchSurface`
- * (analog, summed with WASD) and to the held weapon through the Weapons manager's `tryFire() / adsHeld / enabled / swap()`
- * (Weapons.ts). The layer only receives events once the intro is gone (`#hud.intro` hides it), and never needs pointer
+ * (analog, summed with WASD) and to the held weapon through the EquipmentService manager's `tryFire() / adsHeld / enabled / swap()`
+ * (EquipmentService.ts). The layer only receives events once the intro is gone (`#hud.intro` hides it), and never needs pointer
  * lock — iOS has none.
  */
 import type { Player } from './Player';
-import type { WeaponId, Weapons } from './Weapons';
+import type { EquipmentService } from '../combat/EquipmentService';
 import { AimAssist } from './AimAssist';
 import { lockOn, meleeLock } from './AimTargets';
-import { FlickTracker, LOCK_WEAPONS, addLockOffset, type LockOnSystem } from './LockOnTarget';
+import { FlickTracker, addLockOffset, type LockOnSystem } from './LockOnTarget';
 import { getSetting } from '../ui/Settings';
 import { hudSlots } from '../ui/hudSlots';
 import type { TouchDiscHint } from '#game/shard/manifest';
@@ -96,9 +96,7 @@ const SPRINT_AT = 0.85;
 const LOOK_RATE = 0.0095;
 const HOLD_PX = 12;           // an ATTACK touch that travels less than this …
 const HOLD_MS = 250;          // … and is still down after this starts the heavy charge (melee only)
-const MELEE: ReadonlySet<WeaponId> = new Set<WeaponId>(['sword', 'sword-iron', 'sabre']); // ATTACK + hold-heavy (no AIM) while one of these is held (Nalati's sabre too)
 /** Nalati's spear (Spear.ts): THROW (held, a javelin) takes AIM's spot and BRACE (held) takes JUMP's (combat-B mockup) */
-const SPEAR: ReadonlySet<WeaponId> = new Set<WeaponId>(['spear']);
 const LUNGE_TURN_RATE = 6;    // /s — exponential ease of the lunge camera turn (≈ 60 % of the bearing over a 0.15 s lunge)
 const LUNGE_TURN_MAX = 150 * Math.PI / 180; // rad/s cap on it
 const LOCK_LINGER = 0.8;       // s — E319: LOCK stays up this long after the last lockable target leaves its reach
@@ -137,7 +135,7 @@ export class TouchControls {
   private wasRiding = false; // in Nalati's saddle MOVE steers the horse: it never reads ORBIT (`.riding`)
   private hintLock?: HintDisc; private hintJump?: HintDisc; // LOCK / JUMP as a shard's traversal verb re-dresses them (E286)
 
-  constructor(private player: Player, private weapons: Weapons, force = false, private lock?: LockOnSystem) {
+  constructor(private player: Player, private weapons: EquipmentService, force = false, private lock?: LockOnSystem) {
     this.active = force || IS_TOUCH;
     if (!this.active) return;
     const hud = document.getElementById('hud') ?? document.body;
@@ -195,7 +193,7 @@ export class TouchControls {
       if (weapons.enabled && lockOn.state !== 'locked') assist.update(dt, player, weapons.adsHeld, this.lookSpeed); // locked (E50): the lock aims, not the assist
       // AIM (ranged latch) and the ATTACK hold-heavy (melee) share `weapons.adsHeld`; crossing between the two drops it, so a
       // sword never comes up charging and a crossbow never comes up sighted from the other's latch
-      const melee = MELEE.has(weapons.current.id), spear = SPEAR.has(weapons.current.id);
+      const melee = weapons.current.row.ui.touch === 'melee', spear = weapons.current.row.ui.touch === 'spear';
       if (melee !== this.wasMelee || spear !== this.wasSpear) {
         this.wasMelee = melee; this.wasSpear = spear; root.classList.toggle('melee', melee); root.classList.toggle('spear', spear);
         if (weapons.adsHeld) weapons.adsHeld = false;
@@ -203,10 +201,10 @@ export class TouchControls {
         this.heavyHeld = false;
         aim.classList.remove('on'); attack.classList.remove('on');
       }
-      const lockable = LOCK_WEAPONS.has(weapons.current.id), riding = player.ride !== null;
+      const lockable = weapons.current.row.ui.lockOn, riding = player.ride !== null;
       if (lockable !== this.wasLockable) { this.wasLockable = lockable; root.classList.toggle('lockable', lockable); }
       if (riding !== this.wasRiding) { this.wasRiding = riding; root.classList.toggle('riding', riding); this.lockShown = ''; }
-      const bow = weapons.current.id === 'bow';
+      const bow = weapons.current.row.ui.touch === 'bow';
       if (bow !== this.wasBow) {
         this.wasBow = bow; root.classList.toggle('bow', bow);
         if (!bow && this.drawHeld) { this.drawHeld = false; weapons.altHeld = false; }
