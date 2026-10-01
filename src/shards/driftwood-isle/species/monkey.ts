@@ -1,10 +1,6 @@
-import { engineString } from '#engine/strings';
+import { CreatureBrain, engineString, type Rng, type SpeciesRow, type SpeciesLook, type AnimalSpecies, type BoneDef, type VariantDef, type RigAnimCtx, type ThinkCtx, loft, skinPlain, S, boneIndex, mix, speciesSstep as sstep, paletteColors, type Paint, type SpeciesRGB as RGB, type Animal, NO_FUR, lookAngles, smooth01, bump, step, rigClamp as clamp, squashBody } from '#engine';
+import { DRIFTWOOD_STRIKES, driftwoodContact } from '../combat/strikes';
 import * as THREE from 'three';
-import type { Rng } from '../../core/rng';
-import { registerSpecies, type AnimalSpecies, type BoneDef, type VariantDef, type RigAnimCtx, type ThinkCtx } from './registry';
-import { loft, skinPlain, S, boneIndex, mix, sstep, paletteColors, type Paint, type RGB } from './loft';
-import type { Animal } from '../Animal';
-import { NO_FUR, lookAngles, smooth01, bump, step, clamp, squashBody } from './rigs';
 
 /**
  * Coconut Monkey — the palm-grove troop (art/driftwood-isle/round-3-enemies/driftwood-enemy-2-monkey.png): tan faceted fur, a dark face with a pale
@@ -258,7 +254,7 @@ function setPerch(a: Animal, c: ThinkCtx, i: number): void {
   m.perchH = Math.max(0.5, p.y - c.heightAt(p.x, p.z) + 0.05);
 }
 
-function thinkMonkey(a: Animal, c: ThinkCtx): void {
+function decideMonkey(a: Animal, c: ThinkCtx): void {
   const m = a.mem as MonkeyMem, rng = c.rng;
   if (!m.init) {
     m.init = 1; m.cd = rng.range(1, 3); m.under = 0; m.hitT = 0; m.fled = 0; m.onGround = 0;
@@ -294,13 +290,6 @@ function thinkMonkey(a: Animal, c: ThinkCtx): void {
       a.state = 'attack';
       a.setMotion(toPlayer, 0, 6); a.setStrafe(0);
       const p = a.attackPhase;
-      if (m.bite) { if (p >= 0.45 && !m.hit) { m.hit = 1; if (d <= BITE_R) { c.hurt(BITE_DAMAGE); c.sound('monkey_shriek'); } } }
-      else if (p >= THROW_RELEASE && !m.hit) {
-        m.hit = 1;
-        _from.set(a.position.x, a.position.y + 0.95 * a.scale, a.position.z);
-        _to.set(c.player.x, c.player.y + 0.9, c.player.z);
-        c.world.throwCoconut?.(_from, _to, a);
-      }
       if (p >= 1 || p < 0) { a.cancelAttack(); if (m.bite) { m.cd = 1.2; m.st = ST_GROUND; m.bit = 1; } else { m.cd = rng.range(2.5, 4); m.st = m.onGround ? ST_GROUND_IDLE : ST_PERCH; } }
       break;
     }
@@ -348,20 +337,58 @@ function thinkMonkey(a: Animal, c: ThinkCtx): void {
   if (m.onGround && !m.drop) c.confine(a);
 }
 
-registerSpecies({
+export const MONKEY: SpeciesRow = {
+  id: 'creature.monkey',
   kind: 'monkey',
   label: engineString('s_665ecc111ad3'),
-  fur: NO_FUR,
-  rig: 'custom',
   aggressive: true,
   walkSpeed: 1.2,
   chargeDamage: BITE_DAMAGE,
   sounds: { call: 'monkey_chatter', hurt: 'monkey_shriek', callEvery: [6, 18] },
   variants: [
     { id: 'monkey', label: engineString('s_665ecc111ad3'), weight: 85, rarity: 'common', scale: [1.25, 1.4], hp: 30 },
-    { id: 'elder', label: engineString('s_d5584ccb3432'), weight: 15, rarity: 'uncommon', scale: [1.5, 1.6], hp: 45, tint: { fur: [0.62, 0.58, 0.50], back: [0.40, 0.37, 0.32], belly: [0.85, 0.82, 0.74] } },
+    { id: 'elder', label: engineString('s_d5584ccb3432'), weight: 15, rarity: 'uncommon', scale: [1.5, 1.6], hp: 45 },
   ],
+  tick: 'ai',
+  act: actMonkey,
+  think: thinkMonkey,
+};
+
+export const MONKEY_LOOK: SpeciesLook = {
+  id: 'driftwood.look.monkey', species: MONKEY.id, kind: 'monkey',
+  fur: NO_FUR,
+  rig: 'custom',
   build: buildMonkey,
   animate: animateMonkey,
-  think: thinkMonkey,
-});
+  variants: { elder: { tint: { fur: [0.62, 0.58, 0.50], back: [0.40, 0.37, 0.32], belly: [0.85, 0.82, 0.74] } } },
+};
+
+function strikeMonkey(a: Animal, c: ThinkCtx): void {
+  const m = a.mem as MonkeyMem, p = a.attackPhase;
+  if (m.st !== ST_ATTACK || p < 0) return;
+  if (m.bite) { if (p >= 0.45 && !m.hit) { m.hit = 1; if (driftwoodContact(a, c, DRIFTWOOD_STRIKES.bite)) c.sound('monkey_shriek'); } }
+      else if (p >= THROW_RELEASE && !m.hit) {
+        m.hit = 1;
+        _from.set(a.position.x, a.position.y + 0.95 * a.scale, a.position.z);
+        _to.set(c.player.x, c.player.y + 0.9, c.player.z);
+        c.world.throwCoconut?.(_from, _to, a);
+      }
+}
+const STATES = ['perch', 'ground-idle', 'attack', 'drop', 'ground', 'return', 'climb'] as const;
+export class MonkeyBrain extends CreatureBrain<typeof STATES[number]> {
+  constructor(actor: Animal) { super(actor, STATES); }
+  override think(ctx: ThinkCtx): void {
+    decideMonkey(this.actor, ctx);
+    const state = STATES[this.actor.mem['st'] ?? 0];
+    if (state !== undefined) this.transition(state);
+  }
+  override act(ctx: ThinkCtx): void { strikeMonkey(this.actor, ctx); }
+}
+const brains = new WeakMap<Animal, MonkeyBrain>();
+function brain(a: Animal): MonkeyBrain {
+  let value = brains.get(a);
+  if (value === undefined) { value = new MonkeyBrain(a); brains.set(a, value); }
+  return value;
+}
+function thinkMonkey(a: Animal, ctx: ThinkCtx): void { brain(a).think(ctx); }
+function actMonkey(a: Animal, ctx: ThinkCtx): void { brain(a).act(ctx); }

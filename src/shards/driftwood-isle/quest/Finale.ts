@@ -1,18 +1,19 @@
 /**
  * The finale (A6 + D3/D5): the Drowned Captain and the golden-hour reward view.
  *
- *   - Setting the three shards in the altar (`used:altar`) wakes Captain Brine (src/engine/entities/species/captain.ts) in the
+ *   - Setting the three shards in the altar (`used:altar`) wakes Captain Brine (src/shards/driftwood-isle/species/captain.ts) in the
  *     shrine's spring pool (the model's `shrine.anchors.pool`); a reload mid-fight puts him back under the pool, and he
- *     rises again when you come near. A boss bar (QuestUI.BossBar) shows his health and phase while you are in the
+ *     rises again when you come near. The shared boss bar shows his health and phase while you are in the
  *     arena. His death (`dead:captain`, Spine.ts's kill hook) opens the last step.
  *   - The reward: walk up to the ring. The view eases to the spot where the stone ring frames the ringed planet (found
  *     from `shrine.anchors.ring` and `sky.planetDir`), the day/night clock (sky.dayNight, D3) eases to golden hour and
  *     holds there, the caption fades in; seven seconds later `seen:reward` completes the quest and the clock runs on.
  */
 import * as THREE from 'three';
-import { BossBar, RewardCaption } from '#game/quest/QuestUI';
-import type { Adventure, AdventureWorld, AdvAnimal } from '#game/quest/Adventure';
-import { preloadCaptainMesh } from '#engine/entities/species/captainMesh';
+import { BossBar, app } from '#engine';
+import { RewardCaption, type Adventure, type AdventureWorld, type AdvAnimal } from '#game';
+import { DrownedCaptain, CAPTAIN_DEF } from '../combat/captain';
+import { preloadCaptainMesh } from '../species/captainMesh';
 
 const GOLDEN = 0.745;          // DayNight phase of the golden-hour key (its KEYS table: GOLDEN at 0.74)
 const HOLD_S = 7;              // seconds the reward view holds before the quest completes
@@ -25,7 +26,7 @@ export function installFinale<A extends AdvAnimal>(adv: Adventure, w: AdventureW
   void preloadCaptainMesh(); // the generated captain (v0.2): loads in the background, long before the altar raises him
   const pool = place({ poi: 'shrine', anchor: 'shrine.pool', x: 0, z: 8 });
   const ringP = place({ poi: 'shrine', anchor: 'shrine.ring', x: 0, z: 0, dy: 3.8 });
-  const bar = new BossBar('The Drowned Captain');
+  const bar = new BossBar();
   const caption = new RewardCaption('The Sealed Ring · opened', 'Driftwood Isle', 'The planet in the ring, at golden hour');
   let captain: A | null = null;
 
@@ -53,7 +54,15 @@ export function installFinale<A extends AdvAnimal>(adv: Adventure, w: AdventureW
     captain.herd = -1;
     captain.mem['poolX'] = pool.x; captain.mem['poolZ'] = pool.z; captain.mem['arena'] = ARENA;
   };
-  const awake = (): void => { if (captain) captain.mem['awake'] = 1; };
+  const encounter = new DrownedCaptain({ player: w.player, pool, events: app.events, flags, animal: () => captain, ui: bar });
+  const scope = app.levelScope;
+  if (scope !== null) {
+    app.encounters.register({ id: CAPTAIN_DEF.id, displayName: 'The Drowned Captain' }, scope);
+    app.encounters.boss(CAPTAIN_DEF.id, encounter, scope);
+    app.events.on('player.died', () => { encounter.onPlayerDeath(); }, scope);
+    scope.onDispose(() => { bar.root.remove(); });
+  }
+  const awake = (): void => { encounter.wake(); };
 
   flags.onChange((f, on) => {
     if (!on) return;
@@ -73,12 +82,7 @@ export function installFinale<A extends AdvAnimal>(adv: Adventure, w: AdventureW
   const wantPitch = Math.asin(THREE.MathUtils.clamp(planet.y, -1, 1));
   w.game.onUpdate((dt) => {
     const pp = w.player.position;
-    const nearPool = Math.hypot(pp.x - pool.x, pp.z - pool.z) < ARENA;
-    if (captain && !flags.has('dead:captain')) {
-      if (nearPool && flags.has('used:altar')) awake();
-      const up = captain.alive && (captain.mem['rise'] ?? 0) > 0.5;
-      bar.set(nearPool && up, captain.hp / Math.max(1, captain.maxHp), captain.mem['phase'] ?? 1);
-    } else bar.set(false, 0, 1);
+    encounter.update(dt, app.clock.now);
 
     // the reward
     if (reward < 0 && flags.has('dead:captain') && !flags.has('seen:reward') && Math.hypot(pp.x - rewardAt.x, pp.z - rewardAt.z) < 7) {

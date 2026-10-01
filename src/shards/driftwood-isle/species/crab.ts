@@ -1,10 +1,6 @@
-import { engineString } from '#engine/strings';
+import { CreatureBrain, engineString, type Rng, type SpeciesRow, type SpeciesLook, type AnimalSpecies, type BoneDef, type VariantDef, type RigAnimCtx, type ThinkCtx, loft, skinPlain, S, boneIndex, mix, speciesSstep as sstep, paletteColors, type Paint, type SpeciesRGB as RGB, type Animal, NO_FUR, lookAngles, smooth01, bump, step, rigClamp as clamp, squashBody } from '#engine';
+import { DRIFTWOOD_STRIKES, driftwoodContact } from '../combat/strikes';
 import * as THREE from 'three';
-import type { Rng } from '../../core/rng';
-import { registerSpecies, type AnimalSpecies, type BoneDef, type VariantDef, type RigAnimCtx, type ThinkCtx } from './registry';
-import { loft, skinPlain, S, boneIndex, mix, sstep, paletteColors, type Paint, type RGB } from './loft';
-import type { Animal } from '../Animal';
-import { NO_FUR, lookAngles, smooth01, bump, step, clamp, squashBody } from './rigs';
 
 /**
  * Reef Crab — Wreck Cove's tidepool crab (art/driftwood-isle/round-3-enemies/driftwood-enemy-1-crab.png): a wide domed orange-red carapace with
@@ -216,7 +212,7 @@ const ENGAGE_R = 9, SHY_R = 3, DISENGAGE_R = 18, SNAP_R = 1.6, SNAP_DAMAGE = 10,
 /** E297 fight rules: a crab waiting its turn (two others attacking) circles this far out (m), not in snapping range */
 const HOLD_R = 3.6;
 
-function thinkCrab(a: Animal, c: ThinkCtx): void {
+function decideCrab(a: Animal, c: ThinkCtx): void {
   const m = a.mem as CrabMem, rng = c.rng;
   if (!m.init) { m.init = 1; m.hx = a.position.x; m.hz = a.position.z; m.st = ST_IDLE; m.tm = rng.range(1, 3); m.sd = rng.next() < 0.5 ? -1 : 1; m.cd = 0; m.hitT = 0; m.shy = 0; m.scat = 0; }
   const dx = c.player.x - a.position.x, dz = c.player.z - a.position.z, d = Math.hypot(dx, dz);
@@ -264,7 +260,6 @@ function thinkCrab(a: Animal, c: ThinkCtx): void {
       a.state = 'attack';
       a.setMotion(toPlayer, 0, 6); a.setStrafe(0);
       const p = a.attackPhase;
-      if (p >= WINDUP / SNAP_DUR && !m.hit) { m.hit = 1; if (d <= SNAP_R * Math.max(1, a.scale * 0.8)) { c.hurt(SNAP_DAMAGE); c.sound('crab_snap'); } }
       if (p >= 1 || p < 0) { m.st = ST_ENGAGE; m.cd = 1.4; m.tm = rng.range(0.6, 1.6); a.cancelAttack(); }
       break;
     }
@@ -288,21 +283,53 @@ function crabDamageMul(a: Animal, _hit: THREE.Vector3, dir: THREE.Vector3): numb
   return dot < -0.5 ? 0.5 : 1;
 }
 
-registerSpecies({
+export const CRAB: SpeciesRow = {
+  id: 'creature.crab',
   kind: 'crab',
   label: engineString('s_c93f43169fdc'),
-  fur: NO_FUR,
-  rig: 'custom',
   aggressive: true,
   walkSpeed: 0.5,
   chargeDamage: SNAP_DAMAGE,
   sounds: { call: 'crab_click', hurt: 'crab_click', callEvery: [8, 25] },
   variants: [
     { id: 'small', label: engineString('s_c93f43169fdc'), weight: 75, rarity: 'common', scale: [0.78, 0.95], hp: 25 },
-    { id: 'big', label: engineString('s_b339c41ffdc1'), weight: 25, rarity: 'uncommon', scale: [1.7, 1.9], hp: 70, traits: { clawScale: 1.25 }, mods: { chargeDamage: 14 } },
+    { id: 'big', label: engineString('s_b339c41ffdc1'), weight: 25, rarity: 'uncommon', scale: [1.7, 1.9], hp: 70, mods: { chargeDamage: 14 } },
   ],
+  tick: 'ai',
+  act: actCrab,
+  think: thinkCrab,
+};
+
+export const CRAB_LOOK: SpeciesLook = {
+  id: 'driftwood.look.crab', species: CRAB.id, kind: 'crab',
+  fur: NO_FUR,
+  rig: 'custom',
   build: buildCrab,
   animate: animateCrab,
-  think: thinkCrab,
   damageMul: crabDamageMul,
-});
+  variants: { big: { traits: { clawScale: 1.25 } } },
+};
+
+function strikeCrab(a: Animal, c: ThinkCtx): void {
+  const m = a.mem as CrabMem, p = a.attackPhase;
+  if (m.st !== ST_ATTACK || p < 0) return;
+  if (p >= WINDUP / SNAP_DUR && !m.hit) { m.hit = 1; if (driftwoodContact(a, c, { ...DRIFTWOOD_STRIKES.snap, damage: a.mods.chargeDamage, shape: { kind: 'point', radius: SNAP_R * Math.max(1, a.scale * 0.8) } })) c.sound('crab_snap'); }
+}
+const STATES = ['idle', 'sidestep', 'attack', 'flee'] as const;
+export class CrabBrain extends CreatureBrain<typeof STATES[number]> {
+  constructor(actor: Animal) { super(actor, STATES); }
+  override think(ctx: ThinkCtx): void {
+    decideCrab(this.actor, ctx);
+    const state = STATES[this.actor.mem['st'] ?? 0];
+    if (state !== undefined) this.transition(state);
+  }
+  override act(ctx: ThinkCtx): void { strikeCrab(this.actor, ctx); }
+}
+const brains = new WeakMap<Animal, CrabBrain>();
+function brain(a: Animal): CrabBrain {
+  let value = brains.get(a);
+  if (value === undefined) { value = new CrabBrain(a); brains.set(a, value); }
+  return value;
+}
+function thinkCrab(a: Animal, ctx: ThinkCtx): void { brain(a).think(ctx); }
+function actCrab(a: Animal, ctx: ThinkCtx): void { brain(a).act(ctx); }

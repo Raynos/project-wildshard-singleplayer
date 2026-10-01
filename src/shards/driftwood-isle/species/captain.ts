@@ -1,10 +1,6 @@
-import { engineString } from '#engine/strings';
+import { CreatureBrain, pinBrain, engineString, type Rng, type SpeciesRow, type SpeciesLook, type AnimalSpecies, type BoneDef, type VariantDef, type RigAnimCtx, type ThinkCtx, loft, skinPlain, S, boneIndex, mix, speciesSstep as sstep, paletteColors, type Paint, type SpeciesRGB as RGB, type Animal, NO_FUR, lookAngles, smooth01, bump, step, rigClamp as clamp } from '#engine';
+import { DRIFTWOOD_STRIKES, driftwoodContact } from '../combat/strikes';
 import * as THREE from 'three';
-import type { Rng } from '../../core/rng';
-import { registerSpecies, type AnimalSpecies, type BoneDef, type VariantDef, type RigAnimCtx, type ThinkCtx } from './registry';
-import { loft, skinPlain, S, boneIndex, mix, sstep, paletteColors, type Paint, type RGB } from './loft';
-import type { Animal } from '../Animal';
-import { NO_FUR, lookAngles, smooth01, bump, step, clamp } from './rigs';
 import { captainMeshFor, captainMeshLoaded } from './captainMesh';
 
 /**
@@ -236,7 +232,7 @@ const _bub = new THREE.Vector3();
 /** the fight phase by hp: 1, 2, 3 */
 export function captainPhase(hp: number, maxHp: number): number { const f = hp / Math.max(1, maxHp); return f > 0.66 ? 1 : f > 0.33 ? 2 : 3; }
 
-function thinkCaptain(a: Animal, c: ThinkCtx): void {
+function decideCaptain(a: Animal, c: ThinkCtx): void {
   const m = a.mem as CaptainMem;
   if (!m.init) {
     m.init = 1; m.st = ST_HIDE; m.cd = 1; m.hitT = 0; m.hit = 0; m.combo = 0; m.rise = 0; m.rising = 0; m.sinking = 0; m.subT = 0;
@@ -244,6 +240,7 @@ function thinkCaptain(a: Animal, c: ThinkCtx): void {
     m.poolX = set['poolX'] ?? a.position.x; m.poolZ = set['poolZ'] ?? a.position.z; m.arena = set['arena'] ?? 22; m.awake = set['awake'] ?? 0; m.phase = 1;
     a.state = 'hide'; a.yOffset = UNDER;
   }
+  if (m.awake) pinBrain(a);
   const phase = captainPhase(a.hp, a.maxHp); m.phase = phase;
   const dx = c.player.x - a.position.x, dz = c.player.z - a.position.z, d = Math.hypot(dx, dz);
   const toPlayer = Math.atan2(dx, dz);
@@ -276,8 +273,7 @@ function thinkCaptain(a: Animal, c: ThinkCtx): void {
     }
     case ST_ATTACK: {
       a.state = 'attack'; a.setMotion(toPlayer, 0, 5);
-      const p = a.attackPhase, dur = (WINDUP[phase] ?? 0.7) + 0.35;
-      if (p >= (WINDUP[phase] ?? 0.7) / dur + 0.04 && !m.hit) { m.hit = 1; if (d <= HIT_R) { c.hurt(SWING_DMG); c.sound('sailor_slash'); } }
+      const p = a.attackPhase;
       if (p >= 1 || p < 0) {
         a.cancelAttack();
         if (phase === 3 && !m.combo) { m.combo = 1; m.st = ST_ATTACK; m.hit = 0; a.startAttack(0.55); break; }   // the second cut, straight after
@@ -304,8 +300,7 @@ function thinkCaptain(a: Animal, c: ThinkCtx): void {
         a.place(m.burstX, m.burstZ, toPlayer);
         m.st = ST_RISE; m.rising = 1; m.subT = 0;
         c.world.splash?.(a.position, 2.2); c.sound('sailor_slash');
-        const bd = Math.hypot(c.player.x - m.burstX, c.player.z - m.burstZ);
-        if (bd < BURST_R) c.hurt(BURST_DMG);
+        driftwoodContact(a, c, { ...DRIFTWOOD_STRIKES.burst, damage: BURST_DMG, shape: { kind: 'point', radius: BURST_R, exclusive: true } });
       }
       break;
     }
@@ -313,21 +308,53 @@ function thinkCaptain(a: Animal, c: ThinkCtx): void {
   }
 }
 
-registerSpecies({
+export const CAPTAIN: SpeciesRow = {
+  id: 'creature.captain',
   kind: 'captain',
   label: engineString('s_b9afc02e9fda'),
-  fur: NO_FUR,
-  rig: 'custom',
   aggressive: true,
   walkSpeed: 1.2,
   chargeDamage: SWING_DMG,
   corpseFade: 90,
-  eyeGlow: [0.2, 1.0, 1.0], eyeGlowIntensity: 1.4,
   sounds: { call: 'sailor_groan', hurt: 'sailor_groan', callEvery: [8, 20] },
   variants: [
     { id: 'captain', label: engineString('s_b9afc02e9fda'), weight: 100, rarity: 'uncommon', scale: [1.35, 1.35], hp: 320 },
   ],
+  tick: 'ai',
+  act: actCaptain,
+  think: thinkCaptain,
+};
+
+export const CAPTAIN_LOOK: SpeciesLook = {
+  id: 'driftwood.look.captain', species: CAPTAIN.id, kind: 'captain',
+  fur: NO_FUR,
+  rig: 'custom',
+  eyeGlow: [0.2, 1.0, 1.0], eyeGlowIntensity: 1.4,
   build: buildCaptain,
   animate: animateCaptain,
-  think: thinkCaptain,
-});
+};
+
+function strikeCaptain(a: Animal, c: ThinkCtx): void {
+  const m = a.mem as CaptainMem, p = a.attackPhase;
+  if (m.st !== ST_ATTACK || p < 0) return;
+  const phase = captainPhase(a.hp, a.maxHp), dur = (WINDUP[phase] ?? 0.7) + 0.35;
+  if (p >= (WINDUP[phase] ?? 0.7) / dur + 0.04 && !m.hit) { m.hit = 1; if (driftwoodContact(a, c, { ...(m.combo ? DRIFTWOOD_STRIKES.second : DRIFTWOOD_STRIKES.swing), shape: { kind: 'point', radius: HIT_R } })) c.sound('sailor_slash'); }
+}
+const STATES = ['hide', 'rise', 'fight', 'attack', 'sink', 'under'] as const;
+export class CaptainBrain extends CreatureBrain<typeof STATES[number]> {
+  constructor(actor: Animal) { super(actor, STATES); }
+  override think(ctx: ThinkCtx): void {
+    decideCaptain(this.actor, ctx);
+    const state = STATES[this.actor.mem['st'] ?? 0];
+    if (state !== undefined) this.transition(state);
+  }
+  override act(ctx: ThinkCtx): void { strikeCaptain(this.actor, ctx); }
+}
+const brains = new WeakMap<Animal, CaptainBrain>();
+function brain(a: Animal): CaptainBrain {
+  let value = brains.get(a);
+  if (value === undefined) { value = new CaptainBrain(a); brains.set(a, value); }
+  return value;
+}
+function thinkCaptain(a: Animal, ctx: ThinkCtx): void { brain(a).think(ctx); }
+function actCaptain(a: Animal, ctx: ThinkCtx): void { brain(a).act(ctx); }

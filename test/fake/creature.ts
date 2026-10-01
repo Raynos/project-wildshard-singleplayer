@@ -25,7 +25,7 @@ export function creature(kind: string, variant: string, world: EnemyWorld = {}):
     pathYaw: (a, x, z) => Math.atan2(x - a.position.x, z - a.position.z), confine: () => undefined,
     reach: () => true, claim: () => true, mayAttack: () => true,
   };
-  const think = speciesDef(kind).think;
+  const def = speciesDef(kind), think = def.think;
   if (think === undefined) throw new Error(`${kind} is not a self-thinking species`);
   f.game.onFixed('step', (dt) => {
     frame++; acc += dt;
@@ -33,6 +33,7 @@ export function creature(kind: string, variant: string, world: EnemyWorld = {}):
       acc -= 0.1; ctx.t = frame / 60; think(animal, ctx);
       if (states.at(-1) !== animal.state) states.push(animal.state);
     }
+    def.act?.(animal, { ...ctx, dt, t: frame / 60 });
     animal.update(dt, frame / 60, true);
   }, 'creature', true);
   return { ...f, animal, ctx, hits, sounds, starts, states, get frame(): number { return frame; },

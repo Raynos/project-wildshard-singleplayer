@@ -14,14 +14,14 @@ import { invokeLegacy, legacyActor } from '../fake/legacyActor';
 
 vi.mock('#engine/world/Heightfield', async (original) => ({ ...await original<typeof Heightfield>(),
   heightAt: (): number => 0, normalAt: (): [number, number, number] => [0, 1, 0], waterLevel: (): number => -100, streamAt: (): null => null }));
-const species = 'src/engine/entities/species/', nalati = 'src/shards/nalati-grasslands/', pine = 'src/shards/pine-hollow/combat/';
+const island = 'src/shards/driftwood-isle/species/', species = 'src/engine/entities/species/', nalati = 'src/shards/nalati-grasslands/', pine = 'src/shards/pine-hollow/combat/';
 const tuning = [
-  ['S1 crab snap', `${species}crab.ts`, { SNAP_R: 1.6, SNAP_DAMAGE: 10, WINDUP: 0.5, SNAP_DUR: 0.78, HOLD_R: 3.6 }],
-  ['S2 monkey bite', `${species}monkey.ts`, { BITE_R: 1.3, BITE_DAMAGE: 6, BITE_DUR: 0.9 }],
-  ['S3 monkey coconut release', `${species}monkey.ts`, { THROW_R: 14, THROW_DUR: 1, THROW_RELEASE: 0.62 }],
-  ['S4 sailor swing', `${species}sailor.ts`, { SWING_R: 1.8, HIT_R: 1.9, SWING_DAMAGE: 14, WINDUP: 0.6, SWING_DUR: 0.9 }],
-  ['S5/S6 captain cuts', `${species}captain.ts`, { SWING_R: 2.3, HIT_R: 2.5, SWING_DMG: 24, WINDUP: [0, 0.7, 0.62, 0.5], COOLDOWN: [0, 1.4, 1.2, 0.8] }],
-  ['S7 captain burst', `${species}captain.ts`, { BURST_R: 3, BURST_DMG: 16, UNDER_T: 1.1, SINK_EVERY: [0, 0, 7, 5] }],
+  ['S1 crab snap', `${island}crab.ts`, { SNAP_R: 1.6, SNAP_DAMAGE: 10, WINDUP: 0.5, SNAP_DUR: 0.78, HOLD_R: 3.6 }],
+  ['S2 monkey bite', `${island}monkey.ts`, { BITE_R: 1.3, BITE_DAMAGE: 6, BITE_DUR: 0.9 }],
+  ['S3 monkey coconut release', `${island}monkey.ts`, { THROW_R: 14, THROW_DUR: 1, THROW_RELEASE: 0.62 }],
+  ['S4 sailor swing', `${island}sailor.ts`, { SWING_R: 1.8, HIT_R: 1.9, SWING_DAMAGE: 14, WINDUP: 0.6, SWING_DUR: 0.9 }],
+  ['S5/S6 captain cuts', `${island}captain.ts`, { SWING_R: 2.3, HIT_R: 2.5, SWING_DMG: 24, WINDUP: [0, 0.7, 0.62, 0.5], COOLDOWN: [0, 1.4, 1.2, 0.8] }],
+  ['S7 captain burst', `${island}captain.ts`, { BURST_R: 3, BURST_DMG: 16, UNDER_T: 1.1, SINK_EVERY: [0, 0, 7, 5] }],
   ['S8/S9 boar/bear charge', 'src/engine/entities/AnimalManager.ts', { BOAR_CHARGE: 7.5, CHARGE_HIT_DIST: 1.4, CHARGE_WINDUP: { boar: 0.55, bear: 0.65 }, CHARGE_ARC: THREE.MathUtils.degToRad(50), CHARGE_COMMIT: 4.5, CHARGE_COMMIT_TURN: 1.1 }],
   ['S10 wolf lunge', 'src/shards/nalati-grasslands/creatures/pack.ts', { RUN: 9.5, BITE_R: 1.4, TELEGRAPH: 0.4, DASH_MAX: 1.8, BREAKOFF: 1.1 }],
   ['S11 balbal slam', `${species}balbal.ts`, { ATK_T: 2.9, W_END: 0.52, S_END: 0.58, HIT_R: 3.1, HIT_CONE: 0.96, DAMAGE: 30, KURGAN_DAMAGE: 18, COOLDOWN: 1.4 }],
@@ -78,9 +78,9 @@ describe('real Pine lane strikes at the body clock', () => {
   });
 });
 describe('species strikes retain current hit timing and damage', () => {
-  it.each(['small', 'big'])('S1 %s crab snaps once after .5s (B6: big still hits10 today)', (variant) => {
+  it.each(['small', 'big'])('S1 %s crab snaps once after .5s (big variant hits14)', (variant) => {
     const f = creature('crab', variant); f.advance(80);
-    expect(f.starts[0]?.duration).toBe(0.78); expect(f.hits.map((h) => h.damage)).toEqual([10]);
+    expect(f.starts[0]?.duration).toBe(0.78); expect(f.hits.map((h) => h.damage)).toEqual([variant === 'big' ? 14 : 10]);
     expect((f.hits[0]?.frame ?? 0) - (f.starts[0]?.frame ?? 0)).toBeGreaterThanOrEqual(30);
     expect((f.hits[0]?.frame ?? 0) - (f.starts[0]?.frame ?? 0)).toBeLessThanOrEqual(36);
   });

@@ -420,6 +420,8 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   const dressing = { ...edgeDressing, ...driftwoodWorld(boot.runtime) };
   const { ocean, pier, jetties, boat, palms, palmSpecs, cove, hut, lookout, wreck, shrine, bushes, gulls, bridge, seabed, bridgeDeck } = dressing;
   if (chunk.ocean) {
+    const { installDriftwoodSpecies } = await import('./shards/driftwood-isle/species/install');
+    installDriftwoodSpecies(game.levelScope);
     const { ISLAND_BOAR, ISLAND_BEAR } = await import('./shards/driftwood-isle/creatures/species');
     app.species.registerRow(ISLAND_BOAR, game.levelScope);
     app.species.registerRow(ISLAND_BEAR, game.levelScope);

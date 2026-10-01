@@ -10,7 +10,7 @@ export interface EventMap {
   'explore.studio': boolean;
   'explore.turntable': { on: boolean; key?: { x: number; y: number; z: number } };
   'fault': FaultEvent;
-  'boss.attempt': { boss: string; outcome: 'started' | 'won' | 'died' | 'left' };
+  'boss.attempt': { boss: string; outcome: 'started' | 'won' | 'died' | 'lost' | 'left'; level?: string };
 }
 export interface CrouchRequest { want: boolean; via: 'toggle' | 'hold' }
 export interface CrouchAnswer { allowed: boolean; latched: boolean }

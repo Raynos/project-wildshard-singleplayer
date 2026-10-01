@@ -12,7 +12,7 @@ import { waveHeight } from '#engine/world/waves';
 import { getActiveChunk } from '#game/shard/registry';
 import { activeBodies, type Body, type BodySpec } from '#engine/physics/bodies';
 import { groups } from '#engine/physics/groups';
-import { preloadSailorHead } from '#engine/entities/species/sailor';
+import { preloadSailorHead } from '../species/sailor';
 
 /**
  * Enemies — Driftwood Isle's three enemy species placed into the island's spaces, plus the pieces their AIs need

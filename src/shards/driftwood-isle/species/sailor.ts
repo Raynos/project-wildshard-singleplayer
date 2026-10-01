@@ -1,11 +1,6 @@
-import { engineString } from '#engine/strings';
+import { CreatureBrain, engineString, type Rng, type SpeciesRow, type SpeciesLook, type AnimalSpecies, type BoneDef, type VariantDef, type RigAnimCtx, type ThinkCtx, loft, skinPlain, S, boneIndex, mix, speciesSstep as sstep, paletteColors, type Paint, type SpeciesRGB as RGB, type Animal, faceHead, loadFaceHead, type FaceHead, NO_FUR, lookAngles, smooth01, bump, step, rigClamp as clamp, squashBody } from '#engine';
+import { DRIFTWOOD_STRIKES, driftwoodContact } from '../combat/strikes';
 import * as THREE from 'three';
-import type { Rng } from '../../core/rng';
-import { registerSpecies, type AnimalSpecies, type BoneDef, type VariantDef, type RigAnimCtx, type ThinkCtx } from './registry';
-import { loft, skinPlain, S, boneIndex, mix, sstep, paletteColors, type Paint, type RGB } from './loft';
-import type { Animal } from '../Animal';
-import { faceHead, loadFaceHead, type FaceHead } from '../../world/faceHeads';
-import { NO_FUR, lookAngles, smooth01, bump, step, clamp, squashBody } from './rigs';
 
 /**
  * Drowned Sailor — the wreck's guardian (art/driftwood-isle/round-3-enemies/driftwood-enemy-3-wreckghost.png): a bone-white faceted skeleton in the
@@ -279,7 +274,7 @@ const SWING_R = 1.8, HIT_R = 1.9, SWING_DAMAGE = 14 /* E294: 18 → 14 */, WINDU
  *  (no line of sight, E296) it side-steps round it at STEP_AROUND m/s, flipping side every SIDE_FLIP s */
 const HOLD_R = 3.0, STEP_AROUND = 1.0, SIDE_FLIP = 1.6;
 
-function thinkSailor(a: Animal, c: ThinkCtx): void {
+function decideSailor(a: Animal, c: ThinkCtx): void {
   const m = a.mem as SailorMem, H = c.world.hold;
   if (!m.init) {
     m.init = 1; m.hx = a.position.x; m.hz = a.position.z; m.cd = 0; m.hitT = 0; m.away = 0;
@@ -338,7 +333,6 @@ function thinkSailor(a: Animal, c: ThinkCtx): void {
     case ST_ATTACK: {
       a.state = 'attack'; a.setMotion(toPlayer, 0, 6);
       const p = a.attackPhase;
-      if (p >= WINDUP / SWING_DUR + 0.05 && !m.hit) { m.hit = 1; if (d <= HIT_R) { c.hurt(SWING_DAMAGE); c.sound('sailor_slash'); } }
       if (p >= 1 || p < 0) { a.cancelAttack(); m.st = ST_GUARD; m.cd = 1.5; }
       break;
     }
@@ -352,21 +346,52 @@ function thinkSailor(a: Animal, c: ThinkCtx): void {
   }
 }
 
-registerSpecies({
+export const SAILOR: SpeciesRow = {
+  id: 'creature.sailor',
   kind: 'sailor',
   label: engineString('s_1ed5511c9838'),
-  fur: NO_FUR,
-  rig: 'custom',
   aggressive: true,
   walkSpeed: SHAMBLE,
   chargeDamage: SWING_DAMAGE,
   corpseFade: 60, // was 2.5 s — gone before you could reach it; now it lies a minute to be looted (harvesting dissolves it at once)
-  eyeGlow: [0.2, 1.0, 1.0], eyeGlowIntensity: 1.0,
   sounds: { call: 'sailor_groan', hurt: 'sailor_groan', callEvery: [12, 30] },
   variants: [
     { id: 'sailor', label: engineString('s_1ed5511c9838'), weight: 100, rarity: 'uncommon', scale: [1.0, 1.05], hp: 60 },
   ],
+  tick: 'ai',
+  act: actSailor,
+  think: thinkSailor,
+};
+
+export const SAILOR_LOOK: SpeciesLook = {
+  id: 'driftwood.look.sailor', species: SAILOR.id, kind: 'sailor',
+  fur: NO_FUR,
+  rig: 'custom',
+  eyeGlow: [0.2, 1.0, 1.0], eyeGlowIntensity: 1.0,
   build: buildSailor,
   animate: animateSailor,
-  think: thinkSailor,
-});
+};
+
+function strikeSailor(a: Animal, c: ThinkCtx): void {
+  const m = a.mem as SailorMem, p = a.attackPhase;
+  if (m.st !== ST_ATTACK || p < 0) return;
+  if (p >= WINDUP / SWING_DUR + 0.05 && !m.hit) { m.hit = 1; if (driftwoodContact(a, c, { ...DRIFTWOOD_STRIKES.sailor, shape: { kind: 'point', radius: HIT_R } })) c.sound('sailor_slash'); }
+}
+const STATES = ['hide', 'rise', 'attack', 'guard', 'sink'] as const;
+export class SailorBrain extends CreatureBrain<typeof STATES[number]> {
+  constructor(actor: Animal) { super(actor, STATES); }
+  override think(ctx: ThinkCtx): void {
+    decideSailor(this.actor, ctx);
+    const state = STATES[this.actor.mem['st'] ?? 0];
+    if (state !== undefined) this.transition(state);
+  }
+  override act(ctx: ThinkCtx): void { strikeSailor(this.actor, ctx); }
+}
+const brains = new WeakMap<Animal, SailorBrain>();
+function brain(a: Animal): SailorBrain {
+  let value = brains.get(a);
+  if (value === undefined) { value = new SailorBrain(a); brains.set(a, value); }
+  return value;
+}
+function thinkSailor(a: Animal, ctx: ThinkCtx): void { brain(a).think(ctx); }
+function actSailor(a: Animal, ctx: ThinkCtx): void { brain(a).act(ctx); }
