@@ -18,6 +18,7 @@ when the images were generated.
 | `menu/` | `round-1-main-menu` (09-17) | `menu-{A-cinematic,B-list,C-cards}` — main menu directions; C picked |
 | | `round-2-tabs` (09-18) | `menu-tab-{map,inventory,achievements,settings}` — the in-game MENU overlay |
 | | `round-3-explore-placement` (09-25) | `{A,B,C}.jpg` + `board.jpg` — E137: one ENTER WORLD banner; EXPLORE WORLD on the card / top-right / footer |
+| `settings/` | `round-1-desktop-keybinds` (10-01) | E357 J9: desktop pause ▸ Settings / key bindings, codex image_gen edits of the live 1440×900 capture: `A-two-pane-table` (category rail + two-column ACTION/KEY/ALT table, live conflict) · `B-keyboard-diagram` (keyboard + mouse diagram, detail card) · `C-four-columns` (every context as a column, search + presets) + proposed default-key changes. [Notes](settings/round-1-desktop-keybinds/README.md) |
 | `hud/` | `round-1-directions` (09-17) | `hud-A…E` — five HUD directions (below) |
 | | `round-2-overlays` | `hud-F…J` — overlays on the real phone frame (below) |
 | | `round-3-klmn` | `hud-K-bethesda`, `L-mobileshooter`, `M-diegetic`, `N-outsidebox` |
