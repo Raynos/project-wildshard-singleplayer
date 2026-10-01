@@ -530,12 +530,15 @@ export function installPineLife(h: PineLifeHost): PineLife | null {
       p.a3 += (0.35 - p.a3) * Math.min(1, dt * 6);
       lookAbout(wood, dt, 0.7, 0.8);
       if (wood.timer <= 0) {
-        wood.timer = rng.range(3.5, 8);
-        const r = rng.next();
-        if (r < 0.3) { place(wood, p.x, p.y + 0.18, p.z); } // hitches up the trunk
-        else if (r < 0.42 && d < 110) voice('woodpecker_call', p, 0.8);
-        // the drum: the set's burst (the synth roll when the set is not there)
-        else { drumOn = rng.range(0.9, 1.4); drumT = 0; drumVoiced = d < 60 && voice('woodpecker_drum', p, 0.8); if (drumVoiced) drumOn = 1.9; } // the set's bursts run ~2 s
+        // the perch's countdown is a scheduler: its plays are ambient (E357 F2, 03 §2.3)
+        ambientTick('pineLife.woodpecker', () => {
+          wood.timer = rng.range(3.5, 8);
+          const r = rng.next();
+          if (r < 0.3) { place(wood, p.x, p.y + 0.18, p.z); } // hitches up the trunk
+          else if (r < 0.42 && d < 110) voice('woodpecker_call', p, 0.8);
+          // the drum: the set's burst (the synth roll when the set is not there)
+          else { drumOn = rng.range(0.9, 1.4); drumT = 0; drumVoiced = d < 60 && voice('woodpecker_drum', p, 0.8); if (drumVoiced) drumOn = 1.9; } // the set's bursts run ~2 s
+        });
       }
     }
     if (night > 0.45 || d > 110) { p.b2 = 0; p.pitch = 0; wood.burst = 3; flyOff(wood); woodNextT = now() + 30; return; }

@@ -1,4 +1,4 @@
-import { ownAudioSource } from '#engine';
+import { app, ownAudioSource } from '#engine';
 import { tap } from '#engine/core/harnessTap';
 /**
  * PineHollowSfx — Pine Hollow's own generated sounds (PINE-HOLLOW-REMASTER PH-A2..A4): public/assets/sfx/pine-hollow/sfx.json,
@@ -263,7 +263,7 @@ export class PineHollowSfx {
     const ready = all.filter((f) => this.buffers(f) !== undefined);
     if (ready.length < all.length) this.prewarm(all);
     const pool = ready.length > 1 ? ready.filter((f) => f !== this.lastBark.get(npc)) : ready;
-    const f = pool[Math.floor(Math.random() * pool.length)];
+    const f = pool[app.rng.stream('cosmetic').int(0, pool.length - 1)]; // seeded: the harness pins it (E357 F2)
     if (f === undefined) { audioLog('bark', npc, false, 'not decoded'); return false; }
     this.lastBark.set(npc, f);
     const ok = this.play(f, { at, gain: BARK_GAIN });
