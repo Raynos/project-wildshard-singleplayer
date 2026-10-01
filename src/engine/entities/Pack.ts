@@ -282,7 +282,7 @@ export class Pack extends GroupBrain<Animal> {
       if (score > bestScore) { bestScore = score; best = w; }
     }
     if (best === null) return;
-    const director = this.groupDirector(tokens, (wolf) => wolf.alive && ((wolf.mem['lunge'] ?? 0) === 1 || (wolf.mem['lunge'] ?? 0) === 2));
+    const director = this.groupDirector(tokens, (actor) => actor.alive && ((actor.mem['lunge'] ?? 0) === 1 || (actor.mem['lunge'] ?? 0) === 2));
     app.aggression.register(best, director, app.levelScope ?? undefined);
     if (!c.claim(best)) return;
     best.mem['lunge'] = 1; best.mem['lt'] = TELEGRAPH; best.mem['bit'] = 0;

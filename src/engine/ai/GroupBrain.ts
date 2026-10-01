@@ -1,7 +1,7 @@
 import { AggressionDirector } from './director';
 
 export interface GroupMember { readonly alive: boolean }
-/** Shared roster, blackboard and decision clock. Authored goals remain in the owning shard. */
+/** Shared roster, blackboard and decision clock. Authored goals remain in the owning content. */
 export class GroupBrain<A extends GroupMember> {
   readonly tickClass = 'ai';
   readonly members: A[];
