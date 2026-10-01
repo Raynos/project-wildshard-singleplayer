@@ -1,0 +1,174 @@
+{
+  "candidate": "86626d90d453aa02983f0fd35b21ba31fcfcb92e",
+  "base": "618b1cea80f7c640a0b19fcbd8495fc2d094d93f",
+  "viewport": [
+    390,
+    844
+  ],
+  "captures": {
+    "driftwood-isle": "DRIFTWOOD ISLE \u00b7 2 FEATS",
+    "pine-hollow": "PINE HOLLOW \u00b7 3 FEATS",
+    "nalati-grasslands": "NALATI GRASSLANDS \u00b7 NOT VISITED"
+  },
+  "total": "WILDSHARD \u00b7 5 FEATS",
+  "hiddenFixtureEarned": 3,
+  "boot": {
+    "pine-hollow.phone": {
+      "errors": [],
+      "verdict": "green"
+    },
+    "nalati-grasslands.phone": {
+      "errors": [],
+      "verdict": "green"
+    },
+    "driftwood-isle.phone": {
+      "errors": [],
+      "verdict": "green"
+    },
+    "nine-dragon-stack.phone": {
+      "errors": [],
+      "verdict": "green"
+    },
+    "_template.phone": {
+      "errors": [],
+      "verdict": "green"
+    }
+  },
+  "newShardCandidate": "ad33cd95a759b9e92816a5c35fa664d5ab9a114b",
+  "newShardBoot": {
+    "pine-hollow.phone": {
+      "errors": [],
+      "verdict": "red",
+      "redFields": [
+        "boot.saves.read"
+      ]
+    },
+    "nalati-grasslands.phone": {
+      "errors": [],
+      "verdict": "red",
+      "redFields": [
+        "boot.saves.read"
+      ]
+    },
+    "far-reach.phone": {
+      "errors": [],
+      "verdict": "lane-pending",
+      "redFields": []
+    },
+    "driftwood-isle.phone": {
+      "errors": [],
+      "verdict": "red",
+      "redFields": [
+        "boot.saves.read"
+      ]
+    },
+    "nine-dragon-stack.phone": {
+      "errors": [],
+      "verdict": "red",
+      "redFields": [
+        "boot.saves.read"
+      ]
+    },
+    "sunscar-dunes.phone": {
+      "errors": [],
+      "verdict": "lane-pending",
+      "redFields": []
+    },
+    "_template.phone": {
+      "errors": [],
+      "verdict": "red",
+      "redFields": [
+        "boot.saves.read"
+      ]
+    }
+  },
+  "knownSuiteFailures": [
+    " FAIL  test/chunks.test.ts > chunk terrain > the first four trails start at the edge midpoints (the mandated entry roads)",
+    " FAIL  test/explore.test.ts > Explore World > explorer artwork is declared on the manifest",
+    " FAIL  test/fight-rules.test.ts > ShardManifest.fightRules (E297: Driftwood only) > Driftwood lets 2 attack at once; no other shard has the rules",
+    " FAIL  test/ktx2-auto.test.ts > the KTX2 sets > every phone shard has one: the stand-ins its KTX2 boot declares + the transcoder, nothing else",
+    " FAIL  test/ktx2-auto.test.ts > the KTX2 sets > every desktop shard has one: the stand-ins its KTX2 boot declares + the transcoder, nothing else",
+    " FAIL  test/loot.test.ts > coins > only Driftwood pays coins (ShardManifest.loot gating)",
+    " FAIL  test/models-check-rules.test.ts > check-models: a registry add with an object (E323) > the whole tree holds with the stricter finder",
+    " FAIL  test/models-places.test.ts > every named place is a set (E315 M12) > an enforced shard has a set for every named place, and every set names a real place",
+    " FAIL  test/models-rosters.test.ts > shard rosters (E315 M5) > sunscar-dunes: every fauna species is on the roster; ids unique; every entry a defined model",
+    " FAIL  test/shard-prefetch.test.ts > shardBootRequests: the boot request list of each shard > equals main.ts's own composition \u2014 phone tier",
+    " FAIL  test/shard-prefetch.test.ts > shardBootRequests: the boot request list of each shard > equals main.ts's own composition \u2014 desktop tier",
+    " FAIL  test/shard-prefetch.test.ts > shardBootRequests: the boot request list of each shard > names phone pack parts first and migrated desktop packs where authored",
+    " FAIL  test/shards/_template/contract.test.ts > template plugin contract > keeps hidden-shard saves out of the production summary",
+    " FAIL  test/shards/driftwood-isle/models-contract.test.ts > the model contract > the static rules hold over the tree (scripts/check-models.mjs)",
+    " FAIL  test/shards/nalati-grasslands/nalati-models.test.ts > Nalati models (E306 / E315 M3) > a place on the contract never registers a built thing by hand again (check-models rule 6)"
+  ],
+  "leadException": "Land if own tests pass and failures match known new-shard set, user message 2026-10-01 20:01 UTC.",
+  "landingSourceCandidate": "98c7b99826acf513fca22b8cf441a05229741174",
+  "landingBoot": {
+    "pine-hollow.phone": {
+      "errors": [],
+      "verdict": "red",
+      "redFields": [
+        "boot.saves.read"
+      ]
+    },
+    "nalati-grasslands.phone": {
+      "errors": [],
+      "verdict": "red",
+      "redFields": [
+        "boot.saves.read"
+      ]
+    },
+    "far-reach.phone": {
+      "errors": [],
+      "verdict": "lane-pending",
+      "redFields": []
+    },
+    "driftwood-isle.phone": {
+      "errors": [],
+      "verdict": "red",
+      "redFields": [
+        "boot.saves.read"
+      ]
+    },
+    "nine-dragon-stack.phone": {
+      "errors": [],
+      "verdict": "red",
+      "redFields": [
+        "boot.saves.read"
+      ]
+    },
+    "sunscar-dunes.phone": {
+      "errors": [],
+      "verdict": "lane-pending",
+      "redFields": []
+    },
+    "_template.phone": {
+      "errors": [],
+      "verdict": "red",
+      "redFields": [
+        "boot.saves.read"
+      ]
+    }
+  },
+  "latestFullSuite": {
+    "passed": 2247,
+    "failed": 15,
+    "filesPassed": 298,
+    "filesFailed": 12,
+    "failures": [
+      " FAIL  test/chunks.test.ts > chunk terrain > the first four trails start at the edge midpoints (the mandated entry roads)",
+      " FAIL  test/explore.test.ts > Explore World > explorer artwork is declared on the manifest",
+      " FAIL  test/fight-rules.test.ts > ShardManifest.fightRules (E297: Driftwood only) > Driftwood lets 2 attack at once; no other shard has the rules",
+      " FAIL  test/ktx2-auto.test.ts > the KTX2 sets > every phone shard has one: the stand-ins its KTX2 boot declares + the transcoder, nothing else",
+      " FAIL  test/ktx2-auto.test.ts > the KTX2 sets > every desktop shard has one: the stand-ins its KTX2 boot declares + the transcoder, nothing else",
+      " FAIL  test/loot.test.ts > coins > only Driftwood pays coins (ShardManifest.loot gating)",
+      " FAIL  test/models-check-rules.test.ts > check-models: a registry add with an object (E323) > the whole tree holds with the stricter finder",
+      " FAIL  test/models-places.test.ts > every named place is a set (E315 M12) > an enforced shard has a set for every named place, and every set names a real place",
+      " FAIL  test/models-rosters.test.ts > shard rosters (E315 M5) > sunscar-dunes: every fauna species is on the roster; ids unique; every entry a defined model",
+      " FAIL  test/shard-prefetch.test.ts > shardBootRequests: the boot request list of each shard > equals main.ts's own composition \u2014 phone tier",
+      " FAIL  test/shard-prefetch.test.ts > shardBootRequests: the boot request list of each shard > equals main.ts's own composition \u2014 desktop tier",
+      " FAIL  test/shard-prefetch.test.ts > shardBootRequests: the boot request list of each shard > names phone pack parts first and migrated desktop packs where authored",
+      " FAIL  test/shards/_template/contract.test.ts > template plugin contract > keeps hidden-shard saves out of the production summary",
+      " FAIL  test/shards/driftwood-isle/models-contract.test.ts > the model contract > the static rules hold over the tree (scripts/check-models.mjs)",
+      " FAIL  test/shards/nalati-grasslands/nalati-models.test.ts > Nalati models (E306 / E315 M3) > a place on the contract never registers a built thing by hand again (check-models rule 6)"
+    ]
+  }
+}

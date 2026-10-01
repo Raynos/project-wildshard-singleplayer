@@ -1,32 +1,56 @@
 // @vitest-environment happy-dom
 import { afterEach, expect, it } from 'vitest';
 import { progressSave } from '#game/saves';
-import { saveSetting } from '#engine/ui/Settings';
-import { buildTitleDeck, titleCards } from '#game/titleDeck';
+import { buildTitleDeck, titleCards, type TitleCard } from '#game/titleDeck';
 import { updateSummary } from '#game/summary';
 
-function fixture() {
-  const deck = buildTitleDeck({ cards: titleCards(), active: null, onEnter: () => undefined, onExplore: () => undefined, onSettings: () => undefined });
+function fixture(active: string | null = null, cards: readonly TitleCard[] = titleCards()) {
+  const deck = buildTitleDeck({ cards, active, onEnter: () => undefined, onExplore: () => undefined, onSettings: () => undefined });
   document.body.append(deck.root); return deck;
 }
-afterEach(() => { saveSetting('titleSummary', 'a'); document.body.replaceChildren(); });
-it('keeps the strip hidden when every shard is unvisited and adds no controls', () => {
-  const deck = fixture();
-  expect(deck.root.querySelector<HTMLElement>('.ws-title-summary')?.hidden).toBe(true);
-  expect(deck.root.querySelectorAll('.ws-title-summary button')).toHaveLength(0);
-  deck.dispose();
-});
-it('shows known and unknown counts in deck order, total feats, and live A/B variants', () => {
+function text(deck: ReturnType<typeof fixture>): string[] {
+  return [...deck.root.querySelectorAll('.ws-title-summary > *')].map((el) => el.textContent);
+}
+function seed(): void {
   progressSave.write({ earned: ['castaway', 'glass'], counts: {}, title: null, playS: 3 }, 'driftwood-isle');
   updateSummary('pine-hollow', { earned: ['deer5', 'boar5', 'lanterns'], playS: 620 }, 8);
-  const deck = fixture(), summary = deck.root.querySelector<HTMLElement>('.ws-title-summary');
-  expect(summary?.hidden).toBe(false);
-  expect([...deck.root.querySelectorAll('.ws-title-summary-line span:first-child')].map((el) => el.textContent)).toEqual(deck.cards.map((card) => card.name));
-  expect(summary?.textContent).toContain('2 FEATS');
-  expect(summary?.textContent).toContain('3 / 8 FEATS');
-  expect(summary?.textContent).toContain('NOT VISITED');
-  expect(summary?.textContent).toContain('WILDSHARD · 5 FEATS');
-  expect(summary?.dataset['variant']).toBe('a');
-  saveSetting('titleSummary', 'b'); expect(summary?.dataset['variant']).toBe('b');
-  deck.dispose(); saveSetting('titleSummary', 'a'); expect(summary?.dataset['variant']).toBe('b');
+}
+afterEach(() => { document.body.replaceChildren(); });
+it('shows the selected unvisited shard and zero total on a fresh save, with no controls', () => {
+  const deck = fixture();
+  expect(deck.root.querySelector<HTMLElement>('.ws-title-summary')?.hidden).toBe(false);
+  expect(text(deck)).toEqual(['DRIFTWOOD ISLE · NOT VISITED', 'WILDSHARD · 0 FEATS']);
+  expect(deck.root.querySelectorAll('.ws-title-summary button')).toHaveLength(0);
+  expect(deck.root.querySelector<HTMLElement>('.ws-title-summary')?.dataset['variant']).toBeUndefined();
+  deck.dispose();
+});
+it('updates only the selected line on carousel selection, with a stable total for known and rebuilt saves', () => {
+  seed();
+  const deck = fixture();
+  expect(text(deck)).toEqual(['DRIFTWOOD ISLE · 2 FEATS', 'WILDSHARD · 5 FEATS']);
+  deck.select(deck.cards.findIndex((card) => card.slug === 'pine-hollow'), false);
+  expect(text(deck)).toEqual(['PINE HOLLOW · 3 FEATS', 'WILDSHARD · 5 FEATS']);
+  deck.select(deck.cards.findIndex((card) => card.slug === 'nalati-grasslands'), false);
+  expect(text(deck)).toEqual(['NALATI GRASSLANDS · NOT VISITED', 'WILDSHARD · 5 FEATS']);
+  deck.select(0, false);
+  expect(text(deck)).toEqual(['DRIFTWOOD ISLE · 2 FEATS', 'WILDSHARD · 5 FEATS']);
+  deck.dispose();
+});
+it('starts on the active shard and follows a dot click without a reload', () => {
+  seed();
+  const deck = fixture('pine-hollow');
+  expect(text(deck)).toEqual(['PINE HOLLOW · 3 FEATS', 'WILDSHARD · 5 FEATS']);
+  deck.root.querySelector<HTMLElement>('.ws-menu-dots i[data-i="0"]')?.click();
+  expect(text(deck)).toEqual(['DRIFTWOOD ISLE · 2 FEATS', 'WILDSHARD · 5 FEATS']);
+  deck.dispose();
+});
+it('counts every visible registry shard even when the deck is a subset, and excludes hidden saved progress', () => {
+  seed();
+  updateSummary('_template', { earned: ['hidden-a', 'hidden-b', 'hidden-c'], playS: 8 }, 3);
+  const cards = titleCards(true);
+  const deck = fixture('pine-hollow', cards.filter((card) => card.slug === 'pine-hollow' || card.slug === '_template'));
+  expect(text(deck)).toEqual(['PINE HOLLOW · 3 FEATS', 'WILDSHARD · 5 FEATS']);
+  deck.select(deck.cards.findIndex((card) => card.slug === '_template'), false);
+  expect(text(deck)).toEqual(['TEMPLATE SHARD · NOT VISITED', 'WILDSHARD · 5 FEATS']);
+  deck.dispose();
 });

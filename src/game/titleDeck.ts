@@ -1,4 +1,4 @@
-import { listenDom, app, setting, onSettingChange } from '#engine';
+import { listenDom, app, setting } from '#engine';
 /**
  * The title screen's shard deck — ONE implementation for both ways in (E318, Jake: "lol wtf why do we have two title
  * screens, one only please"): the cold launch (src/engine/ui/StartTitle.ts, renderer-free, before any shard loads) and pause ▸
@@ -122,24 +122,17 @@ export function buildTitleDeck(opts: TitleDeckOptions): TitleDeck {
   const summary = document.createElement('div');
   summary.className = 'ws-title-summary';
   summary.setAttribute('aria-label', GAME_STRINGS.summary.label);
-  const paintSummary = (): void => {
-    const view = summaryView(readSummary(), cards);
-    summary.hidden = !view.visited;
-    summary.dataset['variant'] = setting('titleSummary');
-    summary.replaceChildren();
-    for (const line of view.lines) {
-      const row = document.createElement('div'); row.className = 'ws-title-summary-line';
-      const name = document.createElement('span'); name.textContent = line.name;
-      const value = document.createElement('span');
-      value.textContent = !line.visited ? GAME_STRINGS.summary.notVisited : line.total === null ? GAME_STRINGS.summary.unknown(line.earned) : GAME_STRINGS.summary.known(line.earned, line.total);
-      row.append(name, value); summary.append(row);
-    }
+  const paintSummary = (card: TitleCard): void => {
+    const view = summaryView(readSummary(), SHARDS);
+    const lines = new Map(view.lines.map((entry) => [entry.slug, entry] as const));
+    const line = lines.get(card.slug);
+    const selected = document.createElement('div'); selected.className = 'ws-title-summary-line';
+    selected.textContent = GAME_STRINGS.summary.selected(card.name, line?.visited ? line.earned : null);
     const total = document.createElement('strong'); total.className = 'ws-title-summary-total';
-    total.textContent = GAME_STRINGS.summary.total(view.earned); summary.append(total);
+    total.textContent = GAME_STRINGS.summary.total(view.earned);
+    summary.replaceChildren(selected, total);
   };
-  paintSummary();
   required(root, '.ws-menu-dots').after(summary);
-  const stopSummary = onSettingChange('titleSummary', paintSummary);
 
   const hero = required(root, '.ws-menu-hero');
   const list = required(root, '.ws-menu-cards');
@@ -166,6 +159,7 @@ export function buildTitleDeck(opts: TitleDeckOptions): TitleDeck {
     hero.style.backgroundImage = `url('${heroUrl(c)}')`;
     hero.classList.add('show');
     hint.textContent = hintFor(c, index === activeIndex);
+    paintSummary(c);
   };
   const select = (raw: number, smooth = true): void => {
     const i = Math.max(0, Math.min(cards.length - 1, raw));
@@ -229,6 +223,6 @@ export function buildTitleDeck(opts: TitleDeckOptions): TitleDeck {
     get index() { return index; },
     select, activate,
     start: () => { place(index, 0, false); scope.raf(() => { place(index, 0, false); }); },
-    dispose: () => { stopSummary(); scope.dispose(); },
+    dispose: () => { scope.dispose(); },
   };
 }

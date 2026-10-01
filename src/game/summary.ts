@@ -12,16 +12,17 @@ export interface SummaryLine { slug: string; name: string; earned: number; total
 export interface SummaryView { lines: readonly SummaryLine[]; earned: number; visited: boolean }
 
 /** Rebuild from validated save documents only: no world builder or plugin is loaded. */
-export function buildSummary(shards: readonly { slug: string }[], read: (slug: string) => SummaryProgress | null, at = Date.now()): WildshardSummary {
+export function buildSummary(shards: readonly { slug: string; status?: string }[], read: (slug: string) => SummaryProgress | null, at = Date.now()): WildshardSummary {
   const result: WildshardSummary = { v: 1, shards: {} };
-  for (const { slug } of shards) {
+  for (const { slug, status } of shards) {
+    if (status === 'hidden') continue;
     const progress = read(slug);
     if (progress !== null) result.shards[slug] = { earned: new Set(progress.earned).size, total: null, playS: progress.playS, at };
   }
   return result;
 }
-export function summaryView(summary: WildshardSummary, shards: readonly { slug: string; name: string }[]): SummaryView {
-  const lines = shards.map(({ slug, name }): SummaryLine => {
+export function summaryView(summary: WildshardSummary, shards: readonly { slug: string; name: string; status?: string }[]): SummaryView {
+  const lines = shards.filter((shard) => shard.status !== 'hidden').map(({ slug, name }): SummaryLine => {
     const line = summary.shards[slug];
     return { slug, name, earned: line?.earned ?? 0, total: line?.total ?? null, playS: line?.playS ?? 0, visited: line !== undefined };
   });

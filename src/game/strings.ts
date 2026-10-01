@@ -2,9 +2,7 @@
 export const GAME_STRINGS = {
   summary: {
     label: 'Wildshard progress',
-    notVisited: 'NOT VISITED',
-    known: (earned: number, total: number): string => `${earned} / ${total} FEATS`,
-    unknown: (earned: number): string => `${earned} FEATS`,
+    selected: (name: string, earned: number | null): string => `${name.toUpperCase()} · ${earned === null ? 'NOT VISITED' : `${earned} FEATS`}`,
     total: (earned: number): string => `WILDSHARD · ${earned} FEATS`,
   },
 } as const;

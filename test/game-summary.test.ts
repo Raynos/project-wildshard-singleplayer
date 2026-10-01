@@ -55,3 +55,14 @@ it('marks zero-feat loaded shards visited and updates the summary on a feat and 
   const global = JSON.parse(localStorage.getItem('wildshard.save.v2.global') ?? '{}') as { keys: { summary: { data: { shards: Record<string, { earned: number; total: number; playS: number }> } } } };
   expect(global.keys.summary.data.shards['driftwood-isle']).toMatchObject({ earned: 1, total: 10, playS: 15 });
 });
+
+it('excludes hidden shards from reconstruction and totals, including an old saved summary line', () => {
+  const registry = [...shards, { slug: '_template', name: 'Hidden', status: 'hidden' }];
+  const read = (slug: string) => ({ earned: slug === '_template' ? ['hidden-a', 'hidden-b'] : ['a'], playS: 9 });
+  const summary = buildSummary(registry, read);
+  expect(summary.shards['_template']).toBeUndefined();
+  summary.shards['_template'] = { earned: 20, total: 20, playS: 9, at: 12 };
+  const view = summaryView(summary, registry);
+  expect(view.earned).toBe(3);
+  expect(view.lines.map((line) => line.slug)).toEqual(shards.map((shard) => shard.slug));
+});
