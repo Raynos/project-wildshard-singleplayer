@@ -8,7 +8,7 @@
 //
 //   node scripts/bake-textures.mjs [--url http://localhost:5173] [--chunk pine-hollow] [--check]
 import { existsSync, readdirSync } from 'node:fs';
-import { byteWriter, outputHash, jsonBytes } from './bake-output.mjs';
+import { byteWriter, outputHash, jsonBytes, toolVersion } from './bake-output.mjs';
 import { resolve } from 'node:path';
 
 const ROOT = resolve(import.meta.dirname, '..');
@@ -45,4 +45,4 @@ try {
 } finally {
   await browser.close();
 }
-output.finish();
+if (output.finish() > 0) console.log(`bake-textures: Chromium ${toolVersion(chromium.executablePath(), ['--version']) ?? 'unavailable'}`);

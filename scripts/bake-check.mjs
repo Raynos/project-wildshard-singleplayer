@@ -11,6 +11,7 @@ import { toolVersion } from './bake-output.mjs';
 
 const ROOT = pathResolve(import.meta.dirname, '..');
 const nodeOnly = process.argv.includes('--node-only'); // builders queue the GPU/derived batch to the lead
+const skipGpu = nodeOnly || process.argv.includes('--skip-gpu');
 const state = { failed: false };
 const run = (args, command = process.execPath) => {
   const result = spawnSync(command, args, { cwd: ROOT, stdio: 'inherit' });
@@ -22,7 +23,7 @@ for (const baker of ['chunk', 'sky', 'navmesh']) run(['--experimental-transform-
 
 const metal = process.platform === 'darwin' && spawnSync('system_profiler', ['SPDisplaysDataType'], { encoding: 'utf8' }).stdout.includes('Metal');
 if (!metal) console.log('bake-check: GPU bakers skipped (no Metal): bake-cards, bake-textures');
-else if (nodeOnly) console.log('bake-check: GPU bakers queued (--node-only): bake-cards, bake-textures');
+else if (skipGpu) console.log('bake-check: GPU bakers queued: bake-cards, bake-textures');
 else if (!state.failed) {
   const scratch = mkdtempSync(join(tmpdir(), 'bake-check-'));
   let preview;

@@ -1,15 +1,14 @@
 {
-  "hash": "e0ff317d81184d7c",
-  "version": 1,
+  "hash": "0ee0ede1bf7a6179f95a7d3b4245e57ac08387da3e6ebe2cce389a0278c659f9",
   "files": {
-    "planet.jpg": {
-      "bytes": 59994,
-      "width": 1024,
-      "height": 512
-    },
     "clouds.jpg": {
       "bytes": 63536,
       "width": 512,
+      "height": 512
+    },
+    "planet.jpg": {
+      "bytes": 59994,
+      "width": 1024,
       "height": 512
     }
   }

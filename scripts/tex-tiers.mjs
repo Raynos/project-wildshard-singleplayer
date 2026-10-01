@@ -17,18 +17,52 @@
 //    is (the original 2k map, not its q82 _1k copy). A copy that is not ≥ 15 % smaller is not kept.
 // 4. `<id>_lod.phone.glb`: the LOD props with their embedded JPEGs as WebP (EXT_texture_webp, which three's
 //    GLTFLoader reads), ARM planes at 512 px.
-//    Every run encodes to scratch; --check compares without writing any asset.
+//    Content-addressed: encode only missing source/settings keys, verify cached output hashes with --check.
+//    --seed-cache trusts today's committed copies and writes only scripts/tex-tiers.cache.json.
 import { readdirSync, existsSync, statSync, readFileSync, rmSync, mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { byteWriter } from './bake-output.mjs';
+import { byteWriter, outputHash, jsonBytes } from './bake-output.mjs';
 import { execFileSync } from 'node:child_process';
 import { join } from 'node:path';
 
 const ROOT = 'public/assets/tex';
-let made = 0, kept = 0;
+let made = 0;
 const identify = (fmt, file) => execFileSync('magick', ['identify', '-format', fmt, file]).toString().trim();
 const check = process.argv.includes('--check');
+const seed = process.argv.includes('--seed-cache');
+if (check && seed) throw new Error('tex-tiers: choose --check or --seed-cache');
 const output = byteWriter(check, 'tex-tiers');
+const CACHE = 'scripts/tex-tiers.cache.json';
+const cache = existsSync(CACHE) ? JSON.parse(readFileSync(CACHE, 'utf8')) : {};
+const stale = new Set();
+const want = new Set();
+let seeded = 0, encoded = 0, reused = 0;
+const keyOf = (bytes, settings) => outputHash(Buffer.concat([Buffer.from(JSON.stringify(settings)), bytes]));
+
+/** Seeding reads only. Every cache hit verifies the committed output bytes; missing keys alone encode. */
+function copy(src, out, settings, make, inPlace = false) {
+  const source = readFileSync(src), key = keyOf(source, settings), hit = cache[key];
+  if (seed) {
+    if (hit === undefined) { cache[key] = existsSync(out) ? outputHash(readFileSync(out)) : 'none'; seeded++; }
+    if (existsSync(out)) want.add(out);
+    return;
+  }
+  if (hit !== undefined) {
+    if (hit === 'none') { if (existsSync(out)) stale.add(out); }
+    else if (!existsSync(out) || outputHash(readFileSync(out)) !== hit) stale.add(out);
+    else want.add(out);
+    reused++;
+    return;
+  }
+  if (check) { stale.add(out); return; }
+  const bytes = make(source);
+  encoded++;
+  if (bytes === null) { cache[key] = 'none'; output.remove(out); }
+  else {
+    cache[key] = outputHash(bytes); output.put(out, bytes); want.add(out);
+    if (inPlace) cache[keyOf(bytes, settings)] = outputHash(bytes);
+  }
+}
 const scratch = mkdtempSync(join(tmpdir(), 'tex-tiers-'));
 let scratchId = 0;
 process.on('exit', () => rmSync(scratch, { recursive: true, force: true }));
@@ -40,12 +74,11 @@ for (const id of readdirSync(ROOT)) {
   for (const kind of ['diffuse', 'nor_gl', 'arm']) {
     const src = join(dir, `${kind}.jpg`), out = join(dir, `${kind}_1k.jpg`);
     if (!existsSync(src)) continue;
-    const w = Number(identify('%w', src));
-    if (w <= 1024 && statSync(src).size < 350 * 1024) continue; // small enough: the loader falls back to the base file
-    const bytes = execFileSync('magick', [src, '-resize', '1024x1024', '-quality', '82', '-strip', 'jpg:-'], { maxBuffer: 64 << 20 });
-    if (existsSync(out) && readFileSync(out).equals(bytes)) kept++;
-    output.put(out, bytes);
-    made++;
+    copy(src, out, { format: 'jpg', max: 1024, quality: 82, strip: true, byteLimit: 350 * 1024 }, () => {
+      if (Number(identify('%w', src)) <= 1024 && statSync(src).size < 350 * 1024) return null;
+      made++;
+      return execFileSync('magick', [src, '-resize', '1024x1024', '-quality', '82', '-strip', 'jpg:-'], { maxBuffer: 64 << 20 });
+    });
   }
 }
 
@@ -64,16 +97,19 @@ for (const id of readdirSync(MODELS)) {
   const texDir = join(MODELS, id, 'textures');
   if (existsSync(texDir)) for (const f of readdirSync(texDir).filter((x) => x.endsWith('.jpg'))) {
     const p = join(texDir, f), buf = readFileSync(p);
-    const out = squeeze(buf, f);
-    if (out && out.length < buf.length) { output.put(p, out); squeezed++; saved += buf.length - out.length; }
+    copy(p, p, { format: 'jpg', args: jpegArgs(f), squeezeAbove: 90 }, () => {
+      const out = squeeze(buf, f);
+      if (out && out.length < buf.length) { squeezed++; saved += buf.length - out.length; return out; }
+      return buf;
+    }, true);
   }
   const glb = join(MODELS, id, `${id}_lod.glb`);
-  if (existsSync(glb)) { const d = squeezeGlb(glb); if (d > 0) { squeezed++; saved += d; } }
+  if (existsSync(glb)) copy(glb, glb, { format: 'glb', quality: 85, squeezeAbove: 90, normalSampling: '1x1', alignment: 4 }, () => squeezeGlb(glb), true);
 }
 
 /**
  * Re-encode a GLB's embedded JPEGs: rewrite the BIN chunk with each image's bufferView replaced and every
- * bufferView re-packed (4-byte aligned) in its original order. Returns bytes saved (0 = untouched).
+ * bufferView re-packed (4-byte aligned) in its original order. Returns the output bytes.
  */
 function squeezeGlb(path) {
   const { json, views, size } = readGlb(path);
@@ -83,8 +119,10 @@ function squeezeGlb(path) {
     const out = squeeze(views[img.bufferView], img.name ?? '');
     if (out && out.length < views[img.bufferView].length) { views[img.bufferView] = out; changed = true; }
   }
-  if (!changed) return 0;
-  return size - writeGlb(path, json, views);
+  if (!changed) return readFileSync(path);
+  const bytes = glbBytes(json, views);
+  squeezed++; saved += size - bytes.length;
+  return bytes;
 }
 
 function readGlb(path) {
@@ -98,8 +136,8 @@ function readGlb(path) {
   return { json, views, size: b.length };
 }
 
-/** Write a GLB whose bufferViews are `views`, re-packed 4-byte aligned in order. Returns the file size. */
-function writeGlb(path, json, views) {
+/** Pack a GLB whose bufferViews are `views`, re-packed 4-byte aligned in order. */
+function glbBytes(json, views) {
   const parts = []; let off = 0;
   json.bufferViews.forEach((v, i) => {
     v.byteOffset = off; v.byteLength = views[i].length;
@@ -114,8 +152,7 @@ function writeGlb(path, json, views) {
   const jh = Buffer.alloc(8); jh.writeUInt32LE(jsonBuf.length, 0); jh.writeUInt32LE(0x4e4f534a, 4);
   const bh = Buffer.alloc(8); bh.writeUInt32LE(newBin.length, 0); bh.writeUInt32LE(0x004e4942, 4);
   const total = 12 + 8 + jsonBuf.length + 8 + newBin.length; header.writeUInt32LE(total, 8);
-  output.put(path, Buffer.concat([header, jh, jsonBuf, bh, newBin]));
-  return total;
+  return Buffer.concat([header, jh, jsonBuf, bh, newBin]);
 }
 
 // ── 3. .phone.webp siblings ──
@@ -161,40 +198,54 @@ function webp(src, max, out) {
   rmSync(tmp);
 }
 
-let phoneMade = 0, phoneKept = 0, phoneSkipped = 0;
-const want = new Set();
+let phoneMade = 0, phoneSkipped = 0;
 for (const [served, src, max] of phoneJobs()) {
   const out = phoneName(served);
-  const encoded = join(scratch, `${++scratchId}.webp`);
-  webp(src, max, encoded);
-  // not worth a second file unless it is ≥ 15 % smaller than what the desktop tier downloads
-  const bytes = readFileSync(encoded); rmSync(encoded);
-  if (bytes.length > statSync(served).size * 0.85) { output.remove(out); phoneSkipped++; continue; }
-  if (existsSync(out) && readFileSync(out).equals(bytes)) phoneKept++;
-  output.put(out, bytes);
-  want.add(out); phoneMade++;
+  copy(src, out, { format: 'webp', max, quality: 75, sharpYuv: true, alphaQuality: 100, exact: true, method: 6, resize: 'separate-combine', minSaving: 0.15, servedHash: outputHash(readFileSync(served)) }, () => {
+    const temp = join(scratch, `${++scratchId}.webp`);
+    webp(src, max, temp);
+    const bytes = readFileSync(temp); rmSync(temp);
+    if (bytes.length > statSync(served).size * 0.85) { phoneSkipped++; return null; }
+    phoneMade++;
+    return bytes;
+  });
 }
 
 // ── 4. <id>_lod.phone.glb: the props' embedded JPEGs as WebP (EXT_texture_webp), ARM planes at half resolution ──
 for (const id of readdirSync(MODELS)) {
   const glb = join(MODELS, id, `${id}_lod.glb`), out = join(MODELS, id, `${id}_lod.phone.glb`);
   if (!existsSync(glb)) continue;
-  want.add(out);
-  const { json, views } = readGlb(glb);
-  const tmp = join(scratch, `${++scratchId}.webp`);
-  (json.images ?? []).forEach((img, i) => {
-    if (img.mimeType !== 'image/jpeg' || img.bufferView === undefined) return;
-    webp(views[img.bufferView], isArm(img.name ?? '') ? ARM_MAX : PHONE_MAX, tmp);
-    views[img.bufferView] = readFileSync(tmp); rmSync(tmp);
-    img.mimeType = 'image/webp';
-    for (const t of json.textures ?? []) if (t.source === i) { t.extensions = { ...t.extensions, EXT_texture_webp: { source: i } }; delete t.source; }
+  copy(glb, out, { format: 'glb-webp', max: PHONE_MAX, armMax: ARM_MAX, quality: 75, sharpYuv: true, alphaQuality: 100, exact: true, method: 6, resize: 'separate-combine', alignment: 4 }, () => {
+    const { json, views } = readGlb(glb);
+    const tmp = join(scratch, `${++scratchId}.webp`);
+    (json.images ?? []).forEach((img, i) => {
+      if (img.mimeType !== 'image/jpeg' || img.bufferView === undefined) return;
+      webp(views[img.bufferView], isArm(img.name ?? '') ? ARM_MAX : PHONE_MAX, tmp);
+      views[img.bufferView] = readFileSync(tmp); rmSync(tmp);
+      img.mimeType = 'image/webp';
+      for (const t of json.textures ?? []) if (t.source === i) { t.extensions = { ...t.extensions, EXT_texture_webp: { source: i } }; delete t.source; }
+    });
+    for (const k of ['extensionsUsed', 'extensionsRequired']) json[k] = [...new Set([...(json[k] ?? []), 'EXT_texture_webp'])];
+    phoneMade++;
+    return glbBytes(json, views);
   });
-  for (const k of ['extensionsUsed', 'extensionsRequired']) json[k] = [...new Set([...(json[k] ?? []), 'EXT_texture_webp'])];
-  writeGlb(out, json, views);
-  phoneMade++;
 }
-// stale phone copies (a source that went away, or a sibling that stopped paying for itself)
-const sweep = (dir) => { for (const n of readdirSync(dir)) { const p = join(dir, n); if (statSync(p).isDirectory()) sweep(p); else if (n.includes('.phone.') && !want.has(p)) { output.remove(p); phoneSkipped++; } } };
-sweep('public/assets');
-console.log(`tex-tiers: ${made} _1k written, ${kept} up to date · ${squeezed} model files squeezed (−${(saved / 1048576).toFixed(1)} MB) · ${phoneMade} phone copies written, ${phoneKept} up to date, ${phoneSkipped} dropped`);
+// Other pipelines own Nalati rigs, shard-specific phone textures and hand-authored model variants.
+// Sweep only the folders/families this script generates; never remove another pipeline's copies.
+const sweep = (dir) => { for (const n of readdirSync(dir)) { const p = join(dir, n); if (statSync(p).isDirectory()) sweep(p); else if (n.includes('.phone.') && !want.has(p) && !stale.has(p)) output.remove(p); } };
+if (!seed) {
+  sweep('public/assets/baked');
+  sweep(ROOT);
+  for (const id of readdirSync(MODELS)) {
+    const out = join(MODELS, id, `${id}_lod.phone.glb`);
+    if (existsSync(out) && !want.has(out) && !stale.has(out)) output.remove(out);
+    const tex = join(MODELS, id, 'textures');
+    if (existsSync(tex)) sweep(tex);
+  }
+}
+for (const path of stale) console.log(`tex-tiers: STALE ${path} (source/settings cache entry or output hash missing/mismatched)`);
+if (stale.size > 0) process.exitCode = 1;
+if (!check) output.put(CACHE, jsonBytes(Object.fromEntries(Object.entries(cache).sort(([a], [b]) => a.localeCompare(b)))));
+console.log(`tex-tiers: ${made} _1k encoded · ${squeezed} model files squeezed (−${(saved / 1048576).toFixed(1)} MB) · ${phoneMade} phone copies encoded, ${phoneSkipped} not kept`);
 output.finish();
+console.log(`tex-tiers: ${encoded} encoded, ${reused} reused, ${seeded} seeded${seed ? ' (cache only; assets untouched)' : ''}`);

@@ -7,7 +7,7 @@
 // public/assets/baked/<slug>/card-{albedo.png,normal.jpg,arm.jpg} plus cards.json with a hash of the output planes. Every run bakes in memory; --check writes nothing.
 //
 //   node scripts/bake-cards.mjs [--url http://localhost:5173] [--chunk pine-hollow] [--check]
-import { byteWriter, outputHash, jsonBytes } from './bake-output.mjs';
+import { byteWriter, outputHash, jsonBytes, toolVersion } from './bake-output.mjs';
 import { resolve } from 'node:path';
 
 const ROOT = resolve(import.meta.dirname, '..');
@@ -41,4 +41,4 @@ try {
 } finally {
   await browser.close();
 }
-output.finish();
+if (output.finish() > 0) console.log(`bake-cards: Chromium ${toolVersion(chromium.executablePath(), ['--version']) ?? 'unavailable'}`);

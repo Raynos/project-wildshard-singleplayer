@@ -30,7 +30,7 @@ export function byteWriter(check, label) {
     },
     finish() {
       if (changed > 0) {
-        console.log(`${label}: tools node ${process.version}; ${['magick', 'cwebp', 'basisu'].map((cmd) => `${cmd} ${toolVersion(cmd, [cmd === 'magick' ? '-version' : '-version']) ?? 'unavailable'}`).join('; ')}`);
+        console.log(`${label}: tools node ${process.version}; ${['magick', 'cwebp', 'basisu'].map((cmd) => `${cmd} ${toolVersion(cmd, ['-version']) ?? 'unavailable'}`).join('; ')}`);
         if (check) process.exitCode = 1;
       }
       return changed;
