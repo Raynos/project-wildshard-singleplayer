@@ -131,7 +131,7 @@ try { build = (await (await fetch(`${BASE}/version.json`, { cache: 'no-store' })
 console.error(`> physics-baseline ${LABEL} build=${build} modes=${MODE.join(',')} cpu=${CPU}× (walk ${WALK_CPU}×)`);
 
 const browser = await chromium.launch({ headless: true, args: ['--use-angle=metal', '--ignore-gpu-blocklist', '--mute-audio'] });
-const result = { label: LABEL, build, date: new Date().toISOString(), cpu: CPU, walkCpu: WALK_CPU, frames: FRAMES, poses: [], walk: [] };
+const result = { label: LABEL, build, date: new Date().toISOString(), cpu: CPU, walkCpu: WALK_CPU, frames: FRAMES, poses: [], walk: [], physics: {} };
 
 async function openGame(shard, q, { cpu, video }) {
   const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, ...(video ? { recordVideo: { dir: join(OUT_DIR, '.video-tmp'), size: { width: 390, height: 844 } } } : {}) });
@@ -197,6 +197,7 @@ if (MODE.includes('walk')) {
     if (shard.startsWith('$') || (ONLY && shard !== ONLY)) continue;
     const first = legs[0];
     const { ctx, page, errors } = await openGame(shard, `x=${first.start.x}&z=${first.start.z}&yaw=${first.start.yaw}`, { cpu: WALK_CPU, video: VIDEO });
+    result.physics[shard] = await page.evaluate(() => ({ colliders: window.__wildshard.world.physics.world.colliders.len() }));
     if (TRAILS) {
       const paths = (await page.evaluate(() => window.__hf.TRAILS)).slice(4);
       // a path's ends under a deck (Nalati's sky road starts under the bridge's south ramp: the ramp's foot is where it

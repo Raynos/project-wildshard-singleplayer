@@ -8,7 +8,7 @@ import * as THREE from 'three';
 import type { ColliderDesc, Piece } from '../world/registry';
 import type { Physics } from './Physics';
 import { groups } from './groups';
-import { tagCollider, type Material } from './surface';
+import { tagCollider, untagCollider, type Material } from './surface';
 
 /** One tread of a stair: a solid block from the stair's foot up to this tread's top. */
 export function treadBoxes(d: Extract<ColliderDesc, { kind: 'treads' }>): Extract<ColliderDesc, { kind: 'box' }>[] {
@@ -59,19 +59,21 @@ export function addPiece(physics: Physics, piece: Piece): AddedPiece {
     body = world.createRigidBody(R.RigidBodyDesc.kinematicPositionBased().setTranslation(_p.x, _p.y, _p.z).setRotation({ x: _q.x, y: _q.y, z: _q.z, w: _q.w }));
   }
   let colliderData = piece.colliders;
-  const create = (): void => { for (const raw of piece.colliders ?? []) {
-    for (const d of raw.kind === 'treads' ? treadBoxes(raw) : [raw]) {
-      const desc = rapierDesc(physics, d);
-      if (desc === null) continue; // a degenerate hull: nothing to collide with
-      desc.setTranslation(d.x, d.y, d.z).setCollisionGroups(groups('WORLD'));
-      if (d.rot) desc.setRotation(d.rot);
-      else if (d.yaw !== undefined && d.yaw !== 0) desc.setRotation({ x: 0, y: Math.sin(d.yaw / 2), z: 0, w: Math.cos(d.yaw / 2) });
-      const c = world.createCollider(desc, body ?? undefined);
-      const material: Material = d.surface ?? raw.surface ?? piece.surface ?? 'wood';
-      tagCollider(c, material, piece);
-      out.push(c);
+  const create = (): void => {
+    for (const raw of piece.colliders ?? []) {
+      for (const d of raw.kind === 'treads' ? treadBoxes(raw) : [raw]) {
+        const desc = rapierDesc(physics, d);
+        if (desc === null) continue; // a degenerate hull: nothing to collide with
+        desc.setTranslation(d.x, d.y, d.z).setCollisionGroups(groups('WORLD'));
+        if (d.rot) desc.setRotation(d.rot);
+        else if (d.yaw !== undefined && d.yaw !== 0) desc.setRotation({ x: 0, y: Math.sin(d.yaw / 2), z: 0, w: Math.cos(d.yaw / 2) });
+        const c = world.createCollider(desc, body ?? undefined);
+        const material: Material = d.surface ?? raw.surface ?? piece.surface ?? 'wood';
+        tagCollider(c, material, piece);
+        out.push(c);
+      }
     }
-  } };
+  };
   create();
   const b = body, active = piece.active;
   let on = true;
@@ -79,7 +81,7 @@ export function addPiece(physics: Physics, piece: Piece): AddedPiece {
     // A puzzle may resize its box when its state changes. Replacing the descriptors
     // rebuilds that piece without a second collision list or per-frame serialization.
     if (piece.colliders !== colliderData) {
-      for (const c of out) world.removeCollider(c, true);
+      for (const c of out) { untagCollider(c); world.removeCollider(c, true); }
       out.length = 0; colliderData = piece.colliders; create();
       for (const c of out) c.setEnabled(on);
     }
