@@ -1,6 +1,6 @@
 # NORMALIZATION-PICKS — every pick, decision, question and review for Jake (E357)
 
-**State:** `blocked` 2026-10-01 — open: P21 (review wave 7 Q1: tap-the-chip reload A/B/C), P23 (review wave 7 Q2: desktop Settings built + guesses); waiting on Jake; asked in plain chat while herdr builders are live; must be empty before GAME-NORMALIZATION is archived.
+**State:** `blocked` 2026-10-01 — open: P24 (keep the 54 texture originals? J4 found they are all sources); waiting on Jake; asked in plain chat while herdr builders are live; must be empty before GAME-NORMALIZATION is archived.
 
 A mini plan beside [GAME-NORMALIZATION](GAME-NORMALIZATION.md). Each row is one question the lead asks Jake through
 the question tool (AskUserQuestion), with its options and the evidence to look at. Builders never decide a row: when
@@ -17,13 +17,14 @@ continue on the recommended option, but the row stays open until Jake has answer
 
 | # | What | Options (recommended first) | Where to look | Since |
 |---|---|---|---|---|
-| P21 | **J13 round 2**: tap the ammo chip to reload: three new takes (A chip as a button + reload glyph · B a RELOAD tab under a part-empty chip · C a progress ring on the chip, "TAP" hint) | B + C's border (rec.) · A · B · C | review wave 7 (https://claude.ai/artifact/NeKCDgiiJh8C6q9TxeVXRo) Q1; `art/hud/round-17-reload-chip/` | 2026-10-01 |
-| P23 | **J10 desktop Settings A, built** (7c48770a): see it, plus the builder's guesses: Video shows the current quality and points to main menu ▸ Settings (those picks apply on reload); "Next weapon" is labelled "Swap weapon" (what Q does), no mouse-wheel row; no row for the spear's Space brace (waits on P22); Nalati's lean A/D while breaking a horse doesn't follow a rebound Move left/right | ship, fix guess 4 (rec.) · change (say what) | review wave 7 (https://claude.ai/artifact/NeKCDgiiJh8C6q9TxeVXRo) Q2; `progress/normalization/j10/` | 2026-10-01 |
+| P24 | **P9 revisited**: the 54 "unreferenced" original textures (28 MB) are the sources the phone images, KTX2 sets and Blender builds are made from (J4 re-audit: 54 / 54 referenced, 0 safe deletes; deleting them is what broke 2 tests) | keep all 54 (rec.) · move them to a separate asset store | chat 2026-10-01; J4 Handoff in E357.md | 2026-10-01 |
 
 ## Answered
 
 | # | What | Jake's answer | Date |
 |---|---|---|---|
+| P21 | **J13 round 2** tap-the-chip reload | Wave 7 Q1: **A**: the chip is a button; the reload icon shows only while the magazine isn't full; built as J13 | 2026-10-01 |
+| P23 | **J10 desktop Settings A, built** + guesses | Wave 7 Q2: ship as built ("whatever, let's go"); guess 4 fixed so Nalati's horse-breaking lean follows a rebound Move left/right (sol-fin) | 2026-10-01 |
 | P22 | **J14 → drop the spear BRACE?** | Drop it ("approved"): JUMP returns with the spear out; built as J14 | 2026-10-01 |
 | P14 | **J13** touch RELOAD | Wave 5 Q1: tap the ammo chip (B's direction), not a new disc and not FIRE's rim; three new chip mockups → P21 | 2026-10-01 |
 | P15 | **J14** jump with the spear out | Wave 5 Q2: asked what BRACE is, leaning to drop it → P22 | 2026-10-01 |
