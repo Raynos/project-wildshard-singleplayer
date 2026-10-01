@@ -31,6 +31,11 @@ existing controls).
 - Check on a clean export of HEAD (the shared working tree carries other agents' WIP): typecheck, lint, the tests, and
   a phone boot of your slug (`node scripts/parity.mjs --export=<full sha> --lane=m5 --shards=<slug> --tiers=phone
   --only=fingerprint+poses`), `boot.errors` empty.
+- **Budgets are generated data, not yours to invent.** Keep `src/shards/<slug>/budgets.ts`'s `BUDGET_CEILINGS` import
+  and `ceilings` field and `budgetCeilings.ts` as HEAD has them; `pnpm gen --shard=<slug>` regenerates your slug's
+  derived budget record. A measured GPU-memory change is the lead's to approve: say so in your report.
+- **Camera poses are degrees.** `manifest.dev.poses` takes `eye` / `feet` plus `yaw` / `pitch` in degrees
+  (ENGINE §6); the parity harness and board captures read them from there.
 - A portrait board for Jake at `art/<slug>/round-3-rebuild/board-<sha>.jpg`: four iPhone 390 × 844 phone-tier frames
   (spawn, the weapon, the creature, the quest), JPEG under 500 KB, captured through `scripts/browser-lane.sh` from a
   served build (`scripts/serve-build.sh` from your scratchpad; keep the preview alive while you capture).
