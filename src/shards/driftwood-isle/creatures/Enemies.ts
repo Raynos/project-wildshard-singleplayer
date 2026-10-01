@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { app, heightAt, terrainWaterLevel as waterLevel, Rng, SEED, worldTime, activeBodies, groups, waveHeight,
+import { app, heightAt, terrainWaterLevel as waterLevel, Rng, SEED, worldTime, groups, waveHeight,
   type Sky, type AnimalManager, type Animal, type Body, type BodySpec, type Scope } from '#engine';
 import type { PalmSpec } from '../world/Palms';
 import { WRECK } from '../manifest';
@@ -110,7 +110,7 @@ export class Enemies {
     if (this.disposed) return;
     this.disposed = true;
     for (let k = 0; k < this.cBody.length; k++) {
-      const body = this.cBody[k]; if (body !== null && body !== undefined) activeBodies()?.remove(body);
+      const body = this.cBody[k]; if (body !== null && body !== undefined) app.bodies?.remove(body);
       this.cBody[k] = null; this.cState[k] = 0;
     }
     for (const actor of this.spawned) this.animals.retire(actor);
@@ -269,7 +269,7 @@ export class Enemies {
 
   /** lob a coconut from `from` to land on `to` in 0.8–1.5 s (the flight time grows with the range) */
   throwCoconut(from: THREE.Vector3, to: THREE.Vector3, thrower: Animal | null): void {
-    const bodies = activeBodies();
+    const bodies = app.bodies;
     if (bodies === null) return;
     const k = this.cNext; this.cNext = (this.cNext + 1) % COCONUTS;
     this.freeCoconut(k);
@@ -290,7 +290,7 @@ export class Enemies {
   private freeCoconut(k: number): void {
     const b = this.cBody[k];
     this.cBody[k] = null; this.cState[k] = 0;
-    if (b) activeBodies()?.remove(b);
+    if (b) app.bodies?.remove(b);
     this.coconuts.setMatrixAt(k, _m.makeScale(0, 0, 0));
   }
 
@@ -319,7 +319,7 @@ export class Enemies {
     if (this.disposed) return;
     this.tickPractice(dt, playerPos);
     // ── coconuts: their bodies fly, bounce, roll and float in the physics world; this reads them ──
-    const bodies = activeBodies();
+    const bodies = app.bodies;
     let dirty = false;
     for (let k = 0; k < COCONUTS; k++) {
       const st = this.cState[k], b = this.cBody[k];
