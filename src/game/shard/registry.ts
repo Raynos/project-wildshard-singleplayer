@@ -6,7 +6,12 @@ import { onScopeDispose } from '#engine/app/legacyCapture';
 
 export { SHARDS } from './shards.generated';
 export { SHARD_API } from './api';
-export const DEFAULT_SHARD = 'driftwood-isle';
+/** a bare URL boots the first shard by `order` (SHARDS is sorted by it) */
+export const DEFAULT_SHARD: string = (() => {
+  const first = SHARDS[0];
+  if (first === undefined) throw new Error('No shard manifests were generated');
+  return first.slug;
+})();
 export const playable = (manifest: ShardManifest): boolean => manifest.status !== 'hidden';
 
 export function shardSlugFromUrl(search?: string): string {

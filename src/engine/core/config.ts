@@ -18,8 +18,13 @@ export let CHUNK_COORDS = '(−1, +6)';
 export let TREE_COUNT = 0;
 export let SEED = 0x5ea1;
 
+/** the level this page booted: the registry's first apply (from ?chunk= at its import, before standalone mode strips the
+ *  query for crash-safe recovery); '' until the registry runs. Travel never changes it. */
+export let PAGE_LEVEL = '';
+
 /** @internal — called by the chunk registry; do not call from features. */
 export function _applyChunkConstants(c: { slug: string; label: string; seed: number; treeCount: number }): void {
+  if (PAGE_LEVEL === '') PAGE_LEVEL = c.slug;
   CHUNK_ID = c.slug;
   CHUNK_COORDS = c.label;
   SEED = c.seed;

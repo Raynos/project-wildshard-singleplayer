@@ -32,6 +32,7 @@
 
 import { GPU_FILES as ENGINE_GPU_FILES } from './ktx2.generated';
 import { TIER } from '../core/tier';
+import { PAGE_LEVEL } from '../core/config';
 import { setting } from '../ui/Settings';
 
 export interface Ktx2Table { readonly phone: Readonly<Record<string, string>>; readonly desktop: Readonly<Record<string, string>> }
@@ -43,9 +44,8 @@ export function registerGpuFiles(table: Ktx2Table): void {
 
 export type TexMode = 'ktx2' | 'img';
 
-/** Capture the one shard selected for this page before standalone mode strips ?chunk for crash-safe recovery. */
-const pageSlug = typeof location === 'undefined' ? '' : new URLSearchParams(location.search).get('chunk') ?? 'driftwood-isle';
-const buildSlug = (): string => pageSlug;
+/** the one level selected for this page (core/config's PAGE_LEVEL: captured by the registry's first apply) */
+const buildSlug = (): string => PAGE_LEVEL;
 /** a page that may load KTX2 in some build (Debug ▸ GPU textures is not Images): its model / texture caches are per shard
  *  (KTX2 drops a texture's mips once uploaded — another renderer could not upload a cached copy; E155) */
 export const MAY_KTX2 = setting('tex') !== 'img';
