@@ -1,3 +1,4 @@
+import type { Vector3 } from 'three';
 /**
  * Interactables kit — the DATA schema (A2, project/archive/2026-09-23-driftwood-remaster.md). Every chest, key, door, lever, pressure
  * plate, barrel, pickup, beacon, bench and altar on a shard is one plain-JSON row of an `InteractTable`; nothing is code
@@ -144,3 +145,6 @@ export function flagsRead(d: InteractDef): string[] {
 
 /** flags that describe a moment, not progress — never persisted */
 export const TRANSIENT_PREFIXES = ['plate:'];
+
+/** Weak actions yield to another reachable prompt. */
+export interface Interactable { position: Vector3; radius: number; label: string; onInteract: () => void; weak?: boolean }
