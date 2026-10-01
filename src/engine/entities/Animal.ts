@@ -7,6 +7,7 @@ import { TIER } from '../core/tier';
 import { frameCost } from '../core/frameCost';
 import { heightAt } from '../world/Heightfield';
 import { variantMods, type AnimalDims, type AnimalKind, type AnimalModel, type AnimalRig, type Rarity, type VariantMods, type RigAnimCtx } from './AnimalFactory';
+import { gameplayRandom } from '../app/runtime';
 
 /**
  * Animal — one animal instance (any registered species): procedural skeletal animation + health.
@@ -60,7 +61,7 @@ export const DAMAGE = { bodyMin: 32, bodyMax: 40, headMul: 2.5, falloffStart: 40
 /** The DAMAGE model for one bolt: a body hit from `dist` m (falloff past 40 m), ×headMul for the head. */
 export function damageFor(headshot: boolean, dist: number): number {
   const fall = 1 - (1 - DAMAGE.falloffMin) * THREE.MathUtils.clamp((dist - DAMAGE.falloffStart) / (DAMAGE.falloffEnd - DAMAGE.falloffStart), 0, 1);
-  const body = (DAMAGE.bodyMin + Math.random() * (DAMAGE.bodyMax - DAMAGE.bodyMin)) * fall;
+  const body = (DAMAGE.bodyMin + gameplayRandom() * (DAMAGE.bodyMax - DAMAGE.bodyMin)) * fall; // seeded (09 §3.5, B5)
   return Math.round(headshot ? body * DAMAGE.headMul : body);
 }
 

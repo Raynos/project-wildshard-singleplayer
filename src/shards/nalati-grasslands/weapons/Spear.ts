@@ -1,4 +1,4 @@
-import { app } from '#engine';
+import { gameplayRandom, app } from '#engine';
 import * as THREE from 'three';
 import type { Game } from '#engine/core/Game';
 import type { Sky } from '#engine/world/Sky';
@@ -487,7 +487,7 @@ export class Spear implements Weapon {
         j.age += dt;
         if (this.javelins < this.maxJavelins && Math.hypot(j.pos.x - p.x, j.pos.z - p.z) < PICKUP_R && Math.abs(j.pos.y - p.y) < 2.2) {
           j.state = 0;
-          if (Math.random() < JAV_SURVIVE) { this.javelins++; this.onPickup?.(this.javelins); }
+          if (gameplayRandom() < JAV_SURVIVE) { this.javelins++; this.onPickup?.(this.javelins); }
         }
       }
     }

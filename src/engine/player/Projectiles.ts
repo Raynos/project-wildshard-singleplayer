@@ -8,6 +8,7 @@ import { CHUNK_HALF } from '../core/config';
 import { Puffs, impactSurfaceOf, worldHit, type ImpactSurface, type TargetAnimal, type TargetHit, type Targets } from './Crossbow';
 import { floorBelow, sticksIn } from '../physics/query';
 import { activePhysics } from '../physics/active';
+import { gameplayRandom } from '../app/runtime';
 
 /**
  * Projectiles — Nalati's shared flight model for thrown / loosed things (the bow's arrows today, the spear slot's
@@ -293,7 +294,7 @@ export class Projectiles {
       if (Math.hypot(mx - p.x, mz - p.z) > RECOVER_R || my - p.y > RECOVER_UP || my - p.y < -1.2) continue;
       if (!this.canRecover()) return;
       this.removeStuck(i);
-      this.onRecover?.(Math.random() < this.kind.recover);
+      this.onRecover?.(gameplayRandom() < this.kind.recover); // seeded (09 §3.5)
     }
   }
 
