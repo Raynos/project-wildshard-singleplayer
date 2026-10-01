@@ -17,13 +17,13 @@
  *   - The captain's hat (board 4 C): the Drowned Captain's death drops it (gold orb) between you and where he fell; taking
  *     it grants captain-hat and puts it on. GEAR wears it / takes it off; FINDS shows it with the trophies. Left lying and
  *     the game reloaded, it waits at the ring's reward spot (he only dies once).
- *   - Worn cosmetics (the hat, the trader's cape) dress the body shadow (src/engine/player/BodyShadow.ts), following GEAR.
+ *   - Worn cosmetics (the hat, the trader's cape) dress the body shadow (src/game/cosmetics/bodyShadow.ts), following GEAR.
  *
  * Wired in main.ts on Driftwood (after installLoot; the damage rules read `perks.dodgeGuard` + `player.dodging`).
  * Seen in the game: scripts/e314-keepsakes-capture.mjs, progress/294-e314-keepsakes-stage3.jpg.
  *
  *   installKeepsakes({ owned, adventure, sky, game, player, animals, hud, audio, music, swords, body, registry })
- *   window.__keepsakes = { chime, plaques, glass(n), drop(id), drops }   // dev / captures: set the found count, drop a
+ *   ctx.debug.expose('driftwood.keepsakes', { chime, plaques, glass(n), drop(id), drops }   // dev / captures: set the found count, drop a
  *                                                                        // trophy in front of you
  */
 import * as THREE from 'three';
@@ -90,7 +90,6 @@ export interface KeepsakeHost<A extends KeepsakeAnimal> {
   sky: Sky;
   game: { scene: THREE.Scene; camera: THREE.PerspectiveCamera; renderer: THREE.WebGLRenderer; onUpdate: (fn: (dt: number, t: number) => void, label?: string) => void };
   player: { position: THREE.Vector3; yaw: number; dodgeCooldownScale: number };
-  animals: { onKill?: ((a: A) => void) | undefined };
   hud: { toast: (text: string) => void };
   audio: Audio;
   music: { sting: (name: 'pickup' | 'death' | 'chunk') => void };
@@ -176,6 +175,7 @@ export function installKeepsakes<A extends KeepsakeAnimal>(h: KeepsakeHost<A>): 
       scene: h.game.scene, item, position: at.clone(), tier: d.tier, scale: d.scale, glow: false, tilt: id === 'captain-hat' ? 0.15 : 0.1,
       ...(toss ? { toss: { x: Math.sin(a) * 1.1, y: 3.4, z: Math.cos(a) * 1.1 } } : {}),
     });
+    h.owner?.scope.own(drop);
     drop.onPickup = () => {
       drops.delete(id);
       fading.push({ drop, left: 5 });
@@ -199,11 +199,7 @@ export function installKeepsakes<A extends KeepsakeAnimal>(h: KeepsakeHost<A>): 
       spawnDrop(id, new THREE.Vector3(x, adv.floorAt(x, z), z), true);
     } else spawnDrop(id, a.position, true);
   };
-  if (h.onDeath !== undefined) h.onDeath(killed, 30);
-  else {
-    const prevKill = h.animals.onKill;
-    h.animals.onKill = (a) => { prevKill?.(a); killed(a); };
-  }
+  h.onDeath?.(killed, 30);
   // the captain dies once: a hat left lying through a reload waits at the ring's reward spot
   if (flags.has('dead:captain') && !owned.has('captain-hat') && adv.finale) spawnDrop('captain-hat', adv.finale.rewardAt, false);
 
@@ -241,7 +237,6 @@ export function installKeepsakes<A extends KeepsakeAnimal>(h: KeepsakeHost<A>): 
       spawnDrop(id, new THREE.Vector3(x, adv.floorAt(x, z), z), true);
     },
   };
-  if (h.owner !== undefined) h.owner.debug.expose('keepsakes', dev);
-  else Object.assign(window, { __keepsakes: dev });
+  if (h.owner !== undefined) h.owner.debug.expose('driftwood.keepsakes', dev);
   return { chime, plaques };
 }

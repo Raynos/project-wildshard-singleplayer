@@ -13,8 +13,7 @@ import type { ShardContext } from '#game';
  *   MOVE    from the first frame in the world (half way down the pier) until you have walked 3 m
  *   JUMP    MOVE is known, 12 m walked, and no enemy within 15 m: the rest of the pier walk
  *
- *   const tick = installFirstMinutes({ hints, animals: () => animals.animals, player, onWindup: (fn) => { …chain animals.onWindup… }, prompt: () => … });
- *   game.onUpdate((dt) => { tick(dt); hints.update(dt); });
+ *   installFirstMinutes(ctx, { hints, animals: () => animals.animals, player, prompt: () => … });
  */
 
 interface Body { readonly position: { x: number; z: number }; readonly alive: boolean; readonly hidden: boolean; readonly kind: string; combatActor?: () => Actor }
@@ -31,13 +30,11 @@ export interface FirstMinutesDeps {
   animals: () => readonly Body[];
   /** the player's feet */
   player: { readonly position: { x: number; z: number } };
-  /** hook the manager's wind-up signal (AnimalManager.onWindup, chained) */
-
   /** the HUD's interact prompt text while it shows ('' when none) */
   prompt: () => string;
 }
 
-/** feeds Driftwood's triggers; returns the per-frame tick (the nearest-fighter scan and the wind-up clock) */
+/** Feeds Driftwood's triggers and owns the nearest-fighter scan and wind-up clock. */
 export function installFirstMinutes(ctx: ShardContext, d: FirstMinutesDeps): void {
   let nearest = Infinity, scanT = 0, windupT = Infinity;
   ctx.on('ai.windup', ({ actor }) => {

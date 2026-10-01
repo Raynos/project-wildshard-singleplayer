@@ -11,6 +11,7 @@ import { onCreatureDeath, DEATH_ORDER, type CreatureDeathSource } from './deaths
 
 export interface LootShop { readonly isOpen: boolean; render: () => void; dispose: () => void }
 export interface LootPresentation {
+  debugName?: string;
   /** The shard supplies its registered goods, prompt and presentation; the mechanism owns the purse and lifetime. */
   shop?: (purse: Purse) => LootShop | null;
   gear: (purse: Purse) => GearLoot;
@@ -70,7 +71,7 @@ export function installLoot<A extends LootBody>(h: ScopedLootHost<A>): ScopedLoo
   const refresh = (): void => { if (h.menu.isOpen) h.menu.refresh(); };
   const offOwned = owned.onChange(() => { applyChart(); refresh(); });
   const offPurse = purse.onChange((n) => { chip.set(n); if (shop?.isOpen === true) shop.render(); refresh(); });
-  ctx.debug.expose('loot', { purse, owned, bounty, fullClear, grant: (id: OwnedId) => owned.grant(id), coins: (n: number) => { purse.add(n); }, shop });
+  ctx.debug.expose(view.debugName ?? `${h.manifest.slug}.loot`, { purse, owned, bounty, fullClear, grant: (id: OwnedId) => owned.grant(id), coins: (n: number) => { purse.add(n); }, shop });
   const dispose = (): void => {
     if (!live) return;
     live = false; flush(); offOwned(); offPurse();

@@ -44,8 +44,8 @@ export interface AdventureWorld<A extends AdvAnimal = AdvAnimal> {
   music: { sting: (name: 'pickup' | 'death' | 'chunk') => void; combat?: (intensity: number) => void };
   inventory: { add: (id: ItemId, n?: number) => void };
   pois: Partial<Record<Exclude<PoiId, 'world'>, object | null>>;
-  /** the animal manager: its onKill is chained (the sailor drops the hold key, the captain ends the fight) */
-  animals: { animals?: A[]; onKill?: ((a: A) => void) | undefined; spawn?: (kind: string, x: number, z: number, yaw: number, variant?: string) => A; herds?: { cx: number; cz: number; members: A[] }[] };
+  /** Creature views for scoped death listeners and authored respawns. */
+  animals: { animals?: A[]; spawn?: (kind: string, x: number, z: number, yaw: number, variant?: string) => A; herds?: { cx: number; cz: number; members: A[] }[] };
   params?: URLSearchParams;
   /** shard achievements (Progress.recordEvent) — the adventure's event achievements (A4) */
   progress?: ProgressSink & CompleteProgress;
@@ -132,6 +132,7 @@ export async function installAdventure<A extends AdvAnimal>(ctx: ShardContext, s
   };
 
   const kit = new Interactables({ scene: w.game.scene, sky: w.sky, player: w.player, flags, place, floorAt, prompts: w.prompts }).build(DRIFTWOOD_INTERACT);
+  ctx.scope.onDispose(() => { kit.dispose(); });
   kit.onEvent = (e) => onInteract(e);
   w.game.onUpdate((dt, t) => kit.update(dt, t), 'shard.driftwood.adventure');
 
@@ -226,6 +227,6 @@ export async function installAdventure<A extends AdvAnimal>(ctx: ShardContext, s
   }
   let placeT = 0;
   w.game.onUpdate((_dt, t) => { if (t - placeT > 0.25) { placeT = t; places.update(w.player.position.x, w.player.position.z); } }, 'shard.driftwood.adventure.4');
-  ctx.debug.expose('adventure', adventure);
+  ctx.debug.expose('driftwood.adventure', adventure);
   return adventure;
 }

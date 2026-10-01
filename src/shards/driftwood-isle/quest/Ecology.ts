@@ -6,7 +6,7 @@
  *
  *   RespawnQueue — the pure part (vitest: test/shards/driftwood-isle/ecology.test.ts): `add(entry, now)` on a kill, `take(now, x, z, night)`
  *                  hands back the entries that are due, out of sight and (for night-only kinds) in the dark.
- *   installEcology(adv, world) — chains `animals.onKill`, checks the queue once a second, spawns with
+ *   installEcology(adv, world) — subscribes to ordered creature deaths, checks the queue once a second, spawns with
  *                  `animals.spawn` and puts the newcomer back into its herd.
  *
  * Per frame it does nothing but compare a timer; the queue is a plain array touched on kills and once a second.
@@ -31,7 +31,7 @@ export interface RespawnEntry { kind: string; variant: string | undefined; herd:
 
 export class RespawnQueue {
   readonly pending: RespawnEntry[] = [];
-  constructor(private rules: Record<string, RespawnRule> = RESPAWN, private rand: () => number = Math.random) {}
+  constructor(private rules: Record<string, RespawnRule> = RESPAWN, private rand: () => number = () => app.rng.stream('spawn').next()) {}
 
   /** a kill at `now` (seconds): queue its replacement at (x, z) if the kind comes back at all */
   add(kind: string, variant: string | undefined, herd: number, x: number, z: number, now: number): RespawnEntry | null {
@@ -60,23 +60,14 @@ export class RespawnQueue {
 export function installEcology<A extends AdvAnimal>(w: AdventureWorld<A>, isLand: (x: number, z: number) => boolean): RespawnQueue {
   const random = (): number => app.rng.stream('spawn').next();
   const q = new RespawnQueue(RESPAWN, random);
-  let now = 0, checkT = 0, chained = w.onDeath !== undefined;
+  let now = 0, checkT = 0;
   const killed = (a: A): void => {
     if (a.kind === 'captain') return;
     const h = a.herd >= 0 ? w.animals.herds?.[a.herd] : undefined;
     q.add(a.kind, a.variant, a.herd, h ? h.cx : a.position.x, h ? h.cz : a.position.z, now);
   };
   w.onDeath?.(killed, 20);
-  const chain = (): void => {
-    chained = true;
-    const prev = w.animals.onKill;
-    w.animals.onKill = (a) => {
-      prev?.(a);
-      killed(a);
-    };
-  };
   w.game.onUpdate((dt) => {
-    if (!chained) chain();
     now += dt;
     if (now - checkT < 1) return;
     checkT = now;

@@ -31,7 +31,7 @@ export async function installDriftwoodAdventure(ctx: ShardContext): Promise<Adve
   const scopedGame = { scene: game.scene, camera: game.camera, renderer: game.renderer,
     onUpdate: (run: (dt: number, t: number) => void, label?: string) => { ctx.system({ id: label ?? 'shard.driftwood.keepsakes', phase: 'update', run }); } };
   installKeepsakes({ owner: ctx, onDeath: (run, order) => { onCreatureDeath(ctx, () => h.animals.animals, run, order); },
-    owned: h.owned, adventure, sky, game: scopedGame, player, animals: h.animals, hud: h.hud, audio: h.audio, music: h.music, registry,
+    owned: h.owned, adventure, sky, game: scopedGame, player, hud: h.hud, audio: h.audio, music: h.music, registry,
     body: h.bodyShadow ?? null, swords, effectsManaged: true });
   let release = ctx.scope.child('shop.release');
   const presentation = await driftwoodLootPresentation({ adventure, owned: h.owned, audio: h.audio, scope: ctx.scope,

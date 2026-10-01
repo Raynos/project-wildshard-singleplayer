@@ -9,7 +9,7 @@
 import { SEA_GLASS_COUNT, SEA_GLASS_FLAG, SHARD_FLAGS } from './interactables';
 import { QUEST_DONE } from './questLine';
 import type { Adventure, AdventureWorld, AdvAnimal } from './adventure';
-import type { ProgressSink } from '#game/Progress';
+import type { ProgressSink } from '#game';
 
 
 export function installFeats<A extends AdvAnimal>(adv: Adventure, w: AdventureWorld<A>, progress: ProgressSink): void {
@@ -24,11 +24,13 @@ export function installFeats<A extends AdvAnimal>(adv: Adventure, w: AdventureWo
     if (flags.has(QUEST_DONE)) progress.recordEvent('quest', 1);
   };
   sync();
-  flags.onChange((f, on) => {
+  const offFlags = flags.onChange((f, on) => {
     if (!on || f.startsWith('plate:') || f.startsWith('lever:')) return;
     sync();
     if (f.startsWith(SEA_GLASS_FLAG) && flags.count(SEA_GLASS_FLAG) === SEA_GLASS_COUNT) w.hud.toast(`Every piece of sea glass on the island · ${SEA_GLASS_COUNT} / ${SEA_GLASS_COUNT}`);
   });
+
+  w.scope?.onDispose(offFlags);
 
   // the vista bench: sit → face the view (the bench's own facing), a little lift of the chin
   adv.kit.onSit = (at, yaw) => {

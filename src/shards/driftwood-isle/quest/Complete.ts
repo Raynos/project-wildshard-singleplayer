@@ -14,12 +14,9 @@
  *     combat (nothing hostile within 25 m). The menu's Achievements tab has a "Driftwood complete" row any time.
  */
 import { SEA_GLASS_COUNT, SHARD_FLAGS, DRIFTWOOD_INTERACT } from './interactables';
-import { ShardComplete, setCompleteEntry, type ShardCompleteData } from '#game/complete/ShardComplete';
-import { findChunk } from '#game/shard/registry';
-import { travel } from '#game';
+import { ShardComplete, setCompleteEntry, findChunk, travel, type ShardCompleteData, type LiveMarker } from '#game';
 import { DRIFTWOOD_PLACES } from './Places';
 import { QUEST_DONE } from './questLine';
-import type { LiveMarker } from '#game/quest/core';
 import type { Adventure, AdventureWorld, AdvAnimal } from './adventure';
 
 export const SEEN_COMPLETE = 'seen:complete';
@@ -136,7 +133,8 @@ export function installComplete<A extends AdvAnimal>(adv: Adventure, w: Adventur
     setCompleteEntry({ label: `${shardName} complete`, sub: 'Your island · the time, the finds, what is still out there', open });
   };
   syncEntry();
-  flags.onChange((f) => { if (f === QUEST_DONE) syncEntry(); });
+  const offFlags = flags.onChange((f) => { if (f === QUEST_DONE) syncEntry(); });
+  w.scope?.onDispose(() => { offFlags(); card.close(); });
 
   // ── the fallback: done, never shown → one toast a session, out of combat ──
   let offered = false, checkT = 0;

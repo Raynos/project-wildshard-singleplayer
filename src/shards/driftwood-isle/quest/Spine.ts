@@ -9,15 +9,13 @@
  */
 import * as THREE from 'three';
 import { app, boxInFrame } from '#engine';
-import { QuestState, type QuestMarker } from '#game/quest/quest';
+import { QuestState, DialogueBox, NpcTalk, QuestChip, type QuestMarker, type ObjectiveLine, type LiveMarker } from '#game';
 import { CASTAWAY, DRIFTWOOD_QUEST } from './questLine';
-import { DialogueBox, type ObjectiveLine } from '#game/quest/QuestUI';
 import type { Castaway } from '../npc/Castaway';
 import { castawayRig } from './people';
-import { NpcTalk, QuestChip, type LiveMarker } from '#game/quest/core';
 import type { Adventure, AdventureWorld, AdvAnimal } from './adventure';
 
-export type { LiveMarker } from '#game/quest/core';
+export type { LiveMarker } from '#game';
 
 export interface Spine {
   quest: QuestState;
@@ -42,7 +40,8 @@ export function installSpine<A extends AdvAnimal>(adv: Adventure, w: AdventureWo
     markers: () => leftovers() ?? markers(),
   });
   const objective = chip.line;
-  const dialogue = new DialogueBox();
+  const dialogue = new DialogueBox(w.scope?.child('dialogue'));
+  w.scope?.onDispose(() => { quest.dispose(); objective.root.remove(); });
 
   // ── Wendell at his campfire in front of the hut steps (hut local frame: the door faces −z) ──
   const feet = place({ poi: 'hut', anchor: 'hut.npc', x: 2.4, z: -8.2, yaw: Math.PI + 0.35 });
@@ -66,7 +65,7 @@ export function installSpine<A extends AdvAnimal>(adv: Adventure, w: AdventureWo
   quest.onComplete = () => { w.hud.toast(`Quest complete · ${DRIFTWOOD_QUEST.title}`); };
 
   // ── kills: the sailor drops the hold key; the captain ends the fight ──
-  // chained on the first frame, not now: main.ts assigns its own onKill (kill feed, achievements, skins) after this
+  // Ordered scoped death listener: the hold key lands before respawn and reward listeners.
   const killed = (a: A): void => {
     if (a.kind === 'sailor') {
       kit.moveTo('hold-key', a.position.x, a.position.z);
@@ -74,16 +73,7 @@ export function installSpine<A extends AdvAnimal>(adv: Adventure, w: AdventureWo
       w.hud.toast('The drowned sailor collapses — his hold key clatters to the planks');
     } else if (a.kind === 'captain') flags.set('dead:captain');
   };
-  let chained = w.onDeath !== undefined;
   w.onDeath?.(killed, 10);
-  const chainKill = (): void => {
-    chained = true;
-    const prevKill = w.animals.onKill;
-    w.animals.onKill = (a) => {
-      prevKill?.(a);
-      killed(a);
-    };
-  };
 
   // the full quest — chapter title, objective, sub-steps — on the menu's MAP tab (the HUD chip only carries the short form, E51)
   const chapter = (): string => (quest.isStarted ? DRIFTWOOD_QUEST.title : 'Driftwood Isle');
@@ -91,7 +81,6 @@ export function installSpine<A extends AdvAnimal>(adv: Adventure, w: AdventureWo
 
   // ── per frame: the quest chip, the nearest marker, the dialogue ──
   w.game.onUpdate((dt, t) => {
-    if (!chained) chainKill();
     const pp = w.player.position;
     dialogue.update(dt);
     talk.update(pp);

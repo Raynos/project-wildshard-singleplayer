@@ -13,6 +13,7 @@ export async function driftwoodLootPresentation(o: { adventure: Adventure; owned
   const cosmetic = (id: 'captain-hat' | 'cape', icon: 'hat' | 'cape', how: string): CosmeticSlot =>
     ({ id, name: OWNED[id].label, icon, owned: owned.has(id), worn: owned.worn(id), how });
   return {
+    debugName: 'driftwood.loot',
     lateKinds: ['sailor', 'captain'],
     charted: () => owned.has('sea-chart'), marks: () => seaChartMarks(adv.flags),
     chime: () => { sfx.interact('chime', undefined, { gain: 0.55 }); },
