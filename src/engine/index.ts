@@ -53,7 +53,7 @@ export { EquipmentService } from './combat/EquipmentService';
 export type { EquipmentInput } from './input/equipmentInput';
 
 export type { IconId } from './ui/icons';
-export type { KitEntry } from './ui/Menu';
+export type { KitEntry, SkinRow } from './ui/Menu';
 
 
 // Combat simulation ports (E357 S1.3a); source formulas remain with their weapon families.

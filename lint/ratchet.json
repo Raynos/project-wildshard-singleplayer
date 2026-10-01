@@ -46,7 +46,7 @@
     "nalati-grasslands.phone.plains.tris": 1292909
   },
   "debugRows": {
-    "max": 26,
+    "max": 24,
     "raisedBy": [
       "E357"
     ]
@@ -155,7 +155,7 @@
     "src/engine/player/MeleeSweep.ts": 1,
     "src/engine/player/nalatiArms.ts": 11,
     "src/engine/player/Player.ts": 18,
-    "src/engine/player/TouchControls.ts": 49,
+    "src/engine/player/TouchControls.ts": 44,
     "src/engine/player/viewmodelTextures.ts": 6,
     "src/engine/player/viewmodelTextures.worker.ts": 1,
     "src/engine/player/WeaponPickup.ts": 5,
@@ -189,7 +189,7 @@
     "src/engine/ui/LockOn.ts": 1,
     "src/engine/ui/Map.ts": 19,
     "src/engine/ui/mapShapes.ts": 3,
-    "src/engine/ui/Menu.ts": 103,
+    "src/engine/ui/Menu.ts": 49,
     "src/engine/ui/Minimap.ts": 31,
     "src/engine/ui/Perf.ts": 1,
     "src/engine/ui/perfLap.ts": 6,

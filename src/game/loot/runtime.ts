@@ -1,3 +1,4 @@
+import { bagMenu } from '../bag/tabs';
 import * as THREE from 'three';
 import { practiceRoom, type LevelContext, type GameMenu, type MapMark } from '#engine';
 import type { GearLoot, FindsView } from '../bag/bag';
@@ -67,7 +68,7 @@ export function installLoot<A extends LootBody>(h: ScopedLootHost<A>): ScopedLoo
   };
   applyChart();
   const shop = view.shop?.(purse) ?? null;
-  const offBag = h.menu.addLoot('loot', { gear: () => view.gear(purse), finds: view.finds,
+  const offBag = bagMenu(h.menu).addLoot('loot', { gear: () => view.gear(purse), finds: view.finds,
     wear: (id) => { if (isOwnedId(id) && isCosmetic(id)) owned.toggleWorn(id); } });
   const refresh = (): void => { if (h.menu.isOpen) h.menu.refresh(); };
   const offOwned = owned.onChange(() => { applyChart(); refresh(); });

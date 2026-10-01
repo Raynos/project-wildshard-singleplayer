@@ -1,3 +1,4 @@
+import { bagMenu } from '../bag/tabs';
 import * as THREE from 'three';
 import type { BootRuntime, LevelContext, LevelSequence, SkinDef } from '#engine';
 import { toLevelSpec, shardContext, setShardSwitcher, type ShardManifest, type GameServices, type ShardContext } from '../index';
@@ -70,7 +71,7 @@ async function buildSession(manifest: ShardManifest, stage: LoadStage, engine: B
   const plugin = new Plugin();
   const game: GameServices = { runtime: boot.runtime, shard: manifest, rows: new Map(), bag: {
     tab: (spec) => { const menu = boot.runtime.play?.menu; if (menu === undefined) throw new Error('Bag plugin tabs require the play host'); return menu.addTab(spec); },
-    fragment: (tab, fragment) => { const menu = boot.runtime.play?.menu; if (menu === undefined) throw new Error('Bag plugin fragments require the play host'); return menu.addTabFragment(tab, fragment); },
+    fragment: (tab, fragment) => { const menu = boot.runtime.play?.menu; if (menu === undefined) throw new Error('Bag plugin fragments require the play host'); return bagMenu(menu).fragment(tab, fragment); },
   } };
   let context: ShardContext | undefined;
   const ctx = (level: LevelContext): ShardContext => { context ??= shardContext(level, manifest, game); return context; };

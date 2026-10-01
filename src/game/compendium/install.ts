@@ -1,3 +1,4 @@
+import { bagMenu } from '../bag/tabs';
 import { app } from '#engine';
 /**
  * installCompendium — wires the active shard's compendium into the game (one call from main.ts; nothing happens on a
@@ -63,7 +64,7 @@ export function installCompendium(host: CompendiumHost): { state: CompendiumStat
   disc.type = 'button'; disc.className = 'ws-cmp-disc';
   disc.innerHTML = `${GLYPH_BOOK}Journal`;
   hudSlots.pill(disc, () => { if (hud.entered) journal.open(); }, journal.scope);
-  menu.addFinds('compendium', () => compendiumFinds(state, (id) => { journal.open(id); })); // the BAG's FINDS tab is the journal (E314 C: JOURNAL became FINDS)
+  bagMenu(menu).addFinds('compendium', () => compendiumFinds(state, (id) => { journal.open(id); })); // the BAG's FINDS tab is the journal (E314 C: JOURNAL became FINDS)
   app.input.bind('journal', () => { journal.open(); }, journal.scope, () => hud.entered && !menu.isOpen && !journal.isOpen);
 
   // ── open / close: release the lock + the weapons, then resume the way the pause menu does ──

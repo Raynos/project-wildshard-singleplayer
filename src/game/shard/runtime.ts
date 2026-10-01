@@ -1,7 +1,8 @@
 import type { SkinLocker } from '../cosmetics/locker';
+import type { BagMenuOptions } from '../bag/tabs';
 import type { ShardWorld } from './world';
 import type { BodyShadow } from '../cosmetics/bodyShadow';
-import type { StepRunner, Interactable, Animal, AnimalManager, EquipmentService, WeaponId, Weapon, Audio, StepSurface, Music, HUD, GameMenu, FullMap, SkinDef, CombatCues, Targets, GameMenuOptions, FirstHints, MapMark } from '#engine';
+import type { StepRunner, Interactable, Animal, AnimalManager, EquipmentService, WeaponId, Weapon, Audio, StepSurface, Music, HUD, GameMenu, FullMap, SkinDef, CombatCues, Targets, FirstHints, MapMark } from '#engine';
 import type { Group, Vector2, Vector3 } from 'three';
 import type { Inventory } from '../Inventory';
 import type { Progress } from '../Progress';
@@ -48,7 +49,7 @@ export interface ShardRuntime {
   readonly hooks: ShardPlayHooks;
   readonly objects: Record<string, unknown>;
   buildEquipment?: (targets: Targets, nolock: boolean, viewmodel?: ShardSword | null) => Promise<{ primary: Weapon; rifle: Weapon | null; secondary: Weapon | null; extras?: readonly Weapon[]; order?: readonly WeaponId[]; install?: (equipment: EquipmentService) => void }>;
-  menu?: Pick<GameMenuOptions, 'skins' | 'onWearSkin' | 'skinsTitle' | 'pack'>;
+  menu?: Pick<BagMenuOptions, 'skins' | 'onWearSkin' | 'skinsTitle' | 'pack'>;
   viewer: () => Vector3;
   horizonVeil: { value: Vector2 } | null;
 }

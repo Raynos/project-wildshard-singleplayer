@@ -15,10 +15,7 @@ import { containMenuInput } from '../input/menuInput';
 import { activeLevel } from '../level/selection';
 import type { LevelSpec } from '../level/spec';
 import type { FullMap } from './Map';
-import type { Progress } from '#game/Progress';
-import type { Inventory, ItemId } from '#game/Inventory';
 import { icon, type IconId } from './icons';
-import { completeEntry } from '#game/complete/ShardComplete';
 import { getSetting, setSetting, onSetting, getNumber, setNumber, NUM_RANGE, getSfxSet, onSfxSet, type SettingKey, type NumberKey } from './Settings';
 import { MUSIC_CREDIT, sfxCredit, onSfxCredit } from '../audio/credits';
 import { onAudioBusy } from '../audio/preload';
@@ -31,15 +28,13 @@ import { buildDebugMenu, type DebugMenu } from './DebugMenu';
 import { settingsCategories, settingsHint, type SettingsCat, type SettingsCats } from './settingsCats';
 import { SAVE_STRINGS } from './saveStrings';
 import { TIER } from '../core/tier';
-import { bagTabs, renderFinds, renderGear, type FindsView, type GearLoot, type GearTool } from '#game/bag/bag';
 
-type BuiltInTab = 'map' | 'gear' | 'finds' | 'inventory' | 'achievements' | 'settings' | 'feedback';
+type BuiltInTab = 'map' | 'settings' | 'feedback';
 export type MenuTab = string;
 /** the BAG's tabs are icon tabs, one short word each (E314, Jake's pick board 8 A): MAP · GEAR · FINDS · PACK · FEATS on
  *  every shard (FINDS only where the shard has finds: Driftwood today; `inventory` is PACK, `achievements` FEATS) */
 const TABS: { id: MenuTab; label: string; icon?: IconId }[] = [
-  { id: 'map', label: engineString('s_be176b0015c4'), icon: 'map' }, { id: 'gear', label: engineString('s_d6eaec65e742'), icon: 'sword' }, { id: 'finds', label: engineString('s_e0c3d922cd87'), icon: 'seaglass' },
-  { id: 'inventory', label: engineString('s_80dc21673e55'), icon: 'pack' }, { id: 'achievements', label: engineString('s_9194ccf56b9c'), icon: 'star' }, { id: 'settings', label: engineString('s_74a883a037bc') },
+  { id: 'map', label: engineString('s_be176b0015c4'), icon: 'map' }, { id: 'settings', label: engineString('s_74a883a037bc') },
   { id: 'feedback', label: engineString('s_aac77df34720') }, // only while the review inbox is unlocked (syncReview)
 ];
 /** the two menus (E124): which one a tab lives in */
@@ -57,34 +52,14 @@ const HINTS: Record<BuiltInTab, string> & Partial<Record<string, string>> = { ma
 export interface KitEntry { id: string; name: string; ammoLabel: string; ammo: number; magazine: number; reserve: number; equipped: boolean; icon: IconId; melee: boolean; tracers: boolean; huntersEye: boolean }
 
 export interface GameMenuOptions {
-  tabs?: readonly string[];
   /** The game supplies its presentation title when constructing this level menu. */
   levelName?: string;
   fullMap: FullMap;
-  progress: Progress;
-  inventory: Inventory;
-  /** the unlocked weapons, held one first */
-  kit: () => KitEntry[];
-  /** hold a weapon from the GEAR tab */
-  onEquip?: (id: string) => void;
-  /** the shard's wearable skins you own (Nalati: src/shards/nalati-grasslands/weapons/nalatiSkins.ts) — GEAR's SKINS row, tap to wear / take off;
-   *  Pine Hollow's finishes (src/shards/pine-hollow/loadout/finishes.ts) */
-  skins?: () => SkinRow[];
-  onWearSkin?: (id: string) => void;
-  /** the skins row's heading (default SKINS; Pine Hollow: FINISHES) */
-  skinsTitle?: string;
-  /** a shard whose pack is a trade stock (Pine Hollow, E314 C): the line over the grid, and one line per item */
-  pack?: PackTrade;
-  /** GEAR's cards for gear that is not a weapon (Nine Dragon's Fei Zhua grapple, E314 A) */
-  tools?: () => GearTool[];
+  /** Only capabilities used to show applicable Settings rows; Bag presentation is registered separately. */
+  settings: () => Omit<SettingsCtx, 'chunk'>;
 }
 /** `locked`: not owned yet — dim, not tappable; `icon`: the card's glyph (default laurel) */
 export interface SkinRow { id: string; name: string; blurb: string; worn: boolean; locked?: boolean; icon?: IconId }
-/** Pine Hollow's PACK: "Everything here trades at Mott's stall", and under each item what Mott gives for it */
-export interface PackTrade { note: string; hint: string; gearHint?: string; line: (id: ItemId) => string | null }
-/** a shard's loot in the BAG (src/game/loot/install.ts, Driftwood): GEAR's extras, the FINDS tab, wearing a cosmetic */
-export interface BagLoot { gear: () => GearLoot | null; finds: (() => FindsView) | null; wear: (id: string) => void }
-
 const el = (cls: string, html = '', tag = 'div'): HTMLElement => { const e = document.createElement(tag); e.className = cls; if (html) e.innerHTML = html; return e; };
 const esc = (s: string): string => s.replaceAll('&', '&amp;').replaceAll('<', '&lt;');
 /** a tab's face: the BAG's are an icon over one short word (E314 board 8 A); PAUSE's stay words */
@@ -143,7 +118,7 @@ export class GameMenu {
     }
     this.sheet.append(this.tabBar);
     const body = el('ws-gmenu-body');
-    this.panels = { map: el('ws-gmenu-panel map'), gear: el('ws-gmenu-panel scroll'), finds: el('ws-gmenu-panel scroll'), inventory: el('ws-gmenu-panel scroll'), achievements: el('ws-gmenu-panel scroll'), settings: el('ws-gmenu-panel scroll'), feedback: el('ws-gmenu-panel scroll') };
+    this.panels = { map: el('ws-gmenu-panel map'), settings: el('ws-gmenu-panel scroll'), feedback: el('ws-gmenu-panel scroll') };
     for (const p of Object.values(this.panels)) { if (p === undefined) continue; if (p.classList.contains('scroll')) p.dataset['scroll'] = ''; body.append(p); } // index.html swallows touchmove outside [data-scroll]
     this.sheet.append(body);
     this.hint = el('ws-gmenu-hint');
@@ -162,7 +137,6 @@ export class GameMenu {
       const b = el('ws-gmenu-zoom', engineString('s_03a5f0ef36b4', [z]), 'button') as HTMLButtonElement; b.type = 'button'; b.dataset['z'] = String(z);
       this.scope.listen(b, 'click', () => { opts.fullMap.setZoom(z); this.syncZoom(); });
       zooms.append(b); this.zoomChips.push(b);
-      this.renderTabFragments('achievements');
   }
     foot.append(zooms, el('ws-gmenu-legend', engineString('s_dd35e28aa4b1', [icon('poi'), icon('you')])));
     this.panels.map.append(this.mapMeta, this.mapQuest, frame, foot);
@@ -190,8 +164,6 @@ export class GameMenu {
     app.input.bind('map', () => { toggle('map'); }, this.scope);
     app.input.bind('bag', () => { toggle('inventory'); }, this.scope);
     this.scope.listen(window, 'resize', () => { if (this._open && this._tab === 'map') opts.fullMap.fit(); });
-    opts.progress.onChange = () => { if (this._open) this.renderAchievements(); };
-    opts.inventory.onChange = () => { if (this._open) this.renderInventory(); };
     this.select('settings');
     this.syncReview(); onReview(() => this.syncReview());
   }
@@ -204,7 +176,7 @@ export class GameMenu {
   /** which tabs show: FEEDBACK only while the review inbox is unlocked; only the open group's (one tab = no bar) */
   private syncTabs(): void {
     const review = reviewUnlocked(), group = GROUP[this._tab] ?? 'bag';
-    const bag = new Set([...(this.opts.tabs?.map((tab) => tab === 'pack' ? 'inventory' : tab === 'feats' ? 'achievements' : tab) ?? bagTabs({ finds: this.hasFinds, pack: this.hasPack, feats: this.hasFeats })), ...this.tabsRegistry.registeredTabs.map((tab) => tab.id)]); // E314: the tabs this shard fills
+    const bag = new Set(['map', ...this.tabsRegistry.registeredTabs.map((tab) => tab.id)]);
     let shown = 0;
     for (const b of this.tabBar.children) {
       const d = (b as HTMLElement).dataset, id = d['tab'];
@@ -293,7 +265,7 @@ export class GameMenu {
   /** a BAG tab this shard doesn't have lands on GEAR: no pack (Nalati, Nine Dragon) — I / PACK; no feats (Nine Dragon) */
   private land(want: MenuTab): MenuTab {
     if (this.panels[want] === undefined) return 'gear';
-    return (want === 'inventory' && !this.hasPack) || (want === 'achievements' && !this.hasFeats) ? 'gear' : want;
+    return want;
   }
   select(want: MenuTab): void {
     const tab = this.land(want);
@@ -303,68 +275,46 @@ export class GameMenu {
     this.hint.textContent = this.hintFor(tab);
     this.syncTabs(); this.syncCats();
     if (this._open) { if (tab === 'map') { this.opts.fullMap.show(); this.syncZoom(); this.renderQuest(); } else this.opts.fullMap.hide(); }
-    if (tab === 'gear') this.renderGear();
-    if (tab === 'finds') this.renderFinds();
-    if (tab === 'inventory') this.renderInventory();
-    if (tab === 'achievements') this.renderAchievements();
     if (tab === 'settings') this.applies();
-    const panel = this.panels[tab]; if (panel !== undefined && this.tabsRegistry.registeredTabs.some((row) => row.id === tab)) { panel.replaceChildren(); this.tabsRegistry.render(tab, panel); }
+    this.renderRegisteredTab(tab);
     if (tab === 'feedback' && this._open) this.onFeedbackTab?.(this.panels.feedback);
   }
 
   /** re-render the data tabs */
-  refresh(): void { this.renderGear(); this.renderFinds(); this.renderInventory(); this.renderAchievements(); this.syncZoom(); }
+  refresh(): void { for (const tab of this.tabsRegistry.registeredTabs) this.renderRegisteredTab(tab.id); this.syncZoom(); this.hint.textContent = this.hintFor(this._tab); }
 
   /** the BAG's home: GEAR (the minimap corner's bag button) */
   openBag(): void { this.open('gear'); }
 
-  /** a shard's loot (Driftwood, src/game/loot/install.ts): GEAR's coins / hearts / charms / cosmetics and the FINDS tab */
-  private readonly lootRows = new Map<string, BagLoot>();
-  private get loot(): BagLoot | null { return this.lootRows.values().next().value ?? null; }
-  /** a shard's FINDS without loot: Pine Hollow's hunter's journal (src/game/compendium/install.ts, E314 C) */
+  /** Registered game / kit tabs own all Bag presentation. */
   addTab(spec: TabSpec): () => void {
+    if (this.panels[spec.id] !== undefined) throw new Error(`Duplicate UI tab: ${spec.id}`);
     const off = this.tabsRegistry.tab(spec);
     const panel = el('ws-gmenu-panel scroll'); panel.dataset['scroll'] = '';
     const button = el('ws-gmenu-tab', tabHtml(spec.title, spec.icon), 'button') as HTMLButtonElement;
     button.type = 'button'; button.dataset['tab'] = spec.id;
     this.scope.listen(button, 'click', () => { this.select(spec.id); });
     this.panels[spec.id] = panel;
-    this.panels.gear.parentElement?.append(panel); this.tabBar.append(button); this.syncTabs();
-    return () => { off(); panel.remove(); button.remove(); delete this.panels[spec.id]; if (this._tab === spec.id) this.select('gear'); else this.syncTabs(); };
+    this.panels.map.parentElement?.append(panel);
+    const next = this.tabsRegistry.registeredTabs.find((row) => row.id !== spec.id && (row.order ?? 0) > (spec.order ?? 0));
+    const before = [...this.tabBar.children].find((child) => (child as HTMLElement).dataset['tab'] === (next?.id ?? 'settings'));
+    this.tabBar.insertBefore(button, before ?? null); this.syncTabs();
+    const remove = (): void => { off(); panel.remove(); button.remove(); delete this.panels[spec.id]; if (this._tab === spec.id) this.select('gear'); else this.syncTabs(); };
+    this.scope.onDispose(remove); return remove;
   }
   addTabFragment(tab: string, fragment: TabFragment): () => void {
     const panel = tab === 'pack' ? 'inventory' : tab === 'feats' ? 'achievements' : tab;
     const off = this.tabsRegistry.fragment(panel, fragment); this.syncTabs();
     return () => { off(); this.syncTabs(); };
   }
-  private renderTabFragments(tab: MenuTab): void {
-    const panel = this.panels[tab]; if (panel !== undefined) this.tabsRegistry.render(tab, panel);
+  private renderRegisteredTab(tab: MenuTab): void {
+    const panel = this.panels[tab];
+    if (panel !== undefined && this.tabsRegistry.registeredTabs.some((row) => row.id === tab)) {
+      panel.replaceChildren(); this.tabsRegistry.render(tab, panel);
+    }
   }
-  private readonly findsRows = new Map<string, () => FindsView>();
-  private get findsView(): (() => FindsView) | null { return this.loot?.finds ?? this.findsRows.values().next().value ?? null; }
-  private get hasFinds(): boolean { return this.findsView !== null || this.tabsRegistry.hasFragments('finds'); }
-  /** a shard with no pack (Nalati, E314 C: `inventory.slots` 0) has no PACK tab */
-  private get hasPack(): boolean { return this.opts.inventory.slots > 0; }
-  /** a shard with no achievements (Nine Dragon, E314 A) has no FEATS tab */
-  private get hasFeats(): boolean { return this.opts.progress.rows.length > 0; }
-  addFinds(id: string, finds: () => FindsView): () => void {
-    if (this.findsRows.has(id)) throw new Error(`Duplicate Bag finds: ${id}`);
-    this.findsRows.set(id, finds); this.syncTabs();
-    const off = (): void => { this.findsRows.delete(id); if (this._tab === 'finds' && !this.hasFinds) this.select('gear'); else this.syncTabs(); };
-    this.scope.onDispose(off); return off;
-  }
-  /** the hint line: a shard's own for GEAR / FINDS / PACK where it has one (Pine Hollow, E314 C) */
   private hintFor(tab: MenuTab): string {
-    if (tab === 'finds') return this.findsView?.().hint ?? HINTS.finds;
-    if (tab === 'inventory') return this.opts.pack?.hint ?? HINTS.inventory;
-    if (tab === 'gear') return this.opts.pack?.gearHint ?? HINTS.gear;
     return this.tabsRegistry.registeredTabs.find((row) => row.id === tab)?.hint ?? HINTS[tab] ?? '';
-  }
-  addLoot(id: string, loot: BagLoot): () => void {
-    if (this.lootRows.has(id)) throw new Error(`Duplicate Bag loot: ${id}`);
-    this.lootRows.set(id, loot); this.syncTabs(); if (this._open) this.refresh();
-    const off = (): void => { this.lootRows.delete(id); if (this._tab === 'finds' && !this.hasFinds) this.select('gear'); else this.syncTabs(); if (this._open) this.refresh(); };
-    this.scope.onDispose(off); return off;
   }
   /** the quest card over the map: chapter title, the full objective, its sub-steps (the HUD shows only the short chip, E51) */
   private renderQuest(): void {
@@ -377,79 +327,6 @@ export class GameMenu {
   private syncZoom() {
     const z = this.opts.fullMap.zoom;
     for (const b of this.zoomChips) b.classList.toggle('active', Math.abs(Number(b.dataset['z']) - z) < 0.01);
-  }
-
-  // ── GEAR (E314, board 6 C): the paper doll — every shard's weapons and skins, the shard's loot where it has one ──
-  private renderGear(): void {
-    renderGear(this.panels.gear, {
-      weapons: this.opts.kit(), skins: this.opts.skins?.() ?? [], loot: this.loot?.gear() ?? null, ...(this.opts.skinsTitle !== undefined ? { skinsTitle: this.opts.skinsTitle } : {}),
-      tools: this.opts.tools?.() ?? [],
-      scope: this.scope,
-      onEquip: (id) => { this.opts.onEquip?.(id); this.renderGear(); },
-      onWearSkin: (id) => { this.opts.onWearSkin?.(id); this.renderGear(); },
-      onWear: (id) => { this.loot?.wear(id); this.renderGear(); },
-    });
-    this.renderTabFragments('gear');
-  }
-
-  // ── FINDS (E314, board 7 B): the sticker book — only on a shard with finds ──
-  private renderFinds(): void {
-    const sources = [...this.findsRows.values()];
-    if (this.loot?.finds) sources.unshift(this.loot.finds);
-    this.panels.finds.replaceChildren();
-    for (const source of sources) {
-      const host = sources.length === 1 ? this.panels.finds : document.createElement('div');
-      renderFinds(host, source(), this.scope);
-      if (host !== this.panels.finds) this.panels.finds.append(host);
-    }
-    this.renderTabFragments('finds');
-  }
-
-  // ── PACK (the Inventory): the junk the hunt leaves you, as before; its weapon cards moved to GEAR (E314) ──
-  private renderInventory() {
-    const p = this.panels.inventory; p.replaceChildren();
-    const items = this.opts.inventory.items;
-    const slots = this.opts.inventory.slots;
-    const trade = this.opts.pack;
-    p.append(el('ws-gmenu-label', engineString('s_94d98347b2ef', [items.length, slots])));
-    if (trade) p.append(el('ws-gmenu-packnote', esc(trade.note)));
-    const grid = el('ws-gmenu-grid');
-    for (let i = 0; i < slots; i++) {
-      const it = items[i];
-      const line = it && trade ? trade.line(it.id) : null; // Pine Hollow: what Mott gives for it (E314 C)
-      grid.append(it
-        ? el('ws-gmenu-slot', engineString('s_96ae14555109', [icon(it.icon), it.count, esc(it.label), line !== null ? engineString('s_b5f268a201a9', [esc(line)]) : '']))
-        : el('ws-gmenu-slot empty'));
-    }
-    p.append(grid); this.renderTabFragments('inventory');
-  }
-
-  // ── ACHIEVEMENTS ──
-  private renderAchievements() {
-    const pr = this.opts.progress, p = this.panels.achievements; p.replaceChildren();
-    const rows = pr.rows, n = rows.length, e = pr.earnedCount;
-    const levelName = this.opts.levelName ?? '';
-    // the shard's "complete" card (E132, src/game/complete/ShardComplete.ts), once its quest is done: a row on top that reopens it
-    const done = completeEntry();
-    if (done) {
-      const row = el('ws-gmenu-done', engineString('s_07078891e4d4', [icon('laurel'), esc(done.label), esc(done.sub)]), 'button');
-      (row as HTMLButtonElement).type = 'button';
-      this.scope.listen(row, 'click', () => { this.close(true); done.open(); });   // silent: the card resumes play itself
-      p.append(row);
-    }
-    p.append(el('ws-gmenu-label', engineString('s_19898a95936f', [esc(levelName), e, n])));
-    p.append(el('ws-bar ws-gmenu-total', engineString('s_3ac582ba7063', [n ? (e / n) * 100 : 0])));
-    p.append(el('ws-gmenu-label', engineString('s_e2d6dc448c63')));
-    const t = pr.title;
-    p.append(el(`ws-gmenu-titlecard${t ? '' : ' none'}`, engineString('s_7eb13d096208', [icon('laurel'), t ? esc(t.title) : engineString('s_7aa430f0081b'), t ? engineString('s_3b833995b06d') : engineString('s_f912f6149076')])));
-    p.append(el('ws-gmenu-label', engineString('s_da4ea1a751fa')));
-    if (!n) p.append(el('ws-gmenu-empty', engineString('s_86170799a9ce')));
-    for (const r of rows) {
-      const row = el(`ws-gmenu-ach${r.earned ? ' earned' : ''}${r.active ? ' active' : ''}`, engineString('s_7f1998be1049', [r.def.icon, icon(r.def.icon), esc(r.def.name), esc(r.def.goal), r.count, r.def.count, (r.count / r.def.count) * 100, icon(r.earned ? 'check' : 'lock'), esc(r.def.title), r.active ? engineString('s_c965a4b3b12e') : '']), 'button');
-      (row as HTMLButtonElement).type = 'button';
-      this.scope.listen(row, 'click', () => { if (r.earned) pr.wear(r.def.id); });
-      p.append(row);
-    }
   }
 
   // ── SETTINGS ──
@@ -575,7 +452,7 @@ export class GameMenu {
   private applies(): void {
     this.savePanel?.refresh();
     this.controlsPanel?.refresh();
-    const kit = this.opts.kit(), c: SettingsCtx = { weapons: new Set(kit.map((k) => k.id)), melee: kit.some((k) => k.melee), tracers: kit.some((k) => k.tracers), huntersEye: kit.some((k) => k.huntersEye), chunk: activeLevel() };
+    const c: SettingsCtx = { ...this.opts.settings(), chunk: activeLevel() };
     for (const g of this.gated) g.el.hidden = !g.when(c);
     this.cats?.sync();
     this.debug?.applies(c);

@@ -1,4 +1,5 @@
 import { SkinLocker } from '../cosmetics/locker';
+import { BagMenu } from '../bag/tabs';
 import { equipmentEntry, toolEntries } from '../bag/equipment';
 import type { WeaponId, SkinDef, DeathCause, AimTarget, Feedback, Explore, ExploreMode, Playground, PlaygroundId, Bucket } from '#engine';
 import { installBodyShadow, isOwnedId, bindTravelInventory, applyTravelCarry } from '../index';
@@ -61,8 +62,13 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
   const skins = new SkinLocker(chunk.slug, boot.skins);                          // legendary skins owned / worn (persisted; wired below)
   const menu = new GameMenu({
     levelName: chunk.name,
+    fullMap,
+    settings: () => ({ weapons: new Set(weapons.available.map((w) => w.id)), melee: weapons.available.some((w) => w.row.ui.melee),
+      tracers: weapons.available.some((w) => w.row.ui.tracers), huntersEye: weapons.available.some((w) => w.row.ui.huntersEye === true) }),
+  });
+  new BagMenu(menu, {
     ...(manifest.bag?.tabs === undefined ? {} : { tabs: manifest.bag.tabs }),
-    fullMap, progress, inventory,
+    levelName: chunk.name, progress, inventory,
     kit: () => weapons.available.map((w) => { const worn = skins.wearing(w.id); return equipmentEntry(w, weapons.current, worn ? ` · ${worn.name}` : ''); }),
     onEquip: (id) => weapons.select(id as WeaponId),
     tools: () => toolEntries(weapons.tools, (key) => app.levelRegistrations.findText(key) ?? key),
