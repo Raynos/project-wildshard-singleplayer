@@ -13,7 +13,7 @@ export function shardChunkGroups(root = process.cwd()): ChunkGroup[] {
   const idOf = (id: string): string => relative(root, id.split('?')[0] ?? id).replaceAll('\\', '/');
   return [
     { name: 'three', test: /node_modules[\\/]three[\\/]/, priority: 30, includeDependenciesRecursively: false },
-    { name: 'engine', test: (id: string) => /^(?:src\/(?:engine|game|kit)\/|src\/main\.ts$)/.test(idOf(id)) || closure.has(idOf(id)), priority: 20, includeDependenciesRecursively: false },
+    { name: 'engine', test: (id: string) => /^(?:src\/(?:engine|game|kit)\/)/.test(idOf(id)) || closure.has(idOf(id)), priority: 20, includeDependenciesRecursively: false },
     ...shardFolders(root).map((slug) => ({ name: `shard-${slug}`, test: (id: string): boolean => idOf(id).startsWith(`src/shards/${slug}/`) && !closure.has(idOf(id)), priority: 10, includeDependenciesRecursively: false })),
   ];
 }
