@@ -930,7 +930,7 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   }
   // E297 fight rules (Driftwood): an amber edge chevron toward an enemy winding up where you can't see it (src/engine/ui/WindupWarn.ts);
   // chained after the wind-up's sound cue
-  const windupWarn = chunk.fight !== undefined ? new WindupWarn<(typeof animals.animals)[number]>() : null;
+  const windupWarn = Number.isFinite(game.level.fight.attackers) ? new WindupWarn<(typeof animals.animals)[number]>() : null;
   if (windupWarn !== null) { const cue = animals.onWindup; animals.onWindup = (a, dur) => { cue?.(a, dur); windupWarn.start(a, dur); }; }
   const ambience = sea ? new IslandAmbience(audio, { sea: sea.level, heightAt, palms: palmSpecs, wreck, cove: Cove.forIsland() }) : chunk.slug === 'pine-hollow' ? new ForestAmbience(audio, { heightAt, cabins }) : null; // PH-A2
   if (ambience instanceof ForestAmbience) pineFights?.useSfx(ambience.sfx); // the King's bells / stomp / roar, the thralls
