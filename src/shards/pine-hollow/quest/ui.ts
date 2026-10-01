@@ -37,7 +37,10 @@ abstract class Panel {
   onOpen?: () => void;
   onClose?: () => void;
   private open_ = false;
+  private readonly scope: Scope;
+  private rows: Scope | null = null;
   constructor(cls: string, title: string, kicker: string, scope: Scope) {
+    this.scope = scope;
     this.root = el('div', `ws-ph-panel ${cls}`);
     const frame = el('div', 'ws-ph-frame', this.root);
     const head = el('div', 'ws-ph-head', frame);
@@ -57,8 +60,14 @@ abstract class Panel {
     scope.onDispose(() => { this.open_ = false; this.root.remove(); });
   }
   get isOpen(): boolean { return this.open_; }
+  protected renderScope(): Scope {
+    this.rows?.dispose();
+    this.body.replaceChildren();
+    this.rows = this.scope.child('rows');
+    return this.rows;
+  }
   open(): void {
-    if (this.open_) return;
+    if (this.open_ || this.scope.disposed) return;
     this.open_ = true; this.render();
     this.root.classList.add('show');
     this.onOpen?.();
@@ -78,7 +87,7 @@ export class BoardPanel extends Panel {
   constructor(private readonly board: () => Board, scope = new Scope('quest.board')) { super('ws-ph-board', 'Contracts', 'The hunting lodge', scope); }
   render(): void {
     const b = this.board();
-    this.body.replaceChildren();
+    const scope = this.renderScope();
     const tally = el('div', 'ws-ph-tally', this.body);
     el('span', '', tally, `Claimed ${b.claimed}`);
     el('span', '', tally, `In a row ${b.streak}`);
@@ -98,11 +107,11 @@ export class BoardPanel extends Panel {
       if (isFilled(c)) {
         const claim = el('button', 'ws-ph-seal', row, 'Claim');
         claim.type = 'button';
-        claim.addEventListener('click', (e) => { e.stopPropagation(); this.onClaim?.(i); this.render(); });
+        scope.listen(claim, 'click', (e) => { e.stopPropagation(); this.onClaim?.(i); this.render(); });
       }
       const tear = el('button', 'ws-ph-tear', row, 'Tear down');
       tear.type = 'button';
-      tear.addEventListener('click', (e) => { e.stopPropagation(); this.onReroll?.(i); this.render(); });
+      scope.listen(tear, 'click', (e) => { e.stopPropagation(); this.onReroll?.(i); this.render(); });
     });
     el('div', 'ws-ph-foot', this.body, 'A filled notice is claimed here. Tearing one down posts the next and ends your run.');
   }
@@ -112,7 +121,7 @@ export class TradePanel extends Panel {
   onTrade?: (t: Trade) => void;
   constructor(private readonly pack: Pack, private readonly owns: (skin: string) => boolean, private readonly room: Room = () => true, scope = new Scope('quest.trade')) { super('ws-ph-trade', 'Swaps', "Mott's stall · no coin", scope); }
   render(): void {
-    this.body.replaceChildren();
+    const scope = this.renderScope();
     for (const t of TRADES) {
       const st = tradeState(t, this.pack, this.owns, this.room);
       const row = el('div', `ws-ph-swap${st.ok ? ' ok' : ''}${st.owned ? ' owned' : ''}`, this.body);
@@ -126,7 +135,7 @@ export class TradePanel extends Panel {
       }
       const btn = el('button', 'ws-ph-swap-btn', row, st.owned ? 'Owned' : st.full ? 'Full' : 'Trade');
       btn.type = 'button'; btn.disabled = !st.ok;
-      btn.addEventListener('click', (e) => { e.stopPropagation(); if (tradeState(t, this.pack, this.owns, this.room).ok) { this.onTrade?.(t); this.render(); } });
+      scope.listen(btn, 'click', (e) => { e.stopPropagation(); if (tradeState(t, this.pack, this.owns, this.room).ok) { this.onTrade?.(t); this.render(); } });
     }
   }
 }
@@ -135,17 +144,22 @@ export class CountChip {
   readonly root = el('div', 'ws-ph-count');
   private label = el('span', 'ws-ph-count-label', this.root);
   private n = el('b', 'ws-ph-count-n', this.root);
-  private hideT = 0;
+  private readonly scope: Scope;
+  private timer: Scope | null = null;
   constructor(scope = new Scope('quest.count')) {
+    this.scope = scope;
     hudRoot().append(this.root);
-    scope.onDispose(() => { window.clearTimeout(this.hideT); this.root.remove(); });
+    scope.onDispose(() => { this.root.remove(); });
   }
   show(label: string, n: number, of: number): void {
+    if (this.scope.disposed) return;
     this.label.textContent = label;
     this.n.textContent = `${n} / ${of}`;
     this.root.classList.remove('show'); void this.root.offsetWidth; this.root.classList.add('show');
     this.root.classList.toggle('full', n >= of);
-    window.clearTimeout(this.hideT);
-    this.hideT = window.setTimeout(() => { this.root.classList.remove('show'); }, 3600);
+    this.timer?.dispose();
+    const timer = this.scope.child('hide');
+    this.timer = timer;
+    timer.timeout(3600, () => { this.root.classList.remove('show'); timer.dispose(); });
   }
 }

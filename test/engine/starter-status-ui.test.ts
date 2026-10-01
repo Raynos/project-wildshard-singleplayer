@@ -7,7 +7,7 @@ import { installStarterEffects } from '#kit/effects/install';
 import { DialogueBox } from '#engine/quest/view/ui';
 import { Flags } from '#engine/world/interact/flags';
 import { NpcTalk } from '#engine/quest/view';
-import { BoardPanel, TradePanel } from '#shards/pine-hollow/quest/ui';
+import { BoardPanel, TradePanel, CountChip } from '#shards/pine-hollow/quest/ui';
 import { newBoard } from '#shards/pine-hollow/quest/contracts';
 
 afterEach(() => document.body.replaceChildren());
@@ -50,7 +50,16 @@ describe('scoped status and quest UI', () => {
   it('Pine board/trade listeners release with their owner, so a disposed panel cannot reopen', () => {
     const scope = new Scope('panels'), board = new BoardPanel(newBoard, scope);
     const trade = new TradePanel({ count: () => 0 }, () => false, () => true, scope);
-    board.open(); trade.open(); scope.dispose();
+    const count = new CountChip(scope);
+    let rerolls = 0;
+    board.onReroll = () => { rerolls++; };
+    board.open(); trade.open(); count.show('Resin', 1, 3);
+    const old = board.root.querySelector('button.ws-ph-tear');
+    const census = scope.census;
+    for (let i = 0; i < 50; i++) { board.render(); trade.render(); count.show('Resin', 1, 3); }
+    expect(scope.census).toEqual(census);
+    old?.dispatchEvent(new MouseEvent('click')); expect(rerolls).toBe(0);
+    scope.dispose(); board.open(); trade.open(); count.show('Resin', 2, 3);
     document.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyE', bubbles: true }));
     expect(board.isOpen).toBe(false); expect(trade.isOpen).toBe(false); expect(document.body.children).toHaveLength(0);
   });

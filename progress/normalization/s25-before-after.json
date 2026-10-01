@@ -1,0 +1,627 @@
+[
+  {
+    "shard": "driftwood-isle",
+    "beforeSha": "338c6a3ddb91de4a1edd353e97566ca572ace71e",
+    "afterSha": "5ac8a99acf19ac0b4c2c94dc4217fdd65cfd76fc",
+    "errors": [
+      [],
+      []
+    ],
+    "stuck": [
+      0,
+      0
+    ],
+    "hitsToKill": [
+      {
+        "swing": 3
+      },
+      {
+        "swing": 3
+      }
+    ],
+    "killsEqual": true,
+    "lootEqual": true,
+    "combatSoundsEqual": true,
+    "combatEventsEqual": true,
+    "combatAmbient": [
+      [
+        "island.bird",
+        "island.drip",
+        "island.swell"
+      ],
+      [
+        "island.bird",
+        "island.drip",
+        "island.swell"
+      ]
+    ],
+    "pauseDiff": [
+      [],
+      []
+    ],
+    "leakAfterEqual": true,
+    "leakScope": [
+      {
+        "geometries": 0,
+        "materials": 0,
+        "textures": 0,
+        "renderTargets": 0,
+        "meshes": 0,
+        "resources": 0,
+        "bodies": 0,
+        "sounds": 0,
+        "listeners": 0,
+        "timers": 0,
+        "rafs": 0,
+        "disposers": 0,
+        "systems": 0,
+        "colliders": 0,
+        "nodes": 0
+      },
+      {
+        "geometries": 0,
+        "materials": 0,
+        "textures": 0,
+        "renderTargets": 0,
+        "meshes": 0,
+        "resources": 0,
+        "bodies": 0,
+        "sounds": 0,
+        "listeners": 0,
+        "timers": 0,
+        "rafs": 0,
+        "disposers": 0,
+        "systems": 0,
+        "colliders": 0,
+        "nodes": 0
+      }
+    ],
+    "gpuLeak": [
+      {
+        "total": {
+          "geometries": 18,
+          "textures": 12,
+          "programs": 64
+        },
+        "retained": {
+          "geometries": 18,
+          "textures": 12,
+          "programs": 64
+        }
+      },
+      {
+        "total": {
+          "geometries": 18,
+          "textures": 12,
+          "programs": 64
+        },
+        "retained": {
+          "geometries": 18,
+          "textures": 12,
+          "programs": 64
+        }
+      }
+    ],
+    "weatherScopeEqual": true,
+    "registryEqual": true,
+    "registryChanged": [],
+    "sceneTotals": [
+      {
+        "mesh": 605,
+        "instanced": 33,
+        "instances": 254,
+        "skinned": 37,
+        "points": 7,
+        "lines": 3,
+        "sprites": 10,
+        "lights": 9,
+        "batched": 2
+      },
+      {
+        "mesh": 605,
+        "instanced": 33,
+        "instances": 254,
+        "skinned": 37,
+        "points": 7,
+        "lines": 3,
+        "sprites": 10,
+        "lights": 9,
+        "batched": 2
+      }
+    ],
+    "physics": [
+      {
+        "fixed": 2,
+        "kinematic": 2,
+        "dynamic": 26,
+        "colliders": 2195
+      },
+      {
+        "fixed": 2,
+        "kinematic": 2,
+        "dynamic": 26,
+        "colliders": 2195
+      }
+    ],
+    "textureCount": [
+      83,
+      83
+    ],
+    "gpuTextureBytes": [
+      91509608,
+      91509608
+    ],
+    "gpuBuffersEqual": true,
+    "addedUpdateSystems": [
+      "engine.effects"
+    ]
+  },
+  {
+    "shard": "nalati-grasslands",
+    "beforeSha": "338c6a3ddb91de4a1edd353e97566ca572ace71e",
+    "afterSha": "5ac8a99acf19ac0b4c2c94dc4217fdd65cfd76fc",
+    "errors": [
+      [],
+      []
+    ],
+    "stuck": [
+      0,
+      0
+    ],
+    "hitsToKill": [
+      {
+        "swing": 3,
+        "shot": 2
+      },
+      {
+        "swing": 3,
+        "shot": 2
+      }
+    ],
+    "killsEqual": true,
+    "lootEqual": true,
+    "combatSoundsEqual": false,
+    "combatEventsEqual": true,
+    "combatAmbient": [
+      [
+        "steppe.marmot"
+      ],
+      [
+        "steppe.herd",
+        "steppe.marmot"
+      ]
+    ],
+    "pauseDiff": [
+      [],
+      []
+    ],
+    "leakAfterEqual": true,
+    "leakScope": [
+      {
+        "geometries": 0,
+        "materials": 0,
+        "textures": 0,
+        "renderTargets": 0,
+        "meshes": 0,
+        "resources": 0,
+        "bodies": 0,
+        "sounds": 0,
+        "listeners": 0,
+        "timers": 0,
+        "rafs": 0,
+        "disposers": 0,
+        "systems": 0,
+        "colliders": 0,
+        "nodes": 0
+      },
+      {
+        "geometries": 0,
+        "materials": 0,
+        "textures": 0,
+        "renderTargets": 0,
+        "meshes": 0,
+        "resources": 0,
+        "bodies": 0,
+        "sounds": 0,
+        "listeners": 0,
+        "timers": 0,
+        "rafs": 0,
+        "disposers": 0,
+        "systems": 0,
+        "colliders": 0,
+        "nodes": 0
+      }
+    ],
+    "gpuLeak": [
+      {
+        "total": {
+          "geometries": 19,
+          "textures": 63,
+          "programs": 44
+        },
+        "retained": {
+          "geometries": 19,
+          "textures": 63,
+          "programs": 44
+        }
+      },
+      {
+        "total": {
+          "geometries": 19,
+          "textures": 63,
+          "programs": 44
+        },
+        "retained": {
+          "geometries": 19,
+          "textures": 63,
+          "programs": 44
+        }
+      }
+    ],
+    "weatherScopeEqual": true,
+    "registryEqual": true,
+    "registryChanged": [],
+    "sceneTotals": [
+      {
+        "mesh": 315,
+        "instanced": 44,
+        "instances": 1722,
+        "skinned": 36,
+        "points": 12,
+        "lines": 3,
+        "sprites": 11,
+        "lights": 5,
+        "batched": 5
+      },
+      {
+        "mesh": 313,
+        "instanced": 42,
+        "instances": 1450,
+        "skinned": 36,
+        "points": 11,
+        "lines": 3,
+        "sprites": 11,
+        "lights": 5,
+        "batched": 5
+      }
+    ],
+    "physics": [
+      {
+        "fixed": 0,
+        "kinematic": 14,
+        "dynamic": 0,
+        "colliders": 2772
+      },
+      {
+        "fixed": 0,
+        "kinematic": 14,
+        "dynamic": 0,
+        "colliders": 2772
+      }
+    ],
+    "textureCount": [
+      128,
+      125
+    ],
+    "gpuTextureBytes": [
+      136202680,
+      135825844
+    ],
+    "gpuBuffersEqual": false,
+    "addedUpdateSystems": [
+      "engine.effects"
+    ]
+  },
+  {
+    "shard": "nine-dragon-stack",
+    "beforeSha": "338c6a3ddb91de4a1edd353e97566ca572ace71e",
+    "afterSha": "5ac8a99acf19ac0b4c2c94dc4217fdd65cfd76fc",
+    "errors": [
+      [],
+      []
+    ],
+    "stuck": [
+      0,
+      0
+    ],
+    "hitsToKill": [
+      {
+        "swing": 1
+      },
+      {
+        "swing": 1
+      }
+    ],
+    "killsEqual": true,
+    "lootEqual": true,
+    "combatSoundsEqual": true,
+    "combatEventsEqual": true,
+    "combatAmbient": [
+      [
+        "nd.audio.tick"
+      ],
+      [
+        "nd.audio.tick"
+      ]
+    ],
+    "pauseDiff": [
+      [],
+      []
+    ],
+    "leakAfterEqual": true,
+    "leakScope": [
+      {
+        "geometries": 0,
+        "materials": 0,
+        "textures": 0,
+        "renderTargets": 0,
+        "meshes": 0,
+        "resources": 0,
+        "bodies": 0,
+        "sounds": 0,
+        "listeners": 0,
+        "timers": 0,
+        "rafs": 0,
+        "disposers": 0,
+        "systems": 0,
+        "colliders": 0,
+        "nodes": 0
+      },
+      {
+        "geometries": 0,
+        "materials": 0,
+        "textures": 0,
+        "renderTargets": 0,
+        "meshes": 0,
+        "resources": 0,
+        "bodies": 0,
+        "sounds": 0,
+        "listeners": 0,
+        "timers": 0,
+        "rafs": 0,
+        "disposers": 0,
+        "systems": 0,
+        "colliders": 0,
+        "nodes": 0
+      }
+    ],
+    "gpuLeak": [
+      {
+        "total": {
+          "geometries": 30,
+          "textures": 43,
+          "programs": 27
+        },
+        "retained": {
+          "geometries": 30,
+          "textures": 43,
+          "programs": 27
+        }
+      },
+      {
+        "total": {
+          "geometries": 30,
+          "textures": 43,
+          "programs": 27
+        },
+        "retained": {
+          "geometries": 30,
+          "textures": 43,
+          "programs": 27
+        }
+      }
+    ],
+    "weatherScopeEqual": true,
+    "registryEqual": true,
+    "registryChanged": [],
+    "sceneTotals": [
+      {
+        "mesh": 225,
+        "instanced": 71,
+        "instances": 17487,
+        "skinned": 10,
+        "points": 2,
+        "lines": 3,
+        "sprites": 9,
+        "lights": 2,
+        "batched": 0
+      },
+      {
+        "mesh": 225,
+        "instanced": 71,
+        "instances": 17487,
+        "skinned": 10,
+        "points": 2,
+        "lines": 3,
+        "sprites": 9,
+        "lights": 2,
+        "batched": 0
+      }
+    ],
+    "physics": [
+      {
+        "fixed": 0,
+        "kinematic": 1,
+        "dynamic": 0,
+        "colliders": 525
+      },
+      {
+        "fixed": 0,
+        "kinematic": 1,
+        "dynamic": 0,
+        "colliders": 525
+      }
+    ],
+    "textureCount": [
+      55,
+      55
+    ],
+    "gpuTextureBytes": [
+      132209223,
+      132209223
+    ],
+    "gpuBuffersEqual": true,
+    "addedUpdateSystems": [
+      "engine.effects"
+    ]
+  },
+  {
+    "shard": "pine-hollow",
+    "beforeSha": "338c6a3ddb91de4a1edd353e97566ca572ace71e",
+    "afterSha": "5ac8a99acf19ac0b4c2c94dc4217fdd65cfd76fc",
+    "errors": [
+      [],
+      []
+    ],
+    "stuck": [
+      0,
+      0
+    ],
+    "hitsToKill": [
+      {
+        "shot": 3,
+        "shot2": 3
+      },
+      {
+        "shot": 3,
+        "shot2": 3
+      }
+    ],
+    "killsEqual": true,
+    "lootEqual": true,
+    "combatSoundsEqual": true,
+    "combatEventsEqual": true,
+    "combatAmbient": [
+      [
+        "forest.thrall"
+      ],
+      [
+        "forest.thrall"
+      ]
+    ],
+    "pauseDiff": [
+      [],
+      []
+    ],
+    "leakAfterEqual": true,
+    "leakScope": [
+      {
+        "geometries": 0,
+        "materials": 0,
+        "textures": 0,
+        "renderTargets": 0,
+        "meshes": 0,
+        "resources": 0,
+        "bodies": 0,
+        "sounds": 0,
+        "listeners": 0,
+        "timers": 0,
+        "rafs": 0,
+        "disposers": 0,
+        "systems": 0,
+        "colliders": 0,
+        "nodes": 0
+      },
+      {
+        "geometries": 0,
+        "materials": 0,
+        "textures": 0,
+        "renderTargets": 0,
+        "meshes": 0,
+        "resources": 0,
+        "bodies": 0,
+        "sounds": 0,
+        "listeners": 0,
+        "timers": 0,
+        "rafs": 0,
+        "disposers": 0,
+        "systems": 0,
+        "colliders": 0,
+        "nodes": 0
+      }
+    ],
+    "gpuLeak": [
+      {
+        "total": {
+          "geometries": 37,
+          "textures": 186,
+          "programs": 72
+        },
+        "retained": {
+          "geometries": 37,
+          "textures": 186,
+          "programs": 72
+        }
+      },
+      {
+        "total": {
+          "geometries": 37,
+          "textures": 186,
+          "programs": 72
+        },
+        "retained": {
+          "geometries": 37,
+          "textures": 186,
+          "programs": 72
+        }
+      }
+    ],
+    "weatherScopeEqual": true,
+    "registryEqual": true,
+    "registryChanged": [],
+    "sceneTotals": [
+      {
+        "mesh": 676,
+        "instanced": 40,
+        "instances": 20064,
+        "skinned": 170,
+        "points": 9,
+        "lines": 3,
+        "sprites": 9,
+        "lights": 7,
+        "batched": 8
+      },
+      {
+        "mesh": 676,
+        "instanced": 40,
+        "instances": 20064,
+        "skinned": 170,
+        "points": 9,
+        "lines": 3,
+        "sprites": 9,
+        "lights": 7,
+        "batched": 8
+      }
+    ],
+    "physics": [
+      {
+        "fixed": 0,
+        "kinematic": 10,
+        "dynamic": 0,
+        "colliders": 2417
+      },
+      {
+        "fixed": 0,
+        "kinematic": 10,
+        "dynamic": 0,
+        "colliders": 2409
+      }
+    ],
+    "textureCount": [
+      404,
+      408
+    ],
+    "gpuTextureBytes": [
+      567729880,
+      570530688
+    ],
+    "gpuBuffersEqual": true,
+    "addedUpdateSystems": [
+      "pine.landmarks",
+      "engine.effects",
+      "engine.effects.debug",
+      "shard.pine.weather.state",
+      "shard.pine.weather"
+    ]
+  }
+]
