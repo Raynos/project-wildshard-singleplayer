@@ -61,6 +61,12 @@ describe('Signal Dunes plugin contract', () => {
     expect(whip.strike(actor, new Vector3(0.3, 0, -6), dir, new Vector3(), false)).toBe(true); expect(actor.attributes.health).toBe(100 - CRACK.light);
     await app.unloadLevel();
   });
+  it('light on attack, the double crack on heavy and on lifting a touch hold', async () => {
+    const { app } = await boot(); const whip = new SignalWhip(app), swings: boolean[] = []; whip.onSwing = (heavy) => { swings.push(heavy); };
+    whip.tryFire(); whip.update(1); whip.crackNow(true); whip.update(1);
+    whip.adsHeld = true; whip.update(0.4); expect(whip.charge).toBe(1); whip.adsHeld = false; whip.update(0.01);
+    expect(swings).toEqual([false, true, true]); await app.unloadLevel();
+  });
   it('the swoop lands only when the ray has come down to the player', () => {
     const spec = RAY_STRIKES[0]; if (spec === undefined) throw new Error('no swoop');
     const player = new Vector3(0, 0, 20);

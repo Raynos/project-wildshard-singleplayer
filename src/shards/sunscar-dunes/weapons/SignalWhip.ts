@@ -4,11 +4,15 @@ import { WHIP_ROW } from './rows';
 import { WhipModel } from './whipModel';
 
 /** The crack's numbers: a long, narrow line that lands when the thong is out, not on the press. */
+const HOLD_FULL = 0.3;
 export const CRACK = { reach: 6.5, lane: 0.55, light: 16, heavy: 20, stagger: 0.6, contactAt: 0.13, heavySecond: 0.45, cooldown: 0.42, heavyCooldown: 0.95, length: 0.34 } as const;
 
 /**
  * Rung 3 (custom): no kit family throws a flexible line. Built from `blocks.viewmodel` (look lag) and `blocks.melee`
  * (contact through the damage pipeline). Light: one crack. Heavy: a double crack, each one staggers.
+ * Input (E365 audit): `attack` (LMB / F, the ATTACK disc's touch-down) is the light crack; `heavy` (RMB) is the double
+ * crack; on touch the ATTACK disc held still sets `adsHeld` (the melee hold) and lifting it throws the double crack. The
+ * disc's charge ring reads `charge`.
  */
 export class SignalWhip extends Weapon {
   override readonly state: WeaponState = { ammo: undefined, magazine: 0, reserve: 0, loaded: true, reloading: false, reloadProgress: 0, ads: false };
@@ -16,7 +20,7 @@ export class SignalWhip extends Weapon {
   readonly view = new WhipModel();
   override readonly model = this.view.root;
   onSwing: ((heavy: boolean) => void) | null = null;
-  private cooldown = 0; private clock = 0; private crackT = -1; private heavy = false; private landed = 0;
+  private cooldown = 0; private clock = 0; private crackT = -1; private heavy = false; private landed = 0; private held = 0; private wasHeld = false;
   private readonly app: App; private readonly targets: Targets | null; private readonly actorFor: (animal: TargetAnimal) => Actor | null;
   private readonly spring = { yaw: 0, pitch: 0, yawVelocity: 0, pitchVelocity: 0 };
   private readonly vm = blocks.viewmodel({ gain: 0.012, clampYaw: 0.12, clampPitch: 0.1, k: 48, c: 11 });
@@ -27,11 +31,18 @@ export class SignalWhip extends Weapon {
     this.blocks.vm = this.vm; this.blocks.melee = this.contact;
     this.model.position.set(0.19, -0.17, -0.42); this.model.rotation.set(0.35, 0, -0.5);
   }
-  override install(ctx: EquipContext): void { super.install(ctx); this.app.input.bind('attack', () => { this.tryFire(); }, ctx.scope, () => this.enabled); }
-  override tryFire(): void {
+  override install(ctx: EquipContext): void {
+    super.install(ctx);
+    this.app.input.bind('attack', () => { this.tryFire(); }, ctx.scope, () => this.enabled);
+    this.app.input.bind('heavy', () => { this.crackNow(true); }, ctx.scope, () => this.enabled);
+  }
+  override tryFire(): void { this.crackNow(false); }
+  /** the touch hold's fill (the ATTACK disc's ring), 0..1 */
+  override get charge(): number { return Math.min(1, this.held / HOLD_FULL); }
+  crackNow(heavy: boolean): void {
     if (this.cooldown > 0 || !this.enabled) return;
-    this.heavy = this.altHeld; this.cooldown = this.heavy ? CRACK.heavyCooldown : CRACK.cooldown; this.crackT = 0; this.landed = 0;
-    this.onSwing?.(this.heavy); this.onFire?.();
+    this.heavy = heavy; this.cooldown = heavy ? CRACK.heavyCooldown : CRACK.cooldown; this.crackT = 0; this.landed = 0;
+    this.onSwing?.(heavy); this.onFire?.();
   }
   /** One crack's contact along the camera's aim: the nearest creature on the line within reach. */
   private crack(): void {
@@ -51,6 +62,10 @@ export class SignalWhip extends Weapon {
   }
   override update(dt: number): void {
     this.clock += dt; this.cooldown = Math.max(0, this.cooldown - dt);
+    // the touch hold: the light crack already went on touch-down; lifting a held disc throws the double crack
+    if (this.adsHeld) this.held += dt;
+    else if (this.wasHeld) { this.cooldown = 0; this.crackNow(true); this.held = 0; }
+    this.wasHeld = this.adsHeld;
     this.vm.step(this.spring, new Vector2(), dt); this.model.rotation.y = this.spring.yaw;
     let throwK = 0;
     if (this.crackT >= 0) {
