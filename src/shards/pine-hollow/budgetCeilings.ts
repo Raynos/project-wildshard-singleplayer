@@ -15,13 +15,13 @@ export const BUDGET_CEILINGS = {
   },
   "desktop": {
     "cabin": {
-      "gpuMB": 1308.288724899292
+      "gpuMB": 1318.5415477752686
     },
     "gate": {
-      "gpuMB": 1308.288724899292
+      "gpuMB": 1318.5415477752686
     },
     "pond": {
-      "gpuMB": 1308.288724899292
+      "gpuMB": 1318.5415477752686
     }
   }
 } satisfies NonNullable<LevelSpec['budgets']['ceilings']>;

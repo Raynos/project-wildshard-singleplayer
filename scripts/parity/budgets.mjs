@@ -20,15 +20,23 @@ export function budgetChecks(current) {
 }
 /** The fourth ND reference is a free camera, excluded from parity's standing poses (03 §3).
  * Budget-only frozen draws include it without advancing gameplay or adding systems/golden fields.
- * @param {import('playwright').Page} page */
-export function budgetViews(page) {
-  return page.evaluate(async () => {
+ * @param {import('playwright').Page} page
+ * @param {boolean} [captureCurrent] Whether the shard has no standing parity poses. */
+export function budgetViews(page, captureCurrent = false) {
+  return page.evaluate(async (current) => {
     const w = window.__wildshard.world, g = w.game, cameras = await g.level.capturePoses?.();
     /** @type {Record<string, { draws: number, tris: number, programs: number, gpuMB: number }>} */ const result = {};
-    if (!cameras) return result;
     const position = g.camera.position.clone(), quaternion = g.camera.quaternion.clone();
     try {
-      for (const [name, c] of Object.entries(cameras)) {
+      // A starter with no authored camera still needs measured counts for its current budget.
+      const views = cameras && Object.keys(cameras).length > 0 ? cameras : current ? { current: null } : {};
+      for (const [name, c] of Object.entries(views)) {
+        if (c === null) {
+          g.shardFrame(); g.composer.render(0);
+          g.renderer.info.reset(); g.composer.render(0);
+          result[name] = { draws: g.renderer.info.render.calls, tris: g.renderer.info.render.triangles, programs: g.renderer.info.programs?.length ?? 0, gpuMB: (window.__wildshardHarness?.gpuBytes?.().total ?? Number.NaN) / 2 ** 20 };
+          continue;
+        }
         if (c.feet) continue;
         g.camera.position.set(...c.eye); g.camera.rotation.set(c.pitch * Math.PI / 180, -c.yaw * Math.PI / 180, 0, 'YXZ'); g.shardFrame();
         g.composer.render(0); // settle uploads/programs with no simulation tick
@@ -37,7 +45,7 @@ export function budgetViews(page) {
       }
     } finally { g.camera.position.copy(position); g.camera.quaternion.copy(quaternion); g.shardFrame(); g.renderer.info.reset(); g.composer.render(0); }
     return result;
-  });
+  }, captureCurrent);
 }
 /** @param {import('./value.mjs').RecordValue} report */
 export function budgetLines(report) {

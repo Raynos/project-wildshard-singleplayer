@@ -95,7 +95,7 @@ export async function capture(browser,url,opts) {
     if(opts.offline){await page.evaluate(()=>window.__wildshard.world.hud.startExplore());await page.locator('.ws-x').waitFor({state:'visible'});result.offline={title:true,play:true,explore:true};return result;}
     if(opts.only!=='walk+combat+leak'){console.error(`parity: ${opts.shard}.${opts.tier} poses`);result.poses=await within(poses(page,opts),opts.timeout*1000,'poses');mark('posesMs');}
     const hasBudgets=await page.evaluate(()=>Object.hasOwn(window.__wildshard,'budgets'));
-    const extra=opts.only==='walk+combat+leak'||!hasBudgets?{}:await budgetViews(page);
+    const extra=opts.only==='walk+combat+leak'||!hasBudgets?{}:await budgetViews(page, Array.isArray(result.poses) && result.poses.length === 0);
     result.budgets=object(await page.evaluate((names)=>{const p=/** @type {{budgets?:typeof window.__wildshard.budgets}} */(window.__wildshard);return p.budgets?.(names)??{};}, [...Array.isArray(result.poses) ? result.poses.map((p)=>string(object(p).name)) : [], ...Object.keys(extra)]));
     for(const [name,observed] of Object.entries(extra))object(object(result.budgets)[name]).observed=object(observed);
     writeFileSync(join(opts.out,`${opts.shard}.${opts.tier}.partial.json`),JSON.stringify(result,null,2));

@@ -1,6 +1,9 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+import * as THREE from 'three';
+import type { Page } from 'playwright';
+import { legacyDouble } from '../fake/FakeGame';
 import { baselineCeilings } from '../../scripts/parity/budgetCeilings.mjs';
-import { budgetChecks, budgetLines } from '../../scripts/parity/budgets.mjs';
+import { budgetChecks, budgetLines, budgetViews } from '../../scripts/parity/budgets.mjs';
 import { compare } from '../../scripts/parity/compare.mjs';
 import { parseCalibration } from '#engine/render/calibration';
 import { syntheticNavigation } from '#engine/calibrate/js';
@@ -19,6 +22,21 @@ describe('budget rollout and report', () => {
   });
   it('retains boot-wide bytes/programs for a shard without pinned poses', () => {
     expect(baselineCeilings([{ ...base, poses: {} }])).toEqual({ 'fixture.phone.current.programs': 30, 'fixture.phone.current.gpuMB': 103 });
+  });
+  it('measures current draw and triangle counts when a starter has no camera poses', async () => {
+    const render = { calls: 0, triangles: 0 };
+    const game = { camera: new THREE.PerspectiveCamera(), level: {}, shardFrame: vi.fn(),
+      renderer: { info: { render, programs: [1, 2], reset: (): void => { render.calls = 0; render.triangles = 0; } } },
+      composer: { render: (): void => { render.calls += 7; render.triangles += 31; } } };
+    const priorWindow: unknown = Reflect.get(globalThis, 'window');
+    vi.stubGlobal('window', { __wildshard: { world: { game } }, __wildshardHarness: { gpuBytes: () => ({ total: 4 * 2 ** 20 }) } });
+    const page = legacyDouble<Page>({ evaluate: (fn: (value: unknown) => unknown, value: unknown) => Promise.resolve(fn(value)) });
+    try {
+      expect(await budgetViews(page)).toEqual({});
+      const views = await budgetViews(page, true);
+      expect(views).toEqual({ current: { draws: 7, tris: 31, programs: 2, gpuMB: 4 } });
+      expect(budgetChecks({ boot: { shard: '_template', tier: 'phone' }, poses: {}, budgets: { current: { derived: { draws: 8, tris: 32 }, observed: views['current'] } } }).every((check) => check.pass)).toBe(true);
+    } finally { vi.stubGlobal('window', priorWindow); }
   });
   it('enforces ceilings even when derived targets are absent', () => {
     const current = { ...base, budgets: { a: { derived: null, ceiling: { draws: 99 } } } };

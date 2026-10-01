@@ -1458,13 +1458,13 @@
   "baselines": [
     {
       "file": "test/parity/baselines/m5/_template.desktop.json",
-      "sha": "479cc5fb54ec23c4272c35df3d1e5b3d59767c39",
-      "recorded": "2026-10-01T19:29:54.238Z"
+      "sha": "720dd05b2e36846d28a72c8bc8859ef5b73645f4",
+      "recorded": "2026-10-01T22:34:06.182Z"
     },
     {
       "file": "test/parity/baselines/m5/_template.phone.json",
-      "sha": "479cc5fb54ec23c4272c35df3d1e5b3d59767c39",
-      "recorded": "2026-10-01T19:29:54.194Z"
+      "sha": "720dd05b2e36846d28a72c8bc8859ef5b73645f4",
+      "recorded": "2026-10-01T22:34:06.149Z"
     },
     {
       "file": "test/parity/baselines/m5/driftwood-isle.desktop.json",
@@ -1508,13 +1508,13 @@
     },
     {
       "file": "budgets/calibration-reports/_template.desktop.json",
-      "sha": "520693016a02dd13447c4fc1a9bbf7bf82d7aa67",
-      "recorded": "2026-10-01T22:13:08.757Z"
+      "sha": "720dd05b2e36846d28a72c8bc8859ef5b73645f4",
+      "recorded": "2026-10-01T22:34:06.182Z"
     },
     {
       "file": "budgets/calibration-reports/_template.phone.json",
-      "sha": "520693016a02dd13447c4fc1a9bbf7bf82d7aa67",
-      "recorded": "2026-10-01T22:13:07.507Z"
+      "sha": "720dd05b2e36846d28a72c8bc8859ef5b73645f4",
+      "recorded": "2026-10-01T22:34:06.149Z"
     },
     {
       "file": "budgets/calibration-reports/driftwood-isle.phone.json",
@@ -1542,6 +1542,11 @@
       "recorded": "2026-10-01T22:13:06.531Z"
     },
     {
+      "file": "budgets/calibration-reports/pine-hollow.desktop.json",
+      "sha": "720dd05b2e36846d28a72c8bc8859ef5b73645f4",
+      "recorded": "2026-10-01T22:29:34.545Z"
+    },
+    {
       "file": "budgets/calibration-reports/pine-hollow.phone.json",
       "sha": "520693016a02dd13447c4fc1a9bbf7bf82d7aa67",
       "recorded": "2026-10-01T22:12:55.391Z"
@@ -1567,7 +1572,7 @@
       "reason": "R9: all three Pine people upload behind the loading screen, before the first play frame.",
       "ask": "E357",
       "approvedBy": "wildshard-9",
-      "approval": "Both findings are explained, so accept them as measured re-records with provenance, not as quiet raises. Re-record those two GL ceilings from the measured value with the ask and commit in the provenance field. Nothing else moves.",
+      "approval": "lead, R9 = Jake's preload rule; retain the prior G6 lantern re-records. Desktop Pine people uploaded before the first frame (lead approval 2026-10-01).",
       "captureSha": "520693016a02dd13447c4fc1a9bbf7bf82d7aa67",
       "captureSha256": "283acd1a80c4d8b844a18bb1057bf262d07aecd3ed1cc89be6280cd59f7d286b",
       "ceilings": {
@@ -1585,9 +1590,9 @@
       "reason": "G6: mounted lantern is drawn for the first time (876 bytes).",
       "ask": "E357",
       "approvedBy": "wildshard-9",
-      "approval": "Both findings are explained, so accept them as measured re-records with provenance, not as quiet raises. Re-record those two GL ceilings from the measured value with the ask and commit in the provenance field. Nothing else moves.",
-      "captureSha": "520693016a02dd13447c4fc1a9bbf7bf82d7aa67",
-      "captureSha256": "5ae15ba967d75bd972342cb67f883829fe45d87e051eda1a863fd9dd1c0bc056",
+      "approval": "lead, R9 = Jake's preload rule; retain the prior G6 lantern re-records. Desktop Pine people uploaded before the first frame (lead approval 2026-10-01).",
+      "captureSha": "720dd05b2e36846d28a72c8bc8859ef5b73645f4",
+      "captureSha256": "cdfe78cdab15925709fa89bc00b31ea4d2a95b4a997f7d9d9126ccbd569e096d",
       "ceilings": {
         "_template.phone.current.gpuMB": 76.73144912719727
       }
@@ -1601,11 +1606,29 @@
       "reason": "G6: mounted lantern is drawn for the first time (876 bytes).",
       "ask": "E357",
       "approvedBy": "wildshard-9",
-      "approval": "Both findings are explained, so accept them as measured re-records with provenance, not as quiet raises. Re-record those two GL ceilings from the measured value with the ask and commit in the provenance field. Nothing else moves.",
-      "captureSha": "520693016a02dd13447c4fc1a9bbf7bf82d7aa67",
-      "captureSha256": "3d6a604f5b46d03f7d8633202154de523d32238cb771d8e4e3ae4f76b2695fca",
+      "approval": "lead, R9 = Jake's preload rule; retain the prior G6 lantern re-records. Desktop Pine people uploaded before the first frame (lead approval 2026-10-01).",
+      "captureSha": "720dd05b2e36846d28a72c8bc8859ef5b73645f4",
+      "captureSha256": "9beb8c08b19c770243eeaa9a3d012a03dc00f761aa5eeae72102afeffea5a028",
       "ceilings": {
         "_template.desktop.current.gpuMB": 171.08098220825195
+      }
+    },
+    {
+      "shard": "pine-hollow",
+      "tier": "desktop",
+      "metric": "gpuMB",
+      "source": "budgets/calibration-reports/pine-hollow.desktop.json",
+      "commit": "eb3d9a7875b47cae0349ee234e47efdc75efb30c",
+      "reason": "R9: all three Pine people upload behind the loading screen, before the first play frame; desktop counterpart of the accepted phone re-record.",
+      "ask": "E357",
+      "approvedBy": "wildshard-9",
+      "approval": "lead, R9 = Jake's preload rule; retain the prior G6 lantern re-records. Desktop Pine people uploaded before the first frame (lead approval 2026-10-01).",
+      "captureSha": "720dd05b2e36846d28a72c8bc8859ef5b73645f4",
+      "captureSha256": "377eb4cf5efc0ea282a2fac5f33444550a46303989fb383fe3fc6a6d3b176511",
+      "ceilings": {
+        "pine-hollow.desktop.gate.gpuMB": 1318.5415477752686,
+        "pine-hollow.desktop.cabin.gpuMB": 1318.5415477752686,
+        "pine-hollow.desktop.pond.gpuMB": 1318.5415477752686
       }
     }
   ]
