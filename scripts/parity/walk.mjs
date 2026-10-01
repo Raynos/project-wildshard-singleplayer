@@ -35,8 +35,20 @@ export async function touchLeg(page) {
     const sorted=[...list].sort((a,b)=>Math.hypot(a.position.x-spawn.x,a.position.z-spawn.z)-Math.hypot(b.position.x-spawn.x,b.position.z-spawn.z));
     return sorted.length>0?sorted[0]:null;
   });
-  let used=/** @type {boolean|'n/a'} */ ('n/a');
-  if(nearest){await page.evaluate((at)=>window.__wildshard.pose({x:at.x,z:at.z+1,y:at.y,yaw:0}),nearest.position);await page.waitForTimeout(200);await page.evaluate(()=>window.__wildshard.used());await touch(page,TOUCH.use);used=await page.evaluate((label)=>window.__wildshard.used().includes(label),nearest.label);}
+  let used=/** @type {boolean|'n/a'|'hidden'} */ ('n/a');
+  if(nearest){
+    // USE shows only in range and facing the thing (`.ws-touch-use.show`): try the four sides, each facing it (yaw 0 looks
+    // along -Z), until the button shows; a shard whose nearest prompt never shows records 'hidden' (deterministic per build).
+    used='hidden';
+    for(const [ox,oz] of [[0,1],[1,0],[0,-1],[-1,0]]){
+      await page.evaluate(({at,dx,dz})=>window.__wildshard.pose({x:at.x+dx,z:at.z+dz,y:at.y,yaw:Math.atan2(dx,dz)}),{at:nearest.position,dx:ox,dz:oz});
+      const shown=await page.locator(`${TOUCH.use}.show`).waitFor({state:'visible',timeout:1500}).then(()=>true,()=>false);
+      if(!shown)continue;
+      await page.evaluate(()=>window.__wildshard.used());await touch(page,TOUCH.use);
+      used=await page.evaluate((label)=>window.__wildshard.used().includes(label),nearest.label);
+      break;
+    }
+  }
   return {moved,yawDelta,dodged,used};
 }
 /** @param {import('playwright').Page} page @param {{shard:string,tier:string,full:boolean,root:string}} opts */
