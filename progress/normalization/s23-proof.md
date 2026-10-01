@@ -80,3 +80,6 @@ render, GPU bytes and scene are exact. Nalati collider count stays 2772 but scen
 Pine colliders are 2409 before and 2417 after; scene/render/GPU fields differ (S2.1 notified). These are
 cross-builder integrated changes, not an accepted direct parity result. The first-pass screenshots are evidence;
 default raw SSIM fields are not a computed direct image comparison. Walk/combat/leak remains queued.
+The before-run finished Driftwood's first pass before exit: all-four before/after raw files now exist.
+Driftwood physics, render, GPU bytes and scene are exact too. Owned lane runs were terminated and released;
+retries against the stale global baseline were not completed. The direct image comparison remains outstanding.
