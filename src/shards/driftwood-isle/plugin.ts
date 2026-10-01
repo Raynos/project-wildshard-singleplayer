@@ -1,6 +1,10 @@
 import { ShardPlugin, type ShardContext } from '#game';
-import { buildDriftwoodWorld, keepDriftwoodWorld } from './world/build';
+import { buildDriftwoodWorld, keepDriftwoodWorld, type DriftwoodWorld } from './world/build';
+import type { World } from '#engine';
+import type { Vector3 } from 'three';
 import { OCEAN_BODY } from './world/sea';
+
+type WorldBuilder = (world: World, viewer: () => Vector3) => Promise<DriftwoodWorld>;
 
 /**
  * Driftwood Isle's plugin (E357 S4.1, 08 §4). `world` registers the sea as a water body and builds the island in
@@ -8,13 +12,20 @@ import { OCEAN_BODY } from './world/sea';
  * still run in main.ts and read the built world through `driftwoodWorld(runtime)` until they move here.
  */
 export class DriftwoodPlugin extends ShardPlugin {
+  private readonly build: WorldBuilder;
+  /** `build` is injectable so the hook runs with a stub world in a node test (test/shards/driftwood-isle/plugin.test.ts) */
+  constructor(build: WorldBuilder = buildDriftwoodWorld) {
+    super();
+    this.build = build;
+  }
+
   override async world(ctx: ShardContext): Promise<void> {
     const shell = ctx.game.runtime;
     if (shell === undefined) throw new Error('Driftwood plugin requires its world host');
     const world = shell.world;
     if (world === null) throw new Error('Driftwood world requires the bootstrapped world');
     ctx.app.world.water.add(OCEAN_BODY, ctx.scope);
-    const built = await buildDriftwoodWorld(world, shell.viewer);
+    const built = await this.build(world, shell.viewer);
     if (ctx.scope.disposed) throw new Error('Driftwood Isle was unloaded during its world build');
     keepDriftwoodWorld(shell, built);
   }
