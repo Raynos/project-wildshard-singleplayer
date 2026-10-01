@@ -8,7 +8,7 @@
 //                                                                    structures go to ctx.addObject / ctx.tryBuild
 
 export async function groundColor({ THREE, imp, hf, def }) {
-  const { lowPolyGroundColor } = await imp('src/engine/world/Terrain.ts');
+  const { lowPolyGroundColor } = await imp('src/shards/driftwood-isle/look/groundColor.ts');
   const wl = def.ocean.level;
   const pathC = new THREE.Color('#d6bd84');
   const ss = THREE.MathUtils.smoothstep;

@@ -47,7 +47,7 @@
  *   scene.add(cover.group);
  *   game.onUpdate((dt) => cover.update(dt, player.position));
  *
- * Placement follows the terrain's own paint (Terrain.ts lowPolyGroundColor): grass above ~3 m over the sea on slopes
+ * Placement follows the terrain's own paint (look/groundColor.ts lowPolyGroundColor): grass above ~3 m over the sea on slopes
  * under 0.24, sand below; never on the sand paths, on steep rock, in the water, or inside a POI's footprint.
  */
 import * as THREE from 'three';
@@ -62,7 +62,7 @@ import { Cove } from './Cove';
 import { windUniforms } from '#engine/world/wind';
 import { rockGeometry } from './rockKit';
 import { TIER } from '#engine/core/tier';
-import { lowPolyGroundColor } from '#engine/world/Terrain';
+import { lowPolyGroundColor } from '../look/groundColor';
 import { CoverGrid, COVER_SEEN_GLSL, coverSample, coverJitter, triAreas } from './coverTint';
 import type { BlenderArea } from '#engine/world/blenderArea';
 import type { Sky } from '#engine/world/Sky';

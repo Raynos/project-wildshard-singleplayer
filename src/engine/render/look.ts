@@ -84,6 +84,8 @@ export interface PainterField {
   heightAt: (x: number, z: number) => number;
   normalAt: (x: number, z: number, eps?: number) => [number, number, number];
   trails: () => readonly (readonly [number, number])[][];
+  /** the distance (m) to the nearest trail's centre line */
+  trailDistance: (x: number, z: number) => number;
 }
 /** a level's own ground: it builds the terrain's mesh(es) into `t.group` and sets `t.mesh` / `t.material` (Terrain.build) */
 export interface TerrainPainter { build: (t: Terrain, field: PainterField) => Promise<void> }
