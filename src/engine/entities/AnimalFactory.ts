@@ -2,7 +2,7 @@ import { bindRig } from '../anim/rig';
 import type { CreatureRenderSpec } from '../level/spec';
 import { selectedLevel } from '../level/selection';
 import * as THREE from 'three';
-import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { mergeAnimalGeometry } from '../models/animalGeometry';
 import { Rng } from '../core/rng';
 import type { Sky } from '../world/Sky';
 import { attachFogUniforms, fogUniforms } from '../world/Atmosphere';
@@ -317,11 +317,7 @@ export class AnimalFactory {
     // the procedural eyes, where a thrall's glowing eyes go on a generated hull
     const eyes: EyeSpot[] = [];
     for (const g of sp.eyeParts) { g.computeBoundingSphere(); const bs = g.boundingSphere; if (bs !== null) eyes.push({ centre: bs.center.clone(), radius: bs.radius }); }
-    const furGeo = mergeGeometries(sp.furParts, false);
-    const hardGeo = mergeGeometries(sp.hardParts, false);
-    const eyeGeo = mergeGeometries(sp.eyeParts, false);
-    let geometry = mergeGeometries([furGeo, hardGeo, eyeGeo], true);
-    for (const g of [...sp.furParts, ...sp.hardParts, ...sp.eyeParts, furGeo, hardGeo, eyeGeo]) g.dispose();
+    let geometry = mergeAnimalGeometry(sp.furParts, sp.hardParts, sp.eyeParts);
     geometry.computeBoundingSphere();
     if (geometry.boundingSphere !== null) geometry.boundingSphere.radius += 0.6; // animated legs / neck / corpse roll never leave this
     geometry.computeBoundingBox();
