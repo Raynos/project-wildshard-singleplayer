@@ -21,3 +21,5 @@ export { normalizeItemRow, type ItemRow, type RegisteredItemRow } from './bag/it
 export { registerItemRow } from './bag/itemCatalog';
 export type { AchievementDef } from './achievements';
 export type { CompendiumHost, CompendiumWallPort } from './compendium/install';
+
+export { renderFinds } from './bag/bag';
