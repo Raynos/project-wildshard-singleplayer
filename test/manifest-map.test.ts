@@ -1,7 +1,7 @@
 // E357 F6: all authored manifest data and sampled analytic terrain match the pre-move fixtures.
 import { describe, expect, it } from 'vitest';
 import { SHARDS } from '#game/shard/registry';
-import { formatGrid, legacyShardId, terrainFor, type ShardManifest } from '#game/shard/manifest';
+import { formatGrid, terrainFor, type ShardManifest } from '#game/shard/manifest';
 
 // Captured before F6 from the four authored definitions; functions remain lazy hooks.
 const ORIGINAL = [
@@ -3439,9 +3439,9 @@ function originalArt(value: unknown): unknown {
 }
 
 function originalShape(m: ShardManifest, fixture: (typeof ORIGINAL)[number]['data']): object {
-  const { api: _api, assetGlobs: _assetGlobs, ktx2: _ktx2, name, label, card, ground, spawns, minimap, fight, camera, status, order: _order, placement: _placement, explore, ...kept } = m;
+  const { api: _api, assetGlobs: _assetGlobs, ktx2: _ktx2, kitLook: _kitLook, name, label, card, ground, spawns, minimap, fight, camera, status, order: _order, placement: _placement, explore, ...kept } = m;
   const old = {
-    ...kept, id: legacyShardId(m.slug), displayName: name, gridCoords: label,
+    ...kept, id: `chunk://local/${m.slug}`, displayName: name, gridCoords: label,
     thumbnail: originalArt(card.thumb), heroPortrait: originalArt(card.portrait), heroLandscape: originalArt(card.landscape),
     terrain: ground.terrain, fauna: spawns,
     ...(minimap === undefined ? {} : { map: minimap }),
@@ -3470,8 +3470,9 @@ describe('ChunkDef → ShardManifest preserves all 48 field mappings', () => {
     expect(formatGrid(m.placement.grid)).toBe(m.label);
     expect(m.placement.size).toEqual([500, 500, 500]);
     expect(m.order).toBe(ORIGINAL.indexOf(fixture) + 1);
+    expect(m.kitLook).toBe(m.style === 'toon' || m.style === 'painterly' ? m.style : 'pbr');
     expect(m.status).toBe('experimental' in fixture.data ? 'experimental' : 'earlyAccess' in fixture.data ? 'earlyAccess' : 'live');
-    expect(legacyShardId(m.slug)).toBe(fixture.data.id);
+    expect(`chunk://local/${m.slug}`).toBe(fixture.data.id);
     expect(data(originalShape(m, fixture.data))).toEqual(fixture.data);
     expect(m.explore).toBeDefined();
     for (const [kind, url] of Object.entries(m.explore ?? {})) expect(url).toContain(`/${kind}-${m.slug}.webp`);
