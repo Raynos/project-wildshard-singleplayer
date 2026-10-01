@@ -57,34 +57,36 @@ export async function cachedTree(root,sha,cacheRoot=join(homedir(),'.cache/wilds
   const key=runtimeTree(root,sha),dir=join(cacheRoot,key),lock=`${dir}.lock`,started=performance.now();
   mkdirSync(cacheRoot,{recursive:true});
   const valid=()=>existsSync(join(dir,'ready.json'))&&existsSync(join(dir,'tree/dist/version.json'));
-  let hit=valid(),owned=false;
-  if(!hit) {
-    while(!owned&&!valid()) {
-      try {mkdirSync(lock);writeFileSync(join(lock,'pid'),String(process.pid));owned=true;} catch(error) {
-        if(!(error instanceof Error)||!('code' in error)||error.code!=='EEXIST')throw error;
-        const pid=readJsonNumber(join(lock,'pid'));
-        if(pid){try{process.kill(pid,0);}catch{rmSync(lock,{recursive:true,force:true});continue;}}
-        else if(Date.now()-statSync(lock).mtimeMs>1000){rmSync(lock,{recursive:true,force:true});continue;}
-        if(performance.now()-started>240000)throw new Error('infrastructure: parity cache lock exceeded4min',{cause:error});
-        await new Promise((resolve)=>{setTimeout(resolve,100);});
-      }
+  let owned=false;
+  while(!owned) {
+    try {mkdirSync(lock);writeFileSync(join(lock,'pid'),String(process.pid));owned=true;} catch(error) {
+      if(!(error instanceof Error)||!('code' in error)||error.code!=='EEXIST')throw error;
+      const pid=readJsonNumber(join(lock,'pid'));
+      if(pid){try{process.kill(pid,0);}catch{rmSync(lock,{recursive:true,force:true});continue;}}
+      else if(Date.now()-statSync(lock).mtimeMs>1000){rmSync(lock,{recursive:true,force:true});continue;}
+      if(performance.now()-started>240000)throw new Error('infrastructure: parity cache lock exceeded4min',{cause:error});
+      await new Promise((resolve)=>{setTimeout(resolve,100);});
     }
-    hit=!owned;
-    if(owned) {
+  }
+  const hit=valid(); let lease='';
+  try {
+    if(!hit) {
       let exported=/** @type {ReturnType<typeof exportTree>|undefined} */(undefined);
       try {
         exported=exportTree(root,sha);await build(exported.tree,sha);
         rmSync(dir,{recursive:true,force:true});mkdirSync(dir);
         renameSync(exported.tree,join(dir,'tree'));writeFileSync(join(dir,'ready.json'),JSON.stringify({key,sha}));
-      } finally {exported?.cleanup();rmSync(lock,{recursive:true,force:true});}
+      } finally {exported?.cleanup();}
     }
-  }
+    // Readers and eviction share the entry lock. Keep active previews safe until cleanup, including cache hits.
+    const users=`${dir}.users`;mkdirSync(users,{recursive:true});lease=mkdtempSync(join(users,`${process.pid}-`));
+  } finally {rmSync(lock,{recursive:true,force:true});}
   const fixtures=mkdtempSync(join(tmpdir(),'parity-fixtures-'));
   try {
     const archive=execFileSync('git',['archive',sha,'--','test/parity'],{cwd:root,maxBuffer:64*1024**2});
     execFileSync('tar',['-x','-C',fixtures],{input:archive,maxBuffer:64*1024**2});
-    return {tree:join(dir,'tree'),fixtures,hit,key,cleanup:()=>rmSync(fixtures,{recursive:true,force:true})};
-  }catch(error){rmSync(fixtures,{recursive:true,force:true});throw error;}
+    return {tree:join(dir,'tree'),fixtures,hit,key,cleanup:()=>{rmSync(fixtures,{recursive:true,force:true});rmSync(lease,{recursive:true,force:true});}};
+  }catch(error){rmSync(fixtures,{recursive:true,force:true});rmSync(lease,{recursive:true,force:true});throw error;}
 }
 /** @param {string} path */
 function readJsonNumber(path) {try{return Number(readFileSync(path,'utf8'));}catch{return 0;}}

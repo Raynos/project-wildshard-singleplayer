@@ -7,6 +7,7 @@ import { dirname, join, resolve } from 'node:path';
 import { debugSettings } from './debug-settings.mjs';
 import { installInit } from './parity/init.mjs';
 import { cachedTree, exportTree, readJson, serve } from './parity/serve.mjs';
+import { evictBuildCache } from './parity/cache.mjs';
 import { compare, matches, normalize } from './parity/compare.mjs';
 import { assertMetal, relevantError } from './parity/fingerprint.mjs';
 import { poses } from './parity/poses.mjs';
@@ -28,14 +29,14 @@ node scripts/parity.mjs --export=<full sha>|--url=<origin>
   --lane=m5|gh-macos15 --shards=all|a,b --tiers=phone,desktop
   --record --runs=3 --rebaseline=<slug> --accept=<ids> --pending-fill=<ids>
   --pending=<file> --retry=1 --plant=<id> --prove --only=green|<plant>|fingerprint+poses|walk+combat+leak
-  --fast --jobs=N --changed=<paths> --base=<sha> --clock=fast|raf
+  --fast --jobs=N --changed=<paths> --base=<sha> --clock=fast|raf --cache-keep=N (default 3)
   --offline --full --ms --angle=metal --out=<dir> --timeout=240
 Exits: 0 green; 1 regression; 2 usage; 3 infrastructure. Timing is information.
 Every Mac run enters scripts/browser-lane.sh; builds are exported and served by vite preview.`;
 
 /** @param {string[]} argv */
 function parse(argv) {
-  const flags=new Set(['record','prove','offline','full','ms','help','fast']),values=new Set(['export','url','lane','shards','tiers','runs','rebaseline','accept','pending-fill','pending','retry','plant','only','angle','out','timeout','jobs','changed','base','clock']);
+  const flags=new Set(['record','prove','offline','full','ms','help','fast']),values=new Set(['export','url','lane','shards','tiers','runs','rebaseline','accept','pending-fill','pending','retry','plant','only','angle','out','timeout','jobs','changed','base','clock','cache-keep']);
   /** @type {Record<string,string|undefined>} */ const opts={};
   for(let i=0;i<argv.length;i++){const arg=i<argv.length?argv[i]:'',m=/^--([^=]+)(?:=(.*))?$/.exec(arg);if(!m)throw new Error(`usage: unknown argument ${arg}`);const key=m.length>1?m[1]:'';if(flags.has(key)){if(m.length>2 && typeof m[2]==='string')throw new Error(`usage: --${key} has no value`);opts[key]='true';}else if(values.has(key)){const val=typeof m[2]==='string'?m[2]:argv[++i];if(!val || val.startsWith('--'))throw new Error(`usage: --${key} needs a value`);opts[key]=val;}else throw new Error(`usage: unknown option --${key}`);}
   return opts;
@@ -165,12 +166,15 @@ async function main(opts) {
   const sha=opts.export??await versionSha();
   if(!sha)throw new Error('infrastructure: version.json has no sha');
   const out=resolve(opts.out??join(ROOT,'progress/parity',sha.slice(0,7)));mkdirSync(out,{recursive:true});
+  const cacheKeep=Number(opts['cache-keep']??3);
+  if(!Number.isInteger(cacheKeep)||cacheKeep<1)throw new Error('usage: --cache-keep must be a positive integer');
   const buildStart=performance.now();
   const exported=opts.export?(opts.plant?exportTree(ROOT,sha):await cachedTree(ROOT,sha)):null,root=exported?.tree??ROOT;
   const fixtureRoot=exported&&'fixtures' in exported&&typeof exported.fixtures==='string'?exported.fixtures:root;
   timings.buildMs=performance.now()-buildStart;timings.cacheHit=Boolean(exported&&'hit' in exported&&exported.hit);
   let preview=/** @type {{url:string,close:()=>void}|null} */(null);const pool=browserPool(ROOT,jobs,opts.angle??'metal');
   try {
+    if(exported&&'hit' in exported)timings.cacheEvicted=evictBuildCache(undefined,cacheKeep).length;
     const plants=array(readJson(join(fixtureRoot,'test/parity/plants/index.json'))).map(object);
     const registry=shardFolders(root);if(registry.length===0)throw new Error('empty shard registry');
     let shards=opts.shards&&opts.shards!=='all'?opts.shards.split(','):registry;if(shards.some((s)=>!registry.includes(s)))throw new Error('usage: unknown shard');
