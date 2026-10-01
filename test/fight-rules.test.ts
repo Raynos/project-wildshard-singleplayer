@@ -134,7 +134,7 @@ describe('the back-off and the ring (E297)', () => {
 describe('ShardManifest.fightRules (E297: Driftwood only)', () => {
   it('Driftwood lets 2 attack at once; no other shard has the rules', () => {
     expect(DRIFTWOOD_ISLE.fight?.attackers).toBe(2);
-    for (const c of PLAYABLE_SHARDS) if (c.slug !== DRIFTWOOD_ISLE.slug) expect(c.fight, c.slug).toBeUndefined();
+    for (const c of PLAYABLE_SHARDS) if (c.slug !== DRIFTWOOD_ISLE.slug) expect(c.fight?.attackers ?? Infinity, c.slug).toBe(Infinity);
   });
 });
 

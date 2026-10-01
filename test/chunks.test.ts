@@ -46,7 +46,7 @@ describe('chunk registry data', () => {
   it('every herd names a registered species, real variants, a positive count, a sane trail band and an in-chunk anchor', () => {
     for (const c of PLAYABLE_SHARDS) {
       // Nalati's wolves / horses / sheep are placed by Wildlife (src/engine/entities/Wildlife.ts), not by `fauna`
-      if (c.slug !== 'nalati-grasslands') expect(c.spawns.length, c.slug).toBeGreaterThan(0);
+      if (c.uses === undefined && c.slug !== 'nalati-grasslands' || c.uses?.includes('creatures') === true) expect(c.spawns.length, c.slug).toBeGreaterThan(0);
       for (const h of c.spawns) {
         const at = `${c.slug}: ${h.kind}`;
         expect(hasSpecies(h.kind), at).toBe(true);

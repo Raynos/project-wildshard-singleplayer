@@ -446,7 +446,8 @@ export class Game {
     // frame runs one FXAA pass on the graded frame instead of SMAA's three, and leaves out its faint (12 %) god rays. The
     // warm iPhone's grass frame was 48 ms with the post chain and 17 without; desktop keeps SMAA and the rays
     const dwPhone = level.style === 'toon' && TIER === 'phone';
-    const fxaa = (dwPhone || knobs.aa === 'fxaa') && TIER_CONFIG.smaa !== 'off' ? new FXAAEffect() : null; // (or a shard's render strategy asks for it)
+    const aa = knobs.aa ?? (TIER_CONFIG.smaa === 'off' ? 'off' : dwPhone ? 'fxaa' : 'smaa');
+    const fxaa = aa === 'fxaa' ? new FXAAEffect() : null;
     const raysOn = !dwPhone;
     const chain = (clean: boolean): EffectPass => {
       const godRays = new GodRaysEffect(this.camera, this.sky.sunDisc, {
@@ -493,7 +494,7 @@ export class Game {
     this.placeShardPasses(composer, colour); // a shard's own passes around the engine's (none without a render strategy)
     // FXAA reads its pass's input image, so it gets a pass of its own on the graded frame (EffectPass orders effects by kind)
     if (fxaa !== null) composer.addPass(new EffectPass(this.camera, fxaa));
-    if (TIER_CONFIG.smaa !== 'off' && fxaa === null) {
+    if (aa === 'smaa') {
       const smaa = new SMAAEffect({ preset: TIER_CONFIG.smaa === 'high' ? SMAAPreset.HIGH : SMAAPreset.LOW, edgeDetectionMode: EdgeDetectionMode.COLOR });
       composer.addPass(new EffectPass(this.camera, smaa));
     }

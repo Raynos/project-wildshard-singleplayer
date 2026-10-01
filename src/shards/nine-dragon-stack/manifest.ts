@@ -16,13 +16,17 @@ import explorePractice from './explore/practice-nine-dragon-stack.webp';
  * Coordinates are the clean room's (layout.ts: x east, z south, the square's datum at Y0 = 125). The engine's compass
  * calls +Z north, so the minimap's north is the clean room's south (cosmetic; the fragment has no map yet).
  */
-import { CHUNK_HALF, ROAD_LENGTH } from '#engine/core/config';
-import { buildTerrain } from '#engine/world/terrainField';
+import { TERRAIN } from './terrain';
 import type { ShardManifest } from '#game/shard/manifest';
 import { PLAZA, STAIR, STREET, WELL, Y0 } from './layout';
 import thumbnail from './thumbs/nine-dragon-stack.jpg';
 import heroPortrait from './thumbs/nine-dragon-stack-portrait.jpg';
 import heroLandscape from './thumbs/nine-dragon-stack-landscape.jpg';
+
+import compareGateLive from './explore/nine-gate-live.jpg';
+import compareGateTarget from './explore/nine-gate-target.jpg';
+import compareStairLive from './explore/nine-stair-live.jpg';
+import compareStairTarget from './explore/nine-stair-target.jpg';
 
 const SEED = 0x9d2a;
 
@@ -43,8 +47,15 @@ const FILES = [
 export const NINE_DRAGON_STACK: ShardManifest = {
   api: 1,
   kitLook: 'pbr',
+  uses: ['hover', 'explore', 'practice'],
+  fight: { attackers: Infinity },
+  loadout: { weapons: ['weapon.jian'], tools: ['tool.fei-zhua'], start: ['weapon.jian'], pickups: [] },
+  bag: { tabs: ['map', 'gear'], pack: { slots: 0 } },
+  species: [],
+  encounters: [],
+  dev: { poses: () => import('./mockupCameras').then((m) => m.MOCKUP_CAMERAS) },
   load: () => import('./plugin'),
-  boot: { files: () => FILES, barrier: true, phone: { deferExtras: true, fragile: true, trace: true }, cullBeforeFirstDraw: true },
+  boot: { steps: {}, files: () => FILES, explore: { art: [explorePractice, exploreWorld, exploreModels, exploreSets] }, precache: [], barrier: true, phone: { deferExtras: true, fragile: true, trace: true }, cullBeforeFirstDraw: true },
   tiers: { phone: { ao: false, slices: false, aa: 'fxaa', warmTurns: 0, textures: 'img' }, desktop: { ao: true, slices: false } },
   assetGlobs: ['public/assets/nine-dragon/**', 'public/assets/gpu/nine-dragon/**', 'public/assets/music/nine-dragon-stack/**', 'public/assets/sfx/nine-dragon-stack/**', 'public/assets/title/nine-dragon-stack-portrait.jpg'],
   ktx2: () => import('./ktx2.generated'),
@@ -62,20 +73,7 @@ export const NINE_DRAGON_STACK: ShardManifest = {
   card: { thumb: thumbnail, portrait: heroPortrait, landscape: heroLandscape },
 
   // a flat datum far under the build: the fundamentals' four entry roads at y = 0 hold trivially; nothing draws it
-  ground: { terrain: buildTerrain(SEED, {
-    landscape: () => 0,
-    trails: [
-      [[0, -CHUNK_HALF], [0, -CHUNK_HALF + ROAD_LENGTH]],
-      [[0, CHUNK_HALF], [0, CHUNK_HALF - ROAD_LENGTH]],
-      [[-CHUNK_HALF, 0], [-CHUNK_HALF + ROAD_LENGTH, 0]],
-      [[CHUNK_HALF, 0], [CHUNK_HALF - ROAD_LENGTH, 0]],
-    ],
-    cabinSites: [],
-    splat: () => [1, 0, 0, 0],
-  }), structures: {
-    files: FILES,
-    build: async () => (await import('./world/install')).NINE_DRAGON_WORLD,
-  } },
+  ground: { terrain: TERRAIN, structures: true },
   // unused (no terrain is drawn, `structures`): the engine's defaults, never downloaded
   assets: {
     groundLayers: ['forest_ground_04', 'leafy_grass', 'rock_ground', 'stony_dirt_path'],
@@ -130,7 +128,10 @@ export const NINE_DRAGON_STACK: ShardManifest = {
   horizon: { rings: [], cloudSea: false },
   // EXPLORE WORLD on the title (the deck's card, behind the same Debug row; `?explore=` for captures): the World
   // Explorer's free camera over the fragment — no model catalog is registered
-  explore: { world: exploreWorld, models: exploreModels, sets: exploreSets, practice: explorePractice },
+  explore: { art: { world: exploreWorld, models: exploreModels, sets: exploreSets, practice: explorePractice }, compare: [
+    { id: 'gate', label: 'Lantern gate', model: 'nine-gate', target: 'art/nine-dragon-stack/round-15-eight-domes/A2-gate-look/target-5.jpg', live: compareGateLive, image: compareGateTarget },
+    { id: 'stair', label: 'Stair street', model: 'nine-stair', target: 'art/nine-dragon-stack/round-15-eight-domes/C1-stair-stand/target-5.jpg', live: compareStairLive, image: compareStairTarget },
+  ] },
   // its live models in the Model Explorer (E315 M5): the creatures it spawns, alive now or not, its people, its gear
   roster: async () => (await import('./roster')).ROSTER,
   // the maps: the built fragment over a dark void (the Well, the air between the towers) — the floors, the tower fronts,
@@ -159,7 +160,7 @@ export const NINE_DRAGON_STACK: ShardManifest = {
   // back on the last floor they stood on
   bounds: { x0: WELL.x0 - 8, x1: STAIR.x1 + 20, z0: STREET.z0 + 100, z1: PLAZA.z1 + 8, floor: Y0 - 100 },
 
-  style: 'pbr',
+  style: 'jiehua',
 };
 
 // oxlint-disable-next-line import/no-default-export -- F9 discovery requires a uniform manifest default export.

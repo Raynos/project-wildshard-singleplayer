@@ -1,4 +1,4 @@
-import type { Ktx2Table, LevelSpec, EngineMechanism, TierOverrides, BootSpec, LoadoutSpec, LookStrategy } from '#engine';
+import type { Ktx2Table, LevelSpec, EngineMechanism, TierOverrides, BootSpec, LoadoutSpec, LookStrategy, ExploreSpec } from '#engine';
 import type { ShardSlug } from './shards.generated';
 import type { ShardPlugin } from './plugin';
 /**
@@ -460,6 +460,9 @@ export interface ShardManifest {
   budgets?: LevelSpec['budgets'];
   audio?: LevelSpec['audio'];
   species?: LevelSpec['species'];
+  encounters?: readonly string[];
+  bag?: { tabs: readonly ('map' | 'gear' | 'finds' | 'pack' | 'feats')[]; pack: { slots: number } };
+  dev?: { poses: () => Promise<Readonly<Record<string, { eye: readonly [number, number, number]; yaw: number; pitch: number; feet?: readonly [number, number, number]; mockup: string; frame: string }>>> };
   /** Plugin API version; mismatches fail before the first asset load. */
   api: 1;
   /** title-card order, starting at one */
@@ -482,8 +485,8 @@ export interface ShardManifest {
   /** picker thumbnail and full-bleed title-screen stills, imported from the shard's thumbs folder */
   card: { thumb: string; portrait: string; landscape: string };
   /** landscape terrain, a structure-first world, or both; every shard supplies at least one */
-  ground: { terrain: ChunkTerrain; structures?: ChunkStructures }
-    | { terrain?: ChunkTerrain; structures: ChunkStructures };
+  ground: { terrain: ChunkTerrain; structures?: true | ChunkStructures }
+    | { terrain?: ChunkTerrain; structures: true | ChunkStructures };
   /** the PBR ground's texture sets; omitted by a shard that loads none (the low-poly Driftwood, E318) */
   assets?: ChunkAssets;
   assetGlobs?: readonly string[];
@@ -604,7 +607,7 @@ export interface ChunkPoi { id: string; name: string; x: number; z: number; r?: 
 export type { ShardSlug } from './shards.generated';
 
 /** Explore entry art is owned by its shard and imported without world code. */
-export interface ExploreSpec { world: string; models: string; sets: string; practice: string }
+export type { ExploreSpec } from '#engine';
 
 export function formatGrid(grid: readonly [number, number]): string {
   const signed = (n: number): string => n < 0 ? `−${-n}` : `+${n}`;

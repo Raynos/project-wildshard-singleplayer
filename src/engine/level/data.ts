@@ -132,4 +132,7 @@ export interface MinimapSpec {
 export type MapLook = 'planks' | 'timber' | 'stone' | 'rock' | 'dot';
 export interface PoiSpec { id: string; name: string; x: number; z: number; r?: number }
 
-export interface ExploreSpec { world: string; models: string; sets: string; practice: string }
+export interface ExploreArt { world: string; models: string; sets: string; practice: string }
+export interface CompareTarget { id: string; label: string; model: string; target: string; live: string; image: string }
+export type ExploreSpec = (ExploreArt | { art: ExploreArt }) & { compare?: readonly CompareTarget[] };
+export function exploreArt(spec: ExploreSpec | undefined): ExploreArt | undefined { return spec === undefined ? undefined : 'art' in spec ? spec.art : spec; }

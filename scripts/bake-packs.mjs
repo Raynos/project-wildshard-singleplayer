@@ -37,7 +37,7 @@ const PUBLIC = resolve(ROOT, 'public');
 const PACK_DIR = resolve(PUBLIC, 'assets/packs');
 const OUT_TS = resolve(ROOT, 'src/engine/boot/packs.generated.ts');
 const CHECK = process.argv.includes('--check');
-const TIERS = ['phone'];
+const TIERS = ['phone', 'desktop'];
 
 // the modules read the tier / chunk from the page's URL at import time: stand in for a phone page (Node has `navigator`)
 const { initializeTier } = await import('../src/engine/core/tier.ts');
@@ -108,7 +108,9 @@ const packs = {};
 const keep = new Set();
 for (const def of PLAYABLE_SHARDS) {
   for (const tierName of TIERS) {
-    const files = chunkFiles(def);
+    if (tierName === 'desktop' && def.load === undefined) continue; // unmigrated shards keep their existing phone-only packs
+    initializeTier(tierName);
+    const files = chunkFiles(def, def.tiers?.[tierName]?.textures ?? 'img');
     const paths = packOrder(bootFetches(def, files));
     if (paths.length < 2) continue;
     for (const p of paths) if (!existsSync(resolve(PUBLIC, `.${p}`))) throw new Error(`bake-packs: ${def.slug} boots ${p} but public has no such file`);

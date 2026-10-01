@@ -7,7 +7,7 @@ import { onScopeDispose } from '#engine/app/legacyCapture';
 export { SHARDS } from './shards.generated';
 export { SHARD_API } from './api';
 export const DEFAULT_SHARD = 'driftwood-isle';
-export const playable = (manifest: ShardManifest): boolean => manifest.status === 'live' || manifest.status === 'earlyAccess';
+export const playable = (manifest: ShardManifest): boolean => manifest.status !== 'hidden';
 
 export function shardSlugFromUrl(search?: string): string {
   const named = new URLSearchParams(search ?? (typeof location === 'undefined' ? '' : location.search)).get('chunk');

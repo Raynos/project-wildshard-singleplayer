@@ -1,5 +1,6 @@
 // E357 F6: all authored manifest data and sampled analytic terrain match the pre-move fixtures.
 import { describe, expect, it } from 'vitest';
+import { exploreArt } from '#engine/level/data';
 import { SHARDS } from '#game/shard/registry';
 import { formatGrid, terrainFor, type ShardManifest } from '#game/shard/manifest';
 
@@ -3439,17 +3440,17 @@ function originalArt(value: unknown): unknown {
 }
 
 function originalShape(m: ShardManifest, fixture: (typeof ORIGINAL)[number]['data']): object {
-  const { api: _api, assetGlobs: _assetGlobs, ktx2: _ktx2, kitLook: _kitLook, load: _load, boot: _boot, tiers: _tiers, name, label, card, ground, spawns, minimap, fight, camera, status, order: _order, placement: _placement, explore, ...kept } = m;
+  const { uses: _uses, loadout: _loadout, budgets: _budgets, audio: _audio, species: _species, encounters: _encounters, bag: _bag, dev: _dev, api: _api, assetGlobs: _assetGlobs, ktx2: _ktx2, kitLook: _kitLook, load: _load, boot: _boot, tiers: _tiers, name, label, card, ground, spawns, minimap, fight, camera, status, order: _order, placement: _placement, explore, ...kept } = m;
   const old = {
     ...kept, id: `chunk://local/${m.slug}`, displayName: name, gridCoords: label,
     thumbnail: originalArt(card.thumb), heroPortrait: originalArt(card.portrait), heroLandscape: originalArt(card.landscape),
     terrain: ground.terrain, fauna: spawns,
     ...(minimap === undefined ? {} : { map: minimap }),
-    ...(ground.structures === undefined ? {} : { structures: ground.structures }),
+    ...(ground.structures === undefined ? {} : { structures: ground.structures === true ? { files: m.boot?.files('phone'), build: () => undefined } : ground.structures }),
     ...(camera === undefined ? {} : { fov: { portrait: camera.portraitFov } }),
     ...(fight?.maxHitDamage === undefined ? {} : { maxHitDamage: fight.maxHitDamage }),
     ...(fight?.capExempt === undefined ? {} : { hitCapExempt: fight.capExempt }),
-    ...(fight?.attackers === undefined ? {} : { fightRules: { maxAttackers: fight.attackers } }),
+    ...(fight?.attackers === undefined || fight.attackers === Infinity ? {} : { fightRules: { maxAttackers: fight.attackers } }),
     ...(status === 'experimental' ? { experimental: true } : {}),
     ...(status === 'earlyAccess' ? { earlyAccess: true } : {}),
     ...(explore === undefined ? {} : { explore: true }),
@@ -3457,7 +3458,7 @@ function originalShape(m: ShardManifest, fixture: (typeof ORIGINAL)[number]['dat
   // F6 makes the former defaults explicit; the old fixture deliberately omits them.
   const projected: Record<string, unknown> = { ...old };
   if (!('style' in fixture)) delete projected['style'];
-  else projected['style'] = m.style === 'toon' ? 'lowpoly' : m.style;
+  else projected['style'] = m.style === 'toon' ? 'lowpoly' : m.style === 'jiehua' ? 'pbr' : m.style;
   if (!('weapon' in fixture)) delete projected['weapon'];
   return projected;
 }
@@ -3475,7 +3476,7 @@ describe('ChunkDef → ShardManifest preserves all 48 field mappings', () => {
     expect(`chunk://local/${m.slug}`).toBe(fixture.data.id);
     expect(data(originalShape(m, fixture.data))).toEqual(fixture.data);
     expect(m.explore).toBeDefined();
-    for (const [kind, url] of Object.entries(m.explore ?? {})) expect(url).toContain(`/${kind}-${m.slug}.webp`);
+    for (const [kind, url] of Object.entries(exploreArt(m.explore) ?? {})) expect(url).toContain(`/${kind}-${m.slug}.webp`);
     const t = terrainFor(m);
     const points: readonly (readonly [number, number])[] = [[-250, 0], [0, 0], [75, -40], [0, 250]];
     expect(points.map(([x, z]) => ({

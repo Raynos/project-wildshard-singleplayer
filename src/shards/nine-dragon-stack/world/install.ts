@@ -1,11 +1,9 @@
 // The world hook installs the fragment's pieces and update system; NdRuntime supplies the look and traversal.
 import { Group, type PerspectiveCamera } from 'three';
-import { app, type LevelContext } from '#engine';
-import type { StructureContext } from '#game/shard/manifest';
-import { type NineDragonWorld, buildNineDragonWorld } from './build';
+import type { LevelContext } from '#engine';
+import type { NineDragonWorld } from './build';
 import { fragmentColliders, fragmentFloor, fragmentGrappleGuard } from './colliders';
 import { crossingColliders } from './well-mid';
-import { installSpecimenLight } from '../look/specimenLight';
 import { NdRuntime, ownNdRuntime } from '../runtime';
 
 const FILE = 'src/shards/nine-dragon-stack/world/colliders.ts';
@@ -39,16 +37,3 @@ export function installWorld(ctx: Pick<LevelContext, 'scope' | 'piece' | 'system
     return rt;
 }
 
-/** Removed when the production LevelDriver owns the world stage. */
-export const NINE_DRAGON_WORLD = {
-  async build(ctx: StructureContext): Promise<void> {
-    const scope = app.levelScope;
-    if (scope === null) throw new Error('Nine Dragon world needs a level scope');
-    const render = app.render;
-    if (render === null) throw new Error('Nine Dragon world needs the render service');
-    const world = await buildNineDragonWorld(ctx.renderer, ctx.progress, render.tier);
-    const rt = installWorld({ scope, piece: (piece) => { ctx.registry.add(piece); },
-      system: (system) => { ctx.onUpdate(system.run, system.id); } }, world, ctx.camera);
-    installSpecimenLight(app.events, scope, (on, key) => { rt.specimenLight(on, key); });
-  },
-};

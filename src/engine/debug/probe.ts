@@ -250,9 +250,10 @@ function fingerprint(world: ProbeWorld, deps: ProbeDeps, saves: Saves): Fingerpr
     hud, saves: { read: [...new Set(saves.read)].sort(), written: [...new Set(saves.written)].sort() },
     playMs: performance.now(), stepMs: { ...deps.bootSteps }, heapMB: pins?.heapMB?.() ?? 0,
   };
-  if (world.chunk.slug === 'nine-dragon-stack') {
+  const facade = game.scene.getObjectByName('facade');
+  if (facade !== undefined) {
     let batches = 0, instances = 0;
-    game.scene.getObjectByName('facade')?.traverse((o) => { if (o instanceof THREE.BatchedMesh) batches++; if (o instanceof THREE.InstancedMesh) instances += o.count; });
+    facade.traverse((o) => { if (o instanceof THREE.BatchedMesh) batches++; if (o instanceof THREE.InstancedMesh) instances += o.count; });
     record.facade = { multiDraw: gl.getExtension('WEBGL_multi_draw') !== null, batches, instances };
   }
   return record;

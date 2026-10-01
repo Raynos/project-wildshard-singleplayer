@@ -1,3 +1,4 @@
+import { findShard } from './shard/registry';
 import { inventorySave, saveSlug } from './saves';
 /**
  * Inventory — the pack: what harvesting a carcass leaves you with (venison, hides, tusks, antlers; on Driftwood Isle
@@ -86,7 +87,7 @@ const PINE_KEEPS: ReadonlySet<ItemId> = new Set<ItemId>(PINE_PACK_KINDS);
 export const isPineItem = (id: ItemId): id is PineItem => PINE_KEEPS.has(id);
 const isPineChunk = (chunkId: string): boolean => chunkId.endsWith('pine-hollow');
 /** Nalati (E314 C) and Nine Dragon (E314 A): no pack — nothing enters it, the Bag has no PACK tab */
-const isNoPackChunk = (chunkId: string): boolean => chunkId.endsWith('nalati-grasslands') || chunkId.endsWith('nine-dragon-stack');
+const isNoPackChunk = (chunkId: string): boolean => findShard(saveSlug(chunkId))?.bag?.pack.slots === 0 || chunkId.endsWith('nalati-grasslands');
 
 export class Inventory {
   private counts: Partial<Record<ItemId, number>>;
@@ -124,7 +125,7 @@ export class Inventory {
     return true;
   }
   /** this shard's pack size (0: no pack, no PACK tab — Nalati, Nine Dragon) */
-  get slots(): number { return isNoPackChunk(this.chunkId) ? 0 : isPineChunk(this.chunkId) ? PINE_PACK_SLOTS : PACK_SLOTS; }
+  get slots(): number { return findShard(saveSlug(this.chunkId))?.bag?.pack.slots ?? (isNoPackChunk(this.chunkId) ? 0 : isPineChunk(this.chunkId) ? PINE_PACK_SLOTS : PACK_SLOTS); }
   /** how many of `id` the pack holds */
   count(id: ItemId): number { return this.counts[id] ?? 0; }
   /** take `n` of `id` out of the pack (a trade); false, and nothing taken, when there are fewer. At 0 the slot frees up. */

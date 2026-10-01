@@ -1,7 +1,7 @@
 import { reportError } from '#engine/core/errorReport';
 import { showLoadFailure } from '#engine/ui/errorScreen';
 import { app } from '#engine/app/runtime';
-import { pageSeed, LevelLoadError, type LevelContext } from '#engine';
+import { pageSeed, LevelLoadError, installBounds, type LevelContext } from '#engine';
 import { shardContext, toLevelSpec, type ShardContext, type GameServices } from '#game';
 import { levelSequenceDriver, type LevelSequence } from '#game/shard/sequence';
 import { meleeShard, hitDamage, type ShardManifest } from '#game/shard/manifest';
@@ -351,7 +351,7 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   const sea = chunk.ocean, isOcean = sea !== undefined; // open-water shard (Driftwood Isle): ocean + pier, no forest carpet / cabins / props
   const painterly = chunk.style === 'painterly'; // Nalati: no undergrowth / cabins / props — its world is wired by src/nalati (the props step)
   // a structure-first shard (ShardManifest.ground.structures, Nine Dragon Stack): no ground cover / cabins / props / walkways — its world is built in the props step
-  const built = chunk.ground.structures;
+  const built = game.level.ground.structures;
   let nalati: Nalati | null = null;
 
   // ── world dressing ──
@@ -541,8 +541,8 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   const props = manifest.load === undefined ? await step('props', async (p) => {
     if (painterly) { nalati = await wireNalati({ game, sky, player, forest, chunk }); addPaths(); return null; } // the Nalati world (src/shards/nalati-grasslands/index.ts)
     if (isOcean) return null;
-    if (built !== undefined) { // the structure-first shard's world: drawn, collides and lends its floor through the registry
-      const structures = await built.build();
+    if (typeof chunk.ground.structures === 'object') { // legacy builder before its plugin migration
+      const structures = await chunk.ground.structures.build();
       await structures.build({ renderer: game.renderer, scene: game.scene, camera: game.camera, registry,
         onUpdate: (fn) => { game.onUpdate(fn, 'structures'); }, progress: (f, detail) => { p.set(Math.round(f * 100), 100, detail); } });
       return null;
@@ -666,25 +666,8 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   const shrineHum = shrine ? new ShrineHum(audio, music, { x: SHRINE.x, y: heightAt(SHRINE.x, SHRINE.z) + 2.5, z: SHRINE.z }) : null;
   const toSpawn = () => { player.spawn(chunk.spawn.x, chunk.spawn.z, chunk.spawn.yaw, chunk.spawn.y); if (pier) { const y = pier.floorHeightAt(player.position.x, player.position.z); if (y !== undefined) player.position.y = y; } };
   const respawn = () => { toSpawn(); music.sting('death'); };
-  // a built fragment's limits (ShardManifest.bounds): out of them → back on the last registry floor stood on inside them (or
-  // the spawn), no death. The walls keep the player in; this catches whatever gets past them (a fall into the Well)
-  if (chunk.bounds !== undefined) {
-    const b = chunk.bounds, safe = { x: 0, y: 0, z: 0, set: false };
-    let since = 0;
-    game.onUpdate((dt) => {
-      if (world.freeCamera || world.tour.active || away()) return;
-      const p = player.position;
-      if (p.y < b.floor || p.x < b.x0 || p.x > b.x1 || p.z < b.z0 || p.z > b.z1) {
-        if (safe.set) player.spawn(safe.x, safe.z, player.yaw, safe.y); else toSpawn();
-        since = 0;
-        return;
-      }
-      since += dt;
-      if (since < 0.2 || !player.onGround || player.hover) return;
-      const f = registry.floorAt(p.x, p.z);
-      if (f !== undefined && Math.abs(f - p.y) < 0.3) { safe.x = p.x; safe.y = f; safe.z = p.z; safe.set = true; since = 0; }
-    }, 'bounds');
-  }
+  installBounds(app, game.levelScope, game.level.bounds, { player, toSpawn,
+    floorAt: (x, z) => registry.floorAt(x, z), suspended: () => world.freeCamera || world.tour.active || away() });
   let kills = 0, health = 100, maxHealth = 100, lastHurt = 0, swimHold = false; // maxHealth: 100, Driftwood's sturdy hearts raise it (E314, installLoot)
   const harvested = new Set<object>();
   // ── the in-game menu: MAP · INVENTORY · ACHIEVEMENTS · SETTINGS (src/engine/ui/Menu.ts) ──

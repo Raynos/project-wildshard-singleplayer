@@ -14,6 +14,7 @@ import { bakedSkyUrls } from '../world/BakedSky';
 import { bakedTextureUrls } from './bakedTextures';
 import { PUBLIC_BYTES } from './bytes.generated';
 import { nalatiUrl } from '#shards/nalati-grasslands/look/nalatiTextures';
+import { TIER } from '../core/tier';
 import { RAPIER_WASM_URL } from '../physics/wasmUrl';
 import { navmeshUrl } from '../physics/navmeshUrl';
 import { pineHeroUrls } from '#shards/pine-hollow/world/heroFiles';
@@ -98,7 +99,7 @@ export function chunkFiles(def: ShardManifest, tex: TexMode = texMode()): ChunkF
     // + Pine Hollow's hero props (PH-B3) — those the byte table has (a dev server started before they were built lists none)
     // + its rigged creature hulls (PH-M1, src/engine/entities/pineCreatures.ts: read in the animals step; declared here so DOWNLOAD
     // counts them and the offline cache holds them — the tier's own file, `<hull>[.phone].rigged.glb`)
-    props: t(def.ground.structures ? def.ground.structures.files.filter((f) => f in PUBLIC_BYTES) : def.style === 'painterly' ? painterlyBoot() : ocean ? [] : def.slug === 'pine-hollow' ? [...props, ...pineHeroUrls().filter((f) => f in PUBLIC_BYTES), ...PINE_CREATURE_RIGS.map((n) => pineCreatureRigUrl(n)).filter((f) => f in PUBLIC_BYTES)] : props),
+    props: t(def.boot !== undefined ? [...def.boot.files(TIER)].filter((f) => f in PUBLIC_BYTES) : typeof def.ground.structures === 'object' ? def.ground.structures.files.filter((f) => f in PUBLIC_BYTES) : def.style === 'painterly' ? painterlyBoot() : ocean ? [] : def.slug === 'pine-hollow' ? [...props, ...pineHeroUrls().filter((f) => f in PUBLIC_BYTES), ...PINE_CREATURE_RIGS.map((n) => pineCreatureRigUrl(n)).filter((f) => f in PUBLIC_BYTES)] : props),
     // filled by src/engine/boot/extras.ts `bootFiles` (project/archive/2026-09-23-preload-offline.md): the title / explore art (bundled, hashed URLs)
     // and every audio file of every style and set (the lists follow the menu's Settings, a module Node's type stripping cannot
     // load — this file also runs in scripts/bake-packs.mjs, and neither goes in a shard's boot pack)

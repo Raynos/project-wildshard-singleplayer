@@ -61,7 +61,7 @@ describe('shardBootRequests: the boot request list of each shard', () => {
     });
   }
 
-  it('names the tier pack parts first on the phone, and no pack on the desktop', async () => {
+  it('names phone pack parts first and migrated desktop packs where authored', async () => {
     const phone = await load('phone');
     expect(phone.PLAYABLE_SHARDS.filter((d) => phone.packFor(d) !== null).length).toBe(phone.PLAYABLE_SHARDS.length); // every shard has a phone pack
     for (const def of phone.PLAYABLE_SHARDS) {
@@ -69,7 +69,7 @@ describe('shardBootRequests: the boot request list of each shard', () => {
       if (pack) expect(phone.sp.shardBootRequests(def).slice(0, pack.parts.length)).toEqual(pack.parts.map((part) => part.url));
     }
     const desktop = await load('desktop');
-    for (const def of desktop.PLAYABLE_SHARDS) expect(desktop.sp.shardBootRequests(def).some((u) => u.startsWith('/assets/packs/'))).toBe(false);
+    for (const def of desktop.PLAYABLE_SHARDS) expect(desktop.sp.shardBootRequests(def).some((u) => u.startsWith('/assets/packs/'))).toBe(def.load !== undefined);
   });
 });
 
@@ -95,7 +95,8 @@ describe('lateReads and the ?v= URLs (E160)', () => {
       for (const def of PLAYABLE_SHARDS) {
         const late = sp.lateReads(def);
         for (const u of late) expect(new URL(u, 'http://x').pathname in PUBLIC_BYTES, `${def.slug} ${u}`).toBe(true);
-        expect(late.length, `${def.slug} (${tier})`).toBeGreaterThan(3);
+        if (def.load === undefined) expect(late.length, `${def.slug} (${tier})`).toBeGreaterThan(3);
+        else expect(late, `${def.slug} (${tier}): all declared world reads are at boot`).toEqual([]);
       }
     }
   });

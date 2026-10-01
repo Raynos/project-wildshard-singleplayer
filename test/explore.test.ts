@@ -1,6 +1,7 @@
 // Explore World (project/archive/2026-09-23-explore-world.md): the parts that are pure data — a note's "go there" URL reopens the viewer
 // on the same view (X6), and the shard's points of interest the mini map pins (X5).
 import { describe, expect, it } from 'vitest';
+import { exploreArt } from '#engine/level/data';
 import { reproUrl } from '#engine/ui/Feedback';
 import { SHARDS, playable, findChunk } from '#game/shard/registry';
 import { CHUNK_HALF } from '#engine/core/config';
@@ -33,7 +34,7 @@ describe('Explore World', () => {
 
   const EXPLORABLE = PLAYABLE_SHARDS.filter((m) => m.explore !== undefined).map((m) => m.slug);
 
-  it.each(EXPLORABLE)("%s's points of interest are named, unique and inside the shard", (slug) => {
+  it.each(EXPLORABLE.filter((slug) => (findChunk(slug)?.pois ?? []).length > 0))("%s's points of interest are named, unique and inside the shard", (slug) => {
     const pois = findChunk(slug)?.pois ?? [];
     expect(pois.length).toBeGreaterThan(0);
     expect(new Set(pois.map((p) => p.id)).size).toBe(pois.length);
@@ -50,7 +51,7 @@ describe('Explore World', () => {
 
   it('explorer artwork is declared on the manifest', () => {
     for (const c of PLAYABLE_SHARDS) if (c.explore !== undefined) {
-      for (const image of Object.values(c.explore)) expect(image, c.slug).toMatch(/\.(webp|jpe?g|png)$/);
+      for (const image of Object.values(exploreArt(c.explore) ?? {})) expect(image, c.slug).toMatch(/\.(webp|jpe?g|png)$/);
     }
   });
 

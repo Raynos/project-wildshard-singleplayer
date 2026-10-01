@@ -182,8 +182,8 @@ export class Terrain {
     return dropped;
   }
 
-  async build(): Promise<this> {
-    if (getActiveChunk().ground.structures !== undefined) return this.buildNone();
+  async build(ground: { structures?: true }): Promise<this> {
+    if (ground.structures === true) return this.buildNone();
     if (getActiveChunk().style === 'toon') return this.buildLowPoly();
     if (getActiveChunk().style === 'painterly') return this.buildPainterly();
     const [layers] = await Promise.all([loadPBRArray([...groundSet(getActiveChunk()).layers], 1024), loadBakedTerrain()]); // baked heights/splat → Heightfield lookups (BakedTerrain.ts)

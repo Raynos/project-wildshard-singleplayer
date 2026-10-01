@@ -70,7 +70,7 @@ export async function withShardHooks<T>(manifest: ShardManifest, stage: LoadStag
     return pending;
   };
   const { render, sword, roster, fieldModels, traversal } = manifest;
-  const structures = manifest.ground.structures;
+  const structures = typeof manifest.ground.structures === 'object' ? manifest.ground.structures : undefined;
   const structureBuild = structures?.build;
   if (render !== undefined) manifest.render = () => prefetched('render', render);
   if (sword !== undefined) manifest.sword = () => prefetched('sword', sword);

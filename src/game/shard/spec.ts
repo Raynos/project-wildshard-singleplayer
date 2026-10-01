@@ -14,7 +14,7 @@ export function toLevelSpec(manifest: ShardManifest): LevelSpec {
     sky: manifest.sky, atmosphere: manifest.atmosphere, grade: manifest.grade,
     budgets: manifest.budgets ?? {}, fight: manifest.fight ?? {},
     mechanisms: (manifest.uses ?? []).filter(engineMechanism),
-    boot: manifest.boot ?? { files: () => manifest.ground.structures?.files ?? [] },
+    boot: manifest.boot ?? { files: () => typeof manifest.ground.structures === 'object' ? manifest.ground.structures.files : [] },
     audio: manifest.audio ?? { ambience: 'legacy', score: 'legacy' },
     loadout: manifest.loadout ?? { weapons: [], tools: [], start: [] },
     species: manifest.species ?? [], spawns: manifest.spawns,
