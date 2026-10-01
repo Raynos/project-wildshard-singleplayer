@@ -20,9 +20,10 @@ try {
   await debugSettings(context, { time: 'midday', weather: 'clear' });
   const page = await context.newPage(); page.setDefaultTimeout(120000);
   await page.goto(`${server.url}/?chunk=driftwood-isle&tier=phone&skipintro=1&nolock=1&mute=1&sw=0`);
-  await page.waitForFunction(() => Boolean(window.__wildshard) && Boolean(window.__adventure) && !document.querySelector('.ws-load') && !document.getElementById('hud')?.classList.contains('intro'));
+  await page.waitForFunction(() => Boolean(window.__wildshard) && Boolean(window.__adventure ?? window.__wildshard.world.game.app.debug.snapshot().adventure) && !document.querySelector('.ws-load') && !document.getElementById('hud')?.classList.contains('intro'));
   await page.evaluate(() => {
-    const w = window.__wildshard.world, adv = window.__adventure, app = w.game.app;
+    const w = window.__wildshard.world, adv = window.__adventure ?? w.game.app.debug.snapshot().adventure, app = w.game.app;
+    window.__captainAdventure = adv;
     app.rng.seed(4242); app.clock.setCapture(60);
     adv.flags.set('used:altar');
     const captain = adv.finale.captain(); if (!captain) throw new Error('Captain absent after altar');
@@ -71,7 +72,7 @@ try {
   // Fixed state-keyed inputs run on the same 60Hz capture steps in both exports.
   for (let batch = 0; batch < 40; batch++) {
     await advance(page, 180);
-    const state = await page.evaluate(() => ({ alive: window.__adventure.finale.captain().alive,
+    const state = await page.evaluate(() => ({ alive: window.__captainAdventure.finale.captain().alive,
       trace: window.__captainTrace, inputs: window.__captainInputs, events: window.__captainEvents }));
     result.trace = state.trace; result.inputs = state.inputs; result.events = state.events;
     writeFileSync(`${out}/captain-${sha}.json`, JSON.stringify(result, null, 2));
