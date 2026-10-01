@@ -1,3 +1,5 @@
+import { type RigContract, type RigBake, PATCH_ORDER, patchShader } from '#engine';
+import { ARM_CLIPS, SWIM_CLIPS, armClipNames } from '#kit';
 // Driftwood Isle's first-person arms (E334, DRIFTWOOD-TOP10 row 12; Jake's picks 2026-09-30: board 2 A "castaway",
 // board 3 A "breaststroke" — art/driftwood-fp/round-1-remaster/): sun-browned hands with fingers round a hemp-cord grip,
 // patched linen sleeves rolled to mid-forearm, the off hand in frame, both swords on the same arms, and the same arms
@@ -15,8 +17,16 @@ import type { ShardSword } from '#game/shard/manifest';
 import type { Sky } from '#engine/world/Sky';
 import { RigArms, swordArmsOf, vmScale } from '#kit/viewmodel/rigArms';
 import { attachFogUniforms } from '#engine/world/Atmosphere';
-import { PATCH_ORDER, patchShader } from '#engine';
 import type { SwimArms } from '#engine/player/Hands';
+
+const CLIPS = { ...ARM_CLIPS, ...SWIM_CLIPS };
+export const FP_ARMS_CONTRACT: RigContract = { skeleton: 'driftwood-fp', clips: armClipNames(CLIPS), sockets: ['R_weapon', 'L_hand'] };
+export const FP_ARMS_BAKE: RigBake = {
+  skeleton: 'driftwood-fp', clips: CLIPS,
+  joints: [['R', 'L'].flatMap((side) => ['shoulder', 'upperarm', 'forearm', 'twist1', 'twist2', 'twist3', 'hand'].concat(
+      ['thumb', 'index', 'middle', 'ring', 'pinky'].flatMap((finger) => [1, 2, 3].map((i) => `${finger}${i}`)),
+    ).map((name) => `${side}_${name}`))],
+};
 
 export const FP_ARMS_URL = '/assets/models/driftwood-fp/fp-arms.glb';
 
@@ -171,7 +181,7 @@ function materials(sky: Sky, rig: RigArms, rims: { wood: { value: number }; iron
 
 /** the rigs, loaded as ShardManifest.sword: the wooden sword's arms, the iron sword's, the swimming hands */
 export async function castawayArms(): Promise<ShardSword> {
-  const [wood, iron, swim] = await Promise.all([RigArms.load(FP_ARMS_URL), RigArms.load(FP_ARMS_URL), RigArms.load(FP_ARMS_URL, true)]);
+  const [wood, iron, swim] = await Promise.all([RigArms.load(FP_ARMS_URL, FP_ARMS_CONTRACT, FP_ARMS_BAKE), RigArms.load(FP_ARMS_URL, FP_ARMS_CONTRACT, FP_ARMS_BAKE), RigArms.load(FP_ARMS_URL, FP_ARMS_CONTRACT, FP_ARMS_BAKE, true)]);
   wood.weapon('wood');
   iron.weapon('iron');
   let mats: Dress | null = null;
@@ -192,7 +202,7 @@ export async function castawayArms(): Promise<ShardSword> {
 /** the Model Explorer's card (driftwood-isle/models/gear.ts): the castaway arms at rest holding `kind`, on their own
  *  skeleton clone of the one parse (the held rigs' geometry), in camera space as held — the eye at the origin, −Z forward */
 export async function castawaySpecimen(sky: Sky, kind: 'wood' | 'iron'): Promise<Object3D> {
-  const rig = await RigArms.load(FP_ARMS_URL);
+  const rig = await RigArms.load(FP_ARMS_URL, FP_ARMS_CONTRACT, FP_ARMS_BAKE);
   rig.weapon(kind);
   dress(rig, materials(sky, rig, { wood: { value: 0 }, iron: { value: 0 } }));
   rig.update(0.4, { speed: 0, lookVel: new Vector2() });

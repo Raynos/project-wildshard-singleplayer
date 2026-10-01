@@ -12,6 +12,7 @@ import { thinkSheepdog } from '../creatures/flock';
  * between the sheep and a wolf barking. Not hostile; not a quarry.
  */
 export const SHEEPDOG_SPECIES: SpeciesDef = {
+  rigContract: { skeleton: 'sheepdog.v1', clips: [], sockets: ['body', 'head'] },
   kind: 'sheepdog',
   label: engineString('s_062ffea0e911'),
   fur: NO_FUR,

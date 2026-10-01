@@ -143,6 +143,7 @@ function animateEagle(c: RigAnimCtx): void {
 }
 
 export const EAGLE_SPECIES: SpeciesDef = {
+  rigContract: { skeleton: 'eagle.v1', clips: [], sockets: ['body', 'head'] },
   kind: EAGLE,
   label: engineString('s_c0752fe7f23a'),
   fur: NO_FUR,

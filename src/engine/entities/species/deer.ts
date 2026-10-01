@@ -264,6 +264,7 @@ function buildDeer(v: VariantDef, _rng: Rng): AnimalSpecies {
 }
 
 registerSpecies({
+  rigContract: { skeleton: 'quadruped.v1', clips: [], sockets: ['body', 'head'] },
   kind: 'deer',
   label: engineString('s_ba8af0f48026'),
   fur: {

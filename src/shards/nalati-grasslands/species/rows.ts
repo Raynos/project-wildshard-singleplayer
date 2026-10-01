@@ -17,15 +17,15 @@ function variantRow(v: VariantDef): SpeciesVariant {
   return row;
 }
 export function nalatiRow(def: SpeciesDef): SpeciesRow {
-  const { fur: _fur, build: _build, pose: _pose, gait: _gait, postPose: _postPose, rig: _rig, animate: _animate,
+  const { rigContract: _rigContract, fur: _fur, build: _build, pose: _pose, gait: _gait, postPose: _postPose, rig: _rig, animate: _animate,
     damageMul: _damageMul, eyeGlow: _eyeGlow, eyeGlowIntensity: _eyeGlowIntensity, variants, spawnOnly, ...row } = def;
   return { ...row, id: `species.nalati.${def.kind}`, variants: variants.map(variantRow),
     ...(spawnOnly === undefined ? {} : { spawnOnly: spawnOnly.map(variantRow) }) };
 }
 export function nalatiLook(def: SpeciesDef): SpeciesLook {
   const row = nalatiRow(def);
-  const { fur, build, pose, gait, postPose, rig, animate, damageMul, eyeGlow, eyeGlowIntensity } = def;
-  return { id: `look.nalati.${def.kind}`, species: row.id, kind: def.kind, fur, build,
+  const { rigContract, fur, build, pose, gait, postPose, rig, animate, damageMul, eyeGlow, eyeGlowIntensity } = def;
+  return { id: `look.nalati.${def.kind}`, species: row.id, kind: def.kind, rigContract, fur, build,
     ...(pose === undefined ? {} : { pose }), ...(gait === undefined ? {} : { gait }),
     ...(postPose === undefined ? {} : { postPose }), ...(rig === undefined ? {} : { rig }),
     ...(animate === undefined ? {} : { animate }), ...(damageMul === undefined ? {} : { damageMul }),

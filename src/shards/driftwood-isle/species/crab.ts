@@ -301,6 +301,7 @@ export const CRAB: SpeciesRow = {
 };
 
 export const CRAB_LOOK: SpeciesLook = {
+  rigContract: { skeleton: 'crab.v1', clips: [], sockets: ['body', 'head'] },
   id: 'driftwood.look.crab', species: CRAB.id, kind: 'crab',
   fur: NO_FUR,
   rig: 'custom',

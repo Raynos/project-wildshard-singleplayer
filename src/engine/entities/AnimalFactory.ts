@@ -1,3 +1,4 @@
+import { bindRig } from '../anim/rig';
 import type { ChunkStyle } from '#game/shard/manifest';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
@@ -554,6 +555,8 @@ export class AnimalFactory {
     mesh.add(root);
     mesh.updateMatrixWorld(true);
     mesh.bind(new THREE.Skeleton(list));
+    const contract = model.species.rigContract;
+    bindRig(mesh, [], contract, { skeleton: contract.skeleton, procedural: contract.clips });
     mesh.castShadow = true; mesh.receiveShadow = true;
     mesh.frustumCulled = true;
     // Cull against the model's padded bind-pose sphere (radius + 0.6 m: legs / neck / corpse roll never leave it).

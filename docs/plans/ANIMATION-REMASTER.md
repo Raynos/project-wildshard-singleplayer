@@ -1,6 +1,6 @@
 # Animation and rigging remaster — four shards
 
-**State:** `blocked` 2026-09-30 — E357: its engine layer moved to [GAME-NORMALIZATION](GAME-NORMALIZATION.md) X4; A3–A7 wait for X4's rig contract (E336's dummy pilot stays live in `d1cdcee-munun0hj`).
+**State:** `blocked` 2026-10-01 — E357 X4 supplies the engine rig contract, metadata clip aliases and animation machine; A3–A7 build on that contract after [GAME-NORMALIZATION](GAME-NORMALIZATION.md) is archived (E336's dummy pilot stays live in `d1cdcee-munun0hj`).
 
 ## Scope and evidence
 

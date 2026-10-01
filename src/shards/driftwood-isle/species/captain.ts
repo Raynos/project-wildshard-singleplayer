@@ -325,6 +325,7 @@ export const CAPTAIN: SpeciesRow = {
 };
 
 export const CAPTAIN_LOOK: SpeciesLook = {
+  rigContract: { skeleton: 'captain.v1', clips: [], sockets: ['body', 'head'] },
   id: 'driftwood.look.captain', species: CAPTAIN.id, kind: 'captain',
   fur: NO_FUR,
   rig: 'custom',

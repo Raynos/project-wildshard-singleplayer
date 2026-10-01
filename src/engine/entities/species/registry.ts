@@ -1,3 +1,4 @@
+import type { RigContract } from '../../anim/rig';
 import { WeightedTable } from '../../ai/weighted';
 import type * as THREE from 'three';
 import type { Rng } from '../../core/rng';
@@ -220,6 +221,8 @@ export interface FurStyle {
 }
 
 export interface SpeciesDef {
+  /** Render contract: procedural generators keep their own timing and gameplay state. */
+  rigContract: RigContract;
   /** 'deer' | 'boar' | 'bear' | … — the Animal.kind string, also the HerdPlan.kind */
   kind: string;
   /** default display name when a variant has none */

@@ -20,13 +20,12 @@
 // light = SLASH, light2 = BACKHAND, light3 = FINISHER, heavy = HEAVY (after `charge`, CHARGE_BLEND 0.16 s). Chain a
 // combo by calling play(next) at slashEnd: the crossfade carries the arm from the follow-through into the next cut.
 import {
-  type AnimationAction, AnimationMixer, type AnimationClip, BufferAttribute, type BufferGeometry, DoubleSide, Group, LinearMipmapLinearFilter,
-  LoopOnce, Matrix3, Matrix4, Mesh, NoColorSpace, type Object3D, type PerspectiveCamera, Quaternion, type ShaderMaterial, SkinnedMesh, type Texture, TextureLoader,
+  type AnimationAction, type AnimationClip, BufferAttribute, type BufferGeometry, DoubleSide, Group, LinearMipmapLinearFilter,
+  Matrix3, Matrix4, Mesh, NoColorSpace, type Object3D, type PerspectiveCamera, Quaternion, type ShaderMaterial, SkinnedMesh, type Texture, TextureLoader,
   Vector2, Vector3,
 } from 'three';
-import { GLTFLoader, type GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { clone as cloneSkeleton } from 'three/examples/jsm/utils/SkeletonUtils.js';
-import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { type Capsule, Talisman, Tassel, penetration } from './cloth';
 import { CLS, Geo, v3 } from './geo';
 import { buildHalo } from './jian';
@@ -34,13 +33,19 @@ import { type Decals, type VmUniforms, decalAtlas, inkHullMaterial, vmMaterial, 
 import { type JointAngles, LEFT_HAND, RIGHT_HAND, measure } from '#kit/viewmodel/armRig';
 import { Trail, type TrailLook } from './trail';
 import { phoneUrl } from '#engine/boot/bytes';
-import { app } from '#engine';
+import { app, loadRigFile, bindRig, AnimMachine, type RigContract, type RigBake, type ClipChannel as Channel } from '#engine';
+import { ARM_CLIPS, armClipNames } from '#kit';
 import type { NdTier } from '../tier';
-import { ClipChannel as Channel } from '#kit/viewmodel/rigArms';
 import { ktx2Texture } from '#engine/core/ktx2';
 
 export const ASSET_BASE = '/assets/nine-dragon/viewmodel/';
 export const RIG_URL = `${ASSET_BASE}fp-rig.glb`;
+
+export const ARMS_CONTRACT: RigContract = { skeleton: 'nine-dragon-fp', clips: armClipNames(ARM_CLIPS), sockets: ['R_weapon', 'L_claw'] };
+export const ARMS_BAKE: RigBake = {
+  skeleton: 'nine-dragon-fp', clips: ARM_CLIPS,
+  joints: ['R', 'L'].map((side) => ['shoulder', 'upperarm', 'forearm', 'twist1', 'twist2', 'twist3', 'hand'].map((name) => `${side}_${name}`)),
+};
 
 export type MoveName = 'light' | 'light2' | 'light3' | 'charge' | 'heavy' | 'parry' | 'draw' | 'sheathe' | 'sheathed';
 export type LeftName = 'grapple_aim' | 'grapple_fire' | 'grapple_hold' | 'idle';
@@ -59,7 +64,6 @@ export interface ArmsState {
   gravity: Vector3;
 }
 
-const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
 const texLoader = new TextureLoader();
 
 /** GLTFExporter writes custom attributes as `_NAME`, GLTFLoader reads them back lower case */
@@ -117,7 +121,7 @@ const rigFiles = new Map<string, Promise<RigFile>>();
 async function rigScene(url: string): Promise<{ scene: Object3D; animations: AnimationClip[] }> {
   let p = rigFiles.get(url);
   if (p === undefined) {
-    p = loader.loadAsync(url).then((gltf): RigFile => ({ gltf, pristine: cloneSkeleton(gltf.scene), taken: false }));
+    p = loadRigFile(url).then((gltf): RigFile => ({ gltf, pristine: cloneSkeleton(gltf.scene), taken: false }));
     rigFiles.set(url, p);
     void p.catch(() => { rigFiles.delete(url); }); // a failed fetch can retry
   }
@@ -144,7 +148,7 @@ export class NineDragonArms {
   /** triangles in the rig's meshes (bodies, hulls) */
   tris = { body: 0, hull: 0 };
   breeze = 0.6;
-  private readonly mixer: AnimationMixer;
+  private readonly mixer: AnimMachine;
   private readonly actions = new Map<string, AnimationAction>();
   private readonly right: Channel;
   private readonly left: Channel;
@@ -163,6 +167,7 @@ export class NineDragonArms {
   private readonly claws: Object3D[] = [];
 
   private constructor(scene: Group, clips: AnimationClip[], textures: Map<string, [Texture | null, Texture | null]>, silk: Texture, tier: NdTier) {
+    if (scene.userData['rig'] !== ARMS_CONTRACT.skeleton) throw new Error('[anim] Nine Dragon arm skeleton mismatch');
     this.u = vmUniforms(silk, sharedDecals(tier));
     const data = scene.userData as { attach?: { tassel: number[]; talisman: number[]; muzzle: number[]; bladeBase: number; bladeTip: number }; clips?: Record<string, { side: 'R' | 'L'; loop: boolean; timing: Timing | null; trailFrom: number | null }> };
     const at = data.attach;
@@ -201,21 +206,18 @@ export class NineDragonArms {
       if (o.name.startsWith('L_claw')) this.claws.push(o);
     });
     // clips
-    this.mixer = new AnimationMixer(this.root);
+    const rig = bindRig(this.root, clips, ARMS_CONTRACT, ARMS_BAKE);
+    this.mixer = new AnimMachine({ states: {}, loops: armClipNames(ARM_CLIPS).filter((name) => data.clips?.[ARM_CLIPS[name] ?? name]?.loop === true) }, rig, app.levelScope ?? undefined);
     for (const c of clips) {
-      const a = this.mixer.clipAction(c);
+      const name = armClipNames(ARM_CLIPS).find((alias) => ARM_CLIPS[alias] === c.name);
+      if (name === undefined) throw new Error(`fp-rig.glb has unmapped clip ${c.name}`);
+      const a = this.mixer.action(name);
       const meta = data.clips?.[c.name];
       this.moves[c.name] = { duration: c.duration, timing: meta?.timing ?? null, trailFrom: meta?.trailFrom ?? null, loop: meta?.loop ?? false, side: meta?.side ?? 'R' };
-      if (meta?.loop !== true) { a.setLoop(LoopOnce, 1); a.clampWhenFinished = true; }
       this.actions.set(c.name, a);
     }
-    const act = (n: string): AnimationAction => {
-      const a = this.actions.get(n);
-      if (a === undefined) throw new Error(`fp-rig.glb has no clip ${n}`);
-      return a;
-    };
-    this.right = new Channel(act('idle'), this.actions.get('walk') ?? null);
-    this.left = new Channel(act('idleL'), this.actions.get('walkL') ?? null);
+    this.right = this.mixer.channel('idle', 'walk');
+    this.left = this.mixer.channel('idle.left', 'walk.left');
     // the living parts: the tassel's knot + cap, the strands, the talisman (root space), the halo on the weapon
     const kx = new Geo();
     kx.ellipsoid(v3(0, 0.008, 0), v3(1, 0, 0), v3(0, 1, 0), v3(0, 0, 1), 0.012, 0.0135, 0.012, { cls: CLS.silk }, (d) => 1 + 0.08 * Math.sin(d.x * 9) * Math.sin(d.z * 9), 14);

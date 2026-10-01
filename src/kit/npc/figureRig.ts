@@ -1,3 +1,4 @@
+import { bindRig } from '#engine';
 import * as THREE from 'three';
 
 /** a figure's procedural frame: its height and the two pivots (feet at the origin, facing +z, +x = its LEFT) */
@@ -201,6 +202,9 @@ export function mergeNpcFigures<K extends string>(figs: NpcFigure<K>[], material
   const mesh = new THREE.SkinnedMesh(geo, mat);
   mesh.name = name;
   mesh.bind(new THREE.Skeleton(boneList, inverses), new THREE.Matrix4());
+  const names = boneList.map((bone) => bone.name);
+  // Detached world-matrix bones intentionally are not scene children; the skin owns their ordered joints.
+  bindRig(mesh, [], { skeleton: 'npc.figures.v1', clips: [], sockets: [] }, { skeleton: 'npc.figures.v1', joints: [names] });
   mesh.frustumCulled = false;   // five figures spread over the camp, moving: the batch did its own culling, this is 1 draw
   mesh.castShadow = true; mesh.receiveShadow = true;
   return { mesh, bones };

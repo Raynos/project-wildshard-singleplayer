@@ -1,12 +1,18 @@
 /** E336: offline UniMate clips blended on the original rig, before immediate additive hit springs. */
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { loadRigFile, bindRig, type RigContract, type RigBake } from '../anim/rig';
 import type { DummyVariant } from './TrainingDummy';
 
 let library: Promise<THREE.AnimationClip[]> | undefined;
 export function loadDummyClips(variant: DummyVariant): Promise<THREE.AnimationClip[]> {
-  library ??= new GLTFLoader().loadAsync('/assets/practice/dummies/unimate-motion.glb').then((gltf) => gltf.animations);
+  library ??= loadRigFile('/assets/practice/dummies/unimate-motion.glb').then((gltf) => gltf.animations);
   return library.then((clips) => clips.filter((clip) => clip.name.startsWith(`${variant}:`)));
+}
+
+export function dummyClipContract(variant: DummyVariant): { contract: RigContract; bake: RigBake } {
+  const clips = { idle: `${variant}:idle`, 'hit.body': `${variant}:body-hit`, 'hit.head': `${variant}:head-hit`,
+    'hit.left': `${variant}:hit-left`, 'hit.right': `${variant}:hit-right`, 'hit.heavy': `${variant}:heavy-hit` } as const;
+  return { contract: { skeleton: 'dummy.humanoid', clips: ['idle', 'hit.body', 'hit.head', 'hit.left', 'hit.right', 'hit.heavy'], sockets: [] }, bake: { skeleton: 'dummy.humanoid', clips } };
 }
 
 export class DummyClips {
@@ -25,6 +31,8 @@ export class DummyClips {
   private readonly target = new THREE.Quaternion();
 
   constructor(root: THREE.Object3D, clips: readonly THREE.AnimationClip[], variant: DummyVariant) {
+    const { contract, bake } = dummyClipContract(variant);
+    bindRig(root, clips, contract, bake);
     const idle = clips.find((clip) => clip.name === `${variant}:idle`);
     if (!idle) throw new Error('Dummy motion library lacks idle');
     this.idle = idle;

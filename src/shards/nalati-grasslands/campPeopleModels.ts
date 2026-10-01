@@ -1,3 +1,4 @@
+import { loadRigFile } from '#engine';
 /**
  * The camp's people as generated + rigged models (NALATI-MERGE D2) — the user's pick (N20: "Models 3D local ai model is
  * best"): Nalati's pipeline, the image-to-3D mesh with its base-colour atlas (TRELLIS.2 / Hunyuan3D-2 → Blender normalise
@@ -23,8 +24,6 @@
  *   5. unpose  the A-pose arm swung down to the procedural arm's rest (blended by its weight), so the same swings read.
  */
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { TIER } from '#engine/core/tier';
 import { painterlyMaterial } from '#engine/world/painterly';
 import { rawFromGltf } from './world/glbPaint';
@@ -36,7 +35,6 @@ import { fitNpcFigure, mergeNpcFigures, type NpcFigureFrame as PersonFrame, type
 export type { NpcFigureFrame as PersonFrame, NpcFigureBones as PersonBones, NpcFigureRig as PeopleRig } from '#kit';
 
 const DIR = '/assets/nalati/models/people/';
-let loader: GLTFLoader | null = null;
 
 /** the model file of each figure (the ids are campPeople.ts's) */
 export const PERSON_FILE = { elder: 'elder', herderGate: 'herder-dauren', herderRail: 'herder-erlan', child: 'child', cook: 'cook' } as const;
@@ -52,11 +50,9 @@ export function peopleModelUrl(key: PersonKey): string {
  * body matrix, head = root × (neck, the head turn), arm = root × (shoulder, the arm swing) — as the BatchedMesh pieces.
  */
 export async function loadPeopleRig<K extends PersonKey>(sky: Sky, frames: Record<K, PersonFrame>, models?: Record<K, string>): Promise<PeopleRig<K>> {
-  if (!loader) { loader = new GLTFLoader(); loader.setMeshoptDecoder(MeshoptDecoder); }
-  const gl = loader;
   const keys = Object.keys(frames) as K[];
   const figs = await Promise.all(keys.map(async (key) => {
-    const gltf = await gl.loadAsync(models?.[key] ?? peopleModelUrl(key));
+    const gltf = await loadRigFile(models?.[key] ?? peopleModelUrl(key));
     const r = rawFromGltf(gltf.scene, `person ${key}`);
     const cuts: number[] = [];
     gltf.scene.traverse((o) => { const v: unknown = o.userData['neckCut']; if (typeof v === 'number') cuts.push(v * frames[key].height); });

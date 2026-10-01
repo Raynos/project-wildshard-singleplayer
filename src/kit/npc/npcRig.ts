@@ -1,3 +1,4 @@
+import { bindRig, type RigContract } from '#engine';
 /**
  * E322 F-M3 — the Pine Hollow people's rig (Jake picked B; A, the upper-body-only rig that was in npcModels.ts, went with
  * its Debug row — git 4da54ccc has it). Built at load from the hull like A was, so any head grafted above the neck
@@ -50,6 +51,7 @@ export interface NpcRow<M extends NpcModel, Args> {
   id: string;
   model: (args: Args) => M;
   idle: string;
+  rig: RigContract;
   near: number;
   visible?: (model: M, near: boolean) => void;
   face?: NpcFace<M>;
@@ -63,6 +65,7 @@ export class NpcRig<M extends NpcModel, Args> {
   constructor(row: NpcRow<M, Args>, args: Args) {
     this.row = row;
     this.model = row.model(args);
+    bindRig(this.model.group, [], row.rig, { skeleton: row.rig.skeleton, procedural: row.rig.clips });
     const face = row.face;
     if (face !== undefined) void face.load().then((geometry) => {
       if (geometry === null) return null;
@@ -508,6 +511,9 @@ export function legBones(b: LegBuilt): THREE.Bone[] {
     bone.position.copy(r).sub(pr);
     if (pi >= 0) bones[pi]?.add(bone);
   });
+  const root = bones[0];
+  if (root === undefined) throw new Error('[anim] NPC rig has no root');
+  bindRig(root, [], { skeleton: 'npc.legs.v1', clips: [], sockets: LEG_BONE_NAMES }, { skeleton: 'npc.legs.v1' });
   return bones;
 }
 

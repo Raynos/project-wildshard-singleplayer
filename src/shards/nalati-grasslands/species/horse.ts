@@ -574,6 +574,7 @@ export function horseEye(a: Animal, out: THREE.Vector3): THREE.Vector3 {
 }
 
 export const HORSE_SPECIES: SpeciesDef = {
+  rigContract: { skeleton: 'horse.v1', clips: [], sockets: ['body', 'head'] },
   kind: 'horse',
   label: engineString('s_5b662777562c'),
   fur: NO_FUR,

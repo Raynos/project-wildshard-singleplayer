@@ -1,3 +1,4 @@
+import { loadRigFile } from '#engine';
 /**
  * The hamlet's people, generated (PINE-HOLLOW-REMASTER PH-M4): Hale the ranger (board B3 pick A, "the old warden"), Mott
  * the trader, Brandt the miller — photoreal codex references (A-pose, art/pine-hollow/round-11-npcs/) → Hunyuan3D-2 full +
@@ -19,8 +20,6 @@
  *   walk   the legs step (NpcFigure.walkTo)
  */
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { TIER } from '#engine/core/tier';
 import type { Sky } from '#engine/world/Sky';
 import type { NpcKind } from '../models/people';
@@ -36,7 +35,6 @@ export function npcModelUrl(kind: NpcKind, tier: 'phone' | 'desktop' = TIER): st
 interface Source { geometry: THREE.BufferGeometry; map: THREE.Texture | null; normalMap: THREE.Texture | null }
 const sources = new Map<NpcKind, Source>();
 const loading = new Map<NpcKind, Promise<Source | null>>();
-let loader: GLTFLoader | null = null;
 
 const isMesh = (o: THREE.Object3D): o is THREE.Mesh => (o as Partial<THREE.Mesh>).isMesh === true;
 
@@ -57,8 +55,7 @@ function asFloat(src: THREE.BufferGeometry): THREE.BufferGeometry {
 export function loadNpcModel(kind: NpcKind): Promise<Source | null> {
   let p = loading.get(kind);
   if (!p) {
-    if (!loader) { loader = new GLTFLoader(); loader.setMeshoptDecoder(MeshoptDecoder); }
-    p = loader.loadAsync(npcModelUrl(kind)).then((gltf) => {
+    p = loadRigFile(npcModelUrl(kind)).then((gltf) => {
       gltf.scene.updateMatrixWorld(true);
       const found: Source[] = [];
       gltf.scene.traverse((o) => {

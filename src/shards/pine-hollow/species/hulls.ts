@@ -1,4 +1,4 @@
-import { retainCachedResources, variantDef, type BoneDef, type VariantDef, setting, type SpeciesRGB as RGB } from '#engine';
+import { loadRigFile, retainCachedResources, variantDef, type BoneDef, type VariantDef, setting, type SpeciesRGB as RGB } from '#engine';
 /**
  * pineCreatures — Pine Hollow's generated creature hulls (PINE-HOLLOW-REMASTER PH-M1 / PH-M2, Jake's PH-U11), pre-skinned
  * to the procedural species' own skeletons, so the species' bones, gaits and AI drive them. On by default in Pine Hollow;
@@ -18,8 +18,6 @@ import { retainCachedResources, variantDef, type BoneDef, type VariantDef, setti
  * flagged per vertex by `aThrall` (x = own vertex colour instead of the atlas, y = glow).
  */
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { pineCreatureRigUrl, PINE_CREATURE_RIGS, type PineRigName } from './rigs';
 import { pineCoatAtlas, type CoatSpec } from './coats';
 import { DEER_PALETTE, ELK_PALETTE } from './palettes';
@@ -86,7 +84,6 @@ export interface PineHull {
   fur?: { rim: RGB; sheenColor: RGB };
 }
 
-let loader: GLTFLoader | null = null;
 const loading = new Map<PineRigName, Promise<PineRig>>();
 const ready = new Map<PineRigName, PineRig>();
 const isSkinned = (o: THREE.Object3D): o is THREE.SkinnedMesh => (o as Partial<THREE.SkinnedMesh>).isSkinnedMesh === true;
@@ -101,8 +98,7 @@ function floatAttr(a: THREE.BufferAttribute | THREE.InterleavedBufferAttribute):
 export function loadPineRig(name: PineRigName): Promise<PineRig> {
   let p = loading.get(name);
   if (!p) {
-    if (!loader) { loader = new GLTFLoader(); loader.setMeshoptDecoder(MeshoptDecoder); }
-    p = loader.loadAsync(pineCreatureRigUrl(name)).then((gltf) => {
+    p = loadRigFile(pineCreatureRigUrl(name)).then((gltf) => {
       gltf.scene.updateMatrixWorld(true);
       const found: THREE.SkinnedMesh[] = [];
       gltf.scene.traverse((o) => { if (isSkinned(o)) found.push(o); });

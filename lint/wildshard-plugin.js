@@ -480,6 +480,24 @@ const noGlobalListenerPatch = rule('Legacy global registrations migrate to expli
   } };
 });
 
+const noRawAnimationMixer = rule('Animation mixers belong in engine/anim (E357 X4)', (context) => {
+  if (pathOf(context).startsWith('src/engine/anim/')) return {};
+  const names = new Set(['AnimationMixer']);
+  const isMixer = (node) => {
+    const value = unwrap(node);
+    return value?.type === 'Identifier' ? names.has(value.name)
+      : value?.type === 'MemberExpression' && (propName(value) ?? stringOf(value.property)) === 'AnimationMixer';
+  };
+  return {
+    ImportDeclaration(node) {
+      if (stringOf(node.source) !== 'three') return;
+      for (const specifier of node.specifiers ?? []) if (specifier.type === 'ImportSpecifier' && nameOf(specifier.imported) === 'AnimationMixer') names.add(specifier.local.name);
+    },
+    VariableDeclarator(node) { if (node.id?.type === 'Identifier' && isMixer(node.init)) names.add(node.id.name); },
+    NewExpression(node) { if (isMixer(node.callee)) report(context, node, 'Load a RigContract and use AnimMachine from engine/anim'); },
+  };
+});
+
 const noInlineUiString = rule('Player-facing engine strings belong in the string table (E357 X8)', (context) => {
   if (!pathOf(context).startsWith('src/engine/')) return {};
   function check(value) {
@@ -508,6 +526,7 @@ const plugin = {
     'no-active-singleton': noActiveSingleton, 'no-active-chunk': noActiveChunk,
     'no-global-listener-patch': noGlobalListenerPatch,
     'no-inline-ui-string': noInlineUiString,
+    'no-raw-animation-mixer': noRawAnimationMixer,
   },
 };
 export default plugin; // oxlint loads a JS plugin from its default export

@@ -1,8 +1,7 @@
+import { loadRigFile, bindRig } from '../anim/rig';
 import { retainCachedResources } from '../app/cachedAssets';
 /** The three local TRELLIS.2 figures, skinned in Blender and shared by the arena and Model Explorer. */
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { clone as cloneSkeleton } from 'three/examples/jsm/utils/SkeletonUtils.js';
 import {
   DUMMY_BONE_NAMES, DUMMY_JOINTS, LEGACY_BONE_NAMES, TRAINING_DUMMY_SCALE,
@@ -14,13 +13,12 @@ const URLS: Record<DummyVariant, string> = {
   'straw-cloth': '/assets/practice/dummies/straw-cloth.glb',
   'wood-steel': '/assets/practice/dummies/wood-steel.glb',
 };
-const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
 const templates = new Map<DummyVariant, Promise<THREE.Group>>();
 
 function template(variant: DummyVariant): Promise<THREE.Group> {
   let promise = templates.get(variant);
   if (!promise) {
-    promise = loader.loadAsync(URLS[variant]).then((gltf) => retainCachedResources(gltf.scene));
+    promise = loadRigFile(URLS[variant]).then((gltf) => retainCachedResources(gltf.scene));
     templates.set(variant, promise);
     void promise.catch(() => { templates.delete(variant); }); // a failed fetch can retry on the next open
   }
@@ -72,5 +70,8 @@ export async function loadTrainingDummy(variant: DummyVariant): Promise<Training
       part.material = material;
     }
   });
-  return { root, ...dummyJoints(root) };
+  const result = dummyJoints(root);
+  const sockets = result.rig === 'humanoid' ? ['Pelvis', 'Chest', 'Head'] : ['Torso', 'Head', 'LeftArm', 'RightArm'];
+  bindRig(root, [], { skeleton: `dummy.${result.rig}`, clips: [], sockets }, { skeleton: `dummy.${result.rig}` });
+  return { root, ...result };
 }

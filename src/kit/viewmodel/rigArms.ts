@@ -1,4 +1,5 @@
-import { retainCachedResources } from '#engine';
+import { app, retainCachedResources, loadRigFile, bindRig, AnimMachine, type ClipChannel, type RigContract, type RigBake } from '#engine';
+import { ARM_CLIPS, SWIM_CLIPS, armClipNames } from './armClips';
 // rigArms — the first-person arm player shared by the skinned viewmodel rigs (E334).
 //
 //   ClipChannel     one arm's clips: a base loop (idle ↔ walk by speed) under one-shot moves that CROSSFADE (80–150 ms),
@@ -12,14 +13,14 @@ import { retainCachedResources } from '#engine';
 //                   channels, or — `swim` — its looping swim clips blended by speed with the stroke's phase set from outside
 //   swordArmsOf     a RigArms as the engine Sword's animated rig (Sword.ts `SwordArms`)
 import {
-  type AnimationAction, AnimationMixer, type AnimationClip, Group, LoopOnce, Matrix4, type Mesh, type Object3D, type Vector2, Vector3,
+  type AnimationAction, type AnimationClip, Group, Matrix4, type Mesh, type Object3D, type Vector2, Vector3,
 } from 'three';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { clone as cloneSkeleton } from 'three/examples/jsm/utils/SkeletonUtils.js';
 import type { Sky } from '#engine/world/Sky';
 import type { SwordArms } from '#kit/weapons/melee/SweptMelee';
 import type { Move } from '#kit/weapons/melee/moves';
+
+export { ClipChannel } from '#engine';
 
 /** the viewmodel's vertical field (degrees): the clips' canonical camera */
 export const VM_FOV = 70;
@@ -27,60 +28,6 @@ export const VM_FOV = 70;
 /** the root's x / y scale that draws a rig framed for `vmFov` through a camera of vertical field `worldFov` (degrees) */
 export function vmScale(worldFov: number, vmFov = VM_FOV): number {
   return Math.tan((worldFov * Math.PI) / 360) / Math.tan((vmFov * Math.PI) / 360);
-}
-
-interface Layer { action: AnimationAction; name: string; w: number; target: number; rate: number; hold: boolean }
-
-/** one arm's clip channel: a base (idle ↔ walk) under crossfading one-shot moves */
-export class ClipChannel {
-  readonly layers: Layer[] = [];
-  constructor(private readonly base: AnimationAction, private readonly walk: AnimationAction | null) {
-    base.play();
-    walk?.play();
-  }
-
-  play(action: AnimationAction, name: string, fade: number, hold: boolean): void {
-    for (const l of this.layers) { l.target = 0; l.rate = 1 / Math.max(0.016, fade); }
-    action.reset();
-    action.enabled = true;
-    action.setEffectiveTimeScale(1);
-    action.setEffectiveWeight(0);
-    action.play();
-    this.layers.push({ action, name, w: 0, target: 1, rate: 1 / Math.max(0.016, fade), hold });
-  }
-
-  /** back to the base (a held pose released) */
-  release(fade: number): void { for (const l of this.layers) { l.target = 0; l.rate = 1 / Math.max(0.016, fade); } }
-
-  /** the move that is fading in / playing (null when on the base) */
-  get top(): Layer | null {
-    for (let i = this.layers.length - 1; i >= 0; i--) { const l = this.layers[i]; if (l !== undefined && l.target > 0) return l; }
-    return null;
-  }
-
-  update(dt: number, walkW: number, walkPhase: number | undefined): void {
-    for (const l of this.layers) {
-      // a finished one-shot fades back to the base; a held pose (charge, sheathe) stays until the next play
-      const dur = l.action.getClip().duration;
-      if (l.target > 0 && !l.hold && l.action.time >= dur - 1e-4) { l.target = 0; l.rate = 1 / 0.15; }
-      l.w += Math.sign(l.target - l.w) * Math.min(Math.abs(l.target - l.w), l.rate * dt);
-    }
-    for (let i = this.layers.length - 1; i >= 0; i--) {
-      const l = this.layers[i];
-      if (l !== undefined && l.w <= 0 && l.target <= 0) { l.action.stop(); this.layers.splice(i, 1); }
-    }
-    const moveW = Math.min(1, this.layers.reduce((a, l) => a + l.w, 0));
-    for (const l of this.layers) l.action.setEffectiveWeight(l.w);
-    const baseW = 1 - moveW;
-    this.base.setEffectiveWeight(baseW * (this.walk === null ? 1 : 1 - walkW));
-    if (this.walk !== null) {
-      this.walk.setEffectiveWeight(baseW * walkW);
-      if (walkPhase !== undefined) {
-        const d = this.walk.getClip().duration;
-        this.walk.time = (((walkPhase / (Math.PI * 2)) % 1) + 1) % 1 * d;
-      }
-    }
-  }
 }
 
 // ───────────────────────────── a baked rig (Driftwood's castaway arms) ─────────────────────────────
@@ -93,13 +40,12 @@ export interface RigMeta {
 }
 
 const isMesh = (o: Object3D): o is Mesh => 'isMesh' in o;
-const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
 /** one parse per URL per shard; every rig is a skeleton clone of it (the same geometry, so the same GPU buffers) */
 const parsed = new Map<string, Promise<{ scene: Object3D; animations: AnimationClip[] }>>();
 async function rigScene(url: string): Promise<{ scene: Object3D; animations: AnimationClip[] }> {
   let p = parsed.get(url);
   if (p === undefined) {
-    p = loader.loadAsync(url).then((g) => ({ scene: retainCachedResources(g.scene), animations: g.animations }));
+    p = loadRigFile(url).then((g) => ({ scene: retainCachedResources(g.scene), animations: g.animations }));
     parsed.set(url, p);
     void p.catch(() => { parsed.delete(url); }); // a failed fetch can retry
   }
@@ -121,7 +67,7 @@ export class RigArms {
   readonly meta: RigMeta;
   /** the rig's nodes by name (joints, R_weapon, the weapon meshes) */
   readonly nodes = new Map<string, Object3D>();
-  private readonly mixer: AnimationMixer;
+  private readonly mixer: AnimMachine;
   private readonly actions = new Map<string, AnimationAction>();
   private readonly right: ClipChannel | null = null;
   private readonly left: ClipChannel | null = null;
@@ -133,37 +79,32 @@ export class RigArms {
   private readonly m = new Matrix4();
 
   /** `swim`: the swim clips only (no channels): swimStroke / swimTread blended by `swim()` */
-  private constructor(scene: Object3D, clips: AnimationClip[], readonly swimming: boolean) {
+  private constructor(scene: Object3D, clips: AnimationClip[], readonly swimming: boolean, contract: RigContract, bake: RigBake) {
     const vm = scene.getObjectByName('vm_root') ?? scene;
+    if (vm.userData['rig'] !== contract.skeleton) throw new Error(`[anim] arm rig skeleton mismatch: ${String(vm.userData['rig'])}`);
     this.meta = vm.userData as RigMeta;
     while (vm.children.length > 0) { const c = vm.children[0]; if (c !== undefined) this.root.add(c); }
     this.root.traverse((o) => {
       if (o.name !== '') this.nodes.set(o.name, o);
       if (isMesh(o)) o.frustumCulled = false;
     });
-    this.mixer = new AnimationMixer(this.root);
-    for (const c of clips) {
-      const a = this.mixer.clipAction(c);
-      if (this.meta.clips[c.name]?.loop !== true) { a.setLoop(LoopOnce, 1); a.clampWhenFinished = true; }
-      this.actions.set(c.name, a);
-    }
+    const aliases = { ...ARM_CLIPS, ...SWIM_CLIPS };
+    const rig = bindRig(this.root, clips, contract, bake);
+    const loops = armClipNames(aliases).filter((name) => this.meta.clips[aliases[name] ?? name]?.loop === true);
+    this.mixer = new AnimMachine({ states: {}, loops }, rig, app.levelScope ?? undefined);
+    for (const name of armClipNames(aliases)) this.actions.set(aliases[name] ?? name, this.mixer.action(name));
     if (!swimming) {
-      const act = (n: string): AnimationAction => {
-        const a = this.actions.get(n);
-        if (a === undefined) throw new Error(`arm rig has no clip ${n}`);
-        return a;
-      };
-      this.right = new ClipChannel(act('idle'), this.actions.get('walk') ?? null);
-      this.left = new ClipChannel(act('idleL'), this.actions.get('walkL') ?? null);
+      this.right = this.mixer.channel('idle', 'walk');
+      this.left = this.mixer.channel('idle.left', 'walk.left');
     } else {
       for (const n of ['swimStroke', 'swimTread']) this.actions.get(n)?.play();
     }
     this.mixer.update(0);
   }
 
-  static async load(url: string, swimming = false): Promise<RigArms> {
+  static async load(url: string, contract: RigContract, bake: RigBake, swimming = false): Promise<RigArms> {
     const { scene, animations } = await rigScene(url);
-    return new RigArms(scene, animations, swimming);
+    return new RigArms(scene, animations, swimming, contract, bake);
   }
 
   /** every mesh of the rig: the skinned arms, the weapons */

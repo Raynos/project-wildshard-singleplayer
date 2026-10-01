@@ -105,6 +105,7 @@ export function ghostRiderPoints(a: Animal, chest: THREE.Vector3, head: THREE.Ve
 
 const horse = HORSE_SPECIES;
 export const GHOSTRIDER_SPECIES: SpeciesDef = {
+  rigContract: { skeleton: 'ghostRider.v1', clips: [], sockets: ['body', 'head'] },
   kind: GHOST_RIDER,
   label: engineString('s_1ccc05aa1f07'),
   fur: NO_FUR,

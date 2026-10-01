@@ -422,6 +422,7 @@ function thinkKing(a: Animal, c: ThinkCtx): void {
 }
 
 export const GOLDENKING_SPECIES: SpeciesDef = {
+  rigContract: { skeleton: 'goldenKing.v1', clips: [], sockets: ['body', 'head'] },
   kind: GOLDEN_KING,
   label: engineString('s_5e6771dbba8c'),
   fur: NO_FUR,

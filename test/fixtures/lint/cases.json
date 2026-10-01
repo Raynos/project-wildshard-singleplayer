@@ -509,5 +509,40 @@
     "rule": "layer",
     "code": "import { value } from '#engine/data/private';",
     "count": 1
+  },
+  {
+    "id": "X4 mixer direct",
+    "file": "src/kit/fixture/mixer.ts",
+    "rule": "no-raw-animation-mixer",
+    "code": "import { AnimationMixer } from 'three'; new AnimationMixer(root);",
+    "count": 1
+  },
+  {
+    "id": "X4 mixer alias",
+    "file": "src/shards/fixture/mixer.ts",
+    "rule": "no-raw-animation-mixer",
+    "code": "import { AnimationMixer as Mixer } from 'three'; new Mixer(root);",
+    "count": 1
+  },
+  {
+    "id": "X4 mixer namespace and local alias",
+    "file": "src/engine/entities/fixtureMixer.ts",
+    "rule": "no-raw-animation-mixer",
+    "code": "import * as THREE from 'three'; const Mixer = THREE.AnimationMixer; new Mixer(root); new THREE['AnimationMixer'](root);",
+    "count": 2
+  },
+  {
+    "id": "X4 mixer engine owner",
+    "file": "src/engine/anim/fixtureMixer.ts",
+    "rule": "no-raw-animation-mixer",
+    "code": "import { AnimationMixer } from 'three'; new AnimationMixer(root);",
+    "count": 0
+  },
+  {
+    "id": "X4 anim public machine",
+    "file": "src/kit/fixture/animMachine.ts",
+    "rule": "no-raw-animation-mixer",
+    "code": "import { AnimMachine } from '#engine'; new AnimMachine(def, rig);",
+    "count": 0
   }
 ]

@@ -225,6 +225,7 @@ function buildBoar(v: VariantDef, rng: Rng): AnimalSpecies {
 }
 
 export const BOAR_LOOK: SpeciesLook = {
+  rigContract: { skeleton: 'boar.v1', clips: [], sockets: ['body', 'head'] },
   id: 'kit.look.boar', species: 'kit.creature.boar', kind: 'boar',
   fur: {
     texSeed: 202, tex: { contrast: 1.0, grizzle: 0.6, normalStrength: 2.2, bristle: 0.6, strandLen: 12, root: 0.24 },

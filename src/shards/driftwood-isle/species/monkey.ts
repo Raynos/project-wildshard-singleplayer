@@ -355,6 +355,7 @@ export const MONKEY: SpeciesRow = {
 };
 
 export const MONKEY_LOOK: SpeciesLook = {
+  rigContract: { skeleton: 'monkey.v1', clips: [], sockets: ['body', 'head'] },
   id: 'driftwood.look.monkey', species: MONKEY.id, kind: 'monkey',
   fur: NO_FUR,
   rig: 'custom',

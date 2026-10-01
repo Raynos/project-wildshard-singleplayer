@@ -1,7 +1,5 @@
-import type { BoneDef } from '#engine';
+import { loadRigFile, type BoneDef } from '#engine';
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 
 /**
  * The Drowned Captain's generated mesh (v0.2, DRIFTWOOD-REMASTER M3): a codex concept (art/driftwood-isle/round-8-assets/
@@ -48,7 +46,7 @@ const isMesh = (o: THREE.Object3D): o is THREE.Mesh => o instanceof THREE.Mesh;
 
 async function load(): Promise<void> {
   try {
-    const gltf = await new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).loadAsync(URL_GLB);
+    const gltf = await loadRigFile(URL_GLB);
     const hit: { geo: THREE.BufferGeometry | null; map: THREE.Texture | null } = { geo: null, map: null };
     gltf.scene.updateMatrixWorld(true);
     gltf.scene.traverse((o) => {

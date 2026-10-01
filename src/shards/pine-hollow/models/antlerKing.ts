@@ -239,7 +239,7 @@ function buildOwnRig(): AnimalSpecies {
  */
 export function kingOwnSpecies(base: SpeciesDef): SpeciesDef {
   // (the elk's postPose / gait knobs are the quadruped path's: a custom rig never runs them)
-  return { ...base, rig: 'custom', animate: animateKing, build: () => buildOwnRig() };
+  return { ...base, rigContract: { skeleton: 'antler-king.v1', clips: [], sockets: ['body', 'head'] }, rig: 'custom', animate: animateKing, build: () => buildOwnRig() };
 }
 
 // ─────────────── the model (E306 / E315 M5) ───────────────

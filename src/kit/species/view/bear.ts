@@ -222,6 +222,7 @@ function buildBear(v: VariantDef, rng: Rng): AnimalSpecies {
 }
 
 export const BEAR_LOOK: SpeciesLook = {
+  rigContract: { skeleton: 'bear.v1', clips: [], sockets: ['body', 'head'] },
   id: 'kit.look.bear', species: 'kit.creature.bear', kind: 'bear',
   fur: {
     texSeed: 303, tex: { contrast: 0.9, grizzle: 0.45, normalStrength: 2.4, bristle: 0.3, strandLen: 16, root: 0.3 },

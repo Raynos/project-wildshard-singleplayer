@@ -10,7 +10,7 @@ export interface CreatureHull {
   geometry: THREE.BufferGeometry; map: THREE.Texture | null; normalMap: THREE.Texture | null;
   bones: BoneDef[]; thrall: boolean; doubleSided?: boolean; fur?: Partial<FurStyle>;
 }
-export interface SpeciesLook extends Pick<SpeciesDef, 'fur' | 'build' | 'pose' | 'gait' | 'postPose' | 'rig' | 'animate' | 'damageMul' | 'eyeGlow' | 'eyeGlowIntensity'> {
+export interface SpeciesLook extends Pick<SpeciesDef, 'rigContract' | 'fur' | 'build' | 'pose' | 'gait' | 'postPose' | 'rig' | 'animate' | 'damageMul' | 'eyeGlow' | 'eyeGlowIntensity'> {
   id: string; species: string; kind: string;
   variants?: Readonly<Record<string, Pick<VariantDef, 'tint' | 'fur' | 'traits'>>>;
   material?: (sky: Sky, glow?: [number, number, number], intensity?: number) => AnimalMaterial;

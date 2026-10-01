@@ -5,7 +5,7 @@ import { NpcRig } from '../../src/kit/npc/npcRig';
 describe('NPC row lifecycle', () => {
   it('freezes distant poses and culls companions before updating', () => {
     const group = new Group(), companion = new Group(), update = vi.fn();
-    const rig = new NpcRig({ id: 'counter', idle: 'counter', near: 85,
+    const rig = new NpcRig({ id: 'counter', idle: 'counter', near: 85, rig: { skeleton: 'counter.pivots', clips: [], sockets: [] },
       model: () => ({ group, update }), visible: (_model, near) => { companion.visible = near; },
     }, undefined);
     rig.update(1, 10, new Vector3(85, 0, 0));
@@ -24,7 +24,7 @@ describe('NPC row lifecycle', () => {
     const dispose = vi.spyOn(face, 'dispose');
     let resolveFace: ((geometry: BoxGeometry) => void) | undefined;
     const load = new Promise<BoxGeometry>((resolve) => { resolveFace = resolve; });
-    const rig = new NpcRig({ id: 'speaker', idle: 'fire-tend', near: Infinity,
+    const rig = new NpcRig({ id: 'speaker', idle: 'fire-tend', near: Infinity, rig: { skeleton: 'speaker.pivots', clips: [], sockets: [] },
       model: () => ({ group: new Group(), update: vi.fn(), head }),
       face: { load: () => load, target: (model) => model.head },
     }, undefined);

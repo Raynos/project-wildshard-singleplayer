@@ -221,6 +221,7 @@ function felidPostPose(c: RigAnimCtx): void {
 }
 
 export const LEOPARD_SPECIES: SpeciesDef = {
+  rigContract: { skeleton: 'leopard.v1', clips: [], sockets: ['body', 'head'] },
   kind: LEOPARD,
   label: engineString('s_db2b04607d7a'),
   fur: NO_FUR,

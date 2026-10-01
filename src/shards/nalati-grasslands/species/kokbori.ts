@@ -22,6 +22,7 @@ const SKY: Record<string, RGB> = {
 };
 
 export const KOKBORI_SPECIES: SpeciesDef = {
+  rigContract: { skeleton: 'kokbori.v1', clips: [], sockets: ['body', 'head'] },
   kind: KOKBORI,
   label: engineString('s_1dcfb937c1e2'),
   fur: NO_FUR,

@@ -1,4 +1,4 @@
-import { retainCachedResources, variantDef, type BoneDef } from '#engine';
+import { loadRigFile, retainCachedResources, variantDef, type BoneDef } from '#engine';
 
 /**
  * glbCreatures — the generated creature hulls, pre-skinned to the procedural species' skeletons, so the species' own
@@ -19,8 +19,6 @@ import { retainCachedResources, variantDef, type BoneDef } from '#engine';
  * young wolves) — a hull can't be recoloured into a chestnut or a black horse.
  */
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { creatureRigUrl, type CreatureRigName } from './rigs';
 import { modelsOn } from '../world/glbPaint';
 
@@ -64,7 +62,6 @@ export interface RigAsset { geometry: THREE.BufferGeometry; map: THREE.Texture |
 
 /** the rigs whose surfaces are thin sheets (a wing is one layer of feathers): no back-face culling */
 const DOUBLE_SIDED: ReadonlySet<CreatureRigName> = new Set(['eagle']);
-let loader: GLTFLoader | null = null;
 const loading = new Map<CreatureRigName, Promise<RigAsset>>();
 const ready = new Map<CreatureRigName, RigAsset>();
 
@@ -80,8 +77,7 @@ function floatAttr(a: THREE.BufferAttribute | THREE.InterleavedBufferAttribute):
 export function loadCreatureRig(name: CreatureRigName): Promise<RigAsset> {
   let p = loading.get(name);
   if (!p) {
-    if (!loader) { loader = new GLTFLoader(); loader.setMeshoptDecoder(MeshoptDecoder); }
-    p = loader.loadAsync(creatureRigUrl(name)).then((gltf) => {
+    p = loadRigFile(creatureRigUrl(name)).then((gltf) => {
       gltf.scene.updateMatrixWorld(true);
       const found: THREE.SkinnedMesh[] = [];
       gltf.scene.traverse((o) => { if (isSkinned(o)) found.push(o); });
