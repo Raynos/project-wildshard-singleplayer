@@ -1,12 +1,14 @@
-/** Every Signal Dunes coordinate, in metres (origin at the slab centre; the player faces −Z at yaw 0). */
-export const SPAWN = { x: 0, z: 46, yaw: 0 };
-/** The wooden signal tower on the far crest; its stair climbs the south face to the deck. */
-export const TOWER = { x: 8, z: -78, deck: 6, half: 2.2 };
-/** The brazier on the deck: the quest's interact point. */
-export const FIRE = { x: TOWER.x, z: TOWER.z - 0.6 };
-/** Where the dune ray circles before it notices the player. */
-export const RAY_HOME = { x: -6, z: 4, radius: 22 };
-/** The one road: spawn crest → the tower's foot (a new shard's trail starts in the spawn area). */
-export const TRAIL: [number, number][][] = [[[SPAWN.x, SPAWN.z], [4, 0], [7, -40], [TOWER.x, TOWER.z + 12]]];
-/** The slab's soft-respawn box. */
-export const BOUNDS = { x0: -240, x1: 240, z0: -240, z1: 240, floor: -20 };
+/** Every coordinate in Signal Dunes, in metres. The spawn faces −Z (yaw 0), towards the tower. */
+export const SEED = 5363;
+export const SPAWN = { x: 0, z: 70, yaw: 0 };
+/** The wooden signal tower on the far crest, 145 m ahead of the spawn. */
+export const TOWER = { x: 8, z: -75, deck: 7, half: 1.8 };
+/** Where the dune ray first glides in. */
+export const RAY_HOME = { x: -18, z: 30 };
+/** The crests the spawn and the tower sit on: a raised pad of `r` metres. */
+export const CRESTS = [{ x: SPAWN.x, z: SPAWN.z, r: 26, lift: 1.5 }, { x: TOWER.x, z: TOWER.z, r: 28, lift: 2 }];
+/** The crest path from the spawn to the tower. */
+export const TRAIL: [number, number][][] = [[[SPAWN.x, SPAWN.z], [4, 0], [TOWER.x, TOWER.z + 6]]];
+/** The playable square and the painted ground around it. */
+export const PLAY_HALF = 150;
+export const GROUND_HALF = 240;

@@ -1,78 +1,69 @@
-import { Color, Float32BufferAttribute, Fog, Mesh, MeshStandardMaterial, PlaneGeometry, Vector3, type Material, type Object3D } from 'three';
-import { DayCycle, patchShader, PATCH_ORDER, type LookStrategy, type Scope } from '#engine';
-import { sandColor } from '../world/dunes';
-import { buildDome, GLOW_DIR } from './sky';
+import { BackSide, Color, Float32BufferAttribute, Fog, Mesh, MeshStandardMaterial, PlaneGeometry, ShaderMaterial, SphereGeometry, Vector3 } from 'three';
+import { DayCycle, patchShader, PATCH_ORDER, type LookStrategy } from '#engine';
+import { GROUND_HALF } from '../layout';
+import { SKY_FRAGMENT, SKY_VERTEX, SUN_GLOW } from './sky';
 
-/** Dusk fog: a mauve-orange haze that hides the slab edge and warms the far dunes. */
-const FOG = { color: 0xb8673e, near: 60, far: 420 };
-/** The key light: the afterglow, low in the north-west, orange and weak; the hemisphere fill (manifest) is indigo. */
-const KEY = { dir: new Vector3(GLOW_DIR.x, 0.16, GLOW_DIR.z).normalize(), color: new Color(1, 0.52, 0.28), intensity: 2.6 };
+/** Dusk, just after sunset: the light's direction (towards a sun 5° up, ahead-left of the spawn view). */
+export const KEY = { dir: new Vector3(-0.55, 0.09, -0.83).normalize(), color: new Color(1, 0.52, 0.3), intensity: 1.25 } as const;
+export const FOG = { color: 0x7a4656, near: 70, far: 330 } as const;
+const SAND = new Color(0.46, 0.18, 0.075), HOLLOW = new Color(0.17, 0.12, 0.2), CREST = new Color(0.6, 0.27, 0.11);
 
-function isMesh(object: Object3D): object is Mesh { return object instanceof Mesh; }
-function materials(mesh: Mesh): Material[] { return Array.isArray(mesh.material) ? mesh.material : [mesh.material]; }
-
-/** Distance fog through the patch API (the engine's fog chain stays as it is: the atmosphere densities are 0). */
-function fogPatch(material: Material, scope: Scope): void {
-  patchShader(material, 'sunscar.dusk-fog', PATCH_ORDER.decorate, (shader) => {
-    shader.fragmentShader = shader.fragmentShader.replace('#include <fog_fragment>',
-      `#ifdef USE_FOG\n float duskFog = smoothstep(${FOG.near.toFixed(1)}, ${FOG.far.toFixed(1)}, length(vFogWorldPos - cameraPosition));\n gl_FragColor.rgb = mix(gl_FragColor.rgb, fogColor, duskFog * duskFog * (3.0 - 2.0 * duskFog));\n#endif`);
-  }, { scope });
+/** The day clock: Signal Dunes holds at dusk (the clock is never advanced). */
+function duskClock(): DayCycle {
+  return new DayCycle({ units: 'hour', start: 19,
+    schedule: [{ phase: 'day', from: 0, to: 24, minutes: 24 * 60 }],
+    sun: { maxElevation: 60, azimuthOffset: 250 },
+    fixed: { midday: 12, golden: 18, sunset: 19, night: 0 }, presets: { dawn: 6, noon: 12, dusk: 19, night: 0 } });
 }
 
-/** Wind ripples on the sand: a fine normal ripple near the camera, warped so it follows the dunes' cross-wind lines. */
-function sandPatch(material: Material, scope: Scope): void {
-  patchShader(material, 'sunscar.sand-ripples', PATCH_ORDER.decorate, (shader) => {
-    // The world position is the engine fog chunk's varying (the sand always has fog: the look sets scene.fog).
-    shader.fragmentShader = shader.fragmentShader.replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
-      #ifdef USE_FOG
-      {
-        vec3 vSandWorld = vFogWorldPos;
-        vec2 p = vSandWorld.xz;
-        float warp = sin(p.x * 0.11 + sin(p.y * 0.05) * 2.0) * 1.6 + sin(p.x * 0.031 - p.y * 0.017) * 4.0;
-        float phase = (p.y + warp) * 7.5;
-        float fade = 1.0 - smoothstep(5.0, 24.0, length(vSandWorld - cameraPosition));
-        // Anti-alias: drop the ripple where it is finer than a few pixels.
-        fade *= 1.0 - smoothstep(0.08, 0.3, fwidth(phase) / 6.2832);
-        vec3 bend = vec3(0.0, 0.0, cos(phase)) * 0.16 * fade;
-        normal = normalize(normal + (viewMatrix * vec4(bend, 0.0)).xyz);
-        diffuseColor.rgb *= 1.0 + sin(phase) * 0.04 * fade;
-      }
-      #endif`);
-  }, { scope });
-}
-
-/** Signal Dunes' look: extends the engine's clean chain with a dusk dome, dusk fog and a rippled sand painter. */
-export function duskLook(): LookStrategy {
-  return {
-    mode: 'extend',
+/**
+ * Signal Dunes' look (`extend`): the engine's clean chain, a dusk dome (an orange band under violet and indigo with
+ * the first stars), violet distance fog, a low warm key light, and dark orange sand with cool hollows and ripples.
+ */
+export function signalDunesLook(): LookStrategy {
+  return { mode: 'extend',
     compose: ({ engineChain, scene, scope }) => {
-      const dome = buildDome(); scene.add(dome);
-      scope.own(dome.geometry); for (const m of materials(dome)) scope.own(m); scope.onDispose(() => { dome.removeFromParent(); });
-      scene.fog = new Fog(new Color(FOG.color), FOG.near, FOG.far);
-      scene.traverse((object) => { if (!isMesh(object) || object === dome || object.userData['noFog'] === true) return; for (const m of materials(object)) fogPatch(m, scope); });
+      const dome = new Mesh(new SphereGeometry(600, 32, 16), new ShaderMaterial({ side: BackSide, depthWrite: false, depthTest: false, fog: false,
+        uniforms: { uSun: { value: SUN_GLOW.clone() } }, vertexShader: SKY_VERTEX, fragmentShader: SKY_FRAGMENT }));
+      dome.renderOrder = -1000; dome.frustumCulled = false;
+      scene.add(dome); scene.fog = new Fog(new Color(FOG.color), FOG.near, FOG.far);
+      scope.own(dome.geometry); scope.own(dome.material);
+      scope.onDispose(() => { dome.removeFromParent(); scene.fog = null; });
       return { chain: engineChain('clean') };
     },
     sky: { clouds: false, planet: false },
     backdrop: ({ sky }) => {
-      // Dusk is held: the clock stays at 19:00 and the key light is authored, not computed from it.
-      const clock = new DayCycle({ units: 'hour', start: 19, schedule: [{ phase: 'day', from: 0, to: 24, minutes: 24 }],
-        sun: { maxElevation: 50, azimuthOffset: 265 }, fixed: { midday: 12, golden: 17, sunset: 18.5, night: 0 }, presets: { dawn: 6, noon: 12, dusk: 19, night: 0 } });
-      return Promise.resolve({ clock, horizon: new Color(0.62, 0.2, 0.08), lut: null,
+      const clock = duskClock();
+      return Promise.resolve({ clock, horizon: new Color(FOG.color), lut: null,
         bind: () => undefined, update: () => { sky.setKeyLight(KEY.dir, KEY.color, KEY.intensity); },
         rebuild: () => undefined, attachPost: () => undefined });
     },
     terrainPainter: { build: (terrain, field, scope) => {
-      const size = 480, segments = 200, geometry = new PlaneGeometry(size, size, segments, segments); geometry.rotateX(-Math.PI / 2);
+      const segments = 192, geometry = new PlaneGeometry(GROUND_HALF * 2, GROUND_HALF * 2, segments, segments); geometry.rotateX(-Math.PI / 2);
       scope.own(geometry);
-      const pos = geometry.getAttribute('position'), colors = new Float32Array(pos.count * 3), rgb = [0, 0, 0];
+      const pos = geometry.getAttribute('position'), colors = new Float32Array(pos.count * 3), c = new Color();
       for (let i = 0; i < pos.count; i++) {
-        const h = field.heightAt(pos.getX(i), pos.getZ(i)); pos.setY(i, h);
-        sandColor(h, rgb); colors[i * 3] = rgb[0] ?? 0; colors[i * 3 + 1] = rgb[1] ?? 0; colors[i * 3 + 2] = rgb[2] ?? 0;
+        const x = pos.getX(i), z = pos.getZ(i), h = field.heightAt(x, z); pos.setY(i, h);
+        // Hollow vs crest: this vertex against the mean of a 14 m ring around it.
+        const mean = (field.heightAt(x + 14, z) + field.heightAt(x - 14, z) + field.heightAt(x, z + 14) + field.heightAt(x, z - 14)) / 4;
+        const rel = Math.max(-1, Math.min(1, (h - mean) / 2.5));
+        c.copy(SAND); if (rel < 0) c.lerp(HOLLOW, -rel * 0.75); else c.lerp(CREST, rel * 0.5);
+        colors[i * 3] = c.r; colors[i * 3 + 1] = c.g; colors[i * 3 + 2] = c.b;
       }
-      geometry.setAttribute('color', new Float32BufferAttribute(colors, 3)); geometry.computeVertexNormals();
+      geometry.setAttribute('color', new Float32BufferAttribute(colors, 3));
+      geometry.computeVertexNormals();
       const material = new MeshStandardMaterial({ vertexColors: true, roughness: 0.96, metalness: 0 }); scope.own(material);
-      sandPatch(material, scope);
-      const mesh = new Mesh(geometry, material); mesh.receiveShadow = false; // a 9° key light acnes the sand into bands mesh.name = 'sunscar.sand';
+      patchShader(material, 'sunscar.ripples', PATCH_ORDER.decorate, (shader) => {
+        shader.vertexShader = shader.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vSandPos;')
+          .replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvSandPos = (modelMatrix * vec4(transformed, 1.0)).xyz;');
+        shader.fragmentShader = shader.fragmentShader.replace('#include <common>', '#include <common>\nvarying vec3 vSandPos;')
+          .replace('#include <color_fragment>', `#include <color_fragment>
+  float sandFar = length(vSandPos - cameraPosition);
+  float sandWarp = sin(vSandPos.x * 0.07) * 2.3 + sin(vSandPos.x * 0.023 + vSandPos.z * 0.05) * 3.0;
+  float sandRipple = sin((vSandPos.z + sandWarp) * 2.1 + sin(vSandPos.x * 0.31) * 0.8);
+  diffuseColor.rgb *= 1.0 + 0.11 * sandRipple * (1.0 - smoothstep(25.0, 140.0, sandFar));`);
+      }, { scope });
+      const mesh = new Mesh(geometry, material); mesh.receiveShadow = false;
       terrain.group.add(mesh); terrain.mesh = mesh; terrain.material = material;
       return Promise.resolve();
     } },

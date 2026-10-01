@@ -1,91 +1,104 @@
-import { Weapon, blocks, type Actor, type Targets, type TargetAnimal, type WeaponState, type App, type EquipContext } from '#engine';
-import { Matrix4, Vector2, Vector3 } from 'three';
+import { Weapon, blocks, type Actor, type Animal, type App, type EquipContext, type Targets, type TargetAnimal, type WeaponState } from '#engine';
+import { Vector2, Vector3 } from 'three';
 import { WHIP_ROW } from './rows';
-import { buildWhip } from './whipModel';
+import { buildWhipModel, type WhipParts } from './whipModel';
 
-const AIM = new Vector3(), INV = new Matrix4(), FORWARD = new Vector3(0, 0, -1);
-/** Tuning: the light crack reaches far down a narrow line; the double crack lands twice. */
-export const WHIP = { reach: 7, heavyReach: 8, width: 0.75, light: 18, heavy: 16, cooldown: 0.45, heavyCooldown: 0.9, second: 0.14, crack: 0.18, chargeTime: 0.5 };
+/** What the whip resolves a ray hit to: the combat actor and, when it is a creature, its body for the stagger. */
+export interface WhipTarget { actor: Actor; animal: Animal | null }
 
-/** A custom weapon (SHARDS §5 rung 3): `blocks.viewmodel` for the sway, `blocks.melee` for contact through the pipeline. */
+/** The crack's numbers (metres, seconds, hit points). */
+export const CRACK = { reach: 7, heavyReach: 8, width: 0.9, light: 18, heavy: 16, cooldown: 0.45, heavyCooldown: 0.9,
+  unroll: 0.12, second: 0.32, show: 0.42, charge: 0.6, stagger: 0.8 } as const;
+
+/**
+ * The bullwhip (rung 3, `extends Weapon`): a light crack is one long, narrow lash to the crosshair; the heavy is a
+ * double crack whose second lash staggers a creature. Desktop: Attack = Mouse0 / F, Heavy = Mouse2 (inherited from
+ * `weapon.melee`). Touch: a tap cracks, a still hold fills the charge ring and its release throws the double crack.
+ */
 export class Bullwhip extends Weapon {
-  override readonly state: WeaponState = { ammo: undefined, magazine: 0, reserve: 0, loaded: true, reloading: false, reloadProgress: 0, ads: false };
+  override readonly model; override readonly state: WeaponState = { ammo: undefined, magazine: 0, reserve: 0, loaded: true, reloading: false, reloadProgress: 0, ads: false };
   override holster = 0; override enabled = true; override adsHeld = false; override aimInfo = null;
-  override readonly model; private readonly parts = buildWhip();
   onSwing: ((heavy: boolean) => void) | null = null;
-  /** The last crack, for tests and captures: how far the lash flew and whether it landed. */
-  lastCrack: { heavy: boolean; reach: number; hit: boolean } | null = null;
-  private cooldown = 0; private crackT = 0; private crackReach = 0; private secondIn = -1;
-  private held = 0; private wasHeld = false;
-  private readonly app: App; private readonly targets: Targets | null; private readonly actorFor: (animal: TargetAnimal) => Actor | null;
-  private readonly spring = { yaw: 0, pitch: 0, yawVelocity: 0, pitchVelocity: 0 };
-  private readonly vm = blocks.viewmodel({ gain: 0.012, clampYaw: 0.12, clampPitch: 0.1, k: 45, c: 11 });
+  readonly parts: WhipParts;
+  private readonly app: App; private readonly targets: Targets | null; private readonly resolve: (animal: TargetAnimal) => WhipTarget | null;
   private readonly contact: ReturnType<typeof blocks.melee>;
-  override get charge(): number { return Math.min(1, this.held / WHIP.chargeTime); }
-
-  constructor(app: App, targets: Targets | null = null, actorFor: (animal: TargetAnimal) => Actor | null = () => null) {
-    super(WHIP_ROW); this.app = app; this.targets = targets; this.actorFor = actorFor; this.model = this.parts.model;
+  private readonly vm = blocks.viewmodel({ gain: 0.012, clampYaw: 0.12, clampPitch: 0.1, k: 46, c: 11 });
+  private readonly spring = { yaw: 0, pitch: 0, yawVelocity: 0, pitchVelocity: 0 };
+  private cooldown = 0; private held = 0; private wasHeld = false;
+  /** Time since the current crack started, or −1 when idle. */
+  private crackT = -1; private crackHeavy = false; private landed = 0; private time = 0;
+  private readonly from = new Vector3(); private readonly end = new Vector3();
+  constructor(app: App, targets: Targets | null = null, resolve: (animal: TargetAnimal) => WhipTarget | null = () => null) {
+    super(WHIP_ROW); this.app = app; this.targets = targets; this.resolve = resolve;
     this.contact = blocks.melee(app.combat); this.blocks.vm = this.vm; this.blocks.melee = this.contact;
+    this.parts = buildWhipModel(); this.model = this.parts.root;
+    this.model.position.set(0.11, -0.2, -0.42);
   }
-
+  override get charge(): number { return Math.min(1, this.held / CRACK.charge); }
   override install(ctx: EquipContext): void {
     super.install(ctx);
     this.app.input.bind('attack', () => { this.tryFire(); }, ctx.scope, () => this.enabled);
-    this.app.input.bind('heavy', () => { this.crack(true); }, ctx.scope, () => this.enabled);
-    ctx.scope.onDispose(() => { this.wasHeld = false; this.held = 0; this.secondIn = -1; });
+    this.app.input.bind('heavy', () => { this.swing(true); }, ctx.scope, () => this.enabled);
+    ctx.scope.onDispose(() => { this.wasHeld = false; this.held = 0; this.crackT = -1; });
   }
-
-  override tryFire(): void { this.crack(false); }
-
-  private crack(heavy: boolean): void {
-    if (this.cooldown > 0 || !this.enabled) return;
-    this.cooldown = heavy ? WHIP.heavyCooldown : WHIP.cooldown;
-    this.crackT = WHIP.crack; this.crackReach = heavy ? WHIP.heavyReach : WHIP.reach; this.secondIn = heavy ? WHIP.second : -1;
-    this.onSwing?.(heavy);
-    this.lastCrack = { heavy, reach: this.crackReach, hit: this.lash(heavy) };
+  override tryFire(): void { this.swing(false); }
+  /** Starts a crack; the lash lands `CRACK.unroll` s later (and again at `CRACK.second` for the heavy). */
+  swing(heavy: boolean): boolean {
+    if (this.cooldown > 0 || !this.enabled) return false;
+    this.cooldown = heavy ? CRACK.heavyCooldown : CRACK.cooldown; this.crackT = 0; this.crackHeavy = heavy; this.landed = 0;
+    this.onSwing?.(heavy); return true;
   }
-
-  /** One lash down the crosshair: the nearest creature on the line within reach takes the hit. */
-  private lash(heavy: boolean): boolean {
-    const host = this.app.equipmentHost; if (host === null || this.targets === null) return false;
-    const from = host.game.camera.position.clone(), dir = new Vector3(); host.game.camera.getWorldDirection(dir);
-    const reach = heavy ? WHIP.heavyReach : WHIP.reach;
-    const hit = this.targets.raycast(from, dir, reach); if (hit?.animal === undefined) return false;
-    const actor = this.actorFor(hit.animal); if (actor === null) return false;
-    return this.strike(actor, hit.point, dir, from, heavy);
+  /** One lash lands: a narrow lane from the eye along the view, `reach` metres long. */
+  private land(second: boolean): void {
+    const host = this.app.equipmentHost; if (host === null || this.targets === null) return;
+    const camera = host.game.camera, from = camera.position.clone(), dir = new Vector3(); camera.getWorldDirection(dir);
+    const reach = this.crackHeavy ? CRACK.heavyReach : CRACK.reach;
+    const hit = this.targets.raycast(from, dir, reach); if (hit?.animal === undefined) return;
+    const target = this.resolve(hit.animal); if (target === null) return;
+    this.strike(target, hit.point, dir, from, this.crackHeavy, second); this.onFire?.();
   }
-
-  /** Contact for a crack that reached `point`: inside the narrow line and the reach, through the damage pipeline. */
-  strike(actor: Actor, point: Vector3, dir: Vector3, from: Vector3, heavy: boolean): boolean {
-    const delta = point.clone().sub(from), forward = delta.dot(dir), reach = heavy ? WHIP.heavyReach : WHIP.reach;
-    if (forward < 0 || forward > reach || delta.addScaledVector(dir, -forward).length() > WHIP.width) return false;
+  /** Damage through the pipeline; the heavy's second lash staggers a living creature (ENGINE §18, `animal.stagger`). */
+  strike(target: WhipTarget, point: Vector3, dir: Vector3, from: Vector3, heavy: boolean, second = false): boolean {
+    const reach = heavy ? CRACK.heavyReach : CRACK.reach, delta = point.clone().sub(from), forward = delta.dot(dir);
+    if (forward < 0 || forward > reach || delta.addScaledVector(dir, -forward).length() > CRACK.width) return false;
+    const { actor, animal } = target;
     const result = this.contact.hit({ source: 'env', sourceTags: ['actor.player', 'weapon.sunscar-whip', 'dmg.melee'], target: actor,
-      amount: heavy ? WHIP.heavy : WHIP.light, point, dir, from, weaponId: this.row.id,
-      moveId: heavy ? 'sunscar.whip.double' : 'sunscar.whip.crack', surface: 'flesh' });
+      amount: heavy ? CRACK.heavy : CRACK.light, point, dir, from, weaponId: this.row.id,
+      moveId: heavy ? (second ? 'sunscar.whip.double.2' : 'sunscar.whip.double.1') : 'sunscar.whip.crack', surface: 'flesh' });
     if (result === null) return false;
-    this.onHit?.(actor.id, false, result.killed); this.onFire?.();
+    this.onHit?.(actor.id, false, result.killed);
+    if (heavy && second && !result.killed && animal !== null) animal.stagger(dir, CRACK.stagger);
     return true;
   }
-
   override update(dt: number): void {
-    this.cooldown = Math.max(0, this.cooldown - dt);
-    // Touch: a still ATTACK hold raises adsHeld and fills the charge ring; letting go throws the double crack.
-    if (!this.enabled || this.holster > 0.001) { this.wasHeld = false; this.held = 0; this.secondIn = -1; }
+    this.time += dt; this.cooldown = Math.max(0, this.cooldown - dt);
+    const drawn = this.enabled && this.holster <= 0.001;
+    if (!drawn) { this.wasHeld = false; this.held = 0; }
     else if (this.adsHeld) this.held += dt;
-    else if (this.wasHeld) { if (this.held >= WHIP.chargeTime) { this.cooldown = 0; this.crack(true); } this.held = 0; }
-    this.wasHeld = this.enabled && this.holster <= 0.001 && this.adsHeld;
-    if (this.secondIn >= 0) { this.secondIn -= dt; if (this.secondIn < 0) { this.crackT = WHIP.crack; this.lash(true); } }
-    // The crack: the coil snaps out to the reach along the crosshair, then falls back into the coil.
-    this.crackT = Math.max(0, this.crackT - dt);
-    const out = this.crackT > 0, p = out ? 1 - this.crackT / WHIP.crack : 0;
-    this.parts.coil.visible = !out; this.parts.lash.visible = out;
-    this.vm.step(this.spring, new Vector2(), dt);
-    this.model.rotation.y = -0.25 + this.spring.yaw; this.model.rotation.x = 0.05 + (out ? -0.25 * (1 - p) : 0) + this.spring.pitch;
-    if (out) {
-      // Aim the lash (model space) at the crosshair point `reach` metres ahead in camera space.
-      const lash = this.parts.lash, extend = Math.sin(Math.min(1, p * 1.6) * Math.PI * 0.5);
-      this.model.updateMatrix(); AIM.set(0, 0, -this.crackReach).applyMatrix4(INV.copy(this.model.matrix).invert()).sub(lash.position);
-      lash.scale.set(1, 1, Math.max(0.05, extend * AIM.length())); lash.quaternion.setFromUnitVectors(FORWARD, AIM.normalize());
-    }
+    else if (this.wasHeld) { this.cooldown = 0; this.swing(true); this.held = 0; }
+    this.wasHeld = drawn && this.adsHeld;
+    this.model.visible = this.holster < 0.5;
+    this.vm.step(this.spring, new Vector2(), dt); this.model.rotation.y = this.spring.yaw;
+    this.animate(dt);
+  }
+  private animate(dt: number): void {
+    const { grip, coil, lash, tip } = this.parts;
+    if (this.crackT < 0) { lash.mesh.visible = false; coil.visible = true; grip.position.set(0, 0, 0); return; }
+    this.crackT += dt;
+    const t = this.crackT, double = this.crackHeavy;
+    if (this.landed === 0 && t >= CRACK.unroll) { this.landed = 1; this.land(false); }
+    if (double && this.landed === 1 && t >= CRACK.second) { this.landed = 2; this.land(true); }
+    const length = double ? CRACK.show + CRACK.second - CRACK.unroll : CRACK.show;
+    if (t > length) { this.crackT = -1; return; }
+    // The flick: the hand snaps forward on each lash, the lash unrolls to the crosshair, then falls slack.
+    const local = double && t > CRACK.second - 0.08 ? t - (CRACK.second - CRACK.unroll) : t;
+    const ext = Math.min(1, local / CRACK.unroll), slack = Math.max(0, (local - CRACK.unroll) / (CRACK.show - CRACK.unroll));
+    grip.position.set(0, ext < 1 ? 0.03 * ext : 0.03 * (1 - slack), ext < 1 ? -0.04 * ext : -0.04 * (1 - slack));
+    coil.visible = false; lash.mesh.visible = true;
+    this.from.copy(tip).add(grip.position);
+    const reach = double ? CRACK.heavyReach : CRACK.reach;
+    // The far end sits on the crosshair: the model's origin is offset from the eye, so aim back at the view axis.
+    this.end.set(-this.model.position.x, -this.model.position.y - slack * 1.5, -reach + 0.42 + slack * 2);
+    lash.shape(this.from, this.end, Math.min(1, ext * (1 - slack * 0.35)), 0.25 + slack * 0.4, this.time);
   }
 }

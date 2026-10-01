@@ -1,14 +1,5 @@
-// An SVG data URL keeps the card and Explore art bundled (no download): dusk sky, a dune line, the tower.
-const svg = (w: number, h: number): string => {
-  const crest = h * 0.62;
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"><defs><linearGradient id="s" x1="0" y1="0" x2="0" y2="1">`
-    + `<stop offset="0" stop-color="#141a3c"/><stop offset="0.55" stop-color="#3a2c5c"/><stop offset="0.72" stop-color="#d06a34"/><stop offset="0.8" stop-color="#f09a4a"/></linearGradient>`
-    + `<linearGradient id="d" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9a5a34"/><stop offset="1" stop-color="#3e2a2c"/></linearGradient></defs>`
-    + `<rect width="${w}" height="${h}" fill="url(#s)"/>`
-    + `<path d="M0 ${crest} Q${w * 0.3} ${crest - h * 0.06} ${w * 0.55} ${crest - h * 0.01} T${w} ${crest - h * 0.03} V${h} H0Z" fill="url(#d)"/>`
-    + `<path d="M${w * 0.64} ${crest - h * 0.02} v-${h * 0.09} m-${w * 0.03} 0 h${w * 0.06} m-${w * 0.03} 0 v-${h * 0.04}" stroke="#1b1424" stroke-width="${w * 0.008}" fill="none"/>`
-    + `<circle cx="${w * 0.64}" cy="${crest - h * 0.115}" r="${w * 0.012}" fill="#ffb347"/></svg>`;
-};
-export const DUSK_CARD = `data:image/svg+xml,${encodeURIComponent(svg(390, 844))}`;
-export const DUSK_WIDE = `data:image/svg+xml,${encodeURIComponent(svg(640, 360))}`;
+// SVG data URLs: Signal Dunes ships no downloadable art (the card is bundled, ENGINE §8).
+const svg = (w: number, h: number): string => `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 390 844" preserveAspectRatio="xMidYMid slice"><defs><linearGradient id="s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#14183a"/><stop offset="0.38" stop-color="#3b2c5e"/><stop offset="0.5" stop-color="#9a4f52"/><stop offset="0.56" stop-color="#e48a4a"/></linearGradient><linearGradient id="d" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a5552c"/><stop offset="1" stop-color="#4a2a2c"/></linearGradient></defs><rect width="390" height="844" fill="url(#s)"/><path d="M0 470 C90 440 160 455 230 445 C300 436 350 450 390 446 V844 H0Z" fill="#5e3a42"/><path d="M0 520 C120 470 220 500 390 480 V844 H0Z" fill="url(#d)"/><path d="M0 640 C140 590 260 620 390 600 V844 H0Z" fill="#7a3f2a" opacity="0.8"/><path d="M286 452 l6 -40 h10 l6 40 M289 430 h16 M297 412 v-14" stroke="#1f1522" stroke-width="3" fill="none"/><circle cx="297" cy="398" r="4" fill="#ffb15a"/><path d="M90 250 q30 -14 60 0 q-30 -4 -60 0" fill="#1a1428"/></svg>`)}`;
+export const DUSK_CARD = svg(390, 844);
+export const DUSK_WIDE = svg(1280, 720);
 export const EXPLORE = { art: { world: DUSK_CARD, models: DUSK_CARD, sets: DUSK_CARD, practice: DUSK_CARD } };

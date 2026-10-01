@@ -1,62 +1,76 @@
-import { Vector3, BoxGeometry, ConeGeometry, CylinderGeometry, Group, Mesh, MeshBasicMaterial, MeshStandardMaterial, PointLight, type Material } from 'three';
+import { BoxGeometry, ConeGeometry, CylinderGeometry, Group, Mesh, MeshBasicMaterial, MeshStandardMaterial, PointLight, Vector3, type Material } from 'three';
+import { boxDesc, type ColliderDesc } from '#engine';
+import { TOWER } from '../layout';
 
-/** Stair geometry rules (ENGINE §14): rise ≤ 0.35 m, tread ≥ 0.36 m. */
-export const STAIR = { rise: 0.32, run: 0.4, width: 1.3 };
-export interface TowerModel { group: Group; fire: Group; light: PointLight; flames: Mesh[]; stairSteps: number }
+const WOOD = 0x4a2e1e, WOOD_DARK = 0x2c1b14, IRON = 0x231c1c;
+export const STAIR = { count: 22, run: 0.42, width: 1.3, x: 0.75 } as const;
 
-const UP = new Vector3(0, 1, 0);
-const box = (w: number, h: number, d: number, m: Material): Mesh => new Mesh(new BoxGeometry(w, h, d), m);
-/** A beam from a to b (local metres), `t` thick. */
-function beam(a: readonly [number, number, number], b: readonly [number, number, number], t: number, m: Material): Mesh {
-  const dx = b[0] - a[0], dy = b[1] - a[1], dz = b[2] - a[2], len = Math.hypot(dx, dy, dz);
-  const mesh = box(t, len, t, m); mesh.position.set((a[0] + b[0]) / 2, (a[1] + b[1]) / 2, (a[2] + b[2]) / 2);
-  mesh.quaternion.setFromUnitVectors(UP, new Vector3(dx / len, dy / len, dz / len));
-  return mesh;
-}
+export interface TowerParts { root: Group; colliders: ColliderDesc[]; fire: Group; light: PointLight; brazierAt: Vector3; deckY: number }
+
+const box = (w: number, h: number, d: number, material: Material): Mesh => new Mesh(new BoxGeometry(w, h, d), material);
 
 /**
- * The signal tower in local space (origin at its foot, the stair on +Z): four timber legs, X-braces, a plank deck at
- * `deck` m, a rail, a mast with a crossbar, an iron brazier. `drop` is how far the stair foot sits below the tower's foot.
+ * The signal tower: four legs to a 7 m deck, cross braces, a rail, a mast with a crossbar, a south stair (treads)
+ * and an iron brazier whose fire shows once lit. Built in world coordinates at `TOWER`, on ground `y` metres high.
  */
-export function buildTower(deck: number, half: number, drop: number): TowerModel {
-  const group = new Group(); group.name = 'sunscar.tower';
-  const wood = new MeshStandardMaterial({ color: 0x7a5236, roughness: 0.92, flatShading: true });
-  const plank = new MeshStandardMaterial({ color: 0x8a6040, roughness: 0.9, flatShading: true });
-  const iron = new MeshStandardMaterial({ color: 0x241c18, roughness: 0.6, metalness: 0.5 });
-  const top = half * 0.72;
-  for (const sx of [-1, 1]) for (const sz of [-1, 1]) group.add(beam([sx * half, -1.2, sz * half], [sx * top, deck + 1.1, sz * top], 0.22, wood));
-  const at = (y: number): number => half + (top - half) * (y + 1.2) / (deck + 2.3);
-  // X-braces on every face; the south (stair) face only below the stair's sweep.
-  for (const [y0, y1] of [[0.2, deck * 0.5], [deck * 0.5, deck - 0.3]] as const) {
-    for (const s of [-1, 1]) {
-      if (s > 0 && y1 > deck * 0.6) continue;
-      group.add(beam([-at(y0), y0, s * at(y0)], [at(y1), y1, s * at(y1)], 0.12, wood), beam([at(y0), y0, s * at(y0)], [-at(y1), y1, s * at(y1)], 0.12, wood));
+export function buildTower(y: number, groundAt: (x: number, z: number) => number): TowerParts {
+  const root = new Group(), colliders: ColliderDesc[] = [];
+  const wood = new MeshStandardMaterial({ color: WOOD, roughness: 0.9, flatShading: true });
+  const dark = new MeshStandardMaterial({ color: WOOD_DARK, roughness: 0.95, flatShading: true });
+  const iron = new MeshStandardMaterial({ color: IRON, roughness: 0.6, metalness: 0.4, flatShading: true });
+  const { x: cx, z: cz, deck, half } = TOWER, deckY = y + deck;
+  const add = (mesh: Mesh, x: number, my: number, z: number): Mesh => { mesh.position.set(cx + x, my, cz + z); root.add(mesh); return mesh; };
+  for (const [sx, sz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]] as const) {
+    const x = sx * half, z = sz * half, foot = Math.min(y, groundAt(cx + x, cz + z)) - 0.6, h = deckY - foot;
+    add(box(0.24, h, 0.24, wood), x, foot + h / 2, z);
+    colliders.push(boxDesc({ x: cx + x, z: cz + z, hw: 0.12, hd: 0.12, rot: 0, yBottom: foot, yTop: deckY }, 'wood'));
+  }
+  // Diagonal braces on the four faces, two tiers.
+  for (const tier of [0, 1]) {
+    const y0 = y + 0.6 + tier * 3.1, span = Math.hypot(half * 2, 3.1), tilt = Math.atan2(3.1, half * 2);
+    for (const [side, along] of [[-1, 'x'], [1, 'x'], [-1, 'z'], [1, 'z']] as const) {
+      const brace = box(0.1, 0.12, span, dark);
+      if (along === 'x') { brace.rotation.set(0, Math.PI / 2, 0); brace.rotateX(tier === 0 ? -tilt : tilt); add(brace, 0, y0 + 1.55, side * half); }
+      else { brace.rotateX(tier === 0 ? -tilt : tilt); add(brace, side * half, y0 + 1.55, 0); }
     }
-    for (const s of [-1, 1]) group.add(beam([s * at(y0), y0, -at(y0)], [s * at(y1), y1, at(y1)], 0.12, wood), beam([s * at(y0), y0, at(y0)], [s * at(y1), y1, -at(y1)], 0.12, wood));
   }
-  const floor = box(top * 2 + 0.6, 0.18, top * 2 + 0.6, plank); floor.position.y = deck - 0.09; group.add(floor);
-  for (const s of [-1, 1]) {
-    const rx = box(0.08, 0.08, top * 2 + 0.6, wood); rx.position.set(s * (top + 0.3), deck + 1, 0); group.add(rx);
-    const rz = box(top * 2 + 0.6, 0.08, 0.08, wood); rz.position.set(0, deck + 1, -(top + 0.3)); if (s < 0) group.add(rz);
+  // The deck and its rail (open on the south, where the stair lands).
+  add(box(half * 2 + 0.6, 0.2, half * 2 + 0.6, wood), 0, deckY - 0.1, 0);
+  colliders.push(boxDesc({ x: cx, z: cz, hw: half + 0.3, hd: half + 0.3, rot: 0, yBottom: deckY - 0.2, yTop: deckY }, 'wood'));
+  const railH = 1.0, edge = half + 0.25;
+  for (const [x, z, w, d] of [[0, -edge, edge * 2, 0.08], [-edge, 0, 0.08, edge * 2], [edge, 0, 0.08, edge * 2], [-edge * 0.6, edge, edge * 0.8, 0.08]] as const) {
+    add(box(w, 0.08, d, dark), x, deckY + railH, z);
+    colliders.push(boxDesc({ x: cx + x, z: cz + z, hw: Math.max(0.04, w / 2), hd: Math.max(0.04, d / 2), rot: 0, yBottom: deckY, yTop: deckY + railH }, 'wood'));
   }
-  const mast = box(0.16, 4.2, 0.16, wood); mast.position.set(-top + 0.2, deck + 2.1, -top + 0.2); group.add(mast);
-  const bar = box(1.6, 0.1, 0.1, wood); bar.position.set(-top + 0.2, deck + 3.5, -top + 0.2); group.add(bar);
-  // The stair: one box per tread down the south face to the stair foot.
-  const rise = deck + drop, steps = Math.max(1, Math.ceil(rise / STAIR.rise)), r = rise / steps;
-  for (let i = 0; i < steps; i++) {
-    const tread = box(STAIR.width, 0.08, STAIR.run + 0.04, plank);
-    tread.position.set(0, deck - (i + 1) * r + r - 0.04, top + 0.3 + (i + 0.5) * STAIR.run); group.add(tread);
+  for (const [x, z] of [[-edge, -edge], [edge, -edge], [-edge, edge], [edge, edge], [-edge * 0.2, edge]] as const) add(box(0.1, railH, 0.1, dark), x, deckY + railH / 2, z);
+  // The mast and its crossbar over the north-west corner.
+  add(box(0.14, 3.4, 0.14, wood), -half + 0.2, deckY + 1.7, -half + 0.2);
+  add(box(1.3, 0.1, 0.1, wood), -half + 0.2, deckY + 2.9, -half + 0.2);
+  // The south stair: 22 treads from the sand to the deck edge.
+  const top = new Vector3(cx + STAIR.x, deckY, cz + edge), foot = new Vector3(top.x, 0, top.z + STAIR.count * STAIR.run);
+  foot.y = groundAt(foot.x, foot.z);
+  const rise = (top.y - foot.y) / STAIR.count;
+  for (let i = 0; i < STAIR.count; i++) {
+    const tread = box(STAIR.width, 0.08, STAIR.run * 0.9, wood);
+    tread.position.set(foot.x, foot.y + (i + 1) * rise - 0.04, foot.z - (i + 0.5) * STAIR.run); root.add(tread);
   }
-  for (const s of [-1, 1]) group.add(beam([s * (STAIR.width / 2 + 0.05), deck - 0.1, top + 0.3], [s * (STAIR.width / 2 + 0.05), -drop - 0.1, top + 0.3 + steps * STAIR.run], 0.1, wood));
-  // The brazier and its (unlit) fire.
-  const bowl = new Mesh(new CylinderGeometry(0.5, 0.3, 0.4, 10, 1, true), iron); bowl.position.set(0, deck + 1.5, -0.6); group.add(bowl);
-  const stand = new Mesh(new CylinderGeometry(0.06, 0.12, 1.3, 6), iron); stand.position.set(0, deck + 0.65, -0.6); group.add(stand);
-  const fire = new Group(); fire.position.set(0, deck + 1.55, -0.6); fire.visible = false; group.add(fire);
-  const flames: Mesh[] = [];
-  for (const [h, rr, c, x] of [[1.8, 0.42, 0xe8480a, 0], [1.3, 0.28, 0xff8a1a, 0.08], [0.9, 0.18, 0xffc040, -0.06]] as const) {
-    const flame = new Mesh(new ConeGeometry(rr, h, 8, 1, true), new MeshBasicMaterial({ color: c, transparent: true, opacity: 0.92, depthWrite: false }));
-    flame.position.set(x, h / 2, 0); flame.userData['noFog'] = true; fire.add(flame); flames.push(flame);
+  const run = top.z - foot.z, length = Math.hypot(run, top.y - foot.y), pitch = Math.atan2(top.y - foot.y, -run);
+  for (const side of [-1, 1]) {
+    const stringer = box(0.08, 0.22, length, dark); stringer.rotation.x = pitch;
+    stringer.position.set(foot.x + side * (STAIR.width / 2 + 0.04), (foot.y + top.y) / 2, (foot.z + top.z) / 2); root.add(stringer);
   }
-  const light = new PointLight(0xff8a3a, 0, 32, 1.4); light.position.set(0, deck + 2.4, -0.6); group.add(light);
-  return { group, fire, light, flames, stairSteps: steps };
+  colliders.push({ kind: 'treads', from: { x: foot.x, y: foot.y, z: foot.z }, to: { x: top.x, y: top.y, z: top.z }, width: STAIR.width, count: STAIR.count, surface: 'wood' });
+  // The brazier: an iron bowl on a post, its fire hidden until the signal is lit.
+  const brazierAt = new Vector3(cx - 0.4, deckY + 1.1, cz - 0.5);
+  add(new Mesh(new CylinderGeometry(0.08, 0.12, 0.9, 6), iron), brazierAt.x - cx, deckY + 0.45, brazierAt.z - cz);
+  add(new Mesh(new CylinderGeometry(0.45, 0.22, 0.3, 8, 1, true), iron), brazierAt.x - cx, deckY + 1.0, brazierAt.z - cz);
+  colliders.push(boxDesc({ x: brazierAt.x, z: brazierAt.z, hw: 0.4, hd: 0.4, rot: 0, yBottom: deckY, yTop: deckY + 1.15 }, 'metal'));
+  const fire = new Group(); fire.position.copy(brazierAt);
+  const flame = (r: number, h: number, color: number, x: number, z: number): void => {
+    const cone = new Mesh(new ConeGeometry(r, h, 7), new MeshBasicMaterial({ color })); cone.position.set(x, h / 2, z); fire.add(cone);
+  };
+  flame(0.36, 1.3, 0xff7a1e, 0, 0); flame(0.22, 1.7, 0xffb347, 0.06, -0.04); flame(0.12, 1.0, 0xffe6a0, -0.08, 0.05);
+  const light = new PointLight(0xff8a3a, 0, 40, 1.6); light.position.set(0, 1.0, 0); fire.add(light);
+  fire.visible = false; root.add(fire);
+  return { root, colliders, fire, light, brazierAt, deckY };
 }
