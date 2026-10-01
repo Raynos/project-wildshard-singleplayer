@@ -45,7 +45,7 @@ function fixture(): ProbeWorld {
   const arena = fake<TrainingArena>({ targets: [], isActive: false });
   const registry = new WorldRegistry(); registry.add({ id: 'deck', name: 'Deck', category: 'buildings', file: 'fixture', surface: 'stone', colliders: [{ kind: 'box', x: 0, y: 0, z: 0, hx: 1, hy: 1, hz: 1 }] });
   return fake<ProbeWorld>({ game, player, physics, hud, animals, weapons, arena, registry,
-    chunk: fake<ShardManifest>({ slug: 'driftwood-isle', spawn: { x: 0, z: 0, yaw: 0 } }),
+    chunk: fake<ShardManifest>({ slug: 'driftwood-isle', budgets: {}, spawn: { x: 0, z: 0, yaw: 0 } }),
     audio: fake<Audio>({ samples: { set: 'best', loops: [], oneshots: [], sampleBed: false, underSample: false } }), music: fake<Music>({ style: 'synth', state: { shard: 'island', mode: 'menu', intensity: 0, underwater: false } }), ocean: 'ocean-handle', pier: null, jetties: [], boat: null, hut: null, lookout: null, wreck: null, shrine: null, bushes: null, gulls: null, bridge: null, bridgeDeck: null, cove: null, enemies: null, shrineHum: null, islandSfx: null,
   });
 }
@@ -59,7 +59,7 @@ describe('probe contract', () => {
   it('shares its exact declared type with scripts and captures the boot synchronously', () => {
     expectTypeOf<ScriptProbe>().toEqualTypeOf<WildshardProbe>();
     const world = fixture(), probe = installProbe(world, deps);
-    expect(Object.keys(probe).sort()).toEqual(['version', 'world', 'shard', 'boot', 'fingerprint', 'pose', 'walkLeg', 'combat', 'arena', 'state', 'onResume', 'saves', 'sounds', 'used', 'nav', 'leak', 'app'].sort());
+    expect(Object.keys(probe).sort()).toEqual(['version', 'world', 'shard', 'boot', 'fingerprint', 'pose', 'walkLeg', 'combat', 'arena', 'state', 'onResume', 'saves', 'sounds', 'used', 'nav', 'leak', 'app', 'budgets'].sort());
     expect(window.__wildshard).toBe(probe);
     expect(Reflect.has(window, '__world')).toBe(false);
     expect(probe.shard).toMatchObject({ slug: 'driftwood-isle', ocean: 'ocean-handle' });
@@ -98,6 +98,12 @@ describe('probe contract', () => {
   it('hashes sorted program keys using standard SHA-256', () => {
     expect(programHash('')).toBe('e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855');
     expect(programHash('abc')).toBe('ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad');
+  });
+  it('reports underived budget provenance without changing gameplay observations', () => {
+    const world = fixture(), probe = installProbe(world, deps), before = probe.state();
+    expect(probe.budgets(['fixture'])['fixture']).toMatchObject({ derived: null, ceiling: null, formula: { inputs: {} } });
+    expect(probe.state()).toEqual(before);
+    expect(world.game.renderer.info.render.calls).toBe(0);
   });
   it('hashes sorted linked shader pairs independently of cache keys and observes GLSL changes', () => {
     const a = { vertexShader: 'vertex-a', fragmentShader: 'fragment-a', cacheKey: 'callback source' };
