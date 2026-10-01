@@ -1,0 +1,3134 @@
+{
+  "clock": "raf",
+  "before": "20fcbf54745913fecd7696d993d012401aebab75",
+  "after": "0d4dfcfe8e7a924339b5b1e12bc814b48f9fa16f",
+  "shards": {
+    "driftwood-isle": {
+      "poses": [
+        {
+          "name": "pier",
+          "ssim": 0.9989886523006577,
+          "full": 0.9990158946244524,
+          "masked": 0.027
+        },
+        {
+          "name": "beach",
+          "ssim": 0.9955459942783714,
+          "full": 0.9957276858153876,
+          "masked": 0.052
+        },
+        {
+          "name": "wreck",
+          "ssim": 0.9999480792312921,
+          "full": 0.9998525702753736,
+          "masked": 0.129
+        }
+      ],
+      "errors": [],
+      "fingerprintVerdict": "red",
+      "fingerprintDifferences": [
+        {
+          "field": "boot.systems.input",
+          "baseline": [
+            "player.input"
+          ],
+          "now": [
+            "engine.input.collect",
+            "engine.lockon.input",
+            "engine.player.input"
+          ],
+          "class": "A",
+          "band": "exact",
+          "verdict": "red"
+        },
+        {
+          "field": "boot.systems.fixed.post",
+          "baseline": [
+            "physics.bodies.post",
+            "player.step",
+            "main.3"
+          ],
+          "now": [
+            "physics.bodies.post",
+            "player.step",
+            "shard.driftwood.bridge.capture"
+          ],
+          "class": "A",
+          "band": "exact",
+          "verdict": "red"
+        },
+        {
+          "field": "boot.systems.update",
+          "baseline": {
+            "length": 28,
+            "sha256": "84caa211e0fd6fd0a00d2965e122268a68447df47ab2546a5fd851ff9ff20c5b"
+          },
+          "now": {
+            "length": 40,
+            "sha256": "dc2f40192f38f5b7b941e37d20dfa485beb43abafc3d5b81e6101d6b250e71b4"
+          },
+          "class": "A",
+          "band": "exact",
+          "verdict": "red"
+        },
+        {
+          "field": "boot.systems.late",
+          "baseline": [],
+          "now": [
+            "engine.hud.pins"
+          ],
+          "class": "A",
+          "band": "exact",
+          "verdict": "red"
+        },
+        {
+          "field": "boot.registry",
+          "baseline": {
+            "length": 100,
+            "sha256": "59f2420bdca13628dd718f95bcfc39c13812da95ba55d3d5ac52167c833123b3"
+          },
+          "now": {
+            "length": 90,
+            "sha256": "f42e96f14a8d1425457c8156306aa7c2c0992b1166d6837ab767f2de98d08c77"
+          },
+          "class": "A",
+          "band": "exact",
+          "verdict": "red"
+        },
+        {
+          "field": "boot.audio.requests",
+          "baseline": {
+            "length": 193,
+            "sha256": "b9275d5f1bc3f6735e891ecaf477fb4544e88aee1e88fe96fe181a83645164ec"
+          },
+          "now": {
+            "length": 110,
+            "sha256": "feef2b14d7218e3ae1e3ae7323a576e4100f8f7020dbb3ab8dca4683485cfa15"
+          },
+          "class": "A",
+          "band": "exact",
+          "verdict": "red"
+        },
+        {
+          "field": "boot.hud",
+          "baseline": {
+            "length": 303,
+            "sha256": "73a9ed7286eb525ab06ea257e1651e10c47a7dfb024c90652aa1f6ef6610b1ae"
+          },
+          "now": {
+            "length": 329,
+            "sha256": "5efb778950d82022b0541fe3d51cf241959aa2d72fb0aaed250d911f8d6d836d"
+          },
+          "class": "A",
+          "band": "exact",
+          "verdict": "red"
+        },
+        {
+          "field": "boot.saves.read",
+          "baseline": [
+            "local:wildshard.save.v2.device",
+            "local:wildshard.save.v2.driftwood-isle",
+            "local:wildshard.save.v2.global",
+            "session:wildshard.save.v2.session"
+          ],
+          "now": [
+            "local:wildshard.save.v2.device",
+            "local:wildshard.save.v2.driftwood-isle",
+            "local:wildshard.save.v2.global",
+            "local:wildshard.save.v2.nalati-grasslands",
+            "local:wildshard.save.v2.nine-dragon-stack",
+            "local:wildshard.save.v2.pine-hollow",
+            "session:wildshard.save.v2.session"
+          ],
+          "class": "A",
+          "band": "exact",
+          "verdict": "red"
+        }
+      ],
+      "resources": {
+        "before": {
+          "physics": {
+            "fixed": 2,
+            "kinematic": 2,
+            "dynamic": 26,
+            "colliders": 2195
+          },
+          "scene": {
+            "totals": {
+              "mesh": 605,
+              "instanced": 33,
+              "instances": 254,
+              "skinned": 37,
+              "points": 7,
+              "lines": 3,
+              "sprites": 10,
+              "lights": 9,
+              "batched": 2
+            }
+          },
+          "memory": {
+            "geometries": 436,
+            "textures": 83
+          },
+          "gpuBytes": {
+            "textures": 91509608,
+            "renderbuffers": 10877184,
+            "buffers": 127709473,
+            "total": 230096265
+          }
+        },
+        "after": {
+          "physics": {
+            "fixed": 2,
+            "kinematic": 2,
+            "dynamic": 26,
+            "colliders": 2195
+          },
+          "scene": {
+            "totals": {
+              "mesh": 605,
+              "instanced": 33,
+              "instances": 254,
+              "skinned": 37,
+              "points": 7,
+              "lines": 3,
+              "sprites": 10,
+              "lights": 9,
+              "batched": 2
+            }
+          },
+          "memory": {
+            "geometries": 436,
+            "textures": 83
+          },
+          "gpuBytes": {
+            "textures": 91509608,
+            "renderbuffers": 10877184,
+            "buffers": 127709473,
+            "total": 230096265
+          }
+        }
+      },
+      "gameplayVerdict": "red",
+      "gameplayDifferences": [
+        {
+          "field": "boot.systems.input",
+          "baseline": [
+            "player.input"
+          ],
+          "now": [
+            "engine.input.collect",
+            "engine.lockon.input",
+            "engine.player.input"
+          ],
+          "class": "A",
+          "band": "exact",
+          "verdict": "red"
+        },
+        {
+          "field": "boot.systems.fixed.post",
+          "baseline": [
+            "physics.bodies.post",
+            "player.step",
+            "main.3"
+          ],
+          "now": [
+            "physics.bodies.post",
+            "player.step",
+            "shard.driftwood.bridge.capture"
+          ],
+          "class": "A",
+          "band": "exact",
+          "verdict": "red"
+        },
+        {
+          "field": "boot.systems.update",
+          "baseline": {
+            "length": 28,
+            "sha256": "84caa211e0fd6fd0a00d2965e122268a68447df47ab2546a5fd851ff9ff20c5b"
+          },
+          "now": {
+            "length": 40,
+            "sha256": "dc2f40192f38f5b7b941e37d20dfa485beb43abafc3d5b81e6101d6b250e71b4"
+          },
+          "class": "A",
+          "band": "exact",
+          "verdict": "red"
+        },
+        {
+          "field": "boot.systems.late",
+          "baseline": [],
+          "now": [
+            "engine.hud.pins"
+          ],
+          "class": "A",
+          "band": "exact",
+          "verdict": "red"
+        },
+        {
+          "field": "boot.registry",
+          "baseline": {
+            "length": 100,
+            "sha256": "59f2420bdca13628dd718f95bcfc39c13812da95ba55d3d5ac52167c833123b3"
+          },
+          "now": {
+            "length": 90,
+            "sha256": "f42e96f14a8d1425457c8156306aa7c2c0992b1166d6837ab767f2de98d08c77"
+          },
+          "class": "A",
+          "band": "exact",
+          "verdict": "red"
+        },
+        {
+          "field": "boot.audio.requests",
+          "baseline": {
+            "length": 193,
+            "sha256": "b9275d5f1bc3f6735e891ecaf477fb4544e88aee1e88fe96fe181a83645164ec"
+          },
+          "now": {
+            "length": 110,
+            "sha256": "feef2b14d7218e3ae1e3ae7323a576e4100f8f7020dbb3ab8dca4683485cfa15"
+          },
+          "class": "A",
+          "band": "exact",
+          "verdict": "red"
+        },
+        {
+          "field": "boot.hud",
+          "baseline": {
+            "length": 303,
+            "sha256": "73a9ed7286eb525ab06ea257e1651e10c47a7dfb024c90652aa1f6ef6610b1ae"
+          },
+          "now": {
+            "length": 329,
+            "sha256": "5efb778950d82022b0541fe3d51cf241959aa2d72fb0aaed250d911f8d6d836d"
+          },
+          "class": "A",
+          "band": "exact",
+          "verdict": "red"
+        },
+        {
+          "field": "boot.saves.read",
+          "baseline": [
+            "local:wildshard.save.v2.device",
+            "local:wildshard.save.v2.driftwood-isle",
+            "local:wildshard.save.v2.global",
+            "session:wildshard.save.v2.session"
+          ],
+          "now": [
+            "local:wildshard.save.v2.device",
+            "local:wildshard.save.v2.driftwood-isle",
+            "local:wildshard.save.v2.global",
+            "local:wildshard.save.v2.nalati-grasslands",
+            "local:wildshard.save.v2.nine-dragon-stack",
+            "local:wildshard.save.v2.pine-hollow",
+            "session:wildshard.save.v2.session"
+          ],
+          "class": "A",
+          "band": "exact",
+          "verdict": "red"
+        },
+        {
+          "field": "combat.sounds.ambient",
+          "baseline": [
+            "island.bird",
+            "island.drip",
+            "island.swell"
+          ],
+          "now": [
+            "island.bird",
+            "island.drip"
+          ],
+          "class": "A",
+          "band": "no baseline scheduler missing",
+          "verdict": "red"
+        }
+      ],
+      "traces": [
+        {
+          "name": "pier",
+          "exact": true,
+          "beforeEnd": {
+            "x": -19.773,
+            "y": 1.339,
+            "z": -150.548
+          },
+          "afterEnd": {
+            "x": -19.773,
+            "y": 1.339,
+            "z": -150.548
+          },
+          "beforeStuck": [],
+          "afterStuck": []
+        },
+        {
+          "name": "lookout",
+          "exact": true,
+          "beforeEnd": {
+            "x": 93.842,
+            "y": 41.174,
+            "z": 93.766
+          },
+          "afterEnd": {
+            "x": 93.842,
+            "y": 41.174,
+            "z": 93.766
+          },
+          "beforeStuck": [],
+          "afterStuck": []
+        },
+        {
+          "name": "cave",
+          "exact": true,
+          "beforeEnd": {
+            "x": 142.004,
+            "y": 1.22,
+            "z": 18.686
+          },
+          "afterEnd": {
+            "x": 142.004,
+            "y": 1.22,
+            "z": 18.686
+          },
+          "beforeStuck": [],
+          "afterStuck": []
+        }
+      ],
+      "pauseResume": {
+        "before": {
+          "diff": [],
+          "appStates": [
+            "paused",
+            "play"
+          ],
+          "returnState": "play"
+        },
+        "after": {
+          "diff": [],
+          "appStates": [
+            "paused",
+            "play"
+          ],
+          "returnState": "play"
+        }
+      },
+      "combat": {
+        "before": {
+          "swing": {
+            "weapon": "sword",
+            "target": "crab",
+            "hits": 3,
+            "hitWithinS": 0.5693333333333044,
+            "killed": true,
+            "killWithinS": 1.6759999999999167,
+            "hitLimit": 3,
+            "killLimit": 15
+          },
+          "shot": "n/a",
+          "shot2": "n/a",
+          "hitsToKill": {
+            "swing": 3
+          },
+          "kills": [
+            "crab"
+          ],
+          "loot": {
+            "written": [
+              "local:wildshard.save.v2.driftwood-isle",
+              "local:wildshard.save.v2.global"
+            ]
+          },
+          "sounds": {
+            "event": {
+              "voices:step-sand": 1,
+              "voices:whoosh": 3,
+              "animal:crab_click": 3,
+              "voices:impact-shell": 3,
+              "hitMarker": 3,
+              "voices:vocal-crab": 1,
+              "kill": 1,
+              "voices:ui-chime": 1
+            },
+            "ambient": [
+              "island.bird",
+              "island.drip",
+              "island.swell"
+            ]
+          }
+        },
+        "after": {
+          "swing": {
+            "weapon": "sword",
+            "target": "crab",
+            "hits": 3,
+            "hitWithinS": 0.5693333333333044,
+            "killed": true,
+            "killWithinS": 1.6759999999999167,
+            "hitLimit": 3,
+            "killLimit": 15
+          },
+          "shot": "n/a",
+          "shot2": "n/a",
+          "hitsToKill": {
+            "swing": 3
+          },
+          "kills": [
+            "crab"
+          ],
+          "loot": {
+            "written": [
+              "local:wildshard.save.v2.driftwood-isle",
+              "local:wildshard.save.v2.global"
+            ]
+          },
+          "sounds": {
+            "event": {
+              "voices:step-sand": 1,
+              "voices:whoosh": 3,
+              "animal:crab_click": 3,
+              "voices:impact-shell": 3,
+              "hitMarker": 3,
+              "voices:vocal-crab": 1,
+              "kill": 1,
+              "voices:ui-chime": 1
+            },
+            "ambient": [
+              "island.bird",
+              "island.drip"
+            ]
+          }
+        }
+      },
+      "leak": {
+        "before": {
+          "before": {
+            "geometries": 0,
+            "textures": 0,
+            "programs": 0,
+            "bodies": 0,
+            "colliders": 0,
+            "listeners": {
+              "window": 0,
+              "document": 0,
+              "canvas": 0,
+              "other": 0
+            },
+            "timers": {
+              "timeouts": 0,
+              "intervals": 0,
+              "raf": 0
+            },
+            "audio": {
+              "activeVoices": 0,
+              "beds": 0,
+              "buses": 0
+            },
+            "systems": {
+              "input": 0,
+              "fixed": {
+                "pre": 0,
+                "step": 0,
+                "post": 0
+              },
+              "update": 0,
+              "late": 0,
+              "render": 0
+            },
+            "events": {
+              "listeners": 0,
+              "answerers": 3
+            },
+            "dom": {
+              "hud": 0,
+              "body": 0
+            },
+            "sceneObjects": 0
+          },
+          "after": {
+            "geometries": 0,
+            "textures": 0,
+            "programs": 0,
+            "bodies": 0,
+            "colliders": 0,
+            "listeners": {
+              "window": 0,
+              "document": 0,
+              "canvas": 0,
+              "other": 0
+            },
+            "timers": {
+              "timeouts": 0,
+              "intervals": 0,
+              "raf": 0
+            },
+            "audio": {
+              "activeVoices": 0,
+              "beds": 0,
+              "buses": 0
+            },
+            "systems": {
+              "input": 0,
+              "fixed": {
+                "pre": 0,
+                "step": 0,
+                "post": 0
+              },
+              "update": 0,
+              "late": 0,
+              "render": 0
+            },
+            "events": {
+              "listeners": 0,
+              "answerers": 3
+            },
+            "dom": {
+              "hud": 0,
+              "body": 0
+            },
+            "sceneObjects": 0
+          },
+          "scope": {
+            "geometries": 0,
+            "materials": 0,
+            "textures": 0,
+            "renderTargets": 0,
+            "meshes": 0,
+            "resources": 0,
+            "bodies": 0,
+            "sounds": 0,
+            "listeners": 0,
+            "timers": 0,
+            "rafs": 0,
+            "disposers": 0,
+            "systems": 0,
+            "colliders": 0,
+            "nodes": 0
+          }
+        },
+        "after": {
+          "before": {
+            "geometries": 0,
+            "textures": 0,
+            "programs": 0,
+            "bodies": 0,
+            "colliders": 0,
+            "listeners": {
+              "window": 0,
+              "document": 0,
+              "canvas": 0,
+              "other": 0
+            },
+            "timers": {
+              "timeouts": 0,
+              "intervals": 0,
+              "raf": 0
+            },
+            "audio": {
+              "activeVoices": 0,
+              "beds": 0,
+              "buses": 0
+            },
+            "systems": {
+              "input": 0,
+              "fixed": {
+                "pre": 0,
+                "step": 0,
+                "post": 0
+              },
+              "update": 0,
+              "late": 0,
+              "render": 0
+            },
+            "events": {
+              "listeners": 7,
+              "answerers": 5
+            },
+            "dom": {
+              "hud": 0,
+              "body": 0
+            },
+            "sceneObjects": 0
+          },
+          "after": {
+            "geometries": 0,
+            "textures": 0,
+            "programs": 0,
+            "bodies": 0,
+            "colliders": 0,
+            "listeners": {
+              "window": 0,
+              "document": 0,
+              "canvas": 0,
+              "other": 0
+            },
+            "timers": {
+              "timeouts": 0,
+              "intervals": 0,
+              "raf": 0
+            },
+            "audio": {
+              "activeVoices": 0,
+              "beds": 0,
+              "buses": 0
+            },
+            "systems": {
+              "input": 0,
+              "fixed": {
+                "pre": 0,
+                "step": 0,
+                "post": 0
+              },
+              "update": 0,
+              "late": 0,
+              "render": 0
+            },
+            "events": {
+              "listeners": 7,
+              "answerers": 5
+            },
+            "dom": {
+              "hud": 0,
+              "body": 0
+            },
+            "sceneObjects": 0
+          },
+          "disposalErrors": [],
+          "scope": {
+            "geometries": 0,
+            "materials": 0,
+            "textures": 0,
+            "renderTargets": 0,
+            "meshes": 0,
+            "resources": 0,
+            "bodies": 0,
+            "sounds": 0,
+            "listeners": 0,
+            "timers": 0,
+            "rafs": 0,
+            "disposers": 0,
+            "systems": 0,
+            "colliders": 0,
+            "nodes": 0
+          }
+        }
+      }
+    },
+    "nalati-grasslands": {
+      "poses": [
+        {
+          "name": "camp",
+          "ssim": 0.9999999999999971,
+          "full": 0.9927372841379827,
+          "masked": 0.272
+        },
+        {
+          "name": "bridge",
+          "ssim": 1,
+          "full": 1,
+          "masked": 0.013
+        },
+        {
+          "name": "plains",
+          "ssim": 0.9970107911803993,
+          "full": 0.9964057514342117,
+          "masked": 0.112
+        }
+      ],
+      "errors": [],
+      "fingerprintVerdict": "red",
+      "fingerprintDifferences": [
+        {
+          "field": "boot.systems.input",
+          "baseline": [
+            "player.input"
+          ],
+          "now": [
+            "engine.input.collect",
+            "engine.lockon.input",
+            "shard.nalati.stealth.crouch",
+            "shard.nalati.ride.input",
+            "engine.player.input"
+          ],
+          "class": "A",
+          "band": "exact",
+          "verdict": "red"
+        },
+        {
+          "field": "boot.systems.update",
+          "baseline": [
+            "player.update",
+            "world.impacts",
+            "engine.player.for",
+            "training-arena",
+            "hud.perf",
+            "main.6",
+            "shard.nalati-grasslands.installNalatiAdventure",
+            "hud.combat",
+            "shard.nalati-grasslands.bind",
+            "first hints",
+            "main.frame",
+            "engine.player.regen",
+            "engine.player.hud"
+          ],
+          "now": {
+            "length": 31,
+            "sha256": "fb107dfbf37048440a44759112ac0a0d6c4d742067a85ac74979799cc4ee9f93"
+          },
+          "class": "A",
+          "band": "exact",
+          "verdict": "red"
+        },
+        {
+          "field": "boot.systems.late",
+          "baseline": [
+            "nalati-reins"
+          ],
+          "now": [
+            "shard.nalati.reins",
+            "engine.hud.pins"
+          ],
+          "class": "A",
+          "band": "exact",
+          "verdict": "red"
+        },
+        {
+          "field": "boot.scene.totals.mesh",
+          "baseline": 315,
+          "now": 313,
+          "class": "A",
+          "band": "exact",
+          "verdict": "red"
+        },
+        {
+          "field": "boot.scene.named",
+          "baseline": {
+            "length": 77,
+            "sha256": "03d4d46c9fbabc3f58a809cda80f7d3ad6fe2e6d4fc405fe7f9871ca7f5ab663"
+          },
+          "now": {
+            "length": 74,
+            "sha256": "74cbd6c0a98719a796ee18e67f594acedd708b21217a025381b1e42095050ab9"
+          },
+          "class": "A",
+          "band": "exact",
+          "verdict": "red"
+        },
+        {
+          "field": "boot.render.programs",
+          "baseline": 102,
+          "now": 100,
+          "class": "B",
+          "band": "\u00b1 0",
+          "verdict": "red"
+        },
+        {
+          "field": "boot.render.programKeys",
+          "baseline": "3c7fd5d6d3ca837d5213826e6e0a4971a9dbd3e7419ec74a1b393ad1b8682c06",
+          "now": "5819fd269216205d15a3dde9abf11f5fa7ab50e63651fbe5e14190a0f89a3933",
+          "class": "A",
+          "band": "exact",
+          "verdict": "red"
+        },
+        {
+          "field": "boot.render.memory.textures",
+          "baseline": 128,
+          "now": 126,
+          "class": "B",
+          "band": "\u00b1 0",
+          "verdict": "red"
+        },
+        {
+          "field": "boot.gpuBytes.textures",
+          "baseline": 136202680,
+          "now": 123184616,
+          "class": "B",
+          "band": "\u00b1 0",
+          "verdict": "red"
+        },
+        {
+          "field": "boot.gpuBytes.total",
+          "baseline": 250481940,
+          "now": 237463876,
+          "class": "B",
+          "band": "\u00b1 0",
+          "verdict": "red"
+        },
+        {
+          "field": "boot.audio.requests",
+          "baseline": {
+            "length": 208,
+            "sha256": "d44bb8bd83e82959ab494ad6a0518103a74298b4ba04fdd7076dcc123212d218"
+          },
+          "now": {
+            "length": 208,
+            "sha256": "02b56c1e525c7c8047a6e921587bd6c8a42facb7a88e5e2c0b7193071a3340c6"
+          },
+          "class": "A",
+          "band": "exact",
+          "verdict": "red"
+        },
+        {
+          "field": "boot.saves.read",
+          "baseline": [
+            "local:wildshard.save.v2.device",
+            "local:wildshard.save.v2.global",
+            "local:wildshard.save.v2.nalati-grasslands",
+            "session:wildshard.save.v2.session"
+          ],
+          "now": [
+            "local:wildshard.save.v2.device",
+            "local:wildshard.save.v2.driftwood-isle",
+            "local:wildshard.save.v2.global",
+            "local:wildshard.save.v2.nalati-grasslands",
+            "local:wildshard.save.v2.nine-dragon-stack",
+            "local:wildshard.save.v2.pine-hollow",
+            "session:wildshard.save.v2.session"
+          ],
+          "class": "A",
+          "band": "exact",
+          "verdict": "red"
+        },
+        {
+          "field": "boot.audio.score",
+          "now": "score.nalati",
+          "class": "A",
+          "band": "exact",
+          "verdict": "new"
+        }
+      ],
+      "resources": {
+        "before": {
+          "physics": {
+            "fixed": 0,
+            "kinematic": 14,
+            "dynamic": 0,
+            "colliders": 2772
+          },
+          "scene": {
+            "totals": {
+              "mesh": 315,
+              "instanced": 44,
+              "instances": 1722,
+              "skinned": 36,
+              "points": 12,
+              "lines": 3,
+              "sprites": 11,
+              "lights": 5,
+              "batched": 5
+            }
+          },
+          "memory": {
+            "geometries": 120,
+            "textures": 128
+          },
+          "gpuBytes": {
+            "textures": 136202680,
+            "renderbuffers": 41060224,
+            "buffers": 73219036,
+            "total": 250481940
+          }
+        },
+        "after": {
+          "physics": {
+            "fixed": 0,
+            "kinematic": 14,
+            "dynamic": 0,
+            "colliders": 2772
+          },
+          "scene": {
+            "totals": {
+              "mesh": 313,
+              "instanced": 44,
+              "instances": 1722,
+              "skinned": 36,
+              "points": 12,
+              "lines": 3,
+              "sprites": 11,
+              "lights": 5,
+              "batched": 5
+            }
+          },
+          "memory": {
+            "geometries": 120,
+            "textures": 126
+          },
+          "gpuBytes": {
+            "textures": 123184616,
+            "renderbuffers": 41060224,
+            "buffers": 73219036,
+            "total": 237463876
+          }
+        }
+      },
+      "gameplayVerdict": "red",
+      "gameplayDifferences": {
+        "length": 18,
+        "sha256": "6191ee5e1846a60faa1517cbcf898decdb688145f0e4766e8c15e8651775037d"
+      },
+      "traces": [
+        {
+          "name": "road-camp",
+          "exact": true,
+          "beforeEnd": {
+            "x": 94.221,
+            "y": -4.336,
+            "z": 204.071
+          },
+          "afterEnd": {
+            "x": 94.221,
+            "y": -4.336,
+            "z": 204.071
+          },
+          "beforeStuck": [],
+          "afterStuck": []
+        },
+        {
+          "name": "great-kurgan-door",
+          "exact": true,
+          "beforeEnd": {
+            "x": -172.985,
+            "y": 34.935,
+            "z": 75
+          },
+          "afterEnd": {
+            "x": -172.985,
+            "y": 34.935,
+            "z": 75
+          },
+          "beforeStuck": [],
+          "afterStuck": []
+        },
+        {
+          "name": "leopard-cave",
+          "exact": true,
+          "beforeEnd": {
+            "x": 137.23,
+            "y": 54.117,
+            "z": -66.035
+          },
+          "afterEnd": {
+            "x": 137.23,
+            "y": 54.117,
+            "z": -66.035
+          },
+          "beforeStuck": [],
+          "afterStuck": []
+        }
+      ],
+      "pauseResume": {
+        "before": {
+          "diff": [],
+          "appStates": [
+            "paused",
+            "play"
+          ],
+          "returnState": "play"
+        },
+        "after": {
+          "diff": [],
+          "appStates": [
+            "paused",
+            "play"
+          ],
+          "returnState": "play"
+        }
+      },
+      "combat": {
+        "before": {
+          "swing": {
+            "weapon": "sabre",
+            "target": "wolf",
+            "hits": 3,
+            "hitWithinS": 0.5693333333333044,
+            "killed": true,
+            "killWithinS": 4.2413333333331025,
+            "hitLimit": 3,
+            "killLimit": 15
+          },
+          "shot": {
+            "weapon": "bow",
+            "target": "wolf",
+            "hits": 2,
+            "hitWithinS": 1.5333333333332462,
+            "killed": true,
+            "killWithinS": 3.0666666666664923,
+            "hitLimit": 20,
+            "killLimit": 20
+          },
+          "shot2": "n/a",
+          "hitsToKill": {
+            "swing": 3,
+            "shot": 2
+          },
+          "kills": [
+            "wolf",
+            "wolf"
+          ],
+          "loot": {
+            "written": [
+              "local:wildshard.save.v2.global",
+              "local:wildshard.save.v2.nalati-grasslands"
+            ]
+          },
+          "sounds": {
+            "event": {
+              "animal:marmot_whistle": 1,
+              "land": 2,
+              "footstep:grass": 1,
+              "sabreSwing": 7,
+              "animal:wolf_yelp": 5,
+              "hitMarker": 5,
+              "sabreHit:flesh": 3,
+              "kill": 2,
+              "bowDraw": 2,
+              "bowFullDraw": 2,
+              "bowTwang": 2,
+              "arrowWhoosh": 2,
+              "arrowImpact:flesh": 2
+            },
+            "ambient": [
+              "steppe.marmot"
+            ]
+          }
+        },
+        "after": {
+          "swing": {
+            "weapon": "sabre",
+            "target": "wolf",
+            "hits": 3,
+            "hitWithinS": 0.5693333333333044,
+            "killed": true,
+            "killWithinS": 4.2413333333331025,
+            "hitLimit": 3,
+            "killLimit": 15
+          },
+          "shot": {
+            "weapon": "bow",
+            "target": "wolf",
+            "hits": 2,
+            "hitWithinS": 1.5333333333332462,
+            "killed": true,
+            "killWithinS": 3.0666666666664923,
+            "hitLimit": 20,
+            "killLimit": 20
+          },
+          "shot2": "n/a",
+          "hitsToKill": {
+            "swing": 3,
+            "shot": 2
+          },
+          "kills": [
+            "wolf",
+            "wolf"
+          ],
+          "loot": {
+            "written": [
+              "local:wildshard.save.v2.global",
+              "local:wildshard.save.v2.nalati-grasslands"
+            ]
+          },
+          "sounds": {
+            "event": {
+              "land": 2,
+              "footstep:grass": 1,
+              "sabreSwing": 7,
+              "animal:wolf_yelp": 5,
+              "hitMarker": 5,
+              "sabreHit:flesh": 3,
+              "kill": 2,
+              "bowDraw": 2,
+              "bowFullDraw": 2,
+              "bowTwang": 2,
+              "arrowWhoosh": 2,
+              "arrowImpact:flesh": 2
+            },
+            "ambient": []
+          }
+        }
+      },
+      "leak": {
+        "before": {
+          "before": {
+            "geometries": 0,
+            "textures": 0,
+            "programs": 0,
+            "bodies": 0,
+            "colliders": 0,
+            "listeners": {
+              "window": 0,
+              "document": 0,
+              "canvas": 0,
+              "other": 0
+            },
+            "timers": {
+              "timeouts": 0,
+              "intervals": 0,
+              "raf": 0
+            },
+            "audio": {
+              "activeVoices": 0,
+              "beds": 0,
+              "buses": 0
+            },
+            "systems": {
+              "input": 0,
+              "fixed": {
+                "pre": 0,
+                "step": 0,
+                "post": 0
+              },
+              "update": 0,
+              "late": 0,
+              "render": 0
+            },
+            "events": {
+              "listeners": 0,
+              "answerers": 3
+            },
+            "dom": {
+              "hud": 0,
+              "body": 0
+            },
+            "sceneObjects": 0
+          },
+          "after": {
+            "geometries": 0,
+            "textures": 0,
+            "programs": 0,
+            "bodies": 0,
+            "colliders": 0,
+            "listeners": {
+              "window": 0,
+              "document": 0,
+              "canvas": 0,
+              "other": 0
+            },
+            "timers": {
+              "timeouts": 0,
+              "intervals": 0,
+              "raf": 0
+            },
+            "audio": {
+              "activeVoices": 0,
+              "beds": 0,
+              "buses": 0
+            },
+            "systems": {
+              "input": 0,
+              "fixed": {
+                "pre": 0,
+                "step": 0,
+                "post": 0
+              },
+              "update": 0,
+              "late": 0,
+              "render": 0
+            },
+            "events": {
+              "listeners": 0,
+              "answerers": 3
+            },
+            "dom": {
+              "hud": 0,
+              "body": 0
+            },
+            "sceneObjects": 0
+          },
+          "scope": {
+            "geometries": 0,
+            "materials": 0,
+            "textures": 0,
+            "renderTargets": 0,
+            "meshes": 0,
+            "resources": 0,
+            "bodies": 0,
+            "sounds": 0,
+            "listeners": 0,
+            "timers": 0,
+            "rafs": 0,
+            "disposers": 0,
+            "systems": 0,
+            "colliders": 0,
+            "nodes": 0
+          },
+          "weather": {
+            "before": {
+              "geometries": 0,
+              "textures": 0,
+              "programs": 0,
+              "bodies": 0,
+              "colliders": 0,
+              "listeners": {
+                "window": 0,
+                "document": 0,
+                "canvas": 0,
+                "other": 0
+              },
+              "timers": {
+                "timeouts": 0,
+                "intervals": 0,
+                "raf": 0
+              },
+              "audio": {
+                "activeVoices": 0,
+                "beds": 0,
+                "buses": 0
+              },
+              "systems": {
+                "input": 0,
+                "fixed": {
+                  "pre": 0,
+                  "step": 0,
+                  "post": 0
+                },
+                "update": 0,
+                "late": 0,
+                "render": 0
+              },
+              "events": {
+                "listeners": 0,
+                "answerers": 3
+              },
+              "dom": {
+                "hud": 0,
+                "body": 0
+              },
+              "sceneObjects": 0,
+              "errors": []
+            },
+            "after": {
+              "geometries": 0,
+              "textures": 0,
+              "programs": 0,
+              "bodies": 0,
+              "colliders": 0,
+              "listeners": {
+                "window": 0,
+                "document": 0,
+                "canvas": 0,
+                "other": 0
+              },
+              "timers": {
+                "timeouts": 0,
+                "intervals": 0,
+                "raf": 0
+              },
+              "audio": {
+                "activeVoices": 0,
+                "beds": 0,
+                "buses": 0
+              },
+              "systems": {
+                "input": 0,
+                "fixed": {
+                  "pre": 0,
+                  "step": 0,
+                  "post": 0
+                },
+                "update": 0,
+                "late": 0,
+                "render": 0
+              },
+              "events": {
+                "listeners": 0,
+                "answerers": 3
+              },
+              "dom": {
+                "hud": 0,
+                "body": 0
+              },
+              "sceneObjects": 0,
+              "errors": []
+            },
+            "scope": {
+              "geometries": 0,
+              "materials": 0,
+              "textures": 0,
+              "renderTargets": 0,
+              "meshes": 0,
+              "resources": 0,
+              "bodies": 0,
+              "sounds": 0,
+              "listeners": 0,
+              "timers": 0,
+              "rafs": 0,
+              "disposers": 0,
+              "systems": 0,
+              "colliders": 0,
+              "nodes": 0
+            }
+          }
+        },
+        "after": {
+          "before": {
+            "geometries": 0,
+            "textures": 0,
+            "programs": 0,
+            "bodies": 0,
+            "colliders": 0,
+            "listeners": {
+              "window": 0,
+              "document": 0,
+              "canvas": 0,
+              "other": 0
+            },
+            "timers": {
+              "timeouts": 0,
+              "intervals": 0,
+              "raf": 0
+            },
+            "audio": {
+              "activeVoices": 0,
+              "beds": 0,
+              "buses": 0
+            },
+            "systems": {
+              "input": 0,
+              "fixed": {
+                "pre": 0,
+                "step": 0,
+                "post": 0
+              },
+              "update": 0,
+              "late": 0,
+              "render": 0
+            },
+            "events": {
+              "listeners": 7,
+              "answerers": 5
+            },
+            "dom": {
+              "hud": 0,
+              "body": 0
+            },
+            "sceneObjects": 0
+          },
+          "after": {
+            "geometries": 0,
+            "textures": 0,
+            "programs": 0,
+            "bodies": 0,
+            "colliders": 0,
+            "listeners": {
+              "window": 0,
+              "document": 0,
+              "canvas": 0,
+              "other": 0
+            },
+            "timers": {
+              "timeouts": 0,
+              "intervals": 0,
+              "raf": 0
+            },
+            "audio": {
+              "activeVoices": 0,
+              "beds": 1,
+              "buses": 0
+            },
+            "systems": {
+              "input": 0,
+              "fixed": {
+                "pre": 0,
+                "step": 0,
+                "post": 0
+              },
+              "update": 0,
+              "late": 0,
+              "render": 0
+            },
+            "events": {
+              "listeners": 7,
+              "answerers": 5
+            },
+            "dom": {
+              "hud": 0,
+              "body": 0
+            },
+            "sceneObjects": 0
+          },
+          "disposalErrors": [],
+          "scope": {
+            "geometries": 0,
+            "materials": 0,
+            "textures": 0,
+            "renderTargets": 0,
+            "meshes": 0,
+            "resources": 0,
+            "bodies": 0,
+            "sounds": 0,
+            "listeners": 0,
+            "timers": 0,
+            "rafs": 0,
+            "disposers": 0,
+            "systems": 0,
+            "colliders": 0,
+            "nodes": 0
+          },
+          "weather": {
+            "before": {
+              "geometries": 0,
+              "textures": 0,
+              "programs": 0,
+              "bodies": 0,
+              "colliders": 0,
+              "listeners": {
+                "window": 0,
+                "document": 0,
+                "canvas": 0,
+                "other": 0
+              },
+              "timers": {
+                "timeouts": 0,
+                "intervals": 0,
+                "raf": 0
+              },
+              "audio": {
+                "activeVoices": 0,
+                "beds": 0,
+                "buses": 0
+              },
+              "systems": {
+                "input": 0,
+                "fixed": {
+                  "pre": 0,
+                  "step": 0,
+                  "post": 0
+                },
+                "update": 0,
+                "late": 0,
+                "render": 0
+              },
+              "events": {
+                "listeners": 7,
+                "answerers": 5
+              },
+              "dom": {
+                "hud": 0,
+                "body": 0
+              },
+              "sceneObjects": 0,
+              "errors": []
+            },
+            "after": {
+              "geometries": 0,
+              "textures": 0,
+              "programs": 0,
+              "bodies": 0,
+              "colliders": 0,
+              "listeners": {
+                "window": 0,
+                "document": 0,
+                "canvas": 0,
+                "other": 0
+              },
+              "timers": {
+                "timeouts": 0,
+                "intervals": 0,
+                "raf": 0
+              },
+              "audio": {
+                "activeVoices": 0,
+                "beds": 0,
+                "buses": 0
+              },
+              "systems": {
+                "input": 0,
+                "fixed": {
+                  "pre": 0,
+                  "step": 0,
+                  "post": 0
+                },
+                "update": 0,
+                "late": 0,
+                "render": 0
+              },
+              "events": {
+                "listeners": 7,
+                "answerers": 5
+              },
+              "dom": {
+                "hud": 0,
+                "body": 0
+              },
+              "sceneObjects": 0,
+              "errors": []
+            },
+            "disposalErrors": [],
+            "scope": {
+              "geometries": 0,
+              "materials": 0,
+              "textures": 0,
+              "renderTargets": 0,
+              "meshes": 0,
+              "resources": 0,
+              "bodies": 0,
+              "sounds": 0,
+              "listeners": 0,
+              "timers": 0,
+              "rafs": 0,
+              "disposers": 0,
+              "systems": 0,
+              "colliders": 0,
+              "nodes": 0
+            }
+          }
+        }
+      }
+    },
+    "nine-dragon-stack": {
+      "poses": [
+        {
+          "name": "spawn-rail",
+          "ssim": 1,
+          "full": 1,
+          "masked": 0
+        },
+        {
+          "name": "well-edge",
+          "ssim": 1,
+          "full": 1,
+          "masked": 0
+        },
+        {
+          "name": "stair-street",
+          "ssim": 1,
+          "full": 1,
+          "masked": 0
+        }
+      ],
+      "errors": [],
+      "fingerprintVerdict": "red",
+      "fingerprintDifferences": [
+        {
+          "field": "boot.systems.input",
+          "baseline": [
+            "player.input"
+          ],
+          "now": [
+            "engine.input.collect",
+            "shard.nd.feizhua.input",
+            "engine.lockon.input",
+            "engine.player.input"
+          ],
+          "class": "A",
+          "band": "exact",
+          "verdict": "red"
+        },
+        {
+          "field": "boot.systems.update",
+          "baseline": [
+            "player.update",
+            "shard.nd.world",
+            "shard.nd.audio",
+            "world.impacts",
+            "engine.player.for",
+            "training-arena",
+            "fei-zhua",
+            "hud.perf",
+            "engine.world.bounds",
+            "main.6",
+            "hud.combat",
+            "first hints",
+            "main.frame",
+            "engine.player.regen",
+            "engine.player.hud"
+          ],
+          "now": {
+            "length": 18,
+            "sha256": "a1ba7d0c75ee68d64fd7cc859386261f987aa53bf8973aa0210298c0e89b2323"
+          },
+          "class": "A",
+          "band": "exact",
+          "verdict": "red"
+        },
+        {
+          "field": "boot.systems.late",
+          "baseline": [],
+          "now": [
+            "engine.hud.pins"
+          ],
+          "class": "A",
+          "band": "exact",
+          "verdict": "red"
+        },
+        {
+          "field": "boot.saves.read",
+          "baseline": [
+            "local:wildshard.save.v2.device",
+            "local:wildshard.save.v2.global",
+            "local:wildshard.save.v2.nine-dragon-stack",
+            "session:wildshard.save.v2.session"
+          ],
+          "now": [
+            "local:wildshard.save.v2.device",
+            "local:wildshard.save.v2.driftwood-isle",
+            "local:wildshard.save.v2.global",
+            "local:wildshard.save.v2.nalati-grasslands",
+            "local:wildshard.save.v2.nine-dragon-stack",
+            "local:wildshard.save.v2.pine-hollow",
+            "session:wildshard.save.v2.session"
+          ],
+          "class": "A",
+          "band": "exact",
+          "verdict": "red"
+        }
+      ],
+      "resources": {
+        "before": {
+          "physics": {
+            "fixed": 0,
+            "kinematic": 1,
+            "dynamic": 0,
+            "colliders": 525
+          },
+          "scene": {
+            "totals": {
+              "mesh": 225,
+              "instanced": 71,
+              "instances": 17487,
+              "skinned": 10,
+              "points": 2,
+              "lines": 3,
+              "sprites": 9,
+              "lights": 2,
+              "batched": 0
+            }
+          },
+          "memory": {
+            "geometries": 135,
+            "textures": 55
+          },
+          "gpuBytes": {
+            "textures": 132209223,
+            "renderbuffers": 1572864,
+            "buffers": 133539488,
+            "total": 267321575
+          }
+        },
+        "after": {
+          "physics": {
+            "fixed": 0,
+            "kinematic": 1,
+            "dynamic": 0,
+            "colliders": 525
+          },
+          "scene": {
+            "totals": {
+              "mesh": 225,
+              "instanced": 71,
+              "instances": 17487,
+              "skinned": 10,
+              "points": 2,
+              "lines": 3,
+              "sprites": 9,
+              "lights": 2,
+              "batched": 0
+            }
+          },
+          "memory": {
+            "geometries": 135,
+            "textures": 55
+          },
+          "gpuBytes": {
+            "textures": 132209223,
+            "renderbuffers": 1572864,
+            "buffers": 133539488,
+            "total": 267321575
+          }
+        }
+      },
+      "gameplayVerdict": "red",
+      "gameplayDifferences": [
+        {
+          "field": "boot.systems.input",
+          "baseline": [
+            "player.input"
+          ],
+          "now": [
+            "engine.input.collect",
+            "shard.nd.feizhua.input",
+            "engine.lockon.input",
+            "engine.player.input"
+          ],
+          "class": "A",
+          "band": "exact",
+          "verdict": "red"
+        },
+        {
+          "field": "boot.systems.update",
+          "baseline": [
+            "player.update",
+            "shard.nd.world",
+            "shard.nd.audio",
+            "world.impacts",
+            "engine.player.for",
+            "training-arena",
+            "fei-zhua",
+            "hud.perf",
+            "engine.world.bounds",
+            "main.6",
+            "hud.combat",
+            "first hints",
+            "main.frame",
+            "engine.player.regen",
+            "engine.player.hud"
+          ],
+          "now": {
+            "length": 18,
+            "sha256": "a1ba7d0c75ee68d64fd7cc859386261f987aa53bf8973aa0210298c0e89b2323"
+          },
+          "class": "A",
+          "band": "exact",
+          "verdict": "red"
+        },
+        {
+          "field": "boot.systems.late",
+          "baseline": [],
+          "now": [
+            "engine.hud.pins"
+          ],
+          "class": "A",
+          "band": "exact",
+          "verdict": "red"
+        },
+        {
+          "field": "boot.saves.read",
+          "baseline": [
+            "local:wildshard.save.v2.device",
+            "local:wildshard.save.v2.global",
+            "local:wildshard.save.v2.nine-dragon-stack",
+            "session:wildshard.save.v2.session"
+          ],
+          "now": [
+            "local:wildshard.save.v2.device",
+            "local:wildshard.save.v2.driftwood-isle",
+            "local:wildshard.save.v2.global",
+            "local:wildshard.save.v2.nalati-grasslands",
+            "local:wildshard.save.v2.nine-dragon-stack",
+            "local:wildshard.save.v2.pine-hollow",
+            "session:wildshard.save.v2.session"
+          ],
+          "class": "A",
+          "band": "exact",
+          "verdict": "red"
+        }
+      ],
+      "traces": [
+        {
+          "name": "stair-street",
+          "exact": true,
+          "beforeEnd": {
+            "x": 75.421,
+            "y": 146.02,
+            "z": 6
+          },
+          "afterEnd": {
+            "x": 75.421,
+            "y": 146.02,
+            "z": 6
+          },
+          "beforeStuck": [],
+          "afterStuck": []
+        },
+        {
+          "name": "crossing-gate-bridge",
+          "exact": true,
+          "beforeEnd": {
+            "x": -6.419,
+            "y": 107.019,
+            "z": -25.4
+          },
+          "afterEnd": {
+            "x": -6.419,
+            "y": 107.019,
+            "z": -25.4
+          },
+          "beforeStuck": [],
+          "afterStuck": []
+        },
+        {
+          "name": "escape-square-balustrade",
+          "exact": true,
+          "beforeEnd": {
+            "x": 0.498,
+            "y": 126.138,
+            "z": -7.405
+          },
+          "afterEnd": {
+            "x": 0.498,
+            "y": 126.138,
+            "z": -7.405
+          },
+          "beforeStuck": [],
+          "afterStuck": []
+        }
+      ],
+      "pauseResume": {
+        "before": {
+          "diff": [],
+          "appStates": [
+            "paused",
+            "practice"
+          ],
+          "returnState": "practice"
+        },
+        "after": {
+          "diff": [],
+          "appStates": [
+            "paused",
+            "practice"
+          ],
+          "returnState": "practice"
+        }
+      },
+      "combat": {
+        "before": {
+          "swing": {
+            "weapon": "sword",
+            "target": "training-dummy",
+            "hits": 1,
+            "hitWithinS": 0.5693333333333044,
+            "killed": false,
+            "killWithinS": null,
+            "hitLimit": 3,
+            "killLimit": null
+          },
+          "shot": "n/a",
+          "shot2": "n/a",
+          "hitsToKill": {
+            "swing": 1
+          },
+          "kills": [],
+          "loot": {
+            "written": []
+          },
+          "sounds": {
+            "event": {
+              "nd.step.metal": 2,
+              "lunge": 1,
+              "swordSwing": 1,
+              "nd.jian.swing": 1,
+              "hitMarker": 1,
+              "swordHit:flesh": 1
+            },
+            "ambient": [
+              "nd.audio.tick"
+            ]
+          }
+        },
+        "after": {
+          "swing": {
+            "weapon": "sword",
+            "target": "training-dummy",
+            "hits": 1,
+            "hitWithinS": 0.5693333333333044,
+            "killed": false,
+            "killWithinS": null,
+            "hitLimit": 3,
+            "killLimit": null
+          },
+          "shot": "n/a",
+          "shot2": "n/a",
+          "hitsToKill": {
+            "swing": 1
+          },
+          "kills": [],
+          "loot": {
+            "written": []
+          },
+          "sounds": {
+            "event": {
+              "nd.step.metal": 2,
+              "lunge": 1,
+              "swordSwing": 1,
+              "nd.jian.swing": 1,
+              "hitMarker": 1,
+              "swordHit:flesh": 1
+            },
+            "ambient": [
+              "nd.audio.tick"
+            ]
+          }
+        }
+      },
+      "leak": {
+        "before": {
+          "before": {
+            "geometries": 0,
+            "textures": 0,
+            "programs": 0,
+            "bodies": 0,
+            "colliders": 0,
+            "listeners": {
+              "window": 0,
+              "document": 0,
+              "canvas": 0,
+              "other": 0
+            },
+            "timers": {
+              "timeouts": 0,
+              "intervals": 0,
+              "raf": 0
+            },
+            "audio": {
+              "activeVoices": 0,
+              "beds": 0,
+              "buses": 0
+            },
+            "systems": {
+              "input": 0,
+              "fixed": {
+                "pre": 0,
+                "step": 0,
+                "post": 0
+              },
+              "update": 0,
+              "late": 0,
+              "render": 0
+            },
+            "events": {
+              "listeners": 0,
+              "answerers": 3
+            },
+            "dom": {
+              "hud": 0,
+              "body": 0
+            },
+            "sceneObjects": 0
+          },
+          "after": {
+            "geometries": 0,
+            "textures": 0,
+            "programs": 0,
+            "bodies": 0,
+            "colliders": 0,
+            "listeners": {
+              "window": 0,
+              "document": 0,
+              "canvas": 0,
+              "other": 0
+            },
+            "timers": {
+              "timeouts": 0,
+              "intervals": 0,
+              "raf": 0
+            },
+            "audio": {
+              "activeVoices": 0,
+              "beds": 0,
+              "buses": 0
+            },
+            "systems": {
+              "input": 0,
+              "fixed": {
+                "pre": 0,
+                "step": 0,
+                "post": 0
+              },
+              "update": 0,
+              "late": 0,
+              "render": 0
+            },
+            "events": {
+              "listeners": 0,
+              "answerers": 3
+            },
+            "dom": {
+              "hud": 0,
+              "body": 0
+            },
+            "sceneObjects": 0
+          },
+          "scope": {
+            "geometries": 0,
+            "materials": 0,
+            "textures": 0,
+            "renderTargets": 0,
+            "meshes": 0,
+            "resources": 0,
+            "bodies": 0,
+            "sounds": 0,
+            "listeners": 0,
+            "timers": 0,
+            "rafs": 0,
+            "disposers": 0,
+            "systems": 0,
+            "colliders": 0,
+            "nodes": 0
+          }
+        },
+        "after": {
+          "before": {
+            "geometries": 0,
+            "textures": 0,
+            "programs": 0,
+            "bodies": 0,
+            "colliders": 0,
+            "listeners": {
+              "window": 0,
+              "document": 0,
+              "canvas": 0,
+              "other": 0
+            },
+            "timers": {
+              "timeouts": 0,
+              "intervals": 0,
+              "raf": 0
+            },
+            "audio": {
+              "activeVoices": 0,
+              "beds": 0,
+              "buses": 0
+            },
+            "systems": {
+              "input": 0,
+              "fixed": {
+                "pre": 0,
+                "step": 0,
+                "post": 0
+              },
+              "update": 0,
+              "late": 0,
+              "render": 0
+            },
+            "events": {
+              "listeners": 7,
+              "answerers": 5
+            },
+            "dom": {
+              "hud": 0,
+              "body": 0
+            },
+            "sceneObjects": 0
+          },
+          "after": {
+            "geometries": 0,
+            "textures": 0,
+            "programs": 0,
+            "bodies": 0,
+            "colliders": 0,
+            "listeners": {
+              "window": 0,
+              "document": 0,
+              "canvas": 0,
+              "other": 0
+            },
+            "timers": {
+              "timeouts": 0,
+              "intervals": 0,
+              "raf": 0
+            },
+            "audio": {
+              "activeVoices": 0,
+              "beds": 0,
+              "buses": 0
+            },
+            "systems": {
+              "input": 0,
+              "fixed": {
+                "pre": 0,
+                "step": 0,
+                "post": 0
+              },
+              "update": 0,
+              "late": 0,
+              "render": 0
+            },
+            "events": {
+              "listeners": 7,
+              "answerers": 5
+            },
+            "dom": {
+              "hud": 0,
+              "body": 0
+            },
+            "sceneObjects": 0
+          },
+          "disposalErrors": [],
+          "scope": {
+            "geometries": 0,
+            "materials": 0,
+            "textures": 0,
+            "renderTargets": 0,
+            "meshes": 0,
+            "resources": 0,
+            "bodies": 0,
+            "sounds": 0,
+            "listeners": 0,
+            "timers": 0,
+            "rafs": 0,
+            "disposers": 0,
+            "systems": 0,
+            "colliders": 0,
+            "nodes": 0
+          }
+        }
+      }
+    },
+    "pine-hollow": {
+      "poses": [
+        {
+          "name": "gate",
+          "ssim": 1,
+          "full": 1,
+          "masked": 0.086
+        },
+        {
+          "name": "cabin",
+          "ssim": 0.9999619108738116,
+          "full": 0.9999641507545792,
+          "masked": 0.063
+        },
+        {
+          "name": "pond",
+          "ssim": 0.9988705779551964,
+          "full": 0.9989000566736059,
+          "masked": 0.026
+        }
+      ],
+      "errors": [],
+      "fingerprintVerdict": "red",
+      "fingerprintDifferences": [
+        {
+          "field": "boot.systems.input",
+          "baseline": [
+            "player.input"
+          ],
+          "now": [
+            "engine.input.collect",
+            "engine.lockon.input",
+            "engine.player.input"
+          ],
+          "class": "A",
+          "band": "exact",
+          "verdict": "red"
+        },
+        {
+          "field": "boot.systems.update",
+          "baseline": {
+            "length": 21,
+            "sha256": "8ba160909d949779a1f936a70d5c111571fda19961617a0232b43a092a4f16b5"
+          },
+          "now": {
+            "length": 26,
+            "sha256": "f24253b33220b349fac1c3d949c93984e3f4cd28404654654721eda36a644539"
+          },
+          "class": "A",
+          "band": "exact",
+          "verdict": "red"
+        },
+        {
+          "field": "boot.systems.late",
+          "baseline": [],
+          "now": [
+            "engine.hud.pins"
+          ],
+          "class": "A",
+          "band": "exact",
+          "verdict": "red"
+        },
+        {
+          "field": "boot.registry",
+          "baseline": {
+            "length": 102,
+            "sha256": "2aaad395241483c76b14ef6ac5984ab4f18fdc1fe927dd3d259c55bf576f8b12"
+          },
+          "now": {
+            "length": 96,
+            "sha256": "2f1d8a66f03a481fce351d59b42e66fc57c4fca1881ef1c5431929ea67412a64"
+          },
+          "class": "A",
+          "band": "exact",
+          "verdict": "red"
+        },
+        {
+          "field": "boot.saves.read",
+          "baseline": [
+            "local:wildshard.save.v2.device",
+            "local:wildshard.save.v2.global",
+            "local:wildshard.save.v2.pine-hollow",
+            "session:wildshard.save.v2.session"
+          ],
+          "now": [
+            "local:wildshard.save.v2.device",
+            "local:wildshard.save.v2.driftwood-isle",
+            "local:wildshard.save.v2.global",
+            "local:wildshard.save.v2.nalati-grasslands",
+            "local:wildshard.save.v2.nine-dragon-stack",
+            "local:wildshard.save.v2.pine-hollow",
+            "session:wildshard.save.v2.session"
+          ],
+          "class": "A",
+          "band": "exact",
+          "verdict": "red"
+        },
+        {
+          "field": "boot.audio.score",
+          "now": "score.pine",
+          "class": "A",
+          "band": "exact",
+          "verdict": "new"
+        }
+      ],
+      "resources": {
+        "before": {
+          "physics": {
+            "fixed": 0,
+            "kinematic": 10,
+            "dynamic": 0,
+            "colliders": 2417
+          },
+          "scene": {
+            "totals": {
+              "mesh": 676,
+              "instanced": 40,
+              "instances": 20064,
+              "skinned": 170,
+              "points": 9,
+              "lines": 3,
+              "sprites": 9,
+              "lights": 7,
+              "batched": 8
+            }
+          },
+          "memory": {
+            "geometries": 227,
+            "textures": 404
+          },
+          "gpuBytes": {
+            "textures": 567729880,
+            "renderbuffers": 0,
+            "buffers": 41667444,
+            "total": 609397324
+          }
+        },
+        "after": {
+          "physics": {
+            "fixed": 0,
+            "kinematic": 10,
+            "dynamic": 0,
+            "colliders": 2417
+          },
+          "scene": {
+            "totals": {
+              "mesh": 676,
+              "instanced": 40,
+              "instances": 20064,
+              "skinned": 170,
+              "points": 9,
+              "lines": 3,
+              "sprites": 9,
+              "lights": 7,
+              "batched": 8
+            }
+          },
+          "memory": {
+            "geometries": 227,
+            "textures": 404
+          },
+          "gpuBytes": {
+            "textures": 567729880,
+            "renderbuffers": 0,
+            "buffers": 41667444,
+            "total": 609397324
+          }
+        }
+      },
+      "gameplayVerdict": "red",
+      "gameplayDifferences": [
+        {
+          "field": "walk.sounds.event",
+          "baseline": {
+            "forest.bed:hollow": 1,
+            "footstep:litter": 180,
+            "animal:boar_grunt": 1,
+            "animal:boar_squeal": 2,
+            "forest.bed:cabin": 1,
+            "pineSfx:bark-ranger-1": 1,
+            "footstep:planks": 1,
+            "forest.bed:ridge": 1,
+            "forest.bed:creek": 1,
+            "dodge": 1,
+            "audio.startSampleBed": 1
+          },
+          "now": {
+            "forest.bed:hollow": 1,
+            "footstep:litter": 180,
+            "animal:boar_grunt": 1,
+            "animal:boar_squeal": 2,
+            "forest.bed:cabin": 1,
+            "pineSfx:bark-ranger-3": 1,
+            "footstep:planks": 1,
+            "forest.bed:ridge": 1,
+            "forest.bed:creek": 1,
+            "dodge": 1,
+            "audio.startSampleBed": 1,
+            "voices:ui-glyph": 1
+          },
+          "class": "A",
+          "band": "exact multiset",
+          "verdict": "red"
+        },
+        {
+          "field": "combat.sounds.event",
+          "baseline": {
+            "land": 1,
+            "footstep:litter": 1,
+            "crossbowFire": 3,
+            "animal:boar_squeal": 6,
+            "animal:boar_grunt": 2,
+            "hitMarker": 6,
+            "boltImpact:flesh": 6,
+            "dryFire": 2,
+            "reload": 3,
+            "kill": 2,
+            "pineSfx:longbowDraw": 3,
+            "pineSfx:longbowLoose": 3
+          },
+          "now": {
+            "land": 1,
+            "footstep:litter": 1,
+            "crossbowFire": 3,
+            "animal:boar_squeal": 6,
+            "animal:boar_grunt": 2,
+            "hitMarker": 6,
+            "boltImpact:flesh": 6,
+            "dryFire": 2,
+            "reload": 3,
+            "kill": 2,
+            "pineSfx:longbowDraw": 6,
+            "pineSfx:longbowLoose": 3
+          },
+          "class": "A",
+          "band": "exact multiset",
+          "verdict": "red"
+        },
+        {
+          "field": "boot.systems.input",
+          "baseline": [
+            "player.input"
+          ],
+          "now": [
+            "engine.input.collect",
+            "engine.lockon.input",
+            "engine.player.input"
+          ],
+          "class": "A",
+          "band": "exact",
+          "verdict": "red"
+        },
+        {
+          "field": "boot.systems.update",
+          "baseline": {
+            "length": 21,
+            "sha256": "8ba160909d949779a1f936a70d5c111571fda19961617a0232b43a092a4f16b5"
+          },
+          "now": {
+            "length": 26,
+            "sha256": "f24253b33220b349fac1c3d949c93984e3f4cd28404654654721eda36a644539"
+          },
+          "class": "A",
+          "band": "exact",
+          "verdict": "red"
+        },
+        {
+          "field": "boot.systems.late",
+          "baseline": [],
+          "now": [
+            "engine.hud.pins"
+          ],
+          "class": "A",
+          "band": "exact",
+          "verdict": "red"
+        },
+        {
+          "field": "boot.registry",
+          "baseline": {
+            "length": 102,
+            "sha256": "2aaad395241483c76b14ef6ac5984ab4f18fdc1fe927dd3d259c55bf576f8b12"
+          },
+          "now": {
+            "length": 96,
+            "sha256": "2f1d8a66f03a481fce351d59b42e66fc57c4fca1881ef1c5431929ea67412a64"
+          },
+          "class": "A",
+          "band": "exact",
+          "verdict": "red"
+        },
+        {
+          "field": "boot.saves.read",
+          "baseline": [
+            "local:wildshard.save.v2.device",
+            "local:wildshard.save.v2.global",
+            "local:wildshard.save.v2.pine-hollow",
+            "session:wildshard.save.v2.session"
+          ],
+          "now": [
+            "local:wildshard.save.v2.device",
+            "local:wildshard.save.v2.driftwood-isle",
+            "local:wildshard.save.v2.global",
+            "local:wildshard.save.v2.nalati-grasslands",
+            "local:wildshard.save.v2.nine-dragon-stack",
+            "local:wildshard.save.v2.pine-hollow",
+            "session:wildshard.save.v2.session"
+          ],
+          "class": "A",
+          "band": "exact",
+          "verdict": "red"
+        },
+        {
+          "field": "boot.audio.score",
+          "now": "score.pine",
+          "class": "A",
+          "band": "exact",
+          "verdict": "new"
+        }
+      ],
+      "traces": [
+        {
+          "name": "cabin-porch",
+          "exact": true,
+          "beforeEnd": {
+            "x": -10.388,
+            "y": 3.833,
+            "z": -34.359
+          },
+          "afterEnd": {
+            "x": -10.388,
+            "y": 3.833,
+            "z": -34.359
+          },
+          "beforeStuck": [],
+          "afterStuck": []
+        },
+        {
+          "name": "lookout-climb",
+          "exact": true,
+          "beforeEnd": {
+            "x": 34.926,
+            "y": 57.477,
+            "z": 211.28
+          },
+          "afterEnd": {
+            "x": 34.926,
+            "y": 57.477,
+            "z": 211.28
+          },
+          "beforeStuck": [],
+          "afterStuck": []
+        },
+        {
+          "name": "creek-bridge",
+          "exact": true,
+          "beforeEnd": {
+            "x": -135.826,
+            "y": 1.473,
+            "z": -5.323
+          },
+          "afterEnd": {
+            "x": -135.826,
+            "y": 1.473,
+            "z": -5.323
+          },
+          "beforeStuck": [],
+          "afterStuck": []
+        }
+      ],
+      "pauseResume": {
+        "before": {
+          "diff": [],
+          "appStates": [
+            "paused",
+            "play"
+          ],
+          "returnState": "play"
+        },
+        "after": {
+          "diff": [],
+          "appStates": [
+            "paused",
+            "play"
+          ],
+          "returnState": "play"
+        }
+      },
+      "combat": {
+        "before": {
+          "swing": "n/a",
+          "shot": {
+            "weapon": "crossbow",
+            "target": "boar",
+            "hits": 3,
+            "hitWithinS": 0.5693333333333044,
+            "killed": true,
+            "killWithinS": 4.409333333333095,
+            "hitLimit": 20,
+            "killLimit": 20
+          },
+          "shot2": {
+            "weapon": "bow",
+            "target": "boar",
+            "hits": 3,
+            "hitWithinS": 1.4693333333332532,
+            "killed": true,
+            "killWithinS": 4.375999999999763,
+            "hitLimit": 20,
+            "killLimit": 20
+          },
+          "hitsToKill": {
+            "shot": 3,
+            "shot2": 3
+          },
+          "kills": [
+            "boar",
+            "boar"
+          ],
+          "loot": {
+            "written": [
+              "local:wildshard.save.v2.global",
+              "local:wildshard.save.v2.pine-hollow"
+            ]
+          },
+          "sounds": {
+            "event": {
+              "land": 1,
+              "footstep:litter": 1,
+              "crossbowFire": 3,
+              "animal:boar_squeal": 6,
+              "animal:boar_grunt": 2,
+              "hitMarker": 6,
+              "boltImpact:flesh": 6,
+              "dryFire": 2,
+              "reload": 3,
+              "kill": 2,
+              "pineSfx:longbowDraw": 3,
+              "pineSfx:longbowLoose": 3
+            },
+            "ambient": [
+              "forest.thrall"
+            ]
+          }
+        },
+        "after": {
+          "swing": "n/a",
+          "shot": {
+            "weapon": "crossbow",
+            "target": "boar",
+            "hits": 3,
+            "hitWithinS": 0.5693333333333044,
+            "killed": true,
+            "killWithinS": 4.409333333333095,
+            "hitLimit": 20,
+            "killLimit": 20
+          },
+          "shot2": {
+            "weapon": "bow",
+            "target": "boar",
+            "hits": 3,
+            "hitWithinS": 1.4693333333332532,
+            "killed": true,
+            "killWithinS": 4.375999999999763,
+            "hitLimit": 20,
+            "killLimit": 20
+          },
+          "hitsToKill": {
+            "shot": 3,
+            "shot2": 3
+          },
+          "kills": [
+            "boar",
+            "boar"
+          ],
+          "loot": {
+            "written": [
+              "local:wildshard.save.v2.global",
+              "local:wildshard.save.v2.pine-hollow"
+            ]
+          },
+          "sounds": {
+            "event": {
+              "land": 1,
+              "footstep:litter": 1,
+              "crossbowFire": 3,
+              "animal:boar_squeal": 6,
+              "animal:boar_grunt": 2,
+              "hitMarker": 6,
+              "boltImpact:flesh": 6,
+              "dryFire": 2,
+              "reload": 3,
+              "kill": 2,
+              "pineSfx:longbowDraw": 6,
+              "pineSfx:longbowLoose": 3
+            },
+            "ambient": [
+              "forest.thrall"
+            ]
+          }
+        }
+      },
+      "leak": {
+        "before": {
+          "before": {
+            "geometries": 0,
+            "textures": 0,
+            "programs": 0,
+            "bodies": 0,
+            "colliders": 0,
+            "listeners": {
+              "window": 0,
+              "document": 0,
+              "canvas": 0,
+              "other": 0
+            },
+            "timers": {
+              "timeouts": 0,
+              "intervals": 0,
+              "raf": 0
+            },
+            "audio": {
+              "activeVoices": 0,
+              "beds": 0,
+              "buses": 0
+            },
+            "systems": {
+              "input": 0,
+              "fixed": {
+                "pre": 0,
+                "step": 0,
+                "post": 0
+              },
+              "update": 0,
+              "late": 0,
+              "render": 0
+            },
+            "events": {
+              "listeners": 0,
+              "answerers": 3
+            },
+            "dom": {
+              "hud": 0,
+              "body": 0
+            },
+            "sceneObjects": 0
+          },
+          "after": {
+            "geometries": 0,
+            "textures": 0,
+            "programs": 0,
+            "bodies": 0,
+            "colliders": 0,
+            "listeners": {
+              "window": 0,
+              "document": 0,
+              "canvas": 0,
+              "other": 0
+            },
+            "timers": {
+              "timeouts": 0,
+              "intervals": 0,
+              "raf": 0
+            },
+            "audio": {
+              "activeVoices": 0,
+              "beds": 0,
+              "buses": 0
+            },
+            "systems": {
+              "input": 0,
+              "fixed": {
+                "pre": 0,
+                "step": 0,
+                "post": 0
+              },
+              "update": 0,
+              "late": 0,
+              "render": 0
+            },
+            "events": {
+              "listeners": 0,
+              "answerers": 3
+            },
+            "dom": {
+              "hud": 0,
+              "body": 0
+            },
+            "sceneObjects": 0
+          },
+          "scope": {
+            "geometries": 0,
+            "materials": 0,
+            "textures": 0,
+            "renderTargets": 0,
+            "meshes": 0,
+            "resources": 0,
+            "bodies": 0,
+            "sounds": 0,
+            "listeners": 0,
+            "timers": 0,
+            "rafs": 0,
+            "disposers": 0,
+            "systems": 0,
+            "colliders": 0,
+            "nodes": 0
+          },
+          "weather": {
+            "before": {
+              "geometries": 0,
+              "textures": 0,
+              "programs": 0,
+              "bodies": 0,
+              "colliders": 0,
+              "listeners": {
+                "window": 0,
+                "document": 0,
+                "canvas": 0,
+                "other": 0
+              },
+              "timers": {
+                "timeouts": 0,
+                "intervals": 0,
+                "raf": 0
+              },
+              "audio": {
+                "activeVoices": 0,
+                "beds": 0,
+                "buses": 0
+              },
+              "systems": {
+                "input": 0,
+                "fixed": {
+                  "pre": 0,
+                  "step": 0,
+                  "post": 0
+                },
+                "update": 0,
+                "late": 0,
+                "render": 0
+              },
+              "events": {
+                "listeners": 0,
+                "answerers": 3
+              },
+              "dom": {
+                "hud": 0,
+                "body": 0
+              },
+              "sceneObjects": 0,
+              "errors": []
+            },
+            "after": {
+              "geometries": 0,
+              "textures": 0,
+              "programs": 0,
+              "bodies": 0,
+              "colliders": 0,
+              "listeners": {
+                "window": 0,
+                "document": 0,
+                "canvas": 0,
+                "other": 0
+              },
+              "timers": {
+                "timeouts": 0,
+                "intervals": 0,
+                "raf": 0
+              },
+              "audio": {
+                "activeVoices": 0,
+                "beds": 0,
+                "buses": 0
+              },
+              "systems": {
+                "input": 0,
+                "fixed": {
+                  "pre": 0,
+                  "step": 0,
+                  "post": 0
+                },
+                "update": 0,
+                "late": 0,
+                "render": 0
+              },
+              "events": {
+                "listeners": 0,
+                "answerers": 3
+              },
+              "dom": {
+                "hud": 0,
+                "body": 0
+              },
+              "sceneObjects": 0,
+              "errors": []
+            },
+            "scope": {
+              "geometries": 0,
+              "materials": 0,
+              "textures": 0,
+              "renderTargets": 0,
+              "meshes": 0,
+              "resources": 0,
+              "bodies": 0,
+              "sounds": 0,
+              "listeners": 0,
+              "timers": 0,
+              "rafs": 0,
+              "disposers": 0,
+              "systems": 0,
+              "colliders": 0,
+              "nodes": 0
+            }
+          }
+        },
+        "after": {
+          "before": {
+            "geometries": 0,
+            "textures": 0,
+            "programs": 0,
+            "bodies": 0,
+            "colliders": 0,
+            "listeners": {
+              "window": 0,
+              "document": 0,
+              "canvas": 0,
+              "other": 0
+            },
+            "timers": {
+              "timeouts": 0,
+              "intervals": 0,
+              "raf": 0
+            },
+            "audio": {
+              "activeVoices": 0,
+              "beds": 0,
+              "buses": 0
+            },
+            "systems": {
+              "input": 0,
+              "fixed": {
+                "pre": 0,
+                "step": 0,
+                "post": 0
+              },
+              "update": 0,
+              "late": 0,
+              "render": 0
+            },
+            "events": {
+              "listeners": 7,
+              "answerers": 5
+            },
+            "dom": {
+              "hud": 0,
+              "body": 0
+            },
+            "sceneObjects": 0
+          },
+          "after": {
+            "geometries": 0,
+            "textures": 0,
+            "programs": 0,
+            "bodies": 0,
+            "colliders": 0,
+            "listeners": {
+              "window": 0,
+              "document": 0,
+              "canvas": 0,
+              "other": 0
+            },
+            "timers": {
+              "timeouts": 0,
+              "intervals": 0,
+              "raf": 0
+            },
+            "audio": {
+              "activeVoices": 0,
+              "beds": 0,
+              "buses": 0
+            },
+            "systems": {
+              "input": 0,
+              "fixed": {
+                "pre": 0,
+                "step": 0,
+                "post": 0
+              },
+              "update": 0,
+              "late": 0,
+              "render": 0
+            },
+            "events": {
+              "listeners": 7,
+              "answerers": 5
+            },
+            "dom": {
+              "hud": 0,
+              "body": 0
+            },
+            "sceneObjects": 0
+          },
+          "disposalErrors": [],
+          "scope": {
+            "geometries": 0,
+            "materials": 0,
+            "textures": 0,
+            "renderTargets": 0,
+            "meshes": 0,
+            "resources": 0,
+            "bodies": 0,
+            "sounds": 0,
+            "listeners": 0,
+            "timers": 0,
+            "rafs": 0,
+            "disposers": 0,
+            "systems": 0,
+            "colliders": 0,
+            "nodes": 0
+          },
+          "weather": {
+            "before": {
+              "geometries": 0,
+              "textures": 0,
+              "programs": 0,
+              "bodies": 0,
+              "colliders": 0,
+              "listeners": {
+                "window": 0,
+                "document": 0,
+                "canvas": 0,
+                "other": 0
+              },
+              "timers": {
+                "timeouts": 0,
+                "intervals": 0,
+                "raf": 0
+              },
+              "audio": {
+                "activeVoices": 0,
+                "beds": 0,
+                "buses": 0
+              },
+              "systems": {
+                "input": 0,
+                "fixed": {
+                  "pre": 0,
+                  "step": 0,
+                  "post": 0
+                },
+                "update": 0,
+                "late": 0,
+                "render": 0
+              },
+              "events": {
+                "listeners": 7,
+                "answerers": 5
+              },
+              "dom": {
+                "hud": 0,
+                "body": 0
+              },
+              "sceneObjects": 0,
+              "errors": []
+            },
+            "after": {
+              "geometries": 0,
+              "textures": 0,
+              "programs": 0,
+              "bodies": 0,
+              "colliders": 0,
+              "listeners": {
+                "window": 0,
+                "document": 0,
+                "canvas": 0,
+                "other": 0
+              },
+              "timers": {
+                "timeouts": 0,
+                "intervals": 0,
+                "raf": 0
+              },
+              "audio": {
+                "activeVoices": 0,
+                "beds": 0,
+                "buses": 0
+              },
+              "systems": {
+                "input": 0,
+                "fixed": {
+                  "pre": 0,
+                  "step": 0,
+                  "post": 0
+                },
+                "update": 0,
+                "late": 0,
+                "render": 0
+              },
+              "events": {
+                "listeners": 7,
+                "answerers": 5
+              },
+              "dom": {
+                "hud": 0,
+                "body": 0
+              },
+              "sceneObjects": 0,
+              "errors": []
+            },
+            "disposalErrors": [],
+            "scope": {
+              "geometries": 0,
+              "materials": 0,
+              "textures": 0,
+              "renderTargets": 0,
+              "meshes": 0,
+              "resources": 0,
+              "bodies": 0,
+              "sounds": 0,
+              "listeners": 0,
+              "timers": 0,
+              "rafs": 0,
+              "disposers": 0,
+              "systems": 0,
+              "colliders": 0,
+              "nodes": 0
+            }
+          }
+        }
+      }
+    }
+  },
+  "audit": {
+    "pineWorldColliders": {
+      "before": 2079,
+      "after": 2079,
+      "orderedExact": true,
+      "captures": [
+        "/private/tmp/e357-s21c/pond-draws/20fcbf54/colliders.json",
+        "/private/tmp/e357-s21c/pond-draws/885bccef/colliders.json"
+      ],
+      "filter": "collisionGroups() >>> 16 === 1 (WORLD). No-parent alone incorrectly includes creature HITBOX."
+    },
+    "token7": {
+      "beforeTaken": true,
+      "afterTaken": true,
+      "beforeFlags": [
+        "taken:token-7",
+        "token:7"
+      ],
+      "afterFlags": [
+        "taken:token-7",
+        "token:7"
+      ],
+      "touchExact": true,
+      "difference": "voices:ui-glyph tap added; placement/radius/state regression not established"
+    },
+    "pond": {
+      "cause": "ef114096 held far FX before hare placement and bird departure cleanup",
+      "fix": "0d4dfcfe",
+      "beforeTris": 950098,
+      "unfixedTris": 958961,
+      "afterTris": 950098,
+      "causalCandidate": "ea65ae74c73e66666254f303644af9ba9445e1f6",
+      "causalBase": "885bccef"
+    }
+  }
+}
