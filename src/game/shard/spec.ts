@@ -23,6 +23,7 @@ export function toLevelSpec(manifest: ShardManifest): LevelSpec {
     ...(manifest.bounds === undefined ? {} : { bounds: manifest.bounds }),
     ...(manifest.camera === undefined ? {} : { camera: manifest.camera }),
     ...(manifest.render === undefined ? {} : { look: manifest.render }),
+    ...(manifest.look === undefined ? {} : { lookLayer: manifest.look }),
     ...(manifest.tiers === undefined ? {} : { tiers: manifest.tiers }),
     ...(manifest.faunaTuning === undefined ? {} : { faunaTuning: manifest.faunaTuning }),
     trees: manifest.trees,

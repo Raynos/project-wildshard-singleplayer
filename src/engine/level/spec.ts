@@ -6,7 +6,7 @@ import type { HuntTuning } from '../entities/AnimalManager';
 import type { RosterEntry } from '../models/live';
 import type { InputContextDef } from './context';
 import type { LevelAudioProfile } from '../audio/levelAudio';
-import type { AtmosphereSpec, ExploreSpec, ForestSpec, GradeSpec, HerdPlan, HorizonSpec, HudSpec, LevelAssets, MinimapSpec, PoiSpec, RGB, SkySpec, SpawnPose, TerrainField, TreeSpec } from './data';
+import type { AtmosphereSpec, ExploreSpec, ForestSpec, GradeSpec, GradeLook, HerdPlan, HorizonSpec, HudSpec, LevelAssets, MinimapSpec, PoiSpec, RGB, SkySpec, SpawnPose, TerrainField, TreeSpec } from './data';
 import type { BudgetInputs } from '../render/budgets';
 
 export type EngineMechanism = 'hover' | 'explore' | 'practice' | 'water' | 'creatures' | 'weather' | 'dayCycle';
@@ -42,7 +42,7 @@ export interface LevelSpec {
   ground: { terrain?: TerrainField; structures?: true };
   spawn: SpawnPose; bounds?: Bounds; camera?: { portraitFov: number };
   sky: SkySpec; atmosphere: AtmosphereSpec; grade: GradeSpec;
-  look?: () => Promise<LookStrategy>; tiers?: TierOverrides; budgets: BudgetInputs;
+  look?: () => Promise<LookStrategy>; lookLayer?: GradeLook; tiers?: TierOverrides; budgets: BudgetInputs;
   mechanisms: readonly EngineMechanism[]; fight: FightRules; input?: readonly InputContextDef[];
   boot: BootSpec; audio: AudioSpec; loadout: LoadoutSpec;
   species: readonly string[]; spawns: readonly HerdPlan[]; spawnTables?: readonly string[];
