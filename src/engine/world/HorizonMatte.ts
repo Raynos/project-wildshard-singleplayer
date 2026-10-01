@@ -27,7 +27,7 @@ import * as THREE from 'three';
 import { ktx2Texture, readTexturePixels } from '../core/ktx2';
 import type { Sky } from './Sky';
 import { fogUniforms } from './Atmosphere';
-import { getActiveChunk } from '#game/shard/registry';
+import { activeLevel } from '../level/selection';
 import { TIER } from '../core/tier';
 
 /** the band's radius (m): inside the camera's far plane (2600) even at the top edge (R / cos 24° ≈ 2520) */
@@ -55,6 +55,8 @@ const STRIPS: Readonly<Partial<Record<string, HorizonStrips>>> = {
 
 /** the shard's painted horizon, or null when it has none */
 export function horizonStrips(level: { slug: string; horizonStrips?: HorizonStrips }): HorizonStrips | null { return level.horizonStrips ?? STRIPS[level.slug] ?? null; }
+/** the level's painted horizon, or null when it has none */
+export function levelHorizonStrips(level: { id: string; horizonStrips?: HorizonStrips | undefined }): HorizonStrips | null { return level.horizonStrips ?? STRIPS[level.id] ?? null; }
 
 export class HorizonMatte {
   mesh: THREE.Mesh | null = null;
@@ -77,7 +79,7 @@ export class HorizonMatte {
   };
 
   /** `strips`: the painting to show — the active shard's by default; null builds nothing */
-  constructor(private sky: Sky, private seaLevel = 0, private strips: HorizonStrips | null = horizonStrips(getActiveChunk())) {}
+  constructor(private sky: Sky, private seaLevel = 0, private strips: HorizonStrips | null = levelHorizonStrips(activeLevel())) {}
 
   build(): this {
     const st = this.sky.backdrop?.palette;

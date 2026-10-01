@@ -242,7 +242,7 @@ export class Explore {
     if ((host.world.chunk.pois ?? []).length > 0) this.map = new MiniMap(this, host.world, host.overhead ?? []);
     if (hasCompareTargets(host.world)) this.compare = new Compare(this, host.world);
     const { chunk } = host.world;
-    const entries = catalogEntries(host.world.sky, host.creatures ?? [], chunk.style, chunk.spawn); // the shard's own creature style (Nalati: painterly)
+    const entries = catalogEntries(host.world.sky, host.creatures ?? [], host.world.game.level.creatureStyle ?? 'pbr', chunk.spawn); // the level's own creature style
     if (entries.length > 0) {
       this.addPane('model', new ModelExplorer(this, host.world, entries));
       this.select = new Select(this, host.world, selectTargets(entries, host.creatures ?? []), entries);

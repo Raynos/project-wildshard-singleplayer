@@ -2,10 +2,11 @@ import * as THREE from 'three';
 import { CHUNK_DEPTH } from '../core/config';
 import { Noise2D } from '../core/noise';
 import { attachFogUniforms, fogUniforms } from './Atmosphere';
-import { PaintedHorizon, horizonStrips } from './HorizonMatte';
+import { PaintedHorizon, levelHorizonStrips } from './HorizonMatte';
 import type { Sky } from './Sky';
-import { getActiveChunk } from '#game/shard/registry';
-import type { ChunkHorizon } from '#game/shard/manifest';
+import { activeLevel } from '../level/selection';
+import type { HorizonSpec } from '../level/data';
+import type { LevelSpec } from '../level/spec';
 import { PATCH_ORDER, patchShader } from '../render/shaderPatches';
 
 /**
@@ -37,17 +38,17 @@ export class Horizon {
   constructor(private sky: Sky) {}
 
   build(): this {
-    const def = getActiveChunk();
-    const own = def.horizon;
+    const level = activeLevel();
+    const own = level.horizon;
     if (own) { // a level's own compass-banded ranges (its manifest's `horizon` data)
-      this.buildBands(own);
+      this.buildBands(own, level.sky.painted);
       if (own.cloudSea) this.buildCloudSea();
       return this;
     }
-    const ocean = Boolean(def.ocean);
+    const ocean = (level.ground.water ?? []).some((body) => body.id === 'sea'); // an open-water level (its registered sea)
     // Pine Hollow (PH-L5): the photoreal painting at infinity replaces the 17 Sep ridge rings and the cloud sea (from the
     // lookout its flat white sheet read as paper); the slab's edge thickens into the painting's haze (Atmosphere fogEdge).
-    const strips = ocean ? null : horizonStrips(def);
+    const strips = ocean ? null : levelHorizonStrips(level);
     if (strips) {
       const painted = new PaintedHorizon(strips).build();
       if (painted.mesh) this.group.add(painted.mesh);
@@ -69,7 +70,7 @@ export class Horizon {
    * `snowLine` of the ring's tallest point, and the same aerial-perspective haze as the default ridges.
    * One draw call per ring, one shared program.
    */
-  private buildBands(H: ChunkHorizon) {
+  private buildBands(H: HorizonSpec, P: LevelSpec['sky']['painted']) {
     const noise = new Noise2D(4242);
     const r2d = 180 / Math.PI;
     H.rings.forEach((ring, ri) => {
@@ -135,7 +136,6 @@ export class Horizon {
       geo.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
       geo.setIndex(idx);
       // the haze is the sky's own horizon colour (`ChunkSky.painted`), so the far range dissolves into that sky
-      const P = getActiveChunk().sky.painted;
       const mesh = new THREE.Mesh(geo, this.ridgeMaterial(ri, ring.haze, P ? new THREE.Color(...P.horizon) : new THREE.Color(0.5, 0.58, 0.74)));
       mesh.frustumCulled = false;
       this.group.add(mesh);
