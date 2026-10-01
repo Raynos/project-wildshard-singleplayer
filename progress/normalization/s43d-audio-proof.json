@@ -1,0 +1,231 @@
+{
+  "parent": "c495de15624ebc420e444b4b733f5795e6f69180",
+  "finalSource": "7e0c75605a872904557ad287cd2f2815cc791190",
+  "walkSoundLogsEqual": true,
+  "combatExactEqual": true,
+  "pauseResumeExactEqual": true,
+  "walkSounds": {
+    "event": {
+      "island.bed:surf": 1,
+      "island.bed:surfBody": 1,
+      "island.bed:surfHiss": 1,
+      "island.bed:lap": 1,
+      "island.bed:breeze": 1,
+      "island.bed:palms": 1,
+      "island.bed:lookout": 1,
+      "island.bed:jungle": 1,
+      "island.bed:jungleDay": 1,
+      "island.bed:jungleNight": 1,
+      "island.bed:waterfall": 1,
+      "island.bed:cove": 1,
+      "island.bed:underwater": 1,
+      "voices:step-planks": 51,
+      "gullCallAt": 14,
+      "gullCall": 14,
+      "splash": 1,
+      "land": 1,
+      "wadeStep": 22,
+      "voices:step-water": 3,
+      "waterExit": 1,
+      "voices:step-wetSand": 13,
+      "voices:step-sand": 7,
+      "dodge": 1,
+      "audio.startSampleBed": 1,
+      "voices:ui-chime": 2
+    },
+    "ambient": [
+      "gulls.call",
+      "island.bird",
+      "island.drip",
+      "island.swell"
+    ]
+  },
+  "combatSounds": {
+    "event": {
+      "voices:step-sand": 1,
+      "voices:whoosh": 3,
+      "animal:crab_click": 3,
+      "voices:impact-shell": 3,
+      "hitMarker": 3,
+      "voices:vocal-crab": 1,
+      "kill": 1,
+      "voices:ui-chime": 1
+    },
+    "ambient": [
+      "island.bird",
+      "island.drip",
+      "island.swell"
+    ]
+  },
+  "legs": {
+    "pier": {
+      "traceEqual": true,
+      "traceSha256": "5c1bfdf673d492f6ba7d8d897624068df89b93c112db94ff8ab5c4660cf35cfa",
+      "end": {
+        "x": -19.773,
+        "y": 1.339,
+        "z": -150.548
+      },
+      "secondsDelta": -1.4210854715202004e-14
+    },
+    "lookout": {
+      "traceEqual": true,
+      "traceSha256": "671c2ed553f2b2c6b01b63a0bf4f08a2de89d534478f98a368d1888156e88508",
+      "end": {
+        "x": 93.842,
+        "y": 41.174,
+        "z": 93.766
+      },
+      "secondsDelta": 0.0
+    },
+    "cave": {
+      "traceEqual": true,
+      "traceSha256": "8d12da108e78750942c2d0a2db356979775ec44247dc0cc1004dac725226797a",
+      "end": {
+        "x": 142.004,
+        "y": 1.22,
+        "z": 18.686
+      },
+      "secondsDelta": 4.440892098500626e-14
+    }
+  },
+  "leak": {
+    "before": {
+      "geometries": 0,
+      "textures": 0,
+      "programs": 0,
+      "bodies": 0,
+      "colliders": 0,
+      "listeners": {
+        "window": 0,
+        "document": 0,
+        "canvas": 0,
+        "other": 0
+      },
+      "timers": {
+        "timeouts": 0,
+        "intervals": 0,
+        "raf": 0
+      },
+      "audio": {
+        "activeVoices": 0,
+        "beds": 0,
+        "buses": 0
+      },
+      "systems": {
+        "input": 0,
+        "fixed": {
+          "pre": 0,
+          "step": 0,
+          "post": 0
+        },
+        "update": 0,
+        "late": 0,
+        "render": 0
+      },
+      "events": {
+        "listeners": 7,
+        "answerers": 5
+      },
+      "dom": {
+        "hud": 0,
+        "body": 0
+      },
+      "sceneObjects": 0
+    },
+    "after": {
+      "geometries": 0,
+      "textures": 0,
+      "programs": 0,
+      "bodies": 0,
+      "colliders": 0,
+      "listeners": {
+        "window": 0,
+        "document": 0,
+        "canvas": 0,
+        "other": 0
+      },
+      "timers": {
+        "timeouts": 0,
+        "intervals": 0,
+        "raf": 0
+      },
+      "audio": {
+        "activeVoices": 0,
+        "beds": 0,
+        "buses": 0
+      },
+      "systems": {
+        "input": 0,
+        "fixed": {
+          "pre": 0,
+          "step": 0,
+          "post": 0
+        },
+        "update": 0,
+        "late": 0,
+        "render": 0
+      },
+      "events": {
+        "listeners": 7,
+        "answerers": 5
+      },
+      "dom": {
+        "hud": 0,
+        "body": 0
+      },
+      "sceneObjects": 0
+    },
+    "scope": {
+      "geometries": 0,
+      "materials": 0,
+      "textures": 0,
+      "renderTargets": 0,
+      "meshes": 0,
+      "resources": 0,
+      "bodies": 0,
+      "sounds": 0,
+      "listeners": 0,
+      "timers": 0,
+      "rafs": 0,
+      "disposers": 0,
+      "systems": 0,
+      "colliders": 0,
+      "nodes": 0
+    },
+    "disposalErrors": [
+      "Cannot read properties of null (reading 'dispose')"
+    ]
+  },
+  "parentDisposalErrors": [],
+  "requests": {
+    "before": 110,
+    "after": 110,
+    "onlyDirectoryRename": true
+  },
+  "baselineRedParent": [
+    "walk.sounds.event",
+    "boot.systems.input",
+    "boot.systems.fixed.post",
+    "boot.systems.update",
+    "boot.systems.late",
+    "boot.registry",
+    "boot.audio.requests",
+    "boot.hud",
+    "boot.saves.read",
+    "combat.loot.written"
+  ],
+  "baselineRedFinal": [
+    "leak.disposalErrors",
+    "walk.sounds.event",
+    "boot.systems.input",
+    "boot.systems.fixed.post",
+    "boot.systems.update",
+    "boot.systems.late",
+    "boot.registry",
+    "boot.audio.requests",
+    "boot.hud",
+    "boot.saves.read",
+    "combat.loot.written"
+  ]
+}
