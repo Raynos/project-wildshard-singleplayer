@@ -100,4 +100,14 @@ describe('per-subject tick scheduler', () => {
     scheduler.beginFrame(1 / 60, player); expect(scheduler.takeBrainDtAt('fx', row, { x: 2, y: 0, z: 0 })).toBeCloseTo(1 / 30);
     scheduler.beginFrame(1 / 30, player); expect(scheduler.takeBrainDtAt('fx', row, { x: 200, y: 0, z: 0 })).toBe(0);
   });
+  it('a scripted body returning to ordinary AI never replays its inactive clock', () => {
+    const scheduler = new TickScheduler(), actor = actorAt(10);
+    scheduler.beginFrame(0.05, player); expect(scheduler.takeBrainDt('ai', actor)).toBeCloseTo(0.05);
+    expect(scheduler.bodyDt('ai', actor)).toBeCloseTo(0.05);
+    for (let frame = 0; frame < 120; frame++) {
+      scheduler.beginFrame(1 / 60, player); scheduler.takeBrainDt('always', actor); scheduler.bodyDt('always', actor);
+    }
+    scheduler.beginFrame(1 / 60, player);
+    expect(scheduler.takeBrainDt('ai', actor)).toBe(0); expect(scheduler.bodyDt('ai', actor)).toBeCloseTo(1 / 60);
+  });
 });

@@ -477,7 +477,7 @@ export class AnimalManager {
     this.pbr = style === 'pbr';
     this.group.name = 'animals';
     // Legacy authored species keep their brain/strike callback until S3.4 / S4.2 migrates it.
-    this.scheduler.configure(getActiveChunk().tiers?.[TIER]?.ticks);
+    this.scheduler.configure(app.render?.level.tiers?.[TIER]?.ticks);
     this.scheduler.rate('legacy', { bands: [{ upTo: Infinity, brainHz: 10, body: 'frame' }] });
     const scope = app.levelScope;
     if (scope) {

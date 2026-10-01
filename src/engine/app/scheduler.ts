@@ -82,6 +82,8 @@ export class TickScheduler {
     if (!rows) { rows = new Map(); this.subjects.set(actor, rows); }
     let row = rows.get(id);
     if (!row) {
+      // A driven/scripted actor can switch cadence. Its inactive clock must not catch up on return.
+      rows.clear();
       row = { brain: clock(), body: clock(), interrupt: 0 };
       row.brain.last = this.time - this.frameDt; row.body.last = this.time - this.frameDt;
       rows.set(id, row);
