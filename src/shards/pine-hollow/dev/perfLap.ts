@@ -4,6 +4,7 @@ import type { AnimalManager } from '#engine/entities/AnimalManager';
 import type { Music } from '#engine/audio/Music';
 import type { HUD } from '#engine/ui/HUD';
 import type { Elites } from '#game/Elite';
+import type { Scope } from '#engine';
 import type { AntlerKing } from '../combat/antlerKing';
 import { perfLap, type LapSpot } from '#engine/core/perfLap';
 import { practiceRoom } from '#engine/core/practiceRoom';
@@ -34,6 +35,7 @@ const FIGHT_R = 80;
 export function registerPineLap(o: { game: Game; player: Player; animals: AnimalManager; music: Music; hud: HUD; elites: Elites; king: AntlerKing }): void {
   const { game, player, animals, music, hud, elites, king } = o;
   let calmBefore = false;
+  const previous = perfLap.host;
   perfLap.host = {
     game, shard: 'pine-hollow', spots: PINE_LAP_SPOTS, player,
     busy: () => {
@@ -56,4 +58,7 @@ export function registerPineLap(o: { game: Game; player: Player; animals: Animal
     },
     toast: (text) => { hud.toast(text); },
   };
+  const host = perfLap.host;
+  const scope: Scope = game.levelScope;
+  scope.onDispose(() => { if (perfLap.host === host) { if (perfLap.active) { host.hold(false); perfLap.active = false; } perfLap.host = previous; } });
 }

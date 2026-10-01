@@ -1,3 +1,4 @@
+import type { ShardContext } from '#game';
 import { app, ownAudioSource, TickScheduler, type EquipmentService } from '#engine';
 import { tap, ambientTick } from '#engine/core/harnessTap';
 /**
@@ -57,6 +58,7 @@ import { BEAT, RAVEN_CARCASS, beatEnvelope, carcassMayGo, nearestUnvisited, rave
 import { setting } from '#engine/ui/Settings';
 
 export interface PineLifeHost {
+  ctx: ShardContext;
   game: Game; sky: Sky; player: Player; animals: AnimalManager; weapons: EquipmentService; audio: Audio;
   trees: readonly TreeInstance[];
   /** the tree variants' bark geometry (Forest's factory): where a trunk really is (`TrunkProbe`) */
@@ -128,8 +130,9 @@ export function installPineLife(h: PineLifeHost): PineLife | null {
   game.scene.add(wild.mesh);
   // the modelled birds (birdModels.ts; Debug ▸ Pine Hollow birds = Procedural keeps these): fetched once booted (off the load's
   // requests and bytes, like the painted horizon), swapped in when they land — same draw, same program
-  const swapBirds = async (): Promise<void> => { const set = await loadBirdModels(); if (set) wild.useBirds(set, game.renderer); };
-  document.addEventListener('ws:ready', () => { setTimeout(() => { void swapBirds(); }, 400); }, { once: true });
+  const swapBirds = async (): Promise<void> => { const set = await loadBirdModels(); if (set && !h.ctx.scope.disposed) wild.useBirds(set, game.renderer); };
+  let scheduled = false;
+  h.ctx.on('level.loaded', ({ id }) => { if (id !== h.ctx.manifest.slug || scheduled) return; scheduled = true; h.ctx.scope.timeout(400, () => { void swapBirds(); }); });
   const cam = game.camera;
   const trunks = new TrunkProbe(h.trunks);
 
@@ -675,7 +678,7 @@ export function installPineLife(h: PineLifeHost): PineLife | null {
   let addPitch = 0, addY = 0, lastRx = Number.NaN, lastPy = Number.NaN;
   const fx = CameraFX.for(game);
   // the gloved hand and the skinning knife the strokes are made with (the weapon is holstered for the beat)
-  const knife = new SkinKnife(game, sky);
+  const knife = new SkinKnife(game, sky, h.ctx);
   const harvest = (carcass: Animal, give: () => void): void => {
     if (beatT >= 0) { beatGive?.(); } // a second harvest mid-beat (never, the prompt hides): the first one's drops land now
     beatT = 0; beatCarcass = carcass; beatGive = give; cutsDone = 0;
@@ -756,7 +759,7 @@ export function installPineLife(h: PineLifeHost): PineLife | null {
   }, 'world.life');
 
   const life: PineLife = { mesh: wild.mesh, harvest, get busy() { return beatT >= 0; } };
-  Object.assign(window, { __pineLife: {
+  const probe = {
     wild, ravens, owl, wood, guides, hares, carcasses, get ms() { return perfMs; },
     /** a breadcrumb flock now (captures); the place it heads for */
     crumbs: () => crumbs(true),
@@ -781,6 +784,10 @@ export function installPineLife(h: PineLifeHost): PineLife | null {
     },
     /** the skinning beat's clock (−1 idle) */
     beat: () => beatT,
-  } });
+  };
+  h.ctx.debug.expose('pineLife', probe);
+  const previous: unknown = Reflect.get(window, '__pineLife');
+  Reflect.set(window, '__pineLife', probe);
+  h.ctx.scope.onDispose(() => { if (Reflect.get(window, '__pineLife') === probe) { if (previous === undefined) Reflect.deleteProperty(window, '__pineLife'); else Reflect.set(window, '__pineLife', previous); } });
   return life;
 }

@@ -1,3 +1,4 @@
+import type { ShardContext } from '#game';
 /**
  * The skinning beat's first-person knife (PINE-HOLLOW-REMASTER §5 Polish, on PH-F2's beat): a gloved right hand holding a
  * drop-point skinning knife at the lower right of the view, in the lever-action's style — a Blender model
@@ -41,7 +42,7 @@ export class SkinKnife {
   private mesh: THREE.Mesh | null = null;
   private readonly mat: THREE.MeshPhysicalMaterial;
 
-  constructor(private readonly game: Game, sky: Sky) {
+  constructor(private readonly game: Game, sky: Sky, private readonly ctx: ShardContext) {
     this.mat = viewmodelMaterial(sky, 'skin-knife', { roughness: 0.55, metalness: 0.25 });
     this.group.name = 'skin-knife';
     this.group.add(this.pivot);
@@ -51,13 +52,16 @@ export class SkinKnife {
     game.camera.add(this.group);
     this.use(proceduralKnife(), null);
     // fetched once booted (off the load's requests and bytes); the stand-in holds until it lands
-    document.addEventListener('ws:ready', () => { setTimeout(() => { void this.load(); }, 600); }, { once: true });
+    let scheduled = false;
+    ctx.on('level.loaded', ({ id }) => { if (id !== ctx.manifest.slug || scheduled) return; scheduled = true; ctx.scope.timeout(600, () => { void this.load(); }); });
+    ctx.scope.onDispose(() => { this.group.removeFromParent(); this.mesh?.geometry.dispose(); this.mat.dispose(); });
   }
 
   private async load(): Promise<void> {
     try {
       const gltf = await new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).loadAsync(KNIFE_MODEL_URL);
       const m = parseKnife(gltf.scene);
+      if (this.ctx.scope.disposed) { m.geo.dispose(); for (const t of Object.values(m.tex)) t.dispose(); return; }
       this.use(m.geo, m.tex);
     } catch (e: unknown) { console.warn('[skin-knife] the Blender model did not load — the procedural knife stands in:', e); }
   }
