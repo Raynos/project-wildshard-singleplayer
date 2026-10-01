@@ -1,0 +1,30 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`shared hunting rows and authored children > keeps every procedural vertex, colour, skin weight, bone and hit dimension on both looks > pre-split procedural geometry 1`] = `
+{
+  "bear:black-blaze:pbr": "a7033415",
+  "bear:black-blaze:toon": "b723c6f7",
+  "bear:black-old:pbr": "316002bc",
+  "bear:black-old:toon": "9549c271",
+  "bear:black:pbr": "bb9ba02a",
+  "bear:black:toon": "a00ff51f",
+  "bear:brown-old:pbr": "4c072c10",
+  "bear:brown-old:toon": "a483dc29",
+  "bear:brown:pbr": "441e91b7",
+  "bear:brown:toon": "327a3102",
+  "boar:big:pbr": "20e1c59e",
+  "boar:big:toon": "ae9a5100",
+  "boar:black:pbr": "764fd339",
+  "boar:black:toon": "83a6873d",
+  "boar:boar:pbr": "f39c857c",
+  "boar:boar:toon": "ee51f826",
+  "boar:ironhide:pbr": "984b36c0",
+  "boar:ironhide:toon": "32a6ff7b",
+  "boar:scarback:pbr": "435ae8dc",
+  "boar:scarback:toon": "1ba734bb",
+  "boar:sow:pbr": "d3605eb",
+  "boar:sow:toon": "1d436c26",
+  "boar:thrall:pbr": "25514c16",
+  "boar:thrall:toon": "13417b86",
+}
+`;
