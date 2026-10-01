@@ -47,3 +47,7 @@ export { BodyShadow, installBodyShadow } from './cosmetics/bodyShadow';
 
 export { game } from './shard/registry';
 export type { ShardWorld } from './shard/world';
+
+export { installTemplateDebug } from './shard/templateDebug';
+
+export { CoinBurst } from './loot/CoinBurst';

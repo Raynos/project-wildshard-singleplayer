@@ -423,7 +423,7 @@ export interface ShardManifest {
   kitLook?: LevelSpec['kitLook'];
   creatures?: LevelSpec['creatures'];
   debugOptions?: LevelSpec['debugOptions'];
-  uses?: readonly (EngineMechanism | 'bosses' | 'elites' | 'spawns' | 'swim' | 'quests' | 'coins' | 'loot' | 'compendium' | 'feats' | 'pack')[];
+  uses?: readonly (EngineMechanism | 'coins' | 'loot' | 'compendium' | 'feats' | 'pack' | 'bag.pack' | 'water' | 'creatures')[];
   tiers?: TierOverrides;
   boot?: BootSpec;
   loadout?: LoadoutSpec;

@@ -1,7 +1,7 @@
 import type { EngineMechanism, LevelSpec } from '#engine';
 import type { ShardManifest } from './manifest';
 
-const ENGINE_MECHANISMS: ReadonlySet<string> = new Set(['hover', 'explore', 'practice', 'water', 'creatures', 'weather', 'dayCycle']);
+const ENGINE_MECHANISMS: ReadonlySet<string> = new Set(['weather', 'dayCycle', 'bosses', 'elites', 'spawns', 'quests', 'swim', 'hover', 'explore', 'practice']);
 const engineMechanism = (value: string): value is EngineMechanism => ENGINE_MECHANISMS.has(value);
 
 /** Pure, node-safe boundary. Only authored engine policy crosses it, never title or game metadata. */

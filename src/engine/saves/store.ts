@@ -20,6 +20,8 @@ interface StoreOptions {
   persist?: () => Promise<boolean>;
 }
 const PREFIX = 'wildshard.save.v2.';
+/** Hidden content namespaces use one leading underscore; paths and embedded underscores stay invalid. */
+const shardNamespace = (slug: string): boolean => /^_?[a-z0-9]+(?:-[a-z0-9]+)*$/u.test(slug);
 const object = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null && !Array.isArray(value);
 const entry = (value: unknown): value is Entry => object(value) && typeof value['v'] === 'number' && Number.isInteger(value['v']) && value['v'] > 0 && Object.hasOwn(value, 'data');
 const doc = (value: unknown): value is Document => object(value) && object(value['keys']);
@@ -49,7 +51,7 @@ export class SaveStore {
     try { resetLegacy(this.storage('global'), this.storage('session'), this.options.forgetLegacy); } catch { /* blocked storage: memory keeps this page playable */ }
   }
   private name(scope: SaveScope, namespace?: string): string {
-    if (scope === 'shard' && (!namespace || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/u.test(namespace))) throw new Error('Shard saves need a slug');
+    if (scope === 'shard' && (!namespace || !shardNamespace(namespace))) throw new Error('Shard saves need a slug');
     return PREFIX + (scope === 'shard' ? namespace : scope);
   }
   private get(scope: SaveScope, name: string): string | null {
@@ -188,7 +190,7 @@ export class SaveStore {
     try { value = JSON.parse(json); } catch { return { imported: [], skipped: [{ key: '*', reason: 'Invalid JSON' }] }; }
     if (!object(value) || value['format'] !== 'wildshard.save' || value['version'] !== 2 || !object(value['docs'])) return { imported: [], skipped: [{ key: '*', reason: 'Unknown save format' }] };
     for (const [scope, savedDoc] of Object.entries(value['docs'])) {
-      if (scope === 'device' || scope === 'session' || (scope !== 'global' && !/^[a-z0-9]+(?:-[a-z0-9]+)*$/u.test(scope)) || !doc(savedDoc)) { report.skipped.push({ key: scope, reason: 'Invalid or private scope' }); continue; }
+      if (scope === 'device' || scope === 'session' || (scope !== 'global' && !shardNamespace(scope)) || !doc(savedDoc)) { report.skipped.push({ key: scope, reason: 'Invalid or private scope' }); continue; }
       const kind = scope === 'global' ? 'global' : 'shard';
       for (const [key, raw] of Object.entries(savedDoc.keys)) {
         const identity = `${scope}/${key}`, definition = this.definitions.get(`${kind}/${key}`);

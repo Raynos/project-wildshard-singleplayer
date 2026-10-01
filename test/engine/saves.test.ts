@@ -13,6 +13,23 @@ const fixture = (): { local: MemoryStorage; session: MemoryStorage; store: SaveS
   return { local, session, store, report };
 };
 describe('SaveStore in node', () => {
+  it('round-trips hidden shard namespaces and rejects path-like or embedded underscores', () => {
+    const first = fixture(), second = fixture();
+    const definition = { scope: 'shard', key: 'template.progress', version: 1, schema: v.number(), initial: () => 0 } as const;
+    const slot = first.store.define(definition);
+    slot.write(17, '_template');
+    expect(slot.read('_template')).toBe(17);
+    expect(slot.read('template')).toBe(0);
+    const imported = second.store.importAll(first.store.exportAll());
+    const restored = second.store.define(definition);
+    // Register before importing: unknown save keys must remain rejected.
+    expect(imported.imported).toEqual([]);
+    expect(second.store.importAll(first.store.exportAll()).imported).toEqual(['_template/template.progress']);
+    expect(restored.read('_template')).toBe(17);
+    for (const slug of ['__template', 'bad_slug', '_', '../_template']) expect(() => slot.write(1, slug)).toThrow('Shard saves need a slug');
+    expect(second.store.importAll('{"format":"wildshard.save","version":2,"docs":{"bad_slug":{"keys":{}}}}').skipped).toEqual([{ key: 'bad_slug', reason: 'Invalid or private scope' }]);
+  });
+
   it('round-trips all four scopes and preserves unrelated keys and other namespaces', () => {
     const { store, local, session } = fixture();
     for (const scope of ['global', 'shard', 'device', 'session'] as const) {

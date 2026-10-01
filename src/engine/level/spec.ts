@@ -16,11 +16,13 @@ import type { EngineTierKnobs } from '../render/tiers';
 import type { BudgetInputs } from '../render/budgets';
 import type { TickRate } from '../app/scheduler';
 
-export type EngineMechanism = 'hover' | 'explore' | 'practice' | 'water' | 'creatures' | 'weather' | 'dayCycle';
+export type EngineMechanism = 'weather' | 'dayCycle' | 'bosses' | 'elites' | 'spawns' | 'quests' | 'swim' | 'hover' | 'explore' | 'practice';
 export interface CreatureRenderSpec { lowPoly: boolean; waitForModels: boolean; furRim: boolean; tintRange: number; oneMaterial: boolean }
 export interface FightRules { input?: { bufferMs: number; coyoteMs: number }; telegraphed?: boolean; maxHitDamage?: number; capExempt?: readonly string[]; attackers?: number }
 export interface Bounds { x0: number; x1: number; z0: number; z1: number; floor: number }
-export interface TierKnobs extends Partial<EngineTierKnobs> { treeHiDist?: number; shadowFar?: number; animalShadowDist?: number; grassSlots?: number; envSteps?: boolean; pointLightSkip?: boolean; skipRaysOffscreen?: boolean; godRays?: boolean; ao?: boolean; aa?: 'fxaa' | 'smaa' | 'off'; slices?: boolean; warmTurns?: number; textures?: 'img' | 'ktx2'; msaa?: number; ticks?: Readonly<Record<string, TickRate>> }
+// oxlint-disable-next-line typescript/no-empty-object-type, typescript/no-empty-interface -- Shards declare typed tier knobs through the public engine API.
+export interface TierKnobMap {}
+export interface TierKnobs extends Partial<EngineTierKnobs>, Partial<TierKnobMap> { treeHiDist?: number; shadowFar?: number; animalShadowDist?: number; grassSlots?: number; envSteps?: boolean; pointLightSkip?: boolean; skipRaysOffscreen?: boolean; godRays?: boolean; ao?: boolean; aa?: 'fxaa' | 'smaa' | 'off'; slices?: boolean; warmTurns?: number; textures?: 'img' | 'ktx2'; msaa?: number; ticks?: Readonly<Record<string, TickRate>> }
 export type TierOverrides = Partial<Record<Tier, TierKnobs>>;
 export type { BudgetInputs } from '../render/budgets';
 export interface AudioSpec { bed?: string; samples?: SfxDecodePolicy; alertOnlyHostile?: boolean; ambience: string; score: string; cues?: () => Promise<object>; preload?: () => Promise<LevelAudioProfile> }

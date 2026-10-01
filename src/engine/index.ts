@@ -20,7 +20,7 @@ export { retainCachedResources } from './app/cachedAssets';
 export type { Ktx2Table } from './boot/gpuFiles';
 export type { LoadFailure } from './core/errorReport';
 export { LevelLoadError, type LevelDriver, type LevelStage } from './level/load';
-export { resolveTierKnobs, needsTerrainCollider, type LevelSpec, type BootSpec, type LoadoutSpec, type EngineMechanism, type TierKnobs, type TierOverrides } from './level/spec';
+export { resolveTierKnobs, needsTerrainCollider, type LevelSpec, type BootSpec, type LoadoutSpec, type EngineMechanism, type TierKnobMap, type TierKnobs, type TierOverrides } from './level/spec';
 export { LevelRegistrations } from './level/registrations';
 export type { LevelContext, LevelHooks, LevelAdapters, EngineRows, ContentRow, ContentRowMap, InputContextDef, HudVerbs, HudBand, VerbSlotOpts, DebugRowSpec, PlaygroundSpec, StringTable, TierKnobSchema } from './level/context';
 export type { LookStrategy, LookComposeContext, LookComposition } from './render/look';
@@ -43,7 +43,7 @@ export type { MusicState } from './audio/Music';
 export { tap } from './core/harnessTap';
 export { castRay, castSegment, floorBelow, lineOfSight } from './physics/query';
 
-export { Equipment, type EquipmentRow, type EquipmentMeta, type WeaponUi, type EquipContext, type BlockSet, type EquipmentId, type WeaponId, type ToolId } from './combat/Equipment';
+export { Equipment, type EquipmentRow, type EquipmentMeta, type EquipmentSlotMap, type EquipmentIconMap, type EquipmentTouchMap, type WeaponUi, type EquipContext, type BlockSet, type EquipmentId, type WeaponId, type ToolId } from './combat/Equipment';
 export { Weapon, quiverState, type WeaponState, type AimInfo, type WeaponHooks } from './combat/Weapon';
 export { Tool, type EquipmentAction } from './combat/Tool';
 export { EquipmentService } from './combat/EquipmentService';
@@ -59,6 +59,8 @@ export { PlayerHealth, type PlayerHealthPorts } from './combat/health';
 export { EffectService } from './combat/effects/EffectService';
 export { sourceMultiplier, matchesTag, type AttributeSet, type EffectDef, type EffectTarget, type EffectId, type ActiveEffect, type SourceMulDef, type CueId } from './combat/effects/types';
 export { CombatCues, audioCueMap, resolveHitStop, type CombatCueMap, type CombatCueOpts, type HitStopProfile } from './combat/cues';
+
+export { blocks } from './blocks';
 
 // Public weapon-family building blocks and visual ports (E357 C4).
 export { melee, aimRay, fovForAspect } from './combat/blocks/melee';
@@ -212,7 +214,7 @@ export { Synth } from './audio/synth';
 
 export { ENGINE_STRINGS, engineString, installEngineStrings, type EngineStringKey } from './strings';
 export { RopeChain, type RopeChainSpec } from './physics/ropeChain';
-export type { WorldRegistry } from './world/registry';
+export { WorldRegistry } from './world/registry';
 export { WaterBodies, swellBody, type WaterBody } from './world/water/body';
 
 export type { ThinkCtx, EnemyWorld, AnimalDims, VariantMods } from './entities/species/registry';
@@ -281,3 +283,7 @@ export { UiLayers, type UiLayer, type UiView, type UiHandle } from './ui/layers'
 export { TabRegistry, type TabId, type TabSpec, type TabFragment } from './ui/tabs';
 export { weaponActionGate } from './input/weaponActions';
 export { listenDom } from './input/dom';
+
+export { registerGlobalDebugAction, type GlobalDebugActionSpec } from './ui/authoredDebugRows';
+
+export { live, listModel, type RosterEntry } from './models/live';

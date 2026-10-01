@@ -1,3 +1,4 @@
+import { authoredRows } from './authoredDebugRows';
 import { uiScope } from './ownership';
 import { engineString } from '#engine/strings';
 import { app } from '../app/runtime';
@@ -74,7 +75,6 @@ export interface DebugRow {
   action?: DebugActionSpec;
 }
 
-const authoredRows = new Set<DebugRow>();
 /** A level owns its debug choices and their inverse; menus resolve the live catalog when opened. */
 export function registerLevelDebugRow(spec: DebugRowSpec, levelId: string): () => void {
   const saved = jsonSlot(`debug.plugin.${levelId}.${spec.id}`, 'device');

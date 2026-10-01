@@ -3,6 +3,7 @@ import type { BootRuntime, LevelContext, LevelSequence, SkinDef } from '#engine'
 import { toLevelSpec, shardContext, setShardSwitcher, type ShardManifest, type GameServices, type ShardContext } from '../index';
 import { runShardLoad, withShardHooks, ShardLoadError, type LoadStage } from '../shard/load';
 import type { KitPorts, BuiltWorld, SessionState, StagedBoot, SessionContext } from './context';
+import { installTemplateDebug } from '../shard/templateDebug';
 import { dataStage } from './data';
 import { worldStage } from './world';
 import { loadoutStage } from './loadout';
@@ -80,6 +81,7 @@ async function buildSession(manifest: ShardManifest, stage: LoadStage, engine: B
   };
   app.levelAdapters.debugRow = (spec) => registerLevelDebugRow(spec, manifest.slug);
   app.levelAdapters.playground = (spec) => registerPlayground(manifest.slug, spec);
+  installTemplateDebug(app, app.engineScope);
   try {
     return await engine.bootLevel(toLevelSpec(manifest), {
       sequence, scope, progress: () => boot.progress,
