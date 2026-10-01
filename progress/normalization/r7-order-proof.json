@@ -1,0 +1,3848 @@
+{
+  "ask": "E357",
+  "group": "R7",
+  "candidate": "194fb34121cebd9ce9a8c96a7dcf75761c1dddd8",
+  "control": "ba9d664c888047f0b37e1185658cacc18198cdfd",
+  "captures": {
+    "candidate": "/private/tmp/e357-sol-r7/final-parity",
+    "control": "/private/tmp/e357-sol-r7/parent-parity"
+  },
+  "notes": [
+    "One capture per shard/tier, accelerated clock, Metal. No accept/record, baseline rewrite, rename changes or ID changes.",
+    "Survivor sequences apply existing 1:1 rename maps, then remove ids absent on the other side. Added systems retain B46 island-before-main.world constraints.",
+    "Behavior uses existing parity bands; stochastic ambient sound inventories and diagnostic leak stacks are informational. Walk durations retain existing floating-point tolerance.",
+    "Clean projected export (85b816e5 + R7): tsc and whole oxlint pass; full vitest --testTimeout=30000: 294 files / 2138 tests pass. Default-timeout inventory and concurrent-browser navmesh timing failures retained in /private/tmp/e357-sol-r7 logs."
+  ],
+  "rows": [
+    {
+      "shard": "driftwood-isle",
+      "tier": "phone",
+      "baselineSha": "ee0dd78b2f2977f36f0ed5e44cf0d1da172f13ea",
+      "bootErrors": [],
+      "before": [
+        "player.update",
+        "main.2",
+        "world.impacts",
+        "engine.player.for",
+        "training-arena",
+        "hud.perf",
+        "main.6",
+        "shard.driftwood.adventure",
+        "shard.driftwood-isle.installSpine",
+        "shard.driftwood-isle.installTrader",
+        "shard.driftwood.adventure.2",
+        "shard.driftwood-isle.installGullGuide",
+        "shard.driftwood-isle.installComplete",
+        "shard.driftwood-isle.installFinale",
+        "shard.driftwood-isle.installEcology",
+        "shard.driftwood.adventure.3",
+        "shard.driftwood.adventure.4",
+        "game.loot",
+        "body-shadow",
+        "keepsakes",
+        "hud.combat",
+        "last place",
+        "first hints",
+        "main.frame",
+        "engine.player.regen",
+        "engine.player.hud"
+      ],
+      "after": [
+        "player.update",
+        "main.2",
+        "world.impacts",
+        "engine.player.for",
+        "training-arena",
+        "hud.perf",
+        "main.6",
+        "shard.driftwood.adventure",
+        "shard.driftwood-isle.installSpine",
+        "shard.driftwood-isle.installTrader",
+        "shard.driftwood.adventure.2",
+        "shard.driftwood-isle.installGullGuide",
+        "shard.driftwood-isle.installComplete",
+        "shard.driftwood-isle.installFinale",
+        "shard.driftwood-isle.installEcology",
+        "shard.driftwood.adventure.3",
+        "shard.driftwood.adventure.4",
+        "game.loot",
+        "body-shadow",
+        "keepsakes",
+        "hud.combat",
+        "last place",
+        "first hints",
+        "main.frame",
+        "engine.player.regen",
+        "engine.player.hud"
+      ],
+      "survivorOrderEqual": true,
+      "added": [
+        "shard.driftwood.cover",
+        "shard.driftwood.blenderIsland",
+        "shard.driftwood.ocean",
+        "shard.driftwood.boat",
+        "shard.driftwood.palms",
+        "shard.driftwood.gulls",
+        "shard.driftwood.bridge.pose",
+        "shard.driftwood.seabed",
+        "shard.driftwood.cove",
+        "shard.driftwood.shrine",
+        "engine.effects",
+        "shard.driftwood.dusk",
+        "shard.driftwood.firstMinutes",
+        "main.world",
+        "engine.creatures.update",
+        "main.equipment",
+        "engine.audio.listener",
+        "shard.driftwood.shrineHum",
+        "shard.driftwood.ambience"
+      ],
+      "deleted": [
+        "main.1",
+        "main.4"
+      ],
+      "behaviorChecks": 67,
+      "behaviorRed": [],
+      "behaviorVerdicts": [
+        {
+          "field": "leak.disposalErrors",
+          "band": "no disposal failures",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.stuck",
+          "band": "0",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.legs.pier.stuck",
+          "band": "[]",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.legs.pier.out",
+          "band": "0",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.legs.lookout.stuck",
+          "band": "[]",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.legs.lookout.out",
+          "band": "0",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.legs.cave.stuck",
+          "band": "[]",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.legs.cave.out",
+          "band": "0",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.touch",
+          "band": "moved \u22652; yaw changed; dodge; use",
+          "verdict": "green"
+        },
+        {
+          "field": "combat.swing",
+          "band": "hit and kill within limits",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.geometries",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.textures",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.programs",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.bodies",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.colliders",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.listeners.window",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.listeners.document",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.listeners.canvas",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.listeners.other",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.timers.timeouts",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.timers.intervals",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.timers.raf",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.audio.activeVoices",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.audio.beds",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.audio.buses",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.input",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.fixed.pre",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.fixed.step",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.fixed.post",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.update",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.late",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.render",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.events.listeners",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.events.answerers",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.dom.hud",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.dom.body",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.sceneObjects",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.sounds.event",
+          "band": "exact multiset",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "combat.sounds.event",
+          "band": "exact multiset",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.pier.name",
+          "band": "exact",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.pier.end.x",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.pier.end.y",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.pier.end.z",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.pier.maxY",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.pier.seconds",
+          "band": "information",
+          "verdict": "info"
+        },
+        {
+          "field": "walk.legs.pier.trace",
+          "band": "information",
+          "verdict": "info"
+        },
+        {
+          "field": "walk.legs.lookout.name",
+          "band": "exact",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.lookout.end.x",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.lookout.end.y",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.lookout.end.z",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.lookout.maxY",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.lookout.seconds",
+          "band": "information",
+          "verdict": "info"
+        },
+        {
+          "field": "walk.legs.lookout.trace",
+          "band": "information",
+          "verdict": "info"
+        },
+        {
+          "field": "walk.legs.cave.name",
+          "band": "exact",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.cave.end.x",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.cave.end.y",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.cave.end.z",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.cave.maxY",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.cave.seconds",
+          "band": "information",
+          "verdict": "info"
+        },
+        {
+          "field": "walk.legs.cave.trace",
+          "band": "information",
+          "verdict": "info"
+        },
+        {
+          "field": "walk.sounds.ambient",
+          "band": "no baseline scheduler missing",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "combat.shot",
+          "band": "exact",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "combat.shot2",
+          "band": "exact",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "combat.hitsToKill.swing",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "combat.kills",
+          "band": "exact",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "combat.loot.written",
+          "band": "exact",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "combat.sounds.ambient",
+          "band": "no baseline scheduler missing",
+          "verdict": "lane-pending"
+        }
+      ]
+    },
+    {
+      "shard": "driftwood-isle",
+      "tier": "desktop",
+      "baselineSha": "ee0dd78b2f2977f36f0ed5e44cf0d1da172f13ea",
+      "bootErrors": [],
+      "before": [
+        "player.update",
+        "main.2",
+        "world.impacts",
+        "engine.player.for",
+        "training-arena",
+        "hud.perf",
+        "main.6",
+        "shard.driftwood.adventure",
+        "shard.driftwood-isle.installSpine",
+        "shard.driftwood-isle.installTrader",
+        "shard.driftwood.adventure.2",
+        "shard.driftwood-isle.installGullGuide",
+        "shard.driftwood-isle.installComplete",
+        "shard.driftwood-isle.installFinale",
+        "shard.driftwood-isle.installEcology",
+        "shard.driftwood.adventure.3",
+        "shard.driftwood.adventure.4",
+        "game.loot",
+        "body-shadow",
+        "keepsakes",
+        "hud.combat",
+        "last place",
+        "first hints",
+        "main.frame",
+        "engine.player.regen",
+        "engine.player.hud"
+      ],
+      "after": [
+        "player.update",
+        "main.2",
+        "world.impacts",
+        "engine.player.for",
+        "training-arena",
+        "hud.perf",
+        "main.6",
+        "shard.driftwood.adventure",
+        "shard.driftwood-isle.installSpine",
+        "shard.driftwood-isle.installTrader",
+        "shard.driftwood.adventure.2",
+        "shard.driftwood-isle.installGullGuide",
+        "shard.driftwood-isle.installComplete",
+        "shard.driftwood-isle.installFinale",
+        "shard.driftwood-isle.installEcology",
+        "shard.driftwood.adventure.3",
+        "shard.driftwood.adventure.4",
+        "game.loot",
+        "body-shadow",
+        "keepsakes",
+        "hud.combat",
+        "last place",
+        "first hints",
+        "main.frame",
+        "engine.player.regen",
+        "engine.player.hud"
+      ],
+      "survivorOrderEqual": true,
+      "added": [
+        "shard.driftwood.cover",
+        "shard.driftwood.blenderIsland",
+        "shard.driftwood.ocean",
+        "shard.driftwood.boat",
+        "shard.driftwood.palms",
+        "shard.driftwood.gulls",
+        "shard.driftwood.bridge.pose",
+        "shard.driftwood.seabed",
+        "shard.driftwood.cove",
+        "shard.driftwood.shrine",
+        "engine.effects",
+        "shard.driftwood.dusk",
+        "shard.driftwood.firstMinutes",
+        "main.world",
+        "engine.creatures.update",
+        "main.equipment",
+        "engine.audio.listener",
+        "shard.driftwood.shrineHum",
+        "shard.driftwood.ambience"
+      ],
+      "deleted": [
+        "main.1",
+        "main.4"
+      ],
+      "behaviorChecks": 66,
+      "behaviorRed": [],
+      "behaviorVerdicts": [
+        {
+          "field": "leak.disposalErrors",
+          "band": "no disposal failures",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.stuck",
+          "band": "0",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.legs.pier.stuck",
+          "band": "[]",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.legs.pier.out",
+          "band": "0",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.legs.lookout.stuck",
+          "band": "[]",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.legs.lookout.out",
+          "band": "0",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.legs.cave.stuck",
+          "band": "[]",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.legs.cave.out",
+          "band": "0",
+          "verdict": "green"
+        },
+        {
+          "field": "combat.swing",
+          "band": "hit and kill within limits",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.geometries",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.textures",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.programs",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.bodies",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.colliders",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.listeners.window",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.listeners.document",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.listeners.canvas",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.listeners.other",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.timers.timeouts",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.timers.intervals",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.timers.raf",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.audio.activeVoices",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.audio.beds",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.audio.buses",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.input",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.fixed.pre",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.fixed.step",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.fixed.post",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.update",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.late",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.render",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.events.listeners",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.events.answerers",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.dom.hud",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.dom.body",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.sceneObjects",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.sounds.event",
+          "band": "exact multiset",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "combat.sounds.event",
+          "band": "exact multiset",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.pier.name",
+          "band": "exact",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.pier.end.x",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.pier.end.y",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.pier.end.z",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.pier.maxY",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.pier.seconds",
+          "band": "information",
+          "verdict": "info"
+        },
+        {
+          "field": "walk.legs.pier.trace",
+          "band": "information",
+          "verdict": "info"
+        },
+        {
+          "field": "walk.legs.lookout.name",
+          "band": "exact",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.lookout.end.x",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.lookout.end.y",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.lookout.end.z",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.lookout.maxY",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.lookout.seconds",
+          "band": "information",
+          "verdict": "info"
+        },
+        {
+          "field": "walk.legs.lookout.trace",
+          "band": "information",
+          "verdict": "info"
+        },
+        {
+          "field": "walk.legs.cave.name",
+          "band": "exact",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.cave.end.x",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.cave.end.y",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.cave.end.z",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.cave.maxY",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.cave.seconds",
+          "band": "information",
+          "verdict": "info"
+        },
+        {
+          "field": "walk.legs.cave.trace",
+          "band": "information",
+          "verdict": "info"
+        },
+        {
+          "field": "walk.sounds.ambient",
+          "band": "no baseline scheduler missing",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "combat.shot",
+          "band": "exact",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "combat.shot2",
+          "band": "exact",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "combat.hitsToKill.swing",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "combat.kills",
+          "band": "exact",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "combat.loot.written",
+          "band": "exact",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "combat.sounds.ambient",
+          "band": "no baseline scheduler missing",
+          "verdict": "lane-pending"
+        }
+      ]
+    },
+    {
+      "shard": "nalati-grasslands",
+      "tier": "phone",
+      "baselineSha": "ee0dd78b2f2977f36f0ed5e44cf0d1da172f13ea",
+      "bootErrors": [],
+      "before": [
+        "player.update",
+        "world.impacts",
+        "engine.player.for",
+        "training-arena",
+        "hud.perf",
+        "main.6",
+        "shard.nalati.quest",
+        "hud.combat",
+        "shard.nalati-grasslands.bind",
+        "first hints",
+        "main.frame",
+        "engine.player.regen",
+        "engine.player.hud"
+      ],
+      "after": [
+        "player.update",
+        "world.impacts",
+        "engine.player.for",
+        "training-arena",
+        "hud.perf",
+        "main.6",
+        "shard.nalati.quest",
+        "hud.combat",
+        "shard.nalati-grasslands.bind",
+        "first hints",
+        "main.frame",
+        "engine.player.regen",
+        "engine.player.hud"
+      ],
+      "survivorOrderEqual": true,
+      "added": [
+        "engine.effects",
+        "main.world",
+        "shard.nalati.painterly",
+        "shard.nalati.water",
+        "shard.nalati.pois",
+        "shard.nalati.dressing",
+        "shard.nalati.weather.fx",
+        "shard.nalati.titan",
+        "shard.nalati.look",
+        "shard.nalati.elites",
+        "shard.nalati.boss",
+        "shard.nalati.wildlife",
+        "shard.nalati.stealth",
+        "shard.nalati.night",
+        "shard.nalati.ride",
+        "shard.nalati.skins",
+        "shard.nalati.sound",
+        "engine.creatures.update",
+        "main.equipment",
+        "engine.audio.listener"
+      ],
+      "deleted": [],
+      "behaviorChecks": 97,
+      "behaviorRed": [],
+      "behaviorVerdicts": [
+        {
+          "field": "leak.disposalErrors",
+          "band": "no disposal failures",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.disposalErrors",
+          "band": "no disposal failures",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.stuck",
+          "band": "0",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.legs.road-camp.stuck",
+          "band": "[]",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.legs.road-camp.out",
+          "band": "0",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.legs.great-kurgan-door.stuck",
+          "band": "[]",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.legs.great-kurgan-door.out",
+          "band": "0",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.legs.leopard-cave.stuck",
+          "band": "[]",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.legs.leopard-cave.out",
+          "band": "0",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.touch",
+          "band": "moved \u22652; yaw changed; dodge; use",
+          "verdict": "green"
+        },
+        {
+          "field": "combat.swing",
+          "band": "hit and kill within limits",
+          "verdict": "green"
+        },
+        {
+          "field": "combat.shot",
+          "band": "hit and kill within limits",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.geometries",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.textures",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.programs",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.bodies",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.colliders",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.listeners.window",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.listeners.document",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.listeners.canvas",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.listeners.other",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.timers.timeouts",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.timers.intervals",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.timers.raf",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.audio.activeVoices",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.audio.beds",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.audio.buses",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.input",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.fixed.pre",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.fixed.step",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.fixed.post",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.update",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.late",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.render",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.events.listeners",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.events.answerers",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.dom.hud",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.dom.body",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.sceneObjects",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.geometries",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.textures",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.programs",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.bodies",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.colliders",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.listeners.window",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.listeners.document",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.listeners.canvas",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.listeners.other",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.timers.timeouts",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.timers.intervals",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.timers.raf",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.audio.activeVoices",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.audio.beds",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.audio.buses",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.systems.input",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.systems.fixed.pre",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.systems.fixed.step",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.systems.fixed.post",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.systems.update",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.systems.late",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.systems.render",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.events.listeners",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.events.answerers",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.dom.hud",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.dom.body",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.sceneObjects",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.errors",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.sounds.event",
+          "band": "exact multiset",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "combat.sounds.event",
+          "band": "exact multiset",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.road-camp.name",
+          "band": "exact",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.road-camp.end.x",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.road-camp.end.y",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.road-camp.end.z",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.road-camp.maxY",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.road-camp.seconds",
+          "band": "information",
+          "verdict": "info"
+        },
+        {
+          "field": "walk.legs.road-camp.trace",
+          "band": "information",
+          "verdict": "info"
+        },
+        {
+          "field": "walk.legs.great-kurgan-door.name",
+          "band": "exact",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.great-kurgan-door.end.x",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.great-kurgan-door.end.y",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.great-kurgan-door.end.z",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.great-kurgan-door.maxY",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.great-kurgan-door.seconds",
+          "band": "information",
+          "verdict": "info"
+        },
+        {
+          "field": "walk.legs.great-kurgan-door.trace",
+          "band": "information",
+          "verdict": "info"
+        },
+        {
+          "field": "walk.legs.leopard-cave.name",
+          "band": "exact",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.leopard-cave.end.x",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.leopard-cave.end.y",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.leopard-cave.end.z",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.leopard-cave.maxY",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.leopard-cave.seconds",
+          "band": "information",
+          "verdict": "info"
+        },
+        {
+          "field": "walk.legs.leopard-cave.trace",
+          "band": "information",
+          "verdict": "info"
+        },
+        {
+          "field": "walk.sounds.ambient",
+          "band": "no baseline scheduler missing",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "combat.shot2",
+          "band": "exact",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "combat.hitsToKill.swing",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "combat.hitsToKill.shot",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "combat.kills",
+          "band": "exact",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "combat.loot.written",
+          "band": "exact",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "combat.sounds.ambient",
+          "band": "no baseline scheduler missing",
+          "verdict": "lane-pending"
+        }
+      ]
+    },
+    {
+      "shard": "nalati-grasslands",
+      "tier": "desktop",
+      "baselineSha": "ee0dd78b2f2977f36f0ed5e44cf0d1da172f13ea",
+      "bootErrors": [],
+      "before": [
+        "player.update",
+        "world.impacts",
+        "engine.player.for",
+        "training-arena",
+        "hud.perf",
+        "main.6",
+        "shard.nalati.quest",
+        "hud.combat",
+        "shard.nalati-grasslands.bind",
+        "first hints",
+        "main.frame",
+        "engine.player.regen",
+        "engine.player.hud"
+      ],
+      "after": [
+        "player.update",
+        "world.impacts",
+        "engine.player.for",
+        "training-arena",
+        "hud.perf",
+        "main.6",
+        "shard.nalati.quest",
+        "hud.combat",
+        "shard.nalati-grasslands.bind",
+        "first hints",
+        "main.frame",
+        "engine.player.regen",
+        "engine.player.hud"
+      ],
+      "survivorOrderEqual": true,
+      "added": [
+        "engine.effects",
+        "main.world",
+        "shard.nalati.painterly",
+        "shard.nalati.water",
+        "shard.nalati.pois",
+        "shard.nalati.dressing",
+        "shard.nalati.weather.fx",
+        "shard.nalati.titan",
+        "shard.nalati.look",
+        "shard.nalati.elites",
+        "shard.nalati.boss",
+        "shard.nalati.wildlife",
+        "shard.nalati.stealth",
+        "shard.nalati.night",
+        "shard.nalati.ride",
+        "shard.nalati.skins",
+        "shard.nalati.sound",
+        "engine.creatures.update",
+        "main.equipment",
+        "engine.audio.listener"
+      ],
+      "deleted": [],
+      "behaviorChecks": 96,
+      "behaviorRed": [],
+      "behaviorVerdicts": [
+        {
+          "field": "leak.disposalErrors",
+          "band": "no disposal failures",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.disposalErrors",
+          "band": "no disposal failures",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.stuck",
+          "band": "0",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.legs.road-camp.stuck",
+          "band": "[]",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.legs.road-camp.out",
+          "band": "0",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.legs.great-kurgan-door.stuck",
+          "band": "[]",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.legs.great-kurgan-door.out",
+          "band": "0",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.legs.leopard-cave.stuck",
+          "band": "[]",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.legs.leopard-cave.out",
+          "band": "0",
+          "verdict": "green"
+        },
+        {
+          "field": "combat.swing",
+          "band": "hit and kill within limits",
+          "verdict": "green"
+        },
+        {
+          "field": "combat.shot",
+          "band": "hit and kill within limits",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.geometries",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.textures",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.programs",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.bodies",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.colliders",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.listeners.window",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.listeners.document",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.listeners.canvas",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.listeners.other",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.timers.timeouts",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.timers.intervals",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.timers.raf",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.audio.activeVoices",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.audio.beds",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.audio.buses",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.input",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.fixed.pre",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.fixed.step",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.fixed.post",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.update",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.late",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.render",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.events.listeners",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.events.answerers",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.dom.hud",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.dom.body",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.sceneObjects",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.geometries",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.textures",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.programs",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.bodies",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.colliders",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.listeners.window",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.listeners.document",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.listeners.canvas",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.listeners.other",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.timers.timeouts",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.timers.intervals",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.timers.raf",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.audio.activeVoices",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.audio.beds",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.audio.buses",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.systems.input",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.systems.fixed.pre",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.systems.fixed.step",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.systems.fixed.post",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.systems.update",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.systems.late",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.systems.render",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.events.listeners",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.events.answerers",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.dom.hud",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.dom.body",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.sceneObjects",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.errors",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.sounds.event",
+          "band": "exact multiset",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "combat.sounds.event",
+          "band": "exact multiset",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.road-camp.name",
+          "band": "exact",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.road-camp.end.x",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.road-camp.end.y",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.road-camp.end.z",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.road-camp.maxY",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.road-camp.seconds",
+          "band": "information",
+          "verdict": "info"
+        },
+        {
+          "field": "walk.legs.road-camp.trace",
+          "band": "information",
+          "verdict": "info"
+        },
+        {
+          "field": "walk.legs.great-kurgan-door.name",
+          "band": "exact",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.great-kurgan-door.end.x",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.great-kurgan-door.end.y",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.great-kurgan-door.end.z",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.great-kurgan-door.maxY",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.great-kurgan-door.seconds",
+          "band": "information",
+          "verdict": "info"
+        },
+        {
+          "field": "walk.legs.great-kurgan-door.trace",
+          "band": "information",
+          "verdict": "info"
+        },
+        {
+          "field": "walk.legs.leopard-cave.name",
+          "band": "exact",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.leopard-cave.end.x",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.leopard-cave.end.y",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.leopard-cave.end.z",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.leopard-cave.maxY",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.leopard-cave.seconds",
+          "band": "information",
+          "verdict": "info"
+        },
+        {
+          "field": "walk.legs.leopard-cave.trace",
+          "band": "information",
+          "verdict": "info"
+        },
+        {
+          "field": "walk.sounds.ambient",
+          "band": "no baseline scheduler missing",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "combat.shot2",
+          "band": "exact",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "combat.hitsToKill.swing",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "combat.hitsToKill.shot",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "combat.kills",
+          "band": "exact",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "combat.loot.written",
+          "band": "exact",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "combat.sounds.ambient",
+          "band": "no baseline scheduler missing",
+          "verdict": "lane-pending"
+        }
+      ]
+    },
+    {
+      "shard": "nine-dragon-stack",
+      "tier": "phone",
+      "baselineSha": "ee0dd78b2f2977f36f0ed5e44cf0d1da172f13ea",
+      "bootErrors": [],
+      "before": [
+        "player.update",
+        "shard.nd.world",
+        "shard.nd.audio",
+        "world.impacts",
+        "engine.player.for",
+        "training-arena",
+        "fei-zhua",
+        "hud.perf",
+        "engine.world.bounds",
+        "main.6",
+        "hud.combat",
+        "first hints",
+        "main.frame",
+        "engine.player.regen",
+        "engine.player.hud"
+      ],
+      "after": [
+        "player.update",
+        "shard.nd.world",
+        "shard.nd.audio",
+        "world.impacts",
+        "engine.player.for",
+        "training-arena",
+        "fei-zhua",
+        "hud.perf",
+        "engine.world.bounds",
+        "main.6",
+        "hud.combat",
+        "first hints",
+        "main.frame",
+        "engine.player.regen",
+        "engine.player.hud"
+      ],
+      "survivorOrderEqual": true,
+      "added": [
+        "engine.effects",
+        "main.world",
+        "engine.creatures.update",
+        "main.equipment",
+        "engine.audio.listener"
+      ],
+      "deleted": [],
+      "behaviorChecks": 67,
+      "behaviorRed": [],
+      "behaviorVerdicts": [
+        {
+          "field": "leak.disposalErrors",
+          "band": "no disposal failures",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.stuck",
+          "band": "0",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.legs.stair-street.stuck",
+          "band": "[]",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.legs.stair-street.out",
+          "band": "0",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.legs.crossing-gate-bridge.stuck",
+          "band": "[]",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.legs.crossing-gate-bridge.out",
+          "band": "0",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.legs.escape-square-balustrade.stuck",
+          "band": "[]",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.legs.escape-square-balustrade.out",
+          "band": "0",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.touch",
+          "band": "moved \u22652; yaw changed; dodge; use",
+          "verdict": "green"
+        },
+        {
+          "field": "combat.swing",
+          "band": "hit and kill within limits",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.geometries",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.textures",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.programs",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.bodies",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.colliders",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.listeners.window",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.listeners.document",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.listeners.canvas",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.listeners.other",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.timers.timeouts",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.timers.intervals",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.timers.raf",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.audio.activeVoices",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.audio.beds",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.audio.buses",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.input",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.fixed.pre",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.fixed.step",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.fixed.post",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.update",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.late",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.render",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.events.listeners",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.events.answerers",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.dom.hud",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.dom.body",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.sceneObjects",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.sounds.event",
+          "band": "exact multiset",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "combat.sounds.event",
+          "band": "exact multiset",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.stair-street.name",
+          "band": "exact",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.stair-street.end.x",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.stair-street.end.y",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.stair-street.end.z",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.stair-street.maxY",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.stair-street.seconds",
+          "band": "information",
+          "verdict": "info"
+        },
+        {
+          "field": "walk.legs.stair-street.trace",
+          "band": "information",
+          "verdict": "info"
+        },
+        {
+          "field": "walk.legs.crossing-gate-bridge.name",
+          "band": "exact",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.crossing-gate-bridge.end.x",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.crossing-gate-bridge.end.y",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.crossing-gate-bridge.end.z",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.crossing-gate-bridge.maxY",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.crossing-gate-bridge.seconds",
+          "band": "information",
+          "verdict": "info"
+        },
+        {
+          "field": "walk.legs.crossing-gate-bridge.trace",
+          "band": "information",
+          "verdict": "info"
+        },
+        {
+          "field": "walk.legs.escape-square-balustrade.name",
+          "band": "exact",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.escape-square-balustrade.end.x",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.escape-square-balustrade.end.y",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.escape-square-balustrade.end.z",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.escape-square-balustrade.maxY",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.escape-square-balustrade.seconds",
+          "band": "information",
+          "verdict": "info"
+        },
+        {
+          "field": "walk.legs.escape-square-balustrade.trace",
+          "band": "information",
+          "verdict": "info"
+        },
+        {
+          "field": "walk.sounds.ambient",
+          "band": "no baseline scheduler missing",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "combat.shot",
+          "band": "exact",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "combat.shot2",
+          "band": "exact",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "combat.hitsToKill.swing",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "combat.kills",
+          "band": "exact",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "combat.loot.written",
+          "band": "exact",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "combat.sounds.ambient",
+          "band": "no baseline scheduler missing",
+          "verdict": "lane-pending"
+        }
+      ]
+    },
+    {
+      "shard": "nine-dragon-stack",
+      "tier": "desktop",
+      "baselineSha": "ee0dd78b2f2977f36f0ed5e44cf0d1da172f13ea",
+      "bootErrors": [],
+      "before": [
+        "player.update",
+        "shard.nd.world",
+        "shard.nd.audio",
+        "world.impacts",
+        "engine.player.for",
+        "training-arena",
+        "fei-zhua",
+        "hud.perf",
+        "engine.world.bounds",
+        "main.6",
+        "hud.combat",
+        "first hints",
+        "main.frame",
+        "engine.player.regen",
+        "engine.player.hud"
+      ],
+      "after": [
+        "player.update",
+        "shard.nd.world",
+        "shard.nd.audio",
+        "world.impacts",
+        "engine.player.for",
+        "training-arena",
+        "fei-zhua",
+        "hud.perf",
+        "engine.world.bounds",
+        "main.6",
+        "hud.combat",
+        "first hints",
+        "main.frame",
+        "engine.player.regen",
+        "engine.player.hud"
+      ],
+      "survivorOrderEqual": true,
+      "added": [
+        "engine.effects",
+        "main.world",
+        "engine.creatures.update",
+        "main.equipment",
+        "engine.audio.listener"
+      ],
+      "deleted": [],
+      "behaviorChecks": 66,
+      "behaviorRed": [],
+      "behaviorVerdicts": [
+        {
+          "field": "leak.disposalErrors",
+          "band": "no disposal failures",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.stuck",
+          "band": "0",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.legs.stair-street.stuck",
+          "band": "[]",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.legs.stair-street.out",
+          "band": "0",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.legs.crossing-gate-bridge.stuck",
+          "band": "[]",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.legs.crossing-gate-bridge.out",
+          "band": "0",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.legs.escape-square-balustrade.stuck",
+          "band": "[]",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.legs.escape-square-balustrade.out",
+          "band": "0",
+          "verdict": "green"
+        },
+        {
+          "field": "combat.swing",
+          "band": "hit and kill within limits",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.geometries",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.textures",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.programs",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.bodies",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.colliders",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.listeners.window",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.listeners.document",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.listeners.canvas",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.listeners.other",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.timers.timeouts",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.timers.intervals",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.timers.raf",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.audio.activeVoices",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.audio.beds",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.audio.buses",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.input",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.fixed.pre",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.fixed.step",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.fixed.post",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.update",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.late",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.render",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.events.listeners",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.events.answerers",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.dom.hud",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.dom.body",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.sceneObjects",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.sounds.event",
+          "band": "exact multiset",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "combat.sounds.event",
+          "band": "exact multiset",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.stair-street.name",
+          "band": "exact",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.stair-street.end.x",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.stair-street.end.y",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.stair-street.end.z",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.stair-street.maxY",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.stair-street.seconds",
+          "band": "information",
+          "verdict": "info"
+        },
+        {
+          "field": "walk.legs.stair-street.trace",
+          "band": "information",
+          "verdict": "info"
+        },
+        {
+          "field": "walk.legs.crossing-gate-bridge.name",
+          "band": "exact",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.crossing-gate-bridge.end.x",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.crossing-gate-bridge.end.y",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.crossing-gate-bridge.end.z",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.crossing-gate-bridge.maxY",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.crossing-gate-bridge.seconds",
+          "band": "information",
+          "verdict": "info"
+        },
+        {
+          "field": "walk.legs.crossing-gate-bridge.trace",
+          "band": "information",
+          "verdict": "info"
+        },
+        {
+          "field": "walk.legs.escape-square-balustrade.name",
+          "band": "exact",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.escape-square-balustrade.end.x",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.escape-square-balustrade.end.y",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.escape-square-balustrade.end.z",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.escape-square-balustrade.maxY",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.escape-square-balustrade.seconds",
+          "band": "information",
+          "verdict": "info"
+        },
+        {
+          "field": "walk.legs.escape-square-balustrade.trace",
+          "band": "information",
+          "verdict": "info"
+        },
+        {
+          "field": "walk.sounds.ambient",
+          "band": "no baseline scheduler missing",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "combat.shot",
+          "band": "exact",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "combat.shot2",
+          "band": "exact",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "combat.hitsToKill.swing",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "combat.kills",
+          "band": "exact",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "combat.loot.written",
+          "band": "exact",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "combat.sounds.ambient",
+          "band": "no baseline scheduler missing",
+          "verdict": "lane-pending"
+        }
+      ]
+    },
+    {
+      "shard": "pine-hollow",
+      "tier": "phone",
+      "baselineSha": "ee0dd78b2f2977f36f0ed5e44cf0d1da172f13ea",
+      "bootErrors": [],
+      "before": [
+        "player.update",
+        "pine.landmarks",
+        "training-arena",
+        "hud.perf",
+        "main.6",
+        "engine.player.for",
+        "world.impacts",
+        "elites",
+        "engine.compendium.installCompendium",
+        "quest.kit",
+        "quest.pool",
+        "quest.shelf",
+        "quest",
+        "hud.combat",
+        "audio",
+        "world.life",
+        "first hints",
+        "main.frame",
+        "engine.player.regen",
+        "engine.player.hud"
+      ],
+      "after": [
+        "player.update",
+        "pine.landmarks",
+        "training-arena",
+        "hud.perf",
+        "main.6",
+        "engine.player.for",
+        "world.impacts",
+        "elites",
+        "engine.compendium.installCompendium",
+        "quest.kit",
+        "quest.pool",
+        "quest.shelf",
+        "quest",
+        "hud.combat",
+        "audio",
+        "world.life",
+        "first hints",
+        "main.frame",
+        "engine.player.regen",
+        "engine.player.hud"
+      ],
+      "survivorOrderEqual": true,
+      "added": [
+        "engine.effects",
+        "engine.effects.debug",
+        "main.world",
+        "engine.creatures.update",
+        "main.equipment",
+        "engine.audio.listener",
+        "shard.pine.weather.state",
+        "shard.pine.weather"
+      ],
+      "deleted": [
+        "world.weather"
+      ],
+      "behaviorChecks": 97,
+      "behaviorRed": [],
+      "behaviorVerdicts": [
+        {
+          "field": "leak.disposalErrors",
+          "band": "no disposal failures",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.disposalErrors",
+          "band": "no disposal failures",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.stuck",
+          "band": "0",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.legs.cabin-porch.stuck",
+          "band": "[]",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.legs.cabin-porch.out",
+          "band": "0",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.legs.lookout-climb.stuck",
+          "band": "[]",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.legs.lookout-climb.out",
+          "band": "0",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.legs.creek-bridge.stuck",
+          "band": "[]",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.legs.creek-bridge.out",
+          "band": "0",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.touch",
+          "band": "moved \u22652; yaw changed; dodge; use",
+          "verdict": "green"
+        },
+        {
+          "field": "combat.shot",
+          "band": "hit and kill within limits",
+          "verdict": "green"
+        },
+        {
+          "field": "combat.shot2",
+          "band": "hit and kill within limits",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.geometries",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.textures",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.programs",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.bodies",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.colliders",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.listeners.window",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.listeners.document",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.listeners.canvas",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.listeners.other",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.timers.timeouts",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.timers.intervals",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.timers.raf",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.audio.activeVoices",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.audio.beds",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.audio.buses",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.input",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.fixed.pre",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.fixed.step",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.fixed.post",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.update",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.late",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.render",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.events.listeners",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.events.answerers",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.dom.hud",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.dom.body",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.sceneObjects",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.geometries",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.textures",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.programs",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.bodies",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.colliders",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.listeners.window",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.listeners.document",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.listeners.canvas",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.listeners.other",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.timers.timeouts",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.timers.intervals",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.timers.raf",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.audio.activeVoices",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.audio.beds",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.audio.buses",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.systems.input",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.systems.fixed.pre",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.systems.fixed.step",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.systems.fixed.post",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.systems.update",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.systems.late",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.systems.render",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.events.listeners",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.events.answerers",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.dom.hud",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.dom.body",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.sceneObjects",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.errors",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.sounds.event",
+          "band": "exact multiset",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "combat.sounds.event",
+          "band": "exact multiset",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.cabin-porch.name",
+          "band": "exact",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.cabin-porch.end.x",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.cabin-porch.end.y",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.cabin-porch.end.z",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.cabin-porch.maxY",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.cabin-porch.seconds",
+          "band": "information",
+          "verdict": "info"
+        },
+        {
+          "field": "walk.legs.cabin-porch.trace",
+          "band": "information",
+          "verdict": "info"
+        },
+        {
+          "field": "walk.legs.lookout-climb.name",
+          "band": "exact",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.lookout-climb.end.x",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.lookout-climb.end.y",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.lookout-climb.end.z",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.lookout-climb.maxY",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.lookout-climb.seconds",
+          "band": "information",
+          "verdict": "info"
+        },
+        {
+          "field": "walk.legs.lookout-climb.trace",
+          "band": "information",
+          "verdict": "info"
+        },
+        {
+          "field": "walk.legs.creek-bridge.name",
+          "band": "exact",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.creek-bridge.end.x",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.creek-bridge.end.y",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.creek-bridge.end.z",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.creek-bridge.maxY",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.creek-bridge.seconds",
+          "band": "information",
+          "verdict": "info"
+        },
+        {
+          "field": "walk.legs.creek-bridge.trace",
+          "band": "information",
+          "verdict": "info"
+        },
+        {
+          "field": "walk.sounds.ambient",
+          "band": "no baseline scheduler missing",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "combat.swing",
+          "band": "exact",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "combat.hitsToKill.shot",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "combat.hitsToKill.shot2",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "combat.kills",
+          "band": "exact",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "combat.loot.written",
+          "band": "exact",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "combat.sounds.ambient",
+          "band": "no baseline scheduler missing",
+          "verdict": "lane-pending"
+        }
+      ]
+    },
+    {
+      "shard": "pine-hollow",
+      "tier": "desktop",
+      "baselineSha": "ee0dd78b2f2977f36f0ed5e44cf0d1da172f13ea",
+      "bootErrors": [],
+      "before": [
+        "player.update",
+        "pine.landmarks",
+        "training-arena",
+        "hud.perf",
+        "main.6",
+        "engine.player.for",
+        "world.impacts",
+        "elites",
+        "engine.compendium.installCompendium",
+        "quest.kit",
+        "quest.pool",
+        "quest.shelf",
+        "quest",
+        "hud.combat",
+        "audio",
+        "world.life",
+        "first hints",
+        "main.frame",
+        "engine.player.regen",
+        "engine.player.hud"
+      ],
+      "after": [
+        "player.update",
+        "pine.landmarks",
+        "training-arena",
+        "hud.perf",
+        "main.6",
+        "engine.player.for",
+        "world.impacts",
+        "elites",
+        "engine.compendium.installCompendium",
+        "quest.kit",
+        "quest.pool",
+        "quest.shelf",
+        "quest",
+        "hud.combat",
+        "audio",
+        "world.life",
+        "first hints",
+        "main.frame",
+        "engine.player.regen",
+        "engine.player.hud"
+      ],
+      "survivorOrderEqual": true,
+      "added": [
+        "engine.effects",
+        "engine.effects.debug",
+        "main.world",
+        "engine.creatures.update",
+        "main.equipment",
+        "engine.audio.listener",
+        "shard.pine.weather.state",
+        "shard.pine.weather"
+      ],
+      "deleted": [
+        "world.weather"
+      ],
+      "behaviorChecks": 96,
+      "behaviorRed": [],
+      "behaviorVerdicts": [
+        {
+          "field": "leak.disposalErrors",
+          "band": "no disposal failures",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.disposalErrors",
+          "band": "no disposal failures",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.stuck",
+          "band": "0",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.legs.cabin-porch.stuck",
+          "band": "[]",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.legs.cabin-porch.out",
+          "band": "0",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.legs.lookout-climb.stuck",
+          "band": "[]",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.legs.lookout-climb.out",
+          "band": "0",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.legs.creek-bridge.stuck",
+          "band": "[]",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.legs.creek-bridge.out",
+          "band": "0",
+          "verdict": "green"
+        },
+        {
+          "field": "combat.shot",
+          "band": "hit and kill within limits",
+          "verdict": "green"
+        },
+        {
+          "field": "combat.shot2",
+          "band": "hit and kill within limits",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.geometries",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.textures",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.programs",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.bodies",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.colliders",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.listeners.window",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.listeners.document",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.listeners.canvas",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.listeners.other",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.timers.timeouts",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.timers.intervals",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.timers.raf",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.audio.activeVoices",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.audio.beds",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.audio.buses",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.input",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.fixed.pre",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.fixed.step",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.fixed.post",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.update",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.late",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.render",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.events.listeners",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.events.answerers",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.dom.hud",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.dom.body",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.sceneObjects",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.geometries",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.textures",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.programs",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.bodies",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.colliders",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.listeners.window",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.listeners.document",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.listeners.canvas",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.listeners.other",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.timers.timeouts",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.timers.intervals",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.timers.raf",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.audio.activeVoices",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.audio.beds",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.audio.buses",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.systems.input",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.systems.fixed.pre",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.systems.fixed.step",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.systems.fixed.post",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.systems.update",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.systems.late",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.systems.render",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.events.listeners",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.events.answerers",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.dom.hud",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.dom.body",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.sceneObjects",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.errors",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.sounds.event",
+          "band": "exact multiset",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "combat.sounds.event",
+          "band": "exact multiset",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.cabin-porch.name",
+          "band": "exact",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.cabin-porch.end.x",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.cabin-porch.end.y",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.cabin-porch.end.z",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.cabin-porch.maxY",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.cabin-porch.seconds",
+          "band": "information",
+          "verdict": "info"
+        },
+        {
+          "field": "walk.legs.cabin-porch.trace",
+          "band": "information",
+          "verdict": "info"
+        },
+        {
+          "field": "walk.legs.lookout-climb.name",
+          "band": "exact",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.lookout-climb.end.x",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.lookout-climb.end.y",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.lookout-climb.end.z",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.lookout-climb.maxY",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.lookout-climb.seconds",
+          "band": "information",
+          "verdict": "info"
+        },
+        {
+          "field": "walk.legs.lookout-climb.trace",
+          "band": "information",
+          "verdict": "info"
+        },
+        {
+          "field": "walk.legs.creek-bridge.name",
+          "band": "exact",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.creek-bridge.end.x",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.creek-bridge.end.y",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.creek-bridge.end.z",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.creek-bridge.maxY",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "walk.legs.creek-bridge.seconds",
+          "band": "information",
+          "verdict": "info"
+        },
+        {
+          "field": "walk.legs.creek-bridge.trace",
+          "band": "information",
+          "verdict": "info"
+        },
+        {
+          "field": "walk.sounds.ambient",
+          "band": "no baseline scheduler missing",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "combat.swing",
+          "band": "exact",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "combat.hitsToKill.shot",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "combat.hitsToKill.shot2",
+          "band": "\u00b1 0",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "combat.kills",
+          "band": "exact",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "combat.loot.written",
+          "band": "exact",
+          "verdict": "lane-pending"
+        },
+        {
+          "field": "combat.sounds.ambient",
+          "band": "no baseline scheduler missing",
+          "verdict": "lane-pending"
+        }
+      ]
+    }
+  ],
+  "landingVerification": {
+    "candidate": "758bfa62efc4e4afd10d0839c07ce34b94e1c41d",
+    "parent": "94eb6ad5f708edf3f6a200c06912e74fd6a33e61",
+    "typescript": "pass",
+    "wholeOxlint": "pass",
+    "fullVitest": {
+      "files": 294,
+      "tests": 2139,
+      "timeoutMs": 30000
+    },
+    "phoneBoot": {
+      "shards": 4,
+      "errors": [],
+      "captures": "/private/tmp/e357-sol-r7/landing-boot"
+    }
+  }
+}

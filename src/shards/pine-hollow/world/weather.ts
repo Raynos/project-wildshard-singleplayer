@@ -203,8 +203,8 @@ export function installPineWeather(h: PineWeatherHost, ctx?: LevelContext): Pine
   };
   const state = (dt: number): void => { if (!dev.paused) weather.update(dt, pine.clock); };
   if (ctx) {
-    ctx.system({ id: 'shard.pine.weather.state', phase: 'update', tick: 'weather', run: state });
-    ctx.system({ id: 'shard.pine.weather', phase: 'update', after: ['shard.pine.weather.state'], run: update });
+    ctx.system({ id: 'shard.pine.weather.state', phase: 'update', after: ['audio'], before: ['world.life', 'first hints', 'main.frame'], tick: 'weather', run: state });
+    ctx.system({ id: 'shard.pine.weather', phase: 'update', after: ['shard.pine.weather.state'], before: ['world.life', 'first hints', 'main.frame'], run: update });
   } else {
     const system = { id: 'world.weather.state', phase: 'update' as const, tick: 'weather', run: state };
     h.game.onUpdate((dt) => { const due = h.game.app.scheduler.systemDt(system, dt); if (due > 0) state(due); }, 'world.weather.state');

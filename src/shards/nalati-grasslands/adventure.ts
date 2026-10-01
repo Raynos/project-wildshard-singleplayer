@@ -254,7 +254,7 @@ export function installNalatiAdventure<A extends { kind: string; combatActor: ()
     if (t - slowT > 0.5) { slowT = t; poll(t); places.update(pp.x, pp.z); }
   };
   if (w.ctx === undefined) w.game.onUpdate(update, 'shard.nalati-grasslands.installNalatiAdventure');
-  else w.ctx.system({ id: 'shard.nalati.quest', phase: 'update', after: ['main.6'], before: ['main.world'], run: update });
+  else w.ctx.system({ id: 'shard.nalati.quest', phase: 'update', after: ['main.6'], before: ['hud.combat', 'shard.nalati-grasslands.bind', 'first hints', 'main.world', 'main.frame'], run: update });
 
   const adventure: NalatiAdventure = { flags, line, people, kokpar, places, dialogue, chip, markers };
   const debug = { ...adventure, kokparGoals: KOKPAR_GOALS, carving, talk: (id: PersonId) => { talks.find((x) => x.id === id)?.talk.talk(); } };

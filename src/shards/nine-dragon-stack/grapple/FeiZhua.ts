@@ -556,7 +556,7 @@ function installRuntime(ctx: EquipmentHost, shard: ShardContext, scope: Scope, t
     return best;
   };
 
-  shard.app.addSystem({ id: 'fei-zhua', phase: 'update', run: () => {
+  shard.app.addSystem({ id: 'fei-zhua', phase: 'update', after: ['training-arena'], before: ['hud.perf', 'engine.world.bounds', 'main.6', 'hud.combat', 'first hints', 'main.frame', 'engine.player.hud'], run: () => {
     if (!enabled()) {
       if (target !== null || armedMiss || phase !== 'idle') release();
       hideCues(); hint(null); candidate = -1;

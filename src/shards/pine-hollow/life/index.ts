@@ -733,7 +733,7 @@ export function installPineLife(h: PineLifeHost): PineLife | null {
   let perfMs = 0;
   const scheduler = new TickScheduler();
   const ambient = { id: 'shard.pine.life', phase: 'update' as const, tick: 'fx', run: (): void => undefined };
-  game.onUpdate((dt) => {
+  h.ctx.system({ id: 'world.life', phase: 'update', after: ['shard.pine.weather'], before: ['first hints', 'main.frame'], run: (dt) => {
     const t0 = performance.now();
     scheduler.beginFrame(dt, player.position);
     wild.begin();
@@ -780,7 +780,7 @@ export function installPineLife(h: PineLifeHost): PineLife | null {
     }
     wild.commit();
     perfMs = perfMs * 0.95 + (performance.now() - t0) * 0.05;
-  }, 'world.life');
+  } });
 
   const life: PineLife = { mesh: wild.mesh, harvest, get busy() { return beatT >= 0; } };
   const probe = {

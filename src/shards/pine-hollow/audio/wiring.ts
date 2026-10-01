@@ -100,7 +100,7 @@ export function installPineAudio(h: PineAudioHost): void {
   const pinned = pineScorePick() !== 'auto'; // Debug ▸ Audio ▸ Pine Hollow score holds the scene (Music.ts reads it)
   const prev = new WeakMap<Animal, Animal['state']>();
   let night = false, slowT = 0, snortAt = -99, elite = false, eliteT = 0;
-  game.onUpdate((dt, t) => {
+  game.app.addSystem({ id: 'audio', phase: 'update', after: ['hud.combat'], before: ['shard.pine.weather.state', 'shard.pine.weather', 'world.life', 'first hints', 'main.frame'], run: (dt, t) => {
     const dn = sky.dayNight;
     if (dn) amb.night = dn.night;
     slowT += dt;
@@ -127,6 +127,6 @@ export function installPineAudio(h: PineAudioHost): void {
       snortAt = t;
       amb.sfx.shot('deer_snort', { at: a.position });
     }
-  }, 'audio');
+  } }, game.levelScope);
   Object.assign(window, { __pineAudio: { spots, get night() { return night; } } });
 }

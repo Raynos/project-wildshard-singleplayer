@@ -703,7 +703,7 @@ export class KurganBoss {
     game.levelScope.listen(window, 'pointerdown', () => { this.skipTouch = true; });
     game.levelScope.listen(window, 'pointerup', () => { this.skipTouch = false; });
     game.levelScope.listen(window, 'pointercancel', () => { this.skipTouch = false; });
-    game.onUpdate((dt) => this.golden?.update(dt), 'shard.nalati-grasslands.bind');
+    game.app.addSystem({ id: 'shard.nalati-grasslands.bind', phase: 'update', after: ['hud.combat'], before: ['first hints', 'main.frame'], run: (dt) => this.golden?.update(dt) }, game.levelScope);
     // dev: `?boss=golden-king` — start at the chamber door; `&bossPhase=2|3` at that checkpoint
     if (play.params.get('boss') === 'golden-king') {
       const ph = Number(play.params.get('bossPhase') ?? '1');

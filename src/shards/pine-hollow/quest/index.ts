@@ -161,14 +161,14 @@ export async function installPineQuest(h: PineQuestHost): Promise<PineQuest> {
     bench: { x: bench.x, y: deckY, z: bench.z, yaw: ZIP_YAW - Math.PI / 4 },
   });
   const kit = new Interactables({ scene: game.scene, sky, player, flags, place, floorAt, prompts: h.interactables }).build(table);
-  game.onUpdate((dt, t) => { kit.update(dt, t); }, 'quest.kit');
+  ctx.system({ id: 'quest.kit', phase: 'update', after: ['engine.compendium.installCompendium'], before: ['quest.pool', 'hud.combat', 'main.frame'], run: (dt, t) => { kit.update(dt, t); } });
 
   // ── the beaver pool behind the dam (E322 F-L6): the sluice's flag drains it, and a reload with it open starts drained ──
   const pool = new BeaverPool(sky).build();
   game.scene.add(pool.group);
   pool.setOpen(flags.has('open:dam-sluice'), true);
   ctx.scope.onDispose(flags.onChange((f, on) => { if (f === 'open:dam-sluice') pool.setOpen(on); }));
-  game.onUpdate((dt) => { pool.update(dt); }, 'quest.pool');
+  ctx.system({ id: 'quest.pool', phase: 'update', after: ['quest.kit'], before: ['quest.shelf', 'quest', 'hud.combat', 'main.frame'], run: (dt) => { pool.update(dt); } });
 
   // ── the counters, the toasts ──
   const chip = new CountChip(ctx.scope.child('count'));
@@ -178,7 +178,7 @@ export async function installPineQuest(h: PineQuestHost): Promise<PineQuest> {
   const shelf = rangerRoot ? placeTokenShelf(sky, rangerRoot, h.registry) : null;
   if (shelf) {
     shelf.setShown(tokenCount() === TOKEN_NAMES.length);
-    game.onUpdate(() => { shelf.update(game.camera); }, 'quest.shelf');
+    ctx.system({ id: 'quest.shelf', phase: 'update', after: ['quest.pool'], before: ['quest', 'hud.combat', 'main.frame'], run: () => { shelf.update(game.camera); } });
   }
   kit.onEvent = (e: InteractEvent) => {
     const d = e.def;
@@ -526,7 +526,7 @@ export async function installPineQuest(h: PineQuestHost): Promise<PineQuest> {
 
   // ── per frame ──
   let slowT = 0;
-  game.onUpdate((dt, t) => {
+  ctx.system({ id: 'quest', phase: 'update', after: ['quest.kit', 'quest.pool', 'quest.shelf'], before: ['hud.combat', 'main.frame'], run: (dt, t) => {
     const pp = player.position;
     dialogue.update(dt);
     for (const p of people) {
@@ -561,7 +561,7 @@ export async function installPineQuest(h: PineQuestHost): Promise<PineQuest> {
       }
       if (journalFull()) progress.recordEvent('journal', 1);
     }
-  }, 'quest');
+  } });
 
   // ── dev: `?quest=<beat>` puts you where the beat starts (and `__pineQuest.goto(beat)` does it without a reload) ──
   const standAt = (bt: Beat): void => {
