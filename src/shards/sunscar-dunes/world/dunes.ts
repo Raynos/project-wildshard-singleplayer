@@ -25,7 +25,9 @@ export function duneHeight(x: number, z: number, { n, n2 }: TerrainNoise): numbe
   const top = smooth((CREST.r * 0.42 - crestD) / (CREST.r * 0.3));
   const spawnFlat = 1 - 0.6 * smooth((14 - Math.hypot(x - SPAWN.x, z - SPAWN.z)) / 10);
   const swell = 3.2 * n.get(x * 0.0095 - 11, z * 0.0095 + 5);
-  return 2 + swell + ridge(s) * amp * (1 - top) * spawnFlat + CREST.h * mound;
+  // the spawn stands on a low dune top, so the first look clears the near ridges to the far crest
+  const sd = Math.hypot(x - SPAWN.x, z - SPAWN.z), lookout = 6.5 * Math.exp(-(sd * sd) / (2 * 15 * 15));
+  return 2 + swell + ridge(s) * amp * (1 - top) * spawnFlat + CREST.h * mound + lookout;
 }
 
 /**
@@ -34,5 +36,5 @@ export function duneHeight(x: number, z: number, { n, n2 }: TerrainNoise): numbe
  */
 export function sandColor(h: number, slope: number, grain: number, out: [number, number, number] | Float32Array): void {
   const lift = smooth((h - 2) / 16) * 0.12, dim = 1 - slope * 0.25, g = 0.94 + grain * 0.12;
-  out[0] = (0.40 + lift) * dim * g; out[1] = (0.165 + lift * 0.45) * dim * g; out[2] = (0.07 + lift * 0.15) * dim * g;
+  out[0] = (0.50 + lift) * dim * g; out[1] = (0.20 + lift * 0.45) * dim * g; out[2] = (0.075 + lift * 0.15) * dim * g;
 }

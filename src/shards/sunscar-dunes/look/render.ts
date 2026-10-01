@@ -12,7 +12,7 @@ import { sandColor } from '../world/dunes';
 import { GROUND } from '../layout';
 import { buildDome, DUSK, KEY_DIR } from './sky';
 
-const KEY_INTENSITY = 1.5, HEMI_INTENSITY = 1.15;
+const KEY_INTENSITY = 2.6, HEMI_INTENSITY = 0.85;
 
 /** The clock stands at dusk: the shard is one moment, the sky never moves. */
 export function duskClock(): DayCycle {

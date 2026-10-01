@@ -8,11 +8,11 @@ import { BackSide, Color, Mesh, ShaderMaterial, SphereGeometry, Vector3 } from '
 /** Toward the sun, a few degrees under the horizon (the sky's glow centre). */
 export const SUN_BELOW = new Vector3(-0.42, -0.07, -1).normalize();
 /** The key light: the last skylight off the glow, a few degrees up, so the crests facing it catch warm light. */
-export const KEY_DIR = new Vector3(-0.42, 0.075, -1).normalize();
+export const KEY_DIR = new Vector3(-0.42, 0.17, -1).normalize();
 export const DUSK = {
   zenith: new Color(0.010, 0.013, 0.048), upper: new Color(0.040, 0.040, 0.115), mauve: new Color(0.11, 0.045, 0.085),
-  away: new Color(0.11, 0.065, 0.10), glow: new Color(1.15, 0.36, 0.075), fog: new Color(0.115, 0.07, 0.085), fogSun: new Color(0.75, 0.27, 0.09),
-  key: new Color(1, 0.47, 0.24), hemiSky: new Color(0.30, 0.38, 0.74), hemiGround: new Color(0.32, 0.14, 0.06),
+  away: new Color(0.13, 0.075, 0.10), glow: new Color(1.25, 0.40, 0.08), fog: new Color(0.20, 0.11, 0.11), fogSun: new Color(0.9, 0.36, 0.12),
+  key: new Color(1, 0.56, 0.32), hemiSky: new Color(0.34, 0.39, 0.66), hemiGround: new Color(0.45, 0.22, 0.1),
 } as const;
 
 const VERT = /* glsl */ `

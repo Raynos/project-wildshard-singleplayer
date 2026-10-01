@@ -25,7 +25,7 @@ export class SignalWhip extends Weapon {
   constructor(app: App, targets: Targets | null = null, actorFor: (animal: TargetAnimal) => Actor | null = () => null) {
     super(WHIP_ROW); this.app = app; this.targets = targets; this.actorFor = actorFor; this.contact = blocks.melee(app.combat);
     this.blocks.vm = this.vm; this.blocks.melee = this.contact;
-    this.model.position.set(0.26, -0.3, -0.5); this.model.rotation.set(0.25, 0, -0.35);
+    this.model.position.set(0.19, -0.17, -0.42); this.model.rotation.set(0.35, 0, -0.5);
   }
   override install(ctx: EquipContext): void { super.install(ctx); this.app.input.bind('attack', () => { this.tryFire(); }, ctx.scope, () => this.enabled); }
   override tryFire(): void {

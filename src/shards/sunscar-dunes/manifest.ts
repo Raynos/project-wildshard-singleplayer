@@ -9,13 +9,14 @@ import { bootFiles, bootSources } from './boot/files';
 import { duneHeight, sandColor } from './world/dunes';
 
 const SEED = 5363;
+const TERRAIN = buildTerrain(SEED, { landscape: duneHeight, trails: TRAIL, cabinSites: [] });
 
 export const SUNSCAR_DUNES: ShardManifest = {
   budgets: BUDGETS, api: 1, slug: 'sunscar-dunes', order: 5, status: 'experimental', name: STRINGS.name, label: '(+2, -1)', seed: SEED,
   biome: STRINGS.biome, blurb: STRINGS.blurb, placement: { grid: [2, -1], size: [250, 250, 250] },
   card: { thumb: DUNE_CARD, portrait: DUNE_CARD, landscape: DUNE_CARD },
   style: 'pbr', kitLook: 'pbr', weapon: 'custom', treeCount: 0, trees: { factory: 'none', noun: 'dunes' },
-  ground: { paths: 'plugin', terrain: buildTerrain(SEED, { landscape: duneHeight, trails: TRAIL, cabinSites: [] }) },
+  ground: { paths: 'plugin', terrain: TERRAIN },
   groundColor: (x, z, h, slope, _terrain, out) => { sandColor(h, slope, Math.sin(x * 12.9898 + z * 78.233) * 0.5 + 0.5, out); return out; },
   spawn: SPAWN, bounds: BOUNDS,
   // just after sunset: the key is the last orange skylight off the western horizon, the fill the indigo sky overhead
@@ -33,6 +34,7 @@ export const SUNSCAR_DUNES: ShardManifest = {
   audio: { bed: 'forest', ambience: 'kit.ambience.forest', score: 'sunscar.silent', cues: async () => (await import('./audio/cues')).CUES,
     preload: async () => (await import('#kit')).createForestAudio() },
   boot: { files: bootFiles, sources: bootSources, viewmodelSets: [], shaders: { background: false }, audio: () => Promise.resolve([]), precache: [] },
+  dev: { poses: async () => (await import('./world/cameras')).duskPoses(TERRAIN.heightAt) },
   explore: EXPLORE, roster: async () => (await import('./roster')).ROSTER, load: () => import('./plugin'),
 };
 // oxlint-disable-next-line import/no-default-export -- Folder discovery requires a default manifest.
