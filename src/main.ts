@@ -727,9 +727,9 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   // E297 fight rules (Driftwood): an amber edge chevron toward an enemy winding up where you can't see it (src/engine/ui/WindupWarn.ts);
   // chained after the wind-up's sound cue
   const windupWarn = Number.isFinite(game.level.fight.attackers) ? new WindupWarn<(typeof animals.animals)[number]>() : null;
-  if (windupWarn !== null) { const cue = animals.onWindup; animals.onWindup = (a, dur) => { cue?.(a, dur); windupWarn.start(a, dur); }; }
-  const previousWindup = animals.onWindup;
-  animals.onWindup = (a, duration) => { app.events.emit('ai.windup', { actor: a.combatActor(), duration }); previousWindup?.(a, duration); };
+  // one chain: the typed 'ai.windup' event first, then the wind-up's sound cue, then the edge chevron (today's order)
+  const windupCue = animals.onWindup;
+  animals.onWindup = (a, duration) => { app.events.emit('ai.windup', { actor: a.combatActor(), duration }); windupCue?.(a, duration); windupWarn?.start(a, duration); };
   const ambience = sea ? new IslandAmbience(audio, { sea: sea.level, heightAt, palms: palmSpecs, wreck, cove: Cove.forIsland() }) : null;
   // the dev fps panel's COUNTS (src/engine/ui/perfHud.ts; read ≤ 4× a second while it is open): who is running AI near you
   perf.addCounts(() => {
