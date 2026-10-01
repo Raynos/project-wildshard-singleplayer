@@ -5,3 +5,5 @@ export { WeaponPickup } from '../player/WeaponPickup';
 export { applySkin, clearSkin } from '../player/Skins';
 
 export { normalAt, TRAILS } from './Heightfield';
+
+export { Water } from './pond';

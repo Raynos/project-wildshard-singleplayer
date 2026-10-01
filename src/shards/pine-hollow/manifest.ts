@@ -150,6 +150,7 @@ export const PINE_HOLLOW: ShardManifest = {
   },
   spawn: SPAWN,
   // the beaver pool behind the dam draws its own water (src/shards/pine-hollow/world/beaverPool.ts): it drains when the sluice opens
+  pondLilyExclusions: [{ x: -122, z: 86, r: 10 }, { x: -88.3, z: 140, r: 10 }],
   pondClip: inBeaverPool,
   bag: { tabs: ['map', 'gear', 'finds', 'pack', 'feats'], pack: { slots: 7, keeps: ['venison', 'deer-hide', 'boar-hide', 'boar-tusk', 'bear-pelt', 'amber-resin', 'lodge-ribbon'] } },
   weapon: 'crossbow',

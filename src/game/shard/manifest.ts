@@ -508,6 +508,7 @@ export interface ShardManifest {
   ocean?: OceanDef;
   /** where the pond's surface mesh (src/shards/pine-hollow/world/pond.ts) leaves out water inside its square — another body draws its own
    *  there (Pine Hollow: the beaver pool, E322 F-L6); omitted = none */
+  pondLilyExclusions?: readonly { x: number; z: number; r: number }[];
   pondClip?: (x: number, z: number) => boolean;
   /** what the minimap and the full map draw of the built world (E130); omitted = ground, trails and the def's own features only */
   minimap?: ChunkMapDef;
