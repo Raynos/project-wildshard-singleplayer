@@ -795,7 +795,7 @@
     "src/engine/boot/nineBootTrace.ts": 1,
     "src/engine/boot/shardPrefetch.ts": 2,
     "src/engine/boot/stuck.ts": 1,
-    "src/engine/core/Game.ts": 19,
+    "src/engine/core/Game.ts": 25,
     "src/engine/core/GpuRecovery.ts": 5,
     "src/engine/core/lifeTrace.ts": 1,
     "src/engine/core/webglStartup.ts": 2,
