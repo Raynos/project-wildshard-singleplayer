@@ -4,6 +4,9 @@ import * as THREE from 'three';
 import { activePhysics } from '../physics/active';
 import { canReach } from '../ai/reach';
 import { AggressionDirector } from '../ai/director';
+import { brainPinned, inspectTick } from '../ai/inspect';
+import { TickScheduler, type InterruptReason } from '../app/scheduler';
+import { dodgeFx } from '../player/dodge';
 import { activeNavmesh } from '../physics/navmesh';
 import { castRay, floorBelow } from '../physics/query';
 import { CreatureBodies } from '../physics/creatures';
@@ -431,7 +434,10 @@ export class AnimalManager {
   wanderGoal: ((a: Animal) => { x: number; z: number; r: number } | null) | null = null;
   private brains = new Map<Animal, Brain>();
   private rng = new Rng(SEED + 31);
-  private thinkAcc = 0;
+  readonly scheduler = new TickScheduler();
+  private readonly visibility = new WeakMap<Animal, boolean>();
+  private dodgeId = dodgeFx.id;
+  private playerSprinting = false;
   private blood!: BloodFX;
   private debugMeshes: THREE.Mesh[] = [];
   private playerPos = new THREE.Vector3();
@@ -470,6 +476,13 @@ export class AnimalManager {
     this.factory = new AnimalFactory(sky, { style });
     this.pbr = style === 'pbr';
     this.group.name = 'animals';
+    // Legacy authored species keep their brain/strike callback until S3.4 / S4.2 migrates it.
+    this.scheduler.rate('legacy', { bands: [{ upTo: Infinity, brainHz: 10, body: 'frame' }] });
+    const scope = app.levelScope;
+    if (scope) {
+      app.events.on('weapon.fired', () => { this.interruptTargets('target.attack'); }, scope);
+      scope.onDispose(() => { this.scheduler.reset(); });
+    }
   }
 
   get alive(): number { let n = 0; for (const a of this.animals) if (a.alive) n++; return n; }
@@ -635,6 +648,10 @@ export class AnimalManager {
     a.onFootfall = this.footfall;
     a.onDamaged = this.damaged;
     a.onStaggered = this.staggered;
+    inspectTick(a, () => {
+      const rate = this.tickRate(a);
+      return { brainHz: rate === 'always' ? this.scheduler.frameHz : this.scheduler.brainHz(rate, a), pinned: rate === 'always' };
+    });
     if (model.shells.length > 0) a.makeShells = () => this.factory.createShells(rig, model);   // none in 'lowpoly'
     a.prepareMaterial = (m) => this.sky.setupMaterial(m);
     a.sampleTerrain();
@@ -690,24 +707,34 @@ export class AnimalManager {
 
   update(dt: number, t: number, playerPos: THREE.Vector3, playerSprinting = false, viewPos: THREE.Vector3 = playerPos, camera: THREE.PerspectiveCamera | null = null): void {
     this.playerPos.copy(playerPos);
+    this.playerSprinting = playerSprinting;
+    this.scheduler.beginFrame(dt, playerPos);
     this.clock += dt;
     if (this.trampling && !practiceRoom.open) this.trampleGrass(playerPos); // E322 F-L4: Pine Hollow's grass trample
     // hitboxes posed from last frame's bones, bodies handed out / back by distance (PHYSICS P6)
     this.bodiesFor()?.sync(this.animals, playerPos);
-    // AI at 10 Hz, staggered across animals so the cost is flat
-    this.thinkAcc += dt;
+    // Decisions and bodies have independent per-subject clocks; the free camera never wakes a herd.
     const n = this.animals.length;
-    if (this.thinkAcc >= 0.1) {
-      this.thinkAcc -= 0.1;
+    if (dt > 0) {
       // the player's ground speed (m/s) is the noise they make: still / crouch / walk / sprint
       if (!this.playerInit) { this.playerPrev.copy(playerPos); this.playerInit = true; }
       const moved = Math.hypot(playerPos.x - this.playerPrev.x, playerPos.z - this.playerPrev.z);
       this.playerPrev.copy(playerPos);
-      this.playerSpeed += (Math.min(moved / 0.1, 9) - this.playerSpeed) * 0.5;
+      this.playerSpeed += (Math.min(moved / dt, 9) - this.playerSpeed) * (1 - 0.5 ** (dt * 10));
       this.repaths = 0;
       if (this.rules !== null) this.tokens.sweep(this.stillAttacking); // E297: the tokens of attacks that are over go back
       const t0 = frameCost.on ? performance.now() : 0;
-      for (const a of this.animals) if (!a.harnessHold) this.think(a, 0.1, playerPos, playerSprinting);
+      if (this.dodgeId !== dodgeFx.id) { this.dodgeId = dodgeFx.id; this.interruptTargets('target.dodge'); }
+      for (const a of this.animals) if (!a.harnessHold && !a.hidden) {
+        const rate = this.tickRate(a);
+        if (a.alive && a.aggressive && (a.state === 'charge' || a.state === 'stalk' || a.state === 'alert')) {
+          const seen = this.canReach(a, playerPos);
+          if (this.visibility.get(a) === true && !seen) this.scheduler.interrupt(a, 'lost.sight');
+          this.visibility.set(a, seen);
+        }
+        const brainDt = this.scheduler.takeBrainDt(rate, a);
+        if (brainDt > 0) this.think(a, brainDt, playerPos, playerSprinting);
+      }
       if (frameCost.on) frameCost.sub('think', t0);
     }
     // fur shells: pick the SHELL_MAX nearest animals inside SHELL_DIST (tiny insertion sort, no allocs)
@@ -723,9 +750,13 @@ export class AnimalManager {
       if (a === undefined || a.hidden) continue;
       const d2 = a.position.distanceToSquared(viewPos);
       const near = d2 < ANIM_LOD * ANIM_LOD;
-      if (!a.harnessHold) a.update(dt, t, near);
-      if (!a.harnessHold && this.melee && a.state === 'charge' && a.alive && !a.stunned) this.chargeContact(a, playerPos);
-      if (!a.harnessHold && this.rules !== null && a.alive && d2 < 36) this.clearBody(a, playerPos); // E297: no body swallows the camera
+      const bodyDt = a.harnessHold ? 0 : this.scheduler.bodyDt(this.tickRate(a), a);
+      if (bodyDt > 0) {
+        if (a.alive && !a.stunned && a.state === 'charge' && speciesDef(a.kind).think === undefined) this.advanceCharge(a, bodyDt, playerPos);
+        a.update(bodyDt, t, near);
+        if (this.melee && a.state === 'charge' && a.alive && !a.stunned) this.chargeContact(a, playerPos);
+        if (this.rules !== null && a.alive && a.position.distanceToSquared(playerPos) < 36) this.clearBody(a, playerPos);
+      }
       // draw / shadow distance by tier: a deer at 150 m is a few pixels on a phone, and only near animals shadow
       // … shrinking away over the last 15 % of the draw distance rather than blinking out at it (E117: no pop)
       const hide = TIER_CONFIG.animalHideDist;
@@ -768,6 +799,51 @@ export class AnimalManager {
     }
     this.blood.update(worldTime.realDt || dt); // blood keeps flying through a hit-stop (worldTime, Game.hitStop)
     if (this.debug) this.updateDebug();
+  }
+
+  private tickRate(a: Animal): string {
+    if (a.driven || a.state === 'sidestep' || brainPinned(a)) return 'always';
+    return speciesDef(a.kind).think === undefined ? 'ai' : 'legacy';
+  }
+
+  /** Hit/target edges bypass the decision interval, including for a far animal. */
+  interrupt(a: Animal, why: InterruptReason): void {
+    if (a.hidden || a.harnessHold || !a.alive || speciesDef(a.kind).think !== undefined) return;
+    this.scheduler.interrupt(a, why);
+    const dt = this.scheduler.takeBrainDt(this.tickRate(a), a);
+    if (dt > 0) this.think(a, dt, this.playerPos, this.playerSprinting);
+  }
+  private interruptTargets(why: InterruptReason): void {
+    for (const a of this.animals) if (a.aggressive || this.brains.get(a)?.sensed) this.interrupt(a, why);
+  }
+
+  private advanceCharge(a: Animal, dt: number, player: THREE.Vector3): void {
+    const br = this.brains.get(a); if (!br) return;
+    const sp = speciesDef(a.kind), M = a.mods, T = this.tuningFor(a);
+    const dx = player.x - a.position.x, dz = player.z - a.position.z, dPlayer = Math.hypot(dx, dz);
+    if (br.windup > 0) {
+      // melee shard: the telegraph — stand, face the player, head down, paw (Animal.poseWindup); then run
+      br.windup -= dt;
+      a.setMotion(Math.atan2(dx, dz), 0, 3.0);
+      a.lookTarget.copy(player); a.lookWeight = 1;
+      if (br.windup <= 0) { br.windup = 0; a.cancelAttack(); }
+      return;
+    }
+    br.timer -= dt;
+    // melee shards: the last CHARGE_COMMIT m are committed (it can barely turn) — a late sidestep makes it thunder past
+    if (this.melee && dPlayer < CHARGE_COMMIT) this.steer(a, Math.atan2(dx, dz), (sp.chargeSpeed ?? BOAR_CHARGE) * M.speed, CHARGE_COMMIT_TURN); // the committed stretch: straight
+    else this.steerTo(a, br, player.x, player.z, (sp.chargeSpeed ?? BOAR_CHARGE) * M.speed, 4.0, 0.3);
+    a.lookTarget.copy(player); a.lookWeight = 0.5;
+    const after: Animal['state'] = T.stalk !== undefined ? 'stalk' : 'flee';   // a hunter keeps pressing; a boar wheels away
+    if (dPlayer < CHARGE_COMMIT) br.committed = true;
+    // E297: a charge you sidestepped thunders past and is over — it backs off and comes round again, not a U-turn into you
+    const passed = this.rules !== null && br.committed && dPlayer > CHARGE_COMMIT && !this.facing(a, player, CHARGE_ARC);
+    if (!this.melee && dPlayer < CHARGE_HIT_DIST * Math.max(1, a.scale) && this.canReach(a, player)) this.chargeHit(a, br);   // melee shards connect per frame on an arc (chargeContact)
+    else if (br.timer <= 0 || passed) {
+      br.chargeCd = this.rules !== null ? RULES_CD_MISS : T.stalk !== undefined ? T.stalk.rechargeCd : M.relentless ? 1.5 : 4;
+      this.enter(a, br, after);
+    }
+    this.confine(a);
   }
 
   private think(a: Animal, dt: number, player: THREE.Vector3, sprinting: boolean): void {
@@ -916,31 +992,7 @@ export class AnimalManager {
         if (br.timer <= 0) { br.timer = rng.range(st.huffMin, st.huffMax); if (dPlayer < 80) this.onSound?.((sp.sounds?.call ?? 'boar_grunt') as AnimalSound, a.position); }
         break;
       }
-      case 'charge': {
-        if (br.windup > 0) {
-          // melee shard: the telegraph — stand, face the player, head down, paw (Animal.poseWindup); then run
-          br.windup -= dt;
-          a.setMotion(Math.atan2(dx, dz), 0, 3.0);
-          a.lookTarget.copy(player); a.lookWeight = 1;
-          if (br.windup <= 0) { br.windup = 0; a.cancelAttack(); }
-          break;
-        }
-        br.timer -= dt;
-        // melee shards: the last CHARGE_COMMIT m are committed (it can barely turn) — a late sidestep makes it thunder past
-        if (this.melee && dPlayer < CHARGE_COMMIT) this.steer(a, Math.atan2(dx, dz), (sp.chargeSpeed ?? BOAR_CHARGE) * M.speed, CHARGE_COMMIT_TURN); // the committed stretch: straight
-        else this.steerTo(a, br, player.x, player.z, (sp.chargeSpeed ?? BOAR_CHARGE) * M.speed, 4.0, 0.3);
-        a.lookTarget.copy(player); a.lookWeight = 0.5;
-        const after: Animal['state'] = T.stalk !== undefined ? 'stalk' : 'flee';   // a hunter keeps pressing; a boar wheels away
-        if (dPlayer < CHARGE_COMMIT) br.committed = true;
-        // E297: a charge you sidestepped thunders past and is over — it backs off and comes round again, not a U-turn into you
-        const passed = this.rules !== null && br.committed && dPlayer > CHARGE_COMMIT && !this.facing(a, player, CHARGE_ARC);
-        if (!this.melee && dPlayer < CHARGE_HIT_DIST * Math.max(1, a.scale) && this.canReach(a, player)) this.chargeHit(a, br);   // melee shards connect per frame on an arc (chargeContact)
-        else if (br.timer <= 0 || passed) {
-          br.chargeCd = this.rules !== null ? RULES_CD_MISS : T.stalk !== undefined ? T.stalk.rechargeCd : M.relentless ? 1.5 : 4;
-          this.enter(a, br, after);
-        }
-        break;
-      }
+      case 'charge': break; // Wind-up, movement and contact run on the body clock.
       case 'attack': case 'dead': case 'hide': case 'perch': case 'rise': case 'sidestep': break;
       // no default
     }
@@ -1395,6 +1447,7 @@ export class AnimalManager {
       } else if (a.aggressive && this.playerPos.distanceTo(a.position) < CHARGE_WHEN_HIT_DIST * M.chargeDist && (br.chargeCd <= 0 || M.relentless) && (M.relentless || this.rng.next() < 0.7)) this.enter(a, br, 'charge');
       else { br.spooked = true; this.enter(a, br, 'flee'); }
     }
+    this.interrupt(a, 'hit');
   };
 
   /**

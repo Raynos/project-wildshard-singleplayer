@@ -541,13 +541,14 @@ export class Game {
     if (this.app.state === 'paused') return;
     const on = frameCost.on; // the dev fps panel's timing rows (src/engine/core/frameCost.ts): one boolean read while it is closed
     for (const spec of this.app.systemsByPhase()[phase]) {
-      if (!this.app.scheduler.runs(spec)) continue;
       if (spec.when && !spec.when(this.app)) continue;
       let s = this.faultSystems.get(spec.id);
       if (!s) { s = makeSystem(spec.run, spec.id, spec.core ?? false, spec.id); this.faultSystems.set(spec.id, s); }
       if (!s.on) continue;
+      const scheduledDt = this.app.scheduler.systemDt(spec, dt);
+      if (scheduledDt === 0 && spec.tick && spec.tick !== 'always') continue;
       const t0 = on ? performance.now() : 0;
-      try { spec.run(dt, t); } catch (e) { this.fault(s, e); }
+      try { spec.run(scheduledDt, t); } catch (e) { this.fault(s, e); }
       if (on) frameCost.system(s.label, performance.now() - t0);
     }
     this.flushEvents(phase);
@@ -749,6 +750,7 @@ export class Game {
       this._frameTime += dt;
       this.frameNo++;
       this.app.events.beginFrame();
+      this.app.scheduler.beginFrame(dt, this.app.equipmentHost?.player.position);
       // the dev fps panel's timing rows (src/engine/core/frameCost.ts): each system timed by its label only while the panel is open
       const on = frameCost.on;
       if (on) frameCost.begin();

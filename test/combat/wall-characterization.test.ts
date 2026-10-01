@@ -51,9 +51,9 @@ describe('wall bug baselines (owning migrations intentionally change B1/B2 expec
       const brain: unknown = brains.get(a); if (typeof brain !== 'object' || brain === null) throw new Error('brain missing');
       Object.assign(brain, { windup: 0, timer: 10 }); a.state = 'charge';
       const hits: number[] = []; f.manager.onCharge = (_animal, amount) => { hits.push(amount); };
-      invokeLegacy(f.manager, 'think', a, 0.1, new THREE.Vector3(0, 0, -1.2), false);
+      invokeLegacy(f.manager, 'advanceCharge', a, 0.1, new THREE.Vector3(0, 0, -1.2));
       expect(hits).toEqual([]);
-      setActivePhysics(null); invokeLegacy(f.manager, 'think', a, 0.1, new THREE.Vector3(0, 0, -1.2), false);
+      setActivePhysics(null); invokeLegacy(f.manager, 'advanceCharge', a, 0.1, new THREE.Vector3(0, 0, -1.2));
       expect(hits).toEqual([damage]);
     });
   it('S8 Driftwood charge contact already checks registered cover', () => {

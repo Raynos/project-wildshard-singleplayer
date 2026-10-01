@@ -1,10 +1,3 @@
-import type { SystemSpec } from './systems';
-
-/** Until rate classes land, every registered system remains eligible on every frame. */
-export class EveryFrameScheduler {
-  runs(_system: SystemSpec): boolean { return true; }
-}
-
 export class AppDebug {
   leakBaseline: Readonly<Record<string, unknown>> | null = null;
   private readonly values = new Map<string, unknown>();

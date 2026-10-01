@@ -12,7 +12,8 @@ import type { DayCycleClock } from '../world/dayCycle';
 import type { WorldRegistry } from '../world/registry';
 import type { AimTarget } from '../player/AimTargets';
 import type { Audio } from '../audio/Audio';
-import { AppDebug, EveryFrameScheduler, resolveGrade } from './services';
+import { AppDebug, resolveGrade } from './services';
+import { TickScheduler } from './scheduler';
 import { Events } from '../events/events';
 import { GameClock } from '../core/clock';
 import { AssetService } from './assets';
@@ -125,7 +126,7 @@ export class App {
   readonly gradeFor = resolveGrade;
   readonly saves = saves;
   readonly debug = new AppDebug();
-  readonly scheduler = new EveryFrameScheduler();
+  readonly scheduler = new TickScheduler();
 
   constructor(events = new Events()) { this.events = events; this.combat = new CombatPipeline(events, this.engineScope, () => this.physics); this.aggression = new AggressionService(events, this.engineScope); }
   get state(): AppState { return this.currentState; }

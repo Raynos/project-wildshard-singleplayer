@@ -103,6 +103,7 @@ export { SHADOW_LAYER } from './core/shadowLayer';
 export type { AmmoId, AmmoRow, ProjectileModification } from './combat/ammo';
 
 export { Hfsm, type StateDef, type StateChange } from './ai/hfsm';
+export { TickScheduler, type TickBand, type TickRate, type TickActor, type InterruptReason } from './app/scheduler';
 export { StrikeRunner, type StrikeSpec, type StrikeContext, type StrikeActor, type StrikePhase, type UtilityScore } from './ai/strikes';
 export { canReach, type ReachActor } from './ai/reach';
 export { AggressionDirector, AggressionService } from './ai/director';

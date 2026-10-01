@@ -13,7 +13,7 @@ const originalPhysics = activePhysics();
 afterEach(() => { setActiveChunk(originalChunk); setActivePhysics(originalPhysics); });
 describe('scripted approach and departure through current manager brains', () => {
   it.each([['boar', 'boar'], ['bear', 'black'], ['deer', 'doe'], ['elk', 'cow']] as const)('%s/%s keeps its seeded states and damage contacts', (kind, variant) => {
-    setActiveChunk('pine-hollow'); setActivePhysics(null); const f = manager(), animal = f.manager.spawn(kind, 0, 0, 0, variant);
+    setActiveChunk('pine-hollow'); setActivePhysics(null); const f = manager({ legacyClock: true }), animal = f.manager.spawn(kind, 0, 0, 0, variant);
     const states: { frame: number; state: string }[] = [], hits: number[] = [];
     f.manager.onCharge = (_a, amount) => { hits.push(amount); };
     let frame = 0;

@@ -151,7 +151,7 @@ export function installPineWeather(h: PineWeatherHost, ctx?: LevelContext): Pine
 
   const blob = new THREE.Vector3();
   /** C7: the Ghost Stag — the quest's lead when it is out, else the elite when it is within 140 m — in a fog bank at dawn */
-  const stagInFog = (eye: THREE.Vector3): void => {
+  const stagInFog = (eye: THREE.Vector3, dt: number): void => {
     let p = h.stagAt();
     if (p === null) {
       let bd = 140 * 140;
@@ -162,7 +162,7 @@ export function installPineWeather(h: PineWeatherHost, ctx?: LevelContext): Pine
       }
     }
     if (p === null || weather.fog < 0.02) { weatherUniforms.fogBlobAmt.value = 0; return; }
-    blob.lerp(p, blob.y < -1e3 ? 1 : 0.2);
+    blob.lerp(p, blob.y < -1e3 ? 1 : 1 - 0.8 ** (dt * 60));
     weatherUniforms.fogBlob.value.set(blob.x, blob.y + 1.2, blob.z, 19);
     weatherUniforms.fogBlobAmt.value = 0.82 * weather.fog;
   };
@@ -171,7 +171,6 @@ export function installPineWeather(h: PineWeatherHost, ctx?: LevelContext): Pine
   const dev = { paused: false };
   const update = (dt: number): void => {
     if (dev.paused) return; // dev: the numbers below left as they are, to poke at one by hand
-    weather.update(dt, pine.clock);
     const eye = h.viewer();
     const stay = 1 - THREE.MathUtils.clamp(h.game.app.events.ask('weather.hold', weatherHold.k), 0, 1); // a sealed boss room's own fog wins (F-L7)
     const fog = weather.fog * stay, haze = weather.rain * stay, og = oldGrowthAt(eye.x, eye.z);
@@ -200,10 +199,17 @@ export function installPineWeather(h: PineWeatherHost, ctx?: LevelContext): Pine
     if (f instanceof THREE.Fog || f instanceof THREE.FogExp2) fogCol.copy(f.color);
     fx.update(dt, weather, fogCol, wind, h.game.camera);
     shelterHerds(dt);
-    stagInFog(eye);
+    stagInFog(eye, dt);
   };
-  if (ctx) ctx.system({ id: 'shard.pine.weather', phase: 'update', run: update });
-  else h.game.onUpdate(update, 'world.weather');
+  const state = (dt: number): void => { if (!dev.paused) weather.update(dt, pine.clock); };
+  if (ctx) {
+    ctx.system({ id: 'shard.pine.weather.state', phase: 'update', tick: 'weather', run: state });
+    ctx.system({ id: 'shard.pine.weather', phase: 'update', after: ['shard.pine.weather.state'], run: update });
+  } else {
+    const system = { id: 'world.weather.state', phase: 'update' as const, tick: 'weather', run: state };
+    h.game.onUpdate((dt) => { const due = h.game.app.scheduler.systemDt(system, dt); if (due > 0) state(due); }, 'world.weather.state');
+    h.game.onUpdate(update, 'world.weather');
+  }
 
   const rig: PineWeatherRig = { weather, fx, setMode: (m, t = 0.5) => { weather.setMode(m, t); } };
   const debug = {
