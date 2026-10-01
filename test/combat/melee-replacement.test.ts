@@ -26,6 +26,7 @@ describe('Melee content and reward replacement', () => {
     const listeners = scope.census.listeners;
     const power = new NaizagaiPower({ scene: f.game.scene, player: f.player, camera: f.game.camera,
       animals: manager().manager, storm: () => false });
+    const worldRoots = f.game.scene.children.length;
     const upgraded = new Naizagai(f.world, { raycast: () => null }, { power }); upgraded.carryPassState(original);
     service.replace(original.id, upgraded);
     expect(upgraded).toBeInstanceOf(Sabre); expect(upgraded).toBeInstanceOf(Melee);
@@ -34,6 +35,7 @@ describe('Melee content and reward replacement', () => {
     expect(upgraded.heavyMult).toBe(1.4); expect(upgraded.passChain).toBe(1); expect(upgraded.passChainLeft).toBeCloseTo(2.8);
     expect(upgraded.mount).toBe(original.mount); expect(upgraded.model.visible).toBe(true); expect(original.model.parent).toBeNull();
     expect(scope.census.listeners).toBe(listeners);
+    expect(f.game.scene.children).toHaveLength(worldRoots); // the outgoing sword's world stars leave with its owner
     const swing = vi.spyOn(power, 'onSwingStart'); upgraded.tryFire(); expect(swing).toHaveBeenCalledOnce();
     scope.dispose(); expect(scope.census.listeners).toBe(0); expect(upgraded.model.parent).toBeNull();
   });

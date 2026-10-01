@@ -443,9 +443,8 @@ export class Sword extends Melee {
     this.reach = opts.reach ?? profile.reach;
     this.portraitPullX = opts.portraitPullX ?? profile.portraitPullX;
     this.portraitFov = opts.portraitFov ?? profile.feel.portraitFov ?? profile.feel.fovHip;
-    if (opts.framing) this.framing = { ...this.framing, ...opts.framing };
     this.swingScale = profile.swingScale;
-    this.framing = { ...profile.framing };
+    this.framing = { ...profile.framing, ...opts.framing };
     const moves = opts.moves ?? profile.moves;
     if (moves) { this.mv = moves; this.basePos.copy(moves.rest.pos); this.baseQ.copy(moves.rest.q); }
     this.lastYaw = this.player.yaw; this.lastPitch = this.player.pitch;
@@ -468,7 +467,13 @@ export class Sword extends Melee {
   override install(ctx: EquipContext): void {
     super.install(ctx);
     this.bindInput(ctx);
-    ctx.scope.onDispose(() => { this.model.removeFromParent(); });
+    ctx.scope.onDispose(() => {
+      this.model.removeFromParent(); this.stars.points.removeFromParent();
+      this.stars.points.geometry.dispose();
+      for (const material of Array.isArray(this.stars.points.material) ? this.stars.points.material : [this.stars.points.material]) material.dispose();
+      this.trail.geometry.dispose(); this.trailMat.dispose();
+      this.glint.mesh.geometry.dispose();
+    });
   }
   private bindInput(ctx: EquipContext): void {
     ctx.scope.listen(document, 'mousedown', (event) => {
