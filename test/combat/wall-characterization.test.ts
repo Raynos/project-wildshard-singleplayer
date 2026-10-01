@@ -85,6 +85,16 @@ describe('wall bug baselines (owning migrations intentionally change B1/B2 expec
       deps: { camera: f.game.camera, animals: { animals: [a.animal] }, storm: () => false } });
     invokeLegacy(blade, 'throwCrescent'); expect(a.dealt).toEqual([40]);
   });
+  it.each([false, true])('B2 Naizagai storm%s chains through cover from a clear first target', (storm) => {
+    wall(); const f = fakeWorld(), first = target(), next = target(), third = target();
+    for (const [a, z] of [[first, -1], [next, -3], [third, -5]] as const) {
+      a.animal.position.z = a.body.z = a.head.z = z;
+    }
+    const blade = legacyActor(Naizagai.prototype, { crescent: new THREE.Object3D(), crescentFrom: new THREE.Vector3(), crescentDir: new THREE.Vector3(), arcs: [],
+      deps: { camera: f.game.camera, animals: { animals: [first.animal, next.animal, third.animal] }, storm: () => storm } });
+    invokeLegacy(blade, 'throwCrescent');
+    expect(first.dealt).toEqual([storm ? 50 : 40]); expect(next.dealt).toEqual([storm ? 50 : 40]); expect(third.dealt).toEqual(storm ? [50] : []);
+  });
   it.each(['arrow', 'bolt'])('%s already stops at the same registered wall before querying the creature', (kind) => {
     wall(); const f = fakeWorld(), a = target(), from = new THREE.Vector3(0, 0.8, 0), to = new THREE.Vector3(0, 0.8, -3);
     const weapon = kind === 'arrow'
