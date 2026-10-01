@@ -83,7 +83,8 @@ Jake plays the game as an iOS home-screen PWA. It has no address bar, so a `?foo
   ungodly amount of toggles and we need to organize them"):
   1. `src/engine/ui/Settings.ts`: a key in `OPTION_VALUES` (the first value is the default) and `OPTION_SPECS` → `DEBUG_ONLY`.
   2. `src/engine/ui/debugOptions.ts`: one `opt(key, group, label, choices, { reload?, when?, note, ask: 'E<n>', reviewBy: 'YYYY-MM-DD' })` row in `DEBUG_ROWS`, under the
-     group whose domain it is. `when` shows it only on its shard / with its weapon; `reload: true` if the thing is built
+     group whose domain it is. `pnpm gen` updates `lint/ask-ids.json`; commit that inventory when a new ask owns a flag (Vercel excludes docs).
+     `when` shows it only on its shard / with its weapon; `reload: true` if the thing is built
      once; `note` is one line with the ask id. `src/engine/ui/DebugMenu.ts` renders it (collapsible groups, a filter) — no Menu.ts
      edit. `test/debug-options.test.ts` fails an option with no row.
   3. The game reads it with `setting(key)` (at load for a reload row) and `onSettingChange(key, fn)` (live).

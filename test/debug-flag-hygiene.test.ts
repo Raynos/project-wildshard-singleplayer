@@ -1,5 +1,5 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- This Node fixture inventories authored files and writes the required overdue cache.
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Node-side repository inventory resolves fixture paths.
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -13,6 +13,11 @@ describe('Debug flag ownership and review dates', () => {
     mkdirSync('.cache', { recursive: true }); writeFileSync('.cache/debug-overdue.txt', `${result.overdue.join('\n')}${result.overdue.length > 0 ? '\n' : ''}`);
     if (result.overdue.length > 0) console.info(`Overdue Debug flags:\n${result.overdue.join('\n')}`);
     expect(result.errors).toEqual([]);
+    if (existsSync('docs/tasks/ASKS.md')) {
+      const ids = JSON.parse(readFileSync('lint/ask-ids.json', 'utf8')) as string[];
+      for (const id of ids) expect(askExists(root, id)).toBe(true);
+      for (const row of debugFlags(root)) expect(ids).toContain(row.ask);
+    }
   });
   it('rejects unknown owners and distant dates; an overdue row passes and is listed', () => {
     const options = { today: '2026-10-01', max: 1, raisedBy: [], askExists: (id: string) => id === 'E357' };
