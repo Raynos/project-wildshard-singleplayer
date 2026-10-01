@@ -156,7 +156,7 @@ async function main(opts) {
   const available=process.platform==='darwin'?Number(execFileSync(join(ROOT,'scripts/browser-lane.sh'),['capacity'],{encoding:'utf8'}).trim().split(' ')[1]):1;
   const jobs=Number(opts.jobs??Math.max(1,Math.min(8,available)));
   if(!Number.isInteger(jobs)||jobs<1||jobs>8)throw new Error('usage: --jobs must be 1..8');
-  const accelerated=opts.clock==='fast'||opts.clock==='accelerated',timings=/** @type {Record<string,number|string|boolean>} */({jobs,clock:accelerated?'accelerated':'raf'}),started=performance.now();
+  const accelerated=opts.clock!=='raf',timings=/** @type {Record<string,number|string|boolean>} */({jobs,clock:accelerated?'accelerated':'raf'}),started=performance.now();
   // --url: the build's version.json carries `build` = `<sha7>-<time>` (no full sha): the job's SHA env wins, else the sha7
   // is resolved in this checkout (E357 F3.2: every runner record exited 3 here).
   const versionSha=async()=>{const v=object(await (await fetch(`${opts.url}/version.json`)).json());const full=string(v.sha);if(full)return full;
