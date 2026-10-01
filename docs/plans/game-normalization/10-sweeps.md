@@ -213,8 +213,8 @@ branches in `src/engine/boot/` and adds the checks.
    wraps `manifest.load()` in it, and the engine's staged boot wraps the `level.look()` import (01 §5a, §7 load
    order), so a shard chunk dropped mid-download on LTE gets the same two retries (0.8 s, 2.5 s) as `three` and `main` do today.
 10. **The E188 re-test on the newest installed iOS runtime** (EF10 flagged iOS 27's rewritten module loader; the Mac
-    has iOS 26.5 today, so the check runs on the newest runtime `xcrun simctl list runtimes` shows, and Jake's physical
-    phone confirms it at the next milestone (R1-51)). `scripts/ios-retry-check.mjs` serves the
+    has iOS 26.5 today, so the check runs on the newest runtime `xcrun simctl list runtimes` shows (R1-51); that
+    Simulator run is the evidence, with no physical-phone step: decision 98, R3-11′). `scripts/ios-retry-check.mjs` serves the
     X3 build (`scripts/serve-build.sh`) behind a local proxy that cuts the connection mid-body on the **first**
     request for the `three`, `engine` and `shard-pine-hollow` chunks. Inside `scripts/sim-lane.sh run --max 15
     wildshard-iphone …` (the newest installed iOS runtime), it opens `http://127.0.0.1:<proxy>/?chunk=pine-hollow&skipintro=1&mute=1`
@@ -240,8 +240,8 @@ branches in `src/engine/boot/` and adds the checks.
   network off, then Explore opens).
 - `pnpm check:chunks` exits 0 on the X3 build, with the JS chunks `three`, `engine`, one `shard-<slug>` per shard,
   plus the ones Rolldown keeps apart (Rapier's bindings, workers) listed by name in E357.
-- `scripts/ios-retry-check.mjs` passes on the newest installed runtime (its version recorded in E357), and the next
-  milestone's checklist carries the physical-phone confirmation.
+- `scripts/ios-retry-check.mjs` passes on the newest installed runtime (its version recorded in E357). No milestone
+  checklist carries a physical-phone confirmation (decision 98, R3-11′).
 
 ## X4 — The animation engine layer (decision 64; ANIMATION-REMASTER's mechanism half)
 

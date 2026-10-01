@@ -34,6 +34,7 @@ shard".
 | `strings` | a string table for every player-facing line |
 | audio | the forest ambience from the kit and a silent score; the cue map points every cue at kit sounds |
 | budgets | inputs for phone 30 and desktop 60 |
+| `assets` | none: no ground sets, no KTX2 table (a shard with none boots without it, R3-08), no `assetGlobs` (R3-09) |
 | saves | one shard-scoped key (`template.notes`) |
 
 **Tests**
@@ -62,8 +63,14 @@ sections are updated for the new paths (`src/engine/physics/`,
 **Protocol**
 0. **Before the agent starts, the lead** (R2-12) files the run's ask (`scripts/ask-new.sh`, giving `<id>`), picks the
    new shard's slug (a folder id; the shard's display `name` comes from Jake's pick in step 2), and commits the slug
-   into `.github/lock.json` `reopened` with its asset globs, in its own commit carrying the lead's `E357-Lead: yes`
-   trailer. That is the only `.github` edit Z3 needs, and the agent never makes it.
+   into `.github/lock.json` `reopened` with the **default asset globs for a new shard** (R3-06), in its own commit
+   carrying the lead's `E357-Lead: yes` trailer:
+   `public/assets/<new-slug>/**`, `public/assets/gpu/<new-slug>/**`, `public/assets/baked/<new-slug>/**`,
+   `public/assets/music/<new-slug>/**`, `public/assets/sfx/<new-slug>/**`, `public/assets/horizon/<new-slug>/**`,
+   `public/assets/title/<new-slug>/**`.
+   No manifest exists yet, so the list is this fixed default, not a copy; the agent's manifest declares the same
+   folders as its `assetGlobs` (R3-09), and a folder outside them is an API gap (step 4). That commit is the only
+   `.github` edit Z3 needs, and the agent never makes it.
 1. **A fresh general-purpose subagent** (clean room: never saw this plan's conversation) gets a brief with only:
    - "build a small real 5th shard";
    - its slug `<new-slug>` and its ask file `docs/tasks/asks/<id>.md`;
@@ -74,14 +81,19 @@ sections are updated for the new paths (`src/engine/physics/`,
    The E352 caps apply. **It does not carry the `E357-Lead: yes` trailer** (12 §4 item 10 excepts it; R2-12), so the
    `commit-msg` lock check holds every one of its commits to the reopened-shard allowlist for `<new-slug>`: the one
    definition in 02 F0 step 5 (R1-09, R2-19), referenced here and not copied. It covers the shard's code, tests,
-   baselines, art, asset folders and bakes, its Blender scripts with their line-scoped `scripts/blender/targets.json`
-   rows, and `docs/tasks/asks/**`. The check refuses any other path.
-   - It commits no generated file: `shards.generated.ts` is built at build and test time.
+   baselines, art, asset folders and bakes, its Blender scripts, the hunks naming the slug in the four line-scoped
+   files (R2-F2), and `docs/tasks/asks/**`. The check refuses any other path.
+   - It commits no generated file, **except its own `src/shards/<new-slug>/ktx2.generated.ts`** (R2-04, R3-06), which
+     needs `basisu` and is committed by its lane once it bakes KTX2 art; a shard without one boots without it (R3-08).
+     `shards.generated.ts` is built at build and test time.
    - Its gate job and baselines appear by themselves: the matrix is derived from the registry, and a shard with no
      baselines gets a bootstrap record on its first gate run.
-   - **"Zero engine edits" means no change under `src/engine`, `src/game`, `src/kit`, `lint`, `.github` or `scripts`**
-     (except what 02 F0's allowlist gives the slug: its own `scripts/blender/<new-slug>/` and its lines of
-     `scripts/blender/targets.json`).
+   - **"Zero engine edits" means no change under `src/engine`, `src/game`, `src/kit`, `lint`, `.github` or `scripts`,
+     and no generated file**, with exactly these exceptions (R3-06; 02 F0's allowlist gives the slug each of them):
+     - its own `scripts/blender/<new-slug>/`;
+     - the hunks naming the slug in the four line-scoped files (R2-F2): `scripts/blender/targets.json`,
+       `art/README.md`, `scripts/bake-ktx2.list.json` and `scripts/bake-ktx2.cache.json`;
+     - its own `src/shards/<new-slug>/ktx2.generated.ts`.
 2. **Pick.** The agent first proposes **3 small shard ideas as portrait mockups**: biome, look, custom weapon,
    creature. It uses `scripts/mockup-local.sh`, or codex `image_gen` for the finals, and saves them to
    `art/<new-slug>/round-1-proposals/` (inside its allowlist; R2-12). Jake picks one through AskUserQuestion (73).
