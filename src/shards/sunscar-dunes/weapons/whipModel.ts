@@ -1,83 +1,58 @@
-/**
- * The bullwhip's viewmodel: a leather-wrapped handle in a gloved fist and a braided thong drawn as one tube whose
- * centre line is recomputed every frame (one draw, ~200 vertices). The braid is vertex colour: two browns laid in a
- * spiral, so the plaits read without a texture. `pose(crack)` blends the hanging loop (0) into the thrown line (1).
- */
-import { BufferAttribute, BufferGeometry, CylinderGeometry, Group, Mesh, MeshStandardMaterial, SphereGeometry, Vector3 } from 'three';
+import { CapsuleGeometry, Color, CylinderGeometry, Group, InstancedMesh, Matrix4, Mesh, MeshStandardMaterial, Quaternion, SphereGeometry, Vector3 } from 'three';
 
-export const THONG_POINTS = 34;
-const SIDES = 6, LENGTH = 6;
-const DARK = [0.13, 0.065, 0.03] as const, LIGHT = [0.24, 0.125, 0.06] as const;
-const _a = new Vector3(), _t = new Vector3(), _n = new Vector3(), _b = new Vector3(), _up = new Vector3();
+/** Segments in the braided lash; each one is an instance of one tapered cylinder. */
+export const LASH_SEGMENTS = 26;
+const UP = new Vector3(0, 1, 0);
+const LEATHER = 0x5a3519, DARK = 0x2f1a0d, GLOVE = 0x2a1d16;
 
+/** The camera-space bullwhip: a gloved hand, a braided handle and a lash that coils at rest and lays out on a crack. */
 export class WhipModel {
   readonly root = new Group();
-  readonly thong: Mesh<BufferGeometry, MeshStandardMaterial>;
-  private readonly points = Array.from({ length: THONG_POINTS }, () => new Vector3());
-  private readonly radius = Array.from({ length: THONG_POINTS }, (_, i) => 0.009 * (1 - i / THONG_POINTS) + 0.0025);
-  private readonly tip = new Vector3(0, 0.15, -0.02);
+  readonly lash: InstancedMesh;
+  private readonly tip = new Vector3(0.02, 0.17, -0.06);
+  private readonly rest: Vector3[] = [];
+  private readonly out: Vector3[] = [];
+  private readonly points: Vector3[] = [];
+  private readonly m = new Matrix4(); private readonly q = new Quaternion(); private readonly s = new Vector3(); private readonly d = new Vector3(); private readonly mid = new Vector3();
 
   constructor() {
-    const leather = new MeshStandardMaterial({ color: 0x3a1f10, roughness: 0.78, metalness: 0 });
-    const glove = new MeshStandardMaterial({ color: 0x4a3020, roughness: 0.85, metalness: 0 });
-    const handle = new Mesh(new CylinderGeometry(0.016, 0.02, 0.3, 8), leather); handle.position.y = 0.02;
-    const knob = new Mesh(new SphereGeometry(0.024, 8, 6), leather); knob.position.y = -0.13;
-    const fist = new Mesh(new SphereGeometry(0.038, 10, 8), glove); fist.scale.set(1, 1.3, 0.95); fist.position.set(0.012, -0.03, 0.01);
-    const geometry = new BufferGeometry(), count = THONG_POINTS * SIDES;
-    geometry.setAttribute('position', new BufferAttribute(new Float32Array(count * 3), 3));
-    geometry.setAttribute('normal', new BufferAttribute(new Float32Array(count * 3), 3));
-    const colors = new Float32Array(count * 3);
-    for (let i = 0; i < THONG_POINTS; i++) for (let j = 0; j < SIDES; j++) {
-      const c = (i * 2 + j) % 4 < 2 ? DARK : LIGHT, k = (i * SIDES + j) * 3;
-      colors[k] = c[0]; colors[k + 1] = c[1]; colors[k + 2] = c[2];
+    const glove = new MeshStandardMaterial({ color: GLOVE, roughness: 0.85 }), leather = new MeshStandardMaterial({ color: LEATHER, roughness: 0.7 });
+    const fist = new Mesh(new CapsuleGeometry(0.055, 0.07, 4, 8), glove); fist.rotation.z = Math.PI / 2; fist.scale.set(1, 1.15, 1.25);
+    const cuff = new Mesh(new CylinderGeometry(0.06, 0.07, 0.16, 10), glove); cuff.position.set(0.05, -0.1, 0.07); cuff.rotation.x = 0.9;
+    const handle = new Mesh(new CylinderGeometry(0.017, 0.022, 0.26, 8), leather); handle.position.set(0.01, 0.07, -0.03); handle.rotation.x = -0.35;
+    const knob = new Mesh(new SphereGeometry(0.026, 8, 6), new MeshStandardMaterial({ color: DARK, roughness: 0.6 })); knob.position.set(0.012, -0.05, 0.015);
+    this.lash = new InstancedMesh(new CylinderGeometry(1, 1, 1, 6), new MeshStandardMaterial({ color: 0xffffff, roughness: 0.75 }), LASH_SEGMENTS);
+    this.lash.frustumCulled = false;
+    const light = new Color(LEATHER), dark = new Color(DARK);
+    for (let i = 0; i < LASH_SEGMENTS; i++) this.lash.setColorAt(i, i % 2 === 0 ? light : dark);
+    for (let i = 0; i <= LASH_SEGMENTS; i++) {
+      const s = i / LASH_SEGMENTS, a = -0.4 + s * Math.PI * 1.75;
+      // At rest: a loop hanging up and left of the hand (the mockup's coil), dropping back past the fist.
+      this.rest.push(new Vector3(this.tip.x - 0.17 + Math.cos(a) * 0.19 * (1 - 0.3 * s), this.tip.y + 0.04 + Math.sin(a) * 0.24, this.tip.z - 0.05 - s * 0.08));
+      this.out.push(new Vector3()); this.points.push(new Vector3());
     }
-    geometry.setAttribute('color', new BufferAttribute(colors, 3));
-    const index: number[] = [];
-    for (let i = 0; i < THONG_POINTS - 1; i++) for (let j = 0; j < SIDES; j++) {
-      const a = i * SIDES + j, b = i * SIDES + (j + 1) % SIDES, c = a + SIDES, d = b + SIDES;
-      index.push(a, c, b, b, c, d);
-    }
-    geometry.setIndex(index);
-    this.thong = new Mesh(geometry, new MeshStandardMaterial({ vertexColors: true, roughness: 0.7, metalness: 0 }));
-    this.thong.frustumCulled = false;
-    this.root.add(handle, knob, fist, this.thong);
+    this.root.add(fist, cuff, handle, knob, this.lash);
+    this.root.position.set(0.24, -0.36, -0.5); this.root.rotation.set(0.15, -0.25, -0.12);
     this.pose(0, 0);
   }
-
-  /** `crack` 0 = the hanging loop, 1 = fully thrown; `t` sways the loop. */
-  pose(crack: number, t: number): void {
-    const sway = Math.sin(t * 1.7) * 0.02;
-    for (let i = 0; i < THONG_POINTS; i++) {
-      const u = i / (THONG_POINTS - 1), p = this.points[i];
-      if (p === undefined) continue;
-      // the loop: out over the knuckles, round, and down out of frame
-      const ang = u * Math.PI * 1.75;
-      const rx = -Math.sin(ang) * 0.055 - u * 0.04 + sway * u, ry = (Math.cos(ang) - 1) * 0.045 - u * u * 0.24, rz = -Math.sin(ang * 0.5) * 0.03;
-      // the throw: the line rolls out ahead of the hand (the base first), with a travelling hump that runs to the tip
-      const k = Math.min(1, Math.max(0, crack * 1.5 - u * 0.5)), roll = k * k * (3 - 2 * k);
-      const hump = Math.sin(Math.PI * Math.min(1, u / Math.max(0.05, crack))) * 0.5 * (1 - crack);
-      const sx = -u * 0.6, sy = hump + u * 0.25, sz = -u * LENGTH;
-      p.set(this.tip.x + rx + (sx - rx) * roll, this.tip.y + ry + (sy - ry) * roll, this.tip.z + rz + (sz - rz) * roll);
+  /** `reach` 0 = coiled, 1 = laid out ~3 m ahead; `wave` 0..1 travels a ripple down the lash as it snaps. */
+  pose(reach: number, wave: number): void {
+    const length = 3.1;
+    for (let i = 0; i <= LASH_SEGMENTS; i++) {
+      const s = i / LASH_SEGMENTS, rest = this.rest[i], out = this.out[i], p = this.points[i];
+      if (rest === undefined || out === undefined || p === undefined) continue;
+      const ripple = Math.sin((s - wave) * Math.PI * 3) * 0.12 * s * (1 - reach * 0.6);
+      out.set(this.tip.x + ripple * 0.5, this.tip.y + 0.05 + Math.sin(s * Math.PI) * 0.12 - s * s * 0.25 + ripple, this.tip.z - s * length);
+      const k = Math.min(1, Math.max(0, reach * 1.6 - s * 0.6));
+      p.lerpVectors(rest, out, k);
     }
-    this.writeTube();
-  }
-
-  private writeTube(): void {
-    const pos = this.thong.geometry.getAttribute('position'), nor = this.thong.geometry.getAttribute('normal');
-    for (let i = 0; i < THONG_POINTS; i++) {
-      const p = this.points[i], q = this.points[Math.min(THONG_POINTS - 1, i + 1)], o = this.points[Math.max(0, i - 1)];
-      if (p === undefined || q === undefined || o === undefined) continue;
-      _t.subVectors(q, o).normalize();
-      _up.set(0, 0, 1); if (Math.abs(_t.z) > 0.9) _up.set(1, 0, 0);
-      _n.crossVectors(_t, _up).normalize(); _b.crossVectors(_t, _n);
-      const r = this.radius[i] ?? 0.004;
-      for (let j = 0; j < SIDES; j++) {
-        const a = (j / SIDES) * Math.PI * 2, c = Math.cos(a), s = Math.sin(a), k = i * SIDES + j;
-        _a.copy(_n).multiplyScalar(c).addScaledVector(_b, s);
-        nor.setXYZ(k, _a.x, _a.y, _a.z);
-        pos.setXYZ(k, p.x + _a.x * r, p.y + _a.y * r, p.z + _a.z * r);
-      }
+    for (let i = 0; i < LASH_SEGMENTS; i++) {
+      const a = this.points[i], b = this.points[i + 1]; if (a === undefined || b === undefined) continue;
+      this.d.subVectors(b, a); const len = this.d.length(); if (len < 1e-5) continue;
+      this.q.setFromUnitVectors(UP, this.d.divideScalar(len)); this.mid.addVectors(a, b).multiplyScalar(0.5);
+      const r = 0.012 * (1 - 0.75 * i / LASH_SEGMENTS) + 0.002;
+      this.m.compose(this.mid, this.q, this.s.set(r, len * 1.04, r)); this.lash.setMatrixAt(i, this.m);
     }
-    pos.needsUpdate = true; nor.needsUpdate = true;
+    this.lash.instanceMatrix.needsUpdate = true;
   }
 }

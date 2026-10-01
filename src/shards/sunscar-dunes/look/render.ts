@@ -1,84 +1,97 @@
-/**
- * Signal Dunes' look (an `extend` look on the engine's clean chain): realistic sand just after sunset.
- *   backdrop        the dusk dome (sky.ts) on the camera, a frozen dusk clock, the key light low off the glow, an
- *                   indigo hemisphere fill (the cool blue in the hollows) over warm bounce from the sand, the fog in
- *                   the dusk's mauve with an orange tint toward the glow, no sun disc (the sun has set)
- *   terrainPainter  the dune field as one smooth-shaded mesh: vertex-coloured sand and wind ripples in the normal
- *                   (a procedural patch, faded out with distance so it never shimmers)
- */
-import { Color, Mesh, MeshStandardMaterial, PlaneGeometry, BufferAttribute } from 'three';
-import { CHUNK_SIZE, DayCycle, patchShader, PATCH_ORDER, type LookStrategy, type PainterField, type Terrain } from '#engine';
-import { sandColor } from '../world/dunes';
-import { GROUND } from '../layout';
-import { buildDome, DUSK, LIGHT } from './sky';
+import { BufferGeometry, Color, Float32BufferAttribute, Mesh, MeshStandardMaterial, Vector3, type ShaderMaterial, type SphereGeometry } from 'three';
+import { DayCycle, compassDir, patchShader, PATCH_ORDER, type LookStrategy, type PainterField, type SkyBackdropTargets } from '#engine';
+import { duskDome, DUSK } from './sky';
 
-
-/** The clock stands at dusk: the shard is one moment, the sky never moves. */
+/** The set sun: just under the north-west horizon's glow, a low warm key that rakes the dune faces. */
+const SUN = { azimuth: 318, elevation: 6, color: new Color(1, 0.5, 0.26), intensity: 1.5 };
+/** A clock held just after sunset (hour 18.9): dusk, no day cycle. */
 export function duskClock(): DayCycle {
-  return new DayCycle({ units: 'hour', start: 19.4, schedule: [{ phase: 'day', from: 0, to: 24, minutes: 24 }],
-    sun: { maxElevation: 60, azimuthOffset: 200 }, fixed: { midday: 12, golden: 18.5, sunset: 19, night: 21 }, presets: { dawn: 6, noon: 12, dusk: 19.4, night: 22 } });
+  const clock = new DayCycle({ units: 'hour', start: 18.9, schedule: [{ phase: 'dusk', from: 0, to: 24, minutes: 600 }],
+    sun: { maxElevation: 40, azimuthOffset: 0 }, fixed: { midday: 18.9, golden: 18.9, sunset: 18.9, night: 18.9 }, presets: { dawn: 18.9, noon: 18.9, dusk: 18.9, night: 18.9 } });
+  clock.paused = true;
+  return clock;
+}
+const INNER = 250, INNER_STEPS = 180, OUTER = 1100, OUTER_STEP = 30;
+const smooth = (t: number): number => { const c = Math.min(1, Math.max(0, t)); return c * c * (3 - 2 * c); };
+/** Grid lines: coarse out to the far dune sea, fine over the playable square, so the seam matches the physics ground. */
+function lines(): number[] {
+  const out: number[] = [];
+  for (let v = -OUTER; v < -INNER; v += OUTER_STEP) out.push(v);
+  for (let i = 0; i <= INNER_STEPS; i++) out.push(-INNER + 2 * INNER * i / INNER_STEPS);
+  for (let v = INNER + OUTER_STEP; v <= OUTER; v += OUTER_STEP) out.push(v);
+  return out;
+}
+/** Far dunes past the edge: no colliders, they only carry the dune sea out to the ridges. */
+function farDunes(x: number, z: number): number {
+  const u = z + 18 * Math.sin(x * 0.009) + 0.2 * x, t = ((u / 80) % 1 + 1) % 1;
+  return 3 + 7 * (t < 0.7 ? smooth(t / 0.7) : 1 - smooth((t - 0.7) / 0.3)) * (0.7 + 0.3 * Math.sin(x * 0.013 + z * 0.004));
+}
+function heightOf(field: PainterField, x: number, z: number): number {
+  const ex = Math.max(-INNER, Math.min(INNER, x)), ez = Math.max(-INNER, Math.min(INNER, z)), out = Math.hypot(x - ex, z - ez);
+  const inside = field.heightAt(ex, ez);
+  if (out <= 0) return inside;
+  const w = smooth(out / 140);
+  return inside * (1 - w) + farDunes(x, z) * w - smooth((out - 400) / 300) * 6;
+}
+/** The dune mesh: dark orange sand, a little lighter on the crests, cooler and darker down in the hollows. */
+export function buildDunes(field: PainterField): BufferGeometry {
+  const xs = lines(), n = xs.length, pos = new Float32Array(n * n * 3), col = new Float32Array(n * n * 3);
+  const sand = new Color(0.36, 0.14, 0.055), crest = new Color(0.46, 0.2, 0.08), hollow = new Color(0.17, 0.085, 0.07), tmp = new Color();
+  for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) {
+    const x = xs[i] ?? 0, z = xs[j] ?? 0, k = (j * n + i) * 3, h = heightOf(field, x, z);
+    pos[k] = x; pos[k + 1] = h; pos[k + 2] = z;
+    const local = h - (heightOf(field, x + 9, z) + heightOf(field, x - 9, z) + heightOf(field, x, z + 9) + heightOf(field, x, z - 9)) / 4;
+    tmp.copy(sand).lerp(local > 0 ? crest : hollow, Math.min(1, Math.abs(local) / 2.2));
+    const grain = 0.94 + 0.06 * Math.sin(x * 1.7 + z * 2.3) * Math.sin(x * 0.9 - z * 1.3);
+    col[k] = tmp.r * grain; col[k + 1] = tmp.g * grain; col[k + 2] = tmp.b * grain;
+  }
+  const index: number[] = [];
+  for (let j = 0; j < n - 1; j++) for (let i = 0; i < n - 1; i++) { const a = j * n + i, b = a + 1, c = a + n, d = c + 1; index.push(a, c, b, b, c, d); }
+  const geometry = new BufferGeometry();
+  geometry.setAttribute('position', new Float32BufferAttribute(pos, 3)); geometry.setAttribute('color', new Float32BufferAttribute(col, 3));
+  geometry.setIndex(index); geometry.computeVertexNormals(); geometry.computeBoundingSphere();
+  return geometry;
 }
 
-const RIPPLE_VERT = 'varying vec3 vSandW;\n';
-const RIPPLE_FRAG = /* glsl */ `
-  {
-    // wind ripples: a few-centimetre corrugation across the wind, bent by a slow wobble, gone by 30 m
-    float fade = 1.0 - smoothstep(6.0, 30.0, length(vSandW - cameraPosition));
-    if (fade > 0.0) {
-      vec2 wind = vec2(0.85, 0.53);
-      float ph = dot(vSandW.xz, wind) * 5.2 + sin(vSandW.x * 0.41 + vSandW.z * 0.23) * 2.4 + sin(vSandW.z * 1.3) * 0.6;
-      float slope = cos(ph) * 0.16 * fade;
-      vec3 gW = vec3(wind.x, 0.0, wind.y) * slope;
-      normal = normalize(normal - (viewMatrix * vec4(gW, 0.0)).xyz);
-    }
-  }
-`;
-
-async function paintDunes(t: Terrain, f: PainterField): Promise<void> {
-  await f.ready();
-  const size = Math.min(CHUNK_SIZE, GROUND.size), geometry = new PlaneGeometry(size, size, GROUND.segments, GROUND.segments); geometry.rotateX(-Math.PI / 2);
-  const pos = geometry.getAttribute('position'), colors = new Float32Array(pos.count * 3), c: [number, number, number] = [0, 0, 0];
-  for (let i = 0; i < pos.count; i++) {
-    const x = pos.getX(i), z = pos.getZ(i), y = f.heightAt(x, z); pos.setY(i, y);
-    const [, ny] = f.normalAt(x, z, 1.2), grain = Math.sin(x * 12.9898 + z * 78.233) * 0.5 + 0.5;
-    sandColor(y, 1 - ny, grain, c);
-    // the crest path: trodden sand a shade darker
-    const k = Math.max(0, 1 - f.trailDistance(x, z) / 2.5) * 0.12;
-    colors[i * 3] = c[0] * (1 - k); colors[i * 3 + 1] = c[1] * (1 - k); colors[i * 3 + 2] = c[2] * (1 - k);
-  }
-  geometry.setAttribute('color', new BufferAttribute(colors, 3)); geometry.computeVertexNormals();
-  const material = new MeshStandardMaterial({ vertexColors: true, roughness: 0.96, metalness: 0 });
-  patchShader(material, 'sunscar.sand-ripples', PATCH_ORDER.material, (shader) => {
-    shader.vertexShader = RIPPLE_VERT + shader.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n  vSandW = (modelMatrix * vec4(transformed, 1.0)).xyz;');
-    shader.fragmentShader = RIPPLE_VERT + shader.fragmentShader.replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>\n${RIPPLE_FRAG}`);
-  }, { key: 'sunscar-sand' });
-  const mesh = new Mesh(geometry, material); mesh.receiveShadow = true; mesh.castShadow = true;
-  t.group.add(mesh); t.mesh = mesh; t.material = material;
-}
-
-export function sunscarLook(): LookStrategy {
-  let built: ReturnType<typeof buildDome> | null = null;
-  return { mode: 'extend', dispose: () => { if (built) { built.removeFromParent(); built.geometry.dispose(); built.material.dispose(); built = null; } }, compose: ({ engineChain }) => ({ chain: engineChain('clean') }),
+/** Signal Dunes' look: the engine's clean chain, a held dusk clock, its own dome, a raked key light and wind ripples in the sand. */
+export function dunesLook(): LookStrategy {
+  const sunDir = compassDir(SUN.azimuth, SUN.elevation, new Vector3()), haze = new Color(DUSK.haze);
+  let targets: SkyBackdropTargets | null = null, ground: Mesh | null = null, sky: Mesh<SphereGeometry, ShaderMaterial> | null = null;
+  const material = new MeshStandardMaterial({ vertexColors: true, roughness: 0.93, metalness: 0 });
+  return { mode: 'extend',
+    compose: ({ engineChain, scope }) => {
+      // Wind ripples: a fine, wind-aligned normal tilt that fades with distance (no texture download).
+        patchShader(material, 'sunscar.ripples', PATCH_ORDER.decorate, (shader) => {
+          shader.vertexShader = shader.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vRipple;')
+            .replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvRipple = (modelMatrix * vec4(transformed, 1.0)).xyz;');
+          shader.fragmentShader = shader.fragmentShader.replace('#include <common>', '#include <common>\nvarying vec3 vRipple;')
+            .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
+              { float fade = 1.0 - smoothstep(12.0, 70.0, length(vRipple - cameraPosition));
+                float u = vRipple.z * 2.6 + sin(vRipple.x * 0.35) * 1.8 + sin(vRipple.x * 1.3 + vRipple.z * 0.4) * 0.35;
+                vec3 tilt = vec3(0.0, 0.0, cos(u) * 0.16 * fade);
+                normal = normalize(normal + (viewMatrix * vec4(tilt, 0.0)).xyz); }`);
+        }, { scope });
+        scope.own(material); if (ground) scope.own(ground.geometry);
+        return { chain: engineChain('clean') };
+      },
     sky: { clouds: false, planet: false },
-    shadows: { rig: 'tier', normalBias: 0.08, radius: 2 },
-    backdrop: ({ sky }) => {
-      const clock = duskClock(), dome = buildDome(), keyColor = new Color().copy(DUSK.key);
-      built = dome; // the engine attaches and centres the backdrop dome
-      let hemi: { color: Color; groundColor: Color; intensity: number } | null = null, fog: Color | null = null;
-      return Promise.resolve({ clock, horizon: new Color().copy(DUSK.fog), lut: null, clouds: dome, fadesPlanet: false,
-        bind: (targets) => {
-          hemi = targets.hemi; fog = targets.fog.color; targets.disc.visible = false; if (targets.halo) targets.halo.visible = false;
-          targets.fog.color.copy(DUSK.fog); targets.fogU.fogSunColor.value.copy(DUSK.fogSun);
-          // the engine's far ridges (Horizon) take the dusk haze, not its default grey
-          targets.far.uHazeCol.value.copy(DUSK.fog); targets.far.uSeaSky.value.copy(DUSK.away); targets.far.uSeaSun.value.copy(DUSK.fogSun);
-        },
-        update: () => {
-          sky.setKeyLight(LIGHT.keyDir, keyColor.copy(DUSK.key), LIGHT.key);
-          if (hemi) { hemi.color.copy(DUSK.hemiSky); hemi.groundColor.copy(DUSK.hemiGround); hemi.intensity = LIGHT.hemi; }
-          fog?.copy(DUSK.fog);
+    backdrop: ({ sky: rig }) => {
+      const clock = duskClock(), dome = duskDome(sunDir); sky = dome;
+      const time = dome.material.uniforms['uTime'];
+      return Promise.resolve({ clock, horizon: haze.clone(), lut: null, clouds: dome,
+        bind: (t: SkyBackdropTargets) => { targets = t; },
+        update: (dt: number) => {
+          if (time) time.value += dt;
+          rig.setKeyLight(sunDir, SUN.color, SUN.intensity);
+          if (targets) { targets.fog.color.copy(haze); targets.far.uHazeCol.value.copy(haze); }
         },
         rebuild: () => undefined, attachPost: () => undefined });
     },
-    terrainPainter: { build: paintDunes },
+    terrainPainter: { build: async (terrain, field) => {
+      await field.ready();
+      const mesh = new Mesh(buildDunes(field), material); ground = mesh; mesh.receiveShadow = true; mesh.castShadow = false;
+      terrain.group.add(mesh); terrain.mesh = mesh; terrain.material = material;
+    } },
+    dispose: () => { sky?.geometry.dispose(); sky?.material.dispose(); sky?.removeFromParent(); sky = null; },
   };
 }

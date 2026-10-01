@@ -1,9 +1,10 @@
 export const STRINGS = {
-  name: 'Signal Dunes', biome: 'Sand sea at dusk',
-  blurb: 'Dark orange dunes just after sunset. Light the signal fire on the far crest while a dune ray hunts the sky.',
-  whip: 'Bullwhip', whipBlurb: 'A braided leather bullwhip. A fast, long crack down a narrow line; hold HEAVY for a staggering double crack.',
-  ray: 'Dune ray', rayNote: 'A great leathery glider that rides the evening air over the crests. It circles high, hangs for a breath, then folds its wings and swoops. Crack it out of the dive.',
-  tower: 'Signal tower', fire: 'Light the signal fire', lit: 'The signal fire burns',
-  quest: 'The signal', step: 'Light the signal fire', reward: 'Signal lit: 5 coins',
-  dunes: 'Dunes', trail: 'Crest path', notes: 'NOTES',
+  name: 'Signal Dunes', biome: 'Dusk dune sea', label: '(+5, +0)',
+  blurb: 'Dark orange dunes just after sunset, a dune ray gliding over the crests. Crack the bullwhip and light the signal fire on the far tower.',
+  whip: 'Bullwhip', whipBlurb: 'A braided leather bullwhip: a fast, long crack. Hold ATTACK and let go for a double crack that knocks a target back.',
+  ray: 'Dune ray', rayNote: 'A wide gliding ray that circles the crests at dusk, rears up and swoops at whoever walks the sand. Crack it as it comes in low.',
+  tower: 'Signal tower', towerStair: 'Signal tower stair', fire: 'Signal fire', dunes: 'Dune sea', trail: 'Crest path',
+  light: 'Light the signal fire', lit: 'Signal fire lit',
+  quest: 'The signal fire', reach: 'Reach the signal tower', kindle: 'Light the signal fire', reward: 'Signal lit: 5 coins',
+  whipModel: 'Braided bullwhip', rayModel: 'Dune ray', towerModel: 'Signal tower',
 } as const;

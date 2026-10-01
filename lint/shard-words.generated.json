@@ -42,8 +42,8 @@
     "weapon.longbow",
     "weapon.rifle",
     "weapon.sabre",
-    "weapon.signal-bullwhip",
-    "weapon.spear"
+    "weapon.spear",
+    "weapon.sunscar-whip"
   ],
   "sharedAssets": [
     "public/assets/tex/**",
@@ -172,7 +172,7 @@
       "name": "Signal Dunes",
       "ids": [
         "sunscar.creature.duneRay",
-        "weapon.signal-bullwhip"
+        "weapon.sunscar-whip"
       ],
       "settings": [],
       "assets": []

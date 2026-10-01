@@ -1,160 +1,107 @@
-/**
- * The dune ray: a big leathery glider (7 m span) that rides the dusk air through the public flight body:
- *   glide  circles high round a centre that drifts after the player
- *   swoop  a `sphere` StrikeSpec: the windup hangs and rears (the telegraph), the active phase dives along a committed heading to
- *          chest height at the player and pulls out past them. It lands only within 2.6 m of the player.
- *   climb  back up to the glide height. A whip hit during the windup or the dive breaks the swoop into a climb.
- */
-import { CreatureBrain, StrikeRunner, NO_FUR, type SpeciesRow, type SpeciesLook, type Animal, type ThinkCtx, type StrikeSpec, type StrikeContext, type StrikeActor } from '#engine';
-import { BufferGeometry, Float32BufferAttribute, Uint16BufferAttribute } from 'three';
+import { CreatureBrain, StrikeRunner, NO_FUR, type SpeciesRow, type SpeciesLook, type Animal, type ThinkCtx, type StrikeSpec, type StrikeContext } from '#engine';
+import { CylinderGeometry, Float32BufferAttribute, SphereGeometry, Uint16BufferAttribute, Vector3, type BufferGeometry } from 'three';
 import { STRINGS } from '../strings';
+import { RAY_HOME } from '../layout';
 
-export const RAY_FLIGHT = { glideAlt: 17, glideSpeed: 9, orbitR: 24, swoopSpeed: 17, chest: 1.3, reach: 2.6, climbSpeed: 7, minGlide: 5, maxGlide: 9, sightR: 48 } as const;
-
+/** The flight block and the brain's numbers (metres, seconds, metres per second). */
+export const RAY_FLIGHT = { altitude: 13, above: 'ground' as const, climbRate: 6, diveRate: 12 };
+export const RAY = { orbit: 24, cruise: 8, cruiseAlt: 13, rearAlt: 17, rearTime: 0.9, swoopSpeed: 15, swoopAlt: 1.4, swoopMax: 5, climbAlt: 17, climbTime: 2.6,
+  notice: 42, rest: 6, leash: 70, chest: 1.2 };
+/** One strike: a body-sized sphere that lands once as the ray sweeps through the player's chest. */
 export const RAY_STRIKES: readonly StrikeSpec[] = [
-  { id: 'sunscar.ray.swoop', shape: { kind: 'sphere', radius: RAY_FLIGHT.reach }, windup: 1.1, active: 3, recover: 1, cooldown: 2, range: 38, damage: 14,
-    tags: ['creature.duneRay'], motion: { speed: RAY_FLIGHT.swoopSpeed, track: 'lead', overshoot: 18 }, weight: () => 1 },
+  { id: 'sunscar.ray.swoop', shape: { kind: 'sphere', radius: 2.1 }, windup: 0.35, active: 0.8, recover: 0.6, cooldown: 4, range: 11, damage: 14,
+    tags: ['creature.duneRay'], weight: () => 1 },
 ];
+type RayState = 'circle' | 'rear' | 'swoop' | 'climb';
 
-type RayState = 'glide' | 'swoop' | 'climb';
-const smooth = (t: number): number => { const c = Math.min(1, Math.max(0, t)); return c * c * (3 - 2 * c); };
-
+/** Circles the crests; when the player walks near it rears up, dives through them, then climbs away to circle again. */
 export class DuneRayBrain extends CreatureBrain<RayState> {
-  readonly strikes = new StrikeRunner();
-  /** Desired height above the rolling dunes; the engine samples/smooths the floor and limits vertical speed. */
-  altitude: number = RAY_FLIGHT.glideAlt; glideFor: number = RAY_FLIGHT.minGlide; private orbitX = 0; private orbitZ = 0; private hp = -1;
-  private swoopFrom = 0; private swoopDist = 1; private landed = false;
-  private readonly motion = { yaw: 0, speed: 0, turn: 2.5 };
-  private readonly body: StrikeActor;
-  constructor(actor: Animal) {
-    super(actor, ['glide', 'swoop', 'climb']); this.orbitX = actor.position.x; this.orbitZ = actor.position.z;
-    this.body = { position: actor.position, get alive() { return actor.alive; }, scale: actor.scale, get yaw() { return actor.yaw; },
-      startAttack: (seconds) => { actor.startAttack(seconds); }, cancelAttack: () => { actor.cancelAttack(); },
-      setMotion: (yaw, speed, turn) => { this.motion.yaw = yaw; this.motion.speed = speed; this.motion.turn = turn; } };
-  }
-
+  private readonly strikes = new StrikeRunner();
+  private readonly chest = new Vector3();
+  private timer = 0; private rested = RAY.rest; private lastHp = -1;
+  constructor(actor: Animal) { super(actor, ['circle', 'rear', 'swoop', 'climb']); }
   private context(ctx: ThinkCtx): StrikeContext {
-    const a = this.actor;
-    return { actor: this.body, target: { x: ctx.player.x, y: ctx.player.y + RAY_FLIGHT.chest, z: ctx.player.z }, canReach: () => ctx.reach(a),
-      hit: (strike) => { this.landed = true; ctx.hurt(strike.damage); } };
+    this.chest.set(ctx.player.x, ctx.player.y + RAY.chest, ctx.player.z);
+    return { actor: this.actor, target: this.chest, airborne: true, canReach: () => true, hit: (strike) => { ctx.hurt(strike.damage); } };
   }
+  private enter(state: RayState): void { if (this.state !== state) { this.transition(state); this.timer = 0; } }
   override think(ctx: ThinkCtx): void {
     const a = this.actor; if (!a.alive) return;
-    if (this.hp < 0) { this.hp = a.hp; this.altitude = RAY_FLIGHT.glideAlt; }
-    const struck = a.hp < this.hp; this.hp = a.hp;
-    // the orbit centre drifts after the player, so the ray stays overhead without tracking every step
-    this.orbitX += (ctx.player.x - this.orbitX) * Math.min(1, ctx.dt * 0.15); this.orbitZ += (ctx.player.z - this.orbitZ) * Math.min(1, ctx.dt * 0.15);
-    if (this.state === 'swoop') {
-      if (struck || ctx.calm || (!this.strikes.busy)) { this.breakOff(); return; }
-      if (this.strikes.state === 'recover' || this.strikes.state === 'cooldown') this.transition('climb');
-      return;
-    }
-    if (this.state === 'climb') { if (this.altitude >= RAY_FLIGHT.glideAlt - 1) { this.transition('glide'); this.glideFor = RAY_FLIGHT.minGlide + ctx.rng.next() * (RAY_FLIGHT.maxGlide - RAY_FLIGHT.minGlide); } return; }
-    this.glideFor -= ctx.dt;
-    const near = Math.hypot(ctx.player.x - a.position.x, ctx.player.z - a.position.z) < RAY_FLIGHT.sightR;
-    if (this.glideFor <= 0 && near && !ctx.calm && !this.strikes.busy && ctx.claim(a)) {
-      const c = this.context(ctx), pick = this.strikes.pick(RAY_STRIKES, c);
-      if (pick !== null) { this.strikes.start(pick, this.body, c.target); this.transition('swoop'); this.landed = false;
-        this.swoopFrom = this.altitude; this.swoopDist = Math.max(4, Math.hypot(ctx.player.x - a.position.x, ctx.player.z - a.position.z)); }
-    }
+    if (this.lastHp >= 0 && a.hp < this.lastHp && this.state !== 'climb') { this.strikes.cancel(); this.enter('climb'); }
+    this.lastHp = a.hp;
+    const d = Math.hypot(ctx.player.x - a.position.x, ctx.player.z - a.position.z);
+    if (this.state === 'circle' && !ctx.calm && d < RAY.notice && this.rested <= 0) this.enter('rear');
+    else if (this.state === 'rear' && this.timer > RAY.rearTime) this.enter('swoop');
+    else if (this.state === 'swoop') {
+      if (!this.strikes.busy) { const c = this.context(ctx), pick = this.strikes.pick(RAY_STRIKES, c); if (pick) this.strikes.start(pick, a, c.target); }
+      if (this.timer > RAY.swoopMax || this.strikes.state === 'recover') this.enter('climb');
+    } else if (this.state === 'climb' && this.timer > RAY.climbTime) { this.enter('circle'); this.rested = RAY.rest; }
   }
-  private breakOff(): void { this.strikes.cancel(); this.actor.cancelAttack(); this.transition('climb'); }
   override act(ctx: ThinkCtx): void {
-    const a = this.actor; if (!a.alive) return;
-    const ground = ctx.heightAt(a.position.x, a.position.z), glide = RAY_FLIGHT.glideAlt;
-    // the strike clock runs in every state (its recover and cooldown finish during the climb); the glide's setMotion
-    // below comes after it, so the runner's lane brake never holds the ray in the air
+    const a = this.actor; this.timer += ctx.dt; this.rested -= ctx.dt;
     this.strikes.update(ctx.dt, this.context(ctx));
-    if (this.state === 'swoop') {
-      const s = this.strikes;
-      if (s.state === 'windup') this.altitude += (this.swoopFrom + 2.5 - this.altitude) * Math.min(1, ctx.dt * 2); // rears up: the tell
-      else if (s.state === 'active') {
-        const along = (a.position.x - s.x0) * (s.x1 - s.x0) / Math.max(1, s.length) + (a.position.z - s.z0) * (s.z1 - s.z0) / Math.max(1, s.length);
-        const low = ctx.player.y + RAY_FLIGHT.chest - ground;
-        this.altitude = along < this.swoopDist ? low + (this.swoopFrom + 2.5 - low) * (1 - smooth(along / this.swoopDist)) : low + (along - this.swoopDist) * 0.7;
-      } else this.altitude += RAY_FLIGHT.climbSpeed * ctx.dt;
-      a.mem['fold'] = s.state === 'active' && !this.landed ? 1 : 0;
-    } else {
-      // glide: a tangent to the orbit circle, corrected toward its radius
-      const dx = a.position.x - this.orbitX, dz = a.position.z - this.orbitZ, r = Math.hypot(dx, dz) || 1;
-      const tangent = Math.atan2(-dz, dx), correct = Math.max(-0.8, Math.min(0.8, (r - RAY_FLIGHT.orbitR) / RAY_FLIGHT.orbitR));
-      this.motion.yaw = tangent - correct; this.motion.speed = RAY_FLIGHT.glideSpeed; this.motion.turn = 0.9;
-      const want = this.state === 'climb' ? glide : glide + Math.sin(ctx.t * 0.35) * 2;
-      this.altitude += Math.max(-3 * ctx.dt, Math.min(RAY_FLIGHT.climbSpeed * ctx.dt, want - this.altitude));
-      a.mem['fold'] = 0;
+    if (!a.alive) return;
+    const toPlayer = Math.atan2(ctx.player.x - a.position.x, ctx.player.z - a.position.z);
+    if (this.state === 'rear') ctx.flight.steer(a, toPlayer, 3, RAY.rearAlt, 2);
+    else if (this.state === 'swoop') ctx.flight.steer(a, toPlayer, RAY.swoopSpeed, RAY.swoopAlt, 2.4);
+    else if (this.state === 'climb') ctx.flight.steer(a, a.yaw, 11, RAY.climbAlt, 0.6);
+    else {
+      // Orbit the player when near, else home: steer along the circle's tangent, pulled back onto its radius.
+      const near = Math.hypot(ctx.player.x - a.position.x, ctx.player.z - a.position.z) < RAY.leash;
+      const cx = near ? ctx.player.x : RAY_HOME.x, cz = near ? ctx.player.z : RAY_HOME.z;
+      const out = Math.atan2(a.position.x - cx, a.position.z - cz), r = Math.hypot(a.position.x - cx, a.position.z - cz);
+      ctx.flight.steer(a, out + Math.PI / 2 + Math.max(-0.6, Math.min(0.6, (r - RAY.orbit) / RAY.orbit)), RAY.cruise, RAY.cruiseAlt, 1.2);
     }
-    ctx.flight.steer(a, this.motion.yaw, this.motion.speed, Math.max(0.9, this.altitude), this.motion.turn);
   }
 }
-
 const brains = new WeakMap<Animal, DuneRayBrain>();
 export const rayBrain = (a: Animal): DuneRayBrain => { let value = brains.get(a); if (!value) { value = new DuneRayBrain(a); brains.set(a, value); } return value; };
-
-export const DUNE_RAY: SpeciesRow = { id: 'sunscar.creature.duneRay', kind: 'duneRay', label: STRINGS.ray, aggressive: true, blood: false,
-  flight: { altitude: RAY_FLIGHT.glideAlt, above: 'ground', climbRate: RAY_FLIGHT.climbSpeed, diveRate: 28 },
-  variants: [{ id: 'dusk', label: STRINGS.ray, weight: 1, rarity: 'common', scale: [1, 1], hp: 90 }],
+export const DUNE_RAY: SpeciesRow = { id: 'sunscar.creature.duneRay', kind: 'duneRay', label: STRINGS.ray, aggressive: true, blood: false, flight: RAY_FLIGHT,
+  variants: [{ id: 'dusk', label: STRINGS.ray, weight: 1, rarity: 'common', scale: [1, 1], hp: 70 }],
   think: (a, ctx) => { rayBrain(a).think(ctx); }, act: (a, ctx) => { rayBrain(a).act(ctx); } };
 
-/** Bone order is the skin index order. */
-const BONES = [
-  { name: 'body', parent: null, pos: [0, 0.6, 0] }, { name: 'head', parent: 'body', pos: [0, 0.6, 1.3] },
-  { name: 'wingL', parent: 'body', pos: [0.9, 0.6, 0.1] }, { name: 'tipL', parent: 'wingL', pos: [2.3, 0.6, -0.3] },
-  { name: 'wingR', parent: 'body', pos: [-0.9, 0.6, 0.1] }, { name: 'tipR', parent: 'wingR', pos: [-2.3, 0.6, -0.3] },
-  { name: 'tail', parent: 'body', pos: [0, 0.6, -1.4] },
-] as const satisfies readonly { name: string; parent: string | null; pos: [number, number, number] }[];
-
-const SPAN = 3.6, NS = 9, NC = 7;
-/** The planform: a broad diamond with swept tips, thick at the centre, a whip tail; dark back, pale mottled belly. */
-export function rayGeometry(): BufferGeometry {
-  const pos: number[] = [], col: number[] = [], idx: number[] = [], skin: number[] = [], wt: number[] = [];
-  const push = (x: number, y: number, z: number, top: boolean, s: number): void => {
-    pos.push(x, y, z);
-    const mottle = 0.85 + 0.15 * Math.sin(x * 5.1 + z * 3.7) * Math.sin(z * 4.3 - x * 1.9);
-    if (top) col.push(0.11 * mottle, 0.08 * mottle, 0.065 * mottle); else col.push(0.36 * mottle, 0.27 * mottle, 0.21 * mottle);
-    const side = x >= 0 ? 2 : 4, w = smooth((s - 0.2) / 0.35), tip = smooth((s - 0.6) / 0.3);
-    skin.push(0, side, side + 1, 0); wt.push(1 - w, w * (1 - tip), w * tip, 0);
-  };
-  for (const top of [true, false]) {
-    const base = pos.length / 3;
-    for (let i = 0; i <= NS * 2; i++) {
-      const s = Math.abs(i - NS) / NS, x = (i - NS) / NS * SPAN;
-      const lead = 1.7 - 2.1 * s ** 0.9, trail = -1.45 + 1.05 * s ** 1.2;
-      for (let j = 0; j <= NC; j++) {
-        const c = j / NC, z = lead + (trail - lead) * c, th = 0.3 * (1 - s) ** 1.6 * Math.sin(Math.PI * c) + 0.015;
-        push(x, 0.6 + (top ? th : -th * 0.55) - s * s * 0.15, z, top, s);
-      }
-    }
-    for (let i = 0; i < NS * 2; i++) for (let j = 0; j < NC; j++) {
-      const a = base + i * (NC + 1) + j, b = a + 1, c = a + NC + 1, d = c + 1;
-      if (top) idx.push(a, b, c, b, d, c); else idx.push(a, c, b, b, c, d);
-    }
+const BODY_Y = 0.4, SPAN = 2.7;
+/** Bones: 0 body, 1 left wing, 2 right wing, 3 tail. Wing weight ramps in from the body's edge. */
+function skin(geometry: BufferGeometry, tail: boolean): BufferGeometry {
+  const pos = geometry.getAttribute('position'), count = pos.count, colors: number[] = [], index = new Uint16Array(count * 4), weight = new Float32Array(count * 4);
+  for (let i = 0; i < count; i++) {
+    const x = pos.getX(i), y = pos.getY(i), top = y > BODY_Y;
+    const shade = tail ? 0.05 : top ? 0.07 + 0.03 * Math.abs(x) / SPAN : 0.16;
+    colors.push(shade * 1.2, shade * 0.95, shade);
+    const w = tail ? 1 : Math.min(1, Math.max(0, (Math.abs(x) - 0.35) / 0.6));
+    index[i * 4] = tail ? 3 : x > 0 ? 1 : 2; index[i * 4 + 1] = 0; weight[i * 4] = w; weight[i * 4 + 1] = 1 - w;
   }
-  // the tail: a thin four-sided spike
-  const t0 = pos.length / 3;
-  for (const [z, r] of [[-1.3, 0.09], [-4.4, 0.012]] as const) for (let k = 0; k < 4; k++) {
-    const a = k * Math.PI / 2; pos.push(Math.cos(a) * r, 0.6 + Math.sin(a) * r, z); col.push(0.1, 0.075, 0.06); skin.push(z < -2 ? 6 : 0, 0, 0, 0); wt.push(1, 0, 0, 0);
-  }
-  for (let k = 0; k < 4; k++) { const a = t0 + k, b = t0 + (k + 1) % 4; idx.push(a, b, a + 4, b, b + 4, a + 4); }
-  const g = new BufferGeometry();
-  g.setAttribute('position', new Float32BufferAttribute(pos, 3)); g.setAttribute('color', new Float32BufferAttribute(col, 3));
-  g.setAttribute('skinIndex', new Uint16BufferAttribute(new Uint16Array(skin), 4)); g.setAttribute('skinWeight', new Float32BufferAttribute(wt, 4));
-  g.setIndex(idx); g.computeVertexNormals();
-  return g;
+  geometry.setAttribute('color', new Float32BufferAttribute(colors, 3));
+  geometry.setAttribute('skinIndex', new Uint16BufferAttribute(index, 4));
+  geometry.setAttribute('skinWeight', new Float32BufferAttribute(weight, 4));
+  return geometry;
 }
-
+/** A manta silhouette from one sphere: wide, thin at the wing tips, swept back, a pointed snout. */
+export function rayBody(): BufferGeometry {
+  const body = new SphereGeometry(1, 28, 10), pos = body.getAttribute('position');
+  for (let i = 0; i < pos.count; i++) {
+    const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i), ax = Math.abs(x);
+    pos.setXYZ(i, x * SPAN, BODY_Y + y * 0.22 * (1 - 0.85 * ax), z * (1.1 - 0.7 * ax) + ax * ax * 0.9 - (z < 0 ? 0.25 * (1 - ax) : 0));
+  }
+  body.computeVertexNormals();
+  return skin(body, false);
+}
+export function rayTail(): BufferGeometry {
+  const tail = new CylinderGeometry(0.012, 0.06, 2.2, 5); tail.rotateX(Math.PI / 2); tail.translate(0, BODY_Y, 2.0);
+  return skin(tail, true);
+}
 export const DUNE_RAY_LOOK: SpeciesLook = { id: 'sunscar.look.duneRay', species: DUNE_RAY.id, kind: 'duneRay', rig: 'custom', fur: NO_FUR,
-  rigContract: { skeleton: 'sunscar.duneRay', sockets: ['body', 'head'], clips: ['idle', 'walk', 'attack', 'hit', 'die'] },
-  build: () => ({ bones: BONES.map((b) => ({ name: b.name, parent: b.parent, pos: [b.pos[0], b.pos[1], b.pos[2]] })), furParts: [], hardParts: [rayGeometry()], eyeParts: [],
-    dims: { bodyY: 0.6, bodyHalfLen: 1.6, bodyRadius: 1.1, headRadius: 0.5, legLen: 0.6, feet: [], halfWidth: SPAN } }),
-  animate: ({ bones, t, alive, deathT, mem, attack, flinch }) => {
-    const fold = mem['fold'] ?? 0, wingL = bones['wingL'], wingR = bones['wingR'], tipL = bones['tipL'], tipR = bones['tipR'], tail = bones['tail'], body = bones['body'];
-    // a slow glide undulation; the windup spreads and lifts the wings, the dive sweeps them back
-    const beat = alive ? Math.sin(t * 1.4) * 0.22 * (1 - fold) + (attack >= 0 ? -0.35 * Math.sin(Math.PI * attack) : 0) + fold * 0.35 : 0.5 * Math.max(0, deathT);
-    if (wingL) { wingL.rotation.z = beat; wingL.rotation.y = -fold * 0.45; }
-    if (wingR) { wingR.rotation.z = -beat; wingR.rotation.y = fold * 0.45; }
-    const tipBeat = alive ? Math.sin(t * 1.4 - 0.7) * 0.25 * (1 - fold) : 0.3;
-    if (tipL) tipL.rotation.z = tipBeat; if (tipR) tipR.rotation.z = -tipBeat;
-    if (tail) tail.rotation.y = Math.sin(t * 2.1) * 0.25;
-    if (body) { body.rotation.x = fold * 0.35 - flinch * 0.4; body.rotation.z = Math.sin(t * 0.7) * 0.08; }
+  rigContract: { skeleton: 'sunscar.duneRay', sockets: ['body', 'wingL', 'wingR', 'tail'], clips: ['idle', 'fly', 'attack', 'hit', 'die'] },
+  build: () => ({ bones: [{ name: 'body', parent: null, pos: [0, BODY_Y, 0] }, { name: 'wingL', parent: 'body', pos: [0.5, BODY_Y, 0] },
+    { name: 'wingR', parent: 'body', pos: [-0.5, BODY_Y, 0] }, { name: 'tail', parent: 'body', pos: [0, BODY_Y, 0.9] }],
+    furParts: [], hardParts: [rayBody(), rayTail()], eyeParts: [],
+    dims: { bodyY: BODY_Y, bodyHalfLen: 1.1, bodyRadius: 1.1, headRadius: 0.5, legLen: 0.6, feet: [], halfWidth: SPAN } }),
+  animate: ({ bones, t, alive, attack, speed }) => {
+    const wingL = bones['wingL'], wingR = bones['wingR'], tail = bones['tail'], body = bones['body'];
+    // Glide with slow beats; sweep the wings back while diving (attack), droop them when dead.
+    const beat = alive ? (attack >= 0 ? 0.15 * Math.sin(t * 9) - 0.25 : 0.32 * Math.sin(t * (1.6 + speed * 0.12))) : -0.6;
+    if (wingL) wingL.rotation.z = beat; if (wingR) wingR.rotation.z = -beat;
+    if (tail) tail.rotation.y = 0.25 * Math.sin(t * 1.3);
+    if (body) body.rotation.x = alive ? (attack >= 0 ? 0.25 : -0.05 * Math.sin(t * 0.8)) : 0;
   },
 };

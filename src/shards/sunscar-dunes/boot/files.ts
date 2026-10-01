@@ -1,6 +1,6 @@
 import type { ShardManifest } from '#game';
 
-/** Only the engine's shared runtime is downloaded: every Signal Dunes mesh, texture and the sky are procedural. */
+/** Sunscar Dunes downloads no art of its own: the dunes, sky, tower, whip and ray are built in code. */
 export const bootSources: NonNullable<NonNullable<ShardManifest['boot']>['sources']> = () => ({
   sky: [], baked: [], terrain: [], trees: [], physics: [], cabins: [], props: [], art: [], music: [], sfx: [],
 });

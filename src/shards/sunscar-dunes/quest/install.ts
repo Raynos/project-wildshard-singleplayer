@@ -4,16 +4,15 @@ import * as v from 'valibot';
 import { Scene, type Vector3 } from 'three';
 import { STRINGS } from '../strings';
 
-/** The shard key: the signal is lit (the fire stays lit on the next visit, the reward is paid once). */
-const SIGNAL = { key: 'sunscar-dunes.signal', scope: 'shard' as const, version: 1, schema: v.boolean(), initial: () => false };
+const SIGNAL = { key: 'sunscar.signal', scope: 'shard' as const, version: 1, schema: v.boolean(), initial: () => false };
+export const REACH_RADIUS = 9;
 
-export interface SignalQuest { quest: QuestState; flags: Flags; wasLit: boolean; light: () => void }
-
-/** One step, "Light the signal fire": the flag is set by the tower's interactable (world/build.ts). */
-export function installQuest(ctx: ShardContext, player: Vector3, onCoin?: (share: number) => void): SignalQuest {
-  const flags = new Flags(ctx.manifest.slug), signal = ctx.app.saves.define(SIGNAL), wasLit = signal.read(ctx.manifest.slug);
+/** "The signal fire": reach the tower on the far crest, then light the brazier on its deck. Five coins, once. */
+export function installQuest(ctx: ShardContext, player: Vector3, tower: Vector3, onCoin?: (share: number) => void): { quest: QuestState; flags: Flags; lit: () => boolean } {
+  const flags = new Flags(ctx.manifest.slug), signal = ctx.app.saves.define(SIGNAL);
   const quest = new QuestState({ id: 'sunscar.quest', title: STRINGS.quest, completeFlag: 'sunscar.complete', steps: [
-    { id: 'fire', objective: STRINGS.step, done: { all: ['sunscar.fire'] } },
+    { id: 'reach', objective: STRINGS.reach, done: { all: ['sunscar.tower'] } },
+    { id: 'kindle', objective: STRINGS.kindle, done: { all: ['sunscar.fire'] } },
   ] }, flags, ctx.app.events, ctx.scope);
   const purse = shardSave(purseSave, ctx.manifest.slug);
   const scene = ctx.game.runtime?.world?.game.scene ?? new Scene(), burst = new CoinBurst(scene);
@@ -24,5 +23,6 @@ export function installQuest(ctx: ShardContext, player: Vector3, onCoin?: (share
     signal.write(true, ctx.manifest.slug);
     burst.spawn(player, 5, onCoin ?? ((share) => { purse.write(purse.read() + share); }), () => { ctx.game.runtime?.play?.hud.toast(STRINGS.reward); });
   };
-  return { quest, flags, wasLit, light: () => { flags.set('sunscar.fire'); } };
+  ctx.system({ id: 'sunscar.quest', phase: 'update', run: () => { if (Math.hypot(player.x - tower.x, player.z - tower.z) < REACH_RADIUS) flags.set('sunscar.tower'); } });
+  return { quest, flags, lit: () => signal.read(ctx.manifest.slug) };
 }
