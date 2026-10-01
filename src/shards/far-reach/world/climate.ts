@@ -1,7 +1,7 @@
 import { DayCycle, compassDir } from '#engine';
 
-/** The sun hangs low behind the windmill isle (azimuth 200°, 11° up): Sky Reach is always golden hour. */
-export const SUN_DIR = compassDir(200, 11);
+/** The sun hangs low in the south-west (azimuth 235°, 14° up), front right of the spawn view: always golden hour. */
+export const SUN_DIR = compassDir(235, 14);
 
 /** A day clock pinned at golden hour: the sun path is constant, so the light never moves. */
 export function createDay(): DayCycle {

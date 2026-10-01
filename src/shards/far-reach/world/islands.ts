@@ -2,7 +2,7 @@ import { BufferGeometry, Color, Float32BufferAttribute, Mesh, type MeshStandardM
 import type { ColliderDesc, Rng } from '#engine';
 import { TOP, type Island } from '../layout';
 
-const GRASS = [new Color(0x6f8a4a), new Color(0x7d9550), new Color(0x637d43)];
+const GRASS = [new Color(0x8a9f5a), new Color(0x97a862), new Color(0x7e9452)];
 const LIP = new Color(0x4f5a34), ROCK_HI = new Color(0x6a4a52), ROCK_LO = new Color(0x3d2b36);
 const SIDES = 16;
 

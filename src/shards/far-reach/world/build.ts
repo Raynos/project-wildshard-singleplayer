@@ -60,25 +60,25 @@ function hoverDeck(length: number, width: number, glow: MeshStandardMaterial): G
 
 function scatter(ctx: ShardContext): void {
   const random = ctx.app.rng.stream('cosmetic'), m = new Matrix4(), q = new Quaternion(), s = new Vector3(), p = new Vector3();
-  const keepClear: [number, number, number][] = [[SPAWN.x, SPAWN.z, 5], [WINCH.x, WINCH.z, 4], [MILL.x, MILL.z, 6]];
+  const keepClear: [number, number, number][] = [[SPAWN.x, SPAWN.z, 5], [WINCH.x, WINCH.z, 4], [MILL.x, MILL.z, 6], [0, 2, 4], [0, -6, 4], [0, -12, 4], [-4, 4, 4]];
   for (const b of BRIDGES) { const e = bridgeEnds(b); keepClear.push([e.ax, e.az, 4], [e.bx, e.bz, 4]); }
   const spots: [number, number, number][] = [];
   for (const island of ISLANDS) {
-    const want = Math.round(island.r * 0.7);
+    const want = Math.round(island.r * 0.45);
     for (let tries = 0; spots.filter(([x, z]) => Math.hypot(x - island.x, z - island.z) < island.r).length < want && tries < 200; tries++) {
       const a = random.range(0, Math.PI * 2), r = Math.sqrt(random.next()) * island.r * 0.82, x = island.x + Math.sin(a) * r, z = island.z + Math.cos(a) * r;
       if (keepClear.some(([cx, cz, cr]) => Math.hypot(x - cx, z - cz) < cr) || spots.some(([sx, sz]) => Math.hypot(x - sx, z - sz) < 2.6)) continue;
       spots.push([x, z, random.range(0.75, 1.35)]);
     }
   }
-  const crowns = new InstancedMesh(new ConeGeometry(1.3, 3.4, 5), flat(0x45602f), spots.length);
+  const crowns = new InstancedMesh(new ConeGeometry(1.1, 2.8, 5), flat(0x45602f), spots.length);
   const trunks = new InstancedMesh(new CylinderGeometry(0.16, 0.24, 1.2, 5), flat(0x4a342c), spots.length);
   const colliders: ColliderDesc[] = [];
   const tint = new Color();
   spots.forEach(([x, z, k], i) => {
     q.setFromAxisAngle(new Vector3(0, 1, 0), random.range(0, Math.PI));
-    crowns.setMatrixAt(i, m.compose(p.set(x, TOP + 1.2 * k + 1.7 * k, z), q, s.set(k, k, k)));
-    crowns.setColorAt(i, tint.setHSL(0.24 + random.range(-0.03, 0.03), 0.35, 0.24 + random.range(-0.04, 0.04)));
+    crowns.setMatrixAt(i, m.compose(p.set(x, TOP + 1.2 * k + 1.4 * k, z), q, s.set(k, k, k)));
+    crowns.setColorAt(i, tint.setHSL(0.24 + random.range(-0.03, 0.03), 0.32, 0.33 + random.range(-0.04, 0.04)));
     trunks.setMatrixAt(i, m.compose(p.set(x, TOP + 0.6 * k, z), q, s.set(k, k, k)));
     colliders.push({ kind: 'capsule', x, y: TOP + 1.2, z, halfHeight: 0.8, radius: 0.3, surface: 'wood' });
   });

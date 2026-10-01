@@ -61,7 +61,7 @@ export class SkyReachPlugin extends ShardPlugin {
     // The fallen bridge: hangs under Sunrest's rim until the winch hauls it up; a raised bridge stays up (a saved flag).
     const pinEl = document.createElement('span'); pinEl.textContent = STRINGS.pin;
     if (w !== null) {
-      if (flags.has('far.bridge')) { w.bridge.lift = 1; pinEl.hidden = true; if (this.winch) this.winch.label = STRINGS.bridgeUp; }
+      if (flags.has('far.bridge')) { w.bridge.lift = 1; pinEl.style.visibility = 'hidden'; if (this.winch) this.winch.label = STRINGS.bridgeUp; }
       w.bridge.pivot.rotation.x = FALLEN_TILT * (1 - w.bridge.lift);
       ctx.hud.pin(w.winchAt, pinEl);
       ctx.system({ id: 'far.bridge', phase: 'update', run: (dt) => {
@@ -72,7 +72,7 @@ export class SkyReachPlugin extends ShardPlugin {
         w.bridge.lift = Math.min(1, w.bridge.lift + dt / RAISE_SECONDS);
         const eased = 1 - (1 - w.bridge.lift) ** 2; w.bridge.pivot.rotation.x = FALLEN_TILT * (1 - eased);
         if (w.bridge.lift < 1) return;
-        this.raising = false; pinEl.hidden = true; if (this.winch) this.winch.label = STRINGS.bridgeUp;
+        this.raising = false; pinEl.style.visibility = 'hidden'; if (this.winch) this.winch.label = STRINGS.bridgeUp;
         flags.set('far.bridge'); rt?.play?.hud.toast(STRINGS.bridgeUp);
       } });
     }

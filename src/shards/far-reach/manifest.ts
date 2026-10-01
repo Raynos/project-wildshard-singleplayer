@@ -21,7 +21,7 @@ export const SKY_REACH: ShardManifest = {
   world: { killY: KILL_Y },
   horizon: { rings: [], cloudSea: true }, boundary: { visible: false },
   sky: { sunColor: [1, 0.8, 0.62], sunIntensity: 2.4, envIntensity: 0.55, bgIntensity: 1, fogSunColor: [1, 0.82, 0.7], cloudSunColor: [1, 0.85, 0.75],
-    hemiSky: 0xb6a9d6, hemiGround: 0x6b4f4a, hemiIntensity: 0.85, sun: { azimuth: 200, elevation: 11 } },
+    hemiSky: 0xb6a9d6, hemiGround: 0x6b4f4a, hemiIntensity: 1.3, sun: { azimuth: 235, elevation: 14 } },
   atmosphere: { fogHeight: -20, fogHeightFalloff: 0, fogHeightDensity: 0, fogDistDensity: 0, volumetricSunColor: [1, 0.82, 0.66] },
   grade: { saturation: 0.05, brightness: 0, contrast: 0.04, bloomIntensity: 0.15, bloomThreshold: 0.9, shadowTint: [0.92, 0.9, 1.05], highTint: [1.05, 0.98, 0.92],
     lift: [0.01, 0, 0.02], gain: [1, 1, 1], gamma: 1 },
