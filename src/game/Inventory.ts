@@ -62,7 +62,9 @@ export class Inventory {
   private legacy = new Set<ItemId>();
   onChange?: () => void;
 
-  constructor(readonly chunkId: string) {
+  readonly chunkId: string;
+  constructor(chunkId: string) {
+    this.chunkId = chunkId;
     const saved = inventorySave.read(saveSlug(chunkId)) as { counts: Partial<Record<ItemId, number>>; order: ItemId[] };
     this.counts = saved.counts;
     this.order = [];

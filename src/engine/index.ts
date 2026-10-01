@@ -237,3 +237,16 @@ export { activeRegistry } from './world/registry';
 
 export { practiceRoom } from './core/practiceRoom';
 
+
+export { Flags } from './world/interact/flags';
+export type { Interactables, InteractEvent } from './world/interact/Interactables';
+export type { PoiId, Place } from './world/interact/types';
+export type { MapPoi as FullMapPoi, MapQuest } from './ui/Map';
+export type { MapMark } from './ui/Minimap';
+export type { FirstHints } from './ui/FirstHints';
+export type { BodyShadow } from './player/BodyShadow';
+export { modelContext } from './models/model';
+
+export { activeBodies, type Body, type BodySpec } from './physics/bodies';
+export { groups } from './physics/groups';
+export { waveHeight } from './world/waves';

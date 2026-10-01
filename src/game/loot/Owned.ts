@@ -49,7 +49,9 @@ export class Owned {
   private wearing = new Set<CosmeticId>();
   private listeners: (() => void)[] = [];
 
-  constructor(readonly shard: string) {
+  readonly shard: string;
+  constructor(shard: string) {
+    this.shard = shard;
     const saved = ownedSave.read(saveSlug(shard));
     const { owned, worn } = saved as { owned?: unknown; worn?: unknown };
     if (Array.isArray(owned)) for (const id of owned) if (isOwnedId(id)) this.have.add(id);

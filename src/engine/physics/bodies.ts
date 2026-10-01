@@ -91,7 +91,12 @@ export class Body {
   /** the angular deceleration (rad/s²) its `rolling` resistance works out to: 0 for none, and for a box */
   readonly rollDecel: number;
 
-  constructor(readonly rb: RigidBody, readonly collider: Collider, readonly spec: BodySpec, readonly born: number) {
+  readonly rb: RigidBody;
+  readonly collider: Collider;
+  readonly spec: BodySpec;
+  readonly born: number;
+  constructor(rb: RigidBody, collider: Collider, spec: BodySpec, born: number) {
+    this.rb = rb; this.collider = collider; this.spec = spec; this.born = born;
     const s = spec.shape;
     this.bottom = 'ball' in s ? s.ball : 'cylinder' in s ? s.cylinder.halfHeight : s.cuboid.y;
     // rolling without slip, a constant spin-down k gives the body a stopping slope of sinθ = k·(I/m r²)·r / g: so for
@@ -194,7 +199,9 @@ export class Bodies {
   /** `focus`: the point the cap keeps bodies near (the player's feet, a live reference) */
   readonly focus: Vec3;
 
-  constructor(readonly physics: Physics, focus?: Vec3, cap: number = BODY_CAP[TIER]) {
+  readonly physics: Physics;
+  constructor(physics: Physics, focus?: Vec3, cap: number = BODY_CAP[TIER]) {
+    this.physics = physics;
     this.focus = focus ?? { x: 0, y: 0, z: 0 };
     this.cap = cap;
   }
@@ -357,7 +364,10 @@ export class Drop {
   private readonly at = { x: 0, y: 0, z: 0 };
   private readonly r: number = DROP_BODY.shape.ball;
 
-  constructor(private readonly bodies: Bodies | null, owner: unknown, from: Vec3, vel: Vec3, private readonly physics: Physics | null = bodies?.physics ?? null) {
+  private readonly bodies: Bodies | null;
+  private readonly physics: Physics | null;
+  constructor(bodies: Bodies | null, owner: unknown, from: Vec3, vel: Vec3, physics: Physics | null = bodies?.physics ?? null) {
+    this.bodies = bodies; this.physics = physics;
     if (bodies === null) { this.land(from); return; }
     this.body = bodies.spawn({ ...DROP_BODY, owner, onRemoved: (b) => { if (!this.landed) this.land(b.curr); } }, from, vel);
     this.floor.x = from.x; this.floor.y = from.y - this.r; this.floor.z = from.z;

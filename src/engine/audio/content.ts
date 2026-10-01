@@ -17,3 +17,5 @@ export { MUSIC_MANIFESTS, SFX_MANIFESTS } from '../boot/audio.generated';
 export { manifestFiles, musicDir, sfxDir, DRIFTWOOD_SOUNDS } from '../boot/audioFiles';
 
 export { audioLog } from './audioLog';
+
+export { IslandSfx } from './IslandSfx';

@@ -28,3 +28,13 @@ export type { Adventure, AdventureWorld, AdvAnimal } from './quest/Adventure';
 export { RewardCaption } from './quest/QuestUI';
 
 export { registerLootTable, getLootTable, rollLoot, type LootTableRow, type LootContext } from './loot/tables';
+
+export { ITEMS, isItemId } from './Inventory';
+export type { ProgressSink } from './Progress';
+export { QuestState, type QuestMarker, type NpcDef } from './quest/quest';
+export { DialogueBox, ObjectiveLine } from './quest/QuestUI';
+export { ShardComplete, setCompleteEntry, type ShardCompleteData } from './complete/ShardComplete';
+export { NpcTalk, QuestChip, type LiveMarker } from './quest/core';
+export { findShard, findChunk } from './shard/registry';
+export { Owned, isOwnedId, isCosmetic, OWNED } from './loot/Owned';
+export type { GearLoot, CosmeticSlot, FindsView } from './bag/bag';

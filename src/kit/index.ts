@@ -48,3 +48,5 @@ export { stepNpcFigure, npcFigurePose, type NpcFigureState, type NpcFigureMotion
 
 export { KIT_ITEMS } from './bag/items';
 export { loadGrassField } from './lookApi';
+
+export { NpcRig, type NpcRow, type NpcModel, type NpcFace } from './npc/npcRig';
