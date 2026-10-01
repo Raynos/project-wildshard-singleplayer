@@ -27,6 +27,8 @@ import thumbnail from './thumbs/pine-hollow.jpg';
 import heroPortrait from './thumbs/pine-hollow-portrait.jpg';
 import heroLandscape from './thumbs/pine-hollow-landscape.jpg';
 
+const CELL = CHUNK_SIZE / (TERRAIN_RES - 1);
+
 export const PINE_HOLLOW: ShardManifest = {
   uses: ['dayCycle', 'weather'],
   horizonStrips: {
@@ -66,7 +68,7 @@ export const PINE_HOLLOW: ShardManifest = {
 
   ground: { terrain: TERRAIN },
   // Provisional coverage on the procedural grid, retained for the Blender export pipeline.
-  blender: { area: { x0: -CHUNK_HALF + 87 * CHUNK_SIZE / (TERRAIN_RES - 1), x1: -CHUNK_HALF + 168 * CHUNK_SIZE / (TERRAIN_RES - 1), z0: -CHUNK_HALF + 66 * CHUNK_SIZE / (TERRAIN_RES - 1), z1: -CHUNK_HALF + 148 * CHUNK_SIZE / (TERRAIN_RES - 1) }, models: [] },
+  blender: { area: { x0: -CHUNK_HALF + 87 * CELL, x1: -CHUNK_HALF + 168 * CELL, z0: -CHUNK_HALF + 66 * CELL, z1: -CHUNK_HALF + 148 * CELL }, models: [] },
 
   assets: {
     // PH-L8 (the look loop, art/pine-hollow/round-14-look-loop/): the floor is Poly Haven's pine-needle litter
