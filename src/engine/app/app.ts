@@ -19,6 +19,8 @@ import { LevelLoader, type LevelDriver } from '../level/load';
 import { LevelRegistrations } from '../level/registrations';
 import type { LevelAdapters, LevelHooks } from '../level/context';
 import type { LevelSpec } from '../level/spec';
+import { CombatPipeline } from '../combat/pipeline';
+import type { PlayerHealth } from '../combat/health';
 
 interface StateHook { state: AppState; run: () => void }
 export type SystemsByPhase = Readonly<Record<Phase, readonly SystemSpec[]>>;
@@ -33,6 +35,13 @@ export class App {
   private transitions: AppState[] = [];
   readonly stateHistory: AppState[] = ['boot'];
   readonly events: Events;
+  readonly combat: CombatPipeline;
+  private readonly players = new WeakMap<Scope, PlayerHealth>();
+  get player(): PlayerHealth | null { return this.levelScope === null ? null : this.players.get(this.levelScope) ?? null; }
+  registerPlayer(player: PlayerHealth, scope: Scope): void {
+    this.players.set(scope, player);
+    scope.onDispose(() => { this.players.delete(scope); });
+  }
   readonly engineScope = new Scope('engine');
   levelScope: Scope | null = null;
   private sorted: SystemsByPhase | null = null;
@@ -77,7 +86,7 @@ export class App {
   readonly debug = new AppDebug();
   readonly scheduler = new EveryFrameScheduler();
 
-  constructor(events = new Events()) { this.events = events; }
+  constructor(events = new Events()) { this.events = events; this.combat = new CombatPipeline(events, this.engineScope, () => this.physics); }
   get state(): AppState { return this.currentState; }
 
   setState(next: AppState): void {

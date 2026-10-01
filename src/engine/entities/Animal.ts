@@ -7,7 +7,8 @@ import { TIER } from '../core/tier';
 import { frameCost } from '../core/frameCost';
 import { heightAt } from '../world/Heightfield';
 import { variantMods, type AnimalDims, type AnimalKind, type AnimalModel, type AnimalRig, type Rarity, type VariantMods, type RigAnimCtx } from './AnimalFactory';
-import { gameplayRandom } from '../app/runtime';
+import { app, gameplayRandom } from '../app/runtime';
+import type { Actor, DamageRequest } from '../combat/pipeline';
 
 /**
  * Animal — one animal instance (any registered species): procedural skeletal animation + health.
@@ -115,6 +116,7 @@ interface QuadBones { body: THREE.Bone; neck1: THREE.Bone; neck2: THREE.Bone; he
 type LegBones = readonly [THREE.Bone, THREE.Bone, THREE.Bone];
 
 const _want = { x: 0, y: 0, z: 0 };
+const combatActors = new WeakMap<Animal, Actor>();
 
 export class Animal {
   /** Only the parity probe sets this: the selected target skips its AI and motor. */
@@ -336,15 +338,17 @@ export class Animal {
    */
   applyDamage(amount: number, hitPoint: THREE.Vector3, dir: THREE.Vector3): boolean {
     if (!this.alive) return false;
-    tap.hit?.(this.kind, amount);
-    let dealt = amount;
-    if (this.mods.damageTaken !== 1) {
-      this.headWorld(_v);
-      const headshot = _v.distanceToSquared(hitPoint) < (this.model.dims.headRadius * this.scale + 0.06) ** 2;
-      if (!headshot) dealt = Math.max(1, Math.round(dealt * this.mods.damageTaken));
-    }
-    const mul = this.model.species.damageMul;
-    if (mul !== undefined) dealt = Math.max(1, Math.round(dealt * mul(this, hitPoint, dir)));
+    return app.combat.hit({ source: 'env', sourceTags: ['dmg.legacy', 'cover.checked'], target: this.combatActor(), amount, point: hitPoint, dir })?.killed ?? false;
+  }
+
+  /** Stable bridge for weapons until the creature runtime supplies its own Actor. */
+  combatActor(): Actor {
+    return animalCombatActor(this, this.model);
+  }
+
+  /** Pipeline output only: variant and species modifiers have already run once, in order. */
+  applyFinalDamage(dealt: number, hitPoint: THREE.Vector3, dir: THREE.Vector3): boolean {
+    if (!this.alive) return false;
     this.hp -= dealt;
     this.lastHitT = performance.now();
     // flinch away from the shot: project the shot direction into body space
@@ -924,4 +928,29 @@ function eyesInHard(g: THREE.BufferGeometry): THREE.BufferGeometry | null {
   }
   eyesMerged.set(g, out);
   return out;
+}
+
+function animalCombatActor(animal: Animal, model: AnimalModel): Actor {
+    const cached = combatActors.get(animal);
+    if (cached !== undefined) return cached;
+    const actor: Actor = {
+      id: `creature.${animal.kind}`, tags: ['actor.creature', `creature.${animal.kind}`], state: [],
+      get alive() { return animal.alive; },
+      onDamageRequest: (req) => { tap.hit?.(animal.kind, req.amount); },
+      attributes: {
+        get health() { return animal.hp; }, set health(value) { animal.hp = value; },
+        get maxHealth() { return animal.maxHp; },
+        get damageTakenMul() { return animal.mods.damageTaken; },
+      },
+      isHeadshot: (req) => {
+        animal.headWorld(_v);
+        return _v.distanceToSquared(req.point) < (model.dims.headRadius * animal.scale + 0.06) ** 2;
+      },
+      ...(model.species.damageMul === undefined ? {} : {
+        damageMul: (req: DamageRequest) => model.species.damageMul?.(animal, req.point, req.dir) ?? 1,
+      }),
+      applyDamage: (req) => animal.applyFinalDamage(req.amount, req.point, req.dir),
+    };
+    combatActors.set(animal, actor);
+    return actor;
 }

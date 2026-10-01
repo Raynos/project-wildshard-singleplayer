@@ -22,7 +22,7 @@ describe('deathLine (the death toast, B2)', () => {
   it('Nalati: the north road, its own verbs, and a lightning death named (NALATI-MERGE F3)', () => {
     expect(deathLine({ kind: 'wolf', label: 'Grey wolf' }, NALATI)).toBe('Torn down by a grey wolf — respawning on the north road');
     expect(deathLine({ kind: 'ghost-rider', label: '' }, NALATI)).toBe('Ridden down by a ghost-rider — respawning on the north road');
-    expect(deathLine({ cause: 'Struck by lightning' }, NALATI)).toBe('Struck by lightning — respawning on the north road');
-    expect(deathLine({ cause: 'Struck by lightning' }, NALATI)).not.toContain('Fell too far');
+    expect(deathLine({ kind: 'env.lightning', label: 'Struck by lightning', text: 'Struck by lightning' }, NALATI)).toBe('Struck by lightning — respawning on the north road');
+    expect(deathLine({ kind: 'env.lightning', label: 'Struck by lightning', text: 'Struck by lightning' }, NALATI)).not.toContain('Fell too far');
   });
 });

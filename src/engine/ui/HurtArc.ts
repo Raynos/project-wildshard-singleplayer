@@ -1,4 +1,5 @@
 import './styles/combat.css';
+import type { DeathCause } from '../combat/pipeline';
 
 /**
  * HurtArc — the "you were hit FROM THERE" indicator (DOM in `#hud`, styled in `src/engine/ui/styles/combat.css`, prefix
@@ -78,7 +79,6 @@ const VERB: Record<string, string> = {
 };
 
 /** who (or what) hurt you last: an animal (`Animal.kind` / `Animal.label`), or a cause with no attacker ("Struck by lightning") */
-export type Killer = { kind: string; label: string } | { cause: string };
 
 /**
  * where this shard puts you back (the death card's second line): `place` = the last named place you reached (E295,
@@ -97,14 +97,14 @@ export function respawnWhere(def: { slug: string; ocean?: unknown }, place?: str
  * respawning on the north road" on Nalati; a fall (no attacker) is "Fell too far". `killer` = the last thing that hurt
  * you, null for a fall; `where` = `respawnWhere(chunk)`.
  */
-export function deathLine(killer: Killer | null, where: string): string {
+export function deathLine(killer: DeathCause | null, where: string): string {
   return `${deathCause(killer)} — ${where}`;
 }
 
 /** the death card's headline (E295): who or what killed you — "Mauled by a brown bear", "Fell too far" */
-export function deathCause(killer: Killer | null): string {
+export function deathCause(killer: DeathCause | null): string {
   if (killer === null) return 'Fell too far';
-  if ('cause' in killer) return killer.cause;
+  if (killer.text !== undefined) return killer.text;
   const name = killer.label.trim() === '' ? killer.kind : killer.label.toLowerCase();
   const article = /^(the |a |an )/.test(name) ? '' : /^[aeiou]/.test(name) ? 'an ' : 'a ';
   return `${VERB[killer.kind] ?? 'Killed by'} ${article}${name}`;

@@ -4,7 +4,7 @@ import { app } from '#engine/app/runtime';
 import { pageSeed, LevelLoadError, installBounds, type LevelContext } from '#engine';
 import { shardContext, toLevelSpec, type ShardContext, type GameServices } from '#game';
 import { levelSequenceDriver, type LevelSequence } from '#game/shard/sequence';
-import { meleeShard, hitDamage, type ShardManifest } from '#game/shard/manifest';
+import { meleeShard, type ShardManifest } from '#game/shard/manifest';
 import { installProbe } from '#engine/debug/probe';
 import { tap } from '#engine/core/harnessTap';
 import * as THREE from 'three';
@@ -94,7 +94,10 @@ import { dayClockClock, dayNightClock, setActiveClock } from '#engine/world/Worl
 import { DayNight } from '#engine/world/DayNight';
 import { KeepAlive } from '#engine/core/KeepAlive';
 import { Combat, aimReadout } from '#engine/ui/Combat';
-import { HurtArc, deathCause, respawnWhere, type Killer } from '#engine/ui/HurtArc';
+import { HurtArc, deathCause, respawnWhere } from '#engine/ui/HurtArc';
+import { PlayerHealth } from '#engine/combat/health';
+import type { DeathCause } from '#engine/combat/pipeline';
+import { PlayerHurt } from '#engine/ui/playerHurt';
 import { WindupWarn } from '#engine/ui/WindupWarn';
 import { DeathFade } from '#engine/ui/DeathFade';
 import { FirstHints } from '#engine/ui/FirstHints';
@@ -681,13 +684,20 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   const respawn = () => { toSpawn(); music.sting('death'); };
   installBounds(app, game.levelScope, game.level.bounds, { player, toSpawn,
     floorAt: (x, z) => registry.floorAt(x, z), suspended: () => world.freeCamera || world.tour.active || away() });
-  let kills = 0, health = 100, maxHealth = 100, lastHurt = 0, swimHold = false; // maxHealth: 100, Driftwood's sturdy hearts raise it (E314, installLoot)
+  let kills = 0, swimHold = false;
+  const owned = new Owned(getActiveChunk().slug);            // E314: upgrades, cosmetics, trophies, the found iron sword (src/game/loot/Owned.ts)
+  const playerHealth = new PlayerHealth(app.events, {
+    now: () => performance.now(), position: () => player.position,
+    dodging: () => player.dodging, dodgeGuard: () => dodgeGuard(owned),
+  });
+  app.registerPlayer(playerHealth, game.levelScope);
+  playerHealth.attributes.incomingCap = chunk.fight?.maxHitDamage ?? Infinity;
+  app.combat.playerRules(game.levelScope, { target: playerHealth, bossGod: params.has('bossGod'), capExempt: chunk.fight?.capExempt ?? [] });
   const harvested = new Set<object>();
   // ── the in-game menu: MAP · INVENTORY · ACHIEVEMENTS · SETTINGS (src/engine/ui/Menu.ts) ──
   const progress = new Progress(getActiveChunk().slug);     // shard achievements → titles (src/game/achievements.ts)
   const inventory = new Inventory(getActiveChunk().slug);   // the pack: harvest drops
   const skins = new SkinLocker(chunk.slug);                          // legendary skins owned / worn (persisted; wired below)
-  const owned = new Owned(getActiveChunk().slug);            // E314: upgrades, cosmetics, trophies, the found iron sword (src/game/loot/Owned.ts)
   // Pine Hollow's GEAR ▸ FINISHES (E314 C, src/shards/pine-hollow/loadout/finishes.ts): wear / take off — set once the weapons' models exist (below)
   let pineFinish: ((id: string) => void) | null = null;
   const menu = new GameMenu({
@@ -721,7 +731,7 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
     capture: () => game.captureFrame(1280),
     context: () => (explore?.active === true ? { shard: getActiveChunk().slug, ...explore.context(), tier: TIER, fps: game.stats.fps, calls: game.lastFrame.calls, tris: game.lastFrame.triangles } : {
       shard: getActiveChunk().slug, pos: [player.position.x, player.position.y, player.position.z].map((v) => Number(v.toFixed(2))),
-      yaw: Number(player.yaw.toFixed(3)), pitch: Number(player.pitch.toFixed(3)), weapon: weapons.current.id, health: Math.round(health), kills,
+      yaw: Number(player.yaw.toFixed(3)), pitch: Number(player.pitch.toFixed(3)), weapon: weapons.current.id, health: Math.round(playerHealth.attributes.health), kills,
       swimming: player.swimming, hover: player.hover, tier: TIER, fps: game.stats.fps, calls: game.lastFrame.calls, tris: game.lastFrame.triangles,
     }),
     hold: (on) => {
@@ -877,7 +887,7 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
     // stage 2: the trader's shop and what it sells — sharper swords, a bigger heart (topped up by what it adds), the sea chart's marks
     trader: adventure?.trader ?? null, minimap, toast: (t) => { hud.toast(t); },
     swords: [crossbow, ironSword].filter((w): w is Sword => w instanceof Sword),
-    setMaxHealth: (m) => { const was = maxHealth; maxHealth = m; health = Math.max(0, Math.min(m, health + Math.max(0, m - was))); },
+    setMaxHealth: (m) => { playerHealth.setMaxHealth(m); },
     hold: (on) => { // the shop screen releases the lock and the sword like Pine Hollow's slate; its close takes them back
       window.clearTimeout(shopHold);
       weapons.stowed = on;
@@ -899,18 +909,14 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   // taking a hit (B3): the arc points at the attacker (src/engine/ui/HurtArc.ts), a hurt grunt panned toward it (Audio.hurt — it
   // used to be the landing thud), and the killer is remembered for the death toast (B2)
   const hurtArc = new HurtArc();
-  let killer: Killer | null = null;
-  animals.onCharge = (a, raw) => {
-    if (player.dodging && dodgeGuard(owned)) return; // E314 the boar tusk: a hit that lands while a dodge carries you does nothing
-    const dmg = hitDamage(chunk, raw, a.kind); // the shard's per-hit cap (E294: Driftwood 20; the captain is exempt)
-    health = Math.max(0, health - dmg); lastHurt = performance.now(); hud.damageFlash(); music.combat(0.9);
-    killer = { kind: a.kind, label: a.label };
-    if (meleeShard(chunk) || pineFights !== null) hurtArc.hit(a.position.x, a.position.z, player.position, player.yaw, dmg); // the direction arc: the melee shards (D8; Nalati F2) + Pine Hollow (PH-F1)
-    if (meleeShard(chunk) || pineFights !== null) CameraFX.for(game).addTrauma(Math.min(0.85, 0.3 + dmg / 40)); // a trauma² shake (C3; Pine Hollow PH-F1)
-    player.shove(a.position.x, a.position.z, 5 + Math.min(4, dmg * 0.15)); // knocked back a step, through the controller (PHYSICS P2)
-    const dx = a.position.x - player.position.x, dz = a.position.z - player.position.z, d = Math.hypot(dx, dz);
-    audio.hurt(dmg / 20, d > 0.3 ? ((dx * Math.cos(player.yaw) - dz * Math.sin(player.yaw)) / d) * 0.7 : 0);
-  };
+  const playerHurt = new PlayerHurt(app.events, game.levelScope, app.combat, playerHealth, {
+    player, directional: () => meleeShard(chunk) || pineFights !== null,
+    flash: () => hud.damageFlash(), toast: (text) => hud.toast(text),
+    combat: (value) => music.combat(value), hurt: (strength, pan) => audio.hurt(strength, pan), land: (hard) => audio.land(hard),
+    arc: (x, z, at, yaw, damage) => hurtArc.hit(x, z, at, yaw, damage),
+    trauma: (value) => CameraFX.for(game).addTrauma(value),
+  });
+  animals.onCharge = (a, raw) => playerHurt.creature(a, raw);
   // footsteps (B9): the island asks its surface map — planks on every deck, stone on the shrine dais, sand / wet sand / grass /
   // rock off them as the terrain paints it, an ankle splash in the shallows — pitched and levelled by speed; Pine Hollow as before
   const surfaces = sea ? new SurfaceMap({ sea: sea.level, heightAt, trailDistance, decks: [pier, ...jetties, boat, hut, lookout, bridge, wreck], stone: [shrine] }) : null;
@@ -971,12 +977,12 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   };
   // Nalati's boss fights (src/shards/nalati-grasslands/kurganBoss.ts, B13): the Golden King needs the animals, the kit and the HUD
   nalatiNow()?.bindPlay({
-    kit: nalatiKit, health01: () => health / maxHealth, toast: (text) => hud.toast(text), flash: () => hud.damageFlash(),
-    hurt: (dmg) => { killer = { cause: 'Thrown from the saddle' }; health = Math.max(0, health - dmg); lastHurt = performance.now(); hud.damageFlash(); audio.land(true); }, // a throw / a bolt (Mount, Taming)
+    kit: nalatiKit, health01: () => playerHealth.attributes.health / playerHealth.attributes.maxHealth, toast: (text) => hud.toast(text), flash: () => hud.damageFlash(),
+    hurt: (dmg) => playerHurt.jolt('env.ride', dmg, { kind: 'env.ride', label: 'Thrown from the saddle', text: 'Thrown from the saddle' }), // a throw / a bolt (Mount, Taming)
   }); // Nalati's creatures: brace kills, knock-downs, howl / stampede toasts
   // Nalati's weather (src/shards/nalati-grasslands/weather.ts, B10): the storm's audio beds + thunder, and a lightning strike's 60 damage
   nalatiNow()?.sound?.bind(audio, music); // Nalati's sound (B16 audio): hoof ground, the steppe bed, the music's steppe mood
-  nalatiNow()?.weather.bind({ audio, hurt: (dmg, why) => { killer = { cause: 'Struck by lightning' }; health = Math.max(0, health - dmg); lastHurt = performance.now(); hud.damageFlash(); hud.toast(why); audio.land(true); } });
+  nalatiNow()?.weather.bind({ audio, hurt: (dmg, why) => playerHurt.jolt('env.lightning', dmg, { kind: 'env.lightning', label: 'Struck by lightning', text: 'Struck by lightning' }, why) });
   nalatiNow()?.boss.bind({
     animals, setWeaponsEnabled: (on) => { weapons.setEnabled(on); }, bow: nalatiKit?.bow ?? null, refill: () => { nalatiKit?.refill(); }, interactables, params,
     toast: (s) => { hud.toast(s); }, feed: (s) => { hud.killFeed(s); }, pickupHum: (on) => { audio.pickupHum(on); },
@@ -992,7 +998,7 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   // Nalati's Storm Titan (src/shards/nalati-grasslands/stormTitan.ts, B14): the cairn prompt, the fight, Naizagai (the sabre upgrade) once won
   nalatiNow()?.titan.bind({
     animals, wildlife, ride, sabre: nalatiKit?.sabre ?? null, setWeaponsEnabled: (on) => { weapons.setEnabled(on); }, refill: () => { nalatiKit?.refill(); }, interactables, params,
-    hurt: (dmg, why) => { killer = { kind: 'storm-titan', label: 'the Storm Titan' }; health = Math.max(0, health - dmg); lastHurt = performance.now(); hud.damageFlash(); if (why) hud.toast(why); audio.land(true); },
+    hurt: (dmg, why) => playerHurt.jolt('boss.storm-titan', dmg, { kind: 'storm-titan', label: 'the Storm Titan' }, why, true), // B3's cap/guard change stays boarded for S3.4
     toast: (s) => { hud.toast(s); }, feed: (s) => { hud.killFeed(s); }, record: (k, v) => { progress.recordKill(k, v); progress.recordEvent(k); }, pickupHum: (on) => { audio.pickupHum(on); },
     ownSkin: (id) => { nalatiNow()?.skins.own(id); },
     music: (e) => { if (e === 'death' || e === 'pickup') music.sting(e); else if (e === 'victory') music.sting('chunk'); else music.combat(1); },
@@ -1013,7 +1019,7 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   lockSys.onNone = () => { audio.lockNone(); };
   lockSys.onFlickMiss = (dir) => { lockOn.flashMiss(dir); };
   player.onLunge = () => { audio.lunge(); buzz(HAPTIC.lunge); };
-  player.onLand = (hard) => { audio.land(hard); if (hard) { health = Math.max(0, health - 8); hud.damageFlash(); if (health <= 0) killer = null; } };
+  player.onLand = (hard) => playerHurt.fall(hard);
   // ── death (E295): a fade to dark with a "Mauled by a brown bear / respawning at Wreck Cove" card (src/engine/ui/DeathFade.ts),
   // the respawn under the dark at the last named place you reached (src/game/LastPlace.ts; Driftwood's places, the spawn
   // when none), input frozen and no hit taken until the view is back. A boss fight's death keeps its own checkpoint. ──
@@ -1034,17 +1040,23 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
       lastPlace.observe({ x: p.x, y: floor ?? p.y, z: p.z, grounded });
     }, 'last place');
   }
-  const chargeHit = animals.onCharge;
-  animals.onCharge = (a, dmg) => { if (!deathFade.active) chargeHit(a, dmg); }; // no hit lands while the view is dark
-  const die = (by: Killer | null): void => {
+  const die = (by: DeathCause | undefined): void => {
     const stand = lastPlace?.stand ?? null;
     music.sting('death');
     player.carried = true; weapons.setEnabled(false); // frozen: the fixed step leaves the body alone, no swing / shot
-    deathFade.play(deathCause(by), respawnWhere(chunk, stand !== null && stand.id !== 'pier' ? placeName(stand.label) : null), {
+    deathFade.play(deathCause(by ?? null), respawnWhere(chunk, stand !== null && stand.id !== 'pier' ? placeName(stand.label) : null), {
       dark: () => { if (stand !== null && stand.id !== 'pier') player.spawn(stand.x, stand.z, stand.yaw, stand.y); else toSpawn(); }, // the pier IS the spawn (E308: half way down it, facing the island)
       done: () => { player.carried = false; weapons.setEnabled(!player.swimming); },
     });
   };
+  playerHealth.bindLifecycle({
+    fading: () => deathFade.active, updateFade: (dt) => deathFade.update(dt),
+    died: (cause, checkpoint) => {
+      audio.death(); hud.damageFlash();
+      if (ride?.mounted === true) ride.mount.dismount();
+      if (!checkpoint) die(cause);
+    },
+  });
   // ── first-time control hints (E308, src/engine/ui/FirstHints.ts: every shard's one system; after main's onJump / onDodge, which
   // it chains): a label + pulsing ring on the touch control the first time it matters. Driftwood feeds its six triggers
   // (src/shards/driftwood-isle/firstMinutes.ts); another shard shows none until it feeds its own ──
@@ -1246,7 +1258,7 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
     // phone the big USE band) sat across the drowned sailor. A fight = a hit in the last 3 s, or an enemy on you within 5 m;
     // E still works
     if (prompt !== undefined && meleeShard(chunk)) {
-      let fighting = performance.now() - lastHurt < 3000;
+      let fighting = performance.now() - playerHealth.lastHurt < 3000;
       for (const a of animals.animals) {
         if (fighting) break;
         fighting = a.alive && a.aggressive && (a.state === 'attack' || a.state === 'stalk' || a.state === 'charge') && a.position.distanceToSquared(player.position) < 25;
@@ -1254,19 +1266,8 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
       if (fighting) prompt = undefined;
     }
 
-    // slow health regen; death → respawn at the gate
-    if (health < maxHealth && performance.now() - lastHurt > 6000) health = Math.min(maxHealth, health + dt * 4);
-    // death → the fade + card name the killer and where you come back (die, E295); only a weapon with ammo is topped up.
-    // A death in a boss fight is handled there (back at the phase checkpoint): Nalati's King / Titan, Pine Hollow's Antler King
-    deathFade.update(dt);
-    if (deathFade.active) health = maxHealth; // nothing else (a fall, lightning) kills you twice under the fade
-    if (health <= 0) {
-      health = maxHealth; audio.death(); hud.damageFlash();
-      if (ride?.mounted === true) ride.mount.dismount();
-      if (pineFights?.onPlayerDeath() !== true && nalati?.boss.onPlayerDeath() !== true && nalati?.titan.onPlayerDeath() !== true) die(killer);
-      if (crossbow.hasAmmo) crossbow.addBolts(30 - (crossbow.state.bolts ?? 30));
-      killer = null; nalatiKit?.refill(); pineLoadout?.onPlayerDeath();
-    }
+  }, 'main');
+  game.onUpdate((dt) => {
     unmark();
     hurtArc.update(dt, player.position, player.yaw);
     windupWarn?.update(dt, game.camera, player.position, player.yaw, animals.isThreat);
@@ -1280,11 +1281,20 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
     hud.setState({
       bolts: weapons.state.ammo, maxBolts: weapons.state.magazine, reserve: weapons.state.reserve, loaded: weapons.state.loaded, reloading: weapons.state.reloading, reloadProgress: weapons.state.reloadProgress,
       ammoLabel: weapons.current.ammoLabel, weaponName: weapons.current.name, segments: weapons.current.segments,
-      health, maxHealth, pos: { x: player.position.x, z: player.position.z }, yaw: player.yaw, kills,
+      health: playerHealth.attributes.health, maxHealth: playerHealth.attributes.maxHealth, pos: { x: player.position.x, z: player.position.z }, yaw: player.yaw, kills,
       prompt, speed: player.speedFactor, ads: weapons.state.ads,
     });
     mark('hud');
-  }, 'main');
+  }, 'engine.player.hud');
+  playerHealth.checkpoint(game.levelScope, () => pineFights?.onPlayerDeath() === true, () => app.player === playerHealth);
+  playerHealth.checkpoint(game.levelScope, () => nalatiNow()?.boss.onPlayerDeath() === true, () => app.player === playerHealth);
+  playerHealth.checkpoint(game.levelScope, () => nalatiNow()?.titan.onPlayerDeath() === true, () => app.player === playerHealth);
+  app.events.on('player.respawned', () => {
+    if (app.player !== playerHealth) return;
+    if (crossbow.hasAmmo) crossbow.addBolts(30 - (crossbow.state.bolts ?? 30));
+    nalatiKit?.refill(); pineLoadout?.onPlayerDeath();
+  }, game.levelScope);
+  app.addSystem({ id: 'engine.player.regen', phase: 'update', after: ['main.frame'], before: ['engine.player.hud'], run: (dt) => playerHealth.update(dt) }, game.levelScope);
 
   // `?at=x,y,z,yaw,pitch` — a review note's repro URL (src/engine/ui/Feedback.ts reproUrl) starts you on the spot it was filed from
   const at = (params.get('at') ?? '').split(',').map(Number);
@@ -1369,7 +1379,7 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   game.retainKitResources();
   game.captureLevelResources();
   game.levelScope.onDispose(() => { loot.dispose(); windupWarn?.dispose(); weapons.setEnabled(false); ambience?.dispose(); audio.unloadLevel(); });
-  installProbe(handle, { bootSteps, health: () => health, quest: () => ({ driftwood: adventure?.flags.all.slice().sort() ?? [], nalati: nalatiAdventure?.flags.all.slice().sort() ?? [] }) });
+  installProbe(handle, { bootSteps, health: () => playerHealth.attributes.health, quest: () => ({ driftwood: adventure?.flags.all.slice().sort() ?? [], nalati: nalatiAdventure?.flags.all.slice().sort() ?? [] }) });
   document.dispatchEvent(new Event('ws:ready')); // booted to the title: the native shell's update watchdog (src/engine/native/boot.ts) waits for this
   // E158: the other shards' boot files into the worker's cache, in the background — once a page (the shell's, not a shard's)
   asShell(() => { startShardPrefetch(getActiveChunk()); });

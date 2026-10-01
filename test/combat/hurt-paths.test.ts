@@ -24,8 +24,8 @@ describe('today’s creature/world → player paths (09 §3.3)', () => {
       f.api[path](damage, 'WHY');
       expect(f.api.health).toBe(100 - damage); expect(f.audio.land).toHaveBeenCalledWith(true);
       expect(f.api.lastHurt).toBe(1000); expect(f.audio.hurt).not.toHaveBeenCalled();
-      if (path === 'ride') expect(f.api.killer).toEqual({ cause: 'Thrown from the saddle' });
-      else if (path === 'lightning') expect(f.api.killer).toEqual({ cause: 'Struck by lightning' });
+      if (path === 'ride') expect(f.api.killer).toEqual({ kind: 'env.ride', label: 'Thrown from the saddle', text: 'Thrown from the saddle' });
+      else if (path === 'lightning') expect(f.api.killer).toEqual({ kind: 'env.lightning', label: 'Struck by lightning', text: 'Struck by lightning' });
       else expect(f.api.killer).toEqual({ kind: 'storm-titan', label: 'the Storm Titan' });
     });
   it('a soft landing has no damage; a hard landing deals 8 without resetting regeneration', () => {

@@ -22,10 +22,10 @@ describe('current executable damage rules (09 §3.6)', () => {
     const bare = legacyHurtFixture({ guarded: true });
     bare.api.creature(attacker(), 25); expect(bare.api.health).toBe(80);
   });
-  it('death fade vetoes creature hits before guard/cap and restores environmental damage at the next tick', () => {
+  it('death fade vetoes every hit before rules and feedback (R0)', () => {
     const f = legacyHurtFixture(); f.deathFade.active = true;
     f.api.creature(attacker(), 50); expect(f.api.health).toBe(100); expect(f.hud.damageFlash).not.toHaveBeenCalled();
-    f.api.lightning(60, 'lightning'); expect(f.api.health).toBe(40);
+    f.api.lightning(60, 'lightning'); expect(f.api.health).toBe(100); expect(f.audio.land).not.toHaveBeenCalled();
     f.game.advance(1 / 60); expect(f.api.health).toBe(100); expect(f.audio.death).not.toHaveBeenCalled();
   });
   it('regeneration starts strictly after 6 seconds, adds 4/s, and clamps at max health', () => {
