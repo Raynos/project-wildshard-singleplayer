@@ -172,6 +172,7 @@ export type { VoicePool, VoiceTable, SampleVoice, SamplePolicy } from './audio/V
 
 // E357 S3.2: a level look's hooks (LookStrategy fog / replace compose / terrain painter / grass) and what a painter builds from
 export type { LookReplaceContext, LookChain, FogModel, TerrainPainter, PainterField, GrassDriver, GrassLayer, ExtendLook, ReplaceLook, SkyDressing } from './render/look';
+export type { MinimapPalette, MapOverlay, MapPoi } from './ui/Minimap';
 export { addFogUniforms } from './world/Atmosphere';
 export { CHUNK_SIZE, CHUNK_DEPTH, TERRAIN_RES } from './core/config';
 export { Noise2D, smoothstep, clamp, lerp } from './core/noise';

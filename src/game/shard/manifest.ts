@@ -1,4 +1,4 @@
-import type { LookReplaceContext, TreeFactory, Ktx2Table, LevelSpec, EngineMechanism, TierOverrides, BootSpec, LoadoutSpec, LookStrategy, ExploreSpec } from '#engine';
+import type { MinimapPalette, LookReplaceContext, TreeFactory, Ktx2Table, LevelSpec, EngineMechanism, TierOverrides, BootSpec, LoadoutSpec, LookStrategy, ExploreSpec } from '#engine';
 import type { ShardSlug } from './shards.generated';
 import type { ShardPlugin } from './plugin';
 /**
@@ -564,6 +564,8 @@ export interface ChunkMapDef {
   /** the ground's colour (0..255 sRGB) where nothing is built — a structure-first shard's void (the shaft, the air between
    *  the towers): the maps paint it flat and draw only the built world over it; omitted = the landscape, hill-shaded */
   ground?: [number, number, number];
+  /** the level's own map look (07 §6.2 step 7): its ground colours, its overlay, its named places (Minimap.ts) */
+  palette?: MinimapPalette;
 }
 export type MapLook = 'planks' | 'timber' | 'stone' | 'rock' | 'dot';
 

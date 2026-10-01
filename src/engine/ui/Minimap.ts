@@ -9,7 +9,7 @@
  * player arrow rotates with the yaw, the map scrolls under it. The view covers ±VIEW_RADIUS metres.
  *
  * Layers, back to front:
- *   1. terrain — painted ONCE into an offscreen canvas covering the whole chunk at LAYER_PPM px/m:
+ *   1. terrain — drawn ONCE into an offscreen canvas covering the whole chunk at LAYER_PPM px/m:
  *      hillshaded ground (heightAt), pond (POND), dirt trails (TRAILS), pine crowns stippled from the
  *      same density noise Forest.ts thins its candidates with, cabin roofs (CABIN_SITES);
  *   2. fog of war — a low-res coverage canvas (COVER_PPM px/m) the player's visited positions stamp a
@@ -24,15 +24,14 @@
  *
  * The built world (E130, `ShardManifest.map`): the shard's sand paths and its registered pieces' collider footprints as flat
  * silhouettes (src/engine/ui/mapShapes.ts) — Driftwood's pier, jetties, boat, hut, bridge, lookout, wreck, zipline, shrine, the sea
- * cave's vault and the palms' crowns — painted into the same layer and zoom tiles, so the minimap and the full map both show them.
+ * cave's vault and the palms' crowns — drawn into the same layer and zoom tiles, so the minimap and the full map both show them.
  *
  * Nothing is allocated per frame: every canvas, gradient and sprite is built at construction or on resize.
  *
- * NALATI (`chunk.style === 'painterly'`, plan row B15): the ground is painted in the shard's own colours instead — the green
- * valley, the gold-olive Sky Grassland, grey rock on the escarpment, snow over the snow line, the Kunes' braided channels
- * (glacial blue) and gravel bars, the plateau brook, the spruce gullies stippled from the chunk's own spruce mask — and the
- * map-01 places (NOMAD CAMP, KUNES RIVER, …: `mapPois()`, read from the chunk def / layout, never hard-coded) are the
- * full map's pins (main.ts `fullMap.setPois`: named once explored, "?" before) — no names on the minimap itself. A wolf lying hidden in long grass (`mem.hidden`, Pack.ts) is not on it (the stealth rule).
+ * A level's own map look (`ChunkMapDef.palette`, MinimapPalette): its ground colours by height / slope / forest mask,
+ * its overlay over the ground (in place of the trails, crowns and roofs) and its named places — the full map's pins
+ * (main.ts `fullMap.setPois`: named once explored, "?" before). A wolf lying hidden in long grass (`mem.hidden`, Pack.ts)
+ * is not on it (the stealth rule).
  */
 import { CHUNK_HALF, CHUNK_SIZE, SEED } from '../core/config';
 import { heightAt, trailDistance, TRAILS, CABIN_SITES, POND, hasPond, pondMask, waterLevel, streamAt } from '../world/Heightfield';
@@ -40,9 +39,6 @@ import { Noise2D, smoothstep } from '../core/noise';
 import { Rng } from '../core/rng';
 import { getActiveChunk, onActiveChunkChange } from '#game/shard/registry';
 import { hasSpecies, speciesDef } from '../entities/species/registry';
-import * as NALATI_DEF from '#shards/nalati-grasslands/manifest';
-import { nalatiWetAt } from '#shards/nalati-grasslands/wet';
-import { NALATI_WILDLIFE } from '../entities/Wildlife';
 import { activeRegistry } from '../world/registry';
 import { mapShapes, mapWants, type MapPoly, type MapShapes } from './mapShapes';
 import { app } from '../app/runtime';
@@ -77,54 +73,25 @@ export interface MapFeatures {
 
 /** a named place on the maps (the minimap's labels, the full map's pins) */
 export interface MapPoi { x: number; z: number; label: string; color: string }
-
-// ── Nalati's map, read BY NAME from the chunk def at runtime (layout v2 is being rebuilt: consts come and go, so nothing
-//    here imports one; the ground colours are by height / slope / the river, which follow any terrain) ──
-const NDEF = new Map<string, unknown>(Object.entries(NALATI_DEF));
-const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null;
-function defXZ(name: string): { x: number; z: number } | null {
-  const v = NDEF.get(name);
-  return isObj(v) && typeof v['x'] === 'number' && typeof v['z'] === 'number' ? { x: v['x'], z: v['z'] } : null;
+/** what a palette's overlay paints with: the terrain layer's context, world → layer px, px per metre, the trails */
+export interface MapOverlay {
+  ctx: CanvasRenderingContext2D; toU: (x: number) => number; toV: (z: number) => number; ppm: number;
+  trails: readonly (readonly [number, number])[][]; half: number;
+  /** the chunk's forest mask (ChunkForest.mask), when it has one */
+  forestMask: ((x: number, z: number) => number) | undefined;
 }
-function defNum(name: string, d: number): number { const v = NDEF.get(name); return typeof v === 'number' ? v : d; }
-function defFn(name: string): ((x: number, z: number) => number) | null {
-  const v = NDEF.get(name);
-  return typeof v === 'function' ? (x: number, z: number) => { const r: unknown = Reflect.apply(v, undefined, [x, z]); return typeof r === 'number' ? r : 0; } : null;
+/** a level's own map look (ChunkMapDef.palette, 07 §6.2 step 7): its ground colour at a sample (0..255 sRGB into `out`),
+ *  its overlay over the ground (in place of the trails, crowns and roofs), its named places */
+export interface MinimapPalette {
+  ground: (x: number, z: number, h: number, slope: number, forest: number, out: [number, number, number]) => void;
+  overlay?: (o: MapOverlay) => void;
+  pois?: () => MapPoi[];
 }
-const labelled = (list: unknown, color: string): MapPoi[] => {
-  const out: MapPoi[] = [];
-  if (Array.isArray(list)) for (const e of list) if (isObj(e) && typeof e['label'] === 'string' && typeof e['x'] === 'number' && typeof e['z'] === 'number') out.push({ x: e['x'], z: e['z'], label: e['label'], color: typeof e['color'] === 'string' ? e['color'] : color });
-  return out;
-};
-const POI_COLOR = '#f0e6c8';
 
-/** the active shard's named places: Nalati's (the def's `NALATI_MAP.pois`, else whichever named consts it exports), else the
- *  cabins + the pond */
+/** the active shard's named places: its palette's (ChunkMapDef.palette), else the cabins + the pond */
 export function mapPois(): MapPoi[] {
-  if (getActiveChunk().style === 'painterly') {
-    const m = NDEF.get('NALATI_MAP');
-    const listed = isObj(m) ? labelled(m['pois'], POI_COLOR) : [];
-    if (listed.length > 0) return listed;
-    const out: MapPoi[] = [];
-    const add = (label: string, p: { x: number; z: number } | null, color = POI_COLOR): void => { if (p !== null) out.push({ x: p.x, z: p.z, label, color }); };
-    add('NOMAD CAMP', defXZ('CAMP')); add('BRIDGE', defXZ('BRIDGE')); add('SHEEP PASTURE', defXZ('PASTURE'));
-    add('EAGLE ROCK', defXZ('EAGLE_ROCK')); add('THE CRAGS', defXZ('CRAGS')); add('SUMMER CAMP', defXZ('SUMMER_YURTS'));
-    add('WIND CAIRN', defXZ('CAIRN')); add('KOKPAR FIELD', defXZ('KOKPAR')); add('RUINED WATCHTOWER', defXZ('WATCHTOWER'));
-    add('GLACIER', defXZ('GLACIER')); add('SNOW LEOPARD CAVE', defXZ('LEOPARD_CAVE'));
-    const kurgans = NDEF.get('KURGANS');
-    if (Array.isArray(kurgans)) {
-      const great: unknown = kurgans.find((k: unknown) => isObj(k) && k['great'] === true) ?? kurgans[0];
-      if (isObj(great) && typeof great['x'] === 'number' && typeof great['z'] === 'number') add('KURGAN FIELD', { x: great['x'], z: great['z'] });
-    }
-    const herd = NALATI_WILDLIFE.herds[0];
-    if (herd) add('HORSE PLAINS', herd);
-    const bridge = defXZ('BRIDGE'), rz = NDEF.get('RIVER');
-    if (bridge !== null && isObj(rz) && typeof rz['z'] === 'function') {
-      const x = bridge.x - 90, z: unknown = Reflect.apply(rz['z'], undefined, [x]);
-      if (typeof z === 'number') add('KUNES RIVER', { x, z }, '#a8d8f0');
-    }
-    return out;
-  }
+  const own = getActiveChunk().minimap?.palette?.pois;
+  if (own) return own();
   const out: MapPoi[] = CABIN_SITES.map((c, i) => ({ x: c.x, z: c.z, label: `CABIN ${i + 1}`, color: '#8fe3ff' }));
   if (hasPond()) out.push({ x: POND.x, z: POND.z, label: 'THE POND', color: '#6fb8e8' });
   return out;
@@ -144,7 +111,7 @@ const GRASS_LO: RGB = [104, 118, 58], GRASS_HI: RGB = [150, 158, 84];   // olive
 const FLOOR: RGB = [72, 78, 44];                                            // forest floor under the canopy
 const ROCK: RGB = [122, 118, 108];
 const WATER = '#3b607c', WATER_EDGE = '#2a4458';
-// still + running water painted by depth (the pond's real shore, its islet, the creek): slate shallows → deep slate blue
+// still + running water drawn by depth (the pond's real shore, its islet, the creek): slate shallows → deep slate blue
 const WATER_SHALLOW: RGB = [92, 132, 152], WATER_DEEP: RGB = [46, 80, 110];
 const TRAIL_EDGE = 'rgba(80, 64, 44, 0.85)', TRAIL = '#a08a66';
 const CROWN_DARK = '#2b4229', CROWN_MID = '#3c5a34', CROWN_LIGHT = '#66864a', CROWN_SHADOW = 'rgba(18, 34, 20, 0.5)';
@@ -153,7 +120,7 @@ const ROOF = '#74523a', ROOF_RIDGE = '#9a7a58', ROOF_SHADOW = 'rgba(0, 0, 0, 0.4
 const LOOK: Record<MapPoly['look'], [string, string]> = { planks: ['#c9a46c', '#5e4630'], timber: ['#8e5d38', '#3a2716'], stone: ['#ddd6c4', '#5f5a50'], rock: ['#8f8a7e', '#403c36'] };
 const PATH_EDGE = 'rgba(112, 90, 58, 0.6)', PATH = '#e4cd96', PALM = '#3d7a3c', PALM_SHADOW = 'rgba(10, 30, 16, 0.4)';
 const VOID = '#0b1016';
-const OPEN_SEA = 'rgb(22, 74, 128)';                                        // an ocean shard past the painted map: the deep-sea colour (SEA_DEEP)
+const OPEN_SEA = 'rgb(22, 74, 128)';                                        // an ocean shard past the drawn map: the deep-sea colour (SEA_DEEP)
 const DOT_PASSIVE = '#ffe066', DOT_AGGRESSIVE = '#ff5a4a', DOT_OUTLINE = 'rgba(6, 10, 18, 0.9)';
 const ARROW = '#ffffff';
 
@@ -162,26 +129,6 @@ const mix = (a: RGB, b: RGB, t: number, out: RGB) => { out[0] = a[0] + (b[0] - a
 
 function canvas(w: number, h: number): HTMLCanvasElement { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; }
 function ctx2d(c: HTMLCanvasElement): CanvasRenderingContext2D { const ctx = c.getContext('2d'); if (!ctx) throw new Error('Minimap: no 2d context'); return ctx; }
-
-/** Nalati's painted ground at one sample, by HEIGHT (so it follows any layout): the lowland green, the gold-green high
- *  meadow, grey rock where it is steep, snow over the def's SNOW_LINE, the Kunes' glacial channels + gravel bars (the def's
- *  riverMask), meltwater / the brook (nalatiWetAt), a darker floor where the spruce mask keeps trees */
-const RIVER_MASK = defFn('riverMask');
-function nalatiGround(x: number, z: number, h: number, slope: number, spruce: number, out: RGB): void {
-  const VALLEY: RGB = [92, 128, 58], MEADOW: RGB = [176, 164, 86], MEADOW_HI: RGB = [192, 178, 104];
-  const ROCK_N: RGB = [132, 130, 126], SNOW: RGB = [234, 238, 244], SPRUCE_FLOOR: RGB = [52, 70, 44];
-  const CHANNEL: RGB = [112, 164, 194], GRAVEL: RGB = [180, 172, 154], MELT: RGB = [100, 156, 190];
-  const snowLine = defNum('SNOW_LINE', 55);
-  const high = smoothstep(2, 18, h);                                       // off the valley floor onto the high meadow
-  mix(VALLEY, MEADOW, high, out);
-  mix(out, MEADOW_HI, smoothstep(28, 40, h) * 0.5, out);
-  mix(out, SPRUCE_FLOOR, Math.min(1, spruce) * 0.55, out);
-  mix(out, ROCK_N, smoothstep(0.16, 0.42, slope), out);
-  mix(out, SNOW, smoothstep(snowLine - 4, snowLine + 6, h), out);
-  const rm = RIVER_MASK?.(x, z) ?? 0;
-  if (rm > 0.35) { mix(GRAVEL, CHANNEL, smoothstep(0.55, 0.8, rm), out); return; }
-  if (high > 0.5 && nalatiWetAt(x, z)) mix(out, MELT, 0.9, out);
-}
 
 const SVG_SUN = '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.4" fill="currentColor"/><path d="M12 2.2v3M12 18.8v3M2.2 12h3M18.8 12h3M5.1 5.1l2.1 2.1M16.8 16.8l2.1 2.1M5.1 18.9l2.1-2.1M16.8 7.2l2.1-2.1" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>';
 const SVG_MOON = '<svg viewBox="0 0 24 24"><path d="M15.5 3.2a8.8 8.8 0 1 0 5.3 13.9A7.2 7.2 0 0 1 15.5 3.2z" fill="currentColor"/></svg>';
@@ -228,9 +175,9 @@ export class Minimap {
     this.stamp = this.buildStamp();
     this.layerDirty = true;
     // a dev page swapping its chunk in place: a new map. In the game several shards are resident (E155) and a change is a
-    // switch between them — this map's shard, its painted layer and its explored fog stay as they are
+    // switch between them — this map's shard, its drawn layer and its explored fog stay as they are
     onActiveChunkChange(() => { if (scopesInstalled()) return; this.layerDirty = true; this.clearCoverage(); });
-    // a piece the map draws that lands after the layer was painted (the zipline, with the adventure) → paint again
+    // a piece the map draws that lands after the layer was drawn (the zipline, with the adventure) → paint again
     activeRegistry().onAdd((p) => { if (this.shapes !== null && mapWants(getActiveChunk().minimap, p.id)) this.layerDirty = true; });
 
     if (typeof ResizeObserver !== 'undefined') {
@@ -240,7 +187,7 @@ export class Minimap {
     this.fit();
   }
 
-  /** The painted terrain layer and fog coverage, for the full map (src/engine/ui/Map.ts). */
+  /** The drawn terrain layer and fog coverage, for the full map (src/engine/ui/Map.ts). */
   get layers(): { terrain: HTMLCanvasElement; cover: HTMLCanvasElement } { if (this.layerDirty) this.paintLayer(); return { terrain: this.layer, cover: this.cover }; }
 
   /**
@@ -292,7 +239,7 @@ export class Minimap {
 
   /**
    * The day badge (a shard's `ShardManifest.hud.dayBadge`; Nalati — N16 wave 6, the user's pick: no text): the sun or the moon
-   * in a small glass notch on the rim at 4 o'clock, from the world clock (`activeClock()`), repainted only on a change.
+   * in a small glass notch on the rim at 4 o'clock, from the world clock (`activeClock()`), redrawn only on a change.
    */
   showDayBadge(): void {
     if (this.day !== null) return;
@@ -445,7 +392,7 @@ export class Minimap {
     this.paintMs = performance.now() - t0;
   }
 
-  /** bumps every time the terrain is repainted (a new chunk): the full map's zoom tiles are stale then */
+  /** bumps every time the terrain is redrawn (a new chunk): the full map's zoom tiles are stale then */
   layerGen = 0;
   /**
    * Paint a square of the map at any resolution — the full map's sharp tiles when zoomed in (src/engine/ui/Map.ts).
@@ -514,9 +461,9 @@ export class Minimap {
     const F = chunk.forest;
     const ocean = chunk.ocean ?? null; // open-water shard: sea by depth, sand where the floor breaks the surface, no forest
     const SEA_DEEP: RGB = [22, 74, 128], SEA_SHALLOW: RGB = [78, 196, 214], SAND: RGB = [226, 206, 150];
-    const painted = chunk.style === 'painterly';   // Nalati: its own palette (nalatiGround), its names, no pines / cabins
+    const palette = chunk.minimap?.palette ?? null;   // a level's own map look: its ground colours, its overlay, no pines / cabins
     const bareGround = chunk.minimap?.ground ?? null;  // a structure-first shard: a flat void under its built world (ChunkMapDef.ground)
-    const spruce = painted ? chunk.forest?.mask : undefined;
+    const forestMask = palette ? chunk.forest?.mask : undefined;
     const density = new Noise2D(SEED + 5);   // Forest.ts thins its tree candidates with this field: groves are dark floor, clearings meadow
     for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) {
       const wx = CHUNK_HALF - u0 - i * step, wz = CHUNK_HALF - v0 - j * step;
@@ -532,8 +479,8 @@ export class Minimap {
       let sh = shade;
       if (bareGround) {
         col[0] = bareGround[0]; col[1] = bareGround[1]; col[2] = bareGround[2]; sh = 1;
-      } else if (painted) {
-        nalatiGround(wx, wz, hij, slope, spruce?.(wx, wz) ?? 0, col);
+      } else if (palette) {
+        palette.ground(wx, wz, hij, slope, forestMask?.(wx, wz) ?? 0, col);
       } else if (ocean) {
         const depth = ocean.level - hij;
         if (depth > 0) { mix(SEA_SHALLOW, SEA_DEEP, smoothstep(0, ocean.deepDepth, depth), col); sh = 1; }
@@ -556,8 +503,8 @@ export class Minimap {
     const cellPx = step * ppm; // sample i sits at u0 + i·step: centre each texel on its sample
     ctx.drawImage(small, 0, 0, N, N, -cellPx / 2, -cellPx / 2, N * cellPx, N * cellPx);
 
-    // pond: a painted disc only where the ground pass has no basin to paint by depth (the pond's real shore is above)
-    if (hasPond() && (painted || ocean !== null || pondMask(POND.x, POND.z) <= 0)) {
+    // pond: a drawn disc only where the ground pass has no basin to paint by depth (the pond's real shore is above)
+    if (hasPond() && (palette !== null || ocean !== null || pondMask(POND.x, POND.z) <= 0)) {
       const u = toU(POND.x), v = toV(POND.z), r = POND.r * ppm;
       ctx.beginPath(); ctx.arc(u, v, r * 1.12, 0, Math.PI * 2); ctx.fillStyle = WATER_EDGE; ctx.fill();
       const g = ctx.createRadialGradient(u - r * 0.3, v - r * 0.3, r * 0.1, u, v, r);
@@ -565,27 +512,7 @@ export class Minimap {
       ctx.beginPath(); ctx.arc(u, v, r * 0.98, 0, Math.PI * 2); ctx.fillStyle = g; ctx.fill();
     }
 
-    if (painted) {
-      // the spruce: a stipple of dark crowns where the chunk's own spruce mask keeps trees
-      if (spruce) {
-        const rng = new Rng(SEED + 4242);
-        for (let x = -CHUNK_HALF + 3; x < CHUNK_HALF - 3; x += 4.2) for (let z = -CHUNK_HALF + 3; z < CHUNK_HALF - 3; z += 4.2) {
-          const cx = x + rng.range(-1.6, 1.6), cz = z + rng.range(-1.6, 1.6);
-          if (rng.next() > spruce(cx, cz) * 0.85) continue;
-          const r = (1.6 + rng.range(0, 1.1)) * ppm;
-          ctx.fillStyle = 'rgba(14, 26, 18, 0.45)'; ctx.beginPath(); ctx.arc(toU(cx) + 0.8 * ppm, toV(cz) + 0.8 * ppm, r, 0, Math.PI * 2); ctx.fill();
-          ctx.fillStyle = rng.next() < 0.5 ? '#2c4a30' : '#38583a'; ctx.beginPath(); ctx.arc(toU(cx), toV(cz), r, 0, Math.PI * 2); ctx.fill();
-        }
-      }
-      // the roads (the N road, the sky road's hairpins …): the chunk's trails, a warm dirt line
-      ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-      for (const [w, style] of [[6, 'rgba(70, 54, 36, 0.8)'], [3.5, '#b89c70']] as const) {
-        ctx.lineWidth = w * ppm; ctx.strokeStyle = style; ctx.beginPath();
-        for (const poly of TRAILS) poly.forEach(([x, z], i) => (i ? ctx.lineTo(toU(x), toV(z)) : ctx.moveTo(toU(x), toV(z))));
-        ctx.stroke();
-      }
-      return;
-    }
+    if (palette) { palette.overlay?.({ ctx, toU, toV, ppm, trails: TRAILS, half: CHUNK_HALF, forestMask }); return; }
     if (ocean || bareGround) { this.paintBuilt(ctx, toU, toV, ppm, px, k); return; } // the piers, the paths, the island's buildings: all from ShardManifest.map
     // trails: a dark bed with a lighter dirt centre
     ctx.lineCap = 'round'; ctx.lineJoin = 'round';
