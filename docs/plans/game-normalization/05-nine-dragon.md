@@ -226,7 +226,6 @@ export default defineShard({
   assets: {                                                               // def.ts:64-68 carried as data: today's flat ChunkAssets (R3-09), copied to level.assets
     groundLayers: ['forest_ground_04', 'leafy_grass', 'rock_ground', 'stony_dirt_path'],
     groundTints: [[1, 1, 1], [1, 1, 1], [1, 1, 1], [1, 1, 1]], slabRock: 'rock_ground',
-    ktx2: () => import('./ktx2.generated'),                               // R3-08: the shard's committed KTX2 table (R2-04; today's gpu.generated.ts rows for /assets/nine-dragon/)
   },
   assetGlobs: ['public/assets/nine-dragon/**', 'public/assets/gpu/nine-dragon/**',      // R3-09: the shard's extra asset folders by their real
     'public/assets/music/nine-dragon-stack/**', 'public/assets/sfx/nine-dragon-stack/**', // names (the music / sfx folders appear at S1.5); game data,
@@ -262,6 +261,7 @@ export default defineShard({
     load: { coldPlay4G: null },                                           // no time cap exists for this shard: S1.6 sets it (question Q8)
   },
   fight: { attackers: Infinity },                                         // no fightRules today; no hit cap (maxHitDamage undefined)
+  ktx2: () => import('./ktx2.generated'),                                  // R3-08 / R3-F1: top-level, the shard's committed KTX2 table (R2-04)
   loadout: {
     weapons: ['weapon.jian'],                                             // S1.2 (09-combat-ai: the jian's profile, damage 12)
     tools: ['tool.fei-zhua'],                                              // S1.4
@@ -635,16 +635,16 @@ the score source `score.nd` (the fingerprint diff is the expected one, §8); no 
 3. **The Mac side:** `scripts/calibrate.mjs` runs the same scene headless through `scripts/browser-lane.sh`, Metal,
    `--mute-audio`, frozen-frame timing as `pine-hollow-gpu.mjs`. It writes `budgets/calibration/m5-<date>.json`.
 4. **The formula:** `src/engine/render/budgets.ts`, pure, vitest-tested (a fixture calibration gives known numbers),
-   reads `budgets/calibration.json` (the committed current file: the phone reading once Jake has run it, else
-   `budgets/calibration/provisional.json` with budget-design §6's inputs and their sources).
+   reads `budgets/calibration.json`, the committed current file. **Decision 99: there is no phone run.** The phone's unit
+   costs are the M5 run's × the measured phone : M5 ratio (E283: ~10× hot, ~6× cool; the hot ratio is used), stated as an
+   assumption in the file and in budget-design.
 5. **Nine Dragon's numbers:** the gate derives its per-pose draws, triangles, programs, GPU MB and per-system ms from
    the formula at its four `dev.poses`. It is over the provisional draw number today (worst pose 160 draws / 1.67 M,
    budget-design §6.4), so its ceiling is its current worst, written to `lint/ratchet.json` as
    `budgets.nine-dragon-stack.phone.draws: 160` (may only go down), with the derived number printed as its target.
 6. `scripts/nine-dragon-budget.mjs` is deleted once the gate's budget check reads the same four poses.
-7. **Jake's step** (the only one): on the M1 build, battery (not charging), Debug ▸ Developer tools ▸ RUN CALIBRATION,
-   ~6 minutes untouched. The inbox note carries the JSON; the lead commits it as
-   `budgets/calibration/iphone17pro-<ios>-<date>.json` and points `budgets/calibration.json` at it.
+7. **No Jake step** (decision 99): the calibration runs only on the M5, headless. The Debug button stays (a later
+   ask may run it on a phone); the plan never asks Jake to.
 
 **Done when:** the scene runs to its JSON on the M5 headless and in the harness; the formula test is green; the gate
 prints Nine Dragon's derived numbers and enforces its ceilings. Pine Hollow, Nalati and Driftwood have no derived

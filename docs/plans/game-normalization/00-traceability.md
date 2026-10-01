@@ -82,13 +82,13 @@ The numbers are E357's. A revision sits right after the decision it replaces.
 | 28′ | Gate on free GitHub `macos-15` every push (one job per shard, Metal-or-fail, runner baselines); timing + GPU bytes nightly on Jake's Mac via launchd | F3.2 (02 §F3.2); 03 §0, §11, §14 | covered (G8, since resolved) |
 | 29 | All shards' code downloads up front (SW); lazy only saves parse and memory | 01 §8 rules; IDX §2.2 | covered |
 | 30 | Over budget fails the gate; numbers are derived, not magic | 01 §13.4; 05 §6.6 (S1.6); 10 X7; 03 §15 | covered |
-| 31 | Only Jake's iPhone 17 Pro; keep 1.8 / 1.0 GB; nightly = Simulator; physical readings manual | 01 §13.4 (limits); 02 §F12, §F10 (manual iPhone readings); 03 §14.1 (the nightly Simulator memory run, `sim-lane.sh`, WebContent footprint against 1.8 / 1.0 GB); 12 §8 | covered (G2 resolved) |
+| 31 | Only Jake's iPhone 17 Pro; keep 1.8 / 1.0 GB; nightly = Simulator; physical readings manual | 01 §13.4 (limits); 02 §F12, §F10 (manual iPhone readings); 03 §14.1 (the nightly Simulator memory run, `sim-lane.sh`, WebContent footprint against 1.8 / 1.0 GB); 12 §8 | covered (G2 resolved) (its physical-iPhone reading is superseded by decision 98: the Simulator nightly + budgets) |
 | 32 | Deploys at shard milestones only; production on a frozen release | F3.1 (02 §F3.1); 03 §13; 12 §3; 05–08 §9 (every milestone moves `.github/deploy-pin.json` with `deploy-pin.mjs set`) | covered (G7 resolved: one pin file everywhere) |
 | 33 | The lock: nothing else until the plan is archived | F0 (02 §F0); 12 §2 | covered |
 | 34 | Lead + short subagents (E352 caps) | 12 §4 | covered |
 | 35 | 30 fps on the hot phone now, 60-ready; desktop 60 | 01 §13.4; 10 X7; budget-design §2 | covered |
 | 36 | Min desktop = RTX 3060 class at 60; laptops below get the phone tier | 01 §13.4 (stated); 10 X7 step 5 (tier selection: renderer-string table, else a 2 s GPU micro-benchmark, cached as a `device` key), step 6 (desktop budgets = M5 calibration × the documented M5 : 3060 ratio; the nightly's projected 3060 frame) | covered (G3 resolved) |
-| 37 | Keep 1.0 GB in world | 01 §13.4 | covered (a rule; the evidence is the manual iPhone reading, 31) |
+| 37 | Keep 1.0 GB in world | 01 §13.4 | covered (a rule; the evidence is the manual iPhone reading, 31) (its physical-iPhone reading is superseded by decision 98: the Simulator nightly + budgets) |
 | 38 | Input: context stack + key rebinding; no gamepad now | 01 §10; 10 X1 steps 1–5 | covered |
 | 39 | Touch: context relabels and reserved verb slots | 01 §11 (`relabel`, `verb`); 10 X1 steps 3–4 | covered |
 | 40 | Buffer 120 ms + coyote 100 ms, per shard, on everywhere, on the board | 01 §10; 10 X1 step 6 + board | covered |
@@ -96,7 +96,7 @@ The numbers are E357's. A revision sits right after the decision it replaces.
 | 42 | Milestones: summary + boards + play; Jake says go | 12 §6, §7; 03 §13.4; each shard spec §9 | covered |
 | 43 | Template: every plugin verb, hidden in Debug, a contract test boots it every push | 11 Z1 | covered |
 | 44 | Nine Dragon's own ambience + score + SFX in this plan | 05 §6.5 (S1.5) | covered |
-| 45 | Rapier 0.21 in the foundations phase (walk + trails 0 stuck, one iPhone reading) | F12 (02 §F12) | covered (reaffirmed by 89) |
+| 45 | Rapier 0.21 in the foundations phase (walk + trails 0 stuck, one iPhone reading) | F12 (02 §F12) | covered (reaffirmed by 89) (its physical-iPhone reading is superseded by decision 98: the Simulator nightly + budgets) |
 | 46 | Scripts: keep the live ones (named anywhere, or run in 14 days), delete the rest | — | superseded by 88 |
 | 47 | Save safety (`persist()` + export / import) and session health join; auto-rollback + heat governor stay after | 02 §F10 steps 7–8; 10 X8 step 1; IDX §8 "After this plan"; 11 Z4 | covered |
 | 48 | Kit folder `src/kit/` (`#kit/*`) | 01 §0 | covered |
@@ -155,6 +155,7 @@ The numbers are E357's. A revision sits right after the decision it replaces.
 | 96 | A "no" at a milestone pauses: the next phase waits, the reasons become rows in this milestone, the live build stays unless broken | 12 §3; 05–08 §9; 13 R2-29 | covered |
 | 97 | The round cap stays 4: round 4 is the last review, then the open items go to Jake as decisions | 12 §1 item 8; reviews/register.md | covered |
 | 98 | No physical-iPhone readings; the Simulator nightly + budgets are the memory gate; the risk is stated | 13 R3-11′; 02 F12; 03 §14; 12 §8; 05–08 §9 | covered |
+| 99 | No phone calibration: phone budgets = the M5 calibration × the measured phone : M5 ratio (E283) | 05 S1.6; budget-design; 13 R3-F4 | covered |
 
 ## 3. The audit (`docs/audits/game-normalization-2026-09-30.md`) and the bugs found later
 

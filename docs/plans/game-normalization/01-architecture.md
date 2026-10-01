@@ -218,9 +218,13 @@ export interface LevelSpec {
   dayCycle?: DayCycleKeyframes; weather?: WeatherSpec;
   // R2-02: every field the engine reads is here, copied by toLevelSpec; engine code never reads a manifest
   loadout: LoadoutSpec;                         // the equipment the kit stage builds (R2-05)
-  // LoadoutSpec = { start: readonly EquipmentId[]; held?: EquipmentId; pickups: readonly { id: EquipmentId; at: string }[];
-  //   loans?: readonly { id: EquipmentId; where: string }[]; grants?: readonly { id: EquipmentId; by: string; replaces?: EquipmentId }[];
-  //   viewmodel?: ViewmodelRef; ammo?: Readonly<Record<string, number>> }   (R3-04)
+  // LoadoutSpec (R3-04, aligned to the four manifests, R3-F2) = {
+  //   weapons: readonly WeaponId[]; tools: readonly ToolId[];        // everything this level's kit can hold
+  //   start: readonly EquipmentId[]; held?: EquipmentId;              // owned at the start; the one in hand
+  //   pickups?: readonly { id: EquipmentId; at: string }[];           // found in the world (Pine's lever in cabin-1)
+  //   loans?: readonly { id: EquipmentId; in: string }[];             // lent only inside a room (Nalati's AR-15 in 'practice')
+  //   grants?: readonly { id: EquipmentId; by: string; replaces?: EquipmentId }[];   // a boss reward (the Golden Bow replaces the bow)
+  //   viewmodel?: ViewmodelRef; ammo?: readonly AmmoId[] }             // the ammo kinds this level stocks
   species: readonly SpeciesRef[]; spawns: readonly HerdPlan[]; spawnTables?: readonly SpawnTableRef[];
   faunaTuning?: FaunaTuning; trees?: TreeSpec; forest?: ForestSpec; horizon?: HorizonSpec;
   minimap: MinimapSpec; hud?: HudSpec; pois?: readonly PoiSpec[];   // (bodyShadow is game data: it stays on the manifest, R3-N)
@@ -240,7 +244,8 @@ export interface LevelContext {                 // the engine's verbs, every one
   debugRow(r: DebugRowSpec): void; playground(p: PlaygroundSpec): void; strings(t: StringTable): void;
   tiers: { knobs(schema: TierKnobSchema): void }; debug: { expose(name: string, value: unknown): void };
 }
-export interface EngineRows {                   // R2-20: every engine row verb (registration is legal only in level.kit, R2-05)
+export interface EngineRows {                   // R2-20: every engine row verb (registration is legal only in level.kit, R2-05).
+                                                // Every row verb here and in GameRows takes one row or a readonly array of rows (R3-F3)
   weapon(row: WeaponRow): void; tool(row: ToolRow): void; ammo(row: AmmoRow): void;
   species(row: SpeciesRow): void; speciesLook(look: SpeciesLook): void; effect(row: EffectDef): void;
   damageRule(row: DamageRuleDef): void; encounter(row: BossDef | EliteDef): void; spawnTable(row: SpawnTableRow): void;
@@ -266,8 +271,9 @@ export interface LevelHooks {                   // each awaited in its stage, wi
 - **The terrain collider (R3-02):** the engine adds it only when `level.ground.terrain` is set **and**
   `level.ground.structures` is not, as today's `bootstrap.ts:101` does. A structure-first level's terrain is
   placement-only: nothing draws or collides with it.
-- **The KTX2 table is optional (R3-08):** `level.assets` carries no table. The manifest's `assets.ktx2?: () =>
-  import('./ktx2.generated')` thunk loads one when a shard has one, and a shard with none (the template, a new shard)
+- **The KTX2 table is optional (R3-08, R3-F1):** `level.assets` carries no table. The manifest's **top-level**
+  `ktx2?: () => import('./ktx2.generated')` thunk (outside `assets`, so a shard with no ground sets such as Driftwood
+  can declare it) loads one when a shard has one, and a shard with none (the template, a new shard)
   boots without it.
 - **The kit stage's contract (R2-05):** rows register only during `level.kit` (inside `hooks.kit`); a registration
   after `level.kit` ends throws. When `hooks.kit` returns, the engine builds the loadout from `level.loadout`

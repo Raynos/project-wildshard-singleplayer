@@ -274,7 +274,6 @@ export default defineShard({
     groundLayers: ['leafy_grass', 'stony_dirt_path', 'rock_ground', 'forest_ground_04'],
     groundTints: [[0.7, 0.85, 0.5], [0.9, 0.84, 0.66], [0.7, 0.7, 0.72], [0.95, 0.95, 0.95]],
     slabRock: 'rock_ground',
-    ktx2: () => import('./ktx2.generated'),                                // R3-08: the shard's committed KTX2 table (R2-04)
   },
   assetGlobs: ['public/assets/nalati/**', 'public/assets/gpu/nalati/**', 'public/assets/music/nalati/**',   // R3-09: the extra asset folders by their
     'public/assets/sfx/nalati-grasslands/**', 'public/assets/title/nalati-grasslands-portrait.jpg'],      // real names (sfx appears at S3.5); game data read by check-lock (§9), never on LevelSpec
@@ -322,6 +321,7 @@ export default defineShard({
     load: { coldPlay4G: 35.5 },                                            // budget-design §6.6
   },
   fight: { attackers: Infinity },                                          // no fightRules; the wolves' own pack policy (09 §5.5)
+  ktx2: () => import('./ktx2.generated'),                                  // R3-08 / R3-F1: top-level, the shard's committed KTX2 table (R2-04)
   loadout: {                                                               // 09 §1.5 (nalatiKit.ts:42-52)
     weapons: ['weapon.bow', 'weapon.sabre', 'weapon.spear', 'weapon.rifle'],
     tools: [],

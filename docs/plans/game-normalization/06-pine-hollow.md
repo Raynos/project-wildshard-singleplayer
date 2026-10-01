@@ -205,7 +205,6 @@ export default defineShard({
     groundTints: [[0.86, 0.78, 0.68], [0.72, 0.8, 0.6], [1.0, 0.98, 0.94], [0.95, 0.8, 0.6]],
     slabRock: 'rock_ground',
     boreal: { normalK: [1.2, 1.0, 1.4, 1.1], trailDust: [1.25, 1.02, 0.7, 0.6], grassTint: [0.8, 0.74, 0.55] },
-    ktx2: () => import('./ktx2.generated'),                               // R3-08: the shard's committed KTX2 table (R2-04)
   },
   assetGlobs: [                                                           // R3-09: the extra asset folders by their real names; game data read by
     'public/assets/models/pine-hollow-crags/**', 'public/assets/models/pine-hollow-hero/**',   // check-lock (02 F0's allowlist, §9), never on
@@ -261,6 +260,7 @@ export default defineShard({
     load: { coldPlay4G: 40 },                                             // budget-design §6.6 (Jake's cap)
   },
   fight: { attackers: Infinity },                                         // no fightRules (Driftwood only), no hit cap
+  ktx2: () => import('./ktx2.generated'),                                  // R3-08 / R3-F1: top-level, the shard's committed KTX2 table (R2-04)
   loadout: {                                                              // S2.2 (09-combat-ai has the rows)
     weapons: ['weapon.crossbow', 'weapon.lever', 'weapon.longbow'],
     tools: [],
@@ -412,7 +412,7 @@ export default class PineHollowPlugin extends ShardPlugin {   // staged hooks, e
 |---|---|---|---|
 | Plugin world build in `level.world` for a landscape shard | the engine builds the terrain (from `ground.terrain`), the Forest (factory from `level.trees`), then awaits `plugin.world(ctx)` (R1-24) | S1.1's staged boot | S2.1 |
 | Tier knobs as data | `treeHiDist`, `shadowFar`, `animalShadowDist`, `grassSlots`, `slices`, `skipRaysOffscreen`, `envSteps`, `pointLightSkip` from `level.tiers` | S1.1's tier resolution | S2.1 |
-| Bag fragments, item / feat / compendium rows | `ctx.bag` finishes and pack lines; `ctx.rows.item / feat / compendium` | F9, #game Bag | S2.1 |
+| Skin rows, Bag fragments, item / feat / compendium rows | the finishes as `ctx.rows.skin(rows)` (R3-F5: one cosmetics path with Nalati's skins, X5); the pack lines as `ctx.bag` fragments; `ctx.rows.item / feat / compendium` | F9, #game Bag | S2.1 |
 | `ScoreSource` for a style-bound score | Pine's source over the base style bank + its own set | S1.5 | S2.1 |
 | Ranged families: Bow, Crossbow, Firearm; projectile, drop arc, ADS, brass blocks; AmmoRows | 09-combat-ai | S1.2 contracts | S2.2 |
 | AI runtime: HFSM, StrikeSpec, utility picks, the aggression director, `canReach` everywhere, the boss runtime, one elite runtime, weighted spawn / loot tables, the AI debug overlay, boss display names from rows (`BOSS_NAMES` gone), `TargetHit` in the engine combat types | 09-combat-ai; §6.3 steps 7–9 | S1.3 pipeline | S2.3 |
@@ -436,7 +436,7 @@ export default class PineHollowPlugin extends ShardPlugin {   // staged hooks, e
 4. **Tier data**: §2.2's `core/tier.ts`, `Game.ts`, `Sky.ts:134` rows. `PINE_HOLLOW_PHONE`, `applyShardTier`,
    `pinePhoneCuts` are deleted; `phonePictureCuts()` keeps only Driftwood (`tierShard === 'driftwood-isle'`) until S4.1.
 5. **Atmosphere**: `Atmosphere.ts:83-85` reads `level.atmosphere.edgeHaze / wetSurfaces`.
-6. **Content rows and Bag**: items, feats, compendium, pack rule, finishes, Mott's lines (§2.1, §2.2).
+6. **Content rows and Bag**: items, feats, compendium, pack rule, the finishes as `ctx.rows.skin` rows (R3-F5), Mott's lines (§2.1, §2.2).
 7. **Pine's score source** (`shard:audio/score.ts`): the Pine half of `Music.ts` (`PineScene`, `setPineScene`,
    `prefetchPine`, `preparePine`, the dawn sting, `setting('pineScore')`) moves here behind `ScoreSource`: `target()`
    returns `night` / `boss` (with its phase) / the base `pine` slot as `wantSlot()` does today (`Music.ts:690-696`).

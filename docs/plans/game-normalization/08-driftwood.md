@@ -305,6 +305,7 @@ export default defineShard({
     capExempt: ['creature.captain'],                                      // def.hitCapExempt ['captain'] (Jake, 2026-09-30)
     attackers: 2,                                                         // def.fightRules.maxAttackers (E297)
   },
+  ktx2: () => import('./ktx2.generated'),                                  // R3-08 / R3-F1: top-level; Driftwood has a KTX2 table today (no ground sets needed)
   loadout: {                                                              // 09 §1.5
     weapons: ['weapon.sword', 'weapon.sword-iron'],
     tools: [],

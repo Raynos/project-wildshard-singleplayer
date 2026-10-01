@@ -311,3 +311,13 @@ and what is still open after it goes to Jake as decisions. Every fix is applied 
 | R3-15 | C3-5 | **The Captain block's player script** keys every swing to his state (a fixed number of frames after he surfaces and is hittable), not to a 0.9 s clock. Hits, hp and the killing swing then stay exact under R2-36's ≤ 6-frame strike shift | 08 S4.2 |
 | R3-16 | C3-7 | **`plants/index.json`'s schema:** `{ id, kind: 'patch' \| 'flag' \| 'nightly' \| 'linux', shards, patch? }`. The runner's prove matrix runs only the `patch` and `flag` plants; `metal-off` is a flag plant (a launch arg), `soak-leak` is nightly and `asset-case` is Linux | 03 §9, §11 |
 | R3-N | B3-9…B3-17, C3-9…C3-15 (nits) | Fixed where free, as nits:<br>• the old `combat.hit` shapes at 07:75 and 05:112 / 461;<br>• the touch leg's sources: `dodged` = `Player.ts:212` `dodgeCooldown`, `used` = `main.ts:1093`;<br>• the stale counts (12 "1–95", the index "1–91", 00 "98 rows");<br>• 00's `ShardRender` and its dangling "09 §10";<br>• the map legend's deletion codes;<br>• `bodyShadow` leaves `LevelSpec` (game data);<br>• `freezeCycle` in 09's LeverRifle table.<br>C3-15 (the nightly 10 % memory rule has no path for an intended increase): an intended increase is a boarded item whose OK re-baselines the nightly | 00, 01, 05, 07, 09, 12, move-map.json, the index |
+
+### Round 3 follow-ups (from the fix agents; decisions 98–99)
+
+| Res | Item | Resolution |
+|---|---|---|
+| R3-F1 | Driftwood has a KTX2 table but no ground sets, so it can't declare `assets.ktx2` | The thunk is a **top-level** manifest field, `ktx2?: () => import('./ktx2.generated')` (refines R3-08): Nine Dragon, Pine, Nalati and Driftwood each declare it; the template and a new shard may omit it |
+| R3-F2 | `LoadoutSpec` vs the four manifests | 01's `LoadoutSpec` takes the manifests' shape: `weapons`, `tools`, `start`, `held?`, `pickups?`, `loans?: { id, in }`, `grants?: { id, by, replaces? }`, `viewmodel?`, `ammo?: AmmoId[]` |
+| R3-F3 | Recipes pass whole lists to one-row verbs (`spawnTable(NALATI_SPAWNS)`) | Every `EngineRows` / `GameRows` verb takes one row **or** a readonly array of rows |
+| R3-F4 | S1.6's phone calibration | Decision 99: **no phone run**; phone unit costs = the M5 run's × the measured phone : M5 ratio (E283, hot ~10×), stated as an assumption |
+| R3-F5 | Pine's finishes are a Bag fragment, Nalati's skins are `rows.skin` | Pine's finishes become `ctx.rows.skin` rows too (one cosmetics path, X5); the Bag shows them through the cosmetics service |
