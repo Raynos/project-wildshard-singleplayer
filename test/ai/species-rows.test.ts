@@ -89,4 +89,18 @@ describe('shared hunting rows and authored children', () => {
     pine.dispose(); expect(catalog.get('boar')).toBeUndefined(); active = null;
     expect(catalog.preloads()).toEqual([]); root.dispose();
   });
+  it('offers procedural fallback only for the active resident model hull and removes it on disposal', () => {
+    const root = new Scope('engine'), first = root.child('first'), second = root.child('second');
+    let active: Scope | null = first;
+    const catalog = new SpeciesService(() => active);
+    catalog.registerLook(BOAR_LOOK, first);
+    expect(catalog.hasProceduralFallback()).toBe(false);
+    catalog.registerLook({ ...BOAR_LOOK, id: 'hull.boar', skin: () => null }, second);
+    expect(catalog.hasProceduralFallback()).toBe(false);
+    active = second; expect(catalog.hasProceduralFallback()).toBe(true);
+    second.dispose(); expect(catalog.hasProceduralFallback()).toBe(false);
+    active = null; expect(catalog.hasProceduralFallback()).toBe(false);
+    root.dispose();
+  });
+
 });

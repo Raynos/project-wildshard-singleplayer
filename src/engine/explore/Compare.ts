@@ -20,11 +20,6 @@ const TARGETS: Readonly<Record<string, readonly Target[]>> = {
     pair('rail', 'River rail', 'nalati-rail', 'art/nalati-grasslands/round-5-paintover/rail-po-phone.jpg'),
     pair('gully', 'Gully', 'nalati-gully', 'art/nalati-grasslands/round-5-paintover/gully-po-phone.jpg'),
   ],
-  'pine-hollow': [
-    pair('ridge', 'The ridge', 'pine-ridge', 'art/pine-hollow/round-17-look-loop-3/ridge/mockup-1-fp-front.jpg'),
-    pair('den', 'The den', 'pine-den', 'art/pine-hollow/round-17-look-loop-3/den/mockup-1-fp-front.jpg'),
-    pair('hamlet', 'Mill hamlet', 'pine-hamlet', 'art/pine-hollow/round-17-look-loop-3/hamlet/mockup-1-fp-front.jpg'),
-  ],
 };
 
 export function hasCompareTargets(world: World): boolean { return (world.game.level.explore?.compare ?? TARGETS[world.chunk.slug] ?? []).length > 0; }

@@ -143,7 +143,9 @@ export function installPineCombat(h: PineCombatHost): PineCombat {
     }
   }
 
-  game.app.addSystem({ id: 'elites', phase: 'update', before: ['main.frame'], run: (dt, t) => {
+  // The shell split its original frame into world / creature / HUD passes. Lair spawns must
+  // still precede the first world pass and creature sync, which installs their hitboxes.
+  game.app.addSystem({ id: 'elites', phase: 'update', before: ['main.world', 'engine.creatures.update', 'main.frame'], run: (dt, t) => {
     legs();
     feel.update(dt, t);
     if (perfLap.active) return; // E350 F-J1: the PERF LAP's teleports find no lair and wake no King

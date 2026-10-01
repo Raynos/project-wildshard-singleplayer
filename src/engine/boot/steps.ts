@@ -1,4 +1,3 @@
-import { engineString } from '#engine/strings';
 /**
  * The boot plan's vocabulary — the ONE place the loading screen's steps, labels, weights and
  * byte sources are declared. Ported from game-demos/trials-gauntlet-demo `src/engine/boot/steps.ts`
@@ -8,7 +7,7 @@ import { engineString } from '#engine/strings';
  * exhausted plan type).
  */
 // The shared nouns are neutral (the default shard is Driftwood Isle, a low-poly island with no pines, cabins or HDRI);
-// a shard names what it really builds in SHARD_STEPS below.
+// a level names its own downloads and steps through authored boot data.
 const STEP_ROWS = [
   ['renderer', 'Renderer', 1],
   ['sky', 'Sky · lighting', 1],
@@ -38,55 +37,6 @@ export const STEP_INFO: Record<BootStep, StepInfo> = { ...BASE_INFO };
 /** The steps in declared order. */
 export const BOOT_STEPS = STEP_ROWS.map((row) => row[0]) as readonly BootStep[];
 
-/**
- * A shard's own loading-screen nouns and weights, over the shared steps (the step KEYS are the boot's; what each one
- * builds differs per shard), and the nouns of its downloads (`bytes`: what the DOWNLOAD line names while those bytes
- * land). The same table as the Nalati branch's (N-merge). Pine Hollow's (PINE-HOLLOW-REMASTER PH-P3, re-read at PH-S2
- * after the trees / crags / life / rifle lanes), each what that step really builds there: the seven day / night sky keys
- * blended into the PMREM, the splat terrain on the boreal ground, the Blender species set (PH-B4: pine, fir, the
- * old-growth giants, birch, snags, saplings) and the forest planted from it, the pond, the creek + waterfall and the
- * painted far country at the chunk's edge, the ferns and bilberry of the understory, the three cabins + the mill hamlet +
- * the landmarks (the fire lookout and its zipline, the footbridge, the standing stones) + the Ridge's granite and the bear
- * cave (PH-B2), the rocks and logs, the herds on their generated hulls, the three weapons, and its own score (theme 1,
- * night, the King's stems, the dawn sting) + the zoned beds and the one-shot sprite. Its weights stay the shared ones
- * (they were measured on Pine Hollow).
- *
- * Nalati: Nalati builds its whole world in `props` (wireNalati) and has no cabins, forest or
- * undergrowth to speak of; the weights are its measured wall-ms shape (phone tier, 2026-09-23: props 860, sky 245,
- * shaders 220, terrain 175, grass 40, first frame 40 ms, the rest < 15), the first-run bar's pace until this device has
- * timed a load of its own. `trees` is the byte label of the `cards` step's download.
- */
-interface ShardSteps {
-  readonly steps: Partial<Record<BootStep, Partial<StepInfo>>>;
-  readonly bytes?: Partial<Record<ByteKey, string>>;
-}
-const SHARD_STEPS: Readonly<Record<string, ShardSteps>> = {
-  'pine-hollow': {
-    steps: {
-      sky: { label: engineString('s_3c6529f5a000') },
-      terrain: { label: engineString('s_dcf5eeb91b74') },
-      cards: { label: engineString('s_ec28a23a640e') },
-      forest: { label: engineString('s_00cc30d60f47') },
-      edge: { label: engineString('s_5baf0ab3f19d') },
-      grass: { label: engineString('s_ed918043f058') },
-      cabins: { label: engineString('s_4be1a7b1ed2f') },
-      props: { label: engineString('s_00de1db385da') },
-      animals: { label: engineString('s_e7fc1dad792d') },
-      weapon: { label: engineString('s_f862cea32c63') },
-      audio: { label: engineString('s_0ed7016d19bc') },
-    },
-    bytes: {
-      sky: 'sky keys · dawn to moonlight',
-      trees: 'tree species · bark · needles',
-      cabins: 'cabin timber · stone · props',
-      props: 'landmarks · crags · creatures',
-      music: 'score · day · night · the King · dawn',
-      sfx: 'forest beds · rain · calls · barks',
-    },
-  },
-
-};
-
 let shard: string | null = null;
 let ownBytes: Readonly<Partial<Record<ByteKey, string>>> | undefined;
 /**
@@ -94,10 +44,9 @@ let ownBytes: Readonly<Partial<Record<ByteKey, string>>> | undefined;
  * rows keeps the shared table exactly, and its load timings stay under the shared key (`shardTimingKey`).
  */
 export function useShardSteps(slug: string, steps?: Readonly<Record<string, { label: string; weight: number }>>, bytes?: Readonly<Partial<Record<ByteKey, string>>>): void {
-  const o = SHARD_STEPS[slug];
-  shard = o || steps !== undefined ? slug : null;
+  shard = steps !== undefined ? slug : null;
   ownBytes = bytes;
-  for (const k of BOOT_STEPS) STEP_INFO[k] = { label: steps?.[k]?.label ?? o?.steps[k]?.label ?? BASE_INFO[k].label, weight: steps?.[k]?.weight ?? o?.steps[k]?.weight ?? BASE_INFO[k].weight };
+  for (const k of BOOT_STEPS) STEP_INFO[k] = { label: steps?.[k]?.label ?? BASE_INFO[k].label, weight: steps?.[k]?.weight ?? BASE_INFO[k].weight };
 }
 /** '' for the shared table, else `:<slug>` — the timing store keys a shard with its own steps separately */
 export const shardTimingKey = (): string => (shard ? `:${shard}` : '');
@@ -113,5 +62,5 @@ export type ByteKey = (typeof BYTE_SOURCES)[number];
 const CLOSED_BY: Record<ByteKey, BootStep> = { sky: 'sky', baked: 'sky', terrain: 'terrain', trees: 'cards', physics: 'physics', cabins: 'cabins', props: 'props', art: 'menu', music: 'audio', sfx: 'audio' };
 export const closedBy = (key: ByteKey): BootStep => CLOSED_BY[key];
 const LABELS: Partial<Record<ByteKey, string>> = { trees: 'tree bark · twigs', baked: 'baked textures', art: 'title art', music: 'music · every style', sfx: 'sound effects · every set' };
-// a shard may name its own downloads (SHARD_STEPS `bytes`: Pine Hollow's sky keys, pine bark, landmarks · creatures)
-export const byteLabel = (key: ByteKey): string => ownBytes?.[key] ?? (shard ? SHARD_STEPS[shard]?.bytes?.[key] : undefined) ?? LABELS[key] ?? STEP_INFO[closedBy(key)].label.toLowerCase();
+// A level may override each shared download noun through its boot byte labels.
+export const byteLabel = (key: ByteKey): string => ownBytes?.[key] ?? LABELS[key] ?? STEP_INFO[closedBy(key)].label.toLowerCase();

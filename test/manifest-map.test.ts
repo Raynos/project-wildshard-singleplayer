@@ -3438,7 +3438,7 @@ function originalArt(value: unknown): unknown {
 }
 
 function originalShape(m: ShardManifest, fixture: (typeof ORIGINAL)[number]['data']): object {
-  const { pondLilyExclusions: _pondLilyExclusions, horizonStrips: _horizonStrips, uses: _uses, loadout: _loadout, budgets: _budgets, audio: _audio, species: _species, encounters: _encounters, bag: _bag, dev: _dev, api: _api, assetGlobs: _assetGlobs, ktx2: _ktx2, kitLook: _kitLook, load: _load, boot: _boot, tiers: _tiers, name, label, card, ground, spawns, minimap, fight, camera, status, order: _order, render: _render, placement: _placement, explore, ...kept } = m;
+  const { blender: _blender, pondLilyExclusions: _pondLilyExclusions, horizonStrips: _horizonStrips, uses: _uses, loadout: _loadout, budgets: _budgets, audio: _audio, species: _species, encounters: _encounters, bag: _bag, dev: _dev, api: _api, assetGlobs: _assetGlobs, ktx2: _ktx2, kitLook: _kitLook, load: _load, boot: _boot, tiers: _tiers, name, label, card, ground, spawns, minimap, fight, camera, status, order: _order, render: _render, placement: _placement, explore, ...kept } = m;
   const old = {
     ...kept, id: `chunk://local/${m.slug}`, displayName: name, gridCoords: label,
     thumbnail: originalArt(card.thumb), heroPortrait: originalArt(card.portrait), heroLandscape: originalArt(card.landscape),

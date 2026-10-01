@@ -1,3 +1,4 @@
+import { PINE_HOLLOW } from '#shards/pine-hollow/manifest';
 // src/engine/boot/plan.ts + steps.ts + timing.ts — the loading screen's progress invariants (header of plan.ts):
 // both fractions are monotone, a running step never reads complete, and done() reads exactly 1 / 1.
 import { describe, expect, it, vi } from 'vitest';
@@ -196,7 +197,7 @@ describe('timing (expected step durations)', () => {
   });
 });
 
-describe('per-shard step nouns (steps.ts SHARD_STEPS)', () => {
+describe('authored loading step nouns', () => {
   const labels = () => BOOT_STEPS.map((k) => STEP_INFO[k].label).join(' | ');
   it('the shared table is neutral: Driftwood Isle shows no pines, cabins, HDRI or crossbow', () => {
     useShardSteps('driftwood-isle');
@@ -205,7 +206,7 @@ describe('per-shard step nouns (steps.ts SHARD_STEPS)', () => {
     expect(shardTimingKey()).toBe('');
   });
   it('Pine Hollow names its own steps and keeps the shared weights, under its own timing key', () => {
-    useShardSteps('pine-hollow');
+    useShardSteps(PINE_HOLLOW.slug, PINE_HOLLOW.boot?.steps, PINE_HOLLOW.boot?.bytes);
     expect(STEP_INFO.cards.label).toBe('Tree species · pine · fir · birch') // PH-B4's species set, not the old pine cards;
     expect(STEP_INFO.sky.label).toBe('Sky · dawn to moonlight');
     expect(STEP_INFO.weapon.label).toBe('Crossbow · lever-action · longbow');

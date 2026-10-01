@@ -71,4 +71,9 @@ export class SpeciesService {
     const scope = this.active(); if (scope === null) return [];
     return [...new Set(this.looks.filter((entry) => entry.scope.belongsTo(scope)).flatMap((entry) => entry.value.preload ? [entry.value.preload] : []))];
   }
+  /** A registered model hull can be replaced by the look's procedural builder. */
+  hasProceduralFallback(): boolean {
+    const scope = this.active();
+    return scope !== null && this.looks.some((entry) => entry.scope.belongsTo(scope) && entry.value.skin !== undefined);
+  }
 }

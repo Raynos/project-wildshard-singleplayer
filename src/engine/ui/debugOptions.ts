@@ -1,4 +1,5 @@
 import { engineString } from '#engine/strings';
+import { app } from '../app/runtime';
 /**
  * The DEBUG menu's registry (E162, Jake 2026-09-25: "we are going to have an ungodly amount of toggles and we need to
  * organize them"). Every variant, taste toggle and developer aid the game has is declared here ONCE — its group, label,
@@ -6,7 +7,7 @@ import { engineString } from '#engine/strings';
  * pause ▸ Settings ▸ Debug (src/engine/ui/DebugMenu.ts) renders it: one collapsible section per group, only the rows that apply to
  * the shard you are in, a filter box on top. There are no URL switches (AGENTS.md "No URL switches, ever").
  *
- *   opt('pineLife', 'creatures', 'Pine Hollow life', ON_OFF, { reload: true, when: pineHollow, ask: 'E162', reviewBy: '2026-12-30', note: 'birds, hares …' })
+ *   opt('aimRing', 'combat', 'Aim ring', ON_OFF, { ask: 'E162', reviewBy: '2026-12-30', note: 'E162: aiming aid.' })
  *   action('clearDownloads', 'loading', 'Downloads', 'Clear', () => …, { ask: 'E172', reviewBy: '2026-12-30', note: 'E172 …' })   // a button row, not a pick
  *   DEBUG_READOUTS        → a live readout under a row, by row id (E172: Shards in memory's; both menus show it)
  *   DEBUG_ROWS            → every row, in menu order within its group
@@ -89,7 +90,6 @@ export function registerLevelDebugRow(spec: DebugRowSpec, slug: string): () => v
 }
 
 // ── the shards ──
-const pineHollow: When = (c) => c.chunk.slug === 'pine-hollow';
 const nalati: When = (c) => c.chunk.slug === 'nalati-grasslands';
 const always: When = () => true;
 
@@ -179,7 +179,7 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
   opt('aimRing', 'combat', engineString('s_4039d9694edd'), [['off', engineString('s_ca7981b46ecf')], ['on', engineString('s_130011756125')]], { ask: 'E162', reviewBy: '2026-12-30', note: engineString('s_7bfebc644d49') }),
 
   // ── Creatures & NPCs ──
-  opt('creatures', 'creatures', engineString('s_9915bdfb4d7c'), [['models', engineString('s_d17d2d78d76e')], ['proc', engineString('s_2e3e91ffbdca')]], { reload: true, when: (c) => pineHollow(c) || nalati(c), ask: 'E136', reviewBy: '2026-12-30', note: engineString('s_193b70a278ba') }),
+  opt('creatures', 'creatures', engineString('s_9915bdfb4d7c'), [['models', engineString('s_d17d2d78d76e')], ['proc', engineString('s_2e3e91ffbdca')]], { reload: true, when: () => app.species.hasProceduralFallback(), ask: 'E136', reviewBy: '2026-12-30', note: engineString('s_193b70a278ba') }),
   opt('balbals', 'creatures', engineString('s_fea220584920'), [['auto', engineString('s_a89a84dba21d')], ['wake', engineString('s_b14d667b45ef')], ['off', engineString('s_6300ef800bb8')]], { reload: true, when: nalati, ask: 'E162', reviewBy: '2026-12-30', note: engineString('s_79bd647c23ff') }),
   opt('ghosts', 'creatures', engineString('s_029fe29cf9f9'), [['auto', engineString('s_6c953cf83a66')], ['line', engineString('s_4a06cd2f854d')], ['off', engineString('s_6300ef800bb8')]], { reload: true, when: nalati, ask: 'E162', reviewBy: '2026-12-30', note: engineString('s_138d752b7a25') }),
 

@@ -1,3 +1,10 @@
+import compareRidgeLive from './explore/pine-ridge-live.jpg';
+import compareRidgeTarget from './explore/pine-ridge-target.jpg';
+import compareDenLive from './explore/pine-den-live.jpg';
+import compareDenTarget from './explore/pine-den-target.jpg';
+import compareHamletLive from './explore/pine-hamlet-live.jpg';
+import compareHamletTarget from './explore/pine-hamlet-target.jpg';
+import { PINE_STEPS, PINE_BYTES } from './boot/steps';
 import { PINE_TREE_ASSETS } from './world/treeAssets';
 import { bootFiles, bootSources, BAKED_UNREAD } from './boot/files';
 import exploreWorld from './explore/world-pine-hollow.webp';
@@ -11,7 +18,7 @@ import explorePractice from './explore/practice-pine-hollow.webp';
  * running SE from the pond to the Mill hamlet, and the Hollow with its cabins and the crossroads at the centre. Every
  * coordinate lives in ./pineHollowLayout.ts (+z north, +x WEST — see its header). Golden-hour sunset sky.
  */
-import { CHUNK_HALF } from '#engine/core/config';
+import { CHUNK_HALF, CHUNK_SIZE, TERRAIN_RES } from '#engine/core/config';
 import { layoutFauna } from '#engine/world/faunaLayout';
 import type { ShardManifest } from '#game/shard/manifest';
 import { TERRAIN, forestDensity, oldGrowthMask, speciesMix } from './world/terrain';
@@ -30,7 +37,7 @@ export const PINE_HOLLOW: ShardManifest = {
   api: 1,
   audio: { ambience: 'ambience.pine', score: 'score.pine', preload: () => import('./audio/files').then((m) => m.createPineAudio()) },
   load: () => import('./plugin'),
-  boot: { stagedWorld: true, files: bootFiles, sources: bootSources, bakedUnread: BAKED_UNREAD },
+  boot: { stagedWorld: true, files: bootFiles, sources: bootSources, bakedUnread: BAKED_UNREAD, steps: PINE_STEPS, bytes: PINE_BYTES },
   kitLook: 'pbr',
   assetGlobs: ['public/assets/models/pine-hollow-crags/**', 'public/assets/models/pine-hollow-hero/**', 'public/assets/models/pine-hollow-trees/**', 'public/assets/gpu/models/pine-hollow-hero/**', 'public/assets/gpu/models/pine-hollow-trees/**', 'public/assets/gpu/pine-hollow/**', 'public/assets/gpu/baked/pine-hollow/**', 'public/assets/music/pine-hollow-folk/**', 'public/assets/music/pine-hollow-orchestral/**', 'public/assets/music/pine-hollow-piano/**', 'public/assets/sfx/pine-hollow/**', 'public/assets/horizon/pine-hollow-*', 'public/assets/gpu/horizon/pine-hollow-*', 'public/assets/lut/pine-hollow.bin', 'public/assets/title/pine-hollow-portrait.jpg'],
   ktx2: () => import('./ktx2.generated'),
@@ -47,13 +54,19 @@ export const PINE_HOLLOW: ShardManifest = {
   blurb: "A photoreal boreal forest, from dawn fog to lantern-lit night. Hunt deer, boar, elk and bear through the pines, relight the ranger's three dark waystone lanterns and face the Antler King in the old-growth — his thralls walk the fog until dawn.",
   card: { thumb: thumbnail, portrait: heroPortrait, landscape: heroLandscape },
   // EXPLORE WORLD (E66): the viewer over this shard, and the World Explorer map's pins (compass-true names, layout v2)
-  explore: { world: exploreWorld, models: exploreModels, sets: exploreSets, practice: explorePractice },
+  explore: { art: { world: exploreWorld, models: exploreModels, sets: exploreSets, practice: explorePractice }, compare: [
+    { id: 'ridge', label: 'The ridge', model: 'pine-ridge', target: 'art/pine-hollow/round-17-look-loop-3/ridge/mockup-1-fp-front.jpg', live: compareRidgeLive, image: compareRidgeTarget },
+    { id: 'den', label: 'The den', model: 'pine-den', target: 'art/pine-hollow/round-17-look-loop-3/den/mockup-1-fp-front.jpg', live: compareDenLive, image: compareDenTarget },
+    { id: 'hamlet', label: 'Mill hamlet', model: 'pine-hamlet', target: 'art/pine-hollow/round-17-look-loop-3/hamlet/mockup-1-fp-front.jpg', live: compareHamletLive, image: compareHamletTarget },
+  ] },
   // its live models in the Model Explorer (E315 M5): the creatures it spawns, alive now or not, its people, its gear
   roster: async () => (await import('./roster')).ROSTER,
   // the forest's trees and the forest floor's kinds drawn as its models (E315 M2), once core has built the fields (E349)
   pois: PINE_HOLLOW_POIS.map(({ id, name, x, z, r }) => ({ id, name, x, z, r })),
 
   ground: { terrain: TERRAIN },
+  // Provisional coverage on the procedural grid, retained for the Blender export pipeline.
+  blender: { area: { x0: -CHUNK_HALF + 87 * CHUNK_SIZE / (TERRAIN_RES - 1), x1: -CHUNK_HALF + 168 * CHUNK_SIZE / (TERRAIN_RES - 1), z0: -CHUNK_HALF + 66 * CHUNK_SIZE / (TERRAIN_RES - 1), z1: -CHUNK_HALF + 148 * CHUNK_SIZE / (TERRAIN_RES - 1) }, models: [] },
 
   assets: {
     // PH-L8 (the look loop, art/pine-hollow/round-14-look-loop/): the floor is Poly Haven's pine-needle litter

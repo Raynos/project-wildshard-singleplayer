@@ -14,9 +14,11 @@ describe('per-shard pipeline lookups (PH-0.3)', () => {
     expect(dw).toEqual(area);
     expect(area.x0).toBeCloseTo(-CHUNK_HALF + 71 * CELL, 9);
     expect(area.z1).toBeCloseTo(-CHUNK_HALF + 117 * CELL, 9);
-    const ph = blenderAreaFor('pine-hollow');
+    const ph = blenderAreaFor(PINE_HOLLOW);
     expect(ph).not.toBeNull();
     if (ph) {
+      expect(ph.x0).toBeCloseTo(-CHUNK_HALF + 87 * CELL, 9);
+      expect(ph.z1).toBeCloseTo(-CHUNK_HALF + 148 * CELL, 9);
       expect(ph.x0).toBeGreaterThan(-CHUNK_HALF);
       expect(ph.x1).toBeLessThan(CHUNK_HALF);
       expect(ph.x1).toBeGreaterThan(ph.x0);

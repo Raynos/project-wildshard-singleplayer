@@ -5,8 +5,7 @@
  *
  * - Driftwood Isle (`area`, the one BlenderIsland.ts builds): the spawn cove, the crescent beach, the plank stair and the
  *   hut plateau.
- * - Pine Hollow: provisional — the Hollow around the crossroads and the Hollow cabin, until board B1 fixes Map D and wave 2
- *   bakes it. No `pine-hollow-blender` build exists yet, and the game loads none.
+ * Additional levels declare their Blender coverage in `blender.area`, in world metres.
  *
  * The edges sit on the procedural terrain's own grid lines (TERRAIN_RES² over CHUNK_SIZE), so the procedural mesh loses
  * whole cells and the Blender terrain — sampled from the same heights along those lines — meets it without a seam.
@@ -28,8 +27,6 @@ const DRIFTWOOD: BlenderArea = { x0: 71, x1: 184, z0: 18, z1: 117 };
 /** each shard's area as procedural cell-index bounds */
 const CELLS: Readonly<Partial<Record<string, BlenderArea>>> = {
   'driftwood-isle': DRIFTWOOD,
-  /** provisional (PH-0.3, until B1 / wave 2): x cells 87…168, z cells 66…148 → x −79.4 … 79.4, z −120.6 … 40.2 */
-  'pine-hollow': { x0: 87, x1: 168, z0: 66, z1: 148 },
 };
 
 const toWorld = (I: BlenderArea): BlenderArea => ({
@@ -38,7 +35,9 @@ const toWorld = (I: BlenderArea): BlenderArea => ({
 });
 
 /** a shard's Blender area in world metres; null when the shard has none */
-export function blenderAreaFor(slug: string): BlenderArea | null {
+export function blenderAreaFor(level: string | { slug: string; blender?: { area: BlenderArea } }): BlenderArea | null {
+  if (typeof level !== 'string' && level.blender !== undefined) return level.blender.area;
+  const slug = typeof level === 'string' ? level : level.slug;
   const I = CELLS[slug];
   return I ? toWorld(I) : null;
 }

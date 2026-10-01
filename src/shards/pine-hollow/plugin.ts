@@ -11,7 +11,7 @@ import { ShardPlugin, type ShardContext, type ShardRuntime } from '#game';
 import { loadWorldContent, macrotask, heightAt, installAiDebug } from '#engine';
 import * as THREE from 'three';
 import { CABIN_SITES } from './layout';
-import { Crossbow, Bow, STARTER_EFFECTS, installStarterEffects, crossbowDisplayModel, loadParticles, type Particles } from '#kit';
+import { Crossbow, Bow, STARTER_EFFECTS, installStarterEffects, crossbowDisplayModel, loadParticles, loadGrassField, type Particles } from '#kit';
 import { Cabins } from './world/homestead';
 import { Undergrowth } from './world/undergrowth';
 import { Props } from './world/props';
@@ -58,6 +58,8 @@ export class PineHollow extends ShardPlugin {
     rt.menu = { skins: () => rt.play ? pineFinishes(rt.play.skins) : [], onWearSkin: (id) => { rt.hooks.wearFinish?.(id); }, skinsTitle: 'Finishes', pack: { note: "Everything here trades at Mott's stall", hint: "Trade at Mott's stall", gearHint: 'Tap a weapon to hold it · a finish to wear it', line: (id) => isPineItem(id) ? mottLine(id) : null } };
     const { Grass, cutTerrain, setSight } = await loadWorldContent();
     const { Particles: ParticleField } = await loadParticles();
+    const { trample } = await loadGrassField();
+    ctx.app.registerTrample(trample, ctx.scope);
     const streams = new PineStreams(sky).build();
     game.scene.add(streams.group);
     const carpet = await step('grass', async () => {

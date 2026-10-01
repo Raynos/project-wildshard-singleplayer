@@ -53,8 +53,8 @@ hf._installBakedTerrain(baked.bakedSamplers(grid));
 const THREE = await import('three');
 const shard = await import(pathToFileURL(shardModule).href);
 const { blenderAreaFor, STEP } = await imp('src/engine/world/blenderArea.ts');
-const AREA = blenderAreaFor(SLUG);
-if (!AREA) throw new Error(`export-scene: src/engine/world/blenderArea.ts has no area for "${SLUG}"`);
+const AREA = blenderAreaFor(def);
+if (!AREA) throw new Error(`export-scene: the manifest has no Blender area for "${SLUG}"`);
 const ctx = { ROOT, CACHE, SLUG, THREE, imp, hf, def, CHUNK_SIZE, CHUNK_HALF, ROAD_LENGTH };
 
 // ── the area grid ──
