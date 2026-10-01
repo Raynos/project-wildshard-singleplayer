@@ -221,3 +221,6 @@ export { BossBar } from './ui/BossBar';
 export { pondGrid } from './world/pondGrid';
 
 export { GroupBrain, type GroupMember } from './ai/GroupBrain';
+
+export { CreatureBrain } from './ai/CreatureBrain';
+export type { BossDef } from './ai/bossDefinition';

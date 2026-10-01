@@ -23,3 +23,6 @@ export type { AchievementDef } from './achievements';
 export type { CompendiumHost, CompendiumWallPort } from './compendium/install';
 
 export { renderFinds } from './bag/bag';
+
+export type { Adventure, AdventureWorld, AdvAnimal } from './quest/Adventure';
+export { RewardCaption } from './quest/QuestUI';
