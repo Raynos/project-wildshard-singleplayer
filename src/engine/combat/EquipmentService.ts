@@ -37,7 +37,11 @@ export class EquipmentService implements WeaponHooks {
       const row = weapon.row, spec = row.pickup;
       if (spec === undefined) throw new Error(`Equipment ${row.id} has no pickup factory`);
       const pickup = spec.create(declaration.at, spec.prompt);
-      if (pickup === null) continue; // content may have no site (the legacy fallback world)
+      if (pickup === null) {
+        // Saved ownership/harness selection never depended on a display site in the original shell.
+        if (host.owned.has(spec.owned) || host.hold === row.id) { this.unlock(weapon.id); this.select(weapon.id, true); }
+        continue;
+      }
       this.pickups.set(row.id, pickup);
       host.prompts.push(pickup.interactable);
       const stop = this.scope.child(`pickup:${row.id}`);

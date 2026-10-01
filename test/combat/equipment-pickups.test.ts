@@ -19,7 +19,7 @@ function fixture(saved = false, hold?: string) {
     interactable: { position: new Vector3(1, 2, 3), radius: 2.6, label: 'Take iron sword', onInteract: () => { drop.onPickup?.(); } },
     update: vi.fn((_dt: number, _t: number): void => { /* Record the retained frame clock. */ }), dispose: vi.fn(() => { log.push('dispose'); }),
   };
-  const create = vi.fn((at: string, prompt: string) => { log.push(`create:${at}:${prompt}`); return drop; });
+  const create = vi.fn((at: string, prompt: string): EquipmentPickup | null => { log.push(`create:${at}:${prompt}`); return drop; });
   const iron: EquipmentRow = { ...SWORD_IRON, pickup: { owned: 'iron-sword', prompt: 'Take iron sword', toast: 'acquired', create } };
   const weapons = new EquipmentService(new FixtureWeapon(SWORD_WOOD), { scope, input: { bind: () => { /* No DOM listeners. */ } } });
   weapons.add(new FixtureWeapon(iron), { locked: true });
@@ -70,6 +70,15 @@ describe('level equipment pickup rows (E357 S4.1 step 5)', () => {
     expect(f.grant).not.toHaveBeenCalled(); expect(f.onNear).not.toHaveBeenCalled();
     expect(f.drop.dispose).toHaveBeenCalledOnce();
     expect(() => f.weapons.placePickups(f.loadout, f.host)).toThrow('disposed');
+  });
+
+  it('restores owned equipment even when content has no pickup site', () => {
+    const f = fixture(true); f.create.mockReturnValueOnce(null);
+    f.weapons.placePickups(f.loadout, f.host);
+    expect(f.weapons.current.id).toBe('sword-iron'); expect(f.weapons.swappingNow).toBe(false);
+    expect(f.weapons.pickup(SWORD_IRON.id)).toBeNull(); expect(f.prompts).toEqual([]);
+    expect(f.grant).not.toHaveBeenCalled(); expect(f.onPickup).not.toHaveBeenCalled();
+    f.scope.dispose();
   });
 
   it('rejects missing rows and duplicate placements instead of silently losing content', () => {
