@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { memoryVerdict, parseMemoryRun, soakVerdict, type SoakSample } from '../scripts/gpu-perf/report.mjs';
+import { Vector3 } from 'three';
+import { createProbeNav } from '../src/core/probe';
+import { memoryVerdict, parseMemoryRun, soakVerdict, flakedFields, type SoakSample } from '../scripts/gpu-perf/report.mjs';
 
 describe('nightly memory gate', () => {
   it('uses decimal phase limits, inclusive boundaries, and the native footprint', () => {
@@ -21,6 +23,28 @@ describe('nightly memory gate', () => {
     const inspector = JSON.stringify({ kind: 'summary', result: { inspectorPeakGB: { play: 0.5 } } });
     expect(parseMemoryRun(native, inspector, 'a').find((row) => row.phase === 'play')?.reason).toContain('WebContent lost');
     expect(memoryVerdict('a', 'play', Number.NaN, 0.5, 0.4).verdict).toBe('failure');
+  });
+});
+
+describe('soak navmesh adapter', () => {
+  it('uses an independent seeded stream and serializable corners on the player radius layer', () => {
+    const mesh = {
+      randomPointNear: (_near: Vector3 | { x: number; y: number; z: number }, distance: number, radius: number, rand: () => number) => { expect(radius).toBe(0.38); return new Vector3(distance, rand(), 0); },
+      findPath: (a: { x: number; y: number; z: number }, b: { x: number; y: number; z: number }, radius: number) => { expect(radius).toBe(0.38); return [new Vector3(a.x, a.y, a.z), new Vector3(b.x, b.y, b.z)]; },
+    };
+    const a = createProbeNav(mesh, 7), b = createProbeNav(mesh, 7), origin = { x: 0, y: 0, z: 0 };
+    const target = a.randomPoint(origin, 30, 80);
+    expect(target).toEqual(b.randomPoint(origin, 30, 80));
+    if (!target) throw new Error('expected reachable target');
+    expect(a.path(origin, target)).toEqual([origin, target]);
+    expect(a.path(origin, target)?.[0]).not.toBeInstanceOf(Vector3);
+  });
+  it('rejects out-of-band navcat points and handles absent paths', () => {
+    const mesh = { randomPointNear: () => new Vector3(1, 0, 0), findPath: () => null };
+    const nav = createProbeNav(mesh, 1), origin = { x: 0, y: 0, z: 0 };
+    expect(nav.randomPoint(origin, 30, 80)).toBeNull();
+    expect(nav.path(origin, origin)).toBeNull();
+    expect(() => nav.randomPoint(origin, 80, 30)).toThrow(RangeError);
   });
 });
 
@@ -47,5 +71,12 @@ describe('soak growth rules', () => {
     const last = rows.at(-1); if (last) last.textures = 106;
     expect(soakVerdict(rows).failures).toContain('heap growth > 10%');
     expect(soakVerdict(rows).failures).toContain('geometry/texture growth > 5%');
+  });
+  it('fails closed on invalid byte or resource measurements', () => {
+    const rows = samples(); const first = rows[0]; if (first) first.gpuBytes = Number.NaN;
+    expect(soakVerdict(rows).failures).toContain('invalid sample measurement');
+  });
+  it('tallies F2 retry fields once per shard and tier', () => {
+    expect(flakedFields({ boot: { shard: 'pine-hollow', tier: 'phone' }, flaked: ['poses.cabin.ssim'], fields: [{ field: 'poses.cabin.ssim', verdict: 'flaked' }] })).toEqual(['pine-hollow/phone/poses.cabin.ssim']);
   });
 });

@@ -8,5 +8,10 @@ mkdir -p progress
 rc=0
 bash scripts/browser-lane.sh --max 10 "$NODE" scripts/nine-dragon-gpu.mjs "--url=$URL" --subtract=none --gate=1.6 || rc=1
 bash scripts/browser-lane.sh --max 10 "$NODE" scripts/pine-hollow-gpu.mjs "--url=$URL" "--tag=$TAG" --subtract=0 --overdraw=0 || rc=1
+for ruler in scripts/*-gpu.mjs; do
+  [ -f "$ruler" ] || continue
+  case "$ruler" in scripts/nine-dragon-gpu.mjs|scripts/pine-hollow-gpu.mjs) continue;; esac
+  bash scripts/browser-lane.sh --max 10 "$NODE" "$ruler" "--url=$URL" || rc=1
+done
 bash scripts/browser-lane.sh --max 10 "$NODE" scripts/scorecard.mjs "--url=$URL" "--tag=nightly-$TAG" --no-switch --compare=baseline || rc=1
 exit "$rc"

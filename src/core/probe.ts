@@ -9,11 +9,17 @@ import type { Audio } from '../audio/Audio';
 import type { Music } from '../audio/Music';
 import type { Interactable } from '../world/Cabin';
 import { floorBelow } from '../physics/query';
+import { activeNavmesh, type Navmesh } from '../physics/navmesh';
+import { Rng } from './rng';
 import { TIER } from './tier';
 import { tap } from './harnessTap';
 
 declare const __BUILD_ID__: string;
 export interface Vec3 { x: number; y: number; z: number }
+export interface ProbeNav {
+  randomPoint: (near: Vec3, min: number, max: number) => Vec3 | null;
+  path: (a: Vec3, b: Vec3) => Vec3[] | null;
+}
 export interface Saves { read: string[]; written: string[] }
 export interface SoundLog { event: Record<string, number>; ambient: string[] }
 export interface GpuBytes { textures: number; renderbuffers: number; buffers: number; total: number }
@@ -88,6 +94,7 @@ export interface WildshardProbe<W extends ProbeWorld = ProbeWorld> {
   saves: Saves;
   sounds: () => SoundLog;
   used: () => string[];
+  nav: ProbeNav | null;
 }
 declare global {
   interface Window { __wildshard: WildshardProbe; __wildshardHarness?: HarnessPins }
@@ -95,6 +102,25 @@ declare global {
 
 const rounded = (n: number): number => Math.round(n * 1000) / 1000;
 const point = (v: Vec3): Vec3 => ({ x: rounded(v.x), y: rounded(v.y), z: rounded(v.z) });
+
+/** F3n: an independent harness-seeded stream; only the physics navmesh decides what is walkable. */
+export function createProbeNav(mesh: Pick<Navmesh, 'randomPointNear' | 'findPath'>, seed: number): ProbeNav {
+  const rng = new Rng(seed), radius = 0.38; // Player.ts's capsule radius; choose a layer that covers it.
+  return {
+    randomPoint: (near, min, max) => {
+      if (!Number.isFinite(min) || !Number.isFinite(max) || min < 0 || max < min) throw new RangeError('nav randomPoint: invalid distance band');
+      // navcat bounds polygons rather than their sampled points, so reject samples outside the requested band.
+      for (let attempt = 0; attempt < 64; attempt++) {
+        const candidate = mesh.randomPointNear(near, rng.range(min, max), radius, () => rng.next());
+        if (!candidate) return null;
+        const distance = Math.hypot(candidate.x - near.x, candidate.z - near.z);
+        if (distance >= min && distance <= max) return { x: candidate.x, y: candidate.y, z: candidate.z };
+      }
+      return null;
+    },
+    path: (a, b) => mesh.findPath(a, b, radius)?.map((v) => ({ x: v.x, y: v.y, z: v.z })) ?? null,
+  };
+}
 /** Pine's existing debug handle exposes its in-memory flags; reading it never touches storage. */
 function pineQuestFlags(): string[] {
   const pine: unknown = Reflect.get(window, '__pineQuest');
@@ -208,6 +234,11 @@ export function installProbe<W extends ProbeWorld>(world: W, deps: ProbeDeps): W
     tap.resumed = () => { const fn = resume; resume = null; fn?.(); };
   }
   const requireHarness = (): void => { if (!pins) throw new Error('Wildshard probe control requires __wildshardHarness'); };
+  const mesh = activeNavmesh(), query = mesh ? createProbeNav(mesh, pins?.seed ?? 0x2545f491) : null;
+  const nav: ProbeNav | null = query ? {
+    randomPoint: (near, min, max) => { requireHarness(); return query.randomPoint(near, min, max); },
+    path: (a, b) => { requireHarness(); return query.path(a, b); },
+  } : null;
   const land = (): void => {
     const p = world.player, top = p.position.y + 2.5;
     const floor = floorBelow(world.physics, p.position.x, p.position.z, top, 2.6);
@@ -222,7 +253,7 @@ export function installProbe<W extends ProbeWorld>(world: W, deps: ProbeDeps): W
   const shard: WildshardProbe['shard'] = { slug: world.chunk.slug };
   for (const key of SHARD_KEYS[world.chunk.slug] ?? []) shard[key] = world[key];
   const probe: WildshardProbe<W> = {
-    version: 1, world, shard, boot: fingerprint(world, deps, saves), fingerprint: () => fingerprint(world, deps, saves), pose,
+    version: 1, world, shard, boot: fingerprint(world, deps, saves), fingerprint: () => fingerprint(world, deps, saves), pose, nav,
     walkLeg: async (leg) => {
       requireHarness();
       const p = world.player, held = world.animals.animals.map((a) => a.harnessHold);

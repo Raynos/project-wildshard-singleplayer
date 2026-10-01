@@ -22,6 +22,12 @@ for (const signal of ['SIGINT', 'SIGTERM']) process.once(signal, () => { control
 try {
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, serviceWorkers: 'block' });
   const page = await context.newPage();
+  await page.addInitScript(() => {
+    const frames = []; let last = 0;
+    const tick = (now) => { if (last > 0) frames.push({ at: now, fps: 1000 / (now - last) }); last = now; while (frames[0]?.at < now - 30_000) frames.shift(); requestAnimationFrame(tick); };
+    requestAnimationFrame(tick);
+    Reflect.set(window, '__wildshardSoakFps', () => { const values = frames.map((frame) => frame.fps).toSorted((a, b) => a - b); return values[Math.floor(values.length / 2)] ?? 0; });
+  });
   page.on('pageerror', (error) => errors.push(String(error)));
   // Reuse F2's seeded harness and GL-API allocation instrumentation, never renderer.info as a byte proxy.
   const { installInit } = await import('./parity/init.mjs');
@@ -61,7 +67,6 @@ try {
     }
   };
   let lastPos = await position(), progressAt = Date.now(), nextSample = 0, nextAttack = 60, nextPause = 300;
-  let lastFrame = await page.evaluate(() => window.__wildshard.world.game.renderer.info.render.frame), frameAt = Date.now();
   const walkTask = (async () => { try { await wander(); } catch (error) { errors.push(String(error)); control.stop = true; } })();
   while (!control.stop && Date.now() - start <= minutes * 60_000 + 1000) {
     const seconds = (Date.now() - start) / 1000;
@@ -70,11 +75,9 @@ try {
       const metrics = await cdp.send('Performance.getMetrics');
       const heapBytes = metrics.metrics.find((metric) => metric.name === 'JSHeapUsedSize')?.value;
       if (heapBytes === undefined) throw new Error('missing forced-GC heap measurement');
-      const snapshot = await page.evaluate(() => { const p = window.__wildshard, f = p.fingerprint(), r = p.world.game.renderer; let objects = 0; p.world.game.scene.traverse(() => { objects++; }); return { gpuBytes: f.gpuBytes.total, ...r.info.memory, objects, frame: r.info.render.frame }; });
-      const now = Date.now(), fps = (snapshot.frame - lastFrame) / ((now - frameAt) / 1000);
-      lastFrame = snapshot.frame; frameAt = now;
+      const snapshot = await page.evaluate(() => { const p = window.__wildshard, f = p.fingerprint(), r = p.world.game.renderer; let objects = 0; p.world.game.scene.traverse(() => { objects++; }); return { gpuBytes: f.gpuBytes.total, ...r.info.memory, objects, frame: r.info.render.frame, fps: Reflect.get(window, '__wildshardSoakFps')() }; });
       // Nominal sample slots make the minute-5/20 endpoints deterministic; wall time is retained too.
-      samples.push({ seconds: nextSample, wallSeconds: seconds, heapBytes, ...snapshot, fps }); nextSample += 30;
+      samples.push({ seconds: nextSample, wallSeconds: seconds, heapBytes, ...snapshot }); nextSample += 30;
       writeFileSync(join(out, 'samples.json'), JSON.stringify(samples, null, 2));
     }
     if (seconds >= nextAttack) {

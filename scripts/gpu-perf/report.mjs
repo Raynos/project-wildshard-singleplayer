@@ -45,6 +45,7 @@ export function soakVerdict(samples, errors = [], stuck = []) {
   const gpuGrowthBytes = slopeGrowth(samples, 'gpuBytes');
   const heapGrowthBytes = slopeGrowth(samples, 'heapBytes');
   const failures = [];
+  if (samples.some((sample) => ['seconds', 'gpuBytes', 'heapBytes', 'geometries', 'textures'].some((key) => !Number.isFinite(sample[key]) || sample[key] < 0))) failures.push('invalid sample measurement');
   if (!first || !last || last.seconds < 1199 || gpuGrowthBytes === null || heapGrowthBytes === null) failures.push('incomplete 5–20 minute window');
   if (errors.length > 0) failures.push('page errors');
   if (stuck.length > 0) failures.push('stuck states');
@@ -57,4 +58,10 @@ export function soakVerdict(samples, errors = [], stuck = []) {
     heapFormula: 'least-squares bytes/second over 300–1200 seconds × 900; limit minute-5 heap × 0.10',
     fpsFirst: median(samples.filter((sample) => sample.seconds <= 300).map((sample) => sample.fps)),
     fpsLast: median(samples.filter((sample) => sample.seconds >= 900).map((sample) => sample.fps)) };
+}
+
+export function flakedFields(report) {
+  const fields = report.flaked ? new Set(report.flaked) : new Set();
+  for (const row of report.fields ?? []) if (row.verdict === 'flaked') fields.add(row.field);
+  return [...fields].map((field) => `${report.boot?.shard}/${report.boot?.tier}/${field}`);
 }

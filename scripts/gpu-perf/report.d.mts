@@ -6,4 +6,5 @@ export interface SoakSample { seconds: number; gpuBytes: number; heapBytes: numb
 export function memoryVerdict(shard: string, phase: string, nativeGB: number | undefined, inspectorGB: number | undefined, previousGB: number | undefined, pending?: PendingMemory[]): MemoryResult;
 export function parseMemoryRun(nativeText: string, inspectorText: string, shard: string, previous?: Record<string, number>, pending?: PendingMemory[]): MemoryRow[];
 export function slopeGrowth(samples: SoakSample[], key: 'gpuBytes' | 'heapBytes'): number | null;
+export function flakedFields(report: { flaked?: string[]; boot?: { shard: string; tier: string }; fields?: { field: string; verdict: string }[] }): string[];
 export function soakVerdict(samples: SoakSample[], errors?: string[], stuck?: object[]): { verdict: string; failures: string[]; gpuGrowthBytes: number | null; heapGrowthBytes: number | null; fpsFirst: number | null; fpsLast: number | null };

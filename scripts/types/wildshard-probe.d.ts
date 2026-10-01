@@ -10,5 +10,5 @@ export type { PrefetchHandle } from '../../src/boot/shardPrefetch';
 /** E357 F2: the runtime owns the contract, so scripts cannot silently drift from it. */
 export type {
   WildshardProbe, HarnessPins, ProbeWorld, ProbePose, WalkLeg, WalkResult,
-  Fingerprint, GameplayState, SoundLog, Saves, GpuBytes, CombatTarget, Vec3,
+  Fingerprint, GameplayState, SoundLog, Saves, GpuBytes, CombatTarget, Vec3, ProbeNav,
 } from '../../src/core/probe';

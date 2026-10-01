@@ -3,6 +3,7 @@ import { spawn, execFileSync } from 'node:child_process';
 import { mkdirSync, existsSync, readFileSync, writeFileSync, readdirSync, rmSync, openSync, closeSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
+import { flakedFields } from './report.mjs';
 
 const args = process.argv.slice(2);
 const flag = (name, fallback = '') => args.find((arg) => arg.startsWith(`--${name}=`))?.slice(name.length + 3) ?? fallback;
@@ -83,7 +84,8 @@ try {
     execFileSync('tar', ['-xf', archive, '-C', tree]); rmSync(archive);
     const pending = jsonAt(sha, 'docs/plans/game-normalization/reviews/pending.json', []);
     writeFileSync(join(tree, 'memory-pending.json'), JSON.stringify(pending));
-    let shards = Object.keys(jsonAt(sha, 'scripts/physics-route.json', {})).filter((key) => !key.startsWith('$'));
+    const manifestShards = git('ls-tree', '--name-only', '-r', sha, '--', 'src/shards').split('\n').flatMap((path) => { const match = /^src\/shards\/([^/]+)\/manifest\.ts$/.exec(path); return match ? [match[1]] : []; });
+    let shards = [...new Set([...Object.keys(jsonAt(sha, 'scripts/physics-route.json', {})).filter((key) => !key.startsWith('$')), ...manifestShards])];
     if (shards.length === 0) throw new Error('empty shard registry/routes');
     if (plant) {
       const entry = jsonAt(sha, 'test/parity/plants/index.json', []).find((row) => row.id === plant);
@@ -91,7 +93,7 @@ try {
       shards = entry.shards === 'all' || entry.shards?.includes('all') ? shards : entry.shards;
       if (!Array.isArray(shards) || shards.length === 0) throw new Error('plant has no shards');
       if (entry.kind === 'patch' || entry.kind === 'nightly' || plant === 'soak-leak') {
-        const patch = join(tree, 'test/parity/plants', `${plant}.patch`);
+        const patch = join(tree, 'test/parity/plants', entry.patch ?? `${plant}.patch`);
         const applied = await run('git', ['apply', patch], { cwd: tree });
         if (applied.code !== 0) throw new Error(`plant apply: ${applied.stderr}`);
       } else throw new Error(`nightly supports patch/nightly plants only: ${plant}`);
@@ -141,7 +143,7 @@ try {
         if (downloaded.code !== 0) { steps.push({ name: `flake artifact ${gateRun.databaseId} unavailable`, code: downloaded.code, verdict: 'failure' }); continue; }
         for (const file of readdirSync(dir, { recursive: true }).filter((name) => name.endsWith('.json'))) {
           const data = JSON.parse(readFileSync(join(dir, file), 'utf8'));
-          for (const field of data.fields ?? []) if (field.verdict === 'flaked') { const id = `${data.boot?.shard}/${data.boot?.tier}/${field.field}`; flakes[id] = (flakes[id] ?? 0) + 1; }
+          for (const id of flakedFields(data)) flakes[id] = (flakes[id] ?? 0) + 1;
         }
       }
     }
