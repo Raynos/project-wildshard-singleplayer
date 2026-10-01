@@ -920,7 +920,8 @@ A creature is two rows: a `SpeciesRow` (simulation) and a `SpeciesLook` (render)
 
 | Export | What it is |
 |---|---|
-| `SpeciesRow` | `{ id, kind, label, variants, aggressive?, tuning?, sounds?, think?(animal, ctx), act?(animal, ctx), tick?, blood?, parent? … }` |
+| `SpeciesRow` | `{ id, kind, label, variants, aggressive?, tuning?, sounds?, flight?, think?(animal, ctx), act?(animal, ctx), tick?, blood?, parent? … }` |
+| `SpeciesFlight` | `{ altitude, above?: 'ground' \| 'world', climbRate, diveRate }`; rates are metres per second |
 | `SpeciesVariant` | `{ id, label, weight, rarity, scale, hp?, mods? }` |
 | `deriveSpecies(parent, patch)` | a row that overrides its parent field by field |
 | `SpeciesLook`, `speciesWithLook`, `CreatureHull`, `EyeSpot` | the render row: `{ id, species, kind, rig, fur, rigContract, build(), animate() }` |
@@ -934,9 +935,20 @@ A creature is two rows: a `SpeciesRow` (simulation) and a `SpeciesLook` (render)
 | `WeightedTable`, `WeightedRow`, `TableDrop`, `TableSpec` | spawn and loot tables (`mode: 'weighted' \| 'each'`) |
 | `inspectBrain`, `pinBrain`, `brainInspection`, `BrainInspection`, `installAiDebug`, `AiDebugHost`, `AiDebugView` | the AI debug overlay |
 
+**Flight.** Declare `flight: { altitude: 17, above: 'ground', climbRate: 7, diveRate: 28 }` on the species.
+In `act`, call `ctx.flight.steer(animal, yaw, speed, altitude, turnRate?)` (or `animal.fly` with the same arguments).
+The body owns position, heading and vertical motion; animation changes bones only. `above` defaults to `ground`:
+the engine queries WORLD physics below the flyer about every 0.2 seconds, smooths the sampled floor between queries,
+and adds the requested altitude. A missing floor or one more than 200 metres below uses world altitude.
+Use `above: 'world'` to fly over a void at an absolute height. Climb/dive rates cap vertical movement;
+species without `flight` retain their ground body. Dead flyers descend to the sampled floor (or keep falling over a void).
+
 A `StrikeSpec` is `{ id, shape, windup, active, recover, cooldown, range, damage, tags, weight, telegraph?, motion?,
 eligibility? }`. Shapes: `arc` (radius, halfAngle), `lane` (length, width), `ring` (inner, outer), `wedge` (length,
-halfAngle), `point` (radius). The template's blob:
+halfAngle), `point` (radius), `sphere` (radius). A sphere tests three-dimensional distance from the live actor
+or `ctx.origin`, obeys normal cover and eligibility rules, and lands once per active window. Its selection `range`
+is also three-dimensional. `motion: { track: 'lead', speed, overshoot }` commits its horizontal dive heading;
+the flight brain supplies altitude. The template's blob:
 
 ```ts
 export const BLOB_STRIKES: readonly StrikeSpec[] = [
@@ -1134,7 +1146,7 @@ sections above describe what to use; this list is the complete inventory.
 
 ### `#engine` (`src/engine/index.ts`)
 
-675 exports, grouped by the module they come from.
+676 exports, grouped by the module they come from.
 
 - `./core/config`: `CHUNK_HALF`, `ROAD_LENGTH`, `SEED`, `CHUNK_SIZE`, `CHUNK_DEPTH`, `TERRAIN_RES`
 - `./world/terrainField`: `buildTerrain`
@@ -1262,6 +1274,7 @@ sections above describe what to use; this list is the complete inventory.
 - `./quest/view`: `QuestChip`, `NpcTalk`
 - `./quest/contentApi`: `loadQuest`
 - `./ai/species`: `deriveSpecies`, `SpeciesRow`, `SpeciesVariant`
+- `./ai/flight`: `SpeciesFlight`
 - `./entities/species/look`: `speciesWithLook`, `SpeciesLook`, `CreatureHull`, `EyeSpot`, `SpeciesService`
 - `./entities/species/registry`: `registerSpecies`, `speciesDef`, `variantDef`, `hasSpecies`, `SpeciesDef`, `VariantDef`, `AnimalSpecies`, `BoneDef`, `RigAnimCtx`, `FurStyle`, `ThinkCtx`, `EnemyWorld`, `AnimalDims`, `VariantMods`
 - `./entities/species/loft`: `loft`, `tube`, `skinPlain`, `S`, `boneIndex`, `srgb`, `mix`, `speciesSstep`, `paintNoise`, `setShag`, `isLowPoly`, `registerToonPaint`, `toonPaint`, `paletteColors`, `Paint`, `ToonPaint`, `SpeciesRGB`, `setShapeFn`, `Station`

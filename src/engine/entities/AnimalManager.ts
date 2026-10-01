@@ -1106,6 +1106,7 @@ export class AnimalManager {
     dt: 0.1, t: 0, player: new THREE.Vector3(), playerSpeed: 0, rng: this.rng, calm: false, herd: null,
     hurt: () => undefined, sound: () => undefined, world: {}, heightAt, waterLevel,
     steer: (a, yaw, speed, turnRate) => { if (this.navSteer) this.steerNav(a, yaw, speed, turnRate); else this.steer(a, yaw, speed, turnRate); },
+    flight: { steer: (a, yaw, speed, altitude, turnRate) => { a.fly(yaw, speed, altitude, turnRate); } },
     pathYaw: (a, tx, tz, every = 1) => { const br = this.brains.get(a); return br === undefined ? Math.atan2(tx - a.position.x, tz - a.position.z) : this.pathYaw(a, br, tx, tz, every); },
     confine: (a) => this.confine(a),
     reach: (a) => this.canReach(a, this.thinkCtx.player),

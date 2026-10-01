@@ -72,6 +72,7 @@ describe('Signal Dunes plugin contract', () => {
     const player = new Vector3(0, 0, 20);
     for (const [y, lands] of [[16, false], [1.4, true]] as const) {
       const runner = new StrikeRunner(), ray = fakeRay(y); let hits = 0;
+      ray.position.z = player.z - 1;
       const ctx = { actor: ray, target: player, canReach: () => true, hit: () => { hits++; } };
       runner.start(spec, ray, player); runner.update(spec.windup + 0.01, ctx); runner.update(0.05, ctx);
       expect(hits > 0).toBe(lands);

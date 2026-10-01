@@ -1,6 +1,7 @@
 import type { HuntTuning } from '../entities/AnimalManager';
 import type { VariantMods, Rarity, ThinkCtx } from '../entities/species/registry';
 import type { Animal } from '../entities/Animal';
+import type { SpeciesFlight } from './flight';
 
 /** Gameplay data only. A procedural builder, palette or hull never belongs on this row. */
 export interface SpeciesVariant {
@@ -17,6 +18,7 @@ export interface SpeciesRow {
   tick?: 'ai' | 'always';
   act?: (animal: Animal, ctx: ThinkCtx) => void;
   corpseFade?: number; blood?: boolean;
+  flight?: SpeciesFlight;
 }
 
 /** Child rows retain all unspecified parent fields and merge tuning without losing the hunter policy. */

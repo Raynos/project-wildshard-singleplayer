@@ -39,6 +39,19 @@ function replay(row: typeof rows[number], runtime: 'legacy' | 'runner'): object 
   return { transitions, hits, bodyHash: fnv1a32(JSON.stringify(frames)) };
 }
 describe('S2.3 StrikeRunner replays the current Pine body-clock lanes', () => {
+  it('a sphere uses live three-dimensional contact, cover and one-hit recovery', () => {
+    const f = creature('crab', 'small'), runner = new StrikeRunner(), hit = vi.fn((): void => undefined);
+    const strike: StrikeSpec = { id: 'strike.test.sphere', shape: { kind: 'sphere', radius: 2 }, windup: 0, active: 1, recover: 0.2, cooldown: 1, range: 5, damage: 10, tags: ['creature.charge'], weight: () => 1, units: 'world' };
+    const target = { x: 0, y: f.animal.position.y + 6, z: 0 };
+    const ctx = { actor: f.animal, target, canReach: () => true, hit };
+    expect(runner.pick([strike], ctx)).toBeNull();
+    target.y = f.animal.position.y + 3; expect(runner.pick([strike], ctx)).toBe(strike);
+    runner.start(strike, f.animal, target); runner.update(0.01, ctx); runner.update(0.01, ctx);
+    expect(hit).not.toHaveBeenCalled();
+    target.y = f.animal.position.y + 1; ctx.canReach = () => false; runner.update(0.01, ctx); expect(hit).not.toHaveBeenCalled();
+    ctx.canReach = () => true; runner.update(0.01, ctx); runner.update(0.01, ctx); expect(hit).toHaveBeenCalledExactlyOnceWith(strike);
+    runner.update(1, ctx); runner.update(0.2, ctx); expect(runner.pick([strike], ctx)).toBeNull();
+  });
   it.each(rows)('$id retains every body frame, phase boundary and damage', (row) => {
     const legacy = replay(row, 'legacy'); expect(legacy).toMatchSnapshot(); expect(replay(row, 'runner')).toEqual(legacy);
   });

@@ -5,13 +5,12 @@ import { MANTA_HOME, CLOUD_Y } from '../layout';
 
 /**
  * The drift ray (E364 concept B): a manta that flies. It circles high over the islands, telegraphs, dives straight at
- * the player along a lane, then rises back out of reach. The body is driven (`Animal.driven`): the brain owns x, y, z
- * and yaw; the creature manager only draws it, animates it and takes its hits.
+ * the player along a lane, then rises back out of reach. The public flight body owns its movement and altitude.
  */
 export const MANTA = { grace: 10, cruise: MANTA_HOME.alt, circleR: 18, circleSpeed: 9, aware: 34, diveSpeed: 19, riseSpeed: 7, glide: 10, hitHeight: 1.1 } as const;
 export const MANTA_STRIKES: readonly StrikeSpec[] = [
-  { id: 'farReach.manta.dive', shape: { kind: 'lane', length: 40, width: 2.4 }, windup: 1.2, active: 2.5, recover: 1.6, cooldown: 7, range: 60, damage: 10,
-    tags: ['creature.skyManta', 'cover.exempt'], motion: { speed: MANTA.diveSpeed, track: 'lead', overshoot: 8 }, eligibility: { maxDy: 2.6 }, weight: () => 1 },
+  { id: 'farReach.manta.dive', shape: { kind: 'sphere', radius: 2.6 }, windup: 1.2, active: 2.5, recover: 1.6, cooldown: 7, range: 60, damage: 10,
+    tags: ['creature.skyManta', 'cover.exempt'], motion: { speed: MANTA.diveSpeed, track: 'lead', overshoot: 8 }, weight: () => 1 },
 ];
 export type MantaState = 'circle' | 'dive' | 'rise';
 
@@ -26,10 +25,10 @@ export class MantaBrain extends CreatureBrain<MantaState> {
   readonly strikes = new StrikeRunner(); readonly flight: MantaFlight; private calmFor: number = MANTA.grace;
   private readonly body: StrikeActor;
   constructor(actor: Animal) {
-    super(actor, ['circle', 'dive', 'rise']); actor.driven = true;
+    super(actor, ['circle', 'dive', 'rise']);
     this.flight = new MantaFlight(actor.position.x, actor.position.z, MANTA.cruise);
     const flight = this.flight;
-    this.body = { position: flight.pos, get alive() { return actor.alive; }, scale: actor.scale, get yaw() { return flight.yaw; },
+    this.body = { position: actor.position, get alive() { return actor.alive; }, scale: actor.scale, get yaw() { return actor.yaw; },
       startAttack: (seconds) => { actor.startAttack(seconds); }, cancelAttack: () => { actor.cancelAttack(); },
       setMotion: (yaw, speed) => { flight.yaw = yaw; flight.speed = speed; } };
   }
@@ -52,31 +51,38 @@ export class MantaBrain extends CreatureBrain<MantaState> {
   }
   override act(ctx: ThinkCtx): void {
     const a = this.actor, f = this.flight, dt = ctx.dt;
-    if (!a.alive) { f.falling = true; f.pos.y -= 9 * dt; f.flap = 0; this.pose(a); return; }
+    f.pos.copy(a.position);
+    if (!a.alive) { f.falling = true; f.flap = 0; this.pose(a); return; }
     this.strikes.update(dt, this.context(ctx));
+    let altitude = f.pos.y;
+    let speed: number = MANTA.circleSpeed;
     if (this.state === 'dive') {
       const phase = this.strikes.state;
-      if (phase === 'windup') { f.pos.y += 1.5 * dt; f.flap = 1; }
+      if (phase === 'windup') { altitude += 1.5 * dt; speed = 0; f.flap = 1; }
       else if (phase === 'active') {
-        f.pos.x += Math.sin(f.yaw) * f.speed * dt; f.pos.z += Math.cos(f.yaw) * f.speed * dt; f.flap = 0.1;
-        const low = ctx.player.y + MANTA.hitHeight; f.pos.y += (low - f.pos.y) * Math.min(1, dt * 2.6);
+        speed = f.speed; f.flap = 0.1;
+        altitude = ctx.player.y + MANTA.hitHeight;
       } else { this.transition('rise'); }
     } else if (this.state === 'rise') {
-      f.flap = 0.9; f.pos.y = Math.min(MANTA.cruise, f.pos.y + MANTA.riseSpeed * dt);
-      f.pos.x += Math.sin(f.yaw) * MANTA.glide * dt; f.pos.z += Math.cos(f.yaw) * MANTA.glide * dt;
+      f.flap = 0.9; altitude = MANTA.cruise; speed = MANTA.glide;
       const toHome = Math.atan2(MANTA_HOME.x - f.pos.x, MANTA_HOME.z - f.pos.z); f.yaw = turn(f.yaw, toHome, 1.2 * dt);
       if (f.pos.y >= MANTA.cruise - 0.5) { f.angle = Math.atan2(f.pos.x - MANTA_HOME.x, f.pos.z - MANTA_HOME.z); this.transition('circle'); }
     } else {
       f.flap = 0.4; f.angle += MANTA.circleSpeed / MANTA.circleR * dt;
       const tx = MANTA_HOME.x + Math.sin(f.angle) * MANTA.circleR, tz = MANTA_HOME.z + Math.cos(f.angle) * MANTA.circleR, ty = MANTA.cruise + Math.sin(ctx.t * 0.4) * 1.5;
       const want = Math.atan2(tx - f.pos.x, tz - f.pos.z); f.yaw = turn(f.yaw, want, 1.5 * dt);
-      f.pos.x += Math.sin(f.yaw) * MANTA.circleSpeed * dt; f.pos.z += Math.cos(f.yaw) * MANTA.circleSpeed * dt; f.pos.y += (ty - f.pos.y) * Math.min(1, dt);
+      altitude = ty;
     }
-    if (f.knock.lengthSq() > 1e-4) { f.pos.addScaledVector(f.knock, dt); f.knock.multiplyScalar(Math.max(0, 1 - dt * 3)); }
+    if (f.knock.lengthSq() > 1e-4) {
+      const vx = Math.sin(f.yaw) * speed + f.knock.x, vz = Math.cos(f.yaw) * speed + f.knock.z;
+      f.yaw = Math.atan2(vx, vz); speed = Math.hypot(vx, vz); altitude += f.knock.y * dt;
+      f.knock.multiplyScalar(Math.max(0, 1 - dt * 3));
+    }
+    ctx.flight.steer(a, f.yaw, speed, altitude, 20);
     f.bank += ((this.state === 'circle' ? -0.35 : 0) - f.bank) * Math.min(1, dt * 3);
     this.pose(a);
   }
-  private pose(a: Animal): void { const f = this.flight; a.position.copy(f.pos); a.yaw = f.yaw; a.speed = this.state === 'dive' ? f.speed : MANTA.circleSpeed; a.mem['flap'] = f.flap; a.mem['bank'] = f.bank; }
+  private pose(a: Animal): void { const f = this.flight; a.mem['flap'] = f.flap; a.mem['bank'] = f.bank; }
 }
 function turn(from: number, to: number, max: number): number {
   let d = to - from; while (d > Math.PI) d -= Math.PI * 2; while (d < -Math.PI) d += Math.PI * 2;
@@ -86,6 +92,7 @@ function turn(from: number, to: number, max: number): number {
 const brains = new WeakMap<Animal, MantaBrain>();
 export const mantaBrain = (a: Animal): MantaBrain => { let value = brains.get(a); if (!value) { value = new MantaBrain(a); brains.set(a, value); } return value; };
 export const SKY_MANTA: SpeciesRow = { id: 'farReach.creature.skyManta', kind: 'skyManta', label: STRINGS.manta, aggressive: true, blood: false,
+  flight: { altitude: MANTA.cruise, above: 'world', climbRate: MANTA.riseSpeed, diveRate: 40 },
   variants: [{ id: 'drift', label: STRINGS.manta, weight: 1, rarity: 'common', scale: [1, 1], hp: 70 }],
   think: (a, ctx) => { mantaBrain(a).think(ctx); }, act: (a, ctx) => { mantaBrain(a).act(ctx); } };
 

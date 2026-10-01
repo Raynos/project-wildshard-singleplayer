@@ -162,6 +162,7 @@ export { loadQuest } from './quest/contentApi';
 
 // Hunting simulation rows and their separate rendering adapters (E357 S2.3).
 export { deriveSpecies, type SpeciesRow, type SpeciesVariant } from './ai/species';
+export type { SpeciesFlight } from './ai/flight';
 export { speciesWithLook, type SpeciesLook, type CreatureHull, type EyeSpot } from './entities/species/look';
 export { registerSpecies, speciesDef, variantDef, hasSpecies, type SpeciesDef, type VariantDef, type AnimalSpecies, type BoneDef } from './entities/species/registry';
 export type { HuntTuning } from './entities/AnimalManager';

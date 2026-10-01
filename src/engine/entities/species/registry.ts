@@ -5,6 +5,7 @@ import type { Rng } from '../../core/rng';
 import type { DamageRequest } from '../../combat/pipeline';
 import type { HuntTuning } from '../AnimalManager';
 import type { Animal, AnimalState } from '../Animal';
+import type { SpeciesFlight } from '../../ai/flight';
 
 /**
  * Species registry — the pluggable contract every huntable species implements.
@@ -162,6 +163,8 @@ export interface ThinkCtx {
   /** the manager's steering with trunk / edge / slope avoidance (sets the animal's motion) — on a shard that sets
    *  `AnimalManager.navSteer` (Nalati), round what the navmesh walls off */
   steer: (a: Animal, yaw: number, speed: number, turnRate: number) => void;
+  /** Air steering: height uses the species' flight.above reference, without ground/nav avoidance. */
+  flight: { steer: (a: Animal, yaw: number, speed: number, altitude: number, turnRate?: number) => void };
   /** the heading toward (tx, tz) along the navmesh (the next corner of a path, re-planned when the goal moves > 2 m or
    *  every `every` s); the straight heading without one */
   pathYaw: (a: Animal, tx: number, tz: number, every?: number) => number;
@@ -221,6 +224,7 @@ export interface FurStyle {
 }
 
 export interface SpeciesDef {
+  flight?: SpeciesFlight;
   /** Render contract: procedural generators keep their own timing and gameplay state. */
   rigContract: RigContract;
   /** 'deer' | 'boar' | 'bear' | … — the Animal.kind string, also the HerdPlan.kind */

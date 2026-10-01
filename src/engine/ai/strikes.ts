@@ -12,7 +12,8 @@ export type StrikeShape =
   | { kind: 'lane'; length: number; width: number }
   | { kind: 'ring'; inner: number; outer: number }
   | { kind: 'wedge'; length: number; halfAngle: number }
-  | { kind: 'point'; radius: number; exclusive?: boolean };
+  | { kind: 'point'; radius: number; exclusive?: boolean }
+  | { kind: 'sphere'; radius: number };
 export interface StrikeContext {
   readonly actor: StrikeActor; readonly target: BrainPoint;
   readonly airborne?: boolean;
@@ -35,6 +36,7 @@ export type StrikePhase = 'idle' | 'windup' | 'active' | 'recover' | 'cooldown';
 const PHASES = { idle: {}, windup: {}, active: {}, recover: {}, cooldown: {} };
 const distance = (a: BrainPoint, b: BrainPoint): number => Math.hypot(b.x - a.x, b.z - a.z);
 const wrap = (angle: number): number => Math.atan2(Math.sin(angle), Math.cos(angle));
+const laneMotion = (spec: StrikeSpec): boolean => spec.shape.kind === 'lane' || (spec.shape.kind === 'sphere' && spec.motion?.track === 'lead');
 
 /** One simulation clock, with presentation supplied by the owning creature's view. */
 export class StrikeRunner {
@@ -57,7 +59,8 @@ export class StrikeRunner {
   pick(specs: readonly StrikeSpec[], ctx: StrikeContext): StrikeSpec | null {
     let best: StrikeSpec | null = null, score = -Infinity; this.scores.length = 0;
     for (const spec of specs) {
-      if ((this.deadlines.get(spec.id) ?? 0) > this.clock || distance(ctx.actor.position, ctx.target) > spec.range) continue;
+      const reach = spec.shape.kind === 'sphere' ? Math.hypot(ctx.target.x - ctx.actor.position.x, ctx.target.y - ctx.actor.position.y, ctx.target.z - ctx.actor.position.z) : distance(ctx.actor.position, ctx.target);
+      if ((this.deadlines.get(spec.id) ?? 0) > this.clock || reach > spec.range) continue;
       const value = spec.weight(ctx); if (!Number.isFinite(value)) continue;
       this.scores.push({ id: spec.id, score: value });
       if (value > score) { best = spec; score = value; }
@@ -68,7 +71,7 @@ export class StrikeRunner {
     this.current = spec; this.elapsed = 0; this.hit = false; this.speedMul = speedMul;
     this.x0 = actor.position.x; this.z0 = actor.position.z;
     const dx = target.x - this.x0, dz = target.z - this.z0, d = Math.hypot(dx, dz) || 1;
-    this.length = spec.shape.kind === 'lane' ? (spec.motion?.track === 'lead' ? d : spec.shape.length) + (spec.motion?.overshoot ?? 0) : 0;
+    this.length = laneMotion(spec) ? (spec.motion?.track === 'lead' ? d : spec.shape.kind === 'lane' ? spec.shape.length : d) + (spec.motion?.overshoot ?? 0) : 0;
     this.x1 = this.x0 + dx / d * this.length; this.z1 = this.z0 + dz / d * this.length;
     this.yaw = Math.atan2(dx, dz); this.hfsm.transition('windup'); actor.startAttack(spec.windup);
   }
@@ -85,21 +88,21 @@ export class StrikeRunner {
     this.elapsed += dt; const a = ctx.actor;
     if (!a.alive) { this.cancel(); a.cancelAttack(); return; }
     if (this.state === 'windup') {
-      if (spec.shape.kind === 'lane') a.setMotion(this.yaw, 0, 6);
+      if (laneMotion(spec)) a.setMotion(this.yaw, 0, 6);
       if (this.elapsed >= spec.windup) { this.phase('active'); a.cancelAttack(); }
       return;
     }
     if (this.state === 'active') {
-      if (spec.shape.kind === 'lane') a.setMotion(this.yaw, (spec.motion?.speed ?? 0) * this.speedMul, 0.35);
+      if (laneMotion(spec)) a.setMotion(this.yaw, (spec.motion?.speed ?? 0) * this.speedMul, 0.35);
       if (!this.hit && this.elapsed >= (spec.motion?.delay ?? 0)) this.hit = this.contact(spec, ctx);
-      if (spec.shape.kind === 'lane') {
+      if (laneMotion(spec)) {
         const along = ((a.position.x - this.x0) * (this.x1 - this.x0) + (a.position.z - this.z0) * (this.z1 - this.z0)) / (this.length * this.length);
         if (along >= 1 || this.elapsed > this.length / Math.max(1, (spec.motion?.speed ?? 0) * this.speedMul) + 1.2) this.phase('recover');
       } else if (this.elapsed >= spec.active) this.phase('recover');
       return;
     }
     if (this.state === 'recover') {
-      if (spec.shape.kind === 'lane') a.setMotion(a.yaw, 0, 1.5);
+      if (laneMotion(spec)) a.setMotion(a.yaw, 0, 1.5);
       if (this.elapsed >= (spec.motion?.skid ?? spec.recover)) {
         this.deadlines.set(spec.id, this.clock + spec.cooldown);
         if (spec.cooldown > 0) this.phase('cooldown'); else this.cancel();
@@ -120,6 +123,7 @@ export class StrikeRunner {
   }
   private containsShape(shape: StrikeShape, spec: StrikeSpec, ctx: StrikeContext, d: number, scale: number, origin: BrainPoint): boolean {
     const { actor: a, target: p } = ctx;
+    if (shape.kind === 'sphere') return Math.hypot(p.x - origin.x, p.y - origin.y, p.z - origin.z) <= shape.radius * scale;
     if (shape.kind === 'lane') {
       if (d >= spec.range * scale) return false;
       const dx = this.x1 - this.x0, dz = this.z1 - this.z0, len2 = dx * dx + dz * dz;

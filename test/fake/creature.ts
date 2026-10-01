@@ -3,15 +3,17 @@ import { Animal } from '#engine/entities/Animal';
 import { AnimalFactory } from '#engine/entities/AnimalFactory';
 import { speciesDef, type ThinkCtx, type EnemyWorld } from '#engine/entities/species/registry';
 import { Rng } from '#engine/core/rng';
+import type { SpeciesFlight } from '#engine/ai/flight';
 import { fakeWorld } from './world';
 
 /** Actual legacy brain, attack clock and body; flat arena decisions are isolated from steering/terrain. */
-export function creature(kind: string, variant: string, world: EnemyWorld = {}): ReturnType<typeof fakeWorld> & {
+export function creature(kind: string, variant: string, world: EnemyWorld = {}, flight?: SpeciesFlight): ReturnType<typeof fakeWorld> & {
   animal: Animal; ctx: ThinkCtx; hits: { frame: number; damage: number }[]; sounds: string[];
   starts: { frame: number; duration: number }[]; states: string[]; readonly frame: number; advance: (n: number) => void;
 } {
   const f = fakeWorld(), factory = new AnimalFactory(f.sky, { style: 'toon', render: { lowPoly: true, waitForModels: false, furRim: false, tintRange: 0.3, oneMaterial: true } });
-  const model = factory.model(kind, variant), animal = new Animal(factory.instantiate(model, 0.5), model, 0.5);
+  const original = factory.model(kind, variant), model = flight === undefined ? original : { ...original, species: { ...original.species, flight } };
+  const animal = new Animal(factory.instantiate(model, 0.5), model, 0.5);
   animal.place(0, 0, 0);
   const hits: { frame: number; damage: number }[] = [], sounds: string[] = [], states: string[] = [];
   const starts: { frame: number; duration: number }[] = [];
@@ -22,6 +24,7 @@ export function creature(kind: string, variant: string, world: EnemyWorld = {}):
     herd: null, world, hurt: (damage) => { hits.push({ frame, damage }); }, sound: (s) => { sounds.push(s); },
     heightAt: () => 0, waterLevel: () => 0,
     steer: (a, yaw, speed, turn) => { a.setMotion(yaw, speed, turn); },
+    flight: { steer: (a, yaw, speed, altitude, turn) => { a.fly(yaw, speed, altitude, turn); } },
     pathYaw: (a, x, z) => Math.atan2(x - a.position.x, z - a.position.z), confine: () => undefined,
     reach: () => true, claim: () => true, mayAttack: () => true,
   };

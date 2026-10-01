@@ -187,10 +187,16 @@ A creature is two rows plus, usually, a brain ([ENGINE.md §19](ENGINE.md#19-cre
    that call your brain. Simulation only: no three.js beyond math.
 2. **A `SpeciesLook`**: `species`, `kind`, `rig`, `rigContract` (skeleton, sockets, clips), `build()`, `animate()`.
 3. **A brain**: `class MyBrain extends CreatureBrain<'idle' | 'fight'>` with `think` (decisions) and `act` (the body).
-4. **Strikes as data**: `StrikeSpec` rows with a shape (`arc`, `lane`, `ring`, `wedge`, `point`), timings, damage,
+4. **Strikes as data**: `StrikeSpec` rows with a shape (`arc`, `lane`, `ring`, `wedge`, `point`, `sphere`), timings, damage,
    tags and a utility `weight`. A `StrikeRunner` picks and runs them on the body clock.
 5. **Register** in `kit`: `ctx.rows.species([...])`, `ctx.rows.speciesLook([...])`. List the kind in
    `manifest.species`.
+
+**A flying creature** adds `flight: { altitude: 17, above: 'ground', climbRate: 7, diveRate: 28 }` to its species.
+Its `act` calls `ctx.flight.steer(animal, yaw, speed, altitude, turnRate?)`; the engine owns position and samples
+the ground at about 5 Hz. `above: 'world'` uses absolute altitude over islands or a void; ground-relative flight
+also falls back to world altitude without a floor within 200 metres. Use `sphere` for actual 3-D strike contact,
+and animate bones rather than writing `position`, `driven` or `yOffset`.
 
 A kit species (`BOAR`, `BEAR` and their looks) needs no code: register the rows. Spread a row to add a variant:
 `{ ...BOAR, variants: [...BOAR.variants, { id: 'greyback', … }] }`.

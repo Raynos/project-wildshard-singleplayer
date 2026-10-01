@@ -9,6 +9,8 @@ import { heightAt } from '../world/Heightfield';
 import { variantMods, type AnimalDims, type AnimalKind, type AnimalModel, type AnimalRig, type Rarity, type VariantMods, type RigAnimCtx } from './AnimalFactory';
 import { app, gameplayRandom } from '../app/runtime';
 import type { Actor, DamageRequest } from '../combat/pipeline';
+import { FlightMotion } from '../ai/flight';
+import { floorBelow } from '../physics/query';
 
 /**
  * Animal — one animal instance (any registered species): procedural skeletal animation + health.
@@ -119,6 +121,7 @@ const _want = { x: 0, y: 0, z: 0 };
 const combatActors = new WeakMap<Animal, Actor>();
 
 export class Animal {
+  private readonly flight: FlightMotion | null;
   /** Only the parity probe sets this: the selected target skips its AI and motor. */
   harnessHold = false;
   kind: AnimalKind;
@@ -217,6 +220,7 @@ export class Animal {
 
   constructor(rig: AnimalRig, model: AnimalModel, seed: number, scale = 1) {
     this.kind = model.kind;
+    this.flight = model.species.flight === undefined ? null : new FlightMotion(model.species.flight);
     const v = model.variantDef;
     this.variant = v.id; this.rarity = v.rarity; this.label = v.label || model.species.label;
     this.aggressive = model.species.aggressive ?? false;
@@ -261,6 +265,8 @@ export class Animal {
   /** place on the ground, facing `yaw` */
   place(x: number, z: number, yaw: number): void {
     this.position.set(x, heightAt(x, z), z);
+    const flight = this.model.species.flight;
+    if (flight !== undefined) this.position.y = flight.altitude + (flight.above === 'world' ? 0 : this.position.y);
     this.groundY = this.position.y;
     this.yaw = this.desiredYaw = yaw;
     this.mesh.position.copy(this.position);
@@ -269,6 +275,11 @@ export class Animal {
 
   setMotion(desiredYaw: number, desiredSpeed: number, turnRate = 2.5): void {
     this.desiredYaw = desiredYaw; this.desiredSpeed = desiredSpeed; this.turnRate = turnRate;
+  }
+  /** Public flight command; the species must declare its flight body. */
+  fly(yaw: number, speed: number, altitude: number, turnRate = 2.5): void {
+    if (this.flight === null) throw new Error('Species must declare flight before flying');
+    this.flight.target(altitude); this.setMotion(yaw, speed, turnRate);
   }
   /** lateral desired speed, m/s, + = the animal's left (the crab sidesteps around you) */
   setStrafe(mps: number): void { this.desiredStrafe = mps; }
@@ -488,7 +499,7 @@ export class Animal {
 
     // near the player the move goes through the physics body (PHYSICS P6): walls, rocks, trunks, the player and other
     // animals stop it — the walk, the charge and a knock-back alike
-    if (this.motor !== null && this.alive && !this.driven) {
+    if (this.motor !== null && this.alive && !this.driven && this.flight === null) {
       const dx = this.position.x - x0, dz = this.position.z - z0;
       if (dx !== 0 || dz !== 0) {
         this.position.x = x0; this.position.z = z0;
@@ -501,7 +512,13 @@ export class Animal {
     }
 
     // ground follow (smoothed so bumps in the heightfield don't jitter the body)
-    if (!this.driven) {
+    if (this.flight !== null) {
+      this.flight.step(dt, this.position, this.alive, (x, z, fromY, maxDrop) => {
+        const physics = app.physics;
+        return physics === null ? heightAt(x, z) : floorBelow(physics, x, z, fromY, maxDrop);
+      });
+      this.groundY = this.position.y;
+    } else if (!this.driven) {
       const gy = heightAt(this.position.x, this.position.z);
       this.groundY += (gy - this.groundY) * Math.min(1, dt * 12);
       this.position.y = this.groundY + this.yOffset;
