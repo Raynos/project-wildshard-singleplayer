@@ -39,13 +39,14 @@ with zero engine edits. The API gaps it hit are in `docs/tasks/asks/E363.md`.
 
 ## Budgets
 
-Phone 30 fps (9.6 ms CPU), desktop 60 (4.8 ms), no `ceilings`. Draws: ground 1, sky 1, tower 2 (+3 flames when lit),
-ray 1, whip 4. The ground is 201² vertices.
+Phone 30 fps (9.6 ms CPU), desktop 60 (4.8 ms), no `ceilings`. Draws: ground 1, sky 1, tower 2 (+4 flames when lit),
+ray 1, whip 5 (with its depth clear). The ground is 169² vertices over 420 m.
 
 ## Look
 
-Realistic dusk. The sun is set: the key light is the glow's last skylight, 4° up from the west-south-west, so the crest
-faces that look at the tower catch warm light and the far faces fall into the hemisphere's indigo. No LUT yet.
+Realistic dusk. The sun is set: the key light is the glow's last skylight, ~16° up from the west, so the west faces of
+the ridges catch warm light and the east faces fall into the hemisphere's indigo; the sky is a narrow orange band under
+indigo with the first stars. No LUT yet. `__wildshard.shard.sunscarLight` ({ DUSK, LIGHT, BAND }) tunes it live.
 
 ## Captures
 
