@@ -1,0 +1,436 @@
+{
+  "before": "20fcbf54745913fecd7696d993d012401aebab75",
+  "after": "432101a8d32f88a5524782baeaa8f95d8b9c9b85",
+  "clock": "raf",
+  "commands": {
+    "before": "scripts/browser-lane.sh --max 15 node scripts/parity.mjs --export=20fcbf54745913fecd7696d993d012401aebab75 --lane=m5 --shards=pine-hollow --tiers=phone --only=walk+combat+leak --out=/private/tmp/e357-s21b/before-walk",
+    "after": "scripts/browser-lane.sh --max 15 node scripts/parity.mjs --export=432101a8d32f88a5524782baeaa8f95d8b9c9b85 --lane=m5 --shards=pine-hollow --tiers=phone --only=fingerprint+poses+walk+combat+leak --out=/private/tmp/e357-s21b/after4-pine"
+  },
+  "physics": {
+    "before": {
+      "fixed": 0,
+      "kinematic": 10,
+      "dynamic": 0,
+      "colliders": 2417
+    },
+    "after": {
+      "fixed": 0,
+      "kinematic": 10,
+      "dynamic": 0,
+      "colliders": 2417
+    },
+    "exact": true
+  },
+  "renderMemory": {
+    "before": {
+      "geometries": 227,
+      "textures": 404
+    },
+    "after": {
+      "geometries": 227,
+      "textures": 404
+    },
+    "exact": true
+  },
+  "gpuBytes": {
+    "before": {
+      "textures": 567729880,
+      "renderbuffers": 0,
+      "buffers": 41667444,
+      "total": 609397324
+    },
+    "after": {
+      "textures": 567729880,
+      "renderbuffers": 0,
+      "buffers": 41667444,
+      "total": 609397324
+    },
+    "exact": true
+  },
+  "poses": [
+    {
+      "name": "gate",
+      "ssim": 0.9990727243609726,
+      "full": 0.9990202155914796,
+      "masked": 0.086
+    },
+    {
+      "name": "cabin",
+      "ssim": 0.9990616649641048,
+      "full": 0.9991188792283527,
+      "masked": 0.063
+    },
+    {
+      "name": "pond",
+      "ssim": 0.9977719253994152,
+      "full": 0.9978300797306946,
+      "masked": 0.026
+    }
+  ],
+  "walk": {
+    "cabin-porch": {
+      "exactGameplay": true,
+      "end": {
+        "x": -10.388,
+        "y": 3.833,
+        "z": -34.359
+      },
+      "traceSamples": 1340,
+      "traceSha256": "b74eaf6ac0d02959146dcd68e444db9a2f10cfd336b304f0890052bdb9c7f25d",
+      "stuck": []
+    },
+    "lookout-climb": {
+      "exactGameplay": true,
+      "end": {
+        "x": 34.926,
+        "y": 57.477,
+        "z": 211.28
+      },
+      "traceSamples": 348,
+      "traceSha256": "dc6f098bece46da209b3fe88681389d15147c4b2a68a0ae2e9bb5d6d011cc1c4",
+      "stuck": []
+    },
+    "creek-bridge": {
+      "exactGameplay": true,
+      "end": {
+        "x": -135.826,
+        "y": 1.473,
+        "z": -5.323
+      },
+      "traceSamples": 225,
+      "traceSha256": "ea2256f4c332704a4d83ef603a93d52c55d6abc8fa565047fc977dd9f5dd1573",
+      "stuck": []
+    }
+  },
+  "combat": {
+    "exact": true,
+    "before": {
+      "swing": "n/a",
+      "shot": {
+        "weapon": "crossbow",
+        "target": "boar",
+        "hits": 3,
+        "hitWithinS": 0.5693333333333044,
+        "killed": true,
+        "killWithinS": 4.409333333333095,
+        "hitLimit": 20,
+        "killLimit": 20
+      },
+      "shot2": {
+        "weapon": "bow",
+        "target": "boar",
+        "hits": 3,
+        "hitWithinS": 1.4693333333332532,
+        "killed": true,
+        "killWithinS": 4.375999999999763,
+        "hitLimit": 20,
+        "killLimit": 20
+      },
+      "hitsToKill": {
+        "shot": 3,
+        "shot2": 3
+      },
+      "kills": [
+        "boar",
+        "boar"
+      ],
+      "loot": {
+        "written": [
+          "local:wildshard.save.v2.global",
+          "local:wildshard.save.v2.pine-hollow",
+          "session:wildshard.save.v2.session"
+        ]
+      },
+      "sounds": {
+        "event": {
+          "land": 1,
+          "footstep:litter": 1,
+          "crossbowFire": 3,
+          "animal:boar_squeal": 6,
+          "animal:boar_grunt": 2,
+          "hitMarker": 6,
+          "boltImpact:flesh": 6,
+          "dryFire": 2,
+          "reload": 3,
+          "kill": 2,
+          "pineSfx:longbowDraw": 3,
+          "pineSfx:longbowLoose": 3
+        },
+        "ambient": [
+          "forest.thrall"
+        ]
+      }
+    },
+    "after": {
+      "swing": "n/a",
+      "shot": {
+        "weapon": "crossbow",
+        "target": "boar",
+        "hits": 3,
+        "hitWithinS": 0.5693333333333044,
+        "killed": true,
+        "killWithinS": 4.409333333333095,
+        "hitLimit": 20,
+        "killLimit": 20
+      },
+      "shot2": {
+        "weapon": "bow",
+        "target": "boar",
+        "hits": 3,
+        "hitWithinS": 1.4693333333332532,
+        "killed": true,
+        "killWithinS": 4.375999999999763,
+        "hitLimit": 20,
+        "killLimit": 20
+      },
+      "hitsToKill": {
+        "shot": 3,
+        "shot2": 3
+      },
+      "kills": [
+        "boar",
+        "boar"
+      ],
+      "loot": {
+        "written": [
+          "local:wildshard.save.v2.global",
+          "local:wildshard.save.v2.pine-hollow",
+          "session:wildshard.save.v2.session"
+        ]
+      },
+      "sounds": {
+        "event": {
+          "land": 1,
+          "footstep:litter": 1,
+          "crossbowFire": 3,
+          "animal:boar_squeal": 6,
+          "animal:boar_grunt": 2,
+          "hitMarker": 6,
+          "boltImpact:flesh": 6,
+          "dryFire": 2,
+          "reload": 3,
+          "kill": 2,
+          "pineSfx:longbowDraw": 3,
+          "pineSfx:longbowLoose": 3
+        },
+        "ambient": [
+          "forest.thrall"
+        ]
+      }
+    }
+  },
+  "pause": {
+    "beforeDiff": [],
+    "afterDiff": []
+  },
+  "leak": {
+    "beforeCensus": {
+      "geometries": 0,
+      "textures": 0,
+      "programs": 0,
+      "bodies": 0,
+      "colliders": 0,
+      "listeners": {
+        "window": 0,
+        "document": 0,
+        "canvas": 0,
+        "other": 0
+      },
+      "timers": {
+        "timeouts": 0,
+        "intervals": 0,
+        "raf": 0
+      },
+      "audio": {
+        "activeVoices": 0,
+        "beds": 0,
+        "buses": 0
+      },
+      "systems": {
+        "input": 0,
+        "fixed": {
+          "pre": 0,
+          "step": 0,
+          "post": 0
+        },
+        "update": 0,
+        "late": 0,
+        "render": 0
+      },
+      "events": {
+        "listeners": 0,
+        "answerers": 3
+      },
+      "dom": {
+        "hud": 0,
+        "body": 0
+      },
+      "sceneObjects": 0
+    },
+    "afterCensus": {
+      "geometries": 0,
+      "textures": 0,
+      "programs": 0,
+      "bodies": 0,
+      "colliders": 0,
+      "listeners": {
+        "window": 0,
+        "document": 0,
+        "canvas": 0,
+        "other": 0
+      },
+      "timers": {
+        "timeouts": 0,
+        "intervals": 0,
+        "raf": 0
+      },
+      "audio": {
+        "activeVoices": 0,
+        "beds": 0,
+        "buses": 0
+      },
+      "systems": {
+        "input": 0,
+        "fixed": {
+          "pre": 0,
+          "step": 0,
+          "post": 0
+        },
+        "update": 0,
+        "late": 0,
+        "render": 0
+      },
+      "events": {
+        "listeners": 0,
+        "answerers": 5
+      },
+      "dom": {
+        "hud": 0,
+        "body": 0
+      },
+      "sceneObjects": 0
+    },
+    "scopedResidue": {
+      "geometries": 0,
+      "materials": 0,
+      "textures": 0,
+      "renderTargets": 0,
+      "meshes": 0,
+      "resources": 0,
+      "bodies": 0,
+      "sounds": 0,
+      "listeners": 0,
+      "timers": 0,
+      "rafs": 0,
+      "disposers": 0,
+      "systems": 0,
+      "colliders": 0,
+      "nodes": 0
+    }
+  },
+  "limitations": [
+    "432 checkpoint proves original regression corrections, not all later integrated source.",
+    "Pond tris +8863 after restoring elite update order; pose SSIM passes.",
+    "Walk event sounds differ: ranger bark variant and async voice/bed sampling; ambient sets exact.",
+    "after6(3e02) all-four boot capture uses new P1 accelerated default; its images/resource census are not comparable to pre-S2 RAF baseline. Use --clock=raf for final direct parity.",
+    "R1 owner (Opus) owns newer Pine mesh/skinned/resource changes per lead. Final source parity still required."
+  ],
+  "laterBoots": {
+    "driftwood-isle": {
+      "errors": [],
+      "steps": [
+        "renderer",
+        "sky",
+        "terrain",
+        "cards",
+        "forest",
+        "physics",
+        "edge",
+        "grass",
+        "cabins",
+        "props",
+        "animals",
+        "weapon",
+        "menu",
+        "shaders",
+        "firstFrame",
+        "audio"
+      ],
+      "stepsExact": true,
+      "sha": "3e02f0a08887727a580a51b7ab2904bab3efe108",
+      "clock": "accelerated"
+    },
+    "nalati-grasslands": {
+      "errors": [],
+      "steps": [
+        "renderer",
+        "sky",
+        "terrain",
+        "cards",
+        "forest",
+        "physics",
+        "edge",
+        "grass",
+        "cabins",
+        "props",
+        "animals",
+        "weapon",
+        "menu",
+        "shaders",
+        "firstFrame",
+        "audio"
+      ],
+      "stepsExact": true,
+      "sha": "3e02f0a08887727a580a51b7ab2904bab3efe108",
+      "clock": "accelerated"
+    },
+    "nine-dragon-stack": {
+      "errors": [],
+      "steps": [
+        "renderer",
+        "sky",
+        "terrain",
+        "cards",
+        "forest",
+        "physics",
+        "edge",
+        "grass",
+        "cabins",
+        "props",
+        "animals",
+        "weapon",
+        "menu",
+        "shaders",
+        "firstFrame",
+        "audio"
+      ],
+      "stepsExact": true,
+      "sha": "3e02f0a08887727a580a51b7ab2904bab3efe108",
+      "clock": "accelerated"
+    },
+    "pine-hollow": {
+      "errors": [],
+      "steps": [
+        "renderer",
+        "sky",
+        "terrain",
+        "cards",
+        "forest",
+        "physics",
+        "edge",
+        "grass",
+        "cabins",
+        "props",
+        "animals",
+        "weapon",
+        "menu",
+        "shaders",
+        "firstFrame",
+        "audio"
+      ],
+      "stepsExact": true,
+      "sha": "3e02f0a08887727a580a51b7ab2904bab3efe108",
+      "clock": "accelerated"
+    }
+  }
+}

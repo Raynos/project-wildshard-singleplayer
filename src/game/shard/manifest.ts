@@ -1,4 +1,4 @@
-import type { MinimapPalette, LookReplaceContext, TreeFactory, Ktx2Table, LevelSpec, EngineMechanism, TierOverrides, BootSpec, LoadoutSpec, LookStrategy, ExploreSpec } from '#engine';
+import type { MinimapPalette, LookReplaceContext, TreeFactory, Ktx2Table, LevelSpec, EngineMechanism, TierOverrides, BootSpec, LoadoutSpec, LookStrategy, ExploreSpec, WaterBody } from '#engine';
 import type { ShardSlug } from './shards.generated';
 import type { ShardPlugin } from './plugin';
 /**
@@ -396,7 +396,7 @@ export interface ChunkHorizon { rings: HorizonRing[]; cloudSea: boolean }
  * on the wreck), or the Nalati kit (`src/shards/nalati-grasslands/weapons/nalatiKit.ts`: bow · sabre · spear). 'sword' and 'nalati' are the
  * melee shards (`meleeShard`): telegraphed charges on an arc, the hurt arc + trauma shake.
  */
-export type ChunkWeapon = 'crossbow' | 'sword' | 'nalati';
+export type ChunkWeapon = 'crossbow' | 'sword' | 'custom';
 /** the optional pieces of the ONE base HUD a shard switches on (E154) — the layout, the controls and the status column are
  *  every shard's; a shard's own rows / discs come in through src/engine/ui/hudSlots.ts from its own modules */
 export interface ChunkHud {
@@ -404,7 +404,7 @@ export interface ChunkHud {
   dayBadge?: boolean;
 }
 /** a shard whose weapons are melee-first (Driftwood's swords, Nalati's sabre / spear): AnimalManager's telegraphed charges, the hurt arc */
-export const meleeShard = (def: { weapon?: ChunkWeapon | undefined }): boolean => def.weapon === 'sword' || def.weapon === 'nalati';
+export const meleeShard = (def: { weapon?: ChunkWeapon | undefined }): boolean => def.weapon === 'sword' || def.weapon === 'custom';
 /**
  * What one enemy hit takes off the player's 100 health on this shard: the hit's own damage, capped at `ShardManifest.maxHitDamage`
  * when the shard sets one (E294: Driftwood caps every hit at 20, so any common enemy needs ~5 hits to kill you). Falls and
@@ -453,8 +453,8 @@ export interface ShardManifest {
   card: { thumb: string; portrait: string; landscape: string };
   /** landscape terrain, a structure-first world, or both; every shard supplies at least one */
   ground: {
-    paths?: 'plugin'; terrain: ChunkTerrain; structures?: true | ChunkStructures }
-    | { paths?: 'plugin'; terrain?: ChunkTerrain; structures: true | ChunkStructures };
+    paths?: 'plugin'; terrain: ChunkTerrain; structures?: true | ChunkStructures; water?: readonly WaterBody[] }
+    | { paths?: 'plugin'; terrain?: ChunkTerrain; structures: true | ChunkStructures; water?: readonly WaterBody[] };
   /** the PBR ground's texture sets; omitted by a shard that loads none (the low-poly Driftwood, E318) */
   assets?: ChunkAssets;
   assetGlobs?: readonly string[];
