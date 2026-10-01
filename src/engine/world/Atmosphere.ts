@@ -64,7 +64,12 @@ export const paintedAir = {
   /** the field's drift (uv), advanced along the wind */
   fogCloudOff: { value: new THREE.Vector2(0, 0) },
 };
-let painted = false;
+/**
+ * A shard's own fog uniforms (its `LookStrategy.fog` install adds them — Nalati's painted air): `attachFogUniforms` hands
+ * every set to every fogged material, by reference (a set filled in later still reaches the programs compiled after).
+ */
+const fogExtras: Record<string, THREE.IUniform>[] = [];
+export function addFogUniforms(set: Record<string, THREE.IUniform>): void { if (!fogExtras.includes(set)) fogExtras.push(set); }
 
 /** cloud cover 0 (clear) … 1 (overcast) and shadow strength — the weather's knob (defaults ≈ 0.4, 0.66) */
 export function setCloudCover(cover: number, strength = paintedAir.fogCloud.value.z): void {
@@ -74,14 +79,13 @@ export function setCloudCover(cover: number, strength = paintedAir.fogCloud.valu
 }
 
 let installed = false;
-/** `painterly` (the active chunk's `style === 'painterly'`): the painted air below replaces the default fog maths */
-export function installAtmosphere(painterly = false, policy: { edgeHaze?: boolean; wetSurfaces?: boolean } = {}): void {
+/** the engine's fog chunks (slot 100); a shard's own fog (`LookStrategy.fog`) is installed after it (Game.buildSky) */
+export function installAtmosphere(policy: { edgeHaze?: boolean; wetSurfaces?: boolean } = {}): void {
   if (installed) return;
   installed = true;
   // Pine Hollow's slab edge haze (fogEdge): only its fog chunk carries it, every other shard's source stays byte-for-byte
   const edge = policy.edgeHaze === true;
   pineWeather = policy.wetSurfaces === true;
-  painted = painterly;
 
   THREE.ShaderChunk.fog_pars_vertex = /* glsl */`
     #ifdef USE_FOG
@@ -159,7 +163,6 @@ export function installAtmosphere(painterly = false, policy: { edgeHaze?: boolea
       uniform float uWet;
     #endif`;
   }
-  if (painterly) installPaintedAir();
 
   // Inject the shared uniform objects into every material that compiles with fog.
   const proto = THREE.Material.prototype as unknown as { onBeforeCompile: (s: THREE.WebGLProgramParametersWithUniforms) => void };
@@ -169,61 +172,9 @@ export function installAtmosphere(painterly = false, policy: { edgeHaze?: boolea
 export function attachFogUniforms(shader: { uniforms: Record<string, THREE.IUniform> }): void {
   for (const k of Object.keys(fogUniforms) as (keyof typeof fogUniforms)[]) shader.uniforms[k] = fogUniforms[k];
   if (pineWeather) for (const k of Object.keys(weatherUniforms) as (keyof typeof weatherUniforms)[]) shader.uniforms[k] = weatherUniforms[k];
-  if (painted) for (const k of Object.keys(paintedAir) as (keyof typeof paintedAir)[]) shader.uniforms[k] = paintedAir[k];
+  for (const set of fogExtras) for (const k of Object.keys(set)) { const u = set[k]; if (u !== undefined) shader.uniforms[k] = u; }
   // the low-poly shard's toon lighting (stylize.ts) rides the same hook: every fogged material already calls this
   if (isStylized()) for (const k of Object.keys(toonUniforms) as (keyof typeof toonUniforms)[]) shader.uniforms[k] = toonUniforms[k];
-}
-
-/** the painterly fog chunks (aerial perspective + the cloud-shadow function the sun loop calls — see `paintedAir`) */
-function installPaintedAir(): void {
-  THREE.ShaderChunk.fog_pars_fragment = /* glsl */`
-    #ifdef USE_FOG
-      uniform vec3 fogColor;
-      uniform vec3 fogSunDir;
-      uniform vec3 fogSunColor;
-      uniform float fogHeight;
-      uniform float fogHeightFalloff;
-      uniform float fogHeightDensity;
-      uniform float fogDistDensity;
-      uniform vec4 fogAerial;
-      uniform sampler2D fogCloudTex;
-      uniform vec4 fogCloud;
-      uniform vec2 fogCloudOff;
-      varying float vFogDepth;
-      varying vec3 vFogWorldPos;
-      #define P_CLOUDS 1
-      // the sun's share left by the drifting cloud cover at this fragment (1 = clear sky above)
-      float pCloudShadow() {
-        vec2 uv = vFogWorldPos.xz * fogCloud.x + fogCloudOff;
-        float c = texture2D( fogCloudTex, uv ).r * 0.72 + texture2D( fogCloudTex, uv * 2.3 + vec2( 0.37, 0.61 ) ).r * 0.28;
-        return 1.0 - fogCloud.z * smoothstep( fogCloud.y - fogCloud.w, fogCloud.y + fogCloud.w, c );
-      }
-    #endif`;
-
-  THREE.ShaderChunk.fog_fragment = /* glsl */`
-    #ifdef USE_FOG
-      {
-        vec3 ray = vFogWorldPos - cameraPosition;
-        float rayLen = length( ray );
-        vec3 viewDir = ray / max( rayLen, 1e-3 );
-        // the valley's height haze, integrated along the ray (as the default fog)
-        float dy = vFogWorldPos.y - cameraPosition.y;
-        float camF = exp( - fogHeightFalloff * ( cameraPosition.y - fogHeight ) );
-        float ht = fogHeightFalloff * dy;
-        float integ = abs( ht ) > 1e-3 ? ( 1.0 - exp( - ht ) ) / ht : 1.0;
-        float heightAmt = fogHeightDensity * camF * integ * rayLen;
-        // aerial perspective: clear air for fogAerial.x m, then layered haze up to the cap (a storm lifts the cap)
-        float cap = mix( fogAerial.y, 1.0, smoothstep( 0.0025, 0.012, fogDistDensity ) );
-        float aer = cap * ( 1.0 - exp( - max( rayLen - fogAerial.x, 0.0 ) * fogDistDensity ) );
-        float f = clamp( 1.0 - ( 1.0 - aer ) * exp( - heightAmt ), 0.0, 1.0 );
-        float sunAmt = max( dot( viewDir, fogSunDir ), 0.0 );
-        vec3 haze = mix( fogColor, fogSunColor * dot( fogColor, vec3( 0.3333 ) ) * 1.15, pow( sunAmt, 5.0 ) * fogAerial.w );
-        // the painter's order: distance takes the saturation first, then the value dissolves into the sky
-        float lum = dot( gl_FragColor.rgb, vec3( 0.2126, 0.7152, 0.0722 ) );
-        gl_FragColor.rgb = mix( gl_FragColor.rgb, vec3( lum ), min( 1.0, f * 1.6 ) * fogAerial.z );
-        gl_FragColor.rgb = mix( gl_FragColor.rgb, haze, f );
-      }
-    #endif`;
 }
 
 /**
@@ -233,7 +184,7 @@ function installPaintedAir(): void {
  * Call after the CSM exists (Sky.build). Painterly shards only.
  */
 export function patchCloudShadows(): void {
-  if (!painted) return;
+  if (!isPaintedAir()) return;
   const chunk = THREE.ShaderChunk.lights_fragment_begin;
   if (chunk.includes('pCloudShadow')) return;
   const hook = (call: string): string => `${call}\n\t\t#ifdef P_CLOUDS\n\t\tdirectLight.color *= pCloudShadow();\n\t\t#endif`;
@@ -243,7 +194,7 @@ export function patchCloudShadows(): void {
 }
 
 /** a painterly shard's air is installed (the chunk's style decided it at boot) */
-export function isPaintedAir(): boolean { return painted; }
+export function isPaintedAir(): boolean { return fogExtras.includes(paintedAir); }
 
 // ─── underwater (the eye below the sea surface — Player.submerged) ───
 // The same fog, retuned: no height term, a dense distance term (half the light gone by ~12 m), a deep teal-green

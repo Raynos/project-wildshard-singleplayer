@@ -10,6 +10,9 @@ import type { LevelContext } from '../level/context';
 import type { Tier } from '../core/tier';
 import type { LevelSpec } from '../level/spec';
 import type { VolumetricsEffect } from '../core/Volumetrics';
+import type { Group, Object3D } from 'three';
+import type { Terrain } from '../world/Terrain';
+import type { Forest } from '../world/forest/Forest';
 
 export interface EngineEffects {
   ao: N8AOPostPass | null;
@@ -30,17 +33,25 @@ export interface EngineEffects {
   order: Effect[];
 }
 
-export interface LookComposeContext {
+/** what a `mode: 'replace'` compose gets: the engine built no chain, so there are no engine effects to hand over */
+export interface LookReplaceContext {
   app: App;
   scope: Scope;
   debug: LevelContext['debug'];
   renderer: WebGLRenderer;
   scene: Scene;
   camera: PerspectiveCamera;
+  /** the engine's one composer (HalfFloat, `multisampling` from the tier's `msaa` knob), still empty */
   composer: EffectComposer;
   tier: Tier;
+}
+
+export interface LookComposeContext extends LookReplaceContext {
   fx: EngineEffects;
 }
+
+/** a `mode: 'replace'` composition: the whole chain, in order (01 §13.1; Nalati's painterly composer) */
+export interface LookChain { chain: Pass[] }
 
 export interface LookComposition {
 
@@ -55,15 +66,47 @@ export interface LookComposition {
   afterChain?: Pass[];
 }
 
-export interface LookStrategy {
-  backdrop?: SkyBackdropFactory;
+/**
+ * A shard's fog patch (01 §13.2's ordered `fog_fragment` slots: engine fog 100, stylize 200, a shard's fog 300). The
+ * engine runs `install()` once, after its own `installAtmosphere()` and before the sky builds or anything compiles.
+ */
+export interface FogModel { order: number; install: () => void }
 
-  compose: (c: LookComposeContext) => LookComposition;
+/** a shard's own ground: it builds the terrain's mesh(es) into `t.group` and sets `t.mesh` / `t.material` (Terrain.build) */
+export interface TerrainPainter { build: (t: Terrain) => Promise<void> }
+
+/** what a `GrassDriver` builds: its group goes in the scene, `update` runs every frame from the engine's Grass */
+export interface GrassLayer { group: Group | Object3D; update: (dt: number, playerPos: Vector3) => void }
+/** a shard's own grass in place of the engine's carpet (Grass.build) */
+export interface GrassDriver { build: (sky: Sky, forest: Forest) => GrassLayer }
+
+interface LookParts {
+  backdrop?: SkyBackdropFactory;
 
   frame?: (dt: number, t: number) => void;
 
   dispose?: () => void;
+
+  fog?: FogModel;
+
+  terrainPainter?: TerrainPainter;
+
+  grass?: GrassDriver;
 }
+
+/** 'extend' (the default): the shard's passes go in slots around the engine's chain */
+export interface ExtendLook extends LookParts {
+  mode?: 'extend';
+  compose: (c: LookComposeContext) => LookComposition;
+}
+
+/** 'replace': the shard's compose builds the whole chain; the engine adds exactly its passes to its one composer */
+export interface ReplaceLook extends LookParts {
+  mode: 'replace';
+  compose: (c: LookReplaceContext) => LookChain;
+}
+
+export type LookStrategy = ExtendLook | ReplaceLook;
 
 
 export interface SkyBackdropTargets {
