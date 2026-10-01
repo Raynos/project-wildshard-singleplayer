@@ -94,7 +94,7 @@ export interface ExplorePane {
 function homeView(world: World): { pos: THREE.Vector3; look: THREE.Vector3 } {
   const s = world.chunk.spawn, fx = -Math.sin(s.yaw), fz = -Math.cos(s.yaw);
   // a built floor (ShardManifest.spawn.y, a structure-first shard) stands in for the ground
-  const ground = Math.max(s.y ?? heightAt(s.x, s.z), world.chunk.ocean?.level ?? -Infinity);
+  const ground = Math.max(s.y ?? heightAt(s.x, s.z), app.world.water.level ?? -Infinity);
   const up = world.forest.trees.length > 0 ? 42 : 26;
   return { pos: new THREE.Vector3(s.x - fx * 12 - fz * 12, ground + up, s.z - fz * 12 + fx * 12), look: new THREE.Vector3(s.x + fx * 150, ground + 4, s.z + fz * 150) };
 }

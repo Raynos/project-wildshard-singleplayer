@@ -18,6 +18,7 @@
  * again on the way out if three released them) — an explorer-only stall, never in play.
  */
 import * as THREE from 'three';
+import { app } from '../app/runtime';
 import type { World } from '../core/bootstrap';
 import { heightAt } from '../world/Heightfield';
 import { FatLines, LID_RIM, OUTLINE } from './fatLines';
@@ -150,7 +151,7 @@ export class Diorama {
   enter(bounds: THREE.Box3, keep: readonly THREE.Object3D[]): DioramaVolume {
     this.exit();
     const { game, chunk } = this.world;
-    const sea = chunk.ocean?.level ?? -Infinity;
+    const sea = app.world.water.level ?? -Infinity;
     const built = chunk.spawn.y !== undefined; // a structure-first shard (Nine Dragon): its ground is what it built, not heightAt
     const ground = (x: number, z: number): number => (built ? bounds.min.y : Math.max(heightAt(x, z), sea));
     const vol = dioramaVolume(bounds, ground, built);

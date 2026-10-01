@@ -3,11 +3,10 @@ import type { Events } from '../events/events';
 import { dodgeFx, dodgeEnv } from './dodge';
 import * as THREE from 'three';
 import { heightAt, pondMask, waterLevel, streamAt } from '../world/Heightfield';
-import { getActiveChunk } from '#game/shard/registry';
+import { app } from '../app/runtime';
 import { Hoverboard } from './Hoverboard';
 import { WaterLine } from './WaterLine';
 import { setUnderwater, updateUnderwater } from '../world/Atmosphere';
-import { waveHeight } from '../world/waves';
 import { getNumber } from '../ui/Settings';
 import { lockOn, targetRadius } from './AimTargets';
 import { addLockOffset } from './LockOnTarget';
@@ -247,8 +246,8 @@ export class Player {
   /** water surface height at (x, z): the shard's ocean if it has one, else the pond where the basin mask is set, else running
    *  water (Pine Hollow's creek, PH-L9), else null */
   waterSurfaceAt(x: number, z: number): number | null {
-    const ocean = getActiveChunk().ocean;
-    if (ocean) return ocean.level;
+    const sea = app.world.water.sea;
+    if (sea) return sea.level;
     return pondMask(x, z) > 0 ? waterLevel() : streamAt(x, z);
   }
 
@@ -558,7 +557,8 @@ export class Player {
         } else {
           const climbing = this.climbTo !== null;
           // the open sea: ride the Ocean's own Gerstner swell (DRIFTWOOD-REMASTER W3); the pond keeps its gentle sine bob
-          const bob = getActiveChunk().ocean ? waveHeight(this.position.x, this.position.z) : Math.sin(this.waveTime * 1.4) * 0.05 + Math.sin(this.waveTime * 2.3 + 1.0) * 0.02;
+          const sea = app.world.water.sea;
+          const bob = sea ? sea.surfaceAt(this.position.x, this.position.z) - sea.level : Math.sin(this.waveTime * 1.4) * 0.05 + Math.sin(this.waveTime * 2.3 + 1.0) * 0.02;
           const floatY = ws - FLOAT_DEPTH + bob;
           if (climbing) this.diving = false;
           if (!climbing && (this.diving || this.diveHeld)) {

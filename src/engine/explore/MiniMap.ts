@@ -11,6 +11,7 @@
  */
 import * as THREE from 'three';
 import type { World } from '../core/bootstrap';
+import { app } from '../app/runtime';
 import { CHUNK_HALF } from '../core/config';
 import { heightAt, normalAt } from '../world/Heightfield';
 import { fogUniforms } from '../world/Atmosphere';
@@ -112,8 +113,8 @@ export class MiniMap {
 
   /** the land above the sea (sampled on a 64² grid), the pins and the spawn, squared with a margin; a shard with no sea is all land */
   private frame(): { x: number; z: number; half: number } {
-    const sea = this.world.chunk.ocean?.level;
-    if (sea === undefined) return { x: 0, z: 0, half: CHUNK_HALF };
+    const sea = app.world.water.level;
+    if (sea === null) return { x: 0, z: 0, half: CHUNK_HALF };
     let x0 = Infinity, z0 = Infinity, x1 = -Infinity, z1 = -Infinity;
     const add = (x: number, z: number, r = 0): void => { x0 = Math.min(x0, x - r); x1 = Math.max(x1, x + r); z0 = Math.min(z0, z - r); z1 = Math.max(z1, z + r); };
     const N = 64;
@@ -217,7 +218,7 @@ export class MiniMap {
   private relief(g: CanvasRenderingContext2D): void {
     this.canvas.width = RES; this.canvas.height = RES;
     const img = g.createImageData(RES, RES), d = img.data;
-    const sea = this.world.chunk.ocean?.level ?? -Infinity;
+    const sea = app.world.water.level ?? -Infinity;
     for (let j = 0; j < RES; j++) for (let i = 0; i < RES; i++) {
       const [x, z] = this.fromMap((i + 0.5) / RES, (j + 0.5) / RES);
       const h = heightAt(x, z), [nx, ny, nz] = normalAt(x, z);
@@ -235,7 +236,7 @@ export class MiniMap {
 
   private flyToPoi(p: ChunkPoi): void {
     const r = p.r ?? 14;
-    const ground = Math.max(heightAt(p.x, p.z), this.world.chunk.ocean?.level ?? -Infinity);
+    const ground = Math.max(heightAt(p.x, p.z), app.world.water.level ?? -Infinity);
     const look = new THREE.Vector3(p.x, ground + r * 0.2, p.z);
     // come in from the side the camera is already on, a little above
     const cam = this.world.game.camera.position;
@@ -248,14 +249,14 @@ export class MiniMap {
   }
 
   private flyOver(x: number, z: number): void {
-    const ground = Math.max(heightAt(x, z), this.world.chunk.ocean?.level ?? -Infinity);
+    const ground = Math.max(heightAt(x, z), app.world.water.level ?? -Infinity);
     this.close();
     this.explore.flyTo(new THREE.Vector3(x, ground + 30, z - 30), new THREE.Vector3(x, ground, z));
   }
 
   private home(): void {
     const s = this.world.chunk.spawn;
-    const y = Math.max(heightAt(s.x, s.z), this.world.chunk.ocean?.level ?? -Infinity) + 3;
+    const y = Math.max(heightAt(s.x, s.z), app.world.water.level ?? -Infinity) + 3;
     const fwd = new THREE.Vector3(-Math.sin(s.yaw), 0, -Math.cos(s.yaw));
     this.close();
     this.explore.flyTo(new THREE.Vector3(s.x, y + 2, s.z), new THREE.Vector3(s.x + fwd.x * 40, y, s.z + fwd.z * 40));
