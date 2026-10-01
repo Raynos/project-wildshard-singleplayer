@@ -1,7 +1,8 @@
+import { buildTerrain } from '#engine/data';
 import type { ShardManifest } from '#game';
 import { STRINGS } from './strings';
 import { BUDGETS } from './budgets';
-import { DECK, ROOST, SPAWN, WINDMILL } from './layout';
+import { DECK, ROOST, SPAWN, TRAIL, VOID_Y, WINDMILL } from './layout';
 import { SKY_CARD } from './thumbs/card';
 import { EXPLORE } from './explore/art';
 import { bootFiles, bootSources } from './boot/files';
@@ -12,7 +13,9 @@ export const SKY_REACH: ShardManifest = {
   card: { thumb: SKY_CARD, portrait: SKY_CARD, landscape: SKY_CARD },
   style: 'skyReach', kitLook: 'toon', weapon: 'custom', treeCount: 0, trees: { factory: 'none', noun: 'pines' },
   // A built world: every island and bridge is a registry piece (world/build.ts); the void under them is the cloud sea.
-  ground: { structures: true, paths: 'plugin' },
+  // `structures: true` alone fails the boot ("No terrain for far-reach", API gap round 4 #2), so a flat terrain far
+  // below the void stands in: with `structures` set it gets no collider (ENGINE §5a) and the look's painter draws nothing.
+  ground: { structures: true, paths: 'plugin', terrain: buildTerrain(6417, { landscape: () => VOID_Y, trails: TRAIL, cabinSites: [] }) },
   spawn: { x: SPAWN.x, y: DECK + 1, z: SPAWN.z, yaw: SPAWN.yaw }, bounds: { x0: -110, x1: 110, z0: -110, z1: 60, floor: DECK - 18 },
   world: { killY: DECK - 24 },
   horizon: { rings: [], cloudSea: true }, boundary: { visible: false },

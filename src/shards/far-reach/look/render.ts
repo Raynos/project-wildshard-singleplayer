@@ -50,5 +50,7 @@ export function skyReachLook(): LookStrategy {
         bind: () => undefined, update: (dt: number) => { clock.update(dt); sky.setKeyLight(SUN_DIR, key, 2.3); },
         rebuild: () => undefined, attachPost: () => undefined });
     },
+    // The ground is the islands (registry pieces); the stand-in terrain under the void is never drawn.
+    terrainPainter: { build: () => Promise.resolve() },
   };
 }
