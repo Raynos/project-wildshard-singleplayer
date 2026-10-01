@@ -11,13 +11,13 @@ import { array, get, object, string } from './value.mjs';
 
 // Same SHA, observers, poses and frame/input trajectories; only callback pacing changes. No repo baselines written.
 const root = resolve(import.meta.dirname, '../..');
-const opts = Object.fromEntries(process.argv.slice(2).map((arg) => arg.replace(/^--/, '').split('=')));
+/** @type {Record<string,string|undefined>} */ const opts = Object.fromEntries(process.argv.slice(2).map((arg) => arg.replace(/^--/, '').split('=')));
 const sha = opts.export ?? '', jobs = Number(opts.jobs ?? 3), tiers = (opts.tiers ?? 'phone,desktop').split(',');
 if (!/^[a-f0-9]{40}$/.test(sha) || !Number.isInteger(jobs) || jobs < 1 || jobs > 8 || tiers.some((tier) => !['phone', 'desktop'].includes(tier))) throw new Error('usage: prove-speed --export=<full SHA> [--jobs=3] [--tiers=phone,desktop] [--out=<dir>]');
 const out = resolve(opts.out ?? `/tmp/wildshard-speed-proof-${sha.slice(0,7)}`); mkdirSync(out, { recursive: true });
 const started = performance.now(), exported = await cachedTree(root, sha), preview = await serve(exported.tree, sha, true), pool = browserPool(root, jobs, 'metal');
 /** @type {Record<string,number|boolean>} */ const timings = { cacheHit: exported.hit, buildMs: performance.now() - started };
-const shards = opts.shards ? opts.shards.split(',') : shardFolders(exported.tree);
+/** @type {string[]} */ const shards = opts.shards ? opts.shards.split(',') : shardFolders(exported.tree);
 const pairs = shards.flatMap((shard) => tiers.map((tier) => ({ shard, tier })));
 /** @type {Map<string,import('./value.mjs').RecordValue[]>} */ const records = new Map();
 try {
