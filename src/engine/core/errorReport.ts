@@ -18,6 +18,19 @@
  */
 import { describeError } from './faults';
 import { shell } from './shardScope';
+import { captureBrowserError, type BrowserErrorTags } from '../telemetry/browserErrors';
+
+export interface LoadFailure {
+  readonly kind: string;
+  readonly context: Record<string, ContextValue>;
+  readonly tags: BrowserErrorTags;
+  readonly name: string;
+  readonly build: string;
+  readonly stage: string;
+  readonly message: string;
+  readonly stack: string;
+}
+
 
 export const REPORTS_MAX = 10;
 export const QUEUE_MAX = 10;
@@ -204,3 +217,18 @@ export function safeUrl(href: string): string {
     return u.toString().slice(0, 500);
   } catch { return ''; }
 }
+
+/** Fatal level loads use the existing durable inbox queue and the configured Sentry channel. */
+export function reportError(failure: LoadFailure): Promise<ReportOutcome> {
+  const error = new Error(failure.message);
+  error.stack = failure.stack;
+  captureBrowserError(error, failure.tags);
+  const storage = (name: 'localStorage' | 'sessionStorage'): Storage | null => { try { return globalThis[name]; } catch { return null; } };
+  const reporter = new ErrorReporter({
+    send: sendReport, session: storage('sessionStorage'), local: storage('localStorage'),
+    context: () => failure.context,
+    now: () => performance.now(),
+  });
+  return reporter.report(failure.kind, error, { fatal: true });
+}
+

@@ -5,7 +5,7 @@ import { _applyChunkConstants } from '#engine/core/config';
 import { onScopeDispose } from '#engine/core/shardScope';
 
 export { SHARDS } from './shards.generated';
-export const SHARD_API = 1;
+export { SHARD_API } from './api';
 export const DEFAULT_SHARD = 'driftwood-isle';
 export const playable = (manifest: ShardManifest): boolean => manifest.status === 'live' || manifest.status === 'earlyAccess';
 

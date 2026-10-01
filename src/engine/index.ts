@@ -14,3 +14,4 @@ export { ownAudioSource } from './audio/ownership';
 export { ambientTick } from './core/harnessTap';
 export { retainCachedResources } from './app/cachedAssets';
 export type { Ktx2Table } from './boot/gpuFiles';
+export type { LoadFailure } from './core/errorReport';

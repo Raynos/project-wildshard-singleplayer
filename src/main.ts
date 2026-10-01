@@ -1,6 +1,8 @@
+import { reportError } from '#engine/core/errorReport';
+import { showLoadFailure } from '#engine/ui/errorScreen';
 import { app } from '#engine/app/runtime';
 import { pageSeed } from '#engine';
-import { legacyShardId, meleeShard, hitDamage } from '#game/shard/manifest';
+import { legacyShardId, meleeShard, hitDamage, type ShardManifest } from '#game/shard/manifest';
 import { installProbe } from '#engine/debug/probe';
 import { tap } from '#engine/core/harnessTap';
 import * as THREE from 'three';
@@ -105,7 +107,7 @@ import { bootFetches, prefetch, prefetchAfter, whenPrefetched } from '#engine/bo
 import { packFor, streamPack } from '#engine/boot/pack';
 import { startShardPrefetch } from '#engine/boot/shardPrefetch';
 import { getActiveChunk } from '#game/shard/registry';
-import { prepareShardAssets } from '#game/shard/load';
+import { runShardLoad, withShardHooks, type LoadStage, prepareShardAssets } from '#game/shard/load';
 import { registerGpuFiles } from '#engine/boot/gpuFiles';
 import { Audio } from '#engine/audio/Audio';
 import { Music } from '#engine/audio/Music';
@@ -150,7 +152,7 @@ import { consumeArenaArrival, setShardSwitcher } from '#game/travel/switch';
 import { consumeTitleArrival, type TitleArrival } from '#engine/boot/titleArrival';
 import { setAliveSource } from '#engine/boot/lastEnd';
 import { beginNineExploreEntry, recordNineBootCheckpoint, markNineBootContextLost, markNineBootHandledError } from '#engine/boot/nineBootTrace';
-import { asShell, withScopeOwner } from '#engine/core/shardScope';
+import { currentScope, disposeScope, asShell, withScopeOwner } from '#engine/core/shardScope';
 import { isDev } from '#engine/core/devMode';
 
 // live animal positions for the compass, reused buffers (no per-frame allocations in the update loop)
@@ -169,6 +171,8 @@ installErrorModal(); // before anything can throw
  * AudioContext; each shard's own Audio is its world's sound). The loader, the service worker, the error modal and the
  * decoded audio / art caches (src/engine/boot/extras.ts) are page-wide by themselves.
  */
+declare const __BUILD_ID__: string;
+
 const shell: { music: Music | null } = { music: null };
 /** the page's shard host (main() makes it): each shard's GPU recovery asks it whether that shard is parked */
 let hostRef: ShardHost | null = null;
@@ -214,10 +218,23 @@ async function main() {
  * One shard's world, built in the page (the first at page load, the others when the deck asks — src/engine/shard/ShardHost.ts).
  * This was the whole of main() when a page held one shard; it still is that boot, step for step.
  */
-async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
+function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
+  const manifest = getActiveChunk();
+  const scope = currentScope();
+  return runShardLoad(manifest, (stage) => withShardHooks(manifest, stage, () => buildShardWorld(slug, first, manifest, stage)), {
+    build: __BUILD_ID__,
+    dispose: () => {
+      if (app.render !== null) app.render.hold = true;
+      if (scope !== null) disposeScope(scope);
+    },
+    report: reportError,
+    show: (failure) => { bootFatalShown = true; showLoadFailure(failure); },
+  });
+}
+
+async function buildShardWorld(slug: string, first: boolean, manifest: ShardManifest, stage: LoadStage): Promise<ShardWorld> {
   const loading = new Loading();
   app.setState('loading');
-  const manifest = getActiveChunk();
   if (manifest.slug !== slug) throw new Error(`buildShard: ${slug} is not the active chunk`);
   // The boot plan: DOWNLOAD = bytes read / bytes declared, SETUP = weighted steps (src/engine/boot/plan.ts).
   // Declared bytes come from the chunk's file list; every /assets fetch is counted on its way in.
@@ -225,7 +242,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   // preload swaps it for an in-memory blob: that one would not survive a recovery reload)
   const brand = (): void => { resumeScreen().brand(getActiveChunk().slug.split('-').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' '), getActiveChunk().card.portrait); };
   brand();
-  await prepareShardAssets(manifest, registerGpuFiles);
+  await stage('ktx2', () => prepareShardAssets(manifest, registerGpuFiles));
   const files = bootFiles(getActiveChunk()); // + the title / explore art and every audio file (project/archive/2026-09-23-preload-offline.md)
   useShardSteps(getActiveChunk().slug); // the shard's own loading nouns + weights (src/engine/boot/steps.ts)
   const bootSteps: Record<string, number> = {}; // each step's wall ms (the host's timings: what a build / rebuild spends where)
@@ -234,7 +251,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   // a boot that throws shows WHY: the loading panel's foot line + the uncaught-exception modal (src/engine/ui/ErrorModal.ts)
   window.addEventListener('unhandledrejection', (e) => plan.fail(`BOOT FAILED · ${String((e.reason as { message?: string } | null | undefined)?.message ?? e.reason)}`.slice(0, 300)));
   window.addEventListener('error', (e) => plan.fail(`BOOT FAILED · ${e.message} @ ${e.filename.split('/').pop()}:${e.lineno}`.slice(0, 300)));
-  const step: StepRunner = (key, work) => plan.step(key, work).then((p) => p.value);
+  const step: StepRunner = (key, work) => stage(key, () => plan.step(key, work).then((p) => p.value));
   // let the service worker take control first (≤ 2.5 s, never fatal) so the first visit's bytes are cached (a shard built
   // later in the page finds it long settled)
   if (first) await window.__ws_sw?.ready;
@@ -511,8 +528,9 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   // the shard's models, for Explore World's catalog and tap-to-select (src/engine/explore/registry.ts: a shard registers what it built);
   // Driftwood's are on the model contract (E315 M1: `place` registers them)
   // the core fields' copies drawn as the shard's models (ShardManifest.fieldModels, E349: Pine Hollow's trees and forest-floor kinds, E315 M2)
-  if (fieldModels) (await fieldModels)({ sky, renderer: game.renderer, forest, under, registry });
-  void listShardModels({ roster: chunk.roster, style: chunk.style, sky, renderer: game.renderer, animals: () => animals.animals, registry }); // every shard's live models in its Model Explorer (E315 M5): the shared training dummy, its creatures (its species list, alive now or not), people and gear
+  if (fieldModels) await stage('fieldModels', async () => { (await fieldModels)({ sky, renderer: game.renderer, forest, under, registry }); });
+  const roster = await stage('roster', () => chunk.roster?.());
+  await stage('roster', () => listShardModels({ roster: roster === undefined ? undefined : () => Promise.resolve(roster), style: chunk.style, sky, renderer: game.renderer, animals: () => animals.animals, registry })); // every shard's live models in its Model Explorer (E315 M5): the shared training dummy, its creatures (its species list, alive now or not), people and gear
   const dayNight = sky.dayNight; // the low-poly shard's clock (DayNight.ts, D3): the sailor walks at night, the shrine glows, the jungle swaps to crickets
   if (dayNight) animals.enemyWorld.night = () => dayNight.night;
   // the day clock behind one interface (src/engine/world/WorldClock.ts, NALATI-MERGE F8): Driftwood's DayNight or Nalati's DayClock —
