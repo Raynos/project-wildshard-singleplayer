@@ -33,8 +33,9 @@ status, which blocks nothing (decision 28′).
 node scripts/parity.mjs [source] [--lane=m5|gh-macos15] [--shards=a,b|all] [--tiers=phone,desktop]
                         [--record [--runs=3]] [--rebaseline=<slug>] [--accept=<ids>] [--pending-fill=<ids>]
                         [--pending=<file>] [--retry=1] [--plant=<id>] [--prove [--only=green|<plant id>]]
+                        [--fast] [--jobs=N] [--changed=<paths>] [--base=<sha>] [--clock=fast|raf]
                         [--offline] [--full] [--ms] [--angle=metal] [--out=<dir>] [--timeout=240]
-  source (one of): --export=<sha>  git archive <sha> → a temp dir, node_modules symlinked, vite build, vite preview
+  source (one of): --export=<sha>  P1: one cached runtime-tree export/build, node_modules symlinked, vite preview
                    --url=<origin>  a server already running (the gate job, the nightly)
 ```
 
@@ -50,7 +51,7 @@ node scripts/parity.mjs [source] [--lane=m5|gh-macos15] [--shards=a,b|all] [--ti
   `progress/` or `docs/`. So a runner's `blob:none` checkout never fetches the 2.3 GB of `art/` and `progress/`
   blobs one by one, and an m5 export stays small. An export has no `.git`, so its build runs with
   `VERCEL_GIT_COMMIT_SHA=<sha>` set, which `vite.config.ts:16-17` reads before `git rev-parse`: its `version.json`
-  and `boot.sha` name the SHA (C3-11).
+  and `boot.sha` name the SHA (C3-11). P1 reuses the compiled build stamp on a runtime-cache hit; `boot.sha` still names the requested comparison SHA, and its baseline metadata is freshly exported from that SHA.
 - **Baselines come from the target SHA, harness code from HEAD (R2-31).** A run compares against the baselines,
   rename maps and plants in the target SHA's `test/parity/` (inside the export, or the runner's checkout of that SHA),
   while the harness code (`scripts/parity.mjs`, `scripts/parity/`, `scripts/gpu-gate/`, `scripts/types/`) runs from
@@ -79,6 +80,12 @@ node scripts/parity.mjs [source] [--lane=m5|gh-macos15] [--shards=a,b|all] [--ti
 
 - Default `--lane=m5`, `--shards` = every shard in the registry (today the 4; from Z1 also `_template`; `all` says
   the same explicitly), `--tiers=phone`, `--retry=1`.
+- **P1 execution:** `--jobs=N` defaults to currently free machine-wide browser slots (1…8); each persistent browser holds its own lane slot. Compare = one capture; record = three concurrent captures per shard × tier. One immutable export/build is shared by all captures.
+- **P1 build cache:** `~/.cache/wildshard-parity/<runtime-tree>/tree/dist` is atomically published under a process-owned lock; identical exported build inputs reuse it. Harness/baseline/document-only changes do not invalidate the runtime key; target-SHA baselines, plants, renames and quarantine always come from a fresh metadata export. Plants use a private uncached tree.
+- **P1 capture clock:** simulation stays fixed at 30 Hz, with exact frame barriers; a harness-only MessageChannel rAF driver supplies frames as fast as GPU/task throughput permits. `--clock=fast` explicitly enables acceleration; native `raf` remains the default until the all-four-shard old/new proof is green (lead steer, P1). Timed pause coverage uses 60 callback frames; touch holds, poses, walks and combat use game frames/time. Wall time bounds infrastructure failures only; frame timing remains information.
+- **P1 `--fast` (Jake's batch steer):** compare two selected shards, phone only, one run, first pose observed. Changed shard folders rank first, then shared engine/game/kit files reachable through the shard import graph; rotating tie-break pairs cover all four across consecutive batches. `--changed=a,b` supplies the batch paths; otherwise use `git diff <merge-base(origin/main,sha)> <sha>` (override with `--base`). Print both shards and reasons, and write `selection.json`. Omitted pose observations still execute their exact pose/frame trajectory before gameplay, so gate walk/combat/pause/leak fields keep milestone semantics. Target ≤10 minutes including build; full profiles remain mandatory for milestone records.
+- **P1 timing evidence:** `timings.json` separates cache/build and each capture, and each run writes phase timing + raw captures. Information fields and diagnostic paths never alter the comparison classes.
+- **P1 save observer:** preserve reads and mixed/gameplay envelope writes; skip only writes whose changed SaveStore keys are all `telemetry.*` or the two previously excluded keys renamed by F10 (`life.alive`, `err.queue`).
 - **The two commands the plan runs (R1-10; 12 §5).** Per commit: `node scripts/parity.mjs --export=<sha>
   --shards=<changed> --tiers=phone` against the lane's baselines (`<sha>` = that commit's, captured at commit time;
   `<changed>` = the shards whose folders the commit touches, or `all` for an engine / game / kit commit); a subagent

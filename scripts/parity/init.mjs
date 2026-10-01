@@ -1,12 +1,15 @@
 /// <reference path="./init.d.mts" />
+import { installFrameDriver } from './clock.mjs';
+import { telemetryOnlyWrite } from './saves.mjs';
 import { GL_INIT } from './glbytes.mjs';
 import { installResources } from './resources.mjs';
 
 /** All observations are installed before boot, using scorecard's RNG and GPU byte hooks.
  * @param {import('playwright').BrowserContext} context
- * @param {{lane:string,sha:string,browser:string,capture?:number|null}} meta */
+ * @param {{lane:string,sha:string,browser:string,capture?:number|null,accelerated?:boolean}} meta */
 export async function installInit(context, meta) {
   await context.addInitScript(GL_INIT);
+  await context.addInitScript(`window.__parityTelemetryOnly = (${telemetryOnlyWrite.toString()});`);
   await context.addInitScript(({lane,sha,browser,capture}) => {
     let seed = 0x2545f491;
     Math.random = () => { seed = (seed + 0x6d2b79f5) >>> 0; let t = seed; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
@@ -17,11 +20,11 @@ export async function installInit(context, meta) {
     const name = (storage,key) => `${storage === localStorage ? 'local' : 'session'}:${key}`;
     // Telemetry keys are not saves: the error-report queue is read only when a report is pending, the heartbeat on a
     // wall-clock timer (13 B26). They stay out of the save fingerprint; every real save key is still recorded.
+    const w = window;
     const telemetry = new Set(['wsErrQueue','ws.alive']);
     Storage.prototype.getItem = function getItem(key) { if (!telemetry.has(key)) saves.read.push(name(this,key)); return rawGet.call(this,key); };
-    Storage.prototype.setItem = function setItem(key,value) { if (!telemetry.has(key)) saves.written.push(name(this,key)); rawSet.call(this,key,value); };
+    Storage.prototype.setItem = function setItem(key,value) { if (!telemetry.has(key) && !w.__parityTelemetryOnly(rawGet.call(this,key),value,key)) saves.written.push(name(this,key)); rawSet.call(this,key,value); };
     Storage.prototype.removeItem = function removeItem(key) { if (!telemetry.has(key)) saves.written.push(name(this,key)); rawRemove.call(this,key); };
-    const w = window;
     w.__wildshardHarness = {seed:0x2545f491,capture:capture ?? null,lane,sha,browser,errors,saves,audioRequests,gpuBytes:()=> {
       const gl = w.__sc_gl();
       const textures = gl.reduce((sum,r)=>sum+r.texBytes,0), renderbuffers=gl.reduce((sum,r)=>sum+r.rbBytes,0), buffers=gl.reduce((sum,r)=>sum+r.bufBytes,0);
@@ -49,5 +52,6 @@ export async function installInit(context, meta) {
     window.addEventListener('unhandledrejection',(e)=>{errors.push(String(e.reason));});
     console.error=new Proxy(console.error,{apply(target,self,args){errors.push(args.map(String).join(' '));Reflect.apply(target,self,args);}});
   },meta);
+  await context.addInitScript(installFrameDriver,{accelerated:meta.accelerated??false});
   await context.addInitScript(installResources);
 }

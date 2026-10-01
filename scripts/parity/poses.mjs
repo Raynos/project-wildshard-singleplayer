@@ -9,19 +9,23 @@ export const POSES = {
   'nalati-grasslands':[{name:'camp',x:60,z:214,yaw:-Math.PI/2,pitch:0},{name:'bridge',x:0,z:200,yaw:0,pitch:0},{name:'plains',x:65,z:0,yaw:Math.PI,pitch:0}],
   'nine-dragon-stack':[{name:'spawn-rail',x:0.95,z:7.5,y:125,yaw:-12*Math.PI/180,pitch:-4*Math.PI/180},{name:'well-edge',x:-19.5,z:13.3,y:125,yaw:0,pitch:-10*Math.PI/180},{name:'stair-street',x:18,z:6,y:125,yaw:-Math.PI/2,pitch:10*Math.PI/180}],
 };
-/** @param {import('playwright').Page} page @param {{shard:string,tier:string,out:string}} opts */
+/** @param {import('playwright').Page} page @param {{shard:string,tier:string,out:string,fast?:boolean}} opts */
 export async function poses(page,opts) {
   const result=[];
-  for(const pose of POSES[opts.shard] ?? []) {
+  for(const [index,pose] of (POSES[opts.shard] ?? []).entries()) {
     await poseAt(page,pose);
     await advance(page,90);
+    // P1 fast omits pose observations, while keeping the exact full-profile game-time trajectory.
+    if(opts.fast&&index>0){await advance(page,150);continue;}
     // scorecard's sampler: only frames whose game.frameNo moved are drawn frames.
     const sampled=await page.evaluate(async()=> {
       const g=window.__wildshard.world.game,iv=/** @type {number[]} */ ([]),cpu=/** @type {number[]} */ ([]),calls=/** @type {number[]} */ ([]),tris=/** @type {number[]} */ ([]);
       const instrument=window.__parity; instrument.cpu=0;instrument.on=true;
-      const drawnNo=()=>Reflect.get(g,'frameNo');
-      let last=performance.now(),lastNo=drawnNo(),first=true; const end=drawnNo()+150;instrument.remaining=150;
-      await new Promise((resolve)=> {const tick=()=> {const now=performance.now();if(drawnNo()!==lastNo){if(!first){iv.push(now-last);cpu.push(instrument.cpu);}first=false;instrument.cpu=0;last=now;lastNo=drawnNo();calls.push(g.lastFrame.calls);tris.push(g.lastFrame.triangles);}if(drawnNo()>=end)resolve(undefined);else instrument.rawRAF(tick);};instrument.rawRAF(tick);});
+      const drawnNo=()=>Number(Reflect.get(g,'frameNo'));
+      let last=performance.now(),lastNo=drawnNo(),first=true;
+      const sample=()=> {const now=performance.now();if(drawnNo()!==lastNo){if(!first){iv.push(now-last);cpu.push(instrument.cpu);}first=false;instrument.cpu=0;last=now;lastNo=drawnNo();calls.push(g.lastFrame.calls);tris.push(g.lastFrame.triangles);}};
+      if(instrument.observe){const stop=instrument.observe(sample);try{await instrument.advance(150);}finally{stop();}}
+      else {const end=drawnNo()+150;instrument.remaining=150;await new Promise((resolve)=>{const tick=()=>{sample();if(drawnNo()>=end)resolve(undefined);else instrument.rawRAF(tick);};instrument.rawRAF(tick);});}
       instrument.on=false;
       const p=window.__wildshard.world.player.position;
       return {iv,cpu,calls,tris,pos:[p.x,p.y,p.z]};

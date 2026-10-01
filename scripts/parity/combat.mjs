@@ -36,7 +36,7 @@ export async function combat(page,opts) {
     const multiplier=opts.lane==='gh-macos15' && !limits.capture ? 2 : 1,hitLimit=step.hit*multiplier,killLimit=step.kill===null?null:step.kill*multiplier;
     let hits=0,killed=false,hitWithinS=Number.POSITIVE_INFINITY,killWithinS=Number.POSITIVE_INFINITY;
     const wall=Date.now(),deadline=Math.max(hitLimit,killLimit??0);
-    while((Date.now()-wall)/1000 < deadline*(limits.capture?10:1)) {
+    for(let attempt=0;attempt<Math.ceil(deadline*30);attempt++) {
       const hold=step.weapon==='bow'?1000:100;
       if(opts.tier==='phone')await touch(page,TOUCH.attack,{hold});
       else {const v=page.viewportSize();await page.mouse.move((v?.width??1600)/2,(v?.height??900)/2);await page.mouse.down();await advance(page,Math.ceil(hold*30/1000));await page.mouse.up();await advance(page,1);}
@@ -60,7 +60,8 @@ export async function pauseResume(page,tier) {
   const returnState=await page.evaluate(()=>window.__wildshard.state().appState);
   await (tier==='phone'?touch(page,TOUCH.pause,{consume:false}):page.keyboard.press('Escape'));
   await page.locator('.ws-gmenu.show').waitFor({state:'visible'});
-  const before=await page.evaluate(()=>{window.__parity.free=true;return window.__wildshard.state();});await page.waitForTimeout(2000);
+  const before=await page.evaluate(()=>{window.__parity.free=true;return window.__wildshard.state();});
+  await page.evaluate(async()=>{const control=window.__parity;await (control.wait?control.wait(60):new Promise((resolve)=>{let remaining=60;const tick=()=>{if(--remaining===0)resolve(undefined);else control.rawRAF(tick);};control.rawRAF(tick);}));});
   await page.evaluate(()=>{window.__parity.free=false;});
   // Arm before input, but never await the callback before clicking RESUME.
   await page.evaluate(()=>{const w=/** @type {Window & {__parityResumed?:unknown}} */ (window);w.__parityResumed=null;window.__wildshard.onResume(()=>{w.__parityResumed=window.__wildshard.state();});});
