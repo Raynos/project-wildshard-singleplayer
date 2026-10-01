@@ -17,17 +17,22 @@
 import * as THREE from 'three';
 import { LowPolyKit, log, plank, rope, rock, lowPolyMaterial } from '#engine/world/lowpolyKit';
 import { defineModel, type ModelDef, type ModelPart } from '#engine/models/model';
-import { Trader } from '../npc/Trader';
+import type { Trader } from '../npc/Trader';
+import { traderRig } from '../quest/people';
+import type { NpcRig } from '#kit';
+import type { Sky } from '#engine';
 
-const byGroup = new WeakMap<THREE.Object3D, Trader>();
+const byGroup = new WeakMap<THREE.Object3D, NpcRig<Trader, Sky>>();
 
 /** the live Trader behind a placed copy of `trader` (null: not one) */
-export function traderOf(o: THREE.Object3D): Trader | null { return byGroup.get(o) ?? null; }
+export function traderOf(o: THREE.Object3D): Trader | null { return byGroup.get(o)?.model ?? null; }
+
+export function traderRigOf(o: THREE.Object3D): NpcRig<Trader, Sky> | null { return byGroup.get(o) ?? null; }
 
 export const trader: ModelDef<object> = defineModel<object>({
   id: 'driftwood-isle/trader', name: 'The trader', category: 'people', pipeline: 'code', file: 'src/shards/driftwood-isle/models/trader.ts', surface: 'flesh',
   defaults: {},
-  build: (ctx) => { const t = new Trader(ctx.sky).build(); byGroup.set(t.group, t); return t.group; },
+  build: (ctx) => { const rig = traderRig(ctx.sky); byGroup.set(rig.model.group, rig); return rig.model.group; },
   colliders: () => [{ kind: 'capsule', x: 0, y: 0.9, z: 0, halfHeight: 0.62, radius: 0.26 }],
 });
 

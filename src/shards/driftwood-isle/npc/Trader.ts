@@ -56,10 +56,10 @@ export class Trader {
   readonly group = new THREE.Group();
   /** body + head + arm: turns about her feet to face you (E129) */
   private readonly figure = new THREE.Group();
-  private body!: THREE.Mesh;
-  private head!: THREE.Mesh;
-  private upper!: THREE.Mesh;
-  private fore!: THREE.Mesh;
+  private body = new THREE.Mesh();
+  private head = new THREE.Mesh();
+  private upper = new THREE.Mesh();
+  private fore = new THREE.Mesh();
   private turn = 0;
   private headYaw = 0; private headPitch = 0;
   private glanceT = 0; private glanceYaw = 0; private glancePitch = 0.1;
@@ -173,12 +173,13 @@ export class Trader {
   /** open a hand toward her goods now (the shop opened, a sale: E314 stage 2) */
   offer(): void { this.start('offer'); this.offerT = 5; }
 
+  setNear(near: boolean): void {
+    if (near !== this.figure.visible) { this.figure.visible = near; for (const c of this.companions) c.visible = near; }
+  }
+
   update(dt: number, t: number, player: THREE.Vector3): void {
     const gp = this.group.position;
     const dx = player.x - gp.x, dz = player.z - gp.z, d = Math.hypot(dx, dz);
-    const near = d < TRADER_NEAR_R;
-    if (near !== this.figure.visible) { this.figure.visible = near; for (const c of this.companions) c.visible = near; }
-    if (!near) return;
     // her facing from the placed pose (a placement's matrix decomposes to Euler (π, a, π) past ±90°: rotation.y alone is not the yaw)
     const e = this.group.matrixWorld.elements, bodyYaw = Math.atan2(e[8], e[10]);
 

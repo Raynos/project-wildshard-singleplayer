@@ -1,4 +1,5 @@
 import type { AppState, Phase } from '../app/systems';
+import type { Actor } from '../combat/pipeline';
 
 export interface FaultEvent { source: string; message: string; phase?: Phase; limit?: number; error?: unknown }
 export interface EventMap {
@@ -6,6 +7,7 @@ export interface EventMap {
   'level.loaded': { id: string };
   'level.unloaded': { id: string };
   'creature.signal': { name: string; x: number; z: number };
+  'ai.windup': { actor: Actor; duration: number };
   'practice.active': boolean;
   'explore.studio': boolean;
   'explore.turntable': { on: boolean; key?: { x: number; y: number; z: number } };

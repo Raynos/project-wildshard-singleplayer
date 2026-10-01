@@ -11,7 +11,8 @@
  *
  * Per frame it does nothing but compare a timer; the queue is a plain array touched on kills and once a second.
  */
-import type { AdvAnimal, AdventureWorld } from '#game/quest/Adventure';
+import type { AdvAnimal, AdventureWorld } from './adventure';
+import { app } from '#engine';
 
 export interface RespawnRule { delay: [number, number]; night?: boolean }
 
@@ -57,16 +58,21 @@ export class RespawnQueue {
 }
 
 export function installEcology<A extends AdvAnimal>(w: AdventureWorld<A>, isLand: (x: number, z: number) => boolean): RespawnQueue {
-  const q = new RespawnQueue();
-  let now = 0, checkT = 0, chained = false;
+  const random = (): number => app.rng.stream('spawn').next();
+  const q = new RespawnQueue(RESPAWN, random);
+  let now = 0, checkT = 0, chained = w.onDeath !== undefined;
+  const killed = (a: A): void => {
+    if (a.kind === 'captain') return;
+    const h = a.herd >= 0 ? w.animals.herds?.[a.herd] : undefined;
+    q.add(a.kind, a.variant, a.herd, h ? h.cx : a.position.x, h ? h.cz : a.position.z, now);
+  };
+  w.onDeath?.(killed, 20);
   const chain = (): void => {
     chained = true;
     const prev = w.animals.onKill;
     w.animals.onKill = (a) => {
       prev?.(a);
-      if (a.kind === 'captain') return;
-      const h = a.herd >= 0 ? w.animals.herds?.[a.herd] : undefined;
-      q.add(a.kind, a.variant, a.herd, h ? h.cx : a.position.x, h ? h.cz : a.position.z, now);
+      killed(a);
     };
   };
   w.game.onUpdate((dt) => {
@@ -79,9 +85,9 @@ export function installEcology<A extends AdvAnimal>(w: AdventureWorld<A>, isLand
     for (const e of q.take(now, w.player.position.x, w.player.position.z, night)) {
       // a spot on land a few metres round the herd's home (the home itself for the sailor: his hold)
       let x = e.x, z = e.z;
-      if (e.kind !== 'sailor') for (let k = 0; k < 6; k++) { const ang = Math.random() * Math.PI * 2, r = 1 + Math.random() * 4; const tx = e.x + Math.cos(ang) * r, tz = e.z + Math.sin(ang) * r; if (isLand(tx, tz)) { x = tx; z = tz; break; } }
+      if (e.kind !== 'sailor') for (let k = 0; k < 6; k++) { const ang = random() * Math.PI * 2, r = 1 + random() * 4; const tx = e.x + Math.cos(ang) * r, tz = e.z + Math.sin(ang) * r; if (isLand(tx, tz)) { x = tx; z = tz; break; } }
       if (!isLand(x, z) && e.kind !== 'sailor') { e.due = now + 60; q.pending.push(e); continue; }   // try again in a minute
-      const a = w.animals.spawn(e.kind, x, z, Math.random() * Math.PI * 2, e.variant);
+      const a = w.animals.spawn(e.kind, x, z, random() * Math.PI * 2, e.variant);
       a.herd = e.herd;
       if (e.herd >= 0) w.animals.herds?.[e.herd]?.members.push(a);
     }

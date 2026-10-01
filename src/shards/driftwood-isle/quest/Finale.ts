@@ -11,7 +11,8 @@
  */
 import * as THREE from 'three';
 import { BossBar, app } from '#engine';
-import { RewardCaption, type Adventure, type AdventureWorld, type AdvAnimal } from '#game';
+import { RewardCaption } from '#game';
+import type { Adventure, AdventureWorld, AdvAnimal } from './adventure';
 import { DrownedCaptain, CAPTAIN_DEF } from '../combat/captain';
 import { preloadCaptainMesh } from '../species/captainMesh';
 

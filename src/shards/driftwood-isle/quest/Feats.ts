@@ -8,7 +8,7 @@
  */
 import { SEA_GLASS_COUNT, SEA_GLASS_FLAG, SHARD_FLAGS } from './interactables';
 import { QUEST_DONE } from './questLine';
-import type { Adventure, AdventureWorld, AdvAnimal } from '#game/quest/Adventure';
+import type { Adventure, AdventureWorld, AdvAnimal } from './adventure';
 import type { ProgressSink } from '#game/Progress';
 
 

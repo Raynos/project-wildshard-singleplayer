@@ -15,9 +15,9 @@ import * as THREE from 'three';
 import { modelContext } from '#engine/models/model';
 import type { Interactable } from '#engine/world/interact/types';
 import { place } from '#engine/models/place';
-import { trader, tradeCounter, traderOf } from '../models/trader';
+import { trader, tradeCounter, traderOf, traderRigOf } from '../models/trader';
 import type { Trader } from '../npc/Trader';
-import type { Adventure, AdventureWorld, AdvAnimal } from '#game/quest/Adventure';
+import type { Adventure, AdventureWorld, AdvAnimal } from './adventure';
 
 /** her island name (the prompt, the shop's title and line) */
 export const TRADER_NAME = 'Maren';
@@ -51,6 +51,8 @@ export function installTrader<A extends AdvAnimal>(adv: Adventure, w: AdventureW
     piece: { id: 'trade-counter', name: 'The trader\'s counter', solidFloor: false } });
   const t = traderOf(npc.object);
   if (t === null) return null;
+  const npcRig = traderRigOf(npc.object);
+  w.scope?.onDispose(() => { npcRig?.dispose(); });
   t.companions.push(counter.object);
   const ax = feet.x + fx * TRADE_AHEAD, az = feet.z + fz * TRADE_AHEAD;
   const at = new THREE.Vector3(ax, adv.floorAt(ax, az) + 1.35, az);
@@ -72,7 +74,7 @@ export function installTrader<A extends AdvAnimal>(adv: Adventure, w: AdventureW
   };
   w.prompts.push(prompt);
   w.game.onUpdate((dt, time) => {
-    t.update(dt, time, w.player.position);
+    npcRig?.update(dt, time, w.player.position);
     // walking off the counter closes the shop (as a talk closes, core.ts NpcTalk)
     if (stall.shop?.isOpen === true && w.player.position.distanceTo(at) > TRADE_R + 2.5) stall.shop.close();
     if (wasOpen && stall.shop?.isOpen !== true) { wasOpen = false; w.player.pitch = pitchBefore; }

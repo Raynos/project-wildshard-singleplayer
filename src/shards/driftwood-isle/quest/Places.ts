@@ -5,7 +5,7 @@
  * live markers are drawn on top (pulsing diamonds).
  */
 import type { Place } from '#engine/world/interact/types';
-import type { Adventure } from '#game/quest/Adventure';
+import type { Adventure } from './adventure';
 import { placesWithDiscovery, type Places } from '#game/quest/core';
 
 export interface PlaceDef { id: string; label: string; at: Place; r: number }

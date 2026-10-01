@@ -12,9 +12,10 @@ import { app, boxInFrame } from '#engine';
 import { QuestState, type QuestMarker } from '#game/quest/quest';
 import { CASTAWAY, DRIFTWOOD_QUEST } from './questLine';
 import { DialogueBox, type ObjectiveLine } from '#game/quest/QuestUI';
-import { Castaway } from '../npc/Castaway';
+import type { Castaway } from '../npc/Castaway';
+import { castawayRig } from './people';
 import { NpcTalk, QuestChip, type LiveMarker } from '#game/quest/core';
-import type { Adventure, AdventureWorld, AdvAnimal } from '#game/quest/Adventure';
+import type { Adventure, AdventureWorld, AdvAnimal } from './adventure';
 
 export type { LiveMarker } from '#game/quest/core';
 
@@ -46,7 +47,8 @@ export function installSpine<A extends AdvAnimal>(adv: Adventure, w: AdventureWo
   // ── Wendell at his campfire in front of the hut steps (hut local frame: the door faces −z) ──
   const feet = place({ poi: 'hut', anchor: 'hut.npc', x: 2.4, z: -8.2, yaw: Math.PI + 0.35 });
   const fire = place({ poi: 'hut', x: 0.7, z: -9.8 });
-  const castaway = new Castaway(w.sky, feet, fire).build();
+  const npc = castawayRig(w.sky, feet, fire), castaway = npc.model;
+  w.scope?.onDispose(() => { npc.dispose(); });
   w.game.scene.add(castaway.group);
   (w.registry ?? app.registry).add({ id: 'npc-castaway', name: 'Wendell', category: 'people', file: 'src/shards/driftwood-isle/quest/Spine.ts', colliders: [boxInFrame(castaway.collider, castaway.group, 'wood', false)], follows: castaway.group, followRotation: false });
   castaway.group.updateMatrixWorld(true);
@@ -65,17 +67,21 @@ export function installSpine<A extends AdvAnimal>(adv: Adventure, w: AdventureWo
 
   // ── kills: the sailor drops the hold key; the captain ends the fight ──
   // chained on the first frame, not now: main.ts assigns its own onKill (kill feed, achievements, skins) after this
-  let chained = false;
+  const killed = (a: A): void => {
+    if (a.kind === 'sailor') {
+      kit.moveTo('hold-key', a.position.x, a.position.z);
+      flags.set('dead:sailor');
+      w.hud.toast('The drowned sailor collapses — his hold key clatters to the planks');
+    } else if (a.kind === 'captain') flags.set('dead:captain');
+  };
+  let chained = w.onDeath !== undefined;
+  w.onDeath?.(killed, 10);
   const chainKill = (): void => {
     chained = true;
     const prevKill = w.animals.onKill;
     w.animals.onKill = (a) => {
       prevKill?.(a);
-      if (a.kind === 'sailor') {
-        kit.moveTo('hold-key', a.position.x, a.position.z);
-        flags.set('dead:sailor');
-        w.hud.toast('The drowned sailor collapses — his hold key clatters to the planks');
-      } else if (a.kind === 'captain') flags.set('dead:captain');
+      killed(a);
     };
   };
 
@@ -89,7 +95,7 @@ export function installSpine<A extends AdvAnimal>(adv: Adventure, w: AdventureWo
     const pp = w.player.position;
     dialogue.update(dt);
     talk.update(pp);
-    castaway.update(dt, t, pp);
+    npc.update(dt, t, pp);
     // the sword goes down while you talk to Wendell and comes back up when the talk ends (E129)
     if (talk.talking !== stowed) { stowed = talk.talking; w.stowWeapon?.(stowed); }
     if (!waved && !flags.has('talked:castaway') && pp.distanceToSquared(castaway.position) < 16 * 16) { waved = true; castaway.wave(); }

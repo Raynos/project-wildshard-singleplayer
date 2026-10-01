@@ -7,13 +7,13 @@
  */
 import * as THREE from 'three';
 import { defineModel, type ModelDef } from '#engine/models/model';
-import { Castaway } from '../npc/Castaway';
+import { castawayRig } from '../quest/people';
 
 export const castaway: ModelDef<object> = defineModel<object>({
   id: 'driftwood-isle/castaway', name: 'Wendell, the castaway', category: 'people', pipeline: 'code', file: 'src/shards/driftwood-isle/models/people.ts', surface: 'flesh',
   defaults: {},
   build: (ctx) => {
-    const g = new Castaway(ctx.sky, { x: 0, y: 0, z: 0 }, { x: -1.2, y: 0, z: -1.1 }).build().group;
+    const g = castawayRig(ctx.sky, { x: 0, y: 0, z: 0 }, { x: -1.2, y: 0, z: -1.1 }).model.group;
     const smoke: THREE.Object3D[] = [];
     g.traverse((o) => { if (o instanceof THREE.Points) smoke.push(o); });
     for (const o of smoke) o.removeFromParent();

@@ -28,7 +28,7 @@ import { LowPolyKit, log, rock, plank, lowPolyMaterial } from '#engine/world/low
 import type { Sky } from '#engine/world/Sky';
 import type { BoxSpec as Collider } from '#engine/physics/box';
 import { attachFogUniforms } from '#engine/world/Atmosphere';
-import { loadFaceHead, type FaceHead } from '#engine/world/faceHeads';
+import { loadFaceHead, type FaceHead } from '#engine';
 
 const C = {
   skin: '#c98d62', skinDark: '#a8704a', beard: '#cfcac0', beardDark: '#a9a39a', hat: '#d8b867', hatDark: '#b8964a', band: '#7a3b2a',
@@ -75,31 +75,36 @@ function wendellHead(fh: FaceHead): THREE.BufferGeometry {
   return g;
 }
 
+export async function loadWendellFace(): Promise<THREE.BufferGeometry | null> {
+  const face = await loadFaceHead(WENDELL_HEAD);
+  return face === null ? null : wendellHead(face);
+}
+
 export interface Pos { x: number; y: number; z: number; yaw?: number }
 
 export class Castaway {
   readonly group = new THREE.Group();
   readonly collider: Collider;
   talking = false;
-  private body!: THREE.Mesh;
-  private camp!: THREE.Mesh;
+  private body = new THREE.Mesh();
+  private camp = new THREE.Mesh();
   /** body + head + arm: turns about his feet to face you (E129); the campfire is not in it */
   private readonly figure = new THREE.Group();
   private turn = 0;   // the figure's yaw off his idle facing (rad)
-  private head!: THREE.Mesh;
-  private arm!: THREE.Mesh;
-  private flames!: THREE.Mesh;
-  private smoke!: THREE.Points;
-  private smokeMat!: THREE.PointsMaterial;
+  private head = new THREE.Mesh();
+  private arm = new THREE.Mesh();
+  private flames = new THREE.Mesh();
+  private smoke = new THREE.Points();
+  private smokeMat = new THREE.PointsMaterial();
   private sPos = new Float32Array(SMOKE * 3);
   private sAge = new Float32Array(SMOKE);
   private sRate = new Float32Array(SMOKE);   // per-puff life speed (0.85–1.15): uneven spacing = a broken column
   private sSeed = new Float32Array(SMOKE);
   private sSize = new Float32Array(SMOKE);
   private sAlpha = new Float32Array(SMOKE);
-  private sAttr!: THREE.BufferAttribute;
-  private sSizeAttr!: THREE.BufferAttribute;
-  private sAlphaAttr!: THREE.BufferAttribute;
+  private sAttr = new THREE.BufferAttribute(new Float32Array(), 1);
+  private sSizeAttr = new THREE.BufferAttribute(new Float32Array(), 1);
+  private sAlphaAttr = new THREE.BufferAttribute(new Float32Array(), 1);
   private headYaw = 0; private headPitch = 0; private readonly bodyYaw: number;
   private waveT = -1;
   private glanceT = 0; private glanceYaw = 0;
@@ -174,7 +179,7 @@ export class Castaway {
     this.head.position.set(0, NECK, 0.01);
     // E343 (Jake's pick D): the generated head (Hunyuan3D-2 from a codex portrait in the island's toon look, its own paint,
     // cut at its neck, the faceted post) replaces this code head — its stand-in — as soon as the ~35 KB file is in
-    void loadFaceHead(WENDELL_HEAD).then((fh) => { if (fh !== null) { this.head.geometry.dispose(); this.head.geometry = wendellHead(fh); } return fh; });
+
 
     // ── the right arm (pivot at the shoulder, hanging along −Y) ──
     const a = new LowPolyKit(0xca57c);
@@ -227,6 +232,8 @@ export class Castaway {
     this.group.add(this.figure, this.camp, this.flames, this.smoke);
     return this;
   }
+
+  get faceMesh(): THREE.Mesh { return this.head; }
 
   /** the head's world position (the talk prompt / the name tag) */
   headWorld(out: THREE.Vector3): THREE.Vector3 { return out.set(0, NECK + 0.15, 0).applyMatrix4(this.group.matrixWorld); }
