@@ -5,6 +5,7 @@ import type { Weapon, WeaponHooks, WeaponState, AimInfo } from './Weapon';
 import { Tool } from './Tool';
 import { EquipmentDomInput, type EquipmentInput } from '../input/equipmentInput';
 import type { Events } from '../events/events';
+import type { EquipmentPickup, EquipmentPickupHost, PickupLoadout } from './EquipmentPickup';
 
 const SWAP_TIME = 0.25, STOW_TIME = 0.25;
 
@@ -24,6 +25,50 @@ export class EquipmentService implements WeaponHooks {
   private _stowed = false; private stowT = 0;
   private order: WeaponId[] | undefined;
   private swapping: { from: Weapon; to: Weapon; t: number; switched: boolean } | null = null;
+  private readonly pickups = new Map<string, EquipmentPickup>();
+
+  /** Place the active level's declarations using its installed equipment rows. */
+  placePickups(loadout: PickupLoadout, host: EquipmentPickupHost): void {
+    for (const declaration of loadout.pickups ?? []) {
+      if (this.scope.disposed) throw new Error('Cannot place pickups on disposed equipment');
+      if (this.pickups.has(declaration.id)) throw new Error(`Duplicate equipment pickup ${declaration.id}`);
+      const weapon = this.list.find((item) => item.row.id === declaration.id);
+      if (weapon === undefined) throw new Error(`Pickup equipment ${declaration.id} is not installed`);
+      const row = weapon.row, spec = row.pickup;
+      if (spec === undefined) throw new Error(`Equipment ${row.id} has no pickup factory`);
+      const pickup = spec.create(declaration.at, spec.prompt);
+      if (pickup === null) continue; // content may have no site (the legacy fallback world)
+      this.pickups.set(row.id, pickup);
+      host.prompts.push(pickup.interactable);
+      const stop = this.scope.child(`pickup:${row.id}`);
+      let live = true, granted = false;
+      stop.onDispose(() => {
+        live = false;
+        pickup.onPickup = undefined; pickup.onNear = undefined;
+        const at = host.prompts.indexOf(pickup.interactable);
+        if (at !== -1) host.prompts.splice(at, 1);
+        this.pickups.delete(row.id);
+        pickup.dispose();
+      });
+      pickup.onNear = (inside) => { if (live) host.onNear(inside); };
+      pickup.onPickup = () => {
+        if (!live || granted) return;
+        granted = true;
+        host.owned.grant(spec.owned);
+        this.unlock(weapon.id); this.select(weapon.id);
+        host.onPickup(row, spec.toast);
+      };
+      // Build then hide, as the original saved/harness path did: retained pooled lights and RNG draws stay identical.
+      if (host.owned.has(spec.owned) || host.hold === row.id) {
+        granted = true;
+        this.unlock(weapon.id); this.select(weapon.id, true);
+        pickup.dispose();
+      }
+    }
+  }
+
+  pickup(id: string): EquipmentPickup | null { return this.pickups.get(id) ?? null; }
+  updatePickups(dt: number, t: number): void { for (const pickup of this.pickups.values()) pickup.update(dt, t); }
 
   readonly tools: Tool[] = [];
   private readonly scope: Scope;
