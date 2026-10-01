@@ -3,12 +3,13 @@
 // the lab's captures with the light pools and window glow on; neon excluded, greys held) and the blue-hour SKY + FOG
 // ramp the LUT should not have to fix.
 //  - LUT file: public/assets/nine-dragon/lab/grade-lut.bin — 33³ × RGBA8, index (b·33 + g)·33 + r, display sRGB in →
-//    display sRGB out (scripts/fit-lut.py's format, the game's src/engine/world/lut.ts reads the same bytes).
+//    display sRGB out (scripts/fit-lut.py's format, fetched by the engine's one loader, `fetchLut`).
 //  - GLSL (`GRADE_GLSL`): `vec3 gradeLut(vec3 srgb)`, the composite's LAST colour step (after toSRGB, before grain):
 //    one trilinear texture3D fetch.
 import { ClampToEdgeWrapping, type Color, Data3DTexture, LinearFilter, NoColorSpace, RGBAFormat, UnsignedByteType } from 'three';
+import { LUT_SIZE, fetchLut } from '#engine';
 
-export const LUT_N = 33;
+export const LUT_N = LUT_SIZE;
 
 function identity(): Data3DTexture {
   const d = new Uint8Array(LUT_N ** 3 * 4);
@@ -39,18 +40,10 @@ export function gradeUniforms(): { uLut: { value: Data3DTexture }; uLutAmt: { va
   return { uLut: { value: identity() }, uLutAmt: { value: 0 } };
 }
 
-/** fetch a fitted LUT; null (and a warning) when it is missing or the wrong size */
+/** fetch a fitted LUT (the engine's one loader); null (and a warning) when it is missing or the wrong size */
 export async function loadLut(url: string): Promise<Data3DTexture | null> {
-  try {
-    const res = await fetch(url);
-    if (!res.ok) return null;
-    const data = new Uint8Array(await res.arrayBuffer());
-    if (data.length !== LUT_N ** 3 * 4) { console.warn(`[grade] ${url}: ${data.length} bytes, expected ${LUT_N ** 3 * 4}`); return null; }
-    return lutTexture(data);
-  } catch (e: unknown) {
-    console.warn('[grade] LUT not loaded', e);
-    return null;
-  }
+  const data = await fetchLut(url);
+  return data === null ? null : lutTexture(data);
 }
 
 export const GRADE_GLSL = /* glsl */ `

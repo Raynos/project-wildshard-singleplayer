@@ -16,8 +16,7 @@ import * as THREE from 'three';
 import { LookupTexture } from 'postprocessing';
 import { PUBLIC_BYTES } from '../boot/bytes.generated';
 import { setting } from '../ui/Settings';
-
-export const LUT_SIZE = 33;
+import { LUT_SIZE, fetchLut } from '../render/lut';
 
 /** the shard's LUT file when the build has one, else null */
 export function lutUrl(slug: string): string | null {
@@ -29,19 +28,12 @@ export async function loadLUT(slug: string): Promise<LookupTexture | null> {
   if (setting('learnedLut') === 'off') return null;
   const url = lutUrl(slug);
   if (url === null) return null;
-  try {
-    const res = await fetch(url);
-    if (!res.ok) return null;
-    const data = new Uint8Array(await res.arrayBuffer());
-    if (data.length !== LUT_SIZE ** 3 * 4) { console.warn(`[lut] ${url}: ${data.length} bytes, expected ${LUT_SIZE ** 3 * 4}`); return null; }
-    const lut = new LookupTexture(data, LUT_SIZE);
-    lut.type = THREE.UnsignedByteType;
-    lut.colorSpace = THREE.NoColorSpace;
-    lut.name = `${slug}-lut`;
-    lut.needsUpdate = true;
-    return lut;
-  } catch (e) {
-    console.warn('[lut] not loaded:', e);
-    return null;
-  }
+  const data = await fetchLut(url); // the one loader (render/lut.ts)
+  if (data === null) return null;
+  const lut = new LookupTexture(data, LUT_SIZE);
+  lut.type = THREE.UnsignedByteType;
+  lut.colorSpace = THREE.NoColorSpace;
+  lut.name = `${slug}-lut`;
+  lut.needsUpdate = true;
+  return lut;
 }
