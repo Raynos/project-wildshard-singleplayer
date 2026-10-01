@@ -16,7 +16,7 @@ export function descendants(root: ts.Node, match: (node: ts.Node) => boolean): t
 }
 export function executeLegacy(code: string, globals: Record<string, unknown> = {}): unknown {
   const js = ts.transpileModule(code, { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext } }).outputText;
-  const result: unknown = runInNewContext(js, globals, { timeout: 1000 });
+  const result: unknown = runInNewContext(js, { ...globals }, { timeout: 1000 });
   return result;
 }
 export function legacyConstants(file: string, names: readonly string[], globals: Record<string, unknown> = {}): Record<string, unknown> {

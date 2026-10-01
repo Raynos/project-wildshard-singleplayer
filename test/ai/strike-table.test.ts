@@ -7,6 +7,9 @@ import { AnimalFactory } from '#engine/entities/AnimalFactory';
 import { legacyConstants, legacyNewOptions } from '../fake/legacySource';
 import { creature } from '../fake/creature';
 import { fakeWorld } from '../fake/world';
+import { HorseHerd } from '#engine/entities/Herd';
+import { Pack } from '#engine/entities/Pack';
+import { invokeLegacy, legacyActor } from '../fake/legacyActor';
 
 vi.mock('#engine/world/Heightfield', async (original) => ({ ...await original<typeof Heightfield>(),
   heightAt: (): number => 0, normalAt: (): [number, number, number] => [0, 1, 0], waterLevel: (): number => -100, streamAt: (): null => null }));
@@ -88,5 +91,30 @@ describe('species strikes retain current hit timing and damage', () => {
     const f = creature('captain', 'captain'); f.advance(7); f.animal.hp = f.animal.maxHp * frac;
     Object.assign(f.animal.mem, { st: 2, cd: 0, subT: 0 }); f.advance(130);
     expect(f.starts[0]?.duration).toBeCloseTo(windup + 0.35); expect(f.hits.map((h) => h.damage)).toEqual(Array.from({ length: cuts }, () => 24));
+  });
+  it('S7 captain under-water burst deals16 within3m and returns to rise', () => {
+    const f = creature('captain', 'captain'); f.advance(7); f.animal.hp = f.animal.maxHp * 0.5;
+    Object.assign(f.animal.mem, { st: 5, subT: 1.01, burstX: 0, burstZ: 1 }); f.advance(6);
+    expect(f.hits.map((h) => h.damage)).toEqual([16]); expect(f.animal.mem['st']).toBe(1);
+  });
+  it.each([false, true])('S11 balbal field%s keeps its1.595s contact and30/18 damage', (field) => {
+    const f = creature('balbal', 'warrior');
+    Object.assign(f.animal.mem, { init: 1, st: 3, t: 0, cd: 0, field: field ? 1 : 0, rise: 1 }); f.animal.startAttack(2.9);
+    f.advance(96); expect(f.hits).toEqual([]); f.advance(7);
+    expect(f.hits.map((h) => h.damage)).toEqual([field ? 30 : 18]); f.advance(72); expect(f.hits).toHaveLength(1);
+  });
+  it('S10 wolf lunge waits .4s, bites12 once, and breaks off for1.1s', () => {
+    const f = creature('crab', 'small'), a = f.animal;
+    Object.assign(a.mem, { lunge: 1, lt: 0.4, bit: 0, role: 1 }); a.mods.chargeDamage = 12;
+    const pack = legacyActor(Pack.prototype, { prey: null, phase: 'encircle', members: [a], bites: 0 });
+    for (let i = 0; i < 4; i++) { pack.drive(a, f.ctx); expect(f.hits).toEqual([]); }
+    pack.drive(a, f.ctx); expect(f.hits).toEqual([]); pack.drive(a, f.ctx);
+    expect(f.hits.map((h) => h.damage)).toEqual([12]); expect(a.mem['lunge']).toBe(3); expect(a.mem['lt']).toBe(1.1);
+  });
+  it('S18 stallion charge deals its25 modifier once and wheels with5s cooldown', () => {
+    const f = creature('crab', 'small'), a = f.animal; a.mods.chargeDamage = 25;
+    const herd = legacyActor(HorseHerd.prototype, { stallionState: 'charge', chargeTarget: null, knockCd: 0, onStallionState: undefined });
+    invokeLegacy(herd, 'driveStallion', a, f.ctx);
+    expect(f.hits.map((h) => h.damage)).toEqual([25]); expect(Reflect.get(herd, 'stallionState')).toBe('wheel'); expect(Reflect.get(herd, 'chargeCd')).toBe(5);
   });
 });

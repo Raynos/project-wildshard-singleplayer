@@ -6,6 +6,7 @@ import { wildEnv } from '#engine/entities/wildEnv';
 import { invokeLegacy, legacyActor } from '../fake/legacyActor';
 import { legacyMethods } from '../fake/legacySource';
 import { creature } from '../fake/creature';
+import { inArc, headingTo, fadeCooldown, behindPlayer, fleeHeading } from '#shards/pine-hollow/combat/combatMath';
 
 vi.mock('#engine/world/Heightfield', async (original) => ({ ...await original<typeof Heightfield>(),
   heightAt: (): number => 0, normalAt: (): [number, number, number] => [0, 1, 0], waterLevel: (): number => -100, streamAt: (): null => null }));
@@ -65,5 +66,40 @@ describe('private Nalati elite strikes executed from their production class meth
     expect(Reflect.get(f.actor, 'st')).toBe('charge');
     invokeLegacy(f.actor, 'tick', 1 / 60, 2, true, false); invokeLegacy(f.actor, 'tick', 1 / 60, 2.1, true, false);
     expect(f.hits).toEqual([38]); expect(f.env.knock).toHaveBeenCalledOnce();
+  });
+});
+
+describe('Pine elite contacts and the nonattacking Ghost Stag', () => {
+  function pine(name: string, fields: Record<string, unknown>) {
+    const f = creature('crab', 'small'), hits: number[] = [], path = 'src/shards/pine-hollow/combat/elites.ts';
+    const globals = { THREE, Math, headingTo, inArc, fadeCooldown, behindPlayer, fleeHeading, heightAt: () => 0,
+      inChunk: () => true, voice: (): void => undefined, _v: new THREE.Vector3() };
+    const proto = legacyMethods(path, name, globals), base = legacyMethods(path, 'PineElite', globals);
+    Object.setPrototypeOf(proto, base);
+    const env = { player: { position: f.ctx.player, yaw: 0 }, hurt: (_a: Animal, d: number): void => { hits.push(d); },
+      puffs: { burst: noOp }, trauma: noOp, stun: vi.fn(noOp), god: false, animals: {} };
+    const actor = legacyActor(proto, { env, p2: false, modeT: 0, sig: noOp, def: { lair: { x: 0, z: 0 }, leashR: 110 }, ...fields });
+    return { ...f, actor, env, hits };
+  }
+  it.each([false, true])('S30 Blackpaw roar god%s hits12 and stuns1.3s after1.1s', (god) => {
+    const f = pine('Blackpaw', { mode: 'roar', modeT: 1.1, roarCd: 0, ringR: 8, ring: tell() }); f.env.god = god;
+    invokeLegacy(f.actor, 'fight', f.animal, 1 / 60, 0);
+    expect(f.hits).toEqual(god ? [] : [12]); expect(f.env.stun).toHaveBeenCalledTimes(god ? 0 : 1);
+    if (!god) expect(f.env.stun).toHaveBeenCalledWith(1.3);
+  });
+  it('S32 Blackpaw swipe lands22 only once as its delay expires', () => {
+    const f = pine('Blackpaw', { mode: 'swipe', swipeT: 0.1, roarCd: 0, ring: tell() });
+    invokeLegacy(f.actor, 'fight', f.animal, 0.09, 0); expect(f.hits).toEqual([]);
+    invokeLegacy(f.actor, 'fight', f.animal, 0.02, 0.11); invokeLegacy(f.actor, 'fight', f.animal, 0.02, 0.13);
+    expect(f.hits).toEqual([22]);
+  });
+  it.each([false, true])('S40 Ghost Stag phase2%s fades without attacking, then reappears14–18m behind', (p2) => {
+    const f = pine('GhostStag', { p2 }); const draw = vi.spyOn(Math, 'random').mockReturnValue(0.5);
+    try {
+      invokeLegacy(f.actor, 'fade', f.animal); expect(f.animal.hidden).toBe(true);
+      expect(Reflect.get(f.actor, 'fadeT')).toBe(2); expect(Reflect.get(f.actor, 'cd')).toBe(p2 ? 2.4 : 4.5);
+      invokeLegacy(f.actor, 'comeBack', f.animal); expect(f.animal.hidden).toBe(false); expect(f.hits).toEqual([]);
+      expect(f.animal.position.distanceTo(f.ctx.player)).toBeCloseTo(16); expect(Reflect.get(f.actor, 'mode')).toBe('stare');
+    } finally { draw.mockRestore(); }
   });
 });

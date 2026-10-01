@@ -2,10 +2,11 @@ import * as THREE from 'three';
 import { describe, expect, it, vi } from 'vitest';
 import type * as Heightfield from '#engine/world/Heightfield';
 import { GoldenKingFight } from '#shards/nalati-grasslands/kurganBoss';
-import { StormTitanFight } from '#shards/nalati-grasslands/stormTitan';
+import { StormTitan, StormTitanFight } from '#shards/nalati-grasslands/stormTitan';
 import { AntlerKingFight } from '#shards/pine-hollow/combat/antlerKing';
 import { DUNGEON } from '#shards/nalati-grasslands/world/KurganDungeon';
 import { KINGS_CLEARING } from '#shards/pine-hollow/layout';
+import { CAIRN } from '#shards/nalati-grasslands/layout';
 import { invokeLegacy, legacyActor } from '../fake/legacyActor';
 import { creature } from '../fake/creature';
 
@@ -17,6 +18,20 @@ const visual = (): { mesh: THREE.Object3D; mat: { uniforms: { uAlpha: { value: n
   ({ mesh: new THREE.Object3D(), mat: { uniforms: { uAlpha: { value: 0 }, uTime: { value: 0 } } } });
 
 describe('boss contacts executed through original production methods', () => {
+  it.each([false, true])('S28 storm wall mounted%s keeps its10 damage,1.2s cooldown and64m push', (mounted) => {
+    const hurt = vi.fn(noop), p = new THREE.Vector3(CAIRN.x + 67, 0, CAIRN.z + 44);
+    const titan = legacyActor(StormTitan.prototype, { naizagai: null, hurtT: 0, wallT: 0, engaged: true, prompt: {},
+      boss: { state: 'fight', update: noop }, play: { hurt, ride: { mount: { mounted } } },
+      fight: { sealedNow: true, tied: false, body: { visible: true } },
+      ctx: { weather: { weather: { stormActive: true } }, player: { position: p } } });
+    invokeLegacy(titan, 'update', 0.1, 0);
+    expect(p.x - CAIRN.x).toBe(mounted ? 67 : 64); expect(hurt).toHaveBeenCalledTimes(mounted ? 0 : 1);
+    if (!mounted) {
+      expect(hurt).toHaveBeenCalledWith(10, 'The storm wall throws you back');
+      p.x = CAIRN.x + 67; invokeLegacy(titan, 'update', 1.19, 1.19); expect(hurt).toHaveBeenCalledOnce();
+      p.x = CAIRN.x + 67; invokeLegacy(titan, 'update', 0.02, 1.21); expect(hurt).toHaveBeenCalledTimes(2);
+    }
+  });
   it.each([0, 1, 2, 3])('S19 Golden King cut%s keeps the damage sequence and .62 contact phase', (index) => {
     const f = creature('crab', 'small'); f.animal.startAttack(index === 3 ? 0.78 : 0.95);
     Object.assign(f.animal.mem, { act: 1, strike: index, hitDone: 0 });
@@ -110,5 +125,24 @@ describe('boss contacts executed through original production methods', () => {
     });
     invokeLegacy(fight, 'updateWhirls', 0, 0, true); invokeLegacy(fight, 'updateWhirls', 0, 0, true);
     expect(hurt).toHaveBeenCalledExactlyOnceWith(15, expect.any(String)); expect(throwRider).toHaveBeenCalledOnce();
+  });
+  it('S25 Titan rider holds its1.2s lane tell, hits30 once and exposes its flank2s', () => {
+    const f = creature('crab', 'small'), hurt = vi.fn(noop), throwRider = vi.fn(noop);
+    const r = { a: f.animal, mode: 'aim', t: 0, x0: 0, z0: 0, x1: 0, z1: 20, hit: false, lane: { hide: noop, lane: noop } };
+    const fight = legacyActor(StormTitanFight.prototype, { chargeCd: 100, stunT: 0, stormRiders: [r], host: { player: { position: f.ctx.player }, hurt, throwRider } });
+    invokeLegacy(fight, 'updateRiders', 1.19, 0); expect(hurt).not.toHaveBeenCalled(); expect(r.mode).toBe('aim');
+    invokeLegacy(fight, 'updateRiders', 0.02, 1.21); expect(r.mode).toBe('charge');
+    invokeLegacy(fight, 'updateRiders', 0.1, 1.31); invokeLegacy(fight, 'updateRiders', 0.1, 1.41);
+    expect(hurt).toHaveBeenCalledExactlyOnceWith(30, expect.any(String));
+    f.animal.position.z = 20; invokeLegacy(fight, 'updateRiders', 0.1, 1.51); expect(r.mode).toBe('open');
+    invokeLegacy(fight, 'updateRiders', 1.99, 3.5); expect(r.mode).toBe('open'); invokeLegacy(fight, 'updateRiders', 0.02, 3.52); expect(r.mode).toBe('circle');
+  });
+  it('S35 Antler sweep hits24 after .9s in the near arc', () => {
+    const f = creature('crab', 'small'), hurt = vi.fn(noop);
+    const fight = legacyActor(AntlerKingFight.prototype, { mode: 'sweep', modeT: 0.89, open: 0, sweepCd: 0, stompCd: 10, callCd: 10,
+      ctx: { player: { position: f.ctx.player }, hurt, trauma: noop }, tellRing: tell(), tickWaves: noop });
+    invokeLegacy(fight, 'fight', f.animal, 1 / 60, 0); expect(hurt).not.toHaveBeenCalled();
+    Reflect.set(fight, 'modeT', 0.9); invokeLegacy(fight, 'fight', f.animal, 1 / 60, 1);
+    expect(hurt).toHaveBeenCalledExactlyOnceWith(f.animal, 24); expect(Reflect.get(fight, 'sweepCd')).toBe(5);
   });
 });
