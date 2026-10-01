@@ -13,13 +13,13 @@
  *     boars) drops it — a walk-over pickup in the game's loot-drop orb (ItemPickup, tossed out of the body like Pine
  *     Hollow's legendaries). Walking into it takes it (Owned bear-claw / boar-tusk, saved): its plaque fills, FINDS lights
  *     it, and its perk is on — the claw: the charged heavy hits 20 % harder; the tusk: a hit that lands while a dodge
- *     carries you does nothing (dodge i-frames; main.ts's onCharge reads `perks.dodgeGuard`).
+ *     carries you does nothing (dodge i-frames; the damage rules read `perks.dodgeGuard`).
  *   - The captain's hat (board 4 C): the Drowned Captain's death drops it (gold orb) between you and where he fell; taking
  *     it grants captain-hat and puts it on. GEAR wears it / takes it off; FINDS shows it with the trophies. Left lying and
  *     the game reloaded, it waits at the ring's reward spot (he only dies once).
  *   - Worn cosmetics (the hat, the trader's cape) dress the body shadow (src/engine/player/BodyShadow.ts), following GEAR.
  *
- * Wired in main.ts on Driftwood (after installLoot; main.ts's animals.onCharge reads `perks.dodgeGuard` + `player.dodging`).
+ * Wired in main.ts on Driftwood (after installLoot; the damage rules read `perks.dodgeGuard` + `player.dodging`).
  * Seen in the game: scripts/e314-keepsakes-capture.mjs, progress/294-e314-keepsakes-stage3.jpg.
  *
  *   installKeepsakes({ owned, adventure, sky, game, player, animals, hud, audio, music, swords, body, registry })
@@ -27,6 +27,8 @@
  *                                                                        // trophy in front of you
  */
 import * as THREE from 'three';
+import { app } from '#engine';
+import { islandTrophies } from './tables';
 import type { Audio } from '#engine/audio/Audio';
 import { IslandSfx } from '#engine/audio/IslandSfx';
 import { modelContext } from '#engine/models/model';
@@ -49,10 +51,8 @@ import { charmsFor, chimeCount, dodgeCooldownScale, heavyMult, nightGlow } from 
 export type TrophyDropId = 'bear-claw' | 'boar-tusk' | 'captain-hat';
 /** which death drops which keepsake (while you don't own it) */
 export function trophyFor(a: { kind: string; variant?: string | undefined }): TrophyDropId | null {
-  if (a.kind === 'bear' && a.variant === 'brown') return 'bear-claw';
-  if (a.kind === 'boar') return 'boar-tusk';
-  if (a.kind === 'captain') return 'captain-hat';
-  return null;
+  const id = islandTrophies(a)[0];
+  return id === 'bear-claw' || id === 'boar-tusk' || id === 'captain-hat' ? id : null;
 }
 
 const CHARM_TOAST: Record<'charm-1' | 'charm-2' | 'charm-3', string> = {
@@ -167,7 +167,7 @@ export function installKeepsakes<A extends KeepsakeAnimal>(h: KeepsakeHost<A>): 
   const spawnDrop = (id: TrophyDropId, at: THREE.Vector3, toss: boolean): void => {
     if (owned.has(id) || drops.has(id)) return;
     const item = itemFor(id), d = DROP[id];
-    const a = Math.random() * Math.PI * 2;
+    const a = app.rng.stream('loot').next() * Math.PI * 2;
     const drop = new ItemPickup({
       scene: h.game.scene, item, position: at.clone(), tier: d.tier, scale: d.scale, glow: false, tilt: id === 'captain-hat' ? 0.15 : 0.1,
       ...(toss ? { toss: { x: Math.sin(a) * 1.1, y: 3.4, z: Math.cos(a) * 1.1 } } : {}),

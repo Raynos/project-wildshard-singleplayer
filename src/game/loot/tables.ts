@@ -9,12 +9,12 @@ const entries: Entry[] = [];
 export function registerLootTable(row: LootTableRow, scope?: Scope): void {
   if (scope?.disposed === true) throw new Error('Cannot register loot on a disposed scope');
   const existing = entries.findIndex((entry) => entry.scope === scope && entry.row.id === row.id);
-  if (existing >= 0) {
+  if (existing !== -1) {
     if (scope !== undefined) throw new Error(`Duplicate loot table: ${row.id}`);
     entries.splice(existing, 1);
   }
   const entry = { row, scope }; entries.push(entry);
-  scope?.onDispose(() => { const i = entries.indexOf(entry); if (i >= 0) entries.splice(i, 1); });
+  scope?.onDispose(() => { const i = entries.indexOf(entry); if (i !== -1) entries.splice(i, 1); });
 }
 export function getLootTable(id: string): LootTableRow | undefined {
   const active = app.levelScope;

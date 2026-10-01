@@ -7,14 +7,7 @@
  *   coinsFor(chunk, a.kind)   → 0 on a shard without coins, or a creature that pays nothing
  *   burstCount(n)             → how many coin meshes fly (a big purse is split over fewer coins)
  */
-export const COIN_VALUES: Readonly<Record<string, number>> = {
-  crab: 1,
-  monkey: 1,
-  boar: 2,
-  sailor: 5,
-  bear: 10,
-  captain: 25,
-};
+import { rollLoot } from './tables';
 
 /** the ShardManifest part the coins read (kept structural so tests and node-side code need no full def) */
 export interface LootGate { loot?: { coins?: boolean } | undefined }
@@ -23,7 +16,7 @@ export const coinsOn = (def: LootGate): boolean => def.loot?.coins === true;
 
 export function coinsFor(def: LootGate, kind: string): number {
   if (!coinsOn(def)) return 0;
-  return COIN_VALUES[kind] ?? 0;
+  return rollLoot('coins', { kind }, () => 0).reduce((total, drop) => total + (drop.item === 'coin' ? drop.count : 0), 0);
 }
 
 /** the most coin meshes one kill throws: the captain's 25 fly as 12 heavier coins */

@@ -26,6 +26,7 @@ const NAME = 'The Drowned Captain';
 export class DrownedCaptain extends BossBrain {
   private readonly ports: CaptainPorts;
   private attempt = false;
+  private waitForReturn = false;
   constructor(ports: CaptainPorts) {
     const noop = (): void => undefined;
     const script: BossScript = {
@@ -46,7 +47,7 @@ export class DrownedCaptain extends BossBrain {
   }
   wake(): void {
     const animal = this.ports.animal();
-    if (animal === null || !animal.alive) return;
+    if (animal === null || !animal.alive || this.waitForReturn) return;
     animal.mem['awake'] = 1;
     if (!this.attempt) { this.attempt = true; this.state = 'fight'; }
   }
@@ -59,7 +60,7 @@ export class DrownedCaptain extends BossBrain {
   override disarm(): void { this.finish('left'); this.ui.hideBar(); this.state = 'dormant'; }
   /** No checkpoint, retry card, invulnerability beat, health clamp or arena seal for this fight. */
   override onPlayerDeath(): boolean {
-    if (this.script.inArena(this.ports.player.position)) { this.finish('lost'); this.ui.hideBar(); this.state = 'dormant'; }
+    if (this.script.inArena(this.ports.player.position)) { this.finish('lost'); this.waitForReturn = true; this.ui.hideBar(); this.state = 'dormant'; }
     return false;
   }
   override update(dt: number, _t: number): void {
@@ -69,8 +70,8 @@ export class DrownedCaptain extends BossBrain {
     if (!a.alive || this.ports.flags.has(CAPTAIN_DEF.persist.deadFlag)) {
       this.finish('won'); this.state = 'victory'; this.ui.hideBar(); return;
     }
+    if (!near) { this.finish('left'); this.waitForReturn = false; this.state = 'dormant'; }
     if (near && this.ports.flags.has(CAPTAIN_DEF.wake.flag)) this.wake();
-    if (!near) { this.finish('left'); this.state = 'dormant'; }
     const visible = near && (a.mem['rise'] ?? 0) > 0.5;
     if (visible && !this.ui.barShown) this.ui.showBar(NAME, [0.66, 0.33]);
     else if (!visible) this.ui.hideBar();

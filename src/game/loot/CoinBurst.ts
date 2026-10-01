@@ -10,6 +10,7 @@
  *   burst.dispose()
  */
 import * as THREE from 'three';
+import { app } from '#engine';
 import { coinModel } from '#engine/world/interact/models';
 import { burstCount, coinShare } from './coins';
 
@@ -77,16 +78,16 @@ export class CoinBurst {
     const count = burstCount(total);
     if (count <= 0) return;
     const burst: Burst = { left: 0, onCoin, onDone };
-    const turn = Math.random() * Math.PI * 2;
+    const turn = app.rng.stream('cosmetic').next() * Math.PI * 2;
     for (let i = 0; i < count; i++) {
       const c = this.coins.find((k) => !k.live);
       const share = coinShare(total, count, i);
       if (!c) { onCoin(share); continue; } // the pool is full: count it at once
-      const a = turn + (i / count) * Math.PI * 2 + (Math.random() - 0.5) * 0.6, out = 1.4 + Math.random() * 1.4;
+      const a = turn + (i / count) * Math.PI * 2 + (app.rng.stream('cosmetic').next() - 0.5) * 0.6, out = 1.4 + app.rng.stream('cosmetic').next() * 1.4;
       c.live = true; c.age = 0; c.value = share; c.burst = burst;
       c.pos.set(at.x, at.y + 0.7, at.z);
-      c.vel.set(Math.cos(a) * out, 4.2 + Math.random() * 1.6, Math.sin(a) * out);
-      c.spin = Math.random() * Math.PI * 2; c.spinRate = 9 + Math.random() * 6;
+      c.vel.set(Math.cos(a) * out, 4.2 + app.rng.stream('cosmetic').next() * 1.6, Math.sin(a) * out);
+      c.spin = app.rng.stream('cosmetic').next() * Math.PI * 2; c.spinRate = 9 + app.rng.stream('cosmetic').next() * 6;
       burst.left++; this.live++;
     }
     if (burst.left === 0) onDone?.();

@@ -4,7 +4,8 @@ import { describe, expect, it, vi } from 'vitest';
 import { Purse } from '#game/loot/Purse';
 import { Owned } from '#game/loot/Owned';
 import { Bounty, bountyKey } from '#game/loot/Bounty';
-import { COIN_VALUES, MAX_BURST, burstCount, coinShare, coinsFor, coinsOn } from '#game/loot/coins';
+import { MAX_BURST, burstCount, coinShare, coinsFor, coinsOn } from '#game/loot/coins';
+import { DRIFTWOOD_COIN_VALUES } from '#shards/driftwood-isle/loot/tables';
 import { driftwoodFinds, nextCharmAt } from '#shards/driftwood-isle/loot/finds';
 import { DRIFTWOOD_PLACES } from '#shards/driftwood-isle/quest/Places';
 import { DRIFTWOOD_ISLE } from '#shards/driftwood-isle/manifest';
@@ -101,7 +102,7 @@ describe('Owned', () => {
 
 describe('coins', () => {
   it("Jake's first-guess values", () => {
-    expect(COIN_VALUES).toEqual({ crab: 1, monkey: 1, boar: 2, sailor: 5, bear: 10, captain: 25 });
+    expect(DRIFTWOOD_COIN_VALUES).toEqual({ crab: 1, monkey: 1, boar: 2, sailor: 5, bear: 10, captain: 25 });
     expect(coinsFor(DRIFTWOOD_ISLE, 'deer')).toBe(0); // Jake cut the deer from Driftwood
   });
 
