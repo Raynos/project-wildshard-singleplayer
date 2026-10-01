@@ -113,10 +113,10 @@ export { EncounterRegistry, type EncounterDefinition } from './ai/encounters';
 export type { SkyBackdrop, SkyBackdropContext, SkyBackdropFactory, SkyBackdropTargets, SkyBackdropPost } from './render/look';
 export { MIDDAY_SKY, type SkyPalette } from './world/StylizedSky';
 export type { OptionValue } from './ui/Settings';
-export { loadBakedSky } from './world/BakedSky';
+
 export { attachFogUniforms } from './world/Atmosphere';
-export { preloadBakedTextures } from './boot/bakedApi';
-export { loadLUT } from './world/lut';
+export { preloadBakedTextures, loadBakedSky, loadLUT } from './boot/bakedApi';
+
 export type { SkyKey } from './world/DayClock';
 export type { RGB } from './level/data';
 export type { ScheduleSeg } from './world/dayCycle';
@@ -141,4 +141,3 @@ export type { FullMap } from './ui/Map';
 export type { SkinLocker, SkinDef } from './player/Skins';
 export { loadWorldContent } from './contentApi';
 export type { Animal } from './entities/Animal';
-
