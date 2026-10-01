@@ -1,0 +1,2079 @@
+{
+  "sourceSha": "6d13ef8f69996c5b03cb023e21e8b3eb91462ab9",
+  "lane": "m5",
+  "tier": "phone",
+  "shards": {
+    "nine-dragon-stack": {
+      "build": "6d13ef8-mupijlw6",
+      "report": "/private/tmp/e357-l3/proof-nd/report.md",
+      "leak": {
+        "before": {
+          "geometries": 0,
+          "textures": 0,
+          "programs": 0,
+          "bodies": 0,
+          "colliders": 0,
+          "listeners": {
+            "window": 0,
+            "document": 0,
+            "canvas": 0,
+            "other": 0
+          },
+          "timers": {
+            "timeouts": 0,
+            "intervals": 0,
+            "raf": 0
+          },
+          "audio": {
+            "activeVoices": 0,
+            "beds": 0,
+            "buses": 0
+          },
+          "systems": {
+            "input": 0,
+            "fixed": {
+              "pre": 0,
+              "step": 0,
+              "post": 0
+            },
+            "update": 0,
+            "late": 0,
+            "render": 0
+          },
+          "events": {
+            "listeners": 7,
+            "answerers": 5
+          },
+          "dom": {
+            "hud": 0,
+            "body": 0
+          },
+          "sceneObjects": 0
+        },
+        "after": {
+          "geometries": 0,
+          "textures": 0,
+          "programs": 0,
+          "bodies": 0,
+          "colliders": 0,
+          "listeners": {
+            "window": 0,
+            "document": 0,
+            "canvas": 0,
+            "other": 0
+          },
+          "timers": {
+            "timeouts": 0,
+            "intervals": 0,
+            "raf": 0
+          },
+          "audio": {
+            "activeVoices": 0,
+            "beds": 0,
+            "buses": 0
+          },
+          "systems": {
+            "input": 0,
+            "fixed": {
+              "pre": 0,
+              "step": 0,
+              "post": 0
+            },
+            "update": 0,
+            "late": 0,
+            "render": 0
+          },
+          "events": {
+            "listeners": 7,
+            "answerers": 5
+          },
+          "dom": {
+            "hud": 0,
+            "body": 0
+          },
+          "sceneObjects": 0
+        },
+        "disposalErrors": [],
+        "scope": {
+          "geometries": 0,
+          "materials": 0,
+          "textures": 0,
+          "renderTargets": 0,
+          "meshes": 0,
+          "resources": 0,
+          "bodies": 0,
+          "sounds": 0,
+          "listeners": 0,
+          "timers": 0,
+          "rafs": 0,
+          "disposers": 0,
+          "systems": 0,
+          "colliders": 0,
+          "nodes": 0
+        }
+      },
+      "leakChecks": [
+        {
+          "field": "leak.disposalErrors",
+          "baseline": [],
+          "now": [],
+          "class": "D",
+          "band": "no disposal failures",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.geometries",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.textures",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.programs",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.bodies",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.colliders",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.listeners.window",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.listeners.document",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.listeners.canvas",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.listeners.other",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.timers.timeouts",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.timers.intervals",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.timers.raf",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.audio.activeVoices",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.audio.beds",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.audio.buses",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.input",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.fixed.pre",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.fixed.step",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.fixed.post",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.update",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.late",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.render",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.events.listeners",
+          "baseline": 7,
+          "now": 7,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.events.answerers",
+          "baseline": 5,
+          "now": 5,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.dom.hud",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.dom.body",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.sceneObjects",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        }
+      ],
+      "overallVerdict": "red",
+      "otherRedFields": [
+        "boot.systems.input",
+        "boot.systems.update",
+        "boot.systems.late",
+        "boot.saves.read"
+      ]
+    },
+    "pine-hollow": {
+      "build": "6d13ef8-mupijlwk",
+      "report": "/private/tmp/e357-l3/proof-pine/report.md",
+      "leak": {
+        "before": {
+          "geometries": 0,
+          "textures": 0,
+          "programs": 0,
+          "bodies": 0,
+          "colliders": 0,
+          "listeners": {
+            "window": 0,
+            "document": 0,
+            "canvas": 0,
+            "other": 0
+          },
+          "timers": {
+            "timeouts": 0,
+            "intervals": 0,
+            "raf": 0
+          },
+          "audio": {
+            "activeVoices": 0,
+            "beds": 0,
+            "buses": 0
+          },
+          "systems": {
+            "input": 0,
+            "fixed": {
+              "pre": 0,
+              "step": 0,
+              "post": 0
+            },
+            "update": 0,
+            "late": 0,
+            "render": 0
+          },
+          "events": {
+            "listeners": 7,
+            "answerers": 5
+          },
+          "dom": {
+            "hud": 0,
+            "body": 0
+          },
+          "sceneObjects": 0
+        },
+        "after": {
+          "geometries": 0,
+          "textures": 0,
+          "programs": 0,
+          "bodies": 0,
+          "colliders": 0,
+          "listeners": {
+            "window": 0,
+            "document": 0,
+            "canvas": 0,
+            "other": 0
+          },
+          "timers": {
+            "timeouts": 0,
+            "intervals": 0,
+            "raf": 0
+          },
+          "audio": {
+            "activeVoices": 0,
+            "beds": 0,
+            "buses": 0
+          },
+          "systems": {
+            "input": 0,
+            "fixed": {
+              "pre": 0,
+              "step": 0,
+              "post": 0
+            },
+            "update": 0,
+            "late": 0,
+            "render": 0
+          },
+          "events": {
+            "listeners": 7,
+            "answerers": 5
+          },
+          "dom": {
+            "hud": 0,
+            "body": 0
+          },
+          "sceneObjects": 0
+        },
+        "disposalErrors": [],
+        "scope": {
+          "geometries": 0,
+          "materials": 0,
+          "textures": 0,
+          "renderTargets": 0,
+          "meshes": 0,
+          "resources": 0,
+          "bodies": 0,
+          "sounds": 0,
+          "listeners": 0,
+          "timers": 0,
+          "rafs": 0,
+          "disposers": 0,
+          "systems": 0,
+          "colliders": 0,
+          "nodes": 0
+        },
+        "weather": {
+          "before": {
+            "geometries": 0,
+            "textures": 0,
+            "programs": 0,
+            "bodies": 0,
+            "colliders": 0,
+            "listeners": {
+              "window": 0,
+              "document": 0,
+              "canvas": 0,
+              "other": 0
+            },
+            "timers": {
+              "timeouts": 0,
+              "intervals": 0,
+              "raf": 0
+            },
+            "audio": {
+              "activeVoices": 0,
+              "beds": 0,
+              "buses": 0
+            },
+            "systems": {
+              "input": 0,
+              "fixed": {
+                "pre": 0,
+                "step": 0,
+                "post": 0
+              },
+              "update": 0,
+              "late": 0,
+              "render": 0
+            },
+            "events": {
+              "listeners": 7,
+              "answerers": 5
+            },
+            "dom": {
+              "hud": 0,
+              "body": 0
+            },
+            "sceneObjects": 0,
+            "errors": []
+          },
+          "after": {
+            "geometries": 0,
+            "textures": 0,
+            "programs": 0,
+            "bodies": 0,
+            "colliders": 0,
+            "listeners": {
+              "window": 0,
+              "document": 0,
+              "canvas": 0,
+              "other": 0
+            },
+            "timers": {
+              "timeouts": 0,
+              "intervals": 0,
+              "raf": 0
+            },
+            "audio": {
+              "activeVoices": 0,
+              "beds": 0,
+              "buses": 0
+            },
+            "systems": {
+              "input": 0,
+              "fixed": {
+                "pre": 0,
+                "step": 0,
+                "post": 0
+              },
+              "update": 0,
+              "late": 0,
+              "render": 0
+            },
+            "events": {
+              "listeners": 7,
+              "answerers": 5
+            },
+            "dom": {
+              "hud": 0,
+              "body": 0
+            },
+            "sceneObjects": 0,
+            "errors": []
+          },
+          "disposalErrors": [],
+          "scope": {
+            "geometries": 0,
+            "materials": 0,
+            "textures": 0,
+            "renderTargets": 0,
+            "meshes": 0,
+            "resources": 0,
+            "bodies": 0,
+            "sounds": 0,
+            "listeners": 0,
+            "timers": 0,
+            "rafs": 0,
+            "disposers": 0,
+            "systems": 0,
+            "colliders": 0,
+            "nodes": 0
+          }
+        }
+      },
+      "leakChecks": [
+        {
+          "field": "leak.disposalErrors",
+          "baseline": [],
+          "now": [],
+          "class": "D",
+          "band": "no disposal failures",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.disposalErrors",
+          "baseline": [],
+          "now": [],
+          "class": "D",
+          "band": "no disposal failures",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.geometries",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.textures",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.programs",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.bodies",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.colliders",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.listeners.window",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.listeners.document",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.listeners.canvas",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.listeners.other",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.timers.timeouts",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.timers.intervals",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.timers.raf",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.audio.activeVoices",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.audio.beds",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.audio.buses",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.input",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.fixed.pre",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.fixed.step",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.fixed.post",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.update",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.late",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.render",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.events.listeners",
+          "baseline": 7,
+          "now": 7,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.events.answerers",
+          "baseline": 5,
+          "now": 5,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.dom.hud",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.dom.body",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.sceneObjects",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.geometries",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.textures",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.programs",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.bodies",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.colliders",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.listeners.window",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.listeners.document",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.listeners.canvas",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.listeners.other",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.timers.timeouts",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.timers.intervals",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.timers.raf",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.audio.activeVoices",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.audio.beds",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.audio.buses",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.systems.input",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.systems.fixed.pre",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.systems.fixed.step",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.systems.fixed.post",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.systems.update",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.systems.late",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.systems.render",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.events.listeners",
+          "baseline": 7,
+          "now": 7,
+          "class": "D",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.events.answerers",
+          "baseline": 5,
+          "now": 5,
+          "class": "D",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.dom.hud",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.dom.body",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.sceneObjects",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.errors",
+          "baseline": [],
+          "now": [],
+          "class": "D",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        }
+      ],
+      "overallVerdict": "red",
+      "otherRedFields": [
+        "boot.errors",
+        "walk.sounds.event",
+        "boot.systems.input",
+        "boot.systems.update",
+        "boot.systems.late",
+        "boot.registry",
+        "boot.saves.read",
+        "combat.loot.written",
+        "combat.sounds.ambient"
+      ]
+    },
+    "nalati-grasslands": {
+      "build": "6d13ef8-mupijlw9",
+      "report": "/private/tmp/e357-l3/proof-nalati/report.md",
+      "leak": {
+        "before": {
+          "geometries": 0,
+          "textures": 0,
+          "programs": 0,
+          "bodies": 0,
+          "colliders": 0,
+          "listeners": {
+            "window": 0,
+            "document": 0,
+            "canvas": 0,
+            "other": 0
+          },
+          "timers": {
+            "timeouts": 0,
+            "intervals": 0,
+            "raf": 0
+          },
+          "audio": {
+            "activeVoices": 0,
+            "beds": 0,
+            "buses": 0
+          },
+          "systems": {
+            "input": 0,
+            "fixed": {
+              "pre": 0,
+              "step": 0,
+              "post": 0
+            },
+            "update": 0,
+            "late": 0,
+            "render": 0
+          },
+          "events": {
+            "listeners": 7,
+            "answerers": 5
+          },
+          "dom": {
+            "hud": 0,
+            "body": 0
+          },
+          "sceneObjects": 0
+        },
+        "after": {
+          "geometries": 0,
+          "textures": 0,
+          "programs": 0,
+          "bodies": 0,
+          "colliders": 0,
+          "listeners": {
+            "window": 0,
+            "document": 0,
+            "canvas": 0,
+            "other": 0
+          },
+          "timers": {
+            "timeouts": 0,
+            "intervals": 0,
+            "raf": 0
+          },
+          "audio": {
+            "activeVoices": 0,
+            "beds": 0,
+            "buses": 0
+          },
+          "systems": {
+            "input": 0,
+            "fixed": {
+              "pre": 0,
+              "step": 0,
+              "post": 0
+            },
+            "update": 0,
+            "late": 0,
+            "render": 0
+          },
+          "events": {
+            "listeners": 7,
+            "answerers": 5
+          },
+          "dom": {
+            "hud": 0,
+            "body": 0
+          },
+          "sceneObjects": 0
+        },
+        "disposalErrors": [],
+        "scope": {
+          "geometries": 0,
+          "materials": 0,
+          "textures": 0,
+          "renderTargets": 0,
+          "meshes": 0,
+          "resources": 0,
+          "bodies": 0,
+          "sounds": 0,
+          "listeners": 0,
+          "timers": 0,
+          "rafs": 0,
+          "disposers": 0,
+          "systems": 0,
+          "colliders": 0,
+          "nodes": 0
+        },
+        "weather": {
+          "before": {
+            "geometries": 0,
+            "textures": 0,
+            "programs": 0,
+            "bodies": 0,
+            "colliders": 0,
+            "listeners": {
+              "window": 0,
+              "document": 0,
+              "canvas": 0,
+              "other": 0
+            },
+            "timers": {
+              "timeouts": 0,
+              "intervals": 0,
+              "raf": 0
+            },
+            "audio": {
+              "activeVoices": 0,
+              "beds": 0,
+              "buses": 0
+            },
+            "systems": {
+              "input": 0,
+              "fixed": {
+                "pre": 0,
+                "step": 0,
+                "post": 0
+              },
+              "update": 0,
+              "late": 0,
+              "render": 0
+            },
+            "events": {
+              "listeners": 7,
+              "answerers": 5
+            },
+            "dom": {
+              "hud": 0,
+              "body": 0
+            },
+            "sceneObjects": 0,
+            "errors": []
+          },
+          "after": {
+            "geometries": 0,
+            "textures": 0,
+            "programs": 0,
+            "bodies": 0,
+            "colliders": 0,
+            "listeners": {
+              "window": 0,
+              "document": 0,
+              "canvas": 0,
+              "other": 0
+            },
+            "timers": {
+              "timeouts": 0,
+              "intervals": 0,
+              "raf": 0
+            },
+            "audio": {
+              "activeVoices": 0,
+              "beds": 0,
+              "buses": 0
+            },
+            "systems": {
+              "input": 0,
+              "fixed": {
+                "pre": 0,
+                "step": 0,
+                "post": 0
+              },
+              "update": 0,
+              "late": 0,
+              "render": 0
+            },
+            "events": {
+              "listeners": 7,
+              "answerers": 5
+            },
+            "dom": {
+              "hud": 0,
+              "body": 0
+            },
+            "sceneObjects": 0,
+            "errors": []
+          },
+          "disposalErrors": [],
+          "scope": {
+            "geometries": 0,
+            "materials": 0,
+            "textures": 0,
+            "renderTargets": 0,
+            "meshes": 0,
+            "resources": 0,
+            "bodies": 0,
+            "sounds": 0,
+            "listeners": 0,
+            "timers": 0,
+            "rafs": 0,
+            "disposers": 0,
+            "systems": 0,
+            "colliders": 0,
+            "nodes": 0
+          }
+        }
+      },
+      "leakChecks": [
+        {
+          "field": "leak.disposalErrors",
+          "baseline": [],
+          "now": [],
+          "class": "D",
+          "band": "no disposal failures",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.disposalErrors",
+          "baseline": [],
+          "now": [],
+          "class": "D",
+          "band": "no disposal failures",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.geometries",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.textures",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.programs",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.bodies",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.colliders",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.listeners.window",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.listeners.document",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.listeners.canvas",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.listeners.other",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.timers.timeouts",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.timers.intervals",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.timers.raf",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.audio.activeVoices",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.audio.beds",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.audio.buses",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.input",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.fixed.pre",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.fixed.step",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.fixed.post",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.update",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.late",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.render",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.events.listeners",
+          "baseline": 7,
+          "now": 7,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.events.answerers",
+          "baseline": 5,
+          "now": 5,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.dom.hud",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.dom.body",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.sceneObjects",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.geometries",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.textures",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.programs",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.bodies",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.colliders",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.listeners.window",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.listeners.document",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.listeners.canvas",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.listeners.other",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.timers.timeouts",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.timers.intervals",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.timers.raf",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.audio.activeVoices",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.audio.beds",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.audio.buses",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.systems.input",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.systems.fixed.pre",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.systems.fixed.step",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.systems.fixed.post",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.systems.update",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.systems.late",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.systems.render",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.events.listeners",
+          "baseline": 7,
+          "now": 7,
+          "class": "D",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.events.answerers",
+          "baseline": 5,
+          "now": 5,
+          "class": "D",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.dom.hud",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.dom.body",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.sceneObjects",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.weather.errors",
+          "baseline": [],
+          "now": [],
+          "class": "D",
+          "band": "weather B1 = B0",
+          "verdict": "green"
+        }
+      ],
+      "overallVerdict": "red",
+      "otherRedFields": [
+        "boot.errors",
+        "combat.sounds.event",
+        "boot.systems.input",
+        "boot.systems.update",
+        "boot.systems.late",
+        "boot.scene.totals.mesh",
+        "boot.scene.named",
+        "boot.render.programs",
+        "boot.render.programKeys",
+        "boot.render.memory.textures",
+        "boot.gpuBytes.textures",
+        "boot.gpuBytes.total",
+        "boot.audio.requests",
+        "boot.saves.read",
+        "combat.loot.written"
+      ]
+    },
+    "driftwood-isle": {
+      "build": "6d13ef8-mupijlwj",
+      "report": "/private/tmp/e357-l3/proof-driftwood/report.md",
+      "leak": {
+        "before": {
+          "geometries": 0,
+          "textures": 0,
+          "programs": 0,
+          "bodies": 0,
+          "colliders": 0,
+          "listeners": {
+            "window": 0,
+            "document": 0,
+            "canvas": 0,
+            "other": 0
+          },
+          "timers": {
+            "timeouts": 0,
+            "intervals": 0,
+            "raf": 0
+          },
+          "audio": {
+            "activeVoices": 0,
+            "beds": 0,
+            "buses": 0
+          },
+          "systems": {
+            "input": 0,
+            "fixed": {
+              "pre": 0,
+              "step": 0,
+              "post": 0
+            },
+            "update": 0,
+            "late": 0,
+            "render": 0
+          },
+          "events": {
+            "listeners": 7,
+            "answerers": 5
+          },
+          "dom": {
+            "hud": 0,
+            "body": 0
+          },
+          "sceneObjects": 0
+        },
+        "after": {
+          "geometries": 0,
+          "textures": 0,
+          "programs": 0,
+          "bodies": 0,
+          "colliders": 0,
+          "listeners": {
+            "window": 0,
+            "document": 0,
+            "canvas": 0,
+            "other": 0
+          },
+          "timers": {
+            "timeouts": 0,
+            "intervals": 0,
+            "raf": 0
+          },
+          "audio": {
+            "activeVoices": 0,
+            "beds": 0,
+            "buses": 0
+          },
+          "systems": {
+            "input": 0,
+            "fixed": {
+              "pre": 0,
+              "step": 0,
+              "post": 0
+            },
+            "update": 0,
+            "late": 0,
+            "render": 0
+          },
+          "events": {
+            "listeners": 7,
+            "answerers": 5
+          },
+          "dom": {
+            "hud": 0,
+            "body": 0
+          },
+          "sceneObjects": 0
+        },
+        "disposalErrors": [],
+        "scope": {
+          "geometries": 0,
+          "materials": 0,
+          "textures": 0,
+          "renderTargets": 0,
+          "meshes": 0,
+          "resources": 0,
+          "bodies": 0,
+          "sounds": 0,
+          "listeners": 0,
+          "timers": 0,
+          "rafs": 0,
+          "disposers": 0,
+          "systems": 0,
+          "colliders": 0,
+          "nodes": 0
+        }
+      },
+      "leakChecks": [
+        {
+          "field": "leak.disposalErrors",
+          "baseline": [],
+          "now": [],
+          "class": "D",
+          "band": "no disposal failures",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.geometries",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.textures",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.programs",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.bodies",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.colliders",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.listeners.window",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.listeners.document",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.listeners.canvas",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.listeners.other",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.timers.timeouts",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.timers.intervals",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.timers.raf",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.audio.activeVoices",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.audio.beds",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.audio.buses",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.input",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.fixed.pre",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.fixed.step",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.fixed.post",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.update",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.late",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.systems.render",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.events.listeners",
+          "baseline": 7,
+          "now": 7,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.events.answerers",
+          "baseline": 5,
+          "now": 5,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.dom.hud",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.dom.body",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        },
+        {
+          "field": "leak.sceneObjects",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "B1 = B0",
+          "verdict": "green"
+        }
+      ],
+      "overallVerdict": "red",
+      "otherRedFields": [
+        "walk.sounds.event",
+        "boot.systems.input",
+        "boot.systems.update",
+        "boot.systems.late",
+        "boot.registry",
+        "boot.audio.requests",
+        "boot.saves.read",
+        "combat.loot.written"
+      ]
+    }
+  }
+}
