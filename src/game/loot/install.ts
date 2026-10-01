@@ -22,7 +22,7 @@
  */
 import * as THREE from 'three';
 import type { Audio } from '#engine/audio/Audio';
-import { IslandSfx } from '#engine/audio/IslandSfx';
+import { InteractSfx } from '#engine/audio/interactSfx';
 import { CoinChip } from './CoinChip';
 import type { GameMenu } from '#engine/ui/Menu';
 import type { CosmeticSlot, GearLoot } from '../bag/bag';
@@ -88,7 +88,7 @@ export function installLoot<A extends LootAnimal>(h: LootHost<A>): Loot {
   const onHidden = (): void => { if (document.visibilityState === 'hidden') purse.flush(); };
   window.addEventListener('pagehide', flush);
   document.addEventListener('visibilitychange', onHidden);
-  const sfx = new IslandSfx(h.audio);
+  const sfx = new InteractSfx(h.audio);
   // each enemy pays once (Jake, 2026-09-30): a respawn's kill pays nothing (Bounty.ts); the census is the island as it starts
   const census = Bounty.census(h.animals.animals);
   const bounty = new Bounty(h.chunk.slug, census);

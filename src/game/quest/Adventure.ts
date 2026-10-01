@@ -24,7 +24,7 @@ import { DRIFTWOOD_INTERACT, SEA_GLASS_COUNT, SEA_GLASS_FLAG } from '#shards/dri
 import type { Interactable, PoiId, Place } from '#engine/world/interact/types';
 import { ITEMS, type ItemId } from '../Inventory';
 import type { Audio } from '#engine/audio/Audio';
-import { IslandSfx } from '#engine/audio/IslandSfx';
+import { InteractSfx } from '#engine/audio/interactSfx';
 import { installSpine, type Spine } from '#shards/driftwood-isle/quest/Spine';
 import { installTrader, type TraderStall } from '#shards/driftwood-isle/quest/TraderStall';
 import { installFeats } from '#shards/driftwood-isle/quest/Feats';
@@ -59,7 +59,7 @@ export interface AdventureWorld<A extends AdvAnimal = AdvAnimal> {
   prompts: Interactable[];
   /** the HUD: toasts; the complete card (E132) resumes play through `onResume` (the pause menu's close) and leaves by `exitToMenu` */
   hud: { toast: (text: string) => void; onResume?: (() => void) | undefined; exitToMenu?: () => void; readonly entered?: boolean; readonly paused?: boolean };
-  /** the game's Audio: the kit's sounds are IslandSfx.interact (S4) — chests, locks, levers, plates, doors, pickups, the beacon */
+  /** the game's Audio: the kit's sounds are InteractSfx.interact (S4) — chests, locks, levers, plates, doors, pickups, the beacon */
   audio: Audio;
   music: { sting: (name: 'pickup' | 'death' | 'chunk') => void; combat?: (intensity: number) => void };
   inventory: { add: (id: ItemId, n?: number) => void };
@@ -152,7 +152,7 @@ function installDriftwoodAdventure<A extends AdvAnimal>(w: AdventureWorld<A>): A
   w.game.onUpdate((dt, t) => kit.update(dt, t), 'engine.quest.installDriftwoodAdventure');
 
   const isItem = (id: string | undefined): id is ItemId => id !== undefined && id in ITEMS;
-  const sfx = new IslandSfx(w.audio);
+  const sfx = new InteractSfx(w.audio);
   function onInteract(e: InteractEvent): void {
     switch (e.type) {
       case 'locked': w.hud.toast(e.text ?? 'Locked'); sfx.interact('locked', e.at); break;

@@ -30,7 +30,7 @@ import * as THREE from 'three';
 import { app } from '#engine';
 import { islandTrophies } from './tables';
 import type { Audio } from '#engine/audio/Audio';
-import { IslandSfx } from '#engine/audio/IslandSfx';
+import { InteractSfx } from '#engine/audio/interactSfx';
 import { modelContext } from '#engine/models/model';
 import { place } from '#engine/models/place';
 import { seaGlassChime, SeaGlassChime } from '../models/seaGlassChime';
@@ -110,7 +110,7 @@ export function installKeepsakes<A extends KeepsakeAnimal>(h: KeepsakeHost<A>): 
   const flags = adv.flags;
   const ctx = modelContext(h.sky);
   const registry = h.registry ? { registry: h.registry } : {};
-  const sfx = new IslandSfx(h.audio);
+  const sfx = new InteractSfx(h.audio);
   const floor = adv.place({ poi: 'hut', anchor: 'hut.door', x: 0, z: -2.7 }).y;
 
   // ── the chime and the plaques, placed models (the Model Explorer's world pieces; no colliders: they hang out of reach) ──

@@ -30,7 +30,7 @@ import type { HUD } from '#engine/ui/HUD';
 import type { Audio } from '#engine/audio/Audio';
 import type { Music } from '#engine/audio/Music';
 import type { PineHollowSfx } from '../audio/sfx';
-import { IslandSfx } from '#engine/audio/IslandSfx';
+import { InteractSfx } from '#engine/audio/interactSfx';
 import type { Inventory, ItemId } from '#game/Inventory';
 import type { Progress } from '#game/Progress';
 import { SKINS } from '../loadout/skins';
@@ -111,7 +111,7 @@ export async function installPineQuest(h: PineQuestHost): Promise<PineQuest> {
   if (quest === undefined) throw new Error("Pine quest chapter is missing");
 
   let sfx: PineHollowSfx | null = null;
-  const kitSfx = new IslandSfx(h.audio);
+  const kitSfx = new InteractSfx(h.audio);
   const shot = (name: Parameters<PineHollowSfx['shot']>[0], at?: THREE.Vector3): void => { sfx?.shot(name, at ? { at } : {}); };
 
   // ── floors + placements (world coordinates only) ──
