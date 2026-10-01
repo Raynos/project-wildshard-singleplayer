@@ -53,6 +53,15 @@ export async function touchLeg(page) {
   }
   return {moved,yawDelta,dodged,used};
 }
+/** @param {import('playwright').Page} page @param {import('../types/wildshard-probe.d.ts').WalkLeg} route */
+function walkRoute(page,route) {
+  return within(page.evaluate(async(leg)=>{
+    const g=window.__wildshard.world.game,watch=g.watchFrames.bind(g);
+    // pose() awaits a raw rAF. Keep simulation held until the autopilot observer is actually registered.
+    g.watchFrames=(fn)=>{const stop=watch(fn);window.__parity.free=true;return stop;};
+    try{return await window.__wildshard.walkLeg(leg);}finally{window.__parity.free=false;g.watchFrames=watch;}
+  },route),240000,`walk ${route.name}`);
+}
 /** @param {import('playwright').Page} page @param {{shard:string,tier:string,full:boolean,root:string}} opts */
 export async function walk(page,opts) {
   await page.evaluate(()=>window.__wildshard.sounds());
@@ -64,7 +73,7 @@ export async function walk(page,opts) {
     console.error(`parity: ${opts.shard}.${opts.tier} walk ${route.name}`);
     // An escape attempt must start on its own floor, never on the preceding bridge.
     if(route.inside)await poseAt(page,route.start);
-    legs.push(await within(page.evaluate(async(leg)=>{window.__parity.free=true;try{return await window.__wildshard.walkLeg(leg);}finally{window.__parity.free=false;}},route),240000,`walk ${route.name}`));
+    legs.push(await walkRoute(page,route));
     // Finish a door's queued fade before the next leg teleports away (Nalati's dromos).
     await advance(page,15);
   }
@@ -76,7 +85,7 @@ export async function walk(page,opts) {
     for(const [i,path] of trails.entries())for(const reverse of [false,true]) {
       const waypoints=[];const pts=reverse?[...path].reverse():path;
       for(let n=1;n<pts.length;n++){const a=pts[n-1],b=pts[n];const count=Math.max(1,Math.ceil(Math.hypot(b.x-a.x,b.z-a.z)/3));for(let k=1;k<=count;k++)waypoints.push({x:a.x+(b.x-a.x)*k/count,z:a.z+(b.z-a.z)*k/count});}
-      if(pts.length>0)legs.push(await page.evaluate((leg)=>window.__wildshard.walkLeg(leg),{name:`trail-${i}-${reverse?'back':'forward'}`,start:{...pts[0],yaw:0},waypoints,timeout:240}));
+      if(pts.length>0)legs.push(await walkRoute(page,{name:`trail-${i}-${reverse?'back':'forward'}`,start:{...pts[0],yaw:0},waypoints,timeout:240}));
     }
   }
   const touchResult=opts.tier==='phone' ? await touchLeg(page) : undefined;

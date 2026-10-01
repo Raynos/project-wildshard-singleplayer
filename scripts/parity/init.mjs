@@ -1,5 +1,6 @@
 /// <reference path="./init.d.mts" />
 import { GL_INIT } from './glbytes.mjs';
+import { installResources } from './resources.mjs';
 
 /** All observations are installed before boot, using scorecard's RNG and GPU byte hooks.
  * @param {import('playwright').BrowserContext} context
@@ -23,6 +24,7 @@ export async function installInit(context, meta) {
       const textures = gl.reduce((sum,r)=>sum+r.texBytes,0), renderbuffers=gl.reduce((sum,r)=>sum+r.rbBytes,0), buffers=gl.reduce((sum,r)=>sum+r.bufBytes,0);
       return {textures,renderbuffers,buffers,total:textures+renderbuffers+buffers};
     }};
+    Reflect.set(w.__wildshardHarness,'resources',()=>w.__parityResources());
     const rawRAF=window.requestAnimationFrame.bind(window); w.__parity={cpu:0,on:false,rawRAF,free:false,remaining:0,advance:()=>Promise.reject(new Error('frame control not installed'))};
     document.addEventListener('ws:ready',()=>{
       const g=w.__wildshard.world.game,control=w.__parity,original=g.frameGate.bind(g);
@@ -44,4 +46,5 @@ export async function installInit(context, meta) {
     window.addEventListener('unhandledrejection',(e)=>{errors.push(String(e.reason));});
     console.error=new Proxy(console.error,{apply(target,self,args){errors.push(args.map(String).join(' '));Reflect.apply(target,self,args);}});
   },meta);
+  await context.addInitScript(installResources);
 }

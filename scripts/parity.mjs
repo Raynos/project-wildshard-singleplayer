@@ -14,6 +14,7 @@ import { combat, pauseResume } from './parity/combat.mjs';
 import { aggregate, imageScore, writeBaseline } from './parity/record.mjs';
 import { array, flatten, get, object, set, string } from './parity/value.mjs';
 import { within } from './parity/timeout.mjs';
+import { advance } from './parity/frames.mjs';
 
 /** @typedef {import('./parity/value.mjs').RecordValue} RecordValue */
 const ROOT=resolve(import.meta.dirname,'..');
@@ -88,6 +89,29 @@ async function capture(browser,url,opts) {
   } finally {await context.close();}
 }
 
+/** Fresh weather context for the F8 unload proof (03 §5.5).
+ * @param {import('playwright').Browser} browser @param {string} url
+ * @param {{shard:string,tier:string,lane:string,sha:string,timeout:number}} opts */
+async function weatherLeak(browser,url,opts) {
+  const context=await browser.newContext(opts.tier==='phone'?{viewport:{width:390,height:844},deviceScaleFactor:3,isMobile:true,hasTouch:true,serviceWorkers:'block'}:{viewport:{width:1600,height:900},serviceWorkers:'block'});
+  try {
+    await installInit(context,{lane:opts.lane,sha:opts.sha,browser:browser.version(),capture:30});
+    await debugSettings(context,{time:'midday',weather:opts.shard==='pine-hollow'?'rain':'clear'});
+    const page=await context.newPage();
+    const params=new URLSearchParams({chunk:opts.shard,tier:opts.tier,skipintro:'1',nolock:'1',mute:'1',sw:'0',weather:opts.shard==='nalati-grasslands'?'storm':'rain',...opts.tier==='phone'?{touch:'1'}:{}});
+    await page.goto(`${url}/?${params}`);
+    await page.waitForFunction(()=>Boolean(window.__wildshard)&&!document.querySelector('.ws-load'),undefined,{timeout:opts.timeout*1000});
+    const available=await page.evaluate(()=>Object.hasOwn(window.__wildshard,'leak'));
+    if(!available)return null;
+    console.error(`parity: ${opts.shard}.${opts.tier} weather leak`);
+    await advance(page,900);
+    return await page.evaluate(()=>{
+      const p=/** @type {typeof window.__wildshard & {leak:()=>Promise<unknown>}} */(window.__wildshard);
+      return p.leak();
+    });
+  }finally{await context.close();}
+}
+
 /** @param {Record<string,string|undefined>} opts */
 async function main(opts) {
   if(opts.help){console.log(HELP);return 0;}
@@ -148,7 +172,15 @@ async function main(opts) {
       const isRecord=Boolean(opts.record)||opts.rebaseline===shard||Boolean(opts.accept)&&selected.some((p)=>p.shard===shard);
       const count=isRecord?runs:1,rawRuns=/** @type {RecordValue[]} */ ([]);
       const baselineFile=join(root,`test/parity/baselines/${lane}/${shard}.${tier}.json`),baseline=object(readJson(baselineFile));
-      for(let n=0;n<count;n++){const dir=join(out,`run-${n+1}`);mkdirSync(dir,{recursive:true});rawRuns.push(await capture(browser,url,{shard,tier,lane,sha,root,out:dir,timeout,full:Boolean(opts.full),only:opts.only,offline:Boolean(opts.offline)}));}
+      for(let n=0;n<count;n++){
+        const dir=join(out,`run-${n+1}`);mkdirSync(dir,{recursive:true});
+        const captured=object(await capture(browser,url,{shard,tier,lane,sha,root,out:dir,timeout,full:Boolean(opts.full),only:opts.only,offline:Boolean(opts.offline)}));
+        if(captured.leak && ['pine-hollow','nalati-grasslands'].includes(shard)){
+          const weather=await weatherLeak(browser,url,{shard,tier,lane,sha,timeout});
+          if(weather)object(captured.leak).weather=object(weather);
+        }
+        rawRuns.push(captured);
+      }
       const current=isRecord?await aggregate(scorePage,rawRuns,{sha,browser:browser.version()}):rawRuns[0]??{};
       const ignore=opts.only==='fingerprint+poses'?['walk','combat','pauseResume','leak']:opts.only==='walk+combat+leak'?['poses']:[];
       if(opts.full)ignore.push(...Object.keys(object(get(normalize(current),'walk.legs'))).filter((name)=>get(normalize(baseline),`walk.legs.${name}`)===undefined).map((name)=>`walk.legs.${name}`));

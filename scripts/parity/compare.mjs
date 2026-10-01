@@ -124,6 +124,7 @@ export function compare(rawBaseline, rawCurrent, options = {}) {
   const pause = get(current, 'pauseResume');
   if (pause !== undefined) d.push(['pauseResume', array(object(pause).diff).length === 0 && (get(current, 'boot.appStates') === undefined || (array(object(pause).appStates)[0] === 'paused' && array(object(pause).appStates)[1] === object(pause).returnState)), 'no state drift; resumed prior state']);
   for (const [path, after] of Object.entries(flatten(get(current, 'leak.after')))) d.push([`leak.${path}`, equal(after, get(current, `leak.before.${path}`)), 'B1 = B0']);
+  for (const [path, after] of Object.entries(flatten(get(current, 'leak.weather.after')))) d.push([`leak.weather.${path}`, equal(after, get(current, `leak.weather.before.${path}`)), 'weather B1 = B0']);
   const budget = object(current.budgets);
   for (const [pose, spec] of Object.entries(budget)) {
     const limits = {...object(object(spec).derived), ...object(object(spec).ceiling)};
@@ -132,7 +133,10 @@ export function compare(rawBaseline, rawCurrent, options = {}) {
       if (v !== undefined) d.push([`budgets.${pose}.${metric}`, number(v) <= number(value), `≤ ${number(value)}`]);
     }
   }
-  for (const [path, pass, band] of d) emit(path, get(baseline, path), get(current, path), 'D', pass, band);
+  for (const [path, pass, band] of d) {
+    const prefix=path.startsWith('leak.weather.')?'leak.weather.':path.startsWith('leak.')?'leak.':null;
+    emit(path, prefix?get(current,`${prefix}before.${path.slice(prefix.length)}`):get(baseline,path), prefix?get(current,`${prefix}after.${path.slice(prefix.length)}`):get(current,path), 'D', pass, band);
+  }
   for(const path of ['walk.sounds.event','combat.sounds.event'])if(get(current,path)!==undefined || get(baseline,path)!==undefined)emit(path,get(baseline,path),get(current,path),'A',equal(get(baseline,path),get(current,path)),'exact multiset');
   for (const path of new Set([...Object.keys(bf), ...Object.keys(cf)])) {
     if (d.some(([p]) => matches(p, path)) || matches('walk.sounds.event',path) || matches('combat.sounds.event',path) || path.startsWith('budgets.') || path.startsWith('leak.') || (options.ignore ?? []).some((p) => matches(p, path))) continue;

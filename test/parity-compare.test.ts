@@ -122,4 +122,8 @@ describe('parity comparison', () => {
     n['budgets']={gate:{derived:{draws:99},ceiling:null}};
     expect(rows({},n).rows.filter((r)=>r.verdict==='red').map((r)=>r.field)).toEqual(['combat.shot','pauseResume','leak.geometries','budgets.gate.draws']);
   });
+  it('enforces weather unload counts and prints actual B0/B1 values',()=>{
+    const n=clone();n['leak']={before:{geometries:1},after:{geometries:1},weather:{before:{listeners:{window:2}},after:{listeners:{window:3}}}};
+    expect(rows({},n).rows).toContainEqual(expect.objectContaining({field:'leak.weather.listeners.window',baseline:2,now:3,class:'D',verdict:'red'}));
+  });
 });
