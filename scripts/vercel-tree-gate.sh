@@ -53,6 +53,8 @@ run typecheck pnpm exec tsc --noEmit
 run typecheck-api pnpm exec tsc --noEmit -p api
 run oxlint pnpm exec oxlint
 run ratchet node lint/ratchet.mjs
+# CI runs this in `pnpm test`; a stale scripts/README.md failed the 96239386 deploy run with this gate green
+[ -f scripts/normalize/liveness.mjs ] && [ -f scripts/README.md ] && run liveness node scripts/normalize/liveness.mjs --readme --check
 run vitest pnpm exec vitest run
 run vite-build pnpm exec vite build --outDir "$work/dist" --emptyOutDir
 
