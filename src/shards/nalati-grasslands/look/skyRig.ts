@@ -5,10 +5,7 @@
  */
 import * as THREE from 'three';
 import type { ShardManifest, RGB } from '#game';
-import { painterlyUniforms, syncPainterlySun, type Game, type Sky, type DayCycle, type DayCycleClock, type DayKeys } from '#engine';
-// S3.2c: these two move to the '#engine' import when the index exports them (sol-v1, pending)
-import { fogUniforms } from '#engine/world/Atmosphere';
-import { compassDir } from '#engine/world/dayCycle';
+import { painterlyUniforms, syncPainterlySun, fogUniforms, compassDir, type Game, type Sky, type DayCycle, type DayCycleClock, type DayKeys } from '#engine';
 
 export type { DayPhase } from '#engine';
 export interface SkyKey {
