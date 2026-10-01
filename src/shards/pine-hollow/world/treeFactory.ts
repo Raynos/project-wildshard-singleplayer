@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { loadTexture, loadPBR, loadPBRArray, Rng, attachFogUniforms, TIER_CONFIG, loadBakedCards, exportCardTextures, macrotask, markGpuOnly, TREE_SPECS, TREE_SPECS_V2, BARK_LAYERS, loadTreeSetGeometry, patchBarkArrays, patchCardCrownTop, patchImpostorCrownTop, standIn, treeSetUrls, TreeFactory, patchFade, patchWind, treeSetOf, PUBLIC_BYTES, type FadeBand } from '#engine';
-import { getActiveChunk } from '#game';
+import { loadTexture, loadPBR, loadPBRArray, Rng, attachFogUniforms, TIER_CONFIG, loadBakedCards, exportCardTextures, macrotask, markGpuOnly, TREE_SPECS, TREE_SPECS_V2, BARK_LAYERS, loadTreeSetGeometry, patchBarkArrays, patchCardCrownTop, patchImpostorCrownTop, standIn, treeSetUrls, TreeFactory, patchFade, patchWind, treeSetOf, PUBLIC_BYTES, type FadeBand, type LookReplaceContext } from '#engine';
+import { PINE_TREE_ASSETS } from './treeAssets';
 
 export interface PineTreeFactoryOptions { bark?: string; twigAtlas?: string; set?: string | null }
 
@@ -58,8 +58,8 @@ class MatrixMerge {
 /** Pine Hollow's runtime needle-card bake and Blender species set. */
 export class PineTreeFactory extends TreeFactory {
   private readonly opts: Required<PineTreeFactoryOptions>;
-  private readonly renderer: THREE.WebGLRenderer;
-  constructor(renderer: THREE.WebGLRenderer, opts: PineTreeFactoryOptions = {}) {
+  private readonly renderer: LookReplaceContext['renderer'];
+  constructor(renderer: LookReplaceContext['renderer'], opts: PineTreeFactoryOptions = {}) {
     super(renderer);
     this.renderer = renderer;
     this.opts = { bark: 'pine_bark', twigAtlas: 'pine_tree_01', set: null, ...opts };
@@ -77,7 +77,7 @@ export class PineTreeFactory extends TreeFactory {
     // baked cards (public/assets/baked/<slug>/card-*.{png,jpg}, scripts/bake-cards.mjs) when the build has them;
     // the runtime bake below is the fallback and the source of the bake (?bakecards=1 exports it)
     const params = new URLSearchParams(location.search);
-    const baked = await loadBakedCards(getActiveChunk().slug);
+    const baked = await loadBakedCards('pine-hollow');
     const card = baked ?? this.bakeBranchCard(twigDiff, twigNor, twigArm);
     if (!baked) await macrotask(); // the runtime bake (a shard without baked cards) is a task of its own
     if (params.has('bakecards')) exportCardTextures(this.renderer, baked ? this.bakeBranchCard(twigDiff, twigNor, twigArm) : card);
@@ -599,7 +599,7 @@ export class PineTreeFactory extends TreeFactory {
 }
 
 /** Awaited by the cards boot step, preserving the original file fallback. */
-export function pineFactory(renderer: THREE.WebGLRenderer): Promise<TreeFactory> {
-  const trees = getActiveChunk().trees;
-  return new PineTreeFactory(renderer, { ...(trees.bark !== undefined ? { bark: trees.bark } : {}), ...(trees.twigAtlas !== undefined ? { twigAtlas: trees.twigAtlas } : {}), set: treeSetOf(trees, (url) => url in PUBLIC_BYTES) }).build();
+export function pineFactory(renderer: LookReplaceContext['renderer']): Promise<TreeFactory> {
+  const trees = PINE_TREE_ASSETS;
+  return new PineTreeFactory(renderer, { ...trees, set: treeSetOf(trees, (url) => url in PUBLIC_BYTES) }).build();
 }
