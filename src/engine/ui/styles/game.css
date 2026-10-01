@@ -193,7 +193,18 @@
    TouchControls' .ws-touch-status) — out of the thumb lane; the panels are desktop-only ─── */
 #hud.touch .ws-game-health, #hud.touch .ws-game-ammo { display: none; }
 .ws-game-vitals, .ws-game-bolts { position: relative; display: flex; align-items: center; gap: 7px; height: 22px; padding: 3px 9px; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); pointer-events: none; white-space: nowrap; }
-.ws-game-bolts { height: 24px; }
+.ws-game-bolts { height: 24px; appearance: none; -webkit-appearance: none; box-sizing: content-box; font: inherit; text-align: inherit; }
+/* E357 J13: the magazine chip is the reload button, with the glyph only below a full magazine. */
+.ws-game-bolts.magazine { pointer-events: auto; border-color: var(--ws-cyan); color: var(--ws-cyan); touch-action: manipulation; }
+.ws-game-bolts.magazine:enabled { cursor: pointer; }
+.ws-game-bolts.magazine:enabled:active { background: rgba(143, 227, 255, 0.18); }
+.ws-game-bolts.magazine:focus-visible { outline: 2px solid var(--ws-cyan); outline-offset: 4px; }
+.ws-game-bolts.magazine::before, .ws-game-bolts.magazine::after { content: ''; position: absolute; top: -3px; bottom: -3px; width: 5px; border-top: 3px solid var(--ws-cyan); border-bottom: 3px solid var(--ws-cyan); pointer-events: none; }
+.ws-game-bolts.magazine::before { left: -3px; border-left: 3px solid var(--ws-cyan); }
+.ws-game-bolts.magazine::after { right: -3px; border-right: 3px solid var(--ws-cyan); }
+.ws-game-bolts .ws-game-glyph[hidden] { display: none; }
+.ws-game-bolts.magazine .ws-game-reload { width: 23px; flex-shrink: 0; border-left: 1px solid var(--ws-cyan-line); padding-left: 7px; }
+.ws-game-bolts .ws-game-reload svg { fill: none; }
 /* E319 (Jake's clean-HUD pick B): VITALS hide at full health — HUD.ts paintVitals: 2 s after health is back to full the panel /
    strip fades (.hp-fade), then leaves the layout (.hp-gone); a hit shows it again at once (from display none, no fade) */
 .ws-game-vitals { transition: opacity 0.12s; }

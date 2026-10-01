@@ -24,7 +24,8 @@ export type ToolId = `tool.${string}`;
 export type EquipmentId = `weapon.${string}` | ToolId;
 export interface WeaponUi {
   name: string; icon: EquipmentIcon;
-  ammo?: { label: string; segments: number; bagLabel?: string; bagLabelFor?: string };
+  /** Magazine readouts offer touch reload; quivers keep their passive ammo chip. */
+  ammo?: { label: string; segments: number; magazine?: boolean; bagLabel?: string; bagLabelFor?: string };
   inputContext?: string;
   touch: keyof EquipmentTouchMap;
   lockOn: boolean; melee: boolean; tracers: boolean;

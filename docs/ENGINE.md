@@ -822,7 +822,7 @@ abstract class Tool extends Equipment { slot: 'tool' | 'offhand'; actions: reado
 | `Equipment`, `Weapon`, `Tool` | the base classes |
 | `EquipmentRow` | `{ id, ui, meta, cues?, hitStop?, tags?, pickup?, rangedFeel?, legacySlot? }`. Also on `#game` |
 | `EquipmentMeta` | `{ name, icon, blurb, category }`: the Bag builds its entries from it |
-| `WeaponUi` | `{ name, icon, touch, lockOn, melee, tracers, swapIcon, inputContext?, ammo? … }` |
+| `WeaponUi` | `{ name, icon, touch, lockOn, melee, tracers, swapIcon, inputContext?, ammo? … }`; `ammo.magazine: true` makes the touch ammo chip a reload button. Its glyph appears below full; a tap uses the reload input action. |
 | `EquipmentId`, `WeaponId`, `ToolId` | `'weapon.*'` / `'tool.*'` ids; `WeaponId` is a legacy slot from `EquipmentSlotMap` |
 | `EquipmentSlotMap`, `EquipmentIconMap`, `EquipmentTouchMap` | merge your slot, icon or touch mode into them |
 | `EquipContext`, `BlockSet`, `WeaponState`, `AimInfo`, `WeaponHooks`, `EquipmentAction`, `quiverState` | equipment plumbing |

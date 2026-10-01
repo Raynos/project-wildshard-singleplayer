@@ -90,6 +90,7 @@ export const AR15: EquipmentRow = {
     "tracers": true,
     "ammo": {
       "label": "Rounds",
+      "magazine": true,
       "segments": 6
     }
   },

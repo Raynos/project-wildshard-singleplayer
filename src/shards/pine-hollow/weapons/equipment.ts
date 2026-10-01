@@ -79,6 +79,7 @@ export const LEVER: EquipmentRow = {
     "tracers": true,
     "ammo": {
       "label": "Cartridges",
+      "magazine": true,
       "segments": 7
     }
   },

@@ -1,0 +1,263 @@
+{
+  "boot": {
+    "pine-hollow.phone.json": {
+      "errors": [],
+      "sha": "a6949c02c7659646e5b48b07d5bb5d240bbd2227",
+      "m5Verdict": "red",
+      "redFields": [
+        "budgets.gate.gpuMB",
+        "budgets.cabin.draws",
+        "budgets.cabin.tris",
+        "budgets.cabin.gpuMB",
+        "budgets.pond.gpuMB",
+        "boot.render.memory.geometries",
+        "boot.render.memory.textures",
+        "boot.gpuBytes.textures",
+        "boot.gpuBytes.buffers",
+        "boot.gpuBytes.total",
+        "boot.saves.read",
+        "poses.cabin.calls",
+        "poses.cabin.tris"
+      ]
+    },
+    "nalati-grasslands.phone.json": {
+      "errors": [],
+      "sha": "a6949c02c7659646e5b48b07d5bb5d240bbd2227",
+      "m5Verdict": "red",
+      "redFields": [
+        "boot.saves.read"
+      ]
+    },
+    "far-reach.phone.json": {
+      "errors": [],
+      "sha": "a6949c02c7659646e5b48b07d5bb5d240bbd2227",
+      "m5Verdict": "lane-pending",
+      "redFields": []
+    },
+    "driftwood-isle.phone.json": {
+      "errors": [],
+      "sha": "a6949c02c7659646e5b48b07d5bb5d240bbd2227",
+      "m5Verdict": "red",
+      "redFields": [
+        "boot.saves.read"
+      ]
+    },
+    "nine-dragon-stack.phone.json": {
+      "errors": [],
+      "sha": "a6949c02c7659646e5b48b07d5bb5d240bbd2227",
+      "m5Verdict": "red",
+      "redFields": [
+        "boot.saves.read"
+      ]
+    },
+    "sunscar-dunes.phone.json": {
+      "errors": [],
+      "sha": "a6949c02c7659646e5b48b07d5bb5d240bbd2227",
+      "m5Verdict": "lane-pending",
+      "redFields": []
+    },
+    "_template.phone.json": {
+      "errors": [],
+      "sha": "a6949c02c7659646e5b48b07d5bb5d240bbd2227",
+      "m5Verdict": "red",
+      "redFields": [
+        "boot.saves.read"
+      ]
+    }
+  },
+  "final-boot": {
+    "pine-hollow.phone.json": {
+      "errors": [],
+      "sha": "b28730c1439069e6efa267b5ca3b25cc8099642e",
+      "m5Verdict": "red",
+      "redFields": [
+        "budgets.gate.gpuMB",
+        "budgets.cabin.draws",
+        "budgets.cabin.tris",
+        "budgets.cabin.gpuMB",
+        "budgets.pond.gpuMB",
+        "boot.render.memory.geometries",
+        "boot.render.memory.textures",
+        "boot.gpuBytes.textures",
+        "boot.gpuBytes.buffers",
+        "boot.gpuBytes.total",
+        "boot.saves.read",
+        "poses.cabin.calls",
+        "poses.cabin.tris"
+      ]
+    },
+    "nalati-grasslands.phone.json": {
+      "errors": [],
+      "sha": "b28730c1439069e6efa267b5ca3b25cc8099642e",
+      "m5Verdict": "red",
+      "redFields": [
+        "boot.saves.read"
+      ]
+    },
+    "driftwood-isle.phone.json": {
+      "errors": [],
+      "sha": "b28730c1439069e6efa267b5ca3b25cc8099642e",
+      "m5Verdict": "red",
+      "redFields": [
+        "boot.saves.read"
+      ]
+    },
+    "nine-dragon-stack.phone.json": {
+      "errors": [],
+      "sha": "b28730c1439069e6efa267b5ca3b25cc8099642e",
+      "m5Verdict": "red",
+      "redFields": [
+        "boot.saves.read"
+      ]
+    }
+  },
+  "pine-base-walk": {
+    "touch": {
+      "moved": 15.0916600817585,
+      "yawDelta": -1.1399999999999997,
+      "dodged": true,
+      "used": true
+    },
+    "stuck": 0,
+    "shot": {
+      "weapon": "crossbow",
+      "target": "boar",
+      "hits": 3,
+      "hitWithinS": 0.5693333333333044,
+      "killed": true,
+      "killWithinS": 4.409333333333095,
+      "hitLimit": 20,
+      "killLimit": 20
+    },
+    "shot2": {
+      "weapon": "bow",
+      "target": "boar",
+      "hits": 3,
+      "hitWithinS": 1.4693333333332532,
+      "killed": true,
+      "killWithinS": 4.375999999999763,
+      "hitLimit": 20,
+      "killLimit": 20
+    },
+    "scopeAfter": {
+      "geometries": 0,
+      "materials": 0,
+      "textures": 0,
+      "renderTargets": 0,
+      "meshes": 0,
+      "resources": 0,
+      "bodies": 0,
+      "sounds": 0,
+      "listeners": 0,
+      "timers": 0,
+      "rafs": 0,
+      "disposers": 0,
+      "systems": 0,
+      "colliders": 0,
+      "nodes": 0
+    },
+    "disposalErrors": [],
+    "weatherDisposalErrors": []
+  },
+  "pine-walk": {
+    "touch": {
+      "moved": 15.0916600817585,
+      "yawDelta": -1.1399999999999997,
+      "dodged": true,
+      "used": true
+    },
+    "stuck": 0,
+    "shot": {
+      "weapon": "crossbow",
+      "target": "boar",
+      "hits": 3,
+      "hitWithinS": 0.5693333333333044,
+      "killed": true,
+      "killWithinS": 4.409333333333095,
+      "hitLimit": 20,
+      "killLimit": 20
+    },
+    "shot2": {
+      "weapon": "bow",
+      "target": "boar",
+      "hits": 3,
+      "hitWithinS": 1.4693333333332532,
+      "killed": true,
+      "killWithinS": 4.375999999999763,
+      "hitLimit": 20,
+      "killLimit": 20
+    },
+    "scopeAfter": {
+      "geometries": 0,
+      "materials": 0,
+      "textures": 0,
+      "renderTargets": 0,
+      "meshes": 0,
+      "resources": 0,
+      "bodies": 0,
+      "sounds": 0,
+      "listeners": 0,
+      "timers": 0,
+      "rafs": 0,
+      "disposers": 0,
+      "systems": 0,
+      "colliders": 0,
+      "nodes": 0
+    },
+    "disposalErrors": [],
+    "weatherDisposalErrors": []
+  },
+  "latest-integration": {
+    "pine-hollow.phone.json": {
+      "errors": [],
+      "sha": "7bdaadeae0ac383c7bb731aa07612f31456748b5",
+      "m5Verdict": "red",
+      "redFields": [
+        "budgets.gate.gpuMB",
+        "budgets.cabin.draws",
+        "budgets.cabin.tris",
+        "budgets.cabin.gpuMB",
+        "budgets.pond.gpuMB",
+        "boot.scene.totals.mesh",
+        "boot.render.memory.geometries",
+        "boot.render.memory.textures",
+        "boot.gpuBytes.textures",
+        "boot.gpuBytes.buffers",
+        "boot.gpuBytes.total",
+        "boot.hud",
+        "boot.saves.read",
+        "poses.cabin.calls",
+        "poses.cabin.tris"
+      ]
+    },
+    "nalati-grasslands.phone.json": {
+      "errors": [],
+      "sha": "7bdaadeae0ac383c7bb731aa07612f31456748b5",
+      "m5Verdict": "red",
+      "redFields": [
+        "boot.scene.totals.mesh",
+        "boot.hud",
+        "boot.saves.read"
+      ]
+    },
+    "driftwood-isle.phone.json": {
+      "errors": [],
+      "sha": "7bdaadeae0ac383c7bb731aa07612f31456748b5",
+      "m5Verdict": "red",
+      "redFields": [
+        "boot.scene.totals.mesh",
+        "boot.hud",
+        "boot.saves.read"
+      ]
+    },
+    "nine-dragon-stack.phone.json": {
+      "errors": [],
+      "sha": "7bdaadeae0ac383c7bb731aa07612f31456748b5",
+      "m5Verdict": "red",
+      "redFields": [
+        "boot.hud",
+        "boot.saves.read"
+      ]
+    }
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "parent": "66db342adf6306e2a981b65f5b528fe1afdc2ec3",
+  "runtimeVerification": "7bdaadeae0ac383c7bb731aa07612f31456748b5",
+  "checks": {
+    "tsc --noEmit -p .": "pass",
+    "whole-tree oxlint": "pass",
+    "CSS": "pass",
+    "Vite": "pass (clean exported verification SHA)",
+    "vitest run --maxWorkers=2": "325 files / 2328 tests pass",
+    "hud-reload-chip.test.ts": "5 tests pass",
+    "four required phone shard boot.errors": "empty",
+    "Pine paired battery delta": "zero new red fields",
+    "portrait captures": "3 visually inspected actual JPEGs, 390x844, phone tier"
+  },
+  "unaccepted": "m5 baseline and budget deltas pre-exist on parent; no baseline changed",
+  "closed": [
+    "agent-browser sol-j13",
+    "owned served previews"
+  ]
+}

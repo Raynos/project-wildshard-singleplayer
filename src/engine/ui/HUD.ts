@@ -90,6 +90,7 @@ export function bearingTo(x: number, z: number, tx: number, tz: number): number 
   return ((deg % 360) + 360) % 360;
 }
 const SVG_HEART = '<svg viewBox="0 0 24 24"><path d="M12 21s-7.6-4.7-9.6-9.3C1 8 3.2 4.5 6.7 4.5c2 0 3.6 1.1 5.3 3 1.7-1.9 3.3-3 5.3-3 3.5 0 5.7 3.5 4.3 7.2C19.6 16.3 12 21 12 21z"/></svg>';
+const SVG_RELOAD = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10a8 8 0 0 0-14-3L3 10m0-6v6h6M4 14a8 8 0 0 0 14 3l3-3m0 6v-6h-6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const SVG_BOLT = '<svg viewBox="0 0 24 24"><path d="M21 3l-1.2 7.6-2.2-2.2-9.4 9.4 1.6 1.6-1.6 1.6-1.5-1.5-2.2 2.2-1.4-1.4 2.2-2.2-1.5-1.5 1.6-1.6 1.6 1.6 9.4-9.4-2.2-2.2z"/></svg>';
 const SVG_HOUSE = '<svg viewBox="0 0 24 24"><path d="M12 3 2 12h3v8h5v-6h4v6h5v-8h3z"/></svg>';
 const SVG_PAW = '<svg viewBox="0 0 24 24"><circle cx="4.6" cy="9.6" r="2.4"/><circle cx="9.2" cy="5.2" r="2.7"/><circle cx="14.8" cy="5.2" r="2.7"/><circle cx="19.4" cy="9.6" r="2.4"/><path d="M12 10c-3.6 0-7 3.3-7 6.6 0 2 1.4 3.4 3.3 3.4 1.4 0 2.3-.9 3.7-.9s2.3.9 3.7.9c1.9 0 3.3-1.4 3.3-3.4 0-3.3-3.4-6.6-7-6.6z"/></svg>';
@@ -130,7 +131,7 @@ export class HUD {
   private markHouse!: HTMLElement; private markPaw!: HTMLElement; private range!: HTMLElement;
   private animals: { x: number; z: number }[] = [];
   /** touch layout E (E42): the vitals + bolts strips rendered into TouchControls' top-left status column (`.ws-touch-status`, under PAUSE) */
-  private bar?: { vitals: HTMLElement; hval: HTMLElement; hbar: HTMLElement; bolts: HTMLElement; bcount: HTMLElement; segs: HTMLElement[]; segBox: HTMLElement; label: HTMLElement; weapon: HTMLElement; max: HTMLElement; reserve: HTMLElement };
+  private bar?: { vitals: HTMLElement; hval: HTMLElement; hbar: HTMLElement; bolts: HTMLButtonElement; glyph: HTMLElement; bcount: HTMLElement; segs: HTMLElement[]; segBox: HTMLElement; label: HTMLElement; weapon: HTMLElement; max: HTMLElement; reserve: HTMLElement };
   private lastMark = { house: Number.NaN, paw: Number.NaN, range: '' };
   private ppd = 1.2; // compass px per degree — measured from the band (`--ppd`), see build()
   /** the band's width, measured when it resizes (build()'s fit): placeMark ran every frame and read clientWidth after the
@@ -149,6 +150,7 @@ export class HUD {
   private _menu?: GameMenu;
   private deck?: TitleDeck | undefined;
   private last: Partial<HUDState> & { statusKey?: string | undefined; headingDeg?: number | undefined; noAmmo?: boolean | undefined } = {};
+  private magazineChip = false; private canReloadChip = false;
   private ammoPanel!: HTMLElement;
   private ammoLabel!: HTMLElement; private ammoMax!: HTMLElement; private ammoReserve!: HTMLElement; private ammoWeapon!: HTMLElement; private pipBox!: HTMLElement;
   private hitTimer = 0; private spread = 7;
@@ -355,6 +357,7 @@ export class HUD {
       this.ammoStatusText.textContent = statusKey === 'empty' ? (bow ? engineString('s_57bb4fd702ce') : arrows ? engineString('s_c3fd1e1d6aed') : reserve > 0 ? engineString('s_350eeb63fef0') : engineString('s_051534c4e5f7')) : statusKey === 'reloading' ? (bow ? engineString('s_9e0902cd9a2b') : engineString('s_a4b350a14964')) : statusKey === 'loaded' ? (bow ? engineString('s_d01476dfee7e') : arrows ? engineString('s_ef2a15f49495') : engineString('s_5fa7aac5375c')) : (bow ? engineString('s_a210214fc7c6') : engineString('s_01d5aca1d51d'));
       this.syncBar('status');
     }
+    this.syncReloadChip(s);
     const rp = s.reloading ? (s.reloadProgress ?? 0) : 0;
     if (rp !== L.reloadProgress) { L.reloadProgress = rp; this.reloadBar.style.width = `${rp * 100}%`; }
     // crosshair spread
@@ -375,12 +378,39 @@ export class HUD {
   private mountBar(): void {
     const vitals = el('div', engineString('s_4c6b96a54dfa'), engineString('s_92890f1e67f6', [SVG_HEART]));
     const L = this.last, segN = L.segments ?? this.opts.weaponUi.ammo?.segments ?? 0, reserve = L.reserve ?? 0;
-    const bolts = el('div', engineString('s_e99685b6c3aa'), engineString('s_adf21edee32f', [L.weaponName ?? this.opts.weaponUi.name, L.ammoLabel ?? this.opts.weaponUi.ammo?.label ?? '', '<i></i>'.repeat(segN), this.opts.maxBolts, L.maxBolts ?? this.opts.maxBolts, reserve > 0 ? engineString('s_850875985389', [reserve]) : '', SVG_BOLT]));
+    const bolts = el('button', engineString('s_e99685b6c3aa'), engineString('s_adf21edee32f', [L.weaponName ?? this.opts.weaponUi.name, L.ammoLabel ?? this.opts.weaponUi.ammo?.label ?? '', '<i></i>'.repeat(segN), this.opts.maxBolts, L.maxBolts ?? this.opts.maxBolts, reserve > 0 ? engineString('s_850875985389', [reserve]) : '', SVG_BOLT]));
+    bolts.type = 'button'; bolts.disabled = true;
+    // Keep chip gestures out of the look/fire layer. The input service owns the same reload action as desktop R.
+    this.scope.listen(bolts, 'pointerdown', (event) => { event.stopPropagation(); });
+    this.scope.listen(bolts, 'click', (event) => {
+      event.preventDefault(); event.stopPropagation();
+      if (this.canReloadChip && this.entered && !this.paused && !app.ui.blocking) app.input.pressGesture('reload');
+    });
     hudSlots.widget('band.2', vitals, ROW.vitals, this.scope); hudSlots.widget('band.2', bolts, ROW.ammo, this.scope);
     if (this.last.noAmmo) bolts.style.display = 'none';
-    this.bar = { vitals, hval: q(vitals, '.ws-game-num'), hbar: q(vitals, '.ws-game-vbar i'), bolts, bcount: q(bolts, '.c'), segs: Array.from(bolts.querySelectorAll<HTMLElement>('.ws-game-segs i')), segBox: q(bolts, '.ws-game-segs'), label: q(bolts, '.ws-game-tiny .l'), weapon: q(bolts, '.ws-game-weapon'), max: q(bolts, '.m'), reserve: q(bolts, '.ws-game-reserve') };
+    this.bar = { vitals, hval: q(vitals, '.ws-game-num'), hbar: q(vitals, '.ws-game-vbar i'), bolts, glyph: q(bolts, '.ws-game-glyph'), bcount: q(bolts, '.c'), segs: Array.from(bolts.querySelectorAll<HTMLElement>('.ws-game-segs i')), segBox: q(bolts, '.ws-game-segs'), label: q(bolts, '.ws-game-tiny .l'), weapon: q(bolts, '.ws-game-weapon'), max: q(bolts, '.m'), reserve: q(bolts, '.ws-game-reserve') };
     this.syncBar('health'); this.syncBar('bolts'); this.syncBar('status'); this.paintVitals();
   }
+  private syncReloadChip(s: HUDState): void {
+    const b = this.bar; if (!b) return;
+    const magazine = s.weaponUi.ammo?.magazine === true && s.bolts !== undefined;
+    const partEmpty = magazine && (s.bolts ?? 0) < (s.maxBolts ?? this.opts.maxBolts);
+    const canReload = partEmpty && !s.reloading && (s.reserve ?? 0) > 0;
+    if (magazine !== this.magazineChip) {
+      this.magazineChip = magazine;
+      b.bolts.classList.toggle('magazine', magazine);
+      b.glyph.innerHTML = magazine ? SVG_RELOAD : SVG_BOLT;
+      b.glyph.classList.toggle('ws-game-reload', magazine);
+    }
+    const hideGlyph = magazine && !partEmpty;
+    if (b.glyph.hidden !== hideGlyph) b.glyph.hidden = hideGlyph;
+    b.bolts.classList.toggle('reloading', s.reloading);
+    if (b.bolts.disabled === canReload) b.bolts.disabled = !canReload;
+    this.canReloadChip = canReload;
+    const label = magazine ? `${s.weaponUi.name} · ${engineString(s.reloading ? 's_a4b350a14964' : 's_4027f515418b')}` : s.weaponUi.name;
+    if (b.bolts.getAttribute('aria-label') !== label) b.bolts.setAttribute('aria-label', label);
+  }
+
   /** E319: the desktop VITALS panel and the touch VITALS strip follow `hpShown` (fading out, then out of the layout) */
   private paintVitals(): void {
     for (const e of [this.healthPanel, this.bar?.vitals]) {

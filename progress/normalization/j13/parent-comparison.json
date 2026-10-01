@@ -1,0 +1,84 @@
+[
+  {
+    "name": "fingerprint+poses",
+    "parent": "e0a462feaa2c5b2333fa1604c803919ce30b15b3",
+    "candidate": "b28730c1439069e6efa267b5ca3b25cc8099642e",
+    "verdictAgainstParent": "green",
+    "changedRed": [],
+    "unchangedCeilingReds": [
+      "budgets.gate.gpuMB",
+      "budgets.cabin.draws",
+      "budgets.cabin.tris",
+      "budgets.cabin.gpuMB",
+      "budgets.pond.gpuMB"
+    ],
+    "parentM5Reds": [
+      "budgets.gate.gpuMB",
+      "budgets.cabin.draws",
+      "budgets.cabin.tris",
+      "budgets.cabin.gpuMB",
+      "budgets.pond.gpuMB",
+      "boot.render.memory.geometries",
+      "boot.render.memory.textures",
+      "boot.gpuBytes.textures",
+      "boot.gpuBytes.buffers",
+      "boot.gpuBytes.total",
+      "boot.saves.read",
+      "poses.cabin.calls",
+      "poses.cabin.tris"
+    ],
+    "candidateM5Reds": [
+      "budgets.gate.gpuMB",
+      "budgets.cabin.draws",
+      "budgets.cabin.tris",
+      "budgets.cabin.gpuMB",
+      "budgets.pond.gpuMB",
+      "boot.render.memory.geometries",
+      "boot.render.memory.textures",
+      "boot.gpuBytes.textures",
+      "boot.gpuBytes.buffers",
+      "boot.gpuBytes.total",
+      "boot.saves.read",
+      "poses.cabin.calls",
+      "poses.cabin.tris"
+    ]
+  },
+  {
+    "name": "walk+combat+leak",
+    "parent": "e0a462feaa2c5b2333fa1604c803919ce30b15b3",
+    "candidate": "a6949c02c7659646e5b48b07d5bb5d240bbd2227",
+    "verdictAgainstParent": "green",
+    "changedRed": [],
+    "unchangedCeilingReds": [
+      "budgets.gate.gpuMB",
+      "budgets.cabin.gpuMB",
+      "budgets.pond.gpuMB"
+    ],
+    "parentM5Reds": [
+      "budgets.gate.gpuMB",
+      "budgets.cabin.gpuMB",
+      "budgets.pond.gpuMB",
+      "walk.sounds.event",
+      "boot.render.memory.geometries",
+      "boot.render.memory.textures",
+      "boot.gpuBytes.textures",
+      "boot.gpuBytes.buffers",
+      "boot.gpuBytes.total",
+      "boot.saves.read",
+      "combat.sounds.ambient"
+    ],
+    "candidateM5Reds": [
+      "budgets.gate.gpuMB",
+      "budgets.cabin.gpuMB",
+      "budgets.pond.gpuMB",
+      "walk.sounds.event",
+      "boot.render.memory.geometries",
+      "boot.render.memory.textures",
+      "boot.gpuBytes.textures",
+      "boot.gpuBytes.buffers",
+      "boot.gpuBytes.total",
+      "boot.saves.read",
+      "combat.sounds.ambient"
+    ]
+  }
+]

@@ -1,0 +1,41 @@
+import { execFileSync } from 'node:child_process';
+import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+const repo = resolve(process.argv[3] ?? process.cwd());
+const out = dirname(fileURLToPath(import.meta.url));
+const session = 'sol-j13';
+const origin = process.argv[2];
+if (!origin) throw new Error('Usage: node capture.mjs <served origin> [repo]');
+mkdirSync(out, { recursive: true });
+const command = (...args) => execFileSync('agent-browser', ['--session', session, ...args], { encoding: 'utf8' });
+const evaluate = (source) => JSON.parse(execFileSync('agent-browser', ['--session', session, 'eval', '--stdin'], { input: source, encoding: 'utf8' }));
+const shot = (name) => {
+  const raw = join(out, `${name}.png`), jpeg = join(out, `${name}.jpg`);
+  command('screenshot', raw);
+  execFileSync('sips', ['-s', 'format', 'jpeg', '-s', 'formatOptions', '85', raw, '--out', jpeg]); rmSync(raw);
+};
+const read = () => evaluate(`(() => { const w=window.__wildshard.world, b=document.querySelector('.ws-game-bolts'); return { weapon:w.weapons.current.id, state:{...w.weapons.current.state}, glyphVisible:!b.querySelector('.ws-game-glyph').hidden, disabled:b.disabled, chip:b.getBoundingClientRect().toJSON(), viewport:[innerWidth,innerHeight], recent:w.game.app.input.recent.slice(-4) }; })()`);
+try {
+  execFileSync(join(repo, 'scripts/browser-lane.sh'), ['wait']);
+  command('open', `${origin}/?chunk=pine-hollow&tier=phone&touch=1&skipintro=1&nolock=1&mute=1&sw=0&weapon=rifle`);
+  command('set', 'viewport', '390', '844');
+  command('wait', '--fn', 'Boolean(window.__wildshard) && !document.querySelector(".ws-load")');
+  const full = read(); if (full.state.ammo !== 7 || full.glyphVisible) throw new Error('Full magazine must hide glyph');
+  evaluate('document.querySelector(".ws-game-bolts").click()');
+  if (read().state.reloading) throw new Error('Full magazine tap reloaded');
+  shot('full-magazine');
+  evaluate(`(async () => { const w=window.__wildshard.world; for(let i=0;i<3;i++){w.weapons.current.tryFire(); await new Promise(resolve=>setTimeout(resolve,800));} return {...w.weapons.current.state}; })()`);
+  const partial = read(); if (partial.state.ammo !== 4 || !partial.glyphVisible || partial.disabled) throw new Error('Part-empty chip must offer reload');
+  shot('part-empty');
+  evaluate(`(() => { const w=window.__wildshard.world; w.weapons.current.freezeCycle=null; const stop=w.game.watchFrames(()=>{if(w.weapons.current.state.reloading && w.weapons.current.state.reloadProgress>=0.2){w.weapons.current.freezeCycle=0; stop();}}); return true; })()`);
+  command('click', '.ws-game-bolts');
+  command('wait', '--fn', 'window.__wildshard.world.weapons.current.freezeCycle === 0');
+  const reloading = read(); if (!reloading.state.reloading || !reloading.glyphVisible || !reloading.disabled) throw new Error('Tap must start real reload and retain glyph');
+  shot('mid-reload');
+  evaluate('window.__wildshard.world.weapons.current.freezeCycle=null');
+  command('wait', '--fn', 'window.__wildshard.world.weapons.current.state.ammo === 7 && !window.__wildshard.world.weapons.current.state.reloading');
+  const completed = read(); if(completed.glyphVisible) throw new Error('Completed reload must hide glyph');
+  writeFileSync(join(out, 'capture-proof.json'), JSON.stringify({ origin, full, partial, reloading, completed, note: 'Real shots and native browser click in touch layout; existing lever freezeCycle debug handle frozen after reload starts solely for the mid-reload capture.' }, null, 2) + '\n');
+  console.log(JSON.stringify({full:full.state.ammo,partial:partial.state.ammo,reloading:reloading.state,completed:completed.state.ammo}));
+} finally { command('close'); }

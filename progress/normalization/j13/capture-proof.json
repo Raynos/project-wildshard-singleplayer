@@ -1,0 +1,130 @@
+{
+  "origin": "http://127.0.0.1:4401",
+  "full": {
+    "chip": {
+      "bottom": 60,
+      "height": 24,
+      "left": 12,
+      "right": 223.765625,
+      "top": 36,
+      "width": 211.765625,
+      "x": 12,
+      "y": 36
+    },
+    "disabled": true,
+    "glyphVisible": false,
+    "recent": [],
+    "state": {
+      "ads": false,
+      "ammo": 7,
+      "loaded": true,
+      "magazine": 7,
+      "reloadProgress": 0,
+      "reloading": false,
+      "reserve": 21
+    },
+    "viewport": [
+      390,
+      844
+    ],
+    "weapon": "rifle"
+  },
+  "partial": {
+    "chip": {
+      "bottom": 60,
+      "height": 24,
+      "left": 12,
+      "right": 256.0625,
+      "top": 36,
+      "width": 244.0625,
+      "x": 12,
+      "y": 36
+    },
+    "disabled": false,
+    "glyphVisible": true,
+    "recent": [],
+    "state": {
+      "ads": false,
+      "ammo": 4,
+      "loaded": true,
+      "magazine": 7,
+      "reloadProgress": 0,
+      "reloading": false,
+      "reserve": 21
+    },
+    "viewport": [
+      390,
+      844
+    ],
+    "weapon": "rifle"
+  },
+  "reloading": {
+    "chip": {
+      "bottom": 60,
+      "height": 24,
+      "left": 12,
+      "right": 256.0625,
+      "top": 36,
+      "width": 244.0625,
+      "x": 12,
+      "y": 36
+    },
+    "disabled": true,
+    "glyphVisible": true,
+    "recent": [
+      {
+        "action": "reload",
+        "at": 3569.0000004768376
+      }
+    ],
+    "state": {
+      "ads": false,
+      "ammo": 4,
+      "loaded": true,
+      "magazine": 7,
+      "reloadProgress": 0.2063333332538604,
+      "reloading": true,
+      "reserve": 21
+    },
+    "viewport": [
+      390,
+      844
+    ],
+    "weapon": "rifle"
+  },
+  "completed": {
+    "chip": {
+      "bottom": 60,
+      "height": 24,
+      "left": 12,
+      "right": 224.21875,
+      "top": 36,
+      "width": 212.21875,
+      "x": 12,
+      "y": 36
+    },
+    "disabled": true,
+    "glyphVisible": false,
+    "recent": [
+      {
+        "action": "reload",
+        "at": 3569.0000004768376
+      }
+    ],
+    "state": {
+      "ads": false,
+      "ammo": 7,
+      "loaded": true,
+      "magazine": 7,
+      "reloadProgress": 0,
+      "reloading": false,
+      "reserve": 18
+    },
+    "viewport": [
+      390,
+      844
+    ],
+    "weapon": "rifle"
+  },
+  "note": "Real shots and native browser click in touch layout; existing lever freezeCycle debug handle frozen after reload starts solely for the mid-reload capture."
+}
