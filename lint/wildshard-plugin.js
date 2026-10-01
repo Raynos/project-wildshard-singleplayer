@@ -297,7 +297,7 @@ const layer = rule('Layer direction, public APIs and engine vocabulary (E357)', 
     for (const match of text.matchAll(WORDS)) {
       const path = pathOf(context);
       // F10's save protocol names a shard scope; its one-time reset table necessarily names historical keys.
-      if (match[0].toLowerCase() === 'shard' && (path.startsWith('src/engine/saves/') || (node.type === 'Literal' && node.value === 'shard' && node.parent?.type === 'Property' && nameOf(node.parent.key) === 'scope'))) continue;
+      if (match[0].toLowerCase() === 'shard' && (path.startsWith('src/engine/saves/') || (node.type === 'Literal' && node.value === 'shard' && node.parent?.type === 'Property' && (node.parent.key?.name === 'scope' || node.parent.key?.value === 'scope')))) continue;
       if (path === 'src/engine/saves/legacy.ts' && node.type === 'Literal' && typeof node.value === 'string' && node.value.startsWith('ws.')) continue;
       report(context, node, `Engine contains Wildshard word: ${match[0]}`);
     }
