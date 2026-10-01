@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import type { Game } from '../core/Game';
 import { worldTime } from '../core/time';
+import { lin } from '../math/color';
 import { activePhysics } from '../physics/active';
 import { floorBelow } from '../physics/query';
 
@@ -36,7 +37,6 @@ const SPEED: Record<ImpactKind, [number, number]> = { sand: [0.8, 2.2], wood: [1
 const SIZE: Record<ImpactKind, [number, number]> = { sand: [0.02, 0.045], wood: [0.025, 0.06], shell: [0.03, 0.06], sparks: [0.012, 0.022], dirt: [0.02, 0.05], stone: [0.02, 0.045] };
 const DRAG: Record<ImpactKind, number> = { sand: 3.5, wood: 1.2, shell: 1.0, sparks: 2.2, dirt: 2.6, stone: 0.9 };
 /** linear colours (sparks > 1: they bloom) */
-const lin = (hex: number, k = 1) => new THREE.Color(hex).convertSRGBToLinear().multiplyScalar(k);
 const COLOURS: Record<ImpactKind, THREE.Color[]> = {
   sand: [lin(0xe8d6a8), lin(0xd9c290), lin(0xf2e6c4)],
   wood: [lin(0x8a6a44), lin(0x6e5236), lin(0xb08a5a)],

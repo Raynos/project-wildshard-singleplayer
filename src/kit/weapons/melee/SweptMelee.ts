@@ -1,4 +1,4 @@
-import { type EquipmentRow, type WeaponState, type AimInfo, type DrawingBuffer, type EquipContext, type SwordWorld, type SwordRig, type SwordArms, type SwordFraming, type SwordMoveSet, app, BladeGlow, type Game, type Sky, dodgeFx, dodgeEnv, type Player, type Targets, type TargetHit, lockOn, meleeLock, targetRadius, type AimTarget, bladeBlocked, bladeContact, type Clang, worldTime, CameraFX, Impacts, aimRay, viewmodel, fovForAspect, setProgramKey } from '#engine';
+import { type EquipmentRow, type WeaponState, type AimInfo, type DrawingBuffer, type EquipContext, type SwordWorld, type SwordRig, type SwordArms, type SwordFraming, type SwordMoveSet, app, BladeGlow, type Game, type Sky, dodgeFx, dodgeEnv, type Player, type Targets, type TargetHit, lockOn, meleeLock, targetRadius, type AimTarget, bladeBlocked, bladeContact, type Clang, worldTime, CameraFX, Impacts, aimRay, viewmodel, fovForAspect, setProgramKey, lin } from '#engine';
 import { Melee, isMeleeProfile, type MeleeProfile } from './Melee';
 import { SWORD_WOOD, SWORD_IRON } from './profiles';
 import * as THREE from 'three';
@@ -103,7 +103,6 @@ const easeIn = (t: number) => t * t;
 // ───────────────────────────── low-poly geometry ─────────────────────────────
 
 /** sRGB hex → linear Color (vertex colours are linear) */
-const lin = (hex: number) => new THREE.Color(hex).convertSRGBToLinear();
 const C = {
   blade: lin(0xdcbb8c), bladeEdge: lin(0xe9cda3), guard: lin(0xb08752), grip: lin(0x5a3a22), wrap: lin(0x7b5232), pommel: lin(0x6a4728),
   skin: lin(0xcfa082), skinDark: lin(0xb98a6a), sleeve: lin(0xe9e0cf), sleeveDark: lin(0xd2c6b0),

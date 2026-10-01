@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { lin } from '../math/color';
 
 /**
  * nalatiArms — the Nalati rider's first-person arms, shared by every Nalati viewmodel (Bow.ts, Sabre.ts, Spear.ts) so
@@ -28,7 +29,6 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
  * build-time only, nothing here runs per frame except `placeArm`.
  */
 
-const lin = (hex: number): THREE.Color => new THREE.Color(hex).convertSRGBToLinear();
 export const ARM_PAL = {
   leather: lin(0x9c7454), leatherLight: lin(0xc49c74), leatherDark: lin(0x5c4230), leatherEdge: lin(0x6e5038),
   thread: lin(0xf0dcae), jade: lin(0xbfe0c4), jadeDark: lin(0x7aa88a),

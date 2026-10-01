@@ -116,6 +116,7 @@ export type { OptionValue } from './ui/Settings';
 export { attachFogUniforms, fogUniforms } from './world/Atmosphere';
 export { preloadBakedTextures, loadBakedSky, loadLUT } from './boot/bakedApi';
 export { fetchLut, LUT_SIZE } from './render/lut';
+export { lin } from './math/color';
 
 export type { RGB } from './level/data';
 export { compassDir, type ScheduleSeg } from './world/dayCycle';

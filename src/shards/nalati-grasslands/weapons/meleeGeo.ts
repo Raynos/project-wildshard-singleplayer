@@ -23,7 +23,6 @@ import { type Sky, painterlyMaterial, viewmodelMaterial } from '#engine';
 
 export type ColorAt = (v: number, a: number, out: THREE.Color) => THREE.Color;
 /** sRGB hex → linear (vertex colours are linear) */
-export const lin = (hex: number): THREE.Color => new THREE.Color(hex).convertSRGBToLinear();
 
 /** ring of `n` points on an ellipse (rx across X, rz across Z) at height y; `rot` spins the start point */
 export function section(n: number, rx: number, rz: number, y: number, rot = 0, cx = 0, cz = 0): THREE.Vector3[] {

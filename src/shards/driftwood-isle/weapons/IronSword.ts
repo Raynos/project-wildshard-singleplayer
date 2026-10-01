@@ -4,7 +4,7 @@ import type { Interactable } from '#engine/world/interact/types';
 import type { Sky } from '#engine/world/Sky';
 import { WRECK } from '../manifest';
 import { LightPool } from '#engine/fx/LightPool';
-import type { Renderer } from '#engine';
+import { lin, type Renderer } from '#engine';
 
 /**
  * IronSword — the iron sword as LOOT on Driftwood Isle ("the whole point of Project Wildshard is that you can find
@@ -46,7 +46,6 @@ export interface IronSwordPickupOptions {
 }
 
 /** steel: bevelled edges bright, flats mid, the fuller dark; iron guard / pommel; leather grip + wrap */
-const lin = (hex: number) => new THREE.Color(hex).convertSRGBToLinear();
 const C = {
   edge: lin(0xeef1f6), flat: lin(0xb4bac5), fuller: lin(0x848b98), tip: lin(0xe6e9ef),
   iron: lin(0x3a3c42), ironLight: lin(0x585b63), ironDark: lin(0x25272c),

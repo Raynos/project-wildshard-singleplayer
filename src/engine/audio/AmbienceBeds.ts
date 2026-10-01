@@ -1,5 +1,5 @@
 import { AmbienceZones } from './ambience';
-import { loopAt } from './util';
+import { loopAt, panFromYaw } from './util';
 import type { SampleLoop } from './Audio';
 import type { AudioMixer } from './levelAudio';
 import type { Scope } from '../app/scope';
@@ -78,7 +78,7 @@ export class PositionalLoops {
       let voice = this.voices.get(index);
       if (!voice) { voice = loopVoice(this.audio, sample, this.scope, this.random); this.voices.set(index, voice); this.started(); }
       const dx = point.x - pos.x, dz = point.z - pos.z;
-      voice.pan.pan.setTargetAtTime(distance > 0.1 ? Math.min(1, Math.max(-1, (dx * Math.cos(yaw) - dz * Math.sin(yaw)) / distance)) : 0, time, 0.1);
+      voice.pan.pan.setTargetAtTime(panFromYaw(dx, dz, yaw, 1, distance, 0.1), time, 0.1);
       voice.gain.gain.setTargetAtTime(sample.gain * 0.22 * (1 - distance / this.reach) ** 2, time, 0.2);
     }
   }

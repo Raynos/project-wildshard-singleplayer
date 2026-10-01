@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { ARM_PAL, gloveFist } from '#engine';
+import { ARM_PAL, gloveFist, lin } from '#engine';
 
 /**
  * hunterHands — the Pine Hollow hunter's first-person hands: the Longbow's dark-tan leather gloves (nalatiArms.gloveFist in
@@ -20,7 +20,6 @@ import { ARM_PAL, gloveFist } from '#engine';
  * `buildCrossbow` / `leverSpecimen`, never from the held viewmodel, so they carry no hands either way.
  */
 
-const lin = (hex: number): THREE.Color => new THREE.Color(hex).convertSRGBToLinear();
 /** a hunter's dark-tan leather gloves, a grey knit cuff, the sleeve of a waxed-canvas coat with leather patches */
 export const HUNTER_PAL: Partial<Record<keyof typeof ARM_PAL, THREE.Color>> = {
   leather: lin(0x6a4a30), leatherLight: lin(0x8a6646), leatherDark: lin(0x3a281a), leatherEdge: lin(0x4a3424), thread: lin(0xa89878),
