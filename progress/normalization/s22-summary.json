@@ -1,0 +1,274 @@
+{
+  "before": "152c540966efb739265b53cd17ce0f60b14637d1",
+  "after1": "8d0eb5dadc98be27b22f797a9b0afc04c2ebb7a5",
+  "after2": "372fd3b9c0bb8a464bcd8d80e45a2e00f434643a",
+  "first": {
+    "driftwood-isle": {
+      "verdict": "red",
+      "checks": 139,
+      "red": [
+        {
+          "field": "boot.systems.input",
+          "baseline": [
+            "player.input"
+          ],
+          "now": [
+            "engine.input.collect",
+            "engine.lockon.input",
+            "engine.player.input"
+          ]
+        },
+        {
+          "field": "boot.systems.late",
+          "baseline": [],
+          "now": [
+            "engine.hud.pins"
+          ]
+        }
+      ]
+    },
+    "nalati-grasslands": {
+      "verdict": "red",
+      "checks": 168,
+      "red": [
+        {
+          "field": "boot.systems.input",
+          "baseline": [
+            "player.input"
+          ],
+          "now": [
+            "engine.input.collect",
+            "engine.lockon.input",
+            "engine.player.input"
+          ]
+        },
+        {
+          "field": "boot.systems.late",
+          "baseline": [
+            "nalati-reins"
+          ],
+          "now": [
+            "nalati-reins",
+            "engine.hud.pins"
+          ]
+        }
+      ]
+    },
+    "nine-dragon-stack": {
+      "verdict": "red",
+      "checks": 142,
+      "red": [
+        {
+          "field": "boot.systems.input",
+          "baseline": [
+            "player.input"
+          ],
+          "now": [
+            "engine.input.collect",
+            "shard.nd.feizhua.input",
+            "engine.lockon.input",
+            "engine.player.input"
+          ]
+        },
+        {
+          "field": "boot.systems.update",
+          "baseline": [
+            "player.update",
+            "shard.nd.world",
+            "shard.nd.audio",
+            "world.impacts",
+            "engine.player.for",
+            "training-arena",
+            "fei-zhua",
+            "hud.perf",
+            "engine.world.bounds",
+            "main.6",
+            "hud.combat",
+            "first hints",
+            "main.frame",
+            "engine.player.regen",
+            "engine.player.hud"
+          ],
+          "now": [
+            "player.update",
+            "shard.nd.world",
+            "shard.nd.audio",
+            "world.impacts",
+            "engine.player.for",
+            "training-arena",
+            "hud.perf",
+            "engine.world.bounds",
+            "main.6",
+            "hud.combat",
+            "first hints",
+            "main.frame",
+            "engine.player.regen",
+            "engine.player.hud",
+            "fei-zhua"
+          ]
+        },
+        {
+          "field": "boot.systems.late",
+          "baseline": [],
+          "now": [
+            "engine.hud.pins"
+          ]
+        }
+      ]
+    },
+    "pine-hollow": {
+      "verdict": "red",
+      "checks": 168,
+      "red": [
+        {
+          "field": "boot.systems.input",
+          "baseline": [
+            "player.input"
+          ],
+          "now": [
+            "engine.input.collect",
+            "engine.lockon.input",
+            "engine.player.input"
+          ]
+        },
+        {
+          "field": "boot.systems.late",
+          "baseline": [],
+          "now": [
+            "engine.hud.pins"
+          ]
+        },
+        {
+          "field": "boot.scene.totals.instances",
+          "baseline": 20064,
+          "now": 26464
+        },
+        {
+          "field": "boot.gpuBytes.buffers",
+          "baseline": 41667444,
+          "now": 42153844
+        },
+        {
+          "field": "boot.gpuBytes.total",
+          "baseline": 609397324,
+          "now": 609883724
+        }
+      ]
+    }
+  },
+  "latestCompleted": {
+    "driftwood-isle": {
+      "verdict": "red",
+      "checks": 139,
+      "red": [
+        {
+          "field": "boot.systems.input",
+          "baseline": [
+            "player.input"
+          ],
+          "now": [
+            "engine.input.collect",
+            "engine.lockon.input",
+            "engine.player.input"
+          ]
+        },
+        {
+          "field": "boot.systems.late",
+          "baseline": [],
+          "now": [
+            "engine.hud.pins"
+          ]
+        }
+      ]
+    },
+    "nalati-grasslands": {
+      "verdict": "red",
+      "checks": 168,
+      "red": [
+        {
+          "field": "boot.systems.input",
+          "baseline": [
+            "player.input"
+          ],
+          "now": [
+            "engine.input.collect",
+            "engine.lockon.input",
+            "engine.player.input"
+          ]
+        },
+        {
+          "field": "boot.systems.late",
+          "baseline": [
+            "nalati-reins"
+          ],
+          "now": [
+            "nalati-reins",
+            "engine.hud.pins"
+          ]
+        }
+      ]
+    },
+    "nine-dragon-stack": {
+      "verdict": "red",
+      "checks": 142,
+      "red": [
+        {
+          "field": "boot.systems.input",
+          "baseline": [
+            "player.input"
+          ],
+          "now": [
+            "engine.input.collect",
+            "shard.nd.feizhua.input",
+            "engine.lockon.input",
+            "engine.player.input"
+          ]
+        },
+        {
+          "field": "boot.systems.update",
+          "baseline": [
+            "player.update",
+            "shard.nd.world",
+            "shard.nd.audio",
+            "world.impacts",
+            "engine.player.for",
+            "training-arena",
+            "fei-zhua",
+            "hud.perf",
+            "engine.world.bounds",
+            "main.6",
+            "hud.combat",
+            "first hints",
+            "main.frame",
+            "engine.player.regen",
+            "engine.player.hud"
+          ],
+          "now": [
+            "player.update",
+            "shard.nd.world",
+            "shard.nd.audio",
+            "world.impacts",
+            "engine.player.for",
+            "training-arena",
+            "hud.perf",
+            "engine.world.bounds",
+            "main.6",
+            "hud.combat",
+            "first hints",
+            "main.frame",
+            "engine.player.regen",
+            "engine.player.hud",
+            "fei-zhua"
+          ]
+        },
+        {
+          "field": "boot.systems.late",
+          "baseline": [],
+          "now": [
+            "engine.hud.pins"
+          ]
+        }
+      ]
+    }
+  }
+}
