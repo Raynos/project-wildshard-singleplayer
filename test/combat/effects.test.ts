@@ -7,7 +7,10 @@ import { AMMO_ROWS, PINE_AMMO_EFFECTS, PINE_SOURCE_MULTIPLIERS, pineFinishEffect
 import { Scope } from '#engine/app/scope';
 import { Vector3 } from 'three';
 import { PlayerHealth } from '#engine/combat/health';
-import type { DamageRequest } from '#engine/combat/pipeline';
+import { balbalCombat, BALBAL_WEAK } from '#engine/entities/species/balbal';
+import { speciesDef } from '#engine/entities/species/registry';
+import { app } from '#engine/app/runtime';
+import { damageTarget } from '../fake/legacyActor';
 import { Events } from '#engine/events/events';
 import type { OwnedId } from '#game/loot/Owned';
 
@@ -100,12 +103,24 @@ describe('live effect bindings', () => {
     scope.dispose(); expect(listeners.size).toBe(0); expect(health.effectTags).toEqual([]);
     expect(swords.map((sword) => [sword.damage, sword.heavyMult])).toEqual([[12, 1], [28, 1]]);
   });
-  it('tagged R7 sources select the piercing rule independently of the held-slot legacy adapter', () => {
-    const health = new PlayerHealth(new Events(), { now: () => 0, dodging: () => false, dodgeGuard: () => false, position: () => new Vector3() });
-    const req: DamageRequest = { source: 'env', sourceTags: ['weapon.spear'], target: health, amount: 12, point: new Vector3(), dir: new Vector3() };
-    expect(balbalPiercing(req)).toBe(true);
-    expect(balbalPiercing({ ...req, sourceTags: ['weapon.javelin'] })).toBe(true);
-    expect(balbalPiercing({ ...req, sourceTags: ['weapon.sabre'] })).toBe(false);
-    expect(balbalPiercing({ ...req, sourceTags: ['dmg.legacy'] })).toBeUndefined();
+  it('tagged R7 piercing sources reach the real species rule and ignore the held-slot adapter', () => {
+    const old = { melee: balbalCombat.melee, resolve: balbalCombat.isPiercing };
+    const weak = BALBAL_WEAK[0]; if (weak === undefined) throw new Error('missing weak point');
+    balbalCombat.isPiercing = balbalPiercing;
+    try {
+      for (const [held, tag, mul] of [['sabre', 'weapon.spear', 2.5], ['sabre', 'weapon.javelin', 2.5], ['spear', 'weapon.sabre', 1.5], ['spear', 'dmg.legacy', 2.5]] as const) {
+        const t = damageTarget({ kind: 'balbal' }); t.animal.position.set(0, 0, 0); t.head.set(0, 1.8, 0); t.body.copy(weak);
+        Reflect.set(t.animal, 'mem', { field: 0, open: 0 }); Reflect.set(t.animal, 'yOffset', 0);
+        const model: object = Reflect.get(t.animal, 'model') as object;
+        const species: object = Reflect.get(model, 'species') as object;
+        Reflect.set(species, 'damageMul', speciesDef('balbal').damageMul);
+        balbalCombat.melee = held;
+        app.combat.hit({ source: 'env', sourceTags: [tag, 'cover.checked'], target: t.animal.combatActor(), amount: 12, point: t.body, dir: new Vector3(0, 0, -1) });
+        expect(t.dealt).toEqual([Math.round(12 * mul)]);
+      }
+    } finally {
+      balbalCombat.melee = old.melee;
+      if (old.resolve === undefined) delete balbalCombat.isPiercing; else balbalCombat.isPiercing = old.resolve;
+    }
   });
 });
