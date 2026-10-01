@@ -46,3 +46,10 @@ continue on the recommended option, but the row stays open until Jake has answer
 ## Re-confirmed in plain chat (2026-10-01)
 
 The pop-up answers can be typed over by a builder's herdr message (that is how the withdrawn shard picks happened). Jake re-confirmed P1 (guards), P5 (Pine listener), P6 (far marmots), P4, P8, P7, P9 (delete after a re-audit) and the staggered review pages in plain chat: all his. P13 (the two shard concepts) is still open.
+
+## Wave 1 answers (2026-10-01, typed in chat)
+
+- **Q2 input buffer (120 ms): fine** (keep).
+- **Q1 coyote / late roof jump:** the clip was broken (no visible edge; the capture fixture dropped the player through the street). sol-roof re-captures it on a real edge and checks for a real fall-through bug; Q1 asked again after.
+- Jake's finding: crouch (and other actions) exist only on the keyboard, with no touch control: ask E365, a keyboard-vs-touch audit.
+
