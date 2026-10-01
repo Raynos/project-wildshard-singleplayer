@@ -101,3 +101,4 @@ export { wind } from './world/steppeWind';
 export { WIND_DIR, windGustAt } from './world/wind';
 export { sticksIn } from './physics/query';
 export { SHADOW_LAYER } from './core/shadowLayer';
+export type { AmmoId, AmmoRow, ProjectileModification } from './combat/ammo';
