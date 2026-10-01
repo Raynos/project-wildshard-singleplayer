@@ -28,6 +28,7 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 
 - [check-asset-case.d.mts](./check-asset-case.d.mts)
 - [check-asset-case.mjs](./check-asset-case.mjs)
+- [check-chunks.mjs](./check-chunks.mjs)
 - [check-css.mjs](./check-css.mjs)
 - [check-lock.d.mts](./check-lock.d.mts)
 - [check-lock.mjs](./check-lock.mjs)

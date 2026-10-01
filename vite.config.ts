@@ -9,6 +9,7 @@ import { rapierAlias, rapierPreviewPlugin } from './vite/rapier';
 import { assetIndex } from './vite/gen';
 import { genShardsPlugin } from './vite/genShards';
 import { backdropPrefixPlugin } from './vite/backdropPrefix';
+import { shardChunkGroups, chunkReport } from './vite/chunkReport';
 
 // Build stamp: short git sha + build time. Baked into the bundle as __BUILD_ID__ and
 // emitted as /version.json so the running app can tell when the server has a newer build
@@ -85,17 +86,12 @@ export default defineConfig(({ mode }) => {
       ? { target: 'es2022', chunkSizeWarningLimit: 4000, sourcemap: false, outDir: 'dist-native' }
       // one stylesheet: src/entry.ts splits three.js from the game's graph, and code-split CSS would add a request
       : {
-        target: 'es2022', chunkSizeWarningLimit: 4000, sourcemap: 'hidden' as const, cssCodeSplit: false,
-        // E357 F6 preserves the two shared boundaries the automatic splitter otherwise folds into
-        // BootSettings after shard art moves into the manifests (60 JS files before and after).
-        rolldownOptions: { output: { codeSplitting: { groups: [
-          { name: 'tier', test: /\/src\/engine\/(?:ui\/Settings|core\/tier)\.ts$/, includeDependenciesRecursively: false },
-          { name: 'layout', test: /\/src\/(?:engine\/core\/rng|shards\/nine-dragon-stack\/layout)\.ts$/, includeDependenciesRecursively: false },
-        ] } } },
+        target: 'es2022', chunkSizeWarningLimit: 4000, sourcemap: 'hidden' as const, cssCodeSplit: false, manifest: true,
+        rolldownOptions: { output: { codeSplitting: { groups: shardChunkGroups() } } },
       },
     assetsInclude: ['**/*.hdr', '**/*.gltf', '**/*.bin'],
     resolve: { alias: rapierAlias }, // Rapier's wasm-importing module → plain bindings (vite/rapier.ts)
     define: { __BUILD_ID__: JSON.stringify(BUILD_ID), __SAVE_NAMESPACES__: JSON.stringify(readdirSync('src/shards').filter((slug) => existsSync(join('src/shards', slug, 'manifest.ts')))) },
-    plugins: native ? [genShardsPlugin(), backdropPrefixPlugin(), versionPlugin(), nativePlugin()] : [genShardsPlugin(), backdropPrefixPlugin(), versionPlugin(), pwaPlugin(BUILD_ID), rapierPreviewPlugin()],
+    plugins: native ? [genShardsPlugin(), backdropPrefixPlugin(), versionPlugin(), nativePlugin()] : [genShardsPlugin(), backdropPrefixPlugin(), versionPlugin(), pwaPlugin(BUILD_ID), rapierPreviewPlugin(), chunkReport()],
   };
 });

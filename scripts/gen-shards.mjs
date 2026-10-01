@@ -1,7 +1,43 @@
 // E357 F9: folder discovery is the sole authored shard list.
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
-import { dirname, resolve } from 'node:path';
+import { dirname, resolve, relative } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import ts from '@typescript/typescript6';
+
+/** Static runtime imports only: lazy plugin/look thunks and erased types stay out of the startup closure. */
+export function manifestClosure(root) {
+  const configPath = ts.findConfigFile(root, (file) => ts.sys.fileExists(file));
+  const config = configPath ? ts.readConfigFile(configPath, (file) => ts.sys.readFile(file)).config : {};
+  const { options } = ts.parseJsonConfigFileContent(config, ts.sys, root);
+  const result = {};
+  for (const slug of shardFolders(root)) {
+    const seen = new Set();
+    const visit = (file) => {
+      const id = relative(root, file).replaceAll('\\', '/');
+      if (seen.has(id)) return;
+      seen.add(id);
+      if (!/\.[cm]?[jt]sx?$/.test(file)) return;
+      const source = ts.createSourceFile(file, readFileSync(file, 'utf8'), ts.ScriptTarget.Latest, true);
+      for (const node of source.statements) {
+        if (!ts.isImportDeclaration(node) && !ts.isExportDeclaration(node)) continue;
+        if (!node.moduleSpecifier || !ts.isStringLiteral(node.moduleSpecifier)) continue;
+        if (ts.isImportDeclaration(node)) {
+          if (node.importClause?.phaseModifier === ts.SyntaxKind.TypeKeyword) continue;
+          const bindings = node.importClause?.namedBindings;
+          if (!node.importClause?.name && bindings && ts.isNamedImports(bindings) && bindings.elements.length > 0 && bindings.elements.every((e) => e.isTypeOnly)) continue;
+        } else if (node.isTypeOnly || (node.exportClause && ts.isNamedExports(node.exportClause) && node.exportClause.elements.length > 0 && node.exportClause.elements.every((e) => e.isTypeOnly))) continue;
+        const specifier = node.moduleSpecifier.text;
+        const target = ts.resolveModuleName(specifier, file, options, ts.sys).resolvedModule?.resolvedFileName;
+        if (target && !target.includes('/node_modules/') && !target.endsWith('.d.ts')) visit(target);
+        // TypeScript intentionally does not resolve raster imports; include their bundler module ids too.
+        else if (specifier.startsWith('.') && existsSync(resolve(dirname(file), specifier))) visit(resolve(dirname(file), specifier));
+      }
+    };
+    visit(resolve(root, `src/shards/${slug}/manifest.ts`));
+    result[slug] = [...seen].sort((a, b) => a.localeCompare(b));
+  }
+  return result;
+}
 
 export function shardFolders(root) {
   return readdirSync(resolve(root, 'src/shards'), { withFileTypes: true })
@@ -21,11 +57,13 @@ export type ShardSlug = ${slugs.map((slug) => JSON.stringify(slug)).join(' | ')}
 }
 
 export function genShards(root = resolve(import.meta.dirname, '..'), check = false) {
-  const out = resolve(root, 'src/game/shard/shards.generated.ts');
-  const source = shardSource(root);
-  const same = existsSync(out) && readFileSync(out, 'utf8') === source;
-  if (check && !same) throw new Error('gen-shards: stale src/game/shard/shards.generated.ts (run pnpm gen)');
-  if (!check && !same) { mkdirSync(dirname(out), { recursive: true }); writeFileSync(out, source); }
+  const outputs = { 'shards.generated.ts': shardSource(root), 'manifest-closure.generated.json': `${JSON.stringify(manifestClosure(root), null, 2)}\n` };
+  for (const [name, source] of Object.entries(outputs)) {
+    const out = resolve(root, 'src/game/shard', name);
+    const same = existsSync(out) && readFileSync(out, 'utf8') === source;
+    if (check && !same) throw new Error(`gen-shards: stale src/game/shard/${name} (run pnpm gen)`);
+    if (!check && !same) { mkdirSync(dirname(out), { recursive: true }); writeFileSync(out, source); }
+  }
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

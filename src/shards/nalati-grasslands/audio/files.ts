@@ -3,6 +3,12 @@ import { loadAudio, type LevelAudioProfile, type CueBank } from '#engine';
 const SCORE = { dir: '/assets/music/nalati/', manifestKey: 'nalati' };
 const SFX = 'nalati-grasslands';
 
+/** Manifest inventory: the same selected files the profile decodes at boot. */
+export async function BOOT_AUDIO(): Promise<readonly string[]> {
+  const [{ getMusicStyle }, profile] = await Promise.all([loadAudio(), createNalatiAudio()]);
+  return profile.bootFiles(getMusicStyle());
+}
+
 /** Existing takes and score files in their original order; only their owning set changes. */
 export async function createNalatiAudio(): Promise<LevelAudioProfile> {
   const { audioFiles, scoreFiles, cueFiles, sfxFiles, styleFiles, getSfxSet, decodeStyle, decodeScore, decodeCueSet, decodeSfxSet } = await loadAudio();

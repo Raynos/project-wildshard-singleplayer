@@ -3,6 +3,11 @@ import { FOREST_AUDIO } from './profile';
 import { pineShotFiles, decodePineShots } from './sfx';
 
 const OWN = 'pine-hollow';
+/** Manifest inventory: the same selected files the profile decodes at boot. */
+export async function BOOT_AUDIO(): Promise<readonly string[]> {
+  const [{ getMusicStyle }, profile] = await Promise.all([loadAudio(), createPineAudio()]);
+  return profile.bootFiles(getMusicStyle());
+}
 /** The existing selected-style-first file order and exclusions, owned by this level. */
 export async function createPineAudio(): Promise<LevelAudioProfile> {
   const { audioFiles, MUSIC_MANIFESTS, SFX_MANIFESTS, getMusicStyle, getSfxSet, musicDir, sfxDir, styleFiles, sfxFiles, decodeStyle, decodeSfxSet } = await loadAudio();

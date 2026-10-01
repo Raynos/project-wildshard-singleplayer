@@ -41,9 +41,13 @@ if (collect) {
   const { prepareShardAssets } = await imp('src/game/shard/load.ts');
   const { registerGpuFiles } = await imp('src/engine/boot/gpuFiles.ts');
   await Promise.all(SHARDS.map((m) => prepareShardAssets(m, registerGpuFiles)));
+  // Every authored GPU stand-in is shipped runtime data, even when this tier's default boots images.
+  const { GPU_FILES: engineGpu } = await imp('src/engine/boot/ktx2.generated.ts');
   const { chunkFiles } = await imp('src/engine/boot/manifest.ts');
   const out = new Set();
   for (const def of PLAYABLE_SHARDS) for (const list of Object.values(chunkFiles(def))) for (const f of list) out.add(f);
+  for (const url of Object.values(engineGpu[collect])) out.add(url);
+  for (const def of SHARDS) if (def.ktx2) for (const url of Object.values((await def.ktx2()).GPU_FILES[collect])) out.add(url);
   process.stdout.write(JSON.stringify([...out]));
   process.exit(0);
 }

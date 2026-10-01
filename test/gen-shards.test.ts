@@ -5,10 +5,22 @@ import { tmpdir } from 'node:os';
 // oxlint-disable-next-line import/no-nodejs-modules -- Generator fixtures require host filesystem paths.
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { genShards } from '../scripts/gen-shards.mjs';
+import { genShards, manifestClosure } from '../scripts/gen-shards.mjs';
 import { splitKtx2 } from '../scripts/ktx2-tables.mjs';
 
 describe('shard generation', () => {
+  it('follows static runtime imports and re-exports, excluding types and lazy plugin thunks', () => {
+    const root = mkdtempSync(join(tmpdir(), 'manifest-closure-'));
+    try {
+      const dir = join(root, 'src/shards/new-shard'); mkdirSync(dir, { recursive: true });
+      writeFileSync(join(dir, 'manifest.ts'), "import { data } from './data'; import type { Shape } from './types'; export default { data, load: () => import('./plugin') }; ");
+      writeFileSync(join(dir, 'data.ts'), "export { more } from './more'; export type { Shape } from './types';");
+      writeFileSync(join(dir, 'more.ts'), 'export const more = 1;');
+      writeFileSync(join(dir, 'types.ts'), 'export interface Shape {}');
+      writeFileSync(join(dir, 'plugin.ts'), 'throw new Error("must stay lazy");');
+      expect(manifestClosure(root)['new-shard']).toEqual(['src/shards/new-shard/data.ts', 'src/shards/new-shard/manifest.ts', 'src/shards/new-shard/more.ts']);
+    } finally { rmSync(root, { recursive: true, force: true }); }
+  });
   it('discovers a new manifest and the hidden template without a KTX2 file; checks determinism and stale output', () => {
     const root = mkdtempSync(join(tmpdir(), 'gen-shards-'));
     try {
