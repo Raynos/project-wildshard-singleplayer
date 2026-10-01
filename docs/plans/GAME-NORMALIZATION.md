@@ -486,5 +486,5 @@ The verbatim table (decisions 1–100 and the revisions 12′, 28′, 55′, 90�
 | J2 | Nalati's far marmots pause (reverses B63); the whistle timing re-records at the milestone | P6 | sol-r9 | **built** 47ce62e7 (proof `progress/normalization/j1-j2-proof.md`) |
 | J3 | One more chunk-group try now `main.ts` is the 3-line entry; boots all four shards off-branch before it lands (B69) | P7 | after J5 | open |
 | J4 | Delete the unreferenced original textures. a7e021f0 deleted 54 (27.05 MiB) and broke 2 tests: the X3 audit missed that the phone image lists and KTX2 sets derive from these originals; restored in 217e5f8f. Next: a re-audit that counts the phone-image + KTX2 derivations, then delete only what's truly unused | P9 | lead | open |
-| J5 | ARCH-GUARDS first batch ([ARCH-GUARDS](ARCH-GUARDS.md): AG16, AG17, AG1, AG14, AG13, AG11, AG20, AG9) as Z4 rows, before Z1 / Z3 | P1 | sol-ag | open |
+| J5 | ARCH-GUARDS first batch ([ARCH-GUARDS](ARCH-GUARDS.md): AG16, AG17, AG1, AG14, AG13, AG11, AG20, AG9) as Z4 rows, before Z1 / Z3 | P1 | sol-ag | **built** 897baa67 + ratchet data 68fbb592 (8 guards; pre-commit ~0.25 s) |
 | J6 | The calibration publish at the next quiet gap | P12 | lead | open |
