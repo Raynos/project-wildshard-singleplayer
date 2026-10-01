@@ -36,7 +36,9 @@ export function precommitGuards(root = resolve(import.meta.dirname, '..')) {
     const baseline = JSON.parse(readFileSync(join(scratch, 'lint/ratchet.json'), 'utf8'));
     const configFile = join(scratch, '.oxlintrc.json'), hard = hardRules(configFile);
     const config = readLintConfig(configFile);
-    config.options = { ...config.options, typeAware: false };
+    // No type info here, so type-aware rules never fire and their disable comments would read as unused: the full
+    // type-aware lint (the push gate, CI) is what checks for unused directives.
+    config.options = { ...config.options, typeAware: false, reportUnusedDisableDirectives: 'off' };
     const ratchet = JSON.parse(readFileSync(join(scratch, '.oxlintrc.ratchet.json'), 'utf8'));
     config.overrides.push({ files: ['src/**'], rules: ratchet.rules });
     const guardConfig = join(scratch, '.oxlintrc.precommit.json');
