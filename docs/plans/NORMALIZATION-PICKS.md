@@ -17,7 +17,7 @@ continue on the recommended option, but the row stays open until Jake has answer
 
 | # | What | Options (recommended first) | Where to look | Since |
 |---|---|---|---|---|
-| P3 | **X1 input board**: the 120 ms input buffer + 100 ms coyote time (decision 40), the Controls / rebinding screen | ship as built · tune the two numbers · revert | `progress/normalization/x1-board/` (sol-x1b making the clips) | 2026-10-01 |
+| P3 | **X1 input board**: the 120 ms input buffer + 100 ms coyote time (decision 40), the Controls / rebinding screen | ship as built · tune the two numbers · revert | `progress/normalization/x1-board/` (sol-x1b's clips + Controls images); `x1-board/r6-coyote.md`: coyote adds one jump on Nine Dragon's route, which shifts its combat footsteps (desktop metal steps absent → 2, phone 2 → 1); grace audited exact (100 / 120 ms) | 2026-10-01 |
 | P10 | **B35 / X9** title-deck Wildshard summary strip variant (A shipped as default, B a Debug row) | A · B | `progress/normalization/x9/title-{a,b}.jpg` | 2026-09-30 |
 | P13 | **Z3 shard 5 concepts**: the fresh agent proposes 3 portrait mockups per new shard (desert + whip; agent's choice) and Jake picks (decision 73) | — (comes at Z3) | — | later |
 
