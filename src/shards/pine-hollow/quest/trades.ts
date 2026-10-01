@@ -13,7 +13,7 @@
  *   tradeState(t, pack, owns) → { ok, missing: ['2 × Deer hide'] }
  *   mottLine('deer-hide') → 'Bolts · arrows'   (the Bag's PACK: what Mott gives for it)
  */
-import type { PineItem } from '#game/Inventory';
+import type { PineItem } from '../items';
 import type { AmmoKind } from '../loadout/ammo';
 
 export type TradeItem = PineItem;

@@ -87,6 +87,8 @@ export interface SkySpec {
   painted?: { zenith: RGB; horizon: RGB; ground: RGB; glow: RGB };
 }
 export interface AtmosphereSpec {
+  edgeHaze?: boolean;
+  wetSurfaces?: boolean;
   fogHeight: number;
   fogHeightFalloff: number;
   fogHeightDensity: number;

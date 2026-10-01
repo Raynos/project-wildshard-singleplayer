@@ -1,3 +1,5 @@
+import type { TierKnobs } from '../level/spec';
+import { CHUNK_ID } from './config';
 import { saveStorage } from '#engine/saves/slots';
 /**
  * Quality tier, picked once at boot. Phones get smaller textures, fewer shadow cascades, no AO and a
@@ -91,47 +93,9 @@ export const TIER_TABLE = {
 
 export const TIER_CONFIG = { ...TIER_TABLE[TIER] };
 
-/**
- * E142 (Pine Hollow on Jake's iPhone: 14 fps / 71 ms in the old-growth): the photoreal shard's phone knobs on top of the
- * phone row. A shard is picked by reloading with `?chunk=` (registry.ts), so the URL names it before any module reads the
- * table (read here directly: importing the registry would load every chunk def ahead of the tier). `?phknobs=0` = the
- * phone row as it was.
- *  - trees hi → lo cards and the shadow cascade at 60 m, not 80 (E94 keeps the two together so no crown or shadow changes
- *    shape in view): fewer full-detail crowns in the main pass and ~40 % less cascade area to draw casters into
- *  - the grass carpet 40 slots per 4 m cell, not 56 (−29 % alpha-tested blades; the bottom half of the screen was blades)
- */
-export const PINE_HOLLOW_PHONE = { treeHiDist: 60, shadowFar: 60, animalShadowDist: 60, grassSlots: 40 } as const;
-/** The shard selected for this page's build. */
-let tierShard: string | null = null;
-/** the tier row's own values of the keys Pine Hollow's phone knobs override (applyShardTier puts them back for another shard) */
-const ROW_BASE: Record<keyof typeof PINE_HOLLOW_PHONE, number> = { treeHiDist: TIER_CONFIG.treeHiDist, shadowFar: TIER_CONFIG.shadowFar, animalShadowDist: TIER_CONFIG.animalShadowDist, grassSlots: TIER_CONFIG.grassSlots };
-/**
- * The knobs for `slug` (E155: several shards live in one page): Pine Hollow's phone knobs on, or the phone row's own
- * values back. Build-time readers see the building shard's; the frame cap and pinePhoneCuts read them every frame.
- */
-export function applyShardTier(slug: string): void {
-  tierShard = slug;
-  Object.assign(TIER_CONFIG, TIER === 'phone' && slug === 'pine-hollow' ? PINE_HOLLOW_PHONE : ROW_BASE);
-}
-
-
-/**
- * E142, the 30-fps-at-2× lane (Jake: "we should just be doing performance optimizations necessary for hitting 30 FPS
- * at 2"): Pine Hollow's phone-tier cost cuts that keep the picture — the render scale stays 2×: the viewmodel's depth
- * slices, the IBL refreshed in steps, the god rays skipped off screen. E142 wrapped them as the picture (the old
- * `?at2x=0` / `?depthslice=0` A/B switches went in E162).
- */
-export function pinePhoneCuts(): boolean {
-  return TIER === 'phone' && tierShard === 'pine-hollow';
-}
-
-/**
- * E189 (Jake, iPhone 17 Pro: "the FPS tanks from 60 to 20 after about a minute" — the phone's GPU throttling under
- * sustained load): the two E142 cuts that change no pixel — the viewmodel's depth slices and the god rays skipped while
- * the sun is off screen — on Driftwood's phone tier too, not only Pine Hollow's.
- */
+/** Driftwood keeps its legacy picture policy until S4.1; other levels declare tier knobs. */
 export function phonePictureCuts(): boolean {
-  return TIER === 'phone' && (tierShard === 'pine-hollow' || tierShard === 'driftwood-isle');
+  return TIER === 'phone' && CHUNK_ID === 'driftwood-isle';
 }
 
 /**
@@ -161,12 +125,22 @@ export function initializeTier(tier?: Tier): void {
   const forced = setting('tier');
   TIER = tier ?? (forced === 'auto' ? AUTO_TIER : forced);
   Object.assign(TIER_CONFIG, TIER_TABLE[TIER]);
-  Object.assign(ROW_BASE, { treeHiDist: TIER_CONFIG.treeHiDist, shadowFar: TIER_CONFIG.shadowFar, animalShadowDist: TIER_CONFIG.animalShadowDist, grassSlots: TIER_CONFIG.grassSlots });
-  applyShardTier(typeof location === 'undefined' ? '' : new URLSearchParams(location.search).get('chunk') ?? '');
   if (gfxPrefs.dpr !== 'auto') TIER_CONFIG.dpr = gfxPrefs.dpr === 'native' ? 4 : Number(gfxPrefs.dpr);
   if (gfxPrefs.aa === 'on' && TIER_CONFIG.smaa === 'off') TIER_CONFIG.smaa = 'low';
   if (gfxPrefs.aa === 'off') TIER_CONFIG.smaa = 'off';
   MOBILE_DEVICE = mobileUA || TIER === 'phone';
+}
+
+/** Resolve the numeric tier row before the level builds sky, forest and carpet. */
+export function applyLevelTier(knobs: TierKnobs | undefined): void {
+  Object.assign(TIER_CONFIG, TIER_TABLE[TIER]);
+  if (knobs?.treeHiDist !== undefined) TIER_CONFIG.treeHiDist = knobs.treeHiDist;
+  if (knobs?.shadowFar !== undefined) TIER_CONFIG.shadowFar = knobs.shadowFar;
+  if (knobs?.animalShadowDist !== undefined) TIER_CONFIG.animalShadowDist = knobs.animalShadowDist;
+  if (knobs?.grassSlots !== undefined) TIER_CONFIG.grassSlots = knobs.grassSlots;
+  if (gfxPrefs.dpr !== 'auto') TIER_CONFIG.dpr = gfxPrefs.dpr === 'native' ? 4 : Number(gfxPrefs.dpr);
+  if (gfxPrefs.aa === 'on' && TIER_CONFIG.smaa === 'off') TIER_CONFIG.smaa = 'low';
+  if (gfxPrefs.aa === 'off') TIER_CONFIG.smaa = 'off';
 }
 
 /** a phone or tablet (its user agent), or the phone tier on any device (a headless phone run renders what the phone does) */

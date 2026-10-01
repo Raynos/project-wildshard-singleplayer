@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { TIER_CONFIG } from '../core/tier';
+import { TIER, TIER_CONFIG } from '../core/tier';
 import { CSM } from 'three/examples/jsm/csm/CSM.js';
 import { cullToSlice, installCascadeCull } from './cascadeCull';
 import { loadHDR } from '../core/assets';
@@ -133,7 +133,7 @@ export class Sky {
       this.shadowFade = new ShadowFade(this.csm, this.camera, this.scene);
       for (const [i, g] of this.shadowFade.ghosts.entries()) cullToSlice(this.csm, this.camera, g.shadow, i); // E153: a ghost draws only its cascade's casters
     }
-    if (getActiveChunk().slug === 'pine-hollow') patchPointLightSkip(); // E142: a far / dark point light skips its BRDF (pointLightSkip.ts)
+    if (getActiveChunk().tiers?.[TIER]?.pointLightSkip === true) patchPointLightSkip(); // E142: a far / dark point light skips its BRDF (pointLightSkip.ts)
     patchCloudShadows(); // painterly shards: the drifting cloud shadows in the sun loop (a no-op elsewhere)
     // the stylized shard's low sun (golden hour, dawn) grazes the flat decks: more normal bias or the planks speckle with acne
     for (const l of this.csm.lights) { l.color.copy(this.sunColor); l.shadow.normalBias = this.stylized ? 0.14 : 0.05; l.shadow.radius = this.stylized ? 0.6 : 2; }

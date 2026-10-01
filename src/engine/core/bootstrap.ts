@@ -1,5 +1,6 @@
 import type * as THREE from 'three';
 import { Game } from './Game';
+import { applyLevelTier, TIER } from './tier';
 import { readyWebGLContext } from './webglStartup';
 import { recordBootCheckpoint } from '../boot/bootTrace';
 import { TERRAIN_RES } from './config';
@@ -64,6 +65,7 @@ export interface World {
  *             ?x=&z=&yaw=&pitch=  spawn pose (metres / radians)
  */
 export async function bootstrap(step: StepRunner, level: LevelSpec): Promise<World> {
+  applyLevelTier(level.tiers?.[TIER]);
   const params = new URLSearchParams(location.search);
   const num = (k: string, d: number): number => { const v = params.get(k); return v === null ? d : Number.parseFloat(v); };
   // The selected shard was resolved before main.ts removes ?chunk from a standalone PWA URL.

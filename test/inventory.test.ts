@@ -3,7 +3,8 @@ import { saveFixture, readFixture } from './fake/saveFixture';
 // src/game/Inventory.ts — what a carcass yields, and the per-shard pack.
 import { describe, expect, it, vi } from 'vitest';
 import { loadSpecies } from './species';
-import { ITEMS, Inventory, PACK_SLOTS, PINE_PACK_SLOTS, harvestOf, type ItemId } from '#game/Inventory';
+import { ITEMS, Inventory, PACK_SLOTS, harvestOf, type ItemId } from '#game/Inventory';
+import { PINE_PACK_SLOTS } from '#shards/pine-hollow/items';
 import { speciesDef } from '#engine/entities/species/registry';
 
 const PINE = 'chunk://local/pine-hollow';

@@ -315,6 +315,8 @@ export interface ChunkSky {
 /** Height + distance fog (`src/engine/world/Atmosphere.ts`) and the volumetric sun shafts. */
 export interface ChunkAtmosphere {
   /** metres; fog is densest below this */
+  edgeHaze?: boolean;
+  wetSurfaces?: boolean;
   fogHeight: number;
   fogHeightFalloff: number;
   fogHeightDensity: number;
@@ -461,7 +463,7 @@ export interface ShardManifest {
   audio?: LevelSpec['audio'];
   species?: LevelSpec['species'];
   encounters?: readonly string[];
-  bag?: { tabs: readonly ('map' | 'gear' | 'finds' | 'pack' | 'feats')[]; pack: { slots: number } };
+  bag?: { tabs: readonly ('map' | 'gear' | 'finds' | 'pack' | 'feats')[]; pack: { slots: number; keeps?: readonly string[] } };
   dev?: { poses: () => Promise<Readonly<Record<string, { eye: readonly [number, number, number]; yaw: number; pitch: number; feet?: readonly [number, number, number]; mockup: string; frame: string }>>> };
   /** Plugin API version; mismatches fail before the first asset load. */
   api: 1;

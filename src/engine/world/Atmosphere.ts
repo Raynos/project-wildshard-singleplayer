@@ -3,7 +3,6 @@
 // (terrain, instanced trees, glTF props, animals) gets it for free.
 import * as THREE from 'three';
 import { isStylized, toonUniforms } from './stylize';
-import { getActiveChunk } from '#game/shard/registry';
 
 export const fogUniforms = {
   fogSunDir: { value: new THREE.Vector3(0, 1, 0) },
@@ -76,12 +75,12 @@ export function setCloudCover(cover: number, strength = paintedAir.fogCloud.valu
 
 let installed = false;
 /** `painterly` (the active chunk's `style === 'painterly'`): the painted air below replaces the default fog maths */
-export function installAtmosphere(painterly = false): void {
+export function installAtmosphere(painterly = false, policy: { edgeHaze?: boolean; wetSurfaces?: boolean } = {}): void {
   if (installed) return;
   installed = true;
   // Pine Hollow's slab edge haze (fogEdge): only its fog chunk carries it, every other shard's source stays byte-for-byte
-  const edge = getActiveChunk().slug === 'pine-hollow';
-  pineWeather = edge;
+  const edge = policy.edgeHaze === true;
+  pineWeather = policy.wetSurfaces === true;
   painted = painterly;
 
   THREE.ShaderChunk.fog_pars_vertex = /* glsl */`

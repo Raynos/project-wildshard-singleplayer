@@ -78,14 +78,6 @@ export function harvestOf(kind: string, variant?: string): ItemId[] {
 }
 
 export const PACK_SLOTS = 12;
-/** Pine Hollow's pack: only what Mott the trader takes (src/shards/pine-hollow/quest/trades.ts; E314 pick C) — nothing else drops there */
-export const PINE_PACK_KINDS = ['venison', 'deer-hide', 'boar-hide', 'boar-tusk', 'bear-pelt', 'amber-resin', 'lodge-ribbon'] as const satisfies readonly ItemId[];
-export type PineItem = (typeof PINE_PACK_KINDS)[number];
-/** one slot per kept kind: Pine Hollow's pack can never be full */
-export const PINE_PACK_SLOTS = PINE_PACK_KINDS.length;
-const PINE_KEEPS: ReadonlySet<ItemId> = new Set<ItemId>(PINE_PACK_KINDS);
-export const isPineItem = (id: ItemId): id is PineItem => PINE_KEEPS.has(id);
-const isPineChunk = (chunkId: string): boolean => chunkId.endsWith('pine-hollow');
 /** Nalati (E314 C) and Nine Dragon (E314 A): no pack — nothing enters it, the Bag has no PACK tab */
 const isNoPackChunk = (chunkId: string): boolean => findShard(saveSlug(chunkId))?.bag?.pack.slots === 0 || chunkId.endsWith('nalati-grasslands');
 
@@ -108,7 +100,7 @@ export class Inventory {
   }
 
   /** does this shard's pack take `id` at all? (Pine Hollow: only PINE_PACK_KINDS; Nalati, Nine Dragon: nothing) */
-  keeps(id: ItemId): boolean { return !isNoPackChunk(this.chunkId) && (!isPineChunk(this.chunkId) || PINE_KEEPS.has(id)); }
+  keeps(id: ItemId): boolean { return !isNoPackChunk(this.chunkId) && (findShard(saveSlug(this.chunkId))?.bag?.pack.keeps?.includes(id) ?? true); }
   /** what this shard's pack takes from a carcass: harvestOf, less the kinds it does not keep (empty = no [E] Harvest) */
   harvest(kind: string, variant?: string): ItemId[] { return harvestOf(kind, variant).filter((id) => this.keeps(id)); }
   /** did the save this pack loaded hold `id`, a kind the pack no longer keeps? ('warden-longbow' → Owned) */
@@ -125,7 +117,7 @@ export class Inventory {
     return true;
   }
   /** this shard's pack size (0: no pack, no PACK tab — Nalati, Nine Dragon) */
-  get slots(): number { return findShard(saveSlug(this.chunkId))?.bag?.pack.slots ?? (isNoPackChunk(this.chunkId) ? 0 : isPineChunk(this.chunkId) ? PINE_PACK_SLOTS : PACK_SLOTS); }
+  get slots(): number { return findShard(saveSlug(this.chunkId))?.bag?.pack.slots ?? (isNoPackChunk(this.chunkId) ? 0 : PACK_SLOTS); }
   /** how many of `id` the pack holds */
   count(id: ItemId): number { return this.counts[id] ?? 0; }
   /** take `n` of `id` out of the pack (a trade); false, and nothing taken, when there are fewer. At 0 the slot frees up. */
