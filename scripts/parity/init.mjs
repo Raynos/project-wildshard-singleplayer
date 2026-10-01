@@ -15,9 +15,12 @@ export async function installInit(context, meta) {
     const rawGet = Storage.prototype.getItem, rawSet = Storage.prototype.setItem, rawRemove = Storage.prototype.removeItem;
     /** @param {Storage} storage @param {string} key */
     const name = (storage,key) => `${storage === localStorage ? 'local' : 'session'}:${key}`;
-    Storage.prototype.getItem = function getItem(key) { saves.read.push(name(this,key)); return rawGet.call(this,key); };
-    Storage.prototype.setItem = function setItem(key,value) { saves.written.push(name(this,key)); rawSet.call(this,key,value); };
-    Storage.prototype.removeItem = function removeItem(key) { saves.written.push(name(this,key)); rawRemove.call(this,key); };
+    // Telemetry keys are not saves: the error-report queue is read only when a report is pending, the heartbeat on a
+    // wall-clock timer (13 B26). They stay out of the save fingerprint; every real save key is still recorded.
+    const telemetry = new Set(['wsErrQueue','ws.alive']);
+    Storage.prototype.getItem = function getItem(key) { if (!telemetry.has(key)) saves.read.push(name(this,key)); return rawGet.call(this,key); };
+    Storage.prototype.setItem = function setItem(key,value) { if (!telemetry.has(key)) saves.written.push(name(this,key)); rawSet.call(this,key,value); };
+    Storage.prototype.removeItem = function removeItem(key) { if (!telemetry.has(key)) saves.written.push(name(this,key)); rawRemove.call(this,key); };
     const w = window;
     w.__wildshardHarness = {seed:0x2545f491,capture:capture ?? null,lane,sha,browser,errors,saves,audioRequests,gpuBytes:()=> {
       const gl = w.__sc_gl();
