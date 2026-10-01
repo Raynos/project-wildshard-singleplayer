@@ -442,6 +442,11 @@ with the stack and a Reload button. **Unload** is `scope.dispose()`; switching s
 | `stagedWorld?`, `lateReads?`, `bakedUnread?`, `bytes?` | pack bookkeeping for big shards |
 | `barrier?`, `phone?: { deferExtras?, fragile?, trace? }`, `cullBeforeFirstDraw?` | fragile-boot flags (Nine Dragon) |
 
+Card, Explore and `boot.precache` artwork may use imported image URLs or paths in the shard's `public/assets/`
+folders. Boot counts imported art from `ART_URL_BYTES` and public art from `PUBLIC_BYTES`, normalizes and deduplicates
+file paths, and includes both in the loading bar and background prefetch. Inline `data:` images are bundled and add
+no download (E357 Z3 public-art gap).
+
 A shard with no assets declares empty lists. The template:
 
 ```ts
@@ -533,7 +538,9 @@ ctx.app.input.push('template.lantern', ctx.scope);
 ```
 
 **Buffer and coyote time** are per-shard data: `manifest.fight.input = { bufferMs: 120, coyoteMs: 100 }`.
-**Crouch** is the engine's action; a shard changes it by answering `player.crouch` (§3).
+**Crouch** requires a shard answer to `player.crouch` (§3); without one the motor stays standing.
+Nalati owns its C / Ctrl bindings and grass/taming eligibility. The shared on-foot context has no crouch binding.
+Bows use manual hold/release draw on both devices; the automatic-shot action has been removed.
 
 ## 11. UI: layers, HUD slots, Bag tabs, error screen
 

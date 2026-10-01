@@ -31,6 +31,29 @@ async function load(tier: 'phone' | 'desktop') {
 }
 
 describe('shardBootRequests: the boot request list of each shard', () => {
+  it.each(['phone', 'desktop'] as const)('counts public artwork and keeps inline artwork out of the %s download list', async (tier) => {
+    const { PLAYABLE_SHARDS, bootFiles, sp, packFor, versionedUrl } = await load(tier);
+    const { PUBLIC_BYTES } = await import('#engine/boot/bytes.generated');
+    const { declareTotals } = await import('#engine/boot/bytes');
+    const def = PLAYABLE_SHARDS[0];
+    const image = Object.keys(PUBLIC_BYTES).find((path) => path.endsWith('.jpg'));
+    if (def?.boot === undefined || image === undefined) throw new Error('needs a registered shard with boot declarations and a public JPEG fixture');
+    const inline = 'data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3C%2Fsvg%3E';
+    const precache: string[] = [];
+    const fixture = { ...def, boot: { ...def.boot, precache } };
+    const before = bootFiles(fixture, 'img');
+    // A query still names the same public file; cards, Explore art and precache art share this inventory path.
+    precache.push(`${image}?fixture=1`, image, inline);
+    const files = bootFiles(fixture, 'img');
+    expect(files.art).toContain(image);
+    expect(files.art).not.toContain(new URL(inline).pathname);
+    expect(files.art.filter((path) => path === image)).toHaveLength(1);
+    const bytes: Readonly<Record<string, number>> = PUBLIC_BYTES;
+    expect(declareTotals(files).art.bytes - declareTotals(before).art.bytes).toBe(before.art.includes(image) ? 0 : bytes[image]);
+    const packed = packFor(fixture)?.files.some(([path]) => path === image) === true;
+    expect(packed || sp.shardBootRequests(fixture, 'img').includes(versionedUrl(image))).toBe(true);
+  });
+
   it('preserves active profile downloads while preparing the owning prefetch inventory', async () => {
     const { PLAYABLE_SHARDS, bootFiles } = await load('phone');
     const { prepareBootAudio } = await import('#engine/boot/audioInventory');
@@ -54,17 +77,21 @@ describe('shardBootRequests: the boot request list of each shard', () => {
       for (const def of PLAYABLE_SHARDS) {
         const files = bootFiles(def);
         // Downloadable cards retain the landscape tier rule. SVG data URLs are bundled and never fetched.
+        const artPath = (url: string): string => new URL(url, location.href).pathname;
+        // A shard may reuse its thumbnail as its landscape: the same path is required by either role.
+        const neededArt = new Set([
+          ...PLAYABLE_SHARDS.flatMap((card) => [card.card.thumb, card.card.portrait, ...(tier === 'desktop' || card === def ? [card.card.landscape] : [])]),
+          ...(def.boot?.explore?.art ?? []), ...(def.boot?.precache ?? []),
+        ].filter((url) => !url.startsWith('data:')).map(artPath));
         for (const card of PLAYABLE_SHARDS) {
-          const artPath = (url: string): string => new URL(url, location.href).pathname;
           for (const image of [card.card.thumb, card.card.portrait]) {
             expect(files.art.includes(artPath(image)), `${card.slug}: ${image}`).toBe(!image.startsWith('data:'));
           }
-          expect(files.art.includes(artPath(card.card.landscape))).toBe(!card.card.landscape.startsWith('data:') && (tier === 'desktop' || card.slug === def.slug));
+          expect(files.art.includes(artPath(card.card.landscape)), `${card.slug}: required landscape path`).toBe(neededArt.has(artPath(card.card.landscape)));
         }
         for (const image of def.boot?.explore?.art ?? []) expect(files.art.includes(new URL(image, location.href).pathname)).toBe(!image.startsWith('data:'));
-        const ownArt = new Set(def.boot?.explore?.art);
         for (const other of PLAYABLE_SHARDS) if (other !== def) for (const image of other.boot?.explore?.art ?? []) {
-          if (!ownArt.has(image)) expect(files.art).not.toContain(new URL(image, location.href).pathname);
+          if (!neededArt.has(artPath(image))) expect(files.art).not.toContain(artPath(image));
         }
         const pack = packFor(def);
         const packed = new Set(pack ? pack.files.map(([p]) => p) : []);

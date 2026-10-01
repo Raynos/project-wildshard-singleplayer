@@ -30,6 +30,7 @@ import type { ShardManifest } from '#game/shard/manifest';
 import { chunkFiles } from './manifest';
 import { addBytes, type ChunkFiles } from './bytes';
 import { ART_URL_BYTES } from '#game/shard/art.generated';
+import { PUBLIC_BYTES } from './bytes.generated';
 import { macrotask, type StepProgress } from './plan';
 import { audioFiles, musicDir, sfxDir } from './audioFiles';
 import { whenPrefetched } from './prefetch';
@@ -46,6 +47,7 @@ const pathOf = (url: string): string => { try { return new URL(url, location.hre
 
 /** the shard cards' pictures among the art (the rest is the Explore viewer's) */
 const cardArt = new Set<string>();
+const publicArtBytes: Readonly<Record<string, number>> = PUBLIC_BYTES;
 
 function artFor(def: ShardManifest): { urls: string[]; bytes: Record<string, number> } {
   const urls: string[] = [], bytes: Record<string, number> = {};
@@ -53,9 +55,10 @@ function artFor(def: ShardManifest): { urls: string[]; bytes: Record<string, num
   const cardUrls = new Set(cards);
   for (const url of new Set([...cards, ...(def.boot?.explore?.art ?? []), ...(def.boot?.precache ?? [])])) {
     if (url.startsWith('data:')) continue; // inlined into the bundle: nothing to fetch
-    const size = ART_URL_BYTES[url];
-    if (size === undefined) continue;
     const p = pathOf(url);
+    // Shards may keep card / Explore / precache art in their public asset folder instead of importing it.
+    const size = ART_URL_BYTES[url] ?? publicArtBytes[p];
+    if (size === undefined || Object.hasOwn(bytes, p)) continue;
     urls.push(p); bytes[p] = size;
     if (cardUrls.has(url)) cardArt.add(p);
   }
