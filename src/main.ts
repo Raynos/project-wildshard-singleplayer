@@ -1,7 +1,7 @@
 import { registerLevelDebugRow } from '#engine/ui/debugOptions';
 import { hudAdapters } from '#engine/ui/hudAdapters';
 import { equipmentEntry, toolEntries } from '#game/bag/equipment';
-import { SWORD_WOOD, SWORD_IRON, type MeleeProfile, Rifle, loadParticles } from '#kit';
+import { SWORD_WOOD, SWORD_IRON, type MeleeProfile, Rifle, loadParticles, installKitSpecies } from '#kit';
 import { AR15 } from '#shards/nalati-grasslands/weapons/equipment';
 import { reportError } from '#engine/core/errorReport';
 import { showLoadFailure } from '#engine/ui/errorScreen';
@@ -553,6 +553,11 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   };
   if (audioProfile) prepareAudio();
   yield 'kit';
+  if (chunk.ocean) {
+    const { ISLAND_BOAR, ISLAND_BEAR } = await import('./shards/driftwood-isle/creatures/species');
+    app.species.registerRow(ISLAND_BOAR, game.levelScope);
+    app.species.registerRow(ISLAND_BEAR, game.levelScope);
+  }
 
   const animals = await step('animals', async (p) => {
     const a = await new AnimalManager(game.scene, sky, forest).buildAsync(macrotask); // a task per herd, not one long one
@@ -1316,6 +1321,7 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   game.levelScope.onDispose(levelWorld.dispose);
   return levelWorld;
 }
+installKitSpecies();
 main().catch((e: unknown) => {
   markBootHandledError();
   if (!bootFatalShown) showError(e instanceof Error ? `${e.name}: ${e.message}` : String(e), e instanceof Error ? e.stack ?? '' : '');
