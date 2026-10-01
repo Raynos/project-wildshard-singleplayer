@@ -1,0 +1,11 @@
+{
+  "scenario": "dodge",
+  "label": "after",
+  "after": true,
+  "jumps": 0,
+  "launch": null,
+  "beforeRelease": 2,
+  "crouched": null,
+  "coyoteMs": 100,
+  "bufferMs": 120
+}

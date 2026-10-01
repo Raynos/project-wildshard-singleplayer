@@ -1,0 +1,47 @@
+{
+  "offer": {
+    "trust": 0,
+    "alert": 32.499999999999964,
+    "ear": {
+      "x": 81,
+      "y": 29.015975939941406,
+      "z": 41.187999999999995
+    },
+    "round": null,
+    "balance": 0,
+    "danger": false,
+    "offer": true
+  },
+  "buttons": [
+    {
+      "label": "Horse",
+      "cls": "ws-touch-disc at at-edge-l ws-ride-horse ws-touch-verb verb-one show",
+      "display": "flex",
+      "rect": {
+        "x": 0,
+        "y": 285.234375,
+        "width": 38,
+        "height": 62,
+        "top": 285.234375,
+        "right": 38,
+        "bottom": 347.234375,
+        "left": 0
+      }
+    },
+    {
+      "label": "Offer",
+      "cls": "ws-touch-disc ws-ride-offer ws-touch-verb verb-two show",
+      "display": "flex",
+      "rect": {
+        "x": 188.5,
+        "y": 582.40625,
+        "width": 58.5,
+        "height": 58.5,
+        "top": 582.40625,
+        "right": 247,
+        "bottom": 640.90625,
+        "left": 188.5
+      }
+    }
+  ]
+}

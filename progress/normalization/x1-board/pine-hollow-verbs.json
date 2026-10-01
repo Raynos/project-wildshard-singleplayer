@@ -1,0 +1,19 @@
+{
+  "buttons": [
+    {
+      "label": "Bolts",
+      "cls": "ws-touch-verb verb-one ws-touch-disc show",
+      "display": "flex",
+      "rect": {
+        "x": 255,
+        "y": 582.40625,
+        "width": 58.5,
+        "height": 58.5,
+        "top": 582.40625,
+        "right": 313.5,
+        "bottom": 640.90625,
+        "left": 255
+      }
+    }
+  ]
+}

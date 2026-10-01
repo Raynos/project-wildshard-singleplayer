@@ -1,0 +1,11 @@
+{
+  "scenario": "buffer",
+  "label": "after",
+  "after": true,
+  "jumps": 1,
+  "launch": 7.2,
+  "beforeRelease": 0,
+  "crouched": true,
+  "coyoteMs": 100,
+  "bufferMs": 120
+}

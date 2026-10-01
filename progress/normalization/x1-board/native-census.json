@@ -1,0 +1,514 @@
+{
+  "source": "d9594dea776d58da8eef213d8f6d4e3c8626d8d4",
+  "noRawInput": 0,
+  "noGlobalListenerPatch": 93,
+  "files": {
+    "src/engine/audio/Audio.ts": 3,
+    "src/engine/audio/Music.ts": 4,
+    "src/engine/audio/Stems.ts": 1,
+    "src/engine/audio/Voices.ts": 1,
+    "src/engine/audio/preload.ts": 1,
+    "src/engine/boot/bootTrace.ts": 5,
+    "src/engine/boot/clearDownloads.ts": 1,
+    "src/engine/boot/lastEnd.ts": 4,
+    "src/engine/boot/plan.ts": 1,
+    "src/engine/boot/shardPrefetch.ts": 3,
+    "src/engine/boot/stuck.ts": 5,
+    "src/engine/boot/sw.ts": 9,
+    "src/engine/core/devMode.ts": 1,
+    "src/engine/core/errorReport.ts": 1,
+    "src/engine/core/ktx2.ts": 1,
+    "src/engine/core/lifeTrace.ts": 6,
+    "src/engine/core/practiceRoom.ts": 1,
+    "src/engine/core/viewport.ts": 1,
+    "src/engine/debug/probe.ts": 3,
+    "src/engine/entities/animalMatrices.ts": 2,
+    "src/engine/native/boot.ts": 1,
+    "src/engine/native/updates.ts": 2,
+    "src/engine/pwa/sw.js": 5,
+    "src/engine/render/precompile.ts": 2,
+    "src/engine/telemetry/browserErrors.ts": 1,
+    "src/engine/world/Horizon.ts": 2,
+    "src/engine/world/Sky.ts": 1,
+    "src/game/Elite.ts": 1,
+    "src/game/Progress.ts": 2,
+    "src/game/session/data.ts": 2,
+    "src/game/session/finish.ts": 3,
+    "src/game/session/play.ts": 1,
+    "src/game/session/world.ts": 3,
+    "src/shards/nalati-grasslands/adventure.ts": 1,
+    "src/shards/nine-dragon-stack/look/emitters.ts": 1,
+    "src/shards/nine-dragon-stack/world/build.ts": 6,
+    "src/shards/nine-dragon-stack/world/facade/batch.ts": 1,
+    "src/shards/pine-hollow/audio/ambience.ts": 1,
+    "src/shards/pine-hollow/audio/sfx.ts": 1,
+    "src/shards/pine-hollow/quest/index.ts": 2
+  },
+  "sites": [
+    {
+      "file": "src/engine/world/Sky.ts",
+      "line": 475,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/engine/audio/Audio.ts",
+      "line": 302,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/engine/audio/Audio.ts",
+      "line": 347,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/engine/audio/Audio.ts",
+      "line": 396,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/engine/audio/preload.ts",
+      "line": 53,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/game/session/world.ts",
+      "line": 34,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/game/session/world.ts",
+      "line": 60,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/game/session/world.ts",
+      "line": 60,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/engine/telemetry/browserErrors.ts",
+      "line": 89,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/engine/audio/Stems.ts",
+      "line": 233,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/engine/native/boot.ts",
+      "line": 31,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/engine/native/updates.ts",
+      "line": 240,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/engine/native/updates.ts",
+      "line": 391,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/game/session/play.ts",
+      "line": 98,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/engine/audio/Voices.ts",
+      "line": 150,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/engine/pwa/sw.js",
+      "line": 154,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/engine/pwa/sw.js",
+      "line": 184,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/engine/pwa/sw.js",
+      "line": 297,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/engine/pwa/sw.js",
+      "line": 383,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/engine/pwa/sw.js",
+      "line": 443,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/engine/audio/Music.ts",
+      "line": 597,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/engine/audio/Music.ts",
+      "line": 620,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/engine/audio/Music.ts",
+      "line": 631,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/engine/audio/Music.ts",
+      "line": 760,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/game/session/data.ts",
+      "line": 30,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/game/session/data.ts",
+      "line": 31,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/engine/core/viewport.ts",
+      "line": 33,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/game/session/finish.ts",
+      "line": 65,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/game/session/finish.ts",
+      "line": 65,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/game/session/finish.ts",
+      "line": 71,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/engine/core/devMode.ts",
+      "line": 39,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/game/Elite.ts",
+      "line": 268,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/engine/core/practiceRoom.ts",
+      "line": 13,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/engine/world/Horizon.ts",
+      "line": 57,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/engine/world/Horizon.ts",
+      "line": 57,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/engine/core/lifeTrace.ts",
+      "line": 81,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/engine/core/lifeTrace.ts",
+      "line": 84,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/engine/core/lifeTrace.ts",
+      "line": 86,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/engine/core/lifeTrace.ts",
+      "line": 137,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/engine/core/lifeTrace.ts",
+      "line": 138,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/engine/core/lifeTrace.ts",
+      "line": 142,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/shards/nalati-grasslands/adventure.ts",
+      "line": 163,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/engine/core/ktx2.ts",
+      "line": 101,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/engine/boot/plan.ts",
+      "line": 127,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/engine/boot/bootTrace.ts",
+      "line": 147,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/engine/boot/bootTrace.ts",
+      "line": 227,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/engine/boot/bootTrace.ts",
+      "line": 228,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/engine/boot/bootTrace.ts",
+      "line": 238,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/engine/boot/bootTrace.ts",
+      "line": 243,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/engine/render/precompile.ts",
+      "line": 254,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/engine/render/precompile.ts",
+      "line": 254,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/engine/boot/clearDownloads.ts",
+      "line": 50,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/game/Progress.ts",
+      "line": 38,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/game/Progress.ts",
+      "line": 39,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/engine/boot/stuck.ts",
+      "line": 63,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/engine/boot/stuck.ts",
+      "line": 90,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/engine/boot/stuck.ts",
+      "line": 91,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/engine/boot/stuck.ts",
+      "line": 100,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/engine/boot/stuck.ts",
+      "line": 177,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/engine/boot/sw.ts",
+      "line": 108,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/engine/boot/sw.ts",
+      "line": 121,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/engine/boot/sw.ts",
+      "line": 127,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/engine/boot/sw.ts",
+      "line": 135,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/engine/boot/sw.ts",
+      "line": 136,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/engine/boot/sw.ts",
+      "line": 156,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/engine/boot/sw.ts",
+      "line": 173,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/engine/boot/sw.ts",
+      "line": 188,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/engine/boot/sw.ts",
+      "line": 192,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/shards/nine-dragon-stack/world/build.ts",
+      "line": 85,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/shards/nine-dragon-stack/world/build.ts",
+      "line": 191,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/shards/nine-dragon-stack/world/build.ts",
+      "line": 194,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/shards/nine-dragon-stack/world/build.ts",
+      "line": 197,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/shards/nine-dragon-stack/world/build.ts",
+      "line": 236,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/shards/nine-dragon-stack/world/build.ts",
+      "line": 278,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/engine/boot/lastEnd.ts",
+      "line": 147,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/engine/boot/lastEnd.ts",
+      "line": 149,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/engine/boot/lastEnd.ts",
+      "line": 151,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/engine/boot/lastEnd.ts",
+      "line": 152,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/engine/boot/shardPrefetch.ts",
+      "line": 177,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/engine/boot/shardPrefetch.ts",
+      "line": 189,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/engine/boot/shardPrefetch.ts",
+      "line": 193,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/engine/debug/probe.ts",
+      "line": 330,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/engine/debug/probe.ts",
+      "line": 357,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/engine/debug/probe.ts",
+      "line": 357,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/engine/entities/animalMatrices.ts",
+      "line": 43,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/engine/entities/animalMatrices.ts",
+      "line": 43,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/engine/core/errorReport.ts",
+      "line": 95,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/shards/nine-dragon-stack/world/facade/batch.ts",
+      "line": 121,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/shards/pine-hollow/quest/index.ts",
+      "line": 243,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/shards/pine-hollow/quest/index.ts",
+      "line": 349,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/shards/pine-hollow/audio/ambience.ts",
+      "line": 158,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/shards/pine-hollow/audio/sfx.ts",
+      "line": 282,
+      "message": "Register listeners and timers through the owning Scope"
+    },
+    {
+      "file": "src/shards/nine-dragon-stack/look/emitters.ts",
+      "line": 69,
+      "message": "Register listeners and timers through the owning Scope"
+    }
+  ]
+}

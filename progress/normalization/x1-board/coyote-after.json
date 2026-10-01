@@ -1,0 +1,11 @@
+{
+  "scenario": "coyote",
+  "label": "after",
+  "after": true,
+  "jumps": 1,
+  "launch": 7.2,
+  "beforeRelease": null,
+  "crouched": null,
+  "coyoteMs": 100,
+  "bufferMs": 120
+}

@@ -1,0 +1,91 @@
+{
+  "source": "ad1f66dfa1cafc61b8f26e054d5bf15db4b7d3ec",
+  "offByDefault": true,
+  "contexts": [
+    "onFoot",
+    "weapon.melee"
+  ],
+  "last20": [
+    {
+      "action": "crouch",
+      "at": 33.333333333333336
+    },
+    {
+      "action": "jump",
+      "at": 33.333333333333336
+    },
+    {
+      "action": "crouch",
+      "at": 33.333333333333336
+    },
+    {
+      "action": "jump",
+      "at": 33.333333333333336
+    },
+    {
+      "action": "crouch",
+      "at": 33.333333333333336
+    },
+    {
+      "action": "jump",
+      "at": 33.333333333333336
+    },
+    {
+      "action": "crouch",
+      "at": 33.333333333333336
+    },
+    {
+      "action": "jump",
+      "at": 33.333333333333336
+    },
+    {
+      "action": "crouch",
+      "at": 33.333333333333336
+    },
+    {
+      "action": "jump",
+      "at": 33.333333333333336
+    },
+    {
+      "action": "crouch",
+      "at": 33.333333333333336
+    },
+    {
+      "action": "jump",
+      "at": 33.333333333333336
+    },
+    {
+      "action": "crouch",
+      "at": 33.333333333333336
+    },
+    {
+      "action": "jump",
+      "at": 33.333333333333336
+    },
+    {
+      "action": "crouch",
+      "at": 33.333333333333336
+    },
+    {
+      "action": "jump",
+      "at": 33.333333333333336
+    },
+    {
+      "action": "crouch",
+      "at": 33.333333333333336
+    },
+    {
+      "action": "jump",
+      "at": 33.333333333333336
+    },
+    {
+      "action": "crouch",
+      "at": 33.333333333333336
+    },
+    {
+      "action": "jump",
+      "at": 33.333333333333336
+    }
+  ],
+  "visible": true
+}
