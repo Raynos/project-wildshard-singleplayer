@@ -225,7 +225,7 @@ export type { BossDef } from './ai/bossDefinition';
 
 export { setShapeFn, type Station } from './entities/species/loft';
 
-export { setEliteBrain, setEliteDamage, eliteThink, eliteDamageMul } from './entities/eliteBrain';
+export { setEliteBrain, setEliteDamage, setEliteAct, eliteThink, eliteDamageMul, eliteAct } from './entities/eliteBrain';
 
 export { EliteBar } from './ui/EliteBar';
 

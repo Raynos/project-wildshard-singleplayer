@@ -340,7 +340,7 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
     const boundary = new Boundary(sky).build();
     game.scene.add(boundary.group);
     await macrotask(); // boundary · water · horizon each in its own task
-    const water = !isOcean && hasPond() ? new (await loadWorldContent()).Water(sky, forest.trees, { ...(chunk.pondClip === undefined ? {} : { clip: chunk.pondClip }), ...(chunk.pondLilyExclusions === undefined ? {} : { lilyExclusions: chunk.pondLilyExclusions }) }).build() : null;
+    const water = hasPond() ? new (await loadWorldContent()).Water(sky, forest.trees, { ...(chunk.pondClip === undefined ? {} : { clip: chunk.pondClip }), ...(chunk.pondLilyExclusions === undefined ? {} : { lilyExclusions: chunk.pondLilyExclusions }) }).build() : null;
     if (water) game.scene.add(water.group);
     // PH-L9: Pine Hollow's creek, waterfall, plunge foam and spray (two draws; they run on the wind clock)
     const streams = null;
@@ -348,7 +348,8 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
     const horizon = new Horizon(sky).build();
     game.scene.add(horizon.group);
     // the painted 360° horizon (X4): far sea stacks, islands and cloud banks on the sea, day + night; the paintings load after boot
-    const matte = sea ? new HorizonMatte(sky, sea.level).build() : null;
+    const seaBody = app.world.water.sea; // registered at level.data, before the edge step
+    const matte = seaBody !== null ? new HorizonMatte(sky, seaBody.level).build() : null;
     if (matte?.mesh) {
       game.scene.add(matte.mesh);
       game.onUpdate((dt) => { matte.update(dt, game.camera, sky.dayNight?.night ?? 0); }, 'main.2');
@@ -780,7 +781,7 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
       const p = player.position, ph = activePhysics();
       const floor = ph ? floorBelow(ph, p.x, p.z, p.y + 0.6, 1.2) : undefined; // real walkable footing under the feet
       const grounded = floor !== undefined && Math.abs(floor - p.y) < 0.3 && player.onGround && !player.swimming && !player.wading && !player.hover
-        && !player.carried && player.ride === null && (sea === undefined || floor > sea.level + 0.3);
+        && !player.carried && player.ride === null && floor > (app.world.water.level ?? -Infinity) + 0.3;
       lastPlace.observe({ x: p.x, y: floor ?? p.y, z: p.z, grounded });
     }, 'last place');
   }
