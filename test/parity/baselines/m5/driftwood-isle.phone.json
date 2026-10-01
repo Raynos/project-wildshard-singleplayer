@@ -2,8 +2,8 @@
   "boot": {
     "schema": 1,
     "lane": "m5",
-    "sha": "fcdc75d1a8c5988a441fbfe86f801e6cdf599065",
-    "build": "fcdc75d-mupboapt",
+    "sha": "ee0dd78b2f2977f36f0ed5e44cf0d1da172f13ea",
+    "build": "ee0dd78-mupf7z1d",
     "shard": "driftwood-isle",
     "tier": "phone",
     "viewport": {
@@ -75,7 +75,9 @@
         "hud.combat",
         "last place",
         "first hints",
-        "main.frame"
+        "main.frame",
+        "engine.player.regen",
+        "engine.player.hud"
       ],
       "late": []
     },
@@ -390,6 +392,22 @@
         }
       },
       {
+        "id": "cove-unclaimed",
+        "category": "nature",
+        "surface": "wood",
+        "floor": false,
+        "solidFloor": false,
+        "follows": false,
+        "shapes": {
+          "cuboid": 0,
+          "ball": 0,
+          "capsule": 0,
+          "convex": 0,
+          "trimesh": 0,
+          "treads": 0
+        }
+      },
+      {
         "id": "cove-white",
         "category": "nature",
         "surface": "wood",
@@ -451,6 +469,134 @@
           "convex": 0,
           "trimesh": 0,
           "treads": 1
+        }
+      },
+      {
+        "id": "interact-altar",
+        "category": "props",
+        "surface": "wood",
+        "floor": false,
+        "solidFloor": false,
+        "follows": false,
+        "shapes": {
+          "cuboid": 1,
+          "ball": 0,
+          "capsule": 0,
+          "convex": 0,
+          "trimesh": 0,
+          "treads": 0
+        }
+      },
+      {
+        "id": "interact-beacon",
+        "category": "props",
+        "surface": "wood",
+        "floor": false,
+        "solidFloor": false,
+        "follows": false,
+        "shapes": {
+          "cuboid": 1,
+          "ball": 0,
+          "capsule": 0,
+          "convex": 0,
+          "trimesh": 0,
+          "treads": 0
+        }
+      },
+      {
+        "id": "interact-castaway-chest",
+        "category": "props",
+        "surface": "wood",
+        "floor": false,
+        "solidFloor": false,
+        "follows": false,
+        "shapes": {
+          "cuboid": 1,
+          "ball": 0,
+          "capsule": 0,
+          "convex": 0,
+          "trimesh": 0,
+          "treads": 0
+        }
+      },
+      {
+        "id": "interact-hold-pump",
+        "category": "props",
+        "surface": "wood",
+        "floor": false,
+        "solidFloor": false,
+        "follows": false,
+        "shapes": {
+          "cuboid": 1,
+          "ball": 0,
+          "capsule": 0,
+          "convex": 0,
+          "trimesh": 0,
+          "treads": 0
+        }
+      },
+      {
+        "id": "interact-hold-winch",
+        "category": "props",
+        "surface": "wood",
+        "floor": false,
+        "solidFloor": false,
+        "follows": false,
+        "shapes": {
+          "cuboid": 1,
+          "ball": 0,
+          "capsule": 0,
+          "convex": 0,
+          "trimesh": 0,
+          "treads": 0
+        }
+      },
+      {
+        "id": "interact-reef-treasure",
+        "category": "props",
+        "surface": "wood",
+        "floor": false,
+        "solidFloor": false,
+        "follows": false,
+        "shapes": {
+          "cuboid": 1,
+          "ball": 0,
+          "capsule": 0,
+          "convex": 0,
+          "trimesh": 0,
+          "treads": 0
+        }
+      },
+      {
+        "id": "interact-sluice",
+        "category": "props",
+        "surface": "wood",
+        "floor": false,
+        "solidFloor": false,
+        "follows": false,
+        "shapes": {
+          "cuboid": 1,
+          "ball": 0,
+          "capsule": 0,
+          "convex": 0,
+          "trimesh": 0,
+          "treads": 0
+        }
+      },
+      {
+        "id": "interact-strongbox",
+        "category": "props",
+        "surface": "wood",
+        "floor": false,
+        "solidFloor": false,
+        "follows": false,
+        "shapes": {
+          "cuboid": 1,
+          "ball": 0,
+          "capsule": 0,
+          "convex": 0,
+          "trimesh": 0,
+          "treads": 0
         }
       },
       {
@@ -950,6 +1096,22 @@
         }
       },
       {
+        "id": "npc-castaway",
+        "category": "people",
+        "surface": "wood",
+        "floor": false,
+        "solidFloor": false,
+        "follows": true,
+        "shapes": {
+          "cuboid": 1,
+          "ball": 0,
+          "capsule": 0,
+          "convex": 0,
+          "trimesh": 0,
+          "treads": 0
+        }
+      },
+      {
         "id": "palms",
         "category": "nature",
         "surface": "wood",
@@ -1372,7 +1534,7 @@
     },
     "physics": {
       "fixed": 2,
-      "kinematic": 1,
+      "kinematic": 2,
       "dynamic": 26,
       "colliders": 2195
     },
@@ -2575,15 +2737,15 @@
       "programs": 95,
       "programKeys": "9382ab7ca3c5ccadc18103c5cf3acebb8da386410179d89389ad346e16735e64",
       "memory": {
-        "geometries": 441,
+        "geometries": 436,
         "textures": 83
       }
     },
     "gpuBytes": {
       "textures": 91509608,
       "renderbuffers": 10877184,
-      "buffers": 127734433,
-      "total": 230121225
+      "buffers": 127709473,
+      "total": 230096265
     },
     "audio": {
       "requests": [
@@ -4306,73 +4468,37 @@
     ],
     "saves": {
       "read": [
+        "local:wildshard.save.v2.device",
+        "local:wildshard.save.v2.driftwood-isle",
         "local:wildshard.save.v2.global",
-        "local:ws-load-times:v1:phone:18",
-        "local:ws.bounty.v1",
-        "local:ws.debug.open",
-        "local:ws.dev",
-        "local:ws.flags.v1",
-        "local:ws.fold.debug",
-        "local:ws.gfx.v1",
-        "local:ws.hints.v1",
-        "local:ws.inventory.v1",
-        "local:ws.ktx2set.driftwood-isle.phone",
-        "local:ws.lastEnd",
-        "local:ws.lastUnload",
-        "local:ws.nineBoot",
-        "local:ws.owned.v1",
-        "local:ws.perf.lap.v1",
-        "local:ws.perf.rec.v1",
-        "local:ws.progress.v1",
-        "local:ws.purse.v1",
-        "local:ws.review.v1",
-        "local:ws.settings.v1",
-        "local:ws.skins.v1",
-        "local:ws.titleArrival.once",
-        "local:wsLifeTrace",
-        "local:wsLifeTraceAt",
-        "local:wsNineReports",
-        "session:ws.loadAttempt",
-        "session:ws.shardArrival.arena",
-        "session:ws.titleArrival",
-        "session:wsClearDownloads",
-        "session:wsErrSession",
-        "session:wsResumeShot"
+        "session:wildshard.save.v2.session"
       ],
       "written": [
+        "local:wildshard.save.v2.device",
         "local:wildshard.save.v2.global",
-        "local:ws-load-times:v1:phone:18",
-        "local:ws.debug",
-        "local:ws.lastUnload",
-        "local:ws.titleArrival.once",
-        "local:wsLifeTrace",
-        "local:wsLifeTraceAt",
-        "session:ws.loadAttempt",
-        "session:ws.shardArrival.arena",
-        "session:ws.titleArrival",
-        "session:wsResumeBrand"
+        "session:wildshard.save.v2.session"
       ]
     },
-    "playMs": 2229.800000190735,
+    "playMs": 2411.5,
     "stepMs": {
-      "renderer": 11,
-      "sky": 49,
-      "terrain": 34,
+      "renderer": 13,
+      "sky": 54,
+      "terrain": 37,
       "cards": 1,
       "forest": 2,
       "physics": 3,
-      "edge": 469,
+      "edge": 509,
       "grass": 5,
       "cabins": 0,
       "props": 0,
-      "animals": 22,
-      "weapon": 27,
-      "menu": 12,
-      "shaders": 318,
-      "firstFrame": 105,
+      "animals": 24,
+      "weapon": 20,
+      "menu": 13,
+      "shaders": 343,
+      "firstFrame": 116,
       "audio": 0
     },
-    "heapMB": 63.18568801879883
+    "heapMB": 61.09990310668945
   },
   "poses": {
     "pier": {
@@ -4382,11 +4508,11 @@
         2.0050033503763554,
         -193.99999452402338
       ],
-      "calls": 254,
-      "tris": 1185223,
-      "fps": 30.00523581468939,
-      "frameP95Ms": 34.299999713897705,
-      "cpuP50Ms": 3.1000003814697266,
+      "calls": 223,
+      "tris": 1125728,
+      "fps": 30.00281905509567,
+      "frameP95Ms": 35,
+      "cpuP50Ms": 3.1999998092651367,
       "cpuP95Ms": 3.5,
       "creatureBoxes": 12,
       "boxes": [
@@ -4473,12 +4599,12 @@
         1.507045904773258,
         -150.00086653002296
       ],
-      "calls": 305,
-      "tris": 1333406,
-      "fps": 30.005840061102212,
-      "frameP95Ms": 33.90000009536743,
-      "cpuP50Ms": 2.799999713897705,
-      "cpuP95Ms": 3.200000286102295,
+      "calls": 217,
+      "tris": 1065774,
+      "fps": 30.004027386226337,
+      "frameP95Ms": 35,
+      "cpuP50Ms": 3,
+      "cpuP95Ms": 3.4000000953674316,
       "creatureBoxes": 18,
       "boxes": [
         [
@@ -4600,12 +4726,12 @@
         3.6318565603614887,
         -0.017621197486732854
       ],
-      "calls": 209,
-      "tris": 1067187,
+      "calls": 167,
+      "tris": 936154,
       "fps": 30.002214927466632,
-      "frameP95Ms": 33.80000019073486,
-      "cpuP50Ms": 2.5999999046325684,
-      "cpuP95Ms": 3.0999999046325684,
+      "frameP95Ms": 35.10000038146973,
+      "cpuP50Ms": 2.5,
+      "cpuP95Ms": 2.9000000953674316,
       "creatureBoxes": 9,
       "boxes": [
         [
@@ -4667,7 +4793,35 @@
       "ssim": 1
     }
   },
-  "budgets": {},
+  "budgets": {
+    "pier": {
+      "derived": null,
+      "ceiling": null,
+      "formula": {
+        "inputs": {},
+        "source": "No published calibration; F2 ceilings until the quiet M5 publishing run",
+        "assumption": "Hot phone = M5 ×10 assumption (E283); current stable M5 calibration is not yet published"
+      }
+    },
+    "beach": {
+      "derived": null,
+      "ceiling": null,
+      "formula": {
+        "inputs": {},
+        "source": "No published calibration; F2 ceilings until the quiet M5 publishing run",
+        "assumption": "Hot phone = M5 ×10 assumption (E283); current stable M5 calibration is not yet published"
+      }
+    },
+    "wreck": {
+      "derived": null,
+      "ceiling": null,
+      "formula": {
+        "inputs": {},
+        "source": "No published calibration; F2 ceilings until the quiet M5 publishing run",
+        "assumption": "Hot phone = M5 ×10 assumption (E283); current stable M5 calibration is not yet published"
+      }
+    }
+  },
   "walk": {
     "legs": {
       "pier": {
@@ -4680,7 +4834,7 @@
         },
         "maxY": 2.033,
         "out": 0,
-        "seconds": 23.5685,
+        "seconds": 23.568800000190734,
         "trace": [
           [
             0.033,
@@ -13166,7 +13320,7 @@
         },
         "maxY": 41.177,
         "out": 0,
-        "seconds": 4.1191000003814695,
+        "seconds": 4.118699999809265,
         "trace": [
           [
             0.033,
@@ -14656,7 +14810,7 @@
         },
         "maxY": 1.369,
         "out": 0,
-        "seconds": 4.685300000190735,
+        "seconds": 4.685699999809265,
         "trace": [
           [
             0.033,
@@ -16393,10 +16547,9 @@
     ],
     "loot": {
       "written": [
-        "local:ws.bounty.v1",
-        "local:ws.hints.v1",
-        "local:ws.progress.v1",
-        "local:ws.purse.v1"
+        "local:wildshard.save.v2.driftwood-isle",
+        "local:wildshard.save.v2.global",
+        "session:wildshard.save.v2.session"
       ]
     },
     "sounds": {
@@ -17299,7 +17452,7 @@
       },
       "events": {
         "listeners": 0,
-        "answerers": 0
+        "answerers": 3
       },
       "dom": {
         "hud": 0,
@@ -17342,7 +17495,7 @@
       },
       "events": {
         "listeners": 0,
-        "answerers": 0
+        "answerers": 3
       },
       "dom": {
         "hud": 0,
@@ -17369,16 +17522,16 @@
     },
     "stacks": {
       "listeners": [
-        "Error: listener touchmove\n    at HTMLDocument.addEventListener (<anonymous>:18:79)\n    at http://127.0.0.1:61256/?chunk=driftwood-isle&tier=phone&skipintro=1&nolock=1&mute=1&weather=clear&touch=1&sw=0:31:16",
-        "Error: listener gesturestart\n    at HTMLDocument.addEventListener (<anonymous>:18:79)\n    at http://127.0.0.1:61256/?chunk=driftwood-isle&tier=phone&skipintro=1&nolock=1&mute=1&weather=clear&touch=1&sw=0:32:16",
-        "Error: listener online\n    at addEventListener (<anonymous>:18:79)\n    at oe (http://127.0.0.1:61256/assets/index-BTcDo3zC.js:2:5582)\n    at http://127.0.0.1:61256/assets/index-BTcDo3zC.js:2:10633",
-        "Error: listener visibilitychange\n    at HTMLDocument.addEventListener (<anonymous>:18:79)\n    at http://127.0.0.1:61256/assets/index-BTcDo3zC.js:2:11693",
-        "Error: listener pagehide\n    at addEventListener (<anonymous>:18:79)\n    at http://127.0.0.1:61256/assets/index-BTcDo3zC.js:2:11792"
+        "Error: listener touchmove\n    at HTMLDocument.addEventListener (<anonymous>:18:79)\n    at http://127.0.0.1:57223/?chunk=driftwood-isle&tier=phone&skipintro=1&nolock=1&mute=1&weather=clear&touch=1&sw=0:34:16",
+        "Error: listener gesturestart\n    at HTMLDocument.addEventListener (<anonymous>:18:79)\n    at http://127.0.0.1:57223/?chunk=driftwood-isle&tier=phone&skipintro=1&nolock=1&mute=1&weather=clear&touch=1&sw=0:35:16",
+        "Error: listener online\n    at addEventListener (<anonymous>:18:79)\n    at _e (http://127.0.0.1:57223/assets/index-qBYaYFhr.js:2:5832)\n    at http://127.0.0.1:57223/assets/index-qBYaYFhr.js:2:10914",
+        "Error: listener visibilitychange\n    at HTMLDocument.addEventListener (<anonymous>:18:79)\n    at http://127.0.0.1:57223/assets/index-qBYaYFhr.js:2:11971",
+        "Error: listener pagehide\n    at addEventListener (<anonymous>:18:79)\n    at http://127.0.0.1:57223/assets/index-qBYaYFhr.js:2:12070"
       ],
       "timers": [
-        "Error: interval\n    at w.setInterval (<anonymous>:34:101)\n    at http://127.0.0.1:61256/assets/index-BTcDo3zC.js:2:11666",
-        "Error: interval\n    at w.setInterval (<anonymous>:34:101)\n    at http://127.0.0.1:61256/assets/index-BTcDo3zC.js:9:4027",
-        "Error: raf\n    at w.requestAnimationFrame (<anonymous>:38:110)\n    at r (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2057:1281)\n    at s (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2057:1414)\n    at <anonymous>:38:81\n    at <anonymous>:35:93"
+        "Error: interval\n    at w.setInterval (<anonymous>:34:101)\n    at http://127.0.0.1:57223/assets/index-qBYaYFhr.js:2:11944",
+        "Error: interval\n    at w.setInterval (<anonymous>:34:101)\n    at http://127.0.0.1:57223/assets/index-qBYaYFhr.js:9:4159",
+        "Error: raf\n    at w.requestAnimationFrame (<anonymous>:38:110)\n    at r (http://127.0.0.1:57223/assets/main-5XSAwjVO.js:3144:1281)\n    at s (http://127.0.0.1:57223/assets/main-5XSAwjVO.js:3144:1400)\n    at <anonymous>:38:81\n    at <anonymous>:35:93"
       ]
     },
     "retained": [
@@ -17648,7 +17801,7 @@
         "retained": true
       },
       {
-        "key": "scene:938f30d4-0a9c-4cdf-97d5-b3198ec579b2",
+        "key": "scene:e53f366d-4c4f-41da-bf83-7b28e5cf4f1e",
         "refs": 0,
         "retained": true
       },
@@ -17733,12 +17886,12 @@
         "retained": true
       },
       {
-        "key": "scene:4087c398-e8f1-4cc7-98e0-0bef13406af7",
+        "key": "scene:54249706-a9fa-4e88-bbb0-082cf79837c0",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:d162e9e3-474c-4a29-9b03-7fa4dcc602f6",
+        "key": "scene:3bbbe68d-b583-4a0c-8056-1a2f215a7b8b",
         "refs": 0,
         "retained": true
       },
@@ -17748,37 +17901,37 @@
         "retained": true
       },
       {
-        "key": "scene:a0cfbb7f-b5ae-4099-8344-bbf878682d1f",
+        "key": "scene:a2ddce08-971e-4eaa-8b03-8a4f4a5903ee",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:0fea0f8f-1b8f-4067-bdcb-945fa79dfa03",
+        "key": "scene:04b9910c-9360-4503-b856-67368bf0c311",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:a5016dd1-48f2-4db2-b5b3-4993491e8c29",
+        "key": "scene:b1d92aaa-c4cd-48b7-be5f-a302528bd25e",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:2abf4bb5-c765-4f83-b834-f01287f8dfd8",
+        "key": "scene:a1d1a935-6539-48fd-9182-3c4553e42257",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:ccd3d689-6c3c-4ed5-97f4-6f4139e6191c",
+        "key": "scene:a7d30edc-c7fa-4813-8883-bf5d238894d4",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:1e82b7d0-e7a6-44bf-a84f-6705179aed6f",
+        "key": "scene:7aae6006-e026-4e87-820f-7ed54b8c7769",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:3c5f8dda-3ae0-4a6d-8150-84e99e18a86a",
+        "key": "scene:24611bac-7f79-457e-9e28-2d40734141a8",
         "refs": 0,
         "retained": true
       },
@@ -17788,82 +17941,57 @@
         "retained": true
       },
       {
-        "key": "scene:e6fcc9b8-2483-448a-a763-8ecad62b17d0",
+        "key": "scene:1005ad9b-b073-4a84-8fea-529ebf600dc0",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:89dc296d-4e71-4f9a-b20f-0b56366bde99",
+        "key": "scene:e9b30fb9-016f-4e9e-b859-2ae278501b32",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:4509e5fb-4ac0-4c2c-b3ed-8dd88cde1266",
+        "key": "scene:a3ff277e-1003-47b3-94c8-070c1192b164",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:75701181-f375-4c2b-aa84-bf4a99e9d225",
+        "key": "scene:c6d8f396-e936-4d16-868d-5c4332aa19d4",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:67ace17f-b880-45d6-94dd-dd4d3d65239a",
+        "key": "scene:957c11c6-fdc5-4ee5-9f63-593796c85fdd",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:337c0a25-32a0-431f-8322-278deb25093d",
+        "key": "scene:f98c17f9-0812-461d-9ced-e610621a4f09",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:3300412c-2de3-49d5-99ec-780496fbf02b",
+        "key": "scene:60d09a23-7caf-4df6-a325-c2a201a94af1",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:e72f0004-5ef2-4228-84b4-db78525921a6",
+        "key": "scene:e5506b98-85cc-4494-a990-b97495623f1d",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:7e5b93b0-bcbe-4bb7-b7d4-d8958986da4d",
+        "key": "scene:3c5f8dda-3ae0-4a6d-8150-84e99e18a86a",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:0c687656-2f88-47ab-9e24-5791518e40f2",
+        "key": "scene:6c7ecbea-dfb3-4c21-b207-d5151086d372",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:84851449-29c0-42a2-933d-3f0180541741",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:96ea89a7-671e-4388-9edb-9d6ef84b2180",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:996c371b-cb24-4141-b0f8-ead239a1a291",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:7c554221-4937-4a7d-a412-4a860d4d1c90",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:81d81bc9-d649-4bf5-b84f-1138d979d6d2",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:672aa650-4425-4b68-a7b6-19624cf4c2d8",
+        "key": "scene:5a1c35bb-3f89-40ba-bb12-49b16a2231dd",
         "refs": 0,
         "retained": true
       },
@@ -17873,27 +18001,52 @@
         "retained": true
       },
       {
-        "key": "scene:b11d98ba-938c-40ca-af47-eadf9431bb0f",
+        "key": "scene:2bc332c4-6fc4-4f10-b5d4-986077a8b933",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:56d93d16-9872-453f-a093-89a128a0fdfd",
+        "key": "scene:256e4a57-e74e-44de-8a83-a560ae9dba2b",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:9b02a2e5-4e48-4f54-94ae-3fd57cf7493d",
+        "key": "scene:131300e7-022c-43f6-90b3-b5ff3570074f",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:3c3eb804-803d-4181-9dc2-345260c776c9",
+        "key": "scene:d13102fb-25b9-4616-9a83-412ddb69b892",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:22b00b2c-4496-4f1e-bfe1-ee946973d1d2",
+        "key": "scene:4698e0af-45d5-4132-9b46-b2ba3bf649cb",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:4d47c6c9-815c-4d78-ac48-cea97cb462d3",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:a2a82ab7-922b-4866-9918-263e8aac74ea",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:12841aa3-714d-4119-91eb-478eb98dbc80",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:dea89222-8364-489e-af4f-f45c6aec54e4",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:56415775-926d-4deb-bc1c-225f31624e22",
         "refs": 0,
         "retained": true
       },
@@ -18483,22 +18636,22 @@
         "retained": true
       },
       {
+        "key": "scene:c2c13b8b-033c-44ae-a361-4947e7bb08f8",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:435a9122-dce2-4694-9eec-7b09e6ccdc68",
+        "refs": 0,
+        "retained": true
+      },
+      {
         "key": "scene:52bd4dca-d8bb-4221-97ac-04510db86c59",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:affe5b98-543d-4656-89bf-4b3ed3b4dba5",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:4cc12680-e003-486f-a0f5-ea7604704c73",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:c2372bbe-1390-4ec8-beb1-9d5d89b7e45f",
+        "key": "scene:1b09b636-9e4f-4caa-b998-52bb1ca40d46",
         "refs": 0,
         "retained": true
       },
@@ -18583,23 +18736,36 @@
         "retained": true
       },
       {
-        "key": "scene:0bc8aa6a-34ea-4434-a0e1-209f129e6028",
+        "key": "scene:a79ccfa1-a96f-44f2-a290-2256d5c630e5",
         "refs": 0,
         "retained": true
       }
     ],
     "gpu": {
       "total": {
-        "geometries": 19,
+        "geometries": 18,
         "textures": 12,
-        "programs": 65
+        "programs": 64
       },
       "retained": {
-        "geometries": 19,
+        "geometries": 18,
         "textures": 12,
-        "programs": 65
+        "programs": 64
       },
       "resources": [
+        {
+          "type": "e",
+          "uuid": "8f10a527-714e-4a16-bccc-d8040517d2df",
+          "name": "PMREM.cubeUv",
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "source": "d2680825-e549-4363-bf92-0583095c0b45",
+          "image": {
+            "width": 336,
+            "height": 256
+          }
+        },
         {
           "type": "e",
           "uuid": "60c4c982-cf9b-4e9a-bb11-e2b24a7e1846",
@@ -18607,8 +18773,7 @@
           "retained": true,
           "texture": false,
           "programs": [],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at e.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at Object.s [as get] (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4072:2855)\n    at Object.o [as update] (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4072:6318)\n    at mt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:35203)\n    at mt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:35710)\n    at Cg.render (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:33565)\n    at Ap._sceneToCubeUV (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:3823:22887)\n    at Ap.fromScene (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:3823:19735)\n    at e.refreshEnvironment (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:1788:7822)\n    at e.setupStylized (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:1788:7260)"
+          "image": {}
         },
         {
           "type": "Cl",
@@ -18620,8 +18785,20 @@
             0,
             2
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Cl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at Ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:43348)\n    at Cg.renderBufferDirect (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:29463)\n    at renderer.renderBufferDirect (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:9420)\n    at vt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38244)\n    at _t (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:37788)\n    at ht (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:35897)\n    at Cg.render (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:34254)\n    at Ap._sceneToCubeUV (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:3823:22887)"
+          "image": {}
+        },
+        {
+          "type": "e",
+          "uuid": "66b54462-a424-47da-bf19-91780831f2a2",
+          "name": "PMREM.cubeUv",
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "source": "20cf1398-eef8-4164-8e72-8044a587b22b",
+          "image": {
+            "width": 336,
+            "height": 256
+          }
         },
         {
           "type": "e",
@@ -18630,8 +18807,7 @@
           "retained": true,
           "texture": false,
           "programs": [],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at e.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at Object.s [as get] (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4072:2855)\n    at Object.o [as update] (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4072:6318)\n    at mt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:35203)\n    at Cg.render (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:33565)\n    at Ap._applyGGXFilter (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:3823:24007)\n    at Ap._applyPMREM (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:3823:23543)\n    at Ap.fromScene (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:3823:19791)\n    at e.refreshEnvironment (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:1788:7822)\n    at e.setupStylized (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:1788:7260)"
+          "image": {}
         },
         {
           "type": "Cl",
@@ -18642,8 +18818,7 @@
           "programs": [
             1
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Cl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at Ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:43348)\n    at Cg.renderBufferDirect (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:29463)\n    at renderer.renderBufferDirect (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:9420)\n    at vt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38244)\n    at _t (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:37788)\n    at ht (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:35897)\n    at Cg.render (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:34254)\n    at Ap._applyGGXFilter (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:3823:24007)"
+          "image": {}
         },
         {
           "type": "e",
@@ -18652,8 +18827,7 @@
           "retained": true,
           "texture": false,
           "programs": [],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at e.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at Object.s [as get] (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4072:2855)\n    at Object.o [as update] (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4072:6318)\n    at mt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:35203)\n    at Cg.render (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:33565)\n    at Ap._applyGGXFilter (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:3823:24007)\n    at Ap._applyPMREM (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:3823:23543)\n    at Ap.fromScene (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:3823:19791)\n    at e.refreshEnvironment (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:1788:7822)\n    at e.setupStylized (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:1788:7260)"
+          "image": {}
         },
         {
           "type": "e",
@@ -18662,8 +18836,7 @@
           "retained": true,
           "texture": false,
           "programs": [],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at e.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at Object.s [as get] (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4072:2855)\n    at Object.o [as update] (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4072:6318)\n    at mt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:35203)\n    at Cg.render (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:33565)\n    at Ap._applyGGXFilter (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:3823:24007)\n    at Ap._applyPMREM (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:3823:23543)\n    at Ap.fromScene (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:3823:19791)\n    at e.refreshEnvironment (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:1788:7822)\n    at e.setupStylized (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:1788:7260)"
+          "image": {}
         },
         {
           "type": "e",
@@ -18672,8 +18845,7 @@
           "retained": true,
           "texture": false,
           "programs": [],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at e.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at Object.s [as get] (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4072:2855)\n    at Object.o [as update] (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4072:6318)\n    at mt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:35203)\n    at Cg.render (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:33565)\n    at Ap._applyGGXFilter (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:3823:24007)\n    at Ap._applyPMREM (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:3823:23543)\n    at Ap.fromScene (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:3823:19791)\n    at e.refreshEnvironment (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:1788:7822)\n    at e.setupStylized (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:1788:7260)"
+          "image": {}
         },
         {
           "type": "e",
@@ -18682,8 +18854,7 @@
           "retained": true,
           "texture": false,
           "programs": [],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at e.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at Object.s [as get] (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4072:2855)\n    at Object.o [as update] (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4072:6318)\n    at mt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:35203)\n    at Cg.render (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:33565)\n    at Ap._applyGGXFilter (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:3823:24007)\n    at Ap._applyPMREM (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:3823:23543)\n    at Ap.fromScene (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:3823:19791)\n    at e.refreshEnvironment (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:1788:7822)\n    at e.setupStylized (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:1788:7260)"
+          "image": {}
         },
         {
           "type": "e",
@@ -18692,8 +18863,7 @@
           "retained": true,
           "texture": false,
           "programs": [],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at e.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at Object.s [as get] (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4072:2855)\n    at Object.o [as update] (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4072:6318)\n    at mt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:35203)\n    at Cg.render (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:33565)\n    at Ap._applyGGXFilter (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:3823:24007)\n    at Ap._applyPMREM (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:3823:23543)\n    at Ap.fromScene (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:3823:19791)\n    at e.refreshEnvironment (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:1788:7822)\n    at e.setupStylized (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:1788:7260)"
+          "image": {}
         },
         {
           "type": "e",
@@ -18702,8 +18872,7 @@
           "retained": true,
           "texture": false,
           "programs": [],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at e.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at Object.s [as get] (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4072:2855)\n    at Object.o [as update] (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4072:6318)\n    at mt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:35203)\n    at Cg.render (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:33565)\n    at Ap._applyGGXFilter (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:3823:24007)\n    at Ap._applyPMREM (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:3823:23543)\n    at Ap.fromScene (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:3823:19791)\n    at e.refreshEnvironment (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:1788:7822)\n    at e.setupStylized (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:1788:7260)"
+          "image": {}
         },
         {
           "type": "e",
@@ -18712,16 +18881,27 @@
           "retained": true,
           "texture": false,
           "programs": [],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at e.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at Object.s [as get] (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4072:2855)\n    at Object.o [as update] (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4072:6318)\n    at mt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:35203)\n    at Cg.render (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:33565)\n    at Ap._applyGGXFilter (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:3823:24007)\n    at Ap._applyPMREM (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:3823:23543)\n    at Ap.fromScene (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:3823:19791)\n    at e.refreshEnvironment (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:1788:7822)\n    at e.setupStylized (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:1788:7260)"
+          "image": {}
         },
         {
           "type": "lr",
           "retained": true,
           "texture": false,
           "programs": [],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at lr.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at ug.Ee [as setupRenderTarget] (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4196:40401)\n    at Cg.initRenderTarget (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:55631)\n    at E_.make (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:1660:7865)\n    at E_.apply (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:1660:7422)\n    at e.build (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:1788:4302)\n    at async eb.buildSky (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:9823)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)\n    at async Object.step (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11750)\n    at async bT (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2474:237732)"
+          "image": {}
+        },
+        {
+          "type": "e",
+          "uuid": "36e4add2-538e-4696-9053-208c27e62d9f",
+          "name": "",
+          "retained": true,
+          "texture": true,
+          "programs": [],
+          "source": "5e0ac128-50bc-4e9d-967c-c6cb80a8d936",
+          "image": {
+            "width": 2048,
+            "height": 2048
+          }
         },
         {
           "type": "xs",
@@ -18734,8 +18914,72 @@
           "image": {
             "width": 2048,
             "height": 2048
-          },
-          "allocation": "Error: GPU allocation\n    at xs.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at we (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4196:39000)\n    at ug.Ee [as setupRenderTarget] (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4196:43145)\n    at Cg.initRenderTarget (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:55631)\n    at E_.make (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:1660:7865)\n    at E_.apply (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:1660:7422)\n    at e.build (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:1788:4302)\n    at async eb.buildSky (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:9823)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)\n    at async Object.step (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11750)"
+          }
+        },
+        {
+          "type": "e",
+          "uuid": "0c0d5db2-adce-4e9d-8647-1b16b06015ad",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "source": "b10e4051-b60d-4ff0-bb91-8bf34c895860",
+          "image": {
+            "width": 2048,
+            "height": 2048
+          }
+        },
+        {
+          "type": "e",
+          "uuid": "eee5a32a-c10f-43ed-b464-81db7d5c8cb2",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "source": "56cdd533-a65b-4bea-a519-293e5df77cd7",
+          "image": {
+            "width": 2048,
+            "height": 2048
+          }
+        },
+        {
+          "type": "e",
+          "uuid": "d7c82382-b80e-44b7-944d-e538a11379f8",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "source": "31aad884-d6bb-4849-9432-b12021ec1d1b",
+          "image": {
+            "width": 2048,
+            "height": 2048
+          }
+        },
+        {
+          "type": "e",
+          "uuid": "694031f5-91a3-48e0-a4d5-3ff51512b6e0",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "source": "5c5070f4-cdd4-4432-8eb9-eaf05697c60f",
+          "image": {
+            "width": 2048,
+            "height": 2048
+          }
+        },
+        {
+          "type": "e",
+          "uuid": "54249706-a9fa-4e88-bbb0-082cf79837c0",
+          "name": "EffectComposer.Buffer",
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "source": "b52c2806-9ed4-47d4-9526-1b51871c9831",
+          "image": {
+            "width": 780,
+            "height": 1688
+          }
         },
         {
           "type": "Cl",
@@ -18746,8 +18990,7 @@
           "programs": [
             3
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Cl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31891\n    at Ka.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16581)\n    at http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:4783:135528"
+          "image": {}
         },
         {
           "type": "Pa",
@@ -18758,8 +19001,7 @@
           "programs": [
             4
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Pa.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31891\n    at Ka.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16581)\n    at http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:4783:135528"
+          "image": {}
         },
         {
           "type": "ua",
@@ -18770,8 +19012,7 @@
           "programs": [
             5
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at ua.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31891\n    at wa.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16581)\n    at http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:4783:135528"
+          "image": {}
         },
         {
           "type": "Cl",
@@ -18782,8 +19023,7 @@
           "programs": [
             6
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Cl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31891\n    at Ka.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16581)\n    at http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:4783:135528"
+          "image": {}
         },
         {
           "type": "Cl",
@@ -18794,8 +19034,7 @@
           "programs": [
             7
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Cl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31891\n    at Ka.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16581)\n    at http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:4783:135528"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -18806,8 +19045,7 @@
           "programs": [
             8
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31891\n    at Ka.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16581)\n    at http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:4783:135528"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -18818,8 +19056,7 @@
           "programs": [
             9
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31891\n    at Ka.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16581)\n    at http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:4783:135528"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -18830,8 +19067,7 @@
           "programs": [
             12
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31891\n    at Ka.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16581)\n    at http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:4783:135528"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -18842,8 +19078,7 @@
           "programs": [
             12
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31891\n    at Ka.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16581)\n    at http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:4783:135528"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -18854,8 +19089,7 @@
           "programs": [
             16
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31891\n    at Ka.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16581)\n    at http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:4783:135528"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -18866,8 +19100,7 @@
           "programs": [
             9
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31891\n    at Ka.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16581)\n    at http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:4783:135528"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -18878,8 +19111,7 @@
           "programs": [
             17
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31891\n    at Ka.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16581)\n    at http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:4783:135528"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -18890,8 +19122,7 @@
           "programs": [
             18
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31891\n    at Ka.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16581)\n    at http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:4783:135528"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -18904,8 +19135,7 @@
             20,
             65
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31891\n    at Ka.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16581)\n    at http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:4783:135528"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -18916,8 +19146,7 @@
           "programs": [
             21
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31891\n    at Ka.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16581)\n    at http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:4783:135528"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -18928,8 +19157,7 @@
           "programs": [
             23
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31891\n    at Ka.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -18940,8 +19168,7 @@
           "programs": [
             9
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31891\n    at Ka.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -18952,8 +19179,7 @@
           "programs": [
             9
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31891\n    at Ka.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -18964,8 +19190,7 @@
           "programs": [
             9
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31891\n    at Ka.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -18976,8 +19201,7 @@
           "programs": [
             26
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31891\n    at yo.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -18988,8 +19212,7 @@
           "programs": [
             27
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31891\n    at Ka.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -19000,8 +19223,7 @@
           "programs": [
             9
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31891\n    at Ka.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -19012,8 +19234,7 @@
           "programs": [
             28
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31891\n    at yo.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -19024,8 +19245,7 @@
           "programs": [
             29
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31891\n    at yo.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -19036,8 +19256,7 @@
           "programs": [
             30
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31891\n    at Ka.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -19048,8 +19267,7 @@
           "programs": [
             28
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31891\n    at yo.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -19060,8 +19278,7 @@
           "programs": [
             31
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31891\n    at Ka.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -19072,8 +19289,7 @@
           "programs": [
             35
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31891\n    at Ka.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -19084,8 +19300,7 @@
           "programs": [
             36
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31891\n    at yo.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -19096,8 +19311,7 @@
           "programs": [
             36
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31891\n    at yo.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -19108,8 +19322,7 @@
           "programs": [
             37
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31891\n    at yo.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -19120,8 +19333,7 @@
           "programs": [
             37
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31891\n    at yo.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -19132,8 +19344,7 @@
           "programs": [
             37
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31891\n    at yo.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -19144,8 +19355,7 @@
           "programs": [
             37
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31891\n    at yo.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -19156,8 +19366,7 @@
           "programs": [
             37
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31891\n    at yo.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -19168,8 +19377,7 @@
           "programs": [
             37
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31891\n    at yo.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -19180,8 +19388,7 @@
           "programs": [
             37
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31891\n    at yo.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -19192,8 +19399,7 @@
           "programs": [
             36
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31891\n    at yo.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -19204,8 +19410,7 @@
           "programs": [
             36
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31891\n    at yo.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -19216,8 +19421,7 @@
           "programs": [
             37
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31891\n    at yo.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -19228,8 +19432,7 @@
           "programs": [
             37
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31891\n    at yo.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Al",
@@ -19240,8 +19443,7 @@
           "programs": [
             38
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Al.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31891\n    at Ka.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Al",
@@ -19252,8 +19454,7 @@
           "programs": [
             38
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Al.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31891\n    at Ka.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Al",
@@ -19264,8 +19465,7 @@
           "programs": [
             38
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Al.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31891\n    at Ka.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -19276,8 +19476,7 @@
           "programs": [
             40
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31891\n    at Ka.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -19288,8 +19487,7 @@
           "programs": [
             41
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31891\n    at Ka.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -19300,8 +19498,7 @@
           "programs": [
             42
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31891\n    at Ka.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -19312,8 +19509,7 @@
           "programs": [
             43
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31891\n    at Ka.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -19324,8 +19520,7 @@
           "programs": [
             45
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31891\n    at Ka.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -19336,8 +19531,7 @@
           "programs": [
             46
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31865\n    at io.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -19348,8 +19542,7 @@
           "programs": [
             46
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31865\n    at io.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -19360,8 +19553,7 @@
           "programs": [
             46
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31865\n    at io.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -19372,8 +19564,7 @@
           "programs": [
             46
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31865\n    at io.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -19384,8 +19575,7 @@
           "programs": [
             46
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31865\n    at io.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -19396,8 +19586,7 @@
           "programs": [
             46
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31865\n    at io.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -19408,8 +19597,7 @@
           "programs": [
             46
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31865\n    at io.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -19420,8 +19608,7 @@
           "programs": [
             46
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31865\n    at io.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -19432,8 +19619,7 @@
           "programs": [
             46
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31865\n    at io.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -19444,8 +19630,7 @@
           "programs": [
             46
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31865\n    at io.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -19456,8 +19641,7 @@
           "programs": [
             46
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31865\n    at io.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -19468,8 +19652,7 @@
           "programs": [
             46
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31865\n    at io.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -19480,8 +19663,7 @@
           "programs": [
             46
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31865\n    at io.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -19492,8 +19674,7 @@
           "programs": [
             46
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31865\n    at io.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -19504,8 +19685,7 @@
           "programs": [
             46
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31865\n    at io.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -19516,8 +19696,7 @@
           "programs": [
             46
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31865\n    at io.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -19528,8 +19707,7 @@
           "programs": [
             46
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31865\n    at io.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -19540,8 +19718,7 @@
           "programs": [
             46
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31865\n    at io.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -19552,8 +19729,7 @@
           "programs": [
             46
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31865\n    at io.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -19564,8 +19740,7 @@
           "programs": [
             46
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31865\n    at io.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -19576,8 +19751,7 @@
           "programs": [
             46
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31865\n    at io.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -19588,8 +19762,7 @@
           "programs": [
             46
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31865\n    at io.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -19600,8 +19773,7 @@
           "programs": [
             46
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31865\n    at io.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -19612,8 +19784,7 @@
           "programs": [
             46
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31865\n    at io.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -19624,8 +19795,7 @@
           "programs": [
             46
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31865\n    at io.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -19636,8 +19806,7 @@
           "programs": [
             46
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31865\n    at io.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -19648,8 +19817,7 @@
           "programs": [
             46
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31865\n    at io.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -19660,8 +19828,7 @@
           "programs": [
             46
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31865\n    at io.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -19672,8 +19839,7 @@
           "programs": [
             46
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31865\n    at io.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -19684,8 +19850,7 @@
           "programs": [
             46
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31865\n    at io.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -19696,8 +19861,7 @@
           "programs": [
             46
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31865\n    at io.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -19708,8 +19872,7 @@
           "programs": [
             46
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31865\n    at io.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -19720,20 +19883,18 @@
           "programs": [
             46
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31865\n    at io.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
-          "uuid": "c2372bbe-1390-4ec8-beb1-9d5d89b7e45f",
+          "uuid": "1b09b636-9e4f-4caa-b998-52bb1ca40d46",
           "name": "",
           "retained": true,
           "texture": false,
           "programs": [
             47
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31865\n    at io.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -19744,8 +19905,7 @@
           "programs": [
             29
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31891\n    at yo.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -19756,8 +19916,7 @@
           "programs": [
             49
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31891\n    at Ka.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -19768,8 +19927,7 @@
           "programs": [
             49
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31891\n    at Ka.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -19780,8 +19938,7 @@
           "programs": [
             49
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31891\n    at Ka.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -19792,8 +19949,7 @@
           "programs": [
             49
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31891\n    at Ka.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Pa",
@@ -19805,8 +19961,7 @@
             50,
             4
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Pa.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31045)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31891\n    at Ka.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Pa",
@@ -19817,8 +19972,7 @@
           "programs": [
             4
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Pa.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31891\n    at Ka.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -19829,8 +19983,7 @@
           "programs": [
             51
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31891\n    at Ka.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Pa",
@@ -19841,8 +19994,7 @@
           "programs": [
             4
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Pa.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31891\n    at Ka.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -19853,8 +20005,7 @@
           "programs": [
             52
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31891\n    at Ka.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -19865,8 +20016,7 @@
           "programs": [
             53
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31891\n    at Ka.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -19877,20 +20027,7 @@
           "programs": [
             54
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31891\n    at io.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
-        },
-        {
-          "type": "Cl",
-          "uuid": "5d1ac035-fbb1-4069-bd66-326e2f6f8d8e",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            55
-          ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Cl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31891\n    at Ka.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Cl",
@@ -19901,8 +20038,7 @@
           "programs": [
             56
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Cl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31891\n    at Ka.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -19913,8 +20049,7 @@
           "programs": [
             51
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31891\n    at Ka.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Pa",
@@ -19925,20 +20060,7 @@
           "programs": [
             4
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Pa.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31891\n    at Ka.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
-        },
-        {
-          "type": "Cl",
-          "uuid": "caa82e55-5f9c-409d-91cf-08c0a229c58d",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            55
-          ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Cl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31891\n    at Ka.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Cl",
@@ -19949,8 +20071,7 @@
           "programs": [
             56
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Cl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31891\n    at Ka.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Pa",
@@ -19961,8 +20082,7 @@
           "programs": [
             4
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Pa.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31891\n    at Ka.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -19974,8 +20094,7 @@
             57,
             58
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31891\n    at Ka.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -19986,8 +20105,7 @@
           "programs": [
             61
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31891\n    at Ka.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tl",
@@ -19998,56 +20116,51 @@
           "programs": [
             61
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31891\n    at Ka.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
-          "type": "ce",
-          "uuid": "a0cfbb7f-b5ae-4099-8344-bbf878682d1f",
+          "type": "M",
+          "uuid": "a2ddce08-971e-4eaa-8b03-8a4f4a5903ee",
           "name": "CopyMaterial",
           "retained": true,
           "texture": false,
           "programs": [
             88
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at ce.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31891\n    at Ka.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tt",
-          "uuid": "ccd3d689-6c3c-4ed5-97f4-6f4139e6191c",
+          "uuid": "a7d30edc-c7fa-4813-8883-bf5d238894d4",
           "name": "EffectMaterial",
           "retained": true,
           "texture": false,
           "programs": [
             89
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tt.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31891\n    at Ka.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Cl",
-          "uuid": "a5016dd1-48f2-4db2-b5b3-4993491e8c29",
+          "uuid": "b1d92aaa-c4cd-48b7-be5f-a302528bd25e",
           "name": "ViewmodelDepthMerge",
           "retained": true,
           "texture": false,
           "programs": [
             90
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Cl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31891\n    at Ka.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "Tt",
-          "uuid": "3c3eb804-803d-4181-9dc2-345260c776c9",
+          "uuid": "dea89222-8364-489e-af4f-f45c6aec54e4",
           "name": "EffectMaterial",
           "retained": true,
           "texture": false,
           "programs": [
             91
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Tt.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31101)\n    at http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31891\n    at Ka.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62406)\n    at Vr.traverse (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:1:62470)\n    at Cg.compile (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:31706)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:8388)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
+          "image": {}
         },
         {
           "type": "ys",
@@ -20060,8 +20173,7 @@
           "image": {
             "width": 256,
             "height": 256
-          },
-          "allocation": "Error: GPU allocation\n    at ys.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at he (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4196:26311)\n    at ve (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4196:27847)\n    at ug.le [as setTexture2D] (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4196:23920)\n    at Cg.initTexture (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:55834)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:9559)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)\n    at async Object.step (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11750)\n    at async $ge.o_e [as build] (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:4783:135505)"
+          }
         },
         {
           "type": "e",
@@ -20074,8 +20186,7 @@
           "image": {
             "width": 512,
             "height": 256
-          },
-          "allocation": "Error: GPU allocation\n    at e.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at he (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4196:26311)\n    at ve (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4196:27847)\n    at ug.le [as setTexture2D] (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4196:23920)\n    at Cg.initTexture (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:55834)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:9559)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)\n    at async Object.step (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11750)\n    at async $ge.o_e [as build] (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:4783:135505)"
+          }
         },
         {
           "type": "oo",
@@ -20088,8 +20199,7 @@
           "image": {
             "width": 1,
             "height": 1
-          },
-          "allocation": "Error: GPU allocation\n    at oo.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at he (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4196:26311)\n    at ve (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4196:27847)\n    at ug.le [as setTexture2D] (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4196:23920)\n    at Cg.initTexture (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:55834)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:9559)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)\n    at async Object.step (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11750)\n    at async $ge.o_e [as build] (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:4783:135505)"
+          }
         },
         {
           "type": "oo",
@@ -20102,8 +20212,7 @@
           "image": {
             "width": 1,
             "height": 1
-          },
-          "allocation": "Error: GPU allocation\n    at oo.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at he (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4196:26311)\n    at ve (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4196:27847)\n    at ug.le [as setTexture2D] (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4196:23920)\n    at Cg.initTexture (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:55834)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:9559)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)\n    at async Object.step (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11750)\n    at async $ge.o_e [as build] (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:4783:135505)"
+          }
         },
         {
           "type": "e",
@@ -20116,9 +20225,8 @@
           "image": {
             "width": 512,
             "height": 512,
-            "src": "http://127.0.0.1:61256/assets/models/driftwood-blender/lm-bounce.phone.webp?v=fdf30ed3"
-          },
-          "allocation": "Error: GPU allocation\n    at e.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at he (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4196:26311)\n    at ve (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4196:27847)\n    at ug.le [as setTexture2D] (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4196:23920)\n    at Cg.initTexture (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:55834)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:9559)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)\n    at async Object.step (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11750)\n    at async $ge.o_e [as build] (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:4783:135505)"
+            "src": "http://127.0.0.1:57223/assets/models/driftwood-blender/lm-bounce.phone.webp?v=fdf30ed3"
+          }
         },
         {
           "type": "e",
@@ -20131,12 +20239,11 @@
           "image": {
             "width": 1024,
             "height": 1024,
-            "src": "http://127.0.0.1:61256/assets/models/driftwood-blender/lm-ao.phone.webp?v=66351318"
-          },
-          "allocation": "Error: GPU allocation\n    at e.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at he (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4196:26311)\n    at ve (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4196:27847)\n    at ug.le [as setTexture2D] (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4196:23920)\n    at Cg.initTexture (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:55834)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:9559)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)\n    at async Object.step (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11750)\n    at async $ge.o_e [as build] (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:4783:135505)"
+            "src": "http://127.0.0.1:57223/assets/models/driftwood-blender/lm-ao.phone.webp?v=66351318"
+          }
         },
         {
-          "type": "n",
+          "type": "e",
           "uuid": "5428c8aa-2a6f-4148-9a7e-b371a7612a1d",
           "name": "driftwood-isle-lut",
           "retained": true,
@@ -20146,88 +20253,7 @@
           "image": {
             "width": 33,
             "height": 33
-          },
-          "allocation": "Error: GPU allocation\n    at n.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at he (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4196:26311)\n    at ve (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4196:27847)\n    at ug.F [as setTexture3D] (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4196:24440)\n    at Cg.initTexture (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:55740)\n    at Ry (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2050:9559)\n    at async eb.precompile (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:16575)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)\n    at async Object.step (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11750)\n    at async $ge.o_e [as build] (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:4783:135505)"
-        },
-        {
-          "type": "e",
-          "uuid": "60f14f4f-ace3-42a5-ba62-8a19fde6f5db",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at e.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at Object.s [as get] (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4072:2855)\n    at Object.o [as update] (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4072:6318)\n    at mt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:35203)\n    at mt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:35710)\n    at mt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:35710)\n    at Cg.render (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:33565)\n    at eb.firstFrame (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:17146)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)\n    at async Object.step (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11750)"
-        },
-        {
-          "type": "e",
-          "uuid": "1cea8f7d-4a33-4e85-85f5-422a69543f0b",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at e.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at Object.s [as get] (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4072:2855)\n    at Object.o [as update] (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4072:6318)\n    at mt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:35203)\n    at mt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:35710)\n    at Cg.render (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:33565)\n    at eb.firstFrame (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:17146)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)\n    at async Object.step (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11750)\n    at async $ge.o_e [as build] (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:4783:135681)"
-        },
-        {
-          "type": "e",
-          "uuid": "e9335a3a-232f-4f64-9ada-a83dd7798ce4",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at e.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at Object.s [as get] (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4072:2855)\n    at Object.o [as update] (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4072:6318)\n    at mt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:35203)\n    at mt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:35710)\n    at mt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:35710)\n    at Cg.render (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:33565)\n    at eb.firstFrame (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:17146)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)\n    at async Object.step (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11750)"
-        },
-        {
-          "type": "e",
-          "uuid": "749feffe-97d3-42bc-8aac-8fbc6f1b61f1",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at e.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at Object.s [as get] (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4072:2855)\n    at Object.o [as update] (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4072:6318)\n    at mt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:35203)\n    at mt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:35710)\n    at mt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:35710)\n    at Cg.render (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:33565)\n    at eb.firstFrame (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:17146)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)\n    at async Object.step (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11750)"
-        },
-        {
-          "type": "e",
-          "uuid": "de25fc99-676b-4898-b9be-881528f0bfb1",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at e.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at Object.s [as get] (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4072:2855)\n    at Object.o [as update] (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4072:6318)\n    at mt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:35044)\n    at mt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:35710)\n    at mt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:35710)\n    at mt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:35710)\n    at Cg.render (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:33565)\n    at eb.firstFrame (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:17146)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
-        },
-        {
-          "type": "e",
-          "uuid": "aa12e659-35d4-4418-9366-d5e7246f2e13",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at e.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at Object.s [as get] (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4072:2855)\n    at Object.o [as update] (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4072:6318)\n    at mt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:35203)\n    at mt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:35710)\n    at mt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:35710)\n    at mt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:35710)\n    at Cg.render (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:33565)\n    at eb.firstFrame (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:17146)\n    at async S (http://127.0.0.1:61256/assets/TreeFactory-DgiVdQHt.js:5:11602)"
-        },
-        {
-          "type": "e",
-          "uuid": "07981b92-bf81-43aa-9e11-43b5f7c91d7d",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at e.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at Object.s [as get] (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4072:2855)\n    at Object.o [as update] (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4072:6318)\n    at mt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:35203)\n    at mt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:35710)\n    at mt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:35710)\n    at mt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:35710)\n    at mt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:35710)\n    at mt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:35710)\n    at mt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:35710)"
-        },
-        {
-          "type": "e",
-          "uuid": "ec565231-9c13-4c54-a6d1-0fa216616284",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at e.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at Object.s [as get] (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4072:2855)\n    at Object.o [as update] (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4072:6318)\n    at mt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:35203)\n    at mt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:35710)\n    at mt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:35710)\n    at mt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:35710)\n    at mt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:35710)\n    at mt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:35710)\n    at Cg.render (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:33565)"
+          }
         },
         {
           "type": "jl",
@@ -20248,22 +20274,65 @@
             83,
             71
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at jl.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at renderer.renderBufferDirect (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:9389)\n    at b (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4196:6428)\n    at b (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4196:6549)\n    at b (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4196:6549)\n    at b (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4196:6549)\n    at b (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4196:6549)\n    at cg.render (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4196:3776)\n    at a.render (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:9547)\n    at Cg.render (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:33905)"
+          "image": {}
         },
         {
           "type": "oo",
-          "uuid": "22b00b2c-4496-4f1e-bfe1-ee946973d1d2",
+          "uuid": "56415775-926d-4deb-bc1c-225f31624e22",
           "name": "DFG_LUT",
           "retained": true,
           "texture": true,
           "programs": [],
-          "source": "81b9fee8-1d2e-435b-8649-edbd6806889a",
+          "source": "ff5f7b25-9e0f-4512-8360-afadd20b0959",
           "image": {
             "width": 16,
             "height": 16
-          },
-          "allocation": "Error: GPU allocation\n    at oo.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at he (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4196:26311)\n    at ve (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4196:27847)\n    at ug.le [as setTexture2D] (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4196:23920)\n    at Ym.wm [as setValue] (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4118:5147)\n    at th.upload (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4118:9605)\n    at Ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:46008)\n    at Cg.renderBufferDirect (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:29463)\n    at renderer.renderBufferDirect (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:9420)\n    at vt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38244)"
+          }
+        },
+        {
+          "type": "e",
+          "uuid": "60f14f4f-ace3-42a5-ba62-8a19fde6f5db",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "image": {}
+        },
+        {
+          "type": "e",
+          "uuid": "e9335a3a-232f-4f64-9ada-a83dd7798ce4",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "image": {}
+        },
+        {
+          "type": "e",
+          "uuid": "749feffe-97d3-42bc-8aac-8fbc6f1b61f1",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "image": {}
+        },
+        {
+          "type": "e",
+          "uuid": "1cea8f7d-4a33-4e85-85f5-422a69543f0b",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "image": {}
+        },
+        {
+          "type": "e",
+          "uuid": "de25fc99-676b-4898-b9be-881528f0bfb1",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "image": {}
         },
         {
           "type": "oo",
@@ -20276,22 +20345,60 @@
           "image": {
             "width": 512,
             "height": 512
-          },
-          "allocation": "Error: GPU allocation\n    at oo.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at he (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4196:26311)\n    at ve (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4196:27847)\n    at ug.le [as setTexture2D] (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4196:23920)\n    at Ym.wm [as setValue] (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4118:5147)\n    at th.upload (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4118:9605)\n    at Ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:46008)\n    at Cg.renderBufferDirect (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:29463)\n    at renderer.renderBufferDirect (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:9420)\n    at vt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38244)"
+          }
+        },
+        {
+          "type": "e",
+          "uuid": "aa12e659-35d4-4418-9366-d5e7246f2e13",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "image": {}
+        },
+        {
+          "type": "e",
+          "uuid": "07981b92-bf81-43aa-9e11-43b5f7c91d7d",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "image": {}
+        },
+        {
+          "type": "e",
+          "uuid": "ec565231-9c13-4c54-a6d1-0fa216616284",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "image": {}
         },
         {
           "type": "oo",
-          "uuid": "938f30d4-0a9c-4cdf-97d5-b3198ec579b2",
+          "uuid": "e53f366d-4c4f-41da-bf83-7b28e5cf4f1e",
           "name": "",
           "retained": true,
           "texture": true,
           "programs": [],
-          "source": "4ae1d66c-19b3-4cd6-9728-8a0bdebaecdb",
+          "source": "e5d96540-b725-43cb-9302-2934bad3b67b",
           "image": {
             "width": 16,
             "height": 16
-          },
-          "allocation": "Error: GPU allocation\n    at oo.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at he (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4196:26311)\n    at ve (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4196:27847)\n    at ug.le [as setTexture2D] (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4196:23920)\n    at Ym.wm [as setValue] (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4118:5147)\n    at th.setValue (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4118:9426)\n    at Ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:44790)\n    at Cg.renderBufferDirect (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:29463)\n    at renderer.renderBufferDirect (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:9420)\n    at vt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38244)"
+          }
+        },
+        {
+          "type": "e",
+          "uuid": "60d09a23-7caf-4df6-a325-c2a201a94af1",
+          "name": "LuminancePass.Target",
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "source": "1727f633-bde1-4a85-b332-4254fa958a46",
+          "image": {
+            "width": 780,
+            "height": 1688
+          }
         },
         {
           "type": "e",
@@ -20300,54 +20407,157 @@
           "retained": true,
           "texture": false,
           "programs": [],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at e.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at Object.s [as get] (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4072:2855)\n    at Object.o [as update] (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4072:6318)\n    at mt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:35203)\n    at mt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:35710)\n    at Cg.render (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:33565)\n    at U.render (http://127.0.0.1:61256/assets/build-CY_F9gdk.js:74:2430)\n    at Me.update (http://127.0.0.1:61256/assets/build-CY_F9gdk.js:95:2339)\n    at Ot.render (http://127.0.0.1:61256/assets/build-CY_F9gdk.js:357:397)\n    at pe.render (http://127.0.0.1:61256/assets/build-CY_F9gdk.js:45:10868)"
+          "image": {}
         },
         {
-          "type": "Ce",
-          "uuid": "337c0a25-32a0-431f-8322-278deb25093d",
+          "type": "xe",
+          "uuid": "f98c17f9-0812-461d-9ced-e610621a4f09",
           "name": "LuminanceMaterial",
           "retained": true,
           "texture": false,
           "programs": [
             92
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Ce.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at Ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:43348)\n    at Cg.renderBufferDirect (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:29463)\n    at renderer.renderBufferDirect (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:9420)\n    at vt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38244)\n    at _t (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:37788)\n    at ht (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:35897)\n    at Cg.render (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:34254)\n    at U.render (http://127.0.0.1:61256/assets/build-CY_F9gdk.js:74:2430)"
+          "image": {}
         },
         {
-          "type": "Ee",
-          "uuid": "81d81bc9-d649-4bf5-b84f-1138d979d6d2",
+          "type": "e",
+          "uuid": "6c7ecbea-dfb3-4c21-b207-d5151086d372",
+          "name": "Downsampling.Mipmap0",
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "source": "64d0780d-e0b3-4c3e-beb9-05a99fe45549",
+          "image": {
+            "width": 390,
+            "height": 844
+          }
+        },
+        {
+          "type": "Te",
+          "uuid": "131300e7-022c-43f6-90b3-b5ff3570074f",
           "name": "DownsamplingMaterial",
           "retained": true,
           "texture": false,
           "programs": [
             93
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at Ee.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at Ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:43348)\n    at Cg.renderBufferDirect (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:29463)\n    at renderer.renderBufferDirect (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:9420)\n    at vt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38244)\n    at _t (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:37788)\n    at ht (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:35897)\n    at Cg.render (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:34254)\n    at Ae.render (http://127.0.0.1:61256/assets/build-CY_F9gdk.js:90:2285)"
+          "image": {}
         },
         {
-          "type": "ke",
-          "uuid": "e72f0004-5ef2-4228-84b4-db78525921a6",
+          "type": "e",
+          "uuid": "5a1c35bb-3f89-40ba-bb12-49b16a2231dd",
+          "name": "Downsampling.Mipmap1",
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "source": "dfed8e42-7038-4cdc-90e5-8861eee6932f",
+          "image": {
+            "width": 195,
+            "height": 422
+          }
+        },
+        {
+          "type": "e",
+          "uuid": "2045d2c2-8ff9-4d50-b583-13d40fb53bf5",
+          "name": "Downsampling.Mipmap2",
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "source": "14ac6d9d-7645-4f1e-916b-6d7cdbcb012d",
+          "image": {
+            "width": 98,
+            "height": 211
+          }
+        },
+        {
+          "type": "e",
+          "uuid": "2bc332c4-6fc4-4f10-b5d4-986077a8b933",
+          "name": "Downsampling.Mipmap3",
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "source": "35f3c626-92d2-4c05-b676-66ed9cd25e22",
+          "image": {
+            "width": 49,
+            "height": 106
+          }
+        },
+        {
+          "type": "e",
+          "uuid": "256e4a57-e74e-44de-8a83-a560ae9dba2b",
+          "name": "Upsampling.Mipmap2",
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "source": "ccd3d689-6c3c-4ed5-97f4-6f4139e6191c",
+          "image": {
+            "width": 98,
+            "height": 211
+          }
+        },
+        {
+          "type": "Oe",
+          "uuid": "e5506b98-85cc-4494-a990-b97495623f1d",
           "name": "UpsamplingMaterial",
           "retained": true,
           "texture": false,
           "programs": [
             94
           ],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at ke.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at yt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38895)\n    at Ct (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:43348)\n    at Cg.renderBufferDirect (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:29463)\n    at renderer.renderBufferDirect (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:9420)\n    at vt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:38244)\n    at _t (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:37788)\n    at ht (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:35897)\n    at Cg.render (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:34254)\n    at Ae.render (http://127.0.0.1:61256/assets/build-CY_F9gdk.js:90:2473)"
+          "image": {}
         },
         {
           "type": "e",
-          "uuid": "b76a64f1-ba37-483a-b0eb-6bc08d8e9097",
-          "name": "",
+          "uuid": "3c5f8dda-3ae0-4a6d-8150-84e99e18a86a",
+          "name": "Upsampling.Mipmap1",
           "retained": true,
           "texture": false,
           "programs": [],
-          "image": {},
-          "allocation": "Error: GPU allocation\n    at e.a (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:146:11290)\n    at Object.s [as get] (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4072:2855)\n    at Object.o [as update] (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4072:6318)\n    at mt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:35203)\n    at mt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:35710)\n    at mt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:35710)\n    at mt (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:35710)\n    at Cg.render (http://127.0.0.1:61256/assets/three.module-CgmeZx2_.js:4220:33565)\n    at Gy.render (http://127.0.0.1:61256/assets/build-CY_F9gdk.js:115:3469)\n    at Gy.render (http://127.0.0.1:61256/assets/main-CsDPMXPJ.js:2056:951)"
+          "source": "9feecced-786a-4578-b37d-4de3ef06149d",
+          "image": {
+            "width": 195,
+            "height": 422
+          }
+        },
+        {
+          "type": "e",
+          "uuid": "7aae6006-e026-4e87-820f-7ed54b8c7769",
+          "name": "Upsampling.Mipmap0",
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "source": "996c371b-cb24-4141-b0f8-ead239a1a291",
+          "image": {
+            "width": 390,
+            "height": 844
+          }
+        },
+        {
+          "type": "e",
+          "uuid": "3bbbe68d-b583-4a0c-8056-1a2f215a7b8b",
+          "name": "EffectComposer.Buffer",
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "source": "ba71eee7-4237-409c-8ef5-3baaa319b0b1",
+          "image": {
+            "width": 780,
+            "height": 1688
+          }
+        },
+        {
+          "type": "e",
+          "uuid": "a79ccfa1-a96f-44f2-a290-2256d5c630e5",
+          "name": "PMREM.cubeUv",
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "source": "f12edd36-bd95-4840-9aa6-9b3fc6313a11",
+          "image": {
+            "width": 336,
+            "height": 256
+          }
         }
       ]
     }
@@ -20381,24 +20591,24 @@
     "boot.gpuBytes.renderbuffers": 0,
     "boot.gpuBytes.buffers": 0,
     "boot.gpuBytes.total": 0,
-    "boot.playMs": 4165.599999904633,
-    "boot.stepMs.renderer": 3,
-    "boot.stepMs.sky": 4077,
-    "boot.stepMs.terrain": 4,
+    "boot.playMs": 4787.900000095367,
+    "boot.stepMs.renderer": 2,
+    "boot.stepMs.sky": 4579,
+    "boot.stepMs.terrain": 9,
     "boot.stepMs.cards": 0,
     "boot.stepMs.forest": 0,
-    "boot.stepMs.physics": 0,
-    "boot.stepMs.edge": 26,
-    "boot.stepMs.grass": 0,
+    "boot.stepMs.physics": 1,
+    "boot.stepMs.edge": 38,
+    "boot.stepMs.grass": 5,
     "boot.stepMs.cabins": 0,
     "boot.stepMs.props": 0,
-    "boot.stepMs.animals": 0,
-    "boot.stepMs.weapon": 5,
-    "boot.stepMs.menu": 5,
-    "boot.stepMs.shaders": 117,
-    "boot.stepMs.firstFrame": 0,
+    "boot.stepMs.animals": 8,
+    "boot.stepMs.weapon": 16,
+    "boot.stepMs.menu": 9,
+    "boot.stepMs.shaders": 104,
+    "boot.stepMs.firstFrame": 4,
     "boot.stepMs.audio": 0,
-    "boot.heapMB": 49.0565299987793,
+    "boot.heapMB": 31.674373626708984,
     "poses.pier.pos": [
       0,
       0,
@@ -20406,10 +20616,10 @@
     ],
     "poses.pier.calls": 0,
     "poses.pier.tris": 0,
-    "poses.pier.fps": 0.006647015790843369,
-    "poses.pier.frameP95Ms": 0.8999996185302734,
-    "poses.pier.cpuP50Ms": 0.19999980926513672,
-    "poses.pier.cpuP95Ms": 0.09999990463256836,
+    "poses.pier.fps": 0.01269078061852369,
+    "poses.pier.frameP95Ms": 0.3000001907348633,
+    "poses.pier.cpuP50Ms": 0.3000006675720215,
+    "poses.pier.cpuP95Ms": 0.5000004768371582,
     "poses.pier.creatureBoxes": 0,
     "poses.pier.ssim": 0,
     "poses.beach.pos": [
@@ -20419,8 +20629,8 @@
     ],
     "poses.beach.calls": 0,
     "poses.beach.tris": 0,
-    "poses.beach.fps": 0.004229236936861724,
-    "poses.beach.frameP95Ms": 0.2999997138977051,
+    "poses.beach.fps": 0.0030208843415273634,
+    "poses.beach.frameP95Ms": 1.700000286102295,
     "poses.beach.cpuP50Ms": 0.3000001907348633,
     "poses.beach.cpuP95Ms": 0.3000001907348633,
     "poses.beach.creatureBoxes": 0,
@@ -20432,10 +20642,10 @@
     ],
     "poses.wreck.calls": 0,
     "poses.wreck.tris": 0,
-    "poses.wreck.fps": 0.0018122426825293303,
-    "poses.wreck.frameP95Ms": 4.76837158203125e-7,
-    "poses.wreck.cpuP50Ms": 0.5,
-    "poses.wreck.cpuP95Ms": 0.39999961853027344,
+    "poses.wreck.fps": 0.005437811419376715,
+    "poses.wreck.frameP95Ms": 1.5999994277954102,
+    "poses.wreck.cpuP50Ms": 0.10000038146972656,
+    "poses.wreck.cpuP95Ms": 0.19999980926513672,
     "poses.wreck.creatureBoxes": 0,
     "poses.wreck.ssim": 0,
     "walk.legs.pier.stuck": [],
@@ -20444,7 +20654,7 @@
     "walk.legs.pier.end.z": 0,
     "walk.legs.pier.maxY": 0,
     "walk.legs.pier.out": 0,
-    "walk.legs.pier.seconds": 0.0012999997138969377,
+    "walk.legs.pier.seconds": 0.0019999995231643197,
     "walk.legs.lookout.stuck": [],
     "walk.legs.lookout.end.x": 0,
     "walk.legs.lookout.end.y": 0,
@@ -20458,7 +20668,7 @@
     "walk.legs.cave.end.z": 0,
     "walk.legs.cave.maxY": 0,
     "walk.legs.cave.out": 0,
-    "walk.legs.cave.seconds": 0.0006999998092656057,
+    "walk.legs.cave.seconds": 0.0016000003814697905,
     "walk.stuck": 0,
     "walk.sounds.event.gullCallAt": 0,
     "walk.sounds.event.gullCall": 0,
@@ -20596,12 +20806,12 @@
     "leak.gpu.retained.programs": 0
   },
   "selfMin": {
-    "pier": 0.999970606334231,
-    "beach": 0.998892058935534,
-    "wreck": 0.9999974778787085
+    "pier": 0.9999556754231091,
+    "beach": 0.9978025685083338,
+    "wreck": 0.9999590878249529
   },
   "harness": 2,
-  "sha": "fcdc75d1a8c5988a441fbfe86f801e6cdf599065",
-  "recorded": "2026-10-01T09:22:46.631Z",
+  "sha": "ee0dd78b2f2977f36f0ed5e44cf0d1da172f13ea",
+  "recorded": "2026-10-01T11:02:05.662Z",
   "browser": "153.0.8010.12"
 }
