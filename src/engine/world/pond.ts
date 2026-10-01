@@ -1,3 +1,4 @@
+import { pondGrid } from './pondGrid';
 import * as THREE from 'three';
 import { POND, waterLevel, heightAt } from './Heightfield';
 import type { Sky } from './Sky';
@@ -104,10 +105,6 @@ function buildLilies(sky: Sky, exclusions: readonly { x: number; z: number; r: n
 
 /** the pond surface's grid: a square `half` m round the pond's centre in `segs` cells a side (a body that meets the pond
  *  across a `pondClip` lays its cells on the same grid) */
-export function pondGrid(): { half: number; segs: number; cell: number; x0: number; z0: number } {
-  const half = POND.r + 15, segs = 128;
-  return { half, segs, cell: (half * 2) / segs, x0: POND.x - half, z0: POND.z - half };
-}
 
 /**
  * The still pond (PH-L9, the user's pick PH-U28). `group` holds the surface (`mesh`) and the lily pads.
@@ -136,7 +133,7 @@ export class Water {
   }
 
   private buildProbe(): THREE.Mesh {
-    const wl = waterLevel(), { half, segs } = pondGrid();
+    const wl = waterLevel(), { half, segs } = pondGrid(POND);
     const skyline = buildSkyline(POND.x, POND.z, wl, this.trees, heightAt);
     const { material } = createWaterMaterial(this.sky, { skyline: { tex: skyline, x: POND.x, z: POND.z, level: wl } });
     const n = segs + 1, pos = new Float32Array(n * n * 3), uv = new Float32Array(n * n * 2), aw = new Float32Array(n * n * 4);
