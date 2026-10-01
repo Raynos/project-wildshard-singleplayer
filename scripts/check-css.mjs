@@ -179,6 +179,16 @@ for (const file of tsFiles) {
   });
 }
 
+// X2: all source styles use the five layer tokens plus in-layer order.
+const cssFiles = [];
+(function walkCss(dir) { for (const name of readdirSync(dir)) { const file = join(dir, name); if (statSync(file).isDirectory()) walkCss(file); else if (file.endsWith('.css')) cssFiles.push(file); } })(join(ROOT, 'src'));
+for (const file of cssFiles) {
+  const source = readFileSync(file, 'utf8').replaceAll(/\/\*[\s\S]*?\*\//gu, (comment) => comment.replaceAll(/[^\n]/gu, ' '));
+  for (const match of source.matchAll(/\bz-index\s*:\s*[-+]?\d+/gu)) {
+    report(true, file, source.slice(0, match.index).split('\n').length, 'z-index must use a UI layer token plus in-layer order');
+  }
+}
+
 const n = definedIn.size;
 if (errors) { console.log(`\ncheck-css: ${errors} error(s), ${warnings} warning(s) — ${n} classes checked`); process.exit(1); }
 console.log(`check-css: ok — ${n} classes across ${FILES.length} stylesheets${warnings ? `, ${warnings} warning(s) (non-blocking)` : ''}`);

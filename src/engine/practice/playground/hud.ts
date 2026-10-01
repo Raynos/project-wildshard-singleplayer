@@ -1,3 +1,5 @@
+import { uiScope, mountUi } from '../../ui/ownership';
+import { app } from '../../app/runtime';
 import { engineString } from '#engine/strings';
 /**
  * The playgrounds' one HUD chip (E307): the playground's short name, the run's time and ↺ (back to the start), then the
@@ -19,6 +21,7 @@ export function clock(s: number): string {
 }
 
 export class PlaygroundChip {
+  readonly scope = uiScope('playgroundChip');
   readonly el: HTMLElement;
   private readonly timeEl: HTMLElement;
   private readonly bestEl: HTMLElement;
@@ -37,12 +40,12 @@ export class PlaygroundChip {
     const restart = q('.ws-pg-restart');
     // pointerup as well as click: iOS drops the synthesized click when a tap jitters (Update.ts); kept off the look pad
     let fired = 0;
-    const go = (e: Event): void => { e.stopPropagation(); if (performance.now() - fired < 400) return; fired = performance.now(); onRestart(); };
-    restart.addEventListener('pointerup', go);
-    restart.addEventListener('click', go);
-    restart.addEventListener('pointerdown', (e) => { e.stopPropagation(); });
-    if (hudSlots.touch) { el.dataset['slot'] = 'row'; hudSlots.statusRow(el, ROW.content + 3, false); } // after the shard's own rows
-    else (document.getElementById('hud') ?? document.body).append(el);
+    const go = (e: Event): void => { e.stopPropagation(); if (app.clock.real * 1000 - fired < 400) return; fired = app.clock.real * 1000; onRestart(); };
+    this.scope.listen(restart, 'pointerup', go);
+    this.scope.listen(restart, 'click', go);
+    this.scope.listen(restart, 'pointerdown', (e) => { e.stopPropagation(); });
+    if (hudSlots.touch) { el.dataset['slot'] = 'row'; hudSlots.widget('band.2', el, ROW.content + 3, this.scope); } // after the shard's own rows
+    else mountUi(el, this.scope);
     this.el = el;
   }
 

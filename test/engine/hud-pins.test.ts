@@ -5,6 +5,8 @@ import { App, Scope, type DiscSpot, type TouchRelabel } from '#engine';
 import { hudAdapters } from '#engine/ui/hudAdapters';
 import type { Game } from '#engine/core/Game';
 import { legacyDouble } from '../fake/FakeGame';
+import manifest from '#shards/nine-dragon-stack/manifest';
+import { toLevelSpec } from '#game/shard/spec';
 
 afterEach(() => document.body.replaceChildren());
 describe('world pins and scoped touch relabels', () => {
@@ -12,7 +14,7 @@ describe('world pins and scoped touch relabels', () => {
     const app = new App(), scope = new Scope('hud'), root = document.createElement('div'); document.body.append(root);
     const camera = new PerspectiveCamera(72, 1, 0.1, 100); camera.updateMatrixWorld(true);
     let label: TouchRelabel | null = null;
-    const adapters = hudAdapters(legacyDouble<Game>({ app, camera }), scope, root, (_spot: DiscSpot, hint) => { label = hint; });
+    const adapters = hudAdapters(legacyDouble<Game>({ app, camera, level: toLevelSpec(manifest) }), scope, root, (_spot: DiscSpot, hint) => { label = hint; });
     const mark = document.createElement('div'), chip = document.createElement('div');
     let at: Vector3 | null = new Vector3(0, 0, -10);
     const removeMark = adapters.pin(() => at, mark), removeChip = adapters.pin(new Vector3(0, 0, -10), chip);

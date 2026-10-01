@@ -185,6 +185,7 @@ export class Minimap {
     if (typeof ResizeObserver !== 'undefined') {
       this.ro = new ResizeObserver(() => this.fit());
       this.ro.observe(this.root);
+      this.scope.onDispose(() => { this.ro?.disconnect(); });
     }
     this.fit();
   }

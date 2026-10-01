@@ -74,7 +74,7 @@ class ResumeScreen {
 
   /** Up at once (no fade in). `shot`: a data URL of the last frame, or null for the dark glass alone. */
   show(shot: string | null, line = 'Resuming'): void {
-    clearTimeout(this.outTimer);
+    this.scope.cancelTimer(this.outTimer);
     if (shot !== null && this.shot) this.shot.style.backgroundImage = `url("${shot}")`;
     if (this.line) this.line.textContent = line;
     this.bar?.classList.add('busy');
@@ -102,7 +102,7 @@ class ResumeScreen {
   hide(): void {
     if (!this.root.classList.contains('show')) return;
     this.root.classList.add('out');
-    clearTimeout(this.outTimer);
+    this.scope.cancelTimer(this.outTimer);
     this.outTimer = this.scope.timeout(180, () => { this.root.classList.remove('show', 'out'); });
   }
 }

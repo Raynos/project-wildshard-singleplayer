@@ -1,3 +1,4 @@
+import type { HudBand } from '../ui/hudSlots';
 import type { MinimapPalette } from '../ui/Minimap';
 import type { LookReplaceContext } from '../render/look';
 import type { Sky } from '../world/Sky';
@@ -128,6 +129,7 @@ export interface HorizonBand { azimuth: number; spread: number; height: number; 
 export interface HorizonRing { r: number; base: number; color: RGB; top: RGB; snowLine: number; haze: number; bands: HorizonBand[]; floor: number }
 export interface HorizonSpec { rings: HorizonRing[]; cloudSea: boolean }
 export interface HudSpec {
+  bands?: readonly HudBand[];
   dayBadge?: boolean;
 }
 export interface MinimapSpec {

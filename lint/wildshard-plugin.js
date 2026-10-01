@@ -516,6 +516,39 @@ const noInlineUiString = rule('Player-facing engine strings belong in the string
   };
 });
 
+const noRawHud = rule('HUD nodes mount through scope-owned numbered slots (E357 X2)', (context) => {
+  if (pathOf(context) === 'src/engine/ui/hudSlots.ts') return {};
+  const aliases = new Set();
+  /** @returns {boolean} */
+  const hudTarget = (value) => {
+    const node = unwrap(value);
+    if (!node) return false;
+    if (node.type === 'Identifier') return aliases.has(node.name);
+    if (node.type === 'LogicalExpression' || node.type === 'ConditionalExpression') {
+      return hudTarget(node.left ?? node.consequent) || hudTarget(node.right ?? node.alternate);
+    }
+    if (node.type === 'MemberExpression') {
+      const property = propName(node) ?? stringOf(node.property);
+      return property === 'hud' || (property === 'body' && nameOf(node.object) === 'document');
+    }
+    if (node.type === 'CallExpression') {
+      const name = calleeName(node.callee);
+      return (name === 'getElementById' && stringOf(node.arguments[0]) === 'hud')
+        || (name === 'querySelector' && stringOf(node.arguments[0]) === '#hud');
+    }
+    return false;
+  };
+  return {
+    VariableDeclarator(node) { if (node.id.type === 'Identifier' && hudTarget(node.init)) aliases.add(node.id.name); },
+    CallExpression(node) {
+      const callee = unwrap(node.callee);
+      if (callee?.type === 'MemberExpression' && ['append', 'appendChild', 'prepend', 'insertBefore'].includes(propName(callee) ?? stringOf(callee.property)) && hudTarget(callee.object)) {
+        report(context, node, 'Mount through ui.hud.widget(band, element, order, scope)');
+      }
+    },
+  };
+});
+
 const plugin = {
   meta: { name: 'wildshard' },
   rules: {
@@ -525,6 +558,7 @@ const plugin = {
     'no-hook-chain': noHookChain,
     'no-active-singleton': noActiveSingleton, 'no-active-chunk': noActiveChunk,
     'no-global-listener-patch': noGlobalListenerPatch,
+    'no-raw-hud': noRawHud,
     'no-inline-ui-string': noInlineUiString,
     'no-raw-animation-mixer': noRawAnimationMixer,
   },

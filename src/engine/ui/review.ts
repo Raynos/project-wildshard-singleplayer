@@ -1,3 +1,4 @@
+import { app } from '../app/runtime';
 import { uiScope } from './ownership';
 import { saveStorage } from '#engine/saves/slots';
 // src/engine/ui/review.ts — the review inbox's always-loaded half (project/archive/2026-09-22-feedback-inbox.md): the Settings REVIEW unlock, the
@@ -13,7 +14,7 @@ import { saveStorage } from '#engine/saves/slots';
 import { onScopeDispose } from '../app/legacyCapture';
 
 
-const scope = uiScope('review');
+const scope = uiScope('review', app.engineScope);
 
 export type Category = 'bug' | 'art' | 'feel' | 'perf' | 'idea';
 export const CATEGORIES: readonly Category[] = ['bug', 'art', 'feel', 'perf', 'idea'];

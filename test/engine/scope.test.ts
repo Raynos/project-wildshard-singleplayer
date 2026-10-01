@@ -12,6 +12,13 @@ afterEach(() => {
 });
 
 describe('scope ownership', () => {
+  it('releases explicitly cancelled timer ownership before level disposal', () => {
+    vi.useFakeTimers(); const scope = new Scope('timer'), callback = vi.fn<() => void>();
+    const timeout = scope.timeout(10, callback), interval = scope.interval(10, callback);
+    expect(scope.census.timers).toBe(2); scope.cancelTimer(timeout); scope.cancelTimer(interval);
+    expect(scope.census.timers).toBe(0); vi.advanceTimersByTime(100); expect(callback).not.toHaveBeenCalled();
+    scope.timeout(10, callback); vi.advanceTimersByTime(10); expect(scope.census.timers).toBe(0); scope.dispose();
+  });
   it('disposes in reverse order exactly once and counts real geometry/material/texture resources', () => {
     const scope = new Scope('test'), log: string[] = [];
     const geometry = new BoxGeometry(), material = new MeshBasicMaterial(), texture = new Texture();

@@ -130,12 +130,12 @@ export class Stealth {
     this.row.className = 'ws-stealth-row'; this.row.dataset['state'] = 'none';
     this.row.innerHTML = '<i class="ws-stealth-eye"></i><span class="ws-stealth-label"></span>';
     this.rowIcon = q2(this.row, '.ws-stealth-eye'); this.rowLabel = q2(this.row, '.ws-stealth-label');
-    if (opts.ctx) opts.ctx.hud.widget('band.3', this.row, 3); else hudSlots.statusRow(this.row, 3);
+    if (opts.ctx) opts.ctx.hud.widget('band.3', this.row, 3); else hudSlots.widget('band.3', this.row, 3, this.scope);
     this.grassRow = document.createElement('div');
     this.grassRow.className = 'ws-stealth-grassrow';
     this.grassRow.innerHTML = '<span>Grass</span><b><i></i></b>';
     this.grassRowFill = q2(this.grassRow, 'i');
-    if (opts.ctx) opts.ctx.hud.widget('band.3', this.grassRow, 4); else hudSlots.statusRow(this.grassRow, 4);
+    if (opts.ctx) opts.ctx.hud.widget('band.3', this.grassRow, 4); else hudSlots.widget('band.3', this.grassRow, 4, this.scope);
     const unlayer = hudSlots.onLayer(() => { this.hint.textContent = 'Tall grass'; this.hint.classList.add('touch'); });
     opts.ctx?.scope.onDispose(unlayer);
     opts.ctx?.scope.onDispose(() => { this.root.remove(); this.latched = false; });

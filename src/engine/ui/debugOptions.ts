@@ -1,3 +1,4 @@
+import { uiScope } from './ownership';
 import { engineString } from '#engine/strings';
 import { app } from '../app/runtime';
 /**
@@ -27,6 +28,8 @@ import { getMusicStyle, getSfxSet, onMusicStyle, onSettingChange, onSfxSet, save
 import { MOBILE_DEVICE } from '../core/tier';
 import { tierPickLine } from '../render/tierBoot';
 import type { DebugRowSpec } from '../level/context';
+
+const scope = uiScope('debugOptions', app.engineScope);
 
 /** what "applies" reads: the shard you are in and the weapons you hold (re-read every time the menu opens) */
 export interface DebugCtx { chunk: LevelSpec; weapons: ReadonlySet<string> }
@@ -139,7 +142,7 @@ const clearDownloadsRow = action('clearDownloads', 'loading', engineString('s_59
   const freed = freedBytes(r);
   say(freed === null ? 'Cleared · reloading' : `Freed ${mbText(freed)} · reloading`,
     `${mbText(freed)} of downloads · ${r.caches} caches and ${r.workers} worker${r.workers === 1 ? '' : 's'} removed${r.httpCache ? ', HTTP cache cleared' : ''}. Reloading as a first visit.`);
-  window.setTimeout(() => { markUnload('debug: clear downloads'); location.replace(settingsReloadUrl(location.href, TITLE_SKIPPERS)); }, 1500);
+  scope.timeout(1500, () => { markUnload('debug: clear downloads'); location.replace(settingsReloadUrl(location.href, TITLE_SKIPPERS)); });
 }, { ask: 'E172', reviewBy: '2026-12-30', note: engineString('s_510ecf1f03f4') }, {
   confirm: async () => { const used = await storageUsed(); return used === null ? 'Tap again to clear' : `Tap again to clear ~${mbText(used)}`; },
   status: () => {

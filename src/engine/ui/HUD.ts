@@ -216,7 +216,8 @@ export class HUD {
     compass.append(el('div', engineString('s_6da8a22f6082')));
     // px/deg scales with the band (90 vw on a phone, fixed on desktop): ticks and cardinals are laid out in `--ppd` units
     const fit = (): void => { const w = band.clientWidth; this.bandW = w; if (!w) return; this.ppd = w / BAND_DEGREES; band.style.setProperty('--ppd', `${this.ppd}px`); this.last.headingDeg = undefined; this.lastMark.house = this.lastMark.paw = Number.NaN; };
-    new ResizeObserver(fit).observe(band);
+    const resize = new ResizeObserver(fit); resize.observe(band);
+    this.scope.onDispose(() => { resize.disconnect(); });
     fit();
     this.range = el('div', engineString('s_3552e88da7e6')); compass.append(this.range);
     mountUi(compass, this.scope, r);
@@ -365,7 +366,7 @@ export class HUD {
     const vitals = el('div', engineString('s_4c6b96a54dfa'), engineString('s_92890f1e67f6', [SVG_HEART]));
     const L = this.last, segN = L.segments ?? this.opts.weaponUi.ammo?.segments ?? 0, reserve = L.reserve ?? 0;
     const bolts = el('div', engineString('s_e99685b6c3aa'), engineString('s_adf21edee32f', [L.weaponName ?? this.opts.weaponUi.name, L.ammoLabel ?? this.opts.weaponUi.ammo?.label ?? '', '<i></i>'.repeat(segN), this.opts.maxBolts, L.maxBolts ?? this.opts.maxBolts, reserve > 0 ? engineString('s_850875985389', [reserve]) : '', SVG_BOLT]));
-    hudSlots.statusRow(vitals, ROW.vitals, false); hudSlots.statusRow(bolts, ROW.ammo, false);
+    hudSlots.widget('band.2', vitals, ROW.vitals, this.scope); hudSlots.widget('band.2', bolts, ROW.ammo, this.scope);
     if (this.last.noAmmo) bolts.style.display = 'none';
     this.bar = { vitals, hval: q(vitals, '.ws-game-num'), hbar: q(vitals, '.ws-game-vbar i'), bolts, bcount: q(bolts, '.c'), segs: Array.from(bolts.querySelectorAll<HTMLElement>('.ws-game-segs i')), segBox: q(bolts, '.ws-game-segs'), label: q(bolts, '.ws-game-tiny .l'), weapon: q(bolts, '.ws-game-weapon'), max: q(bolts, '.m'), reserve: q(bolts, '.ws-game-reserve') };
     this.syncBar('health'); this.syncBar('bolts'); this.syncBar('status'); this.paintVitals();

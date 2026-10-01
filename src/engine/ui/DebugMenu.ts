@@ -64,11 +64,11 @@ function renderAction(r: DebugRow, a: DebugActionSpec, row: HTMLElement, label: 
   };
   scope.listen(b, 'click', () => {
     const confirm = a.confirm;
-    if (confirm === undefined || armed) { clearTimeout(disarm); armed = false; b.classList.remove('armed'); run(); return; }
+    if (confirm === undefined || armed) { scope.cancelTimer(disarm); armed = false; b.classList.remove('armed'); run(); return; }
     b.disabled = true; b.textContent = engineString('s_a1f421df5e50');
     void confirm().then((text) => {
       b.disabled = false; armed = true; b.classList.add('armed'); b.textContent = text;
-      clearTimeout(disarm); disarm = scope.timeout(ARM_MS, rest);
+      scope.cancelTimer(disarm); disarm = scope.timeout(ARM_MS, rest);
       return undefined;
     }).catch((e: unknown) => { console.warn(`[debug] ${r.id} confirm failed`, e); rest(); b.disabled = false; });
   });

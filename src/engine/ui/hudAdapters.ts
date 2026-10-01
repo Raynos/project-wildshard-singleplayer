@@ -7,6 +7,7 @@ import { hudSlots, type DiscSpot, type TouchRelabel } from './hudSlots';
 /** Scope-owned projection and relabels; content supplies only world positions and elements. */
 export function hudAdapters(game: Game, scope: Scope, root: HTMLElement,
   relabel: (spot: DiscSpot, hint: TouchRelabel | null) => void): NonNullable<LevelAdapters['hud']> {
+  hudSlots.configure(game.level.hud?.bands);
   const pins = new Set<{ at: Vector3 | (() => Vector3 | null); el: HTMLElement; x: number; y: number; shown: boolean }>();
   const point = new Vector3();
   game.app.addSystem({ id: 'engine.hud.pins', phase: 'late', run: () => {

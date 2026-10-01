@@ -164,9 +164,10 @@ export class EliteBar {
       const mini = document.querySelector('.ws-minimap');
       if (!(mini instanceof HTMLElement)) return;
       this.skullLayer = document.createElement('div'); this.skullLayer.className = 'ws-elite-skulls';
-      mini.append(this.skullLayer);
+      mountUi(this.skullLayer, this.scope, mini);
       const layer = this.skullLayer;
-      new ResizeObserver(() => { this.skullR = layer.clientWidth / 2; }).observe(layer);
+      const resize = new ResizeObserver(() => { this.skullR = layer.clientWidth / 2; }); resize.observe(layer);
+      this.scope.onDispose(() => { resize.disconnect(); });
     }
     const layer = this.skullLayer;
     while (this.skullEls.length < list.length) { const e = document.createElement('i'); e.className = 'ws-elite-mapskull'; e.innerHTML = SKULL; layer.append(e); this.skullEls.push(e); }

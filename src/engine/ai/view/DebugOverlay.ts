@@ -1,3 +1,4 @@
+import { uiScope, mountUi } from '../../ui/ownership';
 import { engineString } from '#engine/strings';
 import { Vector3 } from 'three';
 import type { Game } from '../../core/Game';
@@ -9,14 +10,15 @@ export interface AiDebugHost { game: Game; actors: () => readonly DebugActor[]; 
 export interface AiDebugView { update: () => void; dispose: () => void }
 
 class Labels implements AiDebugView {
+  readonly scope = uiScope('aiLabels');
   private readonly root = document.createElement('div');
   private readonly labels = new Map<DebugActor, HTMLDivElement>();
   private readonly point = new Vector3();
   private readonly host: AiDebugHost;
   constructor(host: AiDebugHost) {
     this.host = host;
-    this.root.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:40';
-    (document.getElementById('hud') ?? document.body).append(this.root);
+    this.root.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:calc(var(--ws-layer-hud) + 40)';
+    mountUi(this.root, this.scope);
   }
   update(): void {
     const { game, actors, player } = this.host, present = new Set<DebugActor>();

@@ -1,3 +1,4 @@
+import { app } from '../app/runtime';
 import { uiScope } from './ownership';
 import { engineString } from '#engine/strings';
 import { saveStorage } from '#engine/saves/slots';
@@ -61,7 +62,7 @@ class DomWrites {
 }
 
 /** audio sources playing (started, not ended), counted from the first time the panel opened (a dev-only hook on start) */
-const shellScope = uiScope('audioCounter');
+const shellScope = uiScope('audioCounter', app.engineScope);
 const audioSrc = { live: 0, started: 0, hooked: false };
 function hookAudio(): void {
   if (audioSrc.hooked || typeof AudioScheduledSourceNode === 'undefined') return;
@@ -119,13 +120,14 @@ export class PerfHud {
   constructor(private readonly game: Game, private readonly out: HTMLElement, spark: HTMLCanvasElement, own: readonly HTMLElement[]) {
     this.spark = spark;
     this.dom = new DomWrites(own);
+    this.scope.onDispose(() => { this.dom.set(false); });
     try { const s = savedStorage.getItem(STORE); if (s !== null) this.lastRecText = s; } catch { this.lastRecText = ''; }
   }
 
   /** the A/B switches into `host` (buttons; `guard` cancels a touch so it never reaches the look layer) */
   mountSwitches(host: HTMLElement, guard: (e: Event) => void): void {
     const style = document.createElement('style');
-    document.head.append(style);
+    document.head.append(style); this.scope.capture('nodes', () => { style.remove(); });
     const off = new Set<string>();
     for (const ab of AB) {
       const b = document.createElement('button');

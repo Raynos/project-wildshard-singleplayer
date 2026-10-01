@@ -20,17 +20,28 @@ export interface DiscOpts {
 export const ROW = { vitals: 0, ammo: 1, content: 2, pill: 10 } as const;
 
 export type HudBand = 'band.1' | 'band.2' | 'band.3' | 'band.4' | 'band.5' | 'band.6';
+const DEFAULT_BANDS: readonly HudBand[] = ['band.1', 'band.2', 'band.3', 'band.4', 'band.5', 'band.6'];
 export class HudSlots {
+  private bands = DEFAULT_BANDS;
+  private placements = new Map<HTMLElement, { band: HudBand; order: number }>();
+  configure(bands: readonly HudBand[] = DEFAULT_BANDS): void {
+    if (new Set(bands).size !== bands.length) throw new Error('Duplicate HUD band');
+    this.bands = [...bands, ...DEFAULT_BANDS.filter((band) => !bands.includes(band))];
+    for (const [el, placement] of this.placements) el.style.order = String(this.rowOrder(placement.band, placement.order));
+  }
   private layer: HTMLElement | null = null;
   private status: HTMLElement | null = null;
   private readonly cancels = new WeakMap<HTMLElement, () => void>();
   private pending: ((layer: HTMLElement, status: HTMLElement) => void)[] = [];
 
+  private rowOrder(band: HudBand, order: number): number { return order + 1000 * (this.bands.indexOf(band) - DEFAULT_BANDS.indexOf(band)); }
+
   /** Numbered bands have no wrapper: existing HUD geometry and selectors stay identical. */
   widget(band: HudBand, el: HTMLElement, order: number, scope: Scope, root?: HTMLElement): void {
     if (scope.disposed) return;
     if (band === 'band.2' || band === 'band.3' || band === 'band.4' || band === 'band.5') {
-      this.statusRow(el, order, false);
+      this.placements.set(el, { band, order });
+      this.statusRow(el, this.rowOrder(band, order), band !== 'band.2');
     } else (root ?? document.getElementById('hud') ?? document.body).append(el);
     scope.capture('nodes', () => { this.discard(el); });
   }
@@ -53,7 +64,7 @@ export class HudSlots {
   onLayer(f: (layer: HTMLElement) => void): () => void { return this.run((layer) => { f(layer); }); }
 
   /** Cancel delayed placement as well as removing the node; parked snapshots cannot resurrect it. */
-  discard(el: HTMLElement): void { this.cancels.get(el)?.(); this.cancels.delete(el); el.remove(); }
+  discard(el: HTMLElement): void { this.cancels.get(el)?.(); this.cancels.delete(el); this.placements.delete(el); el.remove(); }
 
   /** a row of the top-left status column; `order` from ROW (a shard's own rows go after the base's). `box: false` keeps
    *  the element's own box (the base's VITALS / ammo strips, game.css) instead of the shared row glass */
@@ -92,9 +103,9 @@ export class HudSlots {
   show(el: HTMLElement, on: boolean): void { el.classList.toggle('show', on); }
 
   /** E155: each resident shard has its own touch layer — the host swaps the slots' state with the running shard */
-  snapshot(): HudSlotsState { return { layer: this.layer, status: this.status, pending: [...this.pending] }; }
-  restore(s: HudSlotsState): void { this.layer = s.layer; this.status = s.status; this.pending = [...s.pending]; }
+  snapshot(): HudSlotsState { return { layer: this.layer, status: this.status, pending: [...this.pending], bands: this.bands, placements: new Map(this.placements) }; }
+  restore(s: HudSlotsState): void { this.layer = s.layer; this.status = s.status; this.pending = [...s.pending]; this.bands = s.bands ?? DEFAULT_BANDS; this.placements = new Map(s.placements); }
 }
-interface HudSlotsState { layer: HTMLElement | null; status: HTMLElement | null; pending: ((layer: HTMLElement, status: HTMLElement) => void)[] }
+interface HudSlotsState { bands?: readonly HudBand[]; placements?: ReadonlyMap<HTMLElement, { band: HudBand; order: number }>; layer: HTMLElement | null; status: HTMLElement | null; pending: ((layer: HTMLElement, status: HTMLElement) => void)[] }
 
 export const hudSlots = new HudSlots();

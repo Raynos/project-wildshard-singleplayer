@@ -260,7 +260,7 @@ export class Feedback {
     const pen = el('ws-fb-pen');
     const cv = document.createElement('canvas'); cv.className = 'ws-fb-pencanvas';
     const tools = el('ws-fb-tools');
-    const tool = (label: string, fn: () => void, cls = ''): HTMLButtonElement => { const b = button(`ws-fb-tool${cls}`, label); this.viewScope.listen(b, 'click', fn); tools.append(b); return b; };
+    const tool = (label: string, fn: () => void, cls = ''): HTMLButtonElement => { const b = button(`ws-fb-tool${cls}`, label); penScope.listen(b, 'click', fn); tools.append(b); return b; };
     pen.append(cv, tools, el('ws-fb-penhint', engineString('s_01300aa1b588')));
     const fit = (): { w: number; h: number } => {
       const k = Math.min(innerWidth / shot.width, innerHeight / shot.height);
@@ -282,10 +282,10 @@ export class Feedback {
     fit(); paint();
     let live: Stroke | null = null;
     const at = (e: PointerEvent): [number, number] => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height]; };
-    this.viewScope.listen(cv, 'pointerdown', (e) => { e.preventDefault(); cv.setPointerCapture(e.pointerId); live = { pts: at(e) }; this.strokes.push(live); paint(); });
-    this.viewScope.listen(cv, 'pointermove', (e) => { if (!live) return; live.pts.push(...at(e)); paint(); });
+    penScope.listen(cv, 'pointerdown', (e) => { e.preventDefault(); cv.setPointerCapture(e.pointerId); live = { pts: at(e) }; this.strokes.push(live); paint(); });
+    penScope.listen(cv, 'pointermove', (e) => { if (!live) return; live.pts.push(...at(e)); paint(); });
     const end = (): void => { live = null; };
-    this.viewScope.listen(cv, 'pointerup', end); this.viewScope.listen(cv, 'pointercancel', end);
+    penScope.listen(cv, 'pointerup', end); penScope.listen(cv, 'pointercancel', end);
     const onResize = (): void => { fit(); paint(); };
     const done = (): void => { penScope.dispose(); pen.remove(); thumb.src = bake(shot, this.strokes); };
     penScope.listen(window, 'resize', onResize);

@@ -1,6 +1,7 @@
+import { app } from '../app/runtime';
 import { uiScope } from './ownership';
 
-const scope = uiScope('RotateGate');
+const scope = uiScope('RotateGate', app.engineScope);
 
 /**
  * Rotate gate (E38): Wildshard is portrait-only on phones. The page itself is index.html's `.ws-rotate`, shown by a

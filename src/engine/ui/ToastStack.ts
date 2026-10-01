@@ -34,7 +34,7 @@ export class ToastStack {
     this.box.append(el);
     this.live.push(t);
     this.arm(t);
-    while (this.live.length > MAX) { const old = this.live.shift(); if (old) { clearTimeout(old.timer); old.el.remove(); } }
+    while (this.live.length > MAX) { const old = this.live.shift(); if (old) { this.scope.cancelTimer(old.timer); old.el.remove(); } }
     this.layout();
   }
 
@@ -45,7 +45,7 @@ export class ToastStack {
   }
 
   private arm(t: Toast): void {
-    clearTimeout(t.timer);
+    this.scope.cancelTimer(t.timer);
     t.el.classList.remove('out');
     t.timer = this.scope.timeout(LIFE, () => {
       t.el.classList.add('out');
@@ -78,7 +78,7 @@ export class ToastStack {
     while (this.live.length > 1 && top + h > floor) {
       const old = this.live.shift();
       if (!old) break;
-      clearTimeout(old.timer); h -= old.el.offsetHeight + 6; old.el.remove();   // + the column's 6 px gap
+      this.scope.cancelTimer(old.timer); h -= old.el.offsetHeight + 6; old.el.remove();   // + the column's 6 px gap
     }
     const shift = Math.round(top - home);
     if (shift !== this.shift) { this.shift = shift; this.box.style.transform = shift === 0 ? '' : `translateY(${shift}px)`; }

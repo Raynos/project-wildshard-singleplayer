@@ -1,3 +1,4 @@
+import { uiScope, mountUi } from './ownership';
 import { engineString } from '#engine/strings';
 import { saveStorage } from '#engine/saves/slots';
 /**
@@ -45,6 +46,7 @@ export interface PerfBudget { maxCalls: number; maxTris: number; calls: number; 
 const k = (n: number) => (n >= 1e6 ? `${(n / 1e6).toFixed(1)}M` : n >= 1000 ? `${(n / 1000).toFixed(n >= 10000 ? 0 : 1)}k` : String(n));
 
 export class Perf {
+  readonly scope = uiScope('Perf');
   readonly root: HTMLElement;
   private lastPaint = 0;
   private lastText = '';
@@ -75,33 +77,33 @@ export class Perf {
     const liveFps = livePill?.querySelector<HTMLElement>('b'), liveMs = livePill?.querySelector<HTMLElement>('span');
     if (livePill === null || liveFps === null || liveFps === undefined || liveMs === null || liveMs === undefined) throw new Error('Perf: missing live pill');
     this.live = { box: livePill, fps: liveFps, ms: liveMs };
-    document.body.append(root, panel);
+    mountUi(root, this.scope, document.body); mountUi(panel, this.scope, document.body);
     // the pill is a button on phones: toggle on the lift; cancel its touches (iOS double-tap zoom / callout / selection)
     // and never let them reach the look layer. The panel closes on a tap on it or anywhere else (not cancelled, so a
     // look drag that starts outside still looks).
     const cancel = (e: Event): void => { e.stopPropagation(); if (e.cancelable) e.preventDefault(); };
-    for (const t of ['touchstart', 'touchmove', 'touchend'] as const) root.addEventListener(t, cancel, { passive: false });
-    for (const t of ['pointerdown', 'dragstart', 'contextmenu'] as const) root.addEventListener(t, cancel);
-    root.addEventListener('pointerup', (e) => { cancel(e); this.open(!panel.classList.contains('open')); });
+    for (const t of ['touchstart', 'touchmove', 'touchend'] as const) this.scope.listen(root, t, cancel, { passive: false });
+    for (const t of ['pointerdown', 'dragstart', 'contextmenu'] as const) this.scope.listen(root, t, cancel);
+    this.scope.listen(root, 'pointerup', (e) => { cancel(e); this.open(!panel.classList.contains('open')); });
     for (const n of [root, ...root.querySelectorAll('*'), panel, ...panel.querySelectorAll('*')]) n.setAttribute('draggable', 'false');
     // E142: the on-device probe (src/engine/ui/perfProbe.ts) — RUN PROBE in the panel, or `?probe=1` 15 s after the world is entered
     const probe = panel.querySelector<HTMLButtonElement>('.ws-perf-probe'), probeOut = panel.querySelector<HTMLElement>('.ws-perf-probe-out');
     if (probe === null || probeOut === null) throw new Error('Perf: missing probe row');
     this.probeOut = probeOut;
-    for (const t of ['touchstart', 'touchmove', 'touchend'] as const) probe.addEventListener(t, cancel, { passive: false });
-    probe.addEventListener('pointerdown', cancel);
-    probe.addEventListener('pointerup', (e) => { cancel(e); void this.runProbe(); });
+    for (const t of ['touchstart', 'touchmove', 'touchend'] as const) this.scope.listen(probe, t, cancel, { passive: false });
+    this.scope.listen(probe, 'pointerdown', cancel);
+    this.scope.listen(probe, 'pointerup', (e) => { cancel(e); void this.runProbe(); });
     // E189 (Jake: "you need a copy button after running this probe … lots and lots of data"): the whole report to the clipboard
     const probeCopy = panel.querySelector<HTMLButtonElement>('.ws-perf-probe-copy');
     if (probeCopy === null) throw new Error('Perf: missing probe copy');
-    for (const t of ['touchstart', 'touchmove', 'touchend'] as const) probeCopy.addEventListener(t, cancel, { passive: false });
-    probeCopy.addEventListener('pointerdown', cancel);
-    probeCopy.addEventListener('pointerup', (e) => {
+    for (const t of ['touchstart', 'touchmove', 'touchend'] as const) this.scope.listen(probeCopy, t, cancel, { passive: false });
+    this.scope.listen(probeCopy, 'pointerdown', cancel);
+    this.scope.listen(probeCopy, 'pointerup', (e) => {
       cancel(e);
       let text = this.probeText;
       if (text === '') { try { text = savedStorage.getItem(PROBE_KEY) ?? ''; } catch { /* storage blocked */ } }
-      if (text === '') { probeCopy.textContent = engineString('s_7acd554c3676'); setTimeout(() => { probeCopy.textContent = engineString('s_dc26bc50abf8'); }, 1500); return; }
-      const done = (ok: boolean): void => { probeCopy.textContent = ok ? engineString('s_2c9f6d96316f') : engineString('s_2221caed08d3'); setTimeout(() => { probeCopy.textContent = engineString('s_dc26bc50abf8'); }, 1500); };
+      if (text === '') { probeCopy.textContent = engineString('s_7acd554c3676'); this.scope.timeout(1500, () => { probeCopy.textContent = engineString('s_dc26bc50abf8'); }); return; }
+      const done = (ok: boolean): void => { probeCopy.textContent = ok ? engineString('s_2c9f6d96316f') : engineString('s_2221caed08d3'); this.scope.timeout(1500, () => { probeCopy.textContent = engineString('s_dc26bc50abf8'); }); };
       // no clipboard API (an http page, an old WebKit): the report goes in the panel, selected for a manual copy
       const fallback = (): void => { probeOut.textContent = text; const r = document.createRange(); r.selectNodeContents(probeOut); const sel = getSelection(); sel?.removeAllRanges(); sel?.addRange(r); done(false); };
       const copy = async (): Promise<void> => { try { await navigator.clipboard.writeText(text); done(true); } catch { fallback(); } };
@@ -110,9 +112,9 @@ export class Perf {
     // the open panel covers the pill on phones, so it carries its own CLOSE (sticky at the top while it scrolls)
     const close = panel.querySelector<HTMLButtonElement>('.ws-perf-close');
     if (close === null) throw new Error('Perf: missing close button');
-    for (const t of ['touchstart', 'touchmove', 'touchend'] as const) close.addEventListener(t, cancel, { passive: false });
-    close.addEventListener('pointerdown', cancel);
-    close.addEventListener('pointerup', (e) => { cancel(e); this.open(false); });
+    for (const t of ['touchstart', 'touchmove', 'touchend'] as const) this.scope.listen(close, t, cancel, { passive: false });
+    this.scope.listen(close, 'pointerdown', cancel);
+    this.scope.listen(close, 'pointerup', (e) => { cancel(e); this.open(false); });
     // E142 aggro-perf: the timing / counts block, the sparkline, REC 30 S + COPY (src/engine/ui/perfHud.ts)
     const q = (sel: string): HTMLElement => { const e = panel.querySelector<HTMLElement>(sel); if (e === null) throw new Error(`Perf: missing ${sel}`); return e; };
     const recBtn = q('.ws-perf-rec'), copyBtn = q('.ws-perf-copy'), recOut = q('.ws-perf-rec-out'), spark = q('.ws-perf-spark');
@@ -123,14 +125,14 @@ export class Perf {
     if (this.hud.lastRecText !== '') recOut.textContent = engineString('s_1567ae2c94b8', [this.hud.lastRecText.split('\n').slice(0, 4).join('\n')]);
     this.hud.onRecDone = (text) => { recOut.textContent = text; recBtn.textContent = engineString('s_df9d72a2dfbf'); console.info(`[perf rec]\n${text}`); };
     for (const b of [recBtn, copyBtn]) {
-      for (const t of ['touchstart', 'touchmove', 'touchend'] as const) b.addEventListener(t, cancel, { passive: false });
-      b.addEventListener('pointerdown', cancel);
+      for (const t of ['touchstart', 'touchmove', 'touchend'] as const) this.scope.listen(b, t, cancel, { passive: false });
+      this.scope.listen(b, 'pointerdown', cancel);
     }
-    recBtn.addEventListener('pointerup', (e) => { cancel(e); if (!this.hud.recording && !this.lap.running) { this.hud.startRec(); recOut.textContent = engineString('s_309443a755a0'); } });
-    copyBtn.addEventListener('pointerup', (e) => {
+    this.scope.listen(recBtn, 'pointerup', (e) => { cancel(e); if (!this.hud.recording && !this.lap.running) { this.hud.startRec(); recOut.textContent = engineString('s_309443a755a0'); } });
+    this.scope.listen(copyBtn, 'pointerup', (e) => {
       cancel(e);
       const text = this.hud.lastRecText !== '' ? this.hud.lastRecText : q('.ws-perf-stats').textContent;
-      const done = (ok: boolean): void => { copyBtn.textContent = ok ? engineString('s_2c9f6d96316f') : engineString('s_2221caed08d3'); setTimeout(() => { copyBtn.textContent = engineString('s_dc26bc50abf8'); }, 1500); };
+      const done = (ok: boolean): void => { copyBtn.textContent = ok ? engineString('s_2c9f6d96316f') : engineString('s_2221caed08d3'); this.scope.timeout(1500, () => { copyBtn.textContent = engineString('s_dc26bc50abf8'); }); };
       const fallback = (): void => { recOut.textContent = text; const r = document.createRange(); r.selectNodeContents(recOut); const sel = getSelection(); sel?.removeAllRanges(); sel?.addRange(r); done(false); };
       // (no clipboard API — an http page, an old WebKit — throws in here too: the text is selected for a manual copy)
       const copy = async (): Promise<void> => { try { await navigator.clipboard.writeText(text); done(true); } catch { fallback(); } };
@@ -141,26 +143,26 @@ export class Perf {
     const lapBtn = q('.ws-perf-lap'), lapCopy = q('.ws-perf-lap-copy'), lapOut = q('.ws-perf-lap-out');
     const lapStatus = document.createElement('div');
     lapStatus.className = 'ws-perf-lap-status'; lapStatus.hidden = true;
-    document.body.append(lapStatus);
+    mountUi(lapStatus, this.scope, document.body);
     this.lap = new PerfLap(game);
     if (this.lap.lastText !== '') lapOut.textContent = engineString('s_f4bfc750414c', [this.lap.lastText.split('\n').slice(0, 2).join('\n')]);
     this.lap.onStatus = (text) => { lapStatus.hidden = text === null; if (text !== null) lapStatus.textContent = text; };
     this.lap.onDone = (text) => { lapOut.textContent = text; this.open(true); };
     for (const b of [lapBtn, lapCopy]) {
-      for (const t of ['touchstart', 'touchmove', 'touchend'] as const) b.addEventListener(t, cancel, { passive: false });
-      b.addEventListener('pointerdown', cancel);
+      for (const t of ['touchstart', 'touchmove', 'touchend'] as const) this.scope.listen(b, t, cancel, { passive: false });
+      this.scope.listen(b, 'pointerdown', cancel);
     }
-    lapBtn.addEventListener('pointerup', (e) => {
+    this.scope.listen(lapBtn, 'pointerup', (e) => {
       cancel(e);
       this.open(false);
       const why = this.lap.start(this.hud.recording);
       if (why !== null) { lapOut.textContent = why; this.open(true); }
     });
-    lapCopy.addEventListener('pointerup', (e) => {
+    this.scope.listen(lapCopy, 'pointerup', (e) => {
       cancel(e);
       const text = this.lap.lastText;
-      if (text === '') { lapCopy.textContent = engineString('s_7acd554c3676'); setTimeout(() => { lapCopy.textContent = engineString('s_dc26bc50abf8'); }, 1500); return; }
-      const done = (ok: boolean): void => { lapCopy.textContent = ok ? engineString('s_2c9f6d96316f') : engineString('s_2221caed08d3'); setTimeout(() => { lapCopy.textContent = engineString('s_dc26bc50abf8'); }, 1500); };
+      if (text === '') { lapCopy.textContent = engineString('s_7acd554c3676'); this.scope.timeout(1500, () => { lapCopy.textContent = engineString('s_dc26bc50abf8'); }); return; }
+      const done = (ok: boolean): void => { lapCopy.textContent = ok ? engineString('s_2c9f6d96316f') : engineString('s_2221caed08d3'); this.scope.timeout(1500, () => { lapCopy.textContent = engineString('s_dc26bc50abf8'); }); };
       const fallback = (): void => { lapOut.textContent = text; const r = document.createRange(); r.selectNodeContents(lapOut); const sel = getSelection(); sel?.removeAllRanges(); sel?.addRange(r); done(false); };
       const copy = async (): Promise<void> => { try { await navigator.clipboard.writeText(text); done(true); } catch { fallback(); } };
       void copy();
@@ -176,7 +178,7 @@ export class Perf {
     Object.assign(window, { __perfHud: this.hud });
     game.onUpdate(() => this.update(performance.now()), 'hud.perf');
     // frames are gated on the menu (Game.frameGate): say so rather than freeze on the last number
-    setInterval(() => { if (performance.now() - this.lastPaint > 1500 && this.lastText !== 'idle') { this.lastText = 'idle'; (this.root.firstElementChild as HTMLElement).textContent = engineString('s_bda050585a00'); (this.root.querySelector('.ws-perf-long') as HTMLElement).textContent = engineString('s_ebe595da4637'); (this.root.querySelector('.ws-perf-ms') as HTMLElement).textContent = engineString('s_a7a9dc5bcf71'); this.root.classList.remove('slow', 'bad'); this.mirror(); } }, 500);
+    this.scope.interval(500, () => { if (performance.now() - this.lastPaint > 1500 && this.lastText !== 'idle') { this.lastText = 'idle'; (this.root.firstElementChild as HTMLElement).textContent = engineString('s_bda050585a00'); (this.root.querySelector('.ws-perf-long') as HTMLElement).textContent = engineString('s_ebe595da4637'); (this.root.querySelector('.ws-perf-ms') as HTMLElement).textContent = engineString('s_a7a9dc5bcf71'); this.root.classList.remove('slow', 'bad'); this.mirror(); } });
   }
 
   /** Hidden while the menu is up (the world is not rendering, so there is nothing to measure). */

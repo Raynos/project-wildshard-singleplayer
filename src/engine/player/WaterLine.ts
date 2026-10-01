@@ -1,3 +1,4 @@
+import { uiScope, mountUi } from '../ui/ownership';
 import { engineString } from '#engine/strings';
 /**
  * WaterLine — the cheap water-line effect for swimming: a DOM gradient (no render pass) that tints the bottom of the
@@ -44,6 +45,7 @@ const UNDER = 'linear-gradient(180deg, rgba(40,170,190,0.18) 0%, rgba(18,120,150
 const HINTS = ['', '<b>Space</b>Dive', '<b>Space</b>Dive <b>Shift</b>Surface'] as const;
 
 export class WaterLine {
+  readonly scope = uiScope('waterLine');
   private el: HTMLDivElement;
   private deep: HTMLElement;
   private hint?: HTMLElement;
@@ -61,8 +63,8 @@ export class WaterLine {
     if (deep === null) throw new Error('WaterLine: .deep layer missing');
     this.deep = deep;
     const hud = document.getElementById('hud');
-    if (hud?.parentNode) hud.parentNode.insertBefore(el, hud); else document.body.append(el);
-    if (hud) { const h = this.hint = document.createElement('div'); h.className = 'ws-glass ws-dive-hint'; hud.append(h); }
+    mountUi(el, this.scope, document.body, hud);
+    if (hud) { const h = this.hint = document.createElement('div'); h.className = 'ws-glass ws-dive-hint'; mountUi(h, this.scope, hud); }
   }
 
   update(eyeAbove: number, _dt = 0): void {

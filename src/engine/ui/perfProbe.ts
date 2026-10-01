@@ -1,3 +1,4 @@
+import { uiScope } from './ownership';
 import { engineString } from '#engine/strings';
 /**
  * The on-device perf probe (E142, the heavy GPU lane): where a real phone's frame goes, measured ON the phone.
@@ -138,10 +139,15 @@ let running = false;
 export async function runPerfProbe(game: Game, progress: (line: string) => void): Promise<ProbeRow[]> {
   if (running) return [];
   running = true;
-  const sleep = (ms: number) => new Promise<void>((resolve) => { setTimeout(resolve, ms); });
+  const scope = uiScope('perfProbe');
+  const active = (): boolean => !scope.disposed;
+  const sleep = (ms: number) => new Promise<void>((resolve) => {
+    const forget = scope.capture('disposers', resolve);
+    scope.timeout(ms, () => { forget(); resolve(); });
+  });
   const r = game.renderer, composer = game.composer, hud = document.getElementById('hud');
   const style = document.createElement('style');
-  document.head.append(style);
+  document.head.append(style); scope.capture('nodes', () => { style.remove(); });
   const passes = composer.passes;
   const first = passes[0];
   // the terrain's stand-in: lit like the ground (PBR, rough), no splat fetches, no noise
@@ -197,9 +203,9 @@ export async function runPerfProbe(game: Game, progress: (line: string) => void)
       const k = (game.frameI - 1 + game.frameMs.length) % game.frameMs.length;
       probeSamples.push([(performance.now() - start) / 1000, game.frameMs[k] ?? 0, game.workMs[k] ?? 0, tag]);
     }
-    requestAnimationFrame(sample);
+    scope.raf(sample);
   };
-  requestAnimationFrame(sample);
+  scope.raf(sample);
   const pct = (v: number[], q: number): number => { const a = [...v].sort((x, y) => x - y); return a[Math.min(a.length - 1, Math.floor(a.length * q))] ?? 0; };
   /** measure `ms` under tag `t`: the frames' stats */
   const measure = async (t: number, ms: number): Promise<{ fps: number; frameMs: number; jsMs: number; p95: number; min: number; max: number; frames: number; at: number }> => {
@@ -214,6 +220,7 @@ export async function runPerfProbe(game: Game, progress: (line: string) => void)
   const live = phases.filter((x) => x.applies?.() ?? true);
   try {
     for (const [i, ph] of live.entries()) {
+      if (!active()) break;
       // row 0 as played; every other row uncapped, after a baseline of its own (rows 0 and 1 are the baselines themselves)
       frameProbe.uncapped = i !== 0;
       let base: number | null = null;
@@ -222,6 +229,7 @@ export async function runPerfProbe(game: Game, progress: (line: string) => void)
         await sleep(BASE_SETTLE_MS);
         base = (await measure(-1, BASE_MEASURE_MS)).frameMs;
       }
+      if (!active()) break;
       ph.set(true);
       progress(`${i + 1}/${live.length} ${ph.name}…`);
       await sleep(SETTLE_MS);
@@ -231,6 +239,7 @@ export async function runPerfProbe(game: Game, progress: (line: string) => void)
     }
   } finally {
     sampling = false;
+    scope.dispose();
     for (const ph of phases) ph.set(false);
     frameProbe.uncapped = false;
     style.remove();

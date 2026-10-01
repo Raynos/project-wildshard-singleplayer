@@ -1,3 +1,4 @@
+import { app } from '../app/runtime';
 import { uiScope, mountUi } from './ownership';
 import { engineString } from '#engine/strings';
 /**
@@ -18,7 +19,7 @@ import { isDev, onDev } from '../core/devMode';
 import { markUnload } from '../boot/lastEnd';
 
 
-const scope = uiScope('Update');
+const scope = uiScope('Update', app.engineScope);
 
 declare const __BUILD_ID__: string;
 
@@ -103,4 +104,6 @@ sync();
 onDev(() => { paint(); sync(); });
 // the pause menu opened or closed: it says so, because its class lives on an element this module never sees created
 scope.listen(window, 'ws-menu', () => { sync(); });
-new MutationObserver(sync).observe(document.body, { childList: true, subtree: false, attributes: true, attributeFilter: ['class'] });
+const bodyClass = new MutationObserver(sync);
+bodyClass.observe(document.body, { childList: true, subtree: false, attributes: true, attributeFilter: ['class'] });
+scope.onDispose(() => { hudClass.disconnect(); bodyClass.disconnect(); });

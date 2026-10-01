@@ -159,7 +159,7 @@ export class WeaponStrip {
       const p = this.press;
       if (p === null || e.pointerId !== p.id) return;
       e.stopPropagation();
-      clearTimeout(p.timer);
+      this.scope.cancelTimer(p.timer);
       this.press = null;
       ring.classList.remove('down');
       if (ring.hasPointerCapture(e.pointerId)) ring.releasePointerCapture(e.pointerId);

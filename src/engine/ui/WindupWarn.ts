@@ -57,6 +57,7 @@ export class WindupWarn<T extends Warned = Warned> {
     const measure = (): void => { this.w = layer.clientWidth || innerWidth; this.h = layer.clientHeight || innerHeight; };
     this.resize = new ResizeObserver(measure);
     this.resize.observe(layer);
+    this.scope.onDispose(() => { this.dispose(); });
     measure();
   }
 

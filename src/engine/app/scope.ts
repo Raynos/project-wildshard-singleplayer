@@ -120,17 +120,23 @@ export class Scope {
     });
   }
 
+  private readonly timerCancels = new Map<ReturnType<typeof setTimeout>, () => void>();
+  cancelTimer(id: ReturnType<typeof setTimeout> | 0): void { if (id !== 0) this.timerCancels.get(id)?.(); }
+
   timeout(ms: number, fn: () => void): ReturnType<typeof setTimeout> | 0 {
     if (this.closed) return 0;
     let forget = () => { /* Filled before the timer can fire. */ };
-    const id = setTimeout(() => { forget(); if (!this.closed) fn(); }, ms);
-    forget = this.track('timers', () => clearTimeout(id));
+    const id = setTimeout(() => { forget(); this.timerCancels.delete(id); if (!this.closed) fn(); }, ms);
+    const cancel = (): void => { clearTimeout(id); this.timerCancels.delete(id); forget(); };
+    forget = this.track('timers', cancel); this.timerCancels.set(id, cancel);
     return id;
   }
   interval(ms: number, fn: () => void): ReturnType<typeof setInterval> | 0 {
     if (this.closed) return 0;
     const id = setInterval(() => { if (!this.closed) fn(); }, ms);
-    this.track('timers', () => clearInterval(id));
+    let forget = () => { /* Assigned after registration. */ };
+    const cancel = (): void => { clearInterval(id); this.timerCancels.delete(id); forget(); };
+    forget = this.track('timers', cancel); this.timerCancels.set(id, cancel);
     return id;
   }
   raf(fn: FrameRequestCallback): number {

@@ -1,0 +1,129 @@
+{
+  "candidate": "42042e125eefe9a1bd2662f6361588cc975f0184",
+  "checks": {
+    "gen": "green",
+    "tsc": "green",
+    "wholeOxlint": "green",
+    "ratchet": "green",
+    "vitestFiles": 294,
+    "vitestTests": 2138
+  },
+  "parityCommand": "node scripts/parity.mjs --export=42042e125eefe9a1bd2662f6361588cc975f0184 --lane=m5 --shards=all --tiers=phone --only=fingerprint+poses",
+  "parityExit": 1,
+  "shards": {
+    "pine-hollow.phone": {
+      "bootErrors": [],
+      "poses": {
+        "gate": {
+          "ssim": 1,
+          "shot": "progress/parity/42042e1/retry/pine-hollow.phone.gate.jpg"
+        },
+        "cabin": {
+          "ssim": 0.9985199849032028,
+          "shot": "progress/parity/42042e1/retry/pine-hollow.phone.cabin.jpg"
+        },
+        "pond": {
+          "ssim": 0.9966254457912108,
+          "shot": "progress/parity/42042e1/retry/pine-hollow.phone.pond.jpg"
+        }
+      },
+      "redFields": [
+        "boot.systems.input",
+        "boot.systems.update",
+        "boot.systems.late",
+        "boot.registry",
+        "boot.saves.read"
+      ]
+    },
+    "nalati-grasslands.phone": {
+      "bootErrors": [],
+      "poses": {
+        "camp": {
+          "ssim": 0.9999999999999839,
+          "shot": "progress/parity/42042e1/retry/nalati-grasslands.phone.camp.jpg"
+        },
+        "bridge": {
+          "ssim": 0.9999832599123569,
+          "shot": "progress/parity/42042e1/retry/nalati-grasslands.phone.bridge.jpg"
+        },
+        "plains": {
+          "ssim": 0.9999686616269313,
+          "shot": "progress/parity/42042e1/retry/nalati-grasslands.phone.plains.jpg"
+        }
+      },
+      "redFields": [
+        "boot.systems.input",
+        "boot.systems.update",
+        "boot.systems.late",
+        "boot.scene.totals.mesh",
+        "boot.scene.named",
+        "boot.render.programs",
+        "boot.render.programKeys",
+        "boot.render.memory.textures",
+        "boot.gpuBytes.textures",
+        "boot.gpuBytes.total",
+        "boot.audio.requests",
+        "boot.saves.read"
+      ]
+    },
+    "driftwood-isle.phone": {
+      "bootErrors": [],
+      "poses": {
+        "pier": {
+          "ssim": 0.9918527177525892,
+          "shot": "progress/parity/42042e1/retry/driftwood-isle.phone.pier.jpg"
+        },
+        "beach": {
+          "ssim": 0.9946412382562843,
+          "shot": "progress/parity/42042e1/retry/driftwood-isle.phone.beach.jpg"
+        },
+        "wreck": {
+          "ssim": 0.9997572228442678,
+          "shot": "progress/parity/42042e1/retry/driftwood-isle.phone.wreck.jpg"
+        }
+      },
+      "redFields": [
+        "boot.systems.input",
+        "boot.systems.fixed.post",
+        "boot.systems.update",
+        "boot.systems.late",
+        "boot.registry",
+        "boot.audio.requests",
+        "boot.hud",
+        "boot.saves.read"
+      ]
+    },
+    "nine-dragon-stack.phone": {
+      "bootErrors": [],
+      "poses": {
+        "spawn-rail": {
+          "ssim": 0.9909858838931062,
+          "shot": "progress/parity/42042e1/retry/nine-dragon-stack.phone.spawn-rail.jpg"
+        },
+        "well-edge": {
+          "ssim": 0.9912813069933039,
+          "shot": "progress/parity/42042e1/retry/nine-dragon-stack.phone.well-edge.jpg"
+        },
+        "stair-street": {
+          "ssim": 0.9984419047450308,
+          "shot": "progress/parity/42042e1/retry/nine-dragon-stack.phone.stair-street.jpg"
+        }
+      },
+      "redFields": [
+        "budgets.D.draws",
+        "budgets.D.tris",
+        "boot.systems.input",
+        "boot.systems.update",
+        "boot.systems.late",
+        "boot.scene.totals.mesh",
+        "boot.render.programs",
+        "boot.render.programKeys",
+        "boot.render.memory.textures",
+        "boot.gpuBytes.textures",
+        "boot.gpuBytes.total",
+        "boot.hud",
+        "boot.saves.read"
+      ]
+    }
+  }
+}

@@ -544,5 +544,26 @@
     "rule": "no-raw-animation-mixer",
     "code": "import { AnimMachine } from '#engine'; new AnimMachine(def, rig);",
     "count": 0
+  },
+  {
+    "id": "raw HUD targets",
+    "file": "src/engine/ui/widgets.ts",
+    "rule": "no-raw-hud",
+    "count": 6,
+    "code": "const host=document.getElementById('hud'); host.append(a); const alias=host; alias.prepend(b); document.body.appendChild(c); document.getElementById('hud')?.append(d); (document.querySelector('#hud') ?? document.body).append(e); opts.hud.append(f);"
+  },
+  {
+    "id": "scoped HUD keeps inner DOM free",
+    "file": "src/engine/ui/scopedWidgets.ts",
+    "rule": "no-raw-hud",
+    "count": 0,
+    "code": "app.ui.hud.widget('band.1', el, 0, scope); panel.append(label); document.head.append(style);"
+  },
+  {
+    "id": "HUD implementation owns DOM",
+    "file": "src/engine/ui/hudSlots.ts",
+    "rule": "no-raw-hud",
+    "count": 0,
+    "code": "document.body.append(el); const hud=document.getElementById('hud'); hud.append(el);"
   }
 ]

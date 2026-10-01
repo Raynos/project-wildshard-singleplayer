@@ -1,4 +1,4 @@
-import type { MinimapPalette, LookReplaceContext, TreeFactory, Ktx2Table, LevelSpec, EngineMechanism, TierOverrides, BootSpec, LoadoutSpec, LookStrategy, ExploreSpec, WaterBody } from '#engine';
+import type { MinimapPalette, LookReplaceContext, TreeFactory, Ktx2Table, LevelSpec, EngineMechanism, TierOverrides, BootSpec, LoadoutSpec, LookStrategy, ExploreSpec, WaterBody, HudBand } from '#engine';
 import type { ShardSlug } from './shards.generated';
 import type { ShardPlugin } from './plugin';
 /**
@@ -400,6 +400,7 @@ export type ChunkWeapon = 'crossbow' | 'sword' | 'custom';
 /** the optional pieces of the ONE base HUD a shard switches on (E154) — the layout, the controls and the status column are
  *  every shard's; a shard's own rows / discs come in through src/engine/ui/hudSlots.ts from its own modules */
 export interface ChunkHud {
+  bands?: readonly HudBand[];
   /** the sun / moon badge on the minimap's rim (Minimap.showDayBadge) */
   dayBadge?: boolean;
 }
@@ -430,7 +431,7 @@ export interface ShardManifest {
   audio?: LevelSpec['audio'];
   species?: LevelSpec['species'];
   encounters?: readonly string[];
-  bag?: { tabs: readonly ('map' | 'gear' | 'finds' | 'pack' | 'feats')[]; pack: { slots: number; keeps?: readonly string[] }; skinsTitle?: string };
+  bag?: { tabs: readonly string[]; pack: { slots: number; keeps?: readonly string[] }; skinsTitle?: string };
   dev?: { poses: () => Promise<Readonly<Record<string, { eye: readonly [number, number, number]; yaw: number; pitch: number; feet?: readonly [number, number, number]; mockup: string; frame: string }>>> };
   /** Plugin API version; mismatches fail before the first asset load. */
   api: 1;

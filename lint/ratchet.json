@@ -779,5 +779,6 @@
   "wildshard/no-renderer-type": {
     "src/game/shard/manifest.ts": 4,
     "src/shards/driftwood-isle/loot/keepsakes.ts": 1
-  }
+  },
+  "wildshard/no-raw-hud": {}
 }

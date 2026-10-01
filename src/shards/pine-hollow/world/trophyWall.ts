@@ -1,3 +1,4 @@
+import { uiScope, mountUi } from '#engine';
 /**
  * The trophy wall (PINE-HOLLOW-REMASTER PH-C4, board B4 wall = C: art/pine-hollow/round-4-journal-ui/C-wall-chalk-outlines.jpg).
  * A wall of mount slots from the shard's compendium (`ShardCompendium.trophies`): a slot whose entry is TAKEN shows the
@@ -132,6 +133,7 @@ function mountGeometry(factory: AnimalFactory, kind: string, variant: string): T
 }
 
 export class TrophyWall {
+  readonly scope = uiScope('trophyWall');
   readonly group = new THREE.Group();
   /** one prompt for the whole wall: it moves to the slot you look at ("[E] Examine Old Ironhide"), radius 0 otherwise */
   readonly interactable: { position: THREE.Vector3; radius: number; label: string; onInteract: () => void };
@@ -164,7 +166,7 @@ export class TrophyWall {
     if (opts.hud) {
       this.tip = document.createElement('div');
       this.tip.className = 'ws-cmp-tip';
-      opts.hud.append(this.tip);
+      mountUi(this.tip, this.scope, opts.hud);
     }
     this.group.name = 'trophy-wall';
     opts.anchor.add(this.group);

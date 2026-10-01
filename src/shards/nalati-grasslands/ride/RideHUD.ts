@@ -113,7 +113,7 @@ export class RideHUD {
     const steed = document.createElement('div');
     steed.className = 'ws-ride-steed ws-ride-touch';
     steed.innerHTML = `<i class="ws-ride-glyph">${SVG_HORSE}</i><span class="ws-ride-name">Steed</span><span class="ws-ride-sbar"><i style="width:100%"></i></span><span class="ws-ride-gait">stand</span>`;
-    if (this.ctx) this.ctx.hud.widget('band.3', steed, 2); else hudSlots.statusRow(steed, 2);
+    if (this.ctx) this.ctx.hud.widget('band.3', steed, 2); else hudSlots.widget('band.3', steed, 2, this.scope);
     const unlayer = hudSlots.onLayer((layer) => {
       this.layer = layer;
       this.use = layer.querySelector<HTMLElement>('.ws-touch-use');

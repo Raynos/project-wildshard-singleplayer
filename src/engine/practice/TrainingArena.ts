@@ -1,3 +1,4 @@
+import { uiScope, mountUi } from '../ui/ownership';
 import { engineString } from '#engine/strings';
 import { app } from '../app/runtime';
 import { tap } from '../core/harnessTap';
@@ -263,6 +264,7 @@ function makeRoom(cx: number, cz: number): { root: THREE.Group; colliders: Colli
 }
 
 export class TrainingArena {
+  readonly scope = uiScope('trainingArena');
   /** E357 F2 read-only practice state for the pause/resume snapshot. */
   get isActive(): boolean { return this.active; }
   readonly targets: TrainingTarget[];
@@ -290,7 +292,7 @@ export class TrainingArena {
       this.active && Math.abs(x - center.x) < HALF_WIDTH && Math.abs(z - center.z) < HALF_DEPTH ? Y : undefined;
     registry.add({ id: 'practice-arena', name: 'HUD + Weapon Explorer arena', category: 'ground', file: 'src/engine/practice/TrainingArena.ts', object: root, colliders, surface: 'metal', floor, solidFloor: false });
     const overlay = document.createElement('div'); overlay.className = 'ws-practice';
-    document.getElementById('hud')?.append(overlay); this.overlay = overlay;
+    mountUi(overlay, this.scope); this.overlay = overlay;
     const preparation = document.createElement('div'); preparation.className = 'ws-practice-preparing'; preparation.textContent = engineString('s_392e9e34e810');
     overlay.append(preparation); this.preparation = preparation;
     // E348: each copy of the shared dummy model its lineup places, its armour the placement's variant

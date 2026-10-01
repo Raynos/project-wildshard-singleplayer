@@ -1,3 +1,5 @@
+import { Scope } from '../app/scope';
+import { hudSlots } from '../ui/hudSlots';
 import { engineString } from '#engine/strings';
 import { saveStorage } from '#engine/saves/slots';
 /**
@@ -20,6 +22,8 @@ import { saveStorage } from '#engine/saves/slots';
 import { ErrorReporter, safeUrl, sendReport } from '../core/errorReport';
 import { RELOADS_MAX, countReload, recentReloads } from '../core/reloadGuard';
 import { markUnload } from './lastEnd';
+
+const recoveryScope = new Scope('boot.recovery');
 
 declare const __BUILD_ID__: string; // vite.config.ts define
 
@@ -120,7 +124,7 @@ export async function recover(): Promise<void> {
 }
 
 const STYLE = `
-  #wsstuck { position: fixed; left: 50%; bottom: max(24px, calc(env(safe-area-inset-bottom) + 16px)); z-index: 2147482500; transform: translateX(-50%); box-sizing: border-box; width: min(360px, calc(100% - 32px)); padding: 16px 16px 14px; background: rgba(13, 27, 38, 0.86); border: 1px solid rgba(143, 227, 255, 0.35); color: #e6f2f8; font: 12px/1.5 "JetBrains Mono", ui-monospace, Menlo, monospace; -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+  #wsstuck { position: fixed; left: 50%; bottom: max(24px, calc(env(safe-area-inset-bottom) + 16px)); z-index: var(--ws-layer-error, 2147482500); transform: translateX(-50%); box-sizing: border-box; width: min(360px, calc(100% - 32px)); padding: 16px 16px 14px; background: rgba(13, 27, 38, 0.86); border: 1px solid rgba(143, 227, 255, 0.35); color: #e6f2f8; font: 12px/1.5 "JetBrains Mono", ui-monospace, Menlo, monospace; -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
   #wsstuck .t { margin: 0 0 6px; font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase; color: #8fe3ff; }
   #wsstuck .l { margin: 0 0 12px; color: rgba(230, 242, 248, 0.82); }
   #wsstuck button { appearance: none; -webkit-appearance: none; box-sizing: border-box; width: 100%; padding: 12px 16px; cursor: pointer; font: 700 12px/1 "JetBrains Mono", monospace; letter-spacing: 0.24em; text-transform: uppercase; border: 1px solid #8fe3ff; background: rgba(143, 227, 255, 0.18); color: #fff; }
@@ -150,7 +154,7 @@ function show(tag: string, line: string, small: string, button: boolean): void {
       btn.hidden = !button;
       btn.onclick = () => { btn.disabled = true; btn.textContent = engineString('s_ea456dcf3d90'); void recover(); };
     }
-    if (!card.isConnected) document.body.append(card);
+    if (!card.isConnected) hudSlots.widget('band.6', card, 0, recoveryScope, document.body);
   } catch { /* the net must never throw */ }
 }
 

@@ -1,3 +1,4 @@
+import type { UiHandle } from '../../ui/layers';
 import { uiScope, mountUi } from '../../ui/ownership';
 import { engineString } from '#engine/strings';
 /**
@@ -91,7 +92,8 @@ export class DialogueBox {
   private lines: string[] = [];
   private i = 0;
   private shown = 0;
-  private open_ = false;
+  private layer: UiHandle | null = null;
+  private get open_(): boolean { return this.layer?.active ?? false; }
   private finish_: (() => void) | null = null;
   private openT = 0;
   private readonly scope: Scope;
@@ -103,11 +105,8 @@ export class DialogueBox {
     this.scope = scope;
     mountUi(this.root, this.scope, hudRoot());
     scope.listen(this.root, 'pointerdown', (e) => { e.stopPropagation(); e.preventDefault(); this.advance(); });
-    scope.listen(document, 'keydown', (event) => {
-      const e = event;
-      if (e.code !== 'KeyE' || !this.open_ || e.repeat || app.clock.now * 1000 - this.openT < 150) return;
-      this.advance();
-    });
+    for (const action of ['use', 'confirm'] as const) app.input.bind(action, () => { this.advance(); }, scope,
+      () => this.open_ && (this.layer?.top ?? false) && app.clock.real * 1000 - this.openT >= 150);
     scope.onDispose(() => { this.close(false); this.root.remove(); });
   }
 
@@ -118,7 +117,8 @@ export class DialogueBox {
   open(name: string, lines: string[], onDone: () => void): void {
     if (lines.length === 0) { onDone(); return; }
     this.name.textContent = name;
-    this.lines = lines; this.i = 0; this.shown = 0; this.finish_ = onDone; this.open_ = true; this.openT = app.clock.now * 1000;
+    this.lines = lines; this.i = 0; this.shown = 0; this.finish_ = onDone; this.layer?.dispose();
+    this.layer = app.ui.push('modal', { root: this.root, order: -42, back: () => { this.close(false); } }, this.scope); this.openT = app.clock.real * 1000;
     this.root.classList.add('show');
     this.render();
   }
@@ -135,7 +135,7 @@ export class DialogueBox {
 
   close(finished = false): void {
     if (!this.open_) return;
-    this.open_ = false;
+    this.layer?.dispose(); this.layer = null;
     this.root.classList.remove('show');
     const done = this.finish_; this.finish_ = null;
     if (finished) done?.();
