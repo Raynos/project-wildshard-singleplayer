@@ -43,10 +43,8 @@ export const SIGNAL_DUNES: ShardManifest = {
   loot: { coins: true },
   // No AO or god rays: grazing dusk light on smooth sand bands under screen-space AO.
   tiers: { phone: { godRays: false, ao: false }, desktop: { godRays: false, ao: false } },
-  // No ambience bed (ENGINE §15). `preload` is still required at boot (round-3 API gap): the kit's shared profile,
-  // which carries the weapon voices the whip's cues play; its forest bed is never installed.
-  audio: { ambience: 'none', score: 'sunscar.silent', cues: async () => (await import('./audio/cues')).CUES,
-    preload: async () => (await import('#kit')).createForestAudio() },
+  // No ambience bed and no audio assets (ENGINE §15): no `preload`; the whip's cues play the kit voices' synth fallback.
+  audio: { ambience: 'none', score: 'sunscar.silent', cues: async () => (await import('./audio/cues')).CUES },
   boot: { files: bootFiles, sources: bootSources, viewmodelSets: [], shaders: { background: false }, audio: () => Promise.resolve([]), precache: [] },
   dev: { poses: () => Promise.resolve({
     spawn: stand(SPAWN.x, SPAWN.z, 0, 2, 'Spawn: the crest, the signal tower far off'),
