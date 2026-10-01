@@ -1,5 +1,5 @@
 import { GoldenBow, type GoldenBowPower } from './GoldenBow';
-import { BOW as BOW_PROFILE } from '#kit';
+import { Bow, BOW as BOW_PROFILE } from '#kit';
 import { Naizagai, type NaizagaiPower } from './Naizagai';
 import type { Game, Sky, Player, Forest, Targets, Weapon, WeaponId, EquipmentService } from '#engine';
 
@@ -10,7 +10,6 @@ import type { Game, Sky, Player, Forest, Targets, Weapon, WeaponId, EquipmentSer
 import { Sabre, type MountState } from './Sabre';
 import { Spear } from './Spear';
 import { BOW } from './equipment';
-import { Bow } from '#kit';
 
 /** Nalati's riding numbers are content; other bows opt into mounting through their own profile. */
 export const NALATI_BOW = { ...BOW_PROFILE, mounted: {
