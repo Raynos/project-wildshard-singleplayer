@@ -1,0 +1,150 @@
+name: gpu-gate
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      sha:    { description: Commit to gate (default the branch head), type: string, required: false }
+      record: { description: Record runner baselines (artifact), type: boolean, default: false }
+      prove:  { description: Run the determinism proof, type: boolean, default: false }
+      plant:  { description: Apply one plant (test/parity/plants/<id>.patch), type: string, required: false }
+      angle:  { description: ANGLE backend (the metal-off plant uses swiftshader), type: string, default: metal }
+      offline: { description: Also run the offline boot check (a milestone candidate; R1-47), type: boolean, default: false }
+concurrency:
+  # push runs: one running + one pending; a burst of pushes gates the newest (ci-gpu-options §6).
+  # dispatches (plant / record / prove / a re-gate) get their own group, so they never replace a push run (R1-41)
+  group: ${{ github.event_name == 'push' && 'gpu-gate-main' || format('gpu-gate-dispatch-{0}-{1}-{2}-{3}', inputs.sha, inputs.plant, inputs.record, inputs.prove) }}
+  cancel-in-progress: false
+permissions:
+  contents: read
+  statuses: write
+jobs:
+  setup:                         # the job list comes from the target SHA's registry at CI time, never a hand list (R1-11),
+    runs-on: ubuntu-latest       # one entry per job with its mode, so each job's timeout fits its mode (R2-32)
+    outputs:
+      jobs: ${{ steps.list.outputs.jobs }}
+    steps:
+      - uses: actions/checkout@v4          # main's head: the harness code (R2-31)
+        with: { sparse-checkout: scripts/gpu-gate, sparse-checkout-cone-mode: true, filter: 'blob:none' }
+      - id: list                 # [{ shard, mode, part }], read from the target SHA's tree with git ls-tree / cat-file
+        env:
+          SHA: ${{ inputs.sha || github.sha }}
+          MODE: ${{ inputs.prove && 'prove' || (inputs.record && 'record' || 'compare') }}
+        run: |
+          git fetch --no-tags --filter=blob:none origin "$SHA"
+          echo "jobs=$(node scripts/gpu-gate/matrix.mjs "$SHA" "$MODE")" >> "$GITHUB_OUTPUT"
+  shard:
+    needs: [setup]
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.setup.outputs.jobs) }}
+    runs-on: macos-15            # pinned label, never macos-latest
+    timeout-minutes: ${{ matrix.mode == 'compare' && 20 || 60 }}   # by mode (R2-32, §11.5)
+    env:
+      SHA: ${{ inputs.sha || github.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.sha || github.sha }}
+          filter: blob:none
+          sparse-checkout: |
+            /*
+            !/progress/
+            !/art/
+            !/sources/
+            !/docs/
+          sparse-checkout-cone-mode: false
+      - uses: pnpm/action-setup@v4
+        with: { version: 10 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 24, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - uses: actions/cache@v4
+        with:
+          path: ~/Library/Caches/ms-playwright
+          key: pw-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+      - run: pnpm exec playwright install chromium          # full Chromium, not the headless shell
+      - name: Harness code from main's head; test/parity (baselines, rename maps, plants) stays the target SHA's (R1-19, R2-31)
+        if: inputs.sha != ''
+        run: |
+          git fetch --no-tags --filter=blob:none origin ${{ github.sha }}
+          git checkout ${{ github.sha }} -- scripts/parity.mjs scripts/parity scripts/gpu-gate scripts/types
+      - name: Pending boards of the target SHA (R1-13; docs/ is outside the sparse checkout)
+        run: git show "$SHA:docs/plans/game-normalization/reviews/pending.json" > pending.json 2>/dev/null || echo '[]' > pending.json
+      - name: Apply plant
+        if: inputs.plant != ''
+        run: git apply "test/parity/plants/${{ inputs.plant }}.patch"
+      - run: pnpm exec vite build
+        if: matrix.mode != 'prove'                         # prove builds each part from its own export
+      - name: Serve the build
+        if: matrix.mode != 'prove'
+        run: |
+          pnpm exec vite preview --host 127.0.0.1 --port 4400 --strictPort > preview.log 2>&1 &
+          for i in $(seq 1 60); do curl -fsS http://127.0.0.1:4400/version.json && break; sleep 1; done
+      - name: Parity (${{ matrix.shard }}, phone, ${{ matrix.mode }} ${{ matrix.part }})   # exactly one mode per job (R1-35)
+        run: |
+          common="--lane=gh-macos15 --shards=${{ matrix.shard }} --tiers=phone --angle=${{ inputs.angle || 'metal' }} --out=parity-out"
+          case "${{ matrix.mode }}" in
+            prove)            node scripts/parity.mjs --prove --only=${{ matrix.part }} --export="$SHA" $common ;;   # one part per job (R2-32)
+            record|bootstrap) node scripts/parity.mjs --url=http://127.0.0.1:4400 --record --runs=3 $common ;;   # writes test/parity/baselines/gh-macos15/<slug>.* (R2-33)
+            compare)          node scripts/parity.mjs --url=http://127.0.0.1:4400 --retry=1 --pending=pending.json ${{ matrix.part && format('--only={0}', matrix.part) || '' }} $common ;;
+          esac
+      - name: Offline boot (a milestone candidate; R1-47)   # compare and bootstrap: both post a status (R3-10)
+        if: inputs.offline && (matrix.mode == 'compare' || matrix.mode == 'bootstrap')
+        run: node scripts/parity.mjs --offline --url=http://127.0.0.1:4400 --lane=gh-macos15 --shards=${{ matrix.shard }} --tiers=phone --out=parity-out/offline
+      - name: Facade instancing (E271, Nine Dragon only)   # every job that posts a status runs it (R3-10)
+        if: matrix.shard == 'nine-dragon-stack' && (matrix.mode == 'compare' || matrix.mode == 'bootstrap')
+        run: node scripts/test-facade-instancing.mjs --url=http://127.0.0.1:4400
+      - name: Per-shard status   # compare and bootstrap only; never from a record, prove or plant dispatch (R1-35)
+        if: always() && (matrix.mode == 'compare' || matrix.mode == 'bootstrap') && inputs.plant == ''
+        env: { GH_TOKEN: '${{ github.token }}' }
+        run: node scripts/gpu-gate/status.mjs shard "$SHA" "${{ matrix.shard }}" "${{ job.status }}" parity-out ${{ matrix.mode }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:   # one name per job: upload-artifact@v4 refuses two jobs writing one artifact (R1-18)
+          name: ${{ (matrix.mode == 'record' || matrix.mode == 'bootstrap') && format('parity-baselines-gh-macos15-{0}', matrix.shard) || (matrix.mode == 'prove' && format('parity-prove-{0}-{1}', matrix.shard, matrix.part) || format('parity-{0}{1}', matrix.shard, matrix.part && format('-{0}', matrix.part) || '')) }}
+          # record and bootstrap upload the baseline files themselves, never the parity-out report (R2-33)
+          path: ${{ (matrix.mode == 'record' || matrix.mode == 'bootstrap') && format('test/parity/baselines/gh-macos15/{0}.*', matrix.shard) || 'parity-out' }}
+          retention-days: 14
+  asset-case:                    # §11.6: Linux, case-sensitive disk (ci-gpu-options §6.2; 13-lead-resolutions G15)
+    if: ${{ !inputs.record }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      SHA: ${{ inputs.sha || github.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.sha || github.sha }}
+          filter: blob:none
+          sparse-checkout: |
+            /*
+            !/progress/
+            !/art/
+            !/sources/
+            !/docs/
+          sparse-checkout-cone-mode: false
+      - uses: pnpm/action-setup@v4
+        with: { version: 10 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 24, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - name: Apply plant
+        if: inputs.plant != ''
+        run: git apply "test/parity/plants/${{ inputs.plant }}.patch"
+      - run: pnpm exec vite build
+      - run: node scripts/check-asset-case.mjs dist --out=asset-case.json
+      - name: Status
+        if: always() && !inputs.prove && inputs.plant == ''
+        env: { GH_TOKEN: '${{ github.token }}' }
+        run: node scripts/gpu-gate/status.mjs shard "$SHA" asset-case "${{ job.status }}" asset-case.json
+  gate:
+    needs: [shard, asset-case]
+    if: always() && !inputs.record && !inputs.prove && inputs.plant == ''
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { sparse-checkout: scripts/gpu-gate, sparse-checkout-cone-mode: true }
+      - env: { GH_TOKEN: '${{ github.token }}' }
+        run: node scripts/gpu-gate/status.mjs gate "${{ inputs.sha || github.sha }}" "${{ needs.shard.result }},${{ needs.asset-case.result }}" "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"

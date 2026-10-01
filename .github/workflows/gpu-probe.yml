@@ -1,0 +1,46 @@
+name: gpu-probe
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: macos-15
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          filter: blob:none
+          sparse-checkout: |
+            /*
+            !/progress/
+            !/art/
+            !/sources/
+            !/docs/
+          sparse-checkout-cone-mode: false
+      - uses: pnpm/action-setup@v4
+        with: { version: 10 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 24, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - uses: actions/cache@v4
+        with:
+          path: ~/Library/Caches/ms-playwright
+          key: pw-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+      - run: pnpm exec playwright install chromium
+      - run: pnpm exec vite build
+      - name: Serve build
+        run: |
+          pnpm exec vite preview --host 127.0.0.1 --port 4400 --strictPort > preview.log 2>&1 &
+          for i in $(seq 1 60); do curl -fsS http://127.0.0.1:4400/version.json && break; sleep 1; done
+      - name: Renderer, ready time, peak RSS and boot fingerprint
+        run: /usr/bin/time -l node scripts/gpu-gate/probe.mjs --url=http://127.0.0.1:4400 2>&1 | tee gpu-probe.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: gpu-probe
+          path: |
+            gpu-probe.json
+            gpu-probe.log
+            preview.log
+          retention-days: 14

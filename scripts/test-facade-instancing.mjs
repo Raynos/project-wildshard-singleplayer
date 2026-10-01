@@ -5,7 +5,7 @@ import { chromium } from 'playwright';
 
 const base = (process.argv.find((arg) => arg.startsWith('--url='))?.slice(6) ?? 'http://127.0.0.1:4184').replace(/\/$/, '');
 const mobileUA = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.6 Mobile/15E148 Safari/604.1';
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal'] });
+const browser = await chromium.launch({ channel: 'chromium', args: ['--mute-audio', '--use-angle=metal'] });
 try {
   for (const profile of [{ name: 'desktop', tier: 'desktop' }, { name: 'phone-tier', tier: 'phone' }, { name: 'iphone-desktop-quality', tier: 'desktop', userAgent: mobileUA }]) {
     const context = await browser.newContext({ viewport: { width: 402, height: 654 }, deviceScaleFactor: 2,
