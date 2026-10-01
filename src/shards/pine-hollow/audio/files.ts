@@ -1,4 +1,5 @@
 import { loadAudio, type LevelAudioProfile } from '#engine';
+import { FOREST_AUDIO } from './profile';
 import { pineShotFiles, decodePineShots } from './sfx';
 
 const OWN = 'pine-hollow';
@@ -26,11 +27,11 @@ export async function createPineAudio(): Promise<LevelAudioProfile> {
       const dirs = [...ownMusic().map(musicDir), ...ownSfx().map(sfxDir)];
       return [...files.music, ...files.sfx].filter((url) => dirs.some((dir) => url.startsWith(dir)));
     },
-    bootFiles: (style) => [...styleFiles(style, ['title', 'pine']), ...sfxFiles(getSfxSet(), 'forest'), ...(getSfxSet() === 'synth' ? [] : pineShotFiles())],
+    bootFiles: (style) => [...styleFiles(style, ['title', 'pine']), ...sfxFiles(getSfxSet(), FOREST_AUDIO.bed, FOREST_AUDIO.samples), ...(getSfxSet() === 'synth' ? [] : pineShotFiles())],
     decode: async (style, read, decode, onFile) => {
       const [title, samples] = await Promise.all([
         decodeStyle(style, ['title', 'pine'], read, decode, onFile).catch(() => undefined),
-        decodeSfxSet(getSfxSet(), 'forest', read, onFile, decode),
+        decodeSfxSet(getSfxSet(), FOREST_AUDIO.bed, read, onFile, decode, FOREST_AUDIO.samples),
         ...(getSfxSet() === 'synth' ? [] : [decodePineShots(read, onFile)]),
       ]);
       return { title, samples, score: { slots: new Map(), stings: new Map() }, cues: { loops: new Map(), shots: new Map() } };

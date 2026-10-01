@@ -17,13 +17,10 @@
 import type { AmbientBed, LoopName, SampleLoop } from './Audio';
 import { SFX_MANIFESTS } from '../boot/audio.generated';
 import { PUBLIC_BYTES } from '../boot/bytes.generated';
-import { sfxDir, DRIFTWOOD_SOUNDS } from '../boot/audioFiles';
+import { sfxDir } from '../boot/audioFiles';
 import { onScopeDispose } from '../app/legacyCapture';
 
 export const DECODE_RATE = 48000;
-/** the bed a land level starts with until it sets its own (the set's sampled bed of this id, or the synth pine wind);
- *  its levels never play the ocean level's own sounds (DRIFTWOOD_SOUNDS) */
-export const DEFAULT_BED: AmbientBed = 'forest';
 let offline: OfflineAudioContext | undefined;
 function decodeContext(): OfflineAudioContext {
   offline ??= new OfflineAudioContext(2, 1, DECODE_RATE); // the 3-argument form: Safari's constructor
@@ -64,37 +61,40 @@ export function trackBusy<T>(kind: AudioKind, work: Promise<T>): Promise<T> {
 export interface SfxBank { set: string; credit: string | undefined; loops: Map<LoopName, SampleLoop>; shots: Map<string, { bufs: AudioBuffer[]; gain: number }> }
 /** a sample's level before sfx.json's own `gain` (beds sit under the synth bed's ~0.1 winds; hums near the synth hum's 0.11) */
 const LOOP_GAIN: Record<LoopName, number> = {
-  forest: 0.5, island: 0.5, underwater: 0.5, pickup: 0.35, shrine: 0.6,
+  underwater: 0.5, pickup: 0.35, shrine: 0.6,
 };
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
 const num = (v: unknown, d: number): number => (typeof v === 'number' && Number.isFinite(v) ? v : d);
 const TABLE: Readonly<Record<string, number>> = PUBLIC_BYTES;
 
+/** Sample selection belongs to the level, independently of its bed id. */
+export interface SfxDecodePolicy {
+  omitLoops?: readonly string[]; omitShots?: readonly string[]; loopGains?: Readonly<Record<string, number>>;
+}
+
 /** the files `decodeSfxSet(set, bed)` reads (URLs), so the loading bar can tell them from the files it only downloads */
-export function sfxFiles(set: string, bed: AmbientBed): string[] { return [...new Set(sfxJobs(set, bed).map((j) => j.url))]; }
+export function sfxFiles(set: string, bed: AmbientBed, policy: SfxDecodePolicy = {}): string[] { return [...new Set(sfxJobs(set, bed, policy).map((j) => j.url))]; }
 
 interface Job { url: string; apply: (buf: AudioBuffer, bank: SfxBank) => void }
-function sfxJobs(set: string, bed: AmbientBed): Job[] {
+function sfxJobs(set: string, bed: AmbientBed, policy: SfxDecodePolicy): Job[] {
   const j = SFX_MANIFESTS[set];
   if (!isObj(j)) return [];
   const dir = sfxDir(set), jobs: Job[] = [];
   const url = (f: unknown): string | undefined => (typeof f === 'string' && !f.includes('..') && `${dir}${f}` in TABLE ? `${dir}${f}` : undefined);
   const loop = (name: LoopName, v: unknown): void => {
-    if (!isObj(v)) return;
+    if (policy.omitLoops?.includes(name) || !isObj(v)) return;
     const u = url(v['file']);
     if (u === undefined) return;
     jobs.push({ url: u, apply: (buffer, bank) => {
       const loopEnd = Math.min(buffer.duration, num(v['loopEnd'], buffer.duration)), loopStart = Math.max(0, Math.min(loopEnd - 0.05, num(v['loopStart'], 0)));
-      bank.loops.set(name, { buffer, loopStart, loopEnd, gain: (LOOP_GAIN[name] ?? 1) * num(v['gain'], 1) });
+      bank.loops.set(name, { buffer, loopStart, loopEnd, gain: (policy.loopGains?.[name] ?? LOOP_GAIN[name] ?? 1) * num(v['gain'], 1) });
     } });
   };
   const beds = isObj(j['beds']) ? j['beds'] : {}, hums = isObj(j['hums']) ? j['hums'] : {}, shots = isObj(j['oneshots']) ? j['oneshots'] : {};
-  // this shard's bed first (never the other shard's: a shard change reloads the page), then the rest
-  // the default land bed has none of Driftwood's own sounds (DRIFTWOOD_SOUNDS: its creatures, the gulls, the shrine's hum)
-  const drift = bed === DEFAULT_BED;
-  loop(bed, beds[bed]); loop('underwater', beds['underwater']); loop('pickup', hums['pickup']); if (!drift) loop('shrine', hums['shrine']);
+  // The selected bed first, then the common loops, in the existing decode order.
+  loop(bed, beds[bed]); loop('underwater', beds['underwater']); loop('pickup', hums['pickup']); loop('shrine', hums['shrine']);
   for (const [family, v] of Object.entries(shots)) {
-    if (drift && DRIFTWOOD_SOUNDS.oneshots.includes(family)) continue;
+    if (policy.omitShots?.includes(family)) continue;
     const files = Array.isArray(v) ? v : isObj(v) && Array.isArray(v['files']) ? v['files'] : [];
     const gain = isObj(v) ? num(v['gain'], 1) : 1;
     for (const f of files) {
@@ -109,10 +109,10 @@ function sfxJobs(set: string, bed: AmbientBed): Job[] {
  * Decode `set` — every file its sfx.json lists that this shard can play — from `read` (the boot's counted fetch at the bar;
  * `cachedBytes` for a switch in the menu). A file that fails keeps its synth version; the set as a whole never rejects.
  */
-export async function decodeSfxSet(set: string, bed: AmbientBed, read: (url: string) => Promise<ArrayBuffer>, onFile?: () => void, decode: (bytes: ArrayBuffer) => Promise<AudioBuffer> = decodeBytes): Promise<SfxBank> {
+export async function decodeSfxSet(set: string, bed: AmbientBed, read: (url: string) => Promise<ArrayBuffer>, onFile?: () => void, decode: (bytes: ArrayBuffer) => Promise<AudioBuffer> = decodeBytes, policy: SfxDecodePolicy = {}): Promise<SfxBank> {
   const j = SFX_MANIFESTS[set];
   const bank: SfxBank = { set, credit: isObj(j) && typeof j['credit'] === 'string' ? j['credit'] : undefined, loops: new Map(), shots: new Map() };
-  await Promise.all(sfxJobs(set, bed).map(async (job) => {
+  await Promise.all(sfxJobs(set, bed, policy).map(async (job) => {
     try { job.apply(await decode(await read(job.url)), bank); }
     catch (e) { console.info(`[sfx] ${job.url}: ${e instanceof Error ? e.message : String(e)} — synth kept`); }
     onFile?.();
