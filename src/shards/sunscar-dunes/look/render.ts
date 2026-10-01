@@ -10,9 +10,8 @@ import { Color, Mesh, MeshStandardMaterial, PlaneGeometry, BufferAttribute } fro
 import { CHUNK_SIZE, DayCycle, patchShader, PATCH_ORDER, type LookStrategy, type PainterField, type Terrain } from '#engine';
 import { sandColor } from '../world/dunes';
 import { GROUND } from '../layout';
-import { buildDome, DUSK, KEY_DIR } from './sky';
+import { buildDome, DUSK, LIGHT } from './sky';
 
-const KEY_INTENSITY = 2.6, HEMI_INTENSITY = 0.85;
 
 /** The clock stands at dusk: the shard is one moment, the sky never moves. */
 export function duskClock(): DayCycle {
@@ -65,17 +64,18 @@ export function sunscarLook(): LookStrategy {
     backdrop: ({ sky, scene }) => {
       const clock = duskClock(), dome = buildDome(), keyColor = new Color().copy(DUSK.key);
       built = dome; scene.add(dome); // the engine keeps `clouds` on the camera; the backdrop puts it in the scene
-      let hemi: { color: Color; groundColor: Color; intensity: number } | null = null;
+      let hemi: { color: Color; groundColor: Color; intensity: number } | null = null, fog: Color | null = null;
       return Promise.resolve({ clock, horizon: new Color().copy(DUSK.fog), lut: null, clouds: dome, fadesPlanet: false,
         bind: (targets) => {
-          hemi = targets.hemi; targets.disc.visible = false; if (targets.halo) targets.halo.visible = false;
+          hemi = targets.hemi; fog = targets.fog.color; targets.disc.visible = false; if (targets.halo) targets.halo.visible = false;
           targets.fog.color.copy(DUSK.fog); targets.fogU.fogSunColor.value.copy(DUSK.fogSun);
           // the engine's far ridges (Horizon) take the dusk haze, not its default grey
           targets.far.uHazeCol.value.copy(DUSK.fog); targets.far.uSeaSky.value.copy(DUSK.away); targets.far.uSeaSun.value.copy(DUSK.fogSun);
         },
         update: () => {
-          sky.setKeyLight(KEY_DIR, keyColor, KEY_INTENSITY);
-          if (hemi) { hemi.color.copy(DUSK.hemiSky); hemi.groundColor.copy(DUSK.hemiGround); hemi.intensity = HEMI_INTENSITY; }
+          sky.setKeyLight(LIGHT.keyDir, keyColor.copy(DUSK.key), LIGHT.key);
+          if (hemi) { hemi.color.copy(DUSK.hemiSky); hemi.groundColor.copy(DUSK.hemiGround); hemi.intensity = LIGHT.hemi; }
+          fog?.copy(DUSK.fog);
         },
         rebuild: () => undefined, attachPost: () => undefined });
     },

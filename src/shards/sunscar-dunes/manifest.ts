@@ -23,7 +23,7 @@ export const SUNSCAR_DUNES: ShardManifest = {
   sky: { sunColor: [1, 0.5, 0.28], sunIntensity: 1.1, envIntensity: 0.25, bgIntensity: 1, fogSunColor: [0.95, 0.42, 0.2], cloudSunColor: [1, 0.55, 0.3],
     hemiSky: 0x4a5c9a, hemiGround: 0x5a2a12, hemiIntensity: 1.1, sun: { azimuth: 200, elevation: 4 } },
   atmosphere: { fogHeight: 4, fogHeightFalloff: 0.12, fogHeightDensity: 0.004, fogDistDensity: 0.0042, volumetricSunColor: [1, 0.5, 0.28] },
-  grade: { saturation: 0.05, brightness: 0, contrast: 0.06, bloomIntensity: 0.25, bloomThreshold: 0.92, shadowTint: [0.86, 0.94, 1.12], highTint: [1.06, 0.99, 0.92], lift: [0, 0, 0.012], gain: [1, 1, 1], gamma: 1 },
+  grade: { saturation: 0.05, brightness: 0, contrast: 0.06, bloomIntensity: 0.25, bloomThreshold: 0.92, shadowTint: [0.96, 0.98, 1.04], highTint: [1.05, 0.99, 0.93], lift: [0, 0, 0.004], gain: [1, 1, 1], gamma: 1 },
   render: async () => (await import('./look/render')).sunscarLook(),
   uses: ['quests', 'hover', 'explore', 'coins'],
   loadout: { weapons: ['weapon.signal-bullwhip'], tools: ['tool.hoverboard'], start: ['weapon.signal-bullwhip', 'tool.hoverboard'], held: 'weapon.signal-bullwhip' },

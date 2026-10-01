@@ -9,12 +9,14 @@ import { BackSide, Color, Mesh, ShaderMaterial, SphereGeometry, Vector3 } from '
 export const SUN_BELOW = new Vector3(-0.55, -0.07, -1).normalize();
 /** The key light: the last skylight off the glow, low from the west, so the west faces catch warm light and the east
  *  faces fall into the indigo fill (the mockup's lit left flanks and blue right-hand hollows). */
-export const KEY_DIR = new Vector3(-1, 0.22, -0.5).normalize();
+export const KEY_DIR = new Vector3(-1, 0.32, -0.5).normalize();
 export const DUSK = {
-  zenith: new Color(0.010, 0.013, 0.048), upper: new Color(0.040, 0.040, 0.115), mauve: new Color(0.11, 0.045, 0.085),
-  away: new Color(0.13, 0.075, 0.10), glow: new Color(1.25, 0.40, 0.08), fog: new Color(0.20, 0.11, 0.11), fogSun: new Color(0.9, 0.36, 0.12),
-  key: new Color(1, 0.56, 0.32), hemiSky: new Color(0.30, 0.37, 0.66), hemiGround: new Color(0.5, 0.24, 0.1),
+  zenith: new Color(0.010, 0.013, 0.048), upper: new Color(0.040, 0.040, 0.115), mauve: new Color(0.07, 0.03, 0.05),
+  away: new Color(0.13, 0.075, 0.10), glow: new Color(1.4, 0.42, 0.07), fog: new Color(0.20, 0.11, 0.11), fogSun: new Color(0.9, 0.36, 0.12),
+  key: new Color(1, 0.56, 0.32), hemiSky: new Color(0.40, 0.40, 0.64), hemiGround: new Color(0.55, 0.28, 0.12),
 } as const;
+/** The light levels (mutable so a capture can tune them live through the plugin's debug handle). */
+export const LIGHT = { key: 3, hemi: 1, keyDir: KEY_DIR };
 
 const VERT = /* glsl */ `
 varying vec3 vDir;
@@ -36,7 +38,7 @@ void main() {
   vec2 flat2 = normalize(d.xz + vec2(1e-5)), sun2 = normalize(uSun.xz);
   float az = 0.5 + 0.5 * dot(flat2, sun2), toward = pow(az, 3.0);
   vec3 horizon = mix(uAway, uGlow, toward);
-  float band = exp(-hh / (0.035 + 0.13 * az * az));
+  float band = exp(-hh / (0.05 + 0.16 * az * az));
   vec3 col = mix(uUpper, uZenith, smoothstep(0.12, 0.85, hh));
   col += uMauve * exp(-hh / 0.22) * (0.5 + 0.5 * az);
   col = mix(col, horizon, band);

@@ -14,7 +14,7 @@ export class WhipModel {
   readonly root = new Group();
   readonly thong: Mesh<BufferGeometry, MeshStandardMaterial>;
   private readonly points = Array.from({ length: THONG_POINTS }, () => new Vector3());
-  private readonly radius = Array.from({ length: THONG_POINTS }, (_, i) => 0.016 * (1 - i / THONG_POINTS) + 0.0035);
+  private readonly radius = Array.from({ length: THONG_POINTS }, (_, i) => 0.009 * (1 - i / THONG_POINTS) + 0.0025);
   private readonly tip = new Vector3(0, 0.15, -0.02);
 
   constructor() {
@@ -57,7 +57,7 @@ export class WhipModel {
       if (p === undefined) continue;
       // the loop: out over the knuckles, round, and down out of frame
       const ang = u * Math.PI * 1.75;
-      const rx = -Math.sin(ang) * 0.17 - u * 0.12 + sway * u, ry = (Math.cos(ang) - 1) * 0.14 - u * u * 0.55, rz = -Math.sin(ang * 0.5) * 0.08;
+      const rx = -Math.sin(ang) * 0.075 - u * 0.05 + sway * u, ry = (Math.cos(ang) - 1) * 0.06 - u * u * 0.3, rz = -Math.sin(ang * 0.5) * 0.035;
       // the throw: the line rolls out ahead of the hand (the base first), with a travelling hump that runs to the tip
       const k = Math.min(1, Math.max(0, crack * 1.5 - u * 0.5)), roll = k * k * (3 - 2 * k);
       const hump = Math.sin(Math.PI * Math.min(1, u / Math.max(0.05, crack))) * 0.5 * (1 - crack);
