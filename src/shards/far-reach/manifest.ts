@@ -31,7 +31,7 @@ export const FAR_REACH: ShardManifest = {
   hud: { bands: ['band.1', 'band.2', 'band.3'] }, bag: { tabs: ['map', 'gear', 'notes'], pack: { slots: 6 } },
   audio: { bed: 'forest', ambience: 'kit.ambience.forest', score: 'far-reach.silent', cues: async () => (await import('./audio/cues')).CUES,
     preload: async () => (await import('#kit')).createForestAudio() },
-  boot: { files: bootFiles, sources: bootSources, viewmodelSets: [], shaders: { background: false }, audio: () => Promise.resolve([]), precache: [] },
+  boot: { files: bootFiles, sources: bootSources, viewmodelSets: [], shaders: { background: false }, audio: () => Promise.resolve([]), explore: { art: Object.values(EXPLORE.art) }, precache: [] },
   assetGlobs: ['public/assets/far-reach/**'],
   explore: EXPLORE, roster: async () => (await import('./roster')).ROSTER, load: () => import('./plugin'),
 };
