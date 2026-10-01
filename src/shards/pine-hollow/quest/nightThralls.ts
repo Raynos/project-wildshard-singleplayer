@@ -62,11 +62,11 @@ export class NightThralls {
     this.brain = new NightBrain<Animal>({
       night: h.night, errand: h.errand, onErrandDone: h.onErrandDone, next: Math.random, height: heightAt,
       shot: (name, actor) => { h.shot(name, actor.position); },
-      spawn: (kind, x, z, yaw) => spawnThrall(h.animals, kind, x, z, yaw), own, release,
+      spawn: (kind, x, z, yaw) => spawnThrall(h.animals, kind === 'elk' ? 'elk' : 'boar', x, z, yaw), own, release,
       retire: (actor) => { retire(h.animals, actor); },
       burst: (actor) => { this.puffs.burst(this.point.copy(actor.position).setY(actor.position.y + 1), 1.2, 3.4, 0.8, 0.8); },
     }, { max: MAX, region: OLD_GROWTH, exclude: KINGS_CLEARING, face: HAMLET_SITES.wheel,
-      mill: HAMLET_SITES.mill, water: POND.level, race: RACE });
+      mill: HAMLET_SITES.mill, water: POND.level, roamKinds: ['elk', 'boar'], race: RACE.map(([x, z], i) => ({ kind: i === 1 ? 'elk' : 'boar', x, z })) });
   }
   get count(): number { return this.brain.count; }
   force(p: THREE.Vector3): void { this.brain.force(p); }

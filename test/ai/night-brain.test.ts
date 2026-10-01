@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { NightBrain, type NightActor, type NightPorts, type NightSpec } from '#engine/ai/NightBrain';
 
 const spec: NightSpec = { max: 3, region: { x: 0, z: 0, ax: 100, az: 100 }, exclude: { x: 200, z: 200, blend: 1 },
-  face: { x: 20, z: 0 }, mill: { x: 0, z: 0 }, water: 0, race: [[-10, 0], [-20, 0], [-30, 0]] };
+  face: { x: 20, z: 0 }, mill: { x: 0, z: 0 }, water: 0, roamKinds: ['a', 'b'], race: [{ kind: 'b', x: -10, z: 0 }, { kind: 'a', x: -20, z: 0 }, { kind: 'b', x: -30, z: 0 }] };
 function fixture(): { brain: NightBrain<NightActor>; actors: NightActor[]; h: NightPorts<NightActor>; setNight: (value: number) => void } {
   const actors: NightActor[] = []; let night = 1;
   const h: NightPorts<NightActor> = {

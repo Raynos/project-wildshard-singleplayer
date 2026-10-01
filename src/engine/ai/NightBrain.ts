@@ -7,13 +7,13 @@ export interface NightActor {
 export interface NightSpec {
   max: number; region: { x: number; z: number; ax: number; az: number };
   exclude: { x: number; z: number; blend: number }; face: { x: number; z: number }; mill: { x: number; z: number };
-  water: number; race: readonly (readonly [number, number])[];
+  water: number; roamKinds: readonly string[]; race: readonly { kind: string; x: number; z: number }[];
 }
 export interface NightPorts<T extends NightActor> {
   night: () => number; errand: () => boolean; onErrandDone: () => void; next: () => number;
   height: (x: number, z: number) => number;
   shot: (name: 'thrall_call' | 'thrall_groan' | 'thrall_move', actor: T) => void;
-  spawn: (kind: 'elk' | 'boar', x: number, z: number, yaw: number) => T;
+  spawn: (kind: string, x: number, z: number, yaw: number) => T;
   own: (actor: T) => void; release: (actor: T) => void; retire: (actor: T) => void; burst: (actor: T) => void;
 }
 interface Roamer<T> { a: T; flee: number }
@@ -82,7 +82,8 @@ export class NightBrain<T extends NightActor> {
       if (anywhere && (dp < 18 || dp > 60)) continue;
       if (Math.hypot(x - this.spec.exclude.x, z - this.spec.exclude.z) < this.spec.exclude.blend + 8) continue;
       if (Math.abs(x) > 235 || Math.abs(z) > 235 || this.h.height(x, z) < this.spec.water + 0.6) continue;
-      const kind = this.roam.length % 2 === 0 ? 'elk' : 'boar';
+      const kind = this.spec.roamKinds[this.roam.length % this.spec.roamKinds.length];
+      if (kind === undefined) return;
       const a = this.h.spawn(kind, x, z, headingTo(x, z, p.x, p.z));
       this.roam.push({ a, flee: 0 });
       this.h.shot('thrall_call', a);
@@ -91,8 +92,8 @@ export class NightBrain<T extends NightActor> {
   }
 
   private callRace(): void {
-    this.spec.race.forEach(([x, z], i) => {
-      const a = this.h.spawn(i === 1 ? 'elk' : 'boar', x, z, headingTo(x, z, this.spec.face.x, this.spec.face.z));
+    this.spec.race.forEach(({ kind, x, z }) => {
+      const a = this.h.spawn(kind, x, z, headingTo(x, z, this.spec.face.x, this.spec.face.z));
       this.h.own(a);
       this.race.push({ a, woke: false });
     });
