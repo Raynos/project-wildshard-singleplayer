@@ -3,6 +3,7 @@ import type { EquipmentService } from '../combat/EquipmentService';
 import type { Scope } from '../app/scope';
 import { app } from '../app/runtime';
 import type { InputContextDef } from '../level/context';
+import { installInputTrace } from './trace';
 
 /** The level installs one device listener set; mode contexts compose with plugin verbs. */
 export function installGameplayInput(player: Player, canvas: HTMLCanvasElement, scope: Scope, contexts: readonly InputContextDef[]): void {
@@ -11,6 +12,7 @@ export function installGameplayInput(player: Player, canvas: HTMLCanvasElement, 
   input.install(scope, canvas, (x, y) => { player.look(x, y); });
   for (const def of contexts) input.register(def, scope);
   input.push('onFoot', scope);
+  installInputTrace(scope);
   app.ui.connectInput(input, app.engineScope);
   scope.listen(document, 'pointerlockchange', () => { player.locked = document.pointerLockElement === canvas; });
   const mode = (id: string, on: boolean): void => { if (on) input.push(id, scope); else input.pop(id); };
