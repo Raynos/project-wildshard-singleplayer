@@ -33,9 +33,8 @@ import { ART_URL_BYTES } from '#game/shard/art.generated';
 import { macrotask, type StepProgress } from './plan';
 import { audioFiles, musicDir, sfxDir } from './audioFiles';
 import { whenPrefetched } from './prefetch';
-import { decodeBytes, decodeSfxSet, sfxFiles, type SfxBank } from '../audio/preload';
-import type { AmbientBed } from '../audio/Audio';
-import { decodeStyle, styleFiles, type SlotName, type StyleBank } from '../audio/Stems';
+import { decodeBytes, type SfxBank } from '../audio/preload';
+import type { StyleBank } from '../audio/Stems';
 import { getMusicStyle, getSfxSet } from '../ui/Settings';
 import { SHARDS } from '#game/shard/registry';
 import { TIER } from '../core/tier';
@@ -149,8 +148,6 @@ export function startMenuPreload(files: ChunkFiles, def: ShardManifest): Preload
   };
 }
 
-/** decoded banks by what they hold (E155: kept for the page — see startAudioPreload) */
-const decoded_ = new Map<string, Promise<unknown>>();
 /** audio files this page already read to the end once */
 const downloaded = new Set<string>();
 
@@ -159,9 +156,8 @@ export interface AudioBanks { music: StyleBank | undefined; sfx: SfxBank; profil
 /** Nine Dragon's phone boot: count/cache every file, then decode the selected banks after the world starts. */
 export function startDeferredAudioPreload(files: ChunkFiles, def: ShardManifest, profile?: LevelAudioProfile): Preload<void> & { readonly style: ReturnType<typeof getMusicStyle>; decode: () => Promise<AudioBanks> } {
   const style = getMusicStyle(), set = getSfxSet();
-  const slots: SlotName[] = def.ocean ? ['title', 'island'] : ['title', 'pine'];
-  const bed: AmbientBed = def.audio?.bed ?? '';
-  const selected = new Set(profile?.bootFiles(style) ?? [...styleFiles(style, slots), ...sfxFiles(set, bed, def.audio?.samples)]);
+  if (profile === undefined) throw new Error(`${def.slug}: boot audio requires the authored preload profile`);
+  const selected = new Set(profile.bootFiles(style));
   const urls = [...new Set([...files.music, ...files.sfx])];
   const c = counter(urls.length);
   // Keep only the selected compressed bytes until decode. That makes the post-bar decode work offline even if
@@ -200,18 +196,8 @@ export function startDeferredAudioPreload(files: ChunkFiles, def: ShardManifest,
           return Promise.resolve(bytes.slice(0)); // decodeAudioData detaches its argument
         };
         try {
-          if (profile) {
-            const bank = await profile.decode(style, read, oneAtATime);
-            return { music: undefined, sfx: { set, credit: undefined, loops: new Map(), shots: new Map() }, profile: bank };
-          }
-          const [music, sfx] = await Promise.all([
-            decodeStyle(style, slots, read, oneAtATime).catch((error: unknown) => {
-              if (style !== 'synth') console.info(`[music] ${style}: ${error instanceof Error ? error.message : String(error)} — the synth plays`);
-              return undefined;
-            }),
-            decodeSfxSet(set, bed, read, undefined, oneAtATime, def.audio?.samples),
-          ]);
-          return { music, sfx };
+          const bank = await profile.decode(style, read, oneAtATime);
+          return { music: undefined, sfx: { set, credit: undefined, loops: new Map(), shots: new Map() }, profile: bank };
         } finally { selectedBytes.clear(); }
       })();
       return decoding;
@@ -220,59 +206,6 @@ export function startDeferredAudioPreload(files: ChunkFiles, def: ShardManifest,
 }
 
 export function startAudioPreload(files: ChunkFiles, def: ShardManifest, profile?: LevelAudioProfile): Preload<AudioBanks> {
-  if (profile) {
-    const preload = startDeferredAudioPreload(files, def, profile);
-    return { wait: async (p) => { await preload.wait(p); return preload.decode(); } };
-  }
-  // The remaining legacy profile is the ocean level until S4.3.
-  const style = getMusicStyle(), set = getSfxSet();
-  const slots: SlotName[] = ['title', 'island'];
-  const bed: AmbientBed = 'island';
-  const decoded = new Set([...styleFiles(style, slots), ...sfxFiles(set, bed, def.audio?.samples)]);
-  const rest = [...files.music, ...files.sfx].filter((u) => !decoded.has(u));
-  const c = counter(decoded.size + rest.length);
-  // the boot's counted fetch (the prefetch hands over the bytes it already has); a file two decoders share is read once
-  const reads = new Map<string, Promise<ArrayBuffer>>();
-  const load = async (url: string): Promise<ArrayBuffer> => {
-    await whenPrefetched(url);
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`${res.status} ${url}`);
-    return res.arrayBuffer();
-  };
-  const read = async (url: string): Promise<ArrayBuffer> => {
-    let r = reads.get(url);
-    if (!r) { r = load(url); reads.set(url, r); }
-    return (await r).slice(0); // decodeAudioData detaches what it is given
-  };
-  // E155 / E159 (M5): a bank decoded once is kept for the page — a shard built later, or rebuilt after its eviction, takes it
-  // as is (its files still tick the bar); nothing is decoded twice
-  const once = <T>(key: string, n: number, make: () => Promise<T>): Promise<T> => {
-    const hit = decoded_.get(key) as Promise<T> | undefined;
-    if (hit) { for (let i = 0; i < n; i++) c.tick(); return hit; }
-    const p = make();
-    decoded_.set(key, p);
-    p.catch(() => { decoded_.delete(key); }); // a failure is retried by the next build
-    return p;
-  };
-  const music = once(`music|${style}|${slots.join(',')}`, styleFiles(style, slots).length, () => decodeStyle(style, slots, read, decodeBytes, c.tick)).catch((e: unknown) => {
-    if (style !== 'synth') console.info(`[music] ${style}: ${e instanceof Error ? e.message : String(e)} — the synth plays`);
-    return undefined;
-  });
-  const sfx = once(`sfx|${set}|${bed}`, sfxFiles(set, bed, def.audio?.samples).length, () => decodeSfxSet(set, bed, read, c.tick, undefined, def.audio?.samples));
-  // every other style / set: downloaded to the last byte (through the service worker, which keeps it), then let go — once a page
-  const others = rest.map(async (u) => {
-    if (!downloaded.has(u)) {
-      downloaded.add(u);
-      try { await whenPrefetched(u); const res = await fetch(u); await res.arrayBuffer(); } catch { downloaded.delete(u); /* offline with no copy: that style / set decodes to the synth later */ }
-    }
-    c.tick();
-  });
-  return {
-    async wait(p) {
-      c.attach(p, 'audio files');
-      const [m, s] = await Promise.all([music, sfx, ...others]);
-      reads.clear();
-      return { music: m, sfx: s };
-    },
-  };
+  const preload = startDeferredAudioPreload(files, def, profile);
+  return { wait: async (p) => { await preload.wait(p); return preload.decode(); } };
 }
