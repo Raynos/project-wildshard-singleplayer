@@ -42,11 +42,6 @@ import { PUBLIC_BYTES } from './bytes.generated';
 import { TIER } from '../core/tier';
 import { lutUrl } from '../world/lut';
 import { horizonStrips } from '../world/HorizonMatte';
-import { LEVER_MODEL_URL } from '#shards/pine-hollow/weapons/LeverRifle';
-import { KNIFE_MODEL_URL } from '#shards/pine-hollow/models/skinningKnife';
-import { BIRDS_JSON_URL, BIRDS_URL } from '#shards/pine-hollow/life/birdModels';
-import { NPC_KINDS, npcModelUrl } from '#shards/pine-hollow/quest/npcModels';
-import { JOURNAL_SKIN } from '#shards/pine-hollow/compendium';
 import { PERSON_FILE, peopleModelUrl, type PersonKey } from '#shards/nalati-grasslands/campPeopleModels';
 import { blenderModelsBase } from '../world/blenderArea';
 import { CAPTAIN_GLB_URL } from '../entities/species/captainMesh';
@@ -88,12 +83,9 @@ export function lateReads(def: ShardManifest, tex: TexMode = texMode()): string[
     const base = blenderModelsBase('driftwood-isle'), lm = TIER === 'phone' ? '.phone.webp' : '.webp';
     out.push(tierUrl(`${base}island.glb`, tex), `${base}island.json`, `${base}placements.bin`, gpuUrl(`${base}lm-ao${lm}`, tex), gpuUrl(`${base}lm-bounce${lm}`, tex), tierUrl(CAPTAIN_GLB_URL, tex));
   }
-  if (def.slug === 'pine-hollow') {
-    out.push(tierUrl(LEVER_MODEL_URL, tex), tierUrl(KNIFE_MODEL_URL, tex), tierUrl(BIRDS_URL, tex), BIRDS_JSON_URL, ...NPC_KINDS.map((k) => tierUrl(npcModelUrl(k), tex)));
-    if (JOURNAL_SKIN.chalk) out.push(JOURNAL_SKIN.chalk.atlas);
-  }
   if (def.style === 'painterly') out.push(...Object.keys(PERSON_FILE).filter((k): k is PersonKey => k in PERSON_FILE).map(peopleModelUrl));
-  return out.filter((p) => p in PUBLIC_BYTES).map(versionedUrl);
+  const declared = new Set(Object.values(bootFiles(def, tex)).flat());
+  return out.filter((p) => p in PUBLIC_BYTES && !declared.has(p)).map(versionedUrl);
 }
 
 /** What the background download fetches for `def`: its boot's requests, then what the world reads as it comes up. */

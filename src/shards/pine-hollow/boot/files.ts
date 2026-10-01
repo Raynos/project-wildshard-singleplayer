@@ -9,6 +9,17 @@ const treeSet = '/assets/models/pine-hollow-trees';
 const bakedDir = '/assets/baked/pine-hollow/';
 const hdri = '/assets/hdri/qwantani_sunset_puresky_2k';
 export const BAKED_UNREAD = /\/fur-[^/]*$/;
+/** World files formerly fetched outside the loading contract. */
+export function worldReads(tier: Tier, tex: TexMode = 'img'): string[] {
+  const { gpu } = filePolicy(tier, tex, GPU_FILES);
+  const phone = tier === 'phone' ? '-phone' : '';
+  return [
+    '/assets/lut/pine-hollow.bin', `/assets/horizon/pine-hollow-day${phone}.webp`, `/assets/horizon/pine-hollow-night${phone}.webp`,
+    '/assets/pine-hollow/weapons/lever-rifle.glb', '/assets/pine-hollow/weapons/skinning-knife.glb',
+    '/assets/pine-hollow/life/birds.glb', '/assets/pine-hollow/life/birds.json',
+    ...['ranger', 'trader', 'miller'].map((kind) => `/assets/pine-hollow/npcs/${kind}.glb`), '/assets/pine-hollow/journal/chalk.webp',
+  ].map(gpu).filter((url) => url in PUBLIC_BYTES);
+}
 export function bootSources(tier: Tier, tex: TexMode = 'img'): ChunkFiles {
   const { gpu, layer, pbr } = filePolicy(tier, tex, GPU_FILES);
   const gltf = (id: string): string[] => [`/assets/models/${id}/${id}.gltf`, `/assets/models/${id}/${id}.bin`, ...['diff', 'nor_gl', 'arm'].map((kind) => `/assets/models/${id}/textures/${id}_${kind}_1k.jpg`)];
@@ -24,7 +35,7 @@ export function bootSources(tier: Tier, tex: TexMode = 'img'): ChunkFiles {
     sky: [...(color in PUBLIC_BYTES && gain in PUBLIC_BYTES ? [color, gain] : [`${hdri}.hdr`]), ...(skyJson in PUBLIC_BYTES ? [skyJson] : []), ...pineSkyKeyUrls().filter((url) => url in PUBLIC_BYTES)].map(gpu),
     baked: Object.keys(PUBLIC_BYTES).filter((url) => url.startsWith(`${bakedDir}tex/`) && !url.includes('.phone.') && !BAKED_UNREAD.test(url)).map(gpu),
     terrain: terrain.map(gpu), trees: trees.map(gpu), physics: ['/assets/physics/rapier.wasm', ...(`${bakedDir}navmesh.bin` in PUBLIC_BYTES ? [`${bakedDir}navmesh.bin`] : [])], cabins,
-    props: [...props, ...pineHeroUrls().filter((url) => url in PUBLIC_BYTES), ...rigNames.map((name) => `/assets/pine-hollow/creatures/${name}${tier === 'phone' ? '.phone' : ''}.rigged.glb`).filter((url) => url in PUBLIC_BYTES)].map(gpu),
+    props: [...worldReads(tier, tex), ...props, ...pineHeroUrls().filter((url) => url in PUBLIC_BYTES), ...rigNames.map((name) => `/assets/pine-hollow/creatures/${name}${tier === 'phone' ? '.phone' : ''}.rigged.glb`).filter((url) => url in PUBLIC_BYTES)].map(gpu),
     art: [], music: [], sfx: [],
   };
 }
