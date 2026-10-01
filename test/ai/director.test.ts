@@ -36,7 +36,7 @@ describe('Nalati pack token policy is independent of the shard director', () => 
     });
     wildEnv.playerMounted = mounted;
     const pack = legacyActor(Pack.prototype, { members, prey: prey ? { position: f.ctx.player, yaw: 0 } : null, boldT: bold ? 10 : 0,
-      nextTokenT: 0, bites: 0 });
+      nextTokenT: 0, bites: 0, directors: undefined });
     for (let i = 0; i < 5; i++) { f.ctx.t = i * 10; invokeLegacy(pack, 'assignToken', f.ctx); }
     expect(members.filter((a) => a.mem['lunge'] === 1)).toHaveLength(expected);
   });

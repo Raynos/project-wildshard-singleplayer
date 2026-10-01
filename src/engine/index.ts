@@ -191,17 +191,15 @@ export type { AnimalSound, HoofSurface, ImpactKind } from './audio/Audio';
 
 export { audioRandom } from './audio/util';
 
-export { wildEnv } from './entities/wildEnv';
 
 export { authoredTargets, type RayTargets } from './combat/targets';
 export { windUniforms } from './world/TreeFactory';
-export type { Wildlife, SheepHit } from './entities/Wildlife';
 export { loadMeadow } from './meadowApi';
 export type { PlaygroundHost, Playground } from './practice/playground/Playground';
 export { pathRampDescs } from './physics/paths';
 export { AnalyticsSink, type AnalyticsEvent, type AnalyticsMap, type AnalyticsBatch } from './analytics';
 export { SpeciesService } from './entities/species/look';
-export { TIER } from './core/tier';
+export { TIER, buildTier } from './core/tier';
 export type { RigAnimCtx, FurStyle } from './entities/species/registry';
 export { EncounterService, type SpawnTableRow, type SpawnEntry, type SpawnContext, type SpawnPoint, type Spawner } from './ai/encounters';
 export type { SlotAudio, StyleBank, StemSting, BossPhase } from './audio/Stems';
@@ -224,3 +222,18 @@ export { GroupBrain, type GroupMember } from './ai/GroupBrain';
 
 export { CreatureBrain } from './ai/CreatureBrain';
 export type { BossDef } from './ai/bossDefinition';
+
+export { setShapeFn, type Station } from './entities/species/loft';
+
+export { setEliteBrain, setEliteDamage, eliteThink, eliteDamageMul } from './entities/eliteBrain';
+
+export { EliteBar } from './ui/EliteBar';
+
+export { terrainNormal, terrainWaterLevel } from './world/terrainHeight';
+
+export type { GroupName } from './physics/groups';
+
+export { activeRegistry } from './world/registry';
+
+export { practiceRoom } from './core/practiceRoom';
+

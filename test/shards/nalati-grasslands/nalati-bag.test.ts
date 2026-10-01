@@ -5,7 +5,7 @@ import { saveFixture } from '../../fake/saveFixture';
 import { describe, expect, it } from 'vitest';
 import { Inventory, ITEMS, harvestOf, type ItemId } from '#game/Inventory';
 import { NALATI_SKINS, NalatiSkinLocker } from '#shards/nalati-grasslands/weapons/nalatiSkins';
-import { ELITE_DEFS } from '#shards/nalati-grasslands/elites';
+import { ELITE_DEFS } from '#shards/nalati-grasslands/combat/elites';
 import { FINDS_ELITES, elitePrize, nalatiFinds, skinRows, skinSource } from '#shards/nalati-grasslands/bag';
 import { NALATI_PLACES } from '#shards/nalati-grasslands/quest';
 

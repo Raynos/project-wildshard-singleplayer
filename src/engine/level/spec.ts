@@ -45,6 +45,7 @@ export interface LoadoutSpec {
 
 /** The engine consumes opaque level data; game presentation and discovery stay above this boundary. */
 export interface LevelSpec {
+  blender?: { area: { x0: number; x1: number; z0: number; z1: number }; models: readonly string[] };
   id: string;
   /** `water`: the level's water bodies, registered in `app.world.water` at level.data (before any world step reads them) */
   ground: { terrain?: TerrainField; structures?: true; paths?: 'plugin'; water?: readonly WaterBody[] };

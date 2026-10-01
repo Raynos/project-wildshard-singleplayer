@@ -417,6 +417,7 @@ export const hitDamage = (def: { fight?: { maxHitDamage?: number | undefined; ca
 export type { EngineEffects, LookComposeContext as ShardComposeContext, LookComposition as ShardComposition, LookStrategy as ShardRender } from '#engine/render/look';
 
 export interface ShardManifest {
+  blender?: { area: { x0: number; x1: number; z0: number; z1: number }; models: readonly string[] };
   /** Migrated manifests declare their plugin and level policy; legacy hooks retire per shard phase. */
   load?: () => Promise<{ default: new () => ShardPlugin }>;
   kitLook?: LevelSpec['kitLook'];

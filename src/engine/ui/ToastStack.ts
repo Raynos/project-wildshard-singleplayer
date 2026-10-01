@@ -19,7 +19,8 @@ export class ToastStack {
   private lastLayout = -1e9;
   private shift = 0;
 
-  constructor(private readonly box: HTMLElement) {}
+  private readonly box: HTMLElement;
+  constructor(box: HTMLElement) { this.box = box; }
 
   push(text: string): void {
     const last = this.live.at(-1);

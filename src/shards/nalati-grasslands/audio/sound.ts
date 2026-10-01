@@ -1,5 +1,6 @@
+import type { Wildlife } from '../creatures/wildlife';
 import type { ShardContext } from '#game';
-import { CombatCues, type Scope, panFromYaw, audioRandom, loadAudio, wind, type Audio, type Music, type Player, type AnimalManager, type Wildlife, type AnimalSound, type HoofSurface, type ImpactKind } from '#engine';
+import { CombatCues, type Scope, panFromYaw, audioRandom, loadAudio, wind, type Audio, type Music, type Player, type AnimalManager, type AnimalSound, type HoofSurface, type ImpactKind } from '#engine';
 import { createSteppeScore, type SteppeScene } from './SteppeScore';
 /**
  * Nalati's sound (row B16, the audio half): the steppe's creatures, hooves on the ground they cross, the stampede, the

@@ -32,6 +32,8 @@ const { installKitSpecies } = await import('#kit');
 installKitSpecies();
 const { installDriftwoodSpecies } = await import('#shards/driftwood-isle/species/install');
 installDriftwoodSpecies();
+const { installNalatiSpeciesForTests } = await import('#shards/nalati-grasslands/species/rows');
+installNalatiSpeciesForTests();
 // Legacy fixtures include Pine's spawn-only thrall, without activating a rendered level.
 const { PINE_BOAR } = await import('#shards/pine-hollow/species/rows');
 const { PINE_BOAR_LOOK } = await import('#shards/pine-hollow/species/looks');
