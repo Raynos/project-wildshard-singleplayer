@@ -23,7 +23,6 @@ import { loadNavmesh } from '../physics/navmesh';
 import { setRagdollClock } from '../physics/ragdoll';
 import { Bodies, setActiveBodies } from '../physics/bodies';
 import { addEdgeWalls, addTerrain } from '../physics/terrain';
-import { ColliderBridge } from '../physics/bridge';
 import { addPiece } from '../physics/pieces';
 import { activeRegistry, type WorldRegistry } from '../world/registry';
 import { installPhysicsDebug } from '../physics/debug';
@@ -114,8 +113,6 @@ export async function bootstrap(step: StepRunner = runDirect): Promise<World> {
 
   const player = new Player(game.camera, physics, canvas);
   setActiveBodies(new Bodies(physics, player.position).attach(game)); // PHYSICS P7: items as bodies (src/engine/physics/bodies.ts), stepped in the fixed phases, capped near the player
-  // the world's moving hand-made boxes (the interactables' doors / chests / levers, Wendell, the dev scenes' boxes), mirrored every fixed step
-  const bridge = new ColliderBridge(physics, player.colliders);
   // the registry's listeners: a registered piece is drawn, collides, and (until P4 / P3) lends the player its floor
   const registry = activeRegistry(); // the one list of built things: scene, physics, floors and Explore's catalog read it
   const moving: (() => void)[] = []; // pieces that follow a moving object (the boat): posed every fixed step
@@ -123,7 +120,7 @@ export async function bootstrap(step: StepRunner = runDirect): Promise<World> {
   registry.onAdd((piece) => {
     if (piece.object) game.scene.add(piece.object);
     const added = addPiece(physics, piece);
-    if (added.body) moving.push(added.sync);
+    if (added.body || piece.active) moving.push(added.sync);
     if (piece.floor && piece.solidFloor !== true) player.platforms.push(piece.floor);
   });
   // the forest's trunks (Nalati's spruces; none on the island). A forest its shard's tree model draws: the model's (E315)
@@ -141,7 +138,7 @@ export async function bootstrap(step: StepRunner = runDirect): Promise<World> {
   const playing = () => !tour.active && !world.freeCamera;
   // labels name them in error reports; `true` = core: the world step and the player's move can't be switched off (src/engine/core/faults.ts)
   game.onInput((dt) => { if (playing()) player.input(dt); }, 'player.input');
-  game.onFixed('pre', () => { bridge.sync(); for (const m of moving) m(); }, 'physics.movers');
+  game.onFixed('pre', () => { for (const m of moving) m(); }, 'physics.movers');
   game.onFixed('step', () => { physics.step(); }, 'physics.step', true);
   game.onFixed('post', (dt) => { const on = playing(); player.setBodyEnabled(on); if (on) player.step(dt); }, 'player.step', true);
   game.onUpdate((dt) => {

@@ -22,9 +22,11 @@
  * every frame); so does the collision (moving boxes, the barrel's body).
  */
 import * as THREE from 'three';
+import { app } from '../../app/runtime';
 import { lowPolyMaterial } from '../lowpolyKit';
 import type { Sky } from '../Sky';
-import type { Collider } from '../../player/Player';
+import { boxInFrame, type BoxSpec as Collider } from '../../physics/box';
+import { boxDesc, type Piece } from '../registry';
 import type { Interactable } from '../Cabin';
 import type { Physics } from '../../physics/Physics';
 import type { GroupName } from '../../physics/groups';
@@ -56,7 +58,7 @@ export interface InteractEvent {
 export interface InteractHost {
   scene: THREE.Scene;
   sky: Sky;
-  player: { position: THREE.Vector3; velocity: THREE.Vector3; colliders: Collider[] };
+  player: { position: THREE.Vector3; velocity: THREE.Vector3 };
   flags: Flags;
   /** a placement → world point (y = the floor there unless pinned) + world yaw */
   place: (p: Place) => { x: number; y: number; z: number; yaw: number };
@@ -87,6 +89,8 @@ export class Live {
   target = 0;
   parts: Part[] = [];
   collider: Collider | null = null;
+  readonly object = new THREE.Object3D();
+  piece: Piece | null = null;
   prompt: Interactable | null = null;
   dirty = true;
   /** barrel: its start (the leash is measured from here) */
@@ -124,10 +128,10 @@ const parked = (c: Collider): boolean => c.yTop < -1e5;
 
 /**
  * How the LOS pick sees one prompt. `slack`: a world hit this many metres short of the prompt point still counts as
- * seen (the thing's own body — its half-size + 0.2). `body`: the Collider box that IS the thing (the physics bridge
- * tags its mirror with it as owner), so a ray that meets it first has met the target, not a wall.
+ * seen (the thing's own body — its half-size + 0.2). `body`: the registry piece that IS the thing (its Rapier collider
+ * is tagged with it as owner), so a ray that meets it first has met the target, not a wall.
  */
-export interface Sight { slack: number; body?: Collider | null }
+export interface Sight { slack: number; body?: object | null }
 /** the slack of a prompt nobody described (a pickup orb, an NPC's head, a zipline platform) */
 export const SIGHT_SLACK = 0.5;
 const sights = new WeakMap<Interactable, Sight>();
@@ -447,7 +451,13 @@ export class Interactables {
       case 'key': case 'pickup': case 'plate': case 'bench': break;
       default: break;
     }
-    if (lv.collider) this.host.player.colliders.push(lv.collider);
+    if (lv.collider) {
+      lv.object.position.copy(lv.position); lv.object.rotation.y = lv.yaw;
+      const moving = d.kind === 'barrel';
+      lv.piece = app.registry.add({ id: `interact-${d.id}`, name: d.id, category: 'props', file: 'src/engine/world/interact/Interactables.ts',
+        colliders: [moving ? boxInFrame(lv.collider, lv.object) : boxDesc(lv.collider, 'wood')], surface: 'wood',
+        ...(moving ? { follows: lv.object } : {}), active: () => lv.shown && lv.collider !== null && !parked(lv.collider) });
+    }
     // the prompt
     if (d.kind !== 'plate' && d.kind !== 'barrel' && !(d.kind === 'pickup' && d.touch === true)) {
       const pos = new THREE.Vector3(p.x, p.y + (d.kind === 'door' ? 1.1 : d.kind === 'key' ? 1.0 : 0.6), p.z);
@@ -459,7 +469,7 @@ export class Interactables {
         onInteract: () => { this.interact(lv); },
       };
       lv.prompt = prompt;
-      setSight(prompt, { slack: this.sightSlack(lv), body: lv.collider });
+      setSight(prompt, { slack: this.sightSlack(lv), body: lv.piece });
       this.host.prompts.push(prompt);
     }
     // the initial state from the flags (a reload keeps an opened chest open)
@@ -673,6 +683,7 @@ export class Interactables {
 
   private pose(lv: Live, t: number): void {
     lv.dirty = false;
+    lv.object.position.copy(lv.position); lv.object.quaternion.copy(lv.def.kind === 'barrel' ? lv.rot : _q.setFromAxisAngle(_v.set(0, 1, 0), lv.yaw));
     _m.compose(lv.position, lv.def.kind === 'barrel' ? lv.rot : _q.setFromAxisAngle(_v.set(0, 1, 0), lv.yaw), _s.set(1, 1, 1));
     for (const p of lv.parts) {
       const bm = this.batches[p.batch];

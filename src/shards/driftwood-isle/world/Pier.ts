@@ -6,7 +6,7 @@
  *
  *   const pier = new Pier(sky, { x: 0, z: -250, length: 60, width: 4, deckY: 1.8, landing: true }).place(registry, 'pier');
  *   const pier = new Pier(sky, { … }).build();              // a dev page / the Blender export: not registered
- *   scene.add(pier.group); player.colliders.push(...pier.colliders);
+ *   scene.add(pier.group); its registry piece.push(...pier.colliders);
  *   player.platforms.push((x, z) => pier.floorHeightAt(x, z)); // the deck is walkable
  *
  * The pier runs from (x, z) along its heading (`rot`, 0 = +z, north) for `length` metres. The landing is measured here:
@@ -17,7 +17,7 @@
  * `Boat.moorTo`.
  */
 import type * as THREE from 'three';
-import type { Collider } from '#engine/player/Player';
+import type { BoxSpec as Collider } from '#engine/physics/box';
 import type { Sky } from '#engine/world/Sky';
 import { heightAt, waterLevel } from '#engine/world/Heightfield';
 import type { ColliderDesc, WorldRegistry } from '#engine/world/registry';

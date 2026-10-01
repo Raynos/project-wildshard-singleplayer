@@ -6,7 +6,7 @@
  *
  *   const palms = new Palms(sky).place(Palms.scatterIsland(seed), registry);   // the game (main.ts)
  *   const palms = new Palms(sky).build(Palms.scatterIsland(seed));             // a dev page: no registry
- *   scene.add(palms.mesh); player.colliders.push(...palms.colliders);
+ *   scene.add(palms.mesh); its registry piece.push(...palms.colliders);
  *   game.onUpdate((dt) => palms.update(dt));
  */
 import * as THREE from 'three';
@@ -14,7 +14,7 @@ import { CHUNK_HALF, ROAD_WIDTH } from '#engine/core/config';
 import { heightAt, normalAt, waterLevel, inChunk } from '#engine/world/Heightfield';
 import { Rng } from '#engine/core/rng';
 import { Noise2D } from '#engine/core/noise';
-import type { Collider } from '#engine/player/Player';
+import type { BoxSpec as Collider } from '#engine/physics/box';
 import type { Sky } from '#engine/world/Sky';
 import type { ColliderDesc, WorldRegistry } from '#engine/world/registry';
 import { TIER_CONFIG } from '#engine/core/tier';

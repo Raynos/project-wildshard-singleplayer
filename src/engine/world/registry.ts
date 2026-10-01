@@ -263,7 +263,7 @@ app.registryFactory = () => new WorldRegistry();
 export function activeRegistry(): WorldRegistry { return app.registry; }
 
 /** A hand-made `Collider` box (Y-rotated by −rot, with yTop / yBottom, the P2-era format) as a `ColliderDesc`. */
-export function boxDesc(c: { x: number; z: number; hw: number; hd: number; rot: number; yTop: number; yBottom: number }, surface?: Material): ColliderDesc {
+export function boxDesc(c: { x: number; z: number; hw: number; hd: number; rot: number; yTop: number; yBottom: number }, surface?: Material): Extract<ColliderDesc, { kind: 'box' }> {
   return { kind: 'box', x: c.x, y: (c.yTop + c.yBottom) / 2, z: c.z, hx: c.hw, hy: Math.max(0.005, (c.yTop - c.yBottom) / 2), hz: c.hd, yaw: -c.rot, ...(surface === undefined ? {} : { surface }) };
 }
 

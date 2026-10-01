@@ -20,7 +20,6 @@ import { HUT, LOOKOUT, WRECK, SHRINE, PIER, OCEAN } from '#shards/driftwood-isle
 import { Cove } from '#shards/driftwood-isle/world/Cove';
 import type { Sky } from '#engine/world/Sky';
 import type { Interactable } from '#engine/world/Cabin';
-import type { Collider } from '#engine/player/Player';
 import { Flags } from '#engine/world/interact/flags';
 import { Interactables, type InteractEvent } from '#engine/world/interact/Interactables';
 import { DRIFTWOOD_INTERACT, SEA_GLASS_COUNT, SEA_GLASS_FLAG } from '#shards/driftwood-isle/quest/interactables';
@@ -56,7 +55,7 @@ export interface AdvAnimal { kind: string; variant?: string; position: THREE.Vec
 export interface AdventureWorld<A extends AdvAnimal = AdvAnimal> {
   game: { scene: THREE.Scene; camera: THREE.Camera; onUpdate: (fn: (dt: number, t: number) => void, label?: string) => void };
   sky: Sky;
-  player: { position: THREE.Vector3; velocity: THREE.Vector3; yaw: number; pitch: number; carried: boolean; colliders: Collider[]; platforms: ((x: number, z: number) => number | undefined)[] };
+  player: { position: THREE.Vector3; velocity: THREE.Vector3; yaw: number; pitch: number; carried: boolean; platforms: ((x: number, z: number) => number | undefined)[] };
   chunk: { slug: string };
   /** main.ts's interactable list ("[E] …" prompts, the touch USE button) */
   prompts: Interactable[];

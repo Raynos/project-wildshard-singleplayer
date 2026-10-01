@@ -36,7 +36,7 @@ import { loadNalatiModel, modelsOn } from '../glbPaint';
 import type { NalatiSet } from '../painted';
 import type { Sky } from '#engine/world/Sky';
 import type { Forest } from '#engine/world/forest/Forest';
-import type { Collider } from '#engine/player/Player';
+import type { BoxSpec as Collider } from '#engine/physics/box';
 import type { ColliderDesc, WorldRegistry } from '#engine/world/registry';
 import { hullAt, hullCandidates, type Box } from '../solid';
 import { modelContext, type ModelDef } from '#engine/models/model';

@@ -6,14 +6,14 @@
  *
  *   const hut = new Hut(sky, { x, z, rot }).place(registry);   // the game (main.ts): piece `hut`; rot: which way the door faces (0 = −z)
  *   const hut = new Hut(sky, { x, z, rot }).build();           // a dev page / the Blender export: not registered
- *   scene.add(hut.group); player.colliders.push(...hut.colliders);
+ *   scene.add(hut.group); its registry piece.push(...hut.colliders);
  *   player.platforms.push((x, z) => hut.floorHeightAt(x, z)); // porch + floor + steps are walkable
  *
  * `anchors` (world coords, y = floor, yaw = world facing, 0 = +Z): npc, hutChest, door, porch (see the model).
  */
 import type * as THREE from 'three';
 import { heightAt } from '#engine/world/Heightfield';
-import type { Collider } from '#engine/player/Player';
+import type { BoxSpec as Collider } from '#engine/physics/box';
 import type { ColliderDesc, WorldRegistry } from '#engine/world/registry';
 import type { Sky } from '#engine/world/Sky';
 import { hut, hutLayout, hutOrigin, type HutAnchor, type HutParams } from '../models/hut';

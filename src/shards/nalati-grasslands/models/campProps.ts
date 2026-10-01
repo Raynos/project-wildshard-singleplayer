@@ -21,7 +21,7 @@ import { M, pole, v3, lathe, logPainter, woodPole, blob } from '../world/paint';
 import { PC, GRAIN, WOOD, rugGeometry, rugPainter } from '../world/props';
 import { painted, type Kit, type Paint } from '../world/painted';
 import type { Box } from '../world/solid';
-import type { Collider } from '#engine/player/Player';
+import type { BoxSpec as Collider } from '#engine/physics/box';
 
 type Ground = (x: number, z: number) => number;
 

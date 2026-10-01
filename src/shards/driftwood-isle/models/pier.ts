@@ -15,7 +15,7 @@
  */
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import type { Collider } from '#engine/player/Player';
+import type { BoxSpec as Collider } from '#engine/physics/box';
 import { SEED } from '#engine/core/config';
 import type { Rng } from '#engine/core/rng';
 import { boxDesc, type ColliderDesc } from '#engine/world/registry';

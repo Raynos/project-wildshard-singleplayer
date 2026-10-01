@@ -13,7 +13,7 @@
  * is data only — a hull or a prism stands in for it in the physics.
  */
 import * as THREE from 'three';
-import type { Collider } from '#engine/player/Player';
+import type { BoxSpec as Collider } from '#engine/physics/box';
 import type { Material } from '#engine/physics/surface';
 import { boxDesc, type ColliderDesc } from '#engine/world/registry';
 

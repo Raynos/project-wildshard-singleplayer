@@ -3,10 +3,11 @@
 import { describe, expect, it } from 'vitest';
 import { loadRapier } from '#engine/physics/rapier';
 import { Physics } from '#engine/physics/Physics';
-import { ColliderBridge } from '#engine/physics/bridge';
+import { addPiece } from '#engine/physics/pieces';
+import { boxDesc } from '#engine/world/registry';
 import { CharacterMotor } from '#engine/physics/CharacterMotor';
 import { groups } from '#engine/physics/groups';
-import type { Collider } from '#engine/player/Player';
+import type { BoxSpec as Collider } from '#engine/physics/box';
 import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';
 
 const rapier = async () => loadRapier(await (await fetch(wasmInline)).arrayBuffer());
@@ -35,7 +36,7 @@ function floor(ph: Physics): void {
   ph.world.createCollider(ph.R.ColliderDesc.cuboid(50, 0.5, 50).setTranslation(0, -0.5, 0).setCollisionGroups(groups('WORLD')));
 }
 
-describe('physics bridge', () => {
+describe('registry boxes', () => {
   it('mirrors each Y-rotated box where the old collide() had it (points inside agree, rotation sign included)', async () => {
     const R = await rapier();
     const ph = new Physics(R);
@@ -43,8 +44,7 @@ describe('physics bridge', () => {
       { x: 3, z: -2, hw: 2, hd: 0.3, rot: 0.6, yTop: 3, yBottom: 0 },
       { x: -5, z: 4, hw: 0.5, hd: 1.5, rot: -1.2, yTop: 2, yBottom: -1 },
     ];
-    const bridge = new ColliderBridge(ph, boxes);
-    bridge.sync();
+    for (const [i, box] of boxes.entries()) addPiece(ph, { id: `box-${i}`, name: 'Box', category: 'props', file: 'test', colliders: [boxDesc(box)] });
     ph.step();
     let checked = 0;
     for (const b of boxes) {
@@ -59,15 +59,6 @@ describe('physics bridge', () => {
       }
     }
     expect(checked).toBeGreaterThan(600);
-    // a moved box follows, a removed one goes
-    const first = boxes[0];
-    if (first) first.x += 10;
-    boxes.pop();
-    bridge.sync(); ph.step();
-    expect(bridge.count).toBe(1);
-    let hit = false;
-    ph.world.intersectionsWithPoint({ x: 13, y: 1.5, z: -2 }, () => { hit = true; return false; });
-    expect(hit).toBe(true);
     ph.dispose();
   });
 });

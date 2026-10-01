@@ -12,7 +12,7 @@
  */
 import type * as THREE from 'three';
 import { heightAt } from '#engine/world/Heightfield';
-import type { Collider } from '#engine/player/Player';
+import type { BoxSpec as Collider } from '#engine/physics/box';
 import type { ColliderDesc, WorldRegistry } from '#engine/world/registry';
 import type { Sky } from '#engine/world/Sky';
 import { ropeBridge, ropeBridgeLayout, type DeckPoses, type RopeBridgeLayout, type RopeBridgeParams, type RopeBridgeSpec } from '../models/ropeBridge';

@@ -33,7 +33,7 @@ import { SEED } from '#engine/core/config';
 import type { Rng } from '#engine/core/rng';
 import { LowPolyKit, log, beam, plank, rope, sagLine, tris, bakeLight, lowPolyMaterial, type BakedLight } from '#engine/world/lowpolyKit';
 import { swayDepthMaterial } from '#engine/world/wind';
-import type { Collider } from '#engine/player/Player';
+import type { BoxSpec as Collider } from '#engine/physics/box';
 import { boxDesc, type ColliderDesc } from '#engine/world/registry';
 import { defineModel } from '#engine/models/model';
 import { addBarrel, addCoil, addCrate } from './cargo';

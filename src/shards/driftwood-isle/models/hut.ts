@@ -20,7 +20,7 @@
 import * as THREE from 'three';
 import { SEED } from '#engine/core/config';
 import { LowPolyKit, log, plank, rope, tris, bakeLight, lowPolyMaterial, type BakedLight } from '#engine/world/lowpolyKit';
-import type { Collider } from '#engine/player/Player';
+import type { BoxSpec as Collider } from '#engine/physics/box';
 import { boxDesc, type ColliderDesc } from '#engine/world/registry';
 import { defineModel } from '#engine/models/model';
 

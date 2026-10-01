@@ -13,7 +13,7 @@
  *
  *   const wreck = new Wreck(sky, WRECK).place(registry);   // the game: piece `wreck` + the models' cards; add wreck.group to the scene
  *   const wreck = new Wreck(sky, WRECK).build();           // a dev page / the navmesh bake: not registered
- *   scene.add(wreck.group); player.colliders.push(...wreck.colliders);
+ *   scene.add(wreck.group); its registry piece.push(...wreck.colliders);
  *   player.platforms.push((x, z) => wreck.floorHeightAt(x, z));   // hold floor, ramp, stair, bow deck, quarterdeck
  *
  * `anchors`, `holdBounds` and the frames: see the model.
@@ -26,7 +26,7 @@ import { log, plank, rock, rope, lowPolyMaterial } from '#engine/world/lowpolyKi
 import { swayDepthMaterial } from '#engine/world/wind';
 import { rockGeometry, rockMaterial, REEF_ROCK } from './rockKit';
 import { Rng } from '#engine/core/rng';
-import type { Collider } from '#engine/player/Player';
+import type { BoxSpec as Collider } from '#engine/physics/box';
 import type { Sky } from '#engine/world/Sky';
 import type { ColliderDesc, WorldRegistry } from '#engine/world/registry';
 import { addDriftLog, DRIFT } from './driftLogs';

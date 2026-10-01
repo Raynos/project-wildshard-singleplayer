@@ -8,6 +8,7 @@
  *   spine.quest.objective()  spine.markers()        // the map reads the live markers (A5)
  */
 import * as THREE from 'three';
+import { app, boxInFrame } from '#engine';
 import { QuestState, type QuestMarker } from '#game/quest/quest';
 import { CASTAWAY, DRIFTWOOD_QUEST } from './questLine';
 import { DialogueBox, type ObjectiveLine } from '#game/quest/QuestUI';
@@ -47,7 +48,7 @@ export function installSpine<A extends AdvAnimal>(adv: Adventure, w: AdventureWo
   const fire = place({ poi: 'hut', x: 0.7, z: -9.8 });
   const castaway = new Castaway(w.sky, feet, fire).build();
   w.game.scene.add(castaway.group);
-  w.player.colliders.push(castaway.collider);
+  (w.registry ?? app.registry).add({ id: 'npc-castaway', name: 'Wendell', category: 'people', file: 'src/shards/driftwood-isle/quest/Spine.ts', colliders: [boxInFrame(castaway.collider, castaway.group)], follows: castaway.group });
   castaway.group.updateMatrixWorld(true);
   const talkAt = castaway.headWorld(new THREE.Vector3());
   let waved = false, stowed = false;

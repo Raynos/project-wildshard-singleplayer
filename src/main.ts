@@ -137,7 +137,7 @@ import { shardCompleteUp } from '#game/complete/ShardComplete';
 import { cutTerrain } from '#engine/physics/terrain';
 import { RopeChain } from '#engine/physics/ropeChain';
 import { pathRampDescs } from '#engine/physics/paths';
-import type { Collider } from '#engine/player/Player';
+import type { BoxSpec as Collider } from '#engine/physics/box';
 import { activePhysics } from '#engine/physics/active';
 import { floorBelow, lineOfSight } from '#engine/physics/query';
 import { pickInteractable, setSight } from '#engine/world/interact/Interactables';
@@ -447,7 +447,7 @@ async function buildShardWorld(slug: string, first: boolean, manifest: ShardMani
   // which stays as the fallback when it fails to load
   const blenderIsland = isOcean
     ? await import('#shards/driftwood-isle/world/BlenderIsland').then(({ BlenderIsland: B }) => B.install({
-      scene: game.scene, sky, colliders: player.colliders, terrain: world.terrain.mesh, palms: palms?.mesh ?? null, palmSpecs,
+      scene: game.scene, sky, registry, terrain: world.terrain.mesh, palms: palms?.mesh ?? null, palmSpecs,
       replace: [bushes?.mesh ?? null], cover: dressing.cover?.group ?? null,
     })).catch((e: unknown) => { console.warn('[island] the Blender island did not load; procedural', e); return null; })
     : null;

@@ -23,6 +23,7 @@ import type { Player } from '#engine/player/Player';
 import type { AnimalManager } from '#engine/entities/AnimalManager';
 import type { Animal } from '#engine/entities/Animal';
 import type { Interactable, Cabins } from '#engine/world/Cabin';
+import { boxInFrame } from '#engine';
 import type { WorldRegistry } from '#engine/world/registry';
 import type { HUD } from '#engine/ui/HUD';
 import type { Audio } from '#engine/audio/Audio';
@@ -353,7 +354,7 @@ export function installPineQuest(h: PineQuestHost): PineQuest {
     const y = floorAt(feet.x, feet.z);
     const fig = makeNpcFigure(kind, sky, { x: feet.x, y, z: feet.z }, yaw);
     game.scene.add(fig.group);
-    player.colliders.push(fig.collider);
+    h.registry.add({ id: `npc-${kind}`, name: def.name, category: 'people', file: 'src/shards/pine-hollow/quest/index.ts', colliders: [boxInFrame(fig.collider, fig.group)], follows: fig.group });
     const talk = (): void => {
       if (dialogue.isOpen) { dialogue.advance(); return; }
       const entry = lineFor(def, flags);

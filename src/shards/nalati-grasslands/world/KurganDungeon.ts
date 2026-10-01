@@ -41,7 +41,7 @@
 import * as THREE from 'three';
 import { PaintKit, M, pole, v3, blob, lathe } from './paint';
 import { balbalGeometry } from '../models/balbal';
-import type { Collider } from '#engine/player/Player';
+import type { BoxSpec as Collider } from '#engine/physics/box';
 import { boxDesc, type ColliderDesc, type WorldRegistry } from '#engine/world/registry';
 import type { Material } from '#engine/physics/surface';
 import { HeightPatch } from '#engine/physics/heightPatch';

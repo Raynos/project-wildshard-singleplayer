@@ -22,7 +22,7 @@ import * as THREE from 'three';
 import { SEED } from '#engine/core/config';
 import { LowPolyKit, log, plank, rope, sagLine, tris, lowPolyMaterial } from '#engine/world/lowpolyKit';
 import { swayDepthMaterial } from '#engine/world/wind';
-import type { Collider } from '#engine/player/Player';
+import type { BoxSpec as Collider } from '#engine/physics/box';
 import { boxDesc, type ColliderDesc } from '#engine/world/registry';
 import { defineModel } from '#engine/models/model';
 

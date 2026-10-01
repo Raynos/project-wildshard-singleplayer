@@ -6,7 +6,7 @@ import { SEED } from '../core/config';
 import { heightAt, CABIN_SITES } from './Heightfield';
 import { attachFogUniforms } from './Atmosphere';
 import type { Sky } from './Sky';
-import type { Collider } from '../player/Player';
+import type { BoxSpec as Collider } from '../physics/box';
 import { boxDesc, type ColliderDesc } from './registry';
 import { TIER_CONFIG } from '../core/tier';
 import { macrotask } from '../boot/plan';

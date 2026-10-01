@@ -26,7 +26,7 @@ import { SEED } from '#engine/core/config';
 import type { Rng } from '#engine/core/rng';
 import { attachFogUniforms } from '#engine/world/Atmosphere';
 import { LowPolyKit, rock, tris, bakeLight, lowPolyMaterial, fern, broadClump, hibiscusBush, hibiscus, lilyPad, lotus, vineStrand, PLANT } from '#engine/world/lowpolyKit';
-import type { Collider } from '#engine/player/Player';
+import type { BoxSpec as Collider } from '#engine/physics/box';
 import { boxDesc, type ColliderDesc } from '#engine/world/registry';
 import { defineModel, type ModelContext } from '#engine/models/model';
 

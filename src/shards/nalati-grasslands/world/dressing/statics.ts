@@ -20,7 +20,7 @@ import { NalatiSet } from '../painted';
 import { Flutter } from '../Flutter';
 import { Smoke } from '../Smoke';
 import type { Sky } from '#engine/world/Sky';
-import type { Collider } from '#engine/player/Player';
+import type { BoxSpec as Collider } from '#engine/physics/box';
 import type { ColliderDesc } from '#engine/world/registry';
 import { campClutterSpots, type DressPlan } from './place';
 import { fence, fenceRun } from '../../models/fence';

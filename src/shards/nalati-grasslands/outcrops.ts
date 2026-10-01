@@ -26,7 +26,7 @@ import { Noise2D } from '#engine/core/noise';
 import { riverMask, rimZAt, RIVER, RIM_Z, outcropAt, BROOK, edgeBermAt } from './manifest';
 import { CHUNK_HALF } from '#engine/core/config';
 import type * as THREE from 'three';
-import type { Collider } from '#engine/player/Player';
+import type { BoxSpec as Collider } from '#engine/physics/box';
 import type { ColliderDesc, WorldRegistry } from '#engine/world/registry';
 import type { ModelContext } from '#engine/models/model';
 import type { Placed } from '#engine/models/place';

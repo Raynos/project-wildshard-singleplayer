@@ -7,7 +7,7 @@
  *
  *   const lookout = new Lookout(sky, { x, z, rot }).place(registry);   // the game (main.ts): piece `lookout`; rot: which side the stair descends toward
  *   const lookout = new Lookout(sky, { x, z, rot }).build();           // a dev page / the navmesh bake: not registered
- *   scene.add(lookout.group); player.colliders.push(...lookout.colliders);
+ *   scene.add(lookout.group); its registry piece.push(...lookout.colliders);
  *   player.platforms.push((x, z) => lookout.floorHeightAt(x, z));
  *
  * `anchors` (world coords, y = platform unless noted, yaw = world facing, 0 = +Z): beacon, shard, zipTop, stairFoot
@@ -16,7 +16,7 @@
 import type * as THREE from 'three';
 import { heightAt } from '#engine/world/Heightfield';
 import { Cove } from './Cove';
-import type { Collider } from '#engine/player/Player';
+import type { BoxSpec as Collider } from '#engine/physics/box';
 import type { ColliderDesc, WorldRegistry } from '#engine/world/registry';
 import type { Sky } from '#engine/world/Sky';
 import { lookout, lookoutLayout, lookoutOrigin, type LookoutAnchor, type LookoutParams } from '../models/lookout';

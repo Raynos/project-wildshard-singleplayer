@@ -4,7 +4,7 @@
  *
  *   const ocean = new Ocean(sky).build();   // reads getActiveChunk().ocean
  *   scene.add(ocean.group);                 // ocean.mesh is the surface
- *   ocean.foamAround(player.colliders);     // foam rings wherever a collider box pierces the surface (piles, rocks, hulls)
+ *   ocean.foamAround(its registry piece);     // foam rings wherever a collider box pierces the surface (piles, rocks, hulls)
  *   game.onUpdate((dt) => ocean.update(dt));
  *
  * One mesh: a grid 2.75 m fine (phone: 4 m) over the chunk (plus a margin) that coarsens geometrically out to ~4 km.
@@ -36,7 +36,7 @@ import { HORIZON_RADIUS } from '#engine/world/HorizonMatte';
 
 const SEA_RES = 512; // the sea-floor texture: ~1 m per texel over the chunk
 
-/** an oriented collider box as the player uses them (`player.colliders`) */
+/** an oriented collider box as the player uses them (`its registry piece`) */
 interface ColliderBox { x: number; z: number; hw: number; hd: number; rot: number; yTop: number; yBottom: number }
 
 export class Ocean {

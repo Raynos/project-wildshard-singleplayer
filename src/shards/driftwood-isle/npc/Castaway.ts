@@ -6,7 +6,7 @@
  * the breadcrumb the intro objective points at).
  *
  *   const npc = new Castaway(sky, { x, y, z, yaw }, { x, y, z }).build();   // his feet; the fire's centre
- *   scene.add(npc.group);  player.colliders.push(npc.collider);
+ *   scene.add(npc.group);  register its registry piece;
  *   game.onUpdate((dt, t) => npc.update(dt, t, player.position));
  *   npc.talking = true    // gestures with the free arm while the dialogue is open (and keeps facing you)
  *   npc.wave()            // a big overhead wave (the first time you come near)
@@ -26,7 +26,7 @@
 import * as THREE from 'three';
 import { LowPolyKit, log, rock, plank, lowPolyMaterial } from '#engine/world/lowpolyKit';
 import type { Sky } from '#engine/world/Sky';
-import type { Collider } from '#engine/player/Player';
+import type { BoxSpec as Collider } from '#engine/physics/box';
 import { attachFogUniforms } from '#engine/world/Atmosphere';
 import { loadFaceHead, type FaceHead } from '#engine/world/faceHeads';
 

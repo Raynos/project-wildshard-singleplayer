@@ -12,7 +12,7 @@ import { defineModel } from '#engine/models/model';
 import { v3, woodPole } from '../world/paint';
 import { GRAIN, WOOD } from '../world/props';
 import { painted, type Kit, type Paint } from '../world/painted';
-import type { Collider } from '#engine/player/Player';
+import type { BoxSpec as Collider } from '#engine/physics/box';
 import type { Box } from '../world/solid';
 
 type Ground = (x: number, z: number) => number;

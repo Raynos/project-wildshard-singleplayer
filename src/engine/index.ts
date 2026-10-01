@@ -15,3 +15,6 @@ export { ambientTick } from './core/harnessTap';
 export { retainCachedResources } from './app/cachedAssets';
 export type { Ktx2Table } from './boot/gpuFiles';
 export type { LoadFailure } from './core/errorReport';
+
+export { boxInFrame, type BoxSpec } from './physics/box';
+export type { Player } from './player/Player';

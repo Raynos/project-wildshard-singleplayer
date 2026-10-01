@@ -143,7 +143,7 @@ export async function wireNalati(ctx: NalatiCtx): Promise<Nalati> {
   // ── rock outcrops (world agent, look pass): granite breaking out of the escarpment's steep ground ──
   const outcrops = buildOutcrops(sky);
   game.scene.add(outcrops.mesh);
-  // NALATI-MERGE P1: every big block as the hull of what it draws, in the world registry (never `player.colliders`) —
+  // NALATI-MERGE P1: every big block as the hull of what it draws, in the world registry (never `its registry piece`) —
   // E306 / E315: its rocks are models (the granite outcrop, the rounded boulder), placed drawnInto the mesh
   const rockCtx = modelContext(sky);
   const rockPlaced = [...await outcrops.register(activeRegistry(), rockCtx, macrotask)];

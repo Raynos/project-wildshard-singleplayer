@@ -31,7 +31,7 @@ import { heightAt, trailDistance } from '#engine/world/Heightfield';
 import { inPoiClearing } from './world/clearings';
 import { isPhoneTier } from './look/nalatiTextures';
 import { zoneAt, glacierMask, brookMask, LEOPARD_CAVE, ARGYMAQ_PASTURE, SNOW_LOTUS, WATCHTOWER } from './manifest';
-import type { Collider } from '#engine/player/Player';
+import type { BoxSpec as Collider } from '#engine/physics/box';
 import type { ColliderDesc, WorldRegistry } from '#engine/world/registry';
 import { supportHull } from './world/solid';
 import type { Sky } from '#engine/world/Sky';

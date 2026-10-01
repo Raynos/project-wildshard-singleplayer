@@ -13,7 +13,7 @@
  */
 import * as THREE from 'three';
 import { M, poiMaterial } from './paint';
-import type { Collider } from '#engine/player/Player';
+import type { BoxSpec as Collider } from '#engine/physics/box';
 import { boxDesc, type WorldRegistry } from '#engine/world/registry';
 import type { Box } from './solid';
 import type { PoiCtx, PoiPiece } from './types';

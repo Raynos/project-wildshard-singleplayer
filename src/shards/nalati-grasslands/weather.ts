@@ -20,7 +20,7 @@
 import * as THREE from 'three';
 import type { Game } from '#engine/core/Game';
 import type { Sky } from '#engine/world/Sky';
-import type { Player, Collider } from '#engine/player/Player';
+import type { Player, BoxSpec as Collider } from '#engine';
 import type { Forest } from '#engine/world/forest/Forest';
 import type { Audio } from '#engine/audio/Audio';
 import { getActiveChunk } from '#game/shard/registry';

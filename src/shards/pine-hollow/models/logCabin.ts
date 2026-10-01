@@ -26,7 +26,7 @@ import { TIER_CONFIG } from '#engine/core/tier';
 import { heightAt } from '#engine/world/Heightfield';
 import { boxDesc, type ColliderDesc } from '#engine/world/registry';
 import type { Sky } from '#engine/world/Sky';
-import type { Collider } from '#engine/player/Player';
+import type { BoxSpec as Collider } from '#engine/physics/box';
 import type { Cabins, Interactable, Mats, MatKey } from '#engine/world/Cabin';
 import { defineModel, type ModelBuild, type ModelContext } from '#engine/models/model';
 import { UnitParts, flatPositions, mergeOrNull, nearProxy, shadowProxy, twoSidedPositions, type WeldBuild, type WeldPart } from '#engine/models/weld';

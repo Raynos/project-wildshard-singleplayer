@@ -13,7 +13,7 @@
  * registry nothing reads.
  *
  *   const trailside = new Trailside(sky).build({ fences, steps, signs });
- *   scene.add(trailside.mesh); player.colliders.push(...trailside.colliders);
+ *   scene.add(trailside.mesh); its registry piece.push(...trailside.colliders);
  *
  * `Trailside.forIsland()` is Driftwood's layout: fences along the plateau ramp and the plateau's
  * seaward rim, steps up the plateau ramp and the headland ramp, signposts at the pier landing and
@@ -24,7 +24,7 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import { heightAt } from '#engine/world/Heightfield';
 import { Rng } from '#engine/core/rng';
 import { SEED } from '#engine/core/config';
-import type { Collider } from '#engine/player/Player';
+import type { BoxSpec as Collider } from '#engine/physics/box';
 import type { Sky } from '#engine/world/Sky';
 import type { ColliderDesc, WorldRegistry } from '#engine/world/registry';
 import { fencePost, plankStep, signpost, trailMaterial, trailPart, TRAIL_COLOURS as C, type PlankStepParams, type SignpostParams } from '../models/trailside';

@@ -12,7 +12,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type { Sky } from '#engine/world/Sky';
-import type { Collider } from '#engine/player/Player';
+import type { BoxSpec as Collider } from '#engine/physics/box';
 import { KINGS_CLEARING } from '../layout';
 import { loadNpcModel, npcRig, preloadNpcModels, type NpcRig } from '../quest/npcModels';
 import { shardSlot } from '#engine/core/shardState';

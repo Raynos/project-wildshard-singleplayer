@@ -18,7 +18,7 @@
  *
  *   const cove = new Cove(sky).place(registry, Cove.forIsland());   // the game: piece `cove` (world) + the reef rocks' card
  *   const cove = new Cove(sky).build(Cove.forIsland());                          // a dev page / the navmesh bake: not registered
- *   scene.add(cove.group); player.colliders.push(...cove.colliders);
+ *   scene.add(cove.group); its registry piece.push(...cove.colliders);
  *   player.platforms.push((x, z) => cove.floorHeightAt(x, z));      // the cave floor (antechamber, ramp, alcove)
  *   game.onUpdate((dt) => cove.update(dt));
  *   enemies: new Enemies(animals, { crabSites: cove.crabSites, … })   // the tidepool groups the Reef Crabs live at
@@ -38,7 +38,7 @@ import { SEED } from '#engine/core/config';
 import { LowPolyKit, rock, log, tris, bakeLight, lowPolyMaterial, type BakedLight } from '#engine/world/lowpolyKit';
 import { Rng } from '#engine/core/rng';
 import { rockGeometry, rockMaterial, REEF_ROCK } from './rockKit';
-import type { Collider } from '#engine/player/Player';
+import type { BoxSpec as Collider } from '#engine/physics/box';
 import type { Sky } from '#engine/world/Sky';
 import { boxDesc, type ColliderDesc, type WorldRegistry } from '#engine/world/registry';
 import { reefRock } from '../models/reefRock';

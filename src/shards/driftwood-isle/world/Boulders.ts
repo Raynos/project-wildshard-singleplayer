@@ -7,13 +7,13 @@
  *
  *   const rocks = new Boulders(sky).place(Boulders.scatterShore(seed), registry);   // the game (main.ts)
  *   const rocks = new Boulders(sky).build(Boulders.scatterShore(seed));             // a dev page: no registry
- *   scene.add(rocks.mesh); player.colliders.push(...rocks.colliders);
+ *   scene.add(rocks.mesh); its registry piece.push(...rocks.colliders);
  */
 import type * as THREE from 'three';
 import { CHUNK_HALF, ROAD_WIDTH } from '#engine/core/config';
 import { heightAt, normalAt, waterLevel, inChunk } from '#engine/world/Heightfield';
 import { Rng } from '#engine/core/rng';
-import type { Collider } from '#engine/player/Player';
+import type { BoxSpec as Collider } from '#engine/physics/box';
 import type { Sky } from '#engine/world/Sky';
 import type { ColliderDesc, WorldRegistry } from '#engine/world/registry';
 import { WRECK } from '../manifest';

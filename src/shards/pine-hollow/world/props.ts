@@ -5,7 +5,7 @@ import { smoothstep } from '#engine/core/noise';
 import { heightAt, normalAt, trailDistance, cabinMask, inChunk, CABIN_SITES, TRAILS } from '#engine/world/Heightfield';
 import type { Sky } from '#engine/world/Sky';
 import type { TreeInstance } from '#engine/world/forest/Forest';
-import type { Collider } from '#engine/player/Player';
+import type { BoxSpec as Collider } from '#engine/physics/box';
 import type { ColliderDesc, WorldRegistry } from '#engine/world/registry';
 import { TIER_CONFIG } from '#engine/core/tier';
 import { place, type CullOptions, type CullView, type Placed } from '#engine/models/place';
@@ -22,7 +22,7 @@ import { pineModels } from './context';
  *
  *   const props = new Props(sky, forest, renderer);
  *   await props.build(registry, macrotask);      // places and registers them; `registry` null: a dev page / the bake
- *   player.colliders.push(...props.colliders);   // the legacy boxes (large boulders only: the melee sweep)
+ *   props.place(registry);   // the legacy boxes (large boulders only: the melee sweep)
  *
  * Placement is deterministic (Rng(SEED+…)), follows the terrain normal, sinks into the ground, avoids tree trunks via
  * `forest.nearby`, keeps off the trails (trailDistance > 4 for logs) and out of the cabin pads (cabinMask < 0.2,

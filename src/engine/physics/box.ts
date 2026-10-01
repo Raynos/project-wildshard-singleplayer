@@ -1,0 +1,16 @@
+import { Quaternion, Vector3, type Object3D } from 'three';
+import { boxDesc, type ColliderDesc } from '../world/registry';
+import type { Material } from './surface';
+
+/** A box specified in world space, rotated by −rot about +Y. */
+export interface BoxSpec { x: number; z: number; hw: number; hd: number; rot: number; yTop: number; yBottom: number }
+
+/** Keep a world-space box in place when attaching it to a moving object's local frame. */
+export function boxInFrame(box: BoxSpec, object: Object3D, surface: Material = 'wood'): ColliderDesc {
+  object.updateWorldMatrix(true, false);
+  const d = boxDesc(box, surface);
+  const centre = object.worldToLocal(new Vector3(box.x, (box.yTop + box.yBottom) / 2, box.z));
+  const inverse = object.getWorldQuaternion(new Quaternion()).invert();
+  const rotation = inverse.multiply(new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), -box.rot));
+  return { ...d, x: centre.x, y: centre.y, z: centre.z, rot: { x: rotation.x, y: rotation.y, z: rotation.z, w: rotation.w } };
+}

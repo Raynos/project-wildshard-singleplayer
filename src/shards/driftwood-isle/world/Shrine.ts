@@ -6,7 +6,7 @@
  *
  *   const shrine = new Shrine(sky, { x, z, rot }).place(registry);   // the game (main.ts): piece `shrine`
  *   const shrine = new Shrine(sky, { x, z, rot }).build();           // a dev page: not registered
- *   scene.add(shrine.group); player.colliders.push(...shrine.colliders);
+ *   scene.add(shrine.group); its registry piece.push(...shrine.colliders);
  *   player.platforms.push((x, z) => shrine.floorHeightAt(x, z));    // the stair, the three terraces, the causeway
  *   game.onUpdate((dt) => shrine.update(dt));
  *   shrine.setDusk(k)       // 0 = broad day … 1 = dusk / night: glyph brightness + the firefly cloud (the day clock drives it)
@@ -17,7 +17,7 @@ import * as THREE from 'three';
 import { heightAt } from '#engine/world/Heightfield';
 import { SEED } from '#engine/core/config';
 import { Rng } from '#engine/core/rng';
-import type { Collider } from '#engine/player/Player';
+import type { BoxSpec as Collider } from '#engine/physics/box';
 import type { Sky } from '#engine/world/Sky';
 import type { ColliderDesc, WorldRegistry } from '#engine/world/registry';
 import { SHRINE_RUNE, shrine, shrineLayout, shrineMaterials, shrineOrigin, type ShrineAnchor, type ShrineParams } from '../models/shrine';

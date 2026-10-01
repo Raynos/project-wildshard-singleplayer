@@ -13,7 +13,6 @@ import { floorBelow } from '../physics/query';
 import type { Physics } from '../physics/Physics';
 import { stateSlot } from '../core/shardState';
 
-export interface Collider { x: number; z: number; hw: number; hd: number; rot: number; yTop: number; yBottom: number }
 
 const EYE = 1.68;
 const RADIUS = 0.38;
@@ -101,7 +100,6 @@ export class Player {
   bobTime = 0;
   locked = false;
   /** the world's hand-made boxes; src/engine/physics/bridge.ts mirrors them into Rapier until P4 / P3 replace them */
-  colliders: Collider[] = [];
   /** extra walkable surfaces (cabin floors, porch decks): return a world y or undefined */
   platforms: ((x: number, z: number) => number | undefined)[] = [];
   keys = new Set<string>();

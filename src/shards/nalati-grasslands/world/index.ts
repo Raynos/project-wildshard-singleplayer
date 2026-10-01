@@ -15,7 +15,7 @@
  *
  * NALATI-MERGE P1: every collider is in the world registry (src/engine/world/registry.ts) — boxes (with their material),
  * decks / floors as slabs, stairs as treads, rocks as hulls; a floor function is placement only. Nothing goes into
- * `player.colliders` / `player.platforms`; `colliders` stays as data (the weather's yurts, the dressing's keep-out).
+ * `its registry piece` / `player.platforms`; `colliders` stays as data (the weather's yurts, the dressing's keep-out).
  *
  * Handles for later rows: `pois.balbals` (B11 wakes them: `setAwake(i, true)` hides the statue), `HITCHING_RAIL` /
  * `HITCH_HORSE_SPOTS` (B8), `CRAG_CAVE` / `pois.crags.ledges` (B12 Aqbars), `GREAT_KURGAN` + `pois.kurgans.entrance`

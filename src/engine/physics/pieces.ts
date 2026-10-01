@@ -72,15 +72,16 @@ export function addPiece(physics: Physics, piece: Piece): AddedPiece {
   }
   const b = body, active = piece.active;
   let on = true;
-  const sync = b && follows ? () => {
+  const sync = () => {
     if (active) {
       const want = active();
       if (want !== on) { on = want; for (const c of out) c.setEnabled(want); }
     }
+    if (!b || !follows) return;
     follows.updateWorldMatrix(true, false);
     follows.matrixWorld.decompose(_p, _q, _s);
     b.setNextKinematicTranslation({ x: _p.x, y: _p.y, z: _p.z });
     b.setNextKinematicRotation({ x: _q.x, y: _q.y, z: _q.z, w: _q.w });
-  } : () => undefined;
+  };
   return { colliders: out, body, sync };
 }

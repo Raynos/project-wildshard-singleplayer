@@ -7,7 +7,7 @@
  *   const boat = new Boat(sky, { x: -4.2, z: -244, heading: 0, waterY: 0.8, moorTo: pier.mooringsFor(-4.2, -244) }).place(registry);
  *   const boat = new Boat(sky, { … }).build();                       // a dev page: not registered
  *   scene.add(boat.group); if (boat.ropes) scene.add(boat.ropes);
- *   player.colliders.push(...boat.colliders);
+ *   its registry piece.push(...boat.colliders);
  *   player.platforms.push((x, z) => boat.floorHeightAt(x, z));   // you can jump in
  *   game.onUpdate((dt) => boat.update(dt));
  *
@@ -15,7 +15,7 @@
  */
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import type { Collider } from '#engine/player/Player';
+import type { BoxSpec as Collider } from '#engine/physics/box';
 import type { Sky } from '#engine/world/Sky';
 import { heightAt } from '#engine/world/Heightfield';
 import { waveHeight, seaDamp } from '#engine/world/waves';

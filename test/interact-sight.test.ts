@@ -4,12 +4,13 @@ import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
 import { loadRapier } from '#engine/physics/rapier';
 import { Physics } from '#engine/physics/Physics';
-import { ColliderBridge } from '#engine/physics/bridge';
+import { addPiece } from '#engine/physics/pieces';
+import { boxDesc } from '#engine/world/registry';
 import { groups } from '#engine/physics/groups';
 import { tagCollider } from '#engine/physics/surface';
 import { canSee, pickInteractable, setSight } from '#engine/world/interact/Interactables';
 import type { Interactable } from '#engine/world/Cabin';
-import type { Collider } from '#engine/player/Player';
+import type { BoxSpec as Collider } from '#engine/physics/box';
 import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';
 
 const rapier = async () => loadRapier(await (await fetch(wasmInline)).arrayBuffer());
@@ -65,10 +66,11 @@ describe('interact line of sight', () => {
     const ph = new Physics(await rapier());
     // a chest 2 m ahead: its box (the bridge mirrors Collider boxes, tagged with the box as owner) swallows the prompt point
     const box: Collider = { x: 2, z: 0, hw: 0.46, hd: 0.28, rot: 0, yTop: 0.62, yBottom: -0.5 };
-    new ColliderBridge(ph, [box]).sync();
+    const piece = { id: 'chest', name: 'Chest', category: 'props' as const, file: 'test', colliders: [boxDesc(box)] };
+    addPiece(ph, piece);
     ph.step();
     const chest = prompt(2, 0.3, 0);
-    setSight(chest, { slack: 0.1, body: box }); // slack alone would not cover it: the ray meets the box's front face
+    setSight(chest, { slack: 0.1, body: piece }); // slack alone would not cover it: the ray meets the box's front face
     expect(canSee(ph, eye, chest)).toBe(true);
     const bare = prompt(2, 0.3, 0);
     setSight(bare, { slack: 0.1 });

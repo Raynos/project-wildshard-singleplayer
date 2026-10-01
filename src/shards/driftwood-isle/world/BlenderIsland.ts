@@ -38,8 +38,8 @@ import { area, inArea, CELL, blenderModelsBase } from '#engine/world/blenderArea
 import { CHUNK_HALF, TERRAIN_RES } from '#engine/core/config';
 import { TIER } from '#engine/core/tier';
 import type { Sky } from '#engine/world/Sky';
-import type { Collider } from '#engine/player/Player';
-import { boxDesc, type ColliderDesc } from '#engine/world/registry';
+import type { BoxSpec as Collider } from '#engine/physics/box';
+import { boxDesc, type ColliderDesc, type WorldRegistry } from '#engine/world/registry';
 import type { PalmSpec } from './Palms';
 import { slicer } from '#engine/boot/plan';
 import { modelContext, type ModelContext, type Placement } from '#engine/models/model';
@@ -135,7 +135,7 @@ interface IslandMeta {
 export interface BlenderIslandCtx {
   scene: THREE.Scene;
   sky: Sky;
-  colliders: Collider[];
+  registry: WorldRegistry;
   terrain: THREE.Mesh;
   palms: THREE.Mesh | null;
   palmSpecs: PalmSpec[];
@@ -487,7 +487,7 @@ export class BlenderIsland {
     }
 
     // ── gameplay ──
-    ctx.colliders.push(...unclaimed); // E344: the cove's boxes are its models' (placeModels); one no copy claims stays on the P2 bridge
+    ctx.registry.add({ id: 'cove-unclaimed', name: 'Cove rocks', category: 'nature', file: 'src/shards/driftwood-isle/world/BlenderIsland.ts', colliders: unclaimed.map((c) => boxDesc(c, 'wood')), surface: 'wood', solidFloor: false });
     ctx.palmSpecs.push(...meta.extraPalms);
     for (const tile of this.tiles) for (const [tm, far] of [[tile.near, false], [tile.far, true]] as const) {
       if (tm === null) continue;
