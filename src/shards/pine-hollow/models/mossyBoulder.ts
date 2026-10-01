@@ -10,7 +10,7 @@
  *   await loadMossyBoulder(ctx);   // place() is synchronous: the GLB first
  */
 import * as THREE from 'three';
-import { loadLod, prepModel } from '#engine/world/Cabin';
+import { loadLod, prepModel } from '../world/homestead';
 import { bakePart, supportPoints } from '#engine/models/hull';
 import { defineModel, type ModelContext } from '#engine/models/model';
 

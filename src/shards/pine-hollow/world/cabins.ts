@@ -21,7 +21,7 @@ import type { ModelDef, Placement } from '#engine/models/model';
 import { placeSet } from '#engine/models/sets';
 import { macrotask } from '#engine/boot/plan';
 import { TIER_CONFIG } from '#engine/core/tier';
-import type { Cabins, CabinBuilding, CabinPropKind } from '#engine/world/Cabin';
+import type { Cabins, CabinBuilding, CabinPropKind } from './homestead';
 import type { WorldRegistry } from '#engine/world/registry';
 import type { Sky } from '#engine/world/Sky';
 import { pineModels } from './context';

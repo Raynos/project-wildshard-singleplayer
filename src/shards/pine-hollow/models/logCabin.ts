@@ -27,7 +27,7 @@ import { heightAt } from '#engine/world/Heightfield';
 import { boxDesc, type ColliderDesc } from '#engine/world/registry';
 import type { Sky } from '#engine/world/Sky';
 import type { BoxSpec as Collider } from '#engine/physics/box';
-import type { Cabins, Interactable, Mats, MatKey } from '#engine/world/Cabin';
+import type { Cabins, Interactable, Mats, MatKey } from '../world/homestead';
 import { defineModel, type ModelBuild, type ModelContext } from '#engine/models/model';
 import { UnitParts, flatPositions, mergeOrNull, nearProxy, shadowProxy, twoSidedPositions, type WeldBuild, type WeldPart } from '#engine/models/weld';
 

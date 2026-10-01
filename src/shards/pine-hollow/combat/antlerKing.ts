@@ -1,4 +1,3 @@
-import { pineBackdrop } from '../look/skyBackdrop';
 import { canReach } from '#engine/ai/reach';
 import * as THREE from 'three';
 import type { Animal } from '#engine/entities/Animal';
@@ -14,7 +13,7 @@ import { fogUniforms } from '#engine/world/Atmosphere';
 import { weatherHold } from '../world/weather';
 import { PINE_PHASES } from '../look/dayKeys';
 import { KINGS_CLEARING } from '../layout';
-import type { Interactable } from '#engine/world/Cabin';
+import type { Interactable } from '../world/homestead';
 import type { Music } from '#engine/audio/Music';
 import { FogWall, Puffs, flameCard } from './fxKit';
 import { KING_VARIANT, dressAntlerKing, makeKingKit, kingOwnSpecies, type KingKit, type KingLook } from '../models/antlerKing';
@@ -571,7 +570,7 @@ export class AntlerKingFight implements BossScript {
     const lk = 1 - 0.8 * dark;
     sky.hemi.intensity = this.dimHemi.apply(sky.hemi.intensity, lk);
     scene.environmentIntensity = this.dimEnv.apply(scene.environmentIntensity, 1 - 0.75 * dark);
-    const dome = pineBackdrop(sky)?.dome.material;
+    const dome = sky.pine?.dome.material;
     if (dome instanceof THREE.ShaderMaterial) {
       const ga = dome.uniforms['uGainA'], gb = dome.uniforms['uGainB'], dk = 1 - 0.85 * dark;
       if (ga && typeof ga.value === 'number') ga.value = this.dimDome[0]?.apply(ga.value, dk) ?? ga.value;
@@ -650,7 +649,7 @@ export class AntlerKing {
     // dev: `?boss=antler-king` — night, you at the stones' N gap; `&bossPhase=2|3` at that checkpoint
     if (host.params.get('boss') === KING_KIND) {
       this.forcedNight = true;
-      void ctx.sky.dayNight?.set(PINE_PHASES.night);
+      void ctx.sky.pine?.setPhase(PINE_PHASES.night);
       const from = Number(host.params.get('from') ?? '26');
       pl.spawn(C.x, C.z + (Number.isFinite(from) ? from : 26), 0);
       this.fight.setPresent(true); this.boss.arm();

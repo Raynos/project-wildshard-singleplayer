@@ -12,7 +12,7 @@
  *   await loadHollowLog(ctx);   // its materials are the cabins': place() is synchronous
  */
 import * as THREE from 'three';
-import { cabinMats, type Mats } from '#engine/world/Cabin';
+import { cabinMats, type Mats } from '../world/homestead';
 import { defineModel, type ColliderSpec, type ModelContext, type ModelPart } from '#engine/models/model';
 
 export interface HollowLogParams {

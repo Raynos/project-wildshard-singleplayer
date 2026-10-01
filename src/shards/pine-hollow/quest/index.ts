@@ -24,7 +24,7 @@ import type { Sky } from '#engine/world/Sky';
 import type { Player } from '#engine/player/Player';
 import type { AnimalManager } from '#engine/entities/AnimalManager';
 import type { Animal } from '#engine/entities/Animal';
-import type { Interactable, Cabins } from '#engine/world/Cabin';
+import type { Interactable, Cabins } from '../world/homestead';
 import type { WorldRegistry } from '#engine/world/registry';
 import type { HUD } from '#engine/ui/HUD';
 import type { Audio } from '#engine/audio/Audio';

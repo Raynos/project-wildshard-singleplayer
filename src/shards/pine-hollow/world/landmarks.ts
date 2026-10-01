@@ -26,7 +26,7 @@
  */
 import * as THREE from 'three';
 import { heightAt } from '#engine/world/Heightfield';
-import { makeGlowTexture, type ExtraBuilding, type Cabins } from '#engine/world/Cabin';
+import { makeGlowTexture, type ExtraBuilding, type Cabins } from './homestead';
 import {
   LOOKOUT, ZIPLINE, CREEK_BRIDGE, E_ROAD, BEAVER_DAM, CREEK, BEAR_CAVE, STANDING_STONES, KINGS_CLEARING, HAMLET_SITES, POND, SPURS,
 } from '../layout';

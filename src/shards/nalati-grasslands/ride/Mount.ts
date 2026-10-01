@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import type { Player } from '#engine/player/Player';
 import { Animal } from '#engine/entities/Animal';
 import type { Forest } from '#engine/world/forest/Forest';
-import type { Interactable } from '#engine/world/Cabin';
+import type { Interactable } from '#engine/world/interact/types';
 import type { MountState } from '../weapons/Sabre';
 import { heightAt, inChunk, waterLevel } from '#engine/world/Heightfield';
 import { HorseHerd } from '#engine/entities/Herd';

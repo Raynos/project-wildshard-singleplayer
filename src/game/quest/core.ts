@@ -20,7 +20,7 @@ import type * as THREE from 'three';
 import { ObjectiveLine, type DialogueBox } from './QuestUI';
 import { QuestState, lineFor, type DialogueEntry, type NpcDef, type QuestDef, type QuestStep } from './quest';
 import type { Flags } from '#engine/world/interact/flags';
-import type { Interactable } from '#engine/world/Cabin';
+import type { Interactable } from '#engine/world/interact/types';
 import type { MapPoi } from '#engine/ui/Map';
 import { practiceRoom } from '#engine/core/practiceRoom';
 

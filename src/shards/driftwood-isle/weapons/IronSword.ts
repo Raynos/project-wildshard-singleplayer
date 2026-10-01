@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { ItemPickup, type PickupTier } from '#engine/player/WeaponPickup';
-import type { Interactable } from '#engine/world/Cabin';
+import type { Interactable } from '#engine/world/interact/types';
 import type { Sky } from '#engine/world/Sky';
 import { WRECK } from '../manifest';
 import { LightPool } from '#engine/fx/LightPool';

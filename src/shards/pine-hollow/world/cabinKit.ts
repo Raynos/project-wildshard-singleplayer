@@ -5,7 +5,7 @@
  * themselves are the log kit's (../models/logCabin.ts: `useCabins`, `buildingSpecimen`, `builtBuilding`).
  */
 import * as THREE from 'three';
-import type { CabinPropKind } from '#engine/world/Cabin';
+import type { CabinPropKind } from './homestead';
 import type { ColliderSpec, ModelContext, ModelPart } from '#engine/models/model';
 import { PROP_BOXES, cabinsOf } from '../models/logCabin';
 

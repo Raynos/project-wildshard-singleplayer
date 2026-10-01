@@ -13,7 +13,7 @@
  */
 import * as THREE from 'three';
 import type { Sky } from '#engine/world/Sky';
-import type { Interactable } from '#engine/world/Cabin';
+import type { Interactable } from '../world/homestead';
 import { POND } from '../layout';
 import { npcMaterial, PartKit } from '../models/people';
 

@@ -4,7 +4,7 @@ import { type Game, type Player, type TargetAnimal, type TargetHit, wind } from 
 import type { Animal } from '#engine/entities/Animal';
 import type { AnimalManager } from '#engine/entities/AnimalManager';
 import type { Wildlife } from '#engine/entities/Wildlife';
-import type { Interactable } from '#engine/world/Cabin';
+import type { Interactable } from '#engine/world/interact/types';
 
 import type { AimTarget } from '#engine/player/AimTargets';
 import type { Sabre } from './weapons/Sabre';

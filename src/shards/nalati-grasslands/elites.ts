@@ -8,7 +8,7 @@ import { registerSpecies, speciesDef, hasSpecies, type ThinkCtx } from '#engine/
 import type { Wildlife } from '#engine/entities/Wildlife';
 import type { Pack } from '#engine/entities/Pack';
 import type { HorseHerd } from '#engine/entities/Herd';
-import type { Interactable } from '#engine/world/Cabin';
+import type { Interactable } from '#engine/world/interact/types';
 import type { Ledge } from './world/Crags';
 import { heightAt } from '#engine/world/Heightfield';
 import { wildEnv } from '#engine/entities/wildEnv';

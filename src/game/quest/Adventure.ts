@@ -18,7 +18,6 @@ import { heightAt } from '#engine/world/Heightfield';
 import { HUT, LOOKOUT, WRECK, SHRINE, PIER, OCEAN } from '#shards/driftwood-isle/manifest';
 import { Cove } from '#shards/driftwood-isle/world/Cove';
 import type { Sky } from '#engine/world/Sky';
-import type { Interactable } from '#engine/world/Cabin';
 import { Flags } from '#engine/world/interact/flags';
 import { Interactables, type InteractEvent } from '#engine/world/interact/Interactables';
 import { DRIFTWOOD_INTERACT, SEA_GLASS_COUNT, SEA_GLASS_FLAG } from '#shards/driftwood-isle/quest/interactables';

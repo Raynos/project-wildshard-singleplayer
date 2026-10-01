@@ -6,7 +6,7 @@ import type { AnimalManager } from '#engine/entities/AnimalManager';
 import type { Animal } from '#engine/entities/Animal';
 import type { ThinkCtx } from '#engine/entities/species/registry';
 import type { Bow } from '#kit';
-import type { Interactable } from '#engine/world/Cabin';
+import type { Interactable } from '#engine/world/interact/types';
 import type { KurganEntrance } from './world/KurganField';
 import { GOLDEN_KING, goldenKingBrain } from '#engine/entities/species/goldenKing';
 import { KURGAN_BALBAL } from '#engine/entities/species/kurganBalbal';

@@ -6,7 +6,7 @@ import type { Mount } from './Mount';
 import type { Animal } from '#engine/entities/Animal';
 import type { AnimalManager } from '#engine/entities/AnimalManager';
 import type { HorseHerd } from '#engine/entities/Herd';
-import type { Interactable } from '#engine/world/Cabin';
+import type { Interactable } from '#engine/world/interact/types';
 import type { RideHUD, TamingView } from './RideHUD';
 import { wildEnv } from '#engine/entities/wildEnv';
 import { heightAt } from '#engine/world/Heightfield';

@@ -13,7 +13,7 @@
  */
 import * as THREE from 'three';
 import { modelContext } from '#engine/models/model';
-import type { Interactable } from '#engine/world/Cabin';
+import type { Interactable } from '#engine/world/interact/types';
 import { place } from '#engine/models/place';
 import { trader, tradeCounter, traderOf } from '../models/trader';
 import type { Trader } from '../npc/Trader';

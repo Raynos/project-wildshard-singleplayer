@@ -26,7 +26,7 @@ import { perfLap } from '#engine/core/perfLap';
 import type { HUD } from '#engine/ui/HUD';
 import type { GameMenu } from '#engine/ui/Menu';
 import type { AnimalManager } from '#engine/entities/AnimalManager';
-import type { Interactable } from '#engine/world/Cabin';
+import type { Interactable } from '#engine/world/interact/types';
 
 export interface CompendiumHost {
   chunkId: string;

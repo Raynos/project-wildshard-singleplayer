@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import type { Interactable } from '../world/Cabin';
+import type { Interactable } from '../world/interact/types';
 import { isMesh } from '#engine/combat/view/ranged';
 import { TIER_CONFIG } from '../core/tier';
 import { LightPool } from '../fx/LightPool';

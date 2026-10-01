@@ -7,7 +7,7 @@ import type { TrainingArena } from '../practice/TrainingArena';
 import type { HUD } from '../ui/HUD';
 import type { Audio } from '../audio/Audio';
 import type { Music } from '../audio/Music';
-import type { Interactable } from '../world/Cabin';
+import type { Interactable } from '../world/interact/types';
 import { floorBelow } from '../physics/query';
 import { activeNavmesh, type Navmesh } from '../physics/navmesh';
 import { Rng } from '../core/rng';

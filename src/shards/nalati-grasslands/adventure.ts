@@ -32,7 +32,7 @@ import { Flags } from '#engine/world/interact/flags';
 import { heightAt } from '#engine/world/Heightfield';
 import type { WorldRegistry } from '#engine/world/registry';
 import type { Sky } from '#engine/world/Sky';
-import type { Interactable } from '#engine/world/Cabin';
+import type { Interactable } from '#engine/world/interact/types';
 import type { MapPoi, MapQuest } from '#engine/ui/Map';
 import { DialogueBox, RewardCaption } from '#game/quest/QuestUI';
 import { NpcTalk, QuestChip, QuestLine, placesWithDiscovery, type LiveMarker, type Places } from '#game/quest/core';

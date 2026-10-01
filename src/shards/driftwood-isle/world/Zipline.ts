@@ -20,7 +20,7 @@
 import * as THREE from 'three';
 import { lowPolyMaterial } from '#engine/world/lowpolyKit';
 import type { Sky } from '#engine/world/Sky';
-import type { Interactable } from '#engine/world/Cabin';
+import type { Interactable } from '#engine/world/interact/types';
 import type { ColliderDesc, WorldRegistry } from '#engine/world/registry';
 import { zipline, ziplineGeometry, ZiplineLayout, type ZiplineSpec } from '../models/zipline';
 import { modelContext } from '#engine/models/model';

@@ -4,7 +4,7 @@ import type { Music } from '#engine/audio/Music';
 import type { ForestAmbience, ZoneSpot } from './ambience';
 import type { AnimalManager } from '#engine/entities/AnimalManager';
 import type { Animal } from '#engine/entities/Animal';
-import type { Interactable } from '#engine/world/Cabin';
+import type { Interactable } from '../world/homestead';
 import { audioLog } from '#engine/audio/audioLog';
 import {
   BEAR_CAVE, CREEK, HAMLET_SITES, LOOKOUT, OLD_GROWTH, RIDGE, RIDGE_STREAM, WATERFALL, ridgeFootZ, type XZ,

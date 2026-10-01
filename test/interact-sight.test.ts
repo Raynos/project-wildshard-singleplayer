@@ -9,7 +9,7 @@ import { boxDesc } from '#engine/world/registry';
 import { groups } from '#engine/physics/groups';
 import { tagCollider } from '#engine/physics/surface';
 import { canSee, pickInteractable, setSight } from '#engine/world/interact/Interactables';
-import type { Interactable } from '#engine/world/Cabin';
+import type { Interactable } from '#engine/world/interact/types';
 import type { BoxSpec as Collider } from '#engine/physics/box';
 import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';
 

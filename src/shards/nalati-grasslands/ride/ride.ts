@@ -5,7 +5,7 @@ import type { AnimalManager, AnimalSound } from '#engine/entities/AnimalManager'
 import type { Wildlife } from '#engine/entities/Wildlife';
 import type { Animal } from '#engine/entities/Animal';
 import { heightAt } from '#engine/world/Heightfield';
-import type { Interactable } from '#engine/world/Cabin';
+import type { Interactable } from '#engine/world/interact/types';
 import { Mount, type MountKit } from './Mount';
 import { Taming } from './Taming';
 import { RideHUD } from './RideHUD';

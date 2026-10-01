@@ -12,7 +12,7 @@ import * as THREE from 'three';
 import { SEED } from '#engine/core/config';
 import { Rng } from '#engine/core/rng';
 import { TIER_CONFIG } from '#engine/core/tier';
-import { cabinMats, type Mats, type MatKey } from '#engine/world/Cabin';
+import { cabinMats, type Mats, type MatKey } from './homestead';
 import { finishParts, logGeo, boxUV } from '../models/logCabin';
 import type { ColliderDesc } from '#engine/world/registry';
 import type { ModelContext } from '#engine/models/model';

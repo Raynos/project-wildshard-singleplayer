@@ -56,7 +56,7 @@ import { HorizonMatte } from '#engine/world/HorizonMatte';
 import { Grass } from '#engine/world/Grass';
 import { Undergrowth } from '#shards/pine-hollow/world/undergrowth';
 import { Particles } from '#kit/looks/particles';
-import { Cabins } from '#engine/world/Cabin';
+import { Cabins } from '#shards/pine-hollow/world/homestead';
 import { installPineLandmarks, pineHamletBuildings } from '#shards/pine-hollow/world/landmarks';
 import { Props } from '#shards/pine-hollow/world/props';
 import { AnimalManager } from '#engine/entities/AnimalManager';
@@ -538,7 +538,7 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
       // E322: the doorway check only holds a door OFF (after a swing, until the player steps clear); a door that is already
       // solid stays solid when the player walks up to it — the check used to switch a shut door off, so it could be walked through
       let on = true;
-      registry.add({ id: d.id, name: 'Cabin door', category: 'buildings', file: 'src/engine/world/Cabin.ts', surface: 'wood', follows: d.pivot, colliders: d.colliders,
+      registry.add({ id: d.id, name: 'Cabin door', category: 'buildings', file: 'src/shards/pine-hollow/world/homestead.ts', surface: 'wood', follows: d.pivot, colliders: d.colliders,
         active: () => {
           if (d.swinging()) on = false;
           else if (!on) on = d.pivot.getWorldPosition(_dp).distanceToSquared(player.position) > 1.4 * 1.4;
