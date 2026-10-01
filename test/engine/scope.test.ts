@@ -135,6 +135,14 @@ describe('scope ownership', () => {
 });
 
 describe('shared assets', () => {
+  it('forgets renderer cache entries only after disposal and with no outstanding acquisition', () => {
+    const assets = new AssetService(), dispose = vi.fn<() => void>(), resource = { dispose };
+    assets.register('renderer-cache', resource, { retain: true });
+    assets.acquire('renderer-cache');
+    expect(() => assets.forgetDisposed('renderer-cache')).toThrow('still acquired');
+    assets.release('renderer-cache'); assets.forgetDisposed('renderer-cache'); assets.forgetDisposed('renderer-cache');
+    expect(assets.retained()).toEqual([]); expect(assets.isAcquired(resource)).toBe(false); expect(dispose).not.toHaveBeenCalled();
+  });
   it('releases a scoped acquisition without disposing engine-retained resources', () => {
     const assets = new AssetService(), engine = new Scope('engine'), level = engine.child('level');
     const dispose = vi.fn<() => void>(), resource = { dispose };

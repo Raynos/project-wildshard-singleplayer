@@ -328,7 +328,11 @@ export class Game {
       if ((material instanceof THREE.MeshDepthMaterial || material instanceof THREE.MeshDistanceMaterial) &&
         material !== object.customDepthMaterial && material !== object.customDistanceMaterial) {
         const key = `renderer:shadow:${material.uuid}`;
-        if (!app.assets.has(key)) app.assets.register(key, material, { retain: true });
+        if (!app.assets.has(key)) {
+          app.assets.register(key, material, { retain: true });
+          const released = (): void => { app.assets.forgetDisposed(key); material.removeEventListener('dispose', released); };
+          material.addEventListener('dispose', released);
+        }
       }
       draw(camera, scene, geometry, material, object, group);
     };

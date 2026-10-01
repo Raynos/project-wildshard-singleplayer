@@ -35,6 +35,13 @@ export class AssetService<T extends Disposable3 = Disposable3> {
     return [...this.entries].map(([key, entry]) => ({ key, refs: entry.refs, retained: entry.retained }));
   }
   retainedResources(): readonly T[] { return [...this.entries.values()].filter((entry) => entry.retained).map((entry) => entry.resource); }
+  /** A renderer cache evicted an already-disposed resource; this does not dispose it a second time. */
+  forgetDisposed(key: string): void {
+    const entry = this.entries.get(key);
+    if (!entry) return;
+    if (entry.refs !== 0) throw new Error(`Disposed asset still acquired: ${key}`);
+    this.entries.delete(key); this.managed.delete(entry.resource);
+  }
   has(key: string): boolean { return this.entries.has(key); }
   isAcquired(resource: object): boolean { return this.managed.has(resource); }
 }
