@@ -5,7 +5,8 @@ import { isArrowFunction, isBlock, isCallExpression, isExpressionStatement, isIf
 const sources = import.meta.glob<string>('../src/**/*.ts', { eager: true, query: '?raw', import: 'default' });
 const schedulers: Readonly<Record<string, readonly string[]>> = {
   'src/shards/driftwood-isle/audio/sfx.ts': ['scheduleSurf', 'scheduleGust'],
-  'src/engine/audio/Audio.ts': ['scheduleBubble', 'scheduleGust', 'scheduleBird'],
+  'src/engine/audio/Audio.ts': ['scheduleBubble'],
+  'src/shards/pine-hollow/audio/synth.ts': ['scheduleGust', 'scheduleBird'],
   'src/shards/nalati-grasslands/audio/synth.ts': ['scheduleLark', 'scheduleCricket', 'scheduleCrackle'],
   'src/shards/driftwood-isle/audio/ambience.ts': ['scheduleBird', 'scheduleDrip', 'scheduleSwell'],
   'src/shards/pine-hollow/audio/ambience.ts': ['scheduleThrall'],

@@ -1,3 +1,4 @@
+import { sharedWeaponVoices } from '#kit';
 import type { ShardContext } from '#game';
 import { app, ownAudioSource, TickScheduler, type EquipmentService } from '#engine';
 import { tap, ambientTick } from '#engine/core/harnessTap';
@@ -707,7 +708,7 @@ export function installPineLife(h: PineLifeHost): PineLife | null {
     const cut = BEAT.cuts[cutsDone];
     if (cut !== undefined && beatT >= cut) {
       cutsDone++;
-      if (!voice(cutsDone % 2 === 1 ? 'skinCut-a' : 'skinCut-b', undefined, 0.85)) h.audio.swordHit('flesh', (Math.random() - 0.5) * 0.3, 0.42);
+      if (!voice(cutsDone % 2 === 1 ? 'skinCut-a' : 'skinCut-b', undefined, 0.85)) sharedWeaponVoices(h.audio).swordHit('flesh', (Math.random() - 0.5) * 0.3, 0.42);
       fx.kick(-1.1, cutsDone % 2 === 0 ? 0.8 : -0.8);
     }
     if (beatT >= BEAT.len) {

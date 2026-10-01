@@ -163,8 +163,8 @@ export interface AudioBanks { music: StyleBank | undefined; sfx: SfxBank; profil
 export function startDeferredAudioPreload(files: ChunkFiles, def: ShardManifest, profile?: LevelAudioProfile): Preload<void> & { readonly style: ReturnType<typeof getMusicStyle>; decode: () => Promise<AudioBanks> } {
   const style = getMusicStyle(), set = getSfxSet();
   const slots: SlotName[] = def.ocean ? ['title', 'island'] : ['title', 'pine'];
-  const bed: AmbientBed = def.ocean ? 'island' : 'forest';
-  const selected = new Set(profile?.bootFiles(style) ?? [...styleFiles(style, slots), ...sfxFiles(set, bed)]);
+  const bed: AmbientBed = def.audio?.bed ?? '';
+  const selected = new Set(profile?.bootFiles(style) ?? [...styleFiles(style, slots), ...sfxFiles(set, bed, def.audio?.samples)]);
   const urls = [...new Set([...files.music, ...files.sfx])];
   const c = counter(urls.length);
   // Keep only the selected compressed bytes until decode. That makes the post-bar decode work offline even if
@@ -212,7 +212,7 @@ export function startDeferredAudioPreload(files: ChunkFiles, def: ShardManifest,
               if (style !== 'synth') console.info(`[music] ${style}: ${error instanceof Error ? error.message : String(error)} — the synth plays`);
               return undefined;
             }),
-            decodeSfxSet(set, bed, read, undefined, oneAtATime),
+            decodeSfxSet(set, bed, read, undefined, oneAtATime, def.audio?.samples),
           ]);
           return { music, sfx };
         } finally { selectedBytes.clear(); }
@@ -231,7 +231,7 @@ export function startAudioPreload(files: ChunkFiles, def: ShardManifest, profile
   const style = getMusicStyle(), set = getSfxSet();
   const slots: SlotName[] = ['title', 'island'];
   const bed: AmbientBed = 'island';
-  const decoded = new Set([...styleFiles(style, slots), ...sfxFiles(set, bed)]);
+  const decoded = new Set([...styleFiles(style, slots), ...sfxFiles(set, bed, def.audio?.samples)]);
   const rest = [...files.music, ...files.sfx].filter((u) => !decoded.has(u));
   const c = counter(decoded.size + rest.length);
   // the boot's counted fetch (the prefetch hands over the bytes it already has); a file two decoders share is read once
@@ -261,7 +261,7 @@ export function startAudioPreload(files: ChunkFiles, def: ShardManifest, profile
     if (style !== 'synth') console.info(`[music] ${style}: ${e instanceof Error ? e.message : String(e)} — the synth plays`);
     return undefined;
   });
-  const sfx = once(`sfx|${set}|${bed}`, sfxFiles(set, bed).length, () => decodeSfxSet(set, bed, read, c.tick));
+  const sfx = once(`sfx|${set}|${bed}`, sfxFiles(set, bed, def.audio?.samples).length, () => decodeSfxSet(set, bed, read, c.tick, undefined, def.audio?.samples));
   // every other style / set: downloaded to the last byte (through the service worker, which keeps it), then let go — once a page
   const others = rest.map(async (u) => {
     if (!downloaded.has(u)) {

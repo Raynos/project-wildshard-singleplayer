@@ -2,12 +2,12 @@ import { Synth } from './synth';
 import { audioRandom } from './util';
 import { tap } from '../core/harnessTap';
 import type { Voices } from './Voices';
-import type { ImpactKind, StepSurface } from './Audio';
+import type { StepSurface } from './Audio';
 import type { CueOpts } from './Cues';
 
 const rnd = (a: number, b: number): number => a + audioRandom() * (b - a);
 
-/** Player movement, feedback and legacy equipment cues on the mixer's synth blocks. */
+/** Player movement, water, lock and feedback cues on the mixer's synth blocks. */
 export abstract class PlayerVoices extends Synth {
   abstract readonly voices: Voices;
   abstract readonly ambient: GainNode;
@@ -15,61 +15,6 @@ export abstract class PlayerVoices extends Synth {
   protected abstract shot(id: string, opts?: { pan?: number; gain?: number; out?: AudioNode; t?: number; rate?: number }): boolean;
   stepSurface: (() => StepSurface) | undefined;
   private stepSide = 1;
-  crossbowFire(): void {
-    tap.sound?.('crossbowFire');
-    if (!this.ready || this.shot('crossbowFire')) return;
-    const t = this.ctx.currentTime;
-    // latch release click
-    this.burst({ t, type: 'highpass', freq: 2500, gain: 0.35, decay: 0.012 });
-    // string twang: bright noise + a plucked triangle that drops fast
-    this.burst({ t: t + 0.004, type: 'bandpass', freq: 2600, freqEnd: 900, q: 0.8, gain: 0.7, decay: 0.07 });
-    this.tone({ t: t + 0.004, type: 'triangle', f0: 210, f1: 95, glide: 0.08, gain: 0.35, decay: 0.16 });
-    // body thump 120 → 60 Hz
-    this.tone({ t: t + 0.002, type: 'sine', f0: 120, f1: 60, glide: 0.1, gain: 0.8, decay: 0.24 });
-    // stock resonance / limb rattle
-    this.burst({ t: t + 0.02, type: 'lowpass', freq: 500, gain: 0.3, decay: 0.12 });
-  }
-
-  dryFire(): void {
-    tap.sound?.('dryFire');
-    if (!this.ready || this.shot('dryFire')) return;
-    const t = this.ctx.currentTime;
-    this.burst({ t, type: 'highpass', freq: 3000, gain: 0.25, decay: 0.01 });
-    this.tone({ t, type: 'square', f0: 700, gain: 0.05, decay: 0.03, lowpass: 2000 });
-  }
-
-  boltImpact(kind: ImpactKind, pan = 0, gain = 1): void {
-    tap.sound?.(`boltImpact:${kind}`);
-    if (!this.ready || this.shot(`boltImpact-${kind}`, { pan, gain })) return;
-    const t = this.ctx.currentTime;
-    if (kind === 'wood') {
-      this.burst({ t, type: 'bandpass', freq: 1900, q: 2.5, gain: 0.55 * gain, decay: 0.05, pan });
-      this.tone({ t, type: 'triangle', f0: 620, f1: 380, glide: 0.05, gain: 0.25 * gain, decay: 0.09, pan });
-      this.tone({ t, type: 'sine', f0: 240, f1: 120, glide: 0.04, gain: 0.35 * gain, decay: 0.08, pan });
-      // shaft vibration hum
-      this.tone({ t: t + 0.01, type: 'sine', f0: 95, gain: 0.12 * gain, decay: 0.35, vibrato: { rate: 14, depth: 6 }, pan });
-    } else if (kind === 'ground') {
-      this.burst({ t, type: 'lowpass', freq: 520, gain: 0.55 * gain, decay: 0.09, pan });
-      this.burst({ t, type: 'bandpass', freq: 3200, q: 1, gain: 0.12 * gain, decay: 0.03, pan });
-      this.tone({ t, type: 'sine', f0: 85, f1: 50, glide: 0.06, gain: 0.4 * gain, decay: 0.12, pan });
-    } else {
-      this.burst({ t, type: 'lowpass', freq: 380, gain: 0.7 * gain, decay: 0.12, pan });
-      this.burst({ t, type: 'bandpass', freq: 950, q: 0.7, gain: 0.3 * gain, decay: 0.035, pan });
-      this.tone({ t, type: 'sine', f0: 110, f1: 55, glide: 0.08, gain: 0.5 * gain, decay: 0.16, pan });
-    }
-  }
-
-  /** sword swing: a whoosh — bandpass noise sweeping up then down over ~0.2 s, a hair of low air under it (src/engine/player/Sword.ts onFire) */
-  swordSwing(): void {
-    tap.sound?.('swordSwing');
-    if (this.cue('melee.swing')) return;
-    if (!this.ready || this.shot('swordSwing')) return;
-    const t = this.ctx.currentTime;
-    this.burst({ t, type: 'bandpass', freq: 500, freqEnd: 2200, q: 0.6, gain: 0.32, attack: 0.05, decay: 0.09, rate: 1.1 });
-    this.burst({ t: t + 0.09, type: 'bandpass', freq: 2200, freqEnd: 700, q: 0.7, gain: 0.4, attack: 0.02, decay: 0.13 });
-    this.burst({ t: t + 0.02, type: 'lowpass', freq: 300, gain: 0.12, attack: 0.06, decay: 0.16 });
-  }
-
   /** a dodge (Player.onDodge): a body whoosh — lower and airier than a blade, a cloth flap, the scuff of the push-off */
   dodge(): void {
     tap.sound?.('dodge');
@@ -87,97 +32,6 @@ export abstract class PlayerVoices extends Synth {
     const t = this.ctx.currentTime;
     this.burst({ t, type: 'bandpass', freq: 180, freqEnd: 620, q: 0.6, gain: 0.3, attack: 0.02, decay: 0.12, rate: 1.4 });
     this.tone({ t, type: 'sine', f0: 90, f1: 60, glide: 0.1, gain: 0.18, attack: 0.01, decay: 0.12 });
-  }
-
-  /** the heavy's release (Sword.onHeavy, on top of swordSwing): a longer, deeper whoosh — a low rush that climbs, a chest-thump of effort, a breathy tail */
-  swordHeavy(): void {
-    tap.sound?.('swordHeavy');
-    if (this.cue('melee.heavy')) return;
-    if (!this.ready || this.shot('swordHeavy')) return;
-    const t = this.ctx.currentTime;
-    this.burst({ t, type: 'bandpass', freq: 220, freqEnd: 900, q: 0.8, gain: 0.45, attack: 0.09, decay: 0.22, rate: 0.9 });
-    this.burst({ t: t + 0.12, type: 'bandpass', freq: 1400, freqEnd: 380, q: 0.9, gain: 0.5, attack: 0.03, decay: 0.26 });
-    this.tone({ t: t + 0.02, type: 'sine', f0: 110, f1: 55, glide: 0.18, gain: 0.35, attack: 0.02, decay: 0.3 });
-    this.burst({ t: t + 0.05, type: 'lowpass', freq: 240, gain: 0.2, attack: 0.08, decay: 0.3 });
-  }
-
-  /** sword hit: a wooden thud on flesh (or a knock on wood) — low thump, a damp mid knock, a short bright crack; panned like boltImpact */
-  swordHit(kind: ImpactKind = 'flesh', pan = 0, gain = 1): void {
-    tap.sound?.(`swordHit:${kind}`);
-    if (this.cue('melee.hit', { surface: kind, pan, gain })) return;
-    if (!this.ready || this.shot(kind === 'wood' ? 'swordHit-wood' : 'swordHit-flesh', { pan, gain })) return;
-    const t = this.ctx.currentTime;
-    if (kind === 'wood') {
-      this.burst({ t, type: 'bandpass', freq: 1400, q: 2, gain: 0.5 * gain, decay: 0.05, pan });
-      this.tone({ t, type: 'triangle', f0: 520, f1: 300, glide: 0.05, gain: 0.25 * gain, decay: 0.1, pan });
-    } else {
-      this.burst({ t, type: 'lowpass', freq: 420, gain: 0.7 * gain, decay: 0.11, pan });
-      this.burst({ t, type: 'bandpass', freq: 1100, q: 1, gain: 0.25 * gain, decay: 0.03, pan });
-    }
-    this.tone({ t, type: 'sine', f0: 160, f1: 60, glide: 0.09, gain: 0.7 * gain, decay: 0.18, pan });
-    this.burst({ t: t + 0.004, type: 'highpass', freq: 2800, gain: 0.18 * gain, decay: 0.012, pan });
-  }
-
-  /** ratchet clicks over ~1.2 s (matches the launcher's span animation) */
-  reload(): void {
-    tap.sound?.('reload');
-    if (!this.ready || this.shot('reload')) return;
-    const t0 = this.ctx.currentTime + 0.12;
-    const n = 11;
-    for (let i = 0; i < n; i++) {
-      const t = t0 + (i / n) * 1.05 + rnd(-0.008, 0.008);
-      const f = 2200 + i * 110;
-      this.burst({ t, type: 'bandpass', freq: f, q: 3, gain: 0.22 + i * 0.012, decay: 0.014 });
-      this.tone({ t, type: 'square', f0: 900 + i * 40, gain: 0.03, decay: 0.012, lowpass: 3000 });
-      this.tone({ t, type: 'sine', f0: 180, f1: 120, glide: 0.02, gain: 0.08, decay: 0.03 });
-    }
-    // string tension creak
-    this.tone({ t: t0, type: 'sawtooth', f0: 70, f1: 110, glide: 1.0, gain: 0.035, attack: 0.3, decay: 0.5, hold: 0.4, lowpass: 600, vibrato: { rate: 9, depth: 4 } });
-    // final latch clack + bolt seated
-    const tl = t0 + 1.12;
-    this.burst({ t: tl, type: 'bandpass', freq: 1400, q: 1.5, gain: 0.45, decay: 0.04 });
-    this.tone({ t: tl, type: 'sine', f0: 320, f1: 160, glide: 0.04, gain: 0.3, decay: 0.07 });
-    this.burst({ t: tl + 0.16, type: 'lowpass', freq: 900, gain: 0.2, decay: 0.05 });
-  }
-
-  /** AR-15 semi-auto report: a hard supersonic crack, the gas-port bark, a 150 → 45 Hz chest thump and a short forest echo tail */
-  rifleFire(): void {
-    tap.sound?.('rifleFire');
-    if (!this.ready || this.shot('rifleFire')) return;
-    const t = this.ctx.currentTime;
-    // the crack: a ~5 ms highpass transient at full tilt
-    this.burst({ t, type: 'highpass', freq: 3800, gain: 0.9, decay: 0.018 });
-    // muzzle bark: bandpass noise sweeping down, the "bang" body
-    this.burst({ t: t + 0.002, type: 'bandpass', freq: 1500, freqEnd: 320, q: 0.7, gain: 1.0, decay: 0.09 });
-    // chest thump
-    this.tone({ t: t + 0.001, type: 'sine', f0: 150, f1: 45, glide: 0.09, gain: 0.9, decay: 0.2 });
-    // action cycling: bolt carrier slam + a tiny brass tink
-    this.burst({ t: t + 0.055, type: 'bandpass', freq: 2200, q: 2.5, gain: 0.22, decay: 0.03 });
-    this.tone({ t: t + 0.11 + rnd(0, 0.03), type: 'sine', f0: rnd(5200, 6400), gain: 0.05, decay: 0.05 });
-    // forest echo tail: low-passed noise dying over ~0.35 s, a little off to one side each shot
-    this.burst({ t: t + 0.04, type: 'lowpass', freq: 900, freqEnd: 250, gain: 0.35, attack: 0.01, decay: 0.34, pan: rnd(-0.25, 0.25) });
-  }
-
-  /** mag release · mag drops out · fresh mag seated · bolt release slams home (matches the 1.6 s reload) */
-  rifleReload(): void {
-    tap.sound?.('rifleReload');
-    if (!this.ready || this.shot('rifleReload')) return;
-    const t0 = this.ctx.currentTime + 0.05;
-    // mag release button
-    this.burst({ t: t0, type: 'bandpass', freq: 2600, q: 3, gain: 0.25, decay: 0.015 });
-    // mag sliding out + hitting the dirt
-    this.burst({ t: t0 + 0.08, type: 'bandpass', freq: 1400, freqEnd: 700, q: 1, gain: 0.18, decay: 0.09 });
-    this.burst({ t: t0 + 0.42, type: 'lowpass', freq: 420, gain: 0.3, decay: 0.08 });
-    // fresh mag seated with a slap, then the tug check
-    const ts = t0 + 1.0;
-    this.burst({ t: ts, type: 'bandpass', freq: 1100, q: 1.2, gain: 0.5, decay: 0.05 });
-    this.tone({ t: ts, type: 'sine', f0: 260, f1: 140, glide: 0.04, gain: 0.3, decay: 0.07 });
-    this.burst({ t: ts + 0.12, type: 'bandpass', freq: 1800, q: 2, gain: 0.15, decay: 0.03 });
-    // bolt release: heavy steel clack + receiver ring
-    const tb = t0 + 1.4;
-    this.burst({ t: tb, type: 'bandpass', freq: 1900, q: 1.5, gain: 0.55, decay: 0.04 });
-    this.tone({ t: tb, type: 'triangle', f0: 720, f1: 480, glide: 0.05, gain: 0.2, decay: 0.09 });
-    this.tone({ t: tb, type: 'sine', f0: 200, f1: 110, glide: 0.05, gain: 0.35, decay: 0.09 });
   }
 
   /** weapon swap: sling rustle as one drops, a strap snap and the other's grip clack as it comes up */

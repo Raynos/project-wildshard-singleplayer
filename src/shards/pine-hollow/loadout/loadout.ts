@@ -5,7 +5,7 @@ import * as valibot from 'valibot';
 import * as THREE from 'three';
 
 
-import { MAX_BOLTS, PLAIN_BOLT, type BoltMod, type Crossbow, type Bow } from '#kit';
+import { sharedWeaponVoices, MAX_BOLTS, PLAIN_BOLT, type BoltMod, type Crossbow, type Bow } from '#kit';
 import type { LeverRifle } from '../weapons/LeverRifle';
 import { QUIVER_MAX } from '#shards/pine-hollow/weapons/Longbow';
 import type { Inventory } from '#game/Inventory';
@@ -186,7 +186,7 @@ export function installPineLoadout(h: PineLoadoutHost): PineLoadout {
     if (id === rifle.row.id && phase === 'cycle') cues.cue('cue.lever.cycle');
   }, h.scope);
   events?.on('weapon.reload', ({ id, phase }) => {
-    if (id === rifle.row.id && phase === 'round' && !cues.cue('cue.lever.round')) audio.dryFire();
+    if (id === rifle.row.id && phase === 'round' && !cues.cue('cue.lever.round')) sharedWeaponVoices(audio).dryFire();
   }, h.scope);
   events?.on('weapon.charge', ({ id, phase, value }) => {
     if (id !== longbow.row.id) return;

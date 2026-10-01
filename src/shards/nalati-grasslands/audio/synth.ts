@@ -1,3 +1,4 @@
+import { sharedWeaponVoices } from '#kit';
 import { ownAudioSource, audioRandom, tap, ambientTick, Scope, type Audio, type HoofSurface, type ImpactKind } from '#engine';
 /**
  * Nalati's synth voices (07 §6.5 A.3, moved verbatim out of the engine mixer): the steppe's creature calls, hooves and the
@@ -427,7 +428,7 @@ export class SteppeVoices {
     if (!a.ready) return;
     a.tally(`sabreHit:${kind}`);
     if (kind !== 'ground' && a.shot(`sabreHit-${kind}`, { pan, gain })) return;
-    a.swordHit(kind, pan, gain);
+    sharedWeaponVoices(a).swordHit(kind, pan, gain);
     this.steelRing(a.ctx.currentTime, 0.07 * gain, pan);
   }
 

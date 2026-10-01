@@ -21,10 +21,7 @@ import type { LevelAudioBank } from './levelAudio';
  *   audio.resume();                     // call on the first user gesture (ENTER THE CHUNK click / keydown)
  *   audio.listenerYaw = player.yaw;     // each frame, for stereo panning of positional sounds
  *
- *   audio.crossbowFire()  audio.boltImpact('wood'|'ground'|'flesh')  audio.reload()   audio.dryFire()
- *   audio.rifleFire()  audio.rifleReload()  audio.weaponSwap()          // AR-15 (src/engine/player/Rifle.ts) + swap (Weapons.ts)
  *   audio.pickupHum(on)                                           // the pickup orb's hum while inside its prompt radius
- *   audio.swordSwing()  audio.swordHeavy()  audio.swordHit('flesh'|'wood', pan?, gain?)   // sword (src/engine/player/Sword.ts): a light swing, the heavy's release (layered over swordSwing), a hit
  *   audio.dodge()  audio.lunge()                                         // Player.onDodge / onLunge (the dash moves, E27)
  *   audio.footstep(sprinting)  audio.jump()  audio.land(hard)  audio.hitMarker()  audio.kill()
  *   audio.splash(impact)  audio.wadeStep(depth, sprinting)  audio.swimStroke()  audio.waterExit()   // water (Player.onEnterWater / onStep while wading / onStroke / onExitWater)
@@ -42,7 +39,7 @@ import type { LevelAudioBank } from './levelAudio';
  *
  * Samples (project/archive/2026-09-23-music.md v3 row 7): `audio.useSamples(bank)` — the loading bar decoded (src/engine/audio/preload.ts,
  * project/archive/2026-09-23-preload-offline.md; nothing is fetched after it) the selected set's public/assets/sfx/<set>/sfx.json (Settings 'sfxSet': 'best' — the better take per sound of MOSS-SoundEffect v2 and Stable Audio 3 Medium — · 'synth')
- * when the build ships one and decodes what it lists: ambient `beds` (forest / island /
+ * when the build ships one and decodes what it lists: ambient `beds` (the level's selected bed and
  * underwater, looped loopStart → loopEnd, replacing that synth bed), `hums` (pickup / shrine) and `oneshots` (a family →
  * variant files; each call picks one at random with ±40 cents / −1.5 dB of jitter). Every sound sfx.json does not cover
  * keeps its synth version, and the synth is the fallback for everything (no file, a failed fetch or decode, offline).
@@ -50,9 +47,8 @@ import type { LevelAudioBank } from './levelAudio';
  * Switching the set (the pause menu) decodes the new one from the offline cache (every set was downloaded at the bar) while
  * the old one plays on, then swaps it in and drops the old buffers; a set's `credit` goes to src/engine/audio/credits.ts for the menu.
  *
- * Ambient starts on resume() and runs on its own scheduler. The bed follows the chunk: `new Audio()` reads
- * `getActiveChunk().ocean` — an ocean shard's bed is 'island' (a synth bed its ambience profile installs);
- * otherwise the default wind bed. `setAmbient(id)` switches it (before or after resume()); a level's own synth bed registers with
+ * Ambient starts on resume() and runs on its own scheduler. The level's audio profile supplies the bed id and
+ * sample selection to `new Audio(profile)`. `setAmbient(id)` switches it (before or after resume()); a level's own synth bed registers with
  * `installSynthBed`.
  */
 
@@ -140,8 +136,6 @@ export class Audio extends PlayerVoices {
   private started = false;
   /** the ambient bus is on (`setAmbient(false)` mutes it) — a level's bed schedulers read it */
   ambientOn = true;
-  private birdTimer = 0; private gustTimer = 0;
-  private windGain: GainNode | undefined; private windGain2: GainNode | undefined;
   private _muted = false;
   private _worldMuted = false;
   private bed: AmbientBed;
@@ -589,7 +583,6 @@ export class Audio extends PlayerVoices {
   private startAmbient() { this.startBed(); }
 
   private stopBed() {
-    clearTimeout(this.birdTimer); clearTimeout(this.gustTimer);
     this.synthBeds.get(this.bed)?.stop();
     const t = this.ctx.currentTime;
     for (const n of this.bedNodes) {
@@ -597,7 +590,6 @@ export class Audio extends PlayerVoices {
       if (n instanceof AudioScheduledSourceNode) n.stop(t + 3);
     }
     this.bedNodes = [];
-    this.windGain = this.windGain2 = undefined;
   }
 
   private startBed() {
@@ -606,7 +598,7 @@ export class Audio extends PlayerVoices {
     this.sampleBed = l !== undefined;
     const own = this.synthBeds.get(this.bed);
     if (l) this.startSampleBed(l);
-    else if (own) own.start(); else this.startForest();
+    else if (own) own.start();
   }
   /** sfx.json's bed for this shard: one looping source faded in over 2 s (replaces the synth winds, birds, gusts and surf) */
   private startSampleBed(l: SampleLoop) {
@@ -638,64 +630,7 @@ export class Audio extends PlayerVoices {
     return g;
   }
 
-  /** the pines: the original three wind bands, the tree hiss, gusts and distant birds */
-  private startForest() {
-    tap.sound?.('audio.startForest');
-    this.windGain = this.mkWind(260, 0.5, -0.55, 0.07, 0.11);
-    this.windGain2 = this.mkWind(620, 0.8, 0.55, 0.11, 0.06);
-    this.mkWind(140, 0.4, 0.0, 0.05, 0.09);
-    // tree hiss (very quiet high band)
-    this.mkWind(2400, 0.5, 0.2, 0.09, 0.012);
-    this.scheduleGust();
-    this.scheduleBird();
-  }
-
-  private scheduleGust(gentle = 1): void {
-    const wait = rnd(5, 12) * gentle;
-    this.gustTimer = window.setTimeout(() => {
-      ambientTick('audio.gust', () => {
-        if (this.ambientOn && this.windGain && this.windGain2) {
-          const t = this.ctx.currentTime, rise = rnd(1.5, 3), fall = rnd(2, 4), amt = 1 + rnd(0.5, 1.6) / gentle;
-          for (const g of [this.windGain, this.windGain2]) {
-            const base = this.bed === 'island' ? (g === this.windGain ? 0.05 : 0.03) : (g === this.windGain ? 0.11 : 0.06);
-            g.gain.cancelScheduledValues(t);
-            g.gain.setValueAtTime(g.gain.value, t);
-            g.gain.linearRampToValueAtTime(base * amt, t + rise);
-            g.gain.linearRampToValueAtTime(base, t + rise + fall);
-          }
-        }
-        this.scheduleGust(gentle);
-      });
-    }, wait * 1000);
-  }
-
-  private scheduleBird() {
-    const wait = rnd(4, 12);
-    this.birdTimer = window.setTimeout(() => {
-      ambientTick('audio.bird', () => {
-        if (this.ambientOn) this.birdsong();
-        this.scheduleBird();
-      });
-    }, wait * 1000);
-  }
-
-  /** a short distant phrase of 2–5 FM chirps, random pan */
-  private birdsong() {
-    const c = this.ctx, t0 = c.currentTime;
-    const pan = rnd(-0.9, 0.9), dist = rnd(0.35, 1), base = rnd(2400, 4200);
-    const notes = 2 + Math.floor(rnd(0, 4));
-    const bus = c.createGain(); bus.gain.value = 0.11 * dist;
-    const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 6000 * dist;
-    bus.connect(lp); this.route(lp, pan, this.ambient);
-    let t = t0;
-    for (let i = 0; i < notes; i++) {
-      const f0 = base * rnd(0.85, 1.2), f1 = f0 * rnd(0.7, 1.4), dur = rnd(0.05, 0.13);
-      this.tone({ t, type: 'sine', f0, f1, glide: dur, gain: 1, attack: 0.012, decay: dur, vibrato: { rate: rnd(30, 60), depth: rnd(80, 260) }, out: bus });
-      t += dur + rnd(0.03, 0.12);
-    }
-  }
-
-  dispose(): void { for (const bed of this.synthBeds.values()) bed.stop(); clearTimeout(this.birdTimer); clearTimeout(this.gustTimer); clearTimeout(this.bubbleTimer); if (this.g) { if (this.g.ctx === sharedCtx) sharedCtx = undefined; void this.g.ctx.close(); } }
+  dispose(): void { for (const bed of this.synthBeds.values()) bed.stop(); clearTimeout(this.bubbleTimer); if (this.g) { if (this.g.ctx === sharedCtx) sharedCtx = undefined; void this.g.ctx.close(); } }
 }
 
 export { Audio as GameAudio };
