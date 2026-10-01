@@ -1,0 +1,954 @@
+{
+  "classification": "intended: decision 40 coyote",
+  "review": "P3 remains a Jake pick; no pending acceptance, baseline edit, deploy pin edit or runtime change",
+  "sourceIntroduced": "8f9c5566c6ba2d3c390fa7e33830eabbb35d7f2f",
+  "sourceActivated": "fc043dfec376c58d94cde43275d7458a2cb0bfdf",
+  "sourceControl": {
+    "path": "src/engine/player/Player.ts",
+    "before": "this.onGround || this.groundedAgo <= this.coyoteMs",
+    "diagnosticAfter": "this.onGround",
+    "sha": "505fb212158dbc771be0b1b011d61f6e8f2ce795",
+    "scope": "one predicate only; diagnostic never landed"
+  },
+  "captures": {
+    "baseline": {
+      "phone": {
+        "sha": "ee0dd78b2f2977f36f0ed5e44cf0d1da172f13ea",
+        "bootErrors": [],
+        "walkEvents": {
+          "nd.step.stone": 97,
+          "jump": 8,
+          "land": 9,
+          "dodge": 1
+        },
+        "combatEvents": {
+          "nd.step.metal": 2,
+          "lunge": 1,
+          "swordSwing": 1,
+          "nd.jian.swing": 1,
+          "hitMarker": 1,
+          "swordHit:flesh": 1
+        },
+        "escape": {
+          "stuck": [],
+          "end": {
+            "x": 0.498,
+            "y": 126.138,
+            "z": -7.405
+          },
+          "maxY": 127.147,
+          "out": 0
+        },
+        "combatSwing": {
+          "weapon": "sword",
+          "target": "training-dummy",
+          "hits": 1,
+          "hitWithinS": 0.5693333333333044,
+          "killed": false,
+          "killWithinS": null,
+          "hitLimit": 3,
+          "killLimit": null
+        }
+      },
+      "desktop": {
+        "sha": "ee0dd78b2f2977f36f0ed5e44cf0d1da172f13ea",
+        "bootErrors": [],
+        "walkEvents": {
+          "nd.step.stone": 89,
+          "jump": 8,
+          "land": 9
+        },
+        "combatEvents": {
+          "lunge": 1,
+          "swordSwing": 1,
+          "nd.jian.swing": 1,
+          "hitMarker": 1,
+          "swordHit:flesh": 1
+        },
+        "escape": {
+          "stuck": [],
+          "end": {
+            "x": 0.498,
+            "y": 126.138,
+            "z": -7.405
+          },
+          "maxY": 127.147,
+          "out": 0
+        },
+        "combatSwing": {
+          "weapon": "sword",
+          "target": "training-dummy",
+          "hits": 1,
+          "hitWithinS": 0.5693333333333044,
+          "killed": false,
+          "killWithinS": null,
+          "hitLimit": 3,
+          "killLimit": null
+        }
+      }
+    },
+    "head": {
+      "phone": {
+        "sha": "df3989476a82869c3e14b9c0127259ecec3d2d88",
+        "bootErrors": [],
+        "walkEvents": {
+          "nd.step.stone": 93,
+          "jump": 9,
+          "land": 6,
+          "dodge": 1
+        },
+        "combatEvents": {
+          "lunge": 1,
+          "swordSwing": 1,
+          "nd.jian.swing": 1,
+          "nd.step.metal": 1,
+          "hitMarker": 1,
+          "swordHit:flesh": 1
+        },
+        "escape": {
+          "stuck": [],
+          "end": {
+            "x": 0.5,
+            "y": 126.582,
+            "z": -7.469
+          },
+          "maxY": 127.329,
+          "out": 0
+        },
+        "combatSwing": {
+          "weapon": "sword",
+          "target": "training-dummy",
+          "hits": 1,
+          "hitWithinS": 0.5693333333333044,
+          "killed": false,
+          "killWithinS": null,
+          "hitLimit": 3,
+          "killLimit": null
+        }
+      },
+      "desktop": {
+        "sha": "df3989476a82869c3e14b9c0127259ecec3d2d88",
+        "bootErrors": [],
+        "walkEvents": {
+          "nd.step.stone": 83,
+          "jump": 9,
+          "land": 5
+        },
+        "combatEvents": {
+          "lunge": 1,
+          "swordSwing": 1,
+          "nd.jian.swing": 1,
+          "nd.step.metal": 2,
+          "footstep:metal": 1,
+          "hitMarker": 1,
+          "swordHit:flesh": 1
+        },
+        "escape": {
+          "stuck": [],
+          "end": {
+            "x": 0.5,
+            "y": 126.582,
+            "z": -7.469
+          },
+          "maxY": 127.329,
+          "out": 0
+        },
+        "combatSwing": {
+          "weapon": "sword",
+          "target": "training-dummy",
+          "hits": 1,
+          "hitWithinS": 0.5693333333333044,
+          "killed": false,
+          "killWithinS": null,
+          "hitLimit": 3,
+          "killLimit": null
+        }
+      }
+    },
+    "ground": {
+      "phone": {
+        "sha": "505fb212158dbc771be0b1b011d61f6e8f2ce795",
+        "bootErrors": [],
+        "walkEvents": {
+          "nd.step.stone": 97,
+          "jump": 8,
+          "land": 9,
+          "dodge": 1
+        },
+        "combatEvents": {
+          "nd.step.metal": 2,
+          "lunge": 1,
+          "swordSwing": 1,
+          "nd.jian.swing": 1,
+          "hitMarker": 1,
+          "swordHit:flesh": 1
+        },
+        "escape": {
+          "stuck": [],
+          "end": {
+            "x": 0.498,
+            "y": 126.138,
+            "z": -7.405
+          },
+          "maxY": 127.147,
+          "out": 0
+        },
+        "combatSwing": {
+          "weapon": "sword",
+          "target": "training-dummy",
+          "hits": 1,
+          "hitWithinS": 0.5693333333333044,
+          "killed": false,
+          "killWithinS": null,
+          "hitLimit": 3,
+          "killLimit": null
+        }
+      },
+      "desktop": {
+        "sha": "505fb212158dbc771be0b1b011d61f6e8f2ce795",
+        "bootErrors": [],
+        "walkEvents": {
+          "nd.step.stone": 89,
+          "jump": 8,
+          "land": 9
+        },
+        "combatEvents": {
+          "lunge": 1,
+          "swordSwing": 1,
+          "nd.jian.swing": 1,
+          "hitMarker": 1,
+          "swordHit:flesh": 1
+        },
+        "escape": {
+          "stuck": [],
+          "end": {
+            "x": 0.498,
+            "y": 126.138,
+            "z": -7.405
+          },
+          "maxY": 127.147,
+          "out": 0
+        },
+        "combatSwing": {
+          "weapon": "sword",
+          "target": "training-dummy",
+          "hits": 1,
+          "hitWithinS": 0.5693333333333044,
+          "killed": false,
+          "killWithinS": null,
+          "hitLimit": 3,
+          "killLimit": null
+        }
+      }
+    },
+    "jump": {
+      "phone": {
+        "sha": "298645ab0207e8f03906afbfca81840dd8503a7c",
+        "bootErrors": [],
+        "walkEvents": {
+          "nd.step.stone": 93,
+          "jump": 9,
+          "land": 6,
+          "dodge": 1
+        },
+        "combatEvents": {
+          "lunge": 1,
+          "swordSwing": 1,
+          "nd.jian.swing": 1,
+          "nd.step.metal": 1,
+          "hitMarker": 1,
+          "swordHit:flesh": 1
+        },
+        "escape": {
+          "stuck": [],
+          "end": {
+            "x": 0.5,
+            "y": 126.582,
+            "z": -7.469
+          },
+          "maxY": 127.329,
+          "out": 0
+        },
+        "combatSwing": {
+          "weapon": "sword",
+          "target": "training-dummy",
+          "hits": 1,
+          "hitWithinS": 0.5693333333333044,
+          "killed": false,
+          "killWithinS": null,
+          "hitLimit": 3,
+          "killLimit": null
+        }
+      },
+      "desktop": {
+        "sha": "298645ab0207e8f03906afbfca81840dd8503a7c",
+        "bootErrors": [],
+        "walkEvents": {
+          "nd.step.stone": 83,
+          "jump": 9,
+          "land": 5
+        },
+        "combatEvents": {
+          "lunge": 1,
+          "swordSwing": 1,
+          "nd.jian.swing": 1,
+          "nd.step.metal": 2,
+          "footstep:metal": 1,
+          "hitMarker": 1,
+          "swordHit:flesh": 1
+        },
+        "escape": {
+          "stuck": [],
+          "end": {
+            "x": 0.5,
+            "y": 126.582,
+            "z": -7.469
+          },
+          "maxY": 127.329,
+          "out": 0
+        },
+        "combatSwing": {
+          "weapon": "sword",
+          "target": "training-dummy",
+          "hits": 1,
+          "hitWithinS": 0.5693333333333044,
+          "killed": false,
+          "killWithinS": null,
+          "hitLimit": 3,
+          "killLimit": null
+        }
+      }
+    }
+  },
+  "trace": {
+    "trace-head": {
+      "phone": {
+        "sha": "87676a6469621b35a3ec9106ca7d9fb8e3f6d53e",
+        "stages": [
+          {
+            "stage": "sounds-reset",
+            "frame": 1915,
+            "bobTime": 330.21006217619356,
+            "phase": 105,
+            "pos": {
+              "x": 3.8435084374558786,
+              "y": 125.01442833342298,
+              "z": -7.3836240503426325
+            },
+            "velocity": {
+              "x": -11.70720544279568,
+              "y": 0,
+              "z": 2.63464242738464
+            },
+            "onGround": true,
+            "audioReady": true,
+            "relativeFrame": 0
+          },
+          {
+            "stage": "before-arena",
+            "frame": 1915,
+            "bobTime": 330.21006217619356,
+            "phase": 105,
+            "pos": {
+              "x": 3.8435084374558786,
+              "y": 125.01442833342298,
+              "z": -7.3836240503426325
+            },
+            "velocity": {
+              "x": -11.70720544279568,
+              "y": 0,
+              "z": 2.63464242738464
+            },
+            "onGround": true,
+            "audioReady": true,
+            "relativeFrame": 0
+          },
+          {
+            "stage": "after-arena",
+            "frame": 1915,
+            "bobTime": 330.21006217619356,
+            "phase": 105,
+            "pos": {
+              "x": 0.95,
+              "y": 900,
+              "z": 5.3
+            },
+            "velocity": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "onGround": true,
+            "audioReady": true,
+            "relativeFrame": 0
+          },
+          {
+            "stage": "sounds-reset",
+            "frame": 1917,
+            "bobTime": 330.7767288428603,
+            "phase": 105,
+            "pos": {
+              "x": 0.17249707579612727,
+              "y": 900,
+              "z": 5.469349033385515
+            },
+            "velocity": {
+              "x": -11.70720544279568,
+              "y": 0,
+              "z": 2.63464242738464
+            },
+            "onGround": true,
+            "audioReady": true,
+            "relativeFrame": 2
+          },
+          {
+            "stage": "sound:lunge",
+            "frame": 1951,
+            "bobTime": 332.7993926911808,
+            "phase": 105,
+            "pos": {
+              "x": -1.2935529476742045,
+              "y": 900,
+              "z": 2.7206318334145925
+            },
+            "velocity": {
+              "x": -5.937108197427199e-07,
+              "y": 0,
+              "z": 1.3361136634482332e-07
+            },
+            "onGround": true,
+            "audioReady": true,
+            "relativeFrame": 36
+          },
+          {
+            "stage": "sound:nd.step.metal",
+            "frame": 1952,
+            "bobTime": 333.08272602451416,
+            "phase": 106,
+            "pos": {
+              "x": -1.265279816907157,
+              "y": 900,
+              "z": 1.9878437474770925
+            },
+            "velocity": {
+              "x": 0.8481937799548828,
+              "y": 0,
+              "z": -21.983643176499335
+            },
+            "onGround": true,
+            "audioReady": true,
+            "relativeFrame": 37
+          },
+          {
+            "stage": "sounds-reset",
+            "frame": 1970,
+            "bobTime": 334.73852200211,
+            "phase": 106,
+            "pos": {
+              "x": -1.1837565106697707,
+              "y": 900,
+              "z": 0.13819075496656463
+            },
+            "velocity": {
+              "x": 0.00016248481753570288,
+              "y": 0,
+              "z": -0.0042113115360189225
+            },
+            "onGround": true,
+            "audioReady": true,
+            "relativeFrame": 55
+          }
+        ]
+      },
+      "desktop": {
+        "sha": "87676a6469621b35a3ec9106ca7d9fb8e3f6d53e",
+        "stages": [
+          {
+            "stage": "sounds-reset",
+            "frame": 1838,
+            "bobTime": 304.2490947943042,
+            "phase": 96,
+            "pos": {
+              "x": 0.4998592024278278,
+              "y": 126.53568679083041,
+              "z": -7.476381265187062
+            },
+            "velocity": {
+              "x": -0.9156911191821522,
+              "y": -3.1333333333333298,
+              "z": -0.11504570589420264
+            },
+            "onGround": false,
+            "audioReady": true,
+            "relativeFrame": 0
+          },
+          {
+            "stage": "before-arena",
+            "frame": 1838,
+            "bobTime": 304.2490947943042,
+            "phase": 96,
+            "pos": {
+              "x": 0.4998592024278278,
+              "y": 126.53568679083041,
+              "z": -7.476381265187062
+            },
+            "velocity": {
+              "x": -0.9156911191821522,
+              "y": -3.1333333333333298,
+              "z": -0.11504570589420264
+            },
+            "onGround": false,
+            "audioReady": true,
+            "relativeFrame": 0
+          },
+          {
+            "stage": "after-arena",
+            "frame": 1838,
+            "bobTime": 304.2490947943042,
+            "phase": 96,
+            "pos": {
+              "x": 0.95,
+              "y": 900,
+              "z": 5.3
+            },
+            "velocity": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "onGround": false,
+            "audioReady": true,
+            "relativeFrame": 0
+          },
+          {
+            "stage": "sounds-reset",
+            "frame": 1840,
+            "bobTime": 304.2490947943042,
+            "phase": 96,
+            "pos": {
+              "x": 0.9499997782376937,
+              "y": 900,
+              "z": 5.299999556475387
+            },
+            "velocity": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "onGround": true,
+            "audioReady": true,
+            "relativeFrame": 2
+          },
+          {
+            "stage": "sound:lunge",
+            "frame": 1874,
+            "bobTime": 304.2490947943042,
+            "phase": 96,
+            "pos": {
+              "x": 0.9499999168391274,
+              "y": 900,
+              "z": 2.299999999999998
+            },
+            "velocity": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "onGround": true,
+            "audioReady": true,
+            "relativeFrame": 36
+          },
+          {
+            "stage": "sound:nd.step.metal",
+            "frame": 1875,
+            "bobTime": 304.53242812763756,
+            "phase": 96,
+            "pos": {
+              "x": 0.9499999234533784,
+              "y": 900,
+              "z": 2.174999999999998
+            },
+            "velocity": {
+              "x": 1.732518177532949e-07,
+              "y": 0,
+              "z": -3.7499999999999964
+            },
+            "onGround": true,
+            "audioReady": true,
+            "relativeFrame": 37
+          },
+          {
+            "stage": "sound:nd.step.metal",
+            "frame": 1876,
+            "bobTime": 304.8157614609709,
+            "phase": 97,
+            "pos": {
+              "x": 0.9499999300676293,
+              "y": 900,
+              "z": 2.049999999999998
+            },
+            "velocity": {
+              "x": 1.732518177532949e-07,
+              "y": 0,
+              "z": -3.7499999999999964
+            },
+            "onGround": true,
+            "audioReady": true,
+            "relativeFrame": 38
+          },
+          {
+            "stage": "sound:footstep:metal",
+            "frame": 1876,
+            "bobTime": 304.8157614609709,
+            "phase": 97,
+            "pos": {
+              "x": 0.9499999300676293,
+              "y": 900,
+              "z": 2.049999999999998
+            },
+            "velocity": {
+              "x": 1.732518177532949e-07,
+              "y": 0,
+              "z": -3.7499999999999964
+            },
+            "onGround": true,
+            "audioReady": true,
+            "relativeFrame": 38
+          },
+          {
+            "stage": "sounds-reset",
+            "frame": 1893,
+            "bobTime": 305.07083177255083,
+            "phase": 97,
+            "pos": {
+              "x": 0.9507616742153343,
+              "y": 900,
+              "z": 1.982775008488077
+            },
+            "velocity": {
+              "x": 1.9507816700859746e-11,
+              "y": 0,
+              "z": -0.0004222426845321382
+            },
+            "onGround": true,
+            "audioReady": true,
+            "relativeFrame": 55
+          }
+        ]
+      }
+    },
+    "trace-ground": {
+      "phone": {
+        "sha": "f65465ff83ca739310f1df6cec94d23c513bda66",
+        "stages": [
+          {
+            "stage": "sounds-reset",
+            "frame": 1908,
+            "bobTime": 325.8216840257878,
+            "phase": 103,
+            "pos": {
+              "x": 3.8435084374558786,
+              "y": 125.01442833342298,
+              "z": -7.3836240503426325
+            },
+            "velocity": {
+              "x": -11.70720544279568,
+              "y": 0,
+              "z": 2.63464242738464
+            },
+            "onGround": true,
+            "audioReady": true,
+            "relativeFrame": 0
+          },
+          {
+            "stage": "before-arena",
+            "frame": 1908,
+            "bobTime": 325.8216840257878,
+            "phase": 103,
+            "pos": {
+              "x": 3.8435084374558786,
+              "y": 125.01442833342298,
+              "z": -7.3836240503426325
+            },
+            "velocity": {
+              "x": -11.70720544279568,
+              "y": 0,
+              "z": 2.63464242738464
+            },
+            "onGround": true,
+            "audioReady": true,
+            "relativeFrame": 0
+          },
+          {
+            "stage": "after-arena",
+            "frame": 1908,
+            "bobTime": 325.8216840257878,
+            "phase": 103,
+            "pos": {
+              "x": 0.95,
+              "y": 900,
+              "z": 5.3
+            },
+            "velocity": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "onGround": true,
+            "audioReady": true,
+            "relativeFrame": 0
+          },
+          {
+            "stage": "sounds-reset",
+            "frame": 1910,
+            "bobTime": 326.38835069245454,
+            "phase": 103,
+            "pos": {
+              "x": 0.17249707579612727,
+              "y": 900,
+              "z": 5.469349033385515
+            },
+            "velocity": {
+              "x": -11.70720544279568,
+              "y": 0,
+              "z": 2.63464242738464
+            },
+            "onGround": true,
+            "audioReady": true,
+            "relativeFrame": 2
+          },
+          {
+            "stage": "sound:nd.step.metal",
+            "frame": 1912,
+            "bobTime": 326.95501735912126,
+            "phase": 104,
+            "pos": {
+              "x": -0.10875742228609075,
+              "y": 900,
+              "z": 2.4540248690172906
+            },
+            "velocity": {
+              "x": -11.70720544279568,
+              "y": 0,
+              "z": 2.63464242738464
+            },
+            "onGround": true,
+            "audioReady": true,
+            "relativeFrame": 4
+          },
+          {
+            "stage": "sound:lunge",
+            "frame": 1944,
+            "bobTime": 328.41101454077506,
+            "phase": 104,
+            "pos": {
+              "x": -1.2935529476742045,
+              "y": 900,
+              "z": 2.7206318334145925
+            },
+            "velocity": {
+              "x": -5.937108197427199e-07,
+              "y": 0,
+              "z": 1.3361136634482332e-07
+            },
+            "onGround": true,
+            "audioReady": true,
+            "relativeFrame": 36
+          },
+          {
+            "stage": "sound:nd.step.metal",
+            "frame": 1952,
+            "bobTime": 330.05672581323745,
+            "phase": 105,
+            "pos": {
+              "x": -1.1881721156894014,
+              "y": 900,
+              "z": 0.21910462457970592
+            },
+            "velocity": {
+              "x": 0.05616528907670937,
+              "y": 0,
+              "z": -1.4557023443781818
+            },
+            "onGround": true,
+            "audioReady": true,
+            "relativeFrame": 44
+          },
+          {
+            "stage": "sounds-reset",
+            "frame": 1963,
+            "bobTime": 330.3501438517043,
+            "phase": 105,
+            "pos": {
+              "x": -1.1837565106697707,
+              "y": 900,
+              "z": 0.13819075496656463
+            },
+            "velocity": {
+              "x": 0.00016248481753570288,
+              "y": 0,
+              "z": -0.0042113115360189225
+            },
+            "onGround": true,
+            "audioReady": true,
+            "relativeFrame": 55
+          }
+        ]
+      },
+      "desktop": {
+        "sha": "f65465ff83ca739310f1df6cec94d23c513bda66",
+        "stages": [
+          {
+            "stage": "sounds-reset",
+            "frame": 1831,
+            "bobTime": 299.86071664389846,
+            "phase": 95,
+            "pos": {
+              "x": 0.4978156468019179,
+              "y": 126.13797700526038,
+              "z": -7.404813297103782
+            },
+            "velocity": {
+              "x": -0.0014719610743338931,
+              "y": 0,
+              "z": -0.0001947834575880014
+            },
+            "onGround": true,
+            "audioReady": true,
+            "relativeFrame": 0
+          },
+          {
+            "stage": "before-arena",
+            "frame": 1831,
+            "bobTime": 299.86071664389846,
+            "phase": 95,
+            "pos": {
+              "x": 0.4978156468019179,
+              "y": 126.13797700526038,
+              "z": -7.404813297103782
+            },
+            "velocity": {
+              "x": -0.0014719610743338931,
+              "y": 0,
+              "z": -0.0001947834575880014
+            },
+            "onGround": true,
+            "audioReady": true,
+            "relativeFrame": 0
+          },
+          {
+            "stage": "after-arena",
+            "frame": 1831,
+            "bobTime": 299.86071664389846,
+            "phase": 95,
+            "pos": {
+              "x": 0.95,
+              "y": 900,
+              "z": 5.3
+            },
+            "velocity": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "onGround": true,
+            "audioReady": true,
+            "relativeFrame": 0
+          },
+          {
+            "stage": "sounds-reset",
+            "frame": 1833,
+            "bobTime": 299.86071664389846,
+            "phase": 95,
+            "pos": {
+              "x": 0.9499997782376937,
+              "y": 900,
+              "z": 5.299999556475387
+            },
+            "velocity": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "onGround": true,
+            "audioReady": true,
+            "relativeFrame": 2
+          },
+          {
+            "stage": "sound:lunge",
+            "frame": 1867,
+            "bobTime": 299.86071664389846,
+            "phase": 95,
+            "pos": {
+              "x": 0.9499999168391274,
+              "y": 900,
+              "z": 2.299999999999998
+            },
+            "velocity": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "onGround": true,
+            "audioReady": true,
+            "relativeFrame": 36
+          },
+          {
+            "stage": "sounds-reset",
+            "frame": 1886,
+            "bobTime": 300.6824536221451,
+            "phase": 95,
+            "pos": {
+              "x": 0.9507616742153343,
+              "y": 900,
+              "z": 1.982775008488077
+            },
+            "velocity": {
+              "x": 1.9507816700859746e-11,
+              "y": 0,
+              "z": -0.0004222426845321382
+            },
+            "onGround": true,
+            "audioReady": true,
+            "relativeFrame": 55
+          }
+        ]
+      }
+    }
+  },
+  "assertions": {
+    "freshBaselineEqualsStoredEventMaps": true,
+    "groundOnlyEqualsBaselineWalkAndCombatEventsBothTiers": true,
+    "jumpBufferOnlyEqualsHeadWalkAndCombatEventsBothTiers": true,
+    "traceEventMapsEqualUninstrumentedControls": true,
+    "arenaSpawnAndLungePositionsVelocitiesAndRelativeFramesEqualBothTiers": true,
+    "eventInsertionOrderAlsoMatchesControls": true,
+    "escapeStuckAndOutBothZeroOnAllControls": true
+  },
+  "synthKeeps": {
+    "baseline": [
+      "step.metal.1"
+    ],
+    "head": [
+      "step.metal.1"
+    ]
+  },
+  "timingChecks": {
+    "sha": "df3989476a82869c3e14b9c0127259ecec3d2d88",
+    "testsPassed": 7,
+    "scratchRunner": "/private/tmp/e357-sol-r10/check-coyote.mjs",
+    "fixtureSha256": "9ad82d136f1c0b88036be3c38bb5630afa82d4fc3dc00cc6d84f7104f534386a",
+    "log": "/private/tmp/e357-sol-r10/coyote-tests.log",
+    "cases": [
+      "99 ms / 100 ms ground launch 7.2; 100.001 ms / 101 ms existing double jump 8.6",
+      "held jump produces one launch and consumes its press",
+      "fresh press after coyote takeoff uses existing double jump; third airborne press produces no launch",
+      "fresh press after normal ground takeoff uses existing double jump, never a renewed grace jump",
+      "blocked buffer launches at exactly 120 ms; expires at 120.001 ms"
+    ]
+  },
+  "captureRoot": "/private/tmp/e357-sol-r10",
+  "captureMode": "matched default accelerated 30 Hz route with poses + gate walks + combat + pause/resume + leak, --retry=0",
+  "captureVerdict": "exit 1 on historical normalization fingerprints; R6 conclusions use direct event maps and trace assertions, never pending verdicts",
+  "historicalIntermediate": "478f68644754d32086a6b9f38ae281c3e162208b cannot boot Nine Dragon: shard has no primary equipment factory. Replaced historical bisection with baseline recapture plus isolated source controls."
+}
