@@ -39,6 +39,7 @@ import { setting, onSettingChange } from '#engine/ui/Settings';
 import { TIER } from '#engine/core/tier';
 import { SEED } from '#engine/core/config';
 import { practiceRoom } from '#engine/core/practiceRoom';
+import type { LevelContext } from '#engine/level/context';
 
 /** 0 … 1: how far a scripted room's own air replaces the weather's fog (the Antler King's seal, src/shards/pine-hollow/combat/antlerKing.ts) */
 export const weatherHold = { k: 0 };
@@ -77,7 +78,11 @@ function oldGrowthAt(x: number, z: number): number {
 
 interface Shelter { home: { x: number; z: number }; spot: { x: number; z: number } | null; hold: number }
 
-export function installPineWeather(h: PineWeatherHost): PineWeatherRig | null {
+export function installWeather(ctx: LevelContext, host: PineWeatherHost): PineWeatherRig | null {
+  return installPineWeather(host, ctx);
+}
+
+export function installPineWeather(h: PineWeatherHost, ctx?: LevelContext): PineWeatherRig | null {
   const pine = h.sky.pine;
   if (pine === null) return null; // the fixed sky: no clock, no weather
   const atT = 0.5; // a held Fog / Rain starts halfway into its phase
@@ -85,7 +90,8 @@ export function installPineWeather(h: PineWeatherHost): PineWeatherRig | null {
   weather.setMode(setting('weather'), atT);
   const fx = new PineWeatherFX({ sky: h.sky, trees: h.trees, roofAt: h.roofAt, phone: TIER === 'phone', seed: SEED }).build();
   h.game.scene.add(fx.group); // hidden while dry; in the scene before the boot's precompile, so the rain's program is built then
-  onSettingChange('weather', (m) => { weather.setMode(m, atT); });
+  const stopSetting = onSettingChange('weather', (m) => { weather.setMode(m, atT); });
+  (ctx?.scope ?? h.game.levelScope).onDispose(stopSetting);
 
   // the height fog's own floor / falloff (Sky set them from the chunk's atmosphere): the dawn fog lifts and steepens them
   const baseH = fogUniforms.fogHeight.value, baseFall = fogUniforms.fogHeightFalloff.value;
@@ -127,14 +133,19 @@ export function installPineWeather(h: PineWeatherHost): PineWeatherRig | null {
       }
     }
   };
-  h.animals.wanderGoal = (a) => {
-    const hd = h.animals.herds[a.herd];
+  const wanderGoal = (herd: number): { x: number; z: number; r: number } | null => {
+    const hd = h.animals.herds[herd];
     if (hd === undefined) return null;
     const s = shelters.get(hd);
     if (s === undefined) return null;
     if (weather.rain > 0.3) return s.spot !== null ? { x: s.spot.x, z: s.spot.z, r: 3.5 } : null;
     return { x: s.home.x, z: s.home.z, r: 10 };   // the rain is over: back out to graze
   };
+  const scope = ctx?.scope ?? h.game.levelScope;
+  h.game.app.events.answer('creature.wander-goal', (query) => {
+    if (h.game.app.levelScope !== h.game.levelScope) return query;
+    return { ...query, goal: wanderGoal(query.herd) ?? query.goal };
+  }, scope);
 
   const blob = new THREE.Vector3();
   /** C7: the Ghost Stag — the quest's lead when it is out, else the elite when it is within 140 m — in a fog bank at dawn */
@@ -156,11 +167,11 @@ export function installPineWeather(h: PineWeatherHost): PineWeatherRig | null {
   blob.set(0, -1e4, 0);
 
   const dev = { paused: false };
-  h.game.onUpdate((dt) => {
+  const update = (dt: number): void => {
     if (dev.paused) return; // dev: the numbers below left as they are, to poke at one by hand
     weather.update(dt, pine.clock);
     const eye = h.viewer();
-    const stay = 1 - THREE.MathUtils.clamp(weatherHold.k, 0, 1); // a sealed boss room's own fog wins (F-L7)
+    const stay = 1 - THREE.MathUtils.clamp(h.game.app.events.ask('weather.hold', weatherHold.k), 0, 1); // a sealed boss room's own fog wins (F-L7)
     const fog = weather.fog * stay, haze = weather.rain * stay, og = oldGrowthAt(eye.x, eye.z);
     // the sky: the deck, and the fog's densities (dawn fog, the rain's haze on top of the clock's own, the old-growth thickest)
     pine.mod.overcast = weather.overcast;
@@ -188,10 +199,12 @@ export function installPineWeather(h: PineWeatherHost): PineWeatherRig | null {
     fx.update(dt, weather, fogCol, wind, h.game.camera);
     shelterHerds(dt);
     stagInFog(eye);
-  }, 'world.weather');
+  };
+  if (ctx) ctx.system({ id: 'shard.pine.weather', phase: 'update', run: update });
+  else h.game.onUpdate(update, 'world.weather');
 
   const rig: PineWeatherRig = { weather, fx, setMode: (m, t = 0.5) => { weather.setMode(m, t); } };
-  h.game.app.debug.expose('pine.weather', {
+  const debug = {
     ...rig, dev, uniforms: { weatherUniforms, fogUniforms, waterWeather, windBoost, mod: pine.mod },
     /** dev (C7's evidence): every grazer's distance to the nearest big tree — the mean, and how many stand within 6 m */
     herdShelter: () => {
@@ -203,6 +216,8 @@ export function installPineWeather(h: PineWeatherHost): PineWeatherRig | null {
       }
       return { n: d.length, mean: Math.round(d.reduce((a, b) => a + b, 0) / Math.max(1, d.length) * 10) / 10, under6: d.filter((v) => v < 6).length, sheltering: [...shelters.values()].filter((s) => s.spot !== null).length };
     },
-  });
+  };
+  if (ctx) ctx.debug.expose('pine.weather', debug);
+  else h.game.levelScope.onDispose(h.game.app.debug.scopedExpose('pine.weather', debug));
   return rig;
 }

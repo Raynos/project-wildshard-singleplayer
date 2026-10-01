@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import type { Animal } from '#engine/entities/Animal';
 import type { AnimalManager } from '#engine/entities/AnimalManager';
 import type { Balbals } from './world/Balbals';
-import type { DayCycle } from '#engine/world/dayCycle';
+import type { DayCycleClock } from '#engine/world/dayCycle';
 import { heightAt } from '#engine/world/Heightfield';
 import { BALBAL, BALBAL_SLAM, balbalCombat, onBalbalCrack } from '#engine/entities/species/balbal';
 import { NightParticles, FLAG_GRAVITY, FLAG_BOUNCE, FLAG_GROW } from './nightFx';
@@ -30,7 +30,7 @@ import { setting } from '#engine/ui/Settings';
  * filling toward the tip through the 1.5 s wind-up, exactly the area the blow will hit.
  */
 
-export interface BalbalWarriorsCtx { scene: THREE.Scene; balbals: Balbals | null; clock: DayCycle }
+export interface BalbalWarriorsCtx { scene: THREE.Scene; balbals: Balbals | null; clock: DayCycleClock }
 interface KitLike { sabre: { model: THREE.Object3D }; spear: { model: THREE.Object3D } }
 interface Warrior { a: Animal; statue: number; deadT: number; sparkT: number; lastHp: number; wedge: Wedge }
 

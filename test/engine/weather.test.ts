@@ -3,6 +3,7 @@ import { PineWeather } from '#shards/pine-hollow/world/weatherProfile';
 import { SteppeStorm } from '#shards/nalati-grasslands/world/Weather';
 import { Weather } from '#engine/world/weather';
 import { Scope } from '#engine/app/scope';
+import { Events } from '#engine/events/events';
 import frozen from './fixtures/weather-e357.json';
 
 /** Recorded from original152c5409 classes, including RNG-shared Nalati lightning/gust state. */
@@ -31,4 +32,16 @@ it('phase observers unsubscribe with their owner scope', () => {
   const seen: string[] = []; w.onPhase((state) => { seen.push(state); }, scope);
   w.force('rain'); scope.dispose(); w.force('clearing');
   expect(seen).toEqual(['rain']);
+});
+it('weather requests retain caller values and release scripted modifiers at disposal', () => {
+  const events = new Events(), scope = new Scope('boss');
+  expect(events.ask('weather.hold', .25)).toBe(.25);
+  expect(events.ask('weather.damage', 60)).toBe(60);
+  events.answer('weather.hold', (hold) => Math.max(hold, .8), scope);
+  events.answer('weather.damage', (damage) => damage * .5, scope);
+  expect(events.ask('weather.hold', .25)).toBe(.8);
+  expect(events.ask('weather.damage', 60)).toBe(30);
+  scope.dispose();
+  expect(events.ask('weather.hold', .25)).toBe(.25);
+  expect(events.ask('weather.damage', 60)).toBe(60);
 });

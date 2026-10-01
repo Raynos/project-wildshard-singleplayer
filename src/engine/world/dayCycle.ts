@@ -26,7 +26,7 @@ export interface DayCycleSpec<K = never> {
   /** Phase clocks historically pin once per frame; hour clocks also pause. */
   pauseOnPin?: boolean;
 }
-export type DayCycleClock = Pick<DayCycle, 'hour' | 'phase' | 'dayPhase' | 'night' | 'dusk' | 'dawn' | 'lamps' | 'body' | 'sunDir' | 'setTime' | 'set' | 'pin' | 'scale' | 'paused'>;
+export type DayCycleClock = Pick<DayCycle, 'hour' | 'phase' | 'dayPhase' | 'night' | 'dusk' | 'dawn' | 'lamps' | 'body' | 'sunDir' | 'setTime' | 'set' | 'pin' | 'scale' | 'paused' | 'update' | 'sunElevation' | 'sunAzimuth' | 'moonElevation' | 'moonAzimuth' | 'onDawn' | 'onDay' | 'onGolden' | 'onDusk' | 'onNight' | 'onPhase' | 'dayMinutes' | 'phaseProgress'>;
 
 const wrap = (n: number, period: number): number => ((n % period) + period) % period;
 export function phaseOfHour(h: number): DayPhase {
@@ -126,12 +126,26 @@ export class DayCycle<K = never> {
     const keys = this.spec.keys;
     if (!keys || keys.frames.length < 2) throw new Error('DayCycle: keyframes missing');
     const frames = keys.frames, n = frames.length;
-    let i = keys.coordinate === 'phase' ? n - 1 : 0;
+    if (keys.coordinate === 'elevation') {
+      const first = frames[0], last = frames[n - 1];
+      if (!first || !last) throw new Error('DayCycle: keyframes missing');
+      const descending = first[0] > last[0];
+      if (descending ? at >= first[0] : at <= first[0]) return [first, first, 0];
+      if (descending ? at <= last[0] : at >= last[0]) return [last, last, 0];
+      for (let k = 0; k < n - 1; k++) {
+        const a = frames[k], b = frames[k + 1];
+        if (a && b && (descending ? at <= a[0] && at >= b[0] : at >= a[0] && at <= b[0])) {
+          const t = descending ? (a[0] - at) / (a[0] - b[0]) : (at - a[0]) / (b[0] - a[0]);
+          return [a, b, t * t * (3 - 2 * t)];
+        }
+      }
+      throw new Error('DayCycle: key lookup');
+    }
+    let i = n - 1;
     for (let k = 0; k < n; k++) { const e = frames[k]; if (e && e[0] <= at) i = k; }
     const a = frames[i], b = frames[(i + 1) % n];
     if (!a || !b) throw new Error('DayCycle: keyframes missing');
-    if (keys.coordinate === 'elevation' && i === n - 1) return [a, a, 0];
-    const pa = a[0], pb = keys.coordinate === 'phase' && b[0] <= pa ? b[0] + 1 : b[0], p = keys.coordinate === 'phase' && at < pa ? at + 1 : at;
+    const pa = a[0], pb = b[0] <= pa ? b[0] + 1 : b[0], p = at < pa ? at + 1 : at;
     return [a, b, smooth(pa, pb, p)];
   }
   key(out: K): K { const [a, b, t] = this.segment(); this.spec.keys?.blend(out, a[1], b[1], t); return out; }

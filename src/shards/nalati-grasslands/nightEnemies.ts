@@ -3,7 +3,7 @@ import type { Game, Sky, Player, Forest, TargetHit } from '#engine';
 
 
 
-import type { DayCycle } from '#engine/world/dayCycle';
+import type { DayCycleClock } from '#engine/world/dayCycle';
 import type { Balbals } from './world/Balbals';
 import type { AnimalManager } from '#engine/entities/AnimalManager';
 
@@ -30,7 +30,7 @@ import { GhostRiders } from './ghostRiders';
  * Debug ▸ Creatures & NPCs ▸ Balbal warriors / Ghost riders (wake now · never); `window.__balbals`, `window.__ghosts`.
  */
 
-export interface NightEnemiesCtx { game: Game; sky: Sky; player: Player; forest: Forest; balbals: Balbals | null; clock: DayCycle }
+export interface NightEnemiesCtx { game: Game; sky: Sky; player: Player; forest: Forest; balbals: Balbals | null; clock: DayCycleClock }
 export interface NightEnemies {
   balbals: BalbalWarriors;
   riders: GhostRiders;

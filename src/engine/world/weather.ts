@@ -2,6 +2,13 @@ import type { Rng } from '../core/rng';
 import type { Scope } from '../app/scope';
 import type { DayCycleClock } from './dayCycle';
 
+declare module '../events/maps' {
+  interface AskMap {
+    'weather.hold': readonly [number, number];
+    'weather.damage': readonly [number, number];
+  }
+}
+
 export interface WeatherNumbers { overcast: number; rain: number; wet: number; wind: number; fog: number }
 export interface WeatherFrame<S extends string, N extends WeatherNumbers> {
   state: S; mode: string; t: number; length: number; u: number; dt: number; prev: N; clockPhase: number;
@@ -43,7 +50,9 @@ export class Weather<S extends string = string, N extends WeatherNumbers = Weath
     const first = profile.states[0];
     if (first === undefined) throw new Error('Weather: empty profile');
     this.state = first; this.n = profile.initial();
-    this.phaseLen = this.sample(profile.firstLength?.[first] ?? profile.length[first]);
+    const firstLength = profile.firstLength?.[first] ?? profile.length[first];
+    // Both original machines draw the first length even for a degenerate range.
+    this.phaseLen = this.rng.range(firstLength[0], firstLength[1]);
   }
   get overcast(): number { return this.n.overcast; }
   get rain(): number { return this.n.rain; }

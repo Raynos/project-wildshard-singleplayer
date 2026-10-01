@@ -5,7 +5,7 @@ import { type Game, type Sky, type Player, type Forest, type TargetAnimal, type 
 
 import type { Animal } from '#engine/entities/Animal';
 import type { AnimalManager } from '#engine/entities/AnimalManager';
-import type { DayCycle } from '#engine/world/dayCycle';
+import type { DayCycleClock } from '#engine/world/dayCycle';
 
 import { heightAt } from '#engine/world/Heightfield';
 import { HORSE_SPEED } from '#engine/entities/species/horse';
@@ -45,7 +45,7 @@ import { BOWL } from './layout';
  * output is replaced by a fresnel glow (additive, self-lit, no fog, no shadows): 2 programs (skinned / static).
  */
 
-export interface GhostRidersCtx { game: Game; sky: Sky; player: Player; forest: Forest; clock: DayCycle }
+export interface GhostRidersCtx { game: Game; sky: Sky; player: Player; forest: Forest; clock: DayCycleClock }
 export type GhostVariant = 'rider' | 'captain';
 interface Rider {
   a: Animal; mats: GhostMat[]; line: Line | null; slot: number;

@@ -35,11 +35,27 @@ import { painterlyUniforms, syncPainterlySun } from './painterly';
 import { fogUniforms } from './Atmosphere';
 import type { RGB } from '#game/shard/manifest';
 
-import { compassDir } from './dayCycle';
-import type { DayCycle } from './dayCycle';
+import { compassDir, type DayCycle, type DayCycleClock, type DayKeys } from './dayCycle';
 
 export { compassDir } from './dayCycle';
 export type { DayPhase } from './dayCycle';
+export interface SkyKey {
+  el: number;
+  sun: RGB; sunI: number;
+  zenith: RGB; horizon: RGB; ground: RGB; glow: RGB; stars: number;
+  hemiSky: RGB; hemiGround: RGB; hemiI: number; env: number;
+  fog: RGB; fogSun: RGB;
+  shade: RGB; rim: RGB;
+  cloudSun: RGB; cloud: RGB; planet: RGB;
+  shadowTint: RGB; highTint: RGB; lift: RGB; gain: RGB; sat: number; contrast: number;
+  vol: RGB; volS: number; rays: number;
+}
+
+export interface SkyKeyProfile {
+ frames: (day: SkyKey) => SkyKey[];
+ blend: (out: SkyKey, a: SkyKey, b: SkyKey, t: number) => void;
+}
+
 // ─────────────────────────────────────────────── the look ───────────────────────────────────────────────
 
 /** everything the sky rig paints, as plain numbers (lerpable) — the clock builds one, weather modifies it, `apply` writes it */
@@ -80,83 +96,12 @@ export function makeLook(): SkyLook {
 }
 
 /** the colour / number part of a look at one sun elevation (the key frames) */
-interface Key {
-  el: number;
-  sun: RGB; sunI: number;
-  zenith: RGB; horizon: RGB; ground: RGB; glow: RGB; stars: number;
-  hemiSky: RGB; hemiGround: RGB; hemiI: number; env: number;
-  fog: RGB; fogSun: RGB;
-  shade: RGB; rim: RGB;
-  cloudSun: RGB; cloud: RGB; planet: RGB;
-  shadowTint: RGB; highTint: RGB; lift: RGB; gain: RGB; sat: number; contrast: number;
-  vol: RGB; volS: number; rays: number;
-}
-
 const rgbOf = (c: THREE.Color): RGB => [c.r, c.g, c.b];
 
 /**
  * The key frames below the def's "day": golden hour, sunset, the afterglow, the blue hour, night. Painterly, not
  * physical — night is a readable moonlit blue (the Qara Batyr mockup), dusk a warm orange-violet (the Kokbori one).
  */
-function nightKeys(day: Key): Key[] {
-  const golden: Key = {
-    ...day, el: 6,
-    sun: [1.0, 0.72, 0.44], sunI: day.sunI * 0.85,
-    zenith: [0.12, 0.26, 0.72], horizon: [0.95, 0.74, 0.55], glow: [1.0, 0.62, 0.3],
-    hemiSky: [0.55, 0.62, 0.85], hemiGround: [0.32, 0.3, 0.16], hemiI: day.hemiI * 0.9, env: day.env * 0.85,
-    fog: [0.86, 0.72, 0.6], fogSun: [1.0, 0.7, 0.42],
-    shade: [0.12, 0.13, 0.34], rim: [1.7, 1.15, 0.7],
-    cloudSun: [1.0, 0.72, 0.48], cloud: [1.0, 0.93, 0.88], planet: [1.0, 0.92, 0.84],
-    shadowTint: [0.9, 0.94, 1.12], highTint: [1.1, 1.0, 0.88], sat: day.sat + 0.04,
-    vol: [1.0, 0.72, 0.45], volS: day.volS * 1.2,
-  };
-  const sunset: Key = {
-    ...golden, el: 1,
-    sun: [1.0, 0.46, 0.22], sunI: day.sunI * 0.45,
-    zenith: [0.1, 0.16, 0.45], horizon: [1.0, 0.5, 0.28], ground: [0.2, 0.18, 0.2], glow: [1.0, 0.42, 0.16],
-    hemiSky: [0.42, 0.42, 0.66], hemiGround: [0.22, 0.17, 0.12], hemiI: day.hemiI * 0.75, env: day.env * 0.6,
-    fog: [0.75, 0.46, 0.38], fogSun: [1.0, 0.45, 0.2],
-    shade: [0.12, 0.1, 0.3], rim: [1.8, 0.8, 0.45],
-    cloudSun: [1.0, 0.5, 0.3], cloud: [0.95, 0.72, 0.7], planet: [0.95, 0.75, 0.7],
-    shadowTint: [0.88, 0.9, 1.15], highTint: [1.12, 0.96, 0.86],
-    vol: [1.0, 0.5, 0.25], volS: day.volS * 1.1,
-  };
-  const afterglow: Key = {
-    ...sunset, el: -3,
-    sun: [0.8, 0.4, 0.3], sunI: 0,
-    zenith: [0.06, 0.09, 0.28], horizon: [0.7, 0.34, 0.26], ground: [0.12, 0.1, 0.14], glow: [0.9, 0.3, 0.14],
-    hemiSky: [0.3, 0.32, 0.55], hemiGround: [0.12, 0.1, 0.1], hemiI: day.hemiI * 0.7, env: day.env * 0.35,
-    fog: [0.42, 0.3, 0.36], fogSun: [0.9, 0.4, 0.22],
-    shade: [0.09, 0.08, 0.24], rim: [0.9, 0.5, 0.45],
-    cloudSun: [0.9, 0.42, 0.34], cloud: [0.62, 0.46, 0.52], planet: [0.8, 0.62, 0.66],
-    shadowTint: [0.86, 0.9, 1.18], highTint: [1.06, 0.95, 0.92], sat: day.sat - 0.02,
-    vol: [0.8, 0.4, 0.3], volS: day.volS * 0.4, rays: 0,
-  };
-  const blue: Key = {
-    ...afterglow, el: -9,
-    sun: [0.5, 0.6, 1.0], sunI: 0,
-    zenith: [0.02, 0.045, 0.14], horizon: [0.14, 0.14, 0.26], ground: [0.05, 0.06, 0.09], glow: [0.35, 0.16, 0.14], stars: 0.35,
-    hemiSky: [0.22, 0.28, 0.5], hemiGround: [0.06, 0.07, 0.08], hemiI: day.hemiI * 0.7, env: day.env * 0.18,
-    fog: [0.12, 0.13, 0.22], fogSun: [0.3, 0.22, 0.3],
-    shade: [0.05, 0.07, 0.2], rim: [0.5, 0.55, 0.9],
-    cloudSun: [0.4, 0.35, 0.5], cloud: [0.2, 0.2, 0.3], planet: [0.72, 0.72, 0.85],
-    shadowTint: [0.84, 0.94, 1.24], highTint: [0.94, 0.98, 1.14], sat: day.sat - 0.12,
-    vol: [0.4, 0.45, 0.7], volS: day.volS * 0.15, rays: 0,
-  };
-  const night: Key = {
-    ...blue, el: -16,
-    sun: [0.5, 0.6, 1.0], sunI: 0,
-    zenith: [0.012, 0.026, 0.085], horizon: [0.06, 0.08, 0.16], ground: [0.03, 0.04, 0.06], glow: [0.1, 0.1, 0.16], stars: 1,
-    hemiSky: [0.2, 0.28, 0.55], hemiGround: [0.05, 0.06, 0.08], hemiI: day.hemiI * 0.65, env: day.env * 0.12,
-    fog: [0.05, 0.07, 0.14], fogSun: [0.14, 0.18, 0.32],
-    shade: [0.04, 0.06, 0.18], rim: [0.45, 0.6, 1.05],
-    cloudSun: [0.3, 0.34, 0.5], cloud: [0.1, 0.12, 0.2], planet: [0.62, 0.66, 0.8],
-    shadowTint: [0.82, 0.95, 1.28], highTint: [0.9, 0.98, 1.16], lift: [0.0, 0.006, 0.02], sat: day.sat - 0.18,
-    vol: [0.35, 0.45, 0.8], volS: day.volS * 0.25, rays: 0,
-  };
-  return [golden, sunset, afterglow, blue, night];
-}
-
 /** the moon as a key light (colour, full intensity) */
 const MOON_COLOR: RGB = [0.62, 0.74, 1.0];
 const MOON_I = 0.95;
@@ -172,8 +117,9 @@ const smooth = (e0: number, e1: number, x: number): number => { const t = Math.m
  */
 export class SkyRig {
   readonly dome: THREE.Mesh;
-  private readonly day: Key;
-  private readonly keys: Key[];
+  private readonly day: SkyKey;
+  private readonly dayKeys: DayKeys<SkyKey>;
+  private readonly keyScratch: SkyKey;
   private readonly domeU = {
     uZenith: { value: new THREE.Color() }, uHorizon: { value: new THREE.Color() }, uGround: { value: new THREE.Color() }, uGlow: { value: new THREE.Color() },
     uSunDir: { value: new THREE.Vector3(0, 1, 0) }, uMoonDir: { value: new THREE.Vector3(0, 1, 0) }, uMoon: { value: 0 }, uStars: { value: 0 },
@@ -190,7 +136,7 @@ export class SkyRig {
   readonly dayFog = new THREE.Color();
   readonly daySunIntensity: number;
 
-  constructor(private game: Game, private sky: Sky) {
+  constructor(private game: Game, private sky: Sky, keys: SkyKeyProfile) {
     const def = getActiveChunk();
     const S = def.sky, G = def.grade, A = def.atmosphere;
     const l = sky.csm.lights[0];
@@ -208,7 +154,8 @@ export class SkyRig {
       shadowTint: G.shadowTint, highTint: G.highTint, lift: G.lift, gain: G.gain, sat: G.saturation, contrast: G.contrast,
       vol: A.volumetricSunColor, volS: vs, rays: 1,
     };
-    this.keys = [this.day, ...nightKeys(this.day)];
+    this.dayKeys = { coordinate: 'elevation', frames: [this.day, ...keys.frames(this.day)].map((key) => [key.el, key]), blend: keys.blend };
+    this.keyScratch = { ...this.day, sun: [...this.day.sun], zenith: [...this.day.zenith], horizon: [...this.day.horizon], ground: [...this.day.ground], glow: [...this.day.glow], hemiSky: [...this.day.hemiSky], hemiGround: [...this.day.hemiGround], fog: [...this.day.fog], fogSun: [...this.day.fogSun], shade: [...this.day.shade], rim: [...this.day.rim], cloudSun: [...this.day.cloudSun], cloud: [...this.day.cloud], planet: [...this.day.planet], shadowTint: [...this.day.shadowTint], highTint: [...this.day.highTint], lift: [...this.day.lift], gain: [...this.day.gain], vol: [...this.day.vol] };
     this.dayFog.setRGB(...this.day.fog);
     this.daySunIntensity = this.day.sunI;
     this.fogDist = fogUniforms.fogDistDensity.value;
@@ -278,53 +225,9 @@ export class SkyRig {
   private readonly bright: number;
 
   /** the time-of-day look at the clock's hour → out */
-  look(clock: DayCycle, out: SkyLook): SkyLook {
-    const el = clock.sunElevation;
-    compassDir(clock.sunAzimuth, el, out.sunDir);
-    // find the two keys around the elevation (keys run from high to low)
-    const K = this.keys;
-    let a = K[0], b = K[0], t = 0;
-    const first = K[0], last = K[K.length - 1];
-    if (!first || !last) throw new Error('SkyRig: no keys');
-    if (el >= first.el) { a = b = first; }
-    else if (el <= last.el) { a = b = last; }
-    else for (let i = 0; i < K.length - 1; i++) {
-      const k0 = K[i], k1 = K[i + 1];
-      if (k0 && k1 && el <= k0.el && el >= k1.el) { a = k0; b = k1; t = (k0.el - el) / (k0.el - k1.el); break; }
-    }
-    if (!a || !b) throw new Error('SkyRig: key lookup');
-    const s = t * t * (3 - 2 * t);
-    // the key light: the sun until it touches the horizon, then (at zero) the moon
-    const moonT = smooth(-2, -12, el);
-    if (el > -1.5) {
-      lerpRGB(out.keyColor, a.sun, b.sun, s);
-      out.keyIntensity = lerpN(a.sunI, b.sunI, s) * smooth(-1.5, 1.5, el);
-      out.keyDir.copy(out.sunDir);
-      out.moon = 0;
-    } else {
-      out.keyColor.setRGB(...MOON_COLOR);
-      out.keyIntensity = MOON_I * moonT;
-      compassDir(clock.moonAzimuth, clock.moonElevation, out.keyDir);
-      out.moon = 1;
-    }
-    out.disc = out.moon > 0 ? moonT : smooth(-2.5, 0.5, el);
-    lerpRGB(out.zenith, a.zenith, b.zenith, s); lerpRGB(out.horizon, a.horizon, b.horizon, s);
-    lerpRGB(out.ground, a.ground, b.ground, s); lerpRGB(out.glow, a.glow, b.glow, s);
-    out.stars = lerpN(a.stars, b.stars, s);
-    lerpRGB(out.hemiSky, a.hemiSky, b.hemiSky, s); lerpRGB(out.hemiGround, a.hemiGround, b.hemiGround, s);
-    out.hemiIntensity = lerpN(a.hemiI, b.hemiI, s);
-    out.envIntensity = lerpN(a.env, b.env, s);
-    lerpRGB(out.fogColor, a.fog, b.fog, s); lerpRGB(out.fogSunColor, a.fogSun, b.fogSun, s);
-    out.fogDist = this.fogDist; out.fogHeightDensity = this.fogHeight;
-    lerpRGB(out.shadeTint, a.shade, b.shade, s); lerpRGB(out.rimColor, a.rim, b.rim, s);
-    lerpRGB(out.cloudSun, a.cloudSun, b.cloudSun, s); lerpRGB(out.cloudLight, a.cloud, b.cloud, s); lerpRGB(out.planetLight, a.planet, b.planet, s);
-    out.planetOpacity = 1;
-    lerpRGB(out.shadowTint, a.shadowTint, b.shadowTint, s); lerpRGB(out.highTint, a.highTint, b.highTint, s);
-    lerpRGB(out.lift, a.lift, b.lift, s); lerpRGB(out.gain, a.gain, b.gain, s);
-    out.saturation = lerpN(a.sat, b.sat, s); out.contrast = lerpN(a.contrast, b.contrast, s); out.brightness = this.bright;
-    lerpRGB(out.volColor, a.vol, b.vol, s); out.volStrength = lerpN(a.volS, b.volS, s);
-    out.godRays = lerpN(a.rays, b.rays, s);
-    return out;
+  look(clock: DayCycle<SkyKey>, out: SkyLook): SkyLook {
+    clock.spec.keys = this.dayKeys;
+    return sampleSkyLook(clock, out, this.keyScratch, this.fogDist, this.fogHeight, this.bright);
   }
 
   /** write a look into every consumer (cheap: uniform writes only) */
@@ -400,7 +303,46 @@ export function copyLook(out: SkyLook, L: SkyLook): SkyLook {
 }
 
 /** a sky-light level 0..1 (day 1 · dusk ~0.7 · night ~0.4) — the stealth `light` factor reads it */
-export function lightLevel(clock: DayCycle): number {
+export function lightLevel(clock: DayCycleClock): number {
   const el = clock.sunElevation;
   return 0.4 + 0.3 * smooth(-14, -2, el) + 0.3 * smooth(-2, 10, el);
+}
+
+/** Apply the shared sky channels from the clock's interpolated numeric key. */
+export function sampleSkyLook(clock: DayCycle<SkyKey>, out: SkyLook, key: SkyKey, fogDist: number, fogHeight: number, brightness: number): SkyLook {
+    const el = clock.sunElevation;
+    compassDir(clock.sunAzimuth, el, out.sunDir);
+    clock.key(key);
+    const a = key, b = key, s = 0;
+    // the key light: the sun until it touches the horizon, then (at zero) the moon
+    const moonT = smooth(-2, -12, el);
+    if (el > -1.5) {
+      lerpRGB(out.keyColor, a.sun, b.sun, s);
+      out.keyIntensity = lerpN(a.sunI, b.sunI, s) * smooth(-1.5, 1.5, el);
+      out.keyDir.copy(out.sunDir);
+      out.moon = 0;
+    } else {
+      out.keyColor.setRGB(...MOON_COLOR);
+      out.keyIntensity = MOON_I * moonT;
+      compassDir(clock.moonAzimuth, clock.moonElevation, out.keyDir);
+      out.moon = 1;
+    }
+    out.disc = out.moon > 0 ? moonT : smooth(-2.5, 0.5, el);
+    lerpRGB(out.zenith, a.zenith, b.zenith, s); lerpRGB(out.horizon, a.horizon, b.horizon, s);
+    lerpRGB(out.ground, a.ground, b.ground, s); lerpRGB(out.glow, a.glow, b.glow, s);
+    out.stars = lerpN(a.stars, b.stars, s);
+    lerpRGB(out.hemiSky, a.hemiSky, b.hemiSky, s); lerpRGB(out.hemiGround, a.hemiGround, b.hemiGround, s);
+    out.hemiIntensity = lerpN(a.hemiI, b.hemiI, s);
+    out.envIntensity = lerpN(a.env, b.env, s);
+    lerpRGB(out.fogColor, a.fog, b.fog, s); lerpRGB(out.fogSunColor, a.fogSun, b.fogSun, s);
+    out.fogDist = fogDist; out.fogHeightDensity = fogHeight;
+    lerpRGB(out.shadeTint, a.shade, b.shade, s); lerpRGB(out.rimColor, a.rim, b.rim, s);
+    lerpRGB(out.cloudSun, a.cloudSun, b.cloudSun, s); lerpRGB(out.cloudLight, a.cloud, b.cloud, s); lerpRGB(out.planetLight, a.planet, b.planet, s);
+    out.planetOpacity = 1;
+    lerpRGB(out.shadowTint, a.shadowTint, b.shadowTint, s); lerpRGB(out.highTint, a.highTint, b.highTint, s);
+    lerpRGB(out.lift, a.lift, b.lift, s); lerpRGB(out.gain, a.gain, b.gain, s);
+    out.saturation = lerpN(a.sat, b.sat, s); out.contrast = lerpN(a.contrast, b.contrast, s); out.brightness = brightness;
+    lerpRGB(out.volColor, a.vol, b.vol, s); out.volStrength = lerpN(a.volS, b.volS, s);
+    out.godRays = lerpN(a.rays, b.rays, s);
+    return out;
 }

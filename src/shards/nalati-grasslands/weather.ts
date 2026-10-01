@@ -1,4 +1,4 @@
-import { clockForSun, steppeClock } from './look/dayKeys';
+import { clockForSun, steppeClock, nightKeys, blendSteppeKey, type SteppeKey } from './look/dayKeys';
 import type { DayCycle } from '#engine/world/dayCycle';
 /**
  * Nalati weather + day/night wiring (row B10 of project/archive/2026-09-23-nalati.md): the clock, the storm state machine, the storm's
@@ -64,7 +64,7 @@ export interface WeatherHooks {
 }
 
 export interface NalatiWeather {
-  clock: DayCycle;
+  clock: DayCycle<SteppeKey>;
   weather: Weather;
   rig: SkyRig;
   fx: WeatherFX;
@@ -184,7 +184,7 @@ export function wireWeather(ctx: WeatherCtx): NalatiWeather {
   onSettingChange('clockSpeed', (v) => { clock.scale = Number(v); });
   clock.paused = qs.get('clock') === '0';
 
-  const rig = new SkyRig(game, sky);
+  const rig = new SkyRig(game, sky, { frames: nightKeys, blend: blendSteppeKey });
   const base = makeLook(), look = makeLook();
   const dimWater = waterDimmer(ctx.water);
   const dayFog = 0.2126 * rig.dayFog.r + 0.7152 * rig.dayFog.g + 0.0722 * rig.dayFog.b, dayKey = Math.max(0.1, rig.daySunIntensity);
@@ -234,7 +234,7 @@ export function wireWeather(ctx: WeatherCtx): NalatiWeather {
     const p = player.position;
     hooks.audio?.thunder(dist, panOf(p.x + Math.cos(bearing) * 100, p.z + Math.sin(bearing) * 100));
   });
-  weather.onPlayerHit((dmg) => hooks.hurt?.(dmg, 'Struck by lightning — get low in a storm'));
+  weather.onPlayerHit((dmg) => hooks.hurt?.(game.app.events.ask('weather.damage', dmg), 'Struck by lightning — get low in a storm'));
 
   /** stereo pan of a world point for the listener (Player.yaw convention: forward = (−sin, −cos)) */
   function panOf(x: number, z: number): number {

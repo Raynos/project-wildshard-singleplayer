@@ -1,3 +1,4 @@
+import { app } from '../app/runtime';
 import { tap } from '../core/harnessTap';
 import * as THREE from 'three';
 import { activePhysics } from '../physics/active';
@@ -24,6 +25,11 @@ import { practiceRoom } from '../core/practiceRoom';
 import { AnimalGroup } from './animalMatrices';
 import { trample } from '#kit/looks/trample';
 import { AttackTokens, reengage, backoffPoint, aroundPoint, RING, RING_DEFAULT, BACKOFF_MAX_T, BREAK_OFF_HP, BREAK_OFF_CHANCE, RULES_CD_HIT, RULES_CD_MISS } from './fightRules';
+
+export interface WanderGoalQuery { herd: number; goal: { x: number; z: number; r: number } | null }
+declare module '../events/maps' {
+  interface AskMap { 'creature.wander-goal': readonly [WanderGoalQuery, WanderGoalQuery] }
+}
 
 /**
  * AnimalManager — spawns the chunk's huntable wildlife (the active ShardManifest's `fauna` herd plans),
@@ -1066,7 +1072,7 @@ export class AnimalManager {
         const herd = a.herd >= 0 ? this.herds[a.herd] ?? null : null;
         let ok = false;
         const nav = activeNavmesh();
-        const goal = this.wanderGoal?.(a) ?? null;
+        const goal = app.events.ask('creature.wander-goal', { herd: a.herd, goal: this.wanderGoal?.(a) ?? null }).goal;
         if (goal !== null && nav !== null) {
           const t = nav.randomPointNear(_navFrom.set(goal.x, heightAt(goal.x, goal.z), goal.z), goal.r, this.agentRadius(a), () => rng.next(), _navTo);
           if (t !== null && inChunk(t.x, t.z, 20)) { br.tx = t.x; br.tz = t.z; ok = true; }
@@ -1454,4 +1460,3 @@ function segRayDist2(o: THREE.Vector3, d: THREE.Vector3, a: THREE.Vector3, b: TH
   const px = a.x + _ab.x * u - (o.x + d.x * t), py = a.y + _ab.y * u - (o.y + d.y * t), pz = a.z + _ab.z * u - (o.z + d.z * t);
   return px * px + py * py + pz * pz;
 }
-
