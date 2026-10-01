@@ -1,5 +1,5 @@
 import type { ShardContext } from '#game';
-import { CombatCues, Scope, panFromYaw, audioRandom, loadAudio, wind, wildEnv, type Audio, type Music, type Player, type AnimalManager, type Wildlife, type AnimalSound, type HoofSurface, type ImpactKind } from '#engine';
+import { CombatCues, type Scope, panFromYaw, audioRandom, loadAudio, wind, type Audio, type Music, type Player, type AnimalManager, type Wildlife, type AnimalSound, type HoofSurface, type ImpactKind } from '#engine';
 import { createSteppeScore, type SteppeScene } from './SteppeScore';
 /**
  * Nalati's sound (row B16, the audio half): the steppe's creatures, hooves on the ground they cross, the stampede, the
@@ -7,8 +7,8 @@ import { createSteppeScore, type SteppeScene } from './SteppeScore';
  * dusk / night howl chorus, and the kit's own voices (bow twang + arrow whoosh / thud, javelin throw / impact, the
  * sabre's steel, the spear's thrust). Everything plays through `src/engine/audio/Audio.ts`; this file decides what and where.
  *
- *   const sound = wireSound(nalati, { player, weather });   // src/shards/nalati-grasslands/index.ts: wraps attachAnimals (the flock / dog /
- *                                                            // marmot sounds), bindPlay (the kit's hooks), wildEnv.onEvent
+ *   const sound = wireSound(nalati, { player, weather, scope, on });   // src/shards/nalati-grasslands/runtime.ts: scoped creature and weapon signals; the flock / dog /
+ *                                                            // marmot sounds reach the bound Wildlife callback
  *   sound.bind(audio, music)      // main.ts, once the audio exists: the hoof ground, the steppe bed, the music's 'steppe' mood
  *   sound.fire(weaponId)          // main's weapons.onFire: true = handled here (the kit), false = the old sounds
  *   sound.impact(weaponId, surface, pan, gain)   // main's weapons.onImpact: true = handled here
@@ -17,14 +17,13 @@ import { createSteppeScore, type SteppeScene } from './SteppeScore';
  *
  * NALATI-MERGE A1 / A2 / A4: the bow's draw creak / full-draw click / let-down (Bow.onDrawStart / onFullDraw / onLetDown);
  * the zoned sample beds (src/shards/nalati-grasslands/audio/SteppeAmbience.ts: Nalati Grasslands / Sky Grassland / Snow Lotus Valley, fed from here at
- * 4 Hz) over the synth bed's fallback; the score's scene (music.setSteppe: the zone, night, the storm, the Golden King).
+ * 4 Hz) over the synth bed's fallback; the score's scene (the score source: the zone, night, the storm, the Golden King).
  *
  * Pine Hollow and Driftwood never build this; the only engine-side change they could see is none (Audio's new methods
  * and the 'steppe' bed are only reached from here).
  */
 import * as THREE from 'three';
 import { SteppeAmbience } from './SteppeAmbience';
-import type { NalatiLoadout } from '../weapons/loadout';
 import type { Nalati } from '../index';
 import type { NalatiWeather } from '../weather';
 import { RIVER, BRIDGE, CAMP, SUMMER_YURTS, GLACIER, BROOK, riverMask, zoneAt, TERRAIN } from '../manifest';
@@ -74,7 +73,7 @@ function brookDistance(x: number, z: number): number {
   return best;
 }
 
-export function wireSound(nalati: Pick<Nalati, 'attachAnimals' | 'bindPlay' | 'boss' | 'titan'>, ctx: { player: Player; weather: NalatiWeather; scope?: Scope; on?: ShardContext['on'] }): NalatiSound {
+export function wireSound(nalati: Pick<Nalati, 'boss' | 'titan'>, ctx: { player: Player; weather: NalatiWeather; scope: Scope; on: ShardContext['on'] }): NalatiSound {
   const { player, weather } = ctx;
   let audio: Audio | null = null;
   const _v = new THREE.Vector3();
@@ -112,47 +111,18 @@ export function wireSound(nalati: Pick<Nalati, 'attachAnimals' | 'bindPlay' | 'b
       default: return false;
     }
   });
-  const bindKit = (kit: NalatiLoadout): void => {
-    const loose = kit.bow.onLoose;
-    kit.bow.onLoose = (power) => { loose?.(power); kit.bow.chargeEvent('loose', power); cues.cue('cue.bow.loose.power', { strength: power }); };
-    const thrown = kit.spear.onThrow;
-    kit.spear.onThrow = () => { thrown?.(); thrustPending = false; cues.cue('cue.spear.throw'); };
-    // H4's hold-to-draw: the limbs creak as you draw, click at full draw, ease back on a let-down (A1)
-    const drawStart = kit.bow.onDrawStart, full = kit.bow.onFullDraw, letDown = kit.bow.onLetDown;
-    kit.bow.onDrawStart = () => { drawStart?.(); kit.bow.chargeEvent('draw', 0); cues.cue('cue.bow.draw'); };
-    kit.bow.onFullDraw = () => { full?.(); kit.bow.chargeEvent('draw', 1); cues.cue('cue.bow.full'); };
-    kit.bow.onLetDown = () => { letDown?.(); kit.bow.chargeEvent('letdown'); cues.cue('cue.bow.letdown'); };
-  };
-
   let manager: AnimalManager | null = null;
-  if (ctx.on) {
-    ctx.on('creature.signal', ({ name, x, z }) => { event(name, x, z); });
-    ctx.on('weapon.charge', ({ id, phase, value }) => {
-      if (id === 'weapon.bow') {
-        if (phase === 'draw') cues.cue(value === 1 ? 'cue.bow.full' : 'cue.bow.draw');
-        else if (phase === 'letdown') cues.cue('cue.bow.letdown');
-        else if (phase === 'loose') cues.cue('cue.bow.loose.power', { strength: value ?? 1 });
-      } else if (id === 'weapon.spear' && phase === 'throw') {
-        thrustPending = false; cues.cue('cue.spear.throw');
-        queueMicrotask(() => { thrustPending = false; });
-      }
-    });
-  } else {
-  // ── self-wiring onto the shard's hooks (the integrator's index.ts calls wireSound once) ──
-  const attach = nalati.attachAnimals;
-  nalati.attachAnimals = (animals) => {
-    manager = animals;
-    const w = attach(animals);
-    const prev = w.onSound;
-    w.onSound = (name, pos) => { prev?.(name, pos); emit(name, pos); };
-    return w;
-  };
-  const bindPlay = nalati.bindPlay;
-  nalati.bindPlay = (p) => { bindPlay(p); if (p.kit !== null) bindKit(p.kit); };
-  const onEvent = wildEnv.onEvent;
-  wildEnv.onEvent = (name, x, z) => { onEvent?.(name, x, z); event(name, x, z); };
-
-  }
+  ctx.on('creature.signal', ({ name, x, z }) => { event(name, x, z); });
+  ctx.on('weapon.charge', ({ id, phase, value }) => {
+    if (id === 'weapon.bow') {
+      if (phase === 'draw') cues.cue(value === 1 ? 'cue.bow.full' : 'cue.bow.draw');
+      else if (phase === 'letdown') cues.cue('cue.bow.letdown');
+      else if (phase === 'loose') cues.cue('cue.bow.loose.power', { strength: value ?? 1 });
+    } else if (id === 'weapon.spear' && phase === 'throw') {
+      thrustPending = false; cues.cue('cue.spear.throw');
+      queueMicrotask(() => { thrustPending = false; });
+    }
+  });
 
   // ── the dusk / night chorus: now and then a pack far off answers (never in a storm, never in the kurgan) ──
   let chorusT = 20, bedT = 0;
@@ -180,22 +150,13 @@ export function wireSound(nalati: Pick<Nalati, 'attachAnimals' | 'bindPlay' | 'b
       // the manager's footfalls are 'hoofsteps' for every animal: only a horse's are hooves — a wolf's or the dog's paws
       // are silent in the grass (bind runs after main.ts sets animals.onSound, so this wraps it)
       const m = manager;
-      if (m && ctx.on) {
+      if (m) {
         m.onSound = (name, pos) => {
           if (name === 'hoofsteps') {
             const who = m.animals.find((animal) => animal.position === pos);
             if (who && who.kind !== 'horse') return;
           }
           a.animal(name, pos, player.position, player.yaw);
-        };
-      } else if (m?.onSound) {
-        const prev = m.onSound;
-        m.onSound = (name, pos) => {
-          if (name === 'hoofsteps') {
-            const who = m.animals.find((x) => x.position === pos);
-            if (who && who.kind !== 'horse') return;
-          }
-          prev(name, pos);
         };
       }
       a.setAmbient('steppe');
@@ -205,10 +166,11 @@ export function wireSound(nalati: Pick<Nalati, 'attachAnimals' | 'bindPlay' | 'b
         score = createSteppeScore((url) => loadAudio().then((ports) => ports.cachedBytes(url)), (bytes) => loadAudio().then((ports) => ports.decodeBytes(bytes)), () => { music.refreshScore(); });
         refresh = () => { music.refreshScore(); };
         const release = music.setScore('score.nalati', score);
-        ctx.scope?.onDispose(release);
-        a.onLevelBank((bank) => { score?.useBank(bank.score); }, ctx.scope ?? new Scope('audio.score'));
+        ctx.scope.onDispose(release);
+        a.onLevelBank((bank) => { score?.useBank(bank.score); }, ctx.scope);
       }
       amb = new SteppeAmbience(a);
+      ctx.scope.onDispose(() => { amb?.dispose(); amb = null; audio = null; });
       amb.onZone = (zone) => { setScene({ zone }); };
     },
     fire(id) { return id.startsWith('cue.') && cues.cue(id as `cue.${string}`); },

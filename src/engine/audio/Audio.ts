@@ -1,5 +1,5 @@
-import { loopAt } from './util';
-import { PlayerVoices } from './playerVoices';
+import { loopAt, audioRandom, panFromYaw } from './util';
+import { LegacyIsland } from './legacyIsland';
 import { ownAudioSource } from './ownership';
 import { currentScope } from '../app/legacyCapture';
 import { tap, ambientTick } from '../core/harnessTap';
@@ -112,7 +112,7 @@ export type LoopName = string;
 /** a decoded loop (a bed or a hum): the buffer, its loop points in the file, and a gain from sfx.json (default per kind) */
 export interface SampleLoop { buffer: AudioBuffer; loopStart: number; loopEnd: number; gain: number }
 
-const rnd = (a: number, b: number) => a + Math.random() * (b - a);
+const rnd = (a: number, b: number) => a + audioRandom() * (b - a);
 
 interface Graph { ctx: AudioContext; master: GainNode; world: GainNode; sfx: GainNode; ambient: GainNode; shade: GainNode; shadeLp: BiquadFilterNode; muffle: BiquadFilterNode; comp: DynamicsCompressorNode; noise: AudioBuffer }
 
@@ -122,8 +122,8 @@ interface Graph { ctx: AudioContext; master: GainNode; world: GainNode; sfx: Gai
  */
 let sharedCtx: AudioContext | undefined;
 
-export class Audio extends PlayerVoices {
-  listenerYaw = 0;
+export class Audio extends LegacyIsland {
+  override listenerYaw = 0;
   listenerPosition: Vector3 | null = null;
   music: Music | null = null;
   private cueMap: CueMap | undefined;
@@ -165,14 +165,13 @@ export class Audio extends PlayerVoices {
    *  task on the phone tier, so boot never pays it; sounds asked for before then are dropped (the context could not play them) */
   private g: Graph | undefined;
   private started = false;
-  private ambientOn = true;
+  protected override ambientOn = true;
   private birdTimer = 0; private gustTimer = 0;
-  private windGain: GainNode | undefined; private windGain2: GainNode | undefined;
+  protected override windGain: GainNode | undefined; protected override windGain2: GainNode | undefined;
   private _muted = false;
   private _worldMuted = false;
   private bed: AmbientBed;
   private bedNodes: AudioNode[] = [];
-  private surfTimer = 0;
   private hum: { out: GainNode; level: number; sample: boolean; stop: () => void } | undefined;
   private humOn = false;
   private underwater = false; private underGain?: GainNode; private bubbleTimer = 0;
@@ -224,7 +223,7 @@ export class Audio extends PlayerVoices {
     const shadeLp = ctx.createBiquadFilter(); shadeLp.type = 'lowpass'; shadeLp.frequency.value = 20000; shadeLp.Q.value = 0.5;
     ambient.connect(shadeLp).connect(shade).connect(world);
     const len = ctx.sampleRate * 2, noise = ctx.createBuffer(1, len, ctx.sampleRate), d = noise.getChannelData(0);
-    for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+    for (let i = 0; i < len; i++) d[i] = audioRandom() * 2 - 1;
     this.g = { ctx, master, world, sfx, ambient, shade, shadeLp, muffle, comp, noise };
     return this.g;
   }
@@ -312,7 +311,7 @@ export class Audio extends PlayerVoices {
   /** a looping source of `l` (loopStart → loopEnd) started now, from a random point inside the loop so two plays never phase */
   private loopSource(l: SampleLoop): AudioBufferSourceNode {
     const c = this.ctx, s = ownAudioSource(c.createBufferSource());
-    loopAt(s, l.buffer, l, Math.random, c.currentTime);
+    loopAt(s, l.buffer, l, audioRandom, c.currentTime);
     return s;
   }
   /** the master lowpass: wide open on land, shut down to ~500 Hz under water (setUnderwater) */
@@ -415,7 +414,7 @@ export class Audio extends PlayerVoices {
       this.underFeed = [s]; this.underSample = true;
       return;
     }
-    const src = ownAudioSource(c.createBufferSource()); src.buffer = this.noise; src.loop = true; src.start(0, Math.random());
+    const src = ownAudioSource(c.createBufferSource()); src.buffer = this.noise; src.loop = true; src.start(0, audioRandom());
     const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 90; lp.Q.value = 0.9;
     const lp2 = c.createBiquadFilter(); lp2.type = 'lowpass'; lp2.frequency.value = 220;
     const lfo = ownAudioSource(c.createOscillator()); lfo.frequency.value = 0.13; const lg = c.createGain(); lg.gain.value = 0.35;
@@ -451,8 +450,7 @@ export class Audio extends PlayerVoices {
     }
     this.tally(kind);
     const att = 1 / (1 + dist / scale) ** 1.4;
-    const rx = Math.cos(yaw), rz = -Math.sin(yaw); // listener right vector
-    const pan = dist > 0.5 ? Math.max(-1, Math.min(1, (dx * rx + dz * rz) / dist)) * 0.8 : 0;
+    const pan = panFromYaw(dx, dz, yaw, 0.8, dist);
     // distance low-pass into a per-call bus
     const bus = this.ctx.createGain(); bus.gain.value = att;
     const lp = this.ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 9000 / (1 + dist / 25);
@@ -706,41 +704,6 @@ export class Audio extends PlayerVoices {
 
   // ─────────────── gulls ───────────────
   /** a gull: a short two-note squawk — a nasal sawtooth "kyow" that breaks up, then a lower "ow"; sometimes a third yelp */
-  gullCall(pan = 0, gain = 1): void {
-    tap.sound?.('gullCall');
-    if (!this.g || this.shot('gull', { pan, gain, out: this.ambient })) return;
-    const c = this.ctx, t = c.currentTime;
-    const bus = c.createGain(); bus.gain.value = 0.28 * gain;
-    const bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 1900; bp.Q.value = 0.7;
-    bus.connect(bp); this.route(bp, pan, this.ambient);
-    const base = rnd(1050, 1350);
-    // note 1: rises fast then bends down, wide fast vibrato (the rasp)
-    this.tone({ t, type: 'sawtooth', f0: base * 0.85, f1: base * 1.25, glide: 0.06, gain: 1, attack: 0.015, hold: 0.05, decay: 0.09, vibrato: { rate: 42, depth: 90 }, lowpass: 4200, out: bus });
-    this.tone({ t: t + 0.06, type: 'sawtooth', f0: base * 1.25, f1: base * 0.9, glide: 0.12, gain: 0.7, attack: 0.005, decay: 0.12, vibrato: { rate: 42, depth: 90 }, lowpass: 3600, out: bus });
-    this.burst({ t, type: 'bandpass', freq: base * 2, q: 2, gain: 0.25, attack: 0.02, hold: 0.06, decay: 0.1, out: bus });
-    // note 2: lower, shorter
-    const t2 = t + rnd(0.2, 0.27);
-    this.tone({ t: t2, type: 'sawtooth', f0: base * 0.95, f1: base * 0.62, glide: 0.16, gain: 0.8, attack: 0.012, hold: 0.03, decay: 0.15, vibrato: { rate: 36, depth: 70 }, lowpass: 3200, out: bus });
-    this.burst({ t: t2, type: 'bandpass', freq: base * 1.6, q: 2, gain: 0.18, attack: 0.02, decay: 0.12, out: bus });
-    if (Math.random() < 0.35) {
-      const t3 = t2 + rnd(0.2, 0.28);
-      this.tone({ t: t3, type: 'sawtooth', f0: base * 0.8, f1: base * 0.55, glide: 0.14, gain: 0.55, attack: 0.012, decay: 0.14, vibrato: { rate: 30, depth: 60 }, lowpass: 2800, out: bus });
-    }
-  }
-
-  /** gullCall positioned like `animal()`: distance attenuation + a stereo pan from the listener yaw */
-  gullCallAt(position: Vector3, listenerPos: Vector3, yaw = this.listenerYaw): void {
-    tap.sound?.('gullCallAt');
-    if (!this.g) return;
-    const dx = position.x - listenerPos.x, dz = position.z - listenerPos.z, dy = position.y - listenerPos.y;
-    const dist = Math.sqrt(dx * dx + dz * dz + dy * dy);
-    if (dist > 160) return;
-    const att = 1 / (1 + dist / 14) ** 1.3;
-    const rx = Math.cos(yaw), rz = -Math.sin(yaw);
-    const pan = dist > 0.5 ? Math.max(-1, Math.min(1, (dx * rx + dz * rz) / dist)) * 0.8 : 0;
-    this.gullCall(pan, att);
-  }
-
   // ─────────────── weather (Nalati storms) ───────────────
   private storm: { rain: GainNode; hiss: GainNode; roar: GainNode; roarLp: BiquadFilterNode } | undefined;
 
@@ -756,7 +719,7 @@ export class Audio extends PlayerVoices {
       if (rain <= 0.001 && wind <= 0.001) return;
       const c = this.ctx;
       const loop = (type: BiquadFilterType, freq: number, q: number): { src: AudioBufferSourceNode; out: GainNode } => {
-        const src = ownAudioSource(c.createBufferSource()); src.buffer = this.noise; src.loop = true; src.playbackRate.value = rnd(0.9, 1.1); src.start(0, Math.random() * 1.5);
+        const src = ownAudioSource(c.createBufferSource()); src.buffer = this.noise; src.loop = true; src.playbackRate.value = rnd(0.9, 1.1); src.start(0, audioRandom() * 1.5);
         const f = c.createBiquadFilter(); f.type = type; f.frequency.value = freq; f.Q.value = q;
         const g = c.createGain(); g.gain.value = 0;
         src.connect(f).connect(g).connect(this.ambient);
@@ -862,7 +825,7 @@ export class Audio extends PlayerVoices {
     if (this.shot('stampede', { out: bus })) return;
     this.burst({ t, type: 'lowpass', freq: 110, q: 0.7, gain: 0.9, attack: 0.6, hold: 2.2, decay: 1.4, out: bus, rate: 0.6 });
     this.burst({ t, type: 'bandpass', freq: 260, q: 0.6, gain: 0.35, attack: 0.5, hold: 2, decay: 1.2, out: bus });
-    for (let i = 0; i < 40; i++) { this.lastHoof = 0; this.hooves(Math.random() < 0.8 ? 'grass' : 'gravel', t + rnd(0, 3.2), bus); }
+    for (let i = 0; i < 40; i++) { this.lastHoof = 0; this.hooves(audioRandom() < 0.8 ? 'grass' : 'gravel', t + rnd(0, 3.2), bus); }
   }
 
   /** the recurve's release: the string's twang and the limbs' thump, brighter at full draw (power 0..1) */
@@ -1041,7 +1004,7 @@ export class Audio extends PlayerVoices {
     const mid = this.mkWind(700, 0.8, 0.4, 0.09, 0.02, 1800);        // gusts whistling
     const c = this.ctx;
     const loop = (type: BiquadFilterType, freq: number, q: number, lp: number): GainNode => {
-      const src = ownAudioSource(c.createBufferSource()); src.buffer = this.noise; src.loop = true; src.playbackRate.value = rnd(0.8, 1.1); src.start(0, Math.random() * 1.5);
+      const src = ownAudioSource(c.createBufferSource()); src.buffer = this.noise; src.loop = true; src.playbackRate.value = rnd(0.8, 1.1); src.start(0, audioRandom() * 1.5);
       const f = c.createBiquadFilter(); f.type = type; f.frequency.value = freq; f.Q.value = q;
       const l = c.createBiquadFilter(); l.type = 'lowpass'; l.frequency.value = lp;
       const g = c.createGain(); g.gain.value = 0;
@@ -1106,7 +1069,7 @@ export class Audio extends PlayerVoices {
         if (this.ambientOn && this.bed === 'steppe' && k > 0.03) {
           const t = this.ctx.currentTime;
           this.burst({ t, type: 'highpass', freq: rnd(1500, 3500), gain: rnd(0.02, 0.09) * k, decay: rnd(0.006, 0.025), pan: rnd(-0.3, 0.3), out: this.ambient });
-          if (Math.random() < 0.08) this.burst({ t: t + 0.01, type: 'bandpass', freq: rnd(600, 1100), q: 1.2, gain: 0.12 * k, decay: 0.04, out: this.ambient }); // a knot pops
+          if (audioRandom() < 0.08) this.burst({ t: t + 0.01, type: 'bandpass', freq: rnd(600, 1100), q: 1.2, gain: 0.12 * k, decay: 0.04, out: this.ambient }); // a knot pops
         }
         this.scheduleCrackle();
       });
@@ -1117,7 +1080,7 @@ export class Audio extends PlayerVoices {
   private startAmbient() { this.startBed(); }
 
   private stopBed() {
-    clearTimeout(this.birdTimer); clearTimeout(this.gustTimer); clearTimeout(this.surfTimer);
+    clearTimeout(this.birdTimer); clearTimeout(this.gustTimer); this.stopIsland();
     clearTimeout(this.larkTimer); clearTimeout(this.cricketTimer); clearTimeout(this.crackleTimer);
     this.steppe = undefined;
     const t = this.ctx.currentTime;
@@ -1146,9 +1109,9 @@ export class Audio extends PlayerVoices {
   }
 
   /** a looping noise band: bandpass + lowpass, slow amplitude and filter LFOs, panned into the ambient bus */
-  private mkWind(freq: number, q: number, pan: number, lfoRate: number, base: number, lowpass = 1200) {
+  protected override mkWind(freq: number, q: number, pan: number, lfoRate: number, base: number, lowpass = 1200): GainNode {
     const c = this.ctx;
-    const src = ownAudioSource(c.createBufferSource()); src.buffer = this.noise; src.loop = true; src.start(0, Math.random());
+    const src = ownAudioSource(c.createBufferSource()); src.buffer = this.noise; src.loop = true; src.start(0, audioRandom());
     const f = c.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = freq; f.Q.value = q;
     const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = lowpass;
     const g = c.createGain(); g.gain.value = base;
@@ -1167,15 +1130,6 @@ export class Audio extends PlayerVoices {
   }
 
   /** the island: a warm low breeze, a wide surf hiss bed, and a slow swell rolling up the beach every 6–9 s */
-  private startIsland() {
-    tap.sound?.('audio.startIsland');
-    this.windGain = this.mkWind(180, 0.4, -0.3, 0.05, 0.05, 900);   // a lighter, warmer breeze than the pines
-    this.windGain2 = this.mkWind(420, 0.6, 0.3, 0.08, 0.03, 1100);
-    this.mkWind(1500, 0.35, 0.0, 0.03, 0.02, 5000);                  // the constant far surf hiss
-    this.scheduleGust(1.4);
-    this.scheduleSurf();
-  }
-
   /** the pines: the original three wind bands, the tree hiss, gusts and distant birds */
   private startForest() {
     tap.sound?.('audio.startForest');
@@ -1188,32 +1142,7 @@ export class Audio extends PlayerVoices {
     this.scheduleBird();
   }
 
-  private scheduleSurf() {
-    const wait = rnd(6, 9);
-    this.surfTimer = window.setTimeout(() => {
-      ambientTick('audio.surf', () => {
-        if (this.ambientOn) this.surfSwell();
-        this.scheduleSurf();
-      });
-    }, wait * 1000);
-  }
-
-  /** one wave: a low rumble building over ~2 s, the break (a wide bright hiss), then the wash sliding back down the sand */
-  private surfSwell() {
-    const c = this.ctx, t = c.currentTime;
-    const pan = rnd(-0.35, 0.35), size = rnd(0.7, 1.15);
-    const bus = c.createGain(); bus.gain.value = 0.42 * size;
-    this.route(bus, pan, this.ambient);
-    const build = rnd(1.6, 2.4), wash = rnd(2.6, 4.0);
-    // the build: low noise rising in pitch and level
-    this.burst({ t, type: 'lowpass', freq: 240, freqEnd: 700, gain: 0.5, attack: build, decay: 1.2, hold: 0.2, out: bus });
-    // the break: wide, bright, a fast swell then the long wash tail that darkens as it drains
-    this.burst({ t: t + build * 0.75, type: 'bandpass', freq: 1800, freqEnd: 500, q: 0.4, gain: 0.55, attack: 0.5, hold: 0.4, decay: wash, out: bus });
-    this.burst({ t: t + build * 0.85, type: 'highpass', freq: 2600, gain: 0.16, attack: 0.35, hold: 0.3, decay: wash * 0.6, out: bus });
-    // the foam fizz on the sand at the end
-    this.burst({ t: t + build + 1.2, type: 'bandpass', freq: 4200, q: 0.6, gain: 0.08, attack: 0.6, decay: wash * 0.7, out: bus });
-  }
-  private scheduleGust(gentle = 1) {
+  protected override scheduleGust(gentle = 1): void {
     const wait = rnd(5, 12) * gentle;
     this.gustTimer = window.setTimeout(() => {
       ambientTick('audio.gust', () => {
@@ -1258,7 +1187,7 @@ export class Audio extends PlayerVoices {
     }
   }
 
-  dispose(): void { clearTimeout(this.larkTimer); clearTimeout(this.cricketTimer); clearTimeout(this.crackleTimer); clearTimeout(this.birdTimer); clearTimeout(this.surfTimer); clearTimeout(this.gustTimer); clearTimeout(this.bubbleTimer); if (this.g) { if (this.g.ctx === sharedCtx) sharedCtx = undefined; void this.g.ctx.close(); } }
+  dispose(): void { clearTimeout(this.larkTimer); clearTimeout(this.cricketTimer); clearTimeout(this.crackleTimer); clearTimeout(this.birdTimer); this.stopIsland(); clearTimeout(this.gustTimer); clearTimeout(this.bubbleTimer); if (this.g) { if (this.g.ctx === sharedCtx) sharedCtx = undefined; void this.g.ctx.close(); } }
 }
 
 export { Audio as GameAudio };

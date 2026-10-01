@@ -1,4 +1,4 @@
-import { app, AmbienceZones } from '#engine';
+import { app, AmbienceZones, audioRandom } from '#engine';
 import { tap, ambientTick } from '#engine/core/harnessTap';
 /**
  * SteppeAmbience — Nalati's zoned soundscape (NALATI-MERGE A4), the IslandAmbience pattern for the steppe.
@@ -48,7 +48,7 @@ const ZONE_HOLD_S = 3;    // a zone must lead this long before onZone fires (no 
 const PANNED: ReadonlySet<SteppeLoop> = new Set<SteppeLoop>(['river', 'camp', 'meltwater']);
 const ZONES: readonly SteppeZone[] = ['grass', 'sky', 'snow'];
 const clamp01 = (x: number): number => Math.min(1, Math.max(0, x));
-const rnd = (a: number, b: number): number => a + Math.random() * (b - a);
+const rnd = (a: number, b: number): number => a + audioRandom() * (b - a);
 
 
 export class SteppeAmbience {
@@ -135,7 +135,7 @@ export class SteppeAmbience {
     if (this.herdT <= 0) {
       ambientTick('steppe.herd', () => {
         this.herdT = rnd(14, 32);
-        if (out && bowl > 0.35 && day > 0.3) this.far(Math.random() < 0.6 ? 'horse_neigh' : 'horse_snort', listener, yaw, 90, 200);
+        if (out && bowl > 0.35 && day > 0.3) this.far(audioRandom() < 0.6 ? 'horse_neigh' : 'horse_snort', listener, yaw, 90, 200);
       });
     }
     if (this.marmotT <= 0) {
@@ -156,7 +156,7 @@ export class SteppeAmbience {
   private readonly ear = new Vector3();
   /** a call from a random direction `d0 … d1` m off (and `up` m above): Audio.animal attenuates, pans and low-passes it */
   private far(kind: 'horse_neigh' | 'horse_snort' | 'marmot_whistle' | 'eagle_cry', l: { x: number; y: number; z: number }, yaw: number, d0: number, d1: number, up = 10): void {
-    const a = Math.random() * Math.PI * 2, d = rnd(d0, d1);
+    const a = audioRandom() * Math.PI * 2, d = rnd(d0, d1);
     this.ear.set(l.x, l.y, l.z);
     this.at.set(l.x + Math.cos(a) * d, l.y + up, l.z + Math.sin(a) * d);
     this.diag.calls++;
