@@ -221,6 +221,8 @@ function* coverTriangles(geos: THREE.BufferGeometry[]): Generator<CoverTri> {
 function load<T>(f: (ok: (v: T) => void, bad: (e: unknown) => void) => void): Promise<T> { return new Promise<T>((resolve, reject) => { f(resolve, reject); }); }
 
 export class BlenderIsland {
+  /** the area the island covers (GroundCover leaves it to the island's own dressing, E156) */
+  static readonly area = area;
   group = new THREE.Group();
   stats = { terrainTris: 0, propTris: 0, placements: 0, draws: 0 };
   private terrainMat!: THREE.MeshStandardMaterial;
