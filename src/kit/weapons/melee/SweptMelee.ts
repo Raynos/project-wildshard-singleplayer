@@ -1,5 +1,4 @@
-import { weaponActionGate } from '#engine/input/weaponActions';
-import { type EquipmentRow, type WeaponState, type AimInfo, type DrawingBuffer, type EquipContext, type SwordWorld, type SwordRig, type SwordArms, type SwordFraming, type SwordMoveSet, app, BladeGlow, type Game, type Sky, dodgeFx, dodgeEnv, type Player, type Targets, type TargetHit, lockOn, meleeLock, targetRadius, type AimTarget, bladeBlocked, bladeContact, type Clang, worldTime, CameraFX, Impacts, aimRay, viewmodel, fovForAspect, setProgramKey, lin, ParticlePool, pointScale } from '#engine';
+import { weaponActionGate, type EquipmentRow, type WeaponState, type AimInfo, type DrawingBuffer, type EquipContext, type SwordWorld, type SwordRig, type SwordArms, type SwordFraming, type SwordMoveSet, app, BladeGlow, type Game, type Sky, dodgeFx, dodgeEnv, type Player, type Targets, type TargetHit, lockOn, meleeLock, targetRadius, type AimTarget, bladeBlocked, bladeContact, type Clang, worldTime, CameraFX, Impacts, aimRay, viewmodel, fovForAspect, setProgramKey, lin, ParticlePool, pointScale } from '#engine';
 import { Melee, isMeleeProfile, type MeleeProfile } from './Melee';
 import { SWORD_WOOD, SWORD_IRON } from './profiles';
 import * as THREE from 'three';

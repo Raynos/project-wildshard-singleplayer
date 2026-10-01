@@ -1,5 +1,4 @@
-import { uiScope, type LevelContext } from '#engine';
-import type { TouchVerbSpec } from '#engine/input/InputService';
+import { uiScope, type LevelContext, type TouchVerbSpec } from '#engine';
 import * as THREE from 'three';
 import './ride.css';
 import type { Mount } from './Mount';

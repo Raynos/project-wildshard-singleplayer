@@ -1,5 +1,4 @@
-import { weaponActionGate } from '#engine/input/weaponActions';
-import { type EquipContext, HitLine, makeFlashTexture, hitscan, brassFloor, stepBrass, blendAds, type WeaponState, type AimInfo, app, getSetting, LightPool, Puffs, viewmodelMaterial, viewmodelTexSet, whiteColors, rangedFovForAspect as fovForAspect, FOV_HIP, FOV_ADS, box, cyl, stripExtra, sstep, clamp01, isMesh, worldHit, type TexSet, type Targets, type CrossbowWorld, type CrossbowOptions, type Sky } from '#engine';
+import { weaponActionGate, type EquipContext, HitLine, makeFlashTexture, hitscan, brassFloor, stepBrass, blendAds, type WeaponState, type AimInfo, app, getSetting, LightPool, Puffs, viewmodelMaterial, viewmodelTexSet, whiteColors, rangedFovForAspect as fovForAspect, FOV_HIP, FOV_ADS, box, cyl, stripExtra, sstep, clamp01, isMesh, worldHit, type TexSet, type Targets, type CrossbowWorld, type CrossbowOptions, type Sky } from '#engine';
 
 import { Firearm } from './Firearm';
 import { AR15, type FirearmProfile } from './profiles';

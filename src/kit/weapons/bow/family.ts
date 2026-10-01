@@ -1,5 +1,4 @@
-import { weaponActionGate } from '#engine/input/weaponActions';
-import { type EquipContext, Weapon, quiverState, app, gameplayRandom, type Game, type Sky, type Player, type Forest, getSetting, rangedFovForAspect as fovForAspect, FOV_HIP, isMesh, type Targets, type TargetHit, Projectiles, type WindField, DropArc, placeArm } from '#engine';
+import { weaponActionGate, type EquipContext, Weapon, quiverState, app, gameplayRandom, type Game, type Sky, type Player, type Forest, getSetting, rangedFovForAspect as fovForAspect, FOV_HIP, isMesh, type Targets, type TargetHit, Projectiles, type WindField, DropArc, placeArm } from '#engine';
 import type { EquipmentRow } from '#game';
 
 

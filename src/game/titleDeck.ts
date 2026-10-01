@@ -1,4 +1,4 @@
-import { listenDom } from '#engine/input/dom';
+import { listenDom, app, setting, onSettingChange } from '#engine';
 /**
  * The title screen's shard deck — ONE implementation for both ways in (E318, Jake: "lol wtf why do we have two title
  * screens, one only please"): the cold launch (src/engine/ui/StartTitle.ts, renderer-free, before any shard loads) and pause ▸
@@ -17,7 +17,6 @@ import { listenDom } from '#engine/input/dom';
  * test/title-deck.test.ts keeps each card's name, label (the def's `biome`), badge and art equal to its ShardManifest.
  */
 import { SHARDS, type ShardSlug } from './shard/shards.generated';
-import { app, setting, onSettingChange } from '#engine';
 import { readSummary, summaryView } from './summary';
 import { GAME_STRINGS } from './strings';
 import './summary.css';

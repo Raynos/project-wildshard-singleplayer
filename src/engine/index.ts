@@ -79,7 +79,7 @@ export { defineModel, type ModelContext, type ModelPart } from './models/model';
 export { DayCycle, type DayCycleSpec, type DayCycleClock, type DayKeys, type DayPhase, type TimePick, type LightPreset } from './world/dayCycle';
 export { Weather, type WeatherProfile, type WeatherNumbers } from './world/weather';
 
-export { InputService, type Action, type ActionMap } from './input/InputService';
+export { InputService, type Action, type ActionMap, type TouchVerb, type TouchVerbSpec } from './input/InputService';
 export type { EquipmentHost } from './combat/view/EquipmentHost';
 export { hudSlots, type TouchRelabel, type DiscSpot } from './ui/hudSlots';
 
@@ -279,3 +279,5 @@ export { uiScope, mountUi } from './ui/ownership';
 export { UiLayers, type UiLayer, type UiView, type UiHandle } from './ui/layers';
 
 export { TabRegistry, type TabId, type TabSpec, type TabFragment } from './ui/tabs';
+export { weaponActionGate } from './input/weaponActions';
+export { listenDom } from './input/dom';
