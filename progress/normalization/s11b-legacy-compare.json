@@ -1,0 +1,66 @@
+{
+  "before": "ab442341",
+  "after": "bc5e9fd89fc6d7027d2e70d6dbfd50ae5db37aa2",
+  "fields": {
+    "driftwood-isle": {
+      "registry": true,
+      "registryModels": true,
+      "physics": true,
+      "scene": true,
+      "systems": true,
+      "appStates": true,
+      "audio": true,
+      "hud": true,
+      "render": true,
+      "gpuBytes": true,
+      "steps": true,
+      "saves": true,
+      "viewport": true
+    },
+    "nalati-grasslands": {
+      "registry": true,
+      "registryModels": true,
+      "physics": true,
+      "scene": true,
+      "systems": true,
+      "appStates": true,
+      "audio": true,
+      "hud": true,
+      "render": true,
+      "gpuBytes": true,
+      "steps": true,
+      "saves": true,
+      "viewport": true
+    },
+    "nine-dragon-stack": {
+      "registry": true,
+      "registryModels": true,
+      "physics": true,
+      "scene": true,
+      "systems": false,
+      "appStates": true,
+      "audio": false,
+      "hud": true,
+      "render": true,
+      "gpuBytes": true,
+      "steps": true,
+      "saves": true,
+      "viewport": true
+    },
+    "pine-hollow": {
+      "registry": true,
+      "registryModels": true,
+      "physics": true,
+      "scene": true,
+      "systems": true,
+      "appStates": true,
+      "audio": true,
+      "hud": true,
+      "render": true,
+      "gpuBytes": true,
+      "steps": true,
+      "saves": true,
+      "viewport": true
+    }
+  }
+}
