@@ -3,6 +3,13 @@ import { buildDriftwoodWorld, keepDriftwoodWorld, type DriftwoodWorld } from './
 import { islandSystems } from './world/systems';
 import type { World } from '#engine';
 import type { Vector3 } from 'three';
+import { DRIFTWOOD_FEATS, DRIFTWOOD_ITEMS } from './quest/rows';
+import { DRIFTWOOD_EFFECTS } from './loot/effects';
+import { GOODS } from './loot/shop';
+import { installDriftwoodAdventure } from './quest/install';
+import type { Adventure } from './quest/adventure';
+import { installDriftwoodCreatures } from './creatures/install';
+import { driftwoodLoadoutRows, installDriftwoodLoadout, clearDriftwoodDrop } from './loadout/rows';
 
 type WorldBuilder = (world: World, viewer: () => Vector3) => Promise<DriftwoodWorld>;
 
@@ -13,6 +20,7 @@ type WorldBuilder = (world: World, viewer: () => Vector3) => Promise<DriftwoodWo
  */
 export class DriftwoodPlugin extends ShardPlugin {
   private readonly build: WorldBuilder;
+  private adventure: Adventure | null = null;
   /** `build` is injectable so the hook runs with a stub world in a node test (test/shards/driftwood-isle/plugin.test.ts) */
   constructor(build: WorldBuilder = buildDriftwoodWorld) {
     super();
@@ -27,7 +35,25 @@ export class DriftwoodPlugin extends ShardPlugin {
     const built = await this.build(world, shell.viewer);
     if (ctx.scope.disposed) throw new Error('Driftwood Isle was unloaded during its world build');
     keepDriftwoodWorld(shell, built);
+    shell.hooks.places = () => this.adventure?.places?.points ?? [];
     islandSystems<NonNullable<DriftwoodWorld['bridgeDeck']>>(ctx, world, built); // the island's per-frame work (./world/systems.ts)
+  }
+
+  override kit(ctx: ShardContext): void {
+    const shell = ctx.game.runtime;
+    if (shell === undefined) throw new Error('Driftwood kit requires its world host');
+    if (shell.world === null) throw new Error('Driftwood kit requires its world host');
+    installDriftwoodCreatures(ctx);
+    const rows = driftwoodLoadoutRows(shell.world, shell);
+    ctx.rows.weapon(rows); installDriftwoodLoadout(shell.world, shell, rows);
+    ctx.scope.onDispose(() => { clearDriftwoodDrop(shell); });
+    ctx.rows.item(DRIFTWOOD_ITEMS); ctx.rows.feat(DRIFTWOOD_FEATS);
+    ctx.rows.effect(DRIFTWOOD_EFFECTS); ctx.rows.shop(GOODS);
+  }
+
+  override async play(ctx: ShardContext): Promise<void> {
+    this.adventure = await installDriftwoodAdventure(ctx);
+    ctx.scope.onDispose(() => { this.adventure = null; });
   }
 }
 

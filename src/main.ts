@@ -1,12 +1,12 @@
 import { registerLevelDebugRow } from '#engine/ui/debugOptions';
 import { hudAdapters } from '#engine/ui/hudAdapters';
 import { equipmentEntry, toolEntries } from '#game/bag/equipment';
-import { sharedWeaponVoices, SWORD_WOOD, SWORD_IRON, type MeleeProfile, installKitSpecies, KIT_ITEMS } from '#kit';
+import { sharedWeaponVoices, SWORD_WOOD, type MeleeProfile, installKitSpecies, KIT_ITEMS } from '#kit';
 import { reportError } from '#engine/core/errorReport';
 import { showLoadFailure } from '#engine/ui/errorScreen';
 import { app, EffectService, CombatCues, pageSeed, LevelLoadError, installBounds, EquipmentService, type WeaponId, type Weapon, type LevelContext, type DiscSpot, CHUNK_HALF, startViewmodelTextures, viewmodelTexturesReady, loadWorldContent, authoredTargets, type Targets, getNumber, onNumber, onSettingChange, setting, floorBelow, lineOfSight } from '#engine';
 
-import { shardContext, toLevelSpec, consumeTravelHandoff, bindTravelInventory, applyTravelCarry, setShardSwitcher, type TravelHandoff, type ItemRow, type ShardContext, type GameServices, type ShardRuntime } from '#game';
+import { isOwnedId, shardContext, toLevelSpec, consumeTravelHandoff, bindTravelInventory, applyTravelCarry, setShardSwitcher, type TravelHandoff, type ItemRow, type ShardContext, type GameServices, type ShardRuntime } from '#game';
 import { levelSequenceDriver, type LevelSequence } from '#game/shard/sequence';
 import { meleeShard, type ShardManifest } from '#game/shard/manifest';
 import { installProbe } from '#engine/debug/probe';
@@ -18,17 +18,12 @@ import { setPoseProvider } from '#engine/ui/ReloadPrompt';
 
 import { hasPond, heightAt, normalAt, trailDistance, TRAILS } from '#engine/world/Heightfield';
 import { Boundary } from '#engine/world/Boundary';
-import { SHRINE, PRACTICE_CRAB } from '#shards/driftwood-isle/manifest';
+import { SHRINE } from '#shards/driftwood-isle/manifest';
 import { driftwoodWorld } from '#shards/driftwood-isle/world/build';
-import { installFirstMinutes } from '#shards/driftwood-isle/firstMinutes';
 import { Cove } from '#shards/driftwood-isle/world/Cove';
-import { Enemies } from '#shards/driftwood-isle/creatures/Enemies';
-import { placeDriftwoodPlaces } from '#shards/driftwood-isle/world/places';
 import { Hands } from '#engine/player/Hands';
 import { Sword, swordEvents } from '#kit/weapons/melee/SweptMelee';
 import { CameraFX } from '#engine/player/CameraFX';
-import { IronSwordPickup, ironSwordSite } from '#shards/driftwood-isle/weapons/IronSword';
-import { installAdventure } from '#game/quest/Adventure';
 import { Horizon } from '#engine/world/Horizon';
 import { HorizonMatte } from '#engine/world/HorizonMatte';
 import { AnimalManager } from '#engine/entities/AnimalManager';
@@ -56,9 +51,6 @@ import { Progress } from '#game/Progress';
 import { Inventory, ITEMS } from '#game/Inventory';
 import { Owned } from '#game/loot/Owned';
 import { practiceRoom } from '#engine/core/practiceRoom';
-import { installLoot } from '#game/loot/install';
-import { installKeepsakes } from '#shards/driftwood-isle/loot/keepsakes';
-import { DRIFTWOOD_EFFECTS, bindDriftwoodEffects } from '#shards/driftwood-isle/loot/effects';
 import { sharedCombatCues } from '#kit/audio/combatCues';
 import { driftwoodCombatCues } from '#shards/driftwood-isle/audio/combatCues';
 import { installBodyShadow } from '#engine/player/BodyShadow';
@@ -408,23 +400,12 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   // below move into the plugin at S4.2–S4.4 (nothing built off Driftwood)
   const dressing = { ...edgeDressing, ...driftwoodWorld(boot.runtime) };
   const { ocean, pier, jetties, boat, palmSpecs, cove, hut, lookout, wreck, shrine, bushes, gulls, bridge, bridgeDeck } = dressing;
-  if (chunk.ocean) {
-    const { installDriftwoodSpecies } = await import('./shards/driftwood-isle/species/install');
-    installDriftwoodSpecies(game.levelScope);
-    const { ISLAND_BOAR, ISLAND_BEAR } = await import('./shards/driftwood-isle/creatures/species');
-    app.species.registerRow(ISLAND_BOAR, game.levelScope);
-    app.species.registerRow(ISLAND_BEAR, game.levelScope);
-  }
-
   const animals = await step('animals', async (p) => {
     const a = await new AnimalManager(game.scene, sky, forest).buildAsync(macrotask); // a task per herd, not one long one
     p.detail(`${a.animals.length} animals`);
     return a;
   });
   boot.runtime.hooks.animalsReady?.(animals);
-  // the island's enemies (Enemies.ts): reef crabs at the tidepools, coconut monkeys in the groves, the drowned sailor in the wreck's hold,
-  // and (E308) the lone practice crab on the path at the pier's foot
-  const enemies = isOcean ? new Enemies(animals, { scene: game.scene, sky, palms: palmSpecs, wreck, crabSites: cove?.crabSites ?? [], ...(chunk.slug === 'driftwood-isle' ? { practice: PRACTICE_CRAB } : {}) }).build() : null;
   // the shard's models, for Explore World's catalog and tap-to-select (src/engine/explore/registry.ts: a shard registers what it built);
   // Driftwood's are on the model contract (E315 M1: `place` registers them)
   // the core fields' copies drawn as the shard's models (ShardManifest.fieldModels, E349: Pine Hollow's trees and forest-floor kinds, E315 M2)
@@ -443,11 +424,11 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   let arena: TrainingArena | null = null;
   const targets: Targets = authoredTargets(app.events, { raycast: (origin, dir, maxDist) => animals.raycast(origin, dir, maxDist) }, () => arena?.entered === true ? arena : null);
   // Driftwood's castaway rig (E334) also carries the iron sword's arms and the swimming hands: those go to their own owners
-  const { ironArms, swim: swimArms, ...ownSword } = shardSword ?? {};
+  const { ironArms: _ironArms, swim: swimArms, ...ownSword } = shardSword ?? {};
   const heldRow = chunk.loadout?.weapons[0];
   const authoredMelee = heldRow === undefined ? undefined : app.levelRegistrations.get('weapon', heldRow);
   const meleeProfile = authoredMelee !== undefined && 'moves' in authoredMelee ? authoredMelee as MeleeProfile : SWORD_WOOD;
-  const authoredKit = await boot.runtime.buildEquipment?.(targets, nolock);
+  const authoredKit = await boot.runtime.buildEquipment?.(targets, nolock, shardSword);
   const crossbow: Weapon = authoredKit?.primary ?? (chunk.weapon === 'sword'
     ? new Sword({ game, sky, player, forest }, targets, { row: meleeProfile, profile: meleeProfile, allowUnlocked: nolock, ...ownSword, ...(chunk.camera ? { portraitFov: chunk.camera.portraitFov } : {}) })
     : (() => { throw new Error('Shard has no primary equipment factory'); })());
@@ -457,11 +438,8 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   const rifle = authoredKit?.rifle ?? null;
   await macrotask();
   const longbow = authoredKit?.secondary ?? null;
-  // the iron sword is FOUND on the wreck's deck (IronSword.ts) — wooden stays 1, iron becomes 2 once taken. Not on Nine
-  // Dragon (E314 A): nothing there can unlock it, so its kit is the Neon Jian alone (NINE_WEAPON_NAME)
-  const ironSword = chunk.weapon === 'sword' && (chunk.loadout === undefined || chunk.loadout.weapons.includes(SWORD_IRON.id)) ? new Sword({ game, sky, player, forest }, targets, { row: SWORD_IRON, profile: SWORD_IRON, allowUnlocked: nolock, blade: 'iron', ...(ironArms ? { arms: ironArms } : {}) }) : null;
   const weapons = new EquipmentService(crossbow, { scope: game.levelScope, events: app.events, ...(authoredKit?.order === undefined ? {} : { order: [...authoredKit.order] }) });
-  for (const w of [...(rifle ? [rifle] : []), ...(authoredKit?.extras ?? []), ...(ironSword ? [ironSword] : []), ...(longbow ? [longbow] : [])]) weapons.add(w, { locked: true });
+  for (const w of [...(rifle ? [rifle] : []), ...(authoredKit?.extras ?? []), ...(longbow ? [longbow] : [])]) weapons.add(w, { locked: true });
   app.registerEquipment(weapons, game.levelScope);
   const lockSys = new LockOnSystem(player, weapons, game.camera); // the Zelda lock-on (E50): LOCK / Z, orbit, flick-switch — src/engine/player/LockOnTarget.ts
   const touchControls = new TouchControls(player, weapons, setting('touch') === 'on', lockSys); // on-screen FPS controls on coarse-pointer devices (?touch=1 / main menu ▸ Settings ▸ Touch controls forces)
@@ -523,7 +501,7 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
     dodging: () => player.dodging, dodgeGuard: () => false,
   });
   app.registerPlayer(playerHealth, game.levelScope);
-  const effects = new EffectService([...DRIFTWOOD_EFFECTS, ...app.levelRegistrations.list('effect')], game.levelScope, app.events);
+  const effects = new EffectService(app.levelRegistrations.list('effect'), game.levelScope, app.events);
   app.registerEffects(effects, game.levelScope);
   playerHealth.attributes.incomingCap = chunk.fight?.maxHitDamage ?? Infinity;
   app.combat.playerRules(game.levelScope, { target: playerHealth, bossGod: params.has('bossGod'), capExempt: chunk.fight?.capExempt ?? [] });
@@ -631,26 +609,13 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   // the AR-15 is found, not issued: a floating pickup on the floor of cabin 1 (the hollow), inside by the door wall
   // (cabin local frame: door on +X, chimney end -Z — Cabin.ts); "[E] Take AR-15" through the door / harvest prompt path
   if (params.get('weapon') === 'rifle' || params.get('weapon') === 'lever') { weapons.unlock('rifle'); weapons.select('rifle', true); boot.runtime.hooks.disposeRifleDrop?.(); } // dev: start with it
-  const ironDrop = (() => {
-    if (!wreck || !ironSword) return null;
-    const drop = new IronSwordPickup({ scene: game.scene, sky, position: ironSwordSite(wreck, heightAt) });
-    interactables.push(drop.interactable);
-    drop.onNear = (inside) => audio.pickupHum(inside);
-    drop.onPickup = () => { owned.grant('iron-sword'); weapons.unlock('sword-iron'); weapons.select('sword-iron'); audio.hitMarker(); music.sting('pickup'); hud.toast('Iron sword acquired · 1/2 to switch, Q to swap'); };
-    return drop;
-  })();
-  // E314: the iron sword is kept between sessions — taken once, it is yours (and held) on every later visit
-  if (ironSword && owned.has('iron-sword')) { weapons.unlock('sword-iron'); weapons.select('sword-iron', true); ironDrop?.dispose(); }
-  if (params.get('weapon') === 'iron' && ironSword) { weapons.unlock('sword-iron'); weapons.select('sword-iron', true); ironDrop?.dispose(); }
-  // ── Driftwood's adventure (plan Track A: interactables, the quest, the castaway, collectibles; src/game/quest/Adventure.ts) — null on any other shard ──
-  const adventure = installAdventure({ game, sky, player, chunk, prompts: interactables, registry, hud, audio, music, inventory, progress, fullMap, animals, ironDrop, setViewmodel: (on) => { weapons.visible = on; }, stowWeapon: (on) => { weapons.stowed = on; }, bridgeFloor: bridge ? (x, z) => bridge.floorHeightAt(x, z) : undefined, pois: { hut, lookout, wreck, shrine, cave: cove }, params, gulls });
-  // E315 M12: Driftwood's named places are Sets — what each place's radius holds (src/shards/driftwood-isle/world/places.ts)
-  if (adventure !== null && isOcean) {
-    const d = dressing;
-    placeDriftwoodPlaces(adventure.place, [d.pier?.placed, d.boat?.placed, ...d.jetties.map((j) => j.placed), d.hut?.placed, d.lookout?.placed, d.shrine?.placed, d.bushes?.placed, d.palms?.placed, d.rocks?.placed, d.bridge?.placed,
-      ...(d.trailside?.placed ?? []), ...(d.seabed?.placed ?? []), ...(d.cover?.placed ?? []), ...(d.wreck?.placed ?? []), ...(d.cove?.placed ?? []),
-      adventure.zipline?.placed, ...adventure.kit.placed], { wreck: [...(d.wreck?.placed ?? []), ...(d.cove?.placed ?? [])] });
-  }
+  weapons.placePickups(chunk.loadout ?? {}, { prompts: interactables, owned: {
+    has: (id) => { if (!isOwnedId(id)) throw new Error(`Unknown owned equipment: ${id}`); return owned.has(id); },
+    grant: (id) => { if (!isOwnedId(id)) throw new Error(`Unknown owned equipment: ${id}`); owned.grant(id); },
+  },
+    onNear: (inside) => audio.pickupHum(inside),
+    onPickup: (_row, toast) => { audio.hitMarker(); music.sting('pickup'); hud.toast(toast); },
+    hold: params.get('weapon') === 'iron' ? 'weapon.sword-iron' : undefined });
   // ── Nalati's adventure (NALATI-MERGE Q1–Q5: the camp's people, the quest line, places with saved discovery on the full map;
   // src/shards/nalati-grasslands/adventure.ts on the shared quest core) — null on any other shard ──
   // Registered cosmetics restyle the held model and persist in this shard's locker.
@@ -660,31 +625,12 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
     // a sword kill is at arm's length: "Reef crab · 1 m" read as a marker to crabs 30 m off (E296); a shot keeps its distance
     hud.killFeed(meleeShard(chunk) ? `${a.label} killed` : `${a.label} · ${Math.round(a.position.distanceTo(player.position))} m`); progress.recordKill(a.kind, a.variant);
   };
-  // E314 stage 1 (src/game/loot/install.ts): the purse + coin chip + kill coin bursts on a shard with `loot.coins` (Driftwood),
-  // the Bag's GEAR extras and FINDS tab; chains onKill, so it comes after main's own onKill and the quests' chains
-  let shopHold = 0;
-  const perkSwords = [crossbow, ironSword].filter((w): w is Sword => w instanceof Sword);
-  bindDriftwoodEffects({ effects, scope: game.levelScope, owned, health: playerHealth, player, swords: perkSwords, hitCap: chunk.fight?.maxHitDamage ?? Infinity, slug: chunk.slug });
-  const loot = installLoot({ owned, chunk, game, player, camera: game.camera, animals, audio, menu, flags: adventure?.flags ?? null,
-    // stage 2: the trader's shop and what it sells — sharper swords, a bigger heart (topped up by what it adds), the sea chart's marks
-    trader: adventure?.trader ?? null, minimap, toast: (t) => { hud.toast(t); },
-    // Live C5 effects own sharpening and max health; loot owns purchases and map marks.
-    hold: (on) => { // the shop screen releases the lock and the sword like Pine Hollow's slate; its close takes them back
-      window.clearTimeout(shopHold);
-      weapons.stowed = on;
-      if (on) { hud.holdPause = true; weapons.setEnabled(false); if (document.pointerLockElement) document.exitPointerLock(); return; }
-      weapons.setEnabled(!player.swimming);
-      hud.onResume?.();
-      shopHold = window.setTimeout(() => { hud.holdPause = false; if (!nolock && !touchUi() && !document.pointerLockElement && hud.entered && !menu.isOpen) hud.setPaused(true); }, 450);
-    } });
   // E314 stage 3: the body shadow (ShardManifest.bodyShadow, src/engine/player/BodyShadow.ts) — hidden off play (the title, a practice
   // room, the free camera / tour) — and Driftwood's keepsakes (src/shards/driftwood-isle/loot/keepsakes.ts): the sea glass chime + charms,
   // the trophy plaques and drops, the captain's hat; chains onKill after the loot's coin bursts
   const bodyShadow = chunk.bodyShadow === true
     ? installBodyShadow({ game, player, hidden: () => !hud.entered || practiceRoom.open || world.freeCamera || world.tour.active || explore?.active === true })
     : null;
-  if (adventure !== null && isOcean) installKeepsakes({ owned, adventure, sky, game, player, animals, hud, audio, music, registry, body: bodyShadow,
-    swords: perkSwords, effectsManaged: true });
   for (const { id: w } of weapons.list) { const s = skins.wearing(w); if (s) wearSkin(s); }
   new Combat(game, animals, weapons, game.camera); // health bars over animals + MMO-style damage / MISS floats (self-wiring); Combat only taps onFire / onImpact, which the manager forwards for every weapon
   // taking a hit (B3): the arc points at the attacker (src/engine/ui/HurtArc.ts), a hurt grunt panned toward it (Audio.hurt — it
@@ -759,8 +705,8 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   // the respawn under the dark at the last named place you reached (src/game/LastPlace.ts; Driftwood's places, the spawn
   // when none), input frozen and no hit taken until the view is back. A boss fight's death keeps its own checkpoint. ──
   const deathFade = new DeathFade();
-  const placePts = adventure?.places?.points ?? null;
-  const lastPlace = placePts !== null ? new LastPlace(() => placePts) : null;
+  const placePts = boot.runtime.hooks.places;
+  const lastPlace = placePts !== undefined ? new LastPlace(placePts) : null;
   if (lastPlace !== null) {
     let since = 0;
     game.onUpdate((dt) => {
@@ -796,13 +742,7 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   // it chains): a label + pulsing ring on the touch control the first time it matters. Driftwood feeds its six triggers
   // (src/shards/driftwood-isle/firstMinutes.ts); another shard shows none until it feeds its own ──
   const firstHints = new FirstHints(player, { touch: touchControls.active, paused: () => !hud.entered || hud.paused || deathFade.active || away() || world.freeCamera || world.tour.active });
-  const promptEl = document.querySelector<HTMLElement>('#hud .ws-game-prompt');
-  const firstMinutes = chunk.slug === 'driftwood-isle' ? installFirstMinutes({
-    hints: firstHints, animals: () => animals.animals, player,
-    onWindup: (fn) => { const prev = animals.onWindup; animals.onWindup = (a, dur) => { prev?.(a, dur); fn(a); }; },
-    prompt: () => (promptEl?.classList.contains('show') === true ? promptEl.textContent : ''),
-  }) : null;
-  game.onUpdate((dt) => { firstMinutes?.(dt); firstHints.update(dt); }, 'first hints');
+  game.onUpdate((dt) => { firstHints.update(dt); }, 'first hints');
 
   // ── menu ↔ world: the world is fully loaded, then sits frozen and silent under the menu (hero art
   // covers the canvas) until ENTER WORLD; "Exit to main menu" freezes it again — no reload, no
@@ -942,7 +882,6 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
     }
     boundary.update(dt, t);
     // Driftwood's ocean · boat · palms · gulls · bridge planks · seabed · cove · shrine: its plugin's systems (src/shards/driftwood-isle/world/systems.ts)
-    enemies?.update(dt, t, player.position);
     if (dayNight) { shrine?.setDusk(dayNight.dusk); if (ambience) ambience.night = dayNight.night; }
     mark('world');
     hands.update(dt, player);
@@ -963,7 +902,7 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
     weapons.update(dt, t); // every weapon ticks (bolts in flight keep flying while the rifle is out)
     boot.runtime.hooks.equipmentUpdate?.(dt); weaponStrip.update();
     boot.runtime.hooks.updatePickups?.(dt, t);
-    ironDrop?.update(dt, t, game.renderer, game.camera, player.position); // walk-to-pick-me-up
+    weapons.updatePickups(dt, t);
     mark('player');
     audio.listenerYaw = player.yaw;
     shrineHum?.update(game.camera);
@@ -1030,7 +969,7 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   // back from a GPU-recovery reload (E54): the pose is applied; take it off the address so a later reload spawns as usual
   if (params.has(RELOAD_PARAM)) { const u = new URL(location.href); u.searchParams.delete(RELOAD_PARAM); u.searchParams.delete('at'); history.replaceState(history.state, '', u); }
 
-  boot.runtime.play = { animals, weapons, primary: crossbow, rifle, secondary: longbow, inventory, owned, progress, hud, menu, fullMap, audio, music, skins, wearSkin, touchUi, nolock, disposeRifleDrop: () => { boot.runtime.hooks.disposeRifleDrop?.(); }, cues: combatCues };
+  boot.runtime.play = { animals, weapons, primary: crossbow, rifle, secondary: longbow, inventory, owned, progress, hud, menu, fullMap, audio, music, skins, wearSkin, touchUi, nolock, disposeRifleDrop: () => { boot.runtime.hooks.disposeRifleDrop?.(); }, cues: combatCues, firstHints, minimap, bodyShadow };
   yield 'finish';
   await macrotask();
   game.buildComposer();
@@ -1098,12 +1037,12 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
     if (chunk.explore !== undefined) void import('#engine/explore/Explore');
     game.primeFrame();
   }, TITLE_IDLE_MS);
-  const handle = { ...world, boundary, water, streams: dressing.streams, ocean, pier, jetties, boat, hut, lookout, wreck, shrine, bushes, gulls, bridge, bridgeDeck, cove, enemies, hands, props, animals, interactables, crossbow, hud, audio, music, shrineHum, islandSfx, surfaces, ambience, lockSys, lockState, weapons, arena, playground: (): Playground | null => playground, ...boot.runtime.objects };
+  const handle = { ...world, boundary, water, streams: dressing.streams, ocean, pier, jetties, boat, hut, lookout, wreck, shrine, bushes, gulls, bridge, bridgeDeck, cove, hands, props, animals, interactables, crossbow, hud, audio, music, shrineHum, islandSfx, surfaces, ambience, lockSys, lockState, weapons, arena, playground: (): Playground | null => playground, ...boot.runtime.objects };
   app.audio = audio;
   game.retainKitResources();
   game.captureLevelResources();
-  game.levelScope.onDispose(() => { loot.dispose(); windupWarn?.dispose(); weapons.setEnabled(false); ambience?.dispose(); boot.runtime.hooks.dispose?.(); audio.unloadLevel(); });
-  installProbe(handle, { bootSteps, health: () => playerHealth.attributes.health, quest: () => ({ driftwood: adventure?.flags.all.slice().sort() ?? [], nalati: boot.runtime.hooks.questFlags?.() ?? [] }) });
+  game.levelScope.onDispose(() => { windupWarn?.dispose(); weapons.setEnabled(false); ambience?.dispose(); boot.runtime.hooks.dispose?.(); audio.unloadLevel(); });
+  installProbe(handle, { bootSteps, health: () => playerHealth.attributes.health, quest: () => ({ driftwood: boot.runtime.hooks.adventureFlags?.() ?? [], nalati: boot.runtime.hooks.questFlags?.() ?? [] }) });
   document.dispatchEvent(new Event('ws:ready')); // booted to the title: the native shell's update watchdog (src/engine/native/boot.ts) waits for this
   // E158: the other shards' boot files into the worker's cache, in the background — once a page (the shell's, not a shard's)
   asShell(() => { startShardPrefetch(getActiveChunk()); });

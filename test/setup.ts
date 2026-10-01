@@ -24,7 +24,9 @@ vi.stubGlobal('location', new URL('http://localhost:5173/'));
 
 const { registerAchievements } = await import('#game/achievements');
 const { PINE_FEATS } = await import('#shards/pine-hollow/feats');
+const { DRIFTWOOD_ITEMS, DRIFTWOOD_FEATS } = await import('#shards/driftwood-isle/quest/rows');
 registerAchievements('pine-hollow', PINE_FEATS);
+registerAchievements('driftwood-isle', DRIFTWOOD_FEATS);
 
 // The composition root owns shared species; the engine has no upward kit import.
 const { registerSpecies, speciesWithLook } = await import('#engine');
@@ -42,6 +44,6 @@ registerSpecies(speciesWithLook(PINE_BOAR, PINE_BOAR_LOOK));
 const { registerItemRow } = await import('#game/bag/itemCatalog');
 const { KIT_ITEMS } = await import('#kit/bag/items');
 const { PINE_ITEMS } = await import('#shards/pine-hollow/items');
-for (const row of [...KIT_ITEMS, ...PINE_ITEMS]) registerItemRow(row);
+for (const row of [...KIT_ITEMS, ...PINE_ITEMS, ...DRIFTWOOD_ITEMS]) registerItemRow(row);
 
 beforeEach(() => { localStorage.clear(); });

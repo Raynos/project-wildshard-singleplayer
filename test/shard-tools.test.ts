@@ -4,7 +4,6 @@ import { describe, expect, it } from 'vitest';
 import { area, blenderAreaFor, blenderModelsBase, CELL } from '#engine/world/blenderArea';
 import { lutUrl } from '#engine/world/lut';
 import { horizonStrips } from '#engine/world/HorizonMatte';
-import { hasAdventure } from '#game/quest/Adventure';
 import { CHUNK_HALF } from '#engine/core/config';
 import { PINE_HOLLOW } from '#shards/pine-hollow/manifest';
 
@@ -47,8 +46,5 @@ describe('per-shard pipeline lookups (PH-0.3)', () => {
     expect(horizonStrips({ slug: 'nalati-grasslands' })).toBeNull();
   });
 
-  it('adventure registry: Driftwood registered, Pine Hollow empty', () => {
-    expect(hasAdventure('driftwood-isle')).toBe(true);
-    expect(hasAdventure('pine-hollow')).toBe(false);
-  });
+
 });

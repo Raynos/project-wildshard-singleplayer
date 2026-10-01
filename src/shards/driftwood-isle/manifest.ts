@@ -1,3 +1,4 @@
+import { DRIFTWOOD_FAUNA_PLANS } from './creatures/tables';
 import exploreWorld from './explore/world-driftwood-isle.webp';
 import exploreModels from './explore/models-driftwood-isle.webp';
 import exploreSets from './explore/sets-driftwood-isle.webp';
@@ -96,7 +97,6 @@ export const PIER_PENNANT_AT = 43.2;
  *  pier's foot, where the landing's fenced corridor turns for the plateau ramp — the first enemy a new player meets */
 export const PRACTICE_CRAB = { x: -7, z: -143 };
 /** the boar variants the island rolls (E318): the common four, never Pine Hollow's Scarback or Old Ironhide (whose drop is a gun) */
-const ISLAND_BOARS = ['boar', 'sow', 'black', 'big'];
 
 export const DRIFTWOOD_ISLE: ShardManifest = {
   audio: { bed: 'island', samples: { loopGains: { island: 0.5 } }, ambience: 'legacy', score: 'legacy' },
@@ -127,6 +127,8 @@ export const DRIFTWOOD_ISLE: ShardManifest = {
   card: { thumb: thumbnail, portrait: heroPortrait, landscape: heroLandscape },
   style: 'toon',
   weapon: 'sword',
+  loadout: { weapons: ['weapon.sword', 'weapon.sword-iron'], tools: [], start: ['weapon.sword'],
+    pickups: [{ id: 'weapon.sword-iron', at: 'wreck.deck' }] },
   // the castaway's skinned arms (E334, Jake's board-2 A / board-3 A): the wooden and the iron sword on the same hands, and
   // the same arms swimming (driftwood-isle/fpArms.ts); the engine's code-built sword and white gloves if the rig does not load
   sword: async () => {
@@ -263,15 +265,7 @@ export const DRIFTWOOD_ISLE: ShardManifest = {
   // (E318: it was 15–35 m from the Ring Shrine, the finale; now ~90 m off the pier and shrine paths, 74 m from the vista
   // point, clear of the brown bear across the island). Boars are the island's four (E318: no Scarback / Old Ironhide, the
   // Pine Hollow legendaries); no deer (E318: a temperate game animal on a tropical island).
-  spawns: [
-    // E308: the south-beach sounder sits back from the pier's foot (was 45, −150: three boars within 45 m of the landing
-    // met a new player before the practice crab did)
-    { kind: 'boar', count: 4, variants: ISLAND_BOARS, anchor: { x: 66, z: -132, rMin: 5, rMax: 20 }, canopy: false, trailBand: [8, 600] },
-    { kind: 'boar', count: 3, variants: ISLAND_BOARS, anchor: { x: -140, z: -30, rMin: 5, rMax: 30 }, canopy: false, trailBand: [8, 600] },
-    { kind: 'boar', count: 4, variants: ISLAND_BOARS, anchor: { x: 30, z: 150, rMin: 5, rMax: 30 }, canopy: false, trailBand: [8, 600] },
-    { kind: 'bear', count: 1, variants: ['brown'], anchor: { x: 56, z: -84, rMin: 4, rMax: 16 }, canopy: false, trailBand: [8, 600] },
-    { kind: 'bear', count: 1, variants: ['black', 'black-blaze'], anchor: { x: -122, z: -100, rMin: 4, rMax: 14 }, canopy: false, trailBand: [8, 600] },
-  ],
+  spawns: DRIFTWOOD_FAUNA_PLANS,
   // E294 (Jake's yes, 2026-09-29): no single enemy hit takes more than 20 of your 100 health, so you survive ~5 hits of
   // anything (brown bear 45 → 20, boars 25 / 32 / 40 → 20, the drowned captain's swing 24 → 20; the sailor's cutlass is 14 in sailor.ts)
   // E297 (Jake's yes, 2026-09-29): one set of fight rules — at most 2 enemies attack at once, boars circle back instead of
