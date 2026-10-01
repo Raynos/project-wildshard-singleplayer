@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { describe, expect, it, vi } from 'vitest';
-import { AnimalFactory } from '#engine/entities/AnimalFactory';
+import { AnimalFactory, DEFAULT_CREATURE_RENDER } from '#engine/entities/AnimalFactory';
 import { registeredSpecies } from '#engine/entities/species/registry';
 import type { SpeciesLook, CreatureHull } from '#engine/entities/species/look';
 import { app } from '#engine/app/runtime';
@@ -36,7 +36,7 @@ describe('creature hulls follow the kit rows', () => {
     app.levelScope = scope;
     try {
       app.species.registerLook(look, scope);
-      const factory = new AnimalFactory(f.sky);
+      const factory = new AnimalFactory(f.sky, { style: 'pbr', render: DEFAULT_CREATURE_RENDER });
       await factory.ready;
       expect(preload).toHaveBeenCalledTimes(1);
       const model = factory.model('deer', 'hind');
