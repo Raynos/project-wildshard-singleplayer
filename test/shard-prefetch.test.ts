@@ -29,6 +29,23 @@ async function load(tier: 'phone' | 'desktop') {
 }
 
 describe('shardBootRequests: the boot request list of each shard', () => {
+  it('preserves active profile downloads while preparing the owning prefetch inventory', async () => {
+    const { PLAYABLE_SHARDS, bootFiles } = await load('phone');
+    const { prepareBootAudio } = await import('#engine/boot/audioInventory');
+    const [{ createPineAudio }, { createNalatiAudio }, { createNdAudio }, { createDriftwoodAudio }] = await Promise.all([
+      import('../src/shards/pine-hollow/audio/files'), import('../src/shards/nalati-grasslands/audio/files'),
+      import('../src/shards/nine-dragon-stack/audio/files'), import('../src/shards/driftwood-isle/audio/files'),
+    ]);
+    for (const [slug, create] of [['pine-hollow', createPineAudio], ['nalati-grasslands', createNalatiAudio], ['nine-dragon-stack', createNdAudio], ['driftwood-isle', createDriftwoodAudio]] as const) {
+      const def = PLAYABLE_SHARDS.find((row) => row.slug === slug);
+      if (def === undefined) throw new Error(`Missing fixture shard ${slug}`);
+      const profile = await create(), before = bootFiles(def, 'img', profile);
+      await prepareBootAudio(def.boot);
+      expect(bootFiles(def, 'img', profile), `${slug}: active downloads`).toEqual(before);
+      const prefetched = bootFiles(def);
+      expect({ music: prefetched.music, sfx: prefetched.sfx }, `${slug}: owning inventory`).toEqual(profile.files());
+    }
+  });
   for (const tier of ['phone', 'desktop'] as const) {
     it(`equals main.ts's own composition — ${tier} tier`, async () => {
       const { PLAYABLE_SHARDS, sp, bootFiles, extraFetches, bootFetches, packFor, versionedUrl } = await load(tier);
@@ -41,7 +58,11 @@ describe('shardBootRequests: the boot request list of each shard', () => {
           expect(files.art).toContain(artPath(card.card.portrait));
           expect(files.art.includes(artPath(card.card.landscape))).toBe(tier === 'desktop' || card.slug === def.slug);
         }
-        expect(files.art.some((url) => url.includes('/explore/'))).toBe(def.ocean !== undefined);
+        for (const image of def.boot?.explore?.art ?? []) expect(files.art).toContain(new URL(image, location.href).pathname);
+        const ownArt = new Set(def.boot?.explore?.art);
+        for (const other of PLAYABLE_SHARDS) if (other !== def) for (const image of other.boot?.explore?.art ?? []) {
+          if (!ownArt.has(image)) expect(files.art).not.toContain(new URL(image, location.href).pathname);
+        }
         const pack = packFor(def);
         const packed = new Set(pack ? pack.files.map(([p]) => p) : []);
         // main.ts: streamPack(pack) · prefetch(bootFetches(...) minus packed) · prefetchAfter(extraFetches(files)) — and the

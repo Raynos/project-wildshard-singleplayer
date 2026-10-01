@@ -14,6 +14,8 @@ export function genShardsPlugin(): Plugin {
         catch (error) { console.warn(`[bake] ${baker} failed — launch retains its analytic fallback`, error); }
       }
       generateBootTables();
+      // Tables can add static imports to a manifest's closure.
+      execFileSync(process.execPath, ['scripts/gen-shards.mjs'], { stdio: 'inherit' });
     },
   };
 }

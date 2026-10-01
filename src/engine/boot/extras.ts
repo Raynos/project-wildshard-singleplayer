@@ -29,7 +29,7 @@ import { texMode, type TexMode } from './gpuFiles';
 import type { ShardManifest } from '#game/shard/manifest';
 import { chunkFiles } from './manifest';
 import { addBytes, type ChunkFiles } from './bytes';
-import { ART_BYTES } from './art.generated';
+import { ART_URL_BYTES } from '#game/shard/art.generated';
 import { macrotask, type StepProgress } from './plan';
 import { audioFiles, musicDir, sfxDir } from './audioFiles';
 import { whenPrefetched } from './prefetch';
@@ -40,10 +40,9 @@ import { getMusicStyle, getSfxSet } from '../ui/Settings';
 import { SHARDS } from '#game/shard/registry';
 import { TIER } from '../core/tier';
 import type { LevelAudioProfile, LevelAudioBank } from '../audio/levelAudio';
+import { bootAudioFiles } from './audioInventory';
 
 
-/** source path (`../../shards/<slug>/thumbs/x.jpg`, relative to this file) → the bundle's URL for it */
-const ART_URLS = import.meta.glob<string>(['../../shards/*/thumbs/*.{jpg,jpeg,png,webp}', '../../shards/*/explore/*.{jpg,jpeg,png,webp}'], { eager: true, query: '?url', import: 'default' });
 const pathOf = (url: string): string => { try { return new URL(url, location.href).pathname; } catch { return url; } };
 
 /** the shard cards' pictures among the art (the rest is the Explore viewer's) */
@@ -51,17 +50,15 @@ const cardArt = new Set<string>();
 
 function artFor(def: ShardManifest): { urls: string[]; bytes: Record<string, number> } {
   const urls: string[] = [], bytes: Record<string, number> = {};
-  for (const [key, url] of Object.entries(ART_URLS)) {
+  const cards = SHARDS.flatMap((card) => [card.card.thumb, card.card.portrait, ...(TIER === 'desktop' || card.slug === def.slug ? [card.card.landscape] : [])]);
+  const cardUrls = new Set(cards);
+  for (const url of new Set([...cards, ...(def.boot?.explore?.art ?? []), ...(def.boot?.precache ?? [])])) {
     if (url.startsWith('data:')) continue; // inlined into the bundle: nothing to fetch
-    if (/^\.\.\/\.\.\/shards\/[^/]+\/explore\//.test(key) && def.ocean === undefined) continue; // EXPLORE WORLD is Driftwood's (project/archive/2026-09-23-explore-world.md D4)
-    // the phone tier is portrait-only (RotateGate, E38): another shard's landscape hero is never on screen there — the deck
-    // shows portraits, and the Explore hub only this shard's own landscape (PH-P3, 2026-09-25: 0.57 MiB of Pine Hollow's phone bar)
-    if (TIER === 'phone' && /^\.\.\/\.\.\/shards\/[^/]+\/thumbs\/.+-landscape\.\w+$/.test(key) && !key.includes(`/${def.slug}-landscape.`)) continue;
-    const size = ART_BYTES[new URL(key, 'file:///src/engine/boot/').pathname.slice(1)];
+    const size = ART_URL_BYTES[url];
     if (size === undefined) continue;
     const p = pathOf(url);
     urls.push(p); bytes[p] = size;
-    if (/^\.\.\/\.\.\/shards\/[^/]+\/thumbs\//.test(key)) cardArt.add(p);
+    if (cardUrls.has(url)) cardArt.add(p);
   }
   return { urls, bytes };
 }
@@ -72,7 +69,7 @@ const audioPriority = new WeakMap<ChunkFiles, ReadonlySet<string>>();
 export function bootFiles(def: ShardManifest, tex: TexMode = texMode(), profile?: LevelAudioProfile): ChunkFiles {
   const art = artFor(def);
   addBytes(art.bytes);
-  const audio = profile?.files() ?? audioFiles();
+  const audio = profile?.files() ?? bootAudioFiles(def.boot) ?? audioFiles();
   const files = { ...chunkFiles(def, tex), art: art.urls, ...audio };
   const priority = profile?.priorityFiles?.();
   if (priority) audioPriority.set(files, new Set(priority));
@@ -114,7 +111,7 @@ const artLoaded = new Set<string>();
 
 export function startMenuPreload(files: ChunkFiles, def: ShardManifest): Preload<void> {
   const art = files.art;
-  const c = counter(art.length + (def.ocean === undefined ? 1 : 2));
+  const c = counter(art.length + (def.boot?.explore === undefined ? 1 : 2));
   const blobs = new Map<string, string>();
   // The phone page runs one shard at a time. Keep the other cards' bytes in the
   // offline cache, but do not hold their decoded full-size heroes in WebKit's
@@ -145,7 +142,7 @@ export function startMenuPreload(files: ChunkFiles, def: ShardManifest): Preload
     async wait(p) {
       c.attach(p, 'pictures · UI');
       // the lazy UI chunks, fetched and evaluated now: a later import() is answered from the module map
-      const code = [import('../ui/Feedback'), ...(def.ocean === undefined ? [] : [import('../explore/Explore')])].map(async (m) => { await m; c.tick(); });
+      const code = [import('../ui/Feedback'), ...(def.boot?.explore === undefined ? [] : [import('../explore/Explore')])].map(async (m) => { await m; c.tick(); });
       await Promise.all([...images, ...code]);
       swapCardArt(blobs);
     },

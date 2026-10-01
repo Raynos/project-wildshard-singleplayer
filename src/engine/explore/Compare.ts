@@ -6,23 +6,9 @@
 import type { World } from '../core/bootstrap';
 import type { Explore } from './Explore';
 
-const pictures = import.meta.glob<string>('./img/mockups/*.jpg', { eager: true, query: '?url', import: 'default' });
-const picture = (name: string): string => pictures[`./img/mockups/${name}.jpg`] ?? '';
-
 interface Target { id: string; name: string; live: string; target: string; file: string }
-const pair = (id: string, name: string, prefix: string, file: string): Target =>
-  ({ id, name, live: picture(`${prefix}-live`), target: picture(`${prefix}-target`), file });
 
-/** The source path in each row is carried into review notes. */
-const TARGETS: Readonly<Record<string, readonly Target[]>> = {
-  'nalati-grasslands': [
-    pair('camp', 'Camp', 'nalati-camp', 'art/nalati-grasslands/round-5-paintover/camp-po-phone.jpg'),
-    pair('rail', 'River rail', 'nalati-rail', 'art/nalati-grasslands/round-5-paintover/rail-po-phone.jpg'),
-    pair('gully', 'Gully', 'nalati-gully', 'art/nalati-grasslands/round-5-paintover/gully-po-phone.jpg'),
-  ],
-};
-
-export function hasCompareTargets(world: World): boolean { return (world.game.level.explore?.compare ?? TARGETS[world.chunk.slug] ?? []).length > 0; }
+export function hasCompareTargets(world: World): boolean { return (world.game.level.explore?.compare ?? []).length > 0; }
 
 const html = (tag: string, cls: string, inner = ''): HTMLElement => { const e = document.createElement(tag); e.className = cls; e.innerHTML = inner; return e; };
 
@@ -38,7 +24,7 @@ export class Compare {
   private current: Target | null = null;
 
   constructor(private readonly explore: Explore, world: World) {
-    this.targets = world.game.level.explore?.compare?.map((t) => ({ id: t.id, name: t.label, live: t.live, target: t.image, file: t.target })) ?? TARGETS[world.chunk.slug] ?? [];
+    this.targets = world.game.level.explore?.compare?.map((t) => ({ id: t.id, name: t.label, live: t.live, target: t.image, file: t.target })) ?? [];
     this.button = html('button', 'ws-x-comparebtn', '<svg viewBox="0 0 24 24"><path d="M12 3v18 M4 5h6v14H4z M14 5h6v14h-6z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg><span>Compare</span>');
     (this.button as HTMLButtonElement).type = 'button';
     this.picker = html('div', 'ws-x-picker', `<div class="ws-x-picker-head"><b>Compare with the mockup</b><button type="button" class="ws-x-picker-close" aria-label="Close">✕</button></div><div class="ws-x-picker-grid">${this.targets.map((t) => `<button type="button" class="ws-x-target" data-id="${t.id}"><span class="ws-x-target-img"></span><b>${t.name}</b></button>`).join('')}</div>`);

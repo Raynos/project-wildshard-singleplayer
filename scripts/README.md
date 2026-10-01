@@ -26,6 +26,8 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 
 ## Check and audit
 
+- [audit-assets.d.mts](./audit-assets.d.mts)
+- [audit-assets.mjs](./audit-assets.mjs)
 - [check-asset-case.d.mts](./check-asset-case.d.mts)
 - [check-asset-case.mjs](./check-asset-case.mjs)
 - [check-chunks.mjs](./check-chunks.mjs)

@@ -1,4 +1,5 @@
 import { saveStorage } from '#engine/saves/slots';
+import { prepareBootAudio } from './audioInventory';
 /**
  * The other shards, downloaded in the background (E158; the user: "skip the download phase when swapping shards and only
  * do the loading phase"). Once this shard is playable, every file another shard's boot reads — for THIS device's tier —
@@ -219,6 +220,7 @@ export function startShardPrefetch(active: ShardManifest): PrefetchHandle {
     // A phone keeps only one shard in play. Cache this shard (including its KTX2 set for the next launch),
     // but do not download the other worlds while the iOS WebContent process is under memory pressure.
     const order = TIER === 'phone' ? [active] : [active, ...PLAYABLE_SHARDS.filter((c) => c.slug !== active.slug)];
+    await Promise.all(order.filter((def) => def !== active).map((def) => prepareBootAudio(def.boot)));
     await Promise.all(order.map(async (def) => { if (def.ktx2 !== undefined) registerGpuFiles((await def.ktx2()).GPU_FILES); }));
     const jobs: { slug: string; url: string; set: 'boot' | 'ktx2' }[] = [];
     // 1. (E158) every shard's boot files, in the textures its NEXT boot loads with: the pick, or Auto's — images until the
