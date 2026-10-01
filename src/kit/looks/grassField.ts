@@ -75,13 +75,20 @@ let noise2 = new Noise2D(SEED + 912);
 const STRIDE = 8; // per corner: height, tone, flower drift, drift species, ground r, g, b, grass bloom
 let lattice = new Float32Array(LN * LN * STRIDE).fill(Number.NaN);
 // read lazily: a top-level getActiveChunk() runs at import time and breaks on a barrel's import order (E357)
+// (and the shard-change listener registers on that first read too, never at import)
 let nalatiCache: boolean | null = null;
-const onSteppe = (): boolean => (nalatiCache ??= getActiveChunk().slug === 'nalati-grasslands');
-onActiveChunkChange((def) => {
-  nalatiCache = def.slug === 'nalati-grasslands';
-  noise = new Noise2D(SEED + 911); noise2 = new Noise2D(SEED + 912);
-  lattice = new Float32Array(LN * LN * STRIDE).fill(Number.NaN);
-});
+let listening = false;
+const onSteppe = (): boolean => {
+  if (!listening) {
+    listening = true;
+    onActiveChunkChange((def) => {
+      nalatiCache = def.slug === 'nalati-grasslands';
+      noise = new Noise2D(SEED + 911); noise2 = new Noise2D(SEED + 912);
+      lattice = new Float32Array(LN * LN * STRIDE).fill(Number.NaN);
+    });
+  }
+  return (nalatiCache ??= getActiveChunk().slug === 'nalati-grasslands');
+};
 const rgb: [number, number, number] = [0, 0, 0];
 
 function zoneWeight(z: Zone, x: number, zz: number, falloff: number): number {
