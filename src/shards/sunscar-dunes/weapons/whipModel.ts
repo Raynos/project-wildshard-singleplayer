@@ -3,7 +3,7 @@ import { CapsuleGeometry, Color, CylinderGeometry, Group, InstancedMesh, Matrix4
 /** Segments in the braided lash; each one is an instance of one tapered cylinder. */
 export const LASH_SEGMENTS = 26;
 const UP = new Vector3(0, 1, 0);
-const LEATHER = 0x5a3519, DARK = 0x2f1a0d, GLOVE = 0x2a1d16;
+const LEATHER = 0x8a5a30, DARK = 0x4a2c16, GLOVE = 0x3a2a20;
 
 /** The camera-space bullwhip: a gloved hand, a braided handle and a lash that coils at rest and lays out on a crack. */
 export class WhipModel {
@@ -28,11 +28,11 @@ export class WhipModel {
     for (let i = 0; i <= LASH_SEGMENTS; i++) {
       const s = i / LASH_SEGMENTS, a = -0.4 + s * Math.PI * 1.75;
       // At rest: a loop hanging up and left of the hand (the mockup's coil), dropping back past the fist.
-      this.rest.push(new Vector3(this.tip.x - 0.17 + Math.cos(a) * 0.19 * (1 - 0.3 * s), this.tip.y + 0.04 + Math.sin(a) * 0.24, this.tip.z - 0.05 - s * 0.08));
+      this.rest.push(new Vector3(this.tip.x - 0.09 + Math.cos(a) * 0.1 * (1 - 0.3 * s), this.tip.y + 0.02 + Math.sin(a) * 0.13, this.tip.z - 0.03 - s * 0.05));
       this.out.push(new Vector3()); this.points.push(new Vector3());
     }
     this.root.add(fist, cuff, handle, knob, this.lash);
-    this.root.position.set(0.24, -0.36, -0.5); this.root.rotation.set(0.15, -0.25, -0.12);
+    this.root.position.set(0.17, -0.3, -0.42); this.root.rotation.set(0.15, -0.25, -0.12);
     this.pose(0, 0);
   }
   /** `reach` 0 = coiled, 1 = laid out ~3 m ahead; `wave` 0..1 travels a ripple down the lash as it snaps. */

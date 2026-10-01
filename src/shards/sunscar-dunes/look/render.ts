@@ -2,8 +2,8 @@ import { BufferGeometry, Color, Float32BufferAttribute, Mesh, MeshStandardMateri
 import { DayCycle, compassDir, patchShader, PATCH_ORDER, type LookStrategy, type PainterField, type SkyBackdropTargets } from '#engine';
 import { duskDome, DUSK } from './sky';
 
-/** The set sun: just under the north-west horizon's glow, a low warm key that rakes the dune faces. */
-const SUN = { azimuth: 318, elevation: 6, color: new Color(1, 0.5, 0.26), intensity: 1.5 };
+/** The set sun: its disc is hidden (it has just gone down); a low warm key from the north-west glow rakes the dune faces. */
+const SUN = { azimuth: 318, elevation: 6, color: new Color(1, 0.47, 0.2), intensity: 1.9 };
 /** A clock held just after sunset (hour 18.9): dusk, no day cycle. */
 export function duskClock(): DayCycle {
   const clock = new DayCycle({ units: 'hour', start: 18.9, schedule: [{ phase: 'dusk', from: 0, to: 24, minutes: 600 }],
@@ -36,7 +36,7 @@ function heightOf(field: PainterField, x: number, z: number): number {
 /** The dune mesh: dark orange sand, a little lighter on the crests, cooler and darker down in the hollows. */
 export function buildDunes(field: PainterField): BufferGeometry {
   const xs = lines(), n = xs.length, pos = new Float32Array(n * n * 3), col = new Float32Array(n * n * 3);
-  const sand = new Color(0.36, 0.14, 0.055), crest = new Color(0.46, 0.2, 0.08), hollow = new Color(0.17, 0.085, 0.07), tmp = new Color();
+  const sand = new Color(0.42, 0.15, 0.045), crest = new Color(0.55, 0.21, 0.065), hollow = new Color(0.17, 0.075, 0.06), tmp = new Color();
   for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) {
     const x = xs[i] ?? 0, z = xs[j] ?? 0, k = (j * n + i) * 3, h = heightOf(field, x, z);
     pos[k] = x; pos[k + 1] = h; pos[k + 2] = z;
@@ -79,11 +79,11 @@ export function dunesLook(): LookStrategy {
       const clock = duskClock(), dome = duskDome(sunDir); sky = dome;
       const time = dome.material.uniforms['uTime'];
       return Promise.resolve({ clock, horizon: haze.clone(), lut: null, clouds: dome,
-        bind: (t: SkyBackdropTargets) => { targets = t; },
+        bind: (t: SkyBackdropTargets) => { targets = t; t.disc.visible = false; if (t.halo) t.halo.visible = false; },
         update: (dt: number) => {
           if (time) time.value += dt;
           rig.setKeyLight(sunDir, SUN.color, SUN.intensity);
-          if (targets) { targets.fog.color.copy(haze); targets.far.uHazeCol.value.copy(haze); }
+          if (targets) { targets.fog.color.copy(haze); targets.far.uHazeCol.value.copy(haze); targets.disc.visible = false; if (targets.halo) targets.halo.visible = false; }
         },
         rebuild: () => undefined, attachPost: () => undefined });
     },

@@ -1,7 +1,7 @@
 import { BackSide, Color, Mesh, ShaderMaterial, SphereGeometry, type Vector3 } from 'three';
 
 /** The dusk palette (sRGB hex): indigo zenith, violet mid sky, a narrow orange band, the haze the fog and ridges take. */
-export const DUSK = { zenith: 0x0e1430, mid: 0x2b2f5e, rose: 0x5c3a5c, band: 0xc9602e, glow: 0xf3a052, below: 0x24120c, haze: 0x6b4048 };
+export const DUSK = { zenith: 0x0e1430, mid: 0x2b2f5e, rose: 0x5c3a5c, band: 0xc9602e, glow: 0xf3a052, below: 0x24120c, haze: 0x7a4a3c };
 
 /** The sky dome: a gradient that warms toward the set sun, and a few hundred faint stars above the band. Drawn first, no fog. */
 export function duskDome(sunDir: Vector3): Mesh<SphereGeometry, ShaderMaterial> {
