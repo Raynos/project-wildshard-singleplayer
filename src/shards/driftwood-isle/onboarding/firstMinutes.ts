@@ -51,7 +51,7 @@ export function installFirstMinutes(ctx: ShardContext, d: FirstMinutesDeps): voi
     { control: 'move', when: () => true },
     { control: 'jump', when: () => d.hints.done('move') && d.hints.distance >= JUMP_AFTER && nearest > CALM_R },
   ]);
-  ctx.system({ id: 'shard.driftwood.firstMinutes', phase: 'update', before: ['first hints', 'engine.ui.firstHints'], run: (dt) => {
+  ctx.system({ id: 'shard.driftwood.firstMinutes', phase: 'update', after: ['last place', 'keepsakes', 'game.loot'], before: ['first hints', 'engine.ui.firstHints', 'main.world'], run: (dt) => {
     windupT += dt;
     scanT -= dt;
     if (scanT > 0) return;

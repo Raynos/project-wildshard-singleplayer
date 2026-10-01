@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { practiceRoom, type LevelContext, type GameMenu, type MapMark } from '#engine';
 import type { GearLoot, FindsView } from '../bag/bag';
-import { CoinChip } from './CoinChip';
+import { CoinChip } from './ui/CoinChip';
 import { CoinBurst } from './CoinBurst';
 import { Purse } from './Purse';
 import { Bounty } from './Bounty';
@@ -30,6 +30,7 @@ export interface ScopedLootHost<A extends LootBody> {
   player: { position: THREE.Vector3 };
   camera: THREE.Camera;
   animals: () => readonly A[];
+  before?: readonly string[];
   menu: GameMenu;
   presentation: LootPresentation;
   minimap?: { setMarks: (source: (() => readonly MapMark[]) | null) => void } | null;
@@ -43,7 +44,7 @@ export function installLoot<A extends LootBody>(h: ScopedLootHost<A>): ScopedLoo
   const lifetime = ctx.scope.child('loot');
   const purse = new Purse(h.manifest.slug), chip = new CoinChip(purse.coins), burst = new CoinBurst(h.scene);
   let live = true, charted = false;
-  ctx.system({ id: 'game.loot', phase: 'update', run: (dt) => { if (live) burst.update(dt, h.player.position); } });
+  ctx.system({ id: 'game.loot', phase: 'update', before: h.before ?? [], run: (dt) => { if (live) burst.update(dt, h.player.position); } });
   const flush = (): void => { purse.flush(); };
   const onHidden = (): void => { if (document.visibilityState === 'hidden') flush(); };
   lifetime.listen(window, 'pagehide', flush); lifetime.listen(document, 'visibilitychange', onHidden);

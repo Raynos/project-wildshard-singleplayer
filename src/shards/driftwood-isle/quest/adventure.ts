@@ -101,7 +101,7 @@ const FRAMES: Record<Exclude<PoiId, 'world'>, { x: number; z: number; rot: numbe
 export async function installAdventure<A extends AdvAnimal>(ctx: ShardContext, source: AdventureWorld<A>): Promise<Adventure> {
   const { Interactables } = await loadWorldContent();
   const { InteractSfx } = await loadAudio();
-  const w: AdventureWorld<A> = { ...source, scope: ctx.scope, debug: ctx.debug, game: { ...source.game, onUpdate: (run, label) => { ctx.system({ id: label ?? 'shard.driftwood.adventure', phase: 'update', run }); } },
+  const w: AdventureWorld<A> = { ...source, scope: ctx.scope, debug: ctx.debug, game: { ...source.game, onUpdate: (run, label) => { ctx.system({ id: label ?? 'shard.driftwood.adventure', phase: 'update', before: ['game.loot', 'body-shadow', 'keepsakes', 'last place', 'first hints', 'main.world'], run }); } },
     onDeath: (run, order) => { ctx.on('actor.died', ({ actor }) => { const animal = source.animals.animals?.find((a) => a.combatActor?.() === actor); if (animal !== undefined) run(animal); }, { order }); } };
   const flags = new Flags(w.chunk.slug);
   if (w.params?.has('resetquest')) flags.reset();

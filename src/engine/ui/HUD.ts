@@ -157,6 +157,9 @@ export class HUD {
   /** when the menu last closed (performance.now) — see the pointerlockchange listener */
   private menuClosedAt = -Infinity;
 
+  /** The exact text currently displayed by the interaction prompt. */
+  get promptText(): string { return this.prompt.classList.contains('show') ? this.prompt.textContent : ''; }
+
   constructor(opts: HUDOptions) {
     this.opts = { pointerLock: true, ...opts };
     const hud = document.getElementById('hud');

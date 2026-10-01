@@ -11,8 +11,8 @@
  *   chip.pop(x, y, n)            // "+n" at a screen point (CSS px), floats up and fades
  *   chip.dispose()
  */
-import './loot.css';
-import { hudSlots } from '#engine/ui/hudSlots';
+import '../loot.css';
+import { hudSlots } from '#engine';
 
 const POPS = 4;
 const COIN_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#f2c44d"/><circle cx="12" cy="12" r="6.6" fill="none" stroke="#9c6a12" stroke-width="1.8"/><circle cx="12" cy="12" r="2.2" fill="#9c6a12"/></svg>';
@@ -23,6 +23,7 @@ export class CoinChip {
   private pops: HTMLElement[] = [];
   private nextPop = 0;
   private shown = -1;
+  private readonly offLayer: () => void;
 
   constructor(coins: number) {
     this.root = document.createElement('div');
@@ -40,7 +41,7 @@ export class CoinChip {
     // docked in #hud (a mouse device: over the VITALS panel, bottom-left); when the touch layer mounts it moves into the
     // layer (now, or on mount), anchored under PAUSE at VITALS' second-row slot (loot.css)
     hud.append(this.root);
-    hudSlots.onLayer((layer) => { layer.append(this.root); });
+    this.offLayer = hudSlots.onLayer((layer) => { layer.append(this.root); });
   }
 
   set(coins: number, bump = true): void {
@@ -61,7 +62,7 @@ export class CoinChip {
   }
 
   dispose(): void {
-    this.root.remove();
+    this.offLayer(); this.root.remove();
     for (const p of this.pops) p.remove();
   }
 }

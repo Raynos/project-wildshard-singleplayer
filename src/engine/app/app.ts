@@ -14,6 +14,7 @@ import type { WorldRegistry } from '../world/registry';
 import type { AimTarget } from '../player/AimTargets';
 import type { Audio } from '../audio/Audio';
 import { AppDebug, resolveGrade } from './services';
+import { AppUi } from './ui';
 import { TickScheduler } from './scheduler';
 import { Events } from '../events/events';
 import { GameClock } from '../core/clock';
@@ -144,6 +145,7 @@ export class App {
   readonly gradeFor = resolveGrade;
   readonly saves = saves;
   readonly debug = new AppDebug();
+  readonly ui = new AppUi(() => this.levelScope);
   readonly scheduler = new TickScheduler();
 
   constructor(events = new Events()) { this.events = events; this.combat = new CombatPipeline(events, this.engineScope, () => this.physics); this.aggression = new AggressionService(events, this.engineScope); }
