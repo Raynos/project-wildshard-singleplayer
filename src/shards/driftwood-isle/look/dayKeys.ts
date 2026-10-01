@@ -1,4 +1,5 @@
-import { MIDDAY_SKY, type SkyPalette, type OptionValue, type DayCycleSpec } from '#engine';
+import type { OptionValue, DayCycleSpec } from '#engine';
+import { MIDDAY_SKY, type SkyPalette } from './stylizedSky';
 import * as THREE from 'three';
 
 const DAY = 20 / 24;

@@ -15,7 +15,6 @@ import { app } from '../app/runtime';
 import { CHUNK_HALF } from '../core/config';
 import { heightAt, normalAt } from '../world/Heightfield';
 import { fogUniforms } from '../world/Atmosphere';
-import { toonUniforms } from '../world/stylize';
 import { waterView } from '../world/waterSurface';
 import type { ChunkPoi } from '#game/shard/manifest';
 import type { Explore } from './Explore';
@@ -161,7 +160,7 @@ export class MiniMap {
     const side = Math.min(src.width, src.height);
     if (side < 64) return null;
     const saved = { pos: cam.position.clone(), quat: cam.quaternion.clone(), up: cam.up.clone(), fov: cam.fov, near: cam.near, far: cam.far };
-    const fog = { dist: fogUniforms.fogDistDensity.value, height: fogUniforms.fogHeightDensity.value, start: toonUniforms.uFogStart.value, end: toonUniforms.uFogEnd.value };
+    const fog = { dist: fogUniforms.fogDistDensity.value, height: fogUniforms.fogHeightDensity.value };
     const hidden = [forest.group, ...this.overhead].map((o) => [o, o.visible] as const);
     const { x: vx, z: vz, half: vh } = this.view;
     const half = vh * (src.height / side); // the vertical half-extent that makes the centre square span the view
@@ -171,7 +170,7 @@ export class MiniMap {
     cam.updateProjectionMatrix(); cam.updateMatrixWorld();
     fogUniforms.fogDistDensity.value = 0; fogUniforms.fogHeightDensity.value = 0;
     waterView.uTopDown.value = 1; // the pond reflects its sky from up here, not its black deep body (V3)
-    toonUniforms.uFogStart.value = 1e6; toonUniforms.uFogEnd.value = 2e6; // the low-poly shard's colour-ramp haze
+    game.look?.fogControl?.suspend(); // a level look's own haze (LookStrategy.fogControl)
     for (const [o] of hidden) o.visible = false;
     const ao = composer.passes.filter((q) => q.enabled && 'configuration' in q); // N8AO: its screen-space radius means nothing from 1.4 km up
     for (const q of ao) q.enabled = false;
@@ -189,7 +188,7 @@ export class MiniMap {
       for (const q of ao) q.enabled = true;
       for (const [s, k] of suns) s.intensity = k;
       fogUniforms.fogDistDensity.value = fog.dist; fogUniforms.fogHeightDensity.value = fog.height;
-      toonUniforms.uFogStart.value = fog.start; toonUniforms.uFogEnd.value = fog.end;
+      game.look?.fogControl?.resume();
       waterView.uTopDown.value = 0;
       cam.position.copy(saved.pos); cam.quaternion.copy(saved.quat); cam.up.copy(saved.up);
       cam.fov = saved.fov; cam.near = saved.near; cam.far = saved.far;

@@ -111,7 +111,6 @@ export { BossBrain, type BossDefinition, type BossSaved, type BossPorts, type Bo
 export { EliteBrain, type EliteDefinition, type EliteActor, type ElitePorts } from './ai/EliteBrain';
 export { EncounterRegistry, type EncounterDefinition } from './ai/encounters';
 export type { SkyBackdrop, SkyBackdropContext, SkyBackdropFactory, SkyBackdropTargets, SkyBackdropPost } from './render/look';
-export { MIDDAY_SKY, type SkyPalette } from './world/StylizedSky';
 export type { OptionValue } from './ui/Settings';
 
 export { attachFogUniforms, fogUniforms } from './world/Atmosphere';

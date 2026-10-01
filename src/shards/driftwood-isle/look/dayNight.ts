@@ -1,4 +1,5 @@
-import { type SkyPalette, DayCycle, setting, type OptionValue } from '#engine';
+import { DayCycle, setting, type OptionValue } from '#engine';
+import type { SkyPalette } from './stylizedSky';
 /**
  * The day / night clock of the low-poly shard (DRIFTWOOD-REMASTER L7, the user's pick D3: "a real clock — 20 min day +
  * 4 min night, night moonlit blue and playable"; E147: "48 is good" — both doubled, a 40 min day + 8 min night). Sky.ts

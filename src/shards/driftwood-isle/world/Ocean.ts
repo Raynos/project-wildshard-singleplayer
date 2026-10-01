@@ -31,7 +31,7 @@ import { getActiveChunk } from '#game/shard/registry';
 import type { Sky } from '#engine/world/Sky';
 import { islandKnobs } from '../tiers';
 import { WAVES_GLSL, WAVES_NORMAL_GLSL, waveClock } from '#engine/world/waves';
-import { toonUniforms } from '#engine/world/stylize';
+import { toonUniforms } from '../look/toon';
 import { HORIZON_RADIUS } from '#engine/world/HorizonMatte';
 
 const SEA_RES = 512; // the sea-floor texture: ~1 m per texel over the chunk
@@ -54,7 +54,7 @@ export class Ocean {
     const def = getActiveChunk().ocean;
     if (!def) throw new Error('Ocean.build(): the active chunk has no `ocean`');
     this.level = def.level;
-    toonUniforms.uSeaLevel.value = def.level; // the caustics under it (stylize.ts, W4)
+    toonUniforms.uSeaLevel.value = def.level; // the caustics under it (look/toon.ts, W4)
 
     // ── grid coordinates: fine over the chunk, coarsening outward to the horizon ──
     const fine = islandKnobs().oceanCell, inner = CHUNK_HALF + 30, far = 4200; // 2.75 m desktop / 4 m phone (57 k → 30 k verts)

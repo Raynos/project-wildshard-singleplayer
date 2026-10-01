@@ -115,7 +115,7 @@ export function applyDummyStudio(root: THREE.Object3D, renderer: THREE.WebGLRend
       material.envMap = env;
       material.envMapIntensity = 0.85;
       material.fog = false;
-      // Driftwood's toon patch (src/engine/world/stylize.ts) finds its sun by direction; the studio set has no sun: opt out
+      // Driftwood's toon patch (its look's lighting) finds its sun by direction; the studio set has no sun: opt out
       material.defines = { ...material.defines, NO_TOON: '' };
       if (chunk !== null) {
         material.onBeforeCompile = (shader) => {

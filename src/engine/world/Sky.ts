@@ -12,15 +12,12 @@ import { bakedTexture, preloadBakedTextures } from '../boot/bakedTextures';
 import { PUBLIC_BYTES } from '../boot/bytes.generated';
 import { bakedSkyUrls, loadBakedSky as loadSkyPair } from './BakedSky';
 import { macrotask } from '../boot/plan';
-import { installStylize, toonUniforms } from './stylize';
 import { SOFT_RADII, installShadowFilter } from './shadowFilter';
 import { ShadowFade, installShadowFadeChunk, sunFadeUniform } from './shadowFade';
 import { patchPointLightSkip } from './pointLightSkip';
-import { StylizedSky } from './StylizedSky';
 import type { DayCycleClock } from './dayCycle';
-import { DriftwoodSky } from '#shards/driftwood-isle/look/dayNight';
 import { ShadowMaps } from './shadowVariants';
-import type { SkyBackdrop, SkyBackdropFactory, SkyBackdropContext, SkyBackdropPost, SkyDressing } from '../render/look';
+import type { LookStrategy, SkyBackdrop, SkyBackdropContext, SkyBackdropPost, SkyDressing } from '../render/look';
 import { horizonLight } from './Horizon';
 import { loadLUT } from './lut';
 import type { LookupTexture } from 'postprocessing';
@@ -32,27 +29,24 @@ const KEY_SHADOW_STEP = 0.25 * Math.PI / 180;
  *  cascades, where the near one ends (m) */
 export interface ShadowRig { cascades: number; size: number; far: number; margin: number; /** where each cascade but the last ends (m); empty = CSM's practical splits */ splits: number[]; /** the phone's low-poly rig (E123): normal bias in texels */ phone: boolean }
 
-/** the phone's rig on the low-poly shard. E123 (the user's pick `2c2k`, "both 2048 and 2c"): cascades at 2048². E147 (the
+/** the phone's `stylized` rig (ShadowStyle.rig). E123 (the user's pick `2c2k`, "both 2048 and 2c"): cascades at 2048². E147 (the
  *  user's pick C, crisper near shadows): three of them, to 7 / 22 / 80 m — 0.8 cm a texel near you, half E123's 1.6 cm, for
  *  ~+0.08 ms a frame on the M5 */
 // Its filter and radii are shadowFilter.ts's since E138
 const PHONE_SHADOW: Omit<ShadowRig, 'margin' | 'phone'> = { cascades: 3, size: 2048, far: 80, splits: [7, 22] };
 
 /**
- * The shadow rig for this tier and shard. The phone's portrait camera (94° vertical FOV) makes a cascade's square far
+ * The shadow rig for this tier and the level's shadow style. The phone's portrait camera (94° vertical FOV) makes a cascade's square far
  * wider than its reach: the one 80 m cascade was 189 m across, so a 1024² texel was 18.5 cm and every shadow edge a
  * row of 18 cm steps smeared by the PCF (E123: "blocky, blobby, pixelated, bleeding").
  */
 export function shadowRig(stylized: boolean): ShadowRig {
   const T = TIER_CONFIG;
   const base: ShadowRig = { cascades: T.cascades, size: T.shadowMapSize, far: T.shadowFar, margin: T.shadowMargin, splits: [], phone: false };
-  if (T.cascades !== 1 || !stylized) return base; // desktop / the other shards: the tier table
+  if (T.cascades !== 1 || !stylized) return base; // desktop / a level without the stylized rig: the tier table
   const splits = PHONE_SHADOW.splits;
   return { ...PHONE_SHADOW, cascades: splits.length + 1, splits, margin: base.margin, phone: true };
 }
-
-/** the low-poly shard's sun before the day / night clock moves it: mid-morning from the east-south-east, 38° up */
-const STYLIZED_SUN = new THREE.Vector3(-0.74, 0.616, -0.27).normalize();
 
 /** how far the planet group sits from the camera (Game.ts re-places it every frame along `planetDir`) */
 export const PLANET_DIST = 1700;
@@ -90,16 +84,19 @@ export class Sky {
   /** the player's camera (world modules cull against it) */
   get viewCamera(): THREE.PerspectiveCamera { return this.camera; }
 
-  async build(backdropFactory?: SkyBackdropFactory, backdropData?: Pick<SkyBackdropContext, 'level' | 'tier' | 'look'>, dressing?: SkyDressing): Promise<this> {
-    this.dressing = dressing ?? null;
-    const { sky: S, atmosphere: A, style } = getActiveChunk();
-    // Look Lab (E65): the low-poly shard's toon lighting (E87) and stylized sky (E83) are the user's picks, the only looks
-    // since E136; the other shards light from their HDRI
-    const toon = style === 'toon', stylizedSky = toon;
-    if (toon) installStylize(); // the toon lighting model (D1) — patched into three's chunk before anything compiles
-    this.backdrop = backdropFactory && backdropData ? await backdropFactory({ sky: this, scene: this.scene, renderer: this.renderer, ...backdropData }) : null;
+  /**
+   * `look`: the level look's sky parts (01 §13.1) — its light model (`lighting`, installed first, before anything
+   * compiles), its shadow style, its backdrop (else the HDRI) and its sky dressing.
+   */
+  async build(look: Pick<LookStrategy, 'lighting' | 'shadows' | 'backdrop' | 'sky'> | null, backdropData: Pick<SkyBackdropContext, 'level' | 'tier' | 'look'>): Promise<this> {
+    this.dressing = look?.sky ?? null;
+    const { sky: S, atmosphere: A } = getActiveChunk();
+    look?.lighting?.install(); // a level's light model (patched into three's chunks before anything compiles)
+    const shadows = look?.shadows ?? null;
+    const backdropFactory = look?.backdrop;
+    this.backdrop = backdropFactory ? await backdropFactory({ sky: this, scene: this.scene, renderer: this.renderer, ...backdropData }) : null;
     if (this.backdrop) this.lut = this.backdrop.lut;
-    const horizon = this.backdrop?.horizon ?? (stylizedSky ? await this.setupStylized() : await this.setupHDRI());
+    const horizon = this.backdrop?.horizon ?? await this.setupHDRI();
     this.scene.fog = new THREE.Fog(horizon, 1, 1e6); // distances unused: Atmosphere.ts overrides the maths
     fogUniforms.fogSunDir.value.copy(this.sunDir);
     fogUniforms.fogSunColor.value.set(...S.fogSunColor);
@@ -108,7 +105,7 @@ export class Sky {
     fogUniforms.fogHeightDensity.value = A.fogHeightDensity;
     fogUniforms.fogDistDensity.value = A.fogDistDensity;
 
-    const rig = shadowRig(this.stylized !== null);
+    const rig = shadowRig(shadows?.rig === 'stylized');
     this.csm = new CSM({
       camera: this.camera, parent: this.scene, cascades: rig.cascades, mode: rig.splits.length > 0 ? 'custom' : 'practical',
       // the near cascade ends at `splits[0]` m: a tight square round the player (the deck, the pier under foot), the last one takes the rest
@@ -119,24 +116,24 @@ export class Sky {
     this.csm.fade = true;
     installCascadeCull(this.csm, this.camera); // each cascade draws only the casters its own slice can see the shadow of (PH-P2)
     if (!TIER_CONFIG.softShadows) this.renderer.shadowMap.type = THREE.PCFShadowMap; // 16-tap PCFSoft → 9-tap PCF on the phone
-    // E138: the phone's low-poly rig filters its shadows with a 7×7 / 5×5 tent, not three's 5 noisy taps (shadowFilter.ts)
-    // — here, at boot, before a material compiles
-    const filter = this.stylized !== null && rig.phone;
+    // E138: the phone's stylized rig may filter its shadows with a 7×7 / 5×5 tent, not three's 5 noisy taps
+    // (shadowFilter.ts) — here, at boot, before a material compiles
+    const filter = shadows?.filter === 'tent' && rig.phone;
     if (filter) this.renderer.shadowMap.type = installShadowFilter();
     patchCSMShaderChunk();
-    // E147: the low-poly shard's clock steps the sun's shadow; each step crossfades (shadowFade.ts). E153 (the user's pick
-    // A+B, "they all look the same, use the cheapest"): the fading-out ghost is sampled with the 3×3 tent (4 taps)
-    if (this.stylized && installShadowFadeChunk()) {
+    // E147: a stepped clock's shadow steps may crossfade (shadowFade.ts). E153 (the user's pick A+B, "they all look the
+    // same, use the cheapest"): the fading-out ghost is sampled with the 3×3 tent (4 taps)
+    if (shadows?.fade === true && installShadowFadeChunk()) {
       this.shadowFade = new ShadowFade(this.csm, this.camera, this.scene);
       for (const [i, g] of this.shadowFade.ghosts.entries()) cullToSlice(this.csm, this.camera, g.shadow, i); // E153: a ghost draws only its cascade's casters
     }
     if (getActiveChunk().tiers?.[TIER]?.pointLightSkip === true) patchPointLightSkip(); // E142: a far / dark point light skips its BRDF (pointLightSkip.ts)
-    // the stylized shard's low sun (golden hour, dawn) grazes the flat decks: more normal bias or the planks speckle with acne
-    for (const l of this.csm.lights) { l.color.copy(this.sunColor); l.shadow.normalBias = this.stylized ? 0.14 : 0.05; l.shadow.radius = this.stylized ? 0.6 : 2; }
-    this.texelBias = this.stylized !== null && rig.phone;
+    // a low sun (golden hour, dawn) grazes flat decks: a shadow style may take more normal bias, or the planks speckle with acne
+    for (const l of this.csm.lights) { l.color.copy(this.sunColor); l.shadow.normalBias = shadows?.normalBias ?? 0.05; l.shadow.radius = shadows?.radius ?? 2; }
+    this.texelBias = shadows?.texelBias === 'phone' && rig.phone;
     this.farEveryOther = this.texelBias && this.csm.lights.length > 1;
     // E174: the phone rig's shadow maps are depth only at 16 bits (Jake's pick C; shadowVariants.ts): 40 MB, not three's 160
-    if (this.stylized && rig.phone) {
+    if (shadows?.depth16 === 'phone' && rig.phone) {
       const maps = new ShadowMaps(this.renderer, this.csm, this.shadowFade?.ghosts ?? [], rig.size);
       maps.apply();
       this.shadowMaps = maps;
@@ -151,42 +148,30 @@ export class Sky {
 
     this.buildSunDisc();
     this.buildPlanet();
-    if (this.stylized) {
-      const st = this.stylized, fog = this.scene.fog;
-      this.clouds = st.dome; // Game.ts keeps `clouds` on the camera: the dome and its cumulus ring
-      // the day / night clock (L7, D3) turns every knob above from here on
-      if (fog instanceof THREE.Fog) this.stylizedClock = new DriftwoodSky({
-        sunDir: this.sunDir, lights: this.csm.lights, lightDirection: this.csm.lightDirection, hemi: this.hemi, fog,
-        fogSunDir: fogUniforms.fogSunDir.value, fogSunColor: fogUniforms.fogSunColor.value, toon: toonUniforms,
-        setSkyPalette: (pal, dir) => { st.setPalette(pal); st.u.uSunDir.value.copy(dir); },
-        disc: this.sunDisc, planetSun: this.giantUniforms.uSunDir.value, planetHaze: this.giantUniforms.uHaze.value,
-        refreshEnvironment: () => { this.refreshEnvironment(); },
+    const backdrop = this.backdrop, fog = this.scene.fog, halo = this.sunDisc.children[0];
+    if (backdrop?.clouds) this.clouds = backdrop.clouds; // its own sky layer (a dome): Game.ts keeps `clouds` on the camera
+    else this.buildClouds();
+    // the backdrop's clock turns every knob above from here on
+    if (backdrop && fog instanceof THREE.Fog) {
+      backdrop.bind({
+        sunDir: this.sunDir, sunColor: this.sunColor, lights: this.csm.lights, lightDirection: this.csm.lightDirection, hemi: this.hemi, fog,
+        fogU: fogUniforms, underwater: isUnderwater, disc: this.sunDisc, halo: halo instanceof THREE.Sprite ? halo : null,
+        cloud: this.cloudUniforms, far: horizonLight, planet: this.giantUniforms,
         shadowBusy: () => this.shadowFade?.busy ?? false,
-      }, S.sunIntensity / 2.7);
-      this.dayNight = this.stylizedClock?.clock ?? null;
-    } else {
-      this.buildClouds();
-      const backdrop = this.backdrop, fog = this.scene.fog, halo = this.sunDisc.children[0];
-      if (backdrop && fog instanceof THREE.Fog) {
-        this.dayNight = backdrop.clock;
-        backdrop.bind({
-          sunDir: this.sunDir, sunColor: this.sunColor, lights: this.csm.lights, lightDirection: this.csm.lightDirection, hemi: this.hemi, fog,
-          fogU: fogUniforms, underwater: isUnderwater, disc: this.sunDisc, halo: halo instanceof THREE.Sprite ? halo : null,
-          cloud: this.cloudUniforms, far: horizonLight,
-        });
-      }
+      });
+      this.dayNight = backdrop.clock;
     }
     return this;
   }
 
   backdrop: SkyBackdrop | null = null;
   attachPost(post: SkyBackdropPost): void { this.backdrop?.attachPost(post); }
-  /** 0 = day … 1 = full night; the fixed skies stay at their own (Driftwood's clock, else 0) */
+  /** 0 = day … 1 = full night; a fixed sky stays at 0 */
   get night(): number { return this.dayNight?.night ?? 0; }
   /** the night lights (cabin windows, lanterns): the clock's 0 by day … 1 by night; the fixed sunset keeps them all lit (1) */
   get lamps(): number { return this.backdrop?.clock.lamps ?? 1; }
 
-  /** Pine Hollow's rig (and any `style: 'pbr'` shard): the HDRI is the background and the IBL; returns the fog colour. */
+  /** the default rig (no backdrop): the HDRI is the background and the IBL; returns the fog colour. */
   private async setupHDRI(): Promise<THREE.Color> {
     const { sky: S } = getActiveChunk();
     const hdriName = S.hdri;
@@ -223,42 +208,18 @@ export class Sky {
     return baked ? new THREE.Color(...baked.horizon) : this.sampleHorizon(hdr);
   }
 
-  /**
-   * The low-poly shard (D2): no HDRI at all — the stylized gradient dome + faceted cumulus (StylizedSky.ts) is the
-   * background, a PMREM of the dome is the (specular-only, stylize.ts) environment, and the sun comes from the
-   * day / night clock's start time. Returns the fog colour (the dome's horizon).
-   */
-  stylized: StylizedSky | null = null;
-  /** the shard's learned colour LUT (lut.ts, X1; per shard) — Game.buildComposer ends the grade with it; null without a file */
+  /** the level's learned colour LUT (lut.ts, X1; per level) — Game.buildComposer ends the grade with it; null without a file */
   lut: LookupTexture | null = null;
-  /** the day / night clock: the low-poly shard's (DayNight.ts) or Pine Hollow's (PineDayNight.ts); null on a fixed sky */
+  /** the day / night clock: the level backdrop's; null on a fixed sky */
   dayNight: DayCycleClock | null = null;
-  private stylizedClock: DriftwoodSky | null = null;
-  private pmrem: THREE.PMREMGenerator | null = null;
-  private envRT: THREE.WebGLRenderTarget | null = null;
-  private async setupStylized(): Promise<THREE.Color> {
-    const { sky: S } = getActiveChunk();
-    const [, lut] = await Promise.all([preloadBakedTextures(), loadLUT(getActiveChunk().slug)]);
-    this.lut = lut;
-    this.sunDir.copy(STYLIZED_SUN);
-    const st = new StylizedSky(this.sunDir).build();
-    this.stylized = st;
-    this.scene.add(st.dome);
-    this.scene.background = null;
-    this.refreshEnvironment();
-    this.scene.environmentIntensity = S.envIntensity;
-    toonUniforms.uFogZenith.value.copy(st.u.uZenith.value); // the colour-ramp fog (L3) fades into the dome's own gradient
-    return st.u.uHorizon.value.clone();
-  }
 
   /**
    * After an in-place WebGL restore (src/engine/core/GpuRecovery.ts, E54): the PMREM environment was a render target, so it came
-   * back empty. Render it again — the stylized dome through refreshEnvironment, the HDR shard from its background texture.
+   * back empty. Render it again — a backdrop's own way, the HDR level's from its background texture.
    */
   rebuildEnvironment(): void {
     this.shadowMaps?.apply(true); // E174: the restored context gave the maps back uninitialised
     if (this.backdrop) { this.backdrop.rebuild(); return; }
-    if (this.stylized) { this.pmrem = null; this.envRT = null; this.refreshEnvironment(); return; } // a fresh generator: the old one's targets belong to the lost context
     const hdr = this.scene.background;
     if (!(hdr instanceof THREE.Texture)) return;
     const pmrem = new THREE.PMREMGenerator(this.renderer);
@@ -266,15 +227,7 @@ export class Sky {
     pmrem.dispose();
   }
 
-  /** re-render the dome into the PMREM environment (DayNight calls it when the sky has moved on; ~1 ms of GPU) */
-  refreshEnvironment(): void {
-    if (!this.stylized) return;
-    this.pmrem ??= new THREE.PMREMGenerator(this.renderer);
-    const rt = this.pmrem.fromScene(this.stylized.envScene, 0, 1, 3000, { size: 64 });
-    this.envRT?.dispose();
-    this.envRT = rt;
-    this.scene.environment = rt.texture;
-  }
+
 
   /**
    * Shared 1×1 fillers so every plain MeshStandard/Physical material carries the same map slots
@@ -366,8 +319,9 @@ export class Sky {
   }
 
   update(dt = 0): void {
-    this.backdrop?.update(dt, this.camera); // before the CSM: the clock turns its light
-    if (this.backdrop !== null) this.fadePlanet(this.night);
+    const B = this.backdrop;
+    if (B !== null && B.updateAt !== 'late') B.update(dt, this.camera); // before the CSM: the clock turns its light
+    if (B !== null && B.fadesPlanet !== false) this.fadePlanet(this.night);
     const want = this.keyShadowWant;
     if (want !== null && want.angleTo(this.csm.lightDirection) > KEY_SHADOW_STEP) this.csm.lightDirection.copy(want); // a big jump (a Time of day pick, the sun ↔ moon swap) moves at once
     this.csm.update();
@@ -379,7 +333,7 @@ export class Sky {
       if (far) far.shadow.autoUpdate = this.farTick === 0;
     }
     this.cloudUniforms.uTime.value += dt; this.giantUniforms.uTime.value += dt;
-    if (this.stylized) { this.stylizedClock?.update(dt); this.stylized.update(dt); toonUniforms.uCloudTime.value += dt; }
+    if (B?.updateAt === 'late') B.update(dt, this.camera); // a clock that steps its own shadow light: after the cascades
     this.dressing?.update?.(dt);
   }
 
@@ -587,7 +541,7 @@ export class Sky {
     this.giantUniforms.uHaze.value.copy(haze);
     this.giantUniforms.uRadius.value = R;
     if (getActiveChunk().sky.painted) { this.giantUniforms.uHazeAmt.value = 0.22; this.giantUniforms.uGain.value = 1.5; this.giantUniforms.uFar.value = 1; }
-    this.giantUniforms.uCrisp.value = this.stylized ? 1 : 0;
+    this.giantUniforms.uCrisp.value = 0; // a backdrop may set 1 (a crisp, opaque disc) when it binds
 
     const body = new THREE.Mesh(new THREE.SphereGeometry(R, 48, 32), new THREE.ShaderMaterial({
       uniforms: { ...this.giantUniforms, tBands: { value: bands } },

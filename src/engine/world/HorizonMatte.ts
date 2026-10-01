@@ -4,7 +4,7 @@
  * codex image_gen over real in-game captures at six headings and stitched into one seamless strip
  * (`art/driftwood-isle/round-9-horizon/`). Day + moonlit night versions; the sky's own palette tints and hazes it.
  *
- *   const matte = new HorizonMatte(sky).build();   // null-safe: builds nothing unless the sky is the stylized one
+ *   const matte = new HorizonMatte(sky).build();   // null-safe: builds nothing unless the sky backdrop has a palette
  *   scene.add(matte.mesh);
  *   matte.load(horizon.group);                     // lazy, after boot; hides the islets it replaces once shown
  *   game.onUpdate((dt) => matte.update(dt, camera, dayNight?.night ?? 0));
@@ -26,7 +26,6 @@
 import * as THREE from 'three';
 import { ktx2Texture, readTexturePixels } from '../core/ktx2';
 import type { Sky } from './Sky';
-import { MIDDAY_SKY } from './StylizedSky';
 import { fogUniforms } from './Atmosphere';
 import { getActiveChunk } from '#game/shard/registry';
 import { TIER } from '../core/tier';
@@ -71,7 +70,7 @@ export class HorizonMatte {
     uCloudLit: { value: new THREE.Color() },
     uSunGlow: { value: new THREE.Color() },
     uSunDir: { value: new THREE.Vector3(0, 1, 0) },
-    uMiddayLit: { value: MIDDAY_SKY.cloudLit.clone() },
+    uMiddayLit: { value: new THREE.Color() },
     uHorizonV: { value: 0 },   // the painted horizon row, set from the strips in build()
     uGain: { value: 1.1 },
     uNightGain: { value: 0.72 },  // the painted moonlight sits a little bright against the night dome
@@ -81,12 +80,13 @@ export class HorizonMatte {
   constructor(private sky: Sky, private seaLevel = 0, private strips: HorizonStrips | null = horizonStrips(getActiveChunk())) {}
 
   build(): this {
-    const st = this.sky.stylized;
+    const st = this.sky.backdrop?.palette;
     const strips = this.strips;
     if (!st || !strips) return this;
     this.u.uHorizonV.value = -strips.elMin / (strips.elMax - strips.elMin);
-    // share the dome's live palette uniforms (DayNight writes them): read-only here
-    this.u.uHorizon = st.u.uHorizon; this.u.uCloudLit = st.u.uCloudLit; this.u.uSunGlow = st.u.uSunGlow; this.u.uSunDir = st.u.uSunDir;
+    // share the dome's live palette uniforms (the backdrop's clock writes them): read-only here
+    this.u.uHorizon = st.uHorizon; this.u.uCloudLit = st.uCloudLit; this.u.uSunGlow = st.uSunGlow; this.u.uSunDir = st.uSunDir;
+    this.u.uMiddayLit.value.copy(st.middayLit);
     const mat = new THREE.ShaderMaterial({
       uniforms: this.u, transparent: true, depthWrite: false, depthTest: true, fog: false, side: THREE.BackSide,
       vertexShader: /* glsl */`

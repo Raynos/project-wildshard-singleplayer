@@ -108,8 +108,39 @@ export interface SkyDressing {
   update?: (dt: number) => void;
 }
 
+/** a level's light model, patched into three's chunks at the top of Sky.build (before anything compiles) */
+export interface LightingRig { install: () => void }
+
+/**
+ * The sun's shadow rig as data (Sky.build). Without one: the tier table's cascades, three's filter, normal bias 0.05,
+ * radius 2, steps that pop.
+ */
+export interface ShadowStyle {
+  /** 'stylized': on a one-cascade tier (the phone), three 2048² cascades to 7 / 22 / 80 m (E123, E147) */
+  rig: 'tier' | 'stylized';
+  /** 'tent': the phone rig's 7×7 / 5×5 tent filter (E138, shadowFilter.ts) */
+  filter?: 'tent';
+  /** each step of the key light's shadow crossfades (E147 / E153, shadowFade.ts) */
+  fade?: boolean;
+  normalBias: number;
+  radius: number;
+  /** 'phone': on the phone rig the normal bias is fitted in texels and the far cascade draws every other frame */
+  texelBias?: 'phone';
+  /** 'phone': the phone rig's maps are depth only at 16 bits (E174, shadowVariants.ts) */
+  depth16?: 'phone';
+}
+
+/** a level's fog switched off and back on around an off-screen shot (Explore's map from overhead) */
+export interface FogControl { suspend: () => void; resume: () => void }
+
 interface LookParts {
   backdrop?: SkyBackdropFactory;
+
+  lighting?: LightingRig;
+
+  shadows?: ShadowStyle;
+
+  fogControl?: FogControl;
 
   sky?: SkyDressing;
 
@@ -149,6 +180,10 @@ export interface SkyBackdropTargets {
   disc: Mesh; halo: Sprite | null;
   cloud: { uSunDir: { value: Vector3 }; uSunColor: { value: Color }; uCloudLit: { value: Color }; uCloudAlpha: { value: number } };
   far: { uHazeCol: { value: Color }; uSeaSky: { value: Color }; uSeaSun: { value: Color }; uSeaSunDir: { value: Vector3 } };
+  /** the gas giant's live uniforms (`uCrisp` 1: a crisp, opaque disc) */
+  planet: { uSunDir: { value: Vector3 }; uHaze: { value: Color }; uCrisp: { value: number } };
+  /** a key-light shadow step is still crossfading (ShadowStyle.fade): hold the next one */
+  shadowBusy: () => boolean;
 }
 /** the post effects the clock drives (Game.buildComposer hands them over) */
 export interface SkyBackdropPost {
@@ -167,6 +202,14 @@ export interface SkyBackdrop {
   update: (dt: number, camera: PerspectiveCamera) => void;
   rebuild: () => void;
   attachPost: (post: SkyBackdropPost) => void;
+  /** the backdrop's own sky layer (a dome): Game keeps it on the camera, and the engine builds no cloud layer */
+  clouds?: Object3D;
+  /** 'late': `update` runs at the end of Sky.update, after the shadow cascades (default: first, before them) */
+  updateAt?: 'early' | 'late';
+  /** false: the planet keeps its built opacity (default: it fades in with the clock's night) */
+  fadesPlanet?: boolean;
+  /** the dome's live palette uniforms a horizon painting blends with (HorizonMatte); `middayLit` its noon cloud colour */
+  palette?: { uHorizon: { value: Color }; uCloudLit: { value: Color }; uSunGlow: { value: Color }; uSunDir: { value: Vector3 }; middayLit: Color };
 }
 export interface SkyBackdropContext { sky: Sky; scene: Scene; renderer: WebGLRenderer; level: LevelSpec; tier: Tier; look: { vol: number; fogDist: number; sat: number; ambient: number; sky: number } | null }
 export type SkyBackdropFactory = (c: SkyBackdropContext) => Promise<SkyBackdrop>;
