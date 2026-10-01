@@ -54,6 +54,13 @@ describe('distance-banded creature clocks', () => {
     const think = vi.fn<() => void>(); Reflect.set(f.manager, 'think', think);
     f.advance(120); expect(think).not.toHaveBeenCalled(); expect(a.attackPhase).toBe(0);
   });
+  it('an engaged encounter uses body and brain every frame until its child scope ends', () => {
+    const f = manager(), a = f.manager.spawn('boar', 0, 200, 0, 'boar'), scope = new Scope('engaged-fixture');
+    const think = vi.fn<() => void>(), body = vi.fn();
+    Reflect.set(f.manager, 'think', think); Reflect.set(a, 'update', body);
+    pinBrain(a, scope); f.advance(60); expect(think).toHaveBeenCalledTimes(60); expect(body).toHaveBeenCalledTimes(60);
+    scope.dispose(); f.advance(60); expect(think).toHaveBeenCalledTimes(60); expect(body).toHaveBeenCalledTimes(60);
+  });
   it('public app pins and interrupts reach the manager clock immediately', () => {
     const f = manager(), a = f.manager.spawn('boar', 0, 200, 0, 'boar'), scope = new Scope('quest');
     const think = vi.fn<(actor: Animal, dt: number) => void>(), body = vi.fn(); Reflect.set(f.manager, 'think', think); Reflect.set(a, 'update', body);

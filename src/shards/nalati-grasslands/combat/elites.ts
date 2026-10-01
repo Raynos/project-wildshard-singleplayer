@@ -1,6 +1,6 @@
 import { NALATI_STRIKES, sampleStrike } from './strikes';
 import { registerNalatiDefinition } from '../species/rows';
-import { app, EliteBrain, canReach, hasSpecies as hasLegacySpecies, type Game, type Sky, type Player, type AnimalManager, type Animal, speciesDef, type ThinkCtx, type Interactable, heightAt, setEliteBrain, setEliteAct, setEliteDamage, eliteThink, eliteDamageMul, EliteBar, painterlyMaterial } from '#engine';
+import { app, EliteBrain, pinBrain, type Scope, canReach, hasSpecies as hasLegacySpecies, type Game, type Sky, type Player, type AnimalManager, type Animal, speciesDef, type ThinkCtx, type Interactable, heightAt, setEliteBrain, setEliteAct, setEliteDamage, eliteThink, eliteDamageMul, EliteBar, painterlyMaterial } from '#engine';
 
 import { encounterHit } from './damage';
 import * as THREE from 'three';
@@ -134,10 +134,21 @@ function isHead(a: Animal, p: THREE.Vector3, slack = 0.12): boolean { a.headWorl
 
 abstract class Base extends EliteBrain<Animal> implements EliteScript {
   protected t = 0;
+  private engagementScope: Scope | null = null;
+  private engagementActor: Animal | null = null;
+  protected engagement(engaged: boolean): void {
+    if (!engaged || this.animal === null) {
+      this.engagementScope?.dispose(); this.engagementScope = null; this.engagementActor = null; return;
+    }
+    if (this.engagementActor === this.animal && this.engagementScope !== null) return;
+    this.engagementScope?.dispose();
+    this.engagementScope = this.env.game.levelScope.child(`elite.${this.def.id}.engaged`);
+    this.engagementActor = this.animal; pinBrain(this.animal, this.engagementScope);
+  }
   constructor(override readonly def: EliteDef, protected readonly env: Env) { super(def, { player: env.player, random: () => app.rng.stream('ai').next() }); }
   abstract override spawn(): void;
   abstract override tick(dt: number, t: number, engaged: boolean, leashing: boolean): void;
-  override despawn(): void { if (this.animal) retire(this.env.animals, this.animal); this.animal = null; }
+  override despawn(): void { this.engagement(false); if (this.animal) retire(this.env.animals, this.animal); this.animal = null; }
   override reset(): void { this.p2 = false; }
   override enterPhase2(): void { this.p2 = true; }
   /** no trophy on Nalati (E314 C: no pack) — main.ts's kill feed names the kill, the orb holds the skin */
@@ -266,6 +277,7 @@ class Aqbars extends Base {
     if (best !== null) { this.from.copy(a.position); this.to.set(best.x, best.y, best.z); this.st = 'leap'; this.stT = 0; this.goal = { x: best.x, z: best.z, y: best.y }; }
   }
   override tick(dt: number, t: number, engaged: boolean, leashing: boolean): void {
+    this.engagement(engaged);
     const a = this.animal;
     if (!a) return;
     this.ring.setTime(t);
@@ -382,6 +394,7 @@ class Kokbori extends Base {
           if (a.attackPhase >= 1) { a.cancelAttack(); this.cd = 1.8; }
   }
   override tick(dt: number, t: number, engaged: boolean, leashing: boolean): void {
+    this.engagement(engaged);
     const a = this.animal;
     if (!a) return;
     this.rings.setTime(t);
@@ -451,6 +464,7 @@ class Qyran extends Base {
   }
   protected override think(a: Animal, c: ThinkCtx): void { a.lookTarget.copy(c.player); a.lookWeight = 1; a.setMotion(a.yaw, 0, 1); }
   override tick(dt: number, t: number, engaged: boolean, leashing: boolean): void {
+    this.engagement(engaged);
     const a = this.animal;
     if (!a) return;
     this.lineMat.uniforms.uTime.value = t;
@@ -589,6 +603,7 @@ class QaraBatyr extends Base {
     this.st = 'wait';
   }
   override despawn(): void {
+    this.engagement(false);
     this.lane.hide(); if (this.rider) this.rider.visible = false;
     const g = this.env.ghosts, a = this.animal;
     for (const r of this.line) if (r.alive) g?.dissolve(r);
@@ -614,6 +629,7 @@ class QaraBatyr extends Base {
   }
   private steer(a: Animal, x: number, z: number, v: number, turn: number): void { a.mem['tx'] = x; a.mem['tz'] = z; a.mem['v'] = v; a.mem['turn'] = turn; }
   override tick(dt: number, t: number, engaged: boolean, leashing: boolean): void {
+    this.engagement(engaged);
     const a = this.animal;
     if (!a) return;
     this.lane.setTime(t);
@@ -737,10 +753,11 @@ class Argymaq extends Base {
     for (const m of mats) if (m instanceof THREE.MeshLambertMaterial) m.color.setRGB(0.62, 0.64, 0.72);
     this.herd = herd; this.animal = a;
   }
-  override despawn(): void { /* he lives on the pasture; he never leaves */ }
+  override despawn(): void { this.engagement(false); /* he lives on the pasture; he never leaves */ }
   broken(): boolean { return this.herd?.stallionState === 'beaten'; }
   barFrac(): number { const a = this.animal; return a ? Math.max(0, (a.hp / a.maxHp - 0.25) / 0.75) : 0; }
   override tick(dt: number, t: number, engaged: boolean): void {
+    this.engagement(engaged);
     const a = this.animal, h = this.herd;
     if (!a || !h) return;
     this.lane.setTime(t);

@@ -1,5 +1,5 @@
 import { nightSpawner } from './spawns';
-import { GroupBrain, app, type Game, type Sky, type Player, type Forest, type TargetAnimal, type TargetHit, Projectiles, type ProjectileKind, setting, type Animal, type AnimalManager, type Spawner, type DayCycleClock, heightAt } from '#engine';
+import { GroupBrain, app, pinBrain, type Game, type Sky, type Player, type Forest, type TargetAnimal, type TargetHit, Projectiles, type ProjectileKind, setting, type Animal, type AnimalManager, type Spawner, type DayCycleClock, heightAt } from '#engine';
 import * as THREE from 'three';
 
 
@@ -227,7 +227,7 @@ export class GhostRiders extends GroupBrain<Animal> {
     // the ghost look: one material on the whole horse (not the painterly three), a hooded rider on the body bone
     const look = o.storm === true ? 'storm' : variant;
     const horseMat = ghostMaterial(look), riderMat = ghostMaterial(look);
-    if (o.storm === true) { a.scale *= 1.6; a.mesh.scale.setScalar(a.scale); }   // the Titan's 8 m cloud horsemen
+    if (o.storm === true) { a.scale *= 1.6; a.mesh.scale.setScalar(a.scale); pinBrain(a, this.ctx.game.levelScope); }   // the Titan's 8 m cloud horsemen
     a.mesh.material = horseMat.mat;
     // no shadow from a ghost: the manager sets castShadow every frame, so pin it off
     Object.defineProperty(a.mesh, 'castShadow', { get: () => false, set: () => undefined, configurable: true });

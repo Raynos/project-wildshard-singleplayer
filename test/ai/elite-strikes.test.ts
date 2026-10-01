@@ -22,7 +22,7 @@ function elite(name: string, fields: Record<string, unknown>) {
   const env = { player: { position: f.ctx.player }, hurt: (_a: Animal, d: number): void => { hits.push(d); },
     knock: vi.fn(noOp), feed: vi.fn(noOp), sound: vi.fn(noOp), bar: { chevron: noOp }, game: f.game };
   const proto = legacyMethods(file, name, { app, THREE, _v: new THREE.Vector3(), _w: new THREE.Vector3(), heightAt: () => 0, wildEnv });
-  const actor = legacyActor(proto, { animal: f.animal, env, p2: false, stT: 0, cd: 0,
+  const actor = legacyActor(proto, { animal: f.animal, env, engagement: noOp, p2: false, stT: 0, cd: 0,
     toPlayer: (a: Animal) => ({ d: a.position.distanceTo(f.ctx.player), yaw: Math.atan2(f.ctx.player.x - a.position.x, f.ctx.player.z - a.position.z) }),
     ...fields });
   return { ...f, actor, env, hits };
