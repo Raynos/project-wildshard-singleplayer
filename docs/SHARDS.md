@@ -62,6 +62,50 @@ Then, in the copy:
 
 A folder whose name starts with `_` is hidden: it gets no title card and no layout check. Yours must not.
 
+### Small check exports on the shared machine
+
+For typecheck, lint and unit tests, export committed code without copying the large asset directories.
+Run this from the repository root; it creates a fresh private directory, records the exact HEAD, and
+symlinks `public`, `art`, `progress` and `node_modules` to the checkout:
+
+```bash
+python3 - <<'PY'
+from pathlib import Path
+import subprocess, tarfile, tempfile
+
+source = Path.cwd()
+sha = subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip()
+target = Path(tempfile.mkdtemp(prefix='wildshard-check-'))
+linked = ['public', 'art', 'progress', 'node_modules']
+paths = [p for p in subprocess.check_output(
+    ['git', 'ls-tree', '--name-only', sha], text=True).splitlines() if p not in linked]
+archive = subprocess.Popen(['git', 'archive', sha, '--', *paths], stdout=subprocess.PIPE)
+with tarfile.open(fileobj=archive.stdout, mode='r|') as tree:
+    tree.extractall(target)
+if archive.wait() != 0:
+    raise RuntimeError('check export failed')
+for name in linked:
+    (target / name).symlink_to(source / name, target_is_directory=True)
+(target / 'base-sha').write_text(sha + '\n')
+print(target)
+PY
+```
+
+Change directory to the printed path. Copy only the files you authored into that export when checking
+an uncommitted candidate, then initialize its ignored generated tables and run the checks:
+
+```bash
+pnpm gen
+pnpm exec tsc --noEmit -p .
+pnpm exec oxlint
+pnpm exec vitest run test/shards/<slug>
+```
+
+This avoids the multi-gigabyte `public/` copy. The linked assets are the shared checkout's files;
+do asset generation in your own lane. A slim check export is unit-check evidence, not an isolated asset
+snapshot for deployment or parity. Runtime checks use a committed candidate SHA:
+`node scripts/parity.mjs --export=<candidate-sha> --lane=m5 --shards=<slug> --tiers=phone`.
+
 ## 2. The folder layout
 
 The layout check (`scripts/check-shards.mjs`, from `lint/shard-layout.json`) runs at every commit that touches
