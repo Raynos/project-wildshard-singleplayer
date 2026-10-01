@@ -1,10 +1,10 @@
---- a/src/player/Sword.ts
-+++ b/src/player/Sword.ts
-@@ -867,6 +867,7 @@
-     const dmg = Math.round(this.damage * move.damage * (move === this.mv.heavy ? this.heavyMult : 1));
+--- a/src/kit/weapons/melee/SweptMelee.ts
++++ b/src/kit/weapons/melee/SweptMelee.ts
+@@ -810,6 +810,7 @@
+     const dmg = Math.round(this.moveDamage(move));
      const point = _hitPoint.copy(hit.point); // the raycast result object is reused by the next ray
      const animal = hit.animal;
 +    return;
-     const killed = animal.applyDamage(dmg, point, _v1);
-     (animal as unknown as { hitFlash?: (strength: number) => void }).hitFlash?.(move === this.mv.heavy ? 1 : 0.8); // the white hit flash (C5, Animal.ts)
-     // knockback: away from the player, biased the way the sweep travels (Animal.stagger flattens it)
+     const result = this.contact(hit.animal, dmg, point, _v1, cam.position, `move.${move.name}`, true);
+     if (!result) return;
+     const killed = result.killed;

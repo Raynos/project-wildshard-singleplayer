@@ -4,7 +4,7 @@ import type * as Heightfield from '#engine/world/Heightfield';
 import { getActiveChunk, setActiveChunk } from '#game/shard/registry';
 import { LaneCharge } from '#shards/pine-hollow/combat/ctx';
 import { Spear, SPEAR_PROFILE } from '#shards/nalati-grasslands/weapons/Spear';
-import { Naizagai } from '#shards/nalati-grasslands/weapons/Naizagai';
+import { NaizagaiPower } from '#shards/nalati-grasslands/weapons/Naizagai';
 import { Projectiles } from '#engine/player/Projectiles';
 import { Crossbow } from '#engine/player/Crossbow';
 import { setAimTargets } from '#engine/player/AimTargets';
@@ -68,14 +68,14 @@ describe('wall bug baselines (owning migrations intentionally change B1/B2 expec
   });
   it('B1 thrust rejects a registered yurt wall and retains30 in the open', () => {
     wall(); const f = fakeWorld(), a = target();
-    const spear = legacyActor(Spear.prototype, { row: SPEAR_PROFILE, game: f.game.asGame(), targets: { raycast: a.raycast }, onHit: undefined, onImpact: undefined });
+    const spear = legacyActor(Spear.prototype, { row: SPEAR_PROFILE, profile: SPEAR_PROFILE, game: f.game.asGame(), targets: { raycast: a.raycast }, onHit: undefined, onImpact: undefined });
     invokeLegacy(spear, 'thrustHit'); expect(a.dealt).toEqual([]);
     setActivePhysics(null); invokeLegacy(spear, 'thrustHit'); expect(a.dealt).toEqual([30]);
   });
   it.each([false, true])('B1 lance%s / brace rejects cover and preserves clear-path damage', (lance) => {
     wall(); const f = fakeWorld(), a = target(); setAimTargets([a.animal]);
     const prev = a.animal.position.clone(); if (!lance) prev.z -= 0.1;
-    const spear = legacyActor(Spear.prototype, { row: SPEAR_PROFILE, player: f.player, game: f.game.asGame(), targets: { raycast: a.raycast },
+    const spear = legacyActor(Spear.prototype, { row: SPEAR_PROFILE, profile: SPEAR_PROFILE, player: f.player, game: f.game.asGame(), targets: { raycast: a.raycast },
       mount: lance ? { yaw: 0, speed: 8 } : null, prevPos: new Map([[a.animal, prev]]), rehit: new Map(), onHit: undefined, onImpact: undefined });
     invokeLegacy(spear, 'contacts', 1 / 60, 1, lance);
     expect(a.dealt).toEqual([]);
@@ -85,7 +85,7 @@ describe('wall bug baselines (owning migrations intentionally change B1/B2 expec
   });
   it('B2 Naizagai rejects a crag and preserves40 to a creature10m out in the open', () => {
     wall(); const f = fakeWorld(), a = target(); a.animal.position.z = a.body.z = a.head.z = -10;
-    const blade = legacyActor(Naizagai.prototype, { crescent: new THREE.Object3D(), crescentFrom: new THREE.Vector3(), crescentDir: new THREE.Vector3(), arcs: [],
+    const blade = legacyActor(NaizagaiPower.prototype, { crescent: new THREE.Object3D(), crescentFrom: new THREE.Vector3(), crescentDir: new THREE.Vector3(), arcs: [],
       deps: { camera: f.game.camera, animals: { animals: [a.animal] }, storm: () => false } });
     invokeLegacy(blade, 'throwCrescent'); expect(a.dealt).toEqual([]);
     setActivePhysics(null); invokeLegacy(blade, 'throwCrescent'); expect(a.dealt).toEqual([40]);
@@ -95,7 +95,7 @@ describe('wall bug baselines (owning migrations intentionally change B1/B2 expec
     for (const [a, z] of [[first, -1], [next, -3], [third, -5]] as const) {
       a.animal.position.z = a.body.z = a.head.z = z;
     }
-    const blade = legacyActor(Naizagai.prototype, { crescent: new THREE.Object3D(), crescentFrom: new THREE.Vector3(), crescentDir: new THREE.Vector3(), arcs: [],
+    const blade = legacyActor(NaizagaiPower.prototype, { crescent: new THREE.Object3D(), crescentFrom: new THREE.Vector3(), crescentDir: new THREE.Vector3(), arcs: [],
       deps: { camera: f.game.camera, animals: { animals: [first.animal, next.animal, third.animal] }, storm: () => storm } });
     invokeLegacy(blade, 'throwCrescent');
     expect(first.dealt).toEqual([storm ? 50 : 40]); expect(next.dealt).toEqual([]); expect(third.dealt).toEqual([]);

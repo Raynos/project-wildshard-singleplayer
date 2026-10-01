@@ -6,7 +6,7 @@ export interface ViewmodelFeel {
   lag: { gain: number; clampYaw: number; clampPitch: number; k: number; c: number; posYaw: number; posPitch: number };
   bob: { x: number; y: number; rz: number; rx: number };
   sway: { ax: number; fx: number; ay: number; fy: number };
-  fovHip: number;
+  fovHip: number; portraitFov?: number;
 }
 export interface MeleeProfile extends EquipmentRow {
   family: 'melee'; parent?: string;
@@ -42,9 +42,9 @@ export function meleeActor(target: ContactTarget): Actor {
 }
 
 /** Shared contact family. Swept blades and the spear retain distinct clocks and viewmodel strategies. */
-export abstract class Melee extends Weapon {
-  protected readonly profile: MeleeProfile;
-  constructor(profile: MeleeProfile) {
+export abstract class Melee<P extends MeleeProfile = MeleeProfile> extends Weapon {
+  protected readonly profile: P;
+  constructor(profile: P) {
     super(profile); this.profile = profile;
     this.attributes['damage'] = profile.damage; this.attributes['heavyDamageMul'] = 1;
     this.blocks.melee = melee(app.combat);
@@ -56,8 +56,8 @@ export abstract class Melee extends Weapon {
       point, dir, from, weaponId: this.row.id, moveId });
   }
   protected onSwingStart(_move: Move): void { /* Rung-2 weapons add a behavior at the same input edge. */ }
-  protected afterMoveHit(_move: Move, _hit: TargetHit, _killed: boolean): void { /* Optional subclass bookkeeping. */ }
+  protected onMoveHit(_move: Move, _hit: TargetHit, _killed: boolean): void { /* Optional subclass bookkeeping. */ }
   protected pickMove(_input: 'attack' | 'heavy'): Move | null { return null; }
-  protected moveDamage(move: Move): number { return Math.round((this.attributes['damage'] ?? this.profile.damage) * move.damage); }
+  protected moveDamage(move: Move): number { return (this.attributes['damage'] ?? this.profile.damage) * move.damage; }
   protected poseExtra(_pos: Vector3, _q: Quaternion, _dt: number): void { /* Optional extra weapon pose. */ }
 }

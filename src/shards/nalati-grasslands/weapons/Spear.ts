@@ -1,7 +1,7 @@
-import { Melee, SWORD_WOOD, type MeleeProfile } from '#kit';
+import { Melee, SWORD_WOOD, Thrown, type ThrownProfile, type MeleeProfile } from '#kit';
 import { SPEAR } from './equipment';
 import { quiverState, type WeaponState, type AimInfo } from '#engine/combat/Weapon';
-import { gameplayRandom, app } from '#engine';
+import { gameplayRandom, app, aimRay, viewmodel, fovForAspect, type EquipContext } from '#engine';
 import * as THREE from 'three';
 import type { Game } from '#engine/core/Game';
 import type { Sky } from '#engine/world/Sky';
@@ -54,7 +54,7 @@ import { painterlyMaterial } from '#engine/world/painterly';
  */
 
 export interface SpearWorld { game: Game; sky: Sky; player: Player; forest: Forest }
-export interface SpearOptions { allowUnlocked?: boolean }
+export interface SpearOptions { allowUnlocked?: boolean; profile?: typeof SPEAR_PROFILE }
 export interface MountState { speed: number; yaw: number }
 
 export const REACH = 3.2;
@@ -79,10 +79,6 @@ export function javelinFlightStep(pos: THREE.Vector3, vel: THREE.Vector3, h: num
   pos.addScaledVector(vel, h);
 }
 
-function fovForAspect(base: number, aspect: number): number {
-  if (aspect >= 1) return base;
-  return THREE.MathUtils.radToDeg(2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(base) / 2) / Math.sqrt(aspect)));
-}
 const clamp01 = (v: number) => (v < 0 ? 0 : Math.min(1, v));
 const sstep = (a: number, b: number, x: number) => { const t = clamp01((x - a) / (b - a)); return t * t * (3 - 2 * t); };
 
@@ -210,21 +206,30 @@ const _qSway = new THREE.Quaternion(), _qHol = new THREE.Quaternion(), _vArm = n
 /** where the sleeves run back to (camera space): the elbows, just off the bottom corners of the frame */
 const L_ELBOW = new THREE.Vector3(-0.3, -0.62, 0.05), R_ELBOW = new THREE.Vector3(0.36, -0.6, 0.08);
 
+export const JAVELIN: ThrownProfile = {
+  id: 'weapon.javelin', speed: JAV_SPEED, gravity: JAV_GRAVITY, damage: JAV_DAMAGE, headMultiplier: JAV_HEAD,
+  radius: JAV_RADIUS, headOffset: 0.8, windup: WINDUP, release: THROW_T, recovery: THROW_RECOVER,
+  carried: 3, pool: JAV_POOL, pickupRadius: PICKUP_R, pickupHeight: 2.2, survive: JAV_SURVIVE,
+  arcPoints: ARC_POINTS, arcAfter: ARC_SHOW_AFTER, stagger: 1,
+};
+
 export const SPEAR_PROFILE: MeleeProfile & {
   thrust: { damage: number; stagger: number; windup: number; activeEnd: number; total: number; fan: typeof THRUST_FAN };
   brace: { set: number; max: number; cooldown: number; rehit: number; cone: number; minSpeed: number; baseDamage: number; speedDamage: number; feetOffset: number };
   lance: { reach: number; cone: number; minSpeed: number; baseDamage: number; speedDamage: number };
 } = {
   ...SWORD_WOOD, ...SPEAR, parent: SWORD_WOOD.id, damage: THRUST_DAMAGE, reach: REACH,
+  hitStop: { body: 0, head: 0, kill: 0 },
+  cues: { fire: 'cue.spear.thrust', reload: 'cue.reload', impact: 'cue.javelin.hit', hit: 'cue.javelin.hit', charge: { throw: 'cue.javelin.throw', 'brace-on': 'cue.spear.brace', recover: 'cue.javelin.pickup' } },
   thrust: { damage: THRUST_DAMAGE, stagger: THRUST_STAGGER, windup: T_WIND, activeEnd: T_ACTIVE_END, total: T_TOTAL, fan: THRUST_FAN },
   brace: { set: BRACE_SET, max: BRACE_MAX, cooldown: BRACE_COOLDOWN, rehit: BRACE_REHIT, cone: BRACE_CONE, minSpeed: BRACE_MIN_SPEED, baseDamage: 60, speedDamage: 8, feetOffset: 0.6 },
   lance: { reach: LANCE_REACH, cone: LANCE_CONE, minSpeed: LANCE_MIN_SPEED, baseDamage: 40, speedDamage: 6 },
-  feel: { lag: { gain: 0.4, clampYaw: 0.1, clampPitch: 0.08, k: 200, c: 20, posYaw: 0, posPitch: 0 },
-    bob: { x: 0.016, y: 0.013, rx: 0.01, rz: 0.014 }, sway: { ax: 0.002, fx: 0.7, ay: 0.002, fy: 1.1 }, fovHip: FOV_HIP },
+  feel: { lag: { gain: 0.4, clampYaw: 0.1, clampPitch: 0.08, k: 200, c: 20, posYaw: 0.25, posPitch: 0.2 },
+    bob: { x: 0.016, y: 0.013, rx: 0.01, rz: 0.015 }, sway: { ax: 0.003, fx: 0.7, ay: 0.0025, fy: 1.1 }, fovHip: FOV_HIP },
 };
 
-export class Spear extends Melee {
-  override readonly reach = REACH;
+export class Spear extends Melee<typeof SPEAR_PROFILE> {
+  override readonly reach = this.profile.reach;
   readonly state: WeaponState = quiverState({ bolts: 3, loaded: true, reloading: false, reloadProgress: 0, ads: false }, 3);
   enabled = true;
   allowUnlocked = false;
@@ -237,8 +242,10 @@ export class Spear extends Melee {
   /** the riding row's hook (B7): horse speed / heading while mounted, null on foot */
   mount: MountState | null = null;
   /** Three javelins carried; the throw shares this weapon slot. */
-  javelins = 3;
-  maxJavelins = 3;
+  readonly thrown = new Thrown(JAVELIN);
+  get javelins(): number { return this.thrown.ammo; }
+  set javelins(value: number) { this.thrown.ammo = value; }
+  get maxJavelins(): number { return this.thrown.profile.carried; }
   /** × the javelin's damage on a hit (the sneak shot from HIDDEN ×2 — src/shards/nalati-grasslands/stealth.ts); undefined = 1 */
   damageMultiplier: ((hit: TargetHit) => number) | undefined;
   /** show the dotted throw arc while winding up (touch default on — the bow's Hunter's-eye rule) */
@@ -259,7 +266,7 @@ export class Spear extends Melee {
   private leftArm!: THREE.Mesh; private rightArm!: THREE.Mesh;
   private leftWrist = new THREE.Vector3(); private rightWrist = new THREE.Vector3();
   private ring!: THREE.Mesh; private ringMat!: THREE.MeshBasicMaterial;
-  private arc!: THREE.Points; private arcPos = new Float32Array(ARC_POINTS * 3); private arcAttr!: THREE.BufferAttribute; private arcMat!: THREE.PointsMaterial;
+  private arc!: THREE.Points; private arcPos = new Float32Array(this.thrown.profile.arcPoints * 3); private arcAttr!: THREE.BufferAttribute; private arcMat!: THREE.PointsMaterial;
   private world!: THREE.InstancedMesh;
   private javs: Jav[] = [];
   private time = 0;
@@ -274,13 +281,13 @@ export class Spear extends Melee {
   private lanceBlend = 0;
   // look lag / sway
   private lastYaw = 0; private lastPitch = 0; private lagYaw = 0; private lagYawVel = 0; private lagPitch = 0; private lagPitchVel = 0;
-  private fov = FOV_HIP; private baseFov = 0; private jolt = 0; private sprintBlend = 0;
+  private fov = this.profile.feel.fovHip; private baseFov = 0; private jolt = 0; private sprintBlend = 0;
   private braceBlend = 0; private throwBlend = 0; private inHand = false; private aimFrame = 0;
   private aimCache: AimInfo = { kind: 'deer', distance: 0 };
   private prevPos = new Map<object, THREE.Vector3>();
 
   constructor(w: SpearWorld, targets?: Targets, opts: SpearOptions = {}) {
-    super(SPEAR_PROFILE);
+    super(opts.profile ?? SPEAR_PROFILE);
     this.game = w.game; this.sky = w.sky; this.player = w.player;
     this.targets = targets;
     this.allowUnlocked = opts.allowUnlocked ?? false;
@@ -289,7 +296,7 @@ export class Spear extends Melee {
     const cam = this.game.camera;
     cam.add(this.model);
     if (!cam.parent) this.game.scene.add(cam);
-    this.bindInput();
+    this.aimBlock = aimRay(cam); this.blocks.aim = this.aimBlock; this.blocks.vm = this.lookBlock;
   }
 
   // ── kit surface ──
@@ -303,28 +310,38 @@ export class Spear extends Melee {
   override inputAllowed(): boolean { return app.state !== 'paused' && this.enabled && (this.player.locked || this.allowUnlocked); }
   override addBolts(n: number): void { this.javelins = Math.min(this.maxJavelins, this.javelins + Math.max(0, n)); }
   override reload(): void { /* nothing to reload: javelins are picked up */ }
-  override aimRay(origin: THREE.Vector3, dir: THREE.Vector3): THREE.Vector3 { const cam = this.game.camera; cam.getWorldDirection(dir); origin.copy(cam.position); return dir; }
+  override aimRay(origin: THREE.Vector3, dir: THREE.Vector3): THREE.Vector3 { return this.aimBlock.solve(origin, dir); }
 
-  private bindInput(): void {
-    document.addEventListener('mousedown', (e) => {
+  private readonly lookBlock = viewmodel(this.profile.feel.lag);
+  private readonly lookState = { yaw: 0, pitch: 0, yawVelocity: 0, pitchVelocity: 0 };
+  private readonly lookDelta = new THREE.Vector2();
+  private readonly aimBlock: ReturnType<typeof aimRay>;
+  override install(ctx: EquipContext): void {
+    super.install(ctx); this.bindInput(ctx);
+    ctx.scope.onDispose(() => { this.model.removeFromParent(); this.world.removeFromParent(); this.arc.removeFromParent(); });
+  }
+  private bindInput(ctx: EquipContext): void {
+    ctx.scope.listen(document, 'mousedown', (e) => {
+      if (!(e instanceof MouseEvent)) return;
       if (!this.inputAllowed()) return;
       if (e.button === 0) this.tryFire();
       if (e.button === 2) { this.rmbDown = true; this.rmbT = 0; }
     });
-    document.addEventListener('mouseup', (e) => {
+    ctx.scope.listen(document, 'mouseup', (e) => {
+      if (!(e instanceof MouseEvent)) return;
       if (e.button !== 2 || !this.rmbDown) return;
       this.rmbDown = false;
-      if (this.inputAllowed() && this.rmbT < BRACE_SET) this.requestThrow(); // a tap throws; a hold was a brace
+      if (this.inputAllowed() && this.rmbT < this.profile.brace.set) this.requestThrow(); // a tap throws; a hold was a brace
     });
-    document.addEventListener('contextmenu', (e) => { if (this.inputAllowed()) e.preventDefault(); });
-    document.addEventListener('keydown', (e) => { if (!this.inputAllowed() || e.repeat) return; if (e.code === 'KeyF') this.tryFire(); });
-    window.addEventListener('blur', () => { this.rmbDown = false; });
+    ctx.scope.listen(document, 'contextmenu', (e) => { if (this.inputAllowed()) e.preventDefault(); });
+    ctx.scope.listen(document, 'keydown', (e) => { if (!(e instanceof KeyboardEvent)) return; if (!this.inputAllowed() || e.repeat) return; if (e.code === 'KeyF') this.tryFire(); });
+    ctx.scope.listen(window, 'blur', () => { this.rmbDown = false; });
   }
 
   /** a thrust (LMB / F / LOOK tap); mid-thrust queues one; ignored while bracing or throwing */
   tryFire(): void {
     if (!this.enabled || this.braced || this.windT >= 0 || this.throwT >= 0) return;
-    if (this.thrustT >= 0) { if (this.thrustT > T_WIND) this.queued = true; return; }
+    if (this.thrustT >= 0) { if (this.thrustT > this.profile.thrust.windup) this.queued = true; return; }
     this.thrustT = 0; this.hitDone = false; this.queued = false;
     this.onFire?.();
   }
@@ -337,7 +354,7 @@ export class Spear extends Melee {
     if (!this.enabled || this.throwT >= 0 || this.braced) return false;
     if (this.javelins <= 0) { this.onDry?.(); return false; }
     this.thrustT = -1; this.queued = false;
-    this.windT = 0; this.releaseQueued = false;
+    this.windT = 0; this.chargeEvent('throw', 0); this.releaseQueued = false;
     return true;
   }
 
@@ -396,28 +413,28 @@ export class Spear extends Melee {
     this.game.scene.add(this.arc);
     // thrown javelins: one instanced mesh for every javelin in the world
     const wmat = painterlyMaterial(this.sky, { vertexColors: true, rim: 0.4 });
-    this.world = new THREE.InstancedMesh(javGeo, wmat, JAV_POOL);
+    this.world = new THREE.InstancedMesh(javGeo, wmat, this.thrown.profile.pool);
     this.world.count = 0; this.world.castShadow = true; this.world.receiveShadow = true; this.world.frustumCulled = false;
     this.game.scene.add(this.world);
-    for (let i = 0; i < JAV_POOL; i++) this.javs.push({ state: 0, pos: new THREE.Vector3(), vel: new THREE.Vector3(), q: new THREE.Quaternion(), age: 0 });
+    for (let i = 0; i < this.thrown.profile.pool; i++) this.javs.push({ state: 0, pos: new THREE.Vector3(), vel: new THREE.Vector3(), q: new THREE.Quaternion(), age: 0 });
   }
 
   // ── javelins in the world ──
   private launch(): void {
     const j = this.javs.find((x) => x.state === 0);
     if (j === undefined || this.javelins <= 0) return;
-    this.javelins--;
+    if (!this.thrown.release()) return;
     const cam = this.game.camera;
     cam.getWorldDirection(_fwd);
     // leave from beside the right ear, aimed 2° over the crosshair (a heavy javelin is thrown a little up)
     _v1.set(0.22, 0.05, -0.3).applyQuaternion(cam.quaternion).add(cam.position);
     _v2.set(1, 0, 0).applyQuaternion(cam.quaternion);
     _dir.copy(_fwd).applyAxisAngle(_v2, 0.035).normalize();
-    j.state = 1; j.age = 0; j.pos.copy(_v1); j.vel.copy(_dir).multiplyScalar(JAV_SPEED);
+    j.state = 1; j.age = 0; j.pos.copy(_v1); j.vel.copy(_dir).multiplyScalar(this.thrown.profile.speed);
     const m = this.mount;
     if (m !== null) { j.vel.x -= Math.sin(m.yaw) * m.speed; j.vel.z -= Math.cos(m.yaw) * m.speed; } // the horse's velocity rides along
     j.q.setFromUnitVectors(Y, _dir);
-    this.onFire?.(); this.onThrow?.();
+    this.chargeEvent('throw', 1); this.onFire?.(); this.onThrow?.();
   }
   private stick(j: Jav, at: THREE.Vector3, dir: THREE.Vector3, surface: ImpactSurface): void {
     // embed the head ~0.25 m: the balance point sits 0.62 + 0.21 - 0.25 back along the flight
@@ -438,7 +455,7 @@ export class Spear extends Melee {
   }
   private drop(j: Jav, at: THREE.Vector3): void {
     // a javelin that hit an animal falls beside it, head down-ish into the turf
-    const a = Math.random() * Math.PI * 2;
+    const a = gameplayRandom() * Math.PI * 2;
     _v1.set(at.x + Math.cos(a) * 0.6, 0, at.z + Math.sin(a) * 0.6);
     _v1.y = floorUnder(_v1.x, at.y + 1, _v1.z);   // the turf, a deck, a rock under it
     _dir.set(Math.cos(a + 1.3) * 0.7, -0.55, Math.sin(a + 1.3) * 0.7).normalize();
@@ -455,21 +472,21 @@ export class Spear extends Melee {
         while (rem > 0) { // every way out of the flight breaks the loop
           const h = Math.min(rem, 1 / 120); rem -= h;
           _v1.copy(j.pos);
-          javelinFlightStep(j.pos, j.vel, h);
+          this.thrown.flightStep(j.pos, j.vel, h);
           const seg = _v2.subVectors(j.pos, _v1), len = seg.length();
           if (len < 1e-6) continue;
           _dir.copy(seg).multiplyScalar(1 / len);
           // the head leads the balance point by ~0.8 m: test the head's path — through the physics world (NALATI-MERGE P2:
           // a small ball swept like the crossbow's bolt: terrain, trunks, rocks, yurts, fences, decks), animals short of it
-          _v3.copy(_v1).addScaledVector(_dir, 0.8);
+          _v3.copy(_v1).addScaledVector(_dir, this.thrown.profile.headOffset);
           _head.copy(_v3).addScaledVector(_dir, len);
-          const wall = worldHit(_v3, _head, JAV_RADIUS);
+          const wall = worldHit(_v3, _head, this.thrown.profile.radius);
           if (this.targets) {
             const hit = this.targets.raycast(_v3, _dir, wall ? wall.distance : len);
             if (hit?.animal.alive === true) {
-              const dmg = Math.round(JAV_DAMAGE * (hit.headshot ? JAV_HEAD : 1) * (this.damageMultiplier?.(hit) ?? 1));
+              const dmg = Math.round(this.thrown.profile.damage * (hit.headshot ? this.thrown.profile.headMultiplier : 1) * (this.damageMultiplier?.(hit) ?? 1));
               const killed = hit.animal.applyDamage(dmg, hit.point, _dir);
-              if (!killed) hit.animal.stagger?.(_v2.set(_dir.x, 0, _dir.z).normalize(), 1);
+              if (!killed) hit.animal.stagger?.(_v2.set(_dir.x, 0, _dir.z).normalize(), this.thrown.profile.stagger);
               this.onHit?.(hit.animal.kind, hit.headshot, killed);
               this.onImpact?.('flesh', hit.point);
               this.drop(j, hit.point);
@@ -482,7 +499,7 @@ export class Spear extends Melee {
               const ws = this.player.waterSurfaceAt(_v3.x, _v3.z);
               if (ws !== null && ws > _v3.y) { j.state = 0; this.onImpact?.('ground', _v3); break; } // into the river: gone
             }
-            if (sticksIn(wall.material)) { this.stick(j, _v3.addScaledVector(_dir, JAV_RADIUS), _dir, impactSurfaceOf(wall.material)); break; }
+            if (sticksIn(wall.material)) { this.stick(j, _v3.addScaledVector(_dir, this.thrown.profile.radius), _dir, impactSurfaceOf(wall.material)); break; }
             // stone, rock, metal: it clatters off and lies on the surface
             _nrm.set(wall.normal.x, wall.normal.y, wall.normal.z);
             if (_nrm.dot(_dir) > 0) _nrm.negate();
@@ -494,9 +511,9 @@ export class Spear extends Melee {
         }
       } else if (j.state === 2) {
         j.age += dt;
-        if (this.javelins < this.maxJavelins && Math.hypot(j.pos.x - p.x, j.pos.z - p.z) < PICKUP_R && Math.abs(j.pos.y - p.y) < 2.2) {
+        if (this.javelins < this.maxJavelins && Math.hypot(j.pos.x - p.x, j.pos.z - p.z) < this.thrown.profile.pickupRadius && Math.abs(j.pos.y - p.y) < this.thrown.profile.pickupHeight) {
           j.state = 0;
-          if (gameplayRandom() < JAV_SURVIVE) { this.javelins++; this.onPickup?.(this.javelins); }
+          if (gameplayRandom() < this.thrown.profile.survive) { this.javelins++; this.onPickup?.(this.javelins); this.chargeEvent('recover', this.javelins); }
         }
       }
     }
@@ -517,12 +534,12 @@ export class Spear extends Melee {
     cam.getWorldDirection(_fwd);
     _v1.set(0.22, 0.05, -0.3).applyQuaternion(cam.quaternion).add(cam.position);
     _v2.set(1, 0, 0).applyQuaternion(cam.quaternion);
-    _dir.copy(_fwd).applyAxisAngle(_v2, 0.035).normalize().multiplyScalar(JAV_SPEED);
+    _dir.copy(_fwd).applyAxisAngle(_v2, 0.035).normalize().multiplyScalar(this.thrown.profile.speed);
     const P = this.arcPos;
-    let hitAt = ARC_POINTS;
-    for (let i = 0; i < ARC_POINTS; i++) {
+    let hitAt = this.thrown.profile.arcPoints;
+    for (let i = 0; i < this.thrown.profile.arcPoints; i++) {
       const t = 0.06 + i * 0.05; // 1.6 s of flight ≈ 40 m
-      let x = _v1.x + _dir.x * t, y = _v1.y + _dir.y * t - 0.5 * JAV_GRAVITY * t * t, z = _v1.z + _dir.z * t;
+      let x = _v1.x + _dir.x * t, y = _v1.y + _dir.y * t - 0.5 * this.thrown.profile.gravity * t * t, z = _v1.z + _dir.z * t;
       if (i >= hitAt) { x = P[(hitAt - 1) * 3] ?? x; y = P[(hitAt - 1) * 3 + 1] ?? y; z = P[(hitAt - 1) * 3 + 2] ?? z; }
       else if (i > 0) {
         _head.set(x, y, z);
@@ -548,21 +565,21 @@ export class Spear extends Melee {
       const dx = a.position.x - p.x, dz = a.position.z - p.z, d = Math.hypot(dx, dz);
       if (d < 0.01) continue;
       const edge = d - targetRadius(a);
-      const reach = lance ? LANCE_REACH : REACH - 0.6; // the brace: the point is ~2.6 m out from the feet
+      const reach = lance ? this.profile.lance.reach : this.profile.reach - this.profile.brace.feetOffset; // the brace: the point is ~2.6 m out from the feet
       if (edge > reach || Math.abs(a.position.y - p.y) > 2) continue;
       const ang = Math.acos(THREE.MathUtils.clamp((dx * fx + dz * fz) / d, -1, 1));
-      if (ang > (lance ? LANCE_CONE : BRACE_CONE)) continue;
+      if (ang > (lance ? this.profile.lance.cone : this.profile.brace.cone)) continue;
       const closing = -(vx * dx + vz * dz) / d;               // its speed toward you
       const speed = lance ? (this.mount?.speed ?? 0) + Math.max(0, closing) : closing;
-      if (speed < (lance ? LANCE_MIN_SPEED : BRACE_MIN_SPEED)) continue;
+      if (speed < (lance ? this.profile.lance.minSpeed : this.profile.brace.minSpeed)) continue;
       const last = this.rehit.get(a) ?? -1e9;
-      if (t - last < BRACE_REHIT) continue;
+      if (t - last < this.profile.brace.rehit) continue;
       // confirm through the real hit volumes (Targets): a ray from the eye to its body
       _v1.set(a.position.x, a.position.y + (a.dims?.bodyY ?? 0.6) * (a.scale ?? 1), a.position.z);
       _dir.subVectors(_v1, cam.position); const len = _dir.length(); _dir.multiplyScalar(1 / Math.max(len, 1e-4));
       const hit = this.targets?.raycast(cam.position, _dir, len + 1) ?? null;
       if (hit === null || !this.same(hit.animal, a)) continue;
-      const dmg = Math.round(lance ? 40 + 6 * speed : 60 + 8 * speed);
+      const dmg = Math.round(lance ? this.profile.lance.baseDamage + this.profile.lance.speedDamage * speed : this.profile.brace.baseDamage + this.profile.brace.speedDamage * speed);
       const result = this.contact(hit.animal, dmg, hit.point, _dir, cam.position, lance ? 'move.lance' : 'move.brace');
       if (!result) continue;
       this.rehit.set(a, t);
@@ -580,16 +597,16 @@ export class Spear extends Melee {
     const cam = this.game.camera;
     cam.getWorldDirection(_fwd);
     _e.set(0, 0, 0, 'YXZ');
-    for (const pitch of THRUST_FAN.pitches) for (const yaw of THRUST_FAN.yaws) {
+    for (const pitch of this.profile.thrust.fan.pitches) for (const yaw of this.profile.thrust.fan.yaws) {
       _e.y = yaw; _e.x = pitch;
       _q.setFromEuler(_e); _q.premultiply(cam.quaternion);
       _dir.set(0, 0, -1).applyQuaternion(_q);
-      const hit = this.targets.raycast(cam.position, _dir, REACH);
+      const hit = this.targets.raycast(cam.position, _dir, this.profile.reach);
       if (!hit || !hit.animal.alive) continue;
-      const result = this.contact(hit.animal, THRUST_DAMAGE, hit.point, _fwd, cam.position, 'move.thrust');
+      const result = this.contact(hit.animal, this.profile.thrust.damage, hit.point, _fwd, cam.position, 'move.thrust');
       if (!result) continue;
       const killed = result.killed;
-      if (!killed) hit.animal.stagger?.(_v2.set(_fwd.x, 0, _fwd.z).normalize(), THRUST_STAGGER);
+      if (!killed) hit.animal.stagger?.(_v2.set(_fwd.x, 0, _fwd.z).normalize(), this.profile.thrust.stagger);
       this.hitDone = true; this.jolt = 1;
       this.onHit?.(hit.animal.kind, false, killed);
       this.onImpact?.('flesh', hit.point);
@@ -604,7 +621,7 @@ export class Spear extends Melee {
     const inHand = this.model.visible;
     if (!inHand || !this.enabled) {
       // holstered / paused: drop every held state
-      if (this.braced) { this.braced = false; this.onBrace?.(false); }
+      if (this.braced) { this.braced = false; this.onBrace?.(false); this.chargeEvent('brace-off'); }
       this.braceT = 0; this.braceHeldT = 0; this.rmbDown = false;
       if (this.windT >= 0 && !inHand) { this.windT = -1; this.releaseQueued = false; }
       if (!inHand) { this.thrustT = -1; this.queued = false; }
@@ -614,7 +631,7 @@ export class Spear extends Melee {
 
     if (inHand) {
       // FOV (Hor+ on portrait) + the dodge kick
-      const baseFov = fovForAspect(FOV_HIP, cam.aspect);
+      const baseFov = fovForAspect(this.profile.feel.fovHip, cam.aspect);
       const target = baseFov + p.fovKick;
       if (Math.abs(target - this.fov) > 0.01) {
         const refit = Math.abs(baseFov - this.baseFov) > 0.01; this.baseFov = baseFov;
@@ -625,19 +642,19 @@ export class Spear extends Melee {
 
     // ── inputs: RMB hold → brace, the BRACE disc → brace; the THROW disc edges → wind / throw ──
     if (this.rmbDown) this.rmbT += dt;
-    const wantBrace = this.enabled && inHand && this.mount === null && (this.altHeld || (this.rmbDown && this.rmbT >= BRACE_SET)) && this.windT < 0 && this.throwT < 0;
+    const wantBrace = this.enabled && inHand && this.mount === null && (this.altHeld || (this.rmbDown && this.rmbT >= this.profile.brace.set)) && this.windT < 0 && this.throwT < 0;
     if (wantBrace && this.braceCd <= 0) {
-      if (this.thrustT >= 0 && this.thrustT < T_ACTIVE_END) { /* let the jab land first */ }
+      if (this.thrustT >= 0 && this.thrustT < this.profile.thrust.activeEnd) { /* let the jab land first */ }
       else {
         this.thrustT = -1; this.queued = false;
         this.braceHeldT += dt;
-        if (!this.braced && this.braceHeldT >= BRACE_SET) { this.braced = true; this.braceT = 0; this.onBrace?.(true); }
+        if (!this.braced && this.braceHeldT >= this.profile.brace.set) { this.braced = true; this.braceT = 0; this.onBrace?.(true); this.chargeEvent('brace-on'); }
       }
     } else {
-      if (this.braced) { this.braced = false; this.onBrace?.(false); if (this.braceT >= BRACE_MAX) this.braceCd = BRACE_COOLDOWN; }
+      if (this.braced) { this.braced = false; this.onBrace?.(false); this.chargeEvent('brace-off'); if (this.braceT >= this.profile.brace.max) this.braceCd = this.profile.brace.cooldown; }
       this.braceHeldT = 0;
     }
-    if (this.braced) { this.braceT += dt; if (this.braceT >= BRACE_MAX) { this.braced = false; this.onBrace?.(false); this.braceCd = BRACE_COOLDOWN; } }
+    if (this.braced) { this.braceT += dt; if (this.braceT >= this.profile.brace.max) { this.braced = false; this.onBrace?.(false); this.chargeEvent('brace-off'); this.braceCd = this.profile.brace.cooldown; } }
     p.moveScale = inHand && (this.braced || this.braceHeldT > 0) ? 0 : 1;
 
     const throwHeld = this.adsHeld && this.enabled && inHand;
@@ -646,24 +663,24 @@ export class Spear extends Melee {
     this.throwPrev = throwHeld;
     if (this.windT >= 0) {
       this.windT += dt;
-      if (this.releaseQueued && this.windT >= WINDUP) { this.windT = -1; this.releaseQueued = false; this.throwT = 0; this.threw = false; }
+      if (this.releaseQueued && this.windT >= this.thrown.profile.windup) { this.windT = -1; this.releaseQueued = false; this.throwT = 0; this.threw = false; }
     }
     if (this.throwT >= 0) {
       this.throwT += dt;
-      if (!this.threw && this.throwT >= THROW_T * 0.5) { this.threw = true; this.launch(); }
-      if (this.throwT >= THROW_T + THROW_RECOVER) this.throwT = -1;
+      if (!this.threw && this.throwT >= this.thrown.profile.release * 0.5) { this.threw = true; this.launch(); }
+      if (this.throwT >= this.thrown.profile.release + this.thrown.profile.recovery) this.throwT = -1;
     }
 
     // ── thrust clock ──
     if (this.thrustT >= 0) {
       this.thrustT += dt;
-      if (!this.hitDone && this.thrustT >= T_WIND && this.thrustT <= T_ACTIVE_END) this.thrustHit();
-      if (this.thrustT >= T_TOTAL) { this.thrustT = -1; if (this.queued) { this.queued = false; this.tryFire(); } }
+      if (!this.hitDone && this.thrustT >= this.profile.thrust.windup && this.thrustT <= this.profile.thrust.activeEnd) this.thrustHit();
+      if (this.thrustT >= this.profile.thrust.total) { this.thrustT = -1; if (this.queued) { this.queued = false; this.tryFire(); } }
     }
     if (inHand) p.swinging = this.thrustT >= 0;
 
     // ── contacts: brace (set) or the couched lance (mounted, canter+) ──
-    const lance = this.mount !== null && this.mount.speed >= LANCE_MIN_SPEED && this.windT < 0 && this.throwT < 0;
+    const lance = this.mount !== null && this.mount.speed >= this.profile.lance.minSpeed && this.windT < 0 && this.throwT < 0;
     if (inHand && (this.braced || lance)) this.contacts(dt, t, lance);
     else if (this.prevPos.size > 0) this.prevPos.clear();
 
@@ -683,22 +700,20 @@ export class Spear extends Melee {
     let dYaw = p.yaw - this.lastYaw, dPitch = p.pitch - this.lastPitch;
     this.lastYaw = p.yaw; this.lastPitch = p.pitch;
     if (Math.abs(dYaw) > 1) dYaw = 0; if (Math.abs(dPitch) > 1) dPitch = 0;
-    this.lagYaw = THREE.MathUtils.clamp(this.lagYaw - dYaw * 0.4, -0.1, 0.1);
-    this.lagPitch = THREE.MathUtils.clamp(this.lagPitch - dPitch * 0.4, -0.08, 0.08);
-    for (let rem = dt; rem > 0; rem -= 1 / 120) {
-      const h = Math.min(rem, 1 / 120);
-      this.lagYawVel += (-this.lagYaw * 200 - this.lagYawVel * 20) * h; this.lagYaw += this.lagYawVel * h;
-      this.lagPitchVel += (-this.lagPitch * 200 - this.lagPitchVel * 20) * h; this.lagPitch += this.lagPitchVel * h;
-    }
+    this.lookState.yaw = this.lagYaw; this.lookState.pitch = this.lagPitch;
+    this.lookState.yawVelocity = this.lagYawVel; this.lookState.pitchVelocity = this.lagPitchVel;
+    this.lookBlock.step(this.lookState, this.lookDelta.set(dYaw, dPitch), dt);
+    this.lagYaw = this.lookState.yaw; this.lagPitch = this.lookState.pitch;
+    this.lagYawVel = this.lookState.yawVelocity; this.lagPitchVel = this.lookState.pitchVelocity;
 
     // the spear: rest → thrust (cock, jab, recover) → brace / lance / left-low while throwing
     const sp = _v1, sq = _q;
     sp.copy(REST.pos); sq.copy(REST.q);
     if (this.thrustT >= 0) {
       const tt = this.thrustT;
-      if (tt < T_WIND) { const f = sstep(0, 1, tt / T_WIND); sp.lerp(COCK.pos, f); sq.slerp(COCK.q, f); }
-      else if (tt < T_ACTIVE_END) { const f = 1 - (1 - (tt - T_WIND) / (T_ACTIVE_END - T_WIND)) ** 3; sp.copy(COCK.pos).lerp(JAB.pos, f); sq.copy(COCK.q).slerp(JAB.q, f); }
-      else { const f = sstep(0, 1, (tt - T_ACTIVE_END) / (T_TOTAL - T_ACTIVE_END)); sp.copy(JAB.pos).lerp(REST.pos, f); sq.copy(JAB.q).slerp(REST.q, f); }
+      if (tt < this.profile.thrust.windup) { const f = sstep(0, 1, tt / this.profile.thrust.windup); sp.lerp(COCK.pos, f); sq.slerp(COCK.q, f); }
+      else if (tt < this.profile.thrust.activeEnd) { const f = 1 - (1 - (tt - this.profile.thrust.windup) / (this.profile.thrust.activeEnd - this.profile.thrust.windup)) ** 3; sp.copy(COCK.pos).lerp(JAB.pos, f); sq.copy(COCK.q).slerp(JAB.q, f); }
+      else { const f = sstep(0, 1, (tt - this.profile.thrust.activeEnd) / (this.profile.thrust.total - this.profile.thrust.activeEnd)); sp.copy(JAB.pos).lerp(REST.pos, f); sq.copy(JAB.q).slerp(REST.q, f); }
     }
     const bb = sstep(0, 1, this.braceBlend), lb = sstep(0, 1, this.lanceBlend), tb = sstep(0, 1, this.throwBlend), sb = this.sprintBlend;
     if (bb > 0) { sp.lerp(BRACED.pos, bb); sq.slerp(BRACED.q, bb); }
@@ -711,29 +726,29 @@ export class Spear extends Melee {
       sp.lerp(_v3.copy(LEFT_LOW.pos), tb); sq.slerp(LEFT_LOW.q, tb);
       let jp = JAV_COCK.pos, jq = JAV_COCK.q;
       let wind = 1;
-      if (this.windT >= 0) wind = sstep(0, 1, this.windT / WINDUP);
+      if (this.windT >= 0) wind = sstep(0, 1, this.windT / this.thrown.profile.windup);
       if (this.throwT >= 0) {
-        const f = this.throwT < THROW_T ? 1 - (1 - this.throwT / THROW_T) ** 2 : 1;
+        const f = this.throwT < this.thrown.profile.release ? 1 - (1 - this.throwT / this.thrown.profile.release) ** 2 : 1;
         jp = _vThrow.copy(JAV_COCK.pos).lerp(JAV_OUT.pos, f); jq = _qThrow.copy(JAV_COCK.q).slerp(JAV_OUT.q, f);
       }
       _vCock.copy(REST.pos).lerp(jp, wind); _qCock.copy(REST.q).slerp(jq, wind);
-      if (this.windT >= 0) { _vCock.x += Math.sin(t * 31) * 0.002 * wind; _vCock.z += 0.02 * wind * sstep(0.6, 1, this.windT / WINDUP); } // drawn back taut
+      if (this.windT >= 0) { _vCock.x += Math.sin(t * 31) * 0.002 * wind; _vCock.z += 0.02 * wind * sstep(0.6, 1, this.windT / this.thrown.profile.windup); } // drawn back taut
       hp.lerp(_vCock, tb); hq.slerp(_qCock, tb);
     }
     this.heldJav.visible = (this.windT >= 0 || (this.throwT >= 0 && !this.threw)) && this.javelins > 0;
 
     // sway / bob / look lag / jolt, the portrait layout, the holster drop — applied to both rigs alike
     const sf = p.speedFactor, m = 1 - bb * 0.7;
-    const swX = Math.sin(t * 0.7) * 0.003, swY = Math.sin(t * 1.1) * 0.0025;
-    const bobX = Math.cos(p.bobTime) * 0.016 * sf, bobY = -Math.abs(Math.sin(p.bobTime)) * 0.013 * sf;
-    _e.set((Math.sin(p.bobTime * 2) * 0.01 * sf + this.lagPitch + this.jolt * 0.05) * m, this.lagYaw * m, (Math.sin(t * 0.5) * 0.006 + Math.cos(p.bobTime) * 0.015 * sf) * m, 'YXZ');
+    const swX = Math.sin(t * this.profile.feel.sway.fx) * this.profile.feel.sway.ax, swY = Math.sin(t * this.profile.feel.sway.fy) * this.profile.feel.sway.ay;
+    const bobX = Math.cos(p.bobTime) * this.profile.feel.bob.x * sf, bobY = -Math.abs(Math.sin(p.bobTime)) * this.profile.feel.bob.y * sf;
+    _e.set((Math.sin(p.bobTime * 2) * this.profile.feel.bob.rx * sf + this.lagPitch + this.jolt * 0.05) * m, this.lagYaw * m, (Math.sin(t * 0.5) * 0.006 + Math.cos(p.bobTime) * this.profile.feel.bob.rz * sf) * m, 'YXZ');
     _qSway.setFromEuler(_e);
     const portrait = cam.aspect < 1 ? Math.min(1, (1 - cam.aspect) * 1.6) : 0;
     const scale = 1 - portrait * 0.15;
     const h = this.holster > 0 ? sstep(0, 1, this.holster) : 0;
     if (h > 0) _qHol.setFromEuler(_e.set(-h * 0.6, 0, h * 0.3, 'YXZ'));
     for (const [pos, q, rig] of [[sp, sq, this.spearRig], [hp, hq, this.handRig]] as [THREE.Vector3, THREE.Quaternion, THREE.Group][]) {
-      pos.x += (swX + bobX + this.lagYaw * 0.25) * m; pos.y += (swY + bobY + this.lagPitch * 0.2) * m; pos.z += this.jolt * 0.04;
+      pos.x += (swX + bobX + this.lagYaw * this.profile.feel.lag.posYaw) * m; pos.y += (swY + bobY + this.lagPitch * this.profile.feel.lag.posPitch) * m; pos.z += this.jolt * 0.04;
       q.premultiply(_qSway);
       pos.x *= 1 - portrait * 0.3; pos.y *= 1 + portrait * 0.08; pos.z *= 1 + portrait * 0.25;
       if (h > 0) { pos.y -= h * 0.5; pos.z += h * 0.1; q.premultiply(_qHol); }
@@ -760,7 +775,7 @@ export class Spear extends Melee {
       this.ring.scale.setScalar(scale * (1 + 0.06 * Math.sin(t * 5)));
     }
     // the dotted throw arc while winding up
-    const arcAlpha = this.showArc && inHand && this.windT >= ARC_SHOW_AFTER ? sstep(ARC_SHOW_AFTER, WINDUP, this.windT) : 0;
+    const arcAlpha = this.showArc && inHand && this.windT >= this.thrown.profile.arcAfter ? sstep(this.thrown.profile.arcAfter, this.thrown.profile.windup, this.windT) : 0;
     this.drawArc(arcAlpha);
 
     // aim readout (HUD "WOLF · 15 M")

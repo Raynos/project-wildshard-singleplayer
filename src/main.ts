@@ -1015,7 +1015,7 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   });
   // Nalati's Storm Titan (src/shards/nalati-grasslands/stormTitan.ts, B14): the cairn prompt, the fight, Naizagai (the sabre upgrade) once won
   nalatiNow()?.titan.bind({
-    animals, wildlife, ride, sabre: nalatiKit?.sabre ?? null, setWeaponsEnabled: (on) => { weapons.setEnabled(on); }, refill: () => { nalatiKit?.refill(); }, interactables, params,
+    animals, wildlife, ride, get sabre() { return nalatiKit?.sabre ?? null; }, upgradeSabre: (power) => { nalatiKit?.upgradeSabre(weapons, power); }, setWeaponsEnabled: (on) => { weapons.setEnabled(on); }, refill: () => { nalatiKit?.refill(); }, interactables, params,
     hurt: (dmg, why) => playerHurt.jolt('boss.storm-titan', dmg, { kind: 'storm-titan', label: 'the Storm Titan' }, why, true), // B3's cap/guard change stays boarded for S3.4
     toast: (s) => { hud.toast(s); }, feed: (s) => { hud.killFeed(s); }, record: (k, v) => { progress.recordKill(k, v); progress.recordEvent(k); }, pickupHum: (on) => { audio.pickupHum(on); },
     ownSkin: (id) => { nalatiNow()?.skins.own(id); },

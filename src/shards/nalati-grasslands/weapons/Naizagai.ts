@@ -1,7 +1,7 @@
-import { app } from '#engine';
+import { Sabre, SABRE_PROFILE, type SabreOptions } from './Sabre';
+import { app, type SwordWorld, type Targets, type Move } from '#engine';
 import { meleeActor } from '#kit';
 import * as THREE from 'three';
-import type { Sabre } from './Sabre';
 import type { Player } from '#engine/player/Player';
 import type { AnimalManager } from '#engine/entities/AnimalManager';
 import type { Animal } from '#engine/entities/Animal';
@@ -15,7 +15,7 @@ import { riding } from '#engine/player/riding';
 /**
  * NAIZAGAI — the Storm Sabre of Jel Ata (Nalati row B14's reward; docs/design/nalati/elites-and-bosses.md "5 — Victory";
  * mockup art/nalati-grasslands/round-3/2-storm-titan/titan-5-victory-reward.jpg). Not a fork of the sabre: B3's `Sabre`
- * upgraded in place, the way `GoldenBow` upgrades the bow (`apply()` once the orb is taken, and at every boot after):
+ * replaced by a Sabre subclass; the power meshes stay preloaded (`apply()` once the orb is taken, and at every boot after):
  *
  *   · the blade goes pale storm-blue steel with a cold glow (the steel extras material, recoloured);
  *   · MOUNTED at a full gallop (≥ 11 m/s), every slash throws a LIGHTNING CRESCENT 15 m forward along your look: 40 damage
@@ -24,8 +24,8 @@ import { riding } from '#engine/player/riding';
  *     60 damage in 3 m;
  *   · in a steppe storm (`storm()`): +25 % damage and the crescent arcs twice.
  *
- *   const nz = new Naizagai({ scene, player, camera, animals, storm: () => weather.weather.stormActive, bolt });
- *   nz.apply(kit.sabre)          // idempotent
+ *   const nz = new NaizagaiPower({ scene, player, camera, animals, storm: () => weather.weather.stormActive, bolt });
+ *   kit.upgradeSabre(weapons, nz) // idempotent
  *   game.onUpdate((dt, t) => nz.update(dt, t))
  *   naizagaiModel()              // the reward orb's display model
  *
@@ -84,7 +84,7 @@ export class LightningStrip {
     const s1 = this.s1.crossVectors(dir, ax).normalize(), s2 = this.s2.crossVectors(dir, s1).normalize();
     for (let i = 0; i <= n; i++) {
       const u = i / n, inner = i > 0 && i < n;
-      const ox = inner ? (Math.random() - 0.5) * jag * 2 : 0, oy = inner ? (Math.random() - 0.5) * jag * 2 : 0;
+      const ox = inner ? (app.rng.stream('cosmetic').next() - 0.5) * jag * 2 : 0, oy = inner ? (app.rng.stream('cosmetic').next() - 0.5) * jag * 2 : 0;
       const cx = a.x + (b.x - a.x) * u + s1.x * ox + s2.x * oy, cy = a.y + (b.y - a.y) * u + s1.y * ox + s2.y * oy, cz = a.z + (b.z - a.z) * u + s1.z * ox + s2.z * oy;
       const w = width * (0.35 + 0.65 * Math.sin(Math.PI * Math.min(1, u * 1.15 + 0.08)));
       for (let r = 0; r < 2; r++) {
@@ -120,9 +120,18 @@ export function naizagaiModel(): THREE.Object3D {
   return root;
 }
 
-export class Naizagai {
+export const NAIZAGAI_PROFILE = {
+  ...SABRE_PROFILE, id: 'weapon.naizagai' as const, parent: SABRE_PROFILE.id,
+  ui: { ...SABRE_PROFILE.ui, name: 'Naizagai' },
+  meta: { ...SABRE_PROFILE.meta, name: 'Naizagai' },
+  powers: { crescentRange: CRESCENT_RANGE, crescentDamage: CRESCENT_DMG, crescentTime: CRESCENT_T,
+    arcRadius: ARC_R, gallopMin: GALLOP_MIN, callRange: CALL_RANGE, callDamage: CALL_DMG,
+    callRadius: CALL_R, callTime: CALL_T, stormMultiplier: 1.25, stormArcs: 2, clearArcs: 1 },
+};
+export class NaizagaiPower {
   private sabre: Sabre | null = null;
   private wasSwinging = false;
+  private pendingSwing: Move | null = null;
   private readonly crescent: THREE.Mesh;
   private readonly crescentMat: FxMaterial;
   private crescentT = -1;
@@ -146,6 +155,8 @@ export class Naizagai {
     this.ring = new GroundTell(deps.scene, 'ring', new THREE.Color(2.2, 1.7, 0.6));
   }
 
+  onSwingStart(move: Move): void { this.pendingSwing = move; }
+
   get applied(): boolean { return this.sabre !== null; }
 
   /** the upgrade (idempotent): the blade recoloured storm-blue; the moves hook in through update() */
@@ -165,18 +176,19 @@ export class Naizagai {
     this.ring.setTime(t);
     if (sb !== null) {
       const sw = sb.swinging;
-      if (sw && !this.wasSwinging) {
+      if (this.pendingSwing !== null || (sw && !this.wasSwinging)) {
         const m = sb.mount;
-        if (m !== null && m.speed >= GALLOP_MIN) this.throwCrescent();
-        else if (m === null && sb.heavySwing) this.callBolt();
+        if (m !== null && m.speed >= NAIZAGAI_PROFILE.powers.gallopMin) this.throwCrescent();
+        else if (m === null && (this.pendingSwing?.name === 'heavy' || sb.heavySwing)) this.callBolt();
       }
+      this.pendingSwing = null;
       this.wasSwinging = sw;
     }
     // the crescent flies
     if (this.crescentT >= 0) {
       this.crescentT += dt;
-      const u = Math.min(1, this.crescentT / CRESCENT_T);
-      this.crescent.position.copy(this.crescentFrom).addScaledVector(this.crescentDir, 1.2 + u * (CRESCENT_RANGE - 1.2));
+      const u = Math.min(1, this.crescentT / NAIZAGAI_PROFILE.powers.crescentTime);
+      this.crescent.position.copy(this.crescentFrom).addScaledVector(this.crescentDir, 1.2 + u * (NAIZAGAI_PROFILE.powers.crescentRange - 1.2));
       this.crescentMat.uniforms.uAlpha.value = (1 - u * u) * 1.2;
       this.crescentMat.uniforms.uTime.value = t;
       if (u >= 1) { this.crescentT = -1; this.crescent.visible = false; }
@@ -185,13 +197,13 @@ export class Naizagai {
     // the call-down
     if (this.callT >= 0) {
       this.callT += dt;
-      this.ring.ring(this.callAt.x, this.callAt.z, CALL_R, 0.9 * (0.6 + 0.4 * Math.sin(this.callT * 30)));
-      if (this.callT >= CALL_T) {
+      this.ring.ring(this.callAt.x, this.callAt.z, NAIZAGAI_PROFILE.powers.callRadius, 0.9 * (0.6 + 0.4 * Math.sin(this.callT * 30)));
+      if (this.callT >= NAIZAGAI_PROFILE.powers.callTime) {
         this.callT = -1; this.ring.hide();
         this.deps.bolt?.(this.callAt.x, this.callAt.y, this.callAt.z);
-        const dmg = Math.round(CALL_DMG * this.mul());
+        const dmg = Math.round(NAIZAGAI_PROFILE.powers.callDamage * this.mul());
         for (const a of this.deps.animals.animals) {
-          if (!this.hittable(a) || Math.hypot(a.position.x - this.callAt.x, a.position.z - this.callAt.z) > CALL_R + 0.6 * a.scale) continue;
+          if (!this.hittable(a) || Math.hypot(a.position.x - this.callAt.x, a.position.z - this.callAt.z) > NAIZAGAI_PROFILE.powers.callRadius + 0.6 * a.scale) continue;
           _d.set(a.position.x - this.callAt.x, 0.5, a.position.z - this.callAt.z).normalize();
           a.headWorld(_v);
           app.combat.hit({ source: 'env', sourceTags: ['actor.player', 'weapon.naizagai', 'dmg.aoe'],
@@ -201,7 +213,7 @@ export class Naizagai {
     }
   }
 
-  private mul(): number { return this.deps.storm() ? 1.25 : 1; }
+  private mul(): number { return this.deps.storm() ? NAIZAGAI_PROFILE.powers.stormMultiplier : 1; }
   private hittable(a: Animal): boolean { return a.alive && !a.hidden && a !== riding.horse && a.mem['owned'] !== 1; }
 
   /** mounted, at a gallop: the crescent 15 m along the look, the first creature in its path, then the arcs */
@@ -221,24 +233,24 @@ export class Naizagai {
       if (!this.hittable(a)) continue;
       _v.set(a.position.x, a.position.y + a.dims.bodyY * a.scale, a.position.z).sub(this.crescentFrom);
       const along = _v.dot(_d);
-      if (along < 0.5 || along > CRESCENT_RANGE) continue;
+      if (along < 0.5 || along > NAIZAGAI_PROFILE.powers.crescentRange) continue;
       const side = _w.copy(_d).multiplyScalar(along).sub(_v).length();
       if (side > 2.6 + a.dims.bodyRadius * a.scale || along >= bd) continue;
       bd = along; best = a;
     }
     if (best === null) return;
-    const dmg = Math.round(CRESCENT_DMG * this.mul());
+    const dmg = Math.round(NAIZAGAI_PROFILE.powers.crescentDamage * this.mul());
     const hitA = best;
     hitA.headWorld(_v);
     const first = app.combat.hit({ source: 'env', sourceTags: ['actor.player', 'weapon.naizagai', 'dmg.melee'],
       target: meleeActor(hitA), amount: dmg, point: _v, dir: _d, from: this.deps.camera.position, weaponId: 'weapon.naizagai', moveId: 'move.crescent' });
     if (!first) return;
     // the arcs: to the nearest other creature within 6 m, then (in a storm) on from that one
-    const arcs = this.deps.storm() ? 2 : 1;
+    const arcs = this.deps.storm() ? NAIZAGAI_PROFILE.powers.stormArcs : NAIZAGAI_PROFILE.powers.clearArcs;
     let from: Animal = hitA;
     const done = new Set<Animal>([hitA]);
     for (let i = 0; i < arcs; i++) {
-      let next: Animal | null = null, nd = ARC_R;
+      let next: Animal | null = null, nd = NAIZAGAI_PROFILE.powers.arcRadius;
       for (const a of this.deps.animals.animals) {
         if (done.has(a) || !this.hittable(a)) continue;
         const d = a.position.distanceTo(from.position);
@@ -263,11 +275,22 @@ export class Naizagai {
     const cam = this.deps.camera;
     cam.getWorldPosition(_o); cam.getWorldDirection(_d);
     const ph = activePhysics();
-    const hit = ph ? castRay(ph, _o, _d, CALL_RANGE) : null;
+    const hit = ph ? castRay(ph, _o, _d, NAIZAGAI_PROFILE.powers.callRange) : null;
     if (hit) _v.set(hit.point.x, hit.point.y, hit.point.z);
-    else _v.copy(_o).addScaledVector(_w.set(_d.x, 0, _d.z).normalize(), CALL_RANGE);
+    else _v.copy(_o).addScaledVector(_w.set(_d.x, 0, _d.z).normalize(), NAIZAGAI_PROFILE.powers.callRange);
     // the ring lies on the floor under that point: a deck, a rock top, else the terrain
     this.callAt.set(_v.x, (ph ? floorBelow(ph, _v.x, _v.z, _v.y + 0.5, 80) : undefined) ?? heightAt(_v.x, _v.z), _v.z);
     this.callT = 0;
   }
+}
+
+
+/** The reward is a Sabre behavior subclass; its preloaded power meshes remain on the shard's Titan clock. */
+export class Naizagai extends Sabre {
+  private readonly power: NaizagaiPower;
+  constructor(world: SwordWorld, targets: Targets, opts: SabreOptions & { power: NaizagaiPower }) {
+    super(world, targets, { ...opts, profile: NAIZAGAI_PROFILE });
+    this.power = opts.power; this.power.apply(this);
+  }
+  protected override onSwingStart(move: Move): void { this.power.onSwingStart(move); }
 }

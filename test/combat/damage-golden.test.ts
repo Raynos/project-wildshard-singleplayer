@@ -1,3 +1,4 @@
+import { Thrown } from '#kit';
 import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
 import { damageFor } from '#engine/entities/Animal';
@@ -8,7 +9,7 @@ import { Crossbow, type TargetHit } from '#engine/player/Crossbow';
 import { Bow } from '#engine/player/Bow';
 import { Rifle } from '#engine/player/Rifle';
 import { LeverRifle } from '#shards/pine-hollow/weapons/LeverRifle';
-import { Spear } from '#shards/nalati-grasslands/weapons/Spear';
+import { Spear, JAVELIN, SPEAR_PROFILE } from '#shards/nalati-grasslands/weapons/Spear';
 import { GoldenBow } from '#shards/nalati-grasslands/weapons/GoldenBow';
 import { boltDamage } from '#shards/pine-hollow/loadout/ammo';
 import { app } from '#engine/app/runtime';
@@ -49,7 +50,7 @@ function dealt(source: Source, rule: Rule, headshot: boolean, distance: number, 
     invokeLegacy(bolt, 'testHit', { pos: new THREE.Vector3(0, 1, -1), mod: { damage: (kind: string) => boltDamage(source, kind) } }, new THREE.Vector3(0, 1, 0));
   } else if (source === 'javelin') {
     const jav = { state: 1, age: 0, pos: new THREE.Vector3(0, 1, -1), vel: new THREE.Vector3(0, 0, -55) };
-    const spear = legacyActor(Spear.prototype, { player: f.player, targets: { raycast }, javs: [jav], damageMultiplier: () => sneak ? 2 : 1,
+    const spear = legacyActor(Spear.prototype, { profile: SPEAR_PROFILE, thrown: new Thrown(JAVELIN), player: f.player, targets: { raycast }, javs: [jav], damageMultiplier: () => sneak ? 2 : 1,
       onHit: undefined, onImpact: undefined, drop: (): void => { jav.state = 0; }, world: { count: 0 }, });
     // Visual-only stagger is explicitly suppressed; damage still executes real Animal.applyDamage.
     Reflect.set(target.animal, 'stagger', noop); invokeLegacy(spear, 'flyJavelins', 1 / 60);

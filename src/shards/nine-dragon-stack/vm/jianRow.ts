@@ -5,6 +5,7 @@ export interface JianRow extends MeleeProfile { viewmodel: () => Promise<ShardSw
 export const JIAN_ROW: JianRow = {
   ...SWORD_WOOD, id: 'weapon.jian', parent: SWORD_WOOD.id, damage: 12,
   ui: { ...SWORD_WOOD.ui, name: 'Neon Jian' }, meta: { ...SWORD_WOOD.meta, name: 'Neon Jian' },
+  feel: { ...SWORD_WOOD.feel, portraitFov: 78 },
   assets: ['/assets/nine-dragon/viewmodel/fp-rig.glb', ...['hand-r', 'arm-r', 'fist-l', 'gauntlet'].flatMap((name) =>
     [`/assets/nine-dragon/viewmodel/${name}-maps.webp`, `/assets/nine-dragon/viewmodel/${name}-nrm.webp`])],
   viewmodel: async () => {

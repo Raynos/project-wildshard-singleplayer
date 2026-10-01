@@ -65,16 +65,17 @@ const SECTION: [number, number, 'edge' | 'bevel' | 'flat' | 'fuller' | 'spine'][
  * gold collar, a gold guard with down-swept quillons and ball finials, a leather grip bound in a raised spiral wrap with
  * gold wire, a gold cap pommel. Metal (blade + gold) → `extras` on the PBR steel; leather + the hand → painterly.
  */
-export function buildSabre(material: THREE.Material, steel: THREE.Material): SwordRig & { tipX: number } {
+const SABRE_BLADE = { length: BLADE_L, curve: CURVE };
+export function buildSabre(material: THREE.Material, steel: THREE.Material, blade = SABRE_BLADE): SwordRig & { tipX: number } {
   const paint: THREE.BufferGeometry[] = [], metal: THREE.BufferGeometry[] = [];
-  const guardY = 0.064, y0 = guardY + 0.02, tipY = y0 + BLADE_L;
+  const guardY = 0.064, y0 = guardY + 0.02, tipY = y0 + blade.length;
   // ── blade ──
-  const cx = (f: number) => -CURVE * f * f;
+  const cx = (f: number) => -blade.curve * f * f;
   const half = (f: number) => (f < 0.7 ? 0.021 - 0.004 * f / 0.7 : f < 0.85 ? 0.017 + 0.0045 * (f - 0.7) / 0.15 : 0.0215 * Math.max(0, 1 - (f - 0.85) / 0.15) ** 0.75);
   const thick = (f: number) => 0.0046 - 0.0028 * f;
   const fs: number[] = []; for (let k = 0; k <= 24; k++) fs.push(k < 20 ? (k / 20) * 0.88 : 0.88 + ((k - 20) / 4) * 0.12);
   const rings = fs.map((f) => {
-    const w = Math.max(0.0006, half(f)), t = Math.max(0.0004, thick(f)), c = cx(f), y = y0 + BLADE_L * f;
+    const w = Math.max(0.0006, half(f)), t = Math.max(0.0004, thick(f)), c = cx(f), y = y0 + blade.length * f;
     const shift = f > 0.85 ? -w * 0.55 * (f - 0.85) / 0.15 : 0; // the point sweeps up to the spine line
     const fuller = f < 0.72 ? 1 : Math.max(0, 1 - (f - 0.72) / 0.08); // the groove runs out before the yelman
     return SECTION.map(([sx, sz, role]) => new THREE.Vector3(c + shift + sx * w, y, (role === 'fuller' ? sz + (0.84 - sz) * (1 - fuller) : sz) * t));
@@ -198,13 +199,13 @@ export const SABRE_MOVES: SwordMoveSet = { rest: SABRE_REST, charge: SABRE_CHARG
 
 export const SABRE_PROFILE: MeleeProfile & { mounted: { reach: number; cooldown: number; sense: number; chainWindow: number; chainStep: number; chainMax: number; speedDivisor: number; behind: number }; blade: { length: number; curve: number } } = {
   ...SWORD_WOOD, ...SABRE, parent: SWORD_WOOD.id, damage: DAMAGE, swingScale: SPEED,
-  moves: SABRE_MOVES, portraitPullX: 0.85,
+  hitStop: { body: 0.045, head: 0.045, kill: 0.045 }, moves: SABRE_MOVES, portraitPullX: 0.85,
   mounted: { reach: MOUNT_REACH, cooldown: MOUNT_COOLDOWN, sense: PASS_SENSE, chainWindow: CHAIN_WINDOW,
     chainStep: CHAIN_STEP, chainMax: CHAIN_MAX, speedDivisor: 12, behind: -2 },
-  blade: { length: BLADE_L, curve: CURVE },
+  blade: SABRE_BLADE,
 };
 
-export interface SabreOptions { allowUnlocked?: boolean }
+export interface SabreOptions { allowUnlocked?: boolean; profile?: typeof SABRE_PROFILE }
 /** the B7 riding hook: the horse's ground speed (m/s) and heading (rad, the player's yaw convention) */
 export interface MountState { speed: number; yaw: number }
 
@@ -217,14 +218,20 @@ export class Sabre extends Sword {
   private mountCd = 0;
 
   constructor(world: SwordWorld, targets?: Targets, opts: SabreOptions = {}) {
-    const rig = buildSabre(meleeMaterial(world.sky), steelMaterial(world.sky));
-    super(world, targets, { row: SABRE_PROFILE, profile: SABRE_PROFILE, allowUnlocked: opts.allowUnlocked ?? false, rig, moves: SABRE_MOVES, damage: DAMAGE, portraitPullX: 0.85 }); // portrait: the hand clear of the CROUCH / DODGE discs
-    this.swingScale = SPEED;
-    this.onMoveHit = (move) => {
-      if (move !== PASS_LEFT && move !== PASS_RIGHT) return;
-      this.passChain = this.chainT > 0 ? this.passChain + 1 : 1;
-      this.chainT = CHAIN_WINDOW;
-    };
+    const rig = buildSabre(meleeMaterial(world.sky), steelMaterial(world.sky), (opts.profile ?? SABRE_PROFILE).blade);
+    super(world, targets, { row: opts.profile ?? SABRE_PROFILE, profile: opts.profile ?? SABRE_PROFILE, allowUnlocked: opts.allowUnlocked ?? false, rig }); // portrait: the hand clear of the CROUCH / DODGE discs
+    this.sabreProfile = opts.profile ?? SABRE_PROFILE;
+  }
+  private readonly sabreProfile: typeof SABRE_PROFILE;
+  protected override onMoveHit(move: Move): void {
+    if (move !== PASS_LEFT && move !== PASS_RIGHT) return;
+    this.passChain = this.chainT > 0 ? this.passChain + 1 : 1;
+    this.chainT = this.sabreProfile.mounted.chainWindow;
+  }
+  /** Reward replacement retains the riding clock and loot-adjusted heavy strength. */
+  carryPassState(previous: Sabre): void {
+    this.mount = previous.mount; this.passChain = previous.passChain;
+    this.chainT = previous.chainT; this.mountCd = previous.mountCd; this.heavyMult = previous.heavyMult;
   }
 
   get mounted(): boolean { return this.mount !== null; }
@@ -236,12 +243,12 @@ export class Sabre extends Sword {
     if (m === null) { super.tryFire(); return; }
     if (this.mountCd > 0 || this.chargingHeavy) return;
     const side = this.passSide(m);
-    const chainMul = Math.min(CHAIN_MAX, 1 + CHAIN_STEP * (this.chainT > 0 ? this.passChain : 0));
-    this.damage = Math.round(DAMAGE * (1 + Math.max(0, m.speed) / 12) * chainMul);
-    if (this.strikeMove(side < 0 ? PASS_LEFT : PASS_RIGHT, false)) this.mountCd = MOUNT_COOLDOWN;
+    const chainMul = Math.min(this.sabreProfile.mounted.chainMax, 1 + this.sabreProfile.mounted.chainStep * (this.chainT > 0 ? this.passChain : 0));
+    this.damage = Math.round(this.sabreProfile.damage * (1 + Math.max(0, m.speed) / this.sabreProfile.mounted.speedDivisor) * chainMul);
+    if (this.strikeMove(side < 0 ? PASS_LEFT : PASS_RIGHT, false)) this.mountCd = this.sabreProfile.mounted.cooldown;
   }
 
-  /** −1 = left, +1 = right of the horse's heading: the nearest live animal within PASS_SENSE, else the way you look */
+  /** −1 = left, +1 = right of the horse's heading: the nearest live animal within this.sabreProfile.mounted.sense, else the way you look */
   private passSide(m: MountState): number {
     const p = this.player.position;
     const fx = -Math.sin(m.yaw), fz = -Math.cos(m.yaw), rx = Math.cos(m.yaw), rz = -Math.sin(m.yaw);
@@ -249,8 +256,8 @@ export class Sabre extends Sword {
     for (const t of getAimTargets()) {
       if (!t.alive || t.hidden === true) continue;
       const dx = t.position.x - p.x, dz = t.position.z - p.z, d = Math.hypot(dx, dz);
-      if (d > PASS_SENSE || d >= best) continue;
-      if (dx * fx + dz * fz < -2) continue; // well behind: already passed
+      if (d > this.sabreProfile.mounted.sense || d >= best) continue;
+      if (dx * fx + dz * fz < this.sabreProfile.mounted.behind) continue; // well behind: already passed
       best = d; side = dx * rx + dz * rz >= 0 ? 1 : -1;
     }
     if (side !== 0) return side;
@@ -261,7 +268,7 @@ export class Sabre extends Sword {
   override update(dt: number, t: number): void {
     this.mountCd = Math.max(0, this.mountCd - dt);
     if (this.chainT > 0) { this.chainT = Math.max(0, this.chainT - dt); if (this.chainT === 0) this.passChain = 0; }
-    if (!this.swinging) this.damage = DAMAGE; // a pass slash sets its own number for its one swing
+    if (!this.swinging) this.damage = this.sabreProfile.damage; // a pass slash sets its own number for its one swing
     super.update(dt, t);
   }
 }

@@ -43,7 +43,7 @@ function swordFixture(contact: boolean): {
   // Record contact stops separately so window measurements use an unscaled clock; loop.test proves the slowdown.
   legacyGame.hitStop = (seconds): void => { stops.push(seconds); };
   const sword = new Sword({ game: legacyGame, player: world.player, sky: world.sky, forest: world.forest }, targets, { row: SWORD, arms, allowUnlocked: true });
-  sword.onMoveHit = (move: Move): void => { hits.push({ move: move.name, at: world.game.clock.elapsedTime, damage: pendingDamage }); };
+  sword.onMoveHitEvent = (move: Move): void => { hits.push({ move: move.name, at: world.game.clock.elapsedTime, damage: pendingDamage }); };
   world.game.onUpdate((dt, t) => { sword.update(dt, t); });
   // The fake rig's clip is the observation surface, rather than Sword's private combo state.
   return { world, sword, starts, hits, queries, stops };

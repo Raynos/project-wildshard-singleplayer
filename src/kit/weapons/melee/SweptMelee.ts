@@ -377,7 +377,7 @@ export class Sword extends Melee {
   onHeavy?: () => void;
   /** a swing connected (after onHit): the move and whether it killed — for a subclass's own bookkeeping (the sabre's pass
    *  chain); the kit manager never touches it, unlike onHit */
-  onMoveHit?: (move: Move, killed: boolean) => void;
+  onMoveHitEvent?: (move: Move, killed: boolean) => void;
 
   readonly model = new THREE.Group();
   protected game: Game; protected sky: Sky; protected player: Player;
@@ -442,7 +442,7 @@ export class Sword extends Melee {
     this.damage = opts.damage ?? profile.damage;
     this.reach = opts.reach ?? profile.reach;
     this.portraitPullX = opts.portraitPullX ?? profile.portraitPullX;
-    this.portraitFov = opts.portraitFov ?? profile.feel.fovHip;
+    this.portraitFov = opts.portraitFov ?? profile.feel.portraitFov ?? profile.feel.fovHip;
     if (opts.framing) this.framing = { ...this.framing, ...opts.framing };
     this.swingScale = profile.swingScale;
     this.framing = { ...profile.framing };
@@ -468,6 +468,7 @@ export class Sword extends Melee {
   override install(ctx: EquipContext): void {
     super.install(ctx);
     this.bindInput(ctx);
+    ctx.scope.onDispose(() => { this.model.removeFromParent(); });
   }
   private bindInput(ctx: EquipContext): void {
     ctx.scope.listen(document, 'mousedown', (event) => {
@@ -500,8 +501,8 @@ export class Sword extends Melee {
     }
     if (this.cooldown > 0) return;
     if (this.comboIdx >= this.mv.combo.length || this.time - this.lastSwingEnd > this.profile.comboGap) this.comboIdx = 0;
-    const next = this.mv.combo[this.comboIdx++];
-    if (next !== undefined) this.startSwing(next);
+    const next = this.pickMove('attack'); this.comboIdx++;
+    if (next !== null) this.startSwing(next);
   }
   /** start one specific move (outside the combo — the sabre's mounted pass slash): false when a swing or charge is running.
    *  `lunge` false = no dash onto the target (in the saddle the horse does the moving). Ends the combo. */
@@ -510,6 +511,12 @@ export class Sword extends Melee {
     this.comboIdx = this.mv.combo.length;
     this.startSwing(move, lunge);
     return true;
+  }
+  protected override pickMove(input: 'attack' | 'heavy'): Move | null {
+    return input === 'heavy' ? this.mv.heavy : this.mv.combo[this.comboIdx] ?? null;
+  }
+  protected override moveDamage(move: Move): number {
+    return this.damage * move.damage * (move === this.mv.heavy ? this.heavyMult : 1);
   }
   private startSwing(move: Move, lunge = true): void {
     this.move = move; this.swingT = 0; this.hitDone = false; this.kicked = false; this.clanged = false; this.queued = false;
@@ -554,8 +561,8 @@ export class Sword extends Melee {
     }
     return best;
   }
-  private beginCharge(): void { this.charging = true; this.chargeT = 0; this.releaseQueued = false; this.chargePending = false; this.comboIdx = 0; this.arms?.play('charge'); }
-  private releaseHeavy(): void { this.charging = false; this.releaseQueued = false; this.comboIdx = 0; this.startSwing(this.mv.heavy); }
+  private beginCharge(): void { this.chargeEvent('heavy', 0); this.charging = true; this.chargeT = 0; this.releaseQueued = false; this.chargePending = false; this.comboIdx = 0; this.arms?.play('charge'); }
+  private releaseHeavy(): void { this.chargeEvent('heavy', 1); this.charging = false; this.releaseQueued = false; this.comboIdx = 0; const move = this.pickMove('heavy'); if (move) this.startSwing(move); }
 
   /** no ammo to add / nothing to reload */
   override addBolts(_n: number): void { /* melee */ }
@@ -799,7 +806,7 @@ export class Sword extends Melee {
     _v2.copy(_fwd).applyAxisAngle(Y_AXIS, Math.PI / 2);                                       // the player's left
     _v1.copy(_fwd).multiplyScalar(0.7).addScaledVector(_v2, 0.7 * move.sweep).normalize();
     if (Math.abs(move.sweep) < 0.6) _v1.y -= 0.35 * (1 - Math.abs(move.sweep)); _v1.normalize();
-    const dmg = Math.round(this.damage * move.damage * (move === this.mv.heavy ? this.heavyMult : 1));
+    const dmg = Math.round(this.moveDamage(move));
     const point = _hitPoint.copy(hit.point); // the raycast result object is reused by the next ray
     const animal = hit.animal;
     const result = this.contact(hit.animal, dmg, point, _v1, cam.position, `move.${move.name}`, true);
@@ -823,8 +830,8 @@ export class Sword extends Melee {
     swordEvents.onStrike?.(animal.kind, point, move === this.mv.heavy ? 1 : move === FINISHER ? 0.75 : 0.5, killed);
     this.onHit?.(animal.kind, false, killed);
     this.onImpact?.('flesh', point);
-    this.onMoveHit?.(move, killed);
-    this.afterMoveHit(move, hit, killed);
+    this.onMoveHitEvent?.(move, killed);
+    this.onMoveHit(move, hit, killed);
   }
 
   /** evaluate a move at `t` s into it → position + quaternion (camera space, scale 1): from-pose → cocked → mid → follow-through → REST */

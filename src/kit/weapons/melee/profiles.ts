@@ -3,7 +3,8 @@ import { REST, CHARGE, SPRINT, COMBO, HEAVY } from './moves';
 import type { MeleeProfile } from './Melee';
 
 export const SWORD_WOOD: MeleeProfile = {
-  ...WOODEN_SWORD, family: 'melee', damage: 12, reach: 2.2, swingScale: 1,
+  ...WOODEN_SWORD, cues: { fire: 'cue.sword.swing', reload: 'cue.reload', impact: 'cue.sword.hit', hit: 'cue.sword.hit', heavy: 'cue.sword.heavy' },
+  hitStop: { body: 0.06, head: 0.06, kill: 0.06 }, family: 'melee', damage: 12, reach: 2.2, swingScale: 1,
   portraitPullX: 0.32, framing: { shrink: 0.33, dx: -0.03, dy: -0.055, tilt: 0.36, yaw: -0.02 },
   moves: { rest: REST, charge: CHARGE, sprint: SPRINT, combo: COMBO, heavy: HEAVY },
   cooldown: 0.08, comboGap: 0.6, chainLag: 0.02, heavyCharge: 0.45, chargeBlend: 0.16,

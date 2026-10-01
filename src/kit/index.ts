@@ -9,3 +9,5 @@ export { Sword, swordEvents, buildSword, swordMaterial } from './weapons/melee/S
 export { SWORD_WOOD, SWORD_IRON } from './weapons/melee/profiles';
 export { key, COMBO, HEAVY, REST, CHARGE, SPRINT } from './weapons/melee/moves';
 export type { SwordWorld, SwordRig, SwordArms, SwordFraming, SwordMoveSet } from '#engine';
+
+export { Thrown, type ThrownProfile } from './weapons/thrown/Thrown';

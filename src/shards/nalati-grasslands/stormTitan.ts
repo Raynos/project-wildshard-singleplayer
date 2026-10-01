@@ -20,7 +20,7 @@ import { wind } from '#engine/world/steppeWind';
 import { wildEnv } from '#engine/entities/wildEnv';
 import { setEliteDamage } from '#engine/entities/eliteBrain';
 import { CAIRN } from './manifest';
-import { LightningStrip, Naizagai, naizagaiModel } from './weapons/Naizagai';
+import { LightningStrip, NaizagaiPower, naizagaiModel } from './weapons/Naizagai';
 import { patchTitanCloud, GrassFireFx } from './stormTitanLook';
 import { TIER } from '#engine/core/tier';
 
@@ -932,6 +932,7 @@ export interface TitanPlay {
   ride: Ride | null;
   riders?: GhostRiders | null;
   sabre: Sabre | null;
+  upgradeSabre?: (power: NaizagaiPower) => void;
   setWeaponsEnabled: (on: boolean) => void;
   refill: () => void;
   /** main's damage path (health, flash; a toast unless `why` is empty) */
@@ -953,7 +954,7 @@ export class StormTitan {
   readonly spareLight = new THREE.PointLight(0xc8dcff, 0, 1, 2);
   ui: BossBar | null = null;
   boss: Boss | null = null;
-  naizagai: Naizagai | null = null;
+  naizagai: NaizagaiPower | null = null;
   /** B11's ghost riders (the storm riders ride their rig) — handed in by src/shards/nalati-grasslands/index.ts */
   riders: GhostRiders | null = null;
   private play: TitanPlay | null = null;
@@ -993,7 +994,7 @@ export class StormTitan {
     const { game, player } = this.ctx;
     const god = play.params.has('bossGod');
     if (god) { const hurt = play.hurt; play.hurt = (d, why) => { if (!this.engaged) hurt(d, why); }; }
-    this.naizagai = new Naizagai({
+    this.naizagai = new NaizagaiPower({
       scene: game.scene, player, camera: game.camera, animals: play.animals,
       storm: () => this.ctx.weather.weather.stormActive,
       bolt: (x, y, z) => { this.ctx.weather.fx.bolt({ x, y, z, kind: 'ground' }); this.ctx.weather.weather.flash = 1; },
@@ -1006,7 +1007,7 @@ export class StormTitan {
         tier: 'LEGENDARY', name: 'NAIZAGAI', flavour: 'Storm Sabre of Jel Ata', prompt: 'TAKE NAIZAGAI',
         model: () => naizagaiModel(),
         grant: () => {
-          if (play.sabre && this.naizagai) this.naizagai.apply(play.sabre);
+          if (this.naizagai) play.upgradeSabre?.(this.naizagai);
           play.ownSkin?.('sky-marked-saddle');
           play.toast('Mount skin · SKY-MARKED SADDLE');
         },
@@ -1024,7 +1025,7 @@ export class StormTitan {
       ...(play.pickupHum ? { pickupHum: play.pickupHum } : {}),
     }, this.ui, 'nalati-grasslands');
     play.interactables.push(this.prompt);
-    if (this.boss.rewardTaken && play.sabre) this.naizagai.apply(play.sabre);
+    if (this.boss.rewardTaken) play.upgradeSabre?.(this.naizagai);
     // the horse refuses the storm wall and the fire line
     const mount = play.ride?.mount;
     if (mount) { const prev = mount.refuse; mount.refuse = (x, z) => this.fight.refuses(x, z) || (prev?.(x, z) ?? false); }

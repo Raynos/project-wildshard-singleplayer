@@ -1,3 +1,4 @@
+import { Naizagai, type NaizagaiPower } from './Naizagai';
 import type { Game } from '#engine/core/Game';
 import type { Sky } from '#engine/world/Sky';
 import type { Player } from '#engine/player/Player';
@@ -33,6 +34,7 @@ export interface NalatiKit {
   extras: Weapon[];
   install: (weapons: EquipmentService) => void;
   refill: () => void;
+  upgradeSabre: (weapons: EquipmentService, power: NaizagaiPower) => void;
   setMount: (m: MountState | null) => void;
   /** the held weapon is a melee one (audio: the sword whoosh / hit sounds) */
   melee: (id: WeaponId) => boolean;
@@ -49,9 +51,15 @@ export function buildNalatiKit(world: NalatiWorld, targets: Targets, allowUnlock
       for (const e of kit.extras) weapons.unlock(e.id);
       weapons.select('bow', true); // slot 1: the bow is the shard's main weapon
     },
+    upgradeSabre(weapons, power) {
+      if (kit.sabre.row.id === 'weapon.naizagai') return;
+      const next = new Naizagai(world, targets, { allowUnlocked, power });
+      next.carryPassState(kit.sabre);
+      weapons.replace(kit.sabre.id, next); kit.sabre = next; kit.base = next;
+    },
     refill() { spear.javelins = spear.maxJavelins; bow.addBolts(bow.magazine); },
-    setMount(m) { sabre.mount = m; spear.mount = m; bow.setMount(m); },
-    melee: (id) => [sabre, spear, bow].some((w) => w.id === id && w.row.ui.melee),
+    setMount(m) { kit.sabre.mount = m; spear.mount = m; bow.setMount(m); },
+    melee: (id) => [kit.sabre, spear, bow].some((w) => w.id === id && w.row.ui.melee),
   };
   return kit;
 }
