@@ -1,5 +1,9 @@
 // @vitest-environment happy-dom
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
+// oxlint-disable-next-line import/no-nodejs-modules -- Vitest executes in Node; happy-dom supplies only DOM globals.
+import { readFileSync } from 'node:fs';
+// oxlint-disable-next-line import/no-nodejs-modules -- Resolve the installed WASM outside a symlinked clean export in this Node test.
+import { createRequire } from 'node:module';
 import { Vector3 } from 'three';
 import { App, Scope, Tool, type EquipmentHost, type DiscSpot, type TouchRelabel, type HudVerbs } from '#engine';
 import type { ShardContext } from '#game';
@@ -14,11 +18,13 @@ import { FakeGame, legacyDouble } from '../../fake/FakeGame';
 import type { Player } from '#engine/player/Player';
 import type { SwordArms } from '#engine/combat/view/melee';
 import type { LockOnSystem } from '#engine/player/LockOnTarget';
-import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';
 
 let R: Awaited<ReturnType<typeof loadRapier>>;
 const cleanup: (() => void)[] = [];
-beforeAll(async () => { R = await loadRapier(await (await fetch(wasmInline)).arrayBuffer()); });
+beforeAll(async () => {
+  const path = createRequire(import.meta.url).resolve('@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm');
+  R = await loadRapier(new Uint8Array(readFileSync(path)).buffer);
+});
 afterEach(() => { for (const fn of cleanup.splice(0)) fn(); document.body.replaceChildren(); });
 function setup(hooks = [new Vector3(0, 1.6, -10)], enemy = false) {
   const app = new App(), scope = new Scope('fei-zhua'), physics = new Physics(R), fake = new FakeGame();

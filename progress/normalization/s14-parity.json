@@ -1,0 +1,606 @@
+{
+  "before": "7401d8052b40906fb2ab33c7a7bedd797a95b06f",
+  "after": "fd9da1bb6da4221992ebf595da7373bdb384c7a4",
+  "lane": "m5",
+  "tier": "phone",
+  "shards": {
+    "driftwood-isle": {
+      "bootErrors": [],
+      "walkExactExceptWallSeconds": true,
+      "combatExact": true,
+      "pauseResumeExact": true,
+      "unloadedScope": {
+        "geometries": 0,
+        "materials": 0,
+        "textures": 0,
+        "renderTargets": 0,
+        "meshes": 0,
+        "resources": 0,
+        "bodies": 0,
+        "sounds": 0,
+        "listeners": 0,
+        "timers": 0,
+        "rafs": 0,
+        "disposers": 0,
+        "systems": 0,
+        "colliders": 0,
+        "nodes": 0
+      },
+      "unloadedGpu": {
+        "total": {
+          "geometries": 18,
+          "textures": 12,
+          "programs": 64
+        },
+        "retained": {
+          "geometries": 18,
+          "textures": 12,
+          "programs": 64
+        }
+      },
+      "poses": {
+        "pier": {
+          "positionsExact": true,
+          "calls": [
+            223,
+            223
+          ],
+          "triangles": [
+            1125728,
+            1125728
+          ]
+        },
+        "beach": {
+          "positionsExact": true,
+          "calls": [
+            217,
+            217
+          ],
+          "triangles": [
+            1065774,
+            1065774
+          ]
+        },
+        "wreck": {
+          "positionsExact": true,
+          "calls": [
+            167,
+            167
+          ],
+          "triangles": [
+            936154,
+            936154
+          ]
+        }
+      }
+    },
+    "nalati-grasslands": {
+      "bootErrors": [],
+      "walkExactExceptWallSeconds": true,
+      "combatExact": true,
+      "pauseResumeExact": true,
+      "unloadedScope": {
+        "geometries": 0,
+        "materials": 0,
+        "textures": 0,
+        "renderTargets": 0,
+        "meshes": 0,
+        "resources": 0,
+        "bodies": 0,
+        "sounds": 0,
+        "listeners": 0,
+        "timers": 0,
+        "rafs": 0,
+        "disposers": 0,
+        "systems": 0,
+        "colliders": 0,
+        "nodes": 0
+      },
+      "unloadedGpu": {
+        "total": {
+          "geometries": 19,
+          "textures": 63,
+          "programs": 44
+        },
+        "retained": {
+          "geometries": 19,
+          "textures": 63,
+          "programs": 44
+        }
+      },
+      "poses": {
+        "camp": {
+          "positionsExact": true,
+          "calls": [
+            79,
+            79
+          ],
+          "triangles": [
+            1174948,
+            1174948
+          ]
+        },
+        "bridge": {
+          "positionsExact": true,
+          "calls": [
+            90,
+            90
+          ],
+          "triangles": [
+            1279751,
+            1279751
+          ]
+        },
+        "plains": {
+          "positionsExact": true,
+          "calls": [
+            108,
+            108
+          ],
+          "triangles": [
+            1292909,
+            1292909
+          ]
+        }
+      }
+    },
+    "nine-dragon-stack": {
+      "bootErrors": [],
+      "walkExactExceptWallSeconds": true,
+      "combatExact": true,
+      "pauseResumeExact": true,
+      "unloadedScope": {
+        "geometries": 0,
+        "materials": 0,
+        "textures": 0,
+        "renderTargets": 0,
+        "meshes": 0,
+        "resources": 0,
+        "bodies": 0,
+        "sounds": 0,
+        "listeners": 0,
+        "timers": 0,
+        "rafs": 0,
+        "disposers": 0,
+        "systems": 0,
+        "colliders": 0,
+        "nodes": 0
+      },
+      "unloadedGpu": {
+        "total": {
+          "geometries": 30,
+          "textures": 43,
+          "programs": 27
+        },
+        "retained": {
+          "geometries": 30,
+          "textures": 43,
+          "programs": 27
+        }
+      },
+      "poses": {
+        "spawn-rail": {
+          "positionsExact": true,
+          "calls": [
+            144,
+            144
+          ],
+          "triangles": [
+            1427662,
+            1427662
+          ]
+        },
+        "well-edge": {
+          "positionsExact": true,
+          "calls": [
+            128,
+            128
+          ],
+          "triangles": [
+            1273139,
+            1273139
+          ]
+        },
+        "stair-street": {
+          "positionsExact": true,
+          "calls": [
+            122,
+            122
+          ],
+          "triangles": [
+            996042,
+            996042
+          ]
+        }
+      }
+    },
+    "pine-hollow": {
+      "bootErrors": [],
+      "walkExactExceptWallSeconds": true,
+      "combatExact": true,
+      "pauseResumeExact": true,
+      "unloadedScope": {
+        "geometries": 0,
+        "materials": 0,
+        "textures": 0,
+        "renderTargets": 0,
+        "meshes": 0,
+        "resources": 0,
+        "bodies": 0,
+        "sounds": 0,
+        "listeners": 0,
+        "timers": 0,
+        "rafs": 0,
+        "disposers": 0,
+        "systems": 0,
+        "colliders": 0,
+        "nodes": 0
+      },
+      "unloadedGpu": {
+        "total": {
+          "geometries": 37,
+          "textures": 186,
+          "programs": 72
+        },
+        "retained": {
+          "geometries": 37,
+          "textures": 186,
+          "programs": 72
+        }
+      },
+      "poses": {
+        "gate": {
+          "positionsExact": true,
+          "calls": [
+            104,
+            104
+          ],
+          "triangles": [
+            1152418,
+            1289694
+          ]
+        },
+        "cabin": {
+          "positionsExact": true,
+          "calls": [
+            146,
+            146
+          ],
+          "triangles": [
+            1324294,
+            1455542
+          ]
+        },
+        "pond": {
+          "positionsExact": true,
+          "calls": [
+            92,
+            92
+          ],
+          "triangles": [
+            950098,
+            1087834
+          ]
+        }
+      }
+    }
+  },
+  "images": [
+    {
+      "id": "driftwood-isle/pier",
+      "ssim": 0.9967492037236763
+    },
+    {
+      "id": "driftwood-isle/beach",
+      "ssim": 0.995747042539147
+    },
+    {
+      "id": "driftwood-isle/wreck",
+      "ssim": 0.9999573613988957
+    },
+    {
+      "id": "nalati-grasslands/camp",
+      "ssim": 1
+    },
+    {
+      "id": "nalati-grasslands/bridge",
+      "ssim": 1
+    },
+    {
+      "id": "nalati-grasslands/plains",
+      "ssim": 1
+    },
+    {
+      "id": "nine-dragon-stack/spawn-rail",
+      "ssim": 1
+    },
+    {
+      "id": "nine-dragon-stack/well-edge",
+      "ssim": 1
+    },
+    {
+      "id": "nine-dragon-stack/stair-street",
+      "ssim": 1
+    },
+    {
+      "id": "pine-hollow/gate",
+      "ssim": 0.984784648259223
+    },
+    {
+      "id": "pine-hollow/cabin",
+      "ssim": 0.9650290605372537
+    },
+    {
+      "id": "pine-hollow/pond",
+      "ssim": 0.9655463244154052
+    },
+    {
+      "id": "playground/p1",
+      "ssim": 1
+    },
+    {
+      "id": "playground/p2",
+      "ssim": 1
+    },
+    {
+      "id": "playground/base",
+      "ssim": 0.9997144071930435
+    },
+    {
+      "id": "playground/l1",
+      "ssim": 0.9997157239851231
+    },
+    {
+      "id": "playground/l2",
+      "ssim": 0.9997158316593978
+    },
+    {
+      "id": "playground/top",
+      "ssim": 0.9981556284176576
+    },
+    {
+      "id": "fragment/well-crossing",
+      "ssim": 1
+    },
+    {
+      "id": "fragment/stair-terrace",
+      "ssim": 1
+    }
+  ],
+  "playground": {
+    "exact": true,
+    "errors": [],
+    "legs": [
+      {
+        "target": "p1",
+        "samples": 110,
+        "firstPadFrame": 62,
+        "locked": {
+          "pos": [
+            0.9499984939886701,
+            3020.0023999997793,
+            72.49999706391269
+          ],
+          "chip": "\u25c6 LOCKED \u00b7 ZIP",
+          "lock": "Locked",
+          "jump": "Zip",
+          "pad": "start"
+        },
+        "final": {
+          "pos": [
+            0.9500001119784993,
+            3020.0199526956567,
+            48.35883518153422
+          ],
+          "chip": "\u25c6 LOCKED \u00b7 ZIP",
+          "lock": "Lock",
+          "jump": "Jump",
+          "pad": "p1"
+        },
+        "traceSha256": "7356b0a6f93040cce09b18b3e22acc0a93925a403d0f626f3e31afb4f5717ca3"
+      },
+      {
+        "target": "p2",
+        "samples": 110,
+        "firstPadFrame": 67,
+        "locked": {
+          "pos": [
+            0.9500000727322078,
+            3020.0198452101977,
+            48.35883523373451
+          ],
+          "chip": "\u25c6 LOCKED \u00b7 ZIP",
+          "lock": "Locked",
+          "jump": "Zip",
+          "pad": "p1"
+        },
+        "final": {
+          "pos": [
+            15.815684785275867,
+            3026.020081654333,
+            26.528753173781197
+          ],
+          "chip": "\u25c6 LOCKED \u00b7 ZIP",
+          "lock": "Lock",
+          "jump": "Jump",
+          "pad": "p2"
+        },
+        "traceSha256": "5f2147a29cf17416bf8bfd7a26f93e2472f7ee2556dc253dc9e483e3706384fd"
+      },
+      {
+        "target": "base",
+        "samples": 110,
+        "firstPadFrame": 79,
+        "locked": {
+          "pos": [
+            15.815684785275867,
+            3026.019888951847,
+            26.52875339677867
+          ],
+          "chip": "\u25c6 LOCKED \u00b7 ZIP",
+          "lock": "Locked",
+          "jump": "Zip",
+          "pad": "p2"
+        },
+        "final": {
+          "pos": [
+            -2.8357284179898024,
+            3022.0201337083454,
+            -4.507461400304491
+          ],
+          "chip": "\u25c6 LOCKED \u00b7 ZIP",
+          "lock": "Lock",
+          "jump": "Jump",
+          "pad": "base"
+        },
+        "traceSha256": "0e47f223c90cee7f839bca50b441d34621f15aae444fb261542f9c315e2b144a"
+      },
+      {
+        "target": "l1",
+        "samples": 110,
+        "firstPadFrame": 63,
+        "locked": {
+          "pos": [
+            -2.835724718643778,
+            3022.019961981063,
+            -4.507463026161721
+          ],
+          "chip": "\u25c6 LOCKED \u00b7 ZIP",
+          "lock": "Locked",
+          "jump": "Zip",
+          "pad": "base"
+        },
+        "final": {
+          "pos": [
+            7.612731774451925,
+            3030.019916369234,
+            -24.99980075431209
+          ],
+          "chip": "\u25c6 LOCKED \u00b7 ZIP",
+          "lock": "Lock",
+          "jump": "Jump",
+          "pad": "l1"
+        },
+        "traceSha256": "ce56e0ff42e0d6438d93b985259f0e651778c9a9573257dc5d9d96db00752b9a"
+      },
+      {
+        "target": "l2",
+        "samples": 110,
+        "firstPadFrame": 60,
+        "locked": {
+          "pos": [
+            7.612731627381558,
+            3030.019973600978,
+            -24.999800753377272
+          ],
+          "chip": "\u25c6 LOCKED \u00b7 ZIP",
+          "lock": "Locked",
+          "jump": "Zip",
+          "pad": "l1"
+        },
+        "final": {
+          "pos": [
+            -2.963968904316219,
+            3038.019890911837,
+            -42.69446618761938
+          ],
+          "chip": "\u25c6 LOCKED \u00b7 ZIP",
+          "lock": "Lock",
+          "jump": "Jump",
+          "pad": "l2"
+        },
+        "traceSha256": "2e63bd52a6f5e5bd62156770a739f810e56724c7779d3f3527802d35f5e74c02"
+      },
+      {
+        "target": "top",
+        "samples": 110,
+        "firstPadFrame": 51,
+        "locked": {
+          "pos": [
+            -2.9639687574477787,
+            3038.0198107411234,
+            -42.69446618172098
+          ],
+          "chip": "\u25c6 LOCKED \u00b7 ZIP",
+          "lock": "Locked",
+          "jump": "Zip",
+          "pad": "l2"
+        },
+        "final": {
+          "pos": [
+            -5.321605048034138,
+            3046.019826688851,
+            -30.381514657936528
+          ],
+          "chip": "\u25c6 LOCKED \u00b7 ZIP",
+          "lock": "Lock",
+          "jump": "Jump",
+          "pad": "top"
+        },
+        "traceSha256": "55459c11e5d2d58f5eb1e0008dc1dc45bc0b8864c7263c0ed95aa5412a5d2fb4"
+      }
+    ]
+  },
+  "fragment": {
+    "exact": true,
+    "errors": [],
+    "legs": [
+      {
+        "target": "well-crossing",
+        "samples": 180,
+        "firstPadFrame": null,
+        "locked": {
+          "pos": [
+            -19.49999014127497,
+            125.01984990629353,
+            13.300006883762771
+          ],
+          "chip": "\u25c6 LOCKED \u00b7 ZIP",
+          "visible": "block",
+          "lock": "Locked",
+          "jump": "Zip"
+        },
+        "final": {
+          "pos": [
+            -9.56795687208541,
+            119.138985154088,
+            -20.5981421727953
+          ],
+          "chip": "\u25c6 LOCKED \u00b7 ZIP",
+          "visible": "none",
+          "lock": "Lock",
+          "jump": "Jump"
+        },
+        "traceSha256": "86740fd30856eb7bb29a8bcfdd31dd7aebeeba802a8e055c652049a400b0b4fe"
+      },
+      {
+        "target": "stair-terrace",
+        "samples": 180,
+        "firstPadFrame": null,
+        "locked": {
+          "pos": [
+            17.999994369902154,
+            125.01818912197632,
+            5.9999985612963185
+          ],
+          "chip": "\u25c6 LOCKED \u00b7 ZIP",
+          "visible": "block",
+          "lock": "Locked",
+          "jump": "Zip"
+        },
+        "final": {
+          "pos": [
+            25.993761706921994,
+            127.46994874033771,
+            5.083576558404394
+          ],
+          "chip": "\u25c6 LOCKED \u00b7 ZIP",
+          "visible": "none",
+          "lock": "Lock",
+          "jump": "Jump"
+        },
+        "traceSha256": "125d947f8b0e013da7e688328411b4ceae038e859e97aa67d28ec63c0e1796f3"
+      }
+    ]
+  }
+}
