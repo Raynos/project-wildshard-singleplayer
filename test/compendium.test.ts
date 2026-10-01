@@ -13,7 +13,9 @@ import type { ShardCompendium } from '../src/ui/compendium/types';
 loadSpecies();
 const PH = PINE_HOLLOW_COMPENDIUM;
 /** the shipped journal art (keys only: the files are never loaded) */
-const SHIPPED = new Set(Object.keys(import.meta.glob('../public/assets/pine-hollow/journal/*.webp', { query: '?url' })).map((k) => k.replace('../public', '')));
+const JOURNAL_FILES = import.meta.glob('../public/assets/pine-hollow/journal/*.webp', { query: '?url' });
+expect(Object.keys(JOURNAL_FILES).length).toBeGreaterThan(0);
+const SHIPPED = new Set(Object.keys(JOURNAL_FILES).map((k) => k.replace('../public', '')));
 const shipped = (path: string): boolean => SHIPPED.has(path);
 const fresh = (def: ShardCompendium = PH): CompendiumState => new CompendiumState(def);
 

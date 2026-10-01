@@ -122,9 +122,13 @@ describe('the KTX2 sets', () => {
 });
 
 describe('the bake keeps no file a KTX2 set does not read (E173, scripts/bake-ktx2.mjs ARRAY_ONLY)', () => {
-  const GPU = Object.keys(import.meta.glob('../public/assets/gpu/**/*', { query: '?url' })).map((k) => k.replace('../public', ''));
+  const GPU_FILES = import.meta.glob('../public/assets/gpu/**/*', { query: '?url' });
+  expect(Object.keys(GPU_FILES).length).toBeGreaterThan(0);
+  const GPU = Object.keys(GPU_FILES).map((k) => k.replace('../public', ''));
   const GLTF = import.meta.glob<string>('../public/assets/gpu/**/*.gltf', { query: '?raw', import: 'default', eager: true });
+  expect(Object.keys(GLTF).length).toBeGreaterThan(0);
   const LIST = import.meta.glob<Record<string, unknown>>('../scripts/bake-ktx2.list.json', { import: 'default', eager: true });
+  expect(Object.keys(LIST).length).toBeGreaterThan(0);
   const dirOf = (p: string): string => p.slice(0, p.lastIndexOf('/'));
   /** `rel` against folder `dir`, as a URL resolves it */
   const join = (dir: string, rel: string): string => new URL(rel, `http://x${dir}/`).pathname;

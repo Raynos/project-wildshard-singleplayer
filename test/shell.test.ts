@@ -4,7 +4,9 @@ import { describe, expect, it } from 'vitest';
 import html from '../index.html?raw';
 import { LOAD_SHELL_HTML } from '../src/boot/shell';
 
-const fonts = new Set(Object.keys(import.meta.glob('../public/fonts/*.woff2')).map((k) => k.replace('../public', '')));
+const FONT_FILES = import.meta.glob('../public/fonts/*.woff2');
+expect(Object.keys(FONT_FILES).length).toBeGreaterThan(0);
+const fonts = new Set(Object.keys(FONT_FILES).map((k) => k.replace('../public', '')));
 
 describe('loading shell', () => {
   it('index.html carries LOAD_SHELL_HTML verbatim inside .ws-load[data-shell]', () => {

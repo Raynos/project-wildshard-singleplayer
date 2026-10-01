@@ -16,6 +16,7 @@ import { Forest } from '../src/world/Forest';
 
 /** the migrated files' sources and the shard's setup, as text (the M8 check below) */
 const SOURCES = import.meta.glob<string>(['../src/world/*.ts', '../src/main.ts', '../src/chunks/pine-hollow/world/*.ts', '../src/pinehollow/quest/*.ts'], { query: '?raw', import: 'default', eager: true });
+expect(Object.keys(SOURCES).length).toBeGreaterThan(0);
 const source = (file: string): string => { const s = SOURCES[`../${file}`]; if (s === undefined) throw new Error(`no source ${file}`); return s; };
 
 const sky = { setupMaterial(_m: THREE.Material): void { /* nothing to prepare */ }, csm: { lightDirection: new THREE.Vector3(0, -1, 0) } } as Sky;

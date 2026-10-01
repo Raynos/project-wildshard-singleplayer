@@ -18,6 +18,7 @@ import { ropeBridge, ropeBridgeLayout } from '../src/chunks/driftwood-isle/model
 
 /** the world side's sources and the shard's setup, as text (the M8 check below) */
 const SOURCES = import.meta.glob<string>(['../src/world/*.ts', '../src/main.ts'], { query: '?raw', import: 'default', eager: true });
+expect(Object.keys(SOURCES).length).toBeGreaterThan(0);
 const source = (file: string): string => { const s = SOURCES[`../${file}`]; if (s === undefined) throw new Error(`no source ${file}`); return s; };
 
 // a stand-in sky: the materials only ask it to prepare them (no renderer in a test)

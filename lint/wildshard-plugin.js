@@ -15,6 +15,25 @@
 //   · raw parsing of `location.search` (`.includes`, `.match`, regex `.test`, …) that dodges the above.
 import { existsSync, readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const REPO = fileURLToPath(new URL('../', import.meta.url));
+const IMPORTS = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8')).imports;
+/** Node's package imports: exact keys first, then the longest matching single-star pattern. */
+const aliasTarget = (source) => {
+  if (typeof IMPORTS[source] === 'string') return IMPORTS[source];
+  const patterns = Object.keys(IMPORTS).filter((key) => key.includes('*')).sort((a, b) => {
+    const prefix = b.indexOf('*') - a.indexOf('*');
+    return prefix || b.length - a.length;
+  });
+  for (const key of patterns) {
+    const [prefix, suffix] = key.split('*');
+    if (!source.startsWith(prefix) || !source.endsWith(suffix) || source.length < prefix.length + suffix.length) continue;
+    const target = IMPORTS[key];
+    if (typeof target === 'string') return target.replace('*', source.slice(prefix.length, source.length - suffix.length));
+  }
+  return null;
+};
 
 const ALLOWLIST_FILE = new URL('url-params.json', import.meta.url);
 const allowlist = JSON.parse(readFileSync(ALLOWLIST_FILE, 'utf8'));
@@ -99,10 +118,11 @@ const calleeName = (c) => {
   if (!x) return null;
   return x.type === 'Identifier' ? x.name : propName(x);
 };
-/** `export const NAME = '…'` in a relatively imported module (resolved .ts / .js / index) */
-const importedConst = (fromFile, source, name) => {
-  if (!source.startsWith('.')) return null;
-  const base = resolve(dirname(fromFile), source);
+/** `export const NAME = '…'` in a relative or package-aliased module (resolved .ts / .js / index). */
+export const importedConst = (fromFile, source, name) => {
+  const target = source.startsWith('#') ? aliasTarget(source) : null;
+  if (target === null && !source.startsWith('.')) return null;
+  const base = target === null ? resolve(dirname(fromFile), source) : resolve(REPO, target);
   const tries = [base, `${base}.ts`, `${base}.js`, base.replace(/\.js$/u, '.ts'), `${base}/index.ts`];
   for (const f of tries) {
     if (!existsSync(f) || !/\.(ts|js|mjs)$/u.test(f)) continue;

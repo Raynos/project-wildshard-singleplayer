@@ -1,0 +1,97 @@
+[
+  {
+    "path": "src/shards",
+    "file": "scripts/gpu-gate/matrix.mjs",
+    "why": "Git ls-tree pathspec prefix on the target commit; the fallback handles commits before F6 creates this folder."
+  },
+  {
+    "path": "test/dombra",
+    "file": "scripts/music/gen/nalati-jobs.json",
+    "why": "Music generator job key (group/name), not a repository path."
+  },
+  {
+    "path": "test/dombra-201.m4a",
+    "file": "scripts/music/gen/nalati-score.json",
+    "why": "Preview URL relative to art/music/round-4-nalati, not the repository root; nalati_score.py joins it to ART."
+  },
+  {
+    "path": "test/kobyz",
+    "file": "scripts/music/gen/nalati-jobs.json",
+    "why": "Music generator job key (group/name), not a repository path."
+  },
+  {
+    "path": "test/kobyz-201.m4a",
+    "file": "scripts/music/gen/nalati-score.json",
+    "why": "Preview URL relative to art/music/round-4-nalati, not the repository root; nalati_score.py joins it to ART."
+  },
+  {
+    "path": "test/sybyzgy",
+    "file": "scripts/music/gen/nalati-jobs.json",
+    "why": "Music generator job key (group/name), not a repository path."
+  },
+  {
+    "path": "test/sybyzgy-201.m4a",
+    "file": "scripts/music/gen/nalati-score.json",
+    "why": "Preview URL relative to art/music/round-4-nalati, not the repository root; nalati_score.py joins it to ART."
+  },
+  {
+    "path": "test/throat",
+    "file": "scripts/music/gen/nalati-jobs.json",
+    "why": "Music generator job key (group/name), not a repository path."
+  },
+  {
+    "path": "test/throat-201.m4a",
+    "file": "scripts/music/gen/nalati-score.json",
+    "why": "Preview URL relative to art/music/round-4-nalati, not the repository root; nalati_score.py joins it to ART."
+  },
+  {
+    "path": "test/ensemble-day",
+    "file": "scripts/music/gen/nalati-jobs.json",
+    "why": "Music generator job key (group/name), not a repository path."
+  },
+  {
+    "path": "test/ensemble-day-201.m4a",
+    "file": "scripts/music/gen/nalati-score.json",
+    "why": "Preview URL relative to art/music/round-4-nalati, not the repository root; nalati_score.py joins it to ART."
+  },
+  {
+    "path": "test/ensemble-night",
+    "file": "scripts/music/gen/nalati-jobs.json",
+    "why": "Music generator job key (group/name), not a repository path."
+  },
+  {
+    "path": "test/ensemble-night-201.m4a",
+    "file": "scripts/music/gen/nalati-score.json",
+    "why": "Preview URL relative to art/music/round-4-nalati, not the repository root; nalati_score.py joins it to ART."
+  },
+  {
+    "path": "src/shards/",
+    "file": "scripts/normalize/classify.mjs",
+    "why": "F6 destination or classification prefix in the move map; intentionally absent before the F6 move."
+  },
+  {
+    "path": "src/shards/nalati-grasslands/",
+    "file": "scripts/normalize/classify.mjs",
+    "why": "F6 destination or classification prefix in the move map; intentionally absent before the F6 move."
+  },
+  {
+    "path": "src/shards/pine-hollow/",
+    "file": "scripts/normalize/classify.mjs",
+    "why": "F6 destination or classification prefix in the move map; intentionally absent before the F6 move."
+  },
+  {
+    "path": "src/entry.ts",
+    "file": "scripts/normalize/classify.mjs",
+    "why": "F6 destination or classification prefix in the move map; intentionally absent before the F6 move."
+  },
+  {
+    "path": "src/engine/debug/probe.ts",
+    "file": "scripts/normalize/classify.mjs",
+    "why": "F6 destination or classification prefix in the move map; intentionally absent before the F6 move."
+  },
+  {
+    "path": "src/engine/types/",
+    "file": "scripts/normalize/classify.mjs",
+    "why": "F6 destination or classification prefix in the move map; intentionally absent before the F6 move."
+  }
+]

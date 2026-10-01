@@ -24,6 +24,7 @@ const KINDS: Readonly<Record<string, string>> = { GOLDEN_KING, KURGAN_BALBAL, BA
 
 /** Nalati's spawners: src/nalati/, the wildlife, the taming */
 const SPAWNERS = import.meta.glob<string>(['../src/nalati/*.ts', '../src/entities/Wildlife.ts', '../src/game/Taming.ts'], { query: '?raw', import: 'default', eager: true });
+expect(Object.keys(SPAWNERS).length).toBeGreaterThan(0);
 
 /** every kind a spawner names: `spawn('horse', …)`, `spawn(GOLDEN_KING, …)`, `spawnAt(LEOPARD, …)` */
 function spawnedKinds(): Map<string, string> {
