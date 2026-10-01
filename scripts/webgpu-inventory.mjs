@@ -88,7 +88,10 @@ export function render(inv = inventory()) {
 
 if (process.argv[1] === import.meta.filename) {
   const want = render(), path = join(ROOT, DOC);
-  if (process.argv.includes('--check')) {
+  if (process.argv.includes('--check') && !existsSync(join(ROOT, 'docs'))) {
+    // CI's sparse checkout and the Vercel tree leave out docs/ (deploy.yml); the doc is checked where it exists
+    console.log(`${DOC} not in this checkout (no docs/): check skipped`);
+  } else if (process.argv.includes('--check')) {
     const have = existsSync(path) ? readFileSync(path, 'utf8') : '';
     if (have !== want) {
       // print the differing lines so a CI-only staleness (a file the runner sees and the Mac doesn't) names itself
