@@ -275,3 +275,13 @@ every file for the pattern, not by spot edits**.
 | R2-34 | C2-16 | **The preview deploy** copies `.vercel/project.json` into the export before `vercel pull`, as `deploy.yml` does | 03 §13.4 |
 | R2-35 | C2-17 | F2 git-ignores `progress/parity/`. F6's "clean tree" means no tracked modifications and no untracked files under `src/`, `test/`, `scripts/`; other untracked paths are ignored | 02 F2, F6 |
 | R2-36 | C2-19 | **The Captain's comparison rule:**<br>• Events are aligned by strike id. Each strike's start and hit frames may shift by ≤ 6 frames (100 ms at 60 Hz).<br>• Everything else must match exactly: the state sequence, damage per strike, the order of phase transitions, the kill.<br>• The scripted dodge is triggered a fixed number of frames after each telegraph event, not on wall time, so damage stays identical | 08 S4.2 |
+
+### Round 2 follow-ups (the fix agents' deviations, reviewed and accepted)
+
+| Res | Item | Resolution |
+|---|---|---|
+| R2-F1 | R2-26 said 10 sound modules outside `Audio.ts`; the search finds 9 (the `main.ts` and `rigArms.ts` hits aren't sound) | **9**, listed in 02 F2; a test fails any sound module without `tap.sound` |
+| R2-F2 | The line-scoped shared files | **Four**, not two: `scripts/blender/targets.json`, `art/README.md`, and the KTX2 bake's `scripts/bake-ktx2.list.json` + `.cache.json`, which every KTX2 bake writes (without them a lane could never commit its own table, R2-04) |
+| R2-F3 | F8's owner rule | "**The scope current at registration**": every system registered during a level's load is in `levelScope`, the ungated main updater included (it calls into level objects; a second load would otherwise register it twice) |
+| R2-F4 | R2-27's pin | The pin also waits for the bootstrap-artifact commit and a repeat of the offline check |
+| R2-F5 | The touch leg's `tap.use` hook and `dodgeCooldown` (B2-21(a), C2-23) | Logged nits, left for round 3 to settle with a verified source line |
