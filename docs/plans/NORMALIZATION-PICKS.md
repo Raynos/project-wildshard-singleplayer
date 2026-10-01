@@ -1,6 +1,6 @@
 # NORMALIZATION-PICKS — every pick, decision, question and review for Jake (E357)
 
-**State:** `blocked` 2026-10-01 — 2 rows open (P3, P10); 10 answered 2026-10-01, waiting on Jake; the lead asks them with the question tool; must be empty before GAME-NORMALIZATION is archived.
+**State:** `blocked` 2026-10-01 — 1 row open (P3: Q1 coyote + dodge clips being re-captured); 10 answered 2026-10-01, waiting on Jake; the lead asks them with the question tool; must be empty before GAME-NORMALIZATION is archived.
 
 A mini plan beside [GAME-NORMALIZATION](GAME-NORMALIZATION.md). Each row is one question the lead asks Jake through
 the question tool (AskUserQuestion), with its options and the evidence to look at. Builders never decide a row: when
@@ -51,6 +51,7 @@ The pop-up answers can be typed over by a builder's herdr message (that is how t
 
 - **Q2 input buffer (120 ms): fine** (keep). The dodge clip showed no visible difference (caption only); re-captured by sol-roof.
 - **Q3 Settings ▸ Controls: makes sense, but hide it on iOS / touch-only devices** (key bindings mean nothing there); show it only in desktop mode with a keyboard. Jake wants to see the desktop version: build row J7 (sol-ctrl).
+- **Q5 title summary strip: neither A nor B.** Show only the selected shard's name + its feats ("Driftwood Isle · 2 feats") and the Wildshard total ("Wildshard · 5 feats"), in A's style; it changes as you swipe the carousel ("we're going to have so many shards"). Build row J8 (sol-title).
 - **Q4 reserved action slot: A, first row** ("definitely first row") — as built.
 - **Q1 coyote / late roof jump:** the clip was broken (no visible edge; the capture fixture dropped the player through the street). sol-roof re-captures it on a real edge and checks for a real fall-through bug; Q1 asked again after.
 - Jake's finding: crouch (and other actions) exist only on the keyboard, with no touch control: ask E365, a keyboard-vs-touch audit.
