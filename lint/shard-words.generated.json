@@ -1,6 +1,7 @@
 {
   "slugs": [
     "driftwood-isle",
+    "far-reach",
     "nalati-grasslands",
     "nine-dragon-stack",
     "pine-hollow"
@@ -8,6 +9,9 @@
   "words": [
     "Driftwood Isle",
     "driftwood-isle",
+    "far-reach",
+    "farReach.creature.skyManta",
+    "kit.creature.boar",
     "Nalati Grasslands",
     "nalati-grasslands",
     "Nine Dragon Stack",
@@ -16,6 +20,7 @@
     "pine-hollow",
     "pine.creature.bear",
     "pine.creature.boar",
+    "Sky Reach",
     "species.nalati.balbal",
     "species.nalati.eagle",
     "species.nalati.ghost-rider",
@@ -27,6 +32,7 @@
     "species.nalati.wolf",
     "weapon.bow",
     "weapon.crossbow",
+    "weapon.far-reach-fan",
     "weapon.jian",
     "weapon.lever",
     "weapon.longbow",
@@ -72,6 +78,16 @@
         "public/assets/title/driftwood-isle-portrait.jpg",
         "public/assets/sfx/driftwood-isle/**"
       ]
+    },
+    "far-reach": {
+      "name": "Sky Reach",
+      "ids": [
+        "farReach.creature.skyManta",
+        "kit.creature.boar",
+        "weapon.far-reach-fan"
+      ],
+      "settings": [],
+      "assets": []
     },
     "nalati-grasslands": {
       "name": "Nalati Grasslands",
