@@ -1,3 +1,4 @@
+import { registerLevelDebugRow } from '#engine/ui/debugOptions';
 import { hudAdapters } from '#engine/ui/hudAdapters';
 import { equipmentEntry, toolEntries } from '#game/bag/equipment';
 import { SWORD_WOOD, SWORD_IRON, type MeleeProfile, Rifle } from '#kit';
@@ -251,6 +252,7 @@ async function buildShardWorld(slug: string, manifest: ShardManifest, stage: Loa
     const child = scope.child(`input.${def.id}`); app.input.register(def, child);
     return () => child.dispose();
   };
+  app.levelAdapters.debugRow = (spec) => registerLevelDebugRow(spec, manifest.slug);
   app.levelAdapters.playground = (spec) => registerPlayground(manifest.slug, spec);
   try {
     await app.loadLevel(toLevelSpec(manifest), {
@@ -524,6 +526,7 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   };
   if (audioProfile) prepareAudio();
   yield 'kit';
+  for (const key of ['grass', 'cabins'] as const) if (bootSteps[key] === undefined) await step(key, () => undefined);
 
   const animals = await step('animals', async (p) => {
     const a = await new AnimalManager(game.scene, sky, forest).buildAsync(macrotask); // a task per herd, not one long one

@@ -23,6 +23,7 @@ import { shardMemory } from '#game/travel/switch';
 import { lastEndLine, markUnload } from '../boot/lastEnd';
 import { getMusicStyle, getSfxSet, onMusicStyle, onSettingChange, onSfxSet, saveSetting, setMusicStyle, setSfxSet, setting, settingsReloadUrl, MUSIC_STYLES, SFX_SETS, type MusicStyle, type OptionKey, type OptionValue, type SfxSet } from './Settings';
 import { MOBILE_DEVICE } from '../core/tier';
+import type { DebugRowSpec } from '../level/context';
 
 /** what "applies" reads: the shard you are in and the weapons you hold (re-read every time the menu opens) */
 export interface DebugCtx { chunk: ShardManifest; weapons: ReadonlySet<string> }
@@ -63,6 +64,26 @@ export interface DebugRow {
   note: string;
   /** a button row (a one-shot: clear a cache, spawn something) instead of a pick; `choices` is empty */
   action?: DebugActionSpec;
+}
+
+const authoredRows = new Set<DebugRow>();
+export function levelDebugRows(): readonly DebugRow[] { return [...DEBUG_ROWS, ...authoredRows]; }
+/** A level owns its debug choices and their inverse; menus resolve the live catalog when opened. */
+export function registerLevelDebugRow(spec: DebugRowSpec, slug: string): () => void {
+  const saved = jsonSlot(`debug.plugin.${slug}.${spec.id}`, 'device');
+  const value = saved.read();
+  let current = typeof value === 'string' && spec.choices.some((choice) => choice.value === value) ? value : spec.initial;
+  let live = true;
+  const listeners = new Set<() => void>();
+  const row: DebugRow = { id: spec.id, group: spec.group, label: spec.label, note: spec.note, reload: spec.reload ?? false,
+    choices: () => spec.choices.map((choice) => ({ v: choice.value, text: choice.text })), get: () => current,
+    set: (next) => {
+      if (!live || !spec.choices.some((choice) => choice.value === next)) return;
+      current = next; saved.write(next); spec.change(next); for (const listener of listeners) listener();
+    }, on: (listener) => { if (live) listeners.add(listener); }, when: (ctx) => ctx.chunk.slug === slug };
+  authoredRows.add(row);
+  if (current !== spec.initial) spec.change(current);
+  return () => { live = false; authoredRows.delete(row); listeners.clear(); };
 }
 
 // ── the shards ──

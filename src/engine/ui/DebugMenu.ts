@@ -15,7 +15,7 @@ import { saveStorage } from '#engine/saves/slots';
  * under the row.
  */
 import './styles/debug.css';
-import { DEBUG_GROUPS, DEBUG_READOUTS, DEBUG_ROWS, type DebugActionSpec, type DebugCtx, type DebugGroupId, type DebugRow } from './debugOptions';
+import { DEBUG_GROUPS, DEBUG_READOUTS, levelDebugRows, type DebugActionSpec, type DebugCtx, type DebugGroupId, type DebugRow } from './debugOptions';
 import { settingsReloadUrl } from './Settings';
 import { markUnload } from '../boot/lastEnd';
 
@@ -123,7 +123,7 @@ export function buildDebugMenu(card: HTMLElement, opts: { onPick?: (id: string) 
   };
   const sections: Section[] = [];
   for (const g of DEBUG_GROUPS) {
-    const defs = DEBUG_ROWS.filter((r) => r.group === g.id);
+    const defs = levelDebugRows().filter((r) => r.group === g.id);
     if (defs.length === 0) continue;
     const box = make('ws-dbg-group');
     const head = make('ws-dbg-head', '', 'button') as HTMLButtonElement; head.type = 'button';
