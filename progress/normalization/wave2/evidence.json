@@ -1,0 +1,114 @@
+{
+  "before": "dcd6a29a7109a3357a811c55af3a22446ce0b9c6",
+  "after": "618b1cea80f7c640a0b19fcbd8495fc2d094d93f",
+  "viewport": [
+    390,
+    844
+  ],
+  "tier": "phone",
+  "crab": {
+    "before": {
+      "n": 10,
+      "before": 100,
+      "after": 90
+    },
+    "after": {
+      "n": 14,
+      "before": 100,
+      "after": 86
+    }
+  },
+  "wall": [
+    {
+      "tag": "before",
+      "item": "b1",
+      "before": 200,
+      "after": 170
+    },
+    {
+      "tag": "before",
+      "item": "b2",
+      "before": 200,
+      "after": 160
+    },
+    {
+      "tag": "after",
+      "item": "b1",
+      "before": 200,
+      "after": 200
+    },
+    {
+      "tag": "after",
+      "item": "b2",
+      "before": 200,
+      "after": 200
+    }
+  ],
+  "audio": {
+    "before": {
+      "bytes": 85682,
+      "log": [
+        {
+          "t": 10086,
+          "kind": "bed",
+          "name": "hollow",
+          "ok": false,
+          "detail": "up 1.00 (decoding)"
+        },
+        {
+          "t": 10098,
+          "kind": "bed",
+          "name": "hollow",
+          "ok": true,
+          "detail": "loop in"
+        },
+        {
+          "t": 14752,
+          "kind": "sfx",
+          "name": "woodpecker_drum",
+          "ok": true
+        },
+        {
+          "t": 20885,
+          "kind": "sfx",
+          "name": "woodpecker_drum",
+          "ok": true
+        }
+      ],
+      "mode": "perch"
+    },
+    "after": {
+      "bytes": 80378,
+      "log": [
+        {
+          "t": 8602,
+          "kind": "bed",
+          "name": "hollow",
+          "ok": false,
+          "detail": "up 1.00 (decoding)"
+        },
+        {
+          "t": 8613,
+          "kind": "bed",
+          "name": "hollow",
+          "ok": true,
+          "detail": "loop in"
+        },
+        {
+          "t": 13235,
+          "kind": "sfx",
+          "name": "woodpecker_drum",
+          "ok": true
+        },
+        {
+          "t": 18767,
+          "kind": "sfx",
+          "name": "woodpecker_drum",
+          "ok": true
+        }
+      ],
+      "mode": "perch"
+    }
+  },
+  "inspection": "Four portraits inspected; every 4-fps wall frame inspected via tile sheets; audio log/spectrogram inspection. No subjective listening claim."
+}
