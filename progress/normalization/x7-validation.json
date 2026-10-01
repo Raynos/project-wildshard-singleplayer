@@ -1,0 +1,175 @@
+{
+  "source": "a78f5423aac3da72e8c04099e22ccd584cf2b4e9",
+  "gates": {
+    "gen": 0,
+    "tsc": 0,
+    "wholeOxlint": 0,
+    "ratchet": 0,
+    "fullVitest": 0,
+    "testFiles": 290,
+    "tests": 2108
+  },
+  "knobProof": {
+    "head": "a811ace80791f84ddcc4f91fb1dbc9026a0803c6",
+    "phoneKeys": 40,
+    "desktopKeys": 40,
+    "same": true,
+    "sha256": "bc1cc8acddb00f407d30dd98e4c11e5b6965256f644e0ebe5d67e49942c0ea45"
+  },
+  "benchmark": {
+    "score": 1371.8628138494462,
+    "passes": 2744,
+    "seconds": 2.000199999809265,
+    "width": 1280,
+    "height": 720,
+    "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+    "at": "2026-10-01T15:39:46.793Z",
+    "browser": "153.0.8010.12",
+    "source": "X7 synthetic offscreen 1280x720 fill; 32 dependent fragment iterations; eight-pass batches; finish + readPixels fence"
+  },
+  "mandatoryBoot": {
+    "command": "node scripts/parity.mjs --export=a78f5423aac3da72e8c04099e22ccd584cf2b4e9 --lane=m5 --shards=all --tiers=phone --only=fingerprint",
+    "exitCode": 1,
+    "boot": [
+      {
+        "shard": "driftwood-isle",
+        "errors": [],
+        "stuck": 0,
+        "pauseDiff": []
+      },
+      {
+        "shard": "pine-hollow",
+        "errors": [],
+        "stuck": 0,
+        "pauseDiff": []
+      },
+      {
+        "shard": "nalati-grasslands",
+        "errors": [],
+        "stuck": 0,
+        "pauseDiff": []
+      },
+      {
+        "shard": "nine-dragon-stack",
+        "errors": [],
+        "stuck": 0,
+        "pauseDiff": []
+      }
+    ]
+  },
+  "final": {
+    "command": "node scripts/parity.mjs --export=a78f5423aac3da72e8c04099e22ccd584cf2b4e9 --lane=m5 --shards=all --tiers=phone,desktop --only=fingerprint+poses",
+    "exitCode": 1,
+    "rows": [
+      {
+        "shard": "driftwood-isle",
+        "tier": "phone",
+        "errors": [],
+        "budgetChecks": 12,
+        "budgetFailures": [],
+        "classDFailures": [],
+        "historicalVerdict": "red"
+      },
+      {
+        "shard": "driftwood-isle",
+        "tier": "desktop",
+        "errors": [],
+        "budgetChecks": 12,
+        "budgetFailures": [],
+        "classDFailures": [],
+        "historicalVerdict": "red"
+      },
+      {
+        "shard": "pine-hollow",
+        "tier": "phone",
+        "errors": [],
+        "budgetChecks": 12,
+        "budgetFailures": [],
+        "classDFailures": [],
+        "historicalVerdict": "red"
+      },
+      {
+        "shard": "pine-hollow",
+        "tier": "desktop",
+        "errors": [],
+        "budgetChecks": 12,
+        "budgetFailures": [],
+        "classDFailures": [],
+        "historicalVerdict": "red"
+      },
+      {
+        "shard": "nalati-grasslands",
+        "tier": "phone",
+        "errors": [],
+        "budgetChecks": 12,
+        "budgetFailures": [],
+        "classDFailures": [],
+        "historicalVerdict": "red"
+      },
+      {
+        "shard": "nalati-grasslands",
+        "tier": "desktop",
+        "errors": [],
+        "budgetChecks": 12,
+        "budgetFailures": [],
+        "classDFailures": [],
+        "historicalVerdict": "red"
+      },
+      {
+        "shard": "nine-dragon-stack",
+        "tier": "phone",
+        "errors": [],
+        "budgetChecks": 16,
+        "budgetFailures": [],
+        "classDFailures": [],
+        "historicalVerdict": "red"
+      },
+      {
+        "shard": "nine-dragon-stack",
+        "tier": "desktop",
+        "errors": [],
+        "budgetChecks": 16,
+        "budgetFailures": [],
+        "classDFailures": [],
+        "historicalVerdict": "red"
+      }
+    ]
+  },
+  "prePost": [
+    {
+      "slug": "driftwood-isle",
+      "base": "fc043dfec376c58d94cde43275d7458a2cb0bfdf",
+      "after": "a78f5423aac3da72e8c04099e22ccd584cf2b4e9",
+      "failures": [],
+      "budgetChecks": 12
+    },
+    {
+      "slug": "pine-hollow",
+      "base": "fc043dfec376c58d94cde43275d7458a2cb0bfdf",
+      "after": "a78f5423aac3da72e8c04099e22ccd584cf2b4e9",
+      "failures": [],
+      "budgetChecks": 12
+    },
+    {
+      "slug": "nalati-grasslands",
+      "base": "fc043dfec376c58d94cde43275d7458a2cb0bfdf",
+      "after": "a78f5423aac3da72e8c04099e22ccd584cf2b4e9",
+      "failures": [
+        {
+          "field": "poses.plains.ssim",
+          "class": "B",
+          "baseline": 0.979228674794276,
+          "now": 0.9791826620381007
+        }
+      ],
+      "budgetChecks": 12
+    },
+    {
+      "slug": "nine-dragon-stack",
+      "base": "fc043dfec376c58d94cde43275d7458a2cb0bfdf",
+      "after": "a78f5423aac3da72e8c04099e22ccd584cf2b4e9",
+      "failures": [],
+      "budgetChecks": 16
+    }
+  ]
+}
