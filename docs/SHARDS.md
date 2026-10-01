@@ -322,6 +322,9 @@ ownership; do not also own those resources. See [ENGINE §13.1](ENGINE.md#131-lo
   `runtime.play.cues.use((id, opts) => { … return true; }, ctx.scope)`. Return `false` for a cue you don't handle.
 - **Ambience and score.** `manifest.audio.ambience` and `.score` name them; `preload` builds the audio profile. The
   kit has a forest ambience (`installForestAmbience`) and a silent score (`installSilentScore`).
+  For **no ambience**, use `audio: { ambience: 'none', score: '<your score id>' }`, omit `bed`, and do not install
+  forest ambience, sampled beds or ambient zones in your plugin. The label declares your choice; playback comes
+  from the installed content. SFX cues, music and their `preload` can still be supplied independently.
 - **New sound is made locally.** Music: MiniMax Music 3. SFX: MOSS-SoundEffect v2 and Stable Audio 3 Medium, the
   better take per sound. Both run under the shared model lock (AGENTS.md "Local models"). Put the files in
   `public/assets/music/<slug>/` and `public/assets/sfx/<slug>/`.

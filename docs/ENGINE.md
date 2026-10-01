@@ -852,6 +852,12 @@ A door is a piece whose `active()` is false while it is open, plus an `Interacta
 `manifest.audio` is `{ bed?, ambience, score, cues?, preload?, samples?, alertOnlyHostile? }`. The template points every
 cue at kit sounds:
 
+**No ambience.** Use `audio: { ambience: 'none', score: '<your score id>', … }`, omit `bed`, and install no ambient
+beds/zones or `installForestAmbience` in the plugin. `ambience` names authored content; it does not start an
+installer on its own. With no selected bed or installer, the engine starts no ambient loop. Keep `cues` and
+`preload` for weapon / creature SFX and music as needed; those are independent of ambience. An asset-free shard
+can omit `preload` as well. Do not invent a shard-specific silence id or inherit the template’s forest bed.
+
 ```ts
 export const CUES = { fire: 'cue.sword.swing', impact: 'cue.sword.hit', heavy: 'cue.sword.heavy', reload: 'cue.reload' } as const;
 export function installTemplateCues(audio: Audio, cues: CombatCues, scope: Scope): void {

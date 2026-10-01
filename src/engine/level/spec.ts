@@ -26,7 +26,12 @@ export interface TierKnobMap {}
 export interface TierKnobs extends Partial<EngineTierKnobs>, Partial<TierKnobMap> { treeHiDist?: number; shadowFar?: number; animalShadowDist?: number; grassSlots?: number; envSteps?: boolean; pointLightSkip?: boolean; skipRaysOffscreen?: boolean; godRays?: boolean; ao?: boolean; aa?: 'fxaa' | 'smaa' | 'off'; slices?: boolean; warmTurns?: number; textures?: 'img' | 'ktx2'; msaa?: number; ticks?: Readonly<Record<string, TickRate>> }
 export type TierOverrides = Partial<Record<Tier, TierKnobs>>;
 export type { BudgetInputs } from '../render/budgets';
-export interface AudioSpec { bed?: string; samples?: SfxDecodePolicy; alertOnlyHostile?: boolean; ambience: string; score: string; cues?: () => Promise<object>; preload?: () => Promise<LevelAudioProfile> }
+export interface AudioSpec {
+  bed?: string; samples?: SfxDecodePolicy; alertOnlyHostile?: boolean;
+  /** 'none' declares no ambience: omit bed and install no sampled/synth/zoned ambient content. Score and cues remain independent. */
+  ambience: string;
+  score: string; cues?: () => Promise<object>; preload?: () => Promise<LevelAudioProfile>;
+}
 export interface BootSpec {
   viewmodelSets?: readonly SetName[];
   shaders?: { scene?: boolean; shadows?: boolean; background?: boolean; post?: boolean };

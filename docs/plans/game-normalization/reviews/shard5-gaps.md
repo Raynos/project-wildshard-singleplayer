@@ -37,6 +37,8 @@ edits and zero gaps**.
 
 | G17 | TerrainPainter.build receives no scope for shader patches and resource ownership | E363 round 2 | pass the live owning level scope as build’s third parameter and document ownership; regression covers cleanup | built (sol-g13 private candidate; landing pending) |
 
+| G18 | No documented value means a shard intentionally has no ambience; builders invent silence ids | E363 round 2 | document `audio.ambience: 'none'`, omit bed / ambience installers, and retain independent cues / score | built (sol-g13 private candidate; landing pending) |
+
 ## Shard findings for the rebuild (not API gaps)
 
 From the first-look boards (`art/sunscar-dunes/round-3-build/board-c2fdc72d.jpg`,
