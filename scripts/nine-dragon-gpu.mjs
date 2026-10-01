@@ -69,7 +69,7 @@ const { MOCKUP_CAMERAS } = await import(join(ROOT, 'src/chunks/nine-dragon-stack
 
 /** in the page, once: window.__gpu — the clock, the toggles */
 function installProbe() {
-  const w = window.__world, g = w.game, r = g.renderer, gl = r.getContext(), composer = g.composer;
+  const w = window.__wildshard?.world, g = w.game, r = g.renderer, gl = r.getContext(), composer = g.composer;
   const P = {};
   window.__gpu = P;
   P.render = () => { const t0 = performance.now(); composer.render(1 / 30); return performance.now() - t0; };
@@ -139,10 +139,10 @@ try {
   const page = await ctx.newPage();
   page.on('pageerror', (e) => console.info(`pageerror: ${e.message.slice(0, 300)}`));
   await page.goto(`${base}/?chunk=nine-dragon-stack&skipintro=1&tier=phone&touch=1&mute=1&nolock=1&sw=0`, { waitUntil: 'domcontentloaded' });
-  await page.waitForFunction(() => window.__world?.chunk?.slug === 'nine-dragon-stack' && (window.__world.game?.lastFrame?.calls ?? 0) > 60 && !document.querySelector('.ws-load'), undefined, { timeout: 400000, polling: 1000 });
+  await page.waitForFunction(() => window.__wildshard?.world?.chunk?.slug === 'nine-dragon-stack' && (window.__wildshard.world.game?.lastFrame?.calls ?? 0) > 60 && !document.querySelector('.ws-load'), undefined, { timeout: 400000, polling: 1000 });
   await sleep(6000);
   await page.evaluate(() => {
-    const w = window.__world;
+    const w = window.__wildshard?.world;
     window.__ndg = { pose: null };
     w.game.onLate(() => {
       const p = window.__ndg.pose, cam = w.game.camera;
@@ -154,7 +154,7 @@ try {
     });
     w.freeCamera = true;
   });
-  const size = await page.evaluate(() => { const c = window.__world.game.renderer.domElement; return `${c.width}×${c.height}`; });
+  const size = await page.evaluate(() => { const c = window.__wildshard.world.game.renderer.domElement; return `${c.width}×${c.height}`; });
   console.info(`buffer ${size} · ${base}${Object.keys(picks).length > 0 ? ` · debug ${JSON.stringify(picks)}` : ''}`);
   const poses = poseKeys.map((k) => {
     const c = MOCKUP_CAMERAS[k];
@@ -173,18 +173,18 @@ try {
   const summary = [];
   for (const c of poses.filter((q) => ids.length === 0 || ids.includes(q.id))) {
     const look = c.look;
-    await page.evaluate(() => { const g = window.__world.game; if (window.__ndGate !== undefined) g.frameGate = window.__ndGate; });
+    await page.evaluate(() => { const g = window.__wildshard.world.game; if (window.__ndGate !== undefined) g.frameGate = window.__ndGate; });
     await page.evaluate((v) => {
-      const w = window.__world;
+      const w = window.__wildshard?.world;
       try { w.player.position.set(v.eye[0], Math.max(125, v.eye[1] - 1.62), v.eye[2]); w.player.velocity.set(0, 0, 0); } catch { /* */ }
       window.__ndg.pose = v;
     }, { eye: c.eye, look });
     await sleep(2500);
-    await page.evaluate(() => { const g = window.__world.game; window.__ndGate ??= g.frameGate; g.frameGate = () => false; });
+    await page.evaluate(() => { const g = window.__wildshard.world.game; window.__ndGate ??= g.frameGate; g.frameGate = () => false; });
     await sleep(300);
     await page.evaluate(installProbe);
     const b = await page.evaluate(runBase, ROUNDS * 2);
-    const f = await page.evaluate(() => { const g = window.__world.game, rd = g.renderer; rd.info.reset(); g.composer.render(1 / 30); return { calls: rd.info.render.calls, tris: rd.info.render.triangles }; });
+    const f = await page.evaluate(() => { const g = window.__wildshard.world.game, rd = g.renderer; rd.info.reset(); g.composer.render(1 / 30); return { calls: rd.info.render.calls, tris: rd.info.render.triangles }; });
     summary.push({ id: c.id, ms: b.p20, calls: f.calls, tris: f.tris });
     console.info(`\n${c.id}: GPU ${b.p20.toFixed(2)} ms/frame (p50 ${b.p50.toFixed(2)}) · cpu submit ${b.cpu.toFixed(2)} ms · ${f.calls} draws · ${(f.tris / 1e6).toFixed(2)} M tris${b.p20 > GATE ? `  OVER the ${GATE} ms gate` : ''}`);
     if (SUB === 'none') continue;

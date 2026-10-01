@@ -28,17 +28,17 @@ try {
     const errors = [];
     page.on('pageerror', (e) => errors.push(e.message.slice(0, 200)));
     await page.goto(`${URL_BASE}/?chunk=nalati-grasslands&mute=1&nolock=1&skipintro=1&tier=${tier}&time=12&clock=0&weather=clear`, { waitUntil: 'domcontentloaded' });
-    await page.waitForFunction(() => Boolean(window.__world) && !document.querySelector('.ws-load'), undefined, { timeout: 240000, polling: 1000 });
+    await page.waitForFunction(() => Boolean(window.__wildshard?.world) && !document.querySelector('.ws-load'), undefined, { timeout: 240000, polling: 1000 });
     await new Promise((resolve) => { setTimeout(resolve, 5000); });
     const probe = () => page.evaluate(() => {
-      const w = window.__world, ph = w.physics.world;
+      const w = window.__wildshard?.world, ph = w.physics.world;
       let awake = 0, dynamic = 0;
       ph.bodies.forEach((b) => { if (b.isDynamic()) { dynamic++; if (!b.isSleeping()) awake++; } });
       return { dynamic, awake };
     });
     // the victims: the three horses and two wolves nearest the herd's middle; the player 12 m off them
     const kill = (n) => page.evaluate(({ nh, nw }) => {
-      const w = window.__world, list = w.animals.animals;
+      const w = window.__wildshard?.world, list = w.animals.animals;
       const pick = (kind, k) => list.filter((a) => a.kind === kind && a.alive && a.mem.owned !== 1 && a.mem.ridden !== 1).slice(0, k);
       const horses = pick('horse', nh), wolves = pick('wolf', nw), all = [...horses, ...wolves];
       const first = all[0];
@@ -66,7 +66,7 @@ try {
     r.errors = errors;
     if (tier === 'phone') {
       await page.evaluate(() => {
-        const w = window.__world, v = window.__victims?.[0];
+        const w = window.__wildshard?.world, v = window.__victims?.[0];
         if (!v) return;
         w.player.update = () => undefined;
         const cam = w.game.camera;

@@ -37,7 +37,7 @@ try {
     page.on('pageerror', (e) => errors.push(e.message.slice(0, 200)));
     const q = ['chunk=nalati-grasslands', 'touch=1', 'tier=phone', 'skipintro=1', 'nolock=1', 'mute=1', 'time=13', 'clock=0', 'weather=clear'].join('&');
     await page.goto(`${URL_BASE}/?${q}`, { waitUntil: 'domcontentloaded' });
-    await page.waitForFunction(() => Boolean(window.__world && window.__nalatiQuest?.people), undefined, { timeout: 300000, polling: 1000 });
+    await page.waitForFunction(() => Boolean(window.__wildshard?.world && window.__nalatiQuest?.people), undefined, { timeout: 300000, polling: 1000 });
     // the generated figures replace the procedural batch once loaded
     await page.waitForFunction(() => window.__nalatiQuest.people.group.children.some((o) => o.name === 'nalati-camp-people-gen'), undefined, { timeout: 180000, polling: 1000 })
       .catch(() => { console.log(`${v}: the generated people never loaded (procedural fallback)`); });
@@ -48,7 +48,7 @@ try {
     for (const id of PEOPLE) {
       // stand DIST in front of the figure (along its idle facing), look at its face
       await page.evaluate(([pid, d]) => {
-        const f = window.__nalatiQuest.people.fig[pid], p = window.__world.player;
+        const f = window.__nalatiQuest.people.fig[pid], p = window.__wildshard.world.player;
         const x = f.feet.x + Math.sin(f.yaw) * d, z = f.feet.z + Math.cos(f.yaw) * d;
         p.position.set(x, f.feet.y + 0.2, z);
         p.yaw = Math.atan2(-(f.feet.x - x), -(f.feet.z - z));
@@ -57,7 +57,7 @@ try {
       await sleep(2500);
       // aim at the face (the talk point sits 0.12 m over the neck: the face is about there)
       await page.evaluate((pid) => {
-        const f = window.__nalatiQuest.people.fig[pid], p = window.__world.player, cam = window.__world.game.camera;
+        const f = window.__nalatiQuest.people.fig[pid], p = window.__wildshard.world.player, cam = window.__wildshard.world.game.camera;
         const c = cam.getWorldPosition(cam.position.clone());
         const dx = f.headWorld.x - c.x, dz = f.headWorld.z - c.z;
         p.yaw = Math.atan2(-dx, -dz);
@@ -65,7 +65,7 @@ try {
       }, id);
       await sleep(2000);
       const box = await page.evaluate((pid) => {
-        const f = window.__nalatiQuest.people.fig[pid], cam = window.__world.game.camera;
+        const f = window.__nalatiQuest.people.fig[pid], cam = window.__wildshard.world.game.camera;
         cam.updateMatrixWorld();
         const a = f.headWorld.clone().project(cam), b = f.headWorld.clone().add({ x: 0, y: 0.3, z: 0 }).project(cam);
         const W = window.innerWidth, H = window.innerHeight;

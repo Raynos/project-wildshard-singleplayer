@@ -1,4 +1,4 @@
-// Copied from the light lab (src/dev/nd-lab/light/grade.ts, round-9-lab-light) into the clean room.
+// Copied from the light lab (the dev labs (deleted in E357 F7), round-9-lab-light) into the clean room.
 // Lab P6 "light" (E169): the COLOUR GRADE — a learned 33³ LUT fitted from the round-8 look loop (the 9 codex targets vs
 // the lab's captures with the light pools and window glow on; neon excluded, greys held) and the blue-hour SKY + FOG
 // ramp the LUT should not have to fix.

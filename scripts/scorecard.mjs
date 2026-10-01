@@ -9,7 +9,7 @@
 // ?tier=phone; desktop = 1600×900 @1, ?tier=desktop), in one headless Chromium on the host GPU (ANGLE Metal, muted):
 //   load     cold (fresh context, service worker allowed) then warm (second load, same context): transfer bytes and
 //            request count to playable, cold bytes until the network goes quiet (a background prefetch lands there),
-//            time to play (bench-load's playMs: `.ws-load` gone and `window.__world` set) and the longest main-thread
+//            time to play (bench-load's playMs: `.ws-load` gone and `window.__wildshard?.world` set) and the longest main-thread
 //            task before it.
 //   memory   on the warm page, settled, after a forced GC: JS heap (CDP Performance.getMetrics); GPU bytes counted at the
 //            WebGL API (every texImage / texStorage / compressedTexImage / renderbufferStorage / bufferData, by internal
@@ -176,7 +176,7 @@ const INIT_SCRIPT = `(() => {
     const load = document.querySelector('.ws-load') !== null;
     if (load && !loadOn) W.__sc_loadSeen++;
     loadOn = load;
-    const w = W.__world; const slug = w && w.chunk ? w.chunk.slug : null; const hud = document.getElementById('hud');
+    const w = W.__wildshard?.world; const slug = w && w.chunk ? w.chunk.slug : null; const hud = document.getElementById('hud');
     if (!W.__bench_play && !load && w) W.__bench_play = Math.round(performance.now());
     const ok = !!slug && !load && !(hud && hud.classList.contains('intro'));
     if (ok && (!wasReady || !W.__sc_ready || W.__sc_ready.slug !== slug)) W.__sc_ready = { slug, at: epoch() };
@@ -276,7 +276,7 @@ const INIT_SCRIPT = `(() => {
 
 // memory, read in the page: the GL tally (the renderer's context vs any other), a scene traversal estimate, renderer.info
 const MEMORY = `(() => {
-  const W = window; const world = W.__world; const game = world && world.game; const renderer = game && game.renderer;
+  const W = window; const world = W.__wildshard?.world; const game = world && world.game; const renderer = game && game.renderer;
   const main = renderer && renderer.getContext ? renderer.getContext() : null;
   const gls = W.__sc_gl ? W.__sc_gl() : [];
   const mine = gls.find((g) => g.gl === main) || gls.reduce((a, b) => (!a || b.texBytes > a.texBytes ? b : a), null);
@@ -508,7 +508,7 @@ async function measureShard(shard, vp, run, shots) {
       // Hollow's Imperial Bull at the pond, Old Ironhide at the cabin) shakes the camera and kills the player mid-sample
       // Pine Hollow's named elites run their own AI (src/game/Elite.ts): with no aware / engage radius they stay at their lairs
       await page.evaluate(() => {
-        const a = window.__world?.animals; if (a) a.calm = true;
+        const a = window.__wildshard?.world?.animals; if (a) a.calm = true;
         for (const e of window.__pineElites?.elites?.entries ?? []) { e.script.def.awareR = 0; e.script.def.engageR = 0; }
       });
       await sleep(SETTLE_MS);
@@ -527,7 +527,7 @@ async function measureShard(shard, vp, run, shots) {
 
 async function measurePose(page, shard, vp, pose, run, shots) {
   await page.evaluate((p) => {
-    const w = window.__world, pl = w.player, s = w.chunk.spawn;
+    const w = window.__wildshard?.world, pl = w.player, s = w.chunk.spawn;
     pl.spawn(p.x ?? s.x, p.z ?? s.z, p.yaw ?? s.yaw);
     // spawn() puts the feet on the terrain: under a deck (Driftwood's pier) that is inside it — land on the top of the
     // static floor within 2.5 m above instead (scripts/physics-baseline.mjs `land`)
@@ -544,7 +544,7 @@ async function measurePose(page, shard, vp, pose, run, shots) {
   }, pose);
   await sleep(SETTLE_MS);
   const f = await page.evaluate(async (ms) => {
-    const W = window, g = W.__world.game;
+    const W = window, g = W.__wildshard.world.game;
     // a DRAWN frame is one where game.frameNo moved (the tier's frame cap skips vsyncs: Pine Hollow's phone draws every
     // 2nd); intervals and main-thread ms are per drawn frame (the skipped vsyncs' few µs fold into the next drawn one)
     const drawnNo = () => (typeof g.frameNo === 'number' ? g.frameNo : null);
@@ -565,7 +565,7 @@ async function measurePose(page, shard, vp, pose, run, shots) {
       W.__sc_rawRAF(tick);
     });
     W.__sc_cpuOn = false;
-    const p = W.__world.player.position;
+    const p = W.__wildshard.world.player.position;
     return { iv, cpu, calls, tris, pos: [p.x, p.y, p.z] };
   }, SAMPLE_MS);
   const mean = f.iv.reduce((s, v) => s + v, 0) / Math.max(1, f.iv.length);
@@ -581,7 +581,7 @@ async function measurePose(page, shard, vp, pose, run, shots) {
   // where the creatures are on screen (CSS px boxes): SSIM leaves them out — it measures the render, not where the herd
   // wandered (the Chestnut Mare, the camp horses). Each animal's skinned mesh bounds projected, padded, + a label strip.
   const boxes = await page.evaluate(() => {
-    const w = window.__world, cam = w.game.camera, list = w.animals?.animals ?? [];
+    const w = window.__wildshard?.world, cam = w.game.camera, list = w.animals?.animals ?? [];
     const V = w.player.position.constructor, W = innerWidth, H = innerHeight, out = [];
     cam.updateMatrixWorld();
     const right = new V().setFromMatrixColumn(cam.matrixWorld, 0).normalize();
@@ -632,7 +632,7 @@ async function switchRoute(vp) {
       const to = ROUTE[i];
       const step = { from: ROUTE[i - 1], to };
       try {
-        await page.evaluate(() => { window.__world?.hud?.exitToMenu(); });
+        await page.evaluate(() => { window.__wildshard?.world?.hud?.exitToMenu(); });
         await page.waitForFunction((d) => document.querySelector(`${d} .ws-menu-card`) !== null, DECK, { timeout: 20_000, polling: 100 });
         await sleep(900);
         // pick the card (a DOM click: the deck is a transformed track, the target card can sit outside the viewport)
@@ -672,8 +672,8 @@ async function switchRoute(vp) {
         step.status = at > 0 ? 'ok' : 'timeout';
         if (at > 0) {
           // the first drawn frames of the shard entered
-          const n0 = await page.evaluate(() => window.__world?.game.frameNo ?? 0);
-          await page.waitForFunction((n) => (window.__world?.game.frameNo ?? 0) >= n + 2, n0, { timeout: 30_000, polling: 16 }).catch(() => undefined);
+          const n0 = await page.evaluate(() => window.__wildshard?.world?.game.frameNo ?? 0);
+          await page.waitForFunction((n) => (window.__wildshard?.world?.game.frameNo ?? 0) >= n + 2, n0, { timeout: 30_000, polling: 16 }).catch(() => undefined);
           step.firstFrameMs = Date.now() - t0;
         }
         const st = await page.evaluate(({ tok, t, k }) => {

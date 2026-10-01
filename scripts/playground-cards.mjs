@@ -25,7 +25,7 @@ mkdirSync(OUT, { recursive: true });
 /** the frame as it is, with the HUD hidden and the loop frozen (nothing moves between the freeze and the shot) */
 async function still(page, name) {
   await page.evaluate(() => {
-    const g = window.__world.game;
+    const g = window.__wildshard.world.game;
     window.__cardGate ??= g.frameGate;
     g.frameGate = () => false;
     const hud = document.getElementById('hud');
@@ -34,7 +34,7 @@ async function still(page, name) {
   await sleep(120);
   await page.screenshot({ path: join(OUT, `${name}.png`) });
   await page.evaluate(() => {
-    window.__world.game.frameGate = window.__cardGate;
+    window.__wildshard.world.game.frameGate = window.__cardGate;
     const hud = document.getElementById('hud');
     if (hud) hud.style.visibility = '';
   });
@@ -65,7 +65,7 @@ async function grapple(browser) {
   await openHub(page);
   await hubShot(page, 'hub-nine-dragon-stack');
   await enterPlayground(page, 'grapple');
-  const hooks = await page.evaluate(() => window.__world.playground().hooks.map((h) => [h.x, h.y, h.z]));
+  const hooks = await page.evaluate(() => window.__wildshard.world.playground().hooks.map((h) => [h.x, h.y, h.z]));
   // hooks (grappleCourse.ts HOOKS): 0 P1 · 1 P2 · 2 BASE · 3 L1 · 4 L2 · 5 the top
   const shots = [{ pad: 'base', hook: 3, tag: 'base-l1' }, { pad: 'p2', hook: 2, tag: 'p2-base' }, { pad: 'l1', hook: 4, tag: 'l1-l2' }];
   for (const s of shots) {
@@ -74,7 +74,7 @@ async function grapple(browser) {
       const pad = PADS.find((q) => q.id === s.pad);
       if (pad === undefined) continue;
       await page.evaluate(([x, top, z]) => {
-        const w = window.__world, c = w.playground().center;
+        const w = window.__wildshard?.world, c = w.playground().center;
         w.player.spawn(c.x + x, c.z + z, 0, 3000 + top);
         w.player.velocity.set(0, 0, 0);
       }, [pad.x, pad.top, pad.z]);
@@ -103,7 +103,7 @@ async function horse(browser) {
   await enterPlayground(page, 'horse');
   await sleep(1500);
   await tap(page, '.ws-touch-use');
-  await page.waitForFunction(() => window.__world.ride.mounted === true, undefined, { timeout: 8000, polling: 100 });
+  await page.waitForFunction(() => window.__wildshard.world.ride.mounted === true, undefined, { timeout: 8000, polling: 100 });
   await sleep(1000);
   const ring = await (await page.$('.ws-touch-stick'))?.boundingBox();
   if (!ring) throw new Error('no MOVE stick');
@@ -116,11 +116,11 @@ async function horse(browser) {
   await touch('touchEnd', cx, cy - 84);
   // a glance off the heading (a LOOK drag's worth), frozen before the view eases back behind the ears
   const glance = async (name, dyaw, pitch) => {
-    await page.evaluate(([y, p]) => { const w = window.__world; w.player.yaw += y; w.player.pitch = p; }, [dyaw, pitch]);
+    await page.evaluate(([y, p]) => { const w = window.__wildshard?.world; w.player.yaw += y; w.player.pitch = p; }, [dyaw, pitch]);
     await sleep(140);
     await still(page, name);
   };
-  const local = () => page.evaluate(() => { const w = window.__world, pg = w.playground(), p = w.player.position; return [p.x - pg.center.x, p.z - pg.center.z]; });
+  const local = () => page.evaluate(() => { const w = window.__wildshard?.world, pg = w.playground(), p = w.player.position; return [p.x - pg.center.x, p.z - pg.center.z]; });
   // the back straight, heading west toward the HALF WAY gate
   await glance('horse-front-ahead', 0, -0.06);
   for (let k = 0; k < 120; k++) { await sleep(250); const [x, z] = await local(); if (z < -30 && x < 40) break; }
@@ -128,7 +128,7 @@ async function horse(browser) {
   // then the rider takes the reins (the stick, as a thumb would): off the track at the west bend, round into the infield
   // and east down the jump lane — the four rails ahead, jumped at a canter; frames on the way in and between the rails
   await page.evaluate(() => {
-    const w = window.__world, pg = w.playground(), m = w.ride.mount;
+    const w = window.__wildshard?.world, pg = w.playground(), m = w.ride.mount;
     const pts = [[-70, -20], [-75, 0], [-55, 0], [60, 0]];
     let i = 0;
     const wrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
@@ -152,12 +152,12 @@ async function horse(browser) {
     if (!started && x < -60 && Math.abs(z) < 6) started = true;
     const s = shots[next];
     if (started && Math.abs(z) < 6 && x > s[0]) {
-      await page.evaluate(() => { const w = window.__world; w.player.pitch = -0.08; });
+      await page.evaluate(() => { const w = window.__wildshard?.world; w.player.pitch = -0.08; });
       await still(page, s[1]);
       next++;
     }
   }
-  await page.evaluate(() => { clearInterval(window.__lane); const w = window.__world; w.player.touchMove.x = 0; w.player.touchMove.y = 0; });
+  await page.evaluate(() => { clearInterval(window.__lane); const w = window.__wildshard?.world; w.player.touchMove.x = 0; w.player.touchMove.y = 0; });
   await page.context().close();
 }
 

@@ -1,4 +1,4 @@
-// Wet-ground streaks, merged from the neon lab (src/dev/nd-lab/neon/wetground.ts, "cards"): one instanced additive
+// Wet-ground streaks, merged from the neon lab (the dev labs (deleted in E357 F7), "cards"): one instanced additive
 // card per emitter, lying where optics puts its reflection — between the mirror points of the emitter's top and bottom,
 // c / (c + h) of the way from the eye — stretched along the view ray by the gloss, broken on the same flagstone joints
 // as the ground (STONES_GLSL, shared with the Jiehua ground), with a jagged two-octave ripple edge, striation, dashes and

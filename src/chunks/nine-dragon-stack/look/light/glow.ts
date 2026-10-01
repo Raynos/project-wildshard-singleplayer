@@ -1,4 +1,4 @@
-// Copied from the light lab (src/dev/nd-lab/light/glow.ts, round-9-lab-light) into the clean room.
+// Copied from the light lab (the dev labs (deleted in E357 F7), round-9-lab-light) into the clean room.
 // Lab P6 "light" (E169): WINDOW GLOW — lit windows (and shop fronts, lanterns) bleeding warm light into the silk fog
 // around them at distance, without blowing out. Zero extra passes: it rides in the ALPHA channel of the clean room's
 // existing bloom pyramid (post.ts), which carried a constant 1.0 until now.

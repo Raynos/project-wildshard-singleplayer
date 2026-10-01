@@ -34,7 +34,7 @@ try {
   await page.screenshot({ path: join(OUT, 'nalati-hub.jpg'), type: 'jpeg', quality: 86 });
   await enterPlayground(page, 'horse');
   const state = () => page.evaluate(() => {
-    const w = window.__world, p = w.player.position, m = w.ride.mount, pg = w.playground();
+    const w = window.__wildshard?.world, p = w.player.position, m = w.ride.mount, pg = w.playground();
     const h = m.horse;
     return {
       pos: [p.x, p.y, p.z].map((v) => Number(v.toFixed(1))), mounted: w.ride.mounted, gait: m.gait, onRoad: m.onRoad,
@@ -51,7 +51,7 @@ try {
   await page.screenshot({ path: join(OUT, 'horse-1-start.jpg'), type: 'jpeg', quality: 86 });
   // mount: the USE band reads "Mount Track horse"
   await tap(page, '.ws-touch-use');
-  await page.waitForFunction(() => window.__world.ride.mounted === true, undefined, { timeout: 8000, polling: 100 });
+  await page.waitForFunction(() => window.__wildshard.world.ride.mounted === true, undefined, { timeout: 8000, polling: 100 });
   await sleep(1200);
   const mounted = await state();
   report.steps.push({ at: 'mounted', ...mounted });

@@ -1,4 +1,4 @@
-// Neon calligraphy signs, merged from the neon lab (src/dev/nd-lab/neon/signs.ts, round-7-lab-neon): an SDF brush
+// Neon calligraphy signs, merged from the neon lab (the dev labs (deleted in E357 F7), round-7-lab-neon): an SDF brush
 // fill with a darker glass rim and a short in-quad halo, on dark plank boards framed by a procedural neon tube.
 // Two draws for every 'tube' sign in the Stack:
 //   boards — opaque: the board (planks, grime, a ruled ink edge, lit by its own tubes), the rounded-rect frame tube,

@@ -3,7 +3,7 @@ import { heightAt } from '../world/Heightfield';
 
 /**
  * Scripted camera fly-through used to record the progress video headlessly:
- * `?tour=1` puts the camera under Tour control; `window.__world.tour.setTime(seconds)` poses it,
+ * `?tour=1` puts the camera under Tour control; `window.__wildshard.world.tour.setTime(seconds)` poses it,
  * then the capture script screenshots frame by frame (see scripts/progress-video.sh).
  */
 export class Tour {

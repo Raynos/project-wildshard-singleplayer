@@ -1,6 +1,6 @@
 // The Nine Dragon Stack fragment's world (P0-5c), built for the engine: Lantern Square at +125 m, the Well's rim and its
 // upper galleries, the stair-street stub and the towers round them — what the clean room built in its page
-// (src/dev/nine-dragon/main.ts), without its camera, player, HUD, viewmodel or post. Everything is added under one
+// (the dev labs (deleted in E357 F7)), without its camera, player, HUD, viewmodel or post. Everything is added under one
 // Group; `update(t, camera)` drives the shared uniforms (time, the eye for the materials' baked silk fog) and the
 // movers. The look (materials, signs, neon, streaks, light) is look/'s; this file only assembles it.
 // (E306 / E315 M4) Every reusable thing in it is a model (../models/: the facade's pieces, the square's lions and sets,

@@ -28,7 +28,7 @@ try {
     await page.goto(`${URL_BASE}/?chunk=${shard}&mute=1&nolock=1&skipintro=1${TOUCH ? '&touch=1&tier=phone' : ''}`, { waitUntil: 'domcontentloaded' });
     let ok = true;
     try {
-      await page.waitForFunction(() => Boolean(window.__world), undefined, { timeout: 240000, polling: 1000 });
+      await page.waitForFunction(() => Boolean(window.__wildshard?.world), undefined, { timeout: 240000, polling: 1000 });
     } catch { ok = false; }
     await new Promise((resolve) => { setTimeout(resolve, 8000); });
     writeFileSync(resolvePath(OUT, `boot-${shard}${TOUCH ? '-touch' : ''}.jpg`), await page.screenshot({ type: 'jpeg', quality: 80 }));

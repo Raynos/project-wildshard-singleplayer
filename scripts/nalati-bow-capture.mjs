@@ -36,14 +36,14 @@ try {
     const errors = [];
     page.on('pageerror', (e) => errors.push(e.message.slice(0, 200)));
     await page.goto(`${URL_BASE}/?${q}`, { waitUntil: 'domcontentloaded' });
-    await page.waitForFunction(ready ?? (() => window.__world?.player !== undefined && !document.getElementById('hud')?.classList.contains('intro')), undefined, { timeout: 300000, polling: 1000 });
+    await page.waitForFunction(ready ?? (() => window.__wildshard?.world?.player !== undefined && !document.getElementById('hud')?.classList.contains('intro')), undefined, { timeout: 300000, polling: 1000 });
     await sleep(3000);
-    await page.evaluate(() => { const ws = window.__world.weapons; ws.select('bow', true); });
+    await page.evaluate(() => { const ws = window.__wildshard.world.weapons; ws.select('bow', true); });
     await sleep(600);
     return { page, errors };
   };
   const bowState = (page) => page.evaluate(() => {
-    const w = window.__world, b = w.nalati?.kit?.bow ?? w.weapons.get('bow');
+    const w = window.__wildshard?.world, b = w.nalati?.kit?.bow ?? w.weapons.get('bow');
     const kb = w.weapons.current;
     const r = (v) => Math.round(v * 100) / 100;
     return { draw: r(kb.charge ?? 0), quiver: kb.state.ammo, aim: [w.weapons.adsHeld, w.nalati?.kit?.bow?.aimOn === true, r(w.game.camera.fov) < 60].some(Boolean), fov: r(w.game.camera.fov), stuck: b?.stuckCount ?? null, fire: document.querySelector('.ws-touch-attack')?.className.replace('ws-touch-attack', '').trim() ?? '' };
@@ -57,7 +57,7 @@ try {
     shots.push({ name, kind, b64: buf.toString('base64'), note: note || line });
     return s;
   };
-  const freeze = (page, s) => page.evaluate((sec) => { window.__world.game.hitStop(sec); }, s);
+  const freeze = (page, s) => page.evaluate((sec) => { window.__wildshard.world.game.hitStop(sec); }, s);
   // real touches (CDP), so the discs get real pointer events with capture
   const touchKit = async (page) => {
     const cdp = await page.context().newCDPSession(page);
@@ -91,9 +91,9 @@ try {
     await shoot(page, 'aim-off', 'phone', errors, 'AIM tapped off: back to the hip view');
     await page.close();
 
-    const m = await open(phone, `${NAL}&touch=1&tier=phone&ride=gallop`, () => window.__world?.ride?.mounted === true);
+    const m = await open(phone, `${NAL}&touch=1&tier=phone&ride=gallop`, () => window.__wildshard?.world?.ride?.mounted === true);
     const mt = await touchKit(m.page);
-    await m.page.evaluate(() => { const w = window.__world; w.weapons.select('bow', true); w.ride.mount.touchGallop = true; w.player.touchMove.y = 1; });
+    await m.page.evaluate(() => { const w = window.__wildshard?.world; w.weapons.select('bow', true); w.ride.mount.touchGallop = true; w.player.touchMove.y = 1; });
     await sleep(2500);
     await mt.down(FIRE); await sleep(1300);
     await shoot(m.page, 'mounted-draw', 'phone', m.errors, 'galloping, drawn (0.9 s draw from the saddle)');
@@ -121,12 +121,12 @@ try {
   if (ONLY.includes('saddle')) {
     // H2's saddle shot, on the Kunes bridge (the sabre, galloping north from ?ride=gallop): the horse's head and ears must
     // be in the frame on the deck too (Animal.levelGround — the body no longer pitches to the gully under the deck)
-    const { page, errors } = await open(phone, `${NAL}&touch=1&tier=phone&ride=gallop`, () => window.__world?.ride?.mounted === true);
-    await page.evaluate(() => { const w = window.__world; w.weapons.select('sabre', true); w.ride.mount.touchGallop = true; w.player.touchMove.y = 1; });
-    await page.waitForFunction(() => window.__world.ride.mount.horse?.levelGround === true, undefined, { timeout: 15000, polling: 50 }).catch(() => { console.log('never reached the bridge'); });
+    const { page, errors } = await open(phone, `${NAL}&touch=1&tier=phone&ride=gallop`, () => window.__wildshard?.world?.ride?.mounted === true);
+    await page.evaluate(() => { const w = window.__wildshard?.world; w.weapons.select('sabre', true); w.ride.mount.touchGallop = true; w.player.touchMove.y = 1; });
+    await page.waitForFunction(() => window.__wildshard.world.ride.mount.horse?.levelGround === true, undefined, { timeout: 15000, polling: 50 }).catch(() => { console.log('never reached the bridge'); });
     await sleep(350);
     const info = await page.evaluate(() => {
-      const w = window.__world, m = w.ride.mount, h = m.horse, cam = w.game.camera;
+      const w = window.__wildshard?.world, m = w.ride.mount, h = m.horse, cam = w.game.camera;
       const r = (v) => Math.round(v * 100) / 100;
       const fwd = -((cam.position.x - h.position.x) * Math.sin(h.yaw) + (cam.position.z - h.position.z) * Math.cos(h.yaw)); // + = the eye behind the horse's origin
       return { gait: m.gait, onBridge: h.levelGround, eyeBehind: r(fwd), eyeUp: r(cam.position.y - h.position.y), bodyPitchDeg: r(h.mesh.rotation.x * 57.3) };

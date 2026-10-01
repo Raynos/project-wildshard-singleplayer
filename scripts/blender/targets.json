@@ -118,7 +118,7 @@
    "feeds": ["src/chunks/pine-hollow/models/skinningKnife.ts"]
   },
   "nine-dragon-stack/fp-rig": {
-   "about": "The Nine Dragon first-person arms: hand, gauntlet and guard parts (Blender), rigged with 16 clips into fp-rig.glb by the viewmodel lab's bake (lab P8 round 13, E169)",
+   "about": "The Nine Dragon first-person arms: hand, gauntlet and guard parts (Blender), rigged with 16 clips into fp-rig.glb by the viewmodel lab's bake (lab P8 round 13, E169); its rig-bake step ran in the deleted dev lab (E357 F7); a rebuild needs a new bake path",
    "manual": "the rig bake ran in the deleted viewmodel lab page, and fp-rig.glb is the only complete copy: scripts/blender/nine-dragon-stack/viewmodel/README.md says how to re-derive it",
    "check": "node --import ./scripts/bake-loader.mjs scripts/blender/nine-dragon-stack/viewmodel/rig/check-clips.mjs",
    "script": "scripts/blender/nine-dragon-stack/viewmodel/hand.py",
@@ -127,8 +127,8 @@
     "scripts/blender/nine-dragon-stack/viewmodel/gauntlet.py", "scripts/blender/nine-dragon-stack/viewmodel/gauntlet_geo.py", "scripts/blender/nine-dragon-stack/viewmodel/gauntlet_maps.py",
     "scripts/blender/nine-dragon-stack/viewmodel/gauntlet_parts.py", "scripts/blender/nine-dragon-stack/viewmodel/gauntlet_preview.py", "scripts/blender/nine-dragon-stack/viewmodel/guard.py",
     "scripts/blender/nine-dragon-stack/viewmodel/rig/bake.ts.txt", "scripts/blender/nine-dragon-stack/viewmodel/rig/moves.ts.txt", "scripts/blender/nine-dragon-stack/viewmodel/rig/lab-main.ts.txt",
-    "scripts/blender/nine-dragon-stack/viewmodel/rig/rigbake.mjs", "scripts/blender/nine-dragon-stack/viewmodel/rig/riggate.mjs", "scripts/blender/nine-dragon-stack/viewmodel/rig/gate_chart.py",
-    "scripts/blender/nine-dragon-stack/viewmodel/rig/bakecap.sh", "scripts/blender/nine-dragon-stack/viewmodel/rig/check-clips.mjs"
+    "scripts/blender/nine-dragon-stack/viewmodel/rig/gate_chart.py",
+    "scripts/blender/nine-dragon-stack/viewmodel/rig/check-clips.mjs"
    ],
    "inputs": ["src/chunks/nine-dragon-stack/vm/rig.ts"],
    "lock": true,

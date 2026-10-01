@@ -84,7 +84,7 @@ try {
     const url = `${URL_BASE}/?${[DEF.query, g.query, `x=${first.P.x}`, `z=${first.P.z}`, EXTRA].filter(Boolean).join('&')}`;
     const t0 = Date.now();
     await page.goto(url, { waitUntil: 'domcontentloaded' });
-    await page.waitForFunction(() => Boolean(window.__world && window.__hf && window.__world.animals), undefined, { timeout: TIMEOUT, polling: 1000 });
+    await page.waitForFunction(() => Boolean(window.__wildshard?.world && window.__hf && window.__wildshard.world.animals), undefined, { timeout: TIMEOUT, polling: 1000 });
     console.error(`[${g.mode}] ready in ${((Date.now() - t0) / 1000).toFixed(0)} s${errors.length > 0 ? ` — page errors: ${errors.join(' | ')}` : ''}`);
     // resolve the cameras once (ground height at each P) and write them back
     if (!resolved) {
@@ -98,7 +98,7 @@ try {
       resolved = true;
     }
     await page.evaluate(() => {
-      const w = window.__world;
+      const w = window.__wildshard?.world;
       w.animals.calm = true;
       if (window.__v9) return;
       window.__v9 = { pose: null, saved: null };
@@ -120,7 +120,7 @@ try {
       const list = (a.cameras ?? []).filter((c) => c.mode === g.mode);
       for (const c of list) {
         await page.evaluate((cc) => {
-          const w = window.__world;
+          const w = window.__wildshard?.world;
           if (cc.mode === 'god') {
             w.player.spawn(cc.look[0], cc.look[2], 0);
             w.freeCamera = true; // the forest / grass LOD around the eye, the player parked
@@ -139,7 +139,7 @@ try {
           }
         }, c);
         await sleep(SETTLE);
-        const perf = await page.evaluate(() => ({ calls: window.__world.game.lastFrame.calls, tris: window.__world.game.lastFrame.triangles }));
+        const perf = await page.evaluate(() => ({ calls: window.__wildshard.world.game.lastFrame.calls, tris: window.__wildshard.world.game.lastFrame.triangles }));
         const shot = await page.screenshot({ type: 'jpeg', quality: 84, scale: 'css' });
         const file = resolvePath(FRAMES, `${TAG ? `${TAG}-` : ''}${a.id}-${c.n}-${c.id}.jpg`);
         writeFileSync(file, shot);

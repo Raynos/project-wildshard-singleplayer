@@ -159,7 +159,7 @@ try {
   const q = `chunk=${CHUNK}&skipintro=1&nolock=1&mute=1${phone ? '&touch=1&tier=phone' : '&tier=desktop'}`;
   const navAt = Date.now();
   await page.goto(`${URL_BASE}/?${q}`, { waitUntil: 'commit', timeout: 180_000 });
-  await page.waitForFunction(() => Boolean(window.__world) && !document.querySelector('.ws-load'), null, { timeout: 240_000, polling: 200 });
+  await page.waitForFunction(() => Boolean(window.__wildshard?.world) && !document.querySelector('.ws-load'), null, { timeout: 240_000, polling: 200 });
   const playAt = Date.now();
   let sampled = null;
   if (SAMPLE && cdp !== null) {
@@ -179,7 +179,7 @@ try {
   state.polling = false; await poll;
   const steps = await page.evaluate(() => window.__b8_steps);
   const alloc = ALLOC ? await page.evaluate(() => window.__b8_alloc) : null;
-  const rinfo = await page.evaluate(() => { const r = window.__world?.game?.renderer; return r ? { textures: r.info.memory.textures, geometries: r.info.memory.geometries, programs: r.info.programs?.length ?? null } : null; });
+  const rinfo = await page.evaluate(() => { const r = window.__wildshard?.world?.game?.renderer; return r ? { textures: r.info.memory.textures, geometries: r.info.memory.geometries, programs: r.info.programs?.length ?? null } : null; });
   sampler.kill(); nlog.end();
 
   // ── attribute: each sample → the step running at its time ──

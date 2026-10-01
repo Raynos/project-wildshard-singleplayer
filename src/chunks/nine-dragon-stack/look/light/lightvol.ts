@@ -1,4 +1,4 @@
-// Copied from the light lab (src/dev/nd-lab/light/lightvol.ts, round-9-lab-light) into the clean room.
+// Copied from the light lab (the dev labs (deleted in E357 F7), round-9-lab-light) into the clean room.
 // Lab P6 "light" (E169): warm LIGHT POOLS from every lantern, shop front, lamp and sign, baked once at build time into
 // a small 3D irradiance texture (a "light volume") that every architecture program samples per pixel — one trilinear
 // fetch per volume, any number of lights, no per-pixel light loop, no extra draw, no overdraw.

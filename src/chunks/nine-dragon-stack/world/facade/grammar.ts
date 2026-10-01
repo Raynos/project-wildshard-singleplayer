@@ -1,4 +1,4 @@
-// Copied from the facade lab (src/dev/nd-lab/facade/grammar.ts, round-7-lab-facade) into the clean room.
+// Copied from the facade lab (the dev labs (deleted in E357 F7), round-7-lab-facade) into the clean room.
 // The Kowloon facade grammar: dressTower(tower, seed, options) turns a plain box (3 m floors, ~4 m bays) into a
 // Kowloon-Walled-City wall — every bay of every floor gets something. Deterministic: the same seed is the same tower.
 //

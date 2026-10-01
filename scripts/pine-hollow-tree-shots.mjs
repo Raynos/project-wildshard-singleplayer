@@ -44,10 +44,10 @@ try {
     const s0 = SPOTS[0];
     await page.goto(`${URL_BASE}/?chunk=pine-hollow&skipintro=1&nolock=1&tier=${tier}${tier === 'phone' ? '&touch' : ''}&mute=1&sw=0&x=${s0.fp[0]}&z=${s0.fp[1]}&${EXTRA}`, { waitUntil: 'domcontentloaded' });
     try {
-      await page.waitForFunction(() => Boolean(window.__world && window.__hf && window.__world.animals), undefined, { timeout: 240000, polling: 1000 });
+      await page.waitForFunction(() => Boolean(window.__wildshard?.world && window.__hf && window.__wildshard.world.animals), undefined, { timeout: 240000, polling: 1000 });
     } catch (e) { console.error(`[${tier}] never ready: ${errors.join(' | ')}`); throw e; }
     await page.evaluate(() => {
-      const w = window.__world; w.animals.calm = true;
+      const w = window.__wildshard?.world; w.animals.calm = true;
       window.__ts = { pose: null };
       w.game.onLate(() => {
         const p = window.__ts.pose, cam = w.game.camera;
@@ -60,16 +60,16 @@ try {
     await sleep(SETTLE * 2);
     for (const s of SPOTS) {
       const pose = tier === 'phone'
-        ? page.evaluate((f) => { const w = window.__world; window.__ts.pose = null; w.freeCamera = false; w.player.spawn(f[0], f[1], f[2]); w.player.pitch = f[3]; }, s.fp)
+        ? page.evaluate((f) => { const w = window.__wildshard?.world; window.__ts.pose = null; w.freeCamera = false; w.player.spawn(f[0], f[1], f[2]); w.player.pitch = f[3]; }, s.fp)
         : page.evaluate((g) => {
-          const w = window.__world, hf = window.__hf;
+          const w = window.__wildshard?.world, hf = window.__hf;
           const gy = hf.heightAt(g[0], g[2]), ly = hf.heightAt(g[3], g[4]);
           w.player.spawn(g[3], g[4], 0); w.freeCamera = true;
           window.__ts.pose = [g[0], gy + g[1], g[2], g[3], ly + 8, g[4]];
         }, s.god);
       await pose;
       await sleep(SETTLE);
-      const perf = await page.evaluate(() => ({ calls: window.__world.game.lastFrame.calls, tris: window.__world.game.lastFrame.triangles }));
+      const perf = await page.evaluate(() => ({ calls: window.__wildshard.world.game.lastFrame.calls, tris: window.__wildshard.world.game.lastFrame.triangles }));
       const f = `${OUT}/${tier}-${s.id}.jpg`;
       writeFileSync(f, await page.screenshot({ type: 'jpeg', quality: 85, scale: 'css' }));
       files.push(f);

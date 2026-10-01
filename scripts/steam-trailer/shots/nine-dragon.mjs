@@ -12,14 +12,14 @@ import { at, js } from './lib.mjs';
 const URL = 'chunk=nine-dragon-stack';
 const D = Math.PI / 180;
 /** in-page: a free camera with the player parked at the spawn (no fall, no respawn, no footsteps) */
-const FREE = `(() => { const w = window.__world; w.freeCamera = true; w.weapons.visible = false; const p = w.player; p.position.set(0.95, 125, 7.5); if (p.velocity) p.velocity.set(0, 0, 0); p.keys?.clear(); })();`;
+const FREE = `(() => { const w = window.__wildshard?.world; w.freeCamera = true; w.weapons.visible = false; const p = w.player; p.position.set(0.95, 125, 7.5); if (p.velocity) p.velocity.set(0, 0, 0); p.keys?.clear(); })();`;
 /** in-page: the player standing on the stone at (x, y, z), facing yaw / pitch (radians), the jian in hand */
-const stand = (x, y, z, yaw, pitch) => `(() => { const w = window.__world; w.freeCamera = false; w.weapons.visible = true; const p = w.player; p.position.set(${x}, ${y}, ${z}); p.yaw = ${yaw}; p.pitch = ${pitch}; if (p.velocity) p.velocity.set(0, 0, 0); p.keys?.clear(); })();`;
+const stand = (x, y, z, yaw, pitch) => `(() => { const w = window.__wildshard?.world; w.freeCamera = false; w.weapons.visible = true; const p = w.player; p.position.set(${x}, ${y}, ${z}); p.yaw = ${yaw}; p.pitch = ${pitch}; if (p.velocity) p.velocity.set(0, 0, 0); p.keys?.clear(); })();`;
 /**
  * in-page: the world clock (the movers: the gondola runs x = −23 … −5 on its cable at z −12, +109 m; the train, the
  * drones) set so a shot finds them where it wants them. Forward only: the gondola's period is 2π / 0.12 = 52.36 s.
  */
-const clockAt = (t) => `(() => { const g = window.__world.game; let T = ${t}; while (T < g.clock.elapsedTime) T += 2 * Math.PI / 0.12; g.clock.elapsedTime = T; })();`;
+const clockAt = (t) => `(() => { const g = window.__wildshard.world.game; let T = ${t}; while (T < g.clock.elapsedTime) T += 2 * Math.PI / 0.12; g.clock.elapsedTime = T; })();`;
 /** the gondola crosses the shaft's axis (x −14) going east at world time 5.167 (+ k · 52.36 s) */
 const GONDOLA_MID = 5.167;
 /**
@@ -29,13 +29,13 @@ const GONDOLA_MID = 5.167;
 const draw = (t, t0, t1) => {
   const k = Math.min(1, Math.max(0, (t - t0) / (t1 - t0)));
   const h = t < t0 ? 1 : 1 - (1 - (1 - k) ** 3);
-  return `window.__world.weapons.stowT = ${h.toFixed(4)};`;
+  return `window.__wildshard.world.weapons.stowT = ${h.toFixed(4)};`;
 };
 /** in-page per tick: the player's look eased between two poses (yaw / pitch in degrees, player convention) */
 const lookLerp = (t, t0, t1, a, b) => {
   const k = Math.min(1, Math.max(0, (t - t0) / (t1 - t0)));
   const e = k < 0.5 ? 4 * k * k * k : 1 - (-2 * k + 2) ** 3 / 2;
-  return `window.__world.player.yaw = ${((a[0] + (b[0] - a[0]) * e) * D).toFixed(5)}; window.__world.player.pitch = ${((a[1] + (b[1] - a[1]) * e) * D).toFixed(5)};`;
+  return `window.__wildshard.world.player.yaw = ${((a[0] + (b[0] - a[0]) * e) * D).toFixed(5)}; window.__wildshard.world.player.pitch = ${((a[1] + (b[1] - a[1]) * e) * D).toFixed(5)};`;
 };
 
 export const shots = [
@@ -83,7 +83,7 @@ export const shots = [
   { name: 'nd-jian', shard: 'nine-dragon', url: URL, secs: 3.0, warm: 180,
     setup: stand(17.2, 125, 6.2, -92 * D, 4 * D), afterWarm: clockAt(60),
     tick: (t, i, sb, step) => js(draw(t, 0.1, 0.45), lookLerp(t, 0, 3.0, [-92, 4], [-88, 9]),
-      at(t, 0.62, step) || at(t, 1.29, step) ? 'window.__world.weapons.tryFire();' : '') },
+      at(t, 0.62, step) || at(t, 1.29, step) ? 'window.__wildshard.world.weapons.tryFire();' : '') },
   // 4 · STAIRS: gliding up the stair-street's first flight over the umbrellas (the crowd fills the flight: at eye height
   // the lens runs into them), the signs 麵 牙科 火鍋 旅館 either side and the stair paifang at the top (tread line
   // y ≈ 125 + 0.525 (x − 22); the camera ~3 m over it)
@@ -129,12 +129,12 @@ export const shots = [
   // the game's own, with no rigged camera translation.
   { name: 'nd-grapple', shard: 'nine-dragon', url: URL, secs: 2.8, warm: 180,
     setup: stand(-19.5, 125, 12.25, -0.6, -0.35),
-    afterWarm: js(stand(-19.5, 125, 12.25, -0.6, -0.35), 'window.__world.lockSys.toggle();'),
+    afterWarm: js(stand(-19.5, 125, 12.25, -0.6, -0.35), 'window.__wildshard.world.lockSys.toggle();'),
     tick: (t, i, sb, step) => js(
-      at(t, 0.24, step) ? 'window.__world.player.touchJump = true;' : '',
+      at(t, 0.24, step) ? 'window.__wildshard.world.player.touchJump = true;' : '',
       lookLerp(t, 1.25, 2.8, [-34.38, -20.05], [-10, -9]),
     ),
-    probe: `(() => { const w = window.__world; return { position: w.player.position.toArray(), entered: w.hud.entered }; })()`,
+    probe: `(() => { const w = window.__wildshard?.world; return { position: w.player.position.toArray(), entered: w.hud.entered }; })()`,
   },
   // 6 · WIDE (the end card over it): the Well's edge, just out over the south rim (the balustrade out of frame), looking
   // north down the canyon's ladder of crossings to the far gate; a slow crane up

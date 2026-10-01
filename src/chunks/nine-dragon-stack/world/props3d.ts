@@ -1,4 +1,4 @@
-// Dome B (E169, round-10-dome-b): the square's TRELLIS props, merged from the organic lab (src/dev/nd-lab/organic/
+// Dome B (E169, round-10-dome-b): the square's TRELLIS props, merged from the organic lab (the dev labs (deleted in E357 F7)
 // props3d.ts, round-9-lab-organic): local TRELLIS.2 image → 3D (codex ref "one object on white" → trellis_batch.py →
 // driftwood_post.py → meshopt), loaded through glb.ts (smooth normals, AO), colour-RAMPED to the style bible's washes and
 // drawn by the Jiehua program as ONE InstancedMesh per prop:

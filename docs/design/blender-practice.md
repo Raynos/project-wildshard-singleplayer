@@ -30,7 +30,7 @@ first-person arms (details below).
 | Pine Hollow bear cave | `scripts/blender/crags/build_cave.py`, fed by `export-cave.mjs` (the baked heights round the mouth) | `pine-hollow-crags/cave.glb` (373 KB) | `src/world/PineCrags.ts` | yes | no |
 | Lever rifle (hi / lo) | `scripts/blender/weapons/lever_rifle.py` (1,091 lines) + `run.sh` | `public/assets/pine-hollow/weapons/lever-rifle{,.phone}.glb` | `src/player/LeverRifle.ts` | yes | yes, into the build cache |
 | Skinning knife in a gloved hand (hi / lo) | `scripts/blender/weapons/skinning_knife.py` (1,358) + `run-knife.sh` | `skinning-knife{,.phone}.glb` + `.json` | `src/chunks/pine-hollow/models/skinningKnife.ts` | yes | yes, into the build cache |
-| **Nine Dragon first-person arms**: hand, gauntlet, jian guard, rigged into `fp-rig.glb` with 16 clips | **not at HEAD.** `src/dev/nd-lab/viewmodel/blender/{hand,hand_lib,hand_model,hand_parts,gauntlet,gauntlet_geo,gauntlet_maps,gauntlet_parts,gauntlet_preview,guard}.py` (4,110 lines) were deleted with the lab in `7a339ed2`; they exist only in history (`7a339ed2^`). The rig bake that turns the parts into `fp-rig.glb` (`bake.ts`, `moves.ts` with the clips, `rigbake.mjs`, `riggate.mjs`, `gate_chart.py`) was **never committed**, and is not under `~/projects`, `~/.claude/jobs` or the scratch folders | `public/assets/nine-dragon/viewmodel/fp-rig.glb` (2.4 MB) + 16 map WebPs (5.5 MB folder) | `src/chunks/nine-dragon-stack/vm/fpArms.ts` | — | — |
+| **Nine Dragon first-person arms**: hand, gauntlet, jian guard, rigged into `fp-rig.glb` with 16 clips | **not at HEAD.** `src/dev/nd-lab/viewmodel/blender/{hand,hand_lib,hand_model,hand_parts,gauntlet,gauntlet_geo,gauntlet_maps,gauntlet_parts,gauntlet_preview,guard}.py` (4,110 lines) were deleted with the lab in `7a339ed2`; they exist only in history (`7a339ed2^`). The rig bake that turns the parts into `fp-rig.glb` (`bake.ts`, `moves.ts` with the clips, `rigbake.mjs` (deleted in E357 F7: needed the dev labs), `riggate.mjs` (deleted in E357 F7: needed the dev labs), `gate_chart.py`) was **never committed**, and is not under `~/projects`, `~/.claude/jobs` or the scratch folders | `public/assets/nine-dragon/viewmodel/fp-rig.glb` (2.4 MB) + 16 map WebPs (5.5 MB folder) | `src/chunks/nine-dragon-stack/vm/fpArms.ts` | — | — |
 | *Lab only:* Fei Zhua grapple | `src/dev/nd-lab/grapple/blender/fei_zhua.py` (844) | `public/assets/nine-dragon/lab/grapple/fei-zhua.glb` (402 KB), shipped but loaded only by the dev lab page | `src/dev/nd-lab/grapple/feizhua.ts` | no | no |
 | *Orphan:* Nalati yurt | `scripts/blender/nalati_yurt.py` (330) | none: Jake picked the procedural yurt and `609f4242` removed the GLB and its loader | — | — | — |
 
@@ -197,8 +197,8 @@ One check script, `scripts/check-model-sources.mjs`, run by vitest or CI next to
 2. Every target's outputs exist under `public/`, and every target feeds at least one model id or a declared world piece.
 3. Every `.py` / `.mjs` under `scripts/blender/` except `lib/` belongs to a target, so orphans like `nalati_yurt.py` fail.
 4. Every GLB under `public/assets/` is loaded by a model or world module and has a producer. The producer is a
-   `scripts/blender` target, a `scripts/img2mesh` prop list, a rig bake (`scripts/creature-rig-bake.mjs`,
-   `nalati-rig-bake.mjs`), or a CC0 entry in `scripts/img2mesh/CC0.md`. Existing gaps go on an allowlist that only
+   `scripts/blender` target, a `scripts/img2mesh` prop list, a rig bake (`scripts/creature-rig-bake.mjs` (deleted in E357 F7: needed the dev labs),
+   `nalati-rig-bake.mjs` (deleted in E357 F7: needed the dev labs)), or a CC0 entry in `scripts/img2mesh/CC0.md`. Existing gaps go on an allowlist that only
    shrinks.
 5. No `.blend` / `.blend1` is tracked.
    - `.githooks/pre-commit` refuses them, like the `progress/` image cap.
@@ -213,7 +213,7 @@ In order; each item is one small commit that doesn't collide with the lanes live
 
 1. **Rescue the Nine Dragon arms' sources** (before anything else; history-only today).
    - Restore `hand*.py`, `gauntlet*.py` and `guard.py` from `7a339ed2^` into `scripts/blender/nine-dragon-stack/viewmodel/`.
-   - Ask the Nine Dragon lane whether `bake.ts`, `moves.ts`, `rigbake.mjs`, `riggate.mjs` and `gate_chart.py` survive
+   - Ask the Nine Dragon lane whether `bake.ts`, `moves.ts`, `rigbake.mjs` (deleted in E357 F7: needed the dev labs), `riggate.mjs` (deleted in E357 F7: needed the dev labs) and `gate_chart.py` survive
      anywhere (a worktree, an agent's scratch).
    - If they are lost, write down that `fp-rig.glb` is the only copy of its 16 clips. Its model card then says
      "source: partial". The clips are rebuilt only if they ever need to change.

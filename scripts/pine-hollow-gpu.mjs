@@ -93,7 +93,7 @@ const sleep = (ms) => new Promise((resolve) => { setTimeout(resolve, ms); });
 
 /** in the page, once: the probe (window.__gpu) — the throughput clock, the toggles, the groups */
 function installProbe() {
-  const w = window.__world, g = w.game, r = g.renderer, gl = r.getContext(), composer = g.composer;
+  const w = window.__wildshard?.world, g = w.game, r = g.renderer, gl = r.getContext(), composer = g.composer;
   const P = {};
   window.__gpu = P;
   P.render = () => { const t0 = performance.now(); composer.render(1 / 30); return performance.now() - t0; };
@@ -148,7 +148,7 @@ function installProbe() {
     }
   });
 
-  // ── groups: object → the __world key that owns it (BFS, shallowest path wins; pine-hollow-drawcalls.mjs's rule) ──
+  // ── groups: object → the __wildshard?.world key that owns it (BFS, shallowest path wins; pine-hollow-drawcalls.mjs's rule) ──
   const labels = new Map(), seen = new Set();
   const queue = Object.keys(w).filter((k) => k !== 'game' && k !== 'registry' && k !== 'physics').map((k) => [w[k], k, 0]);
   while (queue.length > 0) {
@@ -220,7 +220,7 @@ async function runAB([name, n]) {
 
 /** in the page: overdraw — layers per pixel per channel (R opaque, G alpha-tested, B transparent), with / without the alpha test */
 function overdraw(wantHeat) {
-  const w = window.__world, g = w.game, r = g.renderer, P = window.__gpu;
+  const w = window.__wildshard?.world, g = w.game, r = g.renderer, P = window.__gpu;
   const W = r.domElement.width, H = r.domElement.height;
   const RT = g.composer.inputBuffer.constructor; // THREE.WebGLRenderTarget (no THREE global in the page)
   const rt = new RT(W, H, { depthBuffer: true });
@@ -337,13 +337,13 @@ try {
   const q = [`chunk=${CHUNK}`, 'mute=1', 'skipintro=1', 'nolock=1', 'sw=0', `tier=${TIER}`, TIER === 'phone' ? 'touch' : '', `x=${p0.x}`, `z=${p0.z}`, `yaw=${p0.yaw}`, EXTRA].filter(Boolean).join('&');
   const t0 = Date.now();
   await page.goto(`${URL_BASE}/?${q}`, { waitUntil: 'domcontentloaded' });
-  await page.waitForFunction(() => Boolean(window.__world?.game), undefined, { timeout: 300000, polling: 500 });
+  await page.waitForFunction(() => Boolean(window.__wildshard?.world?.game), undefined, { timeout: 300000, polling: 500 });
   console.error(`[gpu] ready in ${((Date.now() - t0) / 1000).toFixed(0)} s`);
   await sleep(SETTLE);
   await page.evaluate(installProbe);
-  if (SCALE !== '') await page.evaluate((pr) => { const g = window.__world.game; g.renderer.setPixelRatio(pr); g.resize(); }, Number(SCALE));
+  if (SCALE !== '') await page.evaluate((pr) => { const g = window.__wildshard.world.game; g.renderer.setPixelRatio(pr); g.resize(); }, Number(SCALE));
   const env = await page.evaluate(() => {
-    const g = window.__world.game, gl = g.renderer.getContext(), dbg = gl.getExtension('WEBGL_debug_renderer_info');
+    const g = window.__wildshard.world.game, gl = g.renderer.getContext(), dbg = gl.getExtension('WEBGL_debug_renderer_info');
     return { gpu: dbg ? gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) : '?', buffer: `${g.renderer.domElement.width}x${g.renderer.domElement.height}`, pixelRatio: g.renderer.getPixelRatio() };
   });
   out.env = env;
@@ -351,15 +351,15 @@ try {
   for (const p of POSES) {
     // the game's own loop runs while the pose settles (LOD buckets, streaming), then stops drawing; the tool draws the frozen frame
     await page.evaluate((pp) => {
-      const w = window.__world;
+      const w = window.__wildshard?.world;
       if (window.__gpuGate !== undefined) w.game.frameGate = window.__gpuGate;
       w.player.spawn(pp.x, pp.z, pp.yaw); w.player.pitch = 0; if (pp.y !== undefined) w.player.position.y = pp.y;
     }, p);
     await sleep(SETTLE);
-    await page.evaluate(() => { const g = window.__world.game; window.__gpuGate ??= g.frameGate; g.frameGate = () => false; });
+    await page.evaluate(() => { const g = window.__wildshard.world.game; window.__gpuGate ??= g.frameGate; g.frameGate = () => false; });
     await sleep(300);
     const base = await page.evaluate(runBase, ROUNDS * 2);
-    const draws = await page.evaluate(() => { const g = window.__world.game; return { calls: g.lastFrame.calls, tris: g.lastFrame.triangles }; });
+    const draws = await page.evaluate(() => { const g = window.__wildshard.world.game; return { calls: g.lastFrame.calls, tris: g.lastFrame.triangles }; });
     const row = { pose: p.id, gpu: base.p20, gpuP50: base.p50, gpuP10: base.p10, gpuP90: base.p90, cpu: base.cpu, ...draws, subtract: {}, overdraw: null };
     console.log(`\n${p.id}: GPU ${base.p20.toFixed(2)} ms/frame (p20; p50 ${base.p50.toFixed(2)} · p90 ${base.p90.toFixed(2)}) · cpu submit ${base.cpu.toFixed(2)} ms · ${draws.calls} calls · ${(draws.tris / 1e6).toFixed(2)} M tris`);
     if (SUBTRACT !== '0') {

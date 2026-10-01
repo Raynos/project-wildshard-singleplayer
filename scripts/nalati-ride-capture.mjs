@@ -28,11 +28,11 @@ try {
   const errors = [];
   page.on('pageerror', (e) => errors.push(e.message.slice(0, 200)));
   await page.goto(`${URL_BASE}/?chunk=nalati-grasslands&ride=gallop&mute=1&nolock=1&skipintro=1${DESKTOP ? '' : '&touch=1&tier=phone'}`, { waitUntil: 'domcontentloaded' });
-  await page.waitForFunction(() => window.__world?.ride?.mounted === true, undefined, { timeout: 300000, polling: 1000 });
+  await page.waitForFunction(() => window.__wildshard?.world?.ride?.mounted === true, undefined, { timeout: 300000, polling: 1000 });
   await sleep(4000);
-  const input = (sx, sy, gallop) => page.evaluate(({ x, y, g }) => { const w = window.__world; w.player.touchMove.x = x; w.player.touchMove.y = y; w.ride.mount.touchGallop = g; }, { x: sx, y: sy, g: gallop });
+  const input = (sx, sy, gallop) => page.evaluate(({ x, y, g }) => { const w = window.__wildshard?.world; w.player.touchMove.x = x; w.player.touchMove.y = y; w.ride.mount.touchGallop = g; }, { x: sx, y: sy, g: gallop });
   const state = () => page.evaluate(() => {
-    const w = window.__world, m = w.ride.mount, h = m.horse;
+    const w = window.__wildshard?.world, m = w.ride.mount, h = m.horse;
     const wrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
     const heading = h === null ? 0 : h.yaw, look = w.player.yaw + Math.PI;
     const r1 = (v) => Math.round(v * 10) / 10;
@@ -46,10 +46,10 @@ try {
   };
   // the free look: cantering straight, glance 70° left (a LOOK drag), then let go — the view drifts back behind the ears
   const look = [];
-  const start = await page.evaluate(() => { const h = window.__world.ride.mount.horse; return { x: h.position.x, z: h.position.z, yaw: h.yaw }; });
+  const start = await page.evaluate(() => { const h = window.__wildshard.world.ride.mount.horse; return { x: h.position.x, z: h.position.z, yaw: h.yaw }; });
   await input(0, 1, false);
   await sleep(3000);
-  await page.evaluate(() => { window.__world.player.yaw += 1.22; });
+  await page.evaluate(() => { window.__wildshard.world.player.yaw += 1.22; });
   for (let i = 0; i < 5; i++) {
     const s = await state();
     log.push({ label: `free look +${(i * 0.6).toFixed(1)} s`, ...s });
@@ -58,7 +58,7 @@ try {
   }
   await input(0, 0, false);
   // back to the start (the free look's canter ends near the brook, and a horse wades at a walk)
-  await page.evaluate((st) => { window.__world.ride.mount.teleport(st.x, st.z, st.yaw); }, start);
+  await page.evaluate((st) => { window.__wildshard.world.ride.mount.teleport(st.x, st.z, st.yaw); }, start);
   await sleep(500);
   await input(0, 1, true);
   await sleep(3000);

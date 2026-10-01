@@ -46,10 +46,10 @@ try {
   page.on('pageerror', (e) => errs.push(e.message.slice(0, 160)));
   const q = [`chunk=${CHUNK}`, 'mute=1', 'nolock=1', 'skipintro=1', 'sw=0', 'perf=0', `tier=${TIER}`, `x=${CFG.spot.x}`, `z=${CFG.spot.z + 30}`, CFG.q, flag('q', '')].filter(Boolean).join('&');
   await page.goto(`${URL_BASE}/?${q}`, { waitUntil: 'domcontentloaded' });
-  await page.waitForFunction(() => Boolean(window.__world?.animals), undefined, { timeout: 300000, polling: 1000 });
+  await page.waitForFunction(() => Boolean(window.__wildshard?.world?.animals), undefined, { timeout: 300000, polling: 1000 });
   await page.addStyleTag({ content: '#hud,#hud *,.ws-touch,[class*="banner"],[class*="toast"],[class*="prompt"]{display:none!important}' });
   await page.evaluate(async ({ spot, gait, phase }) => {
-    const w = window.__world;
+    const w = window.__wildshard?.world;
     const { Animal } = await import('/src/entities/Animal.ts');
     const { heightAt } = await import('/src/world/Heightfield.ts');
     w.animals.group.visible = false;

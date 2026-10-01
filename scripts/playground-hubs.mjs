@@ -47,9 +47,9 @@ try {
       await page.waitForFunction(() => document.querySelector('.ws-menu-play') !== null, undefined, { timeout: 60000, polling: 250 });
       await sleep(1500);
       await tap(page, '.ws-menu-play');
-      await page.waitForFunction(() => window.__world?.hud?.entered === true, undefined, { timeout: 60000, polling: 250 });
+      await page.waitForFunction(() => window.__wildshard?.world?.hud?.entered === true, undefined, { timeout: 60000, polling: 250 });
       await sleep(2500);
-      const before = await page.evaluate(() => { const p = window.__world.player.position; return [p.x, p.z]; });
+      const before = await page.evaluate(() => { const p = window.__wildshard.world.player.position; return [p.x, p.z]; });
       const ring = await (await page.$('.ws-touch-stick'))?.boundingBox();
       if (!ring) throw new Error('no MOVE stick');
       const cx = ring.x + ring.width / 2, cy = ring.y + ring.height / 2;
@@ -59,7 +59,7 @@ try {
       for (let k = 1; k <= 4; k++) { await touch('touchMove', cx, cy - k * 12); await sleep(30); }
       await sleep(2000);
       await touch('touchEnd', cx, cy - 48);
-      const after = await page.evaluate(() => { const w = window.__world, p = w.player.position; return { at: [p.x, p.z], fps: w.game.stats.fps, frames: w.game.lastFrame.calls }; });
+      const after = await page.evaluate(() => { const w = window.__wildshard?.world, p = w.player.position; return { at: [p.x, p.z], fps: w.game.stats.fps, frames: w.game.lastFrame.calls }; });
       row.walked = Number(Math.hypot(after.at[0] - before[0], after.at[1] - before[1]).toFixed(2));
       row.fps = after.fps;
       row.play = row.walked > 1 && after.fps > 0;

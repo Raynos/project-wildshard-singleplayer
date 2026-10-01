@@ -1,4 +1,4 @@
-// The light lab's glue, trimmed for the clean room (from src/dev/nd-lab/light/lab.ts, round-9-lab-light): bake the
+// The light lab's glue, trimmed for the clean room (from the dev labs (deleted in E357 F7), round-9-lab-light): bake the
 // light-pool volumes from every emitter and lit window, wire the window glow and the learned LUT, and apply the lab's
 // HEAD tuning. No global of its own and no URL switches: `__nd.light({...})` sets a variant for A/B captures.
 import type { Color, Data3DTexture, Vector3, Vector4 } from 'three';

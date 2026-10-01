@@ -3,7 +3,7 @@
 // (--mute-audio, &mute=1, audio.muted) drives Pine Hollow through each trigger and reads `window.__audioLog`
 // (src/audio/audioLog.ts) after each: a lever shot, an NPC talk (Hale), rain, a door, day → night, a waystone relight, the
 // zone spots, a zipline ride; then the Antler King (`?boss=antler-king&bossGod=1`) phases I → III and his fall; then
-// `?quest=dawn` (the dawn sting). Every page request under /assets/music|sfx after the loading bar (window.__world is set
+// `?quest=dawn` (the dawn sting). Every page request under /assets/music|sfx after the loading bar (window.__wildshard?.world is set
 // once the bar's last step is done) is a lazy fetch — E44 wants none. Last, the same context goes OFFLINE and reloads: the
 // service worker must serve the whole boot (the Pine Hollow audio with it) and night must still decode.
 //
@@ -32,13 +32,13 @@ async function boot(q) {
   ready = false; stepName = `boot ${q}`;
   const t0 = Date.now();
   await page.goto(`${URL0}/?${BASE}&${q}`, { waitUntil: 'domcontentloaded', timeout: 180_000 });
-  await page.waitForFunction(() => window.__world !== undefined, null, { timeout: 240_000, polling: 500 });
+  await page.waitForFunction(() => window.__wildshard?.world !== undefined, null, { timeout: 240_000, polling: 500 });
   ready = true;
   const bootMs = Date.now() - t0;
   // the gesture that resumes the AudioContext (and starts the music); muted three ways
   await page.mouse.click(195, 420);
   // ENTER WORLD's own handler (main.ts `enter`: the audio resumed, the music out of the title into the shard's calm)
-  await page.evaluate(() => { const w = window.__world; w.audio.muted = true; w.hud.onResume?.(); w.audio.muted = true; });
+  await page.evaluate(() => { const w = window.__wildshard?.world; w.audio.muted = true; w.hud.onResume?.(); w.audio.muted = true; });
   await sleep(2500);
   return bootMs;
 }
@@ -49,7 +49,7 @@ async function step(name, fn, waitMs = 2500) {
   const extra = await fn();
   await sleep(waitMs);
   const log = await page.evaluate((f) => window.__audioLog.slice(f), from);
-  const stems = await page.evaluate(() => { const s = window.__world.music.stems; return { source: s.source, slot: s.slot, scene: s.scene, phase: s.phase, tension: s.tension, layers: s.layers }; });
+  const stems = await page.evaluate(() => { const s = window.__wildshard.world.music.stems; return { source: s.source, slot: s.slot, scene: s.scene, phase: s.phase, tension: s.tension, layers: s.layers }; });
   report.steps.push({ step: name, log, stems, ...(extra ? { extra } : {}) });
   const line = log.map((e) => `${e.kind}:${e.name}${e.ok === false ? '(!)' : ''}`).join(' ');
   console.log(`· ${name}: ${line === '' ? '(nothing)' : line}`);
@@ -57,32 +57,32 @@ async function step(name, fn, waitMs = 2500) {
 
 // ── 1. the Hollow by day: Hale, the lever gun, rain, a door, night, a lantern, the zones, the zipline ──
 report.bootMs = await boot('quest=ranger&weapon=lever');
-await step('day: boot + first frames', async () => ({ decoded: await page.evaluate(() => window.__world.ambience.sfx.decoded.length) }), 500);
+await step('day: boot + first frames', async () => ({ decoded: await page.evaluate(() => window.__wildshard.world.ambience.sfx.decoded.length) }), 500);
 await step('lever-action shot (+ cycle, ridge echo)', () => page.evaluate(() => { window.__lever.tryFire(); }), 2500);
 await step('NPC talk: Hale (talk-open bark)', () => page.evaluate(() => { const p = window.__pineQuest.people.find((x) => x.kind === 'ranger') ?? window.__pineQuest.people[0]; p.prompt.onInteract(); return p.kind; }), 2000);
 await step('rain', () => page.evaluate(() => { window.__pineWeather.weather.force('rain', 0.6); }), 3000);
 await step('cabin door open + close', () => page.evaluate(() => {
-  const d = window.__world.cabins.interactables.find((i) => i.label === 'Open door');
+  const d = window.__wildshard.world.cabins.interactables.find((i) => i.label === 'Open door');
   if (!d) return 'no door';
-  window.__world.player.spawn(d.position.x + 2, d.position.z + 2, 0);
+  window.__wildshard.world.player.spawn(d.position.x + 2, d.position.z + 2, 0);
   d.onInteract(); setTimeout(() => { d.onInteract(); }, 900);
   return d.label;
 }), 2500);
 await step('day → night (the clock)', () => page.evaluate(() => { window.__pineWeather.weather.force('clear', 0.5); window.__pineQuest.night(); }), 9000);
 await step('waystone relight (pond lantern)', () => page.evaluate(() => {
   const q = window.__pineQuest; q.flags.clear?.('lit:pond'); q.flags.set('taken:pond-glass');
-  const it = q.lanterns.pond; window.__world.player.spawn(it.position.x + 1.5, it.position.z + 1.5, 0); it.onInteract();
+  const it = q.lanterns.pond; window.__wildshard.world.player.spawn(it.position.x + 1.5, it.position.z + 1.5, 0); it.onInteract();
 }), 2000);
 for (const [zone, x, z] of [['waterfall', -88, 152], ['creek', -151, 14], ['mill', -186, -150], ['ridge', 36, 208], ['oldgrowth', 120, -80], ['cave', 198.5, 198.5]]) {
-  await step(`zone: ${zone}`, () => page.evaluate(([px, pz]) => { window.__world.player.spawn(px, pz, 0); }, [x, z]), 2500);
+  await step(`zone: ${zone}`, () => page.evaluate(([px, pz]) => { window.__wildshard.world.player.spawn(px, pz, 0); }, [x, z]), 2500);
 }
-await step('mill wheel turning (the errand done)', () => page.evaluate(() => { window.__world.player.spawn(-186, -150, 0); window.__world.cabins.wheelSpeed = 0.55; }), 2000);
+await step('mill wheel turning (the errand done)', () => page.evaluate(() => { window.__wildshard.world.player.spawn(-186, -150, 0); window.__wildshard.world.cabins.wheelSpeed = 0.55; }), 2000);
 await step('zipline ride', () => page.evaluate(() => { const q = window.__pineQuest; q.goto('zip'); setTimeout(() => { q.zip.prompt.onInteract(); }, 600); }), 12000);
 
 // ── 2. the Antler King: phases I → III, his fall ──
 report.kingBootMs = await boot('boss=antler-king&bossGod=1');
 const king = (frac) => page.evaluate((f) => { const k = window.__antlerKing.fight.king; if (!k) return 'no king'; k.hp = Math.max(1, Math.round(k.maxHp * f)); return k.hp; }, frac);
-await step('King: into the stones (intro → phase I)', () => page.evaluate(() => { window.__world.player.spawn(150, -14, 0); }), 7000);
+await step('King: into the stones (intro → phase I)', () => page.evaluate(() => { window.__wildshard.world.player.spawn(150, -14, 0); }), 7000);
 await step('King: phase II (Lanterns Fall)', () => king(0.55), 5000);
 await step('King: phase III (the Last Light)', () => king(0.25), 5000);
 await step('King: falls (back to the calm)', () => page.evaluate(() => { const k = window.__antlerKing.fight.king; if (k) { k.hp = 0; k.alive = false; } }), 6000);

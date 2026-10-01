@@ -193,7 +193,7 @@ export class Perf {
   }
   /** the report's header: what ran, on what, where (E189) */
   private probeHeader(): string[] {
-    const g = this.game, r = g.renderer, cv = r.domElement, info = r.info, w: unknown = Reflect.get(window, '__world');
+    const g = this.game, r = g.renderer, cv = r.domElement, info = r.info, w: unknown = '__wildshard' in window ? window.__wildshard.world : null;
     let build = ''; try { build = __BUILD_ID__; } catch { /* a dev page */ }
     let settings = ''; try { settings = localStorage.getItem('ws.settings.v1') ?? ''; } catch { /* storage blocked */ }
     const pl: unknown = typeof w === 'object' && w !== null ? Reflect.get(w, 'player') : null;

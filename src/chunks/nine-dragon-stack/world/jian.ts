@@ -22,7 +22,7 @@ import { decalAtlas, vmMaterial, vmUniforms, weaveTexture } from './hero/vm-mate
 const GRIP_MID = 0.2;
 
 /**
- * The clean room's portrait layout (src/dev/nine-dragon/vm/viewmodel.ts LAYOUT_PORTRAIT, the round-6 style-A framing):
+ * The clean room's portrait layout (the dev labs (deleted in E357 F7) LAYOUT_PORTRAIT, the round-6 style-A framing):
  * the guard and the tip in NDC with the guard's depth (m), the Fei Zhua's wrist and elbow likewise. Solved for the phone
  * the mockups are drawn on (9:19.5) at the shard's portrait FOV (def.ts `fov.portrait`).
  */

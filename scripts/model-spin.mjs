@@ -101,7 +101,7 @@ try {
   const opened = await page.waitForFunction(() => {
     if (document.querySelector('.ws-x-empty-models.show') !== null) return 'empty';
     const shown = document.querySelector('.ws-x.show[data-mode="model"] .ws-x-models.show[data-view="catalog"]');
-    return shown !== null && document.querySelectorAll('.ws-x-grid .ws-x-model').length > 0 && window.__world !== undefined ? 'catalog' : false;
+    return shown !== null && document.querySelectorAll('.ws-x-grid .ws-x-model').length > 0 && window.__wildshard?.world !== undefined ? 'catalog' : false;
   }, undefined, { timeout: 480_000, polling: 1000 }).then((h) => h.jsonValue());
   if (opened === 'empty') die(`${SHARD} has no models in its catalog`);
   console.log(`model-spin: explorer open in ${Math.round((Date.now() - t0) / 1000)} s`);
@@ -119,11 +119,11 @@ try {
     if (first && ids.length < Number(first[1])) console.log(`model-spin: the catalog has only ${ids.length} models`);
     const seg = SECONDS / ids.length;
 
-    if (!(await page.evaluate(() => typeof window.__world?.game?.captureFrame === 'function'))) die('this build has no game.captureFrame (src/core/Game.ts) to copy its frames with');
+    if (!(await page.evaluate(() => typeof window.__wildshard?.world?.game?.captureFrame === 'function'))) die('this build has no game.captureFrame (src/core/Game.ts) to copy its frames with');
 
     // ── in-page helpers: select a card, the turntable drive, the recorder ──
     await page.evaluate(() => {
-      const canvas = window.__world.game.renderer.domElement;
+      const canvas = window.__wildshard.world.game.renderer.domElement;
       const q = (s) => document.querySelector(s);
       let raf = 0;
       window.__spin = {
@@ -144,7 +144,7 @@ try {
         },
         /** the camera's azimuth round what it looks at: the turntable's yaw (camera = target + (sin yaw, …, cos yaw) · d) */
         yaw() {
-          const c = window.__world.game.camera, e = c.matrixWorld.elements;
+          const c = window.__wildshard.world.game.camera, e = c.matrixWorld.elements;
           return Math.atan2(e[8], e[10]); // the camera's +Z (backwards) axis, horizontal part
         },
         /** hold a finger on the canvas and slide it: `px` of drag spread evenly over `ms` of wall clock */
@@ -172,7 +172,7 @@ try {
         /** every frame the game draws → an opaque canvas over black (the phone's view: Nine Dragon keeps depth in alpha,
          *  E289) → one video frame. The copy is the game's own captureFrame, taken in the same task as composer.render. */
         record() {
-          const game = window.__world.game;
+          const game = window.__wildshard.world.game;
           const w = canvas.width, h = canvas.height;
           const flat = document.createElement('canvas'); flat.width = w; flat.height = h;
           const g = flat.getContext('2d', { alpha: false });

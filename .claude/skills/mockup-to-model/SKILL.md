@@ -147,8 +147,7 @@ $L ~/ml/img2mesh/logs/<job>-hy.log ~/ml/img2mesh/Hunyuan3D-2/.venv/bin/python \
 - **Compare the takes** under the same light and camera:
   `python3 scripts/img2mesh/versus_board.py <trellis_dir> <hunyuan_dir> <renders_dir> <out.jpg> name=<ref> …`
   (stills from `scripts/img2mesh/render_still.py`).
-- **A creature or NPC hull** is rigged on its species' code skeleton: `node scripts/creature-rig-bake.mjs --chunk=<slug>
-  --only=<hull>`, needing a vite dev server; Nalati's is `scripts/nalati-rig-bake.mjs`. A standalone rig is modelled on
+- **The creature/NPC rig bakers** (`creature-rig-bake.mjs`, `nalati-rig-bake.mjs`) were deleted in E357 F7: needed the dev labs. A standalone rig is modelled on
   `scripts/practice/rig_dummy.py` and gated by `scripts/practice/dummy_rig_gate.py`. Every rig gate checks:
   - weights sum to 1;
   - indices are in range;

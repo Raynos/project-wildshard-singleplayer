@@ -49,13 +49,13 @@ try {
   const p0 = POSES[0];
   const q = ['chunk=pine-hollow', 'mute=1', 'skipintro=1', 'nolock=1', 'sw=0', 'tier=phone', 'touch', `x=${p0.x}`, `z=${p0.z}`, `yaw=${p0.yaw}`, EXTRA].filter(Boolean).join('&');
   await page.goto(`${URL_BASE}/?${q}`, { waitUntil: 'domcontentloaded' });
-  await page.waitForFunction(() => Boolean(window.__world?.game), undefined, { timeout: 300000, polling: 500 });
+  await page.waitForFunction(() => Boolean(window.__wildshard?.world?.game), undefined, { timeout: 300000, polling: 500 });
   const cdp = await ctx.newCDPSession(page);
   if (CPU > 1) await cdp.send('Emulation.setCPUThrottlingRate', { rate: CPU });
   await sleep(SETTLE);
   // work per drawn frame: from the first input handler to the end of composer.render
   await page.evaluate(() => {
-    const g = window.__world.game, st = { t0: 0, work: [] };
+    const g = window.__wildshard.world.game, st = { t0: 0, work: [] };
     window.__fps = st;
     const first = g.inputs[0];
     if (first !== undefined) g.inputs[0] = (dt) => { st.t0 = performance.now(); first(dt); };
@@ -63,10 +63,10 @@ try {
     g.composer.render = (dt) => { render(dt); if (st.t0 > 0) st.work.push(performance.now() - st.t0); st.t0 = 0; };
   });
   for (const p of POSES) {
-    await page.evaluate((pp) => { const w = window.__world; w.player.spawn(pp.x, pp.z, pp.yaw); w.player.pitch = 0; }, p);
+    await page.evaluate((pp) => { const w = window.__wildshard?.world; w.player.spawn(pp.x, pp.z, pp.yaw); w.player.pitch = 0; }, p);
     await sleep(SETTLE);
     const r = await page.evaluate((n) => new Promise((resolve) => {
-      const g = window.__world.game, st = window.__fps;
+      const g = window.__wildshard.world.game, st = window.__fps;
       st.work.length = 0;
       const calls = [], tris = [], interval = [];
       let seen = g.frameI; // the frame-time ring's cursor moves once per drawn frame

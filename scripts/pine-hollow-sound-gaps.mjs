@@ -32,13 +32,13 @@ page.on('pageerror', (e) => { report.errors.push(String(e)); });
 try {
   const t0 = Date.now();
   await page.goto(`${URL0}/?${BASE}&weapon=lever`, { waitUntil: 'domcontentloaded', timeout: 180_000 });
-  await page.waitForFunction(() => window.__world !== undefined, null, { timeout: 240_000, polling: 500 });
+  await page.waitForFunction(() => window.__wildshard?.world !== undefined, null, { timeout: 240_000, polling: 500 });
   ready = true;
   report.bootMs = Date.now() - t0;
   await page.mouse.click(195, 420); // the gesture that resumes the AudioContext; muted three ways
-  await page.evaluate(() => { const w = window.__world; w.audio.muted = true; w.hud.onResume?.(); w.audio.muted = true; });
+  await page.evaluate(() => { const w = window.__wildshard?.world; w.audio.muted = true; w.hud.onResume?.(); w.audio.muted = true; });
   await sleep(2500);
-  report.manifest = await page.evaluate(() => ({ decoded: window.__world.ambience.sfx.decoded.length }));
+  report.manifest = await page.evaluate(() => ({ decoded: window.__wildshard.world.ambience.sfx.decoded.length }));
 
   const mark = () => page.evaluate(() => window.__audioLog.length);
   const step = async (name, fn, waitMs = 2500) => {
@@ -66,7 +66,7 @@ try {
 
   // ── a bolt on a boulder: the impact hook with a point on a Props rock hull's top ──
   await step('bolt on rock (Weapons.onImpact, ground → stone probe)', () => page.evaluate(() => {
-    const w = window.__world, p = w.player.position;
+    const w = window.__wildshard?.world, p = w.player.position;
     const rocks = w.props.colliderDescs().filter((d) => d.surface === 'rock' && d.kind === 'hull');
     let best = null, bd = Infinity;
     for (const d of rocks) { const dd = Math.hypot(d.x - p.x, d.z - p.z); if (dd < bd) { bd = dd; best = d; } }
@@ -83,7 +83,7 @@ try {
   await step('woodpecker: settles, drums / calls (22 s)', () => page.evaluate(() => { window.__pineLife.woodNow(); }), 22000);
   await step('woodpecker: flushed (walk up to it)', () => page.evaluate(() => {
     const b = window.__pineLife.wood; if (b.mode === 'off') return 'not out';
-    window.__world.player.spawn(b.pose.x + 3, b.pose.z + 3, 0); return b.mode;
+    window.__wildshard.world.player.spawn(b.pose.x + 3, b.pose.z + 3, 0); return b.mode;
   }), 3000);
 
   // ── the ravens' breadcrumbs ──
@@ -91,7 +91,7 @@ try {
 
   // ── ravens to a kill: a deer down 25 m off, the ravens now, they land, then you walk up and they lift off ──
   const deer = await page.evaluate(() => {
-    const w = window.__world, a = w.animals.animals.find((x) => x.kind === 'deer' && x.alive) ?? w.animals.animals.find((x) => x.alive);
+    const w = window.__wildshard?.world, a = w.animals.animals.find((x) => x.kind === 'deer' && x.alive) ?? w.animals.animals.find((x) => x.alive);
     if (!a) return null;
     w.player.spawn(a.position.x + 25, a.position.z, 0);
     window.__gapDeer = a;
@@ -108,19 +108,19 @@ try {
   }), 30000);
   await step('ravens: walk up, they lift off', () => page.evaluate(() => {
     const a = window.__gapDeer; if (!a) return 'no animal';
-    window.__world.player.spawn(a.position.x + 3, a.position.z, 0);
+    window.__wildshard.world.player.spawn(a.position.x + 3, a.position.z, 0);
     return window.__pineLife.ravens.map((r) => r.mode);
   }), 4000);
   await step('skinning beat (two strokes)', () => page.evaluate(() => {
     const a = window.__gapDeer; if (!a) return 'no animal';
-    window.__world.pineLife.harvest(a, () => { /* the drops: none in a test */ }); return 'harvest';
+    window.__wildshard.world.pineLife.harvest(a, () => { /* the drops: none in a test */ }); return 'harvest';
   }), 2500);
 
   // ── the owl (night): the clock to night, the owl onto a snag near you, a hoot or two ──
   await step('night (the clock)', () => page.evaluate(() => { window.__pineQuest.night(); }), 9000);
   await step('owl: onto a snag near you, hoots (30 s)', () => page.evaluate(() => {
     // owlNow(x, z) wants a snag within 20 m of (x, z): walk a grid out from here until one takes, then stand 30 m off it
-    const w = window.__world, p = w.player.position, life = window.__pineLife;
+    const w = window.__wildshard?.world, p = w.player.position, life = window.__pineLife;
     for (let r = 0; r <= 240; r += 30) {
       for (let k = 0; k < Math.max(1, Math.round(r / 15)); k++) {
         const a = (k / Math.max(1, Math.round(r / 15))) * Math.PI * 2, x = p.x + Math.cos(a) * r, z = p.z + Math.sin(a) * r;

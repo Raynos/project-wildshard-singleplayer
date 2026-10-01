@@ -75,7 +75,7 @@ and **desktop** (1600 × 900 at 1×, `?tier=desktop`).
 | `cold.requests` | The boot's page-level requests, same window (the SW's own fetches count in bytes, not here). |
 | `cold.bgNetBytes` (info) | The background download: every byte of a request that started after playable, until the network has been quiet for 6 s (up to 4 min). Since E158 that is the other shards' boot files plus every shard's KTX2 set (~95–105 MB on the phone; ~175–255 MB on the desktop since E173 baked its own sets, 147 MB of them KTX2); it is not a boot row and never fails a compare. |
 | `cold.idleNetBytes` (info) | Boot + background, until quiet. |
-| `cold.playMs` | Time to play, bench-load's definition: from navigation start until `.ws-load` is gone and `window.__world` is set. |
+| `cold.playMs` | Time to play, bench-load's definition: from navigation start until `.ws-load` is gone and `window.__wildshard.world` is set. |
 | `cold4g.playMs` | The same on Fast 4G, in a fresh context of its own. |
 | `cold.longTaskMaxMs` | The longest main-thread task before playable (`PerformanceObserver('longtask')`). |
 | `warm.*` | The second load in the same context, after the background download: the service worker's cache. This load is the KTX2 one (E157 B: Auto boots KTX2 once the shard's set is cached; the phone since E157, the desktop since E173), so its requests include the KTX2 stand-ins, which are not packed, and its GPU rows are the compressed ones. |
@@ -135,7 +135,7 @@ records:
 | row | what it is |
 |---|---|
 | kind (report) | `ShardHost`'s own timing kind: `build`, `resident`, `rebuild` — or `navigation` on a build without in-page switching. |
-| `.ms` | From *Enter world* to playable in the new shard (`__world.chunk.slug` is the new shard, no `.ws-load`, not on the title); a build's title wait and the second click are in it. |
+| `.ms` | From *Enter world* to playable in the new shard (`__wildshard.world.chunk.slug` is the new shard, no `.ws-load`, not on the title); a build's title wait and the second click are in it. |
 | `.firstFrameMs` | … to the new shard's second drawn frame (`game.frameNo`). |
 | `.navigated` (info) | Whether the page navigated: a `window.scDocMark` set before the click (not a `__*` name — ShardHost moves those with the shard that set them) survives an in-page switch and is gone after a load. |
 | `.loadingShown` (info) | Whether the `.ws-load` loading screen appeared (never on a resident return). |

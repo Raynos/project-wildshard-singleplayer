@@ -12,7 +12,7 @@
   "finish.sh <name> <raw.glb> <tris> <height> <yaw> <ref.png> <outdir> 0 <tex> = `blender -b -P blender_post.py -- --in <raw> --out <name>.raw.glb --tris <tris> --tex <tex> --height <height> --yaw <yaw> --paint 0 --align <align> --remesh 0 [--keep-uv] --ref <ref> --turntable <sheet>`, then `gltf-transform optimize <raw> <name>.glb --compress meshopt --texture-compress webp --texture-size <tex> --simplify false --instance false` and the same at --texture-size 512 for <name>.phone.glb. TRELLIS takes -> ~/ml/img2mesh/final/, Hunyuan takes -> ~/ml/img2mesh/final-hy/",
   "spruce only: `blender -b -P blender_impostor.py -- --in <work>/spruce.raw.glb --out spruce.impostor.glb --res 256`, then gltf-transform optimize --texture-compress webp --simplify false --compress false",
   "this repo: `node scripts/nalati-models-color.mjs` matches each model's atlas to its reference (its KNOBS pick the generator per model: `ships` below), writes <name>.glb (1024^2) + <name>.phone.glb (512^2) + the herds' <name>.far.glb into public/assets/nalati/models/",
-  "this repo: `node scripts/nalati-rig-bake.mjs` -> the creatures' *.rigged.glb / *.phone.rigged.glb; scripts/img2mesh/build_faces.sh + faces.json -> people/faces-*/"
+  "this repo: `nalati-rig-bake.mjs` (deleted in E357 F7: needed the dev labs) -> the creatures' *.rigged.glb / *.phone.rigged.glb; scripts/img2mesh/build_faces.sh + faces.json -> people/faces-*/"
  ],
  "props": [
   {
@@ -843,7 +843,7 @@
  },
  "elsewhere": {
   "people/faces-*/": "scripts/img2mesh/build_faces.sh + scripts/img2mesh/faces.json",
-  "*.rigged.glb, *.phone.rigged.glb": "scripts/nalati-rig-bake.mjs",
+  "*.rigged.glb, *.phone.rigged.glb": "deleted in E357 F7: needed the dev labs",
   "*.far.glb": "scripts/nalati-models-color.mjs (farRatio)"
  }
 }

@@ -326,7 +326,7 @@ export class LeverRifle implements KitWeapon {
   private readonly leverPivot: THREE.Vector3;
   /** the holds, in model space: the left hand round the forend, the right on the wrist with its fingers through the loop (it
    *  rides the lever through a cycle); `gate` = the right hand thumbing a cartridge, relative to the round's base. A dev
-   *  knob: edit, then `rebuildHands()` (`__world.weapons` → the rifle). */
+   *  knob: edit, then `rebuildHands()` (`__wildshard.world.weapons` → the rifle). */
   readonly handHolds: { left: HandHold; right: HandHold; gate: Omit<HandHold, 'spec'> } = {
     left: { spec: { R: 0.02, curl: 0.8, bend: [0.4, -0.8], armLen: 0.5, tint: 2.2, gloveTint: BUCKSKIN }, at: [0, -0.017, -0.16], axis: [0, 0, -1], palm: [-0.5, 0.87, 0] },
     right: { spec: { R: 0.012, span: 0.9, bend: [0.3, -0.6], armLen: 0.5, tint: 2.2, gloveTint: BUCKSKIN }, at: [0, -0.062, 0.165], axis: [0, 1, -0.25], palm: [-1, 0, 0] },

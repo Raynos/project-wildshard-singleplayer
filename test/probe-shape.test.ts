@@ -57,9 +57,9 @@ describe('probe contract', () => {
   it('shares its exact declared type with scripts and captures the boot synchronously', () => {
     expectTypeOf<ScriptProbe>().toEqualTypeOf<WildshardProbe>();
     const world = fixture(), probe = installProbe(world, deps);
-    expect(Object.keys(probe).sort()).toEqual(['version', 'world', 'shard', 'boot', 'fingerprint', 'pose', 'walkLeg', 'combat', 'arena', 'state', 'onResume', 'saves', 'sounds', 'used'].sort());
+    expect(Object.keys(probe).sort()).toEqual(['version', 'world', 'shard', 'boot', 'fingerprint', 'pose', 'walkLeg', 'combat', 'arena', 'state', 'onResume', 'saves', 'sounds', 'used', 'nav'].sort());
     expect(window.__wildshard).toBe(probe);
-    expect(Reflect.get(window, '__world')).toBe(world);
+    expect(Reflect.has(window, '__world')).toBe(false);
     expect(probe.shard).toMatchObject({ slug: 'driftwood-isle', ocean: 'ocean-handle' });
     expect(probe.boot.steps).toEqual(['renderer', 'physics']);
     expect(probe.boot.registry[0]?.shapes).toEqual({ cuboid: 1, ball: 0, capsule: 0, convex: 0, trimesh: 0, treads: 0 });

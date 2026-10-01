@@ -59,14 +59,14 @@ try {
     page.on('pageerror', (e) => errors.push(e.message.slice(0, 200)));
     const t0 = Date.now();
     await page.goto(`${URL_BASE}/?${query(g.touch)}`, { waitUntil: 'domcontentloaded' });
-    await page.waitForFunction(() => Boolean(window.__world && window.__weather), undefined, { timeout: TIMEOUT, polling: 1000 });
+    await page.waitForFunction(() => Boolean(window.__wildshard?.world && window.__weather), undefined, { timeout: TIMEOUT, polling: 1000 });
     console.error(`[${g.mode}] ready in ${((Date.now() - t0) / 1000).toFixed(0)} s${errors.length > 0 ? ` — page errors: ${errors.join(' | ')}` : ''}`);
     await page.evaluate(() => {
       window.__weather.clock.paused = true;
       if (window.__cam9) return;
       window.__cam9 = { pose: null, saved: null };
-      window.__world.game.onUpdate(() => {
-        const s = window.__cam9, p = s.pose, cam = window.__world.game.camera;
+      window.__wildshard.world.game.onUpdate(() => {
+        const s = window.__cam9, p = s.pose, cam = window.__wildshard.world.game.camera;
         if (!p) { if (s.saved) { cam.children.forEach((c, i) => { c.visible = s.saved[i]; }); s.saved = null; } return; }
         s.saved ??= cam.children.map((c) => c.visible);
         cam.position.set(p.x, p.y, p.z); cam.rotation.set(p.pitch, p.yaw, 0, 'YXZ');
@@ -79,7 +79,7 @@ try {
     for (const p of list) {
       const c = p.camera;
       await page.evaluate((a) => {
-        const w = window.__world;
+        const w = window.__wildshard?.world;
         if (a.god) {
           w.player.spawn(a.px, a.pz, -0.95);
           window.__cam9.pose = { x: a.x, y: a.y, z: a.z, yaw: a.yaw, pitch: a.pitch, fov: a.fov };
@@ -90,7 +90,7 @@ try {
       }, { god: g.mode === 'god', px: P.x, pz: P.z, x: c.x, y: c.y, z: c.z, yaw: c.yaw, pitch: c.pitch, fov: c.fovV });
       await new Promise((resolve) => { setTimeout(resolve, SETTLE); });
       const perf = await page.evaluate(() => new Promise((resolve) => {
-        const gm = window.__world.game;
+        const gm = window.__wildshard.world.game;
         setTimeout(() => {
           const ms = Array.from(gm.frameMs).filter((v) => v > 0).sort((a, b) => a - b);
           const pct = (f) => ms[Math.min(ms.length - 1, Math.floor(ms.length * f))] ?? 0;

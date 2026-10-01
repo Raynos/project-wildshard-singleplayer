@@ -50,12 +50,12 @@ try {
   page.on('pageerror', (e) => errors.push(e.message.slice(0, 200)));
   await page.route('**/@vite/client', (r) => r.fulfill({ contentType: 'application/javascript', body: VITE_STUB }));
   await page.goto(`${URL_BASE}/?chunk=nalati-grasslands&ride=gallop&mute=1&nolock=1&skipintro=1&tier=phone&touch=1&weapon=bow`, { waitUntil: 'domcontentloaded' });
-  await page.waitForFunction(() => window.__world?.ride?.mounted === true, undefined, { timeout: 300000, polling: 1000 });
+  await page.waitForFunction(() => window.__wildshard?.world?.ride?.mounted === true, undefined, { timeout: 300000, polling: 1000 });
   await sleep(4000);
   await page.evaluate(() => {
     // a build has no /src modules to import: the two roads the legs ride (src/chunks/nalatiLayout.ts N_ROAD_PTS, CAMP_SPUR)
     const L = { N_ROAD_PTS: [[0, 250], [0, 190], [0, 156]], CAMP_SPUR: [[0, 214], [40, 218], [62, 215.5], [74, 206.5]] };
-    const w = window.__world;
+    const w = window.__wildshard?.world;
     const t = { L, steps: 0, trace: [], rec: false };
     t.m = () => w.ride.mount;
     t.input = (x, y, g) => { w.player.touchMove.x = x; w.player.touchMove.y = y; w.ride.mount.touchGallop = g; };
@@ -113,10 +113,10 @@ try {
 
   // ── look: the free look swung 175° round stops at the limit ──
   if (ONLY.includes('look')) {
-    await page.evaluate(() => { const w = window.__world, sp = w.chunk.spawn; window.__rb.place(sp.x, sp.z, sp.yaw + Math.PI); });
+    await page.evaluate(() => { const w = window.__wildshard?.world, sp = w.chunk.spawn; window.__rb.place(sp.x, sp.z, sp.yaw + Math.PI); });
     await stand();
     const rel = await page.evaluate(async () => {
-      const w = window.__world, h = w.ride.mount.horse;
+      const w = window.__wildshard?.world, h = w.ride.mount.horse;
       w.player.yaw = h.yaw - Math.PI + (175 * Math.PI) / 180;
       await new Promise((resolve) => { setTimeout(resolve, 400); });
       const d = w.player.yaw + Math.PI - h.yaw;
@@ -163,9 +163,9 @@ try {
   if (ONLY.includes('skid')) {
     out.skid = {};
     for (const mode of ['on']) {
-      await page.evaluate(() => { const w = window.__world, sp = w.chunk.spawn; window.__rb.place(sp.x, sp.z - 2, sp.yaw + Math.PI); });
+      await page.evaluate(() => { const w = window.__wildshard?.world, sp = w.chunk.spawn; window.__rb.place(sp.x, sp.z - 2, sp.yaw + Math.PI); });
       await stand();
-      await page.evaluate(() => { const w = window.__world, sp = w.chunk.spawn; window.__rb.place(sp.x, sp.z - 2, sp.yaw + Math.PI); });
+      await page.evaluate(() => { const w = window.__wildshard?.world, sp = w.chunk.spawn; window.__rb.place(sp.x, sp.z - 2, sp.yaw + Math.PI); });
       await simWait(1500);
       out.standHead = (await state()).headUp;
       await input(0, 1, true); await simWait(4500);
@@ -190,9 +190,9 @@ try {
   // ── spur: canter, then tap on the beat ──
   if (ONLY.includes('spur')) {
     const run = async (how) => {
-      await page.evaluate(() => { const w = window.__world, sp = w.chunk.spawn; window.__rb.place(sp.x, sp.z - 2, sp.yaw + Math.PI); });
+      await page.evaluate(() => { const w = window.__wildshard?.world, sp = w.chunk.spawn; window.__rb.place(sp.x, sp.z - 2, sp.yaw + Math.PI); });
       await stand();
-      await page.evaluate(() => { const w = window.__world, sp = w.chunk.spawn; window.__rb.place(sp.x, sp.z - 2, sp.yaw + Math.PI); });
+      await page.evaluate(() => { const w = window.__wildshard?.world, sp = w.chunk.spawn; window.__rb.place(sp.x, sp.z - 2, sp.yaw + Math.PI); });
       await input(0, 1, false); await simWait(3000);
       await page.evaluate(() => { window.__rb.start(); });
       await (how === 'rhythm' ? page.evaluate(() => { window.__rb.tapRhythm(true); }) : input(0, 1, true));
@@ -212,11 +212,11 @@ try {
 
   // ── panic: a scare ahead at a stand ──
   if (ONLY.includes('panic')) {
-    await page.evaluate(() => { const w = window.__world, sp = w.chunk.spawn; window.__rb.place(sp.x, sp.z - 2, sp.yaw + Math.PI); });
+    await page.evaluate(() => { const w = window.__wildshard?.world, sp = w.chunk.spawn; window.__rb.place(sp.x, sp.z - 2, sp.yaw + Math.PI); });
     await stand();
     const p0 = await state();
     await page.evaluate(() => { window.__rb.start(); });
-    const ok = await page.evaluate(() => { const m = window.__world.ride.mount, h = m.horse; return m.panic(h.position.x + Math.sin(h.yaw) * 6, h.position.z + Math.cos(h.yaw) * 6, 2); });
+    const ok = await page.evaluate(() => { const m = window.__wildshard.world.ride.mount, h = m.horse; return m.panic(h.position.x + Math.sin(h.yaw) * 6, h.position.z + Math.cos(h.yaw) * 6, 2); });
     await input(0.9, 0.4, false);   // the reins say forward-right: the horse ignores them
     await simWait(900);
     await shot('panic');
@@ -232,7 +232,7 @@ try {
     const settled = await state();
     check('E320: after the bolt the rear lets go (the head settles)', settled.rear < 0.02, JSON.stringify({ rear: settled.rear, headUp: settled.headUp }));
     const ev = await page.evaluate(() => {
-      const w = window.__world, m = w.ride.mount, h = m.horse;
+      const w = window.__wildshard?.world, m = w.ride.mount, h = m.horse;
       m.panicT = 0;
       w.wildlife.scare(h.position.x + 10, h.position.z, 60);
       return { bolt: m.panicT };
@@ -244,7 +244,7 @@ try {
   // ── name: on foot at the rail, NAME the camp horse tied there ──
   if (ONLY.includes('name')) {
     await page.evaluate(() => {
-      const w = window.__world;
+      const w = window.__wildshard?.world;
       localStorage.removeItem('ws.nalati.horseNames');
       w.ride.mount.dismount();
       // at the head of the camp horse still tied there (the black; the bay is out on the road from ?ride=gallop), on its side of the rail
@@ -253,9 +253,9 @@ try {
       w.player.yaw = Math.atan2(-(h.position.x - hx), -(h.position.z - hz)); w.player.pitch = -0.15;
     });
     await simWait(1200);
-    const label = await page.evaluate(() => ({ ride: window.__world.ride.interactable.label, use: document.querySelector('.ws-touch-use')?.textContent.trim() ?? '' }));
+    const label = await page.evaluate(() => ({ ride: window.__wildshard.world.ride.interactable.label, use: document.querySelector('.ws-touch-use')?.textContent.trim() ?? '' }));
     check('name: at the tied horse\'s head the USE band reads "Name …"', label.ride.startsWith('Name ') && /name/i.test(label.use), JSON.stringify(label));
-    await page.evaluate(() => { window.__world.ride.interactable.onInteract(); });
+    await page.evaluate(() => { window.__wildshard.world.ride.interactable.onInteract(); });
     await page.waitForSelector('.ws-ride-nameinput', { timeout: 5000 });
     await sleep(300);   // the box drops input in its first 150 ms (the E that opened it, E328)
     await page.fill('.ws-ride-nameinput', 'kara  jorga');
@@ -263,7 +263,7 @@ try {
     await page.press('.ws-ride-nameinput', 'Enter');
     await simWait(600);
     const res = await page.evaluate(() => {
-      const w = window.__world, a = w.wildlife.campHorses.find((h) => w.ride.mount.nameOf(h) === 'Kara Jorga') ?? null;
+      const w = window.__wildshard?.world, a = w.wildlife.campHorses.find((h) => w.ride.mount.nameOf(h) === 'Kara Jorga') ?? null;
       return { renamed: a !== null, label: a?.label ?? null, stored: localStorage.getItem('ws.nalati.horseNames'), open: document.querySelector('.ws-ride-namebox') !== null, prompt: w.ride.interactable.label };
     });
     check('name: typed + Enter renames it, saved, the panel closed', res.renamed && res.label === 'Kara Jorga' && (res.stored ?? '').includes('Kara Jorga') && !res.open, JSON.stringify(res));

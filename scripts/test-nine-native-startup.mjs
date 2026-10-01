@@ -58,14 +58,14 @@ try {
     };
   }, address.port);
   await page.goto(`${base}/?chunk=nine-dragon-stack&tier=phone&touch=1`, { waitUntil: 'domcontentloaded' });
-  await page.waitForFunction(() => Boolean(window.__world) || Boolean(document.querySelector('#wserr')), null, { timeout: 60_000 });
+  await page.waitForFunction(() => Boolean(window.__wildshard?.world) || Boolean(document.querySelector('#wserr')), null, { timeout: 60_000 });
   if (await page.locator('.ws-menu-explore').isVisible()) {
     await page.locator('.ws-menu-explore').click();
     await page.locator('.ws-x-card[data-m="world"]').click();
   }
   await page.waitForTimeout(3000);
   const state = await page.evaluate(() => ({
-    world: Boolean(window.__world), lost: window.__world?.game.renderer.getContext().isContextLost(),
+    world: Boolean(window.__wildshard?.world), lost: window.__wildshard?.world?.game.renderer.getContext().isContextLost(),
     exploring: Boolean(document.querySelector('.ws-x.show[data-mode="world"]')),
     error: document.querySelector('#wserr .msg')?.textContent ?? '',
     waited: (localStorage.getItem('ws.nineBoot') ?? '').includes('renderer:waiting'),

@@ -1,4 +1,4 @@
-// Copied from the facade lab (src/dev/nd-lab/facade/rng.ts, round-7-lab-facade) into the clean room.
+// Copied from the facade lab (the dev labs (deleted in E357 F7), round-7-lab-facade) into the clean room.
 // Seeded randomness for the facade grammar: mulberry32, so every build of a tower is the same tower (lab P3, E169).
 
 export class Rng {

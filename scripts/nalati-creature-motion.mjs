@@ -45,13 +45,13 @@ try {
     page.on('pageerror', (e) => errs.push(e.message.slice(0, 160)));
     const q = ['chunk=nalati-grasslands', 'mute=1', 'nolock=1', 'skipintro=1', 'perf=0', 'weather=clear', `tier=${TIER}`, `x=${X}`, `z=${Z}`, 'yaw=3.14', 'pitch=-0.08', s.q].join('&');
     await page.goto(`${URL_BASE}/${s.page}?${q}`);
-    await page.waitForFunction(() => Boolean(window.__world?.animals), undefined, { timeout: 300000, polling: 1000 });
+    await page.waitForFunction(() => Boolean(window.__wildshard?.world?.animals), undefined, { timeout: 300000, polling: 1000 });
     await page.addStyleTag({ content: '#hud,#hud *,.ws-touch{display:none!important}' });
     await page.waitForTimeout(s.wait * 1000);
     // a tracking camera on the scene's subjects (their centroid, side-on to their heading, eased), set after the game's
     // own camera each frame
     await page.evaluate((kinds) => {
-      const w = window.__world, cam = w.game.camera;
+      const w = window.__wildshard?.world, cam = w.game.camera;
       const st = { cx: 0, cy: 0, cz: 0, hx: 1, hz: 0, init: false };
       const anchorRef = [];
       // the group: the subject nearest the player now, and every one of its kind within 30 m of it each frame
@@ -106,7 +106,7 @@ try {
       await page.waitForTimeout(DT * 1000);
     }
     const info = await page.evaluate(() => {
-      const w = window.__world; const n = w.animals.animals.length; let glb = 0;
+      const w = window.__wildshard?.world; const n = w.animals.animals.length; let glb = 0;
       for (const a of w.animals.animals) if (a.model.map) glb++;
       return { animals: n, glb, calls: w.game.lastFrame.calls };
     }).catch(() => ({}));

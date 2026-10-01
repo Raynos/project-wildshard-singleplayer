@@ -40,11 +40,11 @@ try {
     const url = new URL(BASE);
     for (const [k, v] of Object.entries({ chunk: shard, tier: 'phone', mute: '1', nolock: '1', sw: '0', explore: 'model' })) url.searchParams.set(k, v);
     await page.goto(url.href, { waitUntil: 'domcontentloaded' });
-    await page.waitForFunction(() => document.querySelectorAll('.ws-x-grid .ws-x-model').length > 0 && window.__world !== undefined, undefined, { timeout: 480_000, polling: 1000 });
+    await page.waitForFunction(() => document.querySelectorAll('.ws-x-grid .ws-x-model').length > 0 && window.__wildshard?.world !== undefined, undefined, { timeout: 480_000, polling: 1000 });
     await sleep(2000);
     // the drawn-into models (a pick with a claim) that have a card, in registration order
     const models = await page.evaluate((max) => {
-      const w = window.__world, ids = [...new Set(w.registry.picks.filter((p) => p.claim !== undefined).map((p) => p.entry))];
+      const w = window.__wildshard?.world, ids = [...new Set(w.registry.picks.filter((p) => p.claim !== undefined).map((p) => p.entry))];
       const cards = new Map([...document.querySelectorAll('.ws-x-grid .ws-x-model')].map((c) => [c.dataset.id, c.querySelector('b')?.textContent ?? '']));
       return ids.filter((id) => cards.has(id)).slice(0, max).map((id) => ({ id, name: cards.get(id) }));
     }, MAX);
@@ -78,7 +78,7 @@ try {
       await page.waitForFunction(() => document.querySelector('.ws-x-select.show') !== null, undefined, { timeout: 8000, polling: 100 }).catch(() => undefined);
       await sleep(300);
       const view = await page.evaluate(() => {
-        const cam = window.__world.game.camera.position, rec = window.__landRec;
+        const cam = window.__wildshard.world.game.camera.position, rec = window.__landRec;
         return { cam: [cam.x, cam.y, cam.z].map((v) => Math.round(v * 100) / 100), land: Math.round(rec?.done ?? 0), frame: Math.round((rec?.worst ?? 0) * 10) / 10 };
       });
       if (SHOTS !== '' && SHOT_SHARDS.has(shard)) await page.screenshot({ path: join(resolvePath(SHOTS), `${shard}--${m.id.replaceAll(/[^\w.-]+/g, '_')}.jpg`), type: 'jpeg', quality: 86 });
@@ -89,7 +89,7 @@ try {
       const sel = await page.evaluate(() => (document.querySelector('.ws-x-select.show') ? document.querySelector('.ws-x-select b')?.textContent ?? '' : null));
       // one tap's pick, timed: the canvas's own pointer handlers (Select.pick), three times at the centre
       const tap = await page.evaluate(([x, y]) => {
-        const cv = window.__world.game.canvas, ms = [];
+        const cv = window.__wildshard.world.game.canvas, ms = [];
         for (let i = 0; i < 3; i++) {
           const t0 = performance.now();
           cv.dispatchEvent(new PointerEvent('pointerdown', { clientX: x, clientY: y, button: 0, pointerType: 'mouse', bubbles: true }));

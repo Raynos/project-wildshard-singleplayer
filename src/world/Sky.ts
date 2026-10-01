@@ -340,7 +340,7 @@ export class Sky {
   private cloudUniforms = { uTime: { value: 0 }, uSunDir: { value: new THREE.Vector3() }, uSunColor: { value: new THREE.Color() }, uLight: { value: new THREE.Color(1, 1, 1) }, uDrift: { value: new THREE.Vector2() }, uCloudLit: { value: new THREE.Color(1, 1, 1) }, uCloudAlpha: { value: 1 } };
   /** a painted sky's layer uniforms for SKY_LAYER_GLSL (PainterlySky.ts): a backdrop / far-range shader shares the air + the hour */
   skyLayer: SkyLayerUniforms | null = null;
-  /** the painterly air's uniforms (aerial perspective, cloud shadows — Atmosphere.ts `paintedAir`), for live tuning (`__world.sky.air`) */
+  /** the painterly air's uniforms (aerial perspective, cloud shadows — Atmosphere.ts `paintedAir`), for live tuning (`__wildshard.world.sky.air`) */
   readonly air = paintedAir;
   /** a painted sky (Nalati): the painterly clouds + the cloud shadows drift with the one Wind */
   private painterly = false;

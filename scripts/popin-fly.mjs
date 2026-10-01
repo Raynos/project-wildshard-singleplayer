@@ -42,7 +42,7 @@ mkdirSync(OUT, { recursive: true });
 const round2 = (v) => Math.round(v * 100) / 100;
 /** in the page: put the camera at p and let `n` frames render there (FreeCam keeps the position we set) */
 const placeFor = (page, p, n) => page.evaluate(async ([x, y, z, k]) => {
-  const g = window.__world.game;
+  const g = window.__wildshard.world.game;
   for (let i = 0; i < k; i++) {
     g.camera.position.set(x, y, z);
     await new Promise((resolve) => { requestAnimationFrame(() => { resolve(); }); });
@@ -65,7 +65,7 @@ try {
   console.log(url);
   await page.goto(url, { waitUntil: 'domcontentloaded' });
   try {
-    await page.waitForFunction(() => Boolean(window.__world?.game), undefined, { timeout: Number(flag('timeout', '240')) * 1000, polling: 1000 });
+    await page.waitForFunction(() => Boolean(window.__wildshard?.world?.game), undefined, { timeout: Number(flag('timeout', '240')) * 1000, polling: 1000 });
   } catch (error) {
     await page.screenshot({ path: `${OUT}/${LABEL}-${TIER}-timeout.jpg`, type: 'jpeg', quality: 70 });
     console.log(consoleLog.join('\n'), errors);
@@ -75,7 +75,7 @@ try {
   await page.addStyleTag({ content: '.ws-x, #hud, .ws-perf, .ws-update { visibility: hidden !important; }' }); // just the world
 
   if (POPCHECK > 0) {
-    await page.evaluate(() => { window.__world.game.clock.getDelta = () => 1e-5; });
+    await page.evaluate(() => { window.__wildshard.world.game.clock.getDelta = () => 1e-5; });
     const dir = TO.map((b, i) => b - (FROM[i] ?? 0)), len = Math.hypot(...dir), u = dir.map((d) => d / len);
     for (let k = 0; k < POPCHECK; k++) {
       const P = FROM.map((a, i) => a + ((TO[i] ?? a) - a) * (k / POPCHECK));
@@ -100,7 +100,7 @@ try {
     // parked at the path's middle: the frame's GPU time (timer queries round the composer, as E123 measured shadows)
     await placeFor(page, FROM.map((a, i) => (a + (TO[i] ?? a)) / 2), 30);
     const perf = await page.evaluate(async () => {
-      const g = window.__world.game, gl = g.renderer.getContext(), ext = gl.getExtension('EXT_disjoint_timer_query_webgl2');
+      const g = window.__wildshard.world.game, gl = g.renderer.getContext(), ext = gl.getExtension('EXT_disjoint_timer_query_webgl2');
       const samples = [], pending = [];
       const composer = g.composer, orig = composer.render.bind(composer);
       composer.render = (dt) => {
@@ -122,7 +122,7 @@ try {
     const cdp = CPU > 1 ? await ctx.newCDPSession(page) : null;
     if (cdp) await cdp.send('Emulation.setCPUThrottlingRate', { rate: CPU });
     const flight = await page.evaluate(async ([from, to, speed]) => {
-      const g = window.__world.game;
+      const g = window.__wildshard.world.game;
       const len = Math.hypot(to[0] - from[0], to[1] - from[1], to[2] - from[2]), T = (len / speed) * 1000;
       let cover = null;
       g.scene.traverse((o) => { if (o.name === 'ground-cover') cover = o.userData.stats ?? null; });

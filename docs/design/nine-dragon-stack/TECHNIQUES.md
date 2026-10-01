@@ -180,7 +180,7 @@ The full method is in `LOOK-LOOP.md`.
 - **Recommended, not yet built anywhere:** an inverted hull (backface, pushed along the normal) with a dry-brush strip
   alpha (§4.1 "Enemies").
 - **The nearest existing pieces:**
-  - The rig bake (`src/entities/creatureRigBake.ts`, `scripts/creature-rig-bake.mjs`): a static hull skinned to a
+  - The rig bake (`src/entities/creatureRigBake.ts`, `scripts/creature-rig-bake.mjs` (deleted in E357 F7: needed the dev labs)): a static hull skinned to a
     procedural skeleton. A hull mesh is exactly what an inverted-hull outline needs.
   - The Nalati melee kit (`src/player/meleeGeo.ts`): smooth indexed tubes with per-vertex paint, which give clean normals
     for the push.
@@ -447,7 +447,7 @@ The full method is in `LOOK-LOOP.md`.
 
 ### 6.5 Rigging generated hulls
 
-- **Where:** `src/entities/creatureRigBake.ts` + `scripts/creature-rig-bake.mjs`. A static image-to-3D hull is skinned to
+- **Where:** `src/entities/creatureRigBake.ts` + `scripts/creature-rig-bake.mjs` (deleted in E357 F7: needed the dev labs). A static image-to-3D hull is skinned to
   a procedural species skeleton (weights transferred from the nearest bones) and written as `.rigged.glb`.
 - **Used for:** Nalati `b14c7cc`; Pine Hollow PH-M1 `49e6bb0` (deer, boar, elk, bear).
 - **Shard 4:** brush-drawn enemies and the square's people. Generate a hull, rig it to a humanoid skeleton, and animate

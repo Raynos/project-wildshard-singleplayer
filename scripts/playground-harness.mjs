@@ -53,7 +53,7 @@ export async function tap(page, sel) {
 export async function bootToTitle(page, base, slug) {
   const t0 = Date.now();
   await page.goto(`${base}/?chunk=${slug}&tier=phone&touch=1&mute=1&nolock=1&sw=0`, { waitUntil: 'domcontentloaded' });
-  await page.waitForFunction(() => document.querySelector('.ws-menu-explore') !== null && document.querySelector('.ws-load') === null && window.__world !== undefined, undefined, { timeout: 480000, polling: 1000 });
+  await page.waitForFunction(() => document.querySelector('.ws-menu-explore') !== null && document.querySelector('.ws-load') === null && window.__wildshard?.world !== undefined, undefined, { timeout: 480000, polling: 1000 });
   await sleep(2500);
   return Math.round((Date.now() - t0) / 1000);
 }
@@ -80,14 +80,14 @@ export async function enterPlayground(page, id) {
   await page.evaluate((pg) => { document.querySelector(`.ws-x-card[data-pg="${pg}"]`)?.scrollIntoView({ block: 'center' }); }, id);
   await sleep(400);
   await tap(page, `.ws-x-card[data-pg="${id}"]`);
-  await page.waitForFunction(() => window.__world?.playground?.()?.entered === true, undefined, { timeout: 120000, polling: 250 });
+  await page.waitForFunction(() => window.__wildshard?.world?.playground?.()?.entered === true, undefined, { timeout: 120000, polling: 250 });
   await sleep(1500);
 }
 
 /** the game's canvas into a MediaRecorder at its real size (vp9 ~16 Mb/s): start … stop → the webm on disk */
 export async function startRecording(page) {
   await page.evaluate(() => {
-    const canvas = window.__world.game.renderer.domElement;
+    const canvas = window.__wildshard.world.game.renderer.domElement;
     const stream = canvas.captureStream(60);
     const type = ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm'].find((t) => MediaRecorder.isTypeSupported(t)) ?? 'video/webm';
     const rec = new MediaRecorder(stream, { mimeType: type, videoBitsPerSecond: 16_000_000 });
@@ -120,7 +120,7 @@ export function encodePhone(webm, mp4) {
 /** turn the view to look at a world point (yaw faces (−sin, −cos); pitch up is positive) */
 export function aimAt(page, point) {
   return page.evaluate(([x, y, z]) => {
-    const w = window.__world, c = w.game.camera.position;
+    const w = window.__wildshard?.world, c = w.game.camera.position;
     w.player.yaw = Math.atan2(-(x - c.x), -(z - c.z));
     w.player.pitch = Math.atan2(y - c.y, Math.hypot(x - c.x, z - c.z));
   }, point);

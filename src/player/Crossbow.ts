@@ -818,7 +818,7 @@ export class Crossbow implements Weapon {
   /** loaded bolt's broadhead tip, in model space (measured from the bolt geometry) and bolt-local */
   private tipModel = new THREE.Vector3(); private tipLocal = new THREE.Vector3();
   private adsCache = { aspect: 0, fov: 0, scale: 0 };
-  /** the solved iron-sights pose + the numbers behind it (dev / verification: `__world.crossbow.adsPose`) */
+  /** the solved iron-sights pose + the numbers behind it (dev / verification: `__wildshard.world.crossbow.adsPose`) */
   readonly adsPose = { px: 0, py: 0, pz: 0, rx: ADS_PITCH, scale: 0, tipDepth: 0, eyeAboveRail: 0, nutDepth: 0, nutNdcY: 0, limbNdcX: 0, tipNdcY: 0, peepY: 0, peepZ: PEEP_Z, peepDepth: 0, peepR: 0 };
   /** the rear peep sight: ring + post, posed from `adsPose` every sighted frame */
   private peep = new THREE.Group(); private peepRing = new THREE.Group(); private peepPost!: THREE.Mesh;
@@ -828,7 +828,7 @@ export class Crossbow implements Weapon {
   private handsMat: THREE.MeshPhysicalMaterial | null = null; private coatMat: THREE.MeshPhysicalMaterial | null = null;
   /** the holds, in model space: the left hand round the back of the fore-end's leather — its thumb up the near side, its
    *  fingers up the far side, the coat sleeve free (aimed at an elbow off the frame's lower left, so the reload's tilt
-   *  never swings the arm away); the right under the grip with the index by the trigger. Both in the coat's sleeves. A dev knob: edit, then `rebuildHands()` (`__world.crossbow`). */
+   *  never swings the arm away); the right under the grip with the index by the trigger. Both in the coat's sleeves. A dev knob: edit, then `rebuildHands()` (`__wildshard.world.crossbow`). */
   readonly handHolds: { left: HandHold; right: HandHold } = {
     left: { spec: { R: 0.025, curl: 0.7, thumbCurl: 0.9, armLen: 1, tint: 2.2, gloveTint: BUCKSKIN, coat: true, elbow: [-0.35, -0.45, -0.45] }, at: [0.004, -0.034, -0.04], axis: [0, 0, -1], palm: [-0.5, 0.87, 0] },
     right: { spec: { R: 0.03, curl: 0.6, thumbCurl: 0.9, bend: [0.8, -1.2], armLen: 0.6, tint: 2.2, gloveTint: BUCKSKIN, coat: true }, at: [0, -0.09, 0.33], axis: [0, 0.34, -0.94], palm: [0, 1, 0] },

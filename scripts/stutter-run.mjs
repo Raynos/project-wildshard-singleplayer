@@ -73,12 +73,12 @@ try {
   const url = `${BASE}/?chunk=driftwood-isle&skipintro=1&nolock=1&mute=1&touch=1&tier=phone`;
   console.error(`> ${LABEL}: ${url}`);
   await page.goto(url, { waitUntil: 'domcontentloaded' });
-  await page.waitForFunction(() => { const w = window.__world, hud = document.getElementById('hud'); return Boolean(w?.game && w.player) && document.querySelector('.ws-load') === null && !(hud?.classList.contains('intro')); }, undefined, { timeout: 300_000, polling: 1000 });
+  await page.waitForFunction(() => { const w = window.__wildshard?.world, hud = document.getElementById('hud'); return Boolean(w?.game && w.player) && document.querySelector('.ws-load') === null && !(hud?.classList.contains('intro')); }, undefined, { timeout: 300_000, polling: 1000 });
   await page.waitForTimeout(10_000); // shaders, the Blender island, the horizon paintings land
-  await page.evaluate(() => { const a = window.__world?.animals; if (a) a.calm = true; });
+  await page.evaluate(() => { const a = window.__wildshard?.world?.animals; if (a) a.calm = true; });
   if (EVAL) await page.evaluate(EVAL);
   if (VARIANTS.length > 1 || VARIANTS[0] !== 'base') await page.evaluate(() => {
-    window.__world.game.scene.traverse((mesh) => {
+    window.__wildshard.world.game.scene.traverse((mesh) => {
       if (!mesh.isInstancedMesh || !mesh.name.startsWith('ground-cover')) return;
       const g = mesh.geometry, attrs = [mesh.instanceMatrix, mesh.instanceColor, g.getAttribute('aGround'), g.getAttribute('aCover'), g.getAttribute('aNrm'), g.getAttribute('aBorn')];
       for (const a of attrs) if (a) Object.defineProperty(a, 'needsUpdate', { configurable: true, get() { return false; }, set(v) {
@@ -96,7 +96,7 @@ try {
     // back to the start, settled (a teleport, not measured)
     await page.evaluate(() => {
       // the shard's spawn on the pier; spawn() puts the feet on the terrain under the deck — land on the deck (scorecard.mjs)
-      const w = window.__world, pl = w.player, s = w.chunk.spawn, ph = w.physics;
+      const w = window.__wildshard?.world, pl = w.player, s = w.chunk.spawn, ph = w.physics;
       pl.spawn(s.x, s.z, s.yaw);
       if (ph?.R) {
         const x = pl.position.x, z = pl.position.z, top = pl.position.y + 2.5;
@@ -111,7 +111,7 @@ try {
     // --heapprof: V8's sampling heap profiler over the run, garbage included — who allocates what the GC then collects
     if (cdp && HEAPPROF) await cdp.send('HeapProfiler.startSampling', { samplingInterval: 8192, includeObjectsCollectedByMajorGC: true, includeObjectsCollectedByMinorGC: true });
     const r = await page.evaluate(async ([path, secs, walk]) => {
-      const W = window, w = W.__world, g = w.game, pl = w.player, gl = g.renderer.getContext(), C = W.__e186;
+      const W = window, w = W.__wildshard?.world, g = w.game, pl = w.player, gl = g.renderer.getContext(), C = W.__e186;
       const ext = gl.getExtension('EXT_disjoint_timer_query_webgl2');
       let cover = null; g.scene.traverse((o) => { if (o.name === 'ground-cover') cover = o.userData.stats ?? null; });
       const fade = w.sky?.shadowFade ?? null;

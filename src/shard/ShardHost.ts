@@ -37,7 +37,7 @@ export interface ShardWorld {
   activate: (req: ShardRequest) => void;
   /** evicted: everything given back (the GPU context, the physics world, its sound graph) */
   dispose: () => void;
-  /** `window.__world` while it runs (the debug scripts read the running shard's) */
+  /** `window.__wildshard.world` while it runs (the debug scripts read the running shard's) */
   readonly handle: unknown;
   /** its renderer, for the memory numbers */
   readonly renderer: THREE.WebGLRenderer;
@@ -182,7 +182,7 @@ export class ShardHost {
   }
 
   /**
-   * The shard's debug globals (`window.__world`, `__stealth`, `__elites` … — 27 scripts read `__world`): they name the
+   * The shard's debug globals (`window.__wildshard.world`, `__stealth`, `__elites` … — 27 scripts read `__wildshard.world`): they name the
    * running shard's objects, so they leave with it and come back with it (and an evicted shard's are simply dropped)
    */
   private takeGlobals(): Map<string, unknown> {

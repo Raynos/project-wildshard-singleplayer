@@ -106,7 +106,7 @@ for (const [name, engine] of engines) {
     const entry = fault === 'context' ? '' : '&skipintro=1';
     await page.goto(`${base}/?chunk=nine-dragon-stack${entry}&nolock=1&mute=1&touch=1&tier=phone&sw=0`, { waitUntil: 'domcontentloaded', timeout: 30_000 });
     if (fault === 'context') {
-      await page.waitForFunction(() => Boolean(window.__world) || Boolean(document.querySelector('#wserr')), null, { timeout: 90_000 });
+      await page.waitForFunction(() => Boolean(window.__wildshard?.world) || Boolean(document.querySelector('#wserr')), null, { timeout: 90_000 });
       await page.locator('.ws-menu-explore').click();
       await page.locator('.ws-x-card[data-m="world"]').click();
       await page.waitForFunction(() => {
@@ -114,9 +114,9 @@ for (const [name, engine] of engines) {
         return trace?.status === 'ready' && trace.checkpoints?.some((point) => point.operation === 'explore:stable');
       }, null, { timeout: 25_000 });
       const state = await page.evaluate(() => ({
-        world: Boolean(window.__world), exploring: Boolean(document.querySelector('.ws-x.show[data-mode="world"]')),
-        lost: window.__world?.game.renderer.getContext().isContextLost(),
-        calls: window.__world?.game.renderer.info.render.calls ?? 0,
+        world: Boolean(window.__wildshard?.world), exploring: Boolean(document.querySelector('.ws-x.show[data-mode="world"]')),
+        lost: window.__wildshard?.world?.game.renderer.getContext().isContextLost(),
+        calls: window.__wildshard?.world?.game.renderer.info.render.calls ?? 0,
         error: Boolean(document.querySelector('#wserr')),
         trace: localStorage.getItem('ws.nineBoot') ?? '',
       }));
@@ -150,7 +150,7 @@ for (const [name, engine] of engines) {
   } catch (error) {
     failed = true;
     console.error(`FAIL ${name}: ${String(error)}`);
-    if (page) console.error(JSON.stringify(await page.evaluate(() => ({ url: location.href, step: document.querySelector('.ws-load')?.dataset.step, title: Boolean(document.querySelector('.ws-menu')), error: document.querySelector('#wserr .msg')?.textContent ?? '', world: Boolean(window.__world) })).catch(() => null)));
+    if (page) console.error(JSON.stringify(await page.evaluate(() => ({ url: location.href, step: document.querySelector('.ws-load')?.dataset.step, title: Boolean(document.querySelector('.ws-menu')), error: document.querySelector('#wserr .msg')?.textContent ?? '', world: Boolean(window.__wildshard?.world) })).catch(() => null)));
   } finally { await browser.close(); }
 }
 if (failed) process.exitCode = 1;

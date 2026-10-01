@@ -80,7 +80,7 @@ node scripts/nalati-parity.mjs --help
 ```
 
 - One headless Chromium on the host GPU (`--use-angle=metal`), loaded **once per tier**; each pose re-spawns the player
-  (`__world.player.spawn`) and sets the day clock (`__weather.clock`), then settles 5 s (`--settle=`). The clock is
+  (`__wildshard.world.player.spawn`) and sets the day clock (`__weather.clock`), then settles 5 s (`--settle=`). The clock is
   frozen and the weather forced clear (`?clock=0&weather=clear`), so a set is reproducible.
 - An HMR full reload (someone saved a file) is detected and the pose retried; a reload that never comes back is reloaded.
 - The poses (x / z / yaw / pitch / time, a `phone` override for the narrow portrait frame) are `POSES` at the top of the

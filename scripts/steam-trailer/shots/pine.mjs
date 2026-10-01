@@ -8,7 +8,7 @@ export const shots = [
   { name: 'p-elite', shard: 'pine', url: GOLD, secs: 4, warm: 120,
     setup: VIEWMODEL,
     afterWarm: `window.__prey = ${nearest('/ghost|stag|elk|deer/', 60)};`, probe: PREY,
-    tick: (t, i, sb, step) => js(aimAt('window.__prey'), at(t, 1.6, step) ? 'window.__world.weapons.adsHeld = true;' : '', at(t, 2.4, step) ? 'window.__world.weapons.tryFire();' : '', at(t, 3.2, step) ? 'window.__world.weapons.adsHeld = false;' : '') },
+    tick: (t, i, sb, step) => js(aimAt('window.__prey'), at(t, 1.6, step) ? 'window.__wildshard.world.weapons.adsHeld = true;' : '', at(t, 2.4, step) ? 'window.__wildshard.world.weapons.tryFire();' : '', at(t, 3.2, step) ? 'window.__wildshard.world.weapons.adsHeld = false;' : '') },
   // old growth: the standing stones in low sun, a slow push between trunks
   { name: 'p-stones', shard: 'pine', url: GOLD, secs: 4,
     setup: NO_VIEWMODEL,
@@ -42,6 +42,6 @@ export const shots = [
     setup: `${NO_VIEWMODEL}(() => { const K = window.__antlerKing; const k = K.fight.king.position; window.__tr.setRig({ rel: true, ease: true, keys: [ { t: 0, p: [158, 1.6, -8], l: [k.x, k.y + 3.5, k.z], fov: 58 }, { t: 4, p: [155, 1.1, -14], l: [k.x, k.y + 4.2, k.z], fov: 50 } ] }); })();` },
   { name: 'p-king-fp', shard: 'pine', url: `${P}&boss=antler-king&bossGod=1&bossPhase=2&from=18`, secs: 4, waitFor: 'Boolean(window.__antlerKing?.fight?.king)',
     setup: VIEWMODEL,
-    tick: (t, i, sb, step) => js(`(() => { const K = window.__antlerKing; const k = K.fight.king.position; const p = window.__world.player; const want = Math.atan2(-(k.x - p.position.x), -(k.z - p.position.z)); let d = want - p.yaw; d = Math.atan2(Math.sin(d), Math.cos(d)); p.yaw += d * 0.1; const dy = k.y + 3.6 - (p.position.y + 1.65), dh = Math.hypot(k.x - p.position.x, k.z - p.position.z); p.pitch += (Math.atan2(dy, dh) - p.pitch) * 0.08; })();`,
-      (at(t, 1.0, step) || at(t, 2.6, step) ? 'window.__world.weapons.tryFire();' : '')) },
+    tick: (t, i, sb, step) => js(`(() => { const K = window.__antlerKing; const k = K.fight.king.position; const p = window.__wildshard.world.player; const want = Math.atan2(-(k.x - p.position.x), -(k.z - p.position.z)); let d = want - p.yaw; d = Math.atan2(Math.sin(d), Math.cos(d)); p.yaw += d * 0.1; const dy = k.y + 3.6 - (p.position.y + 1.65), dh = Math.hypot(k.x - p.position.x, k.z - p.position.z); p.pitch += (Math.atan2(dy, dh) - p.pitch) * 0.08; })();`,
+      (at(t, 1.0, step) || at(t, 2.6, step) ? 'window.__wildshard.world.weapons.tryFire();' : '')) },
 ];

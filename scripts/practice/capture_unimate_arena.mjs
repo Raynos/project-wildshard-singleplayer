@@ -20,19 +20,19 @@ try {
   page.on('console', (m) => { if (m.type() === 'warning' && m.text().includes('dummy')) errors.push(m.text()); });
   const start = Date.now();
   await page.goto(`${served}/?chunk=driftwood-isle&touch&tier=phone&skipintro&nolock&mute`);
-  await page.waitForFunction(() => Boolean(window.__world?.arena), undefined, { timeout: 300000 });
-  await page.evaluate(() => window.__world.hud.enterArenaNow());
-  await page.waitForFunction(() => window.__world.arena.targets.every((t) => t.ready && t.clips?.bones.length === 13), undefined, { timeout: 180000 });
+  await page.waitForFunction(() => Boolean(window.__wildshard?.world?.arena), undefined, { timeout: 300000 });
+  await page.evaluate(() => window.__wildshard.world.hud.enterArenaNow());
+  await page.waitForFunction(() => window.__wildshard.world.arena.targets.every((t) => t.ready && t.clips?.bones.length === 13), undefined, { timeout: 180000 });
   await page.waitForTimeout(2000);
   const trim = (Date.now() - start) / 1000;
   await page.screenshot({ path: `${out}/arena-idle.jpg`, type: 'jpeg', quality: 88 });
-  const clips = await page.evaluate(() => window.__world.arena.targets.map((t) => ({ variant: t.variant, rig: t.model.rig,
+  const clips = await page.evaluate(() => window.__wildshard.world.arena.targets.map((t) => ({ variant: t.variant, rig: t.model.rig,
     driven: t.clips.bones.length, clips: [...t.clips.reactions.keys()] })));
   await page.waitForTimeout(2000);
   for (const [name, px, py, amount] of [['body', 0, 1.1, 25], ['head', 0, 1.58, 45], ['left', -0.3, 1.1, 35],
     ['right', 0.3, 1.1, 35], ['heavy', 0, 1.1, 70]]) {
     await page.evaluate(({ px: hitX, py: hitY, amount: damage }) => {
-      const w = window.__world;
+      const w = window.__wildshard?.world;
       for (const t of w.arena.targets) {
         const p = t.position.clone().add({ x: hitX, y: hitY, z: 0.2 });
         t.applyDamage(damage, p, t.position.clone().set(0, 0, -1));
@@ -43,7 +43,7 @@ try {
     await page.waitForTimeout(2000);
   }
   for (let i = 0; i < 6; i++) {
-    await page.evaluate(() => { for (const t of window.__world.arena.targets) t.applyDamage(40, t.position.clone().add({ x: 0.2, y: 1.2, z: 0.2 })); });
+    await page.evaluate(() => { for (const t of window.__wildshard.world.arena.targets) t.applyDamage(40, t.position.clone().add({ x: 0.2, y: 1.2, z: 0.2 })); });
     await page.waitForTimeout(160);
   }
   await page.waitForTimeout(3000);

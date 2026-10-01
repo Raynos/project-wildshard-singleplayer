@@ -23,13 +23,13 @@ try {
       page.on('pageerror', (error) => { errors.push(error.message); });
       page.on('framenavigated', (frame) => { if (frame === page.mainFrame()) navigations++; });
       await page.goto(`${base}/?chunk=nine-dragon-stack&tier=${profile.tier}&touch=1&nolock=1&mute=1&sw=0`, { waitUntil: 'domcontentloaded' });
-      await page.waitForFunction(() => Boolean(window.__world) || Boolean(document.querySelector('#wserr')), null, { timeout: 90_000 });
+      await page.waitForFunction(() => Boolean(window.__wildshard?.world) || Boolean(document.querySelector('#wserr')), null, { timeout: 90_000 });
       await page.locator('.ws-menu-explore').click({ timeout: 10_000 });
       await page.locator('.ws-x-card[data-m="world"]').click();
       await page.waitForFunction(() => Boolean(document.querySelector('.ws-x.show[data-mode="world"]')) &&
-        (window.__world?.game.renderer.info.render.calls ?? 0) > 0, null, { timeout: 20_000 });
+        (window.__wildshard?.world?.game.renderer.info.render.calls ?? 0) > 0, null, { timeout: 20_000 });
       const state = await page.evaluate(() => {
-        const game = window.__world.game;
+        const game = window.__wildshard.world.game;
         const facade = game.scene.getObjectByName('facade');
         let batches = 0, instances = 0;
         facade?.traverse((object) => {

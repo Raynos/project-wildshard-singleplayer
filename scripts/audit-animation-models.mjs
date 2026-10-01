@@ -17,9 +17,9 @@ try {
     const url = new URL(base);
     url.search = new URLSearchParams({ chunk: shard, touch: '', tier: 'phone', skipintro: '', nolock: '', mute: '' }).toString();
     await page.goto(url.href);
-    await page.waitForFunction(() => Boolean(window.__world?.registry?.models().length), undefined, { timeout: 300000 });
+    await page.waitForFunction(() => Boolean(window.__wildshard?.world?.registry?.models().length), undefined, { timeout: 300000 });
     await page.waitForTimeout(1500);
-    const entries = await page.evaluate(() => window.__world.registry.models().map((e) => ({
+    const entries = await page.evaluate(() => window.__wildshard.world.registry.models().map((e) => ({
       id: e.id, name: e.name, category: e.category, file: e.file, drawnAs: e.drawnAs, pipeline: e.pipeline,
       variants: e.variants ?? [],
     })));
@@ -28,14 +28,14 @@ try {
       const samples = [];
       for (const variant of entry.variants.length > 0 ? entry.variants : [{ id: '', label: 'Default' }]) {
         await page.evaluate(({ id, variant: variantId }) => {
-          const e = window.__world.registry.models().find((x) => x.id === id);
+          const e = window.__wildshard.world.registry.models().find((x) => x.id === id);
           if (!e) throw new Error(`Missing card ${id}`);
           if (variantId) e.rebuild?.(variantId);
           e.object();
         }, { id: entry.id, variant: variant.id });
         await page.waitForTimeout(['people', 'creatures', 'gear'].includes(entry.category) || entry.id.includes('dummy') ? 450 : 30);
         const sample = await page.evaluate((id) => {
-          const e = window.__world.registry.models().find((x) => x.id === id);
+          const e = window.__wildshard.world.registry.models().find((x) => x.id === id);
           const root = e.object();
           const skins = [], bones = new Set();
           let meshes = 0, vertices = 0, children = 0;

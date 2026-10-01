@@ -313,6 +313,5 @@ export function installProbe<W extends ProbeWorld>(world: W, deps: ProbeDeps): W
     used: () => labels.splice(0),
   };
   window.__wildshard = probe;
-  Reflect.set(window, '__world', world);
   return probe;
 }

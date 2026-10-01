@@ -46,7 +46,7 @@ for (const s of SETS) {
 // ── in-page runtime ─────────────────────────────────────────────────────────────────────────────────────────────
 // Installed once per page. window.__tr.rig = { keys: [{ t, p:[x,y,z], l:[x,y,z], fov, roll }], ease } drives the camera.
 const RUNTIME = String.raw`(() => {
-  const w = window.__world, g = w.game, cam = g.camera;
+  const w = window.__wildshard?.world, g = w.game, cam = g.camera;
   const tr = window.__tr = { go: 0, t: 0, rig: null, dt: 1 / 60, lastPose: null, armed: false, vt: 0 };
   // The clock advances only on a frame the gate let through (the loop also reads getDelta on skipped frames — the old
   // capture's elapsedTime drift), and performance.now / Date.now follow the same virtual time, so the code that reads the
@@ -152,7 +152,7 @@ for (const grp of groups) {
   const url = `${BASE}?skipintro=1&nolock=1&mute=1&perf=0&sw=0&tier=desktop&${first.url}`;
   const t0 = Date.now();
   await page.goto(url, { waitUntil: 'load' });
-  await page.waitForFunction(() => Boolean(window.__world?.game), null, { timeout: 300000 });
+  await page.waitForFunction(() => Boolean(window.__wildshard?.world?.game), null, { timeout: 300000 });
   await page.evaluate(RUNTIME);
   console.log(`[group ${first.url}] booted in ${((Date.now() - t0) / 1000).toFixed(0)} s`);
   for (const s of todo) {

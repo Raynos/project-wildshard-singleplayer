@@ -550,7 +550,7 @@ export const POSE = {
   /** AIM (N18): down the arrow — the bow comes in toward the centre line and more upright, the fist BELOW the crosshair
    *  (the mark stays clear over it), the arrow rising from the anchor to cross the crosshair ~7–8 m out (the aim point is
    *  offset by the arrow's rest, ARROW_X / ARROW_Y, so it is the SHAFT that points there). Picked from live variants
-   *  (dev/nalati-bow.html's `__world.pose`): nearer / higher put the fist over the mark */
+   *  (dev/nalati-bow.html's `__wildshard.world.pose`): nearer / higher put the fist over the mark */
   aim: { pos: V(0.12, -0.24, -1.15), aim: V(-0.02, -0.058, -7), cant: -0.32, pitch: 0 },
   aimPort: { pos: V(0.04, -0.2, -1.15), aim: V(-0.02, -0.058, -8), cant: -0.22, pitch: 0 },
 } satisfies Record<string, GripPose>;

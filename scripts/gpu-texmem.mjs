@@ -53,7 +53,7 @@ try {
   const q = [`chunk=${CHUNK}`, 'mute=1', 'skipintro=1', 'nolock=1', 'sw=0', `tier=${TIER}`, phone ? 'touch=1' : '', EXTRA].filter(Boolean).join('&');
   const t0 = Date.now();
   await page.goto(`${URL_BASE}/?${q}`, { waitUntil: 'domcontentloaded' });
-  await page.waitForFunction(() => Boolean(window.__world?.game), undefined, { timeout: 300000, polling: 500 });
+  await page.waitForFunction(() => Boolean(window.__wildshard?.world?.game), undefined, { timeout: 300000, polling: 500 });
   const readyS = (Date.now() - t0) / 1000;
   await sleep(SETTLE);
   // the JS heap after a full collection: what the page holds, not the garbage the boot left

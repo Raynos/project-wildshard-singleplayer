@@ -24,7 +24,7 @@ try {
   await context.route(/\/assets\/Explore-[^/]+\.js$/, (route) => { held.push(route); });
   const page = await context.newPage();
   await page.goto(`${base}/?chunk=nine-dragon-stack&tier=phone&touch=1&mute=1&nolock=1&sw=0`);
-  await page.waitForFunction(() => Boolean(window.__world), null, { timeout: 90_000 });
+  await page.waitForFunction(() => Boolean(window.__wildshard?.world), null, { timeout: 90_000 });
   await page.locator('.ws-menu-explore').click();
   await page.waitForFunction(() => {
     const trace = JSON.parse(localStorage.getItem('ws.nineBoot') ?? 'null');
@@ -43,7 +43,7 @@ try {
   await title.goto(`${base}/`);
   await title.waitForFunction(() => localStorage.getItem('wsNineReports') !== null);
   await expectEventually(() => reports.length > 0 && envelopes.length > 0, 'both transports attempted');
-  assert.equal(await title.evaluate(() => Boolean(window.__world)), false, 'reporting must work without gameplay boot');
+  assert.equal(await title.evaluate(() => Boolean(window.__wildshard?.world)), false, 'reporting must work without gameplay boot');
   assert.ok(JSON.stringify(reports[0]).includes(attempt), 'report must identify the interrupted attempt');
   assert.ok(JSON.stringify(reports[0]).includes('explore'), 'report must identify Explore');
   const sentryCount = envelopes.length;
@@ -72,10 +72,10 @@ try {
   });
   const gpuPage = await recovery.newPage();
   await gpuPage.goto(`${base}/?chunk=nine-dragon-stack&tier=phone&touch=1&mute=1&nolock=1&sw=0`);
-  await gpuPage.waitForFunction(() => window.__world && JSON.parse(localStorage.getItem('ws.nineBoot') ?? 'null')?.status === 'ready', null, { timeout: 90_000 });
+  await gpuPage.waitForFunction(() => window.__wildshard?.world && JSON.parse(localStorage.getItem('ws.nineBoot') ?? 'null')?.status === 'ready', null, { timeout: 90_000 });
   const lostAttempt = await gpuPage.evaluate(() => {
     const trace = JSON.parse(localStorage.getItem('ws.nineBoot'));
-    const extension = window.__world.game.renderer.getContext().getExtension('WEBGL_lose_context');
+    const extension = window.__wildshard.world.game.renderer.getContext().getExtension('WEBGL_lose_context');
     if (!extension) throw new Error('Recovery reporting test requires WEBGL_lose_context');
     extension.loseContext();
     return trace.id;
@@ -83,7 +83,7 @@ try {
   await gpuPage.waitForURL(`${base}/`, { timeout: 20_000 });
   await expectEventually(() => recoveryReports.length > 0 && recoveryEnvelopes.length > 0, 'known GPU reload reports both channels');
   await gpuPage.waitForFunction(() => localStorage.getItem('wsNineReports') === '[]');
-  assert.equal(await gpuPage.evaluate(() => Boolean(window.__world)), false, 'GPU recovery report reaches static title without renderer');
+  assert.equal(await gpuPage.evaluate(() => Boolean(window.__wildshard?.world)), false, 'GPU recovery report reaches static title without renderer');
   assert.ok(recoveryReports.some((report) => report.system === 'gpu-recovery' && report.context.bootDiagnostic.includes(lostAttempt)), 'known failure keeps original attempt identity');
   assert.ok(recoveryReports.some((report) => report.context.bootDiagnostic.includes('gpu:recovery')), 'known failure keeps GPU recovery checkpoint');
   assert.ok(await gpuPage.evaluate(() => JSON.parse(localStorage.getItem('ws.lastEnd') ?? '{}').reason.includes('graphics recovery')), 'actual planned recovery navigation occurred');
@@ -91,7 +91,7 @@ try {
 
   const inboxBefore = recoveryReports.length, sentryBefore = recoveryEnvelopes.length;
   await gpuPage.goto(`${base}/?chunk=nine-dragon-stack&tier=phone&touch=1&mute=1&nolock=1&sw=0`);
-  await gpuPage.waitForFunction(() => Boolean(window.__world), null, { timeout: 90_000 });
+  await gpuPage.waitForFunction(() => Boolean(window.__wildshard?.world), null, { timeout: 90_000 });
   await gpuPage.locator('.ws-menu-explore').click();
   await gpuPage.locator('.ws-x-card[data-m="world"]').click();
   await gpuPage.waitForFunction(() => {

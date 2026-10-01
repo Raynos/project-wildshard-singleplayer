@@ -40,9 +40,9 @@ try {
   const page = await ctx.newPage();
   page.on('pageerror', (e) => console.info(`pageerror: ${e.message.slice(0, 300)}`));
   await page.goto(`${base}/?chunk=nine-dragon-stack&skipintro=1&tier=phone&touch=1&mute=1&nolock=1&sw=0`, { waitUntil: 'domcontentloaded' });
-  await page.waitForFunction(() => Boolean(window.__world?.game?.lastFrame && window.__world.game.lastFrame.calls > 20 && !document.querySelector('.ws-load')), undefined, { timeout: 240000, polling: 1000 });
+  await page.waitForFunction(() => Boolean(window.__wildshard?.world?.game?.lastFrame && window.__wildshard.world.game.lastFrame.calls > 20 && !document.querySelector('.ws-load')), undefined, { timeout: 240000, polling: 1000 });
   await page.evaluate(() => {
-    const w = window.__world;
+    const w = window.__wildshard?.world;
     window.__bud = { pose: null };
     w.game.onLate(() => {
       const p = window.__bud.pose, cam = w.game.camera;
@@ -56,7 +56,7 @@ try {
   });
   const pose = async (v) => {
     await page.evaluate((vv) => {
-      const w = window.__world;
+      const w = window.__wildshard?.world;
       w.freeCamera = true;
       try { w.player.position.set(vv.eye[0], Math.max(125, vv.eye[1] - 1.62), vv.eye[2]); w.player.velocity.set(0, 0, 0); } catch { /* */ }
       window.__bud.pose = vv;
@@ -67,7 +67,7 @@ try {
   const totals = [];
   for (const v of views) {
     await pose(v);
-    const r = await page.evaluate(() => { const g = window.__world.game, rd = g.renderer; rd.info.reset(); g.composer.render(0.016); return { calls: rd.info.render.calls, tris: rd.info.render.triangles }; });
+    const r = await page.evaluate(() => { const g = window.__wildshard.world.game, rd = g.renderer; rd.info.reset(); g.composer.render(0.016); return { calls: rd.info.render.calls, tris: rd.info.render.triangles }; });
     totals.push({ ...v, ...r });
   }
   console.info('pass 1: every pose (phone frame, one composer render)');
@@ -83,7 +83,7 @@ try {
   for (const v of pick) {
     await pose(v);
     const r = await page.evaluate(() => {
-      const W = window.__world, g = W.game, rd = g.renderer, cam = g.camera;
+      const W = window.__wildshard?.world, g = W.game, rd = g.renderer, cam = g.camera;
       const Y0 = 125, SPLIT = 95;
       const LANES = ['A2 square', 'B1/D1 Well rim + galleries', 'B2 crossings + run north', 'D2 lower Well', 'C1 stair foot', 'C2 upper stair', 'towers + street', 'facade batches (draws only)', 'look (shared)', 'viewmodel', 'post chain (empty frame)'];
       const region = (x, y, z) => {

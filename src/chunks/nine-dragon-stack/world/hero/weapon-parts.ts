@@ -1,4 +1,4 @@
-// Copied from the hero lab (src/dev/nd-lab/hero/weapon-parts.ts, round-7-lab-hero) into the clean room.
+// Copied from the hero lab (the dev labs (deleted in E357 F7), round-7-lab-hero) into the clean room.
 // The Neon Jian and the Fei Zhua as geometry (lab P4 "hero", E169). Every builder writes Kit / KitX attributes with a
 // viewmodel material class in `kind` (vm-material.ts VM.*), so the whole viewmodel is one program and one hull.
 //

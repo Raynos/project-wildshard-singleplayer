@@ -78,14 +78,14 @@ try {
   const toasts = [];
   await page.exposeFunction('__grappleToast', (t) => { toasts.push(t); });
   await page.goto(`${base}/?chunk=nine-dragon-stack&skipintro=1&tier=phone&touch=1&mute=1&nolock=1&sw=0`, { waitUntil: 'domcontentloaded' });
-  await page.waitForFunction(() => window.__world?.chunk?.slug === 'nine-dragon-stack' && (window.__world.game?.lastFrame?.calls ?? 0) > 60 && !document.querySelector('.ws-load'), undefined, { timeout: 400000, polling: 1000 });
+  await page.waitForFunction(() => window.__wildshard?.world?.chunk?.slug === 'nine-dragon-stack' && (window.__wildshard.world.game?.lastFrame?.calls ?? 0) > 60 && !document.querySelector('.ws-load'), undefined, { timeout: 400000, polling: 1000 });
   await sleep(5000);
   await page.evaluate(() => {
     new MutationObserver((ms) => { for (const m of ms) for (const n of m.addedNodes) { const t = n.textContent ?? ''; if (/HOOK|FEI|ZIP|MISS/.test(t)) window.__grappleToast(t.slice(0, 80)); } }).observe(document.body, { childList: true, subtree: true });
   });
   /** what the HUD shows and where the player is */
   const state = () => page.evaluate(() => {
-    const w = window.__world, p = w.player.position;
+    const w = window.__wildshard?.world, p = w.player.position;
     const vis = (el) => el !== null && getComputedStyle(el).display !== 'none';
     const chip = document.querySelector('.ws-dragon-hook');
     const lock = document.querySelector('.ws-touch-disc.lock'), jump = document.querySelector('.ws-touch-disc.jump');
@@ -104,11 +104,11 @@ try {
   };
   const shot = (flow, tag) => page.screenshot({ path: join(OUT, `${flow.name}-${tag}.jpg`), type: 'jpeg', quality: 80 });
   const pose = (flow, yawDeg) => page.evaluate(([x, z, yaw, pitch]) => {
-    const w = window.__world; w.player.spawn(x, z, -yaw * Math.PI / 180, 125); w.player.pitch = pitch * Math.PI / 180;
+    const w = window.__wildshard?.world; w.player.spawn(x, z, -yaw * Math.PI / 180, 125); w.player.pitch = pitch * Math.PI / 180;
   }, [flow.x, flow.z, yawDeg, flow.pitch]);
-  const turn = (yawDeg) => page.evaluate((yaw) => { window.__world.player.yaw = -yaw * Math.PI / 180; }, yawDeg);
+  const turn = (yawDeg) => page.evaluate((yaw) => { window.__wildshard.world.player.yaw = -yaw * Math.PI / 180; }, yawDeg);
   const inBounds = () => page.evaluate(() => {
-    const w = window.__world, b = w.chunk.bounds, p = w.player.position;
+    const w = window.__wildshard?.world, b = w.chunk.bounds, p = w.player.position;
     return p.y >= b.floor && p.x >= b.x0 && p.x <= b.x1 && p.z >= b.z0 && p.z <= b.z1;
   });
 

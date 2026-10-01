@@ -1,5 +1,5 @@
 // 界画霓虹 Jiehua Neon: one program for all architecture plus the neon, sky, sky-screen, fog-sheet, steam and filament
-// programs. The architecture program is the ink lab's (src/dev/nd-lab/ink/jiehua.ts, round-7-lab-ink), merged:
+// programs. The architecture program is the ink lab's (the dev labs (deleted in E357 F7), round-7-lab-ink), merged:
 //  - ruled ink on every built border, box-filtered at a fixed px width from the gradient length (`inkCov`, `mpp`), a
 //    heavier ground line on walkable lips; every repeated ruling fades to its AVERAGE tone when crowded (`ruled`);
 //  - one fade per job: 焦墨 until ~110 m, clear air for the first 16 m, lines gone 120–330 m, fog dissolves lines first

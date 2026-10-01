@@ -138,7 +138,7 @@ async function openGame(shard, q, { cpu, video }) {
   const cdp = await ctx.newCDPSession(page);
   if (cpu > 1) await cdp.send('Emulation.setCPUThrottlingRate', { rate: cpu });
   await page.goto(`${BASE}/?chunk=${shard}&tier=phone&skipintro=1&nolock=1&sw=0&mute=1${q ? `&${q}` : ''}${EXTRA_Q ? `&${EXTRA_Q}` : ''}`, { waitUntil: 'commit', timeout: TIMEOUT_MS });
-  await page.waitForFunction(() => !document.querySelector('.ws-load') && window.__world !== undefined, null, { timeout: TIMEOUT_MS, polling: 250 });
+  await page.waitForFunction(() => !document.querySelector('.ws-load') && window.__wildshard?.world !== undefined, null, { timeout: TIMEOUT_MS, polling: 250 });
   await page.waitForTimeout(SETTLE_MS);
   return { ctx, page, errors };
 }
@@ -151,7 +151,7 @@ if (MODE.includes('poses')) {
     const { ctx, page, errors } = await openGame(pose.shard, pose.q, { cpu: CPU, video: false });
     try {
       const r = await page.evaluate(async (frames) => {
-        const w = window.__world, g = w.game;
+        const w = window.__wildshard?.world, g = w.game;
         const cur = { update: 0, fixed: 0, world: 0, player: 0, animals: 0, render: 0 };
         const wrap = (obj, key, bucket) => { const orig = obj[key]; obj[key] = function timed(...a) { const t = performance.now(); try { return orig.apply(this, a); } finally { cur[bucket] += performance.now() - t; } }; };
         wrap(w.player, 'update', 'player'); wrap(w.animals, 'update', 'animals'); wrap(g.composer, 'render', 'render');
@@ -198,7 +198,7 @@ if (MODE.includes('walk')) {
       // a path's ends under a deck (Nalati's sky road starts under the bridge's south ramp: the ramp's foot is where it
       // joins the road) are drawn, not walked: its points more than 0.5 m under a registered floor are trimmed off the ends
       const under = await page.evaluate((ps) => ps.map((path) => path.map(([x, z]) => {
-        const f = window.__world.registry?.floorAt(x, z);
+        const f = window.__wildshard.world.registry?.floorAt(x, z);
         return f !== undefined && f - window.__hf.heightAt(x, z) > 0.5;
       })), paths.map((path) => {
         const pts = [];
@@ -232,7 +232,7 @@ if (MODE.includes('walk')) {
     try {
       for (const leg of legs) {
         const r = await page.evaluate(async (legIn) => {
-          const w = window.__world, p = w.player;
+          const w = window.__wildshard?.world, p = w.player;
           p.keys.clear();
           p.velocity.set(0, 0, 0);
           // spawn() puts the feet on the terrain: under a walkway board or a ramp that is inside it — land on the top of

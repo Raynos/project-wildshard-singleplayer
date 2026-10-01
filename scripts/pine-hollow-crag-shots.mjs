@@ -85,22 +85,22 @@ try {
     const q = ['chunk=pine-hollow', 'skipintro=1', 'nolock=1', `tier=${TIER}`, TIER === 'phone' ? 'touch' : '', 'mute=1', 'sw=0', `x=${s0.x}`, `z=${s0.z}`, `tod=${tod}`, 'clock=1000000', EXTRA].filter(Boolean).join('&');
     await page.goto(`${URL_BASE}/?${q}`, { waitUntil: 'domcontentloaded' });
     try {
-      await page.waitForFunction(() => Boolean(window.__world?.animals), undefined, { timeout: 300000, polling: 1000 });
+      await page.waitForFunction(() => Boolean(window.__wildshard?.world?.animals), undefined, { timeout: 300000, polling: 1000 });
     } catch (e) { console.error(`[${tod}] never ready: ${errors.join(' | ')}`); throw e; }
-    await page.evaluate(() => { window.__world.animals.calm = true; });
+    await page.evaluate(() => { window.__wildshard.world.animals.calm = true; });
     // --clearden: the Den's bears (Old Blackpaw waits in the cave mouth) walked off 60 m for the cave's frames
     const clearDen = argv.includes('--clearden');
     await page.addStyleTag({ content: '#hud,#hud *,.touch-controls,.touch-controls *{display:none!important}' });
     await sleep(SETTLE * 2);
     for (const s of SPOTS) {
-      if (clearDen) await page.evaluate(() => { for (const a of window.__world.animals.animals) if (Math.hypot(a.position.x - 195, a.position.z - 195) < 40) a.position.set(150, a.position.y, 140); });
+      if (clearDen) await page.evaluate(() => { for (const a of window.__wildshard.world.animals.animals) if (Math.hypot(a.position.x - 195, a.position.z - 195) < 40) a.position.set(150, a.position.y, 140); });
       await page.evaluate((p) => {
-        const w = window.__world; w.freeCamera = false; w.player.spawn(p.x, p.z, p.yaw); w.player.pitch = p.pitch;
+        const w = window.__wildshard?.world; w.freeCamera = false; w.player.spawn(p.x, p.z, p.yaw); w.player.pitch = p.pitch;
         if (p.y !== undefined) w.player.position.y = p.y;
       }, s);
       await sleep(SETTLE);
-      if (s.y !== undefined) await page.evaluate((p) => { window.__world.player.position.y = p.y; }, s);
-      const perf = await page.evaluate(() => ({ calls: window.__world.game.lastFrame.calls, tris: window.__world.game.lastFrame.triangles, y: window.__world.player.position.y }));
+      if (s.y !== undefined) await page.evaluate((p) => { window.__wildshard.world.player.position.y = p.y; }, s);
+      const perf = await page.evaluate(() => ({ calls: window.__wildshard.world.game.lastFrame.calls, tris: window.__wildshard.world.game.lastFrame.triangles, y: window.__wildshard.world.player.position.y }));
       const f = `${OUT}/${tod}-${s.id}.jpg`;
       writeFileSync(f, await page.screenshot({ type: 'jpeg', quality: 88, scale: 'css' }));
       meta.push({ tod, spot: s.id, ...perf });

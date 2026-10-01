@@ -11,13 +11,13 @@ This folder holds every source of that model that could be found.
 | | `gauntlet.py` + `gauntlet_geo.py`, `gauntlet_parts.py`, `gauntlet_maps.py`, `gauntlet_preview.py` | `gauntlet.glb` (+ the `claw` node) + its maps |
 | | `guard.py` | the jian's dragon-head guard (`--tris 30000` for the body, `--tris 8000 --smooth 20` for its hull), from the TRELLIS.2 generation `~/ml/img2mesh/out/nd-hero/guard.{glb,hi.obj}` |
 | 2. The rig bake (three.js, in the lab page) | `rig/bake.ts.txt`, `rig/moves.ts.txt`, `rig/lab-main.ts.txt` | the skeleton, the skin weights, the ink hulls and the 16 clips, exported as one GLB |
-| | `rig/rigbake.mjs`, `rig/bakecap.sh` | opened the lab headless, ran `__ndVm.bake()`, wrote `fp-rig.raw.glb`, then `gltf-transform meshopt --level medium` |
-| | `rig/riggate.mjs`, `rig/gate_chart.py` | the rig gate (joint limits, velocities, skin weights) → `art/nine-dragon-stack/round-13-viewmodel-rig/rig-gate.{json,jpg}` |
+| | Former `rig/rigbake.mjs`, `rig/bakecap.sh` | deleted in E357 F7: needed the dev labs; previously exported and compressed the raw rig |
+| | Former `rig/riggate.mjs`; surviving `rig/gate_chart.py` | launcher deleted in E357 F7: needed the dev labs; chart renderer remains |
 | The check | `rig/check-clips.mjs` | re-samples the 16 clips from `moves.ts` and compares them with the committed GLB |
 
 ## Where each file came from
 
-- **The ten Blender scripts** are `7a339ed2^:src/dev/nd-lab/viewmodel/blender/`, restored verbatim in `ad797c52`. That is
+- **The ten Blender scripts** came from the deleted viewmodel dev lab at `7a339ed2^`, restored verbatim in `ad797c52`. That is
   the lab as committed in `5d8feae0` (round 9). The next commit adds the round-13 edits to `hand.py`, `hand_model.py` and
   `hand_parts.py`: the diagonal jian grip, the tilted grip in the hand model, and the cuff axes. The gauntlet and guard
   scripts had no later edits. The shipped `hand-r-*` maps were baked from the round-13 hand.
@@ -35,9 +35,8 @@ This folder holds every source of that model that could be found.
   - Not proven by a rebuild: the round-13 hand edits (a rebuild bakes new maps; nothing committed holds the round-13 hand
     mesh on its own) and `bake.ts`'s meshes and skin weights (the lab page is gone).
 - `rig/*.ts.txt` are the lab's TypeScript with a `.txt` suffix. They import lab siblings that no longer exist
-  (`./assets`, `./viewmodel`, `./post`), so as `.ts` they would fail the type-aware lint. `riggate.mjs` and `rigbake.mjs`
-  have two lint-only fixes (a blank line after the import, `Number()` for a unary `+`). `bakecap.sh` still names the old
-  scratchpad paths.
+  (`./assets`, `./viewmodel`, `./post`), so as `.ts` they would fail the type-aware lint. `riggate.mjs`, `rigbake.mjs`
+  and `bakecap.sh` were deleted in E357 F7: needed the dev labs and an obsolete scratchpad.
 
 ## fp-rig.glb is the only complete copy
 
@@ -59,12 +58,8 @@ only complete copy of its 16 clips, its skeleton and its skin.** Keep it. Change
    - then `gltf-transform meshopt --level medium` into `lab/viewmodel/bake/`;
    - the guard's two GLBs go there as `bake/guard30.glb` and `bake/guard8.glb`.
    - A stale proxy draws the old silhouette in black.
-3. **Reassemble the lab** (a scratch worktree; it is not game code):
-   - `dev/nd-lab-viewmodel.html` and `src/dev/nd-lab/viewmodel/{assets,viewmodel,post}.ts` from `7a339ed2^`;
-   - `cloth`, `geo`, `jian`, `materials`, `rig`, `trail` and `fpArms` `.ts` from `src/chunks/nine-dragon-stack/vm/`, with
-     `fpArms.ts`'s `ASSET_BASE` set back to `/assets/nine-dragon/lab/viewmodel/`;
-   - `rig/bake.ts.txt` → `bake.ts`, `rig/moves.ts.txt` → `moves.ts`, `rig/lab-main.ts.txt` → `main.ts`.
-4. **Bake:** start the dev server (`:5173`), `node rig/rigbake.mjs fp-rig.raw.glb`, then
-   `gltf-transform meshopt fp-rig.raw.glb public/assets/nine-dragon/viewmodel/fp-rig.glb --level medium`.
-5. **Gate:** `node rig/riggate.mjs gate.json`, then `python3 rig/gate_chart.py gate.json rig-gate.jpg`. Then
-   `node --import ./scripts/bake-loader.mjs rig/check-clips.mjs` with the new `moves.ts` copied back here.
+3. **Build a new bake path:** the former lab launchers were deleted in E357 F7: needed the dev labs.
+   The dev server is banned (E317). Reuse the surviving rig source texts and shipped VM modules through a new
+   headless or built-page exporter before replacing the committed GLB. No current command rebuilds its skin.
+4. **Check the clips:** `node --import ./scripts/bake-loader.mjs scripts/blender/nine-dragon-stack/viewmodel/rig/check-clips.mjs`
+   verifies the committed GLB against the recovered clip source. A new skin/bake path also needs its own rig gate.

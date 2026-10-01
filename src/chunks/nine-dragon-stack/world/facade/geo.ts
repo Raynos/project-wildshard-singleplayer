@@ -1,4 +1,4 @@
-// Copied from the facade lab (src/dev/nd-lab/facade/geo.ts, round-7-lab-facade) into the clean room.
+// Copied from the facade lab (the dev labs (deleted in E357 F7), round-7-lab-facade) into the clean room.
 // The facade kit's geometry builder. Every face is a quad that knows where it sits on itself in metres (aFace = u, v,
 // w, h) and which way its u runs (aTan), so the Jiehua program rules its edges at a constant pixel width with fwidth —
 // and keeps doing so when an instance is scaled non-uniformly (the vertex shader rescales aFace by the instance's

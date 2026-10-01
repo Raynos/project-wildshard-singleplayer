@@ -95,7 +95,7 @@ loops.
                                      # and three forgotten ones pinned this box at load average 24 (2026-09-17)
   ```
   You can drive the world from the console with `agent-browser --session $S eval --stdin` (the
-  world object is exposed as `window.__world` by your dev entry — do that).
+  world object is exposed as `window.__wildshard.world` by your dev entry — do that).
   Look at every screenshot you take (Read tool) and iterate until it genuinely looks AAA.
   Save milestone screenshots to `progress/` (numbered with your feature name); the main agent
   makes a timelapse from that folder.

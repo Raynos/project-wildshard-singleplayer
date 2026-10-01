@@ -127,7 +127,7 @@ function connect(wsUrl, onMemory) {
 
 // what the scene still holds in JS at the end of the flight: unique geometry arrays and texture images
 const SCENE_STATS = `JSON.stringify((() => {
-  const w = window.__world, scene = w?.game?.scene, r = w?.game?.renderer;
+  const w = window.__wildshard?.world, scene = w?.game?.scene, r = w?.game?.renderer;
   if (!scene) return null;
   const arrays = new Set(), textures = new Set();
   let geometryBytes = 0, instancedBytes = 0, textureImageBytes = 0;
@@ -197,7 +197,7 @@ async function oneRun(udid, run, opts) {
     await evaluate(`location.href = ${JSON.stringify(`${run.base}?chunk=nine-dragon-stack&mute=1`)}; 1`);
     await sleep(2000);
     for (let last = '';;) {
-      const v = JSON.parse(await evaluate('JSON.stringify({ step: document.querySelector(".ws-load")?.getAttribute("data-step") ?? null, world: Boolean(window.__world), loading: Boolean(document.querySelector(".ws-load")), err: document.querySelector("#wserr .msg")?.textContent ?? null })', 'null'));
+      const v = JSON.parse(await evaluate('JSON.stringify({ step: document.querySelector(".ws-load")?.getAttribute("data-step") ?? null, world: Boolean(window.__wildshard?.world), loading: Boolean(document.querySelector(".ws-load")), err: document.querySelector("#wserr .msg")?.textContent ?? null })', 'null'));
       if (v?.step && v.step !== last) { last = v.step; write({ kind: 'step', step: v.step }); }
       if (v?.err) throw new Error(`the game's error screen: ${v.err}`);
       if (v?.world && !v.loading) break;
@@ -207,7 +207,7 @@ async function oneRun(udid, run, opts) {
     result.loadSeconds = (Date.now() - loadStart) / 1000;
     say(`loaded in ${result.loadSeconds.toFixed(1)} s`);
 
-    const frame = 'window.__world?.game?.renderer?.info?.render?.frame ?? null';
+    const frame = 'window.__wildshard?.world?.game?.renderer?.info?.render?.frame ?? null';
     const fpsOver = async (seconds, each) => {
       let f0 = await evaluate(frame), a = Date.now();
       const windows = [];
@@ -227,7 +227,7 @@ async function oneRun(udid, run, opts) {
     setPhase('play');
     if ((await evaluate('document.querySelector("#hud")?.classList.contains("intro") === true')) === true) await evaluate('document.querySelector(".ws-menu-play")?.click(); 1');
     const turn = (2 * Math.PI) / opts.play;
-    result.phases.play = { fps: await fpsOver(opts.play, () => evaluate(`(() => { const p = window.__world?.player; if (p && typeof p.yaw === 'number') p.yaw += ${turn}; return 1; })()`)) };
+    result.phases.play = { fps: await fpsOver(opts.play, () => evaluate(`(() => { const p = window.__wildshard?.world?.player; if (p && typeof p.yaw === 'number') p.yaw += ${turn}; return 1; })()`)) };
 
     setPhase('menu');
     await evaluate('document.querySelector(".ws-gmenu-exit")?.click(); 1');
@@ -252,7 +252,7 @@ async function oneRun(udid, run, opts) {
         await evaluate(`${held.map((c) => key('keyup', c)).join('')}${next.map((c) => key('keydown', c)).join('')} 1`);
         held = next;
       }
-      await evaluate(`(() => { const c = window.__world?.game?.canvas ?? document.querySelector('canvas'); if (!c) return 0; const y = innerHeight * 0.4, x = innerWidth * 0.5;
+      await evaluate(`(() => { const c = window.__wildshard?.world?.game?.canvas ?? document.querySelector('canvas'); if (!c) return 0; const y = innerHeight * 0.4, x = innerWidth * 0.5;
         const ev = (t, x2, target) => target.dispatchEvent(new PointerEvent(t, { pointerId: 71, pointerType: 'touch', isPrimary: true, clientX: x2, clientY: y, bubbles: true, cancelable: true }));
         ev('pointerdown', x, c); for (let k = 1; k <= 6; k++) ev('pointermove', x + k * 10, window); ev('pointerup', x + 60, window); return 1; })()`);
     }) };

@@ -72,10 +72,10 @@ try {
       page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text().slice(0, 200)); });
       const url = `${URL_BASE}/?chunk=${shard}&mute=1&skipintro=1&nolock=1&sw=0&tier=${TIER}${TIER === 'phone' ? '&touch=1' : ''}&clock=100000000&${spec.q}`;
       await page.goto(url, { waitUntil: 'domcontentloaded' });
-      await page.waitForFunction(() => Boolean(window.__world?.game && window.__world.player), undefined, { timeout: 300000, polling: 500 });
+      await page.waitForFunction(() => Boolean(window.__wildshard?.world?.game && window.__wildshard.world.player), undefined, { timeout: 300000, polling: 500 });
       await sleep(8000);
       const start = await page.evaluate(() => {
-        const w = window.__world;
+        const w = window.__wildshard?.world;
         const st = document.createElement('style');
         st.textContent = 'body *{visibility:hidden!important} canvas.__game{visibility:visible!important}';
         w.game.renderer.domElement.classList.add('__game');
@@ -85,13 +85,13 @@ try {
       });
       for (const p of spec.poses) {
         await page.evaluate(([pp, s]) => {
-          const w = window.__world;
+          const w = window.__wildshard?.world;
           w.game.frameGate = window.__gate;
           w.player.spawn(pp.x ?? s.x, pp.z ?? s.z, (pp.yaw ?? s.yaw) + (pp.yawAdd ?? 0));
           w.player.pitch = pp.pitch ?? 0;
         }, [p, start]);
         await sleep(4000);
-        await page.evaluate(() => { window.__world.game.frameGate = () => false; });
+        await page.evaluate(() => { window.__wildshard.world.game.frameGate = () => false; });
         await sleep(250);
         await page.screenshot({ path: resolvePath(OUT, `${shard}-${p.id}-${mode}.png`) });
       }

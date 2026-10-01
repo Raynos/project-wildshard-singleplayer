@@ -1,4 +1,4 @@
-// Copied from the hero lab (src/dev/nd-lab/hero/vm-material.ts, round-7-lab-hero) into the clean room.
+// Copied from the hero lab (the dev labs (deleted in E357 F7), round-7-lab-hero) into the clean room.
 // The hero viewmodel's look (lab P4 "hero", E169): a toon program that reads the Kit's attributes (aFace / aPat / aMisc)
 // but shades by MATERIAL CLASS instead of by architecture pattern, plus an inverted-hull ink outline.
 //

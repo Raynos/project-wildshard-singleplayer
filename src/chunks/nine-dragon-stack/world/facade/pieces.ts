@@ -1,4 +1,4 @@
-// Copied from the facade lab (src/dev/nd-lab/facade/pieces.ts, round-7-lab-facade) into the clean room.
+// Copied from the facade lab (the dev labs (deleted in E357 F7), round-7-lab-facade) into the clean room.
 // The facade kit: every piece that covers a Kowloon wall, built once at the origin in the wall's frame (x along the
 // wall, y up, +z out of the wall, origin on the wall face) and then drawn as ONE InstancedMesh per piece for a whole
 // street (the grammar scales them non-uniformly; the program keeps their ruling in metres). Railings and grilles are

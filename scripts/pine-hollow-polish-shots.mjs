@@ -27,7 +27,7 @@ const DESK = { viewport: { width: 1600, height: 900 }, deviceScaleFactor: 1 };
 const TOASTS = ['Journal · new page: The Ghost Stag', 'Journal · new place: Ranger\'s Cabin', 'Achievement · First blood in the Hollow', 'Journal · new page: Black bear'];
 
 const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
-async function open(ctxOpts, q, ready = 'window.__world?.hud && window.__pineLife') {
+async function open(ctxOpts, q, ready = 'window.__wildshard?.world?.hud && window.__pineLife') {
   const ctx = await browser.newContext(ctxOpts);
   const page = await ctx.newPage();
   page.on('pageerror', (e) => console.error(`[pageerror] ${e.message.slice(0, 300)}`));
@@ -39,20 +39,20 @@ async function open(ctxOpts, q, ready = 'window.__world?.hud && window.__pineLif
   return { ctx, page };
 }
 const save = async (page, name) => { const f = resolvePath(OUT, `${name}.png`); writeFileSync(f, await page.screenshot({ type: 'png' })); console.error(`  → ${f}`); };
-const toasts = (page, n) => page.evaluate(([list, k]) => { for (let i = 0; i < k; i++) setTimeout(() => { window.__world.hud.toast(list[i % list.length]); }, i * 120); }, [TOASTS, n]);
+const toasts = (page, n) => page.evaluate(([list, k]) => { for (let i = 0; i < k; i++) setTimeout(() => { window.__wildshard.world.hud.toast(list[i % list.length]); }, i * 120); }, [TOASTS, n]);
 
 try {
   if (want('hud')) {
     // 1. the Ghost Stag 60 m off: aware (its name over its head) + the NAMED ELITE NEARBY banner, three toasts at once
     const { ctx, page } = await open(PHONE, 'chunk=pine-hollow&tier=phone&touch&tod=0.4&elite=ghost-stag&from=60');
     // the banner fired on the approach (first aware inside 80 m) and faded while the page settled: show it again now
-    await page.evaluate(() => { window.__world.animals.calm = true; window.__world.player.pitch = 0.02; window.__pineElites.elites.bar.banner('The Ghost Stag', 'The Pale One'); });
+    await page.evaluate(() => { window.__wildshard.world.animals.calm = true; window.__wildshard.world.player.pitch = 0.02; window.__pineElites.elites.bar.banner('The Ghost Stag', 'The Pale One'); });
     await sleep(600);
     await toasts(page, 3); await sleep(1300);
     await save(page, 'hud-banner');
     // 2. step in: engaged, the bar pinned under the minimap, three more toasts
     await page.evaluate(() => {
-      const w = window.__world, e = window.__pineElites.elites.entries.find((x) => x.script.def.id === 'ghost-stag'), a = e?.script.animal;
+      const w = window.__wildshard?.world, e = window.__pineElites.elites.entries.find((x) => x.script.def.id === 'ghost-stag'), a = e?.script.animal;
       if (!a) return;
       const p = w.player.position, dx = p.x - a.position.x, dz = p.z - a.position.z, d = Math.hypot(dx, dz) || 1;
       const x = a.position.x + dx / d * 24, z = a.position.z + dz / d * 24;
@@ -67,7 +67,7 @@ try {
     // 3. inside cabin 1 by the lever-action's pickup, Old Ironhide aware outside, beyond the wall — his name must not show
     const { ctx, page } = await open(PHONE, 'chunk=pine-hollow&tier=phone&touch&tod=0.4&elite=ironhide&from=40');
     const ok = await page.evaluate(() => {
-      const w = window.__world; w.animals.calm = true;
+      const w = window.__wildshard?.world; w.animals.calm = true;
       const found = [];
       w.game.scene.traverse((m) => { if (found.length > 0 || !m.isMesh || m.material?.name !== 'lever-steel') return; let p = m; while (p.parent && p.parent !== w.game.scene) p = p.parent; if (p === w.game.camera || p.position.y < -100) return; found.push(m.getWorldPosition(m.position.clone())); });
       const e = window.__pineElites.elites.entries.find((x) => x.script.def.id === 'ironhide'), a = e?.script.animal, at = found[0];
@@ -85,7 +85,7 @@ try {
   }
   if (want('hud')) {
     const { ctx, page } = await open(DESK, 'chunk=pine-hollow&tier=desktop&tod=0.4&elite=ghost-stag&from=24');
-    await page.evaluate(() => { window.__world.animals.calm = true; });
+    await page.evaluate(() => { window.__wildshard.world.animals.calm = true; });
     await sleep(3000);
     await toasts(page, 3); await sleep(1300);
     await save(page, 'hud-desktop');
@@ -94,7 +94,7 @@ try {
   if (want('driftwood')) {
     for (const run of [{ name: 'driftwood-phone', opts: PHONE, q: 'tier=phone&touch' }, { name: 'driftwood-desktop', opts: DESK, q: 'tier=desktop' }]) {
       const { name, opts, q } = run;
-      const { ctx, page } = await open(opts, `chunk=driftwood-isle&${q}`, 'window.__world?.hud');
+      const { ctx, page } = await open(opts, `chunk=driftwood-isle&${q}`, 'window.__wildshard?.world?.hud');
       await toasts(page, 4); await sleep(1300);
       await save(page, name);
       await ctx.close();
@@ -103,7 +103,7 @@ try {
   if (want('birds') || want('beat')) {
     const { ctx, page } = await open(PHONE, `chunk=pine-hollow&tier=phone&touch&tod=0.33${flag('birdq', '') ? `&${flag('birdq', '')}` : ''}`);
     await page.evaluate(() => {
-      const w = window.__world; w.animals.calm = true; window.__ls = { pose: null };
+      const w = window.__wildshard?.world; w.animals.calm = true; window.__ls = { pose: null };
       const L = () => window.__pineLife, at = (b) => (b ? { x: b.pose.x, y: b.pose.y, z: b.pose.z, yaw: b.pose.yaw } : null);
       window.__lsT = {
         raven: () => at(L().ravens.find((b) => b.mode === 'ground')),
@@ -126,7 +126,7 @@ try {
     });
     // a deer killed in an open glade near the Hollow, well away from the elites' lairs; the player 34 m off
     const kill = await page.evaluate(() => {
-      const w = window.__world, H = window.__hf, trees = w.forest.trees, T = w.game.camera.position.constructor;
+      const w = window.__wildshard?.world, H = window.__hf, trees = w.forest.trees, T = w.game.camera.position.constructor;
       const lairs = window.__pineElites.elites.entries.map((e) => e.script.def.lair);
       let best = { x: -30, z: -118 }, bs = -1e9;
       for (let i = 0; i < 1600; i++) {
@@ -147,7 +147,7 @@ try {
     });
     console.error(`  deer down at ${kill.x}, ${kill.z}`);
     const closeUp = async (name, subject, off, fov) => {
-      await page.evaluate((pose) => { window.__world.freeCamera = true; window.__ls.pose = pose; }, { subject, off, fov });
+      await page.evaluate((pose) => { window.__wildshard.world.freeCamera = true; window.__ls.pose = pose; }, { subject, off, fov });
       await page.addStyleTag({ content: '#hud,#hud *,.ws-touch{display:none!important}' });
       await sleep(1500);
       await save(page, name);
@@ -158,10 +158,10 @@ try {
       await sleep(2500);
       await closeUp('birds-ravens', 'raven', [1.0, 0.5, 0.35], 42);
       // the flight pose: a breadcrumb flock overtaking, tracked from beside
-      await page.evaluate(() => { window.__ls.pose = null; window.__world.freeCamera = false; window.__pineLife.crumbs(); });
+      await page.evaluate(() => { window.__ls.pose = null; window.__wildshard.world.freeCamera = false; window.__pineLife.crumbs(); });
       await sleep(2500);
       await closeUp('birds-flying', 'guide', [1.2, 0.8, -1.4], 45);
-      await page.evaluate(() => { window.__ls.pose = null; window.__world.freeCamera = false; window.__pineLife.woodNow(); });
+      await page.evaluate(() => { window.__ls.pose = null; window.__wildshard.world.freeCamera = false; window.__pineLife.woodNow(); });
       await page.waitForFunction(() => window.__pineLife.wood.mode === 'perch', undefined, { timeout: 40_000, polling: 500 }).catch(() => console.error('  woodpecker: not perched'));
       await sleep(1500);
       await closeUp('birds-woodpecker', 'wood', [0.75, 0.05, -0.45], 40);
@@ -169,7 +169,7 @@ try {
     if (want('beat')) {
       await page.evaluate(() => { document.querySelectorAll('style').forEach((s) => { if (s.textContent.includes('#hud,#hud *')) s.remove(); }); });
       await page.evaluate(() => {
-        const w = window.__world, cam = w.game.camera; window.__ls.pose = null; w.freeCamera = false;
+        const w = window.__wildshard?.world, cam = w.game.camera; window.__ls.pose = null; w.freeCamera = false;
         const vis = window.__ls.vis; if (vis) cam.children.forEach((ch, i) => { ch.visible = vis[i] ?? ch.visible; });
         if (window.__ls.fov0) { cam.fov = window.__ls.fov0; cam.updateProjectionMatrix(); }
         const a = window.__deer.position, px = a.x + 1.8, pz = a.z + 0.4;
@@ -179,7 +179,7 @@ try {
       // the harvest itself: [E] at its prompt (or, when the ragdoll lies out of the prompt's 2.6 m, the prompt's call)
       await page.evaluate(() => document.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyE', key: 'e', bubbles: true })));
       await sleep(50);
-      await page.evaluate(() => { if (window.__pineLife.beat() < 0) window.__world.pineLife.harvest(window.__deer, () => undefined); });
+      await page.evaluate(() => { if (window.__pineLife.beat() < 0) window.__wildshard.world.pineLife.harvest(window.__deer, () => undefined); });
       let i = 0;
       for (const at of [0.2, 0.42, 0.62, 0.86, 1.05, 1.4]) {
         await page.waitForFunction((a) => window.__pineLife.beat() < 0 || window.__pineLife.beat() >= a, at, { timeout: 5000, polling: 16 }).catch(() => undefined);
@@ -191,7 +191,7 @@ try {
   if (want('owl')) {
     const { ctx, page } = await open(PHONE, 'chunk=pine-hollow&tier=phone&touch&tod=0.93');
     await page.evaluate(() => {
-      const w = window.__world; w.animals.calm = true; window.__ls = { pose: null };
+      const w = window.__wildshard?.world; w.animals.calm = true; window.__ls = { pose: null };
       w.game.onLate(() => {
         const p = window.__ls.pose, cam = w.game.camera;
         if (!p) return;
@@ -207,7 +207,7 @@ try {
     });
     await page.waitForFunction(() => window.__pineLife.owl.mode === 'perch', undefined, { timeout: 60_000, polling: 500 }).catch(() => console.error('  owl: not perched'));
     await sleep(1500);
-    await page.evaluate(() => { window.__world.freeCamera = true; window.__ls.pose = { off: [0.4, -0.2, 1.6], fov: 40 }; });
+    await page.evaluate(() => { window.__wildshard.world.freeCamera = true; window.__ls.pose = { off: [0.4, -0.2, 1.6], fov: 40 }; });
     await page.addStyleTag({ content: '#hud,#hud *,.ws-touch{display:none!important}' });
     await sleep(1500);
     await save(page, 'birds-owl');

@@ -49,7 +49,7 @@ async function run(seed, body) {
   const page = await ctx.newPage();
   page.on('pageerror', (e) => errors.push(e.message.slice(0, 200)));
   const load = async () => {
-    await page.waitForFunction(() => window.__world?.player !== undefined && !document.getElementById('hud')?.classList.contains('intro'), undefined, { timeout: 300000, polling: 1000 });
+    await page.waitForFunction(() => window.__wildshard?.world?.player !== undefined && !document.getElementById('hud')?.classList.contains('intro'), undefined, { timeout: 300000, polling: 1000 });
     await sleep(3000);
   };
   await page.goto(`${URL_BASE}/?chunk=pine-hollow&mute=1&nolock=1&skipintro=1&touch=1&tier=phone`, { waitUntil: 'domcontentloaded' });
@@ -71,7 +71,7 @@ async function run(seed, body) {
 
 try {
   await run(MID, async ({ page, shot, tab, scroll }) => {
-    await page.evaluate(() => { const w = window.__world.weapons; w.unlock('rifle'); w.select('crossbow', true); });
+    await page.evaluate(() => { const w = window.__wildshard.world.weapons; w.unlock('rifle'); w.select('crossbow', true); });
     for (const t of ['map', 'gear']) { if (await tab(t)) { await sleep(900); await shot(t); } }
     await scroll('.ws-gmenu-kitrow'); await sleep(400); await shot('gear-finishes');
     const tapped = await page.evaluate(() => { const b = [...document.querySelectorAll('.ws-gmenu-kitrow .ws-gmenu-kit')].find((x) => x.textContent.includes('Ghost Stag')); b?.click(); return b !== undefined; });

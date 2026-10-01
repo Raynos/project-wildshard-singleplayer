@@ -72,7 +72,7 @@ try {
   const errors = [];
   page.on('pageerror', (e) => errors.push(e.message.slice(0, 200)));
   const since = () => { const n = reqs.length; return () => { const rs = reqs.slice(n); const gpu = rs.filter((r) => /^\/(assets\/gpu|basis)\//.test(r.url)); return { netMB: mb(rs.reduce((s, r) => s + r.bytes, 0)), requests: rs.length, ktx2MB: mb(gpu.reduce((s, r) => s + r.bytes, 0)), ktx2Requests: gpu.length, top: [...rs].sort((x, y) => y.bytes - x.bytes).slice(0, 8).map((r) => `${r.bySW ? 'sw ' : ''}${r.url} ${mb(r.bytes)}`) }; }; };
-  const playable = async () => { const t = Date.now(); await page.waitForFunction(() => Boolean(window.__world?.game) && !document.querySelector('.ws-loading'), null, { timeout: 300_000, polling: 250 }); return Number(((Date.now() - t) / 1000).toFixed(2)); };
+  const playable = async () => { const t = Date.now(); await page.waitForFunction(() => Boolean(window.__wildshard?.world?.game) && !document.querySelector('.ws-loading'), null, { timeout: 300_000, polling: 250 }); return Number(((Date.now() - t) / 1000).toFixed(2)); };
   const texmem = async () => { await sleep(6000); const r = await page.evaluate(report, 0); return { textureMB: r.textureMB, compressedMB: r.compressedMB, byFormat: r.byFormat }; };
   const tex = () => page.evaluate(() => window.__ws_prefetch?.state.tex ?? null);
   let after = since();

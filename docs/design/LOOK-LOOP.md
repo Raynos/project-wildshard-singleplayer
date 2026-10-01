@@ -146,7 +146,7 @@ variants). It does all of this:
 
 - It runs one headless Chromium with `--use-angle=metal --mute-audio`, `&mute=1`, and two contexts: the phone one for
   FP, the desktop one for god views.
-- It waits for `window.__world`, then settles: 8 s after the load, 4 s per shot.
+- It waits for `window.__wildshard.world`, then settles: 8 s after the load, 4 s per shot.
 - For every frame it logs **draw calls and triangles** (`game.lastFrame`) and prints them on the sheet cell.
 - It writes the frames and a 3×3 sheet per anchor. Cell order:
   - row 1: FP front / left / right;

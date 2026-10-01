@@ -101,7 +101,7 @@ try {
     phase = 'from';
     await tryEval(`location.href = ${JSON.stringify(FROM)}`);
     await sleep(1500);
-    for (let i = 0; i < 480; i++) { if ((await tryEval('Boolean(window.__world) && !document.querySelector(".ws-load")')) === true) break; await sleep(500); }
+    for (let i = 0; i < 480; i++) { if ((await tryEval('Boolean(window.__wildshard?.world) && !document.querySelector(".ws-load")')) === true) break; await sleep(500); }
     await sleep(SETTLE);
   }
   phase = 'loading';
@@ -111,7 +111,7 @@ try {
   // the load ends when the world exists and the loading screen is gone (a long task blocks the answer: keep asking)
   const steps = []; let last = '';
   for (;;) {
-    const s = await tryEval('JSON.stringify({ step: document.querySelector(".ws-load")?.getAttribute("data-step") ?? document.querySelector(".ws-load .ws-load-log")?.lastElementChild?.textContent ?? null, world: Boolean(window.__world), loading: Boolean(document.querySelector(".ws-load")), build: document.querySelector(".ws-update")?.innerText ?? null })');
+    const s = await tryEval('JSON.stringify({ step: document.querySelector(".ws-load")?.getAttribute("data-step") ?? document.querySelector(".ws-load .ws-load-log")?.lastElementChild?.textContent ?? null, world: Boolean(window.__wildshard?.world), loading: Boolean(document.querySelector(".ws-load")), build: document.querySelector(".ws-update")?.innerText ?? null })');
     const v = s ? JSON.parse(s) : null;
     if (v?.step && v.step !== last) { last = v.step; steps.push([Date.now() - loadStart, v.step]); write({ kind: 'step', step: v.step }); }
     if (v?.world && !v.loading) break;
@@ -133,7 +133,7 @@ try {
     if (FPS_S > 0) { await tryEval('document.querySelector(".ws-menu-play")?.click(); 1'); await sleep(SETTLE); } // ENTER WORLD
   }
   if (FPS_S > 0) {
-    const frame = 'window.__world?.game?.renderer?.info?.render?.frame ?? null';
+    const frame = 'window.__wildshard?.world?.game?.renderer?.info?.render?.frame ?? null';
     let f0 = await tryEval(frame); let t0 = Date.now(); const windows = [];
     const end = Date.now() + FPS_S * 1000;
     while (Date.now() < end) {

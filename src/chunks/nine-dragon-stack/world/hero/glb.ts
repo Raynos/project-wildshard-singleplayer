@@ -1,4 +1,4 @@
-// Copied from the hero lab (src/dev/nd-lab/hero/glb.ts, round-7-lab-hero) into the clean room.
+// Copied from the hero lab (the dev labs (deleted in E357 F7), round-7-lab-hero) into the clean room.
 // TRELLIS props → Kit-compatible geometry (lab P4 "hero", E169). A generated prop comes out of
 // scripts/img2mesh/driftwood_post.py as a decimated, flat-shaded glb with COLOR_0 (rgb = albedo, a = baked AO). Here
 // it becomes one KitX mesh the Jiehua / viewmodel programs draw like any built piece:

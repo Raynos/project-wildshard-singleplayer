@@ -1,4 +1,4 @@
-// Copied from the organic lab (src/dev/nd-lab/organic/scroll.ts, round-9-lab-organic: the sky scroll only) into the clean room.
+// Copied from the organic lab (the dev labs (deleted in E357 F7), round-9-lab-organic: the sky scroll only) into the clean room.
 // Lab P7 "organic" (E169): the LED sky screens show a real 青绿山水 handscroll. The clean room paints procedural
 // ridges; the targets show a detailed 千里江山图 (azurite crests, malachite bodies, ochre feet, scalloped cloud bands,
 // dotted pines) behind a visible LED grid. The painting is three codex image_gen panels joined into one seamless

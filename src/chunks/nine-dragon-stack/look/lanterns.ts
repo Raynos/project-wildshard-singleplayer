@@ -1,4 +1,4 @@
-// Red paper lanterns, merged from the neon lab (src/dev/nd-lab/neon/lanterns.ts): body, lacquer caps and tassel in one
+// Red paper lanterns, merged from the neon lab (the dev labs (deleted in E357 F7)): body, lacquer caps and tassel in one
 // geometry, told apart by `aPart`. The paper glows hot orange where you look through it at the candle and deep cinnabar
 // at the rim, with 16 antialiased bamboo ribs (procedural: the lathe's segment count only shapes the silhouette), dark
 // trim bands and a slow sway. The pivot is the hook (the lantern's top), like ctx.lantern().

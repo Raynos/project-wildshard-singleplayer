@@ -55,10 +55,10 @@ try {
   const errors = [];
   page.on('pageerror', (e) => errors.push(e.message.slice(0, 200)));
   await page.goto(`${URL_BASE}/?chunk=nalati-grasslands&mute=1&nolock=1&skipintro=1&${NAVMESH ? 'navmesh' : 'physics'}=debug&time=12&clock=0`, { waitUntil: 'domcontentloaded' });
-  await page.waitForFunction(() => Boolean(window.__world), undefined, { timeout: 240000, polling: 1000 });
+  await page.waitForFunction(() => Boolean(window.__wildshard?.world), undefined, { timeout: 240000, polling: 1000 });
   await new Promise((resolve) => { setTimeout(resolve, 6000); });
   const counts = await page.evaluate(() => {
-    const w = window.__world, ph = w.physics.world;
+    const w = window.__wildshard?.world, ph = w.physics.world;
     const kinds = {};
     ph.colliders.forEach((c) => { const k = c.shape.type; kinds[k] = (kinds[k] ?? 0) + 1; });
     return {
@@ -69,7 +69,7 @@ try {
   writeFileSync(resolvePath(OUT, `${TAG}-counts.json`), `${JSON.stringify(counts, null, 1)}\n`);
   if (XRAY) {
     await page.evaluate(() => {
-      const w = window.__world, ph = w.physics.world, dbg = w.game.scene.getObjectByName('physics-debug'), tagOf = window.__physics?.tagOf;
+      const w = window.__wildshard?.world, ph = w.physics.world, dbg = w.game.scene.getObjectByName('physics-debug'), tagOf = window.__physics?.tagOf;
       if (!dbg || !tagOf) return;
       const COL = { wood: [1, 0.55, 0.1], planks: [1, 0.75, 0.2], rock: [0.55, 0.7, 1], stone: [0.8, 0.85, 0.95], felt: [1, 1, 1], earth: [0.6, 0.35, 0.15], sand: [0.95, 0.8, 0.5], metal: [0.2, 1, 1], flesh: [1, 0.2, 0.2], ground: [0.3, 0.9, 0.3] };
       const pos = [], col = [];
@@ -93,7 +93,7 @@ try {
   for (const [name, tx, tz0, lift, ox, oy, oz] of SHOTS) {
     if (only.length > 0 && !only.includes(name)) continue;
     await page.evaluate(([px, pz0, up, dx, dy, dz]) => {
-      const w = window.__world, hf = window.__hf;
+      const w = window.__wildshard?.world, hf = window.__hf;
       // the bridge: its deck's centre (z from the mesh's bounds); the dungeon: its floor (y 140)
       let pz = pz0;
       if (pz === null) { const b = w.game.scene.getObjectByName('nalati-bridge'); if (b) { b.geometry.computeBoundingBox(); const bb = b.geometry.boundingBox; pz = (bb.min.z + bb.max.z) / 2; } else pz = 160; }

@@ -1,4 +1,4 @@
-// Copied from the hero lab (src/dev/nd-lab/hero/kitx.ts, round-7-lab-hero) into the clean room.
+// Copied from the hero lab (the dev labs (deleted in E357 F7), round-7-lab-hero) into the clean room.
 // KitX (lab P4 "hero"): smooth, curved pieces the ruled Kit can't make — swept tubes with a shaped cross-section
 // (talons, horns, roots, cords, tassel strands, cloth wraps), deformed ellipsoids (heads, clumps, knuckles) and raw
 // triangle meshes (a TRELLIS GLB). It writes the SAME attributes as the Kit (position, normal, color, aFace, aPat,

@@ -1,4 +1,4 @@
-// Copied from the texture lab (src/dev/nd-lab/texture/paint.ts, round-9-lab-texture) into the clean room.
+// Copied from the texture lab (the dev labs (deleted in E357 F7), round-9-lab-texture) into the clean room.
 // P5 "texture" (E169, round-9-lab-texture): PAINTED SURFACE TEXTURES under the Jiehua ink.
 //
 // Nine codex image_gen swatches (art/nine-dragon-stack/round-9-lab-texture/tools/mkjobs.py), made seamless and turned

@@ -25,7 +25,7 @@ WASD move · Shift sprint · Ctrl/C crouch · Space jump · LMB fire · RMB aim 
 
 ## URL parameters (debug)
 - `?x=&z=&yaw=&pitch=` spawn pose · `&nolock=1` no pointer lock (F fires, R spans) · `&skipintro=1` straight into play
-- `&tour=1` scripted fly-through camera (`window.__world.tour.time = s`)
+- `&tour=1` scripted fly-through camera (`window.__wildshard.world.tour.time = s`)
 - Variants and debug aids are not URL params (AGENTS.md "No URL switches, ever"): pause ▸ Settings ▸ Debug, declared in `src/ui/debugOptions.ts`
 
 ## Capturing progress
@@ -33,7 +33,7 @@ WASD move · Shift sprint · Ctrl/C crouch · Space jump · LMB fire · RMB aim 
 - `scripts/progress-video.sh [fps] [seconds]` → `progress/progress-video.mp4`, a headless fly-through
 - Feature dev harnesses: `dev/animals.html`, `dev/cabins.html`, `dev/grass.html`, `dev/weapon.html`
 
-`window.__world` exposes everything (game, sky, terrain, forest, player, grass, animals, crossbow, hud, audio …).
+`window.__wildshard.world` exposes everything (game, sky, terrain, forest, player, grass, animals, crossbow, hud, audio …).
 
 ## Live
 

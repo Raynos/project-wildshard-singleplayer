@@ -60,7 +60,7 @@ try {
   await page.screenshot({ path: join(OUT, 'nine-dragon-hub.jpg'), type: 'jpeg', quality: 86 });
   await enterPlayground(page, 'grapple');
   const state = () => page.evaluate(() => {
-    const w = window.__world, p = w.player.position, pg = w.playground();
+    const w = window.__wildshard?.world, p = w.player.position, pg = w.playground();
     const vis = (el) => el !== null && getComputedStyle(el).display !== 'none';
     const lock = document.querySelector('.ws-touch-disc.lock'), jump = document.querySelector('.ws-touch-disc.jump');
     return {
@@ -77,7 +77,7 @@ try {
   console.log(`start: ${JSON.stringify(start)}`);
   report.perf = { calls: start.calls, tris: start.tris };
   await page.screenshot({ path: join(OUT, 'grapple-1-start.jpg'), type: 'jpeg', quality: 86 });
-  const hooks = await page.evaluate(() => window.__world.playground().hooks.map((h) => [h.x, h.y, h.z]));
+  const hooks = await page.evaluate(() => window.__wildshard.world.playground().hooks.map((h) => [h.x, h.y, h.z]));
   if (VIDEO) await startRecording(page);
   for (let i = 0; i < HOPS.length; i++) {
     const to = HOPS[i], hook = hooks[i];
@@ -110,7 +110,7 @@ try {
   report.ok = report.hops.length === HOPS.length && report.hops.every((h) => h.ok) && end.pad === 'top' && /FINISH/.test(end.chip);
   // the top: look back down the course, over the tower's ledges toward START
   await aimAt(page, hooks[6]);
-  await page.evaluate(() => { window.__world.player.pitch -= 0.12; });
+  await page.evaluate(() => { window.__wildshard.world.player.pitch -= 0.12; });
   await sleep(1200);
   await page.screenshot({ path: join(OUT, 'grapple-3-top.jpg'), type: 'jpeg', quality: 86 });
   const top = await state();
@@ -124,7 +124,7 @@ try {
     await page.screenshot({ path: join(OUT, 'grapple-4-pause.jpg'), type: 'jpeg', quality: 86 });
     await tap(page, '.ws-gmenu-exit');
     await page.waitForFunction(() => document.querySelector('.ws-x.show[data-mode="hub"]') !== null, undefined, { timeout: 30000, polling: 250 });
-    const out = await page.evaluate(() => window.__world.playground()?.entered ?? null);
+    const out = await page.evaluate(() => window.__wildshard.world.playground()?.entered ?? null);
     await sleep(1000);
     await enterPlayground(page, 'grapple');
     const again = await state();

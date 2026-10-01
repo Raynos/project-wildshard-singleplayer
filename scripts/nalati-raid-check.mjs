@@ -39,10 +39,10 @@ try {
   page.on('pageerror', (e) => errors.push(e.message.slice(0, 200)));
   await page.route('**/@vite/client', (r) => r.fulfill({ contentType: 'application/javascript', body: VITE_STUB }));
   await page.goto(`${URL_BASE}/?chunk=nalati-grasslands&ride=gallop&mute=1&nolock=1&skipintro=1&tier=phone&touch=1&weapon=bow`, { waitUntil: 'domcontentloaded' });
-  await page.waitForFunction(() => window.__world?.ride?.mounted === true, undefined, { timeout: 300000, polling: 1000 });
+  await page.waitForFunction(() => window.__wildshard?.world?.ride?.mounted === true, undefined, { timeout: 300000, polling: 1000 });
   await sleep(3000);
   const setup = await page.evaluate(() => {
-    const w = window.__world, raid = w.ride.raid, f = w.wildlife.flocks[0], h = raid.shepherd;
+    const w = window.__wildshard?.world, raid = w.ride.raid, f = w.wildlife.flocks[0], h = raid.shepherd;
     const t = { steps: 0 };
     w.game.onFixed('post', () => { t.steps++; });
     window.__rc = t;
@@ -66,7 +66,7 @@ try {
     while (Date.now() < wall && (await page.evaluate(() => window.__rc.steps)) < until) await sleep(100);
   };
   const sample = () => page.evaluate(() => {
-    const w = window.__world, raid = w.ride.raid, f = w.wildlife.flocks[0], h = raid.shepherd, pk = w.wildlife.packs.at(-1);
+    const w = window.__wildshard?.world, raid = w.ride.raid, f = w.wildlife.flocks[0], h = raid.shepherd, pk = w.wildlife.packs.at(-1);
     const wolves = w.wildlife.livingWolves;
     let near = Infinity, nearFlock = Infinity;
     for (const wf of wolves) { near = Math.min(near, Math.hypot(wf.position.x - h.position.x, wf.position.z - h.position.z)); nearFlock = Math.min(nearFlock, Math.hypot(wf.position.x - f.cx, wf.position.z - f.cz)); }
@@ -79,12 +79,12 @@ try {
   await simWait(6000);
   const s0 = await sample();
   check('he rides a ring round the flock at a walk', s0.shepherdToFlock < 40 && !s0.raiding, JSON.stringify(s0));
-  await page.evaluate(() => { const h = window.__world.ride.raid.shepherd; window.__rc.face(h.position.x, h.position.z, 8); });
+  await page.evaluate(() => { const h = window.__wildshard.world.ride.raid.shepherd; window.__rc.face(h.position.x, h.position.z, 8); });
   await sleep(600);
   await page.screenshot({ path: `${OUT}/raid-1-shepherd.jpg`, type: 'jpeg', quality: 72 });
-  await page.evaluate(() => { const f = window.__world.wildlife.flocks[0]; window.__rc.face(f.cx, f.cz, 26); });
+  await page.evaluate(() => { const f = window.__wildshard.world.wildlife.flocks[0]; window.__rc.face(f.cx, f.cz, 26); });
   // (a scheduled raid may already be on — the first comes 2.5–4 min in: that one counts)
-  const started = await page.evaluate(() => { const r = window.__world.ride.raid; return r.start(true) ? true : r.raiding; });
+  const started = await page.evaluate(() => { const r = window.__wildshard.world.ride.raid; return r.start(true) ? true : r.raiding; });
   check('a raid starts (the pack takes a sheep as its prey)', started);
   const trace = [];
   let shotWolves = false, shotWhip = false, maxSpeed = 0, minWolfFlock = Infinity;
@@ -96,7 +96,7 @@ try {
     if (!shotWolves && s.wolfToFlock < 30) {
       shotWolves = true;
       await page.evaluate(() => {
-        const w = window.__world, f = w.wildlife.flocks[0];
+        const w = window.__wildshard?.world, f = w.wildlife.flocks[0];
         let best = null, bd = Infinity;
         for (const wf of w.wildlife.livingWolves) { const d = Math.hypot(wf.position.x - f.cx, wf.position.z - f.cz); if (d < bd) { bd = d; best = wf; } }
         if (best !== null) window.__rc.face((best.position.x + f.cx) / 2, (best.position.z + f.cz) / 2);
@@ -106,7 +106,7 @@ try {
     }
     if (!shotWhip && s.cracks > 0) {
       shotWhip = true;
-      await page.evaluate(() => { const h = window.__world.ride.raid.shepherd; window.__rc.face(h.position.x, h.position.z); });
+      await page.evaluate(() => { const h = window.__wildshard.world.ride.raid.shepherd; window.__rc.face(h.position.x, h.position.z); });
       await sleep(250);
       await page.screenshot({ path: `${OUT}/raid-3-whip.jpg`, type: 'jpeg', quality: 72 });
     }

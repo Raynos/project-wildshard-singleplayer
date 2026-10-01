@@ -23,9 +23,9 @@ const ctxOpts = tier === 'phone'
   : { viewport: { width: 1600, height: 900 }, deviceScaleFactor: 1 };
 const p = await (await b.newContext(ctxOpts)).newPage();
 await p.goto(`${url}/?chunk=pine-hollow&mute=1&nolock=1&skipintro=1&sw=0&tier=${tier}${tier === 'phone' ? '&touch' : ''}&perf=0`);
-await p.waitForFunction(() => Boolean(window.__world?.forest), undefined, { timeout: 300000 });
+await p.waitForFunction(() => Boolean(window.__wildshard?.world?.forest), undefined, { timeout: 300000 });
 await p.evaluate(() => {
-  const w = window.__world; w.animals.calm = true;
+  const w = window.__wildshard?.world; w.animals.calm = true;
   window.__nan = { pose: null };
   w.game.onLate(() => {
     const c = window.__nan.pose; if (!c) return;
@@ -57,7 +57,7 @@ await new Promise((resolve) => { setTimeout(resolve, 6000); });
 let hits = 0, shots = 0;
 for (const a of DEF.anchors) for (const c of a.cameras) {
   await p.evaluate((cc) => {
-    const w = window.__world;
+    const w = window.__wildshard?.world;
     if (cc.mode === 'god') { w.player.spawn(cc.look[0], cc.look[2], 0); w.freeCamera = true; window.__nan.pose = cc; }
     else { window.__nan.pose = null; w.freeCamera = false; w.player.spawn(cc.x, cc.z, cc.yaw); w.player.pitch = cc.pitch; }
   }, c);

@@ -1552,21 +1552,21 @@ F6 commit, listed again in §7.3. The 21 scripts that import game modules throug
 | `scripts/check-css.mjs` | 3 | string | manual: `STYLES = 'src/ui/styles'` + `join(STYLES, '<name>.css')` (:30-60) → a table of full paths (the CSS now lives in engine/ui/styles, game/*, shards/*) |
 | `scripts/check-models.mjs` | 87 | string | codemod: the 83 allowlisted paths; manual (TP10): folder rules 1–5 (`src/models/`, `src/chunks/<slug>/models/`, the `shared/` / `<slug>/` id prefixes) → `src/{engine,kit}/models/` and `src/shards/<slug>/models/`, the `SHARD_MODELS` regex, and the per-shard places table (:214-217) |
 | `scripts/creature-lineup.mjs` | 2 | page-import | dead since E317 (in-page `import('/src/…')` needs a Vite dev server): F7 liveness keeps or deletes it; if kept, the codemod rewrites the literals and TP16 ports it |
-| `scripts/creature-rig-bake.mjs` | 2 | page-import | dead since E317 (in-page `import('/src/…')` needs a Vite dev server): F7 liveness keeps or deletes it; if kept, the codemod rewrites the literals and TP16 ports it |
-| `scripts/creature-strip.mjs` | 3 | page-import | dead since E317 (in-page `import('/src/…')` needs a Vite dev server): F7 liveness keeps or deletes it; if kept, the codemod rewrites the literals and TP16 ports it |
+| `scripts/creature-rig-bake.mjs` | 2 | page-import | deleted in E357 F7: needed the dev labs |
+| `scripts/creature-strip.mjs` | 3 | page-import | deleted in E357 F7: needed the dev labs |
 | `scripts/e350-hale-web.mjs` | 1 | import | codemod: 1 literal(s) |
 | `scripts/e350-king-measure.mjs` | 1 | import | codemod: 1 literal(s) |
 | `scripts/img2mesh/birds/birds_fix_preview.mjs` | 1 | import | codemod: 1 literal(s) |
 | `scripts/king-rig-bake.mjs` | 1 | import | codemod: 1 literal(s) |
 | `scripts/king-rig-gate.mjs` | 1 | import | codemod: 1 literal(s) |
 | `scripts/music/gen/sfx_sprite.py` | 1 | string | codemod: 1 literal(s) |
-| `scripts/nalati-creature-strip.mjs` | 8 | page-import | dead since E317 (in-page `import('/src/…')` needs a Vite dev server): F7 liveness keeps or deletes it; if kept, the codemod rewrites the literals and TP16 ports it |
-| `scripts/nalati-models-compare.mjs` | 7 | page-import | dead since E317 (in-page `import('/src/…')` needs a Vite dev server): F7 liveness keeps or deletes it; if kept, the codemod rewrites the literals and TP16 ports it |
-| `scripts/nalati-models-merge-compare.mjs` | 7 | page-import | dead since E317 (in-page `import('/src/…')` needs a Vite dev server): F7 liveness keeps or deletes it; if kept, the codemod rewrites the literals and TP16 ports it |
+| `scripts/nalati-creature-strip.mjs` | 8 | page-import | deleted in E357 F7: needed the dev labs |
+| `scripts/nalati-models-compare.mjs` | 7 | page-import | deleted in E357 F7: needed the dev labs |
+| `scripts/nalati-models-merge-compare.mjs` | 7 | page-import | deleted in E357 F7: needed the dev labs |
 | `scripts/nalati-panorama.py` | 1 | string | codemod: 1 literal(s) |
 | `scripts/nalati-reach.mjs` | 6 | src() | codemod: 6 literal(s) in `src('…')` calls |
 | `scripts/nalati-ride-physics.mjs` | 5 | page-import | dead since E317 (in-page `import('/src/…')` needs a Vite dev server): F7 liveness keeps or deletes it; if kept, the codemod rewrites the literals and TP16 ports it |
-| `scripts/nalati-rig-bake.mjs` | 4 | page-import | dead since E317 (in-page `import('/src/…')` needs a Vite dev server): F7 liveness keeps or deletes it; if kept, the codemod rewrites the literals and TP16 ports it |
+| `scripts/nalati-rig-bake.mjs` | 4 | page-import | deleted in E357 F7: needed the dev labs |
 | `scripts/nine-dragon-budget.mjs` | 1 | string | codemod: 1 literal(s) |
 | `scripts/nine-dragon-domes.mjs` | 1 | string | codemod: 1 literal(s) |
 | `scripts/nine-dragon-gpu.mjs` | 1 | string | codemod: 1 literal(s) |

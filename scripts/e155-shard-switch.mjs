@@ -60,7 +60,7 @@ const titleUp = async (page, slug) => {
   try { await titleWait(page, slug); } catch (e) {
     const at = await page.evaluate(async () => {
       const raf = await Promise.race([new Promise((resolve) => { requestAnimationFrame(() => { resolve('raf ok'); }); }), new Promise((resolve) => { window.setTimeout(() => { resolve('raf NONE in 2 s'); }, 2000); })]);
-      const l = document.querySelector('.ws-load'); const host = window.__shardHost; const where = { active: host?.active, slugs: host?.slugs, switching: host?.switching, intro: document.getElementById('hud')?.classList.contains('intro'), entered: window.__world?.hud.entered, last: host?.timings.at(-1) }; return l === null ? { loader: 'none', ...where } : { raf, visible: document.visibilityState, error: document.querySelector('#wserr')?.textContent.replaceAll(/\s+/g, ' ').slice(0, 400) ?? null, step: l.dataset.step, setup: l.dataset.setup, download: l.dataset.download, foot: l.querySelector('[data-el="foot"]')?.textContent, rows: [...l.querySelectorAll('[data-el="rows"] > div')].map((d) => d.textContent).slice(-3) }; }).catch(() => 'unreadable');
+      const l = document.querySelector('.ws-load'); const host = window.__shardHost; const where = { active: host?.active, slugs: host?.slugs, switching: host?.switching, intro: document.getElementById('hud')?.classList.contains('intro'), entered: window.__wildshard?.world?.hud.entered, last: host?.timings.at(-1) }; return l === null ? { loader: 'none', ...where } : { raf, visible: document.visibilityState, error: document.querySelector('#wserr')?.textContent.replaceAll(/\s+/g, ' ').slice(0, 400) ?? null, step: l.dataset.step, setup: l.dataset.setup, download: l.dataset.download, foot: l.querySelector('[data-el="foot"]')?.textContent, rows: [...l.querySelectorAll('[data-el="rows"] > div')].map((d) => d.textContent).slice(-3) }; }).catch(() => 'unreadable');
     throw new Error(`${slug}: no title (${e instanceof Error ? e.message.split('\n')[0] : String(e)}) — the loader: ${JSON.stringify(at)}`, { cause: e });
   }
 };
@@ -109,15 +109,15 @@ try {
   // --cap: the host's test knob (no URL switch — AGENTS.md), set once the host exists
   if (CAP !== '') await page.waitForFunction((n) => { const h = window.__shardHost; if (h === undefined) return false; h.setCap(n); return true; }, Number(CAP), { timeout: 60000, polling: 50 });
   const waitFrames = async (n, t0) => {
-    const f0 = await page.evaluate(() => window.__world?.game.frameCount ?? -1);
-    await page.waitForFunction((a) => (window.__world?.game.frameCount ?? -1) >= a, f0 + n, { timeout: 60000, polling: 16 });
+    const f0 = await page.evaluate(() => window.__wildshard?.world?.game.frameCount ?? -1);
+    await page.waitForFunction((a) => (window.__wildshard?.world?.game.frameCount ?? -1) >= a, f0 + n, { timeout: 60000, polling: 16 });
     return Math.round(performance.now() - t0);
   };
   const heap = () => page.evaluate(async () => {
     for (let i = 0; i < 3; i++) { window.gc?.(); await new Promise((resolve) => { setTimeout(resolve, 120); }); }
     const m = performance.memory; return m ? Math.round(m.usedJSHeapSize / 1e5) / 10 : null;
   });
-  const pose = () => page.evaluate(() => { const w = window.__world; const p = w.player.position; return { x: Number(p.x.toFixed(3)), y: Number(p.y.toFixed(3)), z: Number(p.z.toFixed(3)), yaw: Number(w.player.yaw.toFixed(4)), weapon: w.weapons.current.id }; });
+  const pose = () => page.evaluate(() => { const w = window.__wildshard?.world; const p = w.player.position; return { x: Number(p.x.toFixed(3)), y: Number(p.y.toFixed(3)), z: Number(p.z.toFixed(3)), yaw: Number(w.player.yaw.toFixed(4)), weapon: w.weapons.current.id }; });
   // the deck: select the target's card (a script click selects it); ENTER WORLD is then pressed with a real click (the gesture)
   const selectCard = async (slug) => {
     await page.evaluate((k) => { document.querySelector(`#hud .ws-menu:not(.hide) .ws-menu-card[data-i="${k}"]`)?.click(); }, SLUGS.indexOf(slug));
@@ -134,10 +134,10 @@ try {
     return n.value;
   };
   const instances = async () => ({
-    Game: await liveCount('Object.getPrototypeOf(window.__world.game)'),
-    Scene: await liveCount('Object.getPrototypeOf(window.__world.game.scene)'),
-    Physics: await liveCount('Object.getPrototypeOf(window.__world.physics)'),
-    WebGLRenderer: await liveCount('Object.getPrototypeOf(window.__world.game.renderer)'),
+    Game: await liveCount('Object.getPrototypeOf(window.__wildshard.world.game)'),
+    Scene: await liveCount('Object.getPrototypeOf(window.__wildshard.world.game.scene)'),
+    Physics: await liveCount('Object.getPrototypeOf(window.__wildshard.world.physics)'),
+    WebGLRenderer: await liveCount('Object.getPrototypeOf(window.__wildshard.world.game.renderer)'),
   });
   const firstShot = {}, leaveShot = {}, lastPose = {}, visits = {};
 
@@ -163,7 +163,7 @@ try {
         await page.click('#hud .ws-menu:not(.hide) .ws-menu-play'); // a shard built in the page lands on its title, as a reload did
       }
     }
-    await page.waitForFunction((x) => window.__shardHost.active === x && window.__world?.hud.entered === true, slug, { timeout: 60000, polling: 16 });
+    await page.waitForFunction((x) => window.__shardHost.active === x && window.__wildshard?.world?.hud.entered === true, slug, { timeout: 60000, polling: 16 });
     step.toFirstFrameMs = await waitFrames(2, t0);
     const timing = await page.evaluate(() => window.__shardHost.timings.at(-1));
     step.hostMs = Math.round(timing.ms); step.hostKind = timing.kind; step.evicted = timing.evicted; step.bootSteps = timing.steps ?? null;
@@ -204,7 +204,7 @@ try {
     // KTX2 (E157): a compressed texture in the running scene whose mips were dropped after another renderer's upload and
     // that this renderer never uploaded would draw nothing (or throw at upload): a module cache shared across renderers
     step.unuploadable = await page.evaluate(() => {
-      const w = window.__world, props = w.game.renderer.properties, bad = new Set();
+      const w = window.__wildshard?.world, props = w.game.renderer.properties, bad = new Set();
       w.game.scene.traverse((o) => { const ms = Array.isArray(o.material) ? o.material : o.material ? [o.material] : []; for (const m of ms) for (const v of Object.values(m)) if (v?.isCompressedTexture === true && v.mipmaps.length === 0 && props.get(v).__webglTexture === undefined) bad.add(v.name !== '' ? v.name : v.uuid.slice(0, 8)); });
       return [...bad];
     });
@@ -220,12 +220,12 @@ try {
     if (step.diffVsLeft !== undefined) console.log(`  frame vs the one the player left: mean |Δ| ${step.diffVsLeft} / 255`);
     report.steps.push(step);
     // leave a pose of this visit's own: the view turned; the frame the player leaves; then pause → "Exit to main menu"
-    await page.evaluate(() => { window.__world.player.yaw += 0.35; });
+    await page.evaluate(() => { window.__wildshard.world.player.yaw += 0.35; });
     await sleep(700);
     lastPose[slug] = await pose();
     leaveShot[slug] = `${name}-leave`;
     await shoot(page, leaveShot[slug]);
-    await page.evaluate(() => { window.__world.hud.exitToMenu(); });
+    await page.evaluate(() => { window.__wildshard.world.hud.exitToMenu(); });
     await sleep(600);
   }
 
@@ -245,9 +245,9 @@ try {
       if (after.active !== running || after.resume || after.mark !== mark) fail('--lose: the running shard was disturbed (a reload, the resume screen or a switch)');
       // …and it plays on
       await selectCard(running); await page.click('#hud .ws-menu:not(.hide) .ws-menu-play');
-      await page.waitForFunction(() => window.__world?.hud.entered === true, undefined, { timeout: 30000 });
+      await page.waitForFunction(() => window.__wildshard?.world?.hud.entered === true, undefined, { timeout: 30000 });
       await waitFrames(3, performance.now());
-      await page.evaluate(() => { window.__world.hud.exitToMenu(); });
+      await page.evaluate(() => { window.__wildshard.world.hud.exitToMenu(); });
       await sleep(400);
     }
   }
@@ -260,8 +260,8 @@ try {
     }
     const slug = await page.evaluate(() => window.__shardHost.active);
     await selectCard(slug); await page.click('#hud .ws-menu:not(.hide) .ws-menu-play');
-    await page.waitForFunction(() => window.__world?.hud.entered === true, undefined, { timeout: 30000 });
-    await page.evaluate(() => { window.__world.hud.setPaused(true); });
+    await page.waitForFunction(() => window.__wildshard?.world?.hud.entered === true, undefined, { timeout: 30000 });
+    await page.evaluate(() => { window.__wildshard.world.hud.setPaused(true); });
     await sleep(2600);
     const read = () => page.evaluate(() => document.querySelector('.ws-gmenu-mem')?.textContent ?? null);
     report.debugCard = { before: await read() };
@@ -281,9 +281,9 @@ try {
     console.log(`  Shards in memory → 1: resident ${before} → [${after.slugs.join(', ')}] (cap ${after.cap})\n    ${String(report.debugCard.after).replaceAll('\n', '\n    ')}`);
     if (after.slugs.length !== 1 || after.cap !== 1) fail('--debugcard: lowering Shards in memory to 1 did not evict down at once');
     await pick('2');
-    await page.evaluate(() => { window.__world.hud.setPaused(false); });
+    await page.evaluate(() => { window.__wildshard.world.hud.setPaused(false); });
     await sleep(300);
-    const timer = await page.evaluate(() => window.__world.hud.menu.isOpen);
+    const timer = await page.evaluate(() => window.__wildshard.world.hud.menu.isOpen);
     if (timer) fail('--debugcard: the menu did not close');
   }
   if (report.navigations > 1) fail(`the page loaded ${report.navigations} documents`);
@@ -297,7 +297,7 @@ try {
       await p.goto(`${URL_BASE}/?${query(slug)}`, { waitUntil: 'domcontentloaded' });
       await titleUp(p, slug);
       await p.click('#hud .ws-menu:not(.hide) .ws-menu-play');
-      await p.waitForFunction(() => window.__world?.hud.entered === true, undefined, { timeout: 60000 });
+      await p.waitForFunction(() => window.__wildshard?.world?.hud.entered === true, undefined, { timeout: 60000 });
       await sleep(2500);
       const name = `baseline-${slug}`;
       await shoot(p, name);

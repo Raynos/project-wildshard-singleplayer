@@ -103,7 +103,7 @@ try {
       const pitch = (tierName.endsWith('phone') && p.phone?.pitch !== undefined) ? p.phone.pitch : p.pitch;
       await ready(page);
       await page.evaluate((a) => {
-        const w = window.__world, wx = window.__weather;
+        const w = window.__wildshard?.world, wx = window.__weather;
         window.__parityHour ??= wx.clock.hour; // the def's own sun (the clock starts there)
         w.player.spawn(a.x, a.z, a.yaw); w.player.pitch = a.pitch;
         wx.clock.set(a.time ?? window.__parityHour);
@@ -112,8 +112,8 @@ try {
       if (EVAL) await page.evaluate(EVAL);
       await sleep(SETTLE); // streaming (grass ring, LODs), the look lerps, shadows settle
       const perf = await page.evaluate(() => new Promise((resolve, reject) => {
-        if (!window.__world) { reject(new Error('reloaded')); return; }
-        const g = window.__world.game;
+        if (!window.__wildshard?.world) { reject(new Error('reloaded')); return; }
+        const g = window.__wildshard.world.game;
         setTimeout(() => {
           const ms = Array.from(g.frameMs).filter((v) => v > 0).sort((a, b) => a - b);
           const pct = (f) => ms[Math.min(ms.length - 1, Math.floor(ms.length * f))] ?? 0;
@@ -204,7 +204,7 @@ async function composite(page, enginePng, targets, caption) {
 
 /** the game is up (and, after an HMR full reload, up again) */
 async function ready(page) {
-  const up = () => page.waitForFunction(() => Boolean(window.__world && window.__weather), undefined, { timeout: TIMEOUT, polling: 1000 });
+  const up = () => page.waitForFunction(() => Boolean(window.__wildshard?.world && window.__weather), undefined, { timeout: TIMEOUT, polling: 1000 });
   try { await up(); } catch {
     // a reload that never came back (an HMR full reload mid-boot, a transient compile error in someone's file): load again
     console.error('  the game did not come up — reloading');

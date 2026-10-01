@@ -38,8 +38,8 @@ const TODS = ['day', 'golden'];
 const LETTERS = [{ id: 'A', q: '' }]; // B (`trees=v1`) is gone (E162): see the header
 
 async function ready(page) {
-  await page.waitForFunction(() => Boolean(window.__world && window.__hf && window.__world.animals && window.__world.forest), undefined, { timeout: 300000, polling: 1000 });
-  await page.evaluate(() => { window.__world.animals.calm = true; });
+  await page.waitForFunction(() => Boolean(window.__wildshard?.world && window.__hf && window.__wildshard.world.animals && window.__wildshard.world.forest), undefined, { timeout: 300000, polling: 1000 });
+  await page.evaluate(() => { window.__wildshard.world.animals.calm = true; });
 }
 
 const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
@@ -53,9 +53,9 @@ try {
     await ready(page);
     await sleep(SETTLE * 2);
     for (const p of POSES) {
-      await page.evaluate((pp) => { const w = window.__world; w.player.spawn(pp.x, pp.z, pp.yaw); w.player.pitch = pp.pitch; }, p);
+      await page.evaluate((pp) => { const w = window.__wildshard?.world; w.player.spawn(pp.x, pp.z, pp.yaw); w.player.pitch = pp.pitch; }, p);
       await sleep(SETTLE);
-      const perf = await page.evaluate(() => ({ calls: window.__world.game.lastFrame.calls, tris: window.__world.game.lastFrame.triangles }));
+      const perf = await page.evaluate(() => ({ calls: window.__wildshard.world.game.lastFrame.calls, tris: window.__wildshard.world.game.lastFrame.triangles }));
       const file = `${FRAMES}/${L.id}-${p.id}-${tod}.jpg`;
       writeFileSync(file, await page.screenshot({ type: 'jpeg', quality: 88, scale: 'css' }));
       console.log(`${L.id} ${tod.padEnd(6)} ${p.id.padEnd(9)} ${perf.calls} calls · ${(perf.tris / 1e6).toFixed(2)} M`);
@@ -71,7 +71,7 @@ try {
     await sleep(SETTLE * 2);
     // one of every variant, in a row across the King's clearing (bare ground), the forest hidden: every species, one light
     await page.evaluate(() => {
-      const w = window.__world, f = w.forest, fac = f.factory;
+      const w = window.__wildshard?.world, f = w.forest, fac = f.factory;
       let Mesh = null, Group = null;
       w.game.scene.traverse((o) => { if (!Mesh && o.isMesh && !o.isBatchedMesh && !o.isInstancedMesh && !o.isSkinnedMesh) Mesh = o.constructor; if (!Group && o.isGroup) Group = o.constructor; });
       f.group.visible = false;

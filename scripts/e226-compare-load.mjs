@@ -55,13 +55,13 @@ for (const [engine, browserType] of [['chromium', chromium], ['webkit', webkit]]
       let failure = '';
       try {
         await page.goto(`${base}/?chunk=${shard}&skipintro=1&nolock=1&mute=1&touch=1&tier=phone&sw=0`, { waitUntil: 'domcontentloaded', timeout: 30000 });
-        await page.waitForFunction(() => Boolean(window.__world?.game) && document.querySelector('.ws-load') === null, undefined, { timeout: 120000, polling: 250 });
+        await page.waitForFunction(() => Boolean(window.__wildshard?.world?.game) && document.querySelector('.ws-load') === null, undefined, { timeout: 120000, polling: 250 });
         await page.waitForTimeout(3000);
       } catch (error) { failure = String(error).slice(0, 500); }
       let metrics = {};
       try {
         metrics = await page.evaluate(() => {
-          const w = window.__world, g = w?.game, m = window.__e226;
+          const w = window.__wildshard?.world, g = w?.game, m = window.__e226;
           const info = g?.renderer.info;
           const gaps = m.gaps.sort((a, b) => b.ms - a.ms);
           return {

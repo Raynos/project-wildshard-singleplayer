@@ -69,18 +69,18 @@ try {
   const errors = [];
   page.on('pageerror', (e) => errors.push(e.message.slice(0, 200)));
   await page.goto(`${URL_BASE}/?${query}`, { waitUntil: 'domcontentloaded' });
-  await page.waitForFunction(() => Boolean(window.__world && window.__weather), undefined, { timeout: 240000, polling: 1000 });
+  await page.waitForFunction(() => Boolean(window.__wildshard?.world && window.__weather), undefined, { timeout: 240000, polling: 1000 });
   await page.evaluate(() => { window.__weather.clock.paused = true; });
   await page.addStyleTag({ content: '#hud,#hud *{display:none!important}' });
   await new Promise((resolve) => { setTimeout(resolve, 12000); });
   for (const [group, label, x, z, yaw, pitch] of list) {
     const y = group === 'eagle' ? 50.2 : -1; // Eagle Rock: stand on its summit terrace (EAGLE_ROCK.top)
     await page.evaluate((a) => {
-      const w = window.__world; w.player.spawn(a.x, a.z, a.yaw); w.player.pitch = a.pitch;
+      const w = window.__wildshard?.world; w.player.spawn(a.x, a.z, a.yaw); w.player.pitch = a.pitch;
       if (a.y > 0) { w.player.position.y = a.y; if (w.player.velocity) w.player.velocity.set(0, 0, 0); }
     }, { x, z, yaw, pitch, y });
     await new Promise((resolve) => { setTimeout(resolve, SETTLE); });
-    const perf = await page.evaluate(() => { const g = window.__world.game; return { calls: g.lastFrame.calls, tris: g.lastFrame.triangles }; });
+    const perf = await page.evaluate(() => { const g = window.__wildshard.world.game; return { calls: g.lastFrame.calls, tris: g.lastFrame.triangles }; });
     const shot = await page.screenshot({ type: 'jpeg', quality: 80, scale: 'css' });
     rows.push({ group, label, ...perf, img: `data:image/jpeg;base64,${shot.toString('base64')}` });
     console.log(`${label.padEnd(12)} ${String(perf.calls).padStart(4)} calls · ${(perf.tris / 1e6).toFixed(2)} M tris`);

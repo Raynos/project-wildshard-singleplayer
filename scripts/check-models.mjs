@@ -13,8 +13,7 @@
  *   7. any area (`DONE`: every shard since its wave, the shared code since M6) drawing or registering a thing by hand
  *      outside a models folder — only the files it declares world may, each with its reason and its counts. The old
  *      registrations (`addBuilt`, `registerModel`, `registerSolid`) are gone, and a registry `add` with a `model` is
- *      `place` / `listModel`'s alone (src/models/): each counts, and no area declares one. src/dev/ (the dev labs, not the
- *      game) is exempt
+ *      `place` / `listModel`'s alone (src/models/): each counts, and no area declares one. The dev labs were deleted in E357 F7; there is no dev exemption
  *   8. a species rig with no model (E315 M5): every kind a file registers (`registerSpecies({ … kind: '<kind>'` or a string
  *      constant) is some model's species rig — `creature(<kind>…)` (src/models/creature.ts) or its `rig: { species }` — so a
  *      new creature can't slip past the Model Explorer

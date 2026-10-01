@@ -1296,9 +1296,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
     game.primeFrame();
   }, TITLE_IDLE_MS);
   const handle = { ...world, boundary, water, streams: dressing.streams, ocean, pier, jetties, boat, hut, lookout, wreck, shrine, bushes, gulls, bridge, bridgeDeck, cove, enemies, hands, grass, under, particles, cabins, props, animals, interactables, crossbow, hud, audio, music, shrineHum, islandSfx, surfaces, ambience, lockSys, lockState, wildlife, nalati: nalatiNow(), ride, weapons, pineLife, arena, playground: (): Playground | null => playground };
-  const debug = window as unknown as { __world: unknown };
-  debug.__world = handle; // the running shard's (the host re-points it on every switch)
-  installProbe(handle, { bootSteps, health: () => health, quest: () => ({ driftwood: adventure?.flags.all.slice().sort() ?? [], nalati: nalatiAdventure?.flags.all.slice().sort() ?? [] }) });
+  const probe = installProbe(handle, { bootSteps, health: () => health, quest: () => ({ driftwood: adventure?.flags.all.slice().sort() ?? [], nalati: nalatiAdventure?.flags.all.slice().sort() ?? [] }) });
   document.dispatchEvent(new Event('ws:ready')); // booted to the title: the native shell's update watchdog (src/native/boot.ts) waits for this
   // E158: the other shards' boot files into the worker's cache, in the background — once a page (the shell's, not a shard's)
   if (first) asShell(() => { startShardPrefetch(getActiveChunk()); });
@@ -1322,7 +1320,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
       music.setState({ shard: mood, mode: 'menu', intensity: 0, underwater: submerged });
       game.resume();
       brand();
-      debug.__world = handle;
+      window.__wildshard = probe;
       if (req.arena === true) hud.enterArenaNow();
       else if (req.explore === true && chunk.explore === true) hud.startExplore();
       else if (req.enter === true) { fromTitle = false; hud.enterNow(); } // where the player left off: no respawn at the gate (E121 is for the same shard's title)
@@ -1333,7 +1331,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
       game.dispose();
       world.physics.dispose();
       audio.evict();
-      if (debug.__world === handle) debug.__world = null;
+      if ('__wildshard' in window && window.__wildshard.world === handle) Reflect.deleteProperty(window, '__wildshard');
     },
   };
 }

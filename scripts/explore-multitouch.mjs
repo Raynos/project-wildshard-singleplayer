@@ -60,7 +60,7 @@ const startTrack = (page) => page.evaluate(() => {
   const run = w.__mtRun;
   const tick = () => {
     if (w.__mtRun !== run) return;
-    const c = w.__world.game.camera, q = c.quaternion;
+    const c = w.__wildshard.world.game.camera, q = c.quaternion;
     w.__mtTrack.push({ t: performance.now(), x: c.position.x, y: c.position.y, z: c.position.z, fx: -2 * (q.x * q.z + q.w * q.y), fy: -2 * (q.y * q.z - q.w * q.x), fz: -(1 - 2 * (q.x * q.x + q.y * q.y)) });
     requestAnimationFrame(tick);
   };
@@ -122,7 +122,7 @@ try {
   const t0 = Date.now();
   // the home camera, not a `cam`: every shard's World Explorer opens over its own landmark, clear of the ground
   await page.goto(`${BASE}/?chunk=${CHUNK}&explore=world&tier=phone&touch=1&mute=1&sw=0`, { waitUntil: 'domcontentloaded' });
-  await page.waitForFunction(() => document.querySelector('.ws-x.show.touch[data-mode="world"] .ws-x-stick') !== null && window.__world?.game !== undefined && document.querySelector('.ws-load') === null, undefined, { timeout: 480000, polling: 1000 });
+  await page.waitForFunction(() => document.querySelector('.ws-x.show.touch[data-mode="world"] .ws-x-stick') !== null && window.__wildshard?.world?.game !== undefined && document.querySelector('.ws-load') === null, undefined, { timeout: 480000, polling: 1000 });
   await sleep(4000); // the shaders compile, the first frames land
   console.log(`${CHUNK}: World Explorer up in ${Math.round((Date.now() - t0) / 1000)} s`);
   // a click that the browser synthesises (or the relay dispatches) on the speed chip is counted, for the log

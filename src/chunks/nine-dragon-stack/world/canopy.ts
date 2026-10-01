@@ -1,4 +1,4 @@
-// Copied from the organic lab (src/dev/nd-lab/organic/canopy.ts, round-9-lab-organic) into the clean room by dome B
+// Copied from the organic lab (the dev labs (deleted in E357 F7), round-9-lab-organic) into the clean room by dome B
 // (E169, round-10-dome-b): the banyan's painted leaf-card canopy. Dome B's banyan (banyan.ts) plans the lumps; the
 // builder at the end of this file (`buildCanopy`) dresses them and is wired in main.ts after the spill bake.
 // Lab P7 "organic" (E169): the banyan's leaf mass. The clean room's canopy is the hero lab's cloud-shelves: 7–9

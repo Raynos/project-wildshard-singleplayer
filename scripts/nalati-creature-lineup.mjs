@@ -30,7 +30,7 @@ try {
     const q = ['chunk=nalati-grasslands', 'mute=1', 'nolock=1', 'skipintro=1', 'perf=0', 'weather=clear', 'clock=0', `tier=${TIER}`,
       `scene=${flag('scene', 'lineup')}`, `gait=${gait}`, `phase=${phase}`, `x=${flag('x', '-60')}`, `z=${flag('z', '60')}`, 'yaw=3.14', 'pitch=-0.05', EXTRA].filter(Boolean).join('&');
     await page.goto(`${URL_BASE}/dev/nalati-creatures.html?${q}`);
-    await page.waitForFunction(() => Boolean(window.__world?.animals), undefined, { timeout: 300000, polling: 1000 });
+    await page.waitForFunction(() => Boolean(window.__wildshard?.world?.animals), undefined, { timeout: 300000, polling: 1000 });
     await page.addStyleTag({ content: '#hud,#hud *,.ws-touch{display:none!important}' });
     await page.waitForTimeout(9000);
     shots.push({ label: `${look} · ${gait} ${phase}`, b64: (await page.screenshot({ type: 'jpeg', quality: 85 })).toString('base64') });

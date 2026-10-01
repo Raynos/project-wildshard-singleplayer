@@ -1,4 +1,4 @@
-// Copied from the neon lab (src/dev/nd-lab/neon/glyphs.ts, round-7-lab-neon), unchanged in behaviour.
+// Copied from the neon lab (the dev labs (deleted in E357 F7), round-7-lab-neon), unchanged in behaviour.
 // The neon calligraphy atlas: every character a sign needs is drawn once from canvas (a Kai / brush regular-script
 // CJK font), then turned into two distance fields packed in one RG8 texture:
 //   R — the glyph's signed distance (0.5 = the outline, > 0.5 inside), so the brush-shaped fill stays crisp at any size;

@@ -31,9 +31,9 @@ try {
     const url = `${URL_BASE}/?chunk=pine-hollow&mute=1&nolock=1&skipintro=1&sw=0&perf=0&tier=desktop&clock=1000000&${q}`;
     console.log('load', url);
     await page.goto(url, { waitUntil: 'domcontentloaded' });
-    await page.waitForFunction(() => Boolean(window.__world?.animals && window.__world?.game), undefined, { timeout: 300000, polling: 1000 });
+    await page.waitForFunction(() => Boolean(window.__wildshard?.world?.animals && window.__wildshard?.world?.game), undefined, { timeout: 300000, polling: 1000 });
     await page.evaluate(async () => {
-      const w = window.__world, cam = w.game.camera;
+      const w = window.__wildshard?.world, cam = w.game.camera;
       window.__hf = await import('/src/world/Heightfield.ts');
       try { w.animals.calm = true; } catch { /* */ }
       const st = document.createElement('style'); st.textContent = 'body *{visibility:hidden!important} canvas.__game{visibility:visible!important}';
@@ -57,7 +57,7 @@ try {
         const h = window.__hf.heightAt;
         const cam = [vv.cam[0], (vv.camAbs ? 0 : h(vv.cam[0], vv.cam[2])) + vv.cam[1], vv.cam[2]];
         const at = [vv.at[0], (vv.atAbs ? 0 : h(vv.at[0], vv.at[2])) + vv.at[1], vv.at[2]];
-        if (vv.spawn !== false) window.__world.player.spawn(vv.cam[0], vv.cam[2], 0);
+        if (vv.spawn !== false) window.__wildshard.world.player.spawn(vv.cam[0], vv.cam[2], 0);
         window.__cv = { ...vv, cam, at };
         return { cam, at };
       }, v);

@@ -126,7 +126,7 @@ export function ledger() {
 
 /** in the page, after the settle: totals + the scene's textures, labelled */
 export function report(top) {
-  const P = window.__texmem, g = window.__world?.game;
+  const P = window.__texmem, g = window.__wildshard?.world?.game;
   const sum = (r) => [...r.levels.values()].reduce((s, v) => s + v, 0);
   const mb = (b) => Number((b / 1048576).toFixed(1));
   const FMT = { 0x8058: 'RGBA8', 0x8c43: 'SRGB8_A8', 0x8051: 'RGB8', 0x1908: 'RGBA', 0x1907: 'RGB', 0x93b0: 'ASTC4x4', 0x93d0: 'SRGB_ASTC4x4', 0x8e8c: 'BC7', 0x8e8d: 'SRGB_BC7', 0x83f0: 'BC1', 0x83f3: 'BC3', 0x9274: 'ETC2', 0x9275: 'SRGB_ETC2', 0x9278: 'ETC2_EAC', 0x9279: 'SRGB_ETC2_EAC', 0x8d64: 'ETC1', 0x881a: 'RGBA16F', 0x822d: 'R16F', 0x8229: 'R8', 0x822b: 'RG8', 0x88f0: 'D24S8', 0x81a6: 'D24', 0x8cac: 'D32F', 0x8c3a: 'R11G11B10F', 0x8814: 'RGBA32F', 0x822e: 'R32F', 0x1909: 'LUM' };

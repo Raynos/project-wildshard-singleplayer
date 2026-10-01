@@ -29,7 +29,7 @@ page.on('pageerror', (e) => { report.errors.push(String(e)); });
 page.on('requestfailed', (r) => { const u = new URL(r.url()); if (/^\/assets\/(music|sfx)\//.test(u.pathname)) report.failedAudio.push({ path: u.pathname, err: r.failure()?.errorText }); });
 
 const probe = () => page.evaluate(() => {
-  const w = window.__world, m = w.music, st = m.steppe, d = m.deck, ctx = m.rig?.ctx;
+  const w = window.__wildshard?.world, m = w.music, st = m.steppe, d = m.deck, ctx = m.rig?.ctx;
   const rms = (b) => { if (!b) return null; const x = b.getChannelData(0); let s = 0, pk = 0; for (let i = 0; i < x.length; i += 7) { s += x[i] * x[i]; pk = Math.max(pk, Math.abs(x[i])); } return { rms: Number(Math.sqrt(s / (x.length / 7)).toFixed(4)), peak: Number(pk.toFixed(3)) }; };
   const buf = (b) => (b ? { duration: Number(b.duration.toFixed(3)), channels: b.numberOfChannels, sampleRate: b.sampleRate, ...rms(b) } : null);
   const king = st.slots.get('steppe-king');
@@ -48,10 +48,10 @@ let last = null;
 try {
   const t0 = Date.now();
   await page.goto(report.url, { waitUntil: 'domcontentloaded', timeout: 180_000 });
-  await page.waitForFunction(() => window.__world?.music !== undefined, null, { timeout: 300_000, polling: 500 });
+  await page.waitForFunction(() => window.__wildshard?.world?.music !== undefined, null, { timeout: 300_000, polling: 500 });
   report.bootMs = Date.now() - t0;
   await page.mouse.click(195, 420); // the gesture that resumes the AudioContext; muted three ways
-  await page.evaluate(() => { const w = window.__world; w.audio.muted = true; w.hud.onResume?.(); w.audio.muted = true; });
+  await page.evaluate(() => { const w = window.__wildshard?.world; w.audio.muted = true; w.hud.onResume?.(); w.audio.muted = true; });
   // poll until the king's deck is on the air (the slot decodes on demand, then takes over on the bar)
   for (let i = 0; i < 40; i++) {
     await sleep(1500);
@@ -62,7 +62,7 @@ try {
   }
   // a tap on the stem bus: what the deck is actually putting out (post-deck, pre-master) over ~5.6 s (0.68 s windows)
   report.tap = await page.evaluate(async () => {
-    const m = window.__world.music, rig = m.rig, d = m.deck;
+    const m = window.__wildshard.world.music, rig = m.rig, d = m.deck;
     if (!rig || !d) return 'no rig / deck';
     const tap = (node) => { const an = rig.ctx.createAnalyser(); an.fftSize = 32768; node.connect(an); return an; };
     const taps = { deckOut: tap(d.out), stemBus: tap(rig.stemBus) };
@@ -83,7 +83,7 @@ try {
   report.audioLog = await page.evaluate(() => window.__audioLog.filter((e) => e.kind === 'music'));
   // the B3 one-shots: decoded on the steppe? fire each and read their buffers
   report.sfx = await page.evaluate(() => {
-    const a = window.__world.audio, out = {};
+    const a = window.__wildshard.world.audio, out = {};
     for (const f of ['spearThrust', 'javelinImpact-flesh', 'javelinImpact-wood', 'javelinThrow']) {
       const set = a.shots.get(f);
       out[f] = set ? set.bufs.map((b) => { const x = b.getChannelData(0); let pk = 0, s = 0; for (const v of x) { pk = Math.max(pk, Math.abs(v)); s += v * v; } return { duration: Number(b.duration.toFixed(3)), peak: Number(pk.toFixed(3)), rms: Number(Math.sqrt(s / x.length).toFixed(4)) }; }) : 'synth (no file)';

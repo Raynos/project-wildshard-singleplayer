@@ -31,11 +31,11 @@ try {
   page.on('pageerror', (e) => errors.push(e.message.slice(0, 200)));
   const q = ['chunk=pine-hollow', 'mute=1', 'skipintro=1', 'nolock=1', 'sw=0', 'tier=phone', 'touch', 'perf=1'].join('&');
   await page.goto(`${URL_BASE}/?${q}`, { waitUntil: 'domcontentloaded' });
-  await page.waitForFunction(() => Boolean(window.__world?.game) && Boolean(window.__perfLapRun), undefined, { timeout: 300000, polling: 500 });
+  await page.waitForFunction(() => Boolean(window.__wildshard?.world?.game) && Boolean(window.__perfLapRun), undefined, { timeout: 300000, polling: 500 });
   await sleep(10000);
   const build = await page.evaluate(() => fetch('/version.json').then((r) => r.json()).catch(() => null));
   console.log('build', JSON.stringify(build));
-  const pos = () => page.evaluate(() => { const p = window.__world.player; return { x: p.position.x, y: p.position.y, z: p.position.z, yaw: p.yaw }; });
+  const pos = () => page.evaluate(() => { const p = window.__wildshard.world.player; return { x: p.position.x, y: p.position.y, z: p.position.z, yaw: p.yaw }; });
   const near = (a, b) => Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z) < 0.5 && Math.abs(a.yaw - b.yaw) < 1e-3;
   // the JSON paths that differ (a save's value is JSON: name what changed inside it, not only the key). A save written
   // for the first time holds its defaults: missing and empty ('', 0, false, [], {}) read the same
@@ -73,7 +73,7 @@ try {
   const t0 = Date.now();
   let shotTaken = false;
   while (Date.now() - t0 < 240000) {
-    const s = await page.evaluate(() => ({ status: document.querySelector('.ws-perf-lap-status')?.textContent ?? '', hidden: document.querySelector('.ws-perf-lap-status')?.hidden ?? true, done: Boolean(window.__perfLap), p: { x: window.__world.player.position.x, y: window.__world.player.position.y, z: window.__world.player.position.z } }));
+    const s = await page.evaluate(() => ({ status: document.querySelector('.ws-perf-lap-status')?.textContent ?? '', hidden: document.querySelector('.ws-perf-lap-status')?.hidden ?? true, done: Boolean(window.__perfLap), p: { x: window.__wildshard.world.player.position.x, y: window.__wildshard.world.player.position.y, z: window.__wildshard.world.player.position.z } }));
     if (s.done) break;
     if (!s.hidden && s.status.includes('REC')) {
       const id = s.status.split(' · ')[1];
@@ -114,7 +114,7 @@ try {
 
   // ── a fight refuses it ──
   const refused = await page.evaluate(() => {
-    const w = window.__world; w.music.state.mode = 'combat';
+    const w = window.__wildshard?.world; w.music.state.mode = 'combat';
     const why = window.__perfLapRun.start(false);
     w.music.state.mode = 'calm';
     return why;

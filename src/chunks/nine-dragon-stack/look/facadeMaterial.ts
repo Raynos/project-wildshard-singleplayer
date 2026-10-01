@@ -1,4 +1,4 @@
-// Copied from the facade lab (src/dev/nd-lab/facade/material.ts, round-7-lab-facade) into the clean room.
+// Copied from the facade lab (the dev labs (deleted in E357 F7), round-7-lab-facade) into the clean room.
 // The facade lab's programs (a simple Jiehua Neon: P1 "ink" owns the real surface look).
 //  - jiehua: flat wash × two hard bands of top light, ruled ink edges from aFace + fwidth (constant px, fading into
 //    the wash when sub-pixel), the kit's patterns (slab bands, glazed tiles, bars, stripes, leaves, AC fans, slats,

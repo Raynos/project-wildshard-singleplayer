@@ -1,4 +1,4 @@
-// Copied from the hero lab (src/dev/nd-lab/hero/figures.ts, round-7-lab-hero) into the clean room.
+// Copied from the hero lab (the dev labs (deleted in E357 F7), round-7-lab-hero) into the clean room.
 // The crowd kit and the mahjong table (lab P4 "hero", E169). Living things are brushed, never ruled: the figures are
 // smooth swept limbs and ellipsoids (KitX) with no ruled face edges — their outline is the post silhouette (and, near
 // the eye, the brushed ink hull). Flat washes in the five ink tones for the coats, one skin, a few accent colours

@@ -142,7 +142,7 @@ console.error(`> wrote ${OUT.slice(ROOT.length + 1)}`);
 process.exit(0);
 
 async function playable(page) {
-  await page.waitForFunction(() => Boolean(window.__world) && !document.querySelector('.ws-load'), null, { timeout: TIMEOUT_MS, polling: 200 });
+  await page.waitForFunction(() => Boolean(window.__wildshard?.world) && !document.querySelector('.ws-load'), null, { timeout: TIMEOUT_MS, polling: 200 });
 }
 
 /** bytes that crossed the network: page responses the worker did not serve + every fetch the worker made itself */

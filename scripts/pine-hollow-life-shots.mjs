@@ -53,10 +53,10 @@ async function open(tod) {
   const t0 = Date.now();
   const at = Number.isFinite(SPOT.x) ? `&x=${SPOT.x}&z=${SPOT.z}` : '';
   await page.goto(`${URL_BASE}/?${BASE}&tod=${tod}${at}`, { waitUntil: 'domcontentloaded' });
-  await page.waitForFunction(() => Boolean(window.__world?.animals && window.__pineLife && window.__hf), undefined, { timeout: 300_000, polling: 1000 });
+  await page.waitForFunction(() => Boolean(window.__wildshard?.world?.animals && window.__pineLife && window.__hf), undefined, { timeout: 300_000, polling: 1000 });
   console.error(`[${tod}] ready in ${((Date.now() - t0) / 1000).toFixed(0)} s`);
   await page.evaluate(() => {
-    const w = window.__world;
+    const w = window.__wildshard?.world;
     w.animals.calm = true;
     window.__ls = { pose: null };
     const H = window.__hf;
@@ -79,7 +79,7 @@ async function open(tod) {
   await sleep(6000);
   if (!Number.isFinite(SPOT.x)) {
     const s = await page.evaluate(() => {
-      const w = window.__world, H = window.__hf, trees = w.forest.trees;
+      const w = window.__wildshard?.world, H = window.__hf, trees = w.forest.trees;
       let best = null, bs = -1;
       for (let i = 0; i < 1600; i++) {
         const x = -90 + (i % 40) * 4.5, z = -150 + Math.floor(i / 40) * 4.5;
@@ -105,7 +105,7 @@ async function open(tod) {
  */
 async function closeUp(page, subject, back, up, fov) {
   const clear = await page.evaluate(([name, dist, rise, fovV]) => {
-    const w = window.__world, get = window.__lsT[name], t = get(window.__pineLife, w);
+    const w = window.__wildshard?.world, get = window.__lsT[name], t = get(window.__pineLife, w);
     if (!t) return -1;
     const P = w.physics;
     const base = Math.atan2(w.player.position.z - t.z, w.player.position.x - t.x);
@@ -144,7 +144,7 @@ try {
     const { ctx, page } = await open('0.33');
     // a deer, killed on the spot: the carcass the ravens come to (and the beat skins); the player waits 40 m off
     const kill = await page.evaluate(([x, z]) => {
-      const w = window.__world, T = w.game.camera.position.constructor;
+      const w = window.__wildshard?.world, T = w.game.camera.position.constructor;
       const a = w.animals.spawn('deer', x, z, 0.6, 'hind');
       a.applyDamage(9999, new T(x, window.__hf.heightAt(x, z) + 0.8, z), new T(1, 0, 0));
       w.player.spawn(x + 34, z + 20, 0);
@@ -173,9 +173,9 @@ try {
     }
     if (want('crumbs')) {
       await showHud(page);
-      await page.evaluate(([x, z]) => { const w = window.__world; window.__ls.pose = null; w.freeCamera = false; w.player.spawn(x + 30, z + 10, 0); w.player.pitch = 0.22; }, [SPOT.x, SPOT.z]);
+      await page.evaluate(([x, z]) => { const w = window.__wildshard?.world; window.__ls.pose = null; w.freeCamera = false; w.player.spawn(x + 30, z + 10, 0); w.player.pitch = 0.22; }, [SPOT.x, SPOT.z]);
       await sleep(1500);
-      const target = await page.evaluate(() => { const t = window.__pineLife.crumbs(); if (!t) return null; const w = window.__world, p = w.player.position; w.player.yaw = Math.atan2(-(t.x - p.x), -(t.z - p.z)); return t; });
+      const target = await page.evaluate(() => { const t = window.__pineLife.crumbs(); if (!t) return null; const w = window.__wildshard?.world, p = w.player.position; w.player.yaw = Math.atan2(-(t.x - p.x), -(t.z - p.z)); return t; });
       console.error(`  crumbs → ${target ? target.id : 'none'}`);
       const frames = [];
       for (let i = 0; i < 3; i++) { await sleep(i === 0 ? 1100 : 800); frames.push(await page.screenshot({ type: 'png' })); }
@@ -185,7 +185,7 @@ try {
       await showHud(page);
       // stand 1.8 m off the carcass, facing it, and press E
       await page.evaluate(([x, z]) => {
-        const w = window.__world; window.__ls.pose = null; w.freeCamera = false;
+        const w = window.__wildshard?.world; window.__ls.pose = null; w.freeCamera = false;
         const px = x + 1.8, pz = z + 0.4;
         w.player.spawn(px, pz, Math.atan2(-(x - px), -(z - pz))); w.player.pitch = -0.25;
       }, [kill.x, kill.z]);
@@ -204,7 +204,7 @@ try {
     const { ctx, page } = await open('night');
     // the most open snag near the Hollow (sky behind it), the player 30 m off it; the owl onto its top
     const snag = await page.evaluate(() => {
-      const w = window.__world, trees = w.forest.trees;
+      const w = window.__wildshard?.world, trees = w.forest.trees;
       let best = null, bs = Infinity;
       for (const t of trees) {
         if (t.species !== 'snag' || Math.hypot(t.x, t.z + 60) > 140) continue;

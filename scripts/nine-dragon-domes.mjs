@@ -68,10 +68,10 @@ try {
   const page = await ctx.newPage();
   page.on('pageerror', (e) => console.info(`pageerror: ${e.message.slice(0, 300)}`));
   await page.goto(`${base}/?chunk=nine-dragon-stack&skipintro=1&tier=phone&touch=1&mute=1&nolock=1&sw=0`, { waitUntil: 'domcontentloaded' });
-  await page.waitForFunction(() => window.__world?.chunk?.slug === 'nine-dragon-stack' && (window.__world.game?.lastFrame?.calls ?? 0) > 60 && !document.querySelector('.ws-load'), undefined, { timeout: 400000, polling: 1000 });
+  await page.waitForFunction(() => window.__wildshard?.world?.chunk?.slug === 'nine-dragon-stack' && (window.__wildshard.world.game?.lastFrame?.calls ?? 0) > 60 && !document.querySelector('.ws-load'), undefined, { timeout: 400000, polling: 1000 });
   await sleep(6000);
   await page.evaluate(() => {
-    const w = window.__world;
+    const w = window.__wildshard?.world;
     window.__nd = { pose: null, bare: false, saved: new Map() };
     // the grapple's hook marker goes stale under a free camera (it tracks the player's aim): never in a capture
     const st = document.createElement('style');
@@ -101,18 +101,18 @@ try {
   });
   const pose = async (v, bare) => {
     await page.evaluate(([vv, b]) => {
-      const w = window.__world;
+      const w = window.__wildshard?.world;
       w.freeCamera = true;
       try { w.player.position.set(vv.eye[0], Math.max(125, vv.eye[1] - 1.62), vv.eye[2]); w.player.velocity.set(0, 0, 0); } catch { /* */ }
       window.__nd.pose = vv; window.__nd.bare = b;
     }, [v, bare]);
     await sleep(1500); // the culler, the lantern / crowd LODs and the TAA-free post settle on the new camera
   };
-  const frameStats = () => page.evaluate(() => { const g = window.__world.game, rd = g.renderer; rd.info.reset(); g.composer.render(0.016); return { calls: rd.info.render.calls, tris: rd.info.render.triangles }; });
+  const frameStats = () => page.evaluate(() => { const g = window.__wildshard.world.game, rd = g.renderer; rd.info.reset(); g.composer.render(0.016); return { calls: rd.info.render.calls, tris: rd.info.render.triangles }; });
 
   // the memory the fragment holds (GPU side, estimated from the scene; the phone's process total is E264's job)
   stats.memory = await page.evaluate(() => {
-    const g = window.__world.game, geos = new Set(), texs = new Set();
+    const g = window.__wildshard.world.game, geos = new Set(), texs = new Set();
     g.scene.traverse((o) => {
       if (o.geometry) geos.add(o.geometry);
       const ms = Array.isArray(o.material) ? o.material : o.material ? [o.material] : [];
@@ -136,7 +136,7 @@ try {
   const bare = (on) => page.evaluate((b) => {
     document.getElementById('nd-bare')?.remove();
     if (!b) return;
-    window.__world.game.renderer.domElement.dataset.ndMain = '1';
+    window.__wildshard.world.game.renderer.domElement.dataset.ndMain = '1';
     const st = document.createElement('style');
     st.id = 'nd-bare';
     st.textContent = '* { visibility: hidden !important; } [data-nd-main] { visibility: visible !important; }';

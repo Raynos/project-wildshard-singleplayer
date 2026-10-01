@@ -131,7 +131,7 @@ for (const [u, n] of result.deploy.net.slice(0, 15)) console.log(`  ${mb(n).padS
 process.exit(0);
 
 async function playable(page) {
-  await page.waitForFunction(() => Boolean(window.__world) && !document.querySelector('.ws-load'), null, { timeout: 300_000, polling: 250 });
+  await page.waitForFunction(() => Boolean(window.__wildshard?.world) && !document.querySelector('.ws-load'), null, { timeout: 300_000, polling: 250 });
 }
 function account(rs) {
   let netBytes = 0, netRequests = 0;

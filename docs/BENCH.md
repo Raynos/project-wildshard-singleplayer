@@ -23,7 +23,7 @@ textures, long-task count) and treat ms only as a p50 trend (`--runs=3`). The iP
 - **bytes MB net / cache** — net crossed the emulated network (page fetches + the service worker's own fetches);
   cache came from the HTTP cache or the SW cache (sized from asset-index.json). Small print: per type, net + cache.
 - **requests** — page-level requests (blob:/data: excluded); the SW's fetches are counted in bytes, not here.
-- **title s** — first paint of `.ws-loading` / `#hud.intro`. **play s** — `.ws-loading` gone and `window.__world` set.
+- **title s** — first paint of `.ws-loading` / `#hud.intro`. **play s** — `.ws-loading` gone and `window.__wildshard.world` set.
 - **long tasks n / ms / max** — `PerformanceObserver('longtask')` during load; budget is max ≤ 100 ms.
 - **textures / programs / heap** — `renderer.info.memory.textures`, `renderer.info.programs.length`, `usedJSHeapSize`.
 - **sw** — whether `navigator.serviceWorker.controller` was set, and how many page requests it served.

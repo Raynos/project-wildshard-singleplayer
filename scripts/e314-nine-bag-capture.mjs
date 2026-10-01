@@ -28,7 +28,7 @@ try {
   const page = await ctx.newPage();
   page.on('pageerror', (e) => errors.push(e.message.slice(0, 200)));
   await page.goto(`${URL_BASE}/?chunk=nine-dragon-stack&mute=1&nolock=1&skipintro=1&touch=1&tier=phone`, { waitUntil: 'domcontentloaded' });
-  await page.waitForFunction(() => window.__world?.player !== undefined && !document.getElementById('hud')?.classList.contains('intro'), undefined, { timeout: 400000, polling: 1000 });
+  await page.waitForFunction(() => window.__wildshard?.world?.player !== undefined && !document.getElementById('hud')?.classList.contains('intro'), undefined, { timeout: 400000, polling: 1000 });
   await sleep(5000);
   const shot = async (name) => { const f = resolvePath(OUT, `${TAG}-${name}.jpg`); writeFileSync(f, await page.screenshot({ type: 'jpeg', quality: 82 })); console.log(f); };
   const tab = (want) => page.evaluate((w) => {
@@ -40,7 +40,7 @@ try {
     return true;
   }, want);
   const tabs = () => page.evaluate(() => [...document.querySelectorAll('.ws-gmenu-tab')].filter((x) => !x.hidden).map((x) => x.textContent.trim()));
-  notes.kit = await page.evaluate(() => (window.__world?.weapons?.list ?? []).map((k) => `${k.id} (${k.name})`)); // the whole kit, locked slots too
+  notes.kit = await page.evaluate(() => (window.__wildshard?.world?.weapons?.list ?? []).map((k) => `${k.id} (${k.name})`)); // the whole kit, locked slots too
   for (const t of ['map', 'gear']) { if (await tab(t)) { await sleep(1200); await shot(t); } }
   notes.bagTabs = await tabs();
   notes.gear = await page.evaluate(() => [...document.querySelectorAll('.ws-gmenu-panel.active .ws-gmenu-kit')].map((x) => x.textContent.replaceAll(/\s+/g, ' ').trim()));
@@ -48,7 +48,7 @@ try {
   // the I key (a PACK request) with the Bag closed: where it lands
   await page.evaluate(() => { document.querySelector('.ws-gmenu-close')?.click(); });
   await sleep(600);
-  await page.evaluate(() => { window.__world?.hud?.menu?.open('inventory'); });
+  await page.evaluate(() => { window.__wildshard?.world?.hud?.menu?.open('inventory'); });
   await sleep(900);
   notes.packRequestLands = await page.evaluate(() => document.querySelector('.ws-gmenu-tab.active')?.dataset.tab ?? null);
   writeFileSync(resolvePath(OUT, `${TAG}-notes.json`), JSON.stringify(notes, null, 2));

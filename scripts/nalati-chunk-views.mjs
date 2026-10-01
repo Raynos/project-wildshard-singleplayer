@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // nalati-chunk-views.mjs — the whole Nalati chunk from god-mode cameras (+ a few first-person views), for the
-// world-redesign mockup round (docs/tasks/asks/N9.md). Free camera through window.__world (like nalati-camp9.mjs),
+// world-redesign mockup round (docs/tasks/asks/N9.md). Free camera through window.__wildshard?.world (like nalati-camp9.mjs),
 // desktop tier 1600×900, HUD hidden, clock frozen, clear weather.
 //
 //   node scripts/nalati-chunk-views.mjs --out=art/nalati-grasslands/round-7-world-redesign [--url=http://127.0.0.1:5193]
@@ -62,11 +62,11 @@ try {
   const page = await (await browser.newContext({ viewport: SIZE, deviceScaleFactor: DPR })).newPage();
   const errors = []; page.on('pageerror', (e) => errors.push(e.message.slice(0, 160)));
   await page.goto(`${URL_BASE}/?chunk=nalati-grasslands&mute=1&nolock=1&skipintro=1&weather=clear&clock=0&perf=0&tier=${TIER}${EXTRA ? `&${EXTRA}` : ''}`, { waitUntil: 'domcontentloaded' });
-  await page.waitForFunction(() => Boolean(window.__world && window.__weather), undefined, { timeout: 300000, polling: 1000 });
+  await page.waitForFunction(() => Boolean(window.__wildshard?.world && window.__weather), undefined, { timeout: 300000, polling: 1000 });
   await page.addStyleTag({ content: 'body *{visibility:hidden!important} canvas{visibility:visible!important}' }); // main's HUD is not all under #hud any more: only the canvas shows
   await page.evaluate(() => {
     window.__weather.clock.paused = true;
-    const w = window.__world, cam = w.game.camera;
+    const w = window.__wildshard?.world, cam = w.game.camera;
     window.__cv = null;
     // the late phase (after Player.update, which poses the camera since the physics merge); onUpdate on older builds
     const hook = typeof w.game.onLate === 'function' ? w.game.onLate.bind(w.game) : w.game.onUpdate.bind(w.game);
@@ -83,18 +83,18 @@ try {
     await page.evaluate((vv) => {
       window.__cv = vv;
       // stream the world around the camera (grass, dressing and culling follow the player)
-      window.__world.player.spawn(vv.cam[0], vv.cam[2], 0);
+      window.__wildshard.world.player.spawn(vv.cam[0], vv.cam[2], 0);
     }, v);
     await new Promise((resolve) => { setTimeout(resolve, 6000); });
     // a first-person view keeps the eye 1.7 m over the ground under it (the terrain may have moved)
     if (v.id.startsWith('fp-')) {
-      await page.evaluate((vv) => { const y = window.__world.player.position.y; window.__cv = { ...vv, cam: [vv.cam[0], y + 1.7, vv.cam[2]] }; }, v);
+      await page.evaluate((vv) => { const y = window.__wildshard.world.player.position.y; window.__cv = { ...vv, cam: [vv.cam[0], y + 1.7, vv.cam[2]] }; }, v);
       await new Promise((resolve) => { setTimeout(resolve, 1500); });
     }
     // a view may carry `eval`: a JS expression run in the page before the capture (hide a mesh, pose a creature …)
     if (v.eval) { await page.evaluate(v.eval); await new Promise((resolve) => { setTimeout(resolve, 800); }); }
     writeFileSync(resolvePath(OUT, `capture-${v.id}.jpg`), await page.screenshot({ type: 'jpeg', quality: 86 }));
-    const perf = await page.evaluate(() => { const g = window.__world.game; return { calls: g.lastFrame.calls, tris: g.lastFrame.triangles }; });
+    const perf = await page.evaluate(() => { const g = window.__wildshard.world.game; return { calls: g.lastFrame.calls, tris: g.lastFrame.triangles }; });
     stats.push({ id: v.id, ...perf });
     console.log(`captured ${v.id.padEnd(20)} ${String(perf.calls).padStart(4)} calls · ${(perf.tris / 1e6).toFixed(2)} M tris`);
   }

@@ -57,13 +57,13 @@ try {
     const errors = [];
     page.on('pageerror', (e) => errors.push(e.message.slice(0, 200)));
     await page.goto(url, { waitUntil: 'domcontentloaded' });
-    await page.waitForFunction(ready ?? (() => window.__world?.player !== undefined && !document.getElementById('hud')?.classList.contains('intro')), undefined, { timeout: 300000, polling: 1000 });
+    await page.waitForFunction(ready ?? (() => window.__wildshard?.world?.player !== undefined && !document.getElementById('hud')?.classList.contains('intro')), undefined, { timeout: 300000, polling: 1000 });
     await sleep(3000);
     return { page, errors };
   };
-  const select = (page, id) => page.evaluate((w) => { const ws = window.__world.weapons; ws.unlock?.(w); ws.select(w, true); }, id);
+  const select = (page, id) => page.evaluate((w) => { const ws = window.__wildshard.world.weapons; ws.unlock?.(w); ws.select(w, true); }, id);
   const toGrass = (page) => page.evaluate(() => {
-    const w = window.__world, s = window.__stealth, p = w.player.position;
+    const w = window.__wildshard?.world, s = window.__stealth, p = w.player.position;
     let best = null;
     // a tall stand near the spawn (HIDDEN needs cover ≥ 0.85 crouched: ≥ ~0.92 m of grass) with no wolf or horse within
     // 100 m (anything that notices you reads NOTICED / DETECTED instead), else any long grass
@@ -101,7 +101,7 @@ try {
   const weatherNow = (page, chip, getLow) => page.evaluate(({ c, g }) => { document.dispatchEvent(new CustomEvent('ws:weather', { detail: { chip: c, getLow: g } })); }, { c: chip, g: getLow });
   // turn the view onto the nearest live wolf / elite / rider / balbal / king in the aim list (what LOCK should take)
   const faceHostile = (page) => page.evaluate(() => {
-    const w = window.__world, p = w.player, kinds = new Set(['wolf', 'kokbori', 'leopard', 'eagle', 'ghost-rider', 'balbal', 'golden-king', 'storm-titan']);
+    const w = window.__wildshard?.world, p = w.player, kinds = new Set(['wolf', 'kokbori', 'leopard', 'eagle', 'ghost-rider', 'balbal', 'golden-king', 'storm-titan']);
     let best = null, bd = Infinity;
     for (const a of w.animals.animals) { if (!a.alive || !kinds.has(a.kind)) continue; const d = Math.hypot(a.position.x - p.position.x, a.position.z - p.position.z); if (d < bd) { bd = d; best = a; } }
     if (best === null) return 'none';
@@ -111,11 +111,11 @@ try {
   // LOCK (the J disc's toggle) until it holds or 5 tries (a cinematic / a swap can eat a tap); the state it ends in
   const lockUntil = async (page) => {
     for (let i = 0; i < 5; i++) {
-      const st = await page.evaluate(() => { const w = window.__world; if (w.lockState.state !== 'locked') w.lockSys.toggle(); return w.lockState.state; });
+      const st = await page.evaluate(() => { const w = window.__wildshard?.world; if (w.lockState.state !== 'locked') w.lockSys.toggle(); return w.lockState.state; });
       if (st === 'locked') break;
       await sleep(700);
     }
-    return page.evaluate(() => `${window.__world.lockState.state} on ${window.__world.lockState.target?.kind ?? '-'}`);
+    return page.evaluate(() => `${window.__wildshard.world.lockState.state} on ${window.__wildshard.world.lockState.target?.kind ?? '-'}`);
   };
   const run = async (scene) => {
     if (scene === 'foot') {
@@ -123,7 +123,7 @@ try {
       await select(page, 'bow');
       await toGrass(page);
       await sleep(1600);
-      await page.evaluate(() => { window.__stealth.latched = true; window.__world.player.pitch = 0.05; });
+      await page.evaluate(() => { window.__stealth.latched = true; window.__wildshard.world.player.pitch = 0.05; });
       await sleep(3500);
       await weatherNow(page, { title: 'Storm in 0:45', sub: 'Wind 14 m/s', tone: 'soon' }, false);
       await sleep(400);
@@ -135,14 +135,14 @@ try {
       await sleep(2500);
       await shoot('spear', page, errors); await page.close();
     } else if (scene === 'saddle') {
-      const { page, errors } = await open(q(`${NAL}&time=day&ride=gallop`), () => window.__world?.ride?.mounted === true);
+      const { page, errors } = await open(q(`${NAL}&time=day&ride=gallop`), () => window.__wildshard?.world?.ride?.mounted === true);
       await select(page, 'sabre');
-      await page.evaluate(() => { const w = window.__world; w.ride.mount.touchGallop = true; w.player.touchMove.y = 1; });
+      await page.evaluate(() => { const w = window.__wildshard?.world; w.ride.mount.touchGallop = true; w.player.touchMove.y = 1; });
       await sleep(4500);
       await page.evaluate(() => { window.__elites?.bar?.banner('Aqbars the Pale', 'Irbis of the Crags'); });
       await sleep(900);
       await shoot('saddle', page, errors);
-      await page.evaluate(() => { const w = window.__world; w.ride.mount.touchGallop = false; w.player.touchMove.y = 0; });
+      await page.evaluate(() => { const w = window.__wildshard?.world; w.ride.mount.touchGallop = false; w.player.touchMove.y = 0; });
       await page.close();
     } else if (scene === 'lock') {
       // on foot with the sabre facing Kokbori's pack (?elite=kokbori): LOCK, then the frame
@@ -155,11 +155,11 @@ try {
       await shoot('lock', page, errors); await page.close();
     } else if (scene === 'saddlelock') {
       // mounted with the sabre, 10 m from Kokbori's pack: LOCK in the saddle (the view tracks, the horse keeps steering)
-      const { page, errors } = await open(q(`${NAL}&time=day&ride=gallop&elite=kokbori&from=40`), () => window.__world?.ride?.mounted === true);
+      const { page, errors } = await open(q(`${NAL}&time=day&ride=gallop&elite=kokbori&from=40`), () => window.__wildshard?.world?.ride?.mounted === true);
       await select(page, 'sabre');
       await sleep(1500);
       console.log(`   ${await page.evaluate(() => {
-        const w = window.__world, kinds = new Set(['wolf', 'kokbori']);
+        const w = window.__wildshard?.world, kinds = new Set(['wolf', 'kokbori']);
         const p = w.player.position; let best = null, bd = Infinity;
         for (const a of w.animals.animals) { if (!a.alive || !kinds.has(a.kind)) continue; const d = Math.hypot(a.position.x - p.x, a.position.z - p.z); if (d < bd) { bd = d; best = a; } }
         if (best === null) return 'no pack';
@@ -170,11 +170,11 @@ try {
       })}`);
       await sleep(900);
       console.log(`   lock: ${await lockUntil(page)}`);
-      await page.evaluate(() => { window.__world.player.touchMove.y = 0.6; });
+      await page.evaluate(() => { window.__wildshard.world.player.touchMove.y = 0.6; });
       await sleep(1800);
-      console.log(`   after 1.8 s riding: ${await page.evaluate(() => `${window.__world.lockState.state} mounted=${window.__world.ride.mounted}`)}`);
+      console.log(`   after 1.8 s riding: ${await page.evaluate(() => `${window.__wildshard.world.lockState.state} mounted=${window.__wildshard.world.ride.mounted}`)}`);
       await shoot('saddlelock', page, errors);
-      await page.evaluate(() => { window.__world.player.touchMove.y = 0; });
+      await page.evaluate(() => { window.__wildshard.world.player.touchMove.y = 0; });
       await page.close();
     } else if (scene === 'storm') {
       const { page, errors } = await open(q(`${NAL}&time=day&weather=storm:0.3&elite=kokbori&from=11`));
@@ -189,26 +189,26 @@ try {
     } else if (scene === 'boss') {
       const { page, errors } = await open(q(`${NAL}&boss=golden-king`));
       await sleep(9000);
-      await page.waitForFunction(() => window.__world?.player !== undefined, undefined, { timeout: 300000, polling: 1000 });
+      await page.waitForFunction(() => window.__wildshard?.world?.player !== undefined, undefined, { timeout: 300000, polling: 1000 });
       await select(page, 'sabre');
       await sleep(1500);
       // walk in to wake him (the name card runs ~3.6 s), then turn onto him
-      await page.evaluate(() => { window.__world.player.touchMove.y = 1; });
+      await page.evaluate(() => { window.__wildshard.world.player.touchMove.y = 1; });
       await sleep(2600);
-      await page.evaluate(() => { window.__world.player.touchMove.y = 0; });
+      await page.evaluate(() => { window.__wildshard.world.player.touchMove.y = 0; });
       await sleep(7000);
       console.log(`   facing ${await faceHostile(page)}`);
       console.log(`   lock: ${await lockUntil(page)}`);
       await sleep(1200);
       await shoot('boss', page, errors); await page.close();
     } else if (scene === 'titan') {
-      const { page, errors } = await open(q(`${NAL}&boss=storm-titan`), () => window.__world?.ride?.mounted === true);
+      const { page, errors } = await open(q(`${NAL}&boss=storm-titan`), () => window.__wildshard?.world?.ride?.mounted === true);
       await sleep(9000);
       await select(page, 'sabre');
       await sleep(1000);
-      await page.evaluate(() => { window.__world.lockSys.toggle(); });
+      await page.evaluate(() => { window.__wildshard.world.lockSys.toggle(); });
       await sleep(1500);
-      console.log(`   lock: ${await page.evaluate(() => `${window.__world.lockState.state} on ${window.__world.lockState.target?.kind ?? '-'}`)}`);
+      console.log(`   lock: ${await page.evaluate(() => `${window.__wildshard.world.lockState.state} on ${window.__wildshard.world.lockState.target?.kind ?? '-'}`)}`);
       await weatherNow(page, { title: 'Storm 3:40', sub: 'Wind 26 m/s', tone: 'storm' }, true);
       await sleep(500);
       await shoot('titan', page, errors); await page.close();

@@ -43,11 +43,11 @@ try {
       try { const b = await r.body(); rig.bytes += b.length; rig.urls.push(`${r.url().replace(URL_BASE, '')} ${b.length}`); } catch { /* a redirect */ }
     });
     await page.goto(`${URL_BASE}/?chunk=${CHUNK}&mute=1&nolock=1&skipintro=1&touch=1&tier=phone${weapon ? `&weapon=${weapon}` : ''}`, { waitUntil: 'domcontentloaded' });
-    await page.waitForFunction(() => window.__world?.player !== undefined && !document.getElementById('hud')?.classList.contains('intro'), undefined, { timeout: 300000, polling: 1000 });
+    await page.waitForFunction(() => window.__wildshard?.world?.player !== undefined && !document.getElementById('hud')?.classList.contains('intro'), undefined, { timeout: 300000, polling: 1000 });
     await sleep(6000);
     // the HUD out of the frame: everything but the canvas and what holds it
     await page.addStyleTag({ content: '.e334-hide{visibility:hidden!important}' });
-    await page.evaluate(() => { const gc = window.__world.game.renderer.domElement; for (const e of document.querySelectorAll('body *')) if (e !== gc && e.querySelector('canvas') !== gc) e.classList.add('e334-hide'); });
+    await page.evaluate(() => { const gc = window.__wildshard.world.game.renderer.domElement; for (const e of document.querySelectorAll('body *')) if (e !== gc && e.querySelector('canvas') !== gc) e.classList.add('e334-hide'); });
     if (MEASURE) {
       const cdp = await ctx.newCDPSession(page);
       await cdp.send('HeapProfiler.collectGarbage');
@@ -62,14 +62,14 @@ try {
   };
   const shot = async (page, name) => { const f = resolvePath(OUT, `${TAG}-${CHUNK}-${name}.jpg`); writeFileSync(f, await page.screenshot({ type: 'jpeg', quality: 86 })); console.log(f); };
   /** a quiet view from the spawn, level */
-  const pose = (page) => page.evaluate(() => { const p = window.__world.player; p.pitch = -0.06; p.velocity.set(0, 0, 0); p.keys.clear(); });
+  const pose = (page) => page.evaluate(() => { const p = window.__wildshard.world.player; p.pitch = -0.06; p.velocity.set(0, 0, 0); p.keys.clear(); });
   /** hold the world still (hit-stop) — the swing / the stroke stays where it is for the shot */
-  const hold = (page) => page.evaluate(() => { window.__world.game.hitStop(30); });
-  const release = (page) => page.evaluate(() => { window.__world.game.stopLeft = 0; });
+  const hold = (page) => page.evaluate(() => { window.__wildshard.world.game.hitStop(30); });
+  const release = (page) => page.evaluate(() => { window.__wildshard.world.game.stopLeft = 0; });
   const measure = async (page, name) => {
     if (!MEASURE) return;
     const m = await page.evaluate(async () => {
-      const w = window.__world, g = w.game, r = g.renderer, gl = r.getContext();
+      const w = window.__wildshard?.world, g = w.game, r = g.renderer, gl = r.getContext();
       const px = new Uint8Array(4);
       const draw = () => { g.composer.render(1 / 30); };
       const sync = () => { r.setRenderTarget(null); r.setScissor(0, 0, 1, 1); r.setScissorTest(true); r.clear(true, false, false); r.setScissorTest(false); gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px); };
@@ -91,11 +91,11 @@ try {
     saveMeasures();
   };
   const swing = (page, heavy, at) => page.evaluate(async ({ heavy: hv, at: when }) => {
-    const held = window.__world.weapons.current, s = held.bow ?? held; // the held Sword (its Weapons wrapper's `bow`): the iron one once selected
+    const held = window.__wildshard.world.weapons.current, s = held.bow ?? held; // the held Sword (its Weapons wrapper's `bow`): the iron one once selected
     if (hv) { s.adsHeld = true; await new Promise((resolve) => { setTimeout(resolve, 700); }); s.adsHeld = false; } else s.tryFire();
     const t0 = performance.now();
     await new Promise((resolve) => {
-      const tick = () => { if ((s.move !== null && s.swingT >= when) || performance.now() - t0 > 3000) { window.__world.game.hitStop(30); resolve(null); } else requestAnimationFrame(tick); };
+      const tick = () => { if ((s.move !== null && s.swingT >= when) || performance.now() - t0 > 3000) { window.__wildshard.world.game.hitStop(30); resolve(null); } else requestAnimationFrame(tick); };
       tick();
     });
     return { move: s.move?.name ?? null, t: s.swingT };
@@ -114,7 +114,7 @@ try {
     } else if (scene === 'wendell') {
       // walk up to Wendell (his group is named for the face capture, E304), face him, and talk (E): the sword eases down (E129)
       const ok = await page.evaluate(async () => {
-        const w = window.__world, p = w.player, c = w.game.scene.getObjectByName('npc-castaway') ?? w.game.scene.getObjectByName('castaway');
+        const w = window.__wildshard?.world, p = w.player, c = w.game.scene.getObjectByName('npc-castaway') ?? w.game.scene.getObjectByName('castaway');
         if (c === undefined) return false;
         const f = c.getWorldDirection(c.position.clone()).setY(0).normalize();
         const x = c.position.x + f.x * 2.4, z = c.position.z + f.z * 2.4;
@@ -125,14 +125,14 @@ try {
       if (!ok) { console.log('wendell: not found'); continue; }
       await page.keyboard.press('KeyE');
       await sleep(400);
-      console.log('wendell: stowed', await page.evaluate(() => window.__world.weapons.stowed));
+      console.log('wendell: stowed', await page.evaluate(() => window.__wildshard.world.weapons.stowed));
       await sleep(2200);
       await shot(page, 'wendell');
       await page.keyboard.press('Escape'); await sleep(300);
     } else if (scene === 'swim' || scene === 'tread') {
       // into deep water off the spawn (a ring of candidates round it: the first the player swims in), facing out
       const ok = await page.evaluate(async (moving) => {
-        const w = window.__world, p = w.player;
+        const w = window.__wildshard?.world, p = w.player;
         if (!p.swimming) {
           const sx = p.position.x, sz = p.position.z;
           let found = false;

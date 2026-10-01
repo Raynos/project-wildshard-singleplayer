@@ -135,7 +135,7 @@ const INIT_SCRIPT = `(() => {
     if (!W.__bench_title && (document.querySelector('.ws-load') || document.querySelector('#hud.intro'))) {
       W.__bench_title = -1; requestAnimationFrame(() => requestAnimationFrame(() => { W.__bench_title = Math.round(performance.now()); }));
     }
-    if (!W.__bench_play && !document.querySelector('.ws-load') && W.__world) { W.__bench_play = Math.round(performance.now()); clearInterval(poll); }
+    if (!W.__bench_play && !document.querySelector('.ws-load') && W.__wildshard?.world) { W.__bench_play = Math.round(performance.now()); clearInterval(poll); }
   }, 50);
 })();`;
 
@@ -143,7 +143,7 @@ const COLLECT = `(() => {
   const W = window;
   const nav = performance.getEntriesByType('navigation')[0];
   const long = W.__bench_long || []; const maxLong = long.reduce((m, e) => Math.max(m, e[1]), 0);
-  const world = W.__world; const renderer = world && world.game && world.game.renderer; const info = renderer && renderer.info;
+  const world = W.__wildshard?.world; const renderer = world && world.game && world.game.renderer; const info = renderer && renderer.info;
   return {
     titleMs: W.__bench_title > 0 ? W.__bench_title : null, playMs: W.__bench_play || null,
     domContentLoadedMs: nav ? Math.round(nav.domContentLoadedEventEnd) : null, loadEventMs: nav ? Math.round(nav.loadEventEnd) : null,
@@ -342,7 +342,7 @@ function stepTable(r) {
   }
   const end = r.playMs ?? steps[steps.length - 1]?.t ?? 0;
   steps.forEach((s, i) => { const next = i + 1 < steps.length ? steps[i + 1].t : end; lines.push(`| ${(s.t / 1000).toFixed(2)} | ${Math.max(0, next - s.t)} | ${s.text}${s.bytes ? ` (${s.bytes})` : ''}${s.n > 1 ? ` — ${s.n} updates` : ''} |`); });
-  if (r.playMs) lines.push(`| ${(r.playMs / 1000).toFixed(2)} | | *playable (\`.ws-loading\` gone, \`__world\` set)* |`);
+  if (r.playMs) lines.push(`| ${(r.playMs / 1000).toFixed(2)} | | *playable (\`.ws-loading\` gone, \`__wildshard?.world\` set)* |`);
   return `${lines.join('\n')}\n`;
 }
 function budgetTable(byKey, budget) {

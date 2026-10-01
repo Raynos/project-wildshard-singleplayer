@@ -10,7 +10,7 @@
 //   - L (CIE Lab lightness) and chroma: histogram match, texels used by the mesh (UV-rasterised mask) → the reference's
 //     object pixels (TRELLIS bakes read darker and muddier than the photo);
 //   - per hue sector: L, chroma and hue pulled to the reference's same sector; a soft toe lift on the darkest L.
-// Output: <src>/<hull>.glb + <hull>.phone.glb (the chunk's `src`: scripts/creature-rig-bake.mjs reads them).
+// Output: <src>/<hull>.glb + <hull>.phone.glb (the chunk's `src`; the former creature-rig-bake.mjs was deleted in E357 F7: needed the dev labs).
 //
 //   node scripts/creature-color.mjs --chunk=pine-hollow                  # every hull
 //   node scripts/creature-color.mjs --chunk=pine-hollow --only=boar      # some

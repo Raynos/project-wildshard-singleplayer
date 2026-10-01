@@ -3,7 +3,7 @@
 //
 // The play-perf breakdown technique (project/archive/2026-09-22-play-perf.md), scripted: every draw three.js counts
 // (`renderer.info.update`, so the sum is exactly `game.lastFrame.calls`) is charged to the object `renderBufferDirect`
-// is drawing, and that object to the `__world` entry that owns it (the nearest ancestor reachable from `__world.<key>`
+// is drawing, and that object to the `__wildshard?.world` entry that owns it (the nearest ancestor reachable from `__wildshard.world.<key>`
 // through ≤ 3 levels of properties: `sky.clouds`, `cabins.groups[]`, `forest.batch` …). The pass is `shadow` (three's
 // shadow map draws with a null scene), `main` (the game scene, whatever target) or `post` (any other scene: the
 // composer's quads, the sky dome's env re-render). Groups roll labels up into terrain / forest / undergrowth / grass /
@@ -57,10 +57,10 @@ const sleep = (ms) => new Promise((resolve) => { setTimeout(resolve, ms); });
 
 /** in the page: hook the renderer once; returns nothing (state on window.__dc) */
 function installHooks() {
-  const w = window.__world, g = w.game, r = g.renderer, info = r.info;
+  const w = window.__wildshard?.world, g = w.game, r = g.renderer, info = r.info;
   /** the first non-empty name */
   const nameOf = (...xs) => xs.find((x) => typeof x === 'string' && x !== '') ?? '';
-  // object → label, BFS over __world (shallowest path wins)
+  // object → label, BFS over __wildshard?.world (shallowest path wins)
   const labels = new Map();
   const seen = new Set();
   const queue = Object.keys(w).filter((k) => k !== 'game' && k !== 'registry' && k !== 'physics').map((k) => [w[k], k, 0]);
@@ -79,7 +79,7 @@ function installHooks() {
       const l = labels.get(p);
       if (l !== undefined) return l;
       if (p.parent === g.scene) {
-        // not reachable from __world: the Horizon rings (ridge0‥n), or name the scene child by its index + a material
+        // not reachable from __wildshard?.world: the Horizon rings (ridge0‥n), or name the scene child by its index + a material
         const ridges = []; p.traverse((c) => { if (/^ridge\d/.test(c.material?.name ?? '')) ridges.push(c); });
         if (ridges.length > 0) return 'horizon';
         const mats = new Set(); p.traverse((c) => { const m = Array.isArray(c.material) ? c.material[0] : c.material; if (m !== undefined && mats.size < 3) mats.add(nameOf(m.name, m.type)); });
@@ -149,11 +149,11 @@ try {
     const p0 = POSES[0];
     const q = ['chunk=pine-hollow', 'mute=1', 'skipintro=1', 'nolock=1', 'sw=0', `tier=${tier}`, tier === 'phone' ? 'touch' : '', `x=${p0.x}`, `z=${p0.z}`, `yaw=${p0.yaw}`, EXTRA].filter(Boolean).join('&');
     await page.goto(`${URL_BASE}/?${q}`, { waitUntil: 'domcontentloaded' });
-    await page.waitForFunction(() => Boolean(window.__world?.game), undefined, { timeout: 300000, polling: 500 });
+    await page.waitForFunction(() => Boolean(window.__wildshard?.world?.game), undefined, { timeout: 300000, polling: 500 });
     await sleep(SETTLE);
     await page.evaluate(installHooks);
     for (const p of POSES) {
-      await page.evaluate((pp) => { const w = window.__world; w.player.spawn(pp.x, pp.z, pp.yaw); w.player.pitch = 0; }, p);
+      await page.evaluate((pp) => { const w = window.__wildshard?.world; w.player.spawn(pp.x, pp.z, pp.yaw); w.player.pitch = 0; }, p);
       await sleep(SETTLE);
       const frames = await page.evaluate((n) => new Promise((resolve) => {
         const dc = window.__dc; dc.frames.length = 0;

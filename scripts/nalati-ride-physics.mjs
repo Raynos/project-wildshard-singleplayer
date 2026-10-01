@@ -49,11 +49,11 @@ try {
   // the page-side helpers: the layout (Vite serves the module), the horse's state, the sampler. Re-installed when the page
   // reloads under us (the dev server is shared: another agent's edit is a Vite full reload)
   const init = async () => {
-  await page.waitForFunction(() => window.__world?.ride?.mounted === true, undefined, { timeout: 300000, polling: 1000 });
+  await page.waitForFunction(() => window.__wildshard?.world?.ride?.mounted === true, undefined, { timeout: 300000, polling: 1000 });
   await sleep(3000);
   await page.evaluate(async () => {
     const L = await import('/src/world/nalati/layout.ts');
-    const w = window.__world, hf = window.__hf;
+    const w = window.__wildshard?.world, hf = window.__hf;
     const t = { L, trace: [], timer: 0 };
     t.input = (x, y, g) => { w.player.touchMove.x = x; w.player.touchMove.y = y; w.ride.mount.touchGallop = g; };
     t.state = () => {
@@ -107,7 +107,7 @@ try {
 
   // ── open ground: the north road from the spawn ──
   await leg('open', async () => {
-    await page.evaluate(() => { const w = window.__world, sp = w.chunk.spawn; window.__rt.place(sp.x, sp.z, sp.yaw + Math.PI); });
+    await page.evaluate(() => { const w = window.__wildshard?.world, sp = w.chunk.spawn; window.__rt.place(sp.x, sp.z, sp.yaw + Math.PI); });
     await settle();
     const tr = await run(3500, 0, 1, true);
     const a = tr[0], b = tr[tr.length - 1];
@@ -205,7 +205,7 @@ try {
     await input(0, 0.6, false);
     const total = Math.round((setup.span + 36) / 4.2 * 1000);
     let waited = 0;
-    while (waited < total && (await page.evaluate((zm) => window.__world.ride.mount.horse.position.z < zm, setup.z))) { await simWait(200); waited += 200; }
+    while (waited < total && (await page.evaluate((zm) => window.__wildshard.world.ride.mount.horse.position.z < zm, setup.z))) { await simWait(200); waited += 200; }
     await shot('bridge · mid-span (the frame)');
     const midShot = frames.length - 1;
     await simWait(Math.max(0, total - waited));
@@ -286,7 +286,7 @@ try {
     // one herd for every leg — the calm one with the flattest 115 m east of it (it stampedes east, the head-on rider
     // comes from there) — put back where it grazed before each leg, so the legs don't depend on each other
     await page.evaluate(() => {
-      const w = window.__world, rt = window.__rt, hf = window.__hf;
+      const w = window.__wildshard?.world, rt = window.__rt, hf = window.__hf;
       const rough = (h) => { let worst = 0; for (let x = h.cx - 10; x < h.cx + 115; x += 2) worst = Math.max(worst, Math.abs(hf.heightAt(x + 1, h.cz) - hf.heightAt(x - 1, h.cz)) / 2); return worst + (hf.inChunk(h.cx + 115, h.cz, 12) ? 0 : 100); };
       rt.herd = w.wildlife.herds.filter((h) => h.members.length > 6).sort((a, b) => rough(a) - rough(b))[0] ?? w.wildlife.herds[0];
       rt.herdHome = rt.herd === undefined ? null : { cx: rt.herd.cx, cz: rt.herd.cz, at: rt.herd.members.map((a) => ({ a, x: a.position.x, z: a.position.z, yaw: a.yaw })) };
@@ -299,7 +299,7 @@ try {
     const legs = {};
     for (const mode of ['foot', 'head-on', 'with']) {
       const setup = await page.evaluate((how) => {
-        const w = window.__world, rt = window.__rt, m = w.ride.mount, herd = rt.herd;
+        const w = window.__wildshard?.world, rt = window.__rt, m = w.ride.mount, herd = rt.herd;
         if (herd === undefined || rt.herdHome === null) return null;
         rt.resetHerd();
         const cx = rt.herdHome.cx, cz = rt.herdHome.cz;
@@ -321,7 +321,7 @@ try {
         // on foot: stand in the path of the leading horse, 9 m ahead of it, facing it
         await simWait(500);
         await page.evaluate(() => {
-          const w = window.__world, h = window.__rt.herd;
+          const w = window.__wildshard?.world, h = window.__rt.herd;
           const lead = [...h.members].sort((a, b) => b.position.x - a.position.x)[0];
           // its line of flight: away from the scare, through it
           const hx = window.__rt.herdHome.cx - 25, hz = window.__rt.herdHome.cz;
@@ -333,7 +333,7 @@ try {
       await simWait(mode === 'head-on' ? 5000 : 4000);
       await input(0, 0, false);
       const tr = await page.evaluate(() => window.__rt.stop());
-      const probe = await page.evaluate(() => { const m = window.__world.ride.mount; return { knockdowns: window.__rt.knocks, jostles: m.jostles, thrownBy: m.thrownBy, mountedAtEnd: m.mounted, nearestHorse: Number(window.__rt.minD.toFixed(2)) }; });
+      const probe = await page.evaluate(() => { const m = window.__wildshard.world.ride.mount; return { knockdowns: window.__rt.knocks, jostles: m.jostles, thrownBy: m.thrownBy, mountedAtEnd: m.mounted, nearestHorse: Number(window.__rt.minD.toFixed(2)) }; });
       legs[mode] = { herd: setup.n, topSpeed: Number(Math.max(...tr.map((s) => s.speed ?? 0)).toFixed(1)), ...probe };
       await shot(`stampede · ${mode} · knocked ${probe.knockdowns} · jostled ${probe.jostles} · thrown ${probe.thrownBy !== null}`);
     }

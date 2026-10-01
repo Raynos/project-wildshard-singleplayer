@@ -83,7 +83,7 @@ try {
     localStorage.setItem('ws.review.v1', JSON.stringify({ password: 'e172-test', quick: true }));
   });
   const mark = async () => { await within(Promise.all(inflight), 10_000); const n = reqs.length; return () => reqs.slice(n); };
-  const playable = () => page.waitForFunction(() => Boolean(window.__world) && !document.querySelector('.ws-load'), null, { timeout: TIMEOUT_MS, polling: 200 });
+  const playable = () => page.waitForFunction(() => Boolean(window.__wildshard?.world) && !document.querySelector('.ws-load'), null, { timeout: TIMEOUT_MS, polling: 200 });
   const settle = async () => { await page.waitForTimeout(1500); await within(Promise.all(inflight), 10_000); };
   const load = async (label, go) => {
     const since = await mark(); const s0 = { bytes: served.bytes, requests: served.requests, n: served.urls.length }; const t0 = Date.now();

@@ -43,20 +43,20 @@ try {
     page.on('pageerror', (e) => errors.push(e.message.slice(0, 200)));
     page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text().slice(0, 200)); });
     await page.goto(`${URL_BASE}/?chunk=${chunk}&mute=1&nolock=1&skipintro=1&touch=1&tier=phone`, { waitUntil: 'domcontentloaded' });
-    await page.waitForFunction((c) => window.__world?.player !== undefined && (c !== 'driftwood-isle' || window.__keepsakes !== undefined) && !document.getElementById('hud')?.classList.contains('intro'), chunk, { timeout: 300000, polling: 1000 });
+    await page.waitForFunction((c) => window.__wildshard?.world?.player !== undefined && (c !== 'driftwood-isle' || window.__keepsakes !== undefined) && !document.getElementById('hud')?.classList.contains('intro'), chunk, { timeout: 300000, polling: 1000 });
     await sleep(6000);
     await page.addStyleTag({ content: '.e334-hide{visibility:hidden!important}' });
-    await page.evaluate(() => { const gc = window.__world.game.renderer.domElement; for (const e of document.querySelectorAll('body *')) if (e !== gc && e.querySelector('canvas') !== gc) e.classList.add('e334-hide'); });
-    await page.evaluate(() => { const p = window.__world.player.position; window.e334Spawn = [p.x, p.z]; }); // the pier: deep water round it
+    await page.evaluate(() => { const gc = window.__wildshard.world.game.renderer.domElement; for (const e of document.querySelectorAll('body *')) if (e !== gc && e.querySelector('canvas') !== gc) e.classList.add('e334-hide'); });
+    await page.evaluate(() => { const p = window.__wildshard.world.player.position; window.e334Spawn = [p.x, p.z]; }); // the pier: deep water round it
     return page;
   };
   const shot = async (page, name) => { const f = resolvePath(OUT, `${TAG}-${name}.jpg`); writeFileSync(f, await page.screenshot({ type: 'jpeg', quality: 88 })); console.log(f); };
-  const time = (page, t) => page.evaluate((x) => { window.__world.sky.dayNight?.setTime(x); }, t);
-  const hold = (page) => page.evaluate(() => { window.__world.game.hitStop(30); });
-  const release = (page) => page.evaluate(() => { window.__world.game.stopLeft = 0; });
+  const time = (page, t) => page.evaluate((x) => { window.__wildshard.world.sky.dayNight?.setTime(x); }, t);
+  const hold = (page) => page.evaluate(() => { window.__wildshard.world.game.hitStop(30); });
+  const release = (page) => page.evaluate(() => { window.__wildshard.world.game.stopLeft = 0; });
   /** stand at hut-local (x, z), looking at hut-local (tx, ty over the floor, tz) */
   const hutView = (page, hx, hz, htx, hty, htz) => page.evaluate(({ x, z, tx, ty, tz }) => {
-    const adv = window.__adventure, p = window.__world.player;
+    const adv = window.__adventure, p = window.__wildshard.world.player;
     const a = adv.place({ poi: 'hut', x, z }), b = adv.place({ poi: 'hut', x: tx, z: tz });
     const floor = adv.place({ poi: 'hut', anchor: 'hut.door', x: 0, z: -2.7 }).y;
     p.spawn(a.x, a.z, Math.atan2(-(b.x - a.x), -(b.z - a.z)));
@@ -66,7 +66,7 @@ try {
   }, { x: hx, z: hz, tx: htx, ty: hty, tz: htz });
   /** open sand west of the hut (E314 stage 3's spot), facing away from the sun */
   const sand = (page, pitch) => page.evaluate((pp) => {
-    const w = window.__world, p = w.player;
+    const w = window.__wildshard?.world, p = w.player;
     p.spawn(-9.9, -57.3, Math.atan2(w.sky.sunDir.x, w.sky.sunDir.z));
     p.velocity.set(0, 0, 0); p.pitch = pp;
   }, pitch);
@@ -78,12 +78,12 @@ try {
     for (const scene of dw) {
       if (scene === 'hand') {
         await time(page, 'midday');
-        await page.evaluate(() => { const p = window.__world.player; p.spawn(-9.9, -57.3, 0.9); p.velocity.set(0, 0, 0); p.pitch = -0.06; });
+        await page.evaluate(() => { const p = window.__wildshard.world.player; p.spawn(-9.9, -57.3, 0.9); p.velocity.set(0, 0, 0); p.pitch = -0.06; });
         await sleep(2000); await hold(page); await sleep(300); await shot(page, 'hand'); await release(page);
       } else if (scene === 'swim') {
         await time(page, 'midday');
         const ok = await page.evaluate(async () => {
-          const w = window.__world, p = w.player;
+          const w = window.__wildshard?.world, p = w.player;
           const [sx, sz] = window.e334Spawn;
           let found = false;
           for (const rr of [22, 30, 40, 55]) {
@@ -108,7 +108,7 @@ try {
         });
         if (!ok) { console.log('swim: no deep water'); continue; }
         await sleep(250); await shot(page, 'swim'); await release(page);
-        await page.evaluate(() => { window.__world.player.spawn(-9.9, -57.3, 0); });
+        await page.evaluate(() => { window.__wildshard.world.player.spawn(-9.9, -57.3, 0); });
         await sleep(1500);
       } else if (scene === 'chime') {
         await time(page, 'midday');
@@ -130,19 +130,19 @@ try {
         await page.evaluate(() => { window.__keepsakes.glass(15); });
         await time(page, 'night');
         await sand(page, -0.05); await sleep(2500);
-        console.log('glow', JSON.stringify(await page.evaluate(() => ({ night: window.__world.sky.night, glow: window.__world.crossbow.bladeGlow }))));
+        console.log('glow', JSON.stringify(await page.evaluate(() => ({ night: window.__wildshard.world.sky.night, glow: window.__wildshard.world.crossbow.bladeGlow }))));
         await shot(page, 'night-wood');
         if (MEASURE) measures.wood = await measureGlow(page);
-        await page.evaluate(() => { const ws = window.__world.weapons; ws.unlock('sword-iron'); ws.select('sword-iron', true); });
+        await page.evaluate(() => { const ws = window.__wildshard.world.weapons; ws.unlock('sword-iron'); ws.select('sword-iron', true); });
         await sleep(2200); await shot(page, 'night-iron');
         if (MEASURE) measures.iron = await measureGlow(page);
-        await page.evaluate(() => { const ws = window.__world.weapons; ws.select(ws.available[0].id, true); });
+        await page.evaluate(() => { const ws = window.__wildshard.world.weapons; ws.select(ws.available[0].id, true); });
         await time(page, 'midday'); await sleep(1500);
       } else if (scene === 'lowsun') {
         await time(page, 'golden');
         await sand(page, -0.42);
         await sleep(9000); // the time jump's shadow fade settles
-        console.log('sun', JSON.stringify(await page.evaluate(() => window.__world.sky.sunDir.toArray().map((v) => Number(v.toFixed(3))))));
+        console.log('sun', JSON.stringify(await page.evaluate(() => window.__wildshard.world.sky.sunDir.toArray().map((v) => Number(v.toFixed(3))))));
         await shot(page, 'lowsun');
       }
     }
@@ -150,7 +150,7 @@ try {
   }
   if (nd) {
     const page = await load('nine-dragon-stack');
-    await page.evaluate(() => { const p = window.__world.player; p.pitch = -0.06; p.velocity.set(0, 0, 0); p.keys.clear(); });
+    await page.evaluate(() => { const p = window.__wildshard.world.player; p.pitch = -0.06; p.velocity.set(0, 0, 0); p.keys.clear(); });
     await sleep(1500); await hold(page); await sleep(300); await shot(page, 'nd-idle'); await release(page);
     await page.close();
   }
@@ -163,7 +163,7 @@ try {
 /** the glow on the held sword: shown vs hidden on the same paused frame (the halo / shell meshes, and the blade's rim) */
 async function measureGlow(page) {
   const m = await page.evaluate(async () => {
-    const w = window.__world, g = w.game, r = g.renderer, gl = r.getContext();
+    const w = window.__wildshard?.world, g = w.game, r = g.renderer, gl = r.getContext();
     const px = new Uint8Array(4);
     const draw = () => { g.composer.render(1 / 30); };
     const sync = () => { r.setRenderTarget(null); r.setScissor(0, 0, 1, 1); r.setScissorTest(true); r.clear(true, false, false); r.setScissorTest(false); gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px); };
