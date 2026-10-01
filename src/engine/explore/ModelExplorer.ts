@@ -28,7 +28,9 @@ import { CHUNK_HALF } from '../core/config';
 import type { ContextValue } from '../ui/review';
 import { CATEGORIES, measure, type CatalogEntry, type Category } from './catalog';
 import type { Explore, ExplorePane } from './Explore';
-import { BUDGET, CURRENT_TIER, TIERS } from './tiers';
+import { CURRENT_TIER, TIERS } from './tiers';
+import { frameBudget } from '../render/budgetReport';
+import { activeLevel } from '../level/selection';
 import type { Tier } from '../core/tier';
 import type { Animal } from '../entities/Animal';
 import type { DrawnAs, Pipeline } from '../world/registry';
@@ -554,11 +556,12 @@ export class ModelExplorer implements ExplorePane {
   }
 
   /**
-   * this model's share of the phone frame budget (≤ 2.0 M tris, ≤ 150 calls — project/archive/2026-09-22-play-perf.md):
+   * this model's share of the active level's phone frame budget:
    * one copy's, and all its copies' if every one were in the frame (E306)
    */
   private budget(tris: number, calls: number, copies = 1): void {
-    const b = BUDGET.phone, share = tris / b.tris, all = share * copies;
+    const level = activeLevel(), limits = frameBudget(level.id, 'phone', level.budgets);
+    const b = { calls: limits.draws ?? Infinity, tris: limits.tris ?? Infinity }, share = tris / b.tris, all = share * copies;
     const pct = (x: number): string => (x * 100).toFixed(x < 0.01 ? 2 : 1);
     const bar = this.sheet.querySelector<HTMLElement>('.ws-x-budget i'), text = this.sheet.querySelector('.ws-x-budget span');
     if (bar) bar.style.width = `${Math.min(100, Math.max(1.5, all * 100))}%`;

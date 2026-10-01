@@ -1,3 +1,4 @@
+import { TIER_TABLE, type EngineTierKnobs } from '../render/tiers';
 import type { TierKnobs } from '../level/spec';
 import { saveStorage } from '#engine/saves/slots';
 /**
@@ -6,85 +7,20 @@ import { saveStorage } from '#engine/saves/slots';
  * overrides for testing, else main menu ▸ Settings ▸ Quality (E55, `setting('tier')`). Every knob below is measured in
  * project/archive/2026-09-22-play-perf.md.
  */
+import { mobileDevice } from '../render/tierSelect';
 import { setting, settingFromUrl } from '../ui/Settings';
 
 const savedStorage = saveStorage('global');
 
 export type Tier = 'phone' | 'desktop';
 
-const ua = navigator.userAgent;
-const isIPadOS = navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
-const mobileUA = /iPhone|iPad|iPod|Android/i.test(ua) || isIPadOS;
+const mobileUA = mobileDevice(navigator.userAgent, navigator.platform, navigator.maxTouchPoints);
 
 /** the tier 'auto' picks on this device (Settings shows it) */
-export const AUTO_TIER: Tier = mobileUA ? 'phone' : 'desktop';
-export let TIER: Tier = AUTO_TIER;
+export let automaticTier: Tier = mobileUA ? 'phone' : 'desktop';
+export let TIER: Tier = automaticTier;
 
-/** both tiers' tables — Explore's DETAIL TIERS view builds a model at the other tier with `withTier` (src/engine/explore/tiers.ts) */
-export const TIER_TABLE = {
-  phone: {
-    maxTexture: 1024, layerSize: 512, dpr: 2, ao: false, // DPR 2 + SMAA on (E70: 1.5 was a ~2× upscale on a 3× iPhone — "really bad and blurry"; 1.0 was already unacceptable); Settings ▸ Render scale overrides (Native = the screen's 3×)
-    // shadows: one cascade to 80 m, 1024² — the 2-cascade rig re-drew the whole world twice (9.8 M tris)
-    cascades: 1, shadowMapSize: 1024, shadowFar: 80, shadowMargin: 60, softShadows: false,
-    // animals shadow as far as the cascade reaches (E90: at 30 m a boar's shadow switched on in plain view)
-    undergrowthShadows: false, animalShadowDist: 80, animalHideDist: 150, furShells: false,
-    // animal draws (Animal.setDrawLod): fur / hard / eye within animalEyeDist, eyes in the hard material to animalOneDrawDist,
-    // then the whole body in the fur material — 3 → 2 → 1 draws per animal
-    animalEyeDist: 45, animalOneDrawDist: 100,
-    // the far herd (farHerd.ts): past this, a rig is drawn in one draw per model with every other far animal; 0 = off (the
-    // phone hides its animals at 150 m)
-    animalFarBatchDist: 0,
-    // the far herd takes the generated hulls (Pine Hollow) at every distance (one draw per model); off here: the batch keeps a
-    // copy of the hull per animal on the GPU
-    animalHullBatch: false,
-    // the shadow herd (farHerd.ts { shadow }): the casting animals' shadows in one draw per model per cascade
-    animalShadowBatch: true,
-    // trees: hi cards → lo cards → far card beyond loDist (Forest dissolves lo → far over its last 12 m, twigs over 6 m).
-    // E94: the hi cards reach the shadow cascade's edge (80 m; they swapped at 55 m, inside it, so a crown and its
-    // shadow changed shape in plain view), so no shadow ever changes shape. The batched path's lo cards share the casting
-    // needles mesh (loTreeShadows is the instanced fallback's; past 80 m there is no cascade to cast into). Phone ruler,
-    // with Forest's shadow-aware cull: yaw π +0.02–0.17 M triangles (gate 1.32 → 1.42, cabin 1.65 → 1.67, pond
-    // 1.39 → 1.56 M); looking down the sunset's shadows (yaw 0.95) +0.19–0.36 M (0.92 → 1.11, 1.35 → 1.61, 1.57 → 1.93 M).
-    // Calls unchanged. (Hi to 110 m, E90's palm distance, was another +0.06–0.24 M: pond 2.13 M looking down the shadows.)
-    treeHiDist: 80, treeLoDist: 130, treeTwigDist: 24, loTreeShadows: false,
-    // grass carpet: ring radius / slots per 4 m cell / quads per clump
-    grassRadius: 40, grassSlots: 56, grassQuads: 3,
-    undergrowthFar: 60, propsFar: 220, propsMinAngular: 0.004, // a 0.5 m rock lives to 125 m, a boulder to 220 m
-    // cabins: hardware / lantern / fire pit / flames only within this; 4 shared point lights follow the nearest cabin
-    // instead of 12 in every shader (NUM_POINT_LIGHTS is per-fragment cost on everything, grass included)
-    cabinDetailDist: 70, cabinDetailShadows: false, sharedCabinLights: true, beaconLights: false,
-    // item pickups (WeaponPickup): the floating item within this, the orb (sphere / rings / motes / sigil) within this
-    pickupItemDist: 22, pickupOrbDist: 120,
-    // post: god rays samples / resolution scale, volumetric march steps, SMAA preset
-    // 3 full-res SMAA passes are the dearest part of the chain and DPR 1.0 is upscaled ×3 on the screen anyway;
-    // volumetrics march at half res into their own target; god rays at a quarter
-    godRaysSamples: 24, godRaysScale: 0.25, volumetricSteps: 8, volumetricScale: 0.5, smaa: 'low' as 'off' | 'low' | 'high', bloomLevels: 4, // SMAA low back on: at DPR 1.0 the viewmodel's edges stair-step without it
-  },
-  desktop: {
-    maxTexture: 4096, layerSize: 1024, dpr: 1.5, ao: true,
-    cascades: 3, shadowMapSize: 2048, shadowFar: 220, shadowMargin: 120, softShadows: true,
-    undergrowthShadows: true, animalShadowDist: 90, animalHideDist: 400, furShells: true,
-    // PINE-HOLLOW PH-P2: an eye is under a pixel past ~20 m at 1600×900 and a hoof / antler tine past ~60 m, so the
-    // phone's draw LOD at 1.3–1.5× its distances. ~150 animals × 3 draws were half of every Pine Hollow desktop frame;
-    // a same-instant A/B at the gate / cabin / lookout / shore (scripts: every rig forced to the LOD, then back) moved
-    // no pixel past the frame-to-frame noise, next to a boar too
-    animalEyeDist: 60, animalOneDrawDist: 150,
-    // PH-P2: ~100 one-draw rigs at 150–400 m were 90–120 draws at the gate / lookout — the far herd draws them per model
-    animalFarBatchDist: 150,
-    // PH-P2: and the generated hulls at every distance — their batch draws the same pixels near as far (one group, no shells)
-    animalHullBatch: true,
-    animalShadowBatch: true,
-    treeHiDist: 110, treeLoDist: 210, treeTwigDist: 38, loTreeShadows: true,
-    grassRadius: 55, grassSlots: 96, grassQuads: 5,
-    undergrowthFar: 110, propsFar: 700, propsMinAngular: 0.0012,
-    cabinDetailDist: 160, cabinDetailShadows: true, sharedCabinLights: false, beaconLights: true,
-    // PINE-HOLLOW PH-P2: the AR-15 floats inside cabin 1 and was ~20 draws + 10 shadow from anywhere in the chunk. A
-    // same-instant A/B hiding the whole pickup at 26 / 74 / 165 / 253 m, day and night, moved no pixel past the noise
-    // (the walls hide it); in the open a 1 m item is ~8 px at 90 m, and the orb stays a beacon to 200 m
-    pickupItemDist: 90, pickupOrbDist: 200,
-    godRaysSamples: 60, godRaysScale: 0.5, volumetricSteps: 14, volumetricScale: 1, smaa: 'high' as 'off' | 'low' | 'high', bloomLevels: 8,
-  },
-};
+export { TIER_TABLE } from '../render/tiers';
 
 export const TIER_CONFIG = { ...TIER_TABLE[TIER] };
 
@@ -118,9 +54,20 @@ export function saveGfxPrefs(): void { try { savedStorage.setItem(GFX_KEY, JSON.
 // 'native' = the screen's own density (the renderer caps at min(devicePixelRatio, dpr)): sharpest, and the costliest fill
 export let MOBILE_DEVICE = mobileUA || TIER === 'phone';
 
-export function initializeTier(tier?: Tier): void {
-  const forced = setting('tier');
-  TIER = tier ?? (forced === 'auto' ? AUTO_TIER : forced);
+export function initializeTier(tier: Tier): void;
+export function initializeTier(): Promise<void>;
+export function initializeTier(tier?: Tier): void | Promise<void> {
+  // Bakers and tier comparisons already name a tier and must retain their synchronous data path.
+  if (tier !== undefined) { configureTier(tier); return; }
+  return import('../render/tierBoot').then(async ({ bootTier }) => {
+    const picked = await bootTier();
+    if (picked.via !== 'harness' && picked.via !== 'setting') automaticTier = picked.tier;
+    configureTier(picked.tier);
+    return undefined;
+  });
+}
+function configureTier(tier: Tier): void {
+  TIER = tier;
   Object.assign(TIER_CONFIG, TIER_TABLE[TIER]);
   if (gfxPrefs.dpr !== 'auto') TIER_CONFIG.dpr = gfxPrefs.dpr === 'native' ? 4 : Number(gfxPrefs.dpr);
   if (gfxPrefs.aa === 'on' && TIER_CONFIG.smaa === 'off') TIER_CONFIG.smaa = 'low';
@@ -131,10 +78,10 @@ export function initializeTier(tier?: Tier): void {
 /** Resolve the numeric tier row before the level builds sky, forest and carpet. */
 export function applyLevelTier(knobs: TierKnobs | undefined): void {
   Object.assign(TIER_CONFIG, TIER_TABLE[TIER]);
-  if (knobs?.treeHiDist !== undefined) TIER_CONFIG.treeHiDist = knobs.treeHiDist;
-  if (knobs?.shadowFar !== undefined) TIER_CONFIG.shadowFar = knobs.shadowFar;
-  if (knobs?.animalShadowDist !== undefined) TIER_CONFIG.animalShadowDist = knobs.animalShadowDist;
-  if (knobs?.grassSlots !== undefined) TIER_CONFIG.grassSlots = knobs.grassSlots;
+  for (const key of Object.keys(TIER_TABLE[TIER]) as (keyof EngineTierKnobs)[]) {
+    const value = knobs?.[key];
+    if (value !== undefined) Reflect.set(TIER_CONFIG, key, value);
+  }
   if (gfxPrefs.dpr !== 'auto') TIER_CONFIG.dpr = gfxPrefs.dpr === 'native' ? 4 : Number(gfxPrefs.dpr);
   if (gfxPrefs.aa === 'on' && TIER_CONFIG.smaa === 'off') TIER_CONFIG.smaa = 'low';
   if (gfxPrefs.aa === 'off') TIER_CONFIG.smaa = 'off';

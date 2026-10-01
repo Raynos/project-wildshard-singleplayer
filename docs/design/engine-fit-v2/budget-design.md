@@ -39,7 +39,39 @@ overlap (§4 sweep 6); the serial model is the safe side.
 |---|---|---|---|---|---|---|---|
 | **Phone 30** (E193 lock, decision 31) | 33.3 | **25.6** | 9.6 | 16.0 | **1.6 ms** | ~140 | **what the numbers assume** |
 | Phone 60 (the finished-game goal) | 16.7 | 12.8 | 4.8 | 8.0 | 0.8 ms | ~70 | a different game, not a tuning pass: every phone number halves. A printed goal column; enforced only in the practice arena (E290) |
-| Desktop 60 | 16.7 | 12.8 | on a named min-spec | on a named min-spec | — | — | ratchet (§7) until Jake names the min-spec desktop |
+| Desktop 60 | 16.7 | 12.8 | RTX 3060 projection | RTX 3060 projection | — | — | unchanged F2 ceilings until stable M5 calibration (§7); decision 36 names the min-spec |
+
+## Desktop: the M5 : 3060 ratio (X7)
+
+Decision 36 names RTX 3060 class as the desktop floor. NVIDIA's published shader count and boost clock give
+`3584 × 2 × 1.78 GHz ≈ 12.76 TFLOPS` (the selector uses the spec's 12.7 threshold).
+[NVIDIA's specification table](https://www.nvidia.com/en-gb/geforce/graphics-cards/compare/) supplies those inputs.
+Apple does not publish comparable FP32 throughput for every M1–M5 variant, so Apple renderer strings run the
+synthetic benchmark. Exact, cited NVIDIA/AMD rows live in `src/engine/render/gpuClasses.ts`; Intel, integrated
+Radeon, laptop/TGP variants and unmatched strings benchmark too.
+
+The same [Geekbench OpenCL chart](https://browser.geekbench.com/opencl-benchmarks), read on 2026-10-01, lists
+M5 Max 145,258 and NVIDIA GeForce RTX 3060 80,711. **Projection:**
+`k3060 = 80711 / 145258 = 0.555638`. This is a same-API compute ratio, not a measured WebGL/game frame on a 3060.
+`budgets/desktop-reference.json` records the ratio, source and assumption. When stable M5 calibration is published,
+the desktop derivation scales M5 unit costs by `1 / k3060`; a later `rtx3060: { costs, source }` calibration entry
+replaces projected costs without a code edit. GPU bytes retain recorded rollout ceilings, separately from native memory.
+
+The short M5 capture (`progress/normalization/x7-m5-benchmark.json`) measured **1371.863 passes/s** over **2.0002 s**:
+an offscreen 1280 × 720 RGBA8 target, a dependent 32-iteration fill shader, eight-pass batches, and finish plus readback.
+The readback is essential on ANGLE/Metal because `finish()` alone did not fence the earlier calibration work.
+The projected selector floor is **762.261 passes/s** (`M5 score × k3060`), so this M5 stays desktop. A mobile/tablet UA
+stays phone and skips GPU probing and the benchmark. The device-scoped `render.tierPick` caches renderer, pick,
+method and score. Existing diagnostics show its reason; `app.debug.snapshot()['render.tierPick'].repick()` clears
+it and reloads. No new Debug row was added.
+
+The nightly report prints each desktop pose's M5 drawn-frame p95 interval divided by `k3060`, compared with 16.67 ms.
+It labels this **informational**, since capture pacing is part of that interval; it does not establish physical
+RTX 3060 60 fps. The existing isolated GPU ruler remains the timing gate.
+
+**Calibration status:** stable `budgets/calibration.json` has not been published. The provisional inputs below remain
+provisional; all four manifests own complete allocation inputs and unchanged recorded F2 rollout ceilings.
+Nalati's 24 values remain exactly those derived by sol-s35c. Derived count targets wait for the lead's stable publish.
 
 ## 3. The derivation
 

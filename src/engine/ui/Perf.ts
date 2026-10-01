@@ -15,13 +15,16 @@ import { saveStorage } from '#engine/saves/slots';
  * Developer mode only (E140, the user's 3a; src/engine/core/devMode.ts): players never see it; the Settings ▸ Developer switch
  * shows / hides it live. `?perf=0` hides it even in developer mode, `?perf=1` shows it (with the budget check) without it.
  * `?perf=1` adds the budget check: the worst draw calls / triangles of the last ~10 s against the tier's budget
- * (phone ≤ 110 calls, ≤ 1.6 M triangles — project/archive/2026-09-23-nalati.md, the phone-tier handoff; desktop shows the maxima only),
+ * (derived limits and each level's recorded rollout ceilings),
  * `OK` / `OVER` on the meter (red when over), and `window.__perfBudget` for scripted checks.
  */
 import * as THREE from 'three';
 import type { Game } from '../core/Game';
 import { activeLevel } from '../level/selection';
 import { TIER } from '../core/tier';
+import { frameBudget } from '../render/budgetReport';
+import { tierPickInfo, tierPickLine, forgetTierPick } from '../render/tierBoot';
+import { markUnload } from '../boot/lastEnd';
 import { isDev, onDev } from '../core/devMode';
 import { runPerfProbe, probeLines, probeReport, probeSamples } from './perfProbe';
 import { PerfHud, type Counts } from './perfHud';
@@ -37,7 +40,6 @@ const PROBE_KEY = 'perf.probe';
 const PAINT_MS = 500;
 /** the open panel's timing / counts block (src/engine/ui/perfHud.ts): ≤ 4 repaints a second */
 const STATS_MS = 250;
-const BUDGET = TIER === 'phone' ? { calls: 110, tris: 1.6e6 } : null;
 const WINDOW = 20; // paints (~10 s)
 export interface PerfBudget { maxCalls: number; maxTris: number; calls: number; tris: number; over: boolean }
 const k = (n: number) => (n >= 1e6 ? `${(n / 1e6).toFixed(1)}M` : n >= 1000 ? `${(n / 1000).toFixed(n >= 10000 ? 0 : 1)}k` : String(n));
@@ -49,12 +51,15 @@ export class Perf {
   private sorted = new Float32Array(120);
   private readonly budgetOn = new URLSearchParams(location.search).get('perf') === '1';
   private readonly recent: { calls: number; tris: number }[] = [];
-  readonly budget: PerfBudget = { maxCalls: 0, maxTris: 0, calls: BUDGET?.calls ?? Infinity, tris: BUDGET?.tris ?? Infinity, over: false };
+  readonly budget: PerfBudget = { maxCalls: 0, maxTris: 0, calls: Infinity, tris: Infinity, over: false };
   private panel: HTMLElement;
   private live: { box: HTMLElement; fps: HTMLElement; ms: HTMLElement };
   private rows: { p50: HTMLElement; p95: HTMLElement; calls: HTMLElement; tris: HTMLElement; tier: HTMLElement; gl: HTMLElement };
 
   constructor(private game: Game) {
+    const limit = frameBudget(game.level.id, TIER, game.level.budgets);
+    this.budget.calls = limit.draws ?? Infinity; this.budget.tris = limit.tris ?? Infinity;
+    game.app.debug.expose('render.tierPick', { read: tierPickInfo, repick: () => { forgetTierPick(); markUnload('tier pick: repick'); location.reload(); } });
     const root = this.root = document.createElement('button');
     root.className = 'ws-perf';
     root.setAttribute('type', 'button');
@@ -248,9 +253,9 @@ export class Perf {
       const b = this.budget;
       b.maxCalls = Math.max(...this.recent.map((x) => x.calls)); b.maxTris = Math.max(...this.recent.map((x) => x.tris));
       b.over = b.maxCalls > b.calls || b.maxTris > b.tris;
-      check = ` · max ${b.maxCalls}c / ${k(b.maxTris)}${BUDGET ? ` ${b.over ? 'OVER' : 'OK'} (≤${BUDGET.calls}c / ${k(BUDGET.tris)})` : ''}`;
+      check = ` · max ${b.maxCalls}c / ${k(b.maxTris)}${Number.isFinite(b.calls) && Number.isFinite(b.tris) ? ` ${b.over ? 'OVER' : 'OK'} (≤${b.calls}c / ${k(b.tris)})` : ''}`;
     }
-    const text = `${Math.round(1000 / p50)}|${p50.toFixed(1)} / ${p95.toFixed(1)} ms · ${r.calls} calls · ${k(r.triangles)} tris · ${TIER} ${g.renderer.getPixelRatio().toFixed(2)}×${gl}${check}`;
+    const text = `${Math.round(1000 / p50)}|${p50.toFixed(1)} / ${p95.toFixed(1)} ms · ${r.calls} calls · ${k(r.triangles)} tris · ${tierPickLine()} · ${g.renderer.getPixelRatio().toFixed(2)}×${gl}${check}`;
     if (text === this.lastText) return;
     this.lastText = text;
     const [fps = '', rest = ''] = text.split('|');

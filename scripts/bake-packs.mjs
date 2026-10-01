@@ -109,7 +109,7 @@ const keep = new Set();
 for (const def of PLAYABLE_SHARDS) {
   for (const tierName of TIERS) {
     if (tierName === 'desktop' && def.load === undefined) continue; // unmigrated shards keep their existing phone-only packs
-    initializeTier(tierName);
+    await initializeTier(tierName);
     const files = chunkFiles(def, def.tiers?.[tierName]?.textures ?? 'img');
     const paths = packOrder(bootFetches(def, files));
     if (paths.length < 2) continue;

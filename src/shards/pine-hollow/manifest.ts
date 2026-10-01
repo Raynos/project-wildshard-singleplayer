@@ -1,3 +1,4 @@
+import { PINE_BUDGET_INPUTS } from './budgets';
 import { FOREST_AUDIO } from './audio/profile';
 import compareRidgeLive from './explore/pine-ridge-live.jpg';
 import compareRidgeTarget from './explore/pine-ridge-target.jpg';
@@ -38,6 +39,7 @@ const EXPLORE = { art: { world: exploreWorld, models: exploreModels, sets: explo
   ] } satisfies NonNullable<ShardManifest['explore']>;
 
 export const PINE_HOLLOW: ShardManifest = {
+  budgets: PINE_BUDGET_INPUTS,
   uses: ['dayCycle', 'weather'],
   horizonStrips: {
     day: '/assets/horizon/pine-hollow-day.webp', night: '/assets/horizon/pine-hollow-night.webp', elMin: -30, elMax: 14, scale: 4,

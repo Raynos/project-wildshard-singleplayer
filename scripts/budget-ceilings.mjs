@@ -14,7 +14,7 @@ const root = resolve(options.root ?? join(import.meta.dirname, '..')), lanes = (
 for (const lane of lanes) {
   const dir = join(root, 'test/parity/baselines', lane);
   if (!existsSync(dir)) throw new Error(`Missing baseline lane ${lane}; pass --lanes=m5 to explicitly seed the available lane`);
-  for (const file of readdirSync(dir).filter((name) => name.endsWith('.json'))) {
+  for (const file of readdirSync(dir).filter((name) => /\.(phone|desktop)\.json$/.test(name))) {
     const path = join(dir, file), record = JSON.parse(readFileSync(path, 'utf8')); records.push(record); provenance.push({ file: `test/parity/baselines/${lane}/${file}`, sha: record.sha, recorded: record.recorded });
   }
 }
@@ -28,12 +28,25 @@ const current = join(root, 'budgets/calibration.json'), calibration = existsSync
 const specs = new Map();
 for (const slug of shardFolders(root)) { const { default: manifest } = await import(join(root, 'src/shards', slug, 'manifest.ts')); specs.set(slug, manifest.budgets ?? {}); }
 const next = { ...ratchet.budgets };
+for (const [slug, inputs] of specs) for (const [tier, poses] of Object.entries(inputs.ceilings ?? {})) for (const [pose, limits] of Object.entries(poses)) for (const [metric, ceiling] of Object.entries(limits)) {
+  const key = `${slug}.${tier}.${pose}.${metric}`; next[key] = Math.min(next[key] ?? ceiling, ceiling);
+}
 for (const [key, ceiling] of Object.entries(measured)) {
   const [slug, tier, , metric] = key.split('.'), inputs = specs.get(slug);
   if ((tier !== 'phone' && tier !== 'desktop') || (metric !== 'draws' && metric !== 'tris' && metric !== 'programs' && metric !== 'gpuMB')) throw new Error(`Invalid budget key ${key}`);
   const target = calibration && inputs ? deriveBudget(inputs, tier, calibration)?.limits[metric] : null;
   if (target !== null && target !== undefined && ceiling <= target) { delete next[key]; continue; }
   next[key] = Math.min(next[key] ?? ceiling, ceiling);
+}
+// Owning manifests import these data files; no renderer or cross-shard imports enter the manifests.
+for (const slug of specs.keys()) {
+  const ceilings = { phone: {}, desktop: {} };
+  for (const [key, ceiling] of Object.entries(next)) {
+    const [id, tier, pose, metric] = key.split('.');
+    if (id !== slug) continue;
+    (ceilings[tier][pose] ??= {})[metric] = ceiling;
+  }
+  writeFileSync(join(root, 'src/shards', slug, 'budgetCeilings.ts'), `import type { LevelSpec } from '#engine';\n\n/** F2 rollout maxima, lowered after calibration; provenance: budgets/ceiling-sources.json. */\nexport const BUDGET_CEILINGS = ${JSON.stringify(ceilings, null, 2)} satisfies NonNullable<LevelSpec['budgets']['ceilings']>;\n`);
 }
 ratchet.budgets = Object.fromEntries(Object.entries(next).sort(([a], [b]) => a.localeCompare(b)));
 writeFileSync(ratchetPath, `${JSON.stringify(ratchet, null, 2)}\n`);

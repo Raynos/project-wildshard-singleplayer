@@ -65,3 +65,18 @@ export function flakedFields(report) {
   for (const row of report.fields ?? []) if (row.verdict === 'flaked') fields.add(row.field);
   return [...fields].map((field) => `${report.boot?.shard}/${report.boot?.tier}/${field}`);
 }
+
+/** Frame-interval projection is informational: paced captures do not prove unpaced GPU time.
+ * @param {{boot?:{shard?:string,tier?:string},poses?:Record<string,{frameP95Ms?:number}>}} report
+ * @param {{k3060:number,source:string,assumption:string}} reference */
+export function desktopProjections(report, reference) {
+  if (report.boot?.tier !== 'desktop') return [];
+  if (!Number.isFinite(reference.k3060) || reference.k3060 <= 0) throw new Error('Invalid desktop projection ratio');
+  return Object.entries(report.poses ?? {}).map(([pose, row]) => {
+    const measured = row.frameP95Ms;
+    const projected3060FrameMs = typeof measured === 'number' && Number.isFinite(measured) && measured > 0 ? measured / reference.k3060 : null;
+    return { shard: report.boot?.shard ?? '', pose, m5FrameMs: measured ?? null, projected3060FrameMs, targetFrameMs: 1000 / 60,
+      verdict: projected3060FrameMs === null ? 'missing' : projected3060FrameMs <= 1000 / 60 ? 'within projection' : 'over projection',
+      source: reference.source, assumption: reference.assumption, formula: 'M5 drawn-frame p95 interval / k3060; informational (includes capture pacing)' };
+  });
+}

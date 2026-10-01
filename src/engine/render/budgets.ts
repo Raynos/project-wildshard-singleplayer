@@ -5,7 +5,10 @@ export interface TierBudgetInputs {
   vertexShare: number; lanes: Readonly<Record<string, number>>;
   linkMs: number;
 }
+export type BudgetCeilings = Partial<Record<'phone' | 'desktop', Readonly<Record<string, Partial<Record<keyof BudgetLimits, number>>>>>>;
 export interface BudgetInputs {
+  /** Authored rollout maxima, copied unchanged from recorded F2 evidence. */
+  ceilings?: BudgetCeilings;
   phone?: TierBudgetInputs; desktop?: TierBudgetInputs;
   load?: { coldPlay4G: number | null; fixedSeconds: number; cpuRatio: number; bytesPerSecond: number };
 }
@@ -17,6 +20,9 @@ export interface CalibrationCosts {
 export interface Calibration {
   schema: 1; measuredAt: string; device: string; source: string;
   phone: { ratio: number; source: string; assumption: string };
+  desktop?: { k3060: number; source: string; assumption: string };
+  rtx3060?: { costs: CalibrationCosts; source: string };
+  tierSelection?: { m5Score: number; source: string };
   combine: 'serial' | 'pipelined'; costs: CalibrationCosts;
 }
 export interface BudgetLimits { draws: number | null; tris: number | null; programs: number | null; gpuMB: number | null }
@@ -33,9 +39,12 @@ function positive(n: number, name: string): number {
 export function deriveBudget(inputs: BudgetInputs, tier: 'phone' | 'desktop', calibration: Calibration): DerivedBudget | null {
   const i = inputs[tier];
   if (!i) return null;
-  // X7 establishes the M5:3060 mapping. Until then desktop uses measured baseline ceilings.
-  if (tier === 'desktop') return null;
-  const ratio = positive(calibration.phone.ratio, 'ratio'), c = calibration.costs;
+  if (tier === 'desktop' && !calibration.desktop && !calibration.rtx3060) return null;
+  const nativeDesktop = tier === 'desktop' ? calibration.rtx3060 : undefined;
+  const ratio = tier === 'phone' ? positive(calibration.phone.ratio, 'ratio') : nativeDesktop ? 1 : 1 / positive(calibration.desktop?.k3060 ?? 0, 'k3060');
+  const c = nativeDesktop?.costs ?? calibration.costs;
+  const source = nativeDesktop?.source ?? (tier === 'desktop' ? calibration.desktop?.source : calibration.source) ?? calibration.source;
+  const assumption = tier === 'desktop' ? nativeDesktop ? 'Measured RTX 3060 calibration' : calibration.desktop?.assumption ?? '' : calibration.phone.assumption;
   const frameMs = 1000 / positive(i.fps, 'fps') / positive(i.variability, 'variability');
   const cpuMs = positive(i.cpuMs, 'cpuMs');
   const systemMs = Object.values(i.systems).reduce((sum, v) => sum + v, 0);
@@ -51,10 +60,10 @@ export function deriveBudget(inputs: BudgetInputs, tier: 'phone' | 'desktop', ca
   const capacity = (budget: number, unit: number): number => Math.floor(budget / positive(unit * ratio, 'entity cost'));
   return {
     limits: { draws: Math.floor((cpuMs - systemMs - i.gcMs) / drawMs), tris: Math.floor(gpuMs * i.vertexShare / triMs), programs: Math.floor(i.linkMs / linkMs), gpuMB: null },
-    frameMs, gpuMs, gpuM5Ms: gpuMs / ratio, systemsMs: { ...i.systems },
+    frameMs, gpuMs, gpuM5Ms: nativeDesktop ? gpuMs * calibration.costs.triangleGpuMs.static / c.triangleGpuMs.static : gpuMs / ratio, systemsMs: { ...i.systems },
     entities: { rigs: capacity(i.systems['animation'] ?? 0, c.rigCpuMs), bodies: capacity(i.systems['physics'] ?? 0, c.bodyCpuMs), agents: capacity(i.systems['ai'] ?? 0, c.agentCpuMs) },
     lanesMs: Object.fromEntries(Object.entries(i.lanes).map(([k, share]) => [k, gpuMs * share])), downloadBytes,
-    formula: { inputs, source: calibration.source, assumption: calibration.phone.assumption,
+    formula: { inputs, source, assumption,
       expressions: { frame: `1000 / ${i.fps} / ${i.variability}`, gpu: calibration.combine === 'serial' ? `${frameMs} - ${cpuMs}` : `${frameMs} (pipelined)`,
         draws: `floor((${cpuMs} - ${systemMs} - ${i.gcMs}) / (${c.drawCpuMs} × ${ratio}))`, tris: `floor(${gpuMs} × ${i.vertexShare} / (${c.triangleGpuMs.static} × ${ratio}))`,
         programs: `floor(${i.linkMs} / (${c.linkMs} × ${ratio}))`, gpuMB: 'GL bytes retain measured baseline ceiling; native footprint is a separate Simulator gate',

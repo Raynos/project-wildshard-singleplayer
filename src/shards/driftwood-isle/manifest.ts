@@ -1,3 +1,4 @@
+import { DRIFTWOOD_BUDGET_INPUTS } from './budgets';
 import { DRIFTWOOD_FAUNA_PLANS } from './creatures/tables';
 import exploreWorld from './explore/world-driftwood-isle.webp';
 import exploreModels from './explore/models-driftwood-isle.webp';
@@ -107,6 +108,7 @@ export const PRACTICE_CRAB = { x: -7, z: -143 };
 export const DRIFTWOOD_ISLE: ShardManifest = {
   audio: { bed: 'island', samples: { loopGains: { island: 0.5 } }, ambience: 'ambience.driftwood', score: 'score.driftwood',
     preload: () => import('./audio/files').then((m) => m.createDriftwoodAudio()) },
+  budgets: DRIFTWOOD_BUDGET_INPUTS,
   uses: ['dayCycle'],
   api: 1,
   kitLook: 'toon',

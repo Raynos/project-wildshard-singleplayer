@@ -34,7 +34,7 @@ const collect = argv.find((a) => a.startsWith('--collect='))?.slice(10);
 if (collect) {
   const imp = (p) => import(pathToFileURL(resolve(ROOT, p)).href);
   const { initializeTier } = await import('../src/engine/core/tier.ts');
-  initializeTier(collect);
+  await initializeTier(collect);
   const { SHARDS } = await imp('src/game/shard/shards.generated.ts');
   const { playable } = await imp('src/game/shard/registry.ts');
   const PLAYABLE_SHARDS = SHARDS.filter(playable);

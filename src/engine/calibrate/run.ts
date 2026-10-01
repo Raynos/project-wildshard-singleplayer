@@ -2,6 +2,7 @@ import { CalibrationGpu, type Timing, type Work } from '../render/calibrationGpu
 import { measureJs } from './js';
 import { median, slope } from './math';
 import { Scope } from '../app/scope';
+import { mountUi } from '../ui/ownership';
 import type { Calibration, CalibrationCosts } from '../render/budgets';
 
 export interface Observation { sweep: string; kind: string; n: number; baseline: Timing; work: Timing }
@@ -35,7 +36,7 @@ async function sweeps(g: CalibrationGpu, scope: Scope, progress: (s: string) => 
 export async function runCalibration(progress: (s: string) => void = () => undefined): Promise<CalibrationRun> {
   if (document.querySelector('canvas')) throw new Error('Calibration requires the empty capture state');
   const g = new CalibrationGpu(), scope = new Scope('calibration');
-  const parent = document.body; scope.capture('nodes', () => { g.renderer.domElement.remove(); }); parent.append(g.renderer.domElement);
+  mountUi(g.renderer.domElement, scope, document.body);
   try {
     const gl = g.renderer.getContext(), dbg = gl.getExtension('WEBGL_debug_renderer_info');
     const renderer: string = dbg ? String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL)) : 'unavailable';

@@ -17,7 +17,7 @@ async function load(opts: { chunk?: string; tier?: 'phone' | 'desktop'; tex?: st
   localStorage.clear();
   if (opts.tex !== undefined) saveStorageFixture('global').setItem('settings', JSON.stringify({ tex: opts.tex }));
   const { initializeTier } = await import('#engine/core/tier');
-  initializeTier();
+  await initializeTier();
   const [{ SHARDS, playable }, sp, gf, { chunkFiles }, { packFor, bootParts }] = await Promise.all([
     import('#game/shard/registry'), import('#engine/boot/shardPrefetch'), import('#engine/boot/gpuFiles'), import('#engine/boot/manifest'), import('#engine/boot/pack'),
   ]);

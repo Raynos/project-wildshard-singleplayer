@@ -1,0 +1,11 @@
+{
+  "score": 1371.8628138494462,
+  "passes": 2744,
+  "seconds": 2.000199999809265,
+  "width": 1280,
+  "height": 720,
+  "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+  "at": "2026-10-01T15:39:46.793Z",
+  "browser": "153.0.8010.12",
+  "source": "X7 synthetic offscreen 1280x720 fill; 32 dependent fragment iterations; eight-pass batches; finish + readPixels fence"
+}

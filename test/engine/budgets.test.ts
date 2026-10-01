@@ -24,6 +24,16 @@ describe('calibrated budget arithmetic', () => {
     expect(deriveBudget(inputs, 'desktop', calibration)).toBeNull();
     expect(() => deriveBudget(inputs, 'phone', { ...calibration, costs: { ...calibration.costs, drawCpuMs: 0 } })).toThrow('positive');
   });
+  it('derives a desktop projection and replaces it with actual GPU costs', () => {
+    if (inputs.phone === undefined) throw new Error('Missing fixture');
+    const desktopInputs = { ...inputs, desktop: { ...inputs.phone, fps: 60, cpuMs: 4.8, gcMs: 0.3, systems: { animation: 0.5, physics: 0.4, ai: 0.4, rest: 0.7 } } };
+    const projected = { ...calibration, desktop: { k3060: 0.5, source: 'fixture ratio', assumption: 'projection fixture' } };
+    const d = deriveBudget(desktopInputs, 'desktop', projected);
+    expect(d?.limits).toEqual({ draws: 312, tris: 2005128, programs: 100, gpuMB: null });
+    expect(d?.gpuM5Ms).toBeCloseTo(4.0102564);
+    expect(d?.formula.assumption).toBe('projection fixture');
+    expect(deriveBudget(desktopInputs, 'desktop', { ...projected, rtx3060: { costs: calibration.costs, source: 'measured fixture' } })?.limits.draws).toBe(625);
+  });
   it('fits a slope while rejecting unresolved or negative signal', () => {
     expect(slope([{ n: 0, ms: 1 }, { n: 100, ms: 5 }, { n: 200, ms: 9 }])).toBe(0.04);
     expect(() => slope([{ n: 0, ms: 2 }, { n: 100, ms: 1 }])).toThrow('unresolved');

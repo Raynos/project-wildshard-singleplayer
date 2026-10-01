@@ -4,12 +4,14 @@ import { spawn, execFileSync } from 'node:child_process';
 import { mkdirSync, existsSync, readFileSync, writeFileSync, readdirSync, rmSync, openSync, closeSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
-import { flakedFields } from './report.mjs';
+import { desktopProjections, flakedFields } from './report.mjs';
 
 const args = process.argv.slice(2);
 const flag = (name, fallback = '') => args.find((arg) => arg.startsWith(`--${name}=`))?.slice(name.length + 3) ?? fallback;
 const plant = flag('plant'), memoryOnly = args.includes('--memory-only'), requested = flag('sha');
 if (args.some((arg) => !/^(--plant=[a-z0-9-]+|--memory-only|--sha=[a-f0-9]{40})$/.test(arg)) || (memoryOnly && !requested) || (!memoryOnly && requested) || (plant && memoryOnly)) throw new Error('usage: nightly.sh [--plant=<id>] [--memory-only --sha=<40-hex>]');
+const desktopReference = JSON.parse(readFileSync(new URL('../../budgets/desktop-reference.json', import.meta.url), 'utf8'));
+const desktopFrames = [];
 const reports = process.env.GPU_PERF_DIR ?? join(homedir(), '.wildshard/gpu-perf');
 const cache = join(homedir(), '.cache/wildshard-gpu-perf'), mirror = join(cache, 'repo.git');
 const node = process.env.GPU_PERF_NODE ?? process.execPath, pnpm = process.env.GPU_PERF_PNPM ?? 'pnpm', gh = process.env.GPU_PERF_GH ?? 'gh';
@@ -131,6 +133,7 @@ try {
       for (const [dir, pattern] of [[join(tree, 'progress'), /-gpu-.*\.json$/], [join(tree, 'progress/scorecard'), /^nightly-.*\.(json|md)$/], [join(reports, `${stamp}-parity`), /\.(json|md)$/]]) {
         if (existsSync(dir)) for (const file of readdirSync(dir).filter((name) => pattern.test(name))) {
           const text = readFileSync(join(dir, file), 'utf8'); artifacts.push({ name: file, text });
+          if (file.endsWith('.desktop.json')) desktopFrames.push(...desktopProjections(JSON.parse(text), desktopReference));
           if (file.endsWith('.json') && file.includes('-gpu-')) { const data = JSON.parse(text); if (data.rows?.some((row) => row.gpu > 1.6) || data.errors?.length > 0) steps.push({ name: `${file} ruler over budget/error`, code: 1, verdict: 'failure' }); }
         }
       }
@@ -173,13 +176,14 @@ if (sha) {
   const verdict = steps.every((row) => row.verdict === 'success') && measurements.every((row) => row.verdict === 'success') && (plant === 'soak-leak' || memoryState === 'success') && soaks.every((row) => row.verdict === 'success') ? 'success' : 'failure';
   const description = `M5 ${verdict} · memory ${memoryState} · soak ${soaks.filter((row) => row.verdict !== 'success').length} red`;
   const name = plant ? `plant-${plant}-${stamp}` : `${memoryOnly ? 'memory-' : ''}${stamp}-${sha.slice(0, 7)}`;
-  const report = { sha, harnessSha, started: new Date(started).toISOString(), verdict, memoryState, memory, measurements, soaks, flakes, artifacts, steps };
+  const report = { sha, harnessSha, started: new Date(started).toISOString(), verdict, memoryState, memory, measurements, desktopFrames, soaks, flakes, artifacts, steps };
   writeFileSync(join(reports, `${name}.json`), JSON.stringify(report, null, 2));
   const lines = [description, '', `SHA ${sha}; harness ${harnessSha}`, '', '| shard | phase | native GB | inspector GB | previous GB | limit GB | verdict | reason |', '|---|---|---:|---:|---:|---:|---|---|'];
   for (const row of memory) lines.push(`| ${row.shard} | ${row.phase} | ${row.nativeGB ?? 'missing'} | ${row.inspectorGB ?? 'missing'} | ${row.previousGB ?? 'first'} | ${row.limitGB} | ${row.verdict} | ${row.reason} |`);
   lines.push('', 'Memory: native ≤ loading 1.8 / play 1.0 / explorer 1.0 decimal GB; native/previous − 1 ≤ 0.10. Pending allows growth only below the absolute cap.', '', '| shard | soak | GPU growth bytes | heap growth bytes | fps first/last | failures |', '|---|---|---:|---:|---|---|');
   for (const row of soaks) lines.push(`| ${row.shard} | ${row.verdict} | ${row.gpuGrowthBytes} | ${row.heapGrowthBytes} | ${row.fpsFirst}/${row.fpsLast} | ${(row.failures ?? []).join(', ')} |`);
   lines.push('', 'Soak: least-squares bytes/second over minutes 5–20 × 900 s; GPU ≤ 8 MiB, heap ≤ minute-5 × 10%; geometry/texture counts ≤ minute-5 × 1.05. FPS is informational.', '', 'GPU ruler budget: M5 P = 1.6 ms per pose.', ...measurements.map((row) => `${row.pose}: ${row.gpuMs} ms / ${row.budgetMs}: ${row.verdict}`), '', ...steps.map((row) => `${row.name}: ${row.verdict} (exit ${row.code})`));
+  lines.push('', 'Desktop: projected RTX 3060 drawn-frame interval (informational; includes capture pacing):', ...desktopFrames.map((row) => `${row.shard}/${row.pose}: M5 ${row.m5FrameMs ?? 'missing'} ms / ${desktopReference.k3060} = ${row.projected3060FrameMs ?? 'missing'} ms vs ${row.targetFrameMs.toFixed(2)} ms · ${row.verdict}`), desktopReference.source, desktopReference.assumption);
   const textArtifacts = artifacts.filter((entry) => { if (entry.name === 'rulers-scorecard') return true; return entry.name.endsWith('.md'); });
   lines.push('', 'Flakes in seven days (≥3 needs lead repair/quarantine):', ...Object.entries(flakes).map(([id, count]) => `${id}: ${count}${count >= 3 ? ' — ACTION' : ''}`), '', ...textArtifacts.map((entry) => `${entry.name}\n\n${entry.text}`));
   writeFileSync(join(reports, `${name}.md`), `${lines.join('\n')}\n`);

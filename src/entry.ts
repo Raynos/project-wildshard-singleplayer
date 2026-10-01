@@ -50,7 +50,7 @@ const titleOnly = rescueBoot || search.size === 0 || (search.size === 1 && searc
 /** resolves once the title or the selected shard's entry has been evaluated */
 export const entered: Promise<unknown> = setting('calibrate') === 'run' ? import('#engine/calibrate/entry').then((m) => m.enterCalibration()) : titleOnly ? retried(() => import('#engine/ui/StartTitle')) : (async () => {
   const { initializeTier } = await retried(() => import('#engine/core/tier'));
-  initializeTier();
+  await initializeTier();
   await retried(() => import('three'));
   await task();
   return retried(() => import('./main'));

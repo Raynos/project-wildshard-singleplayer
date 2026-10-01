@@ -12,7 +12,7 @@ async function load(tier: 'phone' | 'desktop') {
   vi.resetModules();
   vi.stubGlobal('location', new URL(`http://localhost:5173/?tier=${tier}`));
   const { initializeTier } = await import('#engine/core/tier');
-  initializeTier();
+  await initializeTier();
   const [{ SHARDS, playable }, sp, { bootFiles, extraFetches }, { bootFetches }, { packFor }, { versionedUrl }] = await Promise.all([
     import('#game/shard/registry'),
     import('#engine/boot/shardPrefetch'),

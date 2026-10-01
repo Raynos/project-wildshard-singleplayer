@@ -3,6 +3,7 @@ import { app } from '../app/runtime';
 import { frameProbe } from '../core/tier';
 import { saveSetting } from '../ui/Settings';
 import { sendNote } from '../ui/review';
+import { mountUi } from '../ui/ownership';
 import { runCalibration, type CalibrationRun } from './run';
 
 declare const __BUILD_ID__: string;
@@ -12,7 +13,7 @@ export async function enterCalibration(): Promise<void> {
   // No level is loaded, hence no gameplay/render systems can run beside the synthetic scene.
   if (Object.values(app.systemsByPhase()).some((systems) => systems.length > 0)) throw new Error('Calibration capture must have no level systems');
   document.querySelector('#game')?.remove(); document.querySelector('#hud')?.remove(); document.querySelector('.ws-title-shell')?.remove(); document.querySelector('.ws-load')?.remove();
-  const status = document.createElement('pre'); status.textContent = engineString('s_e6539473d9a0'); const parent = document.body; app.engineScope.capture('nodes', () => { status.remove(); }); parent.append(status);
+  const status = document.createElement('pre'); status.textContent = engineString('s_e6539473d9a0'); mountUi(status, app.engineScope, document.body);
   const handle = { status: 'starting', result: null as CalibrationRun | null, error: null as string | null, inbox: 'pending' };
   window.__calibration = handle;
   try {

@@ -33,7 +33,7 @@ async function boot(): Promise<void> {
   const { startPageServices } = await import('../../pageServices');
   startPageServices();
   const { initializeTier } = await import('../core/tier');
-  initializeTier();
+  await initializeTier();
   await import('../../main');
 }
 

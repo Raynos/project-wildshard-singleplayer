@@ -21,7 +21,7 @@ export function auditInventory(rows, exists) {
 const root = resolve(import.meta.dirname, '..');
 const tier = process.argv.find((arg) => arg.startsWith('--collect='))?.slice(10);
 if (tier) {
-  const { initializeTier } = await import('../src/engine/core/tier.ts'); initializeTier(tier);
+  const { initializeTier } = await import('../src/engine/core/tier.ts'); await initializeTier(tier);
   const { SHARDS } = await import('../src/game/shard/shards.generated.ts');
   const { PACKS } = await import('../src/engine/boot/packs.generated.ts');
   const { GPU_FILES: shared } = await import('../src/engine/boot/ktx2.generated.ts');

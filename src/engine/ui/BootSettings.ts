@@ -15,7 +15,7 @@ import { engineString } from '#engine/strings';
  * APPLY & RELOAD loads the page without the URL params that would override the saved picks (`settingsReloadUrl`) nor the
  * ones that skip the title, so the reload lands back on this title screen. Reuses the in-game menu's look (gmenu.css).
  */
-import { AUTO_TIER, TIER, gfxPrefs, saveGfxPrefs } from '../core/tier';
+import { automaticTier, TIER, gfxPrefs, saveGfxPrefs } from '../core/tier';
 
 import { isDev, onDev } from '../core/devMode';
 import { activeLevel } from '../level/selection';
@@ -33,7 +33,7 @@ const el = (cls: string, html = '', tag = 'div'): HTMLElement => { const e = doc
 type BootKey = 'tier' | 'touch';
 interface Row<K extends BootKey> { label: string; experimental?: boolean; options: { v: OptionValue<K>; text: string }[] }
 const LABELS: { [K in BootKey]: Row<K> } = {
-  tier: { label: engineString('s_1b2c08a8733d'), options: [{ v: 'auto', text: engineString('s_2e7e5df64556', [AUTO_TIER]) }, { v: 'phone', text: engineString('s_63dceb8800b2') }, { v: 'desktop', text: engineString('s_9bd88f2485ac') }] },
+  tier: { label: engineString('s_1b2c08a8733d'), options: [{ v: 'auto', text: engineString('s_2e7e5df64556', [automaticTier]) }, { v: 'phone', text: engineString('s_63dceb8800b2') }, { v: 'desktop', text: engineString('s_9bd88f2485ac') }] },
   touch: { label: engineString('s_25a35084fbc3'), options: [{ v: 'auto', text: engineString('s_0286249762f7') }, { v: 'on', text: engineString('s_de9f057a471c') }] },
 };
 const optionLabel = (k: OptionKey): string => (k === 'tier' || k === 'touch' ? LABELS[k].label : k);

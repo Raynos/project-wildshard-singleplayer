@@ -10,10 +10,7 @@
 import { TIER, TIER_CONFIG, TIER_TABLE, buildTier, _buildAs, type Tier } from '../core/tier';
 
 export const TIERS: readonly Tier[] = ['phone', 'desktop'];
-export const CURRENT_TIER: Tier = TIER;
-
-/** the frame budgets (project/archive/2026-09-22-play-perf.md): phone ≤ 150 calls / ≤ 2.0 M tris; desktop ≤ 300 calls */
-export const BUDGET: Record<Tier, { calls: number; tris: number }> = { phone: { calls: 150, tris: 2_000_000 }, desktop: { calls: 300, tris: 4_000_000 } };
+export { TIER as CURRENT_TIER } from '../core/tier';
 
 export function withTier<T>(tier: Tier, fn: () => T): T {
   if (tier === TIER) return fn();

@@ -34,3 +34,6 @@ export class GameClock {
     return delta;
   }
 }
+
+/** Wall-clock measurement for boot diagnostics; never simulation or gameplay state. */
+export function diagnosticNow(): number { return performance.now(); }
