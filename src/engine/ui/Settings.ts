@@ -128,9 +128,7 @@ export const OPTION_VALUES = {
   loadProfile: ['off', 'on'],                          // load-path shader instrumentation (src/engine/boot/perflog.ts) — a reload
   bootPack: ['on', 'off'],                             // the shard's boot files as one pack (src/engine/boot/pack.ts); off = one by one (the KTX2 record run) — a reload
   learnedLut: ['on', 'off'],
-  cragView: ['shaded', 'ao', 'sun', 'wet', 'normal', 'albedo'], // Pine Hollow's crags drawn as one channel (src/shards/pine-hollow/world/crags.ts) — live
   creatures: ['models', 'proc'],                       // Pine Hollow + Nalati: the rigged GLB creatures or the procedural ones (the rig bakes need proc) — a reload
-  pineLife: ['on', 'off'],                             // Pine Hollow's birds, hares, ravens and the skinning beat (src/shards/pine-hollow/life/) — a reload
   pineScore: ['auto', 'night', 'boss', 'boss-2', 'boss-3', 'dawn'], // Pine Hollow's music held on a scene / boss phase / the dawn sting (src/engine/audio/Music.ts) — a reload
   aimRing: ['off', 'on'],                              // the aim-assist bubble drawn on screen (src/engine/player/AimAssist.ts) — live
   balbals: ['auto', 'wake', 'off'],                    // Nalati's balbal warriors: wake at dusk / at load / never — a reload
@@ -155,8 +153,8 @@ const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K> | null; params: re
   showHiddenShards: DEBUG_ONLY,
   titleSummary: DEBUG_ONLY,
   calibrate: DEBUG_ONLY,
-  loadProfile: DEBUG_ONLY, bootPack: DEBUG_ONLY, learnedLut: DEBUG_ONLY, cragView: DEBUG_ONLY,
-  creatures: DEBUG_ONLY, pineLife: DEBUG_ONLY, pineScore: DEBUG_ONLY,
+  loadProfile: DEBUG_ONLY, bootPack: DEBUG_ONLY, learnedLut: DEBUG_ONLY,
+  creatures: DEBUG_ONLY, pineScore: DEBUG_ONLY,
   aimRing: DEBUG_ONLY, balbals: DEBUG_ONLY, ghosts: DEBUG_ONLY, clockSpeed: DEBUG_ONLY,
 };
 const option = <K extends OptionKey>(k: K): Choice<OptionValue<K>> => {
@@ -173,8 +171,8 @@ const options: { [K in OptionKey]: Choice<OptionValue<K>> } = {
   showHiddenShards: option('showHiddenShards'),
   titleSummary: option('titleSummary'),
   calibrate: option('calibrate'),
-  loadProfile: option('loadProfile'), bootPack: option('bootPack'), learnedLut: option('learnedLut'), cragView: option('cragView'),
-  creatures: option('creatures'), pineLife: option('pineLife'), pineScore: option('pineScore'),
+  loadProfile: option('loadProfile'), bootPack: option('bootPack'), learnedLut: option('learnedLut'),
+  creatures: option('creatures'), pineScore: option('pineScore'),
   aimRing: option('aimRing'), balbals: option('balbals'), ghosts: option('ghosts'), clockSpeed: option('clockSpeed'),
 };
 const OPTION_KEYS = Object.keys(OPTION_VALUES) as OptionKey[];

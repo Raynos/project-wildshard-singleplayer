@@ -55,7 +55,7 @@ import { SkinKnife } from '../models/skinningKnife';
 import { loadBirdModels } from './birdModels';
 import { KIND, WildlifeMesh, newPose, type WildKind, type WildPose } from '../models/wildlife';
 import { BEAT, RAVEN_CARCASS, beatEnvelope, carcassMayGo, nearestUnvisited, ravenCount, ravenDelay, type PlaceSpot, type RavenVisit } from './lifeMath';
-import { setting } from '#engine/ui/Settings';
+import { pineOption } from '../debug/options';
 
 export interface PineLifeHost {
   ctx: ShardContext;
@@ -123,7 +123,7 @@ const wrap = (a: number): number => Math.atan2(Math.sin(a), Math.cos(a));
 const smooth = (x: number): number => { const c = Math.min(1, Math.max(0, x)); return c * c * (3 - 2 * c); };
 
 export function installPineLife(h: PineLifeHost): PineLife | null {
-  if (setting('pineLife') === 'off') return null; // Debug ▸ Creatures & NPCs ▸ Pine Hollow life (E162)
+  if (pineOption('pineLife') === 'off') return null; // Debug ▸ Creatures & NPCs ▸ Pine Hollow life (E162)
   const { game, sky, player, animals } = h;
   const rng = new Rng(0x71fe);
   const wild = new WildlifeMesh(sky, CAPACITY);

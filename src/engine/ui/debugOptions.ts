@@ -181,7 +181,6 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
 
   // ── Creatures & NPCs ──
   opt('creatures', 'creatures', engineString('s_9915bdfb4d7c'), [['models', engineString('s_d17d2d78d76e')], ['proc', engineString('s_2e3e91ffbdca')]], { reload: true, when: (c) => pineHollow(c) || nalati(c), ask: 'E136', reviewBy: '2026-12-30', note: engineString('s_193b70a278ba') }),
-  opt('pineLife', 'creatures', engineString('s_f09a14b96ae0'), ON_OFF, { reload: true, when: pineHollow, ask: 'E162', reviewBy: '2026-12-30', note: engineString('s_0348fd1901cf') }),
   opt('balbals', 'creatures', engineString('s_fea220584920'), [['auto', engineString('s_a89a84dba21d')], ['wake', engineString('s_b14d667b45ef')], ['off', engineString('s_6300ef800bb8')]], { reload: true, when: nalati, ask: 'E162', reviewBy: '2026-12-30', note: engineString('s_79bd647c23ff') }),
   opt('ghosts', 'creatures', engineString('s_029fe29cf9f9'), [['auto', engineString('s_6c953cf83a66')], ['line', engineString('s_4a06cd2f854d')], ['off', engineString('s_6300ef800bb8')]], { reload: true, when: nalati, ask: 'E162', reviewBy: '2026-12-30', note: engineString('s_138d752b7a25') }),
 
@@ -207,7 +206,6 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
     const rows = window.__wildshard.budgets(['current']), current = rows['current'];
     say('READ BUDGETS', current ? `${JSON.stringify(current.derived ?? current.ceiling)} · ${current.formula.assumption}` : 'F2 ceilings and stable M5 calibration are not published yet.');
   }, { ask: 'E357', reviewBy: '2026-12-30', note: engineString('s_2ed7f7dcebc2') }),
-  opt('cragView', 'tools', engineString('s_fb493faddf59'), [['shaded', engineString('s_bb1cf5da5aa8')], ['ao', engineString('s_f78687474218')], ['sun', engineString('s_db18f17fe532')], ['wet', engineString('s_5690f06c3e93')], ['normal', engineString('s_a7248eeb45eb')], ['albedo', engineString('s_74ba87de67ad')]], { when: pineHollow, ask: 'E162', reviewBy: '2026-12-30', note: engineString('s_ce1e2c0b6512') }),
 ];
 
 /** Shards in memory's readout (E155 / E159): the resident shards, their texture estimate, the JS heap, the device's

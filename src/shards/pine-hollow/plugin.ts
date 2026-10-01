@@ -1,3 +1,5 @@
+import { installPineDebug } from './debug/options';
+import { setCragView } from './world/crags';
 import { PINE_SPAWNS } from './combat/spawns';
 import { PINE_SPECIES } from './species/rows';
 import { pineLooks } from './species/looks';
@@ -48,6 +50,7 @@ export class PineHollow extends ShardPlugin {
   private particles: Particles | null = null;
 
   override async world(ctx: ShardContext): Promise<void> {
+    installPineDebug(ctx, setCragView);
     const rt = runtime(ctx), world = rt.world, step = rt.step;
     if (world === null || step === null) throw new Error('Pine world builder needs staged services');
     const { game, sky, forest, player, registry } = world;

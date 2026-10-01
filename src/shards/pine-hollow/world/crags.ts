@@ -37,7 +37,7 @@ import {
 import type { ColliderDesc, WorldRegistry } from '#engine/world/registry';
 import type { TerrainCut } from '#engine/physics/terrain';
 import { attachFogUniforms } from '#engine/world/Atmosphere';
-import { setting, onSettingChange } from '#engine/ui/Settings';
+import { CRAG_VIEWS, pineOption } from '../debug/options';
 import { loadPBR, type PBRSet } from '#engine/core/assets';
 import { TIER } from '#engine/core/tier';
 import { Rng } from '#engine/core/rng';
@@ -412,9 +412,8 @@ const ROCK_TILE = 4.6, GRIT_TILE = 3.4;
 const CAVE_FILL = { value: 1.0 };
 
 /** pause ▸ Settings ▸ Debug `cragView`: the crags drawn as one channel instead of the shade (0 = shaded), live */
-const CRAG_VIEWS = ['shaded', 'ao', 'sun', 'wet', 'normal', 'albedo'] as const;
-const CRAG_VIEW = { value: Math.max(0, CRAG_VIEWS.indexOf(setting('cragView'))) };
-onSettingChange('cragView', (v) => { CRAG_VIEW.value = Math.max(0, CRAG_VIEWS.indexOf(v)); });
+const CRAG_VIEW = { value: Math.max(0, CRAG_VIEWS.indexOf(pineOption('cragView'))) };
+export function setCragView(value: string): void { const views: readonly string[] = CRAG_VIEWS; CRAG_VIEW.value = Math.max(0, views.indexOf(value)); }
 
 /**
  * Triplanar granite in world space for the BatchedMesh (and the cave inside it): albedo / normal / ARM from `mossy_rock`
