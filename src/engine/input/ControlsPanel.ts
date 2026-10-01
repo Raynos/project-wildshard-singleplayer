@@ -6,6 +6,9 @@ import type { Action } from './InputService';
 /** Keyboard/mouse rebinding lives in Settings; a conflict offers an explicit swap. */
 export function buildControlsPanel(parent: Scope): HTMLDivElement & { refresh: () => void } {
   const scope = parent.child('controls'), input = app.input;
+  // Primary fine-pointer mode includes laptops with touchscreens, but excludes touch-only
+  // devices even when their browser requests a desktop site. Viewport size is not a keyboard.
+  const desktop = window.matchMedia('(pointer: fine)');
   const card = document.createElement('div'); card.className = 'ws-gmenu-card ws-controls';
   const title = document.createElement('div'); title.className = 'ws-gmenu-cardtitle'; title.textContent = engineString('s_f4fce9bc331d');
   const note = document.createElement('div'); note.className = 'ws-gmenu-note'; note.textContent = engineString('s_7738e78a7360');
@@ -27,6 +30,8 @@ export function buildControlsPanel(parent: Scope): HTMLDivElement & { refresh: (
     }, capture);
   };
   function refresh(): void {
+    card.hidden = !desktop.matches; card.inert = card.hidden;
+    if (card.hidden) { cancel(); return; }
     rows.dispose(); rows = scope.child('rows'); list.replaceChildren();
     for (const entry of input.bindings.entries()) {
       if (!['onFoot', 'swim', 'board'].includes(entry.context) && !entry.context.startsWith('weapon.')) continue;
@@ -36,6 +41,7 @@ export function buildControlsPanel(parent: Scope): HTMLDivElement & { refresh: (
     }
   };
   card.append(title, note, list, status, conflict, button(engineString('s_dd7d08f05555'), () => { cancel(); input.bindings.reset(); refresh(); }, scope));
+  scope.listen(desktop, 'change', refresh);
   scope.onDispose(() => { capture?.dispose(); card.remove(); }); refresh();
   return Object.assign(card, { refresh });
 }

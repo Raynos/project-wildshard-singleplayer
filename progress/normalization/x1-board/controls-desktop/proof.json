@@ -1,0 +1,63 @@
+{
+  "source": "cf5c56434cae280120e7aff4bf0ecdf135e8d4da",
+  "browser": "153.0.8010.36",
+  "desktop": [
+    {
+      "width": 1440,
+      "height": 900,
+      "fine": true,
+      "default": {
+        "forward": "W",
+        "back": "S"
+      },
+      "swapped": {
+        "forward": "S",
+        "back": "W"
+      }
+    },
+    {
+      "width": 1280,
+      "height": 800,
+      "fine": true,
+      "default": {
+        "forward": "W",
+        "back": "S"
+      },
+      "swapped": {
+        "forward": "S",
+        "back": "W"
+      }
+    }
+  ],
+  "touch": {
+    "width": 390,
+    "height": 844,
+    "fine": false,
+    "coarse": true,
+    "touchPoints": 1,
+    "hidden": true,
+    "inert": true,
+    "display": "none",
+    "rect": {
+      "x": 0,
+      "y": 0,
+      "width": 0,
+      "height": 0,
+      "top": 0,
+      "right": 0,
+      "bottom": 0,
+      "left": 0
+    },
+    "visibleTitles": [
+      "Settings",
+      "SAVE"
+    ]
+  },
+  "boots": {
+    "driftwood-isle": [],
+    "pine-hollow": [],
+    "nalati-grasslands": [],
+    "nine-dragon-stack": [],
+    "_template": []
+  }
+}
