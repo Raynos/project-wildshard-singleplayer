@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# commit-msg: the E357 lock check (GAME-NORMALIZATION F0). Refuses a commit outside the lock unless it carries
+# the trailer `E357-Lead: yes` or stays inside a reopened shard's allowlist (.github/lock.json).
+exec node scripts/check-lock.mjs "$1"

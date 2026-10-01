@@ -1,6 +1,6 @@
 # Engine fit v2: an engine, a kit and shard plugins (E357 research, 2026-09-30)
 
-Research for [E357](../../tasks/asks/E357.md), in the spirit of [ENGINE-FIT](../../plans/ENGINE-FIT.md) (verdict
+Research for [E357](../../tasks/asks/E357.md), in the spirit of [ENGINE-FIT](../../../project/archive/2026-09-30-engine-fit.md) (verdict
 2026-09-28, survey [engines.md](../engine-fit/engines.md) 2026-09-23). The question changed. It is no longer "should we
 switch engine". It is: **what should the Wildshard engine borrow, adopt or own now that it is rebuilt as `src/engine/` +
 `src/kit/` + `src/shards/<slug>/`, with lazy shards (E357 decisions 1–9)?** Ideas only. Jake has approved none of it.

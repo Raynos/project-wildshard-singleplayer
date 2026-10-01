@@ -5,7 +5,7 @@ review, nothing built. The player-facing side (HUD, audio, quests, the remaster'
 `review-experience.md` next to this file.
 
 **How it was checked.** The code on the merged branch, main's plans and asks (`project/archive/2026-09-23-physics.md`,
-`…-explore-world.md`, `…-preload-offline.md`, `…-lock-on.md`, `docs/plans/ENGINE-FIT.md`, `PHYSICS-POLISH.md`,
+`…-explore-world.md`, `…-preload-offline.md`, `…-lock-on.md`, `project/archive/2026-09-30-engine-fit.md`, `PHYSICS-POLISH.md`,
 `EXPLORE-V2.md`, E54–E98), and nine muted headless probes against the dev server on :5188 (Nalati, desktop tier,
 `?skipintro&nolock&mute=1`; every browser closed). Evidence images are in `img/`:
 

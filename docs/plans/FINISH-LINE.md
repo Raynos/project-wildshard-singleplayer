@@ -1,6 +1,6 @@
 # Plan: finish line (E108): from a pile of pieces to a finished-feeling game
 
-**State:** `draft` 2026-09-28 — Jake never approved the plan or its freeze (F0 was never declared; F0.3 was reversed: Pine Hollow landed first, `18b3d6be`). Its rows went ahead as their own asks instead: S2 (E133), S4 (E136, E162, E184), P1 (E140), D3's Wendell + sword (E129), D5 (E130), D6 (E132), M3 (E154's one HUD) are done; P2 is moot. The rest moved to other plans, where they wait on Jake: S3 = GAME-NORMALIZATION (draft), D1 / D2 / D4 / D7 / P3 = DRIFTWOOD-TOP10 1–5 + 9b (blocked), Nalati's N rows = NALATI-FINISH. Not built and not tracked anywhere else: S1, S5, S6, S7, M1, M2. Tags on the rows below.
+**State:** `blocked` 2026-09-30 — E357: S1 (the gate), S3, S5, S6, S7 moved to [GAME-NORMALIZATION](GAME-NORMALIZATION.md) (F2 / F3 / Z4, the plan itself, X1, F5, S1.6 / X7); its other rows wait for the E357 lock to end.
 
 ## Read this first
 

@@ -12,6 +12,9 @@
 set -uo pipefail
 [ "${SKIP_SUBAGENT_CAP:-}" = "1" ] && exit 0
 input="$(cat)"
+# E357 decision 105: the cap is 20 while the GAME-NORMALIZATION lock holds (.github/lock.json "locked": true)
+root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+if [ -z "${SUBAGENT_CAP:-}" ] && grep -q '"locked": true' "$root/.github/lock.json" 2>/dev/null; then SUBAGENT_CAP=20; fi
 HOOK_INPUT="$input" SUBAGENT_CAP_STATE="${SUBAGENT_CAP_STATE:-}" CAP="${SUBAGENT_CAP:-3}" /usr/bin/python3 - <<'PY'
 import json, os, sys, time, glob, fcntl
 

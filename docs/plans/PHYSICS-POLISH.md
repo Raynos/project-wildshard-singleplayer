@@ -1,6 +1,6 @@
 # Physics polish — what is left after the physics merge
 
-**State:** `draft` 2026-09-28 — loose ends after PHYSICS P0–P9b (archived `project/archive/2026-09-23-physics.md`, merged `558d234`, live `558d234-mueov4v4`). Nothing here is approved (Jake approved none) and no row has been built since (`src/physics/bridge.ts` and `player.colliders` still exist); it waits on Jake's pick of rows. The required follow-ups are asks, not rows: E72 (Nalati physics) is done, built inside NALATI-MERGE (d034f03, 92ab497, 868d599); E73 (the iPhone reading) is still open.
+**State:** `blocked` 2026-09-30 — E357: F3 moved to [GAME-NORMALIZATION](GAME-NORMALIZATION.md) F11; F7 goes with `src/dev` (GAME-NORMALIZATION F7); F1, F2, F4, F5, F6 wait for the E357 lock.
 
 ## Where physics stands
 

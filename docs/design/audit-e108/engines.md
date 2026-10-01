@@ -1,6 +1,6 @@
 # Free JS game engines — and how to get Wildshard to feel finished (E108)
 
-*Research 2026-09-24; versions from the npm registry that day. Updates the E45 audit (`docs/plans/ENGINE-FIT.md`, 2026-09-23).*
+*Research 2026-09-24; versions from the npm registry that day. Updates the E45 audit (`project/archive/2026-09-30-engine-fit.md`, 2026-09-23).*
 
 ## (a) The answer
 

@@ -1,6 +1,6 @@
 # Plan: Wildshard on the App Store and Google Play
 
-**State:** `blocked` 2026-09-28 — shells, native saves/lifecycle and the signed OTA channel are built (E23); simulator + emulator E2E pass; CI still builds the native target on every push. Waits on the user for the stores (E24, needs you: Apple + Play accounts; `VERCEL_UPDATES_TOKEN` is still not a repo secret). Open for an agent meanwhile, unclaimed since 2026-09-22 (E29): store listing kit, privacy / support pages, upgrade + OTA + context-loss drills. (The E257 / E261 Simulator memory drills use the iOS shell but are not rows here.)
+**State:** `blocked` 2026-09-30 — waits for the E357 lock ([GAME-NORMALIZATION](GAME-NORMALIZATION.md)) until the plan is archived; before it, it waited on Jake for the stores (E24).
 
 ## Where this comes from
 

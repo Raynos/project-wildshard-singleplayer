@@ -1,6 +1,6 @@
 # Explore World V2 — what is left after V1
 
-**State:** `draft` 2026-09-28 — V1 dropped (E68, Jake: "close out"). V7 built outside this plan (Nalati's Explore, NALATI-MERGE P1 `0bfc5bf5`). V6's COMPARE half is being done by E241 / E242 (static mockup comparisons for all four worlds, `240107cc`, Codex, in flight); V3's dark pond by PH-C9 `f6f3be8e`. Not built, not approved: V2 pine LOD tiers, V3's re-shoot on day / night, V4 selection outline, V5 specimen framing, V6's Pine Hollow hub art. Waits on Jake's pick.
+**State:** `blocked` 2026-09-30 — waits for the E357 lock ([GAME-NORMALIZATION](GAME-NORMALIZATION.md)) until the plan is archived.
 
 ## Where V1 stands
 

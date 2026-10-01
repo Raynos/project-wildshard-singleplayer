@@ -1,5 +1,13 @@
 # AGENTS.md
 
+## The E357 lock (Jake, 2026-09-30)
+
+- **No other agent edits the repo while [GAME-NORMALIZATION](docs/plans/GAME-NORMALIZATION.md) is `in progress`.** Only its lead session (and the subagents it spawns) commits; those commits carry the trailer `E357-Lead: yes`. If you are not the E357 lead, stop and ask Jake.
+- The engine (`src/engine/`), game (`src/game/`) and kit (`src/kit/`) stay locked until the plan is archived.
+- `src/shards/<slug>/` reopens to content agents at that shard's milestone: M1 Nine Dragon, M2 Pine Hollow, M3 Nalati, M4 Driftwood. The reopened slugs are in `.github/lock.json`; the `commit-msg` hook (`scripts/check-lock.mjs`) refuses anything outside a reopened shard's allowlist.
+- Production is pinned (`.github/deploy-pin.json`, row F3.1) and moves only at a milestone.
+- Bug fixes land on main and ship with the next milestone (decision 53).
+
 ## The user's asks
 
 - Every user ask → **its own file** before you start: `scripts/ask-new.sh "<the user's words>"`
@@ -84,6 +92,10 @@ Jake plays the game as an iOS home-screen PWA. It has no address bar, so a `?foo
     Combat & weapons · Creatures & NPCs · Performance · Loading & memory · Developer tools; lighting, shadows, post and
     water are Look. A new group is for a new domain with several rows, not for one toggle.
   - When Jake picks a winner, delete the row, the option and the losing code in one commit (E136 / E162 style).
+  - **Under the E357 lock** (GAME-NORMALIZATION): a new toggle's owner adds it through `ctx.debugRow` (plan spec 01 §7)
+    once that owner is a shard plugin, else through the registry above. During the lock a new toggle is added only for
+    an E357 row or a Jake ask: by the lead, or by a content agent through `ctx.debugRow` inside its reopened shard
+    folder.
 - **The params the game may read are a fixed allowlist**, `lint/url-params.json`. `harness` is what the test, capture
   and bench scripts pass to drive the game headless (tier, touch, chunk, spawn, skipintro, mute, …). Adding to it needs
   Jake's explicit OK. `legacy` (the old switches, E162) is empty: never add to it.
@@ -389,9 +401,13 @@ game.css / ride.css.
   `VERCEL_BUILD_TOKEN` is the team-scoped Actions secret used for `vercel pull`,
   `vercel build` and `vercel deploy`; the old project-scoped token cannot run the
   CLI account lookup. No credentials belong in Git.
-- After every push, watch that push's CI run. After the next hourly or manual deployment,
-  confirm `https://wildshard-singleplayer.vercel.app/version.json` reports the shipped
-  short SHA and record the build ID in the ask file. A green push means verified in GitHub,
-  not yet live. If the game needs an immediate release, run `gh workflow run deploy` and watch it.
-- Do not run `vercel deploy` by hand while CI is healthy. Keep commits and pushes small;
-  the hourly job releases the newest green `main` together.
+- **Under the E357 lock, production is pinned** (from GAME-NORMALIZATION F3.1). Production and the OTA channel serve
+  the SHA in `.github/deploy-pin.json` (`M0`, then `M1` … `Mn`), not main's head. The pin moves only with
+  `node scripts/deploy-pin.mjs set <sha> --milestone M<n> --go "<where Jake OKed>"` at a milestone, or
+  `node scripts/deploy-pin.mjs rollback <sha>` (plan spec 03 §13). After a push, verify CI and the `gpu-gate` status
+  only: `version.json` stays on the pinned build, and `gh workflow run deploy` ships the pin, never main's head.
+- Without the lock (before F3.1, and after the plan is archived): after every push, watch that push's CI run. After
+  the next hourly or manual deployment, confirm `https://wildshard-singleplayer.vercel.app/version.json` reports the
+  shipped short SHA and record the build ID in the ask file. A green push means verified in GitHub, not yet live. If
+  the game needs an immediate release, run `gh workflow run deploy` and watch it.
+- Do not run `vercel deploy` by hand while CI is healthy. Keep commits and pushes small.

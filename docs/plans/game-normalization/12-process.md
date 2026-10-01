@@ -1,5 +1,25 @@
 # GAME-NORMALIZATION v2 · 12 — How the work runs
 
+## 0. The autonomous build (decisions 101–108, Jake, 2026-09-30) — wins over §3–§6 where they differ
+
+- **The lead builds the whole plan without stopping** (101, 102). At a milestone Jake gets the summary, the boards and
+  a playable build, but nothing waits for his reply. Each board item takes its recommended option and is logged in
+  [13](13-lead-resolutions.md); the lead runs `--accept` itself. A rejection Jake sends later becomes a fix row.
+- **The pin moves by itself** at each milestone (103) once `gpu-gate` is green, the `gpu-perf/memory` run passes and
+  nothing is pending; the lead tells Jake.
+- **Parity runs in batches, by the lead only** (104): per row step or per subagent wave, and the full run before a push;
+  never per commit. Subagents only build (TypeScript) and run checks under ~5 s (`tsc`, `oxlint`, one focused vitest
+  file). A red batch is bisected and the bad commit reverted. Parallel test runs are scripts in parallel Chromiums from
+  the lead, not subagents.
+- **Lanes** (105, 107): no 3-subagent cap (the hook allows 20 while `.github/lock.json` is locked), but each subagent is
+  short (one job, small context, few turns), never waits on anything, is never recycled or forked. Codex CLI
+  (GPT 6.1 Sol) agents in herdr panes take suitable jobs. The browser lane is 8 under the lock. The lead stops, commits
+  and pushes when 10 % of the weekly quota is left.
+- **Z3 builds two shards** (106) by two fresh agents in parallel: shard 5 desert + whip (+ a flying creature, a quest
+  step), shard 6 the agent's choice.
+- **A gap the plan doesn't cover** (108): the lead picks the option most faithful to E127 / E357, logs it in 13 with its
+  revert path, and keeps going.
+
 ## 1. Definition of ready: the council (decisions 81–83, 92–93)
 
 The plan stays `draft` until it passes the council. Jake: *"the plan is not done and ready for execution until

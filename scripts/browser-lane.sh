@@ -29,6 +29,9 @@
 
 set -uo pipefail
 
+# E357 decision 105: 8 lanes while the GAME-NORMALIZATION lock holds (.github/lock.json "locked": true), else 4
+LOCK_JSON="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/.github/lock.json"
+if [ -z "${BROWSER_LANES:-}" ] && grep -q '"locked": true' "$LOCK_JSON" 2>/dev/null; then BROWSER_LANES=8; fi
 LANES="${BROWSER_LANES:-4}"
 DIR="$HOME/.browser-lane"
 mkdir -p "$DIR"

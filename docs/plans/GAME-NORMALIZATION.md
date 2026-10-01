@@ -1,6 +1,6 @@
 # Plan: game normalization v2 (E127 → E357). The Wildshard engine: engine · game · kit · shard plugins
 
-**State:** `draft` 2026-09-30 — **ready for Jake's go on F0.** Rewritten from scratch by E357: an audit, 8 research and code audits, and Jake's decisions 1–100 (with the revisions 12′, 28′, 55′, 90′). Every spec in [game-normalization/](game-normalization/) is written (00–13). **The council** (12 §1; decisions 81–83, 92–93, 97, 100) ran 4 rounds (accepted must + should 71 → ~40 → ~17 → ~18, all fixed) and the decision-100 check pass on the round-4 fixes (10 found, all fixed: 13 "Round 4 check pass"). The battery has 29 scenarios. Nothing is built. The lock holds: engine / game / kit until the end, and each shard's folder reopens at its milestone.
+**State:** `in progress` 2026-09-30 — **F0 (the lock) landing; next F3.1 (the deploy pin), then F1 → F2.** Jake's go (decision 101): the lead (session wildshard-9) builds the whole plan autonomously with no milestone stops (102), the pin moving by itself at each milestone (103), parity in batches by the lead only (104), many short subagents + Codex panes (105, 107), and two new shards at Z3 (106: desert + whip, and one of the agent's choice). Milestones 0/4; lines deleted 0.
 
 ## Specs (the executable detail) and the definition of ready
 

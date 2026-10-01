@@ -1,6 +1,6 @@
 # Animation and rigging remaster — four shards
 
-**State:** `draft` 2026-09-30 — E335 catalogue audited; broad implementation awaits Jake’s picks. E336’s separately authorized dummy pilot is verified and live in `d1cdcee-munun0hj` for visual review.
+**State:** `blocked` 2026-09-30 — E357: its engine layer moved to [GAME-NORMALIZATION](GAME-NORMALIZATION.md) X4; A3–A7 wait for X4's rig contract (E336's dummy pilot stays live in `d1cdcee-munun0hj`).
 
 ## Scope and evidence
 

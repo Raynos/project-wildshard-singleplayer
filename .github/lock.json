@@ -1,0 +1,5 @@
+{
+  "$doc": "The E357 lock (GAME-NORMALIZATION F0, plan spec 02 F0 step 5): read by scripts/check-lock.mjs (the commit-msg hook). reopened = slug -> its manifest assetGlobs; the lead commits this file alone at a milestone",
+  "locked": true,
+  "reopened": {}
+}

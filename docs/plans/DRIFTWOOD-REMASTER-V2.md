@@ -1,6 +1,6 @@
 # Driftwood Isle — remaster v2 (after v0.2)
 
-**State:** `in progress` 2026-09-28 — unowned: no row has moved since 2026-09-23, and the solo V-B1 session (the user's pick: the Blender island, island-wide) never started; the Blender area is still the spawn cove to the hut plateau (`src/world/blenderArea.ts`). Done: V-U1 (every Look Lab pick locked in), V-X1's half (Driftwood's loading nouns, `cfe423f2`), V-U2's render-scale pick (2× on the phone: E70 `a0ab231`, kept by E142). Dropped: V-G1 / V-G2 (E184, WebGL only). Open, nobody on them: V-B1 first, then V-B3, V-L1, V-L2, V-M1–V-M3, V-P1, V-X1's DOWNLOAD half; the user's: V-U3 (the captain's stance), V-B2 (after V-B1). Driftwood's feel work runs in project/archive/2026-09-30-driftwood-top10.md.
+**State:** `blocked` 2026-09-30 — waits for the E357 lock ([GAME-NORMALIZATION](GAME-NORMALIZATION.md)) until M4.
 
 ## The v0.2 cut — done 2026-09-23 (tag v0.2)
 

@@ -157,6 +157,14 @@ The numbers are E357's. A revision sits right after the decision it replaces.
 | 98 | No physical-iPhone readings; the Simulator nightly + budgets are the memory gate; the risk is stated | 13 R3-11′; 02 F12; 03 §14; 12 §8; 05–08 §9 | covered |
 | 99 | No phone calibration: phone budgets = the M5 calibration × the measured phone : M5 ratio (E283) | 05 S1.6; budget-design; 13 R3-F4 | covered |
 | 100 | One check pass on the round-4 fixes, then `ready` | 12 §1; reviews/round-5-check.md; index State line | covered |
+| 101 | The go; this session is the lead and builds the whole plan autonomously | index State line; 12 §0 | covered |
+| 102 | Never stop at milestones; board items take the recommended option, logged; a rejection becomes a fix row | 12 §0 (overrides 12 §3 step 6, §6) | covered |
+| 103 | The pin moves by itself at each milestone (gate green, memory run green, nothing pending) | 12 §0 (overrides 12 §3 step 4's wait for Jake) | covered |
+| 104 | Parity in batches by the lead only; subagents run checks under ~5 s | 12 §0 (overrides 12 §5 step 3) | covered |
+| 105 | Subagent cap lifted (short, single-job); browser lane 8 under the lock | 12 §0; `.claude/hooks/guard-subagents.sh`; `scripts/browser-lane.sh` | covered |
+| 106 | Z3 builds two shards in parallel: desert + whip, and one of the agent's choice | 12 §0; 11 Z3 | covered |
+| 107 | Build until 10 % of the weekly quota is left; delegate to Codex panes over herdr | 12 §0 | covered |
+| 108 | Gaps: pick, log in 13, keep going | 12 §0; 13 | covered |
 
 ## 3. The audit (`docs/audits/game-normalization-2026-09-30.md`) and the bugs found later
 
