@@ -60,23 +60,31 @@ sections are updated for the new paths (`src/engine/physics/`,
 ## Z3 — Shard 5, built by a fresh agent (decisions 51, 73)
 
 **Protocol**
+0. **Before the agent starts, the lead** (R2-12) files the run's ask (`scripts/ask-new.sh`, giving `<id>`), picks the
+   new shard's slug (a folder id; the shard's display `name` comes from Jake's pick in step 2), and commits the slug
+   into `.github/lock.json` `reopened` with its asset globs, in its own commit carrying the lead's `E357-Lead: yes`
+   trailer. That is the only `.github` edit Z3 needs, and the agent never makes it.
 1. **A fresh general-purpose subagent** (clean room: never saw this plan's conversation) gets a brief with only:
    - "build a small real 5th shard";
+   - its slug `<new-slug>` and its ask file `docs/tasks/asks/<id>.md`;
    - `docs/SHARDS.md`;
    - the template;
    - `docs/ENGINE.md`;
    - the AGENTS.md rules.
-   The E352 caps apply. It works only inside the **reopened-shard allowlist** for its new slug (R1-09, R1-11):
-   `src/shards/<new-slug>/**`, `test/shards/<new-slug>/**`, `art/<new-slug>/**`, `public/assets/<new-slug>/**`,
-   `scripts/blender/<new-slug>/**` and `docs/tasks/asks/**`. The `commit-msg` lock check refuses any other path.
+   The E352 caps apply. **It does not carry the `E357-Lead: yes` trailer** (12 §4 item 10 excepts it; R2-12), so the
+   `commit-msg` lock check holds every one of its commits to the reopened-shard allowlist for `<new-slug>`: the one
+   definition in 02 F0 step 5 (R1-09, R2-19), referenced here and not copied. It covers the shard's code, tests,
+   baselines, art, asset folders and bakes, its Blender scripts with their line-scoped `scripts/blender/targets.json`
+   rows, and `docs/tasks/asks/**`. The check refuses any other path.
    - It commits no generated file: `shards.generated.ts` is built at build and test time.
    - Its gate job and baselines appear by themselves: the matrix is derived from the registry, and a shard with no
      baselines gets a bootstrap record on its first gate run.
    - **"Zero engine edits" means no change under `src/engine`, `src/game`, `src/kit`, `lint`, `.github` or `scripts`**
-     (except its own `scripts/blender/<new-slug>/`).
+     (except what 02 F0's allowlist gives the slug: its own `scripts/blender/<new-slug>/` and its lines of
+     `scripts/blender/targets.json`).
 2. **Pick.** The agent first proposes **3 small shard ideas as portrait mockups**: biome, look, custom weapon,
    creature. It uses `scripts/mockup-local.sh`, or codex `image_gen` for the finals, and saves them to
-   `art/shard-5/round-1-proposals/`. Jake picks one through AskUserQuestion (73).
+   `art/<new-slug>/round-1-proposals/` (inside its allowlist; R2-12). Jake picks one through AskUserQuestion (73).
 3. **Build.** The agent builds the pick:
    - its own look (`LookStrategy`);
    - at least one custom weapon (rung 2 or 3 of the ladder);
@@ -84,10 +92,11 @@ sections are updated for the new paths (`src/engine/physics/`,
    - one quest step;
    - budgets, strings, a README.
    It ships as `status: 'experimental'`.
-4. **Engine edits.** Every time the agent needs something outside its folder, it **stops and files an "API gap"**
-   (appended to `docs/plans/game-normalization/reviews/shard5-gaps.md`) instead of editing. The lead fixes the gap in
-   the public API (with a test and an `ENGINE.md` entry). Then a **new** fresh agent restarts the shard from the
-   updated docs.
+4. **Engine edits.** Every time the agent needs something outside its folder, it **stops and files an "API gap"** in
+   its ask file (`docs/tasks/asks/<id>.md`, inside its allowlist; R2-12) instead of editing. The lead copies each gap
+   into the council's `docs/plans/game-normalization/reviews/shard5-gaps.md` (a lead commit) and fixes it in the
+   public API (with a test and an `ENGINE.md` entry). Then a **new** fresh agent restarts the shard from the updated
+   docs, under the same slug and ask.
 5. **Done** when a run finishes with **zero engine edits and zero gaps**, the gate is green (the shard's own job
    added), and Jake plays it.
 

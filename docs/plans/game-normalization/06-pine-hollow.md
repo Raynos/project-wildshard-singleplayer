@@ -77,8 +77,8 @@ disjoint files (the ranged families in `src/kit/weapons/**` and Pine's `loadout/
 | `src/game/achievements.ts:35-97` (the `PINE_HOLLOW` list), `:98` | ~63 | `shard:feats.ts`, `ctx.rows.feat(…)` | S2.1 | #game feats per shard (decision 76) |
 | `src/game/Inventory.ts:12-29, 52, 79-86, 110-134` (`PINE_PACK_KINDS`, `PINE_PACK_SLOTS`, `isPineItem`, `isPineChunk`, Pine's item rows) | ~30 | Pine's item rows → `shard:items.ts`; the pack rule → `manifest.bag.pack` | S2.1 | E314 pick C |
 | `src/core/perfLap.ts` (36), `src/ui/perfLap.ts` (197) | 233 | `src/engine/debug/perfLap.ts` (the panel's lap runner, no route of its own) | S2.1 | The route is Pine's (`shard:dev/perfLap.ts`) |
-| `src/world/blenderArea.ts:32` (`'pine-hollow': { x0: 87, x1: 168, z0: 66, z1: 148 }`) | 1 | `manifest.world.blenderArea` | S2.1 | Data |
-| `src/world/HorizonMatte.ts:55-57` (the Pine strips) | 3 | `manifest.horizon.matte` | S2.1 | Data |
+| `src/world/blenderArea.ts:32` (`'pine-hollow': { x0: 87, x1: 168, z0: 66, z1: 148 }`) | 1 | `level.world.blenderArea` | S2.1 | Data |
+| `src/world/HorizonMatte.ts:55-57` (the Pine strips) | 3 | `level.horizon.matte` | S2.1 | Data |
 | `src/world/TreeFactory.ts` (768) | 768 | `shard:world/treeFactory.ts` | S2.1 | `trees.factory: 'pine'` is Pine's only (Nalati: `spruce`, the others `none`); the template's comment (`_template.ts:98`) is the template's to change at Z1 |
 | `src/world/Grass.ts` (the non-painterly carpet, 614 in all), `Undergrowth.ts` (539) | 1,153 | `shard:world/grass.ts`, `undergrowth.ts` | S2.1 (`Undergrowth.ts`); `Grass.ts` at S3.1, once S3.1 takes Nalati's `GrassV2` dispatch out (`Grass.ts:129`; 13-lead-resolutions 04#4) | Only Pine draws the carpet and the undergrowth |
 | `src/world/Particles.ts` (423), `src/world/GrassTrample.ts` | — | `src/kit/looks/particles.ts`, `src/kit/looks/trample.ts` | F6 | Pine + Nalati (rule of two; 01 §21 names the trample) |
@@ -96,17 +96,17 @@ disjoint files (the ranged families in `src/kit/weapons/**` and Pine's `loadout/
 | 9, 297-298 | `const streams = chunk.slug === 'pine-hollow' ? new PineStreams(sky).build()` | the creek, waterfall, foam, spray | the plugin's world build (`level.world`) |
 | 48, 445, 465-468 | `new Cabins(sky, chunk.slug === 'pine-hollow' ? pineHamletBuildings() : [])` / `installPineLandmarks(` / `cutTerrain(world.physics, landmarks.crags.terrainCuts())` | the homestead + hamlet, the landmarks, the cave's terrain cut and punch | the plugin's world build, same calls in the same order: `placeCabins`, the door pieces (`main.ts:453-463`, moved verbatim), `installLandmarks`, the cut and the punch (`world.terrain.punch` stays an engine terrain verb) |
 | 49, 481-486 | `const propsBuilt = new Props(sky, forest, game.renderer)` | the boulders, stumps, logs (the default branch of the `props` step) | the plugin's world build |
-| 51-54, 251-252, 517, 532-549 | `startViewmodelTextures(…=== 'crossbow')` / `if (getActiveChunk().slug === 'pine-hollow') void preloadLeverModel()` / `new Crossbow(` / `const isPine = chunk.slug === 'pine-hollow'` / `new LeverRifle(` / `new Longbow(` / `longbow ? [{ weapon: longbow, id: 'bow', name: "Warden's longbow" }]` | the default crossbow, the lever-action in the rifle slot, the Longbow in the extras; the texture worker and the lever model fetched while the world builds | `manifest.loadout` (S2.2): rows `weapon.crossbow` (start), `weapon.lever` (slot 2, pickup), `weapon.longbow` (slot 3, locked until granted). Each family row declares `preload` (the texture worker for the crossbow and the lever; the lever GLB `LEVER_MODEL_URL`); the equipment service starts the preloads at `level.data` |
+| 51-54, 251-252, 517, 532-549 | `startViewmodelTextures(…=== 'crossbow')` / `if (getActiveChunk().slug === 'pine-hollow') void preloadLeverModel()` / `new Crossbow(` / `const isPine = chunk.slug === 'pine-hollow'` / `new LeverRifle(` / `new Longbow(` / `longbow ? [{ weapon: longbow, id: 'bow', name: "Warden's longbow" }]` | the default crossbow, the lever-action in the rifle slot, the Longbow in the extras; the texture worker and the lever model fetched while the world builds | `level.loadout` (S2.2): rows `weapon.crossbow` (start), `weapon.lever` (slot 2, pickup), `weapon.longbow` (slot 3, locked until granted). Each family row declares `preload` (the texture worker for the crossbow and the lever; the lever GLB `LEVER_MODEL_URL`); the equipment service starts the preloads at `level.data` |
 | 59-61, 619-630, 754-795 | `import { finishPick, pineFinishes }` / `import { mottLine }` / `let pineFinish` / `...(isPine ? { skins: () => pineFinishes(skins), …, pack: { note: "Everything here trades at Mott's stall"` / `if (isPine) pineFinish = (id) =>` / `const skin = isPine ? skinFor(a.kind, a.variant) : null` / `spawnSkinDrop` | the Bag's FINISHES and Mott's pack lines; the legendary skin drops on a kill | `ctx.bag` fragments registered by the plugin (S2.2): the finishes list (skins), the pack note / hint / gear hint / line (strings + `mottLine`); the kill drop → `ctx.on('actor.died')` in `shard:loadout/skins.ts` with today's code (`spawnSkinDrop`, `toss` from `app.rng.stream('loot')` in place of `Math.random()` at :771) |
 | 76 | `import { Inventory, ITEMS, isPineItem` | Pine's pack rule | `manifest.bag.pack` + Pine's item rows |
 | 111, 863-868, 885 | `new ForestAmbience(audio, { heightAt, cabins })` / `pineFights?.useSfx(ambience.sfx)` / `installPineAudio(` / `ambience.addSpot({ zone: 'cave'` | the forest's zoned ambience and its one-shots, the A-rows' wiring, the cave's reverb spots | the plugin (S2.1): it builds the ambience, hands its `sfx` to its own combat / quest / loadout (no host plumbing), runs `shard.pine.audio` (from `audioWiring.ts`) and adds the cave spots |
 | 117, 118, 800 | `import { placeCabins }` / `import { placePineHollowSets }` / `if (chunk.slug === 'pine-hollow') placePineHollowSets(registry)` | the Sets | the plugin, after its quest has placed its props (same order) |
 | 137-141, 786-789, 799, 887-893 | `installPineCombat` / `installPineQuest` / `installPineWeather` / `installPineLoadout` / `installPineLife` | the seven install calls (with landmarks and audio) | the plugin's `install` (§4) |
 | 252, 517 | `preloadLeverModel()` | see above | the lever row's `preload` |
-| 435, 431-439 | `const bare = isOcean \|\| built !== undefined` / `new Grass(sky, forest).build()` / `new Undergrowth(sky, forest)` / `new Particles(sky, forest)` | Pine's grass carpet, undergrowth, mist | the plugin builds grass (Pine's carpet), undergrowth and particles (the kit's) in `level.world`; the engine's `grass` step runs only for Nalati until S3.1 (`manifest.slug` never read: Nalati's plugin takes the step at S3.1) |
+| 435, 431-439 | `const bare = isOcean \|\| built !== undefined` / `new Grass(sky, forest).build()` / `new Undergrowth(sky, forest)` / `new Particles(sky, forest)` | Pine's grass carpet, undergrowth, mist | the plugin builds grass (Pine's carpet), undergrowth and particles (the kit's) in `level.world`; the engine's `grass` step runs only for Nalati until S3.1 (the engine reads no slug: Nalati's plugin takes the step at S3.1) |
 | 503-504, 253 | `const fieldModels = getActiveChunk().fieldModels?.()` / `if (fieldModels) (await fieldModels)({ sky, renderer…, forest, under, registry })` | the forest's trees and floor kinds drawn as models (E349) | the plugin's world build calls `placeDrawnModels({ … })` itself after its props (same point in the boot). `ChunkDef.fieldModels` is deleted |
 | 511-514 | `// Pine Hollow's clock (PineDayNight) keeps its own Settings` / `dayNight instanceof DayNight ? dayNightClock(dayNight) : nalatiClock ? …` | Pine's clock is outside `WorldClock` | `app.world.dayCycle` (S2.4): one clock service for every shard with `uses: ['dayCycle']`; `setActiveClock` and the two adapters are deleted |
-| 587 | `const mood = … : 'pine'` | Pine's theme | `manifest.audio.score: 'score.pine'` (S2.1: Pine's `ScoreSource`, §6.1 step 7) |
+| 587 | `const mood = … : 'pine'` | Pine's theme | `level.audio.score: 'score.pine'` (S2.1: Pine's `ScoreSource`, §6.1 step 7) |
 | 623 | `name: … (w.id === 'crossbow' ? 'Hunting crossbow' : w.name)` / `ammoLabel: w.id === 'crossbow' ? … 'Iron bolts'` / `icon: w.id === 'rifle' ? (isPine ? 'lever' : 'rifle') : w.id === 'bow' ? 'longbow'` | the Bag's names, ammo labels, icons | the weapon rows' `name`, `ammo.label`, `icon` (S2.2) |
 | 719-729 | `const rifleDrop = (() => { const site = CABIN_SITES[0]; if (!site \|\| !cabins \|\| rifle === null) return null;` … `prompt: isPine ? 'Take the lever-action' : 'Take AR-15', ...(isPine ? { scale: 1.3 } : {})` | the lever-action's pickup in cabin 1 | the lever row's `pickup: { at: 'cabin-1', local: [1.5, -1.6], prompt: 'loadout.lever.take', scale: 1.3, toast: 'loadout.lever.got' }`, placed by the plugin (S2.2). Only Pine ever builds it: Nalati and Driftwood have no cabins |
 | 787 | `if (pineLoadout?.hasRifle === true) rifleDrop?.dispose()` | the lever is kept once taken | the equipment service's `owned` check on the row (S2.2) |
@@ -123,43 +123,43 @@ disjoint files (the ranged families in `src/kit/weapons/**` and Pine's `loadout/
 
 | File:line | Grep key | Today | Replaced by |
 |---|---|---|---|
-| `core/tier.ts:101-115` | `export const PINE_HOLLOW_PHONE = { treeHiDist: 60, shadowFar: 60, animalShadowDist: 60, grassSlots: 40 }` / `applyShardTier` / `if (TIER === 'phone' && tierShard === 'pine-hollow')` | Pine's phone knobs | `manifest.tiers.phone` (§3). `PINE_HOLLOW_PHONE`, `applyShardTier`, `ROW_BASE`, `tierShard` are deleted at S2.1 (question Q2: X7 step 1 lists the same deletion) |
+| `core/tier.ts:101-115` | `export const PINE_HOLLOW_PHONE = { treeHiDist: 60, shadowFar: 60, animalShadowDist: 60, grassSlots: 40 }` / `applyShardTier` / `if (TIER === 'phone' && tierShard === 'pine-hollow')` | Pine's phone knobs | `level.tiers.phone` (§3). `PINE_HOLLOW_PHONE`, `applyShardTier`, `ROW_BASE`, `tierShard` are deleted at S2.1 (question Q2: X7 step 1 lists the same deletion) |
 | `core/tier.ts:123-125` | `export function pinePhoneCuts()` | the stepped IBL refresh | `tiers.phone.envSteps: true`, read by Pine's sky backdrop |
 | `core/tier.ts:132-134` | `return TIER === 'phone' && (tierShard === 'pine-hollow' \|\| tierShard === 'driftwood-isle')` | the depth slices and the off-screen god rays | tier knobs `slices` and `skipRaysOffscreen`; Pine's manifest sets both on the phone. Driftwood's half stays in `phonePictureCuts()` until S4.1 sets them in Driftwood's manifest |
 | `core/Game.ts:283, 356` | `const slices = R?.slices ?? phonePictureCuts()` / `if (phonePictureCuts()) skipRaysOffscreen(` | as above | the render service's tier resolution (05 §2.2) |
 | `core/Game.ts:369` | `this.sky.attachPost({ vol, rays: godRays, hueSat: grade })` | Pine's clock grips the post chain | `app.world.dayCycle` hands the post handles to the active backdrop (S2.4) |
-| `core/bootstrap.ts:34, 86` | `pine: (renderer, def, _sky) => new TreeFactory(renderer, { …bark…twigAtlas })` / `TREE_FACTORIES[def.trees.factory]` | the pine tree factory | `manifest.trees.factory: () => import('./world/treeFactory').then((m) => m.pineFactory)`, awaited at the same `cards` step (same boot order) |
+| `core/bootstrap.ts:34, 86` | `pine: (renderer, def, _sky) => new TreeFactory(renderer, { …bark…twigAtlas })` / `TREE_FACTORIES[def.trees.factory]` | the pine tree factory | `level.trees.factory: () => import('./world/treeFactory').then((m) => m.pineFactory)`, awaited at the same `cards` step (same boot order) |
 | `world/Sky.ts:24, 101-103, 170-180, 187-205, 278, 391-392` | `const pineClock = !stylizedSky && getActiveChunk().slug === 'pine-hollow'` / `setupPine()` / `pine.bind({` / `this.pine?.update(dt, this.camera)` / `get lamps()` | Pine's key-blend sky and clock | `uses: ['dayCycle']` + `render.backdrop` (Pine's `skyBackdrop`) (S2.4). `Sky.setupPine`, `Sky.pine`, `attachPost`, the `lamps` getter's Pine branch go; `lamps`, `night`, `dusk`, `dawn` are `app.world.dayCycle` fields |
 | `world/Sky.ts:134` | `if (getActiveChunk().slug === 'pine-hollow') patchPointLightSkip()` | the far point-light skip (E142) | the tier knob `pointLightSkip` (both tiers in Pine's manifest) |
-| `world/Atmosphere.ts:83-85, 173` | `const edge = getActiveChunk().slug === 'pine-hollow'; pineWeather = edge;` | the slab-edge haze and the weather uniforms compiled into Pine's shaders only | `manifest.atmosphere.edgeHaze: true` and `manifest.atmosphere.wetSurfaces: true` (question Q1). Program sources stay byte-identical per shard |
+| `world/Atmosphere.ts:83-85, 173` | `const edge = getActiveChunk().slug === 'pine-hollow'; pineWeather = edge;` | the slab-edge haze and the weather uniforms compiled into Pine's shaders only | `level.atmosphere.edgeHaze: true` and `level.atmosphere.wetSurfaces: true` (question Q1). Program sources stay byte-identical per shard |
 | `world/Grass.ts:117, 131` | `groundSet(getActiveChunk()).boreal?.grassTint` / `this.trampleAble = getActiveChunk().slug === 'pine-hollow'` | the boreal tint; the trample | the carpet is Pine's (§1.3): the trample is a constructor option the plugin passes |
 | `world/Terrain.ts:34-46, 519-595` | `ground.boreal` | the boreal ground shader | unchanged mechanism (data-driven: `assets.boreal`); `boreal` stays a manifest field |
 | `world/Particles.ts:106` | `const lowSun = this.sky.pine?.dusk ?? 1` | the mist's low-sun term | `app.world.dayCycle?.dusk ?? 1` |
-| `world/HorizonMatte.ts:55-57` | `'pine-hollow': { day: '/assets/horizon/pine-hollow-day.webp'` | the painted horizon strips | `manifest.horizon.matte` |
+| `world/HorizonMatte.ts:55-57` | `'pine-hollow': { day: '/assets/horizon/pine-hollow-day.webp'` | the painted horizon strips | `level.horizon.matte` |
 | `world/Cabin.ts:19, 48, 365` | `from '../chunks/pine-hollow/models/logCabin'` | the homestead | moves to Pine (§1.3) |
 | `world/WorldClock.ts` (103), `world/DayNight.ts:118-127` (`export interface DayClock`) | — | the adapters; the misnamed interface | deleted at S2.4 (§6.4) |
 | `entities/AnimalManager.ts:439` | `private readonly trampling = getActiveChunk().slug === 'pine-hollow'` | animals push trample movers on Pine | the runtime pushes movers when `app.world.trample` exists (Pine's plugin installs the kit trample field) |
 | `entities/AnimalFactory.ts:10, 294, 363` and `entities/pineCreatures.ts:41` | `this.style === 'pbr' ? preloadPineCreatures()` / `if (getActiveChunk().slug !== 'pine-hollow') return false` | the TRELLIS hulls, gated by slug | Pine's `SpeciesLook` rows carry `mesh` / `rig` (the hulls) and a `preload` (S2.3), registered apart from the simulation `SpeciesRow`s (R1-27); the `creatures` Debug row switches them (`models` / `proc`) |
-| `boot/manifest.ts:19, 23-24, 78-79, 98-101` | `pineHeroUrls()` / `pineSkyKeyUrls()` / `PINE_CREATURE_RIGS` / `def.slug === 'pine-hollow' ? [...props, ...pineHeroUrls()` | Pine's sky keys, hero props, creature rigs in the bar | `manifest.boot.files(tier)` (§3) |
-| `boot/extras.ts:35, 82, 231-232, 264` | `decodePineShots, pineShotFiles` / `const pineShots = !ocean && !steppe && shardSfxSets(def.slug).length > 0` | Pine's one-shots decoded at the bar | `manifest.boot.audio` (Pine's sprite in the decode list) |
-| `boot/audioFiles.ts:50-59, 70-80, 94-101` | `const PINE = 'pine-hollow'` / `shardMusicSets` / `shardSfxSets` / `unplayed` / `otherShardFiles` | Pine's own sets; no `island` slot; no other shard's SFX | `manifest.boot.audio` (music: the base styles minus `island` + `pine-hollow-<style>`; sfx: the base sets minus other shards' tagged files + `pine-hollow`) |
-| `boot/shardPrefetch.ts:45-48, 86-89` | `import { KNIFE_MODEL_URL }` … `if (def.slug === 'pine-hollow') { out.push(tierUrl(LEVER_MODEL_URL…` | the late reads | `manifest.boot.lateReads(tier)` |
-| `boot/bakedTextures.ts:37` | `const UNREAD = { 'pine-hollow': /\/fur-[^/]*$/ }` | baked fur maps Pine never reads | `manifest.boot.bakedUnread: /\/fur-[^/]*$/` |
-| `boot/steps.ts:63-84` | `'pine-hollow': { steps: { sky: { label: 'Sky · dawn to moonlight' }` | Pine's loading labels | `manifest.boot.steps` (§3) |
-| `boot/prefetch.ts:37-41` | `const homestead = def.style === 'painterly' ? files.props : …` | the prefetch order | reads `manifest.boot.files`; Pine's order unchanged |
+| `boot/manifest.ts:19, 23-24, 78-79, 98-101` | `pineHeroUrls()` / `pineSkyKeyUrls()` / `PINE_CREATURE_RIGS` / `def.slug === 'pine-hollow' ? [...props, ...pineHeroUrls()` | Pine's sky keys, hero props, creature rigs in the bar | `level.boot.files(tier)` (§3) |
+| `boot/extras.ts:35, 82, 231-232, 264` | `decodePineShots, pineShotFiles` / `const pineShots = !ocean && !steppe && shardSfxSets(def.slug).length > 0` | Pine's one-shots decoded at the bar | `level.boot.audio` (Pine's sprite in the decode list) |
+| `boot/audioFiles.ts:50-59, 70-80, 94-101` | `const PINE = 'pine-hollow'` / `shardMusicSets` / `shardSfxSets` / `unplayed` / `otherShardFiles` | Pine's own sets; no `island` slot; no other shard's SFX | `level.boot.audio` (music: the base styles minus `island` + `pine-hollow-<style>`; sfx: the base sets minus other shards' tagged files + `pine-hollow`) |
+| `boot/shardPrefetch.ts:45-48, 86-89` | `import { KNIFE_MODEL_URL }` … `if (def.slug === 'pine-hollow') { out.push(tierUrl(LEVER_MODEL_URL…` | the late reads | `level.boot.lateReads(tier)` |
+| `boot/bakedTextures.ts:37` | `const UNREAD = { 'pine-hollow': /\/fur-[^/]*$/ }` | baked fur maps Pine never reads | `level.boot.bakedUnread: /\/fur-[^/]*$/` |
+| `boot/steps.ts:63-84` | `'pine-hollow': { steps: { sky: { label: 'Sky · dawn to moonlight' }` | Pine's loading labels | `level.boot.steps` (§3) |
+| `boot/prefetch.ts:37-41` | `const homestead = def.style === 'painterly' ? files.props : …` | the prefetch order | reads `level.boot.files`; Pine's order unchanged |
 | `audio/Music.ts:27-43, 61-68, 114, 500, 518-760, 805` | `export type PineScene` / `setPineScene` / `prefetchPine` / `preparePine` / `setting('pineScore')` / `this.state.shard === 'pine'` | Pine's night / boss / dawn slots | Pine's `ScoreSource` (`shard:audio/score.ts`, §6.1 step 7): the base style's `pine` theme + the `pine-hollow-<style>` set's night / boss phases / dawn sting, the scene from the day cycle and the King's fight. Music.ts keeps no Pine name |
 | `audio/Stems.ts:33-37, 49, 88-89` | `export type MusicSet = 'base' \| 'pine-hollow'` / `musicSetDir` | the Pine set's folder | a `ScoreSource` names its own set folder; `MusicSet` becomes `string` |
-| `audio/Audio.ts:87, 146, 213, 826` | `'litter' = pine needles (Pine Hollow's default)` / `this.bed = … : 'forest'` | the default bed is Pine's | `manifest.audio.ambience: 'ambience.pine'` (the bed name `forest` stays Pine's ambience profile) |
+| `audio/Audio.ts:87, 146, 213, 826` | `'litter' = pine needles (Pine Hollow's default)` / `this.bed = … : 'forest'` | the default bed is Pine's | `level.audio.ambience: 'ambience.pine'` (the bed name `forest` stays Pine's ambience profile) |
 | `ui/debugOptions.ts:68, 136-137, 152, 158-159, 177` | `const pineHollow: When = (c) => c.chunk.slug === 'pine-hollow'` / `opt('weather'` / `opt('pineScore'` / `opt('pineLife'` / `opt('cragView'` | Pine's Debug rows | engine rows shown by mechanism: `time` when `uses` has `dayCycle`, `weather` when it has `weather`, `creatures` when a species row has a procedural fallback. Shard rows through `ctx.debugRow`: `pineScore`, `pineLife`, `cragView` (question Q4: shard-declared option keys) |
 | `ui/compendium/install.ts:14, 48` | `for (const def of [PINE_HOLLOW_COMPENDIUM]) registerCompendium(def)` | Pine's journal | `ctx.rows.compendium(…)` |
 | `ui/Menu.ts`, `ui/bag.ts` | Pine's FINISHES / pack comments | — | the Bag fragments (above); X2 finishes the tabs |
 | `ui/titleDeck.ts:21-23, 49` | `pineThumb` | the card | the generated registry (F9) |
 | `game/Inventory.ts:86, 111, 134` | `const isPineChunk = (chunkId) => chunkId.endsWith('/pine-hollow')` | the pack rule | `manifest.bag.pack` |
 | `game/achievements.ts:98` | `'chunk://local/pine-hollow': PINE_HOLLOW` | Pine's feats | `ctx.rows.feat` |
-| `explore/Explore.ts:45-75` | `'pine-hollow': practicePine` | the hub art | `manifest.explore.art` |
-| `explore/Compare.ts:28-31` | `'pine-hollow': [ pair('ridge'` | compare pairs | `manifest.explore.compare` |
+| `explore/Explore.ts:45-75` | `'pine-hollow': practicePine` | the hub art | `level.explore.art` |
+| `explore/Compare.ts:28-31` | `'pine-hollow': [ pair('ridge'` | compare pairs | `level.explore.compare` |
 | `explore/MiniMap.ts:131` | `const ph = this.world.game.sky.pine?.phase` | the Explore map's day key | `app.world.dayCycle?.phase` |
-| `world/blenderArea.ts:32` | `'pine-hollow': { x0: 87, x1: 168, z0: 66, z1: 148 }` | the Blender-built area | `manifest.world.blenderArea` |
+| `world/blenderArea.ts:32` | `'pine-hollow': { x0: 87, x1: 168, z0: 66, z1: 148 }` | the Blender-built area | `level.world.blenderArea` |
 | `chunks/registry.ts:15, 26` | `import { PINE_HOLLOW }` | the hand list | the generated registry (F9) |
 
 ## 3. (c) The manifest, in full
@@ -205,6 +205,14 @@ export default defineShard({
     groundTints: [[0.86, 0.78, 0.68], [0.72, 0.8, 0.6], [1.0, 0.98, 0.94], [0.95, 0.8, 0.6]],
     slabRock: 'rock_ground',
     boreal: { normalK: [1.2, 1.0, 1.4, 1.1], trailDust: [1.25, 1.02, 0.7, 0.6], grassTint: [0.8, 0.74, 0.55] },
+    globs: [                                                              // R2-19: the extra asset folders by their real names (02 F0's allowlist, §9);
+      'public/assets/models/pine-hollow-crags/**', 'public/assets/models/pine-hollow-hero/**',   // public/assets/pine-hollow/** and
+      'public/assets/models/pine-hollow-trees/**', 'public/assets/gpu/models/pine-hollow-hero/**', // public/assets/baked/pine-hollow/** are
+      'public/assets/gpu/models/pine-hollow-trees/**', 'public/assets/gpu/pine-hollow/**',         // on the allowlist already
+      'public/assets/gpu/baked/pine-hollow/**', 'public/assets/music/pine-hollow-folk/**',
+      'public/assets/music/pine-hollow-orchestral/**', 'public/assets/music/pine-hollow-piano/**',
+      'public/assets/sfx/pine-hollow/**', 'public/assets/horizon/pine-hollow-*', 'public/assets/gpu/horizon/pine-hollow-*',
+      'public/assets/lut/pine-hollow.bin', 'public/assets/title/pine-hollow-portrait.jpg'],
   },
   trees: {                                                                // carried as data — pine-hollow.ts:251 + the factory thunk (bootstrap.ts:34)
     factory: () => import('./world/treeFactory').then((m) => m.pineFactory),
@@ -401,8 +409,8 @@ export default class PineHollowPlugin extends ShardPlugin {   // staged hooks, e
 
 | System | What S2 needs of it | Must exist first | Row |
 |---|---|---|---|
-| Plugin world build in `level.world` for a landscape shard | the engine builds the terrain (from `ground.terrain`), the Forest (factory from the manifest), then awaits `plugin.world(ctx)` (R1-24) | S1.1's staged boot | S2.1 |
-| Tier knobs as data | `treeHiDist`, `shadowFar`, `animalShadowDist`, `grassSlots`, `slices`, `skipRaysOffscreen`, `envSteps`, `pointLightSkip` from the manifest | S1.1's tier resolution | S2.1 |
+| Plugin world build in `level.world` for a landscape shard | the engine builds the terrain (from `ground.terrain`), the Forest (factory from `level.trees`), then awaits `plugin.world(ctx)` (R1-24) | S1.1's staged boot | S2.1 |
+| Tier knobs as data | `treeHiDist`, `shadowFar`, `animalShadowDist`, `grassSlots`, `slices`, `skipRaysOffscreen`, `envSteps`, `pointLightSkip` from `level.tiers` | S1.1's tier resolution | S2.1 |
 | Bag fragments, item / feat / compendium rows | `ctx.bag` finishes and pack lines; `ctx.rows.item / feat / compendium` | F9, #game Bag | S2.1 |
 | `ScoreSource` for a style-bound score | Pine's source over the base style bank + its own set | S1.5 | S2.1 |
 | Ranged families: Bow, Crossbow, Firearm; projectile, drop arc, ADS, brass blocks; AmmoRows | 09-combat-ai | S1.2 contracts | S2.2 |
@@ -423,10 +431,10 @@ export default class PineHollowPlugin extends ShardPlugin {   // staged hooks, e
    default `Props` branch, `fieldModels`) are deleted. The boot's step keys and their order stay (the plugin's calls
    report progress into the same keys through `ctx.progress`).
 3. **The forest factory**: `bootstrap.ts:34` `TREE_FACTORIES.pine` is deleted; the `cards` step awaits
-   `manifest.trees.factory()` (Pine's `pineFactory`: `new TreeFactory(renderer, { bark, twigAtlas })` as today).
+   `level.trees.factory()` (Pine's `pineFactory`: `new TreeFactory(renderer, { bark, twigAtlas })` as today).
 4. **Tier data**: §2.2's `core/tier.ts`, `Game.ts`, `Sky.ts:134` rows. `PINE_HOLLOW_PHONE`, `applyShardTier`,
    `pinePhoneCuts` are deleted; `phonePictureCuts()` keeps only Driftwood (`tierShard === 'driftwood-isle'`) until S4.1.
-5. **Atmosphere**: `Atmosphere.ts:83-85` reads `manifest.atmosphere.edgeHaze / wetSurfaces`.
+5. **Atmosphere**: `Atmosphere.ts:83-85` reads `level.atmosphere.edgeHaze / wetSurfaces`.
 6. **Content rows and Bag**: items, feats, compendium, pack rule, finishes, Mott's lines (§2.1, §2.2).
 7. **Pine's score source** (`shard:audio/score.ts`): the Pine half of `Music.ts` (`PineScene`, `setPineScene`,
    `prefetchPine`, `preparePine`, the dawn sting, `setting('pineScore')`) moves here behind `ScoreSource`: `target()`
@@ -434,8 +442,8 @@ export default class PineHollowPlugin extends ShardPlugin {   // staged hooks, e
    The music engine asks it in place of `state.shard === 'pine'`. The scene is set by Pine's audio system from the day
    cycle and by the King's fight.
 8. **Audio**: `ForestAmbience`, `PineHollowSfx`, `audioWiring.ts` move (§1.3); the plugin builds them where
-   `main.ts:863-868` did and hands `sfx` to its own modules. `Audio.ts:146`'s `'forest'` default becomes the manifest's
-   ambience id.
+   `main.ts:863-868` did and hands `sfx` to its own modules. `Audio.ts:146`'s `'forest'` default becomes
+   `level.audio.ambience`, the ambience id Pine's manifest declares.
 9. **Debug**: the four rows and the seven handles (§4); `perfLap` becomes engine + Pine's route.
 10. **Events**: the seven `onKill` / `onDamaged` / `onHit` chains in Pine's files become `ctx.on` (§1.2); the three
     `ws:ready` listeners become `ctx.on('app.ready')`.
@@ -659,7 +667,7 @@ derived numbers and enforces its ceilings (R1-14).
 
 ## 8. (g) Parity expectations
 
-**Identical** (`scripts/parity.mjs --export=HEAD --shards=pine-hollow --tiers=phone` on every commit, `--tiers=phone,desktop`
+**Identical** (`scripts/parity.mjs --export=<sha> --shards=pine-hollow --tiers=phone` on every commit, `--tiers=phone,desktop`
 before a push; all four shards on engine edits; R1-10): the
 systems list (new ids per 03's id map), the registry (sorted ids, categories, surfaces, colliders; 03 compares it
 sorted: the plugin adds its pieces in today's order, but the engine's own pieces may now register in a different boot
@@ -669,9 +677,10 @@ harness poses at pinned time / weather, the walk and `--trails` routes (0 stuck)
 the lever pickup, the scripted elite and King encounters, the quest beats, the audio beds and score slots, the HUD
 slots, the save keys (renamed by F10, then identical).
 
-**Expected to differ.** Each row is a pending item from the commit that makes it (05 §8, R1-13): listed in
-`reviews/pending.json` with its expected fingerprint delta, recorded with `parity --accept <ids>`, shown yellow by the
-gate, and OK'd by Jake (re-baselined) or reverted before the pin moves.
+**Expected to differ.** Each row is a pending item (05 §8, R1-13, R2-18): the change commit adds it to
+`reviews/pending.json` with `expect: null`; `parity --pending-fill=<ids> --export=<sha>` on that commit's SHA fills
+`expect` per tier in a follow-up commit; the gate shows it yellow; and only after Jake's OK at the milestone does
+`parity --accept=<ids>` re-baseline it and remove the entry. Otherwise it is fixed or reverted before the pin moves.
 
 | Difference | Row | Where it is shown |
 |---|---|---|
@@ -686,15 +695,16 @@ gate, and OK'd by Jake (re-baselined) or reverted before the pin moves.
 
 | Step | Detail |
 |---|---|
-| Flow | As M1 (05 §9, R1-15): gate green on HEAD → boards to Jake → Jake OKs the board items (or they are fixed / reverted) → the pin moves to HEAD → deploy → Jake plays it live → **Jake's go starts S3**. The go is not a ship gate |
-| Gate | `gpu-gate` green on HEAD: Nine Dragon's and Pine Hollow's budget checks on their derived budgets (S1.6, S2.6), Nalati's and Driftwood's on their F2-baseline ceilings (R1-14); parity green on 4 shards; `pnpm test` green with the ratchets lower than at M1 |
-| Pin | After Jake OKs the board items, with no item left in `reviews/pending.json` (R1-13, R1-15): `node scripts/deploy-pin.mjs set <HEAD sha> --milestone M2 --go "<where>"` writes `.github/deploy-pin.json` (committed alone; 13-lead-resolutions G7), `gh workflow run deploy`, `version.json` confirmed, the build id in E357 (12-process §3, 03 §13.4) |
+| Flow | As M1 (05 §9, R1-15): gate green on the candidate → boards to Jake → Jake OKs the board items (or they are fixed / reverted), and `parity --accept=<ids>` re-records the OKed ones → the pin moves to **the newest `gpu-gate`-green SHA after that step, with `reviews/pending.json` empty** (R2-27) → deploy → Jake plays it live → **Jake's go starts S3**. The go is not a ship gate (R1-15); a "no" holds S3 (Decision asked) |
+| Gate | `gpu-gate` green on the candidate SHA: Nine Dragon's and Pine Hollow's budget checks on their derived budgets (S1.6, S2.6), Nalati's and Driftwood's on their F2-baseline ceilings (R1-14); parity green on 4 shards; `pnpm test` green with the ratchets lower than at M1 |
+| Pin | After step 3 (Jake's OKs, the `--accept` commit, and any fix or revert commits), with `reviews/pending.json` empty (R1-13, R1-15): the pin moves to the newest SHA after step 3 whose `gpu-gate` is green (R2-27), never to the pre-accept candidate: `node scripts/deploy-pin.mjs set <that sha> --milestone M2 --go "<where>"` writes `.github/deploy-pin.json` (committed alone; 13-lead-resolutions G7), then `gh workflow run deploy`, confirm `version.json`, record the build id in E357 (12-process §3, 03 §13.4) |
 | Summary | What moved (§1), lines deleted (Longbow's fork, `feel.ts`, `WorldClock.ts`, the Pine branches of §2), ratchets before / after, Pine's derived budgets and ceilings (desktop: 8.3 M tris and 1,377 GPU MB as ceilings, budget-design §6.4), the scheduler's CPU saving at the lookout pose |
-| Boards | **Creatures** (the wall fixes, the tick rates, the starter effects) and the **weapons** board's ranged additions. iPhone portrait, clips ≤ 10 s, from the harness's capture of HEAD (R1-15). Each item stays pending until Jake OKs it (re-baselined) or it is fixed / reverted (R1-13) |
+| Boards | **Creatures** (the wall fixes, the tick rates, the starter effects) and the **weapons** board's ranged additions. iPhone portrait, clips ≤ 10 s, from the harness's capture of the candidate SHA (R1-15). Each item stays pending until Jake OKs it (re-baselined) or it is fixed / reverted (R1-13) |
 | Jake plays | Pine Hollow **live** on the pinned build, after the deploy (R1-15): a hunt with the crossbow, the lever-action from cabin 1, an elite, a rain shower (Debug ▸ Weather ▸ Rain), the dawn fog, the Antler King if he wants. To play before the pin moves: a Vercel preview deployment of the candidate (`vercel deploy --prebuilt`, which keeps `/api`), not `release-url.sh` (R1-15) |
-| Decision asked | Two AskUserQuestions (R1-15): the summary + boards first (each item OK / fix / revert), whose OKs move the pin; then, after he has played it live, "Pine Hollow M2: go?" (recommended: yes) |
-| Rollback | If the pinned M2 build breaks on Jake's phone: `node scripts/deploy-pin.mjs rollback <sha>` to a SHA in the pin history (M1 or earlier), with no gate check; M0 is past F10, so it can't read the v2 saves (accepted, decision 13; stated on the rollback) (R1-16) |
-| Reopening | On Jake's go, `src/shards/pine-hollow/` reopens to content agents (12-process §2). `scripts/check-lock.mjs`, the `commit-msg` hook F0 builds (R1-09), passes a commit without the `E357-Lead: yes` trailer only when every path is on Pine's allowlist: `src/shards/pine-hollow/**`, `test/shards/pine-hollow/**`, `art/pine-hollow/**`, `public/assets/pine-hollow/**` and the other asset folders its manifest declares (Pine's model, music and SFX folders), `scripts/blender/pine-hollow/**`, `docs/tasks/asks/**`; generated files are built, not committed (R1-11). From then on Pine's lane owns its baselines: a content commit re-records them in the same commit (`parity --rebaseline pine-hollow`), and every other shard must stay identical, the cross-shard proof (R1-12) |
+| Milestone checks | Recorded in E357: **Memory** (R2-30, 12 §8): Jake's physical-iPhone reading of Pine Hollow's loading peak and in-world peak on the pinned build, given in chat through an AskUserQuestion with the reading template, against 1.8 GB loading / 1.0 GB in-world (decimal). Over either cap is a memory regression: it stops the line (12 §8), S3 waits, and the fix or revert is a row in this milestone; a build that crashes is rolled back |
+| Decision asked | Two AskUserQuestions (R1-15): the summary + boards first (each item OK / fix / revert), whose OKs move the pin; then, after he has played it live, "Pine Hollow M2: go?" (recommended: yes). **A "no"** (R2-29, 12 §3): S3 waits. Jake's reasons become rows in this milestone, each fixed on main, gated, boarded if visible, and then the go is asked again. The pinned build stays live unless it is broken (then Rollback) |
+| Rollback | If the pinned M2 build breaks on Jake's phone: `node scripts/deploy-pin.mjs rollback <sha> --go "<Jake's words>"` to a SHA in the pin history (M1 or earlier), with no gate check (03 §13.2). M0 is past F10, so it can't read the v2 saves; this is accepted (the saves reset is OK'd, decision 13) and stated on the rollback (R1-16) |
+| Reopening | On Jake's go, `src/shards/pine-hollow/` reopens to content agents (12-process §2). The lock check is `scripts/check-lock.mjs`, the `commit-msg` hook F0 builds (R1-09): a commit without the lead's `E357-Lead: yes` trailer passes only when every path is on the reopened-shard allowlist, **the one definition in 02 F0 step 5** (R2-19), referenced here and not copied. Pine Hollow's extra asset folders are its manifest's `assets.globs` (§3), which the M2 milestone commit copies into `.github/lock.json` `reopened`. Generated files are built, not committed (R1-11). From then on Pine Hollow's lane owns its baselines: a content commit re-records them in a follow-up commit that names the SHA they were recorded on (`parity --rebaseline=pine-hollow --export=<sha>`; R1-12, R2-25), and every other shard must stay identical, the cross-shard proof. |
 
 ## 10. Questions for the lead
 

@@ -107,7 +107,7 @@ override; everything else is `private`.
 | Melee | `Melee extends Weapon` | `MeleeProfile` | `viewmodel`, `melee`, `hitStop`, `aimRay` | `onSwingStart(move)`, `onMoveHit(move, hit, killed)`, `pickMove(input): Move \| null`, `moveDamage(move): number`, `poseExtra(pos, q, dt)` |
 | Bow | `Bow extends Weapon` | `BowProfile` | `viewmodel`, `projectile`, `ads`, `ammo`, `hitStop`, `aimRay` | `onLoose(power, origin, vel)`, `onArrowHit(req)`, `setMount(m)`, `limbPose(draw)` |
 | Crossbow | `Crossbow extends Weapon` | `CrossbowProfile` | `viewmodel`, `projectile`, `ads`, `ammo`, `hitStop`, `aimRay` | `onShot(bolt)`, `onBoltHit(req)`, `nextAmmo(): AmmoRow` |
-| Firearm | `Firearm extends Weapon` | `FirearmProfile` | `viewmodel`, `ads`, `ammo`, `brass`, `hitStop`, `aimRay` + hitscan (`castRay` via `#engine` query) | `cycle(dt)`, `reloadStep(dt)`, `animateAction(t, pose)`, `onShot()` |
+| Firearm | `Firearm extends Weapon` | `FirearmProfile` | `viewmodel`, `ads`, `ammo`, `brass`, `hitStop`, `aimRay` + hitscan (`castRay` via `#engine` query) | `cycle(dt)`, `reloadStep(dt)`, `animateAction(t, pose)`, `onShot()`; the trigger hooks (R2-09, W13): `actionReady()` (default `cooldown <= 0`, `Rifle.ts:322`), `roundReady()` (default `ammo > 0`, `:323`), `onEmptyTrigger()` (default: `reload()` when `reserve > 0`, `:323`), `onTriggerWhileReloading()` (default: nothing, `:322` returns), `reload()`, `autoReloadDue(): boolean` (default `Rifle.ts:496`'s condition) |
 | Thrown | `Thrown` (a block-built helper, not a `Weapon`: a weapon composes it) | `ThrownProfile` | `projectile`, `ammo` | `onRelease(power)`, `onStick(point)` |
 
 `ViewmodelFeel` (the `viewmodel` block's data, one per profile — today's numbers differ per weapon, so each profile
@@ -201,7 +201,7 @@ writer) (`Spear.ts:63–67, 433–520`).
 |---|---|---|
 | quiver | 24, `ammoLabel` "Arrows", segments 4, magazine 24 | `Bow.ts:81`, header :10–12 |
 | draw | `BowDraw`: full 0.75 s (ease-out) ÷ `drawSpeedScale`, let-down .4 s, re-nock .62 s (next draw may start with .4 left), steady 3 s, tremble to ±1.5° by 8 s, tired 1.1 s; loose only at full draw | `bowDraw.ts:21–27` |
-| flight | speed 30 + 28 p m/s, `damageScale` 1.2 × `damageFor` (§3.1 bolt model) × `damageMultiplier(hit)` | `Bow.ts:84–85, 740` |
+| flight | speed 30 + 28 p m/s, `damageScale` 1.2 × `damageFor` (§2.2's arrow formula) × `damageMultiplier(hit)` | `Bow.ts:84–85, 740` |
 | arrow (projectile row) | length 0.8, gravity 5, drag .015 (`v *= 1 − drag·h·\|v\|·0.1`), windCoupling .25, bury .09, recover .7, maxFlying 8, maxStuck 64, radius .02, glance lift .03 / keep .35 / bounce .25 / max 9, recover reach 1.25 m / up 2.1 m | `Bow.ts:130, 174–178`; `Projectiles.ts:99–103, 173–184` |
 | aim | zoom 2 (72° → 40°), vm zoom .85, sway × .5, spread × .5, aim-in rate 10; sway max 1.5° | `Bow.ts:82, 90` |
 | spread | 0.3° × (1 − .5 × aim) + 0.6° × speedFactor + extraSpreadDeg + mountSpread | `Bow.ts:734` |
@@ -272,22 +272,42 @@ arrow would reach it (distance ÷ (30 + 28 p)), × 3 on a balbal; the arrow's ow
 | muzzle light | `!isOcean` (always on now that no ocean shard carries it) | `main.ts:541` |
 | HUD | name "AR-15", icon `rifle` | `main.ts:623, 770` |
 
-**W13 action states (R1-37).** The lever's reload and trigger state machine maps onto Firearm's hooks, with nothing
-private left out:
-- `reloadStep` loads one round per step and stops after the round in hand when the trigger is pressed
-  (`LeverRifle.ts:487–501`). A trigger during a partial reload fires the chambered round if there is one; otherwise
-  it chambers from the tube (`onEmptyTrigger` → `cycle`).
-- `dryAtStart` is recorded when a reload begins with an empty chamber, and a dry reload ends with a `cycle`
-  (`:767–779`).
-- Auto-reload fires only in the 0.35–5 s window after the last shot, and stow / swap cancels it.
-- The HUD shows chamber and tube state separately.
+**W13 action states (R1-37, rewritten from the code, R2-09).** The lever's trigger, reload and cycle map onto
+Firearm's hooks (§1.3). Every line below is today's code, quoted; the port keeps each one exactly, and nothing private
+is left out.
 
-`lever-actions.test.ts` records today's action traces **before** the move (full, partial and dry reloads; a trigger
-mid-reload; reserve exhaustion; swap and stow mid-reload; the chamber / tube HUD states), and requires the Firearm
-subclass to replay them exactly (12′).
+Firearm's trigger is one template, `trigger()`: `if (reloading) { onTriggerWhileReloading(); return; }`, then
+`if (!actionReady()) return;`, then `if (!roundReady()) { onDry; sinceEmpty = 0; onEmptyTrigger(); return; }`, then
+`fire()`. With the defaults it is the AR-15's `tryFire` (`Rifle.ts:321–325`), unchanged. The lever's overrides:
+
+| `LeverRifle.ts` today (quoted) | What it does | The Firearm hook |
+|---|---|---|
+| `:488` `if (this.phase === 'reload') { if (this.fed > 0 \|\| this.tube > 0 \|\| this.chambered) this.stopAfter = true; return; }` | A trigger mid-reload **fires nothing and cycles nothing**. It only asks the reload to stop after the round in hand, and only when a round is fed, in the tube or chambered | `onTriggerWhileReloading()` |
+| `:489` `if (this.phase !== 'idle') return;` | A trigger during the recoil beat or the lever throw does nothing | `actionReady()` = `phase === 'idle'` |
+| `:490–491` `if (!this.chambered) { this.onDry?.(); this.sinceEmpty = 0;` | An empty chamber is a dry click, and it restarts the auto-reload clock (the base's part of the template) | `roundReady()` = `chambered` |
+| `:492` `if (this.tube > 0) this.startCycle(); else if (this.state.reserve > 0) this.reload();` | On the dry click it works the lever if the tube has a round, else it starts a reload if the reserve has one | `onEmptyTrigger()` |
+| `:495` `this.fire();` | Fire the chambered round (`:510–519`: unchamber, case in the chamber, hammer down, `phase = 'beat'`, flash, `onFire`, hitscan) | `fire()` (the family's), then `onShot()` |
+| `:499` `if (this.phase !== 'idle' \|\| this.tube >= TUBE_MAX \|\| this.state.reserve <= 0) return;` | R and the auto-reload start a reload only when idle, the tube not full (6) and a round in reserve | `reload()` |
+| `:500–501` `this.phase = 'reload'; … this.fed = 0; this.stopAfter = false; this.dryAtStart = !this.chambered; this.planned = Math.min(TUBE_MAX - this.tube, this.state.reserve);` | A reload plans the rounds to fill the tube from the reserve, and records whether it began with an empty chamber | `reload()` |
+| `:749` `if (this.phase === 'beat' && this.phaseT >= CYCLE_DELAY) this.startCycle();` | 0.12 s after the shot the lever starts down | `cycle(dt)` |
+| `:751–757` `const u = this.phaseT / LEVER_TIME;` … `if (u >= 1) { const next = cycleAction(this.action); … this.phase = 'idle'; }` | The throw takes 0.56 s: the case ejects at u ≥ .34, the hammer cocks at u ≥ .2, and at u ≥ 1 `cycleAction` chambers a round from the tube if the chamber is empty and the tube is not | `cycle(dt)` |
+| `:762–767` `const done = Math.max(0, Math.floor(inT / ROUND_TIME)); while (this.fed < Math.min(done, this.planned)) { … feedRound … this.fed++; … if (this.stopAfter \|\| this.tube >= TUBE_MAX \|\| s.reserve <= 0) { this.planned = this.fed; break; } }` | One round per 0.4 s after the 0.22 s roll-in moves from reserve to tube (`onRoundIn`). After each round the reload stops early on `stopAfter`, a full tube or an empty reserve | `reloadStep(dt)` |
+| `:770–773` `if (this.fed >= this.planned && inT >= ROUND_TIME * this.planned) { this.phase = 'idle'; … this.onReloadEnd?.();` | The reload ends when the planned rounds are in | `reloadStep(dt)` |
+| `:774` `if (this.dryAtStart && !this.chambered && this.tube > 0) this.startCycle();` | A reload that began with an empty chamber ends with a lever throw that chambers one | `reloadStep(dt)` |
+| `:778` `else if (this.phase === 'idle' && !this.chambered && this.tube === 0 && s.reserve > 0 && this.sinceEmpty > AUTO_RELOAD_DELAY && this.sinceEmpty < 5 && this.active && this.enabled) { this.reload(); }` | Auto-reload: idle, chamber and tube empty, a round in reserve, **0.35–5 s after the last dry trigger** (`sinceEmpty` is reset only at `:491`; it starts at 99, `:308`), and only while the lever is drawn and enabled | `autoReloadDue()` |
+| `:651–652` `this.sinceEmpty += dt; this.stepAction(dt);` and `main.ts:1152` `weapons.update(dt, t); // every weapon ticks` | The action clock runs every frame, drawn or stowed | the family's `update` runs for every owned weapon |
+| `:468–471` `setActive(on) { … if (!on) { this.enabled = false; this.mouseAds = false; } }` | Stow or swap **does not cancel** a reload or a throw in progress: the clock keeps running, so it completes while stowed (rounds fed, `onReloadEnd`, the dry-start throw). Stowing only stops a new auto-reload from starting (`active && enabled`) | `setActive` (the base's) |
+| `:477–479` `s.ammo = this.tube + (this.chambered ? 1 : 0); s.loaded = this.chambered; s.reloading = this.phase === 'reload';` | The HUD state: rounds in the gun, the chamber shown apart, reloading | the `ammo` block's state |
+
+`lever-actions.test.ts` records today's action traces **before** the move: full, partial and dry reloads; a trigger
+mid-reload with a round fed (the reload stops after it and nothing fires) and with none (nothing changes); reserve
+exhaustion; a dry trigger with rounds in the tube (a throw) and with an empty tube (a reload); the auto-reload window
+(nothing at 0.3 s, a reload at 0.4 s, nothing after 5 s); swap and stow mid-reload (the reload completes stowed);
+the chamber / tube HUD states. Its expected transitions are checked against the table above before the move, and the
+Firearm subclass must replay them exactly (12′).
 
 **W13 `LEVER`** (Pine; `class LeverRifle extends Firearm`, parent row `AR15`; overrides: `cycle` (lever throw), `reloadStep`
-(per round), `animateAction` (lever / hammer / bolt parts)):
+(per round), `animateAction` (lever / hammer / bolt parts), and the trigger hooks of the W13 action table above):
 
 | Field | Lever | AR-15 (parent) | src |
 |---|---|---|---|
@@ -439,12 +459,12 @@ cosmetic (they grant a tag the viewmodel reads).
 | E6 | `effect.whetstone.2` | permanent, `blockedBy` none, removes E5 on apply | `damage` mul 1.5 (12 → 18, 28 → 42) | shop | Driftwood | same |
 | E7 | `effect.bear-claw` | permanent | `heavyDamageMul` mul 1.2 (wood 24 → 29, iron 56 → 67) | trophy | Driftwood | `perks.ts:21, 25` |
 | E8 | `effect.boar-tusk` | permanent | grants `guard.dodge` → rule R2 | trophy | Driftwood | `perks.ts:27`, `main.ts:832` |
-| E9 | `effect.hit-cap` | permanent | `incomingCap` override = `manifest.fight.maxHitDamage` (Driftwood 20) → rule R1 | the shard at load | Driftwood | `driftwood-isle.ts:243–244` |
-| E10 | `effect.sneak-shot` | timed 4 s, `refresh` | grants `state.sneak-shot` → rule R3 | a loose / throw from HIDDEN (`stealth.ts:150–161`) | Nalati | `stealth.ts:61` |
+| E9 | `effect.hit-cap` | permanent | `incomingCap` override = `level.fight.maxHitDamage` (Driftwood 20) → rule R1 | the shard at load | Driftwood | `driftwood-isle.ts:243–244` |
+| E10 | `effect.sneak-shot` | timed 4 s, `refresh` | grants `state.sneak-shot` → the sneak source multiplier (§2.2) | a loose / throw from HIDDEN (`stealth.ts:150–161`) | Nalati | `stealth.ts:61` |
 | E11 | `effect.captain-hat`, `effect.cape` | permanent, cosmetic | grant `cosmetic.hat.captain` / `cosmetic.cape` (wardrobe) | trophy / shop | Driftwood | `keepsakes.ts:143` |
 | E12 | `effect.finish.<id>` × 7 | permanent, cosmetic, one per weapon kind (`stacking: 'none'`, a new one replaces the worn one of its weapon) | grants `cosmetic.finish.<id>`; the weapon's viewmodel applies the skin (`applySkin`) | hollow-ash, ghost-stag, blackpaw, imperial, warden, ironhide, scarback-furnace | Pine | `finishes.ts:12–20`, `Skins.ts:46–119` |
 | E13 | `effect.skin.<id>` × 4 | the same as E12 | irbis-sabre, sky-wolf-bow, storm-wing-arrows (gold streak), night-rider-mount | Nalati elite drops | Nalati | `nalatiSkins.ts:31–40`, `elites.ts:72–100` |
-| E14 | `effect.ammo.<kind>` | instant, on the projectile's request | via `AmmoRow` (flight) + rule R4 (damage) | the selected bolt | Pine | `ammo.ts:34–46` |
+| E14 | `effect.ammo.<kind>` | instant, on the projectile's request | via `AmmoRow` (flight) + the broadhead source multiplier (damage, §2.2) | the selected bolt | Pine | `ammo.ts:34–46` |
 
 **Damage rules** (`DamageRuleDef`, engine type; registered by rows, run as `ask('damage.modify')` answerers in `order`):
 
@@ -460,10 +480,11 @@ How the table maps onto 01's row: "req" = the hit's own tags and "source" = the 
 request's `sourceTags` (the pipeline adds the actor's own and granted tags, e.g. `state.sneak-shot`); "target" =
 `targetTags`; "has" = `targetState` (the target's granted state tags: `guard.dodge`, `state.dodging`,
 `state.death-fade`); `weapon.*` tags = `weaponTags`. A list matches when any of its tags matches (`.*` parent
-matching), and every list given must match. "negate" cancels the hit (the answer returns `null`). Four rules need more
+matching), and every list given must match. "negate" cancels the hit (the answer returns `null`). Three rules need more
 than a row can say, so each is a plain `ctx.answer('damage.modify', fn, { order })` answerer at the same `order`
-(sent to the lead as a gap in 01 §18): R0b (registered only when `app.params` has `bossGod`), R1 (its exemption list
-is `manifest.fight.capExempt`), R3 (two source conditions that must both hold) and R6 / R7 (computed values).
+(01 §18): R0b (registered only when `app.params` has `bossGod`), R1 (its exemption list is `level.fight.capExempt`)
+and R7 (a computed value). R3–R5 are source multipliers inside their source's base formula, and R6 is gone (R1-31,
+R2-10).
 
 | # | Rule | order | when | op / value | today |
 |---|---|---|---|---|---|
@@ -472,7 +493,7 @@ is `manifest.fight.capExempt`), R3 (two source conditions that must both hold) a
 | R2 | `rule.dodge-guard` | 10 | target `actor.player` has `guard.dodge` and `player.dodging`; source `creature.*` \| `boss.*` \| `elite.*` \| `add.*` | veto | `main.ts:832` |
 | R8 | `rule.damage-taken` | 40 | **creature target**, it has `damageTakenMul` ≠ 1, not a headshot | amount = `max(1, round(amount × damageTakenMul))` | `Animal.ts:336–340` (variant **before** species, as today) |
 | R7 | species / elite / boss damage rules | 50 | **creature target** = that actor | amount = `max(1, round(amount × damageMul(·)))` (the brain's rule, §3.3 table) | `Animal.ts:341–342` `damageMul` hooks |
-| R1 | `rule.hit-cap` | 90 | target `actor.player` with `incomingCap`; source `creature.*` \| `boss.*` \| `elite.*` \| `add.*`; `not` = `manifest.fight.capExempt` (Driftwood `creature.captain`) | cap | `ChunkDef.ts:452–453` |
+| R1 | `rule.hit-cap` | 90 | target `actor.player` with `incomingCap`; source `creature.*` \| `boss.*` \| `elite.*` \| `add.*`; `not` = `level.fight.capExempt` (Driftwood `creature.captain`) | cap | `ChunkDef.ts:452–453` |
 
 **How today's arithmetic is kept exactly (R1-31, finding A14).** A hit's damage is built in three stages, never by
 one rule overwriting another.
@@ -488,6 +509,7 @@ one rule overwriting another.
    | thrust / brace / lance (Spear) | `THRUST_DAMAGE` and today's brace / lance values, flat | none | `Spear.ts:523, 552, 572` |
    | melee swing (Sword family) | the move's damage × the weapon's base, as `Sword.ts:870` computes it | none | `Sword.ts:870` |
    | golden pierce | `balbal ? q.dmg × 3 : q.dmg` | — | `GoldenBow.ts:166` |
+   | hitscan (AR-15, lever) | `damageFor(head, dist) × DAMAGE_SCALE` (.55 / 1.5; damageFor already rounds, the product stays unrounded) | none | `Rifle.ts:373`, `LeverRifle.ts:554` |
 
    `damageFor` draws from the seeded `rng.stream('gameplay')` instead of `Math.random` (B5). `SourceMulDef` rows
    (`{ id, when, mul }`) hold sneak, broadhead and golden. The source's formula multiplies them in **at that
@@ -547,7 +569,7 @@ Debug registry rules).
 | weapons | `weapon.sword`, `weapon.sword-iron`, `weapon.jian`, `weapon.sabre`, `weapon.naizagai`, `weapon.spear`, `weapon.javelin`, `weapon.bow`, `weapon.golden-bow`, `weapon.longbow`, `weapon.crossbow`, `weapon.rifle`, `weapon.lever`, `weapon.blade` (the sword rows whetstones affect: sword, sword-iron) |
 | moves | `move.slash`, `move.backhand`, `move.finisher`, `move.heavy`, `move.pass`, `move.thrust`, `move.brace`, `move.lance`, `move.crescent`, `move.calldown`, `arrow.sun`, `arrow.pierce` |
 | ammo | `ammo.iron`, `ammo.pitch`, `ammo.broadhead` |
-| models | `model.fixed`, `model.bolt`, `model.blade`, `model.speed` |
+| models | `model.fixed`, `model.blade`, `model.speed` (the bolt has no model tag: its base is its source's formula, §2.2, R2-10) |
 | cover | `through.walls` (by design: rings, beams, fire, sand, lightning, storm wall, call-down, effect ticks), `cover.checked` (the block already tested the world: projectiles, hitscan, javelin, pierce) |
 | states | `state.sneak-shot`, `state.hidden`, `state.dodging`, `state.mounted`, `state.stunned`, `state.open` (an elite / boss vulnerability window) |
 | guards | `guard.dodge` |
@@ -560,24 +582,39 @@ Debug registry rules).
 ### 3.1 Types
 
 ```ts
-// #engine/combat — 01 §18's DamageRequest, the superset every path fills (13-lead-resolutions 09#11). The fields
-// marked (†) are this spec's and are not in 01 §18's type yet (sent to the lead).
+// #engine/combat — 01 §18's DamageRequest and DeathCause, exactly as 01 declares them: the superset every path fills
+// (13-lead-resolutions 09#11; R2-14: one death-cause type)
 interface DamageRequest {
   source: Actor | 'env'; target: Actor;
-  sourceTags: readonly Tag[];         // the hit's tags (dmg.*, ammo.*, model.bolt, env.*); the pipeline adds the source actor's own and granted tags (creature.*, boss.*, state.sneak-shot …)
-  amount: number;                     // before rules; for model.bolt it is ignored and R6 computes it
+  sourceTags: readonly Tag[];         // the hit's tags (dmg.*, ammo.*, env.*); the pipeline adds the source actor's own and granted tags (creature.*, boss.*, state.sneak-shot …)
+  amount: number;                     // the source's base formula with its source multipliers (§2.2, R1-31); the pipeline's rules start from it (no rule recomputes it: R6 is gone, R2-10)
   point: THREE.Vector3; dir: THREE.Vector3;   // dir × knockback is Nalati's env.knock push (today `knock: { x, z }`)
   surface?: SurfaceId; weaponId?: string; moveId?: string;
   headshot?: boolean;
   stagger?: number;                   // 0..1 → Animal.stagger / knock
   knockback?: number; throughWalls?: boolean;   // throughWalls mirrors the `through.walls` tag
-  from?: THREE.Vector3;               // (†) occlusion origin: the attacker's reach point or the player's eye; absent = no occlusion
-  distance?: number; scale?: number;  // (†) the bolt model's inputs
-  cause?: { kind?: string; label?: string; text?: string };   // (†) the death card (Killer, main.ts:830)
-  toast?: string;                     // (†) the "why" line (Titan, lightning)
+  from?: THREE.Vector3;               // occlusion origin: the attacker's reach point or the player's eye; absent = no occlusion
+  distance?: number; scale?: number;  // the hit distance and the draw / charge scale the source's formula used (§2.2), kept for floats and analytics
+  cause?: DeathCause;                 // the killer for the death card (today's Killer, main.ts:830)
+  toast?: StringKey;                  // the "why" line (Titan, lightning), a string key
+}
+interface DeathCause {                // ONE type: DamageRequest.cause, damage.dealt (its req), player.died, death.checkpoint, the death card (01 §18, R2-14)
+  kind: string;                       // the actor's kind ('boar', 'storm-titan' …) or the env tag ('env.lightning', 'env.ride')
+  label: StringKey;                   // its name, today's Killer.label ('the Storm Titan', main.ts:923)
+  text?: StringKey;                   // a full line for a cause with no actor ('Struck by lightning', 'Thrown from the saddle')
 }
 interface DamageDealt { req: DamageRequest; dealt: number; killed: boolean }
 ```
+
+Every killer today maps onto the one `DeathCause` (R2-14); the strings move to the string tables as keys:
+
+| Today (`main.ts`) | `cause` |
+|---|---|
+| a creature's hit, `killer = { kind: a.kind, label: a.label }` (`:835`) | `{ kind: <species kind>, label: <the species' name key> }` |
+| the Storm Titan, `killer = { kind: 'storm-titan', label: 'the Storm Titan' }` (`:923`) | `{ kind: 'storm-titan', label: 'cause.stormTitan' }` |
+| lightning, `killer = { cause: 'Struck by lightning' }` (`:907`) | `{ kind: 'env.lightning', label: 'cause.lightning', text: 'cause.lightning.text' }` |
+| the ride (a throw, a bolting horse, a failed taming), `killer = { cause: 'Thrown from the saddle' }` (`:903`) | `{ kind: 'env.ride', label: 'cause.ride', text: 'cause.ride.text' }` |
+| a hard landing, `if (health <= 0) killer = null` (`:945`) | no `cause` (the death card's no-killer line, as today) |
 
 `combat.hit(req): DamageDealt | null` runs 01 §18's six steps. Step 2 (occlusion) is `lineOfSight(physics, from, point,
 radius)` with the player's capsule excluded when the source is the player (as `bladeBlocked`, `MeleeSweep.ts`), and the
@@ -593,10 +630,10 @@ attacker's own body excluded when the target is the player (as `canReach`, `Anim
 | **Spear thrust** | `Spear.ts:561–579` | `dmg.melee`, `weapon.spear`, `move.thrust`, fixed 30, stagger .5, `from` = eye | **no → yes (bug B1)** |
 | **Spear brace / couched lance** | `Spear.ts:523–557` | `dmg.melee`, `move.brace` / `move.lance`, `model.speed` (60 + 8 v / 40 + 6 v), stagger 1, `from` = eye | **no → yes (bug B1)** |
 | Javelin | `Spear.ts:451–462` | `dmg.thrown`, `weapon.javelin`, fixed 55 × (head 2), `cover.checked` | yes (`worldHit`) → kept |
-| Bow / Longbow arrows | `Projectiles.ts:311–317` | `dmg.ranged`, `weapon.<id>`, `model.bolt`, scale = damageScale, `cover.checked` | yes → kept |
+| Bow / Longbow arrows | `Projectiles.ts:311–317` | `dmg.ranged`, `weapon.<id>`, amount = the arrow's formula (§2.2, `Projectiles.ts:316`), scale = damageScale, `cover.checked` | yes → kept |
 | Golden sun-arrow pierce | `GoldenBow.ts:118–166` | `dmg.ranged`, `arrow.pierce`, amount round(damageFor × 1.2), `cover.checked` (the predicted path stops at walls) | yes → kept |
-| Crossbow bolt | `Crossbow.ts:1225–1231` | `dmg.ranged`, `weapon.crossbow`, `ammo.<kind>`, `model.bolt`, distance from the camera, `cover.checked` | yes → kept |
-| AR-15 / lever hitscan | `Rifle.ts:366–373`, `LeverRifle.ts:547–554` | `dmg.hitscan`, `model.bolt` × .55 / 1.5, `cover.checked` | yes → kept |
+| Crossbow bolt | `Crossbow.ts:1225–1231` | `dmg.ranged`, `weapon.crossbow`, `ammo.<kind>`, amount = the bolt's formula (§2.2, `Crossbow.ts:1231`), distance from the camera, `cover.checked` | yes → kept |
+| AR-15 / lever hitscan | `Rifle.ts:366–373`, `LeverRifle.ts:547–554` | `dmg.hitscan`, `weapon.rifle` / `weapon.lever`, amount = `damageFor(head, dist) × DAMAGE_SCALE` (.55 / 1.5, the unrounded product, as the bolt; §2.2), `cover.checked` | yes → kept |
 | **Naizagai crescent + arcs** | `Naizagai.ts:204–247` | `dmg.melee`, `move.crescent`, fixed 40 × storm 1.25, `from` = eye (crescent) and the previous target's body (each arc) | **no → yes (bug B2)** |
 | Naizagai call-down | `Naizagai.ts:253–260, 185–195` | `dmg.aoe`, `move.calldown`, 60 × storm, `through.walls` (from the sky, by design) | none → none |
 | Training dummy | `TrainingArena.ts:64, 131` | as the weapon's request, target `actor.dummy` | — |
@@ -617,18 +654,19 @@ the creature; `feel.jolt` = flash + `audio.land(true)` + the toast; falls = flas
 | Nalati elites (`env.hurt`) | `nalati/elites.ts:861` | `elite.*` | blow | yes → yes |
 | Golden King + his hazards (`host.hurt`) | `kurganBoss.ts:663` (strike `:264`, sunburst `:439`, sand `:504`, beam `:535`) | `boss.golden-king` (+ `through.walls` for sunburst, sand, beam) | blow | yes → yes |
 | Ghost-rider arrows | `nightEnemies.ts:57`, `Projectiles.ts:300` | `add.ghost-rider`, `dmg.ranged`, 10, `cover.checked` | blow | yes → yes |
-| **Ride**: thrown / bolting horse / failed taming | `main.ts:903` ← `ride.ts:73–76`, `Mount.ts:617, 764`, `Taming.ts:254` | `env.ride`, 10 (`THROWN_DAMAGE`), `cause.text` "Thrown from the saddle" | jolt | no → no (exempt by tag, decision 20) |
-| **Lightning** | `main.ts:907` ← `nalati/weather.ts:235` ← `world/Weather.ts:70, 324` | `env.lightning`, 60, `through.walls`, toast | jolt | no → no (exempt) |
-| **Storm Titan** (spear 40, wind charge 30, fire 4 per .5 s, chain 18, whirl 15, storm wall 10) | `main.ts:923` ← `stormTitan.ts:639, 722, 831, 865, 903, 972, 1097` | `boss.storm-titan` (+ `through.walls` fire, chain, wall; `env.fire` on fire) | jolt (as today) | **no → yes (bug B3)** |
+| **Ride**: thrown / bolting horse / failed taming | `main.ts:903` ← `ride.ts:73–76`, `Mount.ts:617, 764`, `Taming.ts:254` | `env.ride`, 10 (`THROWN_DAMAGE`), `cause` `{ kind: 'env.ride', label, text }`, the text "Thrown from the saddle" (§3.1) | jolt | no → no (exempt by tag, decision 20) |
+| **Lightning** | `main.ts:907` ← `nalati/weather.ts:235` ← `world/Weather.ts:70, 324` | `env.lightning`, 60, `through.walls`, toast, `cause` `{ kind: 'env.lightning', label, text }`, the text "Struck by lightning" (§3.1) | jolt | no → no (exempt) |
+| **Storm Titan** (spear 40, wind charge 30, fire 4 per .5 s, chain 18, whirl 15, storm wall 10) | `main.ts:923` ← `stormTitan.ts:639, 722, 831, 865, 903, 972, 1097` | `boss.storm-titan` (+ `through.walls` fire, chain, wall; `env.fire` on fire), `cause` `{ kind: 'storm-titan', label }` (`main.ts:923`, §3.1) | jolt (as today) | **no → yes (bug B3)** |
 | **Fall** (hard landing: v.y < −9 m/s, cushion < .6; hover landing > 9) | `main.ts:945` ← `Player.ts:489, 647–649` | `env.fall`, 8, no source | flash only | no → no (exempt) |
 
 **The 5 hurt blocks in `main.ts` (831–841, 903, 907, 923, 945)** and the `let health` (612), the regen (1186–1187)
 and the death check (1192–1197) are deleted. What replaces them:
 1. `app.player.attributes.health` (engine).
-2. One engine listener on `damage.dealt` for `actor.player` that plays `feel.*` (above) and records the killer.
+2. One engine listener on `damage.dealt` for `actor.player` that plays `feel.*` (above) and records the killer: the
+   request's `DeathCause` (§3.1).
 3. The regen as an engine system (`engine.player.regen`, phase `update`): +4 /s after 6 s since the last request that
    was not `env.fall` (today's fall does not touch `lastHurt`, `main.ts:945` — kept, see Q6).
-4. The death: `health ≤ 0` → `emit('player.died', { cause })`; the respawn flow asks `ask('death.checkpoint')`
+4. The death: `health ≤ 0` → `emit('player.died', { cause })` with the last `DeathCause` (none after a fall); the respawn flow asks `ask('death.checkpoint')`
    (answered true by a running boss encounter: today's `pineFights.onPlayerDeath() || boss.onPlayerDeath() ||
    titan.onPlayerDeath()` chain, `main.ts:1195`), then refills (`nalatiKit.refill`, `pineLoadout.onPlayerDeath`) via
    `player.respawned` listeners.
@@ -655,9 +693,11 @@ thrall charge roll, `nalati/elites.ts` Qyran stoop interval (`ai`). Every other 
 
 ### 3.6 Pipeline tests (before S1.3; node, fake `Game`)
 
-`test/combat/damage-pipeline.test.ts`: B1–B5 above; every rule R0–R8 in isolation and in order (a boar charge 25 with
-cap 20 → 20; 40 with the captain exempt → 40; dodging with the tusk → 0; a sneak arrow → × 2 before the bolt model
-rounds; a broadhead on a boar × 1.4; Ironhide `damageTaken` .6 on a body hit, head in full); the `feel` of each path;
+`test/combat/damage-pipeline.test.ts`: B1–B5 above; every pipeline rule (R0, R0b, R2, R8, R7, R1) in isolation and
+in order (a boar charge 25 with cap 20 → 20; 40 with the captain exempt → 40; dodging with the tusk → 0; Ironhide
+`damageTaken` .6 on a body hit, head in full); every source formula with its source multipliers (a sneak arrow × 2
+inside the arrow's rounding; a broadhead on a boar × 1.4 inside the bolt's product), run through the public
+`combat.hit` and the final `applyDamage`, so an overwrite or a double application fails (R2-10); the `feel` of each path;
 the regen timing; `death.checkpoint` answered by a fake encounter; `bossGod` vetoes a boss hit and not a fall.
 `test/combat/hurt-paths.test.ts` builds one request per row of §3.3 and asserts the health delta equals today's.
 
@@ -669,7 +709,7 @@ the regen timing; `death.checkpoint` answered by a fake encounter; `bossGod` vet
 |---|---|---|---|
 | `damage.dealt` | `DamageDealt` | the pipeline | Combat floats (`ui/Combat.ts`), health bars, hit-stop / kick cues, blood, audio, player feel (§3.3), analytics |
 | `actor.died` | `{ actor: Actor; req: DamageRequest }` | the pipeline | loot (coins, trophies), compendium, quests (Spine, Ecology, Pine quest, Nalati adventure), Pine life (ravens), feats, kill feed |
-| `player.died` | `{ cause }` | the player service | death fade, analytics `death.cause`, respawn flow |
+| `player.died` | `{ cause?: DeathCause }` (§3.1) | the player service | death fade, analytics `death.cause`, respawn flow |
 | `player.respawned` | `{ at: Vec3; checkpoint: boolean }` | respawn flow | kit refill (Nalati), Pine loadout, effects cleanup |
 | `weapon.fired` | `{ id: WeaponId; move?: MoveId }` | every weapon | cues, Combat's MISS judgement, analytics `weapon.used` |
 | `weapon.hit` | `{ id; kind: string; headshot: boolean; killed: boolean }` | every weapon (after `damage.dealt`) | hit marker, Pine's big-kill trauma |
@@ -690,8 +730,8 @@ the regen timing; `death.checkpoint` answered by a fake encounter; `bossGod` vet
 
 | Ask | In → out | Answered by |
 |---|---|---|
-| `damage.modify` | `DamageRequest` → `DamageRequest \| null` (null = negated) | R0–R8 (§2.2) + brains' rules |
-| `death.checkpoint` | `{ cause }` → `boolean` | running encounters (Boss runtime) |
+| `damage.modify` | `DamageRequest` → `DamageRequest \| null` (null = negated) | R0, R0b, R2, R8, R7, R1 (§2.2) + brains' rules |
+| `death.checkpoint` | `{ cause?: DeathCause }` → `boolean` | running encounters (Boss runtime) |
 | `ai.mayAttack` | `{ actor }` → `boolean` | the aggression director (§5.5) |
 | `ai.claim` | `{ actor }` → `boolean` | the director (takes a token) |
 | `aim.target` | `{ origin; dir; max; hit }` → `TargetHit \| null` | the arena, Nalati's sheep flock, the ghost riders' torso test (`main.ts:520–526`, `nightEnemies.ts` `target`) |
@@ -866,7 +906,7 @@ stallion never below 20 % (`Herd.ts:523–529`).
 
 ### 5.5 The aggression director (engine, decision 18)
 
-| Shard | `manifest.fight.attackers` | E297 behaviours (circle / back-off, boars that stalk, WindupWarn) | src |
+| Shard | `level.fight.attackers` | E297 behaviours (circle / back-off, boars that stalk, WindupWarn) | src |
 |---|---|---|---|
 | Driftwood | 2 | on: ring boar 6.5 / bear 7.5 (default 6.5), back-off past 1.0 m for ≤ 2.2 s, cd after a hit 3.4 / a miss 2.0, break off below 25 % hp at 50 %, circle 1.7 m/s, back-off 4.2 m/s, face within .6 rad before a charge, clearance .68 m, hold rings (crab 3.6, monkey 3.4, sailor 3.0, captain 3.4) | `driftwood-isle.ts:251`, `fightRules.ts:67–109`, `AnimalManager.ts:225–231` |
 | Pine, Nalati, Nine Dragon | omitted = `Infinity` | off (today's fights) | — |
@@ -932,9 +972,9 @@ Every step: harness green → pathspec commit → `scripts/push-main.sh` (plan �
 |---|---|---|---|
 | 1 | F5 | Write §1.8, §3.6, §5.3 / §5.8 tests against today's code; extract the flight steps as pure functions (`Projectiles`, `Crossbow`, `Spear`) in one mechanical commit | tests green on today's code |
 | 2 | S1.2a | `Equipment`, `Weapon`, `Tool`, `EquipmentService` replace `Weapon.ts` / `Weapons.ts` / `BaseWeapon` on every shard; `WeaponUi` rows replace the 12 id-branch sites (§1.6) | `equipment.test.ts`, harness identical on 4 shards |
-| 3 | S1.3a | `combat.hit` + `DamageRequest` + player `health` in the engine; the 5 hurt blocks, regen and death check leave `main.ts`; R0, R0b, R1, R2, R6, R8; B5 (seeded rolls) | `damage-pipeline` + `hurt-paths` green; harness identical |
+| 3 | S1.3a | `combat.hit` + `DamageRequest` + player `health` in the engine; the 5 hurt blocks, regen and death check leave `main.ts`; R0, R0b, R1, R2, R8; each source's base formula as today (§2.2, R1-31; no R6, R2-10); B5 (seeded rolls) | `damage-pipeline` + `hurt-paths` green; harness identical |
 | 4 | S1.2b | Melee family + `SWORD_WOOD`, `SWORD_IRON`, `JIAN` (damage 12 field); `Sabre`, `Spear` (+ `Thrown`/`JAVELIN`) subclasses; **B1** fixed through the pipeline; Naizagai's crescent routed through `combat.hit` → **B2** | `melee-moves`, `weapon-profiles` (melee), B1 / B2 tests |
-| 5 | S1.3b | Effects core: E1–E14 and R3–R5, R7; cues `cue.*` from every weapon (§4.1); hit-stop on the weapon rows | `effects.test.ts` (each row's number), `keepsakes.test.ts` unchanged |
+| 5 | S1.3b | Effects core: E1–E14, the source multipliers (sneak, broadhead, golden: `SourceMulDef` rows, §2.2) and R7; cues `cue.*` from every weapon (§4.1); hit-stop on the weapon rows | `effects.test.ts` (each row's number), `keepsakes.test.ts` unchanged |
 | 6 | S1.4 | `FeiZhua extends Tool`, the `grapple` input context + LOCK / JUMP relabels; the `traversal` hook deleted | harness grapple pose identical; ND playground boots |
 | M1 | — | weapons board (§7) | Jake's go |
 | 7 | S2.2 | Bow family (`BOW` serves Nalati's bow too; `LONGBOW` as a row; ~450 Longbow lines deleted), Crossbow family (+ `AmmoRow`s), Firearm family (`AR15` row, `LeverRifle extends Firearm`); projectile, ADS, brass blocks | trajectory snapshots unchanged, `weapon-profiles` (ranged), `hitscan-damage` |
@@ -942,7 +982,7 @@ Every step: harness green → pathspec commit → `scripts/push-main.sh` (plan �
 | 9 | S2.5 | Starter effects in `#kit/effects/` + the Debug row; Blackpaw's stun on `effect.stun` | `effects.test.ts` starter rows |
 | 10 | S2.6 | Tick classes: decision 85's bands replace the 10 Hz override; strikes move to the body clock; interrupts on | `tick-rates.test.ts` |
 | M2 | — | creatures board (§7), ranged clips on the weapons board | Jake's go |
-| 11 | S3.3 | `GoldenBow extends Bow`, `Naizagai extends Sabre` via `replace`; the sabre's mounted pass and the bow's mount data verified; stealth's sneak = E10 / R3 | `weapon-profiles` (Nalati), upgrade `replace` test |
+| 11 | S3.3 | `GoldenBow extends Bow`, `Naizagai extends Sabre` via `replace`; the sabre's mounted pass and the bow's mount data verified; stealth's sneak = E10 / the sneak source multiplier (§2.2) | `weapon-profiles` (Nalati), upgrade `replace` test |
 | 12 | S3.4 | Golden King and Storm Titan on `BossBrain` (**B3**), Nalati's five elites on `EliteBrain`, wolves' `GroupBrain`, balbals, ghost riders, herds, flock | boss-phases, strike table S10–S28 |
 | M3 | — | Nalati board items (§7) | Jake's go |
 | 13 | S4.2 | crab, monkey, sailor on `StrikeSpec`; the Captain on `BossBrain` + `EncounterService.boss` (bar, arena, phases; the fight unchanged); coins / trophies on the loot tables | strike table S1–S7, `loot.test.ts` |
@@ -970,7 +1010,7 @@ answer.
 | # | Question | Resolution |
 |---|---|---|
 | Q1 | 01 §19's `StrikeSpec.shape` was a bare string with one `range` | **Resolved → 13-lead-resolutions 09#1:** `StrikeShape` = arc (radius, halfAngle) / lane (length, width) / ring (inner, outer) / wedge (length, halfAngle) / point (radius); §5.3 maps the table onto it. **Also resolved → 13 C4 / C5:** the strike's motion numbers (lane speed, ring speed, point delay …) have no `StrikeSpec` field yet |
-| Q2 | 01 §18's `EffectDef` can't express hit-dependent rules | **Resolved → 13-lead-resolutions 09#2:** `DamageRuleDef` (`when` tags + `op` cap / add / mul / negate / override + `order`), §2.2. **Also resolved → 13 C4 / C5:** R0b, R1, R3, R6 / R7 need more than a row and are plain answerers |
+| Q2 | 01 §18's `EffectDef` can't express hit-dependent rules | **Resolved → 13-lead-resolutions 09#2:** `DamageRuleDef` (`when` tags + `op` cap / add / mul / negate / override + `order`), §2.2. **Also resolved → 13 C4 / C5, R1-31, R2-10:** R0b, R1, R7 need more than a row and are plain answerers; R3–R5 are source multipliers and R6 is gone |
 | Q3 | Whetstones, the bear claw and the Golden draw modify a weapon | **Resolved → 13-lead-resolutions 09#3:** weapons carry their own `AttributeSet`; `EffectService` targets `Actor \| Equipment` (§2.1) |
 | Q4 | Today every brain runs at 10 Hz | **Resolved → 13-lead-resolutions 09#4** (Jake, decision 85): 10 Hz through S2.5 (identical); at S2.6 the 3 bands (20 / 10 / paused) + interrupts + pinned bosses / elites / quest actors + strikes on the body clock, on the creatures board (§5.7) |
 | Q5 | The horse: kit or Nalati? | **Resolved → 13-lead-resolutions 09#5:** Nalati (§5.2) |
@@ -979,5 +1019,5 @@ answer.
 | Q8 | The big crab's `chargeDamage 14` is dead data | **Resolved → 13-lead-resolutions 09#8** (Jake, decision 86): **14**, on the creatures board (§5.3) |
 | Q9 | `WeightedTable` has no "every row once" mode | **Resolved → 13-lead-resolutions 09#9:** `mode: 'weighted' \| 'each'` + `count` (§5.6) |
 | Q10 | Pine's finishes and Nalati's skins have no numbers | **Resolved → 13-lead-resolutions 09#10:** cosmetic `EffectDef` rows with no modifiers, tagged `cosmetic` (E12, E13) |
-| Q11 | `DamageRequest` has more fields here than in 01 | **Resolved → 13-lead-resolutions 09#11:** 01 takes the superset (§3.1 uses 01's names). **Also resolved → 13 C4 / C5:** `from`, `distance`, `scale`, `cause`, `toast` are not in 01 §18's type yet |
+| Q11 | `DamageRequest` has more fields here than in 01 | **Resolved → 13-lead-resolutions 09#11:** 01 takes the superset (§3.1 uses 01's names). **Also resolved → 13 C4 / C5, R2-14:** `from`, `distance`, `scale`, `cause`, `toast` are in 01 §18's type; `cause` is the one `DeathCause` (§3.1) |
 | Q12 | The Spear's 5 javelins "with the camp upgrade" are never granted | **Resolved → 13-lead-resolutions 09#12** (Jake, decision 87): **keep 3**; the unreachable promise is removed |

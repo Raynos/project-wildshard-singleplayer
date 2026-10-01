@@ -51,10 +51,13 @@ at F2's baseline.
    - Pine's loadout.ts B;
    - the E handlers in `main.ts`, QuestUI.ts and Pine's quest/ui.ts;
    - Explore / FreeCam.
-2. Delete what the actions replace: the 7 `inputAllowed()` copies (a weapon reads `input.held('attack')` only while its
-   context is on top), the fake `KeyE` from the touch USE button (`TouchControls.ts:398`), and the 20
-   enable / disable / pointer-lock sites in `main.ts`. The UI layer stack pushes `menu` (X2), so weapons stop firing
-   under a menu without a flag.
+2. Delete what the actions replace: the 7 `inputAllowed()` copies, the fake `KeyE` from the touch USE button
+   (`TouchControls.ts:398`), and the 20 enable / disable / pointer-lock sites in `main.ts`. A weapon reads its actions
+   (`input.held('attack')` …) while its context is **anywhere in the stack and not blocked**: contexts are additive
+   (01 §10, R1-29, R2-07), so a `ride`, `stealth` or Tool context on top keeps the weapon firing, and only a context
+   whose `blocks` names the action stops it (`ride.break`, `menu`). The UI layer stack pushes `menu` (X2), so weapons
+   stop firing under a menu without a flag. `test/engine/input-context.test.ts`: `weapon.melee` under a non-blocking
+   Tool or `ride` context still attacks; pushing `ride.break` or `menu` blocks it.
 3. **TouchControls draws the merged discs of the whole context stack** (EI11; contexts are additive, 01 §10, R1-29):
    a higher context's relabel wins per disc spot, and a context hides only what its `blocks` names. So `ride`,
    `stealth` or a Tool's context on top keeps the weapon's discs working. The weapon-id sets go and become each
@@ -69,7 +72,7 @@ at F2's baseline.
    not rebindable (a decision, not an omission). No gamepad (38).
 6. **Buffer + coyote** (40). Parameters:
    - `input.buffer.ms = 120` and motor `coyoteMs = 100`;
-   - both are per-shard overridable via `manifest.fight.input = { bufferMs, coyoteMs }`;
+   - both are per-shard overridable via `level.fight.input = { bufferMs, coyoteMs }`;
    - defaults on for all shards.
    The Sword's combo queue (`Sword.ts:481,564`) becomes `input.consume('attack')` inside the Melee family, with the
    same `CHAIN_LAG` 0.02 s. The harness's scripted combo must stay identical.
@@ -132,12 +135,12 @@ at F2's baseline.
      Nalati MAP · GEAR · FINDS · FEATS; Pine per its E314 pick C; Nine Dragon MAP · GEAR).
 5. **Shard data leaves `src/ui` and Explore** (EI16). Each piece goes to its new home:
    - the title cards and art go to `manifest.card`;
-   - the minimap palettes (`Minimap.ts:104,335,515-517`) go to `manifest.map.palette`;
+   - the minimap palettes (`Minimap.ts:104,335,515-517`) go to `level.minimap.palette`;
    - the respawn text (`HurtArc.ts:89-90`) goes to the shard's string table;
    - the gated debug rows (`debugOptions.ts:68-69`, 9 of 15) go to plugins' `ctx.debugRow`;
    - RideHUD goes to Nalati's folder;
    - `compendium/shards/pine-hollow.ts` goes to Pine's folder;
-   - `Loading.ts:45` becomes manifest boot data.
+   - `Loading.ts:45` becomes boot data the engine reads as `level.boot` (R2-02).
 6. The ~10 hand-kept gates on `weapons.setEnabled` / `game.frameGate` follow the layer stack.
 
 **Tests**
@@ -161,7 +164,7 @@ branches in `src/engine/boot/` and adds the checks.
 
 **Steps**
 1. **The stages** (01 §8) replace `STEP_INFO`'s 16 fixed keys. The loading bar's labels and weights come from
-   `manifest.boot.steps`.
+   `level.boot.steps`.
 2. **`boot.files(tier)`, `boot.audio`, `boot.explore` and `boot.precache`** are the only sources for the pack
    manifest, the prefetch, the offline list and the Explore preload.
    - `src/engine/boot/manifest.ts`, `extras.ts`, `shardPrefetch.ts` and `audioFiles.ts` hold no shard branch.
@@ -206,9 +209,9 @@ branches in `src/engine/boot/` and adds the checks.
 9. **The shard chunk goes through the E188 retry.** `retried()` moves from `src/entry.ts` (the composition root, where
    F6 left it) to `src/engine/boot/retry.ts`, a leaf module with no imports. `src/entry.ts` imports it back by that deep
    path (`#engine/boot/retry`, never the `#engine` index, so the entry's first task stays as small as today; the
-   composition root is outside the layer rule, F4). The staged boot
-   wraps `manifest.load()` and the `render()` import in it too (01 §7 load order), so a shard chunk dropped
-   mid-download on LTE gets the same two retries (0.8 s, 2.5 s) as `three` and `main` do today.
+   composition root is outside the layer rule, F4). `#game`
+   wraps `manifest.load()` in it, and the engine's staged boot wraps the `level.look()` import (01 §5a, §7 load
+   order), so a shard chunk dropped mid-download on LTE gets the same two retries (0.8 s, 2.5 s) as `three` and `main` do today.
 10. **The E188 re-test on the newest installed iOS runtime** (EF10 flagged iOS 27's rewritten module loader; the Mac
     has iOS 26.5 today, so the check runs on the newest runtime `xcrun simctl list runtimes` shows, and Jake's physical
     phone confirms it at the next milestone (R1-51)). `scripts/ios-retry-check.mjs` serves the
@@ -295,7 +298,7 @@ also gets a byte-identical vertex-colour test on one model per baker.
    `RenderService` handle. `wildshard/no-renderer-type` goes to 0.
 2. All 87 `onBeforeCompile` sites go through `ShaderPatches.patch(mat, id, order, fn, scope)`, with explicit order. A
    test compiles every patched material twice and compares the source: the patch order must be stable.
-3. **One `precompile()`** in `#engine/render`. Shards list their materials in `manifest.boot.shaders`.
+3. **One `precompile()`** in `#engine/render`. Shards list their materials in `level.boot.shaders`.
 4. **An inventory doc** `docs/design/webgpu-port-inventory.md`, updated by a script: the 112 `ShaderMaterial` uses, the
    16 `postprocessing` files, each patch id. That turns a future port into a checklist.
 5. No TSL, no WebGPURenderer.
@@ -378,12 +381,23 @@ also gets a byte-identical vertex-colour test on one model per baker.
    - The next boot classifies the last session: clean exit, crash (an error with no clean exit), context loss, or a
      likely OOM (heartbeat stopped mid-play with no error).
    - It posts to **`api/telemetry`** (a new Vercel function beside `api/inbox.ts` and `api/errors.ts`, storing to the
-     same `@vercel/blob` store under `telemetry/<yyyy-mm-dd>/`) with the build id.
-   - `.claude/hooks/session-brief.sh` prints the crash-free-session rate per build (last 3 builds).
+     same `@vercel/blob` store under `telemetry/<yyyy-mm-dd>/`) with the build id. The `POST` needs no secret (every
+     player's game reports, as `api/errors.ts`'s does). **Each write deletes the blobs older than 30 days** (R2-24), so
+     the store keeps 30 days with no cron.
+   - **The read path (R2-24).** `api/telemetry` gets a `GET` behind the same secret gate as `api/errors.ts`'s `GET`
+     (the `x-review-password` header, checked by its constant-time `passwordOk` against `REVIEW_PASSWORD`; 503 when
+     unset, 401 when wrong). It computes **server-side**: `GET ?rate=builds&n=3` → the crash-free-session rate per
+     build for the last 3 builds (`{ build, sessions, crashFree }`), and `GET ?digest=<yyyy-mm-dd>` → that day's
+     analytics digest (counts of `death.cause`, `quest.step`, `weapon.used`, `boss.attempt` outcomes; `shard.time`
+     medians).
+   - `.claude/hooks/session-brief.sh` calls both with the secret read from **`~/.config/wildshard/telemetry.key`**
+     (absent → it prints "telemetry: no key" and goes on) and prints the crash-free rate per build (last 3 builds)
+     and yesterday's digest.
 2. **Analytics sink.** `#engine/analytics` subscribes to the events in 01 §23 (`death.cause`, `quest.step`,
    `weapon.used`, `shard.time`, `boss.attempt`). It batches every 30 s and on `pagehide` to `api/telemetry` (the same
-   function, `kind: 'analytics'`), with no personal data and a random per-install id (a `device` key). A daily digest
-   goes in the session brief, and the function keeps 30 days of blobs.
+   function, `kind: 'analytics'`), with no personal data and a random per-install id (a `device` key). The daily
+   digest is the `GET ?digest=` above (computed server-side) and goes in the session brief; the 30-day retention is the
+   cleanup on each write (step 1).
 3. **Capture mode.** `clock.setCapture(fps)` and seeded streams (built at F8). X8 ports `steam-trailer/capture.mjs` and
    the board-clip script onto it and deletes the `performance.now` patch.
 4. **Strings.** Every player-facing string still inline in `src/engine/**` moves to `#engine/strings`. Shards moved
@@ -410,7 +424,8 @@ also gets a byte-identical vertex-colour test on one model per baker.
    - AGENTS.md's "No URL switches" recipe (step 2, the `opt(…)` row) gains the two fields in the same commit.
 
 **Tests**
-- Node: the session classifier on fixture heartbeats; the sink's batching; the string tables' completeness (every key
+- Node: the session classifier on fixture heartbeats; the sink's batching; `api/telemetry`'s `GET` (no / wrong
+  `x-review-password` → 401, the rate and the digest from fixture blobs) and its 30-day cleanup on a `POST`; the string tables' completeness (every key
   used exists); the flag-hygiene test above on a fixture registry (an unknown ask fails, a `reviewBy` 91 days out
   fails, an overdue row is listed and passes, a row over `max` without a `raisedBy` entry fails).
 - The harness asserts that the analytics requests fire (mocked `api/`).
