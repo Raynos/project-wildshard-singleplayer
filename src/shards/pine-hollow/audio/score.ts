@@ -13,6 +13,7 @@ const sources = new WeakMap<Music, PineScore>();
 
 /** Scene, style, phase and reward policy for the existing Pine recordings. */
 export class PineScore implements ScoreSource {
+  readonly base = 'pine';
   readonly slots = ['pine', 'night', 'boss'];
   readonly minFade = 0;
   readonly stings = new Map<StemSting, AudioBuffer>();

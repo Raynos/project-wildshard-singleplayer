@@ -10,6 +10,8 @@ import { IslandAmbience } from './ambience';
 import { ShrineHum } from './shrineHum';
 import { driftwoodCueMap } from './cues';
 import { installDriftwoodScore } from './score';
+import { driftwoodSampleDecoder } from './files';
+import { driftwoodAudioSystems } from './systems';
 
 /** Runs in level.play after the shell supplies its host. Constructors make no cosmetic draws. */
 export async function installDriftwoodAudio(ctx: ShardContext): Promise<void> {
@@ -17,6 +19,7 @@ export async function installDriftwoodAudio(ctx: ShardContext): Promise<void> {
   if (shell?.world === undefined || shell.world === null || shell.play === null) throw new Error('Driftwood audio requires its play host');
   const { game, sky, player } = shell.world, { audio, music } = shell.play;
   installDriftwoodScore(audio, music, ctx.scope);
+  audio.installSampleDecoder(await driftwoodSampleDecoder(), ctx.scope);
   const built = driftwoodWorld(shell), { trailDistance } = await loadWorldContent();
   const shrineHum = built.shrine === null ? null : new ShrineHum(audio, music, { x: SHRINE.x, y: heightAt(SHRINE.x, SHRINE.z) + 2.5, z: SHRINE.z });
   const islandSfx = new IslandSfx(audio, ctx.scope);
@@ -37,12 +40,7 @@ export async function installDriftwoodAudio(ctx: ShardContext): Promise<void> {
   // Water callbacks stay synchronous: dive/surface synth, plunge bank, mixer, zoned bed, score.
   const previousUnderwater = audio.setUnderwater.bind(audio);
   audio.setUnderwater = (on) => { previousUnderwater(on); ambience.setUnderwater(on); };
-  ctx.system({ id: 'shard.driftwood.dusk', phase: 'update', after: ['shard.driftwood.enemies'], before: ['main.world'], run: () => {
-    const clock = sky.dayNight;
-    if (clock) { built.shrine?.setDusk(clock.dusk); ambience.night = clock.night; }
-  } });
-  ctx.system({ id: 'shard.driftwood.shrineHum', phase: 'update', after: ['engine.audio.listener'], before: ['main.frame'], run: () => { shrineHum?.update(game.camera); } });
-  ctx.system({ id: 'shard.driftwood.ambience', phase: 'update', after: ['shard.driftwood.shrineHum'], before: ['main.frame'], run: (dt) => { ambience.update(dt, game.camera); } });
+  driftwoodAudioSystems(ctx, game.camera, { clock: () => sky.dayNight, shrine: built.shrine, hum: shrineHum, ambience });
   const handles = { shrineHum, islandSfx, surfaces, ambience };
   Object.assign(shell.objects, handles);
   ctx.debug.expose('driftwood.audio', handles);

@@ -7,6 +7,8 @@ export type AudioDecode = (bytes: ArrayBuffer) => Promise<AudioBuffer>;
 export interface ScoreBank { slots: Map<string, SlotAudio>; stings: Map<StemSting, AudioBuffer> }
 export interface ScoreSource {
   readonly slots: readonly string[];
+  /** The base-style slot used by this source before its scene-specific recordings. */
+  readonly base?: string;
   readonly minFade?: number;
   readonly phase?: BossPhase;
   readonly sceneName?: string;

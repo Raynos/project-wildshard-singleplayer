@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { Vector3 } from 'three';
+import { Camera, Vector3 } from 'three';
 import { Audio } from '#engine/audio/Audio';
 import { tap } from '#engine/core/harnessTap';
 import { IslandAmbience } from '../../../src/shards/driftwood-isle/audio/ambience';
@@ -9,6 +9,8 @@ import { SurfaceMap } from '../../../src/shards/driftwood-isle/audio/surface';
 import { DriftwoodScore } from '../../../src/shards/driftwood-isle/audio/score';
 import { Scope } from '#engine/app/scope';
 import { Events } from '#engine/events/events';
+import { sortSystems, type SystemSpec } from '#engine/app/systems';
+import { driftwoodAudioSystems } from '../../../src/shards/driftwood-isle/audio/systems';
 
 // E357 S4.3 (08 §6.3 C): the island's bed, gulls and voices left the engine mixer for Driftwood's audio folder.
 describe("Driftwood's island audio on the engine mixer", () => {
@@ -101,5 +103,24 @@ describe("Driftwood's island audio on the engine mixer", () => {
     expect(score.pending).toBe(false);
     scope.dispose(); score.dispose();
     expect(score.want(undefined)).toBeUndefined();
+  });
+
+  it('retains dusk before hands/enemies and weapons, pickups, listener, hum, ambience, interactions even when plugin systems register last', () => {
+    const calls: string[] = [], systems: SystemSpec[] = [], camera = new Camera();
+    const add = (id: string, run: () => void, after: string[] = [], before: string[] = []): void => {
+      systems.push({ id, phase: 'update', after, before, run });
+    };
+    add('main.world', () => { calls.push('boundary', 'hands', 'enemies'); });
+    add('engine.creatures.update', () => { calls.push('animals'); }, ['main.world'], ['main.equipment']);
+    add('main.equipment', () => { calls.push('weapons', 'pickups'); }, ['engine.creatures.update'], ['engine.audio.listener']);
+    add('engine.audio.listener', () => { calls.push('listener'); }, ['main.equipment'], ['main.frame']);
+    add('main.frame', () => { calls.push('otherAudio', 'interactions'); }, ['engine.audio.listener']);
+    const ambience = { night: 0, update: (dt: number, view: Camera): void => { expect(dt).toBe(0.02); expect(view).toBe(camera); calls.push(`ambience:${ambience.night}`); } };
+    driftwoodAudioSystems({ system: (s) => { systems.push(s); } }, camera, {
+      clock: () => ({ dusk: 0.7, night: 0.4 }), shrine: { setDusk: (d) => { calls.push(`dusk:${d}`); } },
+      hum: { update: (view) => { expect(view).toBe(camera); calls.push('hum'); } }, ambience,
+    });
+    for (const s of sortSystems(systems)) s.run(0.02, 0);
+    expect(calls).toEqual(['dusk:0.7', 'boundary', 'hands', 'enemies', 'animals', 'weapons', 'pickups', 'listener', 'hum', 'ambience:0.4', 'otherAudio', 'interactions']);
   });
 });

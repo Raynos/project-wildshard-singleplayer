@@ -35,7 +35,6 @@ import { tap, ambientTick } from '../core/harnessTap';
 // (the Driftwood shrine's −3 dB, src/shards/driftwood-isle/audio/shrineHum.ts).
 //
 import type { Audio } from './Audio';
-import { getActiveChunk } from '#game/shard/registry';
 import { asShell, shell } from '../app/legacyCapture';
 import { getNumber, setNumber, onNumber, getMusicStyle, onMusicStyle, type MusicStyle } from '../ui/Settings';
 import { Deck, decodeStyle, type BossPhase, type SlotAudio, type SlotName, type StyleBank } from './Stems';
@@ -491,8 +490,8 @@ export class Music {
   /** ctx + the music bus (`volume` × the Settings 'music' slider → duck → audio.master) + the engine + the stems' bus, built on
    *  first use (play, after the first gesture) so boot never creates the AudioContext; state set before then waits in `pending` */
   private rig: { ctx: AudioContext; out: GainNode; duckGain: GainNode; engine: Engine; stemBus: GainNode } | undefined;
-  /** the shard comes from the active chunk (like Audio's bed): Driftwood, the default chunk, is 'island' — PH-0.4 B8 */
-  private pending: MusicState = { shard: getActiveChunk().ocean ? 'island' : 'pine', mode: 'menu', intensity: 0, underwater: false };
+  /** The installed source owns the level's slot; the title is the common menu slot. */
+  private pending: MusicState = { shard: '', mode: 'menu', intensity: 0, underwater: false };
   private timer = 0;
   private _volume: number;
   private playing: ArrangementName | undefined;
@@ -650,7 +649,7 @@ export class Music {
   /** the slot of the base set: the title on the menu, else the shard's theme (Pine Hollow's night / boss fall back to 'pine') */
   private baseSlot(): SlotName | null {
     const s = this.state;
-    return s.mode === 'menu' ? 'title' : themeSlot(s.shard);
+    return s.mode === 'menu' ? 'title' : this.source?.base ?? themeSlot(s.shard);
   }
   private tension(): number { return TENSION[this.state.mode]; }
 
@@ -665,7 +664,7 @@ export class Music {
       const playing = this.deck && source.slots.includes(this.deck.slot) ? this.deck.slot : undefined;
       const a = source.want(playing);
       if (a === undefined) { if (!source.pending || !this.deck) this.toSynth(now); return; }
-      if (this.deck?.slot === a.slot) { this.deck.setPhase(source.phase ?? 1, now); return; }
+      if (this.deck?.slot === a.slot && this.deck.style === a.style) { this.deck.setPhase(source.phase ?? 1, now); return; }
       this.startDeck(a, playing === undefined ? 0 : source.minFade ?? 6);
       return;
     }
