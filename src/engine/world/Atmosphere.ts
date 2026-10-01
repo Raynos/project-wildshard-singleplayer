@@ -2,6 +2,7 @@
 // Implemented by overriding three's fog shader chunks so *every* fogged material
 // (terrain, instanced trees, glTF props, animals) gets it for free.
 import * as THREE from 'three';
+import { setInheritedPatch } from '../render/shaderPatches';
 
 export const fogUniforms = {
   fogSunDir: { value: new THREE.Vector3(0, 1, 0) },
@@ -134,8 +135,7 @@ export function installAtmosphere(policy: { edgeHaze?: boolean; wetSurfaces?: bo
   }
 
   // Inject the shared uniform objects into every material that compiles with fog.
-  const proto = THREE.Material.prototype as unknown as { onBeforeCompile: (s: THREE.WebGLProgramParametersWithUniforms) => void };
-  proto.onBeforeCompile = function onBeforeCompile(shader) { attachFogUniforms(shader); };
+  setInheritedPatch((shader) => { attachFogUniforms(shader); });
 }
 
 export function attachFogUniforms(shader: { uniforms: Record<string, THREE.IUniform> }): void {

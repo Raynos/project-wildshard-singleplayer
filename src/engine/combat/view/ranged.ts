@@ -10,6 +10,7 @@ import { castSegment, sweepBall, type Hit } from '#engine/physics/query';
 import { attachFogUniforms } from '#engine/world/Atmosphere';
 import type { Material } from '#engine/physics/surface';
 import { makePixels, clamp01, CROSSBOW_SETS, RIFLE_SETS, type Pixels, type SetName, type Ctx2D } from '#engine/player/viewmodelTextures';
+import { PATCH_ORDER, patchShader } from '../../render/shaderPatches';
 
 export type { ImpactSurface } from '#engine/combat/Weapon';
 export type { TargetAnimal, TargetHit, Targets } from '#engine/combat/types';
@@ -148,14 +149,13 @@ const DFG_FIX = /* glsl */`
 #endif
 #include <lights_fragment_begin>`;
 export function fixIBL(mat: THREE.Material, name: string): void {
-  mat.onBeforeCompile = function onBeforeCompile(shader) {
+  patchShader(mat, 'engine.ranged-dfg', PATCH_ORDER.material, (shader) => {
     // this replaces the prototype hook (Atmosphere.ts) that hands every fogged material the shared fog uniforms: attach them
     // here, or a level fog's samplers (a painted fog's fogCloudTex / fogLutV2) stay unbound on unit 0 next to the shadow map's
     // sampler2DShadow — "two textures of different types use the same sampler location", and WebGL drops the draw
     attachFogUniforms(shader);
     shader.fragmentShader = shader.fragmentShader.replace('#include <lights_fragment_begin>', DFG_FIX);
-  };
-  mat.customProgramCacheKey = () => `${name}|dfgfix`;
+  }, { mode: 'replace', key: `${name}|dfgfix` });
 }
 
 export const VIEWMODEL_GROUP = 'viewmodel';

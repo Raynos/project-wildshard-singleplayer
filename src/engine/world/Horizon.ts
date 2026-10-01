@@ -6,6 +6,7 @@ import { PaintedHorizon, horizonStrips } from './HorizonMatte';
 import type { Sky } from './Sky';
 import { getActiveChunk } from '#game/shard/registry';
 import type { ChunkHorizon } from '#game/shard/manifest';
+import { PATCH_ORDER, patchShader } from '../render/shaderPatches';
 
 /**
  * The far light, shared by every ring and the cloud sea: the fixed skies keep these values; Pine Hollow's day / night clock
@@ -144,7 +145,7 @@ export class Horizon {
   /** the ridge rings' material: Lambert + vertex colour, fogged, then dissolved into a cool haze (warmer toward the sun) */
   private ridgeMaterial(ri: number, haze: number, hazeColor: THREE.Color): THREE.MeshLambertMaterial {
     const mat = new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide });
-    mat.onBeforeCompile = (shader) => {
+    patchShader(mat, 'engine.horizon-ridge-painted', PATCH_ORDER.material, (shader) => {
       attachFogUniforms(shader);
       shader.uniforms['uHaze'] = { value: haze }; // per ring as a uniform, so the rings share one program
       shader.uniforms['uHazeCol'] = { value: hazeColor };
@@ -163,9 +164,8 @@ export class Horizon {
             vec3 cloudCol = mix(vec3(0.82, 0.83, 0.88), fogSunColor, 0.2 + 0.3 * sunAmt) * mix(1.0, 0.8, smoothstep(-190.0, -260.0, vFogWorldPos.y));
             gl_FragColor.rgb = mix(gl_FragColor.rgb, cloudCol, wrap * 0.92);
           }`);
-    };
+    }, { mode: 'replace', key: 'ridge-painted' }); // not 'ridge': the default rings' shader differs (fixed haze colour)
     mat.name = `ridge${ri}`;
-    mat.customProgramCacheKey = () => 'ridge-painted'; // not 'ridge': the default rings' shader differs (fixed haze colour)
     this.sky.setupMaterial(mat);
     return mat;
   }
@@ -223,7 +223,7 @@ export class Horizon {
       geo.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
       geo.setIndex(idx);
       const mat = new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide });
-      mat.onBeforeCompile = (shader) => {
+      patchShader(mat, 'engine.horizon-ridge', PATCH_ORDER.material, (shader) => {
         attachFogUniforms(shader);
         shader.uniforms['uHaze'] = { value: ring.haze }; // per ring as a uniform, so the three rings share one program
         if (!ocean) shader.uniforms['uHazeCol'] = horizonLight.uHazeCol; // the open-water shard's source stays byte-for-byte (its constant haze)
@@ -237,9 +237,8 @@ export class Horizon {
             vec3 hazeCol = mix(${ocean ? 'vec3(0.5, 0.58, 0.74)' : 'uHazeCol'}, fogSunColor * 0.9, pow(sunAmt, 3.0) * 0.7);
             gl_FragColor.rgb = mix(gl_FragColor.rgb, hazeCol, uHaze);
           }`);
-      };
+      }, { mode: 'replace', key: 'ridge' });
       mat.name = `ridge${ri}`;
-      mat.customProgramCacheKey = () => 'ridge';
       this.sky.setupMaterial(mat);
       const mesh = new THREE.Mesh(geo, mat);
       mesh.frustumCulled = false;

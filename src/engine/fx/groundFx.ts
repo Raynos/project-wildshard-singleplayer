@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { setProgramKey } from '../render/shaderPatches';
 
 export const FX = { shaft: 0, flame: 1, ring: 2, stream: 3, dome: 4, beam: 5, decal: 6, curtain: 7, streak: 8 } as const;
 export type FxMode = (typeof FX)[keyof typeof FX];
@@ -78,7 +79,7 @@ export function fxMaterial(mode: FxMode, color: THREE.ColorRepresentation, alpha
     blending: additive ? THREE.AdditiveBlending : THREE.NormalBlending,
   }) as FxMaterial;
   // one program for every ground fx material (the parity probe keys programs by their compiled sources, not this key)
-  m.customProgramCacheKey = () => 'ground-fx';
+  setProgramKey(m, 'ground-fx');
   return m;
 }
 

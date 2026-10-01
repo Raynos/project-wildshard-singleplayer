@@ -7,6 +7,7 @@
  * on every shard at every hour. No scene light is added (no shard-wide shader recompile), no shadow map.
  */
 import * as THREE from 'three';
+import { PATCH_ORDER, patchShader } from '../render/shaderPatches';
 
 /** Shared by every dummy material: one program for all three figures. */
 const uniforms = {
@@ -118,11 +119,10 @@ export function applyDummyStudio(root: THREE.Object3D, renderer: THREE.WebGLRend
       // Driftwood's toon patch (its look's lighting) finds its sun by direction; the studio set has no sun: opt out
       material.defines = { ...material.defines, NO_TOON: '' };
       if (chunk !== null) {
-        material.onBeforeCompile = (shader) => {
+        patchShader(material, 'engine.dummy-studio', PATCH_ORDER.material, (shader) => {
           Object.assign(shader.uniforms, uniforms);
           shader.fragmentShader = DECLS + shader.fragmentShader.replace('#include <lights_fragment_begin>', chunk);
-        };
-        material.customProgramCacheKey = () => 'ws-dummy-studio-1';
+        }, { mode: 'replace', key: 'ws-dummy-studio-1' });
       } else {
         material.emissive.setScalar(0.12); // three changed the chunk: keep the figure readable, unlit-ish
       }

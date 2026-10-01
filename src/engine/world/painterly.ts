@@ -55,6 +55,7 @@
 import * as THREE from 'three';
 import { attachFogUniforms } from './Atmosphere';
 import type { Sky } from './Sky';
+import { PATCH_ORDER, patchShader } from '../render/shaderPatches';
 
 export interface PainterlyOpts {
   color?: THREE.ColorRepresentation;
@@ -287,7 +288,7 @@ export function painterlyMaterial(sky: Sky | null, opts: PainterlyOpts = {}): TH
   };
   mat.userData['painterly'] = own; // per-material knobs: `mat.userData.painterly.uPRim.value = …` retunes live
   knobs.set(mat, own);
-  mat.onBeforeCompile = (shader) => {
+  patchShader(mat, 'engine.painterly', PATCH_ORDER.material, (shader) => {
     attachFogUniforms(shader);
     Object.assign(shader.uniforms, own, painterlyUniforms);
     shader.vertexShader = shader.vertexShader
@@ -297,8 +298,7 @@ export function painterlyMaterial(sky: Sky | null, opts: PainterlyOpts = {}): TH
       .replace('#include <lights_lambert_pars_fragment>', FRAG_PARS)
       .replace('#include <aomap_fragment>', FRAG_RIM)
       .replace('#include <envmap_fragment>', ''); // no sky reflection: the painted look is diffuse only
-  };
-  mat.customProgramCacheKey = () => 'painterly';
+  }, { mode: 'replace', key: 'painterly' });
   mat.onBeforeRender = (_r, _s, _c, geometry) => { ensureColor(geometry); };
   sky?.setupMaterial(mat);
   return mat;

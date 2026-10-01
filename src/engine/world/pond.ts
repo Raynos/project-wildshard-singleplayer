@@ -8,6 +8,7 @@ import { SEED } from '../core/config';
 import { createWaterMaterial, buildSkyline } from './waterSurface';
 import { patchWindField } from './wind';
 import type { TreeInstance } from './forest/placement';
+import { PATCH_ORDER, patchShader } from '../render/shaderPatches';
 
 // ── the lily pads ────────────────────────────────────────────────────────────────────────────────────────────────────
 
@@ -80,7 +81,7 @@ function buildLilies(sky: Sky, exclusions: readonly { x: number; z: number; r: n
   geo.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
   geo.setAttribute('aPad', new THREE.Float32BufferAttribute(pad, 3));
   const mat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.6, metalness: 0, side: THREE.DoubleSide });
-  mat.onBeforeCompile = (shader) => {
+  patchShader(mat, 'engine.pond-lilies', PATCH_ORDER.material, (shader) => {
     patchWindField(shader);
     shader.vertexShader = shader.vertexShader
       .replace('#include <common>', '#include <common>\nattribute vec3 aPad;')
@@ -94,8 +95,7 @@ function buildLilies(sky: Sky, exclusions: readonly { x: number; z: number; r: n
           transformed.xz = aPad.xy + vec2( c * rel.x - s * rel.y, s * rel.x + c * rel.y ) + windDirXZ() * 0.04 * g * ( 0.6 + 0.4 * sin( uWindTime * 0.3 + aPad.z ) );
           transformed.y += 0.006 * g * sin( uWindTime * 1.7 + aPad.z * 1.3 + rel.x * 9.0 );
         }`);
-  };
-  mat.customProgramCacheKey = () => 'ph-lilies';
+  }, { mode: 'replace', key: 'ph-lilies' });
   sky.setupMaterial(mat);
   const mesh = new THREE.Mesh(geo, mat);
   mesh.name = 'lily-pads';

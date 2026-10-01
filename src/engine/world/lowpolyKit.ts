@@ -22,6 +22,7 @@ import { Rng } from '../core/rng';
 import type { Sky } from './Sky';
 import { patchSway, swayByHeight } from './wind';
 import { attachFogUniforms } from './Atmosphere';
+import { PATCH_ORDER, patchShader } from '../render/shaderPatches';
 
 export type ColorLike = THREE.Color | string;
 
@@ -547,8 +548,7 @@ export function lowPolyMaterial(sky: Sky, variant = 'default', init?: (m: THREE.
     m = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.88, metalness: 0, side: THREE.DoubleSide });
     // every kit model can sway (M5): geometry without aSway reads weight 0 and stays put
     // csm.lightDirection is the one vector the day / night clock copies the sun (or the moon) into, so the uniform follows it
-    m.onBeforeCompile = (sh) => { attachFogUniforms(sh); patchSway(sh); patchShadowNormal(sh, sky.csm.lightDirection); };
-    m.customProgramCacheKey = () => `lowpoly-${variant}`;
+    patchShader(m, 'engine.lowpoly-kit', PATCH_ORDER.material, (sh) => { attachFogUniforms(sh); patchSway(sh); patchShadowNormal(sh, sky.csm.lightDirection); }, { mode: 'replace', key: `lowpoly-${variant}` });
     init?.(m);
     sky.setupMaterial(m);
     bySky.set(variant, m);

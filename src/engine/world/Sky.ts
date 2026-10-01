@@ -18,6 +18,7 @@ import { patchPointLightSkip } from './pointLightSkip';
 import type { DayCycleClock } from './dayCycle';
 import { ShadowMaps } from './shadowVariants';
 import type { LookStrategy, SkyBackdrop, SkyBackdropContext, SkyBackdropPost, SkyDressing } from '../render/look';
+import { PATCH_ORDER, hasProgramKey, patchShader, takeForeignHook } from '../render/shaderPatches';
 import { horizonLight } from './Horizon';
 import { loadLUT } from './lut';
 import type { LookupTexture } from 'postprocessing';
@@ -240,7 +241,7 @@ export class Sky {
   private static fillers: { white: THREE.DataTexture; flatNormal: THREE.DataTexture } | null = null;
   private static fillSlots(mat: THREE.Material) {
     const m = mat as THREE.MeshStandardMaterial;
-    if (!m.isMeshStandardMaterial || Object.hasOwn(mat, 'customProgramCacheKey')) return;
+    if (!m.isMeshStandardMaterial || hasProgramKey(mat)) return;
     if (!Sky.fillers) {
       const tex = (rgb: [number, number, number], srgb: boolean) => { const t = new THREE.DataTexture(new Uint8Array([...rgb, 255]), 1, 1); if (srgb) t.colorSpace = THREE.SRGBColorSpace; t.needsUpdate = true; return t; };
       Sky.fillers = { white: tex([255, 255, 255], true), flatNormal: tex([128, 128, 255], false) };
@@ -258,14 +259,10 @@ export class Sky {
     if (this.materials.has(mat)) return;
     this.materials.add(mat);
     Sky.fillSlots(mat);
-    const own = mat.onBeforeCompile.bind(mat);
-    this.csm.setupMaterial(mat);
-    const csmHook = mat.onBeforeCompile.bind(mat);
+    const csmHook = takeForeignHook(mat, () => { this.csm.setupMaterial(mat); });
     const fade = this.shadowFade !== null;
     if (this.shadowFade) mat.defines = { ...mat.defines, CSM_GHOSTS: this.shadowFade.ghosts.length }; // E147: the cascades mix in the fade's ghost shadows
-    mat.onBeforeCompile = (shader, renderer) => { own(shader, renderer); csmHook(shader, renderer); if (fade) shader.uniforms['uSunFade'] = sunFadeUniform; };
-    const key = mat.customProgramCacheKey.bind(mat);
-    mat.customProgramCacheKey = () => `${key()}|csm`;
+    patchShader(mat, 'engine.csm', PATCH_ORDER.shadows, (shader, renderer) => { csmHook(shader, renderer); if (fade) shader.uniforms['uSunFade'] = sunFadeUniform; }, { key: (k) => `${k}|csm` });
     mat.needsUpdate = true;
   }
 

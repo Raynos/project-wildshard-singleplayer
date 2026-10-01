@@ -10,6 +10,7 @@ import { setLowPoly } from './species/loft';
 import { facetGeometry, lowPolyMaterials, oneMaterial, patchEyeGlow } from './lowpoly';
 import type { EyeSpot } from './species/look';
 import { app } from '../app/runtime';
+import { PATCH_ORDER, patchShader } from '../render/shaderPatches';
 
 // every species file registers itself on import: drop `src/engine/entities/species/<kind>.ts` in and it exists
 import.meta.glob(['./species/*.ts', '!./species/registry.ts', '!./species/loft.ts', '!./species/look.ts'], { eager: true });
@@ -424,7 +425,7 @@ export class AnimalFactory {
    * and its normal map (the fern clumps), y glows cyan (the glass eyes) — one more program, only while a thrall exists.
    */
   private patchFur(fur: THREE.MeshPhysicalMaterial, rim: THREE.Color, shell?: ShellLayer, shellIndex = -1, thrall = false): void {
-    fur.onBeforeCompile = (shader) => {
+    patchShader(fur, 'engine.animal-fur', PATCH_ORDER.material, (shader) => {
       if (thrall) {
         shader.vertexShader = shader.vertexShader
           .replace('#include <clipping_planes_pars_vertex>', `#include <clipping_planes_pars_vertex>
@@ -481,8 +482,7 @@ export class AnimalFactory {
             if ( strand < shellT ) discard;
             diffuseColor.rgb *= shellDark;`);
       }
-    };
-    fur.customProgramCacheKey = () => `animal-fur${shell !== undefined ? `-shell${shellIndex}` : ''}${thrall ? '-thrall' : ''}`;
+    }, { mode: 'replace', key: `animal-fur${shell !== undefined ? `-shell${shellIndex}` : ''}${thrall ? '-thrall' : ''}` });
   }
 
   /** Fur-shell meshes for one rig: SHELL_LAYERS SkinnedMeshes sharing geometry + skeleton, parented to the body mesh, all hidden. [] in 'toon'. */

@@ -28,6 +28,7 @@ import * as THREE from 'three';
 import { patchWindField, windUniforms, WIND_DIR } from './wind';
 import type { Sky } from './Sky';
 import type { TreeInstance } from './forest/placement';
+import { PATCH_ORDER, patchShader } from '../render/shaderPatches';
 
 /** the skyline texture's encoding: R = occluder top above the water (/ SKY_TOP m), G = its distance (/ SKY_DIST m) */
 const SKY_TOP = 80, SKY_DIST = 400, SKY_BINS = 512;
@@ -215,7 +216,7 @@ export function createWaterMaterial(sky: Sky, opts: WaterMaterialOptions): Water
     color: 0xffffff, roughness: 0.04, metalness: 0, ior: 1.333, transparent: true, depthWrite: false,
     normalMap: tex, normalScale: new THREE.Vector2(1, 1),
   });
-  mat.onBeforeCompile = (shader) => {
+  patchShader(mat, 'engine.pond-water', PATCH_ORDER.material, (shader) => {
     patchWindField(shader);
     Object.assign(shader.uniforms, u);
     shader.vertexShader = shader.vertexShader
@@ -236,8 +237,7 @@ export function createWaterMaterial(sky: Sky, opts: WaterMaterialOptions): Water
       .replace('#include <fog_fragment>', `vec3 preFog = gl_FragColor.rgb;
         #include <fog_fragment>
         gl_FragColor.rgb = mix( preFog, gl_FragColor.rgb, 0.5 );`);
-  };
-  mat.customProgramCacheKey = () => 'ph-water';
+  }, { mode: 'replace', key: 'ph-water' });
   sky.setupMaterial(mat);
   return { material: mat };
 }

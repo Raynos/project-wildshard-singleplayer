@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { loft, S, srgb, mix, sstep, type Paint } from './species/loft';
 import type { VariantDef } from './species/registry';
 import { attachFogUniforms } from '../world/Atmosphere';
+import { PATCH_ORDER, patchShader } from '../render/shaderPatches';
 
 /**
  * Low-poly (faceted, flat-shaded, untextured) rendering of the procedural animals — the Driftwood
@@ -249,7 +250,7 @@ export function oneMaterial(geo: THREE.BufferGeometry, glowGroup: number | null)
  */
 export function patchEyeGlow(m: THREE.MeshStandardMaterial, color: THREE.Color, intensity: number): void {
   const uEyeGlow = { value: color.clone().multiplyScalar(intensity) };
-  m.onBeforeCompile = (sh) => {
+  patchShader(m, 'engine.eye-glow', PATCH_ORDER.material, (sh) => {
     sh.uniforms['uEyeGlow'] = uEyeGlow;
     attachFogUniforms(sh);
     sh.vertexShader = sh.vertexShader
@@ -258,6 +259,5 @@ export function patchEyeGlow(m: THREE.MeshStandardMaterial, color: THREE.Color, 
     sh.fragmentShader = sh.fragmentShader
       .replace('#include <common>', '#include <common>\nuniform vec3 uEyeGlow;\nvarying float vEyeGlow;')
       .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\ntotalEmissiveRadiance += uEyeGlow * vEyeGlow;');
-  };
-  m.customProgramCacheKey = () => 'lowpoly-eyeglow';
+  }, { mode: 'replace', key: 'lowpoly-eyeglow' });
 }

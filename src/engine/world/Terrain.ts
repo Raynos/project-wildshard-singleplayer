@@ -8,6 +8,7 @@ import { loadBakedTerrain } from './BakedTerrain';
 import { macrotask } from '../boot/plan';
 import { groundSet } from './lookFlags';
 import type { PainterField, TerrainPainter } from '../render/look';
+import { PATCH_ORDER, patchShader } from '../render/shaderPatches';
 
 /**
  * The boreal ground (PINE-HOLLOW PH-L8, `ChunkAssets.boreal`; a shard without it builds the plain shader above). Over the same
@@ -230,7 +231,7 @@ export class Terrain {
       uTrailDust: { value: new THREE.Vector4(...(ground.boreal?.trailDust ?? [1, 1, 1, 0])) },
     };
     const boreal = ground.boreal !== null;
-    mat.onBeforeCompile = (shader) => {
+    patchShader(mat, 'engine.terrain-splat', PATCH_ORDER.material, (shader) => {
       Object.assign(shader.uniforms, u);
       attachFogUniforms(shader);
       shader.vertexShader = shader.vertexShader
@@ -301,8 +302,7 @@ export class Terrain {
         .replace('#include <aomap_fragment>', `
           float ambientOcclusion = ( splatArm.r - 1.0 ) * 0.9 + 1.0;
           reflectedLight.indirectDiffuse *= ambientOcclusion;`);
-    };
-    mat.customProgramCacheKey = () => (boreal ? 'terrain-splat-boreal' : 'terrain-splat');
+    }, { mode: 'replace', key: (boreal ? 'terrain-splat-boreal' : 'terrain-splat') });
     this.material = mat;
     return mat;
   }
@@ -314,7 +314,7 @@ export class Terrain {
     const rock = await loadPBR(assets.slabRock);
     const mat = pbrMaterial(rock, { color: new THREE.Color(0.55, 0.52, 0.5), side: THREE.FrontSide });
     const depth = CHUNK_DEPTH.toFixed(1);
-    mat.onBeforeCompile = (shader) => {
+    patchShader(mat, 'engine.terrain-slab', PATCH_ORDER.material, (shader) => {
       attachFogUniforms(shader);
       shader.vertexShader = shader.vertexShader
         .replace('#include <common>', '#include <common>\nvarying float vSlabY;')
@@ -326,8 +326,7 @@ export class Terrain {
           float depthT = clamp((-vSlabY) / ${depth}, 0.0, 1.0);
           sampledDiffuseColor.rgb *= mix(1.0, 0.4, depthT);
           diffuseColor *= sampledDiffuseColor;`);
-    };
-    mat.customProgramCacheKey = () => 'slab';
+    }, { mode: 'replace', key: 'slab' });
 
     const segs = 96;
     const geo = new THREE.BufferGeometry();

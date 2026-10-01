@@ -9,6 +9,7 @@
  * material, so shadows move with what casts them (`mesh.customDepthMaterial = swayDepthMaterial()`).
  */
 import * as THREE from 'three';
+import { PATCH_ORDER, patchShader } from '../render/shaderPatches';
 
 export const windStrength = { value: 1.0 };
 export const windUniforms = { uWindTime: { value: 0 }, uGust: { value: 0.5 } };
@@ -58,8 +59,7 @@ let depth: THREE.MeshDepthMaterial | null = null;
 export function swayDepthMaterial(): THREE.MeshDepthMaterial {
   if (depth) return depth;
   const m = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, side: THREE.DoubleSide });
-  m.onBeforeCompile = (sh) => patchSway(sh);
-  m.customProgramCacheKey = () => 'sway-depth';
+  patchShader(m, 'engine.sway-depth', PATCH_ORDER.material, (sh) => patchSway(sh), { mode: 'replace', key: 'sway-depth' });
   depth = m;
   return m;
 }

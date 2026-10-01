@@ -15,6 +15,7 @@ import { app } from '../app/runtime';
 import type { GrassLayer } from '../render/look';
 import { trample, TRAMPLE_GLSL } from '#kit/looks/trample';
 import { practiceRoom } from '../core/practiceRoom';
+import { PATCH_ORDER, patchShader } from '../render/shaderPatches';
 
 /**
  * Wind-swept grass carpet around the player (Skyrim SE / Horizon style).
@@ -166,7 +167,7 @@ export class Grass {
       map: tex, alphaTest: 0.4, side: THREE.DoubleSide, roughness: 0.85, metalness: 0,
       color: new THREE.Color(1, 1, 1),
     });
-    mat.onBeforeCompile = (shader) => {
+    patchShader(mat, 'engine.grass-carpet', PATCH_ORDER.material, (shader) => {
       attachFogUniforms(shader);
       Object.assign(shader.uniforms, grassUniforms);
       patchWindField(shader);
@@ -232,8 +233,7 @@ export class Grass {
             float bl = pow( max( dot( normalize( - vViewPosition ), sunV ), 0.0 ), 5.0 );
             reflectedLight.indirectDiffuse += diffuseColor.rgb * ( 0.07 + bl * 0.55 * vH ) * uSunColor;
           }`);
-    };
-    mat.customProgramCacheKey = () => (withTrample ? 'grass-carpet-trample' : 'grass-carpet');
+    }, { mode: 'replace', key: (withTrample ? 'grass-carpet-trample' : 'grass-carpet') });
     this.sky.setupMaterial(mat);
     return mat;
   }
@@ -241,7 +241,7 @@ export class Grass {
   private buildFlowerMaterial() {
     const withTrample = this.trampleAble;
     const mat = new THREE.MeshStandardMaterial({ map: makeFlowerTexture(), alphaTest: 0.5, side: THREE.DoubleSide, roughness: 0.7, metalness: 0 });
-    mat.onBeforeCompile = (shader) => {
+    patchShader(mat, 'engine.grass-flowers', PATCH_ORDER.material, (shader) => {
       attachFogUniforms(shader);
       patchWindField(shader);
       shader.uniforms['uWindStrength'] = windUniforms.uWindStrength;
@@ -272,8 +272,7 @@ export class Grass {
         .replace('#include <normal_fragment_begin>', THREE.ShaderChunk.normal_fragment_begin.replace('normal *= faceDirection;', ''))
         .replace('#include <lights_fragment_begin>', /* glsl */`#include <lights_fragment_begin>
           reflectedLight.indirectDiffuse += diffuseColor.rgb * 0.12;`);
-    };
-    mat.customProgramCacheKey = () => (withTrample ? 'grass-flowers-trample' : 'grass-flowers');
+    }, { mode: 'replace', key: (withTrample ? 'grass-flowers-trample' : 'grass-flowers') });
     this.sky.setupMaterial(mat);
     return mat;
   }

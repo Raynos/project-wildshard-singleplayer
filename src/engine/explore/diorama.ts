@@ -22,6 +22,7 @@ import { app } from '../app/runtime';
 import type { World } from '../core/bootstrap';
 import { heightAt } from '../world/Heightfield';
 import { FatLines, LID_RIM, OUTLINE } from './fatLines';
+import { PATCH_ORDER, patchShader } from '../render/shaderPatches';
 
 /** the cut: a round base of `radius` round `centre` (its y the set's ground), open upward (or lidded on a stacked shard) */
 export interface DioramaVolume {
@@ -107,25 +108,16 @@ const DISCARD = `#if NUM_CLIPPING_PLANES > 0
  * view position the chunk needs is read back from its gl_Position. Returns the undo.
  */
 function patchClipping(m: THREE.ShaderMaterial): () => void {
-  // (the material's own hooks if it set them, else the prototype's: put back exactly as they were)
-  const ownHook = Object.getOwnPropertyDescriptor(m, 'onBeforeCompile'), ownKey = Object.getOwnPropertyDescriptor(m, 'customProgramCacheKey');
-  const before = m.onBeforeCompile.bind(m), key = m.customProgramCacheKey.bind(m);
   m.clipping = true;
-  m.onBeforeCompile = (shader, renderer): void => {
-    before(shader, renderer);
+  const undo = patchShader(m, 'engine.diorama-cut', PATCH_ORDER.view, (shader) => {
     const vs = shader.vertexShader, end = vs.lastIndexOf('}');
     shader.vertexShader = `#include <clipping_planes_pars_vertex>\n${vs.slice(0, end)}\n#if NUM_CLIPPING_PLANES > 0\n{ vec4 cutView = inverse( projectionMatrix ) * gl_Position; vClipPosition = - cutView.xyz / cutView.w; }\n#endif\n${vs.slice(end)}`;
     // (three's own clipping_planes_fragment chunk scales diffuseColor under alpha-to-coverage, which a custom shader may not have)
     shader.fragmentShader = `#include <clipping_planes_pars_fragment>\n${shader.fragmentShader.replace(/void\s+main\s*\(\s*\)\s*\{/, (s) => `${s}\n${DISCARD}\n`)}`;
-  };
-  m.customProgramCacheKey = (): string => `${key()}|diorama-cut`;
+  }, { key: (k) => `${k}|diorama-cut` });
   m.needsUpdate = true;
-  return () => {
-    m.clipping = false;
-    if (ownHook) Object.defineProperty(m, 'onBeforeCompile', ownHook); else Reflect.deleteProperty(m, 'onBeforeCompile');
-    if (ownKey) Object.defineProperty(m, 'customProgramCacheKey', ownKey); else Reflect.deleteProperty(m, 'customProgramCacheKey');
-    m.needsUpdate = true;
-  };
+  // the undo puts the material's own hook and key back exactly as they were (the prototype's if it had none)
+  return () => { m.clipping = false; undo(); m.needsUpdate = true; };
 }
 
 export class Diorama {
