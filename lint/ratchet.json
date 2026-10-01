@@ -151,7 +151,6 @@
     "src/engine/player/bladeGlow.ts": 1,
     "src/engine/player/CameraFX.ts": 1,
     "src/engine/player/Hands.ts": 9,
-    "src/engine/player/Hoverboard.ts": 6,
     "src/engine/player/LockOnTarget.ts": 28,
     "src/engine/player/MeleeSweep.ts": 1,
     "src/engine/player/nalatiArms.ts": 11,
