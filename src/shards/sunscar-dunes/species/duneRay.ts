@@ -60,7 +60,7 @@ export const DUNE_RAY: SpeciesRow = { id: 'sunscar.creature.duneRay', kind: 'dun
   variants: [{ id: 'dusk', label: STRINGS.ray, weight: 1, rarity: 'common', scale: [1, 1], hp: 70 }],
   think: (a, ctx) => { rayBrain(a).think(ctx); }, act: (a, ctx) => { rayBrain(a).act(ctx); } };
 
-const BODY_Y = 0.4, SPAN = 2.7;
+const BODY_Y = 0.4, SPAN = 3.2;
 /** Bones: 0 body, 1 head (the engine needs `body` and `head` on a custom rig), 2 left wing, 3 right wing, 4 tail. Wing weight ramps in from the body's edge. */
 function skin(geometry: BufferGeometry, tail: boolean): BufferGeometry {
   const pos = geometry.getAttribute('position'), count = pos.count, colors: number[] = [], index = new Uint16Array(count * 4), weight = new Float32Array(count * 4);
@@ -81,7 +81,7 @@ export function rayBody(): BufferGeometry {
   const body = new SphereGeometry(1, 28, 10), pos = body.getAttribute('position');
   for (let i = 0; i < pos.count; i++) {
     const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i), ax = Math.abs(x);
-    pos.setXYZ(i, x * SPAN, BODY_Y + y * 0.22 * (1 - 0.85 * ax), z * (1.1 - 0.7 * ax) + ax * ax * 0.9 - (z < 0 ? 0.25 * (1 - ax) : 0));
+    pos.setXYZ(i, x * SPAN, BODY_Y + y * 0.3 * (1 - 0.8 * ax), z * (1.1 - 0.7 * ax) + ax * ax * 0.9 - (z < 0 ? 0.25 * (1 - ax) : 0));
   }
   body.rotateY(Math.PI); body.computeVertexNormals();   // the snout to +Z, the animal's forward
   return skin(body, false);

@@ -23,7 +23,7 @@ export const SUNSCAR_DUNES: ShardManifest = {
   ground: { paths: 'plugin', terrain: TERRAIN },
   spawn: { x: SPAWN.x, z: SPAWN.z, yaw: SPAWN.yaw }, bounds: { x0: -248, x1: 248, z0: -248, z1: 248, floor: -20 },
   sky: { sunColor: [1, 0.52, 0.28], sunIntensity: 1.6, envIntensity: 0.35, bgIntensity: 1, fogSunColor: [1, 0.5, 0.3], cloudSunColor: [1, 0.55, 0.35],
-    hemiSky: 0x39407a, hemiGround: 0x4a2414, hemiIntensity: 0.75, sun: { azimuth: 318, elevation: 5 } },
+    hemiSky: 0x66588a, hemiGround: 0x8a4a2a, hemiIntensity: 0.9, sun: { azimuth: 318, elevation: 5 } },
   atmosphere: { fogHeight: 0, fogHeightFalloff: 0.05, fogHeightDensity: 0.002, fogDistDensity: 0.0032, volumetricSunColor: [1, 0.5, 0.3] },
   grade: { saturation: 0.08, brightness: 0, contrast: 0.08, bloomIntensity: 0.35, bloomThreshold: 0.85, shadowTint: [0.86, 0.92, 1.12], highTint: [1.08, 1, 0.9],
     lift: [0, 0, 0.012], gain: [1, 1, 1], gamma: 1 },

@@ -32,7 +32,7 @@ export class WhipModel {
       this.out.push(new Vector3()); this.points.push(new Vector3());
     }
     this.root.add(fist, cuff, handle, knob, this.lash);
-    this.root.position.set(0.17, -0.3, -0.42); this.root.rotation.set(0.15, -0.25, -0.12);
+    this.root.position.set(0.12, -0.24, -0.42); this.root.rotation.set(0.15, -0.25, -0.12);
     this.pose(0, 0);
   }
   /** `reach` 0 = coiled, 1 = laid out ~3 m ahead; `wave` 0..1 travels a ripple down the lash as it snaps. */
