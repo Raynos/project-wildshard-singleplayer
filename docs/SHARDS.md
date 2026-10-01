@@ -250,6 +250,11 @@ A creature is two rows plus, usually, a brain ([ENGINE.md §19](ENGINE.md#19-cre
 1. **A `SpeciesRow`** (`species/<name>.ts`): `id`, `kind`, `label`, `variants`, `aggressive`, and `think` / `act`
    that call your brain. Simulation only: no three.js beyond math.
 2. **A `SpeciesLook`**: `species`, `kind`, `rig`, `rigContract` (skeleton, sockets, clips), `build()`, `animate()`.
+   Every creature needs `body` and `head` in `build().bones`, with `body` first, and both in
+   `rigContract.sockets`. This includes flying / custom rigs: the bones anchor their hit capsule and head sphere.
+   A ray can use a small head bone under `body` without a separate head mesh. Registration rejects missing socket
+   declarations by species and bone name; the factory checks the built bones too. Use `rig: 'custom'` and your own
+   `animate` when you do not use the default quadruped skeleton.
 3. **A brain**: `class MyBrain extends CreatureBrain<'idle' | 'fight'>` with `think` (decisions) and `act` (the body).
 4. **Strikes as data**: `StrikeSpec` rows with a shape (`arc`, `lane`, `ring`, `wedge`, `point`, `sphere`), timings, damage,
    tags and a utility `weight`. A `StrikeRunner` picks and runs them on the body clock.

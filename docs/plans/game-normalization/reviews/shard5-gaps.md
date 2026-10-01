@@ -28,6 +28,7 @@ edits and zero gaps**.
 
 | ID | Gap | From | Wanted | Status |
 |---|---|---|---|---|
+| G13 | A custom creature boots only with named body/head bones; ENGINE §19 and SHARDS §6 omit the requirement | E364 round 2 (drift ray boot) | document required hit bones and reject missing declarations at registration, with built-bone validation and regression tests | built (sol-g13 private candidate; landing pending) |
 | G14 | Manifest budget edits stale the computed `derived` entries in `budgets/ceiling-sources.json`, blocking the gate; content lanes cannot safely regenerate measured provenance | E363 / E364 round 2, manifest-budgets test | scoped `pnpm gen --shard=<slug>`, freshness check before gate generation, and lock permission for only reopened derived entries; measured GL re-records remain lead-approved | built (sol-g13 private candidate; landing pending) |
 
 ## Shard findings for the rebuild (not API gaps)

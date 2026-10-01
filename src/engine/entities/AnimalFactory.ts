@@ -7,7 +7,7 @@ import { Rng } from '../core/rng';
 import type { Sky } from '../world/Sky';
 import { attachFogUniforms, fogUniforms } from '../world/Atmosphere';
 import { bakedTexture } from '../boot/bakedTextures';
-import { speciesDef, variantDef, type SpeciesDef, type VariantDef, type AnimalDims, type BoneDef, type FurStyle } from './species/registry';
+import { validateCreatureBones, speciesDef, variantDef, type SpeciesDef, type VariantDef, type AnimalDims, type BoneDef, type FurStyle } from './species/registry';
 import { setLowPoly } from './species/loft';
 import { facetGeometry, lowPolyMaterials, oneMaterial, patchEyeGlow } from './lowpoly';
 import type { EyeSpot } from './species/look';
@@ -313,6 +313,7 @@ export class AnimalFactory {
     setLowPoly(lowPoly);
     const sp = species.build(v, new Rng(hashSeed(key)));
     setLowPoly(false);
+    validateCreatureBones(kind, sp.bones.map((bone) => bone.name));
     if (sp.bones[0]?.name !== 'body') throw new Error(`species '${kind}': bones[0] must be 'body'`);
     // the procedural eyes, where a thrall's glowing eyes go on a generated hull
     const eyes: EyeSpot[] = [];

@@ -994,6 +994,14 @@ The kit's starter set is `effect.poison`, `effect.burn`, `effect.bleed`, `effect
 
 A creature is two rows: a `SpeciesRow` (simulation) and a `SpeciesLook` (render). Register both in `kit`.
 
+**Required creature bones.** Every rig, including `rig: 'custom'` and flying rigs, needs named `body` and `head`
+bones in `build().bones`; `body` must be the first bone. They anchor the body capsule and head hit sphere even
+when the creature does not have a visually separate head. Declare both names in `rigContract.sockets`.
+`ctx.rows.speciesLook` / `app.species.registerLook` and legacy `registerSpecies` reject a missing declaration during
+registration, naming the species and bone. The factory also validates the actual built bones before constructing
+an `Animal`, so a declaration cannot hide an incomplete model. Default quadruped animation additionally needs its
+neck, ears, tail, belly and leg bones; use `rig: 'custom'` with `animate` for other skeletons.
+
 `animal.impulse(worldVelocity)` copies and adds a velocity in metres per second, then decays it at 3.5/s on the body
 clock. Ground bodies resolve its XZ displacement through their normal collision motor; flying bodies also use Y.
 `animal.hasImpulse` reads whether that transient motion remains. It does not change the existing melee stagger or

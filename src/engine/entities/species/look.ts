@@ -1,6 +1,6 @@
 import type * as THREE from 'three';
 import type { SpeciesRow } from '../../ai/species';
-import { registeredSpecies, type SpeciesDef, type VariantDef, type BoneDef, type FurStyle } from './registry';
+import { registeredSpecies, validateCreatureBones, type SpeciesDef, type VariantDef, type BoneDef, type FurStyle } from './registry';
 import type { Sky } from '../../world/Sky';
 import type { AnimalMaterial } from '../AnimalFactory';
 import type { Scope } from '../../app/scope';
@@ -36,7 +36,10 @@ export class SpeciesService {
   private readonly active: () => Scope | null;
   constructor(active: () => Scope | null) { this.active = active; }
   registerRow(value: SpeciesRow, scope: Scope): void { this.add(this.rows, value, scope); }
-  registerLook(value: SpeciesLook, scope: Scope): void { this.add(this.looks, value, scope); }
+  registerLook(value: SpeciesLook, scope: Scope): void {
+    validateCreatureBones(`${value.species} (${value.kind})`, value.rigContract.sockets);
+    this.add(this.looks, value, scope);
+  }
   private add<T extends { id: string }>(list: Scoped<T>[], value: T, scope: Scope): void {
     if (scope.disposed) throw new Error('Cannot register species on a disposed scope');
     if (list.some((entry) => entry.scope === scope && entry.value.id === value.id)) throw new Error(`Duplicate species row: ${value.id}`);

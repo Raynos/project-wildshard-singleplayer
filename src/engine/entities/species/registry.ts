@@ -290,8 +290,16 @@ let resolveSpecies: ((kind: string) => SpeciesDef | undefined) | undefined;
 /** The composition root supplies active, scoped rows; legacy tooling can keep its standalone catalog. */
 export function setSpeciesResolver(resolve: (kind: string) => SpeciesDef | undefined): void { resolveSpecies = resolve; }
 
+/** All creature collision adapters need these bones, including custom and flying rigs. */
+export function validateCreatureBones(species: string, names: readonly string[]): void {
+  for (const bone of ['body', 'head']) {
+    if (!names.includes(bone)) throw new Error(`species '${species}': rig missing required bone '${bone}'`);
+  }
+}
+
 /** Register a species (call once at module top level of `species/<kind>.ts`). Re-registering replaces it. */
 export function registerSpecies(def: SpeciesDef): SpeciesDef {
+  validateCreatureBones(def.kind, def.rigContract.sockets);
   if (def.variants.length === 0) throw new Error(`species '${def.kind}' has no variants`);
   SPECIES.set(def.kind, def);
   return def;
