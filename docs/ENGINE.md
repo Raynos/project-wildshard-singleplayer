@@ -337,7 +337,7 @@ are the row types; `EngineRows` is the verb set.
 
 | Field | Meaning |
 |---|---|
-| `uses` | the opt-in mechanisms. Engine: `'weather' · 'dayCycle' · 'bosses' · 'elites' · 'spawns' · 'quests' · 'swim' · 'hover' · 'explore' · 'practice'`. Game: `'coins' · 'loot' · 'compendium' · 'feats' · 'bag.pack'`. A mechanism you don't list isn't built. The type still accepts the legacy tags `pack`, `water`, `creatures` (B81) |
+| `uses` | the opt-in mechanisms. Engine: `'weather' · 'dayCycle' · 'bosses' · 'elites' · 'spawns' · 'quests' · 'swim' · 'hover' · 'explore' · 'practice'`. Game: `'coins' · 'loot' · 'compendium' · 'feats' · 'bag.pack'`. A mechanism you don't list isn't built. The retired compatibility tags `pack`, `water`, `creatures` are rejected (E357 L11 / B81) |
 | `loadout` | `{ weapons, tools, start, held?, pickups?, loans?, grants?, viewmodel?, ammo? }` by row id (§18) |
 | `weapon` | `'crossbow' · 'sword' · 'custom'`: a legacy field the shell still reads. New shards say `'custom'` and build their own equipment |
 | `species`, `encounters?`, `spawns`, `faunaTuning?`, `creatures?` | creature ids, encounter ids, herd plans, per-species tuning, creature render flags |

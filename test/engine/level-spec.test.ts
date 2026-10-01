@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, expectTypeOf, it } from 'vitest';
+import type { ShardManifest } from '#game';
 import { SHARDS } from '#game/shard/shards.generated';
 import { toLevelSpec } from '#game/shard/spec';
 
@@ -20,4 +21,9 @@ describe('node-safe manifest to engine level boundary', () => {
     expect(level.mechanisms).toEqual(['weather', 'dayCycle', 'bosses', 'elites', 'spawns', 'quests', 'swim', 'hover', 'explore', 'practice']); expect(level.boot).toBe(manifest.boot); expect(level.loadout).toBe(manifest.loadout);
     expect(level.audio).toBe(manifest.audio); expect(level.tiers).toBe(manifest.tiers); expect(level.kitLook).toBe('toon');
   });
+});
+
+it('rejects retired manifest compatibility tags', () => {
+  type Mechanism = NonNullable<ShardManifest['uses']>[number];
+  expectTypeOf<Extract<Mechanism, 'pack' | 'water' | 'creatures'>>().toEqualTypeOf<never>();
 });

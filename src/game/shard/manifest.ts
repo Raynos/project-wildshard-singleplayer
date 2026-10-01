@@ -424,7 +424,7 @@ export interface ShardManifest {
   creatures?: LevelSpec['creatures'];
   world?: LevelSpec['world'];
   debugOptions?: LevelSpec['debugOptions'];
-  uses?: readonly (EngineMechanism | 'coins' | 'loot' | 'compendium' | 'feats' | 'pack' | 'bag.pack' | 'water' | 'creatures')[];
+  uses?: readonly (EngineMechanism | 'coins' | 'loot' | 'compendium' | 'feats' | 'bag.pack')[];
   tiers?: TierOverrides;
   boot?: BootSpec;
   loadout?: LoadoutSpec;
