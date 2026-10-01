@@ -1,0 +1,146 @@
+[
+  {
+    "file": "driftwood-isle.desktop.json",
+    "pose": "pier",
+    "ssim": 1,
+    "limit": 0.99
+  },
+  {
+    "file": "driftwood-isle.desktop.json",
+    "pose": "beach",
+    "ssim": 1,
+    "limit": 0.99
+  },
+  {
+    "file": "driftwood-isle.desktop.json",
+    "pose": "wreck",
+    "ssim": 0.9999928610571992,
+    "limit": 0.9899992181608458
+  },
+  {
+    "file": "driftwood-isle.phone.json",
+    "pose": "pier",
+    "ssim": 0.9984154644990189,
+    "limit": 0.989320258927779
+  },
+  {
+    "file": "driftwood-isle.phone.json",
+    "pose": "beach",
+    "ssim": 0.9899873474743923,
+    "limit": 0.9866078512924091
+  },
+  {
+    "file": "driftwood-isle.phone.json",
+    "pose": "wreck",
+    "ssim": 0.9999406829884625,
+    "limit": 0.9899949985619074
+  },
+  {
+    "file": "nalati-grasslands.desktop.json",
+    "pose": "camp",
+    "ssim": 0.9999958779411565,
+    "limit": 0.99
+  },
+  {
+    "file": "nalati-grasslands.desktop.json",
+    "pose": "bridge",
+    "ssim": 1,
+    "limit": 0.99
+  },
+  {
+    "file": "nalati-grasslands.desktop.json",
+    "pose": "plains",
+    "ssim": 0.999658397364998,
+    "limit": 0.9894282253859104
+  },
+  {
+    "file": "nalati-grasslands.phone.json",
+    "pose": "camp",
+    "ssim": 0.9999999999999771,
+    "limit": 0.99
+  },
+  {
+    "file": "nalati-grasslands.phone.json",
+    "pose": "bridge",
+    "ssim": 0.9999998864376437,
+    "limit": 0.9899972009064647
+  },
+  {
+    "file": "nalati-grasslands.phone.json",
+    "pose": "plains",
+    "ssim": 0.999995582625796,
+    "limit": 0.9899857529995786
+  },
+  {
+    "file": "nine-dragon-stack.desktop.json",
+    "pose": "spawn-rail",
+    "ssim": 1,
+    "limit": 0.99
+  },
+  {
+    "file": "nine-dragon-stack.desktop.json",
+    "pose": "well-edge",
+    "ssim": 1,
+    "limit": 0.99
+  },
+  {
+    "file": "nine-dragon-stack.desktop.json",
+    "pose": "stair-street",
+    "ssim": 1,
+    "limit": 0.99
+  },
+  {
+    "file": "nine-dragon-stack.phone.json",
+    "pose": "spawn-rail",
+    "ssim": 1,
+    "limit": 0.99
+  },
+  {
+    "file": "nine-dragon-stack.phone.json",
+    "pose": "well-edge",
+    "ssim": 1,
+    "limit": 0.99
+  },
+  {
+    "file": "nine-dragon-stack.phone.json",
+    "pose": "stair-street",
+    "ssim": 0.9991994836928114,
+    "limit": 0.98946083874236
+  },
+  {
+    "file": "pine-hollow.desktop.json",
+    "pose": "gate",
+    "ssim": 0.9999998900186996,
+    "limit": 0.99
+  },
+  {
+    "file": "pine-hollow.desktop.json",
+    "pose": "cabin",
+    "ssim": 0.9999435166701044,
+    "limit": 0.99
+  },
+  {
+    "file": "pine-hollow.desktop.json",
+    "pose": "pond",
+    "ssim": 0.9999597761812534,
+    "limit": 0.9899323768088647
+  },
+  {
+    "file": "pine-hollow.phone.json",
+    "pose": "gate",
+    "ssim": 1,
+    "limit": 0.9899969377259407
+  },
+  {
+    "file": "pine-hollow.phone.json",
+    "pose": "cabin",
+    "ssim": 0.9999991930096357,
+    "limit": 0.9899991930096357
+  },
+  {
+    "file": "pine-hollow.phone.json",
+    "pose": "pond",
+    "ssim": 0.9996414350197029,
+    "limit": 0.9898655527588136
+  }
+]

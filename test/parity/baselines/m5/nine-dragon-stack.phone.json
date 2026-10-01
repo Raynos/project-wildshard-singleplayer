@@ -2,8 +2,8 @@
   "boot": {
     "schema": 1,
     "lane": "m5",
-    "sha": "479cc5fb54ec23c4272c35df3d1e5b3d59767c39",
-    "build": "78bfc12-mupwnjfh",
+    "sha": "73c51589185ad7ea3a3eba1c70edb87db717a58b",
+    "build": "73c5158-muq4k0k5",
     "shard": "nine-dragon-stack",
     "tier": "phone",
     "viewport": {
@@ -3050,11 +3050,6 @@
       {
         "cls": "ws-touch-disc",
         "spot": "",
-        "shown": false
-      },
-      {
-        "cls": "ws-touch-disc",
-        "spot": "",
         "shown": true
       },
       {
@@ -3157,10 +3152,12 @@
       "read": [
         "local:wildshard.save.v2.device",
         "local:wildshard.save.v2.driftwood-isle",
+        "local:wildshard.save.v2.far-reach",
         "local:wildshard.save.v2.global",
         "local:wildshard.save.v2.nalati-grasslands",
         "local:wildshard.save.v2.nine-dragon-stack",
         "local:wildshard.save.v2.pine-hollow",
+        "local:wildshard.save.v2.sunscar-dunes",
         "session:wildshard.save.v2.session"
       ],
       "written": [
@@ -3169,26 +3166,26 @@
         "session:wildshard.save.v2.session"
       ]
     },
-    "playMs": 2974.800000190735,
+    "playMs": 3780,
     "stepMs": {
-      "renderer": 16,
-      "sky": 67,
+      "renderer": 23,
+      "sky": 88,
       "terrain": 1,
       "cards": 1,
-      "forest": 7,
-      "physics": 2,
-      "edge": 14,
+      "forest": 9,
+      "physics": 3,
+      "edge": 15,
       "grass": 0,
       "cabins": 0,
-      "props": 1805,
-      "animals": 1,
-      "weapon": 30,
-      "menu": 59,
-      "shaders": 241,
-      "firstFrame": 61,
+      "props": 2233,
+      "animals": 2,
+      "weapon": 36,
+      "menu": 70,
+      "shaders": 342,
+      "firstFrame": 84,
       "audio": 1
     },
-    "heapMB": 371.8681983947754,
+    "heapMB": 343.40826416015625,
     "facade": {
       "multiDraw": true,
       "batches": 0,
@@ -3205,13 +3202,13 @@
       ],
       "calls": 144,
       "tris": 1427662,
-      "fps": 317.08874254300866,
-      "frameP95Ms": 6.699999809265137,
-      "cpuP50Ms": 2.200000286102295,
-      "cpuP95Ms": 2.799999713897705,
+      "fps": 195.51239984964957,
+      "frameP95Ms": 17.5,
+      "cpuP50Ms": 2.799999713897705,
+      "cpuP95Ms": 3.5,
       "creatureBoxes": 0,
       "boxes": [],
-      "shot": "/private/tmp/e357-sol-m3/driver/test/parity/baselines/m5/nine-dragon-stack.phone.spawn-rail.jpg",
+      "shot": "/private/tmp/e357-sol-base/final-driver/test/parity/baselines/m5/nine-dragon-stack.phone.spawn-rail.jpg",
       "ssim": 1
     },
     "well-edge": {
@@ -3223,13 +3220,13 @@
       ],
       "calls": 128,
       "tris": 1273139,
-      "fps": 231.79838200962658,
-      "frameP95Ms": 13.899999618530273,
-      "cpuP50Ms": 1.9000000953674316,
-      "cpuP95Ms": 2.3000001907348633,
+      "fps": 171.28405571369086,
+      "frameP95Ms": 21.299999713897705,
+      "cpuP50Ms": 2.700000286102295,
+      "cpuP95Ms": 3.4000000953674316,
       "creatureBoxes": 0,
       "boxes": [],
-      "shot": "/private/tmp/e357-sol-m3/driver/test/parity/baselines/m5/nine-dragon-stack.phone.well-edge.jpg",
+      "shot": "/private/tmp/e357-sol-base/final-driver/test/parity/baselines/m5/nine-dragon-stack.phone.well-edge.jpg",
       "ssim": 1
     },
     "stair-street": {
@@ -3241,78 +3238,56 @@
       ],
       "calls": 122,
       "tris": 996042,
-      "fps": 186.13366645846347,
-      "frameP95Ms": 22.59999990463257,
-      "cpuP50Ms": 2.3000001907348633,
-      "cpuP95Ms": 2.6999998092651367,
+      "fps": 187.35068523106463,
+      "frameP95Ms": 17.5,
+      "cpuP50Ms": 3.3000001907348633,
+      "cpuP95Ms": 4.099999904632568,
       "creatureBoxes": 0,
       "boxes": [],
-      "shot": "/private/tmp/e357-sol-m3/driver/test/parity/baselines/m5/nine-dragon-stack.phone.stair-street.jpg",
+      "shot": "/private/tmp/e357-sol-base/final-driver/test/parity/baselines/m5/nine-dragon-stack.phone.stair-street.jpg",
       "ssim": 1
     }
   },
   "budgets": {
     "spawn-rail": {
-      "derived": null,
+      "derived": {
+        "draws": 1174,
+        "tris": 18779873,
+        "programs": 148,
+        "gpuMB": null
+      },
       "ceiling": {
-        "draws": 144,
-        "tris": 1427662,
-        "programs": 67,
-        "gpuMB": 254.9377202987671
+        "gpuMB": 253.6043882369995
       },
       "formula": {
         "inputs": {
           "ceilings": {
             "phone": {
-              "spawn-rail": {
-                "draws": 144,
-                "tris": 1427662,
-                "programs": 67,
-                "gpuMB": 254.9377202987671
+              "D": {
+                "gpuMB": 271.43809032440186
               },
-              "well-edge": {
-                "draws": 128,
-                "tris": 1273139,
-                "programs": 67,
-                "gpuMB": 254.9377202987671
+              "spawn-rail": {
+                "gpuMB": 253.6043882369995
               },
               "stair-street": {
-                "draws": 122,
-                "tris": 996042,
-                "programs": 67,
-                "gpuMB": 254.9377202987671
+                "gpuMB": 253.6043882369995
               },
-              "D": {
-                "draws": 109,
-                "tris": 1039194,
-                "programs": 67,
-                "gpuMB": 272.77142238616943
+              "well-edge": {
+                "gpuMB": 253.6043882369995
               }
             },
             "desktop": {
-              "spawn-rail": {
-                "draws": 171,
-                "tris": 1653616,
-                "programs": 82,
-                "gpuMB": 575.5018644332886
+              "D": {
+                "gpuMB": 574.4839086532593
               },
-              "well-edge": {
-                "draws": 158,
-                "tris": 1375200,
-                "programs": 82,
-                "gpuMB": 575.5018644332886
+              "spawn-rail": {
+                "gpuMB": 574.168532371521
               },
               "stair-street": {
-                "draws": 144,
-                "tris": 947634,
-                "programs": 82,
-                "gpuMB": 575.5018644332886
+                "gpuMB": 574.168532371521
               },
-              "D": {
-                "draws": 123,
-                "tris": 964738,
-                "programs": 82,
-                "gpuMB": 575.8172407150269
+              "well-edge": {
+                "gpuMB": 574.168532371521
               }
             }
           },
@@ -3370,71 +3345,69 @@
             "bytesPerSecond": 1125000
           }
         },
-        "source": "No published calibration; F2 ceilings until the quiet M5 publishing run",
-        "assumption": "Hot phone = M5 ×10 assumption (E283); current stable M5 calibration is not yet published"
-      }
+        "source": "budgets/calibration.json (scripts/calibrate.mjs)",
+        "assumption": "ASSUMPTION: hot iPhone costs equal measured M5 costs × 10; no phone calibration was run (decision 99)",
+        "expressions": {
+          "frame": "1000 / 30 / 1.3",
+          "gpu": "25.641025641025642 - 9.6",
+          "draws": "floor((9.6 - 4 - 0.6) / (0.0004257812537252903 × 10))",
+          "tris": "floor(16.04102564102564 × 0.5 / (4.2708022548417234e-8 × 10))",
+          "programs": "floor(1000 / (0.6720833336313565 × 10))",
+          "gpuMB": "GL bytes retain measured baseline ceiling; native footprint is a separate Simulator gate",
+          "downloadBytes": "(null - 0 × 2) × 1125000"
+        }
+      },
+      "systemMs": {
+        "physics": 0.8,
+        "ai": 0.8,
+        "animation": 1,
+        "player": 0.4,
+        "world": 0.5,
+        "hud": 0.3,
+        "audio": 0.2
+      },
+      "gpuM5Ms": 1.6041025641025641,
+      "downloadBytes": null
     },
     "well-edge": {
-      "derived": null,
+      "derived": {
+        "draws": 1174,
+        "tris": 18779873,
+        "programs": 148,
+        "gpuMB": null
+      },
       "ceiling": {
-        "draws": 128,
-        "tris": 1273139,
-        "programs": 67,
-        "gpuMB": 254.9377202987671
+        "gpuMB": 253.6043882369995
       },
       "formula": {
         "inputs": {
           "ceilings": {
             "phone": {
-              "spawn-rail": {
-                "draws": 144,
-                "tris": 1427662,
-                "programs": 67,
-                "gpuMB": 254.9377202987671
+              "D": {
+                "gpuMB": 271.43809032440186
               },
-              "well-edge": {
-                "draws": 128,
-                "tris": 1273139,
-                "programs": 67,
-                "gpuMB": 254.9377202987671
+              "spawn-rail": {
+                "gpuMB": 253.6043882369995
               },
               "stair-street": {
-                "draws": 122,
-                "tris": 996042,
-                "programs": 67,
-                "gpuMB": 254.9377202987671
+                "gpuMB": 253.6043882369995
               },
-              "D": {
-                "draws": 109,
-                "tris": 1039194,
-                "programs": 67,
-                "gpuMB": 272.77142238616943
+              "well-edge": {
+                "gpuMB": 253.6043882369995
               }
             },
             "desktop": {
-              "spawn-rail": {
-                "draws": 171,
-                "tris": 1653616,
-                "programs": 82,
-                "gpuMB": 575.5018644332886
+              "D": {
+                "gpuMB": 574.4839086532593
               },
-              "well-edge": {
-                "draws": 158,
-                "tris": 1375200,
-                "programs": 82,
-                "gpuMB": 575.5018644332886
+              "spawn-rail": {
+                "gpuMB": 574.168532371521
               },
               "stair-street": {
-                "draws": 144,
-                "tris": 947634,
-                "programs": 82,
-                "gpuMB": 575.5018644332886
+                "gpuMB": 574.168532371521
               },
-              "D": {
-                "draws": 123,
-                "tris": 964738,
-                "programs": 82,
-                "gpuMB": 575.8172407150269
+              "well-edge": {
+                "gpuMB": 574.168532371521
               }
             }
           },
@@ -3492,71 +3465,69 @@
             "bytesPerSecond": 1125000
           }
         },
-        "source": "No published calibration; F2 ceilings until the quiet M5 publishing run",
-        "assumption": "Hot phone = M5 ×10 assumption (E283); current stable M5 calibration is not yet published"
-      }
+        "source": "budgets/calibration.json (scripts/calibrate.mjs)",
+        "assumption": "ASSUMPTION: hot iPhone costs equal measured M5 costs × 10; no phone calibration was run (decision 99)",
+        "expressions": {
+          "frame": "1000 / 30 / 1.3",
+          "gpu": "25.641025641025642 - 9.6",
+          "draws": "floor((9.6 - 4 - 0.6) / (0.0004257812537252903 × 10))",
+          "tris": "floor(16.04102564102564 × 0.5 / (4.2708022548417234e-8 × 10))",
+          "programs": "floor(1000 / (0.6720833336313565 × 10))",
+          "gpuMB": "GL bytes retain measured baseline ceiling; native footprint is a separate Simulator gate",
+          "downloadBytes": "(null - 0 × 2) × 1125000"
+        }
+      },
+      "systemMs": {
+        "physics": 0.8,
+        "ai": 0.8,
+        "animation": 1,
+        "player": 0.4,
+        "world": 0.5,
+        "hud": 0.3,
+        "audio": 0.2
+      },
+      "gpuM5Ms": 1.6041025641025641,
+      "downloadBytes": null
     },
     "stair-street": {
-      "derived": null,
+      "derived": {
+        "draws": 1174,
+        "tris": 18779873,
+        "programs": 148,
+        "gpuMB": null
+      },
       "ceiling": {
-        "draws": 122,
-        "tris": 996042,
-        "programs": 67,
-        "gpuMB": 254.9377202987671
+        "gpuMB": 253.6043882369995
       },
       "formula": {
         "inputs": {
           "ceilings": {
             "phone": {
-              "spawn-rail": {
-                "draws": 144,
-                "tris": 1427662,
-                "programs": 67,
-                "gpuMB": 254.9377202987671
+              "D": {
+                "gpuMB": 271.43809032440186
               },
-              "well-edge": {
-                "draws": 128,
-                "tris": 1273139,
-                "programs": 67,
-                "gpuMB": 254.9377202987671
+              "spawn-rail": {
+                "gpuMB": 253.6043882369995
               },
               "stair-street": {
-                "draws": 122,
-                "tris": 996042,
-                "programs": 67,
-                "gpuMB": 254.9377202987671
+                "gpuMB": 253.6043882369995
               },
-              "D": {
-                "draws": 109,
-                "tris": 1039194,
-                "programs": 67,
-                "gpuMB": 272.77142238616943
+              "well-edge": {
+                "gpuMB": 253.6043882369995
               }
             },
             "desktop": {
-              "spawn-rail": {
-                "draws": 171,
-                "tris": 1653616,
-                "programs": 82,
-                "gpuMB": 575.5018644332886
+              "D": {
+                "gpuMB": 574.4839086532593
               },
-              "well-edge": {
-                "draws": 158,
-                "tris": 1375200,
-                "programs": 82,
-                "gpuMB": 575.5018644332886
+              "spawn-rail": {
+                "gpuMB": 574.168532371521
               },
               "stair-street": {
-                "draws": 144,
-                "tris": 947634,
-                "programs": 82,
-                "gpuMB": 575.5018644332886
+                "gpuMB": 574.168532371521
               },
-              "D": {
-                "draws": 123,
-                "tris": 964738,
-                "programs": 82,
-                "gpuMB": 575.8172407150269
+              "well-edge": {
+                "gpuMB": 574.168532371521
               }
             }
           },
@@ -3614,71 +3585,69 @@
             "bytesPerSecond": 1125000
           }
         },
-        "source": "No published calibration; F2 ceilings until the quiet M5 publishing run",
-        "assumption": "Hot phone = M5 ×10 assumption (E283); current stable M5 calibration is not yet published"
-      }
+        "source": "budgets/calibration.json (scripts/calibrate.mjs)",
+        "assumption": "ASSUMPTION: hot iPhone costs equal measured M5 costs × 10; no phone calibration was run (decision 99)",
+        "expressions": {
+          "frame": "1000 / 30 / 1.3",
+          "gpu": "25.641025641025642 - 9.6",
+          "draws": "floor((9.6 - 4 - 0.6) / (0.0004257812537252903 × 10))",
+          "tris": "floor(16.04102564102564 × 0.5 / (4.2708022548417234e-8 × 10))",
+          "programs": "floor(1000 / (0.6720833336313565 × 10))",
+          "gpuMB": "GL bytes retain measured baseline ceiling; native footprint is a separate Simulator gate",
+          "downloadBytes": "(null - 0 × 2) × 1125000"
+        }
+      },
+      "systemMs": {
+        "physics": 0.8,
+        "ai": 0.8,
+        "animation": 1,
+        "player": 0.4,
+        "world": 0.5,
+        "hud": 0.3,
+        "audio": 0.2
+      },
+      "gpuM5Ms": 1.6041025641025641,
+      "downloadBytes": null
     },
     "D": {
-      "derived": null,
+      "derived": {
+        "draws": 1174,
+        "tris": 18779873,
+        "programs": 148,
+        "gpuMB": null
+      },
       "ceiling": {
-        "draws": 109,
-        "tris": 1039194,
-        "programs": 67,
-        "gpuMB": 272.77142238616943
+        "gpuMB": 271.43809032440186
       },
       "formula": {
         "inputs": {
           "ceilings": {
             "phone": {
-              "spawn-rail": {
-                "draws": 144,
-                "tris": 1427662,
-                "programs": 67,
-                "gpuMB": 254.9377202987671
+              "D": {
+                "gpuMB": 271.43809032440186
               },
-              "well-edge": {
-                "draws": 128,
-                "tris": 1273139,
-                "programs": 67,
-                "gpuMB": 254.9377202987671
+              "spawn-rail": {
+                "gpuMB": 253.6043882369995
               },
               "stair-street": {
-                "draws": 122,
-                "tris": 996042,
-                "programs": 67,
-                "gpuMB": 254.9377202987671
+                "gpuMB": 253.6043882369995
               },
-              "D": {
-                "draws": 109,
-                "tris": 1039194,
-                "programs": 67,
-                "gpuMB": 272.77142238616943
+              "well-edge": {
+                "gpuMB": 253.6043882369995
               }
             },
             "desktop": {
-              "spawn-rail": {
-                "draws": 171,
-                "tris": 1653616,
-                "programs": 82,
-                "gpuMB": 575.5018644332886
+              "D": {
+                "gpuMB": 574.4839086532593
               },
-              "well-edge": {
-                "draws": 158,
-                "tris": 1375200,
-                "programs": 82,
-                "gpuMB": 575.5018644332886
+              "spawn-rail": {
+                "gpuMB": 574.168532371521
               },
               "stair-street": {
-                "draws": 144,
-                "tris": 947634,
-                "programs": 82,
-                "gpuMB": 575.5018644332886
+                "gpuMB": 574.168532371521
               },
-              "D": {
-                "draws": 123,
-                "tris": 964738,
-                "programs": 82,
-                "gpuMB": 575.8172407150269
+              "well-edge": {
+                "gpuMB": 574.168532371521
               }
             }
           },
@@ -3736,9 +3705,29 @@
             "bytesPerSecond": 1125000
           }
         },
-        "source": "No published calibration; F2 ceilings until the quiet M5 publishing run",
-        "assumption": "Hot phone = M5 ×10 assumption (E283); current stable M5 calibration is not yet published"
+        "source": "budgets/calibration.json (scripts/calibrate.mjs)",
+        "assumption": "ASSUMPTION: hot iPhone costs equal measured M5 costs × 10; no phone calibration was run (decision 99)",
+        "expressions": {
+          "frame": "1000 / 30 / 1.3",
+          "gpu": "25.641025641025642 - 9.6",
+          "draws": "floor((9.6 - 4 - 0.6) / (0.0004257812537252903 × 10))",
+          "tris": "floor(16.04102564102564 × 0.5 / (4.2708022548417234e-8 × 10))",
+          "programs": "floor(1000 / (0.6720833336313565 × 10))",
+          "gpuMB": "GL bytes retain measured baseline ceiling; native footprint is a separate Simulator gate",
+          "downloadBytes": "(null - 0 × 2) × 1125000"
+        }
       },
+      "systemMs": {
+        "physics": 0.8,
+        "ai": 0.8,
+        "animation": 1,
+        "player": 0.4,
+        "world": 0.5,
+        "hud": 0.3,
+        "audio": 0.2
+      },
+      "gpuM5Ms": 1.6041025641025641,
+      "downloadBytes": null,
       "observed": {
         "draws": 109,
         "tris": 1039194,
@@ -3759,7 +3748,7 @@
         },
         "maxY": 146.021,
         "out": 0,
-        "seconds": 18.63333333333408,
+        "seconds": 18.633333333334168,
         "trace": [
           [
             0.033,
@@ -16569,7 +16558,6 @@
         "lunge": 1,
         "swordSwing": 1,
         "nd.jian.swing": 1,
-        "nd.step.metal": 1,
         "hitMarker": 1,
         "swordHit:flesh": 1
       },
@@ -16584,16 +16572,16 @@
       "clockNow": 65.60266666666551,
       "player": {
         "pos": {
-          "x": -1.184,
+          "x": 0.951,
           "y": 900,
-          "z": 0.138
+          "z": 1.983
         },
-        "yaw": -0.10158679904026185,
-        "pitch": -0.2302643804609675,
+        "yaw": -4.5929846523859284e-8,
+        "pitch": -0.3900480722633999,
         "vel": {
           "x": 0,
           "y": 0,
-          "z": -0.004
+          "z": 0
         },
         "health": 100
       },
@@ -16623,16 +16611,16 @@
       "clockNow": 65.60266666666551,
       "player": {
         "pos": {
-          "x": -1.184,
+          "x": 0.951,
           "y": 900,
-          "z": 0.138
+          "z": 1.983
         },
-        "yaw": -0.10158679904026185,
-        "pitch": -0.2302643804609675,
+        "yaw": -4.5929846523859284e-8,
+        "pitch": -0.3900480722633999,
         "vel": {
           "x": 0,
           "y": 0,
-          "z": -0.004
+          "z": 0
         },
         "health": 100
       },
@@ -16771,43 +16759,38 @@
     },
     "stacks": {
       "listeners": [
-        "Error: listener touchmove\n    at HTMLDocument.addEventListener (<anonymous>:18:79)\n    at http://127.0.0.1:49370/?chunk=nine-dragon-stack&tier=phone&skipintro=1&nolock=1&mute=1&weather=clear&touch=1&sw=0:45:16",
-        "Error: listener gesturestart\n    at HTMLDocument.addEventListener (<anonymous>:18:79)\n    at http://127.0.0.1:49370/?chunk=nine-dragon-stack&tier=phone&skipintro=1&nolock=1&mute=1&weather=clear&touch=1&sw=0:46:16",
-        "Error: listener online\n    at addEventListener (<anonymous>:18:79)\n    at r.listen (http://127.0.0.1:49370/assets/scope-DfXWKOHs.js:1:3194)\n    at F (http://127.0.0.1:49370/assets/bootTrace-Dhdobqzn.js:2:5163)\n    at http://127.0.0.1:49370/assets/index-Zn4VjEj5.js:2:2928",
-        "Error: listener visibilitychange\n    at HTMLDocument.addEventListener (<anonymous>:18:79)\n    at r.listen (http://127.0.0.1:49370/assets/scope-DfXWKOHs.js:1:3194)\n    at http://127.0.0.1:49370/assets/index-Zn4VjEj5.js:2:3978",
-        "Error: listener pagehide\n    at addEventListener (<anonymous>:18:79)\n    at r.listen (http://127.0.0.1:49370/assets/scope-DfXWKOHs.js:1:3194)\n    at http://127.0.0.1:49370/assets/index-Zn4VjEj5.js:2:4071"
+        "Error: listener touchmove\n    at HTMLDocument.addEventListener (<anonymous>:18:79)\n    at http://127.0.0.1:65002/?chunk=nine-dragon-stack&tier=phone&skipintro=1&nolock=1&mute=1&weather=clear&touch=1&sw=0:36:16",
+        "Error: listener gesturestart\n    at HTMLDocument.addEventListener (<anonymous>:18:79)\n    at http://127.0.0.1:65002/?chunk=nine-dragon-stack&tier=phone&skipintro=1&nolock=1&mute=1&weather=clear&touch=1&sw=0:37:16",
+        "Error: listener online\n    at addEventListener (<anonymous>:18:79)\n    at r.listen (http://127.0.0.1:65002/assets/scope-CxJ3FBH1.js:1:3194)\n    at F (http://127.0.0.1:65002/assets/bootTrace-BeqE6bga.js:2:5163)\n    at http://127.0.0.1:65002/assets/index-DiJ6ELc0.js:2:2883",
+        "Error: listener visibilitychange\n    at HTMLDocument.addEventListener (<anonymous>:18:79)\n    at r.listen (http://127.0.0.1:65002/assets/scope-CxJ3FBH1.js:1:3194)\n    at http://127.0.0.1:65002/assets/index-DiJ6ELc0.js:2:3937",
+        "Error: listener pagehide\n    at addEventListener (<anonymous>:18:79)\n    at r.listen (http://127.0.0.1:65002/assets/scope-CxJ3FBH1.js:1:3194)\n    at http://127.0.0.1:65002/assets/index-DiJ6ELc0.js:2:4030"
       ],
       "timers": [
-        "Error: timeout\n    at w.setTimeout (<anonymous>:32:21)\n    at r.timeout (http://127.0.0.1:49370/assets/scope-DfXWKOHs.js:1:3897)\n    at e.combat (http://127.0.0.1:49370/assets/runtime-CxWBkdvA.js:1809:56612)\n    at M.onHit (http://127.0.0.1:49370/assets/session-CqPDxk7Y.js:11:8964)\n    at e.onHit (http://127.0.0.1:49370/assets/engine-DRdXbswF.js:2:10964)\n    at Gn.strike (http://127.0.0.1:49370/assets/kit-DYzFuciO.js:10:6486)\n    at Gn.sweepHit (http://127.0.0.1:49370/assets/kit-DYzFuciO.js:10:4344)\n    at Gn.update (http://127.0.0.1:49370/assets/kit-DYzFuciO.js:10:10356)\n    at ia.update (http://127.0.0.1:49370/assets/engine-DRdXbswF.js:2:15766)\n    at Object.run (http://127.0.0.1:49370/assets/session-CqPDxk7Y.js:11:17479)",
-        "Error: interval\n    at w.setInterval (<anonymous>:34:101)\n    at r.interval (http://127.0.0.1:49370/assets/scope-DfXWKOHs.js:1:4166)\n    at http://127.0.0.1:49370/assets/index-Zn4VjEj5.js:2:3961",
-        "Error: interval\n    at w.setInterval (<anonymous>:34:101)\n    at r.interval (http://127.0.0.1:49370/assets/scope-DfXWKOHs.js:1:4166)\n    at y (http://127.0.0.1:49370/assets/hudSlots-i1GCALrh.js:1:2433)\n    at Ne (http://127.0.0.1:49370/assets/index-Zn4VjEj5.js:2:7942)\n    at http://127.0.0.1:49370/assets/index-Zn4VjEj5.js:9:5709",
-        "Error: interval\n    at w.setInterval (<anonymous>:34:101)\n    at r.interval (http://127.0.0.1:49370/assets/scope-DfXWKOHs.js:1:4166)\n    at y (http://127.0.0.1:49370/assets/hudSlots-i1GCALrh.js:1:2533)\n    at Ne (http://127.0.0.1:49370/assets/index-Zn4VjEj5.js:2:7942)\n    at http://127.0.0.1:49370/assets/index-Zn4VjEj5.js:9:5709",
-        "Error: interval\n    at w.setInterval (<anonymous>:34:101)\n    at r.interval (http://127.0.0.1:49370/assets/scope-DfXWKOHs.js:1:4166)\n    at y (http://127.0.0.1:49370/assets/hudSlots-i1GCALrh.js:1:2642)\n    at Ne (http://127.0.0.1:49370/assets/index-Zn4VjEj5.js:2:7942)\n    at http://127.0.0.1:49370/assets/index-Zn4VjEj5.js:9:5709"
+        "Error: timeout\n    at w.setTimeout (<anonymous>:32:21)\n    at r.timeout (http://127.0.0.1:65002/assets/scope-CxJ3FBH1.js:1:3897)\n    at e.combat (http://127.0.0.1:65002/assets/runtime-CN2FIF2I.js:1809:56612)\n    at Oe.N.onHit (http://127.0.0.1:65002/assets/session-BS4QpqHI.js:11:10643)\n    at e.onHit (http://127.0.0.1:65002/assets/engine-C47WIjNN.js:2:10873)\n    at Un.strike (http://127.0.0.1:65002/assets/kit-D3RbpJYO.js:10:4441)\n    at Un.sweepHit (http://127.0.0.1:65002/assets/kit-D3RbpJYO.js:10:2299)\n    at Un.update (http://127.0.0.1:65002/assets/kit-D3RbpJYO.js:10:8311)\n    at sa.update (http://127.0.0.1:65002/assets/engine-C47WIjNN.js:2:15675)\n    at Object.run (http://127.0.0.1:65002/assets/session-BS4QpqHI.js:11:19160)",
+        "Error: interval\n    at w.setInterval (<anonymous>:34:101)\n    at r.interval (http://127.0.0.1:65002/assets/scope-CxJ3FBH1.js:1:4166)\n    at http://127.0.0.1:65002/assets/index-DiJ6ELc0.js:2:3920",
+        "Error: interval\n    at w.setInterval (<anonymous>:34:101)\n    at r.interval (http://127.0.0.1:65002/assets/scope-CxJ3FBH1.js:1:4166)\n    at He (http://127.0.0.1:65002/assets/index-DiJ6ELc0.js:73:3275)\n    at qe (http://127.0.0.1:65002/assets/index-DiJ6ELc0.js:73:4569)\n    at http://127.0.0.1:65002/assets/index-DiJ6ELc0.js:80:5558",
+        "Error: interval\n    at w.setInterval (<anonymous>:34:101)\n    at r.interval (http://127.0.0.1:65002/assets/scope-CxJ3FBH1.js:1:4166)\n    at He (http://127.0.0.1:65002/assets/index-DiJ6ELc0.js:73:3375)\n    at qe (http://127.0.0.1:65002/assets/index-DiJ6ELc0.js:73:4569)\n    at http://127.0.0.1:65002/assets/index-DiJ6ELc0.js:80:5558",
+        "Error: interval\n    at w.setInterval (<anonymous>:34:101)\n    at r.interval (http://127.0.0.1:65002/assets/scope-CxJ3FBH1.js:1:4166)\n    at He (http://127.0.0.1:65002/assets/index-DiJ6ELc0.js:73:3484)\n    at qe (http://127.0.0.1:65002/assets/index-DiJ6ELc0.js:73:4569)\n    at http://127.0.0.1:65002/assets/index-DiJ6ELc0.js:80:5558"
       ]
     },
     "retained": [
       {
-        "key": "scene:060482c0-1a2c-4f17-88e2-fda7700908a4",
+        "key": "scene:c641cb6f-2de7-4455-9bda-75aa132d8a99",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:6fbe30fe-c77f-4d90-b8eb-3baf5428c8aa",
+        "key": "scene:97ae9679-0433-4813-9ba4-024f60c4c982",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:77e45b5d-efc7-4abb-b5b9-18c7a3fea2a3",
+        "key": "scene:2397ebc3-cf0e-475b-90fe-81aef7b5cb75",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:3343f16a-b216-44c5-9f94-47087661eab6",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:92c54b1c-b259-4744-99bf-70222e0ad431",
+        "key": "scene:17b70d41-abd1-44f6-91cf-f1ab2747fa04",
         "refs": 0,
         "retained": true
       },
@@ -16817,7 +16800,12 @@
         "retained": true
       },
       {
-        "key": "scene:b34a4f72-7f47-4038-b670-6fbf01c8160d",
+        "key": "scene:2c695f93-cd12-42a2-a8c0-4ebd0fbfef57",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:4058cce8-bf93-45ba-b103-d75ec8447890",
         "refs": 0,
         "retained": true
       },
@@ -16827,22 +16815,12 @@
         "retained": true
       },
       {
-        "key": "scene:217ec542-30bf-4240-acc3-0b83674c56fa",
+        "key": "scene:92c54b1c-b259-4744-99bf-70222e0ad431",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:6aa86c0e-9519-4060-bc28-d2c82b1ad4fd",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:159e8135-6d4f-4692-a1b3-2413957b7bf4",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:f460e0a7-e821-419c-b779-2b750456991f",
+        "key": "scene:fc91f2c6-5af8-4a48-80bf-798b21319eba",
         "refs": 0,
         "retained": true
       },
@@ -16852,27 +16830,32 @@
         "retained": true
       },
       {
+        "key": "scene:159e8135-6d4f-4692-a1b3-2413957b7bf4",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:2923ef36-d64a-4ba2-ad9e-d0477685eae4",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:bbe350f7-88fa-496b-880d-027c1dd3e262",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:5f12fccb-b4b0-4f1d-8cbf-cf0decf43a91",
+        "refs": 0,
+        "retained": true
+      },
+      {
         "key": "renderer:shadow:bb42c3ae-7be6-4c63-bfaa-bcaf767d32e2",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:499f6c3f-2e83-4a72-8ca3-178ba096e0db",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:b47c0942-7e15-4968-90a1-1c67fe9d48e2",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:bc1072e2-eb79-4396-8616-2306adc6add8",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:4cf6832d-2664-4716-a0b7-1fbd2f296316",
+        "key": "scene:345d1b8b-f1ae-4ea7-b13a-bee30a4214de",
         "refs": 0,
         "retained": true
       },
@@ -16882,77 +16865,7 @@
         "retained": true
       },
       {
-        "key": "scene:0531d896-00be-4bad-90a5-95c9857098e0",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:d93b8404-36b8-4031-a9ba-2f391c51c34d",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:fab92b10-dc08-4dcd-83d5-2474b1411df3",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:7dc5f006-841b-4b2b-8ac5-c7e7515e73bf",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:b132b542-3766-4b3e-84b1-ebf61cfe24a4",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:33a76072-bb6d-41a4-a33f-5b2cfd16bf03",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:bbff51a6-eb02-44d5-8c92-956c6738dec5",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:88938796-17e6-4a27-8431-b22862b9d58a",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:82896410-c9b1-44fe-9a3e-570c2acc38aa",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:a9bf28bd-47c0-450a-828d-d51f36922dd7",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:e82a6860-26e7-427e-9f0f-d75d386b5932",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:91e48ca5-aa9c-4697-92db-23c7df0ce271",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:a791648d-37e6-4a89-afdb-875fd9c6c26a",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:ef1180a2-a327-447d-8c6d-3b4f0825f1b3",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:d82792b1-1ecd-47e5-8216-f39e2ca43169",
+        "key": "scene:4cf6832d-2664-4716-a0b7-1fbd2f296316",
         "refs": 0,
         "retained": true
       },
@@ -16967,17 +16880,17 @@
         "retained": true
       },
       {
-        "key": "scene:c6b9bd6a-2c63-41ef-88f4-f2c1fb98ef91",
+        "key": "scene:32e12ee5-626a-4c3b-b6ef-bdb8fe195279",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:f08aa464-59f5-4c57-a4f8-8295f9078ab2",
+        "key": "scene:e82a6860-26e7-427e-9f0f-d75d386b5932",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:763db52e-303b-457a-b3dc-4e0008eb674e",
+        "key": "scene:b1b057c8-6d77-4c01-8b20-85bebea9975d",
         "refs": 0,
         "retained": true
       },
@@ -16992,7 +16905,12 @@
         "retained": true
       },
       {
-        "key": "scene:ec4f5a9d-f4e2-4793-a26d-08fce49d8125",
+        "key": "scene:db9ddb73-ec0e-4173-abbb-d0a34213099e",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:ea22824f-7a8b-46b0-b370-a04556345438",
         "refs": 0,
         "retained": true
       },
@@ -17007,17 +16925,12 @@
         "retained": true
       },
       {
-        "key": "scene:aac3bd34-3f86-4b9b-8816-a5034dd86022",
+        "key": "scene:f7069d7e-9946-4bf0-b08f-6c7c14c9d1ec",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:9972aadc-2fdb-44c3-a31d-9e9f3fe0837d",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:d851ff66-8983-46be-b521-73e243372c06",
+        "key": "scene:1c5cbf21-36e6-4dac-8fb9-3bdc89ba7063",
         "refs": 0,
         "retained": true
       },
@@ -17042,7 +16955,17 @@
         "retained": true
       },
       {
-        "key": "scene:e39bf5be-7652-4c42-b79e-1510465c4b79",
+        "key": "scene:aac3bd34-3f86-4b9b-8816-a5034dd86022",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:9972aadc-2fdb-44c3-a31d-9e9f3fe0837d",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:5fc3842b-470a-4bcc-8e8e-6614e491a389",
         "refs": 0,
         "retained": true
       },
@@ -17057,42 +16980,17 @@
         "retained": true
       },
       {
+        "key": "scene:814dea72-33da-4aa3-8e04-133b04f20b4f",
+        "refs": 0,
+        "retained": true
+      },
+      {
         "key": "scene:d3a3b140-1afd-4162-ba7a-4fa81afb0522",
         "refs": 0,
         "retained": true
       },
       {
         "key": "scene:f063ead0-66dc-4a41-abdf-a2ac4d2edac0",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:0be61922-09e1-4a74-971f-016a97d4d1f3",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:2870d3a3-a9d5-4c36-9714-2c4aea8f78b1",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:4bf25aca-295b-456d-b9a4-58552f5e440b",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:9cff445f-90fb-4929-89b1-f5a9eaf72d26",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:b481c464-0ff7-4062-8432-680bb0536c1b",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:0482442a-123f-4c72-b67a-53de9cd82b85",
         "refs": 0,
         "retained": true
       },
@@ -17107,7 +17005,32 @@
         "retained": true
       },
       {
-        "key": "scene:0769fd77-fe0b-4da0-a6d2-73aa8039d378",
+        "key": "scene:b189cebe-3af9-43dc-aa88-0295e175232b",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:2870d3a3-a9d5-4c36-9714-2c4aea8f78b1",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:4bf25aca-295b-456d-b9a4-58552f5e440b",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:b481c464-0ff7-4062-8432-680bb0536c1b",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:0482442a-123f-4c72-b67a-53de9cd82b85",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:1a07f8f4-94b1-49d8-a550-2ba7c007247d",
         "refs": 0,
         "retained": true
       },
@@ -17122,7 +17045,7 @@
         "retained": true
       },
       {
-        "key": "scene:c25d2cbb-bc8b-4b0f-b049-069efe673797",
+        "key": "scene:c335d789-2534-4f52-bb8b-2b611762b1fc",
         "refs": 0,
         "retained": true
       },
@@ -17132,17 +17055,52 @@
         "retained": true
       },
       {
+        "key": "scene:d5dae95c-3f3e-4a89-9353-eaff48c22480",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:6d939d78-ce8e-48ea-a9cf-a7d68cc38673",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:93ed48cb-52e2-4812-b46a-5aaa04408fc6",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:6d9b384d-930e-4c39-92c0-de212e248e91",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:354646f2-e08a-41d4-b6dd-339ac98b4e4b",
+        "refs": 0,
+        "retained": true
+      },
+      {
         "key": "scene:d1ab6a3f-a007-48a8-b2af-2f6da57f85d7",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:e065567b-27fc-4a0a-af03-ff8df1fa823c",
+        "key": "scene:91e48ca5-aa9c-4697-92db-23c7df0ce271",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:6ee18c73-002b-4550-8d5e-439032a39946",
+        "key": "scene:a791648d-37e6-4a89-afdb-875fd9c6c26a",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:9656a289-50aa-4e7b-8df6-5aca22f20a34",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:78a7929b-18f8-4465-9bba-872dc5138fcc",
         "refs": 0,
         "retained": true
       },
@@ -17152,12 +17110,52 @@
         "retained": true
       },
       {
-        "key": "scene:325ce20c-4664-40fd-affd-ea89f75977c5",
+        "key": "scene:2176496f-e5ae-43c6-86a0-994f805b8d20",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:374863e7-6e05-4bc0-8ad0-e739aea3885a",
+        "key": "scene:e065567b-27fc-4a0a-af03-ff8df1fa823c",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:0ca12970-7eb1-4f8f-8d44-764a42fb49b6",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:9e848564-74e7-44c9-9d14-618fe5b3f888",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:143ab362-0549-45e3-a38d-a8eb8b96a4a1",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:4f6ac14f-1fd0-44de-a648-8bb5625c41c6",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:d93b8404-36b8-4031-a9ba-2f391c51c34d",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:81f7ed3e-8d88-47db-bd63-a4a5940ffb2b",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:bbff51a6-eb02-44d5-8c92-956c6738dec5",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:325ce20c-4664-40fd-affd-ea89f75977c5",
         "refs": 0,
         "retained": true
       },
@@ -17167,37 +17165,22 @@
         "retained": true
       },
       {
-        "key": "scene:6bc997cd-4201-4b59-aae8-a6ff047b5715",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:32e12ee5-626a-4c3b-b6ef-bdb8fe195279",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:64e471e3-fe28-4bfd-b262-94493f5efa09",
-        "refs": 0,
-        "retained": true
-      },
-      {
         "key": "scene:f2c2ea9f-c5d8-4305-9196-671fa13e19e9",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:3c80c233-eaa1-4e36-9787-7d3844cf76f9",
+        "key": "scene:fa9b3e11-1abd-469c-a00e-56892c7d2191",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:d32cf6b4-61fb-40fd-b4d8-02704a0dc0e9",
+        "key": "scene:f5f3a3f0-172e-4c67-91e4-52d6fc740b25",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:1741975f-237f-40c7-ad48-433e283be91f",
+        "key": "scene:5ab1fe65-02a8-4aa1-b4b3-ed4f1f47f11e",
         "refs": 0,
         "retained": true
       },
@@ -17207,7 +17190,7 @@
         "retained": true
       },
       {
-        "key": "scene:ca206f72-4ac5-4048-aee2-39e3c0f73479",
+        "key": "scene:6990c02c-a996-4dc3-bc43-4b171200523e",
         "refs": 0,
         "retained": true
       },
@@ -17217,7 +17200,7 @@
         "retained": true
       },
       {
-        "key": "scene:75eb249f-1e44-4bfd-a070-d23878abb173",
+        "key": "scene:2d9b2260-36ff-43c1-9de4-43171dba7f9a",
         "refs": 0,
         "retained": true
       },
@@ -17227,17 +17210,17 @@
         "retained": true
       },
       {
-        "key": "scene:5df100a9-00d1-467b-b887-03370dd8f41b",
+        "key": "scene:2dad2b0d-9a51-4b4f-a929-311b17f18c67",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:ec4fdaed-e70a-4cbe-8f71-c800e3bd3f73",
+        "key": "scene:5041e780-c74c-4bd8-82dc-2198ce0a1517",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:06b993f3-d301-41f7-a896-df45fca771e6",
+        "key": "scene:3c0fa8e2-a150-4f08-b80f-cc4d1bdeadea",
         "refs": 0,
         "retained": true
       },
@@ -17257,7 +17240,7 @@
         "retained": true
       },
       {
-        "key": "scene:f1d69621-3706-45a5-b85c-02267f07bc82",
+        "key": "scene:c6433447-7e75-4850-9496-33b77c134b3b",
         "refs": 0,
         "retained": true
       },
@@ -17267,32 +17250,12 @@
         "retained": true
       },
       {
-        "key": "scene:22b8a3c8-9eb0-4ca1-836a-d58daef08051",
+        "key": "scene:03072f5e-05c9-4032-b2d0-58ea26505fb4",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:c13dd6b8-dab8-49f4-beb1-d4e8a8c03b8e",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:e4b0c8d7-1d17-4360-bf5d-0b51733b84ae",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:a5e1c0af-3180-4e60-8509-9543d146b0fd",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:6800ca59-8d78-41a8-bfe5-6bd8c90d0e5a",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:8887328e-390e-4f66-80a8-1f3556ea34dd",
+        "key": "scene:fb532dec-fd84-4784-9e71-0113c4292fdb",
         "refs": 0,
         "retained": true
       },
@@ -17302,42 +17265,62 @@
         "retained": true
       },
       {
-        "key": "scene:4040da3e-c330-49b7-b54e-89ae6e1ea0d4",
+        "key": "scene:ab00ecf2-0625-4da0-81a3-198d151dd02f",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:08e07fe1-a72b-44ec-8f5f-89581d20053a",
+        "key": "scene:fce02d91-2484-4bf0-a370-e0386709a462",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:9f9a0933-1182-4786-b84f-e82d05def011",
+        "key": "scene:45ce2e95-5422-47b7-b4dc-6f9e9d0b4f1e",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:73eba5ff-8766-422e-a65c-85927d172a55",
+        "key": "scene:189a8ebe-40ec-41c0-9451-23071c7ac0ba",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:db41a97b-01d8-47e7-be6d-82ba8de0fc72",
+        "key": "scene:22d1bb4d-8ade-4f55-8195-b27b9a678ff5",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:a1825656-15ca-40ff-aabf-f759c51f5410",
+        "key": "scene:5721cb45-1dce-4b35-a8ee-0929a69843f9",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:16885b06-469a-4ced-83a0-070329e9722d",
+        "key": "scene:c13dd6b8-dab8-49f4-beb1-d4e8a8c03b8e",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:980b699f-48e7-412e-8b0c-236a58563963",
+        "key": "scene:58f106bc-b62f-4618-8179-2d252be92eed",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:1d05314f-bf8e-4a6d-a933-edecd951feea",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:8d4ec71d-ae71-48ee-af62-93a2468fe48e",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:f9e763b7-a723-4706-a5b5-d917b02b21f9",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:2753e698-3952-42c5-8a73-f56d7c87201b",
         "refs": 0,
         "retained": true
       },
@@ -17347,27 +17330,32 @@
         "retained": true
       },
       {
+        "key": "scene:81742135-40a8-4a29-b105-219747dcc4c4",
+        "refs": 0,
+        "retained": true
+      },
+      {
         "key": "scene:undefined",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:463a0003-cb4c-4fc6-9cc6-9a30c7f7e3ff",
+        "key": "scene:5cb1df64-84e0-4b96-801a-d263498436dd",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:0cac33b8-b910-479f-858d-45da97a06d1c",
+        "key": "scene:32746f89-8015-4bd1-ad82-76995065597c",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:e5f2de67-745d-46fc-b276-3b7c24bdf1ad",
+        "key": "scene:498f7a79-fb42-4f1e-bafb-5148bec63e56",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:e458072f-db73-4e56-9c72-ef61c5f299bc",
+        "key": "scene:4ce65ed8-ece1-4379-aceb-afad1f90dfc2",
         "refs": 0,
         "retained": true
       },
@@ -17377,92 +17365,42 @@
         "retained": true
       },
       {
-        "key": "scene:7e4feded-7415-4623-88e1-511758b0ff8c",
+        "key": "scene:4ceade98-a55b-460d-b423-c63af00d4d28",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:10e366fc-e7e5-4990-b1b6-ca9b13d5dc7c",
+        "key": "scene:97547eda-c933-47f7-b16b-e16314cc2603",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:3a7bb917-8d70-417c-9315-27eb608235d2",
+        "key": "scene:87ca318f-fd40-46b7-b3fc-d55add7956ef",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:27f05957-28a3-4a3f-9ccd-4bd1bff4c4fe",
+        "key": "scene:f5ea015f-9f07-4995-a295-a77ac24cfd0c",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:16ae1403-9190-44f8-a072-86f5e9c6f617",
+        "key": "scene:0525f5b5-92fb-4c6b-a258-d5068c695c42",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:b61c30d4-1efd-4709-ba9a-4d9e5368f2ed",
+        "key": "scene:97e65bef-8c07-49c7-b199-a9bc4ecca45c",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:7071a6c9-61df-470b-bf43-f87ab2cc5bef",
+        "key": "scene:4ebaa228-efc3-4d0f-8901-301d80d1d0a6",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:1f0558f7-e125-4c68-9c1a-ecb4aedb2e6f",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:3f34fa20-9837-4c26-b916-e2c5f7457d41",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:5ff53f6f-7851-4302-b0d4-ad932138fc62",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:df2f6412-dc7d-4e52-8e08-6e27d0fca1d9",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:04785368-8918-4031-be52-f35860c6a3c0",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:2971b6e9-87ad-4121-b3fc-0f0f7e807e26",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:d6e0e5a4-b2f6-442b-91bb-8a24a6edcb8a",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:18930778-ada2-4b89-9c10-72cbf32d8ae8",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:cd8508a8-48c3-4370-8508-5110a1bf5d07",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:05c932e6-1efd-42c9-99cd-9018eab41fe9",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:5eb438cd-48e8-40cd-a435-4e64f5a3685c",
+        "key": "scene:9442ffde-e079-4703-ad3a-348b85e1c898",
         "refs": 0,
         "retained": true
       },
@@ -17472,12 +17410,47 @@
         "retained": true
       },
       {
-        "key": "scene:874b9896-983e-48d7-83be-07ded0dcf818",
+        "key": "scene:ca4dca10-cd35-4caa-8470-c5626d2193db",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:f9ea0105-9936-4f66-b394-997cef4dc5e6",
+        "key": "scene:6cbe1884-30a8-48b8-b63d-91dca2db91ae",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:b41b4f42-ff50-4794-837a-580c2a12cb67",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:a8f74358-a2c4-4f39-a01b-d3c5471abcac",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:eee3228c-1fa9-4fd7-a75a-46260e3c81f5",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:43a279b9-75a9-40ff-b52f-aa9c040c291b",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:45e285b6-b758-4807-a436-c0378cec81a2",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:2b5cfb5c-68f7-41f1-8501-f1bebf93827f",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:451a4af4-b1cc-45bf-b3e8-4f7be340991e",
         "refs": 0,
         "retained": true
       },
@@ -17487,82 +17460,97 @@
         "retained": true
       },
       {
-        "key": "scene:8bef49b9-2758-43b6-93cc-60da678d67d0",
+        "key": "scene:54900c60-523f-44ac-852b-e026d52f8b9d",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:7276d210-99ea-4132-a012-6b9b1368f490",
+        "key": "scene:c0bbc0cc-2e09-44b8-ae72-1aecb8bb00c8",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:855b38ab-f571-44a8-b689-b2cf0a6840c8",
+        "key": "scene:f78ac26d-9ed5-4e82-b4f1-dfd2030b6fc1",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:0b4bf8f2-7d3f-4fcc-8bde-e3b557db77dd",
+        "key": "scene:11b269bb-1e4c-40a5-a575-4f7aeaec42a0",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:e4a59bbe-8118-46bc-a45e-f5d149b68408",
+        "key": "scene:9a4c0a96-efd6-4fbb-a27a-5a51d1a531b4",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:fd7be0af-4b45-463d-be4a-c7dc9854828a",
+        "key": "scene:1f0558f7-e125-4c68-9c1a-ecb4aedb2e6f",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:bcc98318-c2e5-47ce-9da7-4121574842bd",
+        "key": "scene:e666bf3b-b832-4b7b-bd4f-559c0650a31c",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:cf9b66f3-1fdd-4670-bdc9-b5607bc6992c",
+        "key": "scene:29c06b6a-fd41-44c7-bb56-738af354e8cd",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:f44aa0d2-0ec6-4cde-95a5-39b8a59cc838",
+        "key": "scene:b8e532f5-c661-4bcd-a706-f20f13a719b1",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:afefa2ed-d3db-406f-b3d7-fc1739af145d",
+        "key": "scene:a33baf22-4211-4492-bc41-e9f1c8862a95",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:e660de61-2735-4a7e-9ea4-987f1a5598aa",
+        "key": "scene:e6d1c7ac-412c-4127-8a47-5931f49cd5f1",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:77db6f20-b2b4-4d24-a2c7-477356615f1a",
+        "key": "scene:665132cf-ec8e-4e9d-86ed-32ceb4b5c4dc",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:15dcaa9f-d12d-4c6c-85c4-cdd6be1d3ee4",
+        "key": "scene:68122cdd-f3e0-4643-9690-15eecc422f68",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:1330849f-fe30-4021-8d9c-75d80fbdd6bb",
+        "key": "scene:38d86cc6-478d-4092-abc5-9bafa9afca6e",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:8f620c4c-9220-410f-8aba-e5a0ba32c2d0",
+        "key": "scene:bc0cf843-c158-4c0e-aa5f-189204619522",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:11a03eaa-25be-4272-ba11-2a2fcb85ad37",
+        "key": "scene:2defd621-0e0e-4c61-9404-18269abfcd67",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:a31f9bf3-c6d5-4419-8116-acc38a8904dd",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:8939e8a0-4f91-4f51-a6b1-525dc01c08fb",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:8f2be8eb-2093-4ef0-b251-7fc850893599",
         "refs": 0,
         "retained": true
       }
@@ -17581,12 +17569,12 @@
       "resources": [
         {
           "type": "oo",
-          "uuid": "6fbe30fe-c77f-4d90-b8eb-3baf5428c8aa",
+          "uuid": "97ae9679-0433-4813-9ba4-024f60c4c982",
           "name": "",
           "retained": true,
           "texture": true,
           "programs": [],
-          "source": "2a6fd148-9a7e-4371-a761-2a1de7041759",
+          "source": "cf9bbe9a-3b11-42b2-8a7e-1846d57c62c5",
           "image": {
             "width": 512,
             "height": 256
@@ -17594,12 +17582,12 @@
         },
         {
           "type": "e",
-          "uuid": "060482c0-1a2c-4f17-88e2-fda7700908a4",
+          "uuid": "c641cb6f-2de7-4455-9bda-75aa132d8a99",
           "name": "PMREM.cubeUv",
           "retained": true,
           "texture": false,
           "programs": [],
-          "source": "03092cd4-dbd9-4f80-9ee3-891177cc262f",
+          "source": "4c4c73db-32cf-41bd-8da1-8c01396fb0e6",
           "image": {
             "width": 384,
             "height": 512
@@ -17614,12 +17602,12 @@
         },
         {
           "type": "e",
-          "uuid": "463a0003-cb4c-4fc6-9cc6-9a30c7f7e3ff",
+          "uuid": "5cb1df64-84e0-4b96-801a-d263498436dd",
           "name": "EffectComposer.Buffer",
           "retained": true,
           "texture": true,
           "programs": [],
-          "source": "21cd4ff2-fac3-45bf-be06-7c845ad11342",
+          "source": "463a0003-cb4c-4fc6-9cc6-9a30c7f7e3ff",
           "image": {
             "width": 780,
             "height": 1688
@@ -17627,12 +17615,12 @@
         },
         {
           "type": "xs",
-          "uuid": "0cac33b8-b910-479f-858d-45da97a06d1c",
+          "uuid": "32746f89-8015-4bd1-ad82-76995065597c",
           "name": "EffectComposer.InputDepth",
           "retained": true,
           "texture": true,
           "programs": [],
-          "source": "32746f89-8015-4bd1-ad82-76995065597c",
+          "source": "e458072f-db73-4e56-9c72-ef61c5f299bc",
           "image": {
             "width": 780,
             "height": 1688
@@ -17640,7 +17628,7 @@
         },
         {
           "type": "Pa",
-          "uuid": "3343f16a-b216-44c5-9f94-47087661eab6",
+          "uuid": "17b70d41-abd1-44f6-91cf-f1ab2747fa04",
           "name": "",
           "retained": true,
           "texture": false,
@@ -17650,157 +17638,13 @@
           "image": {}
         },
         {
-          "type": "ua",
-          "uuid": "32a9301d-ae4c-4b8a-bf00-3d7e73b7b501",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            4
-          ],
-          "image": {}
-        },
-        {
-          "type": "Al",
-          "uuid": "217ec542-30bf-4240-acc3-0b83674c56fa",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            5
-          ],
-          "image": {}
-        },
-        {
-          "type": "Al",
-          "uuid": "f460e0a7-e821-419c-b779-2b750456991f",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            6,
-            7
-          ],
-          "image": {}
-        },
-        {
-          "type": "Al",
-          "uuid": "d44ece93-1395-4a93-a0f8-a0a00173cab0",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            8
-          ],
-          "image": {}
-        },
-        {
           "type": "Tl",
-          "uuid": "7276d210-99ea-4132-a012-6b9b1368f490",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            11
-          ],
-          "image": {}
-        },
-        {
-          "type": "Tl",
-          "uuid": "855b38ab-f571-44a8-b689-b2cf0a6840c8",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            11
-          ],
-          "image": {}
-        },
-        {
-          "type": "Tl",
-          "uuid": "0b4bf8f2-7d3f-4fcc-8bde-e3b557db77dd",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            37
-          ],
-          "image": {}
-        },
-        {
-          "type": "Tl",
-          "uuid": "b47c0942-7e15-4968-90a1-1c67fe9d48e2",
+          "uuid": "c2995c98-dcf8-41e1-9db7-4ccc5635614d",
           "name": "sword",
           "retained": true,
           "texture": false,
           "programs": [
-            39
-          ],
-          "image": {}
-        },
-        {
-          "type": "Pa",
-          "uuid": "c2995c98-dcf8-41e1-9db7-4ccc5635614d",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            3
-          ],
-          "image": {}
-        },
-        {
-          "type": "Cl",
-          "uuid": "d93b8404-36b8-4031-a9ba-2f391c51c34d",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            40
-          ],
-          "image": {}
-        },
-        {
-          "type": "Cl",
-          "uuid": "bbff51a6-eb02-44d5-8c92-956c6738dec5",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            41
-          ],
-          "image": {}
-        },
-        {
-          "type": "Cl",
-          "uuid": "82896410-c9b1-44fe-9a3e-570c2acc38aa",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            42
-          ],
-          "image": {}
-        },
-        {
-          "type": "Cl",
-          "uuid": "e82a6860-26e7-427e-9f0f-d75d386b5932",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            40
-          ],
-          "image": {}
-        },
-        {
-          "type": "Cl",
-          "uuid": "d82792b1-1ecd-47e5-8216-f39e2ca43169",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            41
+            4
           ],
           "image": {}
         },
@@ -17811,7 +17655,7 @@
           "retained": true,
           "texture": false,
           "programs": [
-            43
+            5
           ],
           "image": {}
         },
@@ -17822,7 +17666,18 @@
           "retained": true,
           "texture": false,
           "programs": [
-            44
+            6
+          ],
+          "image": {}
+        },
+        {
+          "type": "Cl",
+          "uuid": "ea22824f-7a8b-46b0-b370-a04556345438",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            7
           ],
           "image": {}
         },
@@ -17833,7 +17688,7 @@
           "retained": true,
           "texture": false,
           "programs": [
-            43
+            5
           ],
           "image": {}
         },
@@ -17844,7 +17699,7 @@
           "retained": true,
           "texture": false,
           "programs": [
-            44
+            6
           ],
           "image": {}
         },
@@ -17855,7 +17710,7 @@
           "retained": true,
           "texture": false,
           "programs": [
-            43
+            8
           ],
           "image": {}
         },
@@ -17866,7 +17721,7 @@
           "retained": true,
           "texture": false,
           "programs": [
-            44
+            9
           ],
           "image": {}
         },
@@ -17877,7 +17732,7 @@
           "retained": true,
           "texture": false,
           "programs": [
-            43
+            8
           ],
           "image": {}
         },
@@ -17888,7 +17743,7 @@
           "retained": true,
           "texture": false,
           "programs": [
-            44
+            9
           ],
           "image": {}
         },
@@ -17899,7 +17754,7 @@
           "retained": true,
           "texture": false,
           "programs": [
-            43
+            8
           ],
           "image": {}
         },
@@ -17910,7 +17765,29 @@
           "retained": true,
           "texture": false,
           "programs": [
-            44
+            9
+          ],
+          "image": {}
+        },
+        {
+          "type": "Cl",
+          "uuid": "2fe3d731-2118-49b7-a9e8-4744e8d1c361",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            8
+          ],
+          "image": {}
+        },
+        {
+          "type": "Cl",
+          "uuid": "93ed48cb-52e2-4812-b46a-5aaa04408fc6",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            9
           ],
           "image": {}
         },
@@ -17921,18 +17798,7 @@
           "retained": true,
           "texture": false,
           "programs": [
-            45
-          ],
-          "image": {}
-        },
-        {
-          "type": "Cl",
-          "uuid": "e065567b-27fc-4a0a-af03-ff8df1fa823c",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            40
+            8
           ],
           "image": {}
         },
@@ -17943,146 +17809,179 @@
           "retained": true,
           "texture": false,
           "programs": [
-            45
+            9
           ],
           "image": {}
         },
         {
           "type": "Cl",
-          "uuid": "374863e7-6e05-4bc0-8ad0-e739aea3885a",
+          "uuid": "0ca12970-7eb1-4f8f-8d44-764a42fb49b6",
           "name": "",
           "retained": true,
           "texture": false,
           "programs": [
-            46
+            10
           ],
           "image": {}
         },
         {
           "type": "Cl",
-          "uuid": "32e12ee5-626a-4c3b-b6ef-bdb8fe195279",
+          "uuid": "9e848564-74e7-44c9-9d14-618fe5b3f888",
           "name": "",
           "retained": true,
           "texture": false,
           "programs": [
-            47
+            5
           ],
           "image": {}
         },
         {
           "type": "Cl",
-          "uuid": "d32cf6b4-61fb-40fd-b4d8-02704a0dc0e9",
+          "uuid": "4f6ac14f-1fd0-44de-a648-8bb5625c41c6",
           "name": "",
           "retained": true,
           "texture": false,
           "programs": [
-            49
+            10
+          ],
+          "image": {}
+        },
+        {
+          "type": "Cl",
+          "uuid": "81f7ed3e-8d88-47db-bd63-a4a5940ffb2b",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            11
+          ],
+          "image": {}
+        },
+        {
+          "type": "Cl",
+          "uuid": "37391235-49f9-436c-8170-d2596e5150be",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            12
+          ],
+          "image": {}
+        },
+        {
+          "type": "Cl",
+          "uuid": "5ab1fe65-02a8-4aa1-b4b3-ed4f1f47f11e",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            14
           ],
           "image": {}
         },
         {
           "type": "Tl",
-          "uuid": "a24b659d-8dce-413b-bf4e-a8f666a8939c",
+          "uuid": "6990c02c-a996-4dc3-bc43-4b171200523e",
           "name": "",
           "retained": true,
           "texture": false,
           "programs": [
-            50
+            15
           ],
           "image": {}
         },
         {
           "type": "Tl",
-          "uuid": "cd476685-041a-4a8f-bbb5-4af6ed1ca0c6",
+          "uuid": "2d9b2260-36ff-43c1-9de4-43171dba7f9a",
           "name": "",
           "retained": true,
           "texture": false,
           "programs": [
-            50
+            15
           ],
           "image": {}
         },
         {
           "type": "Tl",
-          "uuid": "ecdcccb1-86ab-4f92-9120-7ef413ebf4b1",
+          "uuid": "2dad2b0d-9a51-4b4f-a929-311b17f18c67",
           "name": "",
           "retained": true,
           "texture": false,
           "programs": [
-            50
+            15
           ],
           "image": {}
         },
         {
           "type": "Tl",
-          "uuid": "5582d5e1-c2dc-4988-b1ca-866d0af10662",
+          "uuid": "38274ca5-d974-4784-b981-1eb205d9e35f",
           "name": "",
           "retained": true,
           "texture": false,
           "programs": [
-            50
+            15
           ],
           "image": {}
         },
         {
           "type": "Pa",
-          "uuid": "415cbdf9-2119-43ec-88d7-dffa11bbd6d4",
+          "uuid": "c6433447-7e75-4850-9496-33b77c134b3b",
           "name": "",
           "retained": true,
           "texture": false,
           "programs": [
-            51,
+            16,
             3
           ],
           "image": {}
         },
         {
           "type": "Pa",
-          "uuid": "f3e63442-d770-4388-b33f-a539158c664b",
+          "uuid": "03072f5e-05c9-4032-b2d0-58ea26505fb4",
           "name": "",
           "retained": true,
           "texture": false,
           "programs": [
             3
-          ],
-          "image": {}
-        },
-        {
-          "type": "El",
-          "uuid": "c13dd6b8-dab8-49f4-beb1-d4e8a8c03b8e",
-          "name": "hands-sleeve",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            52
           ],
           "image": {}
         },
         {
           "type": "El",
           "uuid": "72fdf455-a44f-4e6d-8b85-a7cd36a4ba27",
-          "name": "hands-cuff",
+          "name": "hands-sleeve",
           "retained": true,
           "texture": false,
           "programs": [
-            52
+            17
           ],
           "image": {}
         },
         {
           "type": "El",
-          "uuid": "08e07fe1-a72b-44ec-8f5f-89581d20053a",
+          "uuid": "22d1bb4d-8ade-4f55-8195-b27b9a678ff5",
+          "name": "hands-cuff",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            17
+          ],
+          "image": {}
+        },
+        {
+          "type": "El",
+          "uuid": "c13dd6b8-dab8-49f4-beb1-d4e8a8c03b8e",
           "name": "hands-glove",
           "retained": true,
           "texture": false,
           "programs": [
-            52
+            17
           ],
           "image": {}
         },
         {
           "type": "Pa",
-          "uuid": "2ba01413-bda5-4621-a443-eb047ee157d2",
+          "uuid": "81742135-40a8-4a29-b105-219747dcc4c4",
           "name": "",
           "retained": true,
           "texture": false,
@@ -18092,8 +17991,97 @@
           "image": {}
         },
         {
-          "type": "M",
-          "uuid": "7e4feded-7415-4623-88e1-511758b0ff8c",
+          "type": "Pa",
+          "uuid": "2c695f93-cd12-42a2-a8c0-4ebd0fbfef57",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            3
+          ],
+          "image": {}
+        },
+        {
+          "type": "ua",
+          "uuid": "09801986-cee9-4d47-9362-ad29ce30d3a7",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            18
+          ],
+          "image": {}
+        },
+        {
+          "type": "Al",
+          "uuid": "777b1aab-de0f-4700-a3ab-a7fca597c4ab",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            19
+          ],
+          "image": {}
+        },
+        {
+          "type": "Al",
+          "uuid": "bbe350f7-88fa-496b-880d-027c1dd3e262",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            20,
+            21
+          ],
+          "image": {}
+        },
+        {
+          "type": "Al",
+          "uuid": "99743696-c1fb-4edb-9b53-08b3471b214c",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            22
+          ],
+          "image": {}
+        },
+        {
+          "type": "Tl",
+          "uuid": "9a4c0a96-efd6-4fbb-a27a-5a51d1a531b4",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            25
+          ],
+          "image": {}
+        },
+        {
+          "type": "Tl",
+          "uuid": "1f0558f7-e125-4c68-9c1a-ecb4aedb2e6f",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            25
+          ],
+          "image": {}
+        },
+        {
+          "type": "Tl",
+          "uuid": "e666bf3b-b832-4b7b-bd4f-559c0650a31c",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            51
+          ],
+          "image": {}
+        },
+        {
+          "type": "j",
+          "uuid": "4ceade98-a55b-460d-b423-c63af00d4d28",
           "name": "CopyMaterial",
           "retained": true,
           "texture": false,
@@ -18104,7 +18092,7 @@
         },
         {
           "type": "Tt",
-          "uuid": "7071a6c9-61df-470b-bf43-f87ab2cc5bef",
+          "uuid": "4ebaa228-efc3-4d0f-8901-301d80d1d0a6",
           "name": "EffectMaterial",
           "retained": true,
           "texture": false,
@@ -18115,7 +18103,7 @@
         },
         {
           "type": "Cl",
-          "uuid": "16ae1403-9190-44f8-a072-86f5e9c6f617",
+          "uuid": "0525f5b5-92fb-4c6b-a258-d5068c695c42",
           "name": "ViewmodelDepthMerge",
           "retained": true,
           "texture": false,
@@ -18126,7 +18114,7 @@
         },
         {
           "type": "Tt",
-          "uuid": "2971b6e9-87ad-4121-b3fc-0f0f7e807e26",
+          "uuid": "a8f74358-a2c4-4f39-a01b-d3c5471abcac",
           "name": "EffectMaterial",
           "retained": true,
           "texture": false,
@@ -18136,13 +18124,13 @@
           "image": {}
         },
         {
-          "type": "ys",
-          "uuid": "b34a4f72-7f47-4038-b670-6fbf01c8160d",
+          "type": "oo",
+          "uuid": "32e12ee5-626a-4c3b-b6ef-bdb8fe195279",
           "name": "",
           "retained": true,
           "texture": true,
           "programs": [],
-          "source": "2c695f93-cd12-42a2-a8c0-4ebd0fbfef57",
+          "source": "567399b7-273f-4852-ad0f-5fc7df224e57",
           "image": {
             "width": 256,
             "height": 256
@@ -18150,129 +18138,12 @@
         },
         {
           "type": "ys",
-          "uuid": "6aa86c0e-9519-4060-bc28-d2c82b1ad4fd",
+          "uuid": "e82a6860-26e7-427e-9f0f-d75d386b5932",
           "name": "",
           "retained": true,
           "texture": true,
           "programs": [],
-          "source": "fc91f2c6-5af8-4a48-80bf-798b21319eba",
-          "image": {
-            "width": 1024,
-            "height": 512
-          }
-        },
-        {
-          "type": "ys",
-          "uuid": "777b1aab-de0f-4700-a3ab-a7fca597c4ab",
-          "name": "",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "5e09bd3c-36ac-4c1f-8262-33cf59309ebb",
-          "image": {
-            "width": 1024,
-            "height": 4
-          }
-        },
-        {
-          "type": "oo",
-          "uuid": "05c932e6-1efd-42c9-99cd-9018eab41fe9",
-          "name": "",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "e79afac5-ce86-481d-a42a-8daecd7c965e",
-          "image": {
-            "width": 1,
-            "height": 1
-          }
-        },
-        {
-          "type": "oo",
-          "uuid": "5eb438cd-48e8-40cd-a435-4e64f5a3685c",
-          "name": "",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "268f883f-d119-439c-a7dd-791e6f206535",
-          "image": {
-            "width": 1,
-            "height": 1
-          }
-        },
-        {
-          "type": "oo",
-          "uuid": "1f0558f7-e125-4c68-9c1a-ecb4aedb2e6f",
-          "name": "",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "5fa39c4a-5e92-40e4-b890-d51aa12e665b",
-          "image": {
-            "width": 256,
-            "height": 256
-          }
-        },
-        {
-          "type": "ur",
-          "uuid": "5ff53f6f-7851-4302-b0d4-ad932138fc62",
-          "name": "",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "8fa045a4-a600-455b-874e-fd30ea897618",
-          "image": {
-            "width": 512,
-            "height": 512
-          }
-        },
-        {
-          "type": "fr",
-          "uuid": "df2f6412-dc7d-4e52-8e08-6e27d0fca1d9",
-          "name": "",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "10a6343c-18f9-4c16-a677-62de38d811fb",
-          "image": {
-            "width": 141,
-            "height": 49
-          }
-        },
-        {
-          "type": "fr",
-          "uuid": "04785368-8918-4031-be52-f35860c6a3c0",
-          "name": "",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "440867ab-da3a-4213-b4ae-566a05769e6d",
-          "image": {
-            "width": 23,
-            "height": 150
-          }
-        },
-        {
-          "type": "oo",
-          "uuid": "fab92b10-dc08-4dcd-83d5-2474b1411df3",
-          "name": "",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "1c5cbf21-36e6-4dac-8fb9-3bdc89ba7063",
-          "image": {
-            "width": 256,
-            "height": 256
-          }
-        },
-        {
-          "type": "ys",
-          "uuid": "7dc5f006-841b-4b2b-8ac5-c7e7515e73bf",
-          "name": "",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "143ab362-0549-45e3-a38d-a8eb8b96a4a1",
+          "source": "d82792b1-1ecd-47e5-8216-f39e2ca43169",
           "image": {
             "width": 1024,
             "height": 512
@@ -18280,12 +18151,12 @@
         },
         {
           "type": "oo",
-          "uuid": "b132b542-3766-4b3e-84b1-ebf61cfe24a4",
+          "uuid": "b1b057c8-6d77-4c01-8b20-85bebea9975d",
           "name": "",
           "retained": true,
           "texture": true,
           "programs": [],
-          "source": "a790bfaa-ede3-431f-a3b8-043775712e92",
+          "source": "50e293b5-7590-4a47-afa0-d04774c23a2c",
           "image": {
             "width": 1,
             "height": 1
@@ -18293,58 +18164,30 @@
         },
         {
           "type": "e",
-          "uuid": "91e48ca5-aa9c-4697-92db-23c7df0ce271",
+          "uuid": "f7069d7e-9946-4bf0-b08f-6c7c14c9d1ec",
           "name": "",
           "retained": true,
           "texture": true,
           "programs": [],
-          "source": "8ed69d0d-c6b8-4389-b7dd-bb88af6f3532",
+          "source": "fab92b10-dc08-4dcd-83d5-2474b1411df3",
           "image": {
             "width": 1024,
             "height": 1024,
-            "src": "blob:http://127.0.0.1:49370/4d1de2fa-5973-465e-98fb-871bf1a75616"
+            "src": "blob:http://127.0.0.1:65002/4104d8f5-aa2d-4ac2-b6fa-8c37e1b640fa"
           }
         },
         {
           "type": "e",
-          "uuid": "a791648d-37e6-4a89-afdb-875fd9c6c26a",
+          "uuid": "1c5cbf21-36e6-4dac-8fb9-3bdc89ba7063",
           "name": "",
           "retained": true,
           "texture": true,
           "programs": [],
-          "source": "0dd051b6-3583-46b3-8385-0356c7be1dc5",
+          "source": "5f8ec535-bbcb-4dae-ac9a-a3f80d93397e",
           "image": {
             "width": 1024,
             "height": 1024,
-            "src": "blob:http://127.0.0.1:49370/259479e3-2571-47c9-bc66-4f1c84fc47c6"
-          }
-        },
-        {
-          "type": "e",
-          "uuid": "c6b9bd6a-2c63-41ef-88f4-f2c1fb98ef91",
-          "name": "",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "9dc5d4e1-1153-4d56-bde7-025a0bdc6e12",
-          "image": {
-            "width": 512,
-            "height": 512,
-            "src": "blob:http://127.0.0.1:49370/42e411ec-18c9-44e5-a173-1158fb59c6d3"
-          }
-        },
-        {
-          "type": "e",
-          "uuid": "f08aa464-59f5-4c57-a4f8-8295f9078ab2",
-          "name": "",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "bc93d6c8-a8b0-42da-be91-e69a884cd514",
-          "image": {
-            "width": 512,
-            "height": 512,
-            "src": "blob:http://127.0.0.1:49370/62dda3ce-2bac-44f5-96f4-18722f48e9b7"
+            "src": "blob:http://127.0.0.1:65002/27fb6658-11c9-49d6-bdf0-4b04ead88308"
           }
         },
         {
@@ -18358,7 +18201,7 @@
           "image": {
             "width": 512,
             "height": 512,
-            "src": "blob:http://127.0.0.1:49370/1036b796-1a64-4b91-9daf-97dfcba612a0"
+            "src": "blob:http://127.0.0.1:65002/44c95b9b-18b7-4081-8104-0c6b5d394d34"
           }
         },
         {
@@ -18372,7 +18215,7 @@
           "image": {
             "width": 512,
             "height": 512,
-            "src": "blob:http://127.0.0.1:49370/47ae393d-c2a4-4041-9ac8-048f6f43fcba"
+            "src": "blob:http://127.0.0.1:65002/2d553003-9c00-4a3d-8289-71a44a4c58f3"
           }
         },
         {
@@ -18386,7 +18229,7 @@
           "image": {
             "width": 512,
             "height": 512,
-            "src": "blob:http://127.0.0.1:49370/7dfbb138-3e52-4b3c-ab7d-1126f54f89c3"
+            "src": "blob:http://127.0.0.1:65002/8701ea10-3c4e-431b-b173-2e15e943e009"
           }
         },
         {
@@ -18400,17 +18243,45 @@
           "image": {
             "width": 512,
             "height": 512,
-            "src": "blob:http://127.0.0.1:49370/4ce6d0e3-c2a1-4794-b04a-31fa000f97de"
+            "src": "blob:http://127.0.0.1:65002/82cc2fea-f7bd-4f3f-90a6-0f5fac66f19b"
           }
         },
         {
-          "type": "oo",
-          "uuid": "e4b0c8d7-1d17-4360-bf5d-0b51733b84ae",
+          "type": "e",
+          "uuid": "91e48ca5-aa9c-4697-92db-23c7df0ce271",
           "name": "",
           "retained": true,
           "texture": true,
           "programs": [],
-          "source": "ab00ecf2-0625-4da0-81a3-198d151dd02f",
+          "source": "8ed69d0d-c6b8-4389-b7dd-bb88af6f3532",
+          "image": {
+            "width": 512,
+            "height": 512,
+            "src": "blob:http://127.0.0.1:65002/6eb73925-0654-420c-a8d9-005eaa2a4efd"
+          }
+        },
+        {
+          "type": "e",
+          "uuid": "a791648d-37e6-4a89-afdb-875fd9c6c26a",
+          "name": "",
+          "retained": true,
+          "texture": true,
+          "programs": [],
+          "source": "0dd051b6-3583-46b3-8385-0356c7be1dc5",
+          "image": {
+            "width": 512,
+            "height": 512,
+            "src": "blob:http://127.0.0.1:65002/a9f3c915-78db-4cbb-b2cf-0580b1d1a9cd"
+          }
+        },
+        {
+          "type": "oo",
+          "uuid": "ab00ecf2-0625-4da0-81a3-198d151dd02f",
+          "name": "",
+          "retained": true,
+          "texture": true,
+          "programs": [],
+          "source": "a5e1c0af-3180-4e60-8509-9543d146b0fd",
           "image": {
             "width": 1,
             "height": 1
@@ -18418,12 +18289,12 @@
         },
         {
           "type": "oo",
-          "uuid": "a5e1c0af-3180-4e60-8509-9543d146b0fd",
+          "uuid": "fce02d91-2484-4bf0-a370-e0386709a462",
           "name": "",
           "retained": true,
           "texture": true,
           "programs": [],
-          "source": "fce02d91-2484-4bf0-a370-e0386709a462",
+          "source": "6800ca59-8d78-41a8-bfe5-6bd8c90d0e5a",
           "image": {
             "width": 1,
             "height": 1
@@ -18431,25 +18302,142 @@
         },
         {
           "type": "oo",
-          "uuid": "6800ca59-8d78-41a8-bfe5-6bd8c90d0e5a",
+          "uuid": "45ce2e95-5422-47b7-b4dc-6f9e9d0b4f1e",
           "name": "",
           "retained": true,
           "texture": true,
           "programs": [],
-          "source": "45ce2e95-5422-47b7-b4dc-6f9e9d0b4f1e",
+          "source": "08e07fe1-a72b-44ec-8f5f-89581d20053a",
           "image": {
             "width": 1,
             "height": 1
+          }
+        },
+        {
+          "type": "ys",
+          "uuid": "92c54b1c-b259-4744-99bf-70222e0ad431",
+          "name": "",
+          "retained": true,
+          "texture": true,
+          "programs": [],
+          "source": "9463f2b2-d96d-491e-a6ef-5f858ebec017",
+          "image": {
+            "width": 256,
+            "height": 256
+          }
+        },
+        {
+          "type": "ys",
+          "uuid": "159e8135-6d4f-4692-a1b3-2413957b7bf4",
+          "name": "",
+          "retained": true,
+          "texture": true,
+          "programs": [],
+          "source": "f460e0a7-e821-419c-b779-2b750456991f",
+          "image": {
+            "width": 1024,
+            "height": 512
+          }
+        },
+        {
+          "type": "ys",
+          "uuid": "5f12fccb-b4b0-4f1d-8cbf-cf0decf43a91",
+          "name": "",
+          "retained": true,
+          "texture": true,
+          "programs": [],
+          "source": "3f34fa20-9837-4c26-b916-e2c5f7457d41",
+          "image": {
+            "width": 1024,
+            "height": 4
+          }
+        },
+        {
+          "type": "oo",
+          "uuid": "2b5cfb5c-68f7-41f1-8501-f1bebf93827f",
+          "name": "",
+          "retained": true,
+          "texture": true,
+          "programs": [],
+          "source": "9f383595-dd66-4a96-aff5-14b3fe68d34d",
+          "image": {
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "type": "oo",
+          "uuid": "451a4af4-b1cc-45bf-b3e8-4f7be340991e",
+          "name": "",
+          "retained": true,
+          "texture": true,
+          "programs": [],
+          "source": "ba9f220b-9fdb-4b71-8a50-fdb2c22f447d",
+          "image": {
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "type": "oo",
+          "uuid": "9442ffde-e079-4703-ad3a-348b85e1c898",
+          "name": "",
+          "retained": true,
+          "texture": true,
+          "programs": [],
+          "source": "8eab3d8f-4c1d-4c71-9ed2-5dff82bba7ac",
+          "image": {
+            "width": 256,
+            "height": 256
+          }
+        },
+        {
+          "type": "ur",
+          "uuid": "ca4dca10-cd35-4caa-8470-c5626d2193db",
+          "name": "",
+          "retained": true,
+          "texture": true,
+          "programs": [],
+          "source": "af1e806e-f1b2-4ed8-a147-10a5631966f7",
+          "image": {
+            "width": 512,
+            "height": 512
           }
         },
         {
           "type": "fr",
-          "uuid": "3f34fa20-9837-4c26-b916-e2c5f7457d41",
+          "uuid": "6cbe1884-30a8-48b8-b63d-91dca2db91ae",
           "name": "",
           "retained": true,
           "texture": true,
           "programs": [],
-          "source": "2923ef36-d64a-4ba2-ad9e-d0477685eae4",
+          "source": "d3442c23-948f-4189-83d7-3096ef6b208c",
+          "image": {
+            "width": 141,
+            "height": 49
+          }
+        },
+        {
+          "type": "fr",
+          "uuid": "b41b4f42-ff50-4794-837a-580c2a12cb67",
+          "name": "",
+          "retained": true,
+          "texture": true,
+          "programs": [],
+          "source": "de003ce1-eb54-48b0-9744-8fbc82ad8f72",
+          "image": {
+            "width": 23,
+            "height": 150
+          }
+        },
+        {
+          "type": "fr",
+          "uuid": "d44ece93-1395-4a93-a0f8-a0a00173cab0",
+          "name": "",
+          "retained": true,
+          "texture": true,
+          "programs": [],
+          "source": "29cadb04-c23d-47ea-9633-a65e2001b09d",
           "image": {
             "width": 33,
             "height": 33
@@ -18457,12 +18445,12 @@
         },
         {
           "type": "e",
-          "uuid": "d6e0e5a4-b2f6-442b-91bb-8a24a6edcb8a",
+          "uuid": "eee3228c-1fa9-4fd7-a75a-46260e3c81f5",
           "name": "",
           "retained": true,
           "texture": false,
           "programs": [],
-          "source": "bfefcf18-bd98-4e52-bdd0-4fb16211792d",
+          "source": "d6e0e5a4-b2f6-442b-91bb-8a24a6edcb8a",
           "image": {
             "width": 1024,
             "height": 1024
@@ -18481,12 +18469,12 @@
         },
         {
           "type": "oo",
-          "uuid": "cd8508a8-48c3-4370-8508-5110a1bf5d07",
+          "uuid": "45e285b6-b758-4807-a436-c0378cec81a2",
           "name": "DFG_LUT",
           "retained": true,
           "texture": true,
           "programs": [],
-          "source": "45e285b6-b758-4807-a436-c0378cec81a2",
+          "source": "ec4f5a9d-f4e2-4793-a26d-08fce49d8125",
           "image": {
             "width": 16,
             "height": 16
@@ -18494,7 +18482,7 @@
         },
         {
           "type": "e",
-          "uuid": "77e45b5d-efc7-4abb-b5b9-18c7a3fea2a3",
+          "uuid": "32a9301d-ae4c-4b8a-bf00-3d7e73b7b501",
           "name": "",
           "retained": true,
           "texture": false,
@@ -18503,7 +18491,7 @@
         },
         {
           "type": "e",
-          "uuid": "92c54b1c-b259-4744-99bf-70222e0ad431",
+          "uuid": "4058cce8-bf93-45ba-b103-d75ec8447890",
           "name": "",
           "retained": true,
           "texture": false,
@@ -18512,7 +18500,7 @@
         },
         {
           "type": "e",
-          "uuid": "09801986-cee9-4d47-9362-ad29ce30d3a7",
+          "uuid": "fc91f2c6-5af8-4a48-80bf-798b21319eba",
           "name": "",
           "retained": true,
           "texture": false,
@@ -18521,7 +18509,7 @@
         },
         {
           "type": "e",
-          "uuid": "159e8135-6d4f-4692-a1b3-2413957b7bf4",
+          "uuid": "2923ef36-d64a-4ba2-ad9e-d0477685eae4",
           "name": "",
           "retained": true,
           "texture": false,
@@ -18530,25 +18518,7 @@
         },
         {
           "type": "e",
-          "uuid": "4cf6832d-2664-4716-a0b7-1fbd2f296316",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "image": {}
-        },
-        {
-          "type": "e",
-          "uuid": "33a76072-bb6d-41a4-a33f-5b2cfd16bf03",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "image": {}
-        },
-        {
-          "type": "e",
-          "uuid": "ef1180a2-a327-447d-8c6d-3b4f0825f1b3",
+          "uuid": "2397ebc3-cf0e-475b-90fe-81aef7b5cb75",
           "name": "",
           "retained": true,
           "texture": false,
@@ -18565,41 +18535,6 @@
           "image": {}
         },
         {
-          "type": "oo",
-          "uuid": "ec4f5a9d-f4e2-4793-a26d-08fce49d8125",
-          "name": "",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "814dea72-33da-4aa3-8e04-133b04f20b4f",
-          "image": {
-            "width": 8,
-            "height": 8
-          }
-        },
-        {
-          "type": "e",
-          "uuid": "552f32e1-8e9e-4c28-9093-ccbd232c6fcc",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "image": {}
-        },
-        {
-          "type": "oo",
-          "uuid": "c25d2cbb-bc8b-4b0f-b049-069efe673797",
-          "name": "",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "2176496f-e5ae-43c6-86a0-994f805b8d20",
-          "image": {
-            "width": 8,
-            "height": 8
-          }
-        },
-        {
           "type": "e",
           "uuid": "dfa50e1a-e1d5-44a5-bc2e-e044b7dc566f",
           "name": "",
@@ -18609,13 +18544,44 @@
           "image": {}
         },
         {
+          "type": "e",
+          "uuid": "ff17fba6-3844-4e6f-b49e-8adeb826bcd7",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "image": {}
+        },
+        {
           "type": "oo",
-          "uuid": "d851ff66-8983-46be-b521-73e243372c06",
+          "uuid": "814dea72-33da-4aa3-8e04-133b04f20b4f",
           "name": "",
           "retained": true,
           "texture": true,
           "programs": [],
-          "source": "b189cebe-3af9-43dc-aa88-0295e175232b",
+          "source": "c25d2cbb-bc8b-4b0f-b049-069efe673797",
+          "image": {
+            "width": 8,
+            "height": 8
+          }
+        },
+        {
+          "type": "e",
+          "uuid": "78a7929b-18f8-4465-9bba-872dc5138fcc",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "image": {}
+        },
+        {
+          "type": "oo",
+          "uuid": "2176496f-e5ae-43c6-86a0-994f805b8d20",
+          "name": "",
+          "retained": true,
+          "texture": true,
+          "programs": [],
+          "source": "d851ff66-8983-46be-b521-73e243372c06",
           "image": {
             "width": 8,
             "height": 8
@@ -18632,12 +18598,12 @@
         },
         {
           "type": "oo",
-          "uuid": "9cff445f-90fb-4929-89b1-f5a9eaf72d26",
+          "uuid": "b189cebe-3af9-43dc-aa88-0295e175232b",
           "name": "",
           "retained": true,
           "texture": true,
           "programs": [],
-          "source": "6d9b384d-930e-4c39-92c0-de212e248e91",
+          "source": "9cff445f-90fb-4929-89b1-f5a9eaf72d26",
           "image": {
             "width": 8,
             "height": 8
@@ -18645,7 +18611,7 @@
         },
         {
           "type": "e",
-          "uuid": "ff17fba6-3844-4e6f-b49e-8adeb826bcd7",
+          "uuid": "6d939d78-ce8e-48ea-a9cf-a7d68cc38673",
           "name": "",
           "retained": true,
           "texture": false,
@@ -18654,12 +18620,12 @@
         },
         {
           "type": "oo",
-          "uuid": "e39bf5be-7652-4c42-b79e-1510465c4b79",
+          "uuid": "6d9b384d-930e-4c39-92c0-de212e248e91",
           "name": "",
           "retained": true,
           "texture": true,
           "programs": [],
-          "source": "1a07f8f4-94b1-49d8-a550-2ba7c007247d",
+          "source": "e39bf5be-7652-4c42-b79e-1510465c4b79",
           "image": {
             "width": 8,
             "height": 8
@@ -18667,7 +18633,29 @@
         },
         {
           "type": "e",
-          "uuid": "2fe3d731-2118-49b7-a9e8-4744e8d1c361",
+          "uuid": "552f32e1-8e9e-4c28-9093-ccbd232c6fcc",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "image": {}
+        },
+        {
+          "type": "oo",
+          "uuid": "1a07f8f4-94b1-49d8-a550-2ba7c007247d",
+          "name": "",
+          "retained": true,
+          "texture": true,
+          "programs": [],
+          "source": "763db52e-303b-457a-b3dc-4e0008eb674e",
+          "image": {
+            "width": 8,
+            "height": 8
+          }
+        },
+        {
+          "type": "e",
+          "uuid": "e065567b-27fc-4a0a-af03-ff8df1fa823c",
           "name": "",
           "retained": true,
           "texture": false,
@@ -18676,7 +18664,7 @@
         },
         {
           "type": "e",
-          "uuid": "6ee18c73-002b-4550-8d5e-439032a39946",
+          "uuid": "143ab362-0549-45e3-a38d-a8eb8b96a4a1",
           "name": "",
           "retained": true,
           "texture": false,
@@ -18685,7 +18673,7 @@
         },
         {
           "type": "e",
-          "uuid": "325ce20c-4664-40fd-affd-ea89f75977c5",
+          "uuid": "d93b8404-36b8-4031-a9ba-2f391c51c34d",
           "name": "",
           "retained": true,
           "texture": false,
@@ -18694,25 +18682,7 @@
         },
         {
           "type": "e",
-          "uuid": "37391235-49f9-436c-8170-d2596e5150be",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "image": {}
-        },
-        {
-          "type": "e",
-          "uuid": "0531d896-00be-4bad-90a5-95c9857098e0",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "image": {}
-        },
-        {
-          "type": "e",
-          "uuid": "a9bf28bd-47c0-450a-828d-d51f36922dd7",
+          "uuid": "bbff51a6-eb02-44d5-8c92-956c6738dec5",
           "name": "",
           "retained": true,
           "texture": false,
@@ -18729,13 +18699,84 @@
           "image": {}
         },
         {
+          "type": "e",
+          "uuid": "669164ef-1b6c-46cd-9530-0e65535f1087",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "image": {}
+        },
+        {
+          "type": "e",
+          "uuid": "562c87f5-b3af-4a9b-9047-7b1b87f57962",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "image": {}
+        },
+        {
           "type": "oo",
-          "uuid": "763db52e-303b-457a-b3dc-4e0008eb674e",
+          "uuid": "5fc3842b-470a-4bcc-8e8e-6614e491a389",
           "name": "",
           "retained": true,
           "texture": true,
           "programs": [],
-          "source": "5fc3842b-470a-4bcc-8e8e-6614e491a389",
+          "source": "0769fd77-fe0b-4da0-a6d2-73aa8039d378",
+          "image": {
+            "width": 8,
+            "height": 8
+          }
+        },
+        {
+          "type": "e",
+          "uuid": "354646f2-e08a-41d4-b6dd-339ac98b4e4b",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "image": {}
+        },
+        {
+          "type": "oo",
+          "uuid": "9656a289-50aa-4e7b-8df6-5aca22f20a34",
+          "name": "",
+          "retained": true,
+          "texture": true,
+          "programs": [],
+          "source": "0be61922-09e1-4a74-971f-016a97d4d1f3",
+          "image": {
+            "width": 8,
+            "height": 8
+          }
+        },
+        {
+          "type": "e",
+          "uuid": "d3a3b140-1afd-4162-ba7a-4fa81afb0522",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "image": {}
+        },
+        {
+          "type": "e",
+          "uuid": "c335d789-2534-4f52-bb8b-2b611762b1fc",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "image": {}
+        },
+        {
+          "type": "oo",
+          "uuid": "d5dae95c-3f3e-4a89-9353-eaff48c22480",
+          "name": "",
+          "retained": true,
+          "texture": true,
+          "programs": [],
+          "source": "cf28078c-67d4-40d0-8bd2-d1a8c2e782e6",
           "image": {
             "width": 8,
             "height": 8
@@ -18751,21 +18792,8 @@
           "image": {}
         },
         {
-          "type": "oo",
-          "uuid": "0769fd77-fe0b-4da0-a6d2-73aa8039d378",
-          "name": "",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "9656a289-50aa-4e7b-8df6-5aca22f20a34",
-          "image": {
-            "width": 8,
-            "height": 8
-          }
-        },
-        {
           "type": "e",
-          "uuid": "669164ef-1b6c-46cd-9530-0e65535f1087",
+          "uuid": "db9ddb73-ec0e-4173-abbb-d0a34213099e",
           "name": "",
           "retained": true,
           "texture": false,
@@ -18774,52 +18802,12 @@
         },
         {
           "type": "e",
-          "uuid": "d3a3b140-1afd-4162-ba7a-4fa81afb0522",
+          "uuid": "87ca318f-fd40-46b7-b3fc-d55add7956ef",
           "name": "",
           "retained": true,
           "texture": false,
           "programs": [],
-          "image": {}
-        },
-        {
-          "type": "oo",
-          "uuid": "0be61922-09e1-4a74-971f-016a97d4d1f3",
-          "name": "",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "d5dae95c-3f3e-4a89-9353-eaff48c22480",
-          "image": {
-            "width": 8,
-            "height": 8
-          }
-        },
-        {
-          "type": "e",
-          "uuid": "562c87f5-b3af-4a9b-9047-7b1b87f57962",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "image": {}
-        },
-        {
-          "type": "e",
-          "uuid": "88938796-17e6-4a27-8431-b22862b9d58a",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "image": {}
-        },
-        {
-          "type": "e",
-          "uuid": "3a7bb917-8d70-417c-9315-27eb608235d2",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "source": "591a3e69-303c-4cc7-ae7a-ca9b82da35f1",
+          "source": "3a7bb917-8d70-417c-9315-27eb608235d2",
           "image": {
             "width": 780,
             "height": 1688
@@ -18827,7 +18815,7 @@
         },
         {
           "type": "e",
-          "uuid": "b61c30d4-1efd-4709-ba9a-4d9e5368f2ed",
+          "uuid": "97e65bef-8c07-49c7-b199-a9bc4ecca45c",
           "name": "",
           "retained": true,
           "texture": false,
@@ -18836,12 +18824,12 @@
         },
         {
           "type": "e",
-          "uuid": "e5f2de67-745d-46fc-b276-3b7c24bdf1ad",
+          "uuid": "498f7a79-fb42-4f1e-bafb-5148bec63e56",
           "name": "EffectComposer.Buffer",
           "retained": true,
           "texture": false,
           "programs": [],
-          "source": "b0da1cfc-011c-452b-baa4-2a4dadfe6bc3",
+          "source": "c12b72fd-7437-45ca-bbdf-903b0747d3f5",
           "image": {
             "width": 780,
             "height": 1688
@@ -18858,12 +18846,12 @@
         },
         {
           "type": "e",
-          "uuid": "bcc98318-c2e5-47ce-9da7-4121574842bd",
+          "uuid": "a33baf22-4211-4492-bc41-e9f1c8862a95",
           "name": "Image_0",
           "retained": true,
           "texture": true,
           "programs": [],
-          "source": "a33baf22-4211-4492-bc41-e9f1c8862a95",
+          "source": "b7740d3a-3b3a-4b78-ad77-8fd331ddb705",
           "image": {
             "width": 1024,
             "height": 1024
@@ -18871,12 +18859,12 @@
         },
         {
           "type": "e",
-          "uuid": "cf9b66f3-1fdd-4670-bdc9-b5607bc6992c",
+          "uuid": "e6d1c7ac-412c-4127-8a47-5931f49cd5f1",
           "name": "Image_1",
           "retained": true,
           "texture": true,
           "programs": [],
-          "source": "e6d1c7ac-412c-4127-8a47-5931f49cd5f1",
+          "source": "bcc98318-c2e5-47ce-9da7-4121574842bd",
           "image": {
             "width": 1024,
             "height": 1024
@@ -18884,12 +18872,12 @@
         },
         {
           "type": "e",
-          "uuid": "e660de61-2735-4a7e-9ea4-987f1a5598aa",
+          "uuid": "38d86cc6-478d-4092-abc5-9bafa9afca6e",
           "name": "Image_0",
           "retained": true,
           "texture": true,
           "programs": [],
-          "source": "38d86cc6-478d-4092-abc5-9bafa9afca6e",
+          "source": "08abae8b-3e1d-4ec2-9dc8-23ac72277b0d",
           "image": {
             "width": 1024,
             "height": 1024
@@ -18897,12 +18885,12 @@
         },
         {
           "type": "e",
-          "uuid": "77db6f20-b2b4-4d24-a2c7-477356615f1a",
+          "uuid": "bc0cf843-c158-4c0e-aa5f-189204619522",
           "name": "Image_1",
           "retained": true,
           "texture": true,
           "programs": [],
-          "source": "bc0cf843-c158-4c0e-aa5f-189204619522",
+          "source": "11a03eaa-25be-4272-ba11-2a2fcb85ad37",
           "image": {
             "width": 1024,
             "height": 1024
@@ -18910,33 +18898,7 @@
         },
         {
           "type": "e",
-          "uuid": "8f620c4c-9220-410f-8aba-e5a0ba32c2d0",
-          "name": "Image_0",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "5ce9e3ab-91a8-48af-96ad-1c4c7216c8e3",
-          "image": {
-            "width": 1024,
-            "height": 1024
-          }
-        },
-        {
-          "type": "e",
-          "uuid": "11a03eaa-25be-4272-ba11-2a2fcb85ad37",
-          "name": "Image_1",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "8f2be8eb-2093-4ef0-b251-7fc850893599",
-          "image": {
-            "width": 1024,
-            "height": 1024
-          }
-        },
-        {
-          "type": "e",
-          "uuid": "e4a59bbe-8118-46bc-a45e-f5d149b68408",
+          "uuid": "29c06b6a-fd41-44c7-bb56-738af354e8cd",
           "name": "",
           "retained": true,
           "texture": false,
@@ -18945,7 +18907,7 @@
         },
         {
           "type": "e",
-          "uuid": "f44aa0d2-0ec6-4cde-95a5-39b8a59cc838",
+          "uuid": "665132cf-ec8e-4e9d-86ed-32ceb4b5c4dc",
           "name": "",
           "retained": true,
           "texture": false,
@@ -18954,7 +18916,33 @@
         },
         {
           "type": "e",
-          "uuid": "15dcaa9f-d12d-4c6c-85c4-cdd6be1d3ee4",
+          "uuid": "8939e8a0-4f91-4f51-a6b1-525dc01c08fb",
+          "name": "Image_0",
+          "retained": true,
+          "texture": true,
+          "programs": [],
+          "source": "39df6f35-fab2-4412-b9a5-1f941878da6b",
+          "image": {
+            "width": 1024,
+            "height": 1024
+          }
+        },
+        {
+          "type": "e",
+          "uuid": "8f2be8eb-2093-4ef0-b251-7fc850893599",
+          "name": "Image_1",
+          "retained": true,
+          "texture": true,
+          "programs": [],
+          "source": "cf9b66f3-1fdd-4670-bdc9-b5607bc6992c",
+          "image": {
+            "width": 1024,
+            "height": 1024
+          }
+        },
+        {
+          "type": "e",
+          "uuid": "2defd621-0e0e-4c61-9404-18269abfcd67",
           "name": "",
           "retained": true,
           "texture": false,
@@ -18963,7 +18951,7 @@
         },
         {
           "type": "e",
-          "uuid": "6bc997cd-4201-4b59-aae8-a6ff047b5715",
+          "uuid": "325ce20c-4664-40fd-affd-ea89f75977c5",
           "name": "",
           "retained": true,
           "texture": false,
@@ -19001,24 +18989,24 @@
     "boot.gpuBytes.renderbuffers": 0,
     "boot.gpuBytes.buffers": 0,
     "boot.gpuBytes.total": 0,
-    "boot.playMs": 37.40000009536743,
-    "boot.stepMs.renderer": 4,
+    "boot.playMs": 583.7999997138977,
+    "boot.stepMs.renderer": 6,
     "boot.stepMs.sky": 15,
     "boot.stepMs.terrain": 0,
-    "boot.stepMs.cards": 1,
-    "boot.stepMs.forest": 2,
-    "boot.stepMs.physics": 1,
-    "boot.stepMs.edge": 4,
+    "boot.stepMs.cards": 0,
+    "boot.stepMs.forest": 1,
+    "boot.stepMs.physics": 0,
+    "boot.stepMs.edge": 2,
     "boot.stepMs.grass": 0,
     "boot.stepMs.cabins": 0,
-    "boot.stepMs.props": 7,
-    "boot.stepMs.animals": 1,
-    "boot.stepMs.weapon": 2,
-    "boot.stepMs.menu": 5,
-    "boot.stepMs.shaders": 55,
-    "boot.stepMs.firstFrame": 10,
+    "boot.stepMs.props": 288,
+    "boot.stepMs.animals": 0,
+    "boot.stepMs.weapon": 11,
+    "boot.stepMs.menu": 12,
+    "boot.stepMs.shaders": 83,
+    "boot.stepMs.firstFrame": 6,
     "boot.stepMs.audio": 0,
-    "boot.heapMB": 81.3283462524414,
+    "boot.heapMB": 70.51459884643555,
     "boot.facade.batches": 0,
     "boot.facade.instances": 0,
     "poses.spawn-rail.pos": [
@@ -19028,10 +19016,10 @@
     ],
     "poses.spawn-rail.calls": 0,
     "poses.spawn-rail.tris": 0,
-    "poses.spawn-rail.fps": 197.08627867271977,
-    "poses.spawn-rail.frameP95Ms": 21.300000190734863,
-    "poses.spawn-rail.cpuP50Ms": 0.19999980926513672,
-    "poses.spawn-rail.cpuP95Ms": 0.2999997138977051,
+    "poses.spawn-rail.fps": 229.72481901481484,
+    "poses.spawn-rail.frameP95Ms": 35,
+    "poses.spawn-rail.cpuP50Ms": 0.4999995231628418,
+    "poses.spawn-rail.cpuP95Ms": 0.20000028610229492,
     "poses.spawn-rail.creatureBoxes": 0,
     "poses.spawn-rail.boxes": [],
     "poses.spawn-rail.ssim": 0,
@@ -19042,10 +19030,10 @@
     ],
     "poses.well-edge.calls": 0,
     "poses.well-edge.tris": 0,
-    "poses.well-edge.fps": 68.00625600781194,
-    "poses.well-edge.frameP95Ms": 6.800000190734863,
-    "poses.well-edge.cpuP50Ms": 0.09999990463256836,
-    "poses.well-edge.cpuP95Ms": 0.09999990463256836,
+    "poses.well-edge.fps": 205.0432928985061,
+    "poses.well-edge.frameP95Ms": 27.59999942779541,
+    "poses.well-edge.cpuP50Ms": 0.5000004768371582,
+    "poses.well-edge.cpuP95Ms": 0.5,
     "poses.well-edge.creatureBoxes": 0,
     "poses.well-edge.boxes": [],
     "poses.well-edge.ssim": 0,
@@ -19056,49 +19044,25 @@
     ],
     "poses.stair-street.calls": 0,
     "poses.stair-street.tris": 0,
-    "poses.stair-street.fps": 23.915657271669147,
-    "poses.stair-street.frameP95Ms": 6.5,
-    "poses.stair-street.cpuP50Ms": 0.2999997138977051,
-    "poses.stair-street.cpuP95Ms": 0.10000038146972656,
+    "poses.stair-street.fps": 65.20105159143094,
+    "poses.stair-street.frameP95Ms": 15.900000095367432,
+    "poses.stair-street.cpuP50Ms": 0.20000028610229492,
+    "poses.stair-street.cpuP95Ms": 0.2999997138977051,
     "poses.stair-street.creatureBoxes": 0,
     "poses.stair-street.boxes": [],
     "poses.stair-street.ssim": 0,
-    "budgets.spawn-rail.ceiling.draws": 0,
-    "budgets.spawn-rail.ceiling.tris": 0,
-    "budgets.spawn-rail.ceiling.programs": 0,
+    "budgets.spawn-rail.derived.draws": 0,
+    "budgets.spawn-rail.derived.tris": 0,
+    "budgets.spawn-rail.derived.programs": 0,
     "budgets.spawn-rail.ceiling.gpuMB": 0,
-    "budgets.spawn-rail.formula.inputs.ceilings.phone.spawn-rail.draws": 0,
-    "budgets.spawn-rail.formula.inputs.ceilings.phone.spawn-rail.tris": 0,
-    "budgets.spawn-rail.formula.inputs.ceilings.phone.spawn-rail.programs": 0,
-    "budgets.spawn-rail.formula.inputs.ceilings.phone.spawn-rail.gpuMB": 0,
-    "budgets.spawn-rail.formula.inputs.ceilings.phone.well-edge.draws": 0,
-    "budgets.spawn-rail.formula.inputs.ceilings.phone.well-edge.tris": 0,
-    "budgets.spawn-rail.formula.inputs.ceilings.phone.well-edge.programs": 0,
-    "budgets.spawn-rail.formula.inputs.ceilings.phone.well-edge.gpuMB": 0,
-    "budgets.spawn-rail.formula.inputs.ceilings.phone.stair-street.draws": 0,
-    "budgets.spawn-rail.formula.inputs.ceilings.phone.stair-street.tris": 0,
-    "budgets.spawn-rail.formula.inputs.ceilings.phone.stair-street.programs": 0,
-    "budgets.spawn-rail.formula.inputs.ceilings.phone.stair-street.gpuMB": 0,
-    "budgets.spawn-rail.formula.inputs.ceilings.phone.D.draws": 0,
-    "budgets.spawn-rail.formula.inputs.ceilings.phone.D.tris": 0,
-    "budgets.spawn-rail.formula.inputs.ceilings.phone.D.programs": 0,
     "budgets.spawn-rail.formula.inputs.ceilings.phone.D.gpuMB": 0,
-    "budgets.spawn-rail.formula.inputs.ceilings.desktop.spawn-rail.draws": 0,
-    "budgets.spawn-rail.formula.inputs.ceilings.desktop.spawn-rail.tris": 0,
-    "budgets.spawn-rail.formula.inputs.ceilings.desktop.spawn-rail.programs": 0,
-    "budgets.spawn-rail.formula.inputs.ceilings.desktop.spawn-rail.gpuMB": 0,
-    "budgets.spawn-rail.formula.inputs.ceilings.desktop.well-edge.draws": 0,
-    "budgets.spawn-rail.formula.inputs.ceilings.desktop.well-edge.tris": 0,
-    "budgets.spawn-rail.formula.inputs.ceilings.desktop.well-edge.programs": 0,
-    "budgets.spawn-rail.formula.inputs.ceilings.desktop.well-edge.gpuMB": 0,
-    "budgets.spawn-rail.formula.inputs.ceilings.desktop.stair-street.draws": 0,
-    "budgets.spawn-rail.formula.inputs.ceilings.desktop.stair-street.tris": 0,
-    "budgets.spawn-rail.formula.inputs.ceilings.desktop.stair-street.programs": 0,
-    "budgets.spawn-rail.formula.inputs.ceilings.desktop.stair-street.gpuMB": 0,
-    "budgets.spawn-rail.formula.inputs.ceilings.desktop.D.draws": 0,
-    "budgets.spawn-rail.formula.inputs.ceilings.desktop.D.tris": 0,
-    "budgets.spawn-rail.formula.inputs.ceilings.desktop.D.programs": 0,
+    "budgets.spawn-rail.formula.inputs.ceilings.phone.spawn-rail.gpuMB": 0,
+    "budgets.spawn-rail.formula.inputs.ceilings.phone.stair-street.gpuMB": 0,
+    "budgets.spawn-rail.formula.inputs.ceilings.phone.well-edge.gpuMB": 0,
     "budgets.spawn-rail.formula.inputs.ceilings.desktop.D.gpuMB": 0,
+    "budgets.spawn-rail.formula.inputs.ceilings.desktop.spawn-rail.gpuMB": 0,
+    "budgets.spawn-rail.formula.inputs.ceilings.desktop.stair-street.gpuMB": 0,
+    "budgets.spawn-rail.formula.inputs.ceilings.desktop.well-edge.gpuMB": 0,
     "budgets.spawn-rail.formula.inputs.phone.fps": 0,
     "budgets.spawn-rail.formula.inputs.phone.variability": 0,
     "budgets.spawn-rail.formula.inputs.phone.cpuMs": 0,
@@ -19137,42 +19101,26 @@
     "budgets.spawn-rail.formula.inputs.load.fixedSeconds": 0,
     "budgets.spawn-rail.formula.inputs.load.cpuRatio": 0,
     "budgets.spawn-rail.formula.inputs.load.bytesPerSecond": 0,
-    "budgets.well-edge.ceiling.draws": 0,
-    "budgets.well-edge.ceiling.tris": 0,
-    "budgets.well-edge.ceiling.programs": 0,
+    "budgets.spawn-rail.systemMs.physics": 0,
+    "budgets.spawn-rail.systemMs.ai": 0,
+    "budgets.spawn-rail.systemMs.animation": 0,
+    "budgets.spawn-rail.systemMs.player": 0,
+    "budgets.spawn-rail.systemMs.world": 0,
+    "budgets.spawn-rail.systemMs.hud": 0,
+    "budgets.spawn-rail.systemMs.audio": 0,
+    "budgets.spawn-rail.gpuM5Ms": 0,
+    "budgets.well-edge.derived.draws": 0,
+    "budgets.well-edge.derived.tris": 0,
+    "budgets.well-edge.derived.programs": 0,
     "budgets.well-edge.ceiling.gpuMB": 0,
-    "budgets.well-edge.formula.inputs.ceilings.phone.spawn-rail.draws": 0,
-    "budgets.well-edge.formula.inputs.ceilings.phone.spawn-rail.tris": 0,
-    "budgets.well-edge.formula.inputs.ceilings.phone.spawn-rail.programs": 0,
-    "budgets.well-edge.formula.inputs.ceilings.phone.spawn-rail.gpuMB": 0,
-    "budgets.well-edge.formula.inputs.ceilings.phone.well-edge.draws": 0,
-    "budgets.well-edge.formula.inputs.ceilings.phone.well-edge.tris": 0,
-    "budgets.well-edge.formula.inputs.ceilings.phone.well-edge.programs": 0,
-    "budgets.well-edge.formula.inputs.ceilings.phone.well-edge.gpuMB": 0,
-    "budgets.well-edge.formula.inputs.ceilings.phone.stair-street.draws": 0,
-    "budgets.well-edge.formula.inputs.ceilings.phone.stair-street.tris": 0,
-    "budgets.well-edge.formula.inputs.ceilings.phone.stair-street.programs": 0,
-    "budgets.well-edge.formula.inputs.ceilings.phone.stair-street.gpuMB": 0,
-    "budgets.well-edge.formula.inputs.ceilings.phone.D.draws": 0,
-    "budgets.well-edge.formula.inputs.ceilings.phone.D.tris": 0,
-    "budgets.well-edge.formula.inputs.ceilings.phone.D.programs": 0,
     "budgets.well-edge.formula.inputs.ceilings.phone.D.gpuMB": 0,
-    "budgets.well-edge.formula.inputs.ceilings.desktop.spawn-rail.draws": 0,
-    "budgets.well-edge.formula.inputs.ceilings.desktop.spawn-rail.tris": 0,
-    "budgets.well-edge.formula.inputs.ceilings.desktop.spawn-rail.programs": 0,
-    "budgets.well-edge.formula.inputs.ceilings.desktop.spawn-rail.gpuMB": 0,
-    "budgets.well-edge.formula.inputs.ceilings.desktop.well-edge.draws": 0,
-    "budgets.well-edge.formula.inputs.ceilings.desktop.well-edge.tris": 0,
-    "budgets.well-edge.formula.inputs.ceilings.desktop.well-edge.programs": 0,
-    "budgets.well-edge.formula.inputs.ceilings.desktop.well-edge.gpuMB": 0,
-    "budgets.well-edge.formula.inputs.ceilings.desktop.stair-street.draws": 0,
-    "budgets.well-edge.formula.inputs.ceilings.desktop.stair-street.tris": 0,
-    "budgets.well-edge.formula.inputs.ceilings.desktop.stair-street.programs": 0,
-    "budgets.well-edge.formula.inputs.ceilings.desktop.stair-street.gpuMB": 0,
-    "budgets.well-edge.formula.inputs.ceilings.desktop.D.draws": 0,
-    "budgets.well-edge.formula.inputs.ceilings.desktop.D.tris": 0,
-    "budgets.well-edge.formula.inputs.ceilings.desktop.D.programs": 0,
+    "budgets.well-edge.formula.inputs.ceilings.phone.spawn-rail.gpuMB": 0,
+    "budgets.well-edge.formula.inputs.ceilings.phone.stair-street.gpuMB": 0,
+    "budgets.well-edge.formula.inputs.ceilings.phone.well-edge.gpuMB": 0,
     "budgets.well-edge.formula.inputs.ceilings.desktop.D.gpuMB": 0,
+    "budgets.well-edge.formula.inputs.ceilings.desktop.spawn-rail.gpuMB": 0,
+    "budgets.well-edge.formula.inputs.ceilings.desktop.stair-street.gpuMB": 0,
+    "budgets.well-edge.formula.inputs.ceilings.desktop.well-edge.gpuMB": 0,
     "budgets.well-edge.formula.inputs.phone.fps": 0,
     "budgets.well-edge.formula.inputs.phone.variability": 0,
     "budgets.well-edge.formula.inputs.phone.cpuMs": 0,
@@ -19211,42 +19159,26 @@
     "budgets.well-edge.formula.inputs.load.fixedSeconds": 0,
     "budgets.well-edge.formula.inputs.load.cpuRatio": 0,
     "budgets.well-edge.formula.inputs.load.bytesPerSecond": 0,
-    "budgets.stair-street.ceiling.draws": 0,
-    "budgets.stair-street.ceiling.tris": 0,
-    "budgets.stair-street.ceiling.programs": 0,
+    "budgets.well-edge.systemMs.physics": 0,
+    "budgets.well-edge.systemMs.ai": 0,
+    "budgets.well-edge.systemMs.animation": 0,
+    "budgets.well-edge.systemMs.player": 0,
+    "budgets.well-edge.systemMs.world": 0,
+    "budgets.well-edge.systemMs.hud": 0,
+    "budgets.well-edge.systemMs.audio": 0,
+    "budgets.well-edge.gpuM5Ms": 0,
+    "budgets.stair-street.derived.draws": 0,
+    "budgets.stair-street.derived.tris": 0,
+    "budgets.stair-street.derived.programs": 0,
     "budgets.stair-street.ceiling.gpuMB": 0,
-    "budgets.stair-street.formula.inputs.ceilings.phone.spawn-rail.draws": 0,
-    "budgets.stair-street.formula.inputs.ceilings.phone.spawn-rail.tris": 0,
-    "budgets.stair-street.formula.inputs.ceilings.phone.spawn-rail.programs": 0,
-    "budgets.stair-street.formula.inputs.ceilings.phone.spawn-rail.gpuMB": 0,
-    "budgets.stair-street.formula.inputs.ceilings.phone.well-edge.draws": 0,
-    "budgets.stair-street.formula.inputs.ceilings.phone.well-edge.tris": 0,
-    "budgets.stair-street.formula.inputs.ceilings.phone.well-edge.programs": 0,
-    "budgets.stair-street.formula.inputs.ceilings.phone.well-edge.gpuMB": 0,
-    "budgets.stair-street.formula.inputs.ceilings.phone.stair-street.draws": 0,
-    "budgets.stair-street.formula.inputs.ceilings.phone.stair-street.tris": 0,
-    "budgets.stair-street.formula.inputs.ceilings.phone.stair-street.programs": 0,
-    "budgets.stair-street.formula.inputs.ceilings.phone.stair-street.gpuMB": 0,
-    "budgets.stair-street.formula.inputs.ceilings.phone.D.draws": 0,
-    "budgets.stair-street.formula.inputs.ceilings.phone.D.tris": 0,
-    "budgets.stair-street.formula.inputs.ceilings.phone.D.programs": 0,
     "budgets.stair-street.formula.inputs.ceilings.phone.D.gpuMB": 0,
-    "budgets.stair-street.formula.inputs.ceilings.desktop.spawn-rail.draws": 0,
-    "budgets.stair-street.formula.inputs.ceilings.desktop.spawn-rail.tris": 0,
-    "budgets.stair-street.formula.inputs.ceilings.desktop.spawn-rail.programs": 0,
-    "budgets.stair-street.formula.inputs.ceilings.desktop.spawn-rail.gpuMB": 0,
-    "budgets.stair-street.formula.inputs.ceilings.desktop.well-edge.draws": 0,
-    "budgets.stair-street.formula.inputs.ceilings.desktop.well-edge.tris": 0,
-    "budgets.stair-street.formula.inputs.ceilings.desktop.well-edge.programs": 0,
-    "budgets.stair-street.formula.inputs.ceilings.desktop.well-edge.gpuMB": 0,
-    "budgets.stair-street.formula.inputs.ceilings.desktop.stair-street.draws": 0,
-    "budgets.stair-street.formula.inputs.ceilings.desktop.stair-street.tris": 0,
-    "budgets.stair-street.formula.inputs.ceilings.desktop.stair-street.programs": 0,
-    "budgets.stair-street.formula.inputs.ceilings.desktop.stair-street.gpuMB": 0,
-    "budgets.stair-street.formula.inputs.ceilings.desktop.D.draws": 0,
-    "budgets.stair-street.formula.inputs.ceilings.desktop.D.tris": 0,
-    "budgets.stair-street.formula.inputs.ceilings.desktop.D.programs": 0,
+    "budgets.stair-street.formula.inputs.ceilings.phone.spawn-rail.gpuMB": 0,
+    "budgets.stair-street.formula.inputs.ceilings.phone.stair-street.gpuMB": 0,
+    "budgets.stair-street.formula.inputs.ceilings.phone.well-edge.gpuMB": 0,
     "budgets.stair-street.formula.inputs.ceilings.desktop.D.gpuMB": 0,
+    "budgets.stair-street.formula.inputs.ceilings.desktop.spawn-rail.gpuMB": 0,
+    "budgets.stair-street.formula.inputs.ceilings.desktop.stair-street.gpuMB": 0,
+    "budgets.stair-street.formula.inputs.ceilings.desktop.well-edge.gpuMB": 0,
     "budgets.stair-street.formula.inputs.phone.fps": 0,
     "budgets.stair-street.formula.inputs.phone.variability": 0,
     "budgets.stair-street.formula.inputs.phone.cpuMs": 0,
@@ -19285,42 +19217,26 @@
     "budgets.stair-street.formula.inputs.load.fixedSeconds": 0,
     "budgets.stair-street.formula.inputs.load.cpuRatio": 0,
     "budgets.stair-street.formula.inputs.load.bytesPerSecond": 0,
-    "budgets.D.ceiling.draws": 0,
-    "budgets.D.ceiling.tris": 0,
-    "budgets.D.ceiling.programs": 0,
+    "budgets.stair-street.systemMs.physics": 0,
+    "budgets.stair-street.systemMs.ai": 0,
+    "budgets.stair-street.systemMs.animation": 0,
+    "budgets.stair-street.systemMs.player": 0,
+    "budgets.stair-street.systemMs.world": 0,
+    "budgets.stair-street.systemMs.hud": 0,
+    "budgets.stair-street.systemMs.audio": 0,
+    "budgets.stair-street.gpuM5Ms": 0,
+    "budgets.D.derived.draws": 0,
+    "budgets.D.derived.tris": 0,
+    "budgets.D.derived.programs": 0,
     "budgets.D.ceiling.gpuMB": 0,
-    "budgets.D.formula.inputs.ceilings.phone.spawn-rail.draws": 0,
-    "budgets.D.formula.inputs.ceilings.phone.spawn-rail.tris": 0,
-    "budgets.D.formula.inputs.ceilings.phone.spawn-rail.programs": 0,
-    "budgets.D.formula.inputs.ceilings.phone.spawn-rail.gpuMB": 0,
-    "budgets.D.formula.inputs.ceilings.phone.well-edge.draws": 0,
-    "budgets.D.formula.inputs.ceilings.phone.well-edge.tris": 0,
-    "budgets.D.formula.inputs.ceilings.phone.well-edge.programs": 0,
-    "budgets.D.formula.inputs.ceilings.phone.well-edge.gpuMB": 0,
-    "budgets.D.formula.inputs.ceilings.phone.stair-street.draws": 0,
-    "budgets.D.formula.inputs.ceilings.phone.stair-street.tris": 0,
-    "budgets.D.formula.inputs.ceilings.phone.stair-street.programs": 0,
-    "budgets.D.formula.inputs.ceilings.phone.stair-street.gpuMB": 0,
-    "budgets.D.formula.inputs.ceilings.phone.D.draws": 0,
-    "budgets.D.formula.inputs.ceilings.phone.D.tris": 0,
-    "budgets.D.formula.inputs.ceilings.phone.D.programs": 0,
     "budgets.D.formula.inputs.ceilings.phone.D.gpuMB": 0,
-    "budgets.D.formula.inputs.ceilings.desktop.spawn-rail.draws": 0,
-    "budgets.D.formula.inputs.ceilings.desktop.spawn-rail.tris": 0,
-    "budgets.D.formula.inputs.ceilings.desktop.spawn-rail.programs": 0,
-    "budgets.D.formula.inputs.ceilings.desktop.spawn-rail.gpuMB": 0,
-    "budgets.D.formula.inputs.ceilings.desktop.well-edge.draws": 0,
-    "budgets.D.formula.inputs.ceilings.desktop.well-edge.tris": 0,
-    "budgets.D.formula.inputs.ceilings.desktop.well-edge.programs": 0,
-    "budgets.D.formula.inputs.ceilings.desktop.well-edge.gpuMB": 0,
-    "budgets.D.formula.inputs.ceilings.desktop.stair-street.draws": 0,
-    "budgets.D.formula.inputs.ceilings.desktop.stair-street.tris": 0,
-    "budgets.D.formula.inputs.ceilings.desktop.stair-street.programs": 0,
-    "budgets.D.formula.inputs.ceilings.desktop.stair-street.gpuMB": 0,
-    "budgets.D.formula.inputs.ceilings.desktop.D.draws": 0,
-    "budgets.D.formula.inputs.ceilings.desktop.D.tris": 0,
-    "budgets.D.formula.inputs.ceilings.desktop.D.programs": 0,
+    "budgets.D.formula.inputs.ceilings.phone.spawn-rail.gpuMB": 0,
+    "budgets.D.formula.inputs.ceilings.phone.stair-street.gpuMB": 0,
+    "budgets.D.formula.inputs.ceilings.phone.well-edge.gpuMB": 0,
     "budgets.D.formula.inputs.ceilings.desktop.D.gpuMB": 0,
+    "budgets.D.formula.inputs.ceilings.desktop.spawn-rail.gpuMB": 0,
+    "budgets.D.formula.inputs.ceilings.desktop.stair-street.gpuMB": 0,
+    "budgets.D.formula.inputs.ceilings.desktop.well-edge.gpuMB": 0,
     "budgets.D.formula.inputs.phone.fps": 0,
     "budgets.D.formula.inputs.phone.variability": 0,
     "budgets.D.formula.inputs.phone.cpuMs": 0,
@@ -19359,6 +19275,14 @@
     "budgets.D.formula.inputs.load.fixedSeconds": 0,
     "budgets.D.formula.inputs.load.cpuRatio": 0,
     "budgets.D.formula.inputs.load.bytesPerSecond": 0,
+    "budgets.D.systemMs.physics": 0,
+    "budgets.D.systemMs.ai": 0,
+    "budgets.D.systemMs.animation": 0,
+    "budgets.D.systemMs.player": 0,
+    "budgets.D.systemMs.world": 0,
+    "budgets.D.systemMs.hud": 0,
+    "budgets.D.systemMs.audio": 0,
+    "budgets.D.gpuM5Ms": 0,
     "budgets.D.observed.draws": 0,
     "budgets.D.observed.tris": 0,
     "budgets.D.observed.programs": 0,
@@ -19369,7 +19293,7 @@
     "walk.legs.stair-street.end.z": 0,
     "walk.legs.stair-street.maxY": 0,
     "walk.legs.stair-street.out": 0,
-    "walk.legs.stair-street.seconds": 0,
+    "walk.legs.stair-street.seconds": 7.105427357601002e-14,
     "walk.legs.crossing-gate-bridge.stuck": [],
     "walk.legs.crossing-gate-bridge.end.x": 0,
     "walk.legs.crossing-gate-bridge.end.y": 0,
@@ -19400,7 +19324,6 @@
     "combat.sounds.event.lunge": 0,
     "combat.sounds.event.swordSwing": 0,
     "combat.sounds.event.nd.jian.swing": 0,
-    "combat.sounds.event.nd.step.metal": 0,
     "combat.sounds.event.hitMarker": 0,
     "combat.sounds.event.swordHit:flesh": 0,
     "pauseResume.before.clockNow": 0,
@@ -19518,10 +19441,10 @@
   "selfMin": {
     "spawn-rail": 1,
     "well-edge": 1,
-    "stair-street": 0.99946083874236
+    "stair-street": 0.9987819198480109
   },
   "harness": 2,
-  "sha": "479cc5fb54ec23c4272c35df3d1e5b3d59767c39",
-  "recorded": "2026-10-01T19:29:56.807Z",
+  "sha": "73c51589185ad7ea3a3eba1c70edb87db717a58b",
+  "recorded": "2026-10-01T22:53:34.517Z",
   "browser": "153.0.8010.12"
 }
