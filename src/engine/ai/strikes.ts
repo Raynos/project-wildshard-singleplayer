@@ -69,6 +69,8 @@ export class StrikeRunner {
     this.yaw = Math.atan2(dx, dz); this.hfsm.transition('windup'); actor.startAttack(spec.windup);
   }
   cancel(): void { this.hfsm.transition('idle'); this.current = null; this.elapsed = 0; }
+  /** An authored arena edge can end a committed lane without cancelling its recovery window. */
+  recoverNow(): void { if (this.state === 'active') this.phase('recover'); }
   update(dt: number, ctx: StrikeContext): void {
     this.clock += dt; const spec = this.current; if (spec === null || this.state === 'idle') return;
     this.elapsed += dt; const a = ctx.actor;

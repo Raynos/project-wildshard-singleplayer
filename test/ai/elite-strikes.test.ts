@@ -1,3 +1,4 @@
+import { canReach } from '#engine/ai/reach';
 import * as THREE from 'three';
 import { describe, expect, it, vi } from 'vitest';
 import type { Animal } from '#engine/entities/Animal';
@@ -72,7 +73,7 @@ describe('private Nalati elite strikes executed from their production class meth
 describe('Pine elite contacts and the nonattacking Ghost Stag', () => {
   function pine(name: string, fields: Record<string, unknown>) {
     const f = creature('crab', 'small'), hits: number[] = [], path = 'src/shards/pine-hollow/combat/elites.ts';
-    const globals = { THREE, Math, headingTo, inArc, fadeCooldown, behindPlayer, fleeHeading, heightAt: () => 0,
+    const globals = { THREE, Math, canReach, headingTo, inArc, fadeCooldown, behindPlayer, fleeHeading, heightAt: () => 0,
       inChunk: () => true, voice: (): void => undefined, _v: new THREE.Vector3() };
     const proto = legacyMethods(path, name, globals), base = legacyMethods(path, 'PineElite', globals);
     Object.setPrototypeOf(proto, base);

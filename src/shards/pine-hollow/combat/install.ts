@@ -1,3 +1,5 @@
+import { app } from '#engine/app/runtime';
+import { canReach } from '#engine/ai/reach';
 import * as THREE from 'three';
 import type { Game } from '#engine/core/Game';
 import type { Sky } from '#engine/world/Sky';
@@ -5,7 +7,7 @@ import type { Player } from '#engine/player/Player';
 import type { AnimalManager } from '#engine/entities/AnimalManager';
 import type { Animal } from '#engine/entities/Animal';
 import type { EquipmentService,Weapon } from '#engine';
-import { Crossbow, MAX_BOLTS } from '#engine/player/Crossbow';
+import { Crossbow, MAX_BOLTS } from '#kit/weapons/crossbow/Crossbow';
 import { SKINS, applySkin, crossbowDisplayModel, type SkinDef, type SkinId, type SkinLocker } from '#engine/player/Skins';
 import { CameraFX } from '#engine/player/CameraFX';
 import type { Inventory } from '#game/Inventory';
@@ -81,7 +83,12 @@ export function installPineCombat(h: PineCombatHost): PineCombat {
   for (const id of ['ironhide', 'ghost-stag', 'blackpaw', 'imperial', 'warden'] as const) { const m = buildSkin(id); m.visible = false; park.add(m); parked.set(id, m); }
   const ctx: PineCtx = {
     game, sky, player, animals, god,
-    hurt: (a, dmg) => { if (!god) animals.onCharge?.(a, dmg); },
+    hurt: (a, dmg, throughWalls = false) => {
+      const target = app.player;
+      if (god || target === null || (!throughWalls && !canReach(a, player.position))) return;
+      app.combat.hit({ source: a.combatActor(), sourceTags: [a.kind === KING_KIND ? `boss.${a.kind}` : `creature.${a.kind}`, 'feel.blow', 'cover.checked'],
+        target, amount: dmg, point: a.position, dir: new THREE.Vector3(), throughWalls, cause: { kind: a.kind, label: a.label } });
+    },
     stun: (s) => { if (god) return; stunT = Math.max(stunT, s); legs(); },
     trauma: (k) => { CameraFX.for(game).addTrauma(k); },
     sound: (name, at) => { voice(animals, name, at); },
@@ -90,7 +97,7 @@ export function installPineCombat(h: PineCombatHost): PineCombat {
     addItem: (id, n) => { h.inventory.add(id, n); },
     ownSkin: (id) => { const s = SKINS[id]; h.skins.own(id); h.wearSkin(s); if (s.weapon === 'rifle') weapons.unlock('rifle'); },
     skinModel: (id) => { const m = parked.get(id); if (m) { parked.delete(id); m.removeFromParent(); m.visible = true; return m; } return buildSkin(id); },
-    dusk: () => sky.pine?.dusk ?? 0, night: () => sky.pine?.night ?? 0,
+    dusk: () => sky.pine?.clock.dusk ?? 0, night: () => sky.pine?.clock.night ?? 0,
     longbow: h.longbow ? {
       // the stave stands along the orb's item axis (−Z, tip up) at half size: a 1.7 m bow in a legendary's orb
       model: () => { const w = new THREE.Group(), m = h.longbow?.displayModel(); if (m) { m.rotation.x = -Math.PI / 2; m.scale.setScalar(0.5); w.add(m); } return w; },

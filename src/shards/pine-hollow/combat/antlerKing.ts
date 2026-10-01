@@ -1,3 +1,4 @@
+import { canReach } from '#engine/ai/reach';
 import * as THREE from 'three';
 import type { Animal } from '#engine/entities/Animal';
 import { registerSpecies, speciesDef, variantDef, hasSpecies, type SpeciesDef } from '#engine/entities/species/registry';
@@ -10,7 +11,7 @@ import { Impacts } from '#engine/fx/Impacts';
 import { heightAt } from '#engine/world/Heightfield';
 import { fogUniforms } from '#engine/world/Atmosphere';
 import { weatherHold } from '../world/weather';
-import { PINE_PHASES } from '../look/PineDayNight';
+import { PINE_PHASES } from '../look/dayKeys';
 import { KINGS_CLEARING } from '../layout';
 import type { Interactable } from '#engine/world/Cabin';
 import type { Music } from '#engine/audio/Music';
@@ -353,7 +354,7 @@ export class AntlerKingFight implements BossScript {
     const kd = Math.hypot(k.position.x - C.x, k.position.z - C.z);
     if (kd > KING_R) {
       k.position.x = C.x + (k.position.x - C.x) / kd * KING_R; k.position.z = C.z + (k.position.z - C.z) / kd * KING_R;
-      if (this.lane.state === 'run') { this.lane.state = 'skid'; this.lane.t = 0; }
+      this.lane.recoverNow();
     }
   }
 
@@ -382,7 +383,7 @@ export class AntlerKingFight implements BossScript {
         this.tellRing.ring(k.position.x, k.position.z, SWEEP_R, 0.3 + 0.6 * kk * (0.75 + 0.25 * Math.sin(t * 24)));
         if (this.modeT >= 0.9) {
           this.tellRing.hide();
-          if (inArc(k.position.x, k.position.z, k.yaw, p.x, p.z, SWEEP_NEAR_ARC, SWEEP_NEAR) || inArc(k.position.x, k.position.z, k.yaw + SWEEP_AIM, p.x, p.z, SWEEP_ARC, SWEEP_REACH)) { this.ctx.hurt(k, 24); this.ctx.trauma(0.45); }
+          if (canReach(k, p) && (inArc(k.position.x, k.position.z, k.yaw, p.x, p.z, SWEEP_NEAR_ARC, SWEEP_NEAR) || inArc(k.position.x, k.position.z, k.yaw + SWEEP_AIM, p.x, p.z, SWEEP_ARC, SWEEP_REACH))) { this.ctx.hurt(k, 24); this.ctx.trauma(0.45); }
           this.ctx.trauma(0.15);
           this.sweepCd = 5; this.setMode('stalk');
         }
@@ -445,7 +446,7 @@ export class AntlerKingFight implements BossScript {
       w.r += dt * 10.5;
       w.g.setTime(t);
       w.g.ring(k.position.x, k.position.z, w.r, 0.95, 0.25);
-      if (!w.hit && ringCatches(pd, w.r, 0.9, !this.ctx.player.onGround)) { w.hit = true; this.ctx.hurt(k, 20); this.ctx.trauma(0.4); }
+      if (!w.hit && ringCatches(pd, w.r, 0.9, !this.ctx.player.onGround)) { w.hit = true; this.ctx.hurt(k, 20, true); this.ctx.trauma(0.4); }
       if (w.r > FOG_R) { w.on = false; w.g.hide(); }
     }
   }
@@ -535,7 +536,7 @@ export class AntlerKingFight implements BossScript {
         const r = burnTick(f.acc, dt, inside, 0.8);
         f.acc = r.acc;
         const k = this.king;
-        if (r.bites > 0 && k) { this.ctx.hurt(k, 9 * r.bites); }
+        if (r.bites > 0 && k) { this.ctx.hurt(k, 9 * r.bites, true); }
       }
     }
   }

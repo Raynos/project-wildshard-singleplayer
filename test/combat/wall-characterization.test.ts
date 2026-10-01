@@ -3,10 +3,14 @@ import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import type * as Heightfield from '#engine/world/Heightfield';
 import { getActiveChunk, setActiveChunk } from '#game/shard/registry';
 import { LaneCharge } from '#shards/pine-hollow/combat/ctx';
+import { AntlerKingFight } from '#shards/pine-hollow/combat/antlerKing';
+import { canReach } from '#engine/ai/reach';
+import { headingTo, inArc } from '#shards/pine-hollow/combat/combatMath';
+import { legacyMethods } from '../fake/legacySource';
 import { Spear, SPEAR_PROFILE } from '#shards/nalati-grasslands/weapons/Spear';
 import { NaizagaiPower } from '#shards/nalati-grasslands/weapons/Naizagai';
-import { Projectiles } from '#engine/player/Projectiles';
-import { Crossbow } from '#engine/player/Crossbow';
+import { Projectiles } from '#engine/combat/view/projectile';
+import { Crossbow } from '#kit/weapons/crossbow/Crossbow';
 import { setAimTargets } from '#engine/player/AimTargets';
 import { loadRapier } from '#engine/physics/rapier';
 import { Physics } from '#engine/physics/Physics';
@@ -39,13 +43,15 @@ function target() {
 describe('wall bug baselines (owning migrations intentionally change B1/B2 expectations)', () => {
   it.each([['boar', 'boar', 25], ['boar', 'sow', 25], ['boar', 'black', 25], ['boar', 'big', 25],
     ['boar', 'scarback', 32], ['boar', 'ironhide', 40], ['bear', 'black', 35], ['bear', 'black-blaze', 35],
-    ['bear', 'brown', 45], ['bear', 'black-old', 42], ['bear', 'brown-old', 55]] as const)('B4 Pine %s/%s currently charges through cover for%s', (kind, variant, damage) => {
+    ['bear', 'brown', 45], ['bear', 'black-old', 42], ['bear', 'brown-old', 55]] as const)('B4 Pine %s/%s rejects cabin cover and retains%s in the open', (kind, variant, damage) => {
       setActiveChunk('pine-hollow'); wall(); const f = manager(), a = f.manager.spawn(kind, 0, -2.5, 0, variant);
       const brains: unknown = Reflect.get(f.manager, 'brains'); if (!(brains instanceof Map)) throw new Error('brains moved');
       const brain: unknown = brains.get(a); if (typeof brain !== 'object' || brain === null) throw new Error('brain missing');
       Object.assign(brain, { windup: 0, timer: 10 }); a.state = 'charge';
       const hits: number[] = []; f.manager.onCharge = (_animal, amount) => { hits.push(amount); };
       invokeLegacy(f.manager, 'think', a, 0.1, new THREE.Vector3(0, 0, -1.2), false);
+      expect(hits).toEqual([]);
+      setActivePhysics(null); invokeLegacy(f.manager, 'think', a, 0.1, new THREE.Vector3(0, 0, -1.2), false);
       expect(hits).toEqual([damage]);
     });
   it('S8 Driftwood charge contact already checks registered cover', () => {
@@ -58,13 +64,37 @@ describe('wall bug baselines (owning migrations intentionally change B1/B2 expec
     setActivePhysics(null); invokeLegacy(f.manager, 'chargeContact', a, new THREE.Vector3(0, 0, -1.2));
     expect(hit).toHaveBeenCalledWith(a, 25);
   });
-  it('B4 Pine elite lane currently deals30 through the same cover once', () => {
+  it('B4 Pine elite lane rejects cover and retains30 after it opens', () => {
     setActiveChunk('pine-hollow'); wall(); const f = manager(), a = f.manager.spawn('boar', 0, -2.5, 0, 'boar');
     const p = new THREE.Vector3(0, 0, -1.2), hits: number[] = [];
     const lane = new LaneCharge(f.game.scene, 0xff4400, { width: 2.4, speed: 12.5, overshoot: 7, dmg: 30, skid: 1.1, reach: 1.7 });
     lane.start(a, p.x, p.z, 0.9); lane.update(a, 0.9, 0.9, p, (amount) => { hits.push(amount); });
     lane.update(a, 1 / 60, 1, p, (amount) => { hits.push(amount); }); lane.update(a, 1 / 60, 1.1, p, (amount) => { hits.push(amount); });
-    expect(hits).toEqual([30]);
+    expect(hits).toEqual([]);
+    setActivePhysics(null); lane.update(a, 1 / 60, 1.2, p, (amount) => { hits.push(amount); });
+    lane.update(a, 1 / 60, 1.3, p, (amount) => { hits.push(amount); }); expect(hits).toEqual([30]);
+  });
+  it('B4 Antler sweep rejects a log and retains24 in the open', () => {
+    setActiveChunk('pine-hollow'); wall(); const f = manager(), a = f.manager.spawn('boar', 0, -2.5, 0, 'boar');
+    const hurt = vi.fn(noop), fight = legacyActor(AntlerKingFight.prototype, {
+      mode: 'sweep', modeT: 0.9, open: 0, sweepCd: 0, stompCd: 10, callCd: 10,
+      ctx: { player: { position: new THREE.Vector3(0, 0, -1.2) }, hurt, trauma: noop },
+      tellRing: { setTime: noop, ring: noop, hide: noop }, tickWaves: noop,
+    });
+    invokeLegacy(fight, 'fight', a, 1 / 60, 0); expect(hurt).not.toHaveBeenCalled();
+    setActivePhysics(null); Reflect.set(fight, 'mode', 'sweep'); Reflect.set(fight, 'modeT', 0.9);
+    invokeLegacy(fight, 'fight', a, 1 / 60, 1); expect(hurt).toHaveBeenCalledExactlyOnceWith(a, 24);
+  });
+  it('B4 Blackpaw swipe rejects cover and retains22 in the open', () => {
+    setActiveChunk('pine-hollow'); wall(); const f = manager(), a = f.manager.spawn('boar', 0, -2.5, 0, 'boar');
+    const path = 'src/shards/pine-hollow/combat/elites.ts', globals = { canReach, headingTo, inArc, THREE, voice: noop, _v: new THREE.Vector3() };
+    const proto = legacyMethods(path, 'Blackpaw', globals), base = legacyMethods(path, 'PineElite', globals);
+    Object.setPrototypeOf(proto, base);
+    const hurt = vi.fn(noop), fight = legacyActor(proto, { mode: 'swipe', modeT: 0, swipeT: 0.01, roarCd: 0, p2: false,
+      env: { player: { position: new THREE.Vector3(0, 0, -1.2) }, hurt, trauma: noop }, ring: { setTime: noop, hide: noop } });
+    invokeLegacy(fight, 'fight', a, 0.02, 0); expect(hurt).not.toHaveBeenCalled();
+    setActivePhysics(null); Reflect.set(fight, 'swipeT', 0.01);
+    invokeLegacy(fight, 'fight', a, 0.02, 1); expect(hurt).toHaveBeenCalledExactlyOnceWith(a, 22, false);
   });
   it('B1 thrust rejects a registered yurt wall and retains30 in the open', () => {
     wall(); const f = fakeWorld(), a = target();

@@ -99,14 +99,14 @@ describe('boss contacts executed through original production methods', () => {
     const fight = legacyActor(AntlerKingFight.prototype, { ctx: { player: { position: pos, onGround: !jump }, hurt, trauma: noop },
       waves: [{ on: true, delay: 0, r: 4.4, hit: false, g: tell() }] });
     invokeLegacy(fight, 'tickWaves', f.animal, 1 / 60, 0); invokeLegacy(fight, 'tickWaves', f.animal, 1 / 60, 1);
-    expect(hurt).toHaveBeenCalledTimes(jump ? 0 : 1); if (!jump) expect(hurt).toHaveBeenCalledWith(f.animal, 20);
+    expect(hurt).toHaveBeenCalledTimes(jump ? 0 : 1); if (!jump) expect(hurt).toHaveBeenCalledWith(f.animal, 20, true);
   });
   it('S39 fallen lanterns deliver9 per .8s only inside the3m fire zone', () => {
     const f = creature('crab', 'small'), hurt = vi.fn(noop), flame = visual();
     const fight = legacyActor(AntlerKingFight.prototype, { ctx: { player: { position: new THREE.Vector3() }, hurt },
       fallen: [{ fallT: 1, x: 0, y: 0, z: 0, flame, ring: tell(), acc: 0 }], darkK: 0, won: false, king: f.animal });
     invokeLegacy(fight, 'hazards', 0.79, 0, true); expect(hurt).not.toHaveBeenCalled();
-    invokeLegacy(fight, 'hazards', 0.02, 0.81, true); expect(hurt).toHaveBeenCalledWith(f.animal, 9);
+    invokeLegacy(fight, 'hazards', 0.02, 0.81, true); expect(hurt).toHaveBeenCalledWith(f.animal, 9, true);
   });
   it('S27 grass fire delivers4 every .5s and preserves8 damage/second', () => {
     const hurt = vi.fn(noop), fight = legacyActor(StormTitanFight.prototype, {

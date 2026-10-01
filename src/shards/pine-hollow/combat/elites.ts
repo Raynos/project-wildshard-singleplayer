@@ -1,3 +1,4 @@
+import { canReach } from '#engine/ai/reach';
 import * as THREE from 'three';
 import type { Animal } from '#engine/entities/Animal';
 import type { AnimalManager } from '#engine/entities/AnimalManager';
@@ -158,7 +159,7 @@ abstract class PineElite implements EliteScript {
     const p = this.env.player.position;
     return { d: Math.hypot(p.x - a.position.x, p.z - a.position.z), yaw: headingTo(a.position.x, a.position.z, p.x, p.z) };
   }
-  protected hurt(a: Animal, dmg: number): void { this.env.hurt(a, dmg); }
+  protected hurt(a: Animal, dmg: number, throughWalls = false): void { this.env.hurt(a, dmg, throughWalls); }
   /** unengaged: stroll between spots in the lair, glance at a player who is near */
   protected idle(a: Animal, dt: number): void {
     const L = this.def.lair;
@@ -341,7 +342,7 @@ class Blackpaw extends PineElite {
         a.headWorld(_v);
         this.env.puffs.burst(_v, 1, this.ringR, 0.55, 0.5);
         this.env.trauma(0.3);
-        if (d <= this.ringR && !this.env.god) { this.env.stun(1.3); this.hurt(a, 12); this.env.trauma(0.4); }
+        if (d <= this.ringR && !this.env.god) { this.env.stun(1.3); this.hurt(a, 12, true); this.env.trauma(0.4); }
         this.roarCd = this.p2 ? 5.5 : 10;
         if (d > 5) { this.lane.start(a, p.x, p.z, this.p2 ? 0.6 : 0.75, this.p2 ? 1.12 : 1); this.setMode('charge'); } else this.setMode('stalk');
       }
@@ -354,7 +355,7 @@ class Blackpaw extends PineElite {
     }
     if (this.mode === 'swipe') {
       a.setMotion(yaw, 0, 2.5);
-      if (this.swipeT >= 0) { this.swipeT -= dt; if (this.swipeT < 0) { voice(this.env.animals, 'bear_growl', a.position); if (inArc(a.position.x, a.position.z, a.yaw, p.x, p.z, 1.1, 3.8 * a.scale / 1.65)) { this.hurt(a, 22); this.env.trauma(0.35); } } }
+      if (this.swipeT >= 0) { this.swipeT -= dt; if (this.swipeT < 0) { voice(this.env.animals, 'bear_growl', a.position); if (canReach(a, p) && inArc(a.position.x, a.position.z, a.yaw, p.x, p.z, 1.1, 3.8 * a.scale / 1.65)) { this.hurt(a, 22); this.env.trauma(0.35); } } }
       if (this.modeT > 1.2) this.setMode('stalk');
       return;
     }
