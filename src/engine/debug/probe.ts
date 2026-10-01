@@ -345,7 +345,8 @@ export function installProbe<W extends ProbeWorld>(world: W, deps: ProbeDeps): W
       get rngSeed() { return app.rng.seedValue; },
       get census() { return Object.freeze({ engine: Object.freeze(app.engineScope.census), level: Object.freeze(game.levelScope.census) }); },
     }),
-    version: 1, world, shard, boot: fingerprint(world, deps, saves), fingerprint: () => fingerprint(world, deps, saves), pose, nav,
+    version: 1, world, get shard() { return { ...shard, ...app.debug.scopedSnapshot(), slug: world.chunk.slug }; },
+    boot: fingerprint(world, deps, saves), fingerprint: () => fingerprint(world, deps, saves), pose, nav,
     leak: async () => {
       requireHarness();
       if (!pins?.resources) throw new Error('Leak census requires independent harness resource counters');

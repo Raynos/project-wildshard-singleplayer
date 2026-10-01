@@ -10,6 +10,21 @@ const noop = (): void => { /* No renderer work in a context contract test. */ };
 const driver: LevelDriver = { progress: () => ({ set: noop, detail: noop }), data: noop, world: noop, kit: noop, loadout: noop, play: noop, finish: noop };
 
 describe('scope-bound context service adapters', () => {
+  it('publishes only scoped handles and removes them on unload and failed hooks', async () => {
+    const app = new App(); app.levelDriver = driver;
+    app.debug.expose('engine.fixture', 1);
+    const handle = { value: 2 };
+    await app.loadLevel(toLevelSpec(manifest), { world: (ctx) => { ctx.debug.expose('fixture.handle', handle); } });
+    expect(app.debug.scopedSnapshot()).toEqual({ 'fixture.handle': handle });
+    await app.unloadLevel();
+    expect(app.debug.scopedSnapshot()).toEqual({});
+    expect(app.debug.snapshot()).toEqual({ 'engine.fixture': 1 });
+    await expect(app.loadLevel(toLevelSpec(manifest), { world: (ctx) => {
+      ctx.debug.expose('fixture.failed', handle); throw new Error('failed hook');
+    } })).rejects.toThrow('failed hook');
+    expect(app.debug.scopedSnapshot()).toEqual({});
+  });
+
   it('reverses input, every HUD verb, debug rows and playground registrations', async () => {
     const app = new App(), active = new Set<string>();
     app.registryValue = new WorldRegistry(); app.levelDriver = driver;
