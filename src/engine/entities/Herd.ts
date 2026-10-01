@@ -1,3 +1,5 @@
+import { GroupBrain } from '../ai/GroupBrain';
+import { app } from '../app/runtime';
 import * as THREE from 'three';
 import type { Animal } from './Animal';
 import type { ThinkCtx } from './species/registry';
@@ -49,11 +51,10 @@ const ALERT_AT = 0.45;
 const herdOf = new WeakMap<Animal, HorseHerd>();
 const _t = new THREE.Vector3();
 
-export class HorseHerd {
+export class HorseHerd extends GroupBrain<Animal> {
   static all: HorseHerd[] = [];
   static of(a: Animal): HorseHerd | null { return herdOf.get(a) ?? null; }
 
-  readonly members: Animal[];
   lead: Animal | null = null;
   stallion: Animal | null = null;
   readonly foals: Animal[] = [];
@@ -78,13 +79,12 @@ export class HorseHerd {
   private spotX = 0; private spotZ = 0; private spotT = 0;
   private fleeX = 0; private fleeZ = 1; private fleeRun = 0; private fleeLen = 100; private fleeFromX = 0; private fleeFromZ = 0;
   private modeT = 0;
-  private lastTick = -1;
   private mothers = new Map<Animal, Animal>();
   private sT = 0; private chargeCd = 0; private beatenT = 0; private beaten = false; private chargeTarget: Animal | null = null;
   private knockCd = 0;
 
   constructor(members: Animal[]) {
-    this.members = members;
+    super(members);
     for (const h of members) {
       herdOf.set(h, this);
       if (h.variant === 'stallion') this.stallion = h;
@@ -104,7 +104,7 @@ export class HorseHerd {
       if (best !== null) this.mothers.set(f, best);
     }
     this.centre();
-    this.spotX = this.cx; this.spotZ = this.cz; this.spotT = 20 + Math.random() * 40;
+    this.spotX = this.cx; this.spotZ = this.cz; this.spotT = 20 + app.rng.stream('ai').next() * 40;
     HorseHerd.all.push(this);
   }
 
@@ -162,7 +162,7 @@ export class HorseHerd {
     const d = Math.hypot(dx, dz) || 1;
     dx /= d; dz /= d;
     this.fleeX = dx; this.fleeZ = dz; this.fleeFromX = fromX; this.fleeFromZ = fromZ;
-    this.fleeRun = 0; this.fleeLen = 80 + Math.random() * 40;
+    this.fleeRun = 0; this.fleeLen = 80 + app.rng.stream('ai').next() * 40;
     this.mode = 'flee'; this.modeT = 0; this.stampeding = stampede;
     this.trust = Math.max(0, this.trust - 30);
     for (const h of this.members) { h.mem['hitP'] = 0; h.mem['aw'] = 1; }
@@ -173,9 +173,8 @@ export class HorseHerd {
 
   /** the herd-level tick: senses, alarms, mode changes (once per AI tick) */
   tick(c: ThinkCtx): void {
-    if (c.t - this.lastTick < 0.05) return;
-    const dt = this.lastTick < 0 ? 0.1 : Math.min(0.5, c.t - this.lastTick);
-    this.lastTick = c.t;
+    const dt = this.groupDelta(c.t, c.dt);
+    if (dt <= 0) return;
     this.modeT += dt; this.sT += dt; this.chargeCd = Math.max(0, this.chargeCd - dt); this.knockCd = Math.max(0, this.knockCd - dt);
     const prevX = this.cx, prevZ = this.cz;
     this.centre();
@@ -208,7 +207,7 @@ export class HorseHerd {
       // the alarm spreads: a head up nudges the neighbours within 20 m after 0.2–0.8 s
       if (aw >= ALERT_AT && (h.mem['alarm'] ?? 0) === 0) {
         h.mem['alarm'] = 1;
-        for (const o of this.members) if (o !== h && o.alive && o.position.distanceTo(h.position) < 20) o.mem['alarmT'] = Math.max(o.mem['alarmT'] ?? 0, 0.2 + Math.random() * 0.6);
+        for (const o of this.members) if (o !== h && o.alive && o.position.distanceTo(h.position) < 20) o.mem['alarmT'] = Math.max(o.mem['alarmT'] ?? 0, 0.2 + app.rng.stream('ai').next() * 0.6);
       }
       if (aw < ALERT_AT * 0.5) h.mem['alarm'] = 0;
       const at = h.mem['alarmT'] ?? 0;
@@ -376,10 +375,10 @@ export class HorseHerd {
           break;
         }
         // grazing: stand and eat, with the odd step; drift back if too far from the herd, step away if crowded
-        m['gt'] = (m['gt'] ?? Math.random() * 6) - c.dt;
+        m['gt'] = (m['gt'] ?? app.rng.stream('ai').next() * 6) - c.dt;
         if (coh > 0) { vx = cdx / cd; vz = cdz / cd; speed = WALK * (0.6 + coh * 0.6); break; }
         if (Math.hypot(sepX, sepZ) > 0.35) { vx = sepX; vz = sepZ; speed = 0.8; break; }
-        if ((m['gt'] ?? 0) <= 0) { m['gt'] = 4 + Math.random() * 10; m['gyaw'] = a.yaw + (Math.random() - 0.5) * 2; m['gs'] = 1.2 + Math.random() * 1.5; }
+        if ((m['gt'] ?? 0) <= 0) { m['gt'] = 4 + app.rng.stream('ai').next() * 10; m['gyaw'] = a.yaw + (app.rng.stream('ai').next() - 0.5) * 2; m['gs'] = 1.2 + app.rng.stream('ai').next() * 1.5; }
         if ((m['gs'] ?? 0) > 0) { m['gs'] = (m['gs'] ?? 0) - c.dt; vx = Math.sin(m['gyaw'] ?? a.yaw); vz = Math.cos(m['gyaw'] ?? a.yaw); speed = 0.7; }
         break;
       }
@@ -439,7 +438,7 @@ export class HorseHerd {
           m['pin'] = 0.6;
           // a snort and a stamp every 2–4 s
           m['snT'] = (m['snT'] ?? 0) - c.dt;
-          if ((m['snT'] ?? 0) <= 0) { m['snT'] = 2 + Math.random() * 2; m['stamp'] = 1; m['toss'] = 1; c.sound('horse_snort'); }
+          if ((m['snT'] ?? 0) <= 0) { m['snT'] = 2 + app.rng.stream('ai').next() * 2; m['stamp'] = 1; m['toss'] = 1; c.sound('horse_snort'); }
         }
         break;
       }

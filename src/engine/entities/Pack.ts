@@ -1,3 +1,5 @@
+import { GroupBrain } from '../ai/GroupBrain';
+import { app } from '../app/runtime';
 import * as THREE from 'three';
 import type { Animal } from './Animal';
 import type { ThinkCtx } from './species/registry';
@@ -65,12 +67,11 @@ const ease = (cur: number, to: number, k: number): number => cur + (to - cur) * 
 
 export function isLunging(a: Animal): boolean { return a.kind === 'wolf' && (a.mem['lunge'] ?? 0) === 2; }
 
-export class Pack {
+export class Pack extends GroupBrain<Animal> {
   static all: Pack[] = [];
   /** the pack a wolf belongs to (null for a wolf spawned outside any herd) */
   static of(a: Animal): Pack | null { return packOf.get(a) ?? null; }
 
-  readonly members: Animal[];
   alpha: Animal | null = null;
   phase: PackPhase = 'roam';
   /** 0..1: how sure the pack is of the player (the max over its wolves' senses) */
@@ -87,7 +88,6 @@ export class Pack {
   private phaseT = 0;
   private roamX: number; private roamZ: number; private roamT = 0;
   private nextTokenT = 0; private boldT = 0; private calmT = 0;
-  private lastTick = -1;
   private hpStart = 0; private halfDone = false; private deadSeen = 0;
   private shadowDur = 12;
   private howled = false;
@@ -95,7 +95,7 @@ export class Pack {
   private scared = false;
 
   constructor(members: Animal[], homeX: number, homeZ: number) {
-    this.members = members;
+    super(members);
     this.homeX = this.roamX = homeX; this.homeZ = this.roamZ = homeZ;
     // roles: the alpha variant (else the biggest) leads; the smallest of a 4–5 pack scouts
     let big: Animal | null = null, small: Animal | null = null;
@@ -106,9 +106,9 @@ export class Pack {
     this.alpha = big;
     for (const w of members) {
       w.mem['role'] = w === big ? ROLE_ALPHA : members.length >= 4 && w === small ? ROLE_SCOUT : ROLE_FLANK;
-      w.mem['ox'] = (Math.random() - 0.5) * 8; w.mem['oz'] = (Math.random() - 0.5) * 8;
+      w.mem['ox'] = (app.rng.stream('ai').next() - 0.5) * 8; w.mem['oz'] = (app.rng.stream('ai').next() - 0.5) * 8;
       w.mem['hitT'] = w.lastHitT;
-      w.mem['ring'] = RING_R[0] + Math.random() * (RING_R[1] - RING_R[0]);
+      w.mem['ring'] = RING_R[0] + app.rng.stream('ai').next() * (RING_R[1] - RING_R[0]);
       this.hpStart += w.maxHp;
       packOf.set(w, this);
     }
@@ -176,9 +176,8 @@ export class Pack {
 
   /** the pack-level tick: senses, phase changes, the attack token (once per AI tick, whichever wolf thinks first) */
   tick(c: ThinkCtx): void {
-    if (c.t - this.lastTick < 0.05) return;
-    const dt = this.lastTick < 0 ? 0.1 : Math.min(0.5, c.t - this.lastTick);
-    this.lastTick = c.t;
+    const dt = this.groupDelta(c.t, c.dt);
+    if (dt <= 0) return;
     this.phaseT += dt; this.boldT = Math.max(0, this.boldT - dt); this.calmT = Math.max(0, this.calmT - dt);
     let living = 0, hp = 0, dead = 0;
     for (const w of this.members) { if (w.alive) { living++; hp += w.hp; } else dead++; }
@@ -283,6 +282,9 @@ export class Pack {
       if (score > bestScore) { bestScore = score; best = w; }
     }
     if (best === null) return;
+    const director = this.groupDirector(tokens, (wolf) => wolf.alive && ((wolf.mem['lunge'] ?? 0) === 1 || (wolf.mem['lunge'] ?? 0) === 2));
+    app.aggression.register(best, director, app.levelScope ?? undefined);
+    if (!c.claim(best)) return;
     best.mem['lunge'] = 1; best.mem['lt'] = TELEGRAPH; best.mem['bit'] = 0;
     this.sound(c, best, 'wolf_snarl');
     this.nextTokenT = c.t + (this.boldT > 0 ? c.rng.range(1.2, 2.0) : c.rng.range(2.5, 4.0));

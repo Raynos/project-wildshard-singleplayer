@@ -533,7 +533,7 @@ export class AnimalManager {
     const y = heightAt(x, z), s = streamAt(x, z);
     if (s !== null && y < s - 0.05) return false;
     if (y > waterLevel() + 0.25) return true;
-    if (getActiveChunk().ocean) return false;
+    if (app.world.water.sea !== null) return false; // the open sea (the level's registered water body)
     if (!hasPond()) {
       // no pond to measure against (Nalati): the navmesh bake's own wet test — walkable on it = dry
       const nav = activeNavmesh();
@@ -664,7 +664,7 @@ export class AnimalManager {
       return { brainHz: rate === 'always' ? this.scheduler.frameHz : this.scheduler.brainHz(rate, a), pinned: rate === 'always' || this.scheduler.pinned(a) };
     });
     this.scheduler.onInterrupt(a, () => {
-      if (a.hidden || a.harnessHold || !a.alive || speciesDef(a.kind).think !== undefined) return;
+      if (a.hidden || a.harnessHold || !a.alive || (speciesDef(a.kind).think !== undefined && speciesDef(a.kind).tick === undefined)) return;
       const dt = this.scheduler.takeBrainDt(this.tickRate(a), a);
       this.think(a, dt, this.playerPos, this.playerSprinting);
     });
@@ -770,6 +770,8 @@ export class AnimalManager {
       const bodyDt = a.harnessHold ? 0 : this.scheduler.bodyDt(this.tickRate(a), a);
       if (bodyDt > 0) {
         if (a.alive && !a.stunned && a.state === 'charge' && speciesDef(a.kind).think === undefined) this.advanceCharge(a, bodyDt, playerPos);
+        const act = speciesDef(a.kind).act;
+        if (act !== undefined && a.alive && !a.stunned) act(a, this.customContext(a, bodyDt, playerPos, this.playerSprinting));
         a.update(bodyDt, t, near);
         if (this.melee && a.state === 'charge' && a.alive && !a.stunned) this.chargeContact(a, playerPos);
         if (this.rules !== null && a.alive && a.position.distanceToSquared(playerPos) < 36) this.clearBody(a, playerPos);
@@ -820,12 +822,13 @@ export class AnimalManager {
 
   private tickRate(a: Animal): string {
     if (a.driven || a.state === 'sidestep' || brainPinned(a)) return 'always';
-    return speciesDef(a.kind).think === undefined ? 'ai' : 'legacy';
+    const species = speciesDef(a.kind);
+    return species.tick ?? (species.think === undefined ? 'ai' : 'legacy');
   }
 
   /** Hit/target edges bypass the decision interval, including for a far animal. */
   interrupt(a: Animal, why: InterruptReason): void {
-    if (a.hidden || a.harnessHold || !a.alive || speciesDef(a.kind).think !== undefined) return;
+    if (a.hidden || a.harnessHold || !a.alive || (speciesDef(a.kind).think !== undefined && speciesDef(a.kind).tick === undefined)) return;
     this.scheduler.interrupt(a, why);
   }
   private interruptTargets(why: InterruptReason): void {
@@ -861,6 +864,16 @@ export class AnimalManager {
     this.confine(a);
   }
 
+  /** Decision and body callbacks share exactly the same sensing/reach/director ports. */
+  private customContext(a: Animal, dt: number, player: THREE.Vector3, sprinting: boolean): ThinkCtx {
+    const c = this.thinkCtx, herd = a.herd >= 0 ? this.herds[a.herd] ?? null : null;
+    c.dt = dt; c.t = app.clock.now; c.player = player; c.playerSpeed = sprinting ? 7.2 : this.playerSpeed;
+    c.calm = this.unaware; c.herd = herd?.members ?? null; c.world = this.enemyWorld;
+    c.hurt = (damage) => { if ((!this.melee || this.facing(a, player, HURT_ARC)) && this.canReach(a, player)) this.onCharge?.(a, damage); };
+    c.sound = (name) => { this.onSound?.(name as AnimalSound, a.position); };
+    return c;
+  }
+
   private think(a: Animal, dt: number, player: THREE.Vector3, sprinting: boolean): void {
     const br = this.brains.get(a);
     if (br === undefined) throw new Error(`AnimalManager: ${a.kind} has no brain (not spawned through spawn())`);
@@ -874,12 +887,8 @@ export class AnimalManager {
         return;
       }
       if (a.stunned) { a.setMotion(a.yaw, 0, 1); a.setStrafe(0); a.lookTarget.copy(player); a.lookWeight = 1; return; }
-      const c = this.thinkCtx;
+      const c = this.customContext(a, dt, player, sprinting);
       const herd = a.herd >= 0 ? this.herds[a.herd] ?? null : null;
-      c.dt = dt; c.t = performance.now() * 0.001; c.player = player; c.playerSpeed = sprinting ? 7.2 : this.playerSpeed;
-      c.calm = this.unaware; c.herd = herd !== null ? herd.members : null; c.world = this.enemyWorld;
-      c.hurt = (damage) => { if ((!this.melee || this.facing(a, player, HURT_ARC)) && this.canReach(a, player)) this.onCharge?.(a, damage); }; // melee shards: only in front of it, never through a wall (E296)
-      c.sound = (name) => { this.onSound?.(name as AnimalSound, a.position); };
       a.sampleTerrain();
       self(a, c);
       if (herd !== null) this.updateHerd(herd);

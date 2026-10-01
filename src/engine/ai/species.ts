@@ -14,6 +14,8 @@ export interface SpeciesRow {
   tuning?: HuntTuning;
   sounds?: { call: string; hurt: string; callVariants?: string[]; callEvery?: [number, number] };
   think?: (animal: Animal, ctx: ThinkCtx) => void;
+  tick?: 'ai' | 'always';
+  act?: (animal: Animal, ctx: ThinkCtx) => void;
   corpseFade?: number; blood?: boolean;
 }
 

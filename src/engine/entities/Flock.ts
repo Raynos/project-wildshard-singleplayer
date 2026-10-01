@@ -1,3 +1,5 @@
+import { GroupBrain } from '../ai/GroupBrain';
+import { app } from '../app/runtime';
 import * as THREE from 'three';
 import type { Sky } from '../world/Sky';
 import { heightAt, inChunk, normalAt } from '../world/Heightfield';
@@ -55,7 +57,7 @@ export class SheepPrey implements PackPrey {
   readonly applyDamage = (): boolean => { this.flock.kill(this.index); return true; };
 }
 
-export class Flock {
+export class Flock extends GroupBrain<SheepPrey> {
   mesh!: THREE.InstancedMesh;
   readonly n: number;
   dog: Animal | null = null;
@@ -79,9 +81,11 @@ export class Flock {
   alive: number;
 
   constructor(private readonly sky: Sky, opts: FlockOpts) {
+    super([]);
     this.n = opts.count; this.alive = opts.count;
     this.cx = this.tx = this.homeX = opts.x; this.cz = this.tz = this.homeZ = opts.z; this.range = opts.range ?? 45;
     const n = this.n;
+    for (let i = 0; i < n; i++) this.members.push(new SheepPrey(this, i));
     this.px = new Float32Array(n); this.pz = new Float32Array(n); this.py = new Float32Array(n);
     this.yaw = new Float32Array(n); this.spd = new Float32Array(n); this.dspd = new Float32Array(n); this.dyaw = new Float32Array(n);
     this.phase = new Float32Array(n); this.graze = new Float32Array(n); this.dead = new Uint8Array(n); this.deadT = new Float32Array(n);
@@ -451,7 +455,7 @@ export function thinkSheepdog(a: Animal, c: ThinkCtx): void {
     const tx = (wolf.position.x + f.cx) / 2, tz = (wolf.position.z + f.cz) / 2;
     c.steer(a, c.pathYaw(a, tx, tz, 0.8), Math.hypot(tx - px, tz - pz) > 3 ? 7.5 : 0, 5);
     a.lookTarget.copy(wolf.position); a.lookWeight = 1; a.state = 'alert'; m['snarl'] = 1; m['low'] = 0.4;
-    if ((m['barkT'] ?? 0) <= 0) { m['barkT'] = 0.5 + Math.random() * 0.6; f.onSound?.('dog_bark', px, pz); }
+    if ((m['barkT'] ?? 0) <= 0) { m['barkT'] = 0.5 + app.rng.stream('ai').next() * 0.6; f.onSound?.('dog_bark', px, pz); }
     c.confine(a); return;
   }
   m['snarl'] = 0;
@@ -472,7 +476,7 @@ export function thinkSheepdog(a: Animal, c: ThinkCtx): void {
   m['low'] = 0;
   m['rest'] = (m['rest'] ?? 0) - c.dt;
   if ((m['rest'] ?? 0) > 0) { a.setMotion(Math.atan2(f.cx - px, f.cz - pz), 0, 2); a.state = 'idle'; a.lookTarget.set(f.cx, a.position.y, f.cz); a.lookWeight = 0.5; c.confine(a); return; }
-  if ((m['rest'] ?? 0) < -20 && Math.random() < 0.02) m['rest'] = 6 + Math.random() * 8;
+  if ((m['rest'] ?? 0) < -20 && app.rng.stream('ai').next() < 0.02) m['rest'] = 6 + app.rng.stream('ai').next() * 8;
   const R = 16;
   const ang = Math.atan2(px - f.cx, pz - f.cz) + 0.35;
   const tx = f.cx + Math.sin(ang) * R, tz = f.cz + Math.cos(ang) * R;

@@ -262,7 +262,11 @@ export interface SpeciesDef {
   rig?: 'quadruped' | 'custom';
   /** custom rigs: pose the bones from the context (called every frame the animal is within animation range) */
   animate?: (ctx: RigAnimCtx) => void;
-  /** the species runs its own AI: called at 10 Hz instead of the manager's senses / flee / charge loop */
+  /** Authored cadence; omitted custom thinkers retain their legacy rate during migration. */
+  tick?: 'ai' | 'always';
+  /** Strike/movement clock, sampled on every scheduled body step before posing. */
+  act?: (a: Animal, ctx: ThinkCtx) => void;
+  /** The species runs its own decisions on its declared cadence. */
   think?: (a: Animal, ctx: ThinkCtx) => void;
   /** scale the damage of a hit by where it lands: (animal, hitPoint, blow direction) → multiplier (the crab's shell: 0.5 from the front) */
   damageMul?: (a: Animal, hitPoint: THREE.Vector3, dir: THREE.Vector3, request?: DamageRequest) => number;
