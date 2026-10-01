@@ -41,7 +41,7 @@ async function buildWorld(ctx: Awaited<ReturnType<typeof dataStage>>, level: Lev
 
   // ── world dressing ──
   const edgeDressing = await step('edge', async () => {
-    const boundary = new Boundary(sky).build();
+    const boundary = new Boundary(sky, game.level.boundary).build();
     game.scene.add(boundary.group);
     await macrotask(); // boundary · water · horizon each in its own task
     const water = hasPond() ? new (await loadWorldContent()).Water(sky, forest.trees, { ...(chunk.pondClip === undefined ? {} : { clip: chunk.pondClip }), ...(chunk.pondLilyExclusions === undefined ? {} : { lilyExclusions: chunk.pondLilyExclusions }) }).build() : null;

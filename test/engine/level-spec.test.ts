@@ -8,6 +8,7 @@ describe('node-safe manifest to engine level boundary', () => {
     const level = toLevelSpec(manifest);
     expect(level.id).toBe(manifest.slug); expect(level.spawn).toEqual(manifest.spawn);
     expect(level.sky).toEqual(manifest.sky); expect(level.atmosphere).toEqual(manifest.atmosphere); expect(level.grade).toEqual(manifest.grade);
+    expect(level.horizon).toBe(manifest.horizon); expect(level.boundary).toBe(manifest.boundary);
     expect(level.ground.terrain).toBe(manifest.ground.terrain);
     expect(level.ground.structures).toBe(manifest.ground.structures === undefined ? undefined : true);
     for (const key of ['slug', 'name', 'blurb', 'card', 'status', 'order', 'bag', 'label', 'assetGlobs', 'ktx2', 'load']) expect(level).not.toHaveProperty(key);

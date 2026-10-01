@@ -332,8 +332,38 @@ are the row types; `EngineRows` is the verb set.
 | `kitLook?` | `'toon' · 'painterly' · 'pbr'`: the look shared kit pieces render in |
 | `render?` | `() => Promise<LookStrategy>`: your look (§13.1) |
 | `groundColor?`, `surfaceAt?` | per-vertex ground colour and masks for a textureless ground |
-| `minimap?`, `pois?`, `horizon?`, `horizonStrips?`, `hud?` | maps, named places, horizon, HUD bands to switch on |
+| `minimap?`, `pois?`, `hud?` | maps, named places, HUD bands to switch on |
+| `horizon?`, `horizonStrips?`, `boundary?` | authored distant scenery and visual edge dressing (below) |
 | `tiers?`, `budgets` | §13.3, §13.4 |
+
+**Distant scenery and the drawn boundary**
+
+Omitting `horizon` keeps the engine default: three ridge rings and a cloud sea on dry worlds,
+sea stacks without the cloud sea on open-water worlds, or `horizonStrips` imagery when present on a dry world.
+An authored `horizon` replaces that default (including the dry-world strips):
+`horizon: { rings: [], cloudSea: false }` draws neither rings nor a cloud sea. `cloudSea: true` adds the
+engine's animated cloud floor below the slab. Supply any number of rings, ordered near → far, to reshape the skyline.
+They are visual scenery, move with the camera on XZ, and create no colliders.
+
+| Horizon field | Meaning |
+|---|---|
+| `rings[].r` | ridge radius in metres |
+| `rings[].base` | base height in metres relative to world y = 0 |
+| `rings[].color`, `rings[].top` | linear RGB tuples; body → crest colour ramp |
+| `rings[].snowLine` | fraction of the tallest peak above `base` where snow starts; 0…1, > 1 disables snow |
+| `rings[].haze` | aerial-perspective mix, 0…1 |
+| `rings[].floor` | hidden foot reference height in metres; geometry extends 600 m below it |
+| `rings[].bands` | compass-shaped peaks; empty draws a flat ring at `base` |
+| `bands[].azimuth` | compass bearing in degrees: 0 = north (+Z), 90 = east (−X) |
+| `bands[].spread` | positive half-width in degrees, with cosine falloff either side of the bearing |
+| `bands[].height` | peak height in metres above `base` |
+| `bands[].rough` | 0 = rolling hills; 1 = jagged ridges |
+| `horizonStrips` | `{ day, night, elMin, elMax, scale?, phone?: { day, night } }`: painted panorama URLs, elevation limits in degrees, optional vertical scale and phone URLs |
+
+`boundary: { visible: false }` omits the engine's drawn edge lines, beacons, ribbons and road gates.
+Omitting `boundary` (or `visible`) keeps them visible. `Boundary` is visual-only: the physics terrain's
+player-containment edge walls are registered independently and remain active when the drawing is hidden.
+This does not change `bounds` / soft respawn or the creature death plane `world.killY`.
 
 **Content and play**
 
@@ -1180,7 +1210,7 @@ sections above describe what to use; this list is the complete inventory.
 
 ### `#engine` (`src/engine/index.ts`)
 
-686 exports, grouped by the module they come from.
+687 exports, grouped by the module they come from.
 
 - `./core/devMode`: `isDev`, `onDev`, `setDev`
 - `./core/config`: `CHUNK_HALF`, `ROAD_LENGTH`, `SEED`, `CHUNK_SIZE`, `CHUNK_DEPTH`, `TERRAIN_RES`

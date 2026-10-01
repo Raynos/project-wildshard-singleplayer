@@ -126,6 +126,10 @@ The manifest is data. Fill it top to bottom ([ENGINE.md §6](ENGINE.md#6-the-sha
 Keep every coordinate in `layout.ts` and import it. The manifest must import in bare node
 (`test/manifests-node-safe.test.ts`): no three.js objects, no DOM, no `#engine` runtime (use `#engine/data`).
 
+For a skyline of your own, set `horizon` in the manifest; [ENGINE §6](ENGINE.md#6-the-shard-manifest-game)
+lists every ring and compass-band field. `horizon: { rings: [], cloudSea: false }` removes the default ridges
+and cloud floor. `boundary: { visible: false }` removes only the drawn edge dressing; player containment remains active.
+
 ## 4. The plugin verbs
 
 The plugin has three hooks, each awaited in its boot stage ([ENGINE.md §5a, §7](ENGINE.md#7-the-shard-plugin-and-the-registry)).

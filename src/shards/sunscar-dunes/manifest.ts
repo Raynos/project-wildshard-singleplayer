@@ -17,6 +17,7 @@ export const SUNSCAR_DUNES: ShardManifest = {
   card: { thumb: DUNE_CARD, portrait: DUNE_CARD, landscape: DUNE_CARD },
   style: 'pbr', kitLook: 'pbr', weapon: 'custom', treeCount: 0, trees: { factory: 'none', noun: 'dunes' },
   ground: { paths: 'plugin', terrain: TERRAIN },
+  horizon: { rings: [], cloudSea: false }, boundary: { visible: false },
   groundColor: (x, z, h, slope, _terrain, out) => { sandColor(h, slope, Math.sin(x * 12.9898 + z * 78.233) * 0.5 + 0.5, out); return out; },
   spawn: SPAWN, bounds: BOUNDS,
   // just after sunset: the key is the last orange skylight off the western horizon, the fill the indigo sky overhead

@@ -498,6 +498,8 @@ export interface ShardManifest {
   hud?: ChunkHud;
   /** a painted horizon of its own (Nalati: the plateau rolling on, the snow range south); omitted = the default ridge rings */
   horizon?: ChunkHorizon;
+  /** Visual edge dressing only (default visible); never disables player-containment colliders. */
+  boundary?: { visible?: boolean };
   /** Authored far-field imagery; consumed by the generic painted-horizon renderer. */
   horizonStrips?: { day: string; night: string; elMin: number; elMax: number; scale?: number; phone?: { day: string; night: string } };
   /**

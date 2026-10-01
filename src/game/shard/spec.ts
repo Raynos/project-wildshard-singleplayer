@@ -37,6 +37,7 @@ export function toLevelSpec(manifest: ShardManifest): LevelSpec {
     trees: manifest.trees,
     ...(manifest.forest === undefined ? {} : { forest: manifest.forest }),
     ...(manifest.horizon === undefined ? {} : { horizon: manifest.horizon }),
+    ...(manifest.boundary === undefined ? {} : { boundary: manifest.boundary }),
     ...(manifest.hud === undefined ? {} : { hud: manifest.hud }),
     ...(manifest.pois === undefined ? {} : { pois: manifest.pois }),
     ...(manifest.groundColor === undefined ? {} : { groundColor: manifest.groundColor }),

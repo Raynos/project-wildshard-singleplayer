@@ -4,6 +4,7 @@ import { CHUNK_HALF, CHUNK_DEPTH, ROAD_WIDTH } from '../core/config';
 import { heightAt as terrainHeightAt, waterLevel, pondMask, streamAt } from './Heightfield';
 import { app } from '../app/runtime';
 import type { Sky } from './Sky';
+import type { LevelSpec } from '../level/spec';
 import { TIER_CONFIG } from '../core/tier';
 
 /**
@@ -28,9 +29,11 @@ export class Boundary {
   private mats: THREE.ShaderMaterial[] = [];
   private beaconLights: THREE.PointLight[] = [];
 
-  constructor(private sky: Sky) {}
+  constructor(private sky: Pick<Sky, 'setupMaterial'>, private spec?: LevelSpec['boundary']) {}
 
   build(): this {
+    // Drawing only: the physics edge walls are registered independently.
+    if (this.spec?.visible === false) return this;
     const H = CHUNK_HALF;
     // ---- surface edge lines (follow the terrain)
     const segs = 200;
