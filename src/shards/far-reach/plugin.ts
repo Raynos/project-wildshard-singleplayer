@@ -49,6 +49,8 @@ export class SkyReachPlugin extends ShardPlugin {
     if (world) {
       this.quest = installQuest(ctx, world, position).quest;
       if (rt) rt.hooks.questFlags = () => this.quest?.isComplete ? ['far.complete'] : [];
+      const tag = document.createElement('span'); tag.textContent = STRINGS.winch.toUpperCase();
+      ctx.hud.pin(() => world.bridge.raised < 1 ? world.winchAt : null, tag);
       const hover = world.hover;
       ctx.system({ id: 'far.world', phase: 'update', run: (dt, t) => {
         world.sails.rotation.z += dt * 0.6;

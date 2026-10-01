@@ -70,7 +70,7 @@ export function rayGeometry(): BufferGeometry {
     const order = (ny > 0) === up ? [a, b, d] : [a, d, b];
     for (const [p, k] of order) { pos.push(p[0], p[1], p[2]); col.push(c[0], c[1], c[2]); idx.push(k); }
   };
-  const N: [P, number] = [[0, y + 0.05, 2.1], bone.body], CT: [P, number] = [[0, y + 0.42, 0.2], bone.body], CB: [P, number] = [[0, y - 0.22, 0.2], bone.body];
+  const N: [P, number] = [[0, y + 0.05, 2.1], bone.body], CT: [P, number] = [[0, y + 0.7, 0.2], bone.body], CB: [P, number] = [[0, y - 0.4, 0.2], bone.body];
   const R: [P, number] = [[0, y + 0.1, -1.5], bone.body], T: [P, number] = [[0, y + 0.05, -4.6], bone.tail];
   for (const s of [-1, 1]) {
     const w = s < 0 ? bone.wingL : bone.wingR;
