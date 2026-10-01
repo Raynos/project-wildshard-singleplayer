@@ -36,7 +36,11 @@ export const ANCHOR_IN = 0.86;
 export const SPAWN = { x: 0, z: 8, yaw: 0 };
 export const MANTA_HOME = { x: -10, z: -30, alt: 36 };
 export const BOARS: readonly { x: number; z: number }[] = [{ x: 62, z: -10 }, { x: 56, z: -20 }];
-export const TRAIL: [number, number][][] = [[[0, 8], [0, -12]]];
+/**
+ * The trails: the four mandated entry roads (each from an edge midpoint, under the clouds; the south one runs on to the
+ * landing isle's rim below the spawn), then the path across the landing isle.
+ */
+export const TRAIL: [number, number][][] = [[[0, 250], [0, 22]], [[0, -250], [0, -190]], [[-250, 0], [-190, 0]], [[250, 0], [190, 0]], [[0, 8], [0, -12]]];
 
 const smooth = (a: number, b: number, t: number): number => { const u = Math.min(1, Math.max(0, (t - a) / (b - a))); return u * u * (3 - 2 * u); };
 /** One island's height at (x, z), or `VOID_Y` off it. `wobble` is a small seeded noise in −1..1. */

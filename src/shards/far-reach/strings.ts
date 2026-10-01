@@ -3,7 +3,7 @@ export const STRINGS = {
   home: 'Landing isle', mill: 'Windmill isle', fern: 'Fern rock', roost: 'Ray roost', lantern: 'Lantern rock',
   rope: 'Rope bridge', hover: 'Hover bridge', fallen: 'Fallen bridge', winch: 'Bridge winch', windmill: 'Ruined windmill', underside: 'Island rock',
   hoverHint: 'HOVER BRIDGE · BOARD ONLY', raise: 'Raise the bridge', raising: 'Raising…',
-  fan: 'War fan', fanBlurb: 'SWING slashes; GUST blows a cone of wind that throws foes back, off the edge too.', gust: 'GUST',
+  fan: 'War fan', fanBlurb: 'SWING slashes; GUST blows a cone of wind that throws foes back, off the edge too.', gust: 'GUST', swing: 'SWING',
   manta: 'Drift ray', mantaNote: 'Circles high, dives straight at you along a lane, then rises out of reach. Strike or GUST it as it pulls out.',
   boar: 'Cliff boar',
   quest: 'The fallen bridge', questStep: 'Raise the fallen bridge to the windmill island', reward: 'Bridge raised: 10 coins',

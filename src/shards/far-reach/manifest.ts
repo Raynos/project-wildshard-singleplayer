@@ -25,7 +25,7 @@ export const FAR_REACH: ShardManifest = {
   render: async () => (await import('./look/render')).skyReachLook(),
   uses: ['spawns', 'quests', 'hover', 'explore'],
   loadout: { weapons: ['weapon.far-reach-fan'], tools: ['tool.hoverboard'], start: ['weapon.far-reach-fan', 'tool.hoverboard'], held: 'weapon.far-reach-fan' },
-  species: ['boar', 'skyManta'], spawns: [], fight: { attackers: 2, telegraphed: true, input: { bufferMs: 120, coyoteMs: 100 } },
+  species: ['boar', 'skyManta'], spawns: [], fight: { telegraphed: true, input: { bufferMs: 120, coyoteMs: 100 } },
   creatures: { lowPoly: true, waitForModels: false, furRim: false, tintRange: 0, oneMaterial: true },
   tiers: { phone: { godRays: false, ao: false }, desktop: { godRays: false, ao: false } },
   hud: { bands: ['band.1', 'band.2', 'band.3'] }, bag: { tabs: ['map', 'gear', 'notes'], pack: { slots: 6 } },
