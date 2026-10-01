@@ -1,0 +1,48 @@
+{
+  "sha": "520693016a02dd13447c4fc1a9bbf7bf82d7aa67",
+  "recorded": "2026-10-01T22:13:07.507Z",
+  "boot": {
+    "shard": "_template",
+    "tier": "phone",
+    "errors": [],
+    "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+    "browser": "153.0.8010.12",
+    "viewport": {
+      "w": 390,
+      "h": 844,
+      "dpr": 3,
+      "touch": true
+    },
+    "gpuBytes": {
+      "total": 80458756
+    },
+    "render": {
+      "programs": 40
+    }
+  },
+  "poses": {
+    "current": {
+      "calls": 46,
+      "tris": 11833
+    }
+  },
+  "budgets": {
+    "current": {
+      "derived": {
+        "draws": 1831,
+        "tris": 18779873,
+        "programs": 148,
+        "gpuMB": null
+      },
+      "ceiling": {
+        "gpuMB": 76.7306137084961
+      },
+      "observed": {
+        "draws": 46,
+        "tris": 11833,
+        "programs": 40,
+        "gpuMB": 76.73144912719727
+      }
+    }
+  }
+}

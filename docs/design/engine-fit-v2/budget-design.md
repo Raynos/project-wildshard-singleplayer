@@ -233,3 +233,23 @@ Warm launch stays ≤ 4 s at the 4× CPU proxy ([bench](../../../bench.budget.js
 [russell26]: https://infrequently.org/2025/11/performance-inequality-gap-2026/
 [russell17]: https://infrequently.org/2017/10/can-you-afford-it-real-world-web-performance-budgets/
 [perfherder]: https://arxiv.org/html/2606.18377v1
+
+## 8. Published M5 calibration (J6/X7, 2026-10-01)
+
+Stable measurement: `budgets/calibration.json`, published in f53f9ecd at 2026-10-01T22:02:53.510Z; raw observations in `budgets/calibration/m5-2026-10-01T22-02-53-510Z.json`. Every fit has r² ≥ 0.985. The inputs in §6 remain stated allocation/ratio assumptions; the unit costs and resulting capacities now come from this measurement.
+
+| Shard | Phone draws | Desktop draws |
+|---|---|---|
+| _template | 1831 | 3914 |
+| driftwood-isle | 1174 | 3262 |
+| far-reach | 1831 | 3914 |
+| nalati-grasslands | 1174 | 3262 |
+| nine-dragon-stack | 1174 | 3262 |
+| pine-hollow | 1174 | 3262 |
+| sunscar-dunes | 1867 | 4110 |
+
+All seven derive phone triangles ≤ 18779873, desktop triangles ≤ 52174145, phone programs ≤ 148 and desktop programs ≤ 826. These are isolated unit-cost capacities; shader/pixel/pass time and complete gameplay still need their GPU/runtime gates. GPU bytes retain measured ceilings. The four original shards keep their existing allocations, and the starter/two new shards keep theirs. Desktop uses the documented 0.555638 throughput projection; phone uses the documented hot M5 × 10 assumption.
+
+`budgets/ceiling-sources.json` records every derivation, formula/input, calibration hash, baseline and accepted GL re-record. Counts within the derived target retire their F2 rollout override; above-target rollout ceilings may only decrease. Only an explicit `--accept=<approval file>` with a clean measured source can re-record a GL ceiling. `lint/ratchet.json`'s duplicate budget keys are gone; each manifest owns its remaining data.
+
+All seven real phone boots and the two explained/accepted GL changes are recorded in [the calibration report](../../../budgets/calibration-reports/README.md). Derivations regenerate with the command there; rerunning it changes no bytes.

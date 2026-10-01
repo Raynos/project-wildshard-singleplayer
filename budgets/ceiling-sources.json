@@ -1,0 +1,1612 @@
+{
+  "source": "F2 max(lanes) plus recorded parity band; ceilings only decrease except explicit provenance-bearing GL re-records",
+  "lanes": [
+    "m5"
+  ],
+  "calibration": "2026-10-01T22:02:53.510Z",
+  "calibrationSha256": "9a087177ebf950bb23426099e7f8b9adc44efc6cabae45f54db552d39b0714b5",
+  "derived": {
+    "_template": {
+      "phone": {
+        "limits": {
+          "draws": 1831,
+          "tris": 18779873,
+          "programs": 148,
+          "gpuMB": null
+        },
+        "frameMs": 25.641025641025642,
+        "gpuMs": 16.04102564102564,
+        "gpuM5Ms": 1.6041025641025641,
+        "systemsMs": {
+          "physics": 0.3,
+          "ai": 0.3,
+          "animation": 0.3,
+          "player": 0.2,
+          "world": 0.2,
+          "hud": 0.1,
+          "audio": 0.1
+        },
+        "entities": {
+          "rigs": 19,
+          "bodies": 0,
+          "agents": 24
+        },
+        "lanesMs": {
+          "opaque": 6.4164102564102565,
+          "shadow": 3.2082051282051283,
+          "transparent": 1.6041025641025641,
+          "viewmodel": 1.6041025641025641,
+          "post": 1.6041025641025641,
+          "reserve": 1.6041025641025641
+        },
+        "downloadBytes": null,
+        "formula": {
+          "inputs": {
+            "phone": {
+              "fps": 30,
+              "variability": 1.3,
+              "cpuMs": 9.6,
+              "gcMs": 0.3,
+              "systems": {
+                "physics": 0.3,
+                "ai": 0.3,
+                "animation": 0.3,
+                "player": 0.2,
+                "world": 0.2,
+                "hud": 0.1,
+                "audio": 0.1
+              },
+              "vertexShare": 0.5,
+              "lanes": {
+                "opaque": 0.4,
+                "shadow": 0.2,
+                "transparent": 0.1,
+                "viewmodel": 0.1,
+                "post": 0.1,
+                "reserve": 0.1
+              },
+              "linkMs": 1000
+            },
+            "desktop": {
+              "fps": 60,
+              "variability": 1.3,
+              "cpuMs": 4.8,
+              "gcMs": 0.3,
+              "systems": {
+                "physics": 0.3,
+                "ai": 0.3,
+                "animation": 0.3,
+                "player": 0.2,
+                "world": 0.2,
+                "hud": 0.1,
+                "audio": 0.1
+              },
+              "vertexShare": 0.5,
+              "lanes": {
+                "opaque": 0.4,
+                "shadow": 0.2,
+                "transparent": 0.1,
+                "viewmodel": 0.1,
+                "post": 0.1,
+                "reserve": 0.1
+              },
+              "linkMs": 1000
+            },
+            "load": {
+              "coldPlay4G": null,
+              "fixedSeconds": 0,
+              "cpuRatio": 2,
+              "bytesPerSecond": 1125000
+            }
+          },
+          "source": "budgets/calibration.json (scripts/calibrate.mjs)",
+          "assumption": "ASSUMPTION: hot iPhone costs equal measured M5 costs × 10; no phone calibration was run (decision 99)",
+          "expressions": {
+            "frame": "1000 / 30 / 1.3",
+            "gpu": "25.641025641025642 - 9.6",
+            "draws": "floor((9.6 - 1.5 - 0.3) / (0.0004257812537252903 × 10))",
+            "tris": "floor(16.04102564102564 × 0.5 / (4.2708022548417234e-8 × 10))",
+            "programs": "floor(1000 / (0.6720833336313565 × 10))",
+            "gpuMB": "GL bytes retain measured baseline ceiling; native footprint is a separate Simulator gate",
+            "downloadBytes": "(null - 0 × 2) × 1125000"
+          }
+        }
+      },
+      "desktop": {
+        "limits": {
+          "draws": 3914,
+          "tris": 52174145,
+          "programs": 826,
+          "gpuMB": null
+        },
+        "frameMs": 12.820512820512821,
+        "gpuMs": 8.02051282051282,
+        "gpuM5Ms": 4.456509178540323,
+        "systemsMs": {
+          "physics": 0.3,
+          "ai": 0.3,
+          "animation": 0.3,
+          "player": 0.2,
+          "world": 0.2,
+          "hud": 0.1,
+          "audio": 0.1
+        },
+        "entities": {
+          "rigs": 106,
+          "bodies": 4,
+          "agents": 133
+        },
+        "lanesMs": {
+          "opaque": 3.2082051282051283,
+          "shadow": 1.6041025641025641,
+          "transparent": 0.8020512820512821,
+          "viewmodel": 0.8020512820512821,
+          "post": 0.8020512820512821,
+          "reserve": 0.8020512820512821
+        },
+        "downloadBytes": null,
+        "formula": {
+          "inputs": {
+            "phone": {
+              "fps": 30,
+              "variability": 1.3,
+              "cpuMs": 9.6,
+              "gcMs": 0.3,
+              "systems": {
+                "physics": 0.3,
+                "ai": 0.3,
+                "animation": 0.3,
+                "player": 0.2,
+                "world": 0.2,
+                "hud": 0.1,
+                "audio": 0.1
+              },
+              "vertexShare": 0.5,
+              "lanes": {
+                "opaque": 0.4,
+                "shadow": 0.2,
+                "transparent": 0.1,
+                "viewmodel": 0.1,
+                "post": 0.1,
+                "reserve": 0.1
+              },
+              "linkMs": 1000
+            },
+            "desktop": {
+              "fps": 60,
+              "variability": 1.3,
+              "cpuMs": 4.8,
+              "gcMs": 0.3,
+              "systems": {
+                "physics": 0.3,
+                "ai": 0.3,
+                "animation": 0.3,
+                "player": 0.2,
+                "world": 0.2,
+                "hud": 0.1,
+                "audio": 0.1
+              },
+              "vertexShare": 0.5,
+              "lanes": {
+                "opaque": 0.4,
+                "shadow": 0.2,
+                "transparent": 0.1,
+                "viewmodel": 0.1,
+                "post": 0.1,
+                "reserve": 0.1
+              },
+              "linkMs": 1000
+            },
+            "load": {
+              "coldPlay4G": null,
+              "fixedSeconds": 0,
+              "cpuRatio": 2,
+              "bytesPerSecond": 1125000
+            }
+          },
+          "source": "https://browser.geekbench.com/opencl-benchmarks",
+          "assumption": "Projected RTX 3060 / M5 Max throughput = OpenCL 80711 / 145258; replace with measured rtx3060 costs when available",
+          "expressions": {
+            "frame": "1000 / 60 / 1.3",
+            "gpu": "12.820512820512821 - 4.8",
+            "draws": "floor((4.8 - 1.5 - 0.3) / (0.0004257812537252903 × 1.7997299005092244))",
+            "tris": "floor(8.02051282051282 × 0.5 / (4.2708022548417234e-8 × 1.7997299005092244))",
+            "programs": "floor(1000 / (0.6720833336313565 × 1.7997299005092244))",
+            "gpuMB": "GL bytes retain measured baseline ceiling; native footprint is a separate Simulator gate",
+            "downloadBytes": "(null - 0 × 2) × 1125000"
+          }
+        }
+      }
+    },
+    "driftwood-isle": {
+      "phone": {
+        "limits": {
+          "draws": 1174,
+          "tris": 18779873,
+          "programs": 148,
+          "gpuMB": null
+        },
+        "frameMs": 25.641025641025642,
+        "gpuMs": 16.04102564102564,
+        "gpuM5Ms": 1.6041025641025641,
+        "systemsMs": {
+          "physics": 0.8,
+          "ai": 0.8,
+          "animation": 1,
+          "player": 0.4,
+          "world": 0.5,
+          "hud": 0.3,
+          "audio": 0.2
+        },
+        "entities": {
+          "rigs": 64,
+          "bodies": 2,
+          "agents": 64
+        },
+        "lanesMs": {
+          "opaque": 5.012820512820513,
+          "foliage": 3.0076923076923077,
+          "shadow": 2.5064102564102564,
+          "transparent": 1.5038461538461538,
+          "viewmodel": 1.0025641025641026,
+          "post": 2.005128205128205,
+          "reserve": 1.0025641025641026
+        },
+        "downloadBytes": 21375000,
+        "formula": {
+          "inputs": {
+            "phone": {
+              "fps": 30,
+              "variability": 1.3,
+              "cpuMs": 9.6,
+              "gcMs": 0.6,
+              "systems": {
+                "physics": 0.8,
+                "ai": 0.8,
+                "animation": 1,
+                "player": 0.4,
+                "world": 0.5,
+                "hud": 0.3,
+                "audio": 0.2
+              },
+              "vertexShare": 0.5,
+              "lanes": {
+                "opaque": 0.3125,
+                "foliage": 0.1875,
+                "shadow": 0.15625,
+                "transparent": 0.09375,
+                "viewmodel": 0.0625,
+                "post": 0.125,
+                "reserve": 0.0625
+              },
+              "linkMs": 1000
+            },
+            "desktop": {
+              "fps": 60,
+              "variability": 1.3,
+              "cpuMs": 4.8,
+              "gcMs": 0.3,
+              "systems": {
+                "physics": 0.4,
+                "ai": 0.4,
+                "animation": 0.5,
+                "player": 0.2,
+                "world": 0.25,
+                "hud": 0.15,
+                "audio": 0.1
+              },
+              "vertexShare": 0.5,
+              "lanes": {
+                "opaque": 0.5,
+                "post": 0.5
+              },
+              "linkMs": 1000
+            },
+            "load": {
+              "coldPlay4G": 30,
+              "fixedSeconds": 5.5,
+              "cpuRatio": 2,
+              "bytesPerSecond": 1125000
+            }
+          },
+          "source": "budgets/calibration.json (scripts/calibrate.mjs)",
+          "assumption": "ASSUMPTION: hot iPhone costs equal measured M5 costs × 10; no phone calibration was run (decision 99)",
+          "expressions": {
+            "frame": "1000 / 30 / 1.3",
+            "gpu": "25.641025641025642 - 9.6",
+            "draws": "floor((9.6 - 4 - 0.6) / (0.0004257812537252903 × 10))",
+            "tris": "floor(16.04102564102564 × 0.5 / (4.2708022548417234e-8 × 10))",
+            "programs": "floor(1000 / (0.6720833336313565 × 10))",
+            "gpuMB": "GL bytes retain measured baseline ceiling; native footprint is a separate Simulator gate",
+            "downloadBytes": "(30 - 5.5 × 2) × 1125000"
+          }
+        }
+      },
+      "desktop": {
+        "limits": {
+          "draws": 3262,
+          "tris": 52174145,
+          "programs": 826,
+          "gpuMB": null
+        },
+        "frameMs": 12.820512820512821,
+        "gpuMs": 8.02051282051282,
+        "gpuM5Ms": 4.456509178540323,
+        "systemsMs": {
+          "physics": 0.4,
+          "ai": 0.4,
+          "animation": 0.5,
+          "player": 0.2,
+          "world": 0.25,
+          "hud": 0.15,
+          "audio": 0.1
+        },
+        "entities": {
+          "rigs": 177,
+          "bodies": 6,
+          "agents": 177
+        },
+        "lanesMs": {
+          "opaque": 4.01025641025641,
+          "post": 4.01025641025641
+        },
+        "downloadBytes": 21375000,
+        "formula": {
+          "inputs": {
+            "phone": {
+              "fps": 30,
+              "variability": 1.3,
+              "cpuMs": 9.6,
+              "gcMs": 0.6,
+              "systems": {
+                "physics": 0.8,
+                "ai": 0.8,
+                "animation": 1,
+                "player": 0.4,
+                "world": 0.5,
+                "hud": 0.3,
+                "audio": 0.2
+              },
+              "vertexShare": 0.5,
+              "lanes": {
+                "opaque": 0.3125,
+                "foliage": 0.1875,
+                "shadow": 0.15625,
+                "transparent": 0.09375,
+                "viewmodel": 0.0625,
+                "post": 0.125,
+                "reserve": 0.0625
+              },
+              "linkMs": 1000
+            },
+            "desktop": {
+              "fps": 60,
+              "variability": 1.3,
+              "cpuMs": 4.8,
+              "gcMs": 0.3,
+              "systems": {
+                "physics": 0.4,
+                "ai": 0.4,
+                "animation": 0.5,
+                "player": 0.2,
+                "world": 0.25,
+                "hud": 0.15,
+                "audio": 0.1
+              },
+              "vertexShare": 0.5,
+              "lanes": {
+                "opaque": 0.5,
+                "post": 0.5
+              },
+              "linkMs": 1000
+            },
+            "load": {
+              "coldPlay4G": 30,
+              "fixedSeconds": 5.5,
+              "cpuRatio": 2,
+              "bytesPerSecond": 1125000
+            }
+          },
+          "source": "https://browser.geekbench.com/opencl-benchmarks",
+          "assumption": "Projected RTX 3060 / M5 Max throughput = OpenCL 80711 / 145258; replace with measured rtx3060 costs when available",
+          "expressions": {
+            "frame": "1000 / 60 / 1.3",
+            "gpu": "12.820512820512821 - 4.8",
+            "draws": "floor((4.8 - 2 - 0.3) / (0.0004257812537252903 × 1.7997299005092244))",
+            "tris": "floor(8.02051282051282 × 0.5 / (4.2708022548417234e-8 × 1.7997299005092244))",
+            "programs": "floor(1000 / (0.6720833336313565 × 1.7997299005092244))",
+            "gpuMB": "GL bytes retain measured baseline ceiling; native footprint is a separate Simulator gate",
+            "downloadBytes": "(30 - 5.5 × 2) × 1125000"
+          }
+        }
+      }
+    },
+    "far-reach": {
+      "phone": {
+        "limits": {
+          "draws": 1831,
+          "tris": 18779873,
+          "programs": 148,
+          "gpuMB": null
+        },
+        "frameMs": 25.641025641025642,
+        "gpuMs": 16.04102564102564,
+        "gpuM5Ms": 1.6041025641025641,
+        "systemsMs": {
+          "physics": 0.3,
+          "ai": 0.3,
+          "animation": 0.3,
+          "player": 0.2,
+          "world": 0.2,
+          "hud": 0.1,
+          "audio": 0.1
+        },
+        "entities": {
+          "rigs": 19,
+          "bodies": 0,
+          "agents": 24
+        },
+        "lanesMs": {
+          "opaque": 6.4164102564102565,
+          "shadow": 3.2082051282051283,
+          "transparent": 1.6041025641025641,
+          "viewmodel": 1.6041025641025641,
+          "post": 1.6041025641025641,
+          "reserve": 1.6041025641025641
+        },
+        "downloadBytes": null,
+        "formula": {
+          "inputs": {
+            "phone": {
+              "fps": 30,
+              "variability": 1.3,
+              "cpuMs": 9.6,
+              "gcMs": 0.3,
+              "systems": {
+                "physics": 0.3,
+                "ai": 0.3,
+                "animation": 0.3,
+                "player": 0.2,
+                "world": 0.2,
+                "hud": 0.1,
+                "audio": 0.1
+              },
+              "vertexShare": 0.5,
+              "lanes": {
+                "opaque": 0.4,
+                "shadow": 0.2,
+                "transparent": 0.1,
+                "viewmodel": 0.1,
+                "post": 0.1,
+                "reserve": 0.1
+              },
+              "linkMs": 1000
+            },
+            "desktop": {
+              "fps": 60,
+              "variability": 1.3,
+              "cpuMs": 4.8,
+              "gcMs": 0.3,
+              "systems": {
+                "physics": 0.3,
+                "ai": 0.3,
+                "animation": 0.3,
+                "player": 0.2,
+                "world": 0.2,
+                "hud": 0.1,
+                "audio": 0.1
+              },
+              "vertexShare": 0.5,
+              "lanes": {
+                "opaque": 0.4,
+                "shadow": 0.2,
+                "transparent": 0.1,
+                "viewmodel": 0.1,
+                "post": 0.1,
+                "reserve": 0.1
+              },
+              "linkMs": 1000
+            },
+            "load": {
+              "coldPlay4G": null,
+              "fixedSeconds": 0,
+              "cpuRatio": 2,
+              "bytesPerSecond": 1125000
+            }
+          },
+          "source": "budgets/calibration.json (scripts/calibrate.mjs)",
+          "assumption": "ASSUMPTION: hot iPhone costs equal measured M5 costs × 10; no phone calibration was run (decision 99)",
+          "expressions": {
+            "frame": "1000 / 30 / 1.3",
+            "gpu": "25.641025641025642 - 9.6",
+            "draws": "floor((9.6 - 1.5 - 0.3) / (0.0004257812537252903 × 10))",
+            "tris": "floor(16.04102564102564 × 0.5 / (4.2708022548417234e-8 × 10))",
+            "programs": "floor(1000 / (0.6720833336313565 × 10))",
+            "gpuMB": "GL bytes retain measured baseline ceiling; native footprint is a separate Simulator gate",
+            "downloadBytes": "(null - 0 × 2) × 1125000"
+          }
+        }
+      },
+      "desktop": {
+        "limits": {
+          "draws": 3914,
+          "tris": 52174145,
+          "programs": 826,
+          "gpuMB": null
+        },
+        "frameMs": 12.820512820512821,
+        "gpuMs": 8.02051282051282,
+        "gpuM5Ms": 4.456509178540323,
+        "systemsMs": {
+          "physics": 0.3,
+          "ai": 0.3,
+          "animation": 0.3,
+          "player": 0.2,
+          "world": 0.2,
+          "hud": 0.1,
+          "audio": 0.1
+        },
+        "entities": {
+          "rigs": 106,
+          "bodies": 4,
+          "agents": 133
+        },
+        "lanesMs": {
+          "opaque": 3.2082051282051283,
+          "shadow": 1.6041025641025641,
+          "transparent": 0.8020512820512821,
+          "viewmodel": 0.8020512820512821,
+          "post": 0.8020512820512821,
+          "reserve": 0.8020512820512821
+        },
+        "downloadBytes": null,
+        "formula": {
+          "inputs": {
+            "phone": {
+              "fps": 30,
+              "variability": 1.3,
+              "cpuMs": 9.6,
+              "gcMs": 0.3,
+              "systems": {
+                "physics": 0.3,
+                "ai": 0.3,
+                "animation": 0.3,
+                "player": 0.2,
+                "world": 0.2,
+                "hud": 0.1,
+                "audio": 0.1
+              },
+              "vertexShare": 0.5,
+              "lanes": {
+                "opaque": 0.4,
+                "shadow": 0.2,
+                "transparent": 0.1,
+                "viewmodel": 0.1,
+                "post": 0.1,
+                "reserve": 0.1
+              },
+              "linkMs": 1000
+            },
+            "desktop": {
+              "fps": 60,
+              "variability": 1.3,
+              "cpuMs": 4.8,
+              "gcMs": 0.3,
+              "systems": {
+                "physics": 0.3,
+                "ai": 0.3,
+                "animation": 0.3,
+                "player": 0.2,
+                "world": 0.2,
+                "hud": 0.1,
+                "audio": 0.1
+              },
+              "vertexShare": 0.5,
+              "lanes": {
+                "opaque": 0.4,
+                "shadow": 0.2,
+                "transparent": 0.1,
+                "viewmodel": 0.1,
+                "post": 0.1,
+                "reserve": 0.1
+              },
+              "linkMs": 1000
+            },
+            "load": {
+              "coldPlay4G": null,
+              "fixedSeconds": 0,
+              "cpuRatio": 2,
+              "bytesPerSecond": 1125000
+            }
+          },
+          "source": "https://browser.geekbench.com/opencl-benchmarks",
+          "assumption": "Projected RTX 3060 / M5 Max throughput = OpenCL 80711 / 145258; replace with measured rtx3060 costs when available",
+          "expressions": {
+            "frame": "1000 / 60 / 1.3",
+            "gpu": "12.820512820512821 - 4.8",
+            "draws": "floor((4.8 - 1.5 - 0.3) / (0.0004257812537252903 × 1.7997299005092244))",
+            "tris": "floor(8.02051282051282 × 0.5 / (4.2708022548417234e-8 × 1.7997299005092244))",
+            "programs": "floor(1000 / (0.6720833336313565 × 1.7997299005092244))",
+            "gpuMB": "GL bytes retain measured baseline ceiling; native footprint is a separate Simulator gate",
+            "downloadBytes": "(null - 0 × 2) × 1125000"
+          }
+        }
+      }
+    },
+    "nalati-grasslands": {
+      "phone": {
+        "limits": {
+          "draws": 1174,
+          "tris": 18779873,
+          "programs": 148,
+          "gpuMB": null
+        },
+        "frameMs": 25.641025641025642,
+        "gpuMs": 16.04102564102564,
+        "gpuM5Ms": 1.6041025641025641,
+        "systemsMs": {
+          "physics": 0.8,
+          "ai": 0.8,
+          "animation": 1,
+          "player": 0.4,
+          "world": 0.5,
+          "hud": 0.3,
+          "audio": 0.2
+        },
+        "entities": {
+          "rigs": 64,
+          "bodies": 2,
+          "agents": 64
+        },
+        "lanesMs": {
+          "opaque": 5.012820512820513,
+          "foliage": 3.0076923076923077,
+          "shadow": 2.5064102564102564,
+          "transparent": 1.5038461538461538,
+          "viewmodel": 1.0025641025641026,
+          "post": 2.005128205128205,
+          "reserve": 1.0025641025641026
+        },
+        "downloadBytes": 28237500,
+        "formula": {
+          "inputs": {
+            "phone": {
+              "fps": 30,
+              "variability": 1.3,
+              "cpuMs": 9.6,
+              "gcMs": 0.6,
+              "systems": {
+                "physics": 0.8,
+                "ai": 0.8,
+                "animation": 1,
+                "player": 0.4,
+                "world": 0.5,
+                "hud": 0.3,
+                "audio": 0.2
+              },
+              "vertexShare": 0.5,
+              "lanes": {
+                "opaque": 0.3125,
+                "foliage": 0.1875,
+                "shadow": 0.15625,
+                "transparent": 0.09375,
+                "viewmodel": 0.0625,
+                "post": 0.125,
+                "reserve": 0.0625
+              },
+              "linkMs": 1000
+            },
+            "desktop": {
+              "fps": 60,
+              "variability": 1.3,
+              "cpuMs": 4.8,
+              "gcMs": 0.3,
+              "systems": {
+                "physics": 0.4,
+                "ai": 0.4,
+                "animation": 0.5,
+                "player": 0.2,
+                "world": 0.25,
+                "hud": 0.15,
+                "audio": 0.1
+              },
+              "vertexShare": 0.5,
+              "lanes": {
+                "opaque": 0.5,
+                "post": 0.5
+              },
+              "linkMs": 1000
+            },
+            "load": {
+              "coldPlay4G": 35.5,
+              "fixedSeconds": 5.2,
+              "cpuRatio": 2,
+              "bytesPerSecond": 1125000
+            }
+          },
+          "source": "budgets/calibration.json (scripts/calibrate.mjs)",
+          "assumption": "ASSUMPTION: hot iPhone costs equal measured M5 costs × 10; no phone calibration was run (decision 99)",
+          "expressions": {
+            "frame": "1000 / 30 / 1.3",
+            "gpu": "25.641025641025642 - 9.6",
+            "draws": "floor((9.6 - 4 - 0.6) / (0.0004257812537252903 × 10))",
+            "tris": "floor(16.04102564102564 × 0.5 / (4.2708022548417234e-8 × 10))",
+            "programs": "floor(1000 / (0.6720833336313565 × 10))",
+            "gpuMB": "GL bytes retain measured baseline ceiling; native footprint is a separate Simulator gate",
+            "downloadBytes": "(35.5 - 5.2 × 2) × 1125000"
+          }
+        }
+      },
+      "desktop": {
+        "limits": {
+          "draws": 3262,
+          "tris": 52174145,
+          "programs": 826,
+          "gpuMB": null
+        },
+        "frameMs": 12.820512820512821,
+        "gpuMs": 8.02051282051282,
+        "gpuM5Ms": 4.456509178540323,
+        "systemsMs": {
+          "physics": 0.4,
+          "ai": 0.4,
+          "animation": 0.5,
+          "player": 0.2,
+          "world": 0.25,
+          "hud": 0.15,
+          "audio": 0.1
+        },
+        "entities": {
+          "rigs": 177,
+          "bodies": 6,
+          "agents": 177
+        },
+        "lanesMs": {
+          "opaque": 4.01025641025641,
+          "post": 4.01025641025641
+        },
+        "downloadBytes": 28237500,
+        "formula": {
+          "inputs": {
+            "phone": {
+              "fps": 30,
+              "variability": 1.3,
+              "cpuMs": 9.6,
+              "gcMs": 0.6,
+              "systems": {
+                "physics": 0.8,
+                "ai": 0.8,
+                "animation": 1,
+                "player": 0.4,
+                "world": 0.5,
+                "hud": 0.3,
+                "audio": 0.2
+              },
+              "vertexShare": 0.5,
+              "lanes": {
+                "opaque": 0.3125,
+                "foliage": 0.1875,
+                "shadow": 0.15625,
+                "transparent": 0.09375,
+                "viewmodel": 0.0625,
+                "post": 0.125,
+                "reserve": 0.0625
+              },
+              "linkMs": 1000
+            },
+            "desktop": {
+              "fps": 60,
+              "variability": 1.3,
+              "cpuMs": 4.8,
+              "gcMs": 0.3,
+              "systems": {
+                "physics": 0.4,
+                "ai": 0.4,
+                "animation": 0.5,
+                "player": 0.2,
+                "world": 0.25,
+                "hud": 0.15,
+                "audio": 0.1
+              },
+              "vertexShare": 0.5,
+              "lanes": {
+                "opaque": 0.5,
+                "post": 0.5
+              },
+              "linkMs": 1000
+            },
+            "load": {
+              "coldPlay4G": 35.5,
+              "fixedSeconds": 5.2,
+              "cpuRatio": 2,
+              "bytesPerSecond": 1125000
+            }
+          },
+          "source": "https://browser.geekbench.com/opencl-benchmarks",
+          "assumption": "Projected RTX 3060 / M5 Max throughput = OpenCL 80711 / 145258; replace with measured rtx3060 costs when available",
+          "expressions": {
+            "frame": "1000 / 60 / 1.3",
+            "gpu": "12.820512820512821 - 4.8",
+            "draws": "floor((4.8 - 2 - 0.3) / (0.0004257812537252903 × 1.7997299005092244))",
+            "tris": "floor(8.02051282051282 × 0.5 / (4.2708022548417234e-8 × 1.7997299005092244))",
+            "programs": "floor(1000 / (0.6720833336313565 × 1.7997299005092244))",
+            "gpuMB": "GL bytes retain measured baseline ceiling; native footprint is a separate Simulator gate",
+            "downloadBytes": "(35.5 - 5.2 × 2) × 1125000"
+          }
+        }
+      }
+    },
+    "nine-dragon-stack": {
+      "phone": {
+        "limits": {
+          "draws": 1174,
+          "tris": 18779873,
+          "programs": 148,
+          "gpuMB": null
+        },
+        "frameMs": 25.641025641025642,
+        "gpuMs": 16.04102564102564,
+        "gpuM5Ms": 1.6041025641025641,
+        "systemsMs": {
+          "physics": 0.8,
+          "ai": 0.8,
+          "animation": 1,
+          "player": 0.4,
+          "world": 0.5,
+          "hud": 0.3,
+          "audio": 0.2
+        },
+        "entities": {
+          "rigs": 64,
+          "bodies": 2,
+          "agents": 64
+        },
+        "lanesMs": {
+          "opaque": 5.012820512820513,
+          "foliage": 3.0076923076923077,
+          "shadow": 2.5064102564102564,
+          "transparent": 1.5038461538461538,
+          "viewmodel": 1.0025641025641026,
+          "post": 2.005128205128205,
+          "reserve": 1.0025641025641026
+        },
+        "downloadBytes": null,
+        "formula": {
+          "inputs": {
+            "phone": {
+              "fps": 30,
+              "variability": 1.3,
+              "cpuMs": 9.6,
+              "gcMs": 0.6,
+              "systems": {
+                "physics": 0.8,
+                "ai": 0.8,
+                "animation": 1,
+                "player": 0.4,
+                "world": 0.5,
+                "hud": 0.3,
+                "audio": 0.2
+              },
+              "vertexShare": 0.5,
+              "lanes": {
+                "opaque": 0.3125,
+                "foliage": 0.1875,
+                "shadow": 0.15625,
+                "transparent": 0.09375,
+                "viewmodel": 0.0625,
+                "post": 0.125,
+                "reserve": 0.0625
+              },
+              "linkMs": 1000
+            },
+            "desktop": {
+              "fps": 60,
+              "variability": 1.3,
+              "cpuMs": 4.8,
+              "gcMs": 0.3,
+              "systems": {
+                "physics": 0.4,
+                "ai": 0.4,
+                "animation": 0.5,
+                "player": 0.2,
+                "world": 0.25,
+                "hud": 0.15,
+                "audio": 0.1
+              },
+              "vertexShare": 0.5,
+              "lanes": {
+                "opaque": 0.5,
+                "post": 0.5
+              },
+              "linkMs": 1000
+            },
+            "load": {
+              "coldPlay4G": null,
+              "fixedSeconds": 0,
+              "cpuRatio": 2,
+              "bytesPerSecond": 1125000
+            }
+          },
+          "source": "budgets/calibration.json (scripts/calibrate.mjs)",
+          "assumption": "ASSUMPTION: hot iPhone costs equal measured M5 costs × 10; no phone calibration was run (decision 99)",
+          "expressions": {
+            "frame": "1000 / 30 / 1.3",
+            "gpu": "25.641025641025642 - 9.6",
+            "draws": "floor((9.6 - 4 - 0.6) / (0.0004257812537252903 × 10))",
+            "tris": "floor(16.04102564102564 × 0.5 / (4.2708022548417234e-8 × 10))",
+            "programs": "floor(1000 / (0.6720833336313565 × 10))",
+            "gpuMB": "GL bytes retain measured baseline ceiling; native footprint is a separate Simulator gate",
+            "downloadBytes": "(null - 0 × 2) × 1125000"
+          }
+        }
+      },
+      "desktop": {
+        "limits": {
+          "draws": 3262,
+          "tris": 52174145,
+          "programs": 826,
+          "gpuMB": null
+        },
+        "frameMs": 12.820512820512821,
+        "gpuMs": 8.02051282051282,
+        "gpuM5Ms": 4.456509178540323,
+        "systemsMs": {
+          "physics": 0.4,
+          "ai": 0.4,
+          "animation": 0.5,
+          "player": 0.2,
+          "world": 0.25,
+          "hud": 0.15,
+          "audio": 0.1
+        },
+        "entities": {
+          "rigs": 177,
+          "bodies": 6,
+          "agents": 177
+        },
+        "lanesMs": {
+          "opaque": 4.01025641025641,
+          "post": 4.01025641025641
+        },
+        "downloadBytes": null,
+        "formula": {
+          "inputs": {
+            "phone": {
+              "fps": 30,
+              "variability": 1.3,
+              "cpuMs": 9.6,
+              "gcMs": 0.6,
+              "systems": {
+                "physics": 0.8,
+                "ai": 0.8,
+                "animation": 1,
+                "player": 0.4,
+                "world": 0.5,
+                "hud": 0.3,
+                "audio": 0.2
+              },
+              "vertexShare": 0.5,
+              "lanes": {
+                "opaque": 0.3125,
+                "foliage": 0.1875,
+                "shadow": 0.15625,
+                "transparent": 0.09375,
+                "viewmodel": 0.0625,
+                "post": 0.125,
+                "reserve": 0.0625
+              },
+              "linkMs": 1000
+            },
+            "desktop": {
+              "fps": 60,
+              "variability": 1.3,
+              "cpuMs": 4.8,
+              "gcMs": 0.3,
+              "systems": {
+                "physics": 0.4,
+                "ai": 0.4,
+                "animation": 0.5,
+                "player": 0.2,
+                "world": 0.25,
+                "hud": 0.15,
+                "audio": 0.1
+              },
+              "vertexShare": 0.5,
+              "lanes": {
+                "opaque": 0.5,
+                "post": 0.5
+              },
+              "linkMs": 1000
+            },
+            "load": {
+              "coldPlay4G": null,
+              "fixedSeconds": 0,
+              "cpuRatio": 2,
+              "bytesPerSecond": 1125000
+            }
+          },
+          "source": "https://browser.geekbench.com/opencl-benchmarks",
+          "assumption": "Projected RTX 3060 / M5 Max throughput = OpenCL 80711 / 145258; replace with measured rtx3060 costs when available",
+          "expressions": {
+            "frame": "1000 / 60 / 1.3",
+            "gpu": "12.820512820512821 - 4.8",
+            "draws": "floor((4.8 - 2 - 0.3) / (0.0004257812537252903 × 1.7997299005092244))",
+            "tris": "floor(8.02051282051282 × 0.5 / (4.2708022548417234e-8 × 1.7997299005092244))",
+            "programs": "floor(1000 / (0.6720833336313565 × 1.7997299005092244))",
+            "gpuMB": "GL bytes retain measured baseline ceiling; native footprint is a separate Simulator gate",
+            "downloadBytes": "(null - 0 × 2) × 1125000"
+          }
+        }
+      }
+    },
+    "pine-hollow": {
+      "phone": {
+        "limits": {
+          "draws": 1174,
+          "tris": 18779873,
+          "programs": 148,
+          "gpuMB": null
+        },
+        "frameMs": 25.641025641025642,
+        "gpuMs": 16.04102564102564,
+        "gpuM5Ms": 1.6041025641025641,
+        "systemsMs": {
+          "physics": 0.8,
+          "ai": 0.8,
+          "animation": 1,
+          "player": 0.4,
+          "world": 0.5,
+          "hud": 0.3,
+          "audio": 0.2
+        },
+        "entities": {
+          "rigs": 64,
+          "bodies": 2,
+          "agents": 64
+        },
+        "lanesMs": {
+          "opaque": 5.012820512820513,
+          "foliage": 3.0076923076923077,
+          "shadow": 2.5064102564102564,
+          "transparent": 1.5038461538461538,
+          "viewmodel": 1.0025641025641026,
+          "post": 2.005128205128205,
+          "reserve": 1.0025641025641026
+        },
+        "downloadBytes": 38250000,
+        "formula": {
+          "inputs": {
+            "phone": {
+              "fps": 30,
+              "variability": 1.3,
+              "cpuMs": 9.6,
+              "gcMs": 0.6,
+              "systems": {
+                "physics": 0.8,
+                "ai": 0.8,
+                "animation": 1,
+                "player": 0.4,
+                "world": 0.5,
+                "hud": 0.3,
+                "audio": 0.2
+              },
+              "vertexShare": 0.5,
+              "lanes": {
+                "opaque": 0.3125,
+                "foliage": 0.1875,
+                "shadow": 0.15625,
+                "transparent": 0.09375,
+                "viewmodel": 0.0625,
+                "post": 0.125,
+                "reserve": 0.0625
+              },
+              "linkMs": 1000
+            },
+            "desktop": {
+              "fps": 60,
+              "variability": 1.3,
+              "cpuMs": 4.8,
+              "gcMs": 0.3,
+              "systems": {
+                "physics": 0.4,
+                "ai": 0.4,
+                "animation": 0.5,
+                "player": 0.2,
+                "world": 0.25,
+                "hud": 0.15,
+                "audio": 0.1
+              },
+              "vertexShare": 0.5,
+              "lanes": {
+                "opaque": 0.5,
+                "post": 0.5
+              },
+              "linkMs": 1000
+            },
+            "load": {
+              "coldPlay4G": 40,
+              "fixedSeconds": 3,
+              "cpuRatio": 2,
+              "bytesPerSecond": 1125000
+            }
+          },
+          "source": "budgets/calibration.json (scripts/calibrate.mjs)",
+          "assumption": "ASSUMPTION: hot iPhone costs equal measured M5 costs × 10; no phone calibration was run (decision 99)",
+          "expressions": {
+            "frame": "1000 / 30 / 1.3",
+            "gpu": "25.641025641025642 - 9.6",
+            "draws": "floor((9.6 - 4 - 0.6) / (0.0004257812537252903 × 10))",
+            "tris": "floor(16.04102564102564 × 0.5 / (4.2708022548417234e-8 × 10))",
+            "programs": "floor(1000 / (0.6720833336313565 × 10))",
+            "gpuMB": "GL bytes retain measured baseline ceiling; native footprint is a separate Simulator gate",
+            "downloadBytes": "(40 - 3 × 2) × 1125000"
+          }
+        }
+      },
+      "desktop": {
+        "limits": {
+          "draws": 3262,
+          "tris": 52174145,
+          "programs": 826,
+          "gpuMB": null
+        },
+        "frameMs": 12.820512820512821,
+        "gpuMs": 8.02051282051282,
+        "gpuM5Ms": 4.456509178540323,
+        "systemsMs": {
+          "physics": 0.4,
+          "ai": 0.4,
+          "animation": 0.5,
+          "player": 0.2,
+          "world": 0.25,
+          "hud": 0.15,
+          "audio": 0.1
+        },
+        "entities": {
+          "rigs": 177,
+          "bodies": 6,
+          "agents": 177
+        },
+        "lanesMs": {
+          "opaque": 4.01025641025641,
+          "post": 4.01025641025641
+        },
+        "downloadBytes": 38250000,
+        "formula": {
+          "inputs": {
+            "phone": {
+              "fps": 30,
+              "variability": 1.3,
+              "cpuMs": 9.6,
+              "gcMs": 0.6,
+              "systems": {
+                "physics": 0.8,
+                "ai": 0.8,
+                "animation": 1,
+                "player": 0.4,
+                "world": 0.5,
+                "hud": 0.3,
+                "audio": 0.2
+              },
+              "vertexShare": 0.5,
+              "lanes": {
+                "opaque": 0.3125,
+                "foliage": 0.1875,
+                "shadow": 0.15625,
+                "transparent": 0.09375,
+                "viewmodel": 0.0625,
+                "post": 0.125,
+                "reserve": 0.0625
+              },
+              "linkMs": 1000
+            },
+            "desktop": {
+              "fps": 60,
+              "variability": 1.3,
+              "cpuMs": 4.8,
+              "gcMs": 0.3,
+              "systems": {
+                "physics": 0.4,
+                "ai": 0.4,
+                "animation": 0.5,
+                "player": 0.2,
+                "world": 0.25,
+                "hud": 0.15,
+                "audio": 0.1
+              },
+              "vertexShare": 0.5,
+              "lanes": {
+                "opaque": 0.5,
+                "post": 0.5
+              },
+              "linkMs": 1000
+            },
+            "load": {
+              "coldPlay4G": 40,
+              "fixedSeconds": 3,
+              "cpuRatio": 2,
+              "bytesPerSecond": 1125000
+            }
+          },
+          "source": "https://browser.geekbench.com/opencl-benchmarks",
+          "assumption": "Projected RTX 3060 / M5 Max throughput = OpenCL 80711 / 145258; replace with measured rtx3060 costs when available",
+          "expressions": {
+            "frame": "1000 / 60 / 1.3",
+            "gpu": "12.820512820512821 - 4.8",
+            "draws": "floor((4.8 - 2 - 0.3) / (0.0004257812537252903 × 1.7997299005092244))",
+            "tris": "floor(8.02051282051282 × 0.5 / (4.2708022548417234e-8 × 1.7997299005092244))",
+            "programs": "floor(1000 / (0.6720833336313565 × 1.7997299005092244))",
+            "gpuMB": "GL bytes retain measured baseline ceiling; native footprint is a separate Simulator gate",
+            "downloadBytes": "(40 - 3 × 2) × 1125000"
+          }
+        }
+      }
+    },
+    "sunscar-dunes": {
+      "phone": {
+        "limits": {
+          "draws": 1867,
+          "tris": 18779873,
+          "programs": 148,
+          "gpuMB": null
+        },
+        "frameMs": 25.641025641025642,
+        "gpuMs": 16.04102564102564,
+        "gpuM5Ms": 1.6041025641025641,
+        "systemsMs": {
+          "physics": 0.3,
+          "ai": 0.15,
+          "animation": 0.2,
+          "player": 0.2,
+          "world": 0.3,
+          "hud": 0.1,
+          "audio": 0.1
+        },
+        "entities": {
+          "rigs": 12,
+          "bodies": 0,
+          "agents": 12
+        },
+        "lanesMs": {
+          "opaque": 7.218461538461539,
+          "shadow": 3.2082051282051283,
+          "transparent": 0.8020512820512821,
+          "viewmodel": 1.6041025641025641,
+          "post": 1.6041025641025641,
+          "reserve": 1.6041025641025641
+        },
+        "downloadBytes": null,
+        "formula": {
+          "inputs": {
+            "phone": {
+              "fps": 30,
+              "variability": 1.3,
+              "cpuMs": 9.6,
+              "gcMs": 0.3,
+              "systems": {
+                "physics": 0.3,
+                "ai": 0.15,
+                "animation": 0.2,
+                "player": 0.2,
+                "world": 0.3,
+                "hud": 0.1,
+                "audio": 0.1
+              },
+              "vertexShare": 0.5,
+              "lanes": {
+                "opaque": 0.45,
+                "shadow": 0.2,
+                "transparent": 0.05,
+                "viewmodel": 0.1,
+                "post": 0.1,
+                "reserve": 0.1
+              },
+              "linkMs": 1000
+            },
+            "desktop": {
+              "fps": 60,
+              "variability": 1.3,
+              "cpuMs": 4.8,
+              "gcMs": 0.3,
+              "systems": {
+                "physics": 0.3,
+                "ai": 0.15,
+                "animation": 0.2,
+                "player": 0.2,
+                "world": 0.3,
+                "hud": 0.1,
+                "audio": 0.1
+              },
+              "vertexShare": 0.5,
+              "lanes": {
+                "opaque": 0.45,
+                "shadow": 0.2,
+                "transparent": 0.05,
+                "viewmodel": 0.1,
+                "post": 0.1,
+                "reserve": 0.1
+              },
+              "linkMs": 1000
+            },
+            "load": {
+              "coldPlay4G": null,
+              "fixedSeconds": 0,
+              "cpuRatio": 2,
+              "bytesPerSecond": 1125000
+            }
+          },
+          "source": "budgets/calibration.json (scripts/calibrate.mjs)",
+          "assumption": "ASSUMPTION: hot iPhone costs equal measured M5 costs × 10; no phone calibration was run (decision 99)",
+          "expressions": {
+            "frame": "1000 / 30 / 1.3",
+            "gpu": "25.641025641025642 - 9.6",
+            "draws": "floor((9.6 - 1.35 - 0.3) / (0.0004257812537252903 × 10))",
+            "tris": "floor(16.04102564102564 × 0.5 / (4.2708022548417234e-8 × 10))",
+            "programs": "floor(1000 / (0.6720833336313565 × 10))",
+            "gpuMB": "GL bytes retain measured baseline ceiling; native footprint is a separate Simulator gate",
+            "downloadBytes": "(null - 0 × 2) × 1125000"
+          }
+        }
+      },
+      "desktop": {
+        "limits": {
+          "draws": 4110,
+          "tris": 52174145,
+          "programs": 826,
+          "gpuMB": null
+        },
+        "frameMs": 12.820512820512821,
+        "gpuMs": 8.02051282051282,
+        "gpuM5Ms": 4.456509178540323,
+        "systemsMs": {
+          "physics": 0.3,
+          "ai": 0.15,
+          "animation": 0.2,
+          "player": 0.2,
+          "world": 0.3,
+          "hud": 0.1,
+          "audio": 0.1
+        },
+        "entities": {
+          "rigs": 71,
+          "bodies": 4,
+          "agents": 66
+        },
+        "lanesMs": {
+          "opaque": 3.6092307692307695,
+          "shadow": 1.6041025641025641,
+          "transparent": 0.40102564102564103,
+          "viewmodel": 0.8020512820512821,
+          "post": 0.8020512820512821,
+          "reserve": 0.8020512820512821
+        },
+        "downloadBytes": null,
+        "formula": {
+          "inputs": {
+            "phone": {
+              "fps": 30,
+              "variability": 1.3,
+              "cpuMs": 9.6,
+              "gcMs": 0.3,
+              "systems": {
+                "physics": 0.3,
+                "ai": 0.15,
+                "animation": 0.2,
+                "player": 0.2,
+                "world": 0.3,
+                "hud": 0.1,
+                "audio": 0.1
+              },
+              "vertexShare": 0.5,
+              "lanes": {
+                "opaque": 0.45,
+                "shadow": 0.2,
+                "transparent": 0.05,
+                "viewmodel": 0.1,
+                "post": 0.1,
+                "reserve": 0.1
+              },
+              "linkMs": 1000
+            },
+            "desktop": {
+              "fps": 60,
+              "variability": 1.3,
+              "cpuMs": 4.8,
+              "gcMs": 0.3,
+              "systems": {
+                "physics": 0.3,
+                "ai": 0.15,
+                "animation": 0.2,
+                "player": 0.2,
+                "world": 0.3,
+                "hud": 0.1,
+                "audio": 0.1
+              },
+              "vertexShare": 0.5,
+              "lanes": {
+                "opaque": 0.45,
+                "shadow": 0.2,
+                "transparent": 0.05,
+                "viewmodel": 0.1,
+                "post": 0.1,
+                "reserve": 0.1
+              },
+              "linkMs": 1000
+            },
+            "load": {
+              "coldPlay4G": null,
+              "fixedSeconds": 0,
+              "cpuRatio": 2,
+              "bytesPerSecond": 1125000
+            }
+          },
+          "source": "https://browser.geekbench.com/opencl-benchmarks",
+          "assumption": "Projected RTX 3060 / M5 Max throughput = OpenCL 80711 / 145258; replace with measured rtx3060 costs when available",
+          "expressions": {
+            "frame": "1000 / 60 / 1.3",
+            "gpu": "12.820512820512821 - 4.8",
+            "draws": "floor((4.8 - 1.35 - 0.3) / (0.0004257812537252903 × 1.7997299005092244))",
+            "tris": "floor(8.02051282051282 × 0.5 / (4.2708022548417234e-8 × 1.7997299005092244))",
+            "programs": "floor(1000 / (0.6720833336313565 × 1.7997299005092244))",
+            "gpuMB": "GL bytes retain measured baseline ceiling; native footprint is a separate Simulator gate",
+            "downloadBytes": "(null - 0 × 2) × 1125000"
+          }
+        }
+      }
+    }
+  },
+  "baselines": [
+    {
+      "file": "test/parity/baselines/m5/_template.desktop.json",
+      "sha": "479cc5fb54ec23c4272c35df3d1e5b3d59767c39",
+      "recorded": "2026-10-01T19:29:54.238Z"
+    },
+    {
+      "file": "test/parity/baselines/m5/_template.phone.json",
+      "sha": "479cc5fb54ec23c4272c35df3d1e5b3d59767c39",
+      "recorded": "2026-10-01T19:29:54.194Z"
+    },
+    {
+      "file": "test/parity/baselines/m5/driftwood-isle.desktop.json",
+      "sha": "479cc5fb54ec23c4272c35df3d1e5b3d59767c39",
+      "recorded": "2026-10-01T19:29:55.191Z"
+    },
+    {
+      "file": "test/parity/baselines/m5/driftwood-isle.phone.json",
+      "sha": "479cc5fb54ec23c4272c35df3d1e5b3d59767c39",
+      "recorded": "2026-10-01T19:29:54.479Z"
+    },
+    {
+      "file": "test/parity/baselines/m5/nalati-grasslands.desktop.json",
+      "sha": "479cc5fb54ec23c4272c35df3d1e5b3d59767c39",
+      "recorded": "2026-10-01T19:29:56.399Z"
+    },
+    {
+      "file": "test/parity/baselines/m5/nalati-grasslands.phone.json",
+      "sha": "479cc5fb54ec23c4272c35df3d1e5b3d59767c39",
+      "recorded": "2026-10-01T19:29:55.515Z"
+    },
+    {
+      "file": "test/parity/baselines/m5/nine-dragon-stack.desktop.json",
+      "sha": "479cc5fb54ec23c4272c35df3d1e5b3d59767c39",
+      "recorded": "2026-10-01T19:29:57.636Z"
+    },
+    {
+      "file": "test/parity/baselines/m5/nine-dragon-stack.phone.json",
+      "sha": "479cc5fb54ec23c4272c35df3d1e5b3d59767c39",
+      "recorded": "2026-10-01T19:29:56.807Z"
+    },
+    {
+      "file": "test/parity/baselines/m5/pine-hollow.desktop.json",
+      "sha": "479cc5fb54ec23c4272c35df3d1e5b3d59767c39",
+      "recorded": "2026-10-01T19:29:58.963Z"
+    },
+    {
+      "file": "test/parity/baselines/m5/pine-hollow.phone.json",
+      "sha": "479cc5fb54ec23c4272c35df3d1e5b3d59767c39",
+      "recorded": "2026-10-01T19:29:57.960Z"
+    },
+    {
+      "file": "budgets/calibration-reports/_template.desktop.json",
+      "sha": "520693016a02dd13447c4fc1a9bbf7bf82d7aa67",
+      "recorded": "2026-10-01T22:13:08.757Z"
+    },
+    {
+      "file": "budgets/calibration-reports/_template.phone.json",
+      "sha": "520693016a02dd13447c4fc1a9bbf7bf82d7aa67",
+      "recorded": "2026-10-01T22:13:07.507Z"
+    },
+    {
+      "file": "budgets/calibration-reports/driftwood-isle.phone.json",
+      "sha": "520693016a02dd13447c4fc1a9bbf7bf82d7aa67",
+      "recorded": "2026-10-01T22:12:44.493Z"
+    },
+    {
+      "file": "budgets/calibration-reports/far-reach.desktop.json",
+      "sha": "520693016a02dd13447c4fc1a9bbf7bf82d7aa67",
+      "recorded": "2026-10-01T22:13:13.105Z"
+    },
+    {
+      "file": "budgets/calibration-reports/far-reach.phone.json",
+      "sha": "520693016a02dd13447c4fc1a9bbf7bf82d7aa67",
+      "recorded": "2026-10-01T22:13:11.911Z"
+    },
+    {
+      "file": "budgets/calibration-reports/nalati-grasslands.phone.json",
+      "sha": "520693016a02dd13447c4fc1a9bbf7bf82d7aa67",
+      "recorded": "2026-10-01T22:13:01.897Z"
+    },
+    {
+      "file": "budgets/calibration-reports/nine-dragon-stack.phone.json",
+      "sha": "520693016a02dd13447c4fc1a9bbf7bf82d7aa67",
+      "recorded": "2026-10-01T22:13:06.531Z"
+    },
+    {
+      "file": "budgets/calibration-reports/pine-hollow.phone.json",
+      "sha": "520693016a02dd13447c4fc1a9bbf7bf82d7aa67",
+      "recorded": "2026-10-01T22:12:55.391Z"
+    },
+    {
+      "file": "budgets/calibration-reports/sunscar-dunes.desktop.json",
+      "sha": "520693016a02dd13447c4fc1a9bbf7bf82d7aa67",
+      "recorded": "2026-10-01T22:13:10.935Z"
+    },
+    {
+      "file": "budgets/calibration-reports/sunscar-dunes.phone.json",
+      "sha": "520693016a02dd13447c4fc1a9bbf7bf82d7aa67",
+      "recorded": "2026-10-01T22:13:09.694Z"
+    }
+  ],
+  "reRecords": [
+    {
+      "shard": "pine-hollow",
+      "tier": "phone",
+      "metric": "gpuMB",
+      "source": "budgets/calibration-reports/pine-hollow.phone.json",
+      "commit": "eb3d9a7875b47cae0349ee234e47efdc75efb30c",
+      "reason": "R9: all three Pine people upload behind the loading screen, before the first play frame.",
+      "ask": "E357",
+      "approvedBy": "wildshard-9",
+      "approval": "Both findings are explained, so accept them as measured re-records with provenance, not as quiet raises. Re-record those two GL ceilings from the measured value with the ask and commit in the provenance field. Nothing else moves.",
+      "captureSha": "520693016a02dd13447c4fc1a9bbf7bf82d7aa67",
+      "captureSha256": "283acd1a80c4d8b844a18bb1057bf262d07aecd3ed1cc89be6280cd59f7d286b",
+      "ceilings": {
+        "pine-hollow.phone.gate.gpuMB": 587.1324214935303,
+        "pine-hollow.phone.cabin.gpuMB": 587.1324214935303,
+        "pine-hollow.phone.pond.gpuMB": 587.1324214935303
+      }
+    },
+    {
+      "shard": "_template",
+      "tier": "phone",
+      "metric": "gpuMB",
+      "source": "budgets/calibration-reports/_template.phone.json",
+      "commit": "26b5f6b35eb7b2af4e36e617fa0321526ad6a46c",
+      "reason": "G6: mounted lantern is drawn for the first time (876 bytes).",
+      "ask": "E357",
+      "approvedBy": "wildshard-9",
+      "approval": "Both findings are explained, so accept them as measured re-records with provenance, not as quiet raises. Re-record those two GL ceilings from the measured value with the ask and commit in the provenance field. Nothing else moves.",
+      "captureSha": "520693016a02dd13447c4fc1a9bbf7bf82d7aa67",
+      "captureSha256": "5ae15ba967d75bd972342cb67f883829fe45d87e051eda1a863fd9dd1c0bc056",
+      "ceilings": {
+        "_template.phone.current.gpuMB": 76.73144912719727
+      }
+    },
+    {
+      "shard": "_template",
+      "tier": "desktop",
+      "metric": "gpuMB",
+      "source": "budgets/calibration-reports/_template.desktop.json",
+      "commit": "26b5f6b35eb7b2af4e36e617fa0321526ad6a46c",
+      "reason": "G6: mounted lantern is drawn for the first time (876 bytes).",
+      "ask": "E357",
+      "approvedBy": "wildshard-9",
+      "approval": "Both findings are explained, so accept them as measured re-records with provenance, not as quiet raises. Re-record those two GL ceilings from the measured value with the ask and commit in the provenance field. Nothing else moves.",
+      "captureSha": "520693016a02dd13447c4fc1a9bbf7bf82d7aa67",
+      "captureSha256": "3d6a604f5b46d03f7d8633202154de523d32238cb771d8e4e3ae4f76b2695fca",
+      "ceilings": {
+        "_template.desktop.current.gpuMB": 171.08098220825195
+      }
+    }
+  ]
+}

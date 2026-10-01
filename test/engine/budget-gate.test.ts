@@ -17,6 +17,9 @@ describe('budget rollout and report', () => {
     const other = structuredClone(base); other.poses.a.calls = 110;
     expect(baselineCeilings([base, other])).toEqual({ 'fixture.phone.a.draws': 116, 'fixture.phone.a.tris': 1030000, 'fixture.phone.a.programs': 30, 'fixture.phone.a.gpuMB': 103 });
   });
+  it('retains boot-wide bytes/programs for a shard without pinned poses', () => {
+    expect(baselineCeilings([{ ...base, poses: {} }])).toEqual({ 'fixture.phone.current.programs': 30, 'fixture.phone.current.gpuMB': 103 });
+  });
   it('enforces ceilings even when derived targets are absent', () => {
     const current = { ...base, budgets: { a: { derived: null, ceiling: { draws: 99 } } } };
     expect(budgetChecks(current)[0]).toMatchObject({ observed: 100, limit: 99, pass: false });

@@ -1,57 +1,33 @@
 import type { LevelSpec } from '#engine';
 
-/** X7 immutable F2 rollout ceilings; provenance: budgets/x7-ceiling-sources.json. */
+/** Measured rollout maxima; count targets rederive after calibration; provenance: budgets/ceiling-sources.json. */
 export const BUDGET_CEILINGS = {
   "phone": {
-    "spawn-rail": {
-      "draws": 144,
-      "tris": 1427662,
-      "programs": 67,
-      "gpuMB": 254.9377202987671
+    "D": {
+      "gpuMB": 271.43809032440186
     },
-    "well-edge": {
-      "draws": 128,
-      "tris": 1273139,
-      "programs": 67,
-      "gpuMB": 254.9377202987671
+    "spawn-rail": {
+      "gpuMB": 253.6043882369995
     },
     "stair-street": {
-      "draws": 122,
-      "tris": 996042,
-      "programs": 67,
-      "gpuMB": 254.9377202987671
+      "gpuMB": 253.6043882369995
     },
-    "D": {
-      "draws": 109,
-      "tris": 1039194,
-      "programs": 67,
-      "gpuMB": 272.77142238616943
+    "well-edge": {
+      "gpuMB": 253.6043882369995
     }
   },
   "desktop": {
-    "spawn-rail": {
-      "draws": 171,
-      "tris": 1653616,
-      "programs": 82,
-      "gpuMB": 575.5018644332886
+    "D": {
+      "gpuMB": 574.4839086532593
     },
-    "well-edge": {
-      "draws": 158,
-      "tris": 1375200,
-      "programs": 82,
-      "gpuMB": 575.5018644332886
+    "spawn-rail": {
+      "gpuMB": 574.168532371521
     },
     "stair-street": {
-      "draws": 144,
-      "tris": 947634,
-      "programs": 82,
-      "gpuMB": 575.5018644332886
+      "gpuMB": 574.168532371521
     },
-    "D": {
-      "draws": 123,
-      "tris": 964738,
-      "programs": 82,
-      "gpuMB": 575.8172407150269
+    "well-edge": {
+      "gpuMB": 574.168532371521
     }
   }
 } satisfies NonNullable<LevelSpec['budgets']['ceilings']>;

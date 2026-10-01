@@ -19,32 +19,7 @@
       "src/engine/ui/perfProbe.ts": "performance.now measures elapsed cost or diagnostic timing; never gameplay state."
     }
   },
-  "budgets": {
-    "nalati-grasslands.desktop.bridge.draws": 468,
-    "nalati-grasslands.desktop.bridge.gpuMB": 601.0351619720459,
-    "nalati-grasslands.desktop.bridge.programs": 119,
-    "nalati-grasslands.desktop.bridge.tris": 6044582,
-    "nalati-grasslands.desktop.camp.draws": 202,
-    "nalati-grasslands.desktop.camp.gpuMB": 601.0351619720459,
-    "nalati-grasslands.desktop.camp.programs": 119,
-    "nalati-grasslands.desktop.camp.tris": 4900943,
-    "nalati-grasslands.desktop.plains.draws": 311,
-    "nalati-grasslands.desktop.plains.gpuMB": 601.0351619720459,
-    "nalati-grasslands.desktop.plains.programs": 119,
-    "nalati-grasslands.desktop.plains.tris": 6124688,
-    "nalati-grasslands.phone.bridge.draws": 90,
-    "nalati-grasslands.phone.bridge.gpuMB": 238.87819290161133,
-    "nalati-grasslands.phone.bridge.programs": 102,
-    "nalati-grasslands.phone.bridge.tris": 1279751,
-    "nalati-grasslands.phone.camp.draws": 79,
-    "nalati-grasslands.phone.camp.gpuMB": 238.87819290161133,
-    "nalati-grasslands.phone.camp.programs": 102,
-    "nalati-grasslands.phone.camp.tris": 1174948,
-    "nalati-grasslands.phone.plains.draws": 108,
-    "nalati-grasslands.phone.plains.gpuMB": 238.87819290161133,
-    "nalati-grasslands.phone.plains.programs": 102,
-    "nalati-grasslands.phone.plains.tris": 1292909
-  },
+  "budgets": {},
   "debugRows": {
     "max": 24,
     "raisedBy": [

@@ -1,0 +1,46 @@
+{
+  "sha": "520693016a02dd13447c4fc1a9bbf7bf82d7aa67",
+  "recorded": "2026-10-01T22:13:09.694Z",
+  "boot": {
+    "shard": "sunscar-dunes",
+    "tier": "phone",
+    "errors": [],
+    "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+    "browser": "153.0.8010.12",
+    "viewport": {
+      "w": 390,
+      "h": 844,
+      "dpr": 3,
+      "touch": true
+    },
+    "gpuBytes": {
+      "total": 60108696
+    },
+    "render": {
+      "programs": 30
+    }
+  },
+  "poses": {
+    "current": {
+      "calls": 43,
+      "tris": 79720
+    }
+  },
+  "budgets": {
+    "current": {
+      "derived": {
+        "draws": 1867,
+        "tris": 18779873,
+        "programs": 148,
+        "gpuMB": null
+      },
+      "ceiling": null,
+      "observed": {
+        "draws": 43,
+        "tris": 79720,
+        "programs": 30,
+        "gpuMB": 57.324119567871094
+      }
+    }
+  }
+}
