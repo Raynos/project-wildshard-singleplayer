@@ -33,6 +33,11 @@ function spelling(root, url) {
   return { exists: exact, closest: exact ? null : `/${closest.join('/')}` };
 }
 
+/** @param {string} root @param {string} url */
+function stemExists(root, url) {
+  const parts = url.split('/').filter(Boolean), stem = parts.pop();
+  try { return readdirSync(join(root, ...parts)).some((name) => name.startsWith(`${stem}.`)); } catch { return false; }
+}
 /** @typedef {{ url: string, from: string, closest: string | null }} Missing */
 /** @typedef {{ checked: number, missing: Missing[] }} AssetReport */
 
@@ -135,7 +140,11 @@ export function checkAssetCase(root) {
   /** @type {Missing[]} */
   const missing = [];
   for (const [url, from] of urls) {
+    // A prefix the code completes at runtime is not a fetch: a folder ('…/') or a stem with no extension
+    // ('…/qwantani_sunset_puresky_2k' + '.hdr'). A stem passes when a file in its folder starts with it + '.'.
+    if (url.endsWith('/')) continue;
     const verdict = spelling(root, url);
+    if (!verdict.exists && !/\.[a-z0-9]+$/i.test(url) && stemExists(root, url)) continue;
     if (!verdict.exists) missing.push({ url, from, closest: verdict.closest });
   }
   return { checked: urls.size, missing };
