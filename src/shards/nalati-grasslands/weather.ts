@@ -26,7 +26,7 @@ import type { Forest } from '#engine/world/forest/Forest';
 import type { Audio } from '#engine/audio/Audio';
 import { getActiveChunk } from '#game/shard/registry';
 import { heightAt } from '#engine/world/Heightfield';
-import { SkyRig, makeLook, copyLook, lightLevel, type SkyLook, type DayPhase } from '#engine/world/DayClock';
+import { SkyRig, makeLook, copyLook, lightLevel, type SkyLook, type DayPhase } from './look/skyRig';
 import { SteppeStorm as Weather, STORM_PHASES, type Exposed, type LightningPlayer } from './world/Weather';
 import { WeatherFX } from './world/WeatherFX';
 import { wind } from '#engine/world/steppeWind';
@@ -183,7 +183,7 @@ export function wireWeather(ctx: WeatherCtx): NalatiWeather {
   onSettingChange('clockSpeed', (v) => { clock.scale = Number(v); });
   clock.paused = qs.get('clock') === '0';
 
-  const rig = new SkyRig(game, sky, { frames: nightKeys, blend: blendSteppeKey });
+  const rig = new SkyRig(game, sky, { frames: nightKeys, blend: blendSteppeKey }, def);
   const base = makeLook(), look = makeLook();
   const dimWater = waterDimmer(ctx.water);
   const dayFog = 0.2126 * rig.dayFog.r + 0.7152 * rig.dayFog.g + 0.0722 * rig.dayFog.b, dayKey = Math.max(0.1, rig.daySunIntensity);

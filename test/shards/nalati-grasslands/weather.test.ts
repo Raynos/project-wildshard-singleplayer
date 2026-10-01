@@ -3,7 +3,7 @@
 import { describe, expect, it } from 'vitest';
 import { SteppeStorm as Weather, STORM_PHASES, type Exposed, type LightningPlayer, type LightningWorld, type Strike } from '#shards/nalati-grasslands/world/Weather';
 import { steppeClock, clockForSun, DEFAULT_SCHEDULE } from '#shards/nalati-grasslands/look/dayKeys';
-import { lightLevel } from '#engine/world/DayClock';
+import { lightLevel } from '#shards/nalati-grasslands/look/skyRig';
 
 function world(opts: { trees?: Exposed[]; player?: Partial<LightningPlayer>; ground?: (x: number, z: number) => number } = {}): LightningWorld {
   const p: LightningPlayer = { x: 0, y: 0, z: 0, crouched: false, mounted: false, sheltered: false, ...opts.player };

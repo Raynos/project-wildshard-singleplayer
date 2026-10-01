@@ -24,7 +24,7 @@ import { Rng } from '#engine/core/rng';
 import { attachFogUniforms } from '#engine/world/Atmosphere';
 import { heightAt, trailDistance, inChunk } from '#engine/world/Heightfield';
 import type { SteppeStorm as Weather, Strike } from './Weather';
-import type { SkyLook } from '#engine/world/DayClock';
+import type { SkyLook } from '../look/skyRig';
 
 export interface WeatherFXOpts { phone: boolean; seed: number }
 

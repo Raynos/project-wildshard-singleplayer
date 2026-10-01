@@ -1,4 +1,5 @@
-import { type SkyKey as SteppeKey, type RGB, DayCycle, type DayCycleSpec, type ScheduleSeg } from '#engine';
+import { type RGB, DayCycle, type DayCycleSpec, type ScheduleSeg } from '#engine';
+import type { SkyKey as SteppeKey } from './skyRig';
 
 export const DEFAULT_SCHEDULE: ScheduleSeg[] = [
   { phase: 'dawn', from: 4.5, to: 7, minutes: 2.5 },
@@ -9,7 +10,7 @@ export const DEFAULT_SCHEDULE: ScheduleSeg[] = [
 ];
 
 
-export type { SkyKey as SteppeKey } from '#engine';
+export type { SkyKey as SteppeKey } from './skyRig';
 export function nightKeys(day: SteppeKey): SteppeKey[] {
   const golden: SteppeKey = {
     ...day, el: 6,
