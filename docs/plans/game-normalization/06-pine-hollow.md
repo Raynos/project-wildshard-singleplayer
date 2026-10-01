@@ -77,7 +77,7 @@ disjoint files (the ranged families in `src/kit/weapons/**` and Pine's `loadout/
 | `src/game/achievements.ts:35-97` (the `PINE_HOLLOW` list), `:98` | ~63 | `shard:feats.ts`, `ctx.rows.feat(…)` | S2.1 | #game feats per shard (decision 76) |
 | `src/game/Inventory.ts:12-29, 52, 79-86, 110-134` (`PINE_PACK_KINDS`, `PINE_PACK_SLOTS`, `isPineItem`, `isPineChunk`, Pine's item rows) | ~30 | Pine's item rows → `shard:items.ts`; the pack rule → `manifest.bag.pack` | S2.1 | E314 pick C |
 | `src/core/perfLap.ts` (36), `src/ui/perfLap.ts` (197) | 233 | `src/engine/debug/perfLap.ts` (the panel's lap runner, no route of its own) | S2.1 | The route is Pine's (`shard:dev/perfLap.ts`) |
-| `src/world/blenderArea.ts:32` (`'pine-hollow': { x0: 87, x1: 168, z0: 66, z1: 148 }`) | 1 | `level.world.blenderArea` | S2.1 | Data |
+| `src/world/blenderArea.ts:32` (`'pine-hollow': { x0: 87, x1: 168, z0: 66, z1: 148 }`) | 1 | `level.blender.area` | S2.1 | Data |
 | `src/world/HorizonMatte.ts:55-57` (the Pine strips) | 3 | `level.horizon.matte` | S2.1 | Data |
 | `src/world/TreeFactory.ts` (768) | 768 | `shard:world/treeFactory.ts` | S2.1 | `trees.factory: 'pine'` is Pine's only (Nalati: `spruce`, the others `none`); the template's comment (`_template.ts:98`) is the template's to change at Z1 |
 | `src/world/Grass.ts` (the non-painterly carpet, 614 in all), `Undergrowth.ts` (539) | 1,153 | `shard:world/grass.ts`, `undergrowth.ts` | S2.1 (`Undergrowth.ts`); `Grass.ts` at S3.1, once S3.1 takes Nalati's `GrassV2` dispatch out (`Grass.ts:129`; 13-lead-resolutions 04#4) | Only Pine draws the carpet and the undergrowth |
@@ -159,7 +159,7 @@ disjoint files (the ranged families in `src/kit/weapons/**` and Pine's `loadout/
 | `explore/Explore.ts:45-75` | `'pine-hollow': practicePine` | the hub art | `level.explore.art` |
 | `explore/Compare.ts:28-31` | `'pine-hollow': [ pair('ridge'` | compare pairs | `level.explore.compare` |
 | `explore/MiniMap.ts:131` | `const ph = this.world.game.sky.pine?.phase` | the Explore map's day key | `app.world.dayCycle?.phase` |
-| `world/blenderArea.ts:32` | `'pine-hollow': { x0: 87, x1: 168, z0: 66, z1: 148 }` | the Blender-built area | `level.world.blenderArea` |
+| `world/blenderArea.ts:32` | `'pine-hollow': { x0: 87, x1: 168, z0: 66, z1: 148 }` | the Blender-built area | `level.blender.area` |
 | `chunks/registry.ts:15, 26` | `import { PINE_HOLLOW }` | the hand list | the generated registry (F9) |
 
 ## 3. (c) The manifest, in full

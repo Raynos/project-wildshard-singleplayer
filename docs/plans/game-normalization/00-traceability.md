@@ -224,7 +224,7 @@ The numbers are E357's. A revision sits right after the decision it replaces.
 |---|---|---|---|
 | §5.1 | Spear thrust never checks occlusion | S1.2; 09 §3.4 B1; IDX §7 item 1; 05 §7 | covered |
 | §5.2 | Explore preloaded offline only when `def.ocean` | 01 §8 `boot.explore`; S4.1 reads it (08 §7); X3 step 2 + the offline-boot test on 4 shards | covered |
-| §5.3 | `ChunkDef.weapon: 'nalati'` ignored; kit picked by slug | S3.3 (07 §7 §7.5); `manifest.loadout` | covered |
+| §5.3 | `ChunkDef.weapon: 'nalati'` ignored; kit picked by slug | S3.3 (07 §7 §7.5); `level.loadout` (authored in `manifest.loadout`) | covered |
 | §5.4 | `ws.elites.v1` is one global store | F10 (the `elites` key, shard scope); 06 §7, 07 §7 | covered |
 | §5.5 | `Game.ts:290` decides Nine Dragon's phone AO | S1.1 (`tiers.phone.ao: false`, 01 §13.1); 05 §7 §7.7 | covered |
 | 09 B1 | Spear thrust / brace / couched lance through walls | S1.2 (weapons board) | covered |
@@ -275,7 +275,7 @@ The numbers are E357's. A revision sits right after the decision it replaces.
 | EI18 | `window.__ws` probe from the services + plugin debug; `__world` alias | 01 §5, §7 (`ctx.debug.expose`); F2, F7 step 5, F8 step 7 | covered |
 | EI19 | `SaveStore` (decision 13) | F10 | covered |
 | EI20 | Typed event bus replaces `ws:*`, hand chains, hook assignments | 01 §3; F8 step 4; 09 §4 | covered |
-| EI21 | Explore → `engine/explore`; art from the manifest, compare pairs from the manifest | 01 §22; 04 (`Compare.ts` → `manifest.explore.compare`, 05 §2.4) | covered |
+| EI21 | Explore → `engine/explore`; art from the manifest, compare pairs from the manifest | 01 §22; 04 (`Compare.ts` → `level.explore.compare`, 05 §2.4) | covered |
 | EI22 | Playgrounds registered by shards / kit | 01 §7 (`ctx.playground`), §22; S1.4 (grapple), 07 §1.4 (horse) | covered |
 | EI23 | Practice arena + models → engine; `BOSS_NAMES` → a content registry; `TargetHit` → engine combat types | 01 §22; F6 (04: `practice/*` → engine); S2.3 (06 §6.3 step 7: boss display names from rows; step 8: `TargetHit` / `Targets` / `TargetAnimal` in `src/engine/combat/types.ts`); IDX S2.3 | covered (G17 resolved) |
 | EI24 | Tier as data; delete `PINE_HOLLOW_PHONE`, `*Cuts()`, `Game.ts:290` | 01 §13.3; S1.1, S2.1; 10 X7 step 1 | covered |

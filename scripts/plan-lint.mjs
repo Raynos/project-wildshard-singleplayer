@@ -42,6 +42,8 @@ const RETIRED = [
   [/\binstall\(ctx\)/, 'the staged hooks world(ctx) / kit(ctx) / play(ctx) (R1-24)'],
   [/\{ ?allowed, toggle ?\}/, '{ allowed, latched } (R1-F9 / R2-08)'],
   [/model\.bolt/, 'the bolt base formula (R1-31 / R2-10)'],
+  [/manifest\.map\./, 'manifest.minimap (13 05/06#1)'],
+  [/(manifest|level)\.world\.blender/, 'blender.area / blender.models (R2-02)'],
 ];
 // a quote of Jake runs *"…"* and can wrap lines: everything after an opening *" is his words, not the plan's
 const strip = (line) => line.replace(/\*"[^]*$/, '').replaceAll(/`[^`]*`/g, '').replaceAll(/"[^"]*"/g, '');

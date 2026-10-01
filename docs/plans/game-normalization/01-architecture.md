@@ -222,6 +222,9 @@ export interface LevelSpec {
   faunaTuning?: FaunaTuning; trees?: TreeSpec; forest?: ForestSpec; horizon?: HorizonSpec;
   minimap: MinimapSpec; hud?: HudSpec; pois?: readonly PoiSpec[]; bodyShadow?: boolean;
   groundColor?: GroundColorFn; surfaceAt?: SurfaceFn; assets?: AssetSpec; explore?: ExploreSpec;
+  kitLook: 'toon' | 'painterly' | 'pbr'; swimArms?: SwimArmsSpec; roster?: () => Promise<readonly RosterEntry[]>;
+  blender?: { area: BlenderArea; models: readonly BlenderModelRef[] };   // was the manifest's world.blenderArea / blenderModels: renamed so it never reads like the level.world stage
+  // AssetSpec = { globs?: readonly string[]; ground?: GroundSets }: globs are the shard's extra asset folders (R2-19); ground sets are optional (Driftwood declares none)
   // not here (game-only, stay on the manifest): name, blurb, card, order, status, bag, label, the game mechanisms
 }
 export interface LevelContext {                 // the engine's verbs, every one bound to ctx.scope (R1-25)
@@ -316,7 +319,7 @@ export const defineShard: (m: ShardManifest) => ShardManifest;      // identity 
   - `water.sea` (the sea's `WaterBody` row);
   - `spawn.floor`, `respawn.spawnPlace`;
   - `horizon.kind`;
-  - `world.blenderArea`, `world.blenderModels`;
+  - `blender.area`, `blender.models` (copied to `level.blender`);
   - `swimArms`;
   - `next` (the deck's next-shard hint);
   - `spawnTables`;
@@ -487,7 +490,7 @@ export interface InputService {
 - **The input buffer.** A press is kept `buffer.ms` (120) and fires on the first frame its owner allows it (`consume`).
   The Sword's combo queue becomes the generic buffer.
 - **Coyote time** is a player-motor number (`coyoteMs`, 100): a jump is allowed for that long after leaving ground.
-- Both buffer and coyote are **per-shard data** (`manifest.fight` / tier). They are on everywhere and shown on the
+- Both buffer and coyote are **per-shard data**, authored in `manifest.fight` and read by the engine as `level.fight`. They are on everywhere and shown on the
   input / HUD board (40).
 - **Contexts are additive (R1-29).** An action resolves top-down through the stack; a context blocks only what its
   `blocks` names. TouchControls draws the **merged** discs of the whole stack, with a higher context's relabel winning
@@ -557,7 +560,7 @@ export type InterruptReason = 'hit' | 'target.attack' | 'target.dodge' | 'lost.s
     fixes the up-to-100 ms telegraph / hit drift of today's self-thinking species.
   - `fx`: 30 Hz near, paused from 120 m;
   - `weather`: 10 Hz.
-- A shard can override a rate in `manifest.tiers`.
+- A shard can override a rate in its tier data (authored in `manifest.tiers`, read as `level.tiers`).
 - Every creature, NPC, elite, boss and FX system declares its `tick`. The creatures board shows the before / after.
 - The first numbers are provisional and are checked against the budget calibration (S1.6).
 - **Until S2.6 every brain keeps today's 10 Hz** (parity). S2.6 switches to the bands above and goes on the
@@ -569,7 +572,7 @@ export type InterruptReason = 'hit' | 'target.attack' | 'target.dodge' | 'lost.s
 
 ```ts
 export interface LookStrategy {
-  // today's slices / ao / aa fields MOVE to manifest.tiers: one source for tier knobs (§13.3)
+  // today's slices / ao / aa fields MOVE to the tier data (manifest.tiers → level.tiers): one source for tier knobs (§13.3)
   compose: (c: LookComposeContext) => LookComposition;    // 'extend': today's five pass slots; 'replace': { chain: Pass[] }, the whole chain in order
   mode?: 'extend' | 'replace';     // 'replace': the shard's compose builds the whole chain (Nalati's painterly composer); default 'extend'
   lighting?: LightingRig;          // the shard's light setup (Driftwood's toon lighting, Pine's PBR sun) applied to the SkyRig
@@ -607,7 +610,7 @@ export interface ShaderPatches { patch(mat: THREE.Material, id: string, order: n
 
 - `src/engine/render/tiers.ts` holds the engine's knobs (~52 of today's 59). The kit declares knob schemas for its
   families (grass density, …). A manifest's `tiers` overrides them per tier.
-- **Precedence (one source):** engine default → kit schema default → `manifest.tiers[tier]`. The last one wins.
+- **Precedence (one source):** engine default → kit schema default → `level.tiers[tier]` (authored in `manifest.tiers`). The last one wins.
   `LookStrategy` carries no tier knobs.
 - **New engine knob `msaa`** (the composer's samples, engine default 0 as `Game.ts:277` today, clamped to
   `renderer.capabilities.maxSamples`). Nalati sets `phone: 2, desktop: 4`, so its composer becomes a
@@ -616,7 +619,7 @@ export interface ShaderPatches { patch(mat: THREE.Material, id: string, order: n
 
 ### 13.4 Budgets (decisions 30, 35, 36, 37)
 
-- `manifest.budgets` holds **inputs only**: target fps per tier (phone 30, desktop 60), the CPU / GPU lane split, and
+- The budget inputs (authored in `manifest.budgets`, read as `level.budgets`) are **inputs only**: target fps per tier (phone 30, desktop 60), the CPU / GPU lane split, and
   load-time limits.
 - `src/engine/render/budgets.ts` derives the numbers from `docs/design/engine-fit-v2/budget-design.md`'s formula and
   the committed calibration file `budgets/calibration.json`:
@@ -772,7 +775,7 @@ export interface DeathCause {              // one type for DamageRequest.cause, 
   `env.fall` / `env.lightning`. That fixes the Storm Titan (bug §7.3).
 - **Player health** lives in the engine (the player's `AttributeSet`). The 5 hurt blocks in `main.ts` and its local
   `health` variable are deleted.
-- **The aggression director:** `combat.director.tokens = manifest.fight.attackers` (Driftwood 2; others unlimited =
+- **The aggression director:** `combat.director.tokens = level.fight.attackers` (Driftwood 2; others unlimited =
   `Infinity`), the engine-wide version of E297's `AttackTokens` (18).
 
 ## 19. Creatures and AI (decisions 11, 16)

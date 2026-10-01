@@ -60,7 +60,7 @@ adventure / audio half and S4.4 are the lead's (they touch `main.ts`, which one 
 | `src/world/Hut.ts` (79), `Pier.ts` (145), `Palms.ts` (105), `Boat.ts` (181), `Boulders.ts` (102), `Bushes.ts` (82), `Lookout.ts` (83), `Wreck.ts` (235), `Shrine.ts` (148), `RopeBridge.ts` (74), `Seabed.ts` (176), `Trailside.ts` (333), `Cove.ts` (481), `Waterfall.ts` (334, imported by `Cove.ts` only), `Gulls.ts` (603), `GroundCover.ts` (830), `coverTint.ts` (165) | 4,136 | `shard:world/…` (same names, lower-case first letter) | S4.1 | Only `main.ts:289-408` builds them (and Driftwood's models / quest import them) |
 | `src/world/Zipline.ts` | 143 | `shard:world/zipline.ts` | S4.3 | Built by `Adventure.ts` only |
 | `src/world/Ocean.ts` (282), `waves.ts` (90) | 372 | `Ocean.ts` → `shard:world/ocean.ts` (a `WaterBody`); `waves.ts` → `src/engine/world/water/waves.ts` | S4.1 | `waveHeight` is read by `Boat.ts`, `Enemies.ts`, `Player.ts:549` (swim bob) through `app.world.water.surfaceAt(x, z)` (§6.1 step 4); the Gerstner function is a generic water primitive |
-| `src/world/BlenderIsland.ts` (618), `blenderArea.ts` (57) | 675 | `shard:world/blenderIsland.ts`; `blenderArea.ts`'s `DRIFTWOOD` entry → `level.world.blenderArea`, `MODEL_DIRS` → `level.world.blenderModels` | S4.1 | `blenderArea.ts:30, 47` (Pine's entry moved at S2.1) |
+| `src/world/BlenderIsland.ts` (618), `blenderArea.ts` (57) | 675 | `shard:world/blenderIsland.ts`; `blenderArea.ts`'s `DRIFTWOOD` entry → `level.blender.area`, `MODEL_DIRS` → `level.blender.models` | S4.1 | `blenderArea.ts:30, 47` (Pine's entry moved at S2.1) |
 | `src/world/HorizonMatte.ts:53` | 1 | `level.horizon.matte` | S4.1 | Data (Pine's moved at S2.1) |
 | `src/world/DayNight.ts` | 242 | the clock is the engine `DayCycle` since S2.4; `KEYS`, the keyframe application (lights, fog, toon uniforms, sky palette, disc, planet, shadow-step crossfade) → `shard:look/dayKeys.ts` + the backdrop's `apply(key)` | S4.3 | 06 §6.4 A: "their keyframe application stays in their current files until … S4.3" |
 | `src/world/StylizedSky.ts` (188), `stylize.ts` (216) | 404 | `shard:look/stylizedSky.ts` (the backdrop), `shard:look/toon.ts` (the toon lighting + ramp fog) | S4.3 | §6.3 B |
@@ -852,7 +852,7 @@ and C6); none is open, and the body above follows each answer.
    `loot.coins`, `bodyShadow`, `horizon`, `faunaTuning` (this spec's `speciesTuning` is renamed back), `minimap` (was
    `mapDraw`), `spawns`; `ocean` → the sea's `WaterBody` row. This spec's sub-fields: **Resolved →
    13-lead-resolutions still-open 08#1:** `water.sea` (the field that holds the sea's `WaterBody` row), `spawn.floor`,
-   `respawn.spawnPlace`, `horizon.kind`, `world.blenderArea` / `blenderModels`, `loadout.viewmodel`, `swimArms`,
+   `respawn.spawnPlace`, `horizon.kind`, `blender.area` / `blender.models`, `loadout.viewmodel`, `swimArms`,
    `next`, `spawnTables`, `fight.quietPromptInFight` and `kitLook` are declared manifest fields (01 §6 "Declared
    sub-fields"). §3 follows.
 2. **`LookStrategy` fields.** **Resolved → 13-lead-resolutions 07/08#2:** `mode`, `lighting`, `shadows`, `fogControl`

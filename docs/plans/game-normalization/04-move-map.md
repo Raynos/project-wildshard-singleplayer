@@ -1059,7 +1059,7 @@ Grouped by today's folder. Territory folders (`src/chunks/<slug>/`, `src/nalati/
 | `BakedSky.ts` | 142 | `E:world/BakedSky.ts` | = | engine | F | F6 |  |  |
 | `BakedTerrain.ts` | 140 | `E:world/BakedTerrain.ts` | = | engine | F | F6 |  |  |
 | `BeaverPool.ts` | 196 | `PH:world/beaverPool.ts` | = | PH | I | F6 (+S2.1) | 06 §1.3 |  |
-| `blenderArea.ts` | 57 | `E:world/blenderArea.ts` | = | engine | M | F6 (+S2.1, S4.1) | the baked-area mechanism; the per-slug table → manifest.world.blenderArea (06 §1.3) |  |
+| `blenderArea.ts` | 57 | `E:world/blenderArea.ts` | = | engine | M | F6 (+S2.1, S4.1) | the baked-area mechanism; the per-slug table → `manifest.blender.area`, read as `level.blender.area` (06 §1.3) |  |
 | `BlenderIsland.ts` | 618 | `DI:world/BlenderIsland.ts` | = | DI | G | F6 (+S4.1) | a Driftwood world builder (main.ts isOcean gate; 02 rule 3) | 08 |
 | `Boat.ts` | 181 | `DI:world/Boat.ts` | = | DI | G | F6 (+S4.1) | a Driftwood world builder (main.ts isOcean gate; 02 rule 3) | 08 |
 | `Boulders.ts` | 102 | `DI:world/Boulders.ts` | = | DI | G | F6 (+S4.1) | a Driftwood world builder (main.ts isOcean gate; 02 rule 3) | 08 |
@@ -1194,7 +1194,11 @@ key** (a quoted fragment still unique after F6), as in 05 §0. The per-line Nine
 `main.ts`, `Game.ts`, `boot/*` and `Sky.ts` is in 05 §2 and 06 §2; the tables below cover every shard and point there.
 A part that "stays" stays in the file at its F6 path.
 
-### 3.1 `main.ts` (1,336 lines) → `E:main.ts` at F6 → `E:boot.ts` ≤ 150 lines at S4.4 (EI7)
+**Authoring vs reading (R2-02).** Where a row sends data to `manifest.<field>`, that is where the data is *authored*.
+Engine code never reads the manifest: `#game`'s `toLevelSpec` copies the field into the `LevelSpec`, and the engine reads
+it as `level.<field>` (01 §5a). Only `#game` code reads `manifest.<field>` directly.
+
+### 3.1 `main.ts` (1,336 lines) stays `src/main.ts` (the composition root, R1-03); its generic boot → `E:boot.ts` ≤ 150 lines at S4.4 (EI7)
 
 | Part (grep key) | What it is | Goes to | Row |
 |---|---|---|---|
@@ -1311,8 +1315,8 @@ A part that "stays" stays in the file at its F6 path.
 
 | Part (grep key) | Goes to | Row |
 |---|---|---|
-| `import * as NALATI_DEF`, `nalatiWetAt`, `function nalatiGround`, `if (getActiveChunk().style === 'painterly')` (the places), `const painted = chunk.style === 'painterly'` | Nalati's `manifest.map.palette` + places | S3.1 / X2 |
-| `getActiveChunk().ocean ? OPEN_SEA : VOID`, `const ocean = chunk.ocean ?? null` | Driftwood's `manifest.map.palette` | S4.1 / X2 |
+| `import * as NALATI_DEF`, `nalatiWetAt`, `function nalatiGround`, `if (getActiveChunk().style === 'painterly')` (the places), `const painted = chunk.style === 'painterly'` | Nalati's `manifest.minimap.palette` + places | S3.1 / X2 |
+| `getActiveChunk().ocean ? OPEN_SEA : VOID`, `const ocean = chunk.ocean ?? null` | Driftwood's `manifest.minimap.palette` | S4.1 / X2 |
 | the sea-chart diamonds (Driftwood, E314) | Driftwood's plugin widget | S4.3 |
 | `import { Wildlife }` (herd marks) | Nalati's plugin | S3.4 |
 | the canvas minimap | stays | — |
