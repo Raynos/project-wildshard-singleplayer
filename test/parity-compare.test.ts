@@ -36,6 +36,22 @@ describe('parity comparison', () => {
     const n = clone(); n['boot'] = {...n['boot'] as RecordValue, systems:{update:['physics.mover','animals']}, saves:{read:['local:ws.purse.v2'],written:[]}};
     expect(rows(fixture,n,{renames:[{systems:{'physics.movers':'physics.mover'},saves:{'ws.purse.v1':'ws.purse.v2'}}]}).verdict).toBe('green');
   });
+  it('replays registry additions without duplicating or replacing recorded pieces', () => {
+    const piece = { id: 'npc-ranger', shapes: { cuboid: 1 } };
+    const b = clone(); b['boot'] = { ...object(b['boot']), registry: [piece] };
+    const n = clone(); n['boot'] = { ...object(n['boot']), registry: [piece] };
+    const map = { registry: { added: ['npc-*'] } };
+    expect(rows(b, n, { renames: [map, map] }).rows.find((row) => row.field === 'boot.registry')?.verdict).toBe('green');
+    n['boot'] = { ...object(n['boot']), registry: [{ ...piece, shapes: { cuboid: 2 } }] };
+    expect(rows(b, n, { renames: [map] }).rows.find((row) => row.field === 'boot.registry')?.verdict).toBe('red');
+    n['boot'] = { ...object(n['boot']), registry: [piece, piece] };
+    expect(rows(b, n, { renames: [map] }).rows.find((row) => row.field === 'boot.registry')?.verdict).toBe('red');
+    b['boot'] = { ...object(b['boot']), registry: [] };
+    n['boot'] = { ...object(n['boot']), registry: [piece] };
+    expect(rows(b, n, { renames: [map, map] }).rows.find((row) => row.field === 'boot.registry')?.verdict).toBe('green');
+    n['boot'] = { ...object(n['boot']), registry: [piece, piece] };
+    expect(rows(b, n, { renames: [map] }).rows.find((row) => row.field === 'boot.registry')?.verdict).toBe('red');
+  });
   it('applies phase-specific system renames before the flat map (F8)', () => {
     const b=clone(); b['boot']={...b['boot'] as RecordValue,systems:{'fixed.pre':['physics.bodies'],'fixed.post':['physics.bodies'],update:['physics.bodies']}};
     const n=clone(); n['boot']={...n['boot'] as RecordValue,systems:{'fixed.pre':['physics.bodies.pre'],'fixed.post':['physics.bodies.post'],update:['bodies']}};

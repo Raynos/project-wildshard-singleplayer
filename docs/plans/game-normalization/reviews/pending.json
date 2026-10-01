@@ -11,7 +11,8 @@
       "boot.systems.fixed.post",
       "boot.systems.input",
       "boot.systems.late",
-      "combat.loot.written"
+      "combat.loot.written",
+      "combat.sounds.ambient"
     ],
     "expect": {
       "desktop/boot.systems.input": [
@@ -1716,6 +1717,9 @@
       "desktop/combat.loot.written": [
         "local:wildshard.save.v2.driftwood-isle",
         "local:wildshard.save.v2.global"
+      ],
+      "desktop/combat.sounds.ambient": [
+        "island.drip"
       ],
       "phone/boot.systems.input": [
         "engine.input.weapon",
@@ -3504,10 +3508,14 @@
       "phone/combat.loot.written": [
         "local:wildshard.save.v2.driftwood-isle",
         "local:wildshard.save.v2.global"
+      ],
+      "phone/combat.sounds.ambient": [
+        "island.bird",
+        "island.drip"
       ]
     },
     "notes": [
-      "fc043df: M classification intended, groups I1,I3,I4,I5,I8,I9; see progress/normalization/m-classification.md. Filled from final compare captures; no accept or record."
+      "fc043df: M classification intended, groups I1,I10,I3,I4,I5,I8,I9; see progress/normalization/m-classification.md. Filled from final compare captures; no accept or record."
     ]
   },
   {

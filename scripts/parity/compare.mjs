@@ -30,7 +30,15 @@ export function renameBaseline(baseline, current, maps) {
     if (get(b, 'boot.registry') !== undefined) {
       const renamed = object(registry.renamed), added = array(registry.added).map(string), removed = array(registry.removed).map(string);
       const pieces = array(get(b, 'boot.registry')).map((p) => Object.assign(object(p), {id: renamed[string(object(p).id)] ?? object(p).id ?? ''}));
-      set(b, 'boot.registry', [...pieces.filter((p) => !removed.some((pat) => matches(pat, string(p.id)))), ...array(get(current, 'boot.registry')).filter((p) => added.some((pat) => matches(pat, string(object(p).id))))].sort((a, c) => string(object(a).id).localeCompare(string(object(c).id))));
+      const retained = pieces.filter((p) => !removed.some((pat) => matches(pat, string(p.id))));
+      const ids = new Set(retained.map((p) => string(p.id)));
+      const additions = array(get(current, 'boot.registry')).filter((p) => {
+        const id = string(object(p).id);
+        if (ids.has(id) || !added.some((pat) => matches(pat, id))) return false;
+        ids.add(id);
+        return true;
+      });
+      set(b, 'boot.registry', [...retained, ...additions].sort((a, c) => string(object(a).id).localeCompare(string(object(c).id))));
     }
   }
   return b;
