@@ -253,3 +253,5 @@ export { icon } from './ui/icons';
 
 export { loadRigFile, loadRig, bindRig, ClipChannel, AnimMachine, type ClipName, type SocketName, type RigContract, type RigBake, type RigRef, type RigInstance, type AnimMachineDef, type AnimState, type AnimService } from './anim/index';
 export { activeLevel, selectedLevel, onLevelChange, configureLevel } from './level/selection';
+
+export { type Renderer, probeRenderer, isRenderer } from './render/renderer';

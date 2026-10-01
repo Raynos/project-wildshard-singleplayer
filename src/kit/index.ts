@@ -54,3 +54,5 @@ export { NpcRig, type NpcRow, type NpcModel, type NpcFace } from './npc/npcRig';
 export { sharedWeaponVoices } from './audio/weaponVoices';
 
 export { faceHead, loadFaceHead, type FaceHead } from './npc/faceHeads';
+
+export { ARM_CLIPS, SWIM_CLIPS, armClipNames } from './viewmodel/armClips';

@@ -1,3 +1,5 @@
+import { loadRig } from '../anim/rig';
+import { AnimMachine, type AnimService } from '../anim/machine';
 import { InputService } from '../input/InputService';
 import type { EquipmentHost } from '../combat/view/EquipmentHost';
 import type { EquipmentService } from '../combat/EquipmentService';
@@ -97,6 +99,7 @@ export class App {
   readonly clock = new GameClock();
   readonly rng = new RngService();
   readonly assets = new AssetService();
+  readonly anim: AnimService = { load: loadRig, machine: (def, rig, scope) => new AnimMachine(def, rig, scope) };
   scene: Scene | null = null;
   render: Game | null = null;
   audio: Audio | null = null;
