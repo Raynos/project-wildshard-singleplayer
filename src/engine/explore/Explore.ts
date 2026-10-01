@@ -1,3 +1,4 @@
+import { app } from '../app/runtime';
 /**
  * Explore World — the viewer (project/archive/2026-09-23-explore-world.md): the title's EXPLORE WORLD panel opens it over the already
  * loaded shard. A lazy chunk (main.ts `import('./explore/Explore')`), styled by src/engine/ui/styles/explore.css (prefix ws-x-).
@@ -395,6 +396,7 @@ export class Explore {
     const { world } = this.host;
     if (!this.active) {
       this.active = true;
+      app.setState('explore');
       this.parkedFrom.copy(world.player.position);
       world.freeCamera = true;
       world.player.position.copy(PARK);
@@ -444,6 +446,7 @@ export class Explore {
     this.compare?.close();
     this.hidePanes();
     this.active = false;
+    app.setState('title');
     this.cam.enabled = false; this.cam.move.set(0, 0, 0);
     world.player.position.copy(this.parkedFrom);
     world.freeCamera = false;

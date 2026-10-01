@@ -15,6 +15,20 @@ describe('app states', () => {
     scope.dispose();
   });
 
+  it('mirrors paused clock state synchronously and records only real transitions', () => {
+    const app = new App();
+    app.setState('loading'); app.clock.tick(1);
+    app.setState('title'); app.clock.tick(1);
+    app.setState('play'); app.clock.tick(1);
+    app.setState('paused'); app.clock.tick(1);
+    expect(app.clock.now).toBe(1);
+    app.setState('play');
+    expect(app.state).toBe('play');
+    expect(app.clock.paused).toBe(false);
+    app.setState('play');
+    expect(app.stateHistory).toEqual(['boot', 'loading', 'title', 'play', 'paused', 'play']);
+  });
+
   it('ignores the current state and removes callbacks with their scope', () => {
     const app = new App(), scope = new Scope('test'), callback = vi.fn<() => void>();
     app.onExit('boot', callback, scope);

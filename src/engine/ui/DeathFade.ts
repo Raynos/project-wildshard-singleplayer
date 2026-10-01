@@ -1,3 +1,4 @@
+import { app } from '../app/runtime';
 import './styles/combat.css';
 
 /**
@@ -69,6 +70,7 @@ export class DeathFade {
     this.cause.textContent = cause;
     this.where.textContent = where;
     this.hooks = hooks; this.t = 0; this.darkDone = false;
+    app.setState('dead');
     this.root.classList.add('show');
     this.paint();
   }
@@ -80,6 +82,7 @@ export class DeathFade {
     if (!this.darkDone && this.t >= FADE_OUT) { this.darkDone = true; h.dark(); }
     if (this.t >= END) {
       this.hooks = null;
+      app.setState('play');
       this.root.classList.remove('show');
       this.root.style.opacity = '0';
       h.done();

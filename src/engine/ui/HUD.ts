@@ -1,3 +1,4 @@
+import { app } from '../app/runtime';
 import { tap } from '../core/harnessTap';
 import { getActiveChunk } from '#game/shard/registry';
 import { requestShard } from '#game/travel/switch';
@@ -106,7 +107,12 @@ export class HUD {
   onResume?: () => void;
   onExitToMenu?: () => void;
   private opts: HUDOptions;
-  entered = false;
+  private _entered = false;
+  get entered(): boolean { return this._entered; }
+  set entered(value: boolean) {
+    this._entered = value;
+    if (app.state !== 'loading') app.setState(value ? 'play' : 'title');
+  }
   private onEnter?: () => void;
   /** EXPLORE WORLD on the title (main.ts opens src/engine/explore/Explore.ts) */
   onExplore?: () => void;

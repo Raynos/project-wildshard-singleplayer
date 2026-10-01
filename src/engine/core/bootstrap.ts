@@ -77,6 +77,7 @@ export async function bootstrap(step: StepRunner = runDirect): Promise<World> {
     });
     return new Game(canvas, context);
   });
+  game.app.clock.setCapture(window.__wildshardHarness?.capture ?? null);
   const sky = await step('sky', () => game.buildSky());
   const terrain = await step('terrain', async (p) => {
     const t = await new Terrain().build();

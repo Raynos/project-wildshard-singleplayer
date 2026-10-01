@@ -1,3 +1,4 @@
+import { app } from '#engine';
 /**
  * Nine Dragon ▸ Grapple playground (E307, Jake: "a really simple developer level … an acrobatic course for the grappling
  * hook, a custom parkour level to get a feel for the grappling hook and how it works"). A closed dev-grid room high over
@@ -140,6 +141,7 @@ export class GrapplePlayground implements Playground {
   enter(): void {
     const { player } = this.host;
     this.active = true;
+    app.setState('playground');
     this.root.visible = true;
     setGrappleCourse(this.course);               // the claw bites these hooks now (before the practice flag, which it reads)
     practiceFps.on = true;                        // a tiny scene: mobile runs it at 60 (tier.ts, as the Practice arena)
@@ -153,6 +155,7 @@ export class GrapplePlayground implements Playground {
   exit(): void {
     if (!this.active) return;
     this.active = false;
+    app.setState('play');
     this.root.visible = false;
     this.chip.show(false);
     document.getElementById('hud')?.classList.remove('playground-active');

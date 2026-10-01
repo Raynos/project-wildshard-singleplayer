@@ -15,6 +15,7 @@ export class App {
   private exits = new Set<StateHook>();
   private transitioning = false;
   private transitions: AppState[] = [];
+  readonly stateHistory: AppState[] = ['boot'];
   readonly events: Events;
   readonly engineScope = new Scope('engine');
   levelScope: Scope | null = null;
@@ -38,6 +39,8 @@ export class App {
         const exits = [...this.exits];
         for (const hook of exits) if (hook.state === prev && this.exits.has(hook)) hook.run();
         this.currentState = target;
+        this.stateHistory.push(target);
+        this.clock.paused = target === 'paused' || target === 'title' || target === 'loading' || target === 'boot' || target === 'error';
         const enters = [...this.enters];
         for (const hook of enters) if (hook.state === target && this.enters.has(hook)) hook.run();
         this.events.emit('app.state', { prev, next: target });

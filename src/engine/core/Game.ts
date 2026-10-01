@@ -453,7 +453,7 @@ export class Game {
 
   /** a system threw (one try/catch per call, below): count it, report it; a core system that keeps failing stops the loop */
   private fault(s: GameSystem<unknown>, e: unknown): void {
-    if (systemFault(s, e, this.frameNo, performance.now()) === 'fatal' && !this.dead) { this.dead = true; setLoopState('dead'); }
+    if (systemFault(s, e, this.frameNo, performance.now()) === 'fatal' && !this.dead) { this.dead = true; this.app.setState('error'); setLoopState('dead'); }
   }
   /** (a method, not the field: the loop's early-out narrows `this.dead` to false for the rest of the frame) */
   private isDead(): boolean { return this.dead; }

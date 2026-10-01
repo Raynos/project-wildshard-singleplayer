@@ -214,6 +214,7 @@ async function main() {
  */
 async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   const loading = new Loading();
+  app.setState('loading');
   if (getActiveChunk().slug !== slug) throw new Error(`buildShard: ${slug} is not the active chunk`);
   // The boot plan: DOWNLOAD = bytes read / bytes declared, SETUP = weighted steps (src/engine/boot/plan.ts).
   // Declared bytes come from the chunk's file list; every /assets fetch is counted on its way in.
@@ -1269,6 +1270,7 @@ async function buildShard(slug: string, first: boolean): Promise<ShardWorld> {
   if (fragileBoot) game.canvas.removeEventListener('webglcontextlost', onBootContextLost);
   setPoseProvider(() => (hud.entered ? { x: player.position.x, y: player.position.y, z: player.position.z, yaw: player.yaw, pitch: player.pitch } : null)); // the Look Lab's reload prompt comes back right here (E65)
   await loading.done();
+  app.setState(hud.entered ? 'play' : 'title');
   game.start(); // keep the full render loop out of the loader's 100% fade and its transient boot-memory peak
   if (arrival?.mode === 'enter' || arrival?.mode === 'arena') enter();
   else if (arrival?.mode === 'explore') hud.startExplore(); // import the viewer only after shader compilation and the loader's peak

@@ -1,3 +1,4 @@
+import { app } from '#engine';
 /**
  * Nalati ▸ Horse playground (E307, Jake: "a naive, playable mini level in Explore mode for running around on a horse, to
  * get a feel for the horse controls, maybe horse racing"). An open dev-grid field high over the steppe (PLAYGROUND_Y), in
@@ -146,6 +147,7 @@ export class HorsePlayground implements Playground {
     const ride = this.host.ride;
     if (ride === null) return;
     this.active = true;
+    app.setState('playground');
     this.root.visible = true;
     const horse = this.horse ?? this.spawnHorse();
     horse.hidden = false; horse.mesh.visible = true;
@@ -163,6 +165,7 @@ export class HorsePlayground implements Playground {
     if (!this.active) return;
     const ride = this.host.ride, horse = this.horse;
     this.active = false;
+    app.setState('play');
     if (ride !== null && horse !== null) {
       if (ride.mount.horse === horse) ride.mount.dismount();
       ride.mount.removeMountable(horse);

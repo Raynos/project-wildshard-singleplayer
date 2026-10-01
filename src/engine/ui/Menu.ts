@@ -1,3 +1,5 @@
+import { app } from '../app/runtime';
+import type { AppState } from '../app/systems';
 /**
  * The in-game MENU — one overlay: the BAG (MAP · GEAR · FINDS · PACK · FEATS, E314) and PAUSE (SETTINGS), plus FEEDBACK once
  * a reviewer has unlocked the review inbox in Settings → REVIEW (src/engine/ui/review.ts; the tab's composer is the lazy Feedback.ts).
@@ -117,6 +119,7 @@ export class GameMenu {
   private zoomChips: HTMLButtonElement[] = [];
   private _tab: MenuTab = 'settings';
   private _open = false;
+  private resumeState: AppState = 'play';
   onOpen?: (tab: MenuTab) => void;
   onClose?: () => void;
   onExit?: () => void;
@@ -273,7 +276,9 @@ export class GameMenu {
     const selected = this.noMap && tab === 'map' ? 'settings' : this.land(tab);
     this.select(selected);
     if (this._open) return;
+    this.resumeState = app.state;
     this._open = true;
+    app.setState('paused');
     this.paintMemory();
     this.memTimer = window.setInterval(() => { this.paintMemory(); }, 2000); // while open only (close() stops it)
     this.root.classList.add('show');
@@ -289,6 +294,7 @@ export class GameMenu {
   close(silent = false): void {
     if (!this._open) return;
     this._open = false;
+    app.setState(this.resumeState);
     window.clearInterval(this.memTimer); this.memTimer = 0;
     this.root.classList.remove('show');
     window.dispatchEvent(new Event('ws-menu')); // E176

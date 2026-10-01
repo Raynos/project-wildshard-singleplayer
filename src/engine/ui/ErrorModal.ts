@@ -1,3 +1,4 @@
+import { app } from '../app/runtime';
 /**
  * ErrorModal — what the player sees when the game hits an error, and the wiring that reports every error (E133).
  *
@@ -252,6 +253,7 @@ function handle(f: Fault): void {
 
 /** Show the fatal modal explicitly (main().catch: the boot failed) and report it. */
 export function showError(message: string, stack = ''): void {
+  app.setState('error');
   try {
     showFatal(message, stack, report('boot', new DescribedError(message, stack), { fatal: true }));
   } catch { /* the modal must never throw */ }

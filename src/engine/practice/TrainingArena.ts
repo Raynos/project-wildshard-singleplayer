@@ -1,3 +1,4 @@
+import { app } from '../app/runtime';
 import { tap } from '../core/harnessTap';
 /** Shared HUD + Weapon Explorer: a 100 × 100 m enclosed grid room and three hit-reactive humanoid dummies. */
 import * as THREE from 'three';
@@ -362,6 +363,7 @@ export class TrainingArena {
 
   enter(player: Player, weapons: Weapons): void {
     this.active = true; this.root.visible = true; this.overlay.classList.add('show');
+    app.setState('practice');
     practiceFps.on = true; // mobile targets 60 in here (E290, tier.ts frameCapFps)
     this.player = player;
     for (const t of this.targets) { t.attacker = player.position; t.bodies?.setEnabled(true); }
@@ -382,6 +384,7 @@ export class TrainingArena {
 
   exit(): void {
     this.active = false; this.root.visible = false; this.overlay.classList.remove('show');
+    app.setState('play');
     for (const t of this.targets) t.bodies?.setEnabled(false); // E300: no dummy volume left for the world's rays over the shard
     practiceFps.on = false;
     this.weapons?.endLoan(); this.weapons = null; // the world's own unlocks again

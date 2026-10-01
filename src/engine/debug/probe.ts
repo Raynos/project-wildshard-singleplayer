@@ -302,7 +302,7 @@ export function installProbe<W extends ProbeWorld>(world: W, deps: ProbeDeps): W
     },
     arena: () => { requireHarness(); world.hud.enterArenaNow(); },
     state: () => ({
-      appState: world.hud.paused ? 'paused' : world.arena.isActive ? 'practice' : world.hud.entered ? 'play' : 'title', clockNow: world.game.frameTime,
+      appState: world.game.app.state, clockNow: world.game.app.clock.now,
       player: { pos: point(world.player.position), yaw: world.player.yaw, pitch: world.player.pitch, vel: point(world.player.velocity), health: deps.health() },
       weapon: { id: world.weapons.current.id, state: { ...world.weapons.current.state }, ammo: world.weapons.current.state.ammo ?? null },
       creatures: world.animals.animals.map((a, i) => ({ id: `${a.kind}:${i}`, kind: a.kind, pos: point(a.position), hp: a.hp, brain: a.state })).sort((a, b) => a.id.localeCompare(b.id)),
