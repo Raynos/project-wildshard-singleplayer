@@ -127,8 +127,8 @@ export class MiniMap {
     return { x: (x0 + x1) / 2, z: (z0 + z1) / 2, half: Math.min(CHUNK_HALF, Math.max(x1 - x0, z1 - z0) / 2 + 24) };
   }
 
-  /** a clock shard's hour in eighths of its day (the photoreal clock: `sky.pine.phase`); a fixed sky is always the same shot */
-  private dayKey(): string { const ph = this.world.game.sky.pine?.phase; return ph === undefined ? 'fixed' : String(Math.floor(ph * 8)); }
+  /** a clock shard's hour in eighths of its day (the photoreal clock: `app.world.dayCycle.phase`); a fixed sky is always the same shot */
+  private dayKey(): string { const ph = this.world.game.app.world.dayCycle?.phase; return ph === undefined ? 'fixed' : String(Math.floor(ph * 8)); }
 
   /** the shard from above, once per part of the day: the rendered shot (+ the forest's crowns painted over it), else the heightfield relief */
   private draw(): void {

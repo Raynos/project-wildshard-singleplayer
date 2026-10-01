@@ -29,6 +29,7 @@ import type { TreeInstance } from '#engine/world/forest/placement';
 import type { AnimalManager, Herd } from '#engine/entities/AnimalManager';
 import type { Particles } from '#kit/looks/particles';
 import type { ForestAmbience } from '../audio/ambience';
+import { pineBackdrop } from '../look/skyBackdrop';
 import { PineWeather, type PineWeatherMode } from './weatherProfile';
 import { PineWeatherFX } from './PineWeatherFX';
 import { fogUniforms, weatherUniforms, volumetricFog } from '#engine/world/Atmosphere';
@@ -83,7 +84,7 @@ export function installWeather(ctx: LevelContext, host: PineWeatherHost): PineWe
 }
 
 export function installPineWeather(h: PineWeatherHost, ctx?: LevelContext): PineWeatherRig | null {
-  const pine = h.sky.pine;
+  const pine = pineBackdrop(h.sky);
   if (pine === null) return null; // the fixed sky: no clock, no weather
   const atT = 0.5; // a held Fog / Rain starts halfway into its phase
   const weather = new PineWeather({ seed: SEED, mode: 'live' });

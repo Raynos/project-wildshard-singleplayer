@@ -20,6 +20,8 @@ import heroPortrait from './thumbs/pine-hollow-portrait.jpg';
 import heroLandscape from './thumbs/pine-hollow-landscape.jpg';
 
 export const PINE_HOLLOW: ShardManifest = {
+  render: async () => (await import('./look/render')).shardRender(),
+  uses: ['dayCycle', 'weather'],
   api: 1,
   boot: { files: bootFiles, sources: bootSources, bakedUnread: BAKED_UNREAD },
   kitLook: 'pbr',

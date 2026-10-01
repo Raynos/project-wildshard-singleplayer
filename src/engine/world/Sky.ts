@@ -22,11 +22,9 @@ import { StylizedSky } from './StylizedSky';
 import type { DayCycleClock } from './dayCycle';
 import { DriftwoodSky } from '#shards/driftwood-isle/look/dayNight';
 import { ShadowMaps } from './shadowVariants';
-import { PineSkyBackdrop, type PinePost } from '#shards/pine-hollow/look/skyBackdrop';
-import { pineSunAt } from '#shards/pine-hollow/look/dayKeys';
+import type { SkyBackdrop, SkyBackdropFactory, SkyBackdropPost } from '../render/look';
 import { horizonLight } from './Horizon';
 import { loadLUT } from './lut';
-import { activeGrade } from './lookFlags';
 import type { LookupTexture } from 'postprocessing';
 
 /** the key light's shadow direction steps (E89, src/engine/world/DayNight.ts SHADOW_STEP): ≤ ~1 shadow texel about every 1.5 s */
@@ -94,15 +92,15 @@ export class Sky {
   /** the player's camera (world modules cull against it) */
   get viewCamera(): THREE.PerspectiveCamera { return this.camera; }
 
-  async build(): Promise<this> {
+  async build(backdropFactory?: SkyBackdropFactory): Promise<this> {
     const { sky: S, atmosphere: A, style } = getActiveChunk();
     // Look Lab (E65): the low-poly shard's toon lighting (E87) and stylized sky (E83) are the user's picks, the only looks
     // since E136; the other shards light from their HDRI
     const toon = style === 'toon', stylizedSky = toon;
     if (toon) installStylize(); // the toon lighting model (D1) — patched into three's chunk before anything compiles
-    // Pine Hollow's day / night clock (PH-L2, the user's pick)
-    const pineClock = !stylizedSky && getActiveChunk().slug === 'pine-hollow';
-    const horizon = stylizedSky ? await this.setupStylized() : pineClock ? await this.setupPine() : await this.setupHDRI();
+    this.backdrop = backdropFactory ? await backdropFactory({ sky: this, scene: this.scene, renderer: this.renderer }) : null;
+    if (this.backdrop) this.lut = this.backdrop.lut;
+    const horizon = this.backdrop?.horizon ?? (stylizedSky ? await this.setupStylized() : await this.setupHDRI());
     this.scene.fog = new THREE.Fog(horizon, 1, 1e6); // distances unused: Atmosphere.ts overrides the maths
     fogUniforms.fogSunDir.value.copy(this.sunDir);
     fogUniforms.fogSunColor.value.set(...S.fogSunColor);
@@ -170,10 +168,10 @@ export class Sky {
       this.dayNight = this.stylizedClock?.clock ?? null;
     } else {
       this.buildClouds();
-      const pine = this.pine, fog = this.scene.fog, halo = this.sunDisc.children[0];
-      if (pine && fog instanceof THREE.Fog) {
-        this.dayNight = pine.clock;
-        pine.bind({
+      const backdrop = this.backdrop, fog = this.scene.fog, halo = this.sunDisc.children[0];
+      if (backdrop && fog instanceof THREE.Fog) {
+        this.dayNight = backdrop.clock;
+        backdrop.bind({
           sunDir: this.sunDir, sunColor: this.sunColor, lights: this.csm.lights, lightDirection: this.csm.lightDirection, hemi: this.hemi, fog,
           fogU: fogUniforms, underwater: isUnderwater, disc: this.sunDisc, halo: halo instanceof THREE.Sprite ? halo : null,
           cloud: this.cloudUniforms, far: horizonLight,
@@ -183,29 +181,12 @@ export class Sky {
     return this;
   }
 
-  /**
-   * Pine Hollow's clock (PineDayNight.ts, PH-L2): the photographic sky keys blended on a dome, the environment rendered from
-   * the blend. Returns the fog colour (the clock sets it every frame from here on).
-   */
-  pine: PineSkyBackdrop | null = null;
-  private async setupPine(): Promise<THREE.Color> {
-    const [pine, , lut] = await Promise.all([PineSkyBackdrop.create(this.renderer, this.scene), preloadBakedTextures(), loadLUT(getActiveChunk().slug)]);
-    this.lut = lut;
-    this.pine = pine;
-    const { look } = activeGrade(getActiveChunk()); // the look loop's haze / saturation layer (PH-L1 / L4)
-    if (look) Object.assign(pine.look, { vol: look.vol, fogDist: look.fogDist, sat: look.sat, ambient: look.ambient, sky: look.sky });
-    pineSunAt(pine.phase, this.sunDir);
-    this.scene.background = null;
-    this.scene.add(pine.dome);
-    return new THREE.Color(...getActiveChunk().sky.fogSunColor);
-  }
-
-  /** the clock's grip on the post chain (Game.buildComposer): the volumetric shafts and the god rays follow the hour */
-  attachPost(post: PinePost): void { this.pine?.attachPost(post); }
+  backdrop: SkyBackdrop | null = null;
+  attachPost(post: SkyBackdropPost): void { this.backdrop?.attachPost(post); }
   /** 0 = day … 1 = full night; the fixed skies stay at their own (Driftwood's clock, else 0) */
   get night(): number { return this.dayNight?.night ?? 0; }
   /** the night lights (cabin windows, lanterns): the clock's 0 by day … 1 by night; the fixed sunset keeps them all lit (1) */
-  get lamps(): number { return this.pine ? this.pine.lamps : 1; }
+  get lamps(): number { return this.backdrop?.clock.lamps ?? 1; }
 
   /** Pine Hollow's rig (and any `style: 'pbr'` shard): the HDRI is the background and the IBL; returns the fog colour. */
   private async setupHDRI(): Promise<THREE.Color> {
@@ -278,7 +259,7 @@ export class Sky {
    */
   rebuildEnvironment(): void {
     this.shadowMaps?.apply(true); // E174: the restored context gave the maps back uninitialised
-    if (this.pine) { this.pine.rebuild(); return; }
+    if (this.backdrop) { this.backdrop.rebuild(); return; }
     if (this.stylized) { this.pmrem = null; this.envRT = null; this.refreshEnvironment(); return; } // a fresh generator: the old one's targets belong to the lost context
     const hdr = this.scene.background;
     if (!(hdr instanceof THREE.Texture)) return;
@@ -391,8 +372,8 @@ export class Sky {
   }
 
   update(dt = 0): void {
-    this.pine?.update(dt, this.camera); // before the CSM: the clock turns its light
-    if (this.pine !== null) this.fadePlanet(this.night);
+    this.backdrop?.update(dt, this.camera); // before the CSM: the clock turns its light
+    if (this.backdrop !== null) this.fadePlanet(this.night);
     const want = this.keyShadowWant;
     if (want !== null && want.angleTo(this.csm.lightDirection) > KEY_SHADOW_STEP) this.csm.lightDirection.copy(want); // a big jump (a Time of day pick, the sun ↔ moon swap) moves at once
     this.csm.update();

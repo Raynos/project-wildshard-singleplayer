@@ -336,8 +336,8 @@ export class Game {
   async buildSky(): Promise<Sky> {
     this.levelId = this.level.id;
     const render = this.level.look?.() ?? null; // the render code downloads while the sky builds; buildComposer reads both
-    this._sky = await new Sky(this.scene, this.camera, this.renderer).build();
     this.lookStrategy = await render;
+    this._sky = await new Sky(this.scene, this.camera, this.renderer).build(this.lookStrategy?.backdrop);
     this.levelScope.onDispose(() => { this.lookStrategy?.dispose?.(); this.lookStrategy = null; });
     return this._sky;
   }

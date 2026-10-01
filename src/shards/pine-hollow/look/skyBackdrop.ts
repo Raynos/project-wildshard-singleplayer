@@ -25,6 +25,8 @@
  * Nothing here changes a program: it is uniforms, light intensities / colours and texture uniforms only.
  */
 import * as THREE from 'three';
+import type { Sky } from '#engine/world/Sky';
+import type { SkyBackdropTargets as PineTargets, SkyBackdropPost as PinePost } from '#engine/render/look';
 import { PINE_SKY_KEYS, type SkyKeyName } from './skyKeys';
 import { loadBakedSky } from '#engine/world/BakedSky';
 import { DayCycle } from '#engine/world/dayCycle';
@@ -72,25 +74,7 @@ const tmpC = new THREE.Color();
 interface Resident { tex: THREE.DataTexture; horizon: THREE.Color; used: number }
 
 /** the knobs the clock turns — Sky hands them over (no Sky import: Sky imports this) */
-export interface PineTargets {
-  sunDir: THREE.Vector3; sunColor: THREE.Color;
-  lights: THREE.DirectionalLight[]; lightDirection: THREE.Vector3;
-  hemi: THREE.HemisphereLight; fog: THREE.Fog;
-  fogU: { fogSunDir: { value: THREE.Vector3 }; fogSunColor: { value: THREE.Color }; fogDistDensity: { value: number }; fogHeightDensity: { value: number } };
-  /** true while the eye is under water (Atmosphere.ts owns the fog then) */
-  underwater: () => boolean;
-  disc: THREE.Mesh; halo: THREE.Sprite | null;
-  cloud: { uSunDir: { value: THREE.Vector3 }; uSunColor: { value: THREE.Color }; uCloudLit: { value: THREE.Color }; uCloudAlpha: { value: number } };
-  far: { uHazeCol: { value: THREE.Color }; uSeaSky: { value: THREE.Color }; uSeaSun: { value: THREE.Color }; uSeaSunDir: { value: THREE.Vector3 } };
-}
-/** the post effects the clock drives (Game.buildComposer hands them over) */
-export interface PinePost {
-  vol: { setSun: (dir: THREE.Vector3, color: THREE.Color) => void; setFogColor: (c: THREE.Color) => void; setStrength: (s: number) => void };
-  rays: { blendMode: { opacity: { value: number } } } | null;
-  /** the grade's HueSaturationEffect */
-  hueSat: { saturation: number } | null;
-}
-
+export type { SkyBackdropTargets as PineTargets, SkyBackdropPost as PinePost } from '#engine/render/look';
 /**
  * The weather's hook on the clock (PH-L10, src/shards/pine-hollow/world/weather.ts writes it every frame): multipliers laid over the keyed
  * presets after they are blended — the presets' own numbers are never edited. Identity ({ overcast 0, fog × 1 }) is the
@@ -161,7 +145,7 @@ export class PineSkyBackdrop {
   private readonly envSteps = getActiveChunk().tiers?.[TIER]?.envSteps === true;
 
   private constructor(private renderer: THREE.WebGLRenderer, private scene: THREE.Scene, phase: number, cycle: number, frozen: boolean) {
-    this.clock = new DayCycle({ ...PINE_DAY, start: phase });
+    this.clock = new DayCycle({ ...PINE_DAY, start: phase, curves: { night: pineNightAt, dusk: PINE_DAY.curves?.dusk ?? (() => 0), dawn: PINE_DAY.curves?.dawn ?? (() => 0), lamps: (p) => Math.max(PINE_DAY.curves?.lamps(p) ?? 0, .35 * this.mod.overcast) } });
     this.clock.cycle = cycle; this.clock.paused = frozen;
     this.clock.onSet = () => this.jump();
     const dome = new THREE.Mesh(new THREE.SphereGeometry(2300, 64, 32), new THREE.ShaderMaterial({
@@ -482,3 +466,7 @@ function weatherOver(C: Preset, mod: PineSkyMod): number {
   return ov;
 }
 
+
+const backdrops = new WeakMap<Sky, PineSkyBackdrop>();
+export function pineBackdrop(sky: Sky): PineSkyBackdrop | null { return backdrops.get(sky) ?? null; }
+export function registerPineBackdrop(sky: Sky, backdrop: PineSkyBackdrop): void { backdrops.set(sky, backdrop); }

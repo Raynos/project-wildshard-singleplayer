@@ -90,6 +90,7 @@ export const PRACTICE_CRAB = { x: -7, z: -143 };
 const ISLAND_BOARS = ['boar', 'sow', 'black', 'big'];
 
 export const DRIFTWOOD_ISLE: ShardManifest = {
+  uses: ['dayCycle'],
   api: 1,
   kitLook: 'toon',
   assetGlobs: ['public/assets/models/driftwood-blender/**', 'public/assets/models/driftwood-cc0/**', 'public/assets/models/driftwood-fp/**', 'public/assets/models/driftwood-hero/**', 'public/assets/gpu/models/driftwood-blender/**', 'public/assets/gpu/models/driftwood-hero/**', 'public/assets/gpu/baked/driftwood-isle/**', 'public/assets/horizon/driftwood-isle-*', 'public/assets/gpu/horizon/driftwood-isle-*', 'public/assets/lut/driftwood-isle.bin', 'public/assets/title/driftwood-isle-portrait.jpg', 'public/assets/sfx/driftwood-isle/**'],

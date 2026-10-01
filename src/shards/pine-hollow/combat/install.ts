@@ -97,7 +97,7 @@ export function installPineCombat(h: PineCombatHost): PineCombat {
     addItem: (id, n) => { h.inventory.add(id, n); },
     ownSkin: (id) => { const s = SKINS[id]; h.skins.own(id); h.wearSkin(s); if (s.weapon === 'rifle') weapons.unlock('rifle'); },
     skinModel: (id) => { const m = parked.get(id); if (m) { parked.delete(id); m.removeFromParent(); m.visible = true; return m; } return buildSkin(id); },
-    dusk: () => sky.pine?.clock.dusk ?? 0, night: () => sky.pine?.clock.night ?? 0,
+    dusk: () => sky.dayNight?.dusk ?? 0, night: () => sky.dayNight?.night ?? 0,
     longbow: h.longbow ? {
       // the stave stands along the orb's item axis (−Z, tip up) at half size: a 1.7 m bow in a legendary's orb
       model: () => { const w = new THREE.Group(), m = h.longbow?.displayModel(); if (m) { m.rotation.x = -Math.PI / 2; m.scale.setScalar(0.5); w.add(m); } return w; },

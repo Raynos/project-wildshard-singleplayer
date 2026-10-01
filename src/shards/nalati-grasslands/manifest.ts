@@ -584,6 +584,7 @@ function loneSpruceMask(x: number, z: number): number {
 }
 
 export const NALATI_GRASSLANDS: ShardManifest = {
+  uses: ['dayCycle', 'weather'],
   api: 1,
   kitLook: 'painterly',
   assetGlobs: ['public/assets/nalati/**', 'public/assets/gpu/nalati/**', 'public/assets/music/nalati/**', 'public/assets/sfx/nalati-grasslands/**', 'public/assets/title/nalati-grasslands-portrait.jpg'],

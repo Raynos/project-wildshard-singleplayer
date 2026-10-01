@@ -133,8 +133,8 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
   opt('learnedLut', 'look', 'Learned LUT', ON_OFF, { reload: true, note: 'E85 · off = the captures scripts/fit-lut.py fits from (was ?nolut)' }),
 
   // ── Sky & weather ──
-  // the shards with a day clock: Driftwood's DayNight, Nalati's DayClock, Pine Hollow's PineDayNight
-  opt('time', 'sky', 'Time of day', TIMES, { when: (c) => c.chunk.style === 'toon' || c.chunk.style === 'painterly' || pineHollow(c), note: 'E55 · hold the day clock at one time' }),
+  // Authored clocks and weather opt in through level mechanisms.
+  opt('time', 'sky', 'Time of day', TIMES, { when: (c) => c.chunk.uses?.includes('dayCycle') === true, note: 'E55 · hold the day clock at one time' }),
   opt('weather', 'sky', 'Weather', [['live', 'Live'], ['clear', 'Clear'], ['fog', 'Fog'], ['rain', 'Rain']], { when: (c) => c.chunk.uses?.includes('weather') === true, note: 'E357 S2.4 · live = authored weather; clear = dry; fog / rain hold a phase' }),
   opt('clockSpeed', 'sky', 'Clock speed', [['1', '1×'], ['10', '10×'], ['60', '60×']], { when: nalati, note: 'Nalati\'s day clock (was ?timescale)' }),
 
