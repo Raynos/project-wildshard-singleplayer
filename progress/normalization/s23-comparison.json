@@ -180,5 +180,105 @@
         "nodes": 0
       }
     }
-  }
+  },
+  "finalPopulationAfter": "182f730f32c2811aeb0fe8e20e9b99226905bbe2",
+  "finalPopulationComparison": {
+    "pine-hollow.phone.json": {
+      "endpoints": {
+        "cabin-porch": {
+          "x": -10.386,
+          "y": 3.833,
+          "z": -34.36
+        },
+        "lookout-climb": {
+          "x": 34.926,
+          "y": 57.477,
+          "z": 211.28
+        },
+        "creek-bridge": {
+          "x": -135.826,
+          "y": 1.473,
+          "z": -5.323
+        }
+      },
+      "hitCountsEqual": true,
+      "killsEqual": true,
+      "combatSoundEventsEqual": true,
+      "scopeZero": true,
+      "classDFailures": []
+    },
+    "nalati-grasslands.phone.json": {
+      "endpoints": {
+        "road-camp": {
+          "x": 94.221,
+          "y": -4.336,
+          "z": 204.071
+        },
+        "great-kurgan-door": {
+          "x": -172.985,
+          "y": 34.935,
+          "z": 75
+        },
+        "leopard-cave": {
+          "x": 137.23,
+          "y": 54.117,
+          "z": -66.035
+        }
+      },
+      "hitCountsEqual": true,
+      "killsEqual": true,
+      "combatSoundEventsEqual": true,
+      "scopeZero": true,
+      "classDFailures": []
+    },
+    "driftwood-isle.phone.json": {
+      "endpoints": {
+        "pier": {
+          "x": -19.773,
+          "y": 1.339,
+          "z": -150.548
+        },
+        "lookout": {
+          "x": 93.842,
+          "y": 41.174,
+          "z": 93.766
+        },
+        "cave": {
+          "x": 142.004,
+          "y": 1.22,
+          "z": 18.686
+        }
+      },
+      "hitCountsEqual": true,
+      "killsEqual": true,
+      "combatSoundEventsEqual": true,
+      "scopeZero": true,
+      "classDFailures": []
+    },
+    "nine-dragon-stack.phone.json": {
+      "endpoints": {
+        "stair-street": {
+          "x": 75.421,
+          "y": 146.02,
+          "z": 6
+        },
+        "crossing-gate-bridge": {
+          "x": -6.419,
+          "y": 107.019,
+          "z": -25.4
+        },
+        "escape-square-balustrade": {
+          "x": 0.498,
+          "y": 126.138,
+          "z": -7.405
+        }
+      },
+      "hitCountsEqual": true,
+      "killsEqual": true,
+      "combatSoundEventsEqual": true,
+      "scopeZero": true,
+      "classDFailures": []
+    }
+  },
+  "unresolved": "Pine cabin porch endpoint x changes -10.388 to -10.386, z -34.359 to -34.360; all11 other endpoints exact."
 }

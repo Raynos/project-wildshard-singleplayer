@@ -23,3 +23,16 @@ player feet `(0,0,-1.2)`. Test wall placement blocks the chest/body ray; remove 
 bear at the cabin wall, Ironhide at a fence and the King at the fallen log with equivalent blocked/open player spots.
 
 Remaining S2.3 work is listed in the sol-s23 handoff in `docs/tasks/asks/E357.md`; this checkpoint does not complete the row.
+
+Final population after-run: `182f730f32c2811aeb0fe8e20e9b99226905bbe2`, raw artifacts `/private/tmp/e357-sol-s23/final`.
+All class-D fields green and all scope counters zero; combat counts/kills/event sounds match before. Eleven endpoints exact;
+Pine porch is `(-10.386,3.833,-34.360)` versus before `(-10.388,3.833,-34.359)`. This 2 mm / 1 mm difference remains unresolved;
+do not claim full exact parity for this run. Maximum walk heights are unchanged. The later vocabulary-only NightBrain correction
+changes no species order or random draws. Stun wiring is separately covered by the effect tests and requires combined plugin smoke.
+
+Full clean Vercel gate on `e0b2617c`: CSS/gen/gen-check/tsc/app+api/oxlint/ratchet pass, 1796/1797 tests pass.
+Only `test/shard-prefetch.test.ts:99` fails (Pine phone missing declared boot reads), assigned to S2.1;
+log `/private/tmp/e357-sol-s23/nightfix-gate.log`. Vite build is not reached after that failure. No push/deploy by this builder.
+
+Final clean projected source verification on `8f3b7541`: 258 tests / 27 files pass (all AI, inventory/loot, wall controls,
+effects and level lifecycle). Whole working-tree TypeScript and owned lint pass at 06:26 before the final proof commit.
