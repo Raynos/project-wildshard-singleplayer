@@ -8,7 +8,7 @@ import type { ItemId } from '#game/Inventory';
 import type { SkinId } from '#engine/player/Skins';
 import type { PhShot } from '../audio/sfx';
 import { GroundTell } from '#game/Elite';
-import { StrikeRunner, canReach, type StrikeSpec } from '#engine';
+import { StrikeRunner, canReach, inspectBrain, type StrikeSpec } from '#engine';
 
 /**
  * What Pine Hollow's fights share (src/shards/pine-hollow/: the elites, the Antler King, the combat feel): the world, the player,
@@ -111,6 +111,7 @@ export class LaneCharge {
     this.tellT = tell;
     const spec: StrikeSpec = { ...this.spec, windup: tell };
     this.runner.start(spec, a, { x: px, y: a.position.y, z: pz }, speedMul);
+    inspectBrain(a, () => ({ state: `charge.${this.runner.state}`, picks: [{ id: spec.id, score: 1 }], brainHz: 10, pinned: false }));
   }
   cancel(): void { this.runner.cancel(); this.tellDecal.hide(); }
   recoverNow(): void { this.runner.recoverNow(); }

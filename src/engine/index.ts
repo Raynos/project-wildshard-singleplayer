@@ -141,3 +141,6 @@ export type { SkinLocker, SkinDef } from './player/Skins';
 export { loadWorldContent } from './contentApi';
 export type { Animal } from './entities/Animal';
 export { installRangedFeel, type RangedFeelProfile } from './combat/view/rangedFeel';
+
+export { inspectBrain, pinBrain, brainInspection, type BrainInspection } from './ai/inspect';
+export { installAiDebug, type AiDebugHost, type AiDebugView } from './ai/view/DebugOverlay';

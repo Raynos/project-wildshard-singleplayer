@@ -1,6 +1,6 @@
 import { pineBackdrop } from '../look/skyBackdrop';
 import { PINE_LANES } from './strikes';
-import { canReach } from '#engine';
+import { canReach, inspectBrain, pinBrain } from '#engine';
 import * as THREE from 'three';
 import type { Animal } from '#engine/entities/Animal';
 import { registerSpecies, speciesDef, variantDef, hasSpecies, type SpeciesDef } from '#engine/entities/species/registry';
@@ -231,6 +231,7 @@ export class AntlerKingFight implements BossScript {
     const a = this.ctx.animals.spawn(KING_KIND, C.x, C.z, 0, 'warden');
     a.herd = -1;
     this.king = a;
+    pinBrain(a); inspectBrain(a, () => ({ state: this.mode, picks: [], brainHz: 10, pinned: true }));
     this.look = dressAntlerKing(a, this.kit);
     // bark, not blood: splinters and embers where a bolt lands
     const prev = a.onDamaged;

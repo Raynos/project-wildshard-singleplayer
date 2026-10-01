@@ -1,5 +1,5 @@
 import { PINE_LANES } from './strikes';
-import { EliteBrain, canReach } from '#engine';
+import { EliteBrain, canReach, inspectBrain, pinBrain } from '#engine';
 import * as THREE from 'three';
 import type { Animal } from '#engine/entities/Animal';
 import type { AnimalManager } from '#engine/entities/AnimalManager';
@@ -133,6 +133,7 @@ abstract class PineElite extends EliteBrain<Animal> implements EliteScript {
     const a = this.env.animals.spawn(this.who.kind, L.x, L.z, Math.random() * Math.PI * 2, this.who.variant);
     own(a); elitesOwned.add(a);
     this.animal = a; this.p2 = false; this.setMode('idle'); this.wx = L.x; this.wz = L.z; this.wanderT = 0;
+    pinBrain(a); inspectBrain(a, () => ({ state: this.brainState, picks: [], brainHz: 10, pinned: true }));
     this.onSpawn(a);
   }
   protected onSpawn(_a: Animal): void { /* per elite */ }
