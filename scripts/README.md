@@ -154,6 +154,8 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [guard-counts.mjs](./guard-counts.mjs)
 - [guard-snapshot.mjs](./guard-snapshot.mjs)
 - [inbox-pull.mjs](./inbox-pull.mjs)
+- [ios-retry-check.d.mts](./ios-retry-check.d.mts)
+- [ios-retry-check.mjs](./ios-retry-check.mjs)
 - [iphone-mem-reading.sh](./iphone-mem-reading.sh)
 - [king-rig-gate.mjs](./king-rig-gate.mjs)
 - [ktx2-ab.mjs](./ktx2-ab.mjs)
