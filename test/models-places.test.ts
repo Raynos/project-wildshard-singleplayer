@@ -13,7 +13,7 @@ describe('every named place is a set (E315 M12)', () => {
     expect(places['driftwood-isle']?.named).toBe(DRIFTWOOD_PLACES.length);
     expect(places['nalati-grasslands']?.named).toBe(NALATI_PLACES.length);
     expect(places['pine-hollow']?.named).toBeGreaterThanOrEqual(PINE_HOLLOW_POIS.length);
-    expect(Object.keys(NAMED_PLACES).sort()).toEqual(['driftwood-isle', 'nalati-grasslands', 'nine-dragon-stack', 'pine-hollow']);
+    expect(Object.keys(NAMED_PLACES).sort()).toEqual([...PLACES_ENFORCED].sort());
   });
 
   it('an enforced shard has a set for every named place, and every set names a real place', () => {

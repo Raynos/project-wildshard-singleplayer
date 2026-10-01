@@ -1,0 +1,36 @@
+import { buildTerrain } from '#engine';
+import type { ShardManifest } from '#game';
+import { STRINGS } from './strings';
+import { TRAIL } from './layout';
+import { BUDGETS } from './budgets';
+import { GREY_CARD, EXPLORE } from './explore/art';
+import { bootFiles, bootSources } from './boot/files';
+import { poolMask, POOL } from './world/pool';
+
+export const TEMPLATE: ShardManifest = {
+  budgets: BUDGETS, api: 1, slug: '_template', order: 1000, status: 'hidden', name: STRINGS.name, label: '(+0, +0)', seed: 357,
+  biome: STRINGS.biome, blurb: STRINGS.blurb, placement: { grid: [0, 0], size: [200, 200, 200] },
+  card: { thumb: GREY_CARD, portrait: GREY_CARD, landscape: GREY_CARD },
+  style: 'greybox', kitLook: 'toon', weapon: 'custom', treeCount: 0, trees: { factory: 'none', noun: 'trees' },
+  ground: { paths: 'plugin', water: [POOL], terrain: buildTerrain(357, { landscape: (x, z, { n }) => poolMask(x, z) ? -3 : n.get(x * 0.015, z * 0.015) * 0.5,
+    trails: TRAIL, cabinSites: [] }) },
+  groundColor: (_x, _z, _h, _slope, _terrain, out) => { out[0] = 0.38; out[1] = 0.4; out[2] = 0.42; return out; },
+  spawn: { x: 0, z: 0, yaw: 0 }, bounds: { x0: -100, x1: 100, z0: -100, z1: 100, floor: -10 },
+  sky: { sunColor: [1, 1, 1], sunIntensity: 1.5, envIntensity: 0.5, bgIntensity: 1, fogSunColor: [1, 1, 1], cloudSunColor: [1, 1, 1],
+    hemiSky: 0x9ca7b4, hemiGround: 0x606060, hemiIntensity: 0.7, sun: { azimuth: 35, elevation: 45 } },
+  atmosphere: { fogHeight: -20, fogHeightFalloff: 0, fogHeightDensity: 0, fogDistDensity: 0, volumetricSunColor: [1, 1, 1] },
+  grade: { saturation: 0, brightness: 0, contrast: 0, bloomIntensity: 0, bloomThreshold: 1, shadowTint: [1, 1, 1], highTint: [1, 1, 1], lift: [0, 0, 0], gain: [1, 1, 1], gamma: 1 },
+  render: async () => (await import('./look/render')).templateLook(),
+  uses: ['weather', 'dayCycle', 'bosses', 'elites', 'spawns', 'quests', 'swim', 'hover', 'explore', 'practice', 'coins', 'loot', 'compendium', 'feats', 'bag.pack'],
+  loadout: { weapons: ['weapon.sword-iron', 'weapon.template-whip'], tools: ['tool.template-lantern', 'tool.hoverboard'], start: ['weapon.sword-iron', 'weapon.template-whip', 'tool.template-lantern', 'tool.hoverboard'], held: 'weapon.template-whip' },
+  species: ['boar', 'greyBlob'], spawns: [], fight: { attackers: 2, telegraphed: true, input: { bufferMs: 120, coyoteMs: 100 } },
+  creatures: { lowPoly: true, waitForModels: false, furRim: false, tintRange: 0, oneMaterial: true },
+  tiers: { phone: { 'template.propCount': 10, godRays: false, ao: false }, desktop: { 'template.propCount': 20, godRays: false, ao: false } },
+  hud: { bands: ['band.1', 'band.2', 'band.3'] }, bag: { tabs: ['map', 'gear', 'pack', 'notes'], pack: { slots: 8 } }, loot: { coins: true },
+  audio: { bed: 'forest', ambience: 'kit.ambience.forest', score: 'template.silent', cues: async () => (await import('./audio/cues')).CUES,
+    preload: async () => (await import('#kit')).createForestAudio() },
+  boot: { files: bootFiles, sources: bootSources, viewmodelSets: [], shaders: { background: false }, audio: () => Promise.resolve([]), precache: [] },
+  explore: EXPLORE, roster: async () => (await import('./roster')).ROSTER, load: () => import('./plugin'),
+};
+// oxlint-disable-next-line import/no-default-export -- Folder discovery requires a default manifest.
+export default TEMPLATE;

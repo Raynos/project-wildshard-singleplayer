@@ -6,7 +6,7 @@ import { titleCards } from '#game/titleDeck';
 
 describe('title deck cards', () => {
   it('lists every shard once, in the registry order (the playable shards, then the prototypes)', () => {
-    expect(titleCards().map((c) => c.slug)).toEqual(SHARDS.map((c) => c.slug));
+    expect(titleCards().map((c) => c.slug)).toEqual(SHARDS.filter((c) => c.status !== 'hidden').map((c) => c.slug));
   });
 
   it('each card carries its ShardManifest\'s name, blurb, badge and art', () => {

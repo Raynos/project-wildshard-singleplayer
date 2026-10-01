@@ -33,7 +33,7 @@ export function summaryStore(store: SaveStore, read: (slug: string) => SummaryPr
   const current = (): WildshardSummary => {
     const saved = slot.peek();
     if (saved !== null) return saved;
-    const rebuilt = buildSummary(SHARDS, read); slot.write(rebuilt); return rebuilt;
+    const rebuilt = buildSummary(SHARDS.filter((shard) => shard.status !== 'hidden'), read); slot.write(rebuilt); return rebuilt;
   };
   return {
     read: current,

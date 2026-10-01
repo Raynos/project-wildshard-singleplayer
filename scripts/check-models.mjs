@@ -209,6 +209,7 @@ function importsOf(file, text) {
  *    file not in the checked files (a test's partial map) skips that shard; in the whole tree a missing one fails.
  */
 export const NAMED_PLACES = {
+  ...Object.fromEntries(shardFolders(ROOT).map((slug) => [slug, [{ file: `src/shards/${slug}/quest/Places.ts`, list: 'PLACES' }]])),
   'driftwood-isle': [{ file: 'src/shards/driftwood-isle/quest/Places.ts', list: 'DRIFTWOOD_PLACES' }],
   'nalati-grasslands': [{ file: 'src/shards/nalati-grasslands/layout.ts', list: 'pois', labels: true }], // NALATI_PLACES = NALATI_MAP.pois, slugged (src/shards/nalati-grasslands/quest.ts)
   'pine-hollow': [{ file: 'src/shards/pine-hollow/layout.ts', list: 'PINE_HOLLOW_POIS' }, { file: 'src/shards/pine-hollow/world/places.ts', list: 'PINE_HOLLOW_QUEST_PLACES', optional: true }],
