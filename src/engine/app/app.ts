@@ -43,6 +43,7 @@ class AppWorld {
 }
 
 export class App {
+  params = new URLSearchParams();
   private currentState: AppState = 'boot';
   private systems = new Map<string, SystemSpec>();
   private readonly systemScopes = new Map<string, Scope>();

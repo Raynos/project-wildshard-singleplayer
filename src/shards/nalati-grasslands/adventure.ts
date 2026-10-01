@@ -1,4 +1,6 @@
-import { elitesSave } from '#game';
+import type { Actor } from '#engine';
+
+import { elitesSave, type ShardContext } from '#game';
 /**
  * Nalati's adventure layer (NALATI-MERGE Q1–Q5) — the shard's quest line on the shared quest core
  * (src/game/quest/core.ts: the chip, NPC talk, places with saved discovery, chained chapters), wired from main.ts in
@@ -48,7 +50,8 @@ export interface NalatiBosses {
   titan: { fight: { tied: boolean }; boss: { defeated: boolean } | null };
 }
 
-export interface NalatiAdventureWorld<A extends { kind: string } = { kind: string }> {
+export interface NalatiAdventureWorld<A extends { kind: string; combatActor: () => Actor } = { kind: string; combatActor: () => Actor }> {
+  ctx?: ShardContext;
   game: { scene: THREE.Scene; onUpdate: (fn: (dt: number, t: number) => void, label?: string) => void };
   sky: Sky;
   player: { position: THREE.Vector3; yaw: number };
@@ -64,7 +67,7 @@ export interface NalatiAdventureWorld<A extends { kind: string } = { kind: strin
   /** Nalati's riding + taming (src/shards/nalati-grasslands/ride/ride.ts): the mount for the kokpar, the bonded horse for the quest */
   ride: { mount: KokparMount; taming: { phase: string; isArgymaq: boolean } } | null;
   /** the animal manager: its onKill is chained on the first frame (a balbal toppled = chapter 2's clue) */
-  animals?: { onKill?: ((a: A) => void) | undefined };
+  animals?: { animals: readonly A[]; onKill?: ((a: A) => void) | undefined };
   /** the Golden King + Jel Ata (chapter 2 / 3 read their saved state) */
   nalati?: NalatiBosses | null;
   params?: URLSearchParams;
@@ -106,7 +109,7 @@ function elitesFelled(): Set<string> {
   return out;
 }
 
-export function installNalatiAdventure<A extends { kind: string }>(w: NalatiAdventureWorld<A>): NalatiAdventure | null {
+export function installNalatiAdventure<A extends { kind: string; combatActor: () => Actor }>(w: NalatiAdventureWorld<A>): NalatiAdventure | null {
   if (w.chunk.slug !== 'nalati-grasslands') return null;
   const flags = new Flags(w.chunk.slug);
   if (w.params?.has('resetquest') === true) flags.reset();
@@ -118,7 +121,7 @@ export function installNalatiAdventure<A extends { kind: string }>(w: NalatiAdve
   };
 
   // ── the camp's people ──
-  const people = buildCampPeople(w.sky, floorAt, w.registry ?? null);
+  const people = buildCampPeople(w.sky, floorAt, w.registry ?? null, w.ctx?.scope);
   if (!w.registry) w.game.scene.add(people.group);
 
   // ── the quest line, the chip, the dialogue ──
@@ -133,7 +136,7 @@ export function installNalatiAdventure<A extends { kind: string }>(w: NalatiAdve
     },
     markers,
   });
-  const dialogue = new DialogueBox();
+  const dialogue = new DialogueBox(w.ctx?.scope);
   const talks = (Object.keys(CAMP_NPCS) as PersonId[]).map((id) => {
     const talk = new NpcTalk({ dialogue, flags, npc: CAMP_NPCS[id], at: people.fig[id].headWorld, radius: TALK_R, label: LABELS[id], speaker: people.fig[id], onOpen: () => { w.audio.weaponSwap(); } });
     w.prompts.push(talk.prompt);
@@ -147,12 +150,13 @@ export function installNalatiAdventure<A extends { kind: string }>(w: NalatiAdve
     else w.hud.toast(`Objective · ${q.objective()}`);
     w.music.sting('chunk');
   };
+  w.ctx?.scope.onDispose(() => { chip.line.root.remove(); });
   const caption = new Map<string, RewardCaption>();
   line.onComplete = (q) => {
     w.music.sting('chunk');   // no "Quest complete" toast: the caption below says it (the phone stacked both over it)
     const title = REWARD[q.def.id]?.title;
     let c = caption.get(q.def.id);
-    if (!c) { c = new RewardCaption(`Chapter ${line.number(q)} · complete`, q.def.title, title !== undefined ? `Title earned · ${title}` : ''); caption.set(q.def.id, c); }
+    if (!c) { c = new RewardCaption(`Chapter ${line.number(q)} · complete`, q.def.title, title !== undefined ? `Title earned · ${title}` : ''); caption.set(q.def.id, c); w.ctx?.scope.onDispose(() => c?.root.remove()); }
     const shown = c;
     shown.show(true);
     chip.line.root.classList.add('ws-quest-hide');   // the caption has the screen
@@ -215,6 +219,10 @@ export function installNalatiAdventure<A extends { kind: string }>(w: NalatiAdve
     flags.set(flag);
   };
   let chained = false;
+  if (w.ctx !== undefined) {
+    chained = true;
+    w.ctx.on('actor.died', ({ actor }) => { if (w.animals?.animals.some((a) => a.kind === BALBAL_KIND && a.combatActor() === actor) === true) carving(); });
+  }
   const chainKill = (): void => {
     chained = true;
     const an = w.animals;
@@ -235,7 +243,7 @@ export function installNalatiAdventure<A extends { kind: string }>(w: NalatiAdve
 
   // ── per frame ──
   let slowT = 0;
-  w.game.onUpdate((dt, t) => {
+  const update = (dt: number, t: number): void => {
     if (!chained) chainKill();
     const pp = w.player.position;
     dialogue.update(dt);
@@ -244,9 +252,12 @@ export function installNalatiAdventure<A extends { kind: string }>(w: NalatiAdve
     kokpar.update(dt, pp, w.ride?.mount ?? null);
     chip.update(t, w.player);
     if (t - slowT > 0.5) { slowT = t; poll(t); places.update(pp.x, pp.z); }
-  }, 'shard.nalati-grasslands.installNalatiAdventure');
+  };
+  if (w.ctx === undefined) w.game.onUpdate(update, 'shard.nalati-grasslands.installNalatiAdventure');
+  else w.ctx.system({ id: 'shard.nalati.quest', phase: 'update', after: ['main.6'], before: ['main.world'], run: update });
 
   const adventure: NalatiAdventure = { flags, line, people, kokpar, places, dialogue, chip, markers };
-  Object.assign(window, { __nalatiQuest: { ...adventure, kokparGoals: KOKPAR_GOALS, carving, talk: (id: PersonId) => { talks.find((x) => x.id === id)?.talk.talk(); } } });
+  const debug = { ...adventure, kokparGoals: KOKPAR_GOALS, carving, talk: (id: PersonId) => { talks.find((x) => x.id === id)?.talk.talk(); } };
+  if (w.ctx === undefined) Object.assign(window, { __nalatiQuest: debug }); else w.ctx.debug.expose('nalati.quest', debug);
   return adventure;
 }

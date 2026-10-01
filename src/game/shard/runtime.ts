@@ -1,4 +1,4 @@
-import type { World, StepRunner, Interactable, Animal, AnimalManager, EquipmentService, Weapon, Audio, StepSurface, Music, HUD, GameMenu, FullMap, SkinLocker, SkinDef, CombatCues, Targets, GameMenuOptions } from '#engine';
+import type { World, StepRunner, Interactable, Animal, AnimalManager, EquipmentService, WeaponId, Weapon, Audio, StepSurface, Music, HUD, GameMenu, FullMap, SkinLocker, SkinDef, CombatCues, Targets, GameMenuOptions } from '#engine';
 import type { Group, Vector2, Vector3 } from 'three';
 import type { Inventory } from '../Inventory';
 import type { Progress } from '../Progress';
@@ -15,10 +15,12 @@ export interface ShardPlayHooks {
   wearFinish?: (id: string) => void;
   updatePickups?: (dt: number, t: number) => void;
   disposeRifleDrop?: () => void;
+  animalsReady?: (animals: AnimalManager) => void;
   worldUpdate?: (dt: number, t: number) => void;
   equipmentUpdate?: (dt: number) => void;
   audioUpdate?: (dt: number) => void;
   dispose?: () => void;
+  questFlags?: () => readonly string[];
   checkpoint?: () => boolean;
   eliteEngaged?: () => boolean;
   isElite?: (animal: Animal) => boolean;
@@ -34,8 +36,14 @@ export interface ShardRuntime {
   readonly overhead: Group[];
   readonly hooks: ShardPlayHooks;
   readonly objects: Record<string, unknown>;
-  buildEquipment?: (targets: Targets, nolock: boolean) => Promise<{ primary: Weapon; rifle: Weapon | null; secondary: Weapon | null }>;
+  buildEquipment?: (targets: Targets, nolock: boolean) => Promise<{ primary: Weapon; rifle: Weapon | null; secondary: Weapon | null; extras?: readonly Weapon[]; order?: readonly WeaponId[]; install?: (equipment: EquipmentService) => void }>;
   menu?: Pick<GameMenuOptions, 'skins' | 'onWearSkin' | 'skinsTitle' | 'pack'>;
   viewer: () => Vector3;
   horizonVeil: { value: Vector2 } | null;
+}
+
+declare module '#engine/events/maps' {
+  interface AskMap {
+    'feat.toast': [{ id: string; event?: string; allowed: boolean }, { id: string; event?: string; allowed: boolean }];
+  }
 }

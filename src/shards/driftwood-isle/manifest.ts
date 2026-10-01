@@ -97,6 +97,7 @@ export const DRIFTWOOD_ISLE: ShardManifest = {
   assetGlobs: ['public/assets/models/driftwood-blender/**', 'public/assets/models/driftwood-cc0/**', 'public/assets/models/driftwood-fp/**', 'public/assets/models/driftwood-hero/**', 'public/assets/gpu/models/driftwood-blender/**', 'public/assets/gpu/models/driftwood-hero/**', 'public/assets/gpu/baked/driftwood-isle/**', 'public/assets/horizon/driftwood-isle-*', 'public/assets/gpu/horizon/driftwood-isle-*', 'public/assets/lut/driftwood-isle.bin', 'public/assets/title/driftwood-isle-portrait.jpg', 'public/assets/sfx/driftwood-isle/**'],
   ktx2: () => import('./ktx2.generated'),
   boot: { files: () => [], lateReads }, // no props of its own (today's ocean rule); the island's late reads (./boot/lateReads.ts)
+  load: () => import('./plugin'), // E357 S4.1 counted world builder
   order: 1,
   status: 'live',
   placement: { grid: [-1, 6], size: [500, 500, 500] },
@@ -146,7 +147,7 @@ export const DRIFTWOOD_ISLE: ShardManifest = {
     { id: 'bridge', name: 'Rope bridge', x: (BRIDGE.a[0] + BRIDGE.b[0]) / 2, z: (BRIDGE.a[1] + BRIDGE.b[1]) / 2, r: 12 },
   ],
 
-  ground: { terrain: buildTerrain(SEED, {
+  ground: { paths: 'plugin', terrain: buildTerrain(SEED, {
     oceanLevel: OCEAN.level,
     /**
      * The island: a noise-warped disc centred a little north of the chunk centre. `m` is signed

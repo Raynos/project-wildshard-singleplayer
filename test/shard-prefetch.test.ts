@@ -90,13 +90,13 @@ describe('prefetchVeto: when the background download must not run', () => {
 describe('lateReads and the ?v= URLs (E160)', () => {
   it('names only files the build ships, tier by tier', async () => {
     for (const tier of ['phone', 'desktop'] as const) {
-      const { PLAYABLE_SHARDS, sp } = await load(tier);
+      const { PLAYABLE_SHARDS, sp, versionedUrl } = await load(tier);
       const { PUBLIC_BYTES } = await import('#engine/boot/bytes.generated');
       for (const def of PLAYABLE_SHARDS) {
         const late = sp.lateReads(def);
         for (const u of late) expect(new URL(u, 'http://x').pathname in PUBLIC_BYTES, `${def.slug} ${u}`).toBe(true);
         if (def.load === undefined) expect(late.length, `${def.slug} (${tier})`).toBeGreaterThan(3);
-        else expect(late, `${def.slug} (${tier}): all declared world reads are at boot`).toEqual([]);
+        else expect(late, `${def.slug} (${tier}): only declared late reads`).toEqual((def.boot?.lateReads?.(tier) ?? []).map(versionedUrl));
       }
     }
   });

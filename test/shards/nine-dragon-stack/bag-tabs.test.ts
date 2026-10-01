@@ -1,3 +1,5 @@
+import { NALATI_FEATS } from '#shards/nalati-grasslands/feats';
+import { registerAchievements } from '#game/achievements';
 /**
  * E314: every shard's BAG tabs (src/game/bag/bag.ts `bagTabs`, read by src/engine/ui/Menu.ts syncTabs) — Driftwood's five, Pine
  * Hollow's five (its journal is its FINDS, pick C), Nalati's four (no PACK, pick C), Nine Dragon's MAP · GEAR (pick A) —
@@ -16,6 +18,7 @@ const DRIFT = 'chunk://local/driftwood-isle', PINE = 'chunk://local/pine-hollow'
 /** which shards install a FINDS view at boot: Driftwood's loot (src/game/loot/install.ts), Pine Hollow's hunter's journal
  *  (src/game/compendium/install.ts), Nalati's elites + places (src/shards/nalati-grasslands/bag.ts); Nine Dragon none */
 const FINDS: Record<string, boolean> = { [DRIFT]: true, [PINE]: true, [NALATI]: true, [NINE]: false };
+registerAchievements('nalati-grasslands', NALATI_FEATS);
 const tabsOf = (id: string): string[] => bagTabs({ finds: FINDS[id] ?? false, pack: new Inventory(id).slots > 0, feats: new Progress(id).rows.length > 0 });
 
 describe('each shard\'s BAG tabs', () => {

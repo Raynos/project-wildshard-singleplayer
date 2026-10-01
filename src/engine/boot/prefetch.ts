@@ -34,11 +34,11 @@ const EXTRA_CONCURRENCY = 16;
  * Driftwood's boot plus 14 MB of Pine Hollow's.
  */
 export function bootFetches(def: ShardManifest, files: ChunkFiles): string[] {
-  const painted = def.style === 'toon' || def.style === 'painterly'; // no ground textures: only the baked terrain
+  if (def.boot?.sources !== undefined) return [...files.sky, ...files.baked, ...files.terrain, ...files.trees, ...files.cabins, ...files.props];
+  const painted = def.style === 'toon'; // no ground textures: only the baked terrain
   const terrain = painted ? files.terrain.filter((f) => f.startsWith('/assets/baked/')) : files.terrain;
   const trees = files.trees; // the shard's boot manifest declares its tree textures
-  // a painterly shard (Nalati) builds no cabins; its `props` are its own boot reads (manifest.ts `painterlyBoot`)
-  const homestead = def.style === 'painterly' ? files.props : def.ocean === undefined ? [...files.cabins, ...files.props] : [];
+  const homestead = def.ocean === undefined ? [...files.cabins, ...files.props] : [];
   return [...files.sky, ...files.baked, ...terrain, ...trees, ...homestead]; // not files.physics: Rapier fetches its own WASM at boot start (streamed compile), outside the uncompressed pack
 }
 const pathOf = (url: string): string => { try { return new URL(url, location.href).pathname; } catch { return url; } };

@@ -84,35 +84,20 @@ const SHARD_STEPS: Readonly<Record<string, ShardSteps>> = {
       sfx: 'forest beds · rain · calls · barks',
     },
   },
-  'nalati-grasslands': {
-    steps: {
-      renderer: { weight: 0.3 },
-      sky: { label: engineString('s_824bf8cc8206'), weight: 2.5 },
-      terrain: { label: engineString('s_ec37ccc60713'), weight: 1.8 },
-      cards: { label: engineString('s_be4718ed9a95'), weight: 0.1 },
-      forest: { label: engineString('s_5c68a3a4d072'), weight: 0.15 },
-      edge: { label: engineString('s_73ab479c55af'), weight: 0.15 },
-      grass: { label: engineString('s_9aa213907fc3'), weight: 0.5 },
-      cabins: { label: engineString('s_62e4c7b67184'), weight: 0.05 },
-      props: { label: engineString('s_32d65e5cf8be'), weight: 8.5 },
-      animals: { label: engineString('s_e9d857cdb0ca'), weight: 0.1 },
-      weapon: { label: engineString('s_a50857cdcfcf'), weight: 0.05 },
-      shaders: { weight: 2.2 },
-      firstFrame: { weight: 0.5 },
-    },
-    bytes: { trees: 'spruce bark' },
-  },
+
 };
 
 let shard: string | null = null;
+let ownBytes: Readonly<Partial<Record<ByteKey, string>>> | undefined;
 /**
  * The active shard's nouns + weights over the table (main.ts, before the boot plan is made). A shard without its own
  * rows keeps the shared table exactly, and its load timings stay under the shared key (`shardTimingKey`).
  */
-export function useShardSteps(slug: string): void {
+export function useShardSteps(slug: string, steps?: Readonly<Record<string, { label: string; weight: number }>>, bytes?: Readonly<Partial<Record<ByteKey, string>>>): void {
   const o = SHARD_STEPS[slug];
-  shard = o ? slug : null;
-  for (const k of BOOT_STEPS) STEP_INFO[k] = { label: o?.steps[k]?.label ?? BASE_INFO[k].label, weight: o?.steps[k]?.weight ?? BASE_INFO[k].weight };
+  shard = o || steps !== undefined ? slug : null;
+  ownBytes = bytes;
+  for (const k of BOOT_STEPS) STEP_INFO[k] = { label: steps?.[k]?.label ?? o?.steps[k]?.label ?? BASE_INFO[k].label, weight: steps?.[k]?.weight ?? o?.steps[k]?.weight ?? BASE_INFO[k].weight };
 }
 /** '' for the shared table, else `:<slug>` — the timing store keys a shard with its own steps separately */
 export const shardTimingKey = (): string => (shard ? `:${shard}` : '');
@@ -129,4 +114,4 @@ const CLOSED_BY: Record<ByteKey, BootStep> = { sky: 'sky', baked: 'sky', terrain
 export const closedBy = (key: ByteKey): BootStep => CLOSED_BY[key];
 const LABELS: Partial<Record<ByteKey, string>> = { trees: 'tree bark · twigs', baked: 'baked textures', art: 'title art', music: 'music · every style', sfx: 'sound effects · every set' };
 // a shard may name its own downloads (SHARD_STEPS `bytes`: Pine Hollow's sky keys, pine bark, landmarks · creatures)
-export const byteLabel = (key: ByteKey): string => (shard ? SHARD_STEPS[shard]?.bytes?.[key] : undefined) ?? LABELS[key] ?? STEP_INFO[closedBy(key)].label.toLowerCase();
+export const byteLabel = (key: ByteKey): string => ownBytes?.[key] ?? (shard ? SHARD_STEPS[shard]?.bytes?.[key] : undefined) ?? LABELS[key] ?? STEP_INFO[closedBy(key)].label.toLowerCase();

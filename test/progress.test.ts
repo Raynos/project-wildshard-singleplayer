@@ -1,3 +1,4 @@
+import { NALATI_FEATS } from '#shards/nalati-grasslands/feats';
 import { PINE_FEATS } from '#shards/pine-hollow/feats';
 // src/game/achievements.ts + src/game/Progress.ts — kills → achievement counts → earned titles → the worn title.
 import { describe, expect, it, vi } from 'vitest';
@@ -15,6 +16,7 @@ loadSpecies();
 const kill = (p: Progress, kind: string, variant: string | undefined, n: number): void => { for (let i = 0; i < n; i++) p.recordKill(kind, variant); };
 
 registerAchievements('pine-hollow', PINE_FEATS);
+registerAchievements('nalati-grasslands', NALATI_FEATS);
 
 describe('achievement tables', () => {
   it('Pine Hollow has its table; a shard without one gets an empty list', () => {

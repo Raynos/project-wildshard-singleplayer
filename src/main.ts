@@ -1,11 +1,10 @@
 import { registerLevelDebugRow } from '#engine/ui/debugOptions';
 import { hudAdapters } from '#engine/ui/hudAdapters';
 import { equipmentEntry, toolEntries } from '#game/bag/equipment';
-import { SWORD_WOOD, SWORD_IRON, type MeleeProfile, Rifle, loadParticles, installKitSpecies } from '#kit';
-import { AR15 } from '#shards/nalati-grasslands/weapons/equipment';
+import { SWORD_WOOD, SWORD_IRON, type MeleeProfile, loadParticles, installKitSpecies, KIT_ITEMS } from '#kit';
 import { reportError } from '#engine/core/errorReport';
 import { showLoadFailure } from '#engine/ui/errorScreen';
-import { app, EffectService, CombatCues, pageSeed, LevelLoadError, installBounds, EquipmentService, type WeaponId, type Weapon, type LevelContext, type DiscSpot, CHUNK_HALF, ROAD_LENGTH, startViewmodelTextures, viewmodelTexturesReady, type Targets, type TargetHit, getNumber, onNumber, onSettingChange, setting, floorBelow, lineOfSight } from '#engine';
+import { app, EffectService, CombatCues, pageSeed, LevelLoadError, installBounds, EquipmentService, type WeaponId, type Weapon, type LevelContext, type DiscSpot, CHUNK_HALF, startViewmodelTextures, viewmodelTexturesReady, loadWorldContent, authoredTargets, type Targets, getNumber, onNumber, onSettingChange, setting, floorBelow, lineOfSight } from '#engine';
 
 import { shardContext, toLevelSpec, consumeTravelHandoff, bindTravelInventory, applyTravelCarry, setShardSwitcher, type TravelHandoff, type ItemRow, type ShardContext, type GameServices, type ShardRuntime } from '#game';
 import { levelSequenceDriver, type LevelSequence } from '#game/shard/sequence';
@@ -19,37 +18,17 @@ import { setPoseProvider } from '#engine/ui/ReloadPrompt';
 
 import { hasPond, heightAt, normalAt, trailDistance, TRAILS } from '#engine/world/Heightfield';
 import { Boundary } from '#engine/world/Boundary';
-import { Water } from '#shards/pine-hollow/world/pond';
-import { Ocean } from '#shards/driftwood-isle/world/Ocean';
-import { Pier } from '#shards/driftwood-isle/world/Pier';
-import { Boat } from '#shards/driftwood-isle/world/Boat';
-import { Boulders } from '#shards/driftwood-isle/world/Boulders';
-import { Hut } from '#shards/driftwood-isle/world/Hut';
-import { Palms } from '#shards/driftwood-isle/world/Palms';
-import { GroundCover } from '#shards/driftwood-isle/world/GroundCover';
-import { tintTerrain } from '#shards/driftwood-isle/world/coverTint';
-import { area as islandArea } from '#engine/world/blenderArea';
-import { HUT, LOOKOUT, WRECK, SHRINE, JETTIES, BRIDGE, BOAT_MOOR, PIER_PENNANT_AT, PRACTICE_CRAB } from '#shards/driftwood-isle/manifest';
+import { SHRINE, PRACTICE_CRAB } from '#shards/driftwood-isle/manifest';
+import { driftwoodWorld } from '#shards/driftwood-isle/world/build';
 import { installFirstMinutes } from '#shards/driftwood-isle/firstMinutes';
-import { RopeBridge } from '#shards/driftwood-isle/world/RopeBridge';
-import { Seabed } from '#shards/driftwood-isle/world/Seabed';
 import { Cove } from '#shards/driftwood-isle/world/Cove';
 import { Enemies } from '#shards/driftwood-isle/creatures/Enemies';
-import { Lookout } from '#shards/driftwood-isle/world/Lookout';
-import { Wreck } from '#shards/driftwood-isle/world/Wreck';
 import { placeDriftwoodPlaces } from '#shards/driftwood-isle/world/places';
-import { Shrine } from '#shards/driftwood-isle/world/Shrine';
-import { Bushes } from '#shards/driftwood-isle/world/Bushes';
-import { Gulls } from '#shards/driftwood-isle/world/Gulls';
-import { Trailside } from '#shards/driftwood-isle/world/Trailside';
 import { Hands } from '#engine/player/Hands';
 import { Sword, swordEvents } from '#kit/weapons/melee/SweptMelee';
 import { CameraFX } from '#engine/player/CameraFX';
-import { buildNalatiKit } from '#shards/nalati-grasslands/weapons/nalatiKit';
 import { IronSwordPickup, ironSwordSite } from '#shards/driftwood-isle/weapons/IronSword';
 import { installAdventure } from '#game/quest/Adventure';
-import { installNalatiAdventure, CAPTIONED_EVENTS } from '#shards/nalati-grasslands/adventure';
-import { nalatiFinds, skinRows as nalatiSkinRows } from '#shards/nalati-grasslands/bag';
 import { Horizon } from '#engine/world/Horizon';
 import { HorizonMatte } from '#engine/world/HorizonMatte';
 import { Grass } from '#engine/world/Grass';
@@ -97,8 +76,7 @@ import { DeathFade } from '#engine/ui/DeathFade';
 import { FirstHints } from '#engine/ui/FirstHints';
 import { LastPlace, placeName } from '#game/LastPlace';
 import { setAimTargets, meleeLock, lockOn as lockState, type AimTarget } from '#engine/player/AimTargets';
-import { pastRidden, riding } from '#engine/player/riding';
-import { createBootPlan, macrotask, slicer, type StepProgress, type StepRunner } from '#engine/boot/plan';
+import { createBootPlan, macrotask, type StepProgress, type StepRunner } from '#engine/boot/plan';
 import { useShardSteps } from '#engine/boot/steps';
 import { declareTotals, installByteCounter, releaseByteCounter } from '#engine/boot/bytes';
 import { bootFiles, extraFetches, startAudioPreload, startDeferredAudioPreload, startMenuPreload } from '#engine/boot/extras';
@@ -127,12 +105,8 @@ import { registerPlayground, type PlaygroundId } from '#engine/practice/playgrou
 import { TIER } from '#engine/core/tier';
 import { frameCost, type Bucket } from '#engine/core/frameCost';
 import { Impacts } from '#engine/fx/Impacts';
-import { wireNalati, type Nalati } from '#shards/nalati-grasslands/index';
 import { shardCompleteUp } from '#game/complete/ShardComplete';
-import { cutTerrain } from '#engine/physics/terrain';
-import { RopeChain } from '#engine/physics/ropeChain';
 import { pathRampDescs } from '#engine/physics/paths';
-import type { BoxSpec as Collider } from '#engine/physics/box';
 import { activePhysics } from '#engine/physics/active';
 
 import { pickInteractable } from '#engine/world/interact/Interactables';
@@ -239,7 +213,7 @@ async function buildShardWorld(slug: string, manifest: ShardManifest, stage: Loa
   const plugin = new Plugin();
   const game: GameServices = { runtime: boot.runtime, shard: manifest, rows: new Map(), bag: {
     tab: () => { throw new Error('Bag plugin tabs are not installed'); },
-    fragment: () => { throw new Error('Bag plugin fragments are not installed'); },
+    fragment: (tab, fragment) => { const menu = boot.runtime.play?.menu; if (menu === undefined) throw new Error('Bag plugin fragments require the play host'); return menu.addBagFragment(tab, fragment); },
   } };
   let context: ShardContext | undefined;
   const ctx = (level: LevelContext): ShardContext => { context ??= shardContext(level, manifest, game); return context; };
@@ -264,6 +238,7 @@ async function buildShardWorld(slug: string, manifest: ShardManifest, stage: Loa
     await app.loadLevel(toLevelSpec(manifest), {
       world: (level) => boot.worldHook(async () => { await plugin.world?.(ctx(level)); }),
       kit: async (level) => {
+        ctx(level).rows.item(KIT_ITEMS);
         await plugin.kit?.(ctx(level));
         boot.skins = [...(game.rows.get('skin')?.values() ?? [])] as SkinDef[];
         boot.items = game.rows.get('item') ?? new Map();
@@ -295,7 +270,7 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   await stage('ktx2', () => prepareShardAssets(manifest, registerGpuFiles));
   const audioProfile = await stage('audio.preload', () => manifest.audio?.preload?.());
   const files = bootFiles(getActiveChunk(), undefined, audioProfile); // + the title / explore art and every audio file (project/archive/2026-09-23-preload-offline.md)
-  useShardSteps(getActiveChunk().slug); // the shard's own loading nouns + weights (src/engine/boot/steps.ts)
+  useShardSteps(manifest.slug, manifest.boot?.steps, manifest.boot?.bytes); // the shard's own loading nouns + weights (src/engine/boot/steps.ts)
   const bootSteps: Record<string, number> = {}; // each step's wall ms (the host's timings: what a build / rebuild spends where)
   const plan = createBootPlan((view) => { loading.paint(view); resumeProgress(view.setup); for (const r of view.rows) if (r.state === 'ok') bootSteps[r.key] = Math.round(r.ms); }, { totals: declareTotals(files) });
   installByteCounter(plan, files);
@@ -330,6 +305,7 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   const level = yield 'world';
   const world = await bootstrap(step, toLevelSpec({ ...manifest, spawn: boot.handoff?.arrive ?? manifest.spawn }));
   const { game, sky, player, forest, params, chunk, registry } = world;
+  app.params = params;
   boot.runtime.world = world; boot.runtime.step = step;
   if (level !== undefined) game.scene.add(level.root);
   // Fragile phone builds need a GPU guard before normal in-game recovery is installed.
@@ -351,127 +327,23 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
     failGpuBoot('WebGL context lost during loading');
   };
   if (fragileBoot) game.canvas.addEventListener('webglcontextlost', onBootContextLost);
-  // the built things' legacy boxes, for the ocean's foam rings (every one registers itself: models through
-  // src/engine/models/place.ts, the world's welds — the trail, the cove — as world pieces, E315)
-  const statics: Collider[] = [];
   const nolock = params.has('nolock');
   // what the view-dependent layers (ground cover, grass, mist) fill around: the player, or Explore's free camera (E66)
   const viewer = (): THREE.Vector3 => (world.freeCamera ? game.camera.position : player.position);
   boot.runtime.viewer = viewer;
   const sea = chunk.ocean, isOcean = sea !== undefined; // open-water shard (Driftwood Isle): ocean + pier, no forest carpet / cabins / props
-  const painterly = chunk.style === 'painterly'; // Nalati: no undergrowth / cabins / props — its world is wired by src/nalati (the props step)
   // a structure-first shard (ShardManifest.ground.structures, Nine Dragon Stack): no ground cover / cabins / props / walkways — its world is built in the props step
   const built = game.level.ground.structures;
-  let nalati: Nalati | null = null;
 
   // ── world dressing ──
-  const dressing = await step('edge', async () => {
-    const slice = slicer(); // between the builders below: a task ends once it has run ~30 ms (Driftwood's pier … cove were one 0.3–0.5 s task)
+  const edgeDressing = await step('edge', async () => {
     const boundary = new Boundary(sky).build();
     game.scene.add(boundary.group);
     await macrotask(); // boundary · water · horizon each in its own task
-    const water = !isOcean && hasPond() ? new Water(sky, forest.trees).build() : null;
+    const water = !isOcean && hasPond() ? new (await loadWorldContent()).Water(sky, forest.trees, { ...(chunk.pondClip === undefined ? {} : { clip: chunk.pondClip }), ...(chunk.pondLilyExclusions === undefined ? {} : { lilyExclusions: chunk.pondLilyExclusions }) }).build() : null;
     if (water) game.scene.add(water.group);
     // PH-L9: Pine Hollow's creek, waterfall, plunge foam and spray (two draws; they run on the wind clock)
     const streams = null;
-    const ocean = isOcean ? new Ocean(sky).build() : null;
-    if (ocean) game.scene.add(ocean.group);
-    // the south entry road is a wooden pier over the water; the player spawns on its deck
-    // E315 M1: the pier model (src/shards/driftwood-isle/models/pier.ts) placed through src/engine/models/place.ts, which registers piece `pier`
-    const pier = sea ? new Pier(sky, { x: 0, z: -CHUNK_HALF, length: ROAD_LENGTH, width: 4, deckY: sea.level + 1.2, landing: true, pennantAt: PIER_PENNANT_AT }).place(registry, 'pier') : null;
-    if (pier) {
-      statics.push(...pier.colliders);
-      const y = pier.floorHeightAt(player.position.x, player.position.z); if (y !== undefined) player.position.y = y;
-    }
-    // the little sailboat you arrived in, moored alongside the pier by the spawn (E308: half way down); you can drop into it
-    // E315 M1: the sailboat model (src/shards/driftwood-isle/models/boat.ts) placed through src/engine/models/place.ts, which registers
-    // piece `boat`: it rides the swell, its colliders (in the boat's own frame) follow it on a kinematic body (P4)
-    const boat = pier && sea ? new Boat(sky, { x: BOAT_MOOR.x, z: BOAT_MOOR.z, heading: 0, waterY: sea.level, moorTo: pier.mooringsFor(BOAT_MOOR.x, BOAT_MOOR.z) }).place(registry) : null;
-    if (boat) {
-      statics.push(...boat.colliders);
-      if (boat.ropes) game.scene.add(boat.ropes);
-    }
-    await slice();
-    // faceted shore boulders along the beach
-    const rockSpecs = isOcean ? Boulders.scatterShore(chunk.seed) : [];
-    // E306 M0b: a model (src/shards/driftwood-isle/models/shoreBoulder.ts) placed through src/engine/models/place.ts, which registers piece `rocks`
-    const rocks = isOcean ? new Boulders(sky).place(rockSpecs, registry) : null;
-    if (rocks) statics.push(...rocks.colliders);
-    await slice();
-    // the thatched stilt hut on the plateau (porch, floor and front steps are walkable)
-    // E315 M1: the hut model (src/shards/driftwood-isle/models/hut.ts) placed through src/engine/models/place.ts, which registers piece `hut`
-    const hut = isOcean ? new Hut(sky, HUT).place(registry) : null;
-    if (hut) statics.push(...hut.colliders);
-    await slice();
-    // the NE headland's lookout tower (platform + stair ramp walkable) and the wreck heeled on the east reef (deck walkable)
-    // E315 M1: the lookout tower model (src/shards/driftwood-isle/models/lookout.ts) placed through src/engine/models/place.ts, which registers piece `lookout`
-    const lookout = isOcean ? new Lookout(sky, LOOKOUT).place(registry) : null;
-    if (lookout) statics.push(...lookout.colliders);
-    await slice();
-    // E315 M1: the shipwreck model (src/shards/driftwood-isle/models/shipwreck.ts) with the cove's cargo, drift logs and reef
-    // rocks, placed drawnInto the wreck site's meshes (piece `wreck`: the site's colliders; the Wreck cove set)
-    const wreck = isOcean ? new Wreck(sky, WRECK).place(registry) : null;
-    if (wreck) { game.scene.add(wreck.group); statics.push(...wreck.colliders); }
-    await slice();
-    // the ring shrine in the NW jungle; the N / W / E jetties (the other entry roads); hibiscus bushes
-    // E315 M1: the ring shrine model (src/shards/driftwood-isle/models/shrine.ts) placed through src/engine/models/place.ts, which registers piece `shrine`
-    const shrine = isOcean ? new Shrine(sky, SHRINE).place(registry) : null;
-    if (shrine) statics.push(...shrine.colliders);
-    await slice();
-    // the three jetties: three more placements of the pier model, pieces `jetty-0..2`
-    const jetties: Pier[] = [];
-    if (sea) for (const [i, j] of JETTIES.entries()) { const jetty = new Pier(sky, { x: j.x, z: j.z, rot: j.rot, length: j.length, width: 3, deckY: sea.level + 1.2 }).place(registry, `jetty-${i}`); statics.push(...jetty.colliders); jetties.push(jetty); await slice(); }
-    await slice();
-    const AVOID = [{ x: HUT.x, z: HUT.z, r: 11 }, { x: LOOKOUT.x, z: LOOKOUT.z, r: 12 }, { x: SHRINE.x, z: SHRINE.z, r: 13 }, { x: WRECK.x, z: WRECK.z, r: 14 }];
-    // E315 M1: the hibiscus bush model (src/shards/driftwood-isle/models/hibiscusBush.ts) placed through src/engine/models/place.ts, which registers piece `bushes`
-    const bushes = isOcean ? new Bushes(sky).place(Bushes.scatterIsland(chunk.seed, undefined, AVOID), registry) : null;
-    await slice();
-    // gulls: perched on the pier posts / bollards, the boat's bow and stern, the big shore rocks and the wet sand; flocks wheel over the lagoon
-    const gulls = pier && boat && rocks && sea ? new Gulls(sky).build({
-      perches: [
-        ...pier.posts.map((p) => new THREE.Vector3(p.x, pier.deckY + 1.02, p.z)),
-        ...pier.bollards.map((p) => new THREE.Vector3(p.x, pier.deckY + 1.41, p.z)),
-        new THREE.Vector3(-4.2, sea.level + 0.78, -CHUNK_HALF + 6 - 3.0), new THREE.Vector3(-4.2, sea.level + 0.7, -CHUNK_HALF + 6 + 3.0),
-        ...rockSpecs.filter((b) => b.r > 1.8).map((b) => new THREE.Vector3(b.x, heightAt(b.x, b.z) + b.r * (b.squash ?? 0.7) * 1.3, b.z)),
-        ...Gulls.beachPerches(chunk.seed, 10, { x: 0, z: -195, r: 90 }),
-      ],
-      centre: new THREE.Vector3(0, 0, -205), radius: 90,
-    }) : null;
-    if (gulls) game.scene.add(gulls.group);
-    await slice();
-    // sand paths between the POIs: plank steps up the crag, rope fences, signposts
-    const trailside = isOcean ? new Trailside(sky).build(Trailside.forIsland()) : null;
-    // E315 M1: its fence posts, signposts and plank steps are models placed drawnInto the trail's weld (pieces `trail-*`, their
-    // colliders with them); the trail's own piece keeps its steps' and stairs' treads
-    if (trailside) { statics.push(...trailside.colliders); trailside.place(registry); }
-    await slice();
-    // the rope bridge over the tidal creek on the hut → lookout path (its deck: a RopeChain, below)
-    // E315 M1: the rope bridge model (src/shards/driftwood-isle/models/ropeBridge.ts) placed through src/engine/models/place.ts, which registers piece `bridge`
-    const bridge = isOcean ? new RopeBridge(sky, BRIDGE).place(registry) : null;
-    if (bridge) statics.push(...bridge.colliders);
-    await slice();
-    // coral, kelp, starfish and a fish school on the lagoon shelf (what you dive for)
-    const seabed = isOcean ? new Seabed(sky).build(Seabed.scatterLagoon(chunk.seed, 360, [{ x: WRECK.x, z: WRECK.z, r: 18 }])) : null;
-    if (seabed) { game.scene.add(seabed.mesh); if (seabed.fish) game.scene.add(seabed.fish); }
-    await slice();
-    // coconut palms: where they stand (the palm itself is a model, placed below — one draw call, fronds sway in update)
-    const palmSpecs = isOcean ? Palms.scatterIsland(chunk.seed, undefined, AVOID) : [];
-    await slice();
-    // Wreck Cove dressing: tidepools (the reef crabs' homes), the cascade + plunge pool, the glowing cave mouth
-    // E315 M1: the cove is world (piece `cove`); its reef rocks are the reef-rock model
-    const cove = isOcean ? new Cove(sky).place(registry, Cove.forIsland()) : null;
-    if (cove) {
-      statics.push(...cove.colliders);
-      cutTerrain(world.physics, cove.terrainCuts()); // the drawn terrain pokes up through the sea cave: the physics ground doesn't
-    }
-    await slice();
-    // E315 M1: the palm model (src/shards/driftwood-isle/models/palm.ts) placed through src/engine/models/place.ts, which registers piece `palms`
-    const palms = isOcean ? new Palms(sky).place(palmSpecs, registry) : null;
-    if (palms) statics.push(...palms.colliders);
-    // ground cover near the player (M4): instanced grass / ferns / flowers / pebbles, refilled as you walk
-    const cover = sea ? new GroundCover(sky, { sea: sea.level, palms: palmSpecs }).build() : null;
-    if (cover) { game.scene.add(cover.group); game.onUpdate((dt) => cover.update(dt, viewer()), 'main.1'); tintTerrain(world.terrain.mesh); } // E156: the ground wears the cover
-    ocean?.foamAround(statics); // foam rings around every pile, rock and hull standing in the sea (Ocean W2)
     await macrotask();
     const horizon = new Horizon(sky).build();
     game.scene.add(horizon.group);
@@ -482,28 +354,16 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
       game.onUpdate((dt) => { matte.update(dt, game.camera, sky.dayNight?.night ?? 0); }, 'main.2');
       document.addEventListener('ws:ready', () => { setTimeout(() => { void matte.load(horizon.group); }, 250); }, { once: true });
     }
-    return { boundary, water, streams, ocean, pier, jetties, boat, palms, palmSpecs, cove, hut, lookout, wreck, shrine, bushes, gulls, bridge, seabed, horizon, rocks, cover, trailside };
+    return { boundary, water, streams, horizon };
   });
-  const { boundary, water, ocean, pier, jetties, boat, palms, palmSpecs, cove, hut, lookout, wreck, shrine, bushes, gulls, bridge, seabed, horizon } = dressing;
+  const { boundary, water, horizon } = edgeDressing;
   boot.runtime.horizonVeil = horizon.painted?.veil ?? null;
-  // the rope bridge's deck hangs as a jointed chain (PHYSICS.md): it sags and bounces under you, the drawn planks follow
-  const bridgeDeck = bridge ? new RopeChain(world.physics, bridge.chainSpec()) : null;
-  if (bridgeDeck) game.onFixed('post', () => { bridgeDeck.capture(); }, 'main.3');
   // the paths as walkways where they cross ground steeper than the motor climbs (PHYSICS P4) — now that the decks are
   // registered, none where a deck carries the path (a board there pokes up through the bridge's planks); Nalati's decks
   // register in its props step (NALATI-MERGE P1), so its paths are laid after that
   const addPaths = (): void => { registry.add({ id: 'paths', name: 'Paths', category: 'ground', file: 'src/engine/physics/paths.ts', surface: 'ground',
     colliders: pathRampDescs(TRAILS, heightAt, (x, z) => normalAt(x, z)[1], { carried: (x, z) => registry.floorAt(x, z) !== undefined }) }); };
-  if (!painterly && built === undefined) addPaths();
-  // the Blender-built spawn cove (DRIFTWOOD-REMASTER X2, E52; the only island since E136): it sits on the procedural cove,
-  // which stays as the fallback when it fails to load
-  const blenderIsland = isOcean
-    ? await import('#shards/driftwood-isle/world/BlenderIsland').then(({ BlenderIsland: B }) => B.install({
-      scene: game.scene, sky, registry, terrain: world.terrain.mesh, palms: palms?.mesh ?? null, palmSpecs,
-      replace: [bushes?.mesh ?? null], cover: dressing.cover?.group ?? null,
-    })).catch((e: unknown) => { console.warn('[island] the Blender island did not load; procedural', e); return null; })
-    : null;
-  if (blenderIsland) { game.onUpdate(() => { blenderIsland.update(sky); }, 'main.4'); dressing.cover?.excludeArea(islandArea); } // E156: the cove dresses its own area
+  if (chunk.ground.paths !== 'plugin' && built === undefined) addPaths();
 
   const carpet = manifest.load === undefined && !isOcean && built === undefined
     ? await step('grass', async () => {
@@ -522,7 +382,6 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   }
   const interactables = boot.runtime.interactables;
   const props = manifest.load === undefined ? await step('props', async (p) => {
-    if (painterly) { nalati = await wireNalati({ game, sky, player, forest, chunk }); addPaths(); return null; } // the Nalati world (src/shards/nalati-grasslands/index.ts)
     if (isOcean) return null;
     if (typeof chunk.ground.structures === 'object') { // legacy builder before its plugin migration
       const structures = await chunk.ground.structures.build();
@@ -543,7 +402,7 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
     const music = shell.music ?? asShell(() => new Music(audio));
     shell.music = music;
     music.attach(audio);
-    const mood = chunk.ocean ? 'island' : chunk.style === 'painterly' ? 'steppe' : 'pine';
+    const mood = chunk.ocean ? 'island' : 'pine';
     music.setState({ shard: mood, mode: 'menu', intensity: 0, underwater: false });
     audio.music = music;
     audio.listenerPosition = player.position;
@@ -553,6 +412,11 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   };
   if (audioProfile) prepareAudio();
   yield 'kit';
+
+  // Driftwood's world, built by its plugin's world hook (src/shards/driftwood-isle/world/build.ts, E357 S4.1); its readers
+  // below move into the plugin at S4.2–S4.4 (nothing built off Driftwood)
+  const dressing = { ...edgeDressing, ...driftwoodWorld(boot.runtime) };
+  const { ocean, pier, jetties, boat, palms, palmSpecs, cove, hut, lookout, wreck, shrine, bushes, gulls, bridge, seabed, bridgeDeck } = dressing;
   if (chunk.ocean) {
     const { ISLAND_BOAR, ISLAND_BEAR } = await import('./shards/driftwood-isle/creatures/species');
     app.species.registerRow(ISLAND_BOAR, game.levelScope);
@@ -564,10 +428,7 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
     p.detail(`${a.animals.length} animals`);
     return a;
   });
-  const nalatiNow = (): Nalati | null => nalati; // (a closure: TS narrows the `let` to null after the props step's callback)
-  const wildlife = nalatiNow()?.attachAnimals(animals) ?? null; // Nalati's wolves / horses / sheep over the AnimalManager (src/shards/nalati-grasslands/index.ts)
-  const ride = nalatiNow()?.ride ?? null; // Nalati's riding + taming (src/shards/nalati-grasslands/ride/ride.ts): ONE prompt, always the nearest horse action
-  if (ride) interactables.push(ride.interactable);
+  boot.runtime.hooks.animalsReady?.(animals);
   // the island's enemies (Enemies.ts): reef crabs at the tidepools, coconut monkeys in the groves, the drowned sailor in the wreck's hold,
   // and (E308) the lone practice crab on the path at the pier's foot
   const enemies = isOcean ? new Enemies(animals, { scene: game.scene, sky, palms: palmSpecs, wreck, crabSites: cove?.crabSites ?? [], ...(chunk.slug === 'driftwood-isle' ? { practice: PRACTICE_CRAB } : {}) }).build() : null;
@@ -580,9 +441,7 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   const dayNight = sky.dayNight; // the backdrop's shared clock drives night activity
   if (dayNight) animals.enemyWorld.night = () => dayNight.night;
   // The resident clock drives Settings, Explore light presets and the HUD day badge.
-  const nalatiClock = nalatiNow()?.weather.clock;
-  const worldClock = dayNight ?? nalatiClock ?? null;
-  if (nalatiClock && !params.has('time')) nalatiClock.setTime(setting('time'));
+  const worldClock = dayNight ?? app.dayCycle;
   app.registerDayCycle(worldClock, game.levelScope);
   if (worldClock) onSettingChange('time', (t) => { worldClock.setTime(t); }); // pause menu ▸ Settings ▸ Time of day (E55)
 
@@ -590,41 +449,31 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   // ── player kit: the shard's weapon + the rifle slot where the shard has one (EquipmentService.ts: 1…N / Q, the touch SWAP ring), HUD, audio ──
   const shardSword = (await step('weapon', () => Promise.all([viewmodelTexturesReady(), chunk.sword?.() ?? null])))[1]; // the viewmodels' textures from the worker + the lever-action's model (usually long done) + the shard's own sword (ShardManifest.sword); the build below is synchronous
   let arena: TrainingArena | null = null;
-  const targets: Targets = {
-    raycast(origin: THREE.Vector3, dir: THREE.Vector3, maxDist: number): TargetHit | null {
-      if (arena?.entered) return arena.raycast(origin, dir, maxDist);
-      const h = pastRidden(() => animals.raycast(origin, dir, maxDist)); // never the horse you ride (src/engine/player/riding.ts)
-      const hit: TargetHit | null = h ? { animal: h.animal, point: h.point, distance: h.distance, headshot: h.headshot } : null; // E300: an Animal is a TargetAnimal (no cast), and cast() hands back animals only
-      return wildlife ? nalatiNow()?.sheepTarget(origin, dir, maxDist, hit) ?? hit : hit; // Nalati: the sheep flock is a target too
-    },
-  };
-  // the shard hands the player its weapon (ShardManifest.weapon): the wooden sword on Driftwood Isle, the crossbow elsewhere;
-  // Nalati its own three (src/shards/nalati-grasslands/weapons/nalatiKit.ts: bow · sabre · spear + javelins, the weapon strip)
-  const nalatiKit = chunk.slug === 'nalati-grasslands' ? buildNalatiKit({ game, sky, player, forest }, targets, nolock) : null;
+  const targets: Targets = authoredTargets(app.events, { raycast: (origin, dir, maxDist) => animals.raycast(origin, dir, maxDist) }, () => arena?.entered === true ? arena : null);
   // Driftwood's castaway rig (E334) also carries the iron sword's arms and the swimming hands: those go to their own owners
   const { ironArms, swim: swimArms, ...ownSword } = shardSword ?? {};
   const heldRow = chunk.loadout?.weapons[0];
   const authoredMelee = heldRow === undefined ? undefined : app.levelRegistrations.get('weapon', heldRow);
   const meleeProfile = authoredMelee !== undefined && 'moves' in authoredMelee ? authoredMelee as MeleeProfile : SWORD_WOOD;
   const authoredKit = await boot.runtime.buildEquipment?.(targets, nolock);
-  const crossbow: Weapon = authoredKit?.primary ?? (nalatiKit ? nalatiKit.base : chunk.weapon === 'sword'
+  const crossbow: Weapon = authoredKit?.primary ?? (chunk.weapon === 'sword'
     ? new Sword({ game, sky, player, forest }, targets, { row: meleeProfile, profile: meleeProfile, allowUnlocked: nolock, ...ownSword, ...(chunk.camera ? { portraitFov: chunk.camera.portraitFov } : {}) })
     : (() => { throw new Error('Shard has no primary equipment factory'); })());
   await macrotask(); // each viewmodel in its own task
   // the rifle slot: Pine Hollow's lever-action (PH-U5, LeverRifle.ts — the crossbow's walnut, shared), the AR-15 on Nalati
   // (the practice room's loan); none on the sword shards, Driftwood and Nine Dragon (E333, Jake: "why is there an AR-15 in Driftwood?")
-  const rifle = authoredKit?.rifle ?? (chunk.weapon === 'sword' ? null : new Rifle({ game, sky, player, forest }, targets, { row: AR15, allowUnlocked: nolock, muzzleLight: !isOcean }));
+  const rifle = authoredKit?.rifle ?? null;
   await macrotask();
   const longbow = authoredKit?.secondary ?? null;
   // the iron sword is FOUND on the wreck's deck (IronSword.ts) — wooden stays 1, iron becomes 2 once taken. Not on Nine
   // Dragon (E314 A): nothing there can unlock it, so its kit is the Neon Jian alone (NINE_WEAPON_NAME)
   const ironSword = chunk.weapon === 'sword' && (chunk.loadout === undefined || chunk.loadout.weapons.includes(SWORD_IRON.id)) ? new Sword({ game, sky, player, forest }, targets, { row: SWORD_IRON, profile: SWORD_IRON, allowUnlocked: nolock, blade: 'iron', ...(ironArms ? { arms: ironArms } : {}) }) : null;
-  const weapons = new EquipmentService(crossbow, { scope: game.levelScope, events: app.events, ...(nalatiKit ? { order: ['bow', 'sabre', 'spear'] } : {}) });
-  for (const w of [...(rifle ? [rifle] : []), ...(nalatiKit?.extras ?? []), ...(ironSword ? [ironSword] : []), ...(longbow ? [longbow] : [])]) weapons.add(w, { locked: true });
+  const weapons = new EquipmentService(crossbow, { scope: game.levelScope, events: app.events, ...(authoredKit?.order === undefined ? {} : { order: [...authoredKit.order] }) });
+  for (const w of [...(rifle ? [rifle] : []), ...(authoredKit?.extras ?? []), ...(ironSword ? [ironSword] : []), ...(longbow ? [longbow] : [])]) weapons.add(w, { locked: true });
   app.registerEquipment(weapons, game.levelScope);
   const lockSys = new LockOnSystem(player, weapons, game.camera); // the Zelda lock-on (E50): LOCK / Z, orbit, flick-switch — src/engine/player/LockOnTarget.ts
   const touchControls = new TouchControls(player, weapons, setting('touch') === 'on', lockSys); // on-screen FPS controls on coarse-pointer devices (?touch=1 / main menu ▸ Settings ▸ Touch controls forces)
-  nalatiKit?.install(weapons); // Nalati: all three slots owned, the bow in hand
+  authoredKit?.install?.(weapons);
   await macrotask();
   const hud = withScopeOwner(game.engineScope, () => new HUD({ pointerLock: !nolock, weaponUi: weapons.current.row.ui, maxBolts: weapons.state.magazine }));
   const shellHud = new Set(document.querySelectorAll('#hud *'));
@@ -699,7 +548,7 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
     kit: () => weapons.available.map((w) => { const worn = skins.wearing(w.id); return equipmentEntry(w, weapons.current, worn ? ` · ${worn.name}` : ''); }),
     onEquip: (id) => weapons.select(id as WeaponId),
     tools: () => toolEntries(weapons.tools, (key) => app.levelRegistrations.findText(key) ?? key),
-    ...(boot.runtime.menu ?? { skins: () => { const nl = nalatiNow(); return nl ? nalatiSkinRows(nl.skins) : []; }, onWearSkin: (id: string) => { nalatiNow()?.skins.toggle(id); } }),
+    ...boot.runtime.menu,
   });
   hud.menu = menu; // pause → Settings tab; the menu's CLOSE → hud.onResume
   game.onUpdate((dt) => { if (hud.entered && !menu.isOpen) progress.addPlay(dt); }, 'main.6'); // E132: this shard's time played (the complete card shows it), in the world only
@@ -755,24 +604,16 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   // the island's sound bank (IslandSfx: footsteps, the sword's layers, the adventure kit's sounds) — null off Driftwood
   const islandSfx = sea ? new IslandSfx(audio) : null;
   // an achievement: the island's interact chime there (E318 row 14: not the combat hit-tick), the hit-tick elsewhere
-  progress.onEarned = (d) => { if (d.event === undefined || !CAPTIONED_EVENTS.has(d.event)) hud.toast(`Achievement · ${d.name} — title unlocked: ${d.title}`); if (islandSfx) islandSfx.interact('chime'); else audio.hitMarker(); }; // a Nalati chapter's own caption announces its title
+  progress.onEarned = (d) => { if (app.events.ask('feat.toast', { id: d.id, ...(d.event === undefined ? {} : { event: d.event }), allowed: true }).allowed) hud.toast(`Achievement · ${d.name} — title unlocked: ${d.title}`); if (islandSfx) islandSfx.interact('chime'); else audio.hitMarker(); }; // a Nalati chapter's own caption announces its title
   const masterGain = () => { if (!audio.muted) audio.master.gain.setTargetAtTime(0.6 * getNumber('volume'), audio.ctx.currentTime, 0.05); };
   onNumber('volume', masterGain);
 
   const hands = new Hands(sky, game.camera, swimArms ?? null); // the swimming hands (shown only while player.swimming): the shard's arm rig swimming (Driftwood, E334), else white gloves
-  const combatCues = new CombatCues((id, opts) => {
-    const sound = nalatiNow()?.sound;
-    if (opts.surface !== undefined) {
-      const surface = opts.surface === 'wood' || opts.surface === 'flesh' ? opts.surface : 'ground';
-      return sound?.impact(id, surface, opts.pan ?? 0, opts.gain ?? 1) === true;
-    }
-    return sound?.fire(id) === true;
-  }, sharedCombatCues(audio, isOcean));
+  const combatCues = new CombatCues(sharedCombatCues(audio, isOcean));
   if (chunk.weapon === 'sword') (crossbow as Sword).onHeavy = () => { combatCues.cue(crossbow.row.cues?.heavy ?? 'cue.sword.heavy'); };
   // Content cue routing retains each weapon's existing sound source and fallback.
   weapons.onFire = () => {
     combatCues.fire(weapons.current.row);
-    nalatiNow()?.onShot();
   };
   weapons.onDry = () => { combatCues.cue(weapons.current.row.cues?.dry ?? 'cue.dry'); };
   weapons.onReloadStart = () => { combatCues.reload(weapons.current.row); };
@@ -783,7 +624,6 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
     const rx = Math.cos(player.yaw), rz = -Math.sin(player.yaw);
     const pan = d > 1 ? ((dx * rx + dz * rz) / d) * 0.7 : 0, gain = 1 / (1 + d / 12);
     combatCues.impact(weapons.current.row, { surface, point, pan, gain });
-    nalatiNow()?.onImpact(surface, point); // Nalati: an arrow landing by a herd / the flock spooks it
   };
   weapons.onHit = (_kind, headshot, killed) => {
     music.combat(0.7);
@@ -795,7 +635,7 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   // aim assist reads the live array; Nalati hands it a filtered copy each frame (B9 / B15: a wolf hidden in long grass, the
   // horse you ride and the camp horses / Tulpar are not targets — the sabre's pass side reads the same list)
   const aimList: AimTarget[] = [];
-  setAimTargets(painterly ? aimList : animals.animals);
+  setAimTargets(aimList);
   // the AR-15 is found, not issued: a floating pickup on the floor of cabin 1 (the hollow), inside by the door wall
   // (cabin local frame: door on +X, chimney end -Z — Cabin.ts); "[E] Take AR-15" through the door / harvest prompt path
   if (params.get('weapon') === 'rifle' || params.get('weapon') === 'lever') { weapons.unlock('rifle'); weapons.select('rifle', true); boot.runtime.hooks.disposeRifleDrop?.(); } // dev: start with it
@@ -821,8 +661,6 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   }
   // ── Nalati's adventure (NALATI-MERGE Q1–Q5: the camp's people, the quest line, places with saved discovery on the full map;
   // src/shards/nalati-grasslands/adventure.ts on the shared quest core) — null on any other shard ──
-  const nalatiAdventure = installNalatiAdventure({ game, sky, player, chunk, prompts: interactables, registry, hud, audio, music, progress, fullMap, ride, animals, nalati: nalatiNow(), params });
-  if (nalatiAdventure) menu.setFinds(() => nalatiFinds(nalatiAdventure.flags)); // Nalati's FINDS: the elites + their prizes, the places (E314 C)
   // Registered cosmetics restyle the held model and persist in this shard's locker.
   const weaponModel = (w: SkinDef['weapon']) => { const model = weapons.get(w).model; return model instanceof THREE.Group ? model : null; };
   const wearSkin = (skin: SkinDef) => { const m = weaponModel(skin.weapon); if (m) { applySkin(m, skin, sky); effects.sync(weapons.get(skin.weapon), [{ id: `effect.finish.${skin.id}` }]); } skins.wear(skin.weapon, skin.id); };
@@ -908,36 +746,6 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
     else if (player.wading) audio.wadeStep(player.depth, sprinting);
     else { const hoof = audio.hoofSurfaceAt?.(p.x, p.z); audio.footstep(sprinting, hoof !== undefined ? (hoof === 'wood' ? 'planks' : hoof) : pier?.floorHeightAt(p.x, p.z) !== undefined ? 'planks' : sea !== undefined && heightAt(p.x, p.z) - sea.level < 2.6 ? 'sand' : boot.runtime.hooks.stepSurface?.(p) ?? 'litter'); } // Nalati: its hoof ground (src/shards/nalati-grasslands/sound.ts); Pine Hollow: ForestAmbience's ground (PH-A3)
   };
-  // Nalati's boss fights (src/shards/nalati-grasslands/kurganBoss.ts, B13): the Golden King needs the animals, the kit and the HUD
-  nalatiNow()?.bindPlay({
-    kit: nalatiKit, health01: () => playerHealth.attributes.health / playerHealth.attributes.maxHealth, toast: (text) => hud.toast(text), flash: () => hud.damageFlash(),
-    hurt: (dmg) => playerHurt.jolt('env.ride', dmg, { kind: 'env.ride', label: 'Thrown from the saddle', text: 'Thrown from the saddle' }), // a throw / a bolt (Mount, Taming)
-  }); // Nalati's creatures: brace kills, knock-downs, howl / stampede toasts
-  // Nalati's weather (src/shards/nalati-grasslands/weather.ts, B10): the storm's audio beds + thunder, and a lightning strike's 60 damage
-  nalatiNow()?.sound?.bind(audio, music); // Nalati's sound (B16 audio): hoof ground, the steppe bed, the music's steppe mood
-  nalatiNow()?.weather.bind({ audio, hurt: (dmg, why) => playerHurt.jolt('env.lightning', dmg, { kind: 'env.lightning', label: 'Struck by lightning', text: 'Struck by lightning' }, why) });
-  nalatiNow()?.boss.bind({
-    animals, setWeaponsEnabled: (on) => { weapons.setEnabled(on); }, bow: nalatiKit?.bow ?? null, refill: () => { nalatiKit?.refill(); }, interactables, params,
-    toast: (s) => { hud.toast(s); }, feed: (s) => { hud.killFeed(s); }, pickupHum: (on) => { audio.pickupHum(on); },
-    music: (e) => { if (e === 'death' || e === 'pickup') music.sting(e); else if (e === 'victory') music.sting('chunk'); else music.combat(1); },
-  });
-  // Nalati's named elites (src/shards/nalati-grasslands/elites.ts, B12): lairs, bars, banners, drops — taming (B8) hands in when it is wired
-  nalatiNow()?.elites.bind({
-    animals, wildlife, taming: ride?.taming ?? null, ghosts: null, interactables, params,
-    toast: (s) => { hud.toast(s); }, feed: (s) => { hud.killFeed(s); }, record: (k, v) => { progress.recordKill(k, v); progress.recordEvent(k); },
-    pickupHum: (on) => { audio.pickupHum(on); }, sound: (n, at) => { audio.animal(n, at, player.position, player.yaw); },
-    sting: (e) => { if (e === 'kill') music.sting('chunk'); else music.combat(e === 'phase2' ? 1 : 0.8); },
-  });
-  // Nalati's Storm Titan (src/shards/nalati-grasslands/stormTitan.ts, B14): the cairn prompt, the fight, Naizagai (the sabre upgrade) once won
-  nalatiNow()?.titan.bind({
-    animals, wildlife, ride, get sabre() { return nalatiKit?.sabre ?? null; }, upgradeSabre: (power) => { nalatiKit?.upgradeSabre(weapons, power); }, setWeaponsEnabled: (on) => { weapons.setEnabled(on); }, refill: () => { nalatiKit?.refill(); }, interactables, params,
-    hurt: (dmg, why) => playerHurt.jolt('boss.storm-titan', dmg, { kind: 'storm-titan', label: 'the Storm Titan' }, why, true), // B3's cap/guard change stays boarded for S3.4
-    toast: (s) => { hud.toast(s); }, feed: (s) => { hud.killFeed(s); }, record: (k, v) => { progress.recordKill(k, v); progress.recordEvent(k); }, pickupHum: (on) => { audio.pickupHum(on); },
-    ownSkin: (id) => { nalatiNow()?.skins.own(id); },
-    music: (e) => { if (e === 'death' || e === 'pickup') music.sting(e); else if (e === 'victory') music.sting('chunk'); else music.combat(1); },
-  });
-  if (ride) ride.taming.onBreaking = (on) => { weapons.visible = !on; weapons.setEnabled(!on); }; // both hands in the mane while he bucks
-  if (ride) ride.taming.onBonded = () => { progress.recordEvent('tame'); }; // B15: the Horse Sense achievement
   if (gulls) gulls.onCall = (pos) => audio.gullCallAt(pos, player.position, player.yaw);
   player.onEnterWater = (impact) => audio.splash(impact);
   player.onSubmerge = () => { audio.dive(); islandSfx?.plunge(false); audio.setUnderwater(true); ambience?.setUnderwater(true); music.setState({ underwater: true }); };
@@ -987,7 +795,6 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
     active: () => app.player === playerHealth, position: () => player.position,
     died: (cause, checkpoint) => {
       audio.death(); hud.damageFlash();
-      if (ride?.mounted === true) ride.mount.dismount();
       if (!checkpoint) die(cause);
     },
   });
@@ -1030,7 +837,7 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   hud.onArena = () => { arena.enter(player, weapons); setAimTargets(arena.targets); minimap.setPracticeArena(chunk.spawn); menu.setPractice(true); };
   hud.onResume = enter;
   hud.onExitToMenu = () => {
-    arena.exit(); playground?.exit(); playground = null; minimap.setPracticeArena(null); menu.setPractice(false); setAimTargets(painterly ? aimList : animals.animals); fromTitle = true; weapons.setEnabled(false); perf.setActive(false); audio.worldMuted = true; music.setState({ mode: 'menu' }); noteDisc.classList.remove('show');
+    arena.exit(); playground?.exit(); playground = null; minimap.setPracticeArena(null); menu.setPractice(false); setAimTargets(aimList); fromTitle = true; weapons.setEnabled(false); perf.setActive(false); audio.worldMuted = true; music.setState({ mode: 'menu' }); noteDisc.classList.remove('show');
   };
 
   // ── Explore World (project/archive/2026-09-23-explore-world.md): the title's EXPLORE WORLD panel — the viewer over this same loaded shard (a
@@ -1044,7 +851,7 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   const enterPlayground = async (id: PlaygroundId): Promise<void> => {
     let pg: Playground;
     try {
-      pg = await loadPlayground(id, { game, player, registry, physics: world.physics, spawn: chunk.spawn, toast: (t) => { hud.toast(t); }, ride, animals });
+      pg = await loadPlayground(id, { game, player, registry, physics: world.physics, spawn: chunk.spawn, toast: (t) => { hud.toast(t); }, animals });
     } catch (error) {
       console.warn(`[playground] ${id} did not load`, error);
       hud.startExplore();
@@ -1121,7 +928,7 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   });
 
   let musicPoll = 0;
-  const steppeMusic = chunk.style === 'painterly';
+  const alertOnlyHostile = manifest.audio?.alertOnlyHostile === true;
   // the dev fps panel's split of this updater (src/engine/core/frameCost.ts; free while the panel is closed): `mark(b)` books the
   // time since the last mark to bucket b, `unmark()` leaves it in 'other'
   let markT = 0;
@@ -1135,7 +942,7 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
       syncNoteDisc(); // the ✎ disc follows entered / the touch layer / the Quick note switch, once a second
       if (music.state.mode !== 'combat' && music.state.mode !== 'menu') {
         // (the steppe's herds and the flock dog go 'alert' as you ride by: only a hostile one lifts Nalati's score — NALATI-MERGE A2)
-        const noticed = animals.animals.some((a) => a.alive && (a.state === 'alert' || a.state === 'stalk') && (!steppeMusic || a.aggressive) && a.position.distanceTo(player.position) < 40);
+        const noticed = animals.animals.some((a) => a.alive && (a.state === 'alert' || a.state === 'stalk') && (!alertOnlyHostile || a.aggressive) && a.position.distanceTo(player.position) < 40);
         music.setState({ mode: noticed ? 'alert' : 'calm', intensity: noticed ? 0.5 : 0 });
       }
     }
@@ -1155,13 +962,16 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
     grass?.update(dt, viewer());
     legacyParticles?.update(dt, viewer(), game.camera);
     boot.runtime.hooks.worldUpdate?.(dt, t);
-    nalati?.update(dt, t);
     mark('world');
     // swimming holsters the weapon (hands only; Hands.ts follows)
     if (player.swimming !== swimHold) { swimHold = player.swimming; weapons.visible = !swimHold; weapons.setEnabled(!swimHold); }
     unmark();
-    animals.update(dt, t, player.position, player.sprinting, viewer(), game.camera); // drawn by distance to the viewer (Explore's free camera), AI by the player (E125); the camera for the far herd (PH-P2)
-    if (painterly) { aimList.length = 0; for (const a of animals.animals) if (a.mem['hidden'] !== 1 && a.mem['owned'] !== 1 && a !== riding.horse) aimList.push(a); const heart = nalati?.titan.lockTarget() ?? null; if (heart !== null) aimList.push(heart); } // + Jel Ata's heart for the lock-on (NALATI-MERGE H3)
+  }, 'main.world');
+  app.addSystem({ id: 'engine.creatures.update', phase: 'update', after: ['main.world'], before: ['main.frame'], run: (dt, t) => {
+    animals.update(dt, t, player.position, player.sprinting, viewer(), game.camera);
+    aimList.length = 0; aimList.push(...app.events.ask('combat.aimTargets', animals.animals.filter((a) => a !== player.mountedOn)));
+  } }, game.levelScope);
+  app.addSystem({ id: 'main.frame', phase: 'update', after: ['engine.creatures.update'], before: ['engine.player.hud'], run: (dt, t) => {
     mark('animals');
     weapons.update(dt, t); // every weapon ticks (bolts in flight keep flying while the rifle is out)
     boot.runtime.hooks.equipmentUpdate?.(dt); weaponStrip.update();
@@ -1197,7 +1007,7 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
       if (fighting) prompt = undefined;
     }
 
-  }, 'main');
+  } }, game.levelScope);
   game.onUpdate((dt) => {
     unmark();
     hurtArc.update(dt, player.position, player.yaw);
@@ -1218,12 +1028,9 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
     mark('hud');
   }, 'engine.player.hud');
   playerHealth.checkpoint(game.levelScope, () => boot.runtime.hooks.checkpoint?.() === true, () => app.player === playerHealth);
-  playerHealth.checkpoint(game.levelScope, () => nalatiNow()?.boss.onPlayerDeath() === true, () => app.player === playerHealth);
-  playerHealth.checkpoint(game.levelScope, () => nalatiNow()?.titan.onPlayerDeath() === true, () => app.player === playerHealth);
   app.events.on('player.respawned', () => {
     if (app.player !== playerHealth) return;
     if (crossbow.hasAmmo) crossbow.addBolts(30 - (crossbow.state.bolts ?? 30));
-    nalatiKit?.refill();
   }, game.levelScope);
   app.addSystem({ id: 'engine.player.regen', phase: 'update', after: ['main.frame'], before: ['engine.player.hud'], run: (dt) => playerHealth.update(dt) }, game.levelScope);
 
@@ -1304,12 +1111,12 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
     if (chunk.explore !== undefined) void import('#engine/explore/Explore');
     game.primeFrame();
   }, TITLE_IDLE_MS);
-  const handle = { ...world, boundary, water, streams: dressing.streams, ocean, pier, jetties, boat, hut, lookout, wreck, shrine, bushes, gulls, bridge, bridgeDeck, cove, enemies, hands, grass, particles: legacyParticles, props, animals, interactables, crossbow, hud, audio, music, shrineHum, islandSfx, surfaces, ambience, lockSys, lockState, wildlife, nalati: nalatiNow(), ride, weapons, arena, playground: (): Playground | null => playground, ...boot.runtime.objects };
+  const handle = { ...world, boundary, water, streams: dressing.streams, ocean, pier, jetties, boat, hut, lookout, wreck, shrine, bushes, gulls, bridge, bridgeDeck, cove, enemies, hands, grass, particles: legacyParticles, props, animals, interactables, crossbow, hud, audio, music, shrineHum, islandSfx, surfaces, ambience, lockSys, lockState, weapons, arena, playground: (): Playground | null => playground, ...boot.runtime.objects };
   app.audio = audio;
   game.retainKitResources();
   game.captureLevelResources();
   game.levelScope.onDispose(() => { loot.dispose(); windupWarn?.dispose(); weapons.setEnabled(false); ambience?.dispose(); boot.runtime.hooks.dispose?.(); audio.unloadLevel(); });
-  installProbe(handle, { bootSteps, health: () => playerHealth.attributes.health, quest: () => ({ driftwood: adventure?.flags.all.slice().sort() ?? [], nalati: nalatiAdventure?.flags.all.slice().sort() ?? [] }) });
+  installProbe(handle, { bootSteps, health: () => playerHealth.attributes.health, quest: () => ({ driftwood: adventure?.flags.all.slice().sort() ?? [], nalati: boot.runtime.hooks.questFlags?.() ?? [] }) });
   document.dispatchEvent(new Event('ws:ready')); // booted to the title: the native shell's update watchdog (src/engine/native/boot.ts) waits for this
   // E158: the other shards' boot files into the worker's cache, in the background — once a page (the shell's, not a shard's)
   asShell(() => { startShardPrefetch(getActiveChunk()); });

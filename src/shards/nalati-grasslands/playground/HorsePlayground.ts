@@ -1,4 +1,5 @@
 import { app } from '#engine';
+import type { Ride } from '../ride/ride';
 /**
  * Nalati ▸ Horse playground (E307, Jake: "a naive, playable mini level in Explore mode for running around on a horse, to
  * get a feel for the horse controls, maybe horse racing"). An open dev-grid field high over the steppe (PLAYGROUND_Y), in
@@ -17,7 +18,6 @@ import * as THREE from 'three';
 import type { ColliderDesc } from '#engine/world/registry';
 import type { Animal } from '#engine/entities/Animal';
 import { heightAt } from '#engine/world/Heightfield';
-import { riding } from '#engine/player/riding';
 import { practiceFps } from '#engine/core/tier';
 import { DevKit, devLabel, devMaterial } from '#engine/practice/playground/devGrid';
 import { FIELD, HORSE_START, JUMPS, JUMP_WIDTH, LINE_X, OVAL, POST_GAP, POST_OFF, RIDER_START, ovalLine } from './horseCourse';
@@ -52,7 +52,7 @@ export class HorsePlayground implements Playground {
   private last: number | null = null;
   private prevX = 0;
 
-  constructor(private readonly host: PlaygroundHost) {
+  constructor(private readonly host: PlaygroundHost & { ride: Ride | null }) {
     if (host.ride === null) throw new Error('the horse playground needs Nalati\'s riding');
     this.center = { x: FIELD_AT.x, z: FIELD_AT.z };
     const o = this.origin;
@@ -225,7 +225,7 @@ export class HorsePlayground implements Playground {
     // — and at the field's height where it stands now: its ground follow tracks the terrain 3 km under it, so the offset
     // taken on the start would float or sink it anywhere else (a dismount mid-lap; E321 / E328)
     if (ride.mount.horse !== a) { a.levelGround = true; a.yOffset = PLAYGROUND_Y - heightAt(a.position.x, a.position.z); }
-    const mounted = riding.horse === a;
+    const mounted = this.host.player.mountedOn === a;
     // the laps: across the start line eastward on the front straight starts / ends one; half way counts on the back
     const x = p.position.x - o.x, z = p.position.z - o.z;
     const onFront = Math.abs(z - OVAL.radius) < OVAL.width / 2 + 2, onBack = Math.abs(z + OVAL.radius) < OVAL.width / 2 + 2;

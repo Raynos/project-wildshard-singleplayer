@@ -21,8 +21,10 @@ export { RIVER, BRIDGE, BROOK, RIM_Z, riverMask, rimZAt, brookMask, zoneAt, glac
 export const NALATI_GRASSLANDS: ShardManifest = {
   uses: ['dayCycle', 'weather', 'bosses', 'elites', 'spawns', 'quests', 'swim', 'hover', 'explore', 'practice', 'loot', 'feats'],
   api: 1,
+  load: () => import('./plugin'),
+  loadout: { weapons: ['bow', 'sabre', 'spear', 'rifle'], tools: [], start: ['bow', 'sabre', 'spear'], held: 'bow', loans: [{ id: 'rifle', in: 'practice' }] },
   audio: { ambience: 'ambience.nalati', score: 'score.nalati', alertOnlyHostile: true, preload: () => import('./audio/files').then((m) => m.createNalatiAudio()) },
-  boot: { files: bootFiles, sources: bootSources, steps: BOOT_STEPS, lateReads },
+  boot: { stagedWorld: true, files: bootFiles, sources: bootSources, steps: BOOT_STEPS, bytes: { trees: 'spruce bark' }, lateReads },
   bag: { tabs: ['map', 'gear', 'finds', 'feats'], pack: { slots: 0 }, skinsTitle: 'Skins' },
   kitLook: 'painterly',
   assetGlobs: ['public/assets/nalati/**', 'public/assets/gpu/nalati/**', 'public/assets/music/nalati/**', 'public/assets/sfx/nalati-grasslands/**', 'public/assets/title/nalati-grasslands-portrait.jpg'],

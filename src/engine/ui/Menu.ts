@@ -329,9 +329,21 @@ export class GameMenu {
   /** a shard's loot (Driftwood, src/game/loot/install.ts): GEAR's coins / hearts / charms / cosmetics and the FINDS tab */
   private loot: BagLoot | null = null;
   /** a shard's FINDS without loot: Pine Hollow's hunter's journal (src/game/compendium/install.ts, E314 C) */
+  private bagFragments = new Map<MenuTab, Map<string, (host: HTMLElement) => void>>();
+  addBagFragment(tab: 'map' | 'gear' | 'pack' | 'finds' | 'feats', fragment: { id: string; render: (host: HTMLElement) => void }): () => void {
+    const panel = tab === 'pack' ? 'inventory' : tab === 'feats' ? 'achievements' : tab;
+    let rows = this.bagFragments.get(panel);
+    if (rows === undefined) { rows = new Map(); this.bagFragments.set(panel, rows); }
+    rows.set(fragment.id, fragment.render);
+    this.syncTabs();
+    return () => { if (rows.get(fragment.id) === fragment.render) rows.delete(fragment.id); if (rows.size === 0) this.bagFragments.delete(panel); this.syncTabs(); };
+  }
+  private renderBagFragments(tab: MenuTab): void {
+    for (const render of this.bagFragments.get(tab)?.values() ?? []) render(this.panels[tab]);
+  }
   private finds: (() => FindsView) | null = null;
   private get findsView(): (() => FindsView) | null { return this.loot?.finds ?? this.finds; }
-  private get hasFinds(): boolean { return this.findsView !== null; }
+  private get hasFinds(): boolean { return this.findsView !== null || this.bagFragments.get('finds')?.size !== undefined; }
   /** a shard with no pack (Nalati, E314 C: `inventory.slots` 0) has no PACK tab */
   private get hasPack(): boolean { return this.opts.inventory.slots > 0; }
   /** a shard with no achievements (Nine Dragon, E314 A) has no FEATS tab */
@@ -382,6 +394,7 @@ export class GameMenu {
   private renderFinds(): void {
     const f = this.findsView;
     if (f) renderFinds(this.panels.finds, f()); else this.panels.finds.replaceChildren();
+    this.renderBagFragments('finds');
   }
 
   // ── PACK (the Inventory): the junk the hunt leaves you, as before; its weapon cards moved to GEAR (E314) ──

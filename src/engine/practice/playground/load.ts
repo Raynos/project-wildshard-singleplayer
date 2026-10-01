@@ -15,8 +15,7 @@ export function loadPlayground(id: PlaygroundId, host: PlaygroundHost): Promise<
       if (typeof Constructor !== 'function') throw new Error(`Playground ${id} did not load a constructor`);
       const Scene = Constructor as new (host: PlaygroundHost) => Playground;
       return new Scene(host);
-    }) : id === 'horse' ? import('#shards/nalati-grasslands/playground/HorsePlayground').then(({ HorsePlayground }) => new HorsePlayground(host))
-      : Promise.reject(new Error(`Unknown playground: ${id}`));
+    }) : Promise.reject(new Error(`Unknown playground: ${id}`));
     built.set(id, p);
     host.game.levelScope.onDispose(() => { built.delete(id); });
     p.catch(() => { built.delete(id); }); // a failed import can be tried again

@@ -1,3 +1,4 @@
+import { NALATI_FEATS } from './feats';
 /**
  * Nalati's Bag (E314, Jake's pick C, art/loot/round-3-other-shards/board-2-nalati.jpg): MAP · GEAR · FINDS · FEATS. No
  * PACK and no harvest — src/game/Inventory.ts keeps nothing on Nalati, so the menu hides the tab and no carcass shows
@@ -13,7 +14,6 @@
 import type { FindsView } from '#game/bag/bag';
 import type { IconId } from '#engine/ui/icons';
 import type { SkinRow } from '#engine/ui/Menu';
-import { achievementsFor } from '#game/achievements';
 import { NALATI_PLACES } from './quest';
 import { NALATI_SKINS, type NalatiSkinEntry } from './weapons/nalatiSkins';
 import { ELITE_DEFS } from './elites';
@@ -44,7 +44,7 @@ export function skinSource(skinId: string): string | null {
 export function elitePrize(id: string): { prize: string; title: string | null } {
   const skin = ELITE_DEFS[id]?.drop.skin ?? null;
   const name = skin === null ? null : NALATI_SKINS.find((s) => s.id === skin)?.name ?? null;
-  const title = achievementsFor(NALATI_CHUNK_ID).find((a) => a.id === id)?.title ?? null;
+  const title = NALATI_FEATS.find((a) => a.id === id)?.title ?? null;
   return { prize: name === null ? 'Your horse' : `${name} skin`, title };
 }
 

@@ -1,3 +1,4 @@
+import type { ByteKey } from '../boot/steps';
 import type { TexMode } from '../boot/gpuFiles';
 import type { ChunkFiles } from '../boot/bytes';
 import type { LookStrategy } from '../render/look';
@@ -25,6 +26,7 @@ export interface BootSpec {
   sources?: (tier: Tier, tex: TexMode) => ChunkFiles;
   bakedUnread?: RegExp;
   steps?: Readonly<Record<string, { label: string; weight: number }>>;
+  bytes?: Readonly<Partial<Record<ByteKey, string>>>;
   audio?: () => Promise<readonly string[]>;
   explore?: { art: readonly string[] };
   precache?: readonly string[];

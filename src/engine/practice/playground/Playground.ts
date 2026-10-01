@@ -18,7 +18,6 @@ import type { Game } from '../../core/Game';
 import type { Player } from '../../player/Player';
 import type { Physics } from '../../physics/Physics';
 import type { WorldRegistry } from '../../world/registry';
-import type { Ride } from '#shards/nalati-grasslands/ride/ride';
 import type { AnimalManager } from '../../entities/AnimalManager';
 import type { PlaygroundId } from './catalog';
 import type { RoomMap } from '../../ui/roomMap';
@@ -34,8 +33,6 @@ export interface PlaygroundHost {
   /** the shard's spawn: the playground stands over it (x, z) */
   spawn: { x: number; z: number };
   toast: (text: string) => void;
-  /** Nalati's riding (src/shards/nalati-grasslands/ride/ride.ts): the horse playground's mount (null on every other shard) */
-  ride: Ride | null;
   animals: AnimalManager;
 }
 
