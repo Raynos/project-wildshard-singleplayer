@@ -73,6 +73,8 @@ export class Marmots {
   private list: Marmot[] = [];
   private rng: Rng;
   private readonly scheduler = new TickScheduler();
+  private acc = 0;
+  private readonly poseDue = new WeakMap<Marmot, boolean>();
 
   constructor(private readonly sky: Sky, seed: number) { this.rng = new Rng(seed ^ 0x6a2b); }
 
@@ -100,14 +102,18 @@ export class Marmots {
 
   update(dt: number, player: THREE.Vector3, playerSpeed: number, crouched: boolean): void {
     this.scheduler.beginFrame(dt, player);
+    // The colony shares one decision/RNG history; far FX culling must not reorder sentry rolls (E357 B63).
+    this.acc += dt;
+    const think = this.acc >= 0.1;
+    if (think) this.acc = 0;
     const rng = this.rng;
     let whistled = false;
     for (const m of this.list) {
       const tickDt = this.scheduler.takeBrainDtAt('fx', m, { x: m.x, y: heightAt(m.x, m.z), z: m.z });
-      if (tickDt === 0) continue;
+      this.poseDue.set(m, tickDt > 0);
       const d = Math.hypot(player.x - m.x, player.z - m.z);
-      {
-        m.t -= tickDt;
+      if (think) {
+        m.t -= 0.1;
         const seeR = crouched ? 22 : playerSpeed > 5 ? 45 : 35;
         if ((m.state === 0 || m.state === 1) && d < seeR && (m.state === 1 || d < seeR * 0.6)) {
           // spotted: a sentry whistles once for the colony; everyone bolts for the burrow
@@ -120,24 +126,26 @@ export class Marmots {
         else if (m.state === 2 && Math.hypot(m.x - m.bx, m.z - m.bz) < 0.3) { m.state = 3; m.t = rng.range(10, 18); }
         else if (m.state === 3 && m.t <= 0 && d > 25) { m.state = 1; m.t = rng.range(4, 8); }
       }
-      // motion
+      // Position is also decision history: reaching the burrow consumes the next shared RNG roll.
+      // Keep the authored simulation step; FX holds only its presented instance pose.
       const run = m.state === 2;
       const tx = run || m.state === 3 ? m.bx : m.tx, tz = run || m.state === 3 ? m.bz : m.tz;
       const dx = tx - m.x, dz = tz - m.z, dd = Math.hypot(dx, dz);
       if (dd > 0.05 && m.state !== 1) {
-        const sp = Math.min(dd, (run ? 3.5 : 0.35) * tickDt);
+        const sp = Math.min(dd, (run ? 3.5 : 0.35) * dt);
         m.x += (dx / dd) * sp; m.z += (dz / dd) * sp;
         m.yaw = Math.atan2(dx, dz);
       }
-      m.stand += ((m.state === 1 ? 1 : 0) - m.stand) * Math.min(1, tickDt * 6);
-      m.sink += ((m.state === 3 ? 1 : 0) - m.sink) * Math.min(1, tickDt * 5);
+      m.stand += ((m.state === 1 ? 1 : 0) - m.stand) * Math.min(1, dt * 6);
+      m.sink += ((m.state === 3 ? 1 : 0) - m.sink) * Math.min(1, dt * 5);
     }
     if (whistled) for (const m of this.list) if (m.state === 0 || m.state === 1) { m.state = 2; m.t = 3; }
-    this.write();
+    this.write(true);
   }
 
-  private write(): void {
+  private write(scheduled = false): void {
     this.list.forEach((m, i) => {
+      if (scheduled && this.poseDue.get(m) !== true) return;
       const g = heightAt(m.x, m.z);
       _e.set(-m.stand * 1.25, m.yaw, 0);
       _q.setFromEuler(_e);

@@ -6,9 +6,9 @@ export interface TickActor { readonly position: TickPoint }
 export interface TickBand { upTo: number; brainHz: number | 'paused'; body: 'frame' | 'half' | 'paused' }
 export interface TickRate { bands: readonly TickBand[] }
 export type InterruptReason = 'hit' | 'target.attack' | 'target.dodge' | 'lost.sight' | 'ally.died';
-interface Clock { elapsed: number; credit: number; frame: number; dt: number; last: number; due: boolean }
+interface Clock { elapsed: number; credit: number; frame: number; dt: number; last: number; due: boolean; tickFrame: number }
 interface Subject { brain: Clock; body: Clock; interrupt: number }
-const clock = (): Clock => ({ elapsed: 0, credit: 0, frame: -1, dt: 0, last: 0, due: false });
+const clock = (): Clock => ({ elapsed: 0, credit: 0, frame: -1, dt: 0, last: 0, due: false, tickFrame: -1 });
 interface Policy { pins: WeakMap<object, number>; interrupts: WeakMap<object, number>; wakes: WeakMap<object, () => void> }
 const AI: TickRate = { bands: [
   { upTo: 60, brainHz: 20, body: 'frame' },
@@ -99,12 +99,13 @@ export class TickScheduler {
     state.last = this.time;
     const paused = body ? band.body === 'paused' : band.brainHz === 'paused';
     // An interrupt wakes decisions only, without catching up the time spent far away.
-    if (paused) { state.elapsed = 0; state.credit = 0; }
+    if (paused) { state.elapsed = 0; state.credit = 0; state.tickFrame = -1; }
     else { state.elapsed += step; state.credit += step; }
     state.frame = this.frame; state.dt = 0; state.due = false;
     if (!body) row.interrupt = interrupt;
-    if (urgent || (!paused && (body ? band.body === 'frame' || this.frame % 2 === 0 : band.brainHz !== 'paused' && state.credit + 1e-9 >= 1 / band.brainHz))) {
+    if (urgent || (!paused && (body ? band.body === 'frame' || state.tickFrame < 0 || this.frame - state.tickFrame >= 2 : band.brainHz !== 'paused' && state.credit + 1e-9 >= 1 / band.brainHz))) {
       state.due = urgent || state.elapsed > 0; state.dt = state.elapsed; state.elapsed = 0;
+      if (state.due) state.tickFrame = this.frame;
       state.credit = urgent || body || band.brainHz === 'paused' || band.brainHz === Infinity ? 0
         : Math.max(0, state.credit - Math.floor((state.credit + 1e-9) * band.brainHz) / band.brainHz);
     }

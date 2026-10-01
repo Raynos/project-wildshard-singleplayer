@@ -20,7 +20,30 @@ describe('per-subject tick scheduler', () => {
     }
     expect(brains.map((ticks) => ticks.length)).toEqual([40, 20, 20, 0]);
     expect(bodies.map((ticks) => ticks.length)).toEqual([fps * 2, fps, fps, 0]);
-    for (const ticks of [...brains.slice(0, 3), ...bodies.slice(0, 3)]) expect(ticks.reduce((a, b) => a + b, 0)).toBeCloseTo(2, 9);
+    for (const ticks of [...brains.slice(0, 3), ...bodies.slice(0, 1)]) expect(ticks.reduce((a, b) => a + b, 0)).toBeCloseTo(2, 9);
+    // The first mid tick is immediate; the final even frame's time remains held until the next body tick.
+    for (const ticks of bodies.slice(1, 3)) expect(ticks.reduce((a, b) => a + b, 0)).toBeCloseTo(2 - 1 / fps, 9);
+    scheduler.beginFrame(1 / fps, player);
+    for (const actor of actors.slice(1, 3)) expect(scheduler.bodyDt('ai', actor)).toBeCloseTo(2 / fps, 9);
+  });
+  it('poses each mid actor on its first eligible frame, then every second frame of its own cadence', () => {
+    const scheduler = new TickScheduler(), a = actorAt(100), b = actorAt(100), far = actorAt(200);
+    scheduler.beginFrame(1 / 30, player);
+    expect(scheduler.bodyDt('ai', a)).toBeCloseTo(1 / 30);
+    expect(scheduler.bodyDt('ai', far)).toBe(0);
+    expect(scheduler.takeBrainDt('ai', a)).toBe(0);
+    scheduler.beginFrame(1 / 30, player);
+    expect(scheduler.bodyDt('ai', a)).toBe(0);
+    expect(scheduler.bodyDt('ai', b)).toBeCloseTo(1 / 30);
+    scheduler.beginFrame(1 / 30, player);
+    expect(scheduler.bodyDt('ai', a)).toBeCloseTo(2 / 30);
+    expect(scheduler.bodyDt('ai', b)).toBe(0);
+    expect(scheduler.bodyDt('ai', far)).toBe(0);
+    expect(scheduler.takeBrainDt('ai', a)).toBeCloseTo(0.1);
+    far.position.z = 100;
+    scheduler.beginFrame(1 / 30, player);
+    expect(scheduler.bodyDt('ai', far)).toBeCloseTo(1 / 30);
+    expect(scheduler.bodyDt('ai', b)).toBeCloseTo(2 / 30);
   });
   it('distance uses the player including height, and subjects have independent clocks', () => {
     const scheduler = new TickScheduler(), a = actorAt(10), b = actorAt(100);

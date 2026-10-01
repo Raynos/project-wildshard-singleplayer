@@ -162,7 +162,7 @@ export class PineHollowSfx {
   get decoded(): string[] { return [...new Set([...barShots.keys(), ...this.shots.keys()])]; }
   private buffers(family: string): Clip[] | undefined { return this.shots.get(family) ?? barShots.get(family); }
 
-  setListener(x: number, y: number, z: number, yaw: number): void { this.lx = x; this.ly = y; this.lz = z; this.yaw = yaw; this.audio.voices.setListener(x, y, z, yaw); }
+  setListener(x: number, y: number, z: number, yaw: number): void { this.lx = x; this.ly = y; this.lz = z; this.yaw = yaw; }
 
   /** the beds sfx.json lists, with their zone and whether that zone is in the world today */
   bedsListed(): { name: string; zone: string | undefined; live: boolean }[] {
@@ -232,8 +232,7 @@ export class PineHollowSfx {
       if (distance > 220) return true;
       if (!Number.isFinite(distance)) return false;
     }
-    this.audio.voices.setListener(this.lx, this.ly, this.lz, this.yaw);
-    const source = this.audio.voices.sample(clips, o, { reach: 220, scale: 10, power: 1.3, cutoffScale: 30, delay: 0.01, jitter: 40 });
+    const source = this.audio.voices.sample(clips, { ...o, listener: { x: this.lx, y: this.ly, z: this.lz, yaw: this.yaw } }, { reach: 220, scale: 10, power: 1.3, cutoffScale: 30, delay: 0.01, jitter: 40 });
     if (!source) return false;
     tap.sound?.(`pineSfx:${family}`);
     return true;

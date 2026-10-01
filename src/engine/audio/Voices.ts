@@ -71,7 +71,11 @@ export interface SamplePolicy {
   spread?: number; delay?: number; jitter?: number; gainJitter?: number; panAlways?: boolean;
   repeat?: boolean; startAtZero?: boolean;
 }
-export interface SamplePlay extends PlayOpts { time?: number }
+export interface SamplePlay extends PlayOpts {
+  time?: number;
+  /** A content bank may own a listener without moving the procedural bank listener. */
+  listener?: { x: number; y: number; z: number; yaw: number };
+}
 export type VoiceTable = Readonly<Record<string, Family | { clips: () => readonly SampleVoice[] | undefined; policy?: SamplePolicy }>>;
 
 export class VoicePool {
@@ -98,12 +102,13 @@ export class VoicePool {
     if (!clip) return undefined;
     let gain = (clip.gain ?? 1) * (o.gain ?? 1), pan = o.pan ?? 0, cutoff = policy.cutoff ?? 20000;
     if (o.at) {
-      const dx = o.at.x - this.lx, dy = o.at.y - this.ly, dz = o.at.z - this.lz;
+      const listener = o.listener;
+      const dx = o.at.x - (listener?.x ?? this.lx), dy = o.at.y - (listener?.y ?? this.ly), dz = o.at.z - (listener?.z ?? this.lz);
       const dist = Math.hypot(dx, dy, dz);
       if (dist > (policy.reach ?? 150)) return undefined;
       gain *= 1 / (1 + dist / (policy.scale ?? 9)) ** (policy.power ?? 1.4);
       cutoff = 12000 / (1 + dist / (policy.cutoffScale ?? 22));
-      pan = panFromYaw(dx, dz, this.yaw, policy.spread ?? 0.8, dist);
+      pan = panFromYaw(dx, dz, listener?.yaw ?? this.yaw, policy.spread ?? 0.8, dist);
     }
     if (!Number.isFinite(gain + pan + cutoff)) return undefined;
     const c = this.host.ctx, src = scope ? c.createBufferSource() : ownAudioSource(c.createBufferSource());
