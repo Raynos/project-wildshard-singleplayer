@@ -20,6 +20,7 @@ import compareOverlookTarget from './explore/driftwood-overlook-target.jpg';
 import { smoothstep, clamp } from '#engine/core/noise';
 import { CHUNK_HALF, ROAD_LENGTH } from '#engine/core/config';
 import { buildTerrain } from '#engine/world/terrainField';
+import { swellBody } from '#engine/data';
 import type { ShardManifest, OceanDef } from '#game/shard/manifest';
 import { lateReads } from './boot/lateReads';
 import thumbnail from './thumbs/driftwood-isle.jpg';
@@ -158,7 +159,8 @@ export const DRIFTWOOD_ISLE: ShardManifest = {
     { id: 'bridge', name: 'Rope bridge', x: (BRIDGE.a[0] + BRIDGE.b[0]) / 2, z: (BRIDGE.a[1] + BRIDGE.b[1]) / 2, r: 12 },
   ],
 
-  ground: { paths: 'plugin', terrain: buildTerrain(SEED, {
+  // the sea is a water body (app.world.water), registered at level.data: the edge step's Boundary and every sea reader ask it
+  ground: { paths: 'plugin', water: [swellBody('sea', OCEAN.level)], terrain: buildTerrain(SEED, {
     oceanLevel: OCEAN.level,
     /**
      * The island: a noise-warped disc centred a little north of the chunk centre. `m` is signed

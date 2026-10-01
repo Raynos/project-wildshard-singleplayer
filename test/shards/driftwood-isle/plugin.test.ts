@@ -11,7 +11,7 @@ const loaded = new Set<App>();
 afterEach(async () => { for (const app of loaded) await app.unloadLevel(); loaded.clear(); });
 
 describe('Driftwood world hook (E357 S4.1)', () => {
-  it('registers the sea, hands the built world to the shell and drops the sea with the level', async () => {
+  it('has the sea (the manifest\'s ground.water, from level.data), hands the built world to the shell and drops the sea with the level', async () => {
     const app = new App();
     const driver: LevelDriver = { progress: () => ({ set: noop, detail: noop }), data: noop, world: noop, kit: noop, loadout: noop, play: noop, finish: noop };
     app.levelDriver = driver;

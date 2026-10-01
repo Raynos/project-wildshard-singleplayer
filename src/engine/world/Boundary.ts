@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { CHUNK_HALF, CHUNK_DEPTH, ROAD_WIDTH } from '../core/config';
 import { heightAt as terrainHeightAt, waterLevel, pondMask, streamAt } from './Heightfield';
-import { getActiveChunk } from '#game/shard/registry';
+import { app } from '../app/runtime';
 import type { Sky } from './Sky';
 import { TIER_CONFIG } from '../core/tier';
 
@@ -11,13 +11,14 @@ import { TIER_CONFIG } from '../core/tier';
  * four surface edges, the eight corner beacons (which the author plants before uploading),
  * the vertical corner beams down to the slab bottom, and a translucent "no-man's land" gate
  * across each entry road. Purely additive/emissive geometry — no lighting needed.
- * Over an open-water shard everything sits on the sea surface instead of the sea floor.
+ * Over an open-water level everything sits on the sea surface instead of the sea floor.
  */
-/** the ground, or the water over it: the sea on an open-water shard, else the pond inside its basin or running water (a
+/** the ground, or the water over it: the sea on an open-water level, else the pond inside its basin or running water (a
  *  creek's notch in the slab's edge: the line dips into it with the water, not ~6 m over it at the pond's level, PH-L9) */
 function heightAt(x: number, z: number): number {
   const ground = terrainHeightAt(x, z);
-  if (getActiveChunk().ocean) return Math.max(ground, waterLevel());
+  const sea = app.world.water.sea; // the level's open sea, registered at level.data (LevelSpec.ground.water)
+  if (sea !== null) return Math.max(ground, sea.level);
   const water = pondMask(x, z) > 0 ? waterLevel() : streamAt(x, z);
   return water === null ? ground : Math.max(ground, water);
 }
