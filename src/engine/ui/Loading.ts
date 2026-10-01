@@ -5,7 +5,7 @@ import { TIER } from '../core/tier';
 import { PERFLOAD, barTrace } from '../boot/perflog';
 import { LOAD_SHELL_HTML } from '../boot/shell';
 import { lastEndLine } from '../boot/lastEnd';
-import { recordNineBootProgress, startNineBoot } from '../boot/nineBootTrace';
+import { recordBootProgress, startBoot } from '../boot/bootTrace';
 import { isDev } from '../core/devMode';
 import './loading.css';
 
@@ -45,7 +45,7 @@ export class Loading {
 
   constructor() {
     const chunk = getActiveChunk();
-    if (chunk.slug === 'nine-dragon-stack' && TIER === 'phone') startNineBoot();
+    startBoot({ id: chunk.slug, name: chunk.name }, TIER === 'phone' && chunk.boot?.phone?.trace === true);
     const nav: { hardwareConcurrency?: number | undefined } = navigator; // Safari < 15.4 has no hardwareConcurrency
     // index.html paints this panel from its first bytes (src/engine/boot/shell.ts): adopt it; a page without it gets a fresh one
     const shell = document.querySelector<HTMLElement>('.ws-load[data-shell]');
@@ -85,7 +85,7 @@ export class Loading {
    */
   paint(v: ProgressView): void {
     this.view = v;
-    recordNineBootProgress(v);
+    recordBootProgress(v);
     this.dirty = true;
     if (PERFLOAD) barTrace.push([Math.round(performance.now() - this.t0), v.setup, v.download, v.step]);
     const pct = (f: number): string => String(Math.floor(f * 100));

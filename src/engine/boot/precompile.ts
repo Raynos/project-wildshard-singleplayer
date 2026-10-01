@@ -27,7 +27,7 @@ import * as THREE from 'three';
 import { Pass, type EffectComposer } from 'postprocessing';
 import { PERFLOAD, perfLog, describeProgram, newProgramsSince, snapshotPrograms, type ProgramLike } from './perflog';
 import { TIER } from '../core/tier';
-import { recordNineBootCheckpoint } from './nineBootTrace';
+import { recordBootCheckpoint } from './bootTrace';
 
 export interface CompileJob {
   label: string;
@@ -310,7 +310,7 @@ export async function runPrecompile(
   const base = jobs.length + units;
   for (const [i, tex] of textures.entries()) {
     const compressed = TIER === 'phone' && tex instanceof THREE.CompressedTexture;
-    if (compressed) recordNineBootCheckpoint('texture:upload', { index: i, total: textures.length, name: tex.name, format: tex.format,
+    if (compressed) recordBootCheckpoint('texture:upload', { index: i, total: textures.length, name: tex.name, format: tex.format,
       mips: tex.mipmaps.length, width: tex.mipmaps[0]?.width ?? 0, height: tex.mipmaps[0]?.height ?? 0 });
     renderer.initTexture(tex);
     if (compressed) {

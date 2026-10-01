@@ -1,8 +1,6 @@
 {
   "allow": {
     "wildshard/no-raw-random-time": {
-      "src/engine/boot/nineBootTrace.ts": "performance.now measures elapsed cost or diagnostic timing; never gameplay state.",
-      "src/engine/boot/nineGpuTrace.ts": "performance.now measures elapsed cost or diagnostic timing; never gameplay state.",
       "src/engine/boot/plan.ts": "performance.now measures elapsed cost or diagnostic timing; never gameplay state.",
       "src/engine/boot/precompile.ts": "performance.now measures elapsed cost or diagnostic timing; never gameplay state.",
       "src/engine/boot/timing.ts": "performance.now measures elapsed cost or diagnostic timing; never gameplay state.",
@@ -12,7 +10,9 @@
       "src/engine/ui/Perf.ts": "performance.now measures elapsed cost or diagnostic timing; never gameplay state.",
       "src/engine/ui/perfHud.ts": "performance.now measures elapsed cost or diagnostic timing; never gameplay state.",
       "src/engine/ui/perfLap.ts": "performance.now measures elapsed cost or diagnostic timing; never gameplay state.",
-      "src/engine/ui/perfProbe.ts": "performance.now measures elapsed cost or diagnostic timing; never gameplay state."
+      "src/engine/ui/perfProbe.ts": "performance.now measures elapsed cost or diagnostic timing; never gameplay state.",
+      "src/engine/boot/bootTrace.ts": "performance.now measures elapsed cost or diagnostic timing; never gameplay state.",
+      "src/engine/boot/gpuTrace.ts": "performance.now measures elapsed cost or diagnostic timing; never gameplay state."
     }
   },
   "budgets": {},
@@ -32,10 +32,9 @@
     "src/engine/boot/bakedTextures.ts": 4,
     "src/engine/boot/bytes.ts": 3,
     "src/engine/boot/extras.ts": 41,
-    "src/engine/boot/gpuFiles.ts": 20,
+    "src/engine/boot/gpuFiles.ts": 7,
     "src/engine/boot/lastEnd.ts": 7,
     "src/engine/boot/manifest.ts": 37,
-    "src/engine/boot/nineBootTrace.ts": 10,
     "src/engine/boot/pack.ts": 8,
     "src/engine/boot/plan.ts": 1,
     "src/engine/boot/precompile.ts": 2,
@@ -46,10 +45,10 @@
     "src/engine/boot/timing.ts": 4,
     "src/engine/boot/titleArrival.ts": 2,
     "src/engine/core/assets.ts": 1,
-    "src/engine/core/bootstrap.ts": 25,
+    "src/engine/core/bootstrap.ts": 24,
     "src/engine/core/config.ts": 8,
     "src/engine/core/errorReport.ts": 1,
-    "src/engine/core/Game.ts": 51,
+    "src/engine/core/Game.ts": 41,
     "src/engine/core/gpuOnly.ts": 6,
     "src/engine/core/GpuRecovery.ts": 5,
     "src/engine/core/Grade.ts": 6,
@@ -117,7 +116,7 @@
     "src/engine/explore/catalog.ts": 17,
     "src/engine/explore/Compare.ts": 26,
     "src/engine/explore/diorama.ts": 11,
-    "src/engine/explore/Explore.ts": 125,
+    "src/engine/explore/Explore.ts": 57,
     "src/engine/explore/MiniMap.ts": 11,
     "src/engine/explore/ModelExplorer.ts": 26,
     "src/engine/explore/pick.ts": 3,
@@ -196,7 +195,7 @@
     "src/engine/pwa/sw.js": 6,
     "src/engine/shard/disposeListeners.ts": 11,
     "src/engine/shard/ShardHost.ts": 41,
-    "src/engine/telemetry/bootInbox.ts": 2,
+    "src/engine/telemetry/bootInbox.ts": 1,
     "src/engine/telemetry/browserErrors.ts": 5,
     "src/engine/ui/BootSettings.ts": 6,
     "src/engine/ui/BossBar.ts": 2,
@@ -212,7 +211,7 @@
     "src/engine/ui/hudSlots.ts": 10,
     "src/engine/ui/HurtArc.ts": 21,
     "src/engine/ui/icons.ts": 66,
-    "src/engine/ui/Loading.ts": 4,
+    "src/engine/ui/Loading.ts": 3,
     "src/engine/ui/LockOn.ts": 1,
     "src/engine/ui/Map.ts": 19,
     "src/engine/ui/mapShapes.ts": 3,
@@ -624,7 +623,8 @@
     "src/shards/pine-hollow/world/trophyWall.ts": 5,
     "src/shards/pine-hollow/world/undergrowth.ts": 11,
     "src/shards/pine-hollow/world/undergrowthKit.ts": 2,
-    "src/shards/pine-hollow/world/weather.ts": 12
+    "src/shards/pine-hollow/world/weather.ts": 12,
+    "src/engine/boot/bootTrace.ts": 1
   },
   "wildshard/no-active-chunk": {
     "src/engine/audio/Audio.ts": 1,
@@ -632,7 +632,7 @@
     "src/engine/boot/bakedTextures.ts": 2,
     "src/engine/boot/extras.ts": 1,
     "src/engine/core/bootstrap.ts": 2,
-    "src/engine/core/Game.ts": 13,
+    "src/engine/core/Game.ts": 11,
     "src/engine/entities/AnimalManager.ts": 7,
     "src/engine/entities/pineCreatures.ts": 1,
     "src/engine/player/Hands.ts": 1,
@@ -658,7 +658,7 @@
     "src/engine/world/TreeFactory.ts": 1,
     "src/kit/looks/grassField.ts": 3,
     "src/kit/looks/particles.ts": 1,
-    "src/main.ts": 25,
+    "src/main.ts": 21,
     "src/shards/driftwood-isle/creatures/Enemies.ts": 1,
     "src/shards/driftwood-isle/world/Ocean.ts": 1,
     "src/shards/driftwood-isle/world/Seabed.ts": 1,
@@ -713,7 +713,6 @@
     "src/engine/audio/Voices.ts": 1,
     "src/engine/boot/clearDownloads.ts": 1,
     "src/engine/boot/lastEnd.ts": 4,
-    "src/engine/boot/nineBootTrace.ts": 5,
     "src/engine/boot/pack.ts": 2,
     "src/engine/boot/plan.ts": 1,
     "src/engine/boot/precompile.ts": 2,
@@ -818,7 +817,8 @@
     "src/shards/pine-hollow/models/skinningKnife.ts": 2,
     "src/shards/pine-hollow/quest/index.ts": 2,
     "src/shards/pine-hollow/quest/ui.ts": 7,
-    "src/shards/pine-hollow/weapons/LeverRifle.ts": 4
+    "src/shards/pine-hollow/weapons/LeverRifle.ts": 4,
+    "src/engine/boot/bootTrace.ts": 5
   },
   "wildshard/no-hook-chain": {
     "src/engine/core/gpuOnly.ts": 1,
@@ -906,7 +906,6 @@
     "src/engine/audio/Music.ts": 2,
     "src/engine/audio/Stems.ts": 2,
     "src/engine/audio/Voices.ts": 2,
-    "src/engine/boot/nineBootTrace.ts": 1,
     "src/engine/boot/shardPrefetch.ts": 2,
     "src/engine/boot/stuck.ts": 1,
     "src/engine/core/Game.ts": 18,
@@ -991,10 +990,10 @@
     "src/shards/pine-hollow/combat/feel.ts": 1,
     "src/shards/pine-hollow/life/index.ts": 8,
     "src/shards/pine-hollow/quest/nightThralls.ts": 2,
-    "src/shards/pine-hollow/weapons/LeverRifle.ts": 14
+    "src/shards/pine-hollow/weapons/LeverRifle.ts": 14,
+    "src/engine/boot/bootTrace.ts": 1
   },
   "wildshard/no-renderer-type": {
-    "src/engine/boot/nineGpuTrace.ts": 3,
     "src/engine/boot/perflog.ts": 6,
     "src/engine/boot/precompile.ts": 1,
     "src/engine/core/assets.ts": 4,
@@ -1039,20 +1038,19 @@
     "src/shards/pine-hollow/look/PineDayNight.ts": 2,
     "src/shards/pine-hollow/models/wildlife.ts": 1,
     "src/shards/pine-hollow/world/context.ts": 1,
-    "src/shards/pine-hollow/world/props.ts": 1
+    "src/shards/pine-hollow/world/props.ts": 1,
+    "src/engine/boot/gpuTrace.ts": 3
   },
   "wildshard/no-shard-branch": {
     "src/engine/audio/Audio.ts": 2,
     "src/engine/audio/Music.ts": 23,
     "src/engine/boot/audioFiles.ts": 5,
     "src/engine/boot/extras.ts": 11,
-    "src/engine/boot/gpuFiles.ts": 1,
     "src/engine/boot/manifest.ts": 8,
     "src/engine/boot/prefetch.ts": 4,
     "src/engine/boot/shardPrefetch.ts": 5,
     "src/engine/boot/titleArrival.ts": 1,
-    "src/engine/core/bootstrap.ts": 1,
-    "src/engine/core/Game.ts": 10,
+    "src/engine/core/Game.ts": 6,
     "src/engine/core/tier.ts": 4,
     "src/engine/debug/probe.ts": 1,
     "src/engine/entities/AnimalFactory.ts": 10,
@@ -1070,7 +1068,7 @@
     "src/engine/ui/debugOptions.ts": 4,
     "src/engine/ui/HUD.ts": 3,
     "src/engine/ui/HurtArc.ts": 2,
-    "src/engine/ui/Loading.ts": 2,
+    "src/engine/ui/Loading.ts": 1,
     "src/engine/ui/Minimap.ts": 4,
     "src/engine/world/Atmosphere.ts": 2,
     "src/engine/world/BakedTerrain.ts": 2,
@@ -1079,12 +1077,11 @@
     "src/engine/world/Horizon.ts": 1,
     "src/engine/world/Sky.ts": 4,
     "src/engine/world/Terrain.ts": 3,
-    "src/entry.ts": 1,
     "src/game/shard/manifest.ts": 2,
     "src/game/shard/registry.ts": 2,
     "src/game/titleDeck.ts": 3,
     "src/game/travel/switch.ts": 1,
     "src/kit/looks/grassField.ts": 2,
-    "src/main.ts": 100
+    "src/main.ts": 97
   }
 }

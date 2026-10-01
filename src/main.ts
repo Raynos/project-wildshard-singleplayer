@@ -110,7 +110,7 @@ import { packFor, streamPack } from '#engine/boot/pack';
 import { startShardPrefetch } from '#engine/boot/shardPrefetch';
 import { getActiveChunk } from '#game/shard/registry';
 import { runShardLoad, withShardHooks, ShardLoadError, type LoadStage, prepareShardAssets } from '#game/shard/load';
-import { registerGpuFiles } from '#engine/boot/gpuFiles';
+import { registerGpuFiles, setTexturePolicy } from '#engine/boot/gpuFiles';
 import { Audio } from '#engine/audio/Audio';
 import { Music } from '#engine/audio/Music';
 import { ShrineHum } from '#shards/driftwood-isle/audio/shrineHum';
@@ -153,7 +153,7 @@ import { textureBytes } from '#engine/render/textureBytes';
 import { consumeArenaArrival, setShardSwitcher } from '#game/travel/switch';
 import { consumeTitleArrival, type TitleArrival } from '#engine/boot/titleArrival';
 import { setAliveSource } from '#engine/boot/lastEnd';
-import { beginNineExploreEntry, recordNineBootCheckpoint, markNineBootContextLost, markNineBootHandledError } from '#engine/boot/nineBootTrace';
+import { beginExploreEntry, recordBootCheckpoint, markBootContextLost, markBootHandledError } from '#engine/boot/bootTrace';
 import { LegacyCapture, installLegacyCapture, enterScope, currentScope, disposeScope, asShell, withScopeOwner } from '#engine/app/legacyCapture';
 import { isDev } from '#engine/core/devMode';
 
@@ -274,6 +274,7 @@ async function buildShardWorld(slug: string, manifest: ShardManifest, stage: Loa
 }
 
 async function* buildShardStages(slug: string, manifest: ShardManifest, stage: LoadStage, boot: StagedBoot): LevelSequence<BuiltWorld> {
+  setTexturePolicy(manifest.tiers?.[TIER]?.textures);
   const loading = new Loading();
   app.setState('loading');
   if (manifest.slug !== slug) throw new Error(`buildShard: ${slug} is not the active chunk`);
@@ -306,14 +307,12 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   prefetch(worldFetches);
   // then the title art and ALL audio (project/archive/2026-09-23-preload-offline.md), after the pack so they do not split the pipe with the
   // world's files; the selected style + set are decoded as their bytes land — nothing is fetched after the bar.
-  // Nine Dragon has no pack: wait for its per-file queue as well, or 16 audio fetches crowd its GLBs/paint on iOS.
-  const extrasBarrier = pack === null && getActiveChunk().slug === 'nine-dragon-stack'
-    ? Promise.all(worldFetches.map(whenPrefetched)) : packStreamed;
+  // A level may hold extras behind its complete world file queue.
+  const extrasBarrier = manifest.boot?.barrier === true
+    ? Promise.all([packStreamed, ...worldFetches.map(whenPrefetched)]) : packStreamed;
   prefetchAfter(extraFetches(files), extrasBarrier);
-  // Nine Dragon's world builder has a high transient CPU/GPU peak. Its art and selected audio are still
-  // prefetched into the offline cache above, but decode them at their own later steps instead of at the
-  // same time as the painted city and its viewmodel.
-  const deferExtras = getActiveChunk().slug === 'nine-dragon-stack' && TIER === 'phone';
+  // High-peak builds may defer extras decoding until their later loading steps.
+  const deferExtras = manifest.boot?.phone?.deferExtras === true && TIER === 'phone';
   const menuLoad = deferExtras ? null : startMenuPreload(files, getActiveChunk());
   const audioLoad = deferExtras ? null : startAudioPreload(files, getActiveChunk());
   const deferredAudio = deferExtras ? startDeferredAudioPreload(files, getActiveChunk()) : null;
@@ -324,9 +323,8 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   const world = await bootstrap(step);
   const { game, sky, player, forest, params, chunk, registry } = world;
   if (level !== undefined) game.scene.add(level.root);
-  // A phone can lose WebGL during Nine Dragon's large build, before the normal in-game GPU recovery
-  // is installed. Show the fatal error once and let the player choose the next action.
-  const fragileBoot = TIER === 'phone' && slug === 'nine-dragon-stack';
+  // Fragile phone builds need a GPU guard before normal in-game recovery is installed.
+  const fragileBoot = TIER === 'phone' && manifest.boot?.phone?.fragile === true;
   let bootGpuGuardActive = fragileBoot;
   let bootGpuExit = false;
   const failGpuBoot = (reason: string, stack = ''): void => {
@@ -334,10 +332,10 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
     bootGpuExit = true;
     bootFatalShown = true;
     game.hold = true;
-    if (/context lost/i.test(reason)) markNineBootContextLost();
-    else markNineBootHandledError();
+    if (/context lost/i.test(reason)) markBootContextLost();
+    else markBootHandledError();
     plan.fail(`GPU BOOT FAILED · ${reason}`.slice(0, 300));
-    showError(`Nine Dragon GPU boot failed: ${reason}`, stack);
+    showError(`${manifest.name} GPU boot failed: ${reason}`, stack);
   };
   const onBootContextLost = (event: Event): void => {
     event.preventDefault();
@@ -1117,7 +1115,7 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
     setAimTargets([]); minimap.setRoom(pg.map); menu.setPractice(true, pg.title); // E321: the room's own map, not the shard's
   };
   const openExplore = async (mode: ExploreMode, opts: { cam?: number[]; model?: string } = {}): Promise<void> => {
-    beginNineExploreEntry(mode);
+    beginExploreEntry(mode);
     audio.resume();
     audio.worldMuted = false;
     if (!music.isPlaying) music.play('theme');
@@ -1128,11 +1126,11 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
     const t0 = performance.now();
     const { Explore: X } = await import('#engine/explore/Explore');
     const t1 = performance.now();
-    recordNineBootCheckpoint('explore:imported');
+    recordBootCheckpoint('explore:imported');
     explore ??= new X({ world, onExit: exitExplore, onPractice: () => { hud.enterArenaNow(); }, onPlayground: (id) => { void enterPlayground(id); }, openFeedback: () => { void noteSheet(); }, hide: [boundary.group], creatures: animals.animals,
       overhead: [grass?.group, under?.group, particles?.group, gulls?.group, dressing.cover?.group].filter((g) => g !== undefined) });
     const t2 = performance.now();
-    recordNineBootCheckpoint('explore:constructed');
+    recordBootCheckpoint('explore:constructed');
     explore.open(mode, opts);
     if (isDev()) void arena.preload(); // the hub's Practice card (Developer mode): its dummies load now, not when it opens (E291)
     console.info(`[explore] open: import ${Math.round(t1 - t0)} ms · build ${Math.round(t2 - t1)} ms · open ${Math.round(performance.now() - t2)} ms`);
@@ -1356,7 +1354,7 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
         if (banks.music) music.useBank(banks.music);
         audio.useSamples(banks.sfx);
       } catch (error) {
-        console.info(`[audio] deferred Nine Dragon decode: ${error instanceof Error ? error.message : String(error)} — the synth plays`);
+        console.info(`[audio] deferred level decode: ${error instanceof Error ? error.message : String(error)} — the synth plays`);
       }
     };
     requestAnimationFrame(() => { window.setTimeout(() => { void decodeAfterBoot(); }, 0); });
@@ -1388,6 +1386,6 @@ async function* buildShardStages(slug: string, manifest: ShardManifest, stage: L
   return levelWorld;
 }
 main().catch((e: unknown) => {
-  markNineBootHandledError();
+  markBootHandledError();
   if (!bootFatalShown) showError(e instanceof Error ? `${e.name}: ${e.message}` : String(e), e instanceof Error ? e.stack ?? '' : '');
 });

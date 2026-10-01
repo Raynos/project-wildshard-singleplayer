@@ -32,8 +32,8 @@ import { SHADOW_LAYER } from './shadowLayer';
 import { WorldRenderPass } from './worldDepth';
 import { makeSystem, setLoopState, systemFault, type GameSystem } from './faults';
 import { frameCost } from './frameCost';
-import { recordNineGpuCheckpoint, traceNineBootPasses } from '../boot/nineGpuTrace';
-import { nineExploreEntryPending, recordNineExploreFrame, recordNineBootCheckpoint } from '../boot/nineBootTrace';
+import { recordGpuCheckpoint, traceBootPasses } from '../boot/gpuTrace';
+import { exploreEntryPending, recordExploreFrame, recordBootCheckpoint, bootTraceActive } from '../boot/bootTrace';
 import { cullPlaced } from '../models/place';
 
 /** the world's pace during a hit-stop (not 0: nothing downstream has to cope with a zero dt) */
@@ -280,15 +280,15 @@ export class Game {
     installAtmosphere(getActiveChunk().style === 'painterly'); // the painterly shard's air: aerial perspective + cloud shadows
     if (getActiveChunk().style === 'painterly') installLookV2Fog(); // Nalati: the fog coloured from the panorama (src/shards/nalati-grasslands/look/fog.ts)
     installViewport(); // --ws-vh: the real height (an iOS home-screen app reports innerHeight a status bar short — viewport.ts)
-    const phoneNine = TIER === 'phone' && getActiveChunk().slug === 'nine-dragon-stack';
-    if (phoneNine) recordNineBootCheckpoint('renderer:before', { userAgent: navigator.userAgent.slice(0, 250), devicePixelRatio: window.devicePixelRatio });
+    const tracedBoot = bootTraceActive();
+    if (tracedBoot) recordBootCheckpoint('renderer:before', { userAgent: navigator.userAgent.slice(0, 250), devicePixelRatio: window.devicePixelRatio });
     try {
       this.renderer = new THREE.WebGLRenderer({ canvas, context, antialias: false, stencil: false, depth: true });
     } catch (error) {
-      if (phoneNine) recordNineBootCheckpoint('renderer:failed', { message: error instanceof Error ? error.message.slice(0, 250) : String(error).slice(0, 250) });
+      if (tracedBoot) recordBootCheckpoint('renderer:failed', { message: error instanceof Error ? error.message.slice(0, 250) : String(error).slice(0, 250) });
       throw error;
     }
-    if (phoneNine) recordNineGpuCheckpoint(this.renderer, 'renderer:created');
+    if (tracedBoot) recordGpuCheckpoint(this.renderer, 'renderer:created');
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, TIER_CONFIG.dpr));
     this.renderer.setSize(window.innerWidth, viewportHeight());
     this.renderer.toneMapping = THREE.NoToneMapping; // tone mapping happens in the composer
@@ -372,14 +372,14 @@ export class Game {
     // E142: on Pine Hollow's phone tier the viewmodels draw into near depth slices instead of clearing, so the world's
     // depth needs no mid-pass copy (worldDepth.ts)
     const R = this.shardRender; // a shard's render strategy (ShardManifest.render) may pick the slices and the AO; null = the tier's
-    const slices = R?.slices ?? phonePictureCuts(); // E142 / E189: Pine Hollow's and Driftwood's phone tier
+    const level = getActiveChunk(), knobs = level.tiers?.[TIER];
+    const slices = knobs?.slices ?? R?.slices ?? phonePictureCuts(); // E142 / E189: Pine Hollow's and Driftwood's phone tier
     this.renderPass = new WorldRenderPass(this.scene, this.camera, composer, slices);
     composer.addPass(this.renderPass);
 
     let aoPass: N8AOPostPass | null = null;
-    // Nine Dragon's physical iPhone PWA is being killed as its first frame becomes playable (E224).
-    // Keep its phone compositor below the transient boot peak; the shard strategy can restore AO after a phone pass.
-    if (getActiveChunk().slug !== 'nine-dragon-stack' || TIER !== 'phone' ? (R?.ao ?? TIER_CONFIG.ao) : false) {
+    // A level's tier data can keep its compositor below the transient boot peak.
+    if (knobs?.ao ?? R?.ao ?? TIER_CONFIG.ao) {
       const ao = new N8AOPostPass(this.scene, this.camera, window.innerWidth, viewportHeight());
       aoPass = ao;
       ao.configuration.aoRadius = 2.5;
@@ -437,8 +437,8 @@ export class Game {
     // E189 (Jake's picks from the before / after boards, progress/282–283, 2026-09-26: "no regression"): Driftwood's phone
     // frame runs one FXAA pass on the graded frame instead of SMAA's three, and leaves out its faint (12 %) god rays. The
     // warm iPhone's grass frame was 48 ms with the post chain and 17 without; desktop keeps SMAA and the rays
-    const dwPhone = getActiveChunk().style === 'toon' && TIER === 'phone';
-    const fxaa = (dwPhone || R?.aa === 'fxaa') && TIER_CONFIG.smaa !== 'off' ? new FXAAEffect() : null; // (or a shard's render strategy asks for it)
+    const dwPhone = level.style === 'toon' && TIER === 'phone';
+    const fxaa = (dwPhone || (knobs?.aa ?? R?.aa) === 'fxaa') && TIER_CONFIG.smaa !== 'off' ? new FXAAEffect() : null; // (or a shard's render strategy asks for it)
     const raysOn = !dwPhone;
     const chain = (clean: boolean): EffectPass => {
       const godRays = new GodRaysEffect(this.camera, this.sky.sunDisc, {
@@ -582,8 +582,8 @@ export class Game {
    * (src/engine/boot/precompile.ts). Returns the distinct material count.
    */
   async precompile(onProgress?: (done: number, total: number, detail: string) => void): Promise<number> {
-    const phoneNine = TIER === 'phone' && getActiveChunk().slug === 'nine-dragon-stack';
-    if (phoneNine) recordNineGpuCheckpoint(this.renderer, 'compile:before');
+    const tracedBoot = bootTraceActive();
+    if (tracedBoot) recordGpuCheckpoint(this.renderer, 'compile:before');
     // r186 removed PCFSoftShadowMap: the first shadow pass silently flips the type to PCF, and
     // shadowMapType is in every program's cache key — so everything compiled here would be
     // compiled AGAIN by the first frame (desktop 105 → 179 programs). Settle it before compiling.
@@ -600,7 +600,7 @@ export class Game {
     jobs.push(...postJobs(this.composer, rt));
     if (PERFLOAD) perfLog('precompile:start', 0, this.renderer, `${materials} materials · ${jobs.length} jobs · parallel=${parallelCompile(this.renderer)}`);
     const report = await runPrecompile(this.renderer, this.camera, jobs, materials, onProgress);
-    if (phoneNine) recordNineGpuCheckpoint(this.renderer, 'compile:after');
+    if (tracedBoot) recordGpuCheckpoint(this.renderer, 'compile:after');
     return report.materials;
   }
 
@@ -610,16 +610,14 @@ export class Game {
    */
   async firstFrame(onProgress?: (done: number, total: number, detail: string) => void): Promise<void> {
     const frame = (): Promise<void> => new Promise((resolve) => { requestAnimationFrame(() => { setTimeout(resolve, 0); }); }); // rAF alone resumes before the paint
-    // Nine Dragon's world-wide InstancedMesh batches need the shard's per-camera cull before ANY draw.
-    // Its old four-turn warmup rendered all ~35k instances into four extra views on iPhone boot;
-    // the phone renders the spawn view here and lets later views build pipelines when actually seen.
-    const phoneNine = TIER === 'phone' && getActiveChunk().slug === 'nine-dragon-stack';
-    const checkpoint = (operation: string): void => { if (phoneNine) recordNineGpuCheckpoint(this.renderer, operation); };
-    const warmTurns = phoneNine ? 0 : WARM_TURNS;
+    // Large instanced worlds may request culling before the first draw and fewer warm views.
+    const tracedBoot = bootTraceActive();
+    const checkpoint = (operation: string): void => { if (tracedBoot) recordGpuCheckpoint(this.renderer, operation); };
+    const warmTurns = getActiveChunk().tiers?.[TIER]?.warmTurns ?? WARM_TURNS;
     onProgress?.(0, warmTurns + 2, 'world + shadows');
     await frame();
     checkpoint('cull:before');
-    if (phoneNine) this.shardRender?.frame?.(0.016, 0);
+    if (getActiveChunk().boot?.cullBeforeFirstDraw === true) this.shardRender?.frame?.(0.016, 0);
     checkpoint('cull:after');
     // into the composer's input buffer, not the canvas: the canvas target would be a second set of program variants
     const target = (this.composer as unknown as { inputBuffer?: THREE.WebGLRenderTarget }).inputBuffer ?? null;
@@ -645,7 +643,7 @@ export class Game {
     t0 = performance.now(); before = PERFLOAD ? snapshotPrograms(this.renderer) : null;
     this.shardRender?.frame?.(0.016, 0);
     checkpoint('post:before');
-    if (phoneNine) traceNineBootPasses(this.composer.passes, checkpoint, () => { this.composer.render(0.016); });
+    if (tracedBoot) traceBootPasses(this.composer.passes, checkpoint, () => { this.composer.render(0.016); });
     else this.composer.render(0.016);
     checkpoint('post:submitted');
     if (before) perfLog('firstFrame:post', performance.now() - t0, this.renderer, newProgramsSince(this.renderer, before).map(describeProgram).join(' | '));
@@ -759,7 +757,7 @@ export class Game {
         this.shardRender?.frame?.(realDt, t); // a shard's per-frame uniforms, with the camera final (ShardManifest.ShardRender)
         cullPlaced(this.camera); // placed models' per-copy culling and LODs for this view (src/engine/models/place.ts; nothing when none cull)
         composer.render(realDt);
-        if (nineExploreEntryPending() && !this.renderer.getContext().isContextLost()) recordNineExploreFrame();
+        if (exploreEntryPending() && !this.renderer.getContext().isContextLost()) recordExploreFrame();
       } catch (e) { this.fault(this.renderSystem, e); return; }
       this.flushEvents('render');
       if (this.captures.length > 0) this.flushCaptures();

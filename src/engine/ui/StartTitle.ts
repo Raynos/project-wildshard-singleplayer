@@ -2,7 +2,7 @@
  *  Only the selected shard's hero art is decoded. */
 import { setTitleArrival, type TitleArrivalMode } from '../boot/titleArrival';
 import { markUnload } from '../boot/lastEnd';
-import { previousNineBootLine } from '../boot/nineBootTrace';
+import { previousBootLine } from '../boot/bootTrace';
 import { buildTitleDeck, titleCards, type TitleCard } from '#game/titleDeck';
 
 export function showStartTitle(): void {
@@ -17,7 +17,7 @@ export function showStartTitle(): void {
     url.searchParams.set('chunk', card.slug);
     location.assign(url.toString());
   };
-  const interrupted = previousNineBootLine();
+  const interrupted = previousBootLine();
   const deck = buildTitleDeck({
     cards: titleCards(), active: null,
     onEnter: (card) => { launch(card, 'enter'); },

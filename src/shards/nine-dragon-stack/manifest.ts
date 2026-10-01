@@ -44,6 +44,8 @@ export const NINE_DRAGON_STACK: ShardManifest = {
   api: 1,
   kitLook: 'pbr',
   load: () => import('./plugin'),
+  boot: { files: () => FILES, barrier: true, phone: { deferExtras: true, fragile: true, trace: true }, cullBeforeFirstDraw: true },
+  tiers: { phone: { ao: false, slices: false, aa: 'fxaa', warmTurns: 0, textures: 'img' }, desktop: { ao: true, slices: false } },
   assetGlobs: ['public/assets/nine-dragon/**', 'public/assets/gpu/nine-dragon/**', 'public/assets/music/nine-dragon-stack/**', 'public/assets/sfx/nine-dragon-stack/**', 'public/assets/title/nine-dragon-stack-portrait.jpg'],
   ktx2: () => import('./ktx2.generated'),
   order: 4,

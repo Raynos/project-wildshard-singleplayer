@@ -10,7 +10,7 @@ vi.mock('#engine/telemetry/browserErrors', () => ({ deliverBrowserError: capture
 vi.mock('#engine/telemetry/bootInbox', () => ({ reportBootInterruption: inbox }));
 
 const listeners = new Map<string, (event: { persisted?: boolean }) => void>();
-const boot = () => { vi.resetModules(); return import('#engine/boot/nineBootTrace'); };
+const boot = () => { vi.resetModules(); return import('#engine/boot/bootTrace'); };
 const progress = (step: ProgressView['step'], setup: number, done = false): ProgressView => ({
   download: 1, setup, done, error: null, step, label: step, detail: '', bytes: null,
   bytesRead: 0, bytesTotal: 0, filesDone: 0, filesTotal: 0, doneCount: 0, rows: [],
@@ -26,16 +26,39 @@ beforeEach(() => {
   vi.stubGlobal('window', { addEventListener: (type: string, fn: (event: { persisted?: boolean }) => void) => { listeners.set(`window:${type}`, fn); } });
 });
 
-describe('Nine Dragon boot trace', () => {
+describe('level boot trace', () => {
+  it('keeps tracing disabled without registering listeners or saving a record', async () => {
+    const first = await boot();
+    first.startBoot({ id: 'fixture-level', name: 'Fixture Level' }, false);
+    first.recordBootCheckpoint('renderer:before');
+    expect(first.bootTraceActive()).toBe(false);
+    expect(listeners.size).toBe(0);
+    expect(fixtures.getItem('boot.trace')).toBeNull();
+  });
+
+  it('carries the selected level identity into both interruption transports', async () => {
+    const first = await boot();
+    first.startBoot({ id: 'fixture-level', name: 'Fixture Level' });
+    first.recordBootCheckpoint('post:before');
+    const next = await boot();
+    next.inspectPreviousBoot();
+    await next.flushBootReports();
+    await vi.waitFor(() => { expect(inbox).toHaveBeenCalledOnce(); });
+    expect(next.previousBootLevel()).toBe('fixture-level');
+    expect(next.previousBootLine()).toContain('Fixture Level');
+    expect(capture.mock.calls[0]?.[1]).toMatchObject({ shard: 'fixture-level' });
+    expect(inbox.mock.calls[0]?.[4]).toBe('fixture-level');
+  });
+
   it('recovers the exact pending GPU operation and bounded evidence after a process disappears', async () => {
     const first = await boot();
-    first.startNineBoot();
-    for (let i = 0; i < 40; i++) first.recordNineBootCheckpoint(`step:${i}`);
-    first.recordNineBootCheckpoint('post:before', { calls: 80, jsHeapBytes: null, gpuTextures: 'auto' });
+    first.startBoot({ id: 'nine-dragon-stack', name: 'Nine Dragon' });
+    for (let i = 0; i < 40; i++) first.recordBootCheckpoint(`step:${i}`);
+    first.recordBootCheckpoint('post:before', { calls: 80, jsHeapBytes: null, gpuTextures: 'auto' });
     const next = await boot();
-    next.inspectPreviousNineBoot();
-    await next.flushNineBootReports();
-    expect(next.previousNineBootLine()).toContain('at post:before');
+    next.inspectPreviousBoot();
+    await next.flushBootReports();
+    expect(next.previousBootLine()).toContain('at post:before');
     const tags: unknown = capture.mock.calls[0]?.[1];
     const diagnostic: unknown = typeof tags === 'object' && tags !== null ? Reflect.get(tags, 'diagnostic') : null;
     const checkpoints: unknown = typeof diagnostic === 'object' && diagnostic !== null ? Reflect.get(diagnostic, 'checkpoints') : null;
@@ -46,94 +69,94 @@ describe('Nine Dragon boot trace', () => {
 
   it('saves changes within the same progress percentage', async () => {
     const first = await boot();
-    first.startNineBoot();
-    first.recordNineBootProgress({ ...progress('firstFrame', 0.95), detail: 'world' });
-    first.recordNineBootProgress({ ...progress('firstFrame', 0.95), detail: 'post chain' });
+    first.startBoot({ id: 'nine-dragon-stack', name: 'Nine Dragon' });
+    first.recordBootProgress({ ...progress('firstFrame', 0.95), detail: 'world' });
+    first.recordBootProgress({ ...progress('firstFrame', 0.95), detail: 'post chain' });
     const next = await boot();
-    next.inspectPreviousNineBoot();
-    await next.flushNineBootReports();
-    expect(next.previousNineBootLine()).toContain('at post chain');
+    next.inspectPreviousBoot();
+    await next.flushBootReports();
+    expect(next.previousBootLine()).toContain('at post chain');
   });
 
   it('ignores checkpoints after world ready', async () => {
     const first = await boot();
-    first.startNineBoot();
+    first.startBoot({ id: 'nine-dragon-stack', name: 'Nine Dragon' });
     listeners.get('document:ws:ready')?.({});
-    first.recordNineBootCheckpoint('post:before');
+    first.recordBootCheckpoint('post:before');
     const next = await boot();
-    next.inspectPreviousNineBoot();
-    await next.flushNineBootReports();
+    next.inspectPreviousBoot();
+    await next.flushBootReports();
     expect(capture).not.toHaveBeenCalled();
   });
 
   it('reports one honest abrupt boot after the previous page vanishes at first frame', async () => {
     const first = await boot();
-    first.startNineBoot();
-    first.recordNineBootProgress(progress('firstFrame', 0.95));
+    first.startBoot({ id: 'nine-dragon-stack', name: 'Nine Dragon' });
+    first.recordBootProgress(progress('firstFrame', 0.95));
     const next = await boot();
-    next.inspectPreviousNineBoot();
-    await next.flushNineBootReports();
-    expect(next.previousNineBootLine()).toContain('Abrupt previous page: Nine Dragon first frame 95%');
-    expect(next.previousNineBootLine()).toContain('cause unknown');
+    next.inspectPreviousBoot();
+    await next.flushBootReports();
+    expect(next.previousBootLine()).toContain('Abrupt previous page: Nine Dragon first frame 95%');
+    expect(next.previousBootLine()).toContain('cause unknown');
     expect(capture).toHaveBeenCalledOnce();
     await vi.waitFor(() => { expect(inbox).toHaveBeenCalledOnce(); });
     const third = await boot();
-    third.inspectPreviousNineBoot();
+    third.inspectPreviousBoot();
     expect(capture).toHaveBeenCalledOnce();
   });
 
   it.each(['planned', 'handled_error', 'context_lost'] as const)('does not call a known %s exit abrupt', async (status) => {
     const first = await boot();
-    first.startNineBoot();
-    first.recordNineBootProgress(progress('firstFrame', 0.95));
-    if (status === 'planned') first.markNineBootPlanned();
-    else if (status === 'handled_error') first.markNineBootHandledError();
-    else first.markNineBootContextLost();
+    first.startBoot({ id: 'nine-dragon-stack', name: 'Nine Dragon' });
+    first.recordBootProgress(progress('firstFrame', 0.95));
+    if (status === 'planned') first.markBootPlanned();
+    else if (status === 'handled_error') first.markBootHandledError();
+    else first.markBootContextLost();
     const next = await boot();
-    next.inspectPreviousNineBoot();
-    await next.flushNineBootReports();
-    expect(next.previousNineBootLine()).toBe('');
+    next.inspectPreviousBoot();
+    await next.flushBootReports();
+    expect(next.previousBootLine()).toBe('');
     expect(capture).not.toHaveBeenCalled();
   });
 
   it('does not report a page that reached world ready or exited through pagehide', async () => {
     const first = await boot();
-    first.startNineBoot();
-    first.recordNineBootProgress(progress('firstFrame', 1, true));
+    first.startBoot({ id: 'nine-dragon-stack', name: 'Nine Dragon' });
+    first.recordBootProgress(progress('firstFrame', 1, true));
     listeners.get('document:ws:ready')?.({});
     const ready = await boot();
-    ready.inspectPreviousNineBoot();
+    ready.inspectPreviousBoot();
     expect(capture).not.toHaveBeenCalled();
 
-    ready.startNineBoot();
+    ready.startBoot({ id: 'nine-dragon-stack', name: 'Nine Dragon' });
     listeners.get('window:pagehide')?.({});
     const closed = await boot();
-    closed.inspectPreviousNineBoot();
+    closed.inspectPreviousBoot();
     expect(capture).not.toHaveBeenCalled();
   });
 
   it('resumes an in-progress record if iOS sends pagehide for an app switch', async () => {
     const first = await boot();
-    first.startNineBoot();
+    first.startBoot({ id: 'nine-dragon-stack', name: 'Nine Dragon' });
     listeners.get('window:pagehide')?.({});
     listeners.get('document:visibilitychange')?.({});
-    first.recordNineBootProgress(progress('firstFrame', 0.95));
+    first.recordBootProgress(progress('firstFrame', 0.95));
     const next = await boot();
-    next.inspectPreviousNineBoot();
-    await next.flushNineBootReports();
+    next.inspectPreviousBoot();
+    await next.flushBootReports();
     expect(capture).toHaveBeenCalledOnce();
   });
 
   it('does not let an old title-navigation marker hide a later interrupted Nine boot', async () => {
     fixtures.setItem('ws.lastUnload', JSON.stringify({ reason: 'title chose nine-dragon-stack', t: Date.now() - 20_000 }));
     const first = await boot();
-    first.startNineBoot();
-    first.recordNineBootProgress(progress('firstFrame', 0.95));
+    first.startBoot({ id: 'nine-dragon-stack', name: 'Nine Dragon' });
+    first.recordBootProgress(progress('firstFrame', 0.95));
     const next = await boot();
-    next.inspectPreviousNineBoot();
-    await next.flushNineBootReports();
+    next.inspectPreviousBoot();
+    await next.flushBootReports();
     expect(capture).toHaveBeenCalledOnce();
-    expect(next.previousNineBootLine()).toContain('cause unknown');
+    expect(next.previousBootLine()).toContain('cause unknown');
   });
 });
 
@@ -141,63 +164,63 @@ describe('Nine Dragon boot trace', () => {
 describe('durable Explore and recovery evidence', () => {
   it('keeps Explore entry armed after a late boot-ready event until actual visible stable draws', async () => {
     const first = await boot();
-    first.startNineBoot();
+    first.startBoot({ id: 'nine-dragon-stack', name: 'Nine Dragon' });
     listeners.get('document:ws:ready')?.({});
-    first.beginNineExploreEntry('world');
+    first.beginExploreEntry('world');
     listeners.get('document:ws:ready')?.({});
-    first.recordNineBootCheckpoint('explore:constructed');
-    first.recordNineBootProgress(progress('firstFrame', 1, true));
-    expect(first.nineExploreEntryPending()).toBe(true);
+    first.recordBootCheckpoint('explore:constructed');
+    first.recordBootProgress(progress('firstFrame', 1, true));
+    expect(first.exploreEntryPending()).toBe(true);
     const next = await boot();
-    next.inspectPreviousNineBoot();
+    next.inspectPreviousBoot();
     await vi.waitFor(() => { expect(inbox).toHaveBeenCalledOnce(); });
-    expect(next.previousNineBootLine()).toContain('explore:world');
+    expect(next.previousBootLine()).toContain('explore:world');
   });
 
   it('finishes only after live draws over ten seconds and makes bounded storage writes', async () => {
     const first = await boot();
-    first.startNineBoot();
+    first.startBoot({ id: 'nine-dragon-stack', name: 'Nine Dragon' });
     listeners.get('document:ws:ready')?.({});
-    first.beginNineExploreEntry('world');
+    first.beginExploreEntry('world');
     const writes = vi.spyOn(localStorage, 'setItem');
-    for (let i = 0; i < 120; i++) first.recordNineExploreFrame();
-    expect(first.nineExploreEntryPending()).toBe(true);
+    for (let i = 0; i < 120; i++) first.recordExploreFrame();
+    expect(first.exploreEntryPending()).toBe(true);
     vi.setSystemTime(Date.now() + 10_000);
-    first.recordNineExploreFrame();
-    expect(first.nineExploreEntryPending()).toBe(false);
+    first.recordExploreFrame();
+    expect(first.exploreEntryPending()).toBe(false);
     expect(writes).toHaveBeenCalledTimes(4);
     const next = await boot();
-    next.inspectPreviousNineBoot();
+    next.inspectPreviousBoot();
     expect(capture).not.toHaveBeenCalled();
   });
 
   it('retains known GPU failure after ready, planned reload and pagehide', async () => {
     const first = await boot();
-    first.startNineBoot();
+    first.startBoot({ id: 'nine-dragon-stack', name: 'Nine Dragon' });
     listeners.get('document:ws:ready')?.({});
-    first.recordNineGpuRecovery('the context stayed lost');
-    first.markNineBootPlanned();
+    first.recordGpuRecovery('the context stayed lost');
+    first.markBootPlanned();
     listeners.get('window:pagehide')?.({});
     const next = await boot();
-    next.inspectPreviousNineBoot();
+    next.inspectPreviousBoot();
     await vi.waitFor(() => { expect(inbox).toHaveBeenCalledOnce(); });
-    expect(next.previousNineBootLine()).toContain('graphics recovery: the context stayed lost');
+    expect(next.previousBootLine()).toContain('graphics recovery: the context stayed lost');
     expect(inbox.mock.calls[0]?.[3]).toBe('gpu-recovery');
   });
 
   it('retains evidence through async import/send failure and retries only the unacknowledged channel', async () => {
     inbox.mockRejectedValue(new Error('offline'));
     const first = await boot();
-    first.startNineBoot();
-    first.beginNineExploreEntry('world');
+    first.startBoot({ id: 'nine-dragon-stack', name: 'Nine Dragon' });
+    first.beginExploreEntry('world');
     const next = await boot();
-    next.inspectPreviousNineBoot();
+    next.inspectPreviousBoot();
     await vi.waitFor(() => { expect(inbox).toHaveBeenCalledOnce(); });
     await vi.waitFor(() => { expect(fixtures.getItem('boot.reports')).toContain('"sentry":true'); });
     expect(fixtures.getItem('boot.reports')).toContain('explore:world');
     inbox.mockResolvedValue('ok');
     const third = await boot();
-    third.inspectPreviousNineBoot();
+    third.inspectPreviousBoot();
     await vi.waitFor(() => { expect(inbox).toHaveBeenCalledTimes(2); });
     await vi.waitFor(() => { expect(fixtures.getItem('boot.reports')).toBe('[]'); });
     expect(capture).toHaveBeenCalledOnce();
@@ -206,13 +229,13 @@ describe('durable Explore and recovery evidence', () => {
   it('retries Sentry independently without resending an acknowledged first-party report', async () => {
     capture.mockResolvedValue(false);
     const first = await boot();
-    first.startNineBoot();
+    first.startBoot({ id: 'nine-dragon-stack', name: 'Nine Dragon' });
     const next = await boot();
-    next.inspectPreviousNineBoot();
+    next.inspectPreviousBoot();
     await vi.waitFor(() => { expect(fixtures.getItem('boot.reports')).toContain('"inbox":true'); });
     capture.mockResolvedValue(true);
     const third = await boot();
-    third.inspectPreviousNineBoot();
+    third.inspectPreviousBoot();
     await vi.waitFor(() => { expect(fixtures.getItem('boot.reports')).toBe('[]'); });
     expect(inbox).toHaveBeenCalledOnce();
     expect(capture).toHaveBeenCalledTimes(2);
@@ -220,15 +243,15 @@ describe('durable Explore and recovery evidence', () => {
 
   it.each(['navigation', 'background'] as const)('does not infer a crash from normal %s during Explore', async (exit) => {
     const first = await boot();
-    first.startNineBoot();
-    first.beginNineExploreEntry('world');
-    if (exit === 'navigation') first.markNineBootPlanned();
+    first.startBoot({ id: 'nine-dragon-stack', name: 'Nine Dragon' });
+    first.beginExploreEntry('world');
+    if (exit === 'navigation') first.markBootPlanned();
     else {
       vi.stubGlobal('document', { visibilityState: 'hidden' });
       listeners.get('document:visibilitychange')?.({});
     }
     const next = await boot();
-    next.inspectPreviousNineBoot();
+    next.inspectPreviousBoot();
     expect(capture).not.toHaveBeenCalled();
   });
 
@@ -237,16 +260,16 @@ describe('durable Explore and recovery evidence', () => {
     capture.mockResolvedValue(false);
     for (let i = 0; i < 6; i++) {
       const page = await boot();
-      page.startNineBoot();
-      page.recordNineGpuRecovery(`lost ${i}`);
+      page.startBoot({ id: 'nine-dragon-stack', name: 'Nine Dragon' });
+      page.recordGpuRecovery(`lost ${i}`);
     }
     const pending: unknown = JSON.parse(fixtures.getItem('boot.reports') ?? 'null');
     expect(pending).toHaveLength(4);
     const next = await boot();
-    next.startNineBoot();
+    next.startBoot({ id: 'nine-dragon-stack', name: 'Nine Dragon' });
     expect(fixtures.getItem('boot.reports')).toContain('lost 5');
     vi.setSystemTime(Date.now() + 8 * 24 * 60 * 60_000);
-    await next.flushNineBootReports();
+    await next.flushBootReports();
     expect(inbox).not.toHaveBeenCalled();
     expect(capture).not.toHaveBeenCalled();
   });
@@ -254,17 +277,17 @@ describe('durable Explore and recovery evidence', () => {
 
   it('cancels an unfinished Explore watch after successful leave without hiding handled/lost failures', async () => {
     const first = await boot();
-    first.startNineBoot();
-    first.beginNineExploreEntry('hub');
-    first.endNineExploreEntry();
-    expect(first.nineExploreEntryPending()).toBe(false);
-    expect(first.nineBootDiagnostic()['status']).toBe('ready');
-    first.beginNineExploreEntry('world');
-    first.markNineBootContextLost();
-    first.endNineExploreEntry();
-    expect(first.nineBootDiagnostic()['status']).toBe('context_lost');
+    first.startBoot({ id: 'nine-dragon-stack', name: 'Nine Dragon' });
+    first.beginExploreEntry('hub');
+    first.endExploreEntry();
+    expect(first.exploreEntryPending()).toBe(false);
+    expect(first.bootDiagnostic()['status']).toBe('ready');
+    first.beginExploreEntry('world');
+    first.markBootContextLost();
+    first.endExploreEntry();
+    expect(first.bootDiagnostic()['status']).toBe('context_lost');
     const next = await boot();
-    next.inspectPreviousNineBoot();
+    next.inspectPreviousBoot();
     expect(capture).not.toHaveBeenCalled();
   });
 

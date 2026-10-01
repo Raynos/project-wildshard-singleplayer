@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mocks = vi.hoisted(() => ({ line: '', guard: vi.fn(), title: vi.fn(), three: vi.fn(), main: vi.fn() }));
 vi.mock('#engine/boot/stuck', () => ({ guardBoot: mocks.guard }));
-vi.mock('#engine/boot/nineBootTrace', () => ({ inspectPreviousNineBoot: vi.fn(), previousNineBootLine: () => mocks.line }));
+vi.mock('#engine/boot/bootTrace', () => ({ inspectPreviousBoot: vi.fn(), previousBootLine: () => mocks.line, previousBootLevel: () => 'nine-dragon-stack' }));
 vi.mock('#engine/ui/StartTitle', () => { mocks.title(); return {}; });
 vi.mock('three', () => { mocks.three(); return {}; });
 vi.mock('../src/main', () => { mocks.main(); return {}; });

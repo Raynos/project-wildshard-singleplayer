@@ -1,7 +1,7 @@
 import type * as THREE from 'three';
 import { Game } from './Game';
 import { readyWebGLContext } from './webglStartup';
-import { recordNineBootCheckpoint } from '../boot/nineBootTrace';
+import { recordBootCheckpoint } from '../boot/bootTrace';
 import { TERRAIN_RES } from './config';
 import { Terrain } from '../world/Terrain';
 import { TreeFactory } from '../world/TreeFactory';
@@ -73,7 +73,7 @@ export async function bootstrap(step: StepRunner = runDirect): Promise<World> {
   const game = await step('renderer', async (progress) => {
     const context = await readyWebGLContext(canvas, (state) => {
       progress.detail('Waiting for graphics to recover');
-      if (def.slug === 'nine-dragon-stack') recordNineBootCheckpoint('renderer:waiting', { ...state });
+      recordBootCheckpoint('renderer:waiting', { ...state });
     });
     return new Game(canvas, context);
   });

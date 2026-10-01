@@ -1,5 +1,5 @@
 import { saveStorage } from '#engine/saves/slots';
-/** A small durable breadcrumb for Nine Dragon's phone boot. A terminated WebContent process cannot run a final handler. */
+/** A small durable breadcrumb for an enabled level boot. A terminated WebContent process cannot run a final handler. */
 import { deliverBrowserError } from '../telemetry/browserErrors';
 import type { ProgressView } from './plan';
 
@@ -16,6 +16,8 @@ type Facts = Record<string, string | number | boolean | null>;
 interface Checkpoint { atMs: number; operation: string; facts: Facts }
 
 interface BootRecord {
+  levelId: string;
+  levelName: string;
   id: string;
   build: string;
   startedAt: number;
@@ -31,6 +33,9 @@ interface BootRecord {
 
 let current: BootRecord | null = null;
 let previousLine = '';
+let previousLevelId = '';
+export function bootTraceActive(): boolean { return current?.status === 'in_progress'; }
+export function previousBootLevel(): string { return previousLevelId; }
 let transition: { frames: number; firstDrawAt: number | null } | null = null;
 let hiddenStatus: Status | null = null;
 interface PendingReport { record: BootRecord; reason: string; inbox: boolean; sentry: boolean }
@@ -63,14 +68,14 @@ function enqueue(record: BootRecord, reason: string): boolean {
   return saveReports(queue);
 }
 function reportLine(prior: BootRecord, reason: string): string {
-  if (reason) return `Nine Dragon graphics recovery: ${reason}`;
+  if (reason) return `${prior.levelName} graphics recovery: ${reason}`;
   const stage = prior.stage.replaceAll(/([a-z])([A-Z])/g, '$1 $2').toLowerCase();
   const last = prior.checkpoints?.at(-1)?.operation ?? prior.detail ?? '';
-  return `Abrupt previous page: Nine Dragon ${stage} ${prior.setup}% setup / ${prior.download}% download${last ? ` at ${last}` : ''} (cause unknown)`;
+  return `Abrupt previous page: ${prior.levelName} ${stage} ${prior.setup}% setup / ${prior.download}% download${last ? ` at ${last}` : ''} (cause unknown)`;
 }
 
 /** Retry independent channels from the renderer-free title; retain evidence until each one acknowledges it. */
-export async function flushNineBootReports(): Promise<void> {
+export async function flushBootReports(): Promise<void> {
   if (flushing) return;
   flushing = true;
   try {
@@ -89,12 +94,12 @@ export async function flushNineBootReports(): Promise<void> {
       await Promise.all([
         pending.inbox ? Promise.resolve() : import('../telemetry/bootInbox').then(async ({ reportBootInterruption }) => {
           const result = await reportBootInterruption(new Error(message), prior.build,
-            JSON.stringify({ ...diagnostic, checkpoints: diagnostic.checkpoints.slice(-8) }), system);
+            JSON.stringify({ ...diagnostic, checkpoints: diagnostic.checkpoints.slice(-8) }), system, prior.levelId);
           if (result === 'ok' || result === 'reject') acknowledge('inbox');
           return undefined;
         }).catch(() => { /* leave durable evidence for the next online event or document */ }),
         pending.sentry ? Promise.resolve() : deliverBrowserError(new Error(message), {
-          system, build: prior.build, shard: 'nine-dragon-stack', bootStage: prior.stage, fatal: false, diagnostic,
+          system, build: prior.build, shard: prior.levelId, bootStage: prior.stage, fatal: false, diagnostic,
         }).then((ok) => { if (ok) acknowledge('sentry'); return undefined; }).catch(() => { /* independently retry Sentry */ }),
       ]);
     }
@@ -115,7 +120,7 @@ function read(key: string): BootRecord | null {
 function validRecord(value: unknown): value is BootRecord {
   if (typeof value !== 'object' || value === null) return false;
   const o = value as Partial<BootRecord>;
-  return typeof o.id === 'string' && typeof o.build === 'string' && typeof o.startedAt === 'number' &&
+  return typeof o.levelId === 'string' && typeof o.levelName === 'string' && typeof o.id === 'string' && typeof o.build === 'string' && typeof o.startedAt === 'number' &&
     typeof o.updatedAt === 'number' && typeof o.stage === 'string' && typeof o.setup === 'number' &&
     typeof o.download === 'number' && typeof o.visibility === 'string' && typeof o.status === 'string' &&
     (o.checkpoints === undefined || (Array.isArray(o.checkpoints) && o.checkpoints.every(validCheckpoint)));
@@ -136,16 +141,17 @@ function update(status: Status): void {
 }
 
 /** Called by lastEnd on every new document, before its own boot can replace the old record. */
-export function inspectPreviousNineBoot(): void {
+export function inspectPreviousBoot(): void {
   if (!retryListener && typeof window !== 'undefined') {
     retryListener = true;
-    window.addEventListener('online', () => { void flushNineBootReports(); });
+    window.addEventListener('online', () => { void flushBootReports(); });
   }
   const prior = read(KEY);
   if (prior?.status === 'in_progress' && prior.visibility === 'visible') {
     const age = Date.now() - prior.updatedAt;
     if (age >= 0 && age <= RECENT_MS) {
       previousLine = reportLine(prior, '');
+      previousLevelId = prior.levelId;
       // Copy before replacing the active attempt; a failed import/fetch can retry after another launch.
       if (enqueue(prior, '')) {
         try { storage()?.removeItem(KEY); } catch { /* enqueue deduplicates the same attempt */ }
@@ -154,31 +160,34 @@ export function inspectPreviousNineBoot(): void {
   }
   if (!previousLine) {
     const latest = reports().at(-1);
-    if (latest) previousLine = reportLine(latest.record, latest.reason);
+    if (latest) {
+      previousLine = reportLine(latest.record, latest.reason);
+      previousLevelId = latest.record.levelId;
+    }
   }
-  void flushNineBootReports();
+  void flushBootReports();
 }
 
 /** Shown in the loader and the Loading & memory Debug row after a restart. */
-export function previousNineBootLine(): string {
+export function previousBootLine(): string {
   return previousLine;
 }
 
 /** The same bounded evidence also accompanies handled errors through the working first-party inbox. */
-export function nineBootDiagnostic(): Record<string, unknown> {
+export function bootDiagnostic(): Record<string, unknown> {
   if (current === null) return {};
   return { attempt: current.id, previousBuild: current.build, stage: current.stage, detail: current.detail ?? '',
     elapsedMs: current.updatedAt - current.startedAt, status: current.status, checkpoints: current.checkpoints ?? [] };
 }
 
 /** Keep the server's 16 KiB request budget: newest operations matter most for a handled failure. */
-export function nineBootDiagnosticJson(): string {
+export function bootDiagnosticJson(): string {
   if (current === null) return '';
-  return JSON.stringify({ ...nineBootDiagnostic(), checkpoints: (current.checkpoints ?? []).slice(-8) });
+  return JSON.stringify({ ...bootDiagnostic(), checkpoints: (current.checkpoints ?? []).slice(-8) });
 }
 
 /** Persist only stage changes and coarse first-frame progress, never every boot-plan paint. */
-export function recordNineBootProgress(view: ProgressView): void {
+export function recordBootProgress(view: ProgressView): void {
   if (current === null) return;
   if (current.status !== 'in_progress') return;
   // Arrival can open Explore before the loader emits its final progress notification.
@@ -195,7 +204,7 @@ export function recordNineBootProgress(view: ProgressView): void {
 }
 
 /** Synchronous, bounded evidence written BEFORE risky GPU work, surviving a process termination. */
-export function recordNineBootCheckpoint(operation: string, facts: Facts = {}): void {
+export function recordBootCheckpoint(operation: string, facts: Facts = {}): void {
   if (current?.status !== 'in_progress') return;
   const now = Date.now();
   const checkpoint: Checkpoint = { atMs: now - current.startedAt, operation, facts };
@@ -203,12 +212,14 @@ export function recordNineBootCheckpoint(operation: string, facts: Facts = {}): 
   write(KEY, current);
 }
 
-/** Begin once the Nine Dragon loader exists; the root title has no boot in progress. */
-export function startNineBoot(): void {
+/** Begin once an enabled level loader exists; the root title has no boot in progress. */
+export function startBoot(level: { id: string; name: string }, enabled = true): void {
+  if (!enabled) return;
   transition = null;
   hiddenStatus = null;
   const now = Date.now();
   current = {
+    levelId: level.id, levelName: level.name,
     id: `${now.toString(36)}-${Math.random().toString(36).slice(2, 8)}`, build: __BUILD_ID__, startedAt: now,
     updatedAt: now, stage: 'loader', setup: 0, download: 0, visibility: document.visibilityState, status: 'in_progress',
   };
@@ -237,43 +248,43 @@ export function startNineBoot(): void {
   });
 }
 
-export function markNineBootPlanned(): void { update('planned'); }
-export function markNineBootHandledError(): void { update('handled_error'); }
-export function markNineBootContextLost(): void { update('context_lost'); }
+export function markBootPlanned(): void { update('planned'); }
+export function markBootHandledError(): void { update('handled_error'); }
+export function markBootContextLost(): void { update('context_lost'); }
 
 /** Explore imports, construction and a newly exposed vista can fail after ws:ready. */
-export function beginNineExploreEntry(mode: string): void {
+export function beginExploreEntry(mode: string): void {
   if (!current || (current.status !== 'ready' && current.status !== 'in_progress')) return;
   current = { ...current, status: 'in_progress', stage: `explore:${mode.slice(0, 20)}`, updatedAt: Date.now(), visibility: document.visibilityState };
   transition = { frames: 0, firstDrawAt: null };
-  recordNineBootCheckpoint('explore:entry', { mode: mode.slice(0, 20) });
+  recordBootCheckpoint('explore:entry', { mode: mode.slice(0, 20) });
 }
 
 /** A successful in-page exit ends the entry watch; a handled/lost attempt must keep its terminal status. */
-export function endNineExploreEntry(): void {
+export function endExploreEntry(): void {
   if (!transition || current?.status !== 'in_progress') return;
-  recordNineBootCheckpoint('explore:left');
+  recordBootCheckpoint('explore:left');
   transition = null;
   update('ready');
 }
 
-export function nineExploreEntryPending(): boolean { return transition !== null && current?.status === 'in_progress'; }
+export function exploreEntryPending(): boolean { return transition !== null && current?.status === 'in_progress'; }
 
 /** Called after a real successful draw, not a timer; only coarse milestones touch storage. */
-export function recordNineExploreFrame(): void {
+export function recordExploreFrame(): void {
   if (!transition || current?.status !== 'in_progress' || document.visibilityState !== 'visible') return;
   transition.firstDrawAt ??= Date.now();
   transition.frames++;
-  if (transition.frames === 1 || transition.frames === 30) recordNineBootCheckpoint('explore:drawn', { frames: transition.frames });
+  if (transition.frames === 1 || transition.frames === 30) recordBootCheckpoint('explore:drawn', { frames: transition.frames });
   if (transition.frames >= 120 && Date.now() - transition.firstDrawAt >= 10_000) {
-    recordNineBootCheckpoint('explore:stable', { frames: transition.frames });
+    recordBootCheckpoint('explore:stable', { frames: transition.frames });
     transition = null;
     update('ready');
   }
 }
 
 /** A known failure survives markUnload/pagehide, including a failure after the world became stable. */
-export function recordNineGpuRecovery(reason: string): void {
+export function recordGpuRecovery(reason: string): void {
   if (!current) return;
   current = { ...current, updatedAt: Date.now(), visibility: document.visibilityState };
   const checkpoint: Checkpoint = { atMs: current.updatedAt - current.startedAt, operation: 'gpu:recovery', facts: { reason: reason.slice(0, 200) } };

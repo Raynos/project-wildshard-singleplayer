@@ -20,7 +20,7 @@ import { saveStorage } from '#engine/saves/slots';
  *
  *   setAliveSource(() => ({ slug, resident: 'pine-hollow (playing) 178 MB · nalati-grasslands 87 MB' }))   // main.ts
  */
-import { inspectPreviousNineBoot, markNineBootPlanned, previousNineBootLine } from './nineBootTrace';
+import { inspectPreviousBoot, markBootPlanned, previousBootLine } from './bootTrace';
 
 declare const __BUILD_ID__: string;
 
@@ -77,7 +77,7 @@ function stamp(): Stamp {
 
 /** the game is about to navigate / reload on purpose: say why, first (the next boot reads it) */
 export function markUnload(reason: string): void {
-  markNineBootPlanned();
+  markBootPlanned();
   const u: Unload = { reason, ...stamp() };
   writeJson(store('local'), UNLOAD_KEY, u);
   console.info(`[lastEnd] unloading: ${reason}`);
@@ -111,7 +111,7 @@ function classify(): LastEnd {
 }
 
 const thisEnd: LastEnd = classify();
-inspectPreviousNineBoot();
+inspectPreviousBoot();
 if (thisEnd.kind !== 'fresh' || thisEnd.discarded) writeJson(store('local'), END_KEY, thisEnd);
 if (thisEnd.kind !== 'fresh') console.info(`[lastEnd] the previous page: ${thisEnd.reason}${thisEnd.resident === '' ? '' : ` · resident ${thisEnd.resident}`}`);
 
@@ -133,11 +133,11 @@ export function lastRecordedEnd(): LastEnd | null {
 /** the Debug readout's line: "Last reload: <reason> · 2 min ago · resident <list>" */
 export function lastEndLine(now = Date.now()): string {
   const e = lastRecordedEnd();
-  if (e === null) return previousNineBootLine() || 'Last reload: none recorded';
+  if (e === null) return previousBootLine() || 'Last reload: none recorded';
   const ago = (ms: number): string => (ms < 90_000 ? `${Math.max(0, Math.round(ms / 1000))} s ago` : ms < 90 * 60_000 ? `${Math.round(ms / 60_000)} min ago` : `${Math.round(ms / 3_600_000)} h ago`);
   const when = e.at > 0 ? ago(now - e.at) : ago(now - e.bootedAt);
   const was = e === thisEnd ? '' : ' (before an earlier launch)';
-  const abrupt = previousNineBootLine();
+  const abrupt = previousBootLine();
   return `Last reload: ${e.reason}${was} · ${when}${e.resident === '' ? '' : ` · resident ${e.resident}`}${e.build === '' ? '' : ` · build ${e.build}`}${e.discarded ? ' · wasDiscarded' : ''}${e.nav === '' ? '' : ` · nav ${e.nav}`}${abrupt ? `\n${abrupt}` : ''}`;
 }
 

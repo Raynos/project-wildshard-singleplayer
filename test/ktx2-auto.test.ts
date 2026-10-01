@@ -25,6 +25,8 @@ async function load(opts: { chunk?: string; tier?: 'phone' | 'desktop'; tex?: st
   const { registerGpuFiles } = await import('#engine/boot/gpuFiles');
   await Promise.all(SHARDS.map((m) => prepareShardAssets(m, registerGpuFiles)));
   const PLAYABLE_SHARDS = SHARDS.filter(playable);
+  const selected = SHARDS.find((manifest) => manifest.slug === chunk);
+  gf.setTexturePolicy(selected?.tiers?.[opts.tier ?? 'phone']?.textures);
   const m = opts.marker?.(sp, PLAYABLE_SHARDS);
   if (m) saveFixture('device', 'ktx2set', { [m[0].slice('ktx2set:'.length)]: m[1] });
   return { SHARDS, PLAYABLE_SHARDS, sp, gf, chunkFiles, packFor, bootParts, def: PLAYABLE_SHARDS.find((c) => c.slug === chunk) };

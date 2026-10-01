@@ -389,7 +389,7 @@ const noRawSave = rule('Storage access belongs in saves (E357)', (context) => {
 export const TIME_ALLOW = Object.fromEntries([
   'src/core/frameCost.ts', 'src/ui/perfHud.ts', 'src/ui/perfProbe.ts', 'src/ui/perfLap.ts', 'src/ui/Perf.ts',
   'src/boot/plan.ts', 'src/boot/timing.ts', 'src/boot/precompile.ts', 'src/core/lifeTrace.ts',
-  'src/core/errorReport.ts', 'src/boot/nineBootTrace.ts', 'src/boot/nineGpuTrace.ts',
+  'src/core/errorReport.ts', 'src/boot/bootTrace.ts', 'src/boot/gpuTrace.ts',
 ].map((path) => [path, 'performance.now measures elapsed cost or diagnostic timing; never gameplay state.']));
 const ratchetFile = process.env.WILDSHARD_RATCHET_FILE ?? new URL('ratchet.json', import.meta.url);
 const measurementAllow = existsSync(ratchetFile) ? JSON.parse(readFileSync(ratchetFile, 'utf8')).allow?.['wildshard/no-raw-random-time'] ?? TIME_ALLOW : TIME_ALLOW;

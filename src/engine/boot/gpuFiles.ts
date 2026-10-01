@@ -22,8 +22,7 @@
  *                                                      background after the first visit and, when the worker has confirmed
  *                                                      every file, writes a marker (the set's hash) that the next page load
  *                                                      reads here. A half-downloaded set has no marker: images.
- * Nine Dragon's phone tier temporarily defaults to Images while isolating a reproducible iOS Simulator WebKit GPU
- * crash during compressedTexSubImage2D (E248). The explicit KTX2 Debug pick remains available for controlled tests.
+ * A level may fix Auto's texture mode through its tier data. An explicit Debug pick still wins.
  * Resolved once per SHARD BUILD, on the build's first question (`texMode()`), and never changed inside it: no swap in a
  * running world. One page builds one level; navigation rebuilds the selected level on a fresh page.
  * The explicit Debug pick applies to that page's build. The
@@ -56,6 +55,9 @@ let autoReady: ((slug: string) => boolean) | null = null;
 export function setAutoKtx2Check(fn: (slug: string) => boolean): void { autoReady = fn; }
 
 let resolved: { mode: TexMode; why: string } | null = null;
+let texturePolicy: TexMode | undefined;
+/** The composition root installs tier data before this build resolves its file list. */
+export function setTexturePolicy(mode: TexMode | undefined): void { texturePolicy = mode; resolved = null; }
 let resolving = false;
 /** the mode this page loads with, and why (fixed on the first call) */
 export function texModeWhy(): { mode: TexMode; why: string } {
@@ -67,9 +69,7 @@ export function texModeWhy(): { mode: TexMode; why: string } {
     if (picked !== 'auto') resolved = { mode: picked, why: `picked (Settings ▸ Debug ▸ GPU textures: ${picked})` };
     else {
       const slug = buildSlug();
-      // The simulator reaches World Explorer with Images and fails in WebKit's compressed upload path with KTX2.
-      // Physical iPhone memory remains unverified; keep this scoped to Nine Dragon until its KTX2 asset is isolated.
-      if (TIER === 'phone' && slug === 'nine-dragon-stack') resolved = { mode: 'img', why: 'auto: Nine Dragon iOS compressed upload isolation (E248)' };
+      if (texturePolicy !== undefined) resolved = { mode: texturePolicy, why: 'auto: level tier texture policy' };
       else resolved = autoReady?.(slug) === true ? { mode: 'ktx2', why: `auto: ${slug}'s KTX2 set is cached` } : { mode: 'img', why: `auto: ${slug}'s KTX2 set is not cached (yet)` };
     }
   } finally { resolving = false; }
