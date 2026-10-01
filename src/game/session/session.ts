@@ -14,7 +14,7 @@ declare const __BUILD_ID__: string;
 
 /** Game presentation and plugin discovery belong to the game adapter, after the root selects content. */
 export async function startSession(manifest: ShardManifest, engine: BootRuntime, kit: KitPorts): Promise<void> {
-  const { app, pageSeed, consumeTitleArrival, installLegacyCapture, LegacyCapture, enterScope, setAliveSource,
+  const { app, pageSeed, consumeTitleArrival, Scope, enterOwner, setAliveSource,
     textureBytes, installErrorModal, markBootHandledError, showError } = engine;
   installErrorModal();
   const session: SessionState = { music: null, arrival: null, fatalShown: false };
@@ -29,14 +29,13 @@ export async function startSession(manifest: ShardManifest, engine: BootRuntime,
         history.replaceState(history.state, '', home);
       }
     }
-    installLegacyCapture();
-    enterScope(new LegacyCapture(selected));
-    const scope = engine.currentScope();
+    const scope = new Scope('level');
+    enterOwner(scope);
     const world = await runShardLoad(manifest, (stage) => withShardHooks(manifest, stage,
       () => buildSession(manifest, stage, engine, kit, session)), {
       build: __BUILD_ID__, dispose: () => {
         if (app.render !== null) app.render.hold = true;
-        if (scope !== null) engine.disposeScope(scope);
+        scope.dispose();
       }, report: engine.reportError,
       show: (failure) => { session.fatalShown = true; engine.showLoadFailure(failure); },
     });
@@ -65,8 +64,8 @@ async function buildSession(manifest: ShardManifest, stage: LoadStage, engine: B
     while (!next.done) next = await sequence.next();
     return next.value;
   }
-  const scope = engine.currentScope()?.resources;
-  if (scope === undefined) throw new Error('Plugin boot needs a level scope');
+  const scope = engine.currentOwner();
+  if (scope === null) throw new Error('Plugin boot needs a level scope');
   const { default: Plugin } = await stage('manifest.load', manifest.load);
   const plugin = new Plugin();
   const game: GameServices = { runtime: boot.runtime, shard: manifest, rows: new Map(), bag: {

@@ -1,3 +1,5 @@
+import { withOwner } from './ownership';
+
 export interface Disposable3 { dispose: () => void }
 export interface PhysicsHandle { remove: () => void }
 export interface SoundHandle { stop: () => void; disconnect?: () => void }
@@ -20,6 +22,29 @@ export interface ScopeCensus {
 }
 type Kind = keyof ScopeCensus;
 interface Cleanup { kind: Kind; run: () => void }
+export interface NativeCensus {
+  listeners: { window: number; document: number; canvas: number; other: number };
+  timers: { timeouts: number; intervals: number; raf: number };
+}
+interface Registration { scope: Scope; target?: EventTarget; timer?: ReturnType<typeof setTimeout>; kind: 'listeners' | 'timeouts' | 'intervals' | 'raf' }
+const registrations = new Set<Registration>();
+const nodeOwners = new WeakMap<Element, Scope>();
+export function nodeOwner(node: Element): Scope | null { return nodeOwners.get(node) ?? null; }
+/** Explicit registrations, compared with the independent harness's native counters. */
+export function scopeRegistrations(include: (scope: Scope) => boolean): NativeCensus {
+  const result: NativeCensus = { listeners: { window: 0, document: 0, canvas: 0, other: 0 }, timers: { timeouts: 0, intervals: 0, raf: 0 } };
+  for (const r of registrations) {
+    if (!include(r.scope)) continue;
+    if (r.kind !== 'listeners') result.timers[r.kind]++;
+    else if (r.target !== undefined) result.listeners[typeof window !== 'undefined' && r.target === window ? 'window' : typeof document !== 'undefined' && r.target === document ? 'document' : typeof HTMLCanvasElement !== 'undefined' && r.target instanceof HTMLCanvasElement ? 'canvas' : 'other']++;
+  }
+  return result;
+}
+export function registrationTimerIds(): { timeouts: number[]; intervals: number[] } {
+  const ids = { timeouts: [] as number[], intervals: [] as number[] };
+  for (const r of registrations) if (r.timer !== undefined && (r.kind === 'timeouts' || r.kind === 'intervals')) ids[r.kind].push(Number(r.timer));
+  return ids;
+}
 /** Preserve nested disposal failures across browser/JSON error boundaries. */
 export function disposalErrorMessages(error: unknown): string[] {
   if (error instanceof AggregateError && error.errors.length > 0) return error.errors.flatMap((inner: unknown) => disposalErrorMessages(inner));
@@ -99,29 +124,74 @@ export class Scope {
     });
   }
 
+  ownNode<T extends Element>(node: T): T {
+    nodeOwners.set(node, this);
+    this.capture('nodes', () => { nodeOwners.delete(node); node.remove(); });
+    return node;
+  }
+
+  private registration(r: Omit<Registration, 'scope'>, kind: Kind, cleanup: () => void): () => void {
+    const record = { ...r, scope: this }; registrations.add(record);
+    const forget = this.track(kind, () => { registrations.delete(record); cleanup(); });
+    return () => { registrations.delete(record); forget(); };
+  }
+
+  private readonly domListeners = new WeakMap<EventTarget, Map<string, Map<object, () => void>>>();
+  unlisten(target: EventTarget, type: string, fn: object, options?: boolean | EventListenerOptions): void {
+    const capture = typeof options === 'boolean' ? options : options?.capture === true;
+    this.domListeners.get(target)?.get(`${type}|${String(capture)}`)?.get(fn)?.();
+  }
+
   listen<K extends string>(target: EventTarget, type: K,
     fn: (event: K extends keyof (GlobalEventHandlersEventMap & WindowEventMap) ? (GlobalEventHandlersEventMap & WindowEventMap)[K] : Event) => void,
-    opts?: AddEventListenerOptions): void {
-    if (this.closed || opts?.signal?.aborted) return;
+    opts?: AddEventListenerOptions): () => void {
+    if (this.closed || opts?.signal?.aborted) return () => undefined;
+    const key = `${type}|${String(opts?.capture === true)}`;
+    let targetListeners = this.domListeners.get(target);
+    if (!targetListeners) { targetListeners = new Map(); this.domListeners.set(target, targetListeners); }
+    let listeners = targetListeners.get(key);
+    if (!listeners) { listeners = new Map(); targetListeners.set(key, listeners); }
+    const existing = listeners.get(fn); if (existing) return existing;
+    const entries = listeners;
+    const signalRegistration: Registration | undefined = opts?.signal ? { scope: this, target: opts.signal, kind: 'listeners' } : undefined;
+    const clearSignal = (): void => {
+      opts?.signal?.removeEventListener('abort', abort);
+      if (signalRegistration) registrations.delete(signalRegistration);
+    };
     let forget = () => { /* Filled after the listener is registered. */ };
     const listener: EventListener = (event) => {
-      if (opts?.once) { forget(); opts.signal?.removeEventListener('abort', abort); }
-      fn(event as K extends keyof (GlobalEventHandlersEventMap & WindowEventMap) ? (GlobalEventHandlersEventMap & WindowEventMap)[K] : Event);
+      if (opts?.once) { forget(); entries.delete(fn); clearSignal(); }
+      withOwner(this, () => fn(event as K extends keyof (GlobalEventHandlersEventMap & WindowEventMap) ? (GlobalEventHandlersEventMap & WindowEventMap)[K] : Event));
     };
     function abort(): void {
       target.removeEventListener(type, listener, opts?.capture);
-      forget();
+      clearSignal();
+      entries.delete(fn); forget();
     }
     target.addEventListener(type, listener, opts);
+    if (signalRegistration) registrations.add(signalRegistration);
     opts?.signal?.addEventListener('abort', abort, { once: true });
-    forget = this.track('listeners', () => {
+    forget = this.registration({ target, kind: 'listeners' }, 'listeners', () => {
       target.removeEventListener(type, listener, opts?.capture);
-      opts?.signal?.removeEventListener('abort', abort);
+      clearSignal(); entries.delete(fn);
     });
+    entries.set(fn, abort);
+    return abort;
   }
 
   private readonly timerCancels = new Map<ReturnType<typeof setTimeout>, () => void>();
-  cancelTimer(id: ReturnType<typeof setTimeout> | 0): void { if (id !== 0) this.timerCancels.get(id)?.(); }
+  cancelTimer(id: ReturnType<typeof setTimeout> | 0 | undefined): void { if (id !== 0 && id !== undefined) this.timerCancels.get(id)?.(); }
+
+  /** THREE-style persistent emitter subscription, with no DOM casts. */
+  listenEmitter<K extends string, E>(target: {
+    addEventListener: (type: K, fn: (event: E) => void) => void;
+    removeEventListener: (type: K, fn: (event: E) => void) => void;
+  }, type: K, fn: (event: E) => void): void {
+    if (this.closed) return;
+    const listener = (event: E): void => { withOwner(this, () => fn(event)); };
+    target.addEventListener(type, listener);
+    this.track('listeners', () => { target.removeEventListener(type, listener); });
+  }
 
   /** One emitter event, released on delivery or owner disposal (including renderer resource events). */
   listenOnceEmitter<K extends string>(target: {
@@ -130,7 +200,7 @@ export class Scope {
   }, type: K, fn: () => void): void {
     if (this.closed) return;
     let forget = () => { /* Filled after registration. */ };
-    const listener = (): void => { target.removeEventListener(type, listener); forget(); fn(); };
+    const listener = (): void => { target.removeEventListener(type, listener); forget(); withOwner(this, fn); };
     target.addEventListener(type, listener);
     forget = this.track('listeners', () => { target.removeEventListener(type, listener); forget(); });
   }
@@ -138,24 +208,27 @@ export class Scope {
   timeout(ms: number, fn: () => void): ReturnType<typeof setTimeout> | 0 {
     if (this.closed) return 0;
     let forget = () => { /* Filled before the timer can fire. */ };
-    const id = setTimeout(() => { forget(); this.timerCancels.delete(id); if (!this.closed) fn(); }, ms);
+    const id = setTimeout(() => { forget(); this.timerCancels.delete(id); if (!this.closed) withOwner(this, fn); }, ms);
     const cancel = (): void => { clearTimeout(id); this.timerCancels.delete(id); forget(); };
-    forget = this.track('timers', cancel); this.timerCancels.set(id, cancel);
+    forget = this.registration({ kind: 'timeouts', timer: id }, 'timers', cancel); this.timerCancels.set(id, cancel);
     return id;
   }
   interval(ms: number, fn: () => void): ReturnType<typeof setInterval> | 0 {
     if (this.closed) return 0;
-    const id = setInterval(() => { if (!this.closed) fn(); }, ms);
+    const id = setInterval(() => { if (!this.closed) withOwner(this, fn); }, ms);
     let forget = () => { /* Assigned after registration. */ };
     const cancel = (): void => { clearInterval(id); this.timerCancels.delete(id); forget(); };
-    forget = this.track('timers', cancel); this.timerCancels.set(id, cancel);
+    forget = this.registration({ kind: 'intervals', timer: id }, 'timers', cancel); this.timerCancels.set(id, cancel);
     return id;
   }
+  private readonly rafCancels = new Map<number, () => void>();
+  cancelRaf(id: number): void { this.rafCancels.get(id)?.(); }
   raf(fn: FrameRequestCallback): number {
     if (this.closed) return 0;
     let forget = () => { /* Filled before the frame can fire. */ };
-    const id = requestAnimationFrame((time) => { forget(); if (!this.closed) fn(time); });
-    forget = this.track('rafs', () => cancelAnimationFrame(id));
+    const id = requestAnimationFrame((time) => { forget(); this.rafCancels.delete(id); if (!this.closed) withOwner(this, () => fn(time)); });
+    const cancel = (): void => { cancelAnimationFrame(id); this.rafCancels.delete(id); forget(); };
+    forget = this.registration({ kind: 'raf' }, 'rafs', cancel); this.rafCancels.set(id, cancel);
     return id;
   }
   onDispose(fn: () => void): void { this.track('disposers', fn); }

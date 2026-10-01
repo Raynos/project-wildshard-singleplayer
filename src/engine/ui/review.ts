@@ -11,7 +11,7 @@ import { saveStorage } from '#engine/saves/slots';
 //   queuedCount() / flushQueue()   → a failed send waits in localStorage and retries on `online` and on the next send
 //
 // There is no query string: the feature ships to everyone and stays hidden until a reviewer types the password in Settings.
-import { onScopeDispose } from '../app/legacyCapture';
+import { onOwnerDispose } from '../app/ownership';
 
 
 const scope = uiScope('review', app.engineScope);
@@ -56,7 +56,7 @@ export function quickNote(): boolean { return state.password !== null && state.q
 export function setQuickNote(on: boolean): void { if (state.quick !== on) { state.quick = on; save(); } }
 export function lockReview(): void { state.password = null; save(); }
 /** fires on unlock / lock / the Quick note switch / the queue changing; returns an unsubscribe */
-export function onReview(fn: () => void): () => void { listeners.add(fn); const off = (): void => { listeners.delete(fn); }; onScopeDispose(off); return off; }
+export function onReview(fn: () => void): () => void { listeners.add(fn); const off = (): void => { listeners.delete(fn); }; onOwnerDispose(off); return off; }
 
 function post(body: Record<string, unknown>): Promise<Response> {
   return fetch(INBOX_URL, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });

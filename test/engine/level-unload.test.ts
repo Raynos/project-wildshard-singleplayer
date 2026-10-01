@@ -7,7 +7,8 @@ import { createRequire } from 'node:module';
 import { BoxGeometry, Group, Mesh, MeshBasicMaterial, Scene, Texture, DirectionalLight, WebGLRenderTarget, Bone, Skeleton, SkinnedMesh } from 'three';
 import { App, Scope, AssetService } from '#engine';
 import { SceneOwnership } from '#engine/app/sceneOwnership';
-import { LegacyCapture, enterScope, installLegacyCapture, withScopeOwner } from '#engine/app/legacyCapture';
+import { enterOwner, withOwner } from '#engine/app/ownership';
+import { scopeRegistrations, registrationTimerIds } from '#engine/app/scope';
 import { Physics } from '#engine/physics/Physics';
 import { loadRapier } from '#engine/physics/rapier';
 
@@ -16,8 +17,8 @@ describe('level unload keeps the engine usable', () => {
     // happy-dom uses Vite's client asset resolver: a symlinked dependency outside a clean export is denied.
     // Resolve the package with Node, as this is a Node test with DOM globals, and pass the actual binary unchanged.
     const R = await loadRapier(readFileSync(createRequire(import.meta.url).resolve('@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm')));
-    const legacy = new LegacyCapture('test'), level = legacy.resources, app = new App();
-    enterScope(legacy); legacy.owner = app.engineScope;
+    const level = new Scope('level'), app = new App();
+    enterOwner(app.engineScope);
     const physics = new Physics(R), player = physics.world.createRigidBody(R.RigidBodyDesc.dynamic());
     physics.world.createCollider(R.ColliderDesc.ball(0.2), player);
     const scene = new Scene(), rig = new Mesh(new BoxGeometry(), new MeshBasicMaterial()); scene.add(rig);
@@ -30,7 +31,7 @@ describe('level unload keeps the engine usable', () => {
     shared.addEventListener('dispose', dispose); assets.register(`scene:${shared.uuid}`, shared, { retain: true });
     const root = new Group(), mesh = new Mesh(geometry, new MeshBasicMaterial({ map: shared })); root.add(mesh); scene.add(root);
     const freed = vi.fn<() => void>(); geometry.addEventListener('dispose', freed);
-    const body = withScopeOwner(level, () => {
+    const body = withOwner(level, () => {
       const b = physics.world.createRigidBody(R.RigidBodyDesc.fixed());
       physics.world.createCollider(R.ColliderDesc.cuboid(1, 1, 1), b);
       return b;
@@ -50,39 +51,40 @@ describe('level unload keeps the engine usable', () => {
     const next = new Scope('next'); app.addSystem({ id: 'level.frame', phase: 'update', run: levelFrame }, next);
     for (const system of app.systemsByPhase().update) system.run(1 / 60, 0);
     expect(levelFrame).toHaveBeenCalledOnce();
-    next.dispose(); app.engineScope.dispose(); enterScope(null); physics.dispose();
+    next.dispose(); app.engineScope.dispose(); enterOwner(null); physics.dispose();
   });
 
-  it('captures legacy listeners, pending and completed timers, and body nodes without removing engine listeners', async () => {
-    installLegacyCapture();
-    const legacy = new LegacyCapture('test'), engine = new Scope('engine'), level = legacy.resources;
-    enterScope(legacy);
+  it('disposes explicit listeners, pending timers and nodes while retaining engine registrations and native methods', async () => {
+    const nativeAdd = Reflect.get(EventTarget.prototype, 'addEventListener'), nativeTimeout = window.setTimeout;
+    const engine = new Scope('engine'), level = new Scope('level'); enterOwner(level);
     const retained = vi.fn<() => void>(), removed = vi.fn<() => void>();
-    withScopeOwner(engine, () => { window.addEventListener('ownership-test', retained); });
-    document.addEventListener('ownership-test', removed);
-    const button = document.createElement('button'); document.body.append(button); button.addEventListener('click', removed);
-    window.setTimeout(removed, 100_000); window.setInterval(removed, 100_000);
-    await new Promise<void>((resolve) => { window.setTimeout(resolve, 0); });
-    withScopeOwner(engine, () => { /* Flush the body's mutations before inspecting ownership. */ });
+    engine.listen(window, 'ownership-test', retained);
+    const off = level.listen(document, 'ownership-test', removed);
+    const button = document.createElement('button'); document.body.append(button);
+    level.capture('nodes', () => { button.remove(); }); level.listen(button, 'click', removed);
+    level.timeout(100_000, removed); level.interval(100_000, removed);
+    await new Promise<void>((resolve) => { level.timeout(0, resolve); });
     expect(level.census).toMatchObject({ listeners: 2, timers: 2, nodes: 1 });
-    const another = document.createElement('button'); another.addEventListener('click', removed);
-    another.addEventListener('click', removed);
+    expect(scopeRegistrations((scope) => scope.belongsTo(level))).toEqual({ listeners: { window: 0, document: 1, canvas: 0, other: 1 }, timers: { timeouts: 1, intervals: 1, raf: 0 } });
+    expect(registrationTimerIds().timeouts).toHaveLength(1);
+    const another = document.createElement('button');
+    const stop = level.listen(another, 'click', removed); level.listen(another, 'click', removed);
     expect(level.census.listeners).toBe(3);
-    const abort = new AbortController(); document.addEventListener('aborted', removed, { signal: abort.signal });
+    const abort = new AbortController(); level.listen(document, 'aborted', removed, { signal: abort.signal });
     abort.abort(); expect(level.census.listeners).toBe(3);
-    another.removeEventListener('click', removed); expect(level.census.listeners).toBe(2);
-    // Removing a non-last registration must not silently discard its neighbor's disposal record.
-    document.removeEventListener('ownership-test', removed); expect(level.census.listeners).toBe(1);
-    document.addEventListener('ownership-test', removed); expect(level.census.listeners).toBe(2);
+    stop(); expect(level.census.listeners).toBe(2);
+    off(); expect(level.census.listeners).toBe(1);
+    level.listen(document, 'ownership-test', removed); expect(level.census.listeners).toBe(2);
     button.click(); expect(removed).toHaveBeenCalledOnce();
     level.dispose();
     document.dispatchEvent(new Event('ownership-test')); button.click(); window.dispatchEvent(new Event('ownership-test'));
     expect(removed).toHaveBeenCalledOnce(); expect(retained).toHaveBeenCalledOnce(); expect(button.isConnected).toBe(false);
     expect(Object.values(level.census).every((n) => n === 0)).toBe(true);
-    document.addEventListener('ownership-test', removed);
-    expect(window.setTimeout(removed, 1)).toBe(0); expect(window.setInterval(removed, 1)).toBe(0);
-    document.dispatchEvent(new Event('ownership-test')); expect(removed).toHaveBeenCalledOnce();
-    engine.dispose(); enterScope(null);
+    expect(scopeRegistrations((scope) => scope.belongsTo(level))).toEqual({ listeners: { window: 0, document: 0, canvas: 0, other: 0 }, timers: { timeouts: 0, intervals: 0, raf: 0 } });
+    level.listen(document, 'ownership-test', removed);
+    expect(level.timeout(1, removed)).toBe(0); expect(level.interval(1, removed)).toBe(0);
+    expect(Reflect.get(EventTarget.prototype, 'addEventListener')).toBe(nativeAdd); expect(window.setTimeout).toBe(nativeTimeout);
+    engine.dispose(); enterOwner(null);
   });
 
   it('retains shadow targets allocated after engine bootstrap and frees level skeleton textures', () => {

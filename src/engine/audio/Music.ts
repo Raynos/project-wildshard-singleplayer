@@ -1,3 +1,4 @@
+import { resourceScope } from '../app/resources';
 import { ownAudioSource } from './ownership';
 import { tap, ambientTick } from '../core/harnessTap';
 // src/engine/audio/Music.ts — the Wildshard score, played by a small WebAudio instrument set (project/archive/2026-09-23-music.md).
@@ -35,7 +36,6 @@ import { tap, ambientTick } from '../core/harnessTap';
 // (the Driftwood shrine's −3 dB, src/shards/driftwood-isle/audio/shrineHum.ts).
 //
 import type { Audio } from './Audio';
-import { asShell, shell } from '../app/legacyCapture';
 import { getNumber, setNumber, onNumber, getMusicStyle, onMusicStyle, type MusicStyle as MusicGenre } from '../ui/Settings';
 import { Deck, decodeStyle, type BossPhase, type SlotAudio, type SlotName, type StyleBank } from './Stems';
 import { cachedBytes, decodeBytes, trackBusy } from './preload';
@@ -482,15 +482,16 @@ const holdAt = (p: AudioParam, t: number) => {
 
 /** the live game wrapper: timer, state, volume, stings, the stem player, the offline render */
 export class Music {
+  private readonly scope = resourceScope().child('Music');
   /** ctx + the music bus (`volume` × the Settings 'music' slider → duck → audio.master) + the engine + the stems' bus, built on
    *  first use (play, after the first gesture) so boot never creates the AudioContext; state set before then waits in `pending` */
   private rig: { ctx: AudioContext; out: GainNode; duckGain: GainNode; engine: Engine; stemBus: GainNode } | undefined;
   /** The installed source owns the level's slot; the title is the common menu slot. */
   private pending: MusicState = { mode: 'menu', intensity: 0, underwater: false };
-  private timer = 0;
+  private timer: ReturnType<typeof setTimeout> | 0 = 0;
   private _volume: number;
   private playing: ArrangementName | undefined;
-  private combatTimer = 0;
+  private combatTimer: ReturnType<typeof setTimeout> | 0 = 0;
   // ── v3: the stems ──
   private _genre: MusicGenre = getMusicStyle();
   /** the resident genre: decoded at the loading bar (useBank), or from the offline cache after a menu switch */
@@ -594,7 +595,7 @@ export class Music {
     this.startSynth(t, 0);
     const arr = ARRANGEMENTS[name];
     const idle = (window as unknown as { requestIdleCallback?: (fn: () => void) => void }).requestIdleCallback;
-    if (idle) idle(() => this.engine.warm(arr)); else shell.setTimeout(() => this.engine.warm(arr), 300);
+    if (idle) idle(() => this.engine.warm(arr)); else this.scope.timeout(300, () => this.engine.warm(arr));
     if (name === 'theme') this.sync();
   }
   private stemsReady(): boolean {
@@ -606,7 +607,7 @@ export class Music {
     const spb = this.engine.currentSpb();
     this.engine.pump(this.ctx.currentTime + LOOKAHEAD_BARS * 4 * spb);
   }
-  private stopTimer() { if (this.timer) { clearInterval(this.timer); this.timer = 0; } }
+  private stopTimer() { if (this.timer !== 0) { this.scope.cancelTimer(this.timer); this.timer = 0; } }
 
   /** the synth sequencer on (from the top of the arrangement if it was off), its share of the bus up over `fade` from `t` */
   private startSynth(t: number, fade: number): void {
@@ -617,7 +618,7 @@ export class Music {
       e.begin(ARRANGEMENTS[this.playing ?? 'theme'], t);
       this.synthOn = true;
       this.pump();
-      this.timer = asShell(() => window.setInterval(() => { ambientTick('music.pump', () => { this.pump(); }); }, TICK_MS)); // the page's score: never a shard's interval (src/engine/app/legacyCapture.ts)
+      this.timer = this.scope.interval(TICK_MS, () => { ambientTick('music.pump', () => { this.pump(); }); }); // the page's score: never a shard's interval (src/engine/app/ownership.ts)
       g.cancelScheduledValues(t); g.setValueAtTime(fade > 0 ? 0 : 1, t);
     } else holdAt(g, t);
     if (fade > 0) g.linearRampToValueAtTime(1, t + fade);
@@ -628,10 +629,10 @@ export class Music {
     const g = this.engine.synthMix.gain;
     holdAt(g, t); g.linearRampToValueAtTime(0, t + fade);
     const gen = ++this.synthGen;
-    shell.setTimeout(() => {
+    this.scope.timeout(Math.max(0, t + fade - this.ctx.currentTime) * 1000 + 150, () => {
       if (gen !== this.synthGen || !this.synthOn) return; // restarted meanwhile
       this.stopTimer(); this.synthOn = false; this.engine.end(this.ctx.currentTime);
-    }, Math.max(0, t + fade - this.ctx.currentTime) * 1000 + 150);
+    });
   }
 
   // ─────────────── the stems (project/archive/2026-09-23-music.md v3 row 7) ───────────────
@@ -756,8 +757,8 @@ export class Music {
   /** a combat event (a charge, a hit landed or taken): combat now, decaying to alert 8 s after the last one */
   combat(intensity = 0.7): void {
     this.setState({ mode: 'combat', intensity: Math.max(this.state.intensity, intensity) });
-    window.clearTimeout(this.combatTimer);
-    this.combatTimer = shell.setTimeout(() => { if (this.state.mode === 'combat') this.setState({ mode: 'alert', intensity: 0.5 }); }, 8000);
+    this.scope.cancelTimer(this.combatTimer);
+    this.combatTimer = this.scope.timeout(8000, () => { if (this.state.mode === 'combat') this.setState({ mode: 'alert', intensity: 0.5 }); });
   }
 
   /** the genre's sting file while its stems play, else the synth sting; the death sting ducks the stems like the synth (a bar down, 6 s out, a bar back) */

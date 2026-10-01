@@ -5,7 +5,7 @@ import { Scope } from '#engine/app/scope';
 import { SaveStore } from '#engine/saves/store';
 import { MemoryStorage } from '../setup';
 
-vi.mock('#engine/app/legacyCapture', () => ({ currentScope: () => null }));
+vi.mock('#engine/app/ownership', () => ({ currentOwner: () => null }));
 vi.mock('#engine/boot/lastEnd', () => ({ markUnload: vi.fn() }));
 const { app } = await import('#engine/app/runtime');
 const { buildSavePanel } = await import('#engine/ui/SavePanel');

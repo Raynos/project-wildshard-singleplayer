@@ -1,3 +1,4 @@
+import { pageScope } from '../app/resources';
 import { saveStorage } from '#engine/saves/slots';
 import { installSaveReporter } from '../saves/runtime';
 import type { SchemaFailure } from '../saves/store';
@@ -20,7 +21,6 @@ import type { SchemaFailure } from '../saves/store';
  * (`sendReport` below is the real transport the pages inject).
  */
 import { describeError } from './faults';
-import { shell } from '../app/legacyCapture';
 import { captureBrowserError, type BrowserErrorTags } from '../telemetry/browserErrors';
 
 export interface LoadFailure {
@@ -92,7 +92,7 @@ export class ErrorReporter {
     this.deps = {
       session: null, local: null,
       now: () => 0,
-      later: (fn, ms) => { shell.setTimeout(fn, ms); }, // the page's retry, not a shard's (src/engine/app/legacyCapture.ts)
+      later: (fn, ms) => { pageScope.timeout(ms, fn); }, // the page's retry, not a shard's (src/engine/app/ownership.ts)
       delayMs: REPORT_DELAY_MS,
       ...deps,
     };

@@ -240,7 +240,7 @@ export async function installPineQuest(h: PineQuestHost): Promise<PineQuest> {
         flags.set(flag);
         lm?.setLit(id, true);
         shot('lanternCreak', it.position); // its little door swung open, then the wick takes
-        window.setTimeout(() => { shot('lanternLight', it.position); }, 350);
+        ctx.scope.timeout(350, () => { shot('lanternLight', it.position); });
         kitSfx.interact('ignite', it.position);
         hud.toast(`${n.name[0]?.toUpperCase() ?? ''}${n.name.slice(1)} burns again`);
       },
@@ -337,19 +337,19 @@ export async function installPineQuest(h: PineQuestHost): Promise<PineQuest> {
   };
 
   // ── panels: the board and the slate release the lock + the weapons like the journal ──
-  let holdTimer = 0;
+  let holdTimer: ReturnType<typeof setTimeout> | 0 = 0;
   const onOpen = (): void => {
-    window.clearTimeout(holdTimer);
+    ctx.scope.cancelTimer(holdTimer);
     hud.holdPause = true; h.weapons.setEnabled(false);
     if (h.menu.isOpen) h.menu.close(true);
     if (document.pointerLockElement) document.exitPointerLock();
   };
   const onClose = (): void => {
     hud.onResume?.();
-    holdTimer = window.setTimeout(() => {
+    holdTimer = ctx.scope.timeout(450, () => {
       hud.holdPause = false;
       if (!h.nolock && !h.touchUi() && !document.pointerLockElement && hud.entered && !h.menu.isOpen && !boardUi.isOpen && !trade.isOpen) hud.setPaused(true);
-    }, 450);
+    });
   };
   boardUi.onOpen = onOpen; boardUi.onClose = onClose;
   trade.onOpen = onOpen; trade.onClose = onClose;
@@ -599,7 +599,7 @@ export async function installPineQuest(h: PineQuestHost): Promise<PineQuest> {
     if (Reflect.get(window, '__pineQuest') === debug) Reflect.deleteProperty(window, '__pineQuest');
     objective.root.remove(); reward.root.remove(); dialogue.dispose();
     boardUi.root.remove(); trade.root.remove(); chip.root.remove();
-    window.clearTimeout(holdTimer);
+    ctx.scope.cancelTimer(holdTimer);
   });
   if (quest.current?.id === 'dawn') runDawn();   // an early kill (or `?quest=dawn`): the dawn plays now
   return { useSfx: (s) => { sfx = s; }, stagAt: () => stag.position };

@@ -13,10 +13,9 @@ import { activeNavmesh, type Navmesh } from '../physics/navmesh';
 import { Rng } from '../core/rng';
 import { TIER } from '../core/tier';
 import { tap } from '../core/harnessTap';
-import { currentScope, levelRegistrations, retainedRegistrations, registrationTimerIds, asShell } from '../app/legacyCapture';
 import { ExternalTimerBaseline } from './timerBaseline';
 import { poseBudgets } from '../render/budgetReport';
-import { disposalErrorMessages, type ScopeCensus } from '../app/scope';
+import { scopeRegistrations, registrationTimerIds, disposalErrorMessages, type ScopeCensus } from '../app/scope';
 import type { AppState, Phase } from '../app/systems';
 
 declare const __BUILD_ID__: string;
@@ -272,14 +271,13 @@ export function installProbe<W extends ProbeWorld>(world: W, deps: ProbeDeps): W
   }
   const requireHarness = (): void => { if (!pins) throw new Error('Wildshard probe control requires __wildshardHarness'); };
   const { game } = world, app = game.app;
-  const raw = pins?.resources?.(), owned = levelRegistrations(), retainedAtBoot = retainedRegistrations();
-  const retainedListeners = { window: 0, document: 0, canvas: 0, other: 0 }, retainedTimers = { timeouts: 0, intervals: 0, raf: 1 };
+  const raw = pins?.resources?.(), owned = scopeRegistrations((scope) => scope.belongsTo(game.levelScope)), retainedAtBoot = scopeRegistrations((scope) => !scope.belongsTo(game.levelScope));
+  const retainedListeners = { window: 0, document: 0, canvas: 0, other: 0 }, retainedTimers = { timeouts: 0, intervals: 0, raf: 0 };
   const externalTimers = raw?.timerIds ? new ExternalTimerBaseline(raw.timerIds, registrationTimerIds()) : null;
   if (raw) {
     for (const key of Object.keys(retainedListeners) as (keyof typeof retainedListeners)[]) retainedListeners[key] = raw.listeners[key] - owned.listeners[key] - retainedAtBoot.listeners[key];
   }
-  const legacy = currentScope();
-  const bodyBaseline = document.body.children.length - [...(legacy?.nodeOwners ?? [])].filter(([node, owner]) => node.parentNode === document.body && owner.belongsTo(game.levelScope)).length;
+  const bodyBaseline = [...document.body.children].filter((node) => !app.ui.hud.ownerOf(node)?.belongsTo(game.levelScope)).length;
   const baseline: LeakCensus = {
     geometries: 0, textures: 0, programs: 0, bodies: 0, colliders: 0,
     listeners: { window: 0, document: 0, canvas: 0, other: 0 }, timers: { timeouts: 0, intervals: 0, raf: 0 },
@@ -295,7 +293,7 @@ export function installProbe<W extends ProbeWorld>(world: W, deps: ProbeDeps): W
     const resources = pins?.resources?.();
     if (!resources) throw new Error('Leak census requires independent harness resource counters');
     const gpu = game.retainedGpuCounts(), listeners = { ...resources.listeners }, timers = { ...resources.timers };
-    const retainedNow = retainedRegistrations();
+    const retainedNow = scopeRegistrations((scope) => !scope.belongsTo(game.levelScope));
     if (!externalTimers || !resources.timerIds) throw new Error('Leak census requires independent live timer identities');
     const externalNow = externalTimers.live(resources.timerIds);
     retainedTimers.timeouts = externalNow.timeouts; retainedTimers.intervals = externalNow.intervals;
@@ -327,7 +325,7 @@ export function installProbe<W extends ProbeWorld>(world: W, deps: ProbeDeps): W
     requireHarness(); const pl = world.player, spawn = world.game.level.spawn;
     pl.spawn(p.x ?? spawn.x, p.z ?? spawn.z, p.yaw ?? spawn.yaw, p.y);
     land(); pl.pitch = p.pitch ?? 0; pl.velocity.set(0, 0, 0); game.app.input.clear();
-    await new Promise<void>((resolve) => { requestAnimationFrame(() => { resolve(); }); });
+    await new Promise<void>((resolve) => { app.engineScope.raf(() => { resolve(); }); });
   };
   const shard: WildshardProbe['shard'] = { slug: world.game.level.id };
   for (const key of SHARD_KEYS[world.game.level.id] ?? []) shard[key] = world[key];
@@ -354,7 +352,7 @@ export function installProbe<W extends ProbeWorld>(world: W, deps: ProbeDeps): W
       if (!pins?.resources) throw new Error('Leak census requires independent harness resource counters');
       let disposalErrors: string[] = [];
       try { await app.unloadLevel(); } catch (error) { disposalErrors = disposalErrorMessages(error); }
-      await asShell(() => new Promise<void>((resolve) => { requestAnimationFrame(() => { requestAnimationFrame(() => { resolve(); }); }); }));
+      await new Promise<void>((resolve) => { app.engineScope.raf(() => { app.engineScope.raf(() => { resolve(); }); }); });
       return { before: structuredClone(baseline), after: census(), disposalErrors, scope: game.levelScope.census,
         stacks: pins.resources().stacks, retained: app.assets.retained(), gpu: game.gpuResourceDiagnostics() };
     },

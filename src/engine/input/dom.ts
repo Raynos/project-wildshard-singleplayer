@@ -8,5 +8,5 @@ export function listenDom<K extends string>(scope: Scope, target: EventTarget | 
 }
 export function mountDom(scope: Scope, parent: HTMLElement, ...nodes: HTMLElement[]): void {
   parent.append(...nodes);
-  for (const node of nodes) scope.capture('nodes', () => { node.remove(); });
+  for (const node of nodes) scope.ownNode(node);
 }

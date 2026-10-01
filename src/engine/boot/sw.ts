@@ -1,3 +1,4 @@
+import { pageScope } from '../app/resources';
 /**
  * Service-worker boot (project/archive/2026-09-22-load-perf.md §1b / §P3). Ported from trials-gauntlet-demo's `swBoot`,
  * with the update story changed for this game — see CONTRACT below.
@@ -105,9 +106,9 @@ function announce(w: ServiceWorker): void {
 function buildOf(w: ServiceWorker): Promise<string | null> {
   return new Promise<string | null>((resolve) => {
     const ch = new MessageChannel();
-    const timer = setTimeout(() => resolve(null), CAP_MS);
+    const timer = pageScope.timeout(CAP_MS, () => resolve(null));
     ch.port1.onmessage = (e: MessageEvent<{ build?: unknown }>) => {
-      clearTimeout(timer);
+      pageScope.cancelTimer(timer);
       resolve(typeof e.data.build === 'string' ? e.data.build : null);
     };
     w.postMessage({ type: 'BUILD' }, [ch.port2]);
@@ -118,13 +119,13 @@ function watch(reg: ServiceWorkerRegistration): void {
   const track = (w: ServiceWorker | null): void => {
     if (!w) return;
     if (w.state === 'installed') { announce(w); return; }
-    w.addEventListener('statechange', () => {
+    pageScope.listen(w, 'statechange', () => {
       if (w.state === 'installed' && sw?.controller) announce(w);
     });
   };
   if (reg.waiting) announce(reg.waiting);
   track(reg.installing);
-  reg.addEventListener('updatefound', () => track(reg.installing));
+  pageScope.listen(reg, 'updatefound', () => track(reg.installing));
 }
 
 /** `to`: where the page goes once the new worker controls it (default: reload this URL) */
@@ -132,17 +133,13 @@ async function adopt(to?: string, why = 'new build adopted'): Promise<void> {
   const w = api.waiting;
   if (!sw || !w) return;
   await new Promise<void>((resolve) => {
-    const timer = setTimeout(resolve, CAP_MS); // the hand-over never landed: leave the page alone
-    sw.addEventListener(
-      'controllerchange',
-      () => {
-        clearTimeout(timer);
+    const timer = pageScope.timeout(CAP_MS, resolve); // the hand-over never landed: leave the page alone
+    pageScope.listen(sw, 'controllerchange', () => {
+        pageScope.cancelTimer(timer);
         markUnload(`${why}: the new service worker took over`);
         if (to === undefined) location.reload();
         else location.replace(to);
-      },
-      { once: true },
-    );
+      }, { once: true });
     // oxlint-disable-next-line unicorn/require-post-message-target-origin -- ServiceWorker.postMessage has no targetOrigin parameter (that is Window.postMessage)
     w.postMessage({ type: 'SKIP_WAITING' });
   });
@@ -153,9 +150,9 @@ function version(): Promise<SwVersion | null> {
   if (!ctl) return Promise.resolve(null);
   return new Promise<SwVersion | null>((resolve) => {
     const ch = new MessageChannel();
-    const timer = setTimeout(() => resolve(null), CAP_MS);
+    const timer = pageScope.timeout(CAP_MS, () => resolve(null));
     ch.port1.onmessage = (e: MessageEvent<SwVersion>) => {
-      clearTimeout(timer);
+      pageScope.cancelTimer(timer);
       resolve(e.data);
     };
     ctl.postMessage({ type: 'VERSION' }, [ch.port2]);
@@ -170,9 +167,9 @@ function boot(): Promise<void> {
   }
   const s = sw;
   return new Promise<void>((resolve) => {
-    const timer = setTimeout(resolve, CAP_MS);
+    const timer = pageScope.timeout(CAP_MS, resolve);
     const settle = (): void => {
-      clearTimeout(timer);
+      pageScope.cancelTimer(timer);
       resolve();
     };
     void register(s, settle);
@@ -185,11 +182,11 @@ async function register(s: ServiceWorkerContainer, settle: () => void): Promise<
   try { reg = await s.register(url, { scope: '/' }); } catch { settle(); return; }
   watch(reg);
   // Standalone installs live for days: keep discovering updates so the pill can offer them.
-  document.addEventListener('visibilitychange', () => {
+  pageScope.listen(document, 'visibilitychange', () => {
     if (!document.hidden) void reg.update().catch(() => undefined);
   });
   // First visit (or an evicted worker): wait for `clients.claim()`, so the boot's own bytes are cached.
-  if (!s.controller) s.addEventListener('controllerchange', settle, { once: true });
+  if (!s.controller) pageScope.listen(s, 'controllerchange', settle, { once: true });
   else settle();
 }
 

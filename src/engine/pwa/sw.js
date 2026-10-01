@@ -1,3 +1,4 @@
+import { workerScope } from '../app/workerScope.js';
 /* Wildshard service worker (project/archive/2026-09-22-load-perf.md §1b / §P3, docs/design/cache-policy.md).
  * Ported from game-demos/trials-gauntlet-demo/src/pwa/sw.js — it shipped on WebKit/Metal; port, don't redesign.
  *
@@ -151,7 +152,7 @@ async function putDocument(cache, key, res) {
   await cache.put(key, res);
 }
 
-self.addEventListener('install', (event) => {
+workerScope.listen(self, 'install', (event) => {
   event.waitUntil(
     (async () => {
       const shell = await caches.open(SHELL);
@@ -181,7 +182,7 @@ self.addEventListener('install', (event) => {
   );
 });
 
-self.addEventListener('activate', (event) => {
+workerScope.listen(self, 'activate', (event) => {
   event.waitUntil(
     (async () => {
       const named = await assetManifest(); // null offline: nothing is dropped that cannot be verified
@@ -294,7 +295,7 @@ async function pruneImmutable() {
   }
 }
 
-self.addEventListener('message', (event) => {
+workerScope.listen(self, 'message', (event) => {
   const data = event.data;
   if (!data) return;
   if (data.type === 'SKIP_WAITING') self.skipWaiting();
@@ -380,7 +381,7 @@ async function version() {
   return { type: 'VERSION', build: BUILD, assets: ASSETS, caches: perCache, entries, bytes, gc };
 }
 
-self.addEventListener('fetch', (event) => {
+workerScope.listen(self, 'fetch', (event) => {
   const req = event.request;
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
@@ -440,7 +441,7 @@ async function documentResponse(event, req, url) {
 
 /** the files a boot cannot survive losing: the hashed JS and CSS (fetchWhole) */
 const CODE_RE = /^\/assets\/[^/]+-[\w-]{8}\.(?:js|css)$/;
-const sleep = (ms) => new Promise((resolve) => { setTimeout(resolve, ms); });
+const sleep = (ms) => new Promise((resolve) => { workerScope.timeout(ms, resolve); });
 
 async function cacheFirst(req, name) {
   const cache = await caches.open(name);

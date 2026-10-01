@@ -95,7 +95,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
       weapons.setEnabled(!player.swimming);
       if (nolock || touchUi()) return;
       player.lock(); // Enter / a click on SEND is the user gesture; if the lock is refused, fall back to the pause menu
-      setTimeout(() => { if (!document.pointerLockElement && hud.entered && !menu.isOpen && !feedbackHeld) hud.setPaused(true); }, 400);
+      game.levelScope.timeout(400, () => { if (!document.pointerLockElement && hud.entered && !menu.isOpen && !feedbackHeld) hud.setPaused(true); });
     },
     toast: (t) => { if (explore?.active === true) explore.toast(t); else hud.toast(t); },
     touch: touchUi,

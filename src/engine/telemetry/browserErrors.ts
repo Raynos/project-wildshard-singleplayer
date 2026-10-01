@@ -1,3 +1,4 @@
+import { Scope } from '../app/scope';
 /** Optional, error-only Sentry channel. The existing /api/errors report remains the primary local inbox. */
 import type { captureException, getClient, init, withScope } from '@sentry/browser';
 
@@ -84,10 +85,11 @@ export async function deliverBrowserError(error: Error, tags: BrowserErrorTags):
   const client = sentry?.getClient();
   if (!sentry || !client) { sdk = null; return false; }
   return new Promise((resolve) => {
+    const delivery = new Scope('error.delivery');
     let eventId = '';
     let unsubscribe = (): void => undefined;
-    const timer = setTimeout(() => { unsubscribe(); resolve(false); }, 5000);
-    const finish = (ok: boolean): void => { clearTimeout(timer); unsubscribe(); resolve(ok); };
+    delivery.timeout(5000, () => { delivery.dispose(); unsubscribe(); resolve(false); });
+    const finish = (ok: boolean): void => { delivery.dispose(); unsubscribe(); resolve(ok); };
     unsubscribe = client.on('afterSendEvent', (event, response) => {
       if (event.event_id === eventId) finish(response.statusCode !== undefined && response.statusCode >= 200 && response.statusCode < 300);
     });

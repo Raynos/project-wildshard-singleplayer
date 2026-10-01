@@ -14,6 +14,8 @@ export { hasTag } from './events/tags';
 export { GameClock } from './core/clock';
 export { Rng, RngService, fnv1a32, pageSeed, type RngStream, type RngStreams } from './core/rng';
 export { app, gameplayRandom } from './app/runtime';
+export { currentOwner, enterOwner, withOwner, asShell, onOwnerDispose } from './app/ownership';
+export { resourceScope, pageScope } from './app/resources';
 export { ownAudioSource } from './audio/ownership';
 export { ambientTick } from './core/harnessTap';
 export { retainCachedResources } from './app/cachedAssets';

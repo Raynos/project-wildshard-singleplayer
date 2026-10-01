@@ -1,3 +1,4 @@
+import { pageScope } from '../app/resources';
 /**
  * A practice room is up: the Practice arena (src/engine/practice/TrainingArena.ts, 900 m over the shard) or a feature playground
  * (src/playgrounds/, E307, 3 km over it). The player's x / z there is no spot on the shard, so a check that reads x / z
@@ -10,5 +11,5 @@
 export const practiceRoom = { open: false };
 
 if (typeof document !== 'undefined') {
-  document.addEventListener('ws:practice-active', (e) => { if (e instanceof CustomEvent) practiceRoom.open = e.detail === true; });
+  pageScope.listen(document, 'ws:practice-active', (e) => { if (e instanceof CustomEvent) practiceRoom.open = e.detail === true; });
 }

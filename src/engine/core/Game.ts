@@ -3,7 +3,7 @@ import { Scope } from '../app/scope';
 import { SceneOwnership } from '../app/sceneOwnership';
 import { UploadOwnership } from '../render/uploadOwnership';
 import type { Phase } from '../app/systems';
-import { currentScope } from '../app/legacyCapture';
+import { currentOwner, enterOwner } from '../app/ownership';
 import * as THREE from 'three';
 import { createRenderer, type Renderer } from '../render/renderer';
 import {
@@ -103,7 +103,7 @@ export class Game {
   // Frame phases (PHYSICS P2 / ENGINE-FIT E2): input → fixed steps (pre → step → post, × 0‥3) → update (`onUpdate`) → late → render.
   // Every entry is a GameSystem (src/engine/core/faults.ts, E133): called inside its own try/catch, switched off if it keeps throwing.
   readonly engineScope = app.engineScope.child('game');
-  readonly levelScope = currentScope()?.resources ?? new Scope('level');
+  readonly levelScope = currentOwner() ?? new Scope('level');
   get tier(): Tier { return TIER; }
   private ownership: SceneOwnership | null = null;
   private readonly uploads = new UploadOwnership(this.levelScope, app.assets);
@@ -190,7 +190,7 @@ export class Game {
   /** The bootstrap boundary: everything registered next belongs to the level. */
   beginLevelSystems(): void {
     this.registrationScope = this.levelScope; this.app.levelScope = this.levelScope;
-    const legacy = currentScope(); if (legacy) legacy.owner = this.levelScope;
+    enterOwner(this.levelScope);
   }
   /** the sky + the draw: core (a throw there that repeats is fatal, faults.ts) */
   private readonly renderSystem = makeSystem(null, 'render', true, 'render');
@@ -277,7 +277,7 @@ export class Game {
     this.level = level;
     this.app.scene = this.scene;
     this.app.render = this;
-    const legacy = currentScope(); if (legacy) legacy.owner = this.engineScope;
+    enterOwner(this.engineScope);
     installAtmosphere(level.atmosphere); // the engine fog (slot 100); a level look's own fog (LookStrategy.fog, slot 300) installs in buildSky, before anything compiles
     installViewport(); // --ws-vh: the real height (an iOS home-screen app reports innerHeight a status bar short — viewport.ts)
     const tracedBoot = bootTraceActive();

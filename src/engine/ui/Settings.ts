@@ -28,8 +28,8 @@ import { saveStorage } from '#engine/saves/slots';
 //
 // localStorage is wrapped in try/catch (iOS private mode throws on write) — the in-memory copy is the truth for the session.
 //
-// A listener a resident shard adds while it builds or runs is removed when that shard is evicted (src/engine/app/legacyCapture.ts).
-import { onScopeDispose } from '../app/legacyCapture';
+// A listener a resident shard adds while it builds or runs is removed when that shard is evicted (src/engine/app/ownership.ts).
+import { onOwnerDispose } from '../app/ownership';
 
 const savedStorage = saveStorage('global');
 
@@ -100,7 +100,7 @@ class Choice<T extends string> {
     persist();
     if (changed) this.listeners.forEach((fn) => fn(v));
   }
-  on(fn: (v: T) => void): () => void { this.listeners.add(fn); const off = (): void => { this.listeners.delete(fn); }; onScopeDispose(off); return off; }
+  on(fn: (v: T) => void): () => void { this.listeners.add(fn); const off = (): void => { this.listeners.delete(fn); }; onOwnerDispose(off); return off; }
 }
 // no URL override (E162): the Debug ▸ Audio rows pick them; a script saves musicStyle / sfxSet in settings
 const musicStyle = new Choice<MusicStyle>('musicStyle', MUSIC_STYLES, 'piano', () => null);
@@ -240,7 +240,7 @@ export function onNumber(k: NumberKey, fn: (v: number) => void): () => void {
   set.add(fn);
   const s = set;
   const off = (): void => { s.delete(fn); };
-  onScopeDispose(off);
+  onOwnerDispose(off);
   return off;
 }
 
@@ -250,7 +250,7 @@ export function onSetting(k: SettingKey, fn: (v: boolean) => void): () => void {
   set.add(fn);
   const s = set;
   const off = (): void => { s.delete(fn); };
-  onScopeDispose(off);
+  onOwnerDispose(off);
   return off;
 }
 

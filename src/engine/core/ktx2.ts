@@ -1,3 +1,4 @@
+import { pageScope } from '../app/resources';
 /**
  * The KTX2 side of the texture loaders (E157, src/engine/boot/gpuFiles.ts says what and why).
  *
@@ -98,7 +99,7 @@ function load(url: string, keep: boolean): Promise<THREE.CompressedTexture> {
     p = ktx2Loader().loadAsync(url);
     if (keep) {
       transcoded.set(url, p);
-      p.finally(() => { setTimeout(() => { transcoded.delete(url); }, 0); }).catch(() => undefined);
+      p.finally(() => { pageScope.timeout(0, () => { transcoded.delete(url); }); }).catch(() => undefined);
     }
   }
   return p;

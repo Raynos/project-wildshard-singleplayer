@@ -1,4 +1,4 @@
-import { app } from '#engine';
+import { resourceScope, app } from '#engine';
 import { tap } from '#engine/core/harnessTap';
 /**
  * PineHollowSfx — Pine Hollow's own generated sounds (PINE-HOLLOW-REMASTER PH-A2..A4): public/assets/sfx/pine-hollow/sfx.json,
@@ -279,6 +279,6 @@ export class PineHollowSfx {
     const files = this.allFiles();
     const idle: { requestIdleCallback?: (fn: () => void) => void } = window;
     const go = (): void => { void (async () => { for (const f of files) { try { await cachedBytes(f); } catch { /* offline: decoded later, or silent */ } } })(); };
-    if (idle.requestIdleCallback) idle.requestIdleCallback(go); else window.setTimeout(go, 3000);
+    if (idle.requestIdleCallback) idle.requestIdleCallback(go); else resourceScope().timeout(3000, go);
   }
 }

@@ -1,3 +1,4 @@
+import { resourceScope } from '../app/resources';
 import { ownAudioSource } from './ownership';
 import { tap } from '../core/harnessTap';
 import { panFromYaw, audioRandom } from './util';
@@ -77,6 +78,7 @@ export interface SamplePlay extends PlayOpts {
 export type VoiceTable = Readonly<Record<string, Family | { clips: () => readonly SampleVoice[] | undefined; policy?: SamplePolicy }>>;
 
 export class VoicePool {
+  private readonly scope = resourceScope().child('VoicePool');
   private bufs = new Map<string, (AudioBuffer | undefined)[]>();
   private warm: [string, number][] = [];
   private warming = false;
@@ -147,7 +149,7 @@ export class VoicePool {
     const [name, vc] = job;
     this.variant(name, vc >> 1, vc & 1);
     const w: { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number } = window;
-    if (w.requestIdleCallback) w.requestIdleCallback(() => this.slice(), { timeout: 400 }); else window.setTimeout(() => this.slice(), 16);
+    if (w.requestIdleCallback) w.requestIdleCallback(() => this.slice(), { timeout: 400 }); else this.scope.timeout(16, () => this.slice());
   }
   /** one variant rendered into its AudioBuffer — every channel, or only `ch` (prewarm renders a stereo IR a channel per slice) */
   private variant(name: string, v: number, ch = -1): AudioBuffer | undefined {

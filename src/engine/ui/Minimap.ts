@@ -44,7 +44,7 @@ import { hasSpecies, speciesDef } from '../entities/species/registry';
 import { activeRegistry } from '../world/registry';
 import { mapShapes, mapWants, type MapPoly, type MapShapes } from './mapShapes';
 import { app } from '../app/runtime';
-import { scopesInstalled, onScopeDispose } from '../app/legacyCapture';
+import { onOwnerDispose } from '../app/ownership';
 import { ROOM_BG, arenaMap, fitRoom, paintRoom, type RoomMap } from './roomMap';
 
 /** a point the map marks with a small diamond (Minimap.setMarks) */
@@ -178,7 +178,7 @@ export class Minimap {
     this.layerDirty = true;
     // a dev page swapping its chunk in place: a new map. In the game several shards are resident (E155) and a change is a
     // switch between them — this map's shard, its drawn layer and its explored fog stay as they are
-    onScopeDispose(onLevelChange(() => { if (scopesInstalled()) return; this.layerDirty = true; this.clearCoverage(); }));
+    onOwnerDispose(onLevelChange(() => { if (app.levelScope !== null) return; this.layerDirty = true; this.clearCoverage(); }));
     // a piece the map draws that lands after the layer was drawn (the zipline, with the adventure) → paint again
     activeRegistry().onAdd((p) => { if (this.shapes !== null && mapWants(activeLevel().minimap, p.id)) this.layerDirty = true; });
 

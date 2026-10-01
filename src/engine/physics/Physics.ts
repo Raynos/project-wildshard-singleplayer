@@ -10,7 +10,7 @@
 import type { World } from '@dimforge/rapier3d-simd';
 import type { Rapier } from './rapier';
 import { FIXED_STEP } from '../core/fixedStep';
-import { currentScope } from '../app/legacyCapture';
+import { currentOwner } from '../app/ownership';
 import { untagCollider } from './surface';
 
 export class Physics {
@@ -25,12 +25,12 @@ export class Physics {
     const createBody = this.world.createRigidBody.bind(this.world), removeBody = this.world.removeRigidBody.bind(this.world);
     const createCollider = this.world.createCollider.bind(this.world), removeCollider = this.world.removeCollider.bind(this.world);
     this.world.createRigidBody = (desc) => {
-      const body = createBody(desc), scope = currentScope()?.owner;
+      const body = createBody(desc), scope = currentOwner();
       if (scope) bodies.set(body.handle, scope.capture('bodies', () => { if (body.isValid()) this.world.removeRigidBody(body); }));
       return body;
     };
     this.world.createCollider = (desc, parent) => {
-      const collider = createCollider(desc, parent), scope = currentScope()?.owner;
+      const collider = createCollider(desc, parent), scope = currentOwner();
       if (scope) colliders.set(collider.handle, scope.capture('colliders', () => { if (collider.isValid()) this.world.removeCollider(collider, true); }));
       return collider;
     };

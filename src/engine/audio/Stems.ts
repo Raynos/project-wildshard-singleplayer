@@ -1,3 +1,4 @@
+import { resourceScope } from '../app/resources';
 import { ownAudioSource } from './ownership';
 import { tap } from '../core/harnessTap';
 // src/engine/audio/Stems.ts — the MiniMax-Music3 stem player behind src/engine/audio/Music.ts (project/archive/2026-09-23-music.md v3, row 7).
@@ -149,6 +150,7 @@ export async function decodeStyle(genre: MusicGenre, slots: readonly SlotName[],
 
 /** one slot playing: calm + tension sources (+ the boss's layers) through their gains into `out` (the deck's fade) */
 export class Deck {
+  private readonly scope = resourceScope().child('Deck');
   readonly out: GainNode;
   readonly tensionGain: GainNode | undefined;
   /** the boss's layer gains (bass, drums), set per phase */
@@ -228,8 +230,8 @@ export class Deck {
     g.linearRampToValueAtTime(0, t + secs);
     this.stopAt = t + secs;
     for (const s of this.srcs) { try { s.stop(t + secs + 0.05); } catch { /* already stopped */ } }
-    const done = () => { try { this.out.disconnect(); } catch { /* gone */ } this.srcs = []; };
+    const done = () => { try { this.out.disconnect(); } catch { /* gone */ } this.srcs = []; this.scope.dispose(); };
     const last = this.srcs[0];
-    if (last) last.addEventListener('ended', done, { once: true }); else done();
+    if (last) this.scope.listen(last, 'ended', done, { once: true }); else done();
   }
 }

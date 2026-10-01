@@ -85,9 +85,10 @@ export function startViewmodelTextures(requested: boolean | readonly SetName[]):
   } catch { return; } // no workers: drawn on the main thread
   await new Promise<void>((resolve) => {
     let left = sets.length;
-    const timer = { id: 0 };
-    const finish = () => { worker.terminate(); clearTimeout(timer.id); resolve(); };
-    app.engineScope.timeout(WORKER_TIMEOUT_MS, finish); // never hold the boot on it
+    const scope = app.engineScope.child('viewmodel-worker');
+    scope.onDispose(() => { worker.terminate(); });
+    const finish = () => { scope.dispose(); resolve(); };
+    scope.timeout(WORKER_TIMEOUT_MS, finish); // never hold the boot on it
     worker.onmessage = (e: MessageEvent<{ name: SetName; px?: Pixels; error?: string }>) => {
       if (e.data.px) pixelCache.set(e.data.name, e.data.px);
       else console.warn(`[viewmodel textures] ${e.data.name} drawn on the main thread: ${e.data.error ?? '?'}`);

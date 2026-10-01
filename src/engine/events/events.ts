@@ -1,4 +1,5 @@
 import type { Scope } from '../app/scope';
+import { withOwner } from '../app/ownership';
 import type { Phase } from '../app/systems';
 import type { AskInput, AskMap, AskOutput, EventMap } from './maps';
 
@@ -31,7 +32,7 @@ export class Events {
   }
   private subscribe<K>(map: Map<K, Listener[]>, name: K, run: Listener['run'], scope: Scope, opts?: ListenerOptions): void {
     if (scope.disposed) return;
-    const listener: Listener = { order: opts?.order ?? 0, active: true, scope, run };
+    const listener: Listener = { order: opts?.order ?? 0, active: true, scope, run: (value) => withOwner(scope, () => run(value)) };
     const list = map.get(name) ?? [];
     list.push(listener);
     list.sort((a, b) => a.order - b.order);

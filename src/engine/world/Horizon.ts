@@ -1,3 +1,4 @@
+import { resourceScope } from '../app/resources';
 import * as THREE from 'three';
 import { CHUNK_DEPTH } from '../core/config';
 import { Noise2D } from '../core/noise';
@@ -29,6 +30,7 @@ export const horizonLight = {
  * Ocean surface runs to the horizon instead.
  */
 export class Horizon {
+  private readonly scope = resourceScope().child('Horizon');
   group = new THREE.Group();
   /** Pine Hollow's painted horizon (PH-L5), in place of the rings and the cloud sea */
   painted: PaintedHorizon | null = null;
@@ -54,7 +56,7 @@ export class Horizon {
       if (painted.mesh) this.group.add(painted.mesh);
       this.painted = painted;
       fogUniforms.fogEdge.value.x = 0.4; // aerial perspective on the slab's last metres and cliffs, not a white-out
-      document.addEventListener('ws:ready', () => { setTimeout(() => { void painted.load(); }, 250); }, { once: true });
+      this.scope.listen(document, 'ws:ready', () => { this.scope.timeout(250, () => { void painted.load(); }); }, { once: true });
       return this;
     }
     this.buildRidges(ocean);

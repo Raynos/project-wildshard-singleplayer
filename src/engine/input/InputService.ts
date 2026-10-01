@@ -1,5 +1,6 @@
 import { Bindings } from './bindings';
 import type { Scope } from '../app/scope';
+import { withOwner } from '../app/ownership';
 import type { EquipmentAction } from '../combat/Tool';
 import type { InputContextDef } from '../level/context';
 import type { DiscSpot, TouchRelabel } from '../ui/hudSlots';
@@ -72,16 +73,16 @@ export class InputService {
   /** A real touch gesture unlocks audio before its interaction; scripted actions do not. */
   pressGesture(action: Action): void { this.gesture(); this.press(action); }
   bind(action: Action, run: () => void, scope: Scope, enabled: () => boolean = () => true): void {
-    const binding = { action, run, enabled }; this.callbacks.add(binding); scope.onDispose(() => { this.callbacks.delete(binding); });
+    const binding = { action, run: () => { withOwner(scope, run); }, enabled }; this.callbacks.add(binding); scope.onDispose(() => { this.callbacks.delete(binding); });
   }
   bindRelease(action: Action, run: () => void, scope: Scope): void {
-    const binding = { action, run }; this.releases.add(binding); scope.onDispose(() => { this.releases.delete(binding); });
+    const binding = { action, run: () => { withOwner(scope, run); } }; this.releases.add(binding); scope.onDispose(() => { this.releases.delete(binding); });
   }
-  observeLook(run: (x: number, y: number) => void, scope: Scope): void { this.motion.add(run); scope.onDispose(() => { this.motion.delete(run); }); }
-  observeWheel(run: (dy: number) => void, scope: Scope): void { this.wheels.add(run); scope.onDispose(() => { this.wheels.delete(run); }); }
-  firstGesture(run: () => void, scope: Scope): void { this.gestures.add(run); scope.onDispose(() => { this.gestures.delete(run); }); }
+  observeLook(run: (x: number, y: number) => void, scope: Scope): void { const owned = (x: number, y: number): void => { withOwner(scope, () => run(x, y)); }; this.motion.add(owned); scope.onDispose(() => { this.motion.delete(owned); }); }
+  observeWheel(run: (dy: number) => void, scope: Scope): void { const owned = (dy: number): void => { withOwner(scope, () => run(dy)); }; this.wheels.add(owned); scope.onDispose(() => { this.wheels.delete(owned); }); }
+  firstGesture(run: () => void, scope: Scope): void { const owned = (): void => { withOwner(scope, () => run()); }; this.gestures.add(owned); scope.onDispose(() => { this.gestures.delete(owned); }); }
   private gesture(): void { const callbacks = [...this.gestures]; this.gestures.clear(); for (const run of callbacks) run(); }
-  onReset(run: () => void, scope: Scope): void { this.resets.add(run); scope.onDispose(() => { this.resets.delete(run); }); }
+  onReset(run: () => void, scope: Scope): void { const owned = (): void => { withOwner(scope, () => run()); }; this.resets.add(owned); scope.onDispose(() => { this.resets.delete(owned); }); }
   hasContext(id: string): boolean { return this.has(id); }
   has(id: string): boolean { return this.definitions.has(id); }
   active(id: string): boolean { return this.stack.some(({ def }) => def.id === id && def.enabled?.() !== false); }
@@ -121,7 +122,7 @@ export class InputService {
       y: Math.max(-1, Math.min(1, axis.y + Number(this.held('move.forward')) - Number(this.held('move.back')))) };
   }
   captureNextKey(run: (code: string) => void, scope: Scope): void {
-    this.keyCapture = run; scope.onDispose(() => { if (this.keyCapture === run) this.keyCapture = undefined; });
+    const owned = (code: string): void => { withOwner(scope, () => run(code)); }; this.keyCapture = owned; scope.onDispose(() => { if (this.keyCapture === owned) this.keyCapture = undefined; });
   }
   install(scope: Scope, canvas?: HTMLCanvasElement, look?: (x: number, y: number) => void): void {
     if (this.installed) throw new Error('Input listeners already installed'); this.installed = true;

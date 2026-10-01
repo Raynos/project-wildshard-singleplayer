@@ -3,7 +3,7 @@ import type { worldStage } from './world';
 
 async function buildLoadout(ctx: Awaited<ReturnType<typeof worldStage>>) {
   const { engine, kit, stage, boot, step, fieldModels, world, game, sky, player, forest, chunk, registry, nolock } = ctx;
-  const { hudAdapters, app, EquipmentService, viewmodelTexturesReady, authoredTargets, onSettingChange, setting, AnimalManager, TouchControls, HUD, LockOnSystem, macrotask, listShardModels, TrainingArena, withScopeOwner } = engine;
+  const { hudAdapters, app, EquipmentService, viewmodelTexturesReady, authoredTargets, onSettingChange, setting, AnimalManager, TouchControls, HUD, LockOnSystem, macrotask, listShardModels, TrainingArena, withOwner } = engine;
 
 
   const animals = await step('animals', async (p) => {
@@ -51,7 +51,7 @@ async function buildLoadout(ctx: Awaited<ReturnType<typeof worldStage>>) {
   const touchControls = new TouchControls(player, weapons, setting('touch') === 'on', lockSys); // on-screen FPS controls on coarse-pointer devices (?touch=1 / main menu ▸ Settings ▸ Touch controls forces)
   authoredKit.install?.(weapons);
   await macrotask();
-  const hud = withScopeOwner(game.engineScope, () => new HUD({ pointerLock: !nolock, weaponUi: weapons.current.row.ui, maxBolts: weapons.state.magazine }));
+  const hud = withOwner(game.engineScope, () => new HUD({ pointerLock: !nolock, weaponUi: weapons.current.row.ui, maxBolts: weapons.state.magazine }));
   const shellHud = new Set(document.querySelectorAll('#hud *'));
   game.hudBaseline = shellHud.size;
   game.hudRetained = shellHud;

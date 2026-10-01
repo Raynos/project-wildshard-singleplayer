@@ -1,8 +1,9 @@
+import { resourceScope } from '../app/resources';
 import { loopAt, audioRandom, panFromYaw } from './util';
 import { PlayerVoices } from './playerVoices';
 import type { StepSurface } from './surface';
 import { ownAudioSource } from './ownership';
-import { currentScope } from '../app/legacyCapture';
+import { currentOwner } from '../app/ownership';
 import { tap, ambientTick } from '../core/harnessTap';
 import type { Vector3 } from 'three';
 import { getSfxSet, onSfxSet, type SfxSet } from '../ui/Settings';
@@ -92,6 +93,7 @@ interface Graph { ctx: AudioContext; master: GainNode; world: GainNode; sfx: Gai
 let sharedCtx: AudioContext | undefined;
 
 export class Audio extends PlayerVoices {
+  private readonly scope = resourceScope().child('Audio');
   listenerYaw = 0;
   listenerPosition: Vector3 | null = null;
   music: Music | null = null;
@@ -142,7 +144,7 @@ export class Audio extends PlayerVoices {
   private bedNodes: AudioNode[] = [];
   private hum: { out: GainNode; level: number; sample: boolean; stop: () => void } | undefined;
   private humOn = false;
-  private underwater = false; private underGain?: GainNode; private bubbleTimer = 0;
+  private underwater = false; private underGain?: GainNode; private bubbleTimer: ReturnType<typeof setTimeout> | 0 = 0;
   /** the synth hum's sources under water (swapped for the underwater bed when one decodes) */
   private underFeed: AudioScheduledSourceNode[] = []; private underSample = false;
   // ── samples (sfx.json) ──
@@ -151,7 +153,7 @@ export class Audio extends PlayerVoices {
   private shots = new Map<string, { bufs: AudioBuffer[]; gain: number }>();
   private sampleBed = false;
   census(): { activeVoices: number; beds: number; buses: number } {
-    return { activeVoices: currentScope()?.resources.census.sounds ?? 0, beds: this.liveBeds?.() ?? (this.bedNodes.length > 0 ? 1 : 0), buses: this.g ? 8 : 0 };
+    return { activeVoices: currentOwner()?.census.sounds ?? 0, beds: this.liveBeds?.() ?? (this.bedNodes.length > 0 ? 1 : 0), buses: this.g ? 8 : 0 };
   }
   unloadLevel(): void {
     this.started = false;
@@ -214,7 +216,7 @@ export class Audio extends PlayerVoices {
     if (!this.g) return;
     this.stopBed();
     this.hum?.stop(); this.hum = undefined;
-    clearTimeout(this.bubbleTimer);
+    this.scope.cancelTimer(this.bubbleTimer);
     this.g.master.disconnect();
   }
   override get ctx(): AudioContext { return this.graph().ctx; }
@@ -299,7 +301,7 @@ export class Audio extends PlayerVoices {
     if (c.state !== 'running') void c.resume();
     if (!built && this.underwater) { this.underwater = false; this.setUnderwater(true); } // dove before the first gesture
     if (!this.started) { this.started = true; this.startAmbient(); }
-    if (!built) window.setTimeout(() => this.voices.prewarm(['hurt', 'death']), 1500); // rendered in the background, before the first hit
+    if (!built) this.scope.timeout(1500, () => this.voices.prewarm(['hurt', 'death'])); // rendered in the background, before the first hit
   }
 
   /** `true`/`false` mutes the bed; a bed id swaps it (the default wind + birds ↔ surf + breeze + gulls ↔ a level's synth bed) */
@@ -344,7 +346,7 @@ export class Audio extends PlayerVoices {
     } else if (this.hum) {
       const h = this.hum; this.hum = undefined;
       h.out.gain.cancelScheduledValues(t); h.out.gain.setTargetAtTime(0, t, 0.16);
-      setTimeout(() => h.stop(), 700);
+      this.scope.timeout(700, () => h.stop());
     }
   }
 
@@ -365,7 +367,7 @@ export class Audio extends PlayerVoices {
     this.underGain.gain.cancelScheduledValues(t);
     this.underGain.gain.setValueAtTime(this.underGain.gain.value, t);
     this.underGain.gain.linearRampToValueAtTime(on ? 1.4 : 0, t + (on ? 0.6 : 0.3));
-    clearTimeout(this.bubbleTimer);
+    this.scope.cancelTimer(this.bubbleTimer);
     if (on) this.scheduleBubble();
   }
 
@@ -393,14 +395,14 @@ export class Audio extends PlayerVoices {
   }
 
   private scheduleBubble() {
-    this.bubbleTimer = window.setTimeout(() => {
+    this.bubbleTimer = this.scope.timeout(rnd(1.2, 4.5) * 1000, () => {
       ambientTick('audio.bubble', () => {
         if (!this.underwater) return;
         const t = this.ctx.currentTime, n = 1 + Math.floor(rnd(0, 4)), pan = rnd(-0.7, 0.7);
         for (let i = 0; i < n; i++) this.tone({ t: t + i * rnd(0.05, 0.12), type: 'sine', f0: rnd(300, 700), f1: rnd(800, 1600), glide: 0.07, gain: rnd(0.015, 0.04), attack: 0.004, decay: rnd(0.04, 0.08), pan, out: this.ambient });
         this.scheduleBubble();
       });
-    }, rnd(1.2, 4.5) * 1000);
+    });
   }
 
   // ─────────────── feedback ───────────────
@@ -638,7 +640,7 @@ export class Audio extends PlayerVoices {
     return g;
   }
 
-  dispose(): void { for (const bed of this.synthBeds.values()) bed.stop(); clearTimeout(this.bubbleTimer); if (this.g) { if (this.g.ctx === sharedCtx) sharedCtx = undefined; void this.g.ctx.close(); } }
+  dispose(): void { for (const bed of this.synthBeds.values()) bed.stop(); this.scope.cancelTimer(this.bubbleTimer); if (this.g) { if (this.g.ctx === sharedCtx) sharedCtx = undefined; void this.g.ctx.close(); } }
 }
 
 export { Audio as GameAudio };

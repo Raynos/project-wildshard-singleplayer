@@ -1,3 +1,4 @@
+import { resourceScope } from '../app/resources';
 import { saveStorage } from '#engine/saves/slots';
 
 const savedStorage = saveStorage('device');
@@ -35,7 +36,8 @@ export function setDev(next: boolean): void {
 }
 
 export function onDev(fn: (on: boolean) => void): () => void {
+  const scope = resourceScope();
   const h = (): void => { fn(on); };
-  window.addEventListener(EVENT, h);
-  return () => { window.removeEventListener(EVENT, h); };
+  scope.listen(window, EVENT, h);
+  return () => { scope.unlisten(window, EVENT, h); };
 }

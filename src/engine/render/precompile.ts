@@ -1,3 +1,4 @@
+import { resourceScope } from '../app/resources';
 import { engineString } from '#engine/strings';
 import * as THREE from 'three';
 import { Pass, type EffectComposer } from 'postprocessing';
@@ -251,7 +252,7 @@ export function collectTextures(jobs: CompileJob[]): THREE.Texture[] {
   return [...out];
 }
 
-const frame = (): Promise<void> => new Promise((resolve) => { requestAnimationFrame(() => { setTimeout(resolve, 0); }); }); // a real paint between
+const frame = (): Promise<void> => new Promise((resolve) => { resourceScope().raf(() => { resourceScope().timeout(0, resolve); }); }); // a real paint between
 
 /**
  * Issue every job, then wait for the driver: reports (done, total, detail) monotonically —

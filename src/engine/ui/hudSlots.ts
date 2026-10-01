@@ -1,4 +1,4 @@
-import type { Scope } from '../app/scope';
+import { nodeOwner, type Scope } from '../app/scope';
 import { engineString } from '#engine/strings';
 
 
@@ -25,7 +25,7 @@ export class HudSlots {
   private readonly owners = new WeakMap<Element, Scope>();
   ownerOf(el: Element): Scope | null {
     for (let node: Element | null = el; node !== null; node = node.parentElement) {
-      const owner = this.owners.get(node);
+      const owner = nodeOwner(node) ?? this.owners.get(node);
       if (owner !== undefined) return owner;
     }
     return null;

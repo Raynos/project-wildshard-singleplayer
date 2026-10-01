@@ -1,3 +1,4 @@
+import { pageScope } from '../app/resources';
 import { saveStorage,jsonSlot } from '#engine/saves/slots';
 /**
  * Debug ▸ Clear downloads (E172, the user: "I need a button to nuke the cache so i can test it"; their pick 1: downloads
@@ -47,7 +48,7 @@ const REPORT_KEY = 'clearDownloads.report';
 /** the file whose response carries `Clear-Site-Data: "cache"` (vercel.json); `?sw=0` so no worker answers it */
 const CLEAR_HTTP_URL = '/clear-cache.json?sw=0';
 
-const wait = (ms: number): Promise<void> => new Promise((resolve) => { setTimeout(resolve, ms); });
+const wait = (ms: number): Promise<void> => new Promise((resolve) => { pageScope.timeout(ms, resolve); });
 /** `p`, or undefined after `ms` */
 const within = <T>(p: Promise<T>, ms: number): Promise<T | undefined> => Promise.race([p, wait(ms).then(() => undefined)]);
 

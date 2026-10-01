@@ -1,4 +1,4 @@
-import type { Actor } from '#engine';
+import { resourceScope, type Actor } from '#engine';
 
 import { elitesSave, type ShardContext } from '#game';
 /**
@@ -110,6 +110,7 @@ function elitesFelled(): Set<string> {
 }
 
 export function installNalatiAdventure<A extends { kind: string; combatActor: () => Actor }>(w: NalatiAdventureWorld<A>): NalatiAdventure | null {
+  const scope = w.ctx?.scope ?? resourceScope();
   if (w.chunk.slug !== 'nalati-grasslands') return null;
   const flags = new Flags(w.chunk.slug);
   if (w.params?.has('resetquest') === true) flags.reset();
@@ -160,7 +161,7 @@ export function installNalatiAdventure<A extends { kind: string; combatActor: ()
     const shown = c;
     shown.show(true);
     chip.line.root.classList.add('ws-quest-hide');   // the caption has the screen
-    window.setTimeout(() => { shown.show(false); chip.line.root.classList.remove('ws-quest-hide'); }, 6500);
+    scope.timeout(6500, () => { shown.show(false); chip.line.root.classList.remove('ws-quest-hide'); });
   };
   // the MAP tab's quest card: the chapter, its objective, the hint
   w.fullMap?.setQuest?.(() => {

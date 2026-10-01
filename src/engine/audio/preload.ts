@@ -1,3 +1,4 @@
+import { resourceScope } from '../app/resources';
 // src/engine/audio/preload.ts — audio decoded at the loading bar, not after it (project/archive/2026-09-23-preload-offline.md rows 3–4).
 //
 //   decodeBytes(bytes)                 → AudioBuffer, decoded on one shared OfflineAudioContext at the files' rate (48 kHz)
@@ -18,7 +19,7 @@ import type { AmbientBed, LoopName, SampleLoop } from './Audio';
 import { SFX_MANIFESTS } from '../boot/audio.generated';
 import { PUBLIC_BYTES } from '../boot/bytes.generated';
 import { sfxDir } from '../boot/audioFiles';
-import { onScopeDispose } from '../app/legacyCapture';
+import { onOwnerDispose } from '../app/ownership';
 
 export const DECODE_RATE = 48000;
 let offline: OfflineAudioContext | undefined;
@@ -46,12 +47,13 @@ export async function cachedBytes(url: string): Promise<ArrayBuffer> {
 export type AudioKind = 'music' | 'sfx';
 const BUSY_MS = 300;
 const busyFns = new Set<(kind: AudioKind, on: boolean) => void>();
-export function onAudioBusy(fn: (kind: AudioKind, on: boolean) => void): () => void { busyFns.add(fn); const off = (): void => { busyFns.delete(fn); }; onScopeDispose(off); return off; } // a resident shard's (its menu): gone with it
+export function onAudioBusy(fn: (kind: AudioKind, on: boolean) => void): () => void { busyFns.add(fn); const off = (): void => { busyFns.delete(fn); }; onOwnerDispose(off); return off; } // a resident shard's (its menu): gone with it
 /** run `work`; the picker shows a spinner only if it is still running after BUSY_MS */
 export function trackBusy<T>(kind: AudioKind, work: Promise<T>): Promise<T> {
+  const scope = resourceScope();
   let shown = false;
-  const timer = setTimeout(() => { shown = true; busyFns.forEach((fn) => fn(kind, true)); }, BUSY_MS);
-  const settle = (): void => { clearTimeout(timer); if (shown) busyFns.forEach((fn) => fn(kind, false)); };
+  const timer = scope.timeout(BUSY_MS, () => { shown = true; busyFns.forEach((fn) => fn(kind, true)); });
+  const settle = (): void => { scope.cancelTimer(timer); if (shown) busyFns.forEach((fn) => fn(kind, false)); };
   void work.finally(settle).catch(() => undefined); // the caller handles the rejection; this copy only clears the flag
   return work;
 }

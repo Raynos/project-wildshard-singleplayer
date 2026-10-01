@@ -2,7 +2,7 @@
 import type { ShardManifest } from './manifest';
 import { SHARDS } from './shards.generated';
 import { _applyChunkConstants } from '#engine/core/config';
-import { onScopeDispose } from '#engine/app/legacyCapture';
+import { onOwnerDispose } from '#engine/app/ownership';
 import { configureLevel } from '#engine';
 import { toLevelSpec } from './spec';
 
@@ -55,7 +55,7 @@ export function setActiveChunk(slug: string): ShardManifest {
 
 export function onActiveChunkChange(fn: (def: ShardManifest) => void): void {
   listeners.push(fn);
-  onScopeDispose(() => { const i = listeners.indexOf(fn); if (i !== -1) listeners.splice(i, 1); }); // a resident shard's (its Minimap): gone with it
+  onOwnerDispose(() => { const i = listeners.indexOf(fn); if (i !== -1) listeners.splice(i, 1); }); // a resident shard's (its Minimap): gone with it
 }
 
 /** URL for the same page with another chunk selected (other params kept). */

@@ -1,3 +1,4 @@
+import { pageScope } from '../app/resources';
 import { saveStorage } from '#engine/saves/slots';
 
 const savedStorage = saveStorage('device');
@@ -70,20 +71,21 @@ function paints(): string {
 
 /** count animation frames for `ms` (and the longest gap), then call back */
 function watchFrames(ms: number, done: (frames: number, maxGap: number) => void): void {
+  const scope = pageScope.child('frame-watch');
   const start = performance.now();
   let last = start, frames = 0, maxGap = 0, finished = false;
-  const finish = (): void => { if (!finished) { finished = true; done(frames, Math.round(maxGap)); } };
+  const finish = (): void => { if (!finished) { finished = true; scope.dispose(); done(frames, Math.round(maxGap)); } };
   const tick = (now: number): void => {
     if (finished) return;
     frames++;
     maxGap = Math.max(maxGap, now - last);
     last = now;
-    if (now - start < ms) requestAnimationFrame(tick);
+    if (now - start < ms) scope.raf(tick);
     else finish();
   };
-  requestAnimationFrame(tick);
+  scope.raf(tick);
   // animation frames that stop (or never come) still report: that page is the finding
-  window.setTimeout(() => { maxGap = Math.max(maxGap, performance.now() - last); finish(); }, ms + 1000);
+  scope.timeout(ms + 1000, () => { maxGap = Math.max(maxGap, performance.now() - last); finish(); });
 }
 
 /** the watched seconds looked fine: the page painted and drew at least 15 fps, or it was hidden (rAF paused, 0 frames is
@@ -134,15 +136,15 @@ export function installLifeTrace(sendFn: LifeSend): void {
   try { recent = Date.now() - Number(savedStorage.getItem('life.traceAt') ?? 0) < FOLLOW_MS; } catch { /* no storage */ }
   const stamp = (): void => { try { savedStorage.setItem('life.traceAt', String(Date.now())); } catch { /* no storage */ } };
   stamp();
-  document.addEventListener('visibilitychange', stamp);
-  window.addEventListener('pagehide', stamp);
+  pageScope.listen(document, 'visibilitychange', stamp);
+  pageScope.listen(window, 'pagehide', stamp);
   if (!endedAway || !recent) return;
   // give the boot time to reach the world, then say how far it got (a boot that never gets here is also the finding:
   // the next page's report will show a trace that ends in this boot)
-  window.setTimeout(() => {
+  pageScope.timeout(20_000, () => {
     watchFrames(WATCH_MS, (frames, maxGap) => {
       trace('after boot', `${frames} frames in ${WATCH_MS / 1000}s, longest gap ${maxGap}ms · ${paints()} · ${layout()}`);
       if (!healthy(frames)) report(`boot after the last page ended on "${last}" (nav ${nav}): ${frames} frames / ${WATCH_MS / 1000}s`);
     });
-  }, 20_000);
+  });
 }

@@ -31,7 +31,7 @@ async function buildWorld(ctx: Awaited<ReturnType<typeof dataStage>>, level: Lev
     event.preventDefault();
     failGpuBoot('WebGL context lost during loading');
   };
-  if (fragileBoot) game.canvas.addEventListener('webglcontextlost', onBootContextLost);
+  if (fragileBoot) game.levelScope.listen(game.canvas, 'webglcontextlost', onBootContextLost);
   const nolock = params.has('nolock');
   // what the view-dependent layers (ground cover, grass, mist) fill around: the player, or Explore's free camera (E66)
   const viewer = (): THREE.Vector3 => (world.freeCamera ? game.camera.position : player.position);
@@ -57,7 +57,7 @@ async function buildWorld(ctx: Awaited<ReturnType<typeof dataStage>>, level: Lev
     if (matte?.mesh) {
       game.scene.add(matte.mesh);
       game.onUpdate((dt) => { matte.update(dt, game.camera, sky.dayNight?.night ?? 0); }, 'main.2');
-      document.addEventListener('ws:ready', () => { setTimeout(() => { void matte.load(horizon.group); }, 250); }, { once: true });
+      game.levelScope.listen(document, 'ws:ready', () => { game.levelScope.timeout(250, () => { void matte.load(horizon.group); }); }, { once: true });
     }
     return { boundary, water, streams, horizon };
   });

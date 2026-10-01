@@ -172,7 +172,7 @@ export class Loading {
   done(): Promise<void> {
     return new Promise((resolve) => {
       this.root.classList.add('hide');
-      this.scope.timeout(250, () => { cancelAnimationFrame(this.raf); this.scope.dispose(); resolve(); });
+      this.scope.timeout(250, () => { this.scope.cancelRaf(this.raf); this.scope.dispose(); resolve(); });
     });
   }
 }

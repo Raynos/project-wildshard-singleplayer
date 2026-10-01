@@ -40,7 +40,7 @@ export { showError } from '../ui/ErrorModal';
 export { pathRampDescs } from '../physics/paths';
 export { markBootContextLost } from '../boot/bootTrace';
 export { markBootHandledError } from '../boot/bootTrace';
-export { asShell } from '../app/legacyCapture';
+export { asShell } from '../app/ownership';
 export { hudAdapters } from '../ui/hudAdapters';
 export { EquipmentService } from '../index';
 export { viewmodelTexturesReady } from '../index';
@@ -53,7 +53,7 @@ export { HUD } from '../ui/HUD';
 export { LockOnSystem } from '../player/LockOnTarget';
 export { listShardModels } from '../models/roster';
 export { TrainingArena } from '../practice/TrainingArena';
-export { withScopeOwner } from '../app/legacyCapture';
+export { withOwner } from '../app/ownership';
 export { EffectService } from '../index';
 export { CombatCues } from '../index';
 export { installBounds } from '../index';
@@ -114,11 +114,7 @@ export { startShardPrefetch } from '../boot/shardPrefetch';
 export { textureBytes } from '../render/textureBytes';
 export { pageSeed } from '../core/rng';
 export { consumeTitleArrival } from '../boot/titleArrival';
-export { installLegacyCapture } from '../app/legacyCapture';
-export { LegacyCapture } from '../app/legacyCapture';
-export { enterScope } from '../app/legacyCapture';
-export { currentScope } from '../app/legacyCapture';
-export { disposeScope } from '../app/legacyCapture';
+export { currentOwner } from '../app/ownership';
 export { setAliveSource } from '../boot/lastEnd';
 export { installErrorModal } from '../ui/ErrorModal';
 export { reportError } from '../core/errorReport';
@@ -131,3 +127,6 @@ export { bootLevel } from '../boot';
 export function loadExplore(): Promise<typeof ExploreModule> { return import('../explore/Explore'); }
 export function loadFeedback(): Promise<typeof FeedbackModule> { return import('../ui/Feedback'); }
 export { precompileLevel } from '../render/precompile';
+
+export { enterOwner } from '../app/ownership';
+export { Scope } from '../app/scope';

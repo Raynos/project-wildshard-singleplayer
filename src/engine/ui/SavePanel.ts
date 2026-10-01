@@ -1,5 +1,5 @@
 import { engineString } from '#engine/strings';
-import { currentScope } from '../app/legacyCapture';
+import { currentOwner } from '../app/ownership';
 import type { Scope } from '../app/scope';
 import { app } from '../app/runtime';
 import { markUnload } from '../boot/lastEnd';
@@ -15,7 +15,7 @@ const button = (scope: Scope, text: string, run: () => void): HTMLButtonElement 
   scope.listen(element, 'click', run); return element;
 };
 export function buildSavePanel(): HTMLDivElement & { refresh: () => void } {
-  const scope = (currentScope()?.resources ?? app.levelScope ?? app.engineScope).child('save-panel');
+  const scope = (app.levelScope ?? currentOwner() ?? app.engineScope).child('save-panel');
   const card = document.createElement('div'); card.className = 'ws-gmenu-card';
   const title = document.createElement('div'); title.className = 'ws-gmenu-cardtitle'; title.textContent = strings.title;
   const note = document.createElement('div'); note.className = 'ws-gmenu-note'; note.textContent = strings.note;

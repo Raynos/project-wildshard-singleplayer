@@ -1,3 +1,4 @@
+import { pageScope } from '../app/resources';
 /**
  * Native entry (docs/plans/NATIVE-APPS.md). `vite build --mode native` swaps index.html's service-worker, update-pill
  * and main.ts scripts for this one module (vite.config.ts `nativeHtml`), so the iOS / Android shells boot:
@@ -28,7 +29,7 @@ async function boot(): Promise<void> {
   let ota: OtaSession | null | undefined;
   try { ota = await prepareOta(); } catch (error) { console.warn('[native] update check skipped', error); }
   if (ota === null) return; // a staged bundle is being activated: the WebView reloads into it
-  if (ota) { const session = ota; document.addEventListener('ws:ready', () => { void session.ready(); }, { once: true }); }
+  if (ota) { const session = ota; pageScope.listen(document, 'ws:ready', () => { void session.ready(); }, { once: true }); }
   try { await installLifecycle(); } catch (error) { console.warn('[native] lifecycle hooks off', error); }
   const { startPageServices } = await import('../../pageServices');
   startPageServices();

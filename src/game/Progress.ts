@@ -1,3 +1,4 @@
+import { resourceScope } from '#engine';
 import { progressSave, saveSlug } from './saves';
 import { updateSummary } from './summary';
 import { findShard } from './shard/registry';
@@ -24,6 +25,7 @@ export interface ProgressSink { recordEvent: (event: string, total?: number) => 
 export interface ProgressRow { def: AchievementDef; count: number; earned: boolean; active: boolean }
 
 export class Progress {
+  private readonly scope = resourceScope().child('Progress');
   readonly defs: AchievementDef[];
   private shard: ShardProgress;
   onEarned?: (def: AchievementDef) => void;
@@ -35,8 +37,8 @@ export class Progress {
     this.updateSummary();
     const flush = (): void => { if (this.unsaved > 0) { this.unsaved = 0; this.save(); } };
     if (typeof document !== 'undefined') { // not in the node tests
-      window.addEventListener('pagehide', flush);
-      document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flush(); });
+      this.scope.listen(window, 'pagehide', flush);
+      this.scope.listen(document, 'visibilitychange', () => { if (document.visibilityState === 'hidden') flush(); });
     }
   }
 

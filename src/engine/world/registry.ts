@@ -17,7 +17,7 @@ import type { Material } from '../physics/surface';
 import type { Tier } from '../core/tier';
 import type { Animal } from '../entities/Animal';
 import { app } from '../app/runtime';
-import { currentScope } from '../app/legacyCapture';
+import { currentOwner } from '../app/ownership';
 
 interface Vec3 { x: number; y: number; z: number }
 interface Quat { x: number; y: number; z: number; w: number }
@@ -211,7 +211,7 @@ export class WorldRegistry {
   /** Register a built thing: every listener sees it now; later listeners see it on subscribe. */
   add<P extends Piece>(piece: P): P {
     this.pieces.push(piece);
-    currentScope()?.owner.onDispose(() => { const i = this.pieces.indexOf(piece); if (i !== -1) this.pieces.splice(i, 1); });
+    currentOwner()?.onDispose(() => { const i = this.pieces.indexOf(piece); if (i !== -1) this.pieces.splice(i, 1); });
     for (const l of this.listeners) l(piece);
     return piece;
   }
@@ -219,7 +219,7 @@ export class WorldRegistry {
   /** Called for every piece already added and every one added after. */
   onAdd(fn: (p: Piece) => void): void {
     this.listeners.push(fn);
-    currentScope()?.owner.onDispose(() => { const i = this.listeners.indexOf(fn); if (i !== -1) this.listeners.splice(i, 1); });
+    currentOwner()?.onDispose(() => { const i = this.listeners.indexOf(fn); if (i !== -1) this.listeners.splice(i, 1); });
     for (const p of this.pieces) fn(p);
   }
 

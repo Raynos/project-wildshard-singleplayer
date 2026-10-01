@@ -1,9 +1,9 @@
 import type { Scope } from '../app/scope';
 import { app } from '../app/runtime';
-import { currentScope } from '../app/legacyCapture';
+import { currentOwner } from '../app/ownership';
 
 /** Construction may run before the level becomes active; use its explicit boot owner. */
-export function uiScope(name: string, parent = currentScope()?.owner ?? app.levelScope ?? app.engineScope): Scope {
+export function uiScope(name: string, parent = currentOwner() ?? app.levelScope ?? app.engineScope): Scope {
   return parent.child(`ui.${name}`);
 }
 /** DOM lifetime belongs to the widget, including widgets in parked resident HUDs. */

@@ -2,7 +2,7 @@ import { elitesSave } from './saves';
 import * as THREE from 'three';
 import type { Animal } from '#engine/entities/Animal';
 import { heightAt } from '#engine/world/Heightfield';
-import { fxMaterial, annulus, FX, type FxMaterial, type Renderer } from '#engine';
+import { resourceScope, fxMaterial, annulus, FX, type FxMaterial, type Renderer } from '#engine';
 import { WeaponPickup } from '#engine/player/WeaponPickup';
 import type { Interactable } from '#engine/world/interact/types';
 import type { EliteBar } from '#engine/ui/EliteBar';
@@ -123,6 +123,7 @@ const BANNER_R = 80, DISCOVER_R = 60, REARM_T = 60, LEASH_HOME_T = 12, SIGHT_EVE
 const _h = new THREE.Vector3();
 
 export class Elites {
+  private readonly scope = resourceScope().child('Elites');
   readonly entries: Entry[] = [];
   private readonly slug: string;
   private saved: ReturnType<typeof elitesSave.read>;
@@ -265,7 +266,7 @@ export class Elites {
     if (!s.skinTaken && a && def.drop.skin !== null) this.dropSkin(e, a.position);
     e.state = 'dead'; e.forced = false;
     e.timer = def.respawnMin * 60; e.waitDusk = false;
-    if (this.focus === e) { this.bar.set(0, 'pinned', null, this.host.camera, false); this.focus = null; setTimeout(() => { if (this.focus === null) this.bar.hide(); }, 1600); }
+    if (this.focus === e) { this.bar.set(0, 'pinned', null, this.host.camera, false); this.focus = null; this.scope.timeout(1600, () => { if (this.focus === null) this.bar.hide(); }); }
     this.save();
   }
 

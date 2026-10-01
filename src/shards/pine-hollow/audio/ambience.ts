@@ -1,4 +1,4 @@
-import { audioRandom, AmbienceZones, type ZoneVoice } from '#engine';
+import { resourceScope, audioRandom, AmbienceZones, type ZoneVoice } from '#engine';
 import { tap, ambientTick } from '#engine/core/harnessTap';
 /**
  * ForestAmbience — Pine Hollow's zoned soundscape and reverb zones (PINE-HOLLOW-REMASTER PH-A2 / PH-A5), the IslandAmbience
@@ -75,6 +75,7 @@ const DROP_S = 60;
 interface Bed extends ZoneVoice { name: PhBed; pending: boolean; idle: number; heard: boolean }
 
 export class ForestAmbience {
+  private readonly scope = resourceScope().child('ForestAmbience');
   night = 0; dawn = 0; rain = 0;
   /** the thralls' far calls (0 … 1); defaults to following the night when never set */
   thralls: number | undefined;
@@ -97,7 +98,7 @@ export class ForestAmbience {
   private tick = 0;
   private px = 0; private py = 0; private pz = 0;
   private underwater = false;
-  private timers: number[] = [];
+  private timers: (ReturnType<typeof setTimeout> | 0)[] = [];
 
   constructor(private readonly audio: Audio, private readonly o: ForestAmbienceOpts) {
     this.zones = new AmbienceZones(audio, audioRandom);
@@ -155,7 +156,7 @@ export class ForestAmbience {
   }
 
   // ─────────────── timers (not per frame) ───────────────
-  private later(sec: number, fn: () => void): void { this.timers.push(window.setTimeout(fn, sec * 1000)); if (this.timers.length > 16) this.timers.shift(); }
+  private later(sec: number, fn: () => void): void { this.timers.push(this.scope.timeout(sec * 1000, fn)); if (this.timers.length > 16) this.timers.shift(); }
   /** the King's thralls calling from the fog at night: a far, eerie call from a random side, 25-60 m out */
   private scheduleThrall(): void {
     this.later(9 + Math.random() * 16, () => {
@@ -285,5 +286,5 @@ export class ForestAmbience {
   /** head under / over the pond's surface: the beds and sends drop while under */
   setUnderwater(on: boolean): void { this.underwater = on; if (this.built) this.mix(0); }
 
-  dispose(): void { for (const id of this.timers) clearTimeout(id); this.timers = []; for (const b of this.beds.values()) this.dropBed(b); }
+  dispose(): void { for (const id of this.timers) this.scope.cancelTimer(id); this.timers = []; for (const b of this.beds.values()) this.dropBed(b); }
 }

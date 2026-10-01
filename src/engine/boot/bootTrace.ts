@@ -1,3 +1,4 @@
+import { pageScope } from '../app/resources';
 import { saveStorage } from '#engine/saves/slots';
 /** A small durable breadcrumb for an enabled level boot. A terminated WebContent process cannot run a final handler. */
 import { deliverBrowserError } from '../telemetry/browserErrors';
@@ -144,7 +145,7 @@ function update(status: Status): void {
 export function inspectPreviousBoot(): void {
   if (!retryListener && typeof window !== 'undefined') {
     retryListener = true;
-    window.addEventListener('online', () => { void flushBootReports(); });
+    pageScope.listen(window, 'online', () => { void flushBootReports(); });
   }
   const prior = read(KEY);
   if (prior?.status === 'in_progress' && prior.visibility === 'visible') {
@@ -224,8 +225,8 @@ export function startBoot(level: { id: string; name: string }, enabled = true): 
     updatedAt: now, stage: 'loader', setup: 0, download: 0, visibility: document.visibilityState, status: 'in_progress',
   };
   write(KEY, current);
-  document.addEventListener('ws:ready', () => { if (!transition) update('ready'); }, { once: true });
-  document.addEventListener('visibilitychange', () => {
+  pageScope.listen(document, 'ws:ready', () => { if (!transition) update('ready'); }, { once: true });
+  pageScope.listen(document, 'visibilitychange', () => {
     if (!current) return;
     if (document.visibilityState === 'visible' && current.status === 'pagehide' && hiddenStatus) {
       current = { ...current, status: hiddenStatus }; hiddenStatus = null;
@@ -235,12 +236,12 @@ export function startBoot(level: { id: string; name: string }, enabled = true): 
     current = { ...current, updatedAt: Date.now(), visibility: document.visibilityState };
     write(KEY, current);
   });
-  window.addEventListener('pagehide', () => {
+  pageScope.listen(window, 'pagehide', () => {
     if (current?.status === 'in_progress') hiddenStatus = current.status;
     if (transition) { transition.frames = 0; transition.firstDrawAt = null; }
     update('pagehide');
   });
-  window.addEventListener('pageshow', (e) => {
+  pageScope.listen(window, 'pageshow', (e) => {
     if (!e.persisted || current?.status !== 'pagehide' || !hiddenStatus) return;
     current = { ...current, status: hiddenStatus, updatedAt: Date.now(), visibility: document.visibilityState };
     hiddenStatus = null;

@@ -1,3 +1,4 @@
+import { Scope } from '../app/scope';
 /**
  * Signed, self-hosted, per-file (delta) web-bundle updates for the native shells (docs/plans/NATIVE-APPS.md N-D).
  * Ported from trials-gauntlet's signed manual-mode updater, with one big difference: Wildshard's web bundle is
@@ -236,12 +237,12 @@ function parseActivations(raw: string | null): ActivationAttempt[] {
 }
 
 async function withTimeout<T>(work: Promise<T>, ms: number, what: string): Promise<T> {
-  let timer: ReturnType<typeof setTimeout> | undefined;
-  const expired = new Promise<never>((_resolve, reject) => { timer = setTimeout(() => { reject(new Error(`${what} timed out`)); }, ms); });
+  const scope = new Scope('native.timeout');
+  const expired = new Promise<never>((_resolve, reject) => { scope.timeout(ms, () => { reject(new Error(`${what} timed out`)); }); });
   try {
     return await Promise.race([work, expired]);
   } finally {
-    clearTimeout(timer);
+    scope.dispose();
   }
 }
 
@@ -388,14 +389,15 @@ export function createNativeUpdater(options: UpdateOptions): NativeUpdater {
       if (!ready || checking) return config ? 'none' : 'disabled';
       checking = true;
       const controller = new AbortController();
-      const timer = setTimeout(() => { controller.abort(); }, manifestTimeoutMs);
+      const scope = new Scope('native.manifest');
+      const timer = scope.timeout(manifestTimeoutMs, () => { controller.abort(); });
       try {
         await cleanup();
         if (!config) return 'disabled';
         const response = await fetcher(config.manifestUrl, { cache: 'no-store', credentials: 'omit', redirect: 'error', signal: controller.signal });
         if (!response.ok) return 'unavailable';
         const text = await response.text();
-        clearTimeout(timer);
+        scope.cancelTimer(timer);
         if (text.length > MAX_ENVELOPE_CHARS) return 'rejected';
         let envelope: unknown;
         let manifest: UpdateManifest;
@@ -426,8 +428,9 @@ export function createNativeUpdater(options: UpdateOptions): NativeUpdater {
       } catch {
         return 'unavailable';
       } finally {
-        clearTimeout(timer);
+        scope.cancelTimer(timer);
         await cleanup();
+        scope.dispose();
         checking = false;
       }
     },

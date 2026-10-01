@@ -1,3 +1,4 @@
+import { resourceScope } from '../app/resources';
 import * as THREE from 'three';
 
 /**
@@ -28,6 +29,7 @@ function same(a: ArrayLike<number>, b: Float64Array): boolean {
 }
 
 export class AnimalGroup extends THREE.Group {
+  private readonly scope = resourceScope().child('AnimalGroup');
   private readonly owner = new WeakMap<THREE.Object3D, MatrixOwner>();
   private readonly keep = new WeakMap<MatrixOwner, Keep>();
   /** subtrees skipped / updated in the last pass (tests, the bench) */
@@ -39,8 +41,9 @@ export class AnimalGroup extends THREE.Group {
   // anything attached to / detached from an animal's subtree (a stuck bolt, a kit, the fur shells) → its next pass is full
   private readonly onAdded = (e: { child: THREE.Object3D; target: THREE.Object3D }): void => { this.dirtyFrom(e.target); this.watch(e.child); };
   private readonly onRemoved = (e: { target: THREE.Object3D }): void => { this.dirtyFrom(e.target); };
+  private readonly watched = new WeakSet<THREE.Object3D>();
   private watch(o: THREE.Object3D): void {
-    if (!o.hasEventListener('childadded', this.onAdded)) { o.addEventListener('childadded', this.onAdded); o.addEventListener('childremoved', this.onRemoved); }
+    if (!this.watched.has(o)) { this.watched.add(o); this.scope.listenEmitter(o, 'childadded', this.onAdded); this.scope.listenEmitter(o, 'childremoved', this.onRemoved); }
     for (const c of o.children) this.watch(c);
   }
   private dirtyFrom(o: THREE.Object3D): void {

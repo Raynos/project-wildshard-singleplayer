@@ -43,7 +43,7 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
     fragileBoot: () => TIER === 'phone' && performance.now() - recoveryInstalledAt < 20_000,
   });
   disableBootGpuGuard();
-  if (fragileBoot) game.canvas.removeEventListener('webglcontextlost', onBootContextLost);
+  if (fragileBoot) game.levelScope.unlisten(game.canvas, 'webglcontextlost', onBootContextLost);
   setPoseProvider(() => (hud.entered ? { x: player.position.x, y: player.position.y, z: player.position.z, yaw: player.yaw, pitch: player.pitch } : null)); // the Look Lab's reload prompt comes back right here (E65)
   await loading.done();
   if (level === undefined) app.events.emit('level.loaded', { id: slug });
@@ -62,17 +62,17 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
         console.info(`[audio] deferred level decode: ${error instanceof Error ? error.message : String(error)} — the synth plays`);
       }
     };
-    requestAnimationFrame(() => { window.setTimeout(() => { void decodeAfterBoot(); }, 0); });
+    game.levelScope.raf(() => { game.levelScope.timeout(0, () => { void decodeAfterBoot(); }); });
   }
   // E183: while the title idles, fetch the Explore code and draw the world's first frame once under the title art. The
   // first frame after the title paid every first-time cost at once — Pine Hollow's four elites built, the cover filled,
   // textures that arrived after the boot uploaded: EXPLORE WORLD's first tap stalled ~1.3 s at 4× CPU (and ENTER WORLD's
   // first frame the same). A return from the background already draws such a frame on the title (Game.start).
-  if (menuFirst) window.setTimeout(() => {
+  if (menuFirst) game.levelScope.timeout(1200, () => {
     if (hud.entered || exploring()) return;
     if (chunk.explore !== undefined) void engine.loadExplore();
     game.primeFrame();
-  }, 1200);
+  });
   const handle = { ...world, boundary, water, streams: edgeDressing.streams, hands, props, animals, interactables, crossbow, hud, audio, music, lockSys, lockState, weapons, arena, playground: getPlayground, ...boot.runtime.objects };
   app.audio = audio;
   game.retainKitResources();

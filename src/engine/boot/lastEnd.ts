@@ -1,3 +1,4 @@
+import { pageScope } from '../app/resources';
 import { saveStorage } from '#engine/saves/slots';
 /**
  * Why the last page ended (E179). Jake's iPhone lost Pine Hollow on an ENTER WORLD: the Debug readout went from two
@@ -144,10 +145,10 @@ export function lastEndLine(now = Date.now()): string {
 // the beat: the page's own timer (this module loads before any shard scope exists)
 if (inPage) {
   beat();
-  setInterval(beat, BEAT_MS);
+  pageScope.interval(BEAT_MS, beat);
   // back on screen after a pagehide that did not end the page (iOS can send one on an app switch): beating again
-  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') alive = true; beat(); });
+  pageScope.listen(document, 'visibilitychange', () => { if (document.visibilityState === 'visible') alive = true; beat(); });
   // a page that ends normally takes its marker with it; a bfcache return (pageshow persisted) puts it back
-  window.addEventListener('pagehide', () => { alive = false; try { store('session')?.removeItem(ALIVE_KEY); } catch { /* nothing to clear */ } });
-  window.addEventListener('pageshow', (e) => { if (e.persisted) { alive = true; beat(); } });
+  pageScope.listen(window, 'pagehide', () => { alive = false; try { store('session')?.removeItem(ALIVE_KEY); } catch { /* nothing to clear */ } });
+  pageScope.listen(window, 'pageshow', (e) => { if (e.persisted) { alive = true; beat(); } });
 }

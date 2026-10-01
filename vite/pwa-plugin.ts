@@ -63,7 +63,7 @@ function vercelHeaders(root: string): { re: RegExp; headers: { key: string; valu
 
 export function pwaPlugin(buildId: string): Plugin {
   let root = process.cwd();
-  const swSource = () => readFileSync(join(root, 'src/engine/pwa/sw.js'), 'utf8');
+  const swSource = () => `${readFileSync(join(root, 'src/engine/app/workerScope.js'), 'utf8').replaceAll(/^export /gm, '')}\n${readFileSync(join(root, 'src/engine/pwa/sw.js'), 'utf8').replace("import { workerScope } from '../app/workerScope.js';\n", '')}`;
   const fonts = (): string[] => { const dir = join(root, 'public', 'fonts'); return existsSync(dir) ? readdirSync(dir).filter((f) => f.endsWith('.woff2')).sort().map((f) => `/fonts/${f}`) : []; };
   const stamp = (src: string, build: string, assets: string, bundle: string[]) =>
     src.replaceAll('__BUILD_ID__', build).replaceAll('__ASSET_ID__', assets).replace("'__BUNDLE__'", JSON.stringify(JSON.stringify(bundle))).replace("'__FONTS__'", JSON.stringify(JSON.stringify(fonts())));

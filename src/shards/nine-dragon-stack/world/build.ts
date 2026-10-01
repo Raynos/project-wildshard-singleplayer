@@ -49,7 +49,7 @@ import { Shared, jiehuaMaterial, neonMaterial, sheetMaterial, skyMaterial, steam
 import { WORDS, buildTowers } from './towers';
 import { chars } from '../util';
 import type { NdTier } from '../tier';
-import { Rng, type Renderer } from '#engine';
+import { resourceScope, Rng, type Renderer } from '#engine';
 import { type HandedBatch, type InstancedCuller, type Placed, place } from '#engine/models/place';
 import type { ModelDef, Placement } from '#engine/models/model';
 import { ndModelContext } from './modelLook';
@@ -82,7 +82,7 @@ const FONT_CHARS = [...new Set(chars(`${WORDS.join('')}九龍疊城萬家燈火�
 async function loadFonts(): Promise<void> {
   const specs = ['700 64px "LXGW WenKai TC"', '900 64px "Noto Serif TC"'];
   const all = Promise.all(specs.map((s) => document.fonts.load(s, FONT_CHARS)));
-  await Promise.race([all.then(() => undefined), new Promise<void>((resolve) => { setTimeout(resolve, 9000); })]);
+  await Promise.race([all.then(() => undefined), new Promise<void>((resolve) => { resourceScope().timeout(9000, resolve); })]);
 }
 
 /** the silk fog sheets across the Well at each stratum gap (their heights come from well.ts), over both of its rects —
@@ -188,13 +188,13 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   const batches: InstancedCuller = { take: (b) => { handed.push(b); } };
   buildSquare(ctx);
   progress(0.2, 'layout: towers');
-  await new Promise<void>((resolve) => { setTimeout(resolve, 0); });
+  await new Promise<void>((resolve) => { resourceScope().timeout(0, resolve); });
   buildTowers(ctx);
   progress(0.25, 'layout: well');
-  await new Promise<void>((resolve) => { setTimeout(resolve, 0); });
+  await new Promise<void>((resolve) => { resourceScope().timeout(0, resolve); });
   buildWell(ctx);
   progress(0.3, 'signs');
-  await new Promise<void>((resolve) => { setTimeout(resolve, 0); });
+  await new Promise<void>((resolve) => { resourceScope().timeout(0, resolve); });
   // the facade grammar's sign slots, filled with real calligraphy (SDF neon for blades, lightboxes for flat ones)
   const slotRng = new Rng(4242);
   const bladesKit = ctx.kit('facade-signs');
@@ -233,7 +233,7 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
     kitsDone++;
     progress(0.4 + 0.12 * kitsDone / Math.max(1, kitTotal), `geometry ${kitsDone}/${kitTotal}`);
     if (performance.now() - lastYield < 30) return;
-    await new Promise<void>((resolve) => { setTimeout(resolve, 0); });
+    await new Promise<void>((resolve) => { resourceScope().timeout(0, resolve); });
     lastYield = performance.now();
   };
   for (const [name, kit] of ctx.kits) {
@@ -275,7 +275,7 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   ctx.kitxs.clear();
   ctx.alphaKits.clear();
   Reflect.set(window, '__ndKitProfile', kitProfile);
-  await new Promise<void>((resolve) => { setTimeout(resolve, 0); }); // let the loading panel paint and GC run
+  await new Promise<void>((resolve) => { resourceScope().timeout(0, resolve); }); // let the loading panel paint and GC run
   progress(0.52, 'neon spill + canopy');
   let phaseStart = performance.now();
   await bakeSpill(kitGeos.map(([, g]) => g), emitters);

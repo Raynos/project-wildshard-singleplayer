@@ -1,8 +1,8 @@
-import { currentScope } from '../app/legacyCapture';
+import { currentOwner } from '../app/ownership';
 
 /** Legacy sound makers keep their graph; the level owns only scheduled source handles. */
 export function ownAudioSource<T extends AudioScheduledSourceNode>(source: T): T {
-  const scope = currentScope()?.owner;
+  const scope = currentOwner();
   if (!scope) return source;
   let ended = false;
   const forget = scope.capture('sounds', () => {

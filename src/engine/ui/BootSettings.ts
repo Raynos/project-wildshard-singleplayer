@@ -48,7 +48,7 @@ let openScope: Scope | null = null;
 let layer: UiHandle | null = null;
 
 export function openBootSettings(): void {
-  const r = root ?? build(); // the page's one panel (src/engine/app/legacyCapture.ts): its Esc listener is not a shard's
+  const r = root ?? build(); // the page's one panel (src/engine/app/ownership.ts): its Esc listener is not a shard's
   root = r;
   // re-read which Debug rows apply to the selected level, and their choices
   // (GPU textures' "Auto · now …"), for the one behind it now. No weapons in hand on the title
@@ -67,7 +67,7 @@ function close(): void {
 
 function build(): HTMLElement {
   const r = el('ws-gmenu');
-  r.dataset['wsShell'] = ''; // the page's one boot-settings panel: never a resident shard's (src/engine/app/legacyCapture.ts)
+  r.dataset['wsShell'] = ''; // the page's one boot-settings panel: never a resident shard's (src/engine/app/ownership.ts)
   r.inert = true;
   const sheet = el('ws-gmenu-sheet ws-glass');
   sheet.innerHTML = engineString('s_a9be5568aeb1');

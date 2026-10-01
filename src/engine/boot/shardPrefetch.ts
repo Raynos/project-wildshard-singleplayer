@@ -1,3 +1,4 @@
+import { pageScope } from '../app/resources';
 import { saveStorage } from '#engine/saves/slots';
 import { prepareBootAudio } from './audioInventory';
 /**
@@ -43,7 +44,6 @@ import { PUBLIC_BYTES } from './bytes.generated';
 import { TIER } from '../core/tier';
 import { lutUrl } from '../world/lut';
 import { horizonStrips } from '../world/HorizonMatte';
-import { shell } from '../app/legacyCapture';
 
 const savedStorage = saveStorage('device');
 
@@ -174,9 +174,9 @@ function viaWorker(url: string): Promise<Reply | null> {
   if (!ctl) return Promise.resolve(null);
   return new Promise<Reply | null>((resolve) => {
     const ch = new MessageChannel();
-    const timer = shell.setTimeout(() => { resolve(null); }, REPLY_TIMEOUT_MS);
+    const timer = pageScope.timeout(REPLY_TIMEOUT_MS, () => { resolve(null); });
     ch.port1.onmessage = (e: MessageEvent<{ type?: unknown; status?: unknown; bytes?: unknown }>) => {
-      clearTimeout(timer);
+      pageScope.cancelTimer(timer);
       const { status, bytes } = e.data;
       resolve(e.data.type === 'PREFETCHED' && (status === 'hit' || status === 'stored' || status === 'failed')
         ? { status, bytes: typeof bytes === 'number' ? bytes : 0 } : null);
@@ -186,17 +186,18 @@ function viaWorker(url: string): Promise<Reply | null> {
 }
 
 // the shell's timers / listeners (E155: several shards live in the page; this download is the page's, not a shard's)
-const sleep = (ms: number): Promise<void> => new Promise((resolve) => { shell.setTimeout(resolve, ms); });
+const sleep = (ms: number): Promise<void> => new Promise((resolve) => { pageScope.timeout(ms, resolve); });
 /** the next idle slot (Safari has no requestIdleCallback: a short timeout stands in) */
 const idle = (): Promise<void> => new Promise((resolve) => {
   if ('requestIdleCallback' in window) window.requestIdleCallback(() => { resolve(); }, { timeout: 2000 });
-  else shell.setTimeout(resolve, 50);
+  else pageScope.timeout(50, resolve);
 });
 /** resolves while the tab is visible — at once, or on the next visibilitychange that shows it */
 const visible = (): Promise<void> => new Promise((resolve) => {
   if (!document.hidden) { resolve(); return; }
-  const on = (): void => { if (!document.hidden) { shell.unlisten(document, 'visibilitychange', on); resolve(); } };
-  shell.listen(document, 'visibilitychange', on);
+  let off = (): void => undefined;
+  const on = (): void => { if (!document.hidden) { off(); resolve(); } };
+  off = pageScope.listen(document, 'visibilitychange', on);
 });
 
 /**

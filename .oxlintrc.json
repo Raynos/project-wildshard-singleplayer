@@ -154,6 +154,7 @@
         "wildshard/no-shard-branch": "error",
         "wildshard/no-raw-save": "error",
         "wildshard/no-raw-input": "error",
+        "wildshard/no-global-listener-patch": "error",
         "wildshard/no-raw-shader-patch": "error",
         "wildshard/sim-no-render": "error",
         "wildshard/no-active-chunk": "error",

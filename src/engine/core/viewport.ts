@@ -1,3 +1,4 @@
+import { pageScope } from '../app/resources';
 /**
  * viewport — the page's drawable height.
  *
@@ -30,5 +31,5 @@ export function installViewport(): void {
     root.style.setProperty('--ws-home', standalone && tall ? '34px' : '0px');
   };
   sync();
-  window.addEventListener('resize', sync);
+  pageScope.listen(window, 'resize', sync);
 }

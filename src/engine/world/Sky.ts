@@ -1,3 +1,4 @@
+import { resourceScope } from '../app/resources';
 import * as THREE from 'three';
 import type { Renderer } from '../render/renderer';
 import { TIER, TIER_CONFIG } from '../core/tier';
@@ -69,6 +70,7 @@ async function loadBakedSky(levelId: string, hdri: string): Promise<{ sunDir: [n
  * hangs over every Wildshard shard.
  */
 export class Sky {
+  private readonly scope = resourceScope().child('Sky');
   sunDir = new THREE.Vector3(0.3, 0.6, 0.4).normalize();
   /** the level's sun colour (SkySpec.sunColor), set by build() */
   sunColor = new THREE.Color();
@@ -472,7 +474,7 @@ export class Sky {
     halo.scale.setScalar(this.level.sky.painted ? 250 : 420); // a painted sun: a tighter glow (the mockups keep the sky blue right up to it)
     halo.scale.z = 1;
     // the practice room (src/engine/practice/TrainingArena.ts) is a closed box: there its ceiling must hide the glow (E285)
-    document.addEventListener('ws:practice-active', (e) => { if (e instanceof CustomEvent) halo.material.depthTest = e.detail === true; });
+    this.scope.listen(document, 'ws:practice-active', (e) => { if (e instanceof CustomEvent) halo.material.depthTest = e.detail === true; });
     this.sunDisc.add(halo);
     this.scene.add(this.sunDisc);
   }

@@ -17,7 +17,7 @@
  * this `label`, and each phase list becomes a list of `GameSystem`s.
  */
 
-import { onScopeDispose } from '../app/legacyCapture';
+import { onOwnerDispose } from '../app/ownership';
 
 /** frames in a row that throw before a system is switched off */
 export const FAULT_STREAK = 3;
@@ -87,7 +87,7 @@ export interface Fault {
 type Listener = (f: Fault) => void;
 const listeners = new Set<Listener>();
 /** hear every fault; returns an unsubscribe */
-export function onFault(fn: Listener): () => void { listeners.add(fn); const off = (): void => { listeners.delete(fn); }; onScopeDispose(off); return off; }
+export function onFault(fn: Listener): () => void { listeners.add(fn); const off = (): void => { listeners.delete(fn); }; onOwnerDispose(off); return off; }
 export function emitFault(f: Fault): void {
   for (const fn of listeners) {
     try { fn(f); } catch (e) { console.error('[faults] a fault listener threw', e); } // a listener must never throw back into the loop

@@ -1,0 +1,879 @@
+{
+  "ask": "E357 X1",
+  "agent": "sol-x1c",
+  "utc": "2026-10-01 18:25",
+  "sourceCandidate": "2fa5cfa5680d240d4a4921e846e037a0cd20f2d4",
+  "sourceParent": "f16ac3ae9cc6e1542665f9c0683942ab8c3a7281",
+  "pairedBefore": "5fe47828030bd2b3e54d2f523736baaf08d5c374",
+  "pairedAfter": "c2e1da43c78e965ef80d5803f381e18f97e22605",
+  "gate": [
+    "vercel-gate: 2fa5cfa5 \u2014 3501 files as Vercel sees them; check-css \u00b7 typecheck \u00b7 oxlint \u00b7 vitest \u00b7 vite build",
+    "  \u2713 check-css (1 s)",
+    "  \u2713 gen (1 s)",
+    "  \u2713 gen-check (1 s)",
+    "  \u2713 typecheck (1 s)",
+    "  \u2713 typecheck-api (0 s)",
+    "  \u2713 typecheck-scripts (1 s)",
+    "  \u2713 oxlint (2 s)",
+    "  \u2713 ratchet (2 s)",
+    "  \u2713 liveness (0 s)",
+    "  \u2713 vitest (11 s)",
+    "  \u2713 vite-build (5 s)",
+    "vercel-gate: 2fa5cfa5 passed"
+  ],
+  "ratchet": {
+    "wildshard/no-global-listener-patch": [
+      93,
+      0
+    ],
+    "wildshard/layer": [
+      2859,
+      2842
+    ],
+    "wildshard/shard-sandbox": [
+      95,
+      88
+    ]
+  },
+  "limitations": [
+    "Full milestone parity remains lead-owned; no baseline, pending, quarantine or acceptance records changed.",
+    "Boot-run exit 1 reflects historical baseline comparisons; every captured boot.errors is empty.",
+    "Walk duration equality rounds seconds to 9 decimals; traces and all other walk fields are equal.",
+    "Pine combat forest.thrall presence differs; already in test/parity/ambient-info.json before this change. Event sounds exact."
+  ],
+  "shards": {
+    "driftwood-isle": {
+      "errors": [],
+      "structuralFingerprintExact": true,
+      "structuralSha256": "82fdc3a67f7a86084cd73227c4bf5bc637aaa36b2cd39a9ba19df0e749c82067",
+      "walkExactAtNanosecondDurationRounding": true,
+      "walkSha256": "cc41f836ed4a48a47fcea9dbf6e896ba994d37d46ebf139e1c4641df4bf315f6",
+      "combatEventAndOutcomeExact": true,
+      "combatSha256": "af5622a737160c61911742871337e4dce1547914ef1598333e129fdcffa7d87b",
+      "ambientBefore": [
+        "island.bird",
+        "island.drip",
+        "island.swell"
+      ],
+      "ambientAfter": [
+        "island.bird",
+        "island.drip",
+        "island.swell"
+      ],
+      "pauseResumeExact": true,
+      "leak": {
+        "before": {
+          "geometries": 0,
+          "textures": 0,
+          "programs": 0,
+          "bodies": 0,
+          "colliders": 0,
+          "listeners": {
+            "window": 0,
+            "document": 0,
+            "canvas": 0,
+            "other": 0
+          },
+          "timers": {
+            "timeouts": 0,
+            "intervals": 0,
+            "raf": 0
+          },
+          "audio": {
+            "activeVoices": 0,
+            "beds": 0,
+            "buses": 0
+          },
+          "systems": {
+            "input": 0,
+            "fixed": {
+              "pre": 0,
+              "step": 0,
+              "post": 0
+            },
+            "update": 0,
+            "late": 0,
+            "render": 0
+          },
+          "events": {
+            "listeners": 7,
+            "answerers": 5
+          },
+          "dom": {
+            "hud": 0,
+            "body": 0
+          },
+          "sceneObjects": 0
+        },
+        "after": {
+          "geometries": 0,
+          "textures": 0,
+          "programs": 0,
+          "bodies": 0,
+          "colliders": 0,
+          "listeners": {
+            "window": 0,
+            "document": 0,
+            "canvas": 0,
+            "other": 0
+          },
+          "timers": {
+            "timeouts": 0,
+            "intervals": 0,
+            "raf": 0
+          },
+          "audio": {
+            "activeVoices": 0,
+            "beds": 0,
+            "buses": 0
+          },
+          "systems": {
+            "input": 0,
+            "fixed": {
+              "pre": 0,
+              "step": 0,
+              "post": 0
+            },
+            "update": 0,
+            "late": 0,
+            "render": 0
+          },
+          "events": {
+            "listeners": 7,
+            "answerers": 5
+          },
+          "dom": {
+            "hud": 0,
+            "body": 0
+          },
+          "sceneObjects": 0
+        },
+        "scope": {
+          "geometries": 0,
+          "materials": 0,
+          "textures": 0,
+          "renderTargets": 0,
+          "meshes": 0,
+          "resources": 0,
+          "bodies": 0,
+          "sounds": 0,
+          "listeners": 0,
+          "timers": 0,
+          "rafs": 0,
+          "disposers": 0,
+          "systems": 0,
+          "colliders": 0,
+          "nodes": 0
+        },
+        "disposalErrors": []
+      },
+      "poses": [
+        {
+          "name": "pier",
+          "shot": "driftwood-isle.phone.pier.jpg",
+          "ssim": 1,
+          "calls": 223,
+          "tris": 1125728,
+          "creatureBoxes": 12
+        },
+        {
+          "name": "beach",
+          "shot": "driftwood-isle.phone.beach.jpg",
+          "ssim": 1,
+          "calls": 217,
+          "tris": 1065774,
+          "creatureBoxes": 18
+        },
+        {
+          "name": "wreck",
+          "shot": "driftwood-isle.phone.wreck.jpg",
+          "ssim": 1,
+          "calls": 167,
+          "tris": 936154,
+          "creatureBoxes": 9
+        }
+      ],
+      "rawSha256": {
+        "before": "ff884cd40e4ae0a31e0bc01945d597d0da80c3d8fde486218c9e14dcb88b2a06",
+        "after": "60f8bd20c9d55a01731d67e95359cb246248a618d6b51c884b76c68d7f57548e",
+        "combinedBoot": "66e949671f4371889d0fdd6128dfe4ef410c30cc43fdb20dccd795e357110097"
+      }
+    },
+    "nalati-grasslands": {
+      "errors": [],
+      "structuralFingerprintExact": true,
+      "structuralSha256": "67498149659b7ada1ffd75cb5ee42cc27cd9a4988a5a375168fb27082158aa10",
+      "walkExactAtNanosecondDurationRounding": true,
+      "walkSha256": "81e213e8173ea4618632a61429b9ed80be5bfd50b18c710e70e65606474084f6",
+      "combatEventAndOutcomeExact": true,
+      "combatSha256": "75074b9012c9c19a39d9a0c8cb98f69b2aa448de2a855a7af5d15b8dc3b889b2",
+      "ambientBefore": [
+        "steppe.herd",
+        "steppe.marmot"
+      ],
+      "ambientAfter": [
+        "steppe.herd",
+        "steppe.marmot"
+      ],
+      "pauseResumeExact": true,
+      "leak": {
+        "before": {
+          "geometries": 0,
+          "textures": 0,
+          "programs": 0,
+          "bodies": 0,
+          "colliders": 0,
+          "listeners": {
+            "window": 0,
+            "document": 0,
+            "canvas": 0,
+            "other": 0
+          },
+          "timers": {
+            "timeouts": 0,
+            "intervals": 0,
+            "raf": 0
+          },
+          "audio": {
+            "activeVoices": 0,
+            "beds": 0,
+            "buses": 0
+          },
+          "systems": {
+            "input": 0,
+            "fixed": {
+              "pre": 0,
+              "step": 0,
+              "post": 0
+            },
+            "update": 0,
+            "late": 0,
+            "render": 0
+          },
+          "events": {
+            "listeners": 7,
+            "answerers": 5
+          },
+          "dom": {
+            "hud": 0,
+            "body": 0
+          },
+          "sceneObjects": 0
+        },
+        "after": {
+          "geometries": 0,
+          "textures": 0,
+          "programs": 0,
+          "bodies": 0,
+          "colliders": 0,
+          "listeners": {
+            "window": 0,
+            "document": 0,
+            "canvas": 0,
+            "other": 0
+          },
+          "timers": {
+            "timeouts": 0,
+            "intervals": 0,
+            "raf": 0
+          },
+          "audio": {
+            "activeVoices": 0,
+            "beds": 0,
+            "buses": 0
+          },
+          "systems": {
+            "input": 0,
+            "fixed": {
+              "pre": 0,
+              "step": 0,
+              "post": 0
+            },
+            "update": 0,
+            "late": 0,
+            "render": 0
+          },
+          "events": {
+            "listeners": 7,
+            "answerers": 5
+          },
+          "dom": {
+            "hud": 0,
+            "body": 0
+          },
+          "sceneObjects": 0
+        },
+        "scope": {
+          "geometries": 0,
+          "materials": 0,
+          "textures": 0,
+          "renderTargets": 0,
+          "meshes": 0,
+          "resources": 0,
+          "bodies": 0,
+          "sounds": 0,
+          "listeners": 0,
+          "timers": 0,
+          "rafs": 0,
+          "disposers": 0,
+          "systems": 0,
+          "colliders": 0,
+          "nodes": 0
+        },
+        "disposalErrors": []
+      },
+      "poses": [
+        {
+          "name": "camp",
+          "shot": "nalati-grasslands.phone.camp.jpg",
+          "ssim": 1,
+          "calls": 79,
+          "tris": 1174948,
+          "creatureBoxes": 2
+        },
+        {
+          "name": "bridge",
+          "shot": "nalati-grasslands.phone.bridge.jpg",
+          "ssim": 1,
+          "calls": 90,
+          "tris": 1279751,
+          "creatureBoxes": 15
+        },
+        {
+          "name": "plains",
+          "shot": "nalati-grasslands.phone.plains.jpg",
+          "ssim": 1,
+          "calls": 108,
+          "tris": 1292909,
+          "creatureBoxes": 17
+        }
+      ],
+      "rawSha256": {
+        "before": "90fe08f1472d442c95e02201f68a3e7288ea8ae8c8f431ea9085bb856da6fed9",
+        "after": "bc761a24f98598d3df7ead8df2b220d0d1ee5e3c615189c7a29144c4b2cd9d95",
+        "combinedBoot": "7761457c3bc123c899bbd1f5ae3c62844512a502e9bba86bead707a626685d4d"
+      },
+      "weatherLeak": {
+        "before": {
+          "geometries": 0,
+          "textures": 0,
+          "programs": 0,
+          "bodies": 0,
+          "colliders": 0,
+          "listeners": {
+            "window": 0,
+            "document": 0,
+            "canvas": 0,
+            "other": 0
+          },
+          "timers": {
+            "timeouts": 0,
+            "intervals": 0,
+            "raf": 0
+          },
+          "audio": {
+            "activeVoices": 0,
+            "beds": 0,
+            "buses": 0
+          },
+          "systems": {
+            "input": 0,
+            "fixed": {
+              "pre": 0,
+              "step": 0,
+              "post": 0
+            },
+            "update": 0,
+            "late": 0,
+            "render": 0
+          },
+          "events": {
+            "listeners": 7,
+            "answerers": 5
+          },
+          "dom": {
+            "hud": 0,
+            "body": 0
+          },
+          "sceneObjects": 0,
+          "errors": []
+        },
+        "after": {
+          "geometries": 0,
+          "textures": 0,
+          "programs": 0,
+          "bodies": 0,
+          "colliders": 0,
+          "listeners": {
+            "window": 0,
+            "document": 0,
+            "canvas": 0,
+            "other": 0
+          },
+          "timers": {
+            "timeouts": 0,
+            "intervals": 0,
+            "raf": 0
+          },
+          "audio": {
+            "activeVoices": 0,
+            "beds": 0,
+            "buses": 0
+          },
+          "systems": {
+            "input": 0,
+            "fixed": {
+              "pre": 0,
+              "step": 0,
+              "post": 0
+            },
+            "update": 0,
+            "late": 0,
+            "render": 0
+          },
+          "events": {
+            "listeners": 7,
+            "answerers": 5
+          },
+          "dom": {
+            "hud": 0,
+            "body": 0
+          },
+          "sceneObjects": 0,
+          "errors": []
+        },
+        "scope": {
+          "geometries": 0,
+          "materials": 0,
+          "textures": 0,
+          "renderTargets": 0,
+          "meshes": 0,
+          "resources": 0,
+          "bodies": 0,
+          "sounds": 0,
+          "listeners": 0,
+          "timers": 0,
+          "rafs": 0,
+          "disposers": 0,
+          "systems": 0,
+          "colliders": 0,
+          "nodes": 0
+        },
+        "disposalErrors": []
+      }
+    },
+    "nine-dragon-stack": {
+      "errors": [],
+      "structuralFingerprintExact": true,
+      "structuralSha256": "a19a8b8f2c7a32981977a53df7367a129809617329c25b50ee04a3eb096a0b4d",
+      "walkExactAtNanosecondDurationRounding": true,
+      "walkSha256": "be4c6a9e9674f5033a7da8b55428834ac1537cd7b33fad736f0cceb12072e4b2",
+      "combatEventAndOutcomeExact": true,
+      "combatSha256": "31ac6e7c80c91c134a1e4e48dfd74abc2fbbb30d1ee9de7f406a4e51c490bfda",
+      "ambientBefore": [
+        "nd.audio.tick"
+      ],
+      "ambientAfter": [
+        "nd.audio.tick"
+      ],
+      "pauseResumeExact": true,
+      "leak": {
+        "before": {
+          "geometries": 0,
+          "textures": 0,
+          "programs": 0,
+          "bodies": 0,
+          "colliders": 0,
+          "listeners": {
+            "window": 0,
+            "document": 0,
+            "canvas": 0,
+            "other": 0
+          },
+          "timers": {
+            "timeouts": 0,
+            "intervals": 0,
+            "raf": 0
+          },
+          "audio": {
+            "activeVoices": 0,
+            "beds": 0,
+            "buses": 0
+          },
+          "systems": {
+            "input": 0,
+            "fixed": {
+              "pre": 0,
+              "step": 0,
+              "post": 0
+            },
+            "update": 0,
+            "late": 0,
+            "render": 0
+          },
+          "events": {
+            "listeners": 7,
+            "answerers": 5
+          },
+          "dom": {
+            "hud": 0,
+            "body": 0
+          },
+          "sceneObjects": 0
+        },
+        "after": {
+          "geometries": 0,
+          "textures": 0,
+          "programs": 0,
+          "bodies": 0,
+          "colliders": 0,
+          "listeners": {
+            "window": 0,
+            "document": 0,
+            "canvas": 0,
+            "other": 0
+          },
+          "timers": {
+            "timeouts": 0,
+            "intervals": 0,
+            "raf": 0
+          },
+          "audio": {
+            "activeVoices": 0,
+            "beds": 0,
+            "buses": 0
+          },
+          "systems": {
+            "input": 0,
+            "fixed": {
+              "pre": 0,
+              "step": 0,
+              "post": 0
+            },
+            "update": 0,
+            "late": 0,
+            "render": 0
+          },
+          "events": {
+            "listeners": 7,
+            "answerers": 5
+          },
+          "dom": {
+            "hud": 0,
+            "body": 0
+          },
+          "sceneObjects": 0
+        },
+        "scope": {
+          "geometries": 0,
+          "materials": 0,
+          "textures": 0,
+          "renderTargets": 0,
+          "meshes": 0,
+          "resources": 0,
+          "bodies": 0,
+          "sounds": 0,
+          "listeners": 0,
+          "timers": 0,
+          "rafs": 0,
+          "disposers": 0,
+          "systems": 0,
+          "colliders": 0,
+          "nodes": 0
+        },
+        "disposalErrors": []
+      },
+      "poses": [
+        {
+          "name": "spawn-rail",
+          "shot": "nine-dragon-stack.phone.spawn-rail.jpg",
+          "ssim": 1,
+          "calls": 144,
+          "tris": 1427662,
+          "creatureBoxes": 0
+        },
+        {
+          "name": "well-edge",
+          "shot": "nine-dragon-stack.phone.well-edge.jpg",
+          "ssim": 1,
+          "calls": 128,
+          "tris": 1273139,
+          "creatureBoxes": 0
+        },
+        {
+          "name": "stair-street",
+          "shot": "nine-dragon-stack.phone.stair-street.jpg",
+          "ssim": 1,
+          "calls": 122,
+          "tris": 996042,
+          "creatureBoxes": 0
+        }
+      ],
+      "rawSha256": {
+        "before": "af1d5932e773bf47922752712c436cd805ed2cbf7e501fc0378619986f0c8daa",
+        "after": "bcc507cffbcd892581463480549d96fd4eeff4259cab8a22c1c35562cce8864a",
+        "combinedBoot": "e02bd2a7da6cd24b2237f6e9845b6cc0be991ae7388da299073ae8857608e77e"
+      }
+    },
+    "pine-hollow": {
+      "errors": [],
+      "structuralFingerprintExact": true,
+      "structuralSha256": "3fe9a93db752cf3e8642cccd690cd49b55e139fcdef6c57535eee86e422c0778",
+      "walkExactAtNanosecondDurationRounding": true,
+      "walkSha256": "b531bdb76b7800f6c7436f0d3cb3787d2a27ee5429cffa14bd326a48a3c32db6",
+      "combatEventAndOutcomeExact": true,
+      "combatSha256": "76981e64f37fe9d49531b529e7d65d06c9e2d5f318ee09bf3508a0629fa5e764",
+      "ambientBefore": [
+        "forest.thrall"
+      ],
+      "ambientAfter": [],
+      "pauseResumeExact": true,
+      "leak": {
+        "before": {
+          "geometries": 0,
+          "textures": 0,
+          "programs": 0,
+          "bodies": 0,
+          "colliders": 0,
+          "listeners": {
+            "window": 0,
+            "document": 0,
+            "canvas": 0,
+            "other": 0
+          },
+          "timers": {
+            "timeouts": 0,
+            "intervals": 0,
+            "raf": 0
+          },
+          "audio": {
+            "activeVoices": 0,
+            "beds": 0,
+            "buses": 0
+          },
+          "systems": {
+            "input": 0,
+            "fixed": {
+              "pre": 0,
+              "step": 0,
+              "post": 0
+            },
+            "update": 0,
+            "late": 0,
+            "render": 0
+          },
+          "events": {
+            "listeners": 7,
+            "answerers": 5
+          },
+          "dom": {
+            "hud": 0,
+            "body": 0
+          },
+          "sceneObjects": 0
+        },
+        "after": {
+          "geometries": 0,
+          "textures": 0,
+          "programs": 0,
+          "bodies": 0,
+          "colliders": 0,
+          "listeners": {
+            "window": 0,
+            "document": 0,
+            "canvas": 0,
+            "other": 0
+          },
+          "timers": {
+            "timeouts": 0,
+            "intervals": 0,
+            "raf": 0
+          },
+          "audio": {
+            "activeVoices": 0,
+            "beds": 0,
+            "buses": 0
+          },
+          "systems": {
+            "input": 0,
+            "fixed": {
+              "pre": 0,
+              "step": 0,
+              "post": 0
+            },
+            "update": 0,
+            "late": 0,
+            "render": 0
+          },
+          "events": {
+            "listeners": 7,
+            "answerers": 5
+          },
+          "dom": {
+            "hud": 0,
+            "body": 0
+          },
+          "sceneObjects": 0
+        },
+        "scope": {
+          "geometries": 0,
+          "materials": 0,
+          "textures": 0,
+          "renderTargets": 0,
+          "meshes": 0,
+          "resources": 0,
+          "bodies": 0,
+          "sounds": 0,
+          "listeners": 0,
+          "timers": 0,
+          "rafs": 0,
+          "disposers": 0,
+          "systems": 0,
+          "colliders": 0,
+          "nodes": 0
+        },
+        "disposalErrors": []
+      },
+      "poses": [
+        {
+          "name": "gate",
+          "shot": "pine-hollow.phone.gate.jpg",
+          "ssim": 1,
+          "calls": 104,
+          "tris": 1152418,
+          "creatureBoxes": 66
+        },
+        {
+          "name": "cabin",
+          "shot": "pine-hollow.phone.cabin.jpg",
+          "ssim": 1,
+          "calls": 146,
+          "tris": 1324294,
+          "creatureBoxes": 27
+        },
+        {
+          "name": "pond",
+          "shot": "pine-hollow.phone.pond.jpg",
+          "ssim": 1,
+          "calls": 92,
+          "tris": 950098,
+          "creatureBoxes": 3
+        }
+      ],
+      "rawSha256": {
+        "before": "6eb036b7cf7fd756b826ff4c7ce77eddaee91b3fdaadc0c59f6a64fe6c162452",
+        "after": "6ab5b8e99ffb15436563a7a9d617a59ea6d8ab9aa87428e3b7374208017b3c1d",
+        "combinedBoot": "4ac085713f90df634325b5497198f79b6f80fda956449a79f262a5d417e76609"
+      },
+      "weatherLeak": {
+        "before": {
+          "geometries": 0,
+          "textures": 0,
+          "programs": 0,
+          "bodies": 0,
+          "colliders": 0,
+          "listeners": {
+            "window": 0,
+            "document": 0,
+            "canvas": 0,
+            "other": 0
+          },
+          "timers": {
+            "timeouts": 0,
+            "intervals": 0,
+            "raf": 0
+          },
+          "audio": {
+            "activeVoices": 0,
+            "beds": 0,
+            "buses": 0
+          },
+          "systems": {
+            "input": 0,
+            "fixed": {
+              "pre": 0,
+              "step": 0,
+              "post": 0
+            },
+            "update": 0,
+            "late": 0,
+            "render": 0
+          },
+          "events": {
+            "listeners": 7,
+            "answerers": 5
+          },
+          "dom": {
+            "hud": 0,
+            "body": 0
+          },
+          "sceneObjects": 0,
+          "errors": []
+        },
+        "after": {
+          "geometries": 0,
+          "textures": 0,
+          "programs": 0,
+          "bodies": 0,
+          "colliders": 0,
+          "listeners": {
+            "window": 0,
+            "document": 0,
+            "canvas": 0,
+            "other": 0
+          },
+          "timers": {
+            "timeouts": 0,
+            "intervals": 0,
+            "raf": 0
+          },
+          "audio": {
+            "activeVoices": 0,
+            "beds": 0,
+            "buses": 0
+          },
+          "systems": {
+            "input": 0,
+            "fixed": {
+              "pre": 0,
+              "step": 0,
+              "post": 0
+            },
+            "update": 0,
+            "late": 0,
+            "render": 0
+          },
+          "events": {
+            "listeners": 7,
+            "answerers": 5
+          },
+          "dom": {
+            "hud": 0,
+            "body": 0
+          },
+          "sceneObjects": 0,
+          "errors": []
+        },
+        "scope": {
+          "geometries": 0,
+          "materials": 0,
+          "textures": 0,
+          "renderTargets": 0,
+          "meshes": 0,
+          "resources": 0,
+          "bodies": 0,
+          "sounds": 0,
+          "listeners": 0,
+          "timers": 0,
+          "rafs": 0,
+          "disposers": 0,
+          "systems": 0,
+          "colliders": 0,
+          "nodes": 0
+        },
+        "disposalErrors": []
+      }
+    }
+  },
+  "templateBootErrors": []
+}

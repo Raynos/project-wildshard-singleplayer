@@ -22,6 +22,7 @@ import { Events } from '../events/events';
 import { GameClock } from '../core/clock';
 import { AssetService } from './assets';
 import { Scope } from './scope';
+import { withOwner } from './ownership';
 import { PHASES, sortSystems, type AppState, type Phase, type SystemSpec } from './systems';
 import { LevelLoader, type LevelDriver } from '../level/load';
 import { LevelRegistrations } from '../level/registrations';
@@ -176,7 +177,7 @@ export class App {
   }
   private hook(hooks: Set<StateHook>, state: AppState, fn: () => void, scope: Scope): void {
     if (scope.disposed) return;
-    const hook = { state, run: fn };
+    const hook = { state, run: () => { withOwner(scope, fn); } };
     hooks.add(hook);
     scope.onDispose(() => { hooks.delete(hook); });
   }
@@ -187,7 +188,7 @@ export class App {
     if (scope.disposed) return;
     if (this.systems.has(spec.id)) throw new Error(`Duplicate system id: ${spec.id}`);
     // Copy the declarative ordering so a caller cannot change the validated graph later.
-    const system = { ...spec, ...(spec.before ? { before: [...spec.before] } : {}),
+    const system = { ...spec, run: (dt: number, t: number) => { withOwner(scope, () => spec.run(dt, t)); }, ...(spec.before ? { before: [...spec.before] } : {}),
       ...(spec.after ? { after: [...spec.after] } : {}) };
     this.systems.set(system.id, system);
     this.systemScopes.set(system.id, scope);

@@ -1,3 +1,4 @@
+import { resourceScope } from '#engine';
 // Copied from the facade lab (the dev labs (deleted in E357 F7), round-7-lab-facade) into the clean room.
 // A Dressing → one merged shell mesh (the towers' built fabric, with the few-and-small pieces baked in: models too,
 // registered where they are drawn), the kit's pieces placed as models (../../models/facade.ts: one InstancedMesh per
@@ -118,7 +119,7 @@ export async function buildFacade(d: Dressing, shared: Uniforms, models: FacadeM
     stats.instances += list.length;
     stats.tris += tris * list.length;
     stats.perPiece[id] = [list.length, tris * list.length];
-    if (performance.now() - lastYield > 30) { await new Promise<void>((resolve) => { setTimeout(resolve, 0); }); lastYield = performance.now(); }
+    if (performance.now() - lastYield > 30) { await new Promise<void>((resolve) => { resourceScope().timeout(0, resolve); }); lastYield = performance.now(); }
   }
   // the windows: one InstancedMesh of unit quads (x ∈ [-0.5, 0.5], y ∈ [0, 1]), interior-mapped — the towers' own
   // windows, part of their fabric (world)

@@ -1,3 +1,4 @@
+import { pageScope } from '../app/resources';
 import { Scope } from '../app/scope';
 import { hudSlots } from '../ui/hudSlots';
 import { engineString } from '#engine/strings';
@@ -60,8 +61,8 @@ function controllerShell(): Promise<string | null> {
   if (!ctl) return Promise.resolve(null);
   return new Promise((resolve) => {
     const ch = new MessageChannel();
-    const timer = setTimeout(() => { resolve(null); }, HANDOVER_MS);
-    ch.port1.onmessage = (e: MessageEvent<{ build?: unknown }>) => { clearTimeout(timer); resolve(typeof e.data.build === 'string' ? `ws-shell-${e.data.build}` : null); };
+    const timer = pageScope.timeout(HANDOVER_MS, () => { resolve(null); });
+    ch.port1.onmessage = (e: MessageEvent<{ build?: unknown }>) => { pageScope.cancelTimer(timer); resolve(typeof e.data.build === 'string' ? `ws-shell-${e.data.build}` : null); };
     ctl.postMessage({ type: 'BUILD' }, [ch.port2]);
   });
 }
@@ -87,8 +88,8 @@ async function adoptWaiting(): Promise<void> {
   const waiting = sw ? (await sw.getRegistration())?.waiting : null;
   if (!sw || !waiting) return;
   await new Promise<void>((resolve) => {
-    const timer = setTimeout(resolve, HANDOVER_MS);
-    sw.addEventListener('controllerchange', () => { clearTimeout(timer); resolve(); }, { once: true });
+    const timer = pageScope.timeout(HANDOVER_MS, resolve);
+    pageScope.listen(sw, 'controllerchange', () => { pageScope.cancelTimer(timer); resolve(); }, { once: true });
     // oxlint-disable-next-line unicorn/require-post-message-target-origin -- ServiceWorker.postMessage has no targetOrigin parameter (that is Window.postMessage)
     waiting.postMessage({ type: 'SKIP_WAITING' });
   });
@@ -97,8 +98,8 @@ async function adoptWaiting(): Promise<void> {
 /** can the host be reached at all? (version.json: the worker never answers it from a cache) */
 async function reachable(): Promise<boolean> {
   const abort = new AbortController();
-  const timer = setTimeout(() => { abort.abort(); }, PROBE_MS);
-  try { return (await fetch(`/version.json?t=${Date.now()}`, { cache: 'no-store', signal: abort.signal })).ok; } catch { return false; } finally { clearTimeout(timer); }
+  const timer = pageScope.timeout(PROBE_MS, () => { abort.abort(); });
+  try { return (await fetch(`/version.json?t=${Date.now()}`, { cache: 'no-store', signal: abort.signal })).ok; } catch { return false; } finally { pageScope.cancelTimer(timer); }
 }
 
 /**
@@ -174,14 +175,14 @@ function failed(error: unknown): void {
 /** Watch entry.ts's main-module promise: a rejection or a stall gets a way out instead of a frozen loader. */
 export function guardBoot(entered: Promise<unknown>): void {
   let settled = false;
-  const stall = setTimeout(() => {
+  const stall = pageScope.timeout(STALL_MS, () => {
     detail = `no main module after ${STALL_MS / 1000} s`;
     if (!settled) show('Still starting', 'The game is taking unusually long to start.', detail, true);
-  }, STALL_MS);
+  });
   void (async () => {
-    try { await entered; } catch (e) { settled = true; clearTimeout(stall); failed(e); return; }
+    try { await entered; } catch (e) { settled = true; pageScope.cancelTimer(stall); failed(e); return; }
     settled = true;
-    clearTimeout(stall);
+    pageScope.cancelTimer(stall);
     card?.remove(); // main started after all: the stall card goes
     card = null;
   })();

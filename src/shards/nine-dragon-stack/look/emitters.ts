@@ -1,3 +1,4 @@
+import { resourceScope } from '#engine';
 // Everything that glows (signs, lanterns, lit shopfronts): the streak cards read these, and the neon SPILL is baked
 // once at build time into a per-vertex attribute of the merged kits (the neon lab's integration step 6: no per-pixel
 // light loop). Spill = Σ colour × strength / (1 + r² / R²), R = 2.2 · max(w, h) + 1.5, cut at 3R, via a spatial grid.
@@ -66,7 +67,7 @@ export async function bakeSpill(geos: readonly BufferGeometry[], emitters: reado
       out[o + 1] = gg;
       out[o + 2] = b;
       if ((i & 8191) === 8191 && performance.now() - lastYield > 24) {
-        await new Promise<void>((resolve) => { setTimeout(resolve, 0); });
+        await new Promise<void>((resolve) => { resourceScope().timeout(0, resolve); });
         lastYield = performance.now();
       }
     }

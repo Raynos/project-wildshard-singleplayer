@@ -1,3 +1,4 @@
+import { resourceScope } from '../app/resources';
 /**
  * The boot plan — ported from game-demos/trials-gauntlet-demo `src/engine/boot/plan.ts`
  * (their docs/tasks/loading-progress-invariant.md §4):
@@ -123,8 +124,9 @@ export function createBootPlan(sink: Sink, options: PlanOptions): Plan<BootStep>
   let shownSetup = 0;
   let view!: ProgressView;
   const expected = options.expected ?? expectedDurations();
+  const scope = resourceScope();
   const record = options.record ?? saveTimings;
-  const schedule = options.schedule === undefined ? (typeof requestAnimationFrame === 'function' ? (fn: () => void) => { requestAnimationFrame(fn); } : null) : options.schedule;
+  const schedule = options.schedule === undefined ? (typeof requestAnimationFrame === 'function' ? (fn: () => void) => { scope.raf(fn); } : null) : options.schedule;
   let ticking = false;
   const yieldTask = options.yieldTask === undefined ? (typeof window !== 'undefined' && typeof MessageChannel === 'function' ? macrotask : null) : options.yieldTask;
   const credited = (s: { total: number; read: number; closed: boolean }): number => (s.closed ? s.total : Math.min(s.read, s.total));

@@ -9,7 +9,7 @@ import { engineString } from '#engine/strings';
 //   onSfxCredit(fn)          → a set's sfx.json credit arrived (Audio.ts calls setSfxCredit)
 import type { SfxSet } from '../ui/Settings';
 import { shipped } from './Stems';
-import { onScopeDispose } from '../app/legacyCapture';
+import { onOwnerDispose } from '../app/ownership';
 
 export const MUSIC_CREDIT = engineString('s_7fc7e56bbd7f');
 const STABILITY = engineString('s_ef691a454428');
@@ -31,4 +31,4 @@ export function setSfxCredit(set: SfxSet, credit: string): void {
   loaded.set(set, credit.trim());
   listeners.forEach((fn) => fn());
 }
-export function onSfxCredit(fn: () => void): () => void { listeners.add(fn); const off = (): void => { listeners.delete(fn); }; onScopeDispose(off); return off; }
+export function onSfxCredit(fn: () => void): () => void { listeners.add(fn); const off = (): void => { listeners.delete(fn); }; onOwnerDispose(off); return off; }
