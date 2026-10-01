@@ -1,4 +1,7 @@
-import { ShardPlugin, type ShardContext, installCompendium, type ShardRuntime } from '#game';
+import { PINE_FEATS } from './feats';
+import { PINE_HOLLOW_COMPENDIUM } from './compendium';
+import { installPineCompendium } from './compendium/install';
+import { ShardPlugin, type ShardContext, type ShardRuntime } from '#game';
 import { loadWorldContent, macrotask, heightAt, installAiDebug } from '#engine';
 import * as THREE from 'three';
 import { CABIN_SITES } from './layout';
@@ -97,6 +100,8 @@ export class PineHollow extends ShardPlugin {
   }
 
   override async kit(ctx: ShardContext): Promise<void> {
+    ctx.rows.feat(PINE_FEATS);
+    ctx.rows.compendium({ ...PINE_HOLLOW_COMPENDIUM, id: PINE_HOLLOW_COMPENDIUM.chunkId });
     const rt = runtime(ctx), world = rt.world;
     if (world === null) throw new Error('Pine equipment needs a world');
     await preloadLeverModel();
@@ -165,7 +170,7 @@ export class PineHollow extends ShardPlugin {
     const fights = installPineCombat({ game, sky, player, animals, weapons, crossbow, rifle, skins, wearSkin, inventory, hud, audio, music, interactables: rt.interactables, params,
       longbow: { displayModel: () => longbow.displayModel(), grant: () => { loadout.grantLongbow(); } }, ironFirst: () => { loadout.onPlayerDeath(); } });
     ctx.answer('weather.hold', (previous) => ctx.app.render === game ? Math.max(previous, fights.weatherHold()) : previous);
-    const compendium = installCompendium({ chunkId: ctx.manifest.slug, game, camera: game.camera, hud, menu, animals, cabins, interactables: rt.interactables, weapons, touchUi, nolock });
+    const compendium = installPineCompendium({ chunkId: ctx.manifest.slug, game, camera: game.camera, hud, menu, animals, cabins, interactables: rt.interactables, weapons, touchUi, nolock });
     const quest = await installPineQuest({ ctx, game, sky, player, animals, hud, audio, music, inventory, progress, skins, wearSkin, weapons,
       crossbow: { addBolts: (n) => { loadout.addAmmo('iron', n); }, addAmmo: (kind, n) => { loadout.addAmmo(kind, n); }, room: (kind, n) => loadout.room(kind, n) },
       menu, interactables: rt.interactables, registry, cabins, landmarks, trees: forest.trees, fullMap, compendium: compendium?.state ?? null, chunkId: ctx.manifest.slug, params, touchUi, nolock });

@@ -1,7 +1,8 @@
+import { PINE_FEATS } from '#shards/pine-hollow/feats';
 // src/game/achievements.ts + src/game/Progress.ts — kills → achievement counts → earned titles → the worn title.
 import { describe, expect, it, vi } from 'vitest';
 import { loadSpecies } from './species';
-import { achievementsFor, type AchievementDef } from '#game/achievements';
+import { achievementsFor, registerAchievements, type AchievementDef } from '#game/achievements';
 import { Progress } from '#game/Progress';
 import { hasSpecies, speciesDef } from '#engine/entities/species/registry';
 import { SHARDS, playable } from '#game/shard/registry';
@@ -12,6 +13,8 @@ const PINE = 'chunk://local/pine-hollow';
 const STORE = 'ws.progress.v1';
 loadSpecies();
 const kill = (p: Progress, kind: string, variant: string | undefined, n: number): void => { for (let i = 0; i < n; i++) p.recordKill(kind, variant); };
+
+registerAchievements('pine-hollow', PINE_FEATS);
 
 describe('achievement tables', () => {
   it('Pine Hollow has its table; a shard without one gets an empty list', () => {

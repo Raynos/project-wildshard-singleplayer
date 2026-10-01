@@ -10,16 +10,14 @@
  * → visited. While the book is open the pointer lock and the weapons are released (like the review composer); closing
  * it resumes through the HUD's own resume path.
  */
-import * as THREE from 'three';
-import { PINE_HOLLOW_COMPENDIUM } from '#shards/pine-hollow/compendium';
+import type * as THREE from 'three';
 import './compendium.css';
-import { compendiumFor, registerCompendium } from './registry';
+import { compendiumFor } from './registry';
 import { hudSlots } from '#engine/ui/hudSlots';
 import { CompendiumState } from './state';
 import { CompendiumTracker } from './tracker';
 import { Journal } from './Journal';
 import { compendiumFinds } from './finds';
-import { TrophyWall } from '#shards/pine-hollow/world/trophyWall';
 import { activePhysics } from '#engine/physics/active';
 import { lineOfSight } from '#engine/physics/query';
 import { perfLap } from '#engine/core/perfLap';
@@ -42,14 +40,14 @@ export interface CompendiumHost {
   weapons: { setEnabled: (on: boolean) => void };
   touchUi: () => boolean;
   nolock: boolean;
+  wall?: (state: CompendiumState, journal: Journal) => CompendiumWallPort | null;
 }
 
-/** every shard's compendium (Driftwood / Nalati: add theirs here) */
-for (const def of [PINE_HOLLOW_COMPENDIUM]) registerCompendium(def);
+export interface CompendiumWallPort { refresh: () => void; update: (camera: THREE.Camera) => void }
 
 const GLYPH_BOOK = '<svg viewBox="0 0 24 24"><path d="M4 5.5C6.5 4 9.5 4 12 5.8 14.5 4 17.5 4 20 5.5V19c-2.5-1.4-5.5-1.4-8 .5-2.5-1.9-5.5-1.9-8-.5z M12 5.8V19.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>';
 
-export function installCompendium(host: CompendiumHost): { state: CompendiumState; journal: Journal; wall: TrophyWall | null } | null {
+export function installCompendium(host: CompendiumHost): { state: CompendiumState; journal: Journal; wall: CompendiumWallPort | null } | null {
   const def = compendiumFor(host.chunkId);
   if (!def) return null;
   const { hud, menu, weapons } = host;
@@ -88,20 +86,7 @@ export function installCompendium(host: CompendiumHost): { state: CompendiumStat
     }, 450);
   };
 
-  // ── the trophy wall ──
-  let wall: TrophyWall | null = null;
-  const place = def.wall, root = place ? host.cabins?.roots[place.cabin] : undefined;
-  if (place && root && (def.trophies ?? []).length > 0) {
-    const anchor = new THREE.Object3D();
-    anchor.position.set(...place.at);
-    anchor.rotation.y = place.yaw;
-    root.add(anchor);
-    anchor.updateMatrixWorld(true);
-    const hudRoot = document.getElementById('hud');
-    wall = new TrophyWall({ anchor, state, factory: host.animals.factory, rows: place.rows, width: place.width, rowY: place.rowY, ...(hudRoot ? { hud: hudRoot } : {}) });
-    wall.onExamine = (id) => { journal.open(id); };
-    host.interactables.push(wall.interactable);
-  }
+  const wall = host.wall?.(state, journal) ?? null;
 
   // ── what the book records ──
   state.onChange = (e, _from, to) => {

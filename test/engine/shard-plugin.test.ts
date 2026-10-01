@@ -19,7 +19,7 @@ describe('game plugin adapter and load failure screen', () => {
       override kit(ctx: ShardContext): void { seen.push(ctx); ctx.rows.item([{ id: 'item.a' }, { id: 'item.b' }]); ctx.rows.places({ id: 'place.a' }); }
       override play(ctx: ShardContext): void {
         seen.push(ctx); ctx.bag.tab({ id: 'finds', title: 'Finds' }); ctx.bag.fragment('finds', { id: 'fragment.a', render: noop });
-        expect(() => ctx.rows.feat({ id: 'late' })).toThrow('level.kit');
+        expect(() => ctx.rows.feat({ id: 'late', name: 'Late', goal: 'Test', count: 1, title: 'Title', icon: 'check' })).toThrow('level.kit');
       }
     }
     const selected = { ...manifest, load: () => Promise.resolve({ default: Plugin }) };

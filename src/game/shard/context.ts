@@ -1,3 +1,6 @@
+import { registerAchievements, type AchievementDef } from '../achievements';
+import { registerCompendium } from '../compendium/registry';
+import type { ShardCompendium } from '../compendium/types';
 import type { ShardRuntime } from './runtime';
 import { normalizeItemRow, type ItemRow } from '../bag/items';
 import type { ContentRow, SkinDef, EngineRows, LevelContext } from '#engine';
@@ -7,7 +10,7 @@ export type BagTabId = 'map' | 'gear' | 'pack' | 'finds' | 'feats';
 export interface BagTabSpec { id: BagTabId; title: string }
 export interface BagFragment { id: string; render: (host: HTMLElement) => void }
 export interface BagVerbs { tab: (spec: BagTabSpec) => void; fragment: (tab: BagTabId, fragment: BagFragment) => void }
-export interface GameRowMap { item: ItemRow; lootTable: ContentRow; skin: SkinDef; feat: ContentRow; shop: ContentRow; compendium: ContentRow; places: ContentRow }
+export interface GameRowMap { item: ItemRow; lootTable: ContentRow; skin: SkinDef; feat: AchievementDef; shop: ContentRow; compendium: ShardCompendium & { id: string }; places: ContentRow }
 export type GameRows = { [K in keyof GameRowMap]: (value: GameRowMap[K] | readonly GameRowMap[K][]) => void };
 export interface GameServices {
   readonly runtime?: ShardRuntime;
@@ -51,8 +54,8 @@ export function shardContext(ctx: LevelContext, manifest: ShardManifest, game: G
     },
     rows: { ...ctx.rows,
       item: (values) => add('item', values), lootTable: (values) => add('lootTable', values),
-      skin: (values) => add('skin', values), feat: (values) => add('feat', values),
-      shop: (values) => add('shop', values), compendium: (values) => add('compendium', values), places: (values) => add('places', values),
+      skin: (values) => add('skin', values), feat: (values) => { add('feat', values); ctx.scope.onDispose(registerAchievements(manifest.slug, [...(game.rows.get('feat')?.values() ?? [])] as AchievementDef[])); },
+      shop: (values) => add('shop', values), compendium: (values) => { add('compendium', values); const list: readonly (ShardCompendium & { id: string })[] = Array.isArray(values) ? values : [values as ShardCompendium & { id: string }]; for (const value of list) ctx.scope.onDispose(registerCompendium(value)); }, places: (values) => add('places', values),
     },
   };
 }

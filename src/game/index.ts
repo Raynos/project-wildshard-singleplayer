@@ -15,3 +15,6 @@ export type { ItemId } from './Inventory';
 export type { ShardRuntime } from './shard/runtime';
 export { installCompendium } from './compendium/install';
 
+
+export type { AchievementDef } from './achievements';
+export type { CompendiumHost, CompendiumWallPort } from './compendium/install';
