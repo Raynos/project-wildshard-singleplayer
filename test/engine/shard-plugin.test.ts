@@ -29,7 +29,7 @@ describe('game plugin adapter and load failure screen', () => {
     await loadShardPlugin(app, selected, game, { build: 'fixture', dispose: () => app.unloadLevel(), report, show });
     expect(seen).toHaveLength(3); expect(seen[0]).toBe(seen[1]); expect(seen[1]).toBe(seen[2]); expect(seen[0]?.manifest).toBe(selected);
     expect(achievementsFor(manifest.slug).map((row) => row.id)).toEqual(['kit.feat']); expect(game.rows.get('item')?.size).toBe(2); expect(active.size).toBe(2); expect(report).not.toHaveBeenCalled();
-    await app.unloadLevel(); expect(achievementsFor(manifest.slug)).toBe(previousFeats); expect(game.rows.size).toBe(0); expect(active.size).toBe(0);
+    await app.unloadLevel(); expect(achievementsFor(manifest.slug)).toEqual(previousFeats); expect(game.rows.size).toBe(0); expect(active.size).toBe(0);
   });
 
   it.each(['world', 'kit', 'play'] as const)('reports the full stack and exact %s stage after disposal', async (hook) => {
