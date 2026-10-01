@@ -17,13 +17,13 @@ import type { Sky } from '#engine/world/Sky';
 import type { SkyLook } from './skyRig';
 import { syncPainterlySun } from '#engine/world/painterly';
 import { gradeUniforms } from './grade';
+import { smoothstep } from '#engine/data';
 
 const D2R = Math.PI / 180;
 /** the cheat: degrees further round (compass, clockwise) and higher than the sun */
 export const KEY_CHEAT = { az: 40, el: 15 };
 const HEMI_SKY = new THREE.Color(0.40, 0.46, 0.62);
 const HEMI_GROUND = new THREE.Color(0.30, 0.30, 0.16);
-const smooth = (a: number, b: number, x: number): number => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 
 /**
  * GLSL: `vec3 v2Olive(vec3 albedo)` — green-dominant albedo (the lime valley grass) pulled toward olive / gold and lifted
@@ -51,7 +51,7 @@ export class LightCheat {
       const d = look.sunDir;
       const el = Math.asin(Math.min(1, Math.max(-1, d.y)));
       const az = Math.atan2(-d.x, d.z); // compass: 0 = north (+z), +π/2 = east (−x)
-      const lift = smooth(-1 * D2R, 12 * D2R, el);
+      const lift = smoothstep(-1 * D2R, 12 * D2R, el);
       const az2 = az + KEY_CHEAT.az * D2R * lift, el2 = Math.max(el, el + KEY_CHEAT.el * D2R * lift);
       _dir.set(-Math.sin(az2) * Math.cos(el2), Math.sin(el2), Math.cos(az2) * Math.cos(el2));
       sky.setKeyLight(_dir, look.keyColor, look.keyIntensity);

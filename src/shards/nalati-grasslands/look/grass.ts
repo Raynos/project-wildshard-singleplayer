@@ -44,6 +44,7 @@ import { macrotask } from '#engine/boot/plan';
 import { LOOK_BAKE_GLSL, bakeUniforms } from './bake';
 import { GRASS_CARDS, loadGrassCardAtlas } from './nalatiTextures';
 import type { Renderer } from '#engine';
+import { smoothstep } from '#engine/data';
 
 const PHONE = TIER === 'phone';
 
@@ -444,7 +445,6 @@ interface Ring {
   tiles: { tex: THREE.DataTexture; data: Float32Array }; hole: THREE.Vector4; half: number;
 }
 
-const smooth01 = (a: number, b: number, x: number): number => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 
 let heightTex: THREE.DataTexture | null = null;
 /** the terrain height at 1 m over [−256, 256] (half float, linear) — the blades stand on it, the bake reads it */
@@ -608,7 +608,7 @@ export class GrassV2 {
         if (cut > 0) {
           const base = grassBaseHeightAt(x, z, Infinity);
           if (base <= 0) cut = 0;                                          // water, yurt floors, off-chunk
-          else cut *= smooth01(0.35, 0.6, splatAt(x, z)[0]);          // the exact painted ground (a gravel bar's edge)
+          else cut *= smoothstep(0.35, 0.6, splatAt(x, z)[0]);          // the exact painted ground (a gravel bar's edge)
           if (cut > 0) cut *= 1 - dressingCover(x, z);
         }
         d[k] = Math.round(cut * 255); d[k + 1] = Math.round(verge * 255); d[k + 2] = 0; d[k + 3] = 255;

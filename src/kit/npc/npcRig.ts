@@ -35,6 +35,7 @@ import { bindRig, type RigContract } from '#engine';
  * as in A, which also caught the outside of his right shin.
  */
 import * as THREE from 'three';
+import { smoothstep } from '#engine/data';
 /** Authored hull traits; the seed rig contains no shard names or model paths. */
 export interface NpcRigProfile { id: string; lantern: boolean }
 
@@ -131,7 +132,6 @@ const HANG = [
   { sh: new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, -0.42 * 0.9)), el: new THREE.Quaternion().setFromEuler(new THREE.Euler(-0.12, 0, 0)) },
 ] as const;
 
-const smooth = (a: number, b: number, x: number): number => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 const median = (a: number[], d: number): number => { if (a.length === 0) return d; const s = [...a].sort((p, q) => p - q); return s[Math.floor(s.length / 2)] ?? d; };
 
 /**
@@ -338,7 +338,7 @@ export function rigLegs(profile: NpcRigProfile, source: THREE.BufferGeometry): L
   const side = new Int8Array(n);
   for (let i = 0; i < n; i++) {
     const x = X(i) - xt, y = Y(i);
-    const col = torsoW * (1.05 + 0.25 * smooth(shY, 0.6 * H, y));
+    const col = torsoW * (1.05 + 0.25 * smoothstep(shY, 0.6 * H, y));
     if (y > waist * 0.55 && y < shY + 0.04 * H && Math.abs(x) > col) side[i] = x < 0 ? -1 : 1;
   }
   const shoulder = (s: number): THREE.Vector3 => new THREE.Vector3(xt + s * shX, y0 + shY, zc);
@@ -386,14 +386,14 @@ export function rigLegs(profile: NpcRigProfile, source: THREE.BufferGeometry): L
     if (k <= 0) return;
     const add = (a: number, b: number, t: number): void => { w[a] = (w[a] ?? 0) + k * (1 - t); w[b] = (w[b] ?? 0) + k * t; };
     if (y < 0.5 * H) add(J.hips, J.spine, 0);
-    else if (y < 0.64 * H) add(J.hips, J.spine, smooth(0.5 * H, 0.64 * H, y));
-    else if (y < 0.76 * H) add(J.spine, J.chest, smooth(0.64 * H, 0.76 * H, y));
-    else if (y < 0.86 * H) add(J.chest, J.neck, smooth(0.8 * H, 0.86 * H, y));
-    else add(J.neck, J.head, smooth(0.86 * H, 0.89 * H, y));
+    else if (y < 0.64 * H) add(J.hips, J.spine, smoothstep(0.5 * H, 0.64 * H, y));
+    else if (y < 0.76 * H) add(J.spine, J.chest, smoothstep(0.64 * H, 0.76 * H, y));
+    else if (y < 0.86 * H) add(J.chest, J.neck, smoothstep(0.8 * H, 0.86 * H, y));
+    else add(J.neck, J.head, smoothstep(0.86 * H, 0.89 * H, y));
   };
   const legChain = (y: number, k: number, th: number, kn: number, ft: number): void => {
     if (k <= 0) return;
-    const sk = smooth(kneeY + 0.035 * H, kneeY - 0.035 * H, y), fk = smooth(ankleY + 0.02 * H, ankleY - 0.015 * H, y);
+    const sk = smoothstep(kneeY + 0.035 * H, kneeY - 0.035 * H, y), fk = smoothstep(ankleY + 0.02 * H, ankleY - 0.015 * H, y);
     w[th] = (w[th] ?? 0) + k * (1 - sk); w[kn] = (w[kn] ?? 0) + k * sk * (1 - fk); w[ft] = (w[ft] ?? 0) + k * sk * fk;
   };
   // A's arm bands exactly (root chest → shoulder over t < 0.15, shoulder → elbow 0.35–0.6, elbow → hand 0.85–1), A's
@@ -403,8 +403,8 @@ export function rigLegs(profile: NpcRigProfile, source: THREE.BufferGeometry): L
     const cl = s < 0 ? J.clR : J.clL, sh = cl + 1, tw2 = cl + 2, el = cl + 3, ha = cl + 4;
     const add = (j: number, v: number): void => { w[j] = (w[j] ?? 0) + v; };
     if (t < 0.15) { const k = t / 0.15; add(J.chest, 0.5 * (1 - k)); add(cl, 0.5 * (1 - k)); add(sh, k); return; }
-    if (t < 0.5) { const k = smooth(0.35, 0.6, t), kT = smooth(0.1, 0.35, t); add(sh, (1 - k) * (1 - kT)); add(tw2, (1 - k) * kT); add(el, k); return; }
-    const k = smooth(0.85, 1, t); add(el, 1 - k); add(ha, k);
+    if (t < 0.5) { const k = smoothstep(0.35, 0.6, t), kT = smoothstep(0.1, 0.35, t); add(sh, (1 - k) * (1 - kT)); add(tw2, (1 - k) * kT); add(el, k); return; }
+    const k = smoothstep(0.85, 1, t); add(el, 1 - k); add(ha, k);
   };
   const dense = new Float32Array(n * NB);
   for (let i = 0; i < n; i++) {
@@ -416,17 +416,17 @@ export function rigLegs(profile: NpcRigProfile, source: THREE.BufferGeometry): L
       const a = s < 0 ? sR : sL, b = s < 0 ? fR : fL;
       arm(profile.lantern && s < 0 && p.y < b.y ? 1 : segT(p, a, b), s);
     } else {
-      const legK = 1 - smooth(0.4 * H, 0.52 * H, y);
+      const legK = 1 - smoothstep(0.4 * H, 0.52 * H, y);
       torso(y, 1 - legK);
       if (legK > 0) {
-        const bw = 0.015 * H + 0.035 * H * smooth(0.2 * H, 0.46 * H, y), sl = smooth(-bw, bw, p.x - xm);
+        const bw = 0.015 * H + 0.035 * H * smoothstep(0.2 * H, 0.46 * H, y), sl = smoothstep(-bw, bw, p.x - xm);
         legChain(y, legK * sl, J.thL, J.knL, J.ftL);
         legChain(y, legK * (1 - sl), J.thR, J.knR, J.ftR);
       }
       // the deltoid cap: the torso round a shoulder joint follows it part way
       if (y > shY - 0.02 * H) {
         const r = p.x < xt ? -1 : 1, jt = r < 0 ? sR : sL, d = p.distanceTo(jt);
-        const wS = 0.5 * (1 - smooth(0.02 * H, 0.1 * H, d)), wC = 0.5 * (1 - smooth(0.05 * H, 0.16 * H, d)), keep = 1 - wS - wC;
+        const wS = 0.5 * (1 - smoothstep(0.02 * H, 0.1 * H, d)), wC = 0.5 * (1 - smoothstep(0.05 * H, 0.16 * H, d)), keep = 1 - wS - wC;
         if (keep < 1) {
           for (let j = 0; j < NB; j++) w[j] = (w[j] ?? 0) * keep;
           const cl = r < 0 ? J.clR : J.clL;
@@ -472,7 +472,7 @@ export function rigLegs(profile: NpcRigProfile, source: THREE.BufferGeometry): L
     // armpit, and a blend there turns the web into a grey membrane when the arms hang (A's hard cut hides it)
     if (isLantern[i]) return 0;
     p.set(P.getX(i), P.getY(i), P.getZ(i));
-    return 1 - smooth(0.12 * H, 0.18 * H, Math.min(p.distanceTo(sR), p.distanceTo(sL)));
+    return 1 - smoothstep(0.12 * H, 0.18 * H, Math.min(p.distanceTo(sR), p.distanceTo(sL)));
   }, 1e-4 * H, [J.spine, J.chest, J.clR, J.shR, J.twR, J.clL, J.shL, J.twL], 60);
   const order: number[] = [];
   for (let i = 0; i < n; i++) {
@@ -530,10 +530,10 @@ export function footPlan(p: number): { z: number; y: number; pitch: number; stan
   const s = WALK.stride;
   if (p < WALK.stance) {
     const u = p / WALK.stance;
-    return { z: s / 2 - s * u, y: 0, pitch: WALK.heel * smooth(0.7, 1, u), stance: true };
+    return { z: s / 2 - s * u, y: 0, pitch: WALK.heel * smoothstep(0.7, 1, u), stance: true };
   }
   const u = (p - WALK.stance) / (1 - WALK.stance);
-  return { z: -s / 2 + s * smooth(0, 1, u), y: WALK.lift * Math.sin(Math.PI * u), pitch: WALK.heel * (1 - smooth(0, 0.55, u)), stance: false };
+  return { z: -s / 2 + s * smoothstep(0, 1, u), y: WALK.lift * Math.sin(Math.PI * u), pitch: WALK.heel * (1 - smoothstep(0, 0.55, u)), stance: false };
 }
 
 /** the pose function over `bones` (legBones' order) for `b` */

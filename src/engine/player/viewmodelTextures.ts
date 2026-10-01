@@ -1,3 +1,4 @@
+import { smoothstep } from '../core/noise';
 /**
  * The weapon viewmodels' procedural texture sets as plain pixels — no three.js, no DOM (a 2D canvas comes from the
  * caller), so the same code runs in a worker (viewmodelTextures.worker.ts) or on the main thread. Drawing them is
@@ -51,7 +52,7 @@ export function makeNoise(seed: number): Noise {
   return { hash, n, fbm };
 }
 export const clamp01 = (v: number): number => (v < 0 ? 0 : Math.min(1, v));
-export const sstep = (a: number, b: number, x: number): number => { const t = clamp01((x - a) / (b - a)); return t * t * (3 - 2 * t); };
+export const sstep = smoothstep;   // the one smoothstep (E357 X5)
 
 /** tangent-space normal map (RGBA8) from a wrapping height field */
 export function normalPixels(h: Float32Array, w: number, hgt: number, strength: number): Uint8Array {

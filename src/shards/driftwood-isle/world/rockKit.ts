@@ -18,6 +18,7 @@ import { mergeGeometries, mergeVertices } from 'three/examples/jsm/utils/BufferG
 import type { Rng } from '#engine/core/rng';
 import type { Sky } from '#engine/world/Sky';
 import { lowPolyMaterial } from '#engine/world/lowpolyKit';
+import { smoothstep } from '#engine/data';
 
 /** the shore's boulders (Boulders.ts, Explore's Boulder): beach granite, a shade lighter than the reef */
 export const SHORE_ROCK: RockPalette = {
@@ -57,7 +58,6 @@ export function rockGeometry(r: number, rng: Rng, o: RockOpts = {}): THREE.Buffe
   return smoothPainted(r, sq, o.moss ?? 0.8, o.palette ?? SHORE_ROCK, rng, o.ground ?? -0.3 * r * sq, o.detail ?? 0);
 }
 
-const sstep = (a: number, b: number, x: number): number => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 
 // ── the rock ──────────────────────────────────────────────────────────────────────────────────────
 //
@@ -132,7 +132,7 @@ function radial(p: Piece, ux: number, uy: number, uz: number, crack?: { v: numbe
   for (const c of p.cracks) {
     const dd = Math.abs(c.n.x * ux + c.n.y * uy + c.n.z * uz - c.o);
     if (dd >= c.w) continue;
-    const g = (1 - dd / c.w) ** 2 * sstep(-0.3, 0.1, uy) * (1 - sstep(0.45, 0.7, uy)) * sstep(-0.3, 0.2, c.along.x * ux + c.along.y * uy + c.along.z * uz);
+    const g = (1 - dd / c.w) ** 2 * smoothstep(-0.3, 0.1, uy) * (1 - smoothstep(0.45, 0.7, uy)) * smoothstep(-0.3, 0.2, c.along.x * ux + c.along.y * uy + c.along.z * uz);
     R *= 1 - c.depth * g;
     deep = Math.max(deep, g);
   }
@@ -314,27 +314,27 @@ function smoothPainted(r: number, sq: number, moss: number, palette: RockPalette
       // the stone: the ramp foot → dark → body → crown, lit a little more where it faces up
       const t = Math.min(1, Math.max(0, h * 0.8 + up * 0.3 - 0.12));
       k.copy(pal.foot);
-      lerpC(k, pal.dark, sstep(0, 0.3, t));
-      lerpC(k, pal.mid, sstep(0.25, 0.62, t));
-      lerpC(k, pal.light, sstep(0.6, 1, t));
+      lerpC(k, pal.dark, smoothstep(0, 0.3, t));
+      lerpC(k, pal.mid, smoothstep(0.25, 0.62, t));
+      lerpC(k, pal.light, smoothstep(0.6, 1, t));
       const dr = (drift(v.x * 0.55 / r, v.y * 0.55 / r, v.z * 0.55 / r) - 0.5) * 2.4;
       lerpC(k, dr > 0 ? pal.warm : pal.cool, Math.abs(dr) * 0.32);
       k.multiplyScalar(0.92 + mottle(v.x * 2.6 / r, v.y * 2.6 / r, v.z * 2.6 / r) * 0.16);
-      k.multiplyScalar(0.74 + 0.26 * sstep(-0.35, 0.85, n.y));                  // a painted top light: the walls a shade darker than the crown
-      lerpC(k, pal.edge, sstep(2.5, 6, curv) * 0.4 * sstep(0.3, 0.6, h) * (0.35 + 0.65 * up));   // worn convex edges
-      lerpC(k, pal.wet, (1 - sstep(0, 0.16, h)) * 0.6);                        // the wet line
+      k.multiplyScalar(0.74 + 0.26 * smoothstep(-0.35, 0.85, n.y));                  // a painted top light: the walls a shade darker than the crown
+      lerpC(k, pal.edge, smoothstep(2.5, 6, curv) * 0.4 * smoothstep(0.3, 0.6, h) * (0.35 + 0.65 * up));   // worn convex edges
+      lerpC(k, pal.wet, (1 - smoothstep(0, 0.16, h)) * 0.6);                        // the wet line
       // moss: on what faces up, with a tongued noisy edge that reaches further down in places
       const en = (edgeN(v.x * 1.3 / r, v.y * 1.3 / r, v.z * 1.3 / r) - 0.5) * 0.75;
-      const m = moss > 0 ? sstep(mossThr - 0.14, mossThr + 0.14, up + en) * sstep(0.32, 0.6, h + en * 0.35) : 0;
+      const m = moss > 0 ? smoothstep(mossThr - 0.14, mossThr + 0.14, up + en) * smoothstep(0.32, 0.6, h + en * 0.35) : 0;
       if (m > 0) {
         mc.copy(pal.mossDark);
-        lerpC(mc, pal.moss, sstep(0.35, 0.85, up));
-        lerpC(mc, pal.mossLight, sstep(0.35, 0.85, mottle(v.x * 1.8 / r + 3, v.y * 1.8 / r, v.z * 1.8 / r)) * 0.9 * up);
+        lerpC(mc, pal.moss, smoothstep(0.35, 0.85, up));
+        lerpC(mc, pal.mossLight, smoothstep(0.35, 0.85, mottle(v.x * 1.8 / r + 3, v.y * 1.8 / r, v.z * 1.8 / r)) * 0.9 * up);
         mc.multiplyScalar(1 - 0.22 * (1 - Math.abs(2 * m - 1)));                // a darker rim where the moss thins out
         k.lerp(mc, m);
       }
       // darkness last: cracks, creases, AO (cool, not black)
-      const cr = crack[i] ?? 0, crease = sstep(0.4, 3.5, -curv);
+      const cr = crack[i] ?? 0, crease = smoothstep(0.4, 3.5, -curv);
       lerpC(k, pal.crease, cr * 0.7 + crease * 0.35 + ao * 0.35);
       k.multiplyScalar((1 - cr * 0.45) * (1 - crease * 0.28) * (1 - ao * 0.5));
       cols[i * 3] = k.r; cols[i * 3 + 1] = k.g; cols[i * 3 + 2] = k.b;

@@ -1,3 +1,4 @@
+import { smoothstep } from '#engine/data';
 /**
  * Pine Hollow world layout v2 — Map D, layout A "the ridge north" (project/archive/2026-09-25-pine-hollow-remaster.md §2 B1 / §4, Jake's
  * pick: art/pine-hollow/round-1-map/A-ridge-north.jpg). Every coordinate of the shard as plain data with NO imports, so the
@@ -256,7 +257,6 @@ export const CREEK_WATER = { depth: 0.45, crest: 0.1, run: 0.55, dam: 2.4, lead:
 const S_DAM = arcTo(CREEK, BEAVER_DAM.at), S_END = arcTo(CREEK, CREEK.length - 1);
 /** the dam's crest and the creek's end (arc lengths) */
 export function creekSpan(): { dam: number; end: number } { return { dam: S_DAM, end: S_END }; }
-const sstep = (a: number, b: number, v: number): number => { const t = Math.min(1, Math.max(0, (v - a) / (b - a))); return t * t * (3 - 2 * t); };
 /** the creek's water surface at arc length `s`: the pond's level to the riffle, then the beaver pool's (or, drained, the
  *  trickle a few cm over its bed) to the dam */
 export function creekSurfaceAt(s: number): number {
@@ -268,12 +268,12 @@ export function creekSurfaceAt(s: number): number {
 }
 /** flow speed (m/s): quick over the crest and down the dam's face, a gentle run after */
 export function creekFlowAt(s: number): number {
-  return CREEK_WATER.run + (CREEK_WATER.dam - CREEK_WATER.run) * sstep(S_DAM - 1.5, S_DAM, s) * (1 - sstep(S_DAM + 2.5, S_DAM + 6, s));
+  return CREEK_WATER.run + (CREEK_WATER.dam - CREEK_WATER.run) * smoothstep(S_DAM - 1.5, S_DAM, s) * (1 - smoothstep(S_DAM + 2.5, S_DAM + 6, s));
 }
 /** white water 0..1: the dam's face, a tail of foam drifting off it, a few bubbles in the run */
 export function creekFoamAt(s: number): number {
-  const face = sstep(S_DAM - 0.6, S_DAM + 0.4, s) * (1 - sstep(S_DAM + 2.5, S_DAM + 5, s));
-  const tail = sstep(S_DAM, S_DAM + 1, s) * (1 - sstep(S_DAM + 3, S_DAM + 14, s));
+  const face = smoothstep(S_DAM - 0.6, S_DAM + 0.4, s) * (1 - smoothstep(S_DAM + 2.5, S_DAM + 5, s));
+  const tail = smoothstep(S_DAM, S_DAM + 1, s) * (1 - smoothstep(S_DAM + 3, S_DAM + 14, s));
   return Math.max(0.06, 0.72 * face, 0.3 * tail);
 }
 // ── the beaver pool (E322 F-L6) ──────────────────────────────────────────────────────────────────────────────────────

@@ -20,6 +20,7 @@
  */
 import * as THREE from 'three';
 import { variantDef, type SpeciesRGB as RGB, type BoneDef, type VariantDef } from '#engine';
+import { smoothstep } from '#engine/data';
 
 export interface CoatSpec {
   /** the species default palette (the variant's `tint` overrides keys of it) */
@@ -49,7 +50,6 @@ const LUT_N = 4096;
 const toSrgb = new Uint8ClampedArray(LUT_N + 1).map((_, i) => { const c = i / LUT_N; return Math.round(255 * (c <= 0.0031308 ? 12.92 * c : 1.055 * c ** (1 / 2.4) - 0.055)); });
 const linOf = (c: RGB): [number, number, number] => { const k = new THREE.Color().setRGB(c[0], c[1], c[2], THREE.SRGBColorSpace); return [k.r, k.g, k.b]; };
 const enc = (v: number): number => toSrgb[Math.min(LUT_N, Math.max(0, Math.round(v * LUT_N)))] ?? 0;
-const smooth = (a: number, b: number, x: number): number => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 
 const cache = new Map<string, THREE.Texture>();
 const _ab = new THREE.Vector3(), _ap = new THREE.Vector3();
@@ -440,8 +440,8 @@ export function pineCoatAtlas(key: string, spec: CoatSpec, rig: CoatRig, v: Vari
       const X = p.x * sc, Y = p.y * sc, Z = p.z * sc;
       if (marks.piebald) {
         // white patches over the flanks and the legs, ragged edges; the face and the back mostly keep the coat
-        const n = fbm(X * 3.2 + 5, Y * 3.2, Z * 3.2, 4) + 0.1 * (1 - Math.abs(ny)) - 0.08 * smooth(0.5, 0.9, ny);
-        const m = smooth(0.57, 0.61, n);
+        const n = fbm(X * 3.2 + 5, Y * 3.2, Z * 3.2, 4) + 0.1 * (1 - Math.abs(ny)) - 0.08 * smoothstep(0.5, 0.9, ny);
+        const m = smoothstep(0.57, 0.61, n);
         if (m > 0) { r += (white[0] * detail * 0.8 - r) * m; g += (white[1] * detail * 0.8 - g) * m; b += (white[2] * detail * 0.8 - b) * m; }
       }
       if (marks.blaze && neck && body) {
@@ -449,13 +449,13 @@ export function pineCoatAtlas(key: string, spec: CoatSpec, rig: CoatRig, v: Vari
         const cz = neck.z + 0.05 * height, cy = neck.y - 0.14 * height;
         const dx = p.x / (0.2 * height), dy = (p.y - cy) / (0.11 * height), dz = (p.z - cz) / (0.3 * height);
         const e = dx * dx + dy * dy * (1 + 0.6 * Math.abs(dx)) + dz * dz;
-        const m = (1 - smooth(0.7, 1.05, e + 0.25 * (fbm(X * 12, Y * 12, Z * 12, 2) - 0.5))) * smooth(-0.2, 0.3, nz);
+        const m = (1 - smoothstep(0.7, 1.05, e + 0.25 * (fbm(X * 12, Y * 12, Z * 12, 2) - 0.5))) * smoothstep(-0.2, 0.3, nz);
         if (m > 0) { r += (cream[0] * detail * 0.9 - r) * m; g += (cream[1] * detail * 0.9 - g) * m; b += (cream[2] * detail * 0.9 - b) * m; }
       }
       if (rakes.length > 0) {
         let dmin = Infinity;
         for (const rk of rakes) dmin = Math.min(dmin, segDist(p, rk.a, rk.b));
-        const m = (1 - smooth(0.012, 0.03, dmin + 0.012 * (fbm(X * 30, Y * 30, Z * 30, 2) - 0.5))) * smooth(-0.3, 0.2, ny);
+        const m = (1 - smoothstep(0.012, 0.03, dmin + 0.012 * (fbm(X * 30, Y * 30, Z * 30, 2) - 0.5))) * smoothstep(-0.3, 0.2, ny);
         if (m > 0) { r += (scarCol[0] * 0.8 - r) * m; g += (scarCol[1] * 0.8 - g) * m; b += (scarCol[2] * 0.8 - b) * m; }
       }
       if (marks.thrall) {
@@ -463,11 +463,11 @@ export function pineCoatAtlas(key: string, spec: CoatSpec, rig: CoatRig, v: Vari
         const L = 0.2126 * r + 0.7152 * g + 0.0722 * b;
         r = (L + (r - L) * 0.6) * 0.75; g = (L + (g - L) * 0.6) * 0.77; b = (L + (b - L) * 0.6) * 0.75;
         const up = ny, headZ = head ? head.z : Infinity;
-        const face = head ? smooth(0.25 * height, 0.1 * height, p.distanceTo(head)) : 0;   // the face stays bare (the eyes must read)
+        const face = head ? smoothstep(0.25 * height, 0.1 * height, p.distanceTo(head)) : 0;   // the face stays bare (the eyes must read)
         // moss: the back, the withers and the upper flanks, in clumps with ragged, fuzzy edges; tufts down the legs; never the face
         const clump = fbm(X * 4.5 + 3, Y * 4.5, Z * 4.5, 4), grain = fbm(X * 40, Y * 40, Z * 40, 2), fine = noise3(X * 140, Y * 140, Z * 140);
-        const low = smooth(0.35 * height, 0.1 * height, p.y) * smooth(0.55, 0.68, fbm(X * 7 + 9, Y * 7, Z * 7, 3) + (grain - 0.5) * 0.2);   // leg tufts
-        const moss = Math.max(smooth(0.42, 0.6, 0.55 * up + clump * 0.9 + 0.02 + (grain - 0.5) * 0.4 + (fine - 0.5) * 0.12 + (p.z > headZ - 0.1 ? -1 : 0)), low) * (1 - face);
+        const low = smoothstep(0.35 * height, 0.1 * height, p.y) * smoothstep(0.55, 0.68, fbm(X * 7 + 9, Y * 7, Z * 7, 3) + (grain - 0.5) * 0.2);   // leg tufts
+        const moss = Math.max(smoothstep(0.42, 0.6, 0.55 * up + clump * 0.9 + 0.02 + (grain - 0.5) * 0.4 + (fine - 0.5) * 0.12 + (p.z > headZ - 0.1 ? -1 : 0)), low) * (1 - face);
         if (moss > 0) {
           // cushion moss: dark hollows, bright yellow-green tips, a grain of fronds
           const t = Math.min(1, Math.max(0, fbm(X * 28, Y * 28, Z * 28, 3) * 1.4 - 0.2 + (fine - 0.5) * 0.5));
@@ -476,12 +476,12 @@ export function pineCoatAtlas(key: string, spec: CoatSpec, rig: CoatRig, v: Vari
           r += (mr - r) * moss; g += (mg - g) * moss; b += (mb - b) * moss;
         }
         // lichen: small pale rosettes on the bare hide round the moss; bark scabs on the flanks and the haunches
-        const li = smooth(0.73, 0.76, fbm(X * 38 + 7, Y * 38, Z * 38, 3)) * (1 - face) * (1 - moss * 0.75) * (0.5 + 0.5 * smooth(-0.3, 0.3, up)) * 0.55;
+        const li = smoothstep(0.73, 0.76, fbm(X * 38 + 7, Y * 38, Z * 38, 3)) * (1 - face) * (1 - moss * 0.75) * (0.5 + 0.5 * smoothstep(-0.3, 0.3, up)) * 0.55;
         if (li > 0) { r += (lichen[0] * (0.8 + 0.4 * fine) - r) * li; g += (lichen[1] * (0.8 + 0.4 * fine) - g) * li; b += (lichen[2] * (0.8 + 0.4 * fine) - b) * li; }
         const sb = fbm(X * 6 + 21, Y * 6, Z * 6, 3);
-        const scab = smooth(0.62, 0.66, sb) * (1 - smooth(0.3, 0.7, up)) * (1 - face) * (1 - moss * 0.7);
+        const scab = smoothstep(0.62, 0.66, sb) * (1 - smoothstep(0.3, 0.7, up)) * (1 - face) * (1 - moss * 0.7);
         if (scab > 0) {
-          const crack = smooth(0.45, 0.55, fbm(X * 60, Y * 25, Z * 60, 2));
+          const crack = smoothstep(0.45, 0.55, fbm(X * 60, Y * 25, Z * 60, 2));
           r += (bark[0] * (0.6 + 0.8 * crack) - r) * scab; g += (bark[1] * (0.6 + 0.8 * crack) - g) * scab; b += (bark[2] * (0.6 + 0.8 * crack) - b) * scab;
         }
       }
@@ -508,15 +508,15 @@ export function pineCoatAtlas(key: string, spec: CoatSpec, rig: CoatRig, v: Vari
       const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
       // the tips: up-facing, high on the body, strongest over the hump, broken into streaks
       const streak = fbm(x * sc * 38 + 3, y * sc * 70, z * sc * 38, 2);   // hair-scale streaks, combed down
-      const humpW = hump !== null ? 1 - 0.45 * smooth(0.15, 0.55, Math.abs(z - hump) * sc) : 0.8;
-      const m = smooth(0, 0.7, ny) * smooth(0.6, 0.85, h) * humpW * smooth(0.42, 0.62, streak);
+      const humpW = hump !== null ? 1 - 0.45 * smoothstep(0.15, 0.55, Math.abs(z - hump) * sc) : 0.8;
+      const m = smoothstep(0, 0.7, ny) * smoothstep(0.6, 0.85, h) * humpW * smoothstep(0.42, 0.62, streak);
       if (m > 0) {
         const detail = Math.min(1.5, Math.max(0.5, Math.sqrt(lum / 0.1)));   // the photo's own hairs, as lightness
         const k = 0.55 * m;
         r += (tip[0] * detail - r) * k; g += (tip[1] * detail - g) * k; b += (tip[2] * detail - b) * k;
       }
       // the legs fade darker toward the paws
-      const leg = 1 - 0.3 * smooth(0.45, 0.12, h);
+      const leg = 1 - 0.3 * smoothstep(0.45, 0.12, h);
       lin[i * 3] = Math.min(1, Math.max(0, r * leg)); lin[i * 3 + 1] = Math.min(1, Math.max(0, g * leg)); lin[i * 3 + 2] = Math.min(1, Math.max(0, b * leg));
     }
   }

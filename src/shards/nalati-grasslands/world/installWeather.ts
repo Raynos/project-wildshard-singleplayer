@@ -27,6 +27,7 @@ import { steppeVoices } from '../audio/synth';
 import { SteppeStorm as Weather, STORM_PHASES, type Exposed, type LightningPlayer } from './Weather';
 import { WeatherFX } from './WeatherFX';
 import { waterOf } from '../water';
+import { smoothstep } from '#engine/data';
 
 type WeatherHUD = Parameters<HUD['setWeather']>[0];
 declare module '#engine/events/maps' { interface EventMap { 'weather.changed': WeatherHUD } }
@@ -71,7 +72,6 @@ export interface NalatiWeather {
 
 const TIME_NAMES = ['dawn', 'day', 'noon', 'golden', 'dusk', 'night', 'midnight'] as const;
 function isTimeName(s: string): s is DayPhase | 'noon' | 'midnight' { return (TIME_NAMES as readonly string[]).includes(s); }
-const smooth = (e0: number, e1: number, x: number): number => { const t = Math.min(1, Math.max(0, (x - e0) / (e1 - e0))); return t * t * (3 - 2 * t); };
 const mmss = (s: number): string => { const t = Math.max(0, Math.ceil(s)); return `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`; };
 
 // the storm's slate palette (× the hour's own light level)
@@ -98,7 +98,7 @@ function stormLook(L: SkyLook, w: Weather): void {
   if (s > 0) {
     L.keyIntensity *= 1 - 0.82 * s;
     L.keyColor.lerp(STORM_KEY, s * 0.6);
-    L.disc *= 1 - smooth(0.25, 0.75, s);
+    L.disc *= 1 - smoothstep(0.25, 0.75, s);
     L.zenith.lerp(_c.copy(SLATE_ZENITH).multiplyScalar(nf), s);
     L.horizon.lerp(_c.copy(SLATE_HORIZON).multiplyScalar(nf), s);
     L.glow.multiplyScalar(1 - s);
@@ -294,7 +294,7 @@ export function wireWeather(ctx: WeatherCtx): NalatiWeather {
       audioT -= dt;
       if (audioT <= 0 && hooks.audio) {
         audioT = 0.25;
-        const windLevel = smooth(6, 22, wind.speed);
+        const windLevel = smoothstep(6, 22, wind.speed);
         steppeVoices(hooks.audio).setStorm(indoors ? 0 : weather.rain, indoors || weather.state === 'clear' ? 0 : windLevel);
       }
     },

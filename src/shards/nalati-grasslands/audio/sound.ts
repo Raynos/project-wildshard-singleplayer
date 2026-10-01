@@ -28,6 +28,7 @@ import { installSteppeVoices, STEPPE_BED, type SteppeCall, type SteppeVoices } f
 import type { Nalati } from '../index';
 import type { NalatiWeather } from '../weather';
 import { RIVER, BRIDGE, CAMP, SUMMER_YURTS, GLACIER, BROOK, riverMask, zoneAt, TERRAIN } from '../manifest';
+import { smoothstep } from '#engine/data';
 
 const surfaceOf = (surface: string | undefined): ImpactKind => surface === 'wood' || surface === 'flesh' ? surface : 'ground';
 
@@ -52,7 +53,6 @@ export interface NalatiSound {
 const WILD: ReadonlySet<string> = new Set<SteppeCall>(['sheep_bleat', 'dog_bark', 'dog_yelp', 'marmot_whistle', 'wolf_howl', 'wolf_snarl', 'wolf_bite', 'wolf_yip', 'wolf_yelp', 'horse_neigh', 'horse_snort', 'horse_squeal']);
 function isAnimalSound(n: string): n is SteppeCall { return WILD.has(n); }
 
-const smooth = (e0: number, e1: number, x: number): number => { const t = Math.min(1, Math.max(0, (x - e0) / (e1 - e0))); return t * t * (3 - 2 * t); };
 
 /** the ground under a hoof: the bridge deck, the gravel bars / roads, else turf */
 function hoofSurfaceAt(x: number, z: number): HoofSurface {
@@ -190,11 +190,11 @@ export function wireSound(nalati: Pick<Nalati, 'boss' | 'titan'>, ctx: { player:
       bedT -= dt;
       if (bedT <= 0) {
         bedT = 0.25;
-        const river = smooth(70, 6, Math.abs(p.z - RIVER.z(p.x)) - RIVER.half(p.x));
-        const brook = smooth(24, 2, brookDistance(p.x, p.z)) * 0.45;
-        const fall = smooth(90, 10, Math.hypot(p.x - GLACIER.x1, p.z - GLACIER.z1)) * 0.6; // the meltwater roaring out from under the glacier's snout
-        const camp = Math.max(smooth(45, 6, Math.hypot(p.x - CAMP.x, p.z - CAMP.z)), 0.6 * smooth(30, 5, Math.hypot(p.x - SUMMER_YURTS.x, p.z - SUMMER_YURTS.z)));
-        const night = smooth(0.75, 0.45, (0.4 + 0.3 * smooth(-14, -2, clock.sunElevation) + 0.3 * smooth(-2, 10, clock.sunElevation)));
+        const river = smoothstep(70, 6, Math.abs(p.z - RIVER.z(p.x)) - RIVER.half(p.x));
+        const brook = smoothstep(24, 2, brookDistance(p.x, p.z)) * 0.45;
+        const fall = smoothstep(90, 10, Math.hypot(p.x - GLACIER.x1, p.z - GLACIER.z1)) * 0.6; // the meltwater roaring out from under the glacier's snout
+        const camp = Math.max(smoothstep(45, 6, Math.hypot(p.x - CAMP.x, p.z - CAMP.z)), 0.6 * smoothstep(30, 5, Math.hypot(p.x - SUMMER_YURTS.x, p.z - SUMMER_YURTS.z)));
+        const night = smoothstep(0.75, 0.45, (0.4 + 0.3 * smoothstep(-14, -2, clock.sunElevation) + 0.3 * smoothstep(-2, 10, clock.sunElevation)));
         // in the kurgan's sealed chamber the steppe is gone (the boss fight has its own sound)
         const out = nalati.boss.inside ? 0 : 1;
         const gust = wind.gustAt(p.x, p.z);
@@ -204,7 +204,7 @@ export function wireSound(nalati: Pick<Nalati, 'boss' | 'titan'>, ctx: { player:
           const panTo = (dx: number, dz: number): number => panFromYaw(dx, dz, player.yaw, 0.7);
           const toCamp = Math.hypot(p.x - CAMP.x, p.z - CAMP.z) < Math.hypot(p.x - SUMMER_YURTS.x, p.z - SUMMER_YURTS.z) ? CAMP : SUMMER_YURTS;
           amb.set({
-            zones: zoneAt(p.x, p.z), river, melt: Math.max(fall, smooth(40, 3, bd)), camp, night, wind: wind.speed, gust, out,
+            zones: zoneAt(p.x, p.z), river, melt: Math.max(fall, smoothstep(40, 3, bd)), camp, night, wind: wind.speed, gust, out,
             pan: { river: panTo(0, RIVER.z(p.x) - p.z), camp: panTo(toCamp.x - p.x, toCamp.z - p.z), melt: bd < 40 ? panTo(side.x, side.z) : panTo(GLACIER.x1 - p.x, GLACIER.z1 - p.z) },
           });
         }

@@ -6,6 +6,7 @@
 import * as THREE from 'three';
 import type { ShardManifest, RGB } from '#game';
 import { painterlyUniforms, syncPainterlySun, fogUniforms, compassDir, type Game, type Sky, type DayCycle, type DayCycleClock, type DayKeys } from '#engine';
+import { smoothstep } from '#engine/data';
 
 export type { DayPhase } from '#engine';
 export interface SkyKey {
@@ -78,7 +79,6 @@ const MOON_I = 0.95;
 const _a = new THREE.Color(), _b = new THREE.Color();
 function lerpRGB(out: THREE.Color, a: RGB, b: RGB, t: number): void { out.setRGB(a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t); }
 const lerpN = (a: number, b: number, t: number): number => a + (b - a) * t;
-const smooth = (e0: number, e1: number, x: number): number => { const t = Math.min(1, Math.max(0, (x - e0) / (e1 - e0))); return t * t * (3 - 2 * t); };
 
 /**
  * The sky rig: reads the shard's own look off the live objects (so "day" = the def, exactly), takes over the background
@@ -276,7 +276,7 @@ export function copyLook(out: SkyLook, L: SkyLook): SkyLook {
 /** a sky-light level 0..1 (day 1 · dusk ~0.7 · night ~0.4) — the stealth `light` factor reads it */
 export function lightLevel(clock: DayCycleClock): number {
   const el = clock.sunElevation;
-  return 0.4 + 0.3 * smooth(-14, -2, el) + 0.3 * smooth(-2, 10, el);
+  return 0.4 + 0.3 * smoothstep(-14, -2, el) + 0.3 * smoothstep(-2, 10, el);
 }
 
 /** Apply the shared sky channels from the clock's interpolated numeric key. */
@@ -286,10 +286,10 @@ export function sampleSkyLook(clock: DayCycle<SkyKey>, out: SkyLook, key: SkyKey
     clock.key(key);
     const a = key, b = key, s = 0;
     // the key light: the sun until it touches the horizon, then (at zero) the moon
-    const moonT = smooth(-2, -12, el);
+    const moonT = smoothstep(-2, -12, el);
     if (el > -1.5) {
       lerpRGB(out.keyColor, a.sun, b.sun, s);
-      out.keyIntensity = lerpN(a.sunI, b.sunI, s) * smooth(-1.5, 1.5, el);
+      out.keyIntensity = lerpN(a.sunI, b.sunI, s) * smoothstep(-1.5, 1.5, el);
       out.keyDir.copy(out.sunDir);
       out.moon = 0;
     } else {
@@ -298,7 +298,7 @@ export function sampleSkyLook(clock: DayCycle<SkyKey>, out: SkyLook, key: SkyKey
       compassDir(clock.moonAzimuth, clock.moonElevation, out.keyDir);
       out.moon = 1;
     }
-    out.disc = out.moon > 0 ? moonT : smooth(-2.5, 0.5, el);
+    out.disc = out.moon > 0 ? moonT : smoothstep(-2.5, 0.5, el);
     lerpRGB(out.zenith, a.zenith, b.zenith, s); lerpRGB(out.horizon, a.horizon, b.horizon, s);
     lerpRGB(out.ground, a.ground, b.ground, s); lerpRGB(out.glow, a.glow, b.glow, s);
     out.stars = lerpN(a.stars, b.stars, s);

@@ -14,6 +14,7 @@
 import type * as THREE from 'three';
 import { Effect, BlendFunction, RenderPass, EffectPass, BloomEffect, type Pass } from 'postprocessing';
 import { TIER_CONFIG, type LookReplaceContext } from '#engine';
+import { smoothstep } from '#engine/data';
 
 /** the grade's live knobs (shared uniform objects: the grade effect and every inverse read them) */
 export const gradeUniforms = {
@@ -65,7 +66,6 @@ vec3 v2Ungrade(vec3 y) {
 }
 `;
 
-const smooth = (a: number, b: number, x: number): number => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 const lum = (c: readonly [number, number, number]): number => c[0] * LUM[0] + c[1] * LUM[1] + c[2] * LUM[2];
 
 /** the CPU copy of `v2Ungrade` (display-linear → scene-linear), in place on a 3-tuple */
@@ -78,7 +78,7 @@ export function ungrade(y: [number, number, number]): [number, number, number] {
     for (let i = 0; i < 3; i++) v = Math.min(1, Math.max(0, v - (v * v * (3 - 2 * v) * 0.35 + v * 0.65 - yk) / (2.1 * v * (1 - v) + 0.65)));
     c[k] = v;
   }
-  const split = (l: number, k: number): number => (SHADOW[k] ?? 1) + ((LIGHT[k] ?? 1) - (SHADOW[k] ?? 1)) * smooth(0.05, 0.6, l);
+  const split = (l: number, k: number): number => (SHADOW[k] ?? 1) + ((LIGHT[k] ?? 1) - (SHADOW[k] ?? 1)) * smoothstep(0.05, 0.6, l);
   let l = lum(c);
   let b: [number, number, number] = [c[0] / split(l, 0), c[1] / split(l, 1), c[2] / split(l, 2)];
   l = lum(b);

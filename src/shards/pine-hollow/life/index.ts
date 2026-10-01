@@ -57,6 +57,7 @@ import { loadBirdModels } from './birdModels';
 import { KIND, WildlifeMesh, newPose, type WildKind, type WildPose } from '../models/wildlife';
 import { BEAT, RAVEN_CARCASS, beatEnvelope, carcassMayGo, hareMayDraw, nearestUnvisited, ravenCount, ravenDelay, type PlaceSpot, type RavenVisit } from './lifeMath';
 import { pineOption } from '../debug/options';
+import { smoothstep } from '#engine/data';
 
 export interface PineLifeHost {
   ctx: ShardContext;
@@ -121,7 +122,6 @@ const TAU = Math.PI * 2;
 /** still out (a step may have sent it off) */
 const flying = (b: { mode: string }): boolean => b.mode !== 'off';
 const wrap = (a: number): number => Math.atan2(Math.sin(a), Math.cos(a));
-const smooth = (x: number): number => { const c = Math.min(1, Math.max(0, x)); return c * c * (3 - 2 * c); };
 
 export function installPineLife(h: PineLifeHost): PineLife | null {
   if (pineOption('pineLife') === 'off') return null; // Debug ▸ Creatures & NPCs ▸ Pine Hollow life (E162)
@@ -443,7 +443,7 @@ export function installPineLife(h: PineLifeHost): PineLife | null {
   };
   const updateOwl = (dt: number, night: number): void => {
     const p = owl.pose, pp = player.position;
-    wild.glow.value = smooth((night - 0.45) / 0.3);
+    wild.glow.value = smoothstep(0, 1, (night - 0.45) / 0.3);
     if (owl.mode === 'off') {
       if (night < 0.6 || now() < owlNextT) return;
       const spot = owlPerch(pp, 28, 70, null);

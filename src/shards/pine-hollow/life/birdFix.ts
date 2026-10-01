@@ -13,6 +13,7 @@
  * Pure geometry on a flat xyz array (no three.js loader): scripts/img2mesh/birds/birds_fix_preview.mjs runs them in Node.
  */
 import * as THREE from 'three';
+import { smoothstep } from '#engine/data';
 
 type V3 = readonly [number, number, number];
 /** the sidecar fields these read (birds.json, per mesh) */
@@ -21,7 +22,6 @@ export interface FixSide {
   tailRoot?: V3; tailAxis?: V3; beakTip?: V3; tailTip?: V3;
 }
 
-const smooth = (a: number, b: number, x: number): number => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 
 /**
  * The flying owl's body, given volume: a smooth displacement field over the body between the tail root and the neck,
@@ -41,7 +41,7 @@ export function inflateBody(pos: Float32Array, nor: Float32Array, s: FixSide, o:
     if (e <= 0) continue;
     const g = e * e * (3 - 2 * e);   // smooth at its rim: no crease where the field starts
     const ny = nor[i * 3 + 1] ?? 0;
-    const dy = up * g * smooth(-0.1, 0.5, ny) - down * g * smooth(-0.1, 0.5, -ny);
+    const dy = up * g * smoothstep(-0.1, 0.5, ny) - down * g * smoothstep(-0.1, 0.5, -ny);
     pos[i * 3 + 1] = (pos[i * 3 + 1] ?? 0) + dy;
   }
 }
@@ -163,7 +163,7 @@ export function clingPose(pos: Float32Array, s: FixSide, gen2pose: THREE.Matrix4
       const dx = side * Math.sin(ang), dy = Math.cos(ang), path: THREE.Vector3[] = [], rd: number[] = [];
       for (let k = 0; k <= 8; k++) {
         const f = k / 8, r = 0.0032 * (1 - 0.85 * f);
-        const off = r + 0.0035 * Math.sin(Math.PI * Math.min(1, f / 0.85)) - 0.0048 * smooth(0.7, 1, f);   // arched off the bark, the claw hooked into it
+        const off = r + 0.0035 * Math.sin(Math.PI * Math.min(1, f / 0.85)) - 0.0048 * smoothstep(0.7, 1, f);   // arched off the bark, the claw hooked into it
         path.push(new THREE.Vector3(foot.x + dx * len * f, foot.y + dy * len * f, bark - off));
         rd.push(k === 8 ? 0 : r);
       }
@@ -183,7 +183,7 @@ export function clingPose(pos: Float32Array, s: FixSide, gen2pose: THREE.Matrix4
   const bend = want - have;
   for (let i = 0; i < n; i++) {
     if (tail[i] === 0) continue;
-    const a = bend * smooth(0, sMax, sTail[i] ?? 0);
+    const a = bend * smoothstep(0, sMax, sTail[i] ?? 0);
     const x = w[i * 3] ?? 0, y = (w[i * 3 + 1] ?? 0) - root.y, z = (w[i * 3 + 2] ?? 0) - root.z;
     // rotate (y, z) about the root by −a around x (y down → z toward the bark)
     const c = Math.cos(a), sn = Math.sin(a);

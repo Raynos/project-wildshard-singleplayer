@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 import { REST, CHARGE, SPRINT, COMBO, SLASH, FINISHER, HEAVY, type Move } from './moves';
+import { smoothstep } from '#engine/data';
 
 /**
  * Sword — the Driftwood Isle melee weapon (`ShardManifest.weapon === 'sword'`): a low-poly wooden sword (pale carved blade
@@ -96,7 +97,6 @@ export interface SwordOptions {
 export const REACH = SWORD_WOOD.reach;
 export const HEAVY_CHARGE = SWORD_WOOD.heavyCharge;
 const clamp01 = (v: number) => (v < 0 ? 0 : Math.min(1, v));
-const sstep = (a: number, b: number, x: number) => { const t = clamp01((x - a) / (b - a)); return t * t * (3 - 2 * t); };
 const easeOut = (t: number) => 1 - (1 - t) * (1 - t);
 const easeIn = (t: number) => t * t;
 
@@ -827,7 +827,7 @@ export class Sword extends Melee {
     if (t < k[0].t) { aPos = this.fromPos; aQ = this.fromQ; bPos = k[0].pos; bQ = k[0].q; t0 = 0; t1 = k[0].t; f = easeIn(clamp01((t - t0) / (t1 - t0))); }
     else if (t < k[1].t) { aPos = k[0].pos; aQ = k[0].q; bPos = k[1].pos; bQ = k[1].q; t0 = k[0].t; t1 = k[1].t; f = easeOut(clamp01((t - t0) / (t1 - t0))); } // snap into the slash
     else if (t < k[2].t) { aPos = k[1].pos; aQ = k[1].q; bPos = k[2].pos; bQ = k[2].q; t0 = k[1].t; t1 = k[2].t; f = clamp01((t - t0) / (t1 - t0)); }
-    else { aPos = k[2].pos; aQ = k[2].q; bPos = this.mv.rest.pos; bQ = this.mv.rest.q; t0 = k[2].t; t1 = move.total; f = sstep(0, 1, clamp01((t - t0) / (t1 - t0))); } // settle out of it
+    else { aPos = k[2].pos; aQ = k[2].q; bPos = this.mv.rest.pos; bQ = this.mv.rest.q; t0 = k[2].t; t1 = move.total; f = smoothstep(0, 1, clamp01((t - t0) / (t1 - t0))); } // settle out of it
     outPos.copy(aPos).lerp(bPos, f);
     outQ.slerpQuaternions(aQ, bQ, f);
   }
@@ -902,7 +902,7 @@ export class Sword extends Melee {
     // an animated rig: its clips run on the same (world-scaled) clock, before the hit sweep reads its blade
     if (this.arms) {
       this.armsLook.set(dt > 0 ? dYaw / dt : 0, dt > 0 ? dPitch / dt : 0);
-      const h = sstep(0, 1, this.holster);
+      const h = smoothstep(0, 1, this.holster);
       this.armsHolder.position.set(0, -h * 0.45, h * 0.1);
       this.arms.update(dt, { speed: p.speedFactor, walkPhase: p.bobTime, lookVel: this.armsLook, camera: cam, renderer: this.game.renderer, holster: h });
     }
@@ -911,7 +911,7 @@ export class Sword extends Melee {
     const pos = _v1, q = _q;
     if (move) this.evalSwing(move, this.swingT, pos, q);
     else { pos.copy(this.mv.rest.pos); q.copy(this.mv.rest.q); }
-    const c = sstep(0, 1, this.chargeBlend), sp = this.sprintBlend;
+    const c = smoothstep(0, 1, this.chargeBlend), sp = this.sprintBlend;
     if (c > 0) {
       pos.lerp(this.mv.charge.pos, c); q.slerp(this.mv.charge.q, c);
       // charged: a taut tremble in the raised blade, and a small lift as it comes ready
@@ -948,7 +948,7 @@ export class Sword extends Melee {
     pos.x *= 1 - portrait * this.portraitPullX; pos.y *= 1 + portrait * 0.1; pos.z *= 1 + portrait * 0.45;
     pos.x += portrait * fr.dx; pos.y += portrait * fr.dy;
     if (portrait > 0) q.premultiply(_q2.setFromEuler(_e.set(-portrait * fr.tilt, portrait * fr.yaw, 0, 'YXZ')));
-    if (this.holster > 0) { const h = sstep(0, 1, this.holster); pos.y -= h * 0.45; pos.z += h * 0.1; q.premultiply(_q2.setFromEuler(_e.set(-h * 0.6, 0, h * 0.3, 'YXZ'))); } // weapon swap: drop out of the frame
+    if (this.holster > 0) { const h = smoothstep(0, 1, this.holster); pos.y -= h * 0.45; pos.z += h * 0.1; q.premultiply(_q2.setFromEuler(_e.set(-h * 0.6, 0, h * 0.3, 'YXZ'))); } // weapon swap: drop out of the frame
     if (this.inspect) { pos.set(0.0, -0.05, -0.75); q.setFromEuler(_e.set(0.2, Math.sin(t * 0.3) * 0.8, 0.9, 'YXZ')); }
     this.rig.scale.setScalar(scale); this.armRig.scale.setScalar(scale);
     const sm = this.poseInit ? Math.min(1, dt * 30) : 1; this.poseInit = true;

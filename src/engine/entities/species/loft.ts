@@ -45,7 +45,7 @@ export const paintNoise = new Noise2D(4242);
 
 export const srgb = (r: number, g: number, b: number): THREE.Color => new THREE.Color().setRGB(r, g, b, THREE.SRGBColorSpace);
 export const mix = (out: THREE.Color, a: THREE.Color, b: THREE.Color, t: number): THREE.Color => { out.copy(a).lerp(b, THREE.MathUtils.clamp(t, 0, 1)); return out; };
-export const sstep = (a: number, b: number, x: number): number => { const t = THREE.MathUtils.clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
+export { smoothstep as sstep } from '../../core/noise';   // the one smoothstep (E357 X5)
 
 /** the species palette as THREE.Colors, each entry overridden by the variant's tint of the same name (VariantDef.tint) */
 export function paletteColors<K extends string>(base: Record<K, RGB>, tint: Record<string, RGB> | undefined): Record<K, THREE.Color> {

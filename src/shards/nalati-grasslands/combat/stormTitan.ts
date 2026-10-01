@@ -24,6 +24,7 @@ import { wildEnv } from '../creatures/env';
 import { CAIRN } from '../manifest';
 import { LightningStrip, NaizagaiPower, naizagaiModel } from '../weapons/Naizagai';
 import { patchTitanCloud, GrassFireFx } from './stormTitanLook';
+import { smoothstep } from '#engine/data';
 
 
 /**
@@ -97,7 +98,6 @@ const FULL_DRAW = 43, FULL_DRAW_MUL = 2.5;
 
 const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _q2 = new THREE.Quaternion(), _s = new THREE.Vector3();
 const _ray = new THREE.Ray(), _sph = new THREE.Sphere(), _hitP = new THREE.Vector3();
-const smooth = (x: number): number => { const t = Math.min(1, Math.max(0, x)); return t * t * (3 - 2 * t); };
 function rng(seed: number): () => number { let s = seed >>> 0; return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
 
 // ─────────────────────────────── the body ───────────────────────────────
@@ -464,9 +464,9 @@ export class StormTitanFight implements BossScript {
     const b = this.body;
     if (!b.visible) b.setVisible(true);
     const len = short ? 1.2 : 3.2;
-    b.rise = smooth(t / len);
-    b.kneel = this.phase === 1 ? smooth(t / len) : 0;
-    b.uni.uAlpha.value = this.phase === 1 ? 1 - 0.45 * smooth(t / len) : 1;
+    b.rise = smoothstep(0, 1, t / len);
+    b.kneel = this.phase === 1 ? smoothstep(0, 1, t / len) : 0;
+    b.uni.uAlpha.value = this.phase === 1 ? 1 - 0.45 * smoothstep(0, 1, t / len) : 1;
     b.uni.uFlash.value = t > len * 0.7 ? Math.max(0, 1 - (t - len * 0.7) * 2) : 0;
     // his eyes ignite, and the first bolt hits the meadow
     if (!short && t > 2.5 && !this.introBolt) { this.introBolt = true; this.bolt(CENTER.x + 18, CENTER.z - 10); }

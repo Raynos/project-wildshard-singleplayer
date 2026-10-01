@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import type { RigAnimCtx, FurStyle } from './registry';
+import { smoothstep } from '../../core/noise';
 
 /**
  * Helpers shared by the CUSTOM rigs (crab / monkey / sailor — `SpeciesDef.rig: 'custom'`): pose maths that every
@@ -7,7 +8,7 @@ import type { RigAnimCtx, FurStyle } from './registry';
  * wants one).
  */
 
-export const smooth01 = (t: number): number => { const tt = THREE.MathUtils.clamp(t, 0, 1); return tt * tt * (3 - 2 * tt); };
+export const smooth01 = (t: number): number => smoothstep(0, 1, t);   // the one smoothstep (E357 X5)
 export const clamp = THREE.MathUtils.clamp;
 /** a unit bump: 0 → 1 → 0 over [a, b] */
 export const bump = (x: number, a: number, b: number): number => (x <= a || x >= b ? 0 : Math.sin(((x - a) / (b - a)) * Math.PI));

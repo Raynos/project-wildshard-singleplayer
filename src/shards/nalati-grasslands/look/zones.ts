@@ -9,8 +9,8 @@
  * Terrain.ts bakes the weights into a per-vertex `zone` attribute; terrainSurface.ts grades the ground by it in v2.
  */
 import * as nalatiDef from '../manifest';
+import { smoothstep } from '#engine/data';
 
-const smooth = (a: number, b: number, x: number): number => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 const num = (v: unknown): number => (typeof v === 'number' && Number.isFinite(v) ? v : 0);
 
 function fromExport(x: number, z: number, out: [number, number, number]): boolean {
@@ -30,8 +30,8 @@ function fromExport(x: number, z: number, out: [number, number, number]): boolea
 /** zone weights at (x, z) with ground height `h` and slope `slope` (1 − n.y): [valley, bowl, snow ring], summing to ~1 */
 export function zoneWeights(x: number, z: number, h: number, slope: number, out: [number, number, number]): [number, number, number] {
   if (!fromExport(x, z, out)) {
-    const snow = Math.max(smooth(44, 56, h), smooth(30, 42, h) * smooth(0.18, 0.32, slope));
-    const valley = (1 - smooth(0, 12, h)) * (1 - snow);
+    const snow = Math.max(smoothstep(44, 56, h), smoothstep(30, 42, h) * smoothstep(0.18, 0.32, slope));
+    const valley = (1 - smoothstep(0, 12, h)) * (1 - snow);
     out[0] = valley; out[1] = Math.max(0, 1 - valley - snow); out[2] = snow;
   }
   const s = out[0] + out[1] + out[2];

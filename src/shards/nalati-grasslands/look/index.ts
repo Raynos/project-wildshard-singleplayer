@@ -28,6 +28,7 @@ import { StaticBake, PHONE_STATIC_OFF_CSM } from './bake';
 import { setModelShade } from '../world/glbPaint';
 import { applyCloudSeaV2 } from './cloudSea';
 import type { Forest } from '#engine/world/forest/Forest';
+import { smoothstep } from '#engine/data';
 
 export interface LookV2Ctx {
   game: Game; sky: Sky; weather: NalatiWeather;
@@ -38,7 +39,6 @@ export interface LookV2Ctx {
   forest: Forest;
 }
 
-const smooth = (a: number, b: number, x: number): number => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 
 export async function wireLookV2(ctx: LookV2Ctx): Promise<void> {
   const { game, sky, weather } = ctx;
@@ -76,9 +76,9 @@ export async function wireLookV2(ctx: LookV2Ctx): Promise<void> {
     u.uSunNow.value.copy(look.sunDir);
     grassV2Uniforms.uSunView.value.copy(look.sunDir); // the grass glows looking into the (painted, real) sun
     // night: the painted sky fades out above the ridge line, the rig's stars show through (it is hidden by day: no overdraw)
-    const night = smooth(2, -9, weather.clock.sunElevation);
+    const night = smoothstep(2, -9, weather.clock.sunElevation);
     u.uNight.value = night;
-    grassMood(night, smooth(12, 0, weather.clock.sunElevation) * (1 - night), w.overcast); // the grass darkens + greys with the hour / storm
+    grassMood(night, smoothstep(12, 0, weather.clock.sunElevation) * (1 - night), w.overcast); // the grass darkens + greys with the hour / storm
     rigDome.visible = night > 0.001;
     // the sun is painted; the rig's disc stays only as the moon
     if (look.moon <= 0) sky.sunDisc.visible = false;

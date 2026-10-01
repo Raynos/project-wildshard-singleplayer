@@ -25,6 +25,7 @@ import { pondGrid } from './pond';
 import {
   BEAVER_POOL, CREEK, CREEK_WATER, beaverPoolLevel, creekBedAt, creekSpan, inBeaverPool, type XZ,
 } from '../layout';
+import { smoothstep } from '#engine/data';
 
 /** seconds from the sluice lifting to the muddy bed */
 export const DRAIN_S = 8;
@@ -34,7 +35,6 @@ const MUD_FILM = -0.34;
 const TRICKLE_ACROSS = [-0.9, -0.45, 0, 0.45, 0.9];
 const TRICKLE_DEPTH = [0, 0.07, 0.11, 0.07, 0];
 
-const smooth = (a: number, b: number, v: number): number => { const t = Math.min(1, Math.max(0, (v - a) / (b - a))); return t * t * (3 - 2 * t); };
 
 /** the creek's polyline point and unit direction at arc length `s` */
 function creekAt(s: number): { x: number; z: number; tx: number; tz: number } {
@@ -108,7 +108,7 @@ export class BeaverPool {
       pos.setY(k, y); aw.setX(k, code);
     }
     pos.needsUpdate = true; aw.needsUpdate = true;
-    this.trickleFade.value = smooth(0.45, 0.9, this.t);
+    this.trickleFade.value = smoothstep(0.45, 0.9, this.t);
     this.trickle.visible = this.trickleFade.value > 0.001;
   }
 
@@ -165,7 +165,7 @@ export class BeaverPool {
     let rows = 0;
     for (let s = P.riffle - 0.6; s <= end + 1e-6; s += 0.5) {
       const c = creekAt(s), lx = -c.tz, lz = c.tx;
-      const foam = 0.12 + 0.4 * (1 - smooth(P.riffle, P.riffle + 2.5, s)) * smooth(P.riffle - 0.6, P.riffle, s);
+      const foam = 0.12 + 0.4 * (1 - smoothstep(P.riffle, P.riffle + 2.5, s)) * smoothstep(P.riffle - 0.6, P.riffle, s);
       TRICKLE_ACROSS.forEach((o, k) => {
         const x = c.x + lx * o, z = c.z + lz * o, h = heightAt(x, z);
         pos.push(x, Math.max(h + 0.04, creekBedAt(s) + 0.04), z);

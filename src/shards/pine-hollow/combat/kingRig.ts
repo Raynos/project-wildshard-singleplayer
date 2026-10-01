@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import type { BoneDef, RigAnimCtx } from '#engine/entities/species/registry';
+import { smoothstep } from '#engine/data';
 
 /**
  * The Antler King's OWN rig (E322 F-M1; Jake picked B — A, the Bark Warden hull baked onto the elk's bones, walking like
@@ -95,8 +96,7 @@ function addScaled(into: KingPose, p: KingPose, w: number): void {
 const setFoot = (p: KingPose, leg: number, dx: number, dy: number, dz: number, toe: number): void => { p.feet[leg * 4] = dx; p.feet[leg * 4 + 1] = dy; p.feet[leg * 4 + 2] = dz; p.feet[leg * 4 + 3] = toe; };
 
 const clamp = THREE.MathUtils.clamp;
-const smooth01 = (t: number): number => { const x = clamp(t, 0, 1); return x * x * (3 - 2 * x); };
-const step = (x: number, a: number, b: number): number => smooth01((x - a) / (b - a));
+const step = (x: number, a: number, b: number): number => smoothstep(0, 1, (x - a) / (b - a));
 const TAU = Math.PI * 2;
 
 // ─────────────────────────────── the rest measure ───────────────────────────────
@@ -158,7 +158,7 @@ function gaitFoot(ph: number, stance: number, stroke: number, lift: number, out:
   const p = ((ph % 1) + 1) % 1;
   if (p < stance) { out[0] = stroke * (0.5 - p / stance); out[1] = 0; out[2] = 0; return out; }
   const u = (p - stance) / (1 - stance);
-  out[0] = stroke * (-0.5 + smooth01(u));
+  out[0] = stroke * (-0.5 + smoothstep(0, 1, u));
   out[1] = lift * Math.sin(Math.PI * u) ** 1.2;
   out[2] = 0.7 * Math.sin(Math.PI * u) * (1 - u);   // the toe flicks back as it leaves, flat as it lands
   return out;

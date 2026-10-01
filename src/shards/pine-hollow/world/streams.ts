@@ -27,6 +27,7 @@ import {
   CREEK, WATERFALL, RIDGE_STREAM, CREEK_WATER, creekSpan, creekSurfaceAt, creekFlowAt, creekFoamAt, type XZ,
 } from '../layout';
 import { PATCH_ORDER, patchShader } from '#engine';
+import { smoothstep } from '#engine/data';
 
 /** the creek ribbon's across-stream offsets (m): dense where the water meets the banks */
 const CREEK_ACROSS = [-6, -4.6, -3.8, -3.2, -2.6, -1.5, 0, 1.5, 2.6, 3.2, 3.8, 4.6, 6];
@@ -84,7 +85,6 @@ class Path {
   }
 }
 
-const smooth = (a: number, b: number, v: number): number => { const t = Math.min(1, Math.max(0, (v - a) / (b - a))); return t * t * (3 - 2 * t); };
 
 export class PineStreams {
   readonly group = new THREE.Group();
@@ -160,7 +160,7 @@ export class PineStreams {
       const drop = Math.max(0, top - yRun);
       const speed = Math.min(8, Math.max(1.2, Math.sqrt(2 * 9.8 * drop) * (steep > 0.15 ? 1 : 0.55)));
       travel += step / speed;
-      const halfW = 1.1 + 0.9 * smooth(0, lipS, s) + 1.3 * smooth(lipS, lipS + 30, s) + 0.5 * smooth(path.length - 10, path.length, s);
+      const halfW = 1.1 + 0.9 * smoothstep(0, lipS, s) + 1.3 * smoothstep(lipS, lipS + 30, s) + 0.5 * smoothstep(path.length - 10, path.length, s);
       const foam = s < lipS - 2 ? 0.5 : steep > 0.15 ? 0.84 : 0.7;
       for (let c = 0; c < COLS; c++) {
         const o = (c / (COLS - 1) * 2 - 1) * halfW, e = o / halfW;
