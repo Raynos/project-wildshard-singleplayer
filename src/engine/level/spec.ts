@@ -14,7 +14,8 @@ import type { BudgetInputs } from '../render/budgets';
 import type { TickRate } from '../app/scheduler';
 
 export type EngineMechanism = 'hover' | 'explore' | 'practice' | 'water' | 'creatures' | 'weather' | 'dayCycle';
-export interface FightRules { maxHitDamage?: number; capExempt?: readonly string[]; attackers?: number }
+export interface CreatureRenderSpec { lowPoly: boolean; waitForModels: boolean; furRim: boolean; tintRange: number; oneMaterial: boolean }
+export interface FightRules { telegraphed?: boolean; maxHitDamage?: number; capExempt?: readonly string[]; attackers?: number }
 export interface Bounds { x0: number; x1: number; z0: number; z1: number; floor: number }
 export interface TierKnobs { treeHiDist?: number; shadowFar?: number; animalShadowDist?: number; grassSlots?: number; envSteps?: boolean; pointLightSkip?: boolean; skipRaysOffscreen?: boolean; godRays?: boolean; ao?: boolean; aa?: 'fxaa' | 'smaa' | 'off'; slices?: boolean; warmTurns?: number; textures?: 'img' | 'ktx2'; msaa?: number; ticks?: Readonly<Record<string, TickRate>> }
 export type TierOverrides = Partial<Record<Tier, TierKnobs>>;
@@ -48,6 +49,9 @@ export interface LoadoutSpec {
 export interface LevelSpec {
   blender?: { area: { x0: number; x1: number; z0: number; z1: number }; models: readonly string[] };
   id: string;
+  seed?: number; treeCount?: number; label?: string;
+  creatureStyle?: string; creatures?: CreatureRenderSpec;
+  debugOptions?: readonly string[];
   /** `water`: the level's water bodies, registered in `app.world.water` at level.data (before any world step reads them) */
   ground: { terrain?: TerrainField; structures?: true; paths?: 'plugin'; water?: readonly WaterBody[] };
   spawn: SpawnPose; bounds?: Bounds; camera?: { portraitFov: number };

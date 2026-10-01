@@ -1,3 +1,4 @@
+import type { MinimapPalette } from '../ui/Minimap';
 import type { LookReplaceContext } from '../render/look';
 import type { Sky } from '../world/Sky';
 import type { TreeFactory } from '../world/TreeFactory';
@@ -130,6 +131,9 @@ export interface HudSpec {
   dayBadge?: boolean;
 }
 export interface MinimapSpec {
+  palette?: MinimapPalette;
+  openWater?: { level: number; deepDepth: number };
+  outside?: string;
   paths?: Vec2[][];
   pieces?: { ids: string[]; look: MapLook }[];
   ground?: [number, number, number];
