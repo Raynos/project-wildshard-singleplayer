@@ -1,3 +1,4 @@
+import exploreHorse from './explore/playground-horse.webp';
 import { NALATI_BUDGET_INPUTS } from './budgets';
 import type { ShardManifest } from '#game/shard/manifest';
 import { SEED, SPAWN, TERRAIN, groundColor, surfaceAt, loneSpruceMask, edgeBermAt } from './world/terrain';
@@ -19,6 +20,8 @@ import explorePractice from './explore/practice-nalati-grasslands.webp';
 export { RIVER_LEVEL, riverZAt, riverHalfAt, BRIDGE_XZ, CAMP, PASTURE, BOWL, RIM_N, SKY_ROAD, SKY_ROAD_RIM, EAGLE_ROCK, HORSE_PLAINS, KOKPAR, KURGANS, GREAT_KURGAN_DOOR, SUMMER_YURTS, WATCHTOWER, CAIRN, SNOW_LINE, CRAGS, WEST_CRAGS, snowValleyX, snowValleyHalf, snowValleyFloor, GLACIER, MELT_STREAM, LEOPARD_CAVE, SNOW_LOTUS, KOKBORI_DEN, QARA_CAIRN, ARGYMAQ_PASTURE, N_ROAD_PTS, S_ROAD_PTS, W_ROAD_PTS, E_ROAD_PTS, CAMP_SPUR, EAGLE_TRAIL, CAVE_TRAIL, ARGYMAQ_TRAIL, BOWL_TRACKS, LONE_SPRUCE, NALATI_MAP } from './layout';
 export { RIVER, BRIDGE, BROOK, RIM_Z, riverMask, rimZAt, brookMask, zoneAt, glacierMask, kokparMask, outcropAt, ringGround, edgeBermAt, TERRAIN } from './world/terrain';
 
+const EXPLORE = { world: exploreWorld, models: exploreModels, sets: exploreSets, practice: explorePractice } satisfies NonNullable<ShardManifest['explore']>;
+
 export const NALATI_GRASSLANDS: ShardManifest = {
   uses: ['dayCycle', 'weather', 'bosses', 'elites', 'spawns', 'quests', 'swim', 'hover', 'explore', 'practice', 'loot', 'feats'],
   api: 1,
@@ -26,7 +29,7 @@ export const NALATI_GRASSLANDS: ShardManifest = {
   loadout: { weapons: ['bow', 'sabre', 'spear', 'rifle'], tools: [], start: ['bow', 'sabre', 'spear'], held: 'bow', loans: [{ id: 'rifle', in: 'practice' }] },
   budgets: NALATI_BUDGET_INPUTS,
   audio: { bed: 'steppe', ambience: 'ambience.nalati', score: 'score.nalati', alertOnlyHostile: true, preload: () => import('./audio/files').then((m) => m.createNalatiAudio()) },
-  boot: { stagedWorld: true, files: bootFiles, sources: bootSources, steps: BOOT_STEPS, bytes: { trees: 'spruce bark' }, lateReads },
+  boot: { explore: { art: [...Object.values(EXPLORE), exploreHorse] }, precache: [], stagedWorld: true, files: bootFiles, sources: bootSources, steps: BOOT_STEPS, bytes: { trees: 'spruce bark' }, lateReads },
   bag: { tabs: ['map', 'gear', 'finds', 'feats'], pack: { slots: 0 }, skinsTitle: 'Skins' },
   kitLook: 'painterly',
   assetGlobs: ['public/assets/nalati/**', 'public/assets/gpu/nalati/**', 'public/assets/music/nalati/**', 'public/assets/sfx/nalati-grasslands/**', 'public/assets/title/nalati-grasslands-portrait.jpg'],
@@ -49,7 +52,7 @@ export const NALATI_GRASSLANDS: ShardManifest = {
   tiers: { phone: { msaa: 2 }, desktop: { msaa: 4 } }, // the look's composer MSAA (phone ×2: the fill rate of ×4 at DPR 1.5 on a tile GPU)
   // EXPLORE WORLD (NALATI-MERGE P1, wave 8): the viewer over the steppe — every registered POI is in the Model Explorer
   // (src/shards/nalati-grasslands/world/index.ts), the World Explorer map pins the map's named places
-  explore: { world: exploreWorld, models: exploreModels, sets: exploreSets, practice: explorePractice },
+  explore: EXPLORE,
   // its live models in the Model Explorer (E315 M5): the creatures it spawns, alive now or not, its people, its gear
   roster: async () => (await import('./roster')).ROSTER,
   pois: NALATI_MAP.pois.map((p) => ({ id: p.label.toLowerCase().replaceAll(' ', '-'), name: p.label.charAt(0) + p.label.slice(1).toLowerCase(), x: p.x, z: p.z, r: 24 })),

@@ -32,6 +32,12 @@ import heroLandscape from './thumbs/driftwood-isle-landscape.jpg';
 const SEED = 0x5ea1;
 
 /** Sea surface. The four entry roads are forced to y = 0 by `buildTerrain`, so a level a little above 0 turns them into submerged sandbars under the piers. */
+const EXPLORE = { art: { world: exploreWorld, models: exploreModels, sets: exploreSets, practice: explorePractice }, compare: [
+    { id: 'spawn', label: 'Spawn · pier', model: 'driftwood-spawn', target: 'art/driftwood-isle/round-4-remaster/mockup-1-fp-front.jpg', live: compareSpawnLive, image: compareSpawnTarget },
+    { id: 'right', label: 'Spawn · right', model: 'driftwood-right', target: 'art/driftwood-isle/round-4-remaster/mockup-3-fp-right.jpg', live: compareRightLive, image: compareRightTarget },
+    { id: 'overlook', label: 'Island overlook', model: 'driftwood-overlook', target: 'art/driftwood-isle/round-4-remaster/mockup-6-diag-front.jpg', live: compareOverlookLive, image: compareOverlookTarget },
+  ] } satisfies NonNullable<ShardManifest['explore']>;
+
 export const OCEAN: OceanDef = {
   level: 0.8,
   // albedo (linear); the sun + sky here add up to ~3× so the palette stays under 0.5 or it tone-maps to white
@@ -106,7 +112,7 @@ export const DRIFTWOOD_ISLE: ShardManifest = {
   kitLook: 'toon',
   assetGlobs: ['public/assets/models/driftwood-blender/**', 'public/assets/models/driftwood-cc0/**', 'public/assets/models/driftwood-fp/**', 'public/assets/models/driftwood-hero/**', 'public/assets/gpu/models/driftwood-blender/**', 'public/assets/gpu/models/driftwood-hero/**', 'public/assets/gpu/baked/driftwood-isle/**', 'public/assets/horizon/driftwood-isle-*', 'public/assets/gpu/horizon/driftwood-isle-*', 'public/assets/lut/driftwood-isle.bin', 'public/assets/title/driftwood-isle-portrait.jpg', 'public/assets/sfx/driftwood-isle/**'],
   ktx2: () => import('./ktx2.generated'),
-  boot: { files: () => [], sources: bootSources, lateReads }, // what its boot reads (./boot/sources.ts: no props of its own); the island's late reads (./boot/lateReads.ts)
+  boot: { explore: { art: [...Object.values(EXPLORE.art), ...EXPLORE.compare.flatMap(({ live, image }) => [live, image])] }, precache: [], files: (tier) => Object.values(bootSources(tier)).flat(), sources: bootSources, lateReads }, // what its boot reads (./boot/sources.ts: no props of its own); the island's late reads (./boot/lateReads.ts)
   load: () => import('./plugin'), // E357 S4.1: the world build (./world/build.ts); the rest still runs in main.ts until S4.2–S4.4
   order: 1,
   // the phone's picture cuts (E189): the viewmodels in near depth slices, no god-ray pass while the sun is off screen,
@@ -142,11 +148,7 @@ export const DRIFTWOOD_ISLE: ShardManifest = {
   },
   ocean: OCEAN,
   // Explore's hub art and its Compare pairs (the live capture against the mockup it chases; `target` is the mockup's source path)
-  explore: { art: { world: exploreWorld, models: exploreModels, sets: exploreSets, practice: explorePractice }, compare: [
-    { id: 'spawn', label: 'Spawn · pier', model: 'driftwood-spawn', target: 'art/driftwood-isle/round-4-remaster/mockup-1-fp-front.jpg', live: compareSpawnLive, image: compareSpawnTarget },
-    { id: 'right', label: 'Spawn · right', model: 'driftwood-right', target: 'art/driftwood-isle/round-4-remaster/mockup-3-fp-right.jpg', live: compareRightLive, image: compareRightTarget },
-    { id: 'overlook', label: 'Island overlook', model: 'driftwood-overlook', target: 'art/driftwood-isle/round-4-remaster/mockup-6-diag-front.jpg', live: compareOverlookLive, image: compareOverlookTarget },
-  ] },
+  explore: EXPLORE,
   // its live models in the Model Explorer (E315 M5): the creatures it spawns, alive now or not, its people, its gear
   roster: async () => (await import('./roster')).ROSTER,
   // the maps draw the island's built world (E130): the sand paths, then the pieces' footprints from the registry (main.ts

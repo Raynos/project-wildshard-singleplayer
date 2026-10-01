@@ -30,6 +30,12 @@ import heroLandscape from './thumbs/pine-hollow-landscape.jpg';
 
 const CELL = CHUNK_SIZE / (TERRAIN_RES - 1);
 
+const EXPLORE = { art: { world: exploreWorld, models: exploreModels, sets: exploreSets, practice: explorePractice }, compare: [
+    { id: 'ridge', label: 'The ridge', model: 'pine-ridge', target: 'art/pine-hollow/round-17-look-loop-3/ridge/mockup-1-fp-front.jpg', live: compareRidgeLive, image: compareRidgeTarget },
+    { id: 'den', label: 'The den', model: 'pine-den', target: 'art/pine-hollow/round-17-look-loop-3/den/mockup-1-fp-front.jpg', live: compareDenLive, image: compareDenTarget },
+    { id: 'hamlet', label: 'Mill hamlet', model: 'pine-hamlet', target: 'art/pine-hollow/round-17-look-loop-3/hamlet/mockup-1-fp-front.jpg', live: compareHamletLive, image: compareHamletTarget },
+  ] } satisfies NonNullable<ShardManifest['explore']>;
+
 export const PINE_HOLLOW: ShardManifest = {
   uses: ['dayCycle', 'weather'],
   horizonStrips: {
@@ -40,7 +46,7 @@ export const PINE_HOLLOW: ShardManifest = {
   api: 1,
   audio: { bed: FOREST_AUDIO.bed, samples: FOREST_AUDIO.samples, ambience: 'ambience.pine', score: 'score.pine', preload: () => import('./audio/files').then((m) => m.createPineAudio()) },
   load: () => import('./plugin'),
-  boot: { stagedWorld: true, files: bootFiles, sources: bootSources, bakedUnread: BAKED_UNREAD, steps: PINE_STEPS, bytes: PINE_BYTES },
+  boot: { explore: { art: [...Object.values(EXPLORE.art), ...EXPLORE.compare.flatMap(({ live, image }) => [live, image])] }, precache: [], stagedWorld: true, files: bootFiles, sources: bootSources, bakedUnread: BAKED_UNREAD, steps: PINE_STEPS, bytes: PINE_BYTES },
   kitLook: 'pbr',
   assetGlobs: ['public/assets/models/pine-hollow-crags/**', 'public/assets/models/pine-hollow-hero/**', 'public/assets/models/pine-hollow-trees/**', 'public/assets/gpu/models/pine-hollow-hero/**', 'public/assets/gpu/models/pine-hollow-trees/**', 'public/assets/gpu/pine-hollow/**', 'public/assets/gpu/baked/pine-hollow/**', 'public/assets/music/pine-hollow-folk/**', 'public/assets/music/pine-hollow-orchestral/**', 'public/assets/music/pine-hollow-piano/**', 'public/assets/sfx/pine-hollow/**', 'public/assets/horizon/pine-hollow-*', 'public/assets/gpu/horizon/pine-hollow-*', 'public/assets/lut/pine-hollow.bin', 'public/assets/title/pine-hollow-portrait.jpg'],
   ktx2: () => import('./ktx2.generated'),
@@ -57,11 +63,7 @@ export const PINE_HOLLOW: ShardManifest = {
   blurb: "A photoreal boreal forest, from dawn fog to lantern-lit night. Hunt deer, boar, elk and bear through the pines, relight the ranger's three dark waystone lanterns and face the Antler King in the old-growth — his thralls walk the fog until dawn.",
   card: { thumb: thumbnail, portrait: heroPortrait, landscape: heroLandscape },
   // EXPLORE WORLD (E66): the viewer over this shard, and the World Explorer map's pins (compass-true names, layout v2)
-  explore: { art: { world: exploreWorld, models: exploreModels, sets: exploreSets, practice: explorePractice }, compare: [
-    { id: 'ridge', label: 'The ridge', model: 'pine-ridge', target: 'art/pine-hollow/round-17-look-loop-3/ridge/mockup-1-fp-front.jpg', live: compareRidgeLive, image: compareRidgeTarget },
-    { id: 'den', label: 'The den', model: 'pine-den', target: 'art/pine-hollow/round-17-look-loop-3/den/mockup-1-fp-front.jpg', live: compareDenLive, image: compareDenTarget },
-    { id: 'hamlet', label: 'Mill hamlet', model: 'pine-hamlet', target: 'art/pine-hollow/round-17-look-loop-3/hamlet/mockup-1-fp-front.jpg', live: compareHamletLive, image: compareHamletTarget },
-  ] },
+  explore: EXPLORE,
   // its live models in the Model Explorer (E315 M5): the creatures it spawns, alive now or not, its people, its gear
   roster: async () => (await import('./roster')).ROSTER,
   // the forest's trees and the forest floor's kinds drawn as its models (E315 M2), once core has built the fields (E349)

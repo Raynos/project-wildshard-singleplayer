@@ -1,3 +1,4 @@
+import exploreGrapple from './explore/playground-grapple.webp';
 import { JIAN_ROW } from './vm/jianRow';
 import exploreWorld from './explore/world-nine-dragon-stack.webp';
 import exploreModels from './explore/models-nine-dragon-stack.webp';
@@ -46,6 +47,11 @@ const FILES = [
   ...['hand-r', 'arm-r', 'fist-l', 'gauntlet'].flatMap((n) => [`/assets/nine-dragon/viewmodel/${n}-maps.webp`, `/assets/nine-dragon/viewmodel/${n}-nrm.webp`]),
 ];
 
+const EXPLORE = { art: { world: exploreWorld, models: exploreModels, sets: exploreSets, practice: explorePractice }, compare: [
+    { id: 'gate', label: 'Lantern gate', model: 'nine-gate', target: 'art/nine-dragon-stack/round-15-eight-domes/A2-gate-look/target-5.jpg', live: compareGateLive, image: compareGateTarget },
+    { id: 'stair', label: 'Stair street', model: 'nine-stair', target: 'art/nine-dragon-stack/round-15-eight-domes/C1-stair-stand/target-5.jpg', live: compareStairLive, image: compareStairTarget },
+  ] } satisfies NonNullable<ShardManifest['explore']>;
+
 export const NINE_DRAGON_STACK: ShardManifest = {
   api: 1,
   kitLook: 'pbr',
@@ -58,7 +64,7 @@ export const NINE_DRAGON_STACK: ShardManifest = {
   encounters: [],
   dev: { poses: () => import('./mockupCameras').then((m) => m.MOCKUP_CAMERAS) },
   load: () => import('./plugin'),
-  boot: { steps: {}, files: () => FILES, audio: async () => (await import('./audio/files')).BOOT_AUDIO(), explore: { art: [explorePractice, exploreWorld, exploreModels, exploreSets] }, precache: [], barrier: true, phone: { deferExtras: true, fragile: true, trace: true }, cullBeforeFirstDraw: true },
+  boot: { steps: {}, files: () => FILES, audio: async () => (await import('./audio/files')).BOOT_AUDIO(), explore: { art: [...Object.values(EXPLORE.art), ...EXPLORE.compare.flatMap(({ live, image }) => [live, image]), exploreGrapple] }, precache: [], barrier: true, phone: { deferExtras: true, fragile: true, trace: true }, cullBeforeFirstDraw: true },
   audio: { bed: 'forest', samples: { omitLoops: ['shrine'], omitShots: ['crab_click', 'crab_snap', 'monkey_chatter', 'monkey_shriek', 'sailor_groan', 'sailor_slash', 'coconut_hit', 'coconut_land', 'gull'], loopGains: { forest: 0.5 } }, ambience: 'ambience.nd', score: 'score.nd', preload: async () => (await import('./audio/files')).createNdAudio() },
   tiers: { phone: { ao: false, slices: false, aa: 'fxaa', warmTurns: 0, textures: 'img' }, desktop: { ao: true, slices: false } },
   assetGlobs: ['public/assets/nine-dragon/**', 'public/assets/gpu/nine-dragon/**', 'public/assets/music/nine-dragon-stack/**', 'public/assets/sfx/nine-dragon-stack/**', 'public/assets/title/nine-dragon-stack-portrait.jpg'],
@@ -124,10 +130,7 @@ export const NINE_DRAGON_STACK: ShardManifest = {
   horizon: { rings: [], cloudSea: false },
   // EXPLORE WORLD on the title (the deck's card, behind the same Debug row; `?explore=` for captures): the World
   // Explorer's free camera over the fragment — no model catalog is registered
-  explore: { art: { world: exploreWorld, models: exploreModels, sets: exploreSets, practice: explorePractice }, compare: [
-    { id: 'gate', label: 'Lantern gate', model: 'nine-gate', target: 'art/nine-dragon-stack/round-15-eight-domes/A2-gate-look/target-5.jpg', live: compareGateLive, image: compareGateTarget },
-    { id: 'stair', label: 'Stair street', model: 'nine-stair', target: 'art/nine-dragon-stack/round-15-eight-domes/C1-stair-stand/target-5.jpg', live: compareStairLive, image: compareStairTarget },
-  ] },
+  explore: EXPLORE,
   // its live models in the Model Explorer (E315 M5): the creatures it spawns, alive now or not, its people, its gear
   roster: async () => (await import('./roster')).ROSTER,
   // the maps: the built fragment over a dark void (the Well, the air between the towers) — the floors, the tower fronts,
