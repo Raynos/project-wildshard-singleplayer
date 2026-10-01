@@ -6,6 +6,7 @@ import { steppeClock } from '#shards/nalati-grasslands/look/dayKeys';
 import { App } from '#engine/app/app';
 import { Scope } from '#engine/app/scope';
 import frozen from './fixtures/day-cycle-e357.json';
+import sequence from './fixtures/sky-sequence-e357.json';
 
 /** Recorded from pre-extraction source152c5409: whole-day paths/curves, three-hour schedule trace. */
 function close(actual: readonly unknown[], expected: readonly unknown[]): void {
@@ -53,6 +54,20 @@ describe('DayCycle preserves the three authored clocks', () => {
       let decoded = false; c.onSet = async () => { await Promise.resolve(); decoded = true; };
       await c.set(0.2); expect(decoded).toBe(true); expect(c.phase).toBeCloseTo(0.2);
     }
+  });
+  it('three capture-mode minutes at60× retain the original photographic key sequence', () => {
+    const clock = new DayCycle(PINE_DAY); clock.scale = 60;
+    let previous = '', j = 0;
+    for (let frame=0;frame<10800;frame++) {
+      clock.update(1/60);
+      const [a,b] = clock.segment(), pair = `${a[1].key}:${b[1].key}`;
+      if (pair !== previous || frame%60===0) {
+        const row = sequence[j++]; if (!row) throw new Error('missing recorded sky pair');
+        close([frame+1,clock.phase,a[1].key,b[1].key],row);
+      }
+      previous=pair;
+    }
+    expect(j).toBe(sequence.length);
   });
   it('parked clocks are resident-scoped and disposed clocks cannot be returned', () => {
     const app = new App(), a = new Scope('a'), b = new Scope('b'), pine = new DayCycle(PINE_DAY), nalati = steppeClock();

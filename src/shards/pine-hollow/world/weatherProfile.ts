@@ -1,3 +1,5 @@
+import { WET_GRAVITY, WET_DRAG } from '../loadout/ammo';
+import type { ProjectileModification } from '#engine/combat/ammo';
 import { Weather, type WeatherProfile } from '#engine/world/weather';
 import { Rng } from '#engine/core/rng';
 
@@ -76,3 +78,11 @@ export class PineWeather extends Weather<PineWeatherState> {
  }
  get untilRain(): number { return this.state === 'clear' ? this.phaseLen - this.phaseT + PINE_WEATHER_LEN.overcast[0] : this.state === 'overcast' ? this.phaseLen - this.phaseT : 0; }
 }
+
+/** Preserve Pine's authored decimal increments and the dry pitch-bolt row. */
+export function wetProjectile(input: ProjectileModification, rain: number): ProjectileModification {
+  if (input.ammo.wet === undefined) return input;
+  const r = Math.max(0, Math.min(1, rain));
+  return { ...input, gravity: input.gravity * (1 + WET_GRAVITY * r), drag: input.drag * (1 + WET_DRAG * r) };
+}
+

@@ -30,7 +30,7 @@ import type { AnimalManager, Herd } from '#engine/entities/AnimalManager';
 import type { Particles } from '#kit/looks/particles';
 import type { ForestAmbience } from '../audio/ambience';
 import { pineBackdrop } from '../look/skyBackdrop';
-import { PineWeather, type PineWeatherMode } from './weatherProfile';
+import { PineWeather, wetProjectile, type PineWeatherMode } from './weatherProfile';
 import { PineWeatherFX } from './PineWeatherFX';
 import { fogUniforms, weatherUniforms, volumetricFog } from '#engine/world/Atmosphere';
 import { waterWeather } from '#engine/world/waterSurface';
@@ -143,6 +143,7 @@ export function installPineWeather(h: PineWeatherHost, ctx?: LevelContext): Pine
     return { x: s.home.x, z: s.home.z, r: 10 };   // the rain is over: back out to graze
   };
   const scope = ctx?.scope ?? h.game.levelScope;
+  h.game.app.events.answer('projectile.modify', (input) => h.game.app.levelScope === h.game.levelScope ? wetProjectile(input, weather.rain) : input, scope);
   h.game.app.events.answer('creature.wander-goal', (query) => {
     if (h.game.app.levelScope !== h.game.levelScope) return query;
     return { ...query, goal: wanderGoal(query.herd) ?? query.goal };

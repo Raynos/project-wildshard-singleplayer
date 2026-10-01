@@ -1,6 +1,8 @@
 // src/shards/pine-hollow/world/PineWeather.ts (PINE-HOLLOW-REMASTER PH-L10): the showers' state machine and the dawn fog's clock.
 import { describe, expect, it } from 'vitest';
-import { PineWeather, dawnFogAt, PINE_WEATHER_LEN } from '#shards/pine-hollow/world/weatherProfile';
+import { boltFlight } from '#shards/pine-hollow/loadout/ammo';
+import { AMMO_ROWS } from '#shards/pine-hollow/loadout/effects';
+import { PineWeather, wetProjectile, dawnFogAt, PINE_WEATHER_LEN } from '#shards/pine-hollow/world/weatherProfile';
 
 /** run `secs` of weather in 1 s steps at a fixed clock phase; the states seen, in order (no repeats) */
 function run(w: PineWeather, secs: number, phase = 0.4): string[] {
@@ -73,4 +75,14 @@ describe('the showers', () => {
     run(a, 5000); run(b, 5000);
     expect([a.state, a.phaseT, a.rain]).toEqual([b.state, b.phaseT, b.rain]);
   });
+});
+
+it('the weather projectile answer exactly preserves all authored bolt flight multipliers', () => {
+  for (const ammo of AMMO_ROWS) {
+    const kind = ammo.id === 'ammo.iron' ? 'iron' : ammo.id === 'ammo.broadhead' ? 'broadhead' : 'pitch';
+    for (const rain of [-1,0,.125,.5,.875,1,2]) {
+      const actual = wetProjectile({ ammo, ...ammo.flight },rain);
+      expect({gravity:actual.gravity,drag:actual.drag}).toEqual(boltFlight(kind,rain));
+    }
+  }
 });
