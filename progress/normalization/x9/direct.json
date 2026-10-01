@@ -1,0 +1,1163 @@
+[
+  {
+    "shard": "driftwood-isle",
+    "verdict": "red",
+    "errors": [],
+    "poses": {
+      "pier": 0.9999456538266007,
+      "beach": 0.999997591558423,
+      "wreck": 1.000000000000027
+    },
+    "changes": [
+      {
+        "field": "boot.saves.read",
+        "baseline": [
+          "local:wildshard.save.v2.device",
+          "local:wildshard.save.v2.driftwood-isle",
+          "local:wildshard.save.v2.global",
+          "session:wildshard.save.v2.session"
+        ],
+        "now": [
+          "local:wildshard.save.v2.device",
+          "local:wildshard.save.v2.driftwood-isle",
+          "local:wildshard.save.v2.global",
+          "local:wildshard.save.v2.nalati-grasslands",
+          "local:wildshard.save.v2.nine-dragon-stack",
+          "local:wildshard.save.v2.pine-hollow",
+          "session:wildshard.save.v2.session"
+        ],
+        "class": "A",
+        "band": "exact",
+        "verdict": "red"
+      }
+    ]
+  },
+  {
+    "shard": "pine-hollow",
+    "verdict": "red",
+    "errors": [],
+    "poses": {
+      "gate": 0.9999976646520008,
+      "cabin": 0.9995045407327938,
+      "pond": 0.9986722528245805
+    },
+    "changes": [
+      {
+        "field": "boot.systems.update",
+        "baseline": [
+          "player.update",
+          "pine.landmarks",
+          "training-arena",
+          "hud.perf",
+          "engine.effects",
+          "main.6",
+          "hud.combat",
+          "first hints",
+          "main.frame",
+          "engine.player.regen",
+          "engine.player.hud",
+          "engine.effects.debug",
+          "engine.player.for",
+          "world.impacts",
+          "elites",
+          "engine.compendium.installCompendium",
+          "quest.kit",
+          "quest.pool",
+          "quest.shelf",
+          "quest",
+          "audio",
+          "shard.pine.weather.state",
+          "shard.pine.weather",
+          "world.life"
+        ],
+        "now": [
+          "player.update",
+          "pine.landmarks",
+          "training-arena",
+          "hud.perf",
+          "engine.effects",
+          "main.6",
+          "hud.combat",
+          "first hints",
+          "engine.effects.debug",
+          "engine.player.for",
+          "world.impacts",
+          "elites",
+          "main.frame",
+          "engine.player.regen",
+          "engine.player.hud",
+          "engine.compendium.installCompendium",
+          "quest.kit",
+          "quest.pool",
+          "quest.shelf",
+          "quest",
+          "audio",
+          "shard.pine.weather.state",
+          "shard.pine.weather",
+          "world.life"
+        ],
+        "class": "A",
+        "band": "exact",
+        "verdict": "red"
+      },
+      {
+        "field": "boot.physics.colliders",
+        "baseline": 2409,
+        "now": 2417,
+        "class": "A",
+        "band": "exact",
+        "verdict": "red"
+      },
+      {
+        "field": "boot.render.memory.textures",
+        "baseline": 408,
+        "now": 404,
+        "class": "B",
+        "band": "± 0",
+        "verdict": "red"
+      },
+      {
+        "field": "boot.gpuBytes.textures",
+        "baseline": 570530688,
+        "now": 567729880,
+        "class": "B",
+        "band": "± 0",
+        "verdict": "red"
+      },
+      {
+        "field": "boot.gpuBytes.buffers",
+        "baseline": 41678964,
+        "now": 41667444,
+        "class": "B",
+        "band": "± 0",
+        "verdict": "red"
+      },
+      {
+        "field": "boot.gpuBytes.total",
+        "baseline": 612209652,
+        "now": 609397324,
+        "class": "B",
+        "band": "± 0",
+        "verdict": "red"
+      },
+      {
+        "field": "boot.saves.read",
+        "baseline": [
+          "local:wildshard.save.v2.device",
+          "local:wildshard.save.v2.global",
+          "local:wildshard.save.v2.pine-hollow",
+          "session:wildshard.save.v2.session"
+        ],
+        "now": [
+          "local:wildshard.save.v2.device",
+          "local:wildshard.save.v2.driftwood-isle",
+          "local:wildshard.save.v2.global",
+          "local:wildshard.save.v2.nalati-grasslands",
+          "local:wildshard.save.v2.nine-dragon-stack",
+          "local:wildshard.save.v2.pine-hollow",
+          "session:wildshard.save.v2.session"
+        ],
+        "class": "A",
+        "band": "exact",
+        "verdict": "red"
+      }
+    ]
+  },
+  {
+    "shard": "nalati-grasslands",
+    "verdict": "red",
+    "errors": [],
+    "poses": {
+      "camp": 0.9611419822291388,
+      "bridge": 0.9178001104810022,
+      "plains": 0.9244721067125007
+    },
+    "changes": [
+      {
+        "field": "boot.scene.totals.mesh",
+        "baseline": 314,
+        "now": 315,
+        "class": "A",
+        "band": "exact",
+        "verdict": "red"
+      },
+      {
+        "field": "boot.scene.named",
+        "baseline": [
+          {
+            "path": "animals",
+            "type": "Group",
+            "n": 61
+          },
+          {
+            "path": "animals/far-herd",
+            "type": "Group",
+            "n": 0
+          },
+          {
+            "path": "animals/herd-shadow",
+            "type": "Group",
+            "n": 0
+          },
+          {
+            "path": "cloud-sea",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "HUD + Weapon Explorer · grid arena",
+            "type": "Group",
+            "n": 9
+          },
+          {
+            "path": "impacts",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "kurgan-dungeon",
+            "type": "Group",
+            "n": 34
+          },
+          {
+            "path": "kurgan-dungeon/kurgan-interior",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "light-pool",
+            "type": "Group",
+            "n": 0
+          },
+          {
+            "path": "marmots",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "nalati-camp-people",
+            "type": "Group",
+            "n": 2
+          },
+          {
+            "path": "nalati-camp-people/nalati-camp-child",
+            "type": "Object3D",
+            "n": 0
+          },
+          {
+            "path": "nalati-camp-people/nalati-camp-people",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "nalati-camp-people/nalati-camp-people-gen",
+            "type": "SkinnedMesh",
+            "n": 0
+          },
+          {
+            "path": "nalati-crag-rock",
+            "type": "Group",
+            "n": 4
+          },
+          {
+            "path": "nalati-crag-rock/nalati-crag-rock-0",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "nalati-crag-rock/nalati-crag-rock-1",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "nalati-crag-rock/nalati-crag-rock-2",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "nalati-crag-rock/nalati-crag-rock-3",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "nalati-dressing",
+            "type": "Group",
+            "n": 19
+          },
+          {
+            "path": "nalati-dressing/nalati-dress-boulder",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "nalati-dressing/nalati-dress-boulder-tall",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "nalati-dressing/nalati-dress-camp-clutter",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "nalati-dressing/nalati-dress-daisy",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "nalati-dressing/nalati-dress-juniper",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "nalati-dressing/nalati-dress-life",
+            "type": "Group",
+            "n": 2
+          },
+          {
+            "path": "nalati-dressing/nalati-dress-lupin",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "nalati-dressing/nalati-dress-reed",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "nalati-dressing/nalati-dress-rose",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "nalati-dressing/nalati-dress-slab",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "nalati-dressing/nalati-dress-statics",
+            "type": "Group",
+            "n": 5
+          },
+          {
+            "path": "nalati-dressing/nalati-dress-stone",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "nalati-dressing/nalati-dress-willow",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "nalati-kokpar-goat",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "nalati-outcrops",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "nalati-pois",
+            "type": "Group",
+            "n": 39
+          },
+          {
+            "path": "nalati-pois/nalati-balbals",
+            "type": "Group",
+            "n": 2
+          },
+          {
+            "path": "nalati-pois/nalati-bridge",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "nalati-pois/nalati-cairn",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "nalati-pois/nalati-camp",
+            "type": "Group",
+            "n": 10
+          },
+          {
+            "path": "nalati-pois/nalati-crags",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "nalati-pois/nalati-eagle-rock",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "nalati-pois/nalati-far-herds",
+            "type": "Group",
+            "n": 4
+          },
+          {
+            "path": "nalati-pois/nalati-glacier",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "nalati-pois/nalati-kokpar",
+            "type": "Group",
+            "n": 3
+          },
+          {
+            "path": "nalati-pois/nalati-kurgans",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "nalati-pois/nalati-snow-lotus",
+            "type": "Group",
+            "n": 1
+          },
+          {
+            "path": "nalati-pois/nalati-summer-camp",
+            "type": "Group",
+            "n": 6
+          },
+          {
+            "path": "nalati-pois/nalati-watchtower",
+            "type": "Group",
+            "n": 2
+          },
+          {
+            "path": "night-debris",
+            "type": "Points",
+            "n": 0
+          },
+          {
+            "path": "night-mist",
+            "type": "Points",
+            "n": 0
+          },
+          {
+            "path": "projectiles",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "projectiles",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "reins",
+            "type": "Group",
+            "n": 1
+          },
+          {
+            "path": "sheep-flock",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "sky-dome",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "sky-dome-v2",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "titan-cloud",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "titan-debris",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "titan-flames",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "titan-scorch",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "titan-smoke",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "titan-storm-wall",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "titan-storm-wall",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "titan-whirlwind",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "titan-whirlwind",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "titan-whirlwind",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "weather-fx",
+            "type": "Group",
+            "n": 5
+          },
+          {
+            "path": "weather-fx/lightning-bolt",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "weather-fx/lightning-smoke",
+            "type": "Points",
+            "n": 0
+          },
+          {
+            "path": "weather-fx/puddles",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "weather-fx/rain",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "weather-fx/storm-curtains",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "weather-fx/storm-deck",
+            "type": "Mesh",
+            "n": 0
+          }
+        ],
+        "now": [
+          {
+            "path": "animals",
+            "type": "Group",
+            "n": 61
+          },
+          {
+            "path": "animals/far-herd",
+            "type": "Group",
+            "n": 0
+          },
+          {
+            "path": "animals/herd-shadow",
+            "type": "Group",
+            "n": 0
+          },
+          {
+            "path": "cloud-sea",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "HUD + Weapon Explorer · grid arena",
+            "type": "Group",
+            "n": 9
+          },
+          {
+            "path": "impacts",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "kurgan-dungeon",
+            "type": "Group",
+            "n": 34
+          },
+          {
+            "path": "kurgan-dungeon/kurgan-interior",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "light-pool",
+            "type": "Group",
+            "n": 0
+          },
+          {
+            "path": "marmots",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "nalati-camp-people",
+            "type": "Group",
+            "n": 2
+          },
+          {
+            "path": "nalati-camp-people/nalati-camp-child",
+            "type": "Object3D",
+            "n": 0
+          },
+          {
+            "path": "nalati-camp-people/nalati-camp-people",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "nalati-camp-people/nalati-camp-people-gen",
+            "type": "SkinnedMesh",
+            "n": 0
+          },
+          {
+            "path": "nalati-crag-rock",
+            "type": "Group",
+            "n": 4
+          },
+          {
+            "path": "nalati-crag-rock/nalati-crag-rock-0",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "nalati-crag-rock/nalati-crag-rock-1",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "nalati-crag-rock/nalati-crag-rock-2",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "nalati-crag-rock/nalati-crag-rock-3",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "nalati-dressing",
+            "type": "Group",
+            "n": 19
+          },
+          {
+            "path": "nalati-dressing/nalati-dress-boulder",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "nalati-dressing/nalati-dress-boulder-tall",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "nalati-dressing/nalati-dress-camp-clutter",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "nalati-dressing/nalati-dress-daisy",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "nalati-dressing/nalati-dress-juniper",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "nalati-dressing/nalati-dress-life",
+            "type": "Group",
+            "n": 2
+          },
+          {
+            "path": "nalati-dressing/nalati-dress-lupin",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "nalati-dressing/nalati-dress-reed",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "nalati-dressing/nalati-dress-rose",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "nalati-dressing/nalati-dress-slab",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "nalati-dressing/nalati-dress-statics",
+            "type": "Group",
+            "n": 5
+          },
+          {
+            "path": "nalati-dressing/nalati-dress-stone",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "nalati-dressing/nalati-dress-willow",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "nalati-kokpar-goat",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "nalati-outcrops",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "nalati-pois",
+            "type": "Group",
+            "n": 39
+          },
+          {
+            "path": "nalati-pois/nalati-balbals",
+            "type": "Group",
+            "n": 2
+          },
+          {
+            "path": "nalati-pois/nalati-bridge",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "nalati-pois/nalati-cairn",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "nalati-pois/nalati-camp",
+            "type": "Group",
+            "n": 10
+          },
+          {
+            "path": "nalati-pois/nalati-crags",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "nalati-pois/nalati-eagle-rock",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "nalati-pois/nalati-far-herds",
+            "type": "Group",
+            "n": 4
+          },
+          {
+            "path": "nalati-pois/nalati-glacier",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "nalati-pois/nalati-kokpar",
+            "type": "Group",
+            "n": 3
+          },
+          {
+            "path": "nalati-pois/nalati-kurgans",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "nalati-pois/nalati-snow-lotus",
+            "type": "Group",
+            "n": 1
+          },
+          {
+            "path": "nalati-pois/nalati-summer-camp",
+            "type": "Group",
+            "n": 6
+          },
+          {
+            "path": "nalati-pois/nalati-watchtower",
+            "type": "Group",
+            "n": 2
+          },
+          {
+            "path": "night-debris",
+            "type": "Points",
+            "n": 0
+          },
+          {
+            "path": "night-mist",
+            "type": "Points",
+            "n": 0
+          },
+          {
+            "path": "painterly-clouds",
+            "type": "Group",
+            "n": 2
+          },
+          {
+            "path": "painterly-clouds/cloud-puffs",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "painterly-clouds/cumulus-bank",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "projectiles",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "projectiles",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "reins",
+            "type": "Group",
+            "n": 1
+          },
+          {
+            "path": "sheep-flock",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "sky-dome",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "sky-dome-v2",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "titan-cloud",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "titan-debris",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "titan-flames",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "titan-scorch",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "titan-smoke",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "titan-storm-wall",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "titan-storm-wall",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "titan-whirlwind",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "titan-whirlwind",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "titan-whirlwind",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "weather-fx",
+            "type": "Group",
+            "n": 5
+          },
+          {
+            "path": "weather-fx/lightning-bolt",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "weather-fx/lightning-smoke",
+            "type": "Points",
+            "n": 0
+          },
+          {
+            "path": "weather-fx/puddles",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "weather-fx/rain",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "weather-fx/storm-curtains",
+            "type": "Mesh",
+            "n": 0
+          },
+          {
+            "path": "weather-fx/storm-deck",
+            "type": "Mesh",
+            "n": 0
+          }
+        ],
+        "class": "A",
+        "band": "exact",
+        "verdict": "red"
+      },
+      {
+        "field": "boot.render.programs",
+        "baseline": 114,
+        "now": 102,
+        "class": "B",
+        "band": "± 0",
+        "verdict": "red"
+      },
+      {
+        "field": "boot.render.programKeys",
+        "baseline": "b3f04247bbd93b1c41bcfee5180e7605bd8d8165d108a9ffa5e926353b48d425",
+        "now": "3c7fd5d6d3ca837d5213826e6e0a4971a9dbd3e7419ec74a1b393ad1b8682c06",
+        "class": "A",
+        "band": "exact",
+        "verdict": "red"
+      },
+      {
+        "field": "boot.render.memory.geometries",
+        "baseline": 122,
+        "now": 120,
+        "class": "B",
+        "band": "± 0",
+        "verdict": "red"
+      },
+      {
+        "field": "boot.render.memory.textures",
+        "baseline": 151,
+        "now": 128,
+        "class": "B",
+        "band": "± 0",
+        "verdict": "red"
+      },
+      {
+        "field": "boot.gpuBytes.textures",
+        "baseline": 204250936,
+        "now": 136202680,
+        "class": "B",
+        "band": "± 0",
+        "verdict": "red"
+      },
+      {
+        "field": "boot.gpuBytes.renderbuffers",
+        "baseline": 4194304,
+        "now": 41060224,
+        "class": "B",
+        "band": "± 0",
+        "verdict": "red"
+      },
+      {
+        "field": "boot.gpuBytes.buffers",
+        "baseline": 73219108,
+        "now": 73219036,
+        "class": "B",
+        "band": "± 0",
+        "verdict": "red"
+      },
+      {
+        "field": "boot.gpuBytes.total",
+        "baseline": 281664348,
+        "now": 250481940,
+        "class": "B",
+        "band": "± 0",
+        "verdict": "red"
+      },
+      {
+        "field": "boot.saves.read",
+        "baseline": [
+          "local:wildshard.save.v2.device",
+          "local:wildshard.save.v2.global",
+          "local:wildshard.save.v2.nalati-grasslands",
+          "session:wildshard.save.v2.session"
+        ],
+        "now": [
+          "local:wildshard.save.v2.device",
+          "local:wildshard.save.v2.driftwood-isle",
+          "local:wildshard.save.v2.global",
+          "local:wildshard.save.v2.nalati-grasslands",
+          "local:wildshard.save.v2.nine-dragon-stack",
+          "local:wildshard.save.v2.pine-hollow",
+          "session:wildshard.save.v2.session"
+        ],
+        "class": "A",
+        "band": "exact",
+        "verdict": "red"
+      },
+      {
+        "field": "poses.camp.calls",
+        "baseline": 99,
+        "now": 79,
+        "class": "B",
+        "band": "± 0",
+        "verdict": "red"
+      },
+      {
+        "field": "poses.camp.tris",
+        "baseline": 1174968,
+        "now": 1174948,
+        "class": "B",
+        "band": "± 0",
+        "verdict": "red"
+      },
+      {
+        "field": "poses.camp.ssim",
+        "baseline": 0.9611419822291911,
+        "now": 0.9611419822291388,
+        "class": "B",
+        "band": "≥ 0.99",
+        "verdict": "red"
+      },
+      {
+        "field": "poses.bridge.calls",
+        "baseline": 110,
+        "now": 90,
+        "class": "B",
+        "band": "± 0",
+        "verdict": "red"
+      },
+      {
+        "field": "poses.bridge.tris",
+        "baseline": 1279771,
+        "now": 1279751,
+        "class": "B",
+        "band": "± 0",
+        "verdict": "red"
+      },
+      {
+        "field": "poses.bridge.ssim",
+        "baseline": 0.9177998628030898,
+        "now": 0.9178001104810022,
+        "class": "B",
+        "band": "≥ 0.99",
+        "verdict": "red"
+      },
+      {
+        "field": "poses.plains.calls",
+        "baseline": 128,
+        "now": 108,
+        "class": "B",
+        "band": "± 0",
+        "verdict": "red"
+      },
+      {
+        "field": "poses.plains.tris",
+        "baseline": 1292929,
+        "now": 1292909,
+        "class": "B",
+        "band": "± 0",
+        "verdict": "red"
+      },
+      {
+        "field": "poses.plains.ssim",
+        "baseline": 0.9453252995539135,
+        "now": 0.9244721067125007,
+        "class": "B",
+        "band": "≥ 0.99",
+        "verdict": "red"
+      }
+    ]
+  },
+  {
+    "shard": "nine-dragon-stack",
+    "verdict": "red",
+    "errors": [
+      "[faults] system \"shard.nd.audio\" threw: InvalidStateError: Failed to set the 'buffer' property on 'AudioBufferSourceNode': Cannot set buffer to non-null after it has been already been set to a non-null buffer\n    at x (http://127.0.0.1:53115/assets/content-D6iuGnQe.js:1:2742)\n    at C.update (http://127.0.0.1:53115/assets/content-D6iuGnQe.js:1:3978)\n    at http://127.0.0.1:53115/assets/plugin-pdYCw48l.js:1057:60186\n    at t (http://127.0.0.1:53115/assets/harnessTap-BrVk3vs1.js:1:136)\n    at Object.run (http://127.0.0.1:53115/assets/plugin-pdYCw48l.js:1057:60056)\n    at O_.runPhase (http://127.0.0.1:53115/assets/main-PXIE9mD9.js:2782:15728)\n    at s (http://127.0.0.1:53115/assets/main-PXIE9mD9.js:2783:2187)\n    at <anonymous>:38:81\n    at <anonymous>:35:93",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    ],
+    "poses": {
+      "spawn-rail": 0.9845208857874018,
+      "well-edge": 1,
+      "stair-street": 1
+    },
+    "changes": [
+      {
+        "field": "boot.errors",
+        "baseline": [],
+        "now": [
+          "[faults] system \"shard.nd.audio\" threw: InvalidStateError: Failed to set the 'buffer' property on 'AudioBufferSourceNode': Cannot set buffer to non-null after it has been already been set to a non-null buffer\n    at x (http://127.0.0.1:53115/assets/content-D6iuGnQe.js:1:2742)\n    at C.update (http://127.0.0.1:53115/assets/content-D6iuGnQe.js:1:3978)\n    at http://127.0.0.1:53115/assets/plugin-pdYCw48l.js:1057:60186\n    at t (http://127.0.0.1:53115/assets/harnessTap-BrVk3vs1.js:1:136)\n    at Object.run (http://127.0.0.1:53115/assets/plugin-pdYCw48l.js:1057:60056)\n    at O_.runPhase (http://127.0.0.1:53115/assets/main-PXIE9mD9.js:2782:15728)\n    at s (http://127.0.0.1:53115/assets/main-PXIE9mD9.js:2783:2187)\n    at <anonymous>:38:81\n    at <anonymous>:35:93",
+          "Failed to load resource: the server responded with a status of 404 (Not Found)"
+        ],
+        "class": "D",
+        "band": "[]",
+        "verdict": "red"
+      },
+      {
+        "field": "boot.saves.read",
+        "baseline": [
+          "local:wildshard.save.v2.device",
+          "local:wildshard.save.v2.global",
+          "local:wildshard.save.v2.nine-dragon-stack",
+          "session:wildshard.save.v2.session"
+        ],
+        "now": [
+          "local:wildshard.save.v2.device",
+          "local:wildshard.save.v2.driftwood-isle",
+          "local:wildshard.save.v2.global",
+          "local:wildshard.save.v2.nalati-grasslands",
+          "local:wildshard.save.v2.nine-dragon-stack",
+          "local:wildshard.save.v2.pine-hollow",
+          "session:wildshard.save.v2.session"
+        ],
+        "class": "A",
+        "band": "exact",
+        "verdict": "red"
+      },
+      {
+        "field": "poses.spawn-rail.ssim",
+        "baseline": 1,
+        "now": 0.9845208857874018,
+        "class": "B",
+        "band": "≥ 0.99",
+        "verdict": "red"
+      }
+    ]
+  }
+]
