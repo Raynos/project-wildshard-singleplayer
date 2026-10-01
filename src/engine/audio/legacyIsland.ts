@@ -1,21 +1,13 @@
-import { Scope } from '../app/scope';
 import { PlayerVoices } from './playerVoices';
 import { audioRandom, panFromYaw } from './util';
-import { tap, ambientTick } from '../core/harnessTap';
+import { tap } from '../core/harnessTap';
 import type { Vector3 } from 'three';
 
 const rnd = (a: number, b: number): number => a + audioRandom() * (b - a);
 
-/** S4.3 parking: the existing ocean calls and surf keep their authored taps and envelopes. */
+/** S4.3 parking: the ocean gull calls, until the level's own voice table plays them (08 §6.3 C.2). */
 export abstract class LegacyIsland extends PlayerVoices {
   abstract listenerYaw: number;
-  protected abstract ambientOn: boolean;
-  protected abstract windGain: GainNode | undefined;
-  protected abstract windGain2: GainNode | undefined;
-  protected abstract mkWind(freq: number, q: number, pan: number, lfoRate: number, base: number, lowpass?: number): GainNode;
-  protected abstract scheduleGust(gentle?: number): void;
-  private surfScope: Scope | undefined;
-  protected stopIsland(): void { this.surfScope?.dispose(); this.surfScope = undefined; }
   gullCall(pan = 0, gain = 1): void {
     tap.sound?.('gullCall');
     if (!this.ready || this.shot('gull', { pan, gain, out: this.ambient })) return;
@@ -48,41 +40,5 @@ export abstract class LegacyIsland extends PlayerVoices {
     const att = 1 / (1 + dist / 14) ** 1.3;
     const pan = panFromYaw(dx, dz, yaw, 0.8, dist);
     this.gullCall(pan, att);
-  }
-
-  protected startIsland(): void {
-    this.surfScope = new Scope('audio.ocean.surf');
-    tap.sound?.('audio.startIsland');
-    this.windGain = this.mkWind(180, 0.4, -0.3, 0.05, 0.05, 900);   // a lighter, warmer breeze than the pines
-    this.windGain2 = this.mkWind(420, 0.6, 0.3, 0.08, 0.03, 1100);
-    this.mkWind(1500, 0.35, 0.0, 0.03, 0.02, 5000);                  // the constant far surf hiss
-    this.scheduleGust(1.4);
-    this.scheduleSurf();
-  }
-
-  private scheduleSurf() {
-    const wait = rnd(6, 9);
-    this.surfScope?.timeout(wait * 1000, () => {
-      ambientTick('audio.surf', () => {
-        if (this.ambientOn) this.surfSwell();
-        this.scheduleSurf();
-      });
-    });
-  }
-
-  /** one wave: a low rumble building over ~2 s, the break (a wide bright hiss), then the wash sliding back down the sand */
-  private surfSwell() {
-    const c = this.ctx, t = c.currentTime;
-    const pan = rnd(-0.35, 0.35), size = rnd(0.7, 1.15);
-    const bus = c.createGain(); bus.gain.value = 0.42 * size;
-    this.route(bus, pan, this.ambient);
-    const build = rnd(1.6, 2.4), wash = rnd(2.6, 4.0);
-    // the build: low noise rising in pitch and level
-    this.burst({ t, type: 'lowpass', freq: 240, freqEnd: 700, gain: 0.5, attack: build, decay: 1.2, hold: 0.2, out: bus });
-    // the break: wide, bright, a fast swell then the long wash tail that darkens as it drains
-    this.burst({ t: t + build * 0.75, type: 'bandpass', freq: 1800, freqEnd: 500, q: 0.4, gain: 0.55, attack: 0.5, hold: 0.4, decay: wash, out: bus });
-    this.burst({ t: t + build * 0.85, type: 'highpass', freq: 2600, gain: 0.16, attack: 0.35, hold: 0.3, decay: wash * 0.6, out: bus });
-    // the foam fizz on the sand at the end
-    this.burst({ t: t + build + 1.2, type: 'bandpass', freq: 4200, q: 0.6, gain: 0.08, attack: 0.6, decay: wash * 0.7, out: bus });
   }
 }

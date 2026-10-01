@@ -1,5 +1,4 @@
-import { ownAudioSource } from '#engine';
-import { tap } from '#engine/core/harnessTap';
+import { ownAudioSource, tap, Scope, type Audio, type Music } from '#engine';
 // src/shards/driftwood-isle/audio/shrineHum.ts — the Driftwood ring shrine hums (project/archive/2026-09-23-music.md v3 row 9; ASKS D42: "always, by proximity").
 //
 //   const hum = new ShrineHum(audio, music, { x, y, z });   // main.ts, when the shard has a shrine
@@ -12,8 +11,6 @@ import { tap } from '#engine/core/harnessTap';
 // stopped on the way out), so the rest of the island pays nothing. Inside 10 m the whole music bus ducks −3 dB (music.duck).
 // The WebAudio listener follows the camera: position + forward + up from its world matrix, no allocation per frame.
 import type { Camera } from 'three';
-import type { Audio } from '#engine/audio/Audio';
-import type { Music } from '#engine/audio/Music';
 
 const REF = 4, MAX = 22, BUILD_R = 30, DROP_R = 36;
 const DUCK_IN = 10, DUCK_EDGE = 13, DUCK = 10 ** (-3 / 20);
@@ -24,6 +21,8 @@ export class ShrineHum {
   private nodes: { panner: PannerNode; out: GainNode; srcs: AudioScheduledSourceNode[]; buf: AudioBuffer | undefined } | undefined;
   /** diagnostics: the distance at the last update and whether the hum is built */
   dist = Infinity;
+  /** the teardown's disconnect timers */
+  private readonly scope = new Scope('audio.shrine.hum');
 
   constructor(private readonly audio: Audio, private readonly music: Music, private readonly pos: { x: number; y: number; z: number }) {}
 
@@ -89,6 +88,6 @@ export class ShrineHum {
     const t = this.audio.ctx.currentTime;
     n.out.gain.cancelScheduledValues(t); n.out.gain.setValueAtTime(n.out.gain.value, t); n.out.gain.linearRampToValueAtTime(0, t + 0.4);
     for (const s of n.srcs) s.stop(t + 0.45);
-    window.setTimeout(() => { try { n.panner.disconnect(); } catch { /* gone */ } }, 600);
+    this.scope.timeout(600, () => { try { n.panner.disconnect(); } catch { /* gone */ } });
   }
 }

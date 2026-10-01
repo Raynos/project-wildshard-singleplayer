@@ -4,10 +4,9 @@ import { ownAudioSource } from './ownership';
 import { currentScope } from '../app/legacyCapture';
 import { tap, ambientTick } from '../core/harnessTap';
 import type { Vector3 } from 'three';
-import { getActiveChunk } from '#game/shard/registry';
 import { getSfxSet, onSfxSet, type SfxSet } from '../ui/Settings';
 import { setSfxCredit } from './credits';
-import { cachedBytes, decodeSfxSet, trackBusy, DEFAULT_BED, type SfxBank } from './preload';
+import { cachedBytes, decodeSfxSet, trackBusy, type SfxBank, type SfxDecodePolicy } from './preload';
 import { Voices } from './Voices';
 import type { Scope } from '../app/scope';
 import type { CueMap, CueOpts } from './Cues';
@@ -37,7 +36,6 @@ import type { LevelAudioBank } from './levelAudio';
  *   audio.installSynthBed(id, bed, scope)   // a level's synth bed for `setAmbient(id)` when no sampled bed of that id decoded
  *   audio.counts                                          // { [sound]: calls } — a debug tally (headless checks)
  *   audio.worldMuted = true|false        // sfx + ambient only (the title screen: the music plays, the frozen world is quiet)
- *   audio.useZonedAmbience()             // Driftwood: src/shards/driftwood-isle/audio/ambience.ts owns the island's beds — the synth island bed is not started
  *   audio.world                          // the bus sfx + ambient share (IslandAmbience sends its reverb returns here)
  *   audio.hurt(strength, pan)  audio.death()   // the player takes a hit (strength = dmg / 20, pan toward the attacker) / dies — both shards (B3)
  *   audio.voices                         // the procedural one-shot bank (src/engine/audio/Voices.ts + gen.ts): Driftwood's footsteps + combat layers (IslandSfx)
@@ -53,8 +51,8 @@ import type { LevelAudioBank } from './levelAudio';
  * the old one plays on, then swaps it in and drops the old buffers; a set's `credit` goes to src/engine/audio/credits.ts for the menu.
  *
  * Ambient starts on resume() and runs on its own scheduler. The bed follows the chunk: `new Audio()` reads
- * `getActiveChunk().ocean` — an ocean shard gets surf swells, a warm breeze and gulls ('island'); otherwise the
- * default wind bed. `setAmbient(id)` switches it (before or after resume()); a level's own synth bed registers with
+ * `getActiveChunk().ocean` — an ocean shard's bed is 'island' (a synth bed its ambience profile installs);
+ * otherwise the default wind bed. `setAmbient(id)` switches it (before or after resume()); a level's own synth bed registers with
  * `installSynthBed`.
  */
 
@@ -142,9 +140,9 @@ export class Audio extends LegacyIsland {
   private g: Graph | undefined;
   private started = false;
   /** the ambient bus is on (`setAmbient(false)` mutes it) — a level's bed schedulers read it */
-  override ambientOn = true;
+  ambientOn = true;
   private birdTimer = 0; private gustTimer = 0;
-  protected override windGain: GainNode | undefined; protected override windGain2: GainNode | undefined;
+  private windGain: GainNode | undefined; private windGain2: GainNode | undefined;
   private _muted = false;
   private _worldMuted = false;
   private bed: AmbientBed;
@@ -170,9 +168,9 @@ export class Audio extends LegacyIsland {
     this.worldMuted = true;
   }
 
-  constructor() {
+  constructor(private readonly profile: { bed?: string; samples?: SfxDecodePolicy } = {}) {
     super();
-    this.bed = getActiveChunk().ocean ? 'island' : DEFAULT_BED;
+    this.bed = profile.bed ?? '';
     onSfxSet((v) => { this.switchSet(v); });
   }
 
@@ -241,13 +239,6 @@ export class Audio extends LegacyIsland {
   }
   /** the master low-pass under water: cutoff (Hz) and ramp (s); Driftwood sets 500 / 0.15 (S2), Pine Hollow keeps 520 / 0.3 */
   underwaterCutoff = 520; underwaterRamp = 0.3;
-  private zoned = false;
-  /** a zoned ambience (IslandAmbience) replaces the synth island bed: it is stopped / never started (a sampled bed still plays) */
-  useZonedAmbience(): void {
-    if (this.zoned) return;
-    this.zoned = true;
-    if (this.started && !this.sampleBed && this.bed === 'island') { this.stopBed(); this.startBed(); }
-  }
   /** the graph exists (a gesture has happened) — per-frame callers check this so they never create the context */
   override get ready(): boolean { return this.g !== undefined; }
   /** a decoded bed / hum from sfx.json, or undefined (the caller plays its synth version) */
@@ -273,7 +264,7 @@ export class Audio extends LegacyIsland {
   private switchSet(v: SfxSet): void {
     if (v === this.sfxSet) return;
     this.sfxSet = v;
-    void (async () => { this.useSamples(await trackBusy('sfx', decodeSfxSet(v, this.bed, cachedBytes))); })();
+    void (async () => { this.useSamples(await trackBusy('sfx', decodeSfxSet(v, this.bed, cachedBytes, undefined, undefined, this.profile.samples))); })();
   }
   /** a random variant of `family` with a little pitch / gain jitter, routed like the synth call; false = not sampled, play the synth */
   override shot(family: string, o: { pan?: number; gain?: number; out?: AudioNode; t?: number; rate?: number } = {}): boolean {
@@ -599,7 +590,7 @@ export class Audio extends LegacyIsland {
   private startAmbient() { this.startBed(); }
 
   private stopBed() {
-    clearTimeout(this.birdTimer); clearTimeout(this.gustTimer); this.stopIsland();
+    clearTimeout(this.birdTimer); clearTimeout(this.gustTimer);
     this.synthBeds.get(this.bed)?.stop();
     const t = this.ctx.currentTime;
     for (const n of this.bedNodes) {
@@ -616,7 +607,7 @@ export class Audio extends LegacyIsland {
     this.sampleBed = l !== undefined;
     const own = this.synthBeds.get(this.bed);
     if (l) this.startSampleBed(l);
-    else if (this.bed === 'island') { if (!this.zoned) this.startIsland(); } else if (own) own.start(); else this.startForest();
+    else if (own) own.start(); else this.startForest();
   }
   /** sfx.json's bed for this shard: one looping source faded in over 2 s (replaces the synth winds, birds, gusts and surf) */
   private startSampleBed(l: SampleLoop) {
@@ -628,7 +619,7 @@ export class Audio extends LegacyIsland {
   }
 
   /** a looping noise band: bandpass + lowpass, slow amplitude and filter LFOs, panned into the ambient bus */
-  override mkWind(freq: number, q: number, pan: number, lfoRate: number, base: number, lowpass = 1200): GainNode {
+  mkWind(freq: number, q: number, pan: number, lfoRate: number, base: number, lowpass = 1200): GainNode {
     const c = this.ctx;
     const src = ownAudioSource(c.createBufferSource()); src.buffer = this.noise; src.loop = true; src.start(0, audioRandom());
     const f = c.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = freq; f.Q.value = q;
@@ -648,7 +639,6 @@ export class Audio extends LegacyIsland {
     return g;
   }
 
-  /** the island: a warm low breeze, a wide surf hiss bed, and a slow swell rolling up the beach every 6–9 s */
   /** the pines: the original three wind bands, the tree hiss, gusts and distant birds */
   private startForest() {
     tap.sound?.('audio.startForest');
@@ -661,7 +651,7 @@ export class Audio extends LegacyIsland {
     this.scheduleBird();
   }
 
-  protected override scheduleGust(gentle = 1): void {
+  private scheduleGust(gentle = 1): void {
     const wait = rnd(5, 12) * gentle;
     this.gustTimer = window.setTimeout(() => {
       ambientTick('audio.gust', () => {
@@ -706,7 +696,7 @@ export class Audio extends LegacyIsland {
     }
   }
 
-  dispose(): void { for (const bed of this.synthBeds.values()) bed.stop(); clearTimeout(this.birdTimer); this.stopIsland(); clearTimeout(this.gustTimer); clearTimeout(this.bubbleTimer); if (this.g) { if (this.g.ctx === sharedCtx) sharedCtx = undefined; void this.g.ctx.close(); } }
+  dispose(): void { for (const bed of this.synthBeds.values()) bed.stop(); clearTimeout(this.birdTimer); clearTimeout(this.gustTimer); clearTimeout(this.bubbleTimer); if (this.g) { if (this.g.ctx === sharedCtx) sharedCtx = undefined; void this.g.ctx.close(); } }
 }
 
 export { Audio as GameAudio };

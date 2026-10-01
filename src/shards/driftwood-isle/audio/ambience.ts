@@ -1,12 +1,14 @@
-import { ownAudioSource } from '#engine';
-import { tap, ambientTick } from '#engine/core/harnessTap';
+import { ownAudioSource, tap, ambientTick, audioRandom, windUniforms, AmbienceZones, Scope, type Audio } from '#engine';
+import { IslandBed, ISLAND_BED } from './sfx';
 /**
- * IslandAmbience — Driftwood Isle's zoned soundscape (S1) and reverb zones + underwater (S2), project/archive/2026-09-23-driftwood-remaster.md.
+ * IslandAmbience — Driftwood Isle's zoned soundscape (S1) and reverb zones + underwater (S2), project/archive/2026-09-23-driftwood-remaster.md;
+ * its AmbienceZones profile since E357 S4.3 (08 §6.3 C.1: the beds live in the engine's AmbienceZones, the schedulers on the
+ * profile's own Scope, the island's synth bed is installed here and handed over when the zoned graph is built).
  *
  *   const amb = new IslandAmbience(audio, { sea: OCEAN.level, heightAt, palms: palmSpecs, wreck, cove });
  *   game.onUpdate((dt) => amb.update(dt, game.camera));   // listener + the surf emitter every frame, the zone mix at 10 Hz
  *   amb.setUnderwater(true | false)                       // Player.onSubmerge / onSurface (next to audio.setUnderwater)
- *   amb.night = 0 … 1                                     // the day / night clock (src/engine/world/DayNight.ts, when it lands)
+ *   amb.night = 0 … 1                                     // the day / night clock (the level's day cycle)
  *   amb.zone                                              // the dominant zone ('sea' | 'beach' | 'palms' | 'jungle' | 'cove' |
  *                                                         //   'lookout' | 'hold' | 'cave' | 'shrine'; E318: its never-wired onZone hook is gone)
  *   amb.diag                                              // the live mix: every bed's level and every reverb send (logging / tests)
@@ -30,8 +32,6 @@ import { tap, ambientTick } from '#engine/core/harnessTap';
  * idle send is at gain 0 (the browser stops processing a convolver whose input is silent past its tail).
  */
 import type { Camera } from 'three';
-import type { Audio } from '#engine/audio/Audio';
-import { windUniforms } from '#engine/world/TreeFactory';
 import { ISLAND, SHRINE, LOOKOUT, HEADLAND } from '../manifest';
 
 export type Zone = 'sea' | 'beach' | 'palms' | 'jungle' | 'cove' | 'lookout' | 'hold' | 'cave' | 'shrine';
@@ -66,8 +66,6 @@ function boundsOf(o: object | null | undefined, key: string): Bounds | undefined
   return Number.isFinite(b.x + b.z + b.r + b.yMin + b.yMax) && b.r > 0 ? b : undefined;
 }
 
-interface Bed { gain: GainNode; level: number }
-
 export class IslandAmbience {
   /** 0 = day … 1 = night (the clock drives it) */
   night = 0;
@@ -82,19 +80,26 @@ export class IslandAmbience {
   private poolW: AudioBufferSourceNode[] = []; private poolP: AudioBufferSourceNode[] = []; private poolN = 0;
   private shore = new Float32Array(SHORE_RAYS * 2);
   private surfPan: PannerNode | undefined; private fallPan: PannerNode | undefined;
-  private beds = new Map<string, Bed>();
+  /** the beds (gain → its output), built once in build(); `level` is the target the mix last set */
+  private readonly zones: AmbienceZones;
+  /** the schedulers (swells, birds, drips) and the synth bed's registration: disposed with the profile */
+  private readonly scope = new Scope('audio.island.ambience');
+  private readonly islandBed: IslandBed;
   private occl: BiquadFilterNode | undefined;
   private sendIn: GainNode | undefined;
   private sends = new Map<Room, GainNode>();
   private flutterPan: StereoPannerNode | undefined;
   private tick = 0; private t = 0;
   private underwater = false;
-  private timers: number[] = [];
   private px = 0; private py = 0; private pz = 0;
   private fall = { x: 127.5, y: 0, z: 18 };
   private cave = { x: 120, z: 19 };
 
   constructor(private readonly audio: Audio, private readonly o: IslandAmbienceOpts) {
+    this.zones = new AmbienceZones(audio, audioRandom);
+    // the synth island bed (breeze, surf hiss, swells) until the zoned graph is built (build: `islandBed.zone()`)
+    this.islandBed = new IslandBed(audio);
+    audio.installSynthBed(ISLAND_BED, this.islandBed, this.scope);
     const f = o.cove?.fall.foot, c = o.cove?.cave;
     if (f) { this.fall.x = f[0]; this.fall.z = f[1]; }
     this.fall.y = o.heightAt(this.fall.x, this.fall.z) + 1;
@@ -148,9 +153,7 @@ export class IslandAmbience {
   }
   private bed(name: string, out: AudioNode): GainNode {
     tap.sound?.(`island.bed:${name}`);
-    const g = this.audio.ctx.createGain(); g.gain.value = 0; g.connect(out);
-    this.beds.set(name, { gain: g, level: 0 });
-    return g;
+    return this.zones.ensure({ id: name, out: () => out, started: () => { /* no sampled loop: a synth bed's gain */ } }).gain;
   }
   private lfo(rate: number, depth: number, param: AudioParam, type: OscillatorType = 'sine'): OscillatorNode {
     const c = this.audio.ctx, o = ownAudioSource(c.createOscillator()); o.type = type; o.frequency.value = rate;
@@ -166,7 +169,7 @@ export class IslandAmbience {
   private build(): void {
     this.built = true;
     const a = this.audio, c = a.ctx;
-    a.useZonedAmbience();
+    this.islandBed.zone();
     a.underwaterCutoff = 500; a.underwaterRamp = 0.15;
     a.voices.prewarm(['bubble-bed', 'ir-shrine', 'ir-cave', 'ir-hold']);
     // outdoor beds → occlusion low-pass (walls of the hold / cave) → the ambient bus
@@ -251,12 +254,12 @@ export class IslandAmbience {
   }
 
   // ─────────────── timers (not per frame) ───────────────
-  private later(sec: number, fn: () => void): void { this.timers.push(window.setTimeout(fn, sec * 1000)); if (this.timers.length > 16) this.timers.shift(); }
+  private later(sec: number, fn: () => void): void { this.scope.timeout(sec * 1000, fn); }
   /** one swell on the surf emitter: a build, the break, the wash (automation only — the sources run continuously) */
   private scheduleSwell(): void {
     this.later(4 + Math.random() * 5 * (1 + this.night * 0.4), () => {
       ambientTick('island.swell', () => {
-        const body = this.beds.get('surfBody'), hiss = this.beds.get('surfHiss');
+        const body = this.zones.beds.get('surfBody'), hiss = this.zones.beds.get('surfHiss');
         if (body && hiss) {
           const t = this.audio.ctx.currentTime, size = (0.7 + Math.random() * 0.5) * (1 - 0.35 * this.night);
           const build = 1.4 + Math.random() * 0.9, wash = 2.4 + Math.random() * 1.6;
@@ -274,7 +277,7 @@ export class IslandAmbience {
   private scheduleBird(): void {
     this.later(2.5 + Math.random() * 6, () => {
       ambientTick('island.bird', () => {
-        const j = this.beds.get('jungle')?.level ?? 0;
+        const j = this.zones.beds.get('jungle')?.level ?? 0;
         if (j > 0.05 && this.night < 0.6 && !this.underwater) this.bird(j);
         this.scheduleBird();
       });
@@ -282,7 +285,7 @@ export class IslandAmbience {
   }
   /** an exotic jungle call from a random side: a hollow two-note "toucan" croak, or a falling whistle phrase */
   private bird(level: number): void {
-    const a = this.audio, c = a.ctx, t = c.currentTime, jb = this.beds.get('jungle'); if (!jb) return;
+    const a = this.audio, c = a.ctx, t = c.currentTime, jb = this.zones.beds.get('jungle'); if (!jb) return;
     const pan = c.createStereoPanner(); pan.pan.value = Math.random() * 1.6 - 0.8;
     const out = c.createGain(); out.gain.value = 0.35 * (0.5 + Math.random() * 0.5); out.connect(pan).connect(jb.gain);
     const note = (t0: number, f0: number, f1: number, dur: number, type: OscillatorType, g: number, lp: number): void => {
@@ -365,7 +368,7 @@ export class IslandAmbience {
     // surf: louder near the water, softer at night; the panner does the distance (1 / d past 12 m)
     const surf = (0.85 - 0.3 * night) * (1 - 0.6 * occl);
     const breeze = (0.07 + 0.1 * ss(4, 25, above + ground - o.sea)) * wind * (1 - 0.8 * occl);
-    const set = (name: string, v: number): void => { const b = this.beds.get(name); if (!b) return; b.level = v; b.gain.gain.setTargetAtTime(v, t, TAU); };
+    const set = (name: string, v: number): void => { const b = this.zones.beds.get(name); if (!b) return; b.level = v; b.gain.gain.setTargetAtTime(v, t, TAU); };
     set('surf', surf * dry); set('lap', 0.22 * lap * dry); set('breeze', breeze * dry);
     set('palms', 0.2 * palms * wind * (1 - 0.5 * night) * dry);
     set('lookout', 0.22 * Math.min(1, lookout) * wind * dry);
@@ -392,5 +395,6 @@ export class IslandAmbience {
   /** head under / over the surface (next to audio.setUnderwater): the outdoor beds and sends drop, the bubble bed rises */
   setUnderwater(on: boolean): void { this.underwater = on; if (this.built) this.mix(); }
 
-  dispose(): void { for (const id of this.timers) clearTimeout(id); this.timers = []; }
+  /** the schedulers stop and the synth bed is unregistered (the mixer's unloadLevel fades what is left) */
+  dispose(): void { this.scope.dispose(); }
 }

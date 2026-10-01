@@ -4,7 +4,7 @@ import { isArrowFunction, isBlock, isCallExpression, isExpressionStatement, isIf
 
 const sources = import.meta.glob<string>('../src/**/*.ts', { eager: true, query: '?raw', import: 'default' });
 const schedulers: Readonly<Record<string, readonly string[]>> = {
-  'src/engine/audio/legacyIsland.ts': ['scheduleSurf'],
+  'src/shards/driftwood-isle/audio/sfx.ts': ['scheduleSurf', 'scheduleGust'],
   'src/engine/audio/Audio.ts': ['scheduleBubble', 'scheduleGust', 'scheduleBird'],
   'src/shards/nalati-grasslands/audio/synth.ts': ['scheduleLark', 'scheduleCricket', 'scheduleCrackle'],
   'src/shards/driftwood-isle/audio/ambience.ts': ['scheduleBird', 'scheduleDrip', 'scheduleSwell'],
@@ -82,7 +82,7 @@ describe('every sound source is observed', () => {
         };
         visit(ast);
       }
-      expect(callbacks).toBe(11);
+      expect(callbacks).toBe(12); // S4.3: the island bed's gust is its own scheduler (Driftwood's sfx.ts), beside the mixer's forest gust
       expect(countdowns).toBe(4);
       snapshot.dispose();
     } finally { api.close(); }
