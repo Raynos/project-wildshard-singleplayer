@@ -217,3 +217,5 @@ export type { ThinkCtx, EnemyWorld } from './entities/species/registry';
 export { NO_FUR, lookAngles, smooth01, bump, step, clamp as rigClamp, squashBody } from './entities/species/rigs';
 export { faceHead, loadFaceHead, type FaceHead } from './world/faceHeads';
 export { BossBar } from './ui/BossBar';
+
+export { pondGrid } from './world/pondGrid';
