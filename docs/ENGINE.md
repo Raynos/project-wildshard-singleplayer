@@ -1169,7 +1169,7 @@ once with that cause. A shard may call it for an authored pit instead of supplyi
 | Export | What it is |
 |---|---|
 | `SpeciesRow` | `{ id, kind, label, variants, aggressive?, tuning?, sounds?, flight?, think?(animal, ctx), act?(animal, ctx), tick?, blood?, parent? … }` |
-| `SpeciesFlight` | `{ altitude, above?: 'ground' \| 'world', climbRate, diveRate }`; rates are metres per second |
+| `SpeciesFlight` | `{ altitude, above?: 'ground' \| 'world', climbRate, diveRate, lockRange? }`; rates are metres per second |
 | `SpeciesVariant` | `{ id, label, weight, rarity, scale, hp?, mods? }` |
 | `deriveSpecies(parent, patch)` | a row that overrides its parent field by field |
 | `SpeciesLook`, `speciesWithLook`, `CreatureHull`, `EyeSpot` | the render row: `{ id, species, kind, rig, fur, rigContract, build(variant: VariantDef, rng: Rng): AnimalSpecies, animate(ctx: RigAnimCtx) }` |
@@ -1260,6 +1260,16 @@ the engine queries WORLD physics below the flyer about every 0.2 seconds, smooth
 and adds the requested altitude. A missing floor or one more than 200 metres below uses world altitude.
 Use `above: 'world'` to fly over a void at an absolute height. Climb/dive rates cap vertical movement;
 species without `flight` retain their ground body. Dead flyers descend to the sampled floor (or keep falling over a void).
+
+Flight bodies are lockable through LOCK and target taps regardless of the species kind. `animal.flying` exposes
+that capability to `AimTarget`; `animal.lockRange` reads `species.flight.lockRange`. The flight default is **24 m**
+(twice the ground acquire range), measured in 3-D from the eye to the body edge; release is at **36 m** (1.5×).
+Set `flight.lockRange` to a finite positive distance in metres to tune a species; its release stays at 1.5×.
+The aim cone and WORLD line of sight use the live body point in 3-D, including high targets. Camera assist uses
+the player’s full ±1.45 rad pitch envelope with the existing easing/rate caps; it retains heading directly overhead
+and caps all flyer tracking (including movement of the player) so a dive cannot snap the camera. The reticle
+projects the live body each frame. Ground eligibility, horizontal range, pitch clamps and movement feed-forward
+remain unchanged. Lock-on still requires a weapon with `ui.lockOn: true` and obeys Lock-on camera / Auto re-lock.
 
 A `StrikeSpec` is `{ id, shape, windup, active, recover, cooldown, range, damage, tags, weight, units?, alternatives?, motion?,
 eligibility? }`. Shapes: `arc` (radius, halfAngle), `lane` (length, width), `ring` (inner, outer), `wedge` (length,

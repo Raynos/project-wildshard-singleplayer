@@ -3,6 +3,8 @@ export interface SpeciesFlight {
   /** Ground-relative by default; a missing/distant floor falls back to world altitude. */
   above?: 'ground' | 'world';
   climbRate: number; diveRate: number;
+  /** Lock acquire distance in metres (eye → body edge); default 24 m, release at 1.5×. */
+  lockRange?: number;
 }
 interface FlightPoint { x: number; y: number; z: number }
 type FloorSampler = (x: number, z: number, fromY: number, maxDrop: number) => number | undefined;
@@ -15,6 +17,7 @@ export class FlightMotion {
   private smoothFloor: number | undefined;
   constructor(private readonly spec: SpeciesFlight) {
     if (!Number.isFinite(spec.altitude) || !Number.isFinite(spec.climbRate) || !Number.isFinite(spec.diveRate) || spec.climbRate <= 0 || spec.diveRate <= 0) throw new Error('Flight needs finite altitude and positive climb/dive rates');
+    if (spec.lockRange !== undefined && (!Number.isFinite(spec.lockRange) || spec.lockRange <= 0)) throw new Error('Flight lock range must be finite and positive');
     this.altitude = spec.altitude;
   }
   target(altitude: number): void {

@@ -264,6 +264,9 @@ export class Animal {
   private readonly gaitTrot: number; private readonly gaitGallop: number;
 
   get dims(): AnimalDims { return this.model.dims; }
+  /** The flight body opts into 3-D lock acquisition and camera tracking, independent of species kind. */
+  get flying(): boolean { return this.flight !== null; }
+  get lockRange(): number | undefined { return this.model.species.flight?.lockRange; }
   /** fading out (fadeOut): its own transparent materials, so the far herd leaves it alone */
   get fading(): boolean { return this.fadeT >= 0; }
 

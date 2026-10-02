@@ -36,6 +36,8 @@ const DEG = Math.PI / 180;
 export const LOCK = {
   ACQUIRE: 12,           // m, feet → body edge
   BREAK: 18,             // m: 1.5 × ACQUIRE (OoT's release ratio)
+  FLY_ACQUIRE: 24,       // m, eye → body edge; species.flight.lockRange overrides this
+  FLY_PITCH: 1.45,       // player's full pitch envelope; flyers can dive above/below the old ground clamp
   CONE: 40 * DEG,        // ± of the view, 3D
   NEXT_R: 8,             // m: a kill re-locks within this …
   NEXT_CONE: 90 * DEG,   // … and this of the view …
@@ -239,11 +241,19 @@ export class LockOnSystem {
   private bearing(t: AimTarget): { yaw: number; pitch: number } | null {
     this.eye(_eye); aimPoint(t, _aim);
     const dx = _aim.x - _eye.x, dy = _aim.y - _eye.y, dz = _aim.z - _eye.z, h = Math.hypot(dx, dz);
+    if (t.flying === true && h < 0.3) return { yaw: this.lastBear?.yaw ?? this.player.yaw, pitch: Math.atan2(dy, h) }; // heading is undefined directly overhead: retain it through the pole
     if (h < 1e-3) return null;
     return { yaw: Math.atan2(-dx, -dz), pitch: Math.atan2(dy, h) };
   }
 
   private eye(out: THREE.Vector3): THREE.Vector3 { return out.copy(this.player.camera.position); }
+
+  private range(t: AimTarget): number { return t.lockRange ?? (t.flying === true ? LOCK.FLY_ACQUIRE : LOCK.ACQUIRE); }
+
+  private distance(t: AimTarget): number {
+    if (t.flying === true) return aimPoint(t, _aim).distanceTo(this.player.camera.position) - targetRadius(t);
+    return Math.hypot(t.position.x - this.player.position.x, t.position.z - this.player.position.z) - targetRadius(t);
+  }
 
   /** line of sight eye → the target's body through the physics world (terrain, decks, huts, the wreck); true while there is
    *  no physics world yet */
@@ -256,14 +266,14 @@ export class LockOnSystem {
 
   /** every lockable enemy right now (range + LOS; the cone is applied by best()) */
   private scan(): void {
-    const p = this.player.position, yaw = this.player.yaw, pitch = this.player.pitch;
+    const yaw = this.player.yaw, pitch = this.player.pitch;
     const fx = -Math.sin(yaw) * Math.cos(pitch), fy = Math.sin(pitch), fz = -Math.cos(yaw) * Math.cos(pitch);
     this.cands.length = 0;
     this.eye(_eye);
     for (const t of getAimTargets()) {
-      if (!t.alive || t.hidden || !HOSTILE.has(t.kind ?? '')) continue;
-      const hd = Math.hypot(t.position.x - p.x, t.position.z - p.z), dist = hd - targetRadius(t);
-      if (dist > (t.lockRange ?? LOCK.ACQUIRE) && t !== lockOn.target) continue;
+      if (!t.alive || t.hidden || (t.flying !== true && !HOSTILE.has(t.kind ?? ''))) continue;
+      const dist = this.distance(t);
+      if (dist > this.range(t) && t !== lockOn.target) continue;
       aimPoint(t, _aim);
       const dx = _aim.x - _eye.x, dy = _aim.y - _eye.y, dz = _aim.z - _eye.z, len = Math.hypot(dx, dy, dz);
       if (len < 1e-3) continue;
@@ -277,7 +287,7 @@ export class LockOnSystem {
   private best(within: number = LOCK.CONE, maxDist?: number): Cand | null {
     let best: Cand | null = null, bestS = Infinity;
     for (const c of this.cands) {
-      const range = c.t.lockRange ?? LOCK.ACQUIRE;
+      const range = this.range(c.t);
       if (c.t === lockOn.target || c.angle > within || c.dist > (maxDist ?? range)) continue;
       const s = lockScore(c.angle, c.dist * LOCK.ACQUIRE / range, c.t.state === 'attack'); // a far-lock giant scores by its own range
       if (s < bestS) { bestS = s; best = c; }
@@ -299,7 +309,7 @@ export class LockOnSystem {
         const cur = this.bearing(lockOn.target), others = this.cands.filter((c) => c.t !== lockOn.target);
         lockOn.left = cur ? pickSwitch('left', cur, others) : null;
         lockOn.right = cur ? pickSwitch('right', cur, others) : null;
-        const hd = (t: AimTarget | null) => (t === null ? 0 : Math.max(0, Math.hypot(t.position.x - p.position.x, t.position.z - p.position.z) - targetRadius(t)));
+        const hd = (t: AimTarget | null) => (t === null ? 0 : Math.max(0, this.distance(t)));
         lockOn.leftDist = hd(lockOn.left); lockOn.rightDist = hd(lockOn.right);
       } else {
         const b = this.usable ? this.best() : null;
@@ -322,8 +332,8 @@ export class LockOnSystem {
         return;
       }
       // breaks: too far, out of sight too long
-      const dist = Math.hypot(t.position.x - p.position.x, t.position.z - p.position.z) - targetRadius(t);
-      if (dist > (t.lockRange !== undefined ? t.lockRange * 1.5 : LOCK.BREAK)) { this.unlock(true); return; }
+      const dist = this.distance(t);
+      if (dist > (t.flying === true || t.lockRange !== undefined ? this.range(t) * 1.5 : LOCK.BREAK)) { this.unlock(true); return; }
       this.losLostT = this.visible(t) ? 0 : this.losLostT + dt;
       if (this.losLostT > LOCK.LOS_GRACE) { this.unlock(true); return; }
 
@@ -333,7 +343,7 @@ export class LockOnSystem {
       // feed-forward: the bearing change the PLAYER's own move caused since the last frame (the orbit, a side-hop — measured
       // against where the target was then) is applied 1:1, so a turn you cause yourself never lags or whips; the target's own
       // movement stays eased and capped (a boar running past must not whip the view)
-      if (b !== null && mult > 0 && this.lastBear !== null) {
+      if (t.flying !== true && b !== null && mult > 0 && this.lastBear !== null) {
         this.eye(_eye);
         const dx = this.lastAim.x - _eye.x, dy = this.lastAim.y - _eye.y, dz = this.lastAim.z - _eye.z, h = Math.hypot(dx, dz);
         if (h > 1e-3) {
@@ -344,7 +354,9 @@ export class LockOnSystem {
       this.lastBear = b; aimPoint(t, this.lastAim);
       if (b !== null && mult > 0) {
         const tall = (t.dims?.bodyY ?? 0.5) * (t.scale ?? 1) > 0.9;
-        const pitchT = Math.max(LOCK.PITCH_MIN, Math.min(tall ? LOCK.TALL_PITCH_MAX : LOCK.PITCH_MAX, b.pitch)) + lockOn.offPitch;
+        const pitchT = (t.flying === true
+          ? Math.max(-LOCK.FLY_PITCH, Math.min(LOCK.FLY_PITCH, b.pitch))
+          : Math.max(LOCK.PITCH_MIN, Math.min(tall ? LOCK.TALL_PITCH_MAX : LOCK.PITCH_MAX, b.pitch))) + lockOn.offPitch;
         const yawErr = wrapAngle(b.yaw + lockOn.offYaw - p.yaw), pitchErr = pitchT - p.pitch;
         // engage (fast) until the aim is inside the dead zone once — at least ENGAGE_T s — then hold
         const err = Math.hypot(yawErr, pitchErr);

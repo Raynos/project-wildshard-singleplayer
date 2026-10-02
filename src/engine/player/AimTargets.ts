@@ -22,9 +22,11 @@ export interface AimTarget {
   dims?: { bodyY?: number; bodyRadius?: number; bodyHalfLen?: number };
   /** the AI state ('attack' while winding up a hit) — the lock-on's tie-break (src/engine/player/LockOnTarget.ts) */
   state?: string;
-  /** the lock-on's acquire range for this target (m, feet → body edge) when it is not the usual 12 m — Nalati's Storm
+  /** Flight-body targets opt into 3-D range and the full camera pitch envelope; ground targets keep their old policy. */
+  flying?: boolean;
+  /** the lock-on's acquire range for this target (m, feet → body edge; eye → body edge for flyers) when it is not the usual 12 m — Nalati's Storm
    *  Titan, a 110 m giant beyond the rim, is locked on from the arena (NALATI-MERGE H3); it breaks at 1.5 × this */
-  lockRange?: number;
+  lockRange?: number | undefined;
 }
 
 export function setAimTargets(list: readonly AimTarget[]): void { app.aimTargets = list; }
