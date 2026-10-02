@@ -1,0 +1,80 @@
+{
+ "$doc": "E387 progress cameras for scripts/shard-progress.mjs: the loop builders' hero views (H1 Sunrest rim, H2 the windmill isle, H3 the high step, H4 the crown) plus two aerials and an orbit clip. Keep them fixed: the time-lapse lines frames up by id. yaw / pitch in degrees (yaw 0 faces -z).",
+ "shots": [
+  {
+   "id": "h1-sunrest",
+   "x": 0,
+   "y": 30,
+   "z": -9,
+   "yaw": 0,
+   "pitch": -4
+  },
+  {
+   "id": "h2-windmill",
+   "x": 12,
+   "y": 30,
+   "z": -4,
+   "yaw": -90,
+   "pitch": -4
+  },
+  {
+   "id": "h3-grove-high-step",
+   "x": -3,
+   "y": 30,
+   "z": -56,
+   "yaw": -2.5,
+   "pitch": 10
+  },
+  {
+   "id": "h4-crown",
+   "x": 0,
+   "y": 44,
+   "z": -172,
+   "yaw": 0,
+   "pitch": 6
+  },
+  {
+   "id": "aerial-spawn",
+   "god": {
+    "pos": [
+     0,
+     62,
+     41
+    ],
+    "look": [
+     0,
+     30,
+     -29
+    ]
+   }
+  },
+  {
+   "id": "aerial-overview",
+   "god": {
+    "pos": [
+     0,
+     130,
+     90
+    ],
+    "look": [
+     0,
+     30,
+     -100
+    ]
+   }
+  }
+ ],
+ "clip": {
+  "center": [
+   0,
+   35,
+   -90
+  ],
+  "radius": 150,
+  "height": 50,
+  "secs": 10,
+  "startDeg": 0,
+  "sweepDeg": 90,
+  "fov": 60
+ }
+}

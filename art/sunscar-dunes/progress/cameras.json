@@ -1,0 +1,77 @@
+{
+ "$doc": "E387 progress cameras for scripts/shard-progress.mjs: the loop builders' hero views (H1 spawn crest, H2 caravan, H3 waymark, H4 tower deck) plus two aerials and an orbit clip. Keep them fixed: the time-lapse lines frames up by id. yaw / pitch in degrees (yaw 0 faces -z).",
+ "shots": [
+  {
+   "id": "h1-spawn-crest",
+   "x": 0,
+   "z": 70,
+   "yaw": 0,
+   "pitch": -6
+  },
+  {
+   "id": "h2-caravan",
+   "x": -64,
+   "z": 38,
+   "yaw": 54.46,
+   "pitch": -6
+  },
+  {
+   "id": "h3-waymark",
+   "x": 46,
+   "z": -18,
+   "yaw": -36.87,
+   "pitch": -3
+  },
+  {
+   "id": "h4-tower-deck",
+   "x": 7.6,
+   "y": 20.6,
+   "z": -76,
+   "yaw": 16.27,
+   "pitch": 2.9
+  },
+  {
+   "id": "aerial-spawn",
+   "god": {
+    "pos": [
+     0,
+     58,
+     125
+    ],
+    "look": [
+     0,
+     13,
+     50
+    ]
+   }
+  },
+  {
+   "id": "aerial-overview",
+   "god": {
+    "pos": [
+     0,
+     150,
+     170
+    ],
+    "look": [
+     0,
+     0,
+     -30
+    ]
+   }
+  }
+ ],
+ "clip": {
+  "center": [
+   0,
+   8,
+   0
+  ],
+  "radius": 130,
+  "height": 55,
+  "secs": 10,
+  "startDeg": 0,
+  "sweepDeg": 90,
+  "fov": 60
+ }
+}
