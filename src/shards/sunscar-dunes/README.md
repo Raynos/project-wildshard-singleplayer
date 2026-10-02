@@ -15,26 +15,31 @@ alone (E357 Z3, round 4). No engine edits.
 | `status`, `order` | `experimental`, 50 |
 | `style`, `kitLook` | `dusk`, `pbr` |
 | `uses` | `quests`, `coins`, `loot`, `hover` |
-| `ground` | `buildTerrain` over transverse dunes (`world/dunes.ts`): gentle windward faces, lee faces under 32°, raised crests under the spawn and the tower, one crest path |
+| `ground` | `buildTerrain` over transverse dunes (`world/dunes.ts`), ±200 m playable: lee faces under 32°, raised crests under the spawn and the tower, flat pads at the caravan and the well, the boss basin (a 56 m sand bowl), four crest trails |
 | `horizon`, `boundary` | two low dune rings in shadowed sand; no cloud sea; the drawn edge hidden (containment stays) |
 | `loadout` | the bullwhip (held) and the kit hoverboard |
-| `species` | `duneRay` (flying, own brain) |
+| `species` | `duneRay` (flying), `sandSkitterer` (burrowing packs), `duneStrider` (charger), `duneMatriarch` (the boss, flying): each its own brain |
 | `audio` | `ambience: 'none'`, a silent score, kit voices for the whip's cues; no `preload` (asset-free) |
 | `tiers` | no god rays, no AO |
 | `assets` | none: card art is a bundled SVG, every model is code |
 | `dev.poses` | spawn, whip, ray, quest (standing) and the tower deck (eye only), in degrees |
-| saves | one shard key, `sunscar.signal` (the reward was paid) |
+| saves | `sunscar.signal` (the quest reward was paid), the quest flags (`Flags`), the Matriarch's `bossesSave` entry |
 
 ## Its custom code, and why
 
 | File | What |
 |---|---|
-| `plugin.ts` | the three hooks; `buildEquipment` builds the whip; the ray spawns in `play` and comes back 25 s after it falls |
-| `weapons/Bullwhip.ts` | rung 3 (`extends Weapon`, `blocks.viewmodel` + `blocks.melee`): a light crack lands one 7 m narrow lash at the crosshair 0.12 s after the press; Heavy (Mouse2, or a released touch hold) is an 8 m double crack whose second lash calls `animal.stagger(dir, 0.8)` |
+| `plugin.ts` | the three hooks; `buildEquipment` builds the whip; `play` installs the creatures, the quest and the Matriarch |
+| `layout.ts` | every place: spawn, tower, caravan, well, basin, the three waymarks, the yardang ridges, the packs' and striders' homes |
+| `world/places.ts`, `world/rocks.ts` | the half-buried caravan (logbook), the dry well (stone ring, windlass crank, bucket, oil jar), the waymark braziers; the yardangs, boulders and scrub as three `InstancedMesh` |
+| `combat/creatures.ts` | one creature per home (a ray, 10 skitterers in three packs, two striders), each refilled after it falls |
+| `species/skitterer.ts`, `species/strider.ts` | `SkittererBrain` (buried → burst → hunt on a ring round the player → rear and bite → retreat; re-burrows when left), `StriderBrain` (graze → face → a pawed 13 m charge, winded after; a horn sweep up close) |
+| `species/matriarch.ts`, `combat/matriarch.ts` | the Dune Matriarch: the ray's body at 3.6×, 600 hp, a `BossBrain` with three phases (sweeping dives; a sand storm: fog to 8–62 m and two blown-sand shells round the player; grounded: tail sweep + wing buffet), BossBar, checkpoints, 20 coins once |
+| `weapons/Bullwhip.ts` | rung 3 (`extends Weapon`, `blocks.viewmodel` + `blocks.melee`): a light crack lands one 7 m narrow lash at the crosshair 0.12 s after the press; Heavy (Mouse2, or a released touch hold) is an 8 m double crack whose second lash staggers a big creature or yanks one of ≤ 40 hp to the player; a lash that hits no creature cracks the nearest `Crackable` in its lane (the well's crank: the double crack pulls it; an oiled brazier: any crack lights it) |
 | `weapons/whipModel.ts` | the gloved handle, a coil of lash and the live lash: one tube rewritten in place along the unrolling curve |
 | `species/duneRay.ts` | a `flight` species (`above: 'ground'`) with a five-bone custom rig (`body`, `head`, two wings, tail) and `DuneRayBrain`: glide circles over the player, a dive at the chest with a `sphere` swoop (`SWOOP`, 14 damage), a climb out, a rest |
-| `world/tower.ts`, `world/build.ts` | the signal tower piece (legs, braces, deck, rail, mast, a 22-tread stair) and the brazier interactable whose fire flickers once lit |
-| `quest/install.ts` | the one-step quest "Light the signal fire"; five coins once |
+| `world/tower.ts`, `world/build.ts` | the signal tower piece (legs, braces, deck, rail, mast, a 22-tread stair); `buildWorld` registers every piece and interactable, the crackables and the quest state |
+| `quest/install.ts` | "The signal", four steps: the caravan's logbook → oil from the dry well → the three waymarks → the signal fire (it summons the Matriarch); five coins once |
 | `look/render.ts`, `look/sky.ts` | the `extend` look: the clean engine chain, a dusk dome with stars, violet fog, a low warm key light, sand painted by hollow / crest with a ripple patch |
 | `audio/cues.ts` | the whip's cues on kit voices until its own crack is generated |
 
@@ -59,5 +64,7 @@ fog from 70 to 330 m; the tower and the ray read as dark silhouettes. The baseli
 
 ## Open asks
 
-- E363: Jake's look at the round-5 board (`art/sunscar-dunes/round-5-rebuild/`).
+- E374: Jake's look at the content board and the boss clip (`art/sunscar-dunes/round-6-content/`).
+- E374 C6: generated models (caravan, well, brazier, strider) wait on the lead's pick of a licence-clean reference
+  source; every model is code today and listed in the roster.
 - Leftovers: the whip crack and a wind bed generated locally (MOSS + Stable Audio), a dusk score (MiniMax).
