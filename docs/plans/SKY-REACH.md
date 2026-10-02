@@ -1,6 +1,6 @@
 # SKY-REACH — shard 6's full content (E374)
 
-**State:** `in progress` 2026-10-02 — loops 4–5 landed (painted sky, meadow, crag islands off the grid, crown arena, tower mill, glass bridges, gloved hand, minimap, cards, Roc clip); council round 1's 13-row gap list is built (form and subject first), parity green but for gpuMB (re-recorded); waiting on the lead's council round 2.
+**State:** `blocked` 2026-10-02 — built and council-passed: council round 2 (020f8713) put Sky Reach at the bar and every outcome.md extra is cleared (newest capture `progress/far-reach/20261002-0204-3ff49dd6/`); the one open row is P6, Jake's sign-off on his iPhone.
 
 Shard 6, slug `far-reach`, Jake's pick **B · Sky Reach** (E364): floating islands above the clouds at golden hour, a
 war fan (SWING slashes, GUST blows creatures back and off edges), a flying manta; Jake's rule: **some bridges are
@@ -43,8 +43,8 @@ Jake, 2026-10-01, after playing both on his iPhone: "they look absolutely nothin
 | P4 | **Quest planned like Driftwood's**: a start (an NPC or a found object that names the goal), each step marked on the minimap and in the world, clear prompts, a reward beat; the existing steps re-staged, no new content | done (keeper starts it in the first frame, chip with metres, pins, places, reward beat: `quest/install.ts`) |
 | P5 | **Presentation pass**: title card and Explore hero images from the finished hero scenes; loading card; first-minute framing from the spawn | done (cards re-cut loop 5 `f93714aa`) |
 | P6 | **Jake plays it**: a board per loop round and a final 3×3 per hero scene for his sign-off | open: Jake's sign-off (boards per loop in `art/far-reach/round-1[2-5]-*`) |
-| P7 | **Done = two council rounds** (Jake 2026-10-02: "keep going autonomously until you're happy … have a council, do two rounds of reviewing it to see if it matches the quality of the other four shards"): `docs/plans/shard-polish-council/` (ledger, battery, brief, register). The builder loops on each round's findings; the shard is done when round 2's seats find it at the bar | in progress: council round 1 below the bar → loop 5; round 2 seats B and C at the bar (2026-10-02) |
-| P8 | **Progress photos, clips and time-lapses every loop** (E389): `scripts/shard-progress.mjs` + `scripts/shard-timelapse.py` → `progress/<slug>/` | done every loop (`progress/far-reach/`) |
+| P7 | **Done = two council rounds** (Jake 2026-10-02: "keep going autonomously until you're happy … have a council, do two rounds of reviewing it to see if it matches the quality of the other four shards"): `docs/plans/shard-polish-council/` (ledger, battery, brief, register). The builder loops on each round's findings; the shard is done when round 2's seats find it at the bar | done (council round 2, 020f8713: seats B and C at the bar, no row not fixed or regressed; `docs/plans/shard-polish-council/outcome.md`) |
+| P8 | **Progress photos, clips and time-lapses every loop** (E389): `scripts/shard-progress.mjs` + `scripts/shard-timelapse.py` → `progress/<slug>/` | done every loop; newest capture `progress/far-reach/20261002-0204-3ff49dd6/` |
 
 ## Loop 5 gap list: council round 1 (seats B and C), form and subject first
 
