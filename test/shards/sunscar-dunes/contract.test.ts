@@ -40,7 +40,7 @@ describe('Signal Dunes plugin contract', () => {
     const { app, plugin, stages, active } = await boot();
     expect(stages).toEqual(['data', 'world', 'kit', 'loadout', 'play', 'finish']);
     expect(manifest.status).toBe('experimental'); expect(manifest.audio?.preload).toBeUndefined(); expect(manifest.audio?.ambience).toBe('none');
-    expect(app.registry.pieces.map((p) => p.id)).toEqual(['sunscar.tower', 'sunscar.caravan', 'sunscar.well', 'sunscar.rocks', 'sunscar.brazier.0', 'sunscar.brazier.1', 'sunscar.brazier.2']);
+    expect(app.registry.pieces.map((p) => p.id)).toEqual(['sunscar.tower', 'sunscar.caravan', 'sunscar.well', 'sunscar.rocks', 'sunscar.dressing', 'sunscar.brazier.0', 'sunscar.brazier.1', 'sunscar.brazier.2']);
     expect(app.levelRegistrations.list('species')).toHaveLength(4);
     expect(app.levelRegistrations.text('step')).toBe('Light the signal fire'); expect(app.debug.scopedSnapshot()['sunscar']).toBe(plugin);
     const scope = app.levelScope; if (scope === null) throw new Error('No scope');

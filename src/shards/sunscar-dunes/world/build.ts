@@ -7,6 +7,8 @@ import { ownPrimitives } from './resources';
 import { buildTower, type TowerParts } from './tower';
 import { buildBrazier, buildCaravan, buildWell, type BrazierParts, type WellParts } from './places';
 import { buildRocks } from './rocks';
+import { buildDressing } from './dressing';
+import { buildButtes } from './buttes';
 import { FIRE_RESOURCES, fireGeometries, tickFires } from './fireFx';
 import { lastLightAll } from '../look/light';
 
@@ -27,6 +29,8 @@ export interface SignalWorld {
 }
 
 const toast = (ctx: ShardContext, text: string): void => { ctx.game.runtime?.play?.hud.toast(text); };
+/** The tower fire's light (candela-ish, three's units): warm on the deck without washing out the hands beside it (loop 4: 28 overexposed them). */
+const TOWER_LIGHT = 14;
 
 /**
  * Signal Dunes' places (C1): the signal tower, the half-buried caravan, the dry well, three waymark braziers and the
@@ -45,6 +49,9 @@ export function buildWorld(ctx: ShardContext, flags: Flags): SignalWorld {
   ctx.piece({ id: 'sunscar.well', name: STRINGS.well, category: 'buildings', file: file('places'), object: wellParts.root, colliders: wellParts.colliders, surface: 'stone' });
   const rocks = buildRocks(groundAt, trailDistance); ctx.root.add(rocks.root);
   ctx.piece({ id: 'sunscar.rocks', name: STRINGS.rocks, category: 'nature', file: file('rocks'), object: rocks.root, colliders: rocks.colliders, surface: 'rock' });
+  const dressing = buildDressing(groundAt, trailDistance, ctx.scope); ctx.root.add(dressing.root);
+  ctx.piece({ id: 'sunscar.dressing', name: STRINGS.dressing, category: 'nature', file: file('dressing'), object: dressing.root, colliders: dressing.colliders, surface: 'sand' });
+  const buttes = buildButtes(); ctx.root.add(buttes.root); // past the playable square: no piece, no colliders
   const interactables = ctx.game.runtime?.interactables;
 
   // The logbook on the caravan's tailboard: read it once, it points the way to the well.
@@ -98,7 +105,7 @@ export function buildWorld(ctx: ShardContext, flags: Flags): SignalWorld {
     } },
     light: () => {
       if (fire.lit) return;
-      fire.lit = true; tower.fire.visible = true; tower.light.intensity = 28; fire.brazier.label = STRINGS.lit; flags.set(FLAG.lit); fire.onLight?.();
+      fire.lit = true; tower.fire.visible = true; tower.light.intensity = TOWER_LIGHT; fire.brazier.label = STRINGS.lit; flags.set(FLAG.lit); fire.onLight?.();
     } };
   if (flags.has(FLAG.lit)) fire.light();
   interactables?.push(logbook, wellSpot, ...braziers.map((b) => b.spot), fire.brazier);
@@ -116,12 +123,12 @@ export function buildWorld(ctx: ShardContext, flags: Flags): SignalWorld {
   for (const r of FIRE_RESOURCES) ctx.scope.own(r);
   ctx.scope.onDispose(() => { for (const g of fireGeometries()) g.dispose(); });
   ctx.system({ id: 'sunscar.fire', phase: 'update', run: (dt, t) => {
-    tickFires(t);
+    tickFires(t); dressing.tick(t);
     // The bucket rides up over 1.2 s once pulled.
     if (well.raised && lift.t < 1) { lift.t = Math.min(1, lift.t + dt / 1.2); wellParts.bucket.position.y = 1.85 - wellParts.drop + (wellParts.drop - 0.5) * lift.t; wellParts.rope.scale.y = 1 - lift.t * 0.8; wellParts.crank.rotation.x = lift.t * 12; }
     if (!fire.lit) return;
     const flick = 1 + Math.sin(t * 13) * 0.06 + Math.sin(t * 29 + 1.3) * 0.04;
-    tower.light.intensity = 28 * flick;
+    tower.light.intensity = TOWER_LIGHT * flick;
   } });
   return { fire, braziers, well, logbook, crackables, flags, get litCount() { return braziers.filter((b) => b.lit).length; } };
 }

@@ -7,6 +7,7 @@ import { DUSK_CARD, DUSK_WIDE } from './thumbs/card';
 import { EXPLORE } from './explore/art';
 import { bootFiles, bootSources } from './boot/files';
 import { duneHeight } from './world/dunes';
+import { SIGNAL_DUNES_MINIMAP } from './look/minimap';
 
 const terrain = buildTerrain(SEED, { landscape: duneHeight, trails: TRAIL, cabinSites: [] });
 const ground = (x: number, z: number): number => terrain.heightAt(x, z);
@@ -27,17 +28,21 @@ export const SUNSCAR_DUNES: ShardManifest = {
   // "Last Light" (style bible): the key 10° up, behind-left of the spawn view (look/render.ts KEY); a cool sky fill so
   // every shaded face reads blue-violet, never black (review R1).
   sky: { sunColor: [1, 0.74, 0.52], sunIntensity: 2.6, envIntensity: 0.4, bgIntensity: 1, fogSunColor: [0.95, 0.55, 0.38], cloudSunColor: [0.9, 0.5, 0.4],
-    hemiSky: 0x6c78b0, hemiGround: 0x7a4a2c, hemiIntensity: 2.4, sun: { azimuth: 80, elevation: 10 } },
-  atmosphere: { fogHeight: -20, fogHeightFalloff: 0, fogHeightDensity: 0, fogDistDensity: 0, volumetricSunColor: [1, 0.55, 0.35] },
+    hemiSky: 0x7468a0, hemiGround: 0x8a4a28, hemiIntensity: 2.1, sun: { azimuth: 80, elevation: 10 } },
+  // loop 4: real aerial perspective (the engine's fog is exponential in distance; `FOG` near / far are unused): the dune
+  // rows and the far buttes lay back into the violet in layers (review R9), warm toward the sun.
+  atmosphere: { fogHeight: -20, fogHeightFalloff: 0, fogHeightDensity: 0, fogDistDensity: 0.0016, volumetricSunColor: [1, 0.55, 0.35] },
   // A light split-tone (R9): warm highlights, blue-violet shadows. The greyer zenith (look/sky.ts) no longer clips.
   grade: { saturation: 0.04, brightness: 0, contrast: 0.06, bloomIntensity: 0.15, bloomThreshold: 0.9, shadowTint: [0.94, 0.97, 1.08], highTint: [1.05, 1, 0.94], lift: [0, 0, 0], gain: [1, 1, 1], gamma: 1 },
   horizon: { cloudSea: false, rings: [
-    { r: 340, base: 2, color: [0.16, 0.06, 0.035], top: [0.3, 0.12, 0.06], snowLine: 2, haze: 0.45, floor: -10,
-      bands: [{ azimuth: 0, spread: 60, height: 9, rough: 0 }, { azimuth: 120, spread: 70, height: 7, rough: 0 }, { azimuth: 240, spread: 60, height: 10, rough: 0 }] },
-    { r: 470, base: 2, color: [0.12, 0.05, 0.05], top: [0.22, 0.09, 0.07], snowLine: 2, haze: 0.65, floor: -10,
-      bands: [{ azimuth: 60, spread: 80, height: 14, rough: 0 }, { azimuth: 200, spread: 90, height: 12, rough: 0 }, { azimuth: 320, spread: 50, height: 16, rough: 0 }] },
+    // loop 4: warm dune silhouettes rising in layers (the H4 targets), not one flat violet wall
+    { r: 340, base: 2, color: [0.26, 0.1, 0.045], top: [0.5, 0.21, 0.08], snowLine: 2, haze: 0.35, floor: -10,
+      bands: [{ azimuth: 0, spread: 60, height: 9, rough: 0.5 }, { azimuth: 120, spread: 70, height: 7, rough: 0.5 }, { azimuth: 240, spread: 60, height: 10, rough: 0.5 }] },
+    { r: 470, base: 2, color: [0.17, 0.07, 0.06], top: [0.34, 0.15, 0.1], snowLine: 2, haze: 0.6, floor: -10,
+      bands: [{ azimuth: 60, spread: 80, height: 14, rough: 0.4 }, { azimuth: 200, spread: 90, height: 12, rough: 0.4 }, { azimuth: 320, spread: 50, height: 16, rough: 0.4 }] },
   ] },
   boundary: { visible: false },
+  minimap: { palette: SIGNAL_DUNES_MINIMAP }, // the sand map: crests, slip faces, hollows, the ridges, the caravan tracks (look/minimap.ts)
   render: async () => (await import('./look/render')).signalDunesLook(),
   uses: ['quests', 'coins', 'loot', 'hover'],
   assetGlobs: ['public/assets/sunscar-dunes/**'],

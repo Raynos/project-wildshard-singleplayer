@@ -10,7 +10,7 @@ export const STRINGS = {
   bossReward: 'The Matriarch falls: 20 coins', bossRewardAgain: 'The Matriarch falls',
   tower: 'Signal tower', towerBlurb: 'A wooden signal tower on a far dune crest, its brazier cold.',
   brazier: 'Signal brazier', light: 'Light the signal fire', lit: 'Signal fire lit', fireHint: 'Light the three waymark braziers first',
-  caravan: 'Half-buried caravan', well: 'Dry well', rocks: 'Wind-cut sandstone', waymark: 'Waymark brazier',
+  caravan: 'Half-buried caravan', well: 'Dry well', rocks: 'Wind-cut sandstone', dressing: 'Scrub, markers and bones', waymark: 'Waymark brazier',
   readLog: 'Read the logbook', logRead: 'The caravan logbook',
   logText: '"Oil sealed in the old well, east. Light the waymarks, then the tower: the signal calls the riders home."',
   wellDown: 'The bucket hangs down the well', wellHint: 'The bucket is down the shaft: pull the windlass crank with a heavy crack',

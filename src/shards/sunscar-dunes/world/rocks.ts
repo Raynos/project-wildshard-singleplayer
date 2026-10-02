@@ -1,12 +1,12 @@
-import { ConeGeometry, Group, InstancedMesh, Matrix4, MeshStandardMaterial, Quaternion, Vector3, type BufferGeometry } from 'three';
+import { Group, InstancedMesh, Matrix4, MeshStandardMaterial, Quaternion, Vector3, type BufferGeometry } from 'three';
 import { Rng, boxDesc, rock, type ColliderDesc } from '#engine';
 import { BASIN, BRAZIERS, CARAVAN, PLAY_HALF, RIDGES, SEED, SPAWN, TOWER, WELL } from '../layout';
 
-/** The rock and scrub counts per tier (instanced: one draw each, never multi-draw). */
-export const SCATTER = { boulders: 46, scrub: 140, bigBoulder: 1.1 } as const;
-const SANDSTONE = 0x8c4c2e, SANDSTONE_DARK = 0x6a3826, SCRUB = 0x5c4a30;
+/** The rock counts (instanced: one draw each, never multi-draw); the shrubs and grass are `dressing.ts`. */
+export const SCATTER = { boulders: 46, bigBoulder: 1.1 } as const;
+const SANDSTONE = 0x8c4c2e, SANDSTONE_DARK = 0x6a3826;
 
-export interface RockField { root: Group; colliders: ColliderDesc[]; ridges: number; boulders: number; scrub: number }
+export interface RockField { root: Group; colliders: ColliderDesc[]; ridges: number; boulders: number }
 
 /** The places every scatter keeps clear of (metres). */
 const KEEP_CLEAR: readonly { x: number; z: number; r: number }[] = [
@@ -17,7 +17,7 @@ const clear = (x: number, z: number, pad: number): boolean => KEEP_CLEAR.every((
 
 /**
  * Wind-cut sandstone: the yardang ridges (three overlapping rock lobes each, a box collider per lobe), scattered
- * boulders (the large ones collide) and dry scrub. Each kind is one `InstancedMesh`.
+ * boulders (the large ones collide). Each kind is one `InstancedMesh`.
  */
 export function buildRocks(groundAt: (x: number, z: number) => number, trailDistance: (x: number, z: number) => number): RockField {
   const root = new Group(), colliders: ColliderDesc[] = [], rng = new Rng(SEED * 7 + 11);
@@ -51,19 +51,6 @@ export function buildRocks(groundAt: (x: number, z: number) => number, trailDist
     if (size > SCATTER.bigBoulder) colliders.push(boxDesc({ x, z, hw: size * 0.7, hd: size * 0.7, rot: -yaw, yBottom: y - size * 0.5, yTop: y + size * 0.6 }, 'rock'));
   }
   boulders.count = nb; boulders.instanceMatrix.needsUpdate = true; root.add(boulders);
-  // Scrub: dry tufts in the hollows (no collision).
-  const tuft = new ConeGeometry(0.5, 0.6, 5); tuft.translate(0, 0.25, 0);
-  const scrub = new InstancedMesh(tuft, new MeshStandardMaterial({ color: SCRUB, roughness: 1, flatShading: true }), SCATTER.scrub);
-  let ns = 0;
-  for (let tries = 0; ns < SCATTER.scrub && tries < SCATTER.scrub * 20; tries++) {
-    const x = rng.range(-PLAY_HALF + 4, PLAY_HALF - 4), z = rng.range(-PLAY_HALF + 4, PLAY_HALF - 4);
-    if (!clear(x, z, 2) || trailDistance(x, z) < 3.5) continue;
-    const y = groundAt(x, z), mean = (groundAt(x + 10, z) + groundAt(x - 10, z) + groundAt(x, z + 10) + groundAt(x, z - 10)) / 4;
-    if (y > mean + 0.4 && rng.chance(0.8)) continue; // the crests are bare; tufts gather in the hollows
-    const size = rng.range(0.5, 1.3);
-    place(scrub, ns++, x, y - 0.05, z, rng.range(0, 6.3), size * rng.range(0.9, 1.6), size * rng.range(0.6, 1), size * rng.range(0.9, 1.6));
-  }
-  scrub.count = ns; scrub.instanceMatrix.needsUpdate = true; root.add(scrub);
-  for (const mesh of [ridges, boulders, scrub]) { mesh.computeBoundingSphere(); mesh.castShadow = false; }
-  return { root, colliders, ridges: RIDGES.length, boulders: nb, scrub: ns };
+  for (const mesh of [ridges, boulders]) { mesh.computeBoundingSphere(); mesh.castShadow = false; }
+  return { root, colliders, ridges: RIDGES.length, boulders: nb };
 }

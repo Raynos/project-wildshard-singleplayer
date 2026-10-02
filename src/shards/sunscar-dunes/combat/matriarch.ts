@@ -33,7 +33,10 @@ export class DuneMatriarch extends BossBrain {
     const weather = { storm: 0 };
     let stormT = 0;
     const scene = ctx.game.runtime?.world?.game.scene ?? new Scene(), burst = new CoinBurst(scene), purse = shardSave(purseSave, ctx.manifest.slug);
-    const fog = scene.fog instanceof Fog ? { near: scene.fog.near, far: scene.fog.far, color: scene.fog.color.clone() } : null;
+    // The look's own fog (violet aerial perspective), read live while no storm blows: the plugin's `play` runs before the
+    // look composes its fog, so a copy taken here was the engine's placeholder (1 m – 1e6 m), and writing it back every
+    // boss frame erased the aerial layers (loop 4: the H4 deck's beige haze after the fire was lit).
+    const fog = { near: 0, far: 0, color: new Color(), stormed: false };
     const saves = shardSave(bossesSave, ctx.manifest.slug), saved = saves.read()[ID] ?? { defeated: false, rewardTaken: false, kills: 0 };
     // The blown-sand sheets (P2 #11, world/stormFx.ts): streaks racing downwind over a dusty veil, pulsing in gusts.
     const shells = STORM.shells.map(([r], i) => {
@@ -57,9 +60,12 @@ export class DuneMatriarch extends BossBrain {
       enterPhase: (next) => { if (animal) animal.mem['phase'] = next; stormGoal = next === 1 ? 1 : 0; },
       update: (dt) => {
         weather.storm += Math.sign(stormGoal - weather.storm) * Math.min(Math.abs(stormGoal - weather.storm), dt / STORM.fade);
-        if (fog && scene.fog instanceof Fog) {
-          scene.fog.near = fog.near + (STORM.near - fog.near) * weather.storm; scene.fog.far = fog.far + (STORM.far - fog.far) * weather.storm;
-          scene.fog.color.copy(fog.color).lerp(STORM.color, weather.storm);
+        if (scene.fog instanceof Fog) {
+          if (weather.storm > 0) {
+            scene.fog.near = fog.near + (STORM.near - fog.near) * weather.storm; scene.fog.far = fog.far + (STORM.far - fog.far) * weather.storm;
+            scene.fog.color.copy(fog.color).lerp(STORM.color, weather.storm); fog.stormed = true;
+          } else if (fog.stormed) { scene.fog.near = fog.near; scene.fog.far = fog.far; scene.fog.color.copy(fog.color); fog.stormed = false; }
+          else { fog.near = scene.fog.near; fog.far = scene.fog.far; fog.color.copy(scene.fog.color); }
         }
         stormT += dt;
         shells.forEach((shell, i) => {
@@ -94,7 +100,7 @@ export class DuneMatriarch extends BossBrain {
     if (saved.defeated) onDown?.();
     ctx.scope.onDispose(() => {
       burst.update(3, player); burst.dispose(); if (animal) retire(animal); animal = null;
-      if (fog && scene.fog instanceof Fog) { scene.fog.near = fog.near; scene.fog.far = fog.far; scene.fog.color.copy(fog.color); }
+      if (fog.stormed && scene.fog instanceof Fog) { scene.fog.near = fog.near; scene.fog.far = fog.far; scene.fog.color.copy(fog.color); }
     });
   }
 }

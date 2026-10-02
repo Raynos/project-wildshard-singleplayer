@@ -1,4 +1,4 @@
-import { addFire, WAYMARK_FIRE } from './fireFx';
+import { addFire, addLampGlow, WAYMARK_FIRE } from './fireFx';
 import { BoxGeometry, CylinderGeometry, DoubleSide, Float32BufferAttribute, Group, InstancedMesh, Matrix4, Mesh, MeshBasicMaterial, MeshStandardMaterial,
   Quaternion, SphereGeometry, TorusGeometry, Vector3, type Material } from 'three';
 import { boxDesc, type ColliderDesc } from '#engine';
@@ -11,11 +11,14 @@ const mat = (color: number, extra: Partial<{ metalness: number; side: typeof Dou
 const box = (w: number, h: number, d: number, material: Material): Mesh => new Mesh(new BoxGeometry(w, h, d), material);
 const at = (mesh: Mesh, x: number, y: number, z: number, parent: Group): Mesh => { mesh.position.set(x, y, z); parent.add(mesh); return mesh; };
 
+/** The lantern on its pole, in the caravan's frame (metres): beside the tailboard (−Z), the glass `y` up. */
+const LANTERN = { x: 1.45, y: 1.7, z: -3.2 } as const;
+
 /** Spilled cargo on the lee (−X) side, on the sand itself: x, z, half size, yaw. */
 const CARGO: readonly [number, number, number, number][] = [[-2.3, 0.7, 0.35, 0.3], [-2.8, -0.8, 0.3, -0.4], [-1.9, -2.4, 0.4, 0.9]];
 
 /** Sun-bleached crate planks (loop 3: the plain dark boxes read as black cubes against the afterglow). */
-const CRATE = 0x9a7352, CRATE_GLOW = 0x150b05;
+const CRATE = 0x9a7352, CRATE_GLOW = 0x150b05, BARREL = 0x7e5a3e;
 const crateMaterial = (): MeshStandardMaterial => new MeshStandardMaterial({ color: CRATE, vertexColors: true, roughness: 0.9, flatShading: true, emissive: CRATE_GLOW });
 /** A crate of four planks a side: each plank band a shade of its own, the frame boards at top and bottom darker. */
 function crateGeometry(half: number): BoxGeometry {
@@ -47,14 +50,33 @@ export function buildCaravan(groundAt: (x: number, z: number) => number): Carava
   else buildCodeWagon(wagon, wood, dark);
   const crateWood = crateMaterial();
   CARGO.forEach(([x, z, half, yaw]) => { const crate = new Mesh(crateGeometry(half), crateWood); crate.rotation.y = yaw; at(crate, x, half * 0.8, z, root); });
-  const barrel = new Mesh(new CylinderGeometry(0.34, 0.34, 0.9, 10), dark); barrel.rotation.set(0, 0.6, Math.PI / 2); at(barrel, -2.4, 0.25, 2.3, root);
+  // The barrel (loop 4: it was a plain near-black cylinder): sun-bleached staves, a bulge, two iron hoops.
+  const barrel = new Group(); barrel.rotation.set(0, 0.6, Math.PI / 2); barrel.position.set(-2.4, 0.25, 2.3); root.add(barrel);
+  const staves = mat(BARREL, { emissive: CRATE_GLOW }); // no vertex colours on a cylinder: a plain material, not the crates'
+  barrel.add(new Mesh(new CylinderGeometry(0.31, 0.31, 0.9, 12, 3), staves));
+  barrel.add(new Mesh(new CylinderGeometry(0.345, 0.345, 0.5, 12, 1, true), staves));
+  for (const yy of [-0.32, 0.32]) { const hoop = new Mesh(new TorusGeometry(0.33, 0.025, 4, 14), mat(IRON, { metalness: 0.4 })); hoop.rotation.x = Math.PI / 2; hoop.position.y = yy; barrel.add(hoop); }
   // The logbook: on the tailboard, the wagon's back (−Z).
   const logbook = box(0.32, 0.07, 0.42, mat(LEATHER)); logbook.rotation.y = 0.3; at(logbook, 0.35, 1.12, -2.55, root);
   const logbookAt = new Vector3(0.35, 1.12, -2.55).applyAxisAngle(new Vector3(0, 1, 0), CARAVAN.yaw).add(root.position);
+  // The lantern (loop 4, mockup B): on a leaning pole beside the tailboard, the logbook's warm light in the dusk.
+  const lamp = new Group(); lamp.position.set(LANTERN.x, LANTERN.y, LANTERN.z); root.add(lamp);
+  const iron = mat(IRON, { metalness: 0.4 });
+  const pole = box(0.07, LANTERN.y + 0.5, 0.07, wood); pole.rotation.z = -0.08; at(pole, 0.05, -(LANTERN.y + 0.5) / 2 + 0.45, 0, lamp);
+  const arm = box(0.32, 0.05, 0.05, wood); at(arm, -0.1, 0.42, 0, lamp);
+  at(box(0.2, 0.04, 0.2, iron), -0.22, 0.18, 0, lamp); at(box(0.2, 0.04, 0.2, iron), -0.22, -0.16, 0, lamp);
+  at(box(0.13, 0.28, 0.13, new MeshBasicMaterial({ color: 0xffb24a })), -0.22, 0.01, 0, lamp);
+  for (const [dx, dz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]] as const) at(box(0.02, 0.32, 0.02, iron), -0.22 + dx * 0.09, 0.01, dz * 0.09, lamp);
+  const cosY = Math.cos(CARAVAN.yaw), sinY = Math.sin(CARAVAN.yaw);
+  addLampGlow(lamp, 2.4, (lx, lz) => {
+    const x = LANTERN.x + lx, z = LANTERN.z + lz; // the lamp's frame → the caravan's → the world (three's Ry)
+    return groundAt(CARAVAN.x + x * cosY + z * sinY, CARAVAN.z - x * sinY + z * cosY) - (y + LANTERN.y);
+  });
   // Colliders: the wagon body and the cargo (world space).
   const world = (x: number, z: number): Vector3 => new Vector3(x, 0, z).applyAxisAngle(new Vector3(0, 1, 0), CARAVAN.yaw).add(root.position);
   const body = world(0, 0);
   colliders.push(boxDesc({ x: body.x, z: body.z, hw: 1.1, hd: 2.3, rot: -CARAVAN.yaw, yBottom: y - 1, yTop: y + 1.9 }, 'wood'));
+  const lampPost = world(LANTERN.x, LANTERN.z); colliders.push(boxDesc({ x: lampPost.x, z: lampPost.z, hw: 0.06, hd: 0.06, rot: 0, yBottom: y - 0.5, yTop: y + LANTERN.y + 0.5 }, 'wood'));
   for (const [x, z, half] of CARGO) { const c = world(x, z); colliders.push(boxDesc({ x: c.x, z: c.z, hw: half, hd: half, rot: -CARAVAN.yaw, yBottom: y - 0.5, yTop: y + half * 1.8 }, 'wood')); }
   return { root, colliders, logbookAt, logbook };
 }

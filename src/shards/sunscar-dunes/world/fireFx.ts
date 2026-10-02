@@ -188,5 +188,17 @@ export function addFire(group: Group, size: FireSize, pool?: { at: Vector3; grou
   return parts;
 }
 
+/**
+ * A lamp's halo and its warm pool on the ground (loop 4: the caravan lantern, mockup B), no light. `ground(lx, lz)` is
+ * the ground's height under a point of `group`'s own frame, relative to the group's origin.
+ */
+export function addLampGlow(group: Group, glow: number, ground: (lx: number, lz: number) => number): void {
+  const halo = new Mesh(glowQuad, glowMaterial); halo.scale.setScalar(glow); halo.renderOrder = 2; halo.frustumCulled = false; group.add(halo);
+  const r = glow * 1.6, n = 10, g = new PlaneGeometry(r * 2, r * 2, n, n); g.rotateX(-Math.PI / 2);
+  const p = g.getAttribute('position');
+  for (let i = 0; i < p.count; i++) p.setY(i, ground(p.getX(i), p.getZ(i)) + 0.06);
+  const pool = new Mesh(g, poolMaterial); pool.frustumCulled = false; group.add(pool);
+}
+
 /** Advances every fire's shared clock (one uniform for all of them). */
 export function tickFires(t: number): void { time.value = t; }
