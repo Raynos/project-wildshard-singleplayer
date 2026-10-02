@@ -91,6 +91,7 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [nalati-walk.mjs](./nalati-walk.mjs)
 - [physics-baseline.mjs](./physics-baseline.mjs)
 - [physics-route.json](./physics-route.json)
+- [physics-walk.mjs](./physics-walk.mjs)
 - [scorecard.mjs](./scorecard.mjs)
 
 ## Test harness
