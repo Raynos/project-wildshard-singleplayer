@@ -736,12 +736,44 @@ Both shapes take these optional parts:
 | Part | What it does |
 |---|---|
 | `backdrop` (`SkyBackdropFactory` → `SkyBackdrop`) | your sky backdrop and day clock. It gets `SkyBackdropContext`, `SkyBackdropTargets`, `SkyBackdropPost` |
-| `sky` (`SkyDressing`) | `{ clouds, planet, build?, update? }`: which engine sky objects to build |
+| `sky` (`SkyDressing`) | `{ clouds, planet, sun?: { disc?: boolean, halo?: boolean }, build?, update? }`: which engine sky objects to build/show |
 | `lighting` (`LightingRig`), `shadows` (`ShadowStyle`) | the light model and shadow rig |
 | `fog` (`FogModel`), `fogControl` | your fog patch (`{ order, install }`) and suspend / resume for Explore and playgrounds |
 | `terrainPainter` (`TerrainPainter`, `PainterField`) | `build(terrain, field, scope)` builds the ground mesh; `scope` is the owning level scope |
 | `grass` (`GrassDriver`, `GrassLayer`) | grass |
 | `frame(dt, t)`, `dispose()` | per-frame work and cleanup |
+
+**Sky dressing sun.** `sky.sun.disc` and `sky.sun.halo` independently select the engine sun surface and corona at
+build time; each defaults to `true` when omitted. For a sky that paints its own sun or needs no visible sun:
+
+```ts
+sky: { clouds: false, planet: false, sun: { disc: false, halo: false } }
+```
+
+These flags affect drawing only: sun direction, key light, shadows and the backdrop clock keep working. Disc `false`
+hides its surface material so a selected halo can still draw; the parent mesh remains available to the rig and
+post effects. A backdrop can additionally drive `targets.disc.visible` / `targets.halo.visible` for day/night;
+hiding the disc parent also hides its child halo. The engine does not re-enable a dressing-disabled surface or halo.
+
+**`SkyBackdropTargets` field table.** `backdrop.bind(targets)` runs after the engine builds the light rig and sun,
+before frame updates. These are shared live objects: copy/set their values in place, rather than replacing them.
+
+| Field | Type | Meaning / ownership |
+|---|---|---|
+| `sunDir` | `Vector3` | Unit world direction toward the sun; continuous visual/fog direction. Use `sky.setKeyLight(dir, color, intensity)` to update the shadow rig coherently |
+| `sunColor` | `Color` | Live sun light color |
+| `lights` | `DirectionalLight[]` | Engine key-light shadow cascades; a clock may set their color/intensity |
+| `lightDirection` | `Vector3` | Shadow rig direction (opposite the direction toward the sun); separate from continuous `sunDir` so shadow stepping can be held |
+| `hemi` | `HemisphereLight` | Ambient sky/ground colors and intensity |
+| `fog` | `Fog` | Scene linear fog color, near and far; defer changes while `underwater()` is true |
+| `fogU` | `{ fogSunDir: { value: Vector3 }, fogSunColor: { value: Color }, fogDistDensity: { value: number }, fogHeightDensity: { value: number } }` | Atmosphere shader's sun direction/color and distance/height fog densities |
+| `underwater` | `() => boolean` | Whether the eye is underwater; the atmosphere owns fog then |
+| `disc` | `Mesh` | Engine visible sun surface, with child corona; engine positions it along `sunDir`. `visible = false` hides both. The dressing's disc flag controls its material |
+| `halo` | `Sprite \| null` | Corona child when present; visibility, material color/opacity and scale are writable. Guard null |
+| `cloud` | `{ uSunDir: { value: Vector3 }, uSunColor: { value: Color }, uCloudLit: { value: Color }, uCloudAlpha: { value: number } }` | Engine cloud layer's light direction/color, tint and opacity |
+| `far` | `{ uHazeCol: { value: Color }, uSeaSky: { value: Color }, uSeaSun: { value: Color }, uSeaSunDir: { value: Vector3 } }` | Horizon haze and cloud-sea sky/sun colors and direction |
+| `planet` | `{ uSunDir: { value: Vector3 }, uHaze: { value: Color }, uCrisp: { value: number } }` | Engine gas-giant shading; `uCrisp = 1` selects a crisp opaque disc |
+| `shadowBusy` | `() => boolean` | True while a stepped key-light shadow crossfades; hold the next shadow step until false |
 
 The template's grey-box look extends the engine chain and adds nothing to it:
 

@@ -176,6 +176,8 @@ export class SkyBackdropView {
 
   buildSunDisc(): void {
     const mat = new THREE.MeshBasicMaterial({ color: new THREE.Color(1.0, 0.95, 0.85), fog: false, toneMapped: false });
+    // Hide only the surface material: the corona remains independently selectable as its child.
+    mat.visible = this.dressing?.sun?.disc !== false;
     this.sunDisc = new THREE.Mesh(new THREE.SphereGeometry(14, 24, 24), mat);
     this.sunDisc.position.copy(this.sunDir).multiplyScalar(1500);
     this.sunDisc.frustumCulled = false;
@@ -188,6 +190,7 @@ export class SkyBackdropView {
     const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, depthTest: false, fog: false, toneMapped: false }));
     halo.scale.setScalar(this.level.sky.painted ? 250 : 420); // a painted sun: a tighter glow (the mockups keep the sky blue right up to it)
     halo.scale.z = 1;
+    halo.visible = this.dressing?.sun?.halo !== false;
     // the practice room (src/engine/practice/TrainingArena.ts) is a closed box: there its ceiling must hide the glow (E285)
     this.scope.listen(document, 'ws:practice-active', (e) => { if (e instanceof CustomEvent) halo.material.depthTest = e.detail === true; });
     this.sunDisc.add(halo);

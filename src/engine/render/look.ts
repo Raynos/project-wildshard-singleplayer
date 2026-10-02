@@ -105,6 +105,8 @@ export interface SkyDressing {
   clouds: boolean;
   /** false: the engine's planet is not built (`sky.planet` stays an empty group outside the scene) — the level paints its own */
   planet: boolean;
+  /** Sun surface/corona visibility at build; each omitted flag defaults to true. Lighting is unchanged. */
+  sun?: { disc?: boolean; halo?: boolean };
   /** `cloudField`: the engine's tileable cloud fbm (R), for a level's cloud shadows */
   build?: (sky: Sky, cloudField: Texture) => void;
   update?: (dt: number) => void;
