@@ -32,6 +32,15 @@ describe('scoped overlay stack', () => {
     layers.push('error', { root: document.createElement('div'), back: () => undefined }, shell);
     active = second; expect(layers.top).toBe('error'); first.dispose(); shell.dispose();
   });
+  it('reports whether the top view yields to the game menu (E385: PAUSE over a dialogue)', () => {
+    const scope = new Scope('level'), layers = new UiLayers();
+    expect(layers.topYields).toBe(false);
+    const talk = layers.push('modal', { root: document.createElement('div'), yieldsToMenu: true, back: () => { talk.dispose(); } }, scope);
+    expect(layers.topYields).toBe(true);
+    const confirm = layers.push('error', { root: document.createElement('div'), back: () => undefined }, scope);
+    expect(layers.topYields).toBe(false); confirm.dispose();
+    layers.back(); expect(layers.blocking).toBe(false); expect(layers.topYields).toBe(false); scope.dispose();
+  });
   it('cannot register a view into an already disposed scope', () => {
     const scope = new Scope('closed'), layers = new UiLayers(); scope.dispose();
     const handle = layers.push('modal', { root: document.createElement('div'), back: () => undefined }, scope);

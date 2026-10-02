@@ -8,6 +8,8 @@ export interface UiView {
   order?: number;
   /** An embedded view inherits its ancestor's input ownership; it only registers placement/lifetime. */
   embedded?: boolean;
+  /** the menu actions (pause, map, inventory) close this view and open the game menu instead of being ignored under it (a dialogue box, E385) */
+  yieldsToMenu?: boolean;
 }
 export interface UiHandle { readonly active: boolean; readonly top: boolean; dispose: () => void }
 interface Entry { layer: UiLayer; view: UiView; handle: UiHandle; resident: Scope | null; forget: () => void }
@@ -30,6 +32,8 @@ export class UiLayers {
   private input(): Entry[] { return this.visible().filter((entry) => entry.view.embedded !== true); }
   get top(): UiLayer { return this.input().at(-1)?.layer ?? 'hud'; }
   get blocking(): boolean { return this.top !== 'hud'; }
+  /** the input owner on top closes for the game menu (`UiView.yieldsToMenu`) */
+  get topYields(): boolean { return this.input().at(-1)?.view.yieldsToMenu === true; }
   isTop(handle: UiHandle): boolean { return this.input().at(-1)?.handle === handle; }
   push(layer: UiLayer, view: UiView, scope: Scope): UiHandle {
     let active = !scope.disposed;

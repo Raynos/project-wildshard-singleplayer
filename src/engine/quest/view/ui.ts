@@ -118,7 +118,7 @@ export class DialogueBox {
     if (lines.length === 0) { onDone(); return; }
     this.name.textContent = name;
     this.lines = lines; this.i = 0; this.shown = 0; this.finish_ = onDone; this.layer?.dispose();
-    this.layer = app.ui.push('modal', { root: this.root, order: -42, back: () => { this.close(false); } }, this.scope); this.openT = app.clock.real * 1000;
+    this.layer = app.ui.push('modal', { root: this.root, order: -42, yieldsToMenu: true, back: () => { this.close(false); } }, this.scope); this.openT = app.clock.real * 1000;
     this.root.classList.add('show');
     this.render();
   }

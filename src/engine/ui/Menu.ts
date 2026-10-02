@@ -157,7 +157,11 @@ export class GameMenu {
     containMenuInput(this.root, this.scope);
     const toggle = (tab: MenuTab): void => {
       if (!this._open && app.state !== 'play' && app.state !== 'practice') return;
-      if (app.ui.blocking && this.layer?.top !== true) return;
+      if (app.ui.blocking && this.layer?.top !== true) {
+        if (!app.ui.topYields) return;
+        app.ui.back(); // E385: PAUSE over an NPC's dialogue closes it, then opens the menu
+        if (app.ui.top !== 'hud') return; // another overlay was under it
+      }
       this.toggle(tab);
     };
     app.input.bind('pause', () => { toggle('settings'); }, this.scope);
