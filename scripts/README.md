@@ -105,6 +105,7 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 ## Capture, boards and mockups
 
 - [creature-lineup.mjs](./creature-lineup.mjs)
+- [hero-shots.mjs](./hero-shots.mjs)
 - [ktx2-ab-board.py](./ktx2-ab-board.py)
 - [mockup-local.sh](./mockup-local.sh)
 - [nalati-bow-capture.mjs](./nalati-bow-capture.mjs)
