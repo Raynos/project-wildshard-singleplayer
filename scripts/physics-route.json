@@ -2350,5 +2350,200 @@
    "timeout": 15,
    "notes": "dropped into the shaft between the crossings (the grapple gone wrong): the def's bounds catch the fall under Y0 − 100 and put the player back on the last floor stood on (the rim, two legs before)"
   }
+ ],
+ "sunscar-dunes": [
+  {
+   "name": "spawn-caravan",
+   "start": {
+    "x": 0,
+    "z": 70,
+    "yaw": 0,
+    "y": 7.83
+   },
+   "waypoints": [
+    {
+     "x": -36,
+     "z": 52
+    },
+    {
+     "x": -70,
+     "z": 32
+    }
+   ],
+   "expect": {
+    "y": 4.85
+   },
+   "notes": "E374 Signal Dunes content route (its agent: max grade 26°, nearest collider ≥ 2.5 m on a node build)"
+  },
+  {
+   "name": "caravan-well",
+   "start": {
+    "x": -70,
+    "z": 32,
+    "yaw": 0,
+    "y": 4.85
+   },
+   "waypoints": [
+    {
+     "x": -36,
+     "z": 52
+    },
+    {
+     "x": 0,
+     "z": 66
+    },
+    {
+     "x": 44,
+     "z": 40
+    },
+    {
+     "x": 78,
+     "z": -2
+    }
+   ],
+   "expect": {
+    "y": 3.25
+   },
+   "notes": "E374 Signal Dunes content route (its agent: max grade 26°, nearest collider ≥ 2.5 m on a node build)"
+  },
+  {
+   "name": "well-waymark-east",
+   "start": {
+    "x": 78,
+    "z": -2,
+    "yaw": 0,
+    "y": 3.25
+   },
+   "waypoints": [
+    {
+     "x": 66,
+     "z": -22
+    },
+    {
+     "x": 58,
+     "z": -31
+    }
+   ],
+   "expect": {
+    "y": 4.63
+   },
+   "notes": "E374 Signal Dunes content route (its agent: max grade 26°, nearest collider ≥ 2.5 m on a node build)"
+  },
+  {
+   "name": "waymark-east-west",
+   "start": {
+    "x": 58,
+    "z": -31,
+    "yaw": 0,
+    "y": 4.63
+   },
+   "waypoints": [
+    {
+     "x": 30,
+     "z": -14
+    },
+    {
+     "x": 4,
+     "z": -4
+    },
+    {
+     "x": -20,
+     "z": -12
+    },
+    {
+     "x": -41,
+     "z": -21
+    }
+   ],
+   "expect": {
+    "y": 3.25
+   },
+   "notes": "E374 Signal Dunes content route (its agent: max grade 26°, nearest collider ≥ 2.5 m on a node build)"
+  },
+  {
+   "name": "waymark-west-tower",
+   "start": {
+    "x": -41,
+    "z": -21,
+    "yaw": 0,
+    "y": 3.25
+   },
+   "waypoints": [
+    {
+     "x": -14,
+     "z": -20
+    },
+    {
+     "x": 5,
+     "z": -30
+    },
+    {
+     "x": 8,
+     "z": -68
+    }
+   ],
+   "expect": {
+    "y": 7.87
+   },
+   "notes": "E374 Signal Dunes content route (its agent: max grade 26°, nearest collider ≥ 2.5 m on a node build)"
+  },
+  {
+   "name": "tower-waymark-north",
+   "start": {
+    "x": 8,
+    "z": -68,
+    "yaw": 0,
+    "y": 7.87
+   },
+   "waypoints": [
+    {
+     "x": 14,
+     "z": -70
+    },
+    {
+     "x": 24,
+     "z": -88
+    },
+    {
+     "x": 32,
+     "z": -99
+    }
+   ],
+   "expect": {
+    "y": 1.83
+   },
+   "notes": "E374 Signal Dunes content route (its agent: max grade 26°, nearest collider ≥ 2.5 m on a node build)"
+  },
+  {
+   "name": "waymark-north-basin",
+   "start": {
+    "x": 32,
+    "z": -99,
+    "yaw": 0,
+    "y": 1.83
+   },
+   "waypoints": [
+    {
+     "x": 14,
+     "z": -90
+    },
+    {
+     "x": 6,
+     "z": -84
+    },
+    {
+     "x": -6,
+     "z": -100
+    },
+    {
+     "x": -14,
+     "z": -140
+    }
+   ],
+   "expect": {
+    "y": 0.8
+   },
+   "notes": "E374 Signal Dunes content route (its agent: max grade 26°, nearest collider ≥ 2.5 m on a node build)"
+  }
  ]
 }
