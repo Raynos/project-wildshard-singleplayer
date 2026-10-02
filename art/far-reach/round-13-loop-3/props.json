@@ -1,0 +1,9 @@
+{
+ "about": "Sky Reach loop 3 (E374): the bridge-keeper. codex image_gen ref (ref-keeper.jpg here; the PNG went to ~/ml/img2mesh/in/far-reach-keeper/) -> Hunyuan3D-2 turbo shape + paint (~/projects/localai/bin/img2mesh/hy3d_batch.py under run-locked.sh) -> faceted vertex-coloured asset. Run: python3 scripts/img2mesh/build_props.py art/far-reach/round-13-loop-3/props.json public/assets/far-reach/models",
+ "gen": "~/ml/img2mesh/out/far-reach-hy",
+ "stage": "~/ml/img2mesh/out/far-reach-post-keeper",
+ "args": [],
+ "props": [
+  { "ref": "ref-keeper", "args": "--name keeper --tris 2600 --fit height --size 2.05 --quant 10 --sat 1.45 --val 1.15" }
+ ]
+}

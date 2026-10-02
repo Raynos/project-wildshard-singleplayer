@@ -1,4 +1,5 @@
-import { CapsuleGeometry, ConeGeometry, CylinderGeometry, Group, Mesh, MeshStandardMaterial, SphereGeometry, Vector3, type Object3D } from 'three';
+import { AdditiveBlending, BufferGeometry, CapsuleGeometry, ConeGeometry, CylinderGeometry, Float32BufferAttribute, Group, Mesh, MeshStandardMaterial, SphereGeometry, Sprite, SpriteMaterial, Vector3, type Object3D } from 'three';
+import { fit, skyMesh } from '../world/meshes';
 import type { NpcDef } from '#engine';
 import { FLAGS } from './flags';
 import { STRINGS } from '../strings';
@@ -20,11 +21,87 @@ export const KEEPER_NPC: NpcDef = {
 
 export interface Keeper { readonly group: Group; readonly head: Vector3; readonly speaker: { talking: boolean }; update: (t: number, player: Vector3) => void }
 
+/** The generated keeper's frame (metres, his local space, facing +z): his height, the right arm that waves and its shoulder. */
+export const KEEPER_MODEL = { height: 1.95, yaw: 0, arm: { x: -0.2, y0: 0.82, y1: 1.5 }, shoulder: [-0.26, 1.47, 0] } as const;
+
+/** Split a flat geometry by triangle centroid: [the rest, the triangles `pick` claims]. */
+function split(g: BufferGeometry, pick: (x: number, y: number, z: number) => boolean): [BufferGeometry, BufferGeometry] {
+  const p = g.getAttribute('position'), c = g.getAttribute('color'), out = [{ pos: [] as number[], col: [] as number[] }, { pos: [] as number[], col: [] as number[] }];
+  for (let t = 0; t + 2 < p.count; t += 3) {
+    const side = out[pick((p.getX(t) + p.getX(t + 1) + p.getX(t + 2)) / 3, (p.getY(t) + p.getY(t + 1) + p.getY(t + 2)) / 3, (p.getZ(t) + p.getZ(t + 1) + p.getZ(t + 2)) / 3) ? 1 : 0];
+    if (side) for (let v = t; v < t + 3; v++) { side.pos.push(p.getX(v), p.getY(v), p.getZ(v)); side.col.push(c.getX(v), c.getY(v), c.getZ(v)); }
+  }
+  const make = (part: { pos: number[]; col: number[] } | undefined): BufferGeometry => {
+    const r = new BufferGeometry(); r.setAttribute('position', new Float32BufferAttribute(part?.pos ?? [], 3)); r.setAttribute('color', new Float32BufferAttribute(part?.col ?? [], 3));
+    r.computeVertexNormals(); return r;
+  };
+  g.dispose(); return [make(out[0]), make(out[1])];
+}
+
+/** Where the lantern is: the centroid of the most amber vertices on his staff side (+x), high up; they are lit amber. */
+function lanternAt(g: BufferGeometry): Vector3 {
+  const p = g.getAttribute('position'), c = g.getAttribute('color'), H = KEEPER_MODEL.height, picks: { score: number; i: number }[] = [];
+  for (let i = 0; i < p.count; i++) if (p.getX(i) > 0.2 && p.getY(i) > H * 0.7 && p.getY(i) < H * 0.9) picks.push({ score: c.getX(i) * 2 - c.getZ(i) * 2 + c.getY(i), i });
+  picks.sort((x, y) => y.score - x.score);
+  const top = picks.slice(0, 24), sum = new Vector3();
+  // the lantern's own facets burn bright amber (it reads lit at golden hour)
+  for (const { i } of top) { sum.x += p.getX(i); sum.y += p.getY(i); sum.z += p.getZ(i); c.setXYZ(i, 1, 0.82, 0.46); }
+  c.needsUpdate = true;
+  return top.length > 0 ? sum.multiplyScalar(1 / top.length) : new Vector3(0.35, H * 0.72, 0.1);
+}
+
+/** The beard and scarf (light facets under the hat, over the chest) go nearer white: the warm key light turns them peach. */
+function whiten(g: BufferGeometry): void {
+  const p = g.getAttribute('position'), c = g.getAttribute('color'), H = KEEPER_MODEL.height;
+  for (let i = 0; i < c.count; i++) {
+    const x = p.getX(i), y = p.getY(i), r = c.getX(i), gg = c.getY(i), b = c.getZ(i), hi = Math.max(r, gg, b);
+    // linear colours: the beard and scarf are pale peach (g/r ≳ 0.55), the skin a deeper tan, the coat dark
+    if (Math.abs(x) > 0.3 || y < H * 0.58 || y > H * 0.84 || hi < 0.4 || gg < r * 0.55 || b < r * 0.28) continue;
+    c.setXYZ(i, r + (1 - r) * 0.55, gg + (1 - gg) * 0.6, b + (1 - b) * 0.7);
+  }
+  c.needsUpdate = true;
+}
+
+/** The generated keeper (loop 3; `art/far-reach/round-13-loop-3/`): body + a waving right arm on a shoulder pivot, and a lantern glow. */
+function generated(): { group: Group; shoulder: Group; glow: Sprite } | null {
+  const g = skyMesh('keeper'); if (g === null) return null;
+  fit(g, { size: KEEPER_MODEL.height, by: 'height', floor: 0, centre: 'base' }); g.rotateY(KEEPER_MODEL.yaw);
+  whiten(g); const lantern = lanternAt(g), A = KEEPER_MODEL.arm, [sx, sy, sz] = KEEPER_MODEL.shoulder;
+  const [body, arm] = split(g, (x, y) => x < A.x && y > A.y0 && y < A.y1);
+  const material = new MeshStandardMaterial({ vertexColors: true, roughness: 0.9, metalness: 0, flatShading: true });
+  const group = new Group(), shoulder = new Group();
+  group.add(new Mesh(body, material));
+  shoulder.position.set(sx, sy, sz); group.add(shoulder);
+  shoulder.add(new Mesh(arm.translate(-sx, -sy, -sz), material));
+  const glow = new Sprite(new SpriteMaterial({ color: 0xffb860, transparent: true, opacity: 0.7, blending: AdditiveBlending, depthWrite: false }));
+  glow.position.copy(lantern); glow.scale.setScalar(0.75); group.add(glow);
+  return { group, shoulder, glow };
+}
+
 /**
- * The bridge-keeper: an old sky-sailor in a slate-blue coat with a cream scarf, a white beard and a long staff, built in
- * code (low-poly, Gilded Air palette). He waves his free arm when you come near and gestures while he talks.
+ * The bridge-keeper: an old sky-sailor in a slate-blue coat and hat, a cream scarf, a long white beard, a gnarled staff
+ * with a brass lantern (mockup B). The generated model (Hunyuan3D-2) when it loaded, else the code figure below. He waves
+ * his free arm when you come near and gestures while he talks.
  */
 export function keeper(y: number): Keeper {
+  const made = generated();
+  if (made === null) return codeKeeper(y);
+  const { group, shoulder, glow } = made;
+  group.position.set(KEEPER_AT.x, y, KEEPER_AT.z); group.rotation.y = KEEPER_AT.yaw;
+  const head = new Vector3(KEEPER_AT.x, y + 1.8, KEEPER_AT.z), speaker = { talking: false };
+  return { group, head, speaker, update: (t, player) => {
+    const near = Math.hypot(player.x - KEEPER_AT.x, player.z - KEEPER_AT.z) < WAVE_RANGE;
+    // his right arm (−x) lifts out sideways: a wave near, an open-hand gesture while he talks
+    const lift = speaker.talking ? 0.9 + Math.sin(t * 2.2) * 0.2 : near ? 2.3 + Math.sin(t * 7) * 0.3 : 0;
+    shoulder.rotation.z += (-lift - shoulder.rotation.z) * 0.15;
+    // a slow breath of a turn, and the lantern's flicker
+    group.rotation.y = KEEPER_AT.yaw + Math.sin(t * 0.6) * 0.03;
+    glow.material.opacity = 0.65 + Math.sin(t * 9) * 0.05 + Math.sin(t * 23) * 0.04;
+  } };
+}
+
+/** The code figure: the stand-in while the generated model is not loaded. */
+function codeKeeper(y: number): Keeper {
   const group = new Group(), m = (color: number): MeshStandardMaterial => new MeshStandardMaterial({ color, roughness: 0.9, metalness: 0, flatShading: true });
   const coat = m(0x4f6a8f), scarf = m(0xe8dcc4), skin = m(0xe0b48e), beard = m(0xf1ece2), wood = m(0x6b4a30), boot = m(0x3a2a20);
   const add = (mesh: Mesh, x: number, yy: number, z: number, parent: Object3D = group): Mesh => { mesh.position.set(x, yy, z); parent.add(mesh); return mesh; };
