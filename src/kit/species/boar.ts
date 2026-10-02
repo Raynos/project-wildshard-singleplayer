@@ -10,6 +10,7 @@ export const BOAR_TUNING: HuntTuning = {
   impactSpook: 7, impactAlert: 18,
 };
 export const BOAR: SpeciesRow = {
+  lockable: true,
   id: 'kit.creature.boar', kind: 'boar', label: 'Boar', aggressive: true,
   walkSpeed: 1.1, chargeSpeed: 7.5, chargeDamage: 25, tuning: BOAR_TUNING,
   sounds: { call: 'boar_grunt', hurt: 'boar_squeal' },

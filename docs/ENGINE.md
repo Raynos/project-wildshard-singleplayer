@@ -1168,7 +1168,7 @@ once with that cause. A shard may call it for an authored pit instead of supplyi
 
 | Export | What it is |
 |---|---|
-| `SpeciesRow` | `{ id, kind, label, variants, aggressive?, tuning?, sounds?, flight?, think?(animal, ctx), act?(animal, ctx), tick?, blood?, parent? … }` |
+| `SpeciesRow` | `{ id, kind, label, variants, aggressive?, tuning?, sounds?, flight?, lockable?, think?(animal, ctx), act?(animal, ctx), tick?, blood?, parent? … }` |
 | `SpeciesFlight` | `{ altitude, above?: 'ground' \| 'world', climbRate, diveRate, lockRange? }`; rates are metres per second |
 | `SpeciesVariant` | `{ id, label, weight, rarity, scale, hp?, mods? }` |
 | `deriveSpecies(parent, patch)` | a row that overrides its parent field by field |
@@ -1261,7 +1261,16 @@ and adds the requested altitude. A missing floor or one more than 200 metres bel
 Use `above: 'world'` to fly over a void at an absolute height. Climb/dive rates cap vertical movement;
 species without `flight` retain their ground body. Dead flyers descend to the sampled floor (or keep falling over a void).
 
-Flight bodies are lockable through LOCK and target taps regardless of the species kind. `animal.flying` exposes
+**Lock eligibility.** `SpeciesRow.lockable?: boolean` controls LOCK and target taps for any authored species.
+Set `lockable: true` on a ground species to opt in; omitted ground rows default to false. Omitted flight rows
+retain their lockable default; explicit `false` opts out even with `flight`. `animal.lockable` exposes the
+resolved row value to `AimTarget`; synthetic targets declare the same `lockable` field themselves.
+All previously lockable original species, the Storm Titan heart and practice dummies declare `true`, preserving
+original-four behavior without a kind allowlist. Eligibility is independent of `aggressive`; alive/visible,
+range, cone, line of sight and weapon `ui.lockOn` checks still apply. `flight.lockRange` remains the finite,
+positive acquire distance in metres (24 m when omitted), with release at 1.5×; ground distance and pitch are unchanged.
+
+Flight bodies default to lockable through LOCK and target taps regardless of the species kind. `animal.flying` exposes
 that capability to `AimTarget`; `animal.lockRange` reads `species.flight.lockRange`. The flight default is **24 m**
 (twice the ground acquire range), measured in 3-D from the eye to the body edge; release is at **36 m** (1.5×).
 Set `flight.lockRange` to a finite positive distance in metres to tune a species; its release stays at 1.5×.

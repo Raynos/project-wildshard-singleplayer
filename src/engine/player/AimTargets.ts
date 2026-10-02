@@ -24,6 +24,8 @@ export interface AimTarget {
   state?: string;
   /** Flight-body targets opt into 3-D range and the full camera pitch envelope; ground targets keep their old policy. */
   flying?: boolean;
+  /** Authored LOCK / target-tap eligibility; omitted targets opt in only with a flight body. */
+  lockable?: boolean;
   /** the lock-on's acquire range for this target (m, feet → body edge; eye → body edge for flyers) when it is not the usual 12 m — Nalati's Storm
    *  Titan, a 110 m giant beyond the rim, is locked on from the arena (NALATI-MERGE H3); it breaks at 1.5 × this */
   lockRange?: number | undefined;

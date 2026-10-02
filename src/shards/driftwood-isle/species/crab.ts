@@ -284,6 +284,7 @@ function crabDamageMul(a: Animal, _hit: THREE.Vector3, dir: THREE.Vector3): numb
 }
 
 export const CRAB: SpeciesRow = {
+  lockable: true,
   id: 'creature.crab',
   kind: 'crab',
   label: engineString('s_c93f43169fdc'),

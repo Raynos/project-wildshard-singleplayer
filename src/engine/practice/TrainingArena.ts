@@ -42,6 +42,7 @@ const _label = new THREE.Vector3(), _float = new THREE.Vector3(), _toward = new 
 
 export class TrainingTarget implements TargetAnimal {
   readonly kind = 'training-dummy';
+  readonly lockable = true;
   harnessHold = false;
   readonly alive = true; // practice targets never die or stop accepting combos
   readonly position: THREE.Vector3;

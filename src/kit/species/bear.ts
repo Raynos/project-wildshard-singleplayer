@@ -11,6 +11,7 @@ export const BEAR_TUNING: HuntTuning = {
   stalk: { detect: 40, speed: 2.5, giveUp: 60, rechargeCd: 1.5, huffMin: 1.8, huffMax: 3.2, roar: 'bear_roar', fleeBelowHp: 0.2, fleeChance: 0.5 },
 };
 export const BEAR: SpeciesRow = {
+  lockable: true,
   id: 'kit.creature.bear', kind: 'bear', label: 'Bear', aggressive: true,
   walkSpeed: 1.0, chargeSpeed: 9, chargeDamage: 35, tuning: BEAR_TUNING,
   sounds: { call: 'bear_growl', hurt: 'bear_hurt' },

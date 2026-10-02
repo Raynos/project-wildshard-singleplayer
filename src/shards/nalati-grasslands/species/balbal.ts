@@ -471,6 +471,7 @@ export function onBalbalCrack(a: Animal, hitPoint: THREE.Vector3): boolean {
 }
 
 export const BALBAL_SPECIES: SpeciesDef = {
+  lockable: true,
   rigContract: { skeleton: 'balbal.v1', clips: [], sockets: ['body', 'head'] },
   kind: BALBAL,
   label: engineString('s_21d824fec935'),

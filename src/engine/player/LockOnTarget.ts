@@ -3,7 +3,7 @@ import type { InputService } from '../input/InputService';
 /**
  * LockOnTarget — the Zelda-style lock-on (E50, project/archive/2026-09-23-lock-on.md; Jake's picks: the J disc, the N locked HUD, a
  * toggle, auto-next within 8 m, a Gentle camera, melee only). Nalati (NALATI-MERGE H3): the sabre and the spear lock too
- * (`LOCK_WEAPONS`), on every Nalati hostile (`HOSTILE`), on foot and in the saddle (Mount.pose holds its re-centring while
+ * on every authored lockable Nalati hostile, on foot and in the saddle (Mount.pose holds its re-centring while
  * locked, so the view tracks the target and the stick still steers the horse); Jel Ata locks from the arena (`lockRange`).
  * It runs the shared `lockOn` state in AimTargets.ts:
  *
@@ -51,12 +51,6 @@ export const LOCK = {
   OFF_YAW: 10 * DEG, OFF_PITCH: 6 * DEG, OFF_RETURN: 12, // /s: the glance springs back in ~0.25 s
   REFRACTORY: 0.25,      // s after a switch before the next flick counts
 } as const;
-/** what may be locked: Driftwood's and Pine Hollow's enemies, and every Nalati hostile (NALATI-MERGE H3) — the wolves (alphas
- *  included), the named elites (Kokbori, Aqbars the leopard, Qyran the eagle; Argymaq is tamed, not fought), the ghost riders
- *  (Qara Batyr's rig and Jel Ata's storm riders too), the balbal warriors (the kurgan's adds are the same species), the
- *  Golden King and Jel Ata's heart (`storm-titan`, src/shards/nalati-grasslands/combat/stormTitan.ts `lockTarget`). Horses, sheep and the dog never. */
-const HOSTILE: ReadonlySet<string> = new Set(['crab', 'boar', 'monkey', 'sailor', 'bear', 'captain',
-  'wolf', 'kokbori', 'leopard', 'eagle', 'ghost-rider', 'balbal', 'golden-king', 'storm-titan', 'training-dummy']);
 /** the weapons that lock: the Driftwood swords and Nalati's sabre + spear (H3). The bow waits for its own lock (H4 / N18) */
 
 export type FlickDir = 'left' | 'right' | 'up' | 'down';
@@ -271,7 +265,7 @@ export class LockOnSystem {
     this.cands.length = 0;
     this.eye(_eye);
     for (const t of getAimTargets()) {
-      if (!t.alive || t.hidden || (t.flying !== true && !HOSTILE.has(t.kind ?? ''))) continue;
+      if (!t.alive || t.hidden || !(t.lockable ?? t.flying === true)) continue;
       const dist = this.distance(t);
       if (dist > this.range(t) && t !== lockOn.target) continue;
       aimPoint(t, _aim);

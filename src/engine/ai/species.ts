@@ -19,6 +19,8 @@ export interface SpeciesRow {
   act?: (animal: Animal, ctx: ThinkCtx) => void;
   corpseFade?: number; blood?: boolean;
   flight?: SpeciesFlight;
+  /** LOCK / target taps: omitted ground species are not lockable; omitted flight species are. */
+  lockable?: boolean;
 }
 
 /** Child rows retain all unspecified parent fields and merge tuning without losing the hunter policy. */

@@ -354,6 +354,7 @@ export function canidPostPose(c: RigAnimCtx): void {
 }
 
 export const WOLF_SPECIES: SpeciesDef = {
+  lockable: true,
   rigContract: { skeleton: 'wolf.v1', clips: [], sockets: ['body', 'head'] },
   kind: 'wolf',
   label: engineString('s_8e59a599f422'),

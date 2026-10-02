@@ -338,6 +338,7 @@ function decideMonkey(a: Animal, c: ThinkCtx): void {
 }
 
 export const MONKEY: SpeciesRow = {
+  lockable: true,
   id: 'creature.monkey',
   kind: 'monkey',
   label: engineString('s_665ecc111ad3'),

@@ -308,6 +308,7 @@ function decideCaptain(a: Animal, c: ThinkCtx): void {
 }
 
 export const CAPTAIN: SpeciesRow = {
+  lockable: true,
   id: 'creature.captain',
   kind: 'captain',
   label: engineString('s_b9afc02e9fda'),

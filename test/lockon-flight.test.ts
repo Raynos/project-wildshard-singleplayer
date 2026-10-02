@@ -140,6 +140,8 @@ describe('flight-body lock-on', () => {
     for (let i = 0; i < 180; i++) f.tick();
     expect(f.p.pitch).toBeLessThanOrEqual(LOCK.PITCH_MAX + LOCK.DEAD + 0.001);
     f.animal.position.z = -(LOCK.BREAK + targetRadius(f.animal) + 0.01); f.tick(); expect(lockOn.state).toBe('off');
-    f.animal.kind = 'fixture-ground'; f.animal.place(0, -5, 0, 0); f.face(); expect(f.system.hasTarget()).toBe(false);
+    f.animal.place(0, -5, 0, 0); f.face();
+    setAimTargets([{ kind: 'fixture-ground', alive: true, position: f.animal.position }]);
+    expect(f.system.hasTarget()).toBe(false);
   });
 });

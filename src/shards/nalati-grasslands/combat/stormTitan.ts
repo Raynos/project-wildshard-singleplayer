@@ -579,7 +579,7 @@ export class StormTitanFight implements BossScript {
 
   /** the heart as a lock-on target (NALATI-MERGE H3, src/engine/player/LockOnTarget.ts): while he fights, from anywhere in the arena
    *  (`lockRange` — he stands 50–140 m out beyond the rim) — main.ts adds it to the aim list; null otherwise */
-  private readonly heartLock: AimTarget = { kind: 'storm-titan', position: new THREE.Vector3(), alive: true, lockRange: 150, dims: { bodyY: 0, bodyRadius: 4 } };
+  private readonly heartLock: AimTarget = { kind: 'storm-titan', position: new THREE.Vector3(), alive: true, lockable: true, lockRange: 150, dims: { bodyY: 0, bodyRadius: 4 } };
   lockTarget(): AimTarget | null {
     if (!this.fighting || !this.body.visible || this.victoryT >= 0) return null;
     this.body.heartWorld(this.heartLock.position); this.heartLock.alive = !this.dead;

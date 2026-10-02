@@ -226,6 +226,8 @@ export interface FurStyle {
 
 export interface SpeciesDef {
   flight?: SpeciesFlight;
+  /** LOCK / target taps; defaults to false on ground species and true on flight species. */
+  lockable?: boolean;
   /** Render contract: procedural generators keep their own timing and gameplay state. */
   rigContract: RigContract;
   /** 'deer' | 'boar' | 'bear' | … — the Animal.kind string, also the HerdPlan.kind */

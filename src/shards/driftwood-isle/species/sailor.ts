@@ -348,6 +348,7 @@ function decideSailor(a: Animal, c: ThinkCtx): void {
 }
 
 export const SAILOR: SpeciesRow = {
+  lockable: true,
   id: 'creature.sailor',
   kind: 'sailor',
   label: engineString('s_1ed5511c9838'),
