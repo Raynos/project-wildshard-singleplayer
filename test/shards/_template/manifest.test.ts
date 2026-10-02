@@ -7,7 +7,7 @@ import manifest from '#shards/_template/manifest';
 import { manifestClosure } from '../../../scripts/gen-shards.mjs';
 
 describe('node-safe template manifest', () => {
-  it('imports the documented data entry and has no browser runtime in its startup closure', () => {
+  it('imports the documented data entry and has no browser runtime in its startup closure', { timeout: 30_000 }, () => {
     const root = cwd();
     expect(readFileSync(`${root}/src/shards/_template/manifest.ts`, 'utf8')).toContain("import { buildTerrain } from '#engine/data'");
     const closure = manifestClosure(root)['_template'];

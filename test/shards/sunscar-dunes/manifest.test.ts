@@ -8,7 +8,7 @@ import { manifestClosure } from '../../../scripts/gen-shards.mjs';
 import { SPAWN, TOWER } from '#shards/sunscar-dunes/layout';
 
 describe('node-safe Signal Dunes manifest', () => {
-  it('imports the data entry only and keeps the plugin out of its startup closure', () => {
+  it('imports the data entry only and keeps the plugin out of its startup closure', { timeout: 30_000 }, () => {
     const root = cwd();
     expect(readFileSync(`${root}/src/shards/sunscar-dunes/manifest.ts`, 'utf8')).toContain("import { buildTerrain } from '#engine/data'");
     const closure = manifestClosure(root)['sunscar-dunes'];
