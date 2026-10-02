@@ -1,6 +1,6 @@
 import { CreatureBrain, StrikeRunner, NO_FUR, type Animal, type SpeciesLook, type SpeciesRow, type StrikeContext, type StrikeSpec, type ThinkCtx } from '#engine';
 import { BoxGeometry, ConeGeometry } from 'three';
-import { WINDMILL, apothem } from '../layout';
+import { DECK, WINDMILL, apothem } from '../layout';
 import { STRINGS } from '../strings';
 import { homeOf, hull, yawTo } from './rig';
 
@@ -8,21 +8,22 @@ import { homeOf, hull, yawTo } from './rig';
 export const RAM: StrikeSpec = { id: 'far.goat.ram', shape: { kind: 'lane', length: 4, width: 1.4 }, windup: 0.8, active: 0.5, recover: 0.9, cooldown: 3,
   range: 5, damage: 12, tags: ['creature.skyGoat'], weight: () => 1 };
 export const GOAT = { graze: 1.2, ram: 7.5, notice: 9, rimMargin: 2.5 } as const;
-type GoatState = 'graze' | 'threat' | 'ram';
+type GoatState = 'graze' | 'threat' | 'ram' | 'fall';
 
 /**
- * A sky goat walks its island top. It flies at altitude 0 over the ground (ENGINE §19 ground-relative flight), so it
- * follows the island colliders; a GUST over the rim leaves it with no floor and it drops through the kill height.
+ * A sky goat walks its island top: a flyer held at its island's deck height (ENGINE §19 `above: 'world'`; a spawn
+ * cannot land a ground creature on a registry floor yet, G25). Grazing keeps it inside the rim; once a GUST carries it
+ * past the rim it loses its footing and drops into the cloud sea, through `world.killY` (an out-of-world death).
  */
 export class SkyGoatBrain extends CreatureBrain<GoatState> {
   private readonly strikes = new StrikeRunner();
   private wanderYaw = 0; private wanderT = 0; private ramYaw = 0;
-  constructor(actor: Animal) { super(actor, ['graze', 'threat', 'ram']); }
+  constructor(actor: Animal) { super(actor, ['graze', 'threat', 'ram', 'fall']); }
   private strike(ctx: ThinkCtx): StrikeContext { const a = this.actor; return { actor: a, target: ctx.player, canReach: () => ctx.reach(a), hit: (spec) => { ctx.hurt(spec.damage); } }; }
   override think(ctx: ThinkCtx): void {
     const a = this.actor; if (!a.alive) return;
     const d = a.position.distanceTo(ctx.player), level = Math.abs(ctx.player.y - a.position.y) < 2.5;
-    if (this.state === 'ram') return;
+    if (this.state === 'ram' || this.state === 'fall') return;
     this.transition(!ctx.calm && level && d < GOAT.notice ? 'threat' : 'graze');
     this.wanderT -= ctx.dt; if (this.wanderT <= 0) { this.wanderT = ctx.rng.range(2, 5); this.wanderYaw = ctx.rng.range(-Math.PI, Math.PI); }
     if (this.state === 'threat' && !this.strikes.busy && d < RAM.range && ctx.claim(a)) {
@@ -30,25 +31,29 @@ export class SkyGoatBrain extends CreatureBrain<GoatState> {
     }
   }
   override act(ctx: ThinkCtx): void {
-    const a = this.actor; if (!a.alive || a.hasImpulse) return;
-    const home = homeOf(a, { x: WINDMILL.x, z: WINDMILL.z, r: apothem(WINDMILL), y: WINDMILL.y }), out = Math.hypot(a.position.x - home.x, a.position.z - home.z) > home.r - GOAT.rimMargin;
+    const a = this.actor; if (!a.alive) return;
+    const home = homeOf(a, { x: WINDMILL.x, z: WINDMILL.z, r: apothem(WINDMILL), y: WINDMILL.y }), from = Math.hypot(a.position.x - home.x, a.position.z - home.z);
+    if (from > home.r + 0.3 && this.state !== 'fall') { this.strikes.cancel(); a.cancelAttack(); this.transition('fall'); }
+    if (this.state === 'fall') { ctx.flight.steer(a, a.yaw, 1, home.y - 80, 1); return; }
+    if (a.hasImpulse) return;
+    const out = from > home.r - GOAT.rimMargin;
     if (this.state === 'ram') {
       this.strikes.update(ctx.dt, this.strike(ctx));
       // The windup holds still (head down); the active window charges along the committed heading.
-      ctx.flight.steer(a, this.ramYaw, this.strikes.busy && !out ? GOAT.ram * Math.min(1, Math.max(0, this.strikes.time - RAM.windup) * 4) : 0, 0, 6);
+      ctx.flight.steer(a, this.ramYaw, this.strikes.busy && !out ? GOAT.ram * Math.min(1, Math.max(0, this.strikes.time - RAM.windup) * 4) : 0, home.y, 6);
       if (!this.strikes.busy) this.transition('graze');
       return;
     }
     const toHome = yawTo(a, home.x, home.z);
-    if (out) ctx.flight.steer(a, toHome, GOAT.graze * 1.5, 0, 3);
-    else if (this.state === 'threat') ctx.flight.steer(a, yawTo(a, ctx.player.x, ctx.player.z), 1.6, 0, 3);
-    else ctx.flight.steer(a, this.wanderYaw, GOAT.graze, 0, 1.5);
+    if (out) ctx.flight.steer(a, toHome, GOAT.graze * 1.5, home.y, 3);
+    else if (this.state === 'threat') ctx.flight.steer(a, yawTo(a, ctx.player.x, ctx.player.z), 1.6, home.y, 3);
+    else ctx.flight.steer(a, this.wanderYaw, GOAT.graze, home.y, 1.5);
   }
 }
 const brains = new WeakMap<Animal, SkyGoatBrain>();
 const brain = (a: Animal): SkyGoatBrain => { let value = brains.get(a); if (!value) { value = new SkyGoatBrain(a); brains.set(a, value); } return value; };
 export const SKY_GOAT: SpeciesRow = { id: 'far.creature.skyGoat', kind: 'skyGoat', label: STRINGS.goat, aggressive: true, blood: false,
-  flight: { altitude: 0, above: 'ground', climbRate: 6, diveRate: 14 },
+  flight: { altitude: DECK, above: 'world', climbRate: 6, diveRate: 16 },
   variants: [{ id: 'cloud', label: STRINGS.goat, weight: 1, rarity: 'common', scale: [0.95, 1.1], hp: 40 }],
   think: (a, ctx) => { brain(a).think(ctx); }, act: (a, ctx) => { brain(a).act(ctx); } };
 
