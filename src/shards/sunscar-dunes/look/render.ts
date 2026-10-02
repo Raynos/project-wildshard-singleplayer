@@ -21,12 +21,13 @@ function duskClock(): DayCycle {
  * the first stars), violet distance fog, a low warm key light, and dark orange sand with cool hollows and ripples.
  */
 export function signalDunesLook(): LookStrategy {
+  // The dusk dome is the backdrop's own sky layer (`SkyBackdrop.clouds`): the engine keeps it on the camera.
+  const dome = new Mesh(new SphereGeometry(600, 32, 16), new ShaderMaterial({ side: BackSide, depthWrite: false, depthTest: false, fog: false,
+    uniforms: { uSun: { value: SUN_GLOW.clone() } }, vertexShader: SKY_VERTEX, fragmentShader: SKY_FRAGMENT }));
+  dome.renderOrder = -1000; dome.frustumCulled = false;
   return { mode: 'extend',
     compose: ({ engineChain, scene, scope }) => {
-      const dome = new Mesh(new SphereGeometry(600, 32, 16), new ShaderMaterial({ side: BackSide, depthWrite: false, depthTest: false, fog: false,
-        uniforms: { uSun: { value: SUN_GLOW.clone() } }, vertexShader: SKY_VERTEX, fragmentShader: SKY_FRAGMENT }));
-      dome.renderOrder = -1000; dome.frustumCulled = false;
-      scene.add(dome); scene.fog = new Fog(new Color(FOG.color), FOG.near, FOG.far);
+      scene.fog = new Fog(new Color(FOG.color), FOG.near, FOG.far);
       scope.own(dome.geometry); scope.own(dome.material);
       scope.onDispose(() => { dome.removeFromParent(); scene.fog = null; });
       return { chain: engineChain('clean') };
@@ -34,7 +35,7 @@ export function signalDunesLook(): LookStrategy {
     sky: { clouds: false, planet: false },
     backdrop: ({ sky }) => {
       const clock = duskClock();
-      return Promise.resolve({ clock, horizon: new Color(FOG.color), lut: null,
+      return Promise.resolve({ clock, horizon: new Color(FOG.color), lut: null, clouds: dome,
         bind: () => undefined, update: () => { sky.setKeyLight(KEY.dir, KEY.color, KEY.intensity); },
         rebuild: () => undefined, attachPost: () => undefined });
     },

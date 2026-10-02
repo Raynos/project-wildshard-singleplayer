@@ -34,7 +34,7 @@ export class Lash {
       const u = s / SEGMENTS, along = u * length * ext;
       const lift = Math.sin(u * Math.PI) * wave * (1 - ext * 0.7) + Math.sin(u * 9 - time * 40) * wave * 0.25 * u;
       this.point.copy(from).addScaledVector(this.tangent, along).addScaledVector(this.side, lift).addScaledVector(this.up, -Math.sin(u * 3.1) * 0.05 * length * (1 - ext));
-      const radius = 0.014 * (1 - u) + 0.003;
+      const radius = 0.009 * (1 - u) + 0.0025;
       for (let r = 0; r < RADIAL; r++) {
         const a = (r / RADIAL) * Math.PI * 2;
         this.next.copy(this.point).addScaledVector(this.side, Math.cos(a) * radius).addScaledVector(this.up, Math.sin(a) * radius);
