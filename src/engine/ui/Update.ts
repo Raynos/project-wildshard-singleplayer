@@ -96,7 +96,7 @@ function sync(): void {
   if (now !== hud) { hudClass.disconnect(); hud = now; if (hud) hudClass.observe(hud, { attributes: true, attributeFilter: ['class'] }); }
   const onTitle = document.querySelector('.ws-load') !== null || (hud?.classList.contains('intro') ?? false);
   const onPause = document.querySelector('.ws-gmenu.show.pause') !== null; // E176: the in-game pause menu (src/engine/ui/Menu.ts)
-  const show = (onTitle || onPause) && (newer || isDev());
+  const show = onTitle || onPause; // Jake 2026-10-01: everyone gets the reload pill on the title and pause menus, not only developer mode
   el.classList.toggle('visible', show); // menu-only: never over the game view, even when a newer build exists
   // the band the menu overlay keeps free above its sheet (gmenu.css) — only while the pill is actually up
   document.documentElement.style.setProperty('--ws-pill', show ? '24px' : '0px');
