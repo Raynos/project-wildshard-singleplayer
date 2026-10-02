@@ -1,10 +1,10 @@
 {
   "$doc": "What production and the native OTA channel serve (E357 decision 32). Moved only by scripts/deploy-pin.mjs set (at a milestone; decision 103: the lead moves it when the gate is green) or rollback. mode: pinned (during GAME-NORMALIZATION) | newest-green (after Z4).",
-  "mode": "newest-green",
-  "sha": "c9693a71d074fa52e912af778da993fe9610f802",
-  "milestone": "M4",
+  "mode": "pinned",
+  "sha": "8a3143f8693305b58204537f0e95056fa4edf3fe",
+  "milestone": "post-Z4 hotfix",
   "gate": "grandfathered",
-  "go": "Z4 archive of GAME-NORMALIZATION (2026-10-01): deploys return to the newest gpu-gate-green main; the last pin was c9693a71 (Jake's go)",
-  "set": "2026-10-02T03:06:23Z",
+  "go": "Jake, chat 2026-10-01: \"you have some fixes. Can you kick off a one-time deploy?\" A one-time pin to the newest CI-green main (title-deck gating, Explore viewmodel hide, arena targets, flyer lock-on, restored whip); back to newest-green once gpu-gate is green on a later main.",
+  "set": "2026-10-02T03:19:25Z",
   "by": "E357 lead"
 }
