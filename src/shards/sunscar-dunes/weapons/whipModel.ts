@@ -1,5 +1,5 @@
 import { BufferAttribute, BufferGeometry, CapsuleGeometry, CatmullRomCurve3, CylinderGeometry, Group, Mesh, MeshStandardMaterial, SphereGeometry, TubeGeometry, Vector3 } from 'three';
-import { duneMesh } from '../world/meshes';
+import { duneMesh, smoothColors } from '../world/meshes';
 
 /** Warm saddle-leather browns: the braid's two strands, the glove, its cuff and the knob; the popper is pale cord. */
 const STRAND_A = [0.46, 0.25, 0.12] as const, STRAND_B = [0.27, 0.14, 0.065] as const, POPPER = [0.78, 0.68, 0.52] as const;
@@ -93,12 +93,7 @@ function smoothNormals(g: BufferGeometry): void {
   for (let i = 0; i < p.count; i++) { const k = key(i), v = sum.get(k) ?? [0, 0, 0]; v[0] += n.getX(i); v[1] += n.getY(i); v[2] += n.getZ(i); sum.set(k, v); }
   for (let i = 0; i < p.count; i++) { const v = sum.get(key(i)) ?? [0, 1, 0], l = Math.hypot(v[0], v[1], v[2]) || 1; n.setXYZ(i, v[0] / l, v[1] / l, v[2] / l); }
   n.needsUpdate = true;
-  // round 2 (R1A-2): the painted colour per facet still drew every triangle; average it per position too
-  if (!g.hasAttribute('color')) return;
-  const c = g.getAttribute('color'), col = new Map<string, [number, number, number, number]>();
-  for (let i = 0; i < p.count; i++) { const k = key(i), v = col.get(k) ?? [0, 0, 0, 0]; v[0] += c.getX(i); v[1] += c.getY(i); v[2] += c.getZ(i); v[3]++; col.set(k, v); }
-  for (let i = 0; i < p.count; i++) { const v = col.get(key(i)); if (v) c.setXYZ(i, v[0] / v[3], v[1] / v[3], v[2] / v[3]); }
-  c.needsUpdate = true;
+  smoothColors(g); // round 2 (R1A-2): the painted colour per facet still drew every triangle
 }
 
 function gloveMesh(): { mesh: Mesh; top: number } | null {

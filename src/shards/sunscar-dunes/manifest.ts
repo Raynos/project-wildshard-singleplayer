@@ -35,10 +35,8 @@ export const SUNSCAR_DUNES: ShardManifest = {
   // A light split-tone (R9): warm highlights, blue-violet shadows. The greyer zenith (look/sky.ts) no longer clips.
   grade: { saturation: 0.14, brightness: 0, contrast: 0.08, bloomIntensity: 0.15, bloomThreshold: 0.9, shadowTint: [0.94, 0.97, 1.08], highTint: [1.05, 1, 0.94], lift: [0, 0, 0], gain: [1, 1, 1], gamma: 1 },
   horizon: { cloudSea: false, rings: [
-    // loop 4: warm dune silhouettes rising in layers (the H4 targets), not one flat violet wall
-    { r: 340, base: 2, color: [0.26, 0.1, 0.045], top: [0.5, 0.21, 0.08], snowLine: 2, haze: 0.35, floor: -10,
-      // round 1 (R1B-14 / R1C-5): bands all round, so the top edge rises and falls instead of running ruler-straight
-      bands: [0, 45, 90, 135, 180, 225, 270, 315].map((azimuth, i) => ({ azimuth, spread: 40, height: [9, 14, 7, 12, 10, 15, 8, 13][i] ?? 10, rough: 0.6 })) },
+    // round 2 (R1B-14 / R1C-5): the inner ring at 340 m stood on the dune skirt as an enclosing mauve wall; the skirt's
+    // dunes run out to the far ranges instead
     { r: 470, base: 2, color: [0.17, 0.07, 0.06], top: [0.34, 0.15, 0.1], snowLine: 2, haze: 0.6, floor: -10,
       // round 2 (R1C-5: from 250 m up the far ridge still read ruler-straight): tall ragged ranges, mesas at the world's edge
       bands: [20, 65, 110, 150, 195, 240, 285, 330].map((azimuth, i) => ({ azimuth, spread: 40, height: [55, 30, 75, 40, 65, 28, 85, 45][i] ?? 45, rough: 0.75 })) },

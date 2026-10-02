@@ -66,8 +66,9 @@ void main() {
   // A low cloud bank on the horizon (round 2, seat B: the low sky in the aerials and the clip was flat orange): ragged
   // streaks in the lowest few degrees, warm where they face the glow, slate-violet away from it.
   float bankN = vNoise(vec2(az * 5.0, h * 30.0)) * 0.6 + vNoise(vec2(az * 13.0 + 2.0, h * 70.0)) * 0.4;
-  float bank = smoothstep(0.42, 0.72, bankN) * (1.0 - smoothstep(0.025, 0.11, h)) * smoothstep(-0.02, 0.004, d.y);
-  c = mix(c, mix(vec3(0.36, 0.27, 0.4), vec3(0.98, 0.56, 0.38), pow(toward, 1.5)), bank * 0.8);
+  float bank = smoothstep(0.34, 0.62, bankN) * (1.0 - smoothstep(0.12, 0.26, h)) * smoothstep(0.0, 0.035, d.y); // just above the far ranges
+  vec3 bankLit = mix(vec3(0.42, 0.3, 0.44), vec3(0.98, 0.56, 0.38), pow(toward, 1.5)), bankTop = mix(bankLit, vec3(0.3, 0.24, 0.38), smoothstep(0.55, 0.9, bankN));
+  c = mix(c, bankTop, bank * 0.9);
   vec3 cellP = d * 260.0, cell = floor(cellP);
   vec3 spot = cell + 0.5 + (vec3(starHash(cell + 1.7), starHash(cell + 5.3), starHash(cell + 9.1)) - 0.5) * 0.5;
   float starDot = 1.0 - smoothstep(0.0, 0.16, length(cellP - spot));

@@ -45,7 +45,7 @@ function bakeDuneShadow(heightAt: (x: number, z: number) => number): DataTexture
 function bakeTrail(trailDistance: (x: number, z: number) => number): DataTexture {
   const n = SHADOW_TEX, data = new Uint8Array(n * n), texel = (GROUND_HALF * 2) / n;
   for (let iz = 0; iz < n; iz++) for (let ix = 0; ix < n; ix++) {
-    const d = trailDistance(-GROUND_HALF + (ix + 0.5) * texel, -GROUND_HALF + (iz + 0.5) * texel), t = Math.min(1, Math.max(0, (d - 1.3) / 1.6));
+    const d = trailDistance(-GROUND_HALF + (ix + 0.5) * texel, -GROUND_HALF + (iz + 0.5) * texel), t = Math.min(1, Math.max(0, (d - 1.8) / 1.6));
     data[iz * n + ix] = Math.round(255 * (1 - t * t * (3 - 2 * t)));
   }
   const tex = new DataTexture(data, n, n, RedFormat, UnsignedByteType);
@@ -84,7 +84,7 @@ function sandGrainTexture(): DataTexture {
 }
 
 /** The skirt round the painted ground: an 800 m grid, `cell` metres a quad, aligned with the ground's edge. */
-const SKIRT = { out: 400, cell: 8 } as const;
+const SKIRT = { out: 520, cell: 8 } as const;
 /**
  * Round 2 (R1C-5: the first skirt drew saw-tooth bands from above): one indexed grid with smooth normals. Inside the
  * square it sits 2 m under the ground (hidden); on the edge it meets the ground's own heights; outside it eases into
@@ -206,7 +206,7 @@ float sandAA(float phase) { return 1.0 - smoothstep(0.5, 1.8, fwidth(phase)); }`
   float sandDrift = sin(sandU * 0.045 + sin(sandV * 0.031) * 2.0) * sin(sandV * 0.052 + 1.7) + 0.5 * sin(sandU * 0.11 + sandV * 0.07);
   float sandStreak = smoothstep(0.55, 0.95, sin(sandV * 1.9 + sin(sandU * 0.07) * 3.0) * sin(sandV * 0.37 + 0.6)) * (0.4 + 0.6 * sandFlat);
   diffuseColor.rgb *= 1.0 + 0.08 * sandDrift;
-  diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * vec3(1.12, 1.04, 0.96), sandTrod * 0.8); // a pale trodden path, smooth: never a dark shadow stripe
+  diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * vec3(1.22, 1.1, 0.98), sandTrod * 0.9); // a pale trodden path, smooth: never a dark shadow stripe
   diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * vec3(1.18, 1.12, 1.02), sandStreak * 0.55 * (1.0 - smoothstep(60.0, 140.0, sandFar)));`)
           .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
   {

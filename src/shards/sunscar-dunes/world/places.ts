@@ -4,7 +4,7 @@ import { BoxGeometry, BufferGeometry, CylinderGeometry, DoubleSide, Float32Buffe
 import { Rng, boxDesc, rock, type ColliderDesc } from '#engine';
 import { CARAVAN, SEED, WELL } from '../layout';
 import { WIND } from './dunes';
-import { duneMaterial, duneMesh, fit, without } from './meshes';
+import { duneMaterial, duneMesh, fit, smoothColors, without } from './meshes';
 
 // round 2 (R1C-2): sun-greyed wood and worn iron a step lighter; at dusk the old near-black values read as black cut-outs
 const WOOD = 0x7a5538, WOOD_DARK = 0x5a3c28, IRON = 0x4a3c36, CANVAS = 0x8a6448, CANVAS_BLEACHED = 0xd8bc92, CANVAS_GLOW = 0x3a2a1a, STONE = 0x6a4a3a, LEATHER = 0x3a1e12, CLAY = 0x7a3a22;
@@ -52,8 +52,9 @@ export function buildCaravan(groundAt: (x: number, z: number) => number): Carava
   const generated = duneMesh('caravan');
   if (generated) {
     // round 1 (R1A-5): the painted wood a step lighter, so boards, hoops and wheels separate instead of one dark shell
-    const painted = duneMaterial(); painted.color.setRGB(2.0, 1.8, 1.6);
-    wagon.add(new Mesh(fit(generated, { size: 6.2, by: 'span', yaw: Math.PI / 2 }), painted)); coverHoops(wagon);
+    const painted = duneMaterial(); painted.color.setRGB(2.6, 2.3, 2.0); // its baked AO and the backlight sank the front to black
+    const body = fit(generated, { size: 6.2, by: 'span', yaw: Math.PI / 2 }); smoothColors(body); // timber and cloth read as regions, not patches
+    wagon.add(new Mesh(body, painted)); coverHoops(wagon);
   }
   else buildCodeWagon(wagon, wood, dark);
   const crateWood = crateMaterial();
