@@ -1,11 +1,13 @@
 import { Weapon, blocks, type Actor, type App, type EquipContext, type WeaponState } from '#engine';
 import { Vector2, Vector3 } from 'three';
 import { FAN_ROW } from './rows';
-import { fanModel } from './fanModel';
+import { fanParts } from './fanModel';
 
 /** Anything the fan can strike: a world position and its combat actor. */
 export interface FanTarget { readonly position: Vector3; readonly actor: Actor | null; impulse?: (velocity: Vector3) => void }
 export const SWING = { reach: 3.4, halfAngle: 0.9, light: 16, heavy: 30, cooldown: 0.45, heavyCooldown: 0.85 } as const;
+/** The idle hold (mockup B / C): the fan open at a three-quarter angle, lower right, the hand under it; never over the discs. */
+export const HOLD = { x: 0.16, y: -0.15, z: -0.6, pitch: 0.12, yaw: -0.62, roll: -0.32, scale: 0.52 } as const;
 export const GUST = { reach: 9, halfAngle: 0.6, push: 15, lift: 4, damage: 4, cooldown: 1.6 } as const;
 
 /** True when `to` lies inside a cone of `reach` metres and `halfAngle` radians around `dir` from `from`. */
@@ -21,7 +23,9 @@ export function inCone(from: Vector3, dir: Vector3, to: Vector3, reach: number, 
  * away from the player and a little damage, which throws it off an island edge when it stands near one.
  */
 export class WarFan extends Weapon {
-  override readonly model = fanModel();
+  private readonly parts = fanParts();
+  override readonly model = this.parts.group;
+  private time = 0;
   override readonly state: WeaponState = { ammo: undefined, magazine: 0, reserve: 0, loaded: true, reloading: false, reloadProgress: 0, ads: false };
   override holster = 0; override enabled = true; override adsHeld = false; override aimInfo = null;
   onSwing: ((heavy: boolean) => void) | null = null;
@@ -38,7 +42,7 @@ export class WarFan extends Weapon {
   constructor(app: App, targets: () => readonly FanTarget[] = () => []) {
     super(FAN_ROW); this.app = app; this.targets = targets; this.contact = blocks.melee(app.combat);
     this.blocks.vm = this.vm; this.blocks.melee = this.contact;
-    this.model.position.set(0.33, -0.34, -0.62); this.model.rotation.set(-0.35, -0.25, -0.5); this.model.scale.setScalar(0.5);
+    this.model.position.set(HOLD.x, HOLD.y, HOLD.z); this.model.rotation.set(HOLD.pitch, HOLD.yaw, HOLD.roll); this.model.scale.setScalar(HOLD.scale);
   }
   override install(ctx: EquipContext): void {
     super.install(ctx);
@@ -98,7 +102,12 @@ export class WarFan extends Weapon {
     this.wasHeld = this.enabled && this.holster <= 0.001 && this.adsHeld;
     this.flourish = Math.max(0, this.flourish - dt * 3.5);
     this.vm.step(this.spring, new Vector2(), dt);
-    this.model.rotation.y = -0.25 + this.spring.yaw + Math.sin(this.flourish * Math.PI) * 0.9;
+    // idle: a slow breath and the tassel swinging; a swing or a GUST snaps the fan through a flat slash (right to left)
+    this.time += dt; const snap = Math.sin(this.flourish * Math.PI);
+    this.model.rotation.y = HOLD.yaw + this.spring.yaw + snap * 0.9;
+    this.model.rotation.x = HOLD.pitch + Math.sin(this.time * 1.3) * 0.015 - snap * 0.25;
+    this.model.position.y = HOLD.y + Math.sin(this.time * 1.3) * 0.004;
+    this.parts.tassel.rotation.z = Math.sin(this.time * 2.1) * 0.25 + snap * 0.6;
     this.model.visible = this.holster < 0.5 && !this.stowed();
   }
 }

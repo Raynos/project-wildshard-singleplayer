@@ -131,7 +131,8 @@ const MILL_HEIGHT = 10.6, MILL_HUB = { y: 7.92, z: 2.85 } as const;
 export function windmill(): { group: Group; hub: Object3D } {
   const group = new Group(), hub = new Group(), tower = skyMesh('windmill');
   if (tower !== null) {
-    group.add(new Mesh(fit(tower, { size: MILL_HEIGHT, by: 'height', floor: 0, centre: 'base' }), flat(0xffffff, { vertexColors: true })));
+    const g = fit(tower, { size: MILL_HEIGHT, by: 'height', floor: 0, centre: 'base' }); whitewash(g);
+    group.add(new Mesh(g, flat(0xffffff, { vertexColors: true })));
     hub.position.set(0, MILL_HUB.y, MILL_HUB.z);
   } else {
     const body = new Mesh(new CylinderGeometry(1.5, 2.5, 9, 8), flat(PALETTE.tower)); body.position.y = 4.5; group.add(body);
@@ -149,6 +150,21 @@ export function windmill(): { group: Group; hub: Object3D } {
   return { group, hub };
 }
 
+/**
+ * The mockup's white stone tower (loop 2): the generated model's light facets pulled to warm white stone, its dark ones
+ * (timber, the cap) to warm brown and slate; the baked value stays as the shade.
+ */
+function whitewash(g: BufferGeometry): void {
+  if (!g.hasAttribute('color')) return;
+  const c = g.getAttribute('color'), p = g.getAttribute('position'), stone = new Color(PALETTE.tower), wood = new Color(PALETTE.trunk), slate = new Color(0x56607a), out = new Color();
+  let top = 0; for (let i = 0; i < p.count; i++) top = Math.max(top, p.getY(i));
+  for (let i = 0; i < c.count; i++) {
+    const lum = 0.2126 * c.getX(i) + 0.7152 * c.getY(i) + 0.0722 * c.getZ(i);
+    out.copy(p.getY(i) > top * 0.86 ? slate : lum > 0.16 ? stone : wood).multiplyScalar(Math.min(1.1, 0.55 + lum * 1.4));
+    c.setXYZ(i, out.r, out.g, out.b);
+  }
+  c.needsUpdate = true;
+}
 /** The bridge winch: a drum between two posts and a crank. */
 export function winch(): Group {
   const group = new Group(), wood = flat(PALETTE.trunk);
@@ -202,10 +218,10 @@ export function crownRuin(daisR: number, daisH: number): Group {
 /** Storm clouds: soft pale puffs that ring the crown. */
 export function stormClouds(count: number, radius: number): InstancedMesh {
   // soft, smooth-shaded and pale (lit by the painted rim from the sun behind them), not dark faceted blobs
-  const mesh = new InstancedMesh(puff(), new MeshStandardMaterial({ color: 0xb7a2c2, emissive: 0x2c2036, roughness: 1, metalness: 0 }), count), m = new Matrix4(), q = new Quaternion();
+  const mesh = new InstancedMesh(puff(), new MeshStandardMaterial({ color: 0x9a84b0, emissive: 0x2a1c38, roughness: 1, metalness: 0 }), count), m = new Matrix4(), q = new Quaternion();
   for (let i = 0; i < count; i++) {
-    const a = (i / count) * Math.PI * 2, s = 5 + (i % 3) * 2.5;
-    m.compose(new Vector3(Math.cos(a) * radius, (i % 4) * 2.5, Math.sin(a) * radius), q, new Vector3(s * 1.6, s * 0.6, s)); mesh.setMatrixAt(i, m);
+    const a = (i / count) * Math.PI * 2, s = 3 + (i % 3) * 1.6;
+    m.compose(new Vector3(Math.cos(a) * radius, (i % 4) * 2, Math.sin(a) * radius), q, new Vector3(s * 1.7, s * 0.45, s * 1.2)); mesh.setMatrixAt(i, m);
   }
   mesh.computeBoundingSphere(); return mesh;
 }

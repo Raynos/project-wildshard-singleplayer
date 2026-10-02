@@ -49,7 +49,8 @@ export const VANES: readonly { readonly id: string; readonly x: number; readonly
 /** The storm crown's last platform: the Roc grounds itself here in its third phase. */
 export const DAIS = { x: CROWN.x, z: CROWN.z - 6, r: 5, h: 0.3 };
 
-export const SPAWN = { x: 0, z: 7, yaw: 0 };
+/** The spawn stands at Sunrest's north rim (loop 2, mockup A): the rope bridge's posts in the foreground, the drop under the rim at the bottom of the frame, the windmill isle ahead. */
+export const SPAWN = { x: 0, z: -9, yaw: 0 };
 /** Flying homes: centre, circle radius and altitude (world metres). The roost's three rays are quest step 2. */
 export interface Home { readonly x: number; readonly z: number; readonly r: number; readonly y: number }
 /** The free ray glides a wide circle right of the windmill isle, past its notice range from the spawn: it shows itself first (the mockup) and dives only once you cross the bridge (review item 9). */

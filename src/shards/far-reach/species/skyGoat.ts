@@ -58,7 +58,7 @@ export class SkyGoatBrain extends CreatureBrain<GoatState> {
 }
 const brains = new WeakMap<Animal, SkyGoatBrain>();
 const brain = (a: Animal): SkyGoatBrain => { let value = brains.get(a); if (!value) { value = new SkyGoatBrain(a); brains.set(a, value); } return value; };
-export const SKY_GOAT: SpeciesRow = { id: 'far.creature.skyGoat', kind: 'skyGoat', label: STRINGS.goat, aggressive: true, blood: false,
+export const SKY_GOAT: SpeciesRow = { id: 'far.creature.skyGoat', kind: 'skyGoat', label: STRINGS.goat, aggressive: true, blood: false, lockable: true,
   variants: [{ id: 'cloud', label: STRINGS.goat, weight: 1, rarity: 'common', scale: [0.95, 1.1], hp: 40 }],
   think: (a, ctx) => { brain(a).think(ctx); }, act: (a, ctx) => { brain(a).act(ctx); } };
 

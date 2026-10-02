@@ -1,8 +1,10 @@
 import { boxDesc, type ColliderDesc, type Interactable } from '#engine';
 import type { ShardContext } from '#game';
 import { DoubleSide, Group, InstancedMesh, Matrix4, MeshBasicMaterial, Quaternion, RingGeometry, Vector3, type MeshStandardMaterial, type Object3D } from 'three';
-import { CROWN, DAIS, FALLEN_BRIDGE, ISLES, MILL, NOTES, PINES, SPANS, UPDRAFT, VANES, WINCH, apothem, type Isle, type Span } from '../layout';
+import { CROWN, DAIS, FALLEN_BRIDGE, ISLES, WINDMILL, MILL, NOTES, PINES, SPANS, UPDRAFT, VANES, WINCH, apothem, type Isle, type Span } from '../layout';
 import { STRINGS } from '../strings';
+import { dressIslands } from './dressing';
+import { skyline } from './distant';
 import { PALETTE, crownRuin, flat, islandMesh, lectern, pines, plankBridge, stormClouds, vane, windmill, winch } from './shapes';
 import { ownPrimitives } from './resources';
 
@@ -58,6 +60,8 @@ export interface BuiltWorld {
   /** The fallen bridge's pivot on the step's rim; rotation.x runs from FALLEN_ANGLE (hanging) to 0 (raised). */
   readonly fallen: Object3D;
   readonly millHub: Object3D;
+  /** The crown's storm ring (the plugin turns it slowly). */
+  readonly storm: Object3D;
   readonly vanes: readonly { readonly id: string; readonly at: Vector3; readonly rotor: Object3D }[];
   readonly winch: Interactable;
   readonly winchAt: Vector3;
@@ -79,6 +83,11 @@ export function buildWorld(ctx: ShardContext, isBoard: () => boolean): BuiltWorl
   for (const isle of ISLES) for (const [dx, dz, s] of PINES[isle.id] ?? []) pineAt.push([isle.x + dx, isle.y, isle.z + dz, s]);
   const forest = pines(pineAt); root.add(forest);
   ctx.piece({ id: 'far.pines', name: STRINGS.pines, category: 'props', file: FILE, object: forest });
+  // the meadow and the roots (loop 2): grass clumps, flowers, stones, hanging roots; no colliders
+  const dress = dressIslands(); root.add(dress.group);
+  ctx.piece({ id: 'far.dressing', name: STRINGS.meadow, category: 'props', file: FILE, object: dress.group });
+  // the skyline: decorative 3-D islands and waterfalls out past the archipelago, and the windmill isle's fall
+  const sky = skyline(WINDMILL); root.add(sky);
 
   const plank = flat(PALETTE.plank), rope = flat(PALETTE.rope);
   const hoverDeck = flat(PALETTE.glow, { emissive: PALETTE.glow, emissiveIntensity: 0.25, transparent: true, opacity: 0.55, depthWrite: false });
@@ -135,10 +144,11 @@ export function buildWorld(ctx: ShardContext, isBoard: () => boolean): BuiltWorl
   ctx.piece({ id: 'far.crown.ruin', name: STRINGS.crown, category: 'buildings', file: FILE, object: ruin, surface: 'stone',
     colliders: [boxDesc({ x: DAIS.x, z: DAIS.z, hw: DAIS.r * 0.9, hd: DAIS.r * 0.9, rot: 0, yBottom: CROWN.y, yTop: CROWN.y + DAIS.h }, 'stone'), ...pillars] });
   ruin.children[0]?.position.set(DAIS.x - CROWN.x, DAIS.h / 2, DAIS.z - CROWN.z);
-  const storm = stormClouds(16, 34); storm.position.set(CROWN.x, CROWN.y + 22, CROWN.z); root.add(storm);
+  // the storm sits high over the crown only (loop 2): from the spawn it clears the sun and the windmill; the plugin swirls it
+  const storm = stormClouds(16, 26); storm.position.set(CROWN.x, CROWN.y + 60, CROWN.z); root.add(storm);
 
   ctx.root.add(root); ownPrimitives(root, ctx.scope);
-  return { hoverDeck, wind, fallen, millHub: mill.hub, vanes, winch: handle, winchAt, notes, notesAt, state };
+  return { hoverDeck, wind, fallen, millHub: mill.hub, storm, vanes, winch: handle, winchAt, notes, notesAt, state };
 }
 
 const m = new Matrix4(), q = new Quaternion(), pos = new Vector3(), one = new Vector3(1, 1, 1), up = new Vector3(1, 0, 0);
