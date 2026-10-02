@@ -1,5 +1,5 @@
 import { CreatureBrain, StrikeRunner, NO_FUR, type Animal, type AnimalSpecies, type BoneDef, type SpeciesLook, type SpeciesRow, type StrikeContext, type StrikeSpec, type ThinkCtx } from '#engine';
-import { BoxGeometry, ConeGeometry, IcosahedronGeometry, Vector3, type BufferGeometry } from 'three';
+import { BoxGeometry, Color, ConeGeometry, IcosahedronGeometry, Vector3, type BufferGeometry } from 'three';
 import { bindRigid, fit, skyMesh } from '../world/meshes';
 import { CROWN, DAIS, ROC } from '../layout';
 import { crownStones } from '../world/crown';
@@ -120,12 +120,39 @@ function rocCode(): AnimalSpecies {
  * wing tip to wing tip, its middle at the body bone. Facets outboard of the wing roots ride the wings; along the centre line the front third
  * is the head, the back third the tail.
  */
+/**
+ * The Roc's underside (council R2C-2: during the dive its plain belly filled the frame): cream breast feathers with dark
+ * chevrons under the body, barred flight feathers under the wings with dark tips, painted into the model's vertex colours
+ * on every face that looks down.
+ */
+function paintUnderside(g: BufferGeometry): void {
+  if (!g.hasAttribute('color')) return;
+  if (!g.hasAttribute('normal')) g.computeVertexNormals();
+  const p = g.getAttribute('position'), n = g.getAttribute('normal'), c = g.getAttribute('color');
+  const cream = new Color(0xe9dcc2), slate = new Color(0x3c3446), rust = new Color(0x9a5a34), out = new Color();
+  for (let i = 0; i < p.count; i++) {
+    const down = -n.getY(i); if (down < 0.25) continue;
+    const x = p.getX(i), z = p.getZ(i), ax = Math.abs(x), k = Math.min(1, (down - 0.25) / 0.4);
+    if (ax < ROC_WING_ROOT * 1.3) {
+      // the breast: cream with dark chevrons down the body, a rust wash toward the tail
+      const chevron = (((z + ax * 0.7) * 2.6) % 1 + 1) % 1 < 0.3;
+      out.copy(cream).lerp(rust, Math.max(0, -z) * 0.12).lerp(slate, chevron ? 0.75 : 0);
+    } else {
+      // the wings: barred flight feathers, the tips dark
+      const bar = ((ax * 1.7) % 1 + 1) % 1 < 0.28, tip = ax > ROC_SPAN * 0.42;
+      out.copy(cream).lerp(slate, tip ? 0.85 : bar ? 0.6 : 0.1);
+    }
+    c.setXYZ(i, c.getX(i) + (out.r - c.getX(i)) * k, c.getY(i) + (out.g - c.getY(i)) * k, c.getZ(i) + (out.b - c.getZ(i)) * k);
+  }
+  c.needsUpdate = true;
+}
 function rocMesh(source: BufferGeometry): AnimalSpecies {
   const g = fit(source, { size: ROC_SPAN, by: 'span', middle: 1.6, pitch: Math.PI / 2 }), p = g.getAttribute('position');
   let z0 = Infinity, z1 = -Infinity;
   for (let i = 0; i < p.count; i++) if (Math.abs(p.getX(i)) < ROC_WING_ROOT) { z0 = Math.min(z0, p.getZ(i)); z1 = Math.max(z1, p.getZ(i)); }
   const len = Math.max(0.5, z1 - z0), head = z1 - len * 0.3, tail = z0 + len * 0.3;
   bindRigid(g, (x, _y, z) => x > ROC_WING_ROOT ? WING_L : x < -ROC_WING_ROOT ? WING_R : z > head ? HEAD : z < tail ? TAIL : BODY);
+  paintUnderside(g);
   return { bones: ROC_BONES(head, 1.8, tail), furParts: [], eyeParts: [], hardParts: [g],
     dims: { bodyY: 1.6, bodyHalfLen: Math.max(1.4, len / 2), bodyRadius: 1.1, headRadius: 0.55, legLen: 1, feet: [], halfWidth: ROC_SPAN / 2 } };
 }
