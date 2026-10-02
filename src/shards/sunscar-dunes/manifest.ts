@@ -33,7 +33,7 @@ export const SUNSCAR_DUNES: ShardManifest = {
   // rows and the far buttes lay back into the violet in layers (review R9), warm toward the sun.
   atmosphere: { fogHeight: -20, fogHeightFalloff: 0, fogHeightDensity: 0, fogDistDensity: 0.0016, volumetricSunColor: [1, 0.55, 0.35] },
   // A light split-tone (R9): warm highlights, blue-violet shadows. The greyer zenith (look/sky.ts) no longer clips.
-  grade: { saturation: 0.04, brightness: 0, contrast: 0.06, bloomIntensity: 0.15, bloomThreshold: 0.9, shadowTint: [0.94, 0.97, 1.08], highTint: [1.05, 1, 0.94], lift: [0, 0, 0], gain: [1, 1, 1], gamma: 1 },
+  grade: { saturation: 0.14, brightness: 0, contrast: 0.08, bloomIntensity: 0.15, bloomThreshold: 0.9, shadowTint: [0.94, 0.97, 1.08], highTint: [1.05, 1, 0.94], lift: [0, 0, 0], gain: [1, 1, 1], gamma: 1 },
   horizon: { cloudSea: false, rings: [
     // loop 4: warm dune silhouettes rising in layers (the H4 targets), not one flat violet wall
     { r: 340, base: 2, color: [0.26, 0.1, 0.045], top: [0.5, 0.21, 0.08], snowLine: 2, haze: 0.35, floor: -10,
