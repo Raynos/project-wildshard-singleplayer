@@ -9,7 +9,7 @@ import { InstancedBufferAttribute, InstancedBufferGeometry, Mesh, PlaneGeometry,
  * Without the atlas (offline, a test page) the field is not built. Seeded: every load grows the same sky.
  */
 /** `spiral`: puffs laid on three log-spiral arms round the storm crown, under its deck (the H4 god-view targets). */
-export const PUFFS = { spiral: { count: 300, x: 0, z: -190, y: [-12, 14], r: [28, 135] }, count: 760, ring: [10, 600], y: [-28, 2], size: [22, 58], fade: [520, 820], centre: [0, -100], cells: [4, 2] } as const;
+export const PUFFS = { spiral: { count: 420, x: 0, z: -190, y: [-12, 12], r: [26, 150] }, count: 760, ring: [10, 600], y: [-28, 2], size: [22, 58], fade: [520, 820], centre: [0, -100], cells: [4, 2] } as const;
 
 export function cumulus(sun: Vector3, atlas: Texture): Mesh<InstancedBufferGeometry, ShaderMaterial> {
   let a = 9317 >>> 0;
@@ -18,7 +18,9 @@ export function cumulus(sun: Vector3, atlas: Texture): Mesh<InstancedBufferGeome
   g.index = base.index; g.setAttribute('position', base.getAttribute('position')); g.setAttribute('uv', base.getAttribute('uv'));
   const ns = PUFFS.spiral.count, n = PUFFS.count + ns, at = new Float32Array(n * 4), cell = new Float32Array(n * 2);
   for (let i = 0; i < n; i++) {
-    const ang = rnd() * Math.PI * 2, r = PUFFS.ring[0] + (PUFFS.ring[1] - PUFFS.ring[0]) * Math.sqrt(rnd());
+    let ang = rnd() * Math.PI * 2, r = PUFFS.ring[0] + (PUFFS.ring[1] - PUFFS.ring[0]) * Math.sqrt(rnd());
+    // clear of the maelstrom (look/cloudSea.ts MAELSTROM) so its spiral reads from above: pushed out past its rim
+    for (let tries = 0; tries < 6 && Math.hypot(PUFFS.centre[0] + Math.cos(ang) * r - PUFFS.spiral.x, PUFFS.centre[1] + Math.sin(ang) * r - PUFFS.spiral.z) < 150; tries++) { ang = rnd() * Math.PI * 2; r = PUFFS.ring[0] + (PUFFS.ring[1] - PUFFS.ring[0]) * Math.sqrt(rnd()); }
     const size = PUFFS.size[0] + (PUFFS.size[1] - PUFFS.size[0]) * rnd() ** 1.3;
     at.set([PUFFS.centre[0] + Math.cos(ang) * r, PUFFS.y[0] + (PUFFS.y[1] - PUFFS.y[0]) * rnd(), PUFFS.centre[1] + Math.sin(ang) * r, size], i * 4);
     const k = Math.floor(rnd() * PUFFS.cells[0] * PUFFS.cells[1]);
@@ -26,7 +28,9 @@ export function cumulus(sun: Vector3, atlas: Texture): Mesh<InstancedBufferGeome
   }
   for (let i = 0; i < ns; i++) {
     const k = PUFFS.count + i, f = i / ns, arm = i % 3, rr = PUFFS.spiral.r[0] + (PUFFS.spiral.r[1] - PUFFS.spiral.r[0]) * f;
-    const ang = arm * (Math.PI * 2 / 3) + Math.log(rr / PUFFS.spiral.r[0]) * 2.6 + (rnd() - 0.5) * 0.35;
+    // on the disc's arms (look/cloudSea.ts maelstrom: 3 arms, wind = th + 2.6 log(r / eye + 1)), tight to them
+    // (the disc lies in local x / y turned onto the ground, so its angle is the world angle mirrored: the log term's sign flips)
+    const ang = arm * (Math.PI * 2 / 3) + 2.6 * Math.log(rr / 16 + 1) + (rnd() - 0.5) * 0.22;
     // a funnel: the eye sinks, the walls rise outward toward the crown's base (the H4 targets' maelstrom)
     at.set([PUFFS.spiral.x + Math.cos(ang) * rr, PUFFS.spiral.y[0] + (PUFFS.spiral.y[1] - PUFFS.spiral.y[0]) * Math.min(1, f * 1.6) * (0.7 + 0.3 * rnd()), PUFFS.spiral.z + Math.sin(ang) * rr, 16 + rnd() * 18 + f * 20], k * 4);
     const c = Math.floor(rnd() * PUFFS.cells[0] * PUFFS.cells[1]); cell.set([c % PUFFS.cells[0], Math.floor(c / PUFFS.cells[0])], k * 2);
@@ -53,11 +57,12 @@ export function cumulus(sun: Vector3, atlas: Texture): Mesh<InstancedBufferGeome
       uniform sampler2D uAtlas; varying vec2 vUv; varying float vFade; varying float vToSun;
       void main(){
         vec3 t = texture2D(uAtlas, vUv).rgb;
-        float lum = dot(t, vec3(0.3, 0.59, 0.11)), body = smoothstep(0.05, 0.32, lum);
+        // the dark matte fringe is cut by alpha (no ink outline); the painted shading inside is kept
+        float lum = dot(t, vec3(0.3, 0.59, 0.11)), body = smoothstep(0.24, 0.5, lum);
         float alpha = body * vFade;
         if (alpha < 0.01) discard;
         // un-premultiply the black matte, then a touch of rim gold when the sun is behind the cloud
-        vec3 c = t / max(body, 0.35);
+        vec3 c = t * 1.12;
         // more depth: lavender in the shaded bellies, the lit crowns kept (the targets' billows read one by one)
         float lit = smoothstep(0.35, 0.85, dot(c, vec3(0.3, 0.59, 0.11)));
         c = mix(c * vec3(0.72, 0.68, 0.86), c * 1.08, lit);

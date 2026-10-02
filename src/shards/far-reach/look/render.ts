@@ -3,7 +3,7 @@ import { DayCycle, patchShader, PATCH_ORDER, type LookStrategy } from '#engine';
 import { FOG, SKY, SUN_DIR } from './sun';
 import { installPaintedLight } from './light';
 import { HEADING_GLSL, fogLut, loadPanorama, skyDome } from './sky';
-import { bakeSeaTexture, cloudSea } from './cloudSea';
+import { bakeSeaTexture, cloudSea, maelstrom } from './cloudSea';
 import { cumulus } from './puffs';
 import { loadPainted } from './image';
 import { TEX_URL } from '../boot/files';
@@ -49,6 +49,8 @@ export async function skyReachLook(): Promise<LookStrategy> {
       for (const mesh of sea.meshes) { scene.add(mesh); scope.own(mesh.geometry); scope.own(mesh.material); }
       scope.onDispose(() => { for (const mesh of sea.meshes) mesh.removeFromParent(); });
       seaTime = sea.time;
+      // the maelstrom under the crown (E392)
+      const swirl = maelstrom(SUN_DIR, seaTex, sea.time); scene.add(swirl); scope.own(swirl.geometry); scope.own(swirl.material); scope.onDispose(() => { swirl.removeFromParent(); });
       // cumulus over the sea (loop 5): the islands rise out of billowing cloud
       if (cloudAtlas !== null) {
         const puffs = cumulus(SUN_DIR, cloudAtlas); scene.add(puffs); scope.own(cloudAtlas); scope.own(puffs.geometry); scope.own(puffs.material); scope.onDispose(() => { puffs.removeFromParent(); });

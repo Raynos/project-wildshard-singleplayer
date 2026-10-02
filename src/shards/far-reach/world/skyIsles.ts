@@ -23,7 +23,7 @@ export const SKY_ISLES: readonly SkyIsle[] = [
   isle('r3', 112, -100, 11, 38, 20, 3, null), isle('r4', 62, -180, 16, 70, 28, 5, Math.PI * 0.75),
   isle('r5', 135, -175, 18, 50, 30, 6, Math.PI * 0.85),
   // overhead: two huge isles hanging high over the bridge, their roots trailing (mockup A's upper third)
-  isle('o1', -22, -92, 20, 96, 30, 6, Math.PI * 0.3), isle('o2', 30, -140, 22, 108, 32, 6, Math.PI * 0.7),
+  isle('o1', -30, -84, 20, 84, 30, 6, Math.PI * 0.3), isle('o2', 38, -102, 22, 92, 32, 6, Math.PI * 0.7),
   // around and behind, for the other views and the aerials
   isle('b1', -95, 45, 14, 52, 24, 4, Math.PI * 0.4), isle('b2', 98, 40, 13, 44, 22, 4, null),
   isle('b3', 20, 95, 16, 60, 26, 5, Math.PI * 1.5), isle('b4', -40, -255, 20, 62, 32, 6, Math.PI * 1.2),

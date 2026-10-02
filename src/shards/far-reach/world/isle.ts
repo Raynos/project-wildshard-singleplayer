@@ -192,6 +192,10 @@ ${shader.fragmentShader.replace('#include <color_fragment>', `#include <color_fr
     vec3 wq = farWP * 0.13;
     vec3 tex = texture2D(farRock, wq.zy).rgb * tw.x + texture2D(farRock, wq.xz).rgb * tw.y + texture2D(farRock, wq.xy).rgb * tw.z;
     diffuseColor.rgb = mix(diffuseColor.rgb, tex * (0.55 + 1.3 * dot(diffuseColor.rgb, vec3(0.3, 0.59, 0.11))), ${rockMix.toFixed(2)});
+    // grey-green cliff (the targets): less brown, moss on every ledge that faces up
+    float rl = dot(diffuseColor.rgb, vec3(0.3, 0.59, 0.11));
+    diffuseColor.rgb = mix(diffuseColor.rgb, vec3(rl) * vec3(0.98, 1.0, 0.97), 0.35);
+    diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.33, 0.42, 0.2) * (0.7 + 0.6 * rl), smoothstep(0.2, 0.65, fn.y) * 0.65);
 #endif
   }`)}`;
   // its own program key: three caches programs by the last patch's text, and the scene-wide fog patch (look/render.ts)

@@ -92,3 +92,40 @@ export function cloudSea(sun: Vector3, tex: DataTexture): CloudSea {
   // field (look/puffs.ts) carries the cloud sea
   return { meshes: [layer(SEA.low, 0.0018, true, -6)], time };
 }
+
+/**
+ * The maelstrom (E392, the judge three loops running: the H4 god-view targets are dominated by a huge spiral of cloud with
+ * the crown small in its eye). A disc under the storm crown in polar coordinates: the cloud noise wound into three log-
+ * spiral arms that turn slowly, crests lit gold toward the sun and lavender in the troughs, the eye a dark well; it melts
+ * into the cumulus field at its rim. Drawn before the puffs, depth-tested, no depth write.
+ */
+export const MAELSTROM = { x: 0, z: -190, y: 0, r: 165, eye: 16 } as const;
+export function maelstrom(sun: Vector3, tex: DataTexture, time: { value: number }): Mesh<CircleGeometry, ShaderMaterial> {
+  const material = new ShaderMaterial({ transparent: true, depthWrite: false, fog: false, side: DoubleSide,
+    uniforms: { tex: { value: tex }, sunDir: { value: sun }, time },
+    vertexShader: 'varying vec2 lp; void main(){ lp = position.xy; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+    fragmentShader: /* glsl */`
+      uniform sampler2D tex; uniform vec3 sunDir; uniform float time; varying vec2 lp;
+      void main(){
+        float r = length(lp), th = atan(lp.y, lp.x), rn = r / ${MAELSTROM.r.toFixed(1)};
+        // the arms stay put (the cumulus puffs sit on them, look/puffs.ts); the cloud texture streams along them instead
+        float wind = th + 2.6 * log(r / ${MAELSTROM.eye.toFixed(1)} + 1.0);
+        float arms = 0.5 + 0.5 * cos(3.0 * wind);
+        vec2 uv = vec2(wind * 3.0 / 6.2831853 - time * 0.01, rn * 2.4);
+        float n = texture2D(tex, uv).r * 0.65 + texture2D(tex, uv * 2.7 + 0.31).r * 0.35;
+        float dens = clamp(n * 0.9 + arms * 0.55 - 0.25, 0.0, 1.0);
+        // lit crests: the cloud thins toward the sun's side of each arm
+        float crest = smoothstep(0.45, 0.95, dens) * (0.6 + 0.4 * max(dot(normalize(vec2(cos(th), sin(th))), normalize(sunDir.xz)), 0.0));
+        vec3 trough = ${hex(SKY.seaShade)} * 0.62, body = ${hex(SKY.seaShadeWarm)}, top = ${hex(SKY.seaLit)};
+        // the troughs between the arms dark lavender (the puffs on the arms carry the lit cloud): the spiral reads by contrast
+        vec3 c = mix(trough * 0.9, body * 0.85, smoothstep(0.35, 0.85, arms) * 0.7);
+        c = mix(c, top, crest * 0.4);
+        // the eye: a dark sunken well
+        c = mix(${hex(0x5f5578)}, c, smoothstep(${MAELSTROM.eye.toFixed(1)}, ${(MAELSTROM.eye * 3).toFixed(1)}, r));
+        float alpha = mix(0.75, 1.0, smoothstep(0.05, 0.35, dens)) * (1.0 - smoothstep(0.78, 1.0, rn));
+        gl_FragColor = vec4(c, alpha);
+      }` });
+  const mesh = new Mesh(new CircleGeometry(MAELSTROM.r, 96), material);
+  mesh.rotation.x = -Math.PI / 2; mesh.position.set(MAELSTROM.x, MAELSTROM.y, MAELSTROM.z); mesh.renderOrder = -6; mesh.frustumCulled = false; mesh.name = 'far.maelstrom';
+  return mesh;
+}

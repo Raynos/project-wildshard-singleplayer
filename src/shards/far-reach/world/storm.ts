@@ -14,7 +14,7 @@ export const STORM = { lift: 23, radius: 92, gather: [40, 85], layers: [{ dy: 0,
 
 function hex(value: number): string { const c = new Color(value); return `vec3(${c.r.toFixed(4)},${c.g.toFixed(4)},${c.b.toFixed(4)})`; }
 /** The storm's palette (sRGB): belly, mid, the gold of the lit edges, the violet-white of the lightning, the haze it melts into. */
-export const STORM_COLORS = { belly: 0x4a3248, mid: 0x9c7282, top: 0xc49890, gold: 0xffc27a, bolt: 0xe2d6ff, haze: 0xe9bfb4 } as const;
+export const STORM_COLORS = { belly: 0x6e5466, mid: 0xc09888, top: 0xe8c6a8, gold: 0xffc983, bolt: 0xe2d6ff, haze: 0xedc9b0 } as const;
 
 const FRAGMENT = /* glsl */`
   uniform sampler2D tex; uniform float time, flash, twist, spin, seed; uniform vec3 sunDir, centre; varying vec3 wp; varying vec2 lp;
