@@ -37,7 +37,9 @@ export class Bullwhip extends Weapon {
     super(WHIP_ROW); this.app = app; this.targets = targets;
     this.contact = blocks.melee(app.combat); this.blocks.vm = this.vm; this.blocks.melee = this.contact;
     this.parts = buildWhipModel(); this.model = this.parts.root;
-    this.model.position.set(this.parts.glove === null ? 0.08 : 0.12, this.parts.glove === null ? -0.17 : -0.09, this.parts.glove === null ? -0.38 : -0.34); // mockup D: the fist at the right edge above the discs, the centre clear (loop 2 tune C)
+    // mockup D: the fist whole at the right, above the DODGE / JUMP discs, the coil beside it on the left, the centre
+    // clear (loop 3 tune G: half a metre out, so the generated glove reads a hand's size and nothing hides it)
+    this.model.position.set(this.parts.glove === null ? 0.08 : 0.095, this.parts.glove === null ? -0.17 : -0.08, this.parts.glove === null ? -0.38 : -0.5);
   }
   /** The world things the lash can crack (the windlass crank, the braziers). */
   aimAt(crackables: readonly Crackable[]): void { this.crackables = crackables; }

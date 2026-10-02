@@ -3,6 +3,8 @@ import { duneMesh } from '../world/meshes';
 
 /** Warm saddle-leather browns: the braid's two strands, the glove, its cuff and the knob; the popper is pale cord. */
 const STRAND_A = [0.46, 0.25, 0.12] as const, STRAND_B = [0.27, 0.14, 0.065] as const, POPPER = [0.78, 0.68, 0.52] as const;
+/** The thrown lash is the handle's dark braid (loop 3: its first metre read as a pale cone against the dusk sun). */
+const LASH_A = [0.24, 0.12, 0.055] as const, LASH_B = [0.13, 0.065, 0.03] as const;
 const GLOVE = 0x7a4a28, CUFF = 0x5a3219, KNOB = 0x3a2214;
 /** A low warm self-light: the dusk sun sits behind the player most of the time, and a backlit viewmodel reads as a black lump. */
 const GLOW = 0x120804;
@@ -12,12 +14,12 @@ const leather = (color: number): MeshStandardMaterial => new MeshStandardMateria
 const braided = (): MeshStandardMaterial => new MeshStandardMaterial({ vertexColors: true, roughness: 0.55, metalness: 0, emissive: GLOW });
 
 /** Paints a tube's rings with two strands laid in a spiral (the plait), so the braid reads without a texture. */
-function braid(geometry: BufferGeometry, rings: number, sides: number, popperRings = 0): void {
+function braid(geometry: BufferGeometry, rings: number, sides: number, popperRings = 0, a: readonly number[] = STRAND_A, b: readonly number[] = STRAND_B): void {
   const count = geometry.getAttribute('position').count, colors = new Float32Array(count * 3);
   for (let v = 0; v < count; v++) {
     const i = Math.floor(v / sides), j = v % sides;
-    const c = i >= rings - popperRings ? POPPER : (i * 2 + j) % 4 < 2 ? STRAND_A : STRAND_B;
-    colors[v * 3] = c[0]; colors[v * 3 + 1] = c[1]; colors[v * 3 + 2] = c[2];
+    const c = i >= rings - popperRings ? POPPER : (i * 2 + j) % 4 < 2 ? a : b;
+    colors[v * 3] = c[0] ?? 0; colors[v * 3 + 1] = c[1] ?? 0; colors[v * 3 + 2] = c[2] ?? 0;
   }
   geometry.setAttribute('color', new BufferAttribute(colors, 3));
 }
@@ -38,8 +40,10 @@ export class Lash {
     }
     geometry.setAttribute('position', new BufferAttribute(this.positions, 3));
     geometry.setIndex(index);
-    braid(geometry, rings, RADIAL, 2);
-    this.mesh = new Mesh(geometry, braided());
+    braid(geometry, rings, RADIAL, 2, LASH_A, LASH_B);
+    // matte: a glossy lash catches the low sun along its whole near length
+    const material = braided(); material.roughness = 0.85;
+    this.mesh = new Mesh(geometry, material);
     this.mesh.visible = false;
   }
   /**
@@ -54,8 +58,9 @@ export class Lash {
       const u = s / SEGMENTS, along = u * length * ext;
       const lift = Math.sin(u * Math.PI) * wave * (1 - ext * 0.7) + Math.sin(u * 9 - time * 40) * wave * 0.25 * u;
       this.point.copy(from).addScaledVector(this.tangent, along).addScaledVector(this.side, lift).addScaledVector(this.up, -Math.sin(u * 3.1) * 0.05 * length * (1 - ext));
-      // Thick at the handle, a thin fall, and a frayed popper that stays a few pixels wide 7 m out.
-      const radius = 0.013 * (1 - u) ** 1.5 + 0.0035 + (u > 0.93 ? 0.002 : 0);
+      // A thong as thick as the handle's keeper (1.3 cm) tapering fast into the thin fall, and a frayed popper that
+      // stays a few pixels wide 7 m out (loop 3: the first metre was a 3 cm cone filling the lower right).
+      const radius = 0.0045 * (1 - u) ** 2.5 + 0.0022 + (u > 0.93 ? 0.002 : 0);
       for (let r = 0; r < RADIAL; r++) {
         const a = (r / RADIAL) * Math.PI * 2;
         this.next.copy(this.point).addScaledVector(this.side, Math.cos(a) * radius).addScaledVector(this.up, Math.sin(a) * radius);
@@ -133,7 +138,7 @@ export function buildWhipModel(): WhipParts {
   const coilGeometry = new TubeGeometry(new CatmullRomCurve3(coilPoints), 140, cord, RADIAL, false);
   braid(coilGeometry, 141, RADIAL + 1);
   const coil = new Mesh(coilGeometry, braided());
-  if (made === null) coil.position.set(0, 0.1, -0.02); else coil.position.set(-0.04, 0.03, -0.03);
+  if (made === null) coil.position.set(0, 0.1, -0.02); else coil.position.set(-0.06, 0.07, -0.03);
   coil.rotation.set(0.1, 0.4, 0.1);
   root.add(grip, coil);
   const lash = new Lash(); root.add(lash.mesh);

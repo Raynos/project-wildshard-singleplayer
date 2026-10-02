@@ -82,6 +82,16 @@ describe('Signal Dunes plugin contract', () => {
     plugin.fire?.brazier.onInteract(); for (let i = 0; i < 30; i++) fake.advance(1 / 30); expect(purse.read()).toBe(before + 5);
     await app.unloadLevel();
   });
+  it('resumes a mid-quest save from before Sefa past her step, and skips her step once a later one is done', async () => {
+    const first = await boot(), places = first.plugin.places; if (places === null) throw new Error('no places');
+    places.logbook.onInteract(); first.app.events.flush('update');
+    expect(first.plugin.quest?.index).toBe(2); // walked past her to the caravan: the logbook also passes her step
+    expect(places.flags.has(SCOUT_FLAG)).toBe(false); await first.app.unloadLevel();
+    // the save as loop 1 left it: the logbook read, no scout flag
+    const again = await boot(); again.app.events.flush('update');
+    expect(again.plugin.places?.flags.has(SCOUT_FLAG)).toBe(true); expect(again.plugin.quest?.index).toBe(2);
+    await again.app.unloadLevel();
+  });
   it('cracks a narrow lane through the damage pipeline: 7 m light, 8 m heavy', async () => {
     const { app } = await boot(), whip = new Bullwhip(app), dir = new Vector3(0, 0, -1), from = new Vector3();
     const ray = target();

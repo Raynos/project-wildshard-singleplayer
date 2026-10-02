@@ -1,4 +1,4 @@
-import { QuestState, type QuestMarker } from '#engine';
+import { QuestState, boxDesc, type QuestMarker } from '#engine';
 import { CoinBurst, installQuestPresentation, purseSave, shardSave, type QuestPresentation, type ShardContext } from '#game';
 import * as v from 'valibot';
 import { Scene, Vector3 } from 'three';
@@ -16,6 +16,8 @@ const SIGNAL = { key: 'sunscar.signal', scope: 'shard' as const, version: 1, sch
 export const LIT_FLAG = FLAG.lit;
 /** Raised when the Dune Matriarch falls (combat/matriarch.ts): the quest's last step. */
 export const MATRIARCH_FLAG = 'sunscar.matriarch.down';
+/** Raised when every step is done. */
+const COMPLETE_FLAG = 'sunscar.complete';
 
 /** The named places: walking into one toasts "Discovered · …" once and names it on the full map (review R4, R11). */
 const PLACES = [
@@ -39,8 +41,12 @@ export function installQuest(ctx: ShardContext, player: Vector3, world: SignalWo
   const { flags } = world, paid = ctx.app.saves.define(SIGNAL);
   const basin = new Vector3(BASIN.x, 2, BASIN.z);
   const groundAt = (x: number, z: number): number => ctx.manifest.ground.terrain?.heightAt(x, z) ?? 0;
-  const quest = new QuestState({ id: 'sunscar.signal', title: STRINGS.quest, completeFlag: 'sunscar.complete', steps: [
-    { id: 'scout', objective: STRINGS.stepScout, chip: STRINGS.chipScout, hint: STRINGS.hintScout, done: { all: [SCOUT_FLAG] },
+  // A save from before Sefa (loop 2) or a player who walked past her to the caravan: any later step done means the
+  // scout's step is too, so a mid-quest save is never sent back to the crest; on load her flag is set for it (no wave).
+  const later = [FLAG.logbook, FLAG.oil, ...world.braziers.map((_, i) => FLAG.brazier(i)), FLAG.lit, MATRIARCH_FLAG];
+  if (!flags.has(SCOUT_FLAG) && [...later, COMPLETE_FLAG].some((f) => flags.has(f))) flags.set(SCOUT_FLAG);
+  const quest = new QuestState({ id: 'sunscar.signal', title: STRINGS.quest, completeFlag: COMPLETE_FLAG, steps: [
+    { id: 'scout', objective: STRINGS.stepScout, chip: STRINGS.chipScout, hint: STRINGS.hintScout, done: { any: [SCOUT_FLAG, ...later] },
       markers: [{ id: 'scout', label: STRINGS.scoutPin, short: STRINGS.shortScout, at: { poi: 'world', x: SCOUT_AT.x, y: groundAt(SCOUT_AT.x, SCOUT_AT.z) + 2.2, z: SCOUT_AT.z } }] },
     { id: 'logbook', objective: STRINGS.stepLog, chip: STRINGS.chipLog, hint: STRINGS.hintLog, done: { all: [FLAG.logbook] },
       markers: [{ id: 'logbook', label: STRINGS.readLog, short: STRINGS.shortLog, at: at(world.logbook.position, 0.4) }] },
@@ -69,11 +75,15 @@ export function installQuest(ctx: ShardContext, player: Vector3, world: SignalWo
   const sefa = scout(groundAt);
   if (sefa !== null) {
     ctx.root.add(sefa.group); ownPrimitives(sefa.group, ctx.scope); lastLightAll(sefa.group, ctx.scope);
+    // She is solid: a 0.6 m column you walk round, not through (loop 3); she turns in place, so the box stays square.
+    const y = sefa.group.position.y;
+    ctx.piece({ id: 'sunscar.scout', name: STRINGS.scoutName, category: 'props', file: 'src/shards/sunscar-dunes/quest/scout.ts', object: sefa.group,
+      colliders: [boxDesc({ x: SCOUT_AT.x, z: SCOUT_AT.z, hw: 0.3, hd: 0.3, rot: 0, yBottom: y - 0.3, yTop: y + 1.7 }, 'flesh')], surface: 'flesh' });
     ctx.system({ id: 'sunscar.scout', phase: 'update', run: (dt, t) => { sefa.update(dt, t, player, flags.has(SCOUT_FLAG)); } });
   }
   const live = ctx.game.runtime?.world && ctx.game.runtime.play ? ctx.game.runtime : null;
   const view = live === null ? null : installQuestPresentation(ctx, quest, { places: [...PLACES], introTitle: STRINGS.quest,
-    ...(sefa === null ? {} : { npc: { npc: scoutNpc('sunscar.complete'), at: sefa.head, label: STRINGS.talkScout, speaker: sefa.speaker, radius: 3.5 } }),
+    ...(sefa === null ? {} : { npc: { npc: scoutNpc(COMPLETE_FLAG), at: sefa.head, label: STRINGS.talkScout, speaker: sefa.speaker, radius: 3.5 } }),
     reward: { kicker: STRINGS.rewardKicker, title: STRINGS.quest, subtitle: STRINGS.rewardSubtitle, when: () => !alreadyPaid && quest.isComplete, finish: pay } });
   // Headless (no play host: tests, a node bake) the reward pays at once.
   if (view === null) ctx.scope.onDispose(quest.observe({ complete: () => { pay(); } }));
