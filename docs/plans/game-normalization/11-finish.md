@@ -109,6 +109,9 @@ sections are updated for the new paths (`src/engine/physics/`,
    docs, under the same slug and ask.
 5. **Done** when a run finishes with **zero engine edits and zero gaps**, the gate is green (the shard's own job
    added), and Jake plays it.
+6. **Amended by Jake (2026-10-01, NORMALIZATION-PICKS P25):** after four rounds (13, 6, 3, 2 gaps) restarting from
+   scratch stopped being worth it. Z3 is done when the round-4 gaps are fixed in the public API; the round-4 builds are
+   kept, and a gap found later pauses the agent, the lead fixes the engine, and the same agent resumes on its own code.
 
 ## Z4 — The permanent gate and archiving
 

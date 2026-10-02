@@ -23,6 +23,7 @@ continue on the recommended option, but the row stays open until Jake has answer
 
 | # | What | Jake's answer | Date |
 |---|---|---|---|
+| P25 | **Z3: stop rebuilding the new shards from scratch?** (4 rounds: 13, 6, 3, 2 gaps; about 2.5M tokens) | Yes (Jake, 2026-10-01): "super wasteful ... enough value was done from four rounds". Z3 counts as done once the round-4 gaps (G22, G23) land; the round-4 builds are the base; a later gap pauses the agent, the lead fixes the engine, the same agent resumes. And the shards get the full content build-out, not a slice (SIGNAL-DUNES / SKY-REACH) | 2026-10-01 |
 | P21 | **J13 round 2** tap-the-chip reload | Wave 7 Q1: **A**: the chip is a button; the reload icon shows only while the magazine isn't full; built as J13 | 2026-10-01 |
 | P23 | **J10 desktop Settings A, built** + guesses | Wave 7 Q2: ship as built ("whatever, let's go"); guess 4 fixed so Nalati's horse-breaking lean follows a rebound Move left/right (sol-fin) | 2026-10-01 |
 | P22 | **J14 → drop the spear BRACE?** | Drop it ("approved"): JUMP returns with the spear out; built as J14 | 2026-10-01 |
