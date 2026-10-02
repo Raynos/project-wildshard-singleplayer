@@ -383,6 +383,15 @@ This does not change `bounds` / soft respawn or the creature death plane `world.
 | `dev?`, `next?`, `blender?` | capture poses, the deck's next-shard hint, the Blender area |
 | `load` | `() => import('./plugin')`: the lazy plugin chunk |
 
+**Structures-only ground:** `ground: { structures: true }` needs no `terrain`. The engine draws no terrain mesh
+and creates no terrain collider. Analytic placement readers (`heightAt`, `terrainFor`) return the fixed floor
+**y = −1,000 m** everywhere; this floor is not walkable geometry. `terrainFieldFor(ground, id)` (`#engine/data`)
+returns the authored field when present, otherwise this fallback for structures; missing both is an error.
+The fallback has no trails, cabins, pond or stream, an upward normal and a dry water sentinel at **y = −1,001 m**.
+Set `spawn.y` to an authored structure's floor, register its colliders with `ctx.piece`, and set `bounds.floor` /
+`world.killY` above the analytic floor when falls should respawn / kill. Supplying both terrain and structures
+keeps the authored analytic field; structure-first rendering/collision policy stays in effect.
+
 The template's manifest is the shortest complete one:
 
 ```ts
@@ -1623,11 +1632,12 @@ sections above describe what to use; this list is the complete inventory.
 
 ### `#engine/data` (`src/engine/data.ts`)
 
-20 exports, grouped by the module they come from.
+21 exports, grouped by the module they come from.
 
 - `./core/config`: `CHUNK_HALF`
 - `./core/noise`: `smoothstep`, `clamp`, `lerp`
 - `./world/terrainField`: `buildTerrain`
+- `./world/groundField`: `terrainFieldFor`
 - `./world/faunaLayout`: `layoutFauna`
 - `./world/forest/treeSpecies`: `TREE_SPECIES`, `SpeciesWeights`
 - `./boot/filePolicy`: `filePolicy`, `PUBLIC_BYTES`

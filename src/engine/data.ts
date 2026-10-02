@@ -2,6 +2,7 @@
 export { CHUNK_HALF } from './core/config';
 export { smoothstep, clamp, lerp } from './core/noise';
 export { buildTerrain } from './world/terrainField';
+export { terrainFieldFor } from './world/groundField';
 export { layoutFauna } from './world/faunaLayout';
 export { TREE_SPECIES, type SpeciesWeights } from './world/forest/treeSpecies';
 export { filePolicy, PUBLIC_BYTES } from './boot/filePolicy';

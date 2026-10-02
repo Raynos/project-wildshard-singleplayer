@@ -1,5 +1,6 @@
 import type { MinimapPalette, LookReplaceContext, TreeFactory, Ktx2Table, LevelSpec, EngineMechanism, TierOverrides, BootSpec, LoadoutSpec, LookStrategy, ExploreSpec, WaterBody, HudBand } from '#engine';
 import type { ShardSlug } from './shards.generated';
+import { terrainFieldFor } from '#engine/data';
 import type { ShardPlugin } from './plugin';
 /**
  * ShardManifest — everything that makes one Wildshard shard different from another.
@@ -597,9 +598,7 @@ export function formatGrid(grid: readonly [number, number]): string {
   return `(${signed(grid[0])}, ${signed(grid[1])})`;
 }
 
-/** Analytic terrain consumers explicitly require a terrain-bearing manifest. */
+/** Authored terrain, or the analytic placement floor for a structures-only manifest (y = -1000 m). */
 export function terrainFor(manifest: Pick<ShardManifest, 'ground' | 'slug'>): ChunkTerrain {
-  const terrain = manifest.ground.terrain;
-  if (!terrain) throw new Error(`No terrain for ${manifest.slug}`);
-  return terrain;
+  return terrainFieldFor(manifest.ground, manifest.slug);
 }

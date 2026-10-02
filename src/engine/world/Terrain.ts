@@ -10,6 +10,7 @@ import { groundSet } from './lookFlags';
 import type { PainterField, TerrainPainter } from '../render/look';
 import type { Scope } from '../app/scope';
 import type { LevelAssets } from '../level/data';
+import type { LevelSpec } from '../level/spec';
 import { PATCH_ORDER, patchShader } from '../render/shaderPatches';
 
 /**
@@ -138,10 +139,16 @@ const PAINTER_FIELD: PainterField = {
 
 export class Terrain {
   group = new THREE.Group();
-  mesh!: THREE.Mesh;
+  private builtMesh: THREE.Mesh | undefined;
+  get mesh(): THREE.Mesh {
+    if (this.builtMesh === undefined) throw new Error('Terrain: this world has no terrain mesh');
+    return this.builtMesh;
+  }
+  set mesh(mesh: THREE.Mesh) { this.builtMesh = mesh; }
   material!: THREE.MeshStandardMaterial | THREE.MeshLambertMaterial;
   /** Bake a 0..1 canopy-density map (from Forest) into a per-vertex attribute → ambient darkening under trees. */
   applyCanopy(tex: THREE.DataTexture): void {
+    if (this.builtMesh === undefined) return;
     const { width: N, data } = tex.image as { width: number; data: Float32Array };
     const pos = this.mesh.geometry.getAttribute('position');
     const canopy = new Float32Array(pos.count);
@@ -159,6 +166,7 @@ export class Terrain {
    * Returns the triangles dropped.
    */
   punch(hole: (ax: number, ay: number, az: number, bx: number, by: number, bz: number, cx: number, cy: number, cz: number) => boolean): number {
+    if (this.builtMesh === undefined) return 0;
     const geo = this.mesh.geometry, idx = geo.getIndex();
     if (!idx) return 0;
     const pos = geo.getAttribute('position');
@@ -174,7 +182,8 @@ export class Terrain {
   }
 
   /** `painter`: the level look's own ground (LookStrategy.terrainPainter), built in place of the default */
-  async build(ground: { structures?: true }, painter?: TerrainPainter, scope?: Scope): Promise<this> {
+  async build(ground: LevelSpec['ground'], painter?: TerrainPainter, scope?: Scope): Promise<this> {
+    if (ground.structures === true && ground.terrain === undefined) return this;
     if (ground.structures === true) return this.buildNone();
     if (painter !== undefined) {
       if (scope === undefined || scope.disposed) throw new Error('TerrainPainter.build requires a live owning level scope');
@@ -374,4 +383,3 @@ export class Terrain {
     return mesh;
   }
 }
-

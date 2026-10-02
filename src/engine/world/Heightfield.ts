@@ -1,4 +1,5 @@
 import { setTerrainHeight, setTerrainPlacement } from './terrainHeight';
+import { terrainFieldFor } from './groundField';
 import type { PondDef, TerrainField } from '../level/data';
 import type { LevelSpec } from '../level/spec';
 import { activeLevel, onLevelChange, selectedLevel } from '../level/selection';
@@ -15,9 +16,7 @@ import { CHUNK_HALF } from '../core/config';
 const NO_POND: PondDef = { x: 0, z: 0, r: 0 };
 
 function terrainOf(level: LevelSpec): TerrainField {
-  const terrain = level.ground.terrain;
-  if (!terrain) throw new Error(`No terrain for ${level.id}`);
-  return terrain;
+  return terrainFieldFor(level.ground, level.id);
 }
 
 /** the bound field; `null` until a level is configured */
@@ -64,7 +63,7 @@ else setTerrainHeight(heightAt);
 setTerrainPlacement((x, z) => normalAt(x, z), () => waterLevel());
 // a new level rebinds the analytic field (its bake is installed when it loads); the same field configured again keeps
 // whatever is bound, an installed bake included
-onLevelChange((level) => { const T = level.ground.terrain; if (T !== undefined && T !== bound.T) bind(T); });
+onLevelChange((level) => { const T = terrainOf(level); if (T !== bound.T) bind(T); });
 
 /**
  * The baked grid (src/engine/world/BakedTerrain.ts, public/assets/baked/<slug>/terrain.bin) replaces the

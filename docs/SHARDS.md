@@ -160,7 +160,10 @@ The manifest is data. Fill it top to bottom ([ENGINE.md §6](ENGINE.md#6-the-sha
 1. **Identity:** `api: 1`, `slug`, `name`, `blurb`, `biome`, `label`, `order`, `status`, `seed`, `placement`.
 2. **Card art:** `card: { thumb, portrait, landscape }` from `thumbs/`. A portrait first: the game is an iPhone PWA.
 3. **Ground:** `ground.terrain = buildTerrain(seed, { landscape, trails, cabinSites })` from `#engine/data`, or
-   `ground.structures: true` for a built world, or both. `ground.water` lists `WaterBody` rows. `spawn`, `bounds`.
+   `ground.structures: true` for a built world, or both. With structures only, there is no terrain mesh/collider:
+   `heightAt` / `terrainFor` return an analytic floor at **y = −1,000 m**, not a walkable surface (dry water sentinel
+   −1,001 m). Set `spawn.y` to your built floor and register its colliders with `ctx.piece`. Set `bounds.floor` /
+   `world.killY` above that fallback for void falls. `ground.water` lists `WaterBody` rows. `spawn`, `bounds`.
 4. **Look data:** `sky`, `atmosphere`, `grade`, `style`, `kitLook`, and `render: async () => (await import('./look/render')).myLook()`.
 5. **Mechanisms:** `uses` lists only what you run, from the 15: engine `weather dayCycle bosses elites spawns quests
    swim hover explore practice`, game `coins loot compendium feats bag.pack`. Anything not listed isn't built.
