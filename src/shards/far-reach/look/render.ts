@@ -52,7 +52,8 @@ export async function skyReachLook(): Promise<LookStrategy> {
       seaTime = sea.time;
       // the painted cloud sea (E392), wound into the maelstrom under the crown; without its texture the procedural maelstrom disc
       if (seaPaint !== null) {
-        const painted = paintedSea(seaPaint, sea.time); scene.add(painted); scope.own(seaPaint); scope.own(painted.geometry); scope.own(painted.material); scope.onDispose(() => { painted.removeFromParent(); });
+        scope.own(seaPaint);
+        for (const upper of [false, true]) { const painted = paintedSea(seaPaint, sea.time, upper); scene.add(painted); scope.own(painted.geometry); scope.own(painted.material); scope.onDispose(() => { painted.removeFromParent(); }); }
       } else {
         const swirl = maelstrom(SUN_DIR, seaTex, sea.time); scene.add(swirl); scope.own(swirl.geometry); scope.own(swirl.material); scope.onDispose(() => { swirl.removeFromParent(); });
       }

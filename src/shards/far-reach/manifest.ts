@@ -24,7 +24,7 @@ export const SKY_REACH: ShardManifest = {
   sky: { sunColor: [1, 0.8, 0.58], sunIntensity: 2.3, envIntensity: 0.7, bgIntensity: 1, fogSunColor: [1, 0.82, 0.64], cloudSunColor: [1, 0.84, 0.7],
     hemiSky: 0xc8c6dc, hemiGround: 0x9e98ac, hemiIntensity: 1.4, sun: { azimuth: 300, elevation: 4.3 } }, // the elevation is the painted sun's (look/panoramaData.ts PANO_SUN)
   atmosphere: { fogHeight: -20, fogHeightFalloff: 0, fogHeightDensity: 0, fogDistDensity: 0, volumetricSunColor: [1, 0.8, 0.6] },
-  grade: { saturation: 0.22, brightness: 0, contrast: 0.18, bloomIntensity: 0.3, bloomThreshold: 0.82, shadowTint: [1.04, 0.95, 0.98], highTint: [1.03, 1, 0.95], lift: [0.012, 0.004, 0], gain: [1, 0.99, 0.97], gamma: 1 },
+  grade: { saturation: 0.22, brightness: 0, contrast: 0.18, bloomIntensity: 0.3, bloomThreshold: 0.82, shadowTint: [0.97, 0.98, 1.04], highTint: [1.06, 1.0, 0.88], lift: [0.012, 0.004, 0], gain: [1, 0.99, 0.97], gamma: 1 },
   render: async () => (await import('./look/render')).skyReachLook(),
   uses: ['hover', 'quests', 'bosses', 'coins', 'loot'],
   loadout: { weapons: ['weapon.far-fan'], tools: ['tool.hoverboard'], start: ['weapon.far-fan', 'tool.hoverboard'], held: 'weapon.far-fan' },

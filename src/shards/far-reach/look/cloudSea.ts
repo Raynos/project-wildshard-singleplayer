@@ -138,7 +138,8 @@ export function maelstrom(sun: Vector3, tex: DataTexture, time: { value: number 
  * painted sea with distance. Drawn after the sky dome and before the puffs; opaque near, fading far.
  */
 export const PAINTED_SEA = { y: -24, radius: 1400, tile: 120, fade: [420, 900] } as const;
-export function paintedSea(painted: Texture, time: { value: number }): Mesh<CircleGeometry, ShaderMaterial> {
+/** `upper`: the higher, thinner layer (only its bright billow crowns, by luminance) that gives the diagonals parallax. */
+export function paintedSea(painted: Texture, time: { value: number }, upper = false): Mesh<CircleGeometry, ShaderMaterial> {
   const material = new ShaderMaterial({ transparent: true, depthWrite: false, fog: false, side: DoubleSide,
     uniforms: { painted: { value: painted }, time },
     vertexShader: 'varying vec3 wp; void main(){ vec4 w = modelMatrix * vec4(position, 1.0); wp = w.xyz; gl_Position = projectionMatrix * viewMatrix * w; }',
@@ -146,9 +147,10 @@ export function paintedSea(painted: Texture, time: { value: number }): Mesh<Circ
       uniform sampler2D painted; uniform float time; varying vec3 wp;
       void main(){
         vec2 rel = wp.xz - vec2(${MAELSTROM.x.toFixed(1)}, ${MAELSTROM.z.toFixed(1)});
-        float mr = length(rel), swirl = exp(-mr / 110.0);
-        // wound toward the maelstrom's eye: the texture rotated by an angle that grows inward
-        float ma = swirl * 4.2 + time * 0.02 * swirl;
+        // wound toward the maelstrom's eye: a log-spiral twist confined to the crown's neighbourhood (a wider twist
+        // sheared the texture into streaks under every other island)
+        float mr = length(rel), reach = 1.0 - smoothstep(85.0, 135.0, mr);
+        float ma = (2.2 * log(${MAELSTROM.r.toFixed(1)} / (mr + ${MAELSTROM.eye.toFixed(1)})) + time * 0.02) * reach;
         vec2 q = vec2(cos(ma) * rel.x - sin(ma) * rel.y, sin(ma) * rel.x + cos(ma) * rel.y) + vec2(${MAELSTROM.x.toFixed(1)}, ${MAELSTROM.z.toFixed(1)});
         vec2 drift = vec2(time * 0.4, time * 0.15);
         vec3 a = texture2D(painted, (q + drift) / ${PAINTED_SEA.tile.toFixed(1)}).rgb;
@@ -157,9 +159,12 @@ export function paintedSea(painted: Texture, time: { value: number }): Mesh<Circ
         // the eye a dark lavender well
         c = mix(c * vec3(0.62, 0.6, 0.78), c, smoothstep(${MAELSTROM.eye.toFixed(1)}, ${(MAELSTROM.eye * 3.5).toFixed(1)}, mr));
         float d = length(wp.xz - cameraPosition.xz);
-        gl_FragColor = vec4(c, 1.0 - smoothstep(${PAINTED_SEA.fade[0].toFixed(1)}, ${PAINTED_SEA.fade[1].toFixed(1)}, d));
+        float far = 1.0 - smoothstep(${PAINTED_SEA.fade[0].toFixed(1)}, ${PAINTED_SEA.fade[1].toFixed(1)}, d);
+        float crowns = ${upper ? 'smoothstep(0.62, 0.82, dot(c, vec3(0.3, 0.59, 0.11)))' : '1.0'};
+        gl_FragColor = vec4(c * ${upper ? '1.06' : '1.0'}, far * crowns);
       }` });
   const mesh = new Mesh(new CircleGeometry(PAINTED_SEA.radius, 96), material);
-  mesh.rotation.x = -Math.PI / 2; mesh.position.y = PAINTED_SEA.y; mesh.renderOrder = -7; mesh.frustumCulled = false; mesh.name = 'far.painted-sea';
+  mesh.rotation.x = -Math.PI / 2; mesh.position.y = upper ? PAINTED_SEA.y + 14 : PAINTED_SEA.y; mesh.renderOrder = upper ? -6 : -7; mesh.frustumCulled = false; mesh.name = upper ? 'far.painted-sea.upper' : 'far.painted-sea';
+  if (upper) mesh.rotation.z = 1.3;
   return mesh;
 }

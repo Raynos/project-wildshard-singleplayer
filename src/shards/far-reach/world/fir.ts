@@ -11,7 +11,7 @@ import { BufferGeometry, Color, DoubleSide, Float32BufferAttribute, InstancedMes
  *
  * Local frame: base at y 0, about 8 m tall before the instance's scale (the code pine's height).
  */
-export const FIR = { height: 8.2, tiers: 12, perTier: 10, base: 2.7, cell: 2 } as const;
+export const FIR = { height: 6.6, tiers: 12, perTier: 10, base: 2.7, cell: 2 } as const;
 
 function seeded(seed: number): () => number {
   let a = seed >>> 0;
@@ -73,7 +73,7 @@ export const firSheet = (): Texture | null => SHEET;
 export function firs(at: readonly (readonly [number, number, number, number])[], sheet: Texture): InstancedMesh {
   // the trunk's uv is (-1, -1): the map's border texel is clear, so the bark is drawn from the vertex colour alone
   // a faint emissive canopy: the low sun barely lights the up-facing cards, and from above the firs read as black discs
-  const material = new MeshStandardMaterial({ map: sheet, emissiveMap: sheet, emissive: 0x4a5a34, vertexColors: true, alphaTest: 0.45, side: DoubleSide, roughness: 0.9, metalness: 0 });
+  const material = new MeshStandardMaterial({ map: sheet, emissiveMap: sheet, emissive: 0x6a7a44, vertexColors: true, alphaTest: 0.45, side: DoubleSide, roughness: 0.9, metalness: 0 });
   patchShader(material, 'far.fir', PATCH_ORDER.decorate, (shader) => {
     shader.fragmentShader = shader.fragmentShader.replace('#include <map_fragment>', `#ifdef USE_MAP
   vec4 farTex = texture2D(map, vMapUv);

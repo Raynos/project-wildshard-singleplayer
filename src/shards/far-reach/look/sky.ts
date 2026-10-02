@@ -34,6 +34,8 @@ export function fogLut(): DataTexture {
   const n = PANO_FOG_SRGB.length / 3, data = new Uint8Array(n * 4), c = new Color();
   for (let i = 0; i < n; i++) {
     c.setRGB(PANO_FOG_SRGB[i * 3] ?? 0, PANO_FOG_SRGB[i * 3 + 1] ?? 0, PANO_FOG_SRGB[i * 3 + 2] ?? 0, SRGBColorSpace);
+    // gold haze, not rose (E392: the targets sink far islands into warm gold)
+    c.multiply(new Color(1.04, 0.98, 0.84));
     data[i * 4] = Math.round(Math.min(1, c.r) * 255); data[i * 4 + 1] = Math.round(Math.min(1, c.g) * 255); data[i * 4 + 2] = Math.round(Math.min(1, c.b) * 255); data[i * 4 + 3] = 255;
   }
   const tex = new DataTexture(data, n, 1, RGBAFormat, UnsignedByteType);

@@ -196,7 +196,7 @@ ${shader.fragmentShader.replace('#include <color_fragment>', `#include <color_fr
     diffuseColor.rgb = mix(diffuseColor.rgb, tex * (0.55 + 1.3 * dot(diffuseColor.rgb, vec3(0.3, 0.59, 0.11))), ${rockMix.toFixed(2)});
     // grey-green cliff (the targets): less brown, moss on every ledge that faces up
     float rl = dot(diffuseColor.rgb, vec3(0.3, 0.59, 0.11));
-    diffuseColor.rgb = mix(diffuseColor.rgb, vec3(rl) * vec3(0.98, 1.0, 0.97), 0.35);
+    diffuseColor.rgb = mix(diffuseColor.rgb, vec3(rl) * vec3(0.98, 1.0, 0.97), 0.55);
     diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.33, 0.42, 0.2) * (0.7 + 0.6 * rl), smoothstep(0.2, 0.65, fn.y) * 0.65);
 #endif
   }`)}`;

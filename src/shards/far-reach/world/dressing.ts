@@ -17,7 +17,7 @@ import { DECK, ISLES, SPANS, SPAWN, apothem, type Isle } from '../layout';
  * Placement uses its own seeded generator, not the level's cosmetic stream (whose order the islands already consume).
  */
 /** `handoff`: the camera distance (m) over which a clump grows back in, where the near meadow's blades thin out (MEADOW.range). */
-export const DRESS = { clumpsPerM2: 1.1, flowersPerM2: 0.14, stonesPerIsle: 9, rootsPerM: 2.2, cragsPerIsle: 4, bridgeClear: 0.3, handoff: [15, 22] } as const;
+export const DRESS = { clumpsPerM2: 1.1, flowersPerM2: 0.14, stonesPerIsle: 9, rootsPerM: 2.2, lipPerM: 1.6, cragsPerIsle: 4, bridgeClear: 0.3, handoff: [15, 22] } as const;
 
 function seeded(seed: number): () => number {
   let a = seed >>> 0;
@@ -138,6 +138,18 @@ export function dressIslands(isles: readonly Isle[] = ISLES, seed = 6417, landin
     stones.push({ x: SPAWN.x + dx, y: DECK - 0.2, z: SPAWN.z + dz, s: sc, yaw: rnd() * 6.28 });
     flowers.push({ x: SPAWN.x + dx + 0.8, y: DECK, z: SPAWN.z + dz + 0.6, s: 1, yaw: rnd() * 6.28, c: 0xf2cf55 });
   }
+  // the grassy lip (E392, the aerial targets: tops roll over their rim in a fringe of grass): clumps leaning outward
+  // round every rim, a little below the deck, tilted over the edge
+  const lips: (Place & { tilt: number })[] = [];
+  for (const isle of isles) {
+    const n = Math.round(2 * Math.PI * isle.r * DRESS.lipPerM * density);
+    for (let i = 0; i < n; i++) {
+      const a = (i / n) * Math.PI * 2 + rnd() * 0.15, r = apothem(isle) * (0.94 + rnd() * 0.04);
+      const x = isle.x + Math.cos(a) * r, z = isle.z + Math.sin(a) * r;
+      if (onLane(x, z)) continue;
+      lips.push({ x, y: isle.y - 0.25, z, s: 0.7 + rnd() * 0.5, yaw: a, tilt: 0.75 + rnd() * 0.35 });
+    }
+  }
   const group = new Group(), meshes: InstancedMesh[] = [];
   /** `long`: the item's scale is its length only (roots); otherwise uniform, `squash` flattening y */
   const place = (mesh: InstancedMesh, list: readonly Place[], squash = 1, long = false): void => {
@@ -154,6 +166,14 @@ export function dressIslands(isles: readonly Isle[] = ISLES, seed = 6417, landin
       #endif`);
   }, { key: (prior) => `${prior}|far.clump-handoff` });
   place(new InstancedMesh(clumpGeometry(), clumpMaterial, clumps.length), clumps);
+  // the lip clumps: each turned so its blades lean out over the edge (yaw = the rim angle, then tipped about the tangent)
+  const lipMesh = new InstancedMesh(clumpGeometry(), new MeshStandardMaterial({ vertexColors: true, side: DoubleSide, roughness: 1, metalness: 0 }), lips.length);
+  const tq = new Quaternion(), ax = new Vector3();
+  lips.forEach((it, i) => {
+    ax.set(-Math.sin(it.yaw), 0, Math.cos(it.yaw)); tq.setFromAxisAngle(ax, -it.tilt);
+    m.compose(p.set(it.x, it.y, it.z), tq, s.set(it.s * 1.3, it.s, it.s * 1.3)); lipMesh.setMatrixAt(i, m);
+  });
+  lipMesh.computeBoundingSphere(); group.add(lipMesh); meshes.push(lipMesh);
   const flowerMesh = new InstancedMesh(flowerGeometry(), new MeshStandardMaterial({ side: DoubleSide, roughness: 1, metalness: 0, emissive: 0x2a2418 }), flowers.length);
   place(flowerMesh, flowers); const fc = new Color(); flowers.forEach((f, i) => { flowerMesh.setColorAt(i, fc.setHex(f.c)); });
   // the boulders wear the islands' painted rock and moss (E392: flat olive blobs up close)
