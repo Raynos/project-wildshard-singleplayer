@@ -1,6 +1,6 @@
 # NORMALIZATION-PICKS — every pick, decision, question and review for Jake (E357)
 
-**State:** `blocked` 2026-10-01 — open: P24 (keep the 54 texture originals? J4 found they are all sources); waiting on Jake; asked in plain chat while herdr builders are live; must be empty before GAME-NORMALIZATION is archived.
+**State:** `blocked` 2026-10-01 — empty: every pick answered (P1–P25); archived with GAME-NORMALIZATION.
 
 A mini plan beside [GAME-NORMALIZATION](GAME-NORMALIZATION.md). Each row is one question the lead asks Jake through
 the question tool (AskUserQuestion), with its options and the evidence to look at. Builders never decide a row: when
@@ -17,12 +17,12 @@ continue on the recommended option, but the row stays open until Jake has answer
 
 | # | What | Options (recommended first) | Where to look | Since |
 |---|---|---|---|---|
-| P24 | **P9 revisited**: the 54 "unreferenced" original textures (28 MB) are the sources the phone images, KTX2 sets and Blender builds are made from (J4 re-audit: 54 / 54 referenced, 0 safe deletes; deleting them is what broke 2 tests) | keep all 54 (rec.) · move them to a separate asset store | chat 2026-10-01; J4 Handoff in E357.md | 2026-10-01 |
 
 ## Answered
 
 | # | What | Jake's answer | Date |
 |---|---|---|---|
+| P24 | **P9 revisited**: keep the 54 texture originals (28 MB) that the phone images, KTX2 sets and Blender builds are made from? | Keep them (Jake, 2026-10-01: "Yes, sure, keep the 54 textures"); J4's audit records them as generator inputs | 2026-10-01 |
 | P25 | **Z3: stop rebuilding the new shards from scratch?** (4 rounds: 13, 6, 3, 2 gaps; about 2.5M tokens) | Yes (Jake, 2026-10-01): "super wasteful ... enough value was done from four rounds". Z3 counts as done once the round-4 gaps (G22, G23) land; the round-4 builds are the base; a later gap pauses the agent, the lead fixes the engine, the same agent resumes. And the shards get the full content build-out, not a slice (SIGNAL-DUNES / SKY-REACH) | 2026-10-01 |
 | P21 | **J13 round 2** tap-the-chip reload | Wave 7 Q1: **A**: the chip is a button; the reload icon shows only while the magazine isn't full; built as J13 | 2026-10-01 |
 | P23 | **J10 desktop Settings A, built** + guesses | Wave 7 Q2: ship as built ("whatever, let's go"); guess 4 fixed so Nalati's horse-breaking lean follows a rebound Move left/right (sol-fin) | 2026-10-01 |
