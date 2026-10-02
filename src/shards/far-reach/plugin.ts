@@ -24,6 +24,8 @@ declare module '#engine' {
 
 /** The updraft's upward push while you ride its column (m/s², G24). */
 export const UPDRAFT_LIFT = 12;
+/** How far above its island's deck a goat's spawn ray starts (metres): above the grass, below anything overhead. */
+export const GOAT_SPAWN_ABOVE = 2;
 /** How fast the winch lifts the fallen bridge (radians per second). */
 export const RAISE_RATE = 0.55;
 /** How close a GUST must reach a vane to turn it (metres; the cone is the fan's GUST cone, a little longer). */
@@ -130,12 +132,22 @@ export class SkyReachPlugin extends ShardPlugin {
 
     // Creatures: each one knows its home (an island or a flying circle).
     const animals = rt?.play?.animals;
-    const spawn = (kind: string, variant: string, home: Home, x: number, z: number): Animal | null => {
-      if (!animals) return null; const a = animals.spawn(kind, x, z, 0, variant); setHome(a, home); return a;
+    const spawn = (kind: string, variant: string, home: Home, x: number, z: number, placement?: { fromY: number }): Animal | null => {
+      if (!animals) return null; const a = animals.spawn(kind, x, z, 0, variant, placement); setHome(a, home); return a;
     };
     for (const home of RAY_HOMES) { const a = spawn('driftRay', 'dusk', home, home.x + home.r, home.z); if (a) this.rays.push(a); }
     for (const home of ROOST_RAYS) { const a = spawn('driftRay', 'dusk', home, home.x + home.r, home.z); if (a) this.roostRays.push(a); }
-    for (const g of GOATS) { const a = spawn('skyGoat', 'cloud', { x: g.isle.x, z: g.isle.z, r: apothem(g.isle), y: g.isle.y }, g.isle.x + g.dx, g.isle.z + g.dz); if (a) this.goats.push(a); }
+    // The goats walk their island's deck (G26): the spawn lands them on the first WORLD floor under `fromY`. That ray
+    // finds the islands only once physics has stepped (in `play` it hits nothing and the goat lands on the −1000 m
+    // analytic floor), so they spawn on the first fixed step.
+    let goatsDue = true;
+    ctx.system({ id: 'far.goats', phase: 'fixed.post', run: () => {
+      if (!goatsDue) return; goatsDue = false;
+      for (const g of GOATS) {
+        const a = spawn('skyGoat', 'cloud', { x: g.isle.x, z: g.isle.z, r: apothem(g.isle), y: g.isle.y }, g.isle.x + g.dx, g.isle.z + g.dz, { fromY: g.isle.y + GOAT_SPAWN_ABOVE });
+        if (a) this.goats.push(a);
+      }
+    } });
     for (const home of WISP_HOMES) { const a = spawn('galeWisp', 'gale', home, home.x + home.r, home.z); if (a) this.wisps.push(a); }
     this.roc = spawn('stormRoc', 'storm', ROC, ROC.x + ROC.r, ROC.z);
     ctx.scope.onDispose(() => { for (const a of [...this.rays, ...this.roostRays, ...this.goats, ...this.wisps, ...(this.roc ? [this.roc] : [])]) animals?.retire(a); });

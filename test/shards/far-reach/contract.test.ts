@@ -2,13 +2,14 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { App, WorldRegistry, TabRegistry, StrikeRunner, type Actor, type LevelDriver, type StrikeContext } from '#engine';
 import { shardContext, toLevelSpec, purseSave, shardSave, type GameServices } from '#game';
-import { Vector3 } from 'three';
+import { BufferGeometry, Float32BufferAttribute, Vector3 } from 'three';
 import manifest from '#shards/far-reach/manifest';
 import { SkyReachPlugin } from '#shards/far-reach/plugin';
 import { WarFan, GUST, inCone } from '#shards/far-reach/weapons/WarFan';
 import { DIVE } from '#shards/far-reach/species/driftRay';
 import { DECK, HOVER_GAP, ISLES, SPANS, UPDRAFT, VANES, FALLEN_BRIDGE, apothem } from '#shards/far-reach/layout';
-import { UPDRAFT_ANGLE } from '#shards/far-reach/world/build';
+import { UPDRAFT_ANGLE, vaneColliders } from '#shards/far-reach/world/build';
+import { SKY_GOAT, warmCoat } from '#shards/far-reach/species/skyGoat';
 import { FLAGS, REWARD } from '#shards/far-reach/quest/install';
 import { FakeGame } from '../../fake/FakeGame';
 import { INPUT_CONTEXTS } from '#game/inputContexts';
@@ -99,5 +100,16 @@ describe('Sky Reach contract', () => {
     expect(hits).toBe(0);
     at.set(0, DECK + 2, 0.5); for (let t = 0; t < 0.4; t += 0.05) runner.update(0.05, ctx);
     expect(hits).toBe(1);
+  });
+  it('walks the goats on the decks (G26), warms their coat, and fits the vane plinth', () => {
+    expect(SKY_GOAT.flight).toBeUndefined();
+    // mauve shading (linear 0.22, 0.12, 0.16) loses its blue and lifts toward cream; a dark horn stays dark
+    const g = new BufferGeometry(); g.setAttribute('color', new Float32BufferAttribute([0.22, 0.12, 0.16, 0.012, 0, 0.05], 3)); warmCoat(g);
+    const c = g.getAttribute('color');
+    expect(c.getZ(0)).toBeLessThan(c.getY(0)); expect(c.getX(0)).toBeGreaterThan(0.22);
+    expect(c.getX(1)).toBeLessThan(0.02);
+    const [plinth] = vaneColliders(0, 0, DECK);
+    expect(plinth?.kind).toBe('box');
+    if (plinth?.kind === 'box') { expect(plinth.hx).toBeGreaterThanOrEqual(0.45); expect(plinth.hz).toBeGreaterThanOrEqual(0.4); }
   });
 });

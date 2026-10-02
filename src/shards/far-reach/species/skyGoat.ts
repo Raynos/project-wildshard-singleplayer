@@ -1,20 +1,24 @@
 import { CreatureBrain, StrikeRunner, NO_FUR, type Animal, type AnimalSpecies, type SpeciesLook, type SpeciesRow, type StrikeContext, type StrikeSpec, type ThinkCtx } from '#engine';
 import { BoxGeometry, ConeGeometry, type BufferGeometry } from 'three';
 import { bindRigid, fit, skyMesh } from '../world/meshes';
-import { DECK, WINDMILL, apothem } from '../layout';
+import { WINDMILL, apothem } from '../layout';
 import { STRINGS } from '../strings';
 import { homeOf, hull, yawTo } from './rig';
 
 /** The ram: a short lane straight ahead, telegraphed by a head-down windup. */
 export const RAM: StrikeSpec = { id: 'far.goat.ram', shape: { kind: 'lane', length: 4, width: 1.4 }, windup: 0.8, active: 0.5, recover: 0.9, cooldown: 3,
   range: 5, damage: 12, tags: ['creature.skyGoat'], weight: () => 1 };
-export const GOAT = { graze: 1.2, ram: 7.5, notice: 9, rimMargin: 2.5 } as const;
+/** `drop`: how far below its deck a goat counts as falling (metres). */
+export const GOAT = { graze: 1.2, ram: 7.5, notice: 9, rimMargin: 2.5, drop: 1.5 } as const;
 type GoatState = 'graze' | 'threat' | 'ram' | 'fall';
 
 /**
- * A sky goat walks its island top: a flyer held at its island's deck height (ENGINE §19 `above: 'world'`; a spawn
- * cannot land a ground creature on a registry floor yet, G25). Grazing keeps it inside the rim; once a GUST carries it
- * past the rim it loses its footing and drops into the cloud sea, through `world.killY` (an out-of-world death).
+ * A sky goat walks its island top: a ground creature on the island's WORLD floor (G26, ENGINE §19: the spawn lands it on
+ * the deck under `fromY`, and the body keeps sampling the floor below it). Grazing keeps it inside the rim; once a GUST
+ * carries it past the rim the floor under it is gone, it falls (G27, ballistic) into the cloud sea and through
+ * `world.killY` (an out-of-world death). Pushed onto a bridge instead, it walks back home. It steers with
+ * `animal.setMotion`: its own rim test (`GOAT.rimMargin` from its home's apothem) keeps it on the deck, and Sky Reach has
+ * no forest trunks for `ctx.steer`'s repulsion (G28) to add.
  */
 export class SkyGoatBrain extends CreatureBrain<GoatState> {
   private readonly strikes = new StrikeRunner();
@@ -34,27 +38,27 @@ export class SkyGoatBrain extends CreatureBrain<GoatState> {
   override act(ctx: ThinkCtx): void {
     const a = this.actor; if (!a.alive) return;
     const home = homeOf(a, { x: WINDMILL.x, z: WINDMILL.z, r: apothem(WINDMILL), y: WINDMILL.y }), from = Math.hypot(a.position.x - home.x, a.position.z - home.z);
-    if (from > home.r + 0.3 && this.state !== 'fall') { this.strikes.cancel(); a.cancelAttack(); this.transition('fall'); }
-    if (this.state === 'fall') { ctx.flight.steer(a, a.yaw, 1, home.y - 80, 1); return; }
+    // Lost its footing (no floor under it past the rim): it is falling, nothing to steer.
+    if (this.state !== 'fall' && a.position.y < home.y - GOAT.drop) { this.strikes.cancel(); a.cancelAttack(); this.transition('fall'); }
+    if (this.state === 'fall') { a.setMotion(a.yaw, 0); return; }
     if (a.hasImpulse) return;
     const out = from > home.r - GOAT.rimMargin;
     if (this.state === 'ram') {
       this.strikes.update(ctx.dt, this.strike(ctx));
-      // The windup holds still (head down); the active window charges along the committed heading.
-      ctx.flight.steer(a, this.ramYaw, this.strikes.busy && !out ? GOAT.ram * Math.min(1, Math.max(0, this.strikes.time - RAM.windup) * 4) : 0, home.y, 6);
+      // The windup holds still (head down); the active window charges along the committed heading, never over the rim.
+      a.setMotion(this.ramYaw, this.strikes.busy && !out ? GOAT.ram * Math.min(1, Math.max(0, this.strikes.time - RAM.windup) * 4) : 0, 6);
       if (!this.strikes.busy) this.transition('graze');
       return;
     }
     const toHome = yawTo(a, home.x, home.z);
-    if (out) ctx.flight.steer(a, toHome, GOAT.graze * 1.5, home.y, 3);
-    else if (this.state === 'threat') ctx.flight.steer(a, yawTo(a, ctx.player.x, ctx.player.z), 1.6, home.y, 3);
-    else ctx.flight.steer(a, this.wanderYaw, GOAT.graze, home.y, 1.5);
+    if (out) a.setMotion(toHome, GOAT.graze * 1.5, 3);
+    else if (this.state === 'threat') a.setMotion(yawTo(a, ctx.player.x, ctx.player.z), 1.6, 3);
+    else a.setMotion(this.wanderYaw, GOAT.graze, 1.5);
   }
 }
 const brains = new WeakMap<Animal, SkyGoatBrain>();
 const brain = (a: Animal): SkyGoatBrain => { let value = brains.get(a); if (!value) { value = new SkyGoatBrain(a); brains.set(a, value); } return value; };
 export const SKY_GOAT: SpeciesRow = { id: 'far.creature.skyGoat', kind: 'skyGoat', label: STRINGS.goat, aggressive: true, blood: false,
-  flight: { altitude: DECK, above: 'world', climbRate: 6, diveRate: 16 },
   variants: [{ id: 'cloud', label: STRINGS.goat, weight: 1, rarity: 'common', scale: [0.95, 1.1], hp: 40 }],
   think: (a, ctx) => { brain(a).think(ctx); }, act: (a, ctx) => { brain(a).act(ctx); } };
 
@@ -74,9 +78,26 @@ function goatCode(): AnimalSpecies {
       { geometry: new ConeGeometry(0.06, 0.4, 4), bone: 1, color: 0x4a3d48, at: [-0.1, 1.42, 0.62], rot: [-0.7, 0, -0.3] },
       { geometry: new BoxGeometry(0.12, 0.22, 0.12), bone: 1, color: 0xc9bdb0, at: [0, 0.96, 0.86] },
       ...[[LEG_FL, 0.22, 0.4], [LEG_FR, -0.22, 0.4], [LEG_BL, 0.22, -0.4], [LEG_BR, -0.22, -0.4]].map(([bone, x, z]) => ({
-        geometry: new BoxGeometry(0.13, 0.66, 0.13), bone: bone ?? BODY, color: 0x5a4b55, at: [x ?? 0, 0.36, z ?? 0] as const })),
+        geometry: new BoxGeometry(0.13, 0.66, 0.13), bone: bone ?? BODY, color: 0x584a40, at: [x ?? 0, 0.36, z ?? 0] as const })),
     ])],
     dims: { bodyY: 0.85, bodyHalfLen: 0.6, bodyRadius: 0.35, headRadius: 0.22, legLen: 0.7, feet: [], halfWidth: 0.35 } };
+}
+/** The cream the goat's coat leans toward (linear rgb, #f9efdc): warm enough to stay cream under the violet sky light. */
+const CREAM = [0.95, 0.87, 0.72] as const;
+/** How far a bright facet moves toward CREAM; a dark one (horns, hooves) keeps its own colour. */
+const COAT_LIFT = 0.62;
+/**
+ * The goat's coat read mauve under Sky Reach's violet sky light (C6 board). The generated albedo carries purple shading
+ * (blue over green): those facets lose that blue, then every facet moves toward a warm cream by its brightness.
+ */
+export function warmCoat(g: BufferGeometry): BufferGeometry {
+  const c = g.getAttribute('color');
+  for (let i = 0; i < c.count; i++) {
+    const r = c.getX(i), gr = c.getY(i), bl = Math.min(c.getZ(i), gr * 0.9), lum = 0.2126 * r + 0.7152 * gr + 0.0722 * bl;
+    const t = COAT_LIFT * Math.min(1, Math.max(0, (lum - 0.02) / 0.25));
+    c.setXYZ(i, r + (CREAM[0] - r) * t, gr + (CREAM[1] - gr) * t, bl + (CREAM[2] - bl) * t);
+  }
+  c.needsUpdate = true; return g;
 }
 /** Leg facets: below this share of the goat's height. */
 const GOAT_LEG = 0.42;
@@ -86,7 +107,7 @@ const GOAT_LEG = 0.42;
  * above the shoulder is the head and horns.
  */
 function goatMesh(source: BufferGeometry): AnimalSpecies {
-  const g = fit(source, { size: 1.45, by: 'span', floor: 0 }), b = g.boundingBox, p = g.getAttribute('position');
+  const g = warmCoat(fit(source, { size: 1.45, by: 'span', floor: 0 })), b = g.boundingBox, p = g.getAttribute('position');
   const h = b ? b.max.y : 1.3, z0 = b ? b.min.z : -0.7, z1 = b ? b.max.z : 0.7, legTop = h * GOAT_LEG, head = z1 - (z1 - z0) * 0.3;
   // each leg's top: the mean x / z of its quadrant's low vertices
   const sum = [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]], quad = (x: number, z: number): number => (z > 0 ? 0 : 2) + (x > 0 ? 0 : 1);

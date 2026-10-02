@@ -36,6 +36,17 @@ export function updraftCollider(): ColliderDesc {
   return { kind: 'box', x: UPDRAFT.x, y: midY - hy * Math.cos(UPDRAFT_ANGLE), z: midZ - hy * Math.sin(UPDRAFT_ANGLE), hx: UPDRAFT.width / 2, hy, hz: UPDRAFT_LENGTH / 2,
     rot: { x: Math.sin(half), y: 0, z: 0, w: Math.cos(half) }, surface: 'wood' };
 }
+/**
+ * A vane's colliders, measured off the generated shrine (C6, fitted 3.6 m tall on its footing): the stone plinth
+ * (0.9 × 0.85 m up to 0.8 m), the shrine box above it (1.25 × 0.6 m to 1.5 m), then the 0.3 m post to the rotor.
+ */
+export function vaneColliders(x: number, z: number, y: number): ColliderDesc[] {
+  return [
+    boxDesc({ x, z: z - 0.02, hw: 0.45, hd: 0.43, rot: 0, yBottom: y, yTop: y + 0.8 }, 'stone'),
+    boxDesc({ x: x + 0.04, z: z - 0.03, hw: 0.62, hd: 0.3, rot: 0, yBottom: y + 0.8, yTop: y + 1.5 }, 'stone'),
+    boxDesc({ x, z, hw: 0.15, hd: 0.15, rot: 0, yBottom: y + 1.5, yTop: y + 3.2 }, 'wood'),
+  ];
+}
 const spanLength = (span: Span): number => Math.hypot(span.x1 - span.x0, span.z1 - span.z0);
 const spanYaw = (span: Span): number => Math.atan2(-(span.x1 - span.x0), -(span.z1 - span.z0));
 
@@ -114,7 +125,7 @@ export function buildWorld(ctx: ShardContext, isBoard: () => boolean): BuiltWorl
   const vanes = VANES.map((v) => {
     const built = vane(); built.group.position.set(v.x, v.y, v.z); root.add(built.group);
     ctx.piece({ id: `far.vane.${v.id}`, name: STRINGS.vane, category: 'props', file: FILE, object: built.group,
-      colliders: [boxDesc({ x: v.x, z: v.z, hw: 0.15, hd: 0.15, rot: 0, yBottom: v.y, yTop: v.y + 3.2 }, 'wood')], surface: 'wood' });
+      colliders: vaneColliders(v.x, v.z, v.y), surface: 'wood' });
     return { id: v.id, at: new Vector3(v.x, v.y + 3.3, v.z), rotor: built.rotor };
   });
 
