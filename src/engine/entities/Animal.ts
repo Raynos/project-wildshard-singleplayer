@@ -163,6 +163,8 @@ export class Animal {
    *  body instead of tilting it to the slope heightAt reads under the deck. Also the kurgan's King and balbals
    *  (src/shards/nalati-grasslands/combat/goldenKing.ts: the chamber floor sits 140 m up, over the mound's slope). Nothing else sets it */
   levelGround = false;
+  /** Manager-owned WORLD floor sampler; direct legacy placements retain analytic ground follow. */
+  groundHeight?: (x: number, z: number, fromY: number) => number;
   /** per-animal scratch for a species' think / animate (numbers only) */
   mem: Record<string, number> = {};
   private attackT = -1; private attackDur = 1;
@@ -263,11 +265,11 @@ export class Animal {
   /** fading out (fadeOut): its own transparent materials, so the far herd leaves it alone */
   get fading(): boolean { return this.fadeT >= 0; }
 
-  /** place on the ground, facing `yaw` */
-  place(x: number, z: number, yaw: number): void {
-    this.position.set(x, heightAt(x, z), z);
+  /** Place on analytic ground (plus flight altitude), or at an exact world feet `y`, facing `yaw`. */
+  place(x: number, z: number, yaw: number, y?: number): void {
+    this.position.set(x, y ?? heightAt(x, z), z);
     const flight = this.model.species.flight;
-    if (flight !== undefined) this.position.y = flight.altitude + (flight.above === 'world' ? 0 : this.position.y);
+    if (y === undefined && flight !== undefined) this.position.y = flight.altitude + (flight.above === 'world' ? 0 : this.position.y);
     this.groundY = this.position.y;
     this.yaw = this.desiredYaw = yaw;
     this.mesh.position.copy(this.position);
@@ -533,7 +535,7 @@ export class Animal {
       });
       this.groundY = this.position.y;
     } else if (!this.driven) {
-      const gy = heightAt(this.position.x, this.position.z);
+      const gy = this.groundHeight?.(this.position.x, this.position.z, this.groundY + 1) ?? heightAt(this.position.x, this.position.z);
       this.groundY += (gy - this.groundY) * Math.min(1, dt * 12);
       this.position.y = this.groundY + this.yOffset;
     }

@@ -1301,7 +1301,25 @@ ctx.answer('death.checkpoint', (value) => boss.onPlayerDeath() || value === true
 
 **Ports for the legacy creature manager:** `AnimalManager`, `Animal`, `HuntTuning`, `registerSpecies`, `speciesDef`,
 `variantDef`, `hasSpecies`, `SpeciesDef`, `VariantDef`, `AnimalSpecies`, `BoneDef`. `runtime.play.animals.spawn(kind,
-x, z, yaw, variant)` and `.retire(animal)` are how the template spawns today.
+x, z, yaw, variant?, placement?)` and `.retire(animal)` are how the template spawns today. `variant` is an id
+or a weighted list of ids. Optional `placement` has shape `{ y?: number; fromY?: number }`, in world metres.
+Without `y`, spawn queries the first non-sensor **WORLD** floor below `(x, fromY, z)`; creature bodies are ignored.
+`fromY` defaults to one metre above the greater of the manifest's `spawn.y` and the local analytic terrain height.
+Use `fromY` to select a storey in a stacked world. The downward search reaches at least 201 m and extends to one
+metre below the analytic floor; no hit (or no physics) falls back to that analytic height (§6: −1000 m for a
+structures-only world). The tagged terrain heightfield keeps exact analytic wildlife heights, preserving ordinary
+terrain movement; decks and other WORLD surfaces use their collider height. Ground creatures continue sampling
+below their current height after spawn, so they remain on a platform and lose support when they leave its edge.
+A species with `flight.above: 'ground'` starts at the resolved floor plus `flight.altitude`; `'world'` starts at
+that absolute altitude. Explicit finite `y` is the initial world feet height, overriding both floor placement
+and the flight offset; normal ground/flight motion resumes on update. `fromY` must also be finite.
+
+```ts
+// Spawn below the upper deck, on the first WORLD floor under y=24.
+runtime.play.animals.spawn('my-shard.goat', x, z, yaw, 'common', { fromY: 24 });
+// Script an exact initial world height (no additional flight offset).
+runtime.play.animals.spawn('my-shard.wisp', x, z, yaw, undefined, { y: 32 });
+```
 **Species look helpers:** `loft`, `tube`, `skinPlain`, `S`, `boneIndex`, `srgb`, `mix`, `speciesSstep`, `paintNoise`,
 `setShag`, `isLowPoly`, `registerToonPaint`, `toonPaint`, `paletteColors`, `Paint`, `ToonPaint`, `SpeciesRGB`,
 `setShapeFn`, `Station`, `crestSpikes`, `NO_FUR`, `lookAngles`, `smooth01`, `bump`, `step`, `rigClamp`, `squashBody`.

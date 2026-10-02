@@ -19,6 +19,7 @@ import type { Forest } from '../world/forest/Forest';
 import type { Sky } from '../world/Sky';
 import { AnimalFactory, speciesDef, variantDef, rollVariant, type AnimalKind, type AnimalModel, type AnimalStyle, type EnemyWorld, type ThinkCtx } from './AnimalFactory';
 import { Animal, damageFor } from './Animal';
+import { creatureFloor } from './creatureFloor';
 import { killBelowWorld } from './killHeight';
 import { attachShadowCaster } from './animalShadow';
 import { FarHerd, type FarMember } from './farHerd';
@@ -30,6 +31,8 @@ import { frameCost } from '../core/frameCost';
 import { practiceRoom } from '../core/practiceRoom';
 import { AnimalGroup } from './animalMatrices';
 import { reengage, backoffPoint, aroundPoint, RING, RING_DEFAULT, BACKOFF_MAX_T, BREAK_OFF_HP, BREAK_OFF_CHANCE, RULES_CD_HIT, RULES_CD_MISS } from './fightRules';
+/** the live WORLD physics, read in one place (blood decals, the spawn floor) */
+const worldPhysics = (): ReturnType<typeof activePhysics> => activePhysics();
 
 export interface WanderGoalQuery { herd: number; goal: { x: number; z: number; r: number } | null }
 declare module '../events/maps' {
@@ -82,7 +85,7 @@ declare module '../events/maps' {
  * `tuning`). A 'legendary' variant is capped at ONE alive per kind (the roll falls back to the rare tier).
  * HerdPlan.variants restricts a herd's pool to those ids.
  *
- * Dev helpers: animals.spawn(kind, x, z, yaw, variant?) adds a single animal (no herd AI target) — `variant`
+   * Dev helpers: animals.spawn(kind, x, z, yaw, variant?, placement?) adds a single animal (no herd AI target) — `variant`
  * is a variant id ('ironhide') or an id list to roll from; omitted = the species' full weighted table.
  * animals.debug = true draws the hit capsules, animals.calm = true stops them reacting to the player.
  *
@@ -334,7 +337,7 @@ class BloodFX {
 
   burst(at: THREE.Vector3, dir: THREE.Vector3, strength = 1): void {
     const n = Math.round(22 * strength);
-    const physics = activePhysics();
+    const physics = worldPhysics();
     const fl = (physics ? floorBelow(physics, at.x, at.z, at.y + 0.3, BLOOD_DROP) : undefined) ?? heightAt(at.x, at.z);
     const { vel, life } = this.pool;
     for (let i = 0; i < n; i++) {
@@ -636,7 +639,9 @@ export class AnimalManager {
     a.mesh.removeFromParent();
   }
 
-  spawn(kind: AnimalKind, x: number, z: number, yaw: number, variant?: string | string[]): Animal {
+  /** Spawn below a WORLD ray origin (fromY), or at an exact initial world feet height (y). */
+  spawn(kind: AnimalKind, x: number, z: number, yaw: number, variant?: string | string[], placement?: { y?: number; fromY?: number }): Animal {
+    if ((placement?.y !== undefined && !Number.isFinite(placement.y)) || (placement?.fromY !== undefined && !Number.isFinite(placement.fromY))) throw new Error('Creature spawn placement must be finite');
     const sp = speciesDef(kind);
     const v = typeof variant === 'string' ? variantDef(kind, variant) : rollVariant(sp, this.rng, variant, this.hasLegendary(kind));
     const model = this.factory.model(kind, v.id);
@@ -644,7 +649,16 @@ export class AnimalManager {
     const rig = this.factory.instantiate(model, this.rng.next());
     const a = new Animal(rig, model, this.rng.next(), scale);
     a.maxHp = a.hp = v.hp ?? this.tuningFor(a).hp;
-    a.place(x, z, yaw);
+    const physics = worldPhysics();
+    const fromY = placement?.fromY ?? Math.max(activeLevel().spawn.y ?? heightAt(x, z), heightAt(x, z)) + 1;
+    const floor = creatureFloor(physics, x, z, fromY);
+    const flight = model.species.flight;
+    const y = placement?.y ?? (flight === undefined ? floor.y : flight.altitude + (flight.above === 'world' ? 0 : floor.y));
+    a.place(x, z, yaw, y);
+    a.levelGround = floor.structure;
+    if (activeLevel().ground.structures !== undefined || floor.structure || placement !== undefined) {
+      a.groundHeight = (px, pz, py) => creatureFloor(physics, px, pz, py).y;
+    }
     a.herd = -1;
     a.onFootfall = this.footfall;
     a.onDamaged = this.damaged;
