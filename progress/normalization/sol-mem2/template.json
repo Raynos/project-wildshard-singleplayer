@@ -1,0 +1,70 @@
+{
+  "summary": {
+    "label": "_template",
+    "base": "http://127.0.0.1:4400/",
+    "phases": {
+      "play": {
+        "fps": []
+      },
+      "explorer": {
+        "fps": []
+      }
+    },
+    "loadSeconds": 2.011,
+    "identity": {
+      "build": "c9693a7-muqbvkgw",
+      "shard": "_template"
+    },
+    "explorerIdentity": {
+      "build": "c9693a7-muqbvkgw",
+      "shard": "_template"
+    },
+    "sceneStats": {
+      "geometryBytes": 1293172,
+      "instancedBytes": 15872,
+      "textureImageBytes": 8,
+      "arrays": 361,
+      "textures": 9,
+      "gpu": {
+        "geometries": 57,
+        "textures": 31
+      },
+      "calls": 44
+    },
+    "readout": "ALT 27 m \u00b7 x 12 z 12 \u00b7 HDG 190\u00b0\n30 fps \u00b7 44 calls \u00b7 0.01 M tris",
+    "inspectorPeakGB": {
+      "loading": 0.249,
+      "play": 0.219,
+      "explorer": 0.24
+    },
+    "inspectorAtPeakMB": {
+      "loading": {
+        "javascript": 84,
+        "jit": 8,
+        "images": 0,
+        "layers": 0,
+        "page": 109,
+        "other": 48
+      },
+      "play": {
+        "javascript": 95,
+        "jit": 11,
+        "images": 0,
+        "layers": 0,
+        "page": 63,
+        "other": 49
+      },
+      "explorer": {
+        "javascript": 99,
+        "jit": 12,
+        "images": 0,
+        "layers": 0,
+        "page": 73,
+        "other": 57
+      }
+    }
+  },
+  "pipeExitMilliseconds": 72517,
+  "pipeCloseMilliseconds": 72518,
+  "laneExitCode": 0
+}

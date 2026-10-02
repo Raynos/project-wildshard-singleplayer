@@ -1,5 +1,35 @@
 // Pure nightly verdicts. Memory is decimal GB; the GL growth budget is binary MiB.
 export const PHASE_LIMITS = { loading: 1.8, play: 1, explorer: 1 };
+export const MEMORY_PROTOCOL = 'cold-origin-build-verified-v1';
+
+// A failed collection must never silently replace the last complete, green reference.
+export function memoryReferenceProblem(report, shards) {
+  if (report.steps?.find((step) => step.name === 'memory')?.code !== 0) return 'memory collection did not exit successfully';
+  if (report.steps.some((step) => step.code !== 0)) return 'run contains an unsuccessful step';
+  if (report.memoryProtocol !== MEMORY_PROTOCOL) return 'cold origin/build identity was not verified';
+  if (!Array.isArray(report.shards) || report.shards.length !== shards.length || shards.some((shard) => !report.shards.includes(shard))) return 'shard coverage differs or is unrecorded';
+  if (!Array.isArray(report.memory) || report.memory.length !== shards.length * Object.keys(PHASE_LIMITS).length) return 'incomplete phase coverage';
+  for (const shard of shards) for (const phase of Object.keys(PHASE_LIMITS)) {
+    const matches = report.memory.filter((row) => row.shard === shard && row.phase === phase);
+    if (matches.length !== 1) return 'missing or duplicate phase';
+    const row = matches[0];
+    if (row.verdict !== 'success') return 'memory gate is not green';
+    if (row.measurement !== 'settled-median-3' || !row.settling?.settled) return 'measurement is not a settled median';
+    if (memoryVerdict(shard, phase, row.nativeGB, row.inspectorGB).verdict !== 'success' || !Number.isFinite(row.nativePeakGB) || row.nativePeakGB <= 0 || row.nativePeakGB > PHASE_LIMITS[phase]) return 'invalid measurement or absolute limit';
+  }
+  return null;
+}
+
+export function selectMemoryReference(candidates, shards, started) {
+  const rejected = [];
+  for (const candidate of candidates.toSorted((a, b) => String(b.report.started).localeCompare(String(a.report.started)))) {
+    if (!candidate.report.started || candidate.report.started >= started) continue;
+    const reason = memoryReferenceProblem(candidate.report, shards);
+    if (reason) rejected.push({ path: candidate.path, sha: candidate.report.sha ?? null, reason });
+    else return { path: candidate.path, sha: candidate.report.sha ?? null, rejected };
+  }
+  return { path: '', sha: null, rejected };
+}
 
 /** Three one-second readings after settling; the deadline returns the last three with their spread.
  * @param {{seconds: number, nativeGB: number, inspectorGB: number}[]} samples

@@ -163,10 +163,12 @@ case "${1:-}" in
     wait_room "$udid"; boot "$udid"
     echo "$(( $(now) + max * 60 )) $$" > "$(lease_file "$udid")"
     SIM_UDID="$udid" "$@" & child=$!
-    ( sleep $((max * 60)); if kill -0 "$child" 2>/dev/null; then echo "sim-lane: killed after ${max} min (--max)" >&2; log "run on $dev killed after ${max} min"; pkill -TERM -P "$child"; kill -TERM "$child"; fi ) 2>/dev/null & timer=$!
+    # The watchdog must not inherit a caller's output pipe: Node awaits close after all pipe holders exit.
+    ( sleep $((max * 60)); if kill -0 "$child" 2>/dev/null; then echo "sim-lane: killed after ${max} min (--max)" >&2; log "run on $dev killed after ${max} min"; pkill -TERM -P "$child"; kill -TERM "$child"; fi ) >/dev/null 2>&1 & timer=$!
     trap 'pkill -TERM -P "$child"; kill -TERM "$child" 2>/dev/null' INT TERM
     wait "$child"; rc=$?
-    kill "$timer" 2>/dev/null; pkill -P "$timer" 2>/dev/null
+    # Stop sleep before its parent; otherwise it is reparented before pkill can find it.
+    pkill -TERM -P "$timer" 2>/dev/null; kill "$timer" 2>/dev/null
     if [ $keep -eq 1 ]; then echo "$(( $(now) + 30 * 60 )) 0" > "$(lease_file "$udid")"; else shutdown_dev "$udid"; fi
     exit $rc;;
   *) sed -n '2,26p' "$SELF";;

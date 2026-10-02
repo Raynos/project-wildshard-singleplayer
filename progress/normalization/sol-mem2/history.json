@@ -1,0 +1,497 @@
+{
+  "memory-2026-10-01T19-04-51-390Z-8dc8ad5.json": {
+    "sha": "8dc8ad55bc7a4a3419014a5be60064bda1df3311",
+    "harnessSha": "8dc8ad55bc7a4a3419014a5be60064bda1df3311",
+    "steps": [
+      {
+        "name": "install",
+        "code": 0,
+        "verdict": "success"
+      },
+      {
+        "name": "serve",
+        "code": 0,
+        "verdict": "success"
+      },
+      {
+        "name": "memory",
+        "code": 124,
+        "verdict": "failure"
+      }
+    ],
+    "pine": [],
+    "broken": []
+  },
+  "memory-2026-10-01T22-27-40-199Z-720dd05.json": {
+    "sha": "720dd05b2e36846d28a72c8bc8859ef5b73645f4",
+    "harnessSha": "720dd05b2e36846d28a72c8bc8859ef5b73645f4",
+    "steps": [
+      {
+        "name": "install",
+        "code": 0,
+        "verdict": "success"
+      },
+      {
+        "name": "serve",
+        "code": 0,
+        "verdict": "success"
+      },
+      {
+        "name": "memory",
+        "code": 124,
+        "verdict": "failure"
+      }
+    ],
+    "pine": [
+      {
+        "shard": "pine-hollow",
+        "phase": "loading",
+        "nativeGB": 0.808,
+        "inspectorGB": 1.207,
+        "previousGB": null,
+        "verdict": "success",
+        "reason": "first reading",
+        "limitGB": 1.8,
+        "growth": null
+      },
+      {
+        "shard": "pine-hollow",
+        "phase": "play",
+        "nativeGB": 0.651,
+        "inspectorGB": 1.284,
+        "previousGB": null,
+        "verdict": "success",
+        "reason": "first reading",
+        "limitGB": 1,
+        "growth": null
+      },
+      {
+        "shard": "pine-hollow",
+        "phase": "explorer",
+        "nativeGB": 0.597,
+        "inspectorGB": 1.173,
+        "previousGB": null,
+        "verdict": "success",
+        "reason": "first reading",
+        "limitGB": 1,
+        "growth": null
+      }
+    ],
+    "broken": [
+      {
+        "shard": "_template",
+        "phase": "loading",
+        "nativeGB": 0.696,
+        "inspectorGB": 0.822,
+        "previousGB": null,
+        "verdict": "failure",
+        "reason": "Error: the load did not finish in 300 s",
+        "limitGB": 1.8,
+        "growth": null
+      },
+      {
+        "shard": "_template",
+        "phase": "play",
+        "inspectorGB": 0,
+        "previousGB": null,
+        "verdict": "failure",
+        "reason": "Error: the load did not finish in 300 s",
+        "limitGB": 1
+      },
+      {
+        "shard": "_template",
+        "phase": "explorer",
+        "inspectorGB": 0,
+        "previousGB": null,
+        "verdict": "failure",
+        "reason": "Error: the load did not finish in 300 s",
+        "limitGB": 1
+      }
+    ]
+  },
+  "memory-2026-10-01T23-07-01-202Z-f3a4a93.json": {
+    "sha": "f3a4a93356df8b2528baef85fbd384c0b97834ad",
+    "harnessSha": "f3a4a93356df8b2528baef85fbd384c0b97834ad",
+    "steps": [
+      {
+        "name": "install",
+        "code": 0,
+        "verdict": "success"
+      },
+      {
+        "name": "serve",
+        "code": 0,
+        "verdict": "success"
+      },
+      {
+        "name": "memory",
+        "code": 124,
+        "verdict": "failure"
+      }
+    ],
+    "pine": [
+      {
+        "shard": "pine-hollow",
+        "phase": "loading",
+        "nativeGB": 0.825,
+        "inspectorGB": 1.193,
+        "previousGB": 0.808,
+        "verdict": "success",
+        "reason": "within limits and growth band",
+        "limitGB": 1.8,
+        "growth": 0.021039603960395947
+      },
+      {
+        "shard": "pine-hollow",
+        "phase": "play",
+        "nativeGB": 0.654,
+        "inspectorGB": 1.401,
+        "previousGB": 0.651,
+        "verdict": "success",
+        "reason": "within limits and growth band",
+        "limitGB": 1,
+        "growth": 0.004608294930875667
+      },
+      {
+        "shard": "pine-hollow",
+        "phase": "explorer",
+        "nativeGB": 0.597,
+        "inspectorGB": 1.178,
+        "previousGB": 0.597,
+        "verdict": "success",
+        "reason": "within limits and growth band",
+        "limitGB": 1,
+        "growth": 0
+      }
+    ],
+    "broken": []
+  },
+  "memory-2026-10-02T00-12-29-502Z-ff07418.json": {
+    "sha": "ff0741816dc34eaf5a7b98f4f4442fe10aa4d9c3",
+    "harnessSha": "ff0741816dc34eaf5a7b98f4f4442fe10aa4d9c3",
+    "steps": [
+      {
+        "name": "install",
+        "code": 0,
+        "verdict": "success"
+      },
+      {
+        "name": "serve",
+        "code": 0,
+        "verdict": "success"
+      },
+      {
+        "name": "memory",
+        "code": 124,
+        "verdict": "failure"
+      }
+    ],
+    "pine": [
+      {
+        "shard": "pine-hollow",
+        "phase": "loading",
+        "nativeGB": 0.6006906,
+        "inspectorGB": 1.366325437,
+        "nativePeakGB": 0.765,
+        "previousGB": 0.825,
+        "measurement": "settled-median-3",
+        "settling": {
+          "nativeGB": 0.6006906,
+          "inspectorGB": 1.366325437,
+          "minGB": 0.600248232,
+          "maxGB": 0.603705256,
+          "spreadGB": 0.0034570240000000307,
+          "spreadPercent": 0.5755082566632523,
+          "samples": [
+            {
+              "seconds": 1.001,
+              "nativeGB": 0.6006906,
+              "inspectorGB": 1.348384957
+            },
+            {
+              "seconds": 2.003,
+              "nativeGB": 0.603705256,
+              "inspectorGB": 1.366325437
+            },
+            {
+              "seconds": 3.005,
+              "nativeGB": 0.600248232,
+              "inspectorGB": 1.386969277
+            }
+          ],
+          "settled": true,
+          "timedOut": false,
+          "seconds": 3.005
+        },
+        "verdict": "success",
+        "reason": "within limits and growth band",
+        "limitGB": 1.8,
+        "growth": -0.2718901818181818
+      },
+      {
+        "shard": "pine-hollow",
+        "phase": "play",
+        "nativeGB": 0.541331392,
+        "inspectorGB": 1.15349334,
+        "nativePeakGB": 0.601,
+        "previousGB": 0.654,
+        "measurement": "settled-median-3",
+        "settling": {
+          "nativeGB": 0.541331392,
+          "inspectorGB": 1.15349334,
+          "minGB": 0.540528576,
+          "maxGB": 0.541347776,
+          "spreadGB": 0.0008191999999999089,
+          "spreadPercent": 0.15133059196387946,
+          "samples": [
+            {
+              "seconds": 1.002,
+              "nativeGB": 0.541331392,
+              "inspectorGB": 1.15349334
+            },
+            {
+              "seconds": 2.003,
+              "nativeGB": 0.541347776,
+              "inspectorGB": 1.152029043
+            },
+            {
+              "seconds": 3.006,
+              "nativeGB": 0.540528576,
+              "inspectorGB": 1.154421107
+            }
+          ],
+          "settled": true,
+          "timedOut": false,
+          "seconds": 3.006
+        },
+        "verdict": "success",
+        "reason": "within limits and growth band",
+        "limitGB": 1,
+        "growth": -0.1722761590214067
+      },
+      {
+        "shard": "pine-hollow",
+        "phase": "explorer",
+        "nativeGB": 0.54609916,
+        "inspectorGB": 1.186310681,
+        "nativePeakGB": 0.553,
+        "previousGB": 0.597,
+        "measurement": "settled-median-3",
+        "settling": {
+          "nativeGB": 0.54609916,
+          "inspectorGB": 1.186310681,
+          "minGB": 0.54609916,
+          "maxGB": 0.546131928,
+          "spreadGB": 3.276799999996083e-05,
+          "spreadPercent": 0.006000375462939886,
+          "samples": [
+            {
+              "seconds": 1.003,
+              "nativeGB": 0.54609916,
+              "inspectorGB": 1.186310681
+            },
+            {
+              "seconds": 2.008,
+              "nativeGB": 0.54609916,
+              "inspectorGB": 1.195665945
+            },
+            {
+              "seconds": 3.011,
+              "nativeGB": 0.546131928,
+              "inspectorGB": 1.183389297
+            }
+          ],
+          "settled": true,
+          "timedOut": false,
+          "seconds": 3.011
+        },
+        "verdict": "success",
+        "reason": "within limits and growth band",
+        "limitGB": 1,
+        "growth": -0.08526103852596312
+      }
+    ],
+    "broken": [
+      {
+        "shard": "_template",
+        "phase": "loading",
+        "nativeGB": 0.783,
+        "inspectorGB": 0.802,
+        "nativePeakGB": 0.783,
+        "previousGB": 0.238,
+        "measurement": "legacy-peak",
+        "verdict": "failure",
+        "reason": "Error: the load did not finish in 300 s",
+        "limitGB": 1.8,
+        "growth": 2.289915966386555
+      },
+      {
+        "shard": "_template",
+        "phase": "play",
+        "inspectorGB": 0,
+        "previousGB": 0.239,
+        "measurement": "legacy-peak",
+        "verdict": "failure",
+        "reason": "Error: the load did not finish in 300 s",
+        "limitGB": 1
+      },
+      {
+        "shard": "_template",
+        "phase": "explorer",
+        "inspectorGB": 0,
+        "previousGB": 0.843,
+        "measurement": "legacy-peak",
+        "verdict": "failure",
+        "reason": "Error: the load did not finish in 300 s",
+        "limitGB": 1
+      }
+    ]
+  },
+  "memory-2026-10-02T01-05-58-255Z-3270c03.json": {
+    "sha": "3270c035fdc496bdc3d510461cc46a8a8274826f",
+    "harnessSha": "3270c035fdc496bdc3d510461cc46a8a8274826f",
+    "steps": [
+      {
+        "name": "install",
+        "code": 0,
+        "verdict": "success"
+      },
+      {
+        "name": "serve",
+        "code": 0,
+        "verdict": "success"
+      },
+      {
+        "name": "memory",
+        "code": 124,
+        "verdict": "failure"
+      }
+    ],
+    "pine": [
+      {
+        "shard": "pine-hollow",
+        "phase": "loading",
+        "nativeGB": 0.637882448,
+        "inspectorGB": 1.04649894,
+        "nativePeakGB": 0.811,
+        "previousGB": 0.6006906,
+        "measurement": "settled-median-3",
+        "settling": {
+          "nativeGB": 0.637882448,
+          "inspectorGB": 1.04649894,
+          "minGB": 0.63635876,
+          "maxGB": 0.640651368,
+          "spreadGB": 0.0042926079999999756,
+          "spreadPercent": 0.6729465614642488,
+          "samples": [
+            {
+              "seconds": 1.002,
+              "nativeGB": 0.637882448,
+              "inspectorGB": 1.078546044
+            },
+            {
+              "seconds": 2.004,
+              "nativeGB": 0.640651368,
+              "inspectorGB": 1.04649894
+            },
+            {
+              "seconds": 3.004,
+              "nativeGB": 0.63635876,
+              "inspectorGB": 1.043448023
+            }
+          ],
+          "settled": true,
+          "timedOut": false,
+          "seconds": 3.004
+        },
+        "verdict": "success",
+        "reason": "within limits and growth band",
+        "limitGB": 1.8,
+        "growth": 0.06191514899683814
+      },
+      {
+        "shard": "pine-hollow",
+        "phase": "play",
+        "nativeGB": 0.739217584,
+        "inspectorGB": 0.789990656,
+        "nativePeakGB": 0.754,
+        "previousGB": 0.541331392,
+        "measurement": "settled-median-3",
+        "settling": {
+          "nativeGB": 0.739217584,
+          "inspectorGB": 0.789990656,
+          "minGB": 0.738267312,
+          "maxGB": 0.74018424,
+          "spreadGB": 0.0019169280000000954,
+          "spreadPercent": 0.2593185066874837,
+          "samples": [
+            {
+              "seconds": 1.003,
+              "nativeGB": 0.74018424,
+              "inspectorGB": 0.80303232
+            },
+            {
+              "seconds": 2.004,
+              "nativeGB": 0.739217584,
+              "inspectorGB": 0.783666432
+            },
+            {
+              "seconds": 3.005,
+              "nativeGB": 0.738267312,
+              "inspectorGB": 0.789990656
+            }
+          ],
+          "settled": true,
+          "timedOut": false,
+          "seconds": 3.005
+        },
+        "verdict": "failure",
+        "reason": "growth > 10%",
+        "limitGB": 1,
+        "growth": 0.3655546212993315
+      },
+      {
+        "shard": "pine-hollow",
+        "phase": "explorer",
+        "nativeGB": 0.748884168,
+        "inspectorGB": 0.799382784,
+        "nativePeakGB": 0.752,
+        "previousGB": 0.54609916,
+        "measurement": "settled-median-3",
+        "settling": {
+          "nativeGB": 0.748884168,
+          "inspectorGB": 0.799382784,
+          "minGB": 0.748884168,
+          "maxGB": 0.748884168,
+          "spreadGB": 0,
+          "spreadPercent": 0,
+          "samples": [
+            {
+              "seconds": 1.003,
+              "nativeGB": 0.748884168,
+              "inspectorGB": 0.799382784
+            },
+            {
+              "seconds": 2.005,
+              "nativeGB": 0.748884168,
+              "inspectorGB": 0.795794688
+            },
+            {
+              "seconds": 3.008,
+              "nativeGB": 0.748884168,
+              "inspectorGB": 0.805133568
+            }
+          ],
+          "settled": true,
+          "timedOut": false,
+          "seconds": 3.008
+        },
+        "verdict": "failure",
+        "reason": "growth > 10%",
+        "limitGB": 1,
+        "growth": 0.3713336750051035
+      }
+    ],
+    "broken": []
+  }
+}

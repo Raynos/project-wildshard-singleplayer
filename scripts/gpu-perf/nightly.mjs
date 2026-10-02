@@ -4,7 +4,7 @@ import { spawn, execFileSync } from 'node:child_process';
 import { mkdirSync, existsSync, readFileSync, writeFileSync, readdirSync, rmSync, openSync, closeSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
-import { desktopProjections, flakedFields } from './report.mjs';
+import { desktopProjections, flakedFields, selectMemoryReference, MEMORY_PROTOCOL } from './report.mjs';
 
 const args = process.argv.slice(2);
 const flag = (name, fallback = '') => args.find((arg) => arg.startsWith(`--${name}=`))?.slice(name.length + 3) ?? fallback;
@@ -24,6 +24,10 @@ catch { const pid = Number(readFileSync(lock, 'utf8')); let alive = false; try {
 const started = Date.now(), deadline = started + (memoryOnly ? 40 : 240) * 60_000;
 const stamp = new Date().toISOString().replaceAll(/[:.]/g, '-');
 let tree = '', port = '', sha = '', harnessSha = '', active = null;
+let measuredShards = [];
+let memoryProtocol = '';
+/** @type {import('./report.mjs').MemoryReference} */
+let previousMemory = { path: '', sha: null, rejected: [] };
 const control = { abort: false };
 const steps = [], memory = [], soaks = [], measurements = [], artifacts = [], flakes = {};
 const killGroup = (child) => { if (child?.pid) { try { process.kill(-child.pid, 'SIGTERM'); } catch { /* exited */ } } };
@@ -101,7 +105,7 @@ try {
       } else throw new Error(`nightly supports patch/nightly plants only: ${plant}`);
     }
     // Harness code comes from main's committed head; runtime and baselines remain the selected SHA's.
-    const harnessPaths = ['scripts/parity.mjs', 'scripts/parity', 'scripts/gpu-perf', 'scripts/types', 'scripts/soak.mjs', 'scripts/sim-memory.mjs', 'scripts/gen-shards.mjs', 'scripts/gen-shards.d.mts'];
+    const harnessPaths = ['scripts/parity.mjs', 'scripts/parity', 'scripts/gpu-perf', 'scripts/types', 'scripts/soak.mjs', 'scripts/sim-memory.mjs', 'scripts/sim-lane.sh', 'scripts/gen-shards.mjs', 'scripts/gen-shards.d.mts'];
     const carried = harnessPaths.filter((path) => { try { git('cat-file', '-e', `${harnessSha}:${path}`); return true; } catch { return false; } });
     execFileSync('git', [`--git-dir=${mirror}`, 'archive', '-o', archive, harnessSha, '--', ...carried]);
     execFileSync('tar', ['-xf', archive, '-C', tree]); rmSync(archive);
@@ -111,19 +115,23 @@ try {
     const url = served.stdout.trim().split('\n').findLast((line) => line.startsWith('http://'));
     if (served.code !== 0 || !url) throw new Error('serve-build failed');
     port = new URL(url).port;
-    const priorFiles = readdirSync(reports).filter((file) => /^(memory-)?\d.*\.json$/.test(file)).toSorted().reverse();
-    let previousPath = '';
-    for (const file of priorFiles.toSorted((a, b) => b.replace(/^memory-/, '').localeCompare(a.replace(/^memory-/, '')))) {
-      const data = JSON.parse(readFileSync(join(reports, file), 'utf8'));
-      if (data.memory?.length && data.started < new Date(started).toISOString()) { previousPath = join(reports, file); break; }
-    }
+    measuredShards = shards;
+    const priorFiles = readdirSync(reports).filter((file) => /^(memory-)?\d.*\.json$/.test(file));
+    const candidates = priorFiles.flatMap((file) => {
+      try { return [{ path: join(reports, file), report: JSON.parse(readFileSync(join(reports, file), 'utf8')) }]; }
+      catch { console.warn(`Ignoring unreadable memory reference ${file}`); return []; }
+    });
+    previousMemory = selectMemoryReference(candidates, shards, new Date(started).toISOString());
+    const previousPath = previousMemory.path;
+    console.log(`gpu-perf: memory reference ${previousPath || 'none (first complete settled reading)'}`);
     if (!memoryOnly && plant !== 'soak-leak') {
       // scorecard's established baseline is a deliberate exception to excluded progress history.
       const baselinePaths = git('ls-tree', '--name-only', '-r', sha, '--', 'progress/scorecard/baseline.json', 'progress/scorecard/baseline').split('\n').filter(Boolean);
       if (baselinePaths.length > 0) { execFileSync('git', [`--git-dir=${mirror}`, 'archive', '-o', archive, sha, '--', ...baselinePaths]); execFileSync('tar', ['-xf', archive, '-C', tree]); rmSync(archive); }
       const common = [`--url=${url}`, '--lane=m5', `--shards=${shards.join(',')}`];
-      await browserStep('parity', 'scripts/parity.mjs', [...common, '--tiers=phone,desktop', '--full', '--ms', `--out=${join(reports, `${stamp}-parity`)}`], 75);
-      await browserStep('offline', 'scripts/parity.mjs', [...common, '--offline', '--tiers=phone'], 15);
+      // Parity owns a slot per browser; an outer lease can deadlock a full lane.
+      await step('parity', node, [join(tree, 'scripts/parity.mjs'), ...common, '--tiers=phone,desktop', '--full', '--ms', `--out=${join(reports, `${stamp}-parity`)}`], 75);
+      await step('offline', node, [join(tree, 'scripts/parity.mjs'), ...common, '--offline', '--tiers=phone'], 15);
       // One <=30 minute machine-wide model lock for all timing work.
       const timing = await step('rulers-scorecard', 'lockf', ['-k', join(homedir(), 'projects/localai/.model.lock'), 'bash', join(tree, 'scripts/gpu-perf/timing.sh'), url, `${stamp}-${sha.slice(0, 7)}`, node], 30);
       artifacts.push({ name: 'rulers-scorecard', text: timing.stdout });
@@ -153,7 +161,10 @@ try {
     if (!plant || plant !== 'soak-leak') {
       const simOut = join(reports, `${stamp}-sim-${sha.slice(0, 7)}`);
       await step('memory', 'bash', [join(tree, 'scripts/sim-lane.sh'), 'run', '--max', '40', 'wildshard-iphone', node, join(tree, 'scripts/sim-memory.mjs'), `--url=${url}`, `--shards=${shards.join(',')}`, '--runs=1', '--play=60', '--fly=60', `--out=${simOut}`, `--pending=${join(tree, 'memory-pending.json')}`, ...(previousPath ? [`--previous=${previousPath}`] : [])], 41);
-      if (existsSync(join(simOut, 'report.json'))) memory.push(...JSON.parse(readFileSync(join(simOut, 'report.json'), 'utf8')).memory);
+      if (existsSync(join(simOut, 'report.json'))) {
+        const reading = JSON.parse(readFileSync(join(simOut, 'report.json'), 'utf8'));
+        memory.push(...reading.memory); memoryProtocol = reading.memoryProtocol ?? '';
+      }
     }
     if (!memoryOnly) for (const shard of shards) {
       const soakOut = join(reports, `${stamp}-soak-${shard}`);
@@ -172,13 +183,14 @@ finally {
   rmSync(lock, { force: true });
 }
 if (sha) {
-  const memoryState = memory.length > 0 && memory.every((row) => row.verdict === 'success') ? 'success' : memory.some((row) => row.verdict === 'failure') || memory.length === 0 ? 'failure' : 'pending';
+  const memoryComplete = memoryProtocol === MEMORY_PROTOCOL && steps.find((row) => row.name === 'memory')?.code === 0 && memory.length === measuredShards.length * 3 && measuredShards.length > 0;
+  const memoryState = memoryComplete && memory.every((row) => row.verdict === 'success') ? 'success' : !memoryComplete || memory.some((row) => row.verdict === 'failure') ? 'failure' : 'pending';
   const verdict = steps.every((row) => row.verdict === 'success') && measurements.every((row) => row.verdict === 'success') && (plant === 'soak-leak' || memoryState === 'success') && soaks.every((row) => row.verdict === 'success') ? 'success' : 'failure';
   const description = `M5 ${verdict} · memory ${memoryState} · soak ${soaks.filter((row) => row.verdict !== 'success').length} red`;
   const name = plant ? `plant-${plant}-${stamp}` : `${memoryOnly ? 'memory-' : ''}${stamp}-${sha.slice(0, 7)}`;
-  const report = { sha, harnessSha, started: new Date(started).toISOString(), verdict, memoryState, memory, measurements, desktopFrames, soaks, flakes, artifacts, steps };
+  const report = { sha, harnessSha, shards: measuredShards, memoryProtocol, previousMemory, started: new Date(started).toISOString(), verdict, memoryState, memory, measurements, desktopFrames, soaks, flakes, artifacts, steps };
   writeFileSync(join(reports, `${name}.json`), JSON.stringify(report, null, 2));
-  const lines = [description, '', `SHA ${sha}; harness ${harnessSha}`, '', '| shard | phase | native median GB | native peak GB | spread GB (min–max) | inspector GB | previous GB | limit GB | verdict | reason |', '|---|---|---:|---:|---|---:|---:|---:|---|---|'];
+  const lines = [description, '', `SHA ${sha}; harness ${harnessSha}`, `Memory reference: ${previousMemory.path || 'none (first complete settled reading)'}; SHA ${previousMemory.sha ?? 'none'}`, ...previousMemory.rejected.map((row) => `Rejected reference ${row.path}: ${row.reason}`), '', '| shard | phase | native median GB | native peak GB | spread GB (min–max) | inspector GB | previous GB | limit GB | verdict | reason |', '|---|---|---:|---:|---|---:|---:|---:|---:|---|---|'];
   for (const row of memory) lines.push(`| ${row.shard} | ${row.phase} | ${row.nativeGB ?? 'missing'} | ${row.nativePeakGB ?? 'missing'} | ${row.settling ? `${row.settling.minGB.toFixed(3)}–${row.settling.maxGB.toFixed(3)} (${row.settling.spreadPercent.toFixed(1)}%; ${row.settling.timedOut ? 'timeout' : 'settled'})` : 'legacy peak'} | ${row.inspectorGB ?? 'missing'} | ${row.previousGB ?? 'first'} | ${row.limitGB} | ${row.verdict} | ${row.reason} |`);
   lines.push('', 'Memory: three settled one-second samples per phase (2% consecutive tolerance, 20 s maximum); median/previous − 1 ≤ 0.10. Native phase peaks still enforce loading 1.8 / play 1.0 / explorer 1.0 decimal GB. Pending allows growth only below the absolute cap.', '', '| shard | soak | GPU growth bytes | heap growth bytes | fps first/last | failures |', '|---|---|---:|---:|---:|---|---|');
   for (const row of soaks) lines.push(`| ${row.shard} | ${row.verdict} | ${row.gpuGrowthBytes} | ${row.heapGrowthBytes} | ${row.fpsFirst}/${row.fpsLast} | ${(row.failures ?? []).join(', ')} |`);

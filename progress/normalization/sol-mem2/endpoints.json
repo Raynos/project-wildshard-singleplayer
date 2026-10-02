@@ -1,0 +1,322 @@
+{
+  "old-cold": {
+    "runtime": {
+      "build": "720dd05-muqblj7v",
+      "shard": "pine-hollow"
+    },
+    "explorerRuntime": {
+      "build": "720dd05-muqblj7v",
+      "shard": "pine-hollow"
+    },
+    "sceneStats": {
+      "geometryBytes": 54650208,
+      "instancedBytes": 3210472,
+      "textureImageBytes": 14123048,
+      "arrays": 1439,
+      "textures": 186,
+      "gpu": {
+        "geometries": 244,
+        "textures": 416
+      },
+      "calls": 48
+    },
+    "settled": {
+      "loading": {
+        "nativeGB": 0.585011112,
+        "inspectorGB": 1.134070714,
+        "minGB": 0.584978344,
+        "maxGB": 0.585027496,
+        "spreadGB": 4.9151999999996754e-05,
+        "spreadPercent": 0.008401891689195256,
+        "samples": [
+          {
+            "seconds": 3.006,
+            "nativeGB": 0.584978344,
+            "inspectorGB": 1.127205818
+          },
+          {
+            "seconds": 4.009,
+            "nativeGB": 0.585011112,
+            "inspectorGB": 1.134070714
+          },
+          {
+            "seconds": 5.011,
+            "nativeGB": 0.585027496,
+            "inspectorGB": 1.155599032
+          }
+        ],
+        "settled": true,
+        "timedOut": false,
+        "seconds": 5.011
+      },
+      "play": {
+        "nativeGB": 0.58365124,
+        "inspectorGB": 1.133822077,
+        "minGB": 0.58365124,
+        "maxGB": 0.583667624,
+        "spreadGB": 1.6384000000035925e-05,
+        "spreadPercent": 0.002807155862469499,
+        "samples": [
+          {
+            "seconds": 1,
+            "nativeGB": 0.583667624,
+            "inspectorGB": 1.132713078
+          },
+          {
+            "seconds": 2.002,
+            "nativeGB": 0.58365124,
+            "inspectorGB": 1.135280253
+          },
+          {
+            "seconds": 3.003,
+            "nativeGB": 0.58365124,
+            "inspectorGB": 1.133822077
+          }
+        ],
+        "settled": true,
+        "timedOut": false,
+        "seconds": 3.003
+      },
+      "explorer": {
+        "nativeGB": 0.586616768,
+        "inspectorGB": 1.164418557,
+        "minGB": 0.586616768,
+        "maxGB": 0.586731456,
+        "spreadGB": 0.00011468800000002943,
+        "spreadPercent": 0.019550753789572793,
+        "samples": [
+          {
+            "seconds": 1.003,
+            "nativeGB": 0.586731456,
+            "inspectorGB": 1.164540833
+          },
+          {
+            "seconds": 2.005,
+            "nativeGB": 0.586616768,
+            "inspectorGB": 1.158101921
+          },
+          {
+            "seconds": 3.008,
+            "nativeGB": 0.586616768,
+            "inspectorGB": 1.164418557
+          }
+        ],
+        "settled": true,
+        "timedOut": false,
+        "seconds": 3.008
+      }
+    },
+    "nativeSummary": {
+      "type": "summary",
+      "t": "2026-10-02T02:07:54.033007+00:00",
+      "phases": {
+        "idle": {
+          "samples": 7,
+          "seconds": 0.6,
+          "gamePid": 59817,
+          "gameHighGB": 0.07,
+          "gameSampledGB": 0.068,
+          "allWebContentGB": 0.108,
+          "gpuProcessGB": 0.018
+        },
+        "loading": {
+          "samples": 137,
+          "seconds": 15.1,
+          "gamePid": 59817,
+          "gameHighGB": 0.81,
+          "gameSampledGB": 0.79,
+          "allWebContentGB": 0.85,
+          "gpuProcessGB": 0.463
+        },
+        "play": {
+          "samples": 568,
+          "seconds": 63.1,
+          "gamePid": 59817,
+          "gameHighGB": 0.598,
+          "gameSampledGB": 0.597,
+          "allWebContentGB": 0.637,
+          "gpuProcessGB": 0.361
+        },
+        "menu": {
+          "samples": 29,
+          "seconds": 2.9,
+          "gamePid": 59817,
+          "gameHighGB": 0.597,
+          "gameSampledGB": 0.594,
+          "allWebContentGB": 0.633,
+          "gpuProcessGB": 0.361
+        },
+        "explorer": {
+          "samples": 623,
+          "seconds": 66.1,
+          "gamePid": 59817,
+          "gameHighGB": 0.589,
+          "gameSampledGB": 0.589,
+          "allWebContentGB": 0.629,
+          "gpuProcessGB": 0.362
+        }
+      },
+      "lost": []
+    }
+  },
+  "head-cold": {
+    "runtime": {
+      "build": "c9693a7-muqbqjxs",
+      "shard": "pine-hollow"
+    },
+    "explorerRuntime": {
+      "build": "c9693a7-muqbqjxs",
+      "shard": "pine-hollow"
+    },
+    "sceneStats": {
+      "geometryBytes": 54650208,
+      "instancedBytes": 3210472,
+      "textureImageBytes": 14123048,
+      "arrays": 1439,
+      "textures": 186,
+      "gpu": {
+        "geometries": 243,
+        "textures": 416
+      },
+      "calls": 48
+    },
+    "settled": {
+      "loading": {
+        "nativeGB": 0.639455072,
+        "inspectorGB": 1.364544803,
+        "minGB": 0.637554528,
+        "maxGB": 0.640683872,
+        "spreadGB": 0.0031293439999999784,
+        "spreadPercent": 0.4893766797739902,
+        "samples": [
+          {
+            "seconds": 1.002,
+            "nativeGB": 0.639455072,
+            "inspectorGB": 1.326959907
+          },
+          {
+            "seconds": 2.005,
+            "nativeGB": 0.640683872,
+            "inspectorGB": 1.365445923
+          },
+          {
+            "seconds": 3.007,
+            "nativeGB": 0.637554528,
+            "inspectorGB": 1.364544803
+          }
+        ],
+        "settled": true,
+        "timedOut": false,
+        "seconds": 3.007
+      },
+      "play": {
+        "nativeGB": 0.610439104,
+        "inspectorGB": 1.179363827,
+        "minGB": 0.60845664,
+        "maxGB": 0.610455488,
+        "spreadGB": 0.001998848000000053,
+        "spreadPercent": 0.32744429164224265,
+        "samples": [
+          {
+            "seconds": 1.002,
+            "nativeGB": 0.610439104,
+            "inspectorGB": 1.179363827
+          },
+          {
+            "seconds": 2.004,
+            "nativeGB": 0.610455488,
+            "inspectorGB": 1.183689203
+          },
+          {
+            "seconds": 3.005,
+            "nativeGB": 0.60845664,
+            "inspectorGB": 1.142846489
+          }
+        ],
+        "settled": true,
+        "timedOut": false,
+        "seconds": 3.005
+      },
+      "explorer": {
+        "nativeGB": 0.610815936,
+        "inspectorGB": 1.174881253,
+        "minGB": 0.610815936,
+        "maxGB": 0.61083232,
+        "spreadGB": 1.6384000000035925e-05,
+        "spreadPercent": 0.002682313776442782,
+        "samples": [
+          {
+            "seconds": 1.003,
+            "nativeGB": 0.610815936,
+            "inspectorGB": 1.172944416
+          },
+          {
+            "seconds": 2.005,
+            "nativeGB": 0.610815936,
+            "inspectorGB": 1.180186144
+          },
+          {
+            "seconds": 3.007,
+            "nativeGB": 0.61083232,
+            "inspectorGB": 1.174881253
+          }
+        ],
+        "settled": true,
+        "timedOut": false,
+        "seconds": 3.007
+      }
+    },
+    "nativeSummary": {
+      "type": "summary",
+      "t": "2026-10-02T02:11:44.852349+00:00",
+      "phases": {
+        "idle": {
+          "samples": 8,
+          "seconds": 0.7,
+          "gamePid": 66996,
+          "gameHighGB": 0.073,
+          "gameSampledGB": 0.07,
+          "allWebContentGB": 0.11,
+          "gpuProcessGB": 0.018
+        },
+        "loading": {
+          "samples": 107,
+          "seconds": 11.9,
+          "gamePid": 66996,
+          "gameHighGB": 0.794,
+          "gameSampledGB": 0.782,
+          "allWebContentGB": 0.833,
+          "gpuProcessGB": 0.462
+        },
+        "play": {
+          "samples": 560,
+          "seconds": 63.0,
+          "gamePid": 66996,
+          "gameHighGB": 0.752,
+          "gameSampledGB": 0.752,
+          "allWebContentGB": 0.791,
+          "gpuProcessGB": 0.374
+        },
+        "menu": {
+          "samples": 28,
+          "seconds": 2.8,
+          "gamePid": 66996,
+          "gameHighGB": 0.621,
+          "gameSampledGB": 0.618,
+          "allWebContentGB": 0.658,
+          "gpuProcessGB": 0.374
+        },
+        "explorer": {
+          "samples": 620,
+          "seconds": 66.2,
+          "gamePid": 66996,
+          "gameHighGB": 0.614,
+          "gameSampledGB": 0.613,
+          "allWebContentGB": 0.653,
+          "gpuProcessGB": 0.363
+        }
+      },
+      "lost": []
+    }
+  }
+}

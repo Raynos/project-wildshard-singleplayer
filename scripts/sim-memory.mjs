@@ -7,7 +7,7 @@ import { mkdirSync, writeFileSync, readFileSync, existsSync, createWriteStream, 
 import { resolve as resolvePath, join } from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
 
-import { parseMemoryRun, settledMemory } from './gpu-perf/report.mjs';
+import { parseMemoryRun, settledMemory, memoryReferenceProblem, MEMORY_PROTOCOL } from './gpu-perf/report.mjs';
 
 const ROOT = resolvePath(new URL('..', import.meta.url).pathname);
 const argv = process.argv.slice(2);
@@ -162,12 +162,25 @@ async function oneRun(udid, run, opts) {
     });
     await page.opened;
     await sleep(700); // the proxy announces its target first
+    const { evaluate } = page;
+    // Terminating Safari leaves persistent origin data intact. In particular, the old worker's
+    // cache-first document can boot yesterday's JS on today's preview port.
+    await evaluate(`window.__wsMemoryReset = null; (async () => {
+      for (const registration of await navigator.serviceWorker.getRegistrations()) await registration.unregister();
+      for (const key of await caches.keys()) await caches.delete(key);
+      localStorage.clear(); sessionStorage.clear();
+    })().then(() => { window.__wsMemoryReset = 'done'; }, (error) => { window.__wsMemoryReset = String(error); }); 1`);
+    for (const resetStart = Date.now();;) {
+      const reset = await evaluate('window.__wsMemoryReset');
+      if (reset === 'done') break;
+      if (reset !== null || Date.now() - resetStart > 10_000) throw new Error(`cold origin reset failed: ${reset}`);
+      await sleep(250);
+    }
     await page.track();
     sampler = spawn('python3', [join(ROOT, 'scripts/sim-mem-phases.py'), '--device', udid, '--phase-file', phaseFile,
       '--out', join(out, `${run.tag}.native.jsonl`), '--max', '900'], { stdio: 'ignore' });
     const samplerDone = new Promise((resolve) => { sampler?.on('exit', resolve); });
     await sleep(1000);
-    const { evaluate } = page;
     const settle = async () => {
       const started = Date.now(), readings = [];
       const nativeFile = join(out, `${run.tag}.native.jsonl`);
@@ -208,6 +221,14 @@ async function oneRun(udid, run, opts) {
     }
     result.loadSeconds = (Date.now() - loadStart) / 1000;
     say(`loaded in ${result.loadSeconds.toFixed(1)} s`);
+    const identity = async () => JSON.parse(await evaluate('JSON.stringify({ build: window.__wildshard?.boot?.build, shard: window.__wildshard?.world?.game?.level?.id })'));
+    const checkIdentity = async () => {
+      const actual = await identity();
+      if (actual.build !== opts.expectedBuild || actual.shard !== run.shard) throw new Error(`wrong runtime: expected ${opts.expectedBuild}/${run.shard}, got ${JSON.stringify(actual)}`);
+      return actual;
+    };
+    result.identity = await checkIdentity();
+    say(`verified runtime ${result.identity.build}/${result.identity.shard}`);
     await settle();
 
     const frame = 'window.__wildshard?.world?.game?.renderer?.info?.render?.frame ?? null';
@@ -238,7 +259,8 @@ async function oneRun(udid, run, opts) {
     await evaluate('(() => { const exit = document.querySelector(".ws-gmenu-exit"); if (!exit) throw new Error("missing EXIT TO MAIN"); exit.click(); return 1; })()');
     await sleep(3000);
     setPhase('explorer');
-    await evaluate('document.querySelector(".ws-menu-explore")?.click(); 1');
+    // A hidden teaching shard has no player-facing title card; use its own HUD's same Explore entry.
+    await evaluate(run.shard === '_template' ? 'window.__wildshard.world.hud.startExplore(); 1' : 'document.querySelector(".ws-menu-explore")?.click(); 1');
     let hub = false;
     for (let i = 0; i < 60 && !hub; i++) {
       hub = (await evaluate('Boolean(document.querySelector(\'.ws-x-card[data-m="world"]\'))')) === true;
@@ -262,6 +284,7 @@ async function oneRun(udid, run, opts) {
         ev('pointerdown', x, c); for (let k = 1; k <= 6; k++) ev('pointermove', x + k * 10, window); ev('pointerup', x + 60, window); return 1; })()`);
     }) };
     await evaluate(`${held.map((c) => key('keyup', c)).join('')} 1`);
+    result.explorerIdentity = await checkIdentity();
     await settle();
     result.sceneStats = JSON.parse(await evaluate(SCENE_STATS, 'null'));
     result.readout = await evaluate('[...document.querySelectorAll(".ws-x *")].map((e) => e.textContent ?? "").filter((t) => /calls/.test(t) && /tris/.test(t)).sort((a, b) => a.length - b.length)[0] ?? null');
@@ -306,10 +329,17 @@ async function main() {
   if (readdirSync(out).length > 0) throw new Error(`${out} is not empty`);
   const shards = flag('shards', shardFolders(resolvePath(import.meta.dirname, '..')).join(',')).split(',');
   const count = Number(flag('runs', '1'));
-  const opts = { out, play: Number(flag('play', '60')), fly: Number(flag('fly', '60')), settings: flags('setting') };
+  const expectedBuild = (await (await fetch(new URL('version.json', base))).json()).build;
+  if (typeof expectedBuild !== 'string' || !expectedBuild) throw new Error('server build identity missing');
+  const opts = { out, expectedBuild, play: Number(flag('play', '60')), fly: Number(flag('fly', '60')), settings: flags('setting') };
   if (!Number.isInteger(count) || count < 1 || !Number.isFinite(opts.play) || opts.play <= 0 || !Number.isFinite(opts.fly) || opts.fly <= 0) throw new Error('invalid run count/duration');
   if (shards.some((shard) => !/^_?[a-z0-9-]+$/.test(shard))) throw new Error('invalid shard');
-  const previous = flag('previous', '') ? JSON.parse(readFileSync(flag('previous', ''), 'utf8')).memory ?? [] : [];
+  const previousReport = flag('previous', '') ? JSON.parse(readFileSync(flag('previous', ''), 'utf8')) : null;
+  if (previousReport) {
+    const problem = memoryReferenceProblem(previousReport, previousReport.shards ?? shards);
+    if (problem) throw new Error(`invalid previous memory report: ${problem}`);
+  }
+  const previous = previousReport?.memory ?? [];
   const pending = flag('pending', '') ? JSON.parse(readFileSync(flag('pending', ''), 'utf8')) : [];
   const plan = { opts, runs: [] };
   for (let round = 1; round <= count; round++) for (const shard of shards) plan.runs.push({ label: shard, shard, base, round, tag: `${shard}-r${round}` });
@@ -322,7 +352,7 @@ async function main() {
     memory.push(...parseMemoryRun(existsSync(native) ? readFileSync(native, 'utf8') : '', existsSync(inspector) ? readFileSync(inspector, 'utf8') : '', run.shard, reference, pending));
   }
   const verdict = memory.some((row) => row.verdict === 'failure') ? 'failure' : memory.some((row) => row.verdict === 'pending') ? 'pending' : 'success';
-  writeFileSync(join(out, 'report.json'), JSON.stringify({ verdict, memory }, null, 2));
+  writeFileSync(join(out, 'report.json'), JSON.stringify({ verdict, memoryProtocol: MEMORY_PROTOCOL, memory }, null, 2));
   console.log(table(out));
   process.exitCode = verdict === 'success' ? 0 : 1;
 }
