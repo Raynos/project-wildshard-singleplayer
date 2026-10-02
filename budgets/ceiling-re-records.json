@@ -40,16 +40,16 @@
       "tier": "phone",
       "metric": "gpuMB",
       "source": "budgets/calibration-reports/sunscar-dunes.phone.json",
-      "commit": "fc368613ab1f0530b1052feabb373d17806792da",
-      "reason": "E374 Signal Dunes loop 4, measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer): the dressing (shrubs, grass, gravel, posts, cairns, carcasses, acacias, outcrops, scree), the far buttes, the caravan lantern and the cloud deck"
+      "commit": "0b33bb31d8508930eb2415162b3a66d71e27fc78",
+      "reason": "E374 Signal Dunes council round-1 fixes, measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer): the terrain at the bake grid's spacing, the dune skirt to the buttes, the ray's generated manta body, the dressed waymarks and the deck brazier"
     },
     {
       "shard": "sunscar-dunes",
       "tier": "desktop",
       "metric": "gpuMB",
       "source": "budgets/calibration-reports/sunscar-dunes.desktop.json",
-      "commit": "fc368613ab1f0530b1052feabb373d17806792da",
-      "reason": "E374 Signal Dunes loop 4, measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer): the dressing (shrubs, grass, gravel, posts, cairns, carcasses, acacias, outcrops, scree), the far buttes, the caravan lantern and the cloud deck"
+      "commit": "0b33bb31d8508930eb2415162b3a66d71e27fc78",
+      "reason": "E374 Signal Dunes council round-1 fixes, measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer): the terrain at the bake grid's spacing, the dune skirt to the buttes, the ray's generated manta body, the dressed waymarks and the deck brazier"
     },
     {
       "shard": "far-reach",
