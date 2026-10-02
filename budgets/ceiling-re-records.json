@@ -56,16 +56,16 @@
       "tier": "phone",
       "metric": "gpuMB",
       "source": "budgets/calibration-reports/far-reach.phone.json",
-      "commit": "bbb5dd57bf8ce83ec768e398ec98e6d161b3168e",
-      "reason": "E374 Sky Reach loop 4, measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer): the painted 360-degree sky panorama (phone 4128x758, desktop 5562x1024, no mipmaps), the near meadow, island v2 and the crown arena"
+      "commit": "5297a6eb18d902561a7e916215ba32b37f6cdfa0",
+      "reason": "E374 Sky Reach loop 5, measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer): the council round-1 fixes: crag islands (72-segment rims, ledged keels, rim crags), the code-built tower mill, the gloved hand, three-segment meadow blades"
     },
     {
       "shard": "far-reach",
       "tier": "desktop",
       "metric": "gpuMB",
       "source": "budgets/calibration-reports/far-reach.desktop.json",
-      "commit": "bbb5dd57bf8ce83ec768e398ec98e6d161b3168e",
-      "reason": "E374 Sky Reach loop 4, measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer): the painted 360-degree sky panorama (phone 4128x758, desktop 5562x1024, no mipmaps), the near meadow, island v2 and the crown arena"
+      "commit": "5297a6eb18d902561a7e916215ba32b37f6cdfa0",
+      "reason": "E374 Sky Reach loop 5, measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer): the council round-1 fixes: crag islands (72-segment rims, ledged keels, rim crags), the code-built tower mill, the gloved hand, three-segment meadow blades"
     }
   ]
 }

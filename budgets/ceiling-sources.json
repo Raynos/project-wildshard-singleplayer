@@ -1688,15 +1688,15 @@
       "tier": "phone",
       "metric": "gpuMB",
       "source": "budgets/calibration-reports/far-reach.phone.json",
-      "commit": "bbb5dd57bf8ce83ec768e398ec98e6d161b3168e",
-      "reason": "E374 Sky Reach loop 4, measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer): the painted 360-degree sky panorama (phone 4128x758, desktop 5562x1024, no mipmaps), the near meadow, island v2 and the crown arena",
+      "commit": "5297a6eb18d902561a7e916215ba32b37f6cdfa0",
+      "reason": "E374 Sky Reach loop 5, measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer): the council round-1 fixes: crag islands (72-segment rims, ledged keels, rim crags), the code-built tower mill, the gloved hand, three-segment meadow blades",
       "ask": "E357",
       "approvedBy": "wildshard-9",
-      "approval": "E374 Sky Reach loop 4, measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer): the painted 360-degree sky panorama (phone 4128x758, desktop 5562x1024, no mipmaps), the near meadow, island v2 and the crown arena",
-      "captureSha": "bbb5dd57bf8ce83ec768e398ec98e6d161b3168e",
-      "captureSha256": "f3ce6a676307072fd021b04b1bb05396e7ef993f7dc04a7dd2dee36e5aef8e92",
+      "approval": "E374 Sky Reach loop 5, measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer): the council round-1 fixes: crag islands (72-segment rims, ledged keels, rim crags), the code-built tower mill, the gloved hand, three-segment meadow blades",
+      "captureSha": "5297a6eb18d902561a7e916215ba32b37f6cdfa0",
+      "captureSha256": "923e7c0994c9b43c41cfd98029235bc20d40db9cbaa0770be82cf91352a6d68e",
       "ceilings": {
-        "far-reach.phone.current.gpuMB": 91.66332244873047
+        "far-reach.phone.current.gpuMB": 94.7627258300782
       }
     },
     {
@@ -1704,15 +1704,15 @@
       "tier": "desktop",
       "metric": "gpuMB",
       "source": "budgets/calibration-reports/far-reach.desktop.json",
-      "commit": "bbb5dd57bf8ce83ec768e398ec98e6d161b3168e",
-      "reason": "E374 Sky Reach loop 4, measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer): the painted 360-degree sky panorama (phone 4128x758, desktop 5562x1024, no mipmaps), the near meadow, island v2 and the crown arena",
+      "commit": "5297a6eb18d902561a7e916215ba32b37f6cdfa0",
+      "reason": "E374 Sky Reach loop 5, measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer): the council round-1 fixes: crag islands (72-segment rims, ledged keels, rim crags), the code-built tower mill, the gloved hand, three-segment meadow blades",
       "ask": "E357",
       "approvedBy": "wildshard-9",
-      "approval": "E374 Sky Reach loop 4, measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer): the painted 360-degree sky panorama (phone 4128x758, desktop 5562x1024, no mipmaps), the near meadow, island v2 and the crown arena",
-      "captureSha": "bbb5dd57bf8ce83ec768e398ec98e6d161b3168e",
-      "captureSha256": "eeeb99027a631efdc548de45c2796a09e9cbabb56b4956676af89110aa648483",
+      "approval": "E374 Sky Reach loop 5, measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer): the council round-1 fixes: crag islands (72-segment rims, ledged keels, rim crags), the code-built tower mill, the gloved hand, three-segment meadow blades",
+      "captureSha": "5297a6eb18d902561a7e916215ba32b37f6cdfa0",
+      "captureSha256": "c244323d68b00984cfe84d1c2a2ed8629333aa4f60d0a3cbccd4171007d62a33",
       "ceilings": {
-        "far-reach.desktop.current.gpuMB": 196.0875549316407
+        "far-reach.desktop.current.gpuMB": 199.330810546875
       }
     }
   ]
