@@ -1,4 +1,5 @@
 import { BufferAttribute, BufferGeometry, CapsuleGeometry, CatmullRomCurve3, CylinderGeometry, Group, Mesh, MeshStandardMaterial, SphereGeometry, TubeGeometry, Vector3 } from 'three';
+import { duneMesh } from '../world/meshes';
 
 /** Warm saddle-leather browns: the braid's two strands, the glove, its cuff and the knob; the popper is pale cord. */
 const STRAND_A = [0.46, 0.25, 0.12] as const, STRAND_B = [0.27, 0.14, 0.065] as const, POPPER = [0.78, 0.68, 0.52] as const;
@@ -68,7 +69,30 @@ export class Lash {
   }
 }
 
-export interface WhipParts { root: Group; grip: Group; coil: Mesh; lash: Lash; tip: Vector3 }
+export interface WhipParts { root: Group; grip: Group; coil: Mesh; lash: Lash; tip: Vector3; glove: Mesh | null }
+
+/**
+ * The generated gloved fist on the braided handle (loop 2, P3: `art/sunscar-dunes/round-11-loop-2/ref-glove.jpg` →
+ * Hunyuan3D-2, painted facets). Its file lies with the handle along +X from the butt, the knuckles toward +Z and the
+ * cuff up; here the handle is stood on the grip's +Y (butt down, the fist at the origin), scaled to a hand's size and
+ * turned about it so the cuff runs back down toward the lower-right corner and the fingers wrap away (`GLOVE_TURN`).
+ */
+export const GLOVE_TURN = { y: -2.06, scale: 0.55 } as const;
+function gloveMesh(): { mesh: Mesh; top: number } | null {
+  const g = duneMesh('whip-glove'); if (g === null) return null;
+  g.computeBoundingBox(); const b = g.boundingBox; if (b === null) return null;
+  // the handle's axis: the mean of the collar just short of the keeper end (the thong curls down past it)
+  const p = g.getAttribute('position'), x1 = b.max.x - 0.16, x2 = b.max.x - 0.1; let n = 0, y = 0, z = 0;
+  for (let i = 0; i < p.count; i++) if (p.getX(i) > x1 && p.getX(i) < x2) { y += p.getY(i); z += p.getZ(i); n++; }
+  const fist = b.min.x + (b.max.x - b.min.x) * 0.48;
+  g.translate(-fist, n > 0 ? -y / n : -(b.min.y + b.max.y) / 2, n > 0 ? -z / n : -(b.min.z + b.max.z) / 2);
+  g.rotateZ(Math.PI / 2); g.rotateY(GLOVE_TURN.y); g.scale(GLOVE_TURN.scale, GLOVE_TURN.scale, GLOVE_TURN.scale);
+  g.computeVertexNormals(); g.computeBoundingSphere();
+  // where the lash leaves the hand: the handle's keeper end, just short of the thong's curl
+  const top = (b.max.x - fist - 0.06) * GLOVE_TURN.scale;
+  // Painted facets, matte; a touch of warm self-light so the backlit glove never reads as a black lump.
+  return { mesh: new Mesh(g, new MeshStandardMaterial({ vertexColors: true, roughness: 0.75, metalness: 0, flatShading: true, emissive: GLOW })), top };
+}
 
 /**
  * A braided leather bullwhip in a gloved fist (E374 polish, after Jake's "the custom whip we built was a lot better"):
@@ -93,21 +117,27 @@ export function buildWhipModel(): WhipParts {
   const cuff = new Mesh(new CylinderGeometry(0.046, 0.06, 0.11, 12, 1, true), cuffLeather); cuff.position.set(0.02, -0.12, 0.016);
   fist.add(thumb, cuff);
   grip.add(handle, knob, fist);
+  // The generated glove and handle replace the code fist when its file loaded (the code fist stays the stand-in).
+  const made = gloveMesh();
+  if (made !== null) { handle.visible = false; knob.visible = false; fist.visible = false; grip.add(made.mesh); }
   grip.rotation.set(-1.0, 0, -0.25);
   // The coil (mockup D): a small loop and a half hanging below the fist toward the bottom-right edge, its tail out of frame.
+  // With the generated glove (mockup D) the coil is the real cord's weight: two and a half thin loops beside the fist.
+  const turns = made === null ? 3.2 : 5, loopR = made === null ? 0.064 : 0.05, cord = made === null ? 0.0085 : 0.0038;
   const coilPoints: Vector3[] = [];
-  for (let i = 0; i <= 40; i++) {
-    const s = i / 40, a = 0.6 + s * Math.PI * 3.2, r = 0.064 * (1 - 0.15 * s);
+  for (let i = 0; i <= 60; i++) {
+    const s = i / 60, a = 0.6 + s * Math.PI * turns, r = loopR * (1 - 0.15 * s);
     coilPoints.push(new Vector3(0.0 + Math.cos(a) * r, -0.1 + Math.sin(a) * r - s * s * 0.06, 0.02 - s * 0.03));
   }
   coilPoints.push(new Vector3(0.02, -0.24, -0.02), new Vector3(0.05, -0.36, -0.05));
-  const coilGeometry = new TubeGeometry(new CatmullRomCurve3(coilPoints), 96, 0.0085, RADIAL, false);
-  braid(coilGeometry, 97, RADIAL + 1);
+  const coilGeometry = new TubeGeometry(new CatmullRomCurve3(coilPoints), 140, cord, RADIAL, false);
+  braid(coilGeometry, 141, RADIAL + 1);
   const coil = new Mesh(coilGeometry, braided());
-  coil.position.set(0, 0.1, -0.02); coil.rotation.set(0.1, 0.4, 0.1);
+  if (made === null) coil.position.set(0, 0.1, -0.02); else coil.position.set(-0.04, 0.03, -0.03);
+  coil.rotation.set(0.1, 0.4, 0.1);
   root.add(grip, coil);
   const lash = new Lash(); root.add(lash.mesh);
   // The keeper end of the handle in root space, where the lash leaves the hand.
-  const tip = new Vector3(0, 0.15, 0).applyEuler(grip.rotation);
-  return { root, grip, coil, lash, tip };
+  const tip = new Vector3(0, made === null ? 0.15 : made.top, 0).applyEuler(grip.rotation);
+  return { root, grip, coil, lash, tip, glove: made?.mesh ?? null };
 }

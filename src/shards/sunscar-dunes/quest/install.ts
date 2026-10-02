@@ -5,6 +5,11 @@ import { Scene, Vector3 } from 'three';
 import { FLAG, type SignalWorld } from '../world/build';
 import { BASIN, CARAVAN, SPAWN, WELL, TOWER } from '../layout';
 import { STRINGS } from '../strings';
+import { lastLightAll } from '../look/light';
+import { ownPrimitives } from '../world/resources';
+import { SCOUT_AT, SCOUT_FLAG, scout, scoutNpc } from './scout';
+
+export { SCOUT_FLAG } from './scout';
 
 /** Whether the signal reward was paid (shard save, SHARDS §10). */
 const SIGNAL = { key: 'sunscar.signal', scope: 'shard' as const, version: 1, schema: v.boolean(), initial: () => false };
@@ -24,7 +29,8 @@ const PLACES = [
 const at = (p: Vector3, dy = 0): QuestMarker['at'] => ({ poi: 'world', x: p.x, y: p.y + dy, z: p.z });
 
 /**
- * "The signal" (C4, staged like Driftwood's in P4): it starts on the first frame and names its goal, every step has a
+ * "The signal" (C4, staged like Driftwood's in P4): Sefa the caravan scout waves from the spawn crest and her talk is
+ * the first step (loop 2); the quest's chip names her from the first frame, every step has a
  * marker (the HUD chip with distance and bearing, a diamond on the minimap and the map, a pin in the world), the map
  * tab carries the quest card, the places toast as they are found, and the Matriarch is the last step: the 5-coin
  * signal reward pays after her fall.
@@ -32,7 +38,10 @@ const at = (p: Vector3, dy = 0): QuestMarker['at'] => ({ poi: 'world', x: p.x, y
 export function installQuest(ctx: ShardContext, player: Vector3, world: SignalWorld, onCoin?: (share: number) => void): { quest: QuestState; burst: CoinBurst; view: QuestPresentation | null } {
   const { flags } = world, paid = ctx.app.saves.define(SIGNAL);
   const basin = new Vector3(BASIN.x, 2, BASIN.z);
+  const groundAt = (x: number, z: number): number => ctx.manifest.ground.terrain?.heightAt(x, z) ?? 0;
   const quest = new QuestState({ id: 'sunscar.signal', title: STRINGS.quest, completeFlag: 'sunscar.complete', steps: [
+    { id: 'scout', objective: STRINGS.stepScout, chip: STRINGS.chipScout, hint: STRINGS.hintScout, done: { all: [SCOUT_FLAG] },
+      markers: [{ id: 'scout', label: STRINGS.scoutPin, short: STRINGS.shortScout, at: { poi: 'world', x: SCOUT_AT.x, y: groundAt(SCOUT_AT.x, SCOUT_AT.z) + 2.2, z: SCOUT_AT.z } }] },
     { id: 'logbook', objective: STRINGS.stepLog, chip: STRINGS.chipLog, hint: STRINGS.hintLog, done: { all: [FLAG.logbook] },
       markers: [{ id: 'logbook', label: STRINGS.readLog, short: STRINGS.shortLog, at: at(world.logbook.position, 0.4) }] },
     { id: 'oil', objective: STRINGS.stepOil, chip: STRINGS.chipOil, hint: STRINGS.hintOil, done: { all: [FLAG.oil] },
@@ -56,8 +65,15 @@ export function installQuest(ctx: ShardContext, player: Vector3, world: SignalWo
     burst.spawn(player, 5, onCoin ?? ((share) => { purse.write(purse.read() + share); }), () => { ctx.game.runtime?.play?.hud.toast(STRINGS.reward); });
     return undefined;
   };
+  // Sefa, the caravan scout, starts the quest on the spawn crest (P4; Driftwood's Wendell): she waves until you talk.
+  const sefa = scout(groundAt);
+  if (sefa !== null) {
+    ctx.root.add(sefa.group); ownPrimitives(sefa.group, ctx.scope); lastLightAll(sefa.group, ctx.scope);
+    ctx.system({ id: 'sunscar.scout', phase: 'update', run: (dt, t) => { sefa.update(dt, t, player, flags.has(SCOUT_FLAG)); } });
+  }
   const live = ctx.game.runtime?.world && ctx.game.runtime.play ? ctx.game.runtime : null;
   const view = live === null ? null : installQuestPresentation(ctx, quest, { places: [...PLACES], introTitle: STRINGS.quest,
+    ...(sefa === null ? {} : { npc: { npc: scoutNpc('sunscar.complete'), at: sefa.head, label: STRINGS.talkScout, speaker: sefa.speaker, radius: 3.5 } }),
     reward: { kicker: STRINGS.rewardKicker, title: STRINGS.quest, subtitle: STRINGS.rewardSubtitle, when: () => !alreadyPaid && quest.isComplete, finish: pay } });
   // Headless (no play host: tests, a node bake) the reward pays at once.
   if (view === null) ctx.scope.onDispose(quest.observe({ complete: () => { pay(); } }));

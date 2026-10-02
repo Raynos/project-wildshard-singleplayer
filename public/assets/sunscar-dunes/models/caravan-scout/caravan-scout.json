@@ -1,0 +1,13 @@
+{
+ "name": "caravan-scout",
+ "source": "ref-scout.glb",
+ "tris": 8991,
+ "size_m": [
+  0.71,
+  0.47,
+  1.7
+ ],
+ "pivot": "base centre, z=0 (Blender z-up; glTF y-up)",
+ "vertex_colour": "COLOR_0 rgb = albedo (sRGB-graded, stored linear), a = Cycles AO (0.35..1)",
+ "palette": []
+}

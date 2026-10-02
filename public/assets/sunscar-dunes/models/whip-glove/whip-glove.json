@@ -1,0 +1,13 @@
+{
+ "name": "whip-glove",
+ "source": "ref-glove.glb",
+ "tris": 6999,
+ "size_m": [
+  0.46,
+  0.22,
+  0.22
+ ],
+ "pivot": "base centre, z=0 (Blender z-up; glTF y-up)",
+ "vertex_colour": "COLOR_0 rgb = albedo (sRGB-graded, stored linear), a = Cycles AO (0.35..1)",
+ "palette": []
+}

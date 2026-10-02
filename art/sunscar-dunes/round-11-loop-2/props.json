@@ -1,0 +1,20 @@
+{
+ "about": "Signal Dunes loop 2 (E374): codex image_gen refs (ref-*.jpg here) -> Hunyuan3D-2 turbo shape + paint at 1024 (~/projects/localai/bin/img2mesh/hy3d_batch.py --tex 1024 under run-locked.sh) -> dense per-facet paint sampled from the generated texture, no palette quantising (--quant 0). The --keep-texture Cycles bake came back black on these Hunyuan GLBs (Blender 5.2.1: the baked atlas's mean was 0), so the paint rides the facets. Run: python3 scripts/img2mesh/build_props.py art/sunscar-dunes/round-11-loop-2/props.json public/assets/sunscar-dunes/models",
+ "gen": "~/ml/img2mesh/out/sunscar-dunes-hy2",
+ "stage": "~/ml/img2mesh/out/sunscar-dunes-post2",
+ "args": [],
+ "props": [
+  {
+   "ref": "ref-matriarch",
+   "args": "--name dune-matriarch --tris 9000 --fit length --size 5.3 --quant 0 --sat 1.05"
+  },
+  {
+   "ref": "ref-scout",
+   "args": "--name caravan-scout --tris 9000 --fit height --size 1.7 --quant 0 --sat 1.0"
+  },
+  {
+   "ref": "ref-glove",
+   "args": "--name whip-glove --tris 7000 --fit length --size 0.46 --quant 0 --sat 1.0"
+  }
+ ]
+}
