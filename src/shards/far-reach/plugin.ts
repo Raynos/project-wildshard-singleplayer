@@ -183,7 +183,7 @@ export class SkyReachPlugin extends ShardPlugin {
     ctx.system({ id: 'far.boss', phase: 'update', run: (dt, t) => { boss.update(dt, t); } });
     // Phase 2's gale wall: a pale sheet of wind that thickens over the windup along the lane it will sweep.
     const wall = new Mesh(new BoxGeometry(GALE_WALL.shape.kind === 'lane' ? GALE_WALL.shape.width : 6, 5, 0.4),
-      new MeshBasicMaterial({ color: 0xeef8ff, transparent: true, opacity: 0, depthWrite: false, side: DoubleSide }));
+      new MeshBasicMaterial({ color: 0xc8f1f8, transparent: true, opacity: 0, depthWrite: false, side: DoubleSide, fog: false }));
     wall.visible = false; ctx.root.add(wall); ctx.scope.own(wall.geometry); ctx.scope.own(wall.material); ctx.scope.onDispose(() => { wall.removeFromParent(); });
     ctx.system({ id: 'far.galeWall', phase: 'update', run: () => {
       const roc = this.roc, body = roc ? rocBrain(roc) : null;
@@ -191,7 +191,8 @@ export class SkyReachPlugin extends ShardPlugin {
       if (!wall.visible || roc === null || body === null) return;
       const k = Math.min(1, body.windup / GALE_WALL.windup), sweep = Math.max(0, body.windup - GALE_WALL.windup) / GALE_WALL.active, reach = 26 * Math.min(1, sweep);
       wall.position.set(roc.position.x + Math.sin(body.aim) * (2 + reach), position.y + 2.5, roc.position.z + Math.cos(body.aim) * (2 + reach));
-      wall.rotation.y = body.aim; wall.material.opacity = 0.12 + 0.3 * k;
+      // a faint veil that thickens over the windup (loop 5: at 0.42 a wall you stand in filled the frame with white)
+      wall.rotation.y = body.aim; wall.material.opacity = 0.06 + 0.16 * k;
     } });
     ctx.debug.expose('farReach', this);
   }
