@@ -10,6 +10,35 @@ export const SWING = { reach: 3.4, halfAngle: 0.9, light: 16, heavy: 30, cooldow
 export const HOLD = { x: 0.16, y: -0.15, z: -0.6, pitch: 0.12, yaw: -0.62, roll: -0.32, scale: 0.52 } as const;
 export const GUST = { reach: 9, halfAngle: 0.6, push: 15, lift: 4, damage: 4, cooldown: 1.6 } as const;
 
+/** A viewmodel offset from HOLD (metres, radians). */
+interface Pose { readonly x: number; readonly y: number; readonly z: number; readonly yaw: number; readonly pitch: number; readonly roll: number }
+const REST: Pose = { x: 0, y: 0, z: 0, yaw: 0, pitch: 0, roll: 0 };
+type Motion = 'swing' | 'heavy' | 'gust';
+/**
+ * The three moves (loop 3, P3), as key poses over each move's duration:
+ * SWING a quick flat slash, right to left, from a short wind-up to the right;
+ * HEAVY a raised wind-up, then a diagonal chop down and across;
+ * GUST the fan drawn back and turned face-on, then thrust out to the centre like a push of wind.
+ */
+export const MOTIONS: Readonly<Record<Motion, { readonly seconds: number; readonly keys: readonly (readonly [number, Pose])[] }>> = {
+  swing: { seconds: 0.34, keys: [[0, REST], [0.18, { x: 0.05, y: 0.01, z: 0.02, yaw: 0.45, pitch: 0.05, roll: -0.15 }],
+    [0.5, { x: -0.16, y: 0.02, z: -0.05, yaw: -1.05, pitch: -0.1, roll: 0.25 }], [1, REST]] },
+  heavy: { seconds: 0.6, keys: [[0, REST], [0.3, { x: 0.06, y: 0.12, z: 0.04, yaw: 0.35, pitch: 0.6, roll: -0.45 }],
+    [0.55, { x: -0.14, y: -0.1, z: -0.08, yaw: -0.9, pitch: -0.7, roll: 0.5 }], [0.7, { x: -0.13, y: -0.09, z: -0.07, yaw: -0.85, pitch: -0.65, roll: 0.45 }], [1, REST]] },
+  gust: { seconds: 0.55, keys: [[0, REST], [0.25, { x: 0.02, y: 0.02, z: 0.07, yaw: 0.55, pitch: 0.1, roll: 0.2 }],
+    [0.45, { x: -0.11, y: 0.05, z: -0.14, yaw: 0.62, pitch: -0.05, roll: 0.32 }], [0.62, { x: -0.1, y: 0.05, z: -0.12, yaw: 0.6, pitch: -0.04, roll: 0.3 }], [1, REST]] },
+};
+/** The pose `k` (0…1) of the way through `motion`, eased between its keys. */
+export function motionPose(motion: Motion, k: number): Pose {
+  const keys = MOTIONS[motion].keys;
+  for (let i = 1; i < keys.length; i++) {
+    const a = keys[i - 1], b = keys[i]; if (a === undefined || b === undefined || k > b[0]) continue;
+    const u = Math.max(0, Math.min(1, (k - a[0]) / Math.max(1e-6, b[0] - a[0]))), e = u * u * (3 - 2 * u), A = a[1], B = b[1];
+    return { x: A.x + (B.x - A.x) * e, y: A.y + (B.y - A.y) * e, z: A.z + (B.z - A.z) * e, yaw: A.yaw + (B.yaw - A.yaw) * e, pitch: A.pitch + (B.pitch - A.pitch) * e, roll: A.roll + (B.roll - A.roll) * e };
+  }
+  return REST;
+}
+
 /** True when `to` lies inside a cone of `reach` metres and `halfAngle` radians around `dir` from `from`. */
 export function inCone(from: Vector3, dir: Vector3, to: Vector3, reach: number, halfAngle: number): boolean {
   const d = to.clone().sub(from), len = d.length();
@@ -32,7 +61,9 @@ export class WarFan extends Weapon {
   onGust: ((from: Vector3, dir: Vector3) => void) | null = null;
   /** True while the fan is put away (riding the hoverboard): it hides and neither swings nor gusts. */
   stowed: () => boolean = () => false;
-  private cooldown = 0; private gustCooldown = 0; private wasHeld = false; private held = 0; private flourish = 0;
+  private cooldown = 0; private gustCooldown = 0; private wasHeld = false; private held = 0;
+  /** The move playing and how far through it (0…1; 1 = done). */
+  motion: Motion = 'swing'; motionK = 1;
   private readonly app: App; private readonly targets: () => readonly FanTarget[];
   private readonly spring = { yaw: 0, pitch: 0, yawVelocity: 0, pitchVelocity: 0 };
   private readonly vm = blocks.viewmodel({ gain: 0.01, clampYaw: 0.1, clampPitch: 0.1, k: 50, c: 12 });
@@ -59,7 +90,7 @@ export class WarFan extends Weapon {
   }
   swing(heavy: boolean): void {
     if (this.cooldown > 0 || !this.enabled || this.stowed()) return;
-    this.cooldown = heavy ? SWING.heavyCooldown : SWING.cooldown; this.flourish = 1; this.onSwing?.(heavy);
+    this.cooldown = heavy ? SWING.heavyCooldown : SWING.cooldown; this.play(heavy ? 'heavy' : 'swing'); this.onSwing?.(heavy);
     const view = this.view(); if (view !== null) this.slash(view.from, view.dir, heavy);
   }
   /** One slash from `from` along `dir`: every target in the arc takes a hit. Returns how many were struck. */
@@ -77,7 +108,7 @@ export class WarFan extends Weapon {
   }
   gust(): void {
     if (this.gustCooldown > 0 || !this.enabled || this.stowed()) return;
-    this.gustCooldown = GUST.cooldown; this.flourish = 1;
+    this.gustCooldown = GUST.cooldown; this.play('gust');
     const view = this.view(); if (view === null) return;
     this.onGust?.(view.from, view.dir); this.blow(view.from, view.dir);
   }
@@ -94,20 +125,21 @@ export class WarFan extends Weapon {
     }
     return blown;
   }
+  private play(motion: Motion): void { this.motion = motion; this.motionK = 0; }
   override update(dt: number): void {
     this.cooldown = Math.max(0, this.cooldown - dt); this.gustCooldown = Math.max(0, this.gustCooldown - dt);
     if (!this.enabled || this.holster > 0.001) { this.wasHeld = false; this.held = 0; }
     else if (this.adsHeld) this.held += dt;
     else if (this.wasHeld) { this.cooldown = 0; this.swing(true); this.held = 0; }
     this.wasHeld = this.enabled && this.holster <= 0.001 && this.adsHeld;
-    this.flourish = Math.max(0, this.flourish - dt * 3.5);
+    this.motionK = Math.min(1, this.motionK + dt / MOTIONS[this.motion].seconds);
     this.vm.step(this.spring, new Vector2(), dt);
-    // idle: a slow breath and the tassel swinging; a swing or a GUST snaps the fan through a flat slash (right to left)
-    this.time += dt; const snap = Math.sin(this.flourish * Math.PI);
-    this.model.rotation.y = HOLD.yaw + this.spring.yaw + snap * 0.9;
-    this.model.rotation.x = HOLD.pitch + Math.sin(this.time * 1.3) * 0.015 - snap * 0.25;
-    this.model.position.y = HOLD.y + Math.sin(this.time * 1.3) * 0.004;
-    this.parts.tassel.rotation.z = Math.sin(this.time * 2.1) * 0.25 + snap * 0.6;
+    // idle: a slow breath and the tassel swinging; a move plays its key poses; holding for HEAVY draws the fan up and back
+    this.time += dt; const pose = motionPose(this.motion, this.motionK), c = this.motionK >= 1 ? this.charge : 0, breath = Math.sin(this.time * 1.3);
+    this.model.position.set(HOLD.x + pose.x + c * 0.04, HOLD.y + pose.y + breath * 0.004 + c * 0.06, HOLD.z + pose.z + c * 0.03);
+    this.model.rotation.set(HOLD.pitch + pose.pitch + breath * 0.015 + c * 0.35, HOLD.yaw + this.spring.yaw + pose.yaw + c * 0.2, HOLD.roll + pose.roll - c * 0.25);
+    const swish = this.motionK < 1 ? Math.sin(this.motionK * Math.PI) : 0;
+    this.parts.tassel.rotation.z = Math.sin(this.time * 2.1) * 0.25 + swish * (this.motion === 'swing' ? -0.7 : 0.7);
     this.model.visible = this.holster < 0.5 && !this.stowed();
   }
 }

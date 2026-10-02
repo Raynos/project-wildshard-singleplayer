@@ -1,10 +1,11 @@
 import { ShardPlugin, installLoot, type ShardContext } from '#game';
 import { installSilentScore } from '#kit';
 import type { Animal, Flags, QuestState } from '#engine';
-import { BoxGeometry, DoubleSide, Mesh, MeshBasicMaterial, RingGeometry, Vector3 } from 'three';
+import { BoxGeometry, DoubleSide, Mesh, MeshBasicMaterial, Vector3 } from 'three';
 import { STRINGS } from './strings';
 import { GOATS, RAY_HOMES, ROC, ROOST_RAYS, UPDRAFT, WISP_HOMES, apothem, type Home } from './layout';
-import { buildWorld, placeWind, type BuiltWorld } from './world/build';
+import { buildWorld, type BuiltWorld } from './world/build';
+import { gustFx } from './world/windFx';
 import { WarFan, inCone, GUST, type FanTarget } from './weapons/WarFan';
 import { FAN_ROW } from './weapons/rows';
 import { DRIFT_RAY, DRIFT_RAY_LOOK } from './species/driftRay';
@@ -108,22 +109,19 @@ export class SkyReachPlugin extends ShardPlugin {
     ctx.system({ id: 'far.dressing', phase: 'update', run: (dt, t) => {
       const riding = this.board();
       built.hoverDeck.emissiveIntensity = riding ? 0.9 + Math.sin(t * 4) * 0.15 : 0.25; built.hoverDeck.opacity = riding ? 0.75 : 0.5;
-      built.millHub.rotation.z += dt * 0.35; built.storm.update(dt, t); placeWind(built.wind, (t * 0.35) % 1);
+      built.millHub.rotation.z += dt * 0.35; built.storm.update(dt, t); built.wind.update(t);
       for (const v of built.vanes) v.rotor.rotation.y += dt * (flags.has(vaneFlag(v.id)) ? 6 : 0.25);
     } });
 
-    // GUST: a thin wind ring leaves the fan; a vane inside the cone starts turning (step 3).
-    const ring = new Mesh(new RingGeometry(0.92, 1, 40), new MeshBasicMaterial({ color: 0xf4fbff, transparent: true, opacity: 0, side: DoubleSide, depthWrite: false, fog: false }));
-    ring.visible = false; ctx.root.add(ring); ctx.scope.own(ring.geometry); ctx.scope.own(ring.material); ctx.scope.onDispose(() => { ring.removeFromParent(); });
-    let ringAge = 1; const ringDir = new Vector3();
+    // GUST: a cone of wind streaks and petals leaves the fan (style bible §7); a vane inside the cone starts turning (step 3).
+    const fxRandom = ctx.app.rng.stream('cosmetic'), gustView = gustFx(() => fxRandom.next());
+    for (const o of gustView.objects) ctx.root.add(o);
+    ctx.scope.onDispose(() => { gustView.dispose(); });
     fan.onGust = (from, dir) => {
-      ringAge = 0; ringDir.copy(dir); ring.position.copy(from).addScaledVector(dir, 1.6); ring.lookAt(from.clone().addScaledVector(dir, 4)); rt?.play?.cues.charge(FAN_ROW, 'heavy');
+      gustView.fire(from.clone().addScaledVector(dir, 0.2).setY(from.y - 0.25), dir); rt?.play?.cues.charge(FAN_ROW, 'heavy');
       this.gustVanes(from, dir, toast);
     };
-    ctx.system({ id: 'far.gust', phase: 'update', run: (dt) => {
-      ringAge += dt; const k = Math.min(1, ringAge / 0.45); ring.visible = k < 1;
-      if (ring.visible) { ring.position.addScaledVector(ringDir, dt * 14); ring.scale.setScalar(0.6 + k * 3.2); ring.material.opacity = 0.32 * (1 - k); }
-    } });
+    ctx.system({ id: 'far.gust', phase: 'update', run: (dt) => { gustView.update(dt); } });
 
     // Creatures: each one knows its home (an island or a flying circle).
     const animals = rt?.play?.animals;

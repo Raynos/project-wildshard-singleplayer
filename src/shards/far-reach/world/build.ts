@@ -1,6 +1,6 @@
 import { boxDesc, type ColliderDesc, type Interactable } from '#engine';
 import type { ShardContext } from '#game';
-import { DoubleSide, Group, InstancedMesh, Matrix4, MeshBasicMaterial, Quaternion, RingGeometry, Vector3, type MeshStandardMaterial, type Object3D } from 'three';
+import { Group, Vector3, type MeshStandardMaterial, type Object3D } from 'three';
 import { CROWN, DAIS, FALLEN_BRIDGE, ISLES, WINDMILL, MILL, NOTES, PINES, SPANS, UPDRAFT, VANES, WINCH, apothem, type Isle, type Span } from '../layout';
 import { STRINGS } from '../strings';
 import { dressIslands } from './dressing';
@@ -8,6 +8,7 @@ import { skyline } from './distant';
 import { PALETTE, crownRuin, flat, islandMesh, lectern, pines, plankBridge, vane, windmill, winch } from './shapes';
 import { ownPrimitives } from './resources';
 import { STORM, crownStorm, type CrownStorm } from './storm';
+import { updraftFx, type UpdraftFx } from './windFx';
 import { SUN_DIR } from '../look/sun';
 import { bakeSeaTexture } from '../look/cloudSea';
 
@@ -58,8 +59,8 @@ const spanYaw = (span: Span): number => Math.atan2(-(span.x1 - span.x0), -(span.
 export interface BuiltWorld {
   /** The hover decks' shared material: the plugin brightens it while the player rides the board. */
   readonly hoverDeck: MeshStandardMaterial;
-  /** The updraft's wind rings (instanced); the plugin scrolls them upward. */
-  readonly wind: InstancedMesh;
+  /** The updraft's wind spiral; the plugin turns it. */
+  readonly wind: UpdraftFx;
   /** The fallen bridge's pivot on the step's rim; rotation.x runs from FALLEN_ANGLE (hanging) to 0 (raised). */
   readonly fallen: Object3D;
   readonly millHub: Object3D;
@@ -107,8 +108,9 @@ export function buildWorld(ctx: ShardContext, isBoard: () => boolean): BuiltWorl
   // The updraft: a board-only rising wind ramp (a hover deck tilted up the wind column) from the windmill isle to the step.
   const ramp = plankBridge(UPDRAFT_LENGTH, UPDRAFT.width, hoverDeck, null);
   ramp.position.set(UPDRAFT.x, UPDRAFT.y0, UPDRAFT.z0); ramp.rotation.x = UPDRAFT_ANGLE; root.add(ramp);
-  const rings = 8, wind = new InstancedMesh(new RingGeometry(2.75, 2.88, 24), new MeshBasicMaterial({ color: 0xf6fdff, transparent: true, opacity: 0.14, side: DoubleSide, depthWrite: false }), rings);
-  wind.frustumCulled = false; root.add(wind); placeWind(wind, 0);
+  // the wind column: a spiral of streaks and leaves up the ramp (loop 3; the plugin turns it)
+  const wind = updraftFx(new Vector3(UPDRAFT.x, UPDRAFT.y0 + 2.2, UPDRAFT.z0), new Vector3(UPDRAFT.x, UPDRAFT.y1 + 2.2, UPDRAFT.z1));
+  for (const o of wind.objects) root.add(o); wind.update(0);
   ctx.piece({ id: 'far.updraft', name: STRINGS.updraft, category: 'buildings', file: FILE, object: ramp, colliders: [updraftCollider()], surface: 'wood', active: isBoard });
 
   // The fallen bridge hangs from its pivot until the winch raises it; it collides only once it is fully up.
@@ -153,16 +155,4 @@ export function buildWorld(ctx: ShardContext, isBoard: () => boolean): BuiltWorl
 
   ctx.root.add(root); ownPrimitives(root, ctx.scope);
   return { hoverDeck, wind, fallen, millHub: mill.hub, storm, vanes, winch: handle, winchAt, notes, notesAt, state };
-}
-
-const m = new Matrix4(), q = new Quaternion(), pos = new Vector3(), one = new Vector3(1, 1, 1), up = new Vector3(1, 0, 0);
-/** Scroll the updraft's rings up the ramp; `phase` runs 0…1. */
-export function placeWind(wind: InstancedMesh, phase: number): void {
-  q.setFromAxisAngle(up, UPDRAFT_ANGLE);
-  for (let i = 0; i < wind.count; i++) {
-    const f = ((i + phase) / wind.count) % 1;
-    pos.set(UPDRAFT.x, UPDRAFT.y0 + 2.4 + f * (UPDRAFT.y1 - UPDRAFT.y0), UPDRAFT.z0 + f * (UPDRAFT.z1 - UPDRAFT.z0));
-    m.compose(pos, q, one.setScalar(0.8 + 0.4 * Math.sin(f * Math.PI))); wind.setMatrixAt(i, m);
-  }
-  wind.instanceMatrix.needsUpdate = true;
 }

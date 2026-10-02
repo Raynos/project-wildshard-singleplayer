@@ -51,9 +51,9 @@ const FRAGMENT = /* glsl */`
     c += ${hex(STORM_COLORS.bolt)} * flash * (exp(-r * 3.5) * 1.4 + 0.25) * (0.4 + dens);
     // haze with distance (the scene fog's warm rose): from the spawn the storm is a soft bruise, not a lid
     float dist = length(wp - cameraPosition);
-    float haze = smoothstep(100.0, 300.0, dist);
-    c = mix(c, ${hex(STORM_COLORS.haze)}, haze * 0.68);
-    gl_FragColor = vec4(c, alpha * (1.0 - haze * 0.6));
+    float haze = smoothstep(90.0, 260.0, dist);
+    c = mix(c, ${hex(STORM_COLORS.haze)}, haze * 0.7);
+    gl_FragColor = vec4(c, alpha * (1.0 - haze * 0.72));
   }`;
 
 const VERTEX = /* glsl */`
