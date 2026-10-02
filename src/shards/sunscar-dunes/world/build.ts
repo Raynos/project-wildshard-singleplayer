@@ -63,7 +63,7 @@ export function buildWorld(ctx: ShardContext, flags: Flags): SignalWorld {
     if (lift.raised) return false;
     lift.raised = true; wellSpot.label = STRINGS.takeOil; return true;
   } };
-  if (flags.has(FLAG.oil)) { wellParts.jar.visible = false; wellSpot.label = STRINGS.oilTaken; wellParts.bucket.position.y = 1.85 - 0.5; }
+  if (flags.has(FLAG.oil)) { wellParts.jar.visible = false; wellSpot.label = STRINGS.oilTaken; wellParts.bucket.position.y = 1.85 - 0.5; wellParts.rope.scale.y = 0.2; }
 
   // The braziers: pour oil by hand, light with a crack.
   const braziers: Brazier[] = BRAZIERS.map((b, i) => {
@@ -104,15 +104,15 @@ export function buildWorld(ctx: ShardContext, flags: Flags): SignalWorld {
   const crackables: Crackable[] = [
     { at: wellParts.crankAt, radius: 0.8, crack: (heavy, second) => {
       if (well.raised) return false;
-      if (!heavy || !second) { toast(ctx, STRINGS.pullHint); return true; }
-      return well.pull();
+      if (!heavy) { toast(ctx, STRINGS.pullHint); return true; }
+      return second ? well.pull() : true; // the double crack's first lash wraps the crank, the second pulls
     } },
-    ...braziers.map((b): Crackable => ({ at: b.parts.bowlAt, radius: 0.9, crack: () => b.light() })),
+    ...braziers.map((b): Crackable => ({ at: b.parts.bowlAt, radius: 1.2, crack: () => b.light() })),
   ];
   ownPrimitives(ctx.root, ctx.scope);
   ctx.system({ id: 'sunscar.fire', phase: 'update', run: (dt, t) => {
     // The bucket rides up over 1.2 s once pulled.
-    if (well.raised && lift.t < 1) { lift.t = Math.min(1, lift.t + dt / 1.2); wellParts.bucket.position.y = 1.85 - wellParts.drop + (wellParts.drop - 0.5) * lift.t; wellParts.crank.rotation.x = lift.t * 12; }
+    if (well.raised && lift.t < 1) { lift.t = Math.min(1, lift.t + dt / 1.2); wellParts.bucket.position.y = 1.85 - wellParts.drop + (wellParts.drop - 0.5) * lift.t; wellParts.rope.scale.y = 1 - lift.t * 0.8; wellParts.crank.rotation.x = lift.t * 12; }
     for (const [i, b] of braziers.entries()) if (b.lit) { const f = 1 + Math.sin(t * 11 + i) * 0.07 + Math.sin(t * 23 + i * 2) * 0.05; b.parts.fire.scale.set(1, f, 1); }
     if (!fire.lit) return;
     const flick = 1 + Math.sin(t * 13) * 0.06 + Math.sin(t * 29 + 1.3) * 0.04;

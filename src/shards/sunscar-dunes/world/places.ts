@@ -54,7 +54,7 @@ export function buildCaravan(groundAt: (x: number, z: number) => number): Carava
   return { root, colliders, logbookAt, logbook };
 }
 
-export interface WellParts { root: Group; colliders: ColliderDesc[]; bucket: Group; jar: Mesh; crank: Mesh; crankAt: Vector3; jarAt: Vector3; drop: number }
+export interface WellParts { root: Group; colliders: ColliderDesc[]; bucket: Group; rope: Mesh; jar: Mesh; crank: Mesh; crankAt: Vector3; jarAt: Vector3; drop: number }
 
 /**
  * The dry well: a ring of 12 dressed stones, two posts and a windlass with a crank (the whip's pull target), the rope
@@ -79,10 +79,11 @@ export function buildWell(groundAt: (x: number, z: number) => number): WellParts
   const axle = new Mesh(new CylinderGeometry(0.12, 0.12, R * 2 + 0.3, 8), dark); axle.rotation.z = Math.PI / 2; at(axle, 0, 2.05, 0, root);
   const crank = box(0.07, 0.6, 0.07, mat(IRON, { metalness: 0.4 })); at(crank, R + 0.32, 1.85, 0, root);
   const drop = 2.6, bucket = new Group(); bucket.position.set(0, 1.85 - drop, 0); root.add(bucket);
-  const rope = new Mesh(new CylinderGeometry(0.02, 0.02, drop, 4), mat(0x6b5236)); rope.position.y = drop / 2; bucket.add(rope);
+  const ropeGeo = new CylinderGeometry(0.02, 0.02, drop, 4); ropeGeo.translate(0, drop / 2, 0);
+  const rope = new Mesh(ropeGeo, mat(0x6b5236)); bucket.add(rope); // grows from the bucket up to the axle; scaled down as it winds
   const pail = new Mesh(new CylinderGeometry(0.26, 0.2, 0.36, 8, 1, true), wood); pail.material.side = DoubleSide; bucket.add(pail);
   const jar = new Mesh(new SphereGeometry(0.17, 8, 6), mat(CLAY)); jar.scale.set(1, 1.3, 1); jar.position.y = 0.14; bucket.add(jar);
-  return { root, colliders, bucket, jar, crank, crankAt: new Vector3(WELL.x + R + 0.32, y + 1.85, WELL.z), jarAt: new Vector3(WELL.x, y + 1.0, WELL.z), drop };
+  return { root, colliders, bucket, rope, jar, crank, crankAt: new Vector3(WELL.x + R + 0.32, y + 1.85, WELL.z), jarAt: new Vector3(WELL.x, y + 1.0, WELL.z), drop };
 }
 
 export interface BrazierParts { root: Group; colliders: ColliderDesc[]; fire: Group; glow: Mesh; bowlAt: Vector3; oil: Mesh }
