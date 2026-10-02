@@ -696,6 +696,7 @@ const ORIGINAL = [
       "seed": 1337,
       "treeCount": 2600,
       "biome": "Boreal pine forest",
+      "earlyAccess": true,
       "blurb": "A photoreal boreal forest, from dawn fog to lantern-lit night. Hunt deer, boar, elk and bear through the pines, relight the ranger's three dark waystone lanterns and face the Antler King in the old-growth — his thralls walk the fog until dawn.",
       "thumbnail": "/src/chunks/thumbs/pine-hollow.jpg",
       "heroPortrait": "/src/chunks/thumbs/pine-hollow-portrait.jpg",

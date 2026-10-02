@@ -94,7 +94,7 @@ function canEnter(card: TitleCard): boolean {
 function hintFor(card: TitleCard, active: boolean): string {
   if (!canEnter(card)) return 'Coming soon';
   if (!active) return `Loads ${card.name}`;
-  return card.badge === 'Early access' ? 'Early access' : card.badge === 'Experimental' ? 'Experimental · rough edges' : 'Play';
+  return card.badge === 'Early access' ? 'Early access' : card.badge === 'Experimental' ? 'Developer only' : 'Play'; // Jake: experimental shards enter only in developer mode
 }
 
 export function buildTitleDeck(opts: TitleDeckOptions): TitleDeck {
