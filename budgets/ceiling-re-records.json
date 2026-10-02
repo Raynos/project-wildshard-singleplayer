@@ -1,7 +1,7 @@
 {
   "ask": "E357",
   "approvedBy": "wildshard-9",
-  "approval": "lead, R9 = Jake's preload rule; retain the prior G6 lantern re-records. Desktop Pine people uploaded before the first frame (lead approval 2026-10-01). E357 Z3/E374 content, lead-approved first measurement of the final builds. E374 Sky Reach loop 2, lead-approved polish: the meadow (grass, flowers, stones, roots), 14 skyline islands with waterfalls and the fan rebuilt in a gloved hand upload behind the loading screen.",
+  "approval": "lead, R9 = Jake's preload rule; retain the prior G6 lantern re-records. Desktop Pine people uploaded before the first frame (lead approval 2026-10-01). E357 Z3/E374 content, lead-approved first measurement of the final builds. E374 Sky Reach loop 2, lead-approved polish: the meadow (grass, flowers, stones, roots), 14 skyline islands with waterfalls and the fan rebuilt in a gloved hand upload behind the loading screen. E374 Signal Dunes loop 1, lead-approved polish: the fire, ember and smoke shaders, the rim/shade-floor patches and the round-1 dune terrain.",
   "entries": [
     {
       "shard": "pine-hollow",
@@ -40,16 +40,16 @@
       "tier": "phone",
       "metric": "gpuMB",
       "source": "budgets/calibration-reports/sunscar-dunes.phone.json",
-      "commit": "a28af631097f6f41bb92e0621c5d1a537054a804",
-      "reason": "E357 Z3/E374 content, lead-approved first measurement of the final builds"
+      "commit": "d7cf518d10a1305fe352636214b5b552663eb59a",
+      "reason": "E374 Signal Dunes loop 1, lead-approved polish: the fire, ember and smoke shaders, the rim/shade-floor patches and the round-1 dune terrain"
     },
     {
       "shard": "sunscar-dunes",
       "tier": "desktop",
       "metric": "gpuMB",
       "source": "budgets/calibration-reports/sunscar-dunes.desktop.json",
-      "commit": "a28af631097f6f41bb92e0621c5d1a537054a804",
-      "reason": "E357 Z3/E374 content, lead-approved first measurement of the final builds"
+      "commit": "d7cf518d10a1305fe352636214b5b552663eb59a",
+      "reason": "E374 Signal Dunes loop 1, lead-approved polish: the fire, ember and smoke shaders, the rim/shade-floor patches and the round-1 dune terrain"
     },
     {
       "shard": "far-reach",
