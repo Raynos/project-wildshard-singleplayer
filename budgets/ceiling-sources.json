@@ -1688,15 +1688,15 @@
       "tier": "phone",
       "metric": "gpuMB",
       "source": "budgets/calibration-reports/far-reach.phone.json",
-      "commit": "5297a6eb18d902561a7e916215ba32b37f6cdfa0",
-      "reason": "E374 Sky Reach loop 5, measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer): the council round-1 fixes: crag islands (72-segment rims, ledged keels, rim crags), the code-built tower mill, the gloved hand, three-segment meadow blades",
+      "commit": "ae9db7f831e24851ef542c7452984b7daf2623f9",
+      "reason": "E374 Sky Reach loop 5, measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer): the lit cumulus billboards over the cloud sea (260 instances) on top of the council round-1 fixes",
       "ask": "E357",
       "approvedBy": "wildshard-9",
-      "approval": "E374 Sky Reach loop 5, measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer): the council round-1 fixes: crag islands (72-segment rims, ledged keels, rim crags), the code-built tower mill, the gloved hand, three-segment meadow blades",
-      "captureSha": "5297a6eb18d902561a7e916215ba32b37f6cdfa0",
-      "captureSha256": "923e7c0994c9b43c41cfd98029235bc20d40db9cbaa0770be82cf91352a6d68e",
+      "approval": "E374 Sky Reach loop 5, measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer): the lit cumulus billboards over the cloud sea (260 instances) on top of the council round-1 fixes",
+      "captureSha": "ae9db7f831e24851ef542c7452984b7daf2623f9",
+      "captureSha256": "59ace8f6a6c866f6b338972cd5d16e17bf02d97f7e3e0f1ae7f72eb835a547ef",
       "ceilings": {
-        "far-reach.phone.current.gpuMB": 94.7627258300782
+        "far-reach.phone.current.gpuMB": 94.76653671264648
       }
     },
     {
@@ -1704,15 +1704,15 @@
       "tier": "desktop",
       "metric": "gpuMB",
       "source": "budgets/calibration-reports/far-reach.desktop.json",
-      "commit": "5297a6eb18d902561a7e916215ba32b37f6cdfa0",
-      "reason": "E374 Sky Reach loop 5, measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer): the council round-1 fixes: crag islands (72-segment rims, ledged keels, rim crags), the code-built tower mill, the gloved hand, three-segment meadow blades",
+      "commit": "ae9db7f831e24851ef542c7452984b7daf2623f9",
+      "reason": "E374 Sky Reach loop 5, measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer): the lit cumulus billboards over the cloud sea (260 instances) on top of the council round-1 fixes",
       "ask": "E357",
       "approvedBy": "wildshard-9",
-      "approval": "E374 Sky Reach loop 5, measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer): the council round-1 fixes: crag islands (72-segment rims, ledged keels, rim crags), the code-built tower mill, the gloved hand, three-segment meadow blades",
-      "captureSha": "5297a6eb18d902561a7e916215ba32b37f6cdfa0",
-      "captureSha256": "c244323d68b00984cfe84d1c2a2ed8629333aa4f60d0a3cbccd4171007d62a33",
+      "approval": "E374 Sky Reach loop 5, measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer): the lit cumulus billboards over the cloud sea (260 instances) on top of the council round-1 fixes",
+      "captureSha": "ae9db7f831e24851ef542c7452984b7daf2623f9",
+      "captureSha256": "9ab284d7473ff5ed1d58b3774d5cbd0feb6ffc0444fbe2c81bca0f9165a73aef",
       "ceilings": {
-        "far-reach.desktop.current.gpuMB": 199.330810546875
+        "far-reach.desktop.current.gpuMB": 199.33462142944336
       }
     }
   ]
