@@ -64,6 +64,10 @@ export function skyDome(pano: Texture, haze: Texture): Mesh<SphereGeometry, Shad
         // islands must stay simpler than the playable ones in front of them)
         float band = smoothstep(-1.5, 1.0, elev) * (1.0 - smoothstep(9.0, 22.0, elev));
         c = mix(c, texture2D(haze, vec2(farHeading(n), 0.5)).rgb, band * 0.15);
+        // less magenta (E392 judge: the mockups' sky is gold low and lavender-blue high, ours pink-magenta)
+        float mag = max(0.0, min(c.r, c.b) - c.g);
+        c.g += mag * 0.55; c.b -= mag * 0.25 * (1.0 - smoothstep(4.0, 30.0, elev));
+        c = mix(c, c * vec3(0.92, 0.97, 1.08), smoothstep(14.0, 40.0, elev) * 0.6);
         c = mix(c, ${srgb(zr, zg, zb)}, smoothstep(0.05, -0.12, vTop));
         c = mix(c, ${srgb(nr, ng, nb)}, smoothstep(0.95, 1.1, vTop));
         gl_FragColor = vec4(c, 1.0);

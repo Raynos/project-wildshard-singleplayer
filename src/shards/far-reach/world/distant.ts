@@ -9,7 +9,8 @@ import { SKY_ISLES } from './skyIsles';
  * radians (0 = +x), length].
  */
 const FALLS: readonly (readonly [isle: string, angle: number, length: number])[] = [
-  ['windmill', Math.PI, 60], ['grove', Math.PI * 0.75, 44], ['ruin', 0.2, 50], ['keeper', Math.PI * 1.15, 40], ['crown', Math.PI * 1.55, 70],
+  ['windmill', Math.PI, 60], ['windmill', Math.PI * 0.25, 46], ['grove', Math.PI * 0.75, 44], ['grove', Math.PI * 1.6, 38], ['ruin', 0.2, 50], ['ruin', Math.PI * 1.3, 40],
+  ['keeper', Math.PI * 1.15, 40], ['keeper', Math.PI * 0.4, 34], ['crown', Math.PI * 1.55, 70], ['crown', Math.PI * 0.9, 60], ['roost', Math.PI * 0.35, 42], ['step', Math.PI * 1.05, 50], ['sunrest', Math.PI * 1.25, 46],
 ];
 
 /** A falling sheet: white at the lip fading to nothing far below (vertex alpha), a slight outward bow. */

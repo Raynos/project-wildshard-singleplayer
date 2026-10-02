@@ -16,7 +16,7 @@ import { DECK, ISLES, SPANS, SPAWN, apothem, type Isle } from '../layout';
  * Placement uses its own seeded generator, not the level's cosmetic stream (whose order the islands already consume).
  */
 /** `handoff`: the camera distance (m) over which a clump grows back in, where the near meadow's blades thin out (MEADOW.range). */
-export const DRESS = { clumpsPerM2: 0.5, flowersPerM2: 0.08, stonesPerIsle: 9, rootsPerM: 0.9, cragsPerIsle: 7, bridgeClear: 0.3, handoff: [15, 22] } as const;
+export const DRESS = { clumpsPerM2: 1.1, flowersPerM2: 0.14, stonesPerIsle: 9, rootsPerM: 2.2, cragsPerIsle: 4, bridgeClear: 0.3, handoff: [15, 22] } as const;
 
 function seeded(seed: number): () => number {
   let a = seed >>> 0;
@@ -91,7 +91,7 @@ export function dressIslands(isles: readonly Isle[] = ISLES, seed = 6417, landin
     const ap = apothem(isle), area = Math.PI * ap * ap;
     const inside = (k: number): [number, number] => { const r = ap * Math.sqrt(rnd()) * k, a = rnd() * Math.PI * 2; return [isle.x + Math.cos(a) * r, isle.z + Math.sin(a) * r]; };
     for (let i = 0; i < area * DRESS.clumpsPerM2; i++) {
-      const [x, z] = inside(0.96); if (onLane(x, z) && rnd() < 0.85) continue;
+      const [x, z] = inside(1.0); if (onLane(x, z) && rnd() < 0.85) continue;
       clumps.push({ x, y: isle.y, z, s: 0.45 + rnd() * 0.5, yaw: rnd() * 6.28 });
     }
     for (let i = 0; i < area * DRESS.flowersPerM2; i++) {
@@ -112,8 +112,9 @@ export function dressIslands(isles: readonly Isle[] = ISLES, seed = 6417, landin
     }
     const ring = Math.round(2 * Math.PI * isle.r * DRESS.rootsPerM);
     for (let i = 0; i < ring; i++) {
-      const a = (i / ring) * Math.PI * 2 + rnd() * 0.2, r = isle.r * (0.9 + rnd() * 0.06);
-      roots.push({ x: isle.x + Math.cos(a) * r, y: isle.y - 1.1, z: isle.z + Math.sin(a) * r, s: 1.5 + rnd() * 4.5, yaw: rnd() * 6.28 });
+      // just outside the lip, so they drape down the outside of the keel instead of inside its bulge
+      const a = (i / ring) * Math.PI * 2 + rnd() * 0.2, r = isle.r * (0.99 + rnd() * 0.06);
+      roots.push({ x: isle.x + Math.cos(a) * r, y: isle.y - 0.9, z: isle.z + Math.sin(a) * r, s: 1.5 + rnd() ** 1.8 * isle.keel * 0.28, yaw: rnd() * 6.28 });
     }
   }
   // boulders at every rope landing (mockup A: rocks and flowers round the bridge posts), either side of the lane
@@ -131,7 +132,7 @@ export function dressIslands(isles: readonly Isle[] = ISLES, seed = 6417, landin
     }
   }
   // the spawn meadow's boulders (E392, mockup A): a few mossy rocks in the lower third, off the walk to the bridge
-  if (landings) for (const [dx, dz, sc] of [[-3.2, -3.4, 1.8], [-4.6, -1.2, 1.4], [3.6, -2.6, 1.5], [5.2, -5.4, 2], [-2.4, 0.6, 1.1]] as const) {
+  if (landings) for (const [dx, dz, sc] of [[-3.4, -6.4, 1.3], [-5.2, -4.8, 1.0], [3.7, -6.0, 1.15], [5.6, -4.2, 1.4], [-6.4, -7.6, 0.8]] as const) {
     stones.push({ x: SPAWN.x + dx, y: DECK - 0.2, z: SPAWN.z + dz, s: sc, yaw: rnd() * 6.28 });
     flowers.push({ x: SPAWN.x + dx + 0.8, y: DECK, z: SPAWN.z + dz + 0.6, s: 1, yaw: rnd() * 6.28, c: 0xf2cf55 });
   }
@@ -155,10 +156,10 @@ export function dressIslands(isles: readonly Isle[] = ISLES, seed = 6417, landin
   place(flowerMesh, flowers); const fc = new Color(); flowers.forEach((f, i) => { flowerMesh.setColorAt(i, fc.setHex(f.c)); });
   place(new InstancedMesh(stoneGeometry(), new MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.95, metalness: 0 }), stones.length), stones, 0.55);
   // a strand 1 m long, tip down: its wide end at y 0 hangs from the rim band; instances stretch it to their length
-  const strand = new ConeGeometry(0.11, 1, 4, 1, true); strand.rotateX(Math.PI); strand.translate(0, -0.5, 0);
+  const strand = new ConeGeometry(0.16, 1, 5, 1, true); strand.rotateX(Math.PI); strand.translate(0, -0.5, 0);
   // roots and vines: dark roots with moss-green vine strands among them
   const rootMesh = new InstancedMesh(strand, new MeshStandardMaterial({ color: 0xffffff, roughness: 1, metalness: 0, side: DoubleSide }), roots.length);
   place(rootMesh, roots, 1, true);
-  const rc = new Color(); roots.forEach((_, i) => { rootMesh.setColorAt(i, rc.setHex(i % 3 === 0 ? 0x5f7a34 : 0x5b4a33)); });
+  const rc = new Color(); roots.forEach((_, i) => { rootMesh.setColorAt(i, rc.setHex(i % 5 < 3 ? (i % 2 ? 0x5f7a34 : 0x6f8a3c) : 0x5b4a33)); });
   return { group, meshes };
 }

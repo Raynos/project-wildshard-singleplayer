@@ -8,20 +8,27 @@ import { InstancedBufferAttribute, InstancedBufferGeometry, Mesh, PlaneGeometry,
  * across the archipelago never looks through a cloud) and thin out with distance into the painted panorama's sea.
  * Without the atlas (offline, a test page) the field is not built. Seeded: every load grows the same sky.
  */
-export const PUFFS = { count: 420, ring: [15, 560], y: [-30, -6], size: [18, 46], fade: [520, 820], centre: [0, -100], cells: [4, 2] } as const;
+/** `spiral`: puffs laid on three log-spiral arms round the storm crown, under its deck (the H4 god-view targets). */
+export const PUFFS = { spiral: { count: 180, x: 0, z: -190, y: [-14, 4], r: [30, 125] }, count: 420, ring: [15, 560], y: [-30, -6], size: [18, 46], fade: [520, 820], centre: [0, -100], cells: [4, 2] } as const;
 
 export function cumulus(sun: Vector3, atlas: Texture): Mesh<InstancedBufferGeometry, ShaderMaterial> {
   let a = 9317 >>> 0;
   const rnd = (): number => { a = (a + 0x6d2b79f5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
   const base = new PlaneGeometry(2, 2), g = new InstancedBufferGeometry();
   g.index = base.index; g.setAttribute('position', base.getAttribute('position')); g.setAttribute('uv', base.getAttribute('uv'));
-  const n = PUFFS.count, at = new Float32Array(n * 4), cell = new Float32Array(n * 2);
+  const ns = PUFFS.spiral.count, n = PUFFS.count + ns, at = new Float32Array(n * 4), cell = new Float32Array(n * 2);
   for (let i = 0; i < n; i++) {
     const ang = rnd() * Math.PI * 2, r = PUFFS.ring[0] + (PUFFS.ring[1] - PUFFS.ring[0]) * Math.sqrt(rnd());
     const size = PUFFS.size[0] + (PUFFS.size[1] - PUFFS.size[0]) * rnd() ** 1.3;
     at.set([PUFFS.centre[0] + Math.cos(ang) * r, PUFFS.y[0] + (PUFFS.y[1] - PUFFS.y[0]) * rnd(), PUFFS.centre[1] + Math.sin(ang) * r, size], i * 4);
     const k = Math.floor(rnd() * PUFFS.cells[0] * PUFFS.cells[1]);
     cell.set([k % PUFFS.cells[0], Math.floor(k / PUFFS.cells[0])], i * 2);
+  }
+  for (let i = 0; i < ns; i++) {
+    const k = PUFFS.count + i, f = i / ns, arm = i % 3, rr = PUFFS.spiral.r[0] + (PUFFS.spiral.r[1] - PUFFS.spiral.r[0]) * f;
+    const ang = arm * (Math.PI * 2 / 3) + Math.log(rr / PUFFS.spiral.r[0]) * 2.6 + (rnd() - 0.5) * 0.35;
+    at.set([PUFFS.spiral.x + Math.cos(ang) * rr, PUFFS.spiral.y[0] + (PUFFS.spiral.y[1] - PUFFS.spiral.y[0]) * (1 - f) * rnd(), PUFFS.spiral.z + Math.sin(ang) * rr, 14 + rnd() * 18 + f * 18], k * 4);
+    const c = Math.floor(rnd() * PUFFS.cells[0] * PUFFS.cells[1]); cell.set([c % PUFFS.cells[0], Math.floor(c / PUFFS.cells[0])], k * 2);
   }
   g.setAttribute('aAt', new InstancedBufferAttribute(at, 4)); g.setAttribute('aCell', new InstancedBufferAttribute(cell, 2)); g.instanceCount = n;
   const material = new ShaderMaterial({ transparent: true, depthWrite: false, fog: false,
@@ -50,6 +57,9 @@ export function cumulus(sun: Vector3, atlas: Texture): Mesh<InstancedBufferGeome
         if (alpha < 0.01) discard;
         // un-premultiply the black matte, then a touch of rim gold when the sun is behind the cloud
         vec3 c = t / max(body, 0.35);
+        // more depth: lavender in the shaded bellies, the lit crowns kept (the targets' billows read one by one)
+        float lit = smoothstep(0.35, 0.85, dot(c, vec3(0.3, 0.59, 0.11)));
+        c = mix(c * vec3(0.72, 0.68, 0.86), c * 1.08, lit);
         c += vec3(1.0, 0.78, 0.45) * pow(vToSun, 6.0) * (1.0 - smoothstep(0.3, 0.7, lum)) * 0.5;
         gl_FragColor = vec4(c, alpha);
       }` });

@@ -10,7 +10,7 @@ import { AdditiveBlending, BufferGeometry, Color, DoubleSide, Float32BufferAttri
  * from the spawn it reads as a far bruise over the crown, not a lid over the sun.
  */
 /** `gather`: the camera's distance from the crown (m) over which the storm fades in (from the step's rim to past the windmill isle). */
-export const STORM = { lift: 23, radius: 92, gather: [80, 150], layers: [{ dy: 0, r: 1, spin: 0.045, twist: 4.4 }, { dy: 7, r: 1.2, spin: -0.028, twist: 3.0 }] } as const;
+export const STORM = { lift: 23, radius: 92, gather: [40, 85], layers: [{ dy: 0, r: 1, spin: 0.045, twist: 4.4 }, { dy: 7, r: 1.2, spin: -0.028, twist: 3.0 }] } as const;
 
 function hex(value: number): string { const c = new Color(value); return `vec3(${c.r.toFixed(4)},${c.g.toFixed(4)},${c.b.toFixed(4)})`; }
 /** The storm's palette (sRGB): belly, mid, the gold of the lit edges, the violet-white of the lightning, the haze it melts into. */
@@ -58,15 +58,15 @@ const FRAGMENT = /* glsl */`
     float near = smoothstep(3.0, 16.0, abs(wp.y - cameraPosition.y));
     // loop 4: it belongs to the crown. Seen from the far islands it is only a faint bruise over the crown, so the painted
     // sky stays open from the spawn; it gathers as you come near (the high step, the crown bridge, the arena)
-    float approach = 1.0 - smoothstep(${STORM.gather[0].toFixed(1)}, ${STORM.gather[1].toFixed(1)}, length(cameraPosition.xz - centre.xz)) * 0.45;
+    float approach = 1.0 - smoothstep(${STORM.gather[0].toFixed(1)}, ${STORM.gather[1].toFixed(1)}, length(cameraPosition.xz - centre.xz)) * 0.9;
     // seen from above (the E392 god-view targets) it is a sunlit cumulus spiral, the crown clear in its eye: the billows'
     // crowns cream-gold, the hollows lavender, the eye open
-    float above = smoothstep(4.0, 22.0, cameraPosition.y - wp.y);
+    float above = smoothstep(1.0, 9.0, cameraPosition.y - wp.y);
     vec3 billow = mix(${hex(0x9c8aa8)}, ${hex(0xfff0dc)}, smoothstep(0.25, 0.85, lit * 0.6 + (1.0 - dens) * 0.2 + arms * 0.3));
     billow = mix(billow, ${hex(STORM_COLORS.gold)}, pow(sunSide, 2.0) * 0.35);
     c = mix(c, billow, above);
     float eyeOpen = mix(1.0, smoothstep(0.18, 0.4, r), above);
-    gl_FragColor = vec4(c, alpha * (1.0 - haze * 0.72 * (1.0 - above)) * near * approach * eyeOpen * mix(1.0, 0.9, above));
+    gl_FragColor = vec4(c, alpha * (1.0 - haze * 0.72) * near * approach * (1.0 - above));
   }`;
 
 const VERTEX = /* glsl */`
