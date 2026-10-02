@@ -52,7 +52,8 @@ export class SkyReachPlugin extends ShardPlugin {
     ctx.rows.species([DRIFT_RAY, SKY_GOAT, GALE_WISP, STORM_ROC]); ctx.rows.speciesLook([DRIFT_RAY_LOOK, SKY_GOAT_LOOK, GALE_WISP_LOOK, STORM_ROC_LOOK]);
     ctx.rows.encounter({ id: ROC_ID, displayName: STRINGS.roc });
     const rt = ctx.game.runtime;
-    const targets = (): readonly FanTarget[] => (rt?.play?.animals.animals ?? []).map((a) => ({ position: a.position, actor: a.combatActor(), impulse: (v: Vector3) => { a.impulse(v); } }));
+    // The shared combat-target query (ENGINE §19): world creatures in play, the Practice Arena's dummies while it is open.
+    const targets = (): readonly FanTarget[] => ctx.app.combat.targets().filter((t) => t.hittable);
     this.fan = new WarFan(ctx.app, targets);
     if (rt) rt.buildEquipment = () => {
       const fan = this.fan; if (fan === null) throw new Error('Sky Reach: the war fan was not built');
