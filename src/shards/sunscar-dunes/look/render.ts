@@ -37,7 +37,9 @@ export function signalDunesLook(): LookStrategy {
     backdrop: ({ sky }) => {
       const clock = duskClock();
       return Promise.resolve({ clock, horizon: new Color(FOG.color), lut: null, clouds: dome,
-        bind: () => undefined, update: () => { sky.setKeyLight(KEY.dir, KEY.color, KEY.intensity); },
+        // Hide the disc mesh too: `sun.disc: false` only hides its material, and three still uploads (counts) the geometry
+        // of a visible mesh whose material is hidden, so the disc's sphere outlived the level (the phone leak check).
+        bind: (targets) => { targets.disc.visible = false; }, update:() => { sky.setKeyLight(KEY.dir, KEY.color, KEY.intensity); },
         rebuild: () => undefined, attachPost: () => undefined });
     },
     terrainPainter: { build: (terrain, field, scope) => {
