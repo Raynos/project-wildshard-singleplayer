@@ -108,7 +108,7 @@ export class SkyReachPlugin extends ShardPlugin {
     ctx.system({ id: 'far.dressing', phase: 'update', run: (dt, t) => {
       const riding = this.board();
       built.hoverDeck.emissiveIntensity = riding ? 0.9 + Math.sin(t * 4) * 0.15 : 0.25; built.hoverDeck.opacity = riding ? 0.75 : 0.5;
-      built.millHub.rotation.z += dt * 0.35; built.storm.rotation.y += dt * 0.05; placeWind(built.wind, (t * 0.35) % 1);
+      built.millHub.rotation.z += dt * 0.35; built.storm.update(dt, t); placeWind(built.wind, (t * 0.35) % 1);
       for (const v of built.vanes) v.rotor.rotation.y += dt * (flags.has(vaneFlag(v.id)) ? 6 : 0.25);
     } });
 

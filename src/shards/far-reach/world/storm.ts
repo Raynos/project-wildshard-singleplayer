@@ -1,0 +1,118 @@
+import { AdditiveBlending, BufferGeometry, Color, DoubleSide, Float32BufferAttribute, Group, Mesh, MeshBasicMaterial, RingGeometry, ShaderMaterial, type Texture, type Vector3 } from 'three';
+
+/**
+ * The storm crown's storm (style bible §4, loop 3): a lit, swirling vortex hung over the crown, not puffs. Two stacked
+ * cloud discs, each a procedural spiral (fbm noise twisted toward a dark eye, plus three log-spiral arms), dished so the
+ * eye sits highest; the cloud is the cloud sea's baked 64² noise, domain-warped, its billow edges lit from the sun's side.
+ * Seen from below the bellies are bruised violet; the thin edges and the sunward rim catch the low
+ * sun in gold. Lightning flickers inside the eye and a jagged bolt drops now and then. The discs cost a few kilobytes of
+ * vertices; the noise is one 64² texture (16 KB) and five fetches a pixel. With distance it melts into the warm haze, so
+ * from the spawn it reads as a far bruise over the crown, not a lid over the sun.
+ */
+export const STORM = { lift: 23, radius: 92, layers: [{ dy: 0, r: 1, spin: 0.045, twist: 4.4 }, { dy: 7, r: 1.2, spin: -0.028, twist: 3.0 }] } as const;
+
+function hex(value: number): string { const c = new Color(value); return `vec3(${c.r.toFixed(4)},${c.g.toFixed(4)},${c.b.toFixed(4)})`; }
+/** The storm's palette (sRGB): belly, mid, the gold of the lit edges, the violet-white of the lightning, the haze it melts into. */
+export const STORM_COLORS = { belly: 0x2c2240, mid: 0x6b5786, top: 0x9a86ad, gold: 0xffc27a, bolt: 0xe2d6ff, haze: 0xe9bfb4 } as const;
+
+const FRAGMENT = /* glsl */`
+  uniform sampler2D tex; uniform float time, flash, twist, spin, seed; uniform vec3 sunDir; varying vec3 wp; varying vec2 lp;
+  vec2 rot(vec2 p, float a){ float c = cos(a), s = sin(a); return vec2(c * p.x - s * p.y, s * p.x + c * p.y); }
+  void main(){
+    float r = length(lp), th = atan(lp.y, lp.x);
+    // the twist winds the field toward the eye; the whole field turns slowly, the fine octave at another rate
+    float a = twist * pow(1.0 - min(r, 1.0), 1.6) + time * spin;
+    vec2 q = rot(lp, a) * 1.35 + seed, q2 = rot(lp, a * 1.3 + time * spin * 0.7) * 3.1 - seed;
+    float w = texture2D(tex, q * 0.5 + 0.31).r;
+    vec2 qa = q + (w - 0.5) * 0.55;
+    float base = texture2D(tex, qa).r, fine = texture2D(tex, q2).r;
+    // billows lit from the sun's side: the density just sunward of here is thinner -> a bright edge
+    vec2 sunL = rot(normalize(sunDir.xz), a) * 0.035;
+    float lit = clamp((base - texture2D(tex, qa + sunL).r) * 9.0 + 0.5, 0.0, 1.0);
+    // three spiral arms (an integer multiple of the angle, so no seam), broken up by the field
+    float arms = 0.5 + 0.5 * sin(3.0 * th + 5.0 * log(r + 0.03) - time * spin * 9.0 + base * 6.0);
+    float d = base * 0.95 + fine * 0.35 + arms * 0.16 - 0.32;
+    // the eye: a clear, darker well; the rim: ragged and soft
+    float eye = smoothstep(0.05, 0.22, r + (d - 0.4) * 0.1);
+    float rim = 1.0 - smoothstep(0.6, 1.0, r + (d - 0.4) * 0.4);
+    float dens = clamp(d * 1.6, 0.0, 1.0);
+    float alpha = smoothstep(0.12, 0.5, dens) * rim * mix(0.3, 1.0, eye);
+    // colour: dark bellies, mauve body, gold on the sunlit billow edges, the sunward rim and the thin arm edges
+    vec3 V = normalize(wp - cameraPosition); float toward = max(dot(V, sunDir), 0.0);
+    vec2 out2 = r > 0.001 ? lp / r : vec2(0.0); float sunSide = max(dot(out2, normalize(sunDir.xz)), 0.0);
+    vec3 c = mix(${hex(STORM_COLORS.mid)}, ${hex(STORM_COLORS.belly)}, smoothstep(0.35, 0.95, dens));
+    c = mix(c, ${hex(STORM_COLORS.top)}, smoothstep(0.55, 1.0, r) * 0.4);
+    float thin = 1.0 - smoothstep(0.25, 0.7, dens);
+    float gold = smoothstep(0.55, 0.95, lit) * (0.35 + 0.65 * sunSide) * (0.25 + 0.75 * smoothstep(0.2, 0.9, r)) * 0.75
+      + thin * (0.2 + 0.8 * sunSide) * smoothstep(0.35, 0.95, r) * 0.7 + pow(toward, 6.0) * thin * 0.5;
+    c += ${hex(STORM_COLORS.gold)} * gold;
+    c = mix(c, ${hex(STORM_COLORS.gold)} * 0.95, pow(sunSide, 3.0) * smoothstep(0.72, 0.98, r) * 0.5);
+    // lightning: the eye and the bellies near it light violet-white
+    c += ${hex(STORM_COLORS.bolt)} * flash * (exp(-r * 3.5) * 1.4 + 0.25) * (0.4 + dens);
+    // haze with distance (the scene fog's warm rose): from the spawn the storm is a soft bruise, not a lid
+    float dist = length(wp - cameraPosition);
+    float haze = smoothstep(100.0, 300.0, dist);
+    c = mix(c, ${hex(STORM_COLORS.haze)}, haze * 0.68);
+    gl_FragColor = vec4(c, alpha * (1.0 - haze * 0.6));
+  }`;
+
+const VERTEX = /* glsl */`
+  uniform float radius, dish; varying vec3 wp; varying vec2 lp;
+  void main(){
+    vec3 p = position; lp = p.xz / radius;
+    // dished: the eye sits highest, the rim hangs low
+    p.y += dish * pow(1.0 - min(length(lp), 1.0), 2.0);
+    vec4 w = modelMatrix * vec4(p, 1.0); wp = w.xyz; gl_Position = projectionMatrix * viewMatrix * w;
+  }`;
+
+/** A jagged bolt: a crossed pair of thin ribbons along a zig-zag from the storm's base down `length` metres. */
+function boltGeometry(random: () => number, length: number): BufferGeometry {
+  const pts: [number, number, number][] = [[0, 0, 0]];
+  let x = 0, z = 0;
+  for (let i = 1; i <= 9; i++) { x += (random() - 0.5) * 4; z += (random() - 0.5) * 4; pts.push([x, -(i / 9) * length, z]); }
+  const pos: number[] = [], w = 0.35;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const a = pts[i], b = pts[i + 1]; if (a === undefined || b === undefined) continue;
+    const ww = w * (1 - i / pts.length);
+    for (const [ox, oz] of [[ww, 0], [0, ww]] as const) {
+      pos.push(a[0] - ox, a[1], a[2] - oz, a[0] + ox, a[1], a[2] + oz, b[0] + ox, b[1], b[2] + oz);
+      pos.push(a[0] - ox, a[1], a[2] - oz, b[0] + ox, b[1], b[2] + oz, b[0] - ox, b[1], b[2] - oz);
+    }
+  }
+  const g = new BufferGeometry(); g.setAttribute('position', new Float32BufferAttribute(pos, 3)); return g;
+}
+
+export interface CrownStorm {
+  readonly group: Group;
+  /** Turn the vortex and fire the lightning; `t` is the shard's play clock (seconds). */
+  readonly update: (dt: number, t: number) => void;
+  /** Strike on the next update (captures and tests use it through `__wildshard.shard.farReach`). */
+  readonly strike: () => void;
+}
+
+/** Build the storm, centred at the group's origin (place it over the crown at `STORM.lift`). */
+export function crownStorm(sun: Vector3, tex: Texture, random: () => number): CrownStorm {
+  const group = new Group(); group.name = 'far.storm';
+  const time = { value: 0 }, flash = { value: 0 };
+  STORM.layers.forEach((layer, i) => {
+    const radius = STORM.radius * layer.r, geometry = new RingGeometry(0.5, radius, 72, 10); geometry.rotateX(-Math.PI / 2);
+    const material = new ShaderMaterial({ side: DoubleSide, transparent: true, depthWrite: false, fog: false, vertexShader: VERTEX, fragmentShader: FRAGMENT,
+      uniforms: { tex: { value: tex }, time, flash, sunDir: { value: sun }, twist: { value: layer.twist }, spin: { value: layer.spin },
+        seed: { value: i * 17.3 }, radius: { value: radius }, dish: { value: 6 + i * 4 } } });
+    const mesh = new Mesh(geometry, material); mesh.position.y = layer.dy; mesh.renderOrder = 3 - i; mesh.frustumCulled = false; group.add(mesh);
+  });
+  const boltMaterial = new MeshBasicMaterial({ color: STORM_COLORS.bolt, transparent: true, opacity: 0.95, blending: AdditiveBlending, depthWrite: false, fog: false, side: DoubleSide });
+  const bolts = [0, 1, 2].map((i) => {
+    const bolt = new Mesh(boltGeometry(random, 18 + i * 6), boltMaterial); const a = random() * Math.PI * 2, rr = 8 + random() * 18;
+    bolt.position.set(Math.cos(a) * rr, 2, Math.sin(a) * rr); bolt.visible = false; bolt.frustumCulled = false; group.add(bolt); return bolt;
+  });
+  // the lightning schedule: a strike every 3.5–8 s, a double flicker, one bolt shown
+  let next = 2, strike = -10, which = 0;
+  return { group, strike: () => { next = 0; }, update: (dt, t) => {
+    time.value += dt;
+    if (t >= next) { strike = t; which = Math.floor(random() * bolts.length); next = t + 3.5 + random() * 4.5; }
+    const s = t - strike, k = s < 0.08 ? 1 : s < 0.14 ? 0.15 : s < 0.24 ? 0.8 : Math.max(0, 1 - (s - 0.24) / 0.5) * 0.3;
+    flash.value = k;
+    bolts.forEach((bolt, i) => { bolt.visible = i === which && s < 0.26 && k > 0.5; });
+  } };
+}

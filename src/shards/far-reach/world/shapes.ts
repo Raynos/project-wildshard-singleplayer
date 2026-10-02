@@ -1,4 +1,4 @@
-import { BoxGeometry, BufferGeometry, Color, ConeGeometry, CylinderGeometry, Float32BufferAttribute, Group, IcosahedronGeometry, InstancedMesh, Matrix4, Mesh, MeshStandardMaterial, Quaternion, Vector3, type Object3D } from 'three';
+import { BoxGeometry, BufferGeometry, Color, ConeGeometry, CylinderGeometry, Float32BufferAttribute, Group, InstancedMesh, Matrix4, Mesh, MeshStandardMaterial, Quaternion, Vector3, type Object3D } from 'three';
 import type { Isle } from '../layout';
 import { fit, skyMesh, splitAbove } from './meshes';
 
@@ -215,14 +215,3 @@ export function crownRuin(daisR: number, daisH: number): Group {
   }
   return group;
 }
-/** Storm clouds: soft pale puffs that ring the crown. */
-export function stormClouds(count: number, radius: number): InstancedMesh {
-  // soft, smooth-shaded and pale (lit by the painted rim from the sun behind them), not dark faceted blobs
-  const mesh = new InstancedMesh(puff(), new MeshStandardMaterial({ color: 0x9a84b0, emissive: 0x2a1c38, roughness: 1, metalness: 0 }), count), m = new Matrix4(), q = new Quaternion();
-  for (let i = 0; i < count; i++) {
-    const a = (i / count) * Math.PI * 2, s = 3 + (i % 3) * 1.6;
-    m.compose(new Vector3(Math.cos(a) * radius, (i % 4) * 2, Math.sin(a) * radius), q, new Vector3(s * 1.7, s * 0.45, s * 1.2)); mesh.setMatrixAt(i, m);
-  }
-  mesh.computeBoundingSphere(); return mesh;
-}
-function puff(): BufferGeometry { return new IcosahedronGeometry(1, 3); }

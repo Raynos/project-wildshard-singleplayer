@@ -5,8 +5,11 @@ import { CROWN, DAIS, FALLEN_BRIDGE, ISLES, WINDMILL, MILL, NOTES, PINES, SPANS,
 import { STRINGS } from '../strings';
 import { dressIslands } from './dressing';
 import { skyline } from './distant';
-import { PALETTE, crownRuin, flat, islandMesh, lectern, pines, plankBridge, stormClouds, vane, windmill, winch } from './shapes';
+import { PALETTE, crownRuin, flat, islandMesh, lectern, pines, plankBridge, vane, windmill, winch } from './shapes';
 import { ownPrimitives } from './resources';
+import { STORM, crownStorm, type CrownStorm } from './storm';
+import { SUN_DIR } from '../look/sun';
+import { bakeSeaTexture } from '../look/cloudSea';
 
 const FILE = 'src/shards/far-reach/world/build.ts';
 /** How far the fallen bridge hangs below level (radians about its pivot). */
@@ -60,8 +63,8 @@ export interface BuiltWorld {
   /** The fallen bridge's pivot on the step's rim; rotation.x runs from FALLEN_ANGLE (hanging) to 0 (raised). */
   readonly fallen: Object3D;
   readonly millHub: Object3D;
-  /** The crown's storm ring (the plugin turns it slowly). */
-  readonly storm: Object3D;
+  /** The crown's storm vortex (the plugin turns it and fires its lightning). */
+  readonly storm: CrownStorm;
   readonly vanes: readonly { readonly id: string; readonly at: Vector3; readonly rotor: Object3D }[];
   readonly winch: Interactable;
   readonly winchAt: Vector3;
@@ -144,8 +147,9 @@ export function buildWorld(ctx: ShardContext, isBoard: () => boolean): BuiltWorl
   ctx.piece({ id: 'far.crown.ruin', name: STRINGS.crown, category: 'buildings', file: FILE, object: ruin, surface: 'stone',
     colliders: [boxDesc({ x: DAIS.x, z: DAIS.z, hw: DAIS.r * 0.9, hd: DAIS.r * 0.9, rot: 0, yBottom: CROWN.y, yTop: CROWN.y + DAIS.h }, 'stone'), ...pillars] });
   ruin.children[0]?.position.set(DAIS.x - CROWN.x, DAIS.h / 2, DAIS.z - CROWN.z);
-  // the storm sits high over the crown only (loop 2): from the spawn it clears the sun and the windmill; the plugin swirls it
-  const storm = stormClouds(16, 26); storm.position.set(CROWN.x, CROWN.y + 60, CROWN.z); root.add(storm);
+  // the storm: a lit vortex high over the crown only (loop 3); it melts into the haze from the spawn
+  const stormTex = bakeSeaTexture(SUN_DIR); ctx.scope.own(stormTex);
+  const storm = crownStorm(SUN_DIR, stormTex, rnd); storm.group.position.set(CROWN.x, CROWN.y + STORM.lift, CROWN.z); root.add(storm.group);
 
   ctx.root.add(root); ownPrimitives(root, ctx.scope);
   return { hoverDeck, wind, fallen, millHub: mill.hub, storm, vanes, winch: handle, winchAt, notes, notesAt, state };
