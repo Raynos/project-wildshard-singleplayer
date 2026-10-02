@@ -1,0 +1,109 @@
+{
+  "runtimeCandidate": "09147d7c8121b77d6c8724f982b07db7714a3b2e",
+  "base": "930e5517cce43ceb272b188a3965e5ebb7bc942b",
+  "capture": {
+    "browser": "Chromium; iPhone 15 user-agent/touch emulation, Metal GPU",
+    "viewport": [
+      390,
+      844
+    ],
+    "scale": 1,
+    "physicalDevice": false
+  },
+  "checks": {
+    "typecheck": "pass",
+    "wholeTreeOxlint": "pass",
+    "vitest": {
+      "suites": 360,
+      "tests": 2459
+    },
+    "originalFourFingerprintPoses": "green",
+    "allShardParityExit": 1
+  },
+  "parity": [
+    {
+      "shard": "driftwood-isle",
+      "verdict": "green",
+      "bootErrors": [],
+      "redFields": []
+    },
+    {
+      "shard": "pine-hollow",
+      "verdict": "green",
+      "bootErrors": [],
+      "redFields": []
+    },
+    {
+      "shard": "nalati-grasslands",
+      "verdict": "green",
+      "bootErrors": [],
+      "redFields": []
+    },
+    {
+      "shard": "nine-dragon-stack",
+      "verdict": "green",
+      "bootErrors": [],
+      "redFields": []
+    },
+    {
+      "shard": "far-reach",
+      "verdict": "lane-pending",
+      "bootErrors": [],
+      "redFields": []
+    },
+    {
+      "shard": "sunscar-dunes",
+      "verdict": "lane-pending",
+      "bootErrors": [],
+      "redFields": []
+    },
+    {
+      "shard": "_template",
+      "verdict": "red",
+      "bootErrors": [],
+      "redFields": [
+        "poses"
+      ]
+    }
+  ],
+  "screenshots": {
+    "far-reach-world.jpg": {
+      "mode": "world",
+      "weapon": "far-fan",
+      "rootVisible": false,
+      "weaponVisible": true,
+      "modelParentIsRoot": true,
+      "flightAltitudeBefore": 57.12028448262799,
+      "flightAltitudeAfter": 163.6345552766885
+    },
+    "driftwood-isle-world.jpg": {
+      "mode": "world",
+      "weapon": "sword",
+      "rootVisible": false,
+      "weaponVisible": false,
+      "modelParentIsRoot": true
+    }
+  },
+  "exitToTitle": {
+    "far-reach": {
+      "rootVisible": true,
+      "exploreShown": false
+    },
+    "driftwood-isle": {
+      "rootVisible": true,
+      "exploreShown": false
+    }
+  },
+  "resumePlay": {
+    "far-reach": {
+      "rootVisible": true,
+      "weaponVisible": true,
+      "exploreShown": false
+    },
+    "driftwood-isle": {
+      "rootVisible": true,
+      "weaponVisible": true,
+      "exploreShown": false
+    }
+  }
+}
