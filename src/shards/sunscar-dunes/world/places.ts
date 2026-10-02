@@ -7,7 +7,7 @@ import { WIND } from './dunes';
 import { duneMaterial, duneMesh, fit, smoothColors, without } from './meshes';
 
 // round 2 (R1C-2): sun-greyed wood and worn iron a step lighter; at dusk the old near-black values read as black cut-outs
-const WOOD = 0xa07656, WOOD_DARK = 0x86603f, IRON = 0x6e5e56, CANVAS = 0x8a6448, CANVAS_BLEACHED = 0xd8bc92, CANVAS_GLOW = 0x3a2a1a, STONE = 0x6a4a3a, LEATHER = 0x3a1e12, CLAY = 0x7a3a22;
+const WOOD = 0xa07656, WOOD_DARK = 0x86603f, IRON = 0x6e5e56, CANVAS = 0x8a6448, CANVAS_BLEACHED = 0xd8bc92, LAMPLIT = 0xb8581c, STONE = 0x6a4a3a, LEATHER = 0x3a1e12, CLAY = 0x7a3a22;
 const POLE = 0x86603f;
 export const RAG = 0x8a2a16, RAG_GLOW = 0x1a0603;
 /** The places' marker poles (metres): as tall as the waymark poles' reach from above. */
@@ -122,7 +122,7 @@ export function buildCaravan(groundAt: (x: number, z: number) => number): Carava
 // round 2 (R1A-5): the cover runs the wagon's whole length (from the H2 side only bare dark hoops showed), torn at the front
 const HOOPS = { cx: 0.88, cy: 2.62, top: 1.0, side: 0.55, back: -2.65, front: 1.9 } as const;
 function coverHoops(wagon: Group): void {
-  const canvas = mat(CANVAS_BLEACHED, { side: DoubleSide, emissive: CANVAS_GLOW }), len = HOOPS.front - HOOPS.back, mid = (HOOPS.front + HOOPS.back) / 2;
+  const canvas = mat(CANVAS_BLEACHED, { side: DoubleSide, emissive: LAMPLIT }), len = HOOPS.front - HOOPS.back, mid = (HOOPS.front + HOOPS.back) / 2;
   // the arch shaded (check pass: a flat unshaded slab): paler on the crown, darker down the sides, the cloth sagging
   // and creased between the hoops
   const archGeo = new CylinderGeometry(1, 1, len, 14, 12, true, -Math.PI / 2, Math.PI), ap = archGeo.getAttribute('position');
@@ -135,7 +135,8 @@ function coverHoops(wagon: Group): void {
     shade[i * 3] = v; shade[i * 3 + 1] = v * 0.97; shade[i * 3 + 2] = v * 0.92;
   }
   archGeo.setAttribute('color', new Float32BufferAttribute(shade, 3)); archGeo.computeVertexNormals();
-  const cloth = new MeshStandardMaterial({ color: CANVAS_BLEACHED, vertexColors: true, roughness: 0.95, side: DoubleSide, emissive: CANVAS_GLOW });
+  // loop 5 (mockup B): a lamp left burning inside, so the cloth glows warm through, brightest low on the sides
+  const cloth = new MeshStandardMaterial({ color: CANVAS_BLEACHED, vertexColors: true, roughness: 0.95, side: DoubleSide, emissive: LAMPLIT, emissiveIntensity: 1 });
   const arch = new Mesh(archGeo, cloth);
   arch.geometry.rotateX(-Math.PI / 2); arch.scale.set(HOOPS.cx, HOOPS.top, 1); at(arch, 0, HOOPS.cy, mid, wagon);
   for (const side of [-1, 1]) at(box(0.02, HOOPS.side, len, canvas), side * HOOPS.cx, HOOPS.cy - HOOPS.side / 2, mid, wagon);
