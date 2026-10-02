@@ -1,7 +1,7 @@
 // src/game/titleDeck.ts — the ONE title deck (E318): the cold launch and "Exit to main" show the same cards, and those cards
 // say what the ChunkDefs say (the title's list may not import a def: it is written out, so this keeps it honest).
 // @vitest-environment happy-dom
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { SHARDS, findChunk } from '#game/shard/registry';
 import { isDev, setDev } from '#engine';
 import { buildTitleDeck, titleCards } from '#game/titleDeck';
@@ -45,4 +45,43 @@ describe('title deck cards', () => {
   it('a card\'s blurb is a player\'s line: no grid coordinates, no chunk size (E318 row 19)', () => {
     for (const card of titleCards()) expect(card.label).not.toMatch(/\(|\d+ ?m\b|shard/);
   });
+});
+
+for (const dev of [false, true]) {
+  it(`gates every experimental card and both entry paths with Developer ${dev}`, () => {
+    setDev(dev);
+    const onEnter = vi.fn<() => void>(), onExplore = vi.fn<() => void>();
+    const deck = buildTitleDeck({ cards: titleCards(), active: 'nine-dragon-stack', onEnter, onExplore, onSettings: () => undefined });
+    document.body.append(deck.root);
+    for (const [index, card] of deck.cards.entries()) {
+      deck.select(index, false);
+      const restricted = card.badge === 'Experimental' || card.badge === 'Developer only';
+      const enabled = dev || !restricted;
+      const play = deck.root.querySelector<HTMLButtonElement>('.ws-menu-play');
+      const explore = deck.root.querySelector<HTMLButtonElement>('.ws-menu-explore');
+      expect(play?.disabled, card.slug).toBe(!enabled);
+      expect(explore?.disabled, card.slug).toBe(!enabled);
+      expect(deck.root.querySelector('.ws-menu-play b')?.textContent).toBe(enabled ? 'Enter world' : 'Coming soon');
+      const tag = deck.root.querySelectorAll('.ws-menu-card-tag')[index];
+      expect(tag?.textContent).toBe(enabled ? card.slug === 'nine-dragon-stack' ? 'Loaded' : 'Load' : 'Coming soon');
+      onEnter.mockClear(); onExplore.mockClear();
+      deck.activate(); play?.click(); explore?.click();
+      expect(onEnter).toHaveBeenCalledTimes(enabled ? 2 : 0);
+      expect(onExplore).toHaveBeenCalledTimes(enabled ? 1 : 0);
+    }
+    deck.dispose(); deck.root.remove();
+  });
+}
+it('rejects stale developer cards through programmatic activation after switching off', () => {
+  setDev(true);
+  const onEnter = vi.fn<() => void>(), onExplore = vi.fn<() => void>();
+  const deck = buildTitleDeck({ cards: titleCards(), active: null, onEnter, onExplore, onSettings: () => undefined });
+  setDev(false);
+  for (const card of deck.cards.filter((entry) => entry.badge === 'Experimental' || entry.badge === 'Developer only')) {
+    deck.select(deck.cards.indexOf(card), false);
+    deck.activate();
+    deck.root.querySelector<HTMLElement>('.ws-menu-explore')?.dispatchEvent(new MouseEvent('click'));
+  }
+  expect(onEnter).not.toHaveBeenCalled(); expect(onExplore).not.toHaveBeenCalled();
+  deck.dispose();
 });
