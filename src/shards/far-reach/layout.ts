@@ -26,8 +26,8 @@ export const MILL = { x: 2, z: WINDMILL.z - 3 };
 export const SPAWN = { x: 0, z: 7, yaw: 0 };
 /** The one trail (E357 B83: it starts in the spawn area): Sunrest's path from the spawn to the fallen bridge's pivot. */
 export const TRAIL: [number, number][][] = [[[SPAWN.x, SPAWN.z], [0, -13]]];
-/** The stand-in terrain's height, far below the islands and the creature death plane. */
-export const VOID_Y = -50; // the stand-in ground under the void (G23); the chunk terrain test needs heights above -60
+/** The stand-in terrain's height, far below the islands and the creature death plane (shared terrain checks want heights above -60). */
+export const VOID_Y = -40;
 /** The drift rays' circling homes: centre, radius and altitude (world metres). */
 export const RAY_HOMES = [{ x: 0, z: -20, r: 22, y: DECK + 14 }, { x: 40, z: -30, r: 18, y: DECK + 16 }] as const;
 /** Pine positions per island, as offsets from its centre. */
