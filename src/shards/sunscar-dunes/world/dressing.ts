@@ -59,7 +59,8 @@ const C = {
 } as const satisfies Record<string, RGB>;
 
 /** How many of each (one draw per kind). */
-export const DRESSING = { shrubs: 440, tufts: 3200, carcasses: 5, trees: 9, screePerRidge: 12, postEvery: 22, postSide: 3.6, postEnds: 14, outcrops: 30, gravel: 900 } as const;
+// loop 5 (the mockups: big clean sand forms): far fewer rocks and pebbles, scrub kept to the hollows and trail edges
+export const DRESSING = { shrubs: 260, tufts: 2200, carcasses: 5, trees: 9, screePerRidge: 6, postEvery: 22, postSide: 3.6, postEnds: 14, outcrops: 8, gravel: 0 } as const;
 
 /** A saltbush, 0.9 m tall: four forked stems, dusty grey-green clumps at the tips. */
 function shrubGeometry(seed: number): BufferGeometry {
@@ -205,7 +206,7 @@ export function buildDressing(groundAt: (x: number, z: number) => number, trailD
   let ns = 0;
   for (let tries = 0; ns < DRESSING.shrubs && tries < DRESSING.shrubs * 30; tries++) {
     const cx = range(PLAY_HALF - 6), cz = range(PLAY_HALF - 6), td = trailDistance(cx, cz);
-    const byTrail = td > 3 && td < 14, low = hollow(cx, cz) > 0.25, open = rng.chance(0.25); // a quarter of the clumps on the open slopes
+    const byTrail = td > 3 && td < 14, low = hollow(cx, cz) > 0.25, open = rng.chance(0.05); // a quarter of the clumps on the open slopes
     if (!(byTrail || low || open) || !clear(cx, cz, 1) || td < 3) continue;
     const n = 1 + Math.floor(rng.range(0, 4));
     for (let k = 0; k < n && ns < DRESSING.shrubs; k++) {
@@ -223,7 +224,7 @@ export function buildDressing(groundAt: (x: number, z: number) => number, trailD
   let nt = 0;
   for (let tries = 0; nt < DRESSING.tufts && tries < DRESSING.tufts * 20; tries++) {
     const cx = range(PLAY_HALF - 4), cz = range(PLAY_HALF - 4), td = trailDistance(cx, cz), low = hollow(cx, cz);
-    const want = (td > 2.2 && td < 7 ? 0.7 : 0) + (low > 0.3 ? 0.6 : 0) + 0.16; // and a sparse scatter on the open slopes
+    const want = (td > 2.2 && td < 7 ? 0.7 : 0) + (low > 0.3 ? 0.6 : 0) + 0.02; // and a sparse scatter on the open slopes
     if (rng.next() > want || !clear(cx, cz)) continue;
     const n = 3 + Math.floor(rng.range(0, 6));
     for (let k = 0; k < n && nt < DRESSING.tufts; k++) {

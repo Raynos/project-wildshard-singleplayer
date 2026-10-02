@@ -7,10 +7,12 @@ const smooth = (t: number): number => { const c = Math.min(1, Math.max(0, t)); r
  * spawn view (40° off it) and every slip face turns toward the key light, behind-left of the spawn view (style bible). Wavelength `WAVE` m; the lee (slip face) is the last `LEE` of it.
  */
 export const WIND = { x: -0.643, z: 0.766 } as const;
-const WAVE = 64, LEE = 0.45, AMP_MAX = 11;
+// loop 5 (the mockups: tall sweeping dunes, 10-30 m): 1.5x the wave and the height together, so the slip face keeps its
+// angle (every face stays under the player's max climb)
+const WAVE = 96, LEE = 0.45, AMP_MAX = 16.5;
 /** The warped wind coordinate: crest lines bowed into crescents and wandering, so none read as parallel stripes. */
 const warped = (x: number, z: number, n: TerrainNoise['n']): number =>
-  x * WIND.x + z * WIND.z + Math.cos((-x * WIND.z + z * WIND.x) * 0.045) * 7 + n.get(x * 0.007, z * 0.007) * 9;
+  x * WIND.x + z * WIND.z + Math.cos((-x * WIND.z + z * WIND.x) * 0.03) * 10.5 + n.get(x * 0.0047, z * 0.0047) * 13.5;
 /** u at the spawn minus the stoss: puts a crest through the spawn (per noise field). */
 const phases = new WeakMap<TerrainNoise['n'], number>();
 const phaseOf = (n: TerrainNoise['n']): number => {
@@ -35,8 +37,8 @@ function field(x: number, z: number, n: TerrainNoise['n']): { h: number; amp: nu
   const db = Math.hypot(x - BASIN.x, z - BASIN.z);
   // Big in the middle, gentler near the square's edge (the entry roads) and round the boss bowl.
   const damp = (1 - 0.6 * smooth((edge - 125) / 55)) * (1 - 0.45 * (1 - smooth((db - BASIN.r) / 60)));
-  const amp = Math.min(AMP_MAX, 9.5 + 3.2 * n.get(v * 0.012 + 7, u0 * 0.004 - 3)) * damp;
-  return { h: 2 + amp * ridge + 2.5 * n.get(x * 0.0035 - 11, z * 0.0035 + 5) * damp, amp };
+  const amp = Math.min(AMP_MAX, 14.2 + 4.8 * n.get(v * 0.008 + 7, u0 * 0.0027 - 3)) * damp;
+  return { h: 2 + amp * ridge + 3.5 * n.get(x * 0.0024 - 11, z * 0.0024 + 5) * damp, amp };
 }
 
 /** Flat spots levelled to their own dune height (+ `lift`), eased out over 2.4 × `r`. */

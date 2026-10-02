@@ -291,7 +291,7 @@ export function buildBrazier(x: number, z: number, groundAt: (x: number, z: numb
   const stones = new InstancedMesh(rock(1, 1, new Rng(SEED + 211 + Math.round(x)), 0.8, 0.22), mat(STONE), WAYMARK.stones); // round 2: round, half-sunk fieldstones, not flat chips
   const m = new Matrix4(), q = new Quaternion(), up = new Vector3(0, 1, 0);
   for (let i = 0; i < WAYMARK.stones; i++) {
-    const a = (i / WAYMARK.stones) * Math.PI * 2 + 0.3, r = WAYMARK.ring * (0.9 + 0.2 * ((i * 37) % 7) / 7), sz = 0.3 + 0.18 * ((i * 53) % 5) / 5;
+    const a = (i / WAYMARK.stones) * Math.PI * 2 + 0.3, r = WAYMARK.ring * (0.9 + 0.2 * ((i * 37) % 7) / 7), sz = 0.16 + 0.1 * ((i * 53) % 5) / 5;
     const sx = Math.sin(a) * r, sz2 = Math.cos(a) * r;
     q.setFromAxisAngle(up, a * 1.7); m.compose(new Vector3(sx, groundAt(x + sx, z + sz2) - y - sz * 0.4, sz2), q, new Vector3(sz * 1.2, sz, sz)); stones.setMatrixAt(i, m);
   }
@@ -310,7 +310,7 @@ export function buildBrazier(x: number, z: number, groundAt: (x: number, z: numb
   at(box(0.16, 0.035, 0.16, iron), 0, 0.15, 0, lamp); at(box(0.16, 0.035, 0.16, iron), 0, -0.13, 0, lamp);
   at(box(0.1, 0.22, 0.1, new MeshBasicMaterial({ color: 0xffb24a })), 0, 0.01, 0, lamp);
   at(box(0.012, 0.42, 0.012, iron), 0, 0.37, 0, lamp);
-  addLampGlow(lamp, 1.6, (lx, lz) => groundAt(x + lampX + lx, z + poleZ + lz) - (y + lampY));
+  addLampGlow(lamp, 0.55, (lx, lz) => groundAt(x + lampX + lx, z + poleZ + lz) - (y + lampY)); // a small halo: 1.6 filled the sky at 5 m
   const fire = new Group(); fire.position.set(0, bowl, 0); fire.visible = false; root.add(fire);
   // The fire (P2 #8): layered flame, glow, embers downwind, a smoke column and a warm pool on the sand.
   addFire(fire, WAYMARK_FIRE, { at: new Vector3(x, y + bowl, z), groundAt });
