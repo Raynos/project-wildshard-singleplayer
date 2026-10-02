@@ -36,7 +36,12 @@ Storm Roc.
 | `species/galeWisp.ts` | gale wisps: drift over their island, dart and burst (sphere) at the chest; the burst shoves you back 7 m/s (G24, `pushPlayer` in `species/rig.ts`, bound to `app.player.impulse` in `play`) |
 | `species/stormRoc.ts`, `combat/stormRoc.ts` | the Storm Roc: a `BossBrain` + `BossScript` (stoop dive, gale walls that shove you 14 m/s along their lane toward the rim, grounded on the dais), the shared `BossBar`, 25 coins once |
 | `species/driftRay.ts` | the drift ray: species + custom rig (body, head, wings, tail) + `DriftRayBrain` (circle → stalk → hang → dive → rise) with a `sphere` dive strike |
-| `quest/install.ts` | *The crown bridge*: the keeper's notes → clear the roost's three rays → GUST the three vanes → the winch raises the bridge to the storm crown; 10 coins once |
+| `quest/install.ts` | *The crown bridge*, staged with `installQuestPresentation` (ENGINE §20): talk to the bridge-keeper at the spawn → clear the roost's three rays → GUST the three vanes → the winch raises the bridge; markers, chips and hints on every step, a held reward view from the high step, 10 coins once |
+| `quest/keeper.ts` | the bridge-keeper NPC (code figure, waves within 16 m, gestures while talking) and his dialogue (his first talk sets the notes flag) |
+| `quest/flags.ts` | the quest's saved flags |
+| `world/dressing.ts` | the meadow: instanced grass clumps, flowers, stones and hanging roots on every island (no colliders) |
+| `world/distant.ts` | the skyline: 14 decorative 3-D islands and waterfalls past the archipelago, and the windmill isle's waterfall |
+| `weapons/fanModel.ts` | the war fan to the review brief (nine teal panels, bronze ribs, tassel) in the shared gloved fist with a linen sleeve |
 | `look/render.ts` | `extend` look, **Gilded Air** (`docs/design/far-reach/style-bible.md`): the clean engine chain, the dome, the cloud sea and a warm distance fog |
 | `look/sun.ts` | the fixed golden-hour sun (low, ahead of the spawn, left of the windmill) and the sky palette |
 | `look/light.ts` | the painted light: a `lights_fragment_end` patch adding a warm bounce wrap, a sun rim and a warm shade floor to every lit material |

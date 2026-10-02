@@ -1,28 +1,43 @@
-import { Flags, QuestState } from '#engine';
-import { CoinBurst, purseSave, shardSave, type ShardContext } from '#game';
+import { Flags, QuestState, type QuestMarker } from '#engine';
+import { CoinBurst, installQuestPresentation, purseSave, shardSave, type QuestPresentation, type ShardContext } from '#game';
 import * as v from 'valibot';
-import { Scene, type Vector3 } from 'three';
-import { VANES } from '../layout';
+import { Scene, Vector3 } from 'three';
+import { DECK, HIGH, ROOST, STEP, VANES, WINCH } from '../layout';
 import { STRINGS } from '../strings';
+import { ownPrimitives } from '../world/resources';
+import { FLAGS, vaneFlag } from './flags';
+import { KEEPER_AT, KEEPER_NPC, keeper } from './keeper';
 
-export const FLAGS = { notes: 'far.notes', roost: 'far.roost', vanes: 'far.vanes', raised: 'far.bridge', complete: 'far.complete', roc: 'far.roc.down' } as const;
-export const vaneFlag = (id: string): string => `far.vane.${id}`;
+export { FLAGS, vaneFlag } from './flags';
 export const REWARD = 10;
 export const BOSS_REWARD = 25;
 const REWARDED = { key: 'far-reach.rewarded', scope: 'shard' as const, version: 1, schema: v.boolean(), initial: () => false };
+/** The reward view: from the high step, the raised bridge running out to the storm crown (Driftwood's held beat). */
+export const REWARD_VIEW = { at: new Vector3(STEP.x + 2, HIGH + 1.7, STEP.z - 4), yaw: 0, pitch: 0.12 } as const;
+
+const at = (x: number, y: number, z: number): QuestMarker['at'] => ({ poi: 'world', x, y, z });
 
 /**
- * The crown bridge, four steps: read the bridge-keeper's notes, clear the roost of drift rays, turn the three wind
- * vanes with GUST, raise the bridge to the storm crown. Ten coins once per save; the Storm Roc waits across the bridge.
+ * The crown bridge, staged like Driftwood's (review items 3, 4, 14; ENGINE §20 `installQuestPresentation`): the
+ * bridge-keeper waves at Sunrest from the first frame and names the goal; every step has a marker (the chip with metres
+ * and bearing, minimap and map diamonds, a styled world pin), a chip and a hint; the MAP card carries the quest; each step
+ * toasts; raising the bridge holds the camera on the bridge and the crown beyond, then pays ten coins once per save.
+ *   1. talk to the keeper (his notes are his dialogue; the lectern on his isle still reads them)
+ *   2. clear the roost of drift rays · 3. turn the three wind vanes with GUST · 4. raise the bridge at the winch
  */
 export function installQuest(ctx: ShardContext, player: Vector3, onCoin?: (share: number) => void):
-  { quest: QuestState; flags: Flags; burst: (count: number, toast: string) => void } {
+  { quest: QuestState; flags: Flags; burst: (count: number, toast: string) => void; view: QuestPresentation | null } {
   const flags = new Flags(ctx.manifest.slug), rewarded = ctx.app.saves.define(REWARDED);
   const quest = new QuestState({ id: 'far.quest', title: STRINGS.quest, completeFlag: FLAGS.complete, steps: [
-    { id: 'notes', objective: STRINGS.notes, done: { all: [FLAGS.notes] } },
-    { id: 'roost', objective: STRINGS.roostQuest, done: { all: [FLAGS.roost] } },
-    { id: 'vanes', objective: STRINGS.vanes, done: { all: [FLAGS.vanes] } },
-    { id: 'raise', objective: STRINGS.raise, done: { all: [FLAGS.raised] } },
+    { id: 'notes', objective: STRINGS.talkKeeperStep, chip: STRINGS.chipKeeper, hint: STRINGS.hintKeeper, done: { all: [FLAGS.notes] },
+      markers: [{ id: 'keeper', label: STRINGS.keeperPin, short: STRINGS.keeperShort, at: at(KEEPER_AT.x, DECK + 2.4, KEEPER_AT.z) }] },
+    { id: 'roost', objective: STRINGS.roostQuest, chip: STRINGS.chipRoost, hint: STRINGS.hintRoost, done: { all: [FLAGS.roost] },
+      markers: [{ id: 'roost', label: STRINGS.roost, short: STRINGS.roostShort, at: at(ROOST.x, ROOST.y + 2, ROOST.z) }] },
+    { id: 'vanes', objective: STRINGS.vanes, chip: STRINGS.chipVanes, hint: STRINGS.hintVanes, done: { all: [FLAGS.vanes] },
+      count: VANES.map((vane) => vaneFlag(vane.id)),
+      markers: VANES.map((vane) => ({ id: `vane.${vane.id}`, label: STRINGS.vane, short: STRINGS.vaneShort, at: at(vane.x, vane.y + 3, vane.z), hideWhen: { all: [vaneFlag(vane.id)] } })) },
+    { id: 'raise', objective: STRINGS.raise, chip: STRINGS.chipRaise, hint: STRINGS.hintRaise, done: { all: [FLAGS.raised] },
+      markers: [{ id: 'winch', label: STRINGS.winch, short: STRINGS.winchShort, at: at(WINCH.x, WINCH.y + 1.5, WINCH.z) }] },
   ] }, flags, ctx.app.events, ctx.scope);
   const purse = shardSave(purseSave, ctx.manifest.slug);
   const scene = ctx.game.runtime?.world?.game.scene ?? new Scene(), coins = new CoinBurst(scene);
@@ -31,12 +46,24 @@ export function installQuest(ctx: ShardContext, player: Vector3, onCoin?: (share
   const burst = (count: number, toast: string): void => {
     coins.spawn(player, count, onCoin ?? ((share) => { purse.write(purse.read() + share); }), () => { ctx.game.runtime?.play?.hud.toast(toast); });
   };
-  quest.onComplete = () => {
-    if (rewarded.read(ctx.manifest.slug)) return;
-    rewarded.write(true, ctx.manifest.slug); burst(REWARD, STRINGS.reward);
+  const pay = (): undefined => {
+    if (rewarded.read(ctx.manifest.slug)) return undefined;
+    rewarded.write(true, ctx.manifest.slug); burst(REWARD, STRINGS.reward); return undefined;
   };
+  // The keeper at the spawn: he waves within 16 m and gestures while he talks.
+  const npc = keeper(DECK); ctx.root.add(npc.group); ownPrimitives(npc.group, ctx.scope);
+  ctx.system({ id: 'far.keeper', phase: 'update', run: (_dt, t) => { npc.update(t, player); } });
+  const alreadyPaid = rewarded.read(ctx.manifest.slug);
+  const live = ctx.game.runtime?.world && ctx.game.runtime.play ? ctx.game.runtime : null;
+  const view = live === null ? null : installQuestPresentation(ctx, quest, { flags, introTitle: STRINGS.quest,
+    npc: { npc: KEEPER_NPC, at: npc.head, label: STRINGS.talkKeeper, speaker: npc.speaker, radius: 3.5 },
+    reward: { kicker: STRINGS.rewardKicker, title: STRINGS.quest, subtitle: STRINGS.rewardSubtitle, when: () => !alreadyPaid && quest.isComplete,
+      at: REWARD_VIEW.at, yaw: REWARD_VIEW.yaw, pitch: REWARD_VIEW.pitch, holdSeconds: 5, finish: pay } });
+  // Headless (tests, a node bake): no presentation, the reward pays at once.
+  if (view === null) ctx.scope.onDispose(quest.observe({ complete: () => { pay(); } }));
+  if (!quest.isComplete) ctx.game.runtime?.play?.hud.toast(`${STRINGS.newQuest} · ${STRINGS.quest}`);
   ctx.system({ id: 'far.vanes', phase: 'update', run: () => {
     if (!flags.has(FLAGS.vanes) && VANES.every((vane) => flags.has(vaneFlag(vane.id)))) flags.set(FLAGS.vanes);
   } });
-  return { quest, flags, burst };
+  return { quest, flags, burst, view };
 }

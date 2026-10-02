@@ -86,19 +86,13 @@ export class SkyReachPlugin extends ShardPlugin {
     // Step 4: the winch answers only once the roost is quiet and the vanes turn (the notes say so).
     const unlocked = (): boolean => flags.has(FLAGS.roost) && flags.has(FLAGS.vanes);
     built.winch.onInteract = () => { if (built.state.raised) return; if (unlocked()) built.state.raising = true; else toast(STRINGS.winchLocked); };
-    const pin = (at: Vector3, text: string): HTMLSpanElement => { const el = document.createElement('span'); el.textContent = text; ctx.hud.pin(at, el); return el; };
-    const winchPin = pin(built.winchAt, STRINGS.winchPin), notesPin = pin(built.notesAt, STRINGS.notesPin);
-    const vanePins = built.vanes.map((v) => ({ id: v.id, el: pin(v.at, STRINGS.vanePin) }));
+    // the world pins, chip, map and minimap marks are the quest presentation's (quest/install.ts)
     if (flags.has(FLAGS.raised)) this.finishRaise(built);
     ctx.system({ id: 'far.winch', phase: 'update', run: (dt) => {
       if (built.state.raising && !built.state.raised) {
         built.fallen.rotation.x = Math.min(0, built.fallen.rotation.x + dt * RAISE_RATE);
         if (built.fallen.rotation.x >= 0) { this.finishRaise(built); flags.set(FLAGS.raised); toast(STRINGS.raised); }
       }
-      const shown = (on: boolean): string => on ? 'visible' : 'hidden';
-      winchPin.style.visibility = shown(unlocked() && !built.state.raised);
-      notesPin.style.visibility = shown(!flags.has(FLAGS.notes));
-      for (const v of vanePins) v.el.style.visibility = shown(flags.has(FLAGS.notes) && !flags.has(vaneFlag(v.id)));
     } });
 
     // The updraft lifts (G24): riding the board up the wind column, a steady upward push (`app.player.impulse`, decaying
