@@ -1,0 +1,18 @@
+{
+ "shard": "far-reach",
+ "sha": "14a26e19a413f67a8a011aa46cd8c50b8d40b5ac",
+ "when": "20261002-0136",
+ "label": "council round 2",
+ "loadSeconds": 2,
+ "shots": [
+  "first-frame",
+  "h1-sunrest",
+  "h2-windmill",
+  "h3-grove-high-step",
+  "h4-crown",
+  "aerial-spawn",
+  "aerial-overview"
+ ],
+ "clip": true,
+ "pageErrors": []
+}
