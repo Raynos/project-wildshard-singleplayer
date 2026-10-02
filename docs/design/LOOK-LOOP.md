@@ -307,6 +307,11 @@ can bring every region's ΔE00 down on a frame that still looks empty (Driftwood
 
 - Re-shoot the same `cameras.json` after each round of fixes. Refit the LUT, re-run palette-delta, and rebuild the board
   as BEFORE | AFTER | TARGET.
+- **Form and subject before colour** (council round 1, R1C-18, 2026-10-02: four Signal Dunes / Sky Reach loops tuned
+  ΔE00 while the forms stayed primitive, and every seat found hero views with no hero in them). Each round's gap list
+  has a **form and subject** column per view, filled before any colour work: is the view's subject in frame, centred
+  and lit; does its silhouette read like the target's; are the target's near and mid elements present? Colour (the
+  grade, the LUT, ΔE00) comes only after that column is clean.
 - **Stop a zone when:**
   - the owner signs off its 3×3;
   - (ΔE00 per region is reported on the board, as information);
