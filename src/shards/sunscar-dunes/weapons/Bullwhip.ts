@@ -9,7 +9,7 @@ export interface WhipTarget { actor: Actor; animal: Animal | null }
 
 /** The crack's numbers (metres, seconds, hit points); `pull` is the yank's speed (m/s) on a creature of `pullMaxHp` or less. */
 export const CRACK = { reach: 7, heavyReach: 8, width: 0.9, light: 18, heavy: 16, cooldown: 0.45, heavyCooldown: 0.9,
-  unroll: 0.12, second: 0.32, show: 0.42, charge: 0.6, stagger: 0.8, pull: 9, pullMaxHp: 40 } as const;
+  unroll: 0.12, second: 0.32, show: 0.42, charge: 0.6, stagger: 0.8, pull: 16, pullMaxHp: 40 } as const;
 
 /**
  * The bullwhip (rung 3, `extends Weapon`): a light crack is one long, narrow lash to the crosshair; the heavy is a
@@ -73,7 +73,7 @@ export class Bullwhip extends Weapon {
     }
     return best?.crack(this.crackHeavy, second) === true ? best : null;
   }
-  /** Damage through the pipeline; the heavy's second lash staggers a living creature (ENGINE §18, `animal.stagger`). */
+  /** Damage through the pipeline; the heavy's first lash yanks a small creature in, its second staggers a big one (ENGINE §18, §19). */
   strike(target: WhipTarget, point: Vector3, dir: Vector3, from: Vector3, heavy: boolean, second = false): boolean {
     const reach = heavy ? CRACK.heavyReach : CRACK.reach, delta = point.clone().sub(from), forward = delta.dot(dir);
     if (forward < 0 || forward > reach || delta.addScaledVector(dir, -forward).length() > CRACK.width) return false;
@@ -83,10 +83,12 @@ export class Bullwhip extends Weapon {
       moveId: heavy ? (second ? 'sunscar.whip.double.2' : 'sunscar.whip.double.1') : 'sunscar.whip.crack', surface: 'flesh' });
     if (result === null) return false;
     this.onHit?.(actor.id, false, result.killed);
-    // The heavy's second lash: a small creature is yanked to the player's feet, a big one staggers.
-    if (heavy && second && !result.killed && animal !== null) {
-      if (animal.maxHp <= CRACK.pullMaxHp) animal.impulse(new Vector3(-dir.x, 0, -dir.z).normalize().multiplyScalar(CRACK.pull));
-      else animal.stagger(dir, CRACK.stagger);
+    // The pull: the double crack's first lash wraps a small creature and yanks it to the player's feet (the second
+    // lash then lands on it close); a big one shrugs the wrap off and the second lash staggers it.
+    if (heavy && !result.killed && animal !== null) {
+      const small = animal.maxHp <= CRACK.pullMaxHp;
+      if (small && !second) animal.impulse(new Vector3(-dir.x, 0, -dir.z).normalize().multiplyScalar(CRACK.pull));
+      else if (!small && second) animal.stagger(dir, CRACK.stagger);
     }
     return true;
   }

@@ -1,7 +1,7 @@
 export const STRINGS = {
   name: 'Signal Dunes', biome: 'Desert dunes at dusk',
   blurb: 'Dark orange dunes just after sunset. Crack the bullwhip, drive off the dune rays and light the signal fire.',
-  whip: 'Bullwhip', whipBlurb: 'A braided leather bullwhip: a long, narrow crack. Hold ATTACK (or HEAVY) for a double crack that staggers big beasts and pulls small ones in.',
+  whip: 'Bullwhip', whipBlurb: 'A braided leather bullwhip: a long, narrow crack. Hold ATTACK (or HEAVY) for a double crack that yanks small beasts in and staggers big ones.',
   ray: 'Dune ray', rayBlurb: 'A great gliding ray that circles the dusk and swoops at walkers on the crests.',
   skitterer: 'Sand skitterer', skittererBlurb: 'A small burrowing scavenger that hunts in packs: it waits under the sand and bursts out at your heels.',
   strider: 'Dune strider', striderBlurb: 'A tall, slow grazer with a horned head. It paws the sand before it charges.',
