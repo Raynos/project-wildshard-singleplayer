@@ -27,7 +27,8 @@ export const SUNSCAR_DUNES: ShardManifest = {
   sky: { sunColor: [1, 0.55, 0.32], sunIntensity: 1.1, envIntensity: 0.35, bgIntensity: 1, fogSunColor: [0.95, 0.5, 0.35], cloudSunColor: [0.9, 0.5, 0.4],
     hemiSky: 0x5a5c9a, hemiGround: 0x6a3420, hemiIntensity: 0.9, sun: { azimuth: 285, elevation: 4 } },
   atmosphere: { fogHeight: -20, fogHeightFalloff: 0, fogHeightDensity: 0, fogDistDensity: 0, volumetricSunColor: [1, 0.55, 0.35] },
-  grade: { saturation: 0.05, brightness: 0, contrast: 0.05, bloomIntensity: 0.15, bloomThreshold: 0.9, shadowTint: [0.92, 0.95, 1.1], highTint: [1.06, 1, 0.94], lift: [0, 0, 0.01], gain: [1, 1, 1], gamma: 1 },
+  // A neutral grade: any contrast or split-tone clips the indigo zenith to a hard band.
+  grade: { saturation: 0, brightness: 0, contrast: 0, bloomIntensity: 0.15, bloomThreshold: 0.9, shadowTint: [1, 1, 1], highTint: [1, 1, 1], lift: [0, 0, 0], gain: [1, 1, 1], gamma: 1 },
   horizon: { cloudSea: false, rings: [
     { r: 340, base: 2, color: [0.16, 0.06, 0.035], top: [0.3, 0.12, 0.06], snowLine: 2, haze: 0.45, floor: -10,
       bands: [{ azimuth: 0, spread: 60, height: 9, rough: 0 }, { azimuth: 120, spread: 70, height: 7, rough: 0 }, { azimuth: 240, spread: 60, height: 10, rough: 0 }] },
