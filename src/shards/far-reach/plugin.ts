@@ -28,6 +28,11 @@ declare module '#engine' {
   interface TierKnobMap { 'far.meadowBlades': number }
 }
 
+/** The touch icons (council R1B-11: every primary and verb carries one): an open fan for SWING (the attack disc's own
+ * 24 × 24 svg), wind curls for GUST (a whole svg before the verb's label). */
+const SWING_ICON = '<path d="M12 19.5 4.2 9.8a10 10 0 0 1 15.6 0Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>'
+  + '<path d="M12 19.5 8.6 7.6M12 19.5V6.8M12 19.5l3.4-11.9" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>';
+const GUST_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 8.5h10.5a3 3 0 1 0-3-3M3 12.5h14.5a3 3 0 1 1-3 3M3 16.5h7" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>';
 /** The updraft's upward push while you ride its column (m/s², G24). */
 export const UPDRAFT_LIFT = 12;
 /** How far above its island's deck a goat's spawn ray starts (metres): above the grass, below anything overhead. */
@@ -97,8 +102,8 @@ export class SkyReachPlugin extends ShardPlugin {
     if (rt) rt.hooks.questFlags = () => quest.isComplete ? [FLAGS.complete] : [];
 
     ctx.inputContext({ id: 'far.fan', actions: ['attack', 'heavy', 'lock', 'far.gust'], keysFrom: 'weapon.melee', keys: { 'far.gust': ['KeyG'] },
-      touch: { mode: 'melee', lockable: true, relabel: { r0: { label: STRINGS.swing, icon: '' } },
-        verbs: { 'verb.1': { action: 'far.gust', label: STRINGS.gust, icon: '', show: () => ctx.app.state === 'play' && !this.board() } } } });
+      touch: { mode: 'melee', lockable: true, relabel: { r0: { label: STRINGS.swing, icon: SWING_ICON } },
+        verbs: { 'verb.1': { action: 'far.gust', label: STRINGS.gust, icon: GUST_ICON, show: () => ctx.app.state === 'play' && !this.board() } } } });
 
     // Step 1: the keeper's notes.
     built.notes.onInteract = () => { flags.set(FLAGS.notes); toast(STRINGS.notesToast); };
