@@ -1,0 +1,24 @@
+{
+  "url": "http://127.0.0.1:4400/",
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "touch": {
+    "points": 1,
+    "coarse": true
+  },
+  "before": {
+    "checked": "false",
+    "on": false
+  },
+  "afterOn": {
+    "checked": "true",
+    "on": true
+  },
+  "afterOff": {
+    "checked": "false",
+    "on": false
+  },
+  "errors": []
+}

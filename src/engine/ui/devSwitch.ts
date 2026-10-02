@@ -18,8 +18,10 @@ export function devSwitchRows(): HTMLElement[] {
   b.setAttribute('role', 'switch');
   b.innerHTML = engineString('s_008ede743530');
   const sync = (on: boolean): void => { b.classList.toggle('on', on); b.setAttribute('aria-checked', String(on)); };
-  sync(isDev()); onDev(sync);
-  scope.listen(b, 'click', () => { setDev(!isDev()); });
+  sync(isDev()); scope.onDispose(onDev(sync));
+  // A tap must repaint its own switch even if a page subscriber is rebuilt during notification.
+  // Native click also covers touch activation and keyboard activation, without double-toggling.
+  scope.listen(b, 'click', () => { setDev(!isDev()); sync(isDev()); });
   const note = document.createElement('div');
   note.className = 'ws-gmenu-note';
   note.textContent = engineString('s_f427cd6641a5');
