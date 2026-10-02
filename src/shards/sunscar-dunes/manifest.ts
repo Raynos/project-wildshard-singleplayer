@@ -3,7 +3,7 @@ import type { ShardManifest } from '#game';
 import { STRINGS } from './strings';
 import { SEED, SPAWN, TOWER, TRAIL, PLAY_HALF } from './layout';
 import { BUDGETS } from './budgets';
-import { DUSK_CARD, DUSK_WIDE } from './thumbs/card';
+import { DUSK_CARD } from './thumbs/card';
 import { EXPLORE } from './explore/art';
 import { bootFiles, bootSources } from './boot/files';
 import { duneHeight } from './world/dunes';
@@ -18,7 +18,7 @@ const feet = (x: number, z: number): [number, number, number] => [x, ground(x, z
 export const SUNSCAR_DUNES: ShardManifest = {
   budgets: BUDGETS, api: 1, slug: 'sunscar-dunes', order: 50, status: 'experimental', name: STRINGS.name, label: '(+2, −1)', seed: SEED,
   biome: STRINGS.biome, blurb: STRINGS.blurb, placement: { grid: [2, -1], size: [500, 500, 500] },
-  card: { thumb: DUSK_CARD, portrait: DUSK_CARD, landscape: DUSK_WIDE },
+  card: { thumb: DUSK_CARD.thumb, portrait: DUSK_CARD.portrait, landscape: DUSK_CARD.landscape },
   style: 'dusk', kitLook: 'pbr', weapon: 'custom', treeCount: 0, trees: { factory: 'none', noun: 'dunes' },
   ground: { paths: 'plugin', terrain },
   groundColor: (_x, _z, _h, _slope, _terrain, out) => { out[0] = 0.42; out[1] = 0.17; out[2] = 0.07; return out; },
@@ -52,7 +52,7 @@ export const SUNSCAR_DUNES: ShardManifest = {
   tiers: { phone: { godRays: false, ao: false }, desktop: { godRays: false, ao: false } },
   loot: { coins: true },
   audio: { ambience: 'none', score: 'sunscar.silent', cues: async () => (await import('./audio/cues')).CUES },
-  boot: { files: bootFiles, sources: bootSources, viewmodelSets: [], shaders: { background: false }, audio: () => Promise.resolve([]), precache: [] },
+  boot: { explore: { art: Object.values(EXPLORE.art) }, files: bootFiles, sources: bootSources, viewmodelSets: [], shaders: { background: false }, audio: () => Promise.resolve([]), precache: [] },
   dev: { poses: () => Promise.resolve({
     spawn: { eye: eye(SPAWN.x, SPAWN.z), feet: feet(SPAWN.x, SPAWN.z), yaw: 0, pitch: 2, mockup: 'art/sunscar-dunes/round-2-dunes/C-dusk-signal-fire.jpg', frame: STRINGS.frameSpawn },
     whip: { eye: eye(SPAWN.x, SPAWN.z - 4), feet: feet(SPAWN.x, SPAWN.z - 4), yaw: -20, pitch: -4, mockup: '', frame: STRINGS.frameWhip },

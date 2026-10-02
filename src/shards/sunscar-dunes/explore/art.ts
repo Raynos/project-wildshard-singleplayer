@@ -1,5 +1,11 @@
-// SVG data URLs: Signal Dunes ships no downloadable art (the card is bundled, ENGINE §8).
-const svg = (w: number, h: number): string => `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 390 844" preserveAspectRatio="xMidYMid slice"><defs><linearGradient id="s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#14183a"/><stop offset="0.38" stop-color="#3b2c5e"/><stop offset="0.5" stop-color="#9a4f52"/><stop offset="0.56" stop-color="#e48a4a"/></linearGradient><linearGradient id="d" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a5552c"/><stop offset="1" stop-color="#4a2a2c"/></linearGradient></defs><rect width="390" height="844" fill="url(#s)"/><path d="M0 470 C90 440 160 455 230 445 C300 436 350 450 390 446 V844 H0Z" fill="#5e3a42"/><path d="M0 520 C120 470 220 500 390 480 V844 H0Z" fill="url(#d)"/><path d="M0 640 C140 590 260 620 390 600 V844 H0Z" fill="#7a3f2a" opacity="0.8"/><path d="M286 452 l6 -40 h10 l6 40 M289 430 h16 M297 412 v-14" stroke="#1f1522" stroke-width="3" fill="none"/><circle cx="297" cy="398" r="4" fill="#ffb15a"/><path d="M90 250 q30 -14 60 0 q-30 -4 -60 0" fill="#1a1428"/></svg>`)}`;
-export const DUSK_CARD = svg(390, 844);
-export const DUSK_WIDE = svg(1280, 720);
-export const EXPLORE = { art: { world: DUSK_CARD, models: DUSK_CARD, sets: DUSK_CARD, practice: DUSK_CARD } };
+import exploreWorld from './world-sunscar-dunes.webp';
+import exploreModels from './models-sunscar-dunes.webp';
+import exploreSets from './sets-sunscar-dunes.webp';
+import explorePractice from './practice-sunscar-dunes.webp';
+
+/**
+ * Explore's four cards (loop 4, review #15), cut from the finished hero scenes: the dune sea and its buttes from above
+ * (world), the half-buried caravan and its lantern (models), a lit waymark brazier (sets) and the bullwhip with Sefa
+ * on the spawn crest (practice).
+ */
+export const EXPLORE = { art: { world: exploreWorld, models: exploreModels, sets: exploreSets, practice: explorePractice } };
