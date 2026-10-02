@@ -633,6 +633,18 @@ ctx.inputContext({ id: 'template.lantern', priority: 20, enabled: () => ctx.app.
 ctx.app.input.push('template.lantern', ctx.scope);
 ```
 
+**`touch.relabel` values** (`TouchRelabel`): `{ label: string, icon?: string, tone?: 'rest' | 'ready' | 'active', accent?: string }`.
+`label` is required; `icon` is inline SVG markup, `accent` is a CSS colour, and omitted `tone` defaults to `'rest'`.
+`r0` is the ATTACK/FIRE disc; `lock` and `jump` relabel LOCK and JUMP. The attack disc retains its weapon styling;
+its relabel changes its text/icon. LOCK and JUMP use the hint tone/accent styling. A baseline attack label with no
+icon/accent and resting tone restores its ordinary markup and classes.
+
+```ts
+ctx.inputContext({ id: 'template.swing', actions: ['attack'],
+  touch: { mode: 'melee', relabel: { r0: { label: 'SWING' },
+    lock: { label: 'PARRY', tone: 'ready', accent: '#ffd28a' } } } });
+```
+
 **Buffer and coyote time** are per-shard data: `manifest.fight.input = { bufferMs: 120, coyoteMs: 100 }`.
 **Crouch** requires a shard answer to `player.crouch` (§3); without one the motor stays standing.
 Nalati owns its C / Ctrl bindings and grass/taming eligibility. The shared on-foot context has no crouch binding.

@@ -15,7 +15,7 @@ it('paints an already active attack relabel, respects an overlay and restores la
   const weapons = new EquipmentService(new TemplateWhip(app), { scope });
   try {
     for (const context of INPUT_CONTEXTS) app.input.register(context, scope);
-    app.input.register({ id: 'g5.fan', actions: ['attack', 'heavy', 'lock'], touch: { mode: 'melee', relabel: { r0: { label: 'SWING', tone: 'rest' } } } }, scope);
+    app.input.register({ id: 'g5.fan', actions: ['attack', 'heavy', 'lock'], touch: { mode: 'melee', relabel: { r0: { label: 'SWING' }, lock: { label: 'PARRY' } } } }, scope);
     const overlay = new Scope('G5-overlay');
     app.input.register({ id: 'g5.overlay', actions: ['attack'], touch: { relabel: { r0: { label: 'CRACK', icon: '<path d="M0 0L1 1"/>', tone: 'ready' } } } }, overlay);
     app.input.push('onFoot', scope); app.input.push('weapon.melee', scope); app.input.push('g5.fan', scope);
@@ -26,9 +26,15 @@ it('paints an already active attack relabel, respects an overlay and restores la
     if (!(label instanceof HTMLElement) || !(ranged instanceof HTMLElement) || svg === null) throw new Error('attack markup missing');
     const ownIcon = svg.innerHTML;
     expect(label.textContent).toBe('SWING'); expect(ranged.textContent).toBe('SWING');
+    expect(attack.classList.contains('hint-rest')).toBe(true);
+    expect(document.querySelector('.ws-touch-disc.lock')?.classList.contains('hint-rest')).toBe(true);
     app.input.push('g5.overlay', overlay); expect(label.textContent).toBe('CRACK'); expect(svg.innerHTML).not.toBe(ownIcon);
+    expect(attack.classList.contains('hint-ready')).toBe(true); expect(attack.classList.contains('hint-rest')).toBe(false);
     overlay.dispose(); expect(label.textContent).toBe('SWING'); expect(svg.innerHTML).toBe(ownIcon);
     app.input.pop('g5.fan'); expect(label.textContent).toBe('Attack'); expect(ranged.textContent).toBe('Fire'); expect(attack.classList.contains('hint')).toBe(false);
+    app.input.register({ id: 'g22.baseline', actions: ['attack'], touch: { relabel: { r0: { label: 'Attack' } } } }, scope);
+    app.input.push('g22.baseline', scope); expect(attack.classList.contains('hint')).toBe(false);
+    app.input.pop('g22.baseline');
     app.input.pop('weapon.melee'); app.input.push('weapon.ranged', scope);
     expect(label.textContent).toBe('Attack'); expect(ranged.textContent).toBe('Fire');
   } finally { scope.dispose(); app.levelScope = previous; app.input.clear(); document.body.replaceChildren(); }

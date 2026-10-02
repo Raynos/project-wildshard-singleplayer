@@ -474,7 +474,7 @@ export class TouchControls {
       const attack = engineString('s_852b889c1d23'), fire = engineString('s_8c1280a20004');
       const own = this.touchMode === 'melee' ? attack : fire;
       // A baseline label keeps the existing markup/classes; only authored differences dress the disc.
-      const authored = hint?.label === own && hint.icon === undefined && hint.tone === 'rest' && hint.accent === undefined ? null : hint;
+      const authored = hint?.label === own && hint.icon === undefined && (hint.tone ?? 'rest') === 'rest' && hint.accent === undefined ? null : hint;
       if (this.hintAttackMelee !== undefined) this.applyHint(this.hintAttackMelee, authored, attack);
       if (this.hintAttackRanged !== undefined) this.applyHint(this.hintAttackRanged, authored, fire);
     }
@@ -490,7 +490,7 @@ export class TouchControls {
     const icon = h?.icon ?? d.ownIcon;
     if (icon !== (was?.icon ?? d.ownIcon)) d.svg.innerHTML = icon;
     d.btn.classList.toggle('hint', h !== null);
-    for (const t of ['rest', 'ready', 'active'] as const) d.btn.classList.toggle(`hint-${t}`, h?.tone === t);
+    for (const t of ['rest', 'ready', 'active'] as const) d.btn.classList.toggle(`hint-${t}`, h !== null && (h.tone ?? 'rest') === t);
     if (h?.accent === undefined) d.btn.style.removeProperty('--hint');
     else d.btn.style.setProperty('--hint', h.accent);
   }

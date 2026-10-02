@@ -60,3 +60,9 @@ Fresh Opus agents rebuilt both shards again from the docs after G13–G18.
 | G19 | An asset-free shard can't omit `audio.preload` although ENGINE §15 / SHARDS §8 say it may: boot threw "boot audio requires the authored preload profile" | E364 round 3 #1 | boot falls back to an empty profile | fixed (92d1b752: `NO_AUDIO`) |
 | G20 | ENGINE §19 names ThinkCtx / StrikeContext without field semantics; flyer targeting, reach and airborne require reading engine code | E363 round 3 #2 | complete context/eligibility tables, feet vs chest, actual occlusion-only reach and short flyer example | fixed in sol-g20 private candidate (ENGINE §19; docs only) |
 | G21 | DamageRequest stagger / knockback lack types, units and effects; SpeciesLook.build signature omits its two arguments | E363 round 3 #3 + minor | document metadata-only request fields vs explicit Animal stagger/impulse and player behaviour; correct build(variant, rng) | fixed in sol-g20 private candidate (ENGINE §18/§19; docs only) |
+
+## Round 4 (2026-10-01)
+
+| ID | Gap | From | Wanted | Status |
+|---|---|---|---|---|
+| G22 | ENGINE §10 omits the touch.relabel value shape, and tone is required even for the attack disc | E364 round 4 | optional tone defaults to rest; document the shape and example; touch regression | fixed in refs/sol-g22/g22 private candidate; lead landing pending |
