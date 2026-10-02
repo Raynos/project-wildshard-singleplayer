@@ -1,4 +1,4 @@
-import { CircleGeometry, Color, DataTexture, DoubleSide, LinearFilter, Mesh, RepeatWrapping, RGBAFormat, ShaderMaterial, UnsignedByteType, type Vector3 } from 'three';
+import { CircleGeometry, Color, DataTexture, DoubleSide, LinearFilter, Mesh, RepeatWrapping, RGBAFormat, ShaderMaterial, UnsignedByteType, type Texture, type Vector3 } from 'three';
 import { SKY } from './sun';
 
 /**
@@ -127,5 +127,39 @@ export function maelstrom(sun: Vector3, tex: DataTexture, time: { value: number 
       }` });
   const mesh = new Mesh(new CircleGeometry(MAELSTROM.r, 96), material);
   mesh.rotation.x = -Math.PI / 2; mesh.position.set(MAELSTROM.x, MAELSTROM.y, MAELSTROM.z); mesh.renderOrder = -6; mesh.frustumCulled = false; mesh.name = 'far.maelstrom';
+  return mesh;
+}
+
+/**
+ * The painted cloud sea (E392; the judges five loops running: "the cloud sea is a flat pastel plane; the targets are a
+ * dense sea of lit cumulus tops"). A big disc at the puffs' base carrying a seamless painted texture of cumulus tops
+ * seen from above (`public/assets/far-reach/tex/cloudsea.webp`, codex image_gen), two scales blended so no repeat
+ * shows, drifting slowly; under the storm crown it is wound into the maelstrom's spiral. It melts into the panorama's
+ * painted sea with distance. Drawn after the sky dome and before the puffs; opaque near, fading far.
+ */
+export const PAINTED_SEA = { y: -24, radius: 1400, tile: 120, fade: [420, 900] } as const;
+export function paintedSea(painted: Texture, time: { value: number }): Mesh<CircleGeometry, ShaderMaterial> {
+  const material = new ShaderMaterial({ transparent: true, depthWrite: false, fog: false, side: DoubleSide,
+    uniforms: { painted: { value: painted }, time },
+    vertexShader: 'varying vec3 wp; void main(){ vec4 w = modelMatrix * vec4(position, 1.0); wp = w.xyz; gl_Position = projectionMatrix * viewMatrix * w; }',
+    fragmentShader: /* glsl */`
+      uniform sampler2D painted; uniform float time; varying vec3 wp;
+      void main(){
+        vec2 rel = wp.xz - vec2(${MAELSTROM.x.toFixed(1)}, ${MAELSTROM.z.toFixed(1)});
+        float mr = length(rel), swirl = exp(-mr / 110.0);
+        // wound toward the maelstrom's eye: the texture rotated by an angle that grows inward
+        float ma = swirl * 4.2 + time * 0.02 * swirl;
+        vec2 q = vec2(cos(ma) * rel.x - sin(ma) * rel.y, sin(ma) * rel.x + cos(ma) * rel.y) + vec2(${MAELSTROM.x.toFixed(1)}, ${MAELSTROM.z.toFixed(1)});
+        vec2 drift = vec2(time * 0.4, time * 0.15);
+        vec3 a = texture2D(painted, (q + drift) / ${PAINTED_SEA.tile.toFixed(1)}).rgb;
+        vec3 b = texture2D(painted, (q - drift * 0.6) / ${(PAINTED_SEA.tile * 2.9).toFixed(1)} + 0.37).rgb;
+        vec3 c = mix(a, b, 0.35);
+        // the eye a dark lavender well
+        c = mix(c * vec3(0.62, 0.6, 0.78), c, smoothstep(${MAELSTROM.eye.toFixed(1)}, ${(MAELSTROM.eye * 3.5).toFixed(1)}, mr));
+        float d = length(wp.xz - cameraPosition.xz);
+        gl_FragColor = vec4(c, 1.0 - smoothstep(${PAINTED_SEA.fade[0].toFixed(1)}, ${PAINTED_SEA.fade[1].toFixed(1)}, d));
+      }` });
+  const mesh = new Mesh(new CircleGeometry(PAINTED_SEA.radius, 96), material);
+  mesh.rotation.x = -Math.PI / 2; mesh.position.y = PAINTED_SEA.y; mesh.renderOrder = -7; mesh.frustumCulled = false; mesh.name = 'far.painted-sea';
   return mesh;
 }

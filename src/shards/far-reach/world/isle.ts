@@ -175,8 +175,10 @@ ${shader.fragmentShader.replace('#include <color_fragment>', `#include <color_fr
     diffuseColor.rgb *= 0.8 + 0.38 * farMN(q * 0.22) + 0.12 * farMN(q * 1.3);
 #ifdef FAR_MEADOW_TEX
     // the painted meadow, a 5 m tile, keeping the vertex colour's broad tone
-    vec3 mt = texture2D(farMeadow, q * 0.2).rgb;
-    diffuseColor.rgb = mix(diffuseColor.rgb, mt * (0.55 + 0.6 * dot(diffuseColor.rgb, vec3(0.3, 0.59, 0.11)) / 0.3), 0.8);
+    // two scales of the painted meadow (3 m and 11 m tiles) so no repeat reads from above; sunlit swells and shaded hollows
+    vec3 mt = texture2D(farMeadow, q * 0.33).rgb * 0.6 + texture2D(farMeadow, q * 0.09 + 0.37).rgb * 0.4;
+    float swell = farMN(q * 0.12) * 0.7 + farMN(q * 0.4) * 0.3;
+    diffuseColor.rgb = mix(diffuseColor.rgb, mt * (0.62 + 0.75 * swell) * vec3(1.04, 1.02, 0.94), 0.85);
 #endif
     vec2 cell = floor(q * 2.2); float pick = farMH(cell);
     float dot2 = 1.0 - smoothstep(0.12, 0.3, length(fract(q * 2.2) - 0.5));

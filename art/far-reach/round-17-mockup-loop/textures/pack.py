@@ -23,7 +23,7 @@ def seamless(src, size=1024):
     return Image.fromarray(out.clip(0, 255).astype(np.uint8))
 
 
-for name in ('rock', 'meadow'):
+for name in ('rock', 'meadow', 'cloudsea'):
     im = seamless(os.path.join(HERE, f'{name}.png'))
     im.save(os.path.join(OUT, f'{name}.webp'), 'WEBP', quality=86, method=6)
     im.save(os.path.join(HERE, f'{name}.jpg'), quality=86)

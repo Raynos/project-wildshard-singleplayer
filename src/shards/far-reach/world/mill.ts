@@ -1,5 +1,6 @@
 import { BoxGeometry, Color, CylinderGeometry, DoubleSide, Float32BufferAttribute, Group, LatheGeometry, Mesh, MeshStandardMaterial, Vector2, type BufferGeometry, type Object3D } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { PATCH_ORDER, patchShader } from '#engine';
 import { paintIsleMaterial } from './isle';
 
 /**
@@ -76,7 +77,7 @@ function sail(): { frame: BufferGeometry; cloth: BufferGeometry } {
 export function towerMill(): { group: Group; hub: Object3D; hubAt: { y: number; z: number } } {
   const group = new Group(), hub = new Group();
   // the islands' paint, lightly: the whitewash shows its stone, the ivy reads as leaves (E392)
-  const stone = paintIsleMaterial(new MeshStandardMaterial({ vertexColors: true, roughness: 0.92, metalness: 0 }), 0.35);
+  const stone = paintIsleMaterial(new MeshStandardMaterial({ vertexColors: true, roughness: 0.92, metalness: 0 }), 0.55);
   group.add(new Mesh(tower(), stone));
   const wood = new MeshStandardMaterial({ color: 0x6b4a32, roughness: 0.9, metalness: 0 }), dark = new MeshStandardMaterial({ color: 0x2c2430, roughness: 1, metalness: 0 });
   // the door and three windows on the side facing the spawn (+z), each set into the taper
@@ -97,7 +98,15 @@ export function towerMill(): { group: Group; hub: Object3D; hubAt: { y: number; 
   const boss = new Mesh(new CylinderGeometry(0.42, 0.42, 0.5, 12), wood); boss.rotation.x = Math.PI / 2; hub.add(boss);
   const { frame, cloth } = sail();
   const frameMat = new MeshStandardMaterial({ color: 0x7a5a3e, roughness: 0.9, metalness: 0 });
-  const clothMat = new MeshStandardMaterial({ color: 0xeee2c8, roughness: 0.95, metalness: 0, side: DoubleSide, emissive: 0x2a2014 });
+  // weathered canvas (E392: the targets' sails are patched, stained cloth): a coarse weave and water stains in the shader
+  const clothMat = new MeshStandardMaterial({ color: 0xe6d8bc, roughness: 0.95, metalness: 0, side: DoubleSide, emissive: 0x2a2014 });
+  patchShader(clothMat, 'far.mill-canvas', PATCH_ORDER.decorate, (shader) => {
+    shader.fragmentShader = shader.fragmentShader.replace('#include <color_fragment>', `#include <color_fragment>
+  { vec3 cw = (inverse(viewMatrix) * vec4(-vViewPosition, 1.0)).xyz * 9.0;
+    float weave = 0.9 + 0.1 * sin(cw.x * 6.0) * sin(cw.y * 6.0);
+    float stain = fract(sin(dot(floor(cw.xy * 0.18), vec2(12.9, 78.2))) * 43758.5);
+    diffuseColor.rgb *= weave * mix(1.0, 0.78, step(0.72, stain)) * mix(0.86, 1.0, fract(cw.y * 0.11)); }`);
+  }, { key: (prior) => `${prior}|far.mill-canvas` });
   for (let i = 0; i < 4; i++) {
     const arm = new Group(); arm.rotation.z = (i * Math.PI) / 2 + 0.3; hub.add(arm);
     arm.add(new Mesh(frame, frameMat), new Mesh(cloth, clothMat));

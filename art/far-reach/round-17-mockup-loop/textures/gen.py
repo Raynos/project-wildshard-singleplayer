@@ -16,6 +16,11 @@ REF = os.path.join(REPO, 'art/far-reach/round-1-proposals/B-sky-reach.jpg')
 STYLE = ("Painterly-stylized like the attached mockup (Studio Ghibli / Genshin Impact background art): soft visible brush work, "
          "rich detail, warm golden-hour light from the upper left.")
 PROMPTS = {
+    'cloudsea': ("Paint ONE 1024x1024 SEAMLESS TILEABLE texture (it must tile with no visible seam on all four sides), seen STRAIGHT "
+                 "DOWN from far above: a dense, unbroken sea of billowing cumulus cloud tops, packed edge to edge with no gaps or sky "
+                 "showing through, soft round cauliflower billows of many sizes, their sunlit tops warm cream-white and peach-gold "
+                 "(light from the upper left), the deep folds and hollows between them soft lavender and blue-violet shadow, a few "
+                 "wisps. Even overall exposure, no single big shadow, no vignette, no horizon, no sun, no islands. " + STYLE + " No text."),
     'branches': ("Paint ONE 1024x1024 image: a sprite sheet of 4 separate conifer (pine / fir) BRANCH sprites in a 2 x 2 grid, each "
                  "branch filling its own square cell, NOT touching the cell edges or each other, on a FLAT PURE MAGENTA background "
                  "(#FF00FF everywhere outside the branches, no gradient, no shadow on it). Each branch: seen from above-side, a "

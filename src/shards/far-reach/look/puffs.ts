@@ -9,7 +9,7 @@ import { InstancedBufferAttribute, InstancedBufferGeometry, Mesh, PlaneGeometry,
  * Without the atlas (offline, a test page) the field is not built. Seeded: every load grows the same sky.
  */
 /** `spiral`: puffs laid on three log-spiral arms round the storm crown, under its deck (the H4 god-view targets). */
-export const PUFFS = { spiral: { count: 420, x: 0, z: -190, y: [-12, 12], r: [26, 150] }, count: 760, ring: [10, 600], y: [-28, 2], size: [22, 58], fade: [520, 820], centre: [0, -100], cells: [4, 2] } as const;
+export const PUFFS = { spiral: { count: 420, x: 0, z: -190, y: [-12, 12], r: [26, 150] }, count: 380, ring: [10, 600], y: [-22, 4], size: [24, 62], fade: [520, 820], centre: [0, -100], cells: [4, 2] } as const;
 
 export function cumulus(sun: Vector3, atlas: Texture): Mesh<InstancedBufferGeometry, ShaderMaterial> {
   let a = 9317 >>> 0;

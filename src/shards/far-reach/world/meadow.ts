@@ -133,7 +133,8 @@ export function meadow(sunDir: Vector3, blades: number, isles: readonly Isle[] =
         vec2 toCam = normalize(uCam.xz - p + 1e-3); vec2 face = normalize(mix(dir, toCam, 0.55));
         vec2 side = vec2(-face.y, face.x);
         // a few blades in the drifts are daisies: a short stem with a wide pale head (white, some yellow)
-        float flower = step(fract(r * 91.7), 0.04 + 0.16 * smoothstep(0.3, 0.65, mfbm(p * 0.11 + 4.0)));
+        // flowers in drifts, rarer at your feet (the near band read as white tulips)
+        float flower = step(fract(r * 91.7), (0.03 + 0.12 * smoothstep(0.3, 0.65, mfbm(p * 0.11 + 4.0))) * smoothstep(2.0, 7.0, distance(p, uCam.xz)));
         h *= mix(1.0, 0.7, flower);
         // the nearest band is shorter, so a blade at your feet never fills a sixth of the frame (council R1C-15)
         h *= mix(0.55, 1.0, smoothstep(0.8, 4.0, dist));
@@ -154,7 +155,7 @@ export function meadow(sunDir: Vector3, blades: number, isles: readonly Isle[] =
       varying float vH; varying float vTone; varying vec3 vWorld; varying float vShade; varying float vFlower;
       void main(){
         // olive roots, a fresh-green to golden body by patch, warm straw tips
-        vec3 rootC = ${glslColor(0x46602a)}, greenC = ${glslColor(0x8fa85a)}, goldC = ${glslColor(0xa9bb66)}, tipC = ${glslColor(0xe0cf7a)};
+        vec3 rootC = ${glslColor(0x46602a)}, greenC = ${glslColor(0x8fa85a)}, goldC = ${glslColor(0xa9bb66)}, tipC = ${glslColor(0xc8c25a)};
         vec3 body = mix(greenC, goldC, smoothstep(0.5, 0.85, vTone));
         vec3 c = mix(rootC, body, smoothstep(0.0, 0.55, vH));
         c = mix(c, tipC, smoothstep(0.72, 1.0, vH) * 0.45);

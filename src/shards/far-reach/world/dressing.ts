@@ -116,7 +116,7 @@ export function dressIslands(isles: readonly Isle[] = ISLES, seed = 6417, landin
     for (let i = 0; i < ring; i++) {
       // just outside the lip, so they drape down the outside of the keel instead of inside its bulge
       const a = (i / ring) * Math.PI * 2 + rnd() * 0.2, r = isle.r * (0.99 + rnd() * 0.06);
-      roots.push({ x: isle.x + Math.cos(a) * r, y: isle.y - 0.9, z: isle.z + Math.sin(a) * r, s: 1.5 + rnd() ** 1.8 * isle.keel * 0.28, yaw: rnd() * 6.28 });
+      roots.push({ x: isle.x + Math.cos(a) * r, y: isle.y - 0.9, z: isle.z + Math.sin(a) * r, s: 1.2 + rnd() ** 2.2 * isle.keel * 0.2, yaw: rnd() * 6.28 });
     }
   }
   // boulders at every rope landing (mockup A: rocks and flowers round the bridge posts), either side of the lane
@@ -163,6 +163,6 @@ export function dressIslands(isles: readonly Isle[] = ISLES, seed = 6417, landin
   // roots and vines: dark roots with moss-green vine strands among them
   const rootMesh = new InstancedMesh(strand, new MeshStandardMaterial({ color: 0xffffff, roughness: 1, metalness: 0, side: DoubleSide }), roots.length);
   place(rootMesh, roots, 1, true);
-  const rc = new Color(); roots.forEach((_, i) => { rootMesh.setColorAt(i, rc.setHex(i % 5 < 3 ? (i % 2 ? 0x5f7a34 : 0x6f8a3c) : 0x5b4a33)); });
+  const rc = new Color(); roots.forEach((_, i) => { rootMesh.setColorAt(i, rc.setHex(i % 5 < 2 ? 0x55703a : (i % 2 ? 0x5b4a33 : 0x6a5640))); });
   return { group, meshes };
 }

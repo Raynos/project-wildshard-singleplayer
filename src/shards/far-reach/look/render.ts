@@ -3,7 +3,7 @@ import { DayCycle, patchShader, PATCH_ORDER, type LookStrategy } from '#engine';
 import { FOG, SKY, SUN_DIR } from './sun';
 import { installPaintedLight } from './light';
 import { HEADING_GLSL, fogLut, loadPanorama, skyDome } from './sky';
-import { bakeSeaTexture, cloudSea, maelstrom } from './cloudSea';
+import { bakeSeaTexture, cloudSea, maelstrom, paintedSea } from './cloudSea';
 import { cumulus } from './puffs';
 import { loadPainted } from './image';
 import { TEX_URL } from '../boot/files';
@@ -25,7 +25,7 @@ function primitive(object: Object3D): object is Mesh { return object instanceof 
  */
 export async function skyReachLook(): Promise<LookStrategy> {
   const pano: Texture = await loadPanorama();
-  const cloudAtlas = await loadPainted(TEX_URL.clouds, 'far.cumulus');
+  const [cloudAtlas, seaPaint] = await Promise.all([loadPainted(TEX_URL.clouds, 'far.cumulus'), loadPainted(TEX_URL.cloudsea, 'far.cloudsea', true)]);
   let seaTime: { value: number } | null = null;
   return { mode: 'extend',
     compose: ({ engineChain, scene, scope }) => {
@@ -46,11 +46,16 @@ export async function skyReachLook(): Promise<LookStrategy> {
       });
       // the layered cloud sea goes in after the fog patch (its own haze; no scene fog)
       const seaTex = bakeSeaTexture(SUN_DIR), sea = cloudSea(SUN_DIR, seaTex); scope.own(seaTex);
-      for (const mesh of sea.meshes) { scene.add(mesh); scope.own(mesh.geometry); scope.own(mesh.material); }
+      // the procedural sheet only stands in when the painted sea is missing (it drew over the painted one)
+      for (const mesh of sea.meshes) { if (seaPaint === null) scene.add(mesh); scope.own(mesh.geometry); scope.own(mesh.material); }
       scope.onDispose(() => { for (const mesh of sea.meshes) mesh.removeFromParent(); });
       seaTime = sea.time;
-      // the maelstrom under the crown (E392)
-      const swirl = maelstrom(SUN_DIR, seaTex, sea.time); scene.add(swirl); scope.own(swirl.geometry); scope.own(swirl.material); scope.onDispose(() => { swirl.removeFromParent(); });
+      // the painted cloud sea (E392), wound into the maelstrom under the crown; without its texture the procedural maelstrom disc
+      if (seaPaint !== null) {
+        const painted = paintedSea(seaPaint, sea.time); scene.add(painted); scope.own(seaPaint); scope.own(painted.geometry); scope.own(painted.material); scope.onDispose(() => { painted.removeFromParent(); });
+      } else {
+        const swirl = maelstrom(SUN_DIR, seaTex, sea.time); scene.add(swirl); scope.own(swirl.geometry); scope.own(swirl.material); scope.onDispose(() => { swirl.removeFromParent(); });
+      }
       // cumulus over the sea (loop 5): the islands rise out of billowing cloud
       if (cloudAtlas !== null) {
         const puffs = cumulus(SUN_DIR, cloudAtlas); scene.add(puffs); scope.own(cloudAtlas); scope.own(puffs.geometry); scope.own(puffs.material); scope.onDispose(() => { puffs.removeFromParent(); });
