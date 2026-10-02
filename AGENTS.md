@@ -3,8 +3,8 @@
 ## The E357 lock: lifted (2026-10-01)
 
 [GAME-NORMALIZATION](project/archive/2026-10-01-game-normalization.md) is archived, so the repo is open again: `.github/lock.json` says
-`"locked": false`, any agent may commit, and production deploys the newest gpu-gate-green `main` again
-(`.github/deploy-pin.json` mode `newest-green`). The layer rules, guards and ratchet below still apply.
+`"locked": false`, any agent may commit, and production deploys the newest CI-green `main`
+(`.github/deploy-pin.json` mode `newest-ci-green`, Jake 2026-10-02). The layer rules, guards and ratchet below still apply.
 
 ## Engine layers (E357)
 
@@ -447,12 +447,12 @@ game.css / ride.css.
   `VERCEL_BUILD_TOKEN` is the team-scoped Actions secret used for `vercel pull`,
   `vercel build` and `vercel deploy`; the old project-scoped token cannot run the
   CLI account lookup. No credentials belong in Git.
-- **Under the E357 lock, production is pinned** (from GAME-NORMALIZATION F3.1). Production and the OTA channel serve
-  the SHA in `.github/deploy-pin.json` (`M0`, then `M1` … `Mn`), not main's head. The pin moves only with
-  `node scripts/deploy-pin.mjs set <sha> --milestone M<n> --go "<where Jake OKed>"` at a milestone, or
-  `node scripts/deploy-pin.mjs rollback <sha>` (plan spec 03 §13). After a push, verify CI and the `gpu-gate` status
-  only: `version.json` stays on the pinned build, and `gh workflow run deploy` ships the pin, never main's head.
-- Without the lock (before F3.1, and after the plan is archived): after every push, watch that push's CI run. After
+- **Production ships the newest CI-green `main`** (Jake, 2026-10-02: "fix the deploy, whatever it takes"). The hourly
+  or manual release reads `.github/deploy-pin.json`: mode `newest-ci-green` picks the newest main commit whose push
+  `deploy` run (typecheck, lint, test, build) passed. `gpu-gate` still reports on every push but does not hold a release
+  (its push runs cancel each other under the agents' push stream). `mode pinned` (`deploy-pin.mjs set` / `rollback`)
+  freezes production on one SHA; `mode newest-green` waits for gpu-gate.
+- After every push, watch that push's CI run. After
   the next hourly or manual deployment, confirm `https://wildshard-singleplayer.vercel.app/version.json` reports the
   shipped short SHA and record the build ID in the ask file. A green push means verified in GitHub, not yet live. If
   the game needs an immediate release, run `gh workflow run deploy` and watch it.
