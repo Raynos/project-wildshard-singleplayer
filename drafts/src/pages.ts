@@ -1,27 +1,17 @@
-// The title (J39), the public teaser (J13), a draft's home with STAGES (J29), a stage page (J40) and the prototypes (W7).
+// The title (J39), a draft's home with STAGES (J29), a stage page (J40) and the prototypes (W7). Every page is open to
+// everyone (E393: no Developer switch).
 import { STAGES, TICKS, itemById, stageName, stageOrder, type Atlas, type DraftCard, type DraftIndex, type Item, type StageId } from './atlas';
-import { developer, itemUrl, setDeveloper, url } from './data';
+import { itemUrl, url } from './data';
 import { h } from './dom';
 import { openViewer } from './viewer';
-
-export const GAME_URL = 'https://wildshard-singleplayer.vercel.app/';
 
 export function ticks(card: { ticks: number }): HTMLElement {
   return h('div', { class: 'wd-ticks', 'aria-label': `${card.ticks} of ${TICKS.length} stages done` },
     TICKS.map((_, i) => h('span', { class: `wd-tick${i < card.ticks ? ' wd-done' : i === card.ticks ? ' wd-now' : ''}` })));
 }
 
-function devSwitch(onChange: () => void): HTMLElement {
-  const on = developer();
-  return h('button', { class: `wd-switch${on ? ' wd-on' : ''}`, 'aria-pressed': on ? 'true' : 'false', onclick: () => { setDeveloper(!developer()); onChange(); } },
-    h('span', null, 'Developer'),
-    h('span', { class: 'wd-switch-track' }, h('span', { class: 'wd-switch-knob' })),
-    h('span', { class: 'wd-switch-state' }, on ? 'On' : 'Off'));
-}
-
-/** The drafts site's title: a carousel over each draft's key art; Developer on opens drafts, off shows teasers. */
-export function titlePage(index: DraftIndex, rerender: () => void): HTMLElement {
-  const dev = developer();
+/** The drafts site's title: a carousel over each draft's key art, its stage and what it waits on; OPEN DRAFT. */
+export function titlePage(index: DraftIndex): HTMLElement {
   const bg = h('div', { class: 'wd-title-bg' });
   const dots = h('div', { class: 'wd-dots' }, index.drafts.map((_, i) => h('span', { class: `wd-dot${i === 0 ? ' wd-on' : ''}` })));
   const setBg = (d: DraftCard | undefined): void => {
@@ -33,10 +23,10 @@ export function titlePage(index: DraftIndex, rerender: () => void): HTMLElement 
       : h('div', { class: 'wd-card-empty' }, d.name);
     return h('a', { class: 'wd-card', href: `#/${d.slug}` },
       art,
-      dev ? h('span', { class: 'wd-chip' }, `Stage ${d.stage} · ${d.stageName}`) : h('span', { class: 'wd-chip' }, 'Coming soon'),
+      h('span', { class: 'wd-chip' }, `Stage ${d.stage} · ${d.stageName}`),
       h('div', { class: 'wd-card-name' }, d.name),
-      dev ? h('div', { class: 'wd-card-sub' }, `Waiting on: ${d.waiting}`) : h('div', { class: 'wd-card-sub' }, d.line),
-      dev ? ticks(d) : null);
+      h('div', { class: 'wd-card-sub' }, `Waiting on: ${d.waiting}`),
+      ticks(d));
   });
   const carousel = h('div', { class: 'wd-carousel' }, cards);
   let current = 0;
@@ -53,31 +43,13 @@ export function titlePage(index: DraftIndex, rerender: () => void): HTMLElement 
     const d = index.drafts[current];
     if (d) location.hash = `#/${d.slug}`;
   };
-  const actions = dev
-    ? h('div', { class: 'wd-title-links' }, h('button', { class: 'wd-btn', onclick: open }, 'Open draft'))
-    : h('div', { class: 'wd-title-links' },
-      h('button', { class: 'wd-btn', onclick: open }, 'Follow the build'),
-      h('a', { class: 'wd-btn wd-btn-small', href: GAME_URL }, 'Play Driftwood Isle now'));
+  const actions = h('div', { class: 'wd-title-links' }, h('button', { class: 'wd-btn', onclick: open }, 'Open draft'));
   return h('div', { class: 'wd-title' }, bg,
     h('div', { class: 'wd-title-head' }, h('div', { class: 'wd-label' }, 'Project Wildshard'), h('h1', { class: 'wd-h1' }, 'Drafts')),
     h('div', { class: 'wd-title-foot' },
       index.drafts.length === 0 ? h('div', { class: 'wd-panel wd-dimtext' }, 'No drafts yet.') : carousel,
       index.drafts.length > 1 ? dots : h('div', { style: 'height:14px' }),
-      actions,
-      devSwitch(rerender)));
-}
-
-/** The public teaser (J13): the key art, the name, one line. No progress, no spoilers. */
-export function teaserPage(card: DraftCard, blob: string): HTMLElement {
-  const page = h('div', { class: 'wd-teaser' },
-    h('a', { class: 'wd-back wd-teaser-top', href: '#/' }, 'Drafts'),
-    h('div', { class: 'wd-teaser-body' },
-      h('span', { class: 'wd-chip' }, 'Coming soon'),
-      h('h1', { class: 'wd-h1' }, card.name),
-      h('div', { class: 'wd-teaser-line' }, card.line),
-      h('a', { class: 'wd-btn', href: GAME_URL }, 'Play Driftwood Isle now')));
-  if (card.keyArt) page.style.backgroundImage = `url("${url({ blob, slug: card.slug }, card.keyArt, 'full')}")`;
-  return page;
+      actions));
 }
 
 function top(back: { href: string; text: string }, right?: string): HTMLElement {

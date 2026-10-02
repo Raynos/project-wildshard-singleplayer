@@ -8,12 +8,12 @@ Everything on it is **read-only** (J17, J24): Jake looks, compares, plays and wa
 
 It is an **offline home-screen app** (E391, J66): `src/sw.js` (stamped by `vite.config.ts` with the build's files)
 precaches the site and every draft's data, and keeps the pictures of every draft opened (the draft's home counts them).
-The **reload pill** (`src/update.ts`, as the game's) is always on, top right; it lights up when a new deploy waits, and
+The **reload pill** (`src/update.ts`, as the game's) is on the title, top right; it lights up when a new deploy waits, and
 a tap takes it. A deploy is a new worker: it waits for that tap, never reloading on its own.
 
 | What | Where |
 |---|---|
-| The site (TypeScript, no framework) | `src/`: `main.ts` (routes), `pages.ts` (title, teaser, STAGES, a stage page, prototypes), `explore.ts` (Draft Explore's five tabs), `viewer.ts` (the swipe), `map.ts`, `maplab*.ts` + `walk.ts` (Map Lab), `styles.css` (`wd-` classes) |
+| The site (TypeScript, no framework) | `src/`: `main.ts` (routes), `pages.ts` (title, STAGES, a stage page, prototypes), `explore.ts` (Draft Explore's five tabs), `viewer.ts` (the swipe), `map.ts`, `maplab*.ts` + `walk.ts` (Map Lab), `styles.css` (`wd-` classes) |
 | The data contract | `src/atlas.ts` (types shared by the site, the tools and the tests) |
 | A draft's sources (hand-kept by the run) | `shards/<slug>/draft.json` (where its art and design are, what each round's pictures are, Jake's answers per stage, the run header), `shards/<slug>/content.json` (places, quest steps, lanes, side content, mechanics, camera checks, sets), `shards/<slug>/images.json` (generated: the Blob copies) |
 | Generated, committed, shipped | `public/data/index.json` (the title's public cards), `public/data/<slug>/atlas.json`, Map Lab's `terrain.f32` / `labels.u8` |

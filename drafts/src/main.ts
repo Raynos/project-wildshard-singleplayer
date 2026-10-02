@@ -1,23 +1,23 @@
 // The drafts site (WORLDCLAW-TOOLS W16, J16, J57): a separate, read-only website with only the drafts. Hash routes are
 // in-page navigation, not switches (the site has no query params at all):
 //   #/                                   the title (J39)
-//   #/<slug>                             STAGES (Developer on) or the public teaser (J13, J22)
+//   #/<slug>                             STAGES, the draft's home (J29)
 //   #/<slug>/stage/<P>                   a stage page (J40)
 //   #/<slug>/explore/<tab>/<sub>/<arg>   Draft Explore (J44)
 //   #/<slug>/protos                      the prototypes (W7)
 //   #/<slug>/maplab                      Map Lab (W6)
 import './styles.css';
 import { stageName, type Atlas } from './atlas';
-import { atlas, developer, draftIndex, url } from './data';
+import { atlas, draftIndex, url } from './data';
 import { clear, h } from './dom';
 import { explorePage } from './explore';
-import { protosPage, stageFromRoute, stagePage, stagesPage, teaserPage, titlePage } from './pages';
+import { protosPage, stageFromRoute, stagePage, stagesPage, titlePage } from './pages';
 import { draftUrls, registerSw, savedCount, warm, type Saved } from './pwa';
 import { mountUpdatePill } from './update';
 
 const app = document.getElementById('app') ?? document.body;
 void registerSw();
-mountUpdatePill();
+const showPill = mountUpdatePill();
 
 /** The draft home's offline line (E391): how many of its pictures are saved; opening a draft saves the rest. */
 function offline(a: Atlas): void {
@@ -82,21 +82,16 @@ let shownSplash = '';
 async function render(): Promise<void> {
   const parts = location.hash.replace(/^#\/?/, '').split('/').map(decodeURIComponent).filter(Boolean);
   const [slug, view, a1, a2, a3] = parts;
+  showPill(slug === undefined);
   try {
     if (!slug) {
       const index = await draftIndex();
       clear(app);
-      app.append(titlePage(index, () => void render()));
+      app.append(titlePage(index));
       return;
     }
     const index = await draftIndex();
-    const card = index.drafts.find((d) => d.slug === slug);
-    if (!card) throw new Error(`No draft called ${slug}.`);
-    if (!developer()) {
-      clear(app);
-      app.append(teaserPage(card, index.blob));
-      return;
-    }
+    if (!index.drafts.some((d) => d.slug === slug)) throw new Error(`No draft called ${slug}.`);
     const a = await atlas(slug);
     clear(app);
     let page: HTMLElement;

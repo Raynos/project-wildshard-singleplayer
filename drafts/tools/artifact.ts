@@ -156,7 +156,7 @@ a:focus-visible, summary:focus-visible { outline: 2px solid var(--cyan); outline
       <span class="lab">Next</span><span>${esc(a.run.next)}</span>
       <span class="lab">Pictures</span><span>${a.items.length} in ${a.rounds.length} rounds</span>
     </div>
-    <p class="dim">The drafts site has the same draft with the full-screen swipe, Draft Explore, Map Lab and the prototypes: <a href="${SITE}/#/${a.slug}">${SITE.replace('https://', '')}</a> (turn Developer on at the bottom of its title).</p>
+    <p class="dim">The drafts site has the same draft with the full-screen swipe, Draft Explore, Map Lab and the prototypes: <a href="${SITE}/#/${a.slug}">${SITE.replace('https://', '')}</a>.</p>
     <nav>${a.stages.filter((s) => s.state !== 'todo').map((s) => `<a href="#${s.id}">${s.id} · ${esc(s.name)}</a>`).join('')}<a href="#explore">Explore</a></nav>
   </div>
   ${stageHtml}

@@ -1,7 +1,6 @@
 // Loading the drafts' data: `/data/index.json` for the title, `/data/<slug>/atlas.json` for a draft. Both are generated
 // by drafts/tools/atlas.ts and ship with each drafts deploy; the pictures come from Blob (J28).
 import { imgUrl, type Atlas, type DraftIndex, type Img, type Item } from './atlas';
-import { load, save } from './dom';
 
 let indexP: Promise<DraftIndex> | null = null;
 const atlases = new Map<string, Promise<Atlas>>();
@@ -32,13 +31,4 @@ export function url(a: { blob: string; slug: string }, img: Img, size: 'full' | 
 
 export function itemUrl(a: Atlas, it: Item, size: 'full' | 'thumb'): string {
   return it.images ? url(a, it.images, size) : '';
-}
-
-/** The Developer switch (J22): once per device, no password; it shows STAGES and EXPLORE (the spoilers). */
-const DEV_KEY = 'wildshard-drafts.developer';
-export function developer(): boolean {
-  return load(DEV_KEY) === '1';
-}
-export function setDeveloper(on: boolean): void {
-  save(DEV_KEY, on ? '1' : null);
 }
