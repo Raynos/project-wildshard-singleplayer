@@ -47,8 +47,8 @@ const versionPlugin = (): Plugin => ({
 // (native updates are the signed OTA channel), no Google Fonts (bundled — the app must boot offline), no trailers.
 const WEB_ONLY_HTML = [
   /\s*<link rel="manifest"[^>]*>/,
-  /\s*<script type="module" src="\/src\/boot\/sw\.ts"><\/script>/,
-  /\s*<script type="module" src="\/src\/ui\/Update\.ts"><\/script>/,
+  /\s*<script type="module" src="\/src\/engine\/boot\/sw\.ts"><\/script>/,
+  /\s*<script type="module" src="\/src\/engine\/ui\/Update\.ts"><\/script>/,
 ];
 // Capacitor's `server.errorPath`: shown when the WebView cannot load the game at all (an outdated Android System
 // WebView is the usual cause). No script, no fonts, no network.
