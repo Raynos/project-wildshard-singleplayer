@@ -43,3 +43,7 @@ __pycache__/
 # E357 F9: build-derived tables; KTX2 tables require local basisu and stay committed.
 src/**/*.generated.*
 !src/**/ktx2.generated.ts
+
+# local caches and raw capture frames (never committed)
+/.cache/
+/progress/e304-faces/raw/
