@@ -158,7 +158,7 @@ export function buildWell(groundAt: (x: number, z: number) => number): WellParts
     colliders.push(boxDesc({ x: WELL.x + side * (R + 0.15), z: WELL.z, hw: 0.1, hd: 0.1, rot: 0, yBottom: y, yTop: y + 2.3 }, 'wood'));
   }
   if (!generated) { const axle = new Mesh(new CylinderGeometry(0.12, 0.12, R * 2 + 0.3, 8), dark); axle.rotation.z = Math.PI / 2; at(axle, 0, 2.05, 0, root); }
-  const crank = box(0.07, 0.6, 0.07, mat(IRON, { metalness: 0.4 })); at(crank, R + 0.32, 1.85, 0, root);
+  const crank = box(0.07, 0.6, 0.07, mat(IRON, { metalness: 0.1 })); // matte: metal at dusk mirrored the dark sky to black at(crank, R + 0.32, 1.85, 0, root);
   const drop = 2.6, bucket = new Group(); bucket.position.set(0, 1.85 - drop, 0); root.add(bucket);
   const ropeGeo = new CylinderGeometry(0.02, 0.02, drop, 4); ropeGeo.translate(0, drop / 2, 0);
   const rope = new Mesh(ropeGeo, mat(0x6b5236)); bucket.add(rope); // grows from the bucket up to the axle; scaled down as it winds

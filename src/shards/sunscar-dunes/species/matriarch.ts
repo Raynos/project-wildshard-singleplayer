@@ -9,7 +9,7 @@ import { DUNE_RAY_LOOK, rayGeometry } from './duneRay';
  * The Dune Matriarch's numbers. `mem.phase` (0 dives, 1 storm, 2 grounded) and `mem.fight` (1 while the boss fight
  * runs) are written by the boss script (`combat/matriarch.ts`); `mem.rise` (0 → 1) by its intro.
  */
-export const MATRIARCH = { circleR: 30, alt: 18, stormAlt: 24, speed: 12, diveSpeed: 19, every: [5, 3.2, 0], climbFor: 2.4, crawl: 2.2, groundAlt: 0.9,
+export const MATRIARCH = { circleR: 30, alt: 18, stormAlt: 24, speed: 12, diveSpeed: 19, every: [5, 3.2, 0], climbFor: 2.4, crawl: 2.2, groundAlt: 0.9, skim: 4.2,
   /** Grounded she lies on the sand (`lieAlt`) and holds `standOff` m from the player (her centre): at 3.6× her nose is 6.4 m
    * ahead of it, so she fills the lower half of the view and the lash (7 m) still lands on her head and back. */
   lieAlt: 0.2, standOff: 9 } as const;
@@ -63,7 +63,9 @@ export class MatriarchBrain extends CreatureBrain<MatriarchState> {
     const high = phase === 1 ? MATRIARCH.stormAlt : MATRIARCH.alt;
     if (this.state === 'dive') {
       const d3 = a.position.distanceTo(this.chest);
-      ctx.flight.steer(a, toYaw(this.chest.x, this.chest.z), MATRIARCH.diveSpeed, Math.max(1.6, Math.min(high, d3 * 0.4)), 2.4);
+      // round 2 (seat B: the camera passed through her): her centre never drops under `skim` m, so at 3.6x her belly
+      // clears the player's head; her 4 m strike sphere still reaches the chest 3 m below
+      ctx.flight.steer(a, toYaw(this.chest.x, this.chest.z), MATRIARCH.diveSpeed, Math.max(MATRIARCH.skim, Math.min(high, d3 * 0.4)), 2.4);
       if (!this.strikes.busy && !this.struck) { const next = this.strikes.pick([MAW], strike); if (next !== null) this.strikes.start(next, a, this.chest); }
       if ((this.struck && !this.strikes.busy) || this.clock > 5.5) { this.transition('climb'); this.clock = 0; }
       return;
