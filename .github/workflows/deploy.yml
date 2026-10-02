@@ -31,6 +31,7 @@ concurrency:
 permissions:
   contents: read
   statuses: read # the deploy pin's gate check (scripts/deploy-pin.mjs check-gate)
+  actions: read # the newest-ci-green pin reads this workflow's push runs
 
 env:
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
@@ -59,6 +60,8 @@ jobs:
       - name: Read the deploy pin
         id: pin
         if: env.DEPLOY == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           cp scripts/deploy-pin.mjs scripts/deploy-version.mjs "$RUNNER_TEMP/"
           node "$RUNNER_TEMP/deploy-pin.mjs" read

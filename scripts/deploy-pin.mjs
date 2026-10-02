@@ -7,6 +7,7 @@
 //   node scripts/deploy-pin.mjs set <sha> --milestone M<n> --go "<where Jake OKed>"
 //   node scripts/deploy-pin.mjs rollback <sha> --go "<Jake's words>"   # any SHA in the pin history, no gate check
 //   node scripts/deploy-pin.mjs mode newest-green --go "<…>"          # Z4 only
+//   node scripts/deploy-pin.mjs mode newest-ci-green --go "<…>"       # the newest main whose push CI (deploy.yml) passed
 //
 // `set` refuses unless the SHA is on origin/main, its gpu-gate is green, its pending.json is empty, no shard was only
 // bootstrap-recorded there, and it (or a runtime-equal ancestor) has a gpu-perf/memory success (R1-13, R2-27, R2-28,
@@ -33,7 +34,7 @@ const ok = (fn) => { try { fn(); return true; } catch { return false; } };
 /** @param {Pin} pin @returns {Pin} */
 export function validatePin(pin) {
   if (!/^[0-9a-f]{40}$/.test(pin.sha)) throw new Error(`${FILE}: sha must be 40 hex`);
-  if (!['pinned', 'newest-green'].includes(pin.mode)) throw new Error(`${FILE}: mode must be pinned | newest-green`);
+  if (!['pinned', 'newest-green', 'newest-ci-green'].includes(pin.mode)) throw new Error(`${FILE}: mode must be pinned | newest-green | newest-ci-green`);
   if (!['grandfathered', 'required'].includes(pin.gate)) throw new Error(`${FILE}: gate must be grandfathered | required`);
   return pin;
 }
@@ -57,6 +58,16 @@ function statuses(sha) {
 /** @param {string} sha */
 export function gateGreen(sha) {
   return statuses(sha).get('gpu-gate')?.state === 'success';
+}
+
+/** The newest main commit whose push-triggered deploy.yml run (typecheck, lint, test, build) succeeded (Jake 2026-10-02:
+ *  "fix the deploy, whatever it takes": gpu-gate push runs cancel each other under a stream of pushes, so newest-green
+ *  never moved). @returns {string} */
+export function newestCiGreen() {
+  const sha = execFileSync('gh', ['api', `repos/${REPO}/actions/workflows/deploy.yml/runs?branch=main&event=push&status=success&per_page=1`,
+    '--jq', '.workflow_runs[0].head_sha // empty'], { encoding: 'utf8' }).trim();
+  if (!/^[0-9a-f]{40}$/.test(sha)) throw new Error('newest-ci-green: no successful push CI run on main');
+  return sha;
 }
 
 /** Every SHA the pin file has held, oldest first (R1-16). */
@@ -100,6 +111,7 @@ function main() {
       if (!found) throw new Error('newest-green: no gpu-gate-green SHA in the last 50 on origin/main');
       sha = found;
     }
+    if (pin.mode === 'newest-ci-green') sha = newestCiGreen();
     console.log(sha);
     if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, `sha=${sha}\nmode=${pin.mode}\ngate=${pin.gate}\n`);
     return 0;
@@ -145,11 +157,11 @@ function main() {
   }
   if (cmd === 'mode') {
     const go = arg('--go');
-    if (a1 !== 'newest-green' || !go) throw new Error('mode newest-green --go "<…>"');
-    writePin({ ...readPin(), mode: 'newest-green', go, set: new Date().toISOString(), by: 'E357 lead' });
+    if ((a1 !== 'newest-green' && a1 !== 'newest-ci-green') || !go) throw new Error('mode newest-green | newest-ci-green --go "<…>"');
+    writePin({ ...readPin(), mode: a1, gate: 'grandfathered', go, set: new Date().toISOString(), by: 'E357 lead' });
     return 0;
   }
-  console.error('usage: deploy-pin.mjs read | check-gate <sha> | set <sha> --milestone M<n> --go "…" | rollback <sha> --go "…" | mode newest-green --go "…"');
+  console.error('usage: deploy-pin.mjs read | check-gate <sha> | set <sha> --milestone M<n> --go "…" | rollback <sha> --go "…" | mode newest-green|newest-ci-green --go "…"');
   return 2;
 }
 
