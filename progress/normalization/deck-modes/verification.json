@@ -1,0 +1,40 @@
+{
+  "candidate": "f15d3c61be3dc66a38c2b7bacda718c306a52871",
+  "base": "597c3b7bbcc3cee465804cdbbd4a3a28e9cfb03a",
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "browser": "agent-browser Chromium, desktop UA at iPhone portrait dimensions (not physical iPhone)",
+  "checks": {
+    "typecheck": "passed clean export",
+    "oxlint": "whole tree passed clean export",
+    "vitest": {
+      "files": 359,
+      "tests": 2460,
+      "result": "passed"
+    },
+    "deckOff": "six cards; no template; all three experimental Coming soon; Enter/Explore disabled; disabled click stays on title",
+    "deckOn": "seven cards; template last with DEVELOPER ONLY; Enter/Explore enabled",
+    "savedMode": "Settings toggle and data-dev agree; on and off survive reload",
+    "bootErrors": {
+      "pine-hollow.phone.json": [],
+      "nalati-grasslands.phone.json": [],
+      "far-reach.phone.json": [],
+      "driftwood-isle.phone.json": [],
+      "nine-dragon-stack.phone.json": [],
+      "sunscar-dunes.phone.json": [],
+      "_template.phone.json": []
+    },
+    "parity": {
+      "_template \u00d7 phone": "red",
+      "driftwood-isle \u00d7 phone": "green",
+      "far-reach \u00d7 phone": "lane-pending",
+      "nalati-grasslands \u00d7 phone": "green",
+      "nine-dragon-stack \u00d7 phone": "green",
+      "pine-hollow \u00d7 phone": "green",
+      "sunscar-dunes \u00d7 phone": "red"
+    },
+    "baselineWrites": false
+  }
+}
