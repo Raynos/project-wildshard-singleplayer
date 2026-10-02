@@ -7,7 +7,7 @@ import { WIND } from './dunes';
 import { duneMaterial, duneMesh, fit, smoothColors, without } from './meshes';
 
 // round 2 (R1C-2): sun-greyed wood and worn iron a step lighter; at dusk the old near-black values read as black cut-outs
-const WOOD = 0xa07656, WOOD_DARK = 0x86603f, IRON = 0x6e5e56, CANVAS = 0x8a6448, CANVAS_BLEACHED = 0xd8bc92, LAMPLIT = 0xb8581c, STONE = 0x6a4a3a, LEATHER = 0x3a1e12, CLAY = 0x7a3a22;
+const WOOD = 0xa07656, WOOD_DARK = 0x86603f, IRON = 0x6e5e56, CANVAS = 0x8a6448, CANVAS_BLEACHED = 0xd8bc92, LAMPLIT = 0x6e3210, STONE = 0x6a4a3a, LEATHER = 0x3a1e12, CLAY = 0x7a3a22;
 const POLE = 0x86603f;
 export const RAG = 0x8a2a16, RAG_GLOW = 0x1a0603;
 /** The places' marker poles (metres): as tall as the waymark poles' reach from above. */

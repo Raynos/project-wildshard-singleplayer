@@ -113,7 +113,7 @@ function gloveMesh(): { mesh: Mesh; top: number } | null {
   // Painted facets, matte; a touch of warm self-light so the backlit glove never reads as a black lump.
   // loop 4: the painted leather a little lighter (it read as one brown lump against the sand next to the bar's weapons)
   const material = new MeshStandardMaterial({ vertexColors: true, roughness: 0.7, metalness: 0, emissive: GLOW });
-  material.color.setRGB(0.66, 0.54, 0.44); // loop 5 (mockup D): dark worn brown leather, the rim picks out its edges
+  material.color.setRGB(0.42, 0.32, 0.25); // loop 5 (mockup D): dark worn brown leather, the rim picks out its edges
   return { mesh: new Mesh(g, material), top };
 }
 

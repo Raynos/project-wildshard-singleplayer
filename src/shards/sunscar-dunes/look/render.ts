@@ -11,10 +11,11 @@ import { SKY_FRAGMENT, SKY_VERTEX, SUN_GLOW } from './sky';
  * band is art-directed apart from it, behind the tower (`sky.ts` SUN_GLOW).
  */
 // loop 3: a deeper, redder key (ΔE00 of the lit sand against the H1–H4 targets: the game's was too pale and grey-blue)
-export const KEY = { dir: new Vector3(-0.97, 0.174, 0.171).normalize(), color: new Color(1, 0.57, 0.3), intensity: 2.5 } as const;
+export const KEY = { dir: new Vector3(-0.97, 0.174, 0.171).normalize(), color: new Color(1, 0.55, 0.26), intensity: 3.4 } as const; // loop 5 targets: saturated lit faces, deep shade
 /** Violet aerial perspective: far dune rows cool and lift into layers (R9), never pink. */
 export const FOG = { color: 0x684a62, near: 80, far: 430 } as const;
-const SAND = new Color(0.5, 0.2, 0.075), HOLLOW = new Color(0.2, 0.12, 0.15), CREST = new Color(0.62, 0.28, 0.1);
+const SAND = new Color(0.56, 0.2, 0.06), // loop 5: saturated in the material (a grade boost clipped the indigo sky)
+  HOLLOW = new Color(0.2, 0.12, 0.15), CREST = new Color(0.7, 0.3, 0.08);
 /** How far (m) and in how many growing steps the bake marches toward the sun for the dunes' cast shadows. */
 const SHADOW_MARCH = { first: 0.8, grow: 1.22, steps: 26 } as const;
 const WIND_GLSL = `${WIND.x.toFixed(3)}, ${WIND.z.toFixed(3)}`;
