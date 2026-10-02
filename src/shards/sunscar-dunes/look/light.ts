@@ -23,6 +23,7 @@ export function lastLightAll(root: Object3D, scope: Scope): void {
   root.traverse((o) => {
     if (!(o instanceof Mesh)) return;
     const list: unknown[] = Array.isArray(o.material) ? o.material : [o.material];
-    for (const m of list) if (m instanceof MeshStandardMaterial && !seen.has(m)) { seen.add(m); lastLight(m, scope); }
+    // a thin tube (the whip's coil) is all grazing faces: the rim would wash it pale, so it can opt out
+    for (const m of list) if (m instanceof MeshStandardMaterial && !seen.has(m) && m.userData['sunscarNoRim'] !== true) { seen.add(m); lastLight(m, scope); }
   });
 }

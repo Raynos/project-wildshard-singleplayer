@@ -6,7 +6,7 @@ const STRAND_A = [0.46, 0.25, 0.12] as const, STRAND_B = [0.27, 0.14, 0.065] as 
 /** The thrown lash is the handle's dark braid (loop 3: its first metre read as a pale cone against the dusk sun). */
 const LASH_A = [0.24, 0.12, 0.055] as const, LASH_B = [0.13, 0.065, 0.03] as const;
 // loop 4: a shade lighter than the glove, so the coil's loops read against both the fist and the dusk sand (mockup D)
-const COIL_A = [0.5, 0.3, 0.14] as const, COIL_B = [0.3, 0.16, 0.07] as const;
+const COIL_A = [0.12, 0.055, 0.022] as const, COIL_B = [0.045, 0.02, 0.009] as const; // linear: a dark brown plait // mockup D: a dark plait with warm highlights
 const GLOVE = 0x7a4a28, CUFF = 0x5a3219, KNOB = 0x3a2214;
 /** A low warm self-light: the dusk sun sits behind the player most of the time, and a backlit viewmodel reads as a black lump. */
 const GLOW = 0x120804;
@@ -113,7 +113,7 @@ function gloveMesh(): { mesh: Mesh; top: number } | null {
   // Painted facets, matte; a touch of warm self-light so the backlit glove never reads as a black lump.
   // loop 4: the painted leather a little lighter (it read as one brown lump against the sand next to the bar's weapons)
   const material = new MeshStandardMaterial({ vertexColors: true, roughness: 0.7, metalness: 0, emissive: GLOW });
-  material.color.setRGB(1.6, 1.45, 1.28); // round 2: a tan leather a step lighter than the sand
+  material.color.setRGB(0.66, 0.54, 0.44); // loop 5 (mockup D): dark worn brown leather, the rim picks out its edges
   return { mesh: new Mesh(g, material), top };
 }
 
@@ -144,23 +144,24 @@ export function buildWhipModel(): WhipParts {
   const made = gloveMesh();
   if (made !== null) { handle.visible = false; knob.visible = false; fist.visible = false; grip.add(made.mesh); }
   // round 1 (R1C-4): the handle tilts forward and toward the crosshair, not straight up like a stick
-  grip.rotation.set(-1.2, 0, made === null ? -0.25 : 0.12);
+  // loop 5 (mockup D): the handle runs down and back into the palm, the fist holds the coiled lash up beside it
+  grip.rotation.set(made === null ? -1.2 : -0.9, 0, made === null ? -0.25 : -0.55);
   // The coil (mockup D): a small loop and a half hanging below the fist toward the bottom-right edge, its tail out of frame.
   // With the generated glove (mockup D) the coil is the real cord's weight: two and a half thin loops beside the fist.
-  const turns = made === null ? 3.2 : 5, loopR = made === null ? 0.064 : 0.05, cord = made === null ? 0.0085 : 0.0072; // solid, not see-through hoops
+  // loop 5 (mockup D): two big braided loops held up out of the fist, each a little apart, the fall hanging below
+  const turns = made === null ? 3.2 : 2.2, loopR = made === null ? 0.064 : 0.05, cord = made === null ? 0.0085 : 0.006;
   const coilPoints: Vector3[] = [];
-  for (let i = 0; i <= 60; i++) {
-    const s = i / 60, a = 0.6 + s * Math.PI * turns, r = loopR * (1 - 0.15 * s);
-    coilPoints.push(new Vector3(0.0 + Math.cos(a) * r, -0.1 + Math.sin(a) * r - s * s * 0.06, 0.02 - s * 0.03));
+  for (let i = 0; i <= 80; i++) {
+    const s = i / 80, a = -Math.PI / 2 + s * Math.PI * 2 * turns / 2, r = loopR * (1 - 0.12 * s);
+    coilPoints.push(new Vector3(-0.005 + Math.cos(a) * r * 0.85 - s * 0.03, -0.01 + (Math.sin(a) + 1) * r, -0.02 - s * 0.03));
   }
-  coilPoints.push(new Vector3(0.02, -0.24, -0.02), new Vector3(0.05, -0.36, -0.05));
+  coilPoints.push(new Vector3(-0.02, -0.06, -0.04), new Vector3(0.0, -0.2, -0.05), new Vector3(0.02, -0.36, -0.06));
   const coilGeometry = new TubeGeometry(new CatmullRomCurve3(coilPoints), 140, cord, RADIAL, false);
   // the coil is the lash's own dark braid, a shade lighter (loop 3: the handle's pale strands read cream in the sun)
   braid(coilGeometry, 141, RADIAL + 1, 0, COIL_A, COIL_B);
-  const coilMaterial = braided(); coilMaterial.roughness = 0.75;
+  const coilMaterial = braided(); coilMaterial.roughness = 0.75; coilMaterial.userData['sunscarNoRim'] = true;
   const coil = new Mesh(coilGeometry, coilMaterial);
-  if (made === null) coil.position.set(0, 0.1, -0.02); else coil.position.set(0.0, 0.02, -0.03); // under the fist, out of the centre third
-  coil.rotation.set(0.1, 0.4, 0.1);
+  if (made === null) { coil.position.set(0, 0.1, -0.02); coil.rotation.set(0.1, 0.4, 0.1); } else { coil.position.set(0.01, -0.02, -0.01); coil.rotation.set(0.05, 0.35, 0.12); }
   root.add(grip, coil);
   const lash = new Lash(); root.add(lash.mesh);
   // The keeper end of the handle in root space, where the lash leaves the hand.
