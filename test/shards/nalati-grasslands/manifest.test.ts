@@ -24,11 +24,25 @@ it('preserves authored data and all loading labels and weights', () => {
   expect({ ...def.trees, factory: 'spruce' }).toEqual(before.data.trees);
   for (const [key, value] of Object.entries(BOOT_STEPS)) expect(value).toEqual(before.steps[key as keyof typeof before.steps]);
 });
+/** deep equality with numbers within 1e-9 relative: CI's Linux libm and macOS differ in the last digit (e.g. 0.0024250667876447455 vs …645481) */
+function expectNear(actual: unknown, expected: unknown, at: string): void {
+  if (typeof expected === 'number' && typeof actual === 'number') {
+    expect(Math.abs(actual - expected), at).toBeLessThanOrEqual(1e-9 * Math.max(1, Math.abs(expected)));
+  } else if (Array.isArray(expected) && Array.isArray(actual)) {
+    expect(actual.length, at).toBe(expected.length);
+    expected.forEach((e, i) => { expectNear(actual[i], e, `${at}[${i}]`); });
+  } else if (expected !== null && typeof expected === 'object' && actual !== null && typeof actual === 'object') {
+    expect(Object.keys(actual).sort(), at).toEqual(Object.keys(expected).sort());
+    for (const [k, e] of Object.entries(expected)) expectNear((actual as Record<string, unknown>)[k], e, `${at}.${k}`);
+  } else {
+    expect(actual, at).toEqual(expected);
+  }
+}
 it('preserves terrain, forest masks, ground colours and surface masks across 441 samples', () => {
   const t = def.ground.terrain;
   if (t === undefined) throw new Error('Missing terrain');
   for (const sample of before.samples) {
     const { x, z } = sample, h = t.heightAt(x, z), normal = t.normalAt(x, z), slope = 1 - normal[1];
-    expect({ x, z, h, normal, splat: t.splatAt(x, z), forest: def.forest?.mask?.(x, z), ground: def.groundColor?.(x, z, h, slope, t, [0, 0, 0]), surface: def.surfaceAt?.(x, z, h, slope) }).toEqual(sample);
+    expectNear({ x, z, h, normal, splat: t.splatAt(x, z), forest: def.forest?.mask?.(x, z), ground: def.groundColor?.(x, z, h, slope, t, [0, 0, 0]), surface: def.surfaceAt?.(x, z, h, slope) }, sample, `${x},${z}`);
   }
 });
