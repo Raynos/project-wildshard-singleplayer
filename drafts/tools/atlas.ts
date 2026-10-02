@@ -10,7 +10,7 @@
 // Sources: drafts/shards/<slug>/draft.json (hand-kept by the run), its content.json, the art READMEs and the pictures.
 import { existsSync, readdirSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { imgUrl, type Atlas, type DraftCard, type DraftIndex, type Terrain, type VariantStats } from '../src/atlas.ts';
+import { imgUrl, type Atlas, type DesignDoc, type DraftCard, type DraftIndex, type Terrain, type VariantStats } from '../src/atlas.ts';
 import { buildAtlas, publicLeaks, type DraftConfig, type DraftContent } from './build-atlas.ts';
 import { publishImages, type ImageIndex } from './images.ts';
 
@@ -76,6 +76,14 @@ function loadTerrain(config: DraftConfig): Terrain | null {
   };
 }
 
+/** The draft's design documents: every .md in its design folder, design.md first (W1: the design is part of the draft). */
+function loadDesign(config: DraftConfig): DesignDoc[] {
+  const dir = join(ROOT, config.design);
+  if (!config.design || !existsSync(dir)) return [];
+  const names = readdirSync(dir).filter((n) => n.endsWith('.md') && n !== 'README.md').sort((a, b) => (a === 'design.md' ? -1 : b === 'design.md' ? 1 : a.localeCompare(b)));
+  return names.map((name) => ({ name, text: readFileSync(join(dir, name), 'utf8') }));
+}
+
 interface Built { atlas: Atlas; card: DraftCard; problems: string[] }
 
 async function one(slug: string, publish: boolean): Promise<Built> {
@@ -87,13 +95,14 @@ async function one(slug: string, publish: boolean): Promise<Built> {
   const index: ImageIndex = existsSync(indexPath) ? readJson<ImageIndex>(indexPath) : {};
   const now = new Date().toISOString();
   const terrain = loadTerrain(config);
-  let res = buildAtlas({ root: ROOT, config, content, cams, terrain, index, now });
+  const design = loadDesign(config);
+  let res = buildAtlas({ root: ROOT, config, content, cams, terrain, design, index, now });
   if (publish) {
     const n = await publishImages(slug, res.sources, index, (s) => console.log(s));
     const sorted = Object.fromEntries(Object.entries(index).sort(([a], [b]) => a.localeCompare(b)));
     writeFileSync(indexPath, json(sorted));
     console.log(`${slug}: ${n} new picture(s) uploaded, ${Object.keys(index).length} in images.json`);
-    res = buildAtlas({ root: ROOT, config, content, cams, terrain, index, now });
+    res = buildAtlas({ root: ROOT, config, content, cams, terrain, design, index, now });
   }
   return { atlas: res.atlas, card: res.card, problems: [...res.problems, ...publicLeaks(res.card, res.atlas)] };
 }

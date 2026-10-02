@@ -1,11 +1,12 @@
 // Draft Explore (WORLDCLAW-TOOLS W17, J44–J52): the mock-up mirror of the game's Explore. MODELS · SETS · WORLD · BEATS ·
 // COVERAGE, filled with the draft's pictures. Read-only.
-import { itemById, type Atlas, type Item, type Model, type Place } from './atlas';
+import { itemById, type Atlas, type Item, type Model, type SetPlan } from './atlas';
 import { itemUrl } from './data';
-import { h, s } from './dom';
+import { h } from './dom';
 import { LANE_COLORS, cone, mapView, pin, polyline } from './map';
 import { draftHead, tile } from './pages';
 import { openViewer } from './viewer';
+import { coverageBody } from './coverage';
 
 export const TABS = ['models', 'sets', 'world', 'beats', 'coverage'] as const;
 export type Tab = (typeof TABS)[number];
@@ -53,7 +54,11 @@ function modelsTab(a: Atlas, id: string | undefined): HTMLElement {
           h('div', null, h('div', { class: 'wd-path-cell' }, concept?.images ? h('img', { src: itemUrl(a, concept, 'thumb'), alt: '', onclick: () => openViewer(a, lineage, 0) }) : 'Concept'), h('div', { class: 'wd-label', style: 'margin-top:4px' }, 'Concept')),
           h('div', null, h('div', { class: 'wd-path-cell' }, m.model ? 'Model' : 'Not yet'), h('div', { class: 'wd-label', style: 'margin-top:4px' }, 'Model')),
           h('div', null, h('div', { class: 'wd-path-cell' }, m.inGame ? 'In game' : 'Not yet'), h('div', { class: 'wd-label', style: 'margin-top:4px' }, 'In game'))),
-        h('p', { class: 'wd-p wd-dimtext' }, 'Models are made in the build (P11). Once the shard has a manifest, the game\'s Model Explorer shows them (J36).')));
+        h('p', { class: 'wd-p wd-dimtext' }, 'Models are made in the build (P11). Once the shard has a manifest, the game\'s Model Explorer shows them (J36).')),
+      h('div', { class: 'wd-section' }, h('span', { class: 'wd-label' }, 'Part of'),
+        a.sets.some((x) => x.members.some((mm) => mm.model === m.id))
+          ? h('div', { class: 'wd-status' }, a.sets.filter((x) => x.members.some((mm) => mm.model === m.id)).map((x) => h('a', { class: 'wd-chip wd-chip-cyan', href: `#/${a.slug}/explore/sets/${x.id}` }, `${x.name} ×${x.members.filter((mm) => mm.model === m.id).reduce((n, mm) => n + mm.copies, 0)}`)))
+          : h('p', { class: 'wd-p wd-dimtext' }, 'No planned set yet.')));
   }
   const groups: Model['sub'][] = ['character', 'creature', 'boss', 'gear'];
   return frame(a, 'models',
@@ -70,21 +75,68 @@ function modelsTab(a: Atlas, id: string | undefined): HTMLElement {
 
 // ---------------------------------------------------------------- SETS (J46, J49)
 
-function setsTab(a: Atlas): HTMLElement {
+const fmt = (n: number): string => (n >= 1000 ? `${Math.round(n / 100) / 10}k` : String(n));
+
+/** A set's planned totals: its models, copies, triangles of every copy, draws (one per member: copies are instanced). */
+export function setTotals(set: SetPlan): { models: number; copies: number; tris: number; draws: number } {
+  return {
+    models: new Set(set.members.map((m) => m.model)).size,
+    copies: set.members.reduce((n, m) => n + m.copies, 0),
+    tris: set.members.reduce((n, m) => n + m.tris * m.copies, 0),
+    draws: set.members.reduce((n, m) => n + m.draws, 0),
+  };
+}
+
+function aerialBox(a: Atlas, set: SetPlan, big: boolean): HTMLElement {
+  const aerial = set.aerial ? itemById(a, set.aerial) : undefined;
+  return h('div', { class: `wd-set-aerial${big ? ' wd-big' : ''}` },
+    aerial?.images ? h('img', { src: itemUrl(a, aerial, big ? 'full' : 'thumb'), alt: set.name, loading: 'lazy' }) : h('div', { class: 'wd-option-empty' }, 'No aerial yet'));
+}
+
+/** SETS (J46, J49): the Set Explorer's mirror with planned sets: a list by region → a set → its members. */
+function setsTab(a: Atlas, id: string | undefined): HTMLElement {
   if (a.sets.length === 0) {
     return frame(a, 'sets', h('div', { class: 'wd-empty-state' },
       h('div', { class: 'wd-h3' }, 'No sets planned yet'),
       h('p', { class: 'wd-p' }, 'A set is the models placed in one spot, as the game\'s Set Explorer shows them. A draft plans its sets (members, copies, an aerial concept) once its catalog exists (P11); this tab then mirrors the Set Explorer with those plans.')));
   }
+  const set = id ? a.sets.find((x) => x.id === id) : undefined;
+  if (set) {
+    const t = setTotals(set);
+    return frame(a, 'sets',
+      h('div', { class: 'wd-section' }, h('a', { class: 'wd-back', href: `#/${a.slug}/explore/sets` }, 'Sets')),
+      h('div', { class: 'wd-label', style: 'margin-top:8px' }, `${set.region} · planned`),
+      h('div', { class: 'wd-h2', style: 'margin-top:4px' }, set.name),
+      aerialBox(a, set, true),
+      set.bounds ? h('div', { class: 'wd-label', style: 'margin-top:6px' }, `Bounds ${set.bounds.w} × ${set.bounds.d} m at (${set.bounds.x}, ${set.bounds.z})`) : null,
+      h('div', { class: 'wd-set-totals' },
+        h('div', null, h('b', null, String(t.models)), h('span', { class: 'wd-label' }, 'Models')),
+        h('div', null, h('b', null, String(t.copies)), h('span', { class: 'wd-label' }, 'Copies')),
+        h('div', null, h('b', null, fmt(t.tris)), h('span', { class: 'wd-label' }, 'Tris')),
+        h('div', null, h('b', null, String(t.draws)), h('span', { class: 'wd-label' }, 'Draws'))),
+      h('div', { class: 'wd-section' }, h('span', { class: 'wd-label' }, 'Members'),
+        set.members.map((m) => {
+          const model = a.models.find((x) => x.id === m.model);
+          const concept = model ? itemById(a, model.concept) : undefined;
+          return h('a', { class: 'wd-set-member', href: `#/${a.slug}/explore/models/${m.model}` },
+            concept?.images ? h('img', { src: itemUrl(a, concept, 'thumb'), alt: '', loading: 'lazy' }) : h('div', { class: 'wd-option-empty' }, '?'),
+            h('div', null,
+              h('div', { class: 'wd-mcard-name' }, model?.name ?? m.model),
+              h('div', { class: 'wd-label' }, `×${m.copies} · ${fmt(m.tris)} tris each · ${m.draws} draw${m.draws === 1 ? '' : 's'}`),
+              model ? modelStatus(model) : h('span', { class: 'wd-chip wd-chip-bad' }, 'No concept')));
+        })));
+  }
   const regions = [...new Set(a.sets.map((x) => x.region))];
   return frame(a, 'sets', regions.map((r) => h('div', { class: 'wd-section' },
     h('span', { class: 'wd-label' }, r),
     a.sets.filter((x) => x.region === r).map((x) => {
-      const aerial = x.aerial ? itemById(a, x.aerial) : undefined;
-      return h('div', { class: 'wd-panel', style: 'margin-top:8px' },
-        aerial?.images ? h('img', { src: itemUrl(a, aerial, 'thumb'), alt: '', style: 'width:100%;border:1px solid #8fe3ff' }) : null,
-        h('div', { class: 'wd-h3', style: 'margin-top:6px' }, x.name),
-        h('div', { class: 'wd-status' }, x.members.map((mem) => h('a', { class: 'wd-chip wd-chip-cyan', href: `#/${a.slug}/explore/models/${mem.model}` }, `${mem.model} ×${mem.copies}`))));
+      const t = setTotals(x);
+      return h('a', { class: 'wd-set-card', href: `#/${a.slug}/explore/sets/${x.id}` },
+        aerialBox(a, x, false),
+        h('div', null,
+          h('div', { class: 'wd-h3' }, x.name),
+          h('div', { class: 'wd-label', style: 'margin-top:4px' }, `${t.models} models · ${t.copies} copies · ${fmt(t.tris)} tris · ${t.draws} draws`),
+          h('div', { class: 'wd-status' }, x.members.map((mem) => h('span', { class: 'wd-chip wd-chip-cyan' }, `${a.models.find((mm) => mm.id === mem.model)?.name ?? mem.model} ×${mem.copies}`)))));
     }))));
 }
 
@@ -237,68 +289,17 @@ function beatsTab(a: Atlas, sub: string, arg: string | undefined): HTMLElement {
       a.side.map((x) => h('div', { class: 'wd-place-row' }, h('div', { class: 'wd-place-row-head' }, h('span', { class: 'wd-h3' }, x.title), h('span', { class: 'wd-label' }, x.id)), h('p', { class: 'wd-p wd-dimtext' }, x.text)))) : null);
 }
 
-// ---------------------------------------------------------------- COVERAGE (J48, J52)
-
-const COV = { todo: '#ff5a5a', mocked: '#b98cff', unseen: '#2a3a48' } as const;
-
-interface PlaceCov { place: Place; concept: number; views: number; blockout: number; mocked: boolean }
-
-function coverage(a: Atlas): PlaceCov[] {
-  return a.places.map((p) => {
-    const its = a.items.filter((i) => i.place === p.id && i.status !== 'rejected');
-    const concept = its.filter((i) => i.kind === 'concept').length;
-    const views = its.filter((i) => i.kind === 'fp' && i.status === 'current').length;
-    const blockout = its.filter((i) => i.kind === 'blockout').length;
-    return { place: p, concept, views, blockout, mocked: views > 0 };
-  });
-}
+// ---------------------------------------------------------------- COVERAGE (J48, J52), measured (coverage.ts)
 
 function coverageTab(a: Atlas, sub: string): HTMLElement {
   const st = subtabs(a, 'coverage', sub, [['map', 'Map'], ['places', 'Places'], ['cameras', 'Cameras']]);
-  const cov = coverage(a);
-  const mocked = cov.filter((c) => c.mocked).length;
-  const funnel = h('div', { class: 'wd-panel wd-section' },
-    h('div', { class: 'wd-round-head' }, h('span', { class: 'wd-h3' }, `${mocked} / ${cov.length} places mocked up`), h('span', { class: 'wd-label' }, 'mock-ups only')),
-    h('div', { class: 'wd-bar', style: 'display:flex;height:10px;margin-top:8px' },
-      h('span', { style: `width:${(100 * mocked) / Math.max(1, cov.length)}%;background:${COV.mocked}` }),
-      h('span', { style: `width:${(100 * (cov.length - mocked)) / Math.max(1, cov.length)}%;background:${COV.todo}` })),
-    h('p', { class: 'wd-p wd-dimtext', style: 'font-size:11px' }, 'A place is mocked up when a current first-person view of it exists. Composed and signed off come with the build, in the game\'s Coverage tab (J35, J43).'));
-  if (sub === 'places') {
-    return frame(a, 'coverage', st, funnel, cov.map((c) => h('div', { class: 'wd-place-row' },
-      h('div', { class: 'wd-place-row-head' }, h('span', { class: 'wd-h3' }, `${c.place.num} · ${c.place.name}`), h('span', { class: `wd-chip ${c.mocked ? '' : 'wd-chip-bad'}`, style: c.mocked ? `border-color:${COV.mocked};color:${COV.mocked}` : undefined }, c.mocked ? 'Mocked up' : 'To do')),
-      h('div', { class: 'wd-label', style: 'margin-top:4px' }, `${c.place.role} · concept ${c.concept} · views ${c.views} · blockout ${c.blockout}`),
-      h('div', { class: 'wd-bar' }, h('span', { style: `width:${Math.min(100, (c.concept + c.views + c.blockout) * 33)}%;background:${c.mocked ? COV.mocked : COV.todo}` })))));
-  }
-  const m = mapView(a, { dim: 0.35 });
-  if (!m) return frame(a, 'coverage', st, h('div', { class: 'wd-empty-state' }, 'No approved map yet (P5).'));
-  if (sub === 'cameras') {
-    // Every mock-up camera's cone; the hatch is everything no cone reaches.
-    const defs = s('defs', null, s('pattern', { id: 'wd-hatch', width: 14, height: 14, patternUnits: 'userSpaceOnUse', patternTransform: 'rotate(45)' }, s('line', { x1: 0, y1: 0, x2: 0, y2: 14, stroke: 'rgba(255,90,90,0.35)', 'stroke-width': 4 })));
-    m.svg.append(defs);
-    m.svg.append(s('rect', { x: 0, y: 0, width: 1000, height: 1000, fill: 'url(#wd-hatch)' }));
-    for (const cam of a.cams) {
-      const dist = Math.hypot(cam.look[0] - cam.eye[0], cam.look[2] - cam.eye[2]);
-      cone(m, cam, COV.mocked, Math.max(60, dist * 1.4));
-    }
-    return frame(a, 'coverage', st, funnel, m.el, h('div', { class: 'wd-map-legend' },
-      h('span', null, h('span', { class: 'wd-swatch', style: `background:${COV.mocked}` }), 'A mock-up camera sees it'),
-      h('span', null, h('span', { class: 'wd-swatch', style: 'background:rgba(255,90,90,0.5)' }), 'No mock-up camera')));
-  }
-  for (const c of cov) {
-    const [px, py] = m.at(c.place.x, c.place.z);
-    m.svg.append(s('circle', { cx: px, cy: py, r: 46, fill: c.mocked ? COV.mocked : COV.todo, 'fill-opacity': 0.45, stroke: c.mocked ? COV.mocked : COV.todo, 'stroke-width': 3 }));
-    pin(m, c.place.x, c.place.z, String(c.place.num), '#e8f1f5', undefined, 15);
-  }
-  return frame(a, 'coverage', st, funnel, m.el, h('div', { class: 'wd-map-legend' },
-    h('span', null, h('span', { class: 'wd-swatch', style: `background:${COV.mocked}` }), 'Mocked up'),
-    h('span', null, h('span', { class: 'wd-swatch', style: `background:${COV.todo}` }), 'To do'),
-    h('span', null, h('span', { class: 'wd-swatch', style: `background:${COV.unseen}` }), 'Unseen')));
+  return frame(a, 'coverage', st, coverageBody(a, sub));
 }
 
 export function explorePage(a: Atlas, tab: string | undefined, sub: string | undefined, arg: string | undefined): HTMLElement {
   const t: Tab = (TABS as readonly string[]).includes(tab ?? '') ? (tab as Tab) : 'models';
   if (t === 'models') return modelsTab(a, sub);
-  if (t === 'sets') return setsTab(a);
+  if (t === 'sets') return setsTab(a, sub);
   if (t === 'world') return worldTab(a, sub ?? 'views', arg);
   if (t === 'beats') return beatsTab(a, sub ?? 'journey', arg);
   return coverageTab(a, sub ?? 'map');

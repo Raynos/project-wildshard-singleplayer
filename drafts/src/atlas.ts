@@ -95,6 +95,8 @@ export interface Item {
   /** A map / world-view angle (n, ne, …, top) or a variant letter. */
   angle?: string;
   spoiler: boolean;
+  /** the game build a mockup was edited from (provenance; required in rounds marked `requireRef`) */
+  ref?: string;
 }
 
 export interface Round {
@@ -172,12 +174,34 @@ export interface Model {
   spoiler: boolean;
 }
 
+/** A planned set (J46, J49): the models placed in one spot, as the game's Set Explorer shows a built one. Planned numbers
+ * come from the catalog (P11); `bounds` is the spot on the map in metres (x east, z south, centred). */
 export interface SetPlan {
   id: string;
   name: string;
   region: string;
-  members: { model: string; copies: number }[];
+  members: { model: string; copies: number; tris: number; draws: number }[];
   aerial: string | null;
+  bounds: { x: number; z: number; w: number; d: number } | null;
+}
+
+/** One decision as Jake saw it (W5, J68): the question, the options side by side, the recommendation and his answer. */
+export interface Board {
+  id: string;
+  stage: StageId;
+  question: string;
+  options: { label: string; item: string | null; note: string }[];
+  /** the option label the run recommended; null when none was recorded */
+  recommended: string | null;
+  /** the option label Jake picked; null for an approval or a review with no single pick */
+  picked: string | null;
+  answer: string[];
+}
+
+/** A design document of the draft (design.md, the style bible, the pitches), as text. */
+export interface DesignDoc {
+  name: string;
+  text: string;
 }
 
 export interface Proto {
@@ -259,6 +283,8 @@ export interface Atlas {
   terrain: Terrain | null;
   /** a camera-check note that holds for every first-person view (Jake's review of the set) */
   camNoteAll: string;
+  boards: Board[];
+  design: DesignDoc[];
 }
 
 /** One draft on the drafts site's title (`/data/index.json`): public-safe, no spoilers (J2, J13). */

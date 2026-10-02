@@ -10,7 +10,7 @@
 // first-person views (under the platform's 255 files per publish). Then publish <out>/index.html with those files.
 import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { STAGES, TICKS, stageName, type Atlas, type Item } from '../src/atlas.ts';
+import { STAGES, TICKS, stageName, type Atlas, type Board, type Item } from '../src/atlas.ts';
 import { THUMB_EDGE, toWebp, type ImageIndex } from './images.ts';
 
 const ROOT = resolve(import.meta.dirname, '..', '..');
@@ -21,7 +21,20 @@ const esc = (s: string): string => s.replaceAll('&', '&amp;').replaceAll('<', '&
 
 const STATUS: Record<Item['status'], string> = { picked: 'Picked', current: 'Current', rejected: 'Rejected', superseded: 'Superseded', input: 'Input' };
 
+/** The pictures the artifact page shows (J70): picks, current and inputs, plus every picture a board, a model, a view or a
+ * step shows; rejected and superseded ones stay on the drafts site. */
+export function shownItems(a: Atlas): Set<string> {
+  const shown = new Set(a.items.filter((i) => i.status === 'picked' || i.status === 'current' || i.status === 'input').map((i) => i.id));
+  for (const b of a.boards) for (const o of b.options) if (o.item) shown.add(o.item);
+  for (const m of a.models) shown.add(m.concept);
+  for (const st of a.steps) for (const id of st.items) shown.add(id);
+  for (const s of a.stages) if (s.pick) shown.add(s.pick);
+  if (a.map) shown.add(a.map.item);
+  return shown;
+}
+
 export function buildPage(a: Atlas, fulls: ReadonlySet<string>): string {
+  const shown = shownItems(a);
   const byId = new Map(a.items.map((i) => [i.id, i]));
   const thumb = (it: Item): string => `img/${it.images?.hash ?? ''}-t.webp`;
   const full = (it: Item): string => (fulls.has(it.id) ? `img/${it.images?.hash ?? ''}-f.webp` : thumb(it));
@@ -31,20 +44,31 @@ export function buildPage(a: Atlas, fulls: ReadonlySet<string>): string {
   const done = a.stages.filter((s) => s.state === 'done' && TICKS.includes(s.id)).length;
   const ticks = TICKS.map((_, i) => `<span class="${i < done ? 'on' : i === done ? 'now' : ''}"></span>`).join('');
 
+  const boardsOf = (id: string): Board[] => a.boards.filter((b) => b.stage === id);
+  const boardHtml = (b: Board): string => `<div class="answers board"><span class="lab">${b.stage} · decision</span><b class="q">${esc(b.question)}</b>
+    <div class="grid">${b.options.map((o) => {
+      const it = o.item ? byId.get(o.item) : undefined;
+      const label = `<b>${esc(o.label)}</b>${o.note ? ` · ${esc(o.note)}` : ''}${b.picked === o.label ? ' <i>Picked</i>' : ''}${b.recommended === o.label ? ' <i>Recommended</i>' : ''}`;
+      return it ? fig(it, label).replace('<figure class="', `<figure class="${b.picked === o.label ? 'opt-picked ' : ''}`) : `<figure><figcaption>${label}</figcaption></figure>`;
+    }).join('')}</div>
+    <span class="lab">Your answer</span>${b.answer.map((t) => `<blockquote>${esc(t)}</blockquote>`).join('')}</div>`;
   const stageHtml = a.stages.filter((s) => s.state !== 'todo').map((st) => {
     const pick = st.pick ? byId.get(st.pick) : undefined;
     const rounds = st.rounds.map((rid) => {
       const r = a.rounds.find((x) => x.id === rid);
       const order: Item['status'][] = ['picked', 'current', 'input', 'superseded', 'rejected'];
-      const its = a.items.filter((i) => i.round === rid).sort((x, y) => order.indexOf(x.status) - order.indexOf(y.status));
-      return `<details class="round"${st.state === 'current' ? ' open' : ''}><summary><b>${esc(r?.title ?? rid)}</b> <span class="n">${its.length}</span></summary>
+      const all = a.items.filter((i) => i.round === rid);
+      const its = all.filter((i) => shown.has(i.id)).sort((x, y) => order.indexOf(x.status) - order.indexOf(y.status));
+      const hidden = all.length - its.length;
+      return `<details class="round"${st.state === 'current' ? ' open' : ''}><summary><b>${esc(r?.title ?? rid)}</b> <span class="n">${all.length}</span></summary>
         ${r?.note ? `<p class="dim">${esc(r.note)}</p>` : ''}${r?.verdict ? `<p><span class="lab">Verdict</span> ${esc(r.verdict)}</p>` : ''}
-        <div class="grid">${its.map((it) => fig(it, esc(it.angle ?? it.title))).join('')}</div></details>`;
+        <div class="grid">${its.map((it) => fig(it, esc(it.angle ?? it.title))).join('')}</div>
+        ${hidden > 0 ? `<p class="dim">+ ${hidden} rejected or superseded picture${hidden === 1 ? '' : 's'} on <a href="${SITE}/#/${a.slug}/stage/${st.id}">the drafts site</a></p>` : ''}</details>`;
     }).join('');
     return `<section class="stage s-${st.state}" id="${st.id}">
       <header><span class="sid">${st.id}</span><h2>${esc(st.name)}</h2>${st.state === 'current' ? '<span class="chip">Now</span>' : ''}</header>
       ${pick ? fig(pick, esc(pick.title), true) : ''}
-      ${st.answers.length > 0 ? `<div class="answers"><span class="lab">Your answer</span>${st.answers.map((t) => `<blockquote>${esc(t)}</blockquote>`).join('')}</div>` : ''}
+      ${boardsOf(st.id).length > 0 ? boardsOf(st.id).map(boardHtml).join('') : st.answers.length > 0 ? `<div class="answers"><span class="lab">Your answer</span>${st.answers.map((t) => `<blockquote>${esc(t)}</blockquote>`).join('')}</div>` : ''}
       ${st.notes.length > 0 ? `<ul class="notes">${st.notes.map((n) => `<li>${esc(n)}</li>`).join('')}</ul>` : ''}
       ${rounds}
     </section>`;
@@ -124,7 +148,8 @@ details.round > p { margin-top: 6px; }
 figure { margin: 0; display: grid; gap: 4px; align-content: start; min-width: 0; }
 figure img { width: 100%; height: auto; aspect-ratio: 1; object-fit: cover; border: 1px solid var(--line); cursor: zoom-in; background: var(--panel); }
 figure.big img { aspect-ratio: auto; max-height: 70vh; object-fit: contain; }
-figure.t-picked img { border-color: var(--amber); }
+figure.t-picked img, figure.opt-picked img { border-color: var(--amber); }
+.board .q { font-family: var(--display); font-size: 17px; letter-spacing: 0.04em; }
 figure.t-rejected img, figure.t-superseded img { filter: grayscale(0.85) brightness(0.65); }
 figcaption { font-size: 10.5px; color: var(--dim); line-height: 1.35; overflow-wrap: anywhere; }
 figcaption i { font-style: normal; color: var(--amber); letter-spacing: 0.08em; text-transform: uppercase; }
@@ -202,7 +227,8 @@ function main(): void {
   const index =JSON.parse(readFileSync(join(ROOT, 'drafts/shards', slug, 'images.json'), 'utf8')) as ImageIndex;
   const picks = new Set(a.stages.flatMap((s) => (s.pick ? [s.pick] : [])));
   const wanted = a.items.filter((i) => picks.has(i.id) || i.kind === 'keyart' || (i.kind === 'fp' && i.status === 'current') || i.id === a.map?.item);
-  const withImages = a.items.filter((i) => i.images);
+  const shown = shownItems(a);
+  const withImages = a.items.filter((i) => i.images && shown.has(i.id));
   const fulls = new Set(wanted.slice(0, Math.max(0, MAX_FILES - 1 - withImages.length)).map((i) => i.id));
   mkdirSync(join(out, 'img'), { recursive: true });
   for (const it of withImages) {

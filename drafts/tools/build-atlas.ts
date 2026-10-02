@@ -6,7 +6,7 @@ import {
   STAGES, isStageId, spoilerByKind, stageName, stageOrder, ticksDone,
   type Atlas, type Cam, type ConceptSub, type DraftCard, type Img, type Item, type ItemKind, type ItemStatus,
   type Mechanic, type Model, type Place, type Proto, type Round, type SetPlan, type Side, type StageEntry, type StageId,
-  type Step, type Terrain,
+  type Step, type Terrain, type Board, type DesignDoc,
 } from '../src/atlas.ts';
 import type { ImageIndex } from './images.ts';
 
@@ -22,6 +22,8 @@ export interface FileRule {
   view?: string;
   angle?: string;
   cam?: string;
+  /** the game build a mockup was edited from */
+  ref?: string;
 }
 
 export interface DraftConfig {
@@ -36,9 +38,19 @@ export interface DraftConfig {
   cams?: string;
   map?: { source: string; size: number };
   run: { stage: string; waiting: string; next: string };
-  rounds: Record<string, { stage: string; kind: ItemKind; status: ItemStatus }>;
+  /** `requireRef`: every picture of the round must name the game build it was edited from (W1's provenance) */
+  rounds: Record<string, { stage: string; kind: ItemKind; status: ItemStatus; requireRef?: boolean }>;
   files: FileRule[];
   stages: Record<string, { answers?: string[]; notes?: string[]; pick?: string }>;
+  boards?: {
+    id: string;
+    stage: string;
+    question: string;
+    options: { label: string; item?: string; note?: string }[];
+    recommended?: string;
+    picked?: string;
+    answer: string[];
+  }[];
   protos?: { id: string; question: string; result: string; changed: string; items: string[]; play?: string; peakMB?: number }[];
   terrain?: {
     heights: string;
@@ -133,6 +145,8 @@ export interface BuildInput {
   content: DraftContent;
   cams: Record<string, { eye: [number, number, number]; look: [number, number, number] }>;
   terrain: Terrain | null;
+  /** the draft's design documents (read by atlas.ts from `design`) */
+  design?: DesignDoc[];
   index: ImageIndex;
   now: string;
 }
@@ -145,7 +159,7 @@ export interface BuildResult {
   problems: string[];
 }
 
-export function buildAtlas({ root, config, content, cams, terrain, index, now }: BuildInput): BuildResult {
+export function buildAtlas({ root, config, content, cams, terrain, design = [], index, now }: BuildInput): BuildResult {
   const problems: string[] = [];
   const rel = (p: string): string => relative(root, p);
   if (!isStageId(config.run.stage)) problems.push(`run.stage ${config.run.stage} is not a stage`);
@@ -190,6 +204,7 @@ export function buildAtlas({ root, config, content, cams, terrain, index, now }:
         if (place) item.place = place.id;
         if (step !== undefined) item.step = step;
         if (r.view) item.view = fill(r.view, groups, ctx);
+        if (r.ref) item.ref = fill(r.ref, groups, ctx);
         if (r.angle) item.angle = PRETTY[fill(r.angle, groups, ctx)] ?? fill(r.angle, groups, ctx).toUpperCase();
         if (r.title) item.title = fill(r.title, groups, ctx);
       }
@@ -261,6 +276,21 @@ export function buildAtlas({ root, config, content, cams, terrain, index, now }:
   });
 
   const sourceOf = (it: Item): string => `${config.art}/${it.id}`;
+  for (const it of items) {
+    if (config.rounds[it.round]?.requireRef === true && !it.ref) problems.push(`no ref (the build it was edited from): ${sourceOf(it)}`);
+  }
+  const boards: Board[] = (config.boards ?? []).map((b) => {
+    if (!isStageId(b.stage)) problems.push(`board ${b.id}: stage ${b.stage} is not a stage`);
+    for (const o of b.options) if (o.item && !items.some((i) => i.id === o.item)) problems.push(`board ${b.id}: option ${o.label}'s item ${o.item} is not an item`);
+    const labels = new Set(b.options.map((o) => o.label));
+    if (b.picked && !labels.has(b.picked)) problems.push(`board ${b.id}: picked ${b.picked} is not an option`);
+    if (b.recommended && !labels.has(b.recommended)) problems.push(`board ${b.id}: recommended ${b.recommended} is not an option`);
+    return {
+      id: b.id, stage: isStageId(b.stage) ? b.stage : 'P0', question: b.question,
+      options: b.options.map((o) => ({ label: o.label, item: o.item ?? null, note: o.note ?? '' })),
+      recommended: b.recommended ?? null, picked: b.picked ?? null, answer: b.answer,
+    };
+  });
   for (const it of items) if (!it.images) problems.push(`no phone copy yet: ${sourceOf(it)} (run --publish)`);
 
   const keyArt = keyItem ? keyItem.images : null;
@@ -269,7 +299,7 @@ export function buildAtlas({ root, config, content, cams, terrain, index, now }:
     run: { stage: runStage, waiting: config.run.waiting, next: config.run.next }, keyArt,
     map: mapItem && config.map ? { item: mapItem.id, size: config.map.size } : null,
     stages, rounds, items, places: content.places, cams: camList, steps, side: content.side, lanes: content.lanes,
-    mechanics: content.mechanics, models, sets: content.sets, protos, lineages, terrain, camNoteAll: content.camChecksAll ?? '',
+    mechanics: content.mechanics, models, sets: content.sets, protos, lineages, terrain, camNoteAll: content.camChecksAll ?? '', boards, design,
   };
   const card: DraftCard = {
     slug: config.slug, name: config.name, line: config.line, keyArt, stage: runStage, stageName: stageName(runStage),

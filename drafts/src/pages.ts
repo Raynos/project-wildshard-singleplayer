@@ -3,6 +3,7 @@
 import { STAGES, TICKS, itemById, stageName, stageOrder, type Atlas, type DraftCard, type DraftIndex, type Item, type StageId } from './atlas';
 import { itemUrl, url } from './data';
 import { h } from './dom';
+import { boardView, openCompare } from './extras';
 import { openViewer } from './viewer';
 
 export function ticks(card: { ticks: number }): HTMLElement {
@@ -100,7 +101,13 @@ export function stagesPage(a: Atlas): HTMLElement {
       h('div', null, h('div', { class: 'wd-stage-name' }, 'Prototypes'), h('div', { class: 'wd-stage-ans' }, `${a.protos.length} · ${a.protos.map((p) => p.id).join(' · ')}`)),
       h('div', null))
     : null;
-  return h('div', { class: 'wd-page' }, draftHead(a, 'stages'), h('div', { class: 'wd-timeline' }, protos, rows));
+  const design = a.design.length > 0
+    ? h('a', { class: 'wd-stage-row', href: `#/${a.slug}/design` },
+      h('div', { class: 'wd-stage-id' }, '§'),
+      h('div', null, h('div', { class: 'wd-stage-name' }, 'Design'), h('div', { class: 'wd-stage-ans' }, a.design.map((d) => d.name.replace(/\.md$/, '')).join(' · '))),
+      h('div', null))
+    : null;
+  return h('div', { class: 'wd-page' }, draftHead(a, 'stages'), h('div', { class: 'wd-timeline' }, design, protos, rows));
 }
 
 const TAG: Record<Item['status'], string> = { picked: 'Picked', current: 'Current', rejected: 'Rejected', superseded: 'Superseded', input: 'Input' };
@@ -123,7 +130,9 @@ function lineage(a: Atlas, it: Item): HTMLElement | null {
       h('img', { src: itemUrl(a, x, 'thumb'), alt: '', loading: 'lazy' }),
       h('span', { class: 'wd-label' }, `${x.stage} · ${x.angle ?? x.round.replace(/^round-\d+-/, '').replaceAll('-', ' ')}`)));
   });
-  return h('div', { class: 'wd-section' }, h('span', { class: 'wd-label' }, 'Lineage'), h('div', { class: 'wd-lineage' }, parts));
+  return h('div', { class: 'wd-section' },
+    h('div', { class: 'wd-round-head' }, h('span', { class: 'wd-label' }, 'Lineage'), h('button', { class: 'wd-subtab', style: 'background:none;cursor:pointer', onclick: () => { openCompare(a, list); } }, 'Compare')),
+    h('div', { class: 'wd-lineage' }, parts));
 }
 
 /** A stage page, decision first (J40): the pick large, Jake's answer, the lineage, then every round's pictures. */
@@ -140,7 +149,9 @@ export function stagePage(a: Atlas, id: StageId): HTMLElement {
       h('img', { src: itemUrl(a, pick, 'full'), alt: pick.title, width: pick.images.w, height: pick.images.h }),
       h('span', { class: 'wd-chip' }, `${TAG[pick.status]} · ${pick.title}`))
     : null;
-  const answers = st.answers.length > 0
+  const boards = a.boards.filter((b) => b.stage === id);
+  // the boards carry Jake's answers; a stage without boards shows them on their own
+  const answers = boards.length === 0 && st.answers.length > 0
     ? h('div', { class: 'wd-panel wd-section' }, h('span', { class: 'wd-label' }, 'Your answer'), st.answers.map((t) => h('p', { class: 'wd-quote' }, t)))
     : null;
   const notes = st.notes.length > 0
@@ -166,7 +177,9 @@ export function stagePage(a: Atlas, id: StageId): HTMLElement {
   const next = a.stages[stageOrder(id) + 1];
   return h('div', { class: 'wd-page' },
     top({ href: `#/${a.slug}`, text: a.name }, `${id} · ${st.name}`),
-    strip, hero, answers, pick ? lineage(a, pick) : null, notes, rounds, empty,
+    strip, hero, answers,
+    boards.length > 0 ? h('div', { class: 'wd-section wd-stack' }, h('span', { class: 'wd-label' }, boards.length === 1 ? 'The decision' : `The decisions · ${boards.length}`), boards.map((b) => boardView(a, b))) : null,
+    pick ? lineage(a, pick) : null, notes, rounds, empty,
     h('div', { class: 'wd-pager' },
       prev ? h('a', { href: `#/${a.slug}/stage/${prev.id}`, 'aria-label': prev.name }, '‹') : h('span', { class: 'wd-pager-off' }, '‹'),
       h('span', { class: 'wd-label' }, `${id} · ${st.name}`),

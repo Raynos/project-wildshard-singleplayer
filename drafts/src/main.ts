@@ -5,6 +5,7 @@
 //   #/<slug>/stage/<P>                   a stage page (J40)
 //   #/<slug>/explore/<tab>/<sub>/<arg>   Draft Explore (J44)
 //   #/<slug>/protos                      the prototypes (W7)
+//   #/<slug>/design/<doc>                the design documents
 //   #/<slug>/maplab                      Map Lab (W6)
 import './styles.css';
 import { stageName, type Atlas } from './atlas';
@@ -14,6 +15,7 @@ import { explorePage } from './explore';
 import { protosPage, stageFromRoute, stagePage, stagesPage, titlePage } from './pages';
 import { draftUrls, registerSw, savedCount, warm, type Saved } from './pwa';
 import { mountUpdatePill } from './update';
+import { designPage } from './extras';
 
 const app = document.getElementById('app') ?? document.body;
 void registerSw();
@@ -115,6 +117,7 @@ async function render(): Promise<void> {
       page = stage ? stagePage(a, stage) : stagesPage(a);
     } else if (view === 'explore') page = explorePage(a, a1, a2, a3);
     else if (view === 'protos') page = protosPage(a);
+    else if (view === 'design') page = designPage(a, a1);
     else if (view === 'maplab') page = await (await import('./maplab')).mapLabPage(a);
     else page = stagesPage(a);
     app.append(page);

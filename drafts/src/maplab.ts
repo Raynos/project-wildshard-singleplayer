@@ -3,7 +3,8 @@
 import { h, s } from './dom';
 import { itemById, type Atlas, type Terrain } from './atlas';
 import { itemUrl } from './data';
-import { BAND_CLOSE_M, BAND_MID_M, GENTLE_DEG, MAX_CLIMB_DEG, placeGentlePct, sightlines, slopeDeg, type Field, type Numbers, type PlacePt } from './maplab-math';
+import { loadField } from './terrain';
+import { BAND_CLOSE_M, BAND_MID_M, GENTLE_DEG, MAX_CLIMB_DEG, placeGentlePct, sightlines, slopeDeg, type Numbers, type PlacePt } from './maplab-math';
 
 type Layer = 'painted' | 'layout' | 'slope' | 'sight';
 const LAYERS: [Layer, string][] = [['painted', 'Painted'], ['layout', 'Layout'], ['slope', 'Slope'], ['sight', 'Sightlines']];
@@ -12,15 +13,6 @@ const LAYERS: [Layer, string][] = [['painted', 'Painted'], ['layout', 'Layout'],
 // red, mid amber, far blue.
 const SLOPE_RGB: [number, number, number][] = [[80, 170, 90], [200, 190, 70], [150, 150, 150], [40, 80, 140]];
 const BAND_RGB: [number, number, number][] = [[230, 80, 60], [240, 170, 60], [110, 140, 200]];
-
-async function loadField(a: Atlas, t: Terrain): Promise<Field> {
-  const [hb, lb] = await Promise.all([
-    fetch(`/data/${a.slug}/${t.heights}`).then((r) => r.arrayBuffer()),
-    fetch(`/data/${a.slug}/${t.labels}`).then((r) => r.arrayBuffer()),
-  ]);
-  const water = t.cats.findIndex((c) => !c.walkable && c.id === 'sea');
-  return { res: t.res, size: t.size, heights: new Float32Array(hb), labels: new Uint8Array(lb), water: Math.max(0, water) };
-}
 
 function hex(c: string): [number, number, number] {
   const n = Number.parseInt(c.slice(1), 16);

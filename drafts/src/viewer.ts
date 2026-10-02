@@ -26,7 +26,7 @@ export function openViewer(atlas: Atlas, items: Item[], start: number): void {
     const it = list[i];
     if (!it) return;
     title.textContent = it.title;
-    meta.textContent = `${it.stage} · ${STATUS[it.status]}`;
+    meta.textContent = `${it.stage} · ${STATUS[it.status]}${it.ref ? ` · edited from build ${it.ref}` : ''}`;
     counter.textContent = `${i + 1} / ${list.length}`;
     for (let k = Math.max(0, i - 2); k <= Math.min(list.length - 1, i + 2); k++) {
       const s = slides[k];

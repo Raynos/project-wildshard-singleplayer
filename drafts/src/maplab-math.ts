@@ -204,3 +204,45 @@ export function sightlines(f: Field, from: PlacePt, places: PlacePt[]): string[]
   }
   return out;
 }
+
+export interface CamPose {
+  eye: [number, number, number];
+  look: [number, number, number];
+}
+
+/** Which cells a mock-up camera sees (J35's "mocked up": a mock-up painted at a camera that sees the cell). The camera
+ * is the game's (vertical FOV 72°, PC2) at the view's own aspect; rays every half degree (PB2's density) out to PB2's
+ * reach, occluded by the terrain, and only cells inside the frame's vertical extent count. */
+export function cameraSeen(f: Field, cams: CamPose[], aspect: number, vfovDeg = 72): Uint8Array {
+  const { res, heights: H, size } = f;
+  const d = cellSize(f);
+  const seen = new Uint8Array(res * res);
+  const halfV = (vfovDeg * Math.PI) / 360;
+  const halfH = Math.atan(Math.tan(halfV) * aspect);
+  const step = (Math.PI / 180) * (360 / RAYS);
+  const steps = Math.ceil(RAY_MAX_M / d);
+  for (const cam of cams) {
+    const [ex, ey, ez] = cam.eye;
+    const [lx, ly, lz] = cam.look;
+    const yaw = Math.atan2(lz - ez, lx - ex);
+    const pitch = Math.atan2(ly - ey, Math.hypot(lx - ex, lz - ez));
+    for (let a = -halfH; a <= halfH; a += step) {
+      const ca = Math.cos(yaw + a);
+      const sa = Math.sin(yaw + a);
+      let run = -Infinity;
+      for (let s = 1; s <= steps; s++) {
+        const dist = s * d;
+        const ix = Math.round((ex + ca * dist + size / 2) / d);
+        const iz = Math.round((ez + sa * dist + size / 2) / d);
+        if (ix < 0 || ix >= res || iz < 0 || iz >= res) break;
+        const k = iz * res + ix;
+        const g = Math.atan2((H[k] ?? 0) - ey, dist);
+        if (g >= run) {
+          run = g;
+          if (g >= pitch - halfV && g <= pitch + halfV) seen[k] = 1;
+        }
+      }
+    }
+  }
+  return seen;
+}

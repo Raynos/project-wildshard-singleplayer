@@ -134,7 +134,8 @@ describe.skipIf(!HAS_ART)('the committed atlas is current', () => {
   it('matches a rebuild from the sources, apart from the time stamp', () => {
     const committed = read<Atlas>('drafts/public/data/thin-ice/atlas.json');
     const { atlas } = thinIce();
-    const strip = (a: Atlas): string => JSON.stringify({ ...a, generated: '', terrain: null });
+    // the terrain and the design docs are read by atlas.ts's I/O (loadTerrain, loadDesign), not by buildAtlas
+    const strip = (a: Atlas): string => JSON.stringify({ ...a, generated: '', terrain: null, design: [] });
     expect(strip(committed)).toBe(strip(atlas));
   });
 });
