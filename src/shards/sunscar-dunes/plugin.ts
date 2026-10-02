@@ -5,6 +5,7 @@ import { Flags, type Animal, type QuestState } from '#engine';
 import { STRINGS } from './strings';
 import { buildWorld, type SignalFire, type SignalWorld } from './world/build';
 import { ownPrimitives } from './world/resources';
+import { lastLightAll } from './look/light';
 import { preloadDuneMeshes } from './world/meshes';
 import { DUNE_RAY, DUNE_RAY_LOOK } from './species/duneRay';
 import { Bullwhip } from './weapons/Bullwhip';
@@ -46,7 +47,8 @@ export class SignalDunesPlugin extends ShardPlugin {
   }
   override play(ctx: ShardContext): void {
     const host = ctx.app.equipmentHost, whip = this.whip;
-    if (host !== null && whip !== null) { host.viewmodel.add(whip.model); ownPrimitives(whip.model, ctx.scope); }
+    // loop 4: the style bible's dusk rim on the whip and glove too, so the weapon separates from the sand behind it
+    if (host !== null && whip !== null) { host.viewmodel.add(whip.model); lastLightAll(whip.model, ctx.scope); ownPrimitives(whip.model, ctx.scope); }
     ctx.inputContext({ id: 'sunscar.whip', actions: ['attack', 'heavy', 'lock'], keysFrom: 'weapon.melee', touch: { mode: 'melee', lockable: true, relabel: {} } });
     const rt = ctx.game.runtime, position = rt?.world?.player.position ?? this.player;
     if (rt?.play) { installSilentScore(rt.play.music, ctx.scope); installSunscarCues(rt.play.audio, rt.play.cues, ctx.scope); }

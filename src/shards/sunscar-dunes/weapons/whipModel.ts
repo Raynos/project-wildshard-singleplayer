@@ -5,7 +5,8 @@ import { duneMesh } from '../world/meshes';
 const STRAND_A = [0.46, 0.25, 0.12] as const, STRAND_B = [0.27, 0.14, 0.065] as const, POPPER = [0.78, 0.68, 0.52] as const;
 /** The thrown lash is the handle's dark braid (loop 3: its first metre read as a pale cone against the dusk sun). */
 const LASH_A = [0.24, 0.12, 0.055] as const, LASH_B = [0.13, 0.065, 0.03] as const;
-const COIL_A = [0.3, 0.16, 0.07] as const, COIL_B = [0.16, 0.08, 0.038] as const;
+// loop 4: a shade lighter than the glove, so the coil's loops read against both the fist and the dusk sand (mockup D)
+const COIL_A = [0.44, 0.25, 0.11] as const, COIL_B = [0.24, 0.13, 0.06] as const;
 const GLOVE = 0x7a4a28, CUFF = 0x5a3219, KNOB = 0x3a2214;
 /** A low warm self-light: the dusk sun sits behind the player most of the time, and a backlit viewmodel reads as a black lump. */
 const GLOW = 0x120804;
@@ -97,7 +98,10 @@ function gloveMesh(): { mesh: Mesh; top: number } | null {
   // where the lash leaves the hand: the handle's keeper end, just short of the thong's curl
   const top = (b.max.x - fist - 0.06) * GLOVE_TURN.scale;
   // Painted facets, matte; a touch of warm self-light so the backlit glove never reads as a black lump.
-  return { mesh: new Mesh(g, new MeshStandardMaterial({ vertexColors: true, roughness: 0.75, metalness: 0, flatShading: true, emissive: GLOW })), top };
+  // loop 4: the painted leather a little lighter (it read as one brown lump against the sand next to the bar's weapons)
+  const material = new MeshStandardMaterial({ vertexColors: true, roughness: 0.7, metalness: 0, flatShading: true, emissive: GLOW });
+  material.color.setRGB(1.22, 1.14, 1.05);
+  return { mesh: new Mesh(g, material), top };
 }
 
 /**
@@ -129,7 +133,7 @@ export function buildWhipModel(): WhipParts {
   grip.rotation.set(-1.0, 0, -0.25);
   // The coil (mockup D): a small loop and a half hanging below the fist toward the bottom-right edge, its tail out of frame.
   // With the generated glove (mockup D) the coil is the real cord's weight: two and a half thin loops beside the fist.
-  const turns = made === null ? 3.2 : 5, loopR = made === null ? 0.064 : 0.05, cord = made === null ? 0.0085 : 0.0038;
+  const turns = made === null ? 3.2 : 5, loopR = made === null ? 0.064 : 0.05, cord = made === null ? 0.0085 : 0.005;
   const coilPoints: Vector3[] = [];
   for (let i = 0; i <= 60; i++) {
     const s = i / 60, a = 0.6 + s * Math.PI * turns, r = loopR * (1 - 0.15 * s);
