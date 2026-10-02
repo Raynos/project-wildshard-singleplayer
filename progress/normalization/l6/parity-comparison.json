@@ -1,0 +1,74 @@
+[
+  {
+    "shard": "driftwood-isle",
+    "bootErrorsBefore": [],
+    "bootErrorsAfter": [],
+    "deterministicChanged": [],
+    "baselineRedBefore": [
+      "boot.saves.read"
+    ],
+    "baselineRedAfter": [
+      "boot.saves.read"
+    ]
+  },
+  {
+    "shard": "pine-hollow",
+    "bootErrorsBefore": [],
+    "bootErrorsAfter": [],
+    "deterministicChanged": [],
+    "baselineRedBefore": [
+      "budgets.gate.gpuMB",
+      "budgets.cabin.draws",
+      "budgets.cabin.tris",
+      "budgets.cabin.gpuMB",
+      "budgets.pond.gpuMB",
+      "boot.render.memory.geometries",
+      "boot.render.memory.textures",
+      "boot.gpuBytes.textures",
+      "boot.gpuBytes.buffers",
+      "boot.gpuBytes.total",
+      "boot.saves.read",
+      "poses.cabin.calls",
+      "poses.cabin.tris"
+    ],
+    "baselineRedAfter": [
+      "budgets.gate.gpuMB",
+      "budgets.cabin.draws",
+      "budgets.cabin.tris",
+      "budgets.cabin.gpuMB",
+      "budgets.pond.gpuMB",
+      "boot.render.memory.geometries",
+      "boot.render.memory.textures",
+      "boot.gpuBytes.textures",
+      "boot.gpuBytes.buffers",
+      "boot.gpuBytes.total",
+      "boot.saves.read",
+      "poses.cabin.calls",
+      "poses.cabin.tris"
+    ]
+  },
+  {
+    "shard": "nalati-grasslands",
+    "bootErrorsBefore": [],
+    "bootErrorsAfter": [],
+    "deterministicChanged": [],
+    "baselineRedBefore": [
+      "boot.saves.read"
+    ],
+    "baselineRedAfter": [
+      "boot.saves.read"
+    ]
+  },
+  {
+    "shard": "nine-dragon-stack",
+    "bootErrorsBefore": [],
+    "bootErrorsAfter": [],
+    "deterministicChanged": [],
+    "baselineRedBefore": [
+      "boot.saves.read"
+    ],
+    "baselineRedAfter": [
+      "boot.saves.read"
+    ]
+  }
+]

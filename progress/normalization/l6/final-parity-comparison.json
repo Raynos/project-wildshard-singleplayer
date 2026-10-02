@@ -1,0 +1,96 @@
+[
+  {
+    "shard": "pine-hollow",
+    "parent": "7501007f",
+    "candidate": "b0edb0ab",
+    "bootErrorsBefore": [],
+    "bootErrorsAfter": [],
+    "deterministicChanged": [],
+    "baselineRedBefore": [
+      "budgets.gate.gpuMB",
+      "budgets.cabin.draws",
+      "budgets.cabin.tris",
+      "budgets.cabin.gpuMB",
+      "budgets.pond.gpuMB",
+      "boot.scene.totals.mesh",
+      "boot.render.memory.geometries",
+      "boot.render.memory.textures",
+      "boot.gpuBytes.textures",
+      "boot.gpuBytes.buffers",
+      "boot.gpuBytes.total",
+      "boot.hud",
+      "boot.saves.read",
+      "poses.cabin.calls",
+      "poses.cabin.tris"
+    ],
+    "baselineRedAfter": [
+      "budgets.gate.gpuMB",
+      "budgets.cabin.draws",
+      "budgets.cabin.tris",
+      "budgets.cabin.gpuMB",
+      "budgets.pond.gpuMB",
+      "boot.scene.totals.mesh",
+      "boot.render.memory.geometries",
+      "boot.render.memory.textures",
+      "boot.gpuBytes.textures",
+      "boot.gpuBytes.buffers",
+      "boot.gpuBytes.total",
+      "boot.hud",
+      "boot.saves.read",
+      "poses.cabin.calls",
+      "poses.cabin.tris"
+    ]
+  },
+  {
+    "shard": "nalati-grasslands",
+    "parent": "7501007f",
+    "candidate": "b0edb0ab",
+    "bootErrorsBefore": [],
+    "bootErrorsAfter": [],
+    "deterministicChanged": [],
+    "baselineRedBefore": [
+      "boot.scene.totals.mesh",
+      "boot.hud",
+      "boot.saves.read"
+    ],
+    "baselineRedAfter": [
+      "boot.scene.totals.mesh",
+      "boot.hud",
+      "boot.saves.read"
+    ]
+  },
+  {
+    "shard": "driftwood-isle",
+    "parent": "7501007f",
+    "candidate": "b0edb0ab",
+    "bootErrorsBefore": [],
+    "bootErrorsAfter": [],
+    "deterministicChanged": [],
+    "baselineRedBefore": [
+      "boot.scene.totals.mesh",
+      "boot.hud",
+      "boot.saves.read"
+    ],
+    "baselineRedAfter": [
+      "boot.scene.totals.mesh",
+      "boot.hud",
+      "boot.saves.read"
+    ]
+  },
+  {
+    "shard": "nine-dragon-stack",
+    "parent": "7501007f",
+    "candidate": "b0edb0ab",
+    "bootErrorsBefore": [],
+    "bootErrorsAfter": [],
+    "deterministicChanged": [],
+    "baselineRedBefore": [
+      "boot.hud",
+      "boot.saves.read"
+    ],
+    "baselineRedAfter": [
+      "boot.hud",
+      "boot.saves.read"
+    ]
+  }
+]

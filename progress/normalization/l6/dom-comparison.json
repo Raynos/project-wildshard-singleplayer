@@ -1,0 +1,114 @@
+[
+  {
+    "tab": "driftwood-isle.map",
+    "tabsIdentical": true,
+    "hintIdentical": true,
+    "panelMarkupIdentical": false,
+    "panelMarkupIgnoringRegistryPlacementIdentical": true
+  },
+  {
+    "tab": "driftwood-isle.gear",
+    "tabsIdentical": true,
+    "hintIdentical": true,
+    "panelMarkupIdentical": true,
+    "panelMarkupIgnoringRegistryPlacementIdentical": true
+  },
+  {
+    "tab": "driftwood-isle.finds",
+    "tabsIdentical": true,
+    "hintIdentical": true,
+    "panelMarkupIdentical": false,
+    "panelMarkupIgnoringRegistryPlacementIdentical": false
+  },
+  {
+    "tab": "driftwood-isle.inventory",
+    "tabsIdentical": true,
+    "hintIdentical": true,
+    "panelMarkupIdentical": true,
+    "panelMarkupIgnoringRegistryPlacementIdentical": true
+  },
+  {
+    "tab": "driftwood-isle.achievements",
+    "tabsIdentical": true,
+    "hintIdentical": true,
+    "panelMarkupIdentical": true,
+    "panelMarkupIgnoringRegistryPlacementIdentical": true
+  },
+  {
+    "tab": "pine-hollow.map",
+    "tabsIdentical": true,
+    "hintIdentical": true,
+    "panelMarkupIdentical": false,
+    "panelMarkupIgnoringRegistryPlacementIdentical": true
+  },
+  {
+    "tab": "pine-hollow.gear",
+    "tabsIdentical": true,
+    "hintIdentical": true,
+    "panelMarkupIdentical": true,
+    "panelMarkupIgnoringRegistryPlacementIdentical": true
+  },
+  {
+    "tab": "pine-hollow.finds",
+    "tabsIdentical": true,
+    "hintIdentical": true,
+    "panelMarkupIdentical": true,
+    "panelMarkupIgnoringRegistryPlacementIdentical": true
+  },
+  {
+    "tab": "pine-hollow.inventory",
+    "tabsIdentical": true,
+    "hintIdentical": true,
+    "panelMarkupIdentical": true,
+    "panelMarkupIgnoringRegistryPlacementIdentical": true
+  },
+  {
+    "tab": "pine-hollow.achievements",
+    "tabsIdentical": true,
+    "hintIdentical": true,
+    "panelMarkupIdentical": true,
+    "panelMarkupIgnoringRegistryPlacementIdentical": true
+  },
+  {
+    "tab": "nalati-grasslands.map",
+    "tabsIdentical": true,
+    "hintIdentical": true,
+    "panelMarkupIdentical": false,
+    "panelMarkupIgnoringRegistryPlacementIdentical": true
+  },
+  {
+    "tab": "nalati-grasslands.gear",
+    "tabsIdentical": true,
+    "hintIdentical": true,
+    "panelMarkupIdentical": true,
+    "panelMarkupIgnoringRegistryPlacementIdentical": true
+  },
+  {
+    "tab": "nalati-grasslands.finds",
+    "tabsIdentical": true,
+    "hintIdentical": true,
+    "panelMarkupIdentical": true,
+    "panelMarkupIgnoringRegistryPlacementIdentical": true
+  },
+  {
+    "tab": "nalati-grasslands.achievements",
+    "tabsIdentical": true,
+    "hintIdentical": true,
+    "panelMarkupIdentical": true,
+    "panelMarkupIgnoringRegistryPlacementIdentical": true
+  },
+  {
+    "tab": "nine-dragon-stack.map",
+    "tabsIdentical": true,
+    "hintIdentical": true,
+    "panelMarkupIdentical": false,
+    "panelMarkupIgnoringRegistryPlacementIdentical": true
+  },
+  {
+    "tab": "nine-dragon-stack.gear",
+    "tabsIdentical": true,
+    "hintIdentical": true,
+    "panelMarkupIdentical": true,
+    "panelMarkupIgnoringRegistryPlacementIdentical": true
+  }
+]
