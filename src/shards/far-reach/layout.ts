@@ -50,10 +50,6 @@ export const VANES: readonly { readonly id: string; readonly x: number; readonly
 export const DAIS = { x: CROWN.x, z: CROWN.z - 6, r: 5, h: 0.3 };
 
 export const SPAWN = { x: 0, z: 7, yaw: 0 };
-/** The one trail (E357 B83: it starts in the spawn area): Sunrest's path from the spawn to the windmill bridge. */
-export const TRAIL: [number, number][][] = [[[SPAWN.x, SPAWN.z], [0, -13]]];
-/** The stand-in terrain's height, far below the islands and the creature death plane (shared terrain checks want heights above -60). */
-export const VOID_Y = -40;
 /** Flying homes: centre, circle radius and altitude (world metres). The roost's three rays are quest step 2. */
 export interface Home { readonly x: number; readonly z: number; readonly r: number; readonly y: number }
 export const RAY_HOMES: readonly Home[] = [{ x: 0, z: -24, r: 22, y: DECK + 14 }];

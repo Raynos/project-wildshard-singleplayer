@@ -12,7 +12,7 @@ Storm Roc.
 |---|---|
 | `status`, `order` | `experimental`, 60 |
 | `style`, `kitLook` | `skyReach` (its own label), `toon` |
-| `ground` | `structures: true`: four islands and their bridges are registry pieces (`world/build.ts`); no terrain |
+| `ground` | `structures: true` only (G23): eight islands and their bridges are registry pieces (`world/build.ts`); no terrain mesh or collider, the analytic floor is y −1000; `world.killY` ends a fall into the cloud sea |
 | `world`, `bounds` | `killY` 6 m (creature death plane); a soft-respawn floor 12 m for a player who falls |
 | `horizon`, `boundary` | no ridge rings, the engine's cloud sea; no drawn edge |
 | `uses` | `hover`, `quests`, `bosses`, `coins`, `loot` |
