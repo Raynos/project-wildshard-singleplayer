@@ -49,6 +49,9 @@ describe('custom weapons share creature and practice combat targets', () => {
     expect(reaction).toHaveBeenCalledOnce(); expect(stagger).toHaveBeenCalledWith(new Vector3(0, 0, -1), 0.8);
     expect(dealt).toHaveLength(1); expect(dealt[0]?.req.target).toBe(actor); expect(dealt[0]?.killed).toBe(false);
     weapon.tryFire(); expect(hurt).toHaveBeenCalledTimes(2); expect(actor.alive).toBe(true);
+    expect(port.hurt({ source: 'env', sourceTags: ['actor.player', 'dmg.melee'], amount: 50,
+      point: new Vector3(0, 901, 0), dir: new Vector3(0, 0, -1) })?.req.target).toBe(actor);
+    expect(hurt).toHaveBeenCalledTimes(3);
     scope.dispose(); expect(combat.targets()).toEqual([]); expect(combat.target(target)).toBeNull();
   });
 

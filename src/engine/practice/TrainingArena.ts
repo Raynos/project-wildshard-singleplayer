@@ -309,8 +309,8 @@ export class TrainingArena {
     });
     const combatTargets = this.targets.map((target, index) =>
       app.combat.targetPort(practiceActor(target, `practice.${String(index)}`), target, undefined,
-        () => !game.levelScope.disposed && this.active && target.ready));
-    app.combat.registerTargets(game.levelScope, () => combatTargets, () => this.active);
+        () => !game.levelScope.disposed && app.levelScope === game.levelScope && this.active && target.ready));
+    app.combat.registerTargets(game.levelScope, () => combatTargets, () => app.levelScope === game.levelScope && this.active);
     // Dummies are children of the room for visibility; their static solid bodies and separate hitboxes live in Rapier.
     for (const target of this.targets) root.add(target.model.root);
     game.onUpdate((dt) => { if (this.active) this.update(dt); }, 'training-arena');

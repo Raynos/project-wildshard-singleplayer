@@ -474,9 +474,9 @@ export class AnimalManager {
     this.scheduler.rate('legacy', { bands: [{ upTo: Infinity, brainHz: 10, body: 'frame' }] });
     const scope = app.levelScope;
     if (scope) {
-      app.combat.registerTargets(scope, () => this.animals.map((animal) =>
+      app.combat.registerTargets(scope, () => app.levelScope !== scope ? [] : this.animals.map((animal) =>
         app.combat.targetPort(animal.combatActor(), animal, (velocity) => { animal.impulse(velocity); },
-          () => !scope.disposed && !animal.hidden && animal !== app.equipmentHost?.player.mountedOn)));
+          () => !scope.disposed && app.levelScope === scope && !animal.hidden && animal !== app.equipmentHost?.player.mountedOn)));
       app.events.on('weapon.fired', () => { if (app.levelScope === scope) this.interruptTargets('target.attack'); }, scope);
       scope.onDispose(() => { this.scheduler.reset(); });
     }
