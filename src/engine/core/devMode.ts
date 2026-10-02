@@ -23,7 +23,10 @@ const saved = (): boolean => { try { return savedStorage.getItem(KEY) === '1'; }
 let on = saved();
 
 // a Node bake script may stub document without documentElement (CI bake-check crashed here)
-const mirror = (): void => { if (typeof document !== 'undefined' && document.documentElement !== undefined) document.documentElement.toggleAttribute('data-dev', on); };
+const mirror = (): void => {
+  if (typeof document === 'undefined') return;
+  try { document.documentElement.toggleAttribute('data-dev', on); } catch { /* a stub document with no root element */ }
+};
 mirror();
 
 export function isDev(): boolean { return on; }
