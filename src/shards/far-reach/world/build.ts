@@ -84,7 +84,7 @@ export function buildWorld(ctx: ShardContext, isBoard: () => boolean): BuiltWorl
   // The updraft: a board-only rising wind ramp (a hover deck tilted up the wind column) from the windmill isle to the step.
   const ramp = plankBridge(UPDRAFT_LENGTH, UPDRAFT.width, hoverDeck, null);
   ramp.position.set(UPDRAFT.x, UPDRAFT.y0, UPDRAFT.z0); ramp.rotation.x = UPDRAFT_ANGLE; root.add(ramp);
-  const rings = 14, wind = new InstancedMesh(new RingGeometry(2.6, 2.9, 24), new MeshBasicMaterial({ color: 0xf6fdff, transparent: true, opacity: 0.28, side: DoubleSide, depthWrite: false }), rings);
+  const rings = 8, wind = new InstancedMesh(new RingGeometry(2.75, 2.88, 24), new MeshBasicMaterial({ color: 0xf6fdff, transparent: true, opacity: 0.14, side: DoubleSide, depthWrite: false }), rings);
   wind.frustumCulled = false; root.add(wind); placeWind(wind, 0);
   ctx.piece({ id: 'far.updraft', name: STRINGS.updraft, category: 'buildings', file: FILE, object: ramp, colliders: [updraftCollider()], surface: 'wood', active: isBoard });
 

@@ -1,8 +1,10 @@
 # Sky Reach (`far-reach`)
 
 Floating grass islands over a sea of cloud at golden hour (Jake's pick **B · Sky Reach**, E364). Rope bridges carry
-you on foot; the glowing hover bridges carry only a hoverboard rider, so on foot you fall straight through. Built from
-`docs/SHARDS.md`, the template and `docs/ENGINE.md` alone (E357 Z3 round 4).
+you on foot; the glowing hover bridges and the updraft carry only a hoverboard rider, so on foot you fall straight
+through. Built from `docs/SHARDS.md`, the template and `docs/ENGINE.md` alone (E357 Z3 round 4), then the full content
+of [SKY-REACH](../../../docs/plans/SKY-REACH.md) (E374): eight islands, four creatures, a four-step quest chain, the
+Storm Roc.
 
 ## What it declares
 
@@ -13,9 +15,10 @@ you on foot; the glowing hover bridges carry only a hoverboard rider, so on foot
 | `ground` | `structures: true`: four islands and their bridges are registry pieces (`world/build.ts`); no terrain |
 | `world`, `bounds` | `killY` 6 m (creature death plane); a soft-respawn floor 12 m for a player who falls |
 | `horizon`, `boundary` | no ridge rings, the engine's cloud sea; no drawn edge |
-| `uses` | `hover`, `quests`, `coins`, `loot` |
+| `uses` | `hover`, `quests`, `bosses`, `coins`, `loot` |
 | `loadout` | the war fan (held) and the kit hoverboard |
-| `species` | `driftRay` (a flyer, `flight.above: 'world'`) |
+| `species` | `driftRay`, `skyGoat`, `galeWisp`, `stormRoc` (all flyers, `flight.above: 'world'`; the goats hold their island's deck height, G26) |
+| `encounters` | `far.roc` (the Storm Roc boss) |
 | `audio` | `ambience: 'none'`, a silent score, kit sword cues; no `preload` (asset-free) |
 | `assets` | none: code-built models, an inline SVG card, no KTX2, no asset globs |
 | saves | one shard key, `far-reach.rewarded` |
@@ -28,8 +31,11 @@ you on foot; the glowing hover bridges carry only a hoverboard rider, so on foot
 | `world/shapes.ts` | flat-shaded vertex-coloured islands (12-gon grass top, violet keel), instanced pines, plank bridges, the windmill, the winch |
 | `world/build.ts` | the pieces: island tops (six box strips cover the 12-gon), the rope bridge (deck + rails), the hover bridge (`active` only while `app.player.mode === 'board'`), the fallen bridge (`active` once raised), the windmill, the winch interactable |
 | `weapons/WarFan.ts` | the war fan (rung 3, `extends Weapon`): SWING arc slash and the held / HEAVY slash through `blocks.melee`; GUST (touch `verb.1`, key G) gives every creature in a 9 m cone `animal.impulse` away and a 4-point hit |
+| `species/skyGoat.ts` | sky goats: graze inside the rim, ram (lane) when crowded; GUSTed past the rim they drop through `killY` |
+| `species/galeWisp.ts` | gale wisps: drift over their island, dart and burst (sphere) at the chest |
+| `species/stormRoc.ts`, `combat/stormRoc.ts` | the Storm Roc: a `BossBrain` + `BossScript` (stoop dive, gale walls, grounded on the dais), the shared `BossBar`, 25 coins once |
 | `species/driftRay.ts` | the drift ray: species + custom rig (body, head, wings, tail) + `DriftRayBrain` (circle → stalk → hang → dive → rise) with a `sphere` dive strike |
-| `quest/install.ts` | *The fallen bridge*: raise it with the winch, cross to the windmill; 10 coins once |
+| `quest/install.ts` | *The crown bridge*: the keeper's notes → clear the roost's three rays → GUST the three vanes → the winch raises the bridge to the storm crown; 10 coins once |
 | `look/render.ts` | `extend` look: the clean engine chain, a violet → rose → gold dome with a sun glow, a warm raking key, rose distance fog |
 | `plugin.ts` | the hooks, the fan's input context (SWING relabel on `r0`, GUST verb), the winch, the hover-deck glow, the gust ring, the rays |
 
