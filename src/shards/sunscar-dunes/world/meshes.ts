@@ -93,11 +93,14 @@ export function bindRigid(g: BufferGeometry, boneOf: (x: number, y: number, z: n
  * Averages a generated model's painted colour per vertex position (round 2, R1A-2 / R1A-5): each facet painted its own
  * shade, so the triangles showed as patches; averaged, the paint reads as continuous leather, cloth and timber.
  */
-export function smoothColors(g: BufferGeometry): void {
+export function smoothColors(g: BufferGeometry, amount = 1): void {
   if (!g.hasAttribute('color')) return;
   const p = g.getAttribute('position'), c = g.getAttribute('color'), sum = new Map<string, [number, number, number, number]>();
   const key = (i: number): string => `${p.getX(i).toFixed(4)},${p.getY(i).toFixed(4)},${p.getZ(i).toFixed(4)}`;
   for (let i = 0; i < p.count; i++) { const k = key(i), v = sum.get(k) ?? [0, 0, 0, 0]; v[0] += c.getX(i); v[1] += c.getY(i); v[2] += c.getZ(i); v[3]++; sum.set(k, v); }
-  for (let i = 0; i < p.count; i++) { const v = sum.get(key(i)); if (v) c.setXYZ(i, v[0] / v[3], v[1] / v[3], v[2] / v[3]); }
+  for (let i = 0; i < p.count; i++) {
+    const v = sum.get(key(i)); if (!v) continue;
+    c.setXYZ(i, c.getX(i) + (v[0] / v[3] - c.getX(i)) * amount, c.getY(i) + (v[1] / v[3] - c.getY(i)) * amount, c.getZ(i) + (v[2] / v[3] - c.getZ(i)) * amount);
+  }
   c.needsUpdate = true;
 }

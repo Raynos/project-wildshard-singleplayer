@@ -6,7 +6,7 @@ const STRAND_A = [0.46, 0.25, 0.12] as const, STRAND_B = [0.27, 0.14, 0.065] as 
 /** The thrown lash is the handle's dark braid (loop 3: its first metre read as a pale cone against the dusk sun). */
 const LASH_A = [0.24, 0.12, 0.055] as const, LASH_B = [0.13, 0.065, 0.03] as const;
 // loop 4: a shade lighter than the glove, so the coil's loops read against both the fist and the dusk sand (mockup D)
-const COIL_A = [0.44, 0.25, 0.11] as const, COIL_B = [0.24, 0.13, 0.06] as const;
+const COIL_A = [0.5, 0.3, 0.14] as const, COIL_B = [0.3, 0.16, 0.07] as const;
 const GLOVE = 0x7a4a28, CUFF = 0x5a3219, KNOB = 0x3a2214;
 /** A low warm self-light: the dusk sun sits behind the player most of the time, and a backlit viewmodel reads as a black lump. */
 const GLOW = 0x120804;
@@ -93,7 +93,7 @@ function smoothNormals(g: BufferGeometry): void {
   for (let i = 0; i < p.count; i++) { const k = key(i), v = sum.get(k) ?? [0, 0, 0]; v[0] += n.getX(i); v[1] += n.getY(i); v[2] += n.getZ(i); sum.set(k, v); }
   for (let i = 0; i < p.count; i++) { const v = sum.get(key(i)) ?? [0, 1, 0], l = Math.hypot(v[0], v[1], v[2]) || 1; n.setXYZ(i, v[0] / l, v[1] / l, v[2] / l); }
   n.needsUpdate = true;
-  smoothColors(g); // round 2 (R1A-2): the painted colour per facet still drew every triangle
+  smoothColors(g, 0.45); // check pass: fully averaged it was a clay mitt; half keeps the seams, knuckles and braid
 }
 
 function gloveMesh(): { mesh: Mesh; top: number } | null {
@@ -145,7 +145,7 @@ export function buildWhipModel(): WhipParts {
   grip.rotation.set(-1.2, 0, made === null ? -0.25 : 0.12);
   // The coil (mockup D): a small loop and a half hanging below the fist toward the bottom-right edge, its tail out of frame.
   // With the generated glove (mockup D) the coil is the real cord's weight: two and a half thin loops beside the fist.
-  const turns = made === null ? 3.2 : 5, loopR = made === null ? 0.064 : 0.05, cord = made === null ? 0.0085 : 0.005;
+  const turns = made === null ? 3.2 : 5, loopR = made === null ? 0.064 : 0.05, cord = made === null ? 0.0085 : 0.0072; // solid, not see-through hoops
   const coilPoints: Vector3[] = [];
   for (let i = 0; i <= 60; i++) {
     const s = i / 60, a = 0.6 + s * Math.PI * turns, r = loopR * (1 - 0.15 * s);

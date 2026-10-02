@@ -1,12 +1,13 @@
 import { addFire, SIGNAL_FIRE } from './fireFx';
-import { BoxGeometry, CylinderGeometry, Group, Mesh, MeshStandardMaterial, PointLight, Vector3, type Material } from 'three';
+import { BoxGeometry, CylinderGeometry, DoubleSide, Group, Mesh, MeshStandardMaterial, PointLight, Vector3, type Material } from 'three';
 import { boxDesc, type ColliderDesc } from '#engine';
 import { TOWER } from '../layout';
 import { duneMesh, fit } from './meshes';
-import { kindling, litDune } from './places';
+import { bannerGeometry, kindling, litDune, RAG, RAG_GLOW } from './places';
+import { WIND } from './dunes';
 
 // round 2 (R1C-2): a step lighter; the H4 deck's rail, post and brazier read black at dusk
-const WOOD = 0x7a5538, WOOD_DARK = 0x5a3c28, IRON = 0x4a3c36;
+const WOOD = 0xa07656, WOOD_DARK = 0x86603f, IRON = 0x6e5e56; // check pass: the rail and posts measured 16/255
 export const STAIR = { count: 22, run: 0.42, width: 1.3, x: 0.75 } as const;
 
 export interface TowerParts { root: Group; colliders: ColliderDesc[]; fire: Group; light: PointLight; brazierAt: Vector3; deckY: number }
@@ -64,7 +65,7 @@ export function buildTower(y: number, groundAt: (x: number, z: number) => number
   // The deck: nine sun-weathered planks in three shades with thin gaps (round 1: one dark slab read as a flat brown floor
   // in the H4 view), on a dark frame.
   add(box(half * 2 + 0.6, 0.14, half * 2 + 0.6, dark), 0, deckY - 0.13, 0);
-  const plankShades = [0x7a5a40, 0x6a4c36, 0x86664a].map((color) => new MeshStandardMaterial({ color, roughness: 0.92, flatShading: true }));
+  const plankShades = [0xb08c68, 0x9c7a58, 0xbe9a74].map((color) => new MeshStandardMaterial({ color, roughness: 0.92, flatShading: true }));
   const span = half * 2 + 0.6, plank = span / 9;
   for (let i = 0; i < 9; i++) add(box(plank - 0.025, 0.06, span, plankShades[(i * 2) % 3] ?? wood), -span / 2 + (i + 0.5) * plank, deckY - 0.03, 0);
   colliders.push(boxDesc({ x: cx, z: cz, hw: half + 0.3, hd: half + 0.3, rot: 0, yBottom: deckY - 0.2, yTop: deckY }, 'wood'));
@@ -75,8 +76,11 @@ export function buildTower(y: number, groundAt: (x: number, z: number) => number
   }
   for (const [x, z] of [[-edge, -edge], [edge, -edge], [-edge, edge], [edge, edge], [-edge * 0.2, edge]] as const) add(box(0.1, railH, 0.1, dark), x, deckY + railH / 2, z);
   // The mast and its crossbar over the north-east corner (round 1: on the north-west it stood in the deck view, H4).
-  add(box(0.14, 3.4, 0.14, wood), half - 0.2, deckY + 1.7, -half + 0.2);
+  add(box(0.14, 4.6, 0.14, wood), half - 0.2, deckY + 2.3, -half + 0.2);
   add(box(1.3, 0.1, 0.1, wood), half - 0.2, deckY + 2.9, -half + 0.2);
+  // check pass (4): a long madder pennant off the mast, the tower's mark from the spawn and from above
+  const pennant = new Mesh(bannerGeometry(), new MeshStandardMaterial({ color: RAG, roughness: 0.9, side: DoubleSide, emissive: RAG_GLOW }));
+  pennant.scale.set(1.5, 1.1, 1.1); pennant.position.set(cx + half - 0.2, deckY + 4.55, cz - half + 0.2); pennant.rotation.y = Math.atan2(-WIND.z, WIND.x); root.add(pennant);
   // The south stair: 22 treads from the sand to the deck edge.
   const top = new Vector3(cx + STAIR.x, deckY, cz + edge), foot = new Vector3(top.x, 0, top.z + STAIR.count * STAIR.run);
   foot.y = groundAt(foot.x, foot.z);

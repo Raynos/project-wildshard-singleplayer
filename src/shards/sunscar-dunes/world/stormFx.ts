@@ -32,12 +32,15 @@ void main() {
   float az = atan(d.x * w.y - d.z * w.x, d.x * w.x + d.z * w.y);
   float el = d.y;
   float speed = ${fine ? '2.4' : '1.1'}, rows = ${fine ? '260.0' : '120.0'}, len = ${fine ? '7.0' : '4.0'};
-  float s1 = sNoise(vec2(az * len - uTime * speed, el * rows));
-  float s2 = sNoise(vec2(az * len * 2.3 - uTime * speed * 1.7 + 3.1, el * rows * 1.9));
+  // on a circle round the horizon (no seam where atan wraps), the streaks racing downwind as the angle turns
+  float a1 = az - uTime * speed / len, a2 = az - uTime * speed * 1.7 / (len * 2.3);
+  float s1 = sNoise(vec2(cos(a1) * len + el * rows, sin(a1) * len));
+  float s2 = sNoise(vec2(cos(a2) * len * 2.3 + el * rows * 1.9 + 3.1, sin(a2) * len * 2.3));
   float streak = smoothstep(0.55, 0.95, s1 * 0.6 + s2 * 0.4);
   float gust = 0.7 + 0.3 * sin(uTime * 1.3) * sin(uTime * 0.37 + 1.0);
   float low = 1.0 - smoothstep(-0.1, 0.55, el);
-  float veil = 0.55 + 0.45 * sNoise(vec2(az * 1.5 - uTime * 0.3, el * 4.0));
+  float a3 = az - uTime * 0.2;
+  float veil = 0.55 + 0.45 * sNoise(vec2(cos(a3) * 1.5 + el * 4.0, sin(a3) * 1.5));
   float a = uOpacity * gust * (veil * (0.45 + 0.55 * low) + streak * 0.7 * (0.35 + 0.65 * low));
   vec3 c = uColor * (0.85 + 0.5 * streak);
   gl_FragColor = vec4(c, clamp(a, 0.0, 0.95));

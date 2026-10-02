@@ -27,6 +27,9 @@ float vNoise(vec2 p) {
   vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
   return mix(mix(vHash(i), vHash(i + vec2(1.0, 0.0)), f.x), mix(vHash(i + vec2(0.0, 1.0)), vHash(i + vec2(1.0, 1.0)), f.x), f.y);
 }
+// Noise round the horizon on a circle of radius r (r cells a radian), not on the azimuth itself: atan() jumps at +-pi,
+// which drew a hard vertical seam through the streaks and the cloud bank (check pass, seat C). v runs up the sky.
+vec2 skyRing(float a, float r, float v) { return vec2(cos(a) * r + v, sin(a) * r - v * 0.7); }
 float vFbm(vec2 p) { float a = 0.5, s = 0.0; for (int i = 0; i < 4; i++) { s += a * vNoise(p); p = p * 2.03 + vec2(1.7, 9.2); a *= 0.5; } return s; }
 void main() {
   vec3 d = normalize(vDir);
@@ -43,7 +46,7 @@ void main() {
   c += vec3(1.0, 0.5, 0.18) * pow(toward, 5.0) * (1.0 - smoothstep(0.0, 0.22, h)) * 0.35;
   // Cloud streaks: long thin bands stretched along the horizon, only between ~3° and ~20° up.
   float az = atan(d.z, d.x);
-  float streak = vNoise(vec2(az * 6.0, h * 120.0)) * 0.65 + vNoise(vec2(az * 19.0 + 3.1, h * 260.0)) * 0.35;
+  float streak = vNoise(skyRing(az, 6.0, h * 120.0)) * 0.65 + vNoise(skyRing(az, 19.0, h * 260.0 + 3.1)) * 0.35;
   float cloud = smoothstep(0.55, 0.82, streak) * smoothstep(0.03, 0.07, h) * (1.0 - smoothstep(0.22, 0.38, h));
   vec3 belly = mix(vec3(0.9, 0.46, 0.3), vec3(1.0, 0.6, 0.36), pow(toward, 2.0));
   // under-lit bellies low in the band, slate tops higher up
@@ -65,7 +68,7 @@ void main() {
   // toward the glow and behind the cloud deck.
   // A low cloud bank on the horizon (round 2, seat B: the low sky in the aerials and the clip was flat orange): ragged
   // streaks in the lowest few degrees, warm where they face the glow, slate-violet away from it.
-  float bankN = vNoise(vec2(az * 5.0, h * 30.0)) * 0.6 + vNoise(vec2(az * 13.0 + 2.0, h * 70.0)) * 0.4;
+  float bankN = vNoise(skyRing(az, 5.0, h * 30.0)) * 0.6 + vNoise(skyRing(az, 13.0, h * 70.0 + 2.0)) * 0.4;
   float bank = smoothstep(0.34, 0.62, bankN) * (1.0 - smoothstep(0.12, 0.26, h)) * smoothstep(0.0, 0.035, d.y); // just above the far ranges
   vec3 bankLit = mix(vec3(0.42, 0.3, 0.44), vec3(0.98, 0.56, 0.38), pow(toward, 1.5)), bankTop = mix(bankLit, vec3(0.3, 0.24, 0.38), smoothstep(0.55, 0.9, bankN));
   c = mix(c, bankTop, bank * 0.9);

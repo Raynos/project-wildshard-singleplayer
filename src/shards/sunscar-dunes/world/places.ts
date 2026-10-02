@@ -7,11 +7,14 @@ import { WIND } from './dunes';
 import { duneMaterial, duneMesh, fit, smoothColors, without } from './meshes';
 
 // round 2 (R1C-2): sun-greyed wood and worn iron a step lighter; at dusk the old near-black values read as black cut-outs
-const WOOD = 0x7a5538, WOOD_DARK = 0x5a3c28, IRON = 0x4a3c36, CANVAS = 0x8a6448, CANVAS_BLEACHED = 0xd8bc92, CANVAS_GLOW = 0x3a2a1a, STONE = 0x6a4a3a, LEATHER = 0x3a1e12, CLAY = 0x7a3a22;
+const WOOD = 0xa07656, WOOD_DARK = 0x86603f, IRON = 0x6e5e56, CANVAS = 0x8a6448, CANVAS_BLEACHED = 0xd8bc92, CANVAS_GLOW = 0x3a2a1a, STONE = 0x6a4a3a, LEATHER = 0x3a1e12, CLAY = 0x7a3a22;
 const mat = (color: number, extra: Partial<{ metalness: number; side: typeof DoubleSide; emissive: number }> = {}): MeshStandardMaterial =>
   new MeshStandardMaterial({ color, roughness: 0.92, flatShading: true, ...extra });
 /** A generated model's painted material a step lighter (round 2, R1C-2: the iron brazier and the well read black at dusk). */
-export const litDune = (): MeshStandardMaterial => { const m = duneMaterial(); m.color.setRGB(1.8, 1.65, 1.5); return m; };
+export const litDune = (): MeshStandardMaterial => {
+  // the bowls measured 2 against the sand's 31 (check pass): lifted paint and a faint warm self-light, never black on lit sand
+  const m = duneMaterial(); m.color.setRGB(4.2, 3.7, 3.2); m.emissive.setRGB(0.07, 0.045, 0.03); m.roughness = 0.7; return m;
+};
 const box = (w: number, h: number, d: number, material: Material): Mesh => new Mesh(new BoxGeometry(w, h, d), material);
 const at = (mesh: Mesh, x: number, y: number, z: number, parent: Group): Mesh => { mesh.position.set(x, y, z); parent.add(mesh); return mesh; };
 
@@ -52,8 +55,8 @@ export function buildCaravan(groundAt: (x: number, z: number) => number): Carava
   const generated = duneMesh('caravan');
   if (generated) {
     // round 1 (R1A-5): the painted wood a step lighter, so boards, hoops and wheels separate instead of one dark shell
-    const painted = duneMaterial(); painted.color.setRGB(2.6, 2.3, 2.0); // its baked AO and the backlight sank the front to black
-    const body = fit(generated, { size: 6.2, by: 'span', yaw: Math.PI / 2 }); smoothColors(body); // timber and cloth read as regions, not patches
+    const painted = duneMaterial(); // the regions carry their own values now (wagonRegions)
+    const body = fit(generated, { size: 6.2, by: 'span', yaw: Math.PI / 2 }); smoothColors(body); wagonRegions(body);
     wagon.add(new Mesh(body, painted)); coverHoops(wagon);
   }
   else buildCodeWagon(wagon, wood, dark);
@@ -100,7 +103,20 @@ export function buildCaravan(groundAt: (x: number, z: number) => number): Carava
 const HOOPS = { cx: 0.88, cy: 2.62, top: 1.0, side: 0.55, back: -2.65, front: 1.9 } as const;
 function coverHoops(wagon: Group): void {
   const canvas = mat(CANVAS_BLEACHED, { side: DoubleSide, emissive: CANVAS_GLOW }), len = HOOPS.front - HOOPS.back, mid = (HOOPS.front + HOOPS.back) / 2;
-  const arch = new Mesh(new CylinderGeometry(1, 1, len, 9, 1, true, -Math.PI / 2, Math.PI), canvas);
+  // the arch shaded (check pass: a flat unshaded slab): paler on the crown, darker down the sides, the cloth sagging
+  // and creased between the hoops
+  const archGeo = new CylinderGeometry(1, 1, len, 14, 12, true, -Math.PI / 2, Math.PI), ap = archGeo.getAttribute('position');
+  const shade = new Float32Array(ap.count * 3), hoopGap = len / 5;
+  for (let i = 0; i < ap.count; i++) {
+    const ax = ap.getX(i), ay = ap.getY(i), az = ap.getZ(i), fold = Math.cos(((ay + len / 2) / hoopGap) * Math.PI * 2);
+    const sag = 1 - 0.05 * (1 - fold) * 0.5;
+    ap.setX(i, ax * sag); ap.setZ(i, az * sag);
+    const crown = Math.max(0, -az), v = (0.62 + 0.38 * crown) * (0.86 + 0.14 * fold);
+    shade[i * 3] = v; shade[i * 3 + 1] = v * 0.97; shade[i * 3 + 2] = v * 0.92;
+  }
+  archGeo.setAttribute('color', new Float32BufferAttribute(shade, 3)); archGeo.computeVertexNormals();
+  const cloth = new MeshStandardMaterial({ color: CANVAS_BLEACHED, vertexColors: true, roughness: 0.95, side: DoubleSide, emissive: CANVAS_GLOW });
+  const arch = new Mesh(archGeo, cloth);
   arch.geometry.rotateX(-Math.PI / 2); arch.scale.set(HOOPS.cx, HOOPS.top, 1); at(arch, 0, HOOPS.cy, mid, wagon);
   for (const side of [-1, 1]) at(box(0.02, HOOPS.side, len, canvas), side * HOOPS.cx, HOOPS.cy - HOOPS.side / 2, mid, wagon);
   const flap = box(1.1, 0.8, 0.02, canvas); flap.rotation.set(0.45, 0.2, 0.3); at(flap, 0.45, HOOPS.cy + 0.55, HOOPS.front + 0.25, wagon);
@@ -124,6 +140,24 @@ function buildCodeWagon(wagon: Group, wood: Material, dark: Material): void {
     const rim = new Mesh(new TorusGeometry(0.78, 0.05, 4, 14), iron); rim.rotation.y = Math.PI / 2; at(rim, x + 0.02, 0.72, z, wagon);
   }
   for (const side of [-1, 1]) { const shaft = box(0.09, 0.09, 2.6, wood); shaft.rotation.x = 0.22; at(shaft, side * 0.45, 0.55, 3.3, wagon); }
+}
+
+/**
+ * The generated wagon recoloured by region (check pass: body, wheels and hoops read as one maroon value), keeping the
+ * paint's own light and dark: the wheels dark iron-shod wood out at the sides and low, the hoops dark wood up top, the
+ * bed and sides a warm sun-faded timber between. In the fitted frame (`fit`, the wagon's length along z, the ground y 0).
+ */
+const WAGON = { wheelX: 0.78, wheelY: 1.5, hoopY: 1.9, wheel: [0.16, 0.1, 0.07], hoop: [0.26, 0.17, 0.11], bed: [0.62, 0.42, 0.26] } as const;
+function wagonRegions(g: BufferGeometry): void {
+  if (!g.hasAttribute('color')) return;
+  const p = g.getAttribute('position'), c = g.getAttribute('color');
+  for (let i = 0; i < p.count; i++) {
+    const x = Math.abs(p.getX(i)), y = p.getY(i), lum = 0.3 * c.getX(i) + 0.59 * c.getY(i) + 0.11 * c.getZ(i);
+    const tone = y > WAGON.hoopY ? WAGON.hoop : x > WAGON.wheelX && y < WAGON.wheelY ? WAGON.wheel : WAGON.bed;
+    const k = Math.min(1.35, Math.max(0.6, 0.6 + lum * 2.2)); // the paint's own light and dark, kept
+    c.setXYZ(i, tone[0] * k, tone[1] * k, tone[2] * k);
+  }
+  c.needsUpdate = true;
 }
 
 /** The generated well's span (metres, the crank end to the far post): its ring then sits on the stones' colliders. */
@@ -171,10 +205,11 @@ export function buildWell(groundAt: (x: number, z: number) => number): WellParts
 /** The waymark's dressing (metres): stones in its ring, the ring's radius, the marker pole's height, the plinth's. */
 const WAYMARK = { stones: 9, ring: 1.45, pole: 4.4, plinth: 0.75 } as const;
 const PLINTH_STONE = 0x9a6a4c, PLINTH_BASE = 0x6e4634, PLINTH_LIGHT = 0xa87a58;
-const POLE = 0x5a3a26, RAG = 0x8a2a16, RAG_GLOW = 0x1a0603;
+const POLE = 0x86603f;
+export const RAG = 0x8a2a16, RAG_GLOW = 0x1a0603;
 const KINDLING = 0x6e4a2e;
 /** A long banner hanging from the crossbar, streaming along +x and sagging, in two kinked panels. */
-function bannerGeometry(): BufferGeometry {
+export function bannerGeometry(): BufferGeometry {
   const pts = [[0, 0, 0], [0, -0.75, 0], [0.55, -0.12, 0.06], [0.5, -0.82, 0.05], [1.1, -0.3, -0.04], [1.0, -0.9, -0.03]];
   const idx = [0, 1, 2, 2, 1, 3, 2, 3, 4, 4, 3, 5], pos: number[] = [];
   for (const i of idx) pos.push(...(pts[i] ?? [0, 0, 0]));
@@ -217,6 +252,9 @@ export function buildBrazier(x: number, z: number, groundAt: (x: number, z: numb
       block.position.set(sx * w / 4, y0 + bh / 2, sz * w / 4); tier.add(block);
     }
   }
+  // a capstone slab, a shade lighter and a hand wider than the upper tier: the plinth reads built, not stacked boxes
+  const cap = box(1.32, 0.07, 1.32, mat(PLINTH_LIGHT)); cap.rotation.y = 0.12; at(cap, 0, P + 0.035, 0, root);
+  const ledge = box(1.86, 0.06, 1.86, mat(PLINTH_STONE)); ledge.rotation.y = 0.12; at(ledge, 0, P * 0.55 + 0.03, 0, root);
   colliders.push(boxDesc({ x, z, hw: 0.85, hd: 0.85, rot: -0.12, yBottom: y - 0.3, yTop: y + P * 0.55 }, 'stone'));
   const generated = duneMesh('waymark-brazier'), bowl = (generated ? 1.74 : 1.62) + P;
   if (generated) root.add(new Mesh(fit(generated, { size: 1.85, by: 'height', floor: -0.12 + P }), litDune()));
