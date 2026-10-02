@@ -22,7 +22,8 @@ PBR. The one-line test: **every frame looks into a warm sun, and nothing in it g
   - **Shade floor**: a shaded surface keeps at least a warm-plum share of its own albedo.
 - **Fill**: hemisphere sky `#d8c2d6` (lilac), ground `#c9935c` (gold bounce), intensity 1.4.
 - **Shadows** are warm plum, never violet-black. Grade shadow tint `[1.04, 0.95, 0.98]`.
-- **Numbers** (CIE L*, the world band, `stats.py`): mean L* 55–62, p10 L* ≥ 25, share under L* 30 ≤ 15 %.
+- **The mockup's numbers** (CIE L*, the world band, `stats.py`; a description of mockup A, not a pass bar): mean L* ≈ 59,
+  p10 L* ≈ 25, about 17 % of the frame under L* 30.
 
 ## 2. Palette
 

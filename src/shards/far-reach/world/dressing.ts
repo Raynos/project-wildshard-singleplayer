@@ -23,7 +23,7 @@ function seeded(seed: number): () => number {
 
 /** One clump: five bent blades fanned round the centre, 1 m tall before scaling. */
 export function clumpGeometry(): BufferGeometry {
-  const pos: number[] = [], col: number[] = [], nor: number[] = [], root = new Color(0x5f8a3a), mid = new Color(0x93b552), tip = new Color(0xc9c66a);
+  const pos: number[] = [], col: number[] = [], nor: number[] = [], root = new Color(0x667f36), mid = new Color(0xa0ab4c), tip = new Color(0xdcc068);
   const push = (x: number, y: number, z: number, c: Color): void => { pos.push(x, y, z); col.push(c.r, c.g, c.b); nor.push(0, 1, 0); };
   // twelve blades over a patch about 0.6 m across (fewer, fuller instances: the instance matrices are the GPU cost)
   for (let i = 0; i < 12; i++) {

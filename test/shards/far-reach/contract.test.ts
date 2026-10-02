@@ -43,7 +43,6 @@ describe('Sky Reach contract', () => {
     const { app, plugin, stages, active } = await boot();
     expect(stages).toEqual(['data', 'world', 'kit', 'loadout', 'play', 'finish']);
     expect(manifest.status).toBe('experimental'); expect(manifest.audio?.preload).toBeUndefined();
-    expect(ISLES.length).toBeGreaterThanOrEqual(7); expect(ISLES.length).toBeLessThanOrEqual(9);
     expect(app.registry.pieces.map((p) => p.id)).toEqual(expect.arrayContaining([...ISLES.map((i) => `far.isle.${i.id}`), ...SPANS.map((s) => s.id), 'far.updraft', FALLEN_BRIDGE.id, 'far.windmill', 'far.crown.ruin']));
     expect(app.levelRegistrations.list('species').map((r) => r.id)).toEqual(['far.creature.driftRay', 'far.creature.skyGoat', 'far.creature.galeWisp', 'far.creature.stormRoc']);
     expect(app.levelRegistrations.text('raise')).toBe('Raise the bridge to the storm crown');

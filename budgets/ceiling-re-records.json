@@ -57,7 +57,7 @@
       "metric": "gpuMB",
       "source": "budgets/calibration-reports/far-reach.phone.json",
       "commit": "6259b45871b5453fc7a44641491d629cef40bf7a",
-      "reason": "E374 Sky Reach loop 3, lead-approved polish (standing approval to 100 MB phone): the crown storm vortex, the GUST and updraft wind FX and the generated bridge-keeper (2.6k tris)"
+      "reason": "E374 Sky Reach loop 3, measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer): the crown storm vortex, the GUST and updraft wind FX and the generated bridge-keeper (2.6k tris)"
     },
     {
       "shard": "far-reach",
@@ -65,7 +65,7 @@
       "metric": "gpuMB",
       "source": "budgets/calibration-reports/far-reach.desktop.json",
       "commit": "6259b45871b5453fc7a44641491d629cef40bf7a",
-      "reason": "E374 Sky Reach loop 3, lead-approved polish (standing approval to 100 MB phone): the crown storm vortex, the GUST and updraft wind FX and the generated bridge-keeper (2.6k tris)"
+      "reason": "E374 Sky Reach loop 3, measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer): the crown storm vortex, the GUST and updraft wind FX and the generated bridge-keeper (2.6k tris)"
     }
   ]
 }

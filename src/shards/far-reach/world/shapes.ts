@@ -4,7 +4,7 @@ import { fit, skyMesh, splitAbove } from './meshes';
 
 /** The Sky Reach palette (sRGB hex): golden-hour grass, warm dirt, warm brown-grey keel strata, green pines (the mockup's). */
 export const PALETTE = {
-  grass: 0x82ad4c, grassLight: 0xa3c060, dirt: 0x8a6446, rock: 0x8a7468, rockDark: 0x6a5560,
+  grass: 0x7d9640, grassLight: 0xa6ad55, dirt: 0x8a6446, rock: 0x8a7468, rockDark: 0x6a5560,
   pine: 0x3f5a3c, trunk: 0x5a3f2e, plank: 0x8d6a4c, rope: 0xd6c095, tower: 0xd8cfc2, sail: 0xe8dcc4, glow: 0x9fe6f2,
 } as const;
 

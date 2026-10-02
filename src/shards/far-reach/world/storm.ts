@@ -13,7 +13,7 @@ export const STORM = { lift: 23, radius: 92, layers: [{ dy: 0, r: 1, spin: 0.045
 
 function hex(value: number): string { const c = new Color(value); return `vec3(${c.r.toFixed(4)},${c.g.toFixed(4)},${c.b.toFixed(4)})`; }
 /** The storm's palette (sRGB): belly, mid, the gold of the lit edges, the violet-white of the lightning, the haze it melts into. */
-export const STORM_COLORS = { belly: 0x2c2240, mid: 0x6b5786, top: 0x9a86ad, gold: 0xffc27a, bolt: 0xe2d6ff, haze: 0xe9bfb4 } as const;
+export const STORM_COLORS = { belly: 0x4a3248, mid: 0x9c7282, top: 0xc49890, gold: 0xffc27a, bolt: 0xe2d6ff, haze: 0xe9bfb4 } as const;
 
 const FRAGMENT = /* glsl */`
   uniform sampler2D tex; uniform float time, flash, twist, spin, seed; uniform vec3 sunDir; varying vec3 wp; varying vec2 lp;
@@ -53,7 +53,9 @@ const FRAGMENT = /* glsl */`
     float dist = length(wp - cameraPosition);
     float haze = smoothstep(90.0, 260.0, dist);
     c = mix(c, ${hex(STORM_COLORS.haze)}, haze * 0.7);
-    gl_FragColor = vec4(c, alpha * (1.0 - haze * 0.72));
+    // a camera up at the storm's height (the god views, a high hover) sees it thin out, never a wall of paint
+    float near = smoothstep(3.0, 16.0, abs(wp.y - cameraPosition.y));
+    gl_FragColor = vec4(c, alpha * (1.0 - haze * 0.72) * near);
   }`;
 
 const VERTEX = /* glsl */`
