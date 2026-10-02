@@ -180,3 +180,18 @@ describe('Map Lab\'s maths = the dry run\'s terrain_vis.py on the approved block
     expect(sightlines(field, village, t.places).length).toBeGreaterThan(0);
   });
 });
+
+describe('a day-zero draft (P0: no art, no key art yet) builds (E395)', () => {
+  it('has no rounds, no items and no problems', () => {
+    const config: DraftConfig = {
+      slug: 'day-zero', name: 'Day Zero', line: 'A test line.', art: 'art/day-zero-does-not-exist', design: '', content: '',
+      run: { stage: 'P0', waiting: 'the vision', next: 'P1' }, rounds: {}, files: [], stages: {},
+    };
+    const content: DraftContent = { places: [], steps: [], lanes: [], side: [], mechanics: [], camChecks: {}, sets: [] };
+    const { atlas, card, problems } = buildAtlas({ root: ROOT, config, content, cams: {}, terrain: null, index: {}, now: '2026-10-02T00:00:00.000Z' });
+    expect(problems).toEqual([]);
+    expect(atlas.items).toEqual([]);
+    expect(card.keyArt).toBeNull();
+    expect(card.ticks).toBe(0);
+  });
+});

@@ -63,7 +63,7 @@ self.addEventListener('fetch', (event) => {
   if (url.hostname.endsWith(BLOB)) { event.respondWith(imageFirst(request)); return; }
   if (url.origin !== self.location.origin) return;
   if (url.pathname === '/version.json' || url.pathname === '/sw.js') return;
-  if (request.mode === 'navigate') {
+  if (request.mode === 'navigate' && url.pathname === '/') {
     event.respondWith((async () => {
       const cache = await caches.open(SHELL);
       return (await cache.match('/')) ?? fetch(request);

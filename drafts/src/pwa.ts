@@ -7,12 +7,14 @@ export interface DraftsSw {
   waiting: ServiceWorker | null;
   /** take the waiting build: SKIP_WAITING → controllerchange → reload. Resolves without reloading when nothing waits. */
   adopt: () => Promise<void>;
+  /** look for the server's newer build now and wait (capped) until it is installed and waiting */
+  fetchNew: () => Promise<void>;
 }
 
 const IMAGES = 'wd-images';
 const sw = 'serviceWorker' in navigator ? navigator.serviceWorker : null;
 
-export const drafts: DraftsSw = { waiting: null, adopt };
+export const drafts: DraftsSw = { waiting: null, adopt, fetchNew };
 
 function announce(w: ServiceWorker): void {
   drafts.waiting = w;
@@ -29,6 +31,23 @@ async function adopt(): Promise<void> {
     // oxlint-disable-next-line unicorn/require-post-message-target-origin -- a ServiceWorker's postMessage has no target origin
     w.postMessage({ type: 'SKIP_WAITING' });
   });
+}
+
+async function fetchNew(): Promise<void> {
+  if (!sw) return;
+  const reg = await sw.getRegistration();
+  if (!reg) return;
+  await reg.update().catch(() => undefined);
+  if (reg.waiting) { announce(reg.waiting); return; }
+  const w = reg.installing;
+  if (!w) return;
+  await new Promise<void>((resolve) => {
+    // the game's hand-over cap, twice: an install downloads the new build's files
+    const timer = setTimeout(resolve, 5000);
+    w.addEventListener('statechange', () => { if (w.state === 'installed' || w.state === 'redundant') { clearTimeout(timer); resolve(); } });
+  });
+  const after = await sw.getRegistration();
+  if (after?.waiting) announce(after.waiting);
 }
 
 export async function registerSw(): Promise<void> {
@@ -96,11 +115,14 @@ export function warm(urls: string[], progress: (s: Saved) => void): Promise<void
     const lane = async (): Promise<void> => {
       for (let u = todo.shift(); u !== undefined; u = todo.shift()) {
         try {
-          await fetch(u, { mode: 'cors', credentials: 'omit' });
-          done++;
-          progress({ done, total: urls.length });
+          const res = await fetch(u, { mode: 'cors', credentials: 'omit' });
+          // saved only when the worker stored it (an error response is never cached)
+          if (res.ok && (await cache.match(u))) {
+            done++;
+            progress({ done, total: urls.length });
+          }
         } catch {
-          return; // the network dropped: the rest waits for the next open
+          return; // the network dropped: the rest waits for the next open or the 'online' event
         }
       }
     };

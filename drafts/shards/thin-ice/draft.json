@@ -134,7 +134,8 @@
     },
     {
       "match": "^p3-glass-(\\w+)",
-      "title": "Glass and aurora · {1A}"
+      "title": "Glass and aurora · {1A}",
+      "status": "superseded"
     },
     {
       "match": "^p3-sodium-(\\w+)",
@@ -234,7 +235,8 @@
     {
       "match": "^p5b-(\\w+)",
       "title": "Revision 1 · painted over the blockout · {1A}",
-      "angle": "{1}"
+      "angle": "{1}",
+      "view": "world-{1}"
     },
     {
       "match": "^p5b-top",

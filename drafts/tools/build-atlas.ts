@@ -28,7 +28,8 @@ export interface DraftConfig {
   slug: string;
   name: string;
   line: string;
-  keyArt: string;
+  /** empty until P3 / P4 make one (a day-zero draft has none) */
+  keyArt?: string;
   art: string;
   design: string;
   content: string;
@@ -57,6 +58,7 @@ export interface DraftContent {
   side: Side[];
   mechanics: Mechanic[];
   camChecks: Record<string, { ok: boolean | null; note: string }>;
+  camChecksAll?: string;
   sets: SetPlan[];
 }
 
@@ -156,7 +158,7 @@ export function buildAtlas({ root, config, content, cams, terrain, index, now }:
   const rounds: Round[] = [];
   const items: Item[] = [];
   const artDir = join(root, config.art);
-  const roundIds = readdirSync(artDir).filter((d) => statSync(join(artDir, d)).isDirectory()).sort((a, b) => roundNumber(a) - roundNumber(b));
+  const roundIds = !existsSync(artDir) ? [] : readdirSync(artDir).filter((d) => statSync(join(artDir, d)).isDirectory()).sort((a, b) => roundNumber(a) - roundNumber(b));
   for (const rid of roundIds) {
     const def = config.rounds[rid];
     if (!def) { problems.push(`round ${rid} has no entry in draft.json rounds`); continue; }
@@ -199,8 +201,8 @@ export function buildAtlas({ root, config, content, cams, terrain, index, now }:
   }
 
   // The key art and the map must be pictures of the draft.
-  const keyItem = items.find((i) => `${config.art}/${i.id}` === config.keyArt);
-  if (!keyItem) problems.push(`keyArt ${config.keyArt} is not an image under ${config.art}`);
+  const keyItem = config.keyArt ? items.find((i) => `${config.art}/${i.id}` === config.keyArt) : undefined;
+  if (config.keyArt && !keyItem) problems.push(`keyArt ${config.keyArt} is not an image under ${config.art}`);
   const mapItem = config.map ? items.find((i) => `${config.art}/${i.id}` === config.map?.source) : undefined;
   if (config.map && !mapItem) problems.push(`map ${config.map.source} is not an image under ${config.art}`);
 
@@ -267,7 +269,7 @@ export function buildAtlas({ root, config, content, cams, terrain, index, now }:
     run: { stage: runStage, waiting: config.run.waiting, next: config.run.next }, keyArt,
     map: mapItem && config.map ? { item: mapItem.id, size: config.map.size } : null,
     stages, rounds, items, places: content.places, cams: camList, steps, side: content.side, lanes: content.lanes,
-    mechanics: content.mechanics, models, sets: content.sets, protos, lineages, terrain,
+    mechanics: content.mechanics, models, sets: content.sets, protos, lineages, terrain, camNoteAll: content.camChecksAll ?? '',
   };
   const card: DraftCard = {
     slug: config.slug, name: config.name, line: config.line, keyArt, stage: runStage, stageName: stageName(runStage),

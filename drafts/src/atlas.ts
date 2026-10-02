@@ -257,6 +257,8 @@ export interface Atlas {
   /** view id → item ids, oldest first. */
   lineages: Record<string, string[]>;
   terrain: Terrain | null;
+  /** a camera-check note that holds for every first-person view (Jake's review of the set) */
+  camNoteAll: string;
 }
 
 /** One draft on the drafts site's title (`/data/index.json`): public-safe, no spoilers (J2, J13). */

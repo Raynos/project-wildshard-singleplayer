@@ -56,7 +56,7 @@ export function buildPage(a: Atlas, fulls: ReadonlySet<string>): string {
     const place = a.places.find((p) => p.id === cam.place);
     const view = a.items.find((i) => i.kind === 'fp' && i.place === cam.place && i.status === 'current');
     const block = a.items.find((i) => i.kind === 'blockout' && i.place === cam.place);
-    return `<article class="cam"><header><b>${place?.num ?? ''} · ${esc(place?.name ?? cam.place)}</b><span class="chip ${cam.ok === false ? 'bad' : cam.ok ? 'ok' : ''}">${cam.ok === false ? 'Check ✗' : cam.ok ? 'Check ✓' : 'Not checked'}</span></header>
+    return `<article class="cam"><header><b>${place?.num ?? ''} · ${esc(place?.name ?? cam.place)}</b><span class="chip ${cam.ok === false ? 'bad' : cam.ok ? 'ok' : ''}">${cam.ok === false ? 'Redo' : cam.ok ? 'Kept' : 'Not reviewed'}</span></header>
       <div class="pair">${view ? fig(view, 'First-person view') : ''}${block ? fig(block, 'Blockout · same camera') : ''}</div>${cam.note ? `<p class="dim">${esc(cam.note)}</p>` : ''}</article>`;
   }).join('');
 
@@ -166,6 +166,7 @@ a:focus-visible, summary:focus-visible { outline: 2px solid var(--cyan); outline
     <span class="lab">Models · the concepts</span>
     <div class="cards">${models}</div>
     <span class="lab">World · the first-person views and their camera check</span>
+    ${a.camNoteAll ? `<p class="dim"><span class="lab">Every view</span>${esc(a.camNoteAll)}</p>` : ''}
     <div class="cards">${cams}</div>
     <span class="lab">Beats · the quest, step by step</span>
     ${steps}

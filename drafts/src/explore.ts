@@ -126,7 +126,7 @@ function worldTab(a: Atlas, sub: string, arg: string | undefined): HTMLElement {
     h('div', { class: 'wd-map-legend' },
       h('span', null, h('span', { class: 'wd-swatch', style: 'background:#8fe3ff' }), 'World view'),
       h('span', null, h('span', { class: 'wd-swatch', style: 'background:#f2a640' }), 'First-person camera'),
-      h('span', null, h('span', { class: 'wd-swatch', style: 'background:#ff6b6b' }), 'Camera check failed')));
+      h('span', null, h('span', { class: 'wd-swatch', style: 'background:#ff6b6b' }), 'View to redo')));
 }
 
 /** FIRST-PERSON (J50): each view over its camera on the map, beside the blockout from the same camera, with its check. */
@@ -150,8 +150,9 @@ function firstPerson(a: Atlas, camId: string | undefined): HTMLElement {
   return h('div', null,
     h('div', { class: 'wd-section wd-round-head' },
       h('div', { class: 'wd-h2' }, `${place?.num ?? ''} · ${place?.name ?? cam.place}`),
-      cam.ok === null ? h('span', { class: 'wd-chip wd-chip-dim' }, 'Not checked') : cam.ok ? h('span', { class: 'wd-chip wd-chip-ok' }, 'Check ✓') : h('span', { class: 'wd-chip wd-chip-bad' }, 'Check ✗')),
+      cam.ok === null ? h('span', { class: 'wd-chip wd-chip-dim' }, 'Not reviewed') : cam.ok ? h('span', { class: 'wd-chip wd-chip-ok' }, 'Kept') : h('span', { class: 'wd-chip wd-chip-bad' }, 'Redo')),
     cam.note ? h('p', { class: 'wd-p' }, cam.note) : null,
+    a.camNoteAll ? h('p', { class: 'wd-p wd-dimtext' }, h('span', { class: 'wd-label' }, 'Every view '), a.camNoteAll) : null,
     h('div', { class: 'wd-pair' }, pair.map((it, k) => h('figure', null,
       h('img', { src: itemUrl(a, it, 'thumb'), alt: it.title, loading: 'lazy', onclick: () => openViewer(a, pair, k) }),
       h('figcaption', { class: 'wd-label' }, it.kind === 'blockout' ? 'Blockout · same camera' : 'First-person view')))),

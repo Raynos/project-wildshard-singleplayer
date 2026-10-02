@@ -29,6 +29,7 @@ export function mountUpdatePill(): (visible: boolean) => void {
     if (busy) return;
     busy = true;
     text.textContent = 'updating…';
+    if (!drafts.waiting && newer) await drafts.fetchNew();
     if (drafts.waiting) await drafts.adopt();
     // still here: nothing was waiting, or the hand-over did not land. Reload the document past every cache.
     location.reload();

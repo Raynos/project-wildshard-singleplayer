@@ -38,6 +38,17 @@ function offline(a: Atlas): void {
   void savedCount(urls).then(paint).then(() => warm(urls, paint));
 }
 
+/** Save every picture of the draft in view, whatever page of it is open; retried when the first worker takes control and
+ * when the network comes back. */
+let warmSlug = '';
+function keepOffline(a: Atlas): void {
+  warmSlug = a.slug;
+  void warm(draftUrls(a), () => undefined);
+}
+const rewarm = (): void => { if (warmSlug) void atlas(warmSlug).then(keepOffline); };
+if ('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('controllerchange', rewarm);
+window.addEventListener('online', rewarm);
+
 /** The draft splash (J41): the key art full screen, "DRAFT · <name> · <stage>", a bar that fills as the first pictures load. */
 function splash(a: Atlas): { done: () => void } {
   const fill = h('div', { class: 'wd-splash-fill' });
@@ -79,8 +90,11 @@ function splash(a: Atlas): { done: () => void } {
 
 let shownSplash = '';
 
+let renderId = 0;
+
 async function render(): Promise<void> {
-  const parts = location.hash.replace(/^#\/?/, '').split('/').map(decodeURIComponent).filter(Boolean);
+  const id = ++renderId;
+  const parts = location.hash.replace(/^#\/?/, '').split('/').map((p) => { try { return decodeURIComponent(p); } catch { return p; } }).filter(Boolean);
   const [slug, view, a1, a2, a3] = parts;
   showPill(slug === undefined);
   try {
@@ -93,11 +107,12 @@ async function render(): Promise<void> {
     const index = await draftIndex();
     if (!index.drafts.some((d) => d.slug === slug)) throw new Error(`No draft called ${slug}.`);
     const a = await atlas(slug);
+    if (id !== renderId) return;
     clear(app);
     let page: HTMLElement;
     if (view === 'stage') {
-      const id = stageFromRoute(a1);
-      page = id ? stagePage(a, id) : stagesPage(a);
+      const stage = stageFromRoute(a1);
+      page = stage ? stagePage(a, stage) : stagesPage(a);
     } else if (view === 'explore') page = explorePage(a, a1, a2, a3);
     else if (view === 'protos') page = protosPage(a);
     else if (view === 'maplab') page = await (await import('./maplab')).mapLabPage(a);
@@ -108,6 +123,7 @@ async function render(): Promise<void> {
       splash(a);
     }
     if (!view) offline(a);
+    else keepOffline(a);
   } catch (e) {
     if (e instanceof TypeError && /dynamically imported module|Importing a module script failed/.test(e.message) && sessionStorage.getItem('wd-reloaded') !== location.hash) {
       // A new deploy replaced the chunk this page knew: load the new build once.

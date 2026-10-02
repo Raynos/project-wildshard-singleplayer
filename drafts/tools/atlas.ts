@@ -123,7 +123,7 @@ async function main(): Promise<void> {
     cards.push(card);
     blob ||= atlas.blob;
     for (const p of problems) console.error(`${slug}: ${p}`);
-    if (problems.length > 0) failed = true;
+    if (problems.length > 0) { failed = true; continue; }
     const path = join(OUT, slug, 'atlas.json');
     if (check) {
       const prev = existsSync(path) ? readJson<Atlas>(path) : null;
@@ -138,7 +138,7 @@ async function main(): Promise<void> {
     if (!prev || !same(prev, atlas)) writeFileSync(path, compact(atlas));
     console.log(`${slug}: ${atlas.items.length} items, ${atlas.rounds.length} rounds, stage ${atlas.run.stage}`);
   }
-  if (!check) {
+  if (!check && !failed) {
     const indexPath = join(OUT, 'index.json');
     const prev = existsSync(indexPath) ? readJson<DraftIndex>(indexPath) : null;
     const keep = (prev?.drafts ?? []).filter((d) => !slugs.includes(d.slug));
@@ -150,7 +150,7 @@ async function main(): Promise<void> {
   const index = readJson<DraftIndex>(join(OUT, 'index.json'));
   const cardsTs = gameCards(index);
   const prevTs = existsSync(GAME_CARDS) ? readFileSync(GAME_CARDS, 'utf8') : '';
-  if (prevTs !== cardsTs) {
+  if (prevTs !== cardsTs && !failed) {
     if (check) {
       console.error('src/game/draftTitles.ts is stale; run node drafts/tools/atlas.ts --all');
       failed = true;

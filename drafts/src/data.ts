@@ -12,14 +12,14 @@ async function getJson<T>(path: string): Promise<T> {
 }
 
 export function draftIndex(): Promise<DraftIndex> {
-  indexP ??= getJson<DraftIndex>('/data/index.json');
+  indexP ??= getJson<DraftIndex>('/data/index.json').catch((e: unknown) => { indexP = null; throw e; });
   return indexP;
 }
 
 export function atlas(slug: string): Promise<Atlas> {
   let p = atlases.get(slug);
   if (!p) {
-    p = getJson<Atlas>(`/data/${encodeURIComponent(slug)}/atlas.json`);
+    p = getJson<Atlas>(`/data/${encodeURIComponent(slug)}/atlas.json`).catch((e: unknown) => { atlases.delete(slug); throw e; });
     atlases.set(slug, p);
   }
   return p;
