@@ -16,10 +16,10 @@ describe('node-safe Signal Dunes manifest', () => {
     expect(closure).not.toContain('src/engine/index.ts');
     expect(closure).not.toContain('src/shards/sunscar-dunes/plugin.ts');
   });
-  it('keeps every dune face walkable between the spawn and the tower (max climb 40°)', () => {
+  it('keeps every dune face walkable across the play square (max climb 40°)', () => {
     const terrain = manifest.ground.terrain; if (!terrain) throw new Error('no terrain');
     let steepest = 0;
-    for (let x = -140; x <= 140; x += 2) for (let z = -140; z <= 140; z += 2) {
+    for (let x = -196; x <= 196; x += 2) for (let z = -196; z <= 196; z += 2) {
       const dx = (terrain.heightAt(x + 0.5, z) - terrain.heightAt(x - 0.5, z)), dz = (terrain.heightAt(x, z + 0.5) - terrain.heightAt(x, z - 0.5));
       steepest = Math.max(steepest, Math.atan(Math.hypot(dx, dz)) * 180 / Math.PI);
     }

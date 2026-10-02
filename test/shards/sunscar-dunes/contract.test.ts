@@ -39,17 +39,35 @@ describe('Signal Dunes plugin contract', () => {
     const { app, plugin, stages, active } = await boot();
     expect(stages).toEqual(['data', 'world', 'kit', 'loadout', 'play', 'finish']);
     expect(manifest.status).toBe('experimental'); expect(manifest.audio?.preload).toBeUndefined(); expect(manifest.audio?.ambience).toBe('none');
-    expect(app.registry.pieces.map((p) => p.id)).toEqual(['sunscar.tower']); expect(app.levelRegistrations.list('species')).toHaveLength(1);
+    expect(app.registry.pieces.map((p) => p.id)).toEqual(['sunscar.tower', 'sunscar.caravan', 'sunscar.well', 'sunscar.rocks', 'sunscar.brazier.0', 'sunscar.brazier.1', 'sunscar.brazier.2']);
+    expect(app.levelRegistrations.list('species')).toHaveLength(3);
     expect(app.levelRegistrations.text('step')).toBe('Light the signal fire'); expect(app.debug.scopedSnapshot()['sunscar']).toBe(plugin);
     const scope = app.levelScope; if (scope === null) throw new Error('No scope');
     expect(scope.census.disposers).toBeGreaterThan(0);
     await app.unloadLevel(); expect(active.size).toBe(0); expect(app.registry.pieces).toEqual([]);
     expect(app.levelRegistrations.list('weapon')).toEqual([]); expect(app.debug.scopedSnapshot()).toEqual({});
   });
-  it('lights the signal fire at the brazier, completes the one-step quest and pays 5 coins once', async () => {
-    const { app, plugin, fake } = await boot(), purse = shardSave(purseSave, manifest.slug), before = purse.read();
-    expect(plugin.quest?.index).toBe(0); expect(plugin.fire?.lit).toBe(false);
-    plugin.fire?.brazier.onInteract(); app.events.flush('update');
+  it('runs the four-step chain: logbook, the well pulled by a heavy crack, three waymarks lit by the lash, the signal fire; pays 5 coins once', async () => {
+    const { app, plugin, fake } = await boot(), purse = shardSave(purseSave, manifest.slug), before = purse.read(), places = plugin.places;
+    if (places === null) throw new Error('no places');
+    const step = (): number | undefined => { app.events.flush('update'); return plugin.quest?.index; };
+    expect(step()).toBe(0); expect(plugin.fire?.lit).toBe(false);
+    places.fire.brazier.onInteract(); expect(plugin.fire?.lit).toBe(false); // the waymarks come first
+    places.logbook.onInteract(); expect(step()).toBe(1);
+    places.well.spot.onInteract(); expect(step()).toBe(1); // the bucket is still down the shaft
+    const crank = places.crackables[0], whip = new Bullwhip(app); if (!crank) throw new Error('no crank');
+    whip.aimAt(places.crackables);
+    const from = crank.at.clone().add(new Vector3(0, 0, 5)), dir = new Vector3(0, 0, -1);
+    expect(crank.crack(false, false)).toBe(true); expect(places.well.raised).toBe(false); // a light crack only hints
+    expect(crank.crack(true, true)).toBe(true); expect(places.well.raised).toBe(true);
+    places.well.spot.onInteract(); expect(step()).toBe(2);
+    for (const b of places.braziers) {
+      expect(b.light()).toBe(false); b.spot.onInteract(); expect(b.oiled).toBe(true);
+      whip.swing(false); expect(whip.crackWorld(b.parts.bowlAt.clone().add(new Vector3(0, 0, 5)), dir, CRACK.reach, false)).not.toBeNull(); expect(b.lit).toBe(true);
+    }
+    expect(whip.crackWorld(from, dir, CRACK.reach, false)).toBeNull();
+    expect(step()).toBe(3); expect(places.litCount).toBe(3);
+    places.fire.brazier.onInteract(); app.events.flush('update');
     expect(plugin.fire?.lit).toBe(true); expect(plugin.fire?.brazier.label).toBe('Signal fire lit'); expect(plugin.quest?.isComplete).toBe(true);
     for (let i = 0; i < 90; i++) fake.advance(1 / 30);
     expect(fake.dead).toBe(false); expect(purse.read()).toBe(before + 5);

@@ -1,34 +1,35 @@
 import { ShardPlugin, installLoot, type ShardContext } from '#game';
 import { installSilentScore } from '#kit';
 import { Vector3 } from 'three';
-import type { Animal, QuestState } from '#engine';
+import { Flags, type Animal, type QuestState } from '#engine';
 import { STRINGS } from './strings';
-import { buildWorld, type SignalFire } from './world/build';
+import { buildWorld, type SignalFire, type SignalWorld } from './world/build';
 import { ownPrimitives } from './world/resources';
 import { DUNE_RAY, DUNE_RAY_LOOK } from './species/duneRay';
 import { Bullwhip } from './weapons/Bullwhip';
 import { WHIP_ROW } from './weapons/rows';
 import { installQuest } from './quest/install';
 import { installSunscarCues } from './audio/cues';
-import { RAY_HOME } from './layout';
+import { installCreatures } from './combat/creatures';
+import { SAND_SKITTERER, SAND_SKITTERER_LOOK } from './species/skitterer';
+import { DUNE_STRIDER, DUNE_STRIDER_LOOK } from './species/strider';
 
 declare module '#engine' {
   interface EquipmentSlotMap { 'sunscar-whip': true }
 }
 
-/** The ray comes back this long after it falls. */
-const RAY_RESPAWN = 25;
-
 export class SignalDunesPlugin extends ShardPlugin {
   readonly player = new Vector3(); whip: Bullwhip | null = null; quest: QuestState | null = null;
-  fire: SignalFire | null = null; ray: Animal | null = null;
+  fire: SignalFire | null = null; places: SignalWorld | null = null; creatures: ReturnType<typeof installCreatures> | null = null;
+  /** The dune ray now flying (captures drive it). */
+  get ray(): Animal | null { return this.creatures?.ray() ?? null; }
   override world(ctx: ShardContext): void {
     ctx.strings(STRINGS);
-    this.fire = buildWorld(ctx);
+    this.places = buildWorld(ctx, new Flags(ctx.manifest.slug)); this.fire = this.places.fire;
   }
   override kit(ctx: ShardContext): void {
     ctx.rows.weapon(WHIP_ROW);
-    ctx.rows.species(DUNE_RAY); ctx.rows.speciesLook(DUNE_RAY_LOOK);
+    ctx.rows.species([DUNE_RAY, SAND_SKITTERER, DUNE_STRIDER]); ctx.rows.speciesLook([DUNE_RAY_LOOK, SAND_SKITTERER_LOOK, DUNE_STRIDER_LOOK]);
     const rt = ctx.game.runtime;
     if (rt) rt.buildEquipment = (targets) => {
       this.whip = new Bullwhip(ctx.app, targets, (target) => {
@@ -48,21 +49,10 @@ export class SignalDunesPlugin extends ShardPlugin {
     const loot = rt?.play && rt.world ? installLoot({ ctx, manifest: ctx.manifest, owned: rt.play.owned, scene: rt.world.game.scene,
       player: rt.world.player, camera: rt.world.game.camera, animals: () => rt.play?.animals.animals ?? [], menu: rt.play.menu,
       presentation: { gear: (purse) => ({ coins: purse.coins }), finds: null, marks: null, charted: () => false, chime: () => { rt.play?.cues.cue('cue.swap'); } } }) : null;
-    const fire = this.fire;
-    if (fire) this.quest = installQuest(ctx, position, fire, loot?.purse ? (share) => { loot.purse?.add(share); } : undefined).quest;
+    const places = this.places;
+    if (places) { this.quest = installQuest(ctx, position, places, loot?.purse ? (share) => { loot.purse?.add(share); } : undefined).quest; this.whip?.aimAt(places.crackables); }
     if (rt) rt.hooks.questFlags = () => this.quest?.isComplete ? ['sunscar.complete'] : [];
-    // The dune ray: one at a time, back RAY_RESPAWN seconds after it falls.
-    const animals = rt?.play?.animals;
-    const spawnRay = (): void => { this.ray = animals?.spawn('duneRay', RAY_HOME.x, RAY_HOME.z, 0, 'dusk') ?? null; };
-    let respawnIn = -1;
-    spawnRay();
-    ctx.on('actor.died', ({ actor }) => { if (actor.tags.includes('creature.duneRay')) respawnIn = RAY_RESPAWN; });
-    ctx.system({ id: 'sunscar.ray', phase: 'update', run: (dt) => {
-      if (respawnIn < 0) return;
-      respawnIn -= dt;
-      if (respawnIn <= 0) { respawnIn = -1; if (this.ray) animals?.retire(this.ray); spawnRay(); }
-    } });
-    ctx.scope.onDispose(() => { if (this.ray) animals?.retire(this.ray); this.ray = null; });
+    this.creatures = installCreatures(ctx);
     ctx.debug.expose('sunscar', this);
   }
 }

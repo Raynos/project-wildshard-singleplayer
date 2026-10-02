@@ -1,19 +1,25 @@
-import { Flags, QuestState } from '#engine';
+import { QuestState } from '#engine';
 import { CoinBurst, purseSave, shardSave, type ShardContext } from '#game';
 import * as v from 'valibot';
 import { Scene, type Vector3 } from 'three';
-import type { SignalFire } from '../world/build';
+import { FLAG, type SignalWorld } from '../world/build';
 import { STRINGS } from '../strings';
 
 /** Whether the signal reward was paid (shard save, SHARDS §10). */
 const SIGNAL = { key: 'sunscar.signal', scope: 'shard' as const, version: 1, schema: v.boolean(), initial: () => false };
-export const LIT_FLAG = 'sunscar.lit';
+export const LIT_FLAG = FLAG.lit;
 
-/** One step, "Light the signal fire": interact with the brazier on the tower deck. Pays 5 coins once. */
-export function installQuest(ctx: ShardContext, player: Vector3, fire: SignalFire, onCoin?: (share: number) => void): { quest: QuestState; flags: Flags } {
-  const flags = new Flags(ctx.manifest.slug), paid = ctx.app.saves.define(SIGNAL);
+/**
+ * "The signal", four steps (C4): read the caravan's logbook → take the oil from the dry well → light the three waymark
+ * braziers → light the signal fire (which summons the Dune Matriarch, C5). Pays 5 coins once.
+ */
+export function installQuest(ctx: ShardContext, player: Vector3, world: SignalWorld, onCoin?: (share: number) => void): { quest: QuestState; burst: CoinBurst } {
+  const { flags } = world, paid = ctx.app.saves.define(SIGNAL);
   const quest = new QuestState({ id: 'sunscar.signal', title: STRINGS.quest, completeFlag: 'sunscar.complete', steps: [
-    { id: 'fire', objective: STRINGS.step, done: { all: [LIT_FLAG] } },
+    { id: 'logbook', objective: STRINGS.stepLog, done: { all: [FLAG.logbook] } },
+    { id: 'oil', objective: STRINGS.stepOil, done: { all: [FLAG.oil] } },
+    { id: 'waymarks', objective: STRINGS.stepWaymarks, done: { all: [FLAG.brazier(0), FLAG.brazier(1), FLAG.brazier(2)] } },
+    { id: 'fire', objective: STRINGS.step, done: { all: [FLAG.lit] } },
   ] }, flags, ctx.app.events, ctx.scope);
   const purse = shardSave(purseSave, ctx.manifest.slug);
   const scene = ctx.game.runtime?.world?.game.scene ?? new Scene(), burst = new CoinBurst(scene);
@@ -24,8 +30,5 @@ export function installQuest(ctx: ShardContext, player: Vector3, fire: SignalFir
     paid.write(true, ctx.manifest.slug);
     burst.spawn(player, 5, onCoin ?? ((share) => { purse.write(purse.read() + share); }), () => { ctx.game.runtime?.play?.hud.toast(STRINGS.reward); });
   };
-  fire.onLight = () => { flags.set(LIT_FLAG); };
-  // A signal lit on an earlier visit stays lit.
-  if (paid.read(ctx.manifest.slug)) fire.light();
-  return { quest, flags };
+  return { quest, burst };
 }

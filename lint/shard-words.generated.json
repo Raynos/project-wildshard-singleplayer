@@ -36,6 +36,8 @@
     "species.nalati.wolf",
     "sunscar-dunes",
     "sunscar.creature.duneRay",
+    "sunscar.creature.duneStrider",
+    "sunscar.creature.sandSkitterer",
     "weapon.bow",
     "weapon.crossbow",
     "weapon.far-fan",
@@ -174,6 +176,8 @@
       "name": "Signal Dunes",
       "ids": [
         "sunscar.creature.duneRay",
+        "sunscar.creature.duneStrider",
+        "sunscar.creature.sandSkitterer",
         "weapon.sunscar-whip"
       ],
       "settings": [],

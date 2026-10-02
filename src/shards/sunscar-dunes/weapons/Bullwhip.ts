@@ -2,13 +2,14 @@ import { Weapon, blocks, type Actor, type Animal, type App, type EquipContext, t
 import { Vector2, Vector3 } from 'three';
 import { WHIP_ROW } from './rows';
 import { buildWhipModel, type WhipParts } from './whipModel';
+import type { Crackable } from '../world/build';
 
 /** What the whip resolves a ray hit to: the combat actor and, when it is a creature, its body for the stagger. */
 export interface WhipTarget { actor: Actor; animal: Animal | null }
 
-/** The crack's numbers (metres, seconds, hit points). */
+/** The crack's numbers (metres, seconds, hit points); `pull` is the yank's speed (m/s) on a creature of `pullMaxHp` or less. */
 export const CRACK = { reach: 7, heavyReach: 8, width: 0.9, light: 18, heavy: 16, cooldown: 0.45, heavyCooldown: 0.9,
-  unroll: 0.12, second: 0.32, show: 0.42, charge: 0.6, stagger: 0.8 } as const;
+  unroll: 0.12, second: 0.32, show: 0.42, charge: 0.6, stagger: 0.8, pull: 9, pullMaxHp: 40 } as const;
 
 /**
  * The bullwhip (rung 3, `extends Weapon`): a light crack is one long, narrow lash to the crosshair; the heavy is a
@@ -28,12 +29,16 @@ export class Bullwhip extends Weapon {
   /** Time since the current crack started, or −1 when idle. */
   private crackT = -1; private crackHeavy = false; private landed = 0; private time = 0;
   private readonly from = new Vector3(); private readonly end = new Vector3();
+  /** Levers and braziers the lash reacts to when it hits no creature (C3). */
+  private crackables: readonly Crackable[] = [];
   constructor(app: App, targets: Targets | null = null, resolve: (animal: TargetAnimal) => WhipTarget | null = () => null) {
     super(WHIP_ROW); this.app = app; this.targets = targets; this.resolve = resolve;
     this.contact = blocks.melee(app.combat); this.blocks.vm = this.vm; this.blocks.melee = this.contact;
     this.parts = buildWhipModel(); this.model = this.parts.root;
     this.model.position.set(0.11, -0.2, -0.42);
   }
+  /** The world things the lash can crack (the windlass crank, the braziers). */
+  aimAt(crackables: readonly Crackable[]): void { this.crackables = crackables; }
   override get charge(): number { return Math.min(1, this.held / CRACK.charge); }
   override install(ctx: EquipContext): void {
     super.install(ctx);
@@ -53,9 +58,20 @@ export class Bullwhip extends Weapon {
     const host = this.app.equipmentHost; if (host === null || this.targets === null) return;
     const camera = host.game.camera, from = camera.position.clone(), dir = new Vector3(); camera.getWorldDirection(dir);
     const reach = this.crackHeavy ? CRACK.heavyReach : CRACK.reach;
-    const hit = this.targets.raycast(from, dir, reach); if (hit?.animal === undefined) return;
-    const target = this.resolve(hit.animal); if (target === null) return;
-    this.strike(target, hit.point, dir, from, this.crackHeavy, second); this.onFire?.();
+    const hit = this.targets.raycast(from, dir, reach), target = hit?.animal === undefined ? null : this.resolve(hit.animal);
+    if (hit !== null && target !== null) { this.strike(target, hit.point, dir, from, this.crackHeavy, second); this.onFire?.(); return; }
+    this.crackWorld(from, dir, reach, second);
+  }
+  /** The lash reaches a lever or a brazier bowl inside its lane: the nearest one along the view reacts. */
+  crackWorld(from: Vector3, dir: Vector3, reach: number, second: boolean): Crackable | null {
+    let best: Crackable | null = null, bestT = Infinity;
+    for (const c of this.crackables) {
+      const delta = c.at.clone().sub(from), forward = delta.dot(dir);
+      if (forward < 0 || forward > reach + c.radius || forward >= bestT) continue;
+      if (delta.addScaledVector(dir, -forward).length() > CRACK.width + c.radius) continue;
+      best = c; bestT = forward;
+    }
+    return best?.crack(this.crackHeavy, second) === true ? best : null;
   }
   /** Damage through the pipeline; the heavy's second lash staggers a living creature (ENGINE §18, `animal.stagger`). */
   strike(target: WhipTarget, point: Vector3, dir: Vector3, from: Vector3, heavy: boolean, second = false): boolean {
@@ -67,7 +83,11 @@ export class Bullwhip extends Weapon {
       moveId: heavy ? (second ? 'sunscar.whip.double.2' : 'sunscar.whip.double.1') : 'sunscar.whip.crack', surface: 'flesh' });
     if (result === null) return false;
     this.onHit?.(actor.id, false, result.killed);
-    if (heavy && second && !result.killed && animal !== null) animal.stagger(dir, CRACK.stagger);
+    // The heavy's second lash: a small creature is yanked to the player's feet, a big one staggers.
+    if (heavy && second && !result.killed && animal !== null) {
+      if (animal.maxHp <= CRACK.pullMaxHp) animal.impulse(new Vector3(-dir.x, 0, -dir.z).normalize().multiplyScalar(CRACK.pull));
+      else animal.stagger(dir, CRACK.stagger);
+    }
     return true;
   }
   override update(dt: number): void {

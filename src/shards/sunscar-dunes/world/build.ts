@@ -1,31 +1,122 @@
-import type { Interactable } from '#engine';
+import type { Vector3 } from 'three';
+import type { Flags, Interactable } from '#engine';
 import type { ShardContext } from '#game';
-import { TOWER } from '../layout';
+import { BRAZIERS, TOWER } from '../layout';
 import { STRINGS } from '../strings';
 import { ownPrimitives } from './resources';
 import { buildTower, type TowerParts } from './tower';
+import { buildBrazier, buildCaravan, buildWell, type BrazierParts, type WellParts } from './places';
+import { buildRocks } from './rocks';
+
+/** The quest's flags (persisted per shard by `Flags`). */
+export const FLAG = { logbook: 'sunscar.logbook', oil: 'sunscar.oil', brazier: (i: number): string => `sunscar.brazier.${String(i)}`, lit: 'sunscar.lit' } as const;
+
+/** Something the whip's lash can crack: a lever to pull or a brazier to light. `crack` says whether it reacted. */
+export interface Crackable { at: Vector3; radius: number; crack: (heavy: boolean, second: boolean) => boolean }
 
 /** The signal fire: the tower piece, the brazier interactable and the flicker. `light()` is idempotent. */
 export interface SignalFire { tower: TowerParts; brazier: Interactable; lit: boolean; onLight: (() => void) | null; light: () => void }
+export interface Brazier { parts: BrazierParts; spot: Interactable; oiled: boolean; lit: boolean; light: () => boolean }
+export interface SignalWorld {
+  fire: SignalFire; braziers: Brazier[]; well: WellParts & { readonly raised: boolean; pull: () => boolean; spot: Interactable };
+  logbook: Interactable; crackables: Crackable[]; flags: Flags;
+  /** the braziers lit so far */
+  readonly litCount: number;
+}
 
-export function buildWorld(ctx: ShardContext): SignalFire {
+const toast = (ctx: ShardContext, text: string): void => { ctx.game.runtime?.play?.hud.toast(text); };
+
+/**
+ * Signal Dunes' places (C1): the signal tower, the half-buried caravan, the dry well, three waymark braziers and the
+ * wind-cut rock field. The quest state lives in `flags`, so a later visit finds the world as it was left.
+ */
+export function buildWorld(ctx: ShardContext, flags: Flags): SignalWorld {
   const terrain = ctx.manifest.ground.terrain, groundAt = (x: number, z: number): number => terrain?.heightAt(x, z) ?? 0;
+  const trailDistance = (x: number, z: number): number => terrain?.trailDistance(x, z) ?? 99;
+  const file = (name: string): string => `src/shards/sunscar-dunes/world/${name}.ts`;
   const tower = buildTower(groundAt(TOWER.x, TOWER.z), groundAt);
   ctx.root.add(tower.root);
-  ctx.piece({ id: 'sunscar.tower', name: STRINGS.tower, category: 'buildings', file: 'src/shards/sunscar-dunes/world/tower.ts', object: tower.root,
-    colliders: tower.colliders, surface: 'wood' });
-  ownPrimitives(ctx.root, ctx.scope);
+  ctx.piece({ id: 'sunscar.tower', name: STRINGS.tower, category: 'buildings', file: file('tower'), object: tower.root, colliders: tower.colliders, surface: 'wood' });
+  const caravan = buildCaravan(groundAt); ctx.root.add(caravan.root);
+  ctx.piece({ id: 'sunscar.caravan', name: STRINGS.caravan, category: 'props', file: file('places'), object: caravan.root, colliders: caravan.colliders, surface: 'wood' });
+  const wellParts = buildWell(groundAt); ctx.root.add(wellParts.root);
+  ctx.piece({ id: 'sunscar.well', name: STRINGS.well, category: 'buildings', file: file('places'), object: wellParts.root, colliders: wellParts.colliders, surface: 'stone' });
+  const rocks = buildRocks(groundAt, trailDistance); ctx.root.add(rocks.root);
+  ctx.piece({ id: 'sunscar.rocks', name: STRINGS.rocks, category: 'nature', file: file('rocks'), object: rocks.root, colliders: rocks.colliders, surface: 'rock' });
+  const interactables = ctx.game.runtime?.interactables;
+
+  // The logbook on the caravan's tailboard: read it once, it points the way to the well.
+  const logbook: Interactable = { label: STRINGS.readLog, position: caravan.logbookAt, radius: 2.4, onInteract: () => {
+    if (flags.has(FLAG.logbook)) return;
+    flags.set(FLAG.logbook); logbook.label = STRINGS.logRead; toast(ctx, STRINGS.logText);
+  } };
+  if (flags.has(FLAG.logbook)) logbook.label = STRINGS.logRead;
+
+  // The well: a heavy crack on the crank hauls the bucket up; then take the oil jar.
+  const lift = { t: flags.has(FLAG.oil) ? 1 : 0, raised: flags.has(FLAG.oil) };
+  const wellSpot: Interactable = { label: STRINGS.wellDown, position: wellParts.jarAt, radius: 2.6, onInteract: () => {
+    if (flags.has(FLAG.oil)) return;
+    if (!lift.raised) { toast(ctx, STRINGS.wellHint); return; }
+    flags.set(FLAG.oil); wellParts.jar.visible = false; wellSpot.label = STRINGS.oilTaken; toast(ctx, STRINGS.oilGot);
+  } };
+  const well: SignalWorld['well'] = { ...wellParts, get raised() { return lift.raised; }, spot: wellSpot, pull: () => {
+    if (lift.raised) return false;
+    lift.raised = true; wellSpot.label = STRINGS.takeOil; return true;
+  } };
+  if (flags.has(FLAG.oil)) { wellParts.jar.visible = false; wellSpot.label = STRINGS.oilTaken; wellParts.bucket.position.y = 1.85 - 0.5; }
+
+  // The braziers: pour oil by hand, light with a crack.
+  const braziers: Brazier[] = BRAZIERS.map((b, i) => {
+    const parts = buildBrazier(b.x, b.z, groundAt); ctx.root.add(parts.root);
+    ctx.piece({ id: `sunscar.brazier.${String(i)}`, name: STRINGS.waymark, category: 'props', file: file('places'), object: parts.root, colliders: parts.colliders, surface: 'stone' });
+    const brazier: Brazier = { parts, oiled: false, lit: false,
+      spot: { label: STRINGS.needOil, position: parts.bowlAt, radius: 2.4, onInteract: () => {
+        if (brazier.lit) return;
+        if (!flags.has(FLAG.oil)) { toast(ctx, STRINGS.needOilHint); return; }
+        if (!brazier.oiled) { brazier.oiled = true; parts.oil.visible = true; brazier.spot.label = STRINGS.crackToLight; toast(ctx, STRINGS.crackToLight); }
+      } },
+      light: () => {
+        if (brazier.lit || !brazier.oiled) return false;
+        brazier.lit = true; parts.fire.visible = true; brazier.spot.label = STRINGS.waymarkLit; flags.set(FLAG.brazier(i));
+        const n = braziers.filter((x) => x.lit).length; toast(ctx, n < braziers.length ? `${STRINGS.waymarkLit} · ${String(n)}/${String(braziers.length)}` : STRINGS.allLit);
+        return true;
+      } };
+    if (flags.has(FLAG.brazier(i))) { brazier.oiled = true; brazier.lit = true; parts.oil.visible = true; parts.fire.visible = true; brazier.spot.label = STRINGS.waymarkLit; }
+    else if (flags.has(FLAG.oil)) brazier.spot.label = STRINGS.pourOil;
+    return brazier;
+  });
+  const allLit = (): boolean => braziers.every((b) => b.lit);
+
+  // The signal fire on the tower deck: lit by hand once the three waymarks burn.
   const fire: SignalFire = { tower, lit: false, onLight: null,
-    brazier: { label: STRINGS.light, position: tower.brazierAt, radius: 2.6, onInteract: () => { fire.light(); } },
+    brazier: { label: STRINGS.light, position: tower.brazierAt, radius: 2.6, onInteract: () => {
+      if (fire.lit) return;
+      if (!allLit()) { toast(ctx, STRINGS.fireHint); return; }
+      fire.light();
+    } },
     light: () => {
       if (fire.lit) return;
-      fire.lit = true; tower.fire.visible = true; tower.light.intensity = 60; fire.brazier.label = STRINGS.lit; fire.onLight?.();
+      fire.lit = true; tower.fire.visible = true; tower.light.intensity = 60; fire.brazier.label = STRINGS.lit; flags.set(FLAG.lit); fire.onLight?.();
     } };
-  ctx.game.runtime?.interactables.push(fire.brazier);
-  ctx.system({ id: 'sunscar.fire', phase: 'update', run: (_dt, t) => {
+  if (flags.has(FLAG.lit)) fire.light();
+  interactables?.push(logbook, wellSpot, ...braziers.map((b) => b.spot), fire.brazier);
+
+  const crackables: Crackable[] = [
+    { at: wellParts.crankAt, radius: 0.8, crack: (heavy, second) => {
+      if (well.raised) return false;
+      if (!heavy || !second) { toast(ctx, STRINGS.pullHint); return true; }
+      return well.pull();
+    } },
+    ...braziers.map((b): Crackable => ({ at: b.parts.bowlAt, radius: 0.9, crack: () => b.light() })),
+  ];
+  ownPrimitives(ctx.root, ctx.scope);
+  ctx.system({ id: 'sunscar.fire', phase: 'update', run: (dt, t) => {
+    // The bucket rides up over 1.2 s once pulled.
+    if (well.raised && lift.t < 1) { lift.t = Math.min(1, lift.t + dt / 1.2); wellParts.bucket.position.y = 1.85 - wellParts.drop + (wellParts.drop - 0.5) * lift.t; wellParts.crank.rotation.x = lift.t * 12; }
+    for (const [i, b] of braziers.entries()) if (b.lit) { const f = 1 + Math.sin(t * 11 + i) * 0.07 + Math.sin(t * 23 + i * 2) * 0.05; b.parts.fire.scale.set(1, f, 1); }
     if (!fire.lit) return;
     const flick = 1 + Math.sin(t * 13) * 0.06 + Math.sin(t * 29 + 1.3) * 0.04;
     tower.fire.scale.set(1, flick, 1); tower.light.intensity = 60 * flick;
   } });
-  return fire;
+  return { fire, braziers, well, logbook, crackables, flags, get litCount() { return braziers.filter((b) => b.lit).length; } };
 }
