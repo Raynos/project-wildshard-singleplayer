@@ -1,6 +1,6 @@
 # WorldClaw tools: Draft mode, the drafts site, and the Explorers a shard needs before it is a world
 
-**State:** `in progress` 2026-10-01 — Jake's go (J53, E387, no council); one builder (J54). **Now: the drafts site and every draft tool** in the new top-level `drafts/` (J57, J58): W16 site + deploy → W1 atlas data → W2 Blob publish → W3 STAGES + artifact page → W4 title → W5 boards → W8 lineage → W17 Draft Explore → W7 prototypes → W6 Map Lab (on the dry run's maths, J61) → W15 weight + splash → W13 skill wiring, with all of Thin Ice's existing content loaded; then W9, Thin Ice's COMING SOON card (J56, J60). Later: the game's Explore tools W10, W11, W12, W14 (J57). Thin Ice itself is continued by a separate agent through the drafts site. Design: J1–J63; the [Tools page](https://claude.ai/artifact/2r8TXFS57ze8EAJ9CdN6BQ).
+**State:** `in progress` 2026-10-01 — Jake's go (J53, E387, no council); one builder (J54). **Now: the drafts site and every draft tool** in the new top-level `drafts/` (J57, J58): W16 site + deploy → W1 atlas data → W2 Blob publish → W3 STAGES + artifact page → W4 title → W5 boards → W8 lineage → W17 Draft Explore → W7 prototypes → W6 Map Lab (on the dry run's maths, J61) → W15 weight + splash → W13 skill wiring, with all of Thin Ice's existing content loaded; then W9, Thin Ice's COMING SOON card (J56, J60). Later: the game's Explore tools W10, W11, W12, W14 (J57). Thin Ice itself is continued by a separate agent through the drafts site. Design: J1–J64; the [Tools page](https://claude.ai/artifact/2r8TXFS57ze8EAJ9CdN6BQ).
 
 ## 0. Read this first
 
@@ -135,6 +135,7 @@ friction, keep the history browsable, and let Jake touch what exists.**
 | J61 | **Map Lab now, on the dry run's maths** (E387): built on the approved map's blockout data (`scene.json`, `cams.json`) with the dry run's terrain maths ported to TypeScript inside `drafts/`; T3–T5 replace it when they land (WT6 is met then) | "Now, on the dry run's maths" |
 | J62 | **The auto-made artifact page replaces the Thin Ice page in place** (E387): https://claude.ai/artifact/1v5EE7bt75m3dGFAkVh7P1 becomes the draft's read-only page, generated from `atlas.json` | "Replace in place" |
 | J63 | **The dry run's prototypes that ran on Thin Ice go into its gallery** (E387): built from the tag `worldclaw-archive` and hosted as playable pages with their Simulator peak; the others stay at the tag | "Yes, the ones that ran on Thin Ice" |
+| J64 | **No made-up budgets on the drafts site** (E387): the shell, `atlas.json` and prototype caps in §2.8 were invented while the plan was written, not measured or asked for; they are gone. The one weight rule that stands is J15's: drafts cost the deployed game nothing (W15) | "Why is there a 100 kilobyte budget for JSON files? … Someone went nuts with the budgets" |
 
 ## 1. Goal, done-when, non-goals
 
@@ -265,8 +266,8 @@ round?, spoiler, teaser }`.
 
 - **The game:** only the card's data and button (≤ 1 KB gzip of code); its image is a Blob URL, lazy; no draft JS, CSS,
   HTML or image in the game build (W15 checks it).
-- **The drafts site:** DOM only, no WebGL, except Map Lab's walk (its own chunk, loaded on a tap). The shell ≤ 60 KB gzip
-  JS + 15 KB CSS; `atlas.json` ≤ 100 KB per draft; ≤ 24 thumbnails decoded at once; a prototype ≤ 5 MB.
+- **The drafts site:** DOM only, no WebGL, except Map Lab's walk (its own chunk, loaded on a tap). No size caps on its
+  files (J64): it is a separate site that only Jake and the run open, so it costs the game nothing whatever it weighs.
 - **The splash** (J41): the key art full screen (the name alone before P3), "DRAFT · <name> · <stage>", a thin bar with an
   image count, fed by `atlas.json` and the first screen's images.
 - **Blob:** ~50–60 MB of phone copies and thumbnails per shard (J27), uploaded once each.
