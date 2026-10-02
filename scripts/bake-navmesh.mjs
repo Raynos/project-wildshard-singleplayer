@@ -247,16 +247,10 @@ function addDesc(soup, d) {
  * (2r + 30 m across) and below its surface; 0.25 m of margin, as AnimalManager's `isDry`. (A pond shard's valleys lower
  * than the pond elsewhere are dry land: no water is drawn there, though `isDry` still calls them wet.)
  */
-async function wetTest(def) {
+function wetTest(def) {
+  if (def.navmesh?.excludeGroundAt) return def.navmesh.excludeGroundAt;
   const wl = HF.waterLevel() + 0.25;
   if (def.ocean) return (_x, _z, y) => y <= wl;
-  if (def.style === 'painterly') {
-    // Nalati: the Kunes' whole braided corridor (channels + gravel bars) and the plateau brook's bed — what the animals
-    // call water (src/shards/nalati-grasslands/wet.ts, AnimalManager.wetAt) — but a road through the corridor's margin (the N road onto
-    // the bridge) stays walkable above the water line, or the bridge's ends would stand in a hole
-    const { nalatiWetAt } = await src('shards/nalati-grasslands/wet.ts');
-    return (x, z, y) => y <= wl || (nalatiWetAt(x, z) && HF.trailDistance(x, z) > 3.5);
-  }
   if (!HF.hasPond()) return () => false;
   const P = HF.POND, half = P.r + 15;
   return (x, z, y) => y <= wl && Math.abs(x - P.x) <= half && Math.abs(z - P.z) <= half;
@@ -375,7 +369,7 @@ for (const def of SHARDS.filter(registry.playable)) {
     for (const d of colliders) { const c = d.kind === 'treads' ? d.from : d; if (Math.hypot(c.x - dx, c.z - dz) < dr) console.log(JSON.stringify(d, (k, v) => (v instanceof Float32Array ? `[${v.length / 3} points]` : typeof v === 'number' ? Math.round(v * 100) / 100 : v))); }
   }
   const soup = new Soup();
-  const dropped = addTerrain(soup, ground, await wetTest(def));
+  const dropped = addTerrain(soup, ground, wetTest(def));
   for (const d of colliders) addDesc(soup, d);
   const LAYERS = layersFor(def.slug);
   const dir = resolve(ROOT, 'public/assets/baked', def.slug), jsonFile = resolve(dir, 'navmesh.json'), binFile = resolve(dir, 'navmesh.bin');

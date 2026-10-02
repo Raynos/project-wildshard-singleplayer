@@ -425,6 +425,8 @@ before navigation; wait for `ws:ready` / `__wildshard` and the loading overlay t
 keeps normal RAF timing for boards. Pose APIs use engine radians; convert a camera’s degree yaw with
 `-camera.yaw * Math.PI / 180` and pitch with `camera.pitch * Math.PI / 180`.
 
+`LevelSpec.navmesh.excludeGroundAt(x, z, y)` is optional offline creature-navigation policy, copied from `ShardManifest.navmesh`. The node baker runs the manifest world hook and collects static registry colliders; the predicate excludes ground triangles only, so registered bridges remain walkable. Omit it to use the default water exclusion.
+
 ## 7. The shard plugin and the registry
 
 ```ts

@@ -13,6 +13,7 @@ export function toLevelSpec(manifest: ShardManifest): LevelSpec {
     ...(manifest.horizonStrips === undefined ? {} : { horizonStrips: manifest.horizonStrips }),
     creatureStyle,
     ...(manifest.world === undefined ? {} : { world: manifest.world }),
+    ...(manifest.navmesh === undefined ? {} : { navmesh: manifest.navmesh }),
     ...(manifest.creatures === undefined ? {} : { creatures: manifest.creatures }),
     ...(manifest.debugOptions === undefined ? {} : { debugOptions: manifest.debugOptions }),
     ...(manifest.blender === undefined ? {} : { blender: manifest.blender }),

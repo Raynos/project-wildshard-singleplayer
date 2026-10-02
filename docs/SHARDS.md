@@ -183,6 +183,8 @@ For a skyline of your own, set `horizon` in the manifest; [ENGINE §6](ENGINE.md
 lists every ring and compass-band field. `horizon: { rings: [], cloudSea: false }` removes the default ridges
 and cloud floor. `boundary: { visible: false }` removes only the drawn edge dressing; player containment remains active.
 
+Creature navigation normally excludes submerged terrain. For an authored exclusion beyond swimming water (for example a herd avoids a whole river corridor), declare `navmesh.excludeGroundAt(x, z, y)` in the node-safe manifest. It excludes only the terrain soup; registered decks still carry creatures over it. Re-bake with `pnpm gen && node --experimental-transform-types --import ./scripts/bake-loader.mjs scripts/bake-navmesh.mjs <slug>` and commit both navmesh files.
+
 ## 4. The plugin verbs
 
 The plugin has three hooks, each awaited in its boot stage ([ENGINE.md §5a, §7](ENGINE.md#7-the-shard-plugin-and-the-registry)).

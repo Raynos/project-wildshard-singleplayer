@@ -3,6 +3,7 @@ import exploreHorse from './explore/playground-horse.webp';
 import { NALATI_BUDGET_INPUTS } from './budgets';
 import type { ShardManifest } from '#game/shard/manifest';
 import { basinBody } from '#engine/data';
+import { nalatiWetAt } from './wet';
 import { SEED, SPAWN, TERRAIN, groundColor, surfaceAt, loneSpruceMask, edgeBermAt } from './world/terrain';
 import { NALATI_MAP } from './layout';
 import { inSpruceClearing } from './world/clearings';
@@ -77,6 +78,8 @@ export const NALATI_GRASSLANDS: ShardManifest = {
 
   // the Kunes and the meltwater brook are one still basin (the terrain's pondMask at RIVER.level): swimming and wading ask it
   ground: { terrain: TERRAIN, paths: 'plugin', water: [basinBody('river', TERRAIN)] },
+  // Herds avoid the full river corridor and brook; roads carry them onto the registered bridge.
+  navmesh: { excludeGroundAt: (x, z, y) => y <= TERRAIN.waterLevel() + 0.25 || (nalatiWetAt(x, z) && TERRAIN.trailDistance(x, z) > 3.5) },
 
   // the painterly terrain loads none of these (it paints itself); they satisfy the PBR contract
   assets: {

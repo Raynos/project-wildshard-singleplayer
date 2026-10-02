@@ -425,6 +425,8 @@ export interface ShardManifest {
   kitLook?: LevelSpec['kitLook'];
   creatures?: LevelSpec['creatures'];
   world?: LevelSpec['world'];
+  /** Optional offline creature-navigation mask; water bodies remain the default. */
+  navmesh?: LevelSpec['navmesh'];
   debugOptions?: LevelSpec['debugOptions'];
   uses?: readonly (EngineMechanism | 'coins' | 'loot' | 'compendium' | 'feats' | 'bag.pack')[];
   tiers?: TierOverrides;
