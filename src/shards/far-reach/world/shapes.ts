@@ -3,7 +3,7 @@ import type { Isle } from '../layout';
 
 /** The Sky Reach palette (sRGB hex): golden-hour grass, warm dirt, violet keel rock, dusk pines. */
 export const PALETTE = {
-  grass: 0x93a05a, grassLight: 0xadb46a, dirt: 0x6e4f3e, rock: 0x4d3c5a, rockDark: 0x33283f,
+  grass: 0x7f9a55, grassLight: 0x93ab62, dirt: 0x6e4f3e, rock: 0x4d3c5a, rockDark: 0x33283f,
   pine: 0x2f2c41, trunk: 0x3d2b2c, plank: 0x7d5c45, rope: 0xcdb68c, tower: 0x4a3a4f, sail: 0x6f5b70, glow: 0x9fe6f2,
 } as const;
 

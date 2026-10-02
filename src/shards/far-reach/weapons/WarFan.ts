@@ -36,7 +36,7 @@ export class WarFan extends Weapon {
   constructor(app: App, targets: () => readonly FanTarget[] = () => []) {
     super(FAN_ROW); this.app = app; this.targets = targets; this.contact = blocks.melee(app.combat);
     this.blocks.vm = this.vm; this.blocks.melee = this.contact;
-    this.model.position.set(0.3, -0.3, -0.62); this.model.rotation.set(-0.35, -0.25, -0.5); this.model.scale.setScalar(0.62);
+    this.model.position.set(0.33, -0.34, -0.62); this.model.rotation.set(-0.35, -0.25, -0.5); this.model.scale.setScalar(0.5);
   }
   override install(ctx: EquipContext): void {
     super.install(ctx);

@@ -3,7 +3,7 @@ import { DayCycle, patchShader, PATCH_ORDER, type LookStrategy } from '#engine';
 
 /** Golden hour, fixed: the sun sits low in the west-north-west and rakes across the island tops. */
 export const SUN_DIR = new Vector3(0.75, 0.26, -0.4).normalize();
-export const SKY = { zenith: 0x7d76a8, mid: 0xd4a1ae, horizon: 0xf3c690, below: 0xefe0d8, sun: 0xffd9a0, key: 0xffc488, fog: 0xdcb2b2 } as const;
+export const SKY = { zenith: 0x7d76a8, mid: 0xd4a1ae, horizon: 0xf3c690, below: 0xefe0d8, sun: 0xffd9a0, key: 0xffd2a2, fog: 0xdcb2b2 } as const;
 export const FOG = { near: 110, far: 460 } as const;
 
 /** A fixed golden-hour clock: Sky Reach does not run a day cycle (no `dayCycle` in `uses`). */
@@ -47,7 +47,7 @@ export function skyReachLook(): LookStrategy {
     backdrop: ({ sky }) => {
       const clock = createDay(), key = new Color(SKY.key);
       return Promise.resolve({ clock, horizon: new Color(SKY.horizon), lut: null,
-        bind: () => undefined, update: (dt: number) => { clock.update(dt); sky.setKeyLight(SUN_DIR, key, 2.3); },
+        bind: () => undefined, update: (dt: number) => { clock.update(dt); sky.setKeyLight(SUN_DIR, key, 2); },
         rebuild: () => undefined, attachPost: () => undefined });
     },
     // The ground is the islands (registry pieces); the stand-in terrain under the void is never drawn.
