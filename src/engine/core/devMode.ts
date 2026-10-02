@@ -22,7 +22,8 @@ const saved = (): boolean => { try { return savedStorage.getItem(KEY) === '1'; }
 
 let on = saved();
 
-const mirror = (): void => { if (typeof document !== 'undefined') document.documentElement.toggleAttribute('data-dev', on); };
+// a Node bake script may stub document without documentElement (CI bake-check crashed here)
+const mirror = (): void => { if (typeof document !== 'undefined' && document.documentElement !== undefined) document.documentElement.toggleAttribute('data-dev', on); };
 mirror();
 
 export function isDev(): boolean { return on; }
