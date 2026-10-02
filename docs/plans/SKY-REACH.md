@@ -45,3 +45,26 @@ Jake, 2026-10-01, after playing both on his iPhone: "they look absolutely nothin
 | P6 | **Jake plays it**: a board per loop round and a final 3×3 per hero scene for his sign-off | open |
 | P7 | **Done = two council rounds** (Jake 2026-10-02: "keep going autonomously until you're happy … have a council, do two rounds of reviewing it to see if it matches the quality of the other four shards"): `docs/plans/shard-polish-council/` (ledger, battery, brief, register). The builder loops on each round's findings; the shard is done when round 2's seats find it at the bar | open |
 | P8 | **Progress photos, clips and time-lapses every loop** (E389): `scripts/shard-progress.mjs` + `scripts/shard-timelapse.py` → `progress/<slug>/` | in progress (the `sky-reach` agent) |
+
+## Loop 5 gap list: council round 1 (seats B and C), form and subject first
+
+The council (`docs/plans/shard-polish-council/round-1-seat-{B,C}.md`) judged the loop-4 capture (`4c39a774`) below the bar:
+the loops tuned colour while the forms stayed primitive. Ordered: form and subject before colour (R1C-18). The *form and
+subject* column asks the R1C-18 questions of each view: is the hero object in the centre third and lit, does its
+silhouette match the target's, is every near and mid element the target shows present?
+
+| # | Findings | Form and subject | Fix | State |
+|---|---|---|---|---|
+| 1 | R1B-1 | one sun, where the painting has it | hide the engine sun disc and halo (`sky.sun`), aim the key light at the painted sun (heading 351°, 4.3° up) | open |
+| 2 | R1C-10, R1B-2 | the hover bridge reads as a built glass object, not a render bug | the bible's glass: one cyan emissive half-transparent slab, a solid glowing edge frame, end pylons; no slat banding | open |
+| 3 | R1C-8, R1B-3 | the quest-giver waves inside the first frame; the chip names him with metres | keeper inside the ±18° portrait view, clear of the HOVER tab; "KEEPER n M" from the first frame | open |
+| 4 | R1C-9 | islands are crags, not cones on a grid at one height | broken notched rims, craggy keels with spires and roots, rim rocks; centres off the grid and varied deck heights (sloped spans ≤ 40°, navmesh, walk routes via the lead) | open |
+| 5 | R1C-11, R1B-2, R1B-4 | H2 / H3 each frame one built subject, nothing within 3 m of the camera | the mill moved off H3's sightline and rebuilt (white stone, slate cap, lattice + cloth sails: R1C-17); H2 aimed at the windmill (camera change: asked the lead) or the Roost + glass bridge as its subject; updraft streaks out of the view's centre at rest | open |
+| 6 | R1C-11, R1B-5 | H4 frames the dais, several runed stones and the Roc | the ring round the dais at r 9.5 (3–4 stones in frame); the Roc in view (lower idle orbit) or the bar only once it is | open |
+| 7 | R1B-7, R1C-12 | the playable land is the most finished thing in the frame | drop the bare 3-D skyline cones (the painted matte carries the far islands); crisp worn paths | open |
+| 8 | R1B-6 | the minimap draws the land | a far-reach minimap painter: island discs, plank bridges solid, hover bridges dashed, the quest diamond | open |
+| 9 | R1B-8, R1C-14 | the hand reads as a gloved hand with a bracer, above the buttons | a code glove with fingers on the grip, a tooled bracer, a wrapped sleeve; bronze ribs; the rest pose raised; a Practice Arena board | open |
+| 10 | R1C-15, R1C-13 | grass reads as grass; the palette has its own hues (blue zenith, spring green, cyan glass) | three-segment tapered blades, a smaller nearest band, shade-green roots to gold tips (`#a9bb66`); the warm grade pulled off the zenith and grass | open |
+| 11 | R1B-9, R1C-16 | the cards show the current shard | re-cut title / loading / Explore cards after 1–10 | open |
+| 12 | R1B-10 | the boss fight is shown at the current look | a phase I–III Storm Roc clip at HEAD, iPhone portrait | open |
+| 13 | R1B-11 | SWING and GUST carry icons like every other primary / verb | icons within the baseline HUD | open |
