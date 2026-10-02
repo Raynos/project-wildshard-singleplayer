@@ -35,6 +35,7 @@
     "species.nalati.sheepdog",
     "species.nalati.wolf",
     "sunscar-dunes",
+    "sunscar.creature.duneMatriarch",
     "sunscar.creature.duneRay",
     "sunscar.creature.duneStrider",
     "sunscar.creature.sandSkitterer",
@@ -175,6 +176,7 @@
     "sunscar-dunes": {
       "name": "Signal Dunes",
       "ids": [
+        "sunscar.creature.duneMatriarch",
         "sunscar.creature.duneRay",
         "sunscar.creature.duneStrider",
         "sunscar.creature.sandSkitterer",

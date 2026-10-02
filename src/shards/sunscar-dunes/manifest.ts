@@ -39,7 +39,7 @@ export const SUNSCAR_DUNES: ShardManifest = {
   render: async () => (await import('./look/render')).signalDunesLook(),
   uses: ['quests', 'coins', 'loot', 'hover'],
   loadout: { weapons: ['weapon.sunscar-whip'], tools: ['tool.hoverboard'], start: ['weapon.sunscar-whip', 'tool.hoverboard'], held: 'weapon.sunscar-whip' },
-  species: ['duneRay', 'sandSkitterer', 'duneStrider'], spawns: [], fight: { attackers: 2, telegraphed: true, input: { bufferMs: 120, coyoteMs: 100 } },
+  species: ['duneRay', 'sandSkitterer', 'duneStrider', 'duneMatriarch'], spawns: [], fight: { attackers: 2, telegraphed: true, input: { bufferMs: 120, coyoteMs: 100 } },
   creatures: { lowPoly: true, waitForModels: false, furRim: false, tintRange: 0, oneMaterial: true },
   tiers: { phone: { godRays: false, ao: false }, desktop: { godRays: false, ao: false } },
   loot: { coins: true },

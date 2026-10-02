@@ -40,7 +40,7 @@ describe('Signal Dunes plugin contract', () => {
     expect(stages).toEqual(['data', 'world', 'kit', 'loadout', 'play', 'finish']);
     expect(manifest.status).toBe('experimental'); expect(manifest.audio?.preload).toBeUndefined(); expect(manifest.audio?.ambience).toBe('none');
     expect(app.registry.pieces.map((p) => p.id)).toEqual(['sunscar.tower', 'sunscar.caravan', 'sunscar.well', 'sunscar.rocks', 'sunscar.brazier.0', 'sunscar.brazier.1', 'sunscar.brazier.2']);
-    expect(app.levelRegistrations.list('species')).toHaveLength(3);
+    expect(app.levelRegistrations.list('species')).toHaveLength(4);
     expect(app.levelRegistrations.text('step')).toBe('Light the signal fire'); expect(app.debug.scopedSnapshot()['sunscar']).toBe(plugin);
     const scope = app.levelScope; if (scope === null) throw new Error('No scope');
     expect(scope.census.disposers).toBeGreaterThan(0);
@@ -66,8 +66,9 @@ describe('Signal Dunes plugin contract', () => {
       whip.swing(false); expect(whip.crackWorld(b.parts.bowlAt.clone().add(new Vector3(0, 0, 5)), dir, CRACK.reach, false)).not.toBeNull(); expect(b.lit).toBe(true);
     }
     expect(whip.crackWorld(from, dir, CRACK.reach, false)).toBeNull();
-    expect(step()).toBe(3); expect(places.litCount).toBe(3);
+    expect(step()).toBe(3); expect(places.litCount).toBe(3); expect(plugin.matriarch?.state).toBe('dormant');
     places.fire.brazier.onInteract(); app.events.flush('update');
+    expect(plugin.matriarch?.state).toBe('armed'); // the signal summons the Dune Matriarch
     expect(plugin.fire?.lit).toBe(true); expect(plugin.fire?.brazier.label).toBe('Signal fire lit'); expect(plugin.quest?.isComplete).toBe(true);
     for (let i = 0; i < 90; i++) fake.advance(1 / 30);
     expect(fake.dead).toBe(false); expect(purse.read()).toBe(before + 5);
