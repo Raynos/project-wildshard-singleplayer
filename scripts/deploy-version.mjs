@@ -6,10 +6,16 @@ import { execFileSync } from 'node:child_process';
 const versionUrl = 'https://wildshard-singleplayer.vercel.app/version.json';
 // DEPLOY_SHA (the deploy pin, GAME-NORMALIZATION F3.1) wins: a workflow cannot override GITHUB_SHA.
 const set = (v) => (v === undefined || v === '' ? undefined : v); // an unset workflow output arrives as ''
-const sha = (set(process.env.DEPLOY_SHA) ?? set(process.env.GITHUB_SHA) ?? execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim()).slice(0, 7);
+const fullSha = (set(process.env.DEPLOY_SHA) ?? set(process.env.GITHUB_SHA) ?? execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim());
+const sha = fullSha.slice(0, 7);
 
-export function matchesCommit(build, commit = sha) {
-  return typeof build === 'string' && build.startsWith(`${commit}-`);
+/** A build id is `<short sha>-<deployment>`; the short sha's length varies (git's abbrev grows with the repo: 7, then 8
+ *  chars), so match on a shared prefix of at least 7 hex, not an exact `<7 chars>-` (2026-10-02: verify failed on a
+ *  live c2453984-… against c245398). */
+export function matchesCommit(build, commit = fullSha) {
+  if (typeof build !== 'string') return false;
+  const short = build.split('-')[0] ?? '';
+  return /^[0-9a-f]{7,40}$/.test(short) && /^[0-9a-f]{7,40}$/.test(commit) && (commit.startsWith(short) || short.startsWith(commit));
 }
 
 async function liveBuild() {
