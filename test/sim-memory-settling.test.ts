@@ -41,7 +41,7 @@ describe('Simulator phase settling', () => {
     expect(settledMemory([sample(18, 0.4), sample(19, 0.4), { seconds: 20, nativeGB: 0.4, inspectorGB: 0 }])).toBeNull();
   });
 
-  it('uses the median for the unchanged 10% growth band and retains the native peak', () => {
+  it('uses the median, reports growth without gating it (E388) and retains the native peak', () => {
     const readings = [sample(1, 0.589), sample(2, 0.439), sample(3, 0.440), sample(4, 0.438)];
     const row = parseMemoryRun(native(0.589), inspector(readings), 'nine', { play: 0.4 }).find((entry) => entry.phase === 'play');
     expect(row?.verdict).toBe('success');
@@ -49,7 +49,9 @@ describe('Simulator phase settling', () => {
     expect(row?.nativePeakGB).toBe(0.589);
     expect(row?.measurement).toBe('settled-median-3');
     expect(row?.settling?.spreadGB).toBeCloseTo(0.002);
-    expect(parseMemoryRun(native(0.589), inspector(readings), 'nine', { play: 0.39 }).find((entry) => entry.phase === 'play')?.reason).toBe('growth > 10%');
+    const grown = parseMemoryRun(native(0.589), inspector(readings), 'nine', { play: 0.39 }).find((entry) => entry.phase === 'play');
+    expect(grown?.verdict).toBe('success');
+    expect(grown?.reason).toBe('within the device limit');
   });
 
   it('still fails an absolute-cap spike even when the settled median is low and growth is pending', () => {
