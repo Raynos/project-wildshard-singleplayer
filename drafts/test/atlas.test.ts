@@ -50,29 +50,31 @@ describe('the README parser', () => {
 });
 
 describe.skipIf(!HAS_ART)('Thin Ice → atlas.json', () => {
-  const { atlas, card, problems, sources } = thinIce();
+  // Built in the tests, not here: vitest runs a skipped suite's body to collect it, and this reads art/.
+  let built: ReturnType<typeof thinIce> | null = null;
+  const b = (): ReturnType<typeof thinIce> => (built ??= thinIce());
 
   it('builds with no problems: every picture has its phone copy (W2)', () => {
-    expect(problems).toEqual([]);
-    expect(sources).toHaveLength(atlas.items.length);
+    expect(b().problems).toEqual([]);
+    expect(b().sources).toHaveLength(b().atlas.items.length);
   });
   it('carries every round and picture of the dry run', () => {
-    expect(atlas.rounds).toHaveLength(11);
-    expect(atlas.items.length).toBe(226);
+    expect(b().atlas.rounds).toHaveLength(11);
+    expect(b().atlas.items.length).toBe(226);
   });
   it('puts the run at P6 with P1–P5b done', () => {
-    expect(atlas.run.stage).toBe('P6');
-    expect(atlas.stages.find((s) => s.id === 'P5')?.state).toBe('done');
-    expect(atlas.stages.find((s) => s.id === 'P6')?.state).toBe('current');
-    expect(card.ticks).toBe(5);
+    expect(b().atlas.run.stage).toBe('P6');
+    expect(b().atlas.stages.find((s) => s.id === 'P5')?.state).toBe('done');
+    expect(b().atlas.stages.find((s) => s.id === 'P6')?.state).toBe('current');
+    expect(b().card.ticks).toBe(5);
   });
   it('quotes Jake\'s answers verbatim and points each stage at its pick', () => {
-    const p5 = atlas.stages.find((s) => s.id === 'P5');
+    const p5 = b().atlas.stages.find((s) => s.id === 'P5');
     expect(p5?.answers).toContain("Map A revision 2, it's approved.");
     expect(p5?.pick).toBe('round-6-map-revision-2/p5r2-map.jpg');
   });
   it('follows a view across rounds (concept → try 1 → blockout → wave 2)', () => {
-    const fp02 = atlas.lineages['fp-02'] ?? [];
+    const fp02 = b().atlas.lineages['fp-02'] ?? [];
     expect(fp02).toEqual([
       'round-3-concepts/p4-place-02-village.jpg',
       'round-6-map-revision-2/blockout/fp-02-village.jpg',
@@ -80,22 +82,22 @@ describe.skipIf(!HAS_ART)('Thin Ice → atlas.json', () => {
       'round-8-first-person-wave-2/w2-02-village.jpg',
     ]);
     const mapView = 'map';
-    expect(atlas.lineages[mapView]).toEqual([
+    expect(b().atlas.lineages[mapView]).toEqual([
       'round-4-map-wave-1/p5-map-a.jpg', 'round-5-map-revision-1/p5b-top.jpg', 'round-6-map-revision-2/p5r2-map.jpg',
     ]);
   });
   it('lists the six concept models, the boss flagged as a spoiler', () => {
-    expect(atlas.models.map((m) => m.id).sort()).toEqual(['bellkeeper', 'crawlers', 'harpoon', 'icebear', 'sigrun', 'sled']);
-    expect(atlas.models.find((m) => m.id === 'bellkeeper')?.spoiler).toBe(true);
+    expect(b().atlas.models.map((m) => m.id).sort()).toEqual(['bellkeeper', 'crawlers', 'harpoon', 'icebear', 'sigrun', 'sled']);
+    expect(b().atlas.models.find((m) => m.id === 'bellkeeper')?.spoiler).toBe(true);
   });
   it('gives every quest step its current wildcard pictures', () => {
-    expect(atlas.steps).toHaveLength(12);
-    for (const st of atlas.steps) expect(st.items).toHaveLength(3);
+    expect(b().atlas.steps).toHaveLength(12);
+    for (const st of b().atlas.steps) expect(st.items).toHaveLength(3);
   });
   it('carries the camera check for all 11 first-person cameras', () => {
-    expect(atlas.cams).toHaveLength(11);
-    expect(atlas.cams.find((c) => c.id === '02-village')?.ok).toBe(false);
-    expect(atlas.cams.find((c) => c.id === '04-quarry')?.ok).toBe(true);
+    expect(b().atlas.cams).toHaveLength(11);
+    expect(b().atlas.cams.find((c) => c.id === '02-village')?.ok).toBe(false);
+    expect(b().atlas.cams.find((c) => c.id === '04-quarry')?.ok).toBe(true);
   });
 });
 
