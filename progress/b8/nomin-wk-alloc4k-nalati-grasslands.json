@@ -1,0 +1,3381 @@
+{
+ "tag": "nomin-wk-alloc4k",
+ "chunk": "nalati-grasslands",
+ "tier": "phone",
+ "url": "http://127.0.0.1:4418",
+ "date": "2026-09-29T22:43:18.412Z",
+ "everyMs": 20,
+ "loadSeconds": 5,
+ "peaks": {
+  "loadJsMB": 0,
+  "loadHeapMB": 0,
+  "loadArrayBufferMB": 0,
+  "loadRendererNativeMB": 859,
+  "loadGpuNativeMB": 1167,
+  "playJsMB": 0,
+  "playRendererNativeMB": 761
+ },
+ "renderer": {
+  "textures": 98,
+  "geometries": 114,
+  "programs": 93
+ },
+ "steps": [
+  {
+   "step": "boot (before the loading screen)",
+   "jsMB": 0,
+   "heapMB": 0,
+   "abMB": 0,
+   "nativeMB": 28,
+   "gpuMB": 220
+  },
+  {
+   "step": "—",
+   "jsMB": 0,
+   "heapMB": 0,
+   "abMB": 0,
+   "nativeMB": 146,
+   "gpuMB": 300
+  },
+  {
+   "step": "renderer",
+   "jsMB": 0,
+   "heapMB": 0,
+   "abMB": 0,
+   "nativeMB": 181,
+   "gpuMB": 334
+  },
+  {
+   "step": "sky",
+   "jsMB": 0,
+   "heapMB": 0,
+   "abMB": 0,
+   "nativeMB": 243,
+   "gpuMB": 504
+  },
+  {
+   "step": "terrain",
+   "jsMB": 0,
+   "heapMB": 0,
+   "abMB": 0,
+   "nativeMB": 362,
+   "gpuMB": 478
+  },
+  {
+   "step": "cards",
+   "jsMB": 0,
+   "heapMB": 0,
+   "abMB": 0,
+   "nativeMB": 367,
+   "gpuMB": 478
+  },
+  {
+   "step": "physics",
+   "jsMB": 0,
+   "heapMB": 0,
+   "abMB": 0,
+   "nativeMB": 371,
+   "gpuMB": 478
+  },
+  {
+   "step": "edge",
+   "jsMB": 0,
+   "heapMB": 0,
+   "abMB": 0,
+   "nativeMB": 390,
+   "gpuMB": 478
+  },
+  {
+   "step": "grass",
+   "jsMB": 0,
+   "heapMB": 0,
+   "abMB": 0,
+   "nativeMB": 393,
+   "gpuMB": 344
+  },
+  {
+   "step": "cabins",
+   "jsMB": 0,
+   "heapMB": 0,
+   "abMB": 0,
+   "nativeMB": 408,
+   "gpuMB": 391
+  },
+  {
+   "step": "props",
+   "jsMB": 0,
+   "heapMB": 0,
+   "abMB": 0,
+   "nativeMB": 787,
+   "gpuMB": 424
+  },
+  {
+   "step": "animals",
+   "jsMB": 0,
+   "heapMB": 0,
+   "abMB": 0,
+   "nativeMB": 752,
+   "gpuMB": 411
+  },
+  {
+   "step": "weapon",
+   "jsMB": 0,
+   "heapMB": 0,
+   "abMB": 0,
+   "nativeMB": 798,
+   "gpuMB": 414
+  },
+  {
+   "step": "menu",
+   "jsMB": 0,
+   "heapMB": 0,
+   "abMB": 0,
+   "nativeMB": 798,
+   "gpuMB": 639
+  },
+  {
+   "step": "shaders",
+   "jsMB": 0,
+   "heapMB": 0,
+   "abMB": 0,
+   "nativeMB": 859,
+   "gpuMB": 737
+  },
+  {
+   "step": "firstFrame",
+   "jsMB": 0,
+   "heapMB": 0,
+   "abMB": 0,
+   "nativeMB": 847,
+   "gpuMB": 1090
+  },
+  {
+   "step": "audio",
+   "jsMB": 0,
+   "heapMB": 0,
+   "abMB": 0,
+   "nativeMB": 819,
+   "gpuMB": 1167
+  },
+  {
+   "step": "playable",
+   "jsMB": 0,
+   "heapMB": 0,
+   "abMB": 0,
+   "nativeMB": 761,
+   "gpuMB": 1194
+  }
+ ],
+ "timeline": [],
+ "nativeTimeline": [
+  [
+   41,
+   25,
+   220
+  ],
+  [
+   62,
+   28,
+   220
+  ],
+  [
+   87,
+   33,
+   287
+  ],
+  [
+   116,
+   36,
+   300
+  ],
+  [
+   137,
+   55,
+   300
+  ],
+  [
+   163,
+   62,
+   300
+  ],
+  [
+   186,
+   65,
+   300
+  ],
+  [
+   214,
+   68,
+   300
+  ],
+  [
+   238,
+   66,
+   300
+  ],
+  [
+   262,
+   66,
+   300
+  ],
+  [
+   286,
+   66,
+   300
+  ],
+  [
+   316,
+   77,
+   300
+  ],
+  [
+   340,
+   122,
+   300
+  ],
+  [
+   369,
+   123,
+   300
+  ],
+  [
+   399,
+   130,
+   300
+  ],
+  [
+   420,
+   146,
+   300
+  ],
+  [
+   448,
+   159,
+   300
+  ],
+  [
+   473,
+   181,
+   334
+  ],
+  [
+   503,
+   172,
+   359
+  ],
+  [
+   526,
+   191,
+   417
+  ],
+  [
+   555,
+   200,
+   504
+  ],
+  [
+   584,
+   205,
+   476
+  ],
+  [
+   612,
+   215,
+   475
+  ],
+  [
+   635,
+   225,
+   474
+  ],
+  [
+   655,
+   230,
+   474
+  ],
+  [
+   686,
+   230,
+   474
+  ],
+  [
+   716,
+   229,
+   474
+  ],
+  [
+   738,
+   229,
+   474
+  ],
+  [
+   759,
+   242,
+   474
+  ],
+  [
+   780,
+   243,
+   474
+  ],
+  [
+   809,
+   243,
+   474
+  ],
+  [
+   830,
+   242,
+   474
+  ],
+  [
+   857,
+   243,
+   474
+  ],
+  [
+   882,
+   243,
+   474
+  ],
+  [
+   912,
+   243,
+   474
+  ],
+  [
+   938,
+   243,
+   474
+  ],
+  [
+   965,
+   243,
+   474
+  ],
+  [
+   990,
+   243,
+   474
+  ],
+  [
+   1014,
+   243,
+   474
+  ],
+  [
+   1034,
+   211,
+   474
+  ],
+  [
+   1064,
+   211,
+   474
+  ],
+  [
+   1090,
+   211,
+   474
+  ],
+  [
+   1120,
+   211,
+   474
+  ],
+  [
+   1147,
+   203,
+   474
+  ],
+  [
+   1175,
+   222,
+   478
+  ],
+  [
+   1204,
+   259,
+   478
+  ],
+  [
+   1225,
+   266,
+   478
+  ],
+  [
+   1246,
+   278,
+   478
+  ],
+  [
+   1273,
+   319,
+   478
+  ],
+  [
+   1302,
+   318,
+   478
+  ],
+  [
+   1330,
+   328,
+   478
+  ],
+  [
+   1359,
+   335,
+   478
+  ],
+  [
+   1381,
+   345,
+   478
+  ],
+  [
+   1406,
+   353,
+   478
+  ],
+  [
+   1427,
+   360,
+   478
+  ],
+  [
+   1456,
+   361,
+   478
+  ],
+  [
+   1479,
+   361,
+   478
+  ],
+  [
+   1504,
+   362,
+   478
+  ],
+  [
+   1532,
+   365,
+   478
+  ],
+  [
+   1556,
+   366,
+   478
+  ],
+  [
+   1579,
+   367,
+   478
+  ],
+  [
+   1603,
+   371,
+   478
+  ],
+  [
+   1634,
+   376,
+   478
+  ],
+  [
+   1661,
+   390,
+   478
+  ],
+  [
+   1690,
+   390,
+   344
+  ],
+  [
+   1720,
+   393,
+   344
+  ],
+  [
+   1743,
+   408,
+   391
+  ],
+  [
+   1770,
+   410,
+   391
+  ],
+  [
+   1800,
+   423,
+   389
+  ],
+  [
+   1820,
+   437,
+   389
+  ],
+  [
+   1850,
+   450,
+   389
+  ],
+  [
+   1878,
+   474,
+   388
+  ],
+  [
+   1904,
+   501,
+   388
+  ],
+  [
+   1934,
+   531,
+   388
+  ],
+  [
+   1956,
+   557,
+   388
+  ],
+  [
+   1986,
+   600,
+   388
+  ],
+  [
+   2016,
+   634,
+   388
+  ],
+  [
+   2046,
+   674,
+   388
+  ],
+  [
+   2076,
+   687,
+   388
+  ],
+  [
+   2103,
+   696,
+   388
+  ],
+  [
+   2133,
+   700,
+   388
+  ],
+  [
+   2162,
+   701,
+   388
+  ],
+  [
+   2192,
+   702,
+   388
+  ],
+  [
+   2222,
+   689,
+   388
+  ],
+  [
+   2251,
+   692,
+   388
+  ],
+  [
+   2281,
+   694,
+   388
+  ],
+  [
+   2304,
+   600,
+   388
+  ],
+  [
+   2329,
+   600,
+   388
+  ],
+  [
+   2359,
+   604,
+   388
+  ],
+  [
+   2380,
+   614,
+   388
+  ],
+  [
+   2402,
+   623,
+   388
+  ],
+  [
+   2428,
+   627,
+   388
+  ],
+  [
+   2458,
+   631,
+   388
+  ],
+  [
+   2488,
+   634,
+   388
+  ],
+  [
+   2508,
+   638,
+   388
+  ],
+  [
+   2539,
+   643,
+   388
+  ],
+  [
+   2563,
+   649,
+   388
+  ],
+  [
+   2587,
+   647,
+   388
+  ],
+  [
+   2614,
+   652,
+   388
+  ],
+  [
+   2642,
+   661,
+   388
+  ],
+  [
+   2672,
+   664,
+   388
+  ],
+  [
+   2696,
+   671,
+   388
+  ],
+  [
+   2717,
+   678,
+   388
+  ],
+  [
+   2738,
+   680,
+   388
+  ],
+  [
+   2764,
+   689,
+   388
+  ],
+  [
+   2794,
+   707,
+   388
+  ],
+  [
+   2818,
+   716,
+   390
+  ],
+  [
+   2848,
+   747,
+   390
+  ],
+  [
+   2876,
+   759,
+   378
+  ],
+  [
+   2906,
+   779,
+   378
+  ],
+  [
+   2928,
+   778,
+   378
+  ],
+  [
+   2954,
+   757,
+   373
+  ],
+  [
+   2980,
+   757,
+   373
+  ],
+  [
+   3009,
+   757,
+   373
+  ],
+  [
+   3033,
+   760,
+   373
+  ],
+  [
+   3055,
+   761,
+   373
+  ],
+  [
+   3079,
+   753,
+   373
+  ],
+  [
+   3101,
+   753,
+   373
+  ],
+  [
+   3128,
+   754,
+   373
+  ],
+  [
+   3154,
+   754,
+   373
+  ],
+  [
+   3178,
+   752,
+   373
+  ],
+  [
+   3207,
+   753,
+   373
+  ],
+  [
+   3233,
+   757,
+   373
+  ],
+  [
+   3256,
+   761,
+   373
+  ],
+  [
+   3286,
+   763,
+   375
+  ],
+  [
+   3313,
+   765,
+   374
+  ],
+  [
+   3341,
+   765,
+   377
+  ],
+  [
+   3362,
+   775,
+   377
+  ],
+  [
+   3392,
+   787,
+   415
+  ],
+  [
+   3418,
+   766,
+   424
+  ],
+  [
+   3438,
+   769,
+   399
+  ],
+  [
+   3468,
+   770,
+   399
+  ],
+  [
+   3500,
+   750,
+   399
+  ],
+  [
+   3522,
+   756,
+   399
+  ],
+  [
+   3551,
+   756,
+   399
+  ],
+  [
+   3578,
+   756,
+   399
+  ],
+  [
+   3605,
+   734,
+   399
+  ],
+  [
+   3630,
+   734,
+   399
+  ],
+  [
+   3659,
+   734,
+   399
+  ],
+  [
+   3687,
+   734,
+   399
+  ],
+  [
+   3713,
+   731,
+   399
+  ],
+  [
+   3733,
+   733,
+   399
+  ],
+  [
+   3754,
+   736,
+   399
+  ],
+  [
+   3779,
+   740,
+   399
+  ],
+  [
+   3804,
+   740,
+   411
+  ],
+  [
+   3832,
+   737,
+   411
+  ],
+  [
+   3861,
+   741,
+   411
+  ],
+  [
+   3887,
+   748,
+   411
+  ],
+  [
+   3910,
+   752,
+   411
+  ],
+  [
+   3941,
+   762,
+   411
+  ],
+  [
+   3971,
+   767,
+   411
+  ],
+  [
+   4001,
+   776,
+   411
+  ],
+  [
+   4031,
+   786,
+   411
+  ],
+  [
+   4061,
+   794,
+   411
+  ],
+  [
+   4093,
+   798,
+   414
+  ],
+  [
+   4113,
+   798,
+   464
+  ],
+  [
+   4135,
+   792,
+   548
+  ],
+  [
+   4162,
+   793,
+   573
+  ],
+  [
+   4190,
+   795,
+   586
+  ],
+  [
+   4215,
+   796,
+   639
+  ],
+  [
+   4239,
+   799,
+   661
+  ],
+  [
+   4266,
+   803,
+   660
+  ],
+  [
+   4295,
+   814,
+   667
+  ],
+  [
+   4320,
+   814,
+   670
+  ],
+  [
+   4348,
+   825,
+   698
+  ],
+  [
+   4378,
+   859,
+   737
+  ],
+  [
+   4407,
+   847,
+   748
+  ],
+  [
+   4428,
+   821,
+   799
+  ],
+  [
+   4457,
+   824,
+   995
+  ],
+  [
+   4486,
+   819,
+   1090
+  ],
+  [
+   4510,
+   819,
+   1094
+  ],
+  [
+   4538,
+   819,
+   1116
+  ],
+  [
+   4566,
+   818,
+   1116
+  ],
+  [
+   4591,
+   818,
+   1116
+  ],
+  [
+   4621,
+   818,
+   1116
+  ],
+  [
+   4650,
+   818,
+   1116
+  ],
+  [
+   4680,
+   797,
+   1116
+  ],
+  [
+   4707,
+   797,
+   1116
+  ],
+  [
+   4735,
+   797,
+   1116
+  ],
+  [
+   4763,
+   778,
+   1117
+  ],
+  [
+   4788,
+   778,
+   1167
+  ],
+  [
+   4816,
+   779,
+   1167
+  ],
+  [
+   4838,
+   779,
+   1167
+  ],
+  [
+   4866,
+   776,
+   1167
+  ],
+  [
+   4886,
+   776,
+   1167
+  ],
+  [
+   4912,
+   776,
+   1164
+  ],
+  [
+   4941,
+   779,
+   1144
+  ],
+  [
+   4966,
+   748,
+   1148
+  ],
+  [
+   4988,
+   755,
+   1153
+  ],
+  [
+   5012,
+   760,
+   1157
+  ],
+  [
+   5034,
+   760,
+   1164
+  ],
+  [
+   5060,
+   761,
+   1165
+  ],
+  [
+   5088,
+   748,
+   1193
+  ],
+  [
+   5118,
+   749,
+   1193
+  ],
+  [
+   5145,
+   749,
+   1193
+  ],
+  [
+   5172,
+   749,
+   1192
+  ],
+  [
+   5196,
+   746,
+   1193
+  ],
+  [
+   5224,
+   746,
+   1194
+  ],
+  [
+   5248,
+   746,
+   1168
+  ],
+  [
+   5278,
+   746,
+   1168
+  ],
+  [
+   5308,
+   746,
+   1168
+  ],
+  [
+   5333,
+   746,
+   1168
+  ],
+  [
+   5357,
+   746,
+   1168
+  ],
+  [
+   5379,
+   747,
+   1168
+  ],
+  [
+   5408,
+   747,
+   1168
+  ],
+  [
+   5438,
+   747,
+   1168
+  ],
+  [
+   5465,
+   747,
+   1168
+  ],
+  [
+   5487,
+   747,
+   1168
+  ],
+  [
+   5514,
+   748,
+   1168
+  ],
+  [
+   5535,
+   748,
+   1168
+  ],
+  [
+   5565,
+   748,
+   1168
+  ],
+  [
+   5589,
+   748,
+   1168
+  ],
+  [
+   5617,
+   744,
+   1168
+  ],
+  [
+   5640,
+   744,
+   1168
+  ],
+  [
+   5663,
+   744,
+   1156
+  ],
+  [
+   5687,
+   744,
+   1156
+  ],
+  [
+   5717,
+   741,
+   1156
+  ],
+  [
+   5747,
+   741,
+   1156
+  ],
+  [
+   5777,
+   744,
+   1156
+  ],
+  [
+   5807,
+   747,
+   1156
+  ],
+  [
+   5832,
+   754,
+   1156
+  ],
+  [
+   5856,
+   755,
+   1156
+  ],
+  [
+   5886,
+   755,
+   1156
+  ],
+  [
+   5911,
+   755,
+   1156
+  ],
+  [
+   5933,
+   756,
+   1005
+  ],
+  [
+   5957,
+   756,
+   1005
+  ],
+  [
+   5986,
+   756,
+   1005
+  ],
+  [
+   6016,
+   756,
+   1005
+  ],
+  [
+   6042,
+   756,
+   980
+  ],
+  [
+   6071,
+   758,
+   976
+  ],
+  [
+   6099,
+   758,
+   976
+  ],
+  [
+   6126,
+   758,
+   976
+  ],
+  [
+   6156,
+   758,
+   976
+  ],
+  [
+   6185,
+   758,
+   976
+  ],
+  [
+   6209,
+   758,
+   976
+  ],
+  [
+   6229,
+   756,
+   976
+  ],
+  [
+   6259,
+   756,
+   976
+  ],
+  [
+   6288,
+   756,
+   976
+  ],
+  [
+   6316,
+   756,
+   950
+  ],
+  [
+   6340,
+   755,
+   950
+  ],
+  [
+   6361,
+   755,
+   950
+  ],
+  [
+   6391,
+   755,
+   950
+  ],
+  [
+   6413,
+   755,
+   950
+  ],
+  [
+   6443,
+   755,
+   950
+  ],
+  [
+   6467,
+   755,
+   950
+  ],
+  [
+   6495,
+   755,
+   950
+  ],
+  [
+   6515,
+   755,
+   950
+  ],
+  [
+   6538,
+   755,
+   950
+  ],
+  [
+   6559,
+   753,
+   950
+  ],
+  [
+   6589,
+   753,
+   950
+  ],
+  [
+   6615,
+   753,
+   950
+  ],
+  [
+   6638,
+   753,
+   950
+  ],
+  [
+   6666,
+   753,
+   950
+  ],
+  [
+   6695,
+   752,
+   950
+  ],
+  [
+   6726,
+   752,
+   950
+  ],
+  [
+   6748,
+   752,
+   950
+  ],
+  [
+   6770,
+   752,
+   950
+  ],
+  [
+   6795,
+   752,
+   938
+  ],
+  [
+   6818,
+   752,
+   938
+  ],
+  [
+   6847,
+   752,
+   938
+  ],
+  [
+   6877,
+   752,
+   938
+  ],
+  [
+   6905,
+   752,
+   938
+  ],
+  [
+   6932,
+   752,
+   938
+  ],
+  [
+   6960,
+   752,
+   935
+  ],
+  [
+   6982,
+   752,
+   935
+  ],
+  [
+   7011,
+   752,
+   935
+  ],
+  [
+   7039,
+   752,
+   935
+  ],
+  [
+   7067,
+   752,
+   935
+  ],
+  [
+   7097,
+   742,
+   935
+  ],
+  [
+   7122,
+   742,
+   935
+  ],
+  [
+   7143,
+   742,
+   934
+  ],
+  [
+   7168,
+   742,
+   935
+  ],
+  [
+   7196,
+   742,
+   935
+  ],
+  [
+   7227,
+   742,
+   935
+  ],
+  [
+   7254,
+   742,
+   935
+  ],
+  [
+   7281,
+   742,
+   934
+  ],
+  [
+   7305,
+   742,
+   901
+  ],
+  [
+   7331,
+   742,
+   901
+  ],
+  [
+   7361,
+   742,
+   901
+  ],
+  [
+   7386,
+   742,
+   901
+  ],
+  [
+   7412,
+   742,
+   901
+  ],
+  [
+   7442,
+   742,
+   901
+  ],
+  [
+   7470,
+   742,
+   901
+  ],
+  [
+   7499,
+   742,
+   901
+  ],
+  [
+   7521,
+   742,
+   901
+  ],
+  [
+   7551,
+   742,
+   901
+  ],
+  [
+   7571,
+   742,
+   901
+  ],
+  [
+   7594,
+   742,
+   901
+  ],
+  [
+   7624,
+   742,
+   901
+  ],
+  [
+   7647,
+   742,
+   901
+  ],
+  [
+   7677,
+   742,
+   901
+  ],
+  [
+   7705,
+   742,
+   901
+  ],
+  [
+   7729,
+   742,
+   901
+  ],
+  [
+   7757,
+   742,
+   901
+  ],
+  [
+   7780,
+   742,
+   900
+  ],
+  [
+   7810,
+   742,
+   900
+  ],
+  [
+   7840,
+   742,
+   900
+  ],
+  [
+   7867,
+   742,
+   900
+  ],
+  [
+   7894,
+   742,
+   900
+  ],
+  [
+   7918,
+   742,
+   900
+  ],
+  [
+   7939,
+   742,
+   899
+  ],
+  [
+   7960,
+   742,
+   900
+  ],
+  [
+   7990,
+   742,
+   900
+  ],
+  [
+   8012,
+   742,
+   900
+  ],
+  [
+   8036,
+   742,
+   899
+  ],
+  [
+   8066,
+   742,
+   900
+  ],
+  [
+   8088,
+   742,
+   900
+  ],
+  [
+   8116,
+   742,
+   900
+  ],
+  [
+   8145,
+   742,
+   900
+  ],
+  [
+   8173,
+   742,
+   900
+  ],
+  [
+   8203,
+   742,
+   900
+  ],
+  [
+   8230,
+   742,
+   900
+  ],
+  [
+   8255,
+   742,
+   900
+  ],
+  [
+   8283,
+   742,
+   900
+  ],
+  [
+   8313,
+   742,
+   900
+  ],
+  [
+   8341,
+   742,
+   900
+  ],
+  [
+   8371,
+   742,
+   900
+  ],
+  [
+   8396,
+   742,
+   900
+  ],
+  [
+   8420,
+   742,
+   900
+  ],
+  [
+   8445,
+   742,
+   900
+  ],
+  [
+   8472,
+   742,
+   900
+  ],
+  [
+   8500,
+   742,
+   900
+  ],
+  [
+   8525,
+   742,
+   900
+  ],
+  [
+   8555,
+   742,
+   900
+  ],
+  [
+   8580,
+   742,
+   900
+  ],
+  [
+   8607,
+   742,
+   900
+  ],
+  [
+   8637,
+   742,
+   900
+  ],
+  [
+   8660,
+   742,
+   900
+  ],
+  [
+   8685,
+   742,
+   900
+  ],
+  [
+   8714,
+   742,
+   900
+  ],
+  [
+   8735,
+   742,
+   899
+  ],
+  [
+   8762,
+   742,
+   900
+  ],
+  [
+   8790,
+   742,
+   900
+  ],
+  [
+   8818,
+   742,
+   900
+  ],
+  [
+   8838,
+   742,
+   899
+  ],
+  [
+   8860,
+   742,
+   900
+  ],
+  [
+   8881,
+   742,
+   900
+  ],
+  [
+   8906,
+   742,
+   899
+  ],
+  [
+   8930,
+   742,
+   900
+  ],
+  [
+   8960,
+   742,
+   900
+  ],
+  [
+   8988,
+   742,
+   900
+  ],
+  [
+   9018,
+   743,
+   900
+  ],
+  [
+   9043,
+   742,
+   900
+  ],
+  [
+   9069,
+   742,
+   899
+  ],
+  [
+   9095,
+   742,
+   900
+  ],
+  [
+   9121,
+   742,
+   900
+  ],
+  [
+   9141,
+   742,
+   900
+  ],
+  [
+   9163,
+   742,
+   900
+  ],
+  [
+   9185,
+   742,
+   900
+  ],
+  [
+   9211,
+   743,
+   900
+  ],
+  [
+   9239,
+   742,
+   900
+  ],
+  [
+   9259,
+   742,
+   900
+  ],
+  [
+   9280,
+   742,
+   900
+  ],
+  [
+   9310,
+   742,
+   900
+  ],
+  [
+   9333,
+   742,
+   899
+  ],
+  [
+   9356,
+   742,
+   900
+  ],
+  [
+   9378,
+   742,
+   900
+  ],
+  [
+   9408,
+   743,
+   900
+  ],
+  [
+   9436,
+   743,
+   900
+  ],
+  [
+   9464,
+   742,
+   899
+  ],
+  [
+   9494,
+   742,
+   900
+  ],
+  [
+   9518,
+   742,
+   900
+  ],
+  [
+   9545,
+   742,
+   900
+  ],
+  [
+   9571,
+   742,
+   900
+  ],
+  [
+   9598,
+   742,
+   900
+  ],
+  [
+   9620,
+   742,
+   900
+  ],
+  [
+   9649,
+   743,
+   900
+  ],
+  [
+   9676,
+   742,
+   899
+  ],
+  [
+   9703,
+   742,
+   899
+  ],
+  [
+   9726,
+   742,
+   899
+  ],
+  [
+   9754,
+   742,
+   899
+  ],
+  [
+   9784,
+   742,
+   899
+  ],
+  [
+   9804,
+   742,
+   899
+  ],
+  [
+   9834,
+   742,
+   899
+  ],
+  [
+   9857,
+   742,
+   899
+  ],
+  [
+   9878,
+   742,
+   899
+  ],
+  [
+   9908,
+   742,
+   899
+  ],
+  [
+   9932,
+   742,
+   899
+  ],
+  [
+   9962,
+   742,
+   899
+  ],
+  [
+   9991,
+   742,
+   899
+  ],
+  [
+   10011,
+   742,
+   899
+  ],
+  [
+   10035,
+   742,
+   899
+  ],
+  [
+   10065,
+   743,
+   899
+  ],
+  [
+   10087,
+   742,
+   899
+  ],
+  [
+   10116,
+   742,
+   898
+  ],
+  [
+   10143,
+   742,
+   898
+  ],
+  [
+   10170,
+   742,
+   898
+  ],
+  [
+   10201,
+   742,
+   898
+  ],
+  [
+   10231,
+   742,
+   898
+  ],
+  [
+   10256,
+   742,
+   898
+  ],
+  [
+   10281,
+   743,
+   898
+  ],
+  [
+   10306,
+   742,
+   898
+  ],
+  [
+   10330,
+   743,
+   898
+  ],
+  [
+   10355,
+   743,
+   898
+  ],
+  [
+   10385,
+   743,
+   898
+  ],
+  [
+   10408,
+   743,
+   898
+  ],
+  [
+   10438,
+   743,
+   898
+  ],
+  [
+   10462,
+   743,
+   898
+  ],
+  [
+   10488,
+   742,
+   898
+  ],
+  [
+   10518,
+   743,
+   898
+  ],
+  [
+   10546,
+   742,
+   898
+  ],
+  [
+   10568,
+   742,
+   897
+  ],
+  [
+   10593,
+   742,
+   898
+  ],
+  [
+   10617,
+   742,
+   898
+  ],
+  [
+   10646,
+   743,
+   898
+  ],
+  [
+   10673,
+   743,
+   898
+  ],
+  [
+   10695,
+   743,
+   898
+  ],
+  [
+   10724,
+   743,
+   898
+  ],
+  [
+   10752,
+   743,
+   898
+  ],
+  [
+   10773,
+   743,
+   898
+  ],
+  [
+   10797,
+   743,
+   898
+  ],
+  [
+   10821,
+   743,
+   898
+  ],
+  [
+   10850,
+   743,
+   898
+  ],
+  [
+   10872,
+   743,
+   897
+  ],
+  [
+   10895,
+   743,
+   898
+  ],
+  [
+   10920,
+   743,
+   898
+  ],
+  [
+   10946,
+   743,
+   898
+  ],
+  [
+   10969,
+   743,
+   898
+  ],
+  [
+   10992,
+   743,
+   898
+  ],
+  [
+   11019,
+   743,
+   898
+  ],
+  [
+   11048,
+   745,
+   898
+  ],
+  [
+   11072,
+   743,
+   897
+  ]
+ ],
+ "stepTimes": [
+  [
+   64,
+   "—"
+  ],
+  [
+   444,
+   "renderer"
+  ],
+  [
+   500,
+   "sky"
+  ],
+  [
+   1192,
+   "terrain"
+  ],
+  [
+   1528,
+   "cards"
+  ],
+  [
+   1581,
+   "forest"
+  ],
+  [
+   1588,
+   "physics"
+  ],
+  [
+   1621,
+   "edge"
+  ],
+  [
+   1709,
+   "grass"
+  ],
+  [
+   1737,
+   "cabins"
+  ],
+  [
+   1767,
+   "props"
+  ],
+  [
+   3810,
+   "animals"
+  ],
+  [
+   3916,
+   "weapon"
+  ],
+  [
+   4102,
+   "menu"
+  ],
+  [
+   4228,
+   "shaders"
+  ],
+  [
+   4387,
+   "firstFrame"
+  ],
+  [
+   4500,
+   "audio"
+  ]
+ ],
+ "alloc": {
+  "totalMB": 386,
+  "smallByStepMB": {
+   "—": 0.1,
+   "renderer": 0,
+   "sky": 0,
+   "terrain": 0.1,
+   "cards": 0,
+   "forest": 0,
+   "physics": 0.1,
+   "edge": 0,
+   "grass": 0,
+   "cabins": 0,
+   "props": 39.8,
+   "animals": 5.6,
+   "weapon": 1.5,
+   "menu": 1.5,
+   "shaders": 0,
+   "firstFrame": 0.1,
+   "audio": 0.3
+  },
+  "byKind": {
+   "Uint32Array": 1.7,
+   "Uint8Array": 33.5,
+   "ArrayBuffer.slice": 11.4,
+   "Uint8ClampedArray": 0,
+   "Float32Array": 73.2,
+   "Float64Array": 0,
+   "Uint16Array": 7,
+   "Response.arrayBuffer": 24.8,
+   "Blob.arrayBuffer": 0.4,
+   "ImageBitmap": 49.2,
+   "AudioBuffer": 179,
+   "Int32Array": 6.2
+  },
+  "byStep": [
+   {
+    "step": "—",
+    "MB": 1.4,
+    "top": [
+     [
+      0.5,
+      2,
+      "Float32Array @[native code] < GrassTrample@assets/main-BU5WGlTV.js:86445:15 < module code@assets/main-BU5WGlTV.js:86620:31"
+     ],
+     [
+      0.5,
+      1,
+      "Float32Array @[native code] < module code@assets/main-BU5WGlTV.js:86262:31"
+     ],
+     [
+      0.1,
+      1,
+      "Uint8Array @[native code] < GrassTrample@assets/main-BU5WGlTV.js:86445:15 < module code@assets/main-BU5WGlTV.js:86620:31"
+     ],
+     [
+      0.1,
+      1,
+      "Uint8Array @[native code] < from@[native code] < module code@assets/main-BU5WGlTV.js:26418:150"
+     ],
+     [
+      0,
+      1,
+      "Float64Array @[native code] < FrameCost@assets/main-BU5WGlTV.js:22886:15 < module code@assets/main-BU5WGlTV.js:23098:30"
+     ],
+     [
+      0,
+      3,
+      "Float32Array @[native code] < FrameCost@assets/main-BU5WGlTV.js:22886:15 < module code@assets/main-BU5WGlTV.js:23098:30"
+     ],
+     [
+      0,
+      1,
+      "Uint8Array @[native code] < unpack@assets/meshopt_decoder.module-4R4EFPW-.js:2944:30 < @assets/meshopt_decoder.module-4R4EFPW-.js:2937:52 < module code@assets/meshopt_decoder.module-4R4EFPW-.js:3074:3"
+     ],
+     [
+      0,
+      1,
+      "ArrayBuffer.slice @assets/meshopt_decoder.module-4R4EFPW-.js:2937:52 < module code@assets/meshopt_decoder.module-4R4EFPW-.js:3074:3"
+     ],
+     [
+      0,
+      1,
+      "Uint32Array @[native code] < _generateTables@assets/three.module-Cb6C0Pqv.js:12191:55 < module code@assets/three.module-Cb6C0Pqv.js:12155:44"
+     ],
+     [
+      0,
+      1,
+      "Float32Array @[native code] < Float32BufferAttribute@assets/three.module-Cb6C0Pqv.js:13012:25 < PolyhedronGeometry@assets/three.module-Cb6C0Pqv.js:21501:59 < IcosahedronGeometry@assets/three.module-Cb6C0Pqv.js:24846:8 < icoDirs@assets/main-BU5WGlTV.js:88354:35 < module code@assets/main-BU5WGlTV.js:88364:21"
+     ],
+     [
+      0,
+      1,
+      "Float32Array @[native code] < Float32BufferAttribute@assets/three.module-Cb6C0Pqv.js:13012:25 < PolyhedronGeometry@assets/three.module-Cb6C0Pqv.js:21502:57 < IcosahedronGeometry@assets/three.module-Cb6C0Pqv.js:24846:8 < icoDirs@assets/main-BU5WGlTV.js:88354:35 < module code@assets/main-BU5WGlTV.js:88364:21"
+     ],
+     [
+      0,
+      1,
+      "Float32Array @[native code] < Float32BufferAttribute@assets/three.module-Cb6C0Pqv.js:13012:25 < PolyhedronGeometry@assets/three.module-Cb6C0Pqv.js:21501:59 < IcosahedronGeometry@assets/three.module-Cb6C0Pqv.js:24846:8 < @assets/main-BU5WGlTV.js:97878:35 < module code@assets/main-BU5WGlTV.js:97887:3"
+     ],
+     [
+      0,
+      1,
+      "Float32Array @[native code] < Float32BufferAttribute@assets/three.module-Cb6C0Pqv.js:13012:25 < PolyhedronGeometry@assets/three.module-Cb6C0Pqv.js:21502:57 < IcosahedronGeometry@assets/three.module-Cb6C0Pqv.js:24846:8 < @assets/main-BU5WGlTV.js:97878:35 < module code@assets/main-BU5WGlTV.js:97887:3"
+     ],
+     [
+      0,
+      1,
+      "Float32Array @[native code] < Float32BufferAttribute@assets/three.module-Cb6C0Pqv.js:13012:25 < PolyhedronGeometry@assets/three.module-Cb6C0Pqv.js:21503:53 < IcosahedronGeometry@assets/three.module-Cb6C0Pqv.js:24846:8 < icoDirs@assets/main-BU5WGlTV.js:88354:35 < module code@assets/main-BU5WGlTV.js:88364:21"
+     ],
+     [
+      0,
+      1,
+      "Float32Array @[native code] < Float32BufferAttribute@assets/three.module-Cb6C0Pqv.js:13012:25 < PolyhedronGeometry@assets/three.module-Cb6C0Pqv.js:21503:53 < IcosahedronGeometry@assets/three.module-Cb6C0Pqv.js:24846:8 < @assets/main-BU5WGlTV.js:97878:35 < module code@assets/main-BU5WGlTV.js:97887:3"
+     ]
+    ]
+   },
+   {
+    "step": "renderer",
+    "MB": 1,
+    "top": [
+     [
+      1,
+      1,
+      "Uint16Array @[native code] < paintSky@assets/main-BU5WGlTV.js:34516:30 < setupHDRI@assets/main-BU5WGlTV.js:33871:53 < build@assets/main-BU5WGlTV.js:33710:119 < buildSky@assets/main-BU5WGlTV.js:37859:74 < run@assets/main-BU5WGlTV.js:29276:27"
+     ]
+    ]
+   },
+   {
+    "step": "sky",
+    "MB": 39.6,
+    "top": [
+     [
+      5.6,
+      1,
+      "Uint8Array @[native code] < rasterCumulus@assets/main-BU5WGlTV.js:28480:29 < makeCumulusAtlas@assets/main-BU5WGlTV.js:28578:46 < buildPainterlyClouds@assets/main-BU5WGlTV.js:28634:32 < buildClouds@assets/main-BU5WGlTV.js:34149:38 < build@assets/main-BU5WGlTV.js:33803:20"
+     ],
+     [
+      5.6,
+      1,
+      "Float32Array @[native code] < rasterCumulus@assets/main-BU5WGlTV.js:28481:31 < makeCumulusAtlas@assets/main-BU5WGlTV.js:28578:46 < buildPainterlyClouds@assets/main-BU5WGlTV.js:28634:32 < buildClouds@assets/main-BU5WGlTV.js:34149:38 < build@assets/main-BU5WGlTV.js:33803:20"
+     ],
+     [
+      5.6,
+      1,
+      "Float32Array @[native code] < rasterCumulus@assets/main-BU5WGlTV.js:28522:37 < makeCumulusAtlas@assets/main-BU5WGlTV.js:28578:46 < buildPainterlyClouds@assets/main-BU5WGlTV.js:28634:32 < buildClouds@assets/main-BU5WGlTV.js:34149:38 < build@assets/main-BU5WGlTV.js:33803:20"
+     ],
+     [
+      5.6,
+      1,
+      "Float32Array @[native code] < rasterCumulus@assets/main-BU5WGlTV.js:28522:68 < makeCumulusAtlas@assets/main-BU5WGlTV.js:28578:46 < buildPainterlyClouds@assets/main-BU5WGlTV.js:28634:32 < buildClouds@assets/main-BU5WGlTV.js:34149:38 < build@assets/main-BU5WGlTV.js:33803:20"
+     ],
+     [
+      4.2,
+      1,
+      "Uint8Array @[native code] < rasterCumulus@assets/main-BU5WGlTV.js:28480:29 < makePuffSheet@assets/main-BU5WGlTV.js:28593:46 < buildPainterlyClouds@assets/main-BU5WGlTV.js:28678:29 < buildClouds@assets/main-BU5WGlTV.js:34149:38 < build@assets/main-BU5WGlTV.js:33803:20"
+     ],
+     [
+      4.2,
+      1,
+      "Float32Array @[native code] < rasterCumulus@assets/main-BU5WGlTV.js:28481:31 < makePuffSheet@assets/main-BU5WGlTV.js:28593:46 < buildPainterlyClouds@assets/main-BU5WGlTV.js:28678:29 < buildClouds@assets/main-BU5WGlTV.js:34149:38 < build@assets/main-BU5WGlTV.js:33803:20"
+     ],
+     [
+      4.2,
+      1,
+      "Float32Array @[native code] < rasterCumulus@assets/main-BU5WGlTV.js:28522:37 < makePuffSheet@assets/main-BU5WGlTV.js:28593:46 < buildPainterlyClouds@assets/main-BU5WGlTV.js:28678:29 < buildClouds@assets/main-BU5WGlTV.js:34149:38 < build@assets/main-BU5WGlTV.js:33803:20"
+     ],
+     [
+      4.2,
+      1,
+      "Float32Array @[native code] < rasterCumulus@assets/main-BU5WGlTV.js:28522:68 < makePuffSheet@assets/main-BU5WGlTV.js:28593:46 < buildPainterlyClouds@assets/main-BU5WGlTV.js:28678:29 < buildClouds@assets/main-BU5WGlTV.js:34149:38 < build@assets/main-BU5WGlTV.js:33803:20"
+     ],
+     [
+      0.3,
+      1,
+      "Response.arrayBuffer async loadNavmesh@assets/main-BU5WGlTV.js:60575:53"
+     ],
+     [
+      0,
+      1,
+      "Float32Array @[native code] < Float32BufferAttribute@assets/three.module-Cb6C0Pqv.js:13012:25 < SphereGeometry@assets/three.module-Cb6C0Pqv.js:25561:59 < buildGasGiant@assets/main-BU5WGlTV.js:34373:43 < buildPlanet@assets/main-BU5WGlTV.js:34292:22 < build@assets/main-BU5WGlTV.js:33777:19"
+     ],
+     [
+      0,
+      1,
+      "Float32Array @[native code] < Float32BufferAttribute@assets/three.module-Cb6C0Pqv.js:13012:25 < SphereGeometry@assets/three.module-Cb6C0Pqv.js:25562:57 < buildGasGiant@assets/main-BU5WGlTV.js:34373:43 < buildPlanet@assets/main-BU5WGlTV.js:34292:22 < build@assets/main-BU5WGlTV.js:33777:19"
+     ],
+     [
+      0,
+      1,
+      "Uint16Array @[native code] < Uint16BufferAttribute@assets/three.module-Cb6C0Pqv.js:12860:24 < setIndex@assets/three.module-Cb6C0Pqv.js:13495:119 < SphereGeometry@assets/three.module-Cb6C0Pqv.js:25560:16 < buildGasGiant@assets/main-BU5WGlTV.js:34373:43 < buildPlanet@assets/main-BU5WGlTV.js:34292:22"
+     ],
+     [
+      0,
+      1,
+      "Float32Array @[native code] < Float32BufferAttribute@assets/three.module-Cb6C0Pqv.js:13012:25 < SphereGeometry@assets/three.module-Cb6C0Pqv.js:25561:59 < buildClouds@assets/main-BU5WGlTV.js:34139:33 < build@assets/main-BU5WGlTV.js:33803:20 < async buildSky@assets/main-BU5WGlTV.js:37859:74"
+     ],
+     [
+      0,
+      1,
+      "Float32Array @[native code] < Float32BufferAttribute@assets/three.module-Cb6C0Pqv.js:13012:25 < SphereGeometry@assets/three.module-Cb6C0Pqv.js:25562:57 < buildClouds@assets/main-BU5WGlTV.js:34139:33 < build@assets/main-BU5WGlTV.js:33803:20 < async buildSky@assets/main-BU5WGlTV.js:37859:74"
+     ],
+     [
+      0,
+      1,
+      "Uint16Array @[native code] < Uint16BufferAttribute@assets/three.module-Cb6C0Pqv.js:12860:24 < setIndex@assets/three.module-Cb6C0Pqv.js:13495:119 < SphereGeometry@assets/three.module-Cb6C0Pqv.js:25560:16 < buildClouds@assets/main-BU5WGlTV.js:34139:33 < build@assets/main-BU5WGlTV.js:33803:20"
+     ]
+    ]
+   },
+   {
+    "step": "terrain",
+    "MB": 56.9,
+    "top": [
+     [
+      27,
+      3,
+      "AudioBuffer "
+     ],
+     [
+      8.2,
+      16,
+      "Response.arrayBuffer @assets/main-BU5WGlTV.js:113693:39"
+     ],
+     [
+      5.2,
+      5,
+      "ImageBitmap async fetchImage@assets/ktx2-C85RUgwT.js:945:33 < async loadTexture$1@assets/main-BU5WGlTV.js:27444:31"
+     ],
+     [
+      4,
+      35,
+      "Response.arrayBuffer "
+     ],
+     [
+      2,
+      26,
+      "ArrayBuffer.slice @assets/main-BU5WGlTV.js:110610:37 < async decodeSfxSet@assets/main-BU5WGlTV.js:110608:19"
+     ],
+     [
+      1.6,
+      1,
+      "Uint32Array @[native code] < buildPainterlyGeometry@assets/main-BU5WGlTV.js:39815:46 < buildPainterly@assets/main-BU5WGlTV.js:39742:17"
+     ],
+     [
+      1,
+      1,
+      "Float32Array @[native code] < buildPainterlyGeometry@assets/main-BU5WGlTV.js:39765:32 < buildPainterly@assets/main-BU5WGlTV.js:39742:17"
+     ],
+     [
+      1,
+      2,
+      "ArrayBuffer.slice @assets/main-BU5WGlTV.js:113295:34 < @assets/main-BU5WGlTV.js:113304:45 < async decodeSteppe@assets/main-BU5WGlTV.js:113300:19"
+     ],
+     [
+      0.8,
+      1,
+      "Float32Array @[native code] < buildPainterlyGeometry@assets/main-BU5WGlTV.js:39764:31 < buildPainterly@assets/main-BU5WGlTV.js:39742:17"
+     ],
+     [
+      0.8,
+      1,
+      "Float32Array @[native code] < buildPainterlyGeometry@assets/main-BU5WGlTV.js:39764:70 < buildPainterly@assets/main-BU5WGlTV.js:39742:17"
+     ],
+     [
+      0.8,
+      1,
+      "Float32Array @[native code] < buildPainterlyGeometry@assets/main-BU5WGlTV.js:39764:109 < buildPainterly@assets/main-BU5WGlTV.js:39742:17"
+     ],
+     [
+      0.8,
+      1,
+      "Float32Array @[native code] < buildPainterlyGeometry@assets/main-BU5WGlTV.js:39766:32 < buildPainterly@assets/main-BU5WGlTV.js:39742:17"
+     ],
+     [
+      0.8,
+      1,
+      "ArrayBuffer.slice @assets/BootSettings-Cmb7PeFS.js:9892:28 < @assets/BootSettings-Cmb7PeFS.js:9908:56 < async decodeStyle@assets/BootSettings-Cmb7PeFS.js:9904:19"
+     ],
+     [
+      0.5,
+      1,
+      "Response.arrayBuffer async loadBakedTerrain@assets/main-BU5WGlTV.js:38708:55 < async buildPainterly@assets/main-BU5WGlTV.js:39724:36"
+     ],
+     [
+      0.5,
+      1,
+      "Float32Array @[native code] < buildPainterlyGeometry@assets/main-BU5WGlTV.js:39765:72 < buildPainterly@assets/main-BU5WGlTV.js:39742:17"
+     ]
+    ]
+   },
+   {
+    "step": "cards",
+    "MB": 1.5,
+    "top": [
+     [
+      0.8,
+      1,
+      "AudioBuffer "
+     ],
+     [
+      0.3,
+      1,
+      "Float32Array @[native code] < buildCanopyMap@assets/main-BU5WGlTV.js:40893:41 < build@assets/main-BU5WGlTV.js:40774:39 < @assets/main-BU5WGlTV.js:61488:43 < run@assets/main-BU5WGlTV.js:29276:27 < step@assets/main-BU5WGlTV.js:29287:27"
+     ],
+     [
+      0.3,
+      1,
+      "Float32Array @[native code] < applyCanopy@assets/main-BU5WGlTV.js:39623:34 < @assets/main-BU5WGlTV.js:61491:22 < run@assets/main-BU5WGlTV.js:29276:27 < step@assets/main-BU5WGlTV.js:29287:27 < step@assets/main-BU5WGlTV.js:158769:39"
+     ],
+     [
+      0,
+      1,
+      "Uint16Array @[native code] < _initializeGeometry@assets/three.module-Cb6C0Pqv.js:18808:97 < addGeometry@assets/three.module-Cb6C0Pqv.js:18939:27 < map@[native code] < mk@assets/main-BU5WGlTV.js:40843:24 < buildBatched@assets/main-BU5WGlTV.js:40850:21"
+     ],
+     [
+      0,
+      2,
+      "Float32Array @[native code] < Float32BufferAttribute@assets/three.module-Cb6C0Pqv.js:13012:25 < build@assets/main-BU5WGlTV.js:40489:56 < build@assets/main-BU5WGlTV.js:40679:22 < run@assets/main-BU5WGlTV.js:29276:27 < step@assets/main-BU5WGlTV.js:29287:27"
+     ],
+     [
+      0,
+      2,
+      "Float32Array @[native code] < Float32BufferAttribute@assets/three.module-Cb6C0Pqv.js:13012:25 < build@assets/main-BU5WGlTV.js:40490:54 < build@assets/main-BU5WGlTV.js:40679:22 < run@assets/main-BU5WGlTV.js:29276:27 < step@assets/main-BU5WGlTV.js:29287:27"
+     ],
+     [
+      0,
+      2,
+      "Float32Array @[native code] < Float32BufferAttribute@assets/three.module-Cb6C0Pqv.js:13012:25 < build@assets/main-BU5WGlTV.js:40491:53 < build@assets/main-BU5WGlTV.js:40679:22 < run@assets/main-BU5WGlTV.js:29276:27 < step@assets/main-BU5WGlTV.js:29287:27"
+     ],
+     [
+      0,
+      2,
+      "Uint16Array @[native code] < Uint16BufferAttribute@assets/three.module-Cb6C0Pqv.js:12860:24 < setIndex@assets/three.module-Cb6C0Pqv.js:13495:119 < build@assets/main-BU5WGlTV.js:40488:13 < build@assets/main-BU5WGlTV.js:40679:22 < run@assets/main-BU5WGlTV.js:29276:27"
+     ],
+     [
+      0,
+      1,
+      "Float32Array @[native code] < _initMatricesTexture@assets/three.module-Cb6C0Pqv.js:18781:59 < BatchedMesh@assets/three.module-Cb6C0Pqv.js:18738:28 < mk@assets/main-BU5WGlTV.js:40837:30 < buildBatched@assets/main-BU5WGlTV.js:40850:21 < build@assets/main-BU5WGlTV.js:40791:21"
+     ],
+     [
+      0,
+      1,
+      "Float32Array @[native code] < _initMatricesTexture@assets/three.module-Cb6C0Pqv.js:18781:59 < BatchedMesh@assets/three.module-Cb6C0Pqv.js:18738:28 < mk@assets/main-BU5WGlTV.js:40837:30 < buildBatched@assets/main-BU5WGlTV.js:40852:17 < build@assets/main-BU5WGlTV.js:40791:21"
+     ],
+     [
+      0,
+      1,
+      "Float32Array @[native code] < _initMatricesTexture@assets/three.module-Cb6C0Pqv.js:18781:59 < BatchedMesh@assets/three.module-Cb6C0Pqv.js:18738:28 < mk@assets/main-BU5WGlTV.js:40837:30 < buildBatched@assets/main-BU5WGlTV.js:40854:18 < build@assets/main-BU5WGlTV.js:40791:21"
+     ],
+     [
+      0,
+      1,
+      "Float32Array @[native code] < _initMatricesTexture@assets/three.module-Cb6C0Pqv.js:18781:59 < BatchedMesh@assets/three.module-Cb6C0Pqv.js:18738:28 < mk@assets/main-BU5WGlTV.js:40837:30 < buildBatched@assets/main-BU5WGlTV.js:40855:19 < build@assets/main-BU5WGlTV.js:40791:21"
+     ],
+     [
+      0,
+      1,
+      "Float32Array @[native code] < build@assets/main-BU5WGlTV.js:40779:31 < @assets/main-BU5WGlTV.js:61488:43 < run@assets/main-BU5WGlTV.js:29276:27 < step@assets/main-BU5WGlTV.js:29287:27 < step@assets/main-BU5WGlTV.js:158769:39"
+     ],
+     [
+      0,
+      1,
+      "Float32Array @[native code] < Float32BufferAttribute@assets/three.module-Cb6C0Pqv.js:13012:25 < build@assets/main-BU5WGlTV.js:40489:56 < build@assets/main-BU5WGlTV.js:40681:20 < run@assets/main-BU5WGlTV.js:29276:27 < step@assets/main-BU5WGlTV.js:29287:27"
+     ],
+     [
+      0,
+      1,
+      "Float32Array @[native code] < Float32BufferAttribute@assets/three.module-Cb6C0Pqv.js:13012:25 < build@assets/main-BU5WGlTV.js:40490:54 < build@assets/main-BU5WGlTV.js:40681:20 < run@assets/main-BU5WGlTV.js:29276:27 < step@assets/main-BU5WGlTV.js:29287:27"
+     ]
+    ]
+   },
+   {
+    "step": "forest",
+    "MB": 0,
+    "top": [
+     [
+      0,
+      1,
+      "Response.arrayBuffer "
+     ],
+     [
+      0,
+      1,
+      "ArrayBuffer.slice @assets/main-BU5WGlTV.js:110610:37 < async decodeSfxSet@assets/main-BU5WGlTV.js:110608:19"
+     ]
+    ]
+   },
+   {
+    "step": "physics",
+    "MB": 1.1,
+    "top": [
+     [
+      0.3,
+      1,
+      "Float32Array @[native code] < terrainGrid@assets/main-BU5WGlTV.js:61043:30 < addTerrain@assets/main-BU5WGlTV.js:61068:48 < @assets/main-BU5WGlTV.js:61498:44 < async run@assets/main-BU5WGlTV.js:29276:27 < async step@assets/main-BU5WGlTV.js:29287:27"
+     ],
+     [
+      0.3,
+      1,
+      "Float32Array @[native code] < toColumnMajor@assets/main-BU5WGlTV.js:61050:30 < buildGround@assets/main-BU5WGlTV.js:61059:73 < addTerrain@assets/main-BU5WGlTV.js:61069:30 < @assets/main-BU5WGlTV.js:61498:44 < async run@assets/main-BU5WGlTV.js:29276:27"
+     ],
+     [
+      0.2,
+      21,
+      "Response.arrayBuffer "
+     ],
+     [
+      0.2,
+      21,
+      "ArrayBuffer.slice @assets/main-BU5WGlTV.js:110610:37 < async decodeSfxSet@assets/main-BU5WGlTV.js:110608:19"
+     ],
+     [
+      0,
+      1,
+      "Float32Array @[native code] < Float32BufferAttribute@assets/three.module-Cb6C0Pqv.js:13012:25 < build@assets/main-BU5WGlTV.js:61630:62 < @assets/main-BU5WGlTV.js:158828:43 < run@assets/main-BU5WGlTV.js:29276:27 < step@assets/main-BU5WGlTV.js:29287:27"
+     ],
+     [
+      0,
+      4,
+      "Float32Array @[native code] < Float32BufferAttribute@assets/three.module-Cb6C0Pqv.js:13012:25 < PlaneGeometry@assets/three.module-Cb6C0Pqv.js:25230:59 < build@assets/main-BU5WGlTV.js:61646:33 < @assets/main-BU5WGlTV.js:158828:43 < run@assets/main-BU5WGlTV.js:29276:27"
+     ],
+     [
+      0,
+      4,
+      "Float32Array @[native code] < Float32BufferAttribute@assets/three.module-Cb6C0Pqv.js:13012:25 < PlaneGeometry@assets/three.module-Cb6C0Pqv.js:25231:57 < build@assets/main-BU5WGlTV.js:61646:33 < @assets/main-BU5WGlTV.js:158828:43 < run@assets/main-BU5WGlTV.js:29276:27"
+     ],
+     [
+      0,
+      1,
+      "Float32Array @[native code] < Float32BufferAttribute@assets/three.module-Cb6C0Pqv.js:13012:25 < ExtrudeGeometry@assets/three.module-Cb6C0Pqv.js:24405:59 < Hoverboard@assets/main-BU5WGlTV.js:44105:38 < Player@assets/main-BU5WGlTV.js:45582:30 < bootstrap@assets/main-BU5WGlTV.js:61506:27"
+     ],
+     [
+      0,
+      1,
+      "Float32Array @[native code] < computeVertexNormals@assets/three.module-Cb6C0Pqv.js:13936:59 < ExtrudeGeometry@assets/three.module-Cb6C0Pqv.js:24407:28 < Hoverboard@assets/main-BU5WGlTV.js:44105:38 < Player@assets/main-BU5WGlTV.js:45582:30 < bootstrap@assets/main-BU5WGlTV.js:61506:27"
+     ],
+     [
+      0,
+      1,
+      "Float32Array @[native code] < Float32BufferAttribute@assets/three.module-Cb6C0Pqv.js:13012:25 < ExtrudeGeometry@assets/three.module-Cb6C0Pqv.js:24405:59 < Hoverboard@assets/main-BU5WGlTV.js:44136:39 < Player@assets/main-BU5WGlTV.js:45582:30 < bootstrap@assets/main-BU5WGlTV.js:61506:27"
+     ],
+     [
+      0,
+      1,
+      "Float32Array @[native code] < computeVertexNormals@assets/three.module-Cb6C0Pqv.js:13936:59 < ExtrudeGeometry@assets/three.module-Cb6C0Pqv.js:24407:28 < Hoverboard@assets/main-BU5WGlTV.js:44136:39 < Player@assets/main-BU5WGlTV.js:45582:30 < bootstrap@assets/main-BU5WGlTV.js:61506:27"
+     ],
+     [
+      0,
+      1,
+      "Float32Array @[native code] < Float32BufferAttribute@assets/three.module-Cb6C0Pqv.js:13012:25 < ExtrudeGeometry@assets/three.module-Cb6C0Pqv.js:24406:53 < Hoverboard@assets/main-BU5WGlTV.js:44105:38 < Player@assets/main-BU5WGlTV.js:45582:30 < bootstrap@assets/main-BU5WGlTV.js:61506:27"
+     ],
+     [
+      0,
+      1,
+      "Uint16Array @[native code] < Uint16BufferAttribute@assets/three.module-Cb6C0Pqv.js:12860:24 < setIndex@assets/three.module-Cb6C0Pqv.js:13495:119 < mergeGeometries@assets/meshopt_decoder.module-4R4EFPW-.js:71:26 < build@assets/main-BU5WGlTV.js:61657:42 < @assets/main-BU5WGlTV.js:158828:43"
+     ],
+     [
+      0,
+      1,
+      "Float32Array @[native code] < Float32BufferAttribute@assets/three.module-Cb6C0Pqv.js:13012:25 < ExtrudeGeometry@assets/three.module-Cb6C0Pqv.js:24406:53 < Hoverboard@assets/main-BU5WGlTV.js:44136:39 < Player@assets/main-BU5WGlTV.js:45582:30 < bootstrap@assets/main-BU5WGlTV.js:61506:27"
+     ],
+     [
+      0,
+      1,
+      "Float32Array @[native code] < Float32BufferAttribute@assets/three.module-Cb6C0Pqv.js:13012:25 < ExtrudeGeometry@assets/three.module-Cb6C0Pqv.js:24405:59 < Hoverboard@assets/main-BU5WGlTV.js:44122:38 < Player@assets/main-BU5WGlTV.js:45582:30 < bootstrap@assets/main-BU5WGlTV.js:61506:27"
+     ]
+    ]
+   },
+   {
+    "step": "edge",
+    "MB": 21.8,
+    "top": [
+     [
+      18.2,
+      1,
+      "AudioBuffer "
+     ],
+     [
+      1,
+      1,
+      "Uint8Array @[native code] < GrassV2@assets/main-BU5WGlTV.js:90840:15 < build@assets/main-BU5WGlTV.js:91256:25 < @assets/main-BU5WGlTV.js:159065:59 < run@assets/main-BU5WGlTV.js:29276:27 < step@assets/main-BU5WGlTV.js:29287:27"
+     ],
+     [
+      1,
+      1,
+      "Uint8Array @[native code] < bakeMask@assets/main-BU5WGlTV.js:91051:27 < build@assets/main-BU5WGlTV.js:90979:16 < build@assets/main-BU5WGlTV.js:91256:54 < @assets/main-BU5WGlTV.js:159065:59 < run@assets/main-BU5WGlTV.js:29276:27"
+     ],
+     [
+      0.5,
+      1,
+      "Uint16Array @[native code] < terrainHeightTexture@assets/main-BU5WGlTV.js:90810:28 < GrassV2@assets/main-BU5WGlTV.js:90844:39 < build@assets/main-BU5WGlTV.js:91256:25 < @assets/main-BU5WGlTV.js:159065:59 < run@assets/main-BU5WGlTV.js:29276:27"
+     ],
+     [
+      0.3,
+      18,
+      "Response.arrayBuffer "
+     ],
+     [
+      0.3,
+      18,
+      "ArrayBuffer.slice @assets/main-BU5WGlTV.js:110610:37 < async decodeSfxSet@assets/main-BU5WGlTV.js:110608:19"
+     ],
+     [
+      0.1,
+      2,
+      "Float32Array @[native code] < Float32BufferAttribute@assets/three.module-Cb6C0Pqv.js:13012:25 < @assets/main-BU5WGlTV.js:33319:59 < forEach@[native code] < buildBands@assets/main-BU5WGlTV.js:33247:18 < build@assets/main-BU5WGlTV.js:33214:19"
+     ],
+     [
+      0.1,
+      2,
+      "Float32Array @[native code] < Float32BufferAttribute@assets/three.module-Cb6C0Pqv.js:13012:25 < @assets/main-BU5WGlTV.js:33320:57 < forEach@[native code] < buildBands@assets/main-BU5WGlTV.js:33247:18 < build@assets/main-BU5WGlTV.js:33214:19"
+     ],
+     [
+      0.1,
+      2,
+      "Float32Array @[native code] < Float32BufferAttribute@assets/three.module-Cb6C0Pqv.js:13012:25 < @assets/main-BU5WGlTV.js:33321:56 < forEach@[native code] < buildBands@assets/main-BU5WGlTV.js:33247:18 < build@assets/main-BU5WGlTV.js:33214:19"
+     ],
+     [
+      0.1,
+      2,
+      "Uint16Array @[native code] < Uint16BufferAttribute@assets/three.module-Cb6C0Pqv.js:12860:24 < setIndex@assets/three.module-Cb6C0Pqv.js:13495:119 < @assets/main-BU5WGlTV.js:33322:16 < forEach@[native code] < buildBands@assets/main-BU5WGlTV.js:33247:18"
+     ],
+     [
+      0.1,
+      1,
+      "Uint8Array @[native code] < GrassV2@assets/main-BU5WGlTV.js:90845:28 < build@assets/main-BU5WGlTV.js:91256:25 < @assets/main-BU5WGlTV.js:159065:59 < run@assets/main-BU5WGlTV.js:29276:27 < step@assets/main-BU5WGlTV.js:29287:27"
+     ],
+     [
+      0.1,
+      1,
+      "Uint8Array @[native code] < GrassV2@assets/main-BU5WGlTV.js:90845:62 < build@assets/main-BU5WGlTV.js:91256:25 < @assets/main-BU5WGlTV.js:159065:59 < run@assets/main-BU5WGlTV.js:29276:27 < step@assets/main-BU5WGlTV.js:29287:27"
+     ],
+     [
+      0,
+      3,
+      "Float32Array @[native code] < tileTexture@assets/main-BU5WGlTV.js:90793:31 < @assets/main-BU5WGlTV.js:90902:29 < forEach@[native code] < build@assets/main-BU5WGlTV.js:90897:16 < build@assets/main-BU5WGlTV.js:91256:54"
+     ],
+     [
+      0,
+      1,
+      "Float32Array @[native code] < tileTexture@assets/main-BU5WGlTV.js:90793:31 < build@assets/main-BU5WGlTV.js:90943:101 < build@assets/main-BU5WGlTV.js:91256:54 < @assets/main-BU5WGlTV.js:159065:59 < run@assets/main-BU5WGlTV.js:29276:27"
+     ],
+     [
+      0,
+      1,
+      "Float32Array @[native code] < tileTexture@assets/main-BU5WGlTV.js:90793:31 < buildCards@assets/main-BU5WGlTV.js:90989:96 < build@assets/main-BU5WGlTV.js:90978:18 < build@assets/main-BU5WGlTV.js:91256:54 < @assets/main-BU5WGlTV.js:159065:59"
+     ]
+    ]
+   },
+   {
+    "step": "grass",
+    "MB": 9.7,
+    "top": [
+     [
+      9.1,
+      1,
+      "AudioBuffer "
+     ],
+     [
+      0.2,
+      15,
+      "Response.arrayBuffer "
+     ],
+     [
+      0.2,
+      13,
+      "ArrayBuffer.slice @assets/main-BU5WGlTV.js:110610:37 < async decodeSfxSet@assets/main-BU5WGlTV.js:110608:19"
+     ],
+     [
+      0.1,
+      1,
+      "Blob.arrayBuffer async imageSize@assets/ktx2-C85RUgwT.js:963:66 < async fetchImage@assets/ktx2-C85RUgwT.js:933:31 < async loadTexture$1@assets/main-BU5WGlTV.js:27444:31"
+     ],
+     [
+      0,
+      1,
+      "Float32Array @[native code] < buildMotes@assets/main-BU5WGlTV.js:62219:72 < build@assets/main-BU5WGlTV.js:62189:31 < @assets/main-BU5WGlTV.js:159068:67 < async run@assets/main-BU5WGlTV.js:29276:27 < async step@assets/main-BU5WGlTV.js:29287:27"
+     ],
+     [
+      0,
+      1,
+      "Float32Array @[native code] < buildMotes@assets/main-BU5WGlTV.js:62219:31 < build@assets/main-BU5WGlTV.js:62189:31 < @assets/main-BU5WGlTV.js:159068:67 < async run@assets/main-BU5WGlTV.js:29276:27 < async step@assets/main-BU5WGlTV.js:29287:27"
+     ],
+     [
+      0,
+      1,
+      "Float32Array @[native code] < InstancedMesh@assets/three.module-Cb6C0Pqv.js:18023:70 < buildNeedles@assets/main-BU5WGlTV.js:62434:33 < build@assets/main-BU5WGlTV.js:62191:35 < @assets/main-BU5WGlTV.js:159068:67 < async run@assets/main-BU5WGlTV.js:29276:27"
+     ],
+     [
+      0,
+      1,
+      "Float32Array @[native code] < InstancedMesh@assets/three.module-Cb6C0Pqv.js:18023:70 < buildMist@assets/main-BU5WGlTV.js:62310:33 < build@assets/main-BU5WGlTV.js:62190:29 < @assets/main-BU5WGlTV.js:159068:67 < async run@assets/main-BU5WGlTV.js:29276:27"
+     ]
+    ]
+   },
+   {
+    "step": "cabins",
+    "MB": 6.8,
+    "top": [
+     [
+      3.9,
+      3,
+      "AudioBuffer "
+     ],
+     [
+      2.1,
+      1,
+      "ImageBitmap async fetchImage@assets/ktx2-C85RUgwT.js:945:33 < async loadTexture$1@assets/main-BU5WGlTV.js:27444:31"
+     ],
+     [
+      0.3,
+      18,
+      "ArrayBuffer.slice @assets/main-BU5WGlTV.js:110610:37 < async decodeSfxSet@assets/main-BU5WGlTV.js:110608:19"
+     ],
+     [
+      0.2,
+      16,
+      "Response.arrayBuffer "
+     ],
+     [
+      0.1,
+      4,
+      "Float32Array @[native code] < Float32BufferAttribute@assets/three.module-Cb6C0Pqv.js:13012:25 < mesh@assets/main-BU5WGlTV.js:130341:92 < build@assets/main-BU5WGlTV.js:130242:28 < wireNalati@assets/main-BU5WGlTV.js:148756:42 < @assets/main-BU5WGlTV.js:159129:29"
+     ],
+     [
+      0.1,
+      1,
+      "Float32Array @[native code] < Float32BufferAttribute@assets/three.module-Cb6C0Pqv.js:13012:25 < mesh@assets/main-BU5WGlTV.js:130340:57 < build@assets/main-BU5WGlTV.js:130242:28 < wireNalati@assets/main-BU5WGlTV.js:148756:42 < @assets/main-BU5WGlTV.js:159129:29"
+     ],
+     [
+      0,
+      1,
+      "Uint16Array @[native code] < Uint16BufferAttribute@assets/three.module-Cb6C0Pqv.js:12860:24 < setIndex@assets/three.module-Cb6C0Pqv.js:13495:119 < mesh@assets/main-BU5WGlTV.js:130342:14 < build@assets/main-BU5WGlTV.js:130242:28 < wireNalati@assets/main-BU5WGlTV.js:148756:42"
+     ]
+    ]
+   },
+   {
+    "step": "props",
+    "MB": 211.5,
+    "top": [
+     [
+      120.1,
+      163,
+      "AudioBuffer "
+     ],
+     [
+      13.6,
+      13,
+      "ImageBitmap "
+     ],
+     [
+      12.5,
+      1,
+      "ImageBitmap async fetchImage@assets/ktx2-C85RUgwT.js:945:33 < async load@assets/main-BU5WGlTV.js:144595:28 < async wireLookV2@assets/main-BU5WGlTV.js:144742:35 < async wireNalati@assets/main-BU5WGlTV.js:148819:18 < @assets/main-BU5WGlTV.js:159129:29 < async run@assets/main-BU5WGlTV.js:29276:27"
+     ],
+     [
+      6.1,
+      16,
+      "Response.arrayBuffer @assets/main-BU5WGlTV.js:113693:39"
+     ],
+     [
+      4.7,
+      1,
+      "Uint8Array @[native code] < bakeSmoothAO@assets/main-BU5WGlTV.js:84785:29 < shade@assets/main-BU5WGlTV.js:84606:35 < finish@assets/main-BU5WGlTV.js:84583:29 < mesh@assets/main-BU5WGlTV.js:84630:33 < buildCampClutter@assets/main-BU5WGlTV.js:89320:23"
+     ],
+     [
+      3.3,
+      1,
+      "Uint8Array @[native code] < bakeSmoothAO@assets/main-BU5WGlTV.js:84785:29 < shade@assets/main-BU5WGlTV.js:84606:35 < finish@assets/main-BU5WGlTV.js:84583:29 < mesh@assets/main-BU5WGlTV.js:84630:33 < buildRoadFurniture@assets/main-BU5WGlTV.js:132740:23"
+     ],
+     [
+      2.2,
+      102,
+      "Float32Array @[native code] < add@assets/main-BU5WGlTV.js:84512:46 < buildOutcrops@assets/main-BU5WGlTV.js:130715:10 < wireNalati@assets/main-BU5WGlTV.js:148761:32 < @assets/main-BU5WGlTV.js:159129:29 < async run@assets/main-BU5WGlTV.js:29276:27"
+     ],
+     [
+      2,
+      68,
+      "Response.arrayBuffer "
+     ],
+     [
+      2,
+      93,
+      "Float32Array @[native code] < add@assets/main-BU5WGlTV.js:84512:46 < buildOutcrops@assets/main-BU5WGlTV.js:130881:10 < wireNalati@assets/main-BU5WGlTV.js:148761:32 < @assets/main-BU5WGlTV.js:159129:29 < async run@assets/main-BU5WGlTV.js:29276:27"
+     ],
+     [
+      2,
+      1,
+      "Uint8Array @[native code] < bakeSmoothAO@assets/main-BU5WGlTV.js:84785:29 < shade@assets/main-BU5WGlTV.js:84606:35 < finish@assets/main-BU5WGlTV.js:84583:29 < mesh@assets/main-BU5WGlTV.js:84630:33 < buildEagleRock@assets/main-BU5WGlTV.js:130648:23"
+     ],
+     [
+      1.3,
+      1,
+      "Float32Array @[native code] < InstancedMesh@assets/three.module-Cb6C0Pqv.js:18023:70 < DressLayer@assets/main-BU5WGlTV.js:86897:32 < add@assets/main-BU5WGlTV.js:90135:28 < build@assets/main-BU5WGlTV.js:90199:6 < async wireNalati@assets/main-BU5WGlTV.js:148788:66"
+     ],
+     [
+      1.3,
+      1,
+      "Float32Array @[native code] < DressLayer@assets/main-BU5WGlTV.js:86908:31 < add@assets/main-BU5WGlTV.js:90135:28 < build@assets/main-BU5WGlTV.js:90199:6 < async wireNalati@assets/main-BU5WGlTV.js:148788:66 < @assets/main-BU5WGlTV.js:159129:29"
+     ],
+     [
+      1.3,
+      1,
+      "Int32Array @[native code] < bakeSmoothAO@assets/main-BU5WGlTV.js:84813:30 < shade@assets/main-BU5WGlTV.js:84606:35 < finish@assets/main-BU5WGlTV.js:84583:29 < build@assets/main-BU5WGlTV.js:135331:25 < build@assets/main-BU5WGlTV.js:137792:21"
+     ],
+     [
+      1.3,
+      15,
+      "ArrayBuffer.slice GLTFBinaryExtension@assets/meshopt_decoder.module-4R4EFPW-.js:1326:27 < parse@assets/meshopt_decoder.module-4R4EFPW-.js:571:70 < value@assets/ktx2-C85RUgwT.js:2164:18 < @assets/meshopt_decoder.module-4R4EFPW-.js:490:16 < @assets/three.module-Cb6C0Pqv.js:31429:41"
+     ],
+     [
+      1,
+      1,
+      "ImageBitmap async fetchImage@assets/ktx2-C85RUgwT.js:945:33 < async loadTexture$1@assets/main-BU5WGlTV.js:27444:31"
+     ]
+    ]
+   },
+   {
+    "step": "animals",
+    "MB": 3.3,
+    "top": [
+     [
+      0.6,
+      12,
+      "Uint8Array @[native code] < @assets/meshopt_decoder.module-4R4EFPW-.js:3068:32"
+     ],
+     [
+      0.5,
+      15,
+      "Uint16Array @[native code] < Uint16BufferAttribute@assets/three.module-Cb6C0Pqv.js:12860:24 < setIndex@assets/three.module-Cb6C0Pqv.js:13495:119 < mergeGeometries@assets/meshopt_decoder.module-4R4EFPW-.js:71:26 < model@assets/main-BU5WGlTV.js:21824:33 < spawn@assets/main-BU5WGlTV.js:99307:35"
+     ],
+     [
+      0.5,
+      2,
+      "Response.arrayBuffer "
+     ],
+     [
+      0.5,
+      2,
+      "ArrayBuffer.slice GLTFBinaryExtension@assets/meshopt_decoder.module-4R4EFPW-.js:1326:27 < parse@assets/meshopt_decoder.module-4R4EFPW-.js:571:70 < value@assets/ktx2-C85RUgwT.js:2164:18 < @assets/meshopt_decoder.module-4R4EFPW-.js:490:16 < @assets/three.module-Cb6C0Pqv.js:31429:41"
+     ],
+     [
+      0.4,
+      15,
+      "Uint16Array @[native code] < Uint16BufferAttribute@assets/three.module-Cb6C0Pqv.js:12860:24 < setIndex@assets/three.module-Cb6C0Pqv.js:13495:119 < mergeGeometries@assets/meshopt_decoder.module-4R4EFPW-.js:71:26 < model@assets/main-BU5WGlTV.js:21821:33 < spawn@assets/main-BU5WGlTV.js:99307:35"
+     ],
+     [
+      0.1,
+      2,
+      "ArrayBuffer.slice "
+     ],
+     [
+      0.1,
+      2,
+      "Uint16Array @[native code] < Uint16BufferAttribute@assets/three.module-Cb6C0Pqv.js:12860:24 < setIndex@assets/three.module-Cb6C0Pqv.js:13495:119 < mergeGeometries@assets/meshopt_decoder.module-4R4EFPW-.js:71:26 < model@assets/main-BU5WGlTV.js:21822:34 < spawn@assets/main-BU5WGlTV.js:99307:35"
+     ],
+     [
+      0.1,
+      1,
+      "Uint16Array @[native code] < Uint16BufferAttribute@assets/three.module-Cb6C0Pqv.js:12860:24 < setIndex@assets/three.module-Cb6C0Pqv.js:13495:119 < mergeGeometries@assets/meshopt_decoder.module-4R4EFPW-.js:71:26 < model@assets/main-BU5WGlTV.js:21824:33 < attach@assets/main-BU5WGlTV.js:143265:24"
+     ],
+     [
+      0,
+      10,
+      "Float32Array @[native code] < Float32BufferAttribute@assets/three.module-Cb6C0Pqv.js:13012:25 < loft$2@assets/main-BU5WGlTV.js:5813:57 < buildHorse@assets/main-BU5WGlTV.js:13967:17 < model@assets/main-BU5WGlTV.js:21809:27 < spawn@assets/main-BU5WGlTV.js:99307:35"
+     ],
+     [
+      0,
+      1,
+      "Uint16Array @[native code] < Uint16BufferAttribute@assets/three.module-Cb6C0Pqv.js:12860:24 < setIndex@assets/three.module-Cb6C0Pqv.js:13495:119 < mergeGeometries@assets/meshopt_decoder.module-4R4EFPW-.js:71:26 < model@assets/main-BU5WGlTV.js:21822:34 < attach@assets/main-BU5WGlTV.js:143265:24"
+     ],
+     [
+      0,
+      1,
+      "Uint16Array @[native code] < Uint16BufferAttribute@assets/three.module-Cb6C0Pqv.js:12860:24 < setIndex@assets/three.module-Cb6C0Pqv.js:13495:119 < mergeGeometries@assets/meshopt_decoder.module-4R4EFPW-.js:71:26 < model@assets/main-BU5WGlTV.js:21821:33 < attach@assets/main-BU5WGlTV.js:143265:24"
+     ],
+     [
+      0,
+      3,
+      "Float32Array @[native code] < Float32BufferAttribute@assets/three.module-Cb6C0Pqv.js:13012:25 < wrapPatch@assets/main-BU5WGlTV.js:13417:57 < addTack@assets/main-BU5WGlTV.js:14360:21 < buildHorse@assets/main-BU5WGlTV.js:14263:70 < model@assets/main-BU5WGlTV.js:21809:27"
+     ],
+     [
+      0,
+      3,
+      "Float32Array @[native code] < Float32BufferAttribute@assets/three.module-Cb6C0Pqv.js:13012:25 < wrapPatch@assets/main-BU5WGlTV.js:13412:55 < addTack@assets/main-BU5WGlTV.js:14360:21 < buildHorse@assets/main-BU5WGlTV.js:14263:70 < model@assets/main-BU5WGlTV.js:21809:27"
+     ],
+     [
+      0,
+      3,
+      "Float32Array @[native code] < Float32BufferAttribute@assets/three.module-Cb6C0Pqv.js:13012:25 < wrapPatch@assets/main-BU5WGlTV.js:13413:53 < addTack@assets/main-BU5WGlTV.js:14360:21 < buildHorse@assets/main-BU5WGlTV.js:14263:70 < model@assets/main-BU5WGlTV.js:21809:27"
+     ],
+     [
+      0,
+      3,
+      "Float32Array @[native code] < Float32BufferAttribute@assets/three.module-Cb6C0Pqv.js:13012:25 < wrapPatch@assets/main-BU5WGlTV.js:13415:52 < addTack@assets/main-BU5WGlTV.js:14360:21 < buildHorse@assets/main-BU5WGlTV.js:14263:70 < model@assets/main-BU5WGlTV.js:21809:27"
+     ]
+    ]
+   },
+   {
+    "step": "weapon",
+    "MB": 23.2,
+    "top": [
+     [
+      9.4,
+      9,
+      "ImageBitmap "
+     ],
+     [
+      1.8,
+      42,
+      "Uint8Array @[native code] < @assets/meshopt_decoder.module-4R4EFPW-.js:3068:32"
+     ],
+     [
+      1.7,
+      7,
+      "Response.arrayBuffer "
+     ],
+     [
+      1.7,
+      7,
+      "ArrayBuffer.slice GLTFBinaryExtension@assets/meshopt_decoder.module-4R4EFPW-.js:1326:27 < parse@assets/meshopt_decoder.module-4R4EFPW-.js:571:70 < value@assets/ktx2-C85RUgwT.js:2164:18 < @assets/meshopt_decoder.module-4R4EFPW-.js:490:16 < @assets/three.module-Cb6C0Pqv.js:31429:41"
+     ],
+     [
+      1.2,
+      18,
+      "Float32Array @[native code] < floatAttr$1@assets/main-BU5WGlTV.js:19829:59 < @assets/main-BU5WGlTV.js:19856:72"
+     ],
+     [
+      1,
+      5,
+      "Uint16Array @[native code] < Uint16BufferAttribute@assets/three.module-Cb6C0Pqv.js:12860:24 < setIndex@assets/three.module-Cb6C0Pqv.js:13495:119 < mergeGeometries@assets/meshopt_decoder.module-4R4EFPW-.js:71:26 < mergeAll@assets/main-BU5WGlTV.js:74764:27 < riderArm@assets/main-BU5WGlTV.js:75063:22"
+     ],
+     [
+      0.5,
+      7,
+      "ArrayBuffer.slice "
+     ],
+     [
+      0.2,
+      1,
+      "Float32Array @[native code] < Float32BufferAttribute@assets/three.module-Cb6C0Pqv.js:13012:25 < riderArm@assets/main-BU5WGlTV.js:75053:55 < Bow@assets/main-BU5WGlTV.js:78016:35 < buildNalatiKit@assets/main-BU5WGlTV.js:78374:21 < buildShard@assets/main-BU5WGlTV.js:159248:71"
+     ],
+     [
+      0.2,
+      1,
+      "Float32Array @[native code] < Float32BufferAttribute@assets/three.module-Cb6C0Pqv.js:13012:25 < riderArm@assets/main-BU5WGlTV.js:75054:52 < Bow@assets/main-BU5WGlTV.js:78016:35 < buildNalatiKit@assets/main-BU5WGlTV.js:78374:21 < buildShard@assets/main-BU5WGlTV.js:159248:71"
+     ],
+     [
+      0.2,
+      1,
+      "Float32Array @[native code] < computeVertexNormals@assets/three.module-Cb6C0Pqv.js:13936:59 < riderArm@assets/main-BU5WGlTV.js:75056:24 < Bow@assets/main-BU5WGlTV.js:78016:35 < buildNalatiKit@assets/main-BU5WGlTV.js:78374:21 < buildShard@assets/main-BU5WGlTV.js:159248:71"
+     ],
+     [
+      0.2,
+      1,
+      "Uint16Array @[native code] < Uint16BufferAttribute@assets/three.module-Cb6C0Pqv.js:12860:24 < setIndex@assets/three.module-Cb6C0Pqv.js:13495:119 < riderArm@assets/main-BU5WGlTV.js:75055:12 < Bow@assets/main-BU5WGlTV.js:78016:35 < buildNalatiKit@assets/main-BU5WGlTV.js:78374:21"
+     ],
+     [
+      0.2,
+      1,
+      "Float32Array @[native code] < Float32BufferAttribute@assets/three.module-Cb6C0Pqv.js:13012:25 < riderArm@assets/main-BU5WGlTV.js:75053:55 < Bow@assets/main-BU5WGlTV.js:78017:35 < buildNalatiKit@assets/main-BU5WGlTV.js:78374:21 < buildShard@assets/main-BU5WGlTV.js:159248:71"
+     ],
+     [
+      0.2,
+      1,
+      "Float32Array @[native code] < Float32BufferAttribute@assets/three.module-Cb6C0Pqv.js:13012:25 < riderArm@assets/main-BU5WGlTV.js:75054:52 < Bow@assets/main-BU5WGlTV.js:78017:35 < buildNalatiKit@assets/main-BU5WGlTV.js:78374:21 < buildShard@assets/main-BU5WGlTV.js:159248:71"
+     ],
+     [
+      0.2,
+      1,
+      "Float32Array @[native code] < computeVertexNormals@assets/three.module-Cb6C0Pqv.js:13936:59 < riderArm@assets/main-BU5WGlTV.js:75056:24 < Bow@assets/main-BU5WGlTV.js:78017:35 < buildNalatiKit@assets/main-BU5WGlTV.js:78374:21 < buildShard@assets/main-BU5WGlTV.js:159248:71"
+     ],
+     [
+      0.2,
+      1,
+      "Uint16Array @[native code] < Uint16BufferAttribute@assets/three.module-Cb6C0Pqv.js:12860:24 < setIndex@assets/three.module-Cb6C0Pqv.js:13495:119 < riderArm@assets/main-BU5WGlTV.js:75055:12 < Bow@assets/main-BU5WGlTV.js:78017:35 < buildNalatiKit@assets/main-BU5WGlTV.js:78374:21"
+     ]
+    ]
+   },
+   {
+    "step": "menu",
+    "MB": 1.1,
+    "top": [
+     [
+      0.1,
+      3,
+      "Uint16Array @[native code] < Uint16BufferAttribute@assets/three.module-Cb6C0Pqv.js:12860:24 < setIndex@assets/three.module-Cb6C0Pqv.js:13495:119 < mergeGeometries@assets/meshopt_decoder.module-4R4EFPW-.js:71:26 < model@assets/main-BU5WGlTV.js:21824:33 < bind@assets/main-BU5WGlTV.js:139953:30"
+     ],
+     [
+      0.1,
+      3,
+      "Uint16Array @[native code] < Uint16BufferAttribute@assets/three.module-Cb6C0Pqv.js:12860:24 < setIndex@assets/three.module-Cb6C0Pqv.js:13495:119 < mergeGeometries@assets/meshopt_decoder.module-4R4EFPW-.js:71:26 < model@assets/main-BU5WGlTV.js:21821:33 < bind@assets/main-BU5WGlTV.js:139953:30"
+     ],
+     [
+      0.1,
+      1,
+      "Uint16Array @[native code] < Uint16BufferAttribute@assets/three.module-Cb6C0Pqv.js:12860:24 < setIndex@assets/three.module-Cb6C0Pqv.js:13495:119 < mergeGeometries@assets/meshopt_decoder.module-4R4EFPW-.js:71:26 < model@assets/main-BU5WGlTV.js:21824:33 < spawn@assets/main-BU5WGlTV.js:99307:35"
+     ],
+     [
+      0,
+      1,
+      "Uint16Array @[native code] < Uint16BufferAttribute@assets/three.module-Cb6C0Pqv.js:12860:24 < setIndex@assets/three.module-Cb6C0Pqv.js:13495:119 < mergeGeometries@assets/meshopt_decoder.module-4R4EFPW-.js:71:26 < model@assets/main-BU5WGlTV.js:21821:33 < spawn@assets/main-BU5WGlTV.js:99307:35"
+     ],
+     [
+      0,
+      2,
+      "Int32Array @[native code] < bakeSmoothAO@assets/main-BU5WGlTV.js:84813:30 < shade@assets/main-BU5WGlTV.js:84606:35 < finish@assets/main-BU5WGlTV.js:84583:29 < finish$2@assets/main-BU5WGlTV.js:85330:22 < herder@assets/main-BU5WGlTV.js:85441:17"
+     ],
+     [
+      0,
+      1,
+      "Float32Array @[native code] < Float32BufferAttribute@assets/three.module-Cb6C0Pqv.js:13012:25 < loft$2@assets/main-BU5WGlTV.js:5813:57 < buildKing@assets/main-BU5WGlTV.js:15384:17 < model@assets/main-BU5WGlTV.js:21809:27 < spawn@assets/main-BU5WGlTV.js:99307:35"
+     ],
+     [
+      0,
+      1,
+      "Int32Array @[native code] < bakeSmoothAO@assets/main-BU5WGlTV.js:84813:30 < shade@assets/main-BU5WGlTV.js:84606:35 < finish@assets/main-BU5WGlTV.js:84583:29 < finish$2@assets/main-BU5WGlTV.js:85330:22 < elder@assets/main-BU5WGlTV.js:85374:17"
+     ],
+     [
+      0,
+      1,
+      "Float32Array @[native code] < Float32BufferAttribute@assets/three.module-Cb6C0Pqv.js:13012:25 < loft$2@assets/main-BU5WGlTV.js:5808:55 < buildKing@assets/main-BU5WGlTV.js:15384:17 < model@assets/main-BU5WGlTV.js:21809:27 < spawn@assets/main-BU5WGlTV.js:99307:35"
+     ],
+     [
+      0,
+      1,
+      "Float32Array @[native code] < Float32BufferAttribute@assets/three.module-Cb6C0Pqv.js:13012:25 < loft$2@assets/main-BU5WGlTV.js:5809:53 < buildKing@assets/main-BU5WGlTV.js:15384:17 < model@assets/main-BU5WGlTV.js:21809:27 < spawn@assets/main-BU5WGlTV.js:99307:35"
+     ],
+     [
+      0,
+      1,
+      "Float32Array @[native code] < Float32BufferAttribute@assets/three.module-Cb6C0Pqv.js:13012:25 < loft$2@assets/main-BU5WGlTV.js:5811:52 < buildKing@assets/main-BU5WGlTV.js:15384:17 < model@assets/main-BU5WGlTV.js:21809:27 < spawn@assets/main-BU5WGlTV.js:99307:35"
+     ],
+     [
+      0,
+      1,
+      "Float32Array @[native code] < Float32BufferAttribute@assets/three.module-Cb6C0Pqv.js:13012:25 < loft$2@assets/main-BU5WGlTV.js:5813:57 < buildKing@assets/main-BU5WGlTV.js:15393:17 < model@assets/main-BU5WGlTV.js:21809:27 < spawn@assets/main-BU5WGlTV.js:99307:35"
+     ],
+     [
+      0,
+      1,
+      "Uint16Array @[native code] < Uint16BufferAttribute@assets/three.module-Cb6C0Pqv.js:12860:24 < setIndex@assets/three.module-Cb6C0Pqv.js:13495:119 < loft$2@assets/main-BU5WGlTV.js:5815:12 < buildKing@assets/main-BU5WGlTV.js:15384:17 < model@assets/main-BU5WGlTV.js:21809:27"
+     ],
+     [
+      0,
+      1,
+      "Float32Array @[native code] < add@assets/main-BU5WGlTV.js:84512:46 < elder@assets/main-BU5WGlTV.js:85348:7 < buildCampPeople@assets/main-BU5WGlTV.js:85543:21 < installNalatiAdventure@assets/main-BU5WGlTV.js:85933:32 < buildShard@assets/main-BU5WGlTV.js:159666:24"
+     ],
+     [
+      0,
+      1,
+      "Float32Array @[native code] < add@assets/main-BU5WGlTV.js:84512:46 < cook@assets/main-BU5WGlTV.js:85491:7 < buildCampPeople@assets/main-BU5WGlTV.js:85547:19 < installNalatiAdventure@assets/main-BU5WGlTV.js:85933:32 < buildShard@assets/main-BU5WGlTV.js:159666:24"
+     ],
+     [
+      0,
+      1,
+      "Float32Array @[native code] < Float32BufferAttribute@assets/three.module-Cb6C0Pqv.js:13012:25 < loft$2@assets/main-BU5WGlTV.js:5813:57 < buildFelid@assets/main-BU5WGlTV.js:16968:17 < model@assets/main-BU5WGlTV.js:21809:27 < bind@assets/main-BU5WGlTV.js:139953:30"
+     ]
+    ]
+   },
+   {
+    "step": "shaders",
+    "MB": 7.4,
+    "top": [
+     [
+      5.2,
+      5,
+      "ImageBitmap "
+     ],
+     [
+      0.6,
+      20,
+      "Uint8Array @[native code] < @assets/meshopt_decoder.module-4R4EFPW-.js:3068:32"
+     ],
+     [
+      0.5,
+      5,
+      "Response.arrayBuffer "
+     ],
+     [
+      0.5,
+      5,
+      "ArrayBuffer.slice GLTFBinaryExtension@assets/meshopt_decoder.module-4R4EFPW-.js:1326:27 < parse@assets/meshopt_decoder.module-4R4EFPW-.js:571:70 < value@assets/ktx2-C85RUgwT.js:2164:18 < @assets/meshopt_decoder.module-4R4EFPW-.js:490:16 < @assets/three.module-Cb6C0Pqv.js:31429:41"
+     ],
+     [
+      0.2,
+      5,
+      "ArrayBuffer.slice "
+     ],
+     [
+      0.2,
+      4,
+      "Float32Array @[native code] < floatAttr$2@assets/main-BU5WGlTV.js:19023:59 < rawFromGltf@assets/main-BU5WGlTV.js:19198:70 < @assets/main-BU5WGlTV.js:85139:24"
+     ],
+     [
+      0.1,
+      1,
+      "Float32Array @[native code] < floatAttr$2@assets/main-BU5WGlTV.js:19023:59 < rawFromGltf@assets/main-BU5WGlTV.js:19198:70 < @assets/main-BU5WGlTV.js:85139:24 < async loadPeopleRig@assets/main-BU5WGlTV.js:85138:32"
+     ]
+    ]
+   },
+   {
+    "step": "audio",
+    "MB": 0.3,
+    "top": [
+     [
+      0.3,
+      1,
+      "Float32Array @[native code] < paintRegion@assets/main-BU5WGlTV.js:109274:51 < paintLayer@assets/main-BU5WGlTV.js:109212:19 < update@assets/main-BU5WGlTV.js:109047:39 < @assets/main-BU5WGlTV.js:160494:18 < loop@assets/main-BU5WGlTV.js:38378:10"
+     ],
+     [
+      0,
+      1,
+      "Uint16Array @[native code] < Uint16BufferAttribute@assets/three.module-Cb6C0Pqv.js:12860:24 < setIndex@assets/three.module-Cb6C0Pqv.js:13495:119 < mergeGeometries@assets/meshopt_decoder.module-4R4EFPW-.js:71:26 < model@assets/main-BU5WGlTV.js:21824:33 < spawn@assets/main-BU5WGlTV.js:99307:35"
+     ],
+     [
+      0,
+      1,
+      "Uint16Array @[native code] < Uint16BufferAttribute@assets/three.module-Cb6C0Pqv.js:12860:24 < setIndex@assets/three.module-Cb6C0Pqv.js:13495:119 < mergeGeometries@assets/meshopt_decoder.module-4R4EFPW-.js:71:26 < model@assets/main-BU5WGlTV.js:21821:33 < spawn@assets/main-BU5WGlTV.js:99307:35"
+     ],
+     [
+      0,
+      1,
+      "Float32Array @[native code] < Float32BufferAttribute@assets/three.module-Cb6C0Pqv.js:13012:25 < loft$2@assets/main-BU5WGlTV.js:5813:57 < buildHorse@assets/main-BU5WGlTV.js:13967:17 < model@assets/main-BU5WGlTV.js:21809:27 < spawn@assets/main-BU5WGlTV.js:99307:35"
+     ]
+    ]
+   }
+  ]
+ }
+}
