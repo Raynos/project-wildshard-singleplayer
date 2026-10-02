@@ -37,9 +37,10 @@ export const SUNSCAR_DUNES: ShardManifest = {
   horizon: { cloudSea: false, rings: [
     // loop 4: warm dune silhouettes rising in layers (the H4 targets), not one flat violet wall
     { r: 340, base: 2, color: [0.26, 0.1, 0.045], top: [0.5, 0.21, 0.08], snowLine: 2, haze: 0.35, floor: -10,
-      bands: [{ azimuth: 0, spread: 60, height: 9, rough: 0.5 }, { azimuth: 120, spread: 70, height: 7, rough: 0.5 }, { azimuth: 240, spread: 60, height: 10, rough: 0.5 }] },
+      // round 1 (R1B-14 / R1C-5): bands all round, so the top edge rises and falls instead of running ruler-straight
+      bands: [0, 45, 90, 135, 180, 225, 270, 315].map((azimuth, i) => ({ azimuth, spread: 40, height: [9, 14, 7, 12, 10, 15, 8, 13][i] ?? 10, rough: 0.6 })) },
     { r: 470, base: 2, color: [0.17, 0.07, 0.06], top: [0.34, 0.15, 0.1], snowLine: 2, haze: 0.6, floor: -10,
-      bands: [{ azimuth: 60, spread: 80, height: 14, rough: 0.4 }, { azimuth: 200, spread: 90, height: 12, rough: 0.4 }, { azimuth: 320, spread: 50, height: 16, rough: 0.4 }] },
+      bands: [20, 70, 120, 165, 210, 255, 300, 345].map((azimuth, i) => ({ azimuth, spread: 45, height: [18, 12, 22, 15, 20, 11, 24, 16][i] ?? 16, rough: 0.5 })) },
   ] },
   boundary: { visible: false },
   minimap: { palette: SIGNAL_DUNES_MINIMAP }, // the sand map: crests, slip faces, hollows, the ridges, the caravan tracks (look/minimap.ts)

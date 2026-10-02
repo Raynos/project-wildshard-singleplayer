@@ -53,7 +53,7 @@ void main() {
   vec2 cp = d.xz / (h + 0.07);
   cp = vec2(cp.x * 0.64 - cp.y * 0.77, cp.x * 0.77 + cp.y * 0.64) * vec2(0.55, 1.5);
   float deck = vFbm(cp * 1.1 + vec2(3.0, 1.0));
-  float cov = smoothstep(0.5, 0.7, deck) * smoothstep(0.035, 0.1, h) * (1.0 - 0.55 * smoothstep(0.5, 0.95, h));
+  float cov = smoothstep(0.5, 0.7, deck) * smoothstep(0.004, 0.05, h) * (1.0 - 0.55 * smoothstep(0.5, 0.95, h)); // round 1 (R1B-14): down to the band
   vec2 sunward = normalize(vec2(uSun.x, uSun.z) + 1e-4) * 0.22 / (h + 0.07);
   float lit = clamp((deck - vFbm(cp * 1.1 + vec2(3.0, 1.0) + sunward * vec2(0.55, 1.5))) * 5.0 + 0.45, 0.0, 1.0);
   vec3 cloudDark = mix(vec3(0.26, 0.15, 0.18), vec3(0.3, 0.15, 0.17), toward);

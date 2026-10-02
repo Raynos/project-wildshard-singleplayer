@@ -1,4 +1,4 @@
-import { BackSide, ClampToEdgeWrapping, Color, DataTexture, Float32BufferAttribute, Fog, LinearFilter, LinearMipmapLinearFilter, Mesh, MeshStandardMaterial, PlaneGeometry, RedFormat, RepeatWrapping, RGBAFormat, ShaderMaterial, SphereGeometry, UnsignedByteType, Vector3 } from 'three';
+import { BackSide, BufferGeometry, ClampToEdgeWrapping, Color, DataTexture, Float32BufferAttribute, Fog, LinearFilter, LinearMipmapLinearFilter, Mesh, MeshStandardMaterial, PlaneGeometry, RedFormat, RepeatWrapping, RGBAFormat, ShaderMaterial, SphereGeometry, UnsignedByteType, Vector3 } from 'three';
 import { DayCycle, patchShader, PATCH_ORDER, type LookStrategy } from '#engine';
 import { GROUND_HALF } from '../layout';
 import { WIND } from '../world/dunes';
@@ -14,7 +14,7 @@ import { SKY_FRAGMENT, SKY_VERTEX, SUN_GLOW } from './sky';
 export const KEY = { dir: new Vector3(-0.97, 0.174, 0.171).normalize(), color: new Color(1, 0.57, 0.3), intensity: 2.5 } as const;
 /** Violet aerial perspective: far dune rows cool and lift into layers (R9), never pink. */
 export const FOG = { color: 0x684a62, near: 80, far: 430 } as const;
-const SAND = new Color(0.5, 0.2, 0.075), HOLLOW = new Color(0.2, 0.12, 0.15), CREST = new Color(0.62, 0.28, 0.1);
+const TROD = new Color(0.3, 0.13, 0.06), SAND = new Color(0.5, 0.2, 0.075), HOLLOW = new Color(0.2, 0.12, 0.15), CREST = new Color(0.62, 0.28, 0.1);
 /** How far (m) and in how many growing steps the bake marches toward the sun for the dunes' cast shadows. */
 const SHADOW_MARCH = { first: 0.8, grow: 1.22, steps: 26 } as const;
 const WIND_GLSL = `${WIND.x.toFixed(3)}, ${WIND.z.toFixed(3)}`;
@@ -71,6 +71,39 @@ function sandGrainTexture(): DataTexture {
   return tex;
 }
 
+/** The skirt round the painted ground: from its edge out to `out` metres, `cell` metres a quad. */
+const SKIRT = { out: 400, cell: 8 } as const;
+function skirtGeometry(heightAt: (x: number, z: number) => number): BufferGeometry {
+  const pos: number[] = [], col: number[] = [], inner = GROUND_HALF - 0.5, c = new Color();
+  const clampEdge = (v: number): number => Math.max(-inner, Math.min(inner, v));
+  const swell = (x: number, z: number): number => {
+    const u = (x * WIND.x + z * WIND.z) / 64, v = (-x * WIND.z + z * WIND.x) / 90;
+    return 2 + 4.5 * Math.max(0, Math.sin((u + Math.sin(v) * 0.4) * Math.PI * 2)) ** 1.5;
+  };
+  const h = (x: number, z: number): number => {
+    const out = Math.max(Math.abs(x), Math.abs(z)) - inner, t = Math.min(1, Math.max(0, out / 60)), e = t * t * (3 - 2 * t);
+    return heightAt(clampEdge(x), clampEdge(z)) * (1 - e) + swell(x, z) * e;
+  };
+  const n = Math.ceil((SKIRT.out * 2) / SKIRT.cell), step = (SKIRT.out * 2) / n;
+  for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) {
+    const x0 = -SKIRT.out + i * step, z0 = -SKIRT.out + j * step, x1 = x0 + step, z1 = z0 + step;
+    if (Math.max(Math.abs(x0), Math.abs(x1)) <= inner && Math.max(Math.abs(z0), Math.abs(z1)) <= inner) continue; // inside the square
+    const quad: [number, number][] = [[x0, z0], [x0, z1], [x1, z1], [x1, z0]];
+    for (const k of [0, 1, 2, 0, 2, 3]) {
+      const [qx, qz] = quad[k] ?? [0, 0];
+      // the inner ring of quads is clamped onto the square's edge so no crack opens between skirt and ground
+      const px = Math.abs(qx) < inner && Math.abs(qz) < inner ? (Math.abs(qx) > Math.abs(qz) ? Math.sign(qx) * inner : qx) : qx;
+      const pz = Math.abs(qx) < inner && Math.abs(qz) < inner ? (Math.abs(qz) >= Math.abs(qx) ? Math.sign(qz) * inner : qz) : qz;
+      pos.push(px, h(px, pz) - 0.05, pz);
+      c.copy(SAND).lerp(HOLLOW, 0.25); col.push(c.r, c.g, c.b);
+    }
+  }
+  const g = new BufferGeometry();
+  g.setAttribute('position', new Float32BufferAttribute(pos, 3)); g.setAttribute('color', new Float32BufferAttribute(col, 3));
+  g.computeVertexNormals();
+  return g;
+}
+
 /** The day clock: Signal Dunes holds at dusk (the clock is never advanced). */
 function duskClock(): DayCycle {
   return new DayCycle({ units: 'hour', start: 19,
@@ -106,7 +139,8 @@ export function signalDunesLook(): LookStrategy {
         rebuild: () => undefined, attachPost: () => undefined });
     },
     terrainPainter: { build: (terrain, field, scope) => {
-      const segments = 192, geometry = new PlaneGeometry(GROUND_HALF * 2, GROUND_HALF * 2, segments, segments); geometry.rotateX(-Math.PI / 2);
+      // 256: the baked height grid's own spacing (1.95 m; round 1, R1C-5: 192 blunted the crests)
+      const segments = 256, geometry = new PlaneGeometry(GROUND_HALF * 2, GROUND_HALF * 2, segments, segments); geometry.rotateX(-Math.PI / 2);
       scope.own(geometry);
       const pos = geometry.getAttribute('position'), colors = new Float32Array(pos.count * 3), c = new Color();
       const side = segments + 1, cell = (GROUND_HALF * 2) / segments;
@@ -125,6 +159,9 @@ export function signalDunesLook(): LookStrategy {
         const mean = (field.heightAt(x + 14, z) + field.heightAt(x - 14, z) + field.heightAt(x, z + 14) + field.heightAt(x, z - 14)) / 4;
         const rel = Math.max(-1, Math.min(1, (h - mean) / 2.5));
         c.copy(SAND); if (rel < 0) c.lerp(HOLLOW, -rel * 0.75); else c.lerp(CREST, rel * 0.6);
+        // round 1 (R1C-5 / R1B-14): the trails are trodden, darker compacted sand, so the walk reads from above
+        const trod = 1 - Math.min(1, Math.max(0, (field.trailDistance(x, z) - 2.2) / 2.6));
+        if (trod > 0) c.lerp(TROD, trod * 0.7);
         colors[i * 3] = c.r; colors[i * 3 + 1] = c.g; colors[i * 3 + 2] = c.b;
       }
       geometry.setAttribute('color', new Float32BufferAttribute(colors, 3));
@@ -177,10 +214,21 @@ float sandAA(float phase) { return 1.0 - smoothstep(0.5, 1.8, fwidth(phase)); }`
   // The baked dune shadow (a ${String(SHADOW_TEX)}² map, sharpened) takes only the key (direct) light; the cool sky fill stays.
   float sandVis = smoothstep(0.22, 0.78, texture2D(uSandShadow, (vSandPos.xz + ${GROUND_HALF.toFixed(1)}) / ${(GROUND_HALF * 2).toFixed(1)}).r);
   reflectedLight.directDiffuse *= mix(0.06, 1.0, sandVis);
-  reflectedLight.directSpecular *= sandVis;`);
+  reflectedLight.directSpecular *= sandVis;
+  // Round 1 (R1C-3): where the key doesn't reach (cast shadow or a face turned from it) the sky fill paints the bible's
+  // cool violet shade (#4a3a48 to #5b4f6a), not a darkened orange: the crest line splits warm from cool.
+  float sandKeyN = dot(normalize(vSandN), vec3(${KEY.dir.x.toFixed(3)}, ${KEY.dir.y.toFixed(3)}, ${KEY.dir.z.toFixed(3)}));
+  float sandShade = 1.0 - smoothstep(0.0, 0.14, sandKeyN) * sandVis;
+  vec3 sandFill = vec3(dot(reflectedLight.indirectDiffuse, vec3(0.3, 0.59, 0.11)));
+  reflectedLight.indirectDiffuse = mix(reflectedLight.indirectDiffuse, sandFill * vec3(1.0, 0.8, 1.3), sandShade * 0.8);`);
       }, { scope });
       const mesh = new Mesh(geometry, material); mesh.receiveShadow = false;
       terrain.group.add(mesh); terrain.mesh = mesh; terrain.material = material;
+      // Round 1 (R1C-5 / R1B-14): the dune sea runs on past the square to the buttes (from above the ground ended in a
+      // ruler-straight edge over nothing). A coarse skirt, its inner edge on the ground's own edge heights, easing out into
+      // gentle swells along the wind; the same sand material, so the fog lays it back with the rest.
+      const skirt = skirtGeometry((x, z) => field.heightAt(x, z)); scope.own(skirt);
+      const skirtMesh = new Mesh(skirt, material); skirtMesh.receiveShadow = false; terrain.group.add(skirtMesh);
       return Promise.resolve();
     } },
   };
