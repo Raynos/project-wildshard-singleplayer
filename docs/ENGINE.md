@@ -955,7 +955,7 @@ rigContract: { skeleton: 'template.greyBlob', sockets: ['body', 'head'], clips: 
 | Day cycle | `DayCycle`, `DayCycleSpec`, `DayCycleClock`, `DayKeys`, `DayPhase`, `TimePick`, `LightPreset`, `ScheduleSeg`; `app.registerDayCycle(clock, scope)` | `createDay()` in `_template/world/climate.ts` |
 | Weather | `Weather`, `WeatherProfile`, `WeatherNumbers`; asks `weather.hold` / `weather.damage`; kit `rainCurtain` | `new Weather<'clear' \| 'cloudy'>({ states, next, length, … }, ctx.app.rng.stream('gameplay'))` |
 | Water | `WaterBody`, `WaterBodies` (`app.world.water`), `swellBody`, `basinBody` (`#engine/data`), `surfaceReflect`, `WaterView`, `pondGrid`, `waveHeight` | the template's `POOL` row in `ground.water` |
-| Fog | `attachFogUniforms`, `addFogUniforms`, `fogUniforms`; your `FogModel` | |
+| Fog | `attachFogUniforms`, `addFogUniforms`, `fogUniforms`; your `FogModel`; weather fog `weatherFog`, `WeatherFog`, `WeatherFogSpec` (E390: a second exponential fog over the level's own, compiled only when the manifest sets `atmosphere.weather: true`; `set(strength 0..1)` each time it changes, cleared when the scope ends; it composes with a backdrop's clock and the underwater blend) | `const storm = weatherFog(ctx.scope, { dist: 0.05, color: 0x8a5238 }); storm.set(eased)` (Signal Dunes' sand storm) |
 | Wind | `wind`, `WIND_DIR`, `windGustAt`, `windUniforms`, `WindField` | grass, trees and arrow drift read it |
 | Placement and models | `defineModel`, `modelContext`, `ModelContext`, `ModelPart`, `live`, `listModel`, `RosterEntry`, `twoSidedPositions`, `WeldBuild`, `markGpuOnly` | `defineModel({ id: '_template/lantern', pipeline: 'code', build: () => … })` |
 | Forest and trees | `Forest`, `TreeFactory`, `TreeVariant`, `FadeBand`, `patchFade`, `patchWind`, `TREE_SPECS`, `TREE_SPECS_V2`, `TREE_SPECIES`, `SpeciesWeights`, `treeSetOf`, `treeSetUrls`, `loadTreeSetGeometry`, `BARK_LAYERS`, `patchBarkArrays`, `patchCardCrownTop`, `patchImpostorCrownTop`, `standIn`, `loadBakedCards`, `exportCardTextures` | |
@@ -1578,7 +1578,7 @@ sections above describe what to use; this list is the complete inventory.
 
 ### `#engine` (`src/engine/index.ts`)
 
-686 exports, grouped by the module they come from.
+689 exports, grouped by the module they come from.
 
 - `./core/devMode`: `isDev`, `onDev`, `setDev`
 - `./core/config`: `CHUNK_HALF`, `ROAD_LENGTH`, `SEED`, `CHUNK_SIZE`, `CHUNK_DEPTH`, `TERRAIN_RES`
@@ -1680,7 +1680,7 @@ sections above describe what to use; this list is the complete inventory.
 - `./ai/BossBrain`: `BossBrain`, `BossDefinition`, `BossSaved`, `BossPorts`, `BossPresentation`, `BossScript`, `BossState`
 - `./ai/EliteBrain`: `EliteBrain`, `EliteDefinition`, `EliteActor`, `ElitePorts`
 - `./ai/encounters`: `EncounterRegistry`, `EncounterDefinition`, `EncounterService`, `SpawnTableRow`, `SpawnEntry`, `SpawnContext`, `SpawnPoint`, `Spawner`
-- `./world/Atmosphere`: `attachFogUniforms`, `fogUniforms`, `addFogUniforms`
+- `./world/Atmosphere`: `attachFogUniforms`, `fogUniforms`, `weatherFog`, `WeatherFog`, `WeatherFogSpec`, `addFogUniforms`
 - `./boot/bakedApi`: `preloadBakedTextures`, `loadBakedSky`, `loadLUT`
 - `./render/lut`: `fetchLut`, `LUT_SIZE`
 - `./math/color`: `lin`

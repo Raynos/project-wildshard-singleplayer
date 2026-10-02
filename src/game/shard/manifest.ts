@@ -283,6 +283,8 @@ export interface ChunkAtmosphere {
   /** metres; fog is densest below this */
   edgeHaze?: boolean;
   wetSurfaces?: boolean;
+  /** compile the weather fog (`weatherFog` from #engine, E390): a storm the shard eases in and out */
+  weather?: boolean;
   fogHeight: number;
   fogHeightFalloff: number;
   fogHeightDensity: number;

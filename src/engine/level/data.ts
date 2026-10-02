@@ -94,6 +94,8 @@ export interface SkySpec {
 export interface AtmosphereSpec {
   edgeHaze?: boolean;
   wetSurfaces?: boolean;
+  /** compile the weather fog term (`weatherFog`, E390) into this level's fog */
+  weather?: boolean;
   fogHeight: number;
   fogHeightFalloff: number;
   fogHeightDensity: number;

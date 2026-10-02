@@ -35,6 +35,41 @@ export const weatherUniforms = {
   fogBlobAmt: { value: 0 },
 };
 let pineWeather = false;
+
+/**
+ * Weather fog (E390, a storm closing in): a second exponential fog laid over the level's own, `fogWeather` = (distance
+ * density, height density, strength 0..1, unused) in `fogWeatherColor`. It composes with whatever else drives the fog (a
+ * backdrop's clock, the underwater blend), since it never writes their uniforms. Compiled only into a level that sets
+ * `atmosphere.weather`, so every other level's program source stays byte-for-byte. Drive it with `weatherFog()`.
+ */
+export const weatherFogUniforms = {
+  fogWeather: { value: new THREE.Vector4(0, 0, 0, 0) },
+  fogWeatherColor: { value: new THREE.Color(1, 1, 1) },
+};
+let weatherFogOn = false;
+
+export interface WeatherFogSpec {
+  /** distance density per metre at full strength (exponential: about 3 / dist m is where far things are gone) */
+  dist: number;
+  /** height-fog density at full strength, on the level's own height falloff; omitted = 0 */
+  height?: number;
+  /** the fog's colour (sRGB hex or a THREE colour) */
+  color: THREE.ColorRepresentation;
+}
+export interface WeatherFog { set: (strength: number) => void }
+
+/**
+ * A level's weather fog: `set(strength)` (0 = clear … 1 = the spec) every time it changes; the level eases it. The fog
+ * clears when `scope` is disposed. Needs `atmosphere.weather: true` in the level (the shader term is compiled only then).
+ */
+export function weatherFog(scope: { onDispose: (fn: () => void) => void }, spec: WeatherFogSpec): WeatherFog {
+  if (!weatherFogOn) throw new Error('weatherFog: this level has no weather fog (set atmosphere.weather: true)');
+  const u = weatherFogUniforms;
+  u.fogWeatherColor.value.set(spec.color);
+  u.fogWeather.value.set(spec.dist, spec.height ?? 0, 0, 0);
+  scope.onDispose(() => { u.fogWeather.value.z = 0; });
+  return { set: (strength) => { u.fogWeather.value.set(spec.dist, spec.height ?? 0, Math.min(1, Math.max(0, strength)), 0); } };
+}
 /**
  * The volumetric shafts' own height fog (core/Volumetrics.ts reads it before `fogUniforms`): null = follow the geometry
  * fog. Pine Hollow's dawn fog (PH-L10) lifts the geometry fog's floor into the bowl, which the march — tuned for a thin
@@ -50,11 +85,13 @@ const fogExtras: Record<string, THREE.IUniform>[] = [];
 export function addFogUniforms(set: Record<string, THREE.IUniform>): void { if (!fogExtras.includes(set)) fogExtras.push(set); }
 
 /** the engine's fog chunks (slot 100, once a page: render/fogPatches.ts); a level's own fog (`LookStrategy.fog`) is installed after it (Game.buildSky) */
-export function installAtmosphere(policy: { edgeHaze?: boolean; wetSurfaces?: boolean } = {}): void {
+export function installAtmosphere(policy: { edgeHaze?: boolean; wetSurfaces?: boolean; weather?: boolean } = {}): void {
   installFogPatch('engine.fog', FOG_SLOT.engine, () => { writeAtmosphere(policy); });
 }
 
-function writeAtmosphere(policy: { edgeHaze?: boolean; wetSurfaces?: boolean }): void {
+function writeAtmosphere(policy: { edgeHaze?: boolean; wetSurfaces?: boolean; weather?: boolean }): void {
+  const weather = policy.weather === true;
+  weatherFogOn = weather;
   // Pine Hollow's slab edge haze (fogEdge): only its fog chunk carries it, every other shard's source stays byte-for-byte
   const edge = policy.edgeHaze === true;
   pineWeather = policy.wetSurfaces === true;
@@ -86,7 +123,7 @@ function writeAtmosphere(policy: { edgeHaze?: boolean; wetSurfaces?: boolean }):
       uniform float fogHeight;
       uniform float fogHeightFalloff;
       uniform float fogHeightDensity;
-      uniform float fogDistDensity;${edge ? '\n      uniform vec4 fogEdge;\n      uniform vec4 fogBlob;\n      uniform float fogBlobAmt;' : ''}
+      uniform float fogDistDensity;${edge ? '\n      uniform vec4 fogEdge;\n      uniform vec4 fogBlob;\n      uniform float fogBlobAmt;' : ''}${weather ? '\n      uniform vec4 fogWeather;\n      uniform vec3 fogWeatherColor;' : ''}
       varying float vFogDepth;
       varying vec3 vFogWorldPos;
     #endif`;
@@ -115,7 +152,10 @@ function writeAtmosphere(policy: { edgeHaze?: boolean; wetSurfaces?: boolean }):
         fogFactor = 1.0 - ( 1.0 - fogFactor ) * ( 1.0 - fogB );` : ''}
         float sunAmt = max( dot( viewDir, fogSunDir ), 0.0 );
         vec3 fogCol = mix( fogColor, fogSunColor, pow( sunAmt, 6.0 ) * 0.7 );
-        gl_FragColor.rgb = mix( gl_FragColor.rgb, fogCol, fogFactor );
+        gl_FragColor.rgb = mix( gl_FragColor.rgb, fogCol, fogFactor );${weather ? `
+        // the weather fog (E390), over the level's own fog
+        float wAmt = ( fogWeather.x + fogWeather.y * camF * integ ) * rayLen;
+        gl_FragColor.rgb = mix( gl_FragColor.rgb, fogWeatherColor, clamp( ( 1.0 - exp( - wAmt ) ) * fogWeather.z, 0.0, 1.0 ) );` : ''}
       }
     #endif`;
 
@@ -143,6 +183,7 @@ function writeAtmosphere(policy: { edgeHaze?: boolean; wetSurfaces?: boolean }):
 export function attachFogUniforms(shader: { uniforms: Record<string, THREE.IUniform> }): void {
   for (const k of Object.keys(fogUniforms) as (keyof typeof fogUniforms)[]) shader.uniforms[k] = fogUniforms[k];
   if (pineWeather) for (const k of Object.keys(weatherUniforms) as (keyof typeof weatherUniforms)[]) shader.uniforms[k] = weatherUniforms[k];
+  if (weatherFogOn) for (const k of Object.keys(weatherFogUniforms) as (keyof typeof weatherFogUniforms)[]) shader.uniforms[k] = weatherFogUniforms[k];
   for (const set of fogExtras) for (const k of Object.keys(set)) { const u = set[k]; if (u !== undefined) shader.uniforms[k] = u; }
 }
 
