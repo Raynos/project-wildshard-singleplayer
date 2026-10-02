@@ -3,6 +3,7 @@ import { DAIS, FALLEN_BRIDGE, ISLES, MILL, NOTES, SPANS, UPDRAFT, VANES, WINCH, 
 import { KEEPER_AT } from '../quest/keeper';
 import { crownStones } from './crown';
 import { NEST, SPIRES, spireAt } from './roost';
+import { WINCH_HOUSE } from './winchHouse';
 import { FOG, SKY } from '../look/sun';
 
 /**
@@ -31,7 +32,7 @@ export function meadowHoles(): Vector4[] {
   const holes: [number, number, number][] = [[MILL.x, MILL.z, 2.9], [WINCH.x, WINCH.z, 1.3], [NOTES.x, NOTES.z, 0.8], [KEEPER_AT.x, KEEPER_AT.z, 0.7], [DAIS.x, DAIS.z, DAIS.r + 0.4]];
   for (const v of VANES) holes.push([v.x, v.z, 1]);
   for (const st of crownStones()) holes.push([st.x, st.z, 0.85]);
-  holes.push([NEST.x, NEST.z, NEST.r + 0.2]);
+  holes.push([NEST.x, NEST.z, NEST.r + 0.2], [WINCH_HOUSE.x, WINCH_HOUSE.z, WINCH_HOUSE.w * 0.75]);
   for (const sp of SPIRES) { const at = spireAt(sp); holes.push([at.x, at.z, sp.r + 0.2]); }
   return holes.map(([x, z, r]) => new Vector4(x, z, r, 0));
 }
