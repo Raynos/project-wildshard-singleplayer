@@ -10,10 +10,10 @@ import { lastLightAll } from '../look/light';
 const ID = 'sunscar.matriarch';
 /**
  * The sand storm of phase II, over `fade` seconds: a weather fog (E390, `weatherFog`) of `dist` per metre closes in in a
- * dusty orange (at 0.05 about 5 % of the far dunes survive 60 m), and two shells of blown sand (`shells`: radius metres,
- * opacity) ride with the player and veil the distance.
+ * dusty orange (at 0.03 about 40 % of her survives 30 m, so her silhouette reads inside it, R1B-17; the far dunes are
+ * gone by 100 m), and two shells of blown sand (`shells`: radius metres, opacity) ride with the player and veil the distance.
  */
-export const STORM = { dist: 0.05, color: new Color(0x8a5238), fade: 2.5, shells: [[46, 0.85], [22, 0.55]] } as const;
+export const STORM = { dist: 0.03, color: new Color(0x8a5238), fade: 2.5, shells: [[46, 0.85], [22, 0.4]] } as const;
 /** The reward: coins once, on the first fall. */
 export const MATRIARCH_REWARD = 20;
 const RISE = 3.2;

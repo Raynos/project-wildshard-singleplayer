@@ -8,7 +8,9 @@ import { WIND } from './dunes';
  */
 export function stormMaterial(color: Color, fine: boolean): ShaderMaterial {
   return new ShaderMaterial({
-    side: BackSide, transparent: true, depthWrite: false, depthTest: false, fog: false,
+    // depth-tested (round 1, R1B-17): what stands nearer than the shell (the Matriarch diving at you) draws in front of
+    // it, the distance stays veiled; with depthTest off the shells hid her even at 10 m
+    side: BackSide, transparent: true, depthWrite: false, depthTest: true, fog: false,
     uniforms: { uColor: { value: color.clone() }, uOpacity: { value: 0 }, uTime: { value: 0 } },
     vertexShader: /* glsl */ `
 varying vec3 vDir;
