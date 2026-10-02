@@ -10,7 +10,8 @@ import { SKY_FRAGMENT, SKY_VERTEX, SUN_GLOW } from './sky';
  * (they face it, `world/dunes.ts` WIND) glows orange while the windward faces fall into cool sky light. The afterglow
  * band is art-directed apart from it, behind the tower (`sky.ts` SUN_GLOW).
  */
-export const KEY = { dir: new Vector3(-0.97, 0.174, 0.171).normalize(), color: new Color(1, 0.64, 0.4), intensity: 2.5 } as const;
+// loop 3: a deeper, redder key (ΔE00 of the lit sand against the H1–H4 targets: the game's was too pale and grey-blue)
+export const KEY = { dir: new Vector3(-0.97, 0.174, 0.171).normalize(), color: new Color(1, 0.57, 0.3), intensity: 2.5 } as const;
 /** Violet aerial perspective: far dune rows cool and lift into layers (R9), never pink. */
 export const FOG = { color: 0x5b4a68, near: 80, far: 430 } as const;
 const SAND = new Color(0.5, 0.2, 0.075), HOLLOW = new Color(0.2, 0.12, 0.15), CREST = new Color(0.62, 0.28, 0.1);
@@ -139,7 +140,7 @@ varying vec3 vSandN;
 uniform sampler2D uSandShadow;
 uniform sampler2D uSandGrain;
 // A ripple octave survives while a pixel spans well under one period, at any distance (no fixed fade, no aliasing).
-float sandAA(float phase) { return 1.0 - smoothstep(0.7, 2.4, fwidth(phase)); }`)
+float sandAA(float phase) { return 1.0 - smoothstep(0.5, 1.8, fwidth(phase)); }`)
           .replace('#include <color_fragment>', `#include <color_fragment>
   float sandFar = length(vSandPos - cameraPosition);
   // Wind ripples (R3, loop 2): two octaves across the wind (${WIND_GLSL}), bent by slow warps: 0.4 m ripples and 1.6 m
@@ -151,7 +152,9 @@ float sandAA(float phase) { return 1.0 - smoothstep(0.7, 2.4, fwidth(phase)); }`
   float sandPhase = (sandU + sandWarp) * 15.7;
   float sandPhase2 = (sandU * 0.97 + sandWarp * 1.6 + sin(sandV * 0.6) * 0.35 + sin(sandV * 0.13 + sandU * 0.09) * 1.1) * 3.93;
   float sandFlat = smoothstep(0.78, 0.96, normalize(vSandN).y);
-  float sandRip1 = sandAA(sandPhase) * (0.3 + 0.7 * sandFlat), sandRip2 = sandAA(sandPhase2) * sandFlat;
+  // loop 3: the ripples come in patches (wind-scoured fields and smooth swales), not one even corduroy over every dune
+  float sandPatch = clamp(0.5 + 0.6 * sin(sandV * 0.31 + sin(sandU * 0.19) * 1.7) * sin(sandU * 0.27 + sandV * 0.07 + 1.3), 0.12, 1.0);
+  float sandRip1 = sandAA(sandPhase) * (0.3 + 0.7 * sandFlat) * sandPatch, sandRip2 = sandAA(sandPhase2) * sandFlat * (0.4 + 0.6 * sandPatch);
   vec4 sandTex = texture2D(uSandGrain, vSandPos.xz * 0.55);
   diffuseColor.rgb *= 1.0 + 0.06 * sin(sandPhase) * sandRip1 + 0.02 * sin(sandPhase2) * sandRip2 + (sandTex.r - 0.5) * 0.24;`)
           .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>

@@ -5,6 +5,7 @@ import { duneMesh } from '../world/meshes';
 const STRAND_A = [0.46, 0.25, 0.12] as const, STRAND_B = [0.27, 0.14, 0.065] as const, POPPER = [0.78, 0.68, 0.52] as const;
 /** The thrown lash is the handle's dark braid (loop 3: its first metre read as a pale cone against the dusk sun). */
 const LASH_A = [0.24, 0.12, 0.055] as const, LASH_B = [0.13, 0.065, 0.03] as const;
+const COIL_A = [0.3, 0.16, 0.07] as const, COIL_B = [0.16, 0.08, 0.038] as const;
 const GLOVE = 0x7a4a28, CUFF = 0x5a3219, KNOB = 0x3a2214;
 /** A low warm self-light: the dusk sun sits behind the player most of the time, and a backlit viewmodel reads as a black lump. */
 const GLOW = 0x120804;
@@ -136,8 +137,10 @@ export function buildWhipModel(): WhipParts {
   }
   coilPoints.push(new Vector3(0.02, -0.24, -0.02), new Vector3(0.05, -0.36, -0.05));
   const coilGeometry = new TubeGeometry(new CatmullRomCurve3(coilPoints), 140, cord, RADIAL, false);
-  braid(coilGeometry, 141, RADIAL + 1);
-  const coil = new Mesh(coilGeometry, braided());
+  // the coil is the lash's own dark braid, a shade lighter (loop 3: the handle's pale strands read cream in the sun)
+  braid(coilGeometry, 141, RADIAL + 1, 0, COIL_A, COIL_B);
+  const coilMaterial = braided(); coilMaterial.roughness = 0.75;
+  const coil = new Mesh(coilGeometry, coilMaterial);
   if (made === null) coil.position.set(0, 0.1, -0.02); else coil.position.set(-0.06, 0.07, -0.03);
   coil.rotation.set(0.1, 0.4, 0.1);
   root.add(grip, coil);

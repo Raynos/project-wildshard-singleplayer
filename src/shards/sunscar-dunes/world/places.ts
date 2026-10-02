@@ -1,5 +1,5 @@
 import { addFire, WAYMARK_FIRE } from './fireFx';
-import { BoxGeometry, CylinderGeometry, DoubleSide, Group, InstancedMesh, Matrix4, Mesh, MeshBasicMaterial, MeshStandardMaterial,
+import { BoxGeometry, CylinderGeometry, DoubleSide, Float32BufferAttribute, Group, InstancedMesh, Matrix4, Mesh, MeshBasicMaterial, MeshStandardMaterial,
   Quaternion, SphereGeometry, TorusGeometry, Vector3, type Material } from 'three';
 import { boxDesc, type ColliderDesc } from '#engine';
 import { CARAVAN, WELL } from '../layout';
@@ -13,6 +13,20 @@ const at = (mesh: Mesh, x: number, y: number, z: number, parent: Group): Mesh =>
 
 /** Spilled cargo on the lee (−X) side, on the sand itself: x, z, half size, yaw. */
 const CARGO: readonly [number, number, number, number][] = [[-2.3, 0.7, 0.35, 0.3], [-2.8, -0.8, 0.3, -0.4], [-1.9, -2.4, 0.4, 0.9]];
+
+/** Sun-bleached crate planks (loop 3: the plain dark boxes read as black cubes against the afterglow). */
+const CRATE = 0x9a7352, CRATE_GLOW = 0x150b05;
+const crateMaterial = (): MeshStandardMaterial => new MeshStandardMaterial({ color: CRATE, vertexColors: true, roughness: 0.9, flatShading: true, emissive: CRATE_GLOW });
+/** A crate of four planks a side: each plank band a shade of its own, the frame boards at top and bottom darker. */
+function crateGeometry(half: number): BoxGeometry {
+  const g = new BoxGeometry(half * 2, half * 2, half * 2, 1, 4, 1), p = g.getAttribute('position'), colors = new Float32Array(p.count * 3);
+  for (let i = 0; i < p.count; i++) {
+    const band = Math.min(3, Math.floor((p.getY(i) / (half * 2) + 0.5) * 4 - 1e-4)), shade = [0.72, 0.95, 0.84, 0.7][Math.max(0, band)] ?? 0.8;
+    colors[i * 3] = shade; colors[i * 3 + 1] = shade * 0.97; colors[i * 3 + 2] = shade * 0.92;
+  }
+  g.setAttribute('color', new Float32BufferAttribute(colors, 3));
+  return g;
+}
 
 export interface CaravanParts { root: Group; colliders: ColliderDesc[]; logbookAt: Vector3; logbook: Mesh }
 
@@ -31,7 +45,8 @@ export function buildCaravan(groundAt: (x: number, z: number) => number): Carava
   const generated = duneMesh('caravan');
   if (generated) { wagon.add(new Mesh(fit(generated, { size: 6.2, by: 'span', yaw: Math.PI / 2 }), duneMaterial())); coverHoops(wagon); }
   else buildCodeWagon(wagon, wood, dark);
-  CARGO.forEach(([x, z, half, yaw]) => { const crate = box(half * 2, half * 2, half * 2, wood); crate.rotation.y = yaw; at(crate, x, half * 0.8, z, root); });
+  const crateWood = crateMaterial();
+  CARGO.forEach(([x, z, half, yaw]) => { const crate = new Mesh(crateGeometry(half), crateWood); crate.rotation.y = yaw; at(crate, x, half * 0.8, z, root); });
   const barrel = new Mesh(new CylinderGeometry(0.34, 0.34, 0.9, 10), dark); barrel.rotation.set(0, 0.6, Math.PI / 2); at(barrel, -2.4, 0.25, 2.3, root);
   // The logbook: on the tailboard, the wagon's back (−Z).
   const logbook = box(0.32, 0.07, 0.42, mat(LEATHER)); logbook.rotation.y = 0.3; at(logbook, 0.35, 1.12, -2.55, root);

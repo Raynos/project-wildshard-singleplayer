@@ -28,11 +28,14 @@ const BILLBOARD_Y = /* glsl */ `
 uniform float uTime;
 varying vec2 vUv;
 varying float vFar;
+varying float vNear;
 void main() {
   vUv = uv;
   vec3 center = (modelMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
   float sx = length(modelMatrix[0].xyz), sy = length(modelMatrix[1].xyz);
   vec3 toCam = cameraPosition - center; toCam.y = 0.0;
+  // a camera inside the column (a player at the deck's brazier) sees through it, not a screen-filling quad
+  vNear = smoothstep(1.2, 3.5, length(toCam));
   // right × up must face the camera, or the quad is back-face culled.
   vec3 right = normalize(vec3(toCam.z, 0.0, -toCam.x) + vec3(1e-4, 0.0, 0.0));
   float y = position.y;
@@ -49,6 +52,7 @@ const flameMaterial = new ShaderMaterial({
 uniform float uTime;
 varying vec2 vUv;
 varying float vFar;
+varying float vNear;
 ${NOISE}
 void main() {
   float y = vUv.y, n = fxNoise(vec2(vUv.x * 5.0, y * 4.0 - uTime * 3.4)) * 0.6 + fxNoise(vec2(vUv.x * 11.0 + 3.0, y * 9.0 - uTime * 6.0)) * 0.4;
@@ -56,8 +60,9 @@ void main() {
   float d = abs(vUv.x - 0.5) / w + (n - 0.5) * 0.9;
   float body = (1.0 - smoothstep(0.25, 1.0, d)) * (1.0 - smoothstep(0.55, 1.02, y + (n - 0.5) * 0.45)) * smoothstep(0.0, 0.08, y);
   vec3 c = mix(vec3(0.85, 0.14, 0.02), vec3(1.0, 0.5, 0.1), smoothstep(0.15, 0.6, body));
-  c = mix(c, vec3(1.0, 0.93, 0.7), smoothstep(0.7, 1.0, body) * (1.0 - y));
-  gl_FragColor = vec4(c * body * 1.25, 1.0);
+  c = mix(c, vec3(1.0, 0.8, 0.48), smoothstep(0.7, 1.0, body) * (1.0 - y)); // a saturated core, never a white blob (loop 3 ΔE00)
+  // Up close (a player at the brazier, the deck's fire) the billboard fades out instead of filling the screen white.
+  gl_FragColor = vec4(c * body * 1.25 * smoothstep(0.8, 2.6, vFar) * max(vNear, 0.25), 1.0);
 }`,
 });
 const smokeMaterial = new ShaderMaterial({
@@ -67,6 +72,7 @@ const smokeMaterial = new ShaderMaterial({
 uniform float uTime;
 varying vec2 vUv;
 varying float vFar;
+varying float vNear;
 ${NOISE}
 void main() {
   float y = vUv.y;
@@ -75,7 +81,7 @@ void main() {
   float a = (1.0 - smoothstep(0.2, 1.0, d)) * smoothstep(0.0, 0.06, y) * (1.0 - smoothstep(0.45, 1.0, y)) * (0.35 + 0.65 * n);
   // Dark grey-brown, lit warm by the fire at its foot and by the afterglow on its lit side.
   vec3 c = mix(vec3(0.22, 0.09, 0.04), vec3(0.045, 0.04, 0.05), smoothstep(0.0, 0.3, y));
-  gl_FragColor = vec4(c, a * 0.8 * (1.0 - smoothstep(260.0, 420.0, vFar)));
+  gl_FragColor = vec4(c, a * 0.8 * (1.0 - smoothstep(260.0, 420.0, vFar)) * vNear);
 }`,
 });
 const glowMaterial = new ShaderMaterial({
@@ -83,21 +89,25 @@ const glowMaterial = new ShaderMaterial({
   vertexShader: /* glsl */ `
 uniform float uTime;
 varying vec2 vUv;
+varying float vFade;
 void main() {
   vUv = uv;
   float s = length(modelMatrix[0].xyz);
   vec4 mv = modelViewMatrix * vec4(0.0, 0.0, 0.0, 1.0);
+  // inside the glow's own radius the halo fades (loop 3: the deck's fire washed the whole frame white)
+  vFade = smoothstep(s * 0.35, s * 1.1, -mv.z);
   mv.xy += position.xy * s;
   gl_Position = projectionMatrix * mv;
 }`,
   fragmentShader: /* glsl */ `
 uniform float uTime;
 varying vec2 vUv;
+varying float vFade;
 void main() {
   float r = length(vUv - 0.5) * 2.0;
   float flick = 0.86 + 0.08 * sin(uTime * 13.0) + 0.06 * sin(uTime * 29.0 + 1.3);
   float g = exp(-r * r * 5.0) * (1.0 - smoothstep(0.85, 1.0, r));
-  gl_FragColor = vec4(vec3(1.0, 0.4, 0.1) * g * 0.42 * flick, 1.0);
+  gl_FragColor = vec4(vec3(1.0, 0.4, 0.1) * g * 0.42 * flick * vFade, 1.0);
 }`,
 });
 const emberMaterial = new ShaderMaterial({
