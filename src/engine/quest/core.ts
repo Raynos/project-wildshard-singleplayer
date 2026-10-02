@@ -64,9 +64,10 @@ export class QuestState {
   private cur: QuestStep | null;
   private started: boolean;
   private unsub: () => void;
+  private readonly observers = new Set<{ step?: (step: QuestStep | null, previous: QuestStep | null) => void; complete?: () => void }>();
 
   readonly def: QuestDef;
-  private readonly flags: Flags;
+  readonly flags: Flags;
   private readonly events: Events | undefined;
   constructor(def: QuestDef, flags: Flags, events?: Events, scope?: Scope) {
     this.def = def; this.flags = flags; this.events = events;
@@ -76,7 +77,12 @@ export class QuestState {
     scope?.onDispose(() => this.dispose());
   }
 
-  dispose(): void { this.unsub(); }
+  dispose(): void { this.unsub(); this.observers.clear(); }
+  /** Multiple scoped views can observe transitions without replacing the authored callbacks. */
+  observe(observer: { step?: (step: QuestStep | null, previous: QuestStep | null) => void; complete?: () => void }): () => void {
+    this.observers.add(observer);
+    return () => { this.observers.delete(observer); };
+  }
 
   get isStarted(): boolean { return this.started; }
   get isComplete(): boolean { return this.flags.has(this.def.completeFlag); }
@@ -93,9 +99,13 @@ export class QuestState {
     const prev = this.started ? this.cur : null;
     this.started = started; this.cur = next;
     if (!started) return;
-    if (next === null && !this.flags.has(this.def.completeFlag)) { this.flags.set(this.def.completeFlag); this.onComplete?.(); }
+    if (next === null && !this.flags.has(this.def.completeFlag)) {
+      this.flags.set(this.def.completeFlag); this.onComplete?.();
+      for (const observer of this.observers) observer.complete?.();
+    }
     this.events?.emit('quest.step', { level: this.flags.level, quest: this.def.id, step: next?.id ?? null, previous: prev?.id ?? null });
     this.onStep?.(next, prev);
+    for (const observer of this.observers) observer.step?.(next, prev);
   }
 
   counter(step: QuestStep | null = this.current): { n: number; of: number } | null {

@@ -113,6 +113,12 @@ export class FullMap {
   /** replace the default points of interest (cabins, pond) with the shard's own list, read every frame the map is open.
    *  (`declutter` is kept for its callers: every label is laid out apart now, E130 — NALATI-MERGE F11's elder included) */
   setPois(source: () => MapPoi[], opts: { declutter?: boolean; tally?: boolean } = {}): void { this.poiSource = source; this.tally = opts.tally === true; }
+  /** Quest overlays keep the base places and tally intact. */
+  addPois(source: () => MapPoi[]): () => void {
+    this.poiSources.add(source);
+    return () => { this.poiSources.delete(source); };
+  }
+  private readonly poiSources = new Set<() => MapPoi[]>();
   private tally = false;
   private dash: number[] = [3, 2.5];
   /** the shard's zone names (Pine Hollow: THE RIDGE, THE OLD-GROWTH, …), big faint caps under the pins up to 2.5× */
@@ -122,7 +128,13 @@ export class FullMap {
   setFeatures(f: MapFeatures): void { this.minimap.setFeatures(f); }
   /** the shard's quest, read by the menu each time the MAP tab shows (null = no quest card) */
   setQuest(source: () => MapQuest | null): void { this.questSource = source; }
-  get quest(): MapQuest | null { return this.minimap.room !== null ? null : this.questSource?.() ?? null; }
+  /** Scoped cards may retire in any order without resurrecting a disposed quest. */
+  addQuest(source: () => MapQuest | null): () => void {
+    this.questSources.push(source);
+    return () => { const i = this.questSources.indexOf(source); if (i !== -1) this.questSources.splice(i, 1); };
+  }
+  private readonly questSources: (() => MapQuest | null)[] = [];
+  get quest(): MapQuest | null { return this.minimap.room !== null ? null : (this.questSources.at(-1) ?? this.questSource)?.() ?? null; }
   /** a practice room's own map is up (the minimap's, E321): the MAP tab shows it — in the arena / a playground too */
   get hasRoom(): boolean { return this.minimap.room !== null; }
   get zoom(): number { return this._zoom; }
@@ -220,10 +232,11 @@ export class FullMap {
     // points of interest (their labels laid out clear of each other, the markers and your arrow)
     const fs = Math.max(11 * this.dpr, side * 0.022 / this._zoom);
     const px = sx(pos.x), py = sz(pos.z), r = Math.max(7 * this.dpr, fs * 0.6);
-    const list: Pin[] = this.poiSource ? this.poiSource() : [
+    const list: Pin[] = this.poiSource ? [...this.poiSource()] : [
       ...CABIN_SITES.map((c, i): Pin => ({ x: c.x, z: c.z, label: engineString('s_a5912d0f68ef', [i + 1]), kind: 'place', color: '#8fe3ff' })),
       ...(hasPond() ? [{ x: POND.x, z: POND.z, label: engineString('s_5dddbb894d63'), kind: 'place', color: '#6fb8e8' } satisfies Pin] : []),
     ];
+    if (this.poiSources.size > 0) list.push(...[...this.poiSources].flatMap((source) => source()));
     const tally = this.tally ? this.layTally(list, ox, oy + side) : null;
     // the minimap's marks (Driftwood's sea chart: every unfound sea glass piece, E314) — under the pins, no labels, not
     // tallied; a bead in the piece's colour inside a white ring (a quest marker is a cyan diamond, a place a white dot)

@@ -11,12 +11,11 @@
  */
 import * as THREE from 'three';
 import { BossBar, app } from '#engine';
-import { RewardCaption } from '#game';
+import { QuestRewardBeat } from '#game';
 import type { Adventure, AdventureWorld, AdvAnimal } from './adventure';
 import { DrownedCaptain, CAPTAIN_DEF } from '../combat/captain';
 
 const GOLDEN = 0.745;          // DayNight phase of the golden-hour key (its KEYS table: GOLDEN at 0.74)
-const HOLD_S = 7;              // seconds the reward view holds before the quest completes
 const ARENA = 22;
 
 export interface Finale { captain: () => AdvAnimal | null; rewardAt: THREE.Vector3 }
@@ -26,7 +25,6 @@ export function installFinale<A extends AdvAnimal>(adv: Adventure, w: AdventureW
   const pool = place({ poi: 'shrine', anchor: 'shrine.pool', x: 0, z: 8 });
   const ringP = place({ poi: 'shrine', anchor: 'shrine.ring', x: 0, z: 0, dy: 3.8 });
   const bar = new BossBar();
-  const caption = new RewardCaption('The Sealed Ring · opened', 'Driftwood Isle', 'The planet in the ring, at golden hour');
   let captain: A | null = null;
 
   // ── the reward spot: back along the planet's direction from the ring's centre until the eye is at standing height ──
@@ -75,41 +73,17 @@ export function installFinale<A extends AdvAnimal>(adv: Adventure, w: AdventureW
   if (flags.has('used:altar') && !flags.has('dead:captain')) spawn();   // a reload mid-fight: he waits under the pool
 
   // ── per frame: wake on approach, the boss bar, the reward view ──
-  const from = new THREE.Vector3();
-  let reward = -1, fromYaw = 0, fromPitch = 0, fromPhase = 0;
-  const wantYaw = Math.atan2(-planet.x, -planet.z);   // forward = (−sin yaw, −cos yaw): face the planet
-  const wantPitch = Math.asin(THREE.MathUtils.clamp(planet.y, -1, 1));
+  const reward = new QuestRewardBeat({ scope: w.scope ?? app.levelScope ?? app.engineScope, player: w.player,
+    dayNight: w.sky.dayNight, ...(adv.spine === null ? {} : { objective: adv.spine.objective.root }),
+    ...(w.setViewmodel === undefined ? {} : { setViewmodel: w.setViewmodel }), sting: () => { w.music.sting('chunk'); } }, {
+    kicker: 'The Sealed Ring · opened', title: 'Driftwood Isle', subtitle: 'The planet in the ring, at golden hour',
+    at: rewardAt, yaw: Math.atan2(-planet.x, -planet.z), pitch: Math.asin(THREE.MathUtils.clamp(planet.y, -1, 1)), phase: GOLDEN,
+    when: () => flags.has('dead:captain') && !flags.has('seen:reward') && Math.hypot(w.player.position.x - rewardAt.x, w.player.position.z - rewardAt.z) < 7,
+    finish: () => { flags.set('seen:reward'); return adv.complete?.showAfterReward() === true; },
+  });
   w.game.onUpdate((dt) => {
-    const pp = w.player.position;
     encounter.update(dt, app.clock.now);
-
-    // the reward
-    if (reward < 0 && flags.has('dead:captain') && !flags.has('seen:reward') && Math.hypot(pp.x - rewardAt.x, pp.z - rewardAt.z) < 7) {
-      reward = 0; w.player.carried = true; from.copy(pp); fromYaw = w.player.yaw; fromPitch = w.player.pitch; fromPhase = w.sky.dayNight?.phase ?? 0;
-      caption.show(true);
-      w.setViewmodel?.(false);                                   // nothing between you and the view
-      adv.spine?.objective.root.classList.add('ws-quest-hide');   // the caption has the screen
-      w.music.sting('chunk');
-    }
-    if (reward >= 0) {
-      reward += dt;
-      const k = THREE.MathUtils.smoothstep(reward, 0, 2.5);
-      w.player.position.lerpVectors(from, rewardAt, k); w.player.velocity.set(0, 0, 0);
-      w.player.yaw = fromYaw + wrap(wantYaw - fromYaw) * k;
-      w.player.pitch = fromPitch + (wantPitch - fromPitch) * k;
-      const dn = w.sky.dayNight;
-      if (dn) { const ahead = ((GOLDEN - fromPhase) % 1 + 1) % 1; dn.phase = (fromPhase + ahead * THREE.MathUtils.smoothstep(reward, 0, 3.5)) % 1; }
-      if (reward > HOLD_S) {
-        reward = -2; caption.show(false); flags.set('seen:reward');   // the quest completes: its toasts play under the card
-        // E132: the first time, the "Driftwood complete" card takes over while we still own the camera (Complete.ts)
-        if (adv.complete?.showAfterReward() !== true) {
-          w.player.carried = false;
-          w.setViewmodel?.(true); adv.spine?.objective.root.classList.remove('ws-quest-hide');
-        }
-      }
-    }
+    reward.update(dt);
   }, 'shard.driftwood-isle.installFinale');
   return { captain: () => captain, rewardAt };
 }
-
-function wrap(a: number): number { return Math.atan2(Math.sin(a), Math.cos(a)); }

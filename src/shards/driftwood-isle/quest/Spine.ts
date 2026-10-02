@@ -9,7 +9,7 @@
  */
 import * as THREE from 'three';
 import { app, boxInFrame } from '#engine';
-import { QuestState, DialogueBox, NpcTalk, QuestChip, type QuestMarker, type ObjectiveLine, type LiveMarker } from '#game';
+import { QuestState, DialogueBox, NpcTalk, presentQuest, type ObjectiveLine, type LiveMarker } from '#game';
 import { CASTAWAY, DRIFTWOOD_QUEST } from './questLine';
 import type { Castaway } from '../npc/Castaway';
 import { castawayRig } from './people';
@@ -31,14 +31,18 @@ const TALK_R = 3.2;
 export function installSpine<A extends AdvAnimal>(adv: Adventure, w: AdventureWorld<A>): Spine {
   const { flags, kit, place } = adv;
   const quest = new QuestState(DRIFTWOOD_QUEST, flags);
-  const markers = (): LiveMarker[] => quest.markers().map((m: QuestMarker) => { const p = place(m.at); return { id: m.id, label: m.label, short: m.short ?? m.label, x: p.x, z: p.z }; });
   // the chip (the shared quest core, core.ts) — built before the dialogue box, as it always was (their DOM order)
   // after the quest (E132): "Still to find" + the nearest sea glass / place / treasure left (Complete.ts); hidden once all are found
   const leftovers = (): LiveMarker[] | null => (quest.isComplete && adv.complete ? adv.complete.leftMarkers() : null);
-  const chip = new QuestChip({
+  const presentation = presentQuest({ scope: w.scope ?? app.levelScope ?? app.engineScope, player: w.player,
+    toast: (text) => { w.hud.toast(text); }, sting: () => { w.music.sting('chunk'); },
+    ...(w.fullMap === undefined ? {} : { fullMap: w.fullMap }) }, quest, {
+    place, introTitle: 'Driftwood Isle', worldPins: false, mapMarkers: false, minimapMarks: false,
     chip: () => { const l = leftovers(); return l === null ? quest.chip() : { label: l.length > 0 ? 'Still to find' : '', count: '' }; },
-    markers: () => leftovers() ?? markers(),
+    markers: () => leftovers() ?? presentation.markers(),
+    stepToast: (step, prev) => prev === null && step.id === 'shards' ? `New quest · ${DRIFTWOOD_QUEST.title}` : `Objective · ${quest.objective()}`,
   });
+  const { chip, markers } = presentation;
   const objective = chip.line;
   const dialogue = new DialogueBox(w.scope?.child('dialogue'));
   w.scope?.onDispose(() => { quest.dispose(); objective.root.remove(); });
@@ -57,12 +61,6 @@ export function installSpine<A extends AdvAnimal>(adv: Adventure, w: AdventureWo
   w.prompts.push(talk.prompt);
 
   // ── the quest's beats: a toast + the chunk sting on every step, a fanfare at the end ──
-  quest.onStep = (step, prev) => {
-    if (prev === null && step?.id === 'shards') w.hud.toast(`New quest · ${DRIFTWOOD_QUEST.title}`);
-    else if (step) w.hud.toast(`Objective · ${quest.objective()}`);
-    w.music.sting('chunk');
-  };
-  quest.onComplete = () => { w.hud.toast(`Quest complete · ${DRIFTWOOD_QUEST.title}`); };
 
   // ── kills: the sailor drops the hold key; the captain ends the fight ──
   // Ordered scoped death listener: the hold key lands before respawn and reward listeners.
@@ -76,8 +74,6 @@ export function installSpine<A extends AdvAnimal>(adv: Adventure, w: AdventureWo
   w.onDeath?.(killed, 10);
 
   // the full quest — chapter title, objective, sub-steps — on the menu's MAP tab (the HUD chip only carries the short form, E51)
-  const chapter = (): string => (quest.isStarted ? DRIFTWOOD_QUEST.title : 'Driftwood Isle');
-  w.fullMap?.setQuest?.(() => ({ title: chapter(), objective: quest.objective(), hint: quest.isComplete ? '' : quest.hint() }));
 
   // ── per frame: the quest chip, the nearest marker, the dialogue ──
   w.game.onUpdate((dt, t) => {
@@ -88,7 +84,7 @@ export function installSpine<A extends AdvAnimal>(adv: Adventure, w: AdventureWo
     // the sword goes down while you talk to Wendell and comes back up when the talk ends (E129)
     if (talk.talking !== stowed) { stowed = talk.talking; w.stowWeapon?.(stowed); }
     if (!waved && !flags.has('talked:castaway') && pp.distanceToSquared(castaway.position) < 16 * 16) { waved = true; castaway.wave(); }
-    chip.update(t, w.player);
+    presentation.update(dt, t);
   }, 'shard.driftwood-isle.installSpine');
   return { quest, castaway, dialogue, objective, markers };
 }

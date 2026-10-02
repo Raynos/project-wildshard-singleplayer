@@ -373,6 +373,30 @@ These are game mechanisms: list them in `uses`, then wire them in `play`.
 | Bag | `manifest.bag.tabs`; `ctx.bag.tab(spec)`, `ctx.bag.fragment(tab, fragment)` |
 | items | `ctx.rows.item(row)`; set `travels: true` only for an item that crosses shards |
 
+For Wendell's quest presentation, use one call in `play(ctx)`:
+
+```ts
+import { installQuestPresentation } from '#game';
+import { Vector3 } from 'three';
+
+const view = installQuestPresentation(ctx, {
+  id: 'template.quest', title: STRINGS.quest, completeFlag: 'template.quest.done',
+  steps: [{ id: 'bell', title: STRINGS.findBell, done: { all: ['template.bell.rung'] },
+    target: { position: new Vector3(12, 4, -20), label: STRINGS.bell } }],
+});
+// In the bell's authored interaction:
+view.quest.flags.set('template.bell.rung');
+```
+
+This installs the objective chip, active minimap diamonds, styled world pins, MAP card, saved discovery at targets,
+step toasts and a seven-second reward caption. A target can supply an `npc` (definition, head position, talk label,
+speaker); `options.npc` is a persistent giver. Existing `QuestState` / `QuestDef` quests work too: retain
+`startWhen` / `intro` and markers, with `options.place` for POI-local positions. Supply `flags` to share the
+interaction store, `places` for authored discovery radii and `reward` for a held camera / clock view and award
+in `finish()`; use `reward: false` when your finale owns that moment. Models, gestures, conditions and prizes
+stay in the shard. The scope removes the presentation; map overlays coexist with loot charts.
+See [ENGINE.md §20](ENGINE.md#20-the-game-layer-game) for options and the completion-card handoff.
+
 ## 13. Debug rows, playgrounds, Explore
 
 - **Debug rows:** `ctx.debugRow({ id, group, label, choices, initial, change, note, ask: 'E<n>', reviewBy })` in an

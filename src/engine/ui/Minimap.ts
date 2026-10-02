@@ -222,7 +222,17 @@ export class Minimap {
   /** small diamonds at world points, read every frame (Driftwood's sea chart: the unfound sea glass, E314); null clears.
    *  The full map (src/engine/ui/Map.ts) draws the same list. Not drawn over a practice room's map. */
   setMarks(source: (() => readonly MapMark[]) | null): void { this.markSource = source; }
-  get marks(): readonly MapMark[] { return this.roomMap !== null ? NO_MARKS : this.markSource?.() ?? NO_MARKS; }
+  /** Additional scoped marks coexist with the base map source. */
+  addMarks(source: () => readonly MapMark[]): () => void {
+    this.markSources.add(source);
+    return () => { this.markSources.delete(source); };
+  }
+  private readonly markSources = new Set<() => readonly MapMark[]>();
+  get marks(): readonly MapMark[] {
+    if (this.roomMap !== null) return NO_MARKS;
+    const base = this.markSource?.() ?? NO_MARKS;
+    return this.markSources.size === 0 ? base : [...base, ...[...this.markSources].flatMap((source) => source())];
+  }
   private markSource: (() => readonly MapMark[]) | null = null;
 
   /** has the player been near (x, z)? — the fog-of-war coverage (a place on the full map is named once explored, else "?") */

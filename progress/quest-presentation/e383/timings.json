@@ -1,0 +1,10 @@
+{
+  "jobs": 2,
+  "clock": "accelerated",
+  "buildMs": 5335.756958,
+  "cacheHit": false,
+  "cacheEvicted": 1,
+  "driftwood-isle.phone.run1Ms": 13599.724374999998,
+  "driftwood-isle.desktop.run1Ms": 17981.290959,
+  "totalMs": 31780.813167
+}

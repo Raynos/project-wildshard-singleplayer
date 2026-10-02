@@ -16,7 +16,7 @@ export interface ShardPlayHost {
   audio: Audio; music: Music; skins: SkinLocker; wearSkin: (skin: SkinDef) => void;
   touchUi: () => boolean; nolock: boolean; disposeRifleDrop: () => void; cues: CombatCues;
   firstHints?: FirstHints;
-  minimap?: { setMarks: (source: (() => readonly MapMark[]) | null) => void } | null;
+  minimap?: { setMarks: (source: (() => readonly MapMark[]) | null) => void; addMarks: (source: () => readonly MapMark[]) => () => void } | null;
   bodyShadow?: BodyShadow | null;
 }
 export interface ShardPlayHooks {

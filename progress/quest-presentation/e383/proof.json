@@ -1,0 +1,20 @@
+{
+  "phone": {
+    "verdict": "green",
+    "candidate": "e5dbbe11b1d039729226b1d9ffe1eea36f69c508",
+    "build": "e5dbbe1-muqev48w",
+    "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+    "errors": [],
+    "checks": 599,
+    "regressions": []
+  },
+  "desktop": {
+    "verdict": "green",
+    "candidate": "e5dbbe11b1d039729226b1d9ffe1eea36f69c508",
+    "build": "e5dbbe1-muqev48w",
+    "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+    "errors": [],
+    "checks": 594,
+    "regressions": []
+  }
+}

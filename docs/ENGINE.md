@@ -1406,6 +1406,53 @@ const quest = new QuestState({ id: 'template.quest', title: STRINGS.quest, compl
 quest.onComplete = () => { burst.spawn(player, 5, onCoin, () => { ctx.game.runtime?.play?.hud.toast(STRINGS.reward); }); };
 ```
 
+**One-call quest presentation (E383).** `installQuestPresentation(ctx, quest, options?)` from `#game` accepts
+a `QuestState`, `QuestDef`, or `PresentedQuestDef` whose steps have `title`, `target: { position: Vector3,
+label, short?, npc? }` and the normal `done` flags. It reuses Wendell's `QuestChip`, `DialogueBox`, `NpcTalk`,
+saved discovery and held reward view. One scoped update system drives the objective chip with metres and bearing,
+active-step minimap diamonds, styled cyan world pins, MAP card, step-complete / objective toasts and reward caption.
+
+Simple targets are discovered within 12 m (`seen:<quest>.<step>`); `places` supplies authored `PlacePoint` radii
+and quiet arrivals. A target's `npc` supplies `npc: NpcDef`, head position `at`, talk `label`, `speaker: { talking }`
+and optional `radius`, `onOpen` / `onDone`. Its prompt is active during that step. `options.npc` is a persistent
+giver, including the intro. The installer stows the weapon during dialogue; models and gestures stay in the shard.
+
+`flags` defaults to the existing state's public `flags`, or a saved `Flags(ctx.manifest.slug)` for a definition.
+POI-local markers need `place(at)`; simple target positions need no resolver. `introTitle`, `stepToast`,
+`stepCompleteToast` (`false` disables it), `completeToast`, `chip` and `markers` retain authored copy and leftovers.
+`worldPins`, `mapMarkers` and `minimapMarks` can be disabled individually.
+
+The default completion holds the player and shows the shared seven-second caption once; a completed save does
+not replay it. `reward: false` disables that hold. An authored `QuestRewardSpec` supplies `kicker`, `title`,
+`subtitle`, `when()`, optional camera `at`, `yaw`, `pitch`, day-cycle `phase`, `holdSeconds`, and `finish()`.
+It uses Driftwood's exact 2.5 s camera ease, shortest yaw, 3.5 s forward clock ease and caption. Award loot / raise
+the reward flag in `finish()`; return `true` if a completion card takes camera ownership, otherwise `false` or
+`undefined`. `QuestRewardBeat` exposes the same beat for authored finales with a `QuestRewardHost` / player port.
+
+`QuestPresentation` returns `quest`, `chip`, `markers()`, `places`, `reward`, `update(dt, t)` and `dispose()`.
+Disposal removes views, prompts and overlays, removes transition observers and releases an active reward hold.
+A state created by the installer is unsubscribed; an external state remains caller-owned. `QuestPresentationContext`
+and `QuestPresentationHost` are structural ports; ordinary `ShardContext` works. `presentQuest(host, state, options)`
+is the same wiring for older adventures that own their frame order: call `update` yourself. Automatic presentation
+runs only during play; discovery / presentation skip practice rooms.
+
+`FullMap.addPois(source)` / `addQuest(source)` and `Minimap.addMarks(source)` return removers. These overlays
+coexist with shard places and loot charts (`setPois` / `setMarks`); quest cards can retire in any order.
+`QuestState.observe({ step?, complete? })` returns a remover and preserves authored `onStep` / `onComplete` callbacks.
+
+```ts
+import { installQuestPresentation } from '#game';
+import { Vector3 } from 'three';
+
+const view = installQuestPresentation(ctx, {
+  id: 'template.bell', title: STRINGS.quest, completeFlag: 'template.quest.done',
+  steps: [{ id: 'bell', title: STRINGS.findBell, done: { all: ['template.bell.rung'] },
+    target: { position: new Vector3(12, 4, -20), label: STRINGS.bell } }],
+});
+// In the shard's bell interaction; every presentation surface follows this flag.
+view.quest.flags.set('template.bell.rung');
+```
+
 ## 21. The kit (`#kit`)
 
 The kit holds content that 2+ shards use (the rule of two). Content one shard uses stays in that shard.
@@ -1758,7 +1805,7 @@ sections above describe what to use; this list is the complete inventory.
 
 ### `#game` (`src/game/index.ts`)
 
-100 exports, grouped by the module they come from.
+114 exports, grouped by the module they come from.
 
 - `./equipmentTypes`: `EquipmentRow`
 - `./shard/plugin`: `ShardPlugin`
@@ -1791,6 +1838,8 @@ sections above describe what to use; this list is the complete inventory.
 - `./loot/CoinBurst`: `CoinBurst`
 - `./cosmetics/locker`: `CosmeticsLocker`, `SkinLocker`, `CosmeticDef`, `CosmeticProfile`, `CosmeticState`
 - `./Elite`: `GroundTell`, `GroundTellWedgeStyle`
+- `./quest/presentation`: `installQuestPresentation`, `presentQuest`, `QuestPresentation`, `QuestPresentationContext`, `QuestPresentationHost`, `QuestPresentationOptions`, `QuestTarget`, `QuestPresentationNpc`, `PresentedQuestDef`, `PresentedQuestStep`
+- `./quest/reward`: `QuestRewardBeat`, `QuestRewardSpec`, `QuestRewardHost`, `QuestRewardPlayer`
 - `(local)`: `GAME_API`
 
 ### `#kit` (`src/kit/index.ts`)
