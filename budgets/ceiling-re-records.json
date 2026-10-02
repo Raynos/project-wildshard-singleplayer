@@ -56,16 +56,16 @@
       "tier": "phone",
       "metric": "gpuMB",
       "source": "budgets/calibration-reports/far-reach.phone.json",
-      "commit": "b71383c55fd0463f7fc5f038200a24000a70dcb2",
-      "reason": "E374 Sky Reach loop 2, lead-approved polish: the meadow (grass, flowers, stones, roots), 14 skyline islands with waterfalls and the fan rebuilt in a gloved hand upload behind the loading screen"
+      "commit": "6259b45871b5453fc7a44641491d629cef40bf7a",
+      "reason": "E374 Sky Reach loop 3, lead-approved polish (standing approval to 100 MB phone): the crown storm vortex, the GUST and updraft wind FX and the generated bridge-keeper (2.6k tris)"
     },
     {
       "shard": "far-reach",
       "tier": "desktop",
       "metric": "gpuMB",
       "source": "budgets/calibration-reports/far-reach.desktop.json",
-      "commit": "b71383c55fd0463f7fc5f038200a24000a70dcb2",
-      "reason": "E374 Sky Reach loop 2, lead-approved polish: the meadow (grass, flowers, stones, roots), 14 skyline islands with waterfalls and the fan rebuilt in a gloved hand upload behind the loading screen"
+      "commit": "6259b45871b5453fc7a44641491d629cef40bf7a",
+      "reason": "E374 Sky Reach loop 3, lead-approved polish (standing approval to 100 MB phone): the crown storm vortex, the GUST and updraft wind FX and the generated bridge-keeper (2.6k tris)"
     }
   ]
 }
