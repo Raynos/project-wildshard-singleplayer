@@ -1,4 +1,4 @@
-import { AdditiveBlending, BufferGeometry, CapsuleGeometry, ConeGeometry, CylinderGeometry, Float32BufferAttribute, Group, Mesh, MeshStandardMaterial, SphereGeometry, Sprite, SpriteMaterial, Vector3, type Object3D } from 'three';
+import { AdditiveBlending, BufferGeometry, CapsuleGeometry, ConeGeometry, CylinderGeometry, Float32BufferAttribute, Group, Mesh, MeshBasicMaterial, MeshStandardMaterial, SphereGeometry, Vector3, type Object3D } from 'three';
 import { fit, skyMesh } from '../world/meshes';
 import type { NpcDef } from '#engine';
 import { FLAGS } from './flags';
@@ -63,7 +63,7 @@ function whiten(g: BufferGeometry): void {
 }
 
 /** The generated keeper (loop 3; `art/far-reach/round-13-loop-3/`): body + a waving right arm on a shoulder pivot, and a lantern glow. */
-function generated(): { group: Group; shoulder: Group; glow: Sprite } | null {
+function generated(): { group: Group; shoulder: Group; glow: Mesh<SphereGeometry, MeshBasicMaterial> } | null {
   const g = skyMesh('keeper'); if (g === null) return null;
   fit(g, { size: KEEPER_MODEL.height, by: 'height', floor: 0, centre: 'base' }); g.rotateY(KEEPER_MODEL.yaw);
   whiten(g); const lantern = lanternAt(g), A = KEEPER_MODEL.arm, [sx, sy, sz] = KEEPER_MODEL.shoulder;
@@ -73,8 +73,9 @@ function generated(): { group: Group; shoulder: Group; glow: Sprite } | null {
   group.add(new Mesh(body, material));
   shoulder.position.set(sx, sy, sz); group.add(shoulder);
   shoulder.add(new Mesh(arm.translate(-sx, -sy, -sz), material));
-  const glow = new Sprite(new SpriteMaterial({ color: 0xffb860, transparent: true, opacity: 0.7, blending: AdditiveBlending, depthWrite: false }));
-  glow.position.copy(lantern); glow.scale.setScalar(0.75); group.add(glow);
+  // a halo ball, not a Sprite: the shard's global light patch reaches every material and a sprite's vertex shader lacks `transformed`
+  const glow = new Mesh(new SphereGeometry(0.24, 12, 8), new MeshBasicMaterial({ color: 0xffb860, transparent: true, opacity: 0.3, blending: AdditiveBlending, depthWrite: false }));
+  glow.position.copy(lantern); group.add(glow);
   return { group, shoulder, glow };
 }
 
@@ -96,7 +97,7 @@ export function keeper(y: number): Keeper {
     shoulder.rotation.z += (-lift - shoulder.rotation.z) * 0.15;
     // a slow breath of a turn, and the lantern's flicker
     group.rotation.y = KEEPER_AT.yaw + Math.sin(t * 0.6) * 0.03;
-    glow.material.opacity = 0.65 + Math.sin(t * 9) * 0.05 + Math.sin(t * 23) * 0.04;
+    glow.material.opacity = 0.3 + Math.sin(t * 9) * 0.04 + Math.sin(t * 23) * 0.03;
   } };
 }
 
