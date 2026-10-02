@@ -139,7 +139,7 @@ export class SkyRig {
 
     this.visual.buildSunDisc();
     this.visual.buildPlanet();
-    const backdrop = this.backdrop, fog = this.scene.fog, halo = this.sunDisc.children[0];
+    const backdrop = this.backdrop, fog = this.scene.fog, halo = this.visual.sunHalo;
     if (backdrop?.clouds) this.visual.attachClouds(backdrop.clouds); // its own sky layer (a dome): Game.ts keeps `clouds` on the camera
     else this.visual.buildClouds();
     // the backdrop's clock turns every knob above from here on
@@ -282,6 +282,7 @@ export class SkyRig {
     this.cloudUniforms.uTime.value += dt; this.giantUniforms.uTime.value += dt;
     if (B?.updateAt === 'late') B.update(dt, this.camera); // a clock that steps its own shadow light: after the cascades
     this.dressing?.update?.(dt);
+    this.visual.updateSunHalo(this.camera);
   }
 
   // ── runtime setters (a level's day/night sky rig + weather; nothing calls them on a fixed-time level) ──

@@ -11,6 +11,7 @@ import { addTrainingTarget, trainingTargetRaycast, type TrainingTargetBodies } f
 import type { Player } from '../player/Player';
 import type { TargetAnimal, TargetHit } from '#engine/combat/types';
 import type { EquipmentService } from '../combat/EquipmentService';
+import { practiceActor } from './targets';
 import type { WorldRegistry, ColliderDesc } from '../world/registry';
 import { DummyMotion, DummyPose } from './DummyMotion';
 import { DummyClips, loadDummyClips } from './DummyClips';
@@ -39,7 +40,7 @@ interface FloatingText { el: HTMLElement; point: THREE.Vector3; time: number }
 
 const _label = new THREE.Vector3(), _float = new THREE.Vector3(), _toward = new THREE.Vector3();
 
-class TrainingTarget implements TargetAnimal {
+export class TrainingTarget implements TargetAnimal {
   readonly kind = 'training-dummy';
   harnessHold = false;
   readonly alive = true; // practice targets never die or stop accepting combos
@@ -306,6 +307,10 @@ export class TrainingArena {
       target.onDamage = (amount, point) => { this.float(String(amount), point, 'hit'); };
       return target;
     });
+    const combatTargets = this.targets.map((target, index) =>
+      app.combat.targetPort(practiceActor(target, `practice.${String(index)}`), target, undefined,
+        () => !game.levelScope.disposed && this.active && target.ready));
+    app.combat.registerTargets(game.levelScope, () => combatTargets, () => this.active);
     // Dummies are children of the room for visibility; their static solid bodies and separate hitboxes live in Rapier.
     for (const target of this.targets) root.add(target.model.root);
     game.onUpdate((dt) => { if (this.active) this.update(dt); }, 'training-arena');

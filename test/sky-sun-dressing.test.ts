@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { Scene, Sprite, Vector3 } from 'three';
+import { BufferGeometry, Mesh, PerspectiveCamera, Scene, Sprite, Vector3 } from 'three';
 import { Scope, type LevelSpec, type Renderer, type Sky, type SkyDressing } from '#engine';
 import { SkyBackdropView } from '#engine/world/skyBackdrop';
 
@@ -26,13 +26,13 @@ describe('SkyDressing sun flags', () => {
     it(`selects disc=${String(disc)} and halo=${String(halo)} independently`, () => {
       const f = build({ disc, halo });
       try {
-        const surface = f.view.sunDisc, corona = surface.children[0];
+        const surface = f.view.sunDisc, corona = f.view.sunHalo;
         expect(Array.isArray(surface.material)).toBe(false);
         if (Array.isArray(surface.material)) throw new Error('Sun surface must have one material');
-        expect(surface.material.visible).toBe(disc);
-        expect(surface.visible).toBe(true); // parent remains available when only the halo is selected
+        expect(surface.material.visible).toBe(true);
+        expect(surface.visible).toBe(disc);
         expect(corona).toBeInstanceOf(Sprite); expect(corona?.visible).toBe(halo);
-        expect(corona?.parent).toBe(surface); expect(surface.parent).toBe(f.scene);
+        expect(corona?.parent).toBe(!disc && halo ? f.scene : surface); expect(surface.parent).toBe(f.scene);
         expect(surface.position.toArray()).toEqual([0, 1500, 0]);
         expect(f.direction.toArray()).toEqual([0, 1, 0]);
       } finally { f.scope.dispose(); }
@@ -42,11 +42,34 @@ describe('SkyDressing sun flags', () => {
     it(`defaults omitted flags on for ${JSON.stringify(sun)}`, () => {
       const f = build(sun);
       try {
-        const surface = f.view.sunDisc, corona = surface.children[0];
+        const surface = f.view.sunDisc, corona = f.view.sunHalo;
         if (Array.isArray(surface.material)) throw new Error('Sun surface must have one material');
-        expect(surface.material.visible).toBe(sun?.disc !== false);
+        expect(surface.visible).toBe(sun?.disc !== false);
         expect(corona?.visible).toBe(sun?.halo !== false);
       } finally { f.scope.dispose(); }
     });
   }
+  it('never presents the disabled disc geometry for upload, including a halo-only sky (G25 leak)', () => {
+    for (const halo of [false, true]) {
+      const f = build({ disc: false, halo });
+      const visibleGeometries = new Set<string>();
+      f.scene.traverseVisible((object) => {
+        if (object instanceof Mesh && object.geometry instanceof BufferGeometry) visibleGeometries.add(object.geometry.uuid);
+      });
+      // WebGLRenderer uploads each visible mesh's geometry before testing material.visible.
+      expect(visibleGeometries.has(f.view.sunDisc.geometry.uuid)).toBe(false);
+      expect(visibleGeometries.size).toBe(0);
+      f.scope.dispose();
+      expect(f.scope.census.geometries).toBe(0);
+    }
+  });
+  it('keeps a halo-only sun on the current camera and sun direction without a visible mesh', () => {
+    const f = build({ disc: false, halo: true });
+    const camera = new PerspectiveCamera(); camera.position.set(10, 20, 30);
+    f.direction.set(1, 0, 0);
+    f.view.updateSunHalo(camera);
+    expect(f.view.sunHalo?.position.toArray()).toEqual([1510, 20, 30]);
+    expect(f.view.sunDisc.visible).toBe(false);
+    f.scope.dispose();
+  });
 });

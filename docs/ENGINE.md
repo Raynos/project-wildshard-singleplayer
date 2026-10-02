@@ -1089,6 +1089,26 @@ binds it to the player motor. Damage metadata does not automatically call this v
 app.player?.impulse(new THREE.Vector3(6, 3, 0)); // gust east and up, without a damage hit
 ```
 
+**Custom weapon targets.** `app.combat.targets()` returns scoped `CombatTarget` ports for creatures, or only the
+training dummies while the Practice Arena is open. Each port has `actor`, world `position`, live `hittable`, its
+raycast `target` identity, `hurt(req)` (a `DamageRequest` without `target`) and optional `impulse(velocity)`.
+`app.combat.target(hit.animal)` resolves a shared raycast hit to the same port. Select through these queries rather
+than a shard creature array so custom weapons work in practice. `hurt` and `blocks.melee(app.combat).hit` both run
+the normal pipeline; dummy ports keep the same armour, damage numbers and reactions as kit hits.
+
+```ts
+for (const target of app.combat.targets()) {
+  if (!target.hittable || target.position.distanceTo(from) > reach) continue;
+  target.hurt({ source: 'env', sourceTags: ['actor.player', 'weapon.my-blade', 'dmg.melee'],
+    amount: 30, point: target.position.clone().add(new Vector3(0, 1, 0)), dir, from,
+    weaponId: this.row.id, stagger: 0.6 });
+}
+```
+
+The engine registers world targets and practice overrides with `combat.registerTargets(scope, source, practice?)`;
+`combat.targetPort(actor, body, impulse?, available?)` adapts a contact body without changing its damage formula.
+The practice predicate isolates the room when true, even when it has no targets. Scope disposal removes the source.
+
 **GAS-lite: effects.** `EffectService` (`app.effects`) applies `EffectDef` rows to an actor or a piece of equipment.
 
 | Export | What it is |
@@ -1542,7 +1562,7 @@ sections above describe what to use; this list is the complete inventory.
 - `./input/equipmentInput`: `EquipmentInput`
 - `./ui/icons`: `IconId`, `icon`
 - `./ui/Menu`: `KitEntry`, `SkinRow`, `GameMenu`, `GameMenuOptions`
-- `./combat/pipeline`: `CombatPipeline`, `Actor`, `CombatTag`, `DamageRequest`, `DamageDealt`, `DamageRuleDef`, `DeathCause`, `FallCause`, `HealthAttributes`, `StringKey`
+- `./combat/pipeline`: `CombatPipeline`, `CombatTarget`, `Actor`, `CombatTag`, `DamageRequest`, `DamageDealt`, `DamageRuleDef`, `DeathCause`, `FallCause`, `HealthAttributes`, `StringKey`
 - `./combat/health`: `PlayerHealth`, `PlayerHealthPorts`, `PlayerMode`
 - `./combat/effects/EffectService`: `EffectService`
 - `./combat/effects/types`: `sourceMultiplier`, `matchesTag`, `AttributeSet`, `EffectDef`, `EffectTarget`, `EffectId`, `ActiveEffect`, `SourceMulDef`, `CueId`

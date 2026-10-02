@@ -30,6 +30,7 @@ async function loadBakedSky(levelId: string, hdri: string): Promise<{ sunDir: [n
 /** The default background and visible sky pieces, independent of the lighting/shadow rig. */
 export class SkyBackdropView {
   sunDisc!: THREE.Mesh;
+  sunHalo: THREE.Sprite | null = null;
   readonly planet = new THREE.Group();
   readonly planetDir = new THREE.Vector3(-0.75, 0.33, 0.55).normalize();
   clouds: THREE.Object3D | null = null;
@@ -176,9 +177,9 @@ export class SkyBackdropView {
 
   buildSunDisc(): void {
     const mat = new THREE.MeshBasicMaterial({ color: new THREE.Color(1.0, 0.95, 0.85), fog: false, toneMapped: false });
-    // Hide only the surface material: the corona remains independently selectable as its child.
-    mat.visible = this.dressing?.sun?.disc !== false;
     this.sunDisc = new THREE.Mesh(new THREE.SphereGeometry(14, 24, 24), mat);
+    // three uploads visible mesh geometry before checking material.visible. Hide the object itself.
+    this.sunDisc.visible = this.dressing?.sun?.disc !== false;
     this.sunDisc.position.copy(this.sunDir).multiplyScalar(1500);
     this.sunDisc.frustumCulled = false;
     // soft corona so the disc reads as a glowing sun rather than a white ball
@@ -191,10 +192,20 @@ export class SkyBackdropView {
     halo.scale.setScalar(this.level.sky.painted ? 250 : 420); // a painted sun: a tighter glow (the mockups keep the sky blue right up to it)
     halo.scale.z = 1;
     halo.visible = this.dressing?.sun?.halo !== false;
+    this.sunHalo = halo;
     // the practice room (src/engine/practice/TrainingArena.ts) is a closed box: there its ceiling must hide the glow (E285)
     this.scope.listen(document, 'ws:practice-active', (e) => { if (e instanceof CustomEvent) halo.material.depthTest = e.detail === true; });
-    this.sunDisc.add(halo);
+    // Keep the original hierarchy for default skies. A halo without a disc must escape its hidden parent.
+    if (!this.sunDisc.visible && halo.visible) {
+      halo.position.copy(this.sunDisc.position);
+      this.scene.add(halo);
+    } else this.sunDisc.add(halo);
     this.scene.add(this.sunDisc);
+  }
+
+  /** Only the independently selected halo needs a separate infinite-distance placement. */
+  updateSunHalo(camera: THREE.PerspectiveCamera): void {
+    if (this.sunHalo?.parent === this.scene) this.sunHalo.position.copy(camera.position).addScaledVector(this.sunDir, 1500);
   }
 
   /** the 16 Sep ringed planet's materials and their built opacities (the forest clock's clock fades them, fadePlanet) */

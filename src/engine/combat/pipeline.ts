@@ -4,6 +4,7 @@ import type { Events } from '../events/events';
 import type { Physics } from '../physics/Physics';
 import { lineOfSight } from '../physics/query';
 import type { AttributeSet } from './effects/types';
+import type { TargetAnimal } from './types';
 
 export type CombatTag = `${string}.${string}`;
 export type StringKey = string;
@@ -30,6 +31,15 @@ export interface DamageRequest {
   from?: Vector3; distance?: number; scale?: number; cause?: DeathCause; toast?: StringKey;
 }
 export interface DamageDealt { req: DamageRequest; dealt: number; killed: boolean }
+/** A simulation target shared by creature and practice weapon selection. */
+export interface CombatTarget {
+  readonly actor: Actor;
+  readonly position: Vector3;
+  readonly target: TargetAnimal;
+  readonly hittable: boolean;
+  hurt: (req: Omit<DamageRequest, 'target'>) => DamageDealt | null;
+  impulse?: (velocity: Vector3) => void;
+}
 export interface DamageRuleDef {
   id: string; order: number;
   when: { sourceTags?: readonly CombatTag[]; targetTags?: readonly CombatTag[]; weaponTags?: readonly CombatTag[]; targetState?: readonly CombatTag[] };
@@ -58,6 +68,30 @@ const hostileSource = (req: DamageRequest): boolean => any(req.sourceTags, ['cre
 export class CombatPipeline {
   private readonly events: Events;
   private readonly physics: () => Physics | null;
+  private readonly targetSources: { source: () => readonly CombatTarget[]; practice?: () => boolean }[] = [];
+  /** Wrap an actor's contact body without changing its damage formula or reaction path. */
+  targetPort(actor: Actor, target: TargetAnimal, impulse?: (velocity: Vector3) => void, available: () => boolean = () => true): CombatTarget {
+    const hittable = (): boolean => actor.alive && target.alive && available();
+    return { actor, target, position: target.position, get hittable() { return hittable(); },
+      hurt: (req) => hittable() ? this.hit({ ...req, target: actor }) : null,
+      ...(impulse === undefined ? {} : { impulse }) };
+  }
+  /** Sources follow their level scope. An open practice room isolates selection from world creatures. */
+  registerTargets(scope: Scope, source: () => readonly CombatTarget[], practice?: () => boolean): void {
+    const entry = { source, ...(practice === undefined ? {} : { practice }) };
+    if (scope.disposed) return;
+    this.targetSources.push(entry);
+    scope.onDispose(() => {
+      const at = this.targetSources.indexOf(entry);
+      if (at !== -1) this.targetSources.splice(at, 1);
+    });
+  }
+  targets(): readonly CombatTarget[] {
+    const practice = [...this.targetSources].reverse().find((entry) => entry.practice?.() === true);
+    return practice?.source() ?? this.targetSources.filter((entry) => entry.practice === undefined).flatMap((entry) => entry.source());
+  }
+  /** Resolve the body returned by the shared raycast to the same actor as an arc/cone query. */
+  target(body: TargetAnimal): CombatTarget | null { return this.targets().find((entry) => entry.target === body) ?? null; }
   constructor(events: Events, scope: Scope, physics: () => Physics | null = () => null) {
     this.events = events; this.physics = physics;
     events.answer('damage.modify', (req) => req !== null && playerTarget(req) && matches(req.target.state, 'state.death-fade') ? null : req, scope, { order: 0 });
