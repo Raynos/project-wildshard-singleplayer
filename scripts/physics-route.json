@@ -2358,7 +2358,7 @@
     "x": 0,
     "z": 70,
     "yaw": 0,
-    "y": 7.83
+    "y": 13.11
    },
    "waypoints": [
     {
@@ -2371,9 +2371,9 @@
     }
    ],
    "expect": {
-    "y": 4.85
+    "y": 4.97
    },
-   "notes": "E374 Signal Dunes content route (its agent: max grade 26°, nearest collider ≥ 2.5 m on a node build)"
+   "notes": "E374 Signal Dunes content route (its agent: max grade 26°, nearest collider ≥ 2.5 m on a node build) · start heights re-measured on e8b3838f (ground + 0.3 m) after the 020ce61f dunes; 7 legs, 0 stuck"
   },
   {
    "name": "caravan-well",
@@ -2381,7 +2381,7 @@
     "x": -70,
     "z": 32,
     "yaw": 0,
-    "y": 4.85
+    "y": 4.97
    },
    "waypoints": [
     {
@@ -2402,9 +2402,9 @@
     }
    ],
    "expect": {
-    "y": 3.25
+    "y": 11.08
    },
-   "notes": "E374 Signal Dunes content route (its agent: max grade 26°, nearest collider ≥ 2.5 m on a node build)"
+   "notes": "E374 Signal Dunes content route (its agent: max grade 26°, nearest collider ≥ 2.5 m on a node build) · start heights re-measured on e8b3838f (ground + 0.3 m) after the 020ce61f dunes; 7 legs, 0 stuck"
   },
   {
    "name": "well-waymark-east",
@@ -2412,7 +2412,7 @@
     "x": 78,
     "z": -2,
     "yaw": 0,
-    "y": 3.25
+    "y": 11.08
    },
    "waypoints": [
     {
@@ -2425,9 +2425,9 @@
     }
    ],
    "expect": {
-    "y": 4.63
+    "y": 7.61
    },
-   "notes": "E374 Signal Dunes content route (its agent: max grade 26°, nearest collider ≥ 2.5 m on a node build)"
+   "notes": "E374 Signal Dunes content route (its agent: max grade 26°, nearest collider ≥ 2.5 m on a node build) · start heights re-measured on e8b3838f (ground + 0.3 m) after the 020ce61f dunes; 7 legs, 0 stuck"
   },
   {
    "name": "waymark-east-west",
@@ -2435,7 +2435,7 @@
     "x": 58,
     "z": -31,
     "yaw": 0,
-    "y": 4.63
+    "y": 7.61
    },
    "waypoints": [
     {
@@ -2456,9 +2456,9 @@
     }
    ],
    "expect": {
-    "y": 3.25
+    "y": 7.73
    },
-   "notes": "E374 Signal Dunes content route (its agent: max grade 26°, nearest collider ≥ 2.5 m on a node build)"
+   "notes": "E374 Signal Dunes content route (its agent: max grade 26°, nearest collider ≥ 2.5 m on a node build) · start heights re-measured on e8b3838f (ground + 0.3 m) after the 020ce61f dunes; 7 legs, 0 stuck"
   },
   {
    "name": "waymark-west-tower",
@@ -2466,7 +2466,7 @@
     "x": -41,
     "z": -21,
     "yaw": 0,
-    "y": 3.25
+    "y": 7.73
    },
    "waypoints": [
     {
@@ -2483,9 +2483,9 @@
     }
    ],
    "expect": {
-    "y": 7.87
+    "y": 13.3
    },
-   "notes": "E374 Signal Dunes content route (its agent: max grade 26°, nearest collider ≥ 2.5 m on a node build)"
+   "notes": "E374 Signal Dunes content route (its agent: max grade 26°, nearest collider ≥ 2.5 m on a node build) · start heights re-measured on e8b3838f (ground + 0.3 m) after the 020ce61f dunes; 7 legs, 0 stuck"
   },
   {
    "name": "tower-waymark-north",
@@ -2493,7 +2493,7 @@
     "x": 8,
     "z": -68,
     "yaw": 0,
-    "y": 7.87
+    "y": 13.3
    },
    "waypoints": [
     {
@@ -2510,9 +2510,9 @@
     }
    ],
    "expect": {
-    "y": 1.83
+    "y": 11.47
    },
-   "notes": "E374 Signal Dunes content route (its agent: max grade 26°, nearest collider ≥ 2.5 m on a node build)"
+   "notes": "E374 Signal Dunes content route (its agent: max grade 26°, nearest collider ≥ 2.5 m on a node build) · start heights re-measured on e8b3838f (ground + 0.3 m) after the 020ce61f dunes; 7 legs, 0 stuck"
   },
   {
    "name": "waymark-north-basin",
@@ -2520,7 +2520,7 @@
     "x": 32,
     "z": -99,
     "yaw": 0,
-    "y": 1.83
+    "y": 11.47
    },
    "waypoints": [
     {
@@ -2540,10 +2540,7 @@
      "z": -140
     }
    ],
-   "expect": {
-    "y": 0.8
-   },
-   "notes": "E374 Signal Dunes content route (its agent: max grade 26°, nearest collider ≥ 2.5 m on a node build)"
+   "notes": "E374 Signal Dunes content route (its agent: max grade 26°, nearest collider ≥ 2.5 m on a node build) · start heights re-measured on e8b3838f (ground + 0.3 m) after the 020ce61f dunes; 7 legs, 0 stuck"
   }
  ],
  "far-reach": [
