@@ -33,12 +33,12 @@ Storm Roc.
 | `world/build.ts` | the pieces: island tops (six box strips cover the 12-gon), the rope bridge (deck + rails), the hover bridge (`active` only while `app.player.mode === 'board'`), the fallen bridge (`active` once raised), the windmill, the winch interactable |
 | `weapons/WarFan.ts` | the war fan (rung 3, `extends Weapon`): SWING arc slash and the held / HEAVY slash through `blocks.melee`; GUST (touch `verb.1`, key G) gives every creature in a 9 m cone `animal.impulse` away and a 4-point hit |
 | `species/skyGoat.ts` | sky goats: graze inside the rim, ram (lane) when crowded; GUSTed past the rim they drop through `killY` |
-| `species/galeWisp.ts` | gale wisps: drift over their island, dart and burst (sphere) at the chest |
-| `species/stormRoc.ts`, `combat/stormRoc.ts` | the Storm Roc: a `BossBrain` + `BossScript` (stoop dive, gale walls, grounded on the dais), the shared `BossBar`, 25 coins once |
+| `species/galeWisp.ts` | gale wisps: drift over their island, dart and burst (sphere) at the chest; the burst shoves you back 7 m/s (G24, `pushPlayer` in `species/rig.ts`, bound to `app.player.impulse` in `play`) |
+| `species/stormRoc.ts`, `combat/stormRoc.ts` | the Storm Roc: a `BossBrain` + `BossScript` (stoop dive, gale walls that shove you 14 m/s along their lane toward the rim, grounded on the dais), the shared `BossBar`, 25 coins once |
 | `species/driftRay.ts` | the drift ray: species + custom rig (body, head, wings, tail) + `DriftRayBrain` (circle → stalk → hang → dive → rise) with a `sphere` dive strike |
 | `quest/install.ts` | *The crown bridge*: the keeper's notes → clear the roost's three rays → GUST the three vanes → the winch raises the bridge to the storm crown; 10 coins once |
 | `look/render.ts` | `extend` look: the clean engine chain, a violet → rose → gold dome with a sun glow, a warm raking key, rose distance fog |
-| `plugin.ts` | the hooks, the fan's input context (SWING relabel on `r0`, GUST verb), the winch, the hover-deck glow, the gust ring, the rays |
+| `plugin.ts` | the hooks, the updraft's lift (on the board inside the wind column, a steady `app.player.impulse` up: it floats you off the ramp to the high step), the fan's input context (SWING relabel on `r0`, GUST verb), the winch, the hover-deck glow, the gust ring, the rays |
 
 ## Budgets
 

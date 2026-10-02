@@ -3,17 +3,19 @@ import { BoxGeometry, ConeGeometry, IcosahedronGeometry, Vector3, type BufferGeo
 import { bindRigid, fit, skyMesh } from '../world/meshes';
 import { CROWN, DAIS, ROC } from '../layout';
 import { STRINGS } from '../strings';
-import { hull, yawTo } from './rig';
+import { hull, pushPlayer, yawTo } from './rig';
 
 /** Phase 1: the stoop, a 3-D sphere dive from the storm onto the player's chest. */
 export const STOOP: StrikeSpec = { id: 'far.roc.stoop', shape: { kind: 'sphere', radius: 2.6 }, windup: 1.2, active: 1.2, recover: 0.8, cooldown: 4,
   range: 22, damage: 14, tags: ['creature.stormRoc'], units: 'world', weight: () => 1 };
-/** Phase 2: a gale wall, a wide lane of wind swept across the crown from the Roc's hover (a push once G24 lands). */
+/** Phase 2: a gale wall, a wide lane of wind swept across the crown from the Roc's hover; it shoves you along the lane toward the rim (G24). */
 export const GALE_WALL: StrikeSpec = { id: 'far.roc.galeWall', shape: { kind: 'lane', length: 26, width: 6 }, windup: 1.5, active: 0.6, recover: 1.4, cooldown: 3.5,
   range: 30, damage: 12, tags: ['creature.stormRoc'], units: 'world', weight: () => 1 };
 /** Phase 3: grounded, a wing sweep around the dais. */
 export const SWEEP: StrikeSpec = { id: 'far.roc.sweep', shape: { kind: 'arc', radius: 4.5, halfAngle: 1.2 }, windup: 0.9, active: 0.3, recover: 1.1, cooldown: 2.2,
   range: 5, damage: 16, tags: ['creature.stormRoc'], units: 'world', weight: () => 1 };
+/** The gale wall's shove (m/s along the lane, m/s up): enough to slide you most of the way across the crown. */
+export const ROC_GALE = { shove: 14, lift: 2 } as const;
 export const ROC_SPEED = { circle: 10, stalk: 12, dive: 20, walk: 2.4 } as const;
 export type RocPhase = 0 | 1 | 2;
 type RocState = 'circle' | 'stalk' | 'strike' | 'rest';
@@ -28,7 +30,7 @@ export class StormRocBrain extends CreatureBrain<RocState> {
   aim = 0;
   constructor(actor: Animal) { super(actor, ['circle', 'stalk', 'strike', 'rest']); }
   private strike(ctx: ThinkCtx): StrikeContext { const a = this.actor; this.chest.copy(ctx.player); this.chest.y += this.phase === 0 ? 1.2 : 0;
-    return { actor: a, target: this.chest, canReach: () => ctx.reach(a), hit: (spec) => { ctx.hurt(spec.damage); } }; }
+    return { actor: a, target: this.chest, canReach: () => ctx.reach(a), hit: (spec) => { ctx.hurt(spec.damage); if (spec === GALE_WALL) pushPlayer(this.aim, ROC_GALE.shove, ROC_GALE.lift); } }; }
   private spec(): StrikeSpec { return this.phase === 0 ? STOOP : this.phase === 1 ? GALE_WALL : SWEEP; }
   /** The altitude the Roc holds in this phase: high in the storm, a wall-height hover, or standing on the dais. */
   private altitude(): number { return this.phase === 0 ? ROC.y : this.phase === 1 ? CROWN.y + 7 : CROWN.y + DAIS.h + 0.05; }

@@ -3,7 +3,7 @@ import { installSilentScore } from '#kit';
 import type { Animal, Flags, QuestState } from '#engine';
 import { BoxGeometry, DoubleSide, Mesh, MeshBasicMaterial, RingGeometry, Vector3 } from 'three';
 import { STRINGS } from './strings';
-import { GOATS, RAY_HOMES, ROC, ROOST_RAYS, WISP_HOMES, apothem, type Home } from './layout';
+import { GOATS, RAY_HOMES, ROC, ROOST_RAYS, UPDRAFT, WISP_HOMES, apothem, type Home } from './layout';
 import { buildWorld, placeWind, type BuiltWorld } from './world/build';
 import { WarFan, inCone, GUST, type FanTarget } from './weapons/WarFan';
 import { FAN_ROW } from './weapons/rows';
@@ -11,7 +11,7 @@ import { DRIFT_RAY, DRIFT_RAY_LOOK } from './species/driftRay';
 import { SKY_GOAT, SKY_GOAT_LOOK } from './species/skyGoat';
 import { GALE_WISP, GALE_WISP_LOOK } from './species/galeWisp';
 import { GALE_WALL, STORM_ROC, STORM_ROC_LOOK, rocBrain } from './species/stormRoc';
-import { setHome } from './species/rig';
+import { bindPlayerPush, setHome } from './species/rig';
 import { preloadSkyMeshes } from './world/meshes';
 import { ROC_ID, StormRocBoss } from './combat/stormRoc';
 import { BOSS_REWARD, FLAGS, installQuest, vaneFlag } from './quest/install';
@@ -22,6 +22,8 @@ declare module '#engine' {
   interface EquipmentSlotMap { 'far-fan': true }
 }
 
+/** The updraft's upward push while you ride its column (m/s², G24). */
+export const UPDRAFT_LIFT = 12;
 /** How fast the winch lifts the fallen bridge (radians per second). */
 export const RAISE_RATE = 0.55;
 /** How close a GUST must reach a vane to turn it (metres; the cone is the fan's GUST cone, a little longer). */
@@ -62,6 +64,8 @@ export class SkyReachPlugin extends ShardPlugin {
     const host = ctx.app.equipmentHost, toast = (text: string): void => { rt?.play?.hud.toast(text); };
     if (host !== null) { host.viewmodel.add(fan.model); ctx.scope.onDispose(() => { fan.model.removeFromParent(); }); }
     fan.stowed = () => this.board();
+    // G24: the wisp's burst and the Roc's gale wall shove the player (`app.player.impulse`).
+    bindPlayerPush((v) => { ctx.app.player?.impulse(v); }); ctx.scope.onDispose(() => { bindPlayerPush(null); });
     if (rt?.play) { installSilentScore(rt.play.music, ctx.scope); installSkyCues(rt.play.audio, rt.play.cues, ctx.scope); }
     const loot = rt?.play && rt.world ? installLoot({ ctx, manifest: ctx.manifest, owned: rt.play.owned, scene: rt.world.game.scene,
       player: rt.world.player, camera: rt.world.game.camera, animals: () => rt.play?.animals.animals ?? [], menu: rt.play.menu,
@@ -92,6 +96,15 @@ export class SkyReachPlugin extends ShardPlugin {
       winchPin.style.visibility = shown(unlocked() && !built.state.raised);
       notesPin.style.visibility = shown(!flags.has(FLAGS.notes));
       for (const v of vanePins) v.el.style.visibility = shown(flags.has(FLAGS.notes) && !flags.has(vaneFlag(v.id)));
+    } });
+
+    // The updraft lifts (G24): riding the board up the wind column, a steady upward push (`app.player.impulse`, decaying
+    // like an animal's, so a constant feed holds about UPDRAFT_LIFT / 3.5 m/s) floats you off the ramp to the high step.
+    const lift = new Vector3();
+    ctx.system({ id: 'far.updraft', phase: 'fixed.pre', run: (dt) => {
+      const p = position; if (!this.board()) return;
+      const inside = Math.abs(p.x - UPDRAFT.x) < UPDRAFT.width / 2 + 0.5 && p.z < UPDRAFT.z0 && p.z > UPDRAFT.z1 && p.y < UPDRAFT.y1 + 0.5;
+      if (inside) ctx.app.player?.impulse(lift.set(0, UPDRAFT_LIFT * dt, 0));
     } });
 
     // Dressing: the hover decks glow while you ride; the mill and the turned vanes spin; the updraft's rings rise.
