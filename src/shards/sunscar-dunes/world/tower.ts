@@ -3,6 +3,7 @@ import { BoxGeometry, CylinderGeometry, Group, Mesh, MeshStandardMaterial, Point
 import { boxDesc, type ColliderDesc } from '#engine';
 import { TOWER } from '../layout';
 import { duneMaterial, duneMesh, fit } from './meshes';
+import { kindling } from './places';
 
 const WOOD = 0x4a2e1e, WOOD_DARK = 0x2c1b14, IRON = 0x231c1c;
 export const STAIR = { count: 22, run: 0.42, width: 1.3, x: 0.75 } as const;
@@ -99,6 +100,7 @@ export function buildTower(y: number, groundAt: (x: number, z: number) => number
     add(new Mesh(new CylinderGeometry(0.08, 0.12, 0.9, 6), iron), brazierAt.x - cx, deckY + 0.45, brazierAt.z - cz);
     add(new Mesh(new CylinderGeometry(0.45, 0.22, 0.3, 8, 1, true), iron), brazierAt.x - cx, deckY + 1.0, brazierAt.z - cz);
   }
+  const sticks = kindling(deckY + (generated ? 1.05 : 0.95), 0.8); sticks.position.x = brazierAt.x; sticks.position.z = brazierAt.z; root.add(sticks);
   colliders.push(boxDesc({ x: brazierAt.x, z: brazierAt.z, hw: 0.4, hd: 0.4, rot: 0, yBottom: deckY, yTop: deckY + 1.15 }, 'metal'));
   const fire = new Group(); fire.position.copy(brazierAt);
   // The signal fire: the brightest thing in the level, its column visible from the spawn (P2 #8, `fireFx.ts`).

@@ -166,12 +166,26 @@ export function buildWell(groundAt: (x: number, z: number) => number): WellParts
 /** The waymark's dressing (metres): stones in its ring, the ring's radius, the marker pole's height. */
 const WAYMARK = { stones: 7, ring: 1.15, pole: 3.8 } as const;
 const POLE = 0x5a3a26, RAG = 0x8a2a16, RAG_GLOW = 0x1a0603;
+const KINDLING = 0x6e4a2e;
 /** A long banner hanging from the crossbar, streaming along +x and sagging, in two kinked panels. */
 function bannerGeometry(): BufferGeometry {
   const pts = [[0, 0, 0], [0, -0.75, 0], [0.55, -0.12, 0.06], [0.5, -0.82, 0.05], [1.1, -0.3, -0.04], [1.0, -0.9, -0.03]];
   const idx = [0, 1, 2, 2, 1, 3, 2, 3, 4, 4, 3, 5], pos: number[] = [];
   for (const i of idx) pos.push(...(pts[i] ?? [0, 0, 0]));
   const g = new BufferGeometry(); g.setAttribute('position', new Float32BufferAttribute(pos, 3)); g.computeVertexNormals();
+  return g;
+}
+
+/** A crossed stack of kindling for a brazier's bowl (round 1: the unlit bowls read empty and black); `y` the bowl's floor. */
+export function kindling(y: number, size = 1): Group {
+  const g = new Group(), wood = mat(KINDLING);
+  for (let i = 0; i < 5; i++) {
+    // a teepee: each stick leans in from the bowl's edge, the tips meeting above the rim, so it reads at eye level
+    const a = (i / 5) * Math.PI * 2, lean = 0.5, len = 0.6 * size;
+    const log = new Mesh(new CylinderGeometry(0.03 * size, 0.04 * size, len, 5), wood);
+    log.rotation.order = 'YXZ'; log.rotation.set(-lean, a, 0);
+    log.position.set(Math.sin(a) * Math.sin(lean) * len * 0.5, y + Math.cos(lean) * len * 0.5, Math.cos(a) * Math.sin(lean) * len * 0.5); g.add(log);
+  }
   return g;
 }
 
@@ -192,6 +206,7 @@ export function buildBrazier(x: number, z: number, groundAt: (x: number, z: numb
     at(new Mesh(new CylinderGeometry(0.42, 0.18, 0.32, 8, 1, true), mat(IRON, { metalness: 0.4 })), 0, 1.6, 0, root);
   }
   const oil = at(new Mesh(new CylinderGeometry(0.33, 0.33, 0.04, 8), new MeshStandardMaterial({ color: 0x1a120c, roughness: 0.2 })), 0, bowl, 0, root);
+  root.add(kindling(bowl - 0.08));
   oil.visible = false;
   colliders.push(boxDesc({ x, z, hw: 0.45, hd: 0.45, rot: 0, yBottom: y - 0.3, yTop: y + 1.75 }, 'stone'));
   // Round 1 (R1C-1 / R1B-12): the unlit waymark reads from afar: a ring of fieldstones round its foot, and a tall
