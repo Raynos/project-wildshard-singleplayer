@@ -8,7 +8,7 @@ import { SKY } from './sun';
  * the sun gold-pink, shade mauve, melting into the horizon gold with distance. The kill height (`world.killY`) sits just
  * above the high sheet, so a fall ends inside the cloud.
  */
-export const SEA = { size: 64, low: -2, high: 5, radius: 1400 } as const;
+export const SEA = { size: 64, low: -2, high: 5, radius: 1400, handoff: [240, 700] } as const;
 
 function hash(x: number, y: number): number { const s = Math.sin(x * 127.1 + y * 311.7) * 43758.5453; return s - Math.floor(s); }
 function noise(x: number, y: number, p: number): number {
@@ -46,24 +46,33 @@ export interface CloudSea { readonly meshes: readonly Mesh<CircleGeometry, Shade
 export function cloudSea(sun: Vector3, tex: DataTexture): CloudSea {
   const time = { value: 0 };
   const layer = (y: number, scale: number, opaque: boolean, order: number): Mesh<CircleGeometry, ShaderMaterial> => {
-    const material = new ShaderMaterial({ side: DoubleSide, transparent: !opaque, depthWrite: opaque, fog: false,
+    const material = new ShaderMaterial({ side: DoubleSide, transparent: true, depthWrite: opaque, fog: false,
       uniforms: { tex: { value: tex }, sunDir: { value: sun }, time },
       vertexShader: 'varying vec3 wp; void main(){ vec4 w=modelMatrix*vec4(position,1.0); wp=w.xyz; gl_Position=projectionMatrix*viewMatrix*w; }',
       fragmentShader: /* glsl */`
         uniform sampler2D tex; uniform vec3 sunDir; uniform float time; varying vec3 wp;
         void main(){
-          vec2 uv = wp.xz * ${scale.toFixed(5)} + vec2(time * 0.0035, time * 0.0012);
-          vec4 a = texture2D(tex, uv), b = texture2D(tex, uv * 2.3 + 0.37);
-          float dens = clamp(a.r * 0.8 + b.r * 0.35 - 0.05, 0.0, 1.0);
-          float lit = mix(a.g, b.g, 0.35);
+          // loop 4: billows, not a sheet. A height field from three octaves of the baked noise; its slope toward the sun
+          // lights the billow tops peach-gold and leaves lavender hollows (the panorama's cloud sea, look/sky.ts)
+          vec2 drift = vec2(time * 0.0035, time * 0.0012);
+          vec2 uv = wp.xz * ${scale.toFixed(5)} + drift;
+          vec2 sd = normalize(sunDir.xz) * 0.006;
+          float h1 = texture2D(tex, uv).r, h2 = texture2D(tex, uv * 2.7 + 0.37).r, h3 = texture2D(tex, uv * 7.1 - 0.21).r;
+          float h = h1 * 0.6 + h2 * 0.3 + h3 * 0.1;
+          float hs = texture2D(tex, uv + sd).r * 0.6 + texture2D(tex, (uv + sd) * 2.7 + 0.37).r * 0.3 + texture2D(tex, (uv + sd) * 7.1 - 0.21).r * 0.1;
+          float lit = clamp(0.55 + (h - hs) * 14.0, 0.0, 1.0);
+          float dens = clamp(h * 1.5 - 0.2, 0.0, 1.0);
           vec3 V = wp - cameraPosition; float dist = length(V.xz);
           float s = max(dot(normalize(V.xz), normalize(sunDir.xz)), 0.0);
           vec3 shade = mix(${hex(SKY.seaShade)}, ${hex(SKY.seaShadeWarm)}, s * s);
           vec3 top = mix(${hex(SKY.seaLit)}, ${hex(SKY.sun)} * 1.15, pow(s, 3.0));
-          vec3 c = mix(shade, top, smoothstep(0.25, 0.85, lit) * (0.45 + 0.55 * dens));
-          c += ${hex(SKY.sun)} * pow(s, 12.0) * 0.35;
-          c = mix(c, ${hex(SKY.horizon)}, smoothstep(180.0, 1100.0, dist) * 0.85);
-          float alpha = ${opaque ? '1.0' : 'smoothstep(0.42, 0.75, dens) * (1.0 - smoothstep(900.0, 1300.0, dist))'};
+          // hollows (low h) sink to lavender; crowns catch the light
+          vec3 c = mix(shade * (0.82 + 0.25 * dens), top, smoothstep(0.3, 0.85, lit) * smoothstep(0.15, 0.7, dens));
+          c += ${hex(SKY.sun)} * pow(s, 12.0) * 0.3 * dens;
+          c = mix(c, ${hex(SKY.horizon)}, smoothstep(180.0, 1100.0, dist) * 0.6);
+          // past the near sea the painted panorama's cloud sea takes over, so the sheets thin out with distance
+          float far = 1.0 - smoothstep(${SEA.handoff[0].toFixed(1)}, ${SEA.handoff[1].toFixed(1)}, dist);
+          float alpha = ${opaque ? 'far' : 'smoothstep(0.5, 0.8, dens) * far'};
           gl_FragColor = vec4(c, alpha);
         }` });
     const mesh = new Mesh(new CircleGeometry(SEA.radius, 64), material);

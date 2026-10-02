@@ -4,8 +4,10 @@ import { Group, Vector3, type MeshStandardMaterial, type Object3D } from 'three'
 import { CROWN, DAIS, FALLEN_BRIDGE, ISLES, WINDMILL, MILL, NOTES, PINES, SPANS, UPDRAFT, VANES, WINCH, apothem, type Isle, type Span } from '../layout';
 import { STRINGS } from '../strings';
 import { dressIslands } from './dressing';
+import { islandMesh } from './isle';
+import { CROWN_RING, crownArena, crownStones } from './crown';
 import { skyline } from './distant';
-import { PALETTE, crownRuin, flat, islandMesh, lectern, pines, plankBridge, vane, windmill, winch } from './shapes';
+import { PALETTE, flat, lectern, pines, plankBridge, vane, windmill, winch } from './shapes';
 import { ownPrimitives } from './resources';
 import { STORM, crownStorm, type CrownStorm } from './storm';
 import { updraftFx, type UpdraftFx } from './windFx';
@@ -94,7 +96,7 @@ export function buildWorld(ctx: ShardContext, isBoard: () => boolean): BuiltWorl
   const sky = skyline(WINDMILL); root.add(sky);
 
   const plank = flat(PALETTE.plank), rope = flat(PALETTE.rope);
-  const hoverDeck = flat(PALETTE.glow, { emissive: PALETTE.glow, emissiveIntensity: 0.25, transparent: true, opacity: 0.55, depthWrite: false });
+  const hoverDeck = flat(PALETTE.glow, { emissive: PALETTE.glow, emissiveIntensity: 0.45, transparent: true, opacity: 0.45, depthWrite: false });
   for (const span of SPANS) {
     const hover = span.kind === 'hover', length = spanLength(span), bridge = plankBridge(length, span.width, hover ? hoverDeck : plank, hover ? null : rope);
     if (hover) for (const z of [0, -length]) for (const side of [-1, 1]) {
@@ -143,12 +145,11 @@ export function buildWorld(ctx: ShardContext, isBoard: () => boolean): BuiltWorl
     return { id: v.id, at: new Vector3(v.x, v.y + 3.3, v.z), rotor: built.rotor };
   });
 
-  const ruin = crownRuin(DAIS.r, DAIS.h); ruin.position.set(CROWN.x, CROWN.y, CROWN.z); root.add(ruin);
-  const pillars: ColliderDesc[] = [0, 1, 2, 3, 4, 5, 6].map((i) => { const a = (i / 7) * Math.PI * 2;
-    return boxDesc({ x: CROWN.x + Math.cos(a) * 12.5, z: CROWN.z + Math.sin(a) * 12.5, hw: 0.45, hd: 0.45, rot: 0, yBottom: CROWN.y, yTop: CROWN.y + 3 }, 'stone'); });
-  ctx.piece({ id: 'far.crown.ruin', name: STRINGS.crown, category: 'buildings', file: FILE, object: ruin, surface: 'stone',
-    colliders: [boxDesc({ x: DAIS.x, z: DAIS.z, hw: DAIS.r * 0.9, hd: DAIS.r * 0.9, rot: 0, yBottom: CROWN.y, yTop: CROWN.y + DAIS.h }, 'stone'), ...pillars] });
-  ruin.children[0]?.position.set(DAIS.x - CROWN.x, DAIS.h / 2, DAIS.z - CROWN.z);
+  // the arena (loop 4, mockup D): standing stones with wind glyphs, pennant ropes, the compass-rose dais
+  const arena = crownArena(); root.add(arena);
+  const stones: ColliderDesc[] = crownStones().map((st) => boxDesc({ x: st.x, z: st.z, hw: CROWN_RING.width / 2, hd: CROWN_RING.depth / 2, rot: -st.yaw, yBottom: CROWN.y, yTop: CROWN.y + st.h }, 'stone'));
+  ctx.piece({ id: 'far.crown.ruin', name: STRINGS.crown, category: 'buildings', file: FILE, object: arena, surface: 'stone',
+    colliders: [boxDesc({ x: DAIS.x, z: DAIS.z, hw: DAIS.r * 0.9, hd: DAIS.r * 0.9, rot: 0, yBottom: CROWN.y, yTop: CROWN.y + DAIS.h }, 'stone'), ...stones] });
   // the storm: a lit vortex high over the crown only (loop 3); it melts into the haze from the spawn
   const stormTex = bakeSeaTexture(SUN_DIR); ctx.scope.own(stormTex);
   const storm = crownStorm(SUN_DIR, stormTex, rnd); storm.group.position.set(CROWN.x, CROWN.y + STORM.lift, CROWN.z); root.add(storm.group);

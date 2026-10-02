@@ -1,5 +1,5 @@
 import { BufferGeometry, Color, DoubleSide, Float32BufferAttribute, Group, InstancedMesh, Matrix4, MeshBasicMaterial, Quaternion, Vector3 } from 'three';
-import { islandMesh } from './shapes';
+import { islandMesh } from './isle';
 import type { Isle } from '../layout';
 
 /**

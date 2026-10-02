@@ -65,7 +65,7 @@ export const GOATS: readonly { readonly isle: Isle; readonly dx: number; readonl
 export const ROC = { x: CROWN.x, z: CROWN.z, r: 16, y: HIGH + 16 } as const;
 /** Pine positions per island, as offsets from its centre, with a scale. */
 export const PINES: Readonly<Record<string, readonly (readonly [number, number, number])[]>> = {
-  sunrest: [[-11, -6, 1], [-9, 6, 0.8], [11, 7, 0.9], [12, -3, 1.1], [-4, 12, 0.7]],
+  sunrest: [[-11, -6, 1], [-9, 6, 0.8], [11, 7, 0.9], [10, -12, 1.0], [-4, 12, 0.7]],
   windmill: [[-10, 2, 1], [-7, -8, 0.8], [9, 6, 0.9], [-3, 9, 0.75]],
   roost: [[-4, -7, 0.9], [5, 6, 1.1], [7, -4, 0.8]],
   grove: [[-5, -4, 1.2], [-2, 6, 1], [4, 6, 0.9], [6, 1, 0.8], [-7, 3, 0.7]],

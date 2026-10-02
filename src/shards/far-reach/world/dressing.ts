@@ -1,4 +1,5 @@
 import { BufferGeometry, Color, ConeGeometry, DoubleSide, Float32BufferAttribute, Group, IcosahedronGeometry, InstancedMesh, Matrix4, MeshStandardMaterial, Quaternion, Vector3 } from 'three';
+import { PATCH_ORDER, patchShader } from '#engine';
 import { ISLES, SPANS, apothem, type Isle } from '../layout';
 
 /**
@@ -14,7 +15,8 @@ import { ISLES, SPANS, apothem, type Isle } from '../layout';
  *
  * Placement uses its own seeded generator, not the level's cosmetic stream (whose order the islands already consume).
  */
-export const DRESS = { clumpsPerM2: 0.5, flowersPerM2: 0.08, stonesPerIsle: 9, rootsPerM: 0.55, bridgeClear: 0.3 } as const;
+/** `handoff`: the camera distance (m) over which a clump grows back in, where the near meadow's blades thin out (MEADOW.range). */
+export const DRESS = { clumpsPerM2: 0.5, flowersPerM2: 0.08, stonesPerIsle: 9, rootsPerM: 0.55, bridgeClear: 0.3, handoff: [15, 22] } as const;
 
 function seeded(seed: number): () => number {
   let a = seed >>> 0;
@@ -99,7 +101,16 @@ export function dressIslands(isles: readonly Isle[] = ISLES, seed = 6417): Dress
     list.forEach((it, i) => { q.setFromAxisAngle(up, it.yaw); m.compose(p.set(it.x, it.y, it.z), q, long ? s.set(1, it.s, 1) : s.set(it.s, it.s * squash, it.s)); mesh.setMatrixAt(i, m); });
     mesh.computeBoundingSphere(); mesh.computeBoundingBox(); group.add(mesh); meshes.push(mesh);
   };
-  place(new InstancedMesh(clumpGeometry(), new MeshStandardMaterial({ vertexColors: true, side: DoubleSide, roughness: 1, metalness: 0 }), clumps.length), clumps);
+  // the clumps carry the meadow beyond the near field (world/meadow.ts); inside it they shrink away so the fine blades own the foreground
+  const clumpMaterial = new MeshStandardMaterial({ vertexColors: true, side: DoubleSide, roughness: 1, metalness: 0 });
+  patchShader(clumpMaterial, 'far.clump-handoff', PATCH_ORDER.decorate, (shader) => {
+    shader.vertexShader = shader.vertexShader.replace('#include <begin_vertex>', `#include <begin_vertex>
+      #ifdef USE_INSTANCING
+      { vec3 farAt = (modelMatrix * instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
+        transformed *= smoothstep(${DRESS.handoff[0].toFixed(1)}, ${DRESS.handoff[1].toFixed(1)}, distance(farAt.xz, cameraPosition.xz)); }
+      #endif`);
+  });
+  place(new InstancedMesh(clumpGeometry(), clumpMaterial, clumps.length), clumps);
   const flowerMesh = new InstancedMesh(flowerGeometry(), new MeshStandardMaterial({ side: DoubleSide, roughness: 1, metalness: 0, emissive: 0x2a2418 }), flowers.length);
   place(flowerMesh, flowers); const fc = new Color(); flowers.forEach((f, i) => { flowerMesh.setColorAt(i, fc.setHex(f.c)); });
   place(new InstancedMesh(new IcosahedronGeometry(1, 0), new MeshStandardMaterial({ color: 0x9a8a7e, flatShading: true, roughness: 0.95, metalness: 0 }), stones.length), stones, 0.55);

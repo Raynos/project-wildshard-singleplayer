@@ -1,5 +1,4 @@
-import { BoxGeometry, BufferGeometry, Color, ConeGeometry, CylinderGeometry, Float32BufferAttribute, Group, InstancedMesh, Matrix4, Mesh, MeshStandardMaterial, Quaternion, Vector3, type Object3D } from 'three';
-import type { Isle } from '../layout';
+import { BoxGeometry, BufferGeometry, Color, ConeGeometry, CylinderGeometry, DoubleSide, Float32BufferAttribute, Group, InstancedMesh, Matrix4, Mesh, MeshStandardMaterial, Quaternion, Vector3, type Object3D } from 'three';
 import { fit, skyMesh, splitAbove } from './meshes';
 
 /** The Sky Reach palette (sRGB hex): golden-hour grass, warm dirt, warm brown-grey keel strata, green pines (the mockup's). */
@@ -26,61 +25,48 @@ export const flat = (color = 0xffffff, extra: ConstructorParameters<typeof MeshS
   new MeshStandardMaterial({ color, flatShading: true, roughness: 0.95, metalness: 0, ...extra });
 
 /**
- * A floating island: a flat 12-gon grass top at local y 0 (its collider top), a dirt band, then a jagged violet keel
- * tapering to a point `keel` metres down. Flat-shaded vertex colours, one draw.
+ * One pine (loop 4; the targets' wind-bent conifers, not two cones): a tapered trunk and six drooping tiers, each a ring
+ * of jagged branch tips hanging below its collar, dark blue-green inside, lighter gold-lit green at the tips, the crown
+ * leaning a little downwind. One vertex-coloured geometry for instancing.
  */
-export function islandMesh(isle: Isle, random: () => number): Mesh {
-  const { tri, geometry } = builder(), n = 12;
-  const ring = (radius: number, y: number, jitter: number, yJitter = 0): Vector3[] => Array.from({ length: n }, (_, i) => {
-    const a = (i / n) * Math.PI * 2, rr = radius * (1 - jitter * random());
-    return new Vector3(Math.cos(a) * rr, y - yJitter * random(), Math.sin(a) * rr);
-  });
-  const centre = new Vector3(0, 0.08, 0), inner = ring(isle.r * 0.55, 0.12, 0.08), rim = ring(isle.r, 0, 0);
-  const band = ring(isle.r * 0.97, -1.3, 0.02, 0.3), mid = ring(isle.r * 0.72, -isle.keel * 0.38, 0.12, 2);
-  const low = ring(isle.r * 0.34, -isle.keel * 0.74, 0.2, 2), tip = new Vector3((random() - 0.5) * 2, -isle.keel, (random() - 0.5) * 2);
-  for (let i = 0; i < n; i++) {
-    const j = (i + 1) % n;
-    const [ci, cj, ri, rj, bi, bj, mi, mj, li, lj] = [inner[i], inner[j], rim[i], rim[j], band[i], band[j], mid[i], mid[j], low[i], low[j]];
-    if (!ci || !cj || !ri || !rj || !bi || !bj || !mi || !mj || !li || !lj) continue;
-    // one grass colour with macro noise per vertex: the 12-gon's radial fan no longer shows (review item 3)
-    tri(centre, cj, ci, PALETTE.grass, 0.16);
-    tri(ci, cj, rj, PALETTE.grass, 0.16); tri(ci, rj, ri, PALETTE.grass, 0.16);
-    tri(ri, rj, bj, PALETTE.dirt); tri(ri, bj, bi, PALETTE.dirt);
-    tri(bi, bj, mj, PALETTE.rock); tri(bi, mj, mi, i % 2 ? PALETTE.rock : PALETTE.rockDark);
-    tri(mi, mj, lj, PALETTE.rockDark); tri(mi, lj, li, PALETTE.rock);
-    tri(li, lj, tip, PALETTE.rockDark);
-  }
-  return new Mesh(geometry(), flat(0xffffff, { vertexColors: true }));
-}
-
-/** One pine (trunk + two stacked cones) as a single vertex-coloured geometry for instancing. */
 export function pineGeometry(): BufferGeometry {
-  const parts: [BufferGeometry, number][] = [];
-  const trunk = new CylinderGeometry(0.18, 0.28, 1.6, 5); trunk.translate(0, 0.8, 0); parts.push([trunk, PALETTE.trunk]);
-  const low = new ConeGeometry(1.7, 3.6, 6); low.translate(0, 3, 0); parts.push([low, PALETTE.pine]);
-  const high = new ConeGeometry(1.15, 3, 6); high.translate(0, 5.1, 0); parts.push([high, PALETTE.pine]);
-  const { tri, geometry } = builder(), a = new Vector3(), b = new Vector3(), c = new Vector3();
-  for (const [part, color] of parts) {
-    const flatPart = part.toNonIndexed(), p = flatPart.getAttribute('position');
-    for (let i = 0; i < p.count; i += 3) { a.fromBufferAttribute(p, i); b.fromBufferAttribute(p, i + 1); c.fromBufferAttribute(p, i + 2); tri(a, b, c, color); }
-    part.dispose(); flatPart.dispose();
+  const { tri, geometry } = builder(), up = (x: number, y: number, z: number): Vector3 => new Vector3(x, y, z);
+  const trunk = new CylinderGeometry(0.12, 0.3, 2.4, 6).toNonIndexed(); trunk.translate(0, 1.2, 0);
+  const p = trunk.getAttribute('position'), a = new Vector3(), b = new Vector3(), c = new Vector3();
+  for (let i = 0; i < p.count; i += 3) { a.fromBufferAttribute(p, i); b.fromBufferAttribute(p, i + 1); c.fromBufferAttribute(p, i + 2); tri(a, b, c, PALETTE.trunk); }
+  trunk.dispose();
+  const tiers = 6, height = 7.4, inner = 0x22402f, mid = 0x355a3a, tip = 0x6f8a45, n = 9;
+  for (let t = 0; t < tiers; t++) {
+    const f = t / tiers, y = 1.5 + f * (height - 2.2), r = 2.0 * (1 - f * 0.82), drop = 1.15 - f * 0.45, lean = f * f * 0.35;
+    const collar = up(lean, y + drop * 0.9, 0);
+    for (let k = 0; k < n; k++) {
+      const a0 = (k / n) * Math.PI * 2 + t * 0.7, a1 = ((k + 1) / n) * Math.PI * 2 + t * 0.7, am = (a0 + a1) / 2;
+      const jag = 0.75 + 0.25 * Math.sin(k * 2.3 + t * 1.7);
+      const p0 = up(Math.cos(a0) * r * 0.62 + lean, y + 0.12, Math.sin(a0) * r * 0.62), p1 = up(Math.cos(a1) * r * 0.62 + lean, y + 0.12, Math.sin(a1) * r * 0.62);
+      const pt = up(Math.cos(am) * r * jag + lean, y - drop * 0.25, Math.sin(am) * r * jag);
+      tri(collar, p1, p0, mid); tri(p0, p1, pt, tip, 0.12);
+      // the underside, so a low view under the branches sees shade, not sky
+      tri(p0, pt, up(lean, y - 0.1, 0), inner);
+    }
   }
+  tri(up(0.35 - 0.12, height - 0.3, -0.12), up(0.35 + 0.12, height - 0.3, 0.12), up(0.4, height + 0.6, 0), tip);
   return geometry();
 }
 export function pines(at: readonly (readonly [number, number, number, number])[]): InstancedMesh {
-  const mesh = new InstancedMesh(pineGeometry(), flat(0xffffff, { vertexColors: true }), at.length), m = new Matrix4(), q = new Quaternion(), up = new Vector3(0, 1, 0);
+  const mesh = new InstancedMesh(pineGeometry(), flat(0xffffff, { vertexColors: true, side: DoubleSide }), at.length), m = new Matrix4(), q = new Quaternion(), up = new Vector3(0, 1, 0);
   at.forEach(([x, y, z, s], i) => { q.setFromAxisAngle(up, i * 1.7); m.compose(new Vector3(x, y, z), q, new Vector3(s, s, s)); mesh.setMatrixAt(i, m); });
   mesh.computeBoundingSphere(); return mesh;
 }
 
 /** A plank bridge along a local -Z run of `length` metres, `width` wide, deck top at local y 0. */
 export function plankBridge(length: number, width: number, material: MeshStandardMaterial, rails: MeshStandardMaterial | null): Group {
-  const group = new Group(), step = 0.62, count = Math.max(1, Math.floor(length / step)), m = new Matrix4();
+  // a hover deck is glass slats with open gaps (it must read as board-only, not a floor); a plank deck is closer-laid
+  const group = new Group(), step = rails === null ? 0.85 : 0.62, count = Math.max(1, Math.floor(length / step)), m = new Matrix4();
   // a rope bridge lays the generated plank segments when the kit loaded; a hover deck (no rails) keeps its glass planks
   const kit = rails !== null ? kitDeck(length, width) : null;
   if (kit !== null) group.add(kit);
   else {
-    const planks = new InstancedMesh(new BoxGeometry(width, 0.12, 0.5), material, count);
+    const planks = new InstancedMesh(new BoxGeometry(width, 0.08, rails === null ? 0.3 : 0.5), material, count);
     for (let i = 0; i < count; i++) { m.makeTranslation(0, -0.06, -(i + 0.5) * (length / count)); planks.setMatrixAt(i, m); }
     planks.computeBoundingSphere(); group.add(planks);
   }
@@ -203,15 +189,5 @@ export function lectern(): Group {
   const stand = new Mesh(new BoxGeometry(0.4, 1.05, 0.4), wood); stand.position.y = 0.52; group.add(stand);
   const top = new Mesh(new BoxGeometry(0.8, 0.08, 0.6), wood); top.position.y = 1.1; top.rotation.x = -0.35; group.add(top);
   const page = new Mesh(new BoxGeometry(0.5, 0.02, 0.38), flat(0xefe6d2)); page.position.set(0, 1.16, 0.02); page.rotation.x = -0.35; group.add(page);
-  return group;
-}
-/** The storm crown's dais and its ring of broken pillars. */
-export function crownRuin(daisR: number, daisH: number): Group {
-  const group = new Group(), stone = flat(0x6b6177);
-  const dais = new Mesh(new CylinderGeometry(daisR, daisR + 0.4, daisH, 10), stone); dais.position.y = daisH / 2; group.add(dais);
-  for (let i = 0; i < 7; i++) {
-    const a = (i / 7) * Math.PI * 2, h = 2 + ((i * 37) % 5) * 0.7, pillar = new Mesh(new CylinderGeometry(0.45, 0.55, h, 6), stone);
-    pillar.position.set(Math.cos(a) * 12.5, h / 2, Math.sin(a) * 12.5); group.add(pillar);
-  }
   return group;
 }

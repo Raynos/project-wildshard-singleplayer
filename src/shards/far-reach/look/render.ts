@@ -1,8 +1,8 @@
-import { Color, Fog, Mesh, type Object3D } from 'three';
+import { Color, Fog, Mesh, type Object3D, type Texture } from 'three';
 import { DayCycle, patchShader, PATCH_ORDER, type LookStrategy } from '#engine';
 import { FOG, SKY, SUN_DIR } from './sun';
 import { installPaintedLight } from './light';
-import { bakePanorama, skyDome } from './sky';
+import { HEADING_GLSL, fogLut, loadPanorama, skyDome } from './sky';
 import { bakeSeaTexture, cloudSea } from './cloudSea';
 
 export { FOG, SKY, SUN_DIR } from './sun';
@@ -20,20 +20,23 @@ function primitive(object: Object3D): object is Mesh { return object instanceof 
  * (warm bounce, rim, shade floor: look/light.ts), a layered lit cloud sea (look/cloudSea.ts) and a warm distance fog
  * that melts the far islands into the haze.
  */
-export function skyReachLook(): LookStrategy {
+export async function skyReachLook(): Promise<LookStrategy> {
+  const pano: Texture = await loadPanorama();
   let seaTime: { value: number } | null = null;
   return { mode: 'extend',
     compose: ({ engineChain, scene, scope }) => {
-      const pano = bakePanorama(), dome = skyDome(SUN_DIR, pano); scope.own(pano);
+      const dome = skyDome(pano), haze = fogLut(); scope.own(pano); scope.own(haze);
       dome.renderOrder = -10; dome.frustumCulled = false; scene.add(dome);
       scope.own(dome.geometry); scope.own(dome.material); scope.onDispose(() => { dome.removeFromParent(); });
       scene.fog = new Fog(new Color(SKY.fog), FOG.near, FOG.far);
       scene.traverse((object) => {
         if (!primitive(object) || object === dome) return;
         for (const material of Array.isArray(object.material) ? object.material : [object.material]) {
+          // the haze takes the painted horizon's colour in the direction you look (gold toward the sun, rose-lavender away)
           patchShader(material, 'far.rose-fog', PATCH_ORDER.decorate, (shader) => {
-            shader.fragmentShader = shader.fragmentShader.replace('#include <fog_fragment>',
-              `#ifdef USE_FOG\n gl_FragColor.rgb=mix(gl_FragColor.rgb,fogColor,clamp((length(vFogWorldPos-cameraPosition)-${FOG.near.toFixed(1)})/${(FOG.far - FOG.near).toFixed(1)},0.0,1.0)*0.85);\n#endif`);
+            shader.uniforms['farHaze'] = { value: haze };
+            shader.fragmentShader = `#ifndef FAR_HAZE\n#define FAR_HAZE\nuniform sampler2D farHaze;\n${HEADING_GLSL}\n#endif\n${shader.fragmentShader.replace('#include <fog_fragment>',
+              `#ifdef USE_FOG\n vec3 farV=vFogWorldPos-cameraPosition; gl_FragColor.rgb=mix(gl_FragColor.rgb,texture2D(farHaze,vec2(farHeading(farV),0.5)).rgb,clamp((length(farV)-${FOG.near.toFixed(1)})/${(FOG.far - FOG.near).toFixed(1)},0.0,1.0)*0.85);\n#endif`)}`;
           }, { scope });
         }
       });

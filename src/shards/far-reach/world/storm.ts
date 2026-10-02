@@ -1,4 +1,4 @@
-import { AdditiveBlending, BufferGeometry, Color, DoubleSide, Float32BufferAttribute, Group, Mesh, MeshBasicMaterial, RingGeometry, ShaderMaterial, type Texture, type Vector3 } from 'three';
+import { AdditiveBlending, BufferGeometry, Color, DoubleSide, Float32BufferAttribute, Group, Mesh, MeshBasicMaterial, RingGeometry, ShaderMaterial, Vector3, type Texture } from 'three';
 
 /**
  * The storm crown's storm (style bible §4, loop 3): a lit, swirling vortex hung over the crown, not puffs. Two stacked
@@ -9,14 +9,15 @@ import { AdditiveBlending, BufferGeometry, Color, DoubleSide, Float32BufferAttri
  * vertices; the noise is one 64² texture (16 KB) and five fetches a pixel. With distance it melts into the warm haze, so
  * from the spawn it reads as a far bruise over the crown, not a lid over the sun.
  */
-export const STORM = { lift: 23, radius: 92, layers: [{ dy: 0, r: 1, spin: 0.045, twist: 4.4 }, { dy: 7, r: 1.2, spin: -0.028, twist: 3.0 }] } as const;
+/** `gather`: the camera's distance from the crown (m) over which the storm fades in (from the step's rim to past the windmill isle). */
+export const STORM = { lift: 23, radius: 92, gather: [80, 150], layers: [{ dy: 0, r: 1, spin: 0.045, twist: 4.4 }, { dy: 7, r: 1.2, spin: -0.028, twist: 3.0 }] } as const;
 
 function hex(value: number): string { const c = new Color(value); return `vec3(${c.r.toFixed(4)},${c.g.toFixed(4)},${c.b.toFixed(4)})`; }
 /** The storm's palette (sRGB): belly, mid, the gold of the lit edges, the violet-white of the lightning, the haze it melts into. */
 export const STORM_COLORS = { belly: 0x4a3248, mid: 0x9c7282, top: 0xc49890, gold: 0xffc27a, bolt: 0xe2d6ff, haze: 0xe9bfb4 } as const;
 
 const FRAGMENT = /* glsl */`
-  uniform sampler2D tex; uniform float time, flash, twist, spin, seed; uniform vec3 sunDir; varying vec3 wp; varying vec2 lp;
+  uniform sampler2D tex; uniform float time, flash, twist, spin, seed; uniform vec3 sunDir, centre; varying vec3 wp; varying vec2 lp;
   vec2 rot(vec2 p, float a){ float c = cos(a), s = sin(a); return vec2(c * p.x - s * p.y, s * p.x + c * p.y); }
   void main(){
     float r = length(lp), th = atan(lp.y, lp.x);
@@ -55,7 +56,10 @@ const FRAGMENT = /* glsl */`
     c = mix(c, ${hex(STORM_COLORS.haze)}, haze * 0.7);
     // a camera up at the storm's height (the god views, a high hover) sees it thin out, never a wall of paint
     float near = smoothstep(3.0, 16.0, abs(wp.y - cameraPosition.y));
-    gl_FragColor = vec4(c, alpha * (1.0 - haze * 0.72) * near);
+    // loop 4: it belongs to the crown. Seen from the far islands it is only a faint bruise over the crown, so the painted
+    // sky stays open from the spawn; it gathers as you come near (the high step, the crown bridge, the arena)
+    float approach = 1.0 - smoothstep(${STORM.gather[0].toFixed(1)}, ${STORM.gather[1].toFixed(1)}, length(cameraPosition.xz - centre.xz)) * 0.85;
+    gl_FragColor = vec4(c, alpha * (1.0 - haze * 0.72) * near * approach);
   }`;
 
 const VERTEX = /* glsl */`
@@ -95,12 +99,12 @@ export interface CrownStorm {
 /** Build the storm, centred at the group's origin (place it over the crown at `STORM.lift`). */
 export function crownStorm(sun: Vector3, tex: Texture, random: () => number): CrownStorm {
   const group = new Group(); group.name = 'far.storm';
-  const time = { value: 0 }, flash = { value: 0 };
+  const time = { value: 0 }, flash = { value: 0 }, centre = new Vector3();
   STORM.layers.forEach((layer, i) => {
     const radius = STORM.radius * layer.r, geometry = new RingGeometry(0.5, radius, 72, 10); geometry.rotateX(-Math.PI / 2);
     const material = new ShaderMaterial({ side: DoubleSide, transparent: true, depthWrite: false, fog: false, vertexShader: VERTEX, fragmentShader: FRAGMENT,
       uniforms: { tex: { value: tex }, time, flash, sunDir: { value: sun }, twist: { value: layer.twist }, spin: { value: layer.spin },
-        seed: { value: i * 17.3 }, radius: { value: radius }, dish: { value: 6 + i * 4 } } });
+        seed: { value: i * 17.3 }, radius: { value: radius }, dish: { value: 6 + i * 4 }, centre: { value: centre } } });
     const mesh = new Mesh(geometry, material); mesh.position.y = layer.dy; mesh.renderOrder = 3 - i; mesh.frustumCulled = false; group.add(mesh);
   });
   const boltMaterial = new MeshBasicMaterial({ color: STORM_COLORS.bolt, transparent: true, opacity: 0.95, blending: AdditiveBlending, depthWrite: false, fog: false, side: DoubleSide });
@@ -111,7 +115,7 @@ export function crownStorm(sun: Vector3, tex: Texture, random: () => number): Cr
   // the lightning schedule: a strike every 3.5–8 s, a double flicker, one bolt shown
   let next = 2, strike = -10, which = 0;
   return { group, strike: () => { next = 0; }, update: (dt, t) => {
-    time.value += dt;
+    time.value += dt; group.getWorldPosition(centre);
     if (t >= next) { strike = t; which = Math.floor(random() * bolts.length); next = t + 3.5 + random() * 4.5; }
     const s = t - strike, k = s < 0.08 ? 1 : s < 0.14 ? 0.15 : s < 0.24 ? 0.8 : Math.max(0, 1 - (s - 0.24) / 0.5) * 0.3;
     flash.value = k;

@@ -14,6 +14,8 @@ import { GALE_WISP, GALE_WISP_LOOK } from './species/galeWisp';
 import { GALE_WALL, STORM_ROC, STORM_ROC_LOOK, rocBrain } from './species/stormRoc';
 import { bindPlayerPush, setHome } from './species/rig';
 import { preloadSkyMeshes } from './world/meshes';
+import { meadow, type Meadow } from './world/meadow';
+import { SUN_DIR } from './look/sun';
 import { ROC_ID, StormRocBoss } from './combat/stormRoc';
 import { BOSS_REWARD, FLAGS, installQuest, vaneFlag } from './quest/install';
 import { installSkyCues } from './audio/cues';
@@ -21,6 +23,7 @@ import { installSkyCues } from './audio/cues';
 declare module '#engine' {
   interface ActionMap { 'far.gust': true }
   interface EquipmentSlotMap { 'far-fan': true }
+  interface TierKnobMap { 'far.meadowBlades': number }
 }
 
 /** The updraft's upward push while you ride its column (m/s², G24). */
@@ -39,6 +42,8 @@ export class SkyReachPlugin extends ShardPlugin {
   /** Is the player riding the hoverboard? Hover decks and the updraft collide only then (ENGINE §5 `app.player.mode`). */
   private board: () => boolean = () => false;
   flags: Flags | null = null;
+  /** The near meadow that travels with the camera (loop 4). */
+  meadow: Meadow | null = null;
 
   override async world(ctx: ShardContext): Promise<void> {
     ctx.strings(STRINGS);
@@ -46,6 +51,11 @@ export class SkyReachPlugin extends ShardPlugin {
     await preloadSkyMeshes();
     this.board = () => ctx.app.player?.mode === 'board';
     this.built = buildWorld(ctx, () => this.board());
+    const blades = ctx.manifest.tiers?.phone?.['far.meadowBlades'] ?? 0;
+    ctx.tiers.knobs({ id: 'far', defaults: { 'far.meadowBlades': blades } });
+    const field = meadow(SUN_DIR, ctx.manifest.tiers?.[ctx.app.render?.tier ?? 'phone']?.['far.meadowBlades'] ?? blades);
+    this.meadow = field; ctx.root.add(field.mesh); ctx.scope.own(field.mesh.geometry); ctx.scope.own(field.mesh.material);
+    ctx.scope.onDispose(() => { field.mesh.removeFromParent(); });
     ctx.game.runtime?.interactables.push(this.built.winch, this.built.notes);
   }
   override kit(ctx: ShardContext): void {
@@ -108,7 +118,8 @@ export class SkyReachPlugin extends ShardPlugin {
     // Dressing: the hover decks glow while you ride; the mill and the turned vanes spin; the updraft's rings rise.
     ctx.system({ id: 'far.dressing', phase: 'update', run: (dt, t) => {
       const riding = this.board();
-      built.hoverDeck.emissiveIntensity = riding ? 0.9 + Math.sin(t * 4) * 0.15 : 0.25; built.hoverDeck.opacity = riding ? 0.75 : 0.5;
+      built.hoverDeck.emissiveIntensity = riding ? 0.9 + Math.sin(t * 4) * 0.15 : 0.45; built.hoverDeck.opacity = riding ? 0.75 : 0.45;
+      const cam = rt?.world?.game.camera; if (cam && this.meadow) this.meadow.update(cam.position, t);
       built.millHub.rotation.z += dt * 0.35; built.storm.update(dt, t); built.wind.update(t);
       for (const v of built.vanes) v.rotor.rotation.y += dt * (flags.has(vaneFlag(v.id)) ? 6 : 0.25);
     } });

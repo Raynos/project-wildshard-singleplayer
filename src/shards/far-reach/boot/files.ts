@@ -10,9 +10,11 @@ const URLS: Readonly<Record<SkyMeshName, string>> = {
   'bridge-deck': '/assets/far-reach/models/bridge-deck/bridge-deck.glb', keeper: '/assets/far-reach/models/keeper/keeper.glb',
 };
 export const skyMeshUrl = (name: SkyMeshName): string => URLS[name];
+/** The painted 360° sky (look/sky.ts), one strip per tier. */
+export const PANO_URL = { desktop: '/assets/far-reach/sky/panorama.webp', phone: '/assets/far-reach/sky/panorama.phone.webp' } as const;
 
-/** Sky Reach downloads its generated models (C6, `world/meshes.ts`); the rest is built in code. The card and Explore images are bundled imports (thumbs/, explore/). */
-export const bootSources: NonNullable<NonNullable<ShardManifest['boot']>['sources']> = () => ({
-  sky: [], baked: [], terrain: [], trees: [], physics: [], cabins: [], props: SKY_MESHES.map(skyMeshUrl), art: [], music: [], sfx: [],
+/** Sky Reach downloads its painted sky (look/sky.ts) and its generated models (C6, `world/meshes.ts`); the rest is built in code. The card and Explore images are bundled imports (thumbs/, explore/). */
+export const bootSources: NonNullable<NonNullable<ShardManifest['boot']>['sources']> = (tier) => ({
+  sky: [tier === 'phone' ? PANO_URL.phone : PANO_URL.desktop], baked: [], terrain: [], trees: [], physics: [], cabins: [], props: SKY_MESHES.map(skyMeshUrl), art: [], music: [], sfx: [],
 });
 export const bootFiles = (): readonly string[] => Object.values(bootSources('phone', 'img')).flat();

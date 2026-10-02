@@ -28,7 +28,8 @@ export const SKY_REACH: ShardManifest = {
   loadout: { weapons: ['weapon.far-fan'], tools: ['tool.hoverboard'], start: ['weapon.far-fan', 'tool.hoverboard'], held: 'weapon.far-fan' },
   species: ['driftRay', 'skyGoat', 'galeWisp', 'stormRoc'], encounters: ['far.roc'], spawns: [], fight: { telegraphed: true, input: { bufferMs: 120, coyoteMs: 100 } },
   creatures: { lowPoly: true, waitForModels: false, furRim: false, tintRange: 0, oneMaterial: true },
-  tiers: { phone: { godRays: false, ao: false }, desktop: { godRays: false, ao: false } },
+  // far.meadowBlades: blades per 8 m tile of the near meadow (world/meadow.ts)
+  tiers: { phone: { 'far.meadowBlades': 1800, godRays: false, ao: false }, desktop: { 'far.meadowBlades': 3200, godRays: false, ao: false } },
   loot: { coins: true },
   audio: { ambience: 'none', score: 'far.silent', cues: async () => (await import('./audio/cues')).CUES },
   boot: { explore: { art: Object.values(EXPLORE.art) }, files: bootFiles, sources: bootSources, viewmodelSets: [], shaders: { background: false }, audio: () => Promise.resolve([]), precache: [] },
