@@ -15,7 +15,7 @@ const sha = fullSha.slice(0, 7);
 export function matchesCommit(build, commit = fullSha) {
   if (typeof build !== 'string') return false;
   const short = build.split('-')[0] ?? '';
-  return /^[0-9a-f]{7,40}$/.test(short) && /^[0-9a-f]{7,40}$/.test(commit) && (commit.startsWith(short) || short.startsWith(commit));
+  return /^[0-9a-f]{7,40}$/.test(short) && /^[0-9a-f]{7,40}$/.test(commit) && (commit.length >= short.length ? commit.startsWith(short) : short.startsWith(commit));
 }
 
 async function liveBuild() {
