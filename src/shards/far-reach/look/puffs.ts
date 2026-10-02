@@ -61,11 +61,10 @@ export function cumulus(sun: Vector3, atlas: Texture): Mesh<InstancedBufferGeome
         float lum = dot(t, vec3(0.3, 0.59, 0.11)), body = smoothstep(0.24, 0.5, lum);
         float alpha = body * vFade;
         if (alpha < 0.01) discard;
-        // un-premultiply the black matte, then a touch of rim gold when the sun is behind the cloud
-        vec3 c = t * 1.12;
-        // more depth: lavender in the shaded bellies, the lit crowns kept (the targets' billows read one by one)
-        float lit = smoothstep(0.35, 0.85, dot(c, vec3(0.3, 0.59, 0.11)));
-        c = mix(c * vec3(0.72, 0.68, 0.86), c * 1.08, lit);
+        // contrast: lavender in the shaded bellies, the lit crowns warm (the targets' billows read one by one)
+        float lit = smoothstep(0.35, 0.85, lum);
+        vec3 c = mix(t * vec3(0.78, 0.76, 1.02), t * vec3(1.18, 1.12, 1.02), lit);
+        // a touch of rim gold when the sun is behind the cloud
         c += vec3(1.0, 0.78, 0.45) * pow(vToSun, 6.0) * (1.0 - smoothstep(0.3, 0.7, lum)) * 0.5;
         gl_FragColor = vec4(c, alpha);
       }` });

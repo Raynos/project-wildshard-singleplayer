@@ -124,7 +124,8 @@ export function meadow(sunDir: Vector3, blades: number, isles: readonly Isle[] =
         float dist = distance(p, uCam.xz);
         float pt = mfbm(p * 0.23);
         // tall drifts and short lawn by noise; shorter toward the rim and the paths; shrinks to nothing at RANGE
-        float h = mix(${MEADOW.low.toFixed(2)}, ${MEADOW.high.toFixed(2)}, smoothstep(0.25, 0.8, pt) * 0.7 + r * 0.3);
+        // varied heights (E392: the mockups' meadow is tall drifts and short patches, never one even wall)
+        float h = mix(${MEADOW.low.toFixed(2)}, ${MEADOW.high.toFixed(2)}, smoothstep(0.25, 0.8, pt) * 0.7 + r * 0.3) * mix(0.55, 1.15, mn(p * 0.37 + 11.0));
         h *= tall * (1.0 - 0.55 * smoothstep(0.82, 1.0, rim)) * clear * (1.0 - smoothstep(RANGE * 0.55, RANGE, dist));
         if (y < -1.0e3 || h < 0.04 || fract(r * 53.1) > keep) { gl_Position = vec4(0.0, 0.0, 2.0, 1.0); return; }
         // the blade faces half toward the camera so it never vanishes edge-on
@@ -132,11 +133,11 @@ export function meadow(sunDir: Vector3, blades: number, isles: readonly Isle[] =
         vec2 toCam = normalize(uCam.xz - p + 1e-3); vec2 face = normalize(mix(dir, toCam, 0.55));
         vec2 side = vec2(-face.y, face.x);
         // a few blades in the drifts are daisies: a short stem with a wide pale head (white, some yellow)
-        float flower = step(fract(r * 91.7), 0.11 * smoothstep(0.3, 0.65, mfbm(p * 0.11 + 4.0)));
+        float flower = step(fract(r * 91.7), 0.04 + 0.16 * smoothstep(0.3, 0.65, mfbm(p * 0.11 + 4.0)));
         h *= mix(1.0, 0.7, flower);
         // the nearest band is shorter, so a blade at your feet never fills a sixth of the frame (council R1C-15)
         h *= mix(0.55, 1.0, smoothstep(0.8, 4.0, dist));
-        float t = aShape.y, w = mix(0.022, 0.04, fract(r * 13.7)) * mix(1.0, 3.2, flower * step(0.6, t));
+        float t = aShape.y, w = mix(0.022, 0.04, fract(r * 13.7)) * mix(1.0, 4.6, flower * step(0.62, t));
         // wind: a slow swell along the prevailing wind with a quick flutter, more at the tip
         vec2 wind = normalize(vec2(0.6, 0.8));
         float sway = (0.18 + 0.12 * sin(uTime * 1.3 + dot(p, wind) * 0.35)) + 0.05 * sin(uTime * 4.1 + r * 30.0);

@@ -93,7 +93,7 @@ export function dressIslands(isles: readonly Isle[] = ISLES, seed = 6417, landin
     const ap = apothem(isle), area = Math.PI * ap * ap;
     const inside = (k: number): [number, number] => { const r = ap * Math.sqrt(rnd()) * k, a = rnd() * Math.PI * 2; return [isle.x + Math.cos(a) * r, isle.z + Math.sin(a) * r]; };
     for (let i = 0; i < area * DRESS.clumpsPerM2 * density; i++) {
-      const [x, z] = inside(1.0); if (onLane(x, z) && rnd() < 0.85) continue;
+      const [x, z] = inside(0.95); if (onLane(x, z) && rnd() < 0.85) continue;
       clumps.push({ x, y: isle.y, z, s: 0.45 + rnd() * 0.5, yaw: rnd() * 6.28 });
     }
     for (let i = 0; i < area * DRESS.flowersPerM2 * density; i++) {
