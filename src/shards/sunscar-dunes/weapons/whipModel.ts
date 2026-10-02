@@ -85,6 +85,16 @@ export interface WhipParts { root: Group; grip: Group; coil: Mesh; lash: Lash; t
  * turned about it so the cuff runs back down toward the lower-right corner and the fingers wrap away (`GLOVE_TURN`).
  */
 export const GLOVE_TURN = { y: -2.06, scale: 0.55 } as const;
+/** Averages the normals of every vertex at one position (round 1, R1A-2 / R1C-4: the flat facets of the generated
+ *  glove read as a decimated scan; smoothed, the painted leather reads as a glove). */
+function smoothNormals(g: BufferGeometry): void {
+  const p = g.getAttribute('position'), n = g.getAttribute('normal'), sum = new Map<string, [number, number, number]>();
+  const key = (i: number): string => `${p.getX(i).toFixed(4)},${p.getY(i).toFixed(4)},${p.getZ(i).toFixed(4)}`;
+  for (let i = 0; i < p.count; i++) { const k = key(i), v = sum.get(k) ?? [0, 0, 0]; v[0] += n.getX(i); v[1] += n.getY(i); v[2] += n.getZ(i); sum.set(k, v); }
+  for (let i = 0; i < p.count; i++) { const v = sum.get(key(i)) ?? [0, 1, 0], l = Math.hypot(v[0], v[1], v[2]) || 1; n.setXYZ(i, v[0] / l, v[1] / l, v[2] / l); }
+  n.needsUpdate = true;
+}
+
 function gloveMesh(): { mesh: Mesh; top: number } | null {
   const g = duneMesh('whip-glove'); if (g === null) return null;
   g.computeBoundingBox(); const b = g.boundingBox; if (b === null) return null;
@@ -94,12 +104,12 @@ function gloveMesh(): { mesh: Mesh; top: number } | null {
   const fist = b.min.x + (b.max.x - b.min.x) * 0.48;
   g.translate(-fist, n > 0 ? -y / n : -(b.min.y + b.max.y) / 2, n > 0 ? -z / n : -(b.min.z + b.max.z) / 2);
   g.rotateZ(Math.PI / 2); g.rotateY(GLOVE_TURN.y); g.scale(GLOVE_TURN.scale, GLOVE_TURN.scale, GLOVE_TURN.scale);
-  g.computeVertexNormals(); g.computeBoundingSphere();
+  g.computeVertexNormals(); smoothNormals(g); g.computeBoundingSphere();
   // where the lash leaves the hand: the handle's keeper end, just short of the thong's curl
   const top = (b.max.x - fist - 0.06) * GLOVE_TURN.scale;
   // Painted facets, matte; a touch of warm self-light so the backlit glove never reads as a black lump.
   // loop 4: the painted leather a little lighter (it read as one brown lump against the sand next to the bar's weapons)
-  const material = new MeshStandardMaterial({ vertexColors: true, roughness: 0.7, metalness: 0, flatShading: true, emissive: GLOW });
+  const material = new MeshStandardMaterial({ vertexColors: true, roughness: 0.7, metalness: 0, emissive: GLOW });
   material.color.setRGB(1.22, 1.14, 1.05);
   return { mesh: new Mesh(g, material), top };
 }
@@ -130,7 +140,8 @@ export function buildWhipModel(): WhipParts {
   // The generated glove and handle replace the code fist when its file loaded (the code fist stays the stand-in).
   const made = gloveMesh();
   if (made !== null) { handle.visible = false; knob.visible = false; fist.visible = false; grip.add(made.mesh); }
-  grip.rotation.set(-1.0, 0, -0.25);
+  // round 1 (R1C-4): the handle tilts forward and toward the crosshair, not straight up like a stick
+  grip.rotation.set(-1.2, 0, made === null ? -0.25 : 0.12);
   // The coil (mockup D): a small loop and a half hanging below the fist toward the bottom-right edge, its tail out of frame.
   // With the generated glove (mockup D) the coil is the real cord's weight: two and a half thin loops beside the fist.
   const turns = made === null ? 3.2 : 5, loopR = made === null ? 0.064 : 0.05, cord = made === null ? 0.0085 : 0.005;
@@ -145,7 +156,7 @@ export function buildWhipModel(): WhipParts {
   braid(coilGeometry, 141, RADIAL + 1, 0, COIL_A, COIL_B);
   const coilMaterial = braided(); coilMaterial.roughness = 0.75;
   const coil = new Mesh(coilGeometry, coilMaterial);
-  if (made === null) coil.position.set(0, 0.1, -0.02); else coil.position.set(-0.06, 0.07, -0.03);
+  if (made === null) coil.position.set(0, 0.1, -0.02); else coil.position.set(0.0, 0.02, -0.03); // under the fist, out of the centre third
   coil.rotation.set(0.1, 0.4, 0.1);
   root.add(grip, coil);
   const lash = new Lash(); root.add(lash.mesh);

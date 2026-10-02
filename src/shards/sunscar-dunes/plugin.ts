@@ -10,7 +10,7 @@ import { preloadDuneMeshes } from './world/meshes';
 import { DUNE_RAY, DUNE_RAY_LOOK } from './species/duneRay';
 import { Bullwhip } from './weapons/Bullwhip';
 import { WHIP_ROW } from './weapons/rows';
-import { installQuest, MATRIARCH_FLAG } from './quest/install';
+import { installQuest, MATRIARCH_FLAG, SCOUT_FLAG } from './quest/install';
 import { installSunscarCues } from './audio/cues';
 import { installCreatures } from './combat/creatures';
 import { SAND_SKITTERER, SAND_SKITTERER_LOOK } from './species/skitterer';
@@ -66,7 +66,7 @@ export class SignalDunesPlugin extends ShardPlugin {
     if (rt) rt.hooks.questFlags = () => this.quest?.isComplete ? ['sunscar.complete'] : [];
     // The first frame looks a little down the spawn's slip face, over the dune rows to the tower (review H1).
     if (rt?.world) rt.world.player.pitch = -0.1;
-    this.creatures = installCreatures(ctx);
+    this.creatures = installCreatures(ctx, () => places !== null && !places.flags.has(SCOUT_FLAG));
     ctx.debug.expose('sunscar', this);
   }
 }

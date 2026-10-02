@@ -60,8 +60,12 @@ void main() {
   vec3 cloudLit = mix(vec3(0.96, 0.48, 0.3), vec3(1.0, 0.58, 0.26), pow(toward, 1.5));
   cloudLit = mix(cloudLit, vec3(0.62, 0.32, 0.4), smoothstep(0.18, 0.6, h));
   c = mix(c, mix(cloudDark, cloudLit, clamp(lit * (0.75 + 0.25 * toward) + 0.2, 0.0, 1.0)), cov * 0.94);
-  vec3 cell = floor(d * 260.0);
-  float star = step(0.9965, starHash(cell)) * smoothstep(0.22, 0.5, h) * (1.0 - cov);
+  // Point stars (round 1, R1B-18: whole cells drew 3-6 px quads): a soft dot round a jittered spot in its cell, fading
+  // toward the glow and behind the cloud deck.
+  vec3 cellP = d * 260.0, cell = floor(cellP);
+  vec3 spot = cell + 0.5 + (vec3(starHash(cell + 1.7), starHash(cell + 5.3), starHash(cell + 9.1)) - 0.5) * 0.5;
+  float starDot = 1.0 - smoothstep(0.0, 0.16, length(cellP - spot));
+  float star = step(0.9965, starHash(cell)) * starDot * smoothstep(0.22, 0.5, h) * (1.0 - cov) * (1.0 - 0.8 * toward);
   c += vec3(0.85, 0.88, 1.0) * star * (0.5 + 0.5 * starHash(cell + 3.1));
   gl_FragColor = vec4(pow(c, vec3(2.2)), 1.0);
 }`;

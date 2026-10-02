@@ -2,6 +2,7 @@ import { addFire, SIGNAL_FIRE } from './fireFx';
 import { BoxGeometry, CylinderGeometry, Group, Mesh, MeshStandardMaterial, PointLight, Vector3, type Material } from 'three';
 import { boxDesc, type ColliderDesc } from '#engine';
 import { TOWER } from '../layout';
+import { duneMaterial, duneMesh, fit } from './meshes';
 
 const WOOD = 0x4a2e1e, WOOD_DARK = 0x2c1b14, IRON = 0x231c1c;
 export const STAIR = { count: 22, run: 0.42, width: 1.3, x: 0.75 } as const;
@@ -66,9 +67,9 @@ export function buildTower(y: number, groundAt: (x: number, z: number) => number
     colliders.push(boxDesc({ x: cx + x, z: cz + z, hw: Math.max(0.04, w / 2), hd: Math.max(0.04, d / 2), rot: 0, yBottom: deckY, yTop: deckY + railH }, 'wood'));
   }
   for (const [x, z] of [[-edge, -edge], [edge, -edge], [-edge, edge], [edge, edge], [-edge * 0.2, edge]] as const) add(box(0.1, railH, 0.1, dark), x, deckY + railH / 2, z);
-  // The mast and its crossbar over the north-west corner.
-  add(box(0.14, 3.4, 0.14, wood), -half + 0.2, deckY + 1.7, -half + 0.2);
-  add(box(1.3, 0.1, 0.1, wood), -half + 0.2, deckY + 2.9, -half + 0.2);
+  // The mast and its crossbar over the north-east corner (round 1: on the north-west it stood in the deck view, H4).
+  add(box(0.14, 3.4, 0.14, wood), half - 0.2, deckY + 1.7, -half + 0.2);
+  add(box(1.3, 0.1, 0.1, wood), half - 0.2, deckY + 2.9, -half + 0.2);
   // The south stair: 22 treads from the sand to the deck edge.
   const top = new Vector3(cx + STAIR.x, deckY, cz + edge), foot = new Vector3(top.x, 0, top.z + STAIR.count * STAIR.run);
   foot.y = groundAt(foot.x, foot.z);
@@ -85,8 +86,14 @@ export function buildTower(y: number, groundAt: (x: number, z: number) => number
   colliders.push(...stairColliders(foot, rise, groundAt));
   // The brazier: an iron bowl on a post, its fire hidden until the signal is lit.
   const brazierAt = new Vector3(cx - 0.4, deckY + 1.1, cz - 0.5);
-  add(new Mesh(new CylinderGeometry(0.08, 0.12, 0.9, 6), iron), brazierAt.x - cx, deckY + 0.45, brazierAt.z - cz);
-  add(new Mesh(new CylinderGeometry(0.45, 0.22, 0.3, 8, 1, true), iron), brazierAt.x - cx, deckY + 1.0, brazierAt.z - cz);
+  // Round 1 (R1C-1 / R1B-12): the generated waymark brazier, the H4 view's subject (it was a near-black post and bowl);
+  // the code one stays the stand-in.
+  const generated = duneMesh('waymark-brazier');
+  if (generated) add(new Mesh(fit(generated, { size: 1.25, by: 'height', floor: 0 }), duneMaterial()), brazierAt.x - cx, deckY, brazierAt.z - cz);
+  else {
+    add(new Mesh(new CylinderGeometry(0.08, 0.12, 0.9, 6), iron), brazierAt.x - cx, deckY + 0.45, brazierAt.z - cz);
+    add(new Mesh(new CylinderGeometry(0.45, 0.22, 0.3, 8, 1, true), iron), brazierAt.x - cx, deckY + 1.0, brazierAt.z - cz);
+  }
   colliders.push(boxDesc({ x: brazierAt.x, z: brazierAt.z, hw: 0.4, hd: 0.4, rot: 0, yBottom: deckY, yTop: deckY + 1.15 }, 'metal'));
   const fire = new Group(); fire.position.copy(brazierAt);
   // The signal fire: the brightest thing in the level, its column visible from the spawn (P2 #8, `fireFx.ts`).

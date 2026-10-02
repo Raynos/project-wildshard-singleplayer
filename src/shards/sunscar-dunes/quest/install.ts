@@ -47,7 +47,7 @@ export function installQuest(ctx: ShardContext, player: Vector3, world: SignalWo
   if (!flags.has(SCOUT_FLAG) && [...later, COMPLETE_FLAG].some((f) => flags.has(f))) flags.set(SCOUT_FLAG);
   const quest = new QuestState({ id: 'sunscar.signal', title: STRINGS.quest, completeFlag: COMPLETE_FLAG, steps: [
     { id: 'scout', objective: STRINGS.stepScout, chip: STRINGS.chipScout, hint: STRINGS.hintScout, done: { any: [SCOUT_FLAG, ...later] },
-      markers: [{ id: 'scout', label: STRINGS.scoutPin, short: STRINGS.shortScout, at: { poi: 'world', x: SCOUT_AT.x, y: groundAt(SCOUT_AT.x, SCOUT_AT.z) + 2.2, z: SCOUT_AT.z } }] },
+      markers: [{ id: 'scout', label: STRINGS.scoutPin, short: STRINGS.shortScout, at: { poi: 'world', x: SCOUT_AT.x, y: groundAt(SCOUT_AT.x, SCOUT_AT.z), z: SCOUT_AT.z } }] }, // her feet: the pin adds its own 2.2 m (round 1, R1C-7)
     { id: 'logbook', objective: STRINGS.stepLog, chip: STRINGS.chipLog, hint: STRINGS.hintLog, done: { all: [FLAG.logbook] },
       markers: [{ id: 'logbook', label: STRINGS.readLog, short: STRINGS.shortLog, at: at(world.logbook.position, 0.4) }] },
     { id: 'oil', objective: STRINGS.stepOil, chip: STRINGS.chipOil, hint: STRINGS.hintOil, done: { all: [FLAG.oil] },

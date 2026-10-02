@@ -5,6 +5,7 @@ import { BASIN } from '../layout';
 import { STRINGS } from '../strings';
 import { BASIN_FLOOR } from '../world/dunes';
 import { stormMaterial } from '../world/stormFx';
+import { lastLightAll } from '../look/light';
 
 const ID = 'sunscar.matriarch';
 /**
@@ -105,7 +106,7 @@ export class DuneMatriarch extends BossBrain {
 /** Arms the Matriarch once the signal fire is lit (now, or on a later visit); answers the death checkpoint. */
 export function installMatriarch(ctx: ShardContext, player: Vector3, lit: () => boolean, onCoin?: (share: number) => void, onDown?: () => void): { boss: DuneMatriarch; summon: () => void } {
   const animals = ctx.game.runtime?.play?.animals;
-  const boss = ctx.app.encounters.boss(ID, new DuneMatriarch(ctx, player, () => animals?.spawn('duneMatriarch', BASIN.x, BASIN.z, 0, 'matriarch') ?? null,
+  const boss = ctx.app.encounters.boss(ID, new DuneMatriarch(ctx, player, () => { const a = animals?.spawn('duneMatriarch', BASIN.x, BASIN.z, 0, 'matriarch') ?? null; if (a) lastLightAll(a.mesh, ctx.scope); return a; },
     (a) => { animals?.retire(a); }, onCoin, onDown), ctx.scope);
   const summon = (): void => { if (boss.state === 'dormant') { boss.arm(); ctx.game.runtime?.play?.hud.toast(STRINGS.summoned); } };
   if (lit()) boss.arm();

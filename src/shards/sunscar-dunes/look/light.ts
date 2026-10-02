@@ -10,7 +10,8 @@ export function lastLight(material: MeshStandardMaterial, scope: Scope): void {
   patchShader(material, 'sunscar.lastLight', PATCH_ORDER.decorate, (shader) => {
     shader.fragmentShader = shader.fragmentShader.replace('#include <opaque_fragment>', `{
     float sunscarRim = pow(1.0 - saturate(dot(normal, normalize(vViewPosition))), 3.0);
-    outgoingLight += diffuseColor.rgb * (vec3(0.06, 0.07, 0.12) + vec3(1.0, 0.5, 0.22) * sunscarRim * 0.7);
+    // round 1 (R1C-2): a stronger cool sky floor and rim; leather and wood in shade read brown-violet, never black
+    outgoingLight += diffuseColor.rgb * (vec3(0.15, 0.14, 0.24) + vec3(1.0, 0.5, 0.22) * sunscarRim * 0.95);
   }
 #include <opaque_fragment>`);
   }, { scope });

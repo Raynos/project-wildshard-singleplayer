@@ -2,6 +2,7 @@ import { CreatureBrain, StrikeRunner, NO_FUR, type Animal, type SpeciesLook, typ
 import { BufferGeometry, Float32BufferAttribute, Uint16BufferAttribute, Vector3 } from 'three';
 import { RAY_HOME } from '../layout';
 import { STRINGS } from '../strings';
+import { mantaBody, type MantaTint } from './manta';
 
 /** The flight numbers (metres, m/s, seconds). */
 export const RAY = { glideAlt: 14, glideSpeed: 9, circleR: 20, notice: 55, diveFrom: 38, diveSpeed: 15, climbAlt: 17, climbFor: 2.6, diveMax: 4.5, rest: 3 } as const;
@@ -18,7 +19,9 @@ export class DuneRayBrain extends CreatureBrain<RayState> {
   constructor(actor: Animal) { super(actor, ['glide', 'dive', 'climb']); }
   override think(ctx: ThinkCtx): void {
     const a = this.actor; if (!a.alive) return;
-    if (ctx.calm) { if (this.state !== 'glide') this.transition('glide'); return; }
+    // `mem.held` (round 1, R1B-13): circling its home crest as a threat in the first frame, but it strikes no one until
+    // the player has met Sefa (combat/creatures.ts)
+    if (ctx.calm || a.mem['held'] === 1) { if (this.state !== 'glide') this.transition('glide'); return; }
     const dh = Math.hypot(ctx.player.x - a.position.x, ctx.player.z - a.position.z);
     if (this.state === 'glide' && this.rest <= 0 && dh < RAY.diveFrom && ctx.reach(a) && ctx.claim(a)) { this.transition('dive'); this.clock = 0; this.struck = false; }
   }
@@ -43,7 +46,7 @@ export class DuneRayBrain extends CreatureBrain<RayState> {
       return;
     }
     // Glide: circle the player when near, else the ray's home crest.
-    const near = !ctx.calm && Math.hypot(ctx.player.x - a.position.x, ctx.player.z - a.position.z) < RAY.notice;
+    const near = !ctx.calm && a.mem['held'] !== 1 && Math.hypot(ctx.player.x - a.position.x, ctx.player.z - a.position.z) < RAY.notice;
     const cx = near ? ctx.player.x : RAY_HOME.x, cz = near ? ctx.player.z : RAY_HOME.z;
     const around = Math.atan2(a.position.x - cx, a.position.z - cz) + 0.55;
     ctx.flight.steer(a, toYaw(cx + Math.sin(around) * RAY.circleR, cz + Math.cos(around) * RAY.circleR), RAY.glideSpeed, RAY.glideAlt, 1.4);
@@ -101,9 +104,12 @@ export function rayGeometry(): BufferGeometry {
   return geometry;
 }
 
+/** The ray's hide on the Matriarch's generated body (round 1): a lighter sand-brown back, a pale bone belly. */
+const RAY_TINT: MantaTint = { top: [1.55, 1.4, 1.25], belly: [0.62, 0.5, 0.4], bellyMix: 0.85 };
+
 export const DUNE_RAY_LOOK: SpeciesLook = { id: 'sunscar.look.duneRay', species: DUNE_RAY.id, kind: 'duneRay', rig: 'custom', fur: NO_FUR,
   rigContract: { skeleton: 'sunscar.duneRay', sockets: ['body', 'head', 'wingL', 'wingR', 'tail'], clips: ['idle', 'fly', 'attack', 'hit', 'die'] },
-  build: () => ({ bones: rayBones(), furParts: [], hardParts: [rayGeometry()], eyeParts: [],
+  build: () => ({ bones: rayBones(), furParts: [], hardParts: [mantaBody(RAY_TINT) ?? rayGeometry()], eyeParts: [],
     dims: { bodyY: 0.3, bodyHalfLen: 1.1, bodyRadius: 0.8, headRadius: 0.4, legLen: 0, feet: [], halfWidth: 2.6 } }),
   animate: ({ bones, t, alive }) => {
     const flap = alive ? Math.sin(t * 2.4) * 0.32 : -0.5;

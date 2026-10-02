@@ -1,5 +1,5 @@
 {
- "$doc": "E387 progress cameras for scripts/shard-progress.mjs: the loop builders' hero views (H1 spawn crest, H2 caravan, H3 waymark, H4 tower deck) plus two aerials and an orbit clip. Keep them fixed: the time-lapse lines frames up by id. yaw / pitch in degrees (yaw 0 faces -z).",
+ "$doc": "E387 progress cameras for scripts/shard-progress.mjs: the loop builders' hero views (H1 spawn crest, H2 caravan, H3 waymark, H4 tower deck) plus two aerials and an orbit clip. Keep them fixed: the time-lapse lines frames up by id. yaw / pitch in degrees (yaw 0 faces -z). Round 1 (R1C-1 / R1B-12, 2026-10-02): h3 and h4 re-aimed on their subjects (h3 the waymark from 5.7 m, h4 the deck brazier from the stair landing, the basin beyond); their time-lapse jumps there.",
  "shots": [
   {
    "id": "h1-spawn-crest",
@@ -17,18 +17,18 @@
   },
   {
    "id": "h3-waymark",
-   "x": 46,
-   "z": -18,
-   "yaw": -36.87,
-   "pitch": -3
+   "x": 53.6,
+   "z": -29.6,
+   "yaw": -45,
+   "pitch": 4
   },
   {
    "id": "h4-tower-deck",
-   "x": 7.6,
+   "x": 8.4,
    "y": 20.6,
-   "z": -76,
-   "yaw": 16.27,
-   "pitch": 2.9
+   "z": -73.0,
+   "yaw": 19,
+   "pitch": -12
   },
   {
    "id": "aerial-spawn",

@@ -1,8 +1,9 @@
 import { addFire, addLampGlow, WAYMARK_FIRE } from './fireFx';
-import { BoxGeometry, CylinderGeometry, DoubleSide, Float32BufferAttribute, Group, InstancedMesh, Matrix4, Mesh, MeshBasicMaterial, MeshStandardMaterial,
+import { BoxGeometry, BufferGeometry, CylinderGeometry, DoubleSide, Float32BufferAttribute, Group, InstancedMesh, Matrix4, Mesh, MeshBasicMaterial, MeshStandardMaterial,
   Quaternion, SphereGeometry, TorusGeometry, Vector3, type Material } from 'three';
-import { boxDesc, type ColliderDesc } from '#engine';
-import { CARAVAN, WELL } from '../layout';
+import { Rng, boxDesc, rock, type ColliderDesc } from '#engine';
+import { CARAVAN, SEED, WELL } from '../layout';
+import { WIND } from './dunes';
 import { duneMaterial, duneMesh, fit, without } from './meshes';
 
 const WOOD = 0x4a2e1e, WOOD_DARK = 0x2c1b14, IRON = 0x231c1c, CANVAS = 0x8a6448, CANVAS_BLEACHED = 0xc9ad86, CANVAS_GLOW = 0x2e2519, STONE = 0x6a4a3a, LEATHER = 0x3a1e12, CLAY = 0x7a3a22;
@@ -46,7 +47,11 @@ export function buildCaravan(groundAt: (x: number, z: number) => number): Carava
   wagon.position.set(0, -0.55, 0); wagon.rotation.set(-0.1, 0, 0.13); root.add(wagon);
   // C6: the generated wagon (Hunyuan3D-2 from `ref-caravan.jpg`; its shafts lie along −X, turned to +Z), else the code one.
   const generated = duneMesh('caravan');
-  if (generated) { wagon.add(new Mesh(fit(generated, { size: 6.2, by: 'span', yaw: Math.PI / 2 }), duneMaterial())); coverHoops(wagon); }
+  if (generated) {
+    // round 1 (R1A-5): the painted wood a step lighter, so boards, hoops and wheels separate instead of one dark shell
+    const painted = duneMaterial(); painted.color.setRGB(1.5, 1.38, 1.25);
+    wagon.add(new Mesh(fit(generated, { size: 6.2, by: 'span', yaw: Math.PI / 2 }), painted)); coverHoops(wagon);
+  }
   else buildCodeWagon(wagon, wood, dark);
   const crateWood = crateMaterial();
   CARGO.forEach(([x, z, half, yaw]) => { const crate = new Mesh(crateGeometry(half), crateWood); crate.rotation.y = yaw; at(crate, x, half * 0.8, z, root); });
@@ -158,6 +163,18 @@ export function buildWell(groundAt: (x: number, z: number) => number): WellParts
   return { root, colliders, bucket, rope, jar, crank, crankAt: new Vector3(WELL.x + R + 0.32, y + 1.85, WELL.z), jarAt: new Vector3(WELL.x, y + 1.0, WELL.z), drop };
 }
 
+/** The waymark's dressing (metres): stones in its ring, the ring's radius, the marker pole's height. */
+const WAYMARK = { stones: 7, ring: 1.15, pole: 3.8 } as const;
+const POLE = 0x5a3a26, RAG = 0x8a2a16, RAG_GLOW = 0x1a0603;
+/** A long banner hanging from the crossbar, streaming along +x and sagging, in two kinked panels. */
+function bannerGeometry(): BufferGeometry {
+  const pts = [[0, 0, 0], [0, -0.75, 0], [0.55, -0.12, 0.06], [0.5, -0.82, 0.05], [1.1, -0.3, -0.04], [1.0, -0.9, -0.03]];
+  const idx = [0, 1, 2, 2, 1, 3, 2, 3, 4, 4, 3, 5], pos: number[] = [];
+  for (const i of idx) pos.push(...(pts[i] ?? [0, 0, 0]));
+  const g = new BufferGeometry(); g.setAttribute('position', new Float32BufferAttribute(pos, 3)); g.computeVertexNormals();
+  return g;
+}
+
 export interface BrazierParts { root: Group; colliders: ColliderDesc[]; fire: Group; bowlAt: Vector3; oil: Mesh }
 
 /** A waymark brazier: a stone plinth, an iron post and bowl, and a hidden fire (`fireFx.ts`; no light). */
@@ -177,6 +194,23 @@ export function buildBrazier(x: number, z: number, groundAt: (x: number, z: numb
   const oil = at(new Mesh(new CylinderGeometry(0.33, 0.33, 0.04, 8), new MeshStandardMaterial({ color: 0x1a120c, roughness: 0.2 })), 0, bowl, 0, root);
   oil.visible = false;
   colliders.push(boxDesc({ x, z, hw: 0.45, hd: 0.45, rot: 0, yBottom: y - 0.3, yTop: y + 1.75 }, 'stone'));
+  // Round 1 (R1C-1 / R1B-12): the unlit waymark reads from afar: a ring of fieldstones round its foot, and a tall
+  // marker pole beside it with a crossbar and a long faded banner streaming downwind (the waymarks' madder).
+  const stones = new InstancedMesh(rock(1, 0, new Rng(SEED + 211 + Math.round(x)), 0.6, 0.3), mat(STONE), WAYMARK.stones);
+  const m = new Matrix4(), q = new Quaternion(), up = new Vector3(0, 1, 0);
+  for (let i = 0; i < WAYMARK.stones; i++) {
+    const a = (i / WAYMARK.stones) * Math.PI * 2 + 0.3, r = WAYMARK.ring * (0.9 + 0.2 * ((i * 37) % 7) / 7), sz = 0.22 + 0.12 * ((i * 53) % 5) / 5;
+    const sx = Math.sin(a) * r, sz2 = Math.cos(a) * r;
+    q.setFromAxisAngle(up, a * 1.7); m.compose(new Vector3(sx, groundAt(x + sx, z + sz2) - y - sz * 0.25, sz2), q, new Vector3(sz * 1.3, sz, sz)); stones.setMatrixAt(i, m);
+  }
+  stones.instanceMatrix.needsUpdate = true; stones.computeBoundingSphere(); root.add(stones);
+  const poleX = WAYMARK.ring * 0.8, poleZ = -WAYMARK.ring * 0.5, poleY = groundAt(x + poleX, z + poleZ) - y;
+  const wood = mat(POLE);
+  const pole = box(0.09, WAYMARK.pole, 0.09, wood); pole.rotation.z = -0.04; at(pole, poleX, poleY + WAYMARK.pole / 2 - 0.3, poleZ, root);
+  const bar = box(0.7, 0.06, 0.06, wood); at(bar, poleX, poleY + WAYMARK.pole - 0.55, poleZ, root);
+  const banner = new Mesh(bannerGeometry(), new MeshStandardMaterial({ color: RAG, roughness: 0.9, side: DoubleSide, emissive: RAG_GLOW }));
+  banner.position.set(poleX, poleY + WAYMARK.pole - 0.5, poleZ); banner.rotation.y = Math.atan2(-WIND.z, WIND.x); root.add(banner);
+  colliders.push(boxDesc({ x: x + poleX, z: z + poleZ, hw: 0.06, hd: 0.06, rot: 0, yBottom: y + poleY - 0.3, yTop: y + poleY + WAYMARK.pole }, 'wood'));
   const fire = new Group(); fire.position.set(0, bowl, 0); fire.visible = false; root.add(fire);
   // The fire (P2 #8): layered flame, glow, embers downwind, a smoke column and a warm pool on the sand.
   addFire(fire, WAYMARK_FIRE, { at: new Vector3(x, y + bowl, z), groundAt });
