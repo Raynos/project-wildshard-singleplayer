@@ -172,6 +172,7 @@ export class Explore {
   private held = false;
   private readoutT = 0;
   private readonly parkedFrom = new THREE.Vector3();
+  private viewmodelVisible = true;
   private toastScope = this.uiScope.child('toast');
 
   /** the level's name and picker art */
@@ -393,6 +394,10 @@ export class Explore {
     const { world } = this.host;
     if (!this.active) {
       this.active = true;
+      // Weapons can set their own model visible during update (including custom weapons).
+      // Hide their shared camera-space parent for the entire Explore session instead.
+      this.viewmodelVisible = world.game.viewmodel.visible;
+      world.game.viewmodel.visible = false;
       app.setState('explore');
       this.parkedFrom.copy(world.player.position);
       world.freeCamera = true;
@@ -447,6 +452,7 @@ export class Explore {
     this.cam.enabled = false; this.cam.move.set(0, 0, 0);
     world.player.position.copy(this.parkedFrom);
     world.freeCamera = false;
+    world.game.viewmodel.visible = this.viewmodelVisible;
     this.root.classList.remove('show');
     for (const o of this.host.hide ?? []) o.visible = true;
     this.setChrome(true);
