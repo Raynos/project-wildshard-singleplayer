@@ -1656,15 +1656,15 @@
       "tier": "phone",
       "metric": "gpuMB",
       "source": "budgets/calibration-reports/sunscar-dunes.phone.json",
-      "commit": "159ea2dd963a379d37d3db4174dea79da55a9388",
-      "reason": "E374 Signal Dunes loop 2/3, lead-approved polish: Sefa the caravan scout, the generated glove, the Matriarch's body and the baked sand shadow map + grain texture set",
+      "commit": "fc368613ab1f0530b1052feabb373d17806792da",
+      "reason": "E374 Signal Dunes loop 4, measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer): the dressing (shrubs, grass, gravel, posts, cairns, carcasses, acacias, outcrops, scree), the far buttes, the caravan lantern and the cloud deck",
       "ask": "E357",
       "approvedBy": "wildshard-9",
-      "approval": "E374 Signal Dunes loop 2/3, lead-approved polish: Sefa the caravan scout, the generated glove, the Matriarch's body and the baked sand shadow map + grain texture set",
-      "captureSha": "159ea2dd963a379d37d3db4174dea79da55a9388",
-      "captureSha256": "32349be0935d656fddab60e579f54405e2b50f65c63fc2a8e2838cdc40243693",
+      "approval": "E374 Signal Dunes loop 4, measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer): the dressing (shrubs, grass, gravel, posts, cairns, carcasses, acacias, outcrops, scree), the far buttes, the caravan lantern and the cloud deck",
+      "captureSha": "fc368613ab1f0530b1052feabb373d17806792da",
+      "captureSha256": "f666ae0c5948c922fc0981e14da5a87208981af6bf5ed23e9157c5201fc215c1",
       "ceilings": {
-        "sunscar-dunes.phone.current.gpuMB": 81.50774383544922
+        "sunscar-dunes.phone.current.gpuMB": 82.10445785522461
       }
     },
     {
@@ -1672,15 +1672,15 @@
       "tier": "desktop",
       "metric": "gpuMB",
       "source": "budgets/calibration-reports/sunscar-dunes.desktop.json",
-      "commit": "159ea2dd963a379d37d3db4174dea79da55a9388",
-      "reason": "E374 Signal Dunes loop 2/3, lead-approved polish: Sefa the caravan scout, the generated glove, the Matriarch's body and the baked sand shadow map + grain texture set",
+      "commit": "fc368613ab1f0530b1052feabb373d17806792da",
+      "reason": "E374 Signal Dunes loop 4, measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer): the dressing (shrubs, grass, gravel, posts, cairns, carcasses, acacias, outcrops, scree), the far buttes, the caravan lantern and the cloud deck",
       "ask": "E357",
       "approvedBy": "wildshard-9",
-      "approval": "E374 Signal Dunes loop 2/3, lead-approved polish: Sefa the caravan scout, the generated glove, the Matriarch's body and the baked sand shadow map + grain texture set",
-      "captureSha": "159ea2dd963a379d37d3db4174dea79da55a9388",
-      "captureSha256": "7f452f72eb6fdafd5d688e50a5d41028364784341ad4cbe94d57052cba8d9e30",
+      "approval": "E374 Signal Dunes loop 4, measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer): the dressing (shrubs, grass, gravel, posts, cairns, carcasses, acacias, outcrops, scree), the far buttes, the caravan lantern and the cloud deck",
+      "captureSha": "fc368613ab1f0530b1052feabb373d17806792da",
+      "captureSha256": "aa3b202fd1639c9114c63ad12c7f4aec116b5de32d409f9515a5b0c391933dc6",
       "ceilings": {
-        "sunscar-dunes.desktop.current.gpuMB": 175.8492660522461
+        "sunscar-dunes.desktop.current.gpuMB": 176.44598007202148
       }
     },
     {
