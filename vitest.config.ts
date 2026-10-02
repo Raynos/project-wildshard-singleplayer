@@ -9,7 +9,7 @@ export default defineConfig({
   resolve: { alias: rapierAlias }, // Rapier's wasm-importing module → plain bindings; tests hand loadRapier() the binary
   assetsInclude: ['**/*.bin', '**/*.wasm'], // `?inline` of a baked terrain.bin and Rapier's binary (test/physics-terrain.test.ts)
   test: {
-    include: ['test/**/*.test.ts', 'api-tests/**/*.test.ts'], // API tests live outside api/ so Vercel does not deploy them as functions.
+    include: ['test/**/*.test.ts', 'api-tests/**/*.test.ts', 'drafts/test/**/*.test.ts'], // API tests live outside api/ so Vercel does not deploy them as functions.
     environment: 'node',
     // Actor and engine contracts stay in Node. Only the legacy sword viewmodel opts into happy-dom via its header.
     coverage: {

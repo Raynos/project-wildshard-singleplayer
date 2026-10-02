@@ -13,6 +13,7 @@
 /ios
 /android
 /dist-native
+/dist-drafts
 /.native-build
 
 # E357 parity harness artifacts

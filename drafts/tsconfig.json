@@ -1,0 +1,10 @@
+{
+  // The drafts site (browser): the root's strictness, its own program. `pnpm typecheck` runs it; type-aware oxlint
+  // resolves drafts/src files to it. The tools have their own (drafts/tools/tsconfig.json: node, .ts imports).
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "types": ["vite/client"],
+    "lib": ["ES2023", "DOM", "DOM.Iterable"]
+  },
+  "include": ["src"]
+}
