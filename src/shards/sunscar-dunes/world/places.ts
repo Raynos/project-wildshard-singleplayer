@@ -105,7 +105,7 @@ export function buildBrazier(x: number, z: number, groundAt: (x: number, z: numb
     const cone = new Mesh(new ConeGeometry(r, h, 6), new MeshBasicMaterial({ color })); cone.position.set(dx, h / 2, dz); fire.add(cone);
   };
   flame(0.28, 0.9, 0xff7a1e, 0, 0); flame(0.16, 1.2, 0xffb347, 0.04, -0.03); flame(0.08, 0.7, 0xffe6a0, -0.05, 0.04);
-  const glow = new Mesh(new SphereGeometry(1.3, 10, 6), new MeshBasicMaterial({ color: 0xff7a2a, transparent: true, opacity: 0.18, blending: AdditiveBlending, depthWrite: false }));
-  glow.position.y = 0.5; fire.add(glow);
+  const glow = new Mesh(new SphereGeometry(0.62, 14, 10), new MeshBasicMaterial({ color: 0xff7a2a, transparent: true, opacity: 0.14, blending: AdditiveBlending, depthWrite: false }));
+  glow.position.y = 0.45; fire.add(glow);
   return { root, colliders, fire, glow, bowlAt: new Vector3(x, y + 1.6, z), oil };
 }
