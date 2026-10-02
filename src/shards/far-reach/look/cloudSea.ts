@@ -8,7 +8,8 @@ import { SKY } from './sun';
  * the sun gold-pink, shade mauve, melting into the horizon gold with distance. The kill height (`world.killY`) sits just
  * above the high sheet, so a fall ends inside the cloud.
  */
-export const SEA = { size: 64, low: -48, high: -34, radius: 1400, handoff: [240, 700] } as const;
+/** `maelstrom`: the sea twists toward an eye under the storm crown (x, z, falloff radius m). */
+export const SEA = { size: 64, low: -48, high: -34, radius: 1400, handoff: [240, 700], maelstrom: { x: 0, z: -190, r: 95 } } as const;
 
 function hash(x: number, y: number): number { const s = Math.sin(x * 127.1 + y * 311.7) * 43758.5453; return s - Math.floor(s); }
 function noise(x: number, y: number, p: number): number {
@@ -55,7 +56,12 @@ export function cloudSea(sun: Vector3, tex: DataTexture): CloudSea {
           // loop 4: billows, not a sheet. A height field from three octaves of the baked noise; its slope toward the sun
           // lights the billow tops peach-gold and leaves lavender hollows (the panorama's cloud sea, look/sky.ts)
           vec2 drift = vec2(time * 0.0035, time * 0.0012);
-          vec2 uv = wp.xz * ${scale.toFixed(5)} + drift;
+          // the maelstrom round the storm crown (E392, the H4 targets): the sea's texture twisted toward an eye
+          vec2 rel = wp.xz - vec2(${SEA.maelstrom.x.toFixed(1)}, ${SEA.maelstrom.z.toFixed(1)});
+          float mr = length(rel), swirl = exp(-mr / ${SEA.maelstrom.r.toFixed(1)});
+          float ma = swirl * 3.2 + time * 0.03 * swirl;
+          vec2 twisted = vec2(cos(ma) * rel.x - sin(ma) * rel.y, sin(ma) * rel.x + cos(ma) * rel.y) + vec2(${SEA.maelstrom.x.toFixed(1)}, ${SEA.maelstrom.z.toFixed(1)});
+          vec2 uv = twisted * ${scale.toFixed(5)} + drift;
           vec2 sd = normalize(sunDir.xz) * 0.006;
           float h1 = texture2D(tex, uv).r, h2 = texture2D(tex, uv * 2.7 + 0.37).r, h3 = texture2D(tex, uv * 7.1 - 0.21).r;
           float h = h1 * 0.6 + h2 * 0.3 + h3 * 0.1;
@@ -69,6 +75,9 @@ export function cloudSea(sun: Vector3, tex: DataTexture): CloudSea {
           // hollows (low h) sink to lavender; crowns catch the light
           vec3 c = mix(shade * (0.82 + 0.25 * dens), top, smoothstep(0.3, 0.85, lit) * smoothstep(0.15, 0.7, dens));
           c += ${hex(SKY.sun)} * pow(s, 12.0) * 0.3 * dens;
+          // the maelstrom's arms brighter, its eye a dark sunken well
+          float marm = 0.5 + 0.5 * sin(3.0 * atan(rel.y, rel.x) + 4.0 * log(mr + 1.0) - time * 0.05);
+          c *= mix(1.0, 0.82 + 0.3 * marm, swirl) * mix(0.45, 1.0, smoothstep(12.0, 48.0, mr));
           c = mix(c, ${hex(SKY.horizon)}, smoothstep(180.0, 1100.0, dist) * 0.6);
           // past the near sea the painted panorama's cloud sea takes over, so the sheets thin out with distance
           float far = 1.0 - smoothstep(${SEA.handoff[0].toFixed(1)}, ${SEA.handoff[1].toFixed(1)}, dist);

@@ -1,5 +1,6 @@
 import { BoxGeometry, Color, CylinderGeometry, DoubleSide, Float32BufferAttribute, Group, LatheGeometry, Mesh, MeshStandardMaterial, Vector2, type BufferGeometry, type Object3D } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { paintIsleMaterial } from './isle';
 
 /**
  * The windmill (loop 5; mockup A and the style bible's "white stone tower, slate cap, cloth sails"): a code-built tower
@@ -30,7 +31,7 @@ function tower(): BufferGeometry {
   const g = new LatheGeometry(pts, 48).toNonIndexed();
   // whitewashed stone blocks (council round 2: "a plain cream windmill"): each course and block its own tone, the joints
   // staggered; grey-brown streaks run down under the windows; grime and moss at the foot; warm where the sun reaches
-  const lime = new Color(0xf1e9da), block = new Color(0xd9ccb8), stain = new Color(0x9c8c78), dirt = new Color(0x8f7c66), moss = new Color(0x7d8a48), out = new Color();
+  const lime = new Color(0xf1e9da), block = new Color(0xd9ccb8), stain = new Color(0x9c8c78), dirt = new Color(0x8f7c66), moss = new Color(0x7d8a48), ivy = new Color(0x4f6e2c), out = new Color();
   const p = g.getAttribute('position'), col: number[] = [];
   for (let k = 0; k < p.count; k += 3) {
     // colour per face (flat blocks), from the face's centre
@@ -43,6 +44,9 @@ function tower(): BufferGeometry {
     }
     if (cy < 1.4) out.lerp(dirt, ((1.4 - cy) / 1.4) * 0.6);
     if (cy < 0.6 && hash(blockN, 7) > 0.5) out.lerp(moss, 0.45);
+    // ivy climbing from the foot on two sides (E392, the H2 targets), ragged at its top
+    const ivySide = Math.max(0, Math.cos(a - 2.2)) ** 2 + Math.max(0, Math.cos(a + 1.4)) ** 3;
+    if (cy < 1.5 + ivySide * 4.5 * (0.6 + 0.4 * hash(blockN, course)) && ivySide > 0.18) out.copy(ivy).lerp(moss, hash(course, blockN) * 0.4);
     for (let v = 0; v < 3; v++) col.push(out.r, out.g, out.b);
   }
   g.setAttribute('color', new Float32BufferAttribute(col, 3)); g.computeVertexNormals();
@@ -71,7 +75,8 @@ function sail(): { frame: BufferGeometry; cloth: BufferGeometry } {
 
 export function towerMill(): { group: Group; hub: Object3D; hubAt: { y: number; z: number } } {
   const group = new Group(), hub = new Group();
-  const stone = new MeshStandardMaterial({ vertexColors: true, roughness: 0.92, metalness: 0 });
+  // the islands' paint, lightly: the whitewash shows its stone, the ivy reads as leaves (E392)
+  const stone = paintIsleMaterial(new MeshStandardMaterial({ vertexColors: true, roughness: 0.92, metalness: 0 }), 0.35);
   group.add(new Mesh(tower(), stone));
   const wood = new MeshStandardMaterial({ color: 0x6b4a32, roughness: 0.9, metalness: 0 }), dark = new MeshStandardMaterial({ color: 0x2c2430, roughness: 1, metalness: 0 });
   // the door and three windows on the side facing the spawn (+z), each set into the taper

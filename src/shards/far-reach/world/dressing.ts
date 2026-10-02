@@ -1,5 +1,6 @@
 import { BufferGeometry, Color, ConeGeometry, DoubleSide, Float32BufferAttribute, Group, IcosahedronGeometry, InstancedMesh, Matrix4, MeshStandardMaterial, Quaternion, Vector3 } from 'three';
 import { PATCH_ORDER, patchShader } from '#engine';
+import { paintIsleMaterial } from './isle';
 import { DECK, ISLES, SPANS, SPAWN, apothem, type Isle } from '../layout';
 
 /**
@@ -154,7 +155,8 @@ export function dressIslands(isles: readonly Isle[] = ISLES, seed = 6417, landin
   place(new InstancedMesh(clumpGeometry(), clumpMaterial, clumps.length), clumps);
   const flowerMesh = new InstancedMesh(flowerGeometry(), new MeshStandardMaterial({ side: DoubleSide, roughness: 1, metalness: 0, emissive: 0x2a2418 }), flowers.length);
   place(flowerMesh, flowers); const fc = new Color(); flowers.forEach((f, i) => { flowerMesh.setColorAt(i, fc.setHex(f.c)); });
-  place(new InstancedMesh(stoneGeometry(), new MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.95, metalness: 0 }), stones.length), stones, 0.55);
+  // the boulders wear the islands' painted rock and moss (E392: flat olive blobs up close)
+  place(new InstancedMesh(stoneGeometry(), paintIsleMaterial(new MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.95, metalness: 0 })), stones.length), stones, 0.55);
   // a strand 1 m long, tip down: its wide end at y 0 hangs from the rim band; instances stretch it to their length
   const strand = new ConeGeometry(0.16, 1, 5, 1, true); strand.rotateX(Math.PI); strand.translate(0, -0.5, 0);
   // roots and vines: dark roots with moss-green vine strands among them

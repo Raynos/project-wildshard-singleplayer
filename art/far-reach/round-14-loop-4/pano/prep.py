@@ -1,6 +1,6 @@
 """Sky Reach panorama -> the shipped strips and look/panoramaData.ts (loop 4, E374).
 
-  python3 prep.py <horizon row in panorama.png>       # e.g. 566
+  python3 prep.py <horizon row in panorama.png> [source image]      # e.g. 564 ../../round-17-mockup-loop/panorama-graded.jpg
 
 Writes public/assets/far-reach/sky/panorama.webp (desktop, native 5530 px) and panorama.phone.webp (4096 px), each
 carrying PAD columns of wrap on either side (a lossy codec encodes an image's edges on their own: an unpadded strip
@@ -17,7 +17,8 @@ REPO = os.path.abspath(os.path.join(HERE, '../../../..'))
 PAD = 16
 PPD = 15.36
 _png = os.path.join(HERE, 'panorama.png')  # the stitch's output; the committed source is its q92 JPEG
-src = np.asarray(Image.open(_png if os.path.exists(_png) else os.path.join(HERE, 'panorama-5530x1024.jpg')).convert('RGB')).astype(np.float64)
+_src = os.path.abspath(sys.argv[2]) if len(sys.argv) > 2 else (_png if os.path.exists(_png) else os.path.join(HERE, 'panorama-5530x1024.jpg'))  # E392: a graded source
+src = np.asarray(Image.open(_src).convert('RGB')).astype(np.float64)
 H, W, _ = src.shape
 hor = float(sys.argv[1])
 

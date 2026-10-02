@@ -145,7 +145,16 @@ export function islandMesh(isle: Isle, random: () => number): Mesh {
   g.setAttribute('position', new Float32BufferAttribute(pos, 3)); g.setAttribute('color', new Float32BufferAttribute(col, 3));
   g.setIndex(idx); g.computeVertexNormals();
   // faceted: the crags read as cut rock, the meadow top as a low-poly painted lawn
-  const material = new MeshStandardMaterial({ vertexColors: true, roughness: 0.95, metalness: 0, flatShading: true });
+  const material = paintIsleMaterial(new MeshStandardMaterial({ vertexColors: true, roughness: 0.95, metalness: 0, flatShading: true }));
+  return new Mesh(g, material);
+}
+
+/**
+ * The islands' paint (E392), on any vertex-coloured material (the islands, the boulders): green faces get the painted
+ * meadow, tonal patches and daisies; the rest the painted cliff rock, triplanar in world space. `rockMix` is how much of
+ * the rock texture replaces the vertex colour (the boulders and the islands 0.85).
+ */
+export function paintIsleMaterial(material: MeshStandardMaterial, rockMix = 0.85): MeshStandardMaterial {
   // the meadow from above (E392, the aerial targets): tonal patches and scattered daisies painted in world space on the
   // green faces, so a top reads as a flowered meadow, not one smooth green
   const { rock, meadow } = TEX;
@@ -182,11 +191,11 @@ ${shader.fragmentShader.replace('#include <color_fragment>', `#include <color_fr
     vec3 tw = pow(abs(fn), vec3(4.0)); tw /= (tw.x + tw.y + tw.z);
     vec3 wq = farWP * 0.13;
     vec3 tex = texture2D(farRock, wq.zy).rgb * tw.x + texture2D(farRock, wq.xz).rgb * tw.y + texture2D(farRock, wq.xy).rgb * tw.z;
-    diffuseColor.rgb = mix(diffuseColor.rgb, tex * (0.55 + 1.3 * dot(diffuseColor.rgb, vec3(0.3, 0.59, 0.11))), 0.85);
+    diffuseColor.rgb = mix(diffuseColor.rgb, tex * (0.55 + 1.3 * dot(diffuseColor.rgb, vec3(0.3, 0.59, 0.11))), ${rockMix.toFixed(2)});
 #endif
   }`)}`;
   // its own program key: three caches programs by the last patch's text, and the scene-wide fog patch (look/render.ts)
   // is the same text on every material, so without a key the islands reuse an unpatched program
-  }, { key: (prior) => `${prior}|far.isle-meadow:${rock !== null ? 'r' : ''}${meadow !== null ? 'm' : ''}` });
-  return new Mesh(g, material);
+  }, { key: (prior) => `${prior}|far.isle-meadow:${rock !== null ? 'r' : ''}${meadow !== null ? 'm' : ''}:${rockMix}` });
+  return material;
 }
