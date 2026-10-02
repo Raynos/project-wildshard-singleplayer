@@ -4,12 +4,13 @@ import { buildWhipModel } from '../weapons/whipModel';
 import { buildTower } from '../world/tower';
 import { buildBrazier, buildCaravan, buildWell } from '../world/places';
 import { skittererGeometry } from '../species/skitterer';
-import { striderGeometry } from '../species/strider';
+import { striderSpecimen } from '../species/strider';
 import { rayGeometry } from '../species/duneRay';
 import { CARAVAN, TOWER, WELL } from '../layout';
 import { STRINGS } from '../strings';
 
 const FILE = 'src/shards/sunscar-dunes/models/gear.ts';
+/** C6: the caravan, the well, the brazier and the strider are Hunyuan3D-2 models (`art/sunscar-dunes/round-7-models/`), each with its code model as the stand-in. */
 export const whipModel = defineModel({ id: 'sunscar-dunes/bullwhip', name: STRINGS.whip, category: 'gear', pipeline: 'code', file: FILE, defaults: {},
   build: () => { const parts = buildWhipModel(); parts.coil.visible = true; return parts.root; } });
 /** The tower on flat ground, centred on the origin. */
@@ -22,15 +23,15 @@ const creature = (geometry: ReturnType<typeof rayGeometry>, scale = 1): Mesh => 
 };
 /** A world piece rebuilt on flat ground and moved to the origin. */
 const centred = (root: Group, x: number, z: number): Group => { const group = new Group(); root.position.x -= x; root.position.z -= z; group.add(root); return group; };
-export const caravanModel = defineModel({ id: 'sunscar-dunes/caravan', name: STRINGS.caravan, category: 'props', pipeline: 'code', file: FILE, defaults: {},
+export const caravanModel = defineModel({ id: 'sunscar-dunes/caravan', name: STRINGS.caravan, category: 'props', pipeline: ['hunyuan', 'code'], file: FILE, defaults: {},
   build: () => centred(buildCaravan(() => 0).root, CARAVAN.x, CARAVAN.z) });
-export const wellModel = defineModel({ id: 'sunscar-dunes/dry-well', name: STRINGS.well, category: 'buildings', pipeline: 'code', file: FILE, defaults: {},
+export const wellModel = defineModel({ id: 'sunscar-dunes/dry-well', name: STRINGS.well, category: 'buildings', pipeline: ['hunyuan', 'code'], file: FILE, defaults: {},
   build: () => centred(buildWell(() => 0).root, WELL.x, WELL.z) });
-export const brazierModel = defineModel({ id: 'sunscar-dunes/waymark-brazier', name: STRINGS.waymark, category: 'props', pipeline: 'code', file: FILE, defaults: {},
+export const brazierModel = defineModel({ id: 'sunscar-dunes/waymark-brazier', name: STRINGS.waymark, category: 'props', pipeline: ['hunyuan', 'code'], file: FILE, defaults: {},
   build: () => { const parts = buildBrazier(0, 0, () => 0); parts.fire.visible = true; parts.oil.visible = true; return parts.root; } });
 export const skittererModel = defineModel({ id: 'sunscar-dunes/sand-skitterer', name: STRINGS.skitterer, category: 'creatures', pipeline: 'code', file: FILE, defaults: {},
   build: () => creature(skittererGeometry()) });
-export const striderModel = defineModel({ id: 'sunscar-dunes/dune-strider', name: STRINGS.strider, category: 'creatures', pipeline: 'code', file: FILE, defaults: {},
-  build: () => creature(striderGeometry()) });
+export const striderModel = defineModel({ id: 'sunscar-dunes/dune-strider', name: STRINGS.strider, category: 'creatures', pipeline: ['hunyuan', 'code'], file: FILE, defaults: {},
+  build: () => creature(striderSpecimen()) });
 export const matriarchModel = defineModel({ id: 'sunscar-dunes/dune-matriarch', name: STRINGS.matriarch, category: 'creatures', pipeline: 'code', file: FILE, defaults: {},
   build: () => creature(rayGeometry(), 3.6) });

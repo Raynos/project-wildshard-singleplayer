@@ -1,13 +1,17 @@
-import { AdditiveBlending, BoxGeometry, ConeGeometry, CylinderGeometry, DoubleSide, Group, InstancedMesh, Matrix4, Mesh, MeshBasicMaterial, MeshStandardMaterial,
-  Quaternion, SphereGeometry, TorusGeometry, Vector3, type Material } from 'three';
+import { AdditiveBlending, BoxGeometry, Color, ConeGeometry, CylinderGeometry, DoubleSide, Group, InstancedMesh, Matrix4, Mesh, MeshBasicMaterial, MeshStandardMaterial,
+  Quaternion, ShaderMaterial, SphereGeometry, TorusGeometry, Vector3, type Material } from 'three';
 import { boxDesc, type ColliderDesc } from '#engine';
 import { CARAVAN, WELL } from '../layout';
+import { duneMaterial, duneMesh, fit, without } from './meshes';
 
 const WOOD = 0x4a2e1e, WOOD_DARK = 0x2c1b14, IRON = 0x231c1c, CANVAS = 0x8a6448, STONE = 0x6a4a3a, LEATHER = 0x3a1e12, CLAY = 0x7a3a22;
 const mat = (color: number, extra: Partial<{ metalness: number; side: typeof DoubleSide }> = {}): MeshStandardMaterial =>
   new MeshStandardMaterial({ color, roughness: 0.92, flatShading: true, ...extra });
 const box = (w: number, h: number, d: number, material: Material): Mesh => new Mesh(new BoxGeometry(w, h, d), material);
 const at = (mesh: Mesh, x: number, y: number, z: number, parent: Group): Mesh => { mesh.position.set(x, y, z); parent.add(mesh); return mesh; };
+
+/** Spilled cargo on the lee (−X) side, on the sand itself: x, z, half size, yaw. */
+const CARGO: readonly [number, number, number, number][] = [[-2.3, 0.7, 0.35, 0.3], [-2.8, -0.8, 0.3, -0.4], [-1.9, -2.4, 0.4, 0.9]];
 
 export interface CaravanParts { root: Group; colliders: ColliderDesc[]; logbookAt: Vector3; logbook: Mesh }
 
@@ -17,11 +21,31 @@ export interface CaravanParts { root: Group; colliders: ColliderDesc[]; logbookA
  */
 export function buildCaravan(groundAt: (x: number, z: number) => number): CaravanParts {
   const root = new Group(), wagon = new Group(), colliders: ColliderDesc[] = [];
-  const wood = mat(WOOD), dark = mat(WOOD_DARK), iron = mat(IRON, { metalness: 0.4 }), canvas = mat(CANVAS, { side: DoubleSide });
+  const wood = mat(WOOD), dark = mat(WOOD_DARK);
   const y = groundAt(CARAVAN.x, CARAVAN.z);
   root.position.set(CARAVAN.x, y, CARAVAN.z); root.rotation.y = CARAVAN.yaw;
   // The wagon in its own frame (+Z is the front), tipped and sunk.
   wagon.position.set(0, -0.55, 0); wagon.rotation.set(-0.1, 0, 0.13); root.add(wagon);
+  // C6: the generated wagon (Hunyuan3D-2 from `ref-caravan.jpg`; its shafts lie along −X, turned to +Z), else the code one.
+  const generated = duneMesh('caravan');
+  if (generated) wagon.add(new Mesh(fit(generated, { size: 6.2, by: 'span', yaw: Math.PI / 2 }), duneMaterial()));
+  else buildCodeWagon(wagon, wood, dark);
+  CARGO.forEach(([x, z, half, yaw]) => { const crate = box(half * 2, half * 2, half * 2, wood); crate.rotation.y = yaw; at(crate, x, half * 0.8, z, root); });
+  const barrel = new Mesh(new CylinderGeometry(0.34, 0.34, 0.9, 10), dark); barrel.rotation.set(0, 0.6, Math.PI / 2); at(barrel, -2.4, 0.25, 2.3, root);
+  // The logbook: on the tailboard, the wagon's back (−Z).
+  const logbook = box(0.32, 0.07, 0.42, mat(LEATHER)); logbook.rotation.y = 0.3; at(logbook, 0.35, 1.12, -2.55, root);
+  const logbookAt = new Vector3(0.35, 1.12, -2.55).applyAxisAngle(new Vector3(0, 1, 0), CARAVAN.yaw).add(root.position);
+  // Colliders: the wagon body and the cargo (world space).
+  const world = (x: number, z: number): Vector3 => new Vector3(x, 0, z).applyAxisAngle(new Vector3(0, 1, 0), CARAVAN.yaw).add(root.position);
+  const body = world(0, 0);
+  colliders.push(boxDesc({ x: body.x, z: body.z, hw: 1.1, hd: 2.3, rot: -CARAVAN.yaw, yBottom: y - 1, yTop: y + 1.9 }, 'wood'));
+  for (const [x, z, half] of CARGO) { const c = world(x, z); colliders.push(boxDesc({ x: c.x, z: c.z, hw: half, hd: half, rot: -CARAVAN.yaw, yBottom: y - 0.5, yTop: y + half * 1.8 }, 'wood')); }
+  return { root, colliders, logbookAt, logbook };
+}
+
+/** The code wagon (the stand-in when the generated one did not load): bed, sides, hoops, the torn canvas, wheels, shafts. */
+function buildCodeWagon(wagon: Group, wood: Material, dark: Material): void {
+  const iron = mat(IRON, { metalness: 0.4 }), canvas = mat(CANVAS, { side: DoubleSide });
   at(box(2.0, 0.35, 4.4, wood), 0, 0.9, 0, wagon);
   for (const side of [-1, 1]) at(box(0.08, 0.62, 4.4, dark), side, 1.36, 0, wagon);
   at(box(2.0, 0.62, 0.08, dark), 0, 1.36, -2.2, wagon);
@@ -37,22 +61,10 @@ export function buildCaravan(groundAt: (x: number, z: number) => number): Carava
     const rim = new Mesh(new TorusGeometry(0.78, 0.05, 4, 14), iron); rim.rotation.y = Math.PI / 2; at(rim, x + 0.02, 0.72, z, wagon);
   }
   for (const side of [-1, 1]) { const shaft = box(0.09, 0.09, 2.6, wood); shaft.rotation.x = 0.22; at(shaft, side * 0.45, 0.55, 3.3, wagon); }
-  // Spilled cargo on the lee (−X) side, on the sand itself.
-  const cargo: [number, number, number, number][] = [[-2.3, 0.7, 0.35, 0.3], [-2.8, -0.8, 0.3, -0.4], [-1.9, -2.4, 0.4, 0.9]];
-  for (const [x, z, half, yaw] of cargo) {
-    const crate = box(half * 2, half * 2, half * 2, wood); crate.rotation.y = yaw; at(crate, x, half * 0.8, z, root);
-  }
-  const barrel = new Mesh(new CylinderGeometry(0.34, 0.34, 0.9, 10), dark); barrel.rotation.set(0, 0.6, Math.PI / 2); at(barrel, -2.4, 0.25, 2.3, root);
-  // The logbook: on the tailboard, the wagon's back (−Z).
-  const logbook = box(0.32, 0.07, 0.42, mat(LEATHER)); logbook.rotation.y = 0.3; at(logbook, 0.35, 1.12, -2.55, root);
-  const logbookAt = new Vector3(0.35, 1.12, -2.55).applyAxisAngle(new Vector3(0, 1, 0), CARAVAN.yaw).add(root.position);
-  // Colliders: the wagon body and the cargo (world space).
-  const world = (x: number, z: number): Vector3 => new Vector3(x, 0, z).applyAxisAngle(new Vector3(0, 1, 0), CARAVAN.yaw).add(root.position);
-  const body = world(0, 0);
-  colliders.push(boxDesc({ x: body.x, z: body.z, hw: 1.1, hd: 2.3, rot: -CARAVAN.yaw, yBottom: y - 1, yTop: y + 1.9 }, 'wood'));
-  for (const [x, z, half] of cargo) { const c = world(x, z); colliders.push(boxDesc({ x: c.x, z: c.z, hw: half, hd: half, rot: -CARAVAN.yaw, yBottom: y - 0.5, yTop: y + half * 1.8 }, 'wood')); }
-  return { root, colliders, logbookAt, logbook };
 }
+
+/** The generated well's span (metres, the crank end to the far post): its ring then sits on the stones' colliders. */
+const WELL_FIT = 3.4;
 
 export interface WellParts { root: Group; colliders: ColliderDesc[]; bucket: Group; rope: Mesh; jar: Mesh; crank: Mesh; crankAt: Vector3; jarAt: Vector3; drop: number }
 
@@ -69,14 +81,21 @@ export function buildWell(groundAt: (x: number, z: number) => number): WellParts
     q.setFromAxisAngle(up, a); m.compose(new Vector3(Math.sin(a) * R, 0.35, Math.cos(a) * R), q, new Vector3(1, 1, 1)); ring.setMatrixAt(i, m);
     colliders.push(boxDesc({ x: WELL.x + Math.sin(a) * R, z: WELL.z + Math.cos(a) * R, hw: 0.38, hd: 0.24, rot: -a, yBottom: y - 0.5, yTop: y + 0.78 }, 'stone'));
   }
-  ring.instanceMatrix.needsUpdate = true; ring.computeBoundingSphere(); root.add(ring);
+  ring.instanceMatrix.needsUpdate = true; ring.computeBoundingSphere();
+  // C6: the generated well (Hunyuan3D-2 from `ref-well.jpg`): its ring, posts and windlass; its bucket and crank are cut
+  // away, the code ones (below) animate. Else the code ring, posts and axle.
+  const generated = duneMesh('dry-well');
+  if (generated) {
+    const fitted = fit(generated, { size: WELL_FIT, by: 'span' }), maxX = fitted.boundingBox?.max.x ?? 2;
+    root.add(new Mesh(without(fitted, (cx, cy, cz) => cx > maxX - 0.3 || (Math.hypot(cx, cz) < 0.5 && cy > 0.75 && cy < 1.95)), duneMaterial()));
+  } else root.add(ring);
   // The shaft: a dark disc inside the ring.
-  const hole = new Mesh(new CylinderGeometry(R - 0.25, R - 0.25, 0.05, 16), new MeshBasicMaterial({ color: 0x0a0605 })); at(hole, 0, 0.62, 0, root);
+  const hole = new Mesh(new CylinderGeometry(R - 0.3, R - 0.3, 0.05, 16), new MeshBasicMaterial({ color: 0x0a0605 })); at(hole, 0, 0.62, 0, root);
   for (const side of [-1, 1]) {
-    at(box(0.16, 2.3, 0.16, wood), side * (R + 0.15), 1.15, 0, root);
+    if (!generated) at(box(0.16, 2.3, 0.16, wood), side * (R + 0.15), 1.15, 0, root);
     colliders.push(boxDesc({ x: WELL.x + side * (R + 0.15), z: WELL.z, hw: 0.1, hd: 0.1, rot: 0, yBottom: y, yTop: y + 2.3 }, 'wood'));
   }
-  const axle = new Mesh(new CylinderGeometry(0.12, 0.12, R * 2 + 0.3, 8), dark); axle.rotation.z = Math.PI / 2; at(axle, 0, 2.05, 0, root);
+  if (!generated) { const axle = new Mesh(new CylinderGeometry(0.12, 0.12, R * 2 + 0.3, 8), dark); axle.rotation.z = Math.PI / 2; at(axle, 0, 2.05, 0, root); }
   const crank = box(0.07, 0.6, 0.07, mat(IRON, { metalness: 0.4 })); at(crank, R + 0.32, 1.85, 0, root);
   const drop = 2.6, bucket = new Group(); bucket.position.set(0, 1.85 - drop, 0); root.add(bucket);
   const ropeGeo = new CylinderGeometry(0.02, 0.02, drop, 4); ropeGeo.translate(0, drop / 2, 0);
@@ -86,26 +105,52 @@ export function buildWell(groundAt: (x: number, z: number) => number): WellParts
   return { root, colliders, bucket, rope, jar, crank, crankAt: new Vector3(WELL.x + R + 0.32, y + 1.85, WELL.z), jarAt: new Vector3(WELL.x, y + 1.0, WELL.z), drop };
 }
 
+/**
+ * The fire's glow: an additive sphere that fades to nothing at its rim (its brightness follows how square-on the
+ * view meets each facet), so up close it reads as warm air round the flames, not a hard-edged ball. One shared material.
+ */
+const GLOW = new ShaderMaterial({ transparent: true, depthWrite: false, blending: AdditiveBlending, fog: false,
+  uniforms: { uColor: { value: new Color(0xff7a2a) }, uStrength: { value: 0.32 } },
+  vertexShader: /* glsl */ `
+varying float vFacing;
+void main() {
+  vec4 view = modelViewMatrix * vec4(position, 1.0);
+  vFacing = abs(dot(normalize(normalMatrix * normal), normalize(-view.xyz)));
+  gl_Position = projectionMatrix * view;
+}`,
+  fragmentShader: /* glsl */ `
+uniform vec3 uColor;
+uniform float uStrength;
+varying float vFacing;
+void main() {
+  float a = pow(vFacing, 3.0) * uStrength;
+  gl_FragColor = vec4(uColor * a, a);
+}` });
+
 export interface BrazierParts { root: Group; colliders: ColliderDesc[]; fire: Group; glow: Mesh; bowlAt: Vector3; oil: Mesh }
 
 /** A waymark brazier: a stone plinth, an iron post and bowl, a hidden fire and a soft additive glow (no light). */
 export function buildBrazier(x: number, z: number, groundAt: (x: number, z: number) => number): BrazierParts {
-  const root = new Group(), colliders: ColliderDesc[] = [], iron = mat(IRON, { metalness: 0.4 });
+  const root = new Group(), colliders: ColliderDesc[] = [];
   // Sit on the lowest corner so the plinth never floats on a slope.
   const y = Math.min(groundAt(x, z), groundAt(x + 0.5, z + 0.5), groundAt(x - 0.5, z - 0.5), groundAt(x + 0.5, z - 0.5), groundAt(x - 0.5, z + 0.5));
   root.position.set(x, y, z);
-  at(box(0.9, 0.7, 0.9, mat(STONE)), 0, 0.2, 0, root);
-  at(new Mesh(new CylinderGeometry(0.07, 0.1, 1.0, 6), iron), 0, 1.05, 0, root);
-  at(new Mesh(new CylinderGeometry(0.42, 0.18, 0.32, 8, 1, true), iron), 0, 1.6, 0, root);
-  const oil = at(new Mesh(new CylinderGeometry(0.36, 0.36, 0.04, 8), new MeshStandardMaterial({ color: 0x1a120c, roughness: 0.2 })), 0, 1.62, 0, root);
+  // C6: the generated brazier (Hunyuan3D-2 from `ref-brazier.jpg`, plinth to bowl rim 1.85 m), else the code one.
+  const generated = duneMesh('waymark-brazier'), bowl = generated ? 1.74 : 1.62;
+  if (generated) root.add(new Mesh(fit(generated, { size: 1.85, by: 'height', floor: -0.12 }), duneMaterial()));
+  else {
+    at(box(0.9, 0.7, 0.9, mat(STONE)), 0, 0.2, 0, root);
+    at(new Mesh(new CylinderGeometry(0.07, 0.1, 1.0, 6), mat(IRON, { metalness: 0.4 })), 0, 1.05, 0, root);
+    at(new Mesh(new CylinderGeometry(0.42, 0.18, 0.32, 8, 1, true), mat(IRON, { metalness: 0.4 })), 0, 1.6, 0, root);
+  }
+  const oil = at(new Mesh(new CylinderGeometry(0.33, 0.33, 0.04, 8), new MeshStandardMaterial({ color: 0x1a120c, roughness: 0.2 })), 0, bowl, 0, root);
   oil.visible = false;
   colliders.push(boxDesc({ x, z, hw: 0.45, hd: 0.45, rot: 0, yBottom: y - 0.3, yTop: y + 1.75 }, 'stone'));
-  const fire = new Group(); fire.position.set(0, 1.62, 0); fire.visible = false; root.add(fire);
+  const fire = new Group(); fire.position.set(0, bowl, 0); fire.visible = false; root.add(fire);
   const flame = (r: number, h: number, color: number, dx: number, dz: number): void => {
     const cone = new Mesh(new ConeGeometry(r, h, 6), new MeshBasicMaterial({ color })); cone.position.set(dx, h / 2, dz); fire.add(cone);
   };
   flame(0.28, 0.9, 0xff7a1e, 0, 0); flame(0.16, 1.2, 0xffb347, 0.04, -0.03); flame(0.08, 0.7, 0xffe6a0, -0.05, 0.04);
-  const glow = new Mesh(new SphereGeometry(0.62, 14, 10), new MeshBasicMaterial({ color: 0xff7a2a, transparent: true, opacity: 0.14, blending: AdditiveBlending, depthWrite: false }));
-  glow.position.y = 0.45; fire.add(glow);
+  const glow = new Mesh(new SphereGeometry(0.95, 16, 12), GLOW); glow.position.y = 0.45; fire.add(glow);
   return { root, colliders, fire, glow, bowlAt: new Vector3(x, y + 1.6, z), oil };
 }

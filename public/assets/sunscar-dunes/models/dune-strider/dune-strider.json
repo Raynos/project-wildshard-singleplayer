@@ -1,0 +1,24 @@
+{
+ "name": "dune-strider",
+ "source": "ref-strider.glb",
+ "tris": 1600,
+ "size_m": [
+  3.6,
+  1.12,
+  2.81
+ ],
+ "pivot": "base centre, z=0 (Blender z-up; glTF y-up)",
+ "vertex_colour": "COLOR_0 rgb = albedo (sRGB-graded, stored linear), a = Cycles AO (0.35..1)",
+ "palette": [
+  "#282524",
+  "#372f2b",
+  "#463831",
+  "#544034",
+  "#624939",
+  "#745741",
+  "#8a6342",
+  "#97704e",
+  "#ae8054",
+  "#c39260"
+ ]
+}

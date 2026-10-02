@@ -5,6 +5,7 @@ import { Flags, type Animal, type QuestState } from '#engine';
 import { STRINGS } from './strings';
 import { buildWorld, type SignalFire, type SignalWorld } from './world/build';
 import { ownPrimitives } from './world/resources';
+import { preloadDuneMeshes } from './world/meshes';
 import { DUNE_RAY, DUNE_RAY_LOOK } from './species/duneRay';
 import { Bullwhip } from './weapons/Bullwhip';
 import { WHIP_ROW } from './weapons/rows';
@@ -26,8 +27,10 @@ export class SignalDunesPlugin extends ShardPlugin {
   matriarch: DuneMatriarch | null = null;
   /** The dune ray now flying (captures drive it). */
   get ray(): Animal | null { return this.creatures?.ray() ?? null; }
-  override world(ctx: ShardContext): void {
+  override async world(ctx: ShardContext): Promise<void> {
     ctx.strings(STRINGS);
+    // The generated models (C6) load behind the loading screen; the world and the strider's look read them synchronously.
+    await preloadDuneMeshes();
     this.places = buildWorld(ctx, new Flags(ctx.manifest.slug)); this.fire = this.places.fire;
   }
   override kit(ctx: ShardContext): void {

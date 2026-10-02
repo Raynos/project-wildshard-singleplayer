@@ -1,0 +1,12 @@
+{
+ "about": "Signal Dunes C6 (E374): codex image_gen refs (ref-*.jpg here) -> Hunyuan3D-2 turbo shape + paint (~/projects/localai/bin/img2mesh/hy3d_batch.py under run-locked.sh) -> faceted vertex-coloured assets. Run: python3 scripts/img2mesh/build_props.py art/sunscar-dunes/round-7-models/props.json public/assets/sunscar-dunes/models. Sizes in metres; --tris is the per-asset triangle budget.",
+ "gen": "~/ml/img2mesh/out/sunscar-dunes-hy",
+ "stage": "~/ml/img2mesh/out/sunscar-dunes-post",
+ "args": [],
+ "props": [
+  {"ref": "ref-caravan", "args": "--name caravan --tris 2400 --fit length --size 6.6 --quant 10 --sat 1.0"},
+  {"ref": "ref-well", "args": "--name dry-well --tris 1800 --fit height --size 2.4 --quant 10 --sat 1.0"},
+  {"ref": "ref-brazier", "args": "--name waymark-brazier --tris 700 --fit height --size 1.85 --quant 10 --sat 1.0"},
+  {"ref": "ref-strider", "args": "--name dune-strider --tris 1600 --fit length --size 3.6 --quant 10 --sat 1.0"}
+ ]
+}

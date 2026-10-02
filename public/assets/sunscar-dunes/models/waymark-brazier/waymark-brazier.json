@@ -1,0 +1,24 @@
+{
+ "name": "waymark-brazier",
+ "source": "ref-brazier.glb",
+ "tris": 700,
+ "size_m": [
+  0.82,
+  0.86,
+  1.85
+ ],
+ "pivot": "base centre, z=0 (Blender z-up; glTF y-up)",
+ "vertex_colour": "COLOR_0 rgb = albedo (sRGB-graded, stored linear), a = Cycles AO (0.35..1)",
+ "palette": [
+  "#1d1b17",
+  "#24211d",
+  "#302823",
+  "#382d26",
+  "#40352e",
+  "#805d38",
+  "#9a744a",
+  "#a17b50",
+  "#a88257",
+  "#b29066"
+ ]
+}

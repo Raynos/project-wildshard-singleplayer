@@ -38,6 +38,7 @@ export const SUNSCAR_DUNES: ShardManifest = {
   boundary: { visible: false },
   render: async () => (await import('./look/render')).signalDunesLook(),
   uses: ['quests', 'coins', 'loot', 'hover'],
+  assetGlobs: ['public/assets/sunscar-dunes/**'],
   loadout: { weapons: ['weapon.sunscar-whip'], tools: ['tool.hoverboard'], start: ['weapon.sunscar-whip', 'tool.hoverboard'], held: 'weapon.sunscar-whip' },
   species: ['duneRay', 'sandSkitterer', 'duneStrider', 'duneMatriarch'], spawns: [], fight: { attackers: 2, telegraphed: true, input: { bufferMs: 120, coyoteMs: 100 } },
   creatures: { lowPoly: true, waitForModels: false, furRim: false, tintRange: 0, oneMaterial: true },
@@ -52,7 +53,7 @@ export const SUNSCAR_DUNES: ShardManifest = {
     quest: { eye: eye(TOWER.x - 4, TOWER.z + 12), feet: feet(TOWER.x - 4, TOWER.z + 12), yaw: 15, pitch: 22, mockup: '', frame: STRINGS.frameQuest },
     tower: { eye: [TOWER.x, towerY + TOWER.deck + 1.6, TOWER.z + 1], yaw: 180, pitch: -8, mockup: '', frame: STRINGS.tower },
   }) },
-  explore: EXPLORE, roster: async () => (await import('./roster')).ROSTER, load: () => import('./plugin'),
+  explore: EXPLORE, roster: async () => (await import('./roster')).roster(), load: () => import('./plugin'),
 };
 // oxlint-disable-next-line import/no-default-export -- Folder discovery requires a default manifest.
 export default SUNSCAR_DUNES;

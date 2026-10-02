@@ -1,0 +1,24 @@
+{
+ "name": "caravan",
+ "source": "ref-caravan.glb",
+ "tris": 2383,
+ "size_m": [
+  6.59,
+  2.73,
+  3.88
+ ],
+ "pivot": "base centre, z=0 (Blender z-up; glTF y-up)",
+ "vertex_colour": "COLOR_0 rgb = albedo (sRGB-graded, stored linear), a = Cycles AO (0.35..1)",
+ "palette": [
+  "#0f0e0d",
+  "#2d2821",
+  "#41372c",
+  "#4d4134",
+  "#5b4b39",
+  "#6b5944",
+  "#7c6851",
+  "#947c62",
+  "#b29879",
+  "#c5ab8c"
+ ]
+}

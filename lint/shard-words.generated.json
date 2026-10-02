@@ -185,7 +185,9 @@
         "weapon.sunscar-whip"
       ],
       "settings": [],
-      "assets": []
+      "assets": [
+        "public/assets/sunscar-dunes/**"
+      ]
     }
   }
 }

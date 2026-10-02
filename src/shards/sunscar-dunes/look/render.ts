@@ -32,12 +32,12 @@ export function signalDunesLook(): LookStrategy {
       scope.onDispose(() => { dome.removeFromParent(); scene.fog = null; });
       return { chain: engineChain('clean') };
     },
-    sky: { clouds: false, planet: false },
+    // No sun disc or halo (G25): the sun has just set; the dome paints the afterglow.
+    sky: { clouds: false, planet: false, sun: { disc: false, halo: false } },
     backdrop: ({ sky }) => {
       const clock = duskClock();
       return Promise.resolve({ clock, horizon: new Color(FOG.color), lut: null, clouds: dome,
-        // No sun disc: the sun has just set; the dome paints the afterglow.
-        bind: (targets) => { targets.disc.visible = false; if (targets.halo) targets.halo.visible = false; }, update: () => { sky.setKeyLight(KEY.dir, KEY.color, KEY.intensity); },
+        bind: () => undefined, update: () => { sky.setKeyLight(KEY.dir, KEY.color, KEY.intensity); },
         rebuild: () => undefined, attachPost: () => undefined });
     },
     terrainPainter: { build: (terrain, field, scope) => {

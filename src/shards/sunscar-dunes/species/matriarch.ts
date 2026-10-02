@@ -8,16 +8,22 @@ import { DUNE_RAY_LOOK, rayGeometry } from './duneRay';
  * The Dune Matriarch's numbers. `mem.phase` (0 dives, 1 storm, 2 grounded) and `mem.fight` (1 while the boss fight
  * runs) are written by the boss script (`combat/matriarch.ts`); `mem.rise` (0 → 1) by its intro.
  */
-export const MATRIARCH = { circleR: 30, alt: 18, stormAlt: 24, speed: 12, diveSpeed: 19, every: [5, 3.2, 0], climbFor: 2.4, crawl: 2.2, groundAlt: 0.9 } as const;
+export const MATRIARCH = { circleR: 30, alt: 18, stormAlt: 24, speed: 12, diveSpeed: 19, every: [5, 3.2, 0], climbFor: 2.4, crawl: 2.2, groundAlt: 0.9,
+  /** Grounded she lies on the sand (`lieAlt`) and holds `standOff` m from the player (her centre): at 3.6× her nose is 6.4 m
+   * ahead of it, so she fills the lower half of the view and the lash (7 m) still lands on her head and back. */
+  lieAlt: 0.2, standOff: 9 } as const;
 export const MATRIARCH_HP = 600;
 /** Her dive: a wide sphere swoop; in the storm she dives more often. */
 export const MAW: StrikeSpec = { id: 'sunscar.matriarch.dive', shape: { kind: 'sphere', radius: 4 }, windup: 0.35, active: 0.5, recover: 0.6, cooldown: 2,
   range: 10, damage: 18, tags: ['creature.duneMatriarch'], units: 'world', weight: () => 1 };
-/** Grounded: a tail sweep all round her (telegraphed by the tail lifting) and a forward wing buffet. */
-export const TAIL_SWEEP: StrikeSpec = { id: 'sunscar.matriarch.tail', shape: { kind: 'ring', inner: 0, outer: 7 }, windup: 1.0, active: 0.25, recover: 1.0, cooldown: 4,
-  range: 6.5, damage: 16, tags: ['creature.duneMatriarch'], weight: () => 2 };
-export const BUFFET: StrikeSpec = { id: 'sunscar.matriarch.buffet', shape: { kind: 'arc', radius: 6, halfAngle: 0.8 }, windup: 0.7, active: 0.2, recover: 0.8, cooldown: 2.2,
-  range: 5.5, damage: 12, tags: ['creature.duneMatriarch'], weight: () => 1 };
+/**
+ * Grounded: a tail sweep all round her (telegraphed by the tail lifting; her tail reaches 11.5 m) and a forward wing
+ * buffet. World metres: actor units would scale them by 3.6, a 25 m ring the player could not leave.
+ */
+export const TAIL_SWEEP: StrikeSpec = { id: 'sunscar.matriarch.tail', shape: { kind: 'ring', inner: 0, outer: 12 }, windup: 1.0, active: 0.25, recover: 1.0, cooldown: 4,
+  range: 11.5, damage: 16, tags: ['creature.duneMatriarch'], units: 'world', weight: () => 2 };
+export const BUFFET: StrikeSpec = { id: 'sunscar.matriarch.buffet', shape: { kind: 'arc', radius: 11, halfAngle: 0.8 }, windup: 0.7, active: 0.2, recover: 0.8, cooldown: 2.2,
+  range: 10.5, damage: 12, tags: ['creature.duneMatriarch'], units: 'world', weight: () => 1 };
 
 type MatriarchState = 'circle' | 'dive' | 'climb' | 'grounded';
 export class MatriarchBrain extends CreatureBrain<MatriarchState> {
@@ -49,7 +55,7 @@ export class MatriarchBrain extends CreatureBrain<MatriarchState> {
     if (this.state === 'grounded') {
       const target = this.context(ctx, ctx.player); this.strikes.update(ctx.dt, target);
       const d = Math.hypot(ctx.player.x - a.position.x, ctx.player.z - a.position.z);
-      ctx.flight.steer(a, toYaw(ctx.player.x, ctx.player.z), this.strikes.busy || d < 4 ? 0 : MATRIARCH.crawl, MATRIARCH.groundAlt, 1.2); return;
+      ctx.flight.steer(a, toYaw(ctx.player.x, ctx.player.z), this.strikes.busy || d < MATRIARCH.standOff ? 0 : MATRIARCH.crawl, MATRIARCH.lieAlt, 1.2); return;
     }
     this.chest.copy(ctx.player); this.chest.y += 1.2;
     const strike = this.context(ctx, this.chest); this.strikes.update(ctx.dt, strike);
@@ -79,13 +85,14 @@ export const DUNE_MATRIARCH: SpeciesRow = { id: 'sunscar.creature.duneMatriarch'
   variants: [{ id: 'matriarch', label: STRINGS.matriarch, weight: 1, rarity: 'legendary', scale: [3.6, 3.6], hp: MATRIARCH_HP }],
   think: (a, ctx) => { brain(a).think(ctx); }, act: (a, ctx) => { brain(a).act(ctx); } };
 
-/** The ray's own body at 3.6×, slower wingbeats; grounded, the wings lie spread and the tail lifts to sweep. */
+/** The ray's own body at 3.6×, slower wingbeats; grounded, the wings drape on the sand, the head dips and the tail lifts to sweep. */
 export const DUNE_MATRIARCH_LOOK: SpeciesLook = { ...DUNE_RAY_LOOK, id: 'sunscar.look.duneMatriarch', species: DUNE_MATRIARCH.id, kind: 'duneMatriarch',
   rigContract: { ...DUNE_RAY_LOOK.rigContract, skeleton: 'sunscar.duneMatriarch' },
   build: (variant, rng) => ({ ...DUNE_RAY_LOOK.build(variant, rng), hardParts: [rayGeometry()] }),
   animate: ({ bones, t, alive, attack, mem }) => {
-    const grounded = (mem['phase'] ?? 0) >= 2, flap = !alive ? -0.4 : grounded ? Math.sin(t * 1.1) * 0.08 + (attack >= 0 ? -attack * 0.4 : 0) : Math.sin(t * 1.5) * 0.34;
-    const left = bones['wingL'], right = bones['wingR'], tail = bones['tail'];
+    const grounded = (mem['phase'] ?? 0) >= 2, flap = !alive ? -0.4 : grounded ? -0.14 + Math.sin(t * 1.1) * 0.06 + (attack >= 0 ? -attack * 0.4 : 0) : Math.sin(t * 1.5) * 0.34;
+    const left = bones['wingL'], right = bones['wingR'], tail = bones['tail'], head = bones['head'];
+    if (head) head.rotation.x = alive && grounded ? 0.22 : 0;
     if (left) left.rotation.z = -flap; if (right) right.rotation.z = flap;
     if (tail) { tail.rotation.y = alive ? Math.sin(t * (grounded ? 0.9 : 1.2)) * 0.3 : 0; tail.rotation.x = alive && grounded && attack >= 0 ? -attack * 0.7 : 0; }
   },

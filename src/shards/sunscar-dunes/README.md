@@ -21,7 +21,7 @@ alone (E357 Z3, round 4). No engine edits.
 | `species` | `duneRay` (flying), `sandSkitterer` (burrowing packs), `duneStrider` (charger), `duneMatriarch` (the boss, flying): each its own brain |
 | `audio` | `ambience: 'none'`, a silent score, kit voices for the whip's cues; no `preload` (asset-free) |
 | `tiers` | no god rays, no AO |
-| `assets` | none: card art is a bundled SVG, every model is code |
+| `assets` | `public/assets/sunscar-dunes/models/` (C6: the caravan, the dry well, the waymark brazier and the dune strider, Hunyuan3D-2 GLBs, 240 KB); card art is a bundled SVG, every other model is code |
 | `dev.poses` | spawn, whip, ray, quest (standing) and the tower deck (eye only), in degrees |
 | saves | `sunscar.signal` (the quest reward was paid), the quest flags (`Flags`), the Matriarch's `bossesSave` entry |
 
@@ -32,6 +32,7 @@ alone (E357 Z3, round 4). No engine edits.
 | `plugin.ts` | the three hooks; `buildEquipment` builds the whip; `play` installs the creatures, the quest and the Matriarch |
 | `layout.ts` | every place: spawn, tower, caravan, well, basin, the three waymarks, the yardang ridges, the packs' and striders' homes |
 | `world/places.ts`, `world/rocks.ts` | the half-buried caravan (logbook), the dry well (stone ring, windlass crank, bucket, oil jar), the waymark braziers; the yardangs, boulders and scrub as three `InstancedMesh` |
+| `world/meshes.ts`, `boot/files.ts` | C6: the generated models load once in the `world` hook (and before the roster); each builder uses its GLB when it loaded and its code model otherwise. The well's generated bucket and crank are cut away (the code ones animate); the strider's facets bind rigidly to its seven bones (legs per quadrant). Recipe: `art/sunscar-dunes/round-7-models/props.json` |
 | `combat/creatures.ts` | one creature per home (a ray, 10 skitterers in three packs, two striders), each refilled after it falls |
 | `species/skitterer.ts`, `species/strider.ts` | `SkittererBrain` (buried → burst → hunt on a ring round the player → rear and bite → retreat; re-burrows when left), `StriderBrain` (graze → face → a pawed 13 m charge, winded after; a horn sweep up close) |
 | `species/matriarch.ts`, `combat/matriarch.ts` | the Dune Matriarch: the ray's body at 3.6×, 600 hp, a `BossBrain` with three phases (sweeping dives; a sand storm: fog to 8–62 m and two blown-sand shells round the player; grounded: tail sweep + wing buffet), BossBar, checkpoints, 20 coins once |
@@ -65,6 +66,5 @@ fog from 70 to 330 m; the tower and the ray read as dark silhouettes. The baseli
 ## Open asks
 
 - E374: Jake's look at the content board and the boss clip (`art/sunscar-dunes/round-6-content/`).
-- E374 C6: generated models (caravan, well, brazier, strider) wait on the lead's pick of a licence-clean reference
-  source; every model is code today and listed in the roster.
+- E374 C6: Jake's look at the model board (`art/sunscar-dunes/round-7-models/`). The Matriarch and the tower stay code.
 - Leftovers: the whip crack and a wind bed generated locally (MOSS + Stable Audio), a dusk score (MiniMax).
