@@ -1,0 +1,80 @@
+{
+ "$doc": "E389 progress cameras for scripts/shard-progress.mjs, the same kinds of view as shards 5 and 6 (four first-person hero views from walkable route starts in scripts/physics-route.json, two aerials, an orbit clip), so the council can compare all six shards like for like. Keep them fixed. yaw / pitch in degrees (yaw 0 faces -z).",
+ "shots": [
+  {
+   "id": "h1-cabin-porch",
+   "x": 0,
+   "z": -200,
+   "yaw": 180.0,
+   "pitch": -4,
+   "y": 0.121
+  },
+  {
+   "id": "h2-pond",
+   "x": -10.31,
+   "z": -34.39,
+   "yaw": -74.83,
+   "pitch": -4,
+   "y": 3.815
+  },
+  {
+   "id": "h3-lookout",
+   "x": 41.23,
+   "z": 211.92,
+   "yaw": 112.87,
+   "pitch": -4,
+   "y": 46.02
+  },
+  {
+   "id": "h4-lodge-porch",
+   "x": -168.36,
+   "z": -108.99,
+   "yaw": 328.88,
+   "pitch": -4,
+   "y": -0.47
+  },
+  {
+   "id": "aerial-spawn",
+   "god": {
+    "pos": [
+     0,
+     50,
+     -260
+    ],
+    "look": [
+     0,
+     0,
+     -190
+    ]
+   }
+  },
+  {
+   "id": "aerial-overview",
+   "god": {
+    "pos": [
+     0,
+     260,
+     -380
+    ],
+    "look": [
+     0,
+     0,
+     0
+    ]
+   }
+  }
+ ],
+ "clip": {
+  "center": [
+   0,
+   5,
+   -150
+  ],
+  "radius": 150,
+  "height": 60,
+  "secs": 10,
+  "startDeg": 0,
+  "sweepDeg": 90,
+  "fov": 60
+ }
+}

@@ -1,0 +1,76 @@
+{
+ "$doc": "E389 progress cameras for scripts/shard-progress.mjs, the same kinds of view as shards 5 and 6 (four first-person hero views from walkable route starts in scripts/physics-route.json, two aerials, an orbit clip), so the council can compare all six shards like for like. Keep them fixed. yaw / pitch in degrees (yaw 0 faces -z).",
+ "shots": [
+  {
+   "id": "h1-road-camp",
+   "x": 0,
+   "z": 232,
+   "yaw": -68.75,
+   "pitch": -4
+  },
+  {
+   "id": "h2-eagle-rock",
+   "x": 147,
+   "z": 33,
+   "yaw": -108.46,
+   "pitch": -4
+  },
+  {
+   "id": "h3-kurgan-crown",
+   "x": -84,
+   "z": 102,
+   "yaw": 90.0,
+   "pitch": -4
+  },
+  {
+   "id": "h4-great-kurgan-door",
+   "x": -160,
+   "z": 75,
+   "yaw": -90.0,
+   "pitch": -4
+  },
+  {
+   "id": "aerial-spawn",
+   "god": {
+    "pos": [
+     0,
+     60,
+     300
+    ],
+    "look": [
+     0,
+     0,
+     220
+    ]
+   }
+  },
+  {
+   "id": "aerial-overview",
+   "god": {
+    "pos": [
+     0,
+     280,
+     420
+    ],
+    "look": [
+     0,
+     0,
+     0
+    ]
+   }
+  }
+ ],
+ "clip": {
+  "center": [
+   0,
+   5,
+   200
+  ],
+  "radius": 160,
+  "height": 70,
+  "secs": 10,
+  "startDeg": 0,
+  "sweepDeg": 90,
+  "fov": 60
+ }
+}

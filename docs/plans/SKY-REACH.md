@@ -1,6 +1,6 @@
 # SKY-REACH — shard 6's full content (E374)
 
-**State:** `in progress` 2026-10-01 — C1–C7 built (a thin slice of content, by design); Jake judged the look and feel far below the mockups and the other shards, so the polish loop P1–P6 runs now: a review, then a fresh Opus builder looping on four hero scenes, hands/weapon and the quest flow. No new content.
+**State:** `in progress` 2026-10-02 — C1–C7 built; polish loops 1–3 landed (subagents); from 2026-10-02 the top-level Claude Opus agent `sky-reach` (herdr, Remote Control on; docs/process/SHARD-AGENT-BRIEF.md) loops on P2–P5 and P8; done = P7, two council rounds judging it against the other four shards (the lead runs them). Jake is asleep: no questions.
 
 Shard 6, slug `far-reach`, Jake's pick **B · Sky Reach** (E364): floating islands above the clouds at golden hour, a
 war fan (SWING slashes, GUST blows creatures back and off edges), a flying manta; Jake's rule: **some bridges are
@@ -43,3 +43,5 @@ Jake, 2026-10-01, after playing both on his iPhone: "they look absolutely nothin
 | P4 | **Quest planned like Driftwood's**: a start (an NPC or a found object that names the goal), each step marked on the minimap and in the world, clear prompts, a reward beat; the existing steps re-staged, no new content | open |
 | P5 | **Presentation pass**: title card and Explore hero images from the finished hero scenes; loading card; first-minute framing from the spawn | open |
 | P6 | **Jake plays it**: a board per loop round and a final 3×3 per hero scene for his sign-off | open |
+| P7 | **Done = two council rounds** (Jake 2026-10-02: "keep going autonomously until you're happy … have a council, do two rounds of reviewing it to see if it matches the quality of the other four shards"): `docs/plans/shard-polish-council/` (ledger, battery, brief, register). The builder loops on each round's findings; the shard is done when round 2's seats find it at the bar | open |
+| P8 | **Progress photos, clips and time-lapses every loop** (E389): `scripts/shard-progress.mjs` + `scripts/shard-timelapse.py` → `progress/<slug>/` | in progress (the `sky-reach` agent) |
