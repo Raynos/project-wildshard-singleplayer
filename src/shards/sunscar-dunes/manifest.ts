@@ -31,7 +31,7 @@ export const SUNSCAR_DUNES: ShardManifest = {
     hemiSky: 0x7468a0, hemiGround: 0x8a4a28, hemiIntensity: 2.1, sun: { azimuth: 80, elevation: 10 } },
   // loop 4: real aerial perspective (the engine's fog is exponential in distance; `FOG` near / far are unused): the dune
   // rows and the far buttes lay back into the violet in layers (review R9), warm toward the sun.
-  atmosphere: { fogHeight: -20, fogHeightFalloff: 0, fogHeightDensity: 0, fogDistDensity: 0.0016, volumetricSunColor: [1, 0.55, 0.35] },
+  atmosphere: { fogHeight: -20, fogHeightFalloff: 0, fogHeightDensity: 0, fogDistDensity: 0.0016, volumetricSunColor: [1, 0.55, 0.35], weather: true }, // weather: the Matriarch's sand storm (E390)
   // A light split-tone (R9): warm highlights, blue-violet shadows. The greyer zenith (look/sky.ts) no longer clips.
   grade: { saturation: 0.14, brightness: 0, contrast: 0.08, bloomIntensity: 0.15, bloomThreshold: 0.9, shadowTint: [0.94, 0.97, 1.08], highTint: [1.05, 1, 0.94], lift: [0, 0, 0], gain: [1, 1, 1], gamma: 1 },
   horizon: { cloudSea: false, rings: [

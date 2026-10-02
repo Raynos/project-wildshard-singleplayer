@@ -1,6 +1,6 @@
-import { BossBar, BossBrain, type Animal, type BossScript } from '#engine';
+import { BossBar, BossBrain, weatherFog, type Animal, type BossScript, type WeatherFog } from '#engine';
 import { CoinBurst, bossesSave, purseSave, shardSave, type ShardContext } from '#game';
-import { Color, Fog, Mesh, Scene, SphereGeometry, Vector3 } from 'three';
+import { Color, Mesh, Scene, SphereGeometry, Vector3 } from 'three';
 import { BASIN } from '../layout';
 import { STRINGS } from '../strings';
 import { BASIN_FLOOR } from '../world/dunes';
@@ -8,10 +8,11 @@ import { stormMaterial } from '../world/stormFx';
 
 const ID = 'sunscar.matriarch';
 /**
- * The sand storm of phase II, over `fade` seconds: the fog closes to `near`–`far` metres in a dusty orange, and two
- * shells of blown sand (`shells`: radius metres, opacity) ride with the player and veil the distance.
+ * The sand storm of phase II, over `fade` seconds: a weather fog (E390, `weatherFog`) of `dist` per metre closes in in a
+ * dusty orange (at 0.05 about 5 % of the far dunes survive 60 m), and two shells of blown sand (`shells`: radius metres,
+ * opacity) ride with the player and veil the distance.
  */
-export const STORM = { near: 8, far: 62, color: new Color(0x8a5238), fade: 2.5, shells: [[46, 0.85], [22, 0.55]] } as const;
+export const STORM = { dist: 0.05, color: new Color(0x8a5238), fade: 2.5, shells: [[46, 0.85], [22, 0.55]] } as const;
 /** The reward: coins once, on the first fall. */
 export const MATRIARCH_REWARD = 20;
 const RISE = 3.2;
@@ -33,10 +34,9 @@ export class DuneMatriarch extends BossBrain {
     const weather = { storm: 0 };
     let stormT = 0;
     const scene = ctx.game.runtime?.world?.game.scene ?? new Scene(), burst = new CoinBurst(scene), purse = shardSave(purseSave, ctx.manifest.slug);
-    // The look's own fog (violet aerial perspective), read live while no storm blows: the plugin's `play` runs before the
-    // look composes its fog, so a copy taken here was the engine's placeholder (1 m – 1e6 m), and writing it back every
-    // boss frame erased the aerial layers (loop 4: the H4 deck's beige haze after the fire was lit).
-    const fog = { near: 0, far: 0, color: new Color(), stormed: false };
+    // The storm's fog (E390): made on the first update, once the level's atmosphere is installed. The level's own fog is
+    // never written (loop 4: a copy of it taken here was the engine's placeholder and erased the aerial layers).
+    let fog: WeatherFog | null = null, fogTried = false;
     const saves = shardSave(bossesSave, ctx.manifest.slug), saved = saves.read()[ID] ?? { defeated: false, rewardTaken: false, kills: 0 };
     // The blown-sand sheets (P2 #11, world/stormFx.ts): streaks racing downwind over a dusty veil, pulsing in gusts.
     const shells = STORM.shells.map(([r], i) => {
@@ -60,13 +60,11 @@ export class DuneMatriarch extends BossBrain {
       enterPhase: (next) => { if (animal) animal.mem['phase'] = next; stormGoal = next === 1 ? 1 : 0; },
       update: (dt) => {
         weather.storm += Math.sign(stormGoal - weather.storm) * Math.min(Math.abs(stormGoal - weather.storm), dt / STORM.fade);
-        if (scene.fog instanceof Fog) {
-          if (weather.storm > 0) {
-            scene.fog.near = fog.near + (STORM.near - fog.near) * weather.storm; scene.fog.far = fog.far + (STORM.far - fog.far) * weather.storm;
-            scene.fog.color.copy(fog.color).lerp(STORM.color, weather.storm); fog.stormed = true;
-          } else if (fog.stormed) { scene.fog.near = fog.near; scene.fog.far = fog.far; scene.fog.color.copy(fog.color); fog.stormed = false; }
-          else { fog.near = scene.fog.near; fog.far = scene.fog.far; fog.color.copy(scene.fog.color); }
+        if (fog === null && !fogTried) {
+          fogTried = true; // a host with no atmosphere (the contract test's) has no weather fog: the shells still blow
+          try { fog = weatherFog(ctx.scope, { dist: STORM.dist, color: STORM.color }); } catch { fog = null; }
         }
+        fog?.set(weather.storm * weather.storm * (3 - 2 * weather.storm)); // eased in and out
         stormT += dt;
         shells.forEach((shell, i) => {
           shell.visible = weather.storm > 0.01; shell.position.set(player.x, player.y + 1.6, player.z);
@@ -100,7 +98,6 @@ export class DuneMatriarch extends BossBrain {
     if (saved.defeated) onDown?.();
     ctx.scope.onDispose(() => {
       burst.update(3, player); burst.dispose(); if (animal) retire(animal); animal = null;
-      if (fog.stormed && scene.fog instanceof Fog) { scene.fog.near = fog.near; scene.fog.far = fog.far; scene.fog.color.copy(fog.color); }
     });
   }
 }
