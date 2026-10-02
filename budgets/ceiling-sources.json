@@ -1656,15 +1656,15 @@
       "tier": "phone",
       "metric": "gpuMB",
       "source": "budgets/calibration-reports/sunscar-dunes.phone.json",
-      "commit": "d7cf518d10a1305fe352636214b5b552663eb59a",
-      "reason": "E374 Signal Dunes loop 1, lead-approved polish: the fire, ember and smoke shaders, the rim/shade-floor patches and the round-1 dune terrain",
+      "commit": "159ea2dd963a379d37d3db4174dea79da55a9388",
+      "reason": "E374 Signal Dunes loop 2/3, lead-approved polish: Sefa the caravan scout, the generated glove, the Matriarch's body and the baked sand shadow map + grain texture set",
       "ask": "E357",
       "approvedBy": "wildshard-9",
-      "approval": "E374 Signal Dunes loop 1, lead-approved polish: the fire, ember and smoke shaders, the rim/shade-floor patches and the round-1 dune terrain",
-      "captureSha": "d7cf518d10a1305fe352636214b5b552663eb59a",
-      "captureSha256": "dbb2830a6bc2866570093174e460733cd28da379d70f710c374e10338ea83001",
+      "approval": "E374 Signal Dunes loop 2/3, lead-approved polish: Sefa the caravan scout, the generated glove, the Matriarch's body and the baked sand shadow map + grain texture set",
+      "captureSha": "159ea2dd963a379d37d3db4174dea79da55a9388",
+      "captureSha256": "32349be0935d656fddab60e579f54405e2b50f65c63fc2a8e2838cdc40243693",
       "ceilings": {
-        "sunscar-dunes.phone.current.gpuMB": 79.29098892211914
+        "sunscar-dunes.phone.current.gpuMB": 81.50774383544922
       }
     },
     {
@@ -1672,15 +1672,15 @@
       "tier": "desktop",
       "metric": "gpuMB",
       "source": "budgets/calibration-reports/sunscar-dunes.desktop.json",
-      "commit": "d7cf518d10a1305fe352636214b5b552663eb59a",
-      "reason": "E374 Signal Dunes loop 1, lead-approved polish: the fire, ember and smoke shaders, the rim/shade-floor patches and the round-1 dune terrain",
+      "commit": "159ea2dd963a379d37d3db4174dea79da55a9388",
+      "reason": "E374 Signal Dunes loop 2/3, lead-approved polish: Sefa the caravan scout, the generated glove, the Matriarch's body and the baked sand shadow map + grain texture set",
       "ask": "E357",
       "approvedBy": "wildshard-9",
-      "approval": "E374 Signal Dunes loop 1, lead-approved polish: the fire, ember and smoke shaders, the rim/shade-floor patches and the round-1 dune terrain",
-      "captureSha": "d7cf518d10a1305fe352636214b5b552663eb59a",
-      "captureSha256": "bb30ac43804da386734131230ccc5c70bf931a4b813e7c4c26a861b2f7c3f0a4",
+      "approval": "E374 Signal Dunes loop 2/3, lead-approved polish: Sefa the caravan scout, the generated glove, the Matriarch's body and the baked sand shadow map + grain texture set",
+      "captureSha": "159ea2dd963a379d37d3db4174dea79da55a9388",
+      "captureSha256": "7f452f72eb6fdafd5d688e50a5d41028364784341ad4cbe94d57052cba8d9e30",
       "ceilings": {
-        "sunscar-dunes.desktop.current.gpuMB": 173.63251113891602
+        "sunscar-dunes.desktop.current.gpuMB": 175.8492660522461
       }
     },
     {
