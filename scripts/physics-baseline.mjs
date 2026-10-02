@@ -24,11 +24,12 @@
 //   node scripts/physics-baseline.mjs --no-build --mode=walk --video
 //   node scripts/physics-baseline.mjs --label=p2 --mode=walk
 //   node scripts/physics-baseline.mjs --compare progress/physics/p0-x.json progress/physics/p2-y.json
-//   node scripts/physics-baseline.mjs --mode=walk --shard=nalati-grasslands --url=http://127.0.0.1:5188   # a running dev server, no build
+//   node scripts/physics-baseline.mjs --mode=walk --shard=nalati-grasslands --url=http://127.0.0.1:5188   # a served build, no build
 import { spawn, execSync } from 'node:child_process';
 import { mkdirSync, readFileSync, writeFileSync, existsSync, renameSync, readdirSync, rmSync } from 'node:fs';
 import { resolve as resolvePath, join } from 'node:path';
 import { debugSettings } from './debug-settings.mjs';
+import { walkPhysicsLeg } from './physics-walk.mjs';
 
 const { chromium } = await import('playwright');
 
@@ -102,7 +103,7 @@ const VIDEO = has('video');
 const TRAILS = has('trails');
 const SERVE = resolvePath(flag('serve', ROOT)); // the checkout whose dist/ is served (a clean export of an older commit, for a same-session before / after)
 if (flag('set', '') === 'ph') POSES.splice(0, POSES.length, ...PH_POSES); // --set=ph: Pine Hollow's poses
-// --url: walk / pose against a server that is already running (the dev server: the working tree, no build, no preview)
+// --url: walk / pose against a server that is already running (a served build: no build or preview started here)
 const URL_BASE = flag('url', '');
 // --query=<k=v&…>: appended to every page's URL (a dev param, e.g. `--query=tier=phone`)
 const EXTRA_Q = flag('query', '');
@@ -238,58 +239,7 @@ if (MODE.includes('walk')) {
       const selected = legs.filter((routeLeg) => !ONLY_LEG || routeLeg.name === ONLY_LEG);
       if (ONLY_LEG && selected.length === 0) throw new Error(`Unknown leg ${ONLY_LEG} in ${shard}`);
       for (const leg of selected.flatMap((routeLeg) => Array.from({ length: REPEAT }, () => routeLeg))) {
-        const r = await page.evaluate(async (legIn) => {
-          const w = window.__wildshard?.world, p = w.player;
-          p.keys.clear();
-          p.velocity.set(0, 0, 0);
-          // spawn() puts the feet on the terrain: under a walkway board or a ramp that is inside it — land on the top of
-          // whatever static floor stands within 2.5 m over the ground there instead (a teleport, not the walk)
-          const land = () => {
-            const ph = w.physics, R = ph.R, x = p.position.x, z = p.position.z, top = p.position.y + 2.5;
-            const hit = ph.world.castRay(new R.Ray({ x, y: top, z }, { x: 0, y: -1, z: 0 }), 2.6, true, R.QueryFilterFlags.EXCLUDE_SENSORS, undefined, undefined, undefined, (c) => c.parent()?.isFixed() ?? true);
-            if (hit) p.position.y = Math.max(p.position.y, top - hit.timeOfImpact);
-            p.prevFeet?.copy(p.position);
-          };
-          p.spawn(legIn.start.x, legIn.start.z, legIn.start.yaw);
-          if (typeof legIn.start.y === 'number') p.position.y = legIn.start.y; // a deck start names its floor
-          else land();
-          p.pitch = -0.12;
-          if (legIn.start.hover === true) p.setHover(true);
-          if (w.animals.__frozen !== true) { w.animals.update = () => undefined; w.animals.__frozen = true; } // no creature in the way of the route (they are the poses' job)
-          await new Promise((resolve) => { setTimeout(resolve, 600); }); // land, settle the camera
-          const trace = [], stuck = [];
-          let wi = 0, t = 0, jumpT = 0, jump2 = false, lastProg = { t: 0, d: Infinity }, out = 0;
-          const box = legIn.inside ?? null;
-          const t0 = performance.now();
-          await new Promise((resolve) => {
-            w.game.onUpdate((dt) => {
-              if (wi >= legIn.waypoints.length || t > (legIn.timeout ?? 60)) { if (wi !== -1) { p.keys.clear(); if (legIn.start.hover === true) p.setHover(false); wi = -1; resolve(undefined); } return; }
-              if (wi < 0) return;
-              t += dt;
-              const wp = legIn.waypoints[wi];
-              const dx = wp.x - p.position.x, dz = wp.z - p.position.z, d = Math.hypot(dx, dz);
-              trace.push([Math.round(t * 1000) / 1000, Number(p.position.x.toFixed(3)), Number(p.position.y.toFixed(3)), Number(p.position.z.toFixed(3)), Number(p.velocity.y.toFixed(2)), p.onGround ? 1 : 0, p.onPlatform ? 1 : 0, p.swimming ? 1 : 0, p.sliding ? 1 : 0, wi]);
-              const q = p.position;
-              if (box !== null && (q.x < box.x0 || q.x > box.x1 || q.z < box.z0 || q.z > box.z1 || q.y < box.floor)) out++;
-              if (d < 0.8) { wi++; lastProg = { t, d: Infinity }; p.keys.delete('Space'); jumpT = 0; jump2 = false; return; }
-              if (d < lastProg.d - 0.3) lastProg = { t, d };
-              else if (box !== null && t - lastProg.t > 1.2) { wi++; lastProg = { t, d: Infinity }; p.keys.delete('Space'); jumpT = 0; jump2 = false; return; } // an escape leg: the edge held
-              else if (t - lastProg.t > 2) { // no progress for 2 s: log it and skip on to the next waypoint
-                stuck.push({ wp: wi, x: Number(p.position.x.toFixed(2)), y: Number(p.position.y.toFixed(2)), z: Number(p.position.z.toFixed(2)) });
-                p.spawn(wp.x, wp.z, p.yaw); land(); wi++; lastProg = { t, d: Infinity }; return;
-              }
-              p.yaw = Math.atan2(-dx, -dz);
-              p.keys.add('KeyW');
-              const jumps = wp.jump === true ? 1 : typeof wp.jump === 'number' ? wp.jump : 0;
-              if (jumps > 0 && d < (wp.jumpAt ?? 1.6) && jumpT === 0) { p.keys.add('Space'); jumpT = 1; }
-              else if (jumpT > 0 && jumpT++ > 3) { p.keys.delete('Space'); }
-              // the double jump: a second press near the first one's apex
-              if (jumps > 1 && jumpT > 5 && !jump2 && p.velocity.y < 1.5) { p.keys.add('Space'); jump2 = true; jumpT = 1; }
-              if (jumps === 0) jumpT = 0;
-            });
-          });
-          return { trace, stuck, out, wall: Math.round(performance.now() - t0) };
-        }, leg);
+        const r = await page.evaluate(walkPhysicsLeg, leg);
         const ys = r.trace.map((s) => s[2]);
         const last = r.trace.at(-1) ?? [0, Number.NaN, Number.NaN, Number.NaN];
         const speeds = [];

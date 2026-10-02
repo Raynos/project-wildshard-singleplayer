@@ -1,0 +1,1100 @@
+{
+  "servedHead": "0efec6b987950f2fb18fe53311fb820d61a496dd",
+  "candidateParent": "3120991deb221420a3ffa0fafc58e947d1f982c6",
+  "build": "0efec6b-muq9z73f",
+  "sourceReport": "progress/physics/sol-walk-0efec6b-muq9z73f.json",
+  "command": "scripts/browser-lane.sh --max 20 node scripts/physics-baseline.mjs --mode=walk --url=http://127.0.0.1:4403 --label=sol-walk",
+  "counts": {
+    "driftwood-isle": {
+      "legs": 8,
+      "stuck": 0
+    },
+    "pine-hollow": {
+      "legs": 7,
+      "stuck": 0
+    },
+    "nalati-grasslands": {
+      "legs": 12,
+      "stuck": 0
+    },
+    "nine-dragon-stack": {
+      "legs": 19,
+      "stuck": 0
+    },
+    "sunscar-dunes": {
+      "legs": 7,
+      "stuck": 1
+    }
+  },
+  "walkErrors": [],
+  "walk": [
+    {
+      "shard": "driftwood-isle",
+      "name": "pier",
+      "frames": 706,
+      "seconds": 23.5,
+      "end": {
+        "x": -19.717,
+        "y": 1.331,
+        "z": -150.68
+      },
+      "expectY": 1.325,
+      "maxY": 2.03,
+      "groundSpeedP50": 4.21,
+      "airFrames": 11,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": []
+    },
+    {
+      "shard": "driftwood-isle",
+      "name": "hut",
+      "frames": 306,
+      "seconds": 10.2,
+      "end": {
+        "x": -22,
+        "y": 19.711,
+        "z": -64.54
+      },
+      "expectY": 19.691,
+      "maxY": 19.71,
+      "groundSpeedP50": 4.28,
+      "airFrames": 0,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": []
+    },
+    {
+      "shard": "driftwood-isle",
+      "name": "bridge",
+      "frames": 366,
+      "seconds": 12.2,
+      "end": {
+        "x": 35.289,
+        "y": 13.071,
+        "z": 33.257
+      },
+      "expectY": 12.13,
+      "maxY": 13.07,
+      "groundSpeedP50": 4.22,
+      "airFrames": 1,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": []
+    },
+    {
+      "shard": "driftwood-isle",
+      "name": "lookout",
+      "frames": 122,
+      "seconds": 4.1,
+      "end": {
+        "x": 93.741,
+        "y": 41.174,
+        "z": 93.617
+      },
+      "expectY": 41.154,
+      "maxY": 41.18,
+      "groundSpeedP50": 3.68,
+      "airFrames": 0,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": []
+    },
+    {
+      "shard": "driftwood-isle",
+      "name": "wreck",
+      "frames": 127,
+      "seconds": 4.2,
+      "end": {
+        "x": 151.301,
+        "y": 4.607,
+        "z": 7.65
+      },
+      "expectY": 4.587,
+      "maxY": 4.61,
+      "groundSpeedP50": 4.15,
+      "airFrames": 0,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": []
+    },
+    {
+      "shard": "driftwood-isle",
+      "name": "cave",
+      "frames": 139,
+      "seconds": 4.6,
+      "end": {
+        "x": 142.004,
+        "y": 1.22,
+        "z": 18.495
+      },
+      "expectY": 1.2,
+      "maxY": 1.37,
+      "groundSpeedP50": 4.31,
+      "airFrames": 0,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": []
+    },
+    {
+      "shard": "driftwood-isle",
+      "name": "shrine",
+      "frames": 141,
+      "seconds": 4.7,
+      "end": {
+        "x": -96.927,
+        "y": 11.018,
+        "z": 106.534
+      },
+      "expectY": 10.998,
+      "maxY": 11.02,
+      "groundSpeedP50": 4.21,
+      "airFrames": 0,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": []
+    },
+    {
+      "shard": "driftwood-isle",
+      "name": "boat",
+      "frames": 67,
+      "seconds": 2.2,
+      "end": {
+        "x": -4.257,
+        "y": 1.061,
+        "z": -202.302
+      },
+      "expectY": 1.12,
+      "maxY": 2.01,
+      "groundSpeedP50": 4.29,
+      "airFrames": 3,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": []
+    },
+    {
+      "shard": "pine-hollow",
+      "name": "cabin-porch",
+      "frames": 1340,
+      "seconds": 44.7,
+      "end": {
+        "x": -10.236,
+        "y": 3.833,
+        "z": -34.416
+      },
+      "expectY": 3.815,
+      "maxY": 4.25,
+      "groundSpeedP50": 4.26,
+      "airFrames": 0,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": []
+    },
+    {
+      "shard": "pine-hollow",
+      "name": "pond",
+      "frames": 1355,
+      "seconds": 45.2,
+      "end": {
+        "x": -63.883,
+        "y": -2.005,
+        "z": 109.261
+      },
+      "expectY": -2.01,
+      "maxY": 4,
+      "groundSpeedP50": 4.3,
+      "airFrames": 0,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": []
+    },
+    {
+      "shard": "pine-hollow",
+      "name": "lookout-climb",
+      "frames": 357,
+      "seconds": 11.9,
+      "end": {
+        "x": 34.792,
+        "y": 57.477,
+        "z": 211.357
+      },
+      "expectY": 57.46,
+      "maxY": 57.48,
+      "groundSpeedP50": 1.94,
+      "airFrames": 0,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": []
+    },
+    {
+      "shard": "pine-hollow",
+      "name": "zip-landing",
+      "frames": 66,
+      "seconds": 2.2,
+      "end": {
+        "x": 3.242,
+        "y": 3.304,
+        "z": 20.128
+      },
+      "expectY": 3.29,
+      "maxY": 3.31,
+      "groundSpeedP50": 3.9,
+      "airFrames": 0,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": []
+    },
+    {
+      "shard": "pine-hollow",
+      "name": "creek-bridge",
+      "frames": 225,
+      "seconds": 7.5,
+      "end": {
+        "x": -135.967,
+        "y": 1.488,
+        "z": -5.3
+      },
+      "expectY": 1.42,
+      "maxY": 1.53,
+      "groundSpeedP50": 4.26,
+      "airFrames": 0,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": []
+    },
+    {
+      "shard": "pine-hollow",
+      "name": "lodge-porch",
+      "frames": 46,
+      "seconds": 1.5,
+      "end": {
+        "x": -165.198,
+        "y": -0.16,
+        "z": -114.231
+      },
+      "expectY": -0.18,
+      "maxY": -0.16,
+      "groundSpeedP50": 4.22,
+      "airFrames": 0,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": []
+    },
+    {
+      "shard": "pine-hollow",
+      "name": "den-cave",
+      "frames": 341,
+      "seconds": 11.4,
+      "end": {
+        "x": 218.91,
+        "y": 8.036,
+        "z": 217.581
+      },
+      "expectY": 8.01,
+      "maxY": 9.07,
+      "groundSpeedP50": 4.34,
+      "airFrames": 0,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": []
+    },
+    {
+      "shard": "nalati-grasslands",
+      "name": "road-camp",
+      "frames": 799,
+      "seconds": 26.6,
+      "end": {
+        "x": 94.218,
+        "y": -4.337,
+        "z": 204.056
+      },
+      "expectY": null,
+      "maxY": 0.02,
+      "groundSpeedP50": 4.28,
+      "airFrames": 0,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": []
+    },
+    {
+      "shard": "nalati-grasslands",
+      "name": "bridge",
+      "frames": 406,
+      "seconds": 13.5,
+      "end": {
+        "x": 0.199,
+        "y": -7.039,
+        "z": 142.751
+      },
+      "expectY": null,
+      "maxY": -0.19,
+      "groundSpeedP50": 4.33,
+      "airFrames": 0,
+      "swimFrames": 0,
+      "slideFrames": 1,
+      "stuck": []
+    },
+    {
+      "shard": "nalati-grasslands",
+      "name": "eagle-rock",
+      "frames": 1161,
+      "seconds": 38.7,
+      "end": {
+        "x": 181.197,
+        "y": 65.02,
+        "z": 85.74
+      },
+      "expectY": 65.1,
+      "maxY": 65.02,
+      "groundSpeedP50": 3.64,
+      "airFrames": 0,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": []
+    },
+    {
+      "shard": "nalati-grasslands",
+      "name": "kurgan-crown",
+      "frames": 76,
+      "seconds": 2.5,
+      "end": {
+        "x": -94.253,
+        "y": 31.806,
+        "z": 103.33
+      },
+      "expectY": null,
+      "maxY": 35.5,
+      "groundSpeedP50": 4.28,
+      "airFrames": 9,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": []
+    },
+    {
+      "shard": "nalati-grasslands",
+      "name": "great-kurgan-crown",
+      "frames": 202,
+      "seconds": 6.7,
+      "end": {
+        "x": -191.035,
+        "y": 39.585,
+        "z": 72.229
+      },
+      "expectY": null,
+      "maxY": 39.59,
+      "groundSpeedP50": 3.7,
+      "airFrames": 0,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": []
+    },
+    {
+      "shard": "nalati-grasslands",
+      "name": "great-kurgan-door",
+      "frames": 103,
+      "seconds": 3.4,
+      "end": {
+        "x": -172.843,
+        "y": 34.935,
+        "z": 75
+      },
+      "expectY": null,
+      "maxY": 34.94,
+      "groundSpeedP50": 4.18,
+      "airFrames": 0,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": []
+    },
+    {
+      "shard": "nalati-grasslands",
+      "name": "dungeon",
+      "frames": 146,
+      "seconds": 4.9,
+      "end": {
+        "x": -38.893,
+        "y": 140.47,
+        "z": -94.829
+      },
+      "expectY": 140.45,
+      "maxY": 140.47,
+      "groundSpeedP50": 4.27,
+      "airFrames": 0,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": []
+    },
+    {
+      "shard": "nalati-grasslands",
+      "name": "leopard-cave",
+      "frames": 1192,
+      "seconds": 39.8,
+      "end": {
+        "x": 137.208,
+        "y": 54.117,
+        "z": -65.901
+      },
+      "expectY": 54.12,
+      "maxY": 54.12,
+      "groundSpeedP50": 3.65,
+      "airFrames": 0,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": []
+    },
+    {
+      "shard": "nalati-grasslands",
+      "name": "summer-camp",
+      "frames": 129,
+      "seconds": 4.3,
+      "end": {
+        "x": -87.237,
+        "y": 28.361,
+        "z": -24.184
+      },
+      "expectY": null,
+      "maxY": 28.67,
+      "groundSpeedP50": 4.23,
+      "airFrames": 0,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": []
+    },
+    {
+      "shard": "nalati-grasslands",
+      "name": "cairn",
+      "frames": 147,
+      "seconds": 4.9,
+      "end": {
+        "x": -26.538,
+        "y": 33.54,
+        "z": -41.344
+      },
+      "expectY": null,
+      "maxY": 33.54,
+      "groundSpeedP50": 3.45,
+      "airFrames": 0,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": []
+    },
+    {
+      "shard": "nalati-grasslands",
+      "name": "watchtower",
+      "frames": 285,
+      "seconds": 9.5,
+      "end": {
+        "x": -199.721,
+        "y": 44.131,
+        "z": -37.433
+      },
+      "expectY": 44,
+      "maxY": 44.13,
+      "groundSpeedP50": 3.39,
+      "airFrames": 0,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": []
+    },
+    {
+      "shard": "nalati-grasslands",
+      "name": "argymaq-pasture",
+      "frames": 705,
+      "seconds": 23.6,
+      "end": {
+        "x": -159.533,
+        "y": 51.847,
+        "z": -71.507
+      },
+      "expectY": 52,
+      "maxY": 51.85,
+      "groundSpeedP50": 3.83,
+      "airFrames": 0,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": []
+    },
+    {
+      "shard": "nine-dragon-stack",
+      "name": "square-to-street",
+      "frames": 828,
+      "seconds": 27.6,
+      "end": {
+        "x": 6.5,
+        "y": 125.02,
+        "z": -109.212
+      },
+      "expectY": 125,
+      "maxY": 125.03,
+      "groundSpeedP50": 4.33,
+      "airFrames": 0,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": []
+    },
+    {
+      "shard": "nine-dragon-stack",
+      "name": "balustrade-west-bay",
+      "frames": 403,
+      "seconds": 13.4,
+      "end": {
+        "x": 2.484,
+        "y": 125.02,
+        "z": -39.328
+      },
+      "expectY": 125,
+      "maxY": 125.03,
+      "groundSpeedP50": 4.33,
+      "airFrames": 0,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": []
+    },
+    {
+      "shard": "nine-dragon-stack",
+      "name": "stair-street",
+      "frames": 560,
+      "seconds": 18.7,
+      "end": {
+        "x": 75.315,
+        "y": 146.02,
+        "z": 6
+      },
+      "expectY": 146,
+      "maxY": 146.02,
+      "groundSpeedP50": 3.94,
+      "airFrames": 0,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": []
+    },
+    {
+      "shard": "nine-dragon-stack",
+      "name": "stair-down",
+      "frames": 445,
+      "seconds": 14.8,
+      "end": {
+        "x": 12.669,
+        "y": 125.014,
+        "z": 6
+      },
+      "expectY": 125,
+      "maxY": 146.02,
+      "groundSpeedP50": 4.33,
+      "airFrames": 0,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": []
+    },
+    {
+      "shard": "nine-dragon-stack",
+      "name": "crossing-gate-bridge",
+      "frames": 95,
+      "seconds": 3.2,
+      "end": {
+        "x": -6.562,
+        "y": 107.02,
+        "z": -25.4
+      },
+      "expectY": 107,
+      "maxY": 107.02,
+      "groundSpeedP50": 4.33,
+      "airFrames": 0,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": []
+    },
+    {
+      "shard": "nine-dragon-stack",
+      "name": "crossing-timber-hump",
+      "frames": 77,
+      "seconds": 2.6,
+      "end": {
+        "x": -8.761,
+        "y": 119.098,
+        "z": -21
+      },
+      "expectY": 119.1,
+      "maxY": 119.25,
+      "groundSpeedP50": 4.33,
+      "airFrames": 0,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": []
+    },
+    {
+      "shard": "nine-dragon-stack",
+      "name": "well-rim",
+      "frames": 166,
+      "seconds": 5.5,
+      "end": {
+        "x": -2.729,
+        "y": 125.02,
+        "z": 13.505
+      },
+      "expectY": 125,
+      "maxY": 125.03,
+      "groundSpeedP50": 4.33,
+      "airFrames": 0,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": []
+    },
+    {
+      "shard": "nine-dragon-stack",
+      "name": "escape-square-balustrade",
+      "frames": 337,
+      "seconds": 11.2,
+      "end": {
+        "x": 0.499,
+        "y": 126.946,
+        "z": -7.029
+      },
+      "expectY": 125,
+      "maxY": 127.63,
+      "groundSpeedP50": 2.09,
+      "airFrames": 127,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": [],
+      "out": 0,
+      "minY": 125
+    },
+    {
+      "shard": "nine-dragon-stack",
+      "name": "escape-street-balustrade",
+      "frames": 387,
+      "seconds": 12.9,
+      "end": {
+        "x": 0.5,
+        "y": 126.139,
+        "z": -35.801
+      },
+      "expectY": 125,
+      "maxY": 127.33,
+      "groundSpeedP50": 1.93,
+      "airFrames": 85,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": [],
+      "out": 0,
+      "minY": 125
+    },
+    {
+      "shard": "nine-dragon-stack",
+      "name": "escape-hawker-roof",
+      "frames": 90,
+      "seconds": 3,
+      "end": {
+        "x": 0.9,
+        "y": 125.02,
+        "z": -2.501
+      },
+      "expectY": 125,
+      "maxY": 128.16,
+      "groundSpeedP50": 0.03,
+      "airFrames": 34,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": [],
+      "out": 0,
+      "minY": 125.02
+    },
+    {
+      "shard": "nine-dragon-stack",
+      "name": "escape-south-front",
+      "frames": 294,
+      "seconds": 9.8,
+      "end": {
+        "x": 5.999,
+        "y": 125.02,
+        "z": 20.2
+      },
+      "expectY": 125,
+      "maxY": 127.88,
+      "groundSpeedP50": 4.09,
+      "airFrames": 105,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": [],
+      "out": 0,
+      "minY": 125
+    },
+    {
+      "shard": "nine-dragon-stack",
+      "name": "escape-street-end",
+      "frames": 353,
+      "seconds": 11.8,
+      "end": {
+        "x": 6.5,
+        "y": 125.02,
+        "z": -120.6
+      },
+      "expectY": 125,
+      "maxY": 127.88,
+      "groundSpeedP50": 4.21,
+      "airFrames": 105,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": [],
+      "out": 0,
+      "minY": 125
+    },
+    {
+      "shard": "nine-dragon-stack",
+      "name": "escape-stair-sides",
+      "frames": 157,
+      "seconds": 5.2,
+      "end": {
+        "x": 37.014,
+        "y": 132.54,
+        "z": 9.6
+      },
+      "expectY": 132,
+      "maxY": 134.91,
+      "groundSpeedP50": 4.21,
+      "airFrames": 62,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": [],
+      "out": 0,
+      "minY": 132
+    },
+    {
+      "shard": "nine-dragon-stack",
+      "name": "escape-stair-top",
+      "frames": 170,
+      "seconds": 5.7,
+      "end": {
+        "x": 77.6,
+        "y": 146.02,
+        "z": 6
+      },
+      "expectY": 146,
+      "maxY": 148.87,
+      "groundSpeedP50": 4.09,
+      "airFrames": 70,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": [],
+      "out": 0,
+      "minY": 146
+    },
+    {
+      "shard": "nine-dragon-stack",
+      "name": "escape-rim-into-well",
+      "frames": 240,
+      "seconds": 8,
+      "end": {
+        "x": -19.5,
+        "y": 126.751,
+        "z": 11.699
+      },
+      "expectY": 125,
+      "maxY": 127.83,
+      "groundSpeedP50": 3.62,
+      "airFrames": 149,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": [],
+      "out": 0,
+      "minY": 125
+    },
+    {
+      "shard": "nine-dragon-stack",
+      "name": "escape-rim-hop",
+      "frames": 156,
+      "seconds": 5.2,
+      "end": {
+        "x": -18.781,
+        "y": 125.016,
+        "z": 13.6
+      },
+      "expectY": 125,
+      "maxY": 127.33,
+      "groundSpeedP50": 4.33,
+      "airFrames": 27,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": [],
+      "out": 0,
+      "minY": 125
+    },
+    {
+      "shard": "nine-dragon-stack",
+      "name": "escape-hover-balustrade",
+      "frames": 269,
+      "seconds": 9,
+      "end": {
+        "x": 0.498,
+        "y": 126.539,
+        "z": -7.993
+      },
+      "expectY": null,
+      "maxY": 128.44,
+      "groundSpeedP50": 2.43,
+      "airFrames": 85,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": [],
+      "out": 0,
+      "minY": 125.41
+    },
+    {
+      "shard": "nine-dragon-stack",
+      "name": "escape-hover-rim",
+      "frames": 255,
+      "seconds": 8.5,
+      "end": {
+        "x": -19.5,
+        "y": 125.189,
+        "z": 11.702
+      },
+      "expectY": null,
+      "maxY": 127.99,
+      "groundSpeedP50": 0.03,
+      "airFrames": 121,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": [],
+      "out": 0,
+      "minY": 125.01
+    },
+    {
+      "shard": "nine-dragon-stack",
+      "name": "net-well-fall",
+      "frames": 64,
+      "seconds": 2.1,
+      "end": {
+        "x": -18.925,
+        "y": 125,
+        "z": 13.6
+      },
+      "expectY": 125,
+      "maxY": 125,
+      "groundSpeedP50": 0,
+      "airFrames": 64,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": [],
+      "out": 0,
+      "minY": 26.32
+    },
+    {
+      "shard": "sunscar-dunes",
+      "name": "spawn-caravan",
+      "frames": 560,
+      "seconds": 18.7,
+      "end": {
+        "x": -69.413,
+        "y": 4.871,
+        "z": 32.372
+      },
+      "expectY": 4.85,
+      "maxY": 8.15,
+      "groundSpeedP50": 4.24,
+      "airFrames": 0,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": []
+    },
+    {
+      "shard": "sunscar-dunes",
+      "name": "caravan-well",
+      "frames": 1302,
+      "seconds": 43.4,
+      "end": {
+        "x": 77.552,
+        "y": 3.27,
+        "z": -1.447
+      },
+      "expectY": 3.25,
+      "maxY": 8.05,
+      "groundSpeedP50": 4.25,
+      "airFrames": 0,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": []
+    },
+    {
+      "shard": "sunscar-dunes",
+      "name": "well-waymark-east",
+      "frames": 256,
+      "seconds": 8.5,
+      "end": {
+        "x": 58.456,
+        "y": 4.848,
+        "z": -30.479
+      },
+      "expectY": 4.63,
+      "maxY": 6.97,
+      "groundSpeedP50": 4.22,
+      "airFrames": 0,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": []
+    },
+    {
+      "shard": "sunscar-dunes",
+      "name": "waymark-east-west",
+      "frames": 763,
+      "seconds": 25.4,
+      "end": {
+        "x": -40.38,
+        "y": 3.309,
+        "z": -20.761
+      },
+      "expectY": 3.25,
+      "maxY": 5.68,
+      "groundSpeedP50": 4.27,
+      "airFrames": 0,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": []
+    },
+    {
+      "shard": "sunscar-dunes",
+      "name": "waymark-west-tower",
+      "frames": 620,
+      "seconds": 20.7,
+      "end": {
+        "x": 7.7,
+        "y": 7.88,
+        "z": -67.378
+      },
+      "expectY": 7.87,
+      "maxY": 7.88,
+      "groundSpeedP50": 4.22,
+      "airFrames": 0,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": []
+    },
+    {
+      "shard": "sunscar-dunes",
+      "name": "tower-waymark-north",
+      "frames": 298,
+      "seconds": 9.9,
+      "end": {
+        "x": 31.603,
+        "y": 1.987,
+        "z": -98.45
+      },
+      "expectY": 1.83,
+      "maxY": 8.26,
+      "groundSpeedP50": 4.31,
+      "airFrames": 0,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": [
+        {
+          "wp": 0,
+          "x": 7.7,
+          "y": 7.9,
+          "z": -69.36
+        }
+      ]
+    },
+    {
+      "shard": "sunscar-dunes",
+      "name": "waymark-north-basin",
+      "frames": 646,
+      "seconds": 21.5,
+      "end": {
+        "x": -13.866,
+        "y": 0.82,
+        "z": -139.339
+      },
+      "expectY": 0.8,
+      "maxY": 8.12,
+      "groundSpeedP50": 4.23,
+      "airFrames": 0,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": []
+    }
+  ],
+  "validation": [
+    "clean parent 3120991d + changes: pnpm gen, tsc --noEmit -p ., focused oxlint and vitest passed",
+    "flat regression: real InputService, >3.2m movement, one spawn, input/observer released",
+    "mutation: restoring p.keys.add(KeyW) fails with stuck waypoint at (0,0,0)"
+  ],
+  "towerRepeats": [
+    {
+      "shard": "sunscar-dunes",
+      "name": "tower-waymark-north",
+      "frames": 298,
+      "seconds": 9.9,
+      "end": {
+        "x": 31.603,
+        "y": 1.987,
+        "z": -98.45
+      },
+      "expectY": 1.83,
+      "maxY": 8.26,
+      "groundSpeedP50": 4.23,
+      "airFrames": 0,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": [
+        {
+          "wp": 0,
+          "x": 7.7,
+          "y": 7.9,
+          "z": -69.36
+        }
+      ]
+    },
+    {
+      "shard": "sunscar-dunes",
+      "name": "tower-waymark-north",
+      "frames": 298,
+      "seconds": 9.9,
+      "end": {
+        "x": 31.603,
+        "y": 1.987,
+        "z": -98.45
+      },
+      "expectY": 1.83,
+      "maxY": 8.26,
+      "groundSpeedP50": 4.23,
+      "airFrames": 0,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": [
+        {
+          "wp": 0,
+          "x": 7.7,
+          "y": 7.9,
+          "z": -69.36
+        }
+      ]
+    },
+    {
+      "shard": "sunscar-dunes",
+      "name": "tower-waymark-north",
+      "frames": 298,
+      "seconds": 9.9,
+      "end": {
+        "x": 31.603,
+        "y": 1.987,
+        "z": -98.45
+      },
+      "expectY": 1.83,
+      "maxY": 8.26,
+      "groundSpeedP50": 4.24,
+      "airFrames": 0,
+      "swimFrames": 0,
+      "slideFrames": 0,
+      "stuck": [
+        {
+          "wp": 0,
+          "x": 7.7,
+          "y": 7.9,
+          "z": -69.36
+        }
+      ]
+    }
+  ],
+  "finding": "Signal Dunes tower-waymark-north wp0: player stops at (7.70,7.90,-69.36) while heading from the tower toward (14,-70); lead/Opus content agent owns the fix."
+}
