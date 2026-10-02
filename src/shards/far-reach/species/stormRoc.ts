@@ -1,5 +1,6 @@
-import { CreatureBrain, StrikeRunner, NO_FUR, type Animal, type SpeciesLook, type SpeciesRow, type StrikeContext, type StrikeSpec, type ThinkCtx } from '#engine';
-import { BoxGeometry, ConeGeometry, IcosahedronGeometry, Vector3 } from 'three';
+import { CreatureBrain, StrikeRunner, NO_FUR, type Animal, type AnimalSpecies, type BoneDef, type SpeciesLook, type SpeciesRow, type StrikeContext, type StrikeSpec, type ThinkCtx } from '#engine';
+import { BoxGeometry, ConeGeometry, IcosahedronGeometry, Vector3, type BufferGeometry } from 'three';
+import { bindRigid, fit, skyMesh } from '../world/meshes';
 import { CROWN, DAIS, ROC } from '../layout';
 import { STRINGS } from '../strings';
 import { hull, yawTo } from './rig';
@@ -76,12 +77,16 @@ const wing = (side: number, bone: number): { geometry: ConeGeometry; bone: numbe
   { geometry: new ConeGeometry(0.9, 4.8, 4), bone, color: 0x3b3150, at: [side * 2.9, 1.6, -0.2], rot: [0, 0, side * Math.PI / 2] },
   { geometry: new ConeGeometry(0.6, 3.2, 4), bone, color: 0xd9a066, at: [side * 4.4, 1.5, -0.7], rot: [0.2, 0, side * Math.PI / 2] },
 ];
-export const STORM_ROC_LOOK: SpeciesLook = { id: 'far.look.stormRoc', species: STORM_ROC.id, kind: 'stormRoc', rig: 'custom', fur: NO_FUR,
-  rigContract: { skeleton: 'far.stormRoc', sockets: ['body', 'head', 'wingL', 'wingR', 'tail'], clips: ['idle', 'fly', 'attack', 'hit', 'die'] },
-  build: () => ({
-    bones: [{ name: 'body', parent: null, pos: [0, 1.6, 0] }, { name: 'head', parent: 'body', pos: [0, 2.1, 1.6] },
-      { name: 'wingL', parent: 'body', pos: [0.6, 1.7, 0] }, { name: 'wingR', parent: 'body', pos: [-0.6, 1.7, 0] }, { name: 'tail', parent: 'body', pos: [0, 1.5, -1.4] }],
-    furParts: [], eyeParts: [],
+/** Where a wing starts (metres off the centre line): outboard of it a facet rides its wing bone. */
+const ROC_WING_ROOT = 1.1;
+/** The Roc's wingspan (metres). */
+const ROC_SPAN = 11;
+const ROC_BONES = (head: number, headY: number, tail: number): BoneDef[] => [{ name: 'body', parent: null, pos: [0, 1.6, 0] },
+  { name: 'head', parent: 'body', pos: [0, headY, head] }, { name: 'wingL', parent: 'body', pos: [ROC_WING_ROOT, 1.7, 0] },
+  { name: 'wingR', parent: 'body', pos: [-ROC_WING_ROOT, 1.7, 0] }, { name: 'tail', parent: 'body', pos: [0, 1.5, tail] }];
+/** The code Roc: primitive parts (the stand-in while the generated model is missing). */
+function rocCode(): AnimalSpecies {
+  return { bones: ROC_BONES(1.6, 2.1, -1.4), furParts: [], eyeParts: [],
     hardParts: [hull([
       { geometry: new IcosahedronGeometry(1.1, 0), bone: BODY, color: 0x463a5c, at: [0, 1.6, 0], rot: [0, 0, 0] },
       { geometry: new BoxGeometry(1.3, 1, 2.4), bone: BODY, color: 0x3b3150, at: [0, 1.6, -0.2] },
@@ -92,7 +97,28 @@ export const STORM_ROC_LOOK: SpeciesLook = { id: 'far.look.stormRoc', species: S
       { geometry: new BoxGeometry(0.18, 1.1, 0.18), bone: BODY, color: 0xf0b542, at: [0.35, 0.55, 0.1] },
       { geometry: new BoxGeometry(0.18, 1.1, 0.18), bone: BODY, color: 0xf0b542, at: [-0.35, 0.55, 0.1] },
     ])],
-    dims: { bodyY: 1.6, bodyHalfLen: 1.4, bodyRadius: 1.1, headRadius: 0.55, legLen: 1, feet: [], halfWidth: 5.5 } }),
+    dims: { bodyY: 1.6, bodyHalfLen: 1.4, bodyRadius: 1.1, headRadius: 0.55, legLen: 1, feet: [], halfWidth: 5.5 } };
+}
+/**
+ * The generated Roc (C6: Hunyuan3D-2 from `art/far-reach/round-7-models/ref-roc.jpg`): generated upright (the ref faces the
+ * camera), so it is pitched forward to fly, its pale banded front becoming the underside you see from the crown; 11 m from
+ * wing tip to wing tip, its middle at the body bone. Facets outboard of the wing roots ride the wings; along the centre line the front third
+ * is the head, the back third the tail.
+ */
+function rocMesh(source: BufferGeometry): AnimalSpecies {
+  const g = fit(source, { size: ROC_SPAN, by: 'span', middle: 1.6, pitch: Math.PI / 2 }), p = g.getAttribute('position');
+  let z0 = Infinity, z1 = -Infinity;
+  for (let i = 0; i < p.count; i++) if (Math.abs(p.getX(i)) < ROC_WING_ROOT) { z0 = Math.min(z0, p.getZ(i)); z1 = Math.max(z1, p.getZ(i)); }
+  const len = Math.max(0.5, z1 - z0), head = z1 - len * 0.3, tail = z0 + len * 0.3;
+  bindRigid(g, (x, _y, z) => x > ROC_WING_ROOT ? WING_L : x < -ROC_WING_ROOT ? WING_R : z > head ? HEAD : z < tail ? TAIL : BODY);
+  return { bones: ROC_BONES(head, 1.8, tail), furParts: [], eyeParts: [], hardParts: [g],
+    dims: { bodyY: 1.6, bodyHalfLen: Math.max(1.4, len / 2), bodyRadius: 1.1, headRadius: 0.55, legLen: 1, feet: [], halfWidth: ROC_SPAN / 2 } };
+}
+/** The body: the generated model when it loaded, else the code one. */
+export const rocBody = (): AnimalSpecies => { const g = skyMesh('storm-roc'); return g ? rocMesh(g) : rocCode(); };
+export const STORM_ROC_LOOK: SpeciesLook = { id: 'far.look.stormRoc', species: STORM_ROC.id, kind: 'stormRoc', rig: 'custom', fur: NO_FUR,
+  rigContract: { skeleton: 'far.stormRoc', sockets: ['body', 'head', 'wingL', 'wingR', 'tail'], clips: ['idle', 'fly', 'attack', 'hit', 'die'] },
+  build: () => rocBody(),
   animate: ({ bones, t, alive }) => {
     const flap = alive ? Math.sin(t * 1.9) * 0.45 : 0.9;
     const l = bones['wingL'], r = bones['wingR'], tail = bones['tail'];

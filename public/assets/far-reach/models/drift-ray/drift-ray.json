@@ -1,0 +1,22 @@
+{
+ "name": "drift-ray",
+ "source": "ref-manta.glb",
+ "tris": 900,
+ "size_m": [
+  5.39,
+  5.36,
+  0.82
+ ],
+ "pivot": "base centre, z=0 (Blender z-up; glTF y-up)",
+ "vertex_colour": "COLOR_0 rgb = albedo (sRGB-graded, stored linear), a = Cycles AO (0.35..1)",
+ "palette": [
+  "#544384",
+  "#5d66a8",
+  "#61518b",
+  "#695988",
+  "#746190",
+  "#8d7d98",
+  "#bea9a2",
+  "#eed3a2"
+ ]
+}

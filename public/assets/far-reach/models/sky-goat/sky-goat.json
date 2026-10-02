@@ -1,0 +1,22 @@
+{
+ "name": "sky-goat",
+ "source": "ref-goat.glb",
+ "tris": 1087,
+ "size_m": [
+  0.55,
+  1.45,
+  1.21
+ ],
+ "pivot": "base centre, z=0 (Blender z-up; glTF y-up)",
+ "vertex_colour": "COLOR_0 rgb = albedo (sRGB-graded, stored linear), a = Cycles AO (0.35..1)",
+ "palette": [
+  "#270e3f",
+  "#473861",
+  "#816572",
+  "#8db2ad",
+  "#975b27",
+  "#bf9f8a",
+  "#d3b494",
+  "#e5c79d"
+ ]
+}

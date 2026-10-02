@@ -1,5 +1,6 @@
 import { BoxGeometry, BufferGeometry, Color, ConeGeometry, CylinderGeometry, Float32BufferAttribute, Group, IcosahedronGeometry, InstancedMesh, Matrix4, Mesh, MeshStandardMaterial, Quaternion, Vector3, type Object3D } from 'three';
 import type { Isle } from '../layout';
+import { fit, skyMesh, splitAbove } from './meshes';
 
 /** The Sky Reach palette (sRGB hex): golden-hour grass, warm dirt, violet keel rock, dusk pines. */
 export const PALETTE = {
@@ -83,13 +84,24 @@ export function plankBridge(length: number, width: number, material: MeshStandar
   return group;
 }
 
-/** The old windmill: a tapered octagonal tower, a cap and four lattice sails on a hub that the plugin turns. */
+/** The windmill's generated tower (C6) is fitted to this height; its sail hub stub sits at `MILL_HUB` on it. */
+const MILL_HEIGHT = 10.6, MILL_HUB = { y: 7.92, z: 2.85 } as const;
+/**
+ * The old windmill: the generated stone-and-timber tower (C6, Hunyuan3D-2 from `art/far-reach/round-7-models/ref-windmill.jpg`)
+ * or, without it, a tapered octagonal tower and cap; four lattice sails on a hub that the plugin turns.
+ */
 export function windmill(): { group: Group; hub: Object3D } {
-  const group = new Group(), hub = new Group();
-  const tower = new Mesh(new CylinderGeometry(1.5, 2.5, 9, 8), flat(PALETTE.tower)); tower.position.y = 4.5; group.add(tower);
-  const cap = new Mesh(new ConeGeometry(2.1, 2.4, 8), flat(PALETTE.rockDark)); cap.position.y = 10.2; group.add(cap);
-  const door = new Mesh(new BoxGeometry(1, 1.8, 0.2), flat(PALETTE.rockDark)); door.position.set(0, 0.9, 2.4); group.add(door);
-  hub.position.set(0, 8.6, 2.2); group.add(hub);
+  const group = new Group(), hub = new Group(), tower = skyMesh('windmill');
+  if (tower !== null) {
+    group.add(new Mesh(fit(tower, { size: MILL_HEIGHT, by: 'height', floor: 0, centre: 'base' }), flat(0xffffff, { vertexColors: true })));
+    hub.position.set(0, MILL_HUB.y, MILL_HUB.z);
+  } else {
+    const body = new Mesh(new CylinderGeometry(1.5, 2.5, 9, 8), flat(PALETTE.tower)); body.position.y = 4.5; group.add(body);
+    const cap = new Mesh(new ConeGeometry(2.1, 2.4, 8), flat(PALETTE.rockDark)); cap.position.y = 10.2; group.add(cap);
+    const door = new Mesh(new BoxGeometry(1, 1.8, 0.2), flat(PALETTE.rockDark)); door.position.set(0, 0.9, 2.4); group.add(door);
+    hub.position.set(0, 8.6, 2.2);
+  }
+  group.add(hub);
   const sail = flat(PALETTE.sail);
   for (let i = 0; i < 4; i++) {
     const arm = new Group(); arm.rotation.z = (i * Math.PI) / 2; hub.add(arm);
@@ -108,10 +120,21 @@ export function winch(): Group {
   return group;
 }
 
-/** A wind vane: a post and a four-cup rotor the plugin spins once a GUST hits it. */
+/** The generated vane's rotor: every facet above this height (the cups and the arrow) turns. */
+const VANE_ROTOR_Y = 2.2;
+/**
+ * A wind vane: the generated shrine post (C6, Hunyuan3D-2 from `art/far-reach/round-7-models/ref-vane.jpg`), its cups and
+ * arrow split off as the rotor the plugin spins once a GUST hits it; without it, a code post and a four-cup rotor.
+ */
 export function vane(): { group: Group; rotor: Object3D } {
-  const group = new Group(), rotor = new Group(), wood = flat(PALETTE.trunk), cloth = flat(PALETTE.glow, { emissive: PALETTE.glow, emissiveIntensity: 0.15 });
-  const post = new Mesh(new CylinderGeometry(0.1, 0.16, 3.2, 6), wood); post.position.y = 1.6; group.add(post);
+  const group = new Group(), rotor = new Group(), model = skyMesh('wind-vane');
+  if (model !== null) {
+    const g = fit(model, { size: 3.6, by: 'height', floor: 0, centre: 'base' }), [post, top] = splitAbove(g, VANE_ROTOR_Y), mat = flat(0xffffff, { vertexColors: true });
+    group.add(new Mesh(post, mat)); top.translate(0, -VANE_ROTOR_Y, 0); rotor.add(new Mesh(top, mat)); rotor.position.y = VANE_ROTOR_Y; group.add(rotor);
+    return { group, rotor };
+  }
+  const wood = flat(PALETTE.trunk), cloth = flat(PALETTE.glow, { emissive: PALETTE.glow, emissiveIntensity: 0.15 });
+  const pole = new Mesh(new CylinderGeometry(0.1, 0.16, 3.2, 6), wood); pole.position.y = 1.6; group.add(pole);
   rotor.position.y = 3.3; group.add(rotor);
   for (let i = 0; i < 4; i++) {
     const arm = new Mesh(new BoxGeometry(1.4, 0.06, 0.06), wood); arm.rotation.y = (i * Math.PI) / 2; arm.position.set(Math.cos(arm.rotation.y) * 0.7, 0, -Math.sin(arm.rotation.y) * 0.7); rotor.add(arm);

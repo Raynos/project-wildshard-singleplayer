@@ -1,0 +1,24 @@
+{
+ "name": "storm-roc",
+ "source": "ref-roc.glb",
+ "tris": 2396,
+ "size_m": [
+  11.04,
+  2.29,
+  5.97
+ ],
+ "pivot": "base centre, z=0 (Blender z-up; glTF y-up)",
+ "vertex_colour": "COLOR_0 rgb = albedo (sRGB-graded, stored linear), a = Cycles AO (0.35..1)",
+ "palette": [
+  "#443343",
+  "#546b82",
+  "#574455",
+  "#6aafcd",
+  "#826b5c",
+  "#a9927b",
+  "#d49f3b",
+  "#d6af67",
+  "#d7bd93",
+  "#ebd8bd"
+ ]
+}

@@ -1,0 +1,22 @@
+{
+ "name": "wind-vane",
+ "source": "ref-vane.glb",
+ "tris": 886,
+ "size_m": [
+  1.88,
+  1.19,
+  3.71
+ ],
+ "pivot": "base centre, z=0 (Blender z-up; glTF y-up)",
+ "vertex_colour": "COLOR_0 rgb = albedo (sRGB-graded, stored linear), a = Cycles AO (0.35..1)",
+ "palette": [
+  "#054449",
+  "#1f848e",
+  "#4f3725",
+  "#5b535b",
+  "#7a6b5f",
+  "#7f522e",
+  "#a1845d",
+  "#c98d2f"
+ ]
+}

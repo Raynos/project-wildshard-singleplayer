@@ -1,8 +1,9 @@
-import { CreatureBrain, StrikeRunner, NO_FUR, type Animal, type SpeciesLook, type SpeciesRow, type StrikeContext, type StrikeSpec, type ThinkCtx } from '#engine';
+import { CreatureBrain, StrikeRunner, NO_FUR, type Animal, type AnimalSpecies, type SpeciesLook, type SpeciesRow, type StrikeContext, type StrikeSpec, type ThinkCtx } from '#engine';
 import { Color, Float32BufferAttribute, BufferGeometry, Uint16BufferAttribute, Vector3 } from 'three';
 import { DECK, RAY_HOMES } from '../layout';
 import { STRINGS } from '../strings';
 import { homeOf } from './rig';
+import { bindRigid, fit, skyMesh } from '../world/meshes';
 
 /** The dive: a 3-D sphere contact around the ray, tested against the player's chest (ENGINE §19 "Short flyer"). */
 export const DIVE: StrikeSpec = { id: 'far.ray.dive', shape: { kind: 'sphere', radius: 1.9 }, windup: 1.1, active: 1.1, recover: 0.6, cooldown: 5,
@@ -98,13 +99,36 @@ export function rayGeometry(): BufferGeometry {
   g.setAttribute('skinIndex', new Uint16BufferAttribute(index, 4)); g.setAttribute('skinWeight', new Float32BufferAttribute(weight, 4));
   g.computeVertexNormals(); return g;
 }
-export const DRIFT_RAY_LOOK: SpeciesLook = { id: 'far.look.driftRay', species: DRIFT_RAY.id, kind: 'driftRay', rig: 'custom', fur: NO_FUR,
-  rigContract: { skeleton: 'far.driftRay', sockets: ['body', 'head', 'wingL', 'wingR', 'tail'], clips: ['idle', 'fly', 'attack', 'hit', 'die'] },
-  build: () => ({
+/** The code ray (the stand-in while the generated model is missing). */
+function rayCode(): AnimalSpecies {
+  return {
     bones: [{ name: 'body', parent: null, pos: [0, 0.3, 0] }, { name: 'head', parent: 'body', pos: [0, 0.3, 1.5] },
       { name: 'wingL', parent: 'body', pos: [1, 0.3, 0] }, { name: 'wingR', parent: 'body', pos: [-1, 0.3, 0] }, { name: 'tail', parent: 'body', pos: [0, 0.3, -1.2] }],
     furParts: [], hardParts: [rayGeometry()], eyeParts: [],
-    dims: { bodyY: 0.3, bodyHalfLen: 1.4, bodyRadius: 0.9, headRadius: 0.4, legLen: 0.1, feet: [], halfWidth: 2.7 } }),
+    dims: { bodyY: 0.3, bodyHalfLen: 1.4, bodyRadius: 0.9, headRadius: 0.4, legLen: 0.1, feet: [], halfWidth: 2.7 } };
+}
+/** Where a fin starts (metres off the centre line): outboard of it a facet rides its wing bone. */
+const RAY_WING_ROOT = 0.85;
+/**
+ * The generated ray (C6: Hunyuan3D-2 from `art/far-reach/round-7-models/ref-manta.jpg`): 5.4 m fin to fin, its middle at
+ * the body bone. Facets outboard of the fin roots ride the wings; the back of the centre line (the whip) rides the tail.
+ */
+function rayMesh(source: BufferGeometry): AnimalSpecies {
+  const g = fit(source, { size: 5.4, by: 'span', middle: 0.3 }), p = g.getAttribute('position');
+  let z0 = Infinity, z1 = -Infinity;
+  for (let i = 0; i < p.count; i++) if (Math.abs(p.getX(i)) < RAY_WING_ROOT) { z0 = Math.min(z0, p.getZ(i)); z1 = Math.max(z1, p.getZ(i)); }
+  const len = Math.max(0.5, z1 - z0), head = z1 - len * 0.18, tail = z0 + len * 0.45;
+  bindRigid(g, (x, _y, z) => x > RAY_WING_ROOT ? WING_L : x < -RAY_WING_ROOT ? WING_R : z > head ? HEAD : z < tail ? TAIL : BODY);
+  return { bones: [{ name: 'body', parent: null, pos: [0, 0.3, 0] }, { name: 'head', parent: 'body', pos: [0, 0.3, head] },
+    { name: 'wingL', parent: 'body', pos: [RAY_WING_ROOT, 0.3, 0] }, { name: 'wingR', parent: 'body', pos: [-RAY_WING_ROOT, 0.3, 0] }, { name: 'tail', parent: 'body', pos: [0, 0.3, tail] }],
+    furParts: [], hardParts: [g], eyeParts: [],
+    dims: { bodyY: 0.3, bodyHalfLen: 1.4, bodyRadius: 0.9, headRadius: 0.4, legLen: 0.1, feet: [], halfWidth: 2.7 } };
+}
+/** The body: the generated model when it loaded, else the code one. */
+export const rayBody = (): AnimalSpecies => { const g = skyMesh('drift-ray'); return g ? rayMesh(g) : rayCode(); };
+export const DRIFT_RAY_LOOK: SpeciesLook = { id: 'far.look.driftRay', species: DRIFT_RAY.id, kind: 'driftRay', rig: 'custom', fur: NO_FUR,
+  rigContract: { skeleton: 'far.driftRay', sockets: ['body', 'head', 'wingL', 'wingR', 'tail'], clips: ['idle', 'fly', 'attack', 'hit', 'die'] },
+  build: () => rayBody(),
   animate: ({ bones, t, alive }) => {
     const flap = alive ? Math.sin(t * 2.3) * 0.38 : 0.6;
     const left = bones['wingL'], right = bones['wingR'], tail = bones['tail'];

@@ -20,7 +20,7 @@ Storm Roc.
 | `species` | `driftRay`, `skyGoat`, `galeWisp`, `stormRoc` (all flyers, `flight.above: 'world'`; the goats hold their island's deck height, G26) |
 | `encounters` | `far.roc` (the Storm Roc boss) |
 | `audio` | `ambience: 'none'`, a silent score, kit sword cues; no `preload` (asset-free) |
-| `assets` | none: code-built models, an inline SVG card, no KTX2, no asset globs |
+| `assets` | `assetGlobs: ['public/assets/far-reach/**']`: five generated GLBs (C6, `public/assets/far-reach/models/`, ~260 KB, in `boot.sources().props`); an inline SVG card, no KTX2 |
 | saves | one shard key, `far-reach.rewarded` |
 
 ## Its custom code, and why
@@ -29,6 +29,7 @@ Storm Roc.
 |---|---|
 | `layout.ts` | every coordinate: the islands, the three spans, the winch, the rays' homes; `HOVER_GAP` keeps a hover deck clear of every rim |
 | `world/shapes.ts` | flat-shaded vertex-coloured islands (12-gon grass top, violet keel), instanced pines, plank bridges, the windmill, the winch |
+| `world/meshes.ts` | the generated models (C6): loads the five GLBs once in `world` (`preloadSkyMeshes`), flattens each to vertex-coloured facets (the baked AO kept at 60 %), `fit` (size, floor / middle, `pitch`, footing centre), `bindRigid` (a creature's facets ride one bone each), `splitAbove` (the vane's rotor). A model that fails to load leaves the code model |
 | `world/build.ts` | the pieces: island tops (six box strips cover the 12-gon), the rope bridge (deck + rails), the hover bridge (`active` only while `app.player.mode === 'board'`), the fallen bridge (`active` once raised), the windmill, the winch interactable |
 | `weapons/WarFan.ts` | the war fan (rung 3, `extends Weapon`): SWING arc slash and the held / HEAVY slash through `blocks.melee`; GUST (touch `verb.1`, key G) gives every creature in a 9 m cone `animal.impulse` away and a 4-point hit |
 | `species/skyGoat.ts` | sky goats: graze inside the rim, ram (lane) when crowded; GUSTed past the rim they drop through `killY` |
@@ -48,6 +49,12 @@ The template's inputs (phone 30 fps / 9.6 ms, desktop 60 fps / 4.8 ms); `ceiling
 
 Low-poly and flat-shaded: lavender-to-gold sky, sage grass, violet rock keels, dusk-purple pines, a cyan glass hover
 bridge. Matches `art/far-reach/round-4-rebuild/board-3aac2db1.jpg` (Jake: the look stands).
+
+**Models (C6).** The Storm Roc, the sky goat, the drift ray, the windmill tower and the wind vane are Hunyuan3D-2
+(turbo + paint) generations from codex image_gen refs (`art/far-reach/round-7-models/ref-*.jpg`), made faceted and
+vertex-coloured by `scripts/img2mesh/build_props.py art/far-reach/round-7-models/props.json public/assets/far-reach/models`.
+The Roc is generated upright (its ref faces the camera) and pitched to fly, so its pale banded front is the underside
+seen from the crown. The code models stay as the stand-ins (`rocCode`, `goatCode`, `rayCode`, the code tower and vane).
 
 ## Open asks
 

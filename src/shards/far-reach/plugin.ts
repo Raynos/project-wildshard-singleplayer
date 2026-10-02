@@ -12,6 +12,7 @@ import { SKY_GOAT, SKY_GOAT_LOOK } from './species/skyGoat';
 import { GALE_WISP, GALE_WISP_LOOK } from './species/galeWisp';
 import { GALE_WALL, STORM_ROC, STORM_ROC_LOOK, rocBrain } from './species/stormRoc';
 import { setHome } from './species/rig';
+import { preloadSkyMeshes } from './world/meshes';
 import { ROC_ID, StormRocBoss } from './combat/stormRoc';
 import { BOSS_REWARD, FLAGS, installQuest, vaneFlag } from './quest/install';
 import { installSkyCues } from './audio/cues';
@@ -34,8 +35,10 @@ export class SkyReachPlugin extends ShardPlugin {
   private board: () => boolean = () => false;
   flags: Flags | null = null;
 
-  override world(ctx: ShardContext): void {
+  override async world(ctx: ShardContext): Promise<void> {
     ctx.strings(STRINGS);
+    // The generated models (C6) load behind the loading screen; the world and the creature looks read them synchronously.
+    await preloadSkyMeshes();
     this.board = () => ctx.app.player?.mode === 'board';
     this.built = buildWorld(ctx, () => this.board());
     ctx.game.runtime?.interactables.push(this.built.winch, this.built.notes);
@@ -68,7 +71,7 @@ export class SkyReachPlugin extends ShardPlugin {
     if (rt) rt.hooks.questFlags = () => quest.isComplete ? [FLAGS.complete] : [];
 
     ctx.inputContext({ id: 'far.fan', actions: ['attack', 'heavy', 'lock', 'far.gust'], keysFrom: 'weapon.melee', keys: { 'far.gust': ['KeyG'] },
-      touch: { mode: 'melee', lockable: true, relabel: { r0: { label: STRINGS.swing, icon: '', tone: 'rest' } },
+      touch: { mode: 'melee', lockable: true, relabel: { r0: { label: STRINGS.swing, icon: '' } },
         verbs: { 'verb.1': { action: 'far.gust', label: STRINGS.gust, icon: '', show: () => ctx.app.state === 'play' && !this.board() } } } });
 
     // Step 1: the keeper's notes.

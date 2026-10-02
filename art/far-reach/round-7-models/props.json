@@ -1,0 +1,13 @@
+{
+ "about": "Sky Reach C6 (E374): codex image_gen refs (ref-*.jpg here) -> Hunyuan3D-2 turbo shape + paint (~/projects/localai/bin/img2mesh/hy3d_batch.py under run-locked.sh) -> faceted vertex-coloured assets. Run: python3 scripts/img2mesh/build_props.py art/far-reach/round-7-models/props.json public/assets/far-reach/models. Sizes in metres; --tris is the per-asset triangle budget.",
+ "gen": "~/ml/img2mesh/out/far-reach-hy",
+ "stage": "~/ml/img2mesh/out/far-reach-post",
+ "args": [],
+ "props": [
+  {"ref": "ref-roc", "args": "--name storm-roc --tris 2400 --fit length --size 11 --quant 10 --sat 1.1"},
+  {"ref": "ref-goat", "args": "--name sky-goat --tris 1100 --fit length --size 1.45 --quant 8"},
+  {"ref": "ref-manta", "args": "--name drift-ray --tris 900 --fit length --size 5.4 --quant 8"},
+  {"ref": "ref-windmill", "args": "--name windmill --tris 1800 --fit height --size 11.4 --quant 10 --remesh 0.006 --simplifier blender"},
+  {"ref": "ref-vane", "args": "--name wind-vane --tris 900 --fit height --size 3.7 --quant 8"}
+ ]
+}
