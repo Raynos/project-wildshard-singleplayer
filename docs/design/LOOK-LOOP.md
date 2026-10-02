@@ -247,8 +247,9 @@ Write `scripts/palette-regions/<shard>.json`:
 python3 scripts/palette-delta.py --shard <slug> <round dir with mockup-<n>-*.jpg> '<captures>/capture-r2-{n}.jpg'
 ```
 
-It prints the mean-colour ΔE00 per region, mockup vs game. **Bar: every region under 6 pooled over all frames, reported
-per zone too.**
+It prints the mean-colour ΔE00 per region, mockup vs game, pooled over all frames and per zone. **It is information, not a
+pass bar** (E388, Jake 2026-10-02: no invented numbers): it shows which region is furthest from the target and whether a
+round moved it. The owner's sign-off on the 3×3 decides when a zone is done.
 
 - A per-zone miss can be the target's fault. At the ridge and den, codex painted a paler zenith than at the other four
   zones, while the game's sky is one dome everywhere. Say so and trust the pooled number.
@@ -256,7 +257,7 @@ per zone too.**
 ## Step 6: fix, then the learned LUT (`scripts/fit-lut.py`)
 
 **Order matters: fix structure first, colour last.** Ground, density, lighting, fog and models come before the LUT. A LUT
-can hit ΔE < 6 on a frame that still looks empty (Driftwood v0.2: palette on target, parity ~70 %). Then:
+can bring every region's ΔE00 down on a frame that still looks empty (Driftwood v0.2: palette on target, parity ~70 %). Then:
 
 1. Capture the loop **without the LUT**, same cameras: set pause ▸ Settings ▸ Debug ▸ Look ▸ Learned LUT to Off (in a
    capture script: localStorage `ws.settings.v1` = `{"learnedLut":"off"}` before the load). A new page or a lab uses a
@@ -308,7 +309,7 @@ can hit ΔE < 6 on a frame that still looks empty (Driftwood v0.2: palette on ta
   as BEFORE | AFTER | TARGET.
 - **Stop a zone when:**
   - the owner signs off its 3×3;
-  - every region is ΔE00 < 6;
+  - (ΔE00 per region is reported on the board, as information);
   - the rulers held (calls within budget, 30 fps lock, no new programs);
   - the walk-around shows no cutout, seam or pop.
 - **Stop a lab loop** when a stranger could not tell your crop from the target's at phone size, or when you know *why*

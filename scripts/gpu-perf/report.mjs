@@ -56,12 +56,12 @@ export function memoryVerdict(shard, phase, nativeGB, inspectorGB, previousGB, p
   if (!Number.isFinite(nativeGB) || nativeGB <= 0 || !Number.isFinite(inspectorGB) || inspectorGB <= 0 || limitGB === undefined)
     return { verdict: 'failure', reason: 'missing measurement', limitGB };
   if (nativeGB > limitGB) return { verdict: 'failure', reason: 'absolute limit', limitGB };
+  // E388 (Jake 2026-10-02, "we're fighting against magic numbers"): the only red is the device limit (1.8 GB loading /
+  // 1.0 GB play and Explorer, from the iPhone incident). Night-to-night growth is reported, never a gate: the old
+  // "growth > 10%" band was invented. `shard` and `pending` stay in the signature for the callers.
+  void shard; void pending;
   const growth = previousGB > 0 ? nativeGB / previousGB - 1 : null;
-  if (growth !== null && growth > 0.1 + 1e-12) {
-    const intended = pending.some((entry) => entry.fields?.includes(`memory.${shard}.${phase}`));
-    return { verdict: intended ? 'pending' : 'failure', reason: 'growth > 10%', limitGB, growth };
-  }
-  return { verdict: 'success', reason: previousGB > 0 ? 'within limits and growth band' : 'first reading', limitGB, growth };
+  return { verdict: 'success', reason: previousGB > 0 ? 'within the device limit' : 'first reading', limitGB, growth };
 }
 
 export function parseMemoryRun(nativeText, inspectorText, shard, previous = {}, pending = []) {

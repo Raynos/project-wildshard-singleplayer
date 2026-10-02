@@ -9,12 +9,11 @@ describe('nightly memory gate', () => {
     expect(memoryVerdict('a', 'play', 1.001, 0.5, undefined).reason).toBe('absolute limit');
     expect(memoryVerdict('a', 'explorer', 1, 0.5, undefined).verdict).toBe('success');
   });
-  it('gates growth strictly above 10%, with a pending exception only below the limit', () => {
+  it('reports growth but fails only on the device limit (E388: no invented growth band)', () => {
     const pending = [{ fields: ['memory.a.play'] }];
-    expect(memoryVerdict('a', 'play', 0.88, 0.6, 0.8).verdict).toBe('success');
-    expect(memoryVerdict('a', 'play', 0.881, 0.6, 0.8).verdict).toBe('failure');
-    expect(memoryVerdict('a', 'play', 0.881, 0.6, 0.8, pending).verdict).toBe('pending');
-    expect(memoryVerdict('a', 'explorer', 0.881, 0.6, 0.8, pending).verdict).toBe('failure');
+    const grown = memoryVerdict('a', 'play', 0.96, 0.6, 0.8);
+    expect(grown.verdict).toBe('success'); expect(grown.growth).toBeCloseTo(0.2);
+    expect(memoryVerdict('a', 'explorer', 0.99, 0.6, 0.5, pending).verdict).toBe('success');
     expect(memoryVerdict('a', 'play', 1.01, 0.6, 0.8, pending).verdict).toBe('failure');
   });
   it('fails closed on incomplete reports or lost WebContent', () => {
