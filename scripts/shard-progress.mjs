@@ -31,7 +31,8 @@ const LABEL = flag('label', '');
 const CLIP = !argv.includes('--no-clip');
 const CAMS = JSON.parse(readFileSync(join(ROOT, 'art', SLUG, 'progress', 'cameras.json'), 'utf8'));
 const when = execFileSync('git', ['show', '-s', '--format=%cd', '--date=format:%Y%m%d-%H%M', SHA], { cwd: ROOT, encoding: 'utf8' }).trim();
-const OUT = join(ROOT, 'progress', SLUG, `${when}-${SHA.slice(0, 8)}`);
+/** --root=<dir>: write the capture there instead of the repo's progress/ (a scratch comparison, E397) */
+const OUT = join(flag('root', join(ROOT, 'progress')), SLUG, `${when}-${SHA.slice(0, 8)}`);
 mkdirSync(OUT, { recursive: true });
 const TMP = join(tmpdir(), `shard-progress-${SLUG}-${SHA.slice(0, 8)}`);
 mkdirSync(TMP, { recursive: true });
@@ -114,7 +115,9 @@ try {
     const webm = join(TMP, 'clip.webm'); writeFileSync(webm, Buffer.from(b64, 'base64'));
     execFileSync('ffmpeg', ['-v', 'error', '-y', '-i', webm, '-vf', 'scale=540:-2,format=yuv420p', '-c:v', 'libx264', '-b:v', '900k', '-maxrate', '1200k', '-bufsize', '2400k', '-r', '30', '-movflags', '+faststart', join(OUT, 'clip.mp4')]);
   }
-  writeFileSync(join(OUT, 'meta.json'), `${JSON.stringify({ shard: SLUG, sha: SHA, when, label: LABEL, loadSeconds: loadS, shots, clip: CLIP && Boolean(CAMS.clip), pageErrors: errors }, null, 1)}\n`);
+  // the compiled programs after every view was drawn (E397: a program-key collision shows up as a lower count)
+  const programs = await page.evaluate(() => window.__wildshard.world.game.renderer?.info?.programs?.length ?? null).catch(() => null);
+  writeFileSync(join(OUT, 'meta.json'), `${JSON.stringify({ shard: SLUG, sha: SHA, when, label: LABEL, loadSeconds: loadS, shots, clip: CLIP && Boolean(CAMS.clip), programs, pageErrors: errors }, null, 1)}\n`);
   console.log(`progress: ${OUT.slice(ROOT.length + 1)} · ${shots.length} shots${CLIP && CAMS.clip ? ' + clip' : ''} · load ${loadS} s${errors.length > 0 ? ` · ${errors.length} page errors` : ''}`);
 } finally {
   await browser.close();

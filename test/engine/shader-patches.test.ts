@@ -70,4 +70,18 @@ describe('shader-patch registry (E357 X6)', () => {
     expect(compile(mat)).toBe('v|f+own|csm');
     expect(mat.customProgramCacheKey()).toBe('own|csm');
   });
+  it('keeps two materials apart when a scene-wide patch runs last over different own patches (E397)', () => {
+    const scene = (s: { fragmentShader: string }): void => { s.fragmentShader += '+fog'; };
+    const island = new THREE.MeshStandardMaterial(), plain = new THREE.MeshStandardMaterial(), alone = new THREE.MeshStandardMaterial();
+    patchShader(island, 'island-tex', PATCH_ORDER.material, (s) => { s.fragmentShader += '+tex'; });
+    patchShader(island, 'scene-fog', PATCH_ORDER.decorate, scene);
+    patchShader(plain, 'scene-fog', PATCH_ORDER.decorate, scene);
+    patchShader(alone, 'scene-fog', PATCH_ORDER.decorate, scene);
+    // the old default (the last patch's text) gave island and plain one key, so three compiled island without +tex
+    expect(island.customProgramCacheKey()).not.toBe(plain.customProgramCacheKey());
+    expect(island.customProgramCacheKey()).toContain('+tex');
+    // a material with a single patch keeps exactly the key it had: the program keys of every other material stay put
+    expect(plain.customProgramCacheKey()).toBe(alone.customProgramCacheKey());
+    expect(plain.customProgramCacheKey()).toBe(scene.toString());
+  });
 });

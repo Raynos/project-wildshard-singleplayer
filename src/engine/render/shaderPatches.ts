@@ -13,7 +13,11 @@
  *   before keeps running first.
  * - The program-cache key is three's dedupe key: two materials with the same key share one program. A patch
  *   with no `key` keeps three's default (the source text of the last patch function, as the old outermost
- *   `onBeforeCompile.toString()`), so materials share programs exactly as they did.
+ *   `onBeforeCompile.toString()`), so materials share programs exactly as they did. E397: when a material runs
+ *   two or more of the registry's patches, the default joins every patch's source text in its chain. The last patch's
+ *   text alone let a scene-wide patch run last over every material collapse them onto one key, so a
+ *   material-specific patch added earlier compiled into a shared program without it (a level's island
+ *   textures under its scene-wide fog). A material with one patch keeps exactly the key it had.
  */
 import * as THREE from 'three';
 import type { Scope } from '../app/scope';
@@ -67,6 +71,12 @@ const ownKey = (mat: THREE.Material): (() => string) | null =>
   Object.hasOwn(mat, 'customProgramCacheKey') ? mat.customProgramCacheKey.bind(mat) : null;
 
 const lastText = (entries: readonly Entry[]): string => entries.at(-1)?.fn.toString() ?? '';
+/** three's default key, or every own patch's source text once two or more of the registry's patches run (E397) */
+const defaultKey = (entries: readonly Entry[]): string => {
+  const own = entries.filter((e) => e.id !== 'inherited');
+  // the earlier patches' source text, not their ids: identical patches under two ids still share one program
+  return own.length < 2 ? lastText(entries) : own.map((e) => e.fn.toString()).join('\n|\n');
+};
 
 function stateOf(mat: THREE.Material, mode: 'chain' | 'replace'): State {
   const known = states.get(mat);
@@ -84,7 +94,7 @@ function stateOf(mat: THREE.Material, mode: 'chain' | 'replace'): State {
   const state: State = {
     entries, key: prevKey, explicitKey: prevKey !== null, before,
     runner: (shader, renderer) => { for (const e of state.entries) e.fn(shader, renderer); },
-    keyFn: () => (state.key === null ? lastText(state.entries) : state.key()),
+    keyFn: () => (state.key === null ? defaultKey(state.entries) : state.key()),
   };
   states.set(mat, state);
   mat.onBeforeCompile = state.runner;
@@ -117,7 +127,7 @@ export function patchShader(mat: THREE.Material, id: string, order: number, fn: 
   const { key } = opts;
   if (typeof key === 'string') { state.key = () => key; state.explicitKey = true; } else if (key !== undefined) {
     // the old `const k = mat.customProgramCacheKey.bind(mat)` read three's default lazily: the outermost hook's text
-    const prior = keyBefore ?? ((): string => lastText(state.entries));
+    const prior = keyBefore ?? ((): string => defaultKey(state.entries));
     state.key = () => key(prior());
     state.explicitKey = true;
   }
