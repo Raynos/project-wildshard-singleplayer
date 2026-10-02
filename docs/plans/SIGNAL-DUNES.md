@@ -1,6 +1,6 @@
 # SIGNAL-DUNES — shard 5's full content (E374)
 
-**State:** `in progress` 2026-10-01 — Jake approved the build-out (E374: "world, content, quests, boss, some models; skip music and SFX; not Driftwood level"). Step 0 (the E357 Z3 round-2 clean-room rebuild) runs first; content rows C1–C6 follow, one fresh subagent per chunk, each with a Handoff in E374.
+**State:** `in progress` 2026-10-01 — C1–C7 built (a thin slice of content, by design); Jake judged the look and feel far below the mockups and the other shards, so the polish loop P1–P6 runs now: a review, then a fresh Opus builder looping on four hero scenes, hands/weapon and the quest flow. No new content.
 
 Shard 5, slug `sunscar-dunes`, Jake's pick **C · Signal Dunes** (E363 round 2): realistic dusk dunes, an orange band under
 indigo, first stars, cool blue hollows; a braided leather bullwhip; a ray-like flyer; "Light the signal fire". No
@@ -30,3 +30,16 @@ the shard's own budgets.
 `docs/tasks/asks/E374.md`. A subagent never edits `src/engine`, `src/game`, `src/kit`, `lint`, `.github` or `scripts`:
 it asks the lead (SendMessage to the main session) for a public-API change, which the lead builds and lands. Commits stay
 inside the shard's lock allowlist (`.github/lock.json` reopened `sunscar-dunes`), pathspec only; the lead pushes.
+
+## Polish loop (Jake, 2026-10-01)
+
+Jake, 2026-10-01, after playing both on his iPhone: "they look absolutely nothing like the mock-up … an incredibly half-assed implementation … I'm not asking for more content … I'm asking you to fix the presentation and feel of the world as is and to make sure that the quest is planned … look at the Driftwood quest … quest icons on the mini map … we need to do 10x 100x better". Also: flyers must be lockable, with a more generous lock range (engine, sol-lock).
+
+| Row | What | State |
+|---|---|---|
+| P1 | **Review**: a deep, ranked review of why the shard looks nothing like its mockups and nothing like Nalati / Nine Dragon / Pine Hollow: graphics, lighting and palette, materials, models, composition, sky, effects, first-person hands and weapon, HUD use, and the quest flow against Driftwood's (an NPC who starts it, quest markers on the minimap and world, step guidance). Output: `docs/design/sunscar-dunes/review-2026-10-01.md` with a TOP-N routed to owners (shard vs engine) | open |
+| P2 | **Four hero scenes** chosen from the review; each gets the LOOK-LOOP (`docs/design/LOOK-LOOP.md`): 9 fixed angles (3×3), image-model targets edited from the captures (keeping camera and HUD), a gap list, ΔE00 per palette region, fixes, re-shoot; loop until each 3×3 reads like its target | open |
+| P3 | **Hands and weapon** in the Practice Arena: mockups of how the hands and weapon should look, feel and move (idle, attack, heavy, special), then loop the viewmodel against them | open |
+| P4 | **Quest planned like Driftwood's**: a start (an NPC or a found object that names the goal), each step marked on the minimap and in the world, clear prompts, a reward beat; the existing steps re-staged, no new content | open |
+| P5 | **Presentation pass**: title card and Explore hero images from the finished hero scenes; loading card; first-minute framing from the spawn | open |
+| P6 | **Jake plays it**: a board per loop round and a final 3×3 per hero scene for his sign-off | open |
