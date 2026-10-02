@@ -17,6 +17,7 @@ import { listenDom, app, isDev } from '#engine';
  * test/title-deck.test.ts keeps each card's name, label (the def's `biome`), badge and art equal to its ShardManifest.
  */
 import { SHARDS, type ShardSlug } from './shard/shards.generated';
+import { DRAFT_TITLES, type DraftTitle } from './draftTitles';
 import { readSummary, summaryView } from './summary';
 import { GAME_STRINGS } from './strings';
 import './summary.css';
@@ -54,6 +55,25 @@ export function titleCards(showHidden = isDev()): readonly TitleCard[] {
   });
 }
 
+/** A deck entry: a shard's card, or a draft's COMING SOON card (WORLDCLAW-TOOLS W9, J19, J38): no world to enter, its
+ * button opens the draft on the drafts site. Drafts follow the shards; the HUD's `deck.cards[deck.index]` stays shards only. */
+interface DeckEntry {
+  readonly slug: string;
+  readonly name: string;
+  readonly label: string;
+  readonly badge?: TitleBadge | undefined;
+  readonly thumbnail: string;
+  readonly heroPortrait: string;
+  readonly heroLandscape: string;
+  readonly shard: TitleCard | null;
+  readonly draft: DraftTitle | null;
+}
+
+const fromShard = (c: TitleCard): DeckEntry => ({ ...c, shard: c, draft: null });
+const fromDraft = (d: DraftTitle): DeckEntry => ({
+  slug: d.slug, name: d.name, label: d.line, thumbnail: d.thumb, heroPortrait: d.hero, heroLandscape: d.hero, shard: null, draft: d,
+});
+
 export interface TitleDeckOptions {
   readonly cards: readonly TitleCard[];
   /** the shard this page is running (its card is LOADED and selected first); null on the cold launch */
@@ -87,22 +107,25 @@ function required(root: ParentNode, selector: string): HTMLElement {
 }
 
 /** ENTER WORLD's small line for a card */
-function canEnter(card: TitleCard): boolean {
+function canEnter(card: DeckEntry): boolean {
+  if (card.draft) return false;
   return isDev() || (card.badge !== 'Experimental' && card.badge !== 'Developer only' && !card.slug.startsWith('_'));
 }
 
 /** EXPLORE WORLD is a developer tool: only in developer mode, and only for a world that can be entered (Jake, E386) */
-function canExplore(card: TitleCard): boolean {
+function canExplore(card: DeckEntry): boolean {
   return isDev() && canEnter(card);
 }
 
 /** the tape over a card's image: a world that can't be entered reads COMING SOON, not EXPERIMENTAL (Jake, E386) */
-function ribbonFor(card: TitleCard): string {
+function ribbonFor(card: DeckEntry): string {
+  if (card.draft) return isDev() ? GAME_STRINGS.drafts.ribbon(card.draft.stage) : GAME_STRINGS.drafts.comingSoon;
   if (!canEnter(card)) return 'Coming soon';
   return card.badge === 'Developer only' ? GAME_STRINGS.developer.ribbon : card.badge ?? '';
 }
 
-function hintFor(card: TitleCard, active: boolean): string {
+function hintFor(card: DeckEntry, active: boolean): string {
+  if (card.draft) return isDev() ? card.draft.stageName : GAME_STRINGS.drafts.notPlayable;
   if (!canEnter(card)) return '';
   if (!active) return `Loads ${card.name}`;
   return card.badge === 'Early access' ? 'Early access' : card.badge === 'Experimental' ? 'Developer only' : 'Play'; // Jake: experimental shards enter only in developer mode
@@ -111,7 +134,8 @@ function hintFor(card: TitleCard, active: boolean): string {
 export function buildTitleDeck(opts: TitleDeckOptions): TitleDeck {
   const scope = app.engineScope.child('title-deck');
   const { cards } = opts;
-  const activeIndex = cards.map((card): string => card.slug).indexOf(opts.active ?? '');
+  const entries: readonly DeckEntry[] = [...cards.map(fromShard), ...DRAFT_TITLES.map(fromDraft)];
+  const activeIndex = entries.map((card): string => card.slug).indexOf(opts.active ?? '');
   const root = document.createElement('div');
   root.className = 'ws-menu';
   root.innerHTML = `
@@ -119,7 +143,7 @@ export function buildTitleDeck(opts: TitleDeckOptions): TitleDeck {
     <div class="ws-menu-head"><div class="ws-wordmark">Project <b>Wildshard</b></div>
       <button class="ws-menu-mode ws-menu-explore" type="button"><span class="ws-menu-mode-glyph">${EYE}</span><span class="ws-menu-explore-text"><b>Explore world</b><small>Fly · inspect</small></span></button></div>
     <div class="ws-menu-deck">
-      <div class="ws-menu-cards"><div class="ws-menu-deck-track">${cards.map((c, i) => {
+      <div class="ws-menu-cards"><div class="ws-menu-deck-track">${entries.map((c, i) => {
         const active = i === activeIndex;
         return `
         <button class="ws-menu-card${active ? ' active' : ''}" type="button" data-i="${i}">
@@ -127,7 +151,7 @@ export function buildTitleDeck(opts: TitleDeckOptions): TitleDeck {
           <b>${c.name}</b><small>${c.label}</small>
         </button>`;
       }).join('')}</div></div>
-      <div class="ws-menu-dots">${cards.map((_, i) => `<i data-i="${i}"></i>`).join('')}</div>
+      <div class="ws-menu-dots">${entries.map((_, i) => `<i data-i="${i}"></i>`).join('')}</div>
       <div class="ws-menu-modes"><button class="ws-menu-mode ws-menu-play" type="button"><span class="ws-menu-mode-glyph">${SWORD}</span><b>Enter world</b><small></small></button></div>
       <div class="ws-menu-row"><button class="ws-menu-settings" type="button">Settings</button></div>
     </div>`;
@@ -142,7 +166,7 @@ export function buildTitleDeck(opts: TitleDeckOptions): TitleDeck {
   const summary = document.createElement('div');
   summary.className = 'ws-title-summary';
   summary.setAttribute('aria-label', GAME_STRINGS.summary.label);
-  const paintSummary = (card: TitleCard): void => {
+  const paintSummary = (card: DeckEntry): void => {
     const view = summaryView(readSummary(), SHARDS);
     const lines = new Map(view.lines.map((entry) => [entry.slug, entry] as const));
     const line = lines.get(card.slug);
@@ -164,7 +188,7 @@ export function buildTitleDeck(opts: TitleDeckOptions): TitleDeck {
   const cardEls = Array.from(root.querySelectorAll<HTMLElement>('.ws-menu-card'));
   const dots = Array.from(root.querySelectorAll<HTMLElement>('.ws-menu-dots i'));
   const portrait = (): boolean => innerWidth < innerHeight;
-  const heroUrl = (c: TitleCard): string => (portrait() ? c.heroPortrait : c.heroLandscape);
+  const heroUrl = (c: DeckEntry): string => (portrait() ? c.heroPortrait : c.heroLandscape);
   let index = Math.max(0, activeIndex);
 
   // paginated track: one card per swipe, always centred — no native scroll, so it can't rest between cards
@@ -175,25 +199,30 @@ export function buildTitleDeck(opts: TitleDeckOptions): TitleDeck {
     track.style.transform = `translateX(${list.clientWidth / 2 - (card.offsetLeft + card.offsetWidth / 2) + extra}px)`;
   };
   const apply = (): void => {
-    const c = cards[index];
+    const c = entries[index];
     if (c === undefined) return;
     cardEls.forEach((e, i) => { e.classList.toggle('selected', i === index); });
     dots.forEach((d, i) => { d.classList.toggle('on', i === index); });
     hero.style.backgroundImage = `url('${heroUrl(c)}')`;
     hero.classList.add('show');
     hint.textContent = hintFor(c, index === activeIndex);
-    play.disabled = !canEnter(c);
+    play.disabled = !canEnter(c) && c.draft === null;
     explore.disabled = !canExplore(c);
     explore.classList.toggle('off', !canExplore(c)); // menu.css hides .off
-    required(play, 'b').textContent = canEnter(c) ? 'Enter world' : 'Coming soon';
+    required(play, 'b').textContent = c.draft ? (isDev() ? GAME_STRINGS.drafts.draftMode : GAME_STRINGS.drafts.followBuild) : canEnter(c) ? 'Enter world' : 'Coming soon';
     paintSummary(c);
   };
   const select = (raw: number, smooth = true): void => {
-    const i = Math.max(0, Math.min(cards.length - 1, raw));
+    const i = Math.max(0, Math.min(entries.length - 1, raw));
     place(i, 0, smooth);
     if (i !== index) { index = i; apply(); }
   };
-  const activate = (): void => { const c = cards[index]; if (c && canEnter(c)) opts.onEnter(c); };
+  const activate = (): void => {
+    const c = entries[index];
+    // A draft opens on the drafts site (J16, J19): FOLLOW THE BUILD shows its teaser, DRAFT MODE its pages (Developer on there).
+    if (c?.draft) { window.open(c.draft.url, '_blank', 'noopener'); return; }
+    if (c?.shard && canEnter(c)) opts.onEnter(c.shard);
+  };
 
   // swipe → the track follows the finger (rubber-banded at the ends), release = one page in the swipe direction
   let drag: { id: number; x0: number; t0: number; dx: number } | null = null;
@@ -205,7 +234,7 @@ export function buildTitleDeck(opts: TitleDeckOptions): TitleDeck {
   listenDom(scope, list, 'pointermove', (e) => {
     if (!drag || e.pointerId !== drag.id) return;
     drag.dx = e.clientX - drag.x0;
-    const atEnd = (drag.dx > 0 && index === 0) || (drag.dx < 0 && index === cards.length - 1);
+    const atEnd = (drag.dx > 0 && index === 0) || (drag.dx < 0 && index === entries.length - 1);
     place(index, atEnd ? drag.dx * 0.3 : drag.dx, false);
   });
   let swipedAt = 0; // a swipe's trailing click must not re-select the card under the finger
@@ -220,14 +249,14 @@ export function buildTitleDeck(opts: TitleDeckOptions): TitleDeck {
   cardEls.forEach((e, i) => { listenDom(scope, e, 'click', (ev) => { ev.stopPropagation(); if (i !== index && performance.now() - swipedAt > 400) select(i); }); });
   dots.forEach((d, i) => { listenDom(scope, d, 'click', (ev) => { ev.stopPropagation(); select(i); }); });
   listenDom(scope, required(root, '.ws-menu-play'), 'click', (ev) => { ev.stopPropagation(); activate(); });
-  listenDom(scope, required(root, '.ws-menu-explore'), 'click', (ev) => { ev.stopPropagation(); const c = cards[index]; if (c && canExplore(c)) opts.onExplore(c); });
+  listenDom(scope, required(root, '.ws-menu-explore'), 'click', (ev) => { ev.stopPropagation(); const c = entries[index]; if (c?.shard && canExplore(c)) opts.onExplore(c.shard); });
   listenDom(scope, required(root, '.ws-menu-settings'), 'click', (ev) => { ev.stopPropagation(); opts.onSettings(); });
 
   // hero art is ~0.2–0.3 MB a file and every card has two (portrait + landscape): only the selected card's, in the
   // orientation on screen, loads with the deck. A neighbour's loads when a swipe or a dot press starts toward it, so the
   // crossfade on release is usually instant (LOAD-PERF, first-launch transfer)
   const warmed = new Set<string>();
-  const warm = (i: number): void => { const c = cards[i]; const u = c ? heroUrl(c) : ''; if (u && !warmed.has(u)) { warmed.add(u); new Image().src = u; } };
+  const warm = (i: number): void => { const c = entries[i]; const u = c ? heroUrl(c) : ''; if (u && !warmed.has(u)) { warmed.add(u); new Image().src = u; } };
   listenDom(scope, list, 'pointerdown', () => { warm(index - 1); warm(index + 1); });
   dots.forEach((d, i) => { listenDom(scope, d, 'pointerdown', () => { warm(i); }); });
 

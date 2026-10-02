@@ -90,3 +90,37 @@ it('rejects stale developer cards through programmatic activation after switchin
   expect(onEnter).not.toHaveBeenCalled(); expect(onExplore).not.toHaveBeenCalled();
   deck.dispose();
 });
+
+// WORLDCLAW-TOOLS W9 (J19, J38, J56): a draft's COMING SOON card follows the shards; it has no world, so its one button
+// opens the draft on the drafts site, and the HUD's `deck.cards` stays the shards only.
+describe('a draft\'s COMING SOON card', () => {
+  for (const dev of [false, true]) {
+    it(`shows Thin Ice after the shards and opens the drafts site with Developer ${dev}`, () => {
+      setDev(dev);
+      const onEnter = vi.fn<() => void>(), onExplore = vi.fn<() => void>();
+      const open = vi.spyOn(window, 'open').mockImplementation(() => null);
+      const cards = titleCards();
+      const deck = buildTitleDeck({ cards, active: null, onEnter, onExplore, onSettings: () => undefined });
+      document.body.append(deck.root);
+      expect(deck.cards.map((c) => c.slug)).toEqual(cards.map((c) => c.slug));
+      const els = deck.root.querySelectorAll('.ws-menu-card');
+      expect(els).toHaveLength(cards.length + 1);
+      const draftEl = els[cards.length];
+      expect(draftEl?.textContent).toContain('Thin Ice');
+      expect(draftEl?.textContent).toContain('The ferry is gone and the fjord has frozen.');
+      expect(draftEl?.querySelector('.ws-menu-card-exp')?.textContent).toBe(dev ? 'Draft · P6' : 'Coming soon');
+      expect(draftEl?.querySelector('.ws-menu-card-tag')).toBeNull();
+      deck.select(cards.length, false);
+      expect(deck.cards[deck.index]).toBeUndefined();
+      const play = deck.root.querySelector<HTMLButtonElement>('.ws-menu-play');
+      expect(play?.disabled).toBe(false);
+      expect(deck.root.querySelector('.ws-menu-play b')?.textContent).toBe(dev ? 'Draft mode' : 'Follow the build');
+      expect(deck.root.querySelector('.ws-menu-explore')?.classList.contains('off')).toBe(true);
+      deck.activate();
+      expect(open).toHaveBeenCalledWith('https://wildshard-drafts.vercel.app/#/thin-ice', '_blank', 'noopener');
+      expect(onEnter).not.toHaveBeenCalled();
+      expect(onExplore).not.toHaveBeenCalled();
+      deck.dispose(); deck.root.remove();
+    });
+  }
+});
