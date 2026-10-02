@@ -190,6 +190,7 @@ export class Player {
   private dashRoll = 0; // camera lean into a sideways dodge (rad), from the dodge envelope
   private dodgeClock = -1; // ms since the running dodge started (-1 = none): the E63 feel curves
   private shoveT = 0; private shoveVx = 0; private shoveVz = 0;
+  private readonly impulseVelocity = new THREE.Vector3();
   /** something else owns the position (the zipline's cable, the finale's reward shot): the fixed step leaves it alone */
   carried = false;
   // ── the fixed step (PHYSICS.md P2): input() reads intents, step() moves at 60 Hz, update() poses the camera ──
@@ -260,6 +261,7 @@ export class Player {
     this.prevFeet.copy(this.position);
     this.yaw = yaw; this.pitch = 0;
     this.velocity.set(0, 0, 0);
+    this.impulseVelocity.set(0, 0, 0);
     this.dashT = 0;
     this.setSwimming(false); this.inWater = false; this.depth = 0; this.wading = false;
   }
@@ -324,6 +326,14 @@ export class Player {
     this.onDodge?.();
     return true;
   }
+  /** Add transient world velocity in m/s independently of steering; every displacement uses the motor. */
+  impulse(worldVelocityMps: THREE.Vector3): void {
+    if (![worldVelocityMps.x, worldVelocityMps.y, worldVelocityMps.z].every(Number.isFinite)) throw new Error('Player impulse must be finite');
+    if (this.ride !== null || this.carried || this.effectMoveLocked || this.swimming) return;
+    this.impulseVelocity.add(worldVelocityMps);
+    if (worldVelocityMps.y > 0) { this.onGround = false; if (this.hover) this.hoverAir = true; }
+  }
+
   /** A creature hit you from (fromX, fromZ): knocked `speed` m/s away from it, fading over SHOVE_TIME (≈ a step at 6 m/s). */
   shove(fromX: number, fromZ: number, speed: number): void {
     if (this.hover || this.swimming) return;
@@ -386,9 +396,9 @@ export class Player {
   step(dt: number): void {
     this.prevFeet.copy(this.position);
     // in the saddle the horse carries you (Mount.step, on the horse's own motor): no walk, no motor of yours
-    if (this.ride !== null) { this.ride.step(dt); return; }
-    if (this.traversalEvents?.ask('player.traversal', dt) === true) { this.jumpQueued = false; return; }
-    if (this.carried || this.effectMoveLocked) { this.velocity.set(0, 0, 0); this.onGround = false; return; }
+    if (this.ride !== null) { this.impulseVelocity.set(0, 0, 0); this.ride.step(dt); return; }
+    if (this.traversalEvents?.ask('player.traversal', dt) === true) { this.impulseVelocity.set(0, 0, 0); this.jumpQueued = false; return; }
+    if (this.carried || this.effectMoveLocked) { this.impulseVelocity.set(0, 0, 0); this.velocity.set(0, 0, 0); this.onGround = false; return; }
     const k = this.keys;
     const fwd = this.inFwd, str = this.inStr;
     const hover = this.hover;
@@ -449,7 +459,8 @@ export class Player {
       }
       return best;
     };
-    const want = this.want;
+    const want = this.want, impulse = this.impulseVelocity;
+    if (swim) impulse.set(0, 0, 0);
 
     if (hover) {
       // ── hoverboard: momentum steering — velocity is pulled toward the input direction at a fixed rate, glides with no input ──
@@ -475,7 +486,7 @@ export class Player {
       this.hoverAccel += (af - this.hoverAccel) * Math.min(1, dt * 8);
 
       // across: walls, posts and trunks stop the board; the terrain never does (the repulsors glide up anything)
-      want.x = v.x * dt; want.y = 0; want.z = v.z * dt;
+      want.x = (v.x + impulse.x) * dt; want.y = 0; want.z = (v.z + impulse.z) * dt;
       this.motor.move(this.position, want, true);
       // ride height: a stiff, slightly under-damped spring to ground + HOVER_HEIGHT (no gravity — the repulsors hold you)
       const ws = this.waterSurfaceAt(this.position.x, this.position.z);
@@ -487,12 +498,14 @@ export class Player {
       if (this.hoverAir) {
         // ── airborne: the repulsors can't reach the ground — ballistic, a little floaty, until we fall back to the ride height
         v.y -= HOVER_JUMP_GRAVITY * dt;
-        this.position.y += v.y * dt;
+        if (impulse.y === 0) this.position.y += v.y * dt;
+        else { want.x = 0; want.y = (v.y + impulse.y) * dt; want.z = 0; this.motor.move(this.position, want, true); }
         if (v.y < 0 && this.position.y <= target + 0.05) { this.hoverAir = false; this.hoverLanded = -v.y; this.onLand?.(-v.y > 9); }
       } else {
         const a = Math.max(-HOVER_SPRING_MAX, Math.min(HOVER_SPRING_MAX, HOVER_SPRING_K * err)) - HOVER_SPRING_C * v.y;
         v.y += a * dt;
-        this.position.y += v.y * dt;
+        if (impulse.y === 0) this.position.y += v.y * dt;
+        else { want.x = 0; want.y = (v.y + impulse.y) * dt; want.z = 0; this.motor.move(this.position, want, true); }
       }
       if (this.position.y < g) { this.position.y = g; if (v.y < 0) v.y = 0; } // steep slope / bump: the board never goes under
       this.hoverBob = this.position.y - target;
@@ -620,11 +633,11 @@ export class Player {
       this.velocity.y -= GRAVITY * dt;
 
       // the move: walls, posts, trunks and the terrain stop it, steps ≤ 0.35 m are climbed, the feet snap down slopes
-      want.x = this.velocity.x * dt; want.y = this.velocity.y * dt; want.z = this.velocity.z * dt;
+      want.x = (this.velocity.x + impulse.x) * dt; want.y = (this.velocity.y + impulse.y) * dt; want.z = (this.velocity.z + impulse.z) * dt;
       // standing on something that moves (the boat on the swell): the feet ride the deck's new pose first, and the move
       // gets no downward push (the controller's slide would spread it along the moving contact into a sideways drift)
       const riding = this.onGround && this.motor.carry(this.position);
-      if (riding && this.velocity.y <= 0) want.y = 0;
+      if (riding && this.velocity.y + impulse.y <= 0) want.y = 0;
       const r = this.motor.move(this.position, want, false);
       // a dash that runs into a wall ends there, not grinding along it
       if (this.dashT > 0 && r.horizontalFreedom < 0.3) { this.dashT = 0; this.velocity.x *= 0.25; this.velocity.z *= 0.25; }
@@ -660,6 +673,9 @@ export class Player {
       this.wading = this.onGround && this.depth > 0.02;
       this.hoverLat = this.hoverFwd = this.hoverAccel = this.hoverBob = 0;
     }
+
+    impulse.multiplyScalar(Math.exp(-3.5 * dt));
+    if (impulse.lengthSq() < 0.05) impulse.set(0, 0, 0);
 
     // water entry / exit (the feet crossing the surface): splash on the way in, the impact = how fast we hit it
     const inWater = this.depth > 0.02;

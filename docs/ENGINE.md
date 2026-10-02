@@ -1035,6 +1035,19 @@ The kit melee weapons call this separately from their damage request. For a velo
 `animal.impulse(worldVelocity)` (§19), which does not itself stun or cancel attacks. Neither Animal method is a
 player health/motor port; the request fields do not give the player either behaviour.
 
+**Player impulse.** `app.player?.impulse(worldVelocityMps)` copies and adds a finite `THREE.Vector3` in world-space
+metres per second. It applies on foot and on the hoverboard, independently of steering and the existing hit shove.
+Each fixed body step uses the collision controller (walls and ceilings block the displacement), then decays the
+transient velocity by `exp(-3.5 * dt)` and clears it below squared speed `0.05`, matching `animal.impulse`. Positive
+Y lifts the feet; on the board it releases the hover spring until landing, so updrafts work. Respawn clears it.
+Calls while dead, mounted on an animal, carried by a traversal or movement-locked have no effect; swimming is not
+a supported impulse mode. Health-only `PlayerHealthPorts` may omit the optional `impulse` callback; the live game
+binds it to the player motor. Damage metadata does not automatically call this verb.
+
+```ts
+app.player?.impulse(new THREE.Vector3(6, 3, 0)); // gust east and up, without a damage hit
+```
+
 **GAS-lite: effects.** `EffectService` (`app.effects`) applies `EffectDef` rows to an actor or a piece of equipment.
 
 | Export | What it is |

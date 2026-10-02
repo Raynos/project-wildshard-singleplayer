@@ -13,6 +13,8 @@ export interface PlayerHealthPorts {
   now: () => number; dodging: () => boolean; dodgeGuard: () => boolean;
   position: () => Vector3;
   mode?: () => PlayerMode;
+  /** World-space transient velocity (m/s), resolved by the player motor. */
+  impulse?: (worldVelocityMps: Vector3) => void;
 }
 /** Health is level-owned. A fall deliberately leaves the six-second regeneration clock unchanged. */
 export class PlayerHealth implements Actor {
@@ -30,6 +32,11 @@ export class PlayerHealth implements Actor {
   get mode(): PlayerMode { return this.ports.mode?.() ?? 'foot'; }
   private readonly ports: PlayerHealthPorts;
   constructor(events: Events, ports: PlayerHealthPorts) { this.events = events; this.ports = ports; this.previousMode = this.mode; }
+  /** Add a finite world-space velocity; the motor copies it and decays it at 3.5/s. */
+  impulse(worldVelocityMps: Vector3): void {
+    if (![worldVelocityMps.x, worldVelocityMps.y, worldVelocityMps.z].every(Number.isFinite)) throw new Error('Player impulse must be finite');
+    if (this.alive) this.ports.impulse?.(worldVelocityMps);
+  }
   get alive(): boolean { return this.attributes.health > 0; }
   get state(): readonly CombatTag[] {
     return [...this.effectTags, ...(this.lifecycle?.fading() === true ? ['state.death-fade' as const] : []),

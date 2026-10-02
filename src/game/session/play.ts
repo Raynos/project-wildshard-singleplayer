@@ -46,6 +46,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
     now: () => performance.now(), position: () => player.position,
     dodging: () => player.dodging, dodgeGuard: () => false,
     mode: () => player.mountedOn !== null ? 'ride' : player.hover ? 'board' : player.swimming ? 'swim' : 'foot',
+    impulse: (velocity) => player.impulse(velocity),
   });
   app.registerPlayer(playerHealth, game.levelScope);
   const effects = new EffectService(app.levelRegistrations.list('effect'), game.levelScope, app.events);

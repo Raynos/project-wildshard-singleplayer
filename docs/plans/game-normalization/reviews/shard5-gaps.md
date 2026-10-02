@@ -66,3 +66,4 @@ Fresh Opus agents rebuilt both shards again from the docs after G13–G18.
 | ID | Gap | From | Wanted | Status |
 |---|---|---|---|---|
 | G22 | ENGINE §10 omits the touch.relabel value shape, and tone is required even for the attack disc | E364 round 4 | optional tone defaults to rest; document the shape and example; touch regression | fixed in refs/sol-g22/g22 private candidate; lead landing pending |
+| G24 | No public player push: Animal impulse/stagger are creature ports and DamageRequest.knockback is metadata | E364 content build-out (gusts and board updrafts) | `app.player.impulse(worldVelocityMps)` with creature decay, foot/board controller collisions, tests and ENGINE §18 | fixed in sol-g24 private candidate (player impulse) |
