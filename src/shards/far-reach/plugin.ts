@@ -16,6 +16,7 @@ import { GALE_WALL, STORM_ROC, STORM_ROC_LOOK, rocBrain } from './species/stormR
 import { bindPlayerPush, setHome } from './species/rig';
 import { preloadSkyMeshes } from './world/meshes';
 import { setIsleTextures } from './world/isle';
+import { setFirSheet } from './world/fir';
 import { FAN_LEAF_URL, TEX_URL } from './boot/files';
 import { loadPainted } from './look/image';
 import { meadow, type Meadow } from './world/meadow';
@@ -65,8 +66,9 @@ export class SkyReachPlugin extends ShardPlugin {
     if (leaf !== null) { this.leaf = leaf; ctx.scope.own(leaf); }
     this.board = () => ctx.app.player?.mode === 'board';
     // the islands' painted rock and meadow (E392): sampled in world space by world/isle.ts
-    const [rock, meadowTex] = await Promise.all([loadPainted(TEX_URL.rock, 'far.rock', true), loadPainted(TEX_URL.meadow, 'far.meadow', true)]);
-    for (const t of [rock, meadowTex]) if (t !== null) ctx.scope.own(t);
+    const [rock, meadowTex, branches] = await Promise.all([loadPainted(TEX_URL.rock, 'far.rock', true), loadPainted(TEX_URL.meadow, 'far.meadow', true), loadPainted(TEX_URL.branches, 'far.branches')]);
+    for (const t of [rock, meadowTex, branches]) if (t !== null) ctx.scope.own(t);
+    setFirSheet(branches);
     setIsleTextures({ rock, meadow: meadowTex });
     this.built = buildWorld(ctx, () => this.board());
     const blades = ctx.manifest.tiers?.phone?.['far.meadowBlades'] ?? 0;

@@ -16,6 +16,12 @@ REF = os.path.join(REPO, 'art/far-reach/round-1-proposals/B-sky-reach.jpg')
 STYLE = ("Painterly-stylized like the attached mockup (Studio Ghibli / Genshin Impact background art): soft visible brush work, "
          "rich detail, warm golden-hour light from the upper left.")
 PROMPTS = {
+    'branches': ("Paint ONE 1024x1024 image: a sprite sheet of 4 separate conifer (pine / fir) BRANCH sprites in a 2 x 2 grid, each "
+                 "branch filling its own square cell, NOT touching the cell edges or each other, on a FLAT PURE MAGENTA background "
+                 "(#FF00FF everywhere outside the branches, no gradient, no shadow on it). Each branch: seen from above-side, a "
+                 "drooping fir bough growing from the LEFT edge of its cell toward the right, a brown twig with dense layered clusters "
+                 "of dark green needles, lighter yellow-green sunlit needle tips on top, deep blue-green in the shade, soft painterly "
+                 "detail like the attached mockup's pines. No magenta inside the branches. " + STYLE + " No text, no grid lines."),
     'clouds': ("Paint ONE 1536x1024 image: a sprite atlas of 8 separate fluffy cumulus cloud puffs arranged in a 4 x 2 grid (4 across, "
                "2 down), each puff centred in its own cell and NOT touching the cell edges or each other, on a PURE BLACK background "
                "(#000000 everywhere outside the clouds). Each puff: a rounded billowing cauliflower cumulus, bright warm cream-white and "

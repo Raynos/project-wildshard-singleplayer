@@ -64,7 +64,7 @@ export function cloudSea(sun: Vector3, tex: DataTexture): CloudSea {
           vec2 uv = twisted * ${scale.toFixed(5)} + drift;
           vec2 sd = normalize(sunDir.xz) * 0.006;
           float h1 = texture2D(tex, uv).r, h2 = texture2D(tex, uv * 2.7 + 0.37).r, h3 = texture2D(tex, uv * 7.1 - 0.21).r;
-          float h = h1 * 0.6 + h2 * 0.3 + h3 * 0.1;
+          float h = h1 * 0.8 + h2 * 0.2;
           float hs = texture2D(tex, uv + sd).r * 0.6 + texture2D(tex, (uv + sd) * 2.7 + 0.37).r * 0.3 + texture2D(tex, (uv + sd) * 7.1 - 0.21).r * 0.1;
           float lit = clamp(0.55 + (h - hs) * 14.0, 0.0, 1.0);
           float dens = clamp(h * 1.5 - 0.2, 0.0, 1.0);
@@ -88,5 +88,7 @@ export function cloudSea(sun: Vector3, tex: DataTexture): CloudSea {
     mesh.rotation.x = -Math.PI / 2; mesh.position.y = y; mesh.renderOrder = order; mesh.frustumCulled = false; mesh.name = 'far.cloud-sea';
     return mesh;
   };
-  return { meshes: [layer(SEA.low, 0.0035, true, -6), layer(SEA.high, 0.0052, false, 2)], time };
+  // E392 (the judge: the procedural sheets read as a flat streaky plane): one soft backdrop sheet; the painted cumulus
+  // field (look/puffs.ts) carries the cloud sea
+  return { meshes: [layer(SEA.low, 0.0018, true, -6)], time };
 }

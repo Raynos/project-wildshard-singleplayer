@@ -7,6 +7,7 @@ import { dressIslands } from './dressing';
 import { islandMesh } from './isle';
 import { CROWN_RING, crownArena, crownStones } from './crown';
 import { roost } from './roost';
+import { firSheet, firs } from './fir';
 import { SKY_ISLES } from './skyIsles';
 import { winchHouse } from './winchHouse';
 import { skyline } from './distant';
@@ -104,9 +105,10 @@ export function buildWorld(ctx: ShardContext, isBoard: () => boolean): BuiltWorl
       pineAt.push([s.x + Math.cos(a) * d, s.y, s.z + Math.sin(a) * d, 0.7 + skyRnd() * 0.5]);
     }
   }
-  const skyDress = dressIslands(SKY_ISLES, 7321, false); skyGroup.add(skyDress.group); root.add(skyGroup);
+  const skyDress = dressIslands(SKY_ISLES, 7321, false, 0.35); skyGroup.add(skyDress.group); root.add(skyGroup);
   ctx.piece({ id: 'far.sky-isles', name: STRINGS.skyIsles, category: 'props', file: FILE, object: skyGroup });
-  const forest = pines(pineAt); root.add(forest);
+  // the card-branch firs when the branch sheet loaded (E392), else the code pines
+  const sheet = firSheet(), forest = sheet !== null ? firs(pineAt, sheet) : pines(pineAt); root.add(forest);
   ctx.piece({ id: 'far.pines', name: STRINGS.pines, category: 'props', file: FILE, object: forest });
   // the meadow and the roots (loop 2): grass clumps, flowers, stones, hanging roots; no colliders
   const dress = dressIslands(); root.add(dress.group);

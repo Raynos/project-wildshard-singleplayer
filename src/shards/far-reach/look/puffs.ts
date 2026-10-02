@@ -9,7 +9,7 @@ import { InstancedBufferAttribute, InstancedBufferGeometry, Mesh, PlaneGeometry,
  * Without the atlas (offline, a test page) the field is not built. Seeded: every load grows the same sky.
  */
 /** `spiral`: puffs laid on three log-spiral arms round the storm crown, under its deck (the H4 god-view targets). */
-export const PUFFS = { spiral: { count: 180, x: 0, z: -190, y: [-14, 4], r: [30, 125] }, count: 420, ring: [15, 560], y: [-30, -6], size: [18, 46], fade: [520, 820], centre: [0, -100], cells: [4, 2] } as const;
+export const PUFFS = { spiral: { count: 300, x: 0, z: -190, y: [-12, 14], r: [28, 135] }, count: 760, ring: [10, 600], y: [-28, 2], size: [22, 58], fade: [520, 820], centre: [0, -100], cells: [4, 2] } as const;
 
 export function cumulus(sun: Vector3, atlas: Texture): Mesh<InstancedBufferGeometry, ShaderMaterial> {
   let a = 9317 >>> 0;
@@ -27,7 +27,8 @@ export function cumulus(sun: Vector3, atlas: Texture): Mesh<InstancedBufferGeome
   for (let i = 0; i < ns; i++) {
     const k = PUFFS.count + i, f = i / ns, arm = i % 3, rr = PUFFS.spiral.r[0] + (PUFFS.spiral.r[1] - PUFFS.spiral.r[0]) * f;
     const ang = arm * (Math.PI * 2 / 3) + Math.log(rr / PUFFS.spiral.r[0]) * 2.6 + (rnd() - 0.5) * 0.35;
-    at.set([PUFFS.spiral.x + Math.cos(ang) * rr, PUFFS.spiral.y[0] + (PUFFS.spiral.y[1] - PUFFS.spiral.y[0]) * (1 - f) * rnd(), PUFFS.spiral.z + Math.sin(ang) * rr, 14 + rnd() * 18 + f * 18], k * 4);
+    // a funnel: the eye sinks, the walls rise outward toward the crown's base (the H4 targets' maelstrom)
+    at.set([PUFFS.spiral.x + Math.cos(ang) * rr, PUFFS.spiral.y[0] + (PUFFS.spiral.y[1] - PUFFS.spiral.y[0]) * Math.min(1, f * 1.6) * (0.7 + 0.3 * rnd()), PUFFS.spiral.z + Math.sin(ang) * rr, 16 + rnd() * 18 + f * 20], k * 4);
     const c = Math.floor(rnd() * PUFFS.cells[0] * PUFFS.cells[1]); cell.set([c % PUFFS.cells[0], Math.floor(c / PUFFS.cells[0])], k * 2);
   }
   g.setAttribute('aAt', new InstancedBufferAttribute(at, 4)); g.setAttribute('aCell', new InstancedBufferAttribute(cell, 2)); g.instanceCount = n;

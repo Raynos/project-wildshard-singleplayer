@@ -32,3 +32,16 @@ c = Image.open(os.path.join(HERE, 'clouds.png')).convert('RGB').resize((1024, 68
 c.save(os.path.join(OUT, 'clouds.webp'), 'WEBP', quality=88, method=6)
 c.save(os.path.join(HERE, 'clouds.jpg'), quality=88)
 print('clouds', os.path.getsize(os.path.join(OUT, 'clouds.webp')) // 1024, 'KB')
+# the branch sheet: the magenta key cut to alpha (soft at the needles' edge, the fringe's magenta spill removed)
+if os.path.exists(os.path.join(HERE, 'branches.png')):
+    b = np.asarray(Image.open(os.path.join(HERE, 'branches.png')).convert('RGB').resize((1024, 1024), Image.LANCZOS)).astype(np.float64)
+    r, g, bl = b[..., 0], b[..., 1], b[..., 2]
+    key = np.clip(((r + bl) / 2 - g - 60) / 80, 0, 1)            # 1 on the magenta
+    alpha = (1 - key) * 255
+    spill = np.minimum(r, bl) - g
+    b[..., 0] -= np.clip(spill, 0, None) * 0.7
+    b[..., 2] -= np.clip(spill, 0, None) * 0.7
+    out = np.dstack([b.clip(0, 255), alpha]).astype(np.uint8)
+    Image.fromarray(out, 'RGBA').save(os.path.join(OUT, 'branches.webp'), 'WEBP', quality=88, method=6)
+    Image.fromarray(out, 'RGBA').save(os.path.join(HERE, 'branches-cut.png'))
+    print('branches', os.path.getsize(os.path.join(OUT, 'branches.webp')) // 1024, 'KB')

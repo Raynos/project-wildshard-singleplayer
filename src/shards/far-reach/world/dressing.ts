@@ -85,17 +85,18 @@ interface Place { x: number; y: number; z: number; s: number; yaw: number }
 
 export interface Dressing { readonly group: Group; readonly meshes: readonly InstancedMesh[] }
 
-export function dressIslands(isles: readonly Isle[] = ISLES, seed = 6417, landings = true): Dressing {
+/** `density` scales the clumps and flowers (the far sky isles take less: they are seen from afar). */
+export function dressIslands(isles: readonly Isle[] = ISLES, seed = 6417, landings = true, density = 1): Dressing {
   const rnd = seeded(seed), m = new Matrix4(), q = new Quaternion(), up = new Vector3(0, 1, 0), s = new Vector3(), p = new Vector3();
   const clumps: Place[] = [], flowers: (Place & { c: number })[] = [], stones: Place[] = [], roots: Place[] = [];
   for (const isle of isles) {
     const ap = apothem(isle), area = Math.PI * ap * ap;
     const inside = (k: number): [number, number] => { const r = ap * Math.sqrt(rnd()) * k, a = rnd() * Math.PI * 2; return [isle.x + Math.cos(a) * r, isle.z + Math.sin(a) * r]; };
-    for (let i = 0; i < area * DRESS.clumpsPerM2; i++) {
+    for (let i = 0; i < area * DRESS.clumpsPerM2 * density; i++) {
       const [x, z] = inside(1.0); if (onLane(x, z) && rnd() < 0.85) continue;
       clumps.push({ x, y: isle.y, z, s: 0.45 + rnd() * 0.5, yaw: rnd() * 6.28 });
     }
-    for (let i = 0; i < area * DRESS.flowersPerM2; i++) {
+    for (let i = 0; i < area * DRESS.flowersPerM2 * density; i++) {
       const [x, z] = inside(0.94); if (onLane(x, z)) continue;
       // drifts: flowers cluster round a few seeds per island
       flowers.push({ x, y: isle.y, z, s: 0.8 + rnd() * 0.6, yaw: rnd() * 6.28, c: rnd() < 0.6 ? 0xf6f1e4 : 0xf2cf55 });
