@@ -1,0 +1,101 @@
+import { CreatureBrain, StrikeRunner, NO_FUR, type Animal, type SpeciesLook, type SpeciesRow, type StrikeContext, type StrikeSpec, type ThinkCtx } from '#engine';
+import { BoxGeometry, ConeGeometry, IcosahedronGeometry, Vector3 } from 'three';
+import { CROWN, DAIS, ROC } from '../layout';
+import { STRINGS } from '../strings';
+import { hull, yawTo } from './rig';
+
+/** Phase 1: the stoop, a 3-D sphere dive from the storm onto the player's chest. */
+export const STOOP: StrikeSpec = { id: 'far.roc.stoop', shape: { kind: 'sphere', radius: 2.6 }, windup: 1.2, active: 1.2, recover: 0.8, cooldown: 4,
+  range: 22, damage: 14, tags: ['creature.stormRoc'], units: 'world', weight: () => 1 };
+/** Phase 2: a gale wall, a wide lane of wind swept across the crown from the Roc's hover (a push once G24 lands). */
+export const GALE_WALL: StrikeSpec = { id: 'far.roc.galeWall', shape: { kind: 'lane', length: 26, width: 6 }, windup: 1.5, active: 0.6, recover: 1.4, cooldown: 3.5,
+  range: 30, damage: 12, tags: ['creature.stormRoc'], units: 'world', weight: () => 1 };
+/** Phase 3: grounded, a wing sweep around the dais. */
+export const SWEEP: StrikeSpec = { id: 'far.roc.sweep', shape: { kind: 'arc', radius: 4.5, halfAngle: 1.2 }, windup: 0.9, active: 0.3, recover: 1.1, cooldown: 2.2,
+  range: 5, damage: 16, tags: ['creature.stormRoc'], units: 'world', weight: () => 1 };
+export const ROC_SPEED = { circle: 10, stalk: 12, dive: 20, walk: 2.4 } as const;
+export type RocPhase = 0 | 1 | 2;
+type RocState = 'circle' | 'stalk' | 'strike' | 'rest';
+
+/** The Storm Roc's body. The boss script owns the fight (phases, arena); this brain flies and strikes for the current phase. */
+export class StormRocBrain extends CreatureBrain<RocState> {
+  phase: RocPhase = 0; fighting = false;
+  /** The strike in flight, for the gale-wall visual. */
+  current: StrikeSpec | null = null; windup = 0;
+  private readonly strikes = new StrikeRunner(); private angle = 0; private rest = 2; private readonly chest = new Vector3();
+  /** The committed strike heading (the gale wall's lane). */
+  aim = 0;
+  constructor(actor: Animal) { super(actor, ['circle', 'stalk', 'strike', 'rest']); }
+  private strike(ctx: ThinkCtx): StrikeContext { const a = this.actor; this.chest.copy(ctx.player); this.chest.y += this.phase === 0 ? 1.2 : 0;
+    return { actor: a, target: this.chest, canReach: () => ctx.reach(a), hit: (spec) => { ctx.hurt(spec.damage); } }; }
+  private spec(): StrikeSpec { return this.phase === 0 ? STOOP : this.phase === 1 ? GALE_WALL : SWEEP; }
+  /** The altitude the Roc holds in this phase: high in the storm, a wall-height hover, or standing on the dais. */
+  private altitude(): number { return this.phase === 0 ? ROC.y : this.phase === 1 ? CROWN.y + 7 : CROWN.y + DAIS.h + 0.05; }
+  override think(ctx: ThinkCtx): void {
+    const a = this.actor; if (!a.alive) return;
+    if (!this.fighting || ctx.calm) { if (this.state !== 'circle') { this.strikes.cancel(); a.cancelAttack(); this.current = null; this.transition('circle'); } return; }
+    this.rest -= ctx.dt;
+    if (this.state === 'circle' && this.rest <= 0) this.transition('stalk');
+    if (this.state === 'rest' && this.rest <= 0) this.transition('stalk');
+  }
+  override act(ctx: ThinkCtx): void {
+    const a = this.actor; if (!a.alive) return;
+    const s = this.strike(ctx), spec = this.spec(), p = ctx.player;
+    if (this.state === 'circle' || this.state === 'rest') {
+      this.angle += (ctx.dt * ROC_SPEED.circle) / ROC.r;
+      const r = this.phase === 2 ? DAIS.r * 0.4 : ROC.r, cx = this.phase === 2 ? DAIS.x : ROC.x, cz = this.phase === 2 ? DAIS.z : ROC.z;
+      ctx.flight.steer(a, yawTo(a, cx + Math.cos(this.angle) * r, cz + Math.sin(this.angle) * r), this.phase === 2 ? ROC_SPEED.walk : ROC_SPEED.circle, this.altitude(), 2);
+      return;
+    }
+    if (this.state === 'stalk') {
+      const d = Math.hypot(p.x - a.position.x, p.z - a.position.z);
+      // Phase 1 hangs over the player; phase 2 holds off at the wall's range; phase 3 walks up to the player on the dais.
+      const want = this.phase === 0 ? 2.5 : this.phase === 1 ? 14 : 3;
+      const heading = this.phase === 1 && d < want ? yawTo(a, p.x, p.z) + Math.PI : yawTo(a, p.x, p.z);
+      ctx.flight.steer(a, heading, this.phase === 2 ? ROC_SPEED.walk : Math.min(ROC_SPEED.stalk, Math.abs(d - want) * 1.5), this.phase === 0 ? p.y + 10 : this.altitude(), 3);
+      const ready = this.phase === 0 ? d < 4 && Math.abs(a.position.y - (p.y + 10)) < 2 : this.phase === 1 ? Math.abs(d - want) < 3 : d < spec.range;
+      if (ready && ctx.reach(a) && ctx.claim(a)) { this.aim = yawTo(a, p.x, p.z); this.strikes.start(spec, a, this.chest); this.current = spec; this.windup = 0; this.transition('strike'); }
+      return;
+    }
+    this.windup += ctx.dt;
+    if (spec === STOOP && this.windup >= STOOP.windup) ctx.flight.steer(a, yawTo(a, this.chest.x, this.chest.z), ROC_SPEED.dive, this.chest.y, 4);
+    else ctx.flight.steer(a, this.aim, 0, this.phase === 0 ? p.y + 10 : this.altitude(), 4);
+    this.strikes.update(ctx.dt, s);
+    if (!this.strikes.busy) { this.current = null; this.rest = this.phase === 2 ? 1.2 : 2.4; this.transition('rest'); }
+  }
+}
+const brains = new WeakMap<Animal, StormRocBrain>();
+export const rocBrain = (a: Animal): StormRocBrain => { let value = brains.get(a); if (!value) { value = new StormRocBrain(a); brains.set(a, value); } return value; };
+export const STORM_ROC: SpeciesRow = { id: 'far.creature.stormRoc', kind: 'stormRoc', label: STRINGS.roc, aggressive: true, blood: false,
+  flight: { altitude: ROC.y, above: 'world', climbRate: 9, diveRate: 24 },
+  variants: [{ id: 'storm', label: STRINGS.roc, weight: 1, rarity: 'legendary', scale: [1, 1], hp: 420 }],
+  think: (a, ctx) => { rocBrain(a).think(ctx); }, act: (a, ctx) => { rocBrain(a).act(ctx); } };
+
+const BODY = 0, HEAD = 1, WING_L = 2, WING_R = 3, TAIL = 4;
+const wing = (side: number, bone: number): { geometry: ConeGeometry; bone: number; color: number; at: readonly [number, number, number]; rot: readonly [number, number, number] }[] => [
+  { geometry: new ConeGeometry(0.9, 4.8, 4), bone, color: 0x3b3150, at: [side * 2.9, 1.6, -0.2], rot: [0, 0, side * Math.PI / 2] },
+  { geometry: new ConeGeometry(0.6, 3.2, 4), bone, color: 0xd9a066, at: [side * 4.4, 1.5, -0.7], rot: [0.2, 0, side * Math.PI / 2] },
+];
+export const STORM_ROC_LOOK: SpeciesLook = { id: 'far.look.stormRoc', species: STORM_ROC.id, kind: 'stormRoc', rig: 'custom', fur: NO_FUR,
+  rigContract: { skeleton: 'far.stormRoc', sockets: ['body', 'head', 'wingL', 'wingR', 'tail'], clips: ['idle', 'fly', 'attack', 'hit', 'die'] },
+  build: () => ({
+    bones: [{ name: 'body', parent: null, pos: [0, 1.6, 0] }, { name: 'head', parent: 'body', pos: [0, 2.1, 1.6] },
+      { name: 'wingL', parent: 'body', pos: [0.6, 1.7, 0] }, { name: 'wingR', parent: 'body', pos: [-0.6, 1.7, 0] }, { name: 'tail', parent: 'body', pos: [0, 1.5, -1.4] }],
+    furParts: [], eyeParts: [],
+    hardParts: [hull([
+      { geometry: new IcosahedronGeometry(1.1, 0), bone: BODY, color: 0x463a5c, at: [0, 1.6, 0], rot: [0, 0, 0] },
+      { geometry: new BoxGeometry(1.3, 1, 2.4), bone: BODY, color: 0x3b3150, at: [0, 1.6, -0.2] },
+      { geometry: new IcosahedronGeometry(0.55, 0), bone: HEAD, color: 0xe8dcc8, at: [0, 2.2, 1.7] },
+      { geometry: new ConeGeometry(0.22, 0.8, 4), bone: HEAD, color: 0xf0b542, at: [0, 2.1, 2.4], rot: [Math.PI / 2, 0, 0] },
+      ...wing(1, WING_L), ...wing(-1, WING_R),
+      { geometry: new ConeGeometry(0.7, 2.2, 4), bone: TAIL, color: 0x2e2640, at: [0, 1.5, -2.4], rot: [-Math.PI / 2, 0, 0] },
+      { geometry: new BoxGeometry(0.18, 1.1, 0.18), bone: BODY, color: 0xf0b542, at: [0.35, 0.55, 0.1] },
+      { geometry: new BoxGeometry(0.18, 1.1, 0.18), bone: BODY, color: 0xf0b542, at: [-0.35, 0.55, 0.1] },
+    ])],
+    dims: { bodyY: 1.6, bodyHalfLen: 1.4, bodyRadius: 1.1, headRadius: 0.55, legLen: 1, feet: [], halfWidth: 5.5 } }),
+  animate: ({ bones, t, alive }) => {
+    const flap = alive ? Math.sin(t * 1.9) * 0.45 : 0.9;
+    const l = bones['wingL'], r = bones['wingR'], tail = bones['tail'];
+    if (l) l.rotation.z = flap; if (r) r.rotation.z = -flap; if (tail) tail.rotation.x = alive ? Math.sin(t * 1.1) * 0.15 : 0;
+  },
+};

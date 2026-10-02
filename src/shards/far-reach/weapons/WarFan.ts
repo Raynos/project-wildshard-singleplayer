@@ -26,6 +26,8 @@ export class WarFan extends Weapon {
   override holster = 0; override enabled = true; override adsHeld = false; override aimInfo = null;
   onSwing: ((heavy: boolean) => void) | null = null;
   onGust: ((from: Vector3, dir: Vector3) => void) | null = null;
+  /** True while the fan is put away (riding the hoverboard): it hides and neither swings nor gusts. */
+  stowed: () => boolean = () => false;
   private cooldown = 0; private gustCooldown = 0; private wasHeld = false; private held = 0; private flourish = 0;
   private readonly app: App; private readonly targets: () => readonly FanTarget[];
   private readonly spring = { yaw: 0, pitch: 0, yawVelocity: 0, pitchVelocity: 0 };
@@ -52,7 +54,7 @@ export class WarFan extends Weapon {
     return { from, dir };
   }
   swing(heavy: boolean): void {
-    if (this.cooldown > 0 || !this.enabled) return;
+    if (this.cooldown > 0 || !this.enabled || this.stowed()) return;
     this.cooldown = heavy ? SWING.heavyCooldown : SWING.cooldown; this.flourish = 1; this.onSwing?.(heavy);
     const view = this.view(); if (view !== null) this.slash(view.from, view.dir, heavy);
   }
@@ -70,7 +72,7 @@ export class WarFan extends Weapon {
     return struck;
   }
   gust(): void {
-    if (this.gustCooldown > 0 || !this.enabled) return;
+    if (this.gustCooldown > 0 || !this.enabled || this.stowed()) return;
     this.gustCooldown = GUST.cooldown; this.flourish = 1;
     const view = this.view(); if (view === null) return;
     this.onGust?.(view.from, view.dir); this.blow(view.from, view.dir);
@@ -97,6 +99,6 @@ export class WarFan extends Weapon {
     this.flourish = Math.max(0, this.flourish - dt * 3.5);
     this.vm.step(this.spring, new Vector2(), dt);
     this.model.rotation.y = -0.25 + this.spring.yaw + Math.sin(this.flourish * Math.PI) * 0.9;
-    this.model.visible = this.holster < 0.5;
+    this.model.visible = this.holster < 0.5 && !this.stowed();
   }
 }

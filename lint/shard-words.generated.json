@@ -12,6 +12,9 @@
     "driftwood-isle",
     "far-reach",
     "far.creature.driftRay",
+    "far.creature.galeWisp",
+    "far.creature.skyGoat",
+    "far.creature.stormRoc",
     "Nalati Grasslands",
     "nalati-grasslands",
     "Nine Dragon Stack",
@@ -87,6 +90,9 @@
       "name": "Sky Reach",
       "ids": [
         "far.creature.driftRay",
+        "far.creature.galeWisp",
+        "far.creature.skyGoat",
+        "far.creature.stormRoc",
         "weapon.far-fan"
       ],
       "settings": [],

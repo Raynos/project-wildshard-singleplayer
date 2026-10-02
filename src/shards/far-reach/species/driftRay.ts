@@ -2,6 +2,7 @@ import { CreatureBrain, StrikeRunner, NO_FUR, type Animal, type SpeciesLook, typ
 import { Color, Float32BufferAttribute, BufferGeometry, Uint16BufferAttribute, Vector3 } from 'three';
 import { DECK, RAY_HOMES } from '../layout';
 import { STRINGS } from '../strings';
+import { homeOf } from './rig';
 
 /** The dive: a 3-D sphere contact around the ray, tested against the player's chest (ENGINE §19 "Short flyer"). */
 export const DIVE: StrikeSpec = { id: 'far.ray.dive', shape: { kind: 'sphere', radius: 1.9 }, windup: 1.1, active: 1.1, recover: 0.6, cooldown: 5,
@@ -60,10 +61,7 @@ export class DriftRayBrain extends CreatureBrain<RayState> {
 const brains = new WeakMap<Animal, DriftRayBrain>();
 const brain = (a: Animal): DriftRayBrain => {
   let value = brains.get(a);
-  if (!value) {
-    const home = RAY_HOMES.reduce((best, h) => Math.hypot(h.x - a.position.x, h.z - a.position.z) < Math.hypot(best.x - a.position.x, best.z - a.position.z) ? h : best, RAY_HOMES[0]);
-    value = new DriftRayBrain(a, home); brains.set(a, value);
-  }
+  if (!value) { value = new DriftRayBrain(a, homeOf(a, RAY_HOMES[0] ?? { x: 0, z: -24, r: 22, y: DECK + 14 })); brains.set(a, value); }
   return value;
 };
 export const DRIFT_RAY: SpeciesRow = { id: 'far.creature.driftRay', kind: 'driftRay', label: STRINGS.ray, aggressive: true, blood: false,

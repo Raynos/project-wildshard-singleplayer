@@ -7,8 +7,9 @@ import manifest from '#shards/far-reach/manifest';
 import { SkyReachPlugin } from '#shards/far-reach/plugin';
 import { WarFan, GUST, inCone } from '#shards/far-reach/weapons/WarFan';
 import { DIVE } from '#shards/far-reach/species/driftRay';
-import { DECK, HOVER_BRIDGE, HOVER_GAP, ISLES, ROOST, SUNREST, WINDMILL, FALLEN_BRIDGE, apothem } from '#shards/far-reach/layout';
-import { REWARD } from '#shards/far-reach/quest/install';
+import { DECK, HOVER_GAP, ISLES, SPANS, UPDRAFT, VANES, FALLEN_BRIDGE, apothem } from '#shards/far-reach/layout';
+import { UPDRAFT_ANGLE } from '#shards/far-reach/world/build';
+import { FLAGS, REWARD } from '#shards/far-reach/quest/install';
 import { FakeGame } from '../../fake/FakeGame';
 import { INPUT_CONTEXTS } from '#game/inputContexts';
 
@@ -37,36 +38,44 @@ const piece = (app: App, id: string): { active?: () => boolean } | undefined => 
 
 describe('Sky Reach contract', () => {
   beforeEach(() => { localStorage.clear(); sessionStorage.clear(); });
-  it('boots every stage, registers its pieces and rows, and tears everything down', async () => {
+  it('boots every stage, registers its pieces, creatures and boss, and tears everything down', async () => {
     const { app, plugin, stages, active } = await boot();
     expect(stages).toEqual(['data', 'world', 'kit', 'loadout', 'play', 'finish']);
     expect(manifest.status).toBe('experimental'); expect(manifest.audio?.preload).toBeUndefined();
-    expect(app.registry.pieces.map((p) => p.id)).toEqual(expect.arrayContaining(['far.isle.sunrest', 'far.isle.windmill', 'far.rope.grove', 'far.hover.roost', 'far.bridge.windmill', 'far.windmill']));
-    expect(app.levelRegistrations.list('species')).toHaveLength(1); expect(app.levelRegistrations.text('raise')).toBe('Raise the fallen bridge to the windmill island');
-    expect(app.debug.scopedSnapshot()['farReach']).toBe(plugin); expect(active.has('far.fan')).toBe(true);
+    expect(ISLES.length).toBeGreaterThanOrEqual(7); expect(ISLES.length).toBeLessThanOrEqual(9);
+    expect(app.registry.pieces.map((p) => p.id)).toEqual(expect.arrayContaining([...ISLES.map((i) => `far.isle.${i.id}`), ...SPANS.map((s) => s.id), 'far.updraft', FALLEN_BRIDGE.id, 'far.windmill', 'far.crown.ruin']));
+    expect(app.levelRegistrations.list('species').map((r) => r.id)).toEqual(['far.creature.driftRay', 'far.creature.skyGoat', 'far.creature.galeWisp', 'far.creature.stormRoc']);
+    expect(app.levelRegistrations.text('raise')).toBe('Raise the bridge to the storm crown');
+    expect(plugin.boss).not.toBeNull(); expect(app.debug.scopedSnapshot()['farReach']).toBe(plugin); expect(active.has('far.fan')).toBe(true);
     await app.unloadLevel(); expect(active.size).toBe(0); expect(app.registry.pieces).toEqual([]); expect(app.debug.scopedSnapshot()).toEqual({});
   });
-  it('keeps the hover deck off for a walker and clear of every island rim', async () => {
+  it('keeps every hover deck and the updraft off for a walker, each hover deck clear of every rim', async () => {
     const { app } = await boot();
-    expect(app.player?.mode ?? 'foot').toBe('foot'); expect(piece(app, HOVER_BRIDGE.id)?.active?.()).toBe(false);
-    expect(piece(app, 'far.rope.grove')?.active?.() ?? true).toBe(true);
-    for (const isle of ISLES) for (const x of [HOVER_BRIDGE.x0, HOVER_BRIDGE.x1]) {
-      const nearest = Math.abs(x - isle.x);
-      if (Math.abs(HOVER_BRIDGE.z0 - isle.z) < isle.r) expect(nearest).toBeGreaterThanOrEqual(apothem(isle) + HOVER_GAP - 1e-9);
+    expect(app.player?.mode ?? 'foot').toBe('foot');
+    for (const span of SPANS) expect(piece(app, span.id)?.active?.() ?? true, span.id).toBe(span.kind === 'rope');
+    expect(piece(app, 'far.updraft')?.active?.()).toBe(false);
+    for (const span of SPANS.filter((s) => s.kind === 'hover')) for (const isle of ISLES) for (const [x, z] of [[span.x0, span.z0], [span.x1, span.z1]] as const) {
+      if (Math.abs(isle.y - span.y) > 0.5) continue;
+      expect(Math.hypot(x - isle.x, z - isle.z), `${span.id} vs ${isle.id}`).toBeGreaterThanOrEqual(apothem(isle) + HOVER_GAP - 1e-9);
     }
-    expect(HOVER_BRIDGE.x0).toBeCloseTo(apothem(SUNREST) + HOVER_GAP); expect(HOVER_BRIDGE.x1).toBeCloseTo(ROOST.x - apothem(ROOST) - HOVER_GAP);
+    expect(UPDRAFT_ANGLE).toBeLessThan((40 * Math.PI) / 180); expect(UPDRAFT.y1).toBeGreaterThan(UPDRAFT.y0);
     await app.unloadLevel();
   });
-  it('raises the fallen bridge with the winch, then pays the quest reward once at the windmill', async () => {
+  it('runs the four-step chain: notes, roost, three vanes by GUST, then the winch raises the crown bridge and pays once', async () => {
     const { app, plugin, fake } = await boot(), purse = shardSave(purseSave, manifest.slug), before = purse.read();
+    const built = plugin.built, flags = plugin.flags; if (built === null || flags === null) throw new Error('not built');
+    built.winch.onInteract(); tick(app, 1 / 30, 0); expect(built.state.raising).toBe(false);
+    built.notes.onInteract(); tick(app, 1 / 30, 0.1); app.events.flush('update'); expect(plugin.quest?.index).toBe(1);
+    flags.set(FLAGS.roost); tick(app, 1 / 30, 0.2); app.events.flush('update'); expect(plugin.quest?.index).toBe(2);
+    for (const vane of VANES) expect(plugin.gustVanes(new Vector3(vane.x, vane.y + 1.6, vane.z + 5), new Vector3(0, 0.2, -1).normalize())).toBe(1);
+    tick(app, 1 / 30, 0.3); app.events.flush('update'); expect(plugin.quest?.index).toBe(3);
     expect(piece(app, FALLEN_BRIDGE.id)?.active?.()).toBe(false);
-    plugin.built?.winch.onInteract(); for (let i = 0; i < 120; i++) tick(app, 1 / 30, i / 30);
-    expect(piece(app, FALLEN_BRIDGE.id)?.active?.()).toBe(true); expect(plugin.quest?.index).toBe(1);
-    plugin.player.set(WINDMILL.x, DECK, WINDMILL.z + 6); tick(app, 1 / 30, 5); app.events.flush('update');
-    expect(plugin.quest?.isComplete).toBe(true); for (let i = 0; i < 90; i++) fake.advance(1 / 30);
+    built.winch.onInteract(); for (let i = 0; i < 120; i++) tick(app, 1 / 30, 1 + i / 30); app.events.flush('update');
+    expect(piece(app, FALLEN_BRIDGE.id)?.active?.()).toBe(true); expect(plugin.quest?.isComplete).toBe(true);
+    for (let i = 0; i < 90; i++) fake.advance(1 / 30);
     expect(purse.read()).toBe(before + REWARD); await app.unloadLevel();
   });
-  it('GUST pushes and nicks only what stands in its cone', async () => {
+  it('GUST pushes and nicks only what stands in its cone; a stowed fan neither gusts nor shows', async () => {
     const { app } = await boot();
     const make = (id: string): Actor => { const actor: Actor = { id, tags: ['actor.creature'], state: [], attributes: { health: 50, maxHealth: 50 }, alive: true,
       applyDamage: (req) => { actor.attributes.health -= req.amount; return false; } }; return actor; };
@@ -77,6 +86,7 @@ describe('Sky Reach contract', () => {
     expect(ahead.attributes.health).toBe(50 - GUST.damage); expect(behind.attributes.health).toBe(50);
     expect(pushes[0]?.z).toBeCloseTo(-GUST.push); expect(pushes[0]?.y).toBeCloseTo(GUST.lift);
     expect(inCone(new Vector3(), new Vector3(0, 0, -1), new Vector3(3, 0, -3), 9, 0.6)).toBe(false);
+    fan.stowed = () => true; fan.update(0.1); expect(fan.model.visible).toBe(false);
     await app.unloadLevel();
   });
   it('the drift ray dive is a 3-D sphere: it lands on the chest, not from far above', () => {

@@ -1,4 +1,4 @@
-import { BoxGeometry, BufferGeometry, Color, ConeGeometry, CylinderGeometry, Float32BufferAttribute, Group, InstancedMesh, Matrix4, Mesh, MeshStandardMaterial, Quaternion, Vector3, type Object3D } from 'three';
+import { BoxGeometry, BufferGeometry, Color, ConeGeometry, CylinderGeometry, Float32BufferAttribute, Group, IcosahedronGeometry, InstancedMesh, Matrix4, Mesh, MeshStandardMaterial, Quaternion, Vector3, type Object3D } from 'three';
 import type { Isle } from '../layout';
 
 /** The Sky Reach palette (sRGB hex): golden-hour grass, warm dirt, violet keel rock, dusk pines. */
@@ -107,3 +107,44 @@ export function winch(): Group {
   const crank = new Mesh(new BoxGeometry(0.1, 0.6, 0.1), wood); crank.position.set(0.85, 1.15, 0); group.add(crank);
   return group;
 }
+
+/** A wind vane: a post and a four-cup rotor the plugin spins once a GUST hits it. */
+export function vane(): { group: Group; rotor: Object3D } {
+  const group = new Group(), rotor = new Group(), wood = flat(PALETTE.trunk), cloth = flat(PALETTE.glow, { emissive: PALETTE.glow, emissiveIntensity: 0.15 });
+  const post = new Mesh(new CylinderGeometry(0.1, 0.16, 3.2, 6), wood); post.position.y = 1.6; group.add(post);
+  rotor.position.y = 3.3; group.add(rotor);
+  for (let i = 0; i < 4; i++) {
+    const arm = new Mesh(new BoxGeometry(1.4, 0.06, 0.06), wood); arm.rotation.y = (i * Math.PI) / 2; arm.position.set(Math.cos(arm.rotation.y) * 0.7, 0, -Math.sin(arm.rotation.y) * 0.7); rotor.add(arm);
+    const cup = new Mesh(new ConeGeometry(0.22, 0.4, 6, 1, true), cloth); cup.rotation.z = Math.PI / 2;
+    cup.position.set(Math.cos(arm.rotation.y) * 1.4, 0, -Math.sin(arm.rotation.y) * 1.4); cup.rotation.y = arm.rotation.y; rotor.add(cup);
+  }
+  return { group, rotor };
+}
+/** The bridge-keeper's notes: a weathered lectern with a pinned page. */
+export function lectern(): Group {
+  const group = new Group(), wood = flat(PALETTE.trunk);
+  const stand = new Mesh(new BoxGeometry(0.4, 1.05, 0.4), wood); stand.position.y = 0.52; group.add(stand);
+  const top = new Mesh(new BoxGeometry(0.8, 0.08, 0.6), wood); top.position.y = 1.1; top.rotation.x = -0.35; group.add(top);
+  const page = new Mesh(new BoxGeometry(0.5, 0.02, 0.38), flat(0xefe6d2)); page.position.set(0, 1.16, 0.02); page.rotation.x = -0.35; group.add(page);
+  return group;
+}
+/** The storm crown's dais and its ring of broken pillars. */
+export function crownRuin(daisR: number, daisH: number): Group {
+  const group = new Group(), stone = flat(0x6b6177);
+  const dais = new Mesh(new CylinderGeometry(daisR, daisR + 0.4, daisH, 10), stone); dais.position.y = daisH / 2; group.add(dais);
+  for (let i = 0; i < 7; i++) {
+    const a = (i / 7) * Math.PI * 2, h = 2 + ((i * 37) % 5) * 0.7, pillar = new Mesh(new CylinderGeometry(0.45, 0.55, h, 6), stone);
+    pillar.position.set(Math.cos(a) * 12.5, h / 2, Math.sin(a) * 12.5); group.add(pillar);
+  }
+  return group;
+}
+/** Storm clouds: dark faceted puffs that ring the crown. */
+export function stormClouds(count: number, radius: number): InstancedMesh {
+  const mesh = new InstancedMesh(puff(), flat(0x4a4262, { emissive: 0x1a1426 }), count), m = new Matrix4(), q = new Quaternion();
+  for (let i = 0; i < count; i++) {
+    const a = (i / count) * Math.PI * 2, s = 5 + (i % 3) * 2.5;
+    m.compose(new Vector3(Math.cos(a) * radius, (i % 4) * 2.5, Math.sin(a) * radius), q, new Vector3(s * 1.6, s * 0.6, s)); mesh.setMatrixAt(i, m);
+  }
+  mesh.computeBoundingSphere(); return mesh;
+}
+function puff(): BufferGeometry { return new IcosahedronGeometry(1, 1); }

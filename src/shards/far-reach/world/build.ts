@@ -1,95 +1,143 @@
 import { boxDesc, type ColliderDesc, type Interactable } from '#engine';
 import type { ShardContext } from '#game';
-import { Group, Vector3, type MeshStandardMaterial, type Object3D } from 'three';
-import { DECK, FALLEN_BRIDGE, GROVE, HOVER_BRIDGE, ISLES, MILL, PINES, ROOST, ROPE_BRIDGE, SUNREST, WINCH, WINDMILL, apothem, type Isle, type Span } from '../layout';
+import { DoubleSide, Group, InstancedMesh, Matrix4, MeshBasicMaterial, Quaternion, RingGeometry, Vector3, type MeshStandardMaterial, type Object3D } from 'three';
+import { CROWN, DAIS, FALLEN_BRIDGE, ISLES, MILL, NOTES, PINES, SPANS, UPDRAFT, VANES, WINCH, apothem, type Isle, type Span } from '../layout';
 import { STRINGS } from '../strings';
-import { PALETTE, flat, islandMesh, pines, plankBridge, windmill, winch } from './shapes';
+import { PALETTE, crownRuin, flat, islandMesh, lectern, pines, plankBridge, stormClouds, vane, windmill, winch } from './shapes';
 import { ownPrimitives } from './resources';
 
 const FILE = 'src/shards/far-reach/world/build.ts';
 /** How far the fallen bridge hangs below level (radians about its pivot). */
 export const FALLEN_ANGLE = -1.25;
+/** The updraft ramp's climb (radians); under the 40° walk limit. */
+export const UPDRAFT_ANGLE = Math.atan2(UPDRAFT.y1 - UPDRAFT.y0, UPDRAFT.z0 - UPDRAFT.z1);
+export const UPDRAFT_LENGTH = Math.hypot(UPDRAFT.y1 - UPDRAFT.y0, UPDRAFT.z0 - UPDRAFT.z1);
 
 /** Six strips 30° apart cover an island's 12-gon top exactly; each strip's corners stay inside the rim circle. */
 export function islandColliders(isle: Isle): ColliderDesc[] {
   const half = apothem(isle), width = isle.r * 0.26;
-  return [0, 1, 2, 3, 4, 5].map((i) => boxDesc({ x: isle.x, z: isle.z, hw: half, hd: width, rot: (i * Math.PI) / 6, yBottom: DECK - 2, yTop: DECK }, 'grass'));
+  return [0, 1, 2, 3, 4, 5].map((i) => boxDesc({ x: isle.x, z: isle.z, hw: half, hd: width, rot: (i * Math.PI) / 6, yBottom: isle.y - 2, yTop: isle.y }, 'grass'));
 }
-/** An axis-aligned deck box under a span, top at the deck height. */
-export function deckCollider(span: Span, yBottom = DECK - 0.3): ColliderDesc {
+/** An axis-aligned deck box under a span, top at the span's deck height. */
+export function deckCollider(span: Span): ColliderDesc {
   return boxDesc({ x: (span.x0 + span.x1) / 2, z: (span.z0 + span.z1) / 2, hw: Math.max(span.width / 2, Math.abs(span.x1 - span.x0) / 2),
-    hd: span.x0 === span.x1 ? Math.abs(span.z1 - span.z0) / 2 : span.width / 2, rot: 0, yBottom, yTop: DECK }, 'wood');
+    hd: span.x0 === span.x1 ? Math.abs(span.z1 - span.z0) / 2 : span.width / 2, rot: 0, yBottom: span.y - 0.3, yTop: span.y }, 'wood');
 }
 /** Rope rails along both long sides of a span. */
 function railColliders(span: Span): ColliderDesc[] {
   const alongX = span.z0 === span.z1, half = (alongX ? Math.abs(span.x1 - span.x0) : Math.abs(span.z1 - span.z0)) / 2;
   const cx = (span.x0 + span.x1) / 2, cz = (span.z0 + span.z1) / 2;
   return [-1, 1].map((side) => boxDesc({ x: alongX ? cx : cx + side * span.width / 2, z: alongX ? cz + side * span.width / 2 : cz,
-    hw: alongX ? half : 0.06, hd: alongX ? 0.06 : half, rot: 0, yBottom: DECK, yTop: DECK + 1.1 }, 'wood'));
+    hw: alongX ? half : 0.06, hd: alongX ? 0.06 : half, rot: 0, yBottom: span.y, yTop: span.y + 1.1 }, 'wood'));
+}
+/** The updraft's sloped deck: one box tilted about X so its top runs from (z0, y0) up to (z1, y1). */
+export function updraftCollider(): ColliderDesc {
+  const half = UPDRAFT_ANGLE / 2, hy = 0.15, midY = (UPDRAFT.y0 + UPDRAFT.y1) / 2, midZ = (UPDRAFT.z0 + UPDRAFT.z1) / 2;
+  return { kind: 'box', x: UPDRAFT.x, y: midY - hy * Math.cos(UPDRAFT_ANGLE), z: midZ - hy * Math.sin(UPDRAFT_ANGLE), hx: UPDRAFT.width / 2, hy, hz: UPDRAFT_LENGTH / 2,
+    rot: { x: Math.sin(half), y: 0, z: 0, w: Math.cos(half) }, surface: 'wood' };
 }
 const spanLength = (span: Span): number => Math.hypot(span.x1 - span.x0, span.z1 - span.z0);
 const spanYaw = (span: Span): number => Math.atan2(-(span.x1 - span.x0), -(span.z1 - span.z0));
 
 export interface BuiltWorld {
-  /** The hover deck's material: the plugin brightens it while the player rides the board. */
+  /** The hover decks' shared material: the plugin brightens it while the player rides the board. */
   readonly hoverDeck: MeshStandardMaterial;
-  /** The fallen bridge's pivot on Sunrest's rim; rotation.x runs from FALLEN_ANGLE (hanging) to 0 (raised). */
+  /** The updraft's wind rings (instanced); the plugin scrolls them upward. */
+  readonly wind: InstancedMesh;
+  /** The fallen bridge's pivot on the step's rim; rotation.x runs from FALLEN_ANGLE (hanging) to 0 (raised). */
   readonly fallen: Object3D;
   readonly millHub: Object3D;
+  readonly vanes: readonly { readonly id: string; readonly at: Vector3; readonly rotor: Object3D }[];
   readonly winch: Interactable;
   readonly winchAt: Vector3;
+  readonly notes: Interactable;
+  readonly notesAt: Vector3;
   /** Gameplay state the pieces' `active()` read. */
   readonly state: { raised: boolean; raising: boolean };
 }
 
 export function buildWorld(ctx: ShardContext, isBoard: () => boolean): BuiltWorld {
   const random = ctx.app.rng.stream('cosmetic'), rnd = (): number => random.next(), root = new Group();
-  const names: Record<string, string> = { sunrest: STRINGS.sunrest, windmill: STRINGS.windmill, roost: STRINGS.roost, grove: STRINGS.grove };
+  const names: Record<string, string> = { sunrest: STRINGS.sunrest, windmill: STRINGS.windmill, roost: STRINGS.roost, grove: STRINGS.grove,
+    keeper: STRINGS.keeper, ruin: STRINGS.ruin, step: STRINGS.step, crown: STRINGS.crown };
   for (const isle of ISLES) {
-    const mesh = islandMesh(isle, rnd); mesh.position.set(isle.x, DECK, isle.z); root.add(mesh);
+    const mesh = islandMesh(isle, rnd); mesh.position.set(isle.x, isle.y, isle.z); root.add(mesh);
     ctx.piece({ id: `far.isle.${isle.id}`, name: names[isle.id] ?? isle.id, category: 'ground', file: FILE, object: mesh, colliders: islandColliders(isle), surface: 'grass' });
   }
   const pineAt: [number, number, number, number][] = [];
-  for (const isle of ISLES) for (const [dx, dz, s] of PINES[isle.id] ?? []) pineAt.push([isle.x + dx, DECK, isle.z + dz, s]);
+  for (const isle of ISLES) for (const [dx, dz, s] of PINES[isle.id] ?? []) pineAt.push([isle.x + dx, isle.y, isle.z + dz, s]);
   const forest = pines(pineAt); root.add(forest);
   ctx.piece({ id: 'far.pines', name: STRINGS.pines, category: 'props', file: FILE, object: forest });
 
   const plank = flat(PALETTE.plank), rope = flat(PALETTE.rope);
-  const ropeBridge = plankBridge(spanLength(ROPE_BRIDGE), ROPE_BRIDGE.width, plank, rope);
-  ropeBridge.position.set(ROPE_BRIDGE.x0, DECK, ROPE_BRIDGE.z0); ropeBridge.rotation.y = spanYaw(ROPE_BRIDGE); root.add(ropeBridge);
-  ctx.piece({ id: ROPE_BRIDGE.id, name: STRINGS.rope, category: 'buildings', file: FILE, object: ropeBridge,
-    colliders: [deckCollider(ROPE_BRIDGE), ...railColliders(ROPE_BRIDGE)], surface: 'wood' });
-
-  // The hover bridge: glass-like planks and two glowing posts per end; its deck collides only for a board rider.
   const hoverDeck = flat(PALETTE.glow, { emissive: PALETTE.glow, emissiveIntensity: 0.25, transparent: true, opacity: 0.55, depthWrite: false });
-  const hoverBridge = plankBridge(spanLength(HOVER_BRIDGE), HOVER_BRIDGE.width, hoverDeck, null);
-  for (const z of [0, -spanLength(HOVER_BRIDGE)]) for (const side of [-1, 1]) {
-    const post = plankBridge(1.4, 0.18, hoverDeck, null); post.rotation.x = Math.PI / 2; post.position.set(side * HOVER_BRIDGE.width / 2, 0, z); hoverBridge.add(post);
+  for (const span of SPANS) {
+    const hover = span.kind === 'hover', length = spanLength(span), bridge = plankBridge(length, span.width, hover ? hoverDeck : plank, hover ? null : rope);
+    if (hover) for (const z of [0, -length]) for (const side of [-1, 1]) {
+      const post = plankBridge(1.4, 0.18, hoverDeck, null); post.rotation.x = Math.PI / 2; post.position.set(side * span.width / 2, 0, z); bridge.add(post);
+    }
+    bridge.position.set(span.x0, span.y, span.z0); bridge.rotation.y = spanYaw(span); root.add(bridge);
+    ctx.piece({ id: span.id, name: hover ? STRINGS.hover : STRINGS.rope, category: 'buildings', file: FILE, object: bridge,
+      colliders: hover ? [deckCollider(span)] : [deckCollider(span), ...railColliders(span)], surface: 'wood', ...(hover ? { active: isBoard } : {}) });
   }
-  hoverBridge.position.set(HOVER_BRIDGE.x0, DECK, HOVER_BRIDGE.z0); hoverBridge.rotation.y = spanYaw(HOVER_BRIDGE); root.add(hoverBridge);
-  ctx.piece({ id: HOVER_BRIDGE.id, name: STRINGS.hover, category: 'buildings', file: FILE, object: hoverBridge,
-    colliders: [deckCollider(HOVER_BRIDGE)], surface: 'wood', active: isBoard });
+
+  // The updraft: a board-only rising wind ramp (a hover deck tilted up the wind column) from the windmill isle to the step.
+  const ramp = plankBridge(UPDRAFT_LENGTH, UPDRAFT.width, hoverDeck, null);
+  ramp.position.set(UPDRAFT.x, UPDRAFT.y0, UPDRAFT.z0); ramp.rotation.x = UPDRAFT_ANGLE; root.add(ramp);
+  const rings = 14, wind = new InstancedMesh(new RingGeometry(2.6, 2.9, 24), new MeshBasicMaterial({ color: 0xf6fdff, transparent: true, opacity: 0.28, side: DoubleSide, depthWrite: false }), rings);
+  wind.frustumCulled = false; root.add(wind); placeWind(wind, 0);
+  ctx.piece({ id: 'far.updraft', name: STRINGS.updraft, category: 'buildings', file: FILE, object: ramp, colliders: [updraftCollider()], surface: 'wood', active: isBoard });
 
   // The fallen bridge hangs from its pivot until the winch raises it; it collides only once it is fully up.
   const state = { raised: false, raising: false };
   const fallen = new Group(), deck = plankBridge(spanLength(FALLEN_BRIDGE), FALLEN_BRIDGE.width, plank, rope);
-  fallen.add(deck); fallen.position.set(FALLEN_BRIDGE.x0, DECK, FALLEN_BRIDGE.z0); fallen.rotation.x = FALLEN_ANGLE; root.add(fallen);
+  fallen.add(deck); fallen.position.set(FALLEN_BRIDGE.x0, FALLEN_BRIDGE.y, FALLEN_BRIDGE.z0); fallen.rotation.x = FALLEN_ANGLE; root.add(fallen);
   ctx.piece({ id: FALLEN_BRIDGE.id, name: STRINGS.fallen, category: 'buildings', file: FILE, object: fallen,
     colliders: [deckCollider(FALLEN_BRIDGE), ...railColliders(FALLEN_BRIDGE)], surface: 'wood', active: () => state.raised });
 
-  const mill = windmill(); mill.group.position.set(MILL.x, DECK, MILL.z); mill.group.rotation.y = 0.35; root.add(mill.group);
+  const mill = windmill(); mill.group.position.set(MILL.x, 30, MILL.z); mill.group.rotation.y = 0.35; root.add(mill.group);
   ctx.piece({ id: 'far.windmill', name: STRINGS.mill, category: 'buildings', file: FILE, object: mill.group,
-    colliders: [boxDesc({ x: MILL.x, z: MILL.z, hw: 2, hd: 2, rot: 0.35, yBottom: DECK, yTop: DECK + 10 }, 'wood')], surface: 'wood' });
+    colliders: [boxDesc({ x: MILL.x, z: MILL.z, hw: 2, hd: 2, rot: 0.35, yBottom: 30, yTop: 40 }, 'wood')], surface: 'wood' });
 
-  const drum = winch(); drum.position.set(WINCH.x, DECK, WINCH.z); root.add(drum);
+  const drum = winch(); drum.position.set(WINCH.x, WINCH.y, WINCH.z); root.add(drum);
   ctx.piece({ id: 'far.winch', name: STRINGS.winch, category: 'props', file: FILE, object: drum,
-    colliders: [boxDesc({ x: WINCH.x, z: WINCH.z, hw: 0.8, hd: 0.2, rot: 0, yBottom: DECK, yTop: DECK + 1.2 }, 'wood')], surface: 'wood' });
-  const winchAt = new Vector3(WINCH.x, DECK + 1.2, WINCH.z);
-  const handle: Interactable = { label: STRINGS.turnWinch, position: winchAt, radius: 3,
-    onInteract: () => { if (!state.raised) state.raising = true; } };
+    colliders: [boxDesc({ x: WINCH.x, z: WINCH.z, hw: 0.8, hd: 0.2, rot: 0, yBottom: WINCH.y, yTop: WINCH.y + 1.2 }, 'wood')], surface: 'wood' });
+  const winchAt = new Vector3(WINCH.x, WINCH.y + 1.2, WINCH.z);
+  const handle: Interactable = { label: STRINGS.turnWinch, position: winchAt, radius: 3, onInteract: () => { if (!state.raised) state.raising = true; } };
+
+  const page = lectern(); page.position.set(NOTES.x, NOTES.y, NOTES.z); page.rotation.y = 0.6; root.add(page);
+  ctx.piece({ id: 'far.notes', name: STRINGS.notesName, category: 'props', file: FILE, object: page,
+    colliders: [boxDesc({ x: NOTES.x, z: NOTES.z, hw: 0.3, hd: 0.3, rot: 0.6, yBottom: NOTES.y, yTop: NOTES.y + 1.1 }, 'wood')], surface: 'wood' });
+  const notesAt = new Vector3(NOTES.x, NOTES.y + 1.3, NOTES.z);
+  const notes: Interactable = { label: STRINGS.readNotes, position: notesAt, radius: 2.6, onInteract: () => undefined };
+
+  const vanes = VANES.map((v) => {
+    const built = vane(); built.group.position.set(v.x, v.y, v.z); root.add(built.group);
+    ctx.piece({ id: `far.vane.${v.id}`, name: STRINGS.vane, category: 'props', file: FILE, object: built.group,
+      colliders: [boxDesc({ x: v.x, z: v.z, hw: 0.15, hd: 0.15, rot: 0, yBottom: v.y, yTop: v.y + 3.2 }, 'wood')], surface: 'wood' });
+    return { id: v.id, at: new Vector3(v.x, v.y + 3.3, v.z), rotor: built.rotor };
+  });
+
+  const ruin = crownRuin(DAIS.r, DAIS.h); ruin.position.set(CROWN.x, CROWN.y, CROWN.z); root.add(ruin);
+  const pillars: ColliderDesc[] = [0, 1, 2, 3, 4, 5, 6].map((i) => { const a = (i / 7) * Math.PI * 2;
+    return boxDesc({ x: CROWN.x + Math.cos(a) * 12.5, z: CROWN.z + Math.sin(a) * 12.5, hw: 0.45, hd: 0.45, rot: 0, yBottom: CROWN.y, yTop: CROWN.y + 3 }, 'stone'); });
+  ctx.piece({ id: 'far.crown.ruin', name: STRINGS.crown, category: 'buildings', file: FILE, object: ruin, surface: 'stone',
+    colliders: [boxDesc({ x: DAIS.x, z: DAIS.z, hw: DAIS.r * 0.9, hd: DAIS.r * 0.9, rot: 0, yBottom: CROWN.y, yTop: CROWN.y + DAIS.h }, 'stone'), ...pillars] });
+  ruin.children[0]?.position.set(DAIS.x - CROWN.x, DAIS.h / 2, DAIS.z - CROWN.z);
+  const storm = stormClouds(16, 34); storm.position.set(CROWN.x, CROWN.y + 22, CROWN.z); root.add(storm);
 
   ctx.root.add(root); ownPrimitives(root, ctx.scope);
-  return { hoverDeck, fallen, millHub: mill.hub, winch: handle, winchAt, state };
+  return { hoverDeck, wind, fallen, millHub: mill.hub, vanes, winch: handle, winchAt, notes, notesAt, state };
 }
-/** The islands a point stands over (XZ inside the rim), for tests and the GUST edge read. */
-export const overIsland = (x: number, z: number): boolean => [SUNREST, WINDMILL, ROOST, GROVE].some((isle) => Math.hypot(x - isle.x, z - isle.z) < apothem(isle));
+
+const m = new Matrix4(), q = new Quaternion(), pos = new Vector3(), one = new Vector3(1, 1, 1), up = new Vector3(1, 0, 0);
+/** Scroll the updraft's rings up the ramp; `phase` runs 0…1. */
+export function placeWind(wind: InstancedMesh, phase: number): void {
+  q.setFromAxisAngle(up, UPDRAFT_ANGLE);
+  for (let i = 0; i < wind.count; i++) {
+    const f = ((i + phase) / wind.count) % 1;
+    pos.set(UPDRAFT.x, UPDRAFT.y0 + 2.4 + f * (UPDRAFT.y1 - UPDRAFT.y0), UPDRAFT.z0 + f * (UPDRAFT.z1 - UPDRAFT.z0));
+    m.compose(pos, q, one.setScalar(0.8 + 0.4 * Math.sin(f * Math.PI))); wind.setMatrixAt(i, m);
+  }
+  wind.instanceMatrix.needsUpdate = true;
+}
