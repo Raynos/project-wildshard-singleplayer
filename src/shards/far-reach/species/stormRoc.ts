@@ -2,6 +2,7 @@ import { CreatureBrain, StrikeRunner, NO_FUR, type Animal, type AnimalSpecies, t
 import { BoxGeometry, ConeGeometry, IcosahedronGeometry, Vector3, type BufferGeometry } from 'three';
 import { bindRigid, fit, skyMesh } from '../world/meshes';
 import { CROWN, DAIS, ROC } from '../layout';
+import { crownStones } from '../world/crown';
 import { STRINGS } from '../strings';
 import { hull, pushPlayer, yawTo } from './rig';
 
@@ -17,6 +18,11 @@ export const SWEEP: StrikeSpec = { id: 'far.roc.sweep', shape: { kind: 'arc', ra
 /** The gale wall's shove (m/s along the lane, m/s up): enough to slide you most of the way across the crown. */
 export const ROC_GALE = { shove: 14, lift: 2 } as const;
 export const ROC_SPEED = { circle: 10, stalk: 12, dive: 20, walk: 2.4 } as const;
+/** The Roc's perch: the top of the ring's tallest stone (world/crown.ts), the one opposite the arena's entrance. */
+const PERCH = (): { x: number; y: number; z: number } => {
+  const tallest = crownStones().reduce((best, st) => (st.h > best.h ? st : best));
+  return { x: tallest.x, y: CROWN.y + tallest.h + 0.6, z: tallest.z };
+};
 export type RocPhase = 0 | 1 | 2;
 type RocState = 'circle' | 'stalk' | 'strike' | 'rest';
 
@@ -44,6 +50,13 @@ export class StormRocBrain extends CreatureBrain<RocState> {
   override act(ctx: ThinkCtx): void {
     const a = this.actor; if (!a.alive) return;
     const s = this.strike(ctx), spec = this.spec(), p = ctx.player;
+    if (this.state === 'circle' && !this.fighting) {
+      // at rest it perches on the tallest standing stone, opposite the arena's entrance, watching the bridge (council
+      // round 2: the arena view frames the Roc, not an empty sky under its bar)
+      const perch = PERCH(), d = Math.hypot(perch.x - a.position.x, perch.z - a.position.z);
+      ctx.flight.steer(a, d > 0.6 ? yawTo(a, perch.x, perch.z) : yawTo(a, DAIS.x, DAIS.z + 40), d > 0.6 ? Math.min(ROC_SPEED.circle, d * 1.2) : 0, perch.y, 2);
+      return;
+    }
     if (this.state === 'circle' || this.state === 'rest') {
       this.angle += (ctx.dt * ROC_SPEED.circle) / ROC.r;
       const r = this.phase === 2 ? DAIS.r * 0.4 : ROC.r, cx = this.phase === 2 ? DAIS.x : ROC.x, cz = this.phase === 2 ? DAIS.z : ROC.z;

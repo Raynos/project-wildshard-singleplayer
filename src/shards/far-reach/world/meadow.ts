@@ -24,7 +24,9 @@ export const MEADOW = {
   /** blade height range (metres) */
   low: 0.32, high: 0.78,
   /** an island's grass height scale (1 when absent): the crown is a trodden arena, short enough that the dais reads */
-  grass: { crown: 0.3 } as Readonly<Record<string, number>>,
+  grass: { crown: 0.6 } as Readonly<Record<string, number>>,
+  /** the share of blades an island keeps (1 when absent): the crown's arena is trodden thin (round 2: a carpet of chips) */
+  keep: { crown: 0.45 } as Readonly<Record<string, number>>,
 } as const;
 
 /** Where grass never grows: discs (x, z, radius) round the structures and pieces you stand at. */
@@ -95,7 +97,7 @@ export function meadow(sunDir: Vector3, blades: number, isles: readonly Isle[] =
   const holes = meadowHoles(), paths = meadowPaths(isles);
   const uniforms = {
     uOrigin: { value: new Vector2() }, uCam: { value: new Vector3() }, uTime: { value: 0 }, uSun: { value: sunDir },
-    uIsles: { value: isleU }, uIsleGrass: { value: isles.map((isle) => MEADOW.grass[isle.id] ?? 1) }, uHoles: { value: holes }, uPaths: { value: paths },
+    uIsles: { value: isleU }, uIsleGrass: { value: isles.map((isle) => MEADOW.grass[isle.id] ?? 1) }, uIsleKeep: { value: isles.map((isle) => MEADOW.keep[isle.id] ?? 1) }, uHoles: { value: holes }, uPaths: { value: paths },
   };
   const material = new ShaderMaterial({ uniforms, side: DoubleSide,
     vertexShader: /* glsl */`
@@ -105,17 +107,17 @@ export function meadow(sunDir: Vector3, blades: number, isles: readonly Isle[] =
       #define NH ${holes.length}
       #define NP ${paths.length}
       uniform vec2 uOrigin; uniform vec3 uCam; uniform float uTime;
-      uniform vec4 uIsles[NI]; uniform float uIsleGrass[NI]; uniform vec4 uHoles[NH]; uniform vec4 uPaths[NP];
+      uniform vec4 uIsles[NI]; uniform float uIsleGrass[NI]; uniform float uIsleKeep[NI]; uniform vec4 uHoles[NH]; uniform vec4 uPaths[NP];
       attribute vec3 aRoot; attribute vec2 aShape; attribute vec2 aTile;
       varying float vH; varying float vTone; varying vec3 vWorld; varying float vShade; varying float vFlower;
       ${MEADOW_GLSL}
       void main(){
         vec2 p = uOrigin + (aTile + aRoot.xy) * TILE;
-        float r = aRoot.z, y = -1.0e4, rim = 1.0, tall = 1.0;
+        float r = aRoot.z, y = -1.0e4, rim = 1.0, tall = 1.0, keep = 1.0;
         for (int i = 0; i < NI; i++) { vec4 s = uIsles[i]; float d = distance(p, s.xy);
           // a ragged edge: the meadow stops a little short of the rim, by noise
           float edge = s.z * (0.9 + 0.08 * mn(p * 0.6));
-          if (d < edge) { y = s.w; rim = d / edge; tall = uIsleGrass[i]; } }
+          if (d < edge) { y = s.w; rim = d / edge; tall = uIsleGrass[i]; keep = uIsleKeep[i]; } }
         float clear = 1.0;
         for (int i = 0; i < NH; i++) { vec4 h = uHoles[i]; clear = min(clear, smoothstep(h.z, h.z + 0.6, distance(p, h.xy))); }
         for (int i = 0; i < NP; i++) { vec4 s = uPaths[i]; clear = min(clear, smoothstep(0.3, 0.85, segDist(p, s.xy, s.zw) + 0.3 * mn(p * 1.7))); }
@@ -124,7 +126,7 @@ export function meadow(sunDir: Vector3, blades: number, isles: readonly Isle[] =
         // tall drifts and short lawn by noise; shorter toward the rim and the paths; shrinks to nothing at RANGE
         float h = mix(${MEADOW.low.toFixed(2)}, ${MEADOW.high.toFixed(2)}, smoothstep(0.25, 0.8, pt) * 0.7 + r * 0.3);
         h *= tall * (1.0 - 0.55 * smoothstep(0.82, 1.0, rim)) * clear * (1.0 - smoothstep(RANGE * 0.55, RANGE, dist));
-        if (y < -1.0e3 || h < 0.04) { gl_Position = vec4(0.0, 0.0, 2.0, 1.0); return; }
+        if (y < -1.0e3 || h < 0.04 || fract(r * 53.1) > keep) { gl_Position = vec4(0.0, 0.0, 2.0, 1.0); return; }
         // the blade faces half toward the camera so it never vanishes edge-on
         float ang = r * 40.0; vec2 dir = vec2(cos(ang), sin(ang));
         vec2 toCam = normalize(uCam.xz - p + 1e-3); vec2 face = normalize(mix(dir, toCam, 0.55));

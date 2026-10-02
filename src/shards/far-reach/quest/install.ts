@@ -15,6 +15,7 @@ const REWARDED = { key: 'far-reach.rewarded', scope: 'shard' as const, version: 
 /** The reward view: from the high step, the raised bridge running out to the storm crown (Driftwood's held beat). */
 export const REWARD_VIEW = { at: new Vector3(STEP.x + 2, HIGH + 1.7, STEP.z - 4), yaw: 0, pitch: 0.12 } as const;
 
+/** A marker at a place's feet: the world pin adds its own 2.2 m (game/quest/presentation.ts; council round 2: the keeper's pin floated 2.4 m over his head). */
 const at = (x: number, y: number, z: number): QuestMarker['at'] => ({ poi: 'world', x, y, z });
 
 /**
@@ -45,14 +46,14 @@ export function installQuest(ctx: ShardContext, player: Vector3, onCoin?: (share
   const flags = new Flags(ctx.manifest.slug), rewarded = ctx.app.saves.define(REWARDED);
   const quest = new QuestState({ id: 'far.quest', title: STRINGS.quest, completeFlag: FLAGS.complete, steps: [
     { id: 'notes', objective: STRINGS.talkKeeperStep, chip: STRINGS.chipKeeper, hint: STRINGS.hintKeeper, done: { all: [FLAGS.notes] },
-      markers: [{ id: 'keeper', label: STRINGS.keeperPin, short: STRINGS.keeperShort, at: at(KEEPER_AT.x, DECK + 2.4, KEEPER_AT.z) }] },
+      markers: [{ id: 'keeper', label: STRINGS.keeperPin, short: STRINGS.keeperShort, at: at(KEEPER_AT.x, DECK, KEEPER_AT.z) }] },
     { id: 'roost', objective: STRINGS.roostQuest, chip: STRINGS.chipRoost, hint: STRINGS.hintRoost, done: { all: [FLAGS.roost] },
-      markers: [{ id: 'roost', label: STRINGS.roost, short: STRINGS.roostShort, at: at(ROOST.x, ROOST.y + 2, ROOST.z) }] },
+      markers: [{ id: 'roost', label: STRINGS.roost, short: STRINGS.roostShort, at: at(ROOST.x, ROOST.y, ROOST.z) }] },
     { id: 'vanes', objective: STRINGS.vanes, chip: STRINGS.chipVanes, hint: STRINGS.hintVanes, done: { all: [FLAGS.vanes] },
       count: VANES.map((vane) => vaneFlag(vane.id)),
-      markers: VANES.map((vane) => ({ id: `vane.${vane.id}`, label: STRINGS.vane, short: STRINGS.vaneShort, at: at(vane.x, vane.y + 3, vane.z), hideWhen: { all: [vaneFlag(vane.id)] } })) },
+      markers: VANES.map((vane) => ({ id: `vane.${vane.id}`, label: STRINGS.vane, short: STRINGS.vaneShort, at: at(vane.x, vane.y + 1.4, vane.z), hideWhen: { all: [vaneFlag(vane.id)] } })) },
     { id: 'raise', objective: STRINGS.raise, chip: STRINGS.chipRaise, hint: STRINGS.hintRaise, done: { all: [FLAGS.raised] },
-      markers: [{ id: 'winch', label: STRINGS.winch, short: STRINGS.winchShort, at: at(WINCH.x, WINCH.y + 1.5, WINCH.z) }] },
+      markers: [{ id: 'winch', label: STRINGS.winch, short: STRINGS.winchShort, at: at(WINCH.x, WINCH.y, WINCH.z) }] },
   ] }, flags, ctx.app.events, ctx.scope);
   const purse = shardSave(purseSave, ctx.manifest.slug);
   const scene = ctx.game.runtime?.world?.game.scene ?? new Scene(), coins = new CoinBurst(scene);

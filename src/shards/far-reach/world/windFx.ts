@@ -112,7 +112,8 @@ export function gustFx(random: () => number): GustFx {
 }
 
 /** The updraft's spiral: streaks winding up a helix round the ramp's axis, and leaves riding it. */
-export const UPDRAFT_FX = { streaks: 36, leaves: 14, radius: 2.6, turns: 6, rate: 0.1 } as const;
+/** Round 2 (council: the streaks crossing the glass ramp read as cracks): fewer, fainter, wider round the ramp. */
+export const UPDRAFT_FX = { streaks: 24, leaves: 14, radius: 3.3, turns: 6, rate: 0.1 } as const;
 const LEAVES = [0xb9c868, 0xd9c060, 0x93b552, 0xf0d488];
 
 export interface UpdraftFx { readonly objects: readonly Object3D[]; readonly update: (t: number) => void }
@@ -130,8 +131,8 @@ export function updraftFx(a: Vector3, b: Vector3): UpdraftFx {
     for (let i = 0; i < UPDRAFT_FX.streaks; i++) {
       const f = (i / UPDRAFT_FX.streaks + t * UPDRAFT_FX.rate) % 1, angle = f * UPDRAFT_FX.turns * Math.PI * 2 + i * 2.39996, r = UPDRAFT_FX.radius * (0.8 + 0.3 * Math.sin(i * 1.7));
       at(f, angle, r, p); at(f + 0.012, angle + 0.55, r, p2); dir.copy(p2).sub(p).normalize();
-      const fade = Math.sin(f * Math.PI) * 0.8;
-      place(streaks, i, p2, dir, 0.1, 2.4, tint, fade);
+      const fade = Math.sin(f * Math.PI) * 0.42;
+      place(streaks, i, p2, dir, 0.07, 2.4, tint, fade);
     }
     for (let i = 0; i < UPDRAFT_FX.leaves; i++) {
       const f = (i / UPDRAFT_FX.leaves + t * UPDRAFT_FX.rate * 0.8) % 1, angle = -f * UPDRAFT_FX.turns * 1.4 * Math.PI * 2 + i * 1.3;

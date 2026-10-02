@@ -50,7 +50,8 @@ export function cumulus(sun: Vector3): Mesh<InstancedBufferGeometry, ShaderMater
         float bump = n2(vec2(ang * 2.2 + vSeed, vSeed)) * 0.28 + n2(vec2(ang * 5.0 - vSeed, vSeed * 1.7)) * 0.14;
         float r = length(vec2(p.x, p.y < 0.0 ? p.y * 1.6 : p.y));
         float edge = 0.78 + bump - 0.2;
-        float body = 1.0 - smoothstep(edge - 0.22, edge, r);
+        // a soft, wide falloff (council R2C-1: hard quad edges from above)
+        float body = 1.0 - smoothstep(edge - 0.45, edge, r); body *= body;
         if (body < 0.01) discard;
         // a sphere normal, lumpy, in world space
         float z = sqrt(max(0.0, 1.0 - min(1.0, r * r)));

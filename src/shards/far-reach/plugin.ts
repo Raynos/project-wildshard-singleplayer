@@ -6,6 +6,7 @@ import { STRINGS } from './strings';
 import { GOATS, RAY_HOMES, ROC, ROOST_RAYS, UPDRAFT, WISP_HOMES, apothem, type Home } from './layout';
 import { buildWorld, type BuiltWorld } from './world/build';
 import { gustFx } from './world/windFx';
+import { FALL_TIME } from './world/distant';
 import { WarFan, inCone, GUST, type FanTarget } from './weapons/WarFan';
 import { FAN_ROW } from './weapons/rows';
 import { DRIFT_RAY, DRIFT_RAY_LOOK } from './species/driftRay';
@@ -133,7 +134,7 @@ export class SkyReachPlugin extends ShardPlugin {
       const riding = this.board();
       built.hoverDeck.emissiveIntensity = riding ? 0.9 + Math.sin(t * 4) * 0.15 : 0.5; built.hoverDeck.opacity = riding ? 0.75 : 0.5;
       const cam = rt?.world?.game.camera; if (cam && this.meadow) this.meadow.update(cam.position, t);
-      built.millHub.rotation.z += dt * 0.35; built.storm.update(dt, t); built.wind.update(t);
+      built.millHub.rotation.z += dt * 0.35; FALL_TIME.value = t; built.storm.update(dt, t); built.wind.update(t);
       for (const v of built.vanes) v.rotor.rotation.y += dt * (flags.has(vaneFlag(v.id)) ? 6 : 0.25);
     } });
 

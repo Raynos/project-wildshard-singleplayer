@@ -16,20 +16,37 @@ function paintGeometry(g: BufferGeometry, color: (x: number, y: number, z: numbe
   g.setAttribute('color', new Float32BufferAttribute(col, 3)); return g;
 }
 
+const hash = (a: number, b: number): number => { const v = Math.sin(a * 127.1 + b * 311.7) * 43758.5453; return v - Math.floor(v); };
+
+/** The windows' headings (radians from +z toward +x) and heights: the weather streaks run down from them. */
+const WINDOWS: readonly (readonly [number, number])[] = [[3.6, 0.5], [5.4, -0.35], [7.0, 0.15]];
+
 function tower(): BufferGeometry {
   const pts: Vector2[] = [];
   // a slight flare at the foot, a straight taper, a lip under the curb
   pts.push(new Vector2(0, 0), new Vector2(MILL.base + 0.25, 0), new Vector2(MILL.base + 0.15, 0.5));
-  for (let i = 1; i <= 12; i++) { const t = i / 12; pts.push(new Vector2(MILL.base + (MILL.top - MILL.base) * t, 0.5 + (MILL.height - 0.5) * t)); }
+  for (let i = 1; i <= 24; i++) { const t = i / 24; pts.push(new Vector2(MILL.base + (MILL.top - MILL.base) * t, 0.5 + (MILL.height - 0.5) * t)); }
   pts.push(new Vector2(MILL.top + 0.12, MILL.height + 0.02), new Vector2(0, MILL.height + 0.02));
-  const g = new LatheGeometry(pts, 28);
-  const plaster = new Color(0xf0e8da), course = new Color(0xd8cdbd), dirt = new Color(0xa8957d), moss = new Color(0x7d8a48), out = new Color();
-  return paintGeometry(g, (x, y, z) => {
-    const a = Math.atan2(z, x), n = Math.sin(a * 5 + y * 1.3) * 0.5 + 0.5;
-    out.copy(plaster).lerp(course, (Math.abs(((y * 2.2) % 1) - 0.5) < 0.08 ? 0.6 : 0) + n * 0.12);
-    if (y < 1.4) out.lerp(dirt, (1.4 - y) / 1.4 * 0.7).lerp(moss, y < 0.6 ? 0.35 * n : 0);
-    return out.clone();
-  });
+  const g = new LatheGeometry(pts, 48).toNonIndexed();
+  // whitewashed stone blocks (council round 2: "a plain cream windmill"): each course and block its own tone, the joints
+  // staggered; grey-brown streaks run down under the windows; grime and moss at the foot; warm where the sun reaches
+  const lime = new Color(0xf1e9da), block = new Color(0xd9ccb8), stain = new Color(0x9c8c78), dirt = new Color(0x8f7c66), moss = new Color(0x7d8a48), out = new Color();
+  const p = g.getAttribute('position'), col: number[] = [];
+  for (let k = 0; k < p.count; k += 3) {
+    // colour per face (flat blocks), from the face's centre
+    let cx = 0, cy = 0, cz = 0; for (let v = 0; v < 3; v++) { cx += p.getX(k + v) / 3; cy += p.getY(k + v) / 3; cz += p.getZ(k + v) / 3; }
+    const a = Math.atan2(cx, cz), course = Math.floor(cy / 0.42), blockN = Math.floor(((a / (Math.PI * 2)) + 0.5) * 22 + (course % 2) * 0.5);
+    out.copy(lime).lerp(block, 0.25 + 0.5 * hash(course, blockN));
+    for (const [wy, wa] of WINDOWS) {
+      let da = Math.abs(a - wa); da = Math.min(da, Math.PI * 2 - da);
+      if (cy < wy && da < 0.09) out.lerp(stain, (1 - da / 0.09) * 0.45 * Math.max(0, 1 - (wy - cy) / 3));
+    }
+    if (cy < 1.4) out.lerp(dirt, ((1.4 - cy) / 1.4) * 0.6);
+    if (cy < 0.6 && hash(blockN, 7) > 0.5) out.lerp(moss, 0.45);
+    for (let v = 0; v < 3; v++) col.push(out.r, out.g, out.b);
+  }
+  g.setAttribute('color', new Float32BufferAttribute(col, 3)); g.computeVertexNormals();
+  return g;
 }
 
 function cap(): BufferGeometry {
@@ -61,7 +78,7 @@ export function towerMill(): { group: Group; hub: Object3D; hubAt: { y: number; 
   const radiusAt = (y: number): number => MILL.base + (MILL.top - MILL.base) * Math.max(0, (y - 0.5) / (MILL.height - 0.5));
   const door = new Mesh(new BoxGeometry(1.0, 1.9, 0.3), wood); door.position.set(0, 1.0, radiusAt(1) - 0.02); group.add(door);
   const lintel = new Mesh(new BoxGeometry(1.3, 0.22, 0.34), new MeshStandardMaterial({ color: 0xbfb2a0, roughness: 0.9, metalness: 0 })); lintel.position.set(0, 2.05, radiusAt(2) + 0.02); group.add(lintel);
-  for (const [y, a] of [[3.6, 0.5], [5.4, -0.35], [7.0, 0.15]] as const) {
+  for (const [y, a] of WINDOWS) {
     const win = new Mesh(new BoxGeometry(0.5, 0.75, 0.2), dark), r = radiusAt(y) - 0.03;
     win.position.set(Math.sin(a) * r, y, Math.cos(a) * r); win.rotation.y = a; group.add(win);
   }

@@ -26,7 +26,7 @@ export async function skyReachLook(): Promise<LookStrategy> {
   let seaTime: { value: number } | null = null;
   return { mode: 'extend',
     compose: ({ engineChain, scene, scope }) => {
-      const dome = skyDome(pano), haze = fogLut(); scope.own(pano); scope.own(haze);
+      const haze = fogLut(), dome = skyDome(pano, haze); scope.own(pano); scope.own(haze);
       dome.renderOrder = -10; dome.frustumCulled = false; scene.add(dome);
       scope.own(dome.geometry); scope.own(dome.material); scope.onDispose(() => { dome.removeFromParent(); });
       scene.fog = new Fog(new Color(SKY.fog), FOG.near, FOG.far);

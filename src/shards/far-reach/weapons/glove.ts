@@ -1,4 +1,4 @@
-import { CapsuleGeometry, CylinderGeometry, Group, Mesh, MeshStandardMaterial, Quaternion, SphereGeometry, TorusGeometry, Vector3, type BufferGeometry } from 'three';
+import { CapsuleGeometry, Color, CylinderGeometry, Float32BufferAttribute, Group, Mesh, MeshStandardMaterial, Quaternion, SphereGeometry, TorusGeometry, Vector3, type BufferGeometry } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 /**
@@ -24,8 +24,7 @@ export function gloveHand(armDir: Vector3): Group {
   const leather = new MeshStandardMaterial({ color: 0x4a2f22, roughness: 0.62, metalness: 0.05 });
   const tooled = new MeshStandardMaterial({ color: 0x7a5236, roughness: 0.7, metalness: 0.05 });
   const bronze = new MeshStandardMaterial({ color: 0xc09048, roughness: 0.35, metalness: 0.7, emissive: 0x2a1a08 });
-  const linen = new MeshStandardMaterial({ color: 0xe9dfc8, roughness: 1, metalness: 0 });
-  const wrap = new MeshStandardMaterial({ color: 0x5a4636, roughness: 0.95, metalness: 0 });
+    const wrap = new MeshStandardMaterial({ color: 0x5a4636, roughness: 0.95, metalness: 0 });
   // the fingers: index at the top, little finger lowest; each curls from the knuckle (back, +x−z) round the front (+z)
   // to its tip pressed on the far side of the grip (−x)
   const R = GLOVE.grip + GLOVE.finger * 0.95, parts: BufferGeometry[] = [];
@@ -55,7 +54,20 @@ export function gloveHand(armDir: Vector3): Group {
       stud.position.set(Math.cos(a) * (rr + 0.001), y + 0.012, Math.sin(a) * (rr + 0.001)); arm.add(stud);
     }
   }
-  const sleeve = new Mesh(new CylinderGeometry(0.041, 0.056, 0.34, 14), linen); sleeve.position.y = 0.3; arm.add(sleeve);
+  // the sleeve (council round 2: "a plain cream tube"): loose linen in soft folds, the fold valleys shaded, a woven
+  // teal-and-gold border at the cuff end
+  const sleeveGeo = new CylinderGeometry(0.041, 0.058, 0.34, 20, 10), sp = sleeveGeo.getAttribute('position'), sc: number[] = [];
+  const cream = new Color(0xece2cc), shadow = new Color(0xb9ab92), teal = new Color(0x2f8a8c), gold = new Color(0xc79a4a), out = new Color();
+  for (let i = 0; i < sp.count; i++) {
+    const x = sp.getX(i), y = sp.getY(i), z = sp.getZ(i), a = Math.atan2(z, x), fold = Math.sin(a * 5 + y * 14) * 0.5 + 0.5;
+    const k = 1 + 0.09 * fold; sp.setXYZ(i, x * k, y, z * k);
+    out.copy(cream).lerp(shadow, (1 - fold) * 0.55);
+    const t = (y + 0.17) / 0.34;
+    if (t > 0.04 && t < 0.1) out.copy(teal); else if (t >= 0.1 && t < 0.13) out.copy(gold);
+    sc.push(out.r, out.g, out.b);
+  }
+  sleeveGeo.setAttribute('color', new Float32BufferAttribute(sc, 3)); sleeveGeo.computeVertexNormals();
+  const sleeve = new Mesh(sleeveGeo, new MeshStandardMaterial({ vertexColors: true, roughness: 1, metalness: 0 })); sleeve.position.y = 0.3; arm.add(sleeve);
   for (const y of [0.17, 0.215, 0.26, 0.33]) {
     const band = new Mesh(new TorusGeometry(0.041 + (y - 0.13) * 0.044, 0.006, 5, 18), wrap); band.rotation.x = Math.PI / 2; band.rotation.z = 0.25; band.position.y = y; arm.add(band);
   }

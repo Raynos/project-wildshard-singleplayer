@@ -44,22 +44,26 @@ export function fogLut(): DataTexture {
 export const HEADING_GLSL = 'float farHeading(vec3 v){ return fract(atan(v.x, -v.z) / 6.2831853 + 1.0); }';
 
 /** The dome: the painted strip, its zenith above and its nadir below. */
-export function skyDome(pano: Texture): Mesh<SphereGeometry, ShaderMaterial> {
+export function skyDome(pano: Texture, haze: Texture): Mesh<SphereGeometry, ShaderMaterial> {
   const [zr, zg, zb] = PANO_ZENITH_SRGB, [nr, ng, nb] = PANO_NADIR_SRGB;
   // the strip carries PANO_PAD_PX columns of wrap either side: the heading maps inside them
   const image: unknown = pano.image, total = typeof ImageBitmap !== 'undefined' && image instanceof ImageBitmap ? image.width : PANO_PAD_PX * 2 + 1;
   const padU = PANO_PAD_PX / total, scaleU = (total - PANO_PAD_PX * 2) / total;
   return new Mesh(new SphereGeometry(900, 64, 32), new ShaderMaterial({ side: BackSide, depthWrite: false, fog: false,
-    uniforms: { pano: { value: pano }, padU: { value: padU }, scaleU: { value: scaleU } },
+    uniforms: { pano: { value: pano }, haze: { value: haze }, padU: { value: padU }, scaleU: { value: scaleU } },
     vertexShader: 'varying vec3 d; void main(){ d=position; vec4 p=modelViewMatrix*vec4(position,1.0); gl_Position=projectionMatrix*p; }',
     fragmentShader: /* glsl */`
-      uniform sampler2D pano; uniform float padU; uniform float scaleU; varying vec3 d;
+      uniform sampler2D pano; uniform sampler2D haze; uniform float padU; uniform float scaleU; varying vec3 d;
       ${HEADING_GLSL}
       void main(){
         vec3 n = normalize(d);
         float elev = degrees(asin(clamp(n.y, -1.0, 1.0)));
         float vTop = ${PANO_HORIZON_V.toFixed(4)} - elev / ${PANO_DEG_PER_V.toFixed(3)};
         vec3 c = texture2D(pano, vec2(padU + farHeading(n) * scaleU, 1.0 - clamp(vTop, 0.002, 0.998))).rgb;
+        // a veil of the painted haze over the far-island band just above the horizon (council R1C-12: the matte's
+        // islands must stay simpler than the playable ones in front of them)
+        float band = smoothstep(-1.5, 1.0, elev) * (1.0 - smoothstep(9.0, 22.0, elev));
+        c = mix(c, texture2D(haze, vec2(farHeading(n), 0.5)).rgb, band * 0.3);
         c = mix(c, ${srgb(zr, zg, zb)}, smoothstep(0.05, -0.12, vTop));
         c = mix(c, ${srgb(nr, ng, nb)}, smoothstep(0.95, 1.1, vTop));
         gl_FragColor = vec4(c, 1.0);

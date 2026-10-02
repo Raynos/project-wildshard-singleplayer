@@ -49,8 +49,8 @@ export const UPDRAFT = { x: 0, z0: WINDMILL.z - apothem(WINDMILL) - HOVER_GAP, y
 /** The fallen bridge: it hangs from the step's north rim until its winch raises it to the storm crown. */
 export const FALLEN_BRIDGE: Span = { id: 'far.bridge.crown', kind: 'rope', x0: 0, z0: STEP.z - apothem(STEP) + 0.6, x1: 0, z1: CROWN.z + apothem(CROWN) - 1, y: HIGH, y1: HIGH, width: 2.6 };
 export const WINCH = { x: 3.2, z: STEP.z - apothem(STEP) + 2.2, y: HIGH };
-/** The windmill (loop 5: east of the isle's middle, off the high-step view's line; its sails face the spawn). */
-export const MILL = { x: 6, z: WINDMILL.z - 2, yaw: -0.1 };
+/** The windmill (loop 5: east of the isle's middle, off the high-step view's line; its sails face the spawn; round 2: back from the h2 view so the sails fit). */
+export const MILL = { x: 8, z: WINDMILL.z - 6, yaw: -0.13 };
 /** The bridge-keeper's notes (quest step 1), on the broken-bridge isle. */
 export const NOTES = { x: KEEPER.x - 3, z: KEEPER.z - 2, y: KEEPER.y };
 /** The three wind vanes (quest step 3): GUST each one to set it turning. */
