@@ -6,7 +6,7 @@ import { ISLES, SPANS, apothem, type Isle } from '../layout';
  * underside as old rock, not felt and a cone. All instanced, no colliders (you walk through grass and flowers; the stones
  * are ankle-high), one draw each:
  *
- * - **grass clumps**: five bent blades per clump, olive at the root to gold at the tip, up-facing normals so a clump is lit
+ * - **grass clumps**: twelve bent blades per clump, olive at the root to gold at the tip, up-facing normals so a clump is lit
  *   like the meadow under it (no black back faces against the low sun);
  * - **flowers**: white and yellow four-petal stars just over the grass;
  * - **stones**: low warm-grey rocks, mostly near the rims;
@@ -14,7 +14,7 @@ import { ISLES, SPANS, apothem, type Isle } from '../layout';
  *
  * Placement uses its own seeded generator, not the level's cosmetic stream (whose order the islands already consume).
  */
-export const DRESS = { clumpsPerM2: 1.6, flowersPerM2: 0.3, stonesPerIsle: 9, rootsPerM: 0.55, bridgeClear: 0.3 } as const;
+export const DRESS = { clumpsPerM2: 0.5, flowersPerM2: 0.08, stonesPerIsle: 9, rootsPerM: 0.55, bridgeClear: 0.3 } as const;
 
 function seeded(seed: number): () => number {
   let a = seed >>> 0;
@@ -25,13 +25,15 @@ function seeded(seed: number): () => number {
 export function clumpGeometry(): BufferGeometry {
   const pos: number[] = [], col: number[] = [], nor: number[] = [], root = new Color(0x5f8a3a), mid = new Color(0x93b552), tip = new Color(0xc9c66a);
   const push = (x: number, y: number, z: number, c: Color): void => { pos.push(x, y, z); col.push(c.r, c.g, c.b); nor.push(0, 1, 0); };
-  for (let i = 0; i < 5; i++) {
-    const a = (i / 5) * Math.PI * 2 + i * 0.4, dx = Math.cos(a), dz = Math.sin(a), w = 0.07, lean = 0.28 + (i % 2) * 0.12, h = 0.75 + (i % 3) * 0.15;
-    const px = -dz * w, pz = dx * w, mx = dx * lean * 0.45, mz = dz * lean * 0.45;
+  // twelve blades over a patch about 0.6 m across (fewer, fuller instances: the instance matrices are the GPU cost)
+  for (let i = 0; i < 12; i++) {
+    const a = (i / 12) * Math.PI * 2 + i * 0.4, dx = Math.cos(a), dz = Math.sin(a), w = 0.07, lean = 0.28 + (i % 2) * 0.12, h = 0.75 + (i % 3) * 0.15;
+    const ox = Math.cos(i * 2.4) * 0.3 * ((i % 4) / 3), oz = Math.sin(i * 2.4) * 0.3 * ((i % 4) / 3);
+    const px = -dz * w, pz = dx * w, mx = ox + dx * lean * 0.45, mz = oz + dz * lean * 0.45;
     // two quads up the blade, then the tip triangle: root → mid → tip, leaning outward
-    push(px, 0, pz, root); push(-px, 0, -pz, root); push(mx + px * 0.7, h * 0.5, mz + pz * 0.7, mid);
-    push(-px, 0, -pz, root); push(mx - px * 0.7, h * 0.5, mz - pz * 0.7, mid); push(mx + px * 0.7, h * 0.5, mz + pz * 0.7, mid);
-    push(mx + px * 0.7, h * 0.5, mz + pz * 0.7, mid); push(mx - px * 0.7, h * 0.5, mz - pz * 0.7, mid); push(dx * lean, h, dz * lean, tip);
+    push(ox + px, 0, oz + pz, root); push(ox - px, 0, oz - pz, root); push(mx + px * 0.7, h * 0.5, mz + pz * 0.7, mid);
+    push(ox - px, 0, oz - pz, root); push(mx - px * 0.7, h * 0.5, mz - pz * 0.7, mid); push(mx + px * 0.7, h * 0.5, mz + pz * 0.7, mid);
+    push(mx + px * 0.7, h * 0.5, mz + pz * 0.7, mid); push(mx - px * 0.7, h * 0.5, mz - pz * 0.7, mid); push(ox + dx * lean, h, oz + dz * lean, tip);
   }
   const g = new BufferGeometry();
   g.setAttribute('position', new Float32BufferAttribute(pos, 3)); g.setAttribute('color', new Float32BufferAttribute(col, 3)); g.setAttribute('normal', new Float32BufferAttribute(nor, 3));
