@@ -13,8 +13,8 @@ import { WIND } from './dunes';
  * - the pool: a warm additive disc draped on the sand round the brazier.
  */
 export interface FireSize { flame: number; glow: number; smoke: number; embers: number }
-export const WAYMARK_FIRE: FireSize = { flame: 2.1, glow: 3.4, smoke: 18, embers: 40 };
-export const SIGNAL_FIRE: FireSize = { flame: 3.6, glow: 7, smoke: 48, embers: 70 };
+export const WAYMARK_FIRE: FireSize = { flame: 2.4, glow: 2.2, smoke: 22, embers: 110 };
+export const SIGNAL_FIRE: FireSize = { flame: 3.6, glow: 5, smoke: 48, embers: 160 };
 
 const time = { value: 0 };
 const NOISE = /* glsl */ `
@@ -55,14 +55,22 @@ varying float vFar;
 varying float vNear;
 ${NOISE}
 void main() {
-  float y = vUv.y, n = fxNoise(vec2(vUv.x * 5.0, y * 4.0 - uTime * 3.4)) * 0.6 + fxNoise(vec2(vUv.x * 11.0 + 3.0, y * 9.0 - uTime * 6.0)) * 0.4;
-  float w = 0.5 * pow(1.0 - y, 0.75) + 0.02;
-  float d = abs(vUv.x - 0.5) / w + (n - 0.5) * 0.9;
-  float body = (1.0 - smoothstep(0.25, 1.0, d)) * (1.0 - smoothstep(0.55, 1.02, y + (n - 0.5) * 0.45)) * smoothstep(0.0, 0.08, y);
-  vec3 c = mix(vec3(0.85, 0.14, 0.02), vec3(1.0, 0.5, 0.1), smoothstep(0.15, 0.6, body));
-  c = mix(c, vec3(1.0, 0.8, 0.48), smoothstep(0.7, 1.0, body) * (1.0 - y)); // a saturated core, never a white blob (loop 3 ΔE00)
-  // Up close (a player at the brazier, the deck's fire) the billboard fades out instead of filling the screen white.
-  gl_FragColor = vec4(c * body * 1.25 * smoothstep(0.8, 2.6, vFar) * max(vNear, 0.25), 1.0);
+  // loop 5 (mockup C): crisp licking tongues, not a soft blob. The flame's outline is pushed sideways by rising noise,
+  // split into tongues near the top, with a hard edge; the core runs hot yellow at the root, deep orange out to red tips.
+  float y = vUv.y;
+  float n1 = fxNoise(vec2(vUv.x * 4.0, y * 3.0 - uTime * 3.6)), n2 = fxNoise(vec2(vUv.x * 9.0 + 3.0, y * 7.0 - uTime * 6.5));
+  float n = n1 * 0.6 + n2 * 0.4;
+  float x = vUv.x - 0.5 + (n1 - 0.5) * 0.22 * y;
+  float tongues = 0.75 + 0.25 * sin(x * 26.0 + n2 * 4.0 + uTime * 2.0);
+  float w = (0.5 * pow(1.0 - y, 0.8) + 0.02) * mix(1.0, tongues, smoothstep(0.25, 0.7, y));
+  float d = abs(x) / w + (n - 0.5) * 0.5;
+  float top = y + (n - 0.5) * 0.5;
+  float body = (1.0 - smoothstep(0.82, 1.0, d)) * (1.0 - smoothstep(0.78, 0.95, top)) * smoothstep(0.0, 0.06, y);
+  float core = (1.0 - smoothstep(0.2, 0.6, d)) * (1.0 - smoothstep(0.25, 0.6, top));
+  vec3 c = mix(vec3(0.8, 0.12, 0.0), vec3(1.0, 0.45, 0.04), smoothstep(0.0, 0.5, 1.0 - d));
+  c = mix(c, vec3(1.0, 0.72, 0.22), core * 0.85);
+  // Up close (a player at the brazier, the deck's fire) the billboard fades out instead of filling the screen.
+  gl_FragColor = vec4(c * body * 1.6 * smoothstep(0.8, 2.6, vFar) * max(vNear, 0.25), 1.0);
 }`,
 });
 const smokeMaterial = new ShaderMaterial({
@@ -107,7 +115,7 @@ void main() {
   float r = length(vUv - 0.5) * 2.0;
   float flick = 0.86 + 0.08 * sin(uTime * 13.0) + 0.06 * sin(uTime * 29.0 + 1.3);
   float g = exp(-r * r * 5.0) * (1.0 - smoothstep(0.85, 1.0, r));
-  gl_FragColor = vec4(vec3(1.0, 0.4, 0.1) * g * 0.42 * flick * vFade, 1.0);
+  gl_FragColor = vec4(vec3(1.0, 0.4, 0.1) * g * 0.26 * flick * vFade, 1.0); // loop 5: a halo, not a wash
 }`,
 });
 const emberMaterial = new ShaderMaterial({
@@ -121,10 +129,10 @@ void main() {
   float life = fract(uTime * (0.22 + 0.18 * fract(seed * 7.13)) + seed);
   vLife = life;
   float a = seed * 40.0 + uTime * (1.0 + fract(seed * 3.7));
-  vec3 p = vec3(cos(a) * 0.25 * (1.0 + life * 2.0), life * 3.2, sin(a) * 0.25 * (1.0 + life * 2.0)) * s;
+  vec3 p = vec3(cos(a) * 0.25 * (1.0 + life * 2.5), life * 5.0, sin(a) * 0.25 * (1.0 + life * 2.5)) * s;
   p.xz += vec2(${WIND.x.toFixed(3)}, ${WIND.z.toFixed(3)}) * life * life * 4.5 * s;
   vec4 mv = viewMatrix * vec4((modelMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz + p, 1.0);
-  gl_PointSize = clamp((1.0 - life) * 60.0 * (0.6 + fract(seed * 13.1)) / -mv.z, 1.5, 6.0);
+  gl_PointSize = clamp((1.0 - life) * 90.0 * (0.6 + fract(seed * 13.1)) / -mv.z, 2.0, 7.0);
   gl_Position = projectionMatrix * mv;
 }`,
   fragmentShader: /* glsl */ `
@@ -132,7 +140,7 @@ varying float vLife;
 void main() {
   float r = length(gl_PointCoord - 0.5) * 2.0;
   float a = (1.0 - smoothstep(0.2, 1.0, r)) * (1.0 - smoothstep(0.6, 1.0, vLife));
-  gl_FragColor = vec4(mix(vec3(1.0, 0.8, 0.35), vec3(1.0, 0.25, 0.05), vLife) * a * 1.6, 1.0);
+  gl_FragColor = vec4(mix(vec3(1.0, 0.75, 0.3), vec3(1.0, 0.25, 0.04), vLife) * a * 2.4, 1.0);
 }`,
 });
 const poolMaterial = new ShaderMaterial({
@@ -147,7 +155,8 @@ varying vec2 vUv;
 void main() {
   float r = length(vUv - 0.5) * 2.0;
   float flick = 0.85 + 0.1 * sin(uTime * 11.0) + 0.05 * sin(uTime * 23.0);
-  gl_FragColor = vec4(vec3(1.0, 0.42, 0.12) * pow(max(0.0, 1.0 - r), 2.2) * 0.55 * flick, 1.0);
+  // loop 5 (mockup C): the fire floods the sand round it orange: a broad pool, hot near the brazier
+  gl_FragColor = vec4(vec3(0.85, 0.24, 0.03) * (pow(max(0.0, 1.0 - r), 2.2) * 0.16 + pow(max(0.0, 1.0 - r), 8.0) * 0.28) * flick, 1.0);
 }`,
 });
 const quad = new PlaneGeometry(1, 1); quad.translate(0, 0.5, 0);
@@ -180,7 +189,7 @@ export function addFire(group: Group, size: FireSize, pool?: { at: Vector3; grou
   const sparks = new Points(embers(size.embers), emberMaterial); sparks.scale.setScalar(size.flame * 0.9); sparks.position.y = size.flame * 0.3; add(sparks);
   const smoke = new Mesh(quad, smokeMaterial); smoke.scale.set(size.smoke * 0.09, size.smoke, 1); smoke.position.y = size.flame * 0.7; smoke.renderOrder = 1; add(smoke);
   if (pool) {
-    const r = size.glow * 1.1, n = 10, g = new PlaneGeometry(r * 2, r * 2, n, n); g.rotateX(-Math.PI / 2);
+    const r = size.glow * 2.3, n = 16, g = new PlaneGeometry(r * 2, r * 2, n, n); g.rotateX(-Math.PI / 2);
     const p = g.getAttribute('position');
     for (let i = 0; i < p.count; i++) p.setY(i, pool.groundAt(pool.at.x + p.getX(i), pool.at.z + p.getZ(i)) + 0.06 - pool.at.y);
     add(new Mesh(g, poolMaterial));
