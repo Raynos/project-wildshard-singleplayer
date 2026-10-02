@@ -1,0 +1,40 @@
+{
+  "slug": "proto-fjord",
+  "sentence": "a frozen fjord where you are the last ferryman",
+  "size": 500,
+  "note": "x east, z south, origin at the centre, metres (the shard contract); image row 0 = north (z = -250)",
+  "regions": [
+    { "id": "sea",      "color": "#1f4e79", "walkable": false, "base": -6,  "desc": "open fjord water, deep blue" },
+    { "id": "ice",      "color": "#cfe8f3", "walkable": true,  "base": 0.2, "desc": "frozen fjord ice, walkable" },
+    { "id": "shore",    "color": "#c8b27a", "walkable": true,  "base": 1.0, "desc": "pebble shore and beaches" },
+    { "id": "village",  "color": "#8a6a4a", "walkable": true,  "base": 3.0, "desc": "flat village ground" },
+    { "id": "snow",     "color": "#f4f6f8", "walkable": true,  "base": 8.0, "desc": "rolling snowfields" },
+    { "id": "forest",   "color": "#2f5d3a", "walkable": true,  "base": 10.0, "desc": "pine forest on hills" },
+    { "id": "rock",     "color": "#7b7f86", "walkable": false, "base": 28.0, "desc": "rocky highland and cliffs" },
+    { "id": "glacier",  "color": "#9fd6e0", "walkable": true,  "base": 34.0, "desc": "the glacier tongue" },
+    { "id": "path",     "color": "#5a3e2b", "walkable": true,  "base": null, "desc": "routes and the four entry roads (drawn over everything)" }
+  ],
+  "places": [
+    { "id": "spawn",     "role": "spawn",     "x": 0,    "z": 215,  "r": 18, "region": "shore",   "label": "THE SOUTH LANDING" },
+    { "id": "hub",       "role": "hub",       "x": -40,  "z": 110,  "r": 40, "region": "village", "label": "FERRYMAN'S VILLAGE" },
+    { "id": "lighthouse","role": "landmark",  "x": 120,  "z": -190, "r": 22, "region": "rock",    "label": "THE LIGHTHOUSE" },
+    { "id": "wreck",     "role": "objective", "x": 30,   "z": 10,   "r": 28, "region": "ice",     "label": "THE FROZEN WRECK" },
+    { "id": "icecave",   "role": "objective", "x": -170, "z": -60,  "r": 22, "region": "rock",    "label": "ICE CAVE" },
+    { "id": "tower",     "role": "objective", "x": 175,  "z": 60,   "r": 20, "region": "forest",  "label": "SIGNAL TOWER" },
+    { "id": "quarry",    "role": "arena",     "x": -150, "z": 120,  "r": 30, "region": "snow",    "label": "THE OLD QUARRY" },
+    { "id": "glacier",   "role": "boss",      "x": 140,  "z": -110, "r": 40, "region": "glacier", "label": "GLACIER MOUTH" },
+    { "id": "spring",    "role": "secret",    "x": -200, "z": -190, "r": 12, "region": "forest",  "label": "HOT SPRING" },
+    { "id": "overlook",  "role": "vista",     "x": 200,  "z": -20,  "r": 14, "region": "snow",    "label": "CLIFF OVERLOOK" },
+    { "id": "ropeline",  "role": "traversal", "x": -60,  "z": -120, "r": 16, "region": "shore",   "label": "THE ROPE FERRY" }
+  ],
+  "routes": [
+    { "id": "main",   "grade": 0.5, "pts": [[0,250],[0,215],[-40,110],[0,60],[30,10],[80,-40],[140,-110]] },
+    { "id": "west",   "grade": 0.7, "pts": [[-250,0],[-200,40],[-150,120],[-40,110]] },
+    { "id": "north",  "grade": 0.5, "pts": [[0,-250],[-30,-200],[-60,-120],[-170,-60]] },
+    { "id": "east",   "grade": 0.5, "pts": [[250,0],[200,-20],[175,60],[80,-40]] },
+    { "id": "light",  "grade": 0.7, "pts": [[140,-110],[120,-190]] },
+    { "id": "spring", "grade": 0.7, "pts": [[-170,-60],[-200,-190]] },
+    { "id": "ferry",  "grade": 0.5, "pts": [[-60,-120],[30,10]] }
+  ],
+  "layout_text": "A frozen fjord runs from the north edge down through the middle of the shard and widens into a frozen bay in the centre (ice) with a strip of open dark water along its northern half (sea). Pebble shores line it. The ferryman's village sits on flat ground on the south-west shore. Snowfields cover the south-west and the east. Pine forest covers the west and a band in the east. Rocky highland with cliffs rises in the north-west and the north-east; between them, in the north-east, a glacier tongue comes down to the fjord. Brown paths connect everything and reach the middle of each edge."
+}
