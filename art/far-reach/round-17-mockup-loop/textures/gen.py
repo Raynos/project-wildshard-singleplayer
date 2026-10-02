@@ -1,0 +1,63 @@
+"""Sky Reach's painted textures (E392, toward the mockups): codex image_gen, one image each, run in parallel.
+
+  python3 gen.py [names...]      # -> <name>.png here; then pack.py makes the shipped files
+
+  clouds  a 4x2 atlas of painted golden-hour cumulus puffs on pure black (alpha comes from the brightness)
+  rock    a seamless tileable painted cliff rock: grey-brown stone, faint warm strata, green moss streaks
+  meadow  a seamless tileable painted meadow ground seen from above: grass, golden patches, tiny daisies
+The PNG is copied from ~/.codex/generated_images/<session id>/ the moment it lands (AGENTS.md, Mockups).
+"""
+import glob, os, re, subprocess, sys, time
+from concurrent.futures import ThreadPoolExecutor
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+REPO = os.path.abspath(os.path.join(HERE, '../../../..'))
+REF = os.path.join(REPO, 'art/far-reach/round-1-proposals/B-sky-reach.jpg')
+STYLE = ("Painterly-stylized like the attached mockup (Studio Ghibli / Genshin Impact background art): soft visible brush work, "
+         "rich detail, warm golden-hour light from the upper left.")
+PROMPTS = {
+    'clouds': ("Paint ONE 1536x1024 image: a sprite atlas of 8 separate fluffy cumulus cloud puffs arranged in a 4 x 2 grid (4 across, "
+               "2 down), each puff centred in its own cell and NOT touching the cell edges or each other, on a PURE BLACK background "
+               "(#000000 everywhere outside the clouds). Each puff: a rounded billowing cauliflower cumulus, bright warm cream-white and "
+               "peach-gold on its sunlit top and left, soft lavender-grey shadow in its lower belly, soft feathery edges fading into the "
+               "black. Vary their shapes: some wide and flat, some tall, some clusters of small billows. " + STYLE + " No ground, no sky "
+               "colour, no text, no grid lines."),
+    'rock': ("Paint ONE 1024x1024 SEAMLESS TILEABLE texture (it must tile with no visible seam on all four sides), seen straight on: a "
+             "craggy cliff face of grey-brown stone with faint horizontal warm sandstone strata, cracks and chiselled facets, green moss "
+             "streaks and small hanging roots running down, lichen patches. Even lighting with gentle soft shading only (it is a material, "
+             "not a scene): no horizon, no sky, no single big shadow, no vignette. " + STYLE + " No text."),
+    'meadow': ("Paint ONE 1024x1024 SEAMLESS TILEABLE texture (it must tile with no visible seam on all four sides), seen straight from "
+               "above: a lush meadow floor, dense green grass with golden-green sunlit patches, tiny white and yellow daisies scattered, a "
+               "few small bare earth specks. Even top-down lighting, no shadows from objects, no horizon, no vignette, no large features. "
+               + STYLE + " No text."),
+}
+TASK = " ... TASK FOR CODEX: generate exactly ONE image with your built-in image_gen tool. One generation only. Then stop; do not create or modify any file."
+
+
+def one(name):
+    out = os.path.join(HERE, f'{name}.png')
+    if os.path.exists(out): return name, 'cached'
+    logp = os.path.join(HERE, f'{name}.log')
+    for attempt in range(3):
+        log = open(logp, 'a')
+        p = subprocess.Popen(['codex', 'exec', '-s', 'workspace-write', '--skip-git-repo-check', '-C', HERE, '-i', REF], stdin=subprocess.PIPE, stdout=log, stderr=log)
+        p.stdin.write((PROMPTS[name] + TASK).encode()); p.stdin.close()
+        sid, t0, got = None, time.time(), None
+        while time.time() - t0 < 900:
+            time.sleep(5)
+            if sid is None:
+                m = re.search(r'session id:\s*([0-9a-f-]+)', open(logp).read()); sid = m.group(1) if m else None
+            if sid:
+                pngs = glob.glob(os.path.expanduser(f'~/.codex/generated_images/{sid}/*.png'))
+                if pngs: time.sleep(3); got = pngs[0]; break
+            if p.poll() is not None and sid is None: break
+        if p.poll() is None: p.kill()
+        if got:
+            import shutil; shutil.copy(got, out); return name, 'ok'
+    return name, 'failed'
+
+
+if __name__ == '__main__':
+    names = sys.argv[1:] or list(PROMPTS)
+    with ThreadPoolExecutor(len(names)) as ex:
+        for n, st in ex.map(one, names): print(n, st, flush=True)

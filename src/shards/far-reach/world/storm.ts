@@ -59,7 +59,14 @@ const FRAGMENT = /* glsl */`
     // loop 4: it belongs to the crown. Seen from the far islands it is only a faint bruise over the crown, so the painted
     // sky stays open from the spawn; it gathers as you come near (the high step, the crown bridge, the arena)
     float approach = 1.0 - smoothstep(${STORM.gather[0].toFixed(1)}, ${STORM.gather[1].toFixed(1)}, length(cameraPosition.xz - centre.xz)) * 0.45;
-    gl_FragColor = vec4(c, alpha * (1.0 - haze * 0.72) * near * approach);
+    // seen from above (the E392 god-view targets) it is a sunlit cumulus spiral, the crown clear in its eye: the billows'
+    // crowns cream-gold, the hollows lavender, the eye open
+    float above = smoothstep(4.0, 22.0, cameraPosition.y - wp.y);
+    vec3 billow = mix(${hex(0x9c8aa8)}, ${hex(0xfff0dc)}, smoothstep(0.25, 0.85, lit * 0.6 + (1.0 - dens) * 0.2 + arms * 0.3));
+    billow = mix(billow, ${hex(STORM_COLORS.gold)}, pow(sunSide, 2.0) * 0.35);
+    c = mix(c, billow, above);
+    float eyeOpen = mix(1.0, smoothstep(0.18, 0.4, r), above);
+    gl_FragColor = vec4(c, alpha * (1.0 - haze * 0.72 * (1.0 - above)) * near * approach * eyeOpen * mix(1.0, 0.9, above));
   }`;
 
 const VERTEX = /* glsl */`

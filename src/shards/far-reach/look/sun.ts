@@ -17,6 +17,7 @@ export function sunFromHeading(heading: number, elevation: number): Vector3 {
 export const SKY = {
   zenith: 0x7f95d0, mid: 0xefb9ad, horizon: 0xffd89c, below: 0xf6e3d6, sun: 0xffdba2, key: 0xffd2a2, fog: 0xf0c9b6,
   cloudShade: 0xb08fb4, cloudShadeWarm: 0xe0a294, cloudLit: 0xffe0c4, isle: 0x9d8fb8, isleLit: 0xe2ad8c,
-  seaShade: 0x9c7394, seaShadeWarm: 0xc98a86, seaLit: 0xffd3b2,
+  seaShade: 0xb092a8, seaShadeWarm: 0xe0a896, seaLit: 0xfff1e2,
 } as const;
-export const FOG = { near: 110, far: 460 } as const;
+/** E392 (the targets are clear and golden, our frames sat under a rose veil): the haze starts later and never covers more than `max`. */
+export const FOG = { near: 170, far: 720, max: 0.6 } as const;

@@ -99,6 +99,17 @@ export function plankBridge(length: number, width: number, material: MeshStandar
   return group;
 }
 
+/** Weathered wood (E392: the targets' planks and posts are silver-grey-brown; the generated kit's are saturated orange):
+ * the geometry's own vertex colours pulled most of the way to their grey. */
+function greyWood(g: BufferGeometry): BufferGeometry {
+  if (!g.hasAttribute('color')) return g;
+  const c = g.getAttribute('color');
+  for (let i = 0; i < c.count; i++) {
+    const r = c.getX(i), gg = c.getY(i), b = c.getZ(i), lum = r * 0.3 + gg * 0.59 + b * 0.11;
+    c.setXYZ(i, r + (lum * 1.04 - r) * 0.65, gg + (lum * 0.99 - gg) * 0.65, b + (lum * 0.92 - b) * 0.65);
+  }
+  c.needsUpdate = true; return g;
+}
 /** The rope-bridge kit (Hunyuan3D-2 from `art/far-reach/round-9-bridge/ref-bridge-*.jpg`): a plank deck segment about this long, and an anchor post this tall. */
 const DECK_SEGMENT = 4.8, POST_HEIGHT = 1.6;
 /** The generated deck segments laid end to end along local −Z, top at y 0, stretched to the span's width; null without the kit. */
@@ -111,14 +122,15 @@ function kitDeck(length: number, width: number): InstancedMesh | null {
   g.translate(-(b.min.x + b.max.x) / 2, -b.max.y, -(b.min.z + b.max.z) / 2);
   g.scale(width / Math.max(1e-3, b.max.x - b.min.x), 1, seg / Math.max(1e-3, b.max.z - b.min.z)); g.computeVertexNormals();
   // weathered wood (E392: the mockups' planks are grey-brown, ours read saturated orange)
-  const mesh = new InstancedMesh(g, flat(0xc9bfb4, { vertexColors: true }), n), m = new Matrix4();
+  greyWood(g);
+  const mesh = new InstancedMesh(g, flat(0xffffff, { vertexColors: true }), n), m = new Matrix4();
   for (let i = 0; i < n; i++) { m.makeTranslation(0, 0, -(i + 0.5) * seg); mesh.setMatrixAt(i, m); }
   mesh.computeBoundingSphere(); return mesh;
 }
 /** The generated anchor posts at the span's four corners, just outside the rope rails; null without the kit. */
 function kitPosts(width: number, length: number): InstancedMesh | null {
   const source = skyMesh('bridge-post'); if (source === null) return null;
-  const g = fit(source, { size: POST_HEIGHT, by: 'height', floor: 0, centre: 'base' }), mesh = new InstancedMesh(g, flat(0xd2c8bc, { vertexColors: true }), 4), m = new Matrix4();
+  const g = fit(source, { size: POST_HEIGHT, by: 'height', floor: 0, centre: 'base' }), mesh = new InstancedMesh(greyWood(g), flat(0xffffff, { vertexColors: true }), 4), m = new Matrix4();
   let i = 0;
   for (const side of [-1, 1]) for (const z of [0, -length]) { m.makeTranslation(side * (width / 2 + 0.12), -0.05, z); mesh.setMatrixAt(i++, m); }
   mesh.computeBoundingSphere(); return mesh;

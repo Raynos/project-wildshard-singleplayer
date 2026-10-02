@@ -1,4 +1,5 @@
-import { BufferGeometry, Color, Float32BufferAttribute, Mesh, MeshStandardMaterial } from 'three';
+import { BufferGeometry, Color, Float32BufferAttribute, Mesh, MeshStandardMaterial, type Texture } from 'three';
+import { PATCH_ORDER, patchShader } from '#engine';
 import { apothem, type Isle } from '../layout';
 import { meadowPaths } from './meadow';
 
@@ -44,6 +45,15 @@ function polyRadius(isle: Isle, a: number): number {
   return apothem(isle) / Math.cos(t - step / 2);
 }
 
+/**
+ * The islands' painted textures (E392, toward the targets: moss-streaked grey cliffs, a flowered meadow): the keels' rock
+ * sampled triplanar in world space (no UVs needed) and multiplied into the strata colours, the meadow ground projected
+ * from above onto the green faces. The plugin loads them behind the loading screen and sets them before the world is
+ * built; without them the islands keep their painted vertex colours.
+ */
+let TEX: { rock: Texture | null; meadow: Texture | null } = { rock: null, meadow: null };
+export function setIsleTextures(tex: { rock: Texture | null; meadow: Texture | null }): void { TEX = tex; }
+
 export function islandMesh(isle: Isle, random: () => number): Mesh {
   let draw = 0; for (let i = 0; i < ISLE_SHAPE.drawsOfOldIsland; i++) draw = random();
   const rnd = seeded(Math.floor(draw * 4294967296) ^ Math.round(isle.x * 131 + isle.z * 17));
@@ -71,7 +81,7 @@ export function islandMesh(isle: Isle, random: () => number): Mesh {
       const path = 1 - smooth(0.3, 1.0, pd + 0.35 * n2);
       c2.setHex(ISLE_PALETTE.groundGold);
       const base = new Color(ISLE_PALETTE.groundDeep).lerp(new Color(ISLE_PALETTE.ground), smooth(0.2, 0.55, n2)).lerp(c2, smooth(0.45, 0.8, n) * 0.8);
-      const id = vert(x, 0.05 * (n - 0.5) * (1 - f * f), z, base.getHex(), { hex: ISLE_PALETTE.path, k: path * 0.8 });
+      const id = vert(x, 0.05 * (n - 0.5) * (1 - f * f), z, base.getHex(), { hex: ISLE_PALETTE.path, k: path * 0.35 });
       row.push(id);
     }
     rows.push(row);
@@ -135,5 +145,48 @@ export function islandMesh(isle: Isle, random: () => number): Mesh {
   g.setAttribute('position', new Float32BufferAttribute(pos, 3)); g.setAttribute('color', new Float32BufferAttribute(col, 3));
   g.setIndex(idx); g.computeVertexNormals();
   // faceted: the crags read as cut rock, the meadow top as a low-poly painted lawn
-  return new Mesh(g, new MeshStandardMaterial({ vertexColors: true, roughness: 0.95, metalness: 0, flatShading: true }));
+  const material = new MeshStandardMaterial({ vertexColors: true, roughness: 0.95, metalness: 0, flatShading: true });
+  // the meadow from above (E392, the aerial targets): tonal patches and scattered daisies painted in world space on the
+  // green faces, so a top reads as a flowered meadow, not one smooth green
+  const { rock, meadow } = TEX;
+  patchShader(material, 'far.isle-meadow', PATCH_ORDER.decorate, (shader) => {
+    if (rock !== null) shader.uniforms['farRock'] = { value: rock };
+    if (meadow !== null) shader.uniforms['farMeadow'] = { value: meadow };
+    shader.fragmentShader = `#ifndef FAR_MEADOW_PAINT
+#define FAR_MEADOW_PAINT
+${rock !== null ? '#define FAR_ROCK_TEX\nuniform sampler2D farRock;\n' : ''}${meadow !== null ? '#define FAR_MEADOW_TEX\nuniform sampler2D farMeadow;\n' : ''}float farMH(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+float farMN(vec2 p){ vec2 i = floor(p), f = fract(p); vec2 u = f * f * (3.0 - 2.0 * f);
+  return mix(mix(farMH(i), farMH(i + vec2(1.0, 0.0)), u.x), mix(farMH(i + vec2(0.0, 1.0)), farMH(i + vec2(1.0, 1.0)), u.x), u.y); }
+#endif
+${shader.fragmentShader.replace('#include <color_fragment>', `#include <color_fragment>
+  // the fragment's world position (the fog's varying is not in every program: computed from the view position)
+  vec3 farWP = (inverse(viewMatrix) * vec4(-vViewPosition, 1.0)).xyz;
+  if (diffuseColor.g > diffuseColor.r * 1.05 && diffuseColor.g > diffuseColor.b * 1.3) {
+    vec2 q = farWP.xz;
+    diffuseColor.rgb *= 0.8 + 0.38 * farMN(q * 0.22) + 0.12 * farMN(q * 1.3);
+#ifdef FAR_MEADOW_TEX
+    // the painted meadow, a 5 m tile, keeping the vertex colour's broad tone
+    vec3 mt = texture2D(farMeadow, q * 0.2).rgb;
+    diffuseColor.rgb = mix(diffuseColor.rgb, mt * (0.55 + 0.6 * dot(diffuseColor.rgb, vec3(0.3, 0.59, 0.11)) / 0.3), 0.8);
+#endif
+    vec2 cell = floor(q * 2.2); float pick = farMH(cell);
+    float dot2 = 1.0 - smoothstep(0.12, 0.3, length(fract(q * 2.2) - 0.5));
+    if (pick > 0.93) diffuseColor.rgb = mix(diffuseColor.rgb, pick > 0.975 ? vec3(0.95, 0.78, 0.25) : vec3(0.95, 0.94, 0.9), dot2 * 0.85);
+  } else {
+    // the rock: toward a cool grey-brown (E392 targets), keeping a little of its warm strata
+    float lum = dot(diffuseColor.rgb, vec3(0.3, 0.59, 0.11));
+    diffuseColor.rgb = mix(diffuseColor.rgb, vec3(lum) * vec3(1.0, 0.96, 0.93), 0.45);
+#ifdef FAR_ROCK_TEX
+    // triplanar mossy rock, its facet normal from the world position's derivatives (flat shading)
+    vec3 fn = normalize(cross(dFdx(farWP), dFdy(farWP)));
+    vec3 tw = pow(abs(fn), vec3(4.0)); tw /= (tw.x + tw.y + tw.z);
+    vec3 wq = farWP * 0.13;
+    vec3 tex = texture2D(farRock, wq.zy).rgb * tw.x + texture2D(farRock, wq.xz).rgb * tw.y + texture2D(farRock, wq.xy).rgb * tw.z;
+    diffuseColor.rgb = mix(diffuseColor.rgb, tex * (0.55 + 1.3 * dot(diffuseColor.rgb, vec3(0.3, 0.59, 0.11))), 0.85);
+#endif
+  }`)}`;
+  // its own program key: three caches programs by the last patch's text, and the scene-wide fog patch (look/render.ts)
+  // is the same text on every material, so without a key the islands reuse an unpatched program
+  }, { key: (prior) => `${prior}|far.isle-meadow:${rock !== null ? 'r' : ''}${meadow !== null ? 'm' : ''}` });
+  return new Mesh(g, material);
 }

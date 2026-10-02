@@ -5,6 +5,8 @@ import { installPaintedLight } from './light';
 import { HEADING_GLSL, fogLut, loadPanorama, skyDome } from './sky';
 import { bakeSeaTexture, cloudSea } from './cloudSea';
 import { cumulus } from './puffs';
+import { loadPainted } from './image';
+import { TEX_URL } from '../boot/files';
 
 export { FOG, SKY, SUN_DIR } from './sun';
 
@@ -23,6 +25,7 @@ function primitive(object: Object3D): object is Mesh { return object instanceof 
  */
 export async function skyReachLook(): Promise<LookStrategy> {
   const pano: Texture = await loadPanorama();
+  const cloudAtlas = await loadPainted(TEX_URL.clouds, 'far.cumulus');
   let seaTime: { value: number } | null = null;
   return { mode: 'extend',
     compose: ({ engineChain, scene, scope }) => {
@@ -37,7 +40,7 @@ export async function skyReachLook(): Promise<LookStrategy> {
           patchShader(material, 'far.rose-fog', PATCH_ORDER.decorate, (shader) => {
             shader.uniforms['farHaze'] = { value: haze };
             shader.fragmentShader = `#ifndef FAR_HAZE\n#define FAR_HAZE\nuniform sampler2D farHaze;\n${HEADING_GLSL}\n#endif\n${shader.fragmentShader.replace('#include <fog_fragment>',
-              `#ifdef USE_FOG\n vec3 farV=vFogWorldPos-cameraPosition; gl_FragColor.rgb=mix(gl_FragColor.rgb,texture2D(farHaze,vec2(farHeading(farV),0.5)).rgb,clamp((length(farV)-${FOG.near.toFixed(1)})/${(FOG.far - FOG.near).toFixed(1)},0.0,1.0)*0.85);\n#endif`)}`;
+              `#ifdef USE_FOG\n vec3 farV=vFogWorldPos-cameraPosition; gl_FragColor.rgb=mix(gl_FragColor.rgb,texture2D(farHaze,vec2(farHeading(farV),0.5)).rgb,clamp((length(farV)-${FOG.near.toFixed(1)})/${(FOG.far - FOG.near).toFixed(1)},0.0,1.0)*${FOG.max.toFixed(2)});\n#endif`)}`;
           }, { scope });
         }
       });
@@ -47,7 +50,9 @@ export async function skyReachLook(): Promise<LookStrategy> {
       scope.onDispose(() => { for (const mesh of sea.meshes) mesh.removeFromParent(); });
       seaTime = sea.time;
       // cumulus over the sea (loop 5): the islands rise out of billowing cloud
-      const puffs = cumulus(SUN_DIR); scene.add(puffs); scope.own(puffs.geometry); scope.own(puffs.material); scope.onDispose(() => { puffs.removeFromParent(); });
+      if (cloudAtlas !== null) {
+        const puffs = cumulus(SUN_DIR, cloudAtlas); scene.add(puffs); scope.own(cloudAtlas); scope.own(puffs.geometry); scope.own(puffs.material); scope.onDispose(() => { puffs.removeFromParent(); });
+      }
       return { chain: engineChain('clean') };
     },
     lighting: { install: installPaintedLight },

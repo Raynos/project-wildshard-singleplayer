@@ -120,7 +120,7 @@ export function meadow(sunDir: Vector3, blades: number, isles: readonly Isle[] =
           if (d < edge) { y = s.w; rim = d / edge; tall = uIsleGrass[i]; keep = uIsleKeep[i]; } }
         float clear = 1.0;
         for (int i = 0; i < NH; i++) { vec4 h = uHoles[i]; clear = min(clear, smoothstep(h.z, h.z + 0.6, distance(p, h.xy))); }
-        for (int i = 0; i < NP; i++) { vec4 s = uPaths[i]; clear = min(clear, smoothstep(0.3, 0.85, segDist(p, s.xy, s.zw) + 0.3 * mn(p * 1.7))); }
+        for (int i = 0; i < NP; i++) { vec4 s = uPaths[i]; clear = min(clear, smoothstep(0.1, 0.55, segDist(p, s.xy, s.zw) + 0.3 * mn(p * 1.7))); }
         float dist = distance(p, uCam.xz);
         float pt = mfbm(p * 0.23);
         // tall drifts and short lawn by noise; shorter toward the rim and the paths; shrinks to nothing at RANGE
@@ -163,7 +163,7 @@ export function meadow(sunDir: Vector3, blades: number, isles: readonly Isle[] =
         float back = pow(max(dot(view, uSun), 0.0), 3.0);
         vec3 lit = c * (0.52 + 0.45 * vH) * vShade + ${glslColor(SKY.sun)} * back * vH * vH * 0.3;
         lit *= ${glslColor(0xfff6ec)} * 1.1;
-        float f = clamp((length(vWorld - uCam) - ${FOG.near.toFixed(1)}) / ${(FOG.far - FOG.near).toFixed(1)}, 0.0, 1.0) * 0.85;
+        float f = clamp((length(vWorld - uCam) - ${FOG.near.toFixed(1)}) / ${(FOG.far - FOG.near).toFixed(1)}, 0.0, 1.0) * ${FOG.max.toFixed(2)};
         gl_FragColor = vec4(mix(lit, ${glslColor(SKY.fog)}, f), 1.0);
       }` });
   const mesh = new Mesh(g, material); mesh.frustumCulled = false; mesh.name = 'far.meadow';

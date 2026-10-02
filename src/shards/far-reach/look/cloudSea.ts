@@ -8,7 +8,7 @@ import { SKY } from './sun';
  * the sun gold-pink, shade mauve, melting into the horizon gold with distance. The kill height (`world.killY`) sits just
  * above the high sheet, so a fall ends inside the cloud.
  */
-export const SEA = { size: 64, low: -2, high: 5, radius: 1400, handoff: [240, 700] } as const;
+export const SEA = { size: 64, low: -48, high: -34, radius: 1400, handoff: [240, 700] } as const;
 
 function hash(x: number, y: number): number { const s = Math.sin(x * 127.1 + y * 311.7) * 43758.5453; return s - Math.floor(s); }
 function noise(x: number, y: number, p: number): number {

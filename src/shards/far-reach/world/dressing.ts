@@ -149,7 +149,7 @@ export function dressIslands(isles: readonly Isle[] = ISLES, seed = 6417, landin
       { vec3 farAt = (modelMatrix * instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
         transformed *= smoothstep(${DRESS.handoff[0].toFixed(1)}, ${DRESS.handoff[1].toFixed(1)}, distance(farAt.xz, cameraPosition.xz)); }
       #endif`);
-  });
+  }, { key: (prior) => `${prior}|far.clump-handoff` });
   place(new InstancedMesh(clumpGeometry(), clumpMaterial, clumps.length), clumps);
   const flowerMesh = new InstancedMesh(flowerGeometry(), new MeshStandardMaterial({ side: DoubleSide, roughness: 1, metalness: 0, emissive: 0x2a2418 }), flowers.length);
   place(flowerMesh, flowers); const fc = new Color(); flowers.forEach((f, i) => { flowerMesh.setColorAt(i, fc.setHex(f.c)); });

@@ -63,7 +63,7 @@ export function skyDome(pano: Texture, haze: Texture): Mesh<SphereGeometry, Shad
         // a veil of the painted haze over the far-island band just above the horizon (council R1C-12: the matte's
         // islands must stay simpler than the playable ones in front of them)
         float band = smoothstep(-1.5, 1.0, elev) * (1.0 - smoothstep(9.0, 22.0, elev));
-        c = mix(c, texture2D(haze, vec2(farHeading(n), 0.5)).rgb, band * 0.3);
+        c = mix(c, texture2D(haze, vec2(farHeading(n), 0.5)).rgb, band * 0.15);
         c = mix(c, ${srgb(zr, zg, zb)}, smoothstep(0.05, -0.12, vTop));
         c = mix(c, ${srgb(nr, ng, nb)}, smoothstep(0.95, 1.1, vTop));
         gl_FragColor = vec4(c, 1.0);
