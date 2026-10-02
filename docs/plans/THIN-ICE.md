@@ -124,7 +124,7 @@ halves:
 | P5b content | `content-*` (5), `steps/step*` wildcards (36; round 2 replaced some round-1 ones, which come back from commit `c6a2d015`) | 20.4 | "It's like a start" | `send/`, `send2/`, `steps/board-*`, `steps/mm-*` | 14.4 + 12.2 + 14.3 + 12.1 |
 | References | `refs/` (the live HUD capture and others) | 3.0 | — | — | — |
 
-Not Thin Ice's: the tool mockups (16, 7.4 MB) go to `art/worldclaw-tools/round-1/` (WORLDCLAW-TOOLS), and the early
+Not Thin Ice's: the tool mockups (16, 7.4 MB) are in `art/worldclaw-tools/round-1-draft-and-explorers/` (WORLDCLAW-TOOLS), and the early
 prototypes' images are in `art/worldclaw/round-1-prototypes/` as WORLDCLAW-SHARD §10's evidence.
 
 ## 5. Rows (after GAME-NORMALIZATION is archived and WorldClaw's tool rows land)
@@ -142,8 +142,12 @@ prototypes' images are in `art/worldclaw/round-1-prototypes/` as WORLDCLAW-SHARD
 ## 6. Order and size
 
 1. WORLDCLAW-SHARD §5 steps 1–5 (the tools), then **TI0** (the front on the built tools).
-2. TI-E2, E4, E5 (thin ice, the surface rule, the beacons): the slice needs them. Then TI-W1, TI-C1, TI-E3, TI-E6, TI-E1.
-3. P8 → P9 (the slice) → P9b; then TI-C2, C4, TI-E7, E8, E9, TI-L1 with P10 → P15; P16 → P17.
+2. TI-E3 and TI-E6 (the rope grab and the sled-board, the new verbs) in grey, then **P7** (Jake plays them, ≤ 10 min).
+3. TI-E2, E4, E5 (thin ice, the surface rule, the beacons): the slice needs them. Then TI-W1, TI-C1, TI-E1, and the
+   **grey logic** of everything P8 needs: the queen (TI-C2) and the Bellkeeper (TI-C4) as grey rows with their phases, the
+   survey (TI-E7), ladders (TI-E8) and the beam (TI-E9) working in grey.
+4. P8 → P9 (the slice) → P9b; then the final models and look of the crawlers, the queen, the boss and the mechanics, and
+   TI-L1, with P10 → P15; P16 → P17.
 
 **Size on top of WORLDCLAW-SHARD's base:** a custom weapon +2–4; new species and an elite +2–4; the boss +2–3; the
 mechanics ≈ +8–14 (the NPC moment ~2, thin ice ~1, the rope grab ~1, the surface rule ~0.5, beacons and lanes ~1.5,

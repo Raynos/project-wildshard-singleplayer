@@ -86,8 +86,9 @@ spec-check's rules: 06 §10.2. The twin rule: R15.
 1. **The schematic** (exact, code): the square, the four entry roads, places as labelled circles at their spec
    coordinates, routes, sightlines, happening spots. The places are placed by the agent; it iterates until the loop,
    the gates and the sightlines read in plan.
-2. **The painted map** (codex, organic): codex **edits the schematic** into flat colours with the exact palette, no
-   text, the places and roads kept. 3 variants in parallel (~110 s each, plan §10 PA).
+2. **The painted map** (codex, organic): **3 layout specs that differ in layout** (06 §3.5), a schematic each, then codex
+   **edits each schematic** into flat colours with the exact palette, no text, its own places and roads kept; the 3 run in
+   parallel (~110 s each, plan §10 PA).
 3. **The gate** (T3): places-in-region 100 %, every route on walkable ground, the roads untouched.
    - Palette fidelity below 94 % is a warning only (anti-aliased edges measured 94.9–97.9 %).
    - If all three maps fail, stamp each place's region disc (radius + 10 m) from the schematic over the best variant,
@@ -262,7 +263,7 @@ marked done.
 | `judge/` (J1–J3 briefs, the J2 runner, merge, rubrics, style check) | T12 |
 | `record.mjs` (frames, milestone clips, the daily summary, the time-lapse) | T13 |
 | visdev runners (`run_codex.py --max-parallel`, Qwen with a neutral ref, grids) | T14 |
-| the live page (Artifact, `db` + `assets`) | T15 |
+| the live page (superseded: WORLDCLAW-TOOLS' drafts site and auto-made artifact page, read-only) | ~~T15~~ → W-rows |
 | `slice-run.mjs` (the slice, the golden path, the boss) | T16 |
 | `grey-build.mjs` (spec → a grey world in the sketch kit) | T17 |
 | `zero-shot.sh` (the zero-shot launcher and relaunch loop) | T18 |

@@ -247,8 +247,8 @@ These are **the build's targets** (E4). The judges check fidelity (R6 pass mark)
 The bands set the order and plan the cameras; every seen m² gets full polish (D60). In `worldclaw-interactive` each place
 ends on a **checkpoint board** (its composition and its built result) that Jake steers before the next place (D63).
 
-**Jake's notes** (D36, R21; §10.3 for precedence) are read at every step boundary, from the live page's notes and
-chat, then applied, logged and acknowledged.
+**Jake's notes** (D36, R21; §10.3 for precedence) are read at every step boundary from chat (the pages are read-only:
+WORLDCLAW-TOOLS J17, J21), then applied, logged and acknowledged.
 
 **Who decides a hard failure** (§10.4's rungs 3–4), by mode and phase [R4-A4, R4-B3, R4-C4]:
 
@@ -407,7 +407,7 @@ The shard's `docs/SHARDS.md` section links `design.md` (plan §7 Q2).
 
 | Stage | Rows done | Files it reads | Writes |
 |---|---|---|---|
-| P0–P1 | N0, F1, E10, T13, T15 | — | design.md §run (mode, until, answers), §vision |
+| P0–P1 | N0, F1, E10, T13, WORLDCLAW-TOOLS W16, W15, W1–W5, W8, W9, W17, W13 (replace T15) | — | design.md §run (mode, until, answers), §vision |
 | P2–P3 | E3, T7, T10, T11, T12, T14, X1 | design.md §vision, fun-rules.md, scatter-sources.json | the pick, style-bible.md |
 | P4–P5 | E1, T1, T2, T3, T19 | style-bible.md, the pick | concepts, design.md, spec.json (spec-check clean), map variants, the blockout, World Explorer views |
 | P5b | T20 | the approved map, design.md, spec.json | the journey board, the step boards (with mechanics), side content, the slice |
@@ -447,7 +447,7 @@ The shard's `docs/SHARDS.md` section links `design.md` (plan §7 Q2).
 | A place moves **after P8** (only by Jake's note: from P9 on, neither the judges nor a gate's fallback move a place) | `design.md` + `spec.json` (twin-check), the painted map (its region disc stamped at the new spot, T3), the region bake, terrain (T4), its pad and the graded routes to it, its camera, the polish bands (T5), its stand-ins, content anchors and happening spots, the bakes, walk legs + reach + T16, its P9b target and every target whose camera sees it, its placements. **Neighbours** = places sharing a route leg with it. On the critical path → Jake replays P9 (his note asked for it) | other places' finished work | that place's and its neighbours' P10–P13 work |
 | A place is added or cut | as "moves", plus spec-check's role and count rules; an **added** place also gets its concept (P4, judged) and its mockup (P6, judged), then its P9b target | — | as "moves" |
 | A beat or the slice changes | design.md, spec.json, P8 content rows, T16; P9 replay when the slice changes | the world, the bible | P10–P13 for the beat's places |
-| The verb is cut (P7) | P2's verb line, the slice | places, the bible, concepts | — |
+| The verb is cut (P7) | P2's verb line, the slice, and the concepts, content boards and views that show the verb (D57) | places, the bible, the map, the other concepts | — |
 | **The look changes**, **before P9b** (a palette / light / materials note) | bible v2 (an edit of the bible, not a new P3); the concepts and mockups already made, re-edited in v2 (judged); later stages simply use v2 | layout, content, the design | — |
 | **The look changes**, **after P9b** (such a note, or a re-look at P16 / P17) | bible v2 → **P9b targets re-edited in the new look** (the old target as input) → re-post generated models → restyle code models' materials and the kit look (E6) → P13 models' post → card art → the style check → P10 → P12 compares → P14 → P15 → P16 (a new board and a new physical reading); only what exists is redone, later stages use v2 [R4-C15] | layout, colliders, content logic, world data | P11–P12 sign-offs |
 | A note naming one asset | that asset; a bible **exception line** (no re-check of others) | everything else | — |
@@ -560,7 +560,7 @@ job at once and ignores unknown flags.
   either ask (AskUserQuestion blocks the session), or post the board to the live page + chat and end the turn, taking
   the answer at the next step boundary like a note. The ask's Status reads `needs pick`.
 - **The wake-up:** every session's start reads §run.
-  - **A pending Jake decision** (`waitingOn: jake`): look for his answer (the live page's notes, chat). No answer → hold
+  - **A pending Jake decision** (`waitingOn: jake`): look for his answer in chat (the pages are read-only). No answer → hold
     (don't advance; work only on what doesn't depend on it); older than 48 h with no `resentAt` → re-send the board once and record
     `resentAt`; `resentAt` older than 48 h → stop with a Handoff (`stop: blocked`). An answer clears `waitingOn` and goes into the verdict log (ask id + a one-line quote) before
     the run advances.
