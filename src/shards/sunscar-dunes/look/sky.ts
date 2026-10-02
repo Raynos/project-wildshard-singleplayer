@@ -33,9 +33,10 @@ void main() {
   float h = max(d.y, 0.0);
   float toward = max(dot(normalize(vec3(d.x, 0.0, d.z)), normalize(vec3(uSun.x, 0.0, uSun.z))), 0.0);
   // loop 4: the band is taller and warmer all round (the H4 back targets: orange well up the sky away from the glow too)
-  vec3 band = mix(vec3(0.8, 0.38, 0.18), vec3(0.98, 0.47, 0.15), pow(toward, 1.3));
-  vec3 mauve = vec3(0.58, 0.3, 0.24), violet = vec3(0.26, 0.19, 0.27), indigo = vec3(0.12, 0.11, 0.18);
-  vec3 c = mix(band, mauve, smoothstep(0.0, 0.2 + 0.1 * toward, h));
+  // (the H4 back target, loop 4: away from the glow the band stays a saturated orange, a little lower)
+  vec3 band = mix(vec3(0.9, 0.42, 0.17), vec3(0.98, 0.47, 0.15), pow(toward, 1.3));
+  vec3 mauve = vec3(0.64, 0.31, 0.22), violet = vec3(0.26, 0.19, 0.27), indigo = vec3(0.12, 0.11, 0.18);
+  vec3 c = mix(band, mauve, smoothstep(0.0, 0.24 + 0.06 * toward, h));
   c = mix(c, violet, smoothstep(0.16, 0.4, h));
   c = mix(c, indigo, smoothstep(0.3, 0.8, h));
   c += vec3(1.0, 0.5, 0.18) * pow(toward, 5.0) * (1.0 - smoothstep(0.0, 0.22, h)) * 0.35;
@@ -55,10 +56,10 @@ void main() {
   float cov = smoothstep(0.5, 0.7, deck) * smoothstep(0.035, 0.1, h) * (1.0 - 0.55 * smoothstep(0.5, 0.95, h));
   vec2 sunward = normalize(vec2(uSun.x, uSun.z) + 1e-4) * 0.22 / (h + 0.07);
   float lit = clamp((deck - vFbm(cp * 1.1 + vec2(3.0, 1.0) + sunward * vec2(0.55, 1.5))) * 5.0 + 0.45, 0.0, 1.0);
-  vec3 cloudDark = mix(vec3(0.17, 0.12, 0.18), vec3(0.3, 0.15, 0.17), toward);
-  vec3 cloudLit = mix(vec3(0.88, 0.42, 0.36), vec3(1.0, 0.58, 0.26), pow(toward, 1.5));
+  vec3 cloudDark = mix(vec3(0.26, 0.15, 0.18), vec3(0.3, 0.15, 0.17), toward);
+  vec3 cloudLit = mix(vec3(0.96, 0.48, 0.3), vec3(1.0, 0.58, 0.26), pow(toward, 1.5));
   cloudLit = mix(cloudLit, vec3(0.62, 0.32, 0.4), smoothstep(0.18, 0.6, h));
-  c = mix(c, mix(cloudDark, cloudLit, clamp(lit * (0.55 + 0.45 * toward) + 0.15, 0.0, 1.0)), cov * 0.94);
+  c = mix(c, mix(cloudDark, cloudLit, clamp(lit * (0.75 + 0.25 * toward) + 0.2, 0.0, 1.0)), cov * 0.94);
   vec3 cell = floor(d * 260.0);
   float star = step(0.9965, starHash(cell)) * smoothstep(0.22, 0.5, h) * (1.0 - cov);
   c += vec3(0.85, 0.88, 1.0) * star * (0.5 + 0.5 * starHash(cell + 3.1));
