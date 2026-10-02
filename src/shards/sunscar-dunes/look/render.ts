@@ -22,7 +22,7 @@ function duskClock(): DayCycle {
  */
 export function signalDunesLook(): LookStrategy {
   // The dusk dome is the backdrop's own sky layer (`SkyBackdrop.clouds`): the engine keeps it on the camera.
-  const dome = new Mesh(new SphereGeometry(600, 32, 16), new ShaderMaterial({ side: BackSide, depthWrite: false, depthTest: false, fog: false,
+  const dome = new Mesh(new SphereGeometry(300, 32, 16), new ShaderMaterial({ side: BackSide, depthWrite: false, depthTest: false, fog: false,
     uniforms: { uSun: { value: SUN_GLOW.clone() } }, vertexShader: SKY_VERTEX, fragmentShader: SKY_FRAGMENT }));
   dome.renderOrder = -1000; dome.frustumCulled = false;
   return { mode: 'extend',
@@ -36,7 +36,8 @@ export function signalDunesLook(): LookStrategy {
     backdrop: ({ sky }) => {
       const clock = duskClock();
       return Promise.resolve({ clock, horizon: new Color(FOG.color), lut: null, clouds: dome,
-        bind: () => undefined, update: () => { sky.setKeyLight(KEY.dir, KEY.color, KEY.intensity); },
+        // No sun disc: the sun has just set; the dome paints the afterglow.
+        bind: (targets) => { targets.disc.visible = false; if (targets.halo) targets.halo.visible = false; }, update: () => { sky.setKeyLight(KEY.dir, KEY.color, KEY.intensity); },
         rebuild: () => undefined, attachPost: () => undefined });
     },
     terrainPainter: { build: (terrain, field, scope) => {
