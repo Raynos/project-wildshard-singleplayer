@@ -13,10 +13,11 @@ export const WELL = { x: 84, z: -6 };
 export const BASIN = { x: -14, z: -150, floor: 26, r: 56 };
 /** Three braziers on the way to the tower: oiled by hand, lit by a whip crack. */
 export const BRAZIERS: readonly { x: number; z: number }[] = [{ x: 58, z: -34 }, { x: -44, z: -22 }, { x: 34, z: -102 }];
-/** The crests the spawn and the tower sit on: a raised pad of `r` metres. */
-export const CRESTS = [{ x: SPAWN.x, z: SPAWN.z, r: 26, lift: 1.5 }, { x: TOWER.x, z: TOWER.z, r: 28, lift: 2 }];
-/** Small flat pads (metres): the caravan's and the well's ground, eased to a set level. */
-export const PADS = [{ x: CARAVAN.x, z: CARAVAN.z, r: 14, level: 5.2 }, { x: WELL.x, z: WELL.z, r: 12, level: 3.6 }];
+/** The crest top the tower stands on: levelled `lift` metres over its own dune height, eased over `r`. The spawn needs
+ *  none: the dunes are phased so a crest runs through it (P2), and it looks down over the rows to the tower. */
+export const CRESTS = [{ x: TOWER.x, z: TOWER.z, r: 20, lift: 7 }];
+/** Small flat pads (metres): the caravan's and the well's ground, eased to the dune height at their centre. */
+export const PADS = [{ x: CARAVAN.x, z: CARAVAN.z, r: 14 }, { x: WELL.x, z: WELL.z, r: 12 }];
 /** The crest paths: spawn → tower (the first, the entry trail), spawn → caravan, spawn → well, tower → basin. */
 export const TRAIL: [number, number][][] = [
   [[SPAWN.x, SPAWN.z], [4, 0], [TOWER.x, TOWER.z + 6]],

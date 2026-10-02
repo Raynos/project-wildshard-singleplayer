@@ -39,10 +39,7 @@ export class SignalDunesPlugin extends ShardPlugin {
     ctx.rows.encounter([{ id: 'sunscar.matriarch', displayName: STRINGS.matriarch }]);
     const rt = ctx.game.runtime;
     if (rt) rt.buildEquipment = (targets) => {
-      this.whip = new Bullwhip(ctx.app, targets, (target) => {
-        const animal = rt.play?.animals.animals.find((a) => a.position === target.position) ?? null;
-        return animal === null ? null : { actor: animal.combatActor(), animal };
-      });
+      this.whip = new Bullwhip(ctx.app, targets);
       this.whip.onSwing = (heavy) => { if (heavy) rt.play?.cues.charge(WHIP_ROW, 'heavy'); else rt.play?.cues.fire(WHIP_ROW); };
       return Promise.resolve({ primary: this.whip, secondary: null, rifle: null, install: () => undefined });
     };
@@ -65,6 +62,8 @@ export class SignalDunesPlugin extends ShardPlugin {
       places.fire.onLight = matriarch.summon;
     }
     if (rt) rt.hooks.questFlags = () => this.quest?.isComplete ? ['sunscar.complete'] : [];
+    // The first frame looks a little down the spawn's slip face, over the dune rows to the tower (review H1).
+    if (rt?.world) rt.world.player.pitch = -0.1;
     this.creatures = installCreatures(ctx);
     ctx.debug.expose('sunscar', this);
   }

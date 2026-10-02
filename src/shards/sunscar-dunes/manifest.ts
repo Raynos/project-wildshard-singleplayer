@@ -24,11 +24,13 @@ export const SUNSCAR_DUNES: ShardManifest = {
   // Start just above the crest: the analytic trail bed sits a little lower between grid vertices.
   spawn: { x: SPAWN.x, y: spawnY + 1, z: SPAWN.z, yaw: SPAWN.yaw },
   bounds: { x0: -PLAY_HALF, x1: PLAY_HALF, z0: -PLAY_HALF, z1: PLAY_HALF, floor: -10 },
-  sky: { sunColor: [1, 0.55, 0.32], sunIntensity: 1.1, envIntensity: 0.35, bgIntensity: 1, fogSunColor: [0.95, 0.5, 0.35], cloudSunColor: [0.9, 0.5, 0.4],
-    hemiSky: 0x5a5c9a, hemiGround: 0x6a3420, hemiIntensity: 0.9, sun: { azimuth: 285, elevation: 4 } },
+  // "Last Light" (style bible): the key 10° up, behind-left of the spawn view (look/render.ts KEY); a cool sky fill so
+  // every shaded face reads blue-violet, never black (review R1).
+  sky: { sunColor: [1, 0.74, 0.52], sunIntensity: 2.6, envIntensity: 0.3, bgIntensity: 1, fogSunColor: [0.95, 0.55, 0.38], cloudSunColor: [0.9, 0.5, 0.4],
+    hemiSky: 0x6c78b0, hemiGround: 0x7a4a2c, hemiIntensity: 1.7, sun: { azimuth: 80, elevation: 10 } },
   atmosphere: { fogHeight: -20, fogHeightFalloff: 0, fogHeightDensity: 0, fogDistDensity: 0, volumetricSunColor: [1, 0.55, 0.35] },
-  // A neutral grade: any contrast or split-tone clips the indigo zenith to a hard band.
-  grade: { saturation: 0, brightness: 0, contrast: 0, bloomIntensity: 0.15, bloomThreshold: 0.9, shadowTint: [1, 1, 1], highTint: [1, 1, 1], lift: [0, 0, 0], gain: [1, 1, 1], gamma: 1 },
+  // A light split-tone (R9): warm highlights, blue-violet shadows. The greyer zenith (look/sky.ts) no longer clips.
+  grade: { saturation: 0.04, brightness: 0, contrast: 0.06, bloomIntensity: 0.15, bloomThreshold: 0.9, shadowTint: [0.94, 0.97, 1.08], highTint: [1.05, 1, 0.94], lift: [0, 0, 0], gain: [1, 1, 1], gamma: 1 },
   horizon: { cloudSea: false, rings: [
     { r: 340, base: 2, color: [0.16, 0.06, 0.035], top: [0.3, 0.12, 0.06], snowLine: 2, haze: 0.45, floor: -10,
       bands: [{ azimuth: 0, spread: 60, height: 9, rough: 0 }, { azimuth: 120, spread: 70, height: 7, rough: 0 }, { azimuth: 240, spread: 60, height: 10, rough: 0 }] },

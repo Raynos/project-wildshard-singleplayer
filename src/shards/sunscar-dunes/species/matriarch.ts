@@ -81,7 +81,8 @@ const brains = new WeakMap<Animal, MatriarchBrain>();
 const brain = (a: Animal): MatriarchBrain => { let value = brains.get(a); if (!value) { value = new MatriarchBrain(a); brains.set(a, value); } return value; };
 
 export const DUNE_MATRIARCH: SpeciesRow = { id: 'sunscar.creature.duneMatriarch', kind: 'duneMatriarch', label: STRINGS.matriarch, aggressive: true, blood: false,
-  flight: { altitude: MATRIARCH.alt, above: 'ground', climbRate: 7, diveRate: 20 },
+  // She is huge and circles the bowl far out: lock from 60 m (sol-lock).
+  flight: { altitude: MATRIARCH.alt, above: 'ground', climbRate: 7, diveRate: 20, lockRange: 60 },
   variants: [{ id: 'matriarch', label: STRINGS.matriarch, weight: 1, rarity: 'legendary', scale: [3.6, 3.6], hp: MATRIARCH_HP }],
   think: (a, ctx) => { brain(a).think(ctx); }, act: (a, ctx) => { brain(a).act(ctx); } };
 

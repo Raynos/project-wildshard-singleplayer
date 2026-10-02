@@ -78,10 +78,10 @@ describe('Signal Dunes plugin contract', () => {
   it('cracks a narrow lane through the damage pipeline: 7 m light, 8 m heavy', async () => {
     const { app } = await boot(), whip = new Bullwhip(app), dir = new Vector3(0, 0, -1), from = new Vector3();
     const ray = target();
-    expect(whip.strike({ actor: ray, animal: null }, new Vector3(1.5, 0, -4), dir, from, false)).toBe(false);
-    expect(whip.strike({ actor: ray, animal: null }, new Vector3(0, 0, -7.5), dir, from, false)).toBe(false);
-    expect(whip.strike({ actor: ray, animal: null }, new Vector3(0.5, 0, -6.5), dir, from, false)).toBe(true); expect(ray.attributes.health).toBe(70 - CRACK.light);
-    expect(whip.strike({ actor: ray, animal: null }, new Vector3(0, 0.4, -7.8), dir, from, true, true)).toBe(true); expect(ray.attributes.health).toBe(70 - CRACK.light - CRACK.heavy);
+    expect(whip.strike({ actor: ray }, new Vector3(1.5, 0, -4), dir, from, false)).toBe(false);
+    expect(whip.strike({ actor: ray }, new Vector3(0, 0, -7.5), dir, from, false)).toBe(false);
+    expect(whip.strike({ actor: ray }, new Vector3(0.5, 0, -6.5), dir, from, false)).toBe(true); expect(ray.attributes.health).toBe(70 - CRACK.light);
+    expect(whip.strike({ actor: ray }, new Vector3(0, 0.4, -7.8), dir, from, true, true)).toBe(true); expect(ray.attributes.health).toBe(70 - CRACK.light - CRACK.heavy);
     await app.unloadLevel();
   });
   it('declares a flying ray with a body/head custom rig and a chest-height sphere swoop', () => {
