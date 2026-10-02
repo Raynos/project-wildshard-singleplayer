@@ -1,0 +1,18 @@
+{
+ "shard": "far-reach",
+ "sha": "3ff49dd6e436988499dbf27e5f27742dac03040e",
+ "when": "20261002-0204",
+ "label": "post-council polish",
+ "loadSeconds": 6,
+ "shots": [
+  "first-frame",
+  "h1-sunrest",
+  "h2-windmill",
+  "h3-grove-high-step",
+  "h4-crown",
+  "aerial-spawn",
+  "aerial-overview"
+ ],
+ "clip": true,
+ "pageErrors": []
+}
