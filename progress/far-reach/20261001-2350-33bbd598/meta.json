@@ -1,0 +1,18 @@
+{
+ "shard": "far-reach",
+ "sha": "33bbd598ffe1d93d839b2086b0006961eb96b281",
+ "when": "20261001-2350",
+ "label": "history",
+ "loadSeconds": 2,
+ "shots": [
+  "first-frame",
+  "h1-sunrest",
+  "h2-windmill",
+  "h3-grove-high-step",
+  "h4-crown",
+  "aerial-spawn",
+  "aerial-overview"
+ ],
+ "clip": true,
+ "pageErrors": []
+}

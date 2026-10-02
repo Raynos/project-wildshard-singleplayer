@@ -1,0 +1,18 @@
+{
+ "shard": "sunscar-dunes",
+ "sha": "33bbd598ffe1d93d839b2086b0006961eb96b281",
+ "when": "20261001-2350",
+ "label": "history",
+ "loadSeconds": 6,
+ "shots": [
+  "first-frame",
+  "h1-spawn-crest",
+  "h2-caravan",
+  "h3-waymark",
+  "h4-tower-deck",
+  "aerial-spawn",
+  "aerial-overview"
+ ],
+ "clip": true,
+ "pageErrors": []
+}

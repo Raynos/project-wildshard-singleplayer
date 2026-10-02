@@ -1,0 +1,20 @@
+{
+ "shard": "far-reach",
+ "sha": "95eb5db9d19b8a8c088039e6e50b631a73ddcd13",
+ "when": "20261001-1456",
+ "label": "history",
+ "loadSeconds": 1,
+ "shots": [
+  "first-frame",
+  "h1-sunrest",
+  "h2-windmill",
+  "h3-grove-high-step",
+  "h4-crown",
+  "aerial-spawn",
+  "aerial-overview"
+ ],
+ "clip": true,
+ "pageErrors": [
+  "shot h4-crown: the player is at (0.0, 8.0), not (0, -172): no floor there?"
+ ]
+}

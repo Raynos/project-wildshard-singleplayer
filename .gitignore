@@ -48,3 +48,7 @@ src/**/*.generated.*
 # local caches and raw capture frames (never committed)
 /.cache/
 /progress/e304-faces/raw/
+
+# E389: time-lapses are rebuilt from the per-capture folders (scripts/shard-timelapse.py); only the captures are committed
+/progress/*/timelapse-*.mp4
+/progress/*/clips.mp4

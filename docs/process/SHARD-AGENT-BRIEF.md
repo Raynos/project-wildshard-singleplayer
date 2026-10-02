@@ -56,8 +56,9 @@ hands and weapon, and the quest's staging, held to the other four shards' standa
 1. Pick the biggest gaps against the other four shards (and your mockups), fix them, commit.
 2. **Progress (E389):** on a served build of your commit, run
    `scripts/browser-lane.sh --max 20 node scripts/shard-progress.mjs --shard=<slug> --url=<served url> --sha=<sha> --label="loop <n>"`
-   then `python3 scripts/shard-timelapse.py <slug>`, and commit `progress/<slug>/` (the frames, `clip.mp4`, the
-   time-lapses). The cameras are `art/<slug>/progress/cameras.json`; keep them fixed.
+   and commit the new `progress/<slug>/<stamp>-<sha8>/` folder (the frames, `clip.mp4`, `meta.json`). The time-lapses
+   are rebuilt from those folders with `python3 scripts/shard-timelapse.py <slug>` (not committed: `.gitignore`). The
+   cameras are `art/<slug>/progress/cameras.json`; keep them fixed.
 3. A board per loop in `art/<slug>/round-<n>-<label>/` (JPEG, before / after / target), and a short message to the lead
    with the board path and the SHAs.
 4. Keep your own `## Handoff (<date> <time>, <slug> agent)` section in `docs/tasks/asks/E374.md` current at every commit
