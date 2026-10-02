@@ -8,6 +8,10 @@ import { duneMaterial, duneMesh, fit, smoothColors, without } from './meshes';
 
 // round 2 (R1C-2): sun-greyed wood and worn iron a step lighter; at dusk the old near-black values read as black cut-outs
 const WOOD = 0xa07656, WOOD_DARK = 0x86603f, IRON = 0x6e5e56, CANVAS = 0x8a6448, CANVAS_BLEACHED = 0xd8bc92, CANVAS_GLOW = 0x3a2a1a, STONE = 0x6a4a3a, LEATHER = 0x3a1e12, CLAY = 0x7a3a22;
+const POLE = 0x86603f;
+export const RAG = 0x8a2a16, RAG_GLOW = 0x1a0603;
+/** The places' marker poles (metres): as tall as the waymark poles' reach from above. */
+const MARK = { h: 6.5 } as const;
 const mat = (color: number, extra: Partial<{ metalness: number; side: typeof DoubleSide; emissive: number }> = {}): MeshStandardMaterial =>
   new MeshStandardMaterial({ color, roughness: 0.92, flatShading: true, ...extra });
 /** A generated model's painted material a step lighter (round 2, R1C-2: the iron brazier and the well read black at dusk). */
@@ -36,6 +40,19 @@ function crateGeometry(half: number): BoxGeometry {
   }
   g.setAttribute('color', new Float32BufferAttribute(colors, 3));
   return g;
+}
+
+/**
+ * A tall marker pole with a long madder pennant downwind (after the check pass: the caravan and the well could not be
+ * picked out from the aerial overview; the tower's pennant is the same mark). In `parent`'s frame at (lx, lz), standing on
+ * `groundY` (relative to the parent), `h` metres tall; its collider in world space at (wx, wz).
+ */
+function markerPole(parent: Group, lx: number, lz: number, groundY: number, h: number, wx: number, wz: number, worldY: number, colliders: ColliderDesc[]): void {
+  const wood = mat(POLE), pole = box(0.11, h, 0.11, wood); at(pole, lx, groundY + h / 2 - 0.3, lz, parent);
+  const flag = new Mesh(bannerGeometry(), new MeshStandardMaterial({ color: RAG, roughness: 0.9, side: DoubleSide, emissive: RAG_GLOW }));
+  flag.scale.set(1.6, 1.2, 1.2); flag.position.set(lx, groundY + h - 0.35, lz);
+  flag.rotation.y = Math.atan2(-WIND.z, WIND.x) - parent.rotation.y; parent.add(flag);
+  colliders.push(boxDesc({ x: wx, z: wz, hw: 0.07, hd: 0.07, rot: 0, yBottom: worldY - 0.3, yTop: worldY + h }, 'wood'));
 }
 
 export interface CaravanParts { root: Group; colliders: ColliderDesc[]; logbookAt: Vector3; logbook: Mesh }
@@ -90,6 +107,9 @@ export function buildCaravan(groundAt: (x: number, z: number) => number): Carava
   colliders.push(boxDesc({ x: body.x, z: body.z, hw: 1.1, hd: 2.3, rot: -CARAVAN.yaw, yBottom: y - 1, yTop: y + 1.9 }, 'wood'));
   const lampPost = world(LANTERN.x, LANTERN.z); colliders.push(boxDesc({ x: lampPost.x, z: lampPost.z, hw: 0.06, hd: 0.06, rot: 0, yBottom: y - 0.5, yTop: y + LANTERN.y + 0.5 }, 'wood'));
   for (const [x, z, half] of CARGO) { const c = world(x, z); colliders.push(boxDesc({ x: c.x, z: c.z, hw: half, hd: half, rot: -CARAVAN.yaw, yBottom: y - 0.5, yTop: y + half * 1.8 }, 'wood')); }
+  { // the caravan's marker, off the lee side (in the caravan's frame, -X)
+    const m = world(-3.6, -1.2); markerPole(root, -3.6, -1.2, groundAt(m.x, m.z) - y, MARK.h, m.x, m.z, groundAt(m.x, m.z), colliders);
+  }
   return { root, colliders, logbookAt, logbook };
 }
 
@@ -199,14 +219,13 @@ export function buildWell(groundAt: (x: number, z: number) => number): WellParts
   const rope = new Mesh(ropeGeo, mat(0x6b5236)); bucket.add(rope); // grows from the bucket up to the axle; scaled down as it winds
   const pail = new Mesh(new CylinderGeometry(0.26, 0.2, 0.36, 8, 1, true), wood); pail.material.side = DoubleSide; bucket.add(pail);
   const jar = new Mesh(new SphereGeometry(0.17, 8, 6), mat(CLAY)); jar.scale.set(1, 1.3, 1); jar.position.y = 0.14; bucket.add(jar);
+  markerPole(root, -2.6, 1.4, groundAt(WELL.x - 2.6, WELL.z + 1.4) - y, MARK.h, WELL.x - 2.6, WELL.z + 1.4, groundAt(WELL.x - 2.6, WELL.z + 1.4), colliders);
   return { root, colliders, bucket, rope, jar, crank, crankAt: new Vector3(WELL.x + R + 0.32, y + 1.85, WELL.z), jarAt: new Vector3(WELL.x, y + 1.0, WELL.z), drop };
 }
 
 /** The waymark's dressing (metres): stones in its ring, the ring's radius, the marker pole's height, the plinth's. */
 const WAYMARK = { stones: 9, ring: 1.45, pole: 4.4, plinth: 0.75 } as const;
 const PLINTH_STONE = 0x9a6a4c, PLINTH_BASE = 0x6e4634, PLINTH_LIGHT = 0xa87a58;
-const POLE = 0x86603f;
-export const RAG = 0x8a2a16, RAG_GLOW = 0x1a0603;
 const KINDLING = 0x6e4a2e;
 /** A long banner hanging from the crossbar, streaming along +x and sagging, in two kinked panels. */
 export function bannerGeometry(): BufferGeometry {
