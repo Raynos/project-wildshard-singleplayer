@@ -1,10 +1,17 @@
 import { Vector3 } from 'three';
+import { PANO_SUN } from './panoramaData';
 
 /**
  * Golden hour, fixed: the sun sits low ahead of the spawn, just left of the windmill isle (the mockup's frame), so the
  * route looks into it: every island is back-lit, and look/light.ts paints the bounce and the rim that keep it readable.
+ * Loop 5 (council R1B-1): the key light comes from where the panorama paints the sun (look/panoramaData.ts).
  */
-export const SUN_DIR = new Vector3(-0.16, 0.15, -0.97).normalize();
+export const SUN_DIR = sunFromHeading(PANO_SUN.heading, PANO_SUN.elevation);
+/** A direction from a panorama heading (degrees: 0 = −z, 90 = +x) and elevation (degrees). */
+export function sunFromHeading(heading: number, elevation: number): Vector3 {
+  const h = (heading * Math.PI) / 180, e = (elevation * Math.PI) / 180;
+  return new Vector3(Math.sin(h) * Math.cos(e), Math.sin(e), -Math.cos(h) * Math.cos(e)).normalize();
+}
 /** The painted sky (sRGB): a soft blue-lavender zenith, a peach-pink middle, a gold horizon; mauve cloud bellies, gold-pink tops; the
  * near cloud sea in the panorama's own palette (loop 4: lavender hollows, peach-gold tops; look/sky.ts). */
 export const SKY = {

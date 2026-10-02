@@ -11,7 +11,7 @@ import { meadowPaths } from './meadow';
  * Its `random` (the level's cosmetic stream) is drawn exactly as the old 12-gon island drew it (122 values), so every
  * piece built after the islands keeps its look; the shape itself grows from its own seeded generator.
  */
-export const ISLE_SHAPE = { segments: 48, topRings: 10, keelRings: 14, spurs: 6, drawsOfOldIsland: 122 } as const;
+export const ISLE_SHAPE = { segments: 72, topRings: 10, keelRings: 16, spurs: 14, drawsOfOldIsland: 122 } as const;
 
 function seeded(seed: number): () => number {
   let a = seed >>> 0;
@@ -35,7 +35,7 @@ const segDist = (px: number, pz: number, ax: number, az: number, bx: number, bz:
 /** The island palette (sRGB): meadow ground under the grass, worn path dirt, soil, strata and shade. */
 export const ISLE_PALETTE = {
   ground: 0x6d8433, groundGold: 0xa59a46, groundDeep: 0x51652a, path: 0x9a8468, soil: 0x6e4c35,
-  sand: 0xd2a676, ochre: 0xb98257, clay: 0x9a6650, mauve: 0x8a7385, violet: 0x5d4c67, moss: 0x6f7d3a,
+  sand: 0xd2a676, ochre: 0xb98257, clay: 0x9a6650, rockGrey: 0x9a8e96, mauve: 0x8a7385, violet: 0x5d4c67, moss: 0x6f7d3a,
 } as const;
 
 /** The 12-gon's radius at angle `a` (corners at multiples of 30°, as the colliders and the old top). */
@@ -56,7 +56,9 @@ export function islandMesh(isle: Isle, random: () => number): Mesh {
   };
   // the rim: a soft noisy curve inside the 12-gon
   const rim = Array.from({ length: S }, (_, i) => { const a = (i / S) * Math.PI * 2;
-    return Math.min(polyRadius(isle, a) * 0.995, apothem(isle) * (0.95 + 0.07 * ringNoise(a, 1.6, seed))); });
+    // loop 5 (council R1C-9): a broken lip, a few sharp bites out of the soft curve
+    const notch = 0.09 * Math.max(0, Math.sin(a * 5 + seed * 3)) ** 8 + 0.05 * Math.max(0, Math.sin(a * 11 - seed)) ** 10;
+    return Math.min(polyRadius(isle, a) * 0.995, apothem(isle) * (0.94 + 0.08 * ringNoise(a, 1.6, seed) - notch)); });
   const rows: number[][] = [];
   // the meadow top: rings out to the rim, a faint swell inside (≤ 6 cm, under the capsule's tolerance)
   const centre = vert(0, 0.04, 0, ISLE_PALETTE.ground);
@@ -88,17 +90,24 @@ export function islandMesh(isle: Isle, random: () => number): Mesh {
   const tipX = (rnd() - 0.5) * isle.r * 0.18, tipZ = (rnd() - 0.5) * isle.r * 0.18;
   for (let k = 1; k <= ISLE_SHAPE.keelRings; k++) {
     const f = k / (ISLE_SHAPE.keelRings + 1), y = -1.7 - (isle.keel - 1.7) * f, row: number[] = [];
-    const profile = (1 - f) ** 0.8 * (1 + 0.08 * Math.sin(f * Math.PI));
+    // a crag, not a cone (council R1C-9): full under the lip, ledged where the strata are, then tapering fast to the point
+    const ledge = 1 + 0.05 * (((y * 0.42) % 1 + 1) % 1 > 0.7 ? 1 : 0);
+    const profile = (1 - f) ** 0.6 * (1 + 0.12 * Math.sin(f * Math.PI)) * ledge;
     for (let i = 0; i < S; i++) {
       const a = (i / S) * Math.PI * 2, lump = ringNoise(a, 2.4, seed + 11, f * 3.5), fine = ringNoise(a, 7, seed + 19, f * 9);
-      const r = (rim[i] ?? 0) * profile * (0.82 + 0.3 * lump + 0.08 * fine);
+      // vertical crag ridges (fluting) cut through the lumps
+      const ridge = Math.abs(Math.sin(a * 9 + lump * 3.2 + seed)) ** 0.6;
+      const r = (rim[i] ?? 0) * profile * (0.78 + 0.3 * lump + 0.1 * fine + 0.1 * ridge);
       const x = Math.cos(a) * r + tipX * f * f, z = Math.sin(a) * r + tipZ * f * f;
       // strata: thin warm bands, wavy with the rock
       const band = Math.sin((y + 1.3 * lump) * 1.9) * 0.5 + 0.5, band2 = Math.sin((y + 0.8 * fine) * 4.7) * 0.5 + 0.5;
       const warm = new Color(ISLE_PALETTE.sand).lerp(new Color(ISLE_PALETTE.ochre), band).lerp(new Color(ISLE_PALETTE.clay), band2 * 0.45);
       const shade = smooth(0.25, 0.95, f);
       const moss = k <= 2 ? smooth(0.55, 0.8, fine) * 0.7 : 0;
-      const rock = warm.lerp(new Color(ISLE_PALETTE.mauve), shade * 0.75).lerp(new Color(ISLE_PALETTE.violet), smooth(0.6, 1, f) * 0.6);
+      // grey-lavender rock bands between the warm strata, crevices darker than the ridges (council R1C-9 / R1A-1)
+      const rock = warm.lerp(new Color(ISLE_PALETTE.rockGrey), smooth(0.55, 0.85, band2) * 0.7)
+        .lerp(new Color(ISLE_PALETTE.mauve), shade * 0.75).lerp(new Color(ISLE_PALETTE.violet), smooth(0.6, 1, f) * 0.6)
+        .multiplyScalar(0.62 + 0.38 * ridge);
       row.push(vert(x, y, z, rock.getHex(), { hex: ISLE_PALETTE.moss, k: moss }));
     }
     rows.push(row);
@@ -115,8 +124,8 @@ export function islandMesh(isle: Isle, random: () => number): Mesh {
   for (let i = 0; i < S; i++) idx.push(last[i] ?? 0, last[(i + 1) % S] ?? 0, tip);
   // spurs: little rock fingers hanging from the keel's middle
   for (let s = 0; s < ISLE_SHAPE.spurs; s++) {
-    const a = rnd() * Math.PI * 2, f = 0.35 + rnd() * 0.35, y = -1.7 - (isle.keel - 1.7) * f;
-    const r = apothem(isle) * (1 - f) ** 0.8 * 0.7, x = Math.cos(a) * r, z = Math.sin(a) * r, len = isle.keel * (0.15 + rnd() * 0.2), w = 0.6 + rnd() * 1.1;
+    const a = rnd() * Math.PI * 2, f = 0.25 + rnd() * 0.55, y = -1.7 - (isle.keel - 1.7) * f;
+    const r = apothem(isle) * (1 - f) ** 0.6 * 0.72, x = Math.cos(a) * r, z = Math.sin(a) * r, len = isle.keel * (0.12 + rnd() * 0.3), w = 0.5 + rnd() * 1.4;
     const ring = [0, 1, 2, 3, 4].map((q) => { const b = (q / 5) * Math.PI * 2; return vert(x + Math.cos(b) * w, y + 0.6, z + Math.sin(b) * w, ISLE_PALETTE.mauve, { hex: ISLE_PALETTE.ochre, k: 0.3 }); });
     const point = vert(x * 0.9, y - len, z * 0.9, ISLE_PALETTE.violet);
     for (let q = 0; q < 5; q++) idx.push(ring[q] ?? 0, ring[(q + 1) % 5] ?? 0, point);
@@ -124,5 +133,6 @@ export function islandMesh(isle: Isle, random: () => number): Mesh {
   const g = new BufferGeometry();
   g.setAttribute('position', new Float32BufferAttribute(pos, 3)); g.setAttribute('color', new Float32BufferAttribute(col, 3));
   g.setIndex(idx); g.computeVertexNormals();
-  return new Mesh(g, new MeshStandardMaterial({ vertexColors: true, roughness: 0.95, metalness: 0 }));
+  // faceted: the crags read as cut rock, the meadow top as a low-poly painted lawn
+  return new Mesh(g, new MeshStandardMaterial({ vertexColors: true, roughness: 0.95, metalness: 0, flatShading: true }));
 }

@@ -20,7 +20,7 @@ export const STRINGS = {
   keeperHow: 'Glowing bridges hold only a board: ride your HOVER across. And GUST the vanes, that fan of yours makes a fine wind.',
   keeperLater: 'The roost first, then the vanes, then the winch. The storm crown waits beyond.',
   keeperDone: 'You did it! Listen to the crown thunder. Whatever nests up there will not thank you.',
-  talkKeeperStep: 'Talk to the bridge-keeper', chipKeeper: 'RAISE THE BRIDGE', hintKeeper: 'He stands by the rope bridge at Sunrest',
+  talkKeeperStep: 'Talk to the bridge-keeper', chipKeeper: 'TALK TO THE KEEPER', hintKeeper: 'He stands by the rope bridge at Sunrest',
   chipRoost: 'CLEAR THE ROOST', hintRoost: 'Ride HOVER over the glowing bridge east of Sunrest', roostShort: 'ROOST',
   chipVanes: 'TURN THE VANES', hintVanes: 'GUST each vane: the keeper\'s isle, the windmill isle, the vane ruin', vaneShort: 'VANE',
   chipRaise: 'TURN THE WINCH', hintRaise: 'Ride the updraft from the windmill isle up to the high step', winchShort: 'WINCH',

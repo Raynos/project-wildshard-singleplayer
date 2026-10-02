@@ -54,10 +54,12 @@ describe('Sky Reach contract', () => {
     expect(app.player?.mode ?? 'foot').toBe('foot');
     for (const span of SPANS) expect(piece(app, span.id)?.active?.() ?? true, span.id).toBe(span.kind === 'rope');
     expect(piece(app, 'far.updraft')?.active?.()).toBe(false);
-    for (const span of SPANS.filter((s) => s.kind === 'hover')) for (const isle of ISLES) for (const [x, z] of [[span.x0, span.z0], [span.x1, span.z1]] as const) {
-      if (Math.abs(isle.y - span.y) > 0.5) continue;
+    for (const span of SPANS.filter((s) => s.kind === 'hover')) for (const isle of ISLES) for (const [x, y, z] of [[span.x0, span.y, span.z0], [span.x1, span.y1, span.z1]] as const) {
+      if (Math.abs(isle.y - y) > 0.5) continue;
       expect(Math.hypot(x - isle.x, z - isle.z), `${span.id} vs ${isle.id}`).toBeGreaterThanOrEqual(apothem(isle) + HOVER_GAP - 1e-9);
     }
+    // every sloped span stays under the player's 40° climb
+    for (const span of SPANS) expect(Math.abs(Math.atan2(span.y1 - span.y, Math.hypot(span.x1 - span.x0, span.z1 - span.z0))), span.id).toBeLessThan((40 * Math.PI) / 180);
     expect(UPDRAFT_ANGLE).toBeLessThan((40 * Math.PI) / 180); expect(UPDRAFT.y1).toBeGreaterThan(UPDRAFT.y0);
     await app.unloadLevel();
   });

@@ -1,22 +1,14 @@
 import { BufferGeometry, Color, DoubleSide, Float32BufferAttribute, Group, InstancedMesh, Matrix4, MeshBasicMaterial, Quaternion, Vector3 } from 'three';
-import { islandMesh } from './isle';
 import type { Isle } from '../layout';
 
 /**
- * The skyline (loop 2, review item 8): decorative floating islands in 3-D at varied heights and distances, out past the
- * playable archipelago (bounds x ±120, z −240…60), with hanging waterfalls. Not walkable, no colliders; one instanced
- * draw for the islands, one for the falls. The warm distance fog melts the far ones into the haze; the dome's painted
- * silhouettes carry on beyond them.
+ * The falls (loop 5): waterfalls off the playable isles' rims into the cloud sea (the targets have them; council R1C-9).
+ * Loop 2's fourteen 3-D skyline islands are gone (council R1C-12 / R1B-7: bare cones in front of the painted matte's
+ * finished islands); the panorama (look/sky.ts) carries every far island now. Each fall is [isle, the rim angle in
+ * radians (0 = +x), length].
  */
-export const FAR_ISLES: readonly (readonly [x: number, y: number, z: number, scale: number])[] = [
-  [-150, 52, -120, 1.4], [-190, 18, -20, 1.1], [-160, 70, 60, 0.8], [-120, 8, -260, 1.6], [-60, 64, -330, 1.1],
-  [60, 26, -340, 1.3], [140, 58, -250, 1.0], [180, 14, -130, 1.5], [170, 72, -20, 0.9], [150, 30, 90, 1.2],
-  [40, 80, 150, 0.8], [-70, 22, 160, 1.3], [-220, 40, -200, 1.7], [230, 46, -320, 1.6],
-];
-/** Waterfalls off the skyline islands' rims: [x, lip y, z, length, width, yaw]. */
-const FALLS: readonly (readonly [x: number, y: number, z: number, length: number, width: number, yaw: number])[] = [
-  [-150 + 12, 52 - 1.2, -120, 46, 2.4, Math.PI / 2], [180 - 13, 14 - 1.2, -130, 30, 2.8, -Math.PI / 2], [-120 + 13, 8 - 1.2, -260, 20, 3, Math.PI / 2],
-  [60, 26 - 1.2, -340 + 12, 34, 2.6, 0], [140 - 9, 58 - 1.2, -250, 40, 2, -Math.PI / 2],
+const FALLS: readonly (readonly [isle: string, angle: number, length: number])[] = [
+  ['windmill', Math.PI, 60], ['grove', Math.PI * 0.75, 44], ['ruin', 0.2, 50], ['keeper', Math.PI * 1.15, 40], ['crown', Math.PI * 1.55, 70],
 ];
 
 /** A falling sheet: white at the lip fading to nothing far below (vertex alpha), a slight outward bow. */
@@ -32,21 +24,16 @@ export function fallGeometry(length: number, width: number): BufferGeometry {
   return g;
 }
 
-function seeded(seed: number): () => number {
-  let a = seed >>> 0;
-  return () => { a = (a + 0x6d2b79f5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
-}
-
-/** The skyline group, plus one waterfall off the windmill isle's west rim at `mill` (the lead's loop-2 ask). */
-export function skyline(mill: Isle): Group {
-  const group = new Group(), rnd = seeded(97), m = new Matrix4(), q = new Quaternion(), up = new Vector3(0, 1, 0);
-  const proto: Isle = { id: 'far', x: 0, z: 0, r: 10, y: 0, keel: 18 }, source = islandMesh(proto, rnd);
-  const isles = new InstancedMesh(source.geometry, source.material, FAR_ISLES.length);
-  FAR_ISLES.forEach(([x, y, z, s], i) => { q.setFromAxisAngle(up, rnd() * 6.28); m.compose(new Vector3(x, y, z), q, new Vector3(s, s * (0.9 + rnd() * 0.5), s)); isles.setMatrixAt(i, m); });
-  isles.computeBoundingSphere(); group.add(isles);
-  const all = [...FALLS, [mill.x - mill.r * 0.92, mill.y - 1.1, mill.z + 3, 60, 2.2, Math.PI / 2] as const];
-  const fall = fallGeometry(1, 1), falls = new InstancedMesh(fall, new MeshBasicMaterial({ vertexColors: true, transparent: true, depthWrite: false, side: DoubleSide }), all.length);
-  all.forEach(([x, y, z, length, width, yaw], i) => { q.setFromAxisAngle(up, yaw); m.compose(new Vector3(x, y, z), q, new Vector3(width, length, 1)); falls.setMatrixAt(i, m); });
+/** The falls, one instanced draw: each sheet hangs from its isle's lip, facing out. */
+export function skyline(isles: readonly Isle[]): Group {
+  const group = new Group(), m = new Matrix4(), q = new Quaternion(), up = new Vector3(0, 1, 0);
+  const at = FALLS.flatMap(([id, a, length]) => { const isle = isles.find((i) => i.id === id); return isle === undefined ? [] : [{ isle, a, length }]; });
+  const fall = fallGeometry(1, 1), falls = new InstancedMesh(fall, new MeshBasicMaterial({ vertexColors: true, transparent: true, depthWrite: false, side: DoubleSide }), at.length);
+  at.forEach(({ isle, a, length }, k) => {
+    const r = isle.r * Math.cos(Math.PI / 12) * 0.9, width = 1.8 + isle.r * 0.04;
+    q.setFromAxisAngle(up, Math.atan2(Math.cos(a), Math.sin(a)));
+    m.compose(new Vector3(isle.x + Math.cos(a) * r, isle.y - 1.1, isle.z + Math.sin(a) * r), q, new Vector3(width, length, 1)); falls.setMatrixAt(k, m);
+  });
   falls.computeBoundingSphere(); group.add(falls);
   return group;
 }

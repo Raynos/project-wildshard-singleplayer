@@ -1,5 +1,6 @@
 import { BoxGeometry, BufferGeometry, Color, ConeGeometry, CylinderGeometry, DoubleSide, Float32BufferAttribute, Group, InstancedMesh, Matrix4, Mesh, MeshStandardMaterial, Quaternion, Vector3, type Object3D } from 'three';
 import { fit, skyMesh, splitAbove } from './meshes';
+import { towerMill } from './mill';
 
 /** The Sky Reach palette (sRGB hex): golden-hour grass, warm dirt, warm brown-grey keel strata, green pines (the mockup's). */
 export const PALETTE = {
@@ -58,26 +59,42 @@ export function pines(at: readonly (readonly [number, number, number, number])[]
   mesh.computeBoundingSphere(); return mesh;
 }
 
+/**
+ * A hover deck (loop 5; the bible §5 glass, council R1C-10 / R1B-2): ONE half-transparent cyan slab, so nothing overlaps
+ * itself into stripes, held in a solid glowing frame (two edge bars, the end bars) with a short pylon at each corner.
+ * It reads as a built thing you ride, and as plainly not a floor. `glass` is the shared deck material (the plugin
+ * brightens it while you ride); the frame and pylons are lit by their own emissive cyan.
+ */
+function glassDeck(length: number, width: number, glass: MeshStandardMaterial): Mesh[] {
+  const slab = new Mesh(new BoxGeometry(width - 0.16, 0.05, length - 0.16), glass); slab.position.set(0, -0.05, -length / 2); slab.renderOrder = 4;
+  const frameMat = new MeshStandardMaterial({ color: PALETTE.glow, emissive: PALETTE.glow, emissiveIntensity: 0.9, roughness: 0.4, metalness: 0.2 });
+  const bars: Mesh[] = [];
+  for (const side of [-1, 1]) { const bar = new Mesh(new BoxGeometry(0.1, 0.1, length), frameMat); bar.position.set(side * (width / 2 - 0.05), -0.04, -length / 2); bars.push(bar); }
+  for (const z of [0, -length]) {
+    const end = new Mesh(new BoxGeometry(width, 0.1, 0.1), frameMat); end.position.set(0, -0.04, z); bars.push(end);
+    for (const side of [-1, 1]) { const pylon = new Mesh(new CylinderGeometry(0.07, 0.1, 0.9, 6), frameMat); pylon.position.set(side * (width / 2 - 0.05), 0.4, z); bars.push(pylon); }
+  }
+  return [slab, ...bars];
+}
+
 /** A plank bridge along a local -Z run of `length` metres, `width` wide, deck top at local y 0. */
 export function plankBridge(length: number, width: number, material: MeshStandardMaterial, rails: MeshStandardMaterial | null): Group {
-  // a hover deck is glass slats with open gaps (it must read as board-only, not a floor); a plank deck is closer-laid
-  const group = new Group(), step = rails === null ? 0.85 : 0.62, count = Math.max(1, Math.floor(length / step)), m = new Matrix4();
-  // a rope bridge lays the generated plank segments when the kit loaded; a hover deck (no rails) keeps its glass planks
-  const kit = rails !== null ? kitDeck(length, width) : null;
+  const group = new Group(), step = 0.62, count = Math.max(1, Math.floor(length / step)), m = new Matrix4();
+  if (rails === null) { group.add(...glassDeck(length, width, material)); return group; }
+  // a rope bridge lays the generated plank segments when the kit loaded
+  const kit = kitDeck(length, width);
   if (kit !== null) group.add(kit);
   else {
-    const planks = new InstancedMesh(new BoxGeometry(width, 0.08, rails === null ? 0.3 : 0.5), material, count);
+    const planks = new InstancedMesh(new BoxGeometry(width, 0.08, 0.5), material, count);
     for (let i = 0; i < count; i++) { m.makeTranslation(0, -0.06, -(i + 0.5) * (length / count)); planks.setMatrixAt(i, m); }
     planks.computeBoundingSphere(); group.add(planks);
   }
-  if (rails !== null) {
-    const posts = kitPosts(width, length);
-    if (posts !== null) group.add(posts);
-    for (const side of [-1, 1]) {
-      const rope = new Mesh(new BoxGeometry(0.06, 0.06, length), rails); rope.position.set(side * width / 2, 1, -length / 2); group.add(rope);
-      const low = new Mesh(new BoxGeometry(0.05, 0.05, length), rails); low.position.set(side * width / 2, 0.45, -length / 2); group.add(low);
-      if (posts === null) for (const z of [0, -length]) { const post = new Mesh(new BoxGeometry(0.16, 1.3, 0.16), flat(PALETTE.trunk)); post.position.set(side * width / 2, 0.55, z); group.add(post); }
-    }
+  const posts = kitPosts(width, length);
+  if (posts !== null) group.add(posts);
+  for (const side of [-1, 1]) {
+    const rope = new Mesh(new BoxGeometry(0.06, 0.06, length), rails); rope.position.set(side * width / 2, 1, -length / 2); group.add(rope);
+    const low = new Mesh(new BoxGeometry(0.05, 0.05, length), rails); low.position.set(side * width / 2, 0.45, -length / 2); group.add(low);
+    if (posts === null) for (const z of [0, -length]) { const post = new Mesh(new BoxGeometry(0.16, 1.3, 0.16), flat(PALETTE.trunk)); post.position.set(side * width / 2, 0.55, z); group.add(post); }
   }
   return group;
 }
@@ -108,49 +125,12 @@ function kitPosts(width: number, length: number): InstancedMesh | null {
 /** The rope-bridge kit for the Model Explorer: one deck segment with its four posts and the code ropes. */
 export function bridgeKit(): Group { return plankBridge(DECK_SEGMENT, 2.6, flat(PALETTE.plank), flat(PALETTE.rope)); }
 
-/** The windmill's generated tower (C6) is fitted to this height; its sail hub stub sits at `MILL_HUB` on it. */
-const MILL_HEIGHT = 10.6, MILL_HUB = { y: 7.92, z: 2.85 } as const;
-/**
- * The old windmill: the generated stone-and-timber tower (C6, Hunyuan3D-2 from `art/far-reach/round-7-models/ref-windmill.jpg`)
- * or, without it, a tapered octagonal tower and cap; four lattice sails on a hub that the plugin turns.
- */
+/** The windmill: the code-built tower mill (loop 5, world/mill.ts); the generated C6 tower stays in the Model Explorer. */
 export function windmill(): { group: Group; hub: Object3D } {
-  const group = new Group(), hub = new Group(), tower = skyMesh('windmill');
-  if (tower !== null) {
-    const g = fit(tower, { size: MILL_HEIGHT, by: 'height', floor: 0, centre: 'base' }); whitewash(g);
-    group.add(new Mesh(g, flat(0xffffff, { vertexColors: true })));
-    hub.position.set(0, MILL_HUB.y, MILL_HUB.z);
-  } else {
-    const body = new Mesh(new CylinderGeometry(1.5, 2.5, 9, 8), flat(PALETTE.tower)); body.position.y = 4.5; group.add(body);
-    const cap = new Mesh(new ConeGeometry(2.1, 2.4, 8), flat(PALETTE.rockDark)); cap.position.y = 10.2; group.add(cap);
-    const door = new Mesh(new BoxGeometry(1, 1.8, 0.2), flat(PALETTE.rockDark)); door.position.set(0, 0.9, 2.4); group.add(door);
-    hub.position.set(0, 8.6, 2.2);
-  }
-  group.add(hub);
-  const sail = flat(PALETTE.sail);
-  for (let i = 0; i < 4; i++) {
-    const arm = new Group(); arm.rotation.z = (i * Math.PI) / 2; hub.add(arm);
-    const spar = new Mesh(new BoxGeometry(0.22, 7, 0.22), sail); spar.position.y = 3.5; arm.add(spar);
-    const cloth = new Mesh(new BoxGeometry(1.5, 5.2, 0.06), sail); cloth.position.set(0.85, 4.2, 0.05); arm.add(cloth);
-  }
+  const { group, hub } = towerMill();
   return { group, hub };
 }
 
-/**
- * The mockup's white stone tower (loop 2): the generated model's light facets pulled to warm white stone, its dark ones
- * (timber, the cap) to warm brown and slate; the baked value stays as the shade.
- */
-function whitewash(g: BufferGeometry): void {
-  if (!g.hasAttribute('color')) return;
-  const c = g.getAttribute('color'), p = g.getAttribute('position'), stone = new Color(PALETTE.tower), wood = new Color(PALETTE.trunk), slate = new Color(0x56607a), out = new Color();
-  let top = 0; for (let i = 0; i < p.count; i++) top = Math.max(top, p.getY(i));
-  for (let i = 0; i < c.count; i++) {
-    const lum = 0.2126 * c.getX(i) + 0.7152 * c.getY(i) + 0.0722 * c.getZ(i);
-    out.copy(p.getY(i) > top * 0.86 ? slate : lum > 0.16 ? stone : wood).multiplyScalar(Math.min(1.1, 0.55 + lum * 1.4));
-    c.setXYZ(i, out.r, out.g, out.b);
-  }
-  c.needsUpdate = true;
-}
 /** The bridge winch: a drum between two posts and a crank. */
 export function winch(): Group {
   const group = new Group(), wood = flat(PALETTE.trunk);

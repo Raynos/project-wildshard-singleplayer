@@ -48,7 +48,8 @@ export async function skyReachLook(): Promise<LookStrategy> {
       return { chain: engineChain('clean') };
     },
     lighting: { install: installPaintedLight },
-    sky: { clouds: false, planet: false },
+    // the panorama paints the one sun (council R1B-1: the engine's disc drew a second one above it)
+    sky: { clouds: false, planet: false, sun: { disc: false, halo: false } },
     backdrop: ({ sky }) => {
       const clock = createDay(), key = new Color(SKY.key);
       return Promise.resolve({ clock, horizon: new Color(SKY.horizon), lut: null,

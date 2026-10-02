@@ -1,6 +1,6 @@
 import { BufferGeometry, Color, ConeGeometry, DoubleSide, Float32BufferAttribute, Group, IcosahedronGeometry, InstancedMesh, Matrix4, MeshStandardMaterial, Quaternion, Vector3 } from 'three';
 import { PATCH_ORDER, patchShader } from '#engine';
-import { DECK as DECK_Y, ISLES, SPANS, apothem, type Isle } from '../layout';
+import { ISLES, SPANS, apothem, type Isle } from '../layout';
 
 /**
  * The island dressing (Gilded Air, review items 6 / 7, loop 2): what makes an island top read as a meadow and its
@@ -16,7 +16,7 @@ import { DECK as DECK_Y, ISLES, SPANS, apothem, type Isle } from '../layout';
  * Placement uses its own seeded generator, not the level's cosmetic stream (whose order the islands already consume).
  */
 /** `handoff`: the camera distance (m) over which a clump grows back in, where the near meadow's blades thin out (MEADOW.range). */
-export const DRESS = { clumpsPerM2: 0.5, flowersPerM2: 0.08, stonesPerIsle: 9, rootsPerM: 0.55, bridgeClear: 0.3, handoff: [15, 22] } as const;
+export const DRESS = { clumpsPerM2: 0.5, flowersPerM2: 0.08, stonesPerIsle: 9, rootsPerM: 0.9, cragsPerIsle: 7, bridgeClear: 0.3, handoff: [15, 22] } as const;
 
 function seeded(seed: number): () => number {
   let a = seed >>> 0;
@@ -70,12 +70,12 @@ export function stoneGeometry(): BufferGeometry {
   return g;
 }
 
-/** True when (x, z) on `isle` lies on a bridge's landing lane (kept clear so the walkway reads). */
+/** True when (x, z) lies on a bridge's lane, or within 3 m past either end of it (kept clear so the walkway reads). */
 function onLane(x: number, z: number): boolean {
   for (const s of SPANS) {
-    const alongX = s.z0 === s.z1;
-    if (alongX ? Math.abs(z - s.z0) < s.width / 2 + DRESS.bridgeClear && x > Math.min(s.x0, s.x1) - 3 && x < Math.max(s.x0, s.x1) + 3
-      : Math.abs(x - s.x0) < s.width / 2 + DRESS.bridgeClear && z > Math.min(s.z0, s.z1) - 3 && z < Math.max(s.z0, s.z1) + 3) return true;
+    const dx = s.x1 - s.x0, dz = s.z1 - s.z0, len = Math.hypot(dx, dz), ux = dx / len, uz = dz / len;
+    const along = (x - s.x0) * ux + (z - s.z0) * uz, across = Math.abs((x - s.x0) * -uz + (z - s.z0) * ux);
+    if (along > -3 && along < len + 3 && across < s.width / 2 + DRESS.bridgeClear) return true;
   }
   return false;
 }
@@ -104,6 +104,12 @@ export function dressIslands(isles: readonly Isle[] = ISLES, seed = 6417): Dress
       if (onLane(x, z)) continue;
       stones.push({ x, y: isle.y - 0.05, z, s: 0.25 + rnd() * 0.45, yaw: rnd() * 6.28 });
     }
+    // rim crags (council R1C-9): big lumped rocks sitting on and over the lip, breaking the rim's silhouette
+    for (let i = 0; i < DRESS.cragsPerIsle; i++) {
+      const a = rnd() * Math.PI * 2, r = ap * (0.88 + rnd() * 0.1), x = isle.x + Math.cos(a) * r, z = isle.z + Math.sin(a) * r;
+      if (onLane(x, z)) continue;
+      stones.push({ x, y: isle.y - 0.4, z, s: 1.1 + rnd() * 1.3, yaw: rnd() * 6.28 });
+    }
     const ring = Math.round(2 * Math.PI * isle.r * DRESS.rootsPerM);
     for (let i = 0; i < ring; i++) {
       const a = (i / ring) * Math.PI * 2 + rnd() * 0.2, r = isle.r * (0.9 + rnd() * 0.06);
@@ -113,13 +119,14 @@ export function dressIslands(isles: readonly Isle[] = ISLES, seed = 6417): Dress
   // boulders at every rope landing (mockup A: rocks and flowers round the bridge posts), either side of the lane
   for (const sp of SPANS) {
     if (sp.kind !== 'rope') continue;
-    const alongX = sp.z0 === sp.z1;
-    for (const [ex, ez, dir] of [[sp.x0, sp.z0, -1], [sp.x1, sp.z1, 1]] as const) {
+    const dx = sp.x1 - sp.x0, dz = sp.z1 - sp.z0, len = Math.hypot(dx, dz), ux = dx / len, uz = dz / len;
+    // each landing: inward into its own island (back along the span at the start, on past it at the end), either side
+    for (const [ex, ez, ey, inward] of [[sp.x0, sp.z0, sp.y, -1], [sp.x1, sp.z1, sp.y1, 1]] as const) {
       for (const side of [-1, 1]) {
-        const inward = (alongX ? Math.sign(sp.x1 - sp.x0) : Math.sign(sp.z1 - sp.z0)) * dir, lat = side * (sp.width / 2 + 1.1 + rnd() * 0.8), back = inward * (1.6 + rnd() * 1.4);
-        const x = alongX ? ex + back : ex + lat, z = alongX ? ez + lat : ez + back;
-        stones.push({ x, y: DECK_Y - 0.15, z, s: 0.95 + rnd() * 0.5, yaw: rnd() * 6.28 });
-        flowers.push({ x: x + (rnd() - 0.5) * 1.2, y: DECK_Y, z: z + (rnd() - 0.5) * 1.2, s: 1, yaw: rnd() * 6.28, c: 0xf6f1e4 });
+        const lat = side * (sp.width / 2 + 1.1 + rnd() * 0.8), back = inward * (1.6 + rnd() * 1.4);
+        const x = ex + ux * back - uz * lat, z = ez + uz * back + ux * lat;
+        stones.push({ x, y: ey - 0.15, z, s: 0.95 + rnd() * 0.5, yaw: rnd() * 6.28 });
+        flowers.push({ x: x + (rnd() - 0.5) * 1.2, y: ey, z: z + (rnd() - 0.5) * 1.2, s: 1, yaw: rnd() * 6.28, c: 0xf6f1e4 });
       }
     }
   }
@@ -144,6 +151,9 @@ export function dressIslands(isles: readonly Isle[] = ISLES, seed = 6417): Dress
   place(new InstancedMesh(stoneGeometry(), new MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.95, metalness: 0 }), stones.length), stones, 0.55);
   // a strand 1 m long, tip down: its wide end at y 0 hangs from the rim band; instances stretch it to their length
   const strand = new ConeGeometry(0.11, 1, 4, 1, true); strand.rotateX(Math.PI); strand.translate(0, -0.5, 0);
-  place(new InstancedMesh(strand, new MeshStandardMaterial({ color: 0x5b4a33, roughness: 1, metalness: 0, side: DoubleSide }), roots.length), roots, 1, true);
+  // roots and vines: dark roots with moss-green vine strands among them
+  const rootMesh = new InstancedMesh(strand, new MeshStandardMaterial({ color: 0xffffff, roughness: 1, metalness: 0, side: DoubleSide }), roots.length);
+  place(rootMesh, roots, 1, true);
+  const rc = new Color(); roots.forEach((_, i) => { rootMesh.setColorAt(i, rc.setHex(i % 3 === 0 ? 0x5f7a34 : 0x5b4a33)); });
   return { group, meshes };
 }

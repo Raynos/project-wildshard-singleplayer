@@ -1,7 +1,7 @@
 import { boxDesc, type ColliderDesc, type Interactable } from '#engine';
 import type { ShardContext } from '#game';
-import { Group, Vector3, type MeshStandardMaterial, type Object3D } from 'three';
-import { CROWN, DAIS, FALLEN_BRIDGE, ISLES, WINDMILL, MILL, NOTES, PINES, SPANS, UPDRAFT, VANES, WINCH, apothem, type Isle, type Span } from '../layout';
+import { Euler, Group, Quaternion, Vector3, type MeshStandardMaterial, type Object3D } from 'three';
+import { CROWN, DAIS, FALLEN_BRIDGE, ISLES, MILL, NOTES, PINES, SPANS, UPDRAFT, VANES, WINCH, apothem, type Isle, type Span } from '../layout';
 import { STRINGS } from '../strings';
 import { dressIslands } from './dressing';
 import { islandMesh } from './isle';
@@ -27,17 +27,25 @@ export function islandColliders(isle: Isle): ColliderDesc[] {
   const half = apothem(isle), width = isle.r * 0.26;
   return [0, 1, 2, 3, 4, 5].map((i) => boxDesc({ x: isle.x, z: isle.z, hw: half, hd: width, rot: (i * Math.PI) / 6, yBottom: isle.y - 2, yTop: isle.y }, 'grass'));
 }
-/** An axis-aligned deck box under a span, top at the span's deck height. */
+/** A span's run: its horizontal heading (yaw, the bridge's local −Z) and its slope (pitch, raising the far end). */
+export const spanLength = (span: Span): number => Math.hypot(span.x1 - span.x0, span.y1 - span.y, span.z1 - span.z0);
+export const spanYaw = (span: Span): number => Math.atan2(-(span.x1 - span.x0), -(span.z1 - span.z0));
+export const spanPitch = (span: Span): number => Math.atan2(span.y1 - span.y, Math.hypot(span.x1 - span.x0, span.z1 - span.z0));
+/** A box in the span's own frame (local −Z down the span from its start, +Y the deck's up): centre, half sizes. */
+function spanBox(span: Span, centre: [number, number, number], half: [number, number, number], surface: 'wood'): ColliderDesc {
+  const q = new Quaternion().setFromEuler(new Euler(spanPitch(span), spanYaw(span), 0, 'YXZ'));
+  const c = new Vector3(...centre).applyQuaternion(q).add(new Vector3(span.x0, span.y, span.z0));
+  return { kind: 'box', x: c.x, y: c.y, z: c.z, hx: half[0], hy: half[1], hz: half[2], rot: { x: q.x, y: q.y, z: q.z, w: q.w }, surface };
+}
+/** The deck under a span (loop 5: any heading, sloped between two decks), its top on the deck line. */
 export function deckCollider(span: Span): ColliderDesc {
-  return boxDesc({ x: (span.x0 + span.x1) / 2, z: (span.z0 + span.z1) / 2, hw: Math.max(span.width / 2, Math.abs(span.x1 - span.x0) / 2),
-    hd: span.x0 === span.x1 ? Math.abs(span.z1 - span.z0) / 2 : span.width / 2, rot: 0, yBottom: span.y - 0.3, yTop: span.y }, 'wood');
+  const len = spanLength(span);
+  return spanBox(span, [0, -0.15, -len / 2], [span.width / 2, 0.15, len / 2], 'wood');
 }
 /** Rope rails along both long sides of a span. */
 function railColliders(span: Span): ColliderDesc[] {
-  const alongX = span.z0 === span.z1, half = (alongX ? Math.abs(span.x1 - span.x0) : Math.abs(span.z1 - span.z0)) / 2;
-  const cx = (span.x0 + span.x1) / 2, cz = (span.z0 + span.z1) / 2;
-  return [-1, 1].map((side) => boxDesc({ x: alongX ? cx : cx + side * span.width / 2, z: alongX ? cz + side * span.width / 2 : cz,
-    hw: alongX ? half : 0.06, hd: alongX ? 0.06 : half, rot: 0, yBottom: span.y, yTop: span.y + 1.1 }, 'wood'));
+  const len = spanLength(span);
+  return [-1, 1].map((side) => spanBox(span, [side * span.width / 2, 0.55, -len / 2], [0.06, 0.55, len / 2], 'wood'));
 }
 /** The updraft's sloped deck: one box tilted about X so its top runs from (z0, y0) up to (z1, y1). */
 export function updraftCollider(): ColliderDesc {
@@ -56,8 +64,6 @@ export function vaneColliders(x: number, z: number, y: number): ColliderDesc[] {
     boxDesc({ x, z, hw: 0.15, hd: 0.15, rot: 0, yBottom: y + 1.5, yTop: y + 3.2 }, 'wood'),
   ];
 }
-const spanLength = (span: Span): number => Math.hypot(span.x1 - span.x0, span.z1 - span.z0);
-const spanYaw = (span: Span): number => Math.atan2(-(span.x1 - span.x0), -(span.z1 - span.z0));
 
 export interface BuiltWorld {
   /** The hover decks' shared material: the plugin brightens it while the player rides the board. */
@@ -94,16 +100,13 @@ export function buildWorld(ctx: ShardContext, isBoard: () => boolean): BuiltWorl
   const dress = dressIslands(); root.add(dress.group);
   ctx.piece({ id: 'far.dressing', name: STRINGS.meadow, category: 'props', file: FILE, object: dress.group });
   // the skyline: decorative 3-D islands and waterfalls out past the archipelago, and the windmill isle's fall
-  const sky = skyline(WINDMILL); root.add(sky);
+  const sky = skyline(ISLES); root.add(sky);
 
   const plank = flat(PALETTE.plank), rope = flat(PALETTE.rope);
-  const hoverDeck = flat(PALETTE.glow, { emissive: PALETTE.glow, emissiveIntensity: 0.45, transparent: true, opacity: 0.45, depthWrite: false });
+  const hoverDeck = flat(PALETTE.glow, { emissive: PALETTE.glow, emissiveIntensity: 0.5, transparent: true, opacity: 0.5, depthWrite: false, flatShading: false, roughness: 0.15, metalness: 0.1 });
   for (const span of SPANS) {
     const hover = span.kind === 'hover', length = spanLength(span), bridge = plankBridge(length, span.width, hover ? hoverDeck : plank, hover ? null : rope);
-    if (hover) for (const z of [0, -length]) for (const side of [-1, 1]) {
-      const post = plankBridge(1.4, 0.18, hoverDeck, null); post.rotation.x = Math.PI / 2; post.position.set(side * span.width / 2, 0, z); bridge.add(post);
-    }
-    bridge.position.set(span.x0, span.y, span.z0); bridge.rotation.y = spanYaw(span); root.add(bridge);
+    bridge.position.set(span.x0, span.y, span.z0); bridge.rotation.set(spanPitch(span), spanYaw(span), 0, 'YXZ'); root.add(bridge);
     ctx.piece({ id: span.id, name: hover ? STRINGS.hover : STRINGS.rope, category: 'buildings', file: FILE, object: bridge,
       colliders: hover ? [deckCollider(span)] : [deckCollider(span), ...railColliders(span)], surface: 'wood', ...(hover ? { active: isBoard } : {}) });
   }
@@ -123,9 +126,9 @@ export function buildWorld(ctx: ShardContext, isBoard: () => boolean): BuiltWorl
   ctx.piece({ id: FALLEN_BRIDGE.id, name: STRINGS.fallen, category: 'buildings', file: FILE, object: fallen,
     colliders: [deckCollider(FALLEN_BRIDGE), ...railColliders(FALLEN_BRIDGE)], surface: 'wood', active: () => state.raised });
 
-  const mill = windmill(); mill.group.position.set(MILL.x, 30, MILL.z); mill.group.rotation.y = 0.35; root.add(mill.group);
+  const mill = windmill(); mill.group.position.set(MILL.x, 30, MILL.z); mill.group.rotation.y = MILL.yaw; root.add(mill.group);
   ctx.piece({ id: 'far.windmill', name: STRINGS.mill, category: 'buildings', file: FILE, object: mill.group,
-    colliders: [boxDesc({ x: MILL.x, z: MILL.z, hw: 2, hd: 2, rot: 0.35, yBottom: 30, yTop: 40 }, 'wood')], surface: 'wood' });
+    colliders: [boxDesc({ x: MILL.x, z: MILL.z, hw: 2.3, hd: 2.3, rot: -MILL.yaw, yBottom: 30, yTop: 39 }, 'stone')], surface: 'stone' });
 
   const drum = winch(); drum.position.set(WINCH.x, WINCH.y, WINCH.z); root.add(drum);
   ctx.piece({ id: 'far.winch', name: STRINGS.winch, category: 'props', file: FILE, object: drum,

@@ -3,9 +3,10 @@ import { fit, skyMesh } from '../world/meshes';
 import type { NpcDef } from '#engine';
 import { FLAGS } from './flags';
 import { STRINGS } from '../strings';
+import { SPAWN } from '../layout';
 
 /** Where the bridge-keeper stands: at Sunrest's north rim, left of the rope bridge's posts, facing the spawn (mockup B). */
-export const KEEPER_AT = { x: -1.9, z: -13.6, yaw: Math.atan2(1.9, 4.6) } as const;
+export const KEEPER_AT = { x: -1.9, z: -13.6, yaw: Math.atan2(SPAWN.x + 1.9, SPAWN.z + 13.6) } as const;
 /** He waves while the player is this close (metres), as Wendell does. */
 export const WAVE_RANGE = 16;
 

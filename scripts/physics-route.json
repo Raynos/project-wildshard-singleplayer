@@ -2604,198 +2604,290 @@
     },
     {
      "x": -6,
-     "z": -4
+     "z": -1
     },
     {
-     "x": -16,
-     "z": -4
+     "x": -14.1,
+     "z": 1.3
     },
     {
-     "x": -30,
-     "z": -4
+     "x": -22.5,
+     "z": 2.1
     },
     {
-     "x": -46,
-     "z": -4
+     "x": -29.4,
+     "z": 2.7
     },
     {
-     "x": -54,
-     "z": -4
+     "x": -36.4,
+     "z": 3.4
+    },
+    {
+     "x": -44.8,
+     "z": 4.1
+    },
+    {
+     "x": -52,
+     "z": 4
     }
    ],
    "expect": {
-    "y": 30
+    "y": 27
    },
-   "notes": "on foot: back over the windmill rope bridge, west over the grove rope bridge (z -4, x -15.4 to -45.4) to the grove"
+   "notes": "on foot: back over the windmill rope bridge, west-north-west over the sloping grove rope bridge (30 -> 27 m) to the grove (loop 5 layout)"
   },
   {
    "name": "roost",
    "gate": true,
    "start": {
-    "x": -54,
-    "z": -4,
-    "yaw": -1.5708,
-    "y": 30,
+    "x": -52,
+    "z": 4,
+    "yaw": -1.48,
+    "y": 27,
     "hover": true
    },
    "waypoints": [
     {
-     "x": -46,
-     "z": -4
+     "x": -44.8,
+     "z": 4.1
     },
     {
-     "x": -30,
-     "z": -4
+     "x": -36.4,
+     "z": 3.4
     },
     {
-     "x": -16,
-     "z": -4
+     "x": -29.4,
+     "z": 2.7
     },
     {
-     "x": 0,
-     "z": -4
+     "x": -22.5,
+     "z": 2.1
     },
     {
-     "x": 17,
-     "z": -4
+     "x": -14.1,
+     "z": 1.3
     },
     {
-     "x": 33,
-     "z": -4
+     "x": -6,
+     "z": -1
     },
     {
-     "x": 49,
-     "z": -4
+     "x": 8,
+     "z": -2
     },
     {
-     "x": 58,
-     "z": -4
+     "x": 15.3,
+     "z": -3.1
+    },
+    {
+     "x": 24.3,
+     "z": -4.9
+    },
+    {
+     "x": 31.9,
+     "z": -6.4
+    },
+    {
+     "x": 39.5,
+     "z": -7.9
+    },
+    {
+     "x": 48.5,
+     "z": -9.7
+    },
+    {
+     "x": 56,
+     "z": -14
     }
    ],
    "expect": {
-    "y": 30
+    "y": 34
    },
-   "notes": "on the board: the grove rope bridge east, sunrest, the hover bridge (z -4, x 17.0 to 48.8; on foot you fall through) to the roost"
+   "notes": "on the board: the grove rope bridge east, sunrest, the sloping hover bridge (30 -> 34 m; on foot you fall through) to the roost, clear of the nest"
   },
   {
    "name": "keeper",
    "gate": true,
    "start": {
-    "x": 58,
-    "z": -4,
-    "yaw": 1.5708,
-    "y": 30,
+    "x": 56,
+    "z": -14,
+    "yaw": 1.44,
+    "y": 34,
     "hover": true
    },
    "waypoints": [
     {
-     "x": 49,
-     "z": -4
+     "x": 48.5,
+     "z": -9.7
     },
     {
-     "x": 33,
-     "z": -4
+     "x": 39.5,
+     "z": -7.9
     },
     {
-     "x": 17,
-     "z": -4
+     "x": 31.9,
+     "z": -6.4
     },
     {
-     "x": 0,
-     "z": -4
+     "x": 24.3,
+     "z": -4.9
     },
     {
-     "x": -16,
-     "z": -4
+     "x": 15.3,
+     "z": -3.1
     },
     {
-     "x": -46,
-     "z": -4
+     "x": 8,
+     "z": -2
     },
     {
-     "x": -56,
-     "z": -7
+     "x": -6,
+     "z": -1
     },
     {
-     "x": -56,
-     "z": -16
+     "x": -14.1,
+     "z": 1.3
     },
     {
-     "x": -56,
-     "z": -35
+     "x": -22.5,
+     "z": 2.1
     },
     {
-     "x": -56,
-     "z": -54
+     "x": -29.4,
+     "z": 2.7
     },
     {
-     "x": -56,
-     "z": -60
+     "x": -36.4,
+     "z": 3.4
+    },
+    {
+     "x": -44.8,
+     "z": 4.1
+    },
+    {
+     "x": -52,
+     "z": 2
+    },
+    {
+     "x": -54.7,
+     "z": -5.9
+    },
+    {
+     "x": -55.4,
+     "z": -17.5
+    },
+    {
+     "x": -56.0,
+     "z": -27.5
+    },
+    {
+     "x": -56.6,
+     "z": -37.5
+    },
+    {
+     "x": -57.3,
+     "z": -49.1
+    },
+    {
+     "x": -57,
+     "z": -58
     }
    ],
    "expect": {
-    "y": 30
+    "y": 32.5
    },
-   "notes": "on the board: the roost hover bridge west, the grove rope bridge, the keeper hover bridge (x -56, z -16.2 to -53.8) to the keeper's isle"
+   "notes": "on the board: the roost hover bridge west, the grove rope bridge, the keeper hover bridge (27 -> 32.5 m) to the keeper's isle"
   },
   {
    "name": "keeper-to-roost",
    "gate": true,
    "start": {
-    "x": -56,
-    "z": -60,
-    "yaw": 3.1416,
-    "y": 30,
+    "x": -57,
+    "z": -58,
+    "yaw": 3.08,
+    "y": 32.5,
     "hover": true
    },
    "waypoints": [
     {
-     "x": -56,
-     "z": -54
+     "x": -57.3,
+     "z": -49.1
     },
     {
-     "x": -56,
-     "z": -35
+     "x": -56.6,
+     "z": -37.5
     },
     {
-     "x": -56,
-     "z": -16
+     "x": -56.0,
+     "z": -27.5
     },
     {
-     "x": -56,
-     "z": -7
+     "x": -55.4,
+     "z": -17.5
     },
     {
-     "x": -46,
-     "z": -4
+     "x": -54.7,
+     "z": -5.9
     },
     {
-     "x": -16,
-     "z": -4
+     "x": -52,
+     "z": 2
     },
     {
-     "x": 0,
-     "z": -4
+     "x": -44.8,
+     "z": 4.1
     },
     {
-     "x": 17,
-     "z": -4
+     "x": -36.4,
+     "z": 3.4
     },
     {
-     "x": 33,
-     "z": -4
+     "x": -29.4,
+     "z": 2.7
     },
     {
-     "x": 49,
-     "z": -4
+     "x": -22.5,
+     "z": 2.1
     },
     {
-     "x": 62,
-     "z": -6
+     "x": -14.1,
+     "z": 1.3
+    },
+    {
+     "x": -6,
+     "z": -1
+    },
+    {
+     "x": 8,
+     "z": -2
+    },
+    {
+     "x": 15.3,
+     "z": -3.1
+    },
+    {
+     "x": 24.3,
+     "z": -4.9
+    },
+    {
+     "x": 31.9,
+     "z": -6.4
+    },
+    {
+     "x": 39.5,
+     "z": -7.9
+    },
+    {
+     "x": 48.5,
+     "z": -9.7
+    },
+    {
+     "x": 56,
+     "z": -14
     }
    ],
    "expect": {
-    "y": 30
+    "y": 34
    },
    "notes": "on the board: back north over the keeper hover bridge, east over the grove rope and roost hover bridges to the roost"
   },
@@ -2803,33 +2895,45 @@
    "name": "ruin",
    "gate": true,
    "start": {
-    "x": 62,
-    "z": -6,
+    "x": 56,
+    "z": -14,
     "yaw": 0,
-    "y": 30
+    "y": 34
    },
    "waypoints": [
     {
-     "x": 62,
-     "z": -15
+     "x": 59,
+     "z": -18
     },
     {
-     "x": 62,
-     "z": -35
+     "x": 60.9,
+     "z": -22.2
     },
     {
-     "x": 62,
-     "z": -55
+     "x": 61.7,
+     "z": -32.9
     },
     {
-     "x": 60,
-     "z": -62
+     "x": 62.5,
+     "z": -42.0
+    },
+    {
+     "x": 63.3,
+     "z": -51.1
+    },
+    {
+     "x": 64.1,
+     "z": -61.8
+    },
+    {
+     "x": 66,
+     "z": -68
     }
    ],
    "expect": {
-    "y": 30
+    "y": 28
    },
-   "notes": "on foot: the roost, the ruin rope bridge south (x 62, z -15.6 to -54.4), the vane ruin (its vane at 59, -70)"
+   "notes": "on foot: the roost, the sloping ruin rope bridge (34 -> 28 m), the vane ruin (loop 5 layout)"
   }
  ]
 }

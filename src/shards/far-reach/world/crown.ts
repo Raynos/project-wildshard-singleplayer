@@ -8,7 +8,8 @@ import { CROWN, DAIS } from '../layout';
  * pennant ropes between their tops, and a low round dais of fitted stone with a compass rose inlaid in its top. It
  * replaces the loop-1 hexagonal pillars that read as one stray post from the arena's entrance.
  */
-export const CROWN_RING = { radius: 12.5, stones: 7, width: 1.5, depth: 0.85 } as const;
+/** The ring stands round the dais (loop 5: at the crown's centre and 12.5 m out, the arena's entrance framed one stone). */
+export const CROWN_RING = { radius: 9.5, stones: 7, width: 1.5, depth: 0.85 } as const;
 /** Stone heights (metres), one per stone round the ring; tallest opposite the entrance, framing the dais. */
 const HEIGHTS = [3.4, 4.1, 4.8, 5.2, 4.7, 4.0, 3.5] as const;
 
@@ -18,7 +19,7 @@ export function crownStones(): Stone[] {
   const n = CROWN_RING.stones, step = (Math.PI * 2) / n;
   // the gap is centred on +z (the bridge side): the first stone half a step past it
   return Array.from({ length: n }, (_, i) => {
-    const a = Math.PI / 2 + step * (i + 0.5), x = CROWN.x + Math.cos(a) * CROWN_RING.radius, z = CROWN.z + Math.sin(a) * CROWN_RING.radius;
+    const a = Math.PI / 2 + step * (i + 0.5), x = DAIS.x + Math.cos(a) * CROWN_RING.radius, z = DAIS.z + Math.sin(a) * CROWN_RING.radius;
     // each stone's carved face turns to the dais
     return { x, z, h: HEIGHTS[i] ?? 4, yaw: Math.atan2(DAIS.x - x, DAIS.z - z) };
   });
