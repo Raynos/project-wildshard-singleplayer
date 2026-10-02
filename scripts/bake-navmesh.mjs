@@ -138,7 +138,7 @@ async function shardColliders(def) {
     add(new Palms(sky).build(Palms.scatterIsland(def.seed, undefined, AVOID)).colliderDescs());
   } else {
     // main.ts's `cabins` and `props` steps (the doors swing: moving pieces, not in the bake)
-    const [{ Cabins }, { Props }, { PineLandmarks, pineHamletBuildings }] = await Promise.all([src('engine/world/Cabin.ts'), src('shards/pine-hollow/world/props.ts'), src('shards/pine-hollow/world/landmarks.ts')]);
+    const [{ Cabins }, { Props }, { PineLandmarks, pineHamletBuildings }] = await Promise.all([src('shards/pine-hollow/world/homestead.ts'), src('shards/pine-hollow/world/props.ts'), src('shards/pine-hollow/world/landmarks.ts')]);
     const pine = def.slug === 'pine-hollow';
     const cabins = new Cabins(sky, pine ? pineHamletBuildings() : []); // + the mill hamlet (PH-B3)
     await cabins.build();
