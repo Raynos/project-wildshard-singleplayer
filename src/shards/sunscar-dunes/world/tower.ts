@@ -9,6 +9,28 @@ export interface TowerParts { root: Group; colliders: ColliderDesc[]; fire: Grou
 
 const box = (w: number, h: number, d: number, material: Material): Mesh => new Mesh(new BoxGeometry(w, h, d), material);
 
+/** A high tread's collider is a slab this thick (more than a rise, so its riser meets the tread below with no gap). */
+const SLAB = 0.5;
+/** Headroom under a slab that lets the player (1.8 m) walk beneath the stair; a lower tread stays solid to the sand. */
+const HEADROOM = 2.3;
+
+/**
+ * The south stair's colliders, one box per tread (rise ≤ 0.35 m, run 0.42 m: autostep climbs them). The engine's
+ * `treads` fill every tread down to the stair's foot, a solid wedge the player cannot pass on the sand beside the
+ * tower (E374 walk check, leg tower-waymark-north). The stair is drawn open underneath (treads on two stringers), so
+ * a tread with room under it is a slab and the player walks under the high end, as the drawing says.
+ */
+function stairColliders(foot: Vector3, rise: number, groundAt: (x: number, z: number) => number): ColliderDesc[] {
+  const out: ColliderDesc[] = [], hx = STAIR.width / 2, hz = STAIR.run / 2;
+  for (let i = 0; i < STAIR.count; i++) {
+    const z = foot.z - (i + 0.5) * STAIR.run, top = foot.y + (i + 1) * rise;
+    const sand = Math.max(groundAt(foot.x - hx, z - hz), groundAt(foot.x + hx, z - hz), groundAt(foot.x - hx, z + hz), groundAt(foot.x + hx, z + hz));
+    const bottom = top - SLAB - sand >= HEADROOM ? top - SLAB : Math.min(foot.y, sand) - 0.2, hy = (top - bottom) / 2;
+    out.push({ kind: 'box', x: foot.x, y: bottom + hy, z, hx, hy, hz, surface: 'wood' });
+  }
+  return out;
+}
+
 /**
  * The signal tower: four legs to a 7 m deck, cross braces, a rail, a mast with a crossbar, a south stair (treads)
  * and an iron brazier whose fire shows once lit. Built in world coordinates at `TOWER`, on ground `y` metres high.
@@ -59,7 +81,7 @@ export function buildTower(y: number, groundAt: (x: number, z: number) => number
     const stringer = box(0.08, 0.22, length, dark); stringer.rotation.x = pitch;
     stringer.position.set(foot.x + side * (STAIR.width / 2 + 0.04), (foot.y + top.y) / 2, (foot.z + top.z) / 2); root.add(stringer);
   }
-  colliders.push({ kind: 'treads', from: { x: foot.x, y: foot.y, z: foot.z }, to: { x: top.x, y: top.y, z: top.z }, width: STAIR.width, count: STAIR.count, surface: 'wood' });
+  colliders.push(...stairColliders(foot, rise, groundAt));
   // The brazier: an iron bowl on a post, its fire hidden until the signal is lit.
   const brazierAt = new Vector3(cx - 0.4, deckY + 1.1, cz - 0.5);
   add(new Mesh(new CylinderGeometry(0.08, 0.12, 0.9, 6), iron), brazierAt.x - cx, deckY + 0.45, brazierAt.z - cz);

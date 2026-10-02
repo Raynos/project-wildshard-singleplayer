@@ -4,8 +4,8 @@ import { boxDesc, type ColliderDesc } from '#engine';
 import { CARAVAN, WELL } from '../layout';
 import { duneMaterial, duneMesh, fit, without } from './meshes';
 
-const WOOD = 0x4a2e1e, WOOD_DARK = 0x2c1b14, IRON = 0x231c1c, CANVAS = 0x8a6448, STONE = 0x6a4a3a, LEATHER = 0x3a1e12, CLAY = 0x7a3a22;
-const mat = (color: number, extra: Partial<{ metalness: number; side: typeof DoubleSide }> = {}): MeshStandardMaterial =>
+const WOOD = 0x4a2e1e, WOOD_DARK = 0x2c1b14, IRON = 0x231c1c, CANVAS = 0x8a6448, CANVAS_BLEACHED = 0xc9ad86, CANVAS_GLOW = 0x2e2519, STONE = 0x6a4a3a, LEATHER = 0x3a1e12, CLAY = 0x7a3a22;
+const mat = (color: number, extra: Partial<{ metalness: number; side: typeof DoubleSide; emissive: number }> = {}): MeshStandardMaterial =>
   new MeshStandardMaterial({ color, roughness: 0.92, flatShading: true, ...extra });
 const box = (w: number, h: number, d: number, material: Material): Mesh => new Mesh(new BoxGeometry(w, h, d), material);
 const at = (mesh: Mesh, x: number, y: number, z: number, parent: Group): Mesh => { mesh.position.set(x, y, z); parent.add(mesh); return mesh; };
@@ -28,7 +28,7 @@ export function buildCaravan(groundAt: (x: number, z: number) => number): Carava
   wagon.position.set(0, -0.55, 0); wagon.rotation.set(-0.1, 0, 0.13); root.add(wagon);
   // C6: the generated wagon (Hunyuan3D-2 from `ref-caravan.jpg`; its shafts lie along −X, turned to +Z), else the code one.
   const generated = duneMesh('caravan');
-  if (generated) wagon.add(new Mesh(fit(generated, { size: 6.2, by: 'span', yaw: Math.PI / 2 }), duneMaterial()));
+  if (generated) { wagon.add(new Mesh(fit(generated, { size: 6.2, by: 'span', yaw: Math.PI / 2 }), duneMaterial())); coverHoops(wagon); }
   else buildCodeWagon(wagon, wood, dark);
   CARGO.forEach(([x, z, half, yaw]) => { const crate = box(half * 2, half * 2, half * 2, wood); crate.rotation.y = yaw; at(crate, x, half * 0.8, z, root); });
   const barrel = new Mesh(new CylinderGeometry(0.34, 0.34, 0.9, 10), dark); barrel.rotation.set(0, 0.6, Math.PI / 2); at(barrel, -2.4, 0.25, 2.3, root);
@@ -41,6 +41,21 @@ export function buildCaravan(groundAt: (x: number, z: number) => number): Carava
   colliders.push(boxDesc({ x: body.x, z: body.z, hw: 1.1, hd: 2.3, rot: -CARAVAN.yaw, yBottom: y - 1, yTop: y + 1.9 }, 'wood'));
   for (const [x, z, half] of CARGO) { const c = world(x, z); colliders.push(boxDesc({ x: c.x, z: c.z, hw: half, hd: half, rot: -CARAVAN.yaw, yBottom: y - 0.5, yTop: y + half * 1.8 }, 'wood')); }
   return { root, colliders, logbookAt, logbook };
+}
+
+/**
+ * The generated wagon's hoops carry no canvas of their own (they read as bare dark ribs against the afterglow), so a
+ * sun-bleached cover sits just outside the back three: an arch over the hoops' tops (x ±0.81, top 3.55 m in the fitted
+ * frame), straight sides down to 2.1 m, a torn flap off its front edge; a faint glow keeps it pale against the afterglow.
+ * The front hoops stay bare, as in the ref.
+ */
+const HOOPS = { cx: 0.88, cy: 2.62, top: 1.0, side: 0.55, back: -2.65, front: -0.15 } as const;
+function coverHoops(wagon: Group): void {
+  const canvas = mat(CANVAS_BLEACHED, { side: DoubleSide, emissive: CANVAS_GLOW }), len = HOOPS.front - HOOPS.back, mid = (HOOPS.front + HOOPS.back) / 2;
+  const arch = new Mesh(new CylinderGeometry(1, 1, len, 9, 1, true, -Math.PI / 2, Math.PI), canvas);
+  arch.geometry.rotateX(-Math.PI / 2); arch.scale.set(HOOPS.cx, HOOPS.top, 1); at(arch, 0, HOOPS.cy, mid, wagon);
+  for (const side of [-1, 1]) at(box(0.02, HOOPS.side, len, canvas), side * HOOPS.cx, HOOPS.cy - HOOPS.side / 2, mid, wagon);
+  const flap = box(1.1, 0.8, 0.02, canvas); flap.rotation.set(0.45, 0.2, 0.3); at(flap, 0.45, HOOPS.cy + 0.55, HOOPS.front + 0.25, wagon);
 }
 
 /** The code wagon (the stand-in when the generated one did not load): bed, sides, hoops, the torn canvas, wheels, shafts. */
