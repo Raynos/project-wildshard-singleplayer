@@ -76,3 +76,4 @@ Fresh Opus agents rebuilt both shards again from the docs after G13–G18.
 | ID | Gap | From | Wanted | Status |
 |---|---|---|---|---|
 | G27 | Ground creatures lerp into the analytic void after leaving a WORLD deck, hiding the fall | E364 content build-out | ballistic ground fall with impulse Y/XZ, floor landing and killY; raised-platform regression; originals unchanged | private candidate refs/sol-g27/g27; validation and lead landing pending |
+| G28 | No-navmesh steer bends toward origin using the analytic void in structures-only worlds | E364 content build-out | plain steering without terrain, documented WORLD floor probe for ledge avoidance, unchanged authored terrain; regression | private candidate refs/sol-g27/g28; validation and lead landing pending |

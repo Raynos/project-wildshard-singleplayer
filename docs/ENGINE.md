@@ -1223,6 +1223,16 @@ when a contact shape uses `units: 'actor'` (scale) or the omitted default (`max(
 `units: 'world'` uses scale 1. Use `weight` or brain logic for any selection-time cover/height/jump restriction.
 Ground XZ shapes otherwise ignore target height; a sphere measures 3-D contact distance from `origin`.
 
+**Steering without a navmesh.** `ctx.steer(animal, yaw, speed, turnRate)` repels trunks and, on authored
+terrain (including mixed worlds), avoids analytic wet/steep ground and chunk edges. When `ground.terrain` is
+absent (`ground.structures: true`), it preserves the requested heading with trunk repulsion only: the analytic
+−1,000 m field is not a navigation surface, and the body samples WORLD floors for support. Steering does not
+avoid platform edges. A brain that needs ledge avoidance can probe
+`floorBelow(app.physics, x, z, fromY, maxDrop)` through the plugin’s app closure (when physics is non-null)
+before choosing its yaw; pass the creature feet Y + 1 as `fromY` and the allowed step-down
+plus 1 as `maxDrop`. A missing floor means no support ahead. The normal body collision motor still resolves
+walls; navmesh steering, when a mesh exists, is unchanged.
+
 **Flight.** Declare `flight: { altitude: 17, above: 'ground', climbRate: 7, diveRate: 28 }` on the species.
 In `act`, call `ctx.flight.steer(animal, yaw, speed, altitude, turnRate?)` (or `animal.fly` with the same arguments).
 The body owns position, heading and vertical motion; animation changes bones only. `above` defaults to `ground`:

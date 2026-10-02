@@ -1340,7 +1340,9 @@ export class AnimalManager {
     }
     // steep ground ahead / chunk edge: bend toward the chunk centre
     const ax = px + vx * look, az = pz + vz * look;
-    if (!inChunk(ax, az, 22) || normalAt(ax, az)[1] < 0.75 || !this.isDry(ax, az)) {
+    // A structures-only world has no analytic navigation surface. Keep the requested steering; WORLD collision
+    // and the body's floor sampler own support. A brain wanting ledge avoidance can probe floorBelow explicitly.
+    if (activeLevel().ground.terrain !== undefined && (!inChunk(ax, az, 22) || normalAt(ax, az)[1] < 0.75 || !this.isDry(ax, az))) {
       const cd = Math.hypot(px, pz) + 1e-3;
       vx += -px / cd * 1.5; vz += -pz / cd * 1.5;
       // and try the perpendiculars
