@@ -1,6 +1,6 @@
 import { BufferGeometry, Color, ConeGeometry, DoubleSide, Float32BufferAttribute, Group, IcosahedronGeometry, InstancedMesh, Matrix4, MeshStandardMaterial, Quaternion, Vector3 } from 'three';
 import { PATCH_ORDER, patchShader } from '#engine';
-import { ISLES, SPANS, apothem, type Isle } from '../layout';
+import { DECK, ISLES, SPANS, SPAWN, apothem, type Isle } from '../layout';
 
 /**
  * The island dressing (Gilded Air, review items 6 / 7, loop 2): what makes an island top read as a meadow and its
@@ -58,7 +58,7 @@ export function flowerGeometry(): BufferGeometry {
 /** A boulder: a subdivided icosahedron, lumped by noise, warm grey with moss on its top and lichen spots. */
 export function stoneGeometry(): BufferGeometry {
   const g = new IcosahedronGeometry(1, 1).toNonIndexed(), p = g.getAttribute('position'), col: number[] = [];
-  const grey = new Color(0x9d9188), warm = new Color(0xb9a48c), moss = new Color(0x6f7d3a), dark = new Color(0x6b6068), c = new Color();
+  const grey = new Color(0x857b78), warm = new Color(0x9f8e7c), moss = new Color(0x5f6e32), dark = new Color(0x5a5060), c = new Color();
   for (let i = 0; i < p.count; i++) {
     const x = p.getX(i), y = p.getY(i), z = p.getZ(i), n = Math.sin(x * 3.1 + z * 2.3) * 0.5 + Math.sin(y * 4.7 - x * 1.9) * 0.5;
     const k = 1 + 0.16 * n; p.setXYZ(i, x * k, y * k, z * k);
@@ -84,7 +84,7 @@ interface Place { x: number; y: number; z: number; s: number; yaw: number }
 
 export interface Dressing { readonly group: Group; readonly meshes: readonly InstancedMesh[] }
 
-export function dressIslands(isles: readonly Isle[] = ISLES, seed = 6417): Dressing {
+export function dressIslands(isles: readonly Isle[] = ISLES, seed = 6417, landings = true): Dressing {
   const rnd = seeded(seed), m = new Matrix4(), q = new Quaternion(), up = new Vector3(0, 1, 0), s = new Vector3(), p = new Vector3();
   const clumps: Place[] = [], flowers: (Place & { c: number })[] = [], stones: Place[] = [], roots: Place[] = [];
   for (const isle of isles) {
@@ -108,7 +108,7 @@ export function dressIslands(isles: readonly Isle[] = ISLES, seed = 6417): Dress
     for (let i = 0; i < DRESS.cragsPerIsle; i++) {
       const a = rnd() * Math.PI * 2, r = ap * (0.88 + rnd() * 0.1), x = isle.x + Math.cos(a) * r, z = isle.z + Math.sin(a) * r;
       if (onLane(x, z)) continue;
-      stones.push({ x, y: isle.y - 0.4, z, s: 1.1 + rnd() * 1.3, yaw: rnd() * 6.28 });
+      stones.push({ x, y: isle.y - 0.35, z, s: 0.8 + rnd() * 0.8, yaw: rnd() * 6.28 });
     }
     const ring = Math.round(2 * Math.PI * isle.r * DRESS.rootsPerM);
     for (let i = 0; i < ring; i++) {
@@ -117,7 +117,7 @@ export function dressIslands(isles: readonly Isle[] = ISLES, seed = 6417): Dress
     }
   }
   // boulders at every rope landing (mockup A: rocks and flowers round the bridge posts), either side of the lane
-  for (const sp of SPANS) {
+  for (const sp of landings ? SPANS : []) {
     if (sp.kind !== 'rope') continue;
     const dx = sp.x1 - sp.x0, dz = sp.z1 - sp.z0, len = Math.hypot(dx, dz), ux = dx / len, uz = dz / len;
     // each landing: inward into its own island (back along the span at the start, on past it at the end), either side
@@ -129,6 +129,11 @@ export function dressIslands(isles: readonly Isle[] = ISLES, seed = 6417): Dress
         flowers.push({ x: x + (rnd() - 0.5) * 1.2, y: ey, z: z + (rnd() - 0.5) * 1.2, s: 1, yaw: rnd() * 6.28, c: 0xf6f1e4 });
       }
     }
+  }
+  // the spawn meadow's boulders (E392, mockup A): a few mossy rocks in the lower third, off the walk to the bridge
+  if (landings) for (const [dx, dz, sc] of [[-3.2, -3.4, 1.8], [-4.6, -1.2, 1.4], [3.6, -2.6, 1.5], [5.2, -5.4, 2], [-2.4, 0.6, 1.1]] as const) {
+    stones.push({ x: SPAWN.x + dx, y: DECK - 0.2, z: SPAWN.z + dz, s: sc, yaw: rnd() * 6.28 });
+    flowers.push({ x: SPAWN.x + dx + 0.8, y: DECK, z: SPAWN.z + dz + 0.6, s: 1, yaw: rnd() * 6.28, c: 0xf2cf55 });
   }
   const group = new Group(), meshes: InstancedMesh[] = [];
   /** `long`: the item's scale is its length only (roots); otherwise uniform, `squash` flattening y */

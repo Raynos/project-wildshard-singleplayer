@@ -9,17 +9,19 @@ import { CROWN, DAIS } from '../layout';
  * replaces the loop-1 hexagonal pillars that read as one stray post from the arena's entrance.
  */
 /** The ring stands close round the dais (loop 5: at the crown's centre and 12.5 m out the arena's entrance framed one stone; at 7.8 m it frames five to seven). */
-export const CROWN_RING = { radius: 7.8, stones: 7, width: 1.5, depth: 0.85 } as const;
+export const CROWN_RING = { radius: 8.5, stones: 7, width: 1.4, depth: 0.8 } as const;
 /** Stone heights (metres), one per stone round the ring; tallest opposite the entrance, framing the dais. */
-const HEIGHTS = [4.3, 5.1, 6.0, 6.6, 5.9, 5.0, 4.4] as const;
+const HEIGHTS = [3.4, 4.0, 4.6, 5.0, 4.5, 3.9, 3.3] as const;
 
 export interface Stone { readonly x: number; readonly z: number; readonly h: number; readonly yaw: number }
 /** The stones in world space (the colliders and the meadow's holes read the same list). */
 export function crownStones(): Stone[] {
-  const n = CROWN_RING.stones, step = (Math.PI * 2) / n;
-  // the gap is centred on +z (the bridge side): the first stone half a step past it
+  const n = CROWN_RING.stones;
+  // E392 (mockup D): an arc behind the dais, from the left round to the right, open toward the bridge (+z) so the
+  // arena's entrance looks across the dais to the stones, the cloud sea and the sun between them
+  const from = Math.PI * 0.92, to = Math.PI * 2.08;
   return Array.from({ length: n }, (_, i) => {
-    const a = Math.PI / 2 + step * (i + 0.5), x = DAIS.x + Math.cos(a) * CROWN_RING.radius, z = DAIS.z + Math.sin(a) * CROWN_RING.radius;
+    const a = from + (to - from) * (i / (n - 1)), x = DAIS.x + Math.cos(a) * CROWN_RING.radius, z = DAIS.z + Math.sin(a) * CROWN_RING.radius;
     // each stone's carved face turns to the dais
     return { x, z, h: HEIGHTS[i] ?? 4, yaw: Math.atan2(DAIS.x - x, DAIS.z - z) };
   });

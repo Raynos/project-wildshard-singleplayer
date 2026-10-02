@@ -7,7 +7,7 @@ import { SKY } from './sun';
  * crowns, lavender bellies, a bright rim toward the sun), its edge broken into cauliflower billows by noise; they thin out
  * with distance so the painted panorama's cloud sea takes over. Seeded, so every load grows the same sky.
  */
-export const PUFFS = { count: 260, ring: [30, 440], y: [-4, 14], size: [20, 58], fade: [420, 680], centre: [0, -90] } as const;
+export const PUFFS = { count: 380, ring: [30, 520], y: [-6, 20], size: [24, 80], fade: [480, 760], centre: [0, -100] } as const;
 
 function hex(value: number): string { const c = new Color(value); return `vec3(${c.r.toFixed(4)},${c.g.toFixed(4)},${c.b.toFixed(4)})`; }
 

@@ -1,4 +1,4 @@
-import { BufferGeometry, ConeGeometry, CylinderGeometry, Float32BufferAttribute, Group, Mesh, MeshStandardMaterial, SphereGeometry, Vector3 } from 'three';
+import { BoxGeometry, BufferGeometry, ConeGeometry, CylinderGeometry, Float32BufferAttribute, Group, Mesh, MeshStandardMaterial, SphereGeometry, Vector3 } from 'three';
 import { gloveHand } from './glove';
 
 /**
@@ -9,7 +9,7 @@ import { gloveHand } from './glove';
  * Local frame: the pivot at the origin, the fan opens up (+Y) in the XY plane facing +Z (the camera); the grip runs down
  * −Y into the fist.
  */
-export const FAN = { panels: 9, reach: 0.31, spread: Math.PI * 0.86, grip: 0.11 } as const;
+export const FAN = { panels: 9, reach: 0.31, spread: Math.PI * 0.68, grip: 0.07 } as const;
 
 /**
  * The leaf (loop 4): each panel is a real pleat, two strips meeting at a raised crease, mapped polar onto the painted silk
@@ -57,8 +57,10 @@ export function fanParts(): FanParts {
   const from = -FAN.spread / 2, step = FAN.spread / FAN.panels;
   for (let i = 0; i <= FAN.panels; i++) {
     const a = from + i * step, guard = i === 0 || i === FAN.panels, len = FAN.reach * (guard ? 1.04 : 1);
-    const rib = new Mesh(new CylinderGeometry(guard ? 0.006 : 0.0035, guard ? 0.008 : 0.0045, len, 5), guard ? iron : bronze);
-    rib.position.set(Math.sin(a) * len / 2, Math.cos(a) * len / 2, 0.007); rib.rotation.z = -a; fan.add(rib);
+    // the outer guards are wide flat bars of dark iron with gilt caps (mockup C); the inner ribs thin bronze
+    const rib = new Mesh(guard ? new BoxGeometry(0.02, len, 0.007) : new CylinderGeometry(0.0035, 0.0045, len, 5), guard ? iron : bronze);
+    rib.position.set(Math.sin(a) * len / 2, Math.cos(a) * len / 2, 0.009); rib.rotation.z = -a; fan.add(rib);
+    if (guard) { const cap = new Mesh(new BoxGeometry(0.026, 0.03, 0.009), bronze); cap.position.set(Math.sin(a) * len * 0.97, Math.cos(a) * len * 0.97, 0.01); cap.rotation.z = -a; fan.add(cap); }
   }
   const rivet = new Mesh(new SphereGeometry(0.012, 8, 6), bronze); rivet.position.z = 0.01; fan.add(rivet);
   const grip = new Mesh(new CylinderGeometry(0.016, 0.018, FAN.grip, 8), wrap); grip.position.y = -FAN.grip / 2; fan.add(grip);

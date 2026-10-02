@@ -49,8 +49,8 @@ export function meadowPaths(isles: readonly Isle[] = ISLES): Vector4[] {
     let best: Isle | null = null, bd = Infinity;
     for (const isle of isles) { const d = Math.hypot(x - isle.x, z - isle.z); if (d < bd) { bd = d; best = isle; } }
     if (best === null || bd > best.r + 2) continue;
-    // the path runs from just past the rim in to 35 % of the way from the centre
-    const k = 0.35 * apothem(best) / Math.max(1e-3, bd);
+    // a short worn apron in from each landing (E392: the mockups' meadow runs right up to the bridge)
+    const k = Math.max(0, bd - 3.5) / Math.max(1e-3, bd);
     out.push(new Vector4(x, z, best.x + (x - best.x) * k, best.z + (z - best.z) * k));
   }
   return out;
@@ -132,7 +132,7 @@ export function meadow(sunDir: Vector3, blades: number, isles: readonly Isle[] =
         vec2 toCam = normalize(uCam.xz - p + 1e-3); vec2 face = normalize(mix(dir, toCam, 0.55));
         vec2 side = vec2(-face.y, face.x);
         // a few blades in the drifts are daisies: a short stem with a wide pale head (white, some yellow)
-        float flower = step(fract(r * 91.7), 0.05 * smoothstep(0.35, 0.7, mfbm(p * 0.11 + 4.0)));
+        float flower = step(fract(r * 91.7), 0.11 * smoothstep(0.3, 0.65, mfbm(p * 0.11 + 4.0)));
         h *= mix(1.0, 0.7, flower);
         // the nearest band is shorter, so a blade at your feet never fills a sixth of the frame (council R1C-15)
         h *= mix(0.55, 1.0, smoothstep(0.8, 4.0, dist));

@@ -35,7 +35,7 @@ const segDist = (px: number, pz: number, ax: number, az: number, bx: number, bz:
 /** The island palette (sRGB): meadow ground under the grass, worn path dirt, soil, strata and shade. */
 export const ISLE_PALETTE = {
   ground: 0x6d8433, groundGold: 0xa59a46, groundDeep: 0x51652a, path: 0x9a8468, soil: 0x6e4c35,
-  sand: 0xd2a676, ochre: 0xb98257, clay: 0x9a6650, rockGrey: 0x9a8e96, mauve: 0x8a7385, violet: 0x5d4c67, moss: 0x6f7d3a,
+  sand: 0xbca78c, ochre: 0xa48a72, clay: 0x8c7466, rockGrey: 0x8f8890, mauve: 0x8a7385, violet: 0x5d4c67, moss: 0x6f7d3a,
 } as const;
 
 /** The 12-gon's radius at angle `a` (corners at multiples of 30°, as the colliders and the old top). */
@@ -103,7 +103,8 @@ export function islandMesh(isle: Isle, random: () => number): Mesh {
       const band = Math.sin((y + 1.3 * lump) * 1.9) * 0.5 + 0.5, band2 = Math.sin((y + 0.8 * fine) * 4.7) * 0.5 + 0.5;
       const warm = new Color(ISLE_PALETTE.sand).lerp(new Color(ISLE_PALETTE.ochre), band).lerp(new Color(ISLE_PALETTE.clay), band2 * 0.45);
       const shade = smooth(0.25, 0.95, f);
-      const moss = k <= 2 ? smooth(0.55, 0.8, fine) * 0.7 : 0;
+      // moss and vines streak down from the lip (E392: the mockups' keels are grey rock streaked green)
+      const moss = (k <= 2 ? smooth(0.55, 0.8, fine) * 0.7 : 0) + smooth(0.62, 0.9, Math.sin(a * 13 + seed) * 0.5 + 0.5) * Math.max(0, 1 - f * 2.2) * 0.55;
       // grey-lavender rock bands between the warm strata, crevices darker than the ridges (council R1C-9 / R1A-1)
       const rock = warm.lerp(new Color(ISLE_PALETTE.rockGrey), smooth(0.55, 0.85, band2) * 0.7)
         .lerp(new Color(ISLE_PALETTE.mauve), shade * 0.75).lerp(new Color(ISLE_PALETTE.violet), smooth(0.6, 1, f) * 0.6)

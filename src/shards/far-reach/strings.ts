@@ -1,7 +1,7 @@
 export const STRINGS = {
   name: 'Sky Reach', biome: 'Floating islands above the clouds', label: '(+1, +4)',
   blurb: 'Grassy islands drift over a sea of cloud at golden hour. Rope bridges hold your weight; the glowing ones carry only a hoverboard.',
-  sunrest: 'Sunrest', windmill: 'Windmill isle', roost: 'The Roost', grove: 'Pine grove', keeper: 'Keeper\'s isle', ruin: 'Vane ruin', step: 'The high step', crown: 'The storm crown',
+  skyIsles: 'The far isles', sunrest: 'Sunrest', windmill: 'Windmill isle', roost: 'The Roost', grove: 'Pine grove', keeper: 'Keeper\'s isle', ruin: 'Vane ruin', step: 'The high step', crown: 'The storm crown',
   rope: 'Rope bridge', hover: 'Hover bridge', fallen: 'Crown bridge', winch: 'Bridge winch', mill: 'Old windmill', pines: 'Island pines', meadow: 'Meadow and roots', updraft: 'Updraft',
   vane: 'Wind vane', notesName: 'Bridge-keeper\'s lectern',
   turnWinch: 'Turn the winch', winchPin: 'WINCH', readNotes: 'Read the keeper\'s notes', notesPin: 'NOTES', vanePin: 'VANE',

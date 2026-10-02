@@ -7,6 +7,7 @@ import { dressIslands } from './dressing';
 import { islandMesh } from './isle';
 import { CROWN_RING, crownArena, crownStones } from './crown';
 import { roost } from './roost';
+import { SKY_ISLES } from './skyIsles';
 import { winchHouse } from './winchHouse';
 import { skyline } from './distant';
 import { PALETTE, flat, lectern, pines, plankBridge, vane, windmill, winch } from './shapes';
@@ -92,6 +93,19 @@ export function buildWorld(ctx: ShardContext, isBoard: () => boolean): BuiltWorl
   }
   const pineAt: [number, number, number, number][] = [];
   for (const isle of ISLES) for (const [dx, dz, s] of PINES[isle.id] ?? []) pineAt.push([isle.x + dx, isle.y, isle.z + dz, s]);
+  // the sky around the archipelago (E392): decorative isles from the same builder, their own seeded stream
+  let skySeed = 9001;
+  const skyRnd = (): number => { skySeed = (skySeed * 16807) % 2147483647; return skySeed / 2147483647; };
+  const skyGroup = new Group(); skyGroup.name = 'far.sky-isles';
+  for (const s of SKY_ISLES) {
+    const mesh = islandMesh(s, skyRnd); mesh.position.set(s.x, s.y, s.z); skyGroup.add(mesh);
+    for (let k = 0; k < s.pines; k++) {
+      const a = skyRnd() * Math.PI * 2, d = s.r * (0.2 + skyRnd() * 0.55);
+      pineAt.push([s.x + Math.cos(a) * d, s.y, s.z + Math.sin(a) * d, 0.7 + skyRnd() * 0.5]);
+    }
+  }
+  const skyDress = dressIslands(SKY_ISLES, 7321, false); skyGroup.add(skyDress.group); root.add(skyGroup);
+  ctx.piece({ id: 'far.sky-isles', name: STRINGS.skyIsles, category: 'props', file: FILE, object: skyGroup });
   const forest = pines(pineAt); root.add(forest);
   ctx.piece({ id: 'far.pines', name: STRINGS.pines, category: 'props', file: FILE, object: forest });
   // the meadow and the roots (loop 2): grass clumps, flowers, stones, hanging roots; no colliders

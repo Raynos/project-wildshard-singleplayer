@@ -52,7 +52,7 @@ export const UPDRAFT: Span = along('far.updraft', 'hover', WINDMILL, STEP, 4);
 export const FALLEN_BRIDGE: Span = along('far.bridge.crown', 'rope', STEP, CROWN, 2.6);
 export const WINCH = { x: STEP.x + 3.2, z: STEP.z - apothem(STEP) + 2.2, y: HIGH };
 /** The windmill (loop 5: east of the isle's middle, off the high-step view's line; its sails face the spawn; round 2: back from the h2 view so the sails fit). */
-export const MILL = { x: 8, z: WINDMILL.z - 6, yaw: -0.13 };
+export const MILL = { x: 0, z: WINDMILL.z - 6, yaw: 0 };
 /** The bridge-keeper's notes (quest step 1), on the broken-bridge isle. */
 export const NOTES = { x: KEEPER.x - 3, z: KEEPER.z - 2, y: KEEPER.y };
 /** The three wind vanes (quest step 3): GUST each one to set it turning. */
@@ -87,7 +87,7 @@ export const ROC = { x: DAIS.x, z: DAIS.z, r: 13, y: HIGH + 10 } as const;
 /** Pine positions per island, as offsets from its centre, with a scale. */
 export const PINES: Readonly<Record<string, readonly (readonly [number, number, number])[]>> = {
   sunrest: [[-11, -6, 1], [-9, 6, 0.8], [11, 7, 0.9], [10, -12, 1.0], [-4, 12, 0.7]],
-  windmill: [[-10, 2, 1], [-7, -8, 0.8], [9, 6, 0.9], [-3, 9, 0.75]],
+  windmill: [[-7, -4, 1], [7, -4, 0.95], [-11, 3, 0.85], [11, 2, 0.8]],
   roost: [[-4, -7, 0.9], [5, 6, 1.1], [7, -4, 0.8]],
   grove: [[-5, -4, 1.2], [-2, 6, 1], [4, 6, 0.9], [6, 1, 0.8], [-7, 3, 0.7]],
   keeper: [[5, -5, 0.9], [-6, 5, 0.8]],

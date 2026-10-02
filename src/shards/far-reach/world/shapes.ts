@@ -110,14 +110,15 @@ function kitDeck(length: number, width: number): InstancedMesh | null {
   const n = Math.max(1, Math.round(length / DECK_SEGMENT)), seg = length / n;
   g.translate(-(b.min.x + b.max.x) / 2, -b.max.y, -(b.min.z + b.max.z) / 2);
   g.scale(width / Math.max(1e-3, b.max.x - b.min.x), 1, seg / Math.max(1e-3, b.max.z - b.min.z)); g.computeVertexNormals();
-  const mesh = new InstancedMesh(g, flat(0xffffff, { vertexColors: true }), n), m = new Matrix4();
+  // weathered wood (E392: the mockups' planks are grey-brown, ours read saturated orange)
+  const mesh = new InstancedMesh(g, flat(0xc9bfb4, { vertexColors: true }), n), m = new Matrix4();
   for (let i = 0; i < n; i++) { m.makeTranslation(0, 0, -(i + 0.5) * seg); mesh.setMatrixAt(i, m); }
   mesh.computeBoundingSphere(); return mesh;
 }
 /** The generated anchor posts at the span's four corners, just outside the rope rails; null without the kit. */
 function kitPosts(width: number, length: number): InstancedMesh | null {
   const source = skyMesh('bridge-post'); if (source === null) return null;
-  const g = fit(source, { size: POST_HEIGHT, by: 'height', floor: 0, centre: 'base' }), mesh = new InstancedMesh(g, flat(0xffffff, { vertexColors: true }), 4), m = new Matrix4();
+  const g = fit(source, { size: POST_HEIGHT, by: 'height', floor: 0, centre: 'base' }), mesh = new InstancedMesh(g, flat(0xd2c8bc, { vertexColors: true }), 4), m = new Matrix4();
   let i = 0;
   for (const side of [-1, 1]) for (const z of [0, -length]) { m.makeTranslation(side * (width / 2 + 0.12), -0.05, z); mesh.setMatrixAt(i++, m); }
   mesh.computeBoundingSphere(); return mesh;

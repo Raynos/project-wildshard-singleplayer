@@ -58,7 +58,7 @@ const FRAGMENT = /* glsl */`
     float near = smoothstep(3.0, 16.0, abs(wp.y - cameraPosition.y));
     // loop 4: it belongs to the crown. Seen from the far islands it is only a faint bruise over the crown, so the painted
     // sky stays open from the spawn; it gathers as you come near (the high step, the crown bridge, the arena)
-    float approach = 1.0 - smoothstep(${STORM.gather[0].toFixed(1)}, ${STORM.gather[1].toFixed(1)}, length(cameraPosition.xz - centre.xz)) * 0.85;
+    float approach = 1.0 - smoothstep(${STORM.gather[0].toFixed(1)}, ${STORM.gather[1].toFixed(1)}, length(cameraPosition.xz - centre.xz)) * 0.45;
     gl_FragColor = vec4(c, alpha * (1.0 - haze * 0.72) * near * approach);
   }`;
 
