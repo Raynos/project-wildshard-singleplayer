@@ -16,11 +16,13 @@ export const SKY_REACH: ShardManifest = {
   ground: { structures: true, paths: 'plugin' },
   spawn: { x: SPAWN.x, y: DECK + 1, z: SPAWN.z, yaw: SPAWN.yaw }, bounds: { x0: -120, x1: 120, z0: -240, z1: 60, floor: DECK - 18 },
   world: { killY: DECK - 24 },
-  horizon: { rings: [], cloudSea: true }, boundary: { visible: false },
-  sky: { sunColor: [1, 0.78, 0.55], sunIntensity: 2.3, envIntensity: 0.55, bgIntensity: 1, fogSunColor: [1, 0.8, 0.62], cloudSunColor: [1, 0.82, 0.68],
-    hemiSky: 0xb7a6cf, hemiGround: 0x8a6a58, hemiIntensity: 0.85, sun: { azimuth: 300, elevation: 15 } },
+  horizon: { rings: [], cloudSea: false }, boundary: { visible: false },
+  // The painted light (review 2026-10-01 item 1): a warm sky fill and a gold ground bounce lift every shade side; the key
+  // stays low and behind the islands (look/light.ts adds the bounce wrap, the rim and the shade floor).
+  sky: { sunColor: [1, 0.8, 0.58], sunIntensity: 2.3, envIntensity: 0.7, bgIntensity: 1, fogSunColor: [1, 0.82, 0.64], cloudSunColor: [1, 0.84, 0.7],
+    hemiSky: 0xd8c2d6, hemiGround: 0xc9935c, hemiIntensity: 1.4, sun: { azimuth: 300, elevation: 15 } },
   atmosphere: { fogHeight: -20, fogHeightFalloff: 0, fogHeightDensity: 0, fogDistDensity: 0, volumetricSunColor: [1, 0.8, 0.6] },
-  grade: { saturation: 0.05, brightness: 0, contrast: 0.04, bloomIntensity: 0.15, bloomThreshold: 0.9, shadowTint: [0.92, 0.88, 1.05], highTint: [1.05, 1, 0.92], lift: [0.01, 0, 0.02], gain: [1, 1, 1], gamma: 1 },
+  grade: { saturation: 0.14, brightness: 0, contrast: 0.1, bloomIntensity: 0.15, bloomThreshold: 0.9, shadowTint: [1.04, 0.95, 0.98], highTint: [1.05, 1, 0.92], lift: [0.03, 0.018, 0.022], gain: [1, 1, 1], gamma: 1 },
   render: async () => (await import('./look/render')).skyReachLook(),
   uses: ['hover', 'quests', 'bosses', 'coins', 'loot'],
   loadout: { weapons: ['weapon.far-fan'], tools: ['tool.hoverboard'], start: ['weapon.far-fan', 'tool.hoverboard'], held: 'weapon.far-fan' },

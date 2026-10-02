@@ -70,7 +70,7 @@ export class StormRocBrain extends CreatureBrain<RocState> {
 const brains = new WeakMap<Animal, StormRocBrain>();
 export const rocBrain = (a: Animal): StormRocBrain => { let value = brains.get(a); if (!value) { value = new StormRocBrain(a); brains.set(a, value); } return value; };
 export const STORM_ROC: SpeciesRow = { id: 'far.creature.stormRoc', kind: 'stormRoc', label: STRINGS.roc, aggressive: true, blood: false,
-  flight: { altitude: ROC.y, above: 'world', climbRate: 9, diveRate: 24 },
+  flight: { altitude: ROC.y, above: 'world', climbRate: 9, diveRate: 24, lockRange: 40 },
   variants: [{ id: 'storm', label: STRINGS.roc, weight: 1, rarity: 'legendary', scale: [1, 1], hp: 420 }],
   think: (a, ctx) => { rocBrain(a).think(ctx); }, act: (a, ctx) => { rocBrain(a).act(ctx); } };
 

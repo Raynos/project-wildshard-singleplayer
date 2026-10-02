@@ -37,7 +37,11 @@ Storm Roc.
 | `species/stormRoc.ts`, `combat/stormRoc.ts` | the Storm Roc: a `BossBrain` + `BossScript` (stoop dive, gale walls that shove you 14 m/s along their lane toward the rim, grounded on the dais), the shared `BossBar`, 25 coins once |
 | `species/driftRay.ts` | the drift ray: species + custom rig (body, head, wings, tail) + `DriftRayBrain` (circle → stalk → hang → dive → rise) with a `sphere` dive strike |
 | `quest/install.ts` | *The crown bridge*: the keeper's notes → clear the roost's three rays → GUST the three vanes → the winch raises the bridge to the storm crown; 10 coins once |
-| `look/render.ts` | `extend` look: the clean engine chain, a violet → rose → gold dome with a sun glow, a warm raking key, rose distance fog |
+| `look/render.ts` | `extend` look, **Gilded Air** (`docs/design/far-reach/style-bible.md`): the clean engine chain, the dome, the cloud sea and a warm distance fog |
+| `look/sun.ts` | the fixed golden-hour sun (low, ahead of the spawn, left of the windmill) and the sky palette |
+| `look/light.ts` | the painted light: a `lights_fragment_end` patch adding a warm bounce wrap, a sun rim and a warm shade floor to every lit material |
+| `look/sky.ts` | the dome: gradient, sun bloom, a cumulus panorama and distant-island silhouettes baked once into a 1024×256 data texture |
+| `look/cloudSea.ts` | two layered, sun-lit cloud sheets under the islands (opaque floor + drifting puffs) from one baked 128² tileable texture |
 | `plugin.ts` | the hooks, the updraft's lift (on the board inside the wind column, a steady `app.player.impulse` up: it floats you off the ramp to the high step), the fan's input context (SWING relabel on `r0`, GUST verb), the winch, the hover-deck glow, the gust ring, the rays |
 
 ## Budgets

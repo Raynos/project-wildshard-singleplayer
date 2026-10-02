@@ -52,7 +52,8 @@ export const DAIS = { x: CROWN.x, z: CROWN.z - 6, r: 5, h: 0.3 };
 export const SPAWN = { x: 0, z: 7, yaw: 0 };
 /** Flying homes: centre, circle radius and altitude (world metres). The roost's three rays are quest step 2. */
 export interface Home { readonly x: number; readonly z: number; readonly r: number; readonly y: number }
-export const RAY_HOMES: readonly Home[] = [{ x: 0, z: -24, r: 22, y: DECK + 14 }];
+/** The free ray glides a wide circle right of the windmill isle, past its notice range from the spawn: it shows itself first (the mockup) and dives only once you cross the bridge (review item 9). */
+export const RAY_HOMES: readonly Home[] = [{ x: 24, z: -64, r: 14, y: DECK + 9 }];
 export const ROOST_RAYS: readonly Home[] = [0, 1, 2].map((i) => ({ x: ROOST.x, z: ROOST.z, r: 12 + i * 3, y: DECK + 10 + i * 2 }));
 export const WISP_HOMES: readonly Home[] = [{ x: KEEPER.x, z: KEEPER.z, r: 7, y: DECK + 3 }, { x: STEP.x, z: STEP.z, r: 7, y: HIGH + 3 }, { x: RUIN.x, z: RUIN.z, r: 8, y: DECK + 3 }];
 /** Sky goats graze where they spawn, inside their island's rim. */

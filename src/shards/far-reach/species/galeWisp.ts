@@ -39,7 +39,7 @@ export class GaleWispBrain extends CreatureBrain<WispState> {
 const brains = new WeakMap<Animal, GaleWispBrain>();
 const brain = (a: Animal): GaleWispBrain => { let value = brains.get(a); if (!value) { value = new GaleWispBrain(a); brains.set(a, value); } return value; };
 export const GALE_WISP: SpeciesRow = { id: 'far.creature.galeWisp', kind: 'galeWisp', label: STRINGS.wisp, aggressive: true, blood: false,
-  flight: { altitude: 33, above: 'world', climbRate: 8, diveRate: 10 },
+  flight: { altitude: 33, above: 'world', climbRate: 8, diveRate: 10, lockRange: 20 },
   variants: [{ id: 'gale', label: STRINGS.wisp, weight: 1, rarity: 'common', scale: [1, 1], hp: 18 }],
   think: (a, ctx) => { brain(a).think(ctx); }, act: (a, ctx) => { brain(a).act(ctx); } };
 

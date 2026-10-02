@@ -2,18 +2,22 @@ import { BoxGeometry, BufferGeometry, Color, ConeGeometry, CylinderGeometry, Flo
 import type { Isle } from '../layout';
 import { fit, skyMesh, splitAbove } from './meshes';
 
-/** The Sky Reach palette (sRGB hex): golden-hour grass, warm dirt, violet keel rock, dusk pines. */
+/** The Sky Reach palette (sRGB hex): golden-hour grass, warm dirt, warm brown-grey keel strata, green pines (the mockup's). */
 export const PALETTE = {
-  grass: 0x7f9a55, grassLight: 0x93ab62, dirt: 0x6e4f3e, rock: 0x4d3c5a, rockDark: 0x33283f,
-  pine: 0x2f2c41, trunk: 0x3d2b2c, plank: 0x7d5c45, rope: 0xcdb68c, tower: 0x4a3a4f, sail: 0x6f5b70, glow: 0x9fe6f2,
+  grass: 0x82ad4c, grassLight: 0xa3c060, dirt: 0x8a6446, rock: 0x8a7468, rockDark: 0x6a5560,
+  pine: 0x3f5a3c, trunk: 0x5a3f2e, plank: 0x8d6a4c, rope: 0xd6c095, tower: 0xd8cfc2, sail: 0xe8dcc4, glow: 0x9fe6f2,
 } as const;
 
-type Tri = (a: Vector3, b: Vector3, c: Vector3, color: number) => void;
+type Tri = (a: Vector3, b: Vector3, c: Vector3, color: number, vary?: number) => void;
+/** Macro colour noise (Gilded Air: painted variation, not one flat colour per facet): a soft value field over world metres. */
+const macro = (x: number, z: number): number => Math.sin(x * 0.31 + Math.sin(z * 0.23) * 1.7) * 0.5 + Math.sin(z * 0.37 - x * 0.11) * 0.5;
 function builder(): { tri: Tri; geometry: () => BufferGeometry } {
   const pos: number[] = [], col: number[] = [], c = new Color();
-  const tri: Tri = (a, b, d, color) => {
-    c.setHex(color);
-    for (const p of [a, b, d]) { pos.push(p.x, p.y, p.z); col.push(c.r, c.g, c.b); }
+  const tri: Tri = (a, b, d, color, vary = 0) => {
+    for (const p of [a, b, d]) {
+      c.setHex(color); const k = 1 + vary * macro(p.x, p.z), warm = vary * Math.max(0, macro(p.z * 0.7, p.x * 0.7));
+      pos.push(p.x, p.y, p.z); col.push(c.r * k + warm * 0.05, c.g * k + warm * 0.03, c.b * k * (1 - warm * 0.4));
+    }
   };
   return { tri, geometry: () => { const g = new BufferGeometry(); g.setAttribute('position', new Float32BufferAttribute(pos, 3));
     g.setAttribute('color', new Float32BufferAttribute(col, 3)); g.computeVertexNormals(); return g; } };
@@ -38,8 +42,9 @@ export function islandMesh(isle: Isle, random: () => number): Mesh {
     const j = (i + 1) % n;
     const [ci, cj, ri, rj, bi, bj, mi, mj, li, lj] = [inner[i], inner[j], rim[i], rim[j], band[i], band[j], mid[i], mid[j], low[i], low[j]];
     if (!ci || !cj || !ri || !rj || !bi || !bj || !mi || !mj || !li || !lj) continue;
-    tri(centre, cj, ci, i % 2 ? PALETTE.grass : PALETTE.grassLight);
-    tri(ci, cj, rj, PALETTE.grass); tri(ci, rj, ri, i % 3 ? PALETTE.grass : PALETTE.grassLight);
+    // one grass colour with macro noise per vertex: the 12-gon's radial fan no longer shows (review item 3)
+    tri(centre, cj, ci, PALETTE.grass, 0.16);
+    tri(ci, cj, rj, PALETTE.grass, 0.16); tri(ci, rj, ri, PALETTE.grass, 0.16);
     tri(ri, rj, bj, PALETTE.dirt); tri(ri, bj, bi, PALETTE.dirt);
     tri(bi, bj, mj, PALETTE.rock); tri(bi, mj, mi, i % 2 ? PALETTE.rock : PALETTE.rockDark);
     tri(mi, mj, lj, PALETTE.rockDark); tri(mi, lj, li, PALETTE.rock);
@@ -194,13 +199,14 @@ export function crownRuin(daisR: number, daisH: number): Group {
   }
   return group;
 }
-/** Storm clouds: dark faceted puffs that ring the crown. */
+/** Storm clouds: soft pale puffs that ring the crown. */
 export function stormClouds(count: number, radius: number): InstancedMesh {
-  const mesh = new InstancedMesh(puff(), flat(0x4a4262, { emissive: 0x1a1426 }), count), m = new Matrix4(), q = new Quaternion();
+  // soft, smooth-shaded and pale (lit by the painted rim from the sun behind them), not dark faceted blobs
+  const mesh = new InstancedMesh(puff(), new MeshStandardMaterial({ color: 0xb7a2c2, emissive: 0x2c2036, roughness: 1, metalness: 0 }), count), m = new Matrix4(), q = new Quaternion();
   for (let i = 0; i < count; i++) {
     const a = (i / count) * Math.PI * 2, s = 5 + (i % 3) * 2.5;
     m.compose(new Vector3(Math.cos(a) * radius, (i % 4) * 2.5, Math.sin(a) * radius), q, new Vector3(s * 1.6, s * 0.6, s)); mesh.setMatrixAt(i, m);
   }
   mesh.computeBoundingSphere(); return mesh;
 }
-function puff(): BufferGeometry { return new IcosahedronGeometry(1, 1); }
+function puff(): BufferGeometry { return new IcosahedronGeometry(1, 3); }
