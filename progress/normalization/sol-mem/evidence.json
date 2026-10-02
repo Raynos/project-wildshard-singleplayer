@@ -1,0 +1,530 @@
+[
+  {
+    "runtimeSha": "720dd05b2e36846d28a72c8bc8859ef5b73645f4",
+    "rawDirectory": "/Users/raynos/.wildshard/gpu-perf/2026-10-01T22-27-40-199Z-sim-720dd05",
+    "native": {
+      "type": "summary",
+      "t": "2026-10-01T22:43:40.315719+00:00",
+      "phases": {
+        "idle": {
+          "samples": 8,
+          "seconds": 0.7,
+          "gamePid": 92208,
+          "gameHighGB": 0.094,
+          "gameSampledGB": 0.049,
+          "allWebContentGB": 0.089,
+          "gpuProcessGB": 0.013
+        },
+        "loading": {
+          "samples": 124,
+          "seconds": 13.9,
+          "gamePid": 92208,
+          "gameHighGB": 0.78,
+          "gameSampledGB": 0.748,
+          "allWebContentGB": 0.819,
+          "gpuProcessGB": 0.192
+        },
+        "play": {
+          "samples": 543,
+          "seconds": 60.0,
+          "gamePid": 92208,
+          "gameHighGB": 0.385,
+          "gameSampledGB": 0.385,
+          "allWebContentGB": 0.425,
+          "gpuProcessGB": 0.224
+        },
+        "menu": {
+          "samples": 29,
+          "seconds": 2.8,
+          "gamePid": 92208,
+          "gameHighGB": 0.357,
+          "gameSampledGB": 0.354,
+          "allWebContentGB": 0.394,
+          "gpuProcessGB": 0.212
+        },
+        "explorer": {
+          "samples": 569,
+          "seconds": 63.2,
+          "gamePid": 92208,
+          "gameHighGB": 0.357,
+          "gameSampledGB": 0.357,
+          "allWebContentGB": 0.396,
+          "gpuProcessGB": 0.213
+        }
+      },
+      "lost": []
+    },
+    "inspector": {
+      "at": "2026-10-01T22:43:40.322Z",
+      "phase": "done",
+      "kind": "summary",
+      "result": {
+        "label": "nine-dragon-stack",
+        "base": "http://127.0.0.1:4401/",
+        "phases": {
+          "play": {
+            "fps": [
+              119.9,
+              120.2,
+              119.8,
+              120.2,
+              120,
+              119.7
+            ]
+          },
+          "explorer": {
+            "fps": [
+              90,
+              90,
+              90,
+              89.8,
+              90.1,
+              90.2
+            ]
+          }
+        },
+        "loadSeconds": 13.98,
+        "sceneStats": {
+          "geometryBytes": 50856306,
+          "instancedBytes": 3936472,
+          "textureImageBytes": 2228248,
+          "arrays": 1330,
+          "textures": 35,
+          "gpu": {
+            "geometries": 154,
+            "textures": 54
+          },
+          "calls": 65
+        },
+        "readout": "ALT 151 m \u00b7 x 10 z 22 \u00b7 HDG 334\u00b0\n30 fps \u00b7 65 calls \u00b7 0.58 M tris",
+        "inspectorPeakGB": {
+          "loading": 0.671,
+          "play": 0.743,
+          "explorer": 0.614
+        },
+        "inspectorAtPeakMB": {
+          "loading": {
+            "javascript": 346,
+            "jit": 12,
+            "images": 1,
+            "layers": 0,
+            "page": 206,
+            "other": 107
+          },
+          "play": {
+            "javascript": 407,
+            "jit": 19,
+            "images": 20,
+            "layers": 0,
+            "page": 209,
+            "other": 88
+          },
+          "explorer": {
+            "javascript": 313,
+            "jit": 19,
+            "images": 7,
+            "layers": 0,
+            "page": 187,
+            "other": 87
+          }
+        }
+      }
+    }
+  },
+  {
+    "runtimeSha": "f3a4a93356df8b2528baef85fbd384c0b97834ad",
+    "rawDirectory": "/Users/raynos/.wildshard/gpu-perf/2026-10-01T23-07-01-202Z-sim-f3a4a93",
+    "native": {
+      "type": "summary",
+      "t": "2026-10-01T23:19:52.272353+00:00",
+      "phases": {
+        "idle": {
+          "samples": 8,
+          "seconds": 0.7,
+          "gamePid": 52542,
+          "gameHighGB": 0.123,
+          "gameSampledGB": 0.063,
+          "allWebContentGB": 0.103,
+          "gpuProcessGB": 0.015
+        },
+        "loading": {
+          "samples": 109,
+          "seconds": 11.2,
+          "gamePid": 52542,
+          "gameHighGB": 0.758,
+          "gameSampledGB": 0.748,
+          "allWebContentGB": 0.798,
+          "gpuProcessGB": 0.193
+        },
+        "play": {
+          "samples": 584,
+          "seconds": 60.0,
+          "gamePid": 52542,
+          "gameHighGB": 0.589,
+          "gameSampledGB": 0.589,
+          "allWebContentGB": 0.628,
+          "gpuProcessGB": 0.225
+        },
+        "menu": {
+          "samples": 29,
+          "seconds": 2.9,
+          "gamePid": 52542,
+          "gameHighGB": 0.439,
+          "gameSampledGB": 0.436,
+          "allWebContentGB": 0.475,
+          "gpuProcessGB": 0.213
+        },
+        "explorer": {
+          "samples": 617,
+          "seconds": 63.1,
+          "gamePid": 52542,
+          "gameHighGB": 0.439,
+          "gameSampledGB": 0.439,
+          "allWebContentGB": 0.479,
+          "gpuProcessGB": 0.214
+        }
+      },
+      "lost": []
+    },
+    "inspector": {
+      "at": "2026-10-01T23:19:52.278Z",
+      "phase": "done",
+      "kind": "summary",
+      "result": {
+        "label": "nine-dragon-stack",
+        "base": "http://127.0.0.1:4400/",
+        "phases": {
+          "play": {
+            "fps": [
+              119.6,
+              120.1,
+              119.8,
+              120.1,
+              119.9,
+              120.1
+            ]
+          },
+          "explorer": {
+            "fps": [
+              90,
+              90,
+              89.9,
+              90,
+              89.8,
+              90
+            ]
+          }
+        },
+        "loadSeconds": 11.394,
+        "sceneStats": {
+          "geometryBytes": 50856306,
+          "instancedBytes": 3936472,
+          "textureImageBytes": 2228248,
+          "arrays": 1330,
+          "textures": 35,
+          "gpu": {
+            "geometries": 154,
+            "textures": 54
+          },
+          "calls": 65
+        },
+        "readout": "ALT 151 m \u00b7 x 10 z 22 \u00b7 HDG 334\u00b0\n30 fps \u00b7 65 calls \u00b7 0.58 M tris",
+        "inspectorPeakGB": {
+          "loading": 0.858,
+          "play": 0.67,
+          "explorer": 0.622
+        },
+        "inspectorAtPeakMB": {
+          "loading": {
+            "javascript": 454,
+            "jit": 12,
+            "images": 5,
+            "layers": 0,
+            "page": 275,
+            "other": 111
+          },
+          "play": {
+            "javascript": 353,
+            "jit": 20,
+            "images": 14,
+            "layers": 0,
+            "page": 194,
+            "other": 89
+          },
+          "explorer": {
+            "javascript": 323,
+            "jit": 20,
+            "images": 1,
+            "layers": 0,
+            "page": 191,
+            "other": 87
+          }
+        }
+      }
+    }
+  },
+  {
+    "runtimeSha": "f3a4a93356df8b2528baef85fbd384c0b97834ad",
+    "rawDirectory": "/private/tmp/sol-mem-f3-repeat-2",
+    "native": {
+      "type": "summary",
+      "t": "2026-10-01T23:54:25.796297+00:00",
+      "phases": {
+        "idle": {
+          "samples": 7,
+          "seconds": 0.6,
+          "gamePid": 60910,
+          "gameHighGB": 0.078,
+          "gameSampledGB": 0.055,
+          "allWebContentGB": 0.094,
+          "gpuProcessGB": 0.014
+        },
+        "loading": {
+          "samples": 113,
+          "seconds": 11.6,
+          "gamePid": 60910,
+          "gameHighGB": 0.757,
+          "gameSampledGB": 0.739,
+          "allWebContentGB": 0.797,
+          "gpuProcessGB": 0.193
+        },
+        "play": {
+          "samples": 583,
+          "seconds": 60.1,
+          "gamePid": 60910,
+          "gameHighGB": 0.453,
+          "gameSampledGB": 0.453,
+          "allWebContentGB": 0.492,
+          "gpuProcessGB": 0.225
+        },
+        "menu": {
+          "samples": 29,
+          "seconds": 2.9,
+          "gamePid": 60910,
+          "gameHighGB": 0.401,
+          "gameSampledGB": 0.401,
+          "allWebContentGB": 0.44,
+          "gpuProcessGB": 0.225
+        },
+        "explorer": {
+          "samples": 624,
+          "seconds": 63.2,
+          "gamePid": 60910,
+          "gameHighGB": 0.402,
+          "gameSampledGB": 0.401,
+          "allWebContentGB": 0.441,
+          "gpuProcessGB": 0.215
+        }
+      },
+      "lost": []
+    },
+    "inspector": {
+      "at": "2026-10-01T23:54:25.803Z",
+      "phase": "done",
+      "kind": "summary",
+      "result": {
+        "label": "nine-dragon-stack",
+        "base": "http://127.0.0.1:4811/",
+        "phases": {
+          "play": {
+            "fps": [
+              119.3,
+              120.1,
+              120.1,
+              119.8,
+              120.1,
+              120
+            ]
+          },
+          "explorer": {
+            "fps": [
+              89.9,
+              90.2,
+              89.7,
+              90.2,
+              90,
+              90
+            ]
+          }
+        },
+        "loadSeconds": 11.64,
+        "sceneStats": {
+          "geometryBytes": 50856306,
+          "instancedBytes": 3936472,
+          "textureImageBytes": 2228248,
+          "arrays": 1330,
+          "textures": 35,
+          "gpu": {
+            "geometries": 154,
+            "textures": 54
+          },
+          "calls": 65
+        },
+        "readout": "ALT 151 m \u00b7 x 10 z 22 \u00b7 HDG 334\u00b0\n30 fps \u00b7 65 calls \u00b7 0.58 M tris",
+        "inspectorPeakGB": {
+          "loading": 0.887,
+          "play": 0.656,
+          "explorer": 0.623
+        },
+        "inspectorAtPeakMB": {
+          "loading": {
+            "javascript": 547,
+            "jit": 12,
+            "images": 7,
+            "layers": 0,
+            "page": 244,
+            "other": 76
+          },
+          "play": {
+            "javascript": 331,
+            "jit": 20,
+            "images": 7,
+            "layers": 0,
+            "page": 219,
+            "other": 78
+          },
+          "explorer": {
+            "javascript": 308,
+            "jit": 20,
+            "images": 7,
+            "layers": 0,
+            "page": 200,
+            "other": 88
+          }
+        }
+      }
+    }
+  },
+  {
+    "runtimeSha": "720dd05b2e36846d28a72c8bc8859ef5b73645f4",
+    "rawDirectory": "/private/tmp/sol-mem-720-repeat-1",
+    "native": {
+      "type": "summary",
+      "t": "2026-10-01T23:57:42.008107+00:00",
+      "phases": {
+        "idle": {
+          "samples": 8,
+          "seconds": 0.8,
+          "gamePid": 68780,
+          "gameHighGB": 0.107,
+          "gameSampledGB": 0.081,
+          "allWebContentGB": 0.121,
+          "gpuProcessGB": 0.018
+        },
+        "loading": {
+          "samples": 118,
+          "seconds": 12.6,
+          "gamePid": 68780,
+          "gameHighGB": 0.77,
+          "gameSampledGB": 0.769,
+          "allWebContentGB": 0.81,
+          "gpuProcessGB": 0.193
+        },
+        "play": {
+          "samples": 505,
+          "seconds": 60.1,
+          "gamePid": 68780,
+          "gameHighGB": 0.428,
+          "gameSampledGB": 0.428,
+          "allWebContentGB": 0.467,
+          "gpuProcessGB": 0.213
+        },
+        "menu": {
+          "samples": 27,
+          "seconds": 2.9,
+          "gamePid": 68780,
+          "gameHighGB": 0.351,
+          "gameSampledGB": 0.351,
+          "allWebContentGB": 0.39,
+          "gpuProcessGB": 0.226
+        },
+        "explorer": {
+          "samples": 583,
+          "seconds": 63.2,
+          "gamePid": 68780,
+          "gameHighGB": 0.459,
+          "gameSampledGB": 0.459,
+          "allWebContentGB": 0.499,
+          "gpuProcessGB": 0.214
+        }
+      },
+      "lost": []
+    },
+    "inspector": {
+      "at": "2026-10-01T23:57:42.012Z",
+      "phase": "done",
+      "kind": "summary",
+      "result": {
+        "label": "nine-dragon-stack",
+        "base": "http://127.0.0.1:4812/",
+        "phases": {
+          "play": {
+            "fps": [
+              119.8,
+              119.7,
+              120.2,
+              119.8,
+              120,
+              120.1
+            ]
+          },
+          "explorer": {
+            "fps": [
+              90,
+              90,
+              90,
+              89.9,
+              90.1,
+              90
+            ]
+          }
+        },
+        "loadSeconds": 12.765,
+        "sceneStats": {
+          "geometryBytes": 50856306,
+          "instancedBytes": 3936472,
+          "textureImageBytes": 2228248,
+          "arrays": 1330,
+          "textures": 35,
+          "gpu": {
+            "geometries": 154,
+            "textures": 54
+          },
+          "calls": 65
+        },
+        "readout": "ALT 151 m \u00b7 x 10 z 22 \u00b7 HDG 334\u00b0\n30 fps \u00b7 65 calls \u00b7 0.58 M tris",
+        "inspectorPeakGB": {
+          "loading": 0.671,
+          "play": 0.693,
+          "explorer": 0.83
+        },
+        "inspectorAtPeakMB": {
+          "loading": {
+            "javascript": 381,
+            "jit": 11,
+            "images": 14,
+            "layers": 0,
+            "page": 194,
+            "other": 71
+          },
+          "play": {
+            "javascript": 359,
+            "jit": 16,
+            "images": 13,
+            "layers": 0,
+            "page": 228,
+            "other": 78
+          },
+          "explorer": {
+            "javascript": 516,
+            "jit": 20,
+            "images": 13,
+            "layers": 0,
+            "page": 195,
+            "other": 87
+          }
+        }
+      }
+    }
+  }
+]

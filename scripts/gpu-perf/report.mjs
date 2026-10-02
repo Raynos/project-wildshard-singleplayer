@@ -1,6 +1,26 @@
 // Pure nightly verdicts. Memory is decimal GB; the GL growth budget is binary MiB.
 export const PHASE_LIMITS = { loading: 1.8, play: 1, explorer: 1 };
 
+/** Three one-second readings after settling; the deadline returns the last three with their spread.
+ * @param {{seconds: number, nativeGB: number, inspectorGB: number}[]} samples
+ * @param {number} [maxSeconds]
+ */
+export function settledMemory(samples, maxSeconds = 20) {
+  if (samples.length < 3) return null;
+  const tail = samples.slice(-3);
+  if (tail.some((sample) => !Number.isFinite(sample.nativeGB) || sample.nativeGB <= 0 || !Number.isFinite(sample.inspectorGB) || sample.inspectorGB <= 0)) return null;
+  const close = (a, b) => Math.abs(a.nativeGB - b.nativeGB) / a.nativeGB <= 0.02 + 1e-12;
+  const settled = close(tail[0], tail[1]) && close(tail[1], tail[2]);
+  const seconds = tail[2].seconds;
+  if (!settled && seconds < maxSeconds) return null;
+  const median = (key) => tail.map((sample) => sample[key]).toSorted((a, b) => a - b)[1];
+  const nativeGB = median('nativeGB'), inspectorGB = median('inspectorGB');
+  const minGB = Math.min(...tail.map((sample) => sample.nativeGB));
+  const maxGB = Math.max(...tail.map((sample) => sample.nativeGB));
+  return { nativeGB, inspectorGB, minGB, maxGB, spreadGB: maxGB - minGB, spreadPercent: (maxGB - minGB) / nativeGB * 100,
+    samples: tail, settled, timedOut: !settled, seconds };
+}
+
 export function memoryVerdict(shard, phase, nativeGB, inspectorGB, previousGB, pending = []) {
   const limitGB = PHASE_LIMITS[phase];
   if (!Number.isFinite(nativeGB) || nativeGB <= 0 || !Number.isFinite(inspectorGB) || inspectorGB <= 0 || limitGB === undefined)
@@ -17,15 +37,22 @@ export function memoryVerdict(shard, phase, nativeGB, inspectorGB, previousGB, p
 export function parseMemoryRun(nativeText, inspectorText, shard, previous = {}, pending = []) {
   const rows = (text) => text.trim().split('\n').filter(Boolean).map((line) => JSON.parse(line));
   const native = rows(nativeText).find((row) => row.type === 'summary');
-  const inspector = rows(inspectorText).find((row) => row.kind === 'summary')?.result;
+  const inspectorRows = rows(inspectorText);
+  const inspector = inspectorRows.find((row) => row.kind === 'summary')?.result;
   return Object.keys(PHASE_LIMITS).map((phase) => {
-    const nativeGB = native?.phases?.[phase]?.gameHighGB;
-    const inspectorGB = inspector?.inspectorPeakGB?.[phase];
+    const reading = inspectorRows.find((row) => row.kind === 'settled' && row.phase === phase)?.result;
+    const nativePeakGB = native?.phases?.[phase]?.gameHighGB;
+    const nativeGB = reading?.nativeGB ?? nativePeakGB;
+    const inspectorGB = reading?.inspectorGB ?? inspector?.inspectorPeakGB?.[phase];
     const result = memoryVerdict(shard, phase, nativeGB, inspectorGB, previous[phase], pending);
+    if (!Number.isFinite(nativePeakGB) || nativePeakGB <= 0) { result.verdict = 'failure'; result.reason = 'missing measurement'; }
+    // Settling changes the growth measurement, never permission for a transient over the absolute cap.
+    if (nativePeakGB > PHASE_LIMITS[phase]) { result.verdict = 'failure'; result.reason = 'absolute limit'; }
     if (inspector?.error || !native || (native.lost ?? []).some((lost) => lost.phase === phase)) {
       result.verdict = 'failure'; result.reason = inspector?.error ?? 'WebContent lost or incomplete';
     }
-    const row = { shard, phase, nativeGB, inspectorGB, previousGB: previous[phase] ?? null };
+    const row = { shard, phase, nativeGB, inspectorGB, nativePeakGB, previousGB: previous[phase] ?? null,
+      ...(reading ? { measurement: 'settled-median-3', settling: reading } : { measurement: 'legacy-peak' }) };
     return Object.assign(row, result);
   });
 }

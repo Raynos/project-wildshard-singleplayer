@@ -7,7 +7,7 @@ import { mkdirSync, writeFileSync, readFileSync, existsSync, createWriteStream, 
 import { resolve as resolvePath, join } from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
 
-import { parseMemoryRun } from './gpu-perf/report.mjs';
+import { parseMemoryRun, settledMemory } from './gpu-perf/report.mjs';
 
 const ROOT = resolvePath(new URL('..', import.meta.url).pathname);
 const argv = process.argv.slice(2);
@@ -33,9 +33,10 @@ function table(out) {
     const insp = readJsonl(inf).find((r) => r.kind === 'summary')?.result;
     if (!native || !insp) { lines.push(`| ${run.label} | ${run.round} | incomplete |`); continue; }
     const cell = (ph) => {
-      const n = native.phases[ph]?.gameHighGB, i = insp.inspectorPeakGB?.[ph];
+      const reading = readJsonl(inf).find((r) => r.kind === 'settled' && r.phase === ph)?.result;
+      const n = reading?.nativeGB ?? native.phases[ph]?.gameHighGB, i = reading?.inspectorGB ?? insp.inspectorPeakGB?.[ph];
       if (typeof n === 'number' && typeof i === 'number') { (avg[run.label] ??= {})[ph] ??= []; avg[run.label][ph].push([n, i]); }
-      return `${n?.toFixed(3) ?? '—'} / ${i?.toFixed(3) ?? '—'}`;
+      return `${n?.toFixed(3) ?? '—'} / ${i?.toFixed(3) ?? '—'}${reading ? ` (spread ${reading.minGB.toFixed(3)}–${reading.maxGB.toFixed(3)}, ${reading.spreadPercent.toFixed(1)}%; ${reading.timedOut ? 'timeout' : 'settled'})` : ''}`;
     };
     const gpu = Math.max(...PHASES.map((ph) => native.phases[ph]?.gpuProcessGB ?? 0));
     const held = insp.sceneStats ? `${(insp.sceneStats.geometryBytes / 1e6).toFixed(0)} MB / ${(insp.sceneStats.textureImageBytes / 1e6).toFixed(0)} MB` : '—';
@@ -47,7 +48,7 @@ function table(out) {
     const mean = (ph) => { const v = phases[ph] ?? []; if (v.length === 0) return '—'; const m = (k) => (v.reduce((s, x) => s + x[k], 0) / v.length).toFixed(3); return `${m(0)} / ${m(1)}`; };
     lines.push(`| ${label} | ${mean('loading')} | ${mean('play')} | ${mean('explorer')} |`);
   }
-  const text = `${lines.join('\n')}\n\nnative = the game tab's WebContent footprint high (kernel); Inspector = Web Inspector's categories summed. Decimal GB. Simulator: a regression check, not phone evidence.\n`;
+  const text = `${lines.join('\n')}\n\nnative/Inspector = median of three one-second samples after each phase's work; two consecutive pairs within 2%, or 20 s maximum. Native phase peaks still enforce absolute caps. Decimal GB. Simulator: a regression check, not phone evidence.\n`;
   writeFileSync(join(out, 'table.md'), text);
   return text;
 }
@@ -167,6 +168,28 @@ async function oneRun(udid, run, opts) {
     const samplerDone = new Promise((resolve) => { sampler?.on('exit', resolve); });
     await sleep(1000);
     const { evaluate } = page;
+    const settle = async () => {
+      const started = Date.now(), readings = [];
+      const nativeFile = join(out, `${run.tag}.native.jsonl`);
+      let lastElapsed = -1;
+      for (;;) {
+        await sleep(1000);
+        // The sampler appends concurrently: only complete JSONL records are readable.
+        const text = readFileSync(nativeFile, 'utf8');
+        const complete = text.slice(0, text.lastIndexOf('\n'));
+        const sample = complete.split('\n').filter(Boolean).map((line) => JSON.parse(line)).findLast((row) => row.type === 'sample' && row.phase === phase);
+        const inspector = samples.findLast((row) => row.phase === phase);
+        const seconds = (Date.now() - started) / 1000;
+        if (sample && inspector && sample.elapsed > lastElapsed) {
+          lastElapsed = sample.elapsed;
+          const bytes = Math.max(...Object.values(sample.pids).map((value) => value[0]));
+          readings.push({ seconds, nativeGB: bytes / 1e9, inspectorGB: inspector.bytes / 1e9 });
+          const reading = settledMemory(readings);
+          if (reading) { write({ kind: 'settled', result: reading }); say(`${phase} median ${reading.nativeGB.toFixed(3)} GB; spread ${reading.minGB.toFixed(3)}–${reading.maxGB.toFixed(3)} GB (${reading.spreadPercent.toFixed(1)}%); ${reading.timedOut ? 'settle timeout' : 'settled'}`); return; }
+        }
+        if (seconds >= 22) throw new Error(`missing three valid native/Inspector samples while settling ${phase}`);
+      }
+    };
     // a first-visit origin, entered the way the start title's ENTER WORLD enters it (src/engine/boot/titleArrival.ts)
     const settings = Object.fromEntries(opts.settings.map((s) => s.split('=')));
     const arrival = { slug: run.shard, mode: 'enter', at: Date.now() };
@@ -185,6 +208,7 @@ async function oneRun(udid, run, opts) {
     }
     result.loadSeconds = (Date.now() - loadStart) / 1000;
     say(`loaded in ${result.loadSeconds.toFixed(1)} s`);
+    await settle();
 
     const frame = 'window.__wildshard?.world?.game?.renderer?.info?.render?.frame ?? null';
     const fpsOver = async (seconds, each) => {
@@ -207,6 +231,7 @@ async function oneRun(udid, run, opts) {
     if ((await evaluate('document.querySelector("#hud")?.classList.contains("intro") === true')) === true) await evaluate('document.querySelector(".ws-menu-play")?.click(); 1');
     const turn = (2 * Math.PI) / opts.play;
     result.phases.play = { fps: await fpsOver(opts.play, () => evaluate(`(() => { const p = window.__wildshard?.world?.player; if (p && typeof p.yaw === 'number') p.yaw += ${turn}; return 1; })()`)) };
+    await settle();
 
     setPhase('menu');
     await evaluate('document.dispatchEvent(new Event("ws:pause")); 1');
@@ -237,6 +262,7 @@ async function oneRun(udid, run, opts) {
         ev('pointerdown', x, c); for (let k = 1; k <= 6; k++) ev('pointermove', x + k * 10, window); ev('pointerup', x + 60, window); return 1; })()`);
     }) };
     await evaluate(`${held.map((c) => key('keyup', c)).join('')} 1`);
+    await settle();
     result.sceneStats = JSON.parse(await evaluate(SCENE_STATS, 'null'));
     result.readout = await evaluate('[...document.querySelectorAll(".ws-x *")].map((e) => e.textContent ?? "").filter((t) => /calls/.test(t) && /tris/.test(t)).sort((a, b) => a.length - b.length)[0] ?? null');
     say(`explorer: ${result.readout ?? ''}; still held in JS: ${JSON.stringify(result.sceneStats)}`);
