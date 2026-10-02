@@ -24,7 +24,7 @@ export const MEADOW = {
   /** blade height range (metres) */
   low: 0.32, high: 0.78,
   /** an island's grass height scale (1 when absent): the crown is a trodden arena, short enough that the dais reads */
-  grass: { crown: 0.42 } as Readonly<Record<string, number>>,
+  grass: { crown: 0.3 } as Readonly<Record<string, number>>,
 } as const;
 
 /** Where grass never grows: discs (x, z, radius) round the structures and pieces you stand at. */

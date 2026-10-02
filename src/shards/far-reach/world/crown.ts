@@ -11,7 +11,7 @@ import { CROWN, DAIS } from '../layout';
 /** The ring stands close round the dais (loop 5: at the crown's centre and 12.5 m out the arena's entrance framed one stone; at 7.8 m it frames five to seven). */
 export const CROWN_RING = { radius: 7.8, stones: 7, width: 1.5, depth: 0.85 } as const;
 /** Stone heights (metres), one per stone round the ring; tallest opposite the entrance, framing the dais. */
-const HEIGHTS = [3.4, 4.1, 4.8, 5.2, 4.7, 4.0, 3.5] as const;
+const HEIGHTS = [4.3, 5.1, 6.0, 6.6, 5.9, 5.0, 4.4] as const;
 
 export interface Stone { readonly x: number; readonly z: number; readonly h: number; readonly yaw: number }
 /** The stones in world space (the colliders and the meadow's holes read the same list). */
@@ -45,7 +45,7 @@ function stoneGeometry(h: number, seed: number): BufferGeometry {
     p.setXYZ(i, x * taper * (1 + n * 0.16), y - shear * h * 0.12, z * taper * (1 + n * 0.22));
   }
   g.computeVertexNormals();
-  const stone = rgb(0x8e8695), warm = rgb(0xb3a28f), lichen = rgb(0x9a9a52), dark = rgb(0x5f5868);
+  const stone = rgb(0x7a7084), warm = rgb(0xa8927c), lichen = rgb(0x9a9a52), dark = rgb(0x4c4456);
   return paint(g, (x, y, z) => {
     const t = y / h, n = hash(Math.round(x * 6) + seed * 3, Math.round(y * 5) + Math.round(z * 6) * 3);
     let c = lerp3(dark, stone, Math.min(1, 0.45 + t)); c = lerp3(c, warm, n * 0.45);
@@ -148,7 +148,7 @@ export function crownArena(): Group {
     const gl = glyphGeometry(s.h); gl.translate(0, 0, CROWN_RING.depth / 2 * 0.86); gl.rotateY(s.yaw); gl.translate(s.x, CROWN.y - 0.15, s.z); glyphParts.push(gl);
   });
   const stoneMesh = new Mesh(mergeGeometries(stoneParts), new MeshStandardMaterial({ vertexColors: true, roughness: 0.95, metalness: 0, flatShading: true }));
-  const glyphMesh = new Mesh(mergeGeometries(glyphParts), new MeshStandardMaterial({ color: 0xeee3c8, emissive: 0x9fe6f2, emissiveIntensity: 0.35, roughness: 0.8, metalness: 0 }));
+  const glyphMesh = new Mesh(mergeGeometries(glyphParts), new MeshStandardMaterial({ color: 0xe6f6f4, emissive: 0x9fe6f2, emissiveIntensity: 0.85, roughness: 0.8, metalness: 0 }));
   for (const g of [...stoneParts, ...glyphParts]) g.dispose();
   const dais = new Mesh(daisGeometry(), new MeshStandardMaterial({ vertexColors: true, roughness: 0.9, metalness: 0, side: DoubleSide, flatShading: true }));
   dais.position.set(DAIS.x, CROWN.y, DAIS.z);

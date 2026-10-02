@@ -2,7 +2,7 @@ import { Flags, QuestState, type QuestMarker } from '#engine';
 import { CoinBurst, installQuestPresentation, purseSave, shardSave, type QuestPresentation, type ShardContext } from '#game';
 import * as v from 'valibot';
 import { Scene, Vector3 } from 'three';
-import { DECK, HIGH, ROOST, STEP, VANES, WINCH } from '../layout';
+import { CROWN, DECK, GROVE, HIGH, KEEPER, ROOST, RUIN, STEP, SUNREST, VANES, WINCH, WINDMILL } from '../layout';
 import { STRINGS } from '../strings';
 import { ownPrimitives } from '../world/resources';
 import { FLAGS, vaneFlag } from './flags';
@@ -16,6 +16,21 @@ const REWARDED = { key: 'far-reach.rewarded', scope: 'shard' as const, version: 
 export const REWARD_VIEW = { at: new Vector3(STEP.x + 2, HIGH + 1.7, STEP.z - 4), yaw: 0, pitch: 0.12 } as const;
 
 const at = (x: number, y: number, z: number): QuestMarker['at'] => ({ poi: 'world', x, y, z });
+
+/**
+ * The named places (loop 6, as the other shards: "DISCOVERED · <place>" as you arrive, pins on the full map, and the last
+ * one reached is where a fall puts you back, E295). Each sits on its island's deck, clear of the structures on it.
+ */
+const PLACES = [
+  { id: 'far.sunrest', label: STRINGS.sunrest, x: SUNREST.x, y: SUNREST.y, z: SUNREST.z, r: 12, quiet: true },
+  { id: 'far.windmill', label: STRINGS.windmill, x: WINDMILL.x, y: WINDMILL.y, z: WINDMILL.z, r: 11 },
+  { id: 'far.grove', label: STRINGS.grove, x: GROVE.x, y: GROVE.y, z: GROVE.z, r: 9 },
+  { id: 'far.roost', label: STRINGS.roost, x: ROOST.x - 4, y: ROOST.y, z: ROOST.z - 2, r: 10 },
+  { id: 'far.keeper', label: STRINGS.keeper, x: KEEPER.x, y: KEEPER.y, z: KEEPER.z, r: 9 },
+  { id: 'far.ruin', label: STRINGS.ruin, x: RUIN.x, y: RUIN.y, z: RUIN.z, r: 10 },
+  { id: 'far.step', label: STRINGS.step, x: STEP.x, y: STEP.y, z: STEP.z, r: 10 },
+  { id: 'far.crown', label: STRINGS.crown, x: CROWN.x, y: CROWN.y, z: CROWN.z, r: 15 },
+] as const;
 
 /**
  * The crown bridge, staged like Driftwood's (review items 3, 4, 14; ENGINE §20 `installQuestPresentation`): the
@@ -55,7 +70,7 @@ export function installQuest(ctx: ShardContext, player: Vector3, onCoin?: (share
   ctx.system({ id: 'far.keeper', phase: 'update', run: (_dt, t) => { npc.update(t, player); } });
   const alreadyPaid = rewarded.read(ctx.manifest.slug);
   const live = ctx.game.runtime?.world && ctx.game.runtime.play ? ctx.game.runtime : null;
-  const view = live === null ? null : installQuestPresentation(ctx, quest, { flags, introTitle: STRINGS.quest,
+  const view = live === null ? null : installQuestPresentation(ctx, quest, { flags, places: [...PLACES], introTitle: STRINGS.quest,
     npc: { npc: KEEPER_NPC, at: npc.head, label: STRINGS.talkKeeper, speaker: npc.speaker, radius: 3.5 },
     reward: { kicker: STRINGS.rewardKicker, title: STRINGS.quest, subtitle: STRINGS.rewardSubtitle, when: () => !alreadyPaid && quest.isComplete,
       at: REWARD_VIEW.at, yaw: REWARD_VIEW.yaw, pitch: REWARD_VIEW.pitch, holdSeconds: 5, finish: pay } });
