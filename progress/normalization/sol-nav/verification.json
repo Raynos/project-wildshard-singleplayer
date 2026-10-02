@@ -1,0 +1,46 @@
+{
+  "urgentLanded": "7da5e216",
+  "contentCandidate": "c460f8b745c48241d16f0b10030a0e34894750b4",
+  "maskCandidate": "9f10d101979ccc5e664dc00642b1d17038508f7a",
+  "parityParent": "813da8012d57fadd9b9528652081c5a97fef579d",
+  "parityCandidate": "b70fc254",
+  "gameplayFieldsChanged": [],
+  "secondsFieldsChanged": {
+    "pine-hollow": {
+      "walk.legs.cabin-porch.seconds": {
+        "parent": 44.70000000000194,
+        "candidate": 44.700000000000934
+      }
+    },
+    "driftwood-isle": {
+      "walk.legs.pier.seconds": {
+        "parent": 23.566666666666364,
+        "candidate": 23.56666666666681
+      }
+    },
+    "nalati-grasslands": {
+      "walk.legs.leopard-cave.seconds": {
+        "parent": 39.76666666666533,
+        "candidate": 39.76666666666387
+      },
+      "walk.legs.road-camp.seconds": {
+        "parent": 26.633333333333358,
+        "candidate": 26.63333333333396
+      }
+    }
+  },
+  "allSevenMaskBootErrors": [],
+  "contentCiStyleTests": {
+    "passed": 2408,
+    "skipped": 9,
+    "filesPassed": 349
+  },
+  "nodeBakeGateSeconds": {
+    "content": 20,
+    "mask": 19
+  },
+  "contentStaticColliders": {
+    "sunscar-dunes": 74,
+    "far-reach": 71
+  }
+}
