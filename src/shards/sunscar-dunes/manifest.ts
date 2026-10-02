@@ -27,7 +27,7 @@ export const SUNSCAR_DUNES: ShardManifest = {
   bounds: { x0: -PLAY_HALF, x1: PLAY_HALF, z0: -PLAY_HALF, z1: PLAY_HALF, floor: -10 },
   // "Last Light" (style bible): the key 10° up, behind-left of the spawn view (look/render.ts KEY); a cool sky fill so
   // every shaded face reads blue-violet, never black (review R1).
-  sky: { sunColor: [1, 0.74, 0.52], sunIntensity: 2.6, envIntensity: 0.4, bgIntensity: 1, fogSunColor: [0.95, 0.55, 0.38], cloudSunColor: [0.9, 0.5, 0.4],
+  sky: { sunColor: [1, 0.74, 0.52], sunIntensity: 2.6, envIntensity: 0.4, bgIntensity: 1, fogSunColor: [0.78, 0.38, 0.22], cloudSunColor: [0.9, 0.5, 0.4],
     hemiSky: 0x7468a0, hemiGround: 0x8a4a28, hemiIntensity: 2.1, sun: { azimuth: 80, elevation: 10 } },
   // loop 4: real aerial perspective (the engine's fog is exponential in distance; `FOG` near / far are unused): the dune
   // rows and the far buttes lay back into the violet in layers (review R9), warm toward the sun.
