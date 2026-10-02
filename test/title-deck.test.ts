@@ -60,14 +60,19 @@ for (const dev of [false, true]) {
       const play = deck.root.querySelector<HTMLButtonElement>('.ws-menu-play');
       const explore = deck.root.querySelector<HTMLButtonElement>('.ws-menu-explore');
       expect(play?.disabled, card.slug).toBe(!enabled);
-      expect(explore?.disabled, card.slug).toBe(!enabled);
+      // E386: EXPLORE WORLD is developer-only, and hidden for a world that can't be entered
+      const explorable = dev && enabled;
+      expect(explore?.disabled, card.slug).toBe(!explorable);
+      expect(explore?.classList.contains('off'), card.slug).toBe(!explorable);
       expect(deck.root.querySelector('.ws-menu-play b')?.textContent).toBe(enabled ? 'Enter world' : 'Coming soon');
-      const tag = deck.root.querySelectorAll('.ws-menu-card-tag')[index];
-      expect(tag?.textContent).toBe(enabled ? card.slug === 'nine-dragon-stack' ? 'Loaded' : 'Load' : 'Coming soon');
+      const cardEl = deck.root.querySelectorAll('.ws-menu-card')[index];
+      expect(cardEl?.querySelector('.ws-menu-card-tag')?.textContent ?? null, card.slug).toBe(enabled ? card.slug === 'nine-dragon-stack' ? 'Loaded' : 'Load' : null);
+      // E386: a locked world's tape reads COMING SOON, not EXPERIMENTAL
+      if (!enabled) expect(cardEl?.querySelector('.ws-menu-card-exp')?.textContent, card.slug).toBe('Coming soon');
       onEnter.mockClear(); onExplore.mockClear();
       deck.activate(); play?.click(); explore?.click();
       expect(onEnter).toHaveBeenCalledTimes(enabled ? 2 : 0);
-      expect(onExplore).toHaveBeenCalledTimes(enabled ? 1 : 0);
+      expect(onExplore).toHaveBeenCalledTimes(explorable ? 1 : 0);
     }
     deck.dispose(); deck.root.remove();
   });

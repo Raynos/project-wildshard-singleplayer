@@ -91,8 +91,19 @@ function canEnter(card: TitleCard): boolean {
   return isDev() || (card.badge !== 'Experimental' && card.badge !== 'Developer only' && !card.slug.startsWith('_'));
 }
 
-function hintFor(card: TitleCard, active: boolean): string {
+/** EXPLORE WORLD is a developer tool: only in developer mode, and only for a world that can be entered (Jake, E386) */
+function canExplore(card: TitleCard): boolean {
+  return isDev() && canEnter(card);
+}
+
+/** the tape over a card's image: a world that can't be entered reads COMING SOON, not EXPERIMENTAL (Jake, E386) */
+function ribbonFor(card: TitleCard): string {
   if (!canEnter(card)) return 'Coming soon';
+  return card.badge === 'Developer only' ? GAME_STRINGS.developer.ribbon : card.badge ?? '';
+}
+
+function hintFor(card: TitleCard, active: boolean): string {
+  if (!canEnter(card)) return '';
   if (!active) return `Loads ${card.name}`;
   return card.badge === 'Early access' ? 'Early access' : card.badge === 'Experimental' ? 'Developer only' : 'Play'; // Jake: experimental shards enter only in developer mode
 }
@@ -112,7 +123,7 @@ export function buildTitleDeck(opts: TitleDeckOptions): TitleDeck {
         const active = i === activeIndex;
         return `
         <button class="ws-menu-card${active ? ' active' : ''}" type="button" data-i="${i}">
-          <span class="ws-menu-card-img" style="background-image:url('${c.thumbnail}')"><i class="ws-menu-card-tag${active ? ' ok' : ''}">${canEnter(c) ? active ? 'Loaded' : 'Load' : 'Coming soon'}</i>${c.badge ? `<i class="ws-menu-card-exp${c.badge === 'Early access' ? ' ws-menu-card-ea' : ''}">${c.badge === 'Developer only' ? GAME_STRINGS.developer.ribbon : c.badge}</i>` : ''}</span>
+          <span class="ws-menu-card-img" style="background-image:url('${c.thumbnail}')">${canEnter(c) ? `<i class="ws-menu-card-tag${active ? ' ok' : ''}">${active ? 'Loaded' : 'Load'}</i>` : ''}${ribbonFor(c) ? `<i class="ws-menu-card-exp${c.badge === 'Early access' && canEnter(c) ? ' ws-menu-card-ea' : ''}">${ribbonFor(c)}</i>` : ''}</span>
           <b>${c.name}</b><small>${c.label}</small>
         </button>`;
       }).join('')}</div></div>
@@ -172,7 +183,8 @@ export function buildTitleDeck(opts: TitleDeckOptions): TitleDeck {
     hero.classList.add('show');
     hint.textContent = hintFor(c, index === activeIndex);
     play.disabled = !canEnter(c);
-    explore.disabled = !canEnter(c);
+    explore.disabled = !canExplore(c);
+    explore.classList.toggle('off', !canExplore(c)); // menu.css hides .off
     required(play, 'b').textContent = canEnter(c) ? 'Enter world' : 'Coming soon';
     paintSummary(c);
   };
@@ -208,7 +220,7 @@ export function buildTitleDeck(opts: TitleDeckOptions): TitleDeck {
   cardEls.forEach((e, i) => { listenDom(scope, e, 'click', (ev) => { ev.stopPropagation(); if (i !== index && performance.now() - swipedAt > 400) select(i); }); });
   dots.forEach((d, i) => { listenDom(scope, d, 'click', (ev) => { ev.stopPropagation(); select(i); }); });
   listenDom(scope, required(root, '.ws-menu-play'), 'click', (ev) => { ev.stopPropagation(); activate(); });
-  listenDom(scope, required(root, '.ws-menu-explore'), 'click', (ev) => { ev.stopPropagation(); const c = cards[index]; if (c && canEnter(c)) opts.onExplore(c); });
+  listenDom(scope, required(root, '.ws-menu-explore'), 'click', (ev) => { ev.stopPropagation(); const c = cards[index]; if (c && canExplore(c)) opts.onExplore(c); });
   listenDom(scope, required(root, '.ws-menu-settings'), 'click', (ev) => { ev.stopPropagation(); opts.onSettings(); });
 
   // hero art is ~0.2–0.3 MB a file and every card has two (portrait + landscape): only the selected card's, in the
