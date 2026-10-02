@@ -56,16 +56,16 @@
       "tier": "phone",
       "metric": "gpuMB",
       "source": "budgets/calibration-reports/far-reach.phone.json",
-      "commit": "b77755090238b680f17b4916fb174da5079df3e9",
-      "reason": "E374 Sky Reach round-2 polish, measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer): the winch house, the stone-block windmill tower, the falls shader, the perching Roc, the off-spine step"
+      "commit": "ff06b22bb2ea0bb4ba86d539db5d6b756b7f7093",
+      "reason": "E392 Sky Reach toward the mockups, measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer): the painted textures (cloud sea, rock, meadow, cumulus atlas, fir branches), the sky isles and the firs"
     },
     {
       "shard": "far-reach",
       "tier": "desktop",
       "metric": "gpuMB",
       "source": "budgets/calibration-reports/far-reach.desktop.json",
-      "commit": "b77755090238b680f17b4916fb174da5079df3e9",
-      "reason": "E374 Sky Reach round-2 polish, measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer): the winch house, the stone-block windmill tower, the falls shader, the perching Roc, the off-spine step"
+      "commit": "ff06b22bb2ea0bb4ba86d539db5d6b756b7f7093",
+      "reason": "E392 Sky Reach toward the mockups, measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer): the painted textures (cloud sea, rock, meadow, cumulus atlas, fir branches), the sky isles and the firs"
     }
   ]
 }

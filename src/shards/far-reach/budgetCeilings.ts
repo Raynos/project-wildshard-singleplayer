@@ -4,12 +4,12 @@ import type { LevelSpec } from '#engine';
 export const BUDGET_CEILINGS = {
   "phone": {
     "current": {
-      "gpuMB": 95.12134170532227
+      "gpuMB": 122.6595687866211
     }
   },
   "desktop": {
     "current": {
-      "gpuMB": 199.68942642211914
+      "gpuMB": 227.22667694091797
     }
   }
 } satisfies NonNullable<LevelSpec['budgets']['ceilings']>;
