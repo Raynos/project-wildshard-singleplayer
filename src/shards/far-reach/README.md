@@ -40,8 +40,8 @@ Storm Roc.
 | `look/render.ts` | `extend` look, **Gilded Air** (`docs/design/far-reach/style-bible.md`): the clean engine chain, the dome, the cloud sea and a warm distance fog |
 | `look/sun.ts` | the fixed golden-hour sun (low, ahead of the spawn, left of the windmill) and the sky palette |
 | `look/light.ts` | the painted light: a `lights_fragment_end` patch adding a warm bounce wrap, a sun rim and a warm shade floor to every lit material |
-| `look/sky.ts` | the dome: gradient, sun bloom, a cumulus panorama and distant-island silhouettes baked once into a 1024×256 data texture |
-| `look/cloudSea.ts` | two layered, sun-lit cloud sheets under the islands (opaque floor + drifting puffs) from one baked 128² tileable texture |
+| `look/sky.ts` | the dome: gradient, sun bloom, a cumulus panorama and distant-island silhouettes baked once into a 512×96 data texture |
+| `look/cloudSea.ts` | two layered, sun-lit cloud sheets under the islands (opaque floor + drifting puffs) from one baked 64² tileable texture |
 | `plugin.ts` | the hooks, the updraft's lift (on the board inside the wind column, a steady `app.player.impulse` up: it floats you off the ramp to the high step), the fan's input context (SWING relabel on `r0`, GUST verb), the winch, the hover-deck glow, the gust ring, the rays |
 
 ## Budgets

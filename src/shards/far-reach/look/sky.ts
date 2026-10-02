@@ -3,7 +3,7 @@ import { SKY } from './sun';
 
 /**
  * The golden-hour sky at infinity (review 2026-10-01 item 2): a painted cumulus panorama baked once at load into a small
- * data texture (seamless around the horizon), lit from the low sun, with a band of distant floating-island silhouettes
+ * 512×96 data texture (seamless around the horizon; small, the phone gpuMB budget), lit from the low sun, with a band of distant floating-island silhouettes
  * fading into the haze. Nothing here is in the playable space: it is the dome (radius 900 m, drawn first, no depth).
  *
  * The texture covers the band from just under the horizon to `TOP` (the sine of the elevation). Channels:
@@ -11,7 +11,7 @@ import { SKY } from './sun';
  *   G  how lit the cloud is (its top edge faces up into the light; its belly is shaded)
  *   B  the distant-island mask (a hazy silhouette band at the horizon)
  */
-export const PANO = { width: 1024, height: 256, bottom: -0.08, top: 0.62 } as const;
+export const PANO = { width: 512, height: 96, bottom: -0.08, top: 0.62 } as const;
 /** Distant islands painted into the matte: [azimuth 0..1, elevation 0..1 in the band, width in u, height in v]. */
 const FAR_ISLES: readonly (readonly [number, number, number, number])[] = [
   [0.03, 0.17, 0.018, 0.05], [0.09, 0.2, 0.011, 0.03], [0.16, 0.15, 0.026, 0.07], [0.24, 0.19, 0.009, 0.025],
@@ -53,7 +53,7 @@ export function bakePanorama(): DataTexture {
   for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
     const i = y * W + x, here = at(x, y);
     // lit: the cloud thins above this texel (its top faces the sky light); shaded: it thickens above (a belly)
-    const above = (at(x, y + 3) + at(x, y + 6)) * 0.5, lit = smooth(-0.15, 0.25, here - above);
+    const above = (at(x, y + 1) + at(x, y + 2)) * 0.5, lit = smooth(-0.15, 0.25, here - above);
     let isle = 0;
     for (const [iu, iv, iw, ih] of FAR_ISLES) {
       let du = Math.abs(x / W - iu); du = Math.min(du, 1 - du);
