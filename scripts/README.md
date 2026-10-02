@@ -199,6 +199,8 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [precommit-guards.mjs](./precommit-guards.mjs)
 - [progress-video.sh](./progress-video.sh)
 - [release-url.sh](./release-url.sh)
+- [shard-progress.mjs](./shard-progress.mjs)
+- [shard-timelapse.py](./shard-timelapse.py)
 - [shards.d.mts](./shards.d.mts)
 - [shards.mjs](./shards.mjs)
 - [sim-mem-phases.py](./sim-mem-phases.py)
