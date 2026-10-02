@@ -132,9 +132,12 @@ reap() {
     echo "reaped vite $kind $pid ($((a / 3600)) h, $cwd)"
     kill_tree "$pid"
   done < <(pgrep -f 'vite/bin/vite\.js' 2>/dev/null)
-  # served build dirs nothing serves any more (a preview killed by hand), a day on
-  find "${SERVE_BUILD_DIR:-/private/tmp/wildshard-serve}" -mindepth 1 -maxdepth 1 -type d -mtime +0 2>/dev/null | while read -r d; do
-    grep -qs " $d " "$reg"/* || { [ "$dry" = "--dry-run" ] && echo "would remove $d" || rm_dir "$d"; }
+  # served build dirs nothing serves or builds any more (a stopped or killed preview): no registry row and no live
+  # process naming the dir. No age rule: a day of kept builds filled the disk (221 GB, 2026-10-02)
+  find "${SERVE_BUILD_DIR:-/private/tmp/wildshard-serve}" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | while read -r d; do
+    grep -qs " ${d%.stopped-*} " "$reg"/* && [[ "$d" != *.stopped-* ]] && continue
+    pgrep -f "$d" >/dev/null 2>&1 && continue
+    [ "$dry" = "--dry-run" ] && echo "would remove $d" || rm_dir "$d"
   done
   [ "$dry" = "--dry-run" ] && [ $n -eq 0 ] && echo "no browser or vite server to reap"
   # iOS Simulators (E316)

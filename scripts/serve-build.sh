@@ -37,7 +37,8 @@ case "${1:-}" in
       read -r pid exp out cwd name < "$f"
       if [ "$tgt" = "$(basename "$f")" ] || { [ "$tgt" = "all-mine" ] && [ "$cwd" = "$CALLER" ]; }; then
         pkill -TERM -P "$pid" 2>/dev/null; kill -TERM "$pid" 2>/dev/null; rm -f "$f"
-        [ -n "$out" ] && [ -d "$out" ] && mv "$out" "$out.stopped-$(date +%s)" 2>/dev/null
+        # delete the build now (~1.5 GB each): kept as .stopped-* they filled the disk (221 GB, 2026-10-02)
+        [ -n "$out" ] && [ -d "$out" ] && [[ "$out" == /private/tmp/?*/?* ]] && { rm -rf "$out" & } 2>/dev/null
         echo "stopped :$(basename "$f")"
       fi
     done
