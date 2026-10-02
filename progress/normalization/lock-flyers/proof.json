@@ -1,0 +1,103 @@
+{
+  "runtimeCaptureSHA": "25c8fd7cdc1cb9c1834b47bc1e2ec2a2ddf174ef",
+  "browser": "Chrome / Metal, phone tier",
+  "viewport": [
+    390,
+    844
+  ],
+  "captures": {
+    "drift-ray": {
+      "camera": [
+        0.9953759271083982,
+        32.68538775739627,
+        -24.000000000000423
+      ],
+      "errors": [],
+      "flying": true,
+      "pitch": 0.5052997709842678,
+      "position": [
+        0.995310845428321,
+        31.005463681736728,
+        -24.000000000000423
+      ],
+      "range": 24,
+      "target": [
+        21.999952862241432,
+        44,
+        -23.99222236506435
+      ],
+      "viewport": [
+        390,
+        844
+      ],
+      "weapon": "far-fan",
+      "yaw": -1.5711666629945529,
+      "state": "locked",
+      "shot": "drift-ray-locked.jpg",
+      "bodyEdgeDistance3D": 23.101906804701333,
+      "horizontalDistance": 21.004643456771074
+    },
+    "dune-ray": {
+      "camera": [
+        -18.000569979416454,
+        3.856496731401852,
+        46.006189354743995
+      ],
+      "errors": [],
+      "flying": true,
+      "pitch": 0.7716335067172574,
+      "position": [
+        -18.000583620985694,
+        2.1763861034429284,
+        46.00616605397904
+      ],
+      "range": 24,
+      "target": [
+        -17.999637168764806,
+        19.079968328909622,
+        30.007769310178855
+      ],
+      "viewport": [
+        390,
+        844
+      ],
+      "weapon": "sunscar-whip",
+      "yaw": -1.845301444535499e-05,
+      "state": "locked",
+      "shot": "dune-ray-locked.jpg",
+      "bodyEdgeDistance3D": 21.2998010336087,
+      "horizontalDistance": 15.998396771795855
+    }
+  },
+  "duneRayLiveAI": {
+    "allLocked": true,
+    "errors": [],
+    "frames": 300,
+    "kind": "duneRay",
+    "maxAltitude": 21.393119780089087,
+    "maxPitchStep": 0.05235987755982989,
+    "maxYawStep": 0.05235987755982996,
+    "minAltitude": 2.9978151038815932,
+    "reticleVisibleFrames": 272
+  },
+  "verification": {
+    "typecheck": "pass",
+    "wholeTreeOxlint": "pass",
+    "vitest": {
+      "files": 360,
+      "tests": 2469,
+      "failed": 0
+    },
+    "phoneBootErrors": {
+      "pine-hollow.phone": [],
+      "nalati-grasslands.phone": [],
+      "far-reach.phone": [],
+      "driftwood-isle.phone": [],
+      "nine-dragon-stack.phone": [],
+      "sunscar-dunes.phone": [],
+      "_template.phone": []
+    },
+    "originalFourFingerprintPoses": "green",
+    "overallParity": "red: template missing poses; Dunes GL ceiling +0.029758 MB; Far Reach lane-pending"
+  }
+}
