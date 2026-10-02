@@ -8,6 +8,8 @@ import { hasSpecies, speciesDef } from '#engine/entities/species/registry';
 import * as config from '#engine/core/config';
 
 const PLAYABLE_SHARDS = SHARDS.filter(playable);
+/** G23: a structures-only world authors no terrain; the terrain checks below are for shards that do */
+const TERRAIN_SHARDS = PLAYABLE_SHARDS.filter((c) => c.ground.terrain !== undefined);
 
 const { CHUNK_HALF } = config;
 loadSpecies();
@@ -76,12 +78,12 @@ describe('chunk registry data', () => {
 
 describe('chunk terrain', () => {
   it('the four entry roads meet no-man\'s-land at y = 0 on the edge midpoints', () => {
-    for (const c of PLAYABLE_SHARDS) for (const [x, z] of EDGE_MIDPOINTS) expect(terrainFor(c).heightAt(x, z), `${c.slug} @ ${x},${z}`).toBeCloseTo(0, 6);
+    for (const c of TERRAIN_SHARDS) for (const [x, z] of EDGE_MIDPOINTS) expect(terrainFor(c).heightAt(x, z), `${c.slug} @ ${x},${z}`).toBeCloseTo(0, 6);
   });
 
   it('grid shards retain four midpoint entry trails; other shards have a trail from spawn', () => {
     // Include hidden teaching shards and experimental shards: each still needs a usable entry trail.
-    for (const c of SHARDS) {
+    for (const c of SHARDS.filter((m) => m.ground.terrain !== undefined)) {
       const trails = terrainFor(c).trails;
       if (WORLD_GRID.has(c.slug)) {
         expect(trails.length, c.slug).toBeGreaterThanOrEqual(4);
@@ -98,7 +100,7 @@ describe('chunk terrain', () => {
   });
 
   it('height, normals and splat weights are finite and well-formed across the chunk', () => {
-    for (const c of PLAYABLE_SHARDS) {
+    for (const c of TERRAIN_SHARDS) {
       const t = terrainFor(c);
       for (let x = -CHUNK_HALF; x <= CHUNK_HALF; x += 50) for (let z = -CHUNK_HALF; z <= CHUNK_HALF; z += 50) {
         const at = `${c.slug} @ ${x},${z}`;
@@ -119,7 +121,7 @@ describe('chunk terrain', () => {
   });
 
   it('trailDistance is 0 on a trail vertex and positive off it', () => {
-    for (const c of PLAYABLE_SHARDS) {
+    for (const c of TERRAIN_SHARDS) {
       const v = terrainFor(c).trails[0]?.[1];
       if (v === undefined) throw new Error(`${c.slug}: first trail has no second vertex`);
       expect(terrainFor(c).trailDistance(v[0], v[1]), c.slug).toBeCloseTo(0, 9);
