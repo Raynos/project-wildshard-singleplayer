@@ -21,3 +21,24 @@
    **check pass** on Signal Dunes only: it verifies only those rows (no new findings), as the protocol's check-pass
    exception allows. If the check pass finds it at the bar, it is done; if not, the open rows go to Jake with one
    recommended answer each.
+
+## After the check pass (2026-10-02, Signal Dunes only)
+
+| Row | Seat A (Codex) | Seat B | Seat C |
+|---|---|---|---|
+| R1A-2 glove | verified | partly | partly |
+| R1A-5 caravan | partly | partly | partly |
+| R1B-14 aerial sky / horizon | partly | **regressed** (new cloud-bank seam, clip 8.6–10 s) | partly (same seam) |
+| R1B-16 whip board pull | partly | verified | partly |
+| R1B-20 plan rows | partly | partly | partly |
+| R1C-1 H3 / H4 subjects | verified | verified | verified |
+| R1C-2 rim light on props | partly | partly | partly |
+| R1C-3 hue range | verified | verified | verified |
+| R1C-4 glove pose / values | verified | verified | partly |
+| R1C-5 skirt, horizon, trails | partly | partly | partly |
+
+**Verdict: Signal Dunes is below the bar (3 of 3 seats)**, closer than in round 2. What holds it there, in the seats' words: the quest's own objects (the waymark and deck braziers) are black on lit sand; the wagon is flat slabs; the aerial overview is the only one of the six where no place or route reads; the cloud bank added for R1B-14 shows a hard seam in the sky; the glove lost its seams and knuckles with the facets.
+
+The council is used up (two rounds and the check pass). **Lead decision:** the `signal-dunes` agent keeps building on exactly those items overnight (building, not reviewing), and they go to Jake in the morning as one decision, below.
+
+**For Jake (one decision, recommended answer first):** Signal Dunes was judged below the other four by every seat, three times; Sky Reach passed. Recommended: **play both on your phone after the overnight fixes and sign off or name what's still wrong** (the plans' P6 row). Alternatives: one more check pass by the same three seats on the items above; or accept Signal Dunes as early access with the list as its known gaps.
