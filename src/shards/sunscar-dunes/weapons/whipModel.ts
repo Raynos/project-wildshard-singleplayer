@@ -4,7 +4,7 @@ import { BufferAttribute, BufferGeometry, CapsuleGeometry, CatmullRomCurve3, Cyl
 const STRAND_A = [0.46, 0.25, 0.12] as const, STRAND_B = [0.27, 0.14, 0.065] as const, POPPER = [0.78, 0.68, 0.52] as const;
 const GLOVE = 0x7a4a28, CUFF = 0x5a3219, KNOB = 0x3a2214;
 /** A low warm self-light: the dusk sun sits behind the player most of the time, and a backlit viewmodel reads as a black lump. */
-const GLOW = 0x2a140a;
+const GLOW = 0x120804;
 const RADIAL = 6, SEGMENTS = 30;
 
 const leather = (color: number): MeshStandardMaterial => new MeshStandardMaterial({ color, roughness: 0.62, metalness: 0, emissive: GLOW });
@@ -94,13 +94,13 @@ export function buildWhipModel(): WhipParts {
   fist.add(thumb, cuff);
   grip.add(handle, knob, fist);
   grip.rotation.set(-1.0, 0, -0.25);
-  // The coil: a loop and a half of braided thong hanging from the handle's tip, left of the fist, its tail out of frame.
+  // The coil (mockup D): a small loop and a half hanging below the fist toward the bottom-right edge, its tail out of frame.
   const coilPoints: Vector3[] = [];
   for (let i = 0; i <= 40; i++) {
-    const s = i / 40, a = 0.6 + s * Math.PI * 3.2, r = 0.085 * (1 - 0.15 * s);
-    coilPoints.push(new Vector3(-0.07 + Math.cos(a) * r, -0.05 + Math.sin(a) * r - s * s * 0.05, 0.02 - s * 0.035));
+    const s = i / 40, a = 0.6 + s * Math.PI * 3.2, r = 0.064 * (1 - 0.15 * s);
+    coilPoints.push(new Vector3(0.0 + Math.cos(a) * r, -0.1 + Math.sin(a) * r - s * s * 0.06, 0.02 - s * 0.03));
   }
-  coilPoints.push(new Vector3(-0.05, -0.2, -0.02), new Vector3(-0.03, -0.32, -0.05));
+  coilPoints.push(new Vector3(0.02, -0.24, -0.02), new Vector3(0.05, -0.36, -0.05));
   const coilGeometry = new TubeGeometry(new CatmullRomCurve3(coilPoints), 96, 0.0085, RADIAL, false);
   braid(coilGeometry, 97, RADIAL + 1);
   const coil = new Mesh(coilGeometry, braided());

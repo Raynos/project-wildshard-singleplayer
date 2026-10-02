@@ -7,6 +7,8 @@ import { ownPrimitives } from './resources';
 import { buildTower, type TowerParts } from './tower';
 import { buildBrazier, buildCaravan, buildWell, type BrazierParts, type WellParts } from './places';
 import { buildRocks } from './rocks';
+import { FIRE_RESOURCES, fireGeometries, tickFires } from './fireFx';
+import { lastLightAll } from '../look/light';
 
 /** The quest's flags (persisted per shard by `Flags`). */
 export const FLAG = { logbook: 'sunscar.logbook', oil: 'sunscar.oil', brazier: (i: number): string => `sunscar.brazier.${String(i)}`, lit: 'sunscar.lit' } as const;
@@ -96,7 +98,7 @@ export function buildWorld(ctx: ShardContext, flags: Flags): SignalWorld {
     } },
     light: () => {
       if (fire.lit) return;
-      fire.lit = true; tower.fire.visible = true; tower.light.intensity = 60; fire.brazier.label = STRINGS.lit; flags.set(FLAG.lit); fire.onLight?.();
+      fire.lit = true; tower.fire.visible = true; tower.light.intensity = 28; fire.brazier.label = STRINGS.lit; flags.set(FLAG.lit); fire.onLight?.();
     } };
   if (flags.has(FLAG.lit)) fire.light();
   interactables?.push(logbook, wellSpot, ...braziers.map((b) => b.spot), fire.brazier);
@@ -109,14 +111,17 @@ export function buildWorld(ctx: ShardContext, flags: Flags): SignalWorld {
     } },
     ...braziers.map((b): Crackable => ({ at: b.parts.bowlAt, radius: 1.2, crack: () => b.light() })),
   ];
+  lastLightAll(ctx.root, ctx.scope); // the style bible's rim and shade floor on every prop
   ownPrimitives(ctx.root, ctx.scope);
+  for (const r of FIRE_RESOURCES) ctx.scope.own(r);
+  ctx.scope.onDispose(() => { for (const g of fireGeometries()) g.dispose(); });
   ctx.system({ id: 'sunscar.fire', phase: 'update', run: (dt, t) => {
+    tickFires(t);
     // The bucket rides up over 1.2 s once pulled.
     if (well.raised && lift.t < 1) { lift.t = Math.min(1, lift.t + dt / 1.2); wellParts.bucket.position.y = 1.85 - wellParts.drop + (wellParts.drop - 0.5) * lift.t; wellParts.rope.scale.y = 1 - lift.t * 0.8; wellParts.crank.rotation.x = lift.t * 12; }
-    for (const [i, b] of braziers.entries()) if (b.lit) { const f = 1 + Math.sin(t * 11 + i) * 0.07 + Math.sin(t * 23 + i * 2) * 0.05; b.parts.fire.scale.set(1, f, 1); }
     if (!fire.lit) return;
     const flick = 1 + Math.sin(t * 13) * 0.06 + Math.sin(t * 29 + 1.3) * 0.04;
-    tower.fire.scale.set(1, flick, 1); tower.light.intensity = 60 * flick;
+    tower.light.intensity = 28 * flick;
   } });
   return { fire, braziers, well, logbook, crackables, flags, get litCount() { return braziers.filter((b) => b.lit).length; } };
 }

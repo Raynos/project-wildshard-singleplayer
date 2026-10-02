@@ -1,5 +1,6 @@
-import { AdditiveBlending, BoxGeometry, Color, ConeGeometry, CylinderGeometry, DoubleSide, Group, InstancedMesh, Matrix4, Mesh, MeshBasicMaterial, MeshStandardMaterial,
-  Quaternion, ShaderMaterial, SphereGeometry, TorusGeometry, Vector3, type Material } from 'three';
+import { addFire, WAYMARK_FIRE } from './fireFx';
+import { BoxGeometry, CylinderGeometry, DoubleSide, Group, InstancedMesh, Matrix4, Mesh, MeshBasicMaterial, MeshStandardMaterial,
+  Quaternion, SphereGeometry, TorusGeometry, Vector3, type Material } from 'three';
 import { boxDesc, type ColliderDesc } from '#engine';
 import { CARAVAN, WELL } from '../layout';
 import { duneMaterial, duneMesh, fit, without } from './meshes';
@@ -120,31 +121,9 @@ export function buildWell(groundAt: (x: number, z: number) => number): WellParts
   return { root, colliders, bucket, rope, jar, crank, crankAt: new Vector3(WELL.x + R + 0.32, y + 1.85, WELL.z), jarAt: new Vector3(WELL.x, y + 1.0, WELL.z), drop };
 }
 
-/**
- * The fire's glow: an additive sphere that fades to nothing at its rim (its brightness follows how square-on the
- * view meets each facet), so up close it reads as warm air round the flames, not a hard-edged ball. One shared material.
- */
-const GLOW = new ShaderMaterial({ transparent: true, depthWrite: false, blending: AdditiveBlending, fog: false,
-  uniforms: { uColor: { value: new Color(0xff7a2a) }, uStrength: { value: 0.32 } },
-  vertexShader: /* glsl */ `
-varying float vFacing;
-void main() {
-  vec4 view = modelViewMatrix * vec4(position, 1.0);
-  vFacing = abs(dot(normalize(normalMatrix * normal), normalize(-view.xyz)));
-  gl_Position = projectionMatrix * view;
-}`,
-  fragmentShader: /* glsl */ `
-uniform vec3 uColor;
-uniform float uStrength;
-varying float vFacing;
-void main() {
-  float a = pow(vFacing, 3.0) * uStrength;
-  gl_FragColor = vec4(uColor * a, a);
-}` });
+export interface BrazierParts { root: Group; colliders: ColliderDesc[]; fire: Group; bowlAt: Vector3; oil: Mesh }
 
-export interface BrazierParts { root: Group; colliders: ColliderDesc[]; fire: Group; glow: Mesh; bowlAt: Vector3; oil: Mesh }
-
-/** A waymark brazier: a stone plinth, an iron post and bowl, a hidden fire and a soft additive glow (no light). */
+/** A waymark brazier: a stone plinth, an iron post and bowl, and a hidden fire (`fireFx.ts`; no light). */
 export function buildBrazier(x: number, z: number, groundAt: (x: number, z: number) => number): BrazierParts {
   const root = new Group(), colliders: ColliderDesc[] = [];
   // Sit on the lowest corner so the plinth never floats on a slope.
@@ -162,10 +141,7 @@ export function buildBrazier(x: number, z: number, groundAt: (x: number, z: numb
   oil.visible = false;
   colliders.push(boxDesc({ x, z, hw: 0.45, hd: 0.45, rot: 0, yBottom: y - 0.3, yTop: y + 1.75 }, 'stone'));
   const fire = new Group(); fire.position.set(0, bowl, 0); fire.visible = false; root.add(fire);
-  const flame = (r: number, h: number, color: number, dx: number, dz: number): void => {
-    const cone = new Mesh(new ConeGeometry(r, h, 6), new MeshBasicMaterial({ color })); cone.position.set(dx, h / 2, dz); fire.add(cone);
-  };
-  flame(0.28, 0.9, 0xff7a1e, 0, 0); flame(0.16, 1.2, 0xffb347, 0.04, -0.03); flame(0.08, 0.7, 0xffe6a0, -0.05, 0.04);
-  const glow = new Mesh(new SphereGeometry(0.95, 16, 12), GLOW); glow.position.y = 0.45; fire.add(glow);
-  return { root, colliders, fire, glow, bowlAt: new Vector3(x, y + 1.6, z), oil };
+  // The fire (P2 #8): layered flame, glow, embers downwind, a smoke column and a warm pool on the sand.
+  addFire(fire, WAYMARK_FIRE, { at: new Vector3(x, y + bowl, z), groundAt });
+  return { root, colliders, fire, bowlAt: new Vector3(x, y + 1.6, z), oil };
 }

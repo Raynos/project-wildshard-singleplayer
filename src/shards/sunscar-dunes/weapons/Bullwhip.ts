@@ -37,7 +37,7 @@ export class Bullwhip extends Weapon {
     super(WHIP_ROW); this.app = app; this.targets = targets;
     this.contact = blocks.melee(app.combat); this.blocks.vm = this.vm; this.blocks.melee = this.contact;
     this.parts = buildWhipModel(); this.model = this.parts.root;
-    this.model.position.set(0.09, -0.17, -0.42);
+    this.model.position.set(0.08, -0.17, -0.38); // mockup D: the glove in the lower-right quarter, the centre clear
   }
   /** The world things the lash can crack (the windlass crank, the braziers). */
   aimAt(crackables: readonly Crackable[]): void { this.crackables = crackables; }

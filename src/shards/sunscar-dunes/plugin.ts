@@ -9,7 +9,7 @@ import { preloadDuneMeshes } from './world/meshes';
 import { DUNE_RAY, DUNE_RAY_LOOK } from './species/duneRay';
 import { Bullwhip } from './weapons/Bullwhip';
 import { WHIP_ROW } from './weapons/rows';
-import { installQuest } from './quest/install';
+import { installQuest, MATRIARCH_FLAG } from './quest/install';
 import { installSunscarCues } from './audio/cues';
 import { installCreatures } from './combat/creatures';
 import { SAND_SKITTERER, SAND_SKITTERER_LOOK } from './species/skitterer';
@@ -58,7 +58,7 @@ export class SignalDunesPlugin extends ShardPlugin {
     if (places) {
       this.quest = installQuest(ctx, position, places, onCoin).quest; this.whip?.aimAt(places.crackables);
       // The signal fire summons the Dune Matriarch from the basin (C5).
-      const matriarch = installMatriarch(ctx, position, () => places.fire.lit, onCoin); this.matriarch = matriarch.boss;
+      const matriarch = installMatriarch(ctx, position, () => places.fire.lit, onCoin, () => { places.flags.set(MATRIARCH_FLAG); }); this.matriarch = matriarch.boss;
       places.fire.onLight = matriarch.summon;
     }
     if (rt) rt.hooks.questFlags = () => this.quest?.isComplete ? ['sunscar.complete'] : [];

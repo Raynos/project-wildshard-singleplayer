@@ -34,7 +34,7 @@ export const RIDGES: readonly { x: number; z: number; yaw: number; len: number; 
   { x: -150, z: 120, yaw: 0.1, len: 30, h: 4.4 }, { x: 150, z: 140, yaw: -0.15, len: 24, h: 3.6 },
 ];
 /** Where the skitterer packs burrow, and the striders' grazing grounds. */
-export const PACKS: readonly { x: number; z: number; n: number }[] = [{ x: -40, z: 40, n: 3 }, { x: 60, z: 10, n: 3 }, { x: -20, z: -40, n: 4 }];
+export const PACKS: readonly { x: number; z: number; n: number }[] = [{ x: -30, z: 8, n: 3 }, { x: 60, z: 10, n: 3 }, { x: -20, z: -40, n: 4 }];
 export const STRIDERS: readonly { x: number; z: number }[] = [{ x: 100, z: -50 }, { x: -100, z: 0 }];
 /** The playable square and the painted ground around it. */
 export const PLAY_HALF = 200;

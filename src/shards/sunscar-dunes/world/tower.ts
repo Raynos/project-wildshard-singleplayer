@@ -1,4 +1,5 @@
-import { BoxGeometry, ConeGeometry, CylinderGeometry, Group, Mesh, MeshBasicMaterial, MeshStandardMaterial, PointLight, Vector3, type Material } from 'three';
+import { addFire, SIGNAL_FIRE } from './fireFx';
+import { BoxGeometry, CylinderGeometry, Group, Mesh, MeshStandardMaterial, PointLight, Vector3, type Material } from 'three';
 import { boxDesc, type ColliderDesc } from '#engine';
 import { TOWER } from '../layout';
 
@@ -88,10 +89,8 @@ export function buildTower(y: number, groundAt: (x: number, z: number) => number
   add(new Mesh(new CylinderGeometry(0.45, 0.22, 0.3, 8, 1, true), iron), brazierAt.x - cx, deckY + 1.0, brazierAt.z - cz);
   colliders.push(boxDesc({ x: brazierAt.x, z: brazierAt.z, hw: 0.4, hd: 0.4, rot: 0, yBottom: deckY, yTop: deckY + 1.15 }, 'metal'));
   const fire = new Group(); fire.position.copy(brazierAt);
-  const flame = (r: number, h: number, color: number, x: number, z: number): void => {
-    const cone = new Mesh(new ConeGeometry(r, h, 7), new MeshBasicMaterial({ color })); cone.position.set(x, h / 2, z); fire.add(cone);
-  };
-  flame(0.36, 1.3, 0xff7a1e, 0, 0); flame(0.22, 1.7, 0xffb347, 0.06, -0.04); flame(0.12, 1.0, 0xffe6a0, -0.08, 0.05);
+  // The signal fire: the brightest thing in the level, its column visible from the spawn (P2 #8, `fireFx.ts`).
+  addFire(fire, SIGNAL_FIRE);
   const light = new PointLight(0xff8a3a, 0, 40, 1.6); light.position.set(0, 1.0, 0); fire.add(light);
   fire.visible = false; root.add(fire);
   return { root, colliders, fire, light, brazierAt, deckY };

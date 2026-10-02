@@ -6,6 +6,7 @@ import { Vector3 } from 'three';
 import manifest from '#shards/sunscar-dunes/manifest';
 import { SignalDunesPlugin } from '#shards/sunscar-dunes/plugin';
 import { Bullwhip, CRACK } from '#shards/sunscar-dunes/weapons/Bullwhip';
+import { MATRIARCH_FLAG } from '#shards/sunscar-dunes/quest/install';
 import { DUNE_RAY, DUNE_RAY_LOOK, SWOOP } from '#shards/sunscar-dunes/species/duneRay';
 import { FakeGame } from '../../fake/FakeGame';
 import { INPUT_CONTEXTS } from '#game/inputContexts';
@@ -47,7 +48,7 @@ describe('Signal Dunes plugin contract', () => {
     await app.unloadLevel(); expect(active.size).toBe(0); expect(app.registry.pieces).toEqual([]);
     expect(app.levelRegistrations.list('weapon')).toEqual([]); expect(app.debug.scopedSnapshot()).toEqual({});
   });
-  it('runs the four-step chain: logbook, the well pulled by a heavy crack, three waymarks lit by the lash, the signal fire; pays 5 coins once', async () => {
+  it('runs the five-step chain: logbook, the well pulled by a heavy crack, three waymarks lit by the lash, the signal fire, the Matriarch; pays 5 coins once', async () => {
     const { app, plugin, fake } = await boot(), purse = shardSave(purseSave, manifest.slug), before = purse.read(), places = plugin.places;
     if (places === null) throw new Error('no places');
     const step = (): number | undefined => { app.events.flush('update'); return plugin.quest?.index; };
@@ -69,7 +70,12 @@ describe('Signal Dunes plugin contract', () => {
     expect(step()).toBe(3); expect(places.litCount).toBe(3); expect(plugin.matriarch?.state).toBe('dormant');
     places.fire.brazier.onInteract(); app.events.flush('update');
     expect(plugin.matriarch?.state).toBe('armed'); // the signal summons the Dune Matriarch
-    expect(plugin.fire?.lit).toBe(true); expect(plugin.fire?.brazier.label).toBe('Signal fire lit'); expect(plugin.quest?.isComplete).toBe(true);
+    expect(plugin.fire?.lit).toBe(true); expect(plugin.fire?.brazier.label).toBe('Signal fire lit');
+    // P4: the Matriarch is the last step; the signal reward pays after her fall.
+    expect(step()).toBe(4); expect(plugin.quest?.isComplete).toBe(false);
+    for (let i = 0; i < 30; i++) fake.advance(1 / 30);
+    expect(purse.read()).toBe(before);
+    places.flags.set(MATRIARCH_FLAG); app.events.flush('update'); expect(plugin.quest?.isComplete).toBe(true);
     for (let i = 0; i < 90; i++) fake.advance(1 / 30);
     expect(fake.dead).toBe(false); expect(purse.read()).toBe(before + 5);
     plugin.fire?.brazier.onInteract(); for (let i = 0; i < 30; i++) fake.advance(1 / 30); expect(purse.read()).toBe(before + 5);

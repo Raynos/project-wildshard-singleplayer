@@ -1,0 +1,27 @@
+import { Mesh, MeshStandardMaterial, type Object3D } from 'three';
+import { patchShader, PATCH_ORDER, type Scope } from '#engine';
+
+/**
+ * The style bible's rim and shade floor ("Last Light"): a prop or creature keeps an orange edge where its silhouette
+ * meets the sky, and its shaded side a cool sky-lit floor, so nothing reads as a black cut-out against the afterglow
+ * (review R1, R6). A material patch, applied once per material at build.
+ */
+export function lastLight(material: MeshStandardMaterial, scope: Scope): void {
+  patchShader(material, 'sunscar.lastLight', PATCH_ORDER.decorate, (shader) => {
+    shader.fragmentShader = shader.fragmentShader.replace('#include <opaque_fragment>', `{
+    float sunscarRim = pow(1.0 - saturate(dot(normal, normalize(vViewPosition))), 3.0);
+    outgoingLight += diffuseColor.rgb * (vec3(0.06, 0.07, 0.12) + vec3(1.0, 0.5, 0.22) * sunscarRim * 0.7);
+  }
+#include <opaque_fragment>`);
+  }, { scope });
+}
+
+/** Every standard material under `root` (the world's props), once each. */
+export function lastLightAll(root: Object3D, scope: Scope): void {
+  const seen = new Set<MeshStandardMaterial>();
+  root.traverse((o) => {
+    if (!(o instanceof Mesh)) return;
+    const list: unknown[] = Array.isArray(o.material) ? o.material : [o.material];
+    for (const m of list) if (m instanceof MeshStandardMaterial && !seen.has(m)) { seen.add(m); lastLight(m, scope); }
+  });
+}

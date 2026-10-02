@@ -63,7 +63,7 @@ export class SkittererBrain extends CreatureBrain<SkitterState> {
 const brains = new WeakMap<Animal, SkittererBrain>();
 const brain = (a: Animal): SkittererBrain => { let value = brains.get(a); if (!value) { value = new SkittererBrain(a); brains.set(a, value); } return value; };
 
-export const SAND_SKITTERER: SpeciesRow = { id: 'sunscar.creature.sandSkitterer', kind: 'sandSkitterer', label: STRINGS.skitterer, aggressive: true, blood: false,
+export const SAND_SKITTERER: SpeciesRow = { id: 'sunscar.creature.sandSkitterer', kind: 'sandSkitterer', label: STRINGS.skitterer, aggressive: true, lockable: true, blood: false,
   variants: [{ id: 'dusk', label: STRINGS.skitterer, weight: 1, rarity: 'common', scale: [0.9, 1.1], hp: 24 }],
   think: (a, ctx) => { brain(a).think(ctx); }, act: (a, ctx) => { brain(a).act(ctx); } };
 

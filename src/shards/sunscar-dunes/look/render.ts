@@ -94,18 +94,18 @@ varying float vSunVis;
 float sandHash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }`)
           .replace('#include <color_fragment>', `#include <color_fragment>
   float sandFar = length(vSandPos - cameraPosition);
-  // Wind ripples (R3): ~0.55 m crests across the wind (${WIND_GLSL}), bent by slow warps; light and shadow from the
+  // Wind ripples (R3): ~0.4 m crests across the wind (${WIND_GLSL}), bent by slow warps; light and shadow from the
   // normal below, plus a faint albedo band. Fade out before they alias.
   vec2 sandW = vec2(${WIND_GLSL});
   float sandU = dot(vSandPos.xz, sandW), sandV = dot(vSandPos.xz, vec2(-sandW.y, sandW.x));
-  float sandPhase = (sandU + sin(sandV * 0.21) * 1.3 + sin(sandV * 0.053 + sandU * 0.04) * 3.5) * 11.4;
-  float sandNear = 1.0 - smoothstep(5.0, 24.0, sandFar);
+  float sandPhase = (sandU + sin(sandV * 0.21) * 1.3 + sin(sandV * 0.053 + sandU * 0.04) * 3.5) * 15.7;
+  float sandNear = 1.0 - smoothstep(4.0, 18.0, sandFar);
   float sandGrain = sandHash(floor(vSandPos.xz * 22.0)) - 0.5;
   diffuseColor.rgb *= 1.0 + (0.05 * sin(sandPhase) + 0.12 * sandGrain) * sandNear;`)
           .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
   {
     // The ripple's slope along the wind, as a world-space tilt of the normal, turned to view space.
-    float rippleSlope = cos(sandPhase) * 0.2 * sandNear;
+    float rippleSlope = cos(sandPhase) * 0.09 * sandNear;
     vec3 rippleTilt = vec3(sandW.x, 0.0, sandW.y) * rippleSlope;
     normal = normalize(normal - (viewMatrix * vec4(rippleTilt, 0.0)).xyz);
   }`)

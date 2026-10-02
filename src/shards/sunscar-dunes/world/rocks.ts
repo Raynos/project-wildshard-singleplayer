@@ -4,7 +4,7 @@ import { BASIN, BRAZIERS, CARAVAN, PLAY_HALF, RIDGES, SEED, SPAWN, TOWER, WELL }
 
 /** The rock and scrub counts per tier (instanced: one draw each, never multi-draw). */
 export const SCATTER = { boulders: 46, scrub: 140, bigBoulder: 1.1 } as const;
-const SANDSTONE = 0x5c2c1c, SANDSTONE_DARK = 0x3e1d14, SCRUB = 0x3b3020;
+const SANDSTONE = 0x8c4c2e, SANDSTONE_DARK = 0x6a3826, SCRUB = 0x5c4a30;
 
 export interface RockField { root: Group; colliders: ColliderDesc[]; ridges: number; boulders: number; scrub: number }
 

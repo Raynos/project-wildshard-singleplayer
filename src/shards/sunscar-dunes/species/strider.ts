@@ -59,7 +59,7 @@ export class StriderBrain extends CreatureBrain<StrideState> {
 const brains = new WeakMap<Animal, StriderBrain>();
 const brain = (a: Animal): StriderBrain => { let value = brains.get(a); if (!value) { value = new StriderBrain(a); brains.set(a, value); } return value; };
 
-export const DUNE_STRIDER: SpeciesRow = { id: 'sunscar.creature.duneStrider', kind: 'duneStrider', label: STRINGS.strider, aggressive: true, blood: false,
+export const DUNE_STRIDER: SpeciesRow = { id: 'sunscar.creature.duneStrider', kind: 'duneStrider', label: STRINGS.strider, aggressive: true, lockable: true, blood: false,
   variants: [{ id: 'dusk', label: STRINGS.strider, weight: 1, rarity: 'uncommon', scale: [0.95, 1.1], hp: 150 }],
   think: (a, ctx) => { brain(a).think(ctx); }, act: (a, ctx) => { brain(a).act(ctx); } };
 

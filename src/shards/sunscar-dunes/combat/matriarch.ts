@@ -26,7 +26,7 @@ export class DuneMatriarch extends BossBrain {
   /** The storm's strength 0..1 and the Matriarch's body while she is up (captures and tests read them). */
   readonly weather: { storm: number };
   readonly body: () => Animal | null;
-  constructor(ctx: ShardContext, player: Vector3, spawn: () => Animal | null, retire: (a: Animal) => void, onCoin?: (share: number) => void) {
+  constructor(ctx: ShardContext, player: Vector3, spawn: () => Animal | null, retire: (a: Animal) => void, onCoin?: (share: number) => void, onDown?: () => void) {
     const at = new Vector3(BASIN.x, BASIN_FLOOR, BASIN.z), focus = new Vector3();
     let animal: Animal | null = null, invulnerable = false, stormGoal = 0;
     const weather = { storm: 0 };
@@ -41,7 +41,9 @@ export class DuneMatriarch extends BossBrain {
     });
     const fresh = (): Animal | null => { if (animal) retire(animal); animal = spawn(); if (animal) { animal.mem['fight'] = 0; animal.mem['rise'] = 0; animal.mem['phase'] = 0; } return animal; };
     const script: BossScript = {
-      inArena: (p) => Math.hypot(p.x - BASIN.x, p.z - BASIN.z) < BASIN.r - 6,
+      // The fire's light is the summons (review R7): she rises while the player is anywhere from the bowl to the tower
+      // deck (78 m from its centre), so the lighting player sees it.
+      inArena: (p) => Math.hypot(p.x - BASIN.x, p.z - BASIN.z) < BASIN.r + 34,
       reset: (checkpoint) => {
         stormGoal = 0; const a = fresh();
         if (a) { a.hp = a.maxHp * (checkpoint === 0 ? 1 : checkpoint === 1 ? 0.66 : 0.33); a.mem['phase'] = checkpoint; }
@@ -67,7 +69,7 @@ export class DuneMatriarch extends BossBrain {
       get dead() { return animal !== null && !animal.alive; },
       clampHp: (frac) => { if (animal) animal.hp = frac * animal.maxHp; },
       setInvulnerable: (on) => { invulnerable = on; },
-      victory: () => { stormGoal = 0; ctx.game.runtime?.play?.hud.toast(saved.rewardTaken ? STRINGS.bossRewardAgain : STRINGS.bossReward); },
+      victory: () => { stormGoal = 0; ctx.game.runtime?.play?.hud.toast(saved.rewardTaken ? STRINGS.bossRewardAgain : STRINGS.bossReward); onDown?.(); },
       rewardPoint: () => at,
       respawnPoint: () => ({ pos: new Vector3(BASIN.x, ctx.manifest.ground.terrain?.heightAt(BASIN.x, BASIN.z + BASIN.r + 4) ?? 0, BASIN.z + BASIN.r + 4), yaw: 0 }),
     };
@@ -83,6 +85,7 @@ export class DuneMatriarch extends BossBrain {
         toast: (text) => { ctx.game.runtime?.play?.hud.toast(text); },
         persist: (value) => { saves.write({ ...saves.read(), [ID]: { ...value } }); } }, presentation, saved);
     this.at = at; this.weather = weather; this.body = () => animal;
+    if (saved.defeated) onDown?.();
     ctx.scope.onDispose(() => {
       burst.update(3, player); burst.dispose(); if (animal) retire(animal); animal = null;
       if (fog && scene.fog instanceof Fog) { scene.fog.near = fog.near; scene.fog.far = fog.far; scene.fog.color.copy(fog.color); }
@@ -91,10 +94,10 @@ export class DuneMatriarch extends BossBrain {
 }
 
 /** Arms the Matriarch once the signal fire is lit (now, or on a later visit); answers the death checkpoint. */
-export function installMatriarch(ctx: ShardContext, player: Vector3, lit: () => boolean, onCoin?: (share: number) => void): { boss: DuneMatriarch; summon: () => void } {
+export function installMatriarch(ctx: ShardContext, player: Vector3, lit: () => boolean, onCoin?: (share: number) => void, onDown?: () => void): { boss: DuneMatriarch; summon: () => void } {
   const animals = ctx.game.runtime?.play?.animals;
   const boss = ctx.app.encounters.boss(ID, new DuneMatriarch(ctx, player, () => animals?.spawn('duneMatriarch', BASIN.x, BASIN.z, 0, 'matriarch') ?? null,
-    (a) => { animals?.retire(a); }, onCoin), ctx.scope);
+    (a) => { animals?.retire(a); }, onCoin, onDown), ctx.scope);
   const summon = (): void => { if (boss.state === 'dormant') { boss.arm(); ctx.game.runtime?.play?.hud.toast(STRINGS.summoned); } };
   if (lit()) boss.arm();
   ctx.answer('death.checkpoint', (value) => boss.onPlayerDeath() || value === true);
