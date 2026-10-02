@@ -1,0 +1,22 @@
+{
+ "name": "bridge-deck",
+ "source": "ref-bridge-deck.glb",
+ "tris": 693,
+ "size_m": [
+  4.79,
+  2.3,
+  0.62
+ ],
+ "pivot": "base centre, z=0 (Blender z-up; glTF y-up)",
+ "vertex_colour": "COLOR_0 rgb = albedo (sRGB-graded, stored linear), a = Cycles AO (0.35..1)",
+ "palette": [
+  "#273336",
+  "#594f3c",
+  "#7a644a",
+  "#8b6030",
+  "#9e5b18",
+  "#a06729",
+  "#a6621b",
+  "#b87524"
+ ]
+}

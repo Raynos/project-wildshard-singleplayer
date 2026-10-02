@@ -1,0 +1,22 @@
+{
+ "name": "bridge-post",
+ "source": "ref-bridge-post.glb",
+ "tris": 698,
+ "size_m": [
+  0.78,
+  0.63,
+  1.6
+ ],
+ "pivot": "base centre, z=0 (Blender z-up; glTF y-up)",
+ "vertex_colour": "COLOR_0 rgb = albedo (sRGB-graded, stored linear), a = Cycles AO (0.35..1)",
+ "palette": [
+  "#160d23",
+  "#32263d",
+  "#463650",
+  "#53331f",
+  "#53435b",
+  "#6b5768",
+  "#704321",
+  "#9d652a"
+ ]
+}

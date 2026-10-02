@@ -20,7 +20,7 @@ Storm Roc.
 | `species` | `driftRay`, `skyGoat`, `galeWisp`, `stormRoc`; the rays, wisps and Roc fly (`flight.above: 'world'`), the goats walk the island decks (G26 spawn placement, G27 fall) |
 | `encounters` | `far.roc` (the Storm Roc boss) |
 | `audio` | `ambience: 'none'`, a silent score, kit sword cues; no `preload` (asset-free) |
-| `assets` | `assetGlobs: ['public/assets/far-reach/**']`: five generated GLBs (C6, `public/assets/far-reach/models/`, ~260 KB, in `boot.sources().props`); an inline SVG card, no KTX2 |
+| `assets` | `assetGlobs: ['public/assets/far-reach/**']`: seven generated GLBs (C6 and the rope-bridge kit, `public/assets/far-reach/models/`, ~315 KB, in `boot.sources().props`); an inline SVG card, no KTX2 |
 | saves | one shard key, `far-reach.rewarded` |
 
 ## Its custom code, and why
@@ -28,7 +28,7 @@ Storm Roc.
 | File | What |
 |---|---|
 | `layout.ts` | every coordinate: the islands, the three spans, the winch, the rays' homes; `HOVER_GAP` keeps a hover deck clear of every rim |
-| `world/shapes.ts` | flat-shaded vertex-coloured islands (12-gon grass top, violet keel), instanced pines, plank bridges, the windmill, the winch |
+| `world/shapes.ts` | flat-shaded vertex-coloured islands (12-gon grass top, violet keel), instanced pines, plank bridges (a rope span lays the generated deck segments, instanced, and four generated anchor posts; hover decks keep glass planks), the windmill, the winch |
 | `world/meshes.ts` | the generated models (C6): loads the five GLBs once in `world` (`preloadSkyMeshes`), flattens each to vertex-coloured facets (the baked AO kept at 60 %), `fit` (size, floor / middle, `pitch`, footing centre), `bindRigid` (a creature's facets ride one bone each), `splitAbove` (the vane's rotor). A model that fails to load leaves the code model |
 | `world/build.ts` | the pieces: island tops (six box strips cover the 12-gon), the rope bridge (deck + rails), the hover bridge (`active` only while `app.player.mode === 'board'`), the fallen bridge (`active` once raised), the windmill, the winch interactable, the vanes (`vaneColliders`: plinth, shrine box and post, measured off the generated shrine) |
 | `weapons/WarFan.ts` | the war fan (rung 3, `extends Weapon`): SWING arc slash and the held / HEAVY slash through `blocks.melee`; GUST (touch `verb.1`, key G) gives every creature in a 9 m cone `animal.impulse` away and a 4-point hit |
@@ -55,6 +55,10 @@ bridge. Matches `art/far-reach/round-4-rebuild/board-3aac2db1.jpg` (Jake: the lo
 vertex-coloured by `scripts/img2mesh/build_props.py art/far-reach/round-7-models/props.json public/assets/far-reach/models`.
 The Roc is generated upright (its ref faces the camera) and pitched to fly, so its pale banded front is the underside
 seen from the crown. The code models stay as the stand-ins (`rocCode`, `goatCode`, `rayCode`, the code tower and vane).
+
+**Rope-bridge kit.** A plank deck segment (4.8 m, tiled and stretched to each rope span) and a rope-wrapped anchor post
+(1.6 m, at the span's four corners), Hunyuan3D-2 from `art/far-reach/round-9-bridge/ref-bridge-*.jpg` by the same
+`build_props.py` recipe (`round-9-bridge/props.json`). The ropes stay code; without the kit the code planks and posts stand in.
 
 ## Open asks
 

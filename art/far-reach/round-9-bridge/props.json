@@ -1,0 +1,10 @@
+{
+ "about": "Sky Reach rope-bridge kit (E374 polish): codex image_gen refs (ref-*.jpg here) -> Hunyuan3D-2 turbo shape + paint (~/projects/localai/bin/img2mesh/hy3d_batch.py under run-locked.sh) -> faceted vertex-coloured assets. Run: python3 scripts/img2mesh/build_props.py art/far-reach/round-9-bridge/props.json public/assets/far-reach/models. The world tiles the deck along each rope span and stands a post at each corner; the rope rails stay code.",
+ "gen": "~/ml/img2mesh/out/far-reach-hy",
+ "stage": "~/ml/img2mesh/out/far-reach-post",
+ "args": [],
+ "props": [
+  {"ref": "ref-bridge-post", "args": "--name bridge-post --tris 700 --fit height --size 1.6 --quant 8"},
+  {"ref": "ref-bridge-deck", "args": "--name bridge-deck --tris 700 --fit length --size 4.8 --quant 8"}
+ ]
+}
