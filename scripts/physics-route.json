@@ -2545,5 +2545,294 @@
    },
    "notes": "E374 Signal Dunes content route (its agent: max grade 26°, nearest collider ≥ 2.5 m on a node build)"
   }
+ ],
+ "far-reach": [
+  {
+   "name": "windmill",
+   "gate": true,
+   "start": {
+    "x": 0,
+    "z": 7,
+    "yaw": 0,
+    "y": 30
+   },
+   "waypoints": [
+    {
+     "x": 0,
+     "z": -2
+    },
+    {
+     "x": 0,
+     "z": -14
+    },
+    {
+     "x": 0,
+     "z": -30
+    },
+    {
+     "x": 0,
+     "z": -48
+    },
+    {
+     "x": -3,
+     "z": -56
+    }
+   ],
+   "expect": {
+    "y": 30
+   },
+   "notes": "on foot: the sunrest deck (spawn), the rope bridge north (x 0, z -15.4 to -49.6), the windmill isle"
+  },
+  {
+   "name": "grove",
+   "gate": true,
+   "start": {
+    "x": -3,
+    "z": -56,
+    "yaw": -2.7828,
+    "y": 30
+   },
+   "waypoints": [
+    {
+     "x": 0,
+     "z": -48
+    },
+    {
+     "x": 0,
+     "z": -30
+    },
+    {
+     "x": 0,
+     "z": -14
+    },
+    {
+     "x": -6,
+     "z": -4
+    },
+    {
+     "x": -16,
+     "z": -4
+    },
+    {
+     "x": -30,
+     "z": -4
+    },
+    {
+     "x": -46,
+     "z": -4
+    },
+    {
+     "x": -54,
+     "z": -4
+    }
+   ],
+   "expect": {
+    "y": 30
+   },
+   "notes": "on foot: back over the windmill rope bridge, west over the grove rope bridge (z -4, x -15.4 to -45.4) to the grove"
+  },
+  {
+   "name": "roost",
+   "gate": true,
+   "start": {
+    "x": -54,
+    "z": -4,
+    "yaw": -1.5708,
+    "y": 30,
+    "hover": true
+   },
+   "waypoints": [
+    {
+     "x": -46,
+     "z": -4
+    },
+    {
+     "x": -30,
+     "z": -4
+    },
+    {
+     "x": -16,
+     "z": -4
+    },
+    {
+     "x": 0,
+     "z": -4
+    },
+    {
+     "x": 17,
+     "z": -4
+    },
+    {
+     "x": 33,
+     "z": -4
+    },
+    {
+     "x": 49,
+     "z": -4
+    },
+    {
+     "x": 58,
+     "z": -4
+    }
+   ],
+   "expect": {
+    "y": 30
+   },
+   "notes": "on the board: the grove rope bridge east, sunrest, the hover bridge (z -4, x 17.0 to 48.8; on foot you fall through) to the roost"
+  },
+  {
+   "name": "keeper",
+   "gate": true,
+   "start": {
+    "x": 58,
+    "z": -4,
+    "yaw": 1.5708,
+    "y": 30,
+    "hover": true
+   },
+   "waypoints": [
+    {
+     "x": 49,
+     "z": -4
+    },
+    {
+     "x": 33,
+     "z": -4
+    },
+    {
+     "x": 17,
+     "z": -4
+    },
+    {
+     "x": 0,
+     "z": -4
+    },
+    {
+     "x": -16,
+     "z": -4
+    },
+    {
+     "x": -46,
+     "z": -4
+    },
+    {
+     "x": -56,
+     "z": -7
+    },
+    {
+     "x": -56,
+     "z": -16
+    },
+    {
+     "x": -56,
+     "z": -35
+    },
+    {
+     "x": -56,
+     "z": -54
+    },
+    {
+     "x": -56,
+     "z": -60
+    }
+   ],
+   "expect": {
+    "y": 30
+   },
+   "notes": "on the board: the roost hover bridge west, the grove rope bridge, the keeper hover bridge (x -56, z -16.2 to -53.8) to the keeper's isle"
+  },
+  {
+   "name": "keeper-to-roost",
+   "gate": true,
+   "start": {
+    "x": -56,
+    "z": -60,
+    "yaw": 3.1416,
+    "y": 30,
+    "hover": true
+   },
+   "waypoints": [
+    {
+     "x": -56,
+     "z": -54
+    },
+    {
+     "x": -56,
+     "z": -35
+    },
+    {
+     "x": -56,
+     "z": -16
+    },
+    {
+     "x": -56,
+     "z": -7
+    },
+    {
+     "x": -46,
+     "z": -4
+    },
+    {
+     "x": -16,
+     "z": -4
+    },
+    {
+     "x": 0,
+     "z": -4
+    },
+    {
+     "x": 17,
+     "z": -4
+    },
+    {
+     "x": 33,
+     "z": -4
+    },
+    {
+     "x": 49,
+     "z": -4
+    },
+    {
+     "x": 62,
+     "z": -6
+    }
+   ],
+   "expect": {
+    "y": 30
+   },
+   "notes": "on the board: back north over the keeper hover bridge, east over the grove rope and roost hover bridges to the roost"
+  },
+  {
+   "name": "ruin",
+   "gate": true,
+   "start": {
+    "x": 62,
+    "z": -6,
+    "yaw": 0,
+    "y": 30
+   },
+   "waypoints": [
+    {
+     "x": 62,
+     "z": -15
+    },
+    {
+     "x": 62,
+     "z": -35
+    },
+    {
+     "x": 62,
+     "z": -55
+    },
+    {
+     "x": 60,
+     "z": -62
+    }
+   ],
+   "expect": {
+    "y": 30
+   },
+   "notes": "on foot: the roost, the ruin rope bridge south (x 62, z -15.6 to -54.4), the vane ruin (its vane at 59, -70)"
+  }
  ]
 }
