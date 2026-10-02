@@ -9,7 +9,7 @@ import { bootFiles, bootSources } from './boot/files';
 export const SKY_REACH: ShardManifest = {
   budgets: BUDGETS, api: 1, slug: 'far-reach', order: 60, status: 'experimental', name: STRINGS.name, label: STRINGS.label, seed: 6417,
   biome: STRINGS.biome, blurb: STRINGS.blurb, placement: { grid: [1, 4], size: [500, 500, 500] },
-  card: { thumb: SKY_CARD, portrait: SKY_CARD, landscape: SKY_CARD },
+  card: { thumb: SKY_CARD.thumb, portrait: SKY_CARD.portrait, landscape: SKY_CARD.landscape },
   style: 'skyReach', kitLook: 'toon', weapon: 'custom', treeCount: 0, trees: { factory: 'none', noun: 'pines' },
   // A built world (G23, structures only): every island and bridge is a registry piece (world/build.ts); no terrain mesh or
   // collider, the analytic floor is y -1000. The void under the islands is the cloud sea; `world.killY` ends a fall.
@@ -31,7 +31,7 @@ export const SKY_REACH: ShardManifest = {
   tiers: { phone: { godRays: false, ao: false }, desktop: { godRays: false, ao: false } },
   loot: { coins: true },
   audio: { ambience: 'none', score: 'far.silent', cues: async () => (await import('./audio/cues')).CUES },
-  boot: { files: bootFiles, sources: bootSources, viewmodelSets: [], shaders: { background: false }, audio: () => Promise.resolve([]), precache: [] },
+  boot: { explore: { art: Object.values(EXPLORE.art) }, files: bootFiles, sources: bootSources, viewmodelSets: [], shaders: { background: false }, audio: () => Promise.resolve([]), precache: [] },
   dev: { poses: () => Promise.resolve({
     spawn: { eye: [SPAWN.x, DECK + 1.7, SPAWN.z], feet: [SPAWN.x, DECK, SPAWN.z], yaw: 0, pitch: 0, mockup: 'art/far-reach/round-1-proposals/B-sky-reach.jpg', frame: 'Spawn: Sunrest, the windmill isle across the gap' },
     hover: { eye: [24, DECK + 1.7, -4], feet: [24, DECK, -4], yaw: 90, pitch: -6, mockup: '', frame: 'The hover bridge to the Roost' },

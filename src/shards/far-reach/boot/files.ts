@@ -11,7 +11,7 @@ const URLS: Readonly<Record<SkyMeshName, string>> = {
 };
 export const skyMeshUrl = (name: SkyMeshName): string => URLS[name];
 
-/** Sky Reach downloads only its generated models (C6, `world/meshes.ts`); the rest is built in code and the card is an inline SVG. */
+/** Sky Reach downloads its generated models (C6, `world/meshes.ts`); the rest is built in code. The card and Explore images are bundled imports (thumbs/, explore/). */
 export const bootSources: NonNullable<NonNullable<ShardManifest['boot']>['sources']> = () => ({
   sky: [], baked: [], terrain: [], trees: [], physics: [], cabins: [], props: SKY_MESHES.map(skyMeshUrl), art: [], music: [], sfx: [],
 });
