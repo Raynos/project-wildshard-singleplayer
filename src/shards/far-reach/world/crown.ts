@@ -8,8 +8,8 @@ import { CROWN, DAIS } from '../layout';
  * pennant ropes between their tops, and a low round dais of fitted stone with a compass rose inlaid in its top. It
  * replaces the loop-1 hexagonal pillars that read as one stray post from the arena's entrance.
  */
-/** The ring stands round the dais (loop 5: at the crown's centre and 12.5 m out, the arena's entrance framed one stone). */
-export const CROWN_RING = { radius: 9.5, stones: 7, width: 1.5, depth: 0.85 } as const;
+/** The ring stands close round the dais (loop 5: at the crown's centre and 12.5 m out the arena's entrance framed one stone; at 7.8 m it frames five to seven). */
+export const CROWN_RING = { radius: 7.8, stones: 7, width: 1.5, depth: 0.85 } as const;
 /** Stone heights (metres), one per stone round the ring; tallest opposite the entrance, framing the dais. */
 const HEIGHTS = [3.4, 4.1, 4.8, 5.2, 4.7, 4.0, 3.5] as const;
 

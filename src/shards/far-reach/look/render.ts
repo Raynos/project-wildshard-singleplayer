@@ -4,6 +4,7 @@ import { FOG, SKY, SUN_DIR } from './sun';
 import { installPaintedLight } from './light';
 import { HEADING_GLSL, fogLut, loadPanorama, skyDome } from './sky';
 import { bakeSeaTexture, cloudSea } from './cloudSea';
+import { cumulus } from './puffs';
 
 export { FOG, SKY, SUN_DIR } from './sun';
 
@@ -45,6 +46,8 @@ export async function skyReachLook(): Promise<LookStrategy> {
       for (const mesh of sea.meshes) { scene.add(mesh); scope.own(mesh.geometry); scope.own(mesh.material); }
       scope.onDispose(() => { for (const mesh of sea.meshes) mesh.removeFromParent(); });
       seaTime = sea.time;
+      // cumulus over the sea (loop 5): the islands rise out of billowing cloud
+      const puffs = cumulus(SUN_DIR); scene.add(puffs); scope.own(puffs.geometry); scope.own(puffs.material); scope.onDispose(() => { puffs.removeFromParent(); });
       return { chain: engineChain('clean') };
     },
     lighting: { install: installPaintedLight },
