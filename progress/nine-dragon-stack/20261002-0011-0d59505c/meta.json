@@ -1,0 +1,18 @@
+{
+ "shard": "nine-dragon-stack",
+ "sha": "0d59505c5d707993210b226e23119341b72b40b0",
+ "when": "20261002-0011",
+ "label": "council reference",
+ "loadSeconds": 3,
+ "shots": [
+  "first-frame",
+  "h1-square",
+  "h2-stair-street",
+  "h3-gate-bridge",
+  "h4-well-rim",
+  "aerial-spawn",
+  "aerial-overview"
+ ],
+ "clip": true,
+ "pageErrors": []
+}

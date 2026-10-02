@@ -1,0 +1,18 @@
+{
+ "shard": "driftwood-isle",
+ "sha": "0d59505c5d707993210b226e23119341b72b40b0",
+ "when": "20261002-0011",
+ "label": "council reference",
+ "loadSeconds": 8,
+ "shots": [
+  "first-frame",
+  "h1-pier",
+  "h2-hut",
+  "h3-lookout",
+  "h4-shrine",
+  "aerial-spawn",
+  "aerial-overview"
+ ],
+ "clip": true,
+ "pageErrors": []
+}
