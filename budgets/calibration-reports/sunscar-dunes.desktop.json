@@ -1,46 +1,5983 @@
 {
-  "sha": "520693016a02dd13447c4fc1a9bbf7bf82d7aa67",
-  "recorded": "2026-10-01T22:13:10.935Z",
   "boot": {
+    "schema": 1,
+    "lane": "m5",
+    "sha": "a28af631097f6f41bb92e0621c5d1a537054a804",
+    "build": "a28af63-muqccem6",
     "shard": "sunscar-dunes",
     "tier": "desktop",
-    "errors": [],
-    "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
-    "browser": "153.0.8010.12",
     "viewport": {
       "w": 1600,
       "h": 900,
       "dpr": 1,
       "touch": false
     },
-    "gpuBytes": {
-      "total": 180461724
+    "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+    "browser": "153.0.8010.12",
+    "errors": [],
+    "steps": [
+      "renderer",
+      "sky",
+      "terrain",
+      "cards",
+      "forest",
+      "physics",
+      "edge",
+      "grass",
+      "cabins",
+      "props",
+      "animals",
+      "weapon",
+      "menu",
+      "shaders",
+      "firstFrame",
+      "audio"
+    ],
+    "systems": {
+      "input": [
+        "engine.input.weapon",
+        "engine.input.contexts",
+        "engine.input.collect",
+        "engine.lockon.input",
+        "engine.player.input"
+      ],
+      "fixed.pre": [
+        "physics.bodies.pre",
+        "physics.movers"
+      ],
+      "fixed.step": [
+        "physics.step"
+      ],
+      "fixed.post": [
+        "physics.bodies.post",
+        "player.step"
+      ],
+      "update": [
+        "player.update",
+        "sunscar.fire",
+        "training-arena",
+        "hud.perf",
+        "engine.world.bounds",
+        "engine.effects",
+        "main.6",
+        "hud.combat",
+        "first hints",
+        "main.world",
+        "engine.creatures.update",
+        "main.equipment",
+        "engine.audio.listener",
+        "main.frame",
+        "engine.player.regen",
+        "engine.player.hud",
+        "game.loot",
+        "sunscar.reward",
+        "sunscar.matriarch",
+        "sunscar.creatures"
+      ],
+      "late": [
+        "engine.input.trace",
+        "engine.input.edges",
+        "engine.hud.pins"
+      ]
+    },
+    "appStates": [
+      "boot",
+      "loading",
+      "play"
+    ],
+    "registry": [
+      {
+        "id": "model:shared/hoverboard",
+        "category": "gear",
+        "surface": "wood",
+        "floor": false,
+        "solidFloor": false,
+        "follows": false,
+        "shapes": {
+          "cuboid": 0,
+          "ball": 0,
+          "capsule": 0,
+          "convex": 0,
+          "trimesh": 0,
+          "treads": 0
+        }
+      },
+      {
+        "id": "model:shared/training-dummy",
+        "category": "props",
+        "surface": "wood",
+        "floor": false,
+        "solidFloor": false,
+        "follows": false,
+        "shapes": {
+          "cuboid": 0,
+          "ball": 0,
+          "capsule": 0,
+          "convex": 0,
+          "trimesh": 0,
+          "treads": 0
+        }
+      },
+      {
+        "id": "model:sunscar-dunes/bullwhip",
+        "category": "gear",
+        "surface": "wood",
+        "floor": false,
+        "solidFloor": false,
+        "follows": false,
+        "shapes": {
+          "cuboid": 0,
+          "ball": 0,
+          "capsule": 0,
+          "convex": 0,
+          "trimesh": 0,
+          "treads": 0
+        }
+      },
+      {
+        "id": "model:sunscar-dunes/caravan",
+        "category": "props",
+        "surface": "wood",
+        "floor": false,
+        "solidFloor": false,
+        "follows": false,
+        "shapes": {
+          "cuboid": 0,
+          "ball": 0,
+          "capsule": 0,
+          "convex": 0,
+          "trimesh": 0,
+          "treads": 0
+        }
+      },
+      {
+        "id": "model:sunscar-dunes/dry-well",
+        "category": "buildings",
+        "surface": "wood",
+        "floor": false,
+        "solidFloor": false,
+        "follows": false,
+        "shapes": {
+          "cuboid": 0,
+          "ball": 0,
+          "capsule": 0,
+          "convex": 0,
+          "trimesh": 0,
+          "treads": 0
+        }
+      },
+      {
+        "id": "model:sunscar-dunes/dune-matriarch",
+        "category": "creatures",
+        "surface": "wood",
+        "floor": false,
+        "solidFloor": false,
+        "follows": false,
+        "shapes": {
+          "cuboid": 0,
+          "ball": 0,
+          "capsule": 0,
+          "convex": 0,
+          "trimesh": 0,
+          "treads": 0
+        }
+      },
+      {
+        "id": "model:sunscar-dunes/dune-ray",
+        "category": "creatures",
+        "surface": "wood",
+        "floor": false,
+        "solidFloor": false,
+        "follows": false,
+        "shapes": {
+          "cuboid": 0,
+          "ball": 0,
+          "capsule": 0,
+          "convex": 0,
+          "trimesh": 0,
+          "treads": 0
+        }
+      },
+      {
+        "id": "model:sunscar-dunes/dune-strider",
+        "category": "creatures",
+        "surface": "wood",
+        "floor": false,
+        "solidFloor": false,
+        "follows": false,
+        "shapes": {
+          "cuboid": 0,
+          "ball": 0,
+          "capsule": 0,
+          "convex": 0,
+          "trimesh": 0,
+          "treads": 0
+        }
+      },
+      {
+        "id": "model:sunscar-dunes/sand-skitterer",
+        "category": "creatures",
+        "surface": "wood",
+        "floor": false,
+        "solidFloor": false,
+        "follows": false,
+        "shapes": {
+          "cuboid": 0,
+          "ball": 0,
+          "capsule": 0,
+          "convex": 0,
+          "trimesh": 0,
+          "treads": 0
+        }
+      },
+      {
+        "id": "model:sunscar-dunes/signal-tower",
+        "category": "buildings",
+        "surface": "wood",
+        "floor": false,
+        "solidFloor": false,
+        "follows": false,
+        "shapes": {
+          "cuboid": 0,
+          "ball": 0,
+          "capsule": 0,
+          "convex": 0,
+          "trimesh": 0,
+          "treads": 0
+        }
+      },
+      {
+        "id": "model:sunscar-dunes/waymark-brazier",
+        "category": "props",
+        "surface": "wood",
+        "floor": false,
+        "solidFloor": false,
+        "follows": false,
+        "shapes": {
+          "cuboid": 0,
+          "ball": 0,
+          "capsule": 0,
+          "convex": 0,
+          "trimesh": 0,
+          "treads": 0
+        }
+      },
+      {
+        "id": "practice-arena",
+        "category": "ground",
+        "surface": "metal",
+        "floor": true,
+        "solidFloor": false,
+        "follows": false,
+        "shapes": {
+          "cuboid": 5,
+          "ball": 0,
+          "capsule": 0,
+          "convex": 0,
+          "trimesh": 0,
+          "treads": 0
+        }
+      },
+      {
+        "id": "sunscar.brazier.0",
+        "category": "props",
+        "surface": "stone",
+        "floor": false,
+        "solidFloor": false,
+        "follows": false,
+        "shapes": {
+          "cuboid": 1,
+          "ball": 0,
+          "capsule": 0,
+          "convex": 0,
+          "trimesh": 0,
+          "treads": 0
+        }
+      },
+      {
+        "id": "sunscar.brazier.1",
+        "category": "props",
+        "surface": "stone",
+        "floor": false,
+        "solidFloor": false,
+        "follows": false,
+        "shapes": {
+          "cuboid": 1,
+          "ball": 0,
+          "capsule": 0,
+          "convex": 0,
+          "trimesh": 0,
+          "treads": 0
+        }
+      },
+      {
+        "id": "sunscar.brazier.2",
+        "category": "props",
+        "surface": "stone",
+        "floor": false,
+        "solidFloor": false,
+        "follows": false,
+        "shapes": {
+          "cuboid": 1,
+          "ball": 0,
+          "capsule": 0,
+          "convex": 0,
+          "trimesh": 0,
+          "treads": 0
+        }
+      },
+      {
+        "id": "sunscar.caravan",
+        "category": "props",
+        "surface": "wood",
+        "floor": false,
+        "solidFloor": false,
+        "follows": false,
+        "shapes": {
+          "cuboid": 4,
+          "ball": 0,
+          "capsule": 0,
+          "convex": 0,
+          "trimesh": 0,
+          "treads": 0
+        }
+      },
+      {
+        "id": "sunscar.rocks",
+        "category": "nature",
+        "surface": "rock",
+        "floor": false,
+        "solidFloor": false,
+        "follows": false,
+        "shapes": {
+          "cuboid": 42,
+          "ball": 0,
+          "capsule": 0,
+          "convex": 0,
+          "trimesh": 0,
+          "treads": 0
+        }
+      },
+      {
+        "id": "sunscar.tower",
+        "category": "buildings",
+        "surface": "wood",
+        "floor": false,
+        "solidFloor": false,
+        "follows": false,
+        "shapes": {
+          "cuboid": 32,
+          "ball": 0,
+          "capsule": 0,
+          "convex": 0,
+          "trimesh": 0,
+          "treads": 0
+        }
+      },
+      {
+        "id": "sunscar.well",
+        "category": "buildings",
+        "surface": "stone",
+        "floor": false,
+        "solidFloor": false,
+        "follows": false,
+        "shapes": {
+          "cuboid": 14,
+          "ball": 0,
+          "capsule": 0,
+          "convex": 0,
+          "trimesh": 0,
+          "treads": 0
+        }
+      }
+    ],
+    "registryModels": {
+      "models": 11,
+      "sets": 0
+    },
+    "physics": {
+      "fixed": 0,
+      "kinematic": 0,
+      "dynamic": 0,
+      "colliders": 142
+    },
+    "scene": {
+      "totals": {
+        "mesh": 172,
+        "instanced": 6,
+        "instances": 216,
+        "skinned": 13,
+        "points": 1,
+        "lines": 2,
+        "sprites": 1,
+        "lights": 5,
+        "batched": 0
+      },
+      "named": [
+        {
+          "path": "animals",
+          "type": "Group",
+          "n": 37
+        },
+        {
+          "path": "animals/far-herd",
+          "type": "Group",
+          "n": 0
+        },
+        {
+          "path": "animals/herd-shadow",
+          "type": "Group",
+          "n": 0
+        },
+        {
+          "path": "HUD + Weapon Explorer · grid arena",
+          "type": "Group",
+          "n": 9
+        },
+        {
+          "path": "loot-coins",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "loot-coins",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "loot-coins",
+          "type": "Mesh",
+          "n": 0
+        }
+      ]
     },
     "render": {
-      "programs": 32
-    }
+      "programs": 37,
+      "programKeys": "a7c3a62cae9d992c7681f7d52eeb15314012256dbe0b84c94a2030d84ccaebfe",
+      "memory": {
+        "geometries": 92,
+        "textures": 54
+      }
+    },
+    "gpuBytes": {
+      "textures": 178199060,
+      "renderbuffers": 0,
+      "buffers": 3687624,
+      "total": 181886684
+    },
+    "audio": {
+      "requests": [
+        "/assets/music/folk/island-calm-d7d189f9.m4a",
+        "/assets/music/folk/island-tension-bb05ab64.m4a",
+        "/assets/music/folk/pine-calm-10905c79.m4a",
+        "/assets/music/folk/pine-tension-180bc197.m4a",
+        "/assets/music/folk/sting-chunk-31c10eaf.m4a",
+        "/assets/music/folk/sting-death-67f54fe8.m4a",
+        "/assets/music/folk/sting-pickup-332f81db.m4a",
+        "/assets/music/folk/title-50001128.m4a",
+        "/assets/music/orchestral/island-calm-27861d1b.m4a",
+        "/assets/music/orchestral/island-tension-73116f36.m4a",
+        "/assets/music/orchestral/pine-calm-fbc4a99e.m4a",
+        "/assets/music/orchestral/pine-tension-525d8c6d.m4a",
+        "/assets/music/orchestral/sting-chunk-a639b19e.m4a",
+        "/assets/music/orchestral/sting-death-771d34f7.m4a",
+        "/assets/music/orchestral/sting-pickup-65f7ac5b.m4a",
+        "/assets/music/orchestral/title-b47c8a52.m4a",
+        "/assets/music/piano/island-calm-05125ed8.m4a",
+        "/assets/music/piano/island-tension-7faf0468.m4a",
+        "/assets/music/piano/pine-calm-923e0056.m4a",
+        "/assets/music/piano/pine-tension-cc014e5b.m4a",
+        "/assets/music/piano/sting-chunk-a4f2ffab.m4a",
+        "/assets/music/piano/sting-death-99b071e0.m4a",
+        "/assets/music/piano/sting-pickup-6ed91318.m4a",
+        "/assets/music/piano/title-3d1f713a.m4a",
+        "/assets/sfx/best/bear_growl-3-f91d7740.m4a",
+        "/assets/sfx/best/bear_hurt-1-43b45d1e.m4a",
+        "/assets/sfx/best/bear_hurt-3-3aea6172.m4a",
+        "/assets/sfx/best/bear_roar-2-29e3055e.m4a",
+        "/assets/sfx/best/bear_roar-3-9f1e177e.m4a",
+        "/assets/sfx/best/bed-forest-2-0cd11be5.m4a",
+        "/assets/sfx/best/bed-underwater-3-cbe2810d.m4a",
+        "/assets/sfx/best/boar_grunt-3-4e4a9bec.m4a",
+        "/assets/sfx/best/boar_squeal-1-804df37c.m4a",
+        "/assets/sfx/best/boltImpact-flesh-2-13ed7f2c.m4a",
+        "/assets/sfx/best/boltImpact-flesh-3-62e25aa5.m4a",
+        "/assets/sfx/best/boltImpact-ground-1-f81140e6.m4a",
+        "/assets/sfx/best/boltImpact-ground-2-5e8a3076.m4a",
+        "/assets/sfx/best/boltImpact-wood-2-8e9e99ee.m4a",
+        "/assets/sfx/best/boltImpact-wood-3-673a0ef6.m4a",
+        "/assets/sfx/best/crossbowFire-3-18ccf9f0.m4a",
+        "/assets/sfx/best/deer_call-1-7cd35867.m4a",
+        "/assets/sfx/best/deer_call-3-1d601bb4.m4a",
+        "/assets/sfx/best/dive-1-4b978224.m4a",
+        "/assets/sfx/best/dive-3-e74abc72.m4a",
+        "/assets/sfx/best/dodge-2-13887dd8.m4a",
+        "/assets/sfx/best/dodge-3-453516f6.m4a",
+        "/assets/sfx/best/dryFire-2-88071d1d.m4a",
+        "/assets/sfx/best/dryFire-3-173415cb.m4a",
+        "/assets/sfx/best/elk_bugle-2-0e80875f.m4a",
+        "/assets/sfx/best/elk_bugle-3-f6e8030e.m4a",
+        "/assets/sfx/best/footstep-litter-1-fe9cd8d9.m4a",
+        "/assets/sfx/best/footstep-litter-3-09ceed7a.m4a",
+        "/assets/sfx/best/footstep-mud-1-1dd22736.m4a",
+        "/assets/sfx/best/footstep-mud-2-99e4a10d.m4a",
+        "/assets/sfx/best/footstep-planks-2-ebb5a80c.m4a",
+        "/assets/sfx/best/footstep-planks-3-d919e436.m4a",
+        "/assets/sfx/best/footstep-rock-2-58c2cc26.m4a",
+        "/assets/sfx/best/footstep-rock-3-98e0e874.m4a",
+        "/assets/sfx/best/footstep-sand-1-09a40a2f.m4a",
+        "/assets/sfx/best/footstep-sand-2-4b40473a.m4a",
+        "/assets/sfx/best/footstep-wet-1-58d313a2.m4a",
+        "/assets/sfx/best/hitMarker-1-46ef1236.m4a",
+        "/assets/sfx/best/hoofsteps-1-9580d36a.m4a",
+        "/assets/sfx/best/hoofsteps-3-f1c11f8f.m4a",
+        "/assets/sfx/best/hum-pickup-3-7b7db58f.m4a",
+        "/assets/sfx/best/kill-2-5e4acc1b.m4a",
+        "/assets/sfx/best/kill-3-5f7ea225.m4a",
+        "/assets/sfx/best/land-2-773487f2.m4a",
+        "/assets/sfx/best/land-3-eebff605.m4a",
+        "/assets/sfx/best/land-hard-1-2ce640be.m4a",
+        "/assets/sfx/best/land-hard-3-5aed2a6b.m4a",
+        "/assets/sfx/best/lunge-3-be45ba7a.m4a",
+        "/assets/sfx/best/reload-1-d3e6d32a.m4a",
+        "/assets/sfx/best/reload-3-d81ab6e2.m4a",
+        "/assets/sfx/best/rifleFire-2-a850ad83.m4a",
+        "/assets/sfx/best/rifleFire-3-8ed56841.m4a",
+        "/assets/sfx/best/rifleReload-2-1ad54372.m4a",
+        "/assets/sfx/best/rifleReload-3-20027167.m4a",
+        "/assets/sfx/best/splash-2-03ab63ae.m4a",
+        "/assets/sfx/best/splash-3-9509efbe.m4a",
+        "/assets/sfx/best/surface-2-e5ac4e8a.m4a",
+        "/assets/sfx/best/surface-3-85550528.m4a",
+        "/assets/sfx/best/swimStroke-2-9e35721b.m4a",
+        "/assets/sfx/best/swordHeavy-2-1debcc8f.m4a",
+        "/assets/sfx/best/swordHeavy-3-1bed510f.m4a",
+        "/assets/sfx/best/swordHit-flesh-1-07225bb8.m4a",
+        "/assets/sfx/best/swordHit-flesh-2-efbf5fd7.m4a",
+        "/assets/sfx/best/swordHit-wood-2-800b6fe9.m4a",
+        "/assets/sfx/best/swordHit-wood-3-6381cc6b.m4a",
+        "/assets/sfx/best/swordSwing-1-6303fc5d.m4a",
+        "/assets/sfx/best/wadeStep-1-83e1423c.m4a",
+        "/assets/sfx/best/wadeStep-2-402e850a.m4a",
+        "/assets/sfx/best/waterExit-1-d85f0e47.m4a",
+        "/assets/sfx/best/weaponSwap-3-fbe81018.m4a"
+      ],
+      "state": {
+        "style": "piano",
+        "set": "best",
+        "mood": "menu"
+      }
+    },
+    "hud": [
+      {
+        "cls": "ws-bar",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-boss",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-boss-bar",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-boss-bar-cap",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-boss-bar-cap",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-boss-bar-caption",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-boss-bar-fill",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-boss-bar-frame",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-boss-bar-lag",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-boss-bar-name",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-boss-bar-notches",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-boss-bar-shimmer",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-boss-bar-track",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-boss-card",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-boss-card-band",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-boss-card-band",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-boss-card-emblem",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-boss-card-inner",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-boss-card-name",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-boss-card-rule",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-boss-card-rule",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-boss-card-skip",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-boss-card-title",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-boss-fade",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-boss-retry",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-boss-retry-attempt",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-boss-retry-title",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-boss-reward",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-boss-reward-flavour",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-boss-reward-gem",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-boss-reward-name",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-boss-reward-rule",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-boss-reward-tier",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-combat-death",
+        "spot": "",
+        "shown": false
+      },
+      {
+        "cls": "ws-combat-death-card",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-combat-death-cause",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-combat-death-rule",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-combat-death-where",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-combat-float",
+        "spot": "",
+        "shown": false
+      },
+      {
+        "cls": "ws-combat-float",
+        "spot": "",
+        "shown": false
+      },
+      {
+        "cls": "ws-combat-float",
+        "spot": "",
+        "shown": false
+      },
+      {
+        "cls": "ws-combat-float",
+        "spot": "",
+        "shown": false
+      },
+      {
+        "cls": "ws-combat-float",
+        "spot": "",
+        "shown": false
+      },
+      {
+        "cls": "ws-combat-float",
+        "spot": "",
+        "shown": false
+      },
+      {
+        "cls": "ws-combat-float",
+        "spot": "",
+        "shown": false
+      },
+      {
+        "cls": "ws-combat-float",
+        "spot": "",
+        "shown": false
+      },
+      {
+        "cls": "ws-combat-float",
+        "spot": "",
+        "shown": false
+      },
+      {
+        "cls": "ws-combat-float",
+        "spot": "",
+        "shown": false
+      },
+      {
+        "cls": "ws-combat-hp",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-combat-hp",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-combat-hp",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-combat-hp",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-combat-hp",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-combat-hp",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-combat-hp",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-combat-hp",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-combat-hp",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-combat-hp",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-combat-hp",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-combat-hp",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-combat-hp-fill",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-combat-hp-fill",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-combat-hp-fill",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-combat-hp-fill",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-combat-hp-fill",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-combat-hp-fill",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-combat-hp-fill",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-combat-hp-fill",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-combat-hp-fill",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-combat-hp-fill",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-combat-hp-fill",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-combat-hp-fill",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-combat-hp-kind",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-combat-hp-kind",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-combat-hp-kind",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-combat-hp-kind",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-combat-hp-kind",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-combat-hp-kind",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-combat-hp-kind",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-combat-hp-kind",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-combat-hp-kind",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-combat-hp-kind",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-combat-hp-kind",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-combat-hp-kind",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-combat-hp-track",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-combat-hp-track",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-combat-hp-track",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-combat-hp-track",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-combat-hp-track",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-combat-hp-track",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-combat-hp-track",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-combat-hp-track",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-combat-hp-track",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-combat-hp-track",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-combat-hp-track",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-combat-hp-track",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-combat-hurt",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-combat-hurt-arc",
+        "spot": "",
+        "shown": false
+      },
+      {
+        "cls": "ws-combat-hurt-arc",
+        "spot": "",
+        "shown": false
+      },
+      {
+        "cls": "ws-combat-hurt-arc",
+        "spot": "",
+        "shown": false
+      },
+      {
+        "cls": "ws-combat-hurt-arc",
+        "spot": "",
+        "shown": false
+      },
+      {
+        "cls": "ws-combat-layer",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-combat-warn",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-combat-warn-mark",
+        "spot": "",
+        "shown": false
+      },
+      {
+        "cls": "ws-combat-warn-mark",
+        "spot": "",
+        "shown": false
+      },
+      {
+        "cls": "ws-combat-warn-mark",
+        "spot": "",
+        "shown": false
+      },
+      {
+        "cls": "ws-combat-warn-mark",
+        "spot": "",
+        "shown": false
+      },
+      {
+        "cls": "ws-dive-hint ws-glass",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-aim",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-ammo ws-glass",
+        "spot": "",
+        "shown": false
+      },
+      {
+        "cls": "ws-game-arow",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-band",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-boundary",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-brk",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-brk",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-brk",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-brk",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-bs",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-bt",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-cardinal",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-cardinal",
+        "spot": "",
+        "shown": false
+      },
+      {
+        "cls": "ws-game-cardinal",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-cardinal",
+        "spot": "",
+        "shown": false
+      },
+      {
+        "cls": "ws-game-cardinal",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-cardinal",
+        "spot": "",
+        "shown": false
+      },
+      {
+        "cls": "ws-game-cardinal",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-cardinal",
+        "spot": "",
+        "shown": false
+      },
+      {
+        "cls": "ws-game-cardinal",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-cardinal",
+        "spot": "",
+        "shown": false
+      },
+      {
+        "cls": "ws-game-cardinal",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-cardinal",
+        "spot": "",
+        "shown": false
+      },
+      {
+        "cls": "ws-game-cardinal",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-cardinal",
+        "spot": "",
+        "shown": false
+      },
+      {
+        "cls": "ws-game-cardinal",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-cardinal",
+        "spot": "",
+        "shown": false
+      },
+      {
+        "cls": "ws-game-cardinal",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-cardinal",
+        "spot": "",
+        "shown": false
+      },
+      {
+        "cls": "ws-game-cardinal",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-cardinal",
+        "spot": "",
+        "shown": false
+      },
+      {
+        "cls": "ws-game-cardinal",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-cardinal",
+        "spot": "",
+        "shown": false
+      },
+      {
+        "cls": "ws-game-cardinal",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-cardinal",
+        "spot": "",
+        "shown": false
+      },
+      {
+        "cls": "ws-game-centre",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-compass",
+        "spot": "",
+        "shown": false
+      },
+      {
+        "cls": "ws-game-count",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-cross",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-feed",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-flash",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-health ws-glass",
+        "spot": "",
+        "shown": false
+      },
+      {
+        "cls": "ws-game-hitring",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-hrow",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-hval",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-lock",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-lockcand",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-lockedge",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-lockedge",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-mark",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-mark",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-notch",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-pips",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-prompt ws-glass",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-range",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-rbar",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-reserve",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-smear",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-speed",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-status",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-strip",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-tick",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-tick",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-tick",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-tick",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-tick",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-tick",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-tick",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-tick",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-tick",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-tick",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-tick",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-tick",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-tick",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-tick",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-tick",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-tick",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-tick",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-tick",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-tick",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-tick",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-tick",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-tick",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-tick",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-tick",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-tick",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-tick",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-tick",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-tick",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-tick",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-tick",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-tick",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-tick",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-tick",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-tick",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-tick",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-tick",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-tick",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-tick",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-tick",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-tick",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-tick",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-tick",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-tick",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-tick",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-tick",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-tick",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-tick",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-tick",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-tick",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-tick",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-tick",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-tick",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-tick",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-tick",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-tick",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-tick",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-tick",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-tick",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-tick",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-tick",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-tick",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-tick",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-tick",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-tick",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-tick",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-tick",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-tick",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-tick",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-tick",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-tick",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-tick",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-tick",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-toasts",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-weapon",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-game-x",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-glass ws-hint-tag",
+        "spot": "",
+        "shown": false
+      },
+      {
+        "cls": "ws-hint-ring",
+        "spot": "",
+        "shown": false
+      },
+      {
+        "cls": "ws-label",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-label",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-loot-chip",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-loot-coin",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-loot-num",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-loot-pop",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-loot-pop",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-loot-pop",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-loot-pop",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-minimap",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-minimap-bag",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-minimap-bag-body",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-minimap-bag-corner",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-minimap-bag-edge",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-minimap-bag-hit",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-minimap-bag-icon",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-minimap-bag-loop",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-minimap-bag-piece",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-minimap-bag-seam",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-minimap-bag-seam",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-minimap-canvas",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-minimap-n",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-practice",
+        "spot": "",
+        "shown": false
+      },
+      {
+        "cls": "ws-practice-label",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-practice-label",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-practice-label",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-practice-preparing",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-touch-slot",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-touch-slot-ammo",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-touch-slot-key",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-touch-slot-name",
+        "spot": "",
+        "shown": true
+      },
+      {
+        "cls": "ws-touch-strip",
+        "spot": "",
+        "shown": false
+      }
+    ],
+    "saves": {
+      "read": [
+        "local:wildshard.save.v2.device",
+        "local:wildshard.save.v2.driftwood-isle",
+        "local:wildshard.save.v2.far-reach",
+        "local:wildshard.save.v2.global",
+        "local:wildshard.save.v2.nalati-grasslands",
+        "local:wildshard.save.v2.nine-dragon-stack",
+        "local:wildshard.save.v2.pine-hollow",
+        "local:wildshard.save.v2.sunscar-dunes",
+        "session:wildshard.save.v2.session"
+      ],
+      "written": [
+        "local:wildshard.save.v2.device",
+        "local:wildshard.save.v2.global",
+        "session:wildshard.save.v2.session"
+      ]
+    },
+    "playMs": 5743.5,
+    "stepMs": {
+      "renderer": 9,
+      "sky": 4372,
+      "terrain": 51,
+      "cards": 7,
+      "forest": 6,
+      "physics": 13,
+      "edge": 6,
+      "grass": 0,
+      "cabins": 0,
+      "props": 28,
+      "animals": 1,
+      "weapon": 0,
+      "menu": 9,
+      "shaders": 270,
+      "firstFrame": 233,
+      "audio": 0
+    },
+    "heapMB": 29.31113052368164
   },
   "poses": {
-    "current": {
+    "spawn": {
+      "name": "spawn",
+      "pos": [
+        0.0018562750833552855,
+        7.850132280154455,
+        69.99934489489999
+      ],
+      "calls": 122,
+      "tris": 101750,
+      "fps": 1065.808299749143,
+      "frameP95Ms": 2.1999998092651367,
+      "cpuP50Ms": 0.6999998092651367,
+      "cpuP95Ms": 1.0999999046325684,
+      "creatureBoxes": 10,
+      "boxes": [
+        [
+          452,
+          211,
+          605,
+          398
+        ],
+        [
+          39,
+          493,
+          117,
+          606
+        ],
+        [
+          1423,
+          446,
+          1471,
+          528
+        ],
+        [
+          1421,
+          445,
+          1473,
+          530
+        ],
+        [
+          1349,
+          455,
+          1396,
+          536
+        ],
+        [
+          654,
+          471,
+          687,
+          538
+        ],
+        [
+          659,
+          473,
+          691,
+          539
+        ],
+        [
+          688,
+          473,
+          719,
+          537
+        ],
+        [
+          682,
+          470,
+          714,
+          537
+        ],
+        [
+          1295,
+          441,
+          1339,
+          519
+        ]
+      ],
+      "shot": "/private/tmp/e357-sol-ceil/captures/run-1/sunscar-dunes.desktop.spawn.jpg",
+      "ssim": 1
+    },
+    "whip": {
+      "name": "whip",
+      "pos": [
+        0.0018549588999121625,
+        7.797361891353811,
+        65.99936958084686
+      ],
       "calls": 125,
-      "tris": 140631
+      "tris": 102252,
+      "fps": 1049.2957746478874,
+      "frameP95Ms": 2,
+      "cpuP50Ms": 0.7000002861022949,
+      "cpuP95Ms": 1.0999999046325684,
+      "creatureBoxes": 9,
+      "boxes": [
+        [
+          654,
+          139,
+          811,
+          330
+        ],
+        [
+          369,
+          416,
+          435,
+          516
+        ],
+        [
+          288,
+          416,
+          353,
+          515
+        ],
+        [
+          243,
+          445,
+          323,
+          559
+        ],
+        [
+          868,
+          406,
+          902,
+          474
+        ],
+        [
+          873,
+          409,
+          905,
+          475
+        ],
+        [
+          903,
+          409,
+          934,
+          474
+        ],
+        [
+          896,
+          406,
+          929,
+          473
+        ],
+        [
+          313,
+          372,
+          368,
+          461
+        ]
+      ],
+      "shot": "/private/tmp/e357-sol-ceil/captures/run-1/sunscar-dunes.desktop.whip.jpg",
+      "ssim": 1
+    },
+    "ray": {
+      "name": "ray",
+      "pos": [
+        0.0018562750833552855,
+        7.850132280154455,
+        69.99934489489999
+      ],
+      "calls": 68,
+      "tris": 99196,
+      "fps": 1148.8049361535634,
+      "frameP95Ms": 1.9000000953674316,
+      "cpuP50Ms": 0.5999999046325684,
+      "cpuP95Ms": 0.9000000953674316,
+      "creatureBoxes": 7,
+      "boxes": [
+        [
+          1153,
+          360,
+          1320,
+          562
+        ],
+        [
+          899,
+          659,
+          958,
+          753
+        ],
+        [
+          839,
+          656,
+          895,
+          746
+        ],
+        [
+          814,
+          680,
+          882,
+          782
+        ],
+        [
+          1536,
+          678,
+          1582,
+          758
+        ],
+        [
+          1549,
+          683,
+          1593,
+          761
+        ],
+        [
+          833,
+          617,
+          881,
+          699
+        ]
+      ],
+      "shot": "/private/tmp/e357-sol-ceil/captures/run-1/sunscar-dunes.desktop.ray.jpg",
+      "ssim": 1
+    },
+    "quest": {
+      "name": "quest",
+      "pos": [
+        4.0006222202620165,
+        7.567410863421061,
+        -62.99169369331503
+      ],
+      "calls": 91,
+      "tris": 93459,
+      "fps": 1138.2734903853766,
+      "frameP95Ms": 2.1000003814697266,
+      "cpuP50Ms": 0.5,
+      "cpuP95Ms": 0.9000000953674316,
+      "creatureBoxes": 0,
+      "boxes": [],
+      "shot": "/private/tmp/e357-sol-ceil/captures/run-1/sunscar-dunes.desktop.quest.jpg",
+      "ssim": 1
     }
   },
   "budgets": {
-    "current": {
+    "spawn": {
       "derived": {
-        "draws": 4110,
+        "draws": 3914,
         "tris": 52174145,
         "programs": 826,
         "gpuMB": null
       },
-      "ceiling": null,
-      "observed": {
-        "draws": 125,
-        "tris": 140631,
-        "programs": 32,
+      "ceiling": {
         "gpuMB": 172.10171127319336
+      },
+      "formula": {
+        "inputs": {
+          "ceilings": {
+            "phone": {
+              "current": {
+                "gpuMB": 57.324119567871094
+              }
+            },
+            "desktop": {
+              "current": {
+                "gpuMB": 172.10171127319336
+              }
+            }
+          },
+          "phone": {
+            "fps": 30,
+            "variability": 1.3,
+            "cpuMs": 9.6,
+            "gcMs": 0.3,
+            "systems": {
+              "physics": 0.3,
+              "ai": 0.3,
+              "animation": 0.3,
+              "player": 0.2,
+              "world": 0.2,
+              "hud": 0.1,
+              "audio": 0.1
+            },
+            "vertexShare": 0.5,
+            "lanes": {
+              "opaque": 0.4,
+              "shadow": 0.2,
+              "transparent": 0.1,
+              "viewmodel": 0.1,
+              "post": 0.1,
+              "reserve": 0.1
+            },
+            "linkMs": 1000
+          },
+          "desktop": {
+            "fps": 60,
+            "variability": 1.3,
+            "cpuMs": 4.8,
+            "gcMs": 0.3,
+            "systems": {
+              "physics": 0.3,
+              "ai": 0.3,
+              "animation": 0.3,
+              "player": 0.2,
+              "world": 0.2,
+              "hud": 0.1,
+              "audio": 0.1
+            },
+            "vertexShare": 0.5,
+            "lanes": {
+              "opaque": 0.4,
+              "shadow": 0.2,
+              "transparent": 0.1,
+              "viewmodel": 0.1,
+              "post": 0.1,
+              "reserve": 0.1
+            },
+            "linkMs": 1000
+          },
+          "load": {
+            "coldPlay4G": null,
+            "fixedSeconds": 0,
+            "cpuRatio": 2,
+            "bytesPerSecond": 1125000
+          }
+        },
+        "source": "https://browser.geekbench.com/opencl-benchmarks",
+        "assumption": "Projected RTX 3060 / M5 Max throughput = OpenCL 80711 / 145258; replace with measured rtx3060 costs when available",
+        "expressions": {
+          "frame": "1000 / 60 / 1.3",
+          "gpu": "12.820512820512821 - 4.8",
+          "draws": "floor((4.8 - 1.5 - 0.3) / (0.0004257812537252903 × 1.7997299005092244))",
+          "tris": "floor(8.02051282051282 × 0.5 / (4.2708022548417234e-8 × 1.7997299005092244))",
+          "programs": "floor(1000 / (0.6720833336313565 × 1.7997299005092244))",
+          "gpuMB": "GL bytes retain measured baseline ceiling; native footprint is a separate Simulator gate",
+          "downloadBytes": "(null - 0 × 2) × 1125000"
+        }
+      },
+      "systemMs": {
+        "physics": 0.3,
+        "ai": 0.3,
+        "animation": 0.3,
+        "player": 0.2,
+        "world": 0.2,
+        "hud": 0.1,
+        "audio": 0.1
+      },
+      "gpuM5Ms": 4.456509178540323,
+      "downloadBytes": null
+    },
+    "whip": {
+      "derived": {
+        "draws": 3914,
+        "tris": 52174145,
+        "programs": 826,
+        "gpuMB": null
+      },
+      "ceiling": {
+        "gpuMB": 172.10171127319336
+      },
+      "formula": {
+        "inputs": {
+          "ceilings": {
+            "phone": {
+              "current": {
+                "gpuMB": 57.324119567871094
+              }
+            },
+            "desktop": {
+              "current": {
+                "gpuMB": 172.10171127319336
+              }
+            }
+          },
+          "phone": {
+            "fps": 30,
+            "variability": 1.3,
+            "cpuMs": 9.6,
+            "gcMs": 0.3,
+            "systems": {
+              "physics": 0.3,
+              "ai": 0.3,
+              "animation": 0.3,
+              "player": 0.2,
+              "world": 0.2,
+              "hud": 0.1,
+              "audio": 0.1
+            },
+            "vertexShare": 0.5,
+            "lanes": {
+              "opaque": 0.4,
+              "shadow": 0.2,
+              "transparent": 0.1,
+              "viewmodel": 0.1,
+              "post": 0.1,
+              "reserve": 0.1
+            },
+            "linkMs": 1000
+          },
+          "desktop": {
+            "fps": 60,
+            "variability": 1.3,
+            "cpuMs": 4.8,
+            "gcMs": 0.3,
+            "systems": {
+              "physics": 0.3,
+              "ai": 0.3,
+              "animation": 0.3,
+              "player": 0.2,
+              "world": 0.2,
+              "hud": 0.1,
+              "audio": 0.1
+            },
+            "vertexShare": 0.5,
+            "lanes": {
+              "opaque": 0.4,
+              "shadow": 0.2,
+              "transparent": 0.1,
+              "viewmodel": 0.1,
+              "post": 0.1,
+              "reserve": 0.1
+            },
+            "linkMs": 1000
+          },
+          "load": {
+            "coldPlay4G": null,
+            "fixedSeconds": 0,
+            "cpuRatio": 2,
+            "bytesPerSecond": 1125000
+          }
+        },
+        "source": "https://browser.geekbench.com/opencl-benchmarks",
+        "assumption": "Projected RTX 3060 / M5 Max throughput = OpenCL 80711 / 145258; replace with measured rtx3060 costs when available",
+        "expressions": {
+          "frame": "1000 / 60 / 1.3",
+          "gpu": "12.820512820512821 - 4.8",
+          "draws": "floor((4.8 - 1.5 - 0.3) / (0.0004257812537252903 × 1.7997299005092244))",
+          "tris": "floor(8.02051282051282 × 0.5 / (4.2708022548417234e-8 × 1.7997299005092244))",
+          "programs": "floor(1000 / (0.6720833336313565 × 1.7997299005092244))",
+          "gpuMB": "GL bytes retain measured baseline ceiling; native footprint is a separate Simulator gate",
+          "downloadBytes": "(null - 0 × 2) × 1125000"
+        }
+      },
+      "systemMs": {
+        "physics": 0.3,
+        "ai": 0.3,
+        "animation": 0.3,
+        "player": 0.2,
+        "world": 0.2,
+        "hud": 0.1,
+        "audio": 0.1
+      },
+      "gpuM5Ms": 4.456509178540323,
+      "downloadBytes": null
+    },
+    "ray": {
+      "derived": {
+        "draws": 3914,
+        "tris": 52174145,
+        "programs": 826,
+        "gpuMB": null
+      },
+      "ceiling": {
+        "gpuMB": 172.10171127319336
+      },
+      "formula": {
+        "inputs": {
+          "ceilings": {
+            "phone": {
+              "current": {
+                "gpuMB": 57.324119567871094
+              }
+            },
+            "desktop": {
+              "current": {
+                "gpuMB": 172.10171127319336
+              }
+            }
+          },
+          "phone": {
+            "fps": 30,
+            "variability": 1.3,
+            "cpuMs": 9.6,
+            "gcMs": 0.3,
+            "systems": {
+              "physics": 0.3,
+              "ai": 0.3,
+              "animation": 0.3,
+              "player": 0.2,
+              "world": 0.2,
+              "hud": 0.1,
+              "audio": 0.1
+            },
+            "vertexShare": 0.5,
+            "lanes": {
+              "opaque": 0.4,
+              "shadow": 0.2,
+              "transparent": 0.1,
+              "viewmodel": 0.1,
+              "post": 0.1,
+              "reserve": 0.1
+            },
+            "linkMs": 1000
+          },
+          "desktop": {
+            "fps": 60,
+            "variability": 1.3,
+            "cpuMs": 4.8,
+            "gcMs": 0.3,
+            "systems": {
+              "physics": 0.3,
+              "ai": 0.3,
+              "animation": 0.3,
+              "player": 0.2,
+              "world": 0.2,
+              "hud": 0.1,
+              "audio": 0.1
+            },
+            "vertexShare": 0.5,
+            "lanes": {
+              "opaque": 0.4,
+              "shadow": 0.2,
+              "transparent": 0.1,
+              "viewmodel": 0.1,
+              "post": 0.1,
+              "reserve": 0.1
+            },
+            "linkMs": 1000
+          },
+          "load": {
+            "coldPlay4G": null,
+            "fixedSeconds": 0,
+            "cpuRatio": 2,
+            "bytesPerSecond": 1125000
+          }
+        },
+        "source": "https://browser.geekbench.com/opencl-benchmarks",
+        "assumption": "Projected RTX 3060 / M5 Max throughput = OpenCL 80711 / 145258; replace with measured rtx3060 costs when available",
+        "expressions": {
+          "frame": "1000 / 60 / 1.3",
+          "gpu": "12.820512820512821 - 4.8",
+          "draws": "floor((4.8 - 1.5 - 0.3) / (0.0004257812537252903 × 1.7997299005092244))",
+          "tris": "floor(8.02051282051282 × 0.5 / (4.2708022548417234e-8 × 1.7997299005092244))",
+          "programs": "floor(1000 / (0.6720833336313565 × 1.7997299005092244))",
+          "gpuMB": "GL bytes retain measured baseline ceiling; native footprint is a separate Simulator gate",
+          "downloadBytes": "(null - 0 × 2) × 1125000"
+        }
+      },
+      "systemMs": {
+        "physics": 0.3,
+        "ai": 0.3,
+        "animation": 0.3,
+        "player": 0.2,
+        "world": 0.2,
+        "hud": 0.1,
+        "audio": 0.1
+      },
+      "gpuM5Ms": 4.456509178540323,
+      "downloadBytes": null
+    },
+    "quest": {
+      "derived": {
+        "draws": 3914,
+        "tris": 52174145,
+        "programs": 826,
+        "gpuMB": null
+      },
+      "ceiling": {
+        "gpuMB": 172.10171127319336
+      },
+      "formula": {
+        "inputs": {
+          "ceilings": {
+            "phone": {
+              "current": {
+                "gpuMB": 57.324119567871094
+              }
+            },
+            "desktop": {
+              "current": {
+                "gpuMB": 172.10171127319336
+              }
+            }
+          },
+          "phone": {
+            "fps": 30,
+            "variability": 1.3,
+            "cpuMs": 9.6,
+            "gcMs": 0.3,
+            "systems": {
+              "physics": 0.3,
+              "ai": 0.3,
+              "animation": 0.3,
+              "player": 0.2,
+              "world": 0.2,
+              "hud": 0.1,
+              "audio": 0.1
+            },
+            "vertexShare": 0.5,
+            "lanes": {
+              "opaque": 0.4,
+              "shadow": 0.2,
+              "transparent": 0.1,
+              "viewmodel": 0.1,
+              "post": 0.1,
+              "reserve": 0.1
+            },
+            "linkMs": 1000
+          },
+          "desktop": {
+            "fps": 60,
+            "variability": 1.3,
+            "cpuMs": 4.8,
+            "gcMs": 0.3,
+            "systems": {
+              "physics": 0.3,
+              "ai": 0.3,
+              "animation": 0.3,
+              "player": 0.2,
+              "world": 0.2,
+              "hud": 0.1,
+              "audio": 0.1
+            },
+            "vertexShare": 0.5,
+            "lanes": {
+              "opaque": 0.4,
+              "shadow": 0.2,
+              "transparent": 0.1,
+              "viewmodel": 0.1,
+              "post": 0.1,
+              "reserve": 0.1
+            },
+            "linkMs": 1000
+          },
+          "load": {
+            "coldPlay4G": null,
+            "fixedSeconds": 0,
+            "cpuRatio": 2,
+            "bytesPerSecond": 1125000
+          }
+        },
+        "source": "https://browser.geekbench.com/opencl-benchmarks",
+        "assumption": "Projected RTX 3060 / M5 Max throughput = OpenCL 80711 / 145258; replace with measured rtx3060 costs when available",
+        "expressions": {
+          "frame": "1000 / 60 / 1.3",
+          "gpu": "12.820512820512821 - 4.8",
+          "draws": "floor((4.8 - 1.5 - 0.3) / (0.0004257812537252903 × 1.7997299005092244))",
+          "tris": "floor(8.02051282051282 × 0.5 / (4.2708022548417234e-8 × 1.7997299005092244))",
+          "programs": "floor(1000 / (0.6720833336313565 × 1.7997299005092244))",
+          "gpuMB": "GL bytes retain measured baseline ceiling; native footprint is a separate Simulator gate",
+          "downloadBytes": "(null - 0 × 2) × 1125000"
+        }
+      },
+      "systemMs": {
+        "physics": 0.3,
+        "ai": 0.3,
+        "animation": 0.3,
+        "player": 0.2,
+        "world": 0.2,
+        "hud": 0.1,
+        "audio": 0.1
+      },
+      "gpuM5Ms": 4.456509178540323,
+      "downloadBytes": null
+    },
+    "tower": {
+      "derived": {
+        "draws": 3914,
+        "tris": 52174145,
+        "programs": 826,
+        "gpuMB": null
+      },
+      "ceiling": {
+        "gpuMB": 172.10171127319336
+      },
+      "formula": {
+        "inputs": {
+          "ceilings": {
+            "phone": {
+              "current": {
+                "gpuMB": 57.324119567871094
+              }
+            },
+            "desktop": {
+              "current": {
+                "gpuMB": 172.10171127319336
+              }
+            }
+          },
+          "phone": {
+            "fps": 30,
+            "variability": 1.3,
+            "cpuMs": 9.6,
+            "gcMs": 0.3,
+            "systems": {
+              "physics": 0.3,
+              "ai": 0.3,
+              "animation": 0.3,
+              "player": 0.2,
+              "world": 0.2,
+              "hud": 0.1,
+              "audio": 0.1
+            },
+            "vertexShare": 0.5,
+            "lanes": {
+              "opaque": 0.4,
+              "shadow": 0.2,
+              "transparent": 0.1,
+              "viewmodel": 0.1,
+              "post": 0.1,
+              "reserve": 0.1
+            },
+            "linkMs": 1000
+          },
+          "desktop": {
+            "fps": 60,
+            "variability": 1.3,
+            "cpuMs": 4.8,
+            "gcMs": 0.3,
+            "systems": {
+              "physics": 0.3,
+              "ai": 0.3,
+              "animation": 0.3,
+              "player": 0.2,
+              "world": 0.2,
+              "hud": 0.1,
+              "audio": 0.1
+            },
+            "vertexShare": 0.5,
+            "lanes": {
+              "opaque": 0.4,
+              "shadow": 0.2,
+              "transparent": 0.1,
+              "viewmodel": 0.1,
+              "post": 0.1,
+              "reserve": 0.1
+            },
+            "linkMs": 1000
+          },
+          "load": {
+            "coldPlay4G": null,
+            "fixedSeconds": 0,
+            "cpuRatio": 2,
+            "bytesPerSecond": 1125000
+          }
+        },
+        "source": "https://browser.geekbench.com/opencl-benchmarks",
+        "assumption": "Projected RTX 3060 / M5 Max throughput = OpenCL 80711 / 145258; replace with measured rtx3060 costs when available",
+        "expressions": {
+          "frame": "1000 / 60 / 1.3",
+          "gpu": "12.820512820512821 - 4.8",
+          "draws": "floor((4.8 - 1.5 - 0.3) / (0.0004257812537252903 × 1.7997299005092244))",
+          "tris": "floor(8.02051282051282 × 0.5 / (4.2708022548417234e-8 × 1.7997299005092244))",
+          "programs": "floor(1000 / (0.6720833336313565 × 1.7997299005092244))",
+          "gpuMB": "GL bytes retain measured baseline ceiling; native footprint is a separate Simulator gate",
+          "downloadBytes": "(null - 0 × 2) × 1125000"
+        }
+      },
+      "systemMs": {
+        "physics": 0.3,
+        "ai": 0.3,
+        "animation": 0.3,
+        "player": 0.2,
+        "world": 0.2,
+        "hud": 0.1,
+        "audio": 0.1
+      },
+      "gpuM5Ms": 4.456509178540323,
+      "downloadBytes": null,
+      "observed": {
+        "draws": 110,
+        "tris": 101466,
+        "programs": 37,
+        "gpuMB": 173.4606590270996
+      }
+    },
+    "current": {
+      "derived": {
+        "draws": 3914,
+        "tris": 52174145,
+        "programs": 826,
+        "gpuMB": null
+      },
+      "ceiling": {
+        "gpuMB": 172.10171127319336
+      },
+      "formula": {
+        "inputs": {
+          "ceilings": {
+            "phone": {
+              "current": {
+                "gpuMB": 57.324119567871094
+              }
+            },
+            "desktop": {
+              "current": {
+                "gpuMB": 172.10171127319336
+              }
+            }
+          },
+          "phone": {
+            "fps": 30,
+            "variability": 1.3,
+            "cpuMs": 9.6,
+            "gcMs": 0.3,
+            "systems": {
+              "physics": 0.3,
+              "ai": 0.3,
+              "animation": 0.3,
+              "player": 0.2,
+              "world": 0.2,
+              "hud": 0.1,
+              "audio": 0.1
+            },
+            "vertexShare": 0.5,
+            "lanes": {
+              "opaque": 0.4,
+              "shadow": 0.2,
+              "transparent": 0.1,
+              "viewmodel": 0.1,
+              "post": 0.1,
+              "reserve": 0.1
+            },
+            "linkMs": 1000
+          },
+          "desktop": {
+            "fps": 60,
+            "variability": 1.3,
+            "cpuMs": 4.8,
+            "gcMs": 0.3,
+            "systems": {
+              "physics": 0.3,
+              "ai": 0.3,
+              "animation": 0.3,
+              "player": 0.2,
+              "world": 0.2,
+              "hud": 0.1,
+              "audio": 0.1
+            },
+            "vertexShare": 0.5,
+            "lanes": {
+              "opaque": 0.4,
+              "shadow": 0.2,
+              "transparent": 0.1,
+              "viewmodel": 0.1,
+              "post": 0.1,
+              "reserve": 0.1
+            },
+            "linkMs": 1000
+          },
+          "load": {
+            "coldPlay4G": null,
+            "fixedSeconds": 0,
+            "cpuRatio": 2,
+            "bytesPerSecond": 1125000
+          }
+        },
+        "source": "https://browser.geekbench.com/opencl-benchmarks",
+        "assumption": "Projected RTX 3060 / M5 Max throughput = OpenCL 80711 / 145258; replace with measured rtx3060 costs when available",
+        "expressions": {
+          "frame": "1000 / 60 / 1.3",
+          "gpu": "12.820512820512821 - 4.8",
+          "draws": "floor((4.8 - 1.5 - 0.3) / (0.0004257812537252903 × 1.7997299005092244))",
+          "tris": "floor(8.02051282051282 × 0.5 / (4.2708022548417234e-8 × 1.7997299005092244))",
+          "programs": "floor(1000 / (0.6720833336313565 × 1.7997299005092244))",
+          "gpuMB": "GL bytes retain measured baseline ceiling; native footprint is a separate Simulator gate",
+          "downloadBytes": "(null - 0 × 2) × 1125000"
+        }
+      },
+      "systemMs": {
+        "physics": 0.3,
+        "ai": 0.3,
+        "animation": 0.3,
+        "player": 0.2,
+        "world": 0.2,
+        "hud": 0.1,
+        "audio": 0.1
+      },
+      "gpuM5Ms": 4.456509178540323,
+      "downloadBytes": null,
+      "observed": {
+        "draws": 110,
+        "tris": 101466,
+        "programs": 37,
+        "gpuMB": 173.4606590270996
       }
     }
-  }
+  },
+  "verdict": "red",
+  "fields": [
+    {
+      "field": "boot.errors",
+      "now": [],
+      "class": "D",
+      "band": "[]",
+      "verdict": "green"
+    },
+    {
+      "field": "boot.renderer",
+      "now": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+      "class": "D",
+      "band": "ANGLE Metal",
+      "verdict": "green"
+    },
+    {
+      "field": "boot.scene.totals.batched",
+      "now": 0,
+      "class": "D",
+      "band": "record initial count (B15)",
+      "verdict": "green"
+    },
+    {
+      "field": "budgets.spawn.draws",
+      "baseline": 3914,
+      "now": 122,
+      "class": "D",
+      "band": "≤ 3914",
+      "verdict": "green"
+    },
+    {
+      "field": "budgets.spawn.tris",
+      "baseline": 52174145,
+      "now": 101750,
+      "class": "D",
+      "band": "≤ 52174145",
+      "verdict": "green"
+    },
+    {
+      "field": "budgets.spawn.programs",
+      "baseline": 826,
+      "now": 37,
+      "class": "D",
+      "band": "≤ 826",
+      "verdict": "green"
+    },
+    {
+      "field": "budgets.spawn.gpuMB",
+      "baseline": 172.10171127319336,
+      "now": 173.4606590270996,
+      "class": "D",
+      "band": "≤ 172.10171127319336",
+      "verdict": "red"
+    },
+    {
+      "field": "budgets.whip.draws",
+      "baseline": 3914,
+      "now": 125,
+      "class": "D",
+      "band": "≤ 3914",
+      "verdict": "green"
+    },
+    {
+      "field": "budgets.whip.tris",
+      "baseline": 52174145,
+      "now": 102252,
+      "class": "D",
+      "band": "≤ 52174145",
+      "verdict": "green"
+    },
+    {
+      "field": "budgets.whip.programs",
+      "baseline": 826,
+      "now": 37,
+      "class": "D",
+      "band": "≤ 826",
+      "verdict": "green"
+    },
+    {
+      "field": "budgets.whip.gpuMB",
+      "baseline": 172.10171127319336,
+      "now": 173.4606590270996,
+      "class": "D",
+      "band": "≤ 172.10171127319336",
+      "verdict": "red"
+    },
+    {
+      "field": "budgets.ray.draws",
+      "baseline": 3914,
+      "now": 68,
+      "class": "D",
+      "band": "≤ 3914",
+      "verdict": "green"
+    },
+    {
+      "field": "budgets.ray.tris",
+      "baseline": 52174145,
+      "now": 99196,
+      "class": "D",
+      "band": "≤ 52174145",
+      "verdict": "green"
+    },
+    {
+      "field": "budgets.ray.programs",
+      "baseline": 826,
+      "now": 37,
+      "class": "D",
+      "band": "≤ 826",
+      "verdict": "green"
+    },
+    {
+      "field": "budgets.ray.gpuMB",
+      "baseline": 172.10171127319336,
+      "now": 173.4606590270996,
+      "class": "D",
+      "band": "≤ 172.10171127319336",
+      "verdict": "red"
+    },
+    {
+      "field": "budgets.quest.draws",
+      "baseline": 3914,
+      "now": 91,
+      "class": "D",
+      "band": "≤ 3914",
+      "verdict": "green"
+    },
+    {
+      "field": "budgets.quest.tris",
+      "baseline": 52174145,
+      "now": 93459,
+      "class": "D",
+      "band": "≤ 52174145",
+      "verdict": "green"
+    },
+    {
+      "field": "budgets.quest.programs",
+      "baseline": 826,
+      "now": 37,
+      "class": "D",
+      "band": "≤ 826",
+      "verdict": "green"
+    },
+    {
+      "field": "budgets.quest.gpuMB",
+      "baseline": 172.10171127319336,
+      "now": 173.4606590270996,
+      "class": "D",
+      "band": "≤ 172.10171127319336",
+      "verdict": "red"
+    },
+    {
+      "field": "budgets.tower.draws",
+      "baseline": 3914,
+      "now": 110,
+      "class": "D",
+      "band": "≤ 3914",
+      "verdict": "green"
+    },
+    {
+      "field": "budgets.tower.tris",
+      "baseline": 52174145,
+      "now": 101466,
+      "class": "D",
+      "band": "≤ 52174145",
+      "verdict": "green"
+    },
+    {
+      "field": "budgets.tower.programs",
+      "baseline": 826,
+      "now": 37,
+      "class": "D",
+      "band": "≤ 826",
+      "verdict": "green"
+    },
+    {
+      "field": "budgets.tower.gpuMB",
+      "baseline": 172.10171127319336,
+      "now": 173.4606590270996,
+      "class": "D",
+      "band": "≤ 172.10171127319336",
+      "verdict": "red"
+    },
+    {
+      "field": "budgets.current.draws",
+      "baseline": 3914,
+      "now": 110,
+      "class": "D",
+      "band": "≤ 3914",
+      "verdict": "green"
+    },
+    {
+      "field": "budgets.current.tris",
+      "baseline": 52174145,
+      "now": 101466,
+      "class": "D",
+      "band": "≤ 52174145",
+      "verdict": "green"
+    },
+    {
+      "field": "budgets.current.programs",
+      "baseline": 826,
+      "now": 37,
+      "class": "D",
+      "band": "≤ 826",
+      "verdict": "green"
+    },
+    {
+      "field": "budgets.current.gpuMB",
+      "baseline": 172.10171127319336,
+      "now": 173.4606590270996,
+      "class": "D",
+      "band": "≤ 172.10171127319336",
+      "verdict": "red"
+    },
+    {
+      "field": "boot.schema",
+      "now": 1,
+      "class": "A",
+      "band": "exact",
+      "verdict": "lane-pending"
+    },
+    {
+      "field": "boot.lane",
+      "now": "m5",
+      "class": "A",
+      "band": "exact",
+      "verdict": "lane-pending"
+    },
+    {
+      "field": "boot.sha",
+      "now": "a28af631097f6f41bb92e0621c5d1a537054a804",
+      "class": "C",
+      "band": "information",
+      "verdict": "info"
+    },
+    {
+      "field": "boot.build",
+      "now": "a28af63-muqccem6",
+      "class": "C",
+      "band": "information",
+      "verdict": "info"
+    },
+    {
+      "field": "boot.shard",
+      "now": "sunscar-dunes",
+      "class": "A",
+      "band": "exact",
+      "verdict": "lane-pending"
+    },
+    {
+      "field": "boot.tier",
+      "now": "desktop",
+      "class": "A",
+      "band": "exact",
+      "verdict": "lane-pending"
+    },
+    {
+      "field": "boot.viewport.w",
+      "now": 1600,
+      "class": "A",
+      "band": "exact",
+      "verdict": "lane-pending"
+    },
+    {
+      "field": "boot.viewport.h",
+      "now": 900,
+      "class": "A",
+      "band": "exact",
+      "verdict": "lane-pending"
+    },
+    {
+      "field": "boot.viewport.dpr",
+      "now": 1,
+      "class": "A",
+      "band": "exact",
+      "verdict": "lane-pending"
+    },
+    {
+      "field": "boot.viewport.touch",
+      "now": false,
+      "class": "A",
+      "band": "exact",
+      "verdict": "lane-pending"
+    },
+    {
+      "field": "boot.browser",
+      "now": "153.0.8010.12",
+      "class": "C",
+      "band": "information",
+      "verdict": "info"
+    },
+    {
+      "field": "boot.steps",
+      "now": [
+        "renderer",
+        "sky",
+        "terrain",
+        "cards",
+        "forest",
+        "physics",
+        "edge",
+        "grass",
+        "cabins",
+        "props",
+        "animals",
+        "weapon",
+        "menu",
+        "shaders",
+        "firstFrame",
+        "audio"
+      ],
+      "class": "A",
+      "band": "exact",
+      "verdict": "lane-pending"
+    },
+    {
+      "field": "boot.systems.input",
+      "now": [
+        "engine.input.weapon",
+        "engine.input.contexts",
+        "engine.input.collect",
+        "engine.lockon.input",
+        "engine.player.input"
+      ],
+      "class": "A",
+      "band": "exact",
+      "verdict": "lane-pending"
+    },
+    {
+      "field": "boot.systems.fixed.pre",
+      "now": [
+        "physics.bodies.pre",
+        "physics.movers"
+      ],
+      "class": "A",
+      "band": "exact",
+      "verdict": "lane-pending"
+    },
+    {
+      "field": "boot.systems.fixed.step",
+      "now": [
+        "physics.step"
+      ],
+      "class": "A",
+      "band": "exact",
+      "verdict": "lane-pending"
+    },
+    {
+      "field": "boot.systems.fixed.post",
+      "now": [
+        "physics.bodies.post",
+        "player.step"
+      ],
+      "class": "A",
+      "band": "exact",
+      "verdict": "lane-pending"
+    },
+    {
+      "field": "boot.systems.update",
+      "now": [
+        "player.update",
+        "sunscar.fire",
+        "training-arena",
+        "hud.perf",
+        "engine.world.bounds",
+        "engine.effects",
+        "main.6",
+        "hud.combat",
+        "first hints",
+        "main.world",
+        "engine.creatures.update",
+        "main.equipment",
+        "engine.audio.listener",
+        "main.frame",
+        "engine.player.regen",
+        "engine.player.hud",
+        "game.loot",
+        "sunscar.reward",
+        "sunscar.matriarch",
+        "sunscar.creatures"
+      ],
+      "class": "A",
+      "band": "exact",
+      "verdict": "lane-pending"
+    },
+    {
+      "field": "boot.systems.late",
+      "now": [
+        "engine.input.trace",
+        "engine.input.edges",
+        "engine.hud.pins"
+      ],
+      "class": "A",
+      "band": "exact",
+      "verdict": "lane-pending"
+    },
+    {
+      "field": "boot.appStates",
+      "now": [
+        "boot",
+        "loading",
+        "play"
+      ],
+      "class": "A",
+      "band": "exact",
+      "verdict": "lane-pending"
+    },
+    {
+      "field": "boot.registry",
+      "now": [
+        {
+          "id": "model:shared/hoverboard",
+          "category": "gear",
+          "surface": "wood",
+          "floor": false,
+          "solidFloor": false,
+          "follows": false,
+          "shapes": {
+            "cuboid": 0,
+            "ball": 0,
+            "capsule": 0,
+            "convex": 0,
+            "trimesh": 0,
+            "treads": 0
+          }
+        },
+        {
+          "id": "model:shared/training-dummy",
+          "category": "props",
+          "surface": "wood",
+          "floor": false,
+          "solidFloor": false,
+          "follows": false,
+          "shapes": {
+            "cuboid": 0,
+            "ball": 0,
+            "capsule": 0,
+            "convex": 0,
+            "trimesh": 0,
+            "treads": 0
+          }
+        },
+        {
+          "id": "model:sunscar-dunes/bullwhip",
+          "category": "gear",
+          "surface": "wood",
+          "floor": false,
+          "solidFloor": false,
+          "follows": false,
+          "shapes": {
+            "cuboid": 0,
+            "ball": 0,
+            "capsule": 0,
+            "convex": 0,
+            "trimesh": 0,
+            "treads": 0
+          }
+        },
+        {
+          "id": "model:sunscar-dunes/caravan",
+          "category": "props",
+          "surface": "wood",
+          "floor": false,
+          "solidFloor": false,
+          "follows": false,
+          "shapes": {
+            "cuboid": 0,
+            "ball": 0,
+            "capsule": 0,
+            "convex": 0,
+            "trimesh": 0,
+            "treads": 0
+          }
+        },
+        {
+          "id": "model:sunscar-dunes/dry-well",
+          "category": "buildings",
+          "surface": "wood",
+          "floor": false,
+          "solidFloor": false,
+          "follows": false,
+          "shapes": {
+            "cuboid": 0,
+            "ball": 0,
+            "capsule": 0,
+            "convex": 0,
+            "trimesh": 0,
+            "treads": 0
+          }
+        },
+        {
+          "id": "model:sunscar-dunes/dune-matriarch",
+          "category": "creatures",
+          "surface": "wood",
+          "floor": false,
+          "solidFloor": false,
+          "follows": false,
+          "shapes": {
+            "cuboid": 0,
+            "ball": 0,
+            "capsule": 0,
+            "convex": 0,
+            "trimesh": 0,
+            "treads": 0
+          }
+        },
+        {
+          "id": "model:sunscar-dunes/dune-ray",
+          "category": "creatures",
+          "surface": "wood",
+          "floor": false,
+          "solidFloor": false,
+          "follows": false,
+          "shapes": {
+            "cuboid": 0,
+            "ball": 0,
+            "capsule": 0,
+            "convex": 0,
+            "trimesh": 0,
+            "treads": 0
+          }
+        },
+        {
+          "id": "model:sunscar-dunes/dune-strider",
+          "category": "creatures",
+          "surface": "wood",
+          "floor": false,
+          "solidFloor": false,
+          "follows": false,
+          "shapes": {
+            "cuboid": 0,
+            "ball": 0,
+            "capsule": 0,
+            "convex": 0,
+            "trimesh": 0,
+            "treads": 0
+          }
+        },
+        {
+          "id": "model:sunscar-dunes/sand-skitterer",
+          "category": "creatures",
+          "surface": "wood",
+          "floor": false,
+          "solidFloor": false,
+          "follows": false,
+          "shapes": {
+            "cuboid": 0,
+            "ball": 0,
+            "capsule": 0,
+            "convex": 0,
+            "trimesh": 0,
+            "treads": 0
+          }
+        },
+        {
+          "id": "model:sunscar-dunes/signal-tower",
+          "category": "buildings",
+          "surface": "wood",
+          "floor": false,
+          "solidFloor": false,
+          "follows": false,
+          "shapes": {
+            "cuboid": 0,
+            "ball": 0,
+            "capsule": 0,
+            "convex": 0,
+            "trimesh": 0,
+            "treads": 0
+          }
+        },
+        {
+          "id": "model:sunscar-dunes/waymark-brazier",
+          "category": "props",
+          "surface": "wood",
+          "floor": false,
+          "solidFloor": false,
+          "follows": false,
+          "shapes": {
+            "cuboid": 0,
+            "ball": 0,
+            "capsule": 0,
+            "convex": 0,
+            "trimesh": 0,
+            "treads": 0
+          }
+        },
+        {
+          "id": "practice-arena",
+          "category": "ground",
+          "surface": "metal",
+          "floor": true,
+          "solidFloor": false,
+          "follows": false,
+          "shapes": {
+            "cuboid": 5,
+            "ball": 0,
+            "capsule": 0,
+            "convex": 0,
+            "trimesh": 0,
+            "treads": 0
+          }
+        },
+        {
+          "id": "sunscar.brazier.0",
+          "category": "props",
+          "surface": "stone",
+          "floor": false,
+          "solidFloor": false,
+          "follows": false,
+          "shapes": {
+            "cuboid": 1,
+            "ball": 0,
+            "capsule": 0,
+            "convex": 0,
+            "trimesh": 0,
+            "treads": 0
+          }
+        },
+        {
+          "id": "sunscar.brazier.1",
+          "category": "props",
+          "surface": "stone",
+          "floor": false,
+          "solidFloor": false,
+          "follows": false,
+          "shapes": {
+            "cuboid": 1,
+            "ball": 0,
+            "capsule": 0,
+            "convex": 0,
+            "trimesh": 0,
+            "treads": 0
+          }
+        },
+        {
+          "id": "sunscar.brazier.2",
+          "category": "props",
+          "surface": "stone",
+          "floor": false,
+          "solidFloor": false,
+          "follows": false,
+          "shapes": {
+            "cuboid": 1,
+            "ball": 0,
+            "capsule": 0,
+            "convex": 0,
+            "trimesh": 0,
+            "treads": 0
+          }
+        },
+        {
+          "id": "sunscar.caravan",
+          "category": "props",
+          "surface": "wood",
+          "floor": false,
+          "solidFloor": false,
+          "follows": false,
+          "shapes": {
+            "cuboid": 4,
+            "ball": 0,
+            "capsule": 0,
+            "convex": 0,
+            "trimesh": 0,
+            "treads": 0
+          }
+        },
+        {
+          "id": "sunscar.rocks",
+          "category": "nature",
+          "surface": "rock",
+          "floor": false,
+          "solidFloor": false,
+          "follows": false,
+          "shapes": {
+            "cuboid": 42,
+            "ball": 0,
+            "capsule": 0,
+            "convex": 0,
+            "trimesh": 0,
+            "treads": 0
+          }
+        },
+        {
+          "id": "sunscar.tower",
+          "category": "buildings",
+          "surface": "wood",
+          "floor": false,
+          "solidFloor": false,
+          "follows": false,
+          "shapes": {
+            "cuboid": 32,
+            "ball": 0,
+            "capsule": 0,
+            "convex": 0,
+            "trimesh": 0,
+            "treads": 0
+          }
+        },
+        {
+          "id": "sunscar.well",
+          "category": "buildings",
+          "surface": "stone",
+          "floor": false,
+          "solidFloor": false,
+          "follows": false,
+          "shapes": {
+            "cuboid": 14,
+            "ball": 0,
+            "capsule": 0,
+            "convex": 0,
+            "trimesh": 0,
+            "treads": 0
+          }
+        }
+      ],
+      "class": "A",
+      "band": "exact",
+      "verdict": "lane-pending"
+    },
+    {
+      "field": "boot.registryModels.models",
+      "now": 11,
+      "class": "A",
+      "band": "exact",
+      "verdict": "lane-pending"
+    },
+    {
+      "field": "boot.registryModels.sets",
+      "now": 0,
+      "class": "A",
+      "band": "exact",
+      "verdict": "lane-pending"
+    },
+    {
+      "field": "boot.physics.fixed",
+      "now": 0,
+      "class": "A",
+      "band": "exact",
+      "verdict": "lane-pending"
+    },
+    {
+      "field": "boot.physics.kinematic",
+      "now": 0,
+      "class": "A",
+      "band": "exact",
+      "verdict": "lane-pending"
+    },
+    {
+      "field": "boot.physics.dynamic",
+      "now": 0,
+      "class": "A",
+      "band": "exact",
+      "verdict": "lane-pending"
+    },
+    {
+      "field": "boot.physics.colliders",
+      "now": 142,
+      "class": "A",
+      "band": "exact",
+      "verdict": "lane-pending"
+    },
+    {
+      "field": "boot.scene.totals.mesh",
+      "now": 172,
+      "class": "A",
+      "band": "exact",
+      "verdict": "lane-pending"
+    },
+    {
+      "field": "boot.scene.totals.instanced",
+      "now": 6,
+      "class": "A",
+      "band": "exact",
+      "verdict": "lane-pending"
+    },
+    {
+      "field": "boot.scene.totals.instances",
+      "now": 216,
+      "class": "A",
+      "band": "exact",
+      "verdict": "lane-pending"
+    },
+    {
+      "field": "boot.scene.totals.skinned",
+      "now": 13,
+      "class": "A",
+      "band": "exact",
+      "verdict": "lane-pending"
+    },
+    {
+      "field": "boot.scene.totals.points",
+      "now": 1,
+      "class": "A",
+      "band": "exact",
+      "verdict": "lane-pending"
+    },
+    {
+      "field": "boot.scene.totals.lines",
+      "now": 2,
+      "class": "A",
+      "band": "exact",
+      "verdict": "lane-pending"
+    },
+    {
+      "field": "boot.scene.totals.sprites",
+      "now": 1,
+      "class": "A",
+      "band": "exact",
+      "verdict": "lane-pending"
+    },
+    {
+      "field": "boot.scene.totals.lights",
+      "now": 5,
+      "class": "A",
+      "band": "exact",
+      "verdict": "lane-pending"
+    },
+    {
+      "field": "boot.scene.named",
+      "now": [
+        {
+          "path": "animals",
+          "type": "Group",
+          "n": 37
+        },
+        {
+          "path": "animals/far-herd",
+          "type": "Group",
+          "n": 0
+        },
+        {
+          "path": "animals/herd-shadow",
+          "type": "Group",
+          "n": 0
+        },
+        {
+          "path": "HUD + Weapon Explorer · grid arena",
+          "type": "Group",
+          "n": 9
+        },
+        {
+          "path": "loot-coins",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "loot-coins",
+          "type": "Mesh",
+          "n": 0
+        },
+        {
+          "path": "loot-coins",
+          "type": "Mesh",
+          "n": 0
+        }
+      ],
+      "class": "A",
+      "band": "exact",
+      "verdict": "lane-pending"
+    },
+    {
+      "field": "boot.render.programs",
+      "now": 37,
+      "class": "A",
+      "band": "exact",
+      "verdict": "lane-pending"
+    },
+    {
+      "field": "boot.render.programKeys",
+      "now": "a7c3a62cae9d992c7681f7d52eeb15314012256dbe0b84c94a2030d84ccaebfe",
+      "class": "A",
+      "band": "exact",
+      "verdict": "lane-pending"
+    },
+    {
+      "field": "boot.render.memory.geometries",
+      "now": 92,
+      "class": "A",
+      "band": "exact",
+      "verdict": "lane-pending"
+    },
+    {
+      "field": "boot.render.memory.textures",
+      "now": 54,
+      "class": "A",
+      "band": "exact",
+      "verdict": "lane-pending"
+    },
+    {
+      "field": "boot.gpuBytes.textures",
+      "now": 178199060,
+      "class": "A",
+      "band": "exact",
+      "verdict": "lane-pending"
+    },
+    {
+      "field": "boot.gpuBytes.renderbuffers",
+      "now": 0,
+      "class": "A",
+      "band": "exact",
+      "verdict": "lane-pending"
+    },
+    {
+      "field": "boot.gpuBytes.buffers",
+      "now": 3687624,
+      "class": "A",
+      "band": "exact",
+      "verdict": "lane-pending"
+    },
+    {
+      "field": "boot.gpuBytes.total",
+      "now": 181886684,
+      "class": "A",
+      "band": "exact",
+      "verdict": "lane-pending"
+    },
+    {
+      "field": "boot.audio.requests",
+      "now": [
+        "/assets/music/folk/island-calm-d7d189f9.m4a",
+        "/assets/music/folk/island-tension-bb05ab64.m4a",
+        "/assets/music/folk/pine-calm-10905c79.m4a",
+        "/assets/music/folk/pine-tension-180bc197.m4a",
+        "/assets/music/folk/sting-chunk-31c10eaf.m4a",
+        "/assets/music/folk/sting-death-67f54fe8.m4a",
+        "/assets/music/folk/sting-pickup-332f81db.m4a",
+        "/assets/music/folk/title-50001128.m4a",
+        "/assets/music/orchestral/island-calm-27861d1b.m4a",
+        "/assets/music/orchestral/island-tension-73116f36.m4a",
+        "/assets/music/orchestral/pine-calm-fbc4a99e.m4a",
+        "/assets/music/orchestral/pine-tension-525d8c6d.m4a",
+        "/assets/music/orchestral/sting-chunk-a639b19e.m4a",
+        "/assets/music/orchestral/sting-death-771d34f7.m4a",
+        "/assets/music/orchestral/sting-pickup-65f7ac5b.m4a",
+        "/assets/music/orchestral/title-b47c8a52.m4a",
+        "/assets/music/piano/island-calm-05125ed8.m4a",
+        "/assets/music/piano/island-tension-7faf0468.m4a",
+        "/assets/music/piano/pine-calm-923e0056.m4a",
+        "/assets/music/piano/pine-tension-cc014e5b.m4a",
+        "/assets/music/piano/sting-chunk-a4f2ffab.m4a",
+        "/assets/music/piano/sting-death-99b071e0.m4a",
+        "/assets/music/piano/sting-pickup-6ed91318.m4a",
+        "/assets/music/piano/title-3d1f713a.m4a",
+        "/assets/sfx/best/bear_growl-3-f91d7740.m4a",
+        "/assets/sfx/best/bear_hurt-1-43b45d1e.m4a",
+        "/assets/sfx/best/bear_hurt-3-3aea6172.m4a",
+        "/assets/sfx/best/bear_roar-2-29e3055e.m4a",
+        "/assets/sfx/best/bear_roar-3-9f1e177e.m4a",
+        "/assets/sfx/best/bed-forest-2-0cd11be5.m4a",
+        "/assets/sfx/best/bed-underwater-3-cbe2810d.m4a",
+        "/assets/sfx/best/boar_grunt-3-4e4a9bec.m4a",
+        "/assets/sfx/best/boar_squeal-1-804df37c.m4a",
+        "/assets/sfx/best/boltImpact-flesh-2-13ed7f2c.m4a",
+        "/assets/sfx/best/boltImpact-flesh-3-62e25aa5.m4a",
+        "/assets/sfx/best/boltImpact-ground-1-f81140e6.m4a",
+        "/assets/sfx/best/boltImpact-ground-2-5e8a3076.m4a",
+        "/assets/sfx/best/boltImpact-wood-2-8e9e99ee.m4a",
+        "/assets/sfx/best/boltImpact-wood-3-673a0ef6.m4a",
+        "/assets/sfx/best/crossbowFire-3-18ccf9f0.m4a",
+        "/assets/sfx/best/deer_call-1-7cd35867.m4a",
+        "/assets/sfx/best/deer_call-3-1d601bb4.m4a",
+        "/assets/sfx/best/dive-1-4b978224.m4a",
+        "/assets/sfx/best/dive-3-e74abc72.m4a",
+        "/assets/sfx/best/dodge-2-13887dd8.m4a",
+        "/assets/sfx/best/dodge-3-453516f6.m4a",
+        "/assets/sfx/best/dryFire-2-88071d1d.m4a",
+        "/assets/sfx/best/dryFire-3-173415cb.m4a",
+        "/assets/sfx/best/elk_bugle-2-0e80875f.m4a",
+        "/assets/sfx/best/elk_bugle-3-f6e8030e.m4a",
+        "/assets/sfx/best/footstep-litter-1-fe9cd8d9.m4a",
+        "/assets/sfx/best/footstep-litter-3-09ceed7a.m4a",
+        "/assets/sfx/best/footstep-mud-1-1dd22736.m4a",
+        "/assets/sfx/best/footstep-mud-2-99e4a10d.m4a",
+        "/assets/sfx/best/footstep-planks-2-ebb5a80c.m4a",
+        "/assets/sfx/best/footstep-planks-3-d919e436.m4a",
+        "/assets/sfx/best/footstep-rock-2-58c2cc26.m4a",
+        "/assets/sfx/best/footstep-rock-3-98e0e874.m4a",
+        "/assets/sfx/best/footstep-sand-1-09a40a2f.m4a",
+        "/assets/sfx/best/footstep-sand-2-4b40473a.m4a",
+        "/assets/sfx/best/footstep-wet-1-58d313a2.m4a",
+        "/assets/sfx/best/hitMarker-1-46ef1236.m4a",
+        "/assets/sfx/best/hoofsteps-1-9580d36a.m4a",
+        "/assets/sfx/best/hoofsteps-3-f1c11f8f.m4a",
+        "/assets/sfx/best/hum-pickup-3-7b7db58f.m4a",
+        "/assets/sfx/best/kill-2-5e4acc1b.m4a",
+        "/assets/sfx/best/kill-3-5f7ea225.m4a",
+        "/assets/sfx/best/land-2-773487f2.m4a",
+        "/assets/sfx/best/land-3-eebff605.m4a",
+        "/assets/sfx/best/land-hard-1-2ce640be.m4a",
+        "/assets/sfx/best/land-hard-3-5aed2a6b.m4a",
+        "/assets/sfx/best/lunge-3-be45ba7a.m4a",
+        "/assets/sfx/best/reload-1-d3e6d32a.m4a",
+        "/assets/sfx/best/reload-3-d81ab6e2.m4a",
+        "/assets/sfx/best/rifleFire-2-a850ad83.m4a",
+        "/assets/sfx/best/rifleFire-3-8ed56841.m4a",
+        "/assets/sfx/best/rifleReload-2-1ad54372.m4a",
+        "/assets/sfx/best/rifleReload-3-20027167.m4a",
+        "/assets/sfx/best/splash-2-03ab63ae.m4a",
+        "/assets/sfx/best/splash-3-9509efbe.m4a",
+        "/assets/sfx/best/surface-2-e5ac4e8a.m4a",
+        "/assets/sfx/best/surface-3-85550528.m4a",
+        "/assets/sfx/best/swimStroke-2-9e35721b.m4a",
+        "/assets/sfx/best/swordHeavy-2-1debcc8f.m4a",
+        "/assets/sfx/best/swordHeavy-3-1bed510f.m4a",
+        "/assets/sfx/best/swordHit-flesh-1-07225bb8.m4a",
+        "/assets/sfx/best/swordHit-flesh-2-efbf5fd7.m4a",
+        "/assets/sfx/best/swordHit-wood-2-800b6fe9.m4a",
+        "/assets/sfx/best/swordHit-wood-3-6381cc6b.m4a",
+        "/assets/sfx/best/swordSwing-1-6303fc5d.m4a",
+        "/assets/sfx/best/wadeStep-1-83e1423c.m4a",
+        "/assets/sfx/best/wadeStep-2-402e850a.m4a",
+        "/assets/sfx/best/waterExit-1-d85f0e47.m4a",
+        "/assets/sfx/best/weaponSwap-3-fbe81018.m4a"
+      ],
+      "class": "A",
+      "band": "exact",
+      "verdict": "lane-pending"
+    },
+    {
+      "field": "boot.audio.state.style",
+      "now": "piano",
+      "class": "A",
+      "band": "exact",
+      "verdict": "lane-pending"
+    },
+    {
+      "field": "boot.audio.state.set",
+      "now": "best",
+      "class": "A",
+      "band": "exact",
+      "verdict": "lane-pending"
+    },
+    {
+      "field": "boot.audio.state.mood",
+      "now": "menu",
+      "class": "A",
+      "band": "exact",
+      "verdict": "lane-pending"
+    },
+    {
+      "field": "boot.hud",
+      "now": [
+        {
+          "cls": "ws-bar",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-bar",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-bar-cap",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-bar-cap",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-bar-caption",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-bar-fill",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-bar-frame",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-bar-lag",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-bar-name",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-bar-notches",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-bar-shimmer",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-bar-track",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-card",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-card-band",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-card-band",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-card-emblem",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-card-inner",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-card-name",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-card-rule",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-card-rule",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-card-skip",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-card-title",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-fade",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-retry",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-retry-attempt",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-retry-title",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-reward",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-reward-flavour",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-reward-gem",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-reward-name",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-reward-rule",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-boss-reward-tier",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-death",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-death-card",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-death-cause",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-death-rule",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-death-where",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-float",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-float",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-float",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-float",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-float",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-float",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-float",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-float",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-float",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-float",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-hp",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-fill",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-fill",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-fill",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-fill",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-fill",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-fill",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-fill",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-fill",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-fill",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-fill",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-fill",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-fill",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-kind",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-kind",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-kind",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-kind",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-kind",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-kind",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-kind",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-kind",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-kind",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-kind",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-kind",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-kind",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-track",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-track",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-track",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-track",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-track",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-track",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-track",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-track",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-track",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-track",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-track",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hp-track",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hurt",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-hurt-arc",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-hurt-arc",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-hurt-arc",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-hurt-arc",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-layer",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-warn",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-combat-warn-mark",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-warn-mark",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-warn-mark",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-combat-warn-mark",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-dive-hint ws-glass",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-aim",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-ammo ws-glass",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-arow",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-band",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-boundary",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-brk",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-brk",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-brk",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-brk",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-bs",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-bt",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-cardinal",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-centre",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-compass",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-count",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-cross",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-feed",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-flash",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-health ws-glass",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-game-hitring",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-hrow",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-hval",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-lock",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-lockcand",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-lockedge",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-lockedge",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-mark",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-mark",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-notch",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-pips",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-prompt ws-glass",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-range",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-rbar",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-reserve",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-smear",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-speed",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-status",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-strip",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-tick",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-toasts",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-weapon",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-game-x",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-glass ws-hint-tag",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-hint-ring",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-label",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-label",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-loot-chip",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-loot-coin",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-loot-num",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-loot-pop",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-loot-pop",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-loot-pop",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-loot-pop",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-minimap",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-minimap-bag",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-minimap-bag-body",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-minimap-bag-corner",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-minimap-bag-edge",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-minimap-bag-hit",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-minimap-bag-icon",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-minimap-bag-loop",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-minimap-bag-piece",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-minimap-bag-seam",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-minimap-bag-seam",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-minimap-canvas",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-minimap-n",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-practice",
+          "spot": "",
+          "shown": false
+        },
+        {
+          "cls": "ws-practice-label",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-practice-label",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-practice-label",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-practice-preparing",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-touch-slot",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-touch-slot-ammo",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-touch-slot-key",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-touch-slot-name",
+          "spot": "",
+          "shown": true
+        },
+        {
+          "cls": "ws-touch-strip",
+          "spot": "",
+          "shown": false
+        }
+      ],
+      "class": "A",
+      "band": "exact",
+      "verdict": "lane-pending"
+    },
+    {
+      "field": "boot.saves.read",
+      "now": [
+        "local:wildshard.save.v2.device",
+        "local:wildshard.save.v2.driftwood-isle",
+        "local:wildshard.save.v2.far-reach",
+        "local:wildshard.save.v2.global",
+        "local:wildshard.save.v2.nalati-grasslands",
+        "local:wildshard.save.v2.nine-dragon-stack",
+        "local:wildshard.save.v2.pine-hollow",
+        "local:wildshard.save.v2.sunscar-dunes",
+        "session:wildshard.save.v2.session"
+      ],
+      "class": "A",
+      "band": "exact",
+      "verdict": "lane-pending"
+    },
+    {
+      "field": "boot.saves.written",
+      "now": [
+        "local:wildshard.save.v2.device",
+        "local:wildshard.save.v2.global",
+        "session:wildshard.save.v2.session"
+      ],
+      "class": "A",
+      "band": "exact",
+      "verdict": "lane-pending"
+    },
+    {
+      "field": "boot.playMs",
+      "now": 5743.5,
+      "class": "C",
+      "band": "information",
+      "verdict": "info"
+    },
+    {
+      "field": "boot.stepMs.renderer",
+      "now": 9,
+      "class": "C",
+      "band": "information",
+      "verdict": "info"
+    },
+    {
+      "field": "boot.stepMs.sky",
+      "now": 4372,
+      "class": "C",
+      "band": "information",
+      "verdict": "info"
+    },
+    {
+      "field": "boot.stepMs.terrain",
+      "now": 51,
+      "class": "C",
+      "band": "information",
+      "verdict": "info"
+    },
+    {
+      "field": "boot.stepMs.cards",
+      "now": 7,
+      "class": "C",
+      "band": "information",
+      "verdict": "info"
+    },
+    {
+      "field": "boot.stepMs.forest",
+      "now": 6,
+      "class": "C",
+      "band": "information",
+      "verdict": "info"
+    },
+    {
+      "field": "boot.stepMs.physics",
+      "now": 13,
+      "class": "C",
+      "band": "information",
+      "verdict": "info"
+    },
+    {
+      "field": "boot.stepMs.edge",
+      "now": 6,
+      "class": "C",
+      "band": "information",
+      "verdict": "info"
+    },
+    {
+      "field": "boot.stepMs.grass",
+      "now": 0,
+      "class": "C",
+      "band": "information",
+      "verdict": "info"
+    },
+    {
+      "field": "boot.stepMs.cabins",
+      "now": 0,
+      "class": "C",
+      "band": "information",
+      "verdict": "info"
+    },
+    {
+      "field": "boot.stepMs.props",
+      "now": 28,
+      "class": "C",
+      "band": "information",
+      "verdict": "info"
+    },
+    {
+      "field": "boot.stepMs.animals",
+      "now": 1,
+      "class": "C",
+      "band": "information",
+      "verdict": "info"
+    },
+    {
+      "field": "boot.stepMs.weapon",
+      "now": 0,
+      "class": "C",
+      "band": "information",
+      "verdict": "info"
+    },
+    {
+      "field": "boot.stepMs.menu",
+      "now": 9,
+      "class": "C",
+      "band": "information",
+      "verdict": "info"
+    },
+    {
+      "field": "boot.stepMs.shaders",
+      "now": 270,
+      "class": "C",
+      "band": "information",
+      "verdict": "info"
+    },
+    {
+      "field": "boot.stepMs.firstFrame",
+      "now": 233,
+      "class": "C",
+      "band": "information",
+      "verdict": "info"
+    },
+    {
+      "field": "boot.stepMs.audio",
+      "now": 0,
+      "class": "C",
+      "band": "information",
+      "verdict": "info"
+    },
+    {
+      "field": "boot.heapMB",
+      "now": 29.31113052368164,
+      "class": "C",
+      "band": "information",
+      "verdict": "info"
+    },
+    {
+      "field": "poses.spawn.name",
+      "now": "spawn",
+      "class": "A",
+      "band": "exact",
+      "verdict": "lane-pending"
+    },
+    {
+      "field": "poses.spawn.pos",
+      "now": [
+        0.0018562750833552855,
+        7.850132280154455,
+        69.99934489489999
+      ],
+      "class": "A",
+      "band": "exact",
+      "verdict": "lane-pending"
+    },
+    {
+      "field": "poses.spawn.calls",
+      "now": 122,
+      "class": "A",
+      "band": "exact",
+      "verdict": "lane-pending"
+    },
+    {
+      "field": "poses.spawn.tris",
+      "now": 101750,
+      "class": "A",
+      "band": "exact",
+      "verdict": "lane-pending"
+    },
+    {
+      "field": "poses.spawn.fps",
+      "now": 1065.808299749143,
+      "class": "C",
+      "band": "information",
+      "verdict": "info"
+    },
+    {
+      "field": "poses.spawn.frameP95Ms",
+      "now": 2.1999998092651367,
+      "class": "C",
+      "band": "information",
+      "verdict": "info"
+    },
+    {
+      "field": "poses.spawn.cpuP50Ms",
+      "now": 0.6999998092651367,
+      "class": "C",
+      "band": "information",
+      "verdict": "info"
+    },
+    {
+      "field": "poses.spawn.cpuP95Ms",
+      "now": 1.0999999046325684,
+      "class": "C",
+      "band": "information",
+      "verdict": "info"
+    },
+    {
+      "field": "poses.spawn.creatureBoxes",
+      "now": 10,
+      "class": "C",
+      "band": "information",
+      "verdict": "info"
+    },
+    {
+      "field": "poses.spawn.boxes",
+      "now": [
+        [
+          452,
+          211,
+          605,
+          398
+        ],
+        [
+          39,
+          493,
+          117,
+          606
+        ],
+        [
+          1423,
+          446,
+          1471,
+          528
+        ],
+        [
+          1421,
+          445,
+          1473,
+          530
+        ],
+        [
+          1349,
+          455,
+          1396,
+          536
+        ],
+        [
+          654,
+          471,
+          687,
+          538
+        ],
+        [
+          659,
+          473,
+          691,
+          539
+        ],
+        [
+          688,
+          473,
+          719,
+          537
+        ],
+        [
+          682,
+          470,
+          714,
+          537
+        ],
+        [
+          1295,
+          441,
+          1339,
+          519
+        ]
+      ],
+      "class": "C",
+      "band": "information",
+      "verdict": "info"
+    },
+    {
+      "field": "poses.spawn.shot",
+      "now": "/private/tmp/e357-sol-ceil/captures/run-1/sunscar-dunes.desktop.spawn.jpg",
+      "class": "C",
+      "band": "information",
+      "verdict": "info"
+    },
+    {
+      "field": "poses.spawn.ssim",
+      "now": 1,
+      "class": "B",
+      "band": "≥ 0.99",
+      "verdict": "lane-pending"
+    },
+    {
+      "field": "poses.whip.name",
+      "now": "whip",
+      "class": "A",
+      "band": "exact",
+      "verdict": "lane-pending"
+    },
+    {
+      "field": "poses.whip.pos",
+      "now": [
+        0.0018549588999121625,
+        7.797361891353811,
+        65.99936958084686
+      ],
+      "class": "A",
+      "band": "exact",
+      "verdict": "lane-pending"
+    },
+    {
+      "field": "poses.whip.calls",
+      "now": 125,
+      "class": "A",
+      "band": "exact",
+      "verdict": "lane-pending"
+    },
+    {
+      "field": "poses.whip.tris",
+      "now": 102252,
+      "class": "A",
+      "band": "exact",
+      "verdict": "lane-pending"
+    },
+    {
+      "field": "poses.whip.fps",
+      "now": 1049.2957746478874,
+      "class": "C",
+      "band": "information",
+      "verdict": "info"
+    },
+    {
+      "field": "poses.whip.frameP95Ms",
+      "now": 2,
+      "class": "C",
+      "band": "information",
+      "verdict": "info"
+    },
+    {
+      "field": "poses.whip.cpuP50Ms",
+      "now": 0.7000002861022949,
+      "class": "C",
+      "band": "information",
+      "verdict": "info"
+    },
+    {
+      "field": "poses.whip.cpuP95Ms",
+      "now": 1.0999999046325684,
+      "class": "C",
+      "band": "information",
+      "verdict": "info"
+    },
+    {
+      "field": "poses.whip.creatureBoxes",
+      "now": 9,
+      "class": "C",
+      "band": "information",
+      "verdict": "info"
+    },
+    {
+      "field": "poses.whip.boxes",
+      "now": [
+        [
+          654,
+          139,
+          811,
+          330
+        ],
+        [
+          369,
+          416,
+          435,
+          516
+        ],
+        [
+          288,
+          416,
+          353,
+          515
+        ],
+        [
+          243,
+          445,
+          323,
+          559
+        ],
+        [
+          868,
+          406,
+          902,
+          474
+        ],
+        [
+          873,
+          409,
+          905,
+          475
+        ],
+        [
+          903,
+          409,
+          934,
+          474
+        ],
+        [
+          896,
+          406,
+          929,
+          473
+        ],
+        [
+          313,
+          372,
+          368,
+          461
+        ]
+      ],
+      "class": "C",
+      "band": "information",
+      "verdict": "info"
+    },
+    {
+      "field": "poses.whip.shot",
+      "now": "/private/tmp/e357-sol-ceil/captures/run-1/sunscar-dunes.desktop.whip.jpg",
+      "class": "C",
+      "band": "information",
+      "verdict": "info"
+    },
+    {
+      "field": "poses.whip.ssim",
+      "now": 1,
+      "class": "B",
+      "band": "≥ 0.99",
+      "verdict": "lane-pending"
+    },
+    {
+      "field": "poses.ray.name",
+      "now": "ray",
+      "class": "A",
+      "band": "exact",
+      "verdict": "lane-pending"
+    },
+    {
+      "field": "poses.ray.pos",
+      "now": [
+        0.0018562750833552855,
+        7.850132280154455,
+        69.99934489489999
+      ],
+      "class": "A",
+      "band": "exact",
+      "verdict": "lane-pending"
+    },
+    {
+      "field": "poses.ray.calls",
+      "now": 68,
+      "class": "A",
+      "band": "exact",
+      "verdict": "lane-pending"
+    },
+    {
+      "field": "poses.ray.tris",
+      "now": 99196,
+      "class": "A",
+      "band": "exact",
+      "verdict": "lane-pending"
+    },
+    {
+      "field": "poses.ray.fps",
+      "now": 1148.8049361535634,
+      "class": "C",
+      "band": "information",
+      "verdict": "info"
+    },
+    {
+      "field": "poses.ray.frameP95Ms",
+      "now": 1.9000000953674316,
+      "class": "C",
+      "band": "information",
+      "verdict": "info"
+    },
+    {
+      "field": "poses.ray.cpuP50Ms",
+      "now": 0.5999999046325684,
+      "class": "C",
+      "band": "information",
+      "verdict": "info"
+    },
+    {
+      "field": "poses.ray.cpuP95Ms",
+      "now": 0.9000000953674316,
+      "class": "C",
+      "band": "information",
+      "verdict": "info"
+    },
+    {
+      "field": "poses.ray.creatureBoxes",
+      "now": 7,
+      "class": "C",
+      "band": "information",
+      "verdict": "info"
+    },
+    {
+      "field": "poses.ray.boxes",
+      "now": [
+        [
+          1153,
+          360,
+          1320,
+          562
+        ],
+        [
+          899,
+          659,
+          958,
+          753
+        ],
+        [
+          839,
+          656,
+          895,
+          746
+        ],
+        [
+          814,
+          680,
+          882,
+          782
+        ],
+        [
+          1536,
+          678,
+          1582,
+          758
+        ],
+        [
+          1549,
+          683,
+          1593,
+          761
+        ],
+        [
+          833,
+          617,
+          881,
+          699
+        ]
+      ],
+      "class": "C",
+      "band": "information",
+      "verdict": "info"
+    },
+    {
+      "field": "poses.ray.shot",
+      "now": "/private/tmp/e357-sol-ceil/captures/run-1/sunscar-dunes.desktop.ray.jpg",
+      "class": "C",
+      "band": "information",
+      "verdict": "info"
+    },
+    {
+      "field": "poses.ray.ssim",
+      "now": 1,
+      "class": "B",
+      "band": "≥ 0.99",
+      "verdict": "lane-pending"
+    },
+    {
+      "field": "poses.quest.name",
+      "now": "quest",
+      "class": "A",
+      "band": "exact",
+      "verdict": "lane-pending"
+    },
+    {
+      "field": "poses.quest.pos",
+      "now": [
+        4.0006222202620165,
+        7.567410863421061,
+        -62.99169369331503
+      ],
+      "class": "A",
+      "band": "exact",
+      "verdict": "lane-pending"
+    },
+    {
+      "field": "poses.quest.calls",
+      "now": 91,
+      "class": "A",
+      "band": "exact",
+      "verdict": "lane-pending"
+    },
+    {
+      "field": "poses.quest.tris",
+      "now": 93459,
+      "class": "A",
+      "band": "exact",
+      "verdict": "lane-pending"
+    },
+    {
+      "field": "poses.quest.fps",
+      "now": 1138.2734903853766,
+      "class": "C",
+      "band": "information",
+      "verdict": "info"
+    },
+    {
+      "field": "poses.quest.frameP95Ms",
+      "now": 2.1000003814697266,
+      "class": "C",
+      "band": "information",
+      "verdict": "info"
+    },
+    {
+      "field": "poses.quest.cpuP50Ms",
+      "now": 0.5,
+      "class": "C",
+      "band": "information",
+      "verdict": "info"
+    },
+    {
+      "field": "poses.quest.cpuP95Ms",
+      "now": 0.9000000953674316,
+      "class": "C",
+      "band": "information",
+      "verdict": "info"
+    },
+    {
+      "field": "poses.quest.creatureBoxes",
+      "now": 0,
+      "class": "C",
+      "band": "information",
+      "verdict": "info"
+    },
+    {
+      "field": "poses.quest.boxes",
+      "now": [],
+      "class": "C",
+      "band": "information",
+      "verdict": "info"
+    },
+    {
+      "field": "poses.quest.shot",
+      "now": "/private/tmp/e357-sol-ceil/captures/run-1/sunscar-dunes.desktop.quest.jpg",
+      "class": "C",
+      "band": "information",
+      "verdict": "info"
+    },
+    {
+      "field": "poses.quest.ssim",
+      "now": 1,
+      "class": "B",
+      "band": "≥ 0.99",
+      "verdict": "lane-pending"
+    }
+  ]
 }

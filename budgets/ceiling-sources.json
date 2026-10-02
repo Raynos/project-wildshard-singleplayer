@@ -1560,6 +1560,26 @@
       "file": "budgets/calibration-reports/sunscar-dunes.phone.json",
       "sha": "520693016a02dd13447c4fc1a9bbf7bf82d7aa67",
       "recorded": "2026-10-01T22:13:09.694Z"
+    },
+    {
+      "file": "budgets/calibration-reports/sunscar-dunes.phone.json",
+      "sha": "a28af631097f6f41bb92e0621c5d1a537054a804",
+      "recorded": "2026-10-02T02:27:14.704965+00:00"
+    },
+    {
+      "file": "budgets/calibration-reports/sunscar-dunes.desktop.json",
+      "sha": "a28af631097f6f41bb92e0621c5d1a537054a804",
+      "recorded": "2026-10-02T02:27:14.704965+00:00"
+    },
+    {
+      "file": "budgets/calibration-reports/far-reach.phone.json",
+      "sha": "a28af631097f6f41bb92e0621c5d1a537054a804",
+      "recorded": "2026-10-02T02:27:14.704965+00:00"
+    },
+    {
+      "file": "budgets/calibration-reports/far-reach.desktop.json",
+      "sha": "a28af631097f6f41bb92e0621c5d1a537054a804",
+      "recorded": "2026-10-02T02:27:14.704965+00:00"
     }
   ],
   "reRecords": [
@@ -1629,6 +1649,70 @@
         "pine-hollow.desktop.gate.gpuMB": 1318.5415477752686,
         "pine-hollow.desktop.cabin.gpuMB": 1318.5415477752686,
         "pine-hollow.desktop.pond.gpuMB": 1318.5415477752686
+      }
+    },
+    {
+      "shard": "sunscar-dunes",
+      "tier": "phone",
+      "metric": "gpuMB",
+      "source": "budgets/calibration-reports/sunscar-dunes.phone.json",
+      "commit": "a28af631097f6f41bb92e0621c5d1a537054a804",
+      "reason": "E357 Z3/E374 content, lead-approved first measurement of the final builds",
+      "ask": "E357",
+      "approvedBy": "wildshard-9",
+      "approval": "E357 Z3/E374 content, lead-approved first measurement of the final builds",
+      "captureSha": "a28af631097f6f41bb92e0621c5d1a537054a804",
+      "captureSha256": "e30dbd13cd1f25a4f9f8bd1114d58f313552f603b1bef2cd040805d42c586f1b",
+      "ceilings": {
+        "sunscar-dunes.phone.current.gpuMB": 79.11913681030273
+      }
+    },
+    {
+      "shard": "sunscar-dunes",
+      "tier": "desktop",
+      "metric": "gpuMB",
+      "source": "budgets/calibration-reports/sunscar-dunes.desktop.json",
+      "commit": "a28af631097f6f41bb92e0621c5d1a537054a804",
+      "reason": "E357 Z3/E374 content, lead-approved first measurement of the final builds",
+      "ask": "E357",
+      "approvedBy": "wildshard-9",
+      "approval": "E357 Z3/E374 content, lead-approved first measurement of the final builds",
+      "captureSha": "a28af631097f6f41bb92e0621c5d1a537054a804",
+      "captureSha256": "f7684a3ca54e193481a2b6f5d457bfde61330572e4e6a7b89986d67393a82ce3",
+      "ceilings": {
+        "sunscar-dunes.desktop.current.gpuMB": 173.4606590270996
+      }
+    },
+    {
+      "shard": "far-reach",
+      "tier": "phone",
+      "metric": "gpuMB",
+      "source": "budgets/calibration-reports/far-reach.phone.json",
+      "commit": "a28af631097f6f41bb92e0621c5d1a537054a804",
+      "reason": "E357 Z3/E374 content, lead-approved first measurement of the final builds",
+      "ask": "E357",
+      "approvedBy": "wildshard-9",
+      "approval": "E357 Z3/E374 content, lead-approved first measurement of the final builds",
+      "captureSha": "a28af631097f6f41bb92e0621c5d1a537054a804",
+      "captureSha256": "9c72a0b4894dab16c9ec2f436a09e0669c41e9a799d26eb0fa3bac409ef27075",
+      "ceilings": {
+        "far-reach.phone.current.gpuMB": 77.98888397216797
+      }
+    },
+    {
+      "shard": "far-reach",
+      "tier": "desktop",
+      "metric": "gpuMB",
+      "source": "budgets/calibration-reports/far-reach.desktop.json",
+      "commit": "a28af631097f6f41bb92e0621c5d1a537054a804",
+      "reason": "E357 Z3/E374 content, lead-approved first measurement of the final builds",
+      "ask": "E357",
+      "approvedBy": "wildshard-9",
+      "approval": "E357 Z3/E374 content, lead-approved first measurement of the final builds",
+      "captureSha": "a28af631097f6f41bb92e0621c5d1a537054a804",
+      "captureSha256": "9869e99c33ac9176cfcae7b0f20fd16d20e6ed73321d30add8c29bcb0891c7e5",
+      "ceilings": {
+        "far-reach.desktop.current.gpuMB": 172.33235931396484
       }
     }
   ]

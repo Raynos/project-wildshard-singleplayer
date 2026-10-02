@@ -58,7 +58,7 @@ describe('manifest budget ownership', () => {
     }
   });
   it('re-records only explicitly accepted measured GL changes with causal commits', () => {
-    expect(sources.reRecords.map((row) => `${row.shard}.${row.tier}.${row.metric}`).sort()).toEqual(['_template.desktop.gpuMB', '_template.phone.gpuMB', 'pine-hollow.desktop.gpuMB', 'pine-hollow.phone.gpuMB']);
+    expect(sources.reRecords.map((row) => `${row.shard}.${row.tier}.${row.metric}`).sort()).toEqual(['_template.desktop.gpuMB', '_template.phone.gpuMB', 'far-reach.desktop.gpuMB', 'far-reach.phone.gpuMB', 'pine-hollow.desktop.gpuMB', 'pine-hollow.phone.gpuMB', 'sunscar-dunes.desktop.gpuMB', 'sunscar-dunes.phone.gpuMB']);
     for (const row of sources.reRecords) {
       expect(row.ask).toBe('E357'); expect(row.approvedBy).toBe('wildshard-9');
       expect(row.commit).toMatch(/^[a-f0-9]{40}$/); expect(row.captureSha256).toMatch(/^[a-f0-9]{64}$/);
@@ -66,7 +66,8 @@ describe('manifest budget ownership', () => {
       for (const [key, value] of Object.entries(row.ceilings)) {
         const pose = key.split('.')[2];
         if (!pose || (row.tier !== 'phone' && row.tier !== 'desktop')) throw new Error('Invalid approved ceiling');
-        const manifest = row.shard === '_template' ? template : pine;
+        const manifest = [template, pine, dunes, reach].find((m) => m.slug === row.shard);
+        if (manifest === undefined) throw new Error('Unknown approved shard');
         expect(manifest.budgets?.ceilings?.[row.tier]?.[pose]?.gpuMB).toBe(value);
       }
     }
