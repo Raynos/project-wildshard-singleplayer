@@ -1,0 +1,52 @@
+{
+  "runtimeCandidate": "3620e0a8307e50491a76bb1511a6dc59d5505a76",
+  "checks": {
+    "tsc": "pass",
+    "oxlint": "pass",
+    "vitestFiles": 360,
+    "vitestTests": 2463
+  },
+  "phoneParity": {
+    "pine-hollow.phone.json": {
+      "verdict": "green",
+      "bootErrors": [],
+      "redFields": [],
+      "poseSSIM": {
+        "gate": 1,
+        "cabin": 1,
+        "pond": 0.9997494597028207
+      }
+    },
+    "nalati-grasslands.phone.json": {
+      "verdict": "green",
+      "bootErrors": [],
+      "redFields": [],
+      "poseSSIM": {
+        "camp": 0.999999999999988,
+        "bridge": 1,
+        "plains": 0.9999995369085671
+      }
+    },
+    "driftwood-isle.phone.json": {
+      "verdict": "green",
+      "bootErrors": [],
+      "redFields": [],
+      "poseSSIM": {
+        "pier": 0.9974467597190716,
+        "beach": 0.9920881278951227,
+        "wreck": 0.9999472544012096
+      }
+    },
+    "nine-dragon-stack.phone.json": {
+      "verdict": "green",
+      "bootErrors": [],
+      "redFields": [],
+      "poseSSIM": {
+        "spawn-rail": 1,
+        "well-edge": 1,
+        "stair-street": 0.9993674165124548
+      }
+    }
+  },
+  "captureStatus": "queued until Opus fan/whip callbacks use combat.targets()/target(body)"
+}
