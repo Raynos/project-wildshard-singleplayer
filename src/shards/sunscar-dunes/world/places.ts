@@ -6,9 +6,12 @@ import { CARAVAN, SEED, WELL } from '../layout';
 import { WIND } from './dunes';
 import { duneMaterial, duneMesh, fit, without } from './meshes';
 
-const WOOD = 0x4a2e1e, WOOD_DARK = 0x2c1b14, IRON = 0x231c1c, CANVAS = 0x8a6448, CANVAS_BLEACHED = 0xc9ad86, CANVAS_GLOW = 0x2e2519, STONE = 0x6a4a3a, LEATHER = 0x3a1e12, CLAY = 0x7a3a22;
+// round 2 (R1C-2): sun-greyed wood and worn iron a step lighter; at dusk the old near-black values read as black cut-outs
+const WOOD = 0x7a5538, WOOD_DARK = 0x5a3c28, IRON = 0x4a3c36, CANVAS = 0x8a6448, CANVAS_BLEACHED = 0xd8bc92, CANVAS_GLOW = 0x3a2a1a, STONE = 0x6a4a3a, LEATHER = 0x3a1e12, CLAY = 0x7a3a22;
 const mat = (color: number, extra: Partial<{ metalness: number; side: typeof DoubleSide; emissive: number }> = {}): MeshStandardMaterial =>
   new MeshStandardMaterial({ color, roughness: 0.92, flatShading: true, ...extra });
+/** A generated model's painted material a step lighter (round 2, R1C-2: the iron brazier and the well read black at dusk). */
+export const litDune = (): MeshStandardMaterial => { const m = duneMaterial(); m.color.setRGB(1.8, 1.65, 1.5); return m; };
 const box = (w: number, h: number, d: number, material: Material): Mesh => new Mesh(new BoxGeometry(w, h, d), material);
 const at = (mesh: Mesh, x: number, y: number, z: number, parent: Group): Mesh => { mesh.position.set(x, y, z); parent.add(mesh); return mesh; };
 
@@ -49,7 +52,7 @@ export function buildCaravan(groundAt: (x: number, z: number) => number): Carava
   const generated = duneMesh('caravan');
   if (generated) {
     // round 1 (R1A-5): the painted wood a step lighter, so boards, hoops and wheels separate instead of one dark shell
-    const painted = duneMaterial(); painted.color.setRGB(1.5, 1.38, 1.25);
+    const painted = duneMaterial(); painted.color.setRGB(2.0, 1.8, 1.6);
     wagon.add(new Mesh(fit(generated, { size: 6.2, by: 'span', yaw: Math.PI / 2 }), painted)); coverHoops(wagon);
   }
   else buildCodeWagon(wagon, wood, dark);
@@ -92,7 +95,8 @@ export function buildCaravan(groundAt: (x: number, z: number) => number): Carava
  * frame), straight sides down to 2.1 m, a torn flap off its front edge; a faint glow keeps it pale against the afterglow.
  * The front hoops stay bare, as in the ref.
  */
-const HOOPS = { cx: 0.88, cy: 2.62, top: 1.0, side: 0.55, back: -2.65, front: -0.15 } as const;
+// round 2 (R1A-5): the cover runs the wagon's whole length (from the H2 side only bare dark hoops showed), torn at the front
+const HOOPS = { cx: 0.88, cy: 2.62, top: 1.0, side: 0.55, back: -2.65, front: 1.9 } as const;
 function coverHoops(wagon: Group): void {
   const canvas = mat(CANVAS_BLEACHED, { side: DoubleSide, emissive: CANVAS_GLOW }), len = HOOPS.front - HOOPS.back, mid = (HOOPS.front + HOOPS.back) / 2;
   const arch = new Mesh(new CylinderGeometry(1, 1, len, 9, 1, true, -Math.PI / 2, Math.PI), canvas);
@@ -145,7 +149,7 @@ export function buildWell(groundAt: (x: number, z: number) => number): WellParts
   const generated = duneMesh('dry-well');
   if (generated) {
     const fitted = fit(generated, { size: WELL_FIT, by: 'span' }), maxX = fitted.boundingBox?.max.x ?? 2;
-    root.add(new Mesh(without(fitted, (cx, cy, cz) => cx > maxX - 0.3 || (Math.hypot(cx, cz) < 0.5 && cy > 0.75 && cy < 1.95)), duneMaterial()));
+    root.add(new Mesh(without(fitted, (cx, cy, cz) => cx > maxX - 0.3 || (Math.hypot(cx, cz) < 0.5 && cy > 0.75 && cy < 1.95)), litDune()));
   } else root.add(ring);
   // The shaft: a dark disc inside the ring.
   const hole = new Mesh(new CylinderGeometry(R - 0.3, R - 0.3, 0.05, 16), new MeshBasicMaterial({ color: 0x0a0605 })); at(hole, 0, 0.62, 0, root);
@@ -163,8 +167,9 @@ export function buildWell(groundAt: (x: number, z: number) => number): WellParts
   return { root, colliders, bucket, rope, jar, crank, crankAt: new Vector3(WELL.x + R + 0.32, y + 1.85, WELL.z), jarAt: new Vector3(WELL.x, y + 1.0, WELL.z), drop };
 }
 
-/** The waymark's dressing (metres): stones in its ring, the ring's radius, the marker pole's height. */
-const WAYMARK = { stones: 7, ring: 1.15, pole: 3.8 } as const;
+/** The waymark's dressing (metres): stones in its ring, the ring's radius, the marker pole's height, the plinth's. */
+const WAYMARK = { stones: 9, ring: 1.45, pole: 4.4, plinth: 0.75 } as const;
+const PLINTH_STONE = 0x9a6a4c, PLINTH_BASE = 0x6e4634, PLINTH_LIGHT = 0xa87a58;
 const POLE = 0x5a3a26, RAG = 0x8a2a16, RAG_GLOW = 0x1a0603;
 const KINDLING = 0x6e4a2e;
 /** A long banner hanging from the crossbar, streaming along +x and sagging, in two kinked panels. */
@@ -198,25 +203,39 @@ export function buildBrazier(x: number, z: number, groundAt: (x: number, z: numb
   const y = Math.min(groundAt(x, z), groundAt(x + 0.5, z + 0.5), groundAt(x - 0.5, z - 0.5), groundAt(x + 0.5, z - 0.5), groundAt(x - 0.5, z + 0.5));
   root.position.set(x, y, z);
   // C6: the generated brazier (Hunyuan3D-2 from `ref-brazier.jpg`, plinth to bowl rim 1.85 m), else the code one.
-  const generated = duneMesh('waymark-brazier'), bowl = generated ? 1.74 : 1.62;
-  if (generated) root.add(new Mesh(fit(generated, { size: 1.85, by: 'height', floor: -0.12 }), duneMaterial()));
+  // Round 2 prep: the waymark stands on a two-tier dressed-stone plinth (`WAYMARK.plinth` m), a monument rather than a
+  // pole on a bare slope; everything above it rises with it.
+  const P = WAYMARK.plinth, dressed = mat(PLINTH_STONE), base = mat(PLINTH_BASE);
+  // each tier is 2 x 2 dressed blocks, a shade apart, with thin mortar gaps: masonry, not a crate
+  const tier = new Group(); tier.rotation.y = 0.12; root.add(tier);
+  const shades = [mat(PLINTH_STONE), dressed, mat(PLINTH_LIGHT), base];
+  for (const [w, h, y0, k] of [[1.7, P * 0.55 + 0.3, -0.3, 0], [1.15, P * 0.45, P * 0.55, 1]] as const) {
+    for (let i = 0; i < 4; i++) {
+      const sx = i % 2 === 0 ? -1 : 1, sz = i < 2 ? -1 : 1, bh = h * (0.94 + 0.06 * ((i * 7 + k) % 3) / 2);
+      const block = box(w / 2 - 0.03, bh, w / 2 - 0.03, shades[(i + k) % shades.length] ?? dressed);
+      block.position.set(sx * w / 4, y0 + bh / 2, sz * w / 4); tier.add(block);
+    }
+  }
+  colliders.push(boxDesc({ x, z, hw: 0.85, hd: 0.85, rot: -0.12, yBottom: y - 0.3, yTop: y + P * 0.55 }, 'stone'));
+  const generated = duneMesh('waymark-brazier'), bowl = (generated ? 1.74 : 1.62) + P;
+  if (generated) root.add(new Mesh(fit(generated, { size: 1.85, by: 'height', floor: -0.12 + P }), litDune()));
   else {
-    at(box(0.9, 0.7, 0.9, mat(STONE)), 0, 0.2, 0, root);
-    at(new Mesh(new CylinderGeometry(0.07, 0.1, 1.0, 6), mat(IRON, { metalness: 0.4 })), 0, 1.05, 0, root);
-    at(new Mesh(new CylinderGeometry(0.42, 0.18, 0.32, 8, 1, true), mat(IRON, { metalness: 0.4 })), 0, 1.6, 0, root);
+    at(box(0.9, 0.7, 0.9, mat(STONE)), 0, 0.2 + P, 0, root);
+    at(new Mesh(new CylinderGeometry(0.07, 0.1, 1.0, 6), mat(IRON, { metalness: 0.4 })), 0, 1.05 + P, 0, root);
+    at(new Mesh(new CylinderGeometry(0.42, 0.18, 0.32, 8, 1, true), mat(IRON, { metalness: 0.4 })), 0, 1.6 + P, 0, root);
   }
   const oil = at(new Mesh(new CylinderGeometry(0.33, 0.33, 0.04, 8), new MeshStandardMaterial({ color: 0x1a120c, roughness: 0.2 })), 0, bowl, 0, root);
   root.add(kindling(bowl - 0.08));
   oil.visible = false;
-  colliders.push(boxDesc({ x, z, hw: 0.45, hd: 0.45, rot: 0, yBottom: y - 0.3, yTop: y + 1.75 }, 'stone'));
+  colliders.push(boxDesc({ x, z, hw: 0.45, hd: 0.45, rot: 0, yBottom: y + P * 0.5, yTop: y + 1.75 + P }, 'stone'));
   // Round 1 (R1C-1 / R1B-12): the unlit waymark reads from afar: a ring of fieldstones round its foot, and a tall
   // marker pole beside it with a crossbar and a long faded banner streaming downwind (the waymarks' madder).
-  const stones = new InstancedMesh(rock(1, 0, new Rng(SEED + 211 + Math.round(x)), 0.6, 0.3), mat(STONE), WAYMARK.stones);
+  const stones = new InstancedMesh(rock(1, 1, new Rng(SEED + 211 + Math.round(x)), 0.8, 0.22), mat(STONE), WAYMARK.stones); // round 2: round, half-sunk fieldstones, not flat chips
   const m = new Matrix4(), q = new Quaternion(), up = new Vector3(0, 1, 0);
   for (let i = 0; i < WAYMARK.stones; i++) {
-    const a = (i / WAYMARK.stones) * Math.PI * 2 + 0.3, r = WAYMARK.ring * (0.9 + 0.2 * ((i * 37) % 7) / 7), sz = 0.22 + 0.12 * ((i * 53) % 5) / 5;
+    const a = (i / WAYMARK.stones) * Math.PI * 2 + 0.3, r = WAYMARK.ring * (0.9 + 0.2 * ((i * 37) % 7) / 7), sz = 0.3 + 0.18 * ((i * 53) % 5) / 5;
     const sx = Math.sin(a) * r, sz2 = Math.cos(a) * r;
-    q.setFromAxisAngle(up, a * 1.7); m.compose(new Vector3(sx, groundAt(x + sx, z + sz2) - y - sz * 0.25, sz2), q, new Vector3(sz * 1.3, sz, sz)); stones.setMatrixAt(i, m);
+    q.setFromAxisAngle(up, a * 1.7); m.compose(new Vector3(sx, groundAt(x + sx, z + sz2) - y - sz * 0.4, sz2), q, new Vector3(sz * 1.2, sz, sz)); stones.setMatrixAt(i, m);
   }
   stones.instanceMatrix.needsUpdate = true; stones.computeBoundingSphere(); root.add(stones);
   const poleX = WAYMARK.ring * 0.8, poleZ = -WAYMARK.ring * 0.5, poleY = groundAt(x + poleX, z + poleZ) - y;
@@ -226,8 +245,16 @@ export function buildBrazier(x: number, z: number, groundAt: (x: number, z: numb
   const banner = new Mesh(bannerGeometry(), new MeshStandardMaterial({ color: RAG, roughness: 0.9, side: DoubleSide, emissive: RAG_GLOW }));
   banner.position.set(poleX, poleY + WAYMARK.pole - 0.5, poleZ); banner.rotation.y = Math.atan2(-WIND.z, WIND.x); root.add(banner);
   colliders.push(boxDesc({ x: x + poleX, z: z + poleZ, hw: 0.06, hd: 0.06, rot: 0, yBottom: y + poleY - 0.3, yTop: y + poleY + WAYMARK.pole }, 'wood'));
+  // round 2 (R1C-1, seat B: 'a built, lit structure'): a small lantern hangs off the crossbar, its halo and a warm pool
+  // on the sand, so the waymark reads lit before its fire is
+  const lampY = poleY + WAYMARK.pole - 1.0, lampX = poleX - 0.3, lamp = new Group(); lamp.position.set(lampX, lampY, poleZ); root.add(lamp);
+  const iron = mat(IRON, { metalness: 0.4 });
+  at(box(0.16, 0.035, 0.16, iron), 0, 0.15, 0, lamp); at(box(0.16, 0.035, 0.16, iron), 0, -0.13, 0, lamp);
+  at(box(0.1, 0.22, 0.1, new MeshBasicMaterial({ color: 0xffb24a })), 0, 0.01, 0, lamp);
+  at(box(0.012, 0.42, 0.012, iron), 0, 0.37, 0, lamp);
+  addLampGlow(lamp, 1.6, (lx, lz) => groundAt(x + lampX + lx, z + poleZ + lz) - (y + lampY));
   const fire = new Group(); fire.position.set(0, bowl, 0); fire.visible = false; root.add(fire);
   // The fire (P2 #8): layered flame, glow, embers downwind, a smoke column and a warm pool on the sand.
   addFire(fire, WAYMARK_FIRE, { at: new Vector3(x, y + bowl, z), groundAt });
-  return { root, colliders, fire, bowlAt: new Vector3(x, y + 1.6, z), oil };
+  return { root, colliders, fire, bowlAt: new Vector3(x, y + 1.6 + P, z), oil };
 }

@@ -79,7 +79,8 @@ export function buildWorld(ctx: ShardContext, flags: Flags): SignalWorld {
     const parts = buildBrazier(b.x, b.z, groundAt); ctx.root.add(parts.root);
     ctx.piece({ id: `sunscar.brazier.${String(i)}`, name: STRINGS.waymark, category: 'props', file: file('places'), object: parts.root, colliders: parts.colliders, surface: 'stone' });
     const brazier: Brazier = { parts, oiled: false, lit: false,
-      spot: { label: STRINGS.needOil, position: parts.bowlAt, radius: 2.4, onInteract: () => {
+      // radius 3: the bowl stands on its plinth, 2.35 m up, and is reached from the sand round it
+      spot: { label: STRINGS.needOil, position: parts.bowlAt, radius: 3, onInteract: () => {
         if (brazier.lit) return;
         if (!flags.has(FLAG.oil)) { toast(ctx, STRINGS.needOilHint); return; }
         if (!brazier.oiled) { brazier.oiled = true; parts.oil.visible = true; brazier.spot.label = STRINGS.crackToLight; toast(ctx, STRINGS.crackToLight); }

@@ -1,4 +1,4 @@
-import { BackSide, BufferGeometry, ClampToEdgeWrapping, Color, DataTexture, Float32BufferAttribute, Fog, LinearFilter, LinearMipmapLinearFilter, Mesh, MeshStandardMaterial, PlaneGeometry, RedFormat, RepeatWrapping, RGBAFormat, ShaderMaterial, SphereGeometry, UnsignedByteType, Vector3 } from 'three';
+import { BackSide, ClampToEdgeWrapping, Color, DataTexture, Float32BufferAttribute, Fog, LinearFilter, LinearMipmapLinearFilter, Mesh, MeshStandardMaterial, PlaneGeometry, RedFormat, RepeatWrapping, RGBAFormat, ShaderMaterial, SphereGeometry, UnsignedByteType, Vector3, type BufferGeometry } from 'three';
 import { DayCycle, patchShader, PATCH_ORDER, type LookStrategy } from '#engine';
 import { GROUND_HALF } from '../layout';
 import { WIND } from '../world/dunes';
@@ -14,7 +14,7 @@ import { SKY_FRAGMENT, SKY_VERTEX, SUN_GLOW } from './sky';
 export const KEY = { dir: new Vector3(-0.97, 0.174, 0.171).normalize(), color: new Color(1, 0.57, 0.3), intensity: 2.5 } as const;
 /** Violet aerial perspective: far dune rows cool and lift into layers (R9), never pink. */
 export const FOG = { color: 0x684a62, near: 80, far: 430 } as const;
-const TROD = new Color(0.3, 0.13, 0.06), SAND = new Color(0.5, 0.2, 0.075), HOLLOW = new Color(0.2, 0.12, 0.15), CREST = new Color(0.62, 0.28, 0.1);
+const SAND = new Color(0.5, 0.2, 0.075), HOLLOW = new Color(0.2, 0.12, 0.15), CREST = new Color(0.62, 0.28, 0.1);
 /** How far (m) and in how many growing steps the bake marches toward the sun for the dunes' cast shadows. */
 const SHADOW_MARCH = { first: 0.8, grow: 1.22, steps: 26 } as const;
 const WIND_GLSL = `${WIND.x.toFixed(3)}, ${WIND.z.toFixed(3)}`;
@@ -35,6 +35,18 @@ function bakeDuneShadow(heightAt: (x: number, z: number) => number): DataTexture
     let d = SHADOW_MARCH.first, over = 0;
     for (let k = 0; k < SHADOW_MARCH.steps; k++, d *= SHADOW_MARCH.grow) over = Math.max(over, (heightAt(x0 + sx * d, z0 + sz * d) - (h0 + rise * d)) / (0.3 + d * 0.025));
     data[iz * n + ix] = Math.round(255 * (1 - Math.min(1, Math.max(0, over))));
+  }
+  const tex = new DataTexture(data, n, n, RedFormat, UnsignedByteType);
+  tex.magFilter = LinearFilter; tex.minFilter = LinearFilter; tex.wrapS = ClampToEdgeWrapping; tex.wrapT = ClampToEdgeWrapping; tex.needsUpdate = true;
+  return tex;
+}
+
+/** The trail mask (round 2): 1 on the trodden bed, 0 a few metres off it, at the shadow map's 0.75 m texels. */
+function bakeTrail(trailDistance: (x: number, z: number) => number): DataTexture {
+  const n = SHADOW_TEX, data = new Uint8Array(n * n), texel = (GROUND_HALF * 2) / n;
+  for (let iz = 0; iz < n; iz++) for (let ix = 0; ix < n; ix++) {
+    const d = trailDistance(-GROUND_HALF + (ix + 0.5) * texel, -GROUND_HALF + (iz + 0.5) * texel), t = Math.min(1, Math.max(0, (d - 1.3) / 1.6));
+    data[iz * n + ix] = Math.round(255 * (1 - t * t * (3 - 2 * t)));
   }
   const tex = new DataTexture(data, n, n, RedFormat, UnsignedByteType);
   tex.magFilter = LinearFilter; tex.minFilter = LinearFilter; tex.wrapS = ClampToEdgeWrapping; tex.wrapT = ClampToEdgeWrapping; tex.needsUpdate = true;
@@ -71,35 +83,28 @@ function sandGrainTexture(): DataTexture {
   return tex;
 }
 
-/** The skirt round the painted ground: from its edge out to `out` metres, `cell` metres a quad. */
+/** The skirt round the painted ground: an 800 m grid, `cell` metres a quad, aligned with the ground's edge. */
 const SKIRT = { out: 400, cell: 8 } as const;
+/**
+ * Round 2 (R1C-5: the first skirt drew saw-tooth bands from above): one indexed grid with smooth normals. Inside the
+ * square it sits 2 m under the ground (hidden); on the edge it meets the ground's own heights; outside it eases into
+ * smooth swells along the wind.
+ */
 function skirtGeometry(heightAt: (x: number, z: number) => number): BufferGeometry {
-  const pos: number[] = [], col: number[] = [], inner = GROUND_HALF - 0.5, c = new Color();
-  const clampEdge = (v: number): number => Math.max(-inner, Math.min(inner, v));
+  const n = (SKIRT.out * 2) / SKIRT.cell, g = new PlaneGeometry(SKIRT.out * 2, SKIRT.out * 2, n, n); g.rotateX(-Math.PI / 2);
+  const p = g.getAttribute('position'), col = new Float32Array(p.count * 3), c = new Color().copy(SAND).lerp(HOLLOW, 0.25), edge = GROUND_HALF;
   const swell = (x: number, z: number): number => {
     const u = (x * WIND.x + z * WIND.z) / 64, v = (-x * WIND.z + z * WIND.x) / 90;
-    return 2 + 4.5 * Math.max(0, Math.sin((u + Math.sin(v) * 0.4) * Math.PI * 2)) ** 1.5;
+    return 2.5 + 3 * Math.sin((u + Math.sin(v) * 0.4) * Math.PI * 2);
   };
-  const h = (x: number, z: number): number => {
-    const out = Math.max(Math.abs(x), Math.abs(z)) - inner, t = Math.min(1, Math.max(0, out / 60)), e = t * t * (3 - 2 * t);
-    return heightAt(clampEdge(x), clampEdge(z)) * (1 - e) + swell(x, z) * e;
-  };
-  const n = Math.ceil((SKIRT.out * 2) / SKIRT.cell), step = (SKIRT.out * 2) / n;
-  for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) {
-    const x0 = -SKIRT.out + i * step, z0 = -SKIRT.out + j * step, x1 = x0 + step, z1 = z0 + step;
-    if (Math.max(Math.abs(x0), Math.abs(x1)) <= inner && Math.max(Math.abs(z0), Math.abs(z1)) <= inner) continue; // inside the square
-    const quad: [number, number][] = [[x0, z0], [x0, z1], [x1, z1], [x1, z0]];
-    for (const k of [0, 1, 2, 0, 2, 3]) {
-      const [qx, qz] = quad[k] ?? [0, 0];
-      // the inner ring of quads is clamped onto the square's edge so no crack opens between skirt and ground
-      const px = Math.abs(qx) < inner && Math.abs(qz) < inner ? (Math.abs(qx) > Math.abs(qz) ? Math.sign(qx) * inner : qx) : qx;
-      const pz = Math.abs(qx) < inner && Math.abs(qz) < inner ? (Math.abs(qz) >= Math.abs(qx) ? Math.sign(qz) * inner : qz) : qz;
-      pos.push(px, h(px, pz) - 0.05, pz);
-      c.copy(SAND).lerp(HOLLOW, 0.25); col.push(c.r, c.g, c.b);
-    }
+  for (let i = 0; i < p.count; i++) {
+    const x = p.getX(i), z = p.getZ(i), out = Math.max(Math.abs(x), Math.abs(z)) - edge;
+    const cx = Math.max(-edge, Math.min(edge, x)), cz = Math.max(-edge, Math.min(edge, z));
+    const t = Math.min(1, Math.max(0, out / 60)), e = t * t * (3 - 2 * t);
+    const y = out < -0.5 ? heightAt(x, z) - 2 : heightAt(cx, cz) * (1 - e) + swell(x, z) * e - 0.05;
+    p.setY(i, y); col[i * 3] = c.r; col[i * 3 + 1] = c.g; col[i * 3 + 2] = c.b;
   }
-  const g = new BufferGeometry();
-  g.setAttribute('position', new Float32BufferAttribute(pos, 3)); g.setAttribute('color', new Float32BufferAttribute(col, 3));
+  g.setAttribute('color', new Float32BufferAttribute(col, 3));
   g.computeVertexNormals();
   return g;
 }
@@ -152,6 +157,7 @@ export function signalDunesLook(): LookStrategy {
         return (at(ix, iz) * (1 - u) + at(ix + 1, iz) * u) * (1 - w) + (at(ix, iz + 1) * (1 - u) + at(ix + 1, iz + 1) * u) * w;
       };
       const shadow = bakeDuneShadow(gridAt); scope.own(shadow);
+      const trail = bakeTrail((x, z) => field.trailDistance(x, z)); scope.own(trail);
       const grain = sandGrainTexture(); scope.own(grain);
       for (let i = 0; i < pos.count; i++) {
         const x = pos.getX(i), z = pos.getZ(i), h = pos.getY(i);
@@ -159,16 +165,13 @@ export function signalDunesLook(): LookStrategy {
         const mean = (field.heightAt(x + 14, z) + field.heightAt(x - 14, z) + field.heightAt(x, z + 14) + field.heightAt(x, z - 14)) / 4;
         const rel = Math.max(-1, Math.min(1, (h - mean) / 2.5));
         c.copy(SAND); if (rel < 0) c.lerp(HOLLOW, -rel * 0.75); else c.lerp(CREST, rel * 0.6);
-        // round 1 (R1C-5 / R1B-14): the trails are trodden, darker compacted sand, so the walk reads from above
-        const trod = 1 - Math.min(1, Math.max(0, (field.trailDistance(x, z) - 2.2) / 2.6));
-        if (trod > 0) c.lerp(TROD, trod * 0.7);
         colors[i * 3] = c.r; colors[i * 3 + 1] = c.g; colors[i * 3 + 2] = c.b;
       }
       geometry.setAttribute('color', new Float32BufferAttribute(colors, 3));
       geometry.computeVertexNormals();
       const material = new MeshStandardMaterial({ vertexColors: true, roughness: 0.88, metalness: 0 }); scope.own(material);
       patchShader(material, 'sunscar.ripples', PATCH_ORDER.decorate, (shader) => {
-        shader.uniforms['uSandShadow'] = { value: shadow }; shader.uniforms['uSandGrain'] = { value: grain };
+        shader.uniforms['uSandShadow'] = { value: shadow }; shader.uniforms['uSandGrain'] = { value: grain }; shader.uniforms['uSandTrail'] = { value: trail };
         shader.vertexShader = shader.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vSandPos;\nvarying vec3 vSandN;')
           .replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvSandPos = (modelMatrix * vec4(transformed, 1.0)).xyz;\nvSandN = normalize(mat3(modelMatrix) * objectNormal);');
         shader.fragmentShader = shader.fragmentShader.replace('#include <common>', `#include <common>
@@ -176,6 +179,7 @@ varying vec3 vSandPos;
 varying vec3 vSandN;
 uniform sampler2D uSandShadow;
 uniform sampler2D uSandGrain;
+uniform sampler2D uSandTrail;
 // A ripple octave survives while a pixel spans well under one period, at any distance (no fixed fade, no aliasing).
 float sandAA(float phase) { return 1.0 - smoothstep(0.5, 1.8, fwidth(phase)); }`)
           .replace('#include <color_fragment>', `#include <color_fragment>
@@ -193,12 +197,16 @@ float sandAA(float phase) { return 1.0 - smoothstep(0.5, 1.8, fwidth(phase)); }`
   float sandPatch = clamp(0.5 + 0.6 * sin(sandV * 0.31 + sin(sandU * 0.19) * 1.7) * sin(sandU * 0.27 + sandV * 0.07 + 1.3), 0.12, 1.0);
   float sandRip1 = sandAA(sandPhase) * (0.3 + 0.7 * sandFlat) * sandPatch, sandRip2 = sandAA(sandPhase2) * sandFlat * (0.4 + 0.6 * sandPatch);
   vec4 sandTex = texture2D(uSandGrain, vSandPos.xz * 0.55);
+  // round 2 (R1C-5 / seat B: the trails were soft smears from above): a baked 0.75 m trail mask, trodden darker and smooth
+  float sandTrod = texture2D(uSandTrail, (vSandPos.xz + ${GROUND_HALF.toFixed(1)}) / ${(GROUND_HALF * 2).toFixed(1)}).r;
+  sandRip1 *= 1.0 - sandTrod; sandRip2 *= 1.0 - sandTrod;
   diffuseColor.rgb *= 1.0 + 0.06 * sin(sandPhase) * sandRip1 + 0.02 * sin(sandPhase2) * sandRip2 + (sandTex.r - 0.5) * 0.24;
   // loop 4, surface variety (the council's baseline: the near sand read as one flat brown): broad tonal drifts (tens of
   // metres) and pale wind-blown streaks running downwind over the windward faces, a finer darker sand in the scours.
   float sandDrift = sin(sandU * 0.045 + sin(sandV * 0.031) * 2.0) * sin(sandV * 0.052 + 1.7) + 0.5 * sin(sandU * 0.11 + sandV * 0.07);
   float sandStreak = smoothstep(0.55, 0.95, sin(sandV * 1.9 + sin(sandU * 0.07) * 3.0) * sin(sandV * 0.37 + 0.6)) * (0.4 + 0.6 * sandFlat);
   diffuseColor.rgb *= 1.0 + 0.08 * sandDrift;
+  diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * vec3(1.12, 1.04, 0.96), sandTrod * 0.8); // a pale trodden path, smooth: never a dark shadow stripe
   diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * vec3(1.18, 1.12, 1.02), sandStreak * 0.55 * (1.0 - smoothstep(60.0, 140.0, sandFar)));`)
           .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
   {

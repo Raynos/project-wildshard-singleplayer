@@ -93,6 +93,12 @@ function smoothNormals(g: BufferGeometry): void {
   for (let i = 0; i < p.count; i++) { const k = key(i), v = sum.get(k) ?? [0, 0, 0]; v[0] += n.getX(i); v[1] += n.getY(i); v[2] += n.getZ(i); sum.set(k, v); }
   for (let i = 0; i < p.count; i++) { const v = sum.get(key(i)) ?? [0, 1, 0], l = Math.hypot(v[0], v[1], v[2]) || 1; n.setXYZ(i, v[0] / l, v[1] / l, v[2] / l); }
   n.needsUpdate = true;
+  // round 2 (R1A-2): the painted colour per facet still drew every triangle; average it per position too
+  if (!g.hasAttribute('color')) return;
+  const c = g.getAttribute('color'), col = new Map<string, [number, number, number, number]>();
+  for (let i = 0; i < p.count; i++) { const k = key(i), v = col.get(k) ?? [0, 0, 0, 0]; v[0] += c.getX(i); v[1] += c.getY(i); v[2] += c.getZ(i); v[3]++; col.set(k, v); }
+  for (let i = 0; i < p.count; i++) { const v = col.get(key(i)); if (v) c.setXYZ(i, v[0] / v[3], v[1] / v[3], v[2] / v[3]); }
+  c.needsUpdate = true;
 }
 
 function gloveMesh(): { mesh: Mesh; top: number } | null {
@@ -110,7 +116,7 @@ function gloveMesh(): { mesh: Mesh; top: number } | null {
   // Painted facets, matte; a touch of warm self-light so the backlit glove never reads as a black lump.
   // loop 4: the painted leather a little lighter (it read as one brown lump against the sand next to the bar's weapons)
   const material = new MeshStandardMaterial({ vertexColors: true, roughness: 0.7, metalness: 0, emissive: GLOW });
-  material.color.setRGB(1.22, 1.14, 1.05);
+  material.color.setRGB(1.6, 1.45, 1.28); // round 2: a tan leather a step lighter than the sand
   return { mesh: new Mesh(g, material), top };
 }
 

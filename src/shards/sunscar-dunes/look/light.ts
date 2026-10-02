@@ -11,7 +11,7 @@ export function lastLight(material: MeshStandardMaterial, scope: Scope): void {
     shader.fragmentShader = shader.fragmentShader.replace('#include <opaque_fragment>', `{
     float sunscarRim = pow(1.0 - saturate(dot(normal, normalize(vViewPosition))), 3.0);
     // round 1 (R1C-2): a stronger cool sky floor and rim; leather and wood in shade read brown-violet, never black
-    outgoingLight += diffuseColor.rgb * (vec3(0.15, 0.14, 0.24) + vec3(1.0, 0.5, 0.22) * sunscarRim * 0.95);
+    outgoingLight += diffuseColor.rgb * (vec3(0.24, 0.21, 0.36) + vec3(1.0, 0.5, 0.22) * sunscarRim * 1.2); // round 2: stronger still
   }
 #include <opaque_fragment>`);
   }, { scope });

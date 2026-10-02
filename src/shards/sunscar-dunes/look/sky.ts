@@ -35,7 +35,8 @@ void main() {
   // loop 4: the band is taller and warmer all round (the H4 back targets: orange well up the sky away from the glow too)
   // (the H4 back target, loop 4: away from the glow the band stays a saturated orange, a little lower)
   vec3 band = mix(vec3(0.9, 0.42, 0.17), vec3(0.98, 0.47, 0.15), pow(toward, 1.3));
-  vec3 mauve = vec3(0.64, 0.31, 0.22), violet = vec3(0.26, 0.19, 0.27), indigo = vec3(0.12, 0.11, 0.18);
+  // round 2 (R1C-3: the eye-level views spanned 19-35 degrees of hue): a bluer violet and zenith, the bible's cool half
+  vec3 mauve = vec3(0.64, 0.31, 0.22), violet = vec3(0.24, 0.2, 0.36), indigo = vec3(0.09, 0.11, 0.25);
   vec3 c = mix(band, mauve, smoothstep(0.0, 0.24 + 0.06 * toward, h));
   c = mix(c, violet, smoothstep(0.16, 0.4, h));
   c = mix(c, indigo, smoothstep(0.3, 0.8, h));
@@ -58,10 +59,15 @@ void main() {
   float lit = clamp((deck - vFbm(cp * 1.1 + vec2(3.0, 1.0) + sunward * vec2(0.55, 1.5))) * 5.0 + 0.45, 0.0, 1.0);
   vec3 cloudDark = mix(vec3(0.26, 0.15, 0.18), vec3(0.3, 0.15, 0.17), toward);
   vec3 cloudLit = mix(vec3(0.96, 0.48, 0.3), vec3(1.0, 0.58, 0.26), pow(toward, 1.5));
-  cloudLit = mix(cloudLit, vec3(0.62, 0.32, 0.4), smoothstep(0.18, 0.6, h));
+  cloudLit = mix(cloudLit, vec3(0.44, 0.38, 0.56), smoothstep(0.18, 0.6, h)); // high tops slate-blue
   c = mix(c, mix(cloudDark, cloudLit, clamp(lit * (0.75 + 0.25 * toward) + 0.2, 0.0, 1.0)), cov * 0.94);
   // Point stars (round 1, R1B-18: whole cells drew 3-6 px quads): a soft dot round a jittered spot in its cell, fading
   // toward the glow and behind the cloud deck.
+  // A low cloud bank on the horizon (round 2, seat B: the low sky in the aerials and the clip was flat orange): ragged
+  // streaks in the lowest few degrees, warm where they face the glow, slate-violet away from it.
+  float bankN = vNoise(vec2(az * 5.0, h * 30.0)) * 0.6 + vNoise(vec2(az * 13.0 + 2.0, h * 70.0)) * 0.4;
+  float bank = smoothstep(0.42, 0.72, bankN) * (1.0 - smoothstep(0.025, 0.11, h)) * smoothstep(-0.02, 0.004, d.y);
+  c = mix(c, mix(vec3(0.36, 0.27, 0.4), vec3(0.98, 0.56, 0.38), pow(toward, 1.5)), bank * 0.8);
   vec3 cellP = d * 260.0, cell = floor(cellP);
   vec3 spot = cell + 0.5 + (vec3(starHash(cell + 1.7), starHash(cell + 5.3), starHash(cell + 9.1)) - 0.5) * 0.5;
   float starDot = 1.0 - smoothstep(0.0, 0.16, length(cellP - spot));

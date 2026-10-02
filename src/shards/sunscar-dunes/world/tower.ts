@@ -2,10 +2,11 @@ import { addFire, SIGNAL_FIRE } from './fireFx';
 import { BoxGeometry, CylinderGeometry, Group, Mesh, MeshStandardMaterial, PointLight, Vector3, type Material } from 'three';
 import { boxDesc, type ColliderDesc } from '#engine';
 import { TOWER } from '../layout';
-import { duneMaterial, duneMesh, fit } from './meshes';
-import { kindling } from './places';
+import { duneMesh, fit } from './meshes';
+import { kindling, litDune } from './places';
 
-const WOOD = 0x4a2e1e, WOOD_DARK = 0x2c1b14, IRON = 0x231c1c;
+// round 2 (R1C-2): a step lighter; the H4 deck's rail, post and brazier read black at dusk
+const WOOD = 0x7a5538, WOOD_DARK = 0x5a3c28, IRON = 0x4a3c36;
 export const STAIR = { count: 22, run: 0.42, width: 1.3, x: 0.75 } as const;
 
 export interface TowerParts { root: Group; colliders: ColliderDesc[]; fire: Group; light: PointLight; brazierAt: Vector3; deckY: number }
@@ -95,7 +96,7 @@ export function buildTower(y: number, groundAt: (x: number, z: number) => number
   // Round 1 (R1C-1 / R1B-12): the generated waymark brazier, the H4 view's subject (it was a near-black post and bowl);
   // the code one stays the stand-in.
   const generated = duneMesh('waymark-brazier');
-  if (generated) add(new Mesh(fit(generated, { size: 1.25, by: 'height', floor: 0 }), duneMaterial()), brazierAt.x - cx, deckY, brazierAt.z - cz);
+  if (generated) add(new Mesh(fit(generated, { size: 1.25, by: 'height', floor: 0 }), litDune()), brazierAt.x - cx, deckY, brazierAt.z - cz);
   else {
     add(new Mesh(new CylinderGeometry(0.08, 0.12, 0.9, 6), iron), brazierAt.x - cx, deckY + 0.45, brazierAt.z - cz);
     add(new Mesh(new CylinderGeometry(0.45, 0.22, 0.3, 8, 1, true), iron), brazierAt.x - cx, deckY + 1.0, brazierAt.z - cz);

@@ -40,7 +40,8 @@ export const SUNSCAR_DUNES: ShardManifest = {
       // round 1 (R1B-14 / R1C-5): bands all round, so the top edge rises and falls instead of running ruler-straight
       bands: [0, 45, 90, 135, 180, 225, 270, 315].map((azimuth, i) => ({ azimuth, spread: 40, height: [9, 14, 7, 12, 10, 15, 8, 13][i] ?? 10, rough: 0.6 })) },
     { r: 470, base: 2, color: [0.17, 0.07, 0.06], top: [0.34, 0.15, 0.1], snowLine: 2, haze: 0.6, floor: -10,
-      bands: [20, 70, 120, 165, 210, 255, 300, 345].map((azimuth, i) => ({ azimuth, spread: 45, height: [18, 12, 22, 15, 20, 11, 24, 16][i] ?? 16, rough: 0.5 })) },
+      // round 2 (R1C-5: from 250 m up the far ridge still read ruler-straight): tall ragged ranges, mesas at the world's edge
+      bands: [20, 65, 110, 150, 195, 240, 285, 330].map((azimuth, i) => ({ azimuth, spread: 40, height: [55, 30, 75, 40, 65, 28, 85, 45][i] ?? 45, rough: 0.75 })) },
   ] },
   boundary: { visible: false },
   minimap: { palette: SIGNAL_DUNES_MINIMAP }, // the sand map: crests, slip faces, hollows, the ridges, the caravan tracks (look/minimap.ts)
