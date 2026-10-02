@@ -27,19 +27,19 @@ Every finding, one row, a stable ID, never deleted. Status: `fixed` + commit · 
 | R1B-11 | 1 | B | sky-reach | nit | see the seat file | HUD: SWING and GUST buttons | fixed (claimed) | 01500e79; round 2 verifies |
 | R1B-12 | 1 | B | signal-dunes | must-fix | H3 "waymark" and H4 "tower-deck" (`manifest.ts` `dev.poses`); `world/d | Two of the four hero views have no subject. | fixed (claimed) | 12af466e; round 2 verifies |
 | R1B-13 | 1 | B | signal-dunes | must-fix | First minute; `species/duneRay.ts` (`SWOOP.damage` 14) and `combat/cre | The player arrives hurt. | fixed (claimed) | 12af466e; round 2 verifies |
-| R1B-14 | 1 | B | signal-dunes | should-fix | see the seat file | Aerials and the clip;  cloud deck ( gated by ) and the far horizon | open → signal-dunes | |
+| R1B-14 | 1 | B | signal-dunes | should-fix | see the seat file | Aerials and the clip;  cloud deck ( gated by ) and the far horizon | fixed (claimed) | 84d41f75; round 2 verifies |
 | R1B-15 | 1 | B | signal-dunes | should-fix | see the seat file | The dune ray model (, a code mesh) | fixed (claimed) | 12af466e; round 2 verifies |
-| R1B-16 | 1 | B | signal-dunes | should-fix | see the seat file | Battery 6 coverage; | open → signal-dunes | |
+| R1B-16 | 1 | B | signal-dunes | should-fix | see the seat file | Battery 6 coverage; | fixed (claimed) | be2f6b36; round 2 verifies |
 | R1B-17 | 1 | B | signal-dunes | should-fix | see the seat file | Battery 7: the Matriarch's storm phase () | fixed (claimed) | ddd4c53d (storm fog; the boss clip to come); round 2 verifies |
 | R1B-18 | 1 | B | signal-dunes | should-fix | see the seat file | stars ( cells) | fixed (claimed) | 12af466e; round 2 verifies |
-| R1B-19 | 1 | B | signal-dunes | nit | see the seat file | fps pill | open → signal-dunes | |
-| R1B-20 | 1 | B | both | nit | see the seat file | ,  row tables | open → both | |
+| R1B-19 | 1 | B | signal-dunes | nit | see the seat file | fps pill | fixed (claimed) | parity green (a first-view hitch only); round 2 verifies |
+| R1B-20 | 1 | B | both | nit | see the seat file | ,  row tables | fixed (claimed) | 0b33bb31; round 2 verifies |
 | R1C-1 | 1 | C | signal-dunes | must-fix | Hero views h3 and h4 (battery 4); `art/sunscar-dunes/progress/cameras. | unlit | fixed (claimed) | 12af466e; round 2 verifies |
 | R1C-2 | 1 | C | signal-dunes | must-fix | Creatures and props (battery 6/7, every frame with them); style bible | Rim: "creatures and props (open)" | fixed (claimed) | 12af466e; round 2 verifies |
-| R1C-3 | 1 | C | signal-dunes | should-fix | see the seat file | Palette and grade (battery 2, 4; every frame); terrain painter  (), the grade | open → signal-dunes | |
+| R1C-3 | 1 | C | signal-dunes | should-fix | see the seat file | Palette and grade (battery 2, 4; every frame); terrain painter  (), the grade | fixed (claimed) | 84d41f75; round 2 verifies |
 | R1C-4 | 1 | C | signal-dunes | should-fix | see the seat file | First person, the whip at rest (battery 6);  viewmodel pose,  model | fixed (claimed) | 12af466e; round 2 verifies |
-| R1C-5 | 1 | C | signal-dunes | should-fix | see the seat file | From above (battery 5);  crest profile at the terrain's vertex spacing; the far ring (, horizon); trails | open → signal-dunes | |
-| R1C-6 | 1 | C | signal-dunes | should-fix | see the seat file | Title deck (battery 1); , | open → signal-dunes | |
+| R1C-5 | 1 | C | signal-dunes | should-fix | see the seat file | From above (battery 5);  crest profile at the terrain's vertex spacing; the far ring (, horizon); trails | fixed (claimed) | 84d41f75; round 2 verifies |
+| R1C-6 | 1 | C | signal-dunes | should-fix | see the seat file | Title deck (battery 1); , | fixed (claimed) | 2c917ef7; round 2 verifies |
 | R1C-7 | 1 | C | signal-dunes | should-fix | see the seat file | The first minute (battery 3);  , the scout marker in  () | fixed (claimed) | 12af466e; round 2 verifies |
 | R1C-8 | 1 | C | sky-reach | must-fix | The first minute (battery 2, 3); `quest/keeper.ts` `KEEPER_AT = (-1.9, | behind the HOVER tab | fixed (claimed) | 84d41f75; round 2 verifies |
 | R1C-9 | 1 | C | sky-reach | must-fix | see the seat file | The islands' form (battery 4, 5);   (every isle a 12-gon of r 12–20, on the grid x ∈ {−56, 0, 62}, z ∈ {0, −64, −124, −190}, six of eight at  30), the | fixed (claimed) | 84d41f75; round 2 verifies |
