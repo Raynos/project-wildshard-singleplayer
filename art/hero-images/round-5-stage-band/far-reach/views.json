@@ -1,0 +1,55 @@
+{
+ "views": [
+  {
+   "id": "a",
+   "pos": [
+    0,
+    34,
+    10
+   ],
+   "look": [
+    0,
+    38,
+    -70
+   ],
+   "fov": 38,
+   "center": 0.27,
+   "settle": 5000,
+   "note": "from the back of Sunrest meadow (long lens): grass, the keeper, the rope bridge, the windmill isle"
+  },
+  {
+   "id": "b",
+   "pos": [
+    0,
+    45.6,
+    -166
+   ],
+   "look": [
+    0,
+    50,
+    -195
+   ],
+   "fov": 60,
+   "center": 0.28,
+   "settle": 5000,
+   "note": "the storm crown: the Storm Roc hovering over the standing stones and bunting, the storm swirl overhead, the sun behind; from the crown rim"
+  },
+  {
+   "id": "c",
+   "pos": [
+    6,
+    52,
+    6
+   ],
+   "look": [
+    0,
+    33,
+    -68
+   ],
+   "fov": 55,
+   "center": 0.3,
+   "settle": 5000,
+   "note": "raised 22 m over Sunrest: the bridge climbing to the windmill isle, the high step beyond, the cloud sea all round"
+  }
+ ]
+}

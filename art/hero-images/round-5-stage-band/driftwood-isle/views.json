@@ -1,0 +1,5 @@
+{ "views": [
+ { "id": "a", "pos": [0, 36, -262], "look": [0, 36, -100], "fov": 60, "center": 0.16, "settle": 4000 },
+ { "id": "b", "posGround": [-40, 7, -22], "lookGround": [-15, 2, -80], "fov": 60, "center": 0.33, "settle": 4000 },
+ { "id": "c", "posGround": [-91, 1.5, 95.8], "lookGround": [-98, 8, 108], "fov": 82, "center": 0.24, "settle": 4000 }
+]}

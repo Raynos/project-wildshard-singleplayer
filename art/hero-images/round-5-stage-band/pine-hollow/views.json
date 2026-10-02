@@ -1,0 +1,6 @@
+{ "views": [
+ { "id": "a", "query": "boss=antler-king&bossGod=1&bossPhase=2&from=18&clock=1000000", "pos": [156, 2, -10], "look": [150, 4, -30], "fov": 58, "center": 0.3, "settle": 8000, "burst": 4, "burstGap": 1600,
+   "eval": "(()=>{const k=window.__antlerKing.fight.king.position;window.__hv={...window.__hv,pos:[k.x+4,k.y+1.4,k.z+24],look:[k.x,k.y+4.8,k.z]};})()" },
+ { "id": "b", "query": "tod=dusk&clock=1000000", "posGround": [2, 2, -52], "lookGround": [-14, 4.5, -34], "fov": 58, "center": 0.3, "settle": 4000 },
+ { "id": "c", "query": "tod=golden&clock=1000000", "posGround": [-66, 4, 118], "lookGround": [-87, 14, 158], "fov": 55, "center": 0.3, "settle": 4000 }
+]}

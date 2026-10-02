@@ -1,0 +1,58 @@
+{
+ "views": [
+  {
+   "id": "a",
+   "posGround": [
+    67,
+    0.4,
+    -35.5
+   ],
+   "look": [
+    58,
+    12.6,
+    -34
+   ],
+   "fov": 68,
+   "center": 0.24,
+   "settle": 5000,
+   "eval": "(()=>{const s=window.__wildshard.world.game.app.debug.snapshot().sunscar;const p=s&&s.places;if(!p)return 'none';for(const b of p.braziers){b.lit=true;b.parts.fire.visible=true;}p.fire.lit=true;p.fire.tower.fire.visible=true;return 'lit';})()",
+   "note": "close and low under the east waymark brazier (58,-34), all three waymarks and the tower fire lit by eval, smoke into the night sky"
+  },
+  {
+   "id": "b",
+   "posGround": [
+    36,
+    1.4,
+    -78
+   ],
+   "lookGround": [
+    8,
+    6,
+    -75
+   ],
+   "fov": 58,
+   "center": 0.27,
+   "settle": 5000,
+   "eval": "(()=>{const s=window.__wildshard.world.game.app.debug.snapshot().sunscar;const p=s&&s.places;if(!p)return 'none';for(const b of p.braziers){b.lit=true;b.parts.fire.visible=true;}p.fire.lit=true;p.fire.tower.fire.visible=true;return 'lit';})()",
+   "note": "the signal tower, its fire lit, from the dune floor 28 m east, against the afterglow"
+  },
+  {
+   "id": "c",
+   "posGround": [
+    50,
+    12,
+    -66
+   ],
+   "lookGround": [
+    8,
+    4,
+    -75
+   ],
+   "fov": 46,
+   "center": 0.3,
+   "settle": 5000,
+   "eval": "(()=>{const s=window.__wildshard.world.game.app.debug.snapshot().sunscar;const p=s&&s.places;if(!p)return 'none';for(const b of p.braziers){b.lit=true;b.parts.fire.visible=true;}p.fire.lit=true;p.fire.tower.fire.visible=true;return 'lit';})()",
+   "note": "raised 8 m over the dunes east of the tower, looking west over the dune rows to the lit tower, the buttes and the afterglow"
+  }
+ ]
+}
