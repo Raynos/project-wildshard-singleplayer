@@ -1688,15 +1688,15 @@
       "tier": "phone",
       "metric": "gpuMB",
       "source": "budgets/calibration-reports/far-reach.phone.json",
-      "commit": "6259b45871b5453fc7a44641491d629cef40bf7a",
-      "reason": "E374 Sky Reach loop 3, measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer): the crown storm vortex, the GUST and updraft wind FX and the generated bridge-keeper (2.6k tris)",
+      "commit": "bbb5dd57bf8ce83ec768e398ec98e6d161b3168e",
+      "reason": "E374 Sky Reach loop 4, measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer): the painted 360-degree sky panorama (phone 4128x758, desktop 5562x1024, no mipmaps), the near meadow, island v2 and the crown arena",
       "ask": "E357",
       "approvedBy": "wildshard-9",
-      "approval": "E374 Sky Reach loop 3, measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer): the crown storm vortex, the GUST and updraft wind FX and the generated bridge-keeper (2.6k tris)",
-      "captureSha": "6259b45871b5453fc7a44641491d629cef40bf7a",
-      "captureSha256": "be3839fde4747b519f5c0977563e225eae48780e5f628cbfc042f529b97b323b",
+      "approval": "E374 Sky Reach loop 4, measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer): the painted 360-degree sky panorama (phone 4128x758, desktop 5562x1024, no mipmaps), the near meadow, island v2 and the crown arena",
+      "captureSha": "bbb5dd57bf8ce83ec768e398ec98e6d161b3168e",
+      "captureSha256": "f3ce6a676307072fd021b04b1bb05396e7ef993f7dc04a7dd2dee36e5aef8e92",
       "ceilings": {
-        "far-reach.phone.current.gpuMB": 78.6312026977539
+        "far-reach.phone.current.gpuMB": 91.66332244873047
       }
     },
     {
@@ -1704,15 +1704,15 @@
       "tier": "desktop",
       "metric": "gpuMB",
       "source": "budgets/calibration-reports/far-reach.desktop.json",
-      "commit": "6259b45871b5453fc7a44641491d629cef40bf7a",
-      "reason": "E374 Sky Reach loop 3, measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer): the crown storm vortex, the GUST and updraft wind FX and the generated bridge-keeper (2.6k tris)",
+      "commit": "bbb5dd57bf8ce83ec768e398ec98e6d161b3168e",
+      "reason": "E374 Sky Reach loop 4, measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer): the painted 360-degree sky panorama (phone 4128x758, desktop 5562x1024, no mipmaps), the near meadow, island v2 and the crown arena",
       "ask": "E357",
       "approvedBy": "wildshard-9",
-      "approval": "E374 Sky Reach loop 3, measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer): the crown storm vortex, the GUST and updraft wind FX and the generated bridge-keeper (2.6k tris)",
-      "captureSha": "6259b45871b5453fc7a44641491d629cef40bf7a",
-      "captureSha256": "02d066b39de5c563af9fb6ed53db2877b0d4bf914a82a29026089f04c89c0f9c",
+      "approval": "E374 Sky Reach loop 4, measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer): the painted 360-degree sky panorama (phone 4128x758, desktop 5562x1024, no mipmaps), the near meadow, island v2 and the crown arena",
+      "captureSha": "bbb5dd57bf8ce83ec768e398ec98e6d161b3168e",
+      "captureSha256": "eeeb99027a631efdc548de45c2796a09e9cbabb56b4956676af89110aa648483",
       "ceilings": {
-        "far-reach.desktop.current.gpuMB": 173.0034637451172
+        "far-reach.desktop.current.gpuMB": 196.0875549316407
       }
     }
   ]
