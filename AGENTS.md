@@ -80,6 +80,32 @@ the whole context is written to cache again at full price.
   subagent whose brief says: "read the last Handoff in docs/tasks/asks/<ID>.md, then continue". Resuming the old
   subagent re-caches its whole context (≈ $2 at 400k); a fresh one starts at ≈ 50k.
 
+## Keep your scratchpad tidy (Jake, 2026-10-02)
+
+This repo's session scratchpads (`/private/tmp/claude-501/-Users-raynos-projects-games-wildshard-singleplayer/<session>/`)
+grew to **1.6 TB and filled the 4 TB disk**. One session alone held 1.1 TB: 333 throwaway `gate-<sha>` / `base-<sha>`
+checkouts, 190 GB of render frames, and folders renamed `trash/`, `old-*`, `*.old-<ts>` and `*.stopped-<ts>` instead of
+being deleted. Nothing else cleans a scratchpad: Claude Code keeps it for `--resume`, and macOS empties `/tmp` only on
+a reboot. A scratchpad is a workbench, not storage. You clean up after yourself.
+- **Delete a throwaway as soon as you have its result.** That covers a clean export or checkout once its gates are
+  read, render frames and comparison shots once the board or report is written, build logs, `.npy` / `.pkl` dumps and
+  model outputs you didn't pick. Delete with a literal path: `rm -rf <scratchpad>/m1/gate-3a4d9187`. Since 2026-10-02
+  (dotfiles `af790d2`) dcg allows a plain recursive rm. `~/.claude/hooks/guard-rm.py` still blocks `/`, `~`,
+  `~/projects`, system dirs and paths fewer than 3 levels deep.
+- **Never rename aside instead of deleting.** No `trash/`, `old-*`, `*.old-<ts>`, `*.stopped-<ts>`, `/tmp/delete-me-*`.
+  A moved folder still fills the disk. If a delete is blocked, say so in your report; don't route around it.
+- **Reuse, don't multiply.** One export dir per job, emptied and refilled, not a new one per HEAD or per attempt.
+  Symlink `node_modules` into an export (`ln -s $PWD/node_modules …`); never `pnpm install` into a scratch copy.
+- **Export only what builds.** A full `git archive HEAD` is 3.3 GB, and 2.6 GB of it is `art/` + `progress/`, which no
+  gate, test or build reads (`.vercelignore` and `.oxlintrc.json` drop them too). Export with
+  `git archive HEAD -- . ':!art' ':!progress' ':!sources'` (~0.7 GB) unless the job really reads those folders.
+- **What you keep goes in the repo.** A shot a report cites goes to `progress/` or `art/<subject>/round-<n>-<label>/`
+  as JPEG. Everything left in the scratchpad is treated as junk.
+- **Logs and captures go in the scratchpad, never loose in the repo root.** `h2-front.log`, `iso-test.png` and the
+  like in the checkout are someone's leftovers.
+- **Check it:** `du -sh <scratchpad>`. Over ~10 GB means something should already be gone. Prepare-to-exit
+  (step 6) empties it before the banner.
+
 ## North and South America only: no licence caveats, ever (Jake, 2026-09-29)
 
 The game ships in North and South America only. **Never raise a territory licence caveat with Jake**: no EU / UK /
@@ -265,8 +291,8 @@ When Jake says "do N council rounds on X", it means the protocol in [docs/proces
 - Never open a shared file for writing before you've read it: `open(p, 'w').write(f(open(p).read()))`
   truncates first and reads nothing (it wiped every uncommitted ASKS row on 2026-09-22). Append with
   `>>` or Edit; never `>` onto a shared file.
-- Deploy from a clean export of HEAD (`git archive HEAD | tar -x -C <dir>`), never from the working
-  tree, so nobody's half-finished files ship.
+- Deploy from a clean export of HEAD (`git archive HEAD -- . ':!art' ':!progress' ':!sources' | tar -x -C <dir>`),
+  never from the working tree, so nobody's half-finished files ship. Delete the export when you're done with it.
 - Every screenshot session must be closed (`agent-browser --session <s> close`) before you
   report — an open one keeps rendering the game and pins the box.
 - **Game browsers are a shared lane: at most 4 open across all agents on this machine (Jake raised it from 3 on 2026-09-30), enforced (E312).**

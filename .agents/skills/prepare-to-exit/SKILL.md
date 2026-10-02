@@ -1,6 +1,6 @@
 ---
 name: prepare-to-exit
-description: User-invoked Wildshard session checkpoint. Commit only owned paths, verify the clean exported HEAD, push through the lock, confirm deployment, update ask and plan ledgers, and close browsers before reporting. Do not invoke automatically.
+description: User-invoked Wildshard session checkpoint. Commit only owned paths, verify the clean exported HEAD, push through the lock, confirm deployment, update ask and plan ledgers, and close browsers and delete temp dirs before reporting. Do not invoke automatically.
 ---
 
 # Prepare to exit in Codex
@@ -11,6 +11,7 @@ Use this only when the user asks to prepare to exit or checkpoint the session. `
 2. Before each push, run `tsc --noEmit`, `oxlint`, `node scripts/check-css.mjs`, and `vite build` on a **clean export of HEAD**, as `AGENTS.md` requires. The pre-push hook also checks Vercel's filtered tree and tests. Fix a red HEAD before pushing.
 3. Push using `scripts/push-main.sh`. Wait for the deploy workflow, confirm `git log origin/main..main` is empty, and check production `version.json` for a build containing your commit.
 4. Update each ask file's `**Status:**` and evidence, each live plan's State line, and queue any unfinished work in an open ask or live plan. Preserve unrelated staged and uncommitted files.
-5. Close browser sessions and emulators you opened. Report commits, clean-export gates, CI and build id, ask states, remaining work, and whether your own work is safe to leave.
+5. Close browser sessions and emulators you opened. Then empty every temp dir you created: clean exports, checkouts, render frames, logs, dumps. Copy anything worth keeping into `progress/` or `art/` as JPEG and commit it; delete the rest with a literal `rm -rf <path>`. Never rename aside (`trash/`, `old-*`, `*.old-<ts>`) instead of deleting; see `AGENTS.md` "Keep your scratchpad tidy".
+6. Report commits, clean-export gates, CI and build id, ask states, remaining work, the temp space you left behind, and whether your own work is safe to leave.
 
 Codex can use the same repository scripts and Git hooks as Claude. Claude's terminal label, session memory path, and mandatory BYE/OOPS banner are specific to its original skill; they are not part of this adapter.

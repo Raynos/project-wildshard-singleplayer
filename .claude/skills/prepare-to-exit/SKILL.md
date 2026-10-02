@@ -28,7 +28,8 @@ and AGENTS.md disagree, AGENTS.md wins and this file is the bug. Execute in orde
   enforce it: `.claude/hooks/guard-git-add-all.sh` blocks `git add -A` / `.` / `-u`, `git add <tracked file>`,
   `git commit -a` and any `git commit` without `-- <paths>`; `.claude/hooks/guard-bash-safety.sh` blocks a bare
   `git push` and tree-wide `restore .` / `checkout .` / bare `stash` / `reset --hard` / `clean -f`; `dcg` blocks
-  `rm -rf` and `>` onto computed paths.
+  `>` onto computed paths; `guard-rm.py` blocks `rm -r` of `/`, `~`, `~/projects`, system dirs and shallow paths.
+  A plain `rm -rf <literal path>` is allowed (2026-10-02).
 - **The uplink is ~10–100 KB/s.** Six parallel pushes of one pack hung 15+ minutes (E19). Push only through
   `scripts/push-main.sh` (it holds `.git/push.lock`), and keep packs small: `.githooks/pre-commit` refuses a
   `progress/` image over 500 KB, and mockups under `art/<subject>/round-<n>-<label>/` are committed as JPEG.
@@ -68,11 +69,14 @@ and AGENTS.md disagree, AGENTS.md wins and this file is the bug. Execute in orde
      what is red and whose it is — another agent's uncommitted WIP is not your red, but a red *HEAD* is everyone's.
 2. **The four gates on a clean export of HEAD — before the push.**
    ```
-   D=<scratchpad>/tree-$(git rev-parse --short HEAD); mkdir -p $D   # a fresh dir per HEAD (rm -rf is blocked)
-   git archive HEAD | tar -x -C $D && ln -s $PWD/node_modules $D/node_modules
+   D=<scratchpad>/tree-$(git rev-parse --short HEAD); mkdir -p $D   # a fresh dir per HEAD
+   git archive HEAD -- . ':!art' ':!progress' ':!sources' | tar -x -C $D && ln -s $PWD/node_modules $D/node_modules
    cd $D && PATH=$PWD/node_modules/.bin:$PATH     # the shims resolve through the symlink; never `pnpm exec` here
    tsc --noEmit && oxlint && node scripts/check-css.mjs && vite build
    ```
+   The pathspec leaves out `art/`, `progress/` and `sources/` (2.6 GB of the 3.3 GB tree): no gate reads them and
+   Vercel ignores them. Once the gates are read, delete the export with its literal path (`rm -rf <scratchpad>/tree-<sha>`, not `$D`) —
+   a re-run after a fix exports a new HEAD into a new dir, so the old one is junk.
    Red on something you committed → fix it with a new pathspec commit and re-run (never `--amend`: other agents'
    commits may already sit on top of yours in the shared `main`). Red on someone else's commit → name the commit
    and its owner in the report; don't push over a red HEAD.
@@ -102,10 +106,17 @@ and AGENTS.md disagree, AGENTS.md wins and this file is the bug. Execute in orde
    `project/archive/<YYYY-MM-DD>-<name>.md` with State `archived <today> (finished <date>)` plus where the leftovers
    went, and the links to it fixed. A `done` ask without a build id means the push didn't happen or CI is red —
    go back to step 3. Edit shared ledgers with Edit or `>>`, never `>`.
-6. **Close every browser and emulator you opened.** `agent-browser session list` shows none of yours
+6. **Close every browser and emulator you opened, and empty your scratchpad.** `agent-browser session list` shows none of yours
    (`agent-browser --session <s> close`); `scripts/browser-lane.sh status` lists no browser you started (it shows each
    browser's parent; `scripts/browser-lane.sh reap` clears orphans); Playwright scripts have `browser.close()`d; an Android emulator you booted is gone (`adb -s <serial> emu kill`). An open
    game tab renders at 60 fps forever and eats a slot of the 3-browser lane for everyone.
+   **Then empty your scratchpad** (AGENTS.md "Keep your scratchpad tidy": these scratchpads once filled the 4 TB
+   disk). `du -sh <scratchpad>/* | sort -rh | head` shows what is there. Anything a report or a later session needs
+   (a shot you cite, a board) is copied into `progress/` or `art/…` as JPEG and committed in step 1. Then delete
+   the rest with literal paths: clean exports, `gate-*` / `base-*` checkouts, render frames, build logs, dumps.
+   Leave only small text the report links to (a few MB at most), and give its size in the report. Don't rename
+   anything aside (`trash/`, `old-*`, `*.old-<ts>`, `*.stopped-<ts>`): that is not deleting. Don't touch another
+   session's scratchpad or anything a live subagent of yours is still writing (step 8).
 7. **Leftover-work sweep — a QUEUE, not a record.** Anything this session ruled, found, deferred or decided but did
    not build must have a home an agent or the human starts from: an **open ask file in `docs/tasks/asks/`** (the
    session-brief hook prints every ask whose Status isn't done / dropped, and every live plan's State line, at
@@ -126,10 +137,11 @@ and AGENTS.md disagree, AGENTS.md wins and this file is the bug. Execute in orde
 10. **Report**, then the banner. The report names: commits (SHAs + one line each), the CI run id and result for the
     last push, the live build id and whether it contains HEAD, the four gates on the exported tree and their
     results, what is left local (yours vs others' WIP), every live agent, every ask file this session touched and
-    its Status, browsers / emulators closed — so the user knows whether it is safe to close.
+    its Status, browsers / emulators closed, the scratchpad size after cleanup — so the user knows whether it is
+    safe to close.
 
-Guardrails: never `rm -rf` / `find -delete` (`dcg` blocks it — write scripts with the Write tool and move things
-aside instead). Never `git push --force`, never rewrite pushed or shared history, never `git stash` / `checkout` /
+Guardrails: delete throwaways with a literal `rm -rf <path>`; never `rm -r` a variable-rooted path (`$D/…`), and
+never rename aside instead of deleting. Never `git push --force`, never rewrite pushed or shared history, never `git stash` / `checkout` /
 `restore` / `reset` files you didn't author — other agents' dirty and staged files are theirs. `SKIP_SWEEPGUARD=1` /
 `SKIP_PUSHLOCK=1` only deliberately and rarely (every sweep-guard escape lands in `project/sweepguard-ledger.md`).
 Never `vercel deploy` from the working tree; never hand-deploy at all while CI is healthy. Don't `AskUserQuestion`
@@ -151,7 +163,7 @@ The two banners answer **one** question — not "did the git commands succeed" b
 > **Is it safe to KILL this pane right now?**
 
 - **BYE — safe to close.** Your work is committed on `main` and pushed, **the CI run for your last push is green
-  and `version.json` serves your HEAD**, your browser sessions are closed, the session is at a coherent stopping
+  and `version.json` serves your HEAD**, your browser sessions are closed, your scratchpad is emptied, the session is at a coherent stopping
   point, **and the leftover-work sweep is done — every ruling, finding and deferral this session produced has an
   ask file in `docs/tasks/asks/` or a `docs/plans/` table**. A BYE is a claim that nothing here will be lost.
 - **OOPS — do NOT close.** Any of these, and they weigh the same:
