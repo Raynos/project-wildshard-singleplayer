@@ -20,8 +20,6 @@ const FILE = 'src/shards/far-reach/world/build.ts';
 /** How far the fallen bridge hangs below level (radians about its pivot). */
 export const FALLEN_ANGLE = -1.25;
 /** The updraft ramp's climb (radians); under the 40° walk limit. */
-export const UPDRAFT_ANGLE = Math.atan2(UPDRAFT.y1 - UPDRAFT.y0, UPDRAFT.z0 - UPDRAFT.z1);
-export const UPDRAFT_LENGTH = Math.hypot(UPDRAFT.y1 - UPDRAFT.y0, UPDRAFT.z0 - UPDRAFT.z1);
 
 /** Six strips 30° apart cover an island's 12-gon top exactly; each strip's corners stay inside the rim circle. */
 export function islandColliders(isle: Isle): ColliderDesc[] {
@@ -32,6 +30,9 @@ export function islandColliders(isle: Isle): ColliderDesc[] {
 export const spanLength = (span: Span): number => Math.hypot(span.x1 - span.x0, span.y1 - span.y, span.z1 - span.z0);
 export const spanYaw = (span: Span): number => Math.atan2(-(span.x1 - span.x0), -(span.z1 - span.z0));
 export const spanPitch = (span: Span): number => Math.atan2(span.y1 - span.y, Math.hypot(span.x1 - span.x0, span.z1 - span.z0));
+/** The updraft's climb (radians; under the 40° walk limit) and its run along the slope. */
+export const UPDRAFT_ANGLE = spanPitch(UPDRAFT);
+export const UPDRAFT_LENGTH = spanLength(UPDRAFT);
 /** A box in the span's own frame (local −Z down the span from its start, +Y the deck's up): centre, half sizes. */
 function spanBox(span: Span, centre: [number, number, number], half: [number, number, number], surface: 'wood'): ColliderDesc {
   const q = new Quaternion().setFromEuler(new Euler(spanPitch(span), spanYaw(span), 0, 'YXZ'));
@@ -48,12 +49,8 @@ function railColliders(span: Span): ColliderDesc[] {
   const len = spanLength(span);
   return [-1, 1].map((side) => spanBox(span, [side * span.width / 2, 0.55, -len / 2], [0.06, 0.55, len / 2], 'wood'));
 }
-/** The updraft's sloped deck: one box tilted about X so its top runs from (z0, y0) up to (z1, y1). */
-export function updraftCollider(): ColliderDesc {
-  const half = UPDRAFT_ANGLE / 2, hy = 0.15, midY = (UPDRAFT.y0 + UPDRAFT.y1) / 2, midZ = (UPDRAFT.z0 + UPDRAFT.z1) / 2;
-  return { kind: 'box', x: UPDRAFT.x, y: midY - hy * Math.cos(UPDRAFT_ANGLE), z: midZ - hy * Math.sin(UPDRAFT_ANGLE), hx: UPDRAFT.width / 2, hy, hz: UPDRAFT_LENGTH / 2,
-    rot: { x: Math.sin(half), y: 0, z: 0, w: Math.cos(half) }, surface: 'wood' };
-}
+/** The updraft's sloped deck (round 2: a span like the bridges, any heading): its top runs up the column to the step. */
+export function updraftCollider(): ColliderDesc { return deckCollider(UPDRAFT); }
 /**
  * A vane's colliders, measured off the generated shrine (C6, fitted 3.6 m tall on its footing): the stone plinth
  * (0.9 × 0.85 m up to 0.8 m), the shrine box above it (1.25 × 0.6 m to 1.5 m), then the 0.3 m post to the rotor.
@@ -114,16 +111,16 @@ export function buildWorld(ctx: ShardContext, isBoard: () => boolean): BuiltWorl
 
   // The updraft: a board-only rising wind ramp (a hover deck tilted up the wind column) from the windmill isle to the step.
   const ramp = plankBridge(UPDRAFT_LENGTH, UPDRAFT.width, hoverDeck, null);
-  ramp.position.set(UPDRAFT.x, UPDRAFT.y0, UPDRAFT.z0); ramp.rotation.x = UPDRAFT_ANGLE; root.add(ramp);
+  ramp.position.set(UPDRAFT.x0, UPDRAFT.y, UPDRAFT.z0); ramp.rotation.set(UPDRAFT_ANGLE, spanYaw(UPDRAFT), 0, 'YXZ'); root.add(ramp);
   // the wind column: a spiral of streaks and leaves up the ramp (loop 3; the plugin turns it)
-  const wind = updraftFx(new Vector3(UPDRAFT.x, UPDRAFT.y0 + 2.2, UPDRAFT.z0), new Vector3(UPDRAFT.x, UPDRAFT.y1 + 2.2, UPDRAFT.z1));
+  const wind = updraftFx(new Vector3(UPDRAFT.x0, UPDRAFT.y + 2.2, UPDRAFT.z0), new Vector3(UPDRAFT.x1, UPDRAFT.y1 + 2.2, UPDRAFT.z1));
   for (const o of wind.objects) root.add(o); wind.update(0);
   ctx.piece({ id: 'far.updraft', name: STRINGS.updraft, category: 'buildings', file: FILE, object: ramp, colliders: [updraftCollider()], surface: 'wood', active: isBoard });
 
   // The fallen bridge hangs from its pivot until the winch raises it; it collides only once it is fully up.
   const state = { raised: false, raising: false };
   const fallen = new Group(), deck = plankBridge(spanLength(FALLEN_BRIDGE), FALLEN_BRIDGE.width, plank, rope);
-  fallen.add(deck); fallen.position.set(FALLEN_BRIDGE.x0, FALLEN_BRIDGE.y, FALLEN_BRIDGE.z0); fallen.rotation.x = FALLEN_ANGLE; root.add(fallen);
+  fallen.add(deck); fallen.position.set(FALLEN_BRIDGE.x0, FALLEN_BRIDGE.y, FALLEN_BRIDGE.z0); fallen.rotation.set(FALLEN_ANGLE, spanYaw(FALLEN_BRIDGE), 0, 'YXZ'); root.add(fallen);
   ctx.piece({ id: FALLEN_BRIDGE.id, name: STRINGS.fallen, category: 'buildings', file: FILE, object: fallen,
     colliders: [deckCollider(FALLEN_BRIDGE), ...railColliders(FALLEN_BRIDGE)], surface: 'wood', active: () => state.raised });
 

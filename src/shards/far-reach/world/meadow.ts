@@ -44,7 +44,7 @@ export function meadowPaths(isles: readonly Isle[] = ISLES): Vector4[] {
   const out: Vector4[] = [];
   const ends: [number, number][] = [];
   for (const s of [...SPANS, FALLEN_BRIDGE]) { ends.push([s.x0, s.z0], [s.x1, s.z1]); }
-  ends.push([UPDRAFT.x, UPDRAFT.z0], [UPDRAFT.x, UPDRAFT.z1]);
+  ends.push([UPDRAFT.x0, UPDRAFT.z0], [UPDRAFT.x1, UPDRAFT.z1]);
   for (const [x, z] of ends) {
     let best: Isle | null = null, bd = Infinity;
     for (const isle of isles) { const d = Math.hypot(x - isle.x, z - isle.z); if (d < bd) { bd = d; best = isle; } }

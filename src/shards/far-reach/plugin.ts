@@ -125,7 +125,10 @@ export class SkyReachPlugin extends ShardPlugin {
     const lift = new Vector3();
     ctx.system({ id: 'far.updraft', phase: 'fixed.pre', run: (dt) => {
       const p = position; if (!this.board()) return;
-      const inside = Math.abs(p.x - UPDRAFT.x) < UPDRAFT.width / 2 + 0.5 && p.z < UPDRAFT.z0 && p.z > UPDRAFT.z1 && p.y < UPDRAFT.y1 + 0.5;
+      // inside the column: along the ramp's run (any heading), within its width, below the step's deck
+      const ux = UPDRAFT.x1 - UPDRAFT.x0, uz = UPDRAFT.z1 - UPDRAFT.z0, len = Math.hypot(ux, uz);
+      const along = ((p.x - UPDRAFT.x0) * ux + (p.z - UPDRAFT.z0) * uz) / len, across = Math.abs((p.x - UPDRAFT.x0) * uz - (p.z - UPDRAFT.z0) * ux) / len;
+      const inside = across < UPDRAFT.width / 2 + 0.5 && along > 0 && along < len && p.y < UPDRAFT.y1 + 0.5;
       if (inside) ctx.app.player?.impulse(lift.set(0, UPDRAFT_LIFT * dt, 0));
     } });
 

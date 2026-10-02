@@ -14,7 +14,9 @@ export const GROVE: Isle = { id: 'grove', x: -54, z: 5, r: 12, y: 27, keel: 16 }
 export const ROOST: Isle = { id: 'roost', x: 60, z: -12, r: 13, y: 34, keel: 18 };
 export const KEEPER: Isle = { id: 'keeper', x: -58, z: -60, r: 12, y: 32.5, keel: 18 };
 export const RUIN: Isle = { id: 'ruin', x: 65, z: -72, r: 13, y: 28, keel: 20 };
-export const STEP: Isle = { id: 'step', x: 0, z: -124, r: 13, y: HIGH, keel: 20 };
+// Round 2 (council R1A-1 / R1C-9: the isles still sat on a straight spine): the high step stands west of the line
+// from Sunrest to the crown, so the updraft and the crown bridge run on diagonals.
+export const STEP: Isle = { id: 'step', x: -8, z: -122, r: 13, y: HIGH, keel: 20 };
 export const CROWN: Isle = { id: 'crown', x: 0, z: -190, r: 20, y: HIGH, keel: 34 };
 export const ISLES: readonly Isle[] = [SUNREST, WINDMILL, GROVE, ROOST, KEEPER, RUIN, STEP, CROWN];
 /** The apothem of an island's 12-gon top: where the rim edge is nearest the centre. */
@@ -45,10 +47,10 @@ export const SPANS: readonly Span[] = [
   along('far.rope.ruin', 'rope', ROOST, RUIN, 2.4),
 ];
 /** The updraft: a board-only rising wind ramp from the windmill isle's north rim up to the step. */
-export const UPDRAFT = { x: 0, z0: WINDMILL.z - apothem(WINDMILL) - HOVER_GAP, y0: DECK, z1: STEP.z + apothem(STEP) + HOVER_GAP, y1: HIGH, width: 4 } as const;
+export const UPDRAFT: Span = along('far.updraft', 'hover', WINDMILL, STEP, 4);
 /** The fallen bridge: it hangs from the step's north rim until its winch raises it to the storm crown. */
-export const FALLEN_BRIDGE: Span = { id: 'far.bridge.crown', kind: 'rope', x0: 0, z0: STEP.z - apothem(STEP) + 0.6, x1: 0, z1: CROWN.z + apothem(CROWN) - 1, y: HIGH, y1: HIGH, width: 2.6 };
-export const WINCH = { x: 3.2, z: STEP.z - apothem(STEP) + 2.2, y: HIGH };
+export const FALLEN_BRIDGE: Span = along('far.bridge.crown', 'rope', STEP, CROWN, 2.6);
+export const WINCH = { x: STEP.x + 3.2, z: STEP.z - apothem(STEP) + 2.2, y: HIGH };
 /** The windmill (loop 5: east of the isle's middle, off the high-step view's line; its sails face the spawn; round 2: back from the h2 view so the sails fit). */
 export const MILL = { x: 8, z: WINDMILL.z - 6, yaw: -0.13 };
 /** The bridge-keeper's notes (quest step 1), on the broken-bridge isle. */

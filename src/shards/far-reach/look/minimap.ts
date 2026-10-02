@@ -38,7 +38,7 @@ function overlay({ ctx, toU, toV, ppm }: MapOverlay): void {
     if (s.kind === 'rope') { line(s.x0, s.z0, s.x1, s.z1, s.width + 1.2, 'rgba(60, 36, 24, 0.6)'); line(s.x0, s.z0, s.x1, s.z1, s.width, '#a0764e'); }
     else { line(s.x0, s.z0, s.x1, s.z1, s.width + 0.8, 'rgba(40, 90, 110, 0.45)'); line(s.x0, s.z0, s.x1, s.z1, s.width * 0.6, '#9fe6f2', [3, 2.5]); }
   }
-  line(UPDRAFT.x, UPDRAFT.z0, UPDRAFT.x, UPDRAFT.z1, UPDRAFT.width * 0.6, '#9fe6f2', [3, 2.5]);
+  line(UPDRAFT.x0, UPDRAFT.z0, UPDRAFT.x1, UPDRAFT.z1, UPDRAFT.width * 0.6, '#9fe6f2', [3, 2.5]);
   ctx.setLineDash([]);
   // the windmill a white disc, the crown's dais a stone ring
   ctx.fillStyle = '#f2ead8'; ctx.beginPath(); ctx.arc(toU(MILL.x), toV(MILL.z), 2.6 * ppm, 0, Math.PI * 2); ctx.fill();

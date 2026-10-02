@@ -60,7 +60,7 @@ describe('Sky Reach contract', () => {
     }
     // every sloped span stays under the player's 40° climb
     for (const span of SPANS) expect(Math.abs(Math.atan2(span.y1 - span.y, Math.hypot(span.x1 - span.x0, span.z1 - span.z0))), span.id).toBeLessThan((40 * Math.PI) / 180);
-    expect(UPDRAFT_ANGLE).toBeLessThan((40 * Math.PI) / 180); expect(UPDRAFT.y1).toBeGreaterThan(UPDRAFT.y0);
+    expect(UPDRAFT_ANGLE).toBeLessThan((40 * Math.PI) / 180); expect(UPDRAFT.y1).toBeGreaterThan(UPDRAFT.y);
     await app.unloadLevel();
   });
   it('runs the four-step chain: notes, roost, three vanes by GUST, then the winch raises the crown bridge and pays once', async () => {

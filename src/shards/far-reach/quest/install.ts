@@ -13,7 +13,7 @@ export const REWARD = 10;
 export const BOSS_REWARD = 25;
 const REWARDED = { key: 'far-reach.rewarded', scope: 'shard' as const, version: 1, schema: v.boolean(), initial: () => false };
 /** The reward view: from the high step, the raised bridge running out to the storm crown (Driftwood's held beat). */
-export const REWARD_VIEW = { at: new Vector3(STEP.x + 2, HIGH + 1.7, STEP.z - 4), yaw: 0, pitch: 0.12 } as const;
+export const REWARD_VIEW = { at: new Vector3(STEP.x + 2, HIGH + 1.7, STEP.z - 4), yaw: Math.atan2(-(CROWN.x - STEP.x - 2), -(CROWN.z - STEP.z + 4)), pitch: 0.12 } as const;
 
 /** A marker at a place's feet: the world pin adds its own 2.2 m (game/quest/presentation.ts; council round 2: the keeper's pin floated 2.4 m over his head). */
 const at = (x: number, y: number, z: number): QuestMarker['at'] => ({ poi: 'world', x, y, z });
