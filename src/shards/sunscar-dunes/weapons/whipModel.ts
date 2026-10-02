@@ -1,9 +1,27 @@
-import { BufferAttribute, BufferGeometry, CylinderGeometry, Group, Mesh, MeshStandardMaterial, SphereGeometry, TorusGeometry, Vector3 } from 'three';
+import { BufferAttribute, BufferGeometry, CapsuleGeometry, CatmullRomCurve3, CylinderGeometry, Group, Mesh, MeshStandardMaterial, SphereGeometry, TubeGeometry, Vector3 } from 'three';
 
-const LEATHER = 0x5a3320, DARK = 0x2e1a12, GLOVE = 0x3a2418;
-const RADIAL = 5, SEGMENTS = 28;
+/** Warm saddle-leather browns: the braid's two strands, the glove, its cuff and the knob; the popper is pale cord. */
+const STRAND_A = [0.46, 0.25, 0.12] as const, STRAND_B = [0.27, 0.14, 0.065] as const, POPPER = [0.78, 0.68, 0.52] as const;
+const GLOVE = 0x7a4a28, CUFF = 0x5a3219, KNOB = 0x3a2214;
+/** A low warm self-light: the dusk sun sits behind the player most of the time, and a backlit viewmodel reads as a black lump. */
+const GLOW = 0x2a140a;
+const RADIAL = 6, SEGMENTS = 30;
 
-/** The lash: one tube whose rings are rewritten along a moving curve (no per-frame allocation). */
+const leather = (color: number): MeshStandardMaterial => new MeshStandardMaterial({ color, roughness: 0.62, metalness: 0, emissive: GLOW });
+const braided = (): MeshStandardMaterial => new MeshStandardMaterial({ vertexColors: true, roughness: 0.55, metalness: 0, emissive: GLOW });
+
+/** Paints a tube's rings with two strands laid in a spiral (the plait), so the braid reads without a texture. */
+function braid(geometry: BufferGeometry, rings: number, sides: number, popperRings = 0): void {
+  const count = geometry.getAttribute('position').count, colors = new Float32Array(count * 3);
+  for (let v = 0; v < count; v++) {
+    const i = Math.floor(v / sides), j = v % sides;
+    const c = i >= rings - popperRings ? POPPER : (i * 2 + j) % 4 < 2 ? STRAND_A : STRAND_B;
+    colors[v * 3] = c[0]; colors[v * 3 + 1] = c[1]; colors[v * 3 + 2] = c[2];
+  }
+  geometry.setAttribute('color', new BufferAttribute(colors, 3));
+}
+
+/** The lash: one braided tube whose rings are rewritten along a moving curve (no per-frame allocation). */
 export class Lash {
   readonly mesh: Mesh<BufferGeometry, MeshStandardMaterial>;
   private readonly positions: Float32Array;
@@ -19,7 +37,8 @@ export class Lash {
     }
     geometry.setAttribute('position', new BufferAttribute(this.positions, 3));
     geometry.setIndex(index);
-    this.mesh = new Mesh(geometry, new MeshStandardMaterial({ color: LEATHER, roughness: 0.85, flatShading: true }));
+    braid(geometry, rings, RADIAL, 2);
+    this.mesh = new Mesh(geometry, braided());
     this.mesh.visible = false;
   }
   /**
@@ -34,7 +53,8 @@ export class Lash {
       const u = s / SEGMENTS, along = u * length * ext;
       const lift = Math.sin(u * Math.PI) * wave * (1 - ext * 0.7) + Math.sin(u * 9 - time * 40) * wave * 0.25 * u;
       this.point.copy(from).addScaledVector(this.tangent, along).addScaledVector(this.side, lift).addScaledVector(this.up, -Math.sin(u * 3.1) * 0.05 * length * (1 - ext));
-      const radius = 0.009 * (1 - u) + 0.0025;
+      // Thick at the handle, a thin fall, and a frayed popper that stays a few pixels wide 7 m out.
+      const radius = 0.013 * (1 - u) ** 1.5 + 0.0035 + (u > 0.93 ? 0.002 : 0);
       for (let r = 0; r < RADIAL; r++) {
         const a = (r / RADIAL) * Math.PI * 2;
         this.next.copy(this.point).addScaledVector(this.side, Math.cos(a) * radius).addScaledVector(this.up, Math.sin(a) * radius);
@@ -50,26 +70,44 @@ export class Lash {
 
 export interface WhipParts { root: Group; grip: Group; coil: Mesh; lash: Lash; tip: Vector3 }
 
-/** A braided brown leather bullwhip held in a dark glove: the handle, the knob, a coil of lash and the live lash. */
+/**
+ * A braided leather bullwhip in a gloved fist (E374 polish, after Jake's "the custom whip we built was a lot better"):
+ * the first build's warm brown glove and hand-sized loop, the rebuild's braided coil. The coil hangs from the handle's
+ * fall end at rest; a crack hides it and throws the live lash.
+ */
 export function buildWhipModel(): WhipParts {
-  const root = new Group(), grip = new Group(), leather = new MeshStandardMaterial({ color: LEATHER, roughness: 0.8, flatShading: true });
-  const dark = new MeshStandardMaterial({ color: DARK, roughness: 0.9, flatShading: true });
-  const handle = new Mesh(new CylinderGeometry(0.016, 0.019, 0.24, 7, 6), leather);
-  const braid = handle.geometry.getAttribute('position');
-  for (let i = 0; i < braid.count; i++) { const y = braid.getY(i), a = Math.atan2(braid.getZ(i), braid.getX(i)), k = 1 + Math.sin(y * 120 + a * 2) * 0.12;
-    braid.setX(i, braid.getX(i) * k); braid.setZ(i, braid.getZ(i) * k); }
-  handle.geometry.computeVertexNormals();
-  const knob = new Mesh(new SphereGeometry(0.024, 8, 6), dark); knob.position.y = -0.13;
-  const fist = new Mesh(new SphereGeometry(0.05, 8, 6), new MeshStandardMaterial({ color: GLOVE, roughness: 0.95, flatShading: true }));
-  fist.scale.set(1, 1.35, 1.1); fist.position.y = -0.02;
-  const cuff = new Mesh(new CylinderGeometry(0.05, 0.055, 0.08, 8), dark); cuff.position.y = -0.12;
-  grip.add(handle, knob, fist, cuff);
+  const root = new Group(), grip = new Group(), glove = leather(GLOVE), cuffLeather = leather(CUFF);
+  // The handle: a braided cylinder, thicker at the butt, with a turned knob.
+  const handleGeometry = new CylinderGeometry(0.017, 0.021, 0.26, RADIAL, 12, true);
+  braid(handleGeometry, 13, RADIAL + 1);
+  const handle = new Mesh(handleGeometry, braided()); handle.position.y = 0.02;
+  const knob = new Mesh(new SphereGeometry(0.025, 10, 8), leather(KNOB)); knob.position.y = -0.115; knob.scale.set(1, 0.8, 1);
+  // The gloved fist round the handle: a palm, four knuckles over the front, a thumb along the top, a flared cuff.
+  const palm = new Mesh(new CapsuleGeometry(0.04, 0.05, 4, 10), glove); palm.position.set(0.012, -0.04, 0.008); palm.scale.set(1.05, 1, 1.15);
+  const fist = new Group(); fist.add(palm);
+  for (let k = 0; k < 4; k++) {
+    const finger = new Mesh(new CapsuleGeometry(0.013, 0.03, 3, 8), glove);
+    finger.rotation.z = Math.PI / 2; finger.position.set(-0.012, -0.002 - k * 0.022, -0.034); fist.add(finger);
+  }
+  const thumb = new Mesh(new CapsuleGeometry(0.012, 0.038, 3, 8), glove); thumb.position.set(-0.03, 0.01, -0.006); thumb.rotation.set(0.2, 0, 0.45);
+  const cuff = new Mesh(new CylinderGeometry(0.046, 0.06, 0.11, 12, 1, true), cuffLeather); cuff.position.set(0.02, -0.12, 0.016);
+  fist.add(thumb, cuff);
+  grip.add(handle, knob, fist);
   grip.rotation.set(-1.0, 0, -0.25);
-  const coil = new Mesh(new TorusGeometry(0.075, 0.009, 5, 18), leather);
-  coil.position.set(-0.03, -0.08, 0.02); coil.rotation.set(0.3, 0.9, 0);
+  // The coil: a loop and a half of braided thong hanging from the handle's tip, left of the fist, its tail out of frame.
+  const coilPoints: Vector3[] = [];
+  for (let i = 0; i <= 40; i++) {
+    const s = i / 40, a = 0.6 + s * Math.PI * 3.2, r = 0.085 * (1 - 0.15 * s);
+    coilPoints.push(new Vector3(-0.07 + Math.cos(a) * r, -0.05 + Math.sin(a) * r - s * s * 0.05, 0.02 - s * 0.035));
+  }
+  coilPoints.push(new Vector3(-0.05, -0.2, -0.02), new Vector3(-0.03, -0.32, -0.05));
+  const coilGeometry = new TubeGeometry(new CatmullRomCurve3(coilPoints), 96, 0.0085, RADIAL, false);
+  braid(coilGeometry, 97, RADIAL + 1);
+  const coil = new Mesh(coilGeometry, braided());
+  coil.position.set(0, 0.1, -0.02); coil.rotation.set(0.1, 0.4, 0.1);
   root.add(grip, coil);
   const lash = new Lash(); root.add(lash.mesh);
   // The keeper end of the handle in root space, where the lash leaves the hand.
-  const tip = new Vector3(0, 0.12, 0).applyEuler(grip.rotation);
+  const tip = new Vector3(0, 0.15, 0).applyEuler(grip.rotation);
   return { root, grip, coil, lash, tip };
 }
