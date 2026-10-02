@@ -179,7 +179,7 @@ rounds, then "go with gaps").
 2. The verb runs in grey in the pilot's playground (`ctx.playground`), mapped onto `verb.1` / `verb.2`, with **its leg
    test written to E9's leg contract** (`scripts/worldclaw/leg-test.mjs`: launch → landing inside the target's radius → a clear exit, headless), which T5 partitions and P8's gates run.
    The pilot is still `hidden`; Jake reaches it by R22's taps → the pilot's playground card.
-3. Jake plays ≤ 10 min. Yes → P8. No → P2's verb line with the verb changed or cut; the places, the bible and the
+3. Jake plays it. Yes → P8. No → P2's verb line with the verb changed or cut; the places, the bible and the
    map stay; the concepts, content boards and views that show the verb are redone (D57). His answer
    goes into the verdict log (ask id + a one-line quote).
 4. **The kill rule:** a verb called dull twice is cut.
@@ -205,7 +205,7 @@ rounds, then "go with gaps").
   - walk legs 0 stuck (non-empty);
   - every non-walk leg's test passes;
   - reach for every place, slot and happening;
-  - every place ≥ 80 % under 30°;
+  - every place's pad walkable (R5), its gentle-ground share reported;
   - **T16 runs the slice**, and **beats the boss by real strikes** (04 §11) when the run scope holds the boss (all
     content, or a slice that contains it; otherwise logged as out of scope);
   - sightlines;
@@ -269,7 +269,7 @@ and on the final board; Jake can overturn it with a note.
 
 | Step | What | Done when |
 |---|---|---|
-| P10 look | the bible as shard data (ground, sky, fog, grade, light, `LookStrategy`, the kit look, the model post recipe); LOOK-LOOP against the targets on every seen band, close first (D60); two domes; a 12-frame orbit strip | ΔE00 ≤ 6 or 3 rounds (soft); the judges sign off (R29) |
+| P10 look | the bible as shard data (ground, sky, fog, grade, light, `LookStrategy`, the kit look, the model post recipe); LOOK-LOOP against the targets on every seen band, close first (D60); two domes; a 12-frame orbit strip | each target's ΔE00 reported; the judges sign off (R29) |
 | P11 catalog | 04 §7: anchors first; per place by `catalogMode`; scatter by `scatter-sources.json`; texture caps; walk-inside buildings as code; the style check (an asset that fails its ladder is not placed); provenance | every placed asset passes the style check |
 | P12 places | 04 §8: per place and per route leg on every seen band, close first (D60); in interactive, a checkpoint board per place (D63); compositions conditioned on the P9b target; T8 placement through the physics query layer with support binding; object pads; T9; Sets with targets | T9 clean; judges' must-fix empty (≤ 3 rounds a place) |
 | P13 content + audio | 04 §11: creature, NPC and boss models; the weapon's final model; dressing and signals; quest props; **score, ambience, SFX, credits**; card art | T16 plays the golden path and the slice in the final look |
@@ -290,13 +290,13 @@ and on the final board; Jake can overturn it with a note.
 
   Never video.
 - **Scores:** every judge scores every option on every rubric line, 1–10. An option's score is the mean of its lines.
-- **Picks:** the option with the highest J1 + J2 mean wins when the two judges differ on it by < 1. Otherwise J3 scores
+- **Picks:** the option with the highest J1 + J2 mean wins when both judges rank it first. Otherwise J3 scores
   every option and the median of three wins. **Ties**, in order:
   1. the higher score on the rubric's first line (fun rules first);
   2. the lower cost;
   3. the earlier option id.
-- **Pass / fail gates** (one option: P8, P9b fidelity, P10, P15): pass when **every line's J1 + J2 mean is ≥ 6 and no
-  evidenced must-fix stands**. A line where the judges differ by ≥ 3 gets J3 on that line, and its median counts.
+- **Pass / fail gates** (one option: P8, P9b fidelity, P10, P15): pass when **J1 and J2 both pass every line and no
+  evidenced must-fix stands**. A line one passes and the other fails gets J3 on that line, and its call counts.
 - **Must-fixes:** one backed by a frame and a number blocks until fixed or disproved by a re-measure.
 - **Batching:** style checks at ≤ 10 sheets per run.
 - **Log:** everything goes in `decisions.md`.
@@ -307,7 +307,7 @@ and on the final board; Jake can overturn it with a note.
 |---|---|
 | L1 | from spawn you can tell where to go first |
 | L2 | places adjacent on the route graph differ in role and silhouette |
-| L3 | the critical path is a gated loop; walk times within ±30 % of the design |
+| L3 | the critical path is a gated loop; walk times measured beside the design's |
 | L4 | arenas read as arenas: clear ground, cover, exits |
 | L5 | secrets have hints |
 | L6 | pacing alternates; no enemy zone within 40 m of spawn |
@@ -395,7 +395,7 @@ No questions.
 | Object lists | `src/shards/<slug>/design/objects/<place>.json` |
 | World data | `src/shards/<slug>/world/*.json` (placements, Sets, scatter, pads, happening spots: E2) |
 | Models | `src/shards/<slug>/models/*.ts`; GLBs in `public/assets/models/<slug>/` |
-| Images the Explorers show (provenance, targets) | phone copies in `public/assets/explore/<slug>/{refs,compositions,targets}/*.webp` (≤ 200 KB each), made by T7 / P9b from the art sources [R2-A11] |
+| Images the Explorers show (provenance, targets) | phone copies in `public/assets/explore/<slug>/{refs,compositions,targets}/*.webp` made by T7 / P9b from the art sources [R2-A11] |
 | Art (sources) | `art/<slug>/round-<n>-<label>/`: pitches, bible, concepts, maps, mockups, targets, compositions, refs, boards, milestone frames |
 | Progress frames | **`~/.cache/wildshard-worldclaw/<slug>/frames/`** (durable, uncommitted; its path is in §run); copied to the scratchpad only to publish |
 | Scatter sources | `scripts/worldclaw/scatter-sources.json` (X1) |
@@ -430,7 +430,7 @@ The shard's `docs/SHARDS.md` section links `design.md` (plan §7 Q2).
 - the boss place behind a summon (a quest step wakes the boss), and no through-route crosses its arena before it (D67);
 - every place inside a walkable region;
 - heights within `heightRange`;
-- the summed triangle and GPU-MB estimate ≤ 60 % of the budget gate;
+- the summed triangle and GPU-MB estimate within the budget gate (R28);
 - `catalogMode ∈ { kit, generated, mixed }`;
 - `scatter-sources.json` obeyed;
 - id prefixes `<slug>/…`;
@@ -443,7 +443,7 @@ The shard's `docs/SHARDS.md` section links `design.md` (plan §7 Q2).
 | Change | Redo | Keep | Hold |
 |---|---|---|---|
 | A place moves **before P8** | P5 maps + twins; the mockups of every camera that sees the place (the schematic's sightlines) | other places, the bible, concepts | — |
-| A rung-2 move ≤ 20 m **while P8 is open** (the slope fallback, inside its region; also zero-shot's rung 3) [R4-A5, R4-C3] | `design.md` + `spec.json` (twin-check), its region disc, pad, routes, camera, T5's bands, stand-ins and content anchors, the bakes, walk legs + reach | the approved mockups (P9b re-targets from the moved place), other places | — |
+| A rung-2 move **while P8 is open** (the slope fallback, inside its region; also zero-shot's rung 3) [R4-A5, R4-C3] | `design.md` + `spec.json` (twin-check), its region disc, pad, routes, camera, T5's bands, stand-ins and content anchors, the bakes, walk legs + reach | the approved mockups (P9b re-targets from the moved place), other places | — |
 | A place moves **after P8** (only by Jake's note: from P9 on, neither the judges nor a gate's fallback move a place) | `design.md` + `spec.json` (twin-check), the painted map (its region disc stamped at the new spot, T3), the region bake, terrain (T4), its pad and the graded routes to it, its camera, the polish bands (T5), its stand-ins, content anchors and happening spots, the bakes, walk legs + reach + T16, its P9b target and every target whose camera sees it, its placements. **Neighbours** = places sharing a route leg with it. On the critical path → Jake replays P9 (his note asked for it) | other places' finished work | that place's and its neighbours' P10–P13 work |
 | A place is added or cut | as "moves", plus spec-check's role and count rules; an **added** place also gets its concept (P4, judged) and its mockup (P6, judged), then its P9b target | — | as "moves" |
 | A beat or the slice changes | design.md, spec.json, P8 content rows, T16; P9 replay when the slice changes | the world, the bible | P10–P13 for the beat's places |
@@ -474,7 +474,7 @@ stuck, T9) goes back to Jake with the number.
 
 **Hard** (never marked done while failing):
 - walk legs 0 stuck (non-empty) and every non-walk leg's test;
-- every place ≥ 80 % under 30°;
+- every place's pad walkable (R5), its gentle-ground share reported;
 - sightlines;
 - T9's checks (sits right, clear zones, signals, traversal views, D25 musts);
 - places-in-region;
@@ -501,8 +501,8 @@ stuck, T9) goes back to Jake with the number.
 | Gate | Fallback |
 |---|---|
 | budget | 04 §10's seven levers in order; a round applies the next lever(s); ≤ 4 rounds |
-| slope | the place-pad ladder (R5): raise the region's edge ramp; while P8 is open, move the place ≤ 20 m inside its region (§10.3's rung-2 row); from P9 on, re-grade or bench within R5's limits, never move the place; else rung 3 |
-| sightlines | move the blocking dressing; raise the landmark or the signal ≤ 20 %; else rung 3 |
+| slope | the place-pad ladder (R5): raise the region's edge ramp; while P8 is open, move the place inside its region (§10.3's rung-2 row); from P9 on, re-grade or bench within R5's limits, never move the place; else rung 3 |
+| sightlines | move the blocking dressing; raise the landmark or the signal until the line is clear; else rung 3 |
 | T9 | per check: re-seat (pad), trim dressing, move along the ray, or swap the model |
 | walk / reach | re-grade or bench the leg, then move the blocking dressing |
 | places-in-region | stamp the place discs (T3) |
@@ -514,14 +514,14 @@ stuck, T9) goes back to Jake with the number.
 
 | Size | Means (first match wins) |
 |---|---|
-| L | it reopens a gate, or the fix takes > 1 day |
-| S | a fix ≤ 1 h at one spot |
+| L | it reopens a gate |
+| S | a fix at one spot |
 | M | anything else |
 
 - **Each note** gets its size and a one-line reason before the baseline freezes.
 - **The score** is the counts per size.
 - **The baseline** (the note ids + the build SHA) is frozen in `design.md`. Fixes are recorded beside it.
-- **The target:** ≤ 5 notes, none L.
+- **The target:** none L.
 
 ### 10.6 Image engines per kind, and counts
 
@@ -538,7 +538,7 @@ stuck, T9) goes back to Jake with the number.
 | Isolated references (P11, P12) | codex | ~40–60 |
 | **Total** | | **codex ~400–600; Qwen ~200** |
 
-codex runs ≤ 6 at once: T14 adds `--max-parallel` to `scripts/horizon-matte/run_codex.py`, which today launches every
+codex runs 4–6 at once (AGENTS.md ▸ Mockups): T14 adds `--max-parallel` to `scripts/horizon-matte/run_codex.py`, which today launches every
 job at once and ignores unknown flags.
 
 ### 10.7 Waiting and resume (R23)

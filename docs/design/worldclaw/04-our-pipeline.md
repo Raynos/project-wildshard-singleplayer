@@ -75,7 +75,7 @@ All paths: [06 §10.1](06-shard-flow.md#101-paths). Nothing lives under `src/chu
   "scatter": [ { "model": "<slug>/ice-boulder", "region": "ice", "sampler": "poisson", "minDist": 6,
                  "maxDensity": 0.004, "slope": [0, 30], "exclude": ["routes", "pads", "clearZones", "sets"], "margin": 2 } ],
   "water": [ { "kind": "pond", "x": 0, "z": 0, "r": 40 } ],
-  "budgets": { "gate": "derived-or-D9", "texture": { "hero": 1024, "building": 1024, "prop": 512, "scatter": 1024 } }
+  "budgets": { "gate": "derived-or-D9" }
 }
 ```
 
@@ -90,7 +90,7 @@ spec-check's rules: 06 §10.2. The twin rule: R15.
    **edits each schematic** into flat colours with the exact palette, no text, its own places and roads kept; the 3 run in
    parallel (~110 s each, plan §10 PA).
 3. **The gate** (T3): places-in-region 100 %, every route on walkable ground, the roads untouched.
-   - Palette fidelity below 94 % is a warning only (anti-aliased edges measured 94.9–97.9 %).
+   - Palette fidelity is reported, not a gate (PA measured 94.9–97.9 %; anti-aliased edges are the loss).
    - If all three maps fail, stamp each place's region disc (radius + 10 m) from the schematic over the best variant,
      and log it.
 4. **The bake** quantises to the palette, merges specks under ~600 m² into their neighbour, and blurs each category
@@ -110,17 +110,17 @@ N: fbm · ridged · billow · voronoi(F1/F2) · warped        G: peak · crater 
 - `ramp_r` (plan §10 PB1) brings a high-base region in by **distance to its edge** (`edgeRamp`, 20–40 m), so a small
   rock blob in a snowfield rises a few metres, not 70.
 - **Shaping, in order:**
-  1. the graded routes, **one `maxGrade` 0.5** for all, with benches across slopes (R31);
+  1. the graded routes, **one `maxGrade`, tan 40° (the player's max climb)** for all, with benches across slopes (R31);
   2. water bodies (`WaterBody` rows);
-  3. **place pads** (R5): ≤ 15° inside the place's radius. The cut / fill is ≤ 4 m (PB1's worst places needed this).
-     Beyond that, raise the place's region `edgeRamp`; while P8 is open, move the place inside its region by ≤ 20 m
+  3. **place pads** (R5): walkable inside the place's radius (no steeper than the 40° max climb).
+      When the cut / fill would reshape the region, raise its `edgeRamp` instead; while P8 is open, move the place inside its region
      (logged); else 06 §10.4's rung 3. From P9 on a place moves only by Jake's note (06 §10.3);
-  4. object pads later, at P12 (R5's ≤ 1.5 m rule);
+  4. object pads later, at P12 (R5);
   5. the entry roads.
 
   A pad never overlaps a route corridor; where it must, it takes the route's shelf height.
 - **Hard gates:**
-  - every place ≥ 80 % under 30°;
+  - every place's pad walkable, its gentle-ground share reported;
   - **walk legs** (T5 writes them from the routes' `walk` legs; an empty set is an error) at 0 stuck;
   - every non-walk leg's mechanical test passes (the kit zipline, E9; other modes by their verb's test);
   - reach = the baked navmesh + those tested links, for every place, slot and happening;
@@ -132,7 +132,7 @@ N: fbm · ridged · billow · voronoi(F1/F2) · warped        G: peak · crater 
   the style bible. The bible includes the **kit look** (E6) and the model post recipe.
 - **The build (P10):** the bible as shard data. LOOK-LOOP (`docs/design/LOOK-LOOP.md`) against the **P9b targets** on
   every seen band, the close band first (D60), with two domes per hero view and a 12-frame orbit strip. The judges are its owner (R29). Done at
-  worst ΔE00 ≤ 6, or after 3 rounds (a soft gap).
+  each target's ΔE00 reported; the judges sign off.
 
 ## 7. The catalog (P11; mockup-to-model §2–§7 per model, without its "ask Jake" steps, R29)
 
@@ -146,8 +146,8 @@ N: fbm · ridged · billow · voronoi(F1/F2) · warped        G: peak · crater 
 4. **CODE** for everything a player walks on, climbs or fights around (D19), and for **every walk-inside building, shell
    and interior** (R26).
 5. **Reuse before you generate.**
-6. Post to LOD0 + `.phone` + `-lod1`. Triangle targets by size class: hero 8–20 k, building 4–10 k, prop 0.5–3 k,
-   scatter 0.2–1.5 k. Texture caps (R28): hero / building 1K, prop 512, scatter a 1K shared atlas. KTX2.
+6. Post to LOD0 + `.phone` + `-lod1`. Triangles and textures per model
+   follow from the derived per-pose budget and its GPU MB (R28), not fixed caps per size class. KTX2.
 7. **The style check** (T12, D48) against the bible's anchors, with its ladder (06 §10.4: an asset that can't pass is
    **not placed**). Then T7 emits the `defineModel` with provenance (E3).
 
@@ -173,11 +173,11 @@ D63):
    - **size from the size class.** The implied size from the bbox is only a check: more than 30 % off is flagged
      (§10 PC2 measured ±20–30 %);
    - **yaw** from the facing target, then a render check at ±15°.
-6. **Write** the placements, the Set and its `target` (E4) and the **object pads** (R5: ≤ 1.5 m and off routes, else
-   move along the ray to the nearest ≤ 15° spot) into the world data (E2).
+6. **Write** the placements, the Set and its `target` (E4) and the **object pads** (R5: a small cut / fill off routes, else
+   move along the ray to the nearest walkable spot) into the world data (E2).
 7. **Check** (T9):
    - footprint spread ≤ 0.3 m after pads;
-   - overlap ≤ 5 % unless declared;
+   - no overlap unless declared;
    - the scale table;
    - colliders;
    - clear zones;
@@ -199,7 +199,7 @@ rubrics (pitch, direction, concept, map, mockup / target, level L1–L9, look an
 
 ## 10. Budgets (P14)
 
-- **The gate** (R28) is the stricter of D9 (≤ 2.0 M triangles, ≤ 150 draws per pose) and the normalized derived
+- **The gate** (R28) is the stricter of D9 (the phone memory caps) and the normalized derived
   budget, plus GPU MB.
 - **Measured** by T10 at every place's 9 cameras and every 10 m of every route.
 - **The levers**, in order, which are also the budget gate's fallback (06 §10.4), ≤ 4 rounds:
@@ -282,7 +282,7 @@ Plan §5 (the estimate) and 06 §10.6 (images per kind).
 |---|---|
 | Codex paints a map that moves the places | the schematic is the reference; T3 rejects it; three fail → stamp the discs |
 | Pretty terrain that isn't walkable | §5's gates: walk legs, reach, slope map; graded routes; pads |
-| A composition puts a house on a 35° slope | the object pad (≤ 1.5 m) or a move along the ray; T9 |
+| A composition puts a house on a 35° slope | the object pad or a move along the ray to walkable ground; T9 |
 | A generated building faces the wrong way | yaw from the facing target + a render check |
 | Image-to-3D gives holes or a bad base | the review; the other engine; then a code model (the style ladder) |
 | A walk-inside building | CODE whole (R26) |

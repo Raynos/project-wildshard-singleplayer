@@ -15,7 +15,7 @@ and the fjord has frozen. Race the ice on a sled-board, fast and fragile, and fi
 | | |
 |---|---|
 | **Pillars** | moment: skating over clear black ice and seeing the drowned roofs below · session: chart a new route across the ice · return (note): new cracks each visit |
-| **Look** | **Aurora, kept simple** (the easiest to build that Jake likes): clean faceted stylized 3D, matte materials, an animated aurora sky that tints the light, one moon light, ≤ 6 real lamps (windows emissive), one see-through ice surface over a dim low-detail drowned village (only around the spire), bloom only, height fog. Palette: night navy `#0b1626`, ice teal `#2fb7a8`, aurora green `#4cf2a0`, magenta accents `#c04cf2`, snow `#e8f1f5`, timber `#5b3a26`, window amber `#f2a640` (`design/style-bible.md`) |
+| **Look** | **Aurora, kept simple** (the easiest to build that Jake likes): clean faceted stylized 3D, matte materials, an animated aurora sky that tints the light, one moon light, a few real lamps (windows emissive), one see-through ice surface over a dim low-detail drowned village (only around the spire), bloom only, height fog. Palette: night navy `#0b1626`, ice teal `#2fb7a8`, aurora green `#4cf2a0`, magenta accents `#c04cf2`, snow `#e8f1f5`, timber `#5b3a26`, window amber `#f2a640` (`design/style-bible.md`) |
 | **Map** | A revision 2: a straight fjord north → south, a frozen bay in the middle with open dark water at both mouths; the four edge exits (N, E, S, W) gated; spawn on land at South Landing; the village on the south-west shore; the quarry a terraced pit; a glacier tongue in the north-east; the lighthouse on its rock point at the north mouth |
 | **Verb and tools** | walk; **the rope grab** (the only safe way over unlit ice); **the sled-board** (fast, rides lit lanes only); the kit hoverboard is refused on ice |
 | **Weapon** | the harpoon (light jab, heavy throw-and-reel) |
@@ -142,7 +142,7 @@ prototypes' images are in `art/worldclaw/round-1-prototypes/` as WORLDCLAW-SHARD
 ## 6. Order and size
 
 1. WORLDCLAW-SHARD §5 steps 1–5 (the tools), then **TI0** (the front on the built tools).
-2. TI-E3 and TI-E6 (the rope grab and the sled-board, the new verbs) in grey, then **P7** (Jake plays them, ≤ 10 min).
+2. TI-E3 and TI-E6 (the rope grab and the sled-board, the new verbs) in grey, then **P7** (Jake plays them).
 3. TI-E2, E4, E5 (thin ice, the surface rule, the beacons): the slice needs them. Then TI-W1, TI-C1, TI-E1, and the
    **grey logic** of everything P8 needs: the queen (TI-C2) and the Bellkeeper (TI-C4) as grey rows with their phases, the
    survey (TI-E7), ladders (TI-E8) and the beam (TI-E9) working in grey.
