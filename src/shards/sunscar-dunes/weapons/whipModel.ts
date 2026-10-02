@@ -13,6 +13,8 @@ const GLOW = 0x120804;
 const RADIAL = 6, SEGMENTS = 30;
 
 const leather = (color: number): MeshStandardMaterial => new MeshStandardMaterial({ color, roughness: 0.62, metalness: 0, emissive: GLOW });
+/** The lash's matte braid as a plain material (no vertex colours), for the pull's wrap coil. */
+export const braidedMaterial = (): MeshStandardMaterial => new MeshStandardMaterial({ color: 0x7a4a26, roughness: 0.85, metalness: 0, emissive: GLOW });
 const braided = (): MeshStandardMaterial => new MeshStandardMaterial({ vertexColors: true, roughness: 0.55, metalness: 0, emissive: GLOW });
 
 /** Paints a tube's rings with two strands laid in a spiral (the plait), so the braid reads without a texture. */

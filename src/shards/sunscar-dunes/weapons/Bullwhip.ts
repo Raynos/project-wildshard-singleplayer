@@ -1,7 +1,7 @@
 import { Weapon, blocks, type Actor, type App, type CombatTarget, type EquipContext, type Targets, type WeaponState } from '#engine';
-import { Vector2, Vector3 } from 'three';
+import { CatmullRomCurve3, Mesh, TubeGeometry, Vector2, Vector3 } from 'three';
 import { WHIP_ROW } from './rows';
-import { buildWhipModel, type WhipParts } from './whipModel';
+import { braidedMaterial, buildWhipModel, type WhipParts } from './whipModel';
 import type { Crackable } from '../world/build';
 
 /** What the lash lands on: the combat actor, and the body's yank and stagger when it has them. */
@@ -10,6 +10,9 @@ export interface WhipTarget { actor: Actor; impulse?: (velocity: Vector3) => voi
 const CHEST = 0.9, BODY = 0.7;
 
 /** The crack's numbers (metres, seconds, hit points); `pull` is the yank's speed (m/s) on a creature of `pullMaxHp` or less. */
+/** The wrap round a caught lever (metres, seconds): coil radius, height, turns, cord, how long it holds. */
+const WRAP = { r: 0.06, h: 0.24, turns: 4, cord: 0.018, hold: 0.9 } as const;
+
 export const CRACK = { reach: 7, heavyReach: 8, width: 0.9, light: 18, heavy: 16, cooldown: 0.45, heavyCooldown: 0.9,
   unroll: 0.12, second: 0.32, show: 0.42, charge: 0.6, stagger: 0.8, pull: 16, pullMaxHp: 40 } as const;
 
@@ -33,6 +36,11 @@ export class Bullwhip extends Weapon {
   private readonly from = new Vector3(); private readonly end = new Vector3();
   /** Levers and braziers the lash reacts to when it hits no creature (C3). */
   private crackables: readonly Crackable[] = [];
+  /**
+   * The pull's wrap (after the check pass: the board showed no lash round the crank): the world point the lash caught,
+   * how long it holds there, and a braided coil wound round it in the world while it holds.
+   */
+  private wrapAt: Vector3 | null = null; private wrapT = 0; private wrapCoil: Mesh | null = null;
   constructor(app: App, targets: Targets | null = null) {
     super(WHIP_ROW); this.app = app; this.targets = targets;
     this.contact = blocks.melee(app.combat); this.blocks.vm = this.vm; this.blocks.melee = this.contact;
@@ -48,7 +56,10 @@ export class Bullwhip extends Weapon {
     super.install(ctx);
     this.app.input.bind('attack', () => { this.tryFire(); }, ctx.scope, () => this.enabled);
     this.app.input.bind('heavy', () => { this.swing(true); }, ctx.scope, () => this.enabled);
-    ctx.scope.onDispose(() => { this.wasHeld = false; this.held = 0; this.crackT = -1; });
+    ctx.scope.onDispose(() => {
+      this.wasHeld = false; this.held = 0; this.crackT = -1;
+      if (this.wrapCoil) { this.wrapCoil.removeFromParent(); this.wrapCoil.geometry.dispose(); this.wrapCoil = null; }
+    });
   }
   override tryFire(): void { this.swing(false); }
   /** Starts a crack; the lash lands `CRACK.unroll` s later (and again at `CRACK.second` for the heavy). */
@@ -70,7 +81,20 @@ export class Bullwhip extends Weapon {
     if (hit !== null && port?.hittable === true) { this.strike(whipTarget(port), hit.point, dir, from, this.crackHeavy, second); this.onFire?.(); return; }
     const lane = this.inLane(from, dir, reach);
     if (lane !== null) { this.strike(whipTarget(lane.port), lane.point, dir, from, this.crackHeavy, second); this.onFire?.(); return; }
-    this.crackWorld(from, dir, reach, second);
+    const caught = this.crackWorld(from, dir, reach, second);
+    if (caught !== null && this.crackHeavy) this.wrap(caught.at);
+  }
+  /** Winds the lash round a caught lever: a short braided helix at the point, shown while the wrap holds. */
+  private wrap(at: Vector3): void {
+    const scene = this.app.equipmentHost?.game.scene; if (!scene) return;
+    if (this.wrapCoil === null) {
+      const pts: Vector3[] = [];
+      for (let i = 0; i <= 40; i++) { const a = (i / 40) * Math.PI * 2 * WRAP.turns; pts.push(new Vector3(Math.cos(a) * WRAP.r, (i / 40 - 0.5) * WRAP.h, Math.sin(a) * WRAP.r)); }
+      this.wrapCoil = new Mesh(new TubeGeometry(new CatmullRomCurve3(pts), 80, WRAP.cord, 5, false), braidedMaterial());
+      this.wrapCoil.frustumCulled = false; scene.add(this.wrapCoil);
+    }
+    this.wrapCoil.position.copy(at); this.wrapCoil.visible = true; // wound round the crank's upright
+    this.wrapAt = at.clone(); this.wrapT = WRAP.hold;
   }
   /** The nearest hittable combat target whose chest sits inside the lash's lane. */
   private inLane(from: Vector3, dir: Vector3, reach: number): { port: CombatTarget; point: Vector3 } | null {
@@ -128,6 +152,7 @@ export class Bullwhip extends Weapon {
   }
   private animate(dt: number): void {
     const { grip, coil, lash, tip } = this.parts;
+    if (this.wrapT > 0) { this.wrapT -= dt; if (this.wrapT <= 0 && this.wrapCoil) this.wrapCoil.visible = false; }
     if (this.crackT < 0) { lash.mesh.visible = false; coil.visible = true; grip.position.set(0, 0, 0); return; }
     this.crackT += dt;
     const t = this.crackT, double = this.crackHeavy;
@@ -144,7 +169,10 @@ export class Bullwhip extends Weapon {
     const reach = double ? CRACK.heavyReach : CRACK.reach;
     // The far end sits on the crosshair: the model's origin is offset from the eye, so aim back at the view axis.
     this.end.set(-this.model.position.x, -this.model.position.y - slack * 1.5, -reach + 0.42 + slack * 2);
-    lash.shape(this.from, this.end, Math.min(1, ext * (1 - slack * 0.35)), 0.25 + slack * 0.4, this.time);
+    // caught on a lever: the far end stays on it, taut (the model's frame: the world point through the viewmodel)
+    if (this.wrapT > 0 && this.wrapAt !== null) { this.model.updateWorldMatrix(true, false); this.end.copy(this.wrapAt); this.model.worldToLocal(this.end); }
+    const taut = this.wrapT > 0;
+    lash.shape(this.from, this.end, taut ? 1 : Math.min(1, ext * (1 - slack * 0.35)), taut ? 0.05 : 0.25 + slack * 0.4, this.time);
   }
 }
 
