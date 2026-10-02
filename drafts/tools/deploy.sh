@@ -30,7 +30,7 @@ mkdir -p "$work/dist-drafts/.vercel"
 cp drafts/vercel-project.json "$work/dist-drafts/.vercel/project.json"
 
 echo "deploy-drafts: uploading"
-url="$(vercel deploy "$work/dist-drafts" --prod --yes --scope raynos-projects 2>/dev/null | tail -1)"
+url="$(vercel deploy "$work/dist-drafts" --prod --yes --scope raynos-projects 2>/dev/null | grep -Eo "https://[^ ]+vercel.app" | tail -1)"
 echo "deploy-drafts: $url"
 
 live="https://wildshard-drafts.vercel.app"

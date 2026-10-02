@@ -34,13 +34,23 @@ first-walk notes (06 §10.5). Content and world are designed together and get eq
    - check P0's needs (06 §10.2), and stop naming any missing row;
    - claim the ask (`scripts/ask-new.sh "<the user's words>"` in the main checkout; read the id);
    - pick the slug from the sentence (never renamed);
-   - create the shard as a draft (WORLDCLAW-TOOLS §2: a design folder and its Atlas; the manifest with
-     `status: 'hidden'`, `bakeWhileHidden` and `gateExempt` arrives at P7 / P8: E10, R33);
+   - create the shard as a draft on the drafts site (WORLDCLAW-TOOLS §2, W13; how-to: `drafts/README.md`):
+     `drafts/shards/<slug>/draft.json` (name, one spoiler-free line, `run`) and `content.json` (empty lists), then
+     `node drafts/tools/atlas.ts <slug>`; the game's title shows its COMING SOON card from the next game deploy (W9). The
+     manifest with `status: 'hidden'`, `bakeWhileHidden` and `gateExempt` arrives at P7 / P8 (E10, R33);
    - create `design/design.md` from T1's template, with §run's `mode: guided`;
    - → P0.
 
-**Every step boundary:**
-- update `design.md` §run (06 §10.7) and the run's read-only review page (one page per plan; answers shown as text);
+**Every step boundary** (the drafts site is the history, J21, J26; `drafts/README.md` has the details):
+- update `design.md` §run (06 §10.7);
+- describe the step's new round in `drafts/shards/<slug>/draft.json` (its stage, kinds, statuses, file rules), put
+  Jake's answers **verbatim** in its `stages` entry, set `run` (stage · waiting on · next);
+- `node drafts/tools/atlas.ts <slug> --publish` (new pictures to Blob once each; `atlas.json` regenerated), commit with
+  a pathspec, `scripts/push-main.sh`;
+- `bash drafts/tools/deploy.sh` (`run_in_background`) → https://wildshard-drafts.vercel.app;
+- republish the draft's read-only artifact page: `node drafts/tools/artifact.ts <slug> <scratchpad dir>`, then the
+  Artifact tool on `<dir>/index.html` with `root` = the dir and every `img/` file, to the draft's existing page URL
+  (Thin Ice: https://claude.ai/artifact/1v5EE7bt75m3dGFAkVh7P1; J25, J62);
 - read Jake's notes from chat; append every answer of Jake's and every note to the **verdict log** (ask id + a
   one-line quote);
 - keep the ask's Status and the Handoff current at every commit;

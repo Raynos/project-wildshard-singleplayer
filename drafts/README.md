@@ -34,6 +34,13 @@ Everything on it is **read-only** (J17, J24): Jake looks, compares, plays and wa
 4. **Commit** the sources and the generated data (pathspec), push with `scripts/push-main.sh`.
 5. **At a step boundary, deploy:** `bash drafts/tools/deploy.sh` (it ships HEAD; run it with `run_in_background`). It
    checks `https://wildshard-drafts.vercel.app/version.json` reports HEAD's sha.
+6. **Republish the draft's artifact page** (J25, J62): `node drafts/tools/artifact.ts <slug> <a scratchpad dir>`
+   writes `index.html` and `img/*.webp` (the artifact frame loads no outside images, so the pictures ship as the
+   page's files); publish `<dir>/index.html` with the Artifact tool, `root` = the dir, every `img/` file in `files`,
+   to the draft's existing page (Thin Ice: https://claude.ai/artifact/1v5EE7bt75m3dGFAkVh7P1).
+
+The game's COMING SOON card (W9) comes from the same index: `atlas.ts` writes `src/game/draftTitles.ts`, which ships
+with the next game deploy. Commit it with the rest.
 
 The Blob token is read from `BLOB_READ_WRITE_TOKEN` or `~/.config/wildshard-drafts/blob.env` (not in git). A new
 machine: `vercel blob list-stores --scope raynos-projects`, then `vercel env pull` from a folder linked to
