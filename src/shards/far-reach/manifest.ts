@@ -20,16 +20,16 @@ export const SKY_REACH: ShardManifest = {
   // The painted light (review 2026-10-01 item 1): a warm sky fill and a gold ground bounce lift every shade side; the key
   // stays low and behind the islands (look/light.ts adds the bounce wrap, the rim and the shade floor).
   sky: { sunColor: [1, 0.8, 0.58], sunIntensity: 2.3, envIntensity: 0.7, bgIntensity: 1, fogSunColor: [1, 0.82, 0.64], cloudSunColor: [1, 0.84, 0.7],
-    hemiSky: 0xd8c2d6, hemiGround: 0xc9935c, hemiIntensity: 1.4, sun: { azimuth: 300, elevation: 4.3 } }, // the elevation is the painted sun's (look/panoramaData.ts PANO_SUN)
+    hemiSky: 0xc8c6dc, hemiGround: 0xb39a6c, hemiIntensity: 1.4, sun: { azimuth: 300, elevation: 4.3 } }, // the elevation is the painted sun's (look/panoramaData.ts PANO_SUN)
   atmosphere: { fogHeight: -20, fogHeightFalloff: 0, fogHeightDensity: 0, fogDistDensity: 0, volumetricSunColor: [1, 0.8, 0.6] },
-  grade: { saturation: 0.22, brightness: 0, contrast: 0.18, bloomIntensity: 0.15, bloomThreshold: 0.9, shadowTint: [1.04, 0.95, 0.98], highTint: [1.06, 0.99, 0.9], lift: [0.012, 0.004, 0], gain: [1.02, 0.99, 0.95], gamma: 1 },
+  grade: { saturation: 0.22, brightness: 0, contrast: 0.18, bloomIntensity: 0.15, bloomThreshold: 0.9, shadowTint: [1.04, 0.95, 0.98], highTint: [1.03, 1, 0.95], lift: [0.012, 0.004, 0], gain: [1, 0.99, 0.97], gamma: 1 },
   render: async () => (await import('./look/render')).skyReachLook(),
   uses: ['hover', 'quests', 'bosses', 'coins', 'loot'],
   loadout: { weapons: ['weapon.far-fan'], tools: ['tool.hoverboard'], start: ['weapon.far-fan', 'tool.hoverboard'], held: 'weapon.far-fan' },
   species: ['driftRay', 'skyGoat', 'galeWisp', 'stormRoc'], encounters: ['far.roc'], spawns: [], fight: { telegraphed: true, input: { bufferMs: 120, coyoteMs: 100 } },
   creatures: { lowPoly: true, waitForModels: false, furRim: false, tintRange: 0, oneMaterial: true },
   // far.meadowBlades: blades per 8 m tile of the near meadow (world/meadow.ts)
-  tiers: { phone: { 'far.meadowBlades': 1800, godRays: false, ao: false }, desktop: { 'far.meadowBlades': 3200, godRays: false, ao: false } },
+  tiers: { phone: { 'far.meadowBlades': 1600, godRays: false, ao: false }, desktop: { 'far.meadowBlades': 3200, godRays: false, ao: false } },
   loot: { coins: true },
   audio: { ambience: 'none', score: 'far.silent', cues: async () => (await import('./audio/cues')).CUES },
   boot: { explore: { art: Object.values(EXPLORE.art) }, files: bootFiles, sources: bootSources, viewmodelSets: [], shaders: { background: false }, audio: () => Promise.resolve([]), precache: [] },

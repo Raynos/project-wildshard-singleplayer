@@ -1,5 +1,5 @@
 import { BufferGeometry, ConeGeometry, CylinderGeometry, Float32BufferAttribute, Group, Mesh, MeshStandardMaterial, SphereGeometry, Vector3 } from 'three';
-import { forearm } from '#engine';
+import { gloveHand } from './glove';
 
 /**
  * The war fan to the review brief (mockup C, loop 2): nine teal silk panels with a pale cloud band, bronze ribs, a heavier
@@ -66,15 +66,8 @@ export function fanParts(): FanParts {
   const cord = new Mesh(new CylinderGeometry(0.0025, 0.0025, 0.06, 4), red); cord.position.y = -0.03; tassel.add(cord);
   const tuft = new Mesh(new ConeGeometry(0.014, 0.07, 6), red); tuft.position.y = -0.09; tassel.add(tuft);
   group.add(fan);
-  // the gloved hand closes round the grip; the sleeve runs back and down toward the camera's lower right
-  // (the shared fist only: its lofted sleeve is ~0.5 MB of buffers; a cream linen wrap and a leather bracer stand in)
-  const dir = new Vector3(0.35, -0.55, 1).normalize();
-  const fist = new Mesh(forearm(dir, 0.42, 0.017, { part: 'fist' }), new MeshStandardMaterial({ vertexColors: true, roughness: 0.85, metalness: 0 }));
-  fist.position.y = -FAN.grip * 0.55; group.add(fist);
-  const sleeve = new Group(); sleeve.position.set(dir.x * 0.07, -FAN.grip * 0.55 + dir.y * 0.07, dir.z * 0.07);
-  sleeve.quaternion.setFromUnitVectors(new Vector3(0, 1, 0), dir); group.add(sleeve);
-  const bracer = new Mesh(new CylinderGeometry(0.036, 0.04, 0.12, 10), new MeshStandardMaterial({ color: 0x6a4630, roughness: 0.8, metalness: 0 })); bracer.position.y = 0.06; sleeve.add(bracer);
-  const linen = new Mesh(new CylinderGeometry(0.046, 0.058, 0.36, 10), new MeshStandardMaterial({ color: 0xe6dcc6, roughness: 1, metalness: 0 })); linen.position.y = 0.3; sleeve.add(linen);
+  // the gloved hand closes round the grip (loop 5, weapons/glove.ts: fingers, thumb, a studded bracer, a wrapped sleeve)
+  const hand = gloveHand(new Vector3(0.35, -0.55, 1)); hand.position.y = -FAN.grip * 0.35; group.add(hand);
   return { group, fan, tassel, silk };
 }
 

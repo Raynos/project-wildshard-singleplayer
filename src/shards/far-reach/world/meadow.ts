@@ -68,19 +68,19 @@ export interface Meadow { readonly mesh: Mesh<InstancedBufferGeometry, ShaderMat
 
 /** Build the meadow with `blades` blades per tile (a tier knob), seeded so every load grows the same field. */
 export function meadow(sunDir: Vector3, blades: number, isles: readonly Isle[] = ISLES): Meadow {
-  // one blade = 5 vertices (two pairs up the blade and the tip), 3 triangles
-  const verts = blades * 5, root = new Float32Array(verts * 3), shape = new Float32Array(verts * 2), index = new Uint32Array(blades * 9);
+  // one blade = 7 vertices (three pairs up the blade and the tip), 5 triangles: it tapers and bends (council R1C-15 / R1A-7)
+  const verts = blades * 7, root = new Float32Array(verts * 3), shape = new Float32Array(verts * 2), index = new Uint32Array(blades * 15);
   let a = 6417 >>> 0;
   const rnd = (): number => { a = (a + 0x6d2b79f5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
-  const SHAPE: readonly (readonly [number, number])[] = [[-1, 0], [1, 0], [-0.62, 0.5], [0.62, 0.5], [0, 1]];
+  const SHAPE: readonly (readonly [number, number])[] = [[-1, 0], [1, 0], [-0.82, 0.34], [0.82, 0.34], [-0.52, 0.68], [0.52, 0.68], [0, 1]];
   for (let b = 0; b < blades; b++) {
     const x = rnd(), z = rnd(), r = rnd();
-    for (let v = 0; v < 5; v++) {
-      const i = b * 5 + v, s = SHAPE[v] ?? [0, 0];
+    for (let v = 0; v < 7; v++) {
+      const i = b * 7 + v, s = SHAPE[v] ?? [0, 0];
       root[i * 3] = x; root[i * 3 + 1] = z; root[i * 3 + 2] = r; shape[i * 2] = s[0]; shape[i * 2 + 1] = s[1];
     }
-    const o = b * 5;
-    index.set([o, o + 1, o + 3, o, o + 3, o + 2, o + 2, o + 3, o + 4], b * 9);
+    const o = b * 7;
+    index.set([o, o + 1, o + 3, o, o + 3, o + 2, o + 2, o + 3, o + 5, o + 2, o + 5, o + 4, o + 4, o + 5, o + 6], b * 15);
   }
   const g = new InstancedBufferGeometry();
   g.setAttribute('position', new BufferAttribute(new Float32Array(verts * 3), 3));
@@ -131,7 +131,9 @@ export function meadow(sunDir: Vector3, blades: number, isles: readonly Isle[] =
         // a few blades in the drifts are daisies: a short stem with a wide pale head (white, some yellow)
         float flower = step(fract(r * 91.7), 0.05 * smoothstep(0.35, 0.7, mfbm(p * 0.11 + 4.0)));
         h *= mix(1.0, 0.7, flower);
-        float t = aShape.y, w = mix(0.035, 0.06, fract(r * 13.7)) * mix(1.0, 2.6, flower * step(0.4, t));
+        // the nearest band is shorter, so a blade at your feet never fills a sixth of the frame (council R1C-15)
+        h *= mix(0.55, 1.0, smoothstep(0.8, 4.0, dist));
+        float t = aShape.y, w = mix(0.022, 0.04, fract(r * 13.7)) * mix(1.0, 3.2, flower * step(0.6, t));
         // wind: a slow swell along the prevailing wind with a quick flutter, more at the tip
         vec2 wind = normalize(vec2(0.6, 0.8));
         float sway = (0.18 + 0.12 * sin(uTime * 1.3 + dot(p, wind) * 0.35)) + 0.05 * sin(uTime * 4.1 + r * 30.0);
@@ -148,7 +150,7 @@ export function meadow(sunDir: Vector3, blades: number, isles: readonly Isle[] =
       varying float vH; varying float vTone; varying vec3 vWorld; varying float vShade; varying float vFlower;
       void main(){
         // olive roots, a fresh-green to golden body by patch, warm straw tips
-        vec3 rootC = ${glslColor(0x3a4f1e)}, greenC = ${glslColor(0x76903b)}, goldC = ${glslColor(0xa9a745)}, tipC = ${glslColor(0xdcd27c)};
+        vec3 rootC = ${glslColor(0x46602a)}, greenC = ${glslColor(0x8fa85a)}, goldC = ${glslColor(0xa9bb66)}, tipC = ${glslColor(0xe0cf7a)};
         vec3 body = mix(greenC, goldC, smoothstep(0.5, 0.85, vTone));
         vec3 c = mix(rootC, body, smoothstep(0.0, 0.55, vH));
         c = mix(c, tipC, smoothstep(0.72, 1.0, vH) * 0.45);
@@ -156,8 +158,8 @@ export function meadow(sunDir: Vector3, blades: number, isles: readonly Isle[] =
         // the light: a warm sky fill, plus a back-light glow through the blades when you look toward the low sun
         vec3 view = normalize(vWorld - uCam);
         float back = pow(max(dot(view, uSun), 0.0), 3.0);
-        vec3 lit = c * (0.55 + 0.4 * vH) * vShade + ${glslColor(SKY.sun)} * back * vH * 0.45;
-        lit *= ${glslColor(0xfff1e2)} * 1.15;
+        vec3 lit = c * (0.52 + 0.45 * vH) * vShade + ${glslColor(SKY.sun)} * back * vH * vH * 0.3;
+        lit *= ${glslColor(0xfff6ec)} * 1.1;
         float f = clamp((length(vWorld - uCam) - ${FOG.near.toFixed(1)}) / ${(FOG.far - FOG.near).toFixed(1)}, 0.0, 1.0) * 0.85;
         gl_FragColor = vec4(mix(lit, ${glslColor(SKY.fog)}, f), 1.0);
       }` });
