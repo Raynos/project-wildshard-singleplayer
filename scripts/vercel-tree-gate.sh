@@ -6,8 +6,8 @@
 # every CI gate was green. This gate:
 #   1. fails if .vercelignore excludes any tracked file under src/ public/ api/ scripts/ (or a top-level file);
 #   2. checks out ONLY the files Vercel would upload (gitignore rules of the commit's own .vercelignore) into a temp dir;
-#   3. runs the CI gates there: check-css, typecheck (app + api), oxlint, vitest, vite build.
-# A commit that passed is stamped in .git/vercel-gate/ and never re-built.
+#   3. runs the CI gates there: check-css, typecheck (app + api), oxlint, node-only bake-check, vitest, vite build.
+# A commit that passed is stamped in .git/vercel-gate-node-bakes-v1/ and never re-built.
 #
 #   scripts/vercel-tree-gate.sh [<commit>]     (default HEAD; .githooks/pre-push runs it on the pushed tip)
 #   escape (rare, logged in the push output only): SKIP_VERCEL_GATE=1 scripts/push-main.sh
@@ -17,7 +17,7 @@ ROOT="$PWD"
 
 sha="$(git rev-parse --verify "${1:-HEAD}^{commit}")" || exit 1
 short="$(git rev-parse --short "$sha")"
-stamp_dir="$(git rev-parse --path-format=absolute --git-common-dir)/vercel-gate"
+stamp_dir="$(git rev-parse --path-format=absolute --git-common-dir)/vercel-gate-node-bakes-v1"
 if [ -f "$stamp_dir/$sha" ]; then echo "vercel-gate: $short already passed"; exit 0; fi
 
 work="$(mktemp -d -t vercel-gate)" || exit 1
@@ -44,7 +44,7 @@ ln -s "$ROOT/node_modules" "$work/tree/node_modules"
 
 # ── 3. the CI gates, in the Vercel tree ──
 cd "$work/tree" || exit 1
-echo "vercel-gate: $short — $(wc -l < "$work/keep" | tr -d ' ') files as Vercel sees them; check-css · typecheck · oxlint · vitest · vite build"
+echo "vercel-gate: $short — $(wc -l < "$work/keep" | tr -d ' ') files as Vercel sees them; check-css · typecheck · oxlint · bake-check · vitest · vite build"
 run() { local name="$1"; shift; local t0=$SECONDS; if ! "$@" > "$work/$name.log" 2>&1; then tail -40 "$work/$name.log" >&2; fail "$name"; fi; echo "  ✓ $name ($((SECONDS - t0)) s)"; }
 run check-css node scripts/check-css.mjs
 run gen pnpm gen --check-budgets
@@ -56,6 +56,8 @@ run oxlint pnpm exec oxlint
 run ratchet node lint/ratchet.mjs
 # CI runs this in `pnpm test`; a stale scripts/README.md failed the 96239386 deploy run with this gate green
 [ -f scripts/normalize/liveness.mjs ] && [ -f scripts/README.md ] && run liveness node scripts/normalize/liveness.mjs --readme --check
+# CI checks committed terrain, sky metadata and navmeshes; stale bakes must block the push too.
+run bake-check node scripts/bake-check.mjs --node-only
 run vitest pnpm exec vitest run
 run vite-build pnpm exec vite build --outDir "$work/dist" --emptyOutDir
 run check-chunks node scripts/check-chunks.mjs "$work/dist"

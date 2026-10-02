@@ -1,13 +1,10 @@
 #!/usr/bin/env node
 // bake-navmesh.mjs — every shard's navmesh, baked offline (project/archive/2026-09-23-physics.md P6b).
 //
-// Builds the shard's walkable world in Node exactly as the game builds it — the baked terrain grid (terrain.bin, with the
-// sea cave's terrain cut) and the static builders' ColliderDescs (the ones src/main.ts / src/engine/core/bootstrap.ts register:
-// forest trunks, path walkways, and per shard the pier / jetties / hut / lookout / wreck / shrine / trailside / bridge /
-// cove / palms / shore rocks, or the cabins (+ Pine Hollow's hamlet and landmarks) and props) — triangulates it, and runs navcat's recast pipeline over it for
-// each agent class in the shard's layers. Terrain under the water (the sea, the pond: `wetTest`) is left out, so it is
-// not walkable. Moving pieces (the boat, the cabin doors) and the hand-made interactable boxes are not in it: the
-// character motor still resolves every final move.
+// Runs each manifest's normalized world hook with the engine level context, using a render-free host. It reads
+// static ColliderDescs from the same WorldRegistry the game fills, and the terrain grid the world cuts through
+// the physics service. Declared water bodies remove submerged ground; moving/disabled pieces are excluded.
+// Structure-first shards bake their registered floors without inventing a terrain plane.
 //
 // Output: public/assets/baked/<slug>/navmesh.bin (format below; src/engine/physics/navmesh.ts reads it) + navmesh.json (the
 // output hash and stats). Every run bakes in memory and writes only differing bytes. Offline: run it after a builder / terrain change and commit the output.
@@ -62,14 +59,16 @@ const GEN = { cellSize: 0.25, cellHeight: 0.1, tileSizeVoxels: 128, minRegionAre
 // ── the game's modules in Node: a DOM that draws nothing, /assets read from public/ ──────────────────────────────────
 const noop = () => undefined;
 const ctx2d = new Proxy({}, { get: (_t, k) => k === 'createImageData' || k === 'getImageData' ? (w = 1, h = 1) => ({ data: new Uint8ClampedArray(4 * w * h), width: w, height: h }) : k === 'createLinearGradient' || k === 'createRadialGradient' || k === 'createPattern' ? () => ({ addColorStop: noop }) : k === 'measureText' ? () => ({ width: 1 }) : noop, set: () => true });
-const el = () => ({ width: 1, height: 1, style: {}, classList: { add: noop, remove: noop, toggle: noop, contains: () => false }, dataset: {},
-  getContext: () => ctx2d, append: noop, appendChild: noop, remove: noop, insertBefore: noop, setAttribute: noop, addEventListener: noop, removeEventListener: noop,
-  querySelector: () => el(), querySelectorAll: () => [], parentNode: null, textContent: '', innerHTML: '' });
+const el = () => { const listeners = new Map(); return ({ width: 1, height: 1, style: {}, classList: { add: noop, remove: noop, toggle: noop, contains: () => false }, dataset: {},
+  getContext: () => ctx2d, append: noop, appendChild: noop, remove: noop, insertBefore: noop, setAttribute: noop, addEventListener: (type, fn) => { listeners.set(type, fn); }, removeEventListener: (type) => { listeners.delete(type); },
+  get src() { return ''; },
+  set src(_value) { queueMicrotask(() => { listeners.get('load')?.call(this); }); },
+  querySelector: () => el(), querySelectorAll: () => [], parentNode: null, textContent: '', innerHTML: '' }); };
 const HOST = 'http://localhost/';
 const NodeRequest = globalThis.Request, nodeFetch = globalThis.fetch;
 Object.assign(globalThis, {
   location: new URL(HOST), self: globalThis,
-  document: { createElement: el, createElementNS: el, getElementById: () => null, head: el(), body: el(), addEventListener: noop, removeEventListener: noop, querySelector: () => null, querySelectorAll: () => [], pointerLockElement: null },
+  document: { createElement: el, createElementNS: el, getElementById: () => null, fonts: { load: () => Promise.resolve([]) }, head: el(), body: el(), addEventListener: noop, removeEventListener: noop, querySelector: () => null, querySelectorAll: () => [], pointerLockElement: null },
   window: { setTimeout, clearTimeout, addEventListener: noop, removeEventListener: noop, devicePixelRatio: 1, innerWidth: 1600, innerHeight: 900, matchMedia: () => ({ matches: false, addEventListener: noop }), location: new URL(HOST) },
   // three's loaders build Requests from site-relative URLs
   Request: class extends NodeRequest { constructor(input, init) { super(typeof input === 'string' ? new URL(input, HOST).href : input, init); } },
@@ -92,103 +91,74 @@ const registry = await src('game/shard/registry.ts');
 const { SHARDS } = await src('game/shard/shards.generated.ts');
 const HF = await src('engine/world/Heightfield.ts');
 const BT = await src('engine/world/BakedTerrain.ts');
-const { CHUNK_HALF, ROAD_LENGTH, TERRAIN_RES, CHUNK_SIZE } = await src('engine/core/config.ts');
+const { TERRAIN_RES, CHUNK_SIZE } = await src('engine/core/config.ts');
 const { terrainGrid } = await src('engine/physics/terrain.ts');
 const { treadBoxes } = await src('engine/physics/pieces.ts');
 const { pathRampDescs } = await src('engine/physics/paths.ts');
-const { placeForest, plantSpecs } = await src('engine/world/forest/placement.ts');
 const { Forest } = await src('engine/world/forest/Forest.ts');
 
-const sky = new Proxy({ setupMaterial: noop, csm: { lights: [] }, viewCamera: new THREE.PerspectiveCamera(), sunDir: new THREE.Vector3(0, 1, 0) },
+const sky = new Proxy({ setupMaterial: noop, csm: { lights: [new THREE.DirectionalLight()], update: noop }, hemi: new THREE.HemisphereLight(), sunDisc: new THREE.Mesh(new THREE.SphereGeometry(), new THREE.MeshBasicMaterial()), planet: new THREE.Group(), clouds: null, dayNight: null, viewCamera: new THREE.PerspectiveCamera(), sunDir: new THREE.Vector3(0, 1, 0) },
   { get: (t, k) => k in t ? t[k] : typeof k === 'string' && k.endsWith('Color') ? new THREE.Color(1, 1, 1) : typeof k === 'string' && k.endsWith('Dir') ? new THREE.Vector3(0, 1, 0) : undefined });
 
-// ── the shard's static colliders, as main.ts / bootstrap.ts register them ────────────────────────────────────────────
+// Run the manifest's world hook with the engine's normal context/registry. Only rendering is inert:
+// asset geometry, model placement, terrain cuts and collider construction use the production code.
 async function shardColliders(def) {
-  const out = [], cuts = [], counts = {};
-  let group = '';
-  const add = (descs) => { for (const d of descs) out.push(d); counts[group] = (counts[group] ?? 0) + descs.length; };
-  // bootstrap.ts: the forest's trunks and the path walkways
-  const forest = def.trees.factory === 'none' ? { trees: [], grid: null } : placeForest(plantSpecs(def.trees)); // the species set's trunks (PH-B4)
-  group = 'trunks';
-  add(Forest.prototype.colliderDescs.call({ trees: forest.trees }));
-  if (def.style === 'painterly') return nalatiColliders(forest, { out, cuts, counts, add, setGroup: (g) => { group = g; } });
-  group = 'paths';
-  add(pathRampDescs(HF.TRAILS, (x, z) => HF.heightAt(x, z), (x, z) => HF.normalAt(x, z)[1]));
-  const sea = def.ocean;
-  group = 'builders';
-  if (sea) {
-    // main.ts's `edge` step (the boat rides the swell: a moving piece, not in the bake)
-    const DI = await src('shards/driftwood-isle/manifest.ts');
-    const [{ Pier }, { Boulders }, { Hut }, { Lookout }, { Wreck }, { Shrine }, { Trailside }, { RopeBridge }, { Cove }, { Palms }] = await Promise.all(
-      [src('shards/driftwood-isle/world/Pier.ts'), src('shards/driftwood-isle/world/Boulders.ts'), src('shards/driftwood-isle/world/Hut.ts'), src('shards/driftwood-isle/world/Lookout.ts'), src('shards/driftwood-isle/world/Wreck.ts'), src('shards/driftwood-isle/world/Shrine.ts'), src('shards/driftwood-isle/world/Trailside.ts'), src('shards/driftwood-isle/world/RopeBridge.ts'), src('shards/driftwood-isle/world/Cove.ts'), src('shards/driftwood-isle/world/Palms.ts')]);
-    add(new Pier(sky, { x: 0, z: -CHUNK_HALF, length: ROAD_LENGTH, width: 4, deckY: sea.level + 1.2, landing: true }).build().colliderDescs());
-    add(new Boulders(sky).build(Boulders.scatterShore(def.seed)).colliderDescs());
-    add(new Hut(sky, DI.HUT).build().colliderDescs());
-    add(new Lookout(sky, DI.LOOKOUT).build().colliderDescs());
-    add(new Wreck(sky, DI.WRECK).build().colliderDescs());
-    add(new Shrine(sky, DI.SHRINE).build().colliderDescs());
-    for (const j of DI.JETTIES) add(new Pier(sky, { x: j.x, z: j.z, rot: j.rot, length: j.length, width: 3, deckY: sea.level + 1.2 }).build().colliderDescs());
-    const AVOID = [{ x: DI.HUT.x, z: DI.HUT.z, r: 11 }, { x: DI.LOOKOUT.x, z: DI.LOOKOUT.z, r: 12 }, { x: DI.SHRINE.x, z: DI.SHRINE.z, r: 13 }, { x: DI.WRECK.x, z: DI.WRECK.z, r: 14 }];
-    add(new Trailside(sky).build(Trailside.forIsland()).colliderDescs());
-    const bridge = new RopeBridge(sky, DI.BRIDGE).build();
-    add([...bridge.colliderDescs(), ...bridge.deckDescs()]); // the deck is a RopeChain in the game; the bake walks it at rest
-    const cove = new Cove(sky).build(Cove.forIsland());
-    add(cove.colliderDescs());
-    cuts.push(...cove.terrainCuts());
-    add(new Palms(sky).build(Palms.scatterIsland(def.seed, undefined, AVOID)).colliderDescs());
-  } else {
-    // main.ts's `cabins` and `props` steps (the doors swing: moving pieces, not in the bake)
-    const [{ Cabins }, { Props }, { PineLandmarks, pineHamletBuildings }] = await Promise.all([src('shards/pine-hollow/world/homestead.ts'), src('shards/pine-hollow/world/props.ts'), src('shards/pine-hollow/world/landmarks.ts')]);
-    const pine = def.slug === 'pine-hollow';
-    const cabins = new Cabins(sky, pine ? pineHamletBuildings() : []); // + the mill hamlet (PH-B3)
-    await cabins.build();
-    add(cabins.colliderDescs());
-    if (pine) {
-      // the landmarks' step (PH-B3): the fire lookout + its stair, the zipline landing, the footbridge, the hero props' hulls
-      const lm = await new PineLandmarks(sky).build(null, forest.trees); // + PH-B2's crags (they step round the trunks) and the cave
-      add(lm.timberColliders);
-      add(lm.propColliders);
-      if (lm.crags) { add(lm.crags.colliders); add(lm.crags.caveColliders); cuts.push(...lm.crags.terrainCuts()); }
+  const { app } = await src('engine/app/runtime.ts');
+  const { toLevelSpec } = await src('game/shard/spec.ts');
+  const { shardContext } = await src('game/shard/context.ts');
+  const { TreeFactory } = await src('engine/world/TreeFactory.ts');
+  const { Physics } = await src('engine/physics/Physics.ts');
+  const { loadRapier } = await src('engine/physics/rapier.ts');
+  const { addTerrain: registerTerrain } = await src('engine/physics/terrain.ts');
+  const { needsTerrainCollider } = await src('engine/level/spec.ts');
+  const renderer = new Proxy({ capabilities: { getMaxAnisotropy: () => 1 }, extensions: { has: () => false, get: () => null },
+    domElement: el(), shadowMap: {}, info: { render: {}, memory: {} }, getRenderTarget: () => null,
+    getSize: (v) => v.set(1, 1), getDrawingBufferSize: (v) => v.set(1, 1), getViewport: (v) => v.set(0, 0, 1, 1),
+    getScissor: (v) => v.set(0, 0, 1, 1), getClearColor: (v) => v.set(0), getClearAlpha: () => 1,
+    compileAsync: () => Promise.resolve() }, { get: (t, k) => k in t ? t[k] : noop });
+  const spec = toLevelSpec(def), scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera();
+  const physics = new Physics(await loadRapier(readFileSync(resolve(ROOT, 'node_modules/@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm'))));
+  const ground = terrainGrid();
+  if (needsTerrainCollider(spec)) registerTerrain(physics, ground);
+  const factory = typeof def.trees.factory === 'function' ? await (await def.trees.factory())(renderer, sky) : new TreeFactory(renderer).buildEmpty();
+  const forest = new Forest(factory, sky).build({ drawnBy: def.trees.drawnBy ?? 'self' });
+  const terrain = { mesh: new THREE.Mesh(new THREE.PlaneGeometry(CHUNK_SIZE, CHUNK_SIZE, TERRAIN_RES - 1, TERRAIN_RES - 1).rotateX(-Math.PI / 2)), punch: noop };
+  const player = { position: new THREE.Vector3(def.spawn.x, def.spawn.y ?? HF.heightAt(def.spawn.x, def.spawn.z), def.spawn.z), platforms: [] };
+  const game = { app, scene, camera, renderer, level: spec, tier: 'desktop', onUpdate: noop, onFixed: noop, onLate: noop, onInput: noop,
+    onRender: noop, onDispose: noop, hold: false, look: null };
+  const world = { game, sky, forest, terrain, player, physics, registry: app.registry, chunk: def, params: new URLSearchParams(), freeCamera: false };
+  const runtime = { world, step: (_name, fn) => Promise.resolve(fn({ detail: noop, set: noop })), play: null,
+    interactables: [], overhead: [], objects: {}, hooks: {}, viewer: () => player.position, horizonVeil: null };
+  const services = { runtime, shard: def, rows: new Map(), bag: { tab: () => noop, fragment: () => noop } };
+  const addPaths = () => app.registry.add({ id: 'paths', name: 'Paths', category: 'ground', file: 'src/engine/physics/paths.ts', surface: 'ground',
+    colliders: pathRampDescs(HF.TRAILS, HF.heightAt, (x, z) => HF.normalAt(x, z)[1], { carried: (x, z) => app.registry.floorAt(x, z) !== undefined }) });
+  app.levelAdapters = { debugRow: () => noop, playground: () => noop };
+  app.levelDriver = { progress: () => ({ detail: noop, set: noop }), data: noop,
+    world: (_spec, ctx) => {
+      game.levelScope = ctx.scope;
+      if (forest.trees.length > 0 && forest.drawer === 'self') ctx.piece({ id: 'forest', name: 'Forest', category: 'nature', file: 'src/engine/world/forest/Forest.ts', colliders: forest.colliderDescs() });
+      if (def.ground.paths !== 'plugin' && def.ground.structures === undefined) addPaths();
+    }, kit: noop, loadout: noop, play: noop, finish: noop };
+  app.render = game; app.scene = scene; app.physics = physics;
+  const { default: Plugin } = await def.load();
+  const plugin = new Plugin();
+  try {
+    await app.loadLevel(spec, { world: (ctx) => plugin.world?.(shardContext(ctx, def, services)) });
+    const colliders = [], counts = {};
+    for (const piece of app.registry.pieces) {
+      if (piece.follows || piece.active?.() === false || !piece.colliders) continue;
+      if (piece.colliders.length > 0) counts[piece.id] = piece.colliders.length;
+      colliders.push(...piece.colliders);
     }
-    const grid = forest.grid;
-    const props = new Props(sky, { trees: forest.trees, nearby: (x, z, r) => grid ? grid.nearby(x, z, r) : [], onViewChange: noop });
-    await props.build();
-    add(props.colliderDescs());
+    return { colliders, ground: needsTerrainCollider(spec) ? ground : null, counts };
+  } finally {
+    await app.unloadLevel();
+    app.registry.pieces.length = 0;
+    app.registry.picks.length = 0;
+    app.registry.sets.length = 0;
+    app.render = null; app.scene = null; app.physics = null;
+    physics.dispose();
   }
-  return { colliders: out, cuts, counts };
-}
-
-/**
- * Nalati (NALATI-MERGE P3): src/shards/nalati-grasslands/index.ts's static world as it registers it — the granite outcrops, the crag rock,
- * every POI (src/shards/nalati-grasslands/world: the camp, the bridge's deck + ramps, the fences, the summer camp, the kurgans, Eagle Rock,
- * the cairn, the crags + the cave porch, the watchtower …) and the dressing (boulders, logs, the camp clutter) — into a
- * registry of its own, read back piece by piece; then main.ts's paths, laid where no deck carries them. Moving pieces
- * (the balbals, `follows`) and the kurgan dungeon (a sealed room at y 140 the boss walks by itself) are not in it.
- */
-async function nalatiColliders(forest, { out, cuts, counts, add, setGroup }) {
-  const { WorldRegistry } = await src('engine/world/registry.ts');
-  const { modelContext } = await src('engine/models/model.ts');
-  const [{ buildOutcrops }, { buildCragRock }, { NalatiPOIs }, { NalatiDressing }] = await Promise.all(
-    ['shards/nalati-grasslands/outcrops.ts', 'shards/nalati-grasslands/cragRock.ts', 'shards/nalati-grasslands/world/index.ts', 'shards/nalati-grasslands/world/dressing/index.ts'].map((m) => src(m)));
-  const reg = new WorldRegistry(), none = () => Promise.resolve(), ctx = modelContext(sky);
-  const outcrops = buildOutcrops(sky);
-  await outcrops.register(reg, ctx, none);   // its rocks as models (E315), drawnInto the mesh
-  const crags = buildCragRock(sky);
-  await crags.register(reg, ctx, none);
-  const pois = new NalatiPOIs(sky).build();
-  pois.addTo(new THREE.Group(), {}, reg);
-  const grid = forest.grid;
-  const dressing = await new NalatiDressing(sky, { trees: forest.trees, nearby: (x, z, r) => grid ? grid.nearby(x, z, r) : [] }).build();
-  dressing.addTo(new THREE.Group(), [...pois.colliders, ...outcrops.colliders, ...crags.colliders]);
-  await dressing.place(reg, none);
-  for (const p of reg.pieces) {
-    if (p.follows || !p.colliders) continue;
-    setGroup(p.id.replace(/^nalati-/, '').replace(/-\d+$/, ''));
-    add(p.colliders);
-  }
-  setGroup('paths');
-  add(pathRampDescs(HF.TRAILS, (x, z) => HF.heightAt(x, z), (x, z) => HF.normalAt(x, z)[1], { carried: (x, z) => reg.floorAt(x, z) !== undefined }));
-  return { colliders: out, cuts, counts };
 }
 
 // ── triangles ────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -293,16 +263,9 @@ async function wetTest(def) {
 }
 
 /** The physics ground's triangles (src/engine/physics/terrain.ts: the mesh's vertices, the (x0,z1)–(x1,z0) diagonal), dry ones only. */
-function addTerrain(soup, cuts, wet) {
+function addTerrain(soup, grid, wet) {
   const res = TERRAIN_RES, size = CHUNK_SIZE, d = size / (res - 1), half = size / 2;
-  const grid = terrainGrid(res, size);
-  for (const c of cuts) { // cutTerrain's rule: vertices inside the cut (grown by a cell) sit at or below `below`
-    const cos = Math.cos(c.yaw), sin = Math.sin(c.yaw);
-    for (let iz = 0; iz < res; iz++) for (let ix = 0; ix < res; ix++) {
-      const dx = ix * d - half - c.x, dz = iz * d - half - c.z, lx = dx * cos - dz * sin, lz = dx * sin + dz * cos;
-      if (Math.abs(lx) <= c.hw + d && Math.abs(lz) <= c.hd + d && grid[iz * res + ix] > c.below) grid[iz * res + ix] = c.below;
-    }
-  }
+  if (grid === null) return 0;
   const base = soup.positions.length / 3;
   for (let iz = 0; iz < res; iz++) for (let ix = 0; ix < res; ix++) soup.vert(ix * d - half, grid[iz * res + ix], iz * d - half);
   let dropped = 0;
@@ -397,20 +360,22 @@ const output = byteWriter(check, 'bake-navmesh');
 for (const def of SHARDS.filter(registry.playable)) {
   if (only.length > 0 && !only.includes(def.slug)) continue;
   const bakedFile = resolve(ROOT, 'public/assets/baked', def.slug, 'terrain.bin');
-  if (!existsSync(bakedFile)) { console.log(`[navmesh] ${def.slug}: no terrain.bin — skipped (run scripts/bake-chunk.mjs first)`); continue; }
+  if (!existsSync(bakedFile) && def.ground.structures === undefined) throw new Error(`bake-navmesh: ${def.slug}/terrain.bin missing — run scripts/bake-chunk.mjs`);
   const t0 = performance.now();
   registry.setActiveChunk(def.slug);
-  const buf = readFileSync(bakedFile);
-  const grid = BT.parseBakedTerrain(buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength));
-  if (!grid) throw new Error(`bake-navmesh: ${def.slug}/terrain.bin does not parse`);
-  HF._installBakedTerrain(BT.bakedSamplers(grid)); // as loadBakedTerrain does at launch
-  const { colliders, cuts, counts } = await shardColliders(def);
+  if (existsSync(bakedFile)) {
+    const buf = readFileSync(bakedFile);
+    const grid = BT.parseBakedTerrain(buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength));
+    if (!grid) throw new Error(`bake-navmesh: ${def.slug}/terrain.bin does not parse`);
+    HF._installBakedTerrain(BT.bakedSamplers(grid));
+  }
+  const { colliders, ground, counts } = await shardColliders(def);
   if (process.env.NAVMESH_DUMP) { // debugging: NAVMESH_DUMP=x,z,r prints the colliders centred within r m of (x, z)
     const [dx, dz, dr] = process.env.NAVMESH_DUMP.split(',').map(Number);
     for (const d of colliders) { const c = d.kind === 'treads' ? d.from : d; if (Math.hypot(c.x - dx, c.z - dz) < dr) console.log(JSON.stringify(d, (k, v) => (v instanceof Float32Array ? `[${v.length / 3} points]` : typeof v === 'number' ? Math.round(v * 100) / 100 : v))); }
   }
   const soup = new Soup();
-  const dropped = addTerrain(soup, cuts, await wetTest(def));
+  const dropped = addTerrain(soup, ground, await wetTest(def));
   for (const d of colliders) addDesc(soup, d);
   const LAYERS = layersFor(def.slug);
   const dir = resolve(ROOT, 'public/assets/baked', def.slug), jsonFile = resolve(dir, 'navmesh.json'), binFile = resolve(dir, 'navmesh.bin');
@@ -432,3 +397,9 @@ for (const def of SHARDS.filter(registry.playable)) {
   console.log(`[navmesh] ${def.slug}: baked navmesh.bin ${(bytes.byteLength / 1024).toFixed(1)} KB (${(gz / 1024).toFixed(1)} KB gzip, ${(br / 1024).toFixed(1)} KB brotli)`);
 }
 output.finish();
+
+// Runtime imports install page-lifetime services (for example the reload heartbeat). A CLI has no page.
+const { app: bakeApp } = await src('engine/app/runtime.ts');
+bakeApp.engineScope.dispose();
+const { pageScope } = await src('engine/app/resources.ts');
+pageScope.dispose();

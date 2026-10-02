@@ -1,0 +1,19 @@
+{
+ "version": 1,
+ "hash": "d3729d920eb8c1db58606d6befef23441ec69ef542385ce3732d84198e4df213",
+ "bytes": 32867,
+ "layers": [
+  {
+   "name": "large",
+   "radius": 0.5,
+   "height": 1.8,
+   "climb": 0.3,
+   "slope": 40,
+   "tiles": 256,
+   "polys": 351,
+   "verts": 1134,
+   "detailVerts": 1056,
+   "detailTris": 1949
+  }
+ ]
+}
