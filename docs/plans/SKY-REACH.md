@@ -16,14 +16,14 @@ hot on the iPhone 17 Pro, the shard's own budgets.
 ## Rows
 | Row | What | State |
 |---|---|---|
-| 0 | E357 Z3 round 2: a clean-room agent rebuilds the shard from `docs/SHARDS.md`, the template and `docs/ENGINE.md` alone; zero engine edits, API gaps go to the lead | open |
-| C1 | **World**: 7–9 islands (home isle, the windmill isle, the roost, the broken bridge isle, a ruin isle, the storm crown for the boss), rope bridges + hover-only bridges (S6-1: a hover deck starts clear of any rim, so on foot you drop straight through), updrafts that lift a hoverboard, the cloud sea below (G3 kill height) | open |
-| C2 | **Creatures**: the drift manta (flyer), sky goats (island walkers, GUST-able off edges), a gale wisp (small flyer that pushes the player) — own brains, telegraphs, deaths (falls count) | open |
-| C3 | **Fan**: SWING (light), a charged sweep (heavy), GUST (push; G3 impulse), the fan away while riding the board (S6-3); touch on the baseline discs, SWING label (G5) | open |
-| C4 | **Quests**: "Raise the fallen bridge to the windmill island" becomes a 4-step chain: find the bridge-keeper's notes → clear the roost of mantas → turn three wind vanes (GUST them) → raise the bridge to the storm crown | open |
-| C5 | **Boss**: the Storm Roc on the storm crown — 3 phases (gust walls that push you to the edge, diving strikes, grounded on the crown's last platform), the shared BossBar, a reward | open |
-| C6 | **Models**: 4–6 generated or Blender models (the windmill, a rope bridge kit, wind vanes, the manta, the Roc) under the model lock; the rest procedural | open |
-| C7 | **Boards for Jake**: a look + play board after C1–C3, a boss clip after C5; iPhone portrait | open |
+| 0 | E357 Z3 round 2: a clean-room agent rebuilds the shard from `docs/SHARDS.md`, the template and `docs/ENGINE.md` alone; zero engine edits, API gaps go to the lead | done (E363 / E364 round-2 rebuild; the content rows built on it) |
+| C1 | **World**: 7–9 islands (home isle, the windmill isle, the roost, the broken bridge isle, a ruin isle, the storm crown for the boss), rope bridges + hover-only bridges (S6-1: a hover deck starts clear of any rim, so on foot you drop straight through), updrafts that lift a hoverboard, the cloud sea below (G3 kill height) | done (E374 content agents; loop 5 moved the side isles off the grid at their own heights, sloped spans: `84d41f75`) |
+| C2 | **Creatures**: the drift manta (flyer), sky goats (island walkers, GUST-able off edges), a gale wisp (small flyer that pushes the player) — own brains, telegraphs, deaths (falls count) | done (drift ray, sky goats, gale wisp: `species/`) |
+| C3 | **Fan**: SWING (light), a charged sweep (heavy), GUST (push; G3 impulse), the fan away while riding the board (S6-3); touch on the baseline discs, SWING label (G5) | done (`weapons/WarFan.ts`: SWING / HEAVY / GUST, stowed on the board; loop 3 motions `7dd6e405`) |
+| C4 | **Quests**: "Raise the fallen bridge to the windmill island" becomes a 4-step chain: find the bridge-keeper's notes → clear the roost of mantas → turn three wind vanes (GUST them) → raise the bridge to the storm crown | done (`quest/install.ts`: keeper → roost → vanes → winch; staged loop 2 `fd90d43c`) |
+| C5 | **Boss**: the Storm Roc on the storm crown — 3 phases (gust walls that push you to the edge, diving strikes, grounded on the crown's last platform), the shared BossBar, a reward | done (`combat/stormRoc.ts` + `species/stormRoc.ts`; fight clip `art/far-reach/round-15-loop-5/roc-fight-phases.mp4`) |
+| C6 | **Models**: 4–6 generated or Blender models (the windmill, a rope bridge kit, wind vanes, the manta, the Roc) under the model lock; the rest procedural | done (Hunyuan3D-2: Roc, goat, ray, vane, bridge kit, keeper; the windmill is code-built since loop 5, `world/mill.ts`) |
+| C7 | **Boards for Jake**: a look + play board after C1–C3, a boss clip after C5; iPhone portrait | done (boards `art/far-reach/round-6-content/` … `round-15-loop-5/`) |
 
 ## How it runs
 **Opus 5.5 subagents only, never GPT-6.1 Sol / Codex** (Jake, 2026-10-01). One fresh Opus subagent per chunk (≤ 400k context, ≤ 90 min, ~200 turns), each reading the last Handoff in
@@ -37,14 +37,14 @@ Jake, 2026-10-01, after playing both on his iPhone: "they look absolutely nothin
 
 | Row | What | State |
 |---|---|---|
-| P1 | **Review**: a deep, ranked review of why the shard looks nothing like its mockups and nothing like Nalati / Nine Dragon / Pine Hollow: graphics, lighting and palette, materials, models, composition, sky, effects, first-person hands and weapon, HUD use, and the quest flow against Driftwood's (an NPC who starts it, quest markers on the minimap and world, step guidance). Output: `docs/design/far-reach/review-2026-10-01.md` with a TOP-N routed to owners (shard vs engine) | open |
-| P2 | **Four hero scenes** chosen from the review; each gets the LOOK-LOOP (`docs/design/LOOK-LOOP.md`): 9 fixed angles (3×3), image-model targets edited from the captures (keeping camera and HUD), a gap list, ΔE00 per palette region, fixes, re-shoot; loop until each 3×3 reads like its target | open |
-| P3 | **Hands and weapon** in the Practice Arena: mockups of how the hands and weapon should look, feel and move (idle, attack, heavy, special), then loop the viewmodel against them | open |
-| P4 | **Quest planned like Driftwood's**: a start (an NPC or a found object that names the goal), each step marked on the minimap and in the world, clear prompts, a reward beat; the existing steps re-staged, no new content | open |
-| P5 | **Presentation pass**: title card and Explore hero images from the finished hero scenes; loading card; first-minute framing from the spawn | open |
-| P6 | **Jake plays it**: a board per loop round and a final 3×3 per hero scene for his sign-off | open |
-| P7 | **Done = two council rounds** (Jake 2026-10-02: "keep going autonomously until you're happy … have a council, do two rounds of reviewing it to see if it matches the quality of the other four shards"): `docs/plans/shard-polish-council/` (ledger, battery, brief, register). The builder loops on each round's findings; the shard is done when round 2's seats find it at the bar | open |
-| P8 | **Progress photos, clips and time-lapses every loop** (E389): `scripts/shard-progress.mjs` + `scripts/shard-timelapse.py` → `progress/<slug>/` | in progress (the `sky-reach` agent) |
+| P1 | **Review**: a deep, ranked review of why the shard looks nothing like its mockups and nothing like Nalati / Nine Dragon / Pine Hollow: graphics, lighting and palette, materials, models, composition, sky, effects, first-person hands and weapon, HUD use, and the quest flow against Driftwood's (an NPC who starts it, quest markers on the minimap and world, step guidance). Output: `docs/design/far-reach/review-2026-10-01.md` with a TOP-N routed to owners (shard vs engine) | done (`docs/design/far-reach/review-2026-10-01.md`, `art/far-reach/round-11-review/`) |
+| P2 | **Four hero scenes** chosen from the review; each gets the LOOK-LOOP (`docs/design/LOOK-LOOP.md`): 9 fixed angles (3×3), image-model targets edited from the captures (keeping camera and HUD), a gap list, ΔE00 per palette region, fixes, re-shoot; loop until each 3×3 reads like its target | done (loops 1–5: `art/far-reach/round-12-loop-1/` … `round-15-loop-5/`; form and subject first since council round 1) |
+| P3 | **Hands and weapon** in the Practice Arena: mockups of how the hands and weapon should look, feel and move (idle, attack, heavy, special), then loop the viewmodel against them | done (`weapons/fanModel.ts` painted silk on pleats, `weapons/glove.ts`; `art/far-reach/round-13-loop-3/fan-moves-and-wind.jpg`) |
+| P4 | **Quest planned like Driftwood's**: a start (an NPC or a found object that names the goal), each step marked on the minimap and in the world, clear prompts, a reward beat; the existing steps re-staged, no new content | done (keeper starts it in the first frame, chip with metres, pins, places, reward beat: `quest/install.ts`) |
+| P5 | **Presentation pass**: title card and Explore hero images from the finished hero scenes; loading card; first-minute framing from the spawn | done (cards re-cut loop 5 `f93714aa`) |
+| P6 | **Jake plays it**: a board per loop round and a final 3×3 per hero scene for his sign-off | open: Jake's sign-off (boards per loop in `art/far-reach/round-1[2-5]-*`) |
+| P7 | **Done = two council rounds** (Jake 2026-10-02: "keep going autonomously until you're happy … have a council, do two rounds of reviewing it to see if it matches the quality of the other four shards"): `docs/plans/shard-polish-council/` (ledger, battery, brief, register). The builder loops on each round's findings; the shard is done when round 2's seats find it at the bar | in progress: council round 1 below the bar → loop 5; round 2 seats B and C at the bar (2026-10-02) |
+| P8 | **Progress photos, clips and time-lapses every loop** (E389): `scripts/shard-progress.mjs` + `scripts/shard-timelapse.py` → `progress/<slug>/` | done every loop (`progress/far-reach/`) |
 
 ## Loop 5 gap list: council round 1 (seats B and C), form and subject first
 
