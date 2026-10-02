@@ -1,7 +1,7 @@
 import { ShardPlugin, installLoot, type ShardContext } from '#game';
 import { installSilentScore } from '#kit';
 import type { Animal, Flags, QuestState } from '#engine';
-import { BoxGeometry, DoubleSide, Mesh, MeshBasicMaterial, Vector3 } from 'three';
+import { BoxGeometry, DoubleSide, Mesh, MeshBasicMaterial, Vector3, type Texture } from 'three';
 import { STRINGS } from './strings';
 import { GOATS, RAY_HOMES, ROC, ROOST_RAYS, UPDRAFT, WISP_HOMES, apothem, type Home } from './layout';
 import { buildWorld, type BuiltWorld } from './world/build';
@@ -14,6 +14,8 @@ import { GALE_WISP, GALE_WISP_LOOK } from './species/galeWisp';
 import { GALE_WALL, STORM_ROC, STORM_ROC_LOOK, rocBrain } from './species/stormRoc';
 import { bindPlayerPush, setHome } from './species/rig';
 import { preloadSkyMeshes } from './world/meshes';
+import { FAN_LEAF_URL } from './boot/files';
+import { loadPainted } from './look/image';
 import { meadow, type Meadow } from './world/meadow';
 import { SUN_DIR } from './look/sun';
 import { ROC_ID, StormRocBoss } from './combat/stormRoc';
@@ -42,6 +44,8 @@ export class SkyReachPlugin extends ShardPlugin {
   /** Is the player riding the hoverboard? Hover decks and the updraft collide only then (ENGINE §5 `app.player.mode`). */
   private board: () => boolean = () => false;
   flags: Flags | null = null;
+  /** The war fan's painted silk (loop 4), loaded behind the loading screen and owned by the level scope. */
+  leaf: Texture | null = null;
   /** The near meadow that travels with the camera (loop 4). */
   meadow: Meadow | null = null;
 
@@ -49,6 +53,9 @@ export class SkyReachPlugin extends ShardPlugin {
     ctx.strings(STRINGS);
     // The generated models (C6) load behind the loading screen; the world and the creature looks read them synchronously.
     await preloadSkyMeshes();
+    // the fan's painted silk; without it (offline, a test page) the fan keeps its plain teal, as the models keep their code stand-ins
+    const leaf = await loadPainted(FAN_LEAF_URL, 'far.fan-leaf');
+    if (leaf !== null) { this.leaf = leaf; ctx.scope.own(leaf); }
     this.board = () => ctx.app.player?.mode === 'board';
     this.built = buildWorld(ctx, () => this.board());
     const blades = ctx.manifest.tiers?.phone?.['far.meadowBlades'] ?? 0;
@@ -66,6 +73,7 @@ export class SkyReachPlugin extends ShardPlugin {
     // The shared combat-target query (ENGINE §19): world creatures in play, the Practice Arena's dummies while it is open.
     const targets = (): readonly FanTarget[] => ctx.app.combat.targets().filter((t) => t.hittable);
     this.fan = new WarFan(ctx.app, targets);
+    if (this.leaf !== null) this.fan.setLeaf(this.leaf);
     if (rt) rt.buildEquipment = () => {
       const fan = this.fan; if (fan === null) throw new Error('Sky Reach: the war fan was not built');
       fan.onSwing = (heavy) => { if (heavy) rt.play?.cues.charge(FAN_ROW, 'heavy'); else rt.play?.cues.fire(FAN_ROW); };

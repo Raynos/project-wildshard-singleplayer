@@ -2,6 +2,7 @@ import { BufferAttribute, Color, DoubleSide, InstancedBufferAttribute, Instanced
 import { DAIS, FALLEN_BRIDGE, ISLES, MILL, NOTES, SPANS, UPDRAFT, VANES, WINCH, apothem, type Isle } from '../layout';
 import { KEEPER_AT } from '../quest/keeper';
 import { crownStones } from './crown';
+import { NEST, SPIRES, spireAt } from './roost';
 import { FOG, SKY } from '../look/sun';
 
 /**
@@ -30,6 +31,8 @@ export function meadowHoles(): Vector4[] {
   const holes: [number, number, number][] = [[MILL.x, MILL.z, 2.9], [WINCH.x, WINCH.z, 1.3], [NOTES.x, NOTES.z, 0.8], [KEEPER_AT.x, KEEPER_AT.z, 0.7], [DAIS.x, DAIS.z, DAIS.r + 0.4]];
   for (const v of VANES) holes.push([v.x, v.z, 1]);
   for (const st of crownStones()) holes.push([st.x, st.z, 0.85]);
+  holes.push([NEST.x, NEST.z, NEST.r + 0.2]);
+  for (const sp of SPIRES) { const at = spireAt(sp); holes.push([at.x, at.z, sp.r + 0.2]); }
   return holes.map(([x, z, r]) => new Vector4(x, z, r, 0));
 }
 
@@ -145,7 +148,7 @@ export function meadow(sunDir: Vector3, blades: number, isles: readonly Isle[] =
       varying float vH; varying float vTone; varying vec3 vWorld; varying float vShade; varying float vFlower;
       void main(){
         // olive roots, a fresh-green to golden body by patch, warm straw tips
-        vec3 rootC = ${glslColor(0x3a4f1e)}, greenC = ${glslColor(0x7a9a36)}, goldC = ${glslColor(0xa9a745)}, tipC = ${glslColor(0xdcd27c)};
+        vec3 rootC = ${glslColor(0x3a4f1e)}, greenC = ${glslColor(0x76903b)}, goldC = ${glslColor(0xa9a745)}, tipC = ${glslColor(0xdcd27c)};
         vec3 body = mix(greenC, goldC, smoothstep(0.5, 0.85, vTone));
         vec3 c = mix(rootC, body, smoothstep(0.0, 0.55, vH));
         c = mix(c, tipC, smoothstep(0.72, 1.0, vH) * 0.45);

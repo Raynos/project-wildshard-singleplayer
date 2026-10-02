@@ -6,6 +6,7 @@ import { STRINGS } from '../strings';
 import { dressIslands } from './dressing';
 import { islandMesh } from './isle';
 import { CROWN_RING, crownArena, crownStones } from './crown';
+import { roost } from './roost';
 import { skyline } from './distant';
 import { PALETTE, flat, lectern, pines, plankBridge, vane, windmill, winch } from './shapes';
 import { ownPrimitives } from './resources';
@@ -150,6 +151,9 @@ export function buildWorld(ctx: ShardContext, isBoard: () => boolean): BuiltWorl
   const stones: ColliderDesc[] = crownStones().map((st) => boxDesc({ x: st.x, z: st.z, hw: CROWN_RING.width / 2, hd: CROWN_RING.depth / 2, rot: -st.yaw, yBottom: CROWN.y, yTop: CROWN.y + st.h }, 'stone'));
   ctx.piece({ id: 'far.crown.ruin', name: STRINGS.crown, category: 'buildings', file: FILE, object: arena, surface: 'stone',
     colliders: [boxDesc({ x: DAIS.x, z: DAIS.z, hw: DAIS.r * 0.9, hd: DAIS.r * 0.9, rot: 0, yBottom: CROWN.y, yTop: CROWN.y + DAIS.h }, 'stone'), ...stones] });
+  // the Roost's nest and spires (loop 4, review H2): the drift rays' island gets its subject
+  const nest = roost(); root.add(nest.group);
+  ctx.piece({ id: 'far.roost.nest', name: STRINGS.roost, category: 'props', file: FILE, object: nest.group, colliders: nest.colliders, surface: 'wood' });
   // the storm: a lit vortex high over the crown only (loop 3); it melts into the haze from the spawn
   const stormTex = bakeSeaTexture(SUN_DIR); ctx.scope.own(stormTex);
   const storm = crownStorm(SUN_DIR, stormTex, rnd); storm.group.position.set(CROWN.x, CROWN.y + STORM.lift, CROWN.z); root.add(storm.group);

@@ -1,6 +1,7 @@
-import { BackSide, ClampToEdgeWrapping, Color, DataTexture, LinearFilter, Mesh, RepeatWrapping, RGBAFormat, ShaderMaterial, SphereGeometry, SRGBColorSpace, TextureLoader, UnsignedByteType, type Texture } from 'three';
+import { BackSide, ClampToEdgeWrapping, Color, DataTexture, LinearFilter, Mesh, RepeatWrapping, RGBAFormat, ShaderMaterial, SphereGeometry, SRGBColorSpace, UnsignedByteType, type Texture } from 'three';
 import { TIER } from '#engine';
 import { PANO_URL } from '../boot/files';
+import { loadPainted } from './image';
 import { PANO_DEG_PER_V, PANO_FOG_SRGB, PANO_HORIZON_V, PANO_NADIR_SRGB, PANO_PAD_PX, PANO_ZENITH_SRGB } from './panoramaData';
 
 /**
@@ -18,9 +19,13 @@ export const panoUrl = (): string => (TIER === 'phone' ? PANO_URL.phone : PANO_U
 const srgb = (r: number, g: number, b: number): string => { const c = new Color().setRGB(r, g, b, SRGBColorSpace); return `vec3(${c.r.toFixed(4)},${c.g.toFixed(4)},${c.b.toFixed(4)})`; };
 
 export async function loadPanorama(): Promise<Texture> {
-  const tex = await new TextureLoader().loadAsync(panoUrl());
-  tex.colorSpace = SRGBColorSpace; tex.wrapS = ClampToEdgeWrapping; tex.wrapT = ClampToEdgeWrapping;
-  tex.generateMipmaps = false; tex.minFilter = LinearFilter; tex.magFilter = LinearFilter; tex.name = 'far.panorama'; tex.needsUpdate = true;
+  // offline or a test page: a one-texel strip of the painted haze, so the dome still draws its zenith, haze and nadir
+  const tex = await loadPainted(panoUrl(), 'far.panorama') ?? (() => {
+    const [r, g, b] = PANO_FOG_SRGB, c = new Color().setRGB(r ?? 0, g ?? 0, b ?? 0, SRGBColorSpace);
+    return new DataTexture(new Uint8Array([Math.round(c.r * 255), Math.round(c.g * 255), Math.round(c.b * 255), 255]), 1, 1, RGBAFormat, UnsignedByteType);
+  })();
+  tex.wrapS = ClampToEdgeWrapping; tex.wrapT = ClampToEdgeWrapping;
+  tex.generateMipmaps = false; tex.minFilter = LinearFilter; tex.magFilter = LinearFilter; tex.needsUpdate = true;
   return tex;
 }
 
@@ -42,7 +47,7 @@ export const HEADING_GLSL = 'float farHeading(vec3 v){ return fract(atan(v.x, -v
 export function skyDome(pano: Texture): Mesh<SphereGeometry, ShaderMaterial> {
   const [zr, zg, zb] = PANO_ZENITH_SRGB, [nr, ng, nb] = PANO_NADIR_SRGB;
   // the strip carries PANO_PAD_PX columns of wrap either side: the heading maps inside them
-  const image: unknown = pano.image, total = image instanceof HTMLImageElement || image instanceof ImageBitmap ? image.width : PANO_PAD_PX * 2 + 1;
+  const image: unknown = pano.image, total = typeof ImageBitmap !== 'undefined' && image instanceof ImageBitmap ? image.width : PANO_PAD_PX * 2 + 1;
   const padU = PANO_PAD_PX / total, scaleU = (total - PANO_PAD_PX * 2) / total;
   return new Mesh(new SphereGeometry(900, 64, 32), new ShaderMaterial({ side: BackSide, depthWrite: false, fog: false,
     uniforms: { pano: { value: pano }, padU: { value: padU }, scaleU: { value: scaleU } },

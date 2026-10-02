@@ -1,5 +1,5 @@
 import { Weapon, blocks, type Actor, type App, type EquipContext, type WeaponState } from '#engine';
-import { Vector2, Vector3 } from 'three';
+import { Vector2, Vector3, type Texture } from 'three';
 import { FAN_ROW } from './rows';
 import { fanParts } from './fanModel';
 
@@ -69,6 +69,8 @@ export class WarFan extends Weapon {
   private readonly vm = blocks.viewmodel({ gain: 0.01, clampYaw: 0.1, clampPitch: 0.1, k: 50, c: 12 });
   private readonly contact: ReturnType<typeof blocks.melee>;
   override get charge(): number { return Math.min(1, this.held / 0.6); }
+  /** Paint the silk with the leaf texture (loaded and owned by the plugin's scope). */
+  setLeaf(leaf: Texture): void { this.parts.silk.map = leaf; this.parts.silk.color.set(0xffffff); this.parts.silk.needsUpdate = true; }
 
   constructor(app: App, targets: () => readonly FanTarget[] = () => []) {
     super(FAN_ROW); this.app = app; this.targets = targets; this.contact = blocks.melee(app.combat);

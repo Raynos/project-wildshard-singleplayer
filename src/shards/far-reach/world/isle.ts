@@ -34,7 +34,7 @@ const segDist = (px: number, pz: number, ax: number, az: number, bx: number, bz:
 
 /** The island palette (sRGB): meadow ground under the grass, worn path dirt, soil, strata and shade. */
 export const ISLE_PALETTE = {
-  ground: 0x6d8433, groundGold: 0xa59a46, groundDeep: 0x51652a, path: 0xb08a5e, soil: 0x6e4c35,
+  ground: 0x6d8433, groundGold: 0xa59a46, groundDeep: 0x51652a, path: 0x9a8468, soil: 0x6e4c35,
   sand: 0xd2a676, ochre: 0xb98257, clay: 0x9a6650, mauve: 0x8a7385, violet: 0x5d4c67, moss: 0x6f7d3a,
 } as const;
 
@@ -69,7 +69,7 @@ export function islandMesh(isle: Isle, random: () => number): Mesh {
       const path = 1 - smooth(0.3, 1.0, pd + 0.35 * n2);
       c2.setHex(ISLE_PALETTE.groundGold);
       const base = new Color(ISLE_PALETTE.groundDeep).lerp(new Color(ISLE_PALETTE.ground), smooth(0.2, 0.55, n2)).lerp(c2, smooth(0.45, 0.8, n) * 0.8);
-      const id = vert(x, 0.05 * (n - 0.5) * (1 - f * f), z, base.getHex(), { hex: ISLE_PALETTE.path, k: path });
+      const id = vert(x, 0.05 * (n - 0.5) * (1 - f * f), z, base.getHex(), { hex: ISLE_PALETTE.path, k: path * 0.8 });
       row.push(id);
     }
     rows.push(row);

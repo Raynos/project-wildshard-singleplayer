@@ -1,6 +1,6 @@
 import { BufferGeometry, Color, ConeGeometry, DoubleSide, Float32BufferAttribute, Group, IcosahedronGeometry, InstancedMesh, Matrix4, MeshStandardMaterial, Quaternion, Vector3 } from 'three';
 import { PATCH_ORDER, patchShader } from '#engine';
-import { ISLES, SPANS, apothem, type Isle } from '../layout';
+import { DECK as DECK_Y, ISLES, SPANS, apothem, type Isle } from '../layout';
 
 /**
  * The island dressing (Gilded Air, review items 6 / 7, loop 2): what makes an island top read as a meadow and its
@@ -55,6 +55,21 @@ export function flowerGeometry(): BufferGeometry {
   return g;
 }
 
+/** A boulder: a subdivided icosahedron, lumped by noise, warm grey with moss on its top and lichen spots. */
+export function stoneGeometry(): BufferGeometry {
+  const g = new IcosahedronGeometry(1, 1).toNonIndexed(), p = g.getAttribute('position'), col: number[] = [];
+  const grey = new Color(0x9d9188), warm = new Color(0xb9a48c), moss = new Color(0x6f7d3a), dark = new Color(0x6b6068), c = new Color();
+  for (let i = 0; i < p.count; i++) {
+    const x = p.getX(i), y = p.getY(i), z = p.getZ(i), n = Math.sin(x * 3.1 + z * 2.3) * 0.5 + Math.sin(y * 4.7 - x * 1.9) * 0.5;
+    const k = 1 + 0.16 * n; p.setXYZ(i, x * k, y * k, z * k);
+    c.copy(grey).lerp(warm, 0.5 + 0.5 * n).lerp(dark, Math.max(0, -y) * 0.6);
+    if (y > 0.45) c.lerp(moss, Math.min(1, (y - 0.45) * 2.2));
+    col.push(c.r, c.g, c.b);
+  }
+  g.setAttribute('color', new Float32BufferAttribute(col, 3)); g.computeVertexNormals();
+  return g;
+}
+
 /** True when (x, z) on `isle` lies on a bridge's landing lane (kept clear so the walkway reads). */
 function onLane(x: number, z: number): boolean {
   for (const s of SPANS) {
@@ -95,6 +110,19 @@ export function dressIslands(isles: readonly Isle[] = ISLES, seed = 6417): Dress
       roots.push({ x: isle.x + Math.cos(a) * r, y: isle.y - 1.1, z: isle.z + Math.sin(a) * r, s: 1.5 + rnd() * 4.5, yaw: rnd() * 6.28 });
     }
   }
+  // boulders at every rope landing (mockup A: rocks and flowers round the bridge posts), either side of the lane
+  for (const sp of SPANS) {
+    if (sp.kind !== 'rope') continue;
+    const alongX = sp.z0 === sp.z1;
+    for (const [ex, ez, dir] of [[sp.x0, sp.z0, -1], [sp.x1, sp.z1, 1]] as const) {
+      for (const side of [-1, 1]) {
+        const inward = (alongX ? Math.sign(sp.x1 - sp.x0) : Math.sign(sp.z1 - sp.z0)) * dir, lat = side * (sp.width / 2 + 1.1 + rnd() * 0.8), back = inward * (1.6 + rnd() * 1.4);
+        const x = alongX ? ex + back : ex + lat, z = alongX ? ez + lat : ez + back;
+        stones.push({ x, y: DECK_Y - 0.15, z, s: 0.95 + rnd() * 0.5, yaw: rnd() * 6.28 });
+        flowers.push({ x: x + (rnd() - 0.5) * 1.2, y: DECK_Y, z: z + (rnd() - 0.5) * 1.2, s: 1, yaw: rnd() * 6.28, c: 0xf6f1e4 });
+      }
+    }
+  }
   const group = new Group(), meshes: InstancedMesh[] = [];
   /** `long`: the item's scale is its length only (roots); otherwise uniform, `squash` flattening y */
   const place = (mesh: InstancedMesh, list: readonly Place[], squash = 1, long = false): void => {
@@ -113,7 +141,7 @@ export function dressIslands(isles: readonly Isle[] = ISLES, seed = 6417): Dress
   place(new InstancedMesh(clumpGeometry(), clumpMaterial, clumps.length), clumps);
   const flowerMesh = new InstancedMesh(flowerGeometry(), new MeshStandardMaterial({ side: DoubleSide, roughness: 1, metalness: 0, emissive: 0x2a2418 }), flowers.length);
   place(flowerMesh, flowers); const fc = new Color(); flowers.forEach((f, i) => { flowerMesh.setColorAt(i, fc.setHex(f.c)); });
-  place(new InstancedMesh(new IcosahedronGeometry(1, 0), new MeshStandardMaterial({ color: 0x9a8a7e, flatShading: true, roughness: 0.95, metalness: 0 }), stones.length), stones, 0.55);
+  place(new InstancedMesh(stoneGeometry(), new MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.95, metalness: 0 }), stones.length), stones, 0.55);
   // a strand 1 m long, tip down: its wide end at y 0 hangs from the rim band; instances stretch it to their length
   const strand = new ConeGeometry(0.11, 1, 4, 1, true); strand.rotateX(Math.PI); strand.translate(0, -0.5, 0);
   place(new InstancedMesh(strand, new MeshStandardMaterial({ color: 0x5b4a33, roughness: 1, metalness: 0, side: DoubleSide }), roots.length), roots, 1, true);
