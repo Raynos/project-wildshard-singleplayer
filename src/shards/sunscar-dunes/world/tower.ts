@@ -59,7 +59,12 @@ export function buildTower(y: number, groundAt: (x: number, z: number) => number
     }
   }
   // The deck and its rail (open on the south, where the stair lands).
-  add(box(half * 2 + 0.6, 0.2, half * 2 + 0.6, wood), 0, deckY - 0.1, 0);
+  // The deck: nine sun-weathered planks in three shades with thin gaps (round 1: one dark slab read as a flat brown floor
+  // in the H4 view), on a dark frame.
+  add(box(half * 2 + 0.6, 0.14, half * 2 + 0.6, dark), 0, deckY - 0.13, 0);
+  const plankShades = [0x7a5a40, 0x6a4c36, 0x86664a].map((color) => new MeshStandardMaterial({ color, roughness: 0.92, flatShading: true }));
+  const span = half * 2 + 0.6, plank = span / 9;
+  for (let i = 0; i < 9; i++) add(box(plank - 0.025, 0.06, span, plankShades[(i * 2) % 3] ?? wood), -span / 2 + (i + 0.5) * plank, deckY - 0.03, 0);
   colliders.push(boxDesc({ x: cx, z: cz, hw: half + 0.3, hd: half + 0.3, rot: 0, yBottom: deckY - 0.2, yTop: deckY }, 'wood'));
   const railH = 1.0, edge = half + 0.25;
   for (const [x, z, w, d] of [[0, -edge, edge * 2, 0.08], [-edge, 0, 0.08, edge * 2], [edge, 0, 0.08, edge * 2], [-edge * 0.6, edge, edge * 0.8, 0.08]] as const) {
