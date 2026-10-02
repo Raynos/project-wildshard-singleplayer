@@ -182,7 +182,7 @@
     },
     {
       // The service worker is a classic worker script: top-level function declarations are its API.
-      "files": ["src/engine/pwa/sw.js"],
+      "files": ["src/engine/pwa/sw.js", "drafts/src/sw.js"],
       "env": { "serviceworker": true },
       "rules": { "eslint/no-implicit-globals": "off", "import/unambiguous": "off" }
     },

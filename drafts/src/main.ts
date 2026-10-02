@@ -12,8 +12,31 @@ import { atlas, developer, draftIndex, url } from './data';
 import { clear, h } from './dom';
 import { explorePage } from './explore';
 import { protosPage, stageFromRoute, stagePage, stagesPage, teaserPage, titlePage } from './pages';
+import { draftUrls, registerSw, savedCount, warm, type Saved } from './pwa';
+import { mountUpdatePill } from './update';
 
 const app = document.getElementById('app') ?? document.body;
+void registerSw();
+mountUpdatePill();
+
+/** The draft home's offline line (E391): how many of its pictures are saved; opening a draft saves the rest. */
+function offline(a: Atlas): void {
+  const urls = draftUrls(a);
+  const paint = (s: Saved): void => {
+    const run = app.querySelector('.wd-run');
+    if (!run) return;
+    let line = run.querySelector<HTMLElement>('.wd-offline');
+    if (!line) {
+      line = h('div', { class: 'wd-offline' }, h('span'), h('div', { class: 'wd-bar' }, h('span', { style: 'background:#5fe0a0' })));
+      run.append(line);
+    }
+    const label = line.firstElementChild;
+    if (label) label.textContent = s.done >= s.total ? `Offline · all ${s.total} pictures saved` : `Offline · ${s.done} / ${s.total} pictures saved`;
+    const fill = line.querySelector<HTMLElement>('.wd-bar > span');
+    if (fill) fill.style.width = `${(100 * s.done) / Math.max(1, s.total)}%`;
+  };
+  void savedCount(urls).then(paint).then(() => warm(urls, paint));
+}
 
 /** The draft splash (J41): the key art full screen, "DRAFT · <name> · <stage>", a bar that fills as the first pictures load. */
 function splash(a: Atlas): { done: () => void } {
@@ -89,6 +112,7 @@ async function render(): Promise<void> {
       shownSplash = slug;
       splash(a);
     }
+    if (!view) offline(a);
   } catch (e) {
     if (e instanceof TypeError && /dynamically imported module|Importing a module script failed/.test(e.message) && sessionStorage.getItem('wd-reloaded') !== location.hash) {
       // A new deploy replaced the chunk this page knew: load the new build once.

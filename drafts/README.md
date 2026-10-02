@@ -6,6 +6,11 @@ loads a byte of it. **Live:** https://wildshard-drafts.vercel.app (a home-screen
 
 Everything on it is **read-only** (J17, J24): Jake looks, compares, plays and walks; he answers in chat.
 
+It is an **offline home-screen app** (E391, J66): `src/sw.js` (stamped by `vite.config.ts` with the build's files)
+precaches the site and every draft's data, and keeps the pictures of every draft opened (the draft's home counts them).
+The **reload pill** (`src/update.ts`, as the game's) is always on, top right; it lights up when a new deploy waits, and
+a tap takes it. A deploy is a new worker: it waits for that tap, never reloading on its own.
+
 | What | Where |
 |---|---|
 | The site (TypeScript, no framework) | `src/`: `main.ts` (routes), `pages.ts` (title, teaser, STAGES, a stage page, prototypes), `explore.ts` (Draft Explore's five tabs), `viewer.ts` (the swipe), `map.ts`, `maplab*.ts` + `walk.ts` (Map Lab), `styles.css` (`wd-` classes) |
