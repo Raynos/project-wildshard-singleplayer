@@ -1,6 +1,6 @@
 # WorldClaw tools: Draft mode, the drafts site, and the Explorers a shard needs before it is a world
 
-**State:** `draft` 2026-10-01 — a plan only, the companion to [WORLDCLAW-SHARD](WORLDCLAW-SHARD.md); GAME-NORMALIZATION is archived (2026-10-01); the rows start with WORLDCLAW-SHARD N0 on Jake's go. Done: the Nine Dragon audit ([worldclaw-tools/audit-nine-dragon.md](worldclaw-tools/audit-nine-dragon.md)), the concept, rows W0–W17, three mockup rounds (16 + 15 + 25 images, the [Tools page](https://claude.ai/artifact/2r8TXFS57ze8EAJ9CdN6BQ)), Jake's grill J1–J52, every mockup board picked (two websites with the drafts site deployed at every step boundary and its images on Blob; a COMING SOON card in the game from day zero; review in chat, every page read-only; a draft = STAGES + Draft Explore, the mock-up mirror; Map Lab, Composition, Coverage and Beats with all their parts as experiments kept or cut after the pilot; just-in-time build, ~23 agent-days). Open: this plan's council (later); the keep / cut review after the pilot (J32). On `main` since 2026-10-01 (merged from branch `worldclaw`; the prototypes and the review copies at the local tag `worldclaw-archive`, D76).
+**State:** `in progress` 2026-10-01 — Jake's go (J53, E387, no council); one builder (J54). **Now: the drafts site and every draft tool** in the new top-level `drafts/` (J57, J58): W16 site + deploy → W1 atlas data → W2 Blob publish → W3 STAGES + artifact page → W4 title → W5 boards → W8 lineage → W17 Draft Explore → W7 prototypes → W6 Map Lab (on the dry run's maths, J61) → W15 weight + splash → W13 skill wiring, with all of Thin Ice's existing content loaded; then W9, Thin Ice's COMING SOON card (J56, J60). Later: the game's Explore tools W10, W11, W12, W14 (J57). Thin Ice itself is continued by a separate agent through the drafts site. Design: J1–J63; the [Tools page](https://claude.ai/artifact/2r8TXFS57ze8EAJ9CdN6BQ).
 
 ## 0. Read this first
 
@@ -124,6 +124,17 @@ friction, keep the history browsable, and let Jake touch what exists.**
 | J50 | **Draft Explore WORLD: viewpoints + first-person** (round-3 board 12 B + D): the map with its camera markers, a tap opening that world view; a FIRST-PERSON sub-view where each first-person view sits over its camera on the map and the blockout from the same camera, with its check flag and a counter | "B viewpoints + D first-person" (grill, round 3) |
 | J51 | **The game's Explore bar has two rows** (round-3 board 15 B): MODELS · SETS · WORLD as today, and a thinner amber developer row BEATS · COVERAGE with a DEV chip; a player's Explore is unchanged | "B two rows, DEV row" (grill, round 3) |
 | J52 | **Coverage's colours and funnel** (round-3 board 16): red to do · violet mocked up · amber composed · green signed off · dark unseen; a funnel bar of the close band's shares on top of the heatmap | "Approve colours + funnel" (grill, round 3) |
+| J53 | **Go, no council** (E387): the plan goes `in progress` now and builds the before-P0 block; its council is dropped, since every part is an experiment under J32 | "Go, no council" |
+| J54 | **One builder, row by row** (E387): the WorldClaw tools agent builds every row itself, with no Codex lanes | "Me alone, row by row" |
+| J55 | **The drafts site is `wildshard-drafts`** (E387): Vercel project `wildshard-drafts` (wildshard-drafts.vercel.app, Git auto-deploy off), the home-screen app "Wildshard Drafts", and a public Blob store `wildshard-drafts` | "wildshard-drafts" |
+| J56 | **Thin Ice's COMING SOON card ships once the drafts site is live** (E387): W9 lands after W16 / W4, so FOLLOW THE BUILD always has a teaser page to open; its key art comes from the dry run (the Bellkeeper tease is allowed, J38) | "When the drafts site is live" |
+| J57 | **The drafts site first, in its own top-level folder** (E387): build the drafts site and its tools, load all of Thin Ice's existing content into it, and add Thin Ice's COMING SOON card to the game; the game's Explore tools (W10, W11, W12, W14) come later. This agent builds tools, not more Thin Ice: a separate agent continues Thin Ice as a draft through the new site. The drafts site is a separate website, so its code sits in a separate top-level folder, **`drafts/`**, beside the game's `src/`: the site in `drafts/src/` with `drafts/index.html` and `drafts/vite.config.ts` (→ `dist-drafts/`), the generated data in `drafts/public/data/<slug>/atlas.json`, its scripts (atlas, publish, deploy, the artifact page) in `drafts/tools/`, its tests in `drafts/test/`. It imports nothing from `src/` (J15). This replaces §2.7's `src/drafts/`, `drafts/<slug>/` and `scripts/worldclaw/` paths | "start implementing all the draft tools … a separate folder in this repository … two top level folders, one for the main game website and one for the drafts site"; "just build drafts, get all the content for thin ice into the draft and add the thin ice coming soon to the main game … the world claw tools for the main game for world explorer in the main game, that comes later … your job is not to build any more thin ice" |
+| J58 | **`src/` stays the game; `drafts/` is the drafts site** (E387): two top-level folders, no rename of `src/` | "src/ stays + drafts/" |
+| J59 | **Overnight, all of it** (E387): create the Vercel project `wildshard-drafts` and a public Blob store, deploy the drafts site by hand with all of Thin Ice's content, and ship Thin Ice's COMING SOON card to main once the site is live | "All of it" |
+| J60 | **Thin Ice's card**: the P4 key art (`art/thin-ice/round-3-concepts/p4-keyart.jpg`) and the line "The ferry is gone and the fjord has frozen." | "P4 key art + pitch line" |
+| J61 | **Map Lab now, on the dry run's maths** (E387): built on the approved map's blockout data (`scene.json`, `cams.json`) with the dry run's terrain maths ported to TypeScript inside `drafts/`; T3–T5 replace it when they land (WT6 is met then) | "Now, on the dry run's maths" |
+| J62 | **The auto-made artifact page replaces the Thin Ice page in place** (E387): https://claude.ai/artifact/1v5EE7bt75m3dGFAkVh7P1 becomes the draft's read-only page, generated from `atlas.json` | "Replace in place" |
+| J63 | **The dry run's prototypes that ran on Thin Ice go into its gallery** (E387): built from the tag `worldclaw-archive` and hosted as playable pages with their Simulator peak; the others stay at the tag | "Yes, the ones that ran on Thin Ice" |
 
 ## 1. Goal, done-when, non-goals
 
@@ -164,9 +175,9 @@ shows how each camera's painting became the world. Jake reviews and answers in c
 |---|---|---|
 | What | every shard and partial shard in the engine | only the drafts: the title, each draft's STAGES and EXPLORE, Map Lab, the prototypes; no three.js world, none of the shipped shards |
 | A draft's footprint | **one COMING SOON card** from P0 (J19): ≤ 2 KB of data + a Blob image URL | everything else |
-| Deploy | as today (hourly, from the archive on) | **by hand from the run at every step boundary** (J26): `scripts/worldclaw/deploy-drafts.sh` builds from a clean export of HEAD and uploads with `vercel deploy --prebuilt --prod`; Git auto-deploy off |
+| Deploy | as today (hourly, from the archive on) | **by hand from the run at every step boundary** (J26): `drafts/tools/deploy.sh` builds from a clean export of HEAD and uploads with `vercel deploy --prebuilt --prod`; Git auto-deploy off |
 | Images | none of a draft's | **phone copies and thumbnails on Vercel Blob** (J28), uploaded once, content-hashed; a deploy carries only the shell and `atlas.json` (a few hundred KB) |
-| Code | the game repo | **the game repo too** (J23): `vite.drafts.config.ts` → `dist-drafts/`, the page source in `src/drafts/`, the card in the deck |
+| Code | the game repo, `src/` | **the game repo too** (J23), in its own top-level folder `drafts/` (J57): `drafts/vite.config.ts` → `dist-drafts/`, the page source in `drafts/src/`; the card stays in the game's deck |
 | Originals | — | stay in git `art/<slug>/round-<n>/` (J30) |
 
 The drafts site is its own home-screen app ("Wildshard Drafts"), with its own storage.
@@ -210,10 +221,10 @@ The drafts site is its own home-screen app ("Wildshard Drafts"), with its own st
 
 ### 2.5 How it updates during a run
 
-- **Each image, once:** when a step makes an image, `scripts/worldclaw/atlas.mjs <slug> --publish` makes its phone copy
+- **Each image, once:** when a step makes an image, `drafts/tools/atlas.mjs <slug> --publish` makes its phone copy
   (or thumbnail), uploads it to Blob under a content-hashed name if it isn't there, then regenerates `atlas.json` from the
   design files, the art READMEs and the frames.
-- **Every step boundary** (J26): `scripts/worldclaw/deploy-drafts.sh` deploys the drafts site (`run_in_background`), and
+- **Every step boundary** (J26): `drafts/tools/deploy.sh` deploys the drafts site (`run_in_background`), and
   the draft's artifact page (J25) is republished from the same `atlas.json`.
 - **In chat** (J21): the stage's images go to Jake as one titled set, the map first, with the question; his answer goes
   into `design.md`'s verdict log and shows on the stage page after the next deploy.
@@ -237,11 +248,11 @@ The drafts site is its own home-screen app ("Wildshard Drafts"), with its own st
 | A draft's design | `src/shards/<slug>/design/` (`design.md` with §run and the verdict log, `decisions.md`, `style-bible.md`, `spec.json`) |
 | Originals | git `art/<slug>/round-<n>-<label>/` with a README per round (J30) |
 | Phone copies, thumbnails | Vercel Blob (a public store), `draft/<slug>/<hash>.webp` (J28) |
-| The Atlas data (generated, never hand-edited) | `drafts/<slug>/atlas.json` (committed; its image URLs point at Blob) |
-| Prototypes (built static pages, J9) | `drafts/<slug>/proto/<id>/` (≤ 5 MB each, the Simulator peak on its card) |
+| The Atlas data (generated, never hand-edited) | `drafts/public/data/<slug>/atlas.json` (committed; its image URLs point at Blob) |
+| Prototypes (built static pages, J9) | `drafts/public/data/<slug>/proto/<id>/` (≤ 5 MB each, the Simulator peak on its card) |
 | The game card | `src/shards/<slug>/design/card.json` (name, line, key-art Blob URL), read by the deck |
-| Generator, publisher, deployer | `scripts/worldclaw/atlas.mjs` (`--publish`), `atlas.schema.json`, `deploy-drafts.sh`, `atlas-artifact.mjs` (the artifact page) |
-| The drafts site's source | `src/drafts/` (the title, STAGES, EXPLORE, Map Lab, the splash), `vite.drafts.config.ts` |
+| Generator, publisher, deployer | `drafts/tools/atlas.mjs` (`--publish`), `atlas.schema.json`, `deploy.sh`, `artifact.mjs` (the artifact page) (J57) |
+| The drafts site's source | `drafts/src/` (the title, STAGES, EXPLORE, Map Lab, the splash), `drafts/index.html`, `drafts/vite.config.ts` (J57) |
 | The game's Explore tabs | `src/engine/explore/BeatsExplorer.ts`, `CoverageExplorer.ts`; Composition as a World mode (`CompositionMode.ts`) |
 | Coverage data | `src/shards/<slug>/design/coverage.png` (2 m cells; R = band, G = status) + `coverage.json` from T5; `budgets.json` from T10 |
 | Placement results | `src/shards/<slug>/design/objects/<place>.placed.json` (T8) |
@@ -342,7 +353,7 @@ State per row: `todo` · `in flight (<owner>)` · `done (<commit>)` · `needs pi
 |---|---|---|---|
 | W1 | **The data contract**: `atlas.schema.json`; `atlas.mjs` builds `atlas.json` from `design.md` (§run, §vision, the verdict log), `decisions.md`, `style-bible.md`, the art READMEs and the frames; views, tabs, kinds, lineage ids, spoiler by kind with the key-art exception (J38), `ref.build` per mockup | fixtures: a design folder → the expected `atlas.json`; a spoiler on a public page fails; a mockup with no `ref.build` fails | todo |
 | W2 | **Publish** (J28, J27): phone copies (~150 KB) and thumbnails (~50 KB) made once and uploaded to Blob under content-hashed names; `atlas.json` with Blob URLs into `drafts/<slug>/`; nothing pruned | a re-publish with no new art uploads 0 files; a rejected image gets a thumbnail; the Thin Ice fixture is ~35 MB on Blob | todo |
-| W3 | **STAGES + the stage page + the artifact page** (J29, J40, J25): `src/drafts/` STAGES and the decision-first stage page with the tap-to-swipe; `atlas-artifact.mjs` makes the read-only artifact page from the same `atlas.json` | the Thin Ice fixture renders the same in both (a capture each); page memory on the Simulator ≤ 300 MB with 300 items | todo |
+| W3 | **STAGES + the stage page + the artifact page** (J29, J40, J25): `drafts/src/` STAGES and the decision-first stage page with the tap-to-swipe; `drafts/tools/artifact.mjs` makes the read-only artifact page from the same `atlas.json` | the Thin Ice fixture renders the same in both (a capture each); page memory on the Simulator ≤ 300 MB with 300 items | todo |
 | W4 | **The drafts title** (J39, J22): the carousel over key art with a 17-tick stage bar per card, OPEN DRAFT, the Developer switch; the public state (COMING SOON, FOLLOW THE BUILD, PLAY DRIFTWOOD ISLE NOW) | Developer off shows only teasers; on, STAGES and EXPLORE open | todo |
 | W5 | **Boards as items** (J17, J21): T11's boards are `board` items with the question, the options, the recommendation and Jake's answer as text from the verdict log; no verdict posts | a fixture decision shows its board and its answer after the next publish | todo |
 | W6 | **Map Lab** (§3.3; J31): A, B and C on T3 / T4 / T5's code (WT6) | Done-when 4; the walk holds 30 fps on the phone tier | todo |
@@ -354,8 +365,8 @@ State per row: `todo` · `in flight (<owner>)` · `done (<commit>)` · `needs pi
 | W12 | **The place checkpoint board** (J3, `worldclaw-interactive`): built from W10's data at the end of each place's P12, sent to chat (J21) | a fixture place's board reaches chat; GO and "revise one thing" both route | todo |
 | W13 | **Skill wiring**: the three skills publish at every step (W2), deploy the drafts site at every step boundary (J26), republish the artifact page (J25), send each stage to chat as one titled set (J21) | a dry run of P0–P2 on a fixture: the draft shows the vision, the pitch board, the answer | todo |
 | W14 | **The Beats tab** (§3.7; J42) | the fixture slice's legs listed with their tests; PLAY FROM HERE starts at a leg | todo |
-| W15 | **The weight gate + the splash** (J15, J41): `scripts/worldclaw/draft-weight.mjs` in CI with §2.8's budgets; the game build has no draft file; the key-art splash | the game's entry within +1 KB gzip; no draft URL in the game's boot list; a fixture splash shows within 1.5 s on the phone tier | todo |
-| W16 | **The drafts site** (J16, J23): the Vercel project (named first, Git auto-deploy off), `vite.drafts.config.ts` → `dist-drafts/`, `deploy-drafts.sh`, the PWA manifest "Wildshard Drafts", a public Blob store | a fixture draft deploys in ≤ 3 min; a push to main deploys nothing on the drafts project | todo |
+| W15 | **The weight gate + the splash** (J15, J41): `drafts/tools/weight.mjs` in CI with §2.8's budgets; the game build has no draft file; the key-art splash | the game's entry within +1 KB gzip; no draft URL in the game's boot list; a fixture splash shows within 1.5 s on the phone tier | todo |
+| W16 | **The drafts site** (J16, J23): the Vercel project (named first, Git auto-deploy off), `drafts/vite.config.ts` → `dist-drafts/`, `drafts/tools/deploy.sh`, the PWA manifest "Wildshard Drafts", a public Blob store | a fixture draft deploys in ≤ 3 min; a push to main deploys nothing on the drafts project | todo |
 | W17 | **Draft Explore** (§3.2; J44): the five mock-up tabs; SETS' planned members (J46); WORLD's camera check (T19's cones and blockout renders); BEATS' mechanics tracker (T20's boards, `design.md`'s mechanics list) | the Thin Ice fixture: 6 models, 11 sets with their checks, the world carousel, 12 beats with 14 mechanics, coverage of 11 places | todo |
 | W18 | (absorbed into W17: the camera check is in WORLD, J46) | — | merged |
 
@@ -400,10 +411,9 @@ Every row: the other-shards proof (WORLDCLAW-SHARD §3, rule 3) where it touches
 
 ## 7. Jake's answers and what is still open
 
-**Answered:** J1–J52 (§0.3, §0.5), from the grill of 2026-10-01 (waves 1–6 and rounds 1–3 of mockups, every board picked).
+**Answered:** J1–J52 (§0.3, §0.5), from the grill of 2026-10-01 (waves 1–6 and rounds 1–3 of mockups, every board picked); J53–J63 (E387: go with no council, one builder, `wildshard-drafts`, the card once the site is live, the drafts site first in `drafts/`, overnight deploys, the card's art and line, Map Lab now, the artifact page in place, the dry run's prototypes).
 
 **Still open:**
-- this plan's own council (later; docs/process/COUNCIL.md);
 - after the pilot: the keep / cut review of every tool part (J32).
 
 ## 8. How it changes WORLDCLAW-SHARD (applied 2026-10-01 where they still stand)
