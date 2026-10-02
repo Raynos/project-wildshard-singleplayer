@@ -1,16 +1,17 @@
 import { BossBar, BossBrain, type Animal, type BossScript } from '#engine';
 import { CoinBurst, bossesSave, purseSave, shardSave, type ShardContext } from '#game';
-import { BackSide, Color, Fog, Mesh, MeshBasicMaterial, Scene, SphereGeometry, Vector3 } from 'three';
+import { Color, Fog, Mesh, Scene, SphereGeometry, Vector3 } from 'three';
 import { BASIN } from '../layout';
 import { STRINGS } from '../strings';
 import { BASIN_FLOOR } from '../world/dunes';
+import { stormMaterial } from '../world/stormFx';
 
 const ID = 'sunscar.matriarch';
 /**
  * The sand storm of phase II, over `fade` seconds: the fog closes to `near`–`far` metres in a dusty orange, and two
  * shells of blown sand (`shells`: radius metres, opacity) ride with the player and veil the distance.
  */
-export const STORM = { near: 8, far: 62, color: new Color(0x8a5238), fade: 2.5, shells: [[46, 0.72], [22, 0.3]] } as const;
+export const STORM = { near: 8, far: 62, color: new Color(0x8a5238), fade: 2.5, shells: [[46, 0.85], [22, 0.55]] } as const;
 /** The reward: coins once, on the first fall. */
 export const MATRIARCH_REWARD = 20;
 const RISE = 3.2;
@@ -30,11 +31,13 @@ export class DuneMatriarch extends BossBrain {
     const at = new Vector3(BASIN.x, BASIN_FLOOR, BASIN.z), focus = new Vector3();
     let animal: Animal | null = null, invulnerable = false, stormGoal = 0;
     const weather = { storm: 0 };
+    let stormT = 0;
     const scene = ctx.game.runtime?.world?.game.scene ?? new Scene(), burst = new CoinBurst(scene), purse = shardSave(purseSave, ctx.manifest.slug);
     const fog = scene.fog instanceof Fog ? { near: scene.fog.near, far: scene.fog.far, color: scene.fog.color.clone() } : null;
     const saves = shardSave(bossesSave, ctx.manifest.slug), saved = saves.read()[ID] ?? { defeated: false, rewardTaken: false, kills: 0 };
-    const shells = STORM.shells.map(([r]) => {
-      const shell = new Mesh(new SphereGeometry(r, 24, 12), new MeshBasicMaterial({ color: STORM.color, transparent: true, opacity: 0, side: BackSide, depthWrite: false, fog: false }));
+    // The blown-sand sheets (P2 #11, world/stormFx.ts): streaks racing downwind over a dusty veil, pulsing in gusts.
+    const shells = STORM.shells.map(([r], i) => {
+      const shell = new Mesh(new SphereGeometry(r, 24, 12), stormMaterial(STORM.color, i === 1));
       shell.renderOrder = 10; shell.frustumCulled = false; shell.visible = false; scene.add(shell);
       ctx.scope.own(shell.geometry); ctx.scope.own(shell.material); ctx.scope.onDispose(() => { shell.removeFromParent(); });
       return shell;
@@ -58,9 +61,12 @@ export class DuneMatriarch extends BossBrain {
           scene.fog.near = fog.near + (STORM.near - fog.near) * weather.storm; scene.fog.far = fog.far + (STORM.far - fog.far) * weather.storm;
           scene.fog.color.copy(fog.color).lerp(STORM.color, weather.storm);
         }
+        stormT += dt;
         shells.forEach((shell, i) => {
           shell.visible = weather.storm > 0.01; shell.position.set(player.x, player.y + 1.6, player.z);
-          shell.material.opacity = weather.storm * (STORM.shells[i]?.[1] ?? 0);
+          const u = shell.material.uniforms, opacity = u['uOpacity'], time = u['uTime'];
+          if (opacity) opacity.value = weather.storm * (STORM.shells[i]?.[1] ?? 0);
+          if (time) time.value = stormT;
         });
         burst.update(dt, player);
       },

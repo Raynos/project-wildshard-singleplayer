@@ -31,18 +31,18 @@ void main() {
   vec3 d = normalize(vDir);
   float h = max(d.y, 0.0);
   float toward = max(dot(normalize(vec3(d.x, 0.0, d.z)), normalize(vec3(uSun.x, 0.0, uSun.z))), 0.0);
-  vec3 band = mix(vec3(0.7, 0.34, 0.27), vec3(1.0, 0.5, 0.18), pow(toward, 1.3));
-  vec3 mauve = vec3(0.56, 0.32, 0.32), violet = vec3(0.3, 0.26, 0.36), indigo = vec3(0.15, 0.15, 0.25);
+  vec3 band = mix(vec3(0.6, 0.29, 0.2), vec3(0.95, 0.44, 0.15), pow(toward, 1.3));
+  vec3 mauve = vec3(0.46, 0.25, 0.23), violet = vec3(0.24, 0.19, 0.27), indigo = vec3(0.12, 0.11, 0.18);
   vec3 c = mix(band, mauve, smoothstep(0.0, 0.12 + 0.1 * toward, h));
   c = mix(c, violet, smoothstep(0.1, 0.32, h));
   c = mix(c, indigo, smoothstep(0.3, 0.8, h));
   c += vec3(1.0, 0.5, 0.18) * pow(toward, 5.0) * (1.0 - smoothstep(0.0, 0.22, h)) * 0.35;
   // Cloud streaks: long thin bands stretched along the horizon, only between ~3° and ~20° up.
   float az = atan(d.z, d.x);
-  float streak = vNoise(vec2(az * 9.0, h * 70.0)) * 0.65 + vNoise(vec2(az * 23.0 + 3.1, h * 160.0)) * 0.35;
-  float cloud = smoothstep(0.58, 0.82, streak) * smoothstep(0.03, 0.07, h) * (1.0 - smoothstep(0.14, 0.24, h));
+  float streak = vNoise(vec2(az * 6.0, h * 120.0)) * 0.65 + vNoise(vec2(az * 19.0 + 3.1, h * 260.0)) * 0.35;
+  float cloud = smoothstep(0.6, 0.85, streak) * smoothstep(0.03, 0.07, h) * (1.0 - smoothstep(0.16, 0.28, h));
   vec3 belly = mix(vec3(0.62, 0.36, 0.4), vec3(1.0, 0.6, 0.38), pow(toward, 2.0));
-  c = mix(c, mix(vec3(0.3, 0.24, 0.32), belly, 0.35 + 0.65 * toward), cloud * (0.45 + 0.4 * toward));
+  c = mix(c, mix(vec3(0.2, 0.15, 0.2), belly, 0.3 + 0.7 * toward), cloud * (0.4 + 0.45 * toward));
   vec3 cell = floor(d * 260.0);
   float star = step(0.9965, starHash(cell)) * smoothstep(0.22, 0.5, h);
   c += vec3(0.85, 0.88, 1.0) * star * (0.5 + 0.5 * starHash(cell + 3.1));
