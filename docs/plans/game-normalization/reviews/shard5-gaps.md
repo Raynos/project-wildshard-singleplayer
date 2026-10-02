@@ -70,3 +70,9 @@ Fresh Opus agents rebuilt both shards again from the docs after G13–G18.
 | G23 | A documented structures-only manifest fails analytic terrain readers with No terrain | E364 round 4 | boot without terrain mesh/collider; documented −1,000 m analytic floor and fixture/switch regression | fixed in refs/sol-g22/g23 private candidate; lead landing pending |
 | G25 | SkyBackdropTargets fields and sun hiding are undocumented; shards discover disc/halo only by reading types | E363 round 4 (sun disc) | ENGINE 13.1 full target field table and independent dressing sun disc/halo switches with defaults and tests | fixed in sol-g24 private candidate (sun dressing) |
 | G26 | Creature spawn uses analytic terrain instead of registered WORLD floors, so structure-world creatures start in the void | E364 round 4 follow-up | WORLD floor placement, optional { y?, fromY? }, continued support and ground-relative flight altitude; fixture regression | fixed in refs/sol-g22/g26 private candidate; lead landing pending |
+
+## Round 5 (content)
+
+| ID | Gap | From | Wanted | Status |
+|---|---|---|---|---|
+| G27 | Ground creatures lerp into the analytic void after leaving a WORLD deck, hiding the fall | E364 content build-out | ballistic ground fall with impulse Y/XZ, floor landing and killY; raised-platform regression; originals unchanged | private candidate refs/sol-g27/g27; validation and lead landing pending |

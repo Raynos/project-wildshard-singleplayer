@@ -1,4 +1,5 @@
 import { afterEach, expect, it, vi } from 'vitest';
+import { Vector3 } from 'three';
 import { loadRapier } from '#engine/physics/rapier';
 import { Physics } from '#engine/physics/Physics';
 import { groups } from '#engine/physics/groups';
@@ -54,11 +55,48 @@ it('spawns on the WORLD platform below spawn height and keeps the creature there
   }
   expect(a.position.y).toBeCloseTo(10, 5); expect(a.alive).toBe(true);
   a.position.x = 6;
-  for (let i = 0; i < 60; i++) a.update(1 / 60, i / 60, false);
-  expect(a.position.y).toBeLessThan(-900); // Off the deck, there is no invisible supporting plane.
+  a.update(1 / 60, 0, false);
+  expect(a.position.y).toBeCloseTo(10 - 10 / 3600, 5);
+  expect(killBelowWorld(a, FIXTURE.world, app.combat)).toBe(false);
+  for (let i = 1; i < 60; i++) a.update(1 / 60, i / 60, false);
+  expect(a.position.y).toBeCloseTo(0, 5);
+  expect(killBelowWorld(a, FIXTURE.world, app.combat)).toBe(false);
+  for (let i = 60; i < 181; i++) a.update(1 / 60, i / 60, false);
+  expect(a.position.y).toBeLessThan(-80);
   expect(killBelowWorld(a, FIXTURE.world, app.combat)).toBe(true);
   expect(a.alive).toBe(false);
   m.retire(a);
+});
+
+it('walks off a WORLD edge with a visible ballistic fall', async () => {
+  await platforms(); const m = manager().manager, a = m.spawn('crab', 4.99, 0, Math.PI / 2, 'small');
+  a.speed = 2; a.setMotion(Math.PI / 2, 2);
+  a.update(1 / 60, 0, false);
+  expect(a.position.x).toBeGreaterThan(5);
+  expect(a.position.y).toBeCloseTo(10 - 10 / 3600, 5);
+  expect(a.alive).toBe(true); m.retire(a);
+});
+
+it('retains a gust XZ displacement and its initial Y velocity when it leaves a WORLD deck', async () => {
+  await platforms(); const m = manager().manager, a = m.spawn('crab', 4.99, 0, 0, 'small');
+  a.impulse(new Vector3(6, 4, 2)); a.update(0.1, 0, false);
+  expect(a.position.x).toBeCloseTo(5.59); expect(a.position.z).toBeCloseTo(0.2);
+  expect(a.position.y).toBeCloseTo(10.3);
+  a.setMotion(0, 0);
+  for (let i = 0; i < 9; i++) a.update(0.1, i / 10, false);
+  expect(a.position.y).toBeCloseTo(4); expect(a.position.x).toBeGreaterThan(6);
+  expect(killBelowWorld(a, FIXTURE.world, app.combat)).toBe(false); m.retire(a);
+});
+
+it('lands on a lower WORLD platform and clears its fall velocity', async () => {
+  const ph = await platforms();
+  ph.world.createCollider(ph.R.ColliderDesc.cuboid(5, 0.5, 5).setTranslation(10, -0.5, 0).setCollisionGroups(groups('WORLD')));
+  ph.step(); const m = manager().manager, a = m.spawn('crab', 4.99, 0, Math.PI / 2, 'small');
+  a.speed = 2; a.setMotion(Math.PI / 2, 2); a.update(1 / 60, 0, false); a.setMotion(0, 0);
+  for (let i = 0; i < 90; i++) a.update(1 / 60, i / 60, false);
+  expect(a.position.y).toBeCloseTo(0, 5); expect(a.alive).toBe(true);
+  for (let i = 0; i < 60; i++) a.update(1 / 60, i / 60, false);
+  expect(a.position.y).toBeCloseTo(0, 5); m.retire(a);
 });
 
 it('selects stacked floors with fromY and accepts an exact initial world y', async () => {

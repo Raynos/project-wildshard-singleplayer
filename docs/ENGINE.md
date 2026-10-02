@@ -1133,6 +1133,9 @@ neck, ears, tail, belly and leg bones; use `rig: 'custom'` with `animate` for ot
 
 `animal.impulse(worldVelocity)` copies and adds a velocity in metres per second, then decays it at 3.5/s on the body
 clock. Ground bodies resolve its XZ displacement through their normal collision motor; flying bodies also use Y.
+Bodies sampling WORLD floors fall ballistically when the floor drops more than 1 m: gravity is −20 m/s²,
+initial vertical velocity is the pending impulse Y (otherwise zero), and XZ impulses continue decaying.
+They land on the next floor or cross `world.killY`; ordinary analytic terrain ground follow is unchanged.
 `animal.hasImpulse` reads whether that transient motion remains. It does not change the existing melee stagger or
 `DamageRequest.knockback` semantics. Do not update an Animal's position from a shard to push it.
 

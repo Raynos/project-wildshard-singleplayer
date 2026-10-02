@@ -123,6 +123,8 @@ const combatActors = new WeakMap<Animal, Actor>();
 export class Animal {
   private readonly flight: FlightMotion | null;
   private readonly impulseVelocity = new THREE.Vector3();
+  private falling = false;
+  private fallVelocity = 0;
   /** Only the parity probe sets this: the selected target skips its AI and motor. */
   harnessHold = false;
   kind: AnimalKind;
@@ -271,6 +273,7 @@ export class Animal {
     const flight = this.model.species.flight;
     if (y === undefined && flight !== undefined) this.position.y = flight.altitude + (flight.above === 'world' ? 0 : this.position.y);
     this.groundY = this.position.y;
+    this.falling = false; this.fallVelocity = 0;
     this.yaw = this.desiredYaw = yaw;
     this.mesh.position.copy(this.position);
     this.mesh.rotation.y = yaw;
@@ -280,12 +283,12 @@ export class Animal {
     this.desiredYaw = desiredYaw; this.desiredSpeed = desiredSpeed; this.turnRate = turnRate;
   }
 
-  /** Add world velocity (m/s), decaying at 3.5/s. Ground bodies use XZ through their collision motor; flyers use XYZ. */
+  /** Add world velocity (m/s), decaying at 3.5/s. WORLD ground bodies retain Y for a fall; flyers use XYZ. */
   impulse(velocity: THREE.Vector3): void {
     if (![velocity.x, velocity.y, velocity.z].every(Number.isFinite)) throw new Error('Creature impulse must be finite');
     if (!this.alive) return;
     this.impulseVelocity.add(velocity);
-    if (this.flight === null) this.impulseVelocity.y = 0;
+    if (this.flight === null && this.groundHeight === undefined) this.impulseVelocity.y = 0;
   }
   get hasImpulse(): boolean { return this.impulseVelocity.lengthSq() > 0; }
   /** Public flight command; the species must declare its flight body. */
@@ -521,7 +524,7 @@ export class Animal {
         this.position.x = x0; this.position.z = z0;
         _want.x = dx; _want.y = 0; _want.z = dz;
         const t0 = frameCost.on ? performance.now() : 0;
-        this.motor.move(this.position, _want, true);
+        this.motor.move(this.position, _want, !this.falling);
         if (frameCost.on) frameCost.sub('motor', t0);
         this.position.y = this.groundY + this.yOffset; // the motor ignores the terrain: the ground follow below owns y
       }
@@ -536,7 +539,16 @@ export class Animal {
       this.groundY = this.position.y;
     } else if (!this.driven) {
       const gy = this.groundHeight?.(this.position.x, this.position.z, this.groundY + 1) ?? heightAt(this.position.x, this.position.z);
-      this.groundY += (gy - this.groundY) * Math.min(1, dt * 12);
+      // A WORLD deck ending is a fall, not a heightfield bump. Legacy analytic bodies keep their exact smoothing.
+      if (this.groundHeight !== undefined && (this.falling || this.groundY - gy > 1)) {
+        this.falling = true;
+        this.fallVelocity += this.impulseVelocity.y; this.impulseVelocity.y = 0;
+        const next = this.groundY + this.fallVelocity * dt - 10 * dt * dt;
+        this.fallVelocity -= 20 * dt;
+        if (this.fallVelocity <= 0 && next <= gy) {
+          this.groundY = gy; this.falling = false; this.fallVelocity = 0;
+        } else this.groundY = next;
+      } else this.groundY += (gy - this.groundY) * Math.min(1, dt * 12);
       this.position.y = this.groundY + this.yOffset;
     }
 
