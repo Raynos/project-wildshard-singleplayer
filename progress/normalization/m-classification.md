@@ -62,7 +62,7 @@ df398947 wires RideHUD.inputVerbs(verb.2).show to this.last.offer, initialized t
 Exact lead command after fixing R8 and logging the board recommendations (the four real shards are explicitly selected; template cannot be recorded accidentally):
 
 ```sh
-node scripts/parity.mjs --accept=M-driftwood-intended,M-nalati-intended,M-nine-intended,M-pine-intended,M-pine-board --pending=docs/plans/game-normalization/reviews/pending.json --export="$(git rev-parse HEAD)" --lane=m5 --shards=driftwood-isle,nalati-grasslands,nine-dragon-stack,pine-hollow --tiers=phone,desktop --out=/private/tmp/e357-m2/accept
+node scripts/parity.mjs --accept=M-driftwood-intended,M-nalati-intended,M-nine-intended,M-pine-intended,M-pine-board --pending=project/archive/game-normalization/reviews/pending.json --export="$(git rev-parse HEAD)" --lane=m5 --shards=driftwood-isle,nalati-grasslands,nine-dragon-stack,pine-hollow --tiers=phone,desktop --out=/private/tmp/e357-m2/accept
 ```
 
 This command intentionally cannot succeed on the classified candidate: R8 remains unpending and fails even during acceptance. Recompare the fixed candidate and refresh expectations only for explained deltas. The lead owns acceptance, the P2/P3 review page/board decisions, push, memory/offline/runner evidence and milestone pin.

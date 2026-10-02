@@ -5,7 +5,7 @@ The plan was written on 2026-09-25, and no row of it was ever built. This audit 
 (combat and audio duplicates, world and look duplicates, wiring and safety net), plus an import-graph pass.
 Conclusion: **the plan's goals are right, but its architecture has one layer too few, its numbers are half what they
 are now, and its process (a freeze plus a replay golden master) fits a repo that no longer exists.** It is rewritten as
-[GAME-NORMALIZATION v2](../plans/GAME-NORMALIZATION.md).
+[GAME-NORMALIZATION v2](../../project/archive/2026-10-01-game-normalization.md).
 
 ## 1. Jake's aims
 

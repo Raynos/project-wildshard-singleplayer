@@ -6,7 +6,7 @@ Council seat B (12 §1) checks this file first. §7 lists the gaps and conflicts
 is now covered (all 21 are resolved).
 
 **How to read it**
-- **IDX** = [GAME-NORMALIZATION.md](../GAME-NORMALIZATION.md), the index. **01…13** = the files in this folder. A `§`
+- **IDX** = [GAME-NORMALIZATION.md](../../../docs/plans/GAME-NORMALIZATION.md), the index. **01…13** = the files in this folder. A `§`
   is a heading of that file (`01 §12` = "12. Scheduler", `02 §F7` = "F7 — Delete the dead", `10 X1`, `11 Z3`,
   `05 §6.5` = "6.5 S1.5 …"). Line numbers are never used: the files are still being edited.
 - **Rows** are the plan's rows (F0–F12, S1.1–S4.4, M1–M4, X1–X9, Z1–Z4).

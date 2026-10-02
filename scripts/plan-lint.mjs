@@ -13,7 +13,7 @@ import { dirname, join, resolve } from 'node:path';
 
 const ROOT = resolve(dirname(new URL(import.meta.url).pathname), '..');
 const PLAN_DIR = join(ROOT, 'docs/plans/game-normalization');
-const INDEX = join(ROOT, 'docs/plans/GAME-NORMALIZATION.md');
+const INDEX = join(ROOT, 'project/archive/2026-10-01-game-normalization.md');
 const ASK = join(ROOT, 'docs/tasks/asks/E357.md');
 const quiet = process.argv.includes('--quiet');
 

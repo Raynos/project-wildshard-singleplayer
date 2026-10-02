@@ -1,6 +1,6 @@
 # Plan: Nine Dragon Stack (九龍疊城), shard 4 — the vertical city (E169)
 
-**State:** `blocked` 2026-09-30 — paused for E357 until M1 of [GAME-NORMALIZATION](GAME-NORMALIZATION.md), then re-planned for the new engine (decision 66). The fragment stays playable and live.
+**State:** `blocked` 2026-09-30 — paused for E357 until M1 of [GAME-NORMALIZATION](../../project/archive/2026-10-01-game-normalization.md), then re-planned for the new engine (decision 66). The fragment stays playable and live.
 
 ## 0. Read this first
 

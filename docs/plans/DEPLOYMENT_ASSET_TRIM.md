@@ -1,6 +1,6 @@
 # Wildshard deployment asset trim
 
-**State:** `blocked` 2026-09-30 — E357: T3 moved to [GAME-NORMALIZATION](GAME-NORMALIZATION.md) X3; T2, T4, T5 wait for the E357 lock.
+**State:** `blocked` 2026-09-30 — E357: T3 moved to [GAME-NORMALIZATION](../../project/archive/2026-10-01-game-normalization.md) X3; T2, T4, T5 wait for the E357 lock.
 
 The clean-export prebuilt output contains 1,375 static files / 524.5 MiB.
 Largest classes: GPU assets 202.7 MiB, original textures 82.7 MiB,

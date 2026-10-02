@@ -1,6 +1,6 @@
 # Plan: Wildshard on the App Store and Google Play
 
-**State:** `blocked` 2026-09-30 — waits for the E357 lock ([GAME-NORMALIZATION](GAME-NORMALIZATION.md)) until the plan is archived; before it, it waited on Jake for the stores (E24).
+**State:** `blocked` 2026-09-30 — waits for the E357 lock ([GAME-NORMALIZATION](../../project/archive/2026-10-01-game-normalization.md)) until the plan is archived; before it, it waited on Jake for the stores (E24).
 
 ## Where this comes from
 

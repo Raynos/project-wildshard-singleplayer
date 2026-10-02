@@ -19,7 +19,7 @@ import { pathToFileURL } from 'node:url';
 
 const FILE = '.github/deploy-pin.json';
 const REPO = 'Raynos/project-wildshard-singleplayer';
-const PENDING = 'docs/plans/game-normalization/reviews/pending.json';
+const PENDING = 'project/archive/game-normalization/reviews/pending.json';
 /** What a build is made of (03 §1's export, without test/parity/): a diff outside these is not a runtime change. */
 const RUNTIME = ['src', 'public', 'api', 'index.html', 'package.json', 'pnpm-lock.yaml', 'vite.config.ts', 'tsconfig.json', 'vercel.json'];
 

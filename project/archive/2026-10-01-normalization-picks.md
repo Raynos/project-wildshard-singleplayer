@@ -1,8 +1,8 @@
 # NORMALIZATION-PICKS — every pick, decision, question and review for Jake (E357)
 
-**State:** `blocked` 2026-10-01 — empty: every pick answered (P1–P25); archived with GAME-NORMALIZATION.
+**State:** `archived` 2026-10-01 (finished 2026-10-01) — empty: every pick answered (P1–P25).
 
-A mini plan beside [GAME-NORMALIZATION](GAME-NORMALIZATION.md). Each row is one question the lead asks Jake through
+A mini plan beside [GAME-NORMALIZATION](./2026-10-01-game-normalization.md). Each row is one question the lead asks Jake through
 the question tool (AskUserQuestion), with its options and the evidence to look at. Builders never decide a row: when
 one reports a guess, a board item or a needs-pick, the lead adds a row the same turn. Decision 102 still lets the build
 continue on the recommended option, but the row stays open until Jake has answered.

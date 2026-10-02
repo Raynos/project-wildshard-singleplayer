@@ -625,7 +625,7 @@ the score source `score.nd` (the fingerprint diff is the expected one, §8); no 
 
 ### 6.6 S1.6 — the budget calibration scene, and Nine Dragon's budgets
 
-1. **The scene** (`src/engine/calibrate/`), as [budget-design](../../design/engine-fit-v2/budget-design.md) §4: no
+1. **The scene** (`src/engine/calibrate/`), as [budget-design](../../../docs/design/engine-fit-v2/budget-design.md) §4: no
    shard, synthetic content, eight sweeps (draws, state, triangles, fill by class, passes, overlap, JS, link), cold
    pass then pre-heat then hot, interleaved baselines, Low Power Mode detected and flagged. It runs uncapped
    (`frameProbe.uncapped`) at the phone's 2× and posts its JSON to the review inbox itself.

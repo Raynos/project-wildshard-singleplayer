@@ -8,7 +8,7 @@ have, it says so in §8 ("Questions for the lead"); it never changes 01.
 
 Rows covered: S1.2, S1.3, S1.4 (the Tool contract), S2.2, S2.3, S2.5 (starter effects), S2.6 (tick rates for AI),
 S3.3, S3.4, S4.2. Decisions: 4, 5, 10, 11, 12′, 15, 16, 18, 19, 20, 23, 24–27, 55, 55′, 67, 70 in
-[E357](../../tasks/asks/E357.md).
+[E357](../../../docs/tasks/asks/E357.md).
 
 **Every file:line below is at `a9904a84` (2026-09-30).** A row that moves code first re-checks its line refs with
 `git grep`; a ref that moved is fixed in this file in the same commit.

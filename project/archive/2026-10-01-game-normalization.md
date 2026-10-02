@@ -1,6 +1,6 @@
 # Plan: game normalization v2 (E127 → E357). The Wildshard engine: engine · game · kit · shard plugins
 
-**State:** `in progress` 2026-10-01 — **~90 %.** all Z3 API gaps G0–G18 fixed (two rounds); Z3 round 3 (fresh Opus rebuilds of Signal Dunes and Sky Reach, zero-gap target) running; L3 m5 baselines re-recorded (69f5685a); L2 runner baselines + the memory reading on f3a4a933 running, then the M0 → M4 pin (L4) with Jake's go (chat 2026-10-01: "kick off the deploy"); preview of main at https://wildshard-v0-4-0.vercel.app. Then L10, L12 leftovers, Z4 archive. Content build-outs of both shards continue under SIGNAL-DUNES / SKY-REACH (E374). **Waiting on Jake: P24** (keep the 54 texture originals).
+**State:** `archived` 2026-10-01 (finished 2026-10-01) — every row built and ticked: F0–F12, S1–S4, X1–X9, J1–J15, R1–R9, L1–L12, Z1–Z4; the two new shards (Signal Dunes, Sky Reach) built from the docs by Opus agents, every API gap G0–G28 fixed (Z3 ended after four rounds, Jake P25); production moved to c9693a71 on Jake's go (an override of the pin gate), deploys back to newest-green; NORMALIZATION-PICKS empty (P1–P25). Leftovers as asks: E375 gamepad, E376 MW rows, E377 TP/EF rows, E378 animation A3–A7, E379 ARCH-GUARDS batch 2, E380 Nine Dragon re-plan, E381 SteppeAmbience RNG, E382 new-shard runner baselines; the two shards' polish loop continues under SIGNAL-DUNES / SKY-REACH (E374).
 
 ## Specs (the executable detail) and the definition of ready
 
@@ -61,18 +61,18 @@ Jake, E357 (2026-09-30), in substance:
 - **Its process was overtaken.** The full freeze and the exact-replay golden master never started. This session now
   holds the lock, and `scorecard.mjs` is ~70 % of a parity harness.
 
-Research behind v2 (all in [docs/design/engine-fit-v2/](../design/engine-fit-v2/)):
-- [engine-fit](../design/engine-fit-v2/engine-fit.md): still no engine switch. Borrow Bevy's App / Plugin shape, own
+Research behind v2 (all in [docs/design/engine-fit-v2/](../../docs/design/engine-fit-v2)):
+- [engine-fit](../../docs/design/engine-fit-v2/engine-fit.md): still no engine switch. Borrow Bevy's App / Plugin shape, own
   the parts, contain GLSL for a future WebGPU port.
-- [aaa-architecture](../design/engine-fit-v2/aaa-architecture.md): Lyra's experiences = shard manifests. Also covers
+- [aaa-architecture](../../docs/design/engine-fit-v2/aaa-architecture.md): Lyra's experiences = shard manifests. Also covers
   GAS-lite, cues, param rows with parents, HFSM + utility AI, input contexts, UI layers, versioned saves.
-- [mobile-web-practice](../design/engine-fit-v2/mobile-web-practice.md): MW1–MW22. The web platform side is ahead;
+- [mobile-web-practice](../../docs/design/engine-fit-v2/mobile-web-practice.md): MW1–MW22. The web platform side is ahead;
   budgets, the GPU gate and the save schema are behind.
-- [engine-internals-audit](../design/engine-fit-v2/engine-internals-audit.md): EI1–EI25.
-- [combat-ai-audit](../design/engine-fit-v2/combat-ai-audit.md)
-- [tooling-pipeline-audit](../design/engine-fit-v2/tooling-pipeline-audit.md): TP1–TP18.
-- [budget-design](../design/engine-fit-v2/budget-design.md)
-- [ci-gpu-options](../design/engine-fit-v2/ci-gpu-options.md)
+- [engine-internals-audit](../../docs/design/engine-fit-v2/engine-internals-audit.md): EI1–EI25.
+- [combat-ai-audit](../../docs/design/engine-fit-v2/combat-ai-audit.md)
+- [tooling-pipeline-audit](../../docs/design/engine-fit-v2/tooling-pipeline-audit.md): TP1–TP18.
+- [budget-design](../../docs/design/engine-fit-v2/budget-design.md)
+- [ci-gpu-options](../../docs/design/engine-fit-v2/ci-gpu-options.md)
 
 ## 2. The target
 
@@ -233,7 +233,7 @@ export default defineShard({
 
 ### 2.6 Budgets and gates
 
-- **Budgets are derived, not guessed** ([budget-design](../design/engine-fit-v2/budget-design.md)).
+- **Budgets are derived, not guessed** ([budget-design](../../docs/design/engine-fit-v2/budget-design.md)).
   - **Frame budget:** the phone targets 30 fps sustained *hot* (33.3 ms ÷ 1.3 = 25.6 ms), split CPU / GPU. It is
     60-ready: fps is an input to the formula.
   - **Desktop:** 60 fps on a mid gaming PC (RTX 3060 class); laptops below it get the phone tier. X7 picks the tier at
@@ -245,7 +245,7 @@ export default defineShard({
   - **The manifest holds the inputs, and every number is recomputed.**
   - **Rollout:** a shard over a provisional number keeps its worst as a ceiling that only goes down. Over budget fails
     the gate.
-- **The gate** ([ci-gpu-options](../design/engine-fit-v2/ci-gpu-options.md)).
+- **The gate** ([ci-gpu-options](../../docs/design/engine-fit-v2/ci-gpu-options.md)).
   - **Every push:** GitHub's free `macos-15` runner, one job per shard, Chromium with ANGLE Metal (it fails at once if
     the renderer isn't Metal).
   - **What it checks:** the boot fingerprint, counts against budgets, a walk (0 stuck), a swing and a shot to a kill
@@ -436,7 +436,7 @@ F12. The table lists the rows in that order; the detail is in [02-foundations](g
 ## 8. Folded in and pointed elsewhere
 
 - **ENGINE-FIT:** folded in and archived. Its E1–E3 were built earlier (PHYSICS). E4 input actions = X1 / F8. E5 shard
-  modules = this plan. Its libraries were re-judged in [engine-fit](../design/engine-fit-v2/engine-fit.md).
+  modules = this plan. Its libraries were re-judged in [engine-fit](../../docs/design/engine-fit-v2/engine-fit.md).
 - **FINISH-LINE:** S1 (the gate) = F2 / F3 / Z4; its pause-and-resume joins the harness's scripted run (pause →
   resume → state identical, 03 §5.6), and its desktop tier runs in the nightly on Jake's Mac (13-lead-resolutions
   02/03#7). S3 = this plan. S5 = X1. S6 (tests where the bugs are) = F5. S7 (budgets that run) = S1.6 / X7; its
@@ -463,7 +463,7 @@ F12. The table lists the rows in that order; the detail is in [02-foundations](g
 
 ## 9. Jake's decisions (E357, 2026-09-30)
 
-The verbatim table (decisions 1–100 and the revisions 12′, 28′, 55′, 90′) is in [docs/tasks/asks/E357.md](../tasks/asks/E357.md). In short:
+The verbatim table (decisions 1–100 and the revisions 12′, 28′, 55′, 90′) is in [docs/tasks/asks/E357.md](../../docs/tasks/asks/E357.md). In short:
 
 | Area | Decisions |
 |---|---|
@@ -478,7 +478,7 @@ The verbatim table (decisions 1–100 and the revisions 12′, 28′, 55′, 90�
 | **Council** | Not `ready` until 3 clean-room seats (Codex GPT 6.1 Sol + 2 Claude) find nothing two rounds in a row. Jake sees only the decisions that need him |
 | **Scope** | ENGINE-FIT folded in. Nine Dragon's own audio. Save safety + session health. Input actions. Delete dead + dev copies. Scripts: one-offs of finished asks and anything not run in 5 days go, unless referenced (88). The permanent gate. The template shard + docs + shard 5 by a fresh agent. Doors kept open for multiplayer and seamless travel |
 
-## Rows from Jake's picks (2026-10-01, [NORMALIZATION-PICKS](NORMALIZATION-PICKS.md))
+## Rows from Jake's picks (2026-10-01, [NORMALIZATION-PICKS](./2026-10-01-normalization-picks.md))
 
 | Row | What | Pick | Owner | State |
 |---|---|---|---|---|
@@ -486,7 +486,7 @@ The verbatim table (decisions 1–100 and the revisions 12′, 28′, 55′, 90�
 | J2 | Nalati's far marmots pause (reverses B63); the whistle timing re-records at the milestone | P6 | sol-r9 | **built** 47ce62e7 (proof `progress/normalization/j1-j2-proof.md`) |
 | J3 | One more chunk-group try now `main.ts` is the 3-line entry; boots all four shards off-branch before it lands (B69) | P7 | sol-x3b | **tried and rejected** (2026-10-01): d23faa30 passed the strict layout check (three / engine / seven isolated shard groups), but all 14 seven-slug phone + desktop boots failed `runtime_exports is not defined`; proof `/private/tmp/e357-sol-x3b/group-boot`. Groups stay off; the gate checks the ungrouped invariant instead (L7) |
 | J4 | Delete the unreferenced original textures. a7e021f0 deleted 54 (27.05 MiB) and broke 2 tests: the X3 audit missed that the phone image lists and KTX2 sets derive from these originals; restored in 217e5f8f. Next: a re-audit that counts the phone-image + KTX2 derivations, then delete only what's truly unused | P9 | lead | done (154071d0 + 66db342a): re-audit counts the phone / KTX2 / Blender derivations; 144 referenced, the 54 originals (28 MB) are generator inputs and stay; zero deleted (back to Jake as P24) |
-| J5 | ARCH-GUARDS first batch ([ARCH-GUARDS](ARCH-GUARDS.md): AG16, AG17, AG1, AG14, AG13, AG11, AG20, AG9) as Z4 rows, before Z1 / Z3 | P1 | sol-ag | **built** 897baa67 + ratchet data 68fbb592 (8 guards; pre-commit ~0.25 s) |
+| J5 | ARCH-GUARDS first batch ([ARCH-GUARDS](../../docs/plans/ARCH-GUARDS.md): AG16, AG17, AG1, AG14, AG13, AG11, AG20, AG9) as Z4 rows, before Z1 / Z3 | P1 | sol-ag | **built** 897baa67 + ratchet data 68fbb592 (8 guards; pre-commit ~0.25 s) |
 | J6 | The calibration publish at the next quiet gap. First try 2026-10-01 on 39223a5f (quiet lane): `Calibration slope is unresolved` — 13.4 / 12.0 / 12.5 ms for n = 8 / 32 / 64, flat: the M5 renders the probe frame-paced, so the per-draw cost can't be measured. The probe (`scripts/calibrate.mjs` + its in-page workload) needs a heavier n range until the frame time rises | P12 | builder (with the milestone) | done: probe fixed (974b2cdf); published on a quiet lane, every fit r² ≥ 0.985, stable (dee61b01 with the derived budgets) |
 | J7 | Settings ▸ Controls (key rebinding) shows only on desktop with a keyboard / fine pointer; hidden on iOS / touch-only devices. Desktop screenshots for Jake | wave 1 Q3 (typed) | sol-ctrl | **built** b252071e (desktop-only; Jake: the desktop layout needs a redesign → J9) |
 | J8 | Title deck summary: the selected shard's name + feats and the Wildshard total only (not a list of every shard); updates as the carousel changes shard; A's style. Phone screenshots for Jake | wave 1 Q5 (typed) | sol-title | **built** 6c352b12 (Jake: looks good) |

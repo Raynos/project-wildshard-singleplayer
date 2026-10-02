@@ -3,8 +3,8 @@
 Run from the checkout root:
 
 ```sh
-node scripts/normalize/classify.mjs --check docs/plans/game-normalization/move-map.json
-node scripts/normalize/move.mjs docs/plans/game-normalization/move-map.json --dry-run
+node scripts/normalize/classify.mjs --check project/archive/game-normalization/move-map.json
+node scripts/normalize/move.mjs project/archive/game-normalization/move-map.json --dry-run
 pnpm exec vitest run test/normalize-move.test.ts
 ```
 

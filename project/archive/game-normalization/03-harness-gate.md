@@ -2,11 +2,11 @@
 
 The behaviour spec for `scripts/parity.mjs` (built in [02-foundations.md](02-foundations.md) F2), the per-push GPU gate
 on GitHub `macos-15` and the pinned deploys (F3), and the nightly `gpu-perf` poller on Jake's Mac. Sources:
-[ci-gpu-options](../../design/engine-fit-v2/ci-gpu-options.md), [budget-design](../../design/engine-fit-v2/budget-design.md),
-[mobile-web-practice](../../design/engine-fit-v2/mobile-web-practice.md) §3b and MW1 / MW3,
-[tooling-pipeline-audit](../../design/engine-fit-v2/tooling-pipeline-audit.md) §2 and TP4–TP6, and
+[ci-gpu-options](../../../docs/design/engine-fit-v2/ci-gpu-options.md), [budget-design](../../../docs/design/engine-fit-v2/budget-design.md),
+[mobile-web-practice](../../../docs/design/engine-fit-v2/mobile-web-practice.md) §3b and MW1 / MW3,
+[tooling-pipeline-audit](../../../docs/design/engine-fit-v2/tooling-pipeline-audit.md) §2 and TP4–TP6, and
 [01-architecture.md](01-architecture.md) §2 (clock, RNG), §4 (leak test), §13.4 (budgets). Decisions cited by number are
-in [E357](../../tasks/asks/E357.md).
+in [E357](../../../docs/tasks/asks/E357.md).
 
 ## 0. What it proves, where it runs
 

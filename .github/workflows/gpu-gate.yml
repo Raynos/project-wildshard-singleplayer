@@ -71,7 +71,7 @@ jobs:
           git fetch --no-tags --filter=blob:none origin ${{ github.sha }}
           git checkout ${{ github.sha }} -- scripts/parity.mjs scripts/parity scripts/gpu-gate scripts/types
       - name: Pending boards of the target SHA (R1-13; docs/ is outside the sparse checkout)
-        run: git show "$SHA:docs/plans/game-normalization/reviews/pending.json" > pending.json 2>/dev/null || echo '[]' > pending.json
+        run: git show "$SHA:project/archive/game-normalization/reviews/pending.json" > pending.json 2>/dev/null || echo '[]' > pending.json
       - name: Apply runtime patch plant
         if: inputs.plant != '' && inputs.plant != 'metal-off' && inputs.plant != 'asset-case' && inputs.plant != 'soak-leak'
         run: git apply "test/parity/plants/${{ inputs.plant }}.patch"

@@ -1,7 +1,7 @@
 # Council rounds
 
 > **State:** process, written 2026-10-01 (E361). It generalises the council that GAME-NORMALIZATION ran
-> ([12-process §1](../plans/game-normalization/12-process.md); decisions 81–83, 92–93, 97, 100 in ask E357), so that any
+> ([12-process §1](../../project/archive/game-normalization/12-process.md); decisions 81–83, 92–93, 97, 100 in ask E357), so that any
 > plan or design doc, in this repo or in project-wildshard-meta, can be put through it. Its first use outside
 > normalization was project-wildshard-meta's [GW2-ZONES.md](https://github.com/Raynos/project-wildshard-meta/blob/main/docs/gw2-zones/GW2-ZONES.md); its round files are in
 > [`docs/gw2-zones/council/`](https://github.com/Raynos/project-wildshard-meta/blob/main/docs/gw2-zones/council/).
@@ -96,7 +96,7 @@ against the GW2 frame. The lens is written into the seat's brief.
 
 Where the council's files live:
 - **A singleplayer plan** `docs/plans/<NAME>.md`: in `docs/plans/<name>/reviews/`, as GAME-NORMALIZATION's did
-  (`docs/plans/game-normalization/reviews/`).
+  (`project/archive/game-normalization/reviews/`).
 - **A project-wildshard-meta doc**: in a `council/` folder next to it, in its theme folder.
 
 The files:

@@ -89,7 +89,7 @@ try {
     const archive = join(cache, `${stamp}.tar`);
     execFileSync('git', [`--git-dir=${mirror}`, 'archive', '-o', archive, sha, '--', ...paths], { maxBuffer: 16 * 1024 ** 2 });
     execFileSync('tar', ['-xf', archive, '-C', tree]); rmSync(archive);
-    const pending = jsonAt(sha, 'docs/plans/game-normalization/reviews/pending.json', []);
+    const pending = jsonAt(sha, 'project/archive/game-normalization/reviews/pending.json', []);
     writeFileSync(join(tree, 'memory-pending.json'), JSON.stringify(pending));
     let shards = shardFolders(tree);
     if (shards.length === 0) throw new Error('empty shard registry');

@@ -1,6 +1,6 @@
 # Plan: Shard checkpoints — the repeatable review loop (E206)
 
-**State:** `blocked` 2026-09-30 — waits for the E357 lock ([GAME-NORMALIZATION](GAME-NORMALIZATION.md)) until the plan is archived.
+**State:** `blocked` 2026-09-30 — waits for the E357 lock ([GAME-NORMALIZATION](../../project/archive/2026-10-01-game-normalization.md)) until the plan is archived.
 
 ## Purpose
 

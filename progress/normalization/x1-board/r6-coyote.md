@@ -2,7 +2,7 @@
 
 The Nine Dragon combat footstep differences are a measured consequence of the requested **100 ms coyote window**, not an input leak introduced during arena setup. Keep coyote and the 120 ms buffer. **Jake still picks P3**; this evidence neither accepts parity snapshots nor changes a baseline.
 
-Decision 40 / [X1 step 6](../../../docs/plans/game-normalization/10-sweeps.md) requires both timings. The lead instructed sol-r10 to classify R6 as intended if grace is correct, without removing coyote or resetting the harness. Its boundary and single-consumption checks pass.
+Decision 40 / [X1 step 6](../../../project/archive/game-normalization/10-sweeps.md) requires both timings. The lead instructed sol-r10 to classify R6 as intended if grace is correct, without removing coyote or resetting the harness. Its boundary and single-consumption checks pass.
 
 ## What Jake sees in the counters
 

@@ -11,7 +11,7 @@ Each row lists:
 - the board, if any.
 
 The interfaces are in [01-architecture.md](01-architecture.md). Counts come from
-[engine-internals-audit](../../design/engine-fit-v2/engine-internals-audit.md) as of `b3b43536`, and are re-counted
+[engine-internals-audit](../../../docs/design/engine-fit-v2/engine-internals-audit.md) as of `b3b43536`, and are re-counted
 at F2's baseline.
 
 ## X1 — Input: actions, contexts, rebinding, buffer + coyote, touch (EI9–EI12; decisions 38, 39, 40)
@@ -317,7 +317,7 @@ also gets a byte-identical vertex-colour test on one model per baker.
    X7 deletes whatever shard-named knobs and helpers are left.
 2. **Budgets.** Each manifest's `budgets` inputs are filled from S1.6's calibration file `budgets/calibration.json`.
    `src/engine/render/budgets.ts` derives the numbers with the formula in
-   [budget-design](../../design/engine-fit-v2/budget-design.md). `Perf.ts:36`'s single draw budget and the three
+   [budget-design](../../../docs/design/engine-fit-v2/budget-design.md). `Perf.ts:36`'s single draw budget and the three
    unrelated phone budgets (110 / 150 / 180 draws) are deleted.
 3. **The gate reads the derived numbers** (03-harness-gate). The rollout ceilings live in `lint/ratchet.json` under
    its `budgets` section, keyed `<shard>.<tier>.<pose>.<metric>` (R2-23).
@@ -343,7 +343,7 @@ also gets a byte-identical vertex-colour test on one model per baker.
    once per device. Debug ▸ Performance gets a read-only row `tier pick` (tier, `via`, the table row or the score) and a
    `RE-PICK` action that deletes the key and reloads. There is no URL switch.
 6. **Desktop budgets and how desktop 60 fps is verified** (decision 36; budget-design §2). X7 adds a section "Desktop:
-   the M5 : 3060 ratio" to [budget-design](../../design/engine-fit-v2/budget-design.md). It documents `k3060` = the RTX
+   the M5 : 3060 ratio" to [budget-design](../../../docs/design/engine-fit-v2/budget-design.md). It documents `k3060` = the RTX
    3060's throughput ÷ the M5 Max's, from cited public sources: the FP32 figures and one cross-platform GPU benchmark
    that lists both chips. `src/engine/render/budgets.ts` derives the desktop row from the M5 calibration (S1.6's
    headless M5 twin) × `k3060`: the desktop capacity per frame at 60 fps is the M5's measured capacity × `k3060`.

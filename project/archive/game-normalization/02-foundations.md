@@ -1,8 +1,8 @@
 # GAME-NORMALIZATION v2 · 02 — Foundations (F0–F12)
 
-The build spec for the foundation rows of [GAME-NORMALIZATION.md](../GAME-NORMALIZATION.md) §4 F. It builds against the
+The build spec for the foundation rows of [GAME-NORMALIZATION.md](../../../docs/plans/GAME-NORMALIZATION.md) §4 F. It builds against the
 interfaces in [01-architecture.md](01-architecture.md) (cited as "01 §n") and the decisions in
-[E357](../../tasks/asks/E357.md) (cited as "decision n"). The parity harness and the GPU gate that F2 / F3 build are
+[E357](../../../docs/tasks/asks/E357.md) (cited as "decision n"). The parity harness and the GPU gate that F2 / F3 build are
 specified in [03-harness-gate.md](03-harness-gate.md) (cited as "03 §n"); this file says what to build and in what order,
 03 says how the harness behaves.
 

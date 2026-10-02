@@ -2,8 +2,8 @@
 
 This is the contract every other spec in this folder builds on. Each part has three things: the interface as
 TypeScript (names are final unless the council changes them), the rules, and what it replaces today, with the source
-row: a decision number in [E357](../../tasks/asks/E357.md), or a research row (EI / TP / MW) in
-[docs/design/engine-fit-v2/](../../design/engine-fit-v2/).
+row: a decision number in [E357](../../../docs/tasks/asks/E357.md), or a research row (EI / TP / MW) in
+[docs/design/engine-fit-v2/](../../../docs/design/engine-fit-v2).
 
 ## 0. Conventions
 

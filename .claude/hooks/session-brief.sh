@@ -7,8 +7,8 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT" || exit 0
 echo "== session brief (.claude/hooks/session-brief.sh) =="
 # the E357 lock (GAME-NORMALIZATION F0): only while the plan's State line says `in progress`; gone once it is archived
-if [ -f docs/plans/GAME-NORMALIZATION.md ] && sed -n 3p docs/plans/GAME-NORMALIZATION.md | grep -q '`in progress`'; then
-  echo "LOCK: E357 GAME-NORMALIZATION holds the repo — see docs/plans/GAME-NORMALIZATION.md §3"
+if [ -f project/archive/2026-10-01-game-normalization.md ] && sed -n 3p project/archive/2026-10-01-game-normalization.md | grep -q '`in progress`'; then
+  echo "LOCK: E357 GAME-NORMALIZATION holds the repo — see project/archive/2026-10-01-game-normalization.md §3"
   reopened="$(node -e 'try{const l=require("./.github/lock.json");console.log(Object.keys(l.reopened||{}).join(", ")||"none")}catch{console.log("?")}' 2>/dev/null || echo '?')"
   echo "  reopened shard folders (.github/lock.json): $reopened"
 fi

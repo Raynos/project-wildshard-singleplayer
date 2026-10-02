@@ -1,7 +1,7 @@
 # The engine API: `#engine`, `#game`, `#kit`
 
 This is the public API a shard is written against. It covers the three public layers and what each one gives a
-shard. One section per § of [01-architecture](plans/game-normalization/01-architecture.md), in the same order.
+shard. One section per § of [01-architecture](../project/archive/game-normalization/01-architecture.md), in the same order.
 
 - **How to write a shard** is [SHARDS.md](SHARDS.md). This file is the reference it points into.
 - **The worked example** is the template shard, [`src/shards/_template/`](../src/shards/_template/). It uses every

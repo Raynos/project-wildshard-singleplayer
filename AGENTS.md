@@ -1,12 +1,10 @@
 # AGENTS.md
 
-## The E357 lock (Jake, 2026-09-30)
+## The E357 lock: lifted (2026-10-01)
 
-- **No other agent edits the repo while [GAME-NORMALIZATION](docs/plans/GAME-NORMALIZATION.md) is `in progress`.** Only its lead session (and the subagents it spawns) commits; those commits carry the trailer `E357-Lead: yes`. If you are not the E357 lead, stop and ask Jake.
-- The engine (`src/engine/`), game (`src/game/`) and kit (`src/kit/`) stay locked until the plan is archived.
-- `src/shards/<slug>/` reopens to content agents at that shard's milestone: M1 Nine Dragon, M2 Pine Hollow, M3 Nalati, M4 Driftwood. The reopened slugs are in `.github/lock.json`; the `commit-msg` hook (`scripts/check-lock.mjs`) refuses anything outside a reopened shard's allowlist.
-- Production is pinned (`.github/deploy-pin.json`, row F3.1) and moves only at a milestone.
-- Bug fixes land on main and ship with the next milestone (decision 53).
+[GAME-NORMALIZATION](project/archive/2026-10-01-game-normalization.md) is archived, so the repo is open again: `.github/lock.json` says
+`"locked": false`, any agent may commit, and production deploys the newest gpu-gate-green `main` again
+(`.github/deploy-pin.json` mode `newest-green`). The layer rules, guards and ratchet below still apply.
 
 ## Engine layers (E357)
 

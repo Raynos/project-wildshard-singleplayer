@@ -3,8 +3,8 @@
 One row per finding, across every round (decision 92). The ID stays the same forever. Statuses:
 - **fixed**: the commit that fixed it;
 - **rejected**: the reason, with evidence;
-- **settled**: it re-argues the ledger (a decision in [E357](../../../tasks/asks/E357.md) or a resolution in
-  [13](../13-lead-resolutions.md)) without new evidence;
+- **settled**: it re-argues the ledger (a decision in [E357](../../../../docs/tasks/asks/E357.md) or a resolution in
+  [13](../../../../docs/plans/game-normalization/13-lead-resolutions.md)) without new evidence;
 - **escalated**: it went to Jake as a decision.
 
 **Rules for reviewers** (in every round's brief):

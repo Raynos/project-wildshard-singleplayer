@@ -1,10 +1,10 @@
 {
   "$doc": "What production and the native OTA channel serve (E357 decision 32). Moved only by scripts/deploy-pin.mjs set (at a milestone; decision 103: the lead moves it when the gate is green) or rollback. mode: pinned (during GAME-NORMALIZATION) | newest-green (after Z4).",
-  "mode": "pinned",
+  "mode": "newest-green",
   "sha": "c9693a71d074fa52e912af778da993fe9610f802",
   "milestone": "M4",
   "gate": "grandfathered",
-  "go": "Jake, chat 2026-10-01: \"Let's get the deploy out. What's stopping the deploy? Can we get it out?\" Override of the pin gate: gpu-gate was stuck in GitHub's macOS queue and the memory reading failed on a broken baseline; this SHA passed CI (tests + native build), the full Vercel tree gate, and all seven shards boot on the phone locally.",
-  "set": "2026-10-02T02:12:51Z",
+  "go": "Z4 archive of GAME-NORMALIZATION (2026-10-01): deploys return to the newest gpu-gate-green main; the last pin was c9693a71 (Jake's go)",
+  "set": "2026-10-02T03:06:23Z",
   "by": "E357 lead"
 }

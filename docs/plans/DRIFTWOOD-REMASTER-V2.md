@@ -1,6 +1,6 @@
 # Driftwood Isle — remaster v2 (after v0.2)
 
-**State:** `blocked` 2026-09-30 — waits for the E357 lock ([GAME-NORMALIZATION](GAME-NORMALIZATION.md)) until M4.
+**State:** `blocked` 2026-09-30 — waits for the E357 lock ([GAME-NORMALIZATION](../../project/archive/2026-10-01-game-normalization.md)) until M4.
 
 ## The v0.2 cut — done 2026-09-23 (tag v0.2)
 

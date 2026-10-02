@@ -5,7 +5,7 @@ applied in the file named in the "Applied in" column, and **those files are the 
 record of why.
 
 Questions that were Jake's to decide went to him and are numbered decisions in
-[E357](../../tasks/asks/E357.md) (85–90).
+[E357](../../../docs/tasks/asks/E357.md) (85–90).
 
 ## From 09-combat-ai
 
