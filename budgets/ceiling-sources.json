@@ -1688,15 +1688,15 @@
       "tier": "phone",
       "metric": "gpuMB",
       "source": "budgets/calibration-reports/far-reach.phone.json",
-      "commit": "ae9db7f831e24851ef542c7452984b7daf2623f9",
-      "reason": "E374 Sky Reach loop 5, measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer): the lit cumulus billboards over the cloud sea (260 instances) on top of the council round-1 fixes",
+      "commit": "b77755090238b680f17b4916fb174da5079df3e9",
+      "reason": "E374 Sky Reach round-2 polish, measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer): the winch house, the stone-block windmill tower, the falls shader, the perching Roc, the off-spine step",
       "ask": "E357",
       "approvedBy": "wildshard-9",
-      "approval": "E374 Sky Reach loop 5, measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer): the lit cumulus billboards over the cloud sea (260 instances) on top of the council round-1 fixes",
-      "captureSha": "ae9db7f831e24851ef542c7452984b7daf2623f9",
-      "captureSha256": "59ace8f6a6c866f6b338972cd5d16e17bf02d97f7e3e0f1ae7f72eb835a547ef",
+      "approval": "E374 Sky Reach round-2 polish, measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer): the winch house, the stone-block windmill tower, the falls shader, the perching Roc, the off-spine step",
+      "captureSha": "b77755090238b680f17b4916fb174da5079df3e9",
+      "captureSha256": "d576933e60a021c7e2019201ca53eb98f28e8953069d5481cfa45b83c00ca27e",
       "ceilings": {
-        "far-reach.phone.current.gpuMB": 94.76653671264648
+        "far-reach.phone.current.gpuMB": 95.12134170532227
       }
     },
     {
@@ -1704,15 +1704,15 @@
       "tier": "desktop",
       "metric": "gpuMB",
       "source": "budgets/calibration-reports/far-reach.desktop.json",
-      "commit": "ae9db7f831e24851ef542c7452984b7daf2623f9",
-      "reason": "E374 Sky Reach loop 5, measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer): the lit cumulus billboards over the cloud sea (260 instances) on top of the council round-1 fixes",
+      "commit": "b77755090238b680f17b4916fb174da5079df3e9",
+      "reason": "E374 Sky Reach round-2 polish, measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer): the winch house, the stone-block windmill tower, the falls shader, the perching Roc, the off-spine step",
       "ask": "E357",
       "approvedBy": "wildshard-9",
-      "approval": "E374 Sky Reach loop 5, measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer): the lit cumulus billboards over the cloud sea (260 instances) on top of the council round-1 fixes",
-      "captureSha": "ae9db7f831e24851ef542c7452984b7daf2623f9",
-      "captureSha256": "9ab284d7473ff5ed1d58b3774d5cbd0feb6ffc0444fbe2c81bca0f9165a73aef",
+      "approval": "E374 Sky Reach round-2 polish, measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer): the winch house, the stone-block windmill tower, the falls shader, the perching Roc, the off-spine step",
+      "captureSha": "b77755090238b680f17b4916fb174da5079df3e9",
+      "captureSha256": "f3b1d3b309ceecb0e3a97ff3a7afea34e5620e22420cb3082c73feb8d2f6135d",
       "ceilings": {
-        "far-reach.desktop.current.gpuMB": 199.33462142944336
+        "far-reach.desktop.current.gpuMB": 199.68942642211914
       }
     }
   ]
