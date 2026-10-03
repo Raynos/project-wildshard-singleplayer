@@ -15,16 +15,20 @@ export const skyMeshUrl = (name: SkyMeshName): string => URLS[name];
  * 2048 paint, decimated, the paint kept as a 1024 WebP map on its UVs (the faceted vertex-colour path reads low-poly up
  * close). The faceted models above stay the fallback.
  */
-export type SkyHdName = 'keeper-hd' | 'roc-hd' | 'post-hd' | 'hand-hd' | 'isle-cone-hd' | 'isle-spurs-hd' | 'isle-crag-hd';
-export const SKY_HD: readonly SkyHdName[] = ['keeper-hd', 'roc-hd', 'post-hd', 'hand-hd', 'isle-cone-hd', 'isle-spurs-hd', 'isle-crag-hd'];
+export type SkyHdName = 'keeper-hd' | 'roc-hd' | 'post-hd' | 'hand-hd' | 'isle-mass-hd' | 'isle-canopy-hd' | 'isle-falls-hd' | 'isle-spire-hd' | 'isle-twin-hd' | 'isle-shelf-hd';
+export const SKY_HD: readonly SkyHdName[] = ['keeper-hd', 'roc-hd', 'post-hd', 'hand-hd', 'isle-mass-hd', 'isle-canopy-hd', 'isle-falls-hd', 'isle-spire-hd', 'isle-twin-hd', 'isle-shelf-hd'];
 const HD_URLS: Readonly<Record<SkyHdName, string>> = {
   'keeper-hd': '/assets/far-reach/models/keeper-hd/keeper-hd.glb', 'roc-hd': '/assets/far-reach/models/roc-hd/roc-hd.glb',
   'post-hd': '/assets/far-reach/models/post-hd/post-hd.glb',
   // the war fan's gloved hand (weapons/glove.ts heroHand, art/far-reach/round-20-fan-hand/)
   'hand-hd': '/assets/far-reach/fan/hand-hd.glb',
-  // the decorative floating islands (world/skyIsleHd.ts, art/far-reach/round-21-sky-isles/)
-  'isle-cone-hd': '/assets/far-reach/models/isle-cone-hd/isle-cone-hd.glb', 'isle-spurs-hd': '/assets/far-reach/models/isle-spurs-hd/isle-spurs-hd.glb',
-  'isle-crag-hd': '/assets/far-reach/models/isle-crag-hd/isle-crag-hd.glb',
+  // the floating islands (world/skyIsleHd.ts; top-10 row 1, art/far-reach/round-25-isles/)
+  'isle-mass-hd': '/assets/far-reach/models/isle-mass-hd/isle-mass-hd.glb',
+  'isle-canopy-hd': '/assets/far-reach/models/isle-canopy-hd/isle-canopy-hd.glb',
+  'isle-falls-hd': '/assets/far-reach/models/isle-falls-hd/isle-falls-hd.glb',
+  'isle-spire-hd': '/assets/far-reach/models/isle-spire-hd/isle-spire-hd.glb',
+  'isle-twin-hd': '/assets/far-reach/models/isle-twin-hd/isle-twin-hd.glb',
+  'isle-shelf-hd': '/assets/far-reach/models/isle-shelf-hd/isle-shelf-hd.glb',
 };
 export const skyHdUrl = (name: SkyHdName): string => HD_URLS[name];
 /** The painted textures (E392, `art/far-reach/round-17-mockup-loop/textures/`): keel rock, meadow ground, the cumulus atlas. */

@@ -19,7 +19,12 @@ function linear(hex: number): string { const c = new Color(hex); return `vec3(${
  * No trees in the models: the card firs stand on the turf (`topAt`). A model that failed to load leaves its isles to
  * the code builder (`world/isle.ts`).
  */
-export const SKY_ISLE_MODELS = ['isle-cone-hd', 'isle-spurs-hd', 'isle-crag-hd'] as const satisfies readonly SkyHdName[];
+/**
+ * Top-10 row 1 (E407, `art/far-reach/round-25-isles/`): the mockups' islands, rounded rock masses with overhangs, bushy
+ * canopies spilling over the rim and heavy root and vine curtains (the round-21 three were flat grassy tops over a keel:
+ * 'pancakes'). Codex refs from crops of mockups A, C, D and proposal B, then BiRefNet, Hunyuan3D-2 turbo + paint, finish.sh.
+ */
+export const SKY_ISLE_MODELS = ['isle-mass-hd', 'isle-canopy-hd', 'isle-falls-hd', 'isle-spire-hd', 'isle-twin-hd', 'isle-shelf-hd'] as const satisfies readonly SkyHdName[];
 export type SkyIsleModel = (typeof SKY_ISLE_MODELS)[number];
 
 /**
@@ -27,7 +32,8 @@ export type SkyIsleModel = (typeof SKY_ISLE_MODELS)[number];
  * paint's lime turf read loud beside the playable meadows), how far off the turf level a fir may stand (unit frame), the keel
  * stretch's limits.
  */
-export const SKY_ISLE_HD = { selfLight: 0.08, tint: 0.8, turf: 0.2, stretch: [0.8, 1.35], rimBins: 48 } as const;
+// (row 1: the new models' paint is darker than round 21's; the mockups' crags read warm and hazed against the low sun)
+export const SKY_ISLE_HD = { selfLight: 0.22, tint: 1.0, turf: 0.2, stretch: [0.8, 1.35], rimBins: 48 } as const;
 /**
  * The aerial haze on the sky isles (E399 round 6, measured on mockup A's isle band, x 0.1-0.9, y 0.27-0.42: its darkest
  * isle rock is a hazed mauve, 107,81,77, where ours read dark brown, 75,58,38): toward the warm haze over `near`..`far` metres, at most `max`.
@@ -36,10 +42,14 @@ export const SKY_ISLE_HAZE = { color: SKY.fog, near: 60, far: 320, max: 0.22 } a
 
 /** Which model each sky isle wears, and its yaw (radians): every model in each view, none turned the same way twice. */
 const WEAR: Readonly<Record<string, readonly [SkyIsleModel, number]>> = {
-  'sky.l1': ['isle-cone-hd', 0.4], 'sky.l2': ['isle-spurs-hd', 2.1], 'sky.l3': ['isle-crag-hd', 4.0], 'sky.l4': ['isle-cone-hd', 5.3], 'sky.l5': ['isle-spurs-hd', 1.0],
-  'sky.r1': ['isle-crag-hd', 2.8], 'sky.r2': ['isle-cone-hd', 3.5], 'sky.r3': ['isle-spurs-hd', 4.6], 'sky.r4': ['isle-crag-hd', 0.9], 'sky.r5': ['isle-cone-hd', 1.7],
-  'sky.o1': ['isle-spurs-hd', 0.2], 'sky.o2': ['isle-cone-hd', 3.0], 'sky.o3': ['isle-crag-hd', 2.2], 'sky.o4': ['isle-cone-hd', 4.4], 'sky.o5': ['isle-spurs-hd', 5.1], 'sky.o6': ['isle-crag-hd', 0.7],
-  'sky.b1': ['isle-crag-hd', 5.6], 'sky.b2': ['isle-spurs-hd', 3.9], 'sky.b3': ['isle-cone-hd', 2.5], 'sky.b4': ['isle-spurs-hd', 4.9],
+  'sky.l1': ['isle-falls-hd', 0.4], 'sky.l2': ['isle-canopy-hd', 2.1], 'sky.l3': ['isle-shelf-hd', 4.0], 'sky.l4': ['isle-mass-hd', 5.3], 'sky.l5': ['isle-twin-hd', 1.0],
+  'sky.r1': ['isle-spire-hd', 2.8], 'sky.r2': ['isle-falls-hd', 3.5], 'sky.r3': ['isle-shelf-hd', 4.6], 'sky.r4': ['isle-canopy-hd', 0.9], 'sky.r5': ['isle-mass-hd', 1.7],
+  // the cluster over the mill (the lead's ruling): the big masses and the twin, overlapping
+  'sky.o1': ['isle-mass-hd', 0.2], 'sky.o2': ['isle-shelf-hd', 3.0], 'sky.o3': ['isle-twin-hd', 2.2], 'sky.o4': ['isle-canopy-hd', 4.4], 'sky.o5': ['isle-spire-hd', 5.1], 'sky.o6': ['isle-falls-hd', 0.7],
+  'sky.b1': ['isle-twin-hd', 5.6], 'sky.b2': ['isle-spire-hd', 3.9], 'sky.b3': ['isle-mass-hd', 2.5], 'sky.b4': ['isle-canopy-hd', 4.9],
+  // the playable islands' keels (clipped under their decks): the rock masses with root curtains
+  'keel.sunrest': ['isle-mass-hd', 1.1], 'keel.windmill': ['isle-canopy-hd', 0.3], 'keel.grove': ['isle-twin-hd', 2.4], 'keel.roost': ['isle-spire-hd', 4.0],
+  'keel.keeper': ['isle-shelf-hd', 5.0], 'keel.ruin': ['isle-mass-hd', 3.3], 'keel.step': ['isle-falls-hd', 0.9], 'keel.crown': ['isle-canopy-hd', 2.0],
 };
 const FALLBACK: readonly SkyIsleModel[] = SKY_ISLE_MODELS;
 
@@ -95,13 +105,14 @@ export interface SkyIsleHd {
 }
 
 /** The sky isles as textured models (see the module note). */
-export function skyIsleModels(isles: readonly SkyIsle[]): SkyIsleHd {
+/** `clipTop` (the playable islands' keels): everything above the model's turf is cut away, so its canopy never pokes through a deck. */
+export function skyIsleModels(isles: readonly SkyIsle[], clipTop = false): SkyIsleHd {
   const units = new Map<SkyIsleModel, Unit>();
   for (const name of SKY_ISLE_MODELS) { const m = skyHd(name); if (m !== null) units.set(name, unit(m.geometry, m.map)); }
   const group = new Group(), fallback: SkyIsle[] = [], placed = new Map<string, { u: Unit; yaw: number; sy: number }>();
   const byModel = new Map<SkyIsleModel, SkyIsle[]>();
   isles.forEach((s, i) => {
-    const name = WEAR[s.id]?.[0] ?? FALLBACK[i % FALLBACK.length] ?? 'isle-cone-hd';
+    const name = WEAR[s.id]?.[0] ?? FALLBACK[i % FALLBACK.length] ?? 'isle-mass-hd';
     if (!units.has(name)) { fallback.push(s); return; }
     byModel.set(name, [...(byModel.get(name) ?? []), s]);
   });
@@ -124,7 +135,11 @@ export function skyIsleModels(isles: readonly SkyIsle[]): SkyIsleHd {
   { float farRim = pow(1.0 - abs(dot(normalize(normal), normalize(vViewPosition))), 3.0) * smoothstep(-0.1, 0.5, dot(normalize(normal), normalize((viewMatrix * vec4(${SUN_DIR.x.toFixed(4)}, ${SUN_DIR.y.toFixed(4)}, ${SUN_DIR.z.toFixed(4)}, 0.0)).xyz)));
     gl_FragColor.rgb = gl_FragColor.rgb * 0.95 + vec3(1.0, 0.7, 0.36) * farRim * 0.55; }
   gl_FragColor.rgb = mix(gl_FragColor.rgb, ${linear(SKY_ISLE_HAZE.color)}, clamp((length(vViewPosition) - ${SKY_ISLE_HAZE.near.toFixed(1)}) / ${(SKY_ISLE_HAZE.far - SKY_ISLE_HAZE.near).toFixed(1)}, 0.0, 1.0) * ${SKY_ISLE_HAZE.max.toFixed(2)});`);
-    }, { key: (prior) => `${prior}|far.sky-isle-rock|haze|rim-sun` });
+      if (clipTop) {
+        shader.vertexShader = `varying float farLocalY;\n${shader.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n  farLocalY = position.y;')}`;
+        shader.fragmentShader = `varying float farLocalY;\n${shader.fragmentShader.replace('#include <clipping_planes_fragment>', '#include <clipping_planes_fragment>\n  if (farLocalY > 0.02) discard;')}`;
+      }
+    }, { key: (prior) => `${prior}|far.sky-isle-rock|haze|rim-sun${clipTop ? '|clip' : ''}` });
     const mesh = new InstancedMesh(u.geometry, material, list.length); mesh.name = `far.sky-isles.${name}`;
     list.forEach((s, k) => {
       const yaw = WEAR[s.id]?.[1] ?? k * 2.39996, [lo, hi] = SKY_ISLE_HD.stretch, sy = Math.min(hi, Math.max(lo, s.keel / (s.r * u.depth)));
