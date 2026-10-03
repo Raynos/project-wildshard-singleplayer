@@ -340,7 +340,11 @@ float sandN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * 
   {
     // E407 row 2: a grazing-light sheen, sand seen at a low angle on a lit face brightens (fine grains catch the low sun)
     float sheenV = 1.0 - saturate(dot(normalize(vSandN), normalize(cameraPosition - vSandPos)));
-    reflectedLight.directDiffuse *= 1.0 + 0.35 * pow(sheenV, 4.0) * sandVis;
+    // round 17 (seat B, R15B-2: at grazing toward the key the sheen paled the far faces): only where the sun is behind or
+    // beside the viewer
+    vec3 sheenToCam = normalize(cameraPosition - vSandPos);
+    float sheenSide = smoothstep(-0.2, 0.4, dot(normalize(vec2(${KEY.dir.x.toFixed(3)}, ${KEY.dir.z.toFixed(3)})), normalize(sheenToCam.xz + vec2(1e-4))));
+    reflectedLight.directDiffuse *= 1.0 + 0.35 * pow(sheenV, 4.0) * sandVis * sheenSide;
   }
   // Round 1 (R1C-3): where the key doesn't reach (cast shadow or a face turned from it) the sky fill paints the bible's
   // cool violet shade (#4a3a48 to #5b4f6a), not a darkened orange: the crest line splits warm from cool.
