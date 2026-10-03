@@ -1,6 +1,6 @@
 # Signal Dunes: the third top-10 (E407, E409)
 
-**State:** `in progress` 2026-10-03: the third zoom-out, written by the lead from round 22's frames (20261003-1239-c43b91ce, mean 6.83, the shard's best) and its three seats, after round 21 was the third detail round. It supersedes SIGNAL-DUNES-TOP10-2 (archived). The bar is 7.0, 0.17 away; Sky Reach passed and is archived. Already queued in aab0d0a2f: the two-coil hold, amber lit-sand hue, and B's lantern pool.
+**State:** `archived` 2026-10-03 (superseded the same day by docs/plans/SIGNAL-DUNES-TOP10-4.md, toward 8/10): Signal Dunes passed the 7.0 bar in round 25 (7.00). Landed: rows 1 (lit faces), 4 (the sky seam), 5-7 (two-ring hold, amber hue, lantern). Partial: rows 2 (D's troughs), 3 (dusk-fire's foreground). Rows 8-10 carry into TOP10-4.
 
 ## Why it is still short (zoom-out, round 22)
 

@@ -26,7 +26,7 @@
    clause, the no-shortcut rules included, is unchanged.
    **Amended by Jake, 2026-10-03 (E409): the council alternates two phases**, detail rounds and zoom-out top-10 plans, by
    the switching rule in docs/design/LOOK-LOOP.md ("Two kinds of round, alternating"). From round 13 (Signal Dunes) and
-   round 13 (Sky Reach) the shards are in a zoom-out phase: docs/plans/SIGNAL-DUNES-TOP10-3.md, project/archive/2026-10-03-sky-reach-top10.md.
+   round 13 (Sky Reach) the shards are in a zoom-out phase: docs/plans/SIGNAL-DUNES-TOP10-4.md, project/archive/2026-10-03-sky-reach-top10.md.
 5. **No shortcuts.** A score is void, and the round is re-run, if the game got closer by any of these:
    - **The views:** the game views are fixed before each round in `art/<slug>/progress/cameras.json` (one `mock-*` view
      per mockup, at the mockup's camera). A view may be re-aimed only to match its mockup's camera better, never to dodge
