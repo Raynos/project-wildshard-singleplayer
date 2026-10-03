@@ -1,3 +1,4 @@
+import { currentProbe } from '../app/identity';
 import { authoredRows } from './authoredDebugRows';
 import { uiScope } from './ownership';
 import { engineString } from '#engine/strings';
@@ -202,9 +203,10 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
   // ── Developer tools ──
   { ...action('calibrate', 'tools', engineString('s_252526ecd431'), engineString('s_e6539473d9a0'), () => { saveSetting('calibrate', 'run'); location.reload(); }, { ask: 'E357', reviewBy: '2026-12-30', note: engineString('s_7d857a36f6c1') }), choices: () => [{ v: 'off', text: engineString('s_ab0171ca0494') }, { v: 'run', text: engineString('s_00d60e31a4e6') }] },
   action('budgetReadout', 'perf', engineString('s_2461f265574b'), engineString('s_eff6d457bfb5'), (say) => {
-    if (window.__wildshard === undefined) { say('READ BUDGETS', 'Enter a level to read its budgets.'); return; }
-    const rows = window.__wildshard.budgets(['current']);
-    const measured = window.__wildshard.world.game.lastFrame;
+    const probe = currentProbe();
+    if (probe === undefined) { say('READ BUDGETS', 'Enter a level to read its budgets.'); return; }
+    const rows = probe.budgets(['current']);
+    const measured = probe.world.game.lastFrame;
     say('READ BUDGETS', `${tierPickLine()}\nMeasured ${measured.calls} draws / ${measured.triangles} tris\n${Object.entries(rows).map(([pose, row]) => `${pose}: derived ${JSON.stringify(row.derived)} / ceiling ${JSON.stringify(row.ceiling)} · ${row.formula.assumption}`).join('\n')}`);
   }, { ask: 'E357', reviewBy: '2026-12-30', note: engineString('s_2ed7f7dcebc2') }),
 ];

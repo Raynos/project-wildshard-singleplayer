@@ -1,3 +1,4 @@
+import { appIdentity } from '../app/identity';
 import { listenDom, mountDom } from '../input/dom';
 import { engineString } from '#engine/strings';
 import { app } from '../app/runtime';
@@ -182,7 +183,7 @@ export class Explore {
 
     this.root = html('div', 'ws-x');
     const top = html('div', 'ws-x-top', `
-      <div class="ws-x-brand"><span>Project <b>Wildshard</b></span><i>Explore</i></div>
+      <div class="ws-x-brand"><span>${appIdentity().wordmark}</span><i>Explore</i></div>
       <div class="ws-x-tabs"><button type="button" data-m="model">Models</button><button type="button" data-m="sets">Sets</button><button type="button" data-m="world">World</button></div>
       <button class="ws-x-close" type="button" aria-label="Back to the title">✕</button>`);
     this.closeBtn = top.querySelector<HTMLElement>('.ws-x-close') ?? top;

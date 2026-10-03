@@ -1,3 +1,4 @@
+import { appIdentity } from '../app/identity';
 import { engineString } from '#engine/strings';
 import { currentOwner } from '../app/ownership';
 import type { Scope } from '../app/scope';
@@ -31,10 +32,10 @@ export function buildSavePanel(): HTMLDivElement & { refresh: () => void } {
     for (const copy of copies) {
       const item = document.createElement('div'); item.className = 'ws-gmenu-note';
       const text = document.createElement('span'); text.textContent = engineString('s_6d093aa18a40', [copy.scope, copy.key, copy.at, copy.bytes]);
-      item.append(text, button(scope, strings.export, () => { download(`wildshard-corrupt-${copy.key}-${copy.at}.json`, app.saves.exportCorrupt(copy)); })); aside.append(item);
+      item.append(text, button(scope, strings.export, () => { download(`${appIdentity().fileSlug}-corrupt-${copy.key}-${copy.at}.json`, app.saves.exportCorrupt(copy)); })); aside.append(item);
     }
   };
-  row.append(button(scope, strings.export, () => { download(`wildshard-save-${new Date().toISOString().slice(0, 10)}.json`, app.saves.exportAll()); renderAside(); }), button(scope, strings.import, () => { picker.value = ''; picker.click(); }));
+  row.append(button(scope, strings.export, () => { download(`${appIdentity().fileSlug}-save-${new Date().toISOString().slice(0, 10)}.json`, app.saves.exportAll()); renderAside(); }), button(scope, strings.import, () => { picker.value = ''; picker.click(); }));
   scope.listen(picker, 'change', () => {
     const file = picker.files?.[0]; if (!file) return;
     void file.text().then((json) => {

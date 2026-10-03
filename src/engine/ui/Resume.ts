@@ -1,3 +1,4 @@
+import { appIdentity } from '../app/identity';
 import { uiScope, mountUi } from './ownership';
 import { saveStorage } from '#engine/saves/slots';
 
@@ -9,7 +10,7 @@ const savedStorage = saveStorage('session');
  * screen itself — the shard's title art full-bleed, the PROJECT WILDSHARD wordmark where the title has it, RESUMING, a
  * hairline and the shard's name low. The blurred still of the last frame shows only where there is no art.
  *
- * Styled by src/engine/ui/styles/resume.css (prefix ws-resume-). The markup is in index.html (RESUME_HTML, kept identical by
+ * Styled by src/engine/ui/styles/resume.css (prefix ws-resume-). The markup is in index.html (resumeHtml(), kept identical by
  * test/resume.test.ts) with an inline script, so on a GPU-recovery reload (`?glreload`, src/engine/core/GpuRecovery.ts) it is
  * up from the first paint — before any bundle runs — and the first-boot loader never shows. In play, GpuRecovery puts it
  * up while the page is HIDDEN (visibilitychange / pagehide), so the first frame after the switch back is this screen.
@@ -19,7 +20,8 @@ const savedStorage = saveStorage('session');
  *   resumeScreen().progress(0.4)      // a fraction: the boot plan's setup, or the in-place shader rebuild
  *   resumeScreen().hide()             // fades out (fast)
  */
-export const RESUME_HTML = '<div class="ws-resume-shot"></div><div class="ws-resume-hero"></div><div class="ws-resume-word">Project <b>Wildshard</b></div><div class="ws-resume-card"><div class="ws-resume-line">Resuming</div><div class="ws-resume-bar"><i></i></div><div class="ws-resume-level"></div><button type="button" class="ws-resume-btn">Reload</button></div>';
+/** the resume screen's markup (index.html carries it verbatim; test/resume.test.ts) */
+export const resumeHtml = (): string => `<div class="ws-resume-shot"></div><div class="ws-resume-hero"></div><div class="ws-resume-word">${appIdentity().wordmark}</div><div class="ws-resume-card"><div class="ws-resume-line">Resuming</div><div class="ws-resume-bar"><i></i></div><div class="ws-resume-level"></div><button type="button" class="ws-resume-btn">Reload</button></div>`;
 
 /** sessionStorage key of the last still (a small JPEG data URL) — survives the recovery reload */
 export const SHOT_KEY = 'resume.shot';
@@ -42,7 +44,7 @@ class ResumeScreen {
     if (!root) { // a page without the index.html markup (a dev entry): build the same thing
       root = document.createElement('div');
       root.className = 'ws-resume';
-      root.innerHTML = RESUME_HTML;
+      root.innerHTML = resumeHtml();
       mountUi(root, this.scope, document.body);
     }
     this.root = root;

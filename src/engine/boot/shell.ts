@@ -4,11 +4,14 @@
  * data-shell>`, so the title panel is on screen as soon as the page's CSS is — before the 1.7 MB bundle
  * has downloaded, compiled and run. `Loading` (src/engine/ui/Loading.ts) adopts that element and fills in the
  * two facts only the bundle knows (`slug`, `tier`); a page without the shell (dev harnesses) builds it
- * from this same string. test/shell.test.ts keeps index.html and this string identical.
+ * from this same markup. test/shell.test.ts keeps index.html and this markup identical; the wordmark and tagline are the
+ * app's (src/engine/app/identity.ts).
  */
-export const LOAD_SHELL_HTML = `<div class="ws-load-head">
-<div class="ws-wordmark">Project <b>Wildshard</b></div>
-<div class="ws-load-tagline">A world that does not exist yet, arriving one chunk at a time.</div>
+import { appIdentity } from '../app/identity';
+
+export const loadShellHtml = (): string => `<div class="ws-load-head">
+<div class="ws-wordmark">${appIdentity().wordmark}</div>
+<div class="ws-load-tagline">${appIdentity().tagline}</div>
 </div>
 <div class="ws-load-body">
 <div class="ws-glass ws-load-panel">

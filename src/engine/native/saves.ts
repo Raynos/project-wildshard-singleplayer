@@ -9,6 +9,7 @@
  *
  * The web build never imports this file (src/engine/native/boot.ts, run by the native entry src/native.ts, only).
  */
+import { appIdentity } from '../app/identity';
 import { Preferences } from '@capacitor/preferences';
 
 import { installLegacyMirror } from '../saves/runtime';
@@ -18,8 +19,9 @@ const namespaces: readonly string[] = (() => { try { return __SAVE_NAMESPACES__;
 
 export function isMirroredSave(key: string, knownNamespaces: readonly string[] = namespaces): boolean {
   if (key.startsWith('ws.ota.')) return true;
-  if (!key.startsWith('wildshard.save.v2.')) return false;
-  const scope = key.slice('wildshard.save.v2.'.length);
+  const prefix = appIdentity().savePrefix;
+  if (!key.startsWith(prefix)) return false;
+  const scope = key.slice(prefix.length);
   return scope === 'global' || knownNamespaces.includes(scope);
 }
 

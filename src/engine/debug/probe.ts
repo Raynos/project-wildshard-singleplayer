@@ -1,3 +1,4 @@
+import { harnessPins, setCurrentProbe } from '../app/identity';
 import * as THREE from 'three';
 import type { World } from '../core/bootstrap';
 import type { Animal } from '../entities/Animal';
@@ -108,7 +109,7 @@ export interface ProbeApp {
   readonly rngSeed: number;
   readonly census: Readonly<{ engine: Readonly<ScopeCensus>; level: Readonly<ScopeCensus> }>;
 }
-export interface WildshardProbe<W extends ProbeWorld = ProbeWorld> {
+export interface EngineProbe<W extends ProbeWorld = ProbeWorld> {
   version: 1; world: W; shard: { slug: string } & Record<string, unknown>; boot: Fingerprint;
   fingerprint: () => Fingerprint;
   pose: (p: ProbePose) => Promise<void>;
@@ -192,7 +193,7 @@ export function compiledProgramHash<Shader>(programs: readonly { vertexShader: S
 }
 
 function fingerprint(world: ProbeWorld, deps: ProbeDeps, saves: Saves): Fingerprint {
-  const { game, registry, physics, music, audio } = world, pins = window.__wildshardHarness;
+  const { game, registry, physics, music, audio } = world, pins = harnessPins();
   const totals = { mesh: 0, instanced: 0, instances: 0, skinned: 0, points: 0, lines: 0, sprites: 0, lights: 0, batched: 0 };
   const named: Fingerprint['scene']['named'] = [];
   game.scene.traverse((o) => {
@@ -252,8 +253,8 @@ function fingerprint(world: ProbeWorld, deps: ProbeDeps, saves: Saves): Fingerpr
   return record;
 }
 
-export function installProbe<W extends ProbeWorld>(world: W, deps: ProbeDeps): WildshardProbe<W> {
-  const pins = window.__wildshardHarness, saves = pins?.saves ?? { read: [], written: [] };
+export function installProbe<W extends ProbeWorld>(world: W, deps: ProbeDeps): EngineProbe<W> {
+  const pins = harnessPins(), saves = pins?.saves ?? { read: [], written: [] };
   const hits: { kind: string; amount: number }[] = [], kills: string[] = [], labels: string[] = [];
   let events: Record<string, number> = {}; const ambient = new Set<string>();
   let resume: (() => void) | null = null;
@@ -265,7 +266,7 @@ export function installProbe<W extends ProbeWorld>(world: W, deps: ProbeDeps): W
     tap.sound = (id, kind) => { if (kind === 'ambient') ambient.add(id); else if (tap.ambientDepth === 0) events[id] = (events[id] ?? 0) + 1; };
     tap.resumed = () => { const fn = resume; resume = null; fn?.(); };
   }
-  const requireHarness = (): void => { if (!pins) throw new Error('Wildshard probe control requires __wildshardHarness'); };
+  const requireHarness = (): void => { if (!pins) throw new Error('Probe control requires the harness pins'); };
   const { game } = world, app = game.app;
   const raw = pins?.resources?.(), owned = scopeRegistrations((scope) => scope.belongsTo(game.levelScope)), retainedAtBoot = scopeRegistrations((scope) => !scope.belongsTo(game.levelScope));
   const retainedListeners = { window: 0, document: 0, canvas: 0, other: 0 }, retainedTimers = { timeouts: 0, intervals: 0, raf: 0 };
@@ -323,10 +324,10 @@ export function installProbe<W extends ProbeWorld>(world: W, deps: ProbeDeps): W
     land(); pl.pitch = p.pitch ?? 0; pl.velocity.set(0, 0, 0); game.app.input.clear();
     await new Promise<void>((resolve) => { app.engineScope.raf(() => { resolve(); }); });
   };
-  const handles: WildshardProbe['shard'] = { slug: world.game.level.id };
+  const handles: EngineProbe['shard'] = { slug: world.game.level.id };
   const authored: unknown = app.debug.snapshot()[`harness.shard.${world.game.level.id}`];
   if (authored !== null && typeof authored === 'object') Object.assign(handles, authored);
-  const probe: WildshardProbe<W> = {
+  const probe: EngineProbe<W> = {
     app: Object.freeze({
       get state() { return app.state; },
       get systems() {
@@ -409,6 +410,6 @@ export function installProbe<W extends ProbeWorld>(world: W, deps: ProbeDeps): W
     sounds: () => { const log = { event: events, ambient: [...ambient].sort() }; events = {}; ambient.clear(); return log; },
     used: () => labels.splice(0),
   };
-  window.__wildshard = probe;
+  setCurrentProbe(probe);
   return probe;
 }

@@ -2,20 +2,20 @@
 // by its data-el hooks — the two copies of the markup must not drift apart.
 import { describe, expect, it } from 'vitest';
 import html from '../index.html?raw';
-import { LOAD_SHELL_HTML } from '#engine/boot/shell';
+import { loadShellHtml } from '#engine/boot/shell';
 
 const FONT_FILES = import.meta.glob('../public/fonts/*.woff2');
 expect(Object.keys(FONT_FILES).length).toBeGreaterThan(0);
 const fonts = new Set(Object.keys(FONT_FILES).map((k) => k.replace('../public', '')));
 
 describe('loading shell', () => {
-  it('index.html carries LOAD_SHELL_HTML verbatim inside .ws-load[data-shell]', () => {
-    expect(html).toContain(`<div class="ws-load" data-shell>${LOAD_SHELL_HTML}</div>`);
+  it('index.html carries loadShellHtml() verbatim inside .ws-load[data-shell]', () => {
+    expect(html).toContain(`<div class="ws-load" data-shell>${loadShellHtml()}</div>`);
   });
 
   it('has every hook Loading reads', () => {
     for (const key of ['slug', 'tier', 'clock', 'dlFact', 'dlPct', 'dlBar', 'suFact', 'suPct', 'suBar', 'rows', 'foot', 'bar', 'line', 'diagnostics']) {
-      expect(LOAD_SHELL_HTML).toContain(`data-el="${key}"`);
+      expect(loadShellHtml()).toContain(`data-el="${key}"`);
     }
   });
 

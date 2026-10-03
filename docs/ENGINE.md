@@ -1535,6 +1535,7 @@ A playground's pieces are registry pieces with `active: () => this.entered`, so 
 | `registerGlobalDebugAction`, `GlobalDebugActionSpec` | a one-shot app-wide Debug action (the template's entry, B82) |
 | `setting`, `getSetting`, `getNumber`, `onNumber`, `onSettingChange`, `OptionValue`, `MusicStyle` | the engine's saved options. A shard reads only keys it owns (`shard-sandbox`) |
 | `ENGINE_STRINGS`, `engineString`, `installEngineStrings`, `EngineStringKey` | the engine's string table |
+| `installAppIdentity`, `appIdentity`, `AppIdentity`, `EngineProbe`, `HarnessPins` | the app the engine runs in (E405 E414): its name, wordmark and tagline, the save keys' prefix and export format, the file-name prefix, where the probe is exposed and where the harness pins are read. The game's (`src/game/identity.ts`) is installed by `src/identity.ts`, the first module every page entry runs; nothing has a default, and a save with real storage throws without one rather than writing under another prefix |
 | `ctx.strings(table)` (`StringTable`) | registers your table; every player-facing line comes from it |
 
 **A Debug row** (`DebugRowSpec`): `{ id, group, label, choices: [{ value, text }], initial, change(value), reload?,
@@ -1610,7 +1611,7 @@ sections above describe what to use; this list is the complete inventory.
 
 ### `#engine` (`src/engine/index.ts`)
 
-716 exports, grouped by the module they come from.
+721 exports, grouped by the module they come from.
 
 - `./core/devMode`: `isDev`, `onDev`, `setDev`
 - `./core/config`: `CHUNK_HALF`, `ROAD_LENGTH`, `SEED`, `CHUNK_SIZE`, `CHUNK_DEPTH`, `TERRAIN_RES`
@@ -1811,6 +1812,8 @@ sections above describe what to use; this list is the complete inventory.
 - `./combat/view/slashTrail`: `SlashTrail`, `SlashTrailProfile`
 - `./world/skyRig`: `SkyRig`
 - `./world/skyBackdrop`: `SkyBackdropView`
+- `./app/identity`: `installAppIdentity`, `appIdentity`, `AppIdentity`
+- `./debug/probe`: `EngineProbe`, `HarnessPins`
 - `(local)`: `ENGINE_API`
 
 ### `#engine/data` (`src/engine/data.ts`)

@@ -1,3 +1,4 @@
+import { harnessPins } from '../app/identity';
 import { installGameplayInput } from '../input/gameplay';
 import type { InputContextDef } from '../level/context';
 import { app } from '../app/runtime';
@@ -69,7 +70,7 @@ export async function bootstrap(step: StepRunner, level: LevelSpec, inputContext
     });
     return new Game(canvas, context, level);
   });
-  game.app.clock.setCapture(window.__wildshardHarness?.capture ?? null);
+  game.app.clock.setCapture(harnessPins()?.capture ?? null);
   const sky = await step('sky', () => game.buildSky());
   game.retainEngineScene();
   const terrain = await step('terrain', async (p) => {

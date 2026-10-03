@@ -22,6 +22,10 @@ installEngineStrings(ENGINE_CONTENT_STRINGS);
 vi.stubGlobal('localStorage', new MemoryStorage());
 vi.stubGlobal('location', new URL('http://localhost:5173/'));
 
+// the app identity first: save keys and the probe's handles are built from it (E405 E414)
+const { installAppIdentity } = await import('#engine/app/identity');
+const { WILDSHARD_IDENTITY } = await import('#game/identity');
+installAppIdentity(WILDSHARD_IDENTITY);
 const { registerAchievements } = await import('#game/achievements');
 const { PINE_FEATS } = await import('#shards/pine-hollow/feats');
 const { DRIFTWOOD_ITEMS, DRIFTWOOD_FEATS } = await import('#shards/driftwood-isle/quest/rows');

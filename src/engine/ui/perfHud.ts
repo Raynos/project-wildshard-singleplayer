@@ -1,3 +1,4 @@
+import { appIdentity } from '../app/identity';
 import { app } from '../app/runtime';
 import { uiScope } from './ownership';
 import { engineString } from '#engine/strings';
@@ -282,7 +283,7 @@ function pct(v: number[], p: number): number { const s = [...v].sort((a, b) => a
 function recSummary(frames: readonly RecFrame[], max: Counts, game: Game, abOff: string): string {
   const L: string[] = [];
   const secs = frames.length > 0 ? ((frames[frames.length - 1]?.t ?? 0) / 1000) : 0;
-  L.push(`WILDSHARD PERF REC · build ${buildId() || '?'} · ${new Date().toISOString().slice(0, 16)}`);
+  L.push(`${appIdentity().name.toUpperCase()} PERF REC · build ${buildId() || '?'} · ${new Date().toISOString().slice(0, 16)}`);
   L.push(`${location.pathname}${location.search}`);
   L.push(device(game).replace('\n', ' · '));
   if (abOff !== '') L.push(`A/B off at the end: ${abOff}`);

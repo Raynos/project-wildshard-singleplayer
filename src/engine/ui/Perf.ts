@@ -1,3 +1,4 @@
+import { appIdentity, currentProbe } from '../app/identity';
 import { uiScope, mountUi } from './ownership';
 import { engineString } from '#engine/strings';
 import { saveStorage } from '#engine/saves/slots';
@@ -204,14 +205,14 @@ export class Perf {
   }
   /** the report's header: what ran, on what, where (E189) */
   private probeHeader(): string[] {
-    const g = this.game, r = g.renderer, cv = r.domElement, info = r.info, w: unknown = window.__wildshard?.world ?? null;
+    const g = this.game, r = g.renderer, cv = r.domElement, info = r.info, w: unknown = currentProbe()?.world ?? null;
     let build = ''; try { build = __BUILD_ID__; } catch { /* a dev page */ }
     let settings = ''; try { settings = saveStorage('global').getItem('settings') ?? ''; } catch { /* storage blocked */ }
     const pl: unknown = typeof w === 'object' && w !== null ? Reflect.get(w, 'player') : null;
     const pos: unknown = typeof pl === 'object' && pl !== null ? Reflect.get(pl, 'position') : null;
     const where = pos instanceof THREE.Vector3 ? `${pos.x.toFixed(1)}, ${pos.y.toFixed(1)}, ${pos.z.toFixed(1)}` : '?';
     return [
-      `WILDSHARD PROBE · ${new Date().toISOString()} · build ${build}`,
+      `${appIdentity().name.toUpperCase()} PROBE · ${new Date().toISOString()} · build ${build}`,
       `${engineString('s_level_word_lower')} ${activeLevel().id} · tier ${TIER} · canvas ${String(cv.width)}×${String(cv.height)} · dpr ${String(devicePixelRatio)} · screen ${String(screen.width)}×${String(screen.height)} · ${String(navigator.hardwareConcurrency)} cores`,
       `ua ${navigator.userAgent}`,
       `player at ${where} · calls ${String(g.lastFrame.calls)} · tris ${String(g.lastFrame.triangles)} · programs ${String(info.programs?.length ?? 0)} · textures ${String(info.memory.textures)} · geometries ${String(info.memory.geometries)}`,

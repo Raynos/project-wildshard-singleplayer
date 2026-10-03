@@ -1,7 +1,7 @@
 import { type EquipmentService, type Weapon, App, Scope, type LevelSpec } from '#engine';
 import { afterEach, describe, expect, expectTypeOf, it, vi } from 'vitest';
 import * as THREE from 'three';
-import { installProbe, programHash, compiledProgramHash, type ProbeWorld, type WildshardProbe } from '#engine/debug/probe';
+import { installProbe, programHash, compiledProgramHash, type ProbeWorld, type EngineProbe } from '#engine/debug/probe';
 import type { WildshardProbe as ScriptProbe } from '../scripts/types/wildshard-probe';
 import type { Game } from '#engine/core/Game';
 import type { Player } from '#engine/player/Player';
@@ -112,7 +112,7 @@ describe('probe contract', () => {
     } finally { vi.useRealTimers(); }
   });
   it('shares its exact declared type with scripts and captures the boot synchronously', () => {
-    expectTypeOf<ScriptProbe>().toEqualTypeOf<WildshardProbe>();
+    expectTypeOf<ScriptProbe>().toEqualTypeOf<EngineProbe>();
     const world = fixture();
     // the shard exposes its own handles (E405 AG25: the engine's probe has no per-shard key table)
     world.game.levelScope.onDispose(world.game.app.debug.scopedExpose(`harness.shard.${world.game.level.id}`, { ocean: world['ocean'] }));
@@ -129,7 +129,7 @@ describe('probe contract', () => {
     expect(probe.boot.scene.totals.mesh).toBe(1);
     expect(probe.fingerprint().scene.totals.mesh).toBe(2);
     expect(tap.hit).toBeNull(); expect(tap.sound).toBeNull(); expect(tap.resumed).toBeNull();
-    expect(() => { probe.combat.equip('sword'); }).toThrow('requires __wildshardHarness');
+    expect(() => { probe.combat.equip('sword'); }).toThrow('requires the harness pins');
   });
 
   it('records and drains harness observations without changing gameplay snapshots', () => {

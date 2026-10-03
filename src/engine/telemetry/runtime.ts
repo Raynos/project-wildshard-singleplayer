@@ -1,3 +1,4 @@
+import { harnessPins } from '../app/identity';
 import type { App } from '../app/app';
 import { Scope } from '../app/scope';
 import { saves } from '../saves/runtime';
@@ -12,7 +13,7 @@ let scope: Scope | null = null;
 let level = '';
 const send = (body: object): void => {
   // Capture/parity previews do not host API functions; their observations must stay deterministic.
-  if (typeof window === 'undefined' || window.__wildshardHarness !== undefined) return;
+  if (typeof window === 'undefined' || harnessPins() !== undefined) return;
   const endpoint = import.meta.env.MODE === 'native' ? 'https://wildshard-singleplayer.vercel.app/api/telemetry' : '/api/telemetry';
   void fetch(endpoint, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body), keepalive: true }).catch(() => undefined);
 };

@@ -1,3 +1,4 @@
+import { appIdentity, installedIdentity } from '../app/identity';
 import * as v from 'valibot';
 import { resetLegacy } from './legacy';
 
@@ -19,7 +20,16 @@ interface StoreOptions {
   forgetLegacy?: (keys: readonly string[]) => void;
   persist?: () => Promise<boolean>;
 }
-const PREFIX = 'wildshard.save.v2.';
+/** every save key's prefix: the app's (a wire contract; src/engine/app/identity.ts) */
+const savePrefix = (): string => appIdentity().savePrefix;
+/**
+ * A key's prefix where it is about to be read or written: a store with real storage needs the app's (without it the
+ * player's progress would land under another name, so appIdentity() throws); one without storage (a Node script, a
+ * bare test) keeps its keys in this process' memory, where any prefix serves.
+ */
+/** a key's scope part (the name less its prefix), for reports */
+const scopeOf = (name: string): string => { const p = installedIdentity()?.savePrefix ?? 'unsaved.'; return name.startsWith(p) ? name.slice(p.length) : name; };
+const keyPrefix = (persisted: boolean): string => installedIdentity()?.savePrefix ?? (persisted ? savePrefix() : 'unsaved.');
 /** Hidden content namespaces use one leading underscore; paths and embedded underscores stay invalid. */
 const shardNamespace = (slug: string): boolean => /^_?[a-z0-9]+(?:-[a-z0-9]+)*$/u.test(slug);
 const object = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -52,7 +62,10 @@ export class SaveStore {
   }
   private name(scope: SaveScope, namespace?: string): string {
     if (scope === 'shard' && (!namespace || !shardNamespace(namespace))) throw new Error('Shard saves need a slug');
-    return PREFIX + (scope === 'shard' ? namespace : scope);
+    let persisted = false;
+    // a page's storage persists; Node's global localStorage (a script, a bake) does not outlive the process
+    try { persisted = typeof window !== 'undefined' && this.storage(scope) !== null; } catch { /* blocked storage: memory only */ }
+    return keyPrefix(persisted) + (scope === 'shard' ? namespace : scope);
   }
   private get(scope: SaveScope, name: string): string | null {
     try { if (this.failedWrites.has(name)) return this.memory.get(name) ?? null; const storage = this.storage(scope); return storage ? storage.getItem(name) : this.memory.get(name) ?? null; } catch { return this.memory.get(name) ?? null; }
@@ -68,7 +81,7 @@ export class SaveStore {
   private names(scope: SaveScope): string[] {
     const names = new Set(this.memory.keys());
     try { const storage = this.storage(scope); if (storage) for (let i = 0; i < storage.length; i++) { const name = storage.key(i); if (name) names.add(name); } } catch { /* memory only */ }
-    return [...names].filter((name) => name.startsWith(PREFIX));
+    return [...names].filter((name) => name.startsWith(savePrefix()));
   }
   private at(): string {
     const now = this.options.now?.() ?? new Date().toISOString(), epoch = Date.parse(now);
@@ -92,7 +105,7 @@ export class SaveStore {
     this.prune(this.names(scope).filter((key) => key.startsWith(prefix)), (key) => { this.remove(scope, key); });
     const fresh: Document = { keys: {} };
     this.put(scope, name, JSON.stringify(fresh));
-    this.report(name.slice(PREFIX.length), '*', 0, 'Invalid save savedDoc: expected JSON with a keys object');
+    this.report(scopeOf(name), '*', 0, 'Invalid save savedDoc: expected JSON with a keys object');
     return fresh;
   }
   define<T>(definition: SaveKeyDef<T>): SaveSlot<T> {
@@ -130,7 +143,7 @@ export class SaveStore {
       const initial = definition.initial();
       savedDoc.keys[definition.key] = { v: definition.version, data: initial };
       this.put(definition.scope, name, JSON.stringify(savedDoc));
-      this.report(name.slice(PREFIX.length), definition.key, version, issue);
+      this.report(scopeOf(name), definition.key, version, issue);
       return clone(initial);
     };
     const write = (value: T, namespace?: string): boolean => {
@@ -138,7 +151,7 @@ export class SaveStore {
       const prior = savedDoc.keys[definition.key];
       if (this.readonlyKeys.has(`${name}/${definition.key}`) || (entry(prior) && prior.v > definition.version)) return false;
       const result = v.safeParse(definition.schema, value);
-      if (!result.success) { this.report(name.slice(PREFIX.length), definition.key, definition.version, result.issues[0].message); return false; }
+      if (!result.success) { this.report(scopeOf(name), definition.key, definition.version, result.issues[0].message); return false; }
       savedDoc.keys[definition.key] = { v: definition.version, data: result.output };
       return this.put(definition.scope, name, JSON.stringify(savedDoc));
     };
@@ -177,25 +190,25 @@ export class SaveStore {
   exportAll(): string {
     this.initialize();
     const docs: Record<string, Document> = {};
-    for (const name of new Set([`${PREFIX  }global`, ...this.names('global')])) {
-      const scope = name.slice(PREFIX.length);
+    for (const name of new Set([`${savePrefix()}global`, ...this.names('global')])) {
+      const scope = scopeOf(name);
       if (scope === 'device' || scope === 'session' || scope.includes('.corrupt.')) continue;
       docs[scope] = this.savedDoc('global', name);
     }
-    return JSON.stringify({ format: 'wildshard.save', version: 2, build: this.options.build ?? '', exported: this.at(), docs }, null, 2);
+    return JSON.stringify({ format: appIdentity().saveFormat, version: 2, build: this.options.build ?? '', exported: this.at(), docs }, null, 2);
   }
   importAll(json: string): ImportReport {
     const report: ImportReport = { imported: [], skipped: [] };
     let value: unknown;
     try { value = JSON.parse(json); } catch { return { imported: [], skipped: [{ key: '*', reason: 'Invalid JSON' }] }; }
-    if (!object(value) || value['format'] !== 'wildshard.save' || value['version'] !== 2 || !object(value['docs'])) return { imported: [], skipped: [{ key: '*', reason: 'Unknown save format' }] };
+    if (!object(value) || value['format'] !== appIdentity().saveFormat || value['version'] !== 2 || !object(value['docs'])) return { imported: [], skipped: [{ key: '*', reason: 'Unknown save format' }] };
     for (const [scope, savedDoc] of Object.entries(value['docs'])) {
       if (scope === 'device' || scope === 'session' || (scope !== 'global' && !shardNamespace(scope)) || !doc(savedDoc)) { report.skipped.push({ key: scope, reason: 'Invalid or private scope' }); continue; }
       const kind = scope === 'global' ? 'global' : 'shard';
       for (const [key, raw] of Object.entries(savedDoc.keys)) {
         const identity = `${scope}/${key}`, definition = this.definitions.get(`${kind}/${key}`);
         if (!definition || !entry(raw)) { report.skipped.push({ key: identity, reason: 'Unknown key or invalid entry' }); continue; }
-        const target = this.savedDoc(kind, PREFIX + scope), existing = target.keys[key];
+        const target = this.savedDoc(kind, savePrefix() + scope), existing = target.keys[key];
         if (raw.v > definition.version || (entry(existing) && existing.v > definition.version)) { report.skipped.push({ key: identity, reason: 'Newer version: kept untouched' }); continue; }
         let data = raw.data, version = raw.v;
         try {
@@ -203,7 +216,7 @@ export class SaveStore {
           const result = v.safeParse(definition.schema, data);
           if (!result.success) throw new Error(result.issues[0].message);
           target.keys[key] = { v: version, data: result.output };
-          if (this.put(kind, PREFIX + scope, JSON.stringify(target))) report.imported.push(identity);
+          if (this.put(kind, savePrefix() + scope, JSON.stringify(target))) report.imported.push(identity);
           else report.skipped.push({ key: identity, reason: 'Storage unavailable or full: kept in memory for this page only' });
         } catch (error) { report.skipped.push({ key: identity, reason: error instanceof Error ? error.message : 'Invalid data' }); }
       }
@@ -214,7 +227,7 @@ export class SaveStore {
     this.initialize();
     const copies: CorruptSave[] = [];
     for (const name of this.names('global')) {
-      const [scope = '', at] = name.slice(PREFIX.length).split('.corrupt.');
+      const [scope = '', at] = scopeOf(name).split('.corrupt.');
       if (scope === 'device' || scope === 'session') continue;
       if (at) { copies.push({ scope, key: '*', at, bytes: new TextEncoder().encode(this.get('global', name) ?? '').length }); continue; }
       for (const [key, raw] of Object.entries(this.savedDoc('global', name).keys)) {
@@ -226,7 +239,7 @@ export class SaveStore {
   }
   exportCorrupt(copy: CorruptSave): string {
     if (copy.scope === 'device' || copy.scope === 'session') throw new Error('Private saves cannot be exported');
-    const name = PREFIX + copy.scope;
+    const name = savePrefix() + copy.scope;
     return copy.key === '*' ? this.get('global', `${name}.corrupt.${copy.at}`) ?? '' : JSON.stringify(this.savedDoc('global', name).keys[`${copy.key}.corrupt.${copy.at}`], null, 2);
   }
 }

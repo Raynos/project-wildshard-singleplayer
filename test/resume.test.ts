@@ -3,12 +3,12 @@
 // URL flag and still key as GpuRecovery / Resume write.
 import { describe, expect, it } from 'vitest';
 import html from '../index.html?raw';
-import { BRAND_KEY, RESUME_HTML, SHOT_KEY } from '#engine/ui/Resume';
+import { BRAND_KEY, resumeHtml, SHOT_KEY } from '#engine/ui/Resume';
 import { RELOAD_PARAM } from '#engine/core/GpuRecovery';
 
 describe('resume screen', () => {
-  it('index.html carries RESUME_HTML verbatim inside .ws-resume', () => {
-    expect(html).toContain(`<div class="ws-resume" aria-hidden="true">${RESUME_HTML}</div>`);
+  it('index.html carries resumeHtml() verbatim inside .ws-resume', () => {
+    expect(html).toContain(`<div class="ws-resume" aria-hidden="true">${resumeHtml()}</div>`);
   });
 
   it('the inline script reads the same reload flag and still key', () => {

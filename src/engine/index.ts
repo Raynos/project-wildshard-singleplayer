@@ -300,3 +300,5 @@ export { SlashTrail, type SlashTrailProfile } from './combat/view/slashTrail';
 
 export type { SkyRig } from './world/skyRig';
 export type { SkyBackdropView } from './world/skyBackdrop';
+export { installAppIdentity, appIdentity, type AppIdentity } from './app/identity';
+export type { EngineProbe, HarnessPins } from './debug/probe';

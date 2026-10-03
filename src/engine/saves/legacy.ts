@@ -1,3 +1,4 @@
+import { appIdentity } from '../app/identity';
 import type { SaveStorage } from './store';
 
 export const LEGACY_GAME_KEYS = ['ws.settings.v1', 'ws.gfx.v1', 'ws.hints.v1', 'ws.review.v1', 'ws.review.queue.v1', 'ws.progress.v1', 'ws.inventory.v1', 'ws.flags.v1', 'ws.boss.v1', 'ws.elites.v1', 'ws.purse.v1', 'ws.owned.v1', 'ws.bounty.v1', 'ws.compendium.v1', 'ws.skins.v1', 'ws.nalati.skins.v1', 'ws.nalati.tulpar', 'ws.nalati.horseNames', 'ws.ph.loadout.v1', 'ws.lodge.v1', 'ws.debug'] as const;
@@ -19,7 +20,7 @@ export function decodeLegacy(key: string, raw: string): unknown {
 }
 function carry(storage: SaveStorage | null, scope: 'device' | 'session', mapping: Readonly<Record<string, string>>): void {
   if (!storage) return;
-  const name = `wildshard.save.v2.${scope}`;
+  const name = `${appIdentity().savePrefix}${scope}`;
   let savedDoc: { keys: Record<string, unknown> } = { keys: {} };
   try { const raw: unknown = JSON.parse(storage.getItem(name) ?? '{"keys":{}}'); if (typeof raw === 'object' && raw !== null && 'keys' in raw && typeof raw.keys === 'object' && raw.keys !== null) savedDoc = { keys: { ...raw.keys } }; } catch { return; }
   for (const [old, key] of Object.entries(mapping)) {
@@ -38,11 +39,11 @@ function carry(storage: SaveStorage | null, scope: 'device' | 'session', mapping
 }
 /** Only named gameplay keys reset; pre-boot, diagnostic, per-tab and OTA keys survive. */
 export function resetLegacy(local: SaveStorage | null, session: SaveStorage | null, forget?: (keys: readonly string[]) => void): void {
-  if (local?.getItem('wildshard.save.v2.global') !== null) return;
+  if (local?.getItem(`${appIdentity().savePrefix}global`) !== null) return;
   carry(local, 'device', LEGACY_DEVICE); carry(session, 'session', LEGACY_SESSION);
   const deleted: string[] = [];
   for (let i = 0; i < local.length; i++) { const key = local.key(i); if (key && LEGACY_GAME_KEYS.some((old) => key === old || key.startsWith(`${old}:`))) deleted.push(key); }
   for (const key of deleted) local.removeItem(key);
   forget?.(deleted);
-  local.setItem('wildshard.save.v2.global', '{"keys":{}}');
+  local.setItem(`${appIdentity().savePrefix}global`, '{"keys":{}}');
 }

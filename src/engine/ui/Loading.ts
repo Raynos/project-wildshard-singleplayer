@@ -4,7 +4,7 @@ import { saveStorage } from '#engine/saves/slots';
 import { formatMB, type ProgressView } from '../boot/plan';
 import { TIER } from '../core/tier';
 import { PERFLOAD, barTrace } from '../boot/perflog';
-import { LOAD_SHELL_HTML } from '../boot/shell';
+import { loadShellHtml } from '../boot/shell';
 import { lastEndLine } from '../boot/lastEnd';
 import { recordBootProgress, startBoot } from '../boot/bootTrace';
 import { isDev } from '../core/devMode';
@@ -54,7 +54,7 @@ export class Loading {
     else {
       this.root = document.createElement('div');
       this.root.className = 'ws-load';
-      this.root.innerHTML = LOAD_SHELL_HTML;
+      this.root.innerHTML = loadShellHtml();
       mountUi(this.root, this.scope, document.body);
     }
     const el = (key: ElKey): HTMLElement => { const e = this.root.querySelector<HTMLElement>(`[data-el="${key}"]`); if (!e) throw new Error(`Loading: no [data-el="${key}"]`); return e; };

@@ -18,6 +18,7 @@
  * within ±4 ms of the cap's interval (the "lock"; 16.7 ms uncapped); >50 / >100 = frames over 50 / 100 ms; gpu50 / gpu95
  * = frameCost's gpu~ (the wait beyond the work and the cap: the GPU, iOS's compositor); calls / tris = the p50 frame's.
  */
+import { appIdentity } from '../app/identity';
 
 /** one recorded frame (frameCost's split, the renderer's counts; `cause` is filled on a spot's worst frames only) */
 export interface LapFrame { frame: number; update: number; render: number; gpu: number; calls: number; tris: number; cause: string }
@@ -69,7 +70,7 @@ function edgeGpu(spots: readonly LapSpotResult[], n: number): { start: number; e
 export function lapSummary(meta: LapMeta, spots: readonly LapSpotResult[]): string {
   const L: string[] = [];
   const targetMs = 1000 / (meta.capFps > 0 ? meta.capFps : 60);
-  L.push(`WILDSHARD PERF LAP · build ${meta.build || '?'}`);
+  L.push(`${appIdentity().name.toUpperCase()} PERF LAP · build ${meta.build || '?'}`);
   L.push(`${meta.startedAt} · ${meta.shard} · ${spots.length}/${meta.total} spots · ${mmss(meta.elapsedS)}${meta.cancelled !== null ? ` · CANCELLED: ${meta.cancelled}` : ''}`);
   L.push(`${meta.tier} · dpr ${meta.dpr} · render ${meta.pixelRatio.toFixed(2)}× · ${meta.canvas} · cap ${meta.capFps > 0 ? `${meta.capFps} fps` : 'off'} · ${meta.engine}`);
   L.push(`rAF ${Math.round(meta.rafHz)} Hz · Low Power Mode: ${lowPower(meta.rafHz)}`);

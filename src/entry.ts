@@ -1,3 +1,5 @@
+// oxlint-disable-next-line import/no-unassigned-import -- evaluated for its effect: the app identity is installed before any other module body runs (E414)
+import './identity';
 import { startPageServices } from './pageServices';
 import { persistHomeScreen } from '#engine/saves/runtime';
 /**
