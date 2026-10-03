@@ -1,4 +1,4 @@
-import { filePolicy, PUBLIC_BYTES, type ChunkFiles, type Tier, type TexMode } from '#engine/data';
+import { filePolicy, publicBytes, type ChunkFiles, type Tier, type TexMode } from '#engine/data';
 import { GPU_FILES } from '../ktx2.generated';
 import { pineHeroUrls } from '../world/heroFiles';
 import { pineSkyKeyUrls } from '../look/skyKeys';
@@ -18,24 +18,24 @@ export function worldReads(tier: Tier, tex: TexMode = 'img'): string[] {
     '/assets/pine-hollow/weapons/lever-rifle.glb', '/assets/pine-hollow/weapons/skinning-knife.glb',
     '/assets/pine-hollow/life/birds.glb', '/assets/pine-hollow/life/birds.json',
     ...['ranger', 'trader', 'miller'].map((kind) => `/assets/pine-hollow/npcs/${kind}.glb`), '/assets/pine-hollow/journal/chalk.webp',
-  ].map(gpu).filter((url) => url in PUBLIC_BYTES);
+  ].map(gpu).filter((url) => url in publicBytes());
 }
 export function bootSources(tier: Tier, tex: TexMode = 'img'): ChunkFiles {
   const { gpu, layer, pbr } = filePolicy(tier, tex, GPU_FILES);
   const gltf = (id: string): string[] => [`/assets/models/${id}/${id}.gltf`, `/assets/models/${id}/${id}.bin`, ...['diff', 'nor_gl', 'arm'].map((kind) => `/assets/models/${id}/textures/${id}_${kind}_1k.jpg`)];
   const lod = (id: string): string => `/assets/models/${id}/${id}_lod.glb`;
   const baked = `${bakedDir}terrain.bin`;
-  const terrain = uniq([...(baked in PUBLIC_BYTES ? [baked] : []), ...['forrest_ground_03', 'leafy_grass', 'rock_ground', 'stony_dirt_path'].flatMap(pbr).map(layer), ...pbr('rock_ground')]);
+  const terrain = uniq([...(baked in publicBytes() ? [baked] : []), ...['forrest_ground_03', 'leafy_grass', 'rock_ground', 'stony_dirt_path'].flatMap(pbr).map(layer), ...pbr('rock_ground')]);
   const trees = uniq(['trees.glb', 'cards-albedo.png', 'cards-normal.jpg', 'cards-arm.jpg', 'impostor-albedo.png', 'impostor-normal.jpg'].map((name) => `${treeSet}/${name}`).concat(['pine_bark', 'fir_bark', 'metasequoia_bark', 'birch_bark', 'bark_willow_02'].flatMap(pbr).map(layer)));
   const layered = new Set([...terrain, ...trees].map(gpu));
   const cabins = uniq([...['wood_trunk_wall', 'wood_planks_grey', 'wood_planks_dirt', 'rough_pine_door', 'stone_wall', 'pine_bark'].flatMap(pbr), ...['stone_fire_pit', 'wooden_crate_02', 'wine_barrel_01', 'wooden_bucket_01', 'hatchet'].flatMap(gltf), lod('Lantern_01')].map(gpu)).filter((url) => !layered.has(url));
   const props = uniq(['rock_moss_set_01', 'tree_stump_01', 'dead_tree_trunk'].map(lod));
   const skyJson = `${bakedDir}sky.json`, color = `${hdri}.sky.jpg`, gain = `${hdri}.gain.png`;
   return {
-    sky: [...(color in PUBLIC_BYTES && gain in PUBLIC_BYTES ? [color, gain] : [`${hdri}.hdr`]), ...(skyJson in PUBLIC_BYTES ? [skyJson] : []), ...pineSkyKeyUrls().filter((url) => url in PUBLIC_BYTES)].map(gpu),
-    baked: Object.keys(PUBLIC_BYTES).filter((url) => url.startsWith(`${bakedDir}tex/`) && !url.includes('.phone.') && !BAKED_UNREAD.test(url)).map(gpu),
-    terrain: terrain.map(gpu), trees: trees.map(gpu), physics: ['/assets/physics/rapier.wasm', ...(`${bakedDir}navmesh.bin` in PUBLIC_BYTES ? [`${bakedDir}navmesh.bin`] : [])], cabins,
-    props: [...worldReads(tier, tex), ...props, ...pineHeroUrls().filter((url) => url in PUBLIC_BYTES), ...rigNames.map((name) => `/assets/pine-hollow/creatures/${name}${tier === 'phone' ? '.phone' : ''}.rigged.glb`).filter((url) => url in PUBLIC_BYTES)].map(gpu),
+    sky: [...(color in publicBytes() && gain in publicBytes() ? [color, gain] : [`${hdri}.hdr`]), ...(skyJson in publicBytes() ? [skyJson] : []), ...pineSkyKeyUrls().filter((url) => url in publicBytes())].map(gpu),
+    baked: Object.keys(publicBytes()).filter((url) => url.startsWith(`${bakedDir}tex/`) && !url.includes('.phone.') && !BAKED_UNREAD.test(url)).map(gpu),
+    terrain: terrain.map(gpu), trees: trees.map(gpu), physics: ['/assets/physics/rapier.wasm', ...(`${bakedDir}navmesh.bin` in publicBytes() ? [`${bakedDir}navmesh.bin`] : [])], cabins,
+    props: [...worldReads(tier, tex), ...props, ...pineHeroUrls().filter((url) => url in publicBytes()), ...rigNames.map((name) => `/assets/pine-hollow/creatures/${name}${tier === 'phone' ? '.phone' : ''}.rigged.glb`).filter((url) => url in publicBytes())].map(gpu),
     art: [], music: [], sfx: [],
   };
 }

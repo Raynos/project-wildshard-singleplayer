@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { toLevelSpec } from '#game';
 import { SHARDS, playable } from '#game/shard/registry';
-import { PUBLIC_BYTES } from '#engine/boot/bytes.generated';
-import { PACKS } from '#engine/boot/packs.generated';
+import { PUBLIC_BYTES } from '#game/boot/bytes.generated';
+import { PACKS } from '#game/boot/packs.generated';
 import { gpuUrl } from '#engine/boot/bytes';
 import { chunkFiles } from '#engine/boot/manifest';
 import { initializeTier, TIER } from '#engine/core/tier';

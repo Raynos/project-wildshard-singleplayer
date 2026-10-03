@@ -12,8 +12,8 @@
  * baked one (the file only carries pixels). Names are per chunk; use `common/` for chunk-independent
  * ones via `commonTexture`.
  */
+import { publicBytes } from './tables';
 import * as THREE from 'three';
-import { PUBLIC_BYTES } from './bytes.generated';
 import { fetchImage, tierUrl } from './bytes';
 import { ktx2Texture } from '../core/ktx2';
 import { activeLevel } from '../level/selection';
@@ -33,12 +33,12 @@ const dir = (slug: string) => `/assets/baked/${slug}/tex/`;
 export function bakedTextureUrls(slug: string, unread?: RegExp): string[] {
   const p = dir(slug);
   // phone copies: through tierUrl
-  return Object.keys(PUBLIC_BYTES).filter((k) => k.startsWith(p) && !k.includes('.phone.') && (unread === undefined || !unread.test(k)));
+  return Object.keys(publicBytes()).filter((k) => k.startsWith(p) && !k.includes('.phone.') && (unread === undefined || !unread.test(k)));
 }
 
 function urlFor(slug: string, name: string): string | null {
   const p = dir(slug);
-  for (const ext of ['png', 'jpg']) { const u = `${p}${name}.${ext}`; if (u in PUBLIC_BYTES) return u; }
+  for (const ext of ['png', 'jpg']) { const u = `${p}${name}.${ext}`; if (u in publicBytes()) return u; }
   return null;
 }
 

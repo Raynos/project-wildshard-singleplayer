@@ -4,7 +4,7 @@ import { createDriftwoodAudio } from '#shards/driftwood-isle/audio/files';
 // Driftwood's list is unchanged), and the layout's zones become ambience spots.
 import { describe, expect, it } from 'vitest';
 import { audioFiles, manifestFiles } from '#engine/boot/audioFiles';
-import { MUSIC_MANIFESTS, SFX_MANIFESTS } from '#engine/boot/audio.generated';
+import { MUSIC_MANIFESTS, SFX_MANIFESTS } from '#game/boot/audio.generated';
 import { pineZoneSpots } from '#shards/pine-hollow/audio/wiring';
 
 describe('the loading bar\'s audio per shard', () => {

@@ -11,9 +11,9 @@
  * file is a normal image, and `loadTexture` (bitmap flipped at decode, flipY false) maps uv (0,0)
  * to the same bottom-left texel the runtime bake did.
  */
+import { publicBytes } from '../boot/tables';
 import * as THREE from 'three';
 import type { Renderer } from '../render/renderer';
-import { PUBLIC_BYTES } from '../boot/bytes.generated';
 import { loadTexture } from '../core/assets';
 
 export interface CardTextures { albedo: THREE.Texture; normal: THREE.Texture; arm: THREE.Texture }
@@ -25,7 +25,7 @@ export function bakedCardUrls(slug: string): Record<keyof typeof FILES, string> 
   const out = {} as Record<keyof typeof FILES, string>;
   for (const k of Object.keys(FILES) as (keyof typeof FILES)[]) {
     const url = `/assets/baked/${slug}/${FILES[k]}`;
-    if (!(url in PUBLIC_BYTES)) return null;
+    if (!(url in publicBytes())) return null;
     out[k] = url;
   }
   return out;

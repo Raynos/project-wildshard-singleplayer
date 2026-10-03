@@ -11,10 +11,10 @@
  * which is what the player sees. The build checks the full bake's bytes before committing. A missing
  * or malformed file leaves the analytic functions in place (a warning, never a failure).
  */
+import { publicBytes } from '../boot/tables';
 import { _installBakedTerrain } from './Heightfield';
 import { activeLevel } from '../level/selection';
 import { SEED } from '../core/config';
-import { PUBLIC_BYTES } from '../boot/bytes.generated';
 import type { TerrainField } from '../level/data';
 
 export interface BakedGrid { res: number; size: number; seed: number; /** retained legacy header field; the build checks complete output bytes */ landscapeHash: number; heights: Float32Array; splat: Uint8Array; /** the undergrowth decision log, when the bake has one */ undergrowth: BakedPlacement | null }
@@ -39,7 +39,7 @@ function parsePlacement(buf: ArrayBuffer, at: number): BakedPlacement | null {
 
 export const bakedTerrainUrl = (slug: string): string | null => {
   const url = `/assets/baked/${slug}/terrain.bin`;
-  return url in PUBLIC_BYTES ? url : null;
+  return url in publicBytes() ? url : null;
 };
 
 export function parseBakedTerrain(buf: ArrayBuffer): BakedGrid | null {

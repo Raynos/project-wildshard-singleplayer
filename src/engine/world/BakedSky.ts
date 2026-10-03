@@ -9,8 +9,8 @@
  * Both planes are decoded and recombined in a Worker (createImageBitmap + OffscreenCanvas, no colour conversion): one
  * lookup per channel in a 256 × 256 half-float table (gain × colour byte). The main thread only builds the texture.
  */
+import { publicBytes } from '../boot/tables';
 import * as THREE from 'three';
-import { PUBLIC_BYTES } from '../boot/bytes.generated';
 
 /** log2 of the brightest value the pair holds — keep in step with scripts/bake-sky.mjs */
 const GAIN_MAX = 16;
@@ -19,7 +19,7 @@ const GAIN_MAX = 16;
 export function bakedSkyUrls(hdri: string): { color: string; gain: string } | null {
   if (typeof location !== 'undefined' && new URLSearchParams(location.search).has('nobake')) return null;
   const color = `/assets/hdri/${hdri}_2k.sky.jpg`, gain = `/assets/hdri/${hdri}_2k.gain.png`;
-  return color in PUBLIC_BYTES && gain in PUBLIC_BYTES ? { color, gain } : null;
+  return color in publicBytes() && gain in publicBytes() ? { color, gain } : null;
 }
 
 let table: Uint16Array | null = null;

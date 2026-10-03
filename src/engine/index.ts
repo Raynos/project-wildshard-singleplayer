@@ -192,7 +192,7 @@ export { loadBakedCards, exportCardTextures } from './world/BakedCards';
 export { markGpuOnly } from './core/gpuOnly';
 export { treeSetOf, TREE_SPECS } from './world/forest/treeSpec';
 export { BARK_LAYERS, loadTreeSetGeometry, patchBarkArrays, patchCardCrownTop, patchImpostorCrownTop, standIn, treeSetUrls } from './world/forest/treeSet';
-export { PUBLIC_BYTES } from './boot/bytes.generated';
+export { publicBytes, assetVersions, musicManifests, sfxManifests, bootPacks, installAssetTables, type AssetTables, type PackDef, type PackPart, type PackFile } from './boot/tables';
 export { markUnload } from './boot/lastEnd';
 export { setTitleArrival } from './boot/titleArrival';
 export type { TreeSpeciesTraits, TreeSetVariant } from './world/forest/treeSpecies';

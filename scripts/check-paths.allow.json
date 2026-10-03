@@ -1135,16 +1135,6 @@
     "why": "Synthetic engine-to-shard model import fixture."
   },
   {
-    "path": "src/shards/${slug}/thumbs",
-    "file": "vite/gen.ts",
-    "why": "Computed path from discovered shard folders; each owns its title images."
-  },
-  {
-    "path": "src/shards/${slug}/explore",
-    "file": "vite/gen.ts",
-    "why": "Computed path from discovered shard folders; each owns its Explore images."
-  },
-  {
     "path": "src/chunks/thumbs/",
     "file": "scripts/normalize/classify.mjs",
     "why": "Classifier re-derives ownership from original source paths in the committed pre-F6 map; moved paths are verified separately."

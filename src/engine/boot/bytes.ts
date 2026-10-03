@@ -12,25 +12,26 @@
  */
 import type { Plan, ByteProgress } from './plan';
 import type { BootStep, ByteKey } from './steps';
-import { PUBLIC_BYTES } from './bytes.generated';
-import { ASSET_VERSIONS } from './versions.generated';
+import { assetVersions, publicBytes } from './tables';
 import { DefaultLoadingManager } from 'three';
 import { TIER_CONFIG } from '../core/tier';
 import { standIn, texMode, type TexMode } from './gpuFiles';
 
 export type ChunkFiles = Readonly<Record<ByteKey, readonly string[]>>;
 type Bytes = Record<string, number>;
-const TABLE: Bytes = { ...PUBLIC_BYTES };
+const EXTRA: Bytes = {};
 /** Sizes of files outside public/assets that a boot declares (the bundle's hashed title / explore art, src/engine/boot/extras.ts). */
-export function addBytes(extra: Readonly<Record<string, number>>): void { Object.assign(TABLE, extra); }
+export function addBytes(extra: Readonly<Record<string, number>>): void { Object.assign(EXTRA, extra); }
+const known = (f: string): boolean => f in EXTRA || f in publicBytes();
+const sizeOf = (f: string): number | undefined => EXTRA[f] ?? publicBytes()[f];
 
 export function declareTotals(files: ChunkFiles): Record<ByteKey, { bytes: number; files: number }> {
   const out = {} as Record<ByteKey, { bytes: number; files: number }>;
   for (const key of Object.keys(files) as ByteKey[]) {
     let bytes = 0;
     for (const f of files[key]) {
-      if (!(f in TABLE)) throw new Error(`boot: ${key} declares ${f} but public/assets has no such file`);
-      bytes += TABLE[f] ?? 0;
+      if (!known(f)) throw new Error(`boot: ${key} declares ${f} but public/assets has no such file`);
+      bytes += sizeOf(f) ?? 0;
     }
     out[key] = { bytes, files: files[key].length };
   }
@@ -56,7 +57,7 @@ export function phoneUrl(url: string): string {
   const m = /^(.*)\.(png|jpg|webp|glb)$/.exec(url);
   if (!m) return url;
   const u = `${m[1]}.phone.${m[2] === 'glb' ? 'glb' : 'webp'}`;
-  return u in TABLE ? u : url;
+  return known(u) ? u : url;
 }
 /** the file this device downloads for `url` in mode `tex`: tierUrl's, or its KTX2 stand-in for an image (E157) — what the boot declares */
 export function gpuUrl(url: string, tex: TexMode = texMode()): string {
@@ -86,7 +87,7 @@ const pathOf = (url: string): string => { try { return new URL(url, location.hre
  */
 export function versionedUrl(url: string): string {
   if (!url.includes('/assets/') || url.includes('?')) return url;
-  const v = ASSET_VERSIONS[pathOf(url)];
+  const v = assetVersions()[pathOf(url)];
   return v === undefined ? url : `${url}?v=${v}`;
 }
 /** `fetch` with `versionedUrl` applied (three's FileLoader hands fetch a Request) */
@@ -153,7 +154,7 @@ function installCounter(): void {
         const key = c.sourceOf.get(p);
         if (!key || c.seen.has(p) || c.finished.has(p)) continue;
         c.finished.add(p);
-        c.reader(key).add(e.encodedBodySize || e.transferSize || (TABLE[p] ?? 0) || 0);
+        c.reader(key).add(e.encodedBodySize || e.transferSize || (sizeOf(p) ?? 0) || 0);
         c.plan.fileDone(key);
       }
     });

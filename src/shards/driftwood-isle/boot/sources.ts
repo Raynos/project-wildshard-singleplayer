@@ -1,4 +1,4 @@
-import { filePolicy, PUBLIC_BYTES, type ChunkFiles, type Tier, type TexMode } from '#engine/data';
+import { filePolicy, publicBytes, type ChunkFiles, type Tier, type TexMode } from '#engine/data';
 import { GPU_FILES } from '../ktx2.generated';
 
 const ROOT = '/assets/baked/driftwood-isle/';
@@ -12,9 +12,9 @@ export function bootSources(tier: Tier, tex: TexMode = 'img'): ChunkFiles {
   const { gpu } = filePolicy(tier, tex, GPU_FILES);
   const terrain = `${ROOT}terrain.bin`, navmesh = `${ROOT}navmesh.bin`;
   return {
-    sky: [], baked: Object.keys(PUBLIC_BYTES).filter((url) => url.startsWith(`${ROOT}tex/`) && !url.includes('.phone.')).map(gpu),
-    terrain: terrain in PUBLIC_BYTES ? [gpu(terrain)] : [], trees: [],
-    physics: ['/assets/physics/rapier.wasm', ...(navmesh in PUBLIC_BYTES ? [navmesh] : [])], cabins: [], props: [],
+    sky: [], baked: Object.keys(publicBytes()).filter((url) => url.startsWith(`${ROOT}tex/`) && !url.includes('.phone.')).map(gpu),
+    terrain: terrain in publicBytes() ? [gpu(terrain)] : [], trees: [],
+    physics: ['/assets/physics/rapier.wasm', ...(navmesh in publicBytes() ? [navmesh] : [])], cabins: [], props: [],
     art: [], music: [], sfx: [],
   };
 }

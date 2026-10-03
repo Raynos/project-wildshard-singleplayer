@@ -1,10 +1,10 @@
+import { publicBytes } from '../boot/tables';
 import * as THREE from 'three';
 import { GLTFLoader, type GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { HDRLoader } from 'three/examples/jsm/loaders/HDRLoader.js';
 import { fetchImage, tierUrl } from '../boot/bytes';
 import { initKtx2, ktx2Layers, ktx2Texture, releaseAfterUpload } from './ktx2';
 import { TIER_CONFIG } from './tier';
-import { PUBLIC_BYTES } from '../boot/bytes.generated';
 import type { Renderer } from '../render/renderer';
 
 const gltfLoader = new GLTFLoader();
@@ -58,7 +58,7 @@ export async function loadTexture(url: string, srgb = false, repeat = 1): Promis
  */
 export function texUrl(id: string, kind: 'diffuse' | 'nor_gl' | 'arm'): string {
   const base = `/assets/tex/${id}/${kind}`;
-  if (TIER_CONFIG.maxTexture <= 1024 && `${base}_1k.jpg` in PUBLIC_BYTES) return `${base}_1k.jpg`;
+  if (TIER_CONFIG.maxTexture <= 1024 && `${base}_1k.jpg` in publicBytes()) return `${base}_1k.jpg`;
   return `${base}.jpg`;
 }
 export const pbrUrls = (id: string): string[] => (['diffuse', 'nor_gl', 'arm'] as const).map((k) => texUrl(id, k));

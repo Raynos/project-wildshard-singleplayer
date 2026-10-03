@@ -10,12 +10,12 @@ export async function BOOT_AUDIO(): Promise<readonly string[]> {
 }
 /** The existing selected-style-first file order and exclusions, owned by this level. */
 export async function createPineAudio(): Promise<LevelAudioProfile> {
-  const { audioFiles, MUSIC_MANIFESTS, SFX_MANIFESTS, getMusicStyle, getSfxSet, musicDir, sfxDir, styleFiles, sfxFiles, decodeStyle, decodeSfxSet } = await loadAudio();
+  const { audioFiles, musicManifests, sfxManifests, getMusicStyle, getSfxSet, musicDir, sfxDir, styleFiles, sfxFiles, decodeStyle, decodeSfxSet } = await loadAudio();
   const ownMusic = (): string[] => {
     const style = getMusicStyle(), key = `${OWN}-${style}`;
-    return style !== 'synth' && Object.hasOwn(MUSIC_MANIFESTS, key) ? [key] : [];
+    return style !== 'synth' && Object.hasOwn(musicManifests(), key) ? [key] : [];
   };
-  const ownSfx = (): string[] => Object.hasOwn(SFX_MANIFESTS, OWN) ? [OWN] : [];
+  const ownSfx = (): string[] => Object.hasOwn(sfxManifests(), OWN) ? [OWN] : [];
   return {
     files: () => audioFiles({ omitSlots: ['island'], musicSets: ownMusic(), sfxSets: ownSfx() }),
     priorityFiles: () => {

@@ -20,7 +20,7 @@ async function load(tier: 'phone' | 'desktop') {
     import('#engine/boot/prefetch'),
     import('#engine/boot/pack'),
     import('#engine/boot/bytes'),
-    import('#engine/boot/packs.generated'),
+    import('#game/boot/packs.generated'),
   ]);
   const { prepareShardAssets } = await import('#game/shard/load');
   const { registerGpuFiles } = await import('#engine/boot/gpuFiles');
@@ -36,7 +36,7 @@ async function load(tier: 'phone' | 'desktop') {
 describe('shardBootRequests: the boot request list of each shard', () => {
   it.each(['phone', 'desktop'] as const)('counts public artwork and keeps inline artwork out of the %s download list', async (tier) => {
     const { PLAYABLE_SHARDS, bootFiles, sp, packFor, versionedUrl } = await load(tier);
-    const { PUBLIC_BYTES } = await import('#engine/boot/bytes.generated');
+    const { PUBLIC_BYTES } = await import('#game/boot/bytes.generated');
     const { declareTotals } = await import('#engine/boot/bytes');
     const def = PLAYABLE_SHARDS[0];
     const image = Object.keys(PUBLIC_BYTES).find((path) => path.endsWith('.jpg'));
@@ -150,7 +150,7 @@ describe('lateReads and the ?v= URLs (E160)', () => {
   it('names only files the build ships, tier by tier', async () => {
     for (const tier of ['phone', 'desktop'] as const) {
       const { PLAYABLE_SHARDS, sp, versionedUrl } = await load(tier);
-      const { PUBLIC_BYTES } = await import('#engine/boot/bytes.generated');
+      const { PUBLIC_BYTES } = await import('#game/boot/bytes.generated');
       for (const def of PLAYABLE_SHARDS) {
         const late = sp.lateReads(def);
         for (const u of late) expect(new URL(u, 'http://x').pathname in PUBLIC_BYTES, `${def.slug} ${u}`).toBe(true);
@@ -161,8 +161,8 @@ describe('lateReads and the ?v= URLs (E160)', () => {
   });
   it('versions every unhashed asset and leaves content-named ones alone', async () => {
     const { versionedUrl } = await load('desktop');
-    const { ASSET_VERSIONS } = await import('#engine/boot/versions.generated');
-    const { PUBLIC_BYTES } = await import('#engine/boot/bytes.generated');
+    const { ASSET_VERSIONS } = await import('#game/boot/versions.generated');
+    const { PUBLIC_BYTES } = await import('#game/boot/bytes.generated');
     for (const p of Object.keys(PUBLIC_BYTES)) {
       const u = versionedUrl(p);
       if (/-[0-9a-f]{8}\.[a-z0-9]+$/.test(p)) expect(u, p).toBe(p);

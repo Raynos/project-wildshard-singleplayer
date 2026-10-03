@@ -1,3 +1,4 @@
+import { publicBytes, sfxManifests } from '../boot/tables';
 import { resourceScope } from '../app/resources';
 // src/engine/audio/preload.ts — audio decoded at the loading bar, not after it (project/archive/2026-09-23-preload-offline.md rows 3–4).
 //
@@ -16,8 +17,6 @@ import { resourceScope } from '../app/resources';
 // so a 44.1 kHz live context still plays these 48 kHz buffers at pitch. The context is made at 48 kHz because every file is
 // 48 kHz AAC: decodeAudioData resamples to its context's rate, and at the files' own rate it resamples nothing.
 import type { AmbientBed, LoopName, SampleLoop } from './Audio';
-import { SFX_MANIFESTS } from '../boot/audio.generated';
-import { PUBLIC_BYTES } from '../boot/bytes.generated';
 import { sfxDir } from '../boot/audioFiles';
 import { onOwnerDispose } from '../app/ownership';
 
@@ -67,7 +66,6 @@ const LOOP_GAIN: Record<LoopName, number> = {
 };
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
 const num = (v: unknown, d: number): number => (typeof v === 'number' && Number.isFinite(v) ? v : d);
-const TABLE: Readonly<Record<string, number>> = PUBLIC_BYTES;
 
 /** Sample selection belongs to the level, independently of its bed id. */
 export interface SfxDecodePolicy {
@@ -79,10 +77,10 @@ export function sfxFiles(set: string, bed: AmbientBed, policy: SfxDecodePolicy =
 
 interface Job { url: string; apply: (buf: AudioBuffer, bank: SfxBank) => void }
 function sfxJobs(set: string, bed: AmbientBed, policy: SfxDecodePolicy): Job[] {
-  const j = SFX_MANIFESTS[set];
+  const j = sfxManifests()[set];
   if (!isObj(j)) return [];
   const dir = sfxDir(set), jobs: Job[] = [];
-  const url = (f: unknown): string | undefined => (typeof f === 'string' && !f.includes('..') && `${dir}${f}` in TABLE ? `${dir}${f}` : undefined);
+  const url = (f: unknown): string | undefined => (typeof f === 'string' && !f.includes('..') && `${dir}${f}` in publicBytes() ? `${dir}${f}` : undefined);
   const loop = (name: LoopName, v: unknown): void => {
     if (policy.omitLoops?.includes(name) || !isObj(v)) return;
     const u = url(v['file']);
@@ -112,7 +110,7 @@ function sfxJobs(set: string, bed: AmbientBed, policy: SfxDecodePolicy): Job[] {
  * `cachedBytes` for a switch in the menu). A file that fails keeps its synth version; the set as a whole never rejects.
  */
 export async function decodeSfxSet(set: string, bed: AmbientBed, read: (url: string) => Promise<ArrayBuffer>, onFile?: () => void, decode: (bytes: ArrayBuffer) => Promise<AudioBuffer> = decodeBytes, policy: SfxDecodePolicy = {}): Promise<SfxBank> {
-  const j = SFX_MANIFESTS[set];
+  const j = sfxManifests()[set];
   const bank: SfxBank = { set, credit: isObj(j) && typeof j['credit'] === 'string' ? j['credit'] : undefined, loops: new Map(), shots: new Map() };
   await Promise.all(sfxJobs(set, bed, policy).map(async (job) => {
     try { job.apply(await decode(await read(job.url)), bank); }

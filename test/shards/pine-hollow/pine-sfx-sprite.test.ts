@@ -2,8 +2,8 @@ import { createPineAudio } from '#shards/pine-hollow/audio/files';
 // Pine Hollow's one-shots + barks ship as ONE audio sprite (scripts/music/gen/sfx_sprite.py): the loading bar fetches one
 // file, not 63 (228 requests on a phone cold launch against the 180 row). sfx.json `sprite: {file, gap, duration, clips}`.
 import { describe, expect, it } from 'vitest';
-import { SFX_MANIFESTS } from '#engine/boot/audio.generated';
-import { PUBLIC_BYTES } from '#engine/boot/bytes.generated';
+import { SFX_MANIFESTS } from '#game/boot/audio.generated';
+import { PUBLIC_BYTES } from '#game/boot/bytes.generated';
 import { pineShotFiles } from '#shards/pine-hollow/audio/sfx';
 
 const DIR = '/assets/sfx/pine-hollow/';

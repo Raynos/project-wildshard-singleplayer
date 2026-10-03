@@ -1535,6 +1535,7 @@ A playground's pieces are registry pieces with `active: () => this.entered`, so 
 | `registerGlobalDebugAction`, `GlobalDebugActionSpec` | a one-shot app-wide Debug action (the template's entry, B82) |
 | `setting`, `getSetting`, `getNumber`, `onNumber`, `onSettingChange`, `OptionValue`, `MusicStyle` | the engine's saved options. A shard reads only keys it owns (`shard-sandbox`) |
 | `ENGINE_STRINGS`, `engineString`, `installEngineStrings`, `EngineStringKey` | the engine's string table |
+| `publicBytes`, `assetVersions`, `musicManifests`, `sfxManifests`, `bootPacks`, `installAssetTables`, `AssetTables`, `PackDef`, `PackPart`, `PackFile` | the app's asset tables (E405 E415): every shipped file's size and `?v=` hash, the music / sound-effect manifests and each level's boot pack. They list the game's files, so they are the game's (`src/game/boot/*.generated.ts`, written by `vite/gen.ts` and `scripts/bake-packs.mjs`); `src/identity.ts` installs them with the identity, `scripts/bake-loader.mjs` for Node tools (a table not generated yet installs empty). The engine reads them only through these accessors, at call time |
 | `installAppIdentity`, `appIdentity`, `AppIdentity`, `EngineProbe`, `HarnessPins` | the app the engine runs in (E405 E414): its name, wordmark and tagline, the save keys' prefix and export format, the file-name prefix, where the probe is exposed and where the harness pins are read. The game's (`src/game/identity.ts`) is installed by `src/identity.ts`, the first module every page entry runs; nothing has a default, and a save with real storage throws without one rather than writing under another prefix |
 | `ctx.strings(table)` (`StringTable`) | registers your table; every player-facing line comes from it |
 
@@ -1611,7 +1612,7 @@ sections above describe what to use; this list is the complete inventory.
 
 ### `#engine` (`src/engine/index.ts`)
 
-721 exports, grouped by the module they come from.
+730 exports, grouped by the module they come from.
 
 - `./core/devMode`: `isDev`, `onDev`, `setDev`
 - `./core/config`: `CHUNK_HALF`, `ROAD_LENGTH`, `SEED`, `CHUNK_SIZE`, `CHUNK_DEPTH`, `TERRAIN_RES`
@@ -1757,7 +1758,7 @@ sections above describe what to use; this list is the complete inventory.
 - `./core/gpuOnly`: `markGpuOnly`
 - `./world/forest/treeSpec`: `treeSetOf`, `TREE_SPECS`
 - `./world/forest/treeSet`: `BARK_LAYERS`, `loadTreeSetGeometry`, `patchBarkArrays`, `patchCardCrownTop`, `patchImpostorCrownTop`, `standIn`, `treeSetUrls`
-- `./boot/bytes.generated`: `PUBLIC_BYTES`
+- `./boot/tables`: `publicBytes`, `assetVersions`, `musicManifests`, `sfxManifests`, `bootPacks`, `installAssetTables`, `AssetTables`, `PackDef`, `PackPart`, `PackFile`
 - `./boot/lastEnd`: `markUnload`
 - `./boot/titleArrival`: `setTitleArrival`, `TitleArrival`
 - `./world/forest/treeSpecies`: `TreeSpeciesTraits`, `TreeSetVariant`
@@ -1826,7 +1827,8 @@ sections above describe what to use; this list is the complete inventory.
 - `./world/groundField`: `terrainFieldFor`
 - `./world/faunaLayout`: `layoutFauna`
 - `./world/forest/treeSpecies`: `SpeciesWeights`, `TreeSpeciesTraits`, `TreeSetVariant`
-- `./boot/filePolicy`: `filePolicy`, `PUBLIC_BYTES`
+- `./boot/filePolicy`: `filePolicy`
+- `./boot/tables`: `publicBytes`
 - `./boot/bytes`: `ChunkFiles`
 - `./core/tier`: `Tier`
 - `./boot/gpuFiles`: `TexMode`

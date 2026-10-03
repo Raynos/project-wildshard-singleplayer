@@ -7,7 +7,7 @@
  *                           style and set, src/engine/boot/audioFiles.ts) + the `art` source: every shard card's thumbnail and hero
  *                           stills (both orientations — the title swipes between cards and a phone can turn) and, on a shard
  *                           with the Explore viewer, its panel art. Bundled files with hashed URLs, sized from
- *                           src/engine/boot/art.generated.ts (Vite copies them byte for byte).
+ *                           src/game/shard/art.generated.ts (Vite copies them byte for byte).
  *  - `extraFetches(files)`  the art and the audio for the prefetch queue (after the shard's own files), in the order they
  *                           are needed: the art, then the selected style + set, then every other style and set.
  *  - `startMenuPreload()`   title art fetched during the bar. On phones only the selected card is decoded and kept in
@@ -25,11 +25,11 @@
  *  - `startDeferredAudioPreload()`  Nine Dragon on phones: the same counted downloads and offline cache, with selected
  *                           decoding serialized after the loader fades and the world starts (E246 memory A/B).
  */
+import { publicBytes } from './tables';
 import { texMode, type TexMode } from './gpuFiles';
 import { bootCatalog, type BootLevel } from './catalog';
 import { chunkFiles } from './manifest';
 import { addBytes, type ChunkFiles } from './bytes';
-import { PUBLIC_BYTES } from './bytes.generated';
 import { macrotask, type StepProgress } from './plan';
 import { audioFiles, musicDir, sfxDir } from './audioFiles';
 import { whenPrefetched } from './prefetch';
@@ -45,7 +45,6 @@ const pathOf = (url: string): string => { try { return new URL(url, location.hre
 
 /** the shard cards' pictures among the art (the rest is the Explore viewer's) */
 const cardArt = new Set<string>();
-const publicArtBytes: Readonly<Record<string, number>> = PUBLIC_BYTES;
 
 function artFor(def: BootLevel): { urls: string[]; bytes: Record<string, number> } {
   const urls: string[] = [], bytes: Record<string, number> = {};
@@ -59,7 +58,7 @@ function artFor(def: BootLevel): { urls: string[]; bytes: Record<string, number>
     if (url.startsWith('data:')) continue; // inlined into the bundle: nothing to fetch
     const p = pathOf(url);
     // Shards may keep card / Explore / precache art in their public asset folder instead of importing it.
-    const size = bootCatalog().artBytes[url] ?? publicArtBytes[p];
+    const size = bootCatalog().artBytes[url] ?? publicBytes()[p];
     if (size === undefined || Object.hasOwn(bytes, p)) continue;
     urls.push(p); bytes[p] = size;
     if (cardUrls.has(url)) cardArt.add(p);

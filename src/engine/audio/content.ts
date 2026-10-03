@@ -13,7 +13,7 @@ export { audioFiles, musicStyles, sfxSets } from '../boot/audioFiles';
 export { styleFiles } from './Stems';
 export { getSfxSet } from '../ui/Settings';
 
-export { MUSIC_MANIFESTS, SFX_MANIFESTS } from '../boot/audio.generated';
+export { musicManifests, sfxManifests } from '../boot/tables';
 export { manifestFiles, musicDir, sfxDir } from '../boot/audioFiles';
 
 export { audioLog } from './audioLog';

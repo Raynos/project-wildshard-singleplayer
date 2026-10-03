@@ -12,16 +12,16 @@
  * file (the build's byte table, bytes.generated.ts, does not list one) gets no LUT pass and no fetch. Pine Hollow's is PH-L4's
  * (art/pine-hollow/round-14-look-loop/, fitted over the three zones' 27 frames).
  */
+import { publicBytes } from '../boot/tables';
 import * as THREE from 'three';
 import { LookupTexture } from 'postprocessing';
-import { PUBLIC_BYTES } from '../boot/bytes.generated';
 import { setting } from '../ui/Settings';
 import { LUT_SIZE, fetchLut } from '../render/lut';
 
 /** the shard's LUT file when the build has one, else null */
 export function lutUrl(slug: string): string | null {
   const url = `/assets/lut/${slug}.bin`;
-  return url in PUBLIC_BYTES ? url : null;
+  return url in publicBytes() ? url : null;
 }
 
 export async function loadLUT(slug: string): Promise<LookupTexture | null> {

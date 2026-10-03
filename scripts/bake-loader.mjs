@@ -58,6 +58,26 @@ registerHooks({
   },
 });
 
-// E405 E414: the app identity, before any engine module runs (a bake that builds an App reads saves, which need
-// the game's save prefix). The same module the page entries run first.
-await import(new URL('../src/identity.ts', import.meta.url).href);
+// E405 E414 / E415: the app identity and its asset tables, before any engine module runs (a bake that builds an App
+// reads saves, which need the game's save prefix; the boot code reads the tables) — what src/identity.ts installs for
+// a page. A Node tool may run before a table exists (`pnpm gen` writes them through this loader, bake-packs reads the
+// byte table while it builds the packs): a missing table installs empty.
+/** @param {string} path */
+const here = (path) => new URL(path, import.meta.url).href;
+/** @param {string} path @returns {Promise<Record<string, unknown>>} */
+const optional = async (path) => {
+  try { return await import(here(path)); } catch (error) {
+    if (error instanceof Error && (/generated/u.test(error.message) || ('code' in error && error.code === 'ERR_MODULE_NOT_FOUND'))) return {};
+    throw error;
+  }
+};
+const [{ installAppIdentity }, { WILDSHARD_IDENTITY }, { installAssetTables }, bytes, versions, audio, packs] = await Promise.all([
+  import(here('../src/engine/app/identity.ts')), import(here('../src/game/identity.ts')), import(here('../src/engine/boot/tables.ts')),
+  optional('../src/game/boot/bytes.generated.ts'), optional('../src/game/boot/versions.generated.ts'),
+  optional('../src/game/boot/audio.generated.ts'), optional('../src/game/boot/packs.generated.ts'),
+]);
+installAppIdentity(WILDSHARD_IDENTITY);
+installAssetTables({
+  bytes: bytes.PUBLIC_BYTES ?? {}, versions: versions.ASSET_VERSIONS ?? {},
+  music: audio.MUSIC_MANIFESTS ?? {}, sfx: audio.SFX_MANIFESTS ?? {}, packs: packs.PACKS ?? {},
+});

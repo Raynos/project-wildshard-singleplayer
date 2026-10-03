@@ -1,3 +1,4 @@
+import { musicManifests, publicBytes } from '../boot/tables';
 import { resourceScope } from '../app/resources';
 import { ownAudioSource } from './ownership';
 import { tap } from '../core/harnessTap';
@@ -11,7 +12,7 @@ import { tap } from '../core/harnessTap';
 // time and looping loopStart → loopEnd. The loop is a whole number of bars, so the bar grid is continuous in context time:
 // bar k starts at t0 + loopStart + k · bar. Every gain move (tension, crossfades) lands on that grid.
 //
-// Nothing here fetches: the manifests are compiled into the bundle (src/engine/boot/audio.generated.ts) and the files are read by the
+// Nothing here fetches: the manifests are compiled into the bundle (src/game/boot/audio.generated.ts) and the files are read by the
 // caller — the boot's counted fetch at the loading bar, or Cache Storage for a genre switch (project/archive/2026-09-23-preload-offline.md).
 // `decodeStyle` decodes one genre's slots + stings; a slot whose file is missing or will not decode is left out, and Music
 // keeps the synth for it.
@@ -20,12 +21,10 @@ import { tap } from '../core/harnessTap';
 // carries `layers` (bass, drums) and `phases` (each boss phase's layer gains). `decodeStyle(genre, slots, …, set)` reads it.
 // A deck of the boss plays its layers at the current phase's gains (Deck.setPhase), moved on the bar like the tension stem.
 import type { MusicStyle as MusicGenre } from '../ui/Settings';
-import { PUBLIC_BYTES } from '../boot/bytes.generated';
-import { MUSIC_MANIFESTS } from '../boot/audio.generated';
 
 /** the build's file table (vite.config.ts writes it from public/assets): a file the build does not have is never fetched —
  *  no 404 in the console, no request at all while the generated music has not landed */
-export const shipped = (path: string): boolean => path in PUBLIC_BYTES;
+export const shipped = (path: string): boolean => path in publicBytes();
 
 /** Score-source slot names are content data, including sets registered by a level. */
 export type SlotName = string;
@@ -85,7 +84,7 @@ export interface GenreBank {
 /** the folder a set of `genre` lives in: public/assets/music/<genre>/ or public/assets/music/<set>-<genre>/ */
 export const musicSetDir = (genre: MusicGenre, set: MusicSet = 'base'): string => (set === 'base' ? genre : `${set}-${genre}`);
 /** this build's manifest for `genre` (compiled in from public/assets/music/<dir>/music.json), or undefined */
-export function musicManifest(genre: MusicGenre, set: MusicSet = 'base'): MusicManifest | undefined { return parseManifest(MUSIC_MANIFESTS[musicSetDir(genre, set)]); }
+export function musicManifest(genre: MusicGenre, set: MusicSet = 'base'): MusicManifest | undefined { return parseManifest(musicManifests()[musicSetDir(genre, set)]); }
 /** every file of a set (URLs) — a level fetches its own set into the offline cache while the player is in */
 export function setFiles(genre: MusicGenre, set: MusicSet): string[] {
   const m = musicManifest(genre, set);

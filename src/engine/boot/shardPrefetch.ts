@@ -1,3 +1,4 @@
+import { publicBytes } from './tables';
 import { pageScope } from '../app/resources';
 import { saveStorage } from '#engine/saves/slots';
 import { prepareBootAudio } from './audioInventory';
@@ -39,7 +40,6 @@ import { bootParts, packFor } from './pack';
 import { gpuUrl, versionedUrl } from './bytes';
 import { registerGpuFiles, setAutoKtx2Check, texMode, texModeWhy, type TexMode } from './gpuFiles';
 import { BASIS_PATH } from '../core/ktx2';
-import { PUBLIC_BYTES } from './bytes.generated';
 import { TIER } from '../core/tier';
 import { lutUrl } from '../world/lut';
 import { horizonStrips } from '../world/HorizonMatte';
@@ -76,7 +76,7 @@ export function lateReads(def: BootLevel, tex: TexMode = texMode()): string[] {
   if (strips) { const s = TIER === 'phone' && strips.phone ? strips.phone : strips; out.push(gpuUrl(s.day, tex), gpuUrl(s.night, tex)); }
   const declared = new Set(Object.values(bootFiles(def, tex)).flat());
   // a level's declared late reads may name the LUT and the strips too (first occurrence kept: the declared order)
-  return [...new Set(out)].filter((p) => p in PUBLIC_BYTES && !declared.has(p)).map(versionedUrl);
+  return [...new Set(out)].filter((p) => p in publicBytes() && !declared.has(p)).map(versionedUrl);
 }
 
 /** What the background download fetches for `def`: its boot's requests, then what the world reads as it comes up. */

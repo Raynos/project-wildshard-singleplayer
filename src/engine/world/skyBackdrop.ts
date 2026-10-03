@@ -1,3 +1,4 @@
+import { publicBytes } from '../boot/tables';
 import * as THREE from 'three';
 import type { Renderer } from '../render/renderer';
 import type { Scope } from '../app/scope';
@@ -9,7 +10,6 @@ import { Noise2D } from '../core/noise';
 import { Rng } from '../core/rng';
 import { loadHDR } from '../core/assets';
 import { bakedTexture, preloadBakedTextures } from '../boot/bakedTextures';
-import { PUBLIC_BYTES } from '../boot/bytes.generated';
 import { bakedSkyUrls, loadBakedSky as loadSkyPair } from './BakedSky';
 import { macrotask } from '../boot/plan';
 import { loadLUT } from './lut';
@@ -20,7 +20,7 @@ export const PLANET_DIST = 1700;
 /** public/assets/baked/<slug>/sky.json — the HDR's sun direction and horizon colour, scanned at build time (scripts/bake-sky.mjs). */
 async function loadBakedSky(levelId: string, hdri: string): Promise<{ sunDir: [number, number, number]; horizon: [number, number, number] } | null> {
   const url = `/assets/baked/${levelId}/sky.json`;
-  if (!(url in PUBLIC_BYTES) || new URLSearchParams(location.search).has('nobake')) return null;
+  if (!(url in publicBytes()) || new URLSearchParams(location.search).has('nobake')) return null;
   try {
     const j = await (await fetch(url)).json() as { hdri: string; sunDir: [number, number, number]; horizon: [number, number, number] };
     return j.hdri === hdri ? j : null; // a different HDRI than the bake saw → scan at launch

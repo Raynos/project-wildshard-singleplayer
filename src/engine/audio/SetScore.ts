@@ -1,4 +1,4 @@
-import { MUSIC_MANIFESTS } from '../boot/audio.generated';
+import { musicManifests } from '../boot/tables';
 import { parseManifest, shipped, type MusicManifest, type SlotAudio, type StemSting, type BossPhase } from './Stems';
 import type { MusicState } from './Music';
 
@@ -24,7 +24,7 @@ export interface ScoreSource {
 }
 export interface ScoreSet { dir: string; manifestKey: string }
 const STINGS: readonly StemSting[] = ['pickup', 'death', 'chunk'];
-export function scoreManifest(set: ScoreSet): MusicManifest | undefined { return parseManifest(MUSIC_MANIFESTS[set.manifestKey]); }
+export function scoreManifest(set: ScoreSet): MusicManifest | undefined { return parseManifest(musicManifests()[set.manifestKey]); }
 export function scoreFiles(set: ScoreSet, slots?: readonly string[], withStings = true): string[] {
   const m = scoreManifest(set);
   if (!m) return [];

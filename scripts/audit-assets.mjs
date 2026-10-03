@@ -70,7 +70,7 @@ if (tier) {
   if (tier !== 'phone' && tier !== 'desktop') throw new Error(`audit-assets: unknown tier ${tier}`);
   const { initializeTier } = await import('../src/engine/core/tier.ts'); initializeTier(tier);
   const { SHARDS } = await import('../src/game/shard/shards.generated.ts');
-  const { PACKS } = await import('../src/engine/boot/packs.generated.ts');
+  const { PACKS } = await import('../src/game/boot/packs.generated.ts');
   const { GPU_FILES: shared } = await import('../src/engine/boot/ktx2.generated.ts');
   const rows = [];
   for (const manifest of SHARDS) {

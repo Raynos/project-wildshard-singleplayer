@@ -1,4 +1,4 @@
-import { resourceScope, app } from '#engine';
+import { publicBytes, sfxManifests, resourceScope, app } from '#engine';
 import { tap } from '#engine/core/harnessTap';
 /**
  * PineHollowSfx — Pine Hollow's own generated sounds (PINE-HOLLOW-REMASTER PH-A2..A4): public/assets/sfx/pine-hollow/sfx.json,
@@ -29,8 +29,6 @@ import { tap } from '#engine/core/harnessTap';
  * offline cache when a zone first wants one (~6 MB of PCM each, the mono ones half; ForestAmbience lets them go again).
  * Settings ▸ Sound effects = Synth silences the set. Every play / bark lands in `window.__audioLog` (src/engine/audio/audioLog.ts).
  */
-import { SFX_MANIFESTS } from '#engine/boot/audio.generated';
-import { PUBLIC_BYTES } from '#engine/boot/bytes.generated';
 import { getSfxSet } from '#engine/ui/Settings';
 import type { Audio } from '#engine/audio/Audio';
 import { cachedBytes, decodeBytes } from '#engine/audio/preload';
@@ -54,10 +52,9 @@ export interface PhPlay { at?: { x: number; y: number; z: number } | undefined; 
 
 const SET = 'pine-hollow';
 const DIR = `/assets/sfx/${SET}/`;
-const TABLE: Readonly<Record<string, number>> = PUBLIC_BYTES;
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
 const num = (v: unknown, d: number): number => (typeof v === 'number' && Number.isFinite(v) ? v : d);
-const file = (v: unknown): string | undefined => (typeof v === 'string' && !v.includes('..') && !v.includes('/') && `${DIR}${v}` in TABLE ? `${DIR}${v}` : undefined);
+const file = (v: unknown): string | undefined => (typeof v === 'string' && !v.includes('..') && !v.includes('/') && `${DIR}${v}` in publicBytes() ? `${DIR}${v}` : undefined);
 /** each bark's level against the one-shots (-18 LUFS): a voice sits a little under a gunshot */
 const BARK_GAIN = 0.8;
 
@@ -67,7 +64,7 @@ const whole = (buffer: AudioBuffer): Clip => ({ buffer, offset: 0, duration: buf
 
 /** the one-shots + barks decoded at the loading bar (`decodePineShots`), shared by every PineHollowSfx */
 const barShots = new Map<string, Clip[]>();
-const manifestOf = (): Record<string, unknown> | undefined => { const m = SFX_MANIFESTS[SET]; return isObj(m) ? m : undefined; };
+const manifestOf = (): Record<string, unknown> | undefined => { const m = sfxManifests()[SET]; return isObj(m) ? m : undefined; };
 /** the file names one-shot `family` lists in `manifest` (its takes; packed into the sprite or files of their own) */
 function familyNames(manifest: Record<string, unknown> | undefined, family: string): string[] {
   const o = manifest?.['oneshots'], v = isObj(o) ? o[family] : undefined;

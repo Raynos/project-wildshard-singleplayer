@@ -1,17 +1,21 @@
 // Nalati's score (src/shards/nalati-grasslands/audio/SteppeScore.ts, NALATI-MERGE A2): the slot the scene asks for, down the fallback chain to one the
 // build ships; decoded on demand (the wanted + the playing slot resident, nothing else); a slot that fails is skipped.
-import { describe, expect, test, vi } from 'vitest';
+import { afterAll, beforeAll, describe, expect, test } from 'vitest';
+import { assetVersions, bootPacks, installAssetTables, musicManifests, publicBytes, sfxManifests } from '#engine';
+import { createSteppeScore, steppeFiles, steppeBootFiles } from '#shards/nalati-grasslands/audio/SteppeScore';
 
+// The score reads the app's asset tables (E415): this test installs its own small build, then puts the real one back.
 const slot = (n: string) => ({ calm: `${n}-calm.m4a`, tension: `${n}-tension.m4a`, bpm: 100, beatsPerBar: 4, loopStart: 1, loopEnd: 20, duration: 22 });
-vi.mock('#engine/boot/audio.generated', () => ({
-  MUSIC_MANIFESTS: { nalati: { style: 'nalati', slots: { 'steppe-grass': slot('g'), 'steppe-sky': slot('s'), 'steppe-night': slot('n'), 'steppe-king': slot('k') }, stings: { death: 'd.m4a' } } },
-  SFX_MANIFESTS: {},
-}));
-vi.mock('#engine/boot/bytes.generated', () => ({
-  PUBLIC_BYTES: Object.fromEntries(['g', 's', 'n', 'k'].flatMap((n) => [`/assets/music/nalati/${n}-calm.m4a`, `/assets/music/nalati/${n}-tension.m4a`]).concat(['/assets/music/nalati/d.m4a']).map((u) => [u, 1000])),
-}));
-
-const { createSteppeScore, steppeFiles, steppeBootFiles } = await import('#shards/nalati-grasslands/audio/SteppeScore');
+const real = { bytes: publicBytes(), versions: assetVersions(), music: musicManifests(), sfx: sfxManifests(), packs: bootPacks() };
+beforeAll(() => {
+  installAssetTables({
+    ...real,
+    music: { nalati: { style: 'nalati', slots: { 'steppe-grass': slot('g'), 'steppe-sky': slot('s'), 'steppe-night': slot('n'), 'steppe-king': slot('k') }, stings: { death: 'd.m4a' } } },
+    sfx: {},
+    bytes: Object.fromEntries(['g', 's', 'n', 'k'].flatMap((n) => [`/assets/music/nalati/${n}-calm.m4a`, `/assets/music/nalati/${n}-tension.m4a`]).concat(['/assets/music/nalati/d.m4a']).map((u) => [u, 1000])),
+  });
+});
+afterAll(() => { installAssetTables(real); });
 
 const buf = (duration: number): AudioBuffer => ({ duration, length: duration * 48000, sampleRate: 48000, numberOfChannels: 2 } as AudioBuffer);
 const tick = () => new Promise((resolve) => { setTimeout(resolve, 0); });

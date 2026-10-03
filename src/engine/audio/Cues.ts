@@ -1,4 +1,4 @@
-import { SFX_MANIFESTS } from '../boot/audio.generated';
+import { sfxManifests } from '../boot/tables';
 import { shipped } from './Stems';
 import type { SampleLoop } from './Audio';
 import type { AudioMixer } from './levelAudio';
@@ -20,7 +20,7 @@ const file = (dir: string, v: unknown): string | undefined => typeof v === 'stri
 
 /** An own set uses one sprite for shots, plus its beds and positional loops. */
 export function cueFiles(key: string): string[] {
-  const raw = SFX_MANIFESTS[key], dir = `/assets/sfx/${key}/`;
+  const raw = sfxManifests()[key], dir = `/assets/sfx/${key}/`;
   if (!obj(raw)) return [];
   const files: string[] = [];
   for (const section of ['beds', 'hums']) {
@@ -38,7 +38,7 @@ export function cueFiles(key: string): string[] {
   return [...new Set(files)];
 }
 export async function decodeCueSet(key: string, read: AudioRead, decode: AudioDecode, onFile?: () => void): Promise<CueBank> {
-  const raw = SFX_MANIFESTS[key], dir = `/assets/sfx/${key}/`, bank: CueBank = { loops: new Map(), shots: new Map() };
+  const raw = sfxManifests()[key], dir = `/assets/sfx/${key}/`, bank: CueBank = { loops: new Map(), shots: new Map() };
   if (!obj(raw)) return bank;
   const buffers = new Map<string, AudioBuffer>();
   await Promise.all(cueFiles(key).map(async (url) => {

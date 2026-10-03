@@ -1,12 +1,10 @@
 /** Audio inventories come from the generated manifests, with the selected styles/sets first.
  * Level profiles add their own sets and declare any file/slot exclusions.
  */
-import { MUSIC_MANIFESTS, SFX_MANIFESTS } from './audio.generated';
-import { PUBLIC_BYTES } from './bytes.generated';
+import { musicManifests, publicBytes, sfxManifests } from './tables';
 import { MUSIC_STYLES, SFX_SETS, getMusicStyle, getSfxSet } from '../ui/Settings';
 
 const AUDIO_RE = /\.(m4a|mp3|ogg|opus|wav|webm|flac)$/;
-const TABLE: Readonly<Record<string, number>> = PUBLIC_BYTES;
 
 /** every audio file name a manifest mentions, wherever it sits (slots, stings, beds, hums, one-shot variants) */
 export function manifestFiles(m: unknown): string[] {
@@ -25,10 +23,10 @@ function ordered<T extends string>(all: readonly T[], selected: T, manifests: Re
   const have = all.filter((v) => Object.hasOwn(manifests, v));
   return [...have.filter((v) => v === selected), ...have.filter((v) => v !== selected)];
 }
-export const musicStyles = (): string[] => ordered(MUSIC_STYLES, getMusicStyle(), MUSIC_MANIFESTS);
-export const sfxSets = (): string[] => ordered(SFX_SETS, getSfxSet(), SFX_MANIFESTS);
+export const musicStyles = (): string[] => ordered(MUSIC_STYLES, getMusicStyle(), musicManifests());
+export const sfxSets = (): string[] => ordered(SFX_SETS, getSfxSet(), sfxManifests());
 
-const filesOf = (dir: string, manifest: unknown): string[] => manifestFiles(manifest).map((f) => `${dir}${f}`).filter((p) => p in TABLE); // a file the build does not ship is never asked for
+const filesOf = (dir: string, manifest: unknown): string[] => manifestFiles(manifest).map((f) => `${dir}${f}`).filter((p) => p in publicBytes()); // a file the build does not ship is never asked for
 
 export const musicDir = (style: string): string => `/assets/music/${style}/`;
 export const sfxDir = (set: string): string => `/assets/sfx/${set}/`;
@@ -50,7 +48,7 @@ export interface AudioFilePolicy {
 }
 export function audioFiles(policy: AudioFilePolicy = {}): { music: string[]; sfx: string[] } {
   return {
-    music: [...musicStyles().flatMap((style) => filesOf(musicDir(style), withoutSlots(MUSIC_MANIFESTS[style], policy.omitSlots ?? []))), ...(policy.musicSets ?? []).flatMap((set) => filesOf(musicDir(set), MUSIC_MANIFESTS[set]))],
-    sfx: [...sfxSets().flatMap((set) => filesOf(sfxDir(set), SFX_MANIFESTS[set]).filter((url) => !(policy.omitSfx?.[set] ?? []).includes(url.slice(sfxDir(set).length)))), ...(policy.sfxSets ?? []).flatMap((set) => filesOf(sfxDir(set), SFX_MANIFESTS[set]))],
+    music: [...musicStyles().flatMap((style) => filesOf(musicDir(style), withoutSlots(musicManifests()[style], policy.omitSlots ?? []))), ...(policy.musicSets ?? []).flatMap((set) => filesOf(musicDir(set), musicManifests()[set]))],
+    sfx: [...sfxSets().flatMap((set) => filesOf(sfxDir(set), sfxManifests()[set]).filter((url) => !(policy.omitSfx?.[set] ?? []).includes(url.slice(sfxDir(set).length)))), ...(policy.sfxSets ?? []).flatMap((set) => filesOf(sfxDir(set), sfxManifests()[set]))],
   };
 }

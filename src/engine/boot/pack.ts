@@ -21,11 +21,11 @@
  *
  * Debug ▸ Loading & memory ▸ Boot pack Off boots file by file (the per-file prefetch) — the A/B for this module.
  */
+import { bootPacks, type PackDef, type PackPart } from './tables';
 import { DefaultLoadingManager } from 'three';
 import type { Plan } from './plan';
 import type { BootStep, ByteKey } from './steps';
 import { tierUrl, versionedUrl, type ChunkFiles } from './bytes';
-import { PACKS, type PackDef, type PackPart } from './packs.generated';
 import { TIER } from '../core/tier';
 import { setting } from '../ui/Settings';
 import { Scope } from '../app/scope';
@@ -36,7 +36,7 @@ const pathOf = (url: string): string => { try { return new URL(url, location.hre
  *  KTX2 record run, scripts/gpu-texmem.mjs --record, turns it off through the saved settings to see each file's URL). */
 export function packFor(def: { slug: string }): PackDef | null {
   if (setting('bootPack') === 'off') return null;
-  return PACKS[def.slug]?.[TIER] ?? null;
+  return bootPacks()[def.slug]?.[TIER] ?? null;
 }
 
 /**
