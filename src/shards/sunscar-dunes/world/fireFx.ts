@@ -91,7 +91,7 @@ void main() {
   float puff = smoothstep(0.35, 0.75, n + 0.25 * (1.0 - y));
   float a = (1.0 - smoothstep(0.15, 0.9, d)) * smoothstep(0.0, 0.06, y) * (1.0 - smoothstep(0.35, 0.95, y)) * puff;
   // Dark grey-brown, lit warm by the fire at its foot and by the afterglow on its lit side.
-  vec3 c = ${wisp ? 'mix(vec3(0.22, 0.15, 0.13), vec3(0.15, 0.13, 0.19), smoothstep(0.0, 0.5, y))' : 'mix(vec3(0.13, 0.05, 0.02), vec3(0.02, 0.017, 0.02), smoothstep(0.02, 0.25, y))'}; // a dark plume faintly lit at its foot, or a pale wisp // dark brown-grey, darker than the sky, warm at its foot
+  vec3 c = ${wisp ? 'mix(vec3(0.22, 0.15, 0.13), vec3(0.15, 0.13, 0.19), smoothstep(0.0, 0.5, y))' : 'mix(vec3(0.2, 0.1, 0.055), vec3(0.07, 0.06, 0.07), smoothstep(0.02, 0.4, y))'}; // a dark plume faintly lit at its foot, or a pale wisp // dark brown-grey, darker than the sky, warm at its foot
   gl_FragColor = vec4(c, a * ${wisp ? '0.45' : '0.85'} * (1.0 - smoothstep(260.0, 420.0, vFar)) * vNear);
 }`,
 });
@@ -134,9 +134,9 @@ void main() {
   vLife = life;
   float a = seed * 40.0 + uTime * (1.0 + fract(seed * 3.7));
   vec3 p = vec3(cos(a) * 0.22 * (1.0 + life * 3.0), life * 5.5, sin(a) * 0.22 * (1.0 + life * 3.0)) * s;
-  p.xz += vec2(${WIND.x.toFixed(3)}, ${WIND.z.toFixed(3)}) * life * (0.6 + life) * 7.0 * s;
+  p.xz += vec2(${WIND.x.toFixed(3)}, ${WIND.z.toFixed(3)}) * life * (0.6 + life) * 3.5 * s;
   vec4 mv = viewMatrix * vec4((modelMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz + p, 1.0);
-  gl_PointSize = clamp((1.0 - life) * 90.0 * (0.6 + fract(seed * 13.1)) / -mv.z, 2.0, 7.0);
+  gl_PointSize = clamp((1.0 - life) * 90.0 * (0.6 + fract(seed * 13.1)) / -mv.z, 2.0, 7.0) * (1.0 - smoothstep(35.0, 60.0, -mv.z));
   gl_Position = projectionMatrix * mv;
 }`,
   fragmentShader: /* glsl */ `
@@ -194,7 +194,7 @@ export function addFire(group: Group, size: FireSize, pool?: { at: Vector3; grou
   const inner = new Mesh(quad, flameMaterial); inner.scale.set(size.flame * 0.42, size.flame * 0.8, 1); inner.position.set(0.05, -0.05, 0.05); add(inner);
   const glow = new Mesh(glowQuad, glowMaterial); glow.scale.setScalar(size.glow); glow.position.y = size.flame * 0.4; glow.renderOrder = 2; add(glow);
   const sparks = new Points(embers(size.embers), emberMaterial); sparks.scale.setScalar(size.flame * 0.9); sparks.position.y = size.flame * 0.3; add(sparks);
-  const smoke = size.wisp === true ? new Mesh(wispQuad, wispMaterial) : new Mesh(quad, smokeMaterial); smoke.scale.set(size.smoke * (size.wisp === true ? 0.025 : 0.07), size.smoke, 1); smoke.position.y = size.flame * 0.7; smoke.renderOrder = 1; add(smoke);
+  const smoke = size.wisp === true ? new Mesh(wispQuad, wispMaterial) : new Mesh(quad, smokeMaterial); smoke.scale.set(size.smoke * (size.wisp === true ? 0.025 : 0.17), size.smoke, 1); smoke.position.y = size.flame * 0.7; smoke.renderOrder = 1; add(smoke);
   if (pool) {
     const r = Math.max(size.glow * 2.3, size.flame * 2.4), n = 16, g = new PlaneGeometry(r * 2, r * 2, n, n); g.rotateX(-Math.PI / 2);
     const p = g.getAttribute('position');

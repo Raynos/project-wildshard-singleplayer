@@ -6,22 +6,23 @@ import { WIND } from '../world/dunes';
 import { SKY_FRAGMENT, SKY_VERTEX, SUN_GLOW } from './sky';
 
 /**
- * "Last Light" (docs/design/sunscar-dunes/style-bible.md): the key is a low warm sun 10° up, 100° off the spawn view,
- * behind-left of the player (review R1: never in the player's face), so it rakes across the dunes and every slip face
- * (they face it, `world/dunes.ts` WIND) glows orange while the windward faces fall into cool sky light. The afterglow
- * band is art-directed apart from it, behind the tower (`sky.ts` SUN_GLOW).
+ * "Last Light" (docs/design/sunscar-dunes/style-bible.md): the key is a low warm sun ~9° up in front of the spawn view,
+ * with the afterglow behind the tower (E399, the lead after council round 2: the mockups win over the old "never in the
+ * player's face" rule), so the dune faces turned to the camera fall into cool shade, the crests catch the light and the
+ * ripples graze; the crests run diagonally across the view (`world/dunes.ts` WIND), so the ridges layer to the tower.
  */
 // loop 3: a deeper, redder key (ΔE00 of the lit sand against the H1–H4 targets: the game's was too pale and grey-blue)
 // E399: low (11 deg) and along the wind axis, so every dune splits into a lit slip face and a shaded windward face
 // (the mockups); the shade floor and the navy fill keep the shaded half readable, never black
-export const KEY = { dir: new Vector3(-0.93, 0.2, 0.3).normalize(), color: new Color(1, 0.55, 0.26), intensity: 3.4 } as const; // loop 5 targets: saturated lit faces, deep shade
+export const KEY = { dir: new Vector3(-0.85, 0.2, -0.5).normalize(), color: new Color(1, 0.58, 0.32), intensity: 1.5 } as const; // E399 (R2B-1): measured against the mockups' ground patches, not eyeballed // loop 5 targets: saturated lit faces, deep shade
 /** Violet aerial perspective: far dune rows cool and lift into layers (R9), never pink. */
 /** The key's colour at the blue hour (look/dusk.ts): a low red ember of the set sun. */
 const DEEP_KEY = new Color(0.78, 0.42, 0.4);
 export const FOG = { color: 0x40304a, near: 80, far: 430 } as const; // loop 6: a deep dusk haze, not lilac
 // loop 6: lit sand a gold-orange, less saturated and a little lighter than loop 5 (the targets' lit faces)
-const SAND = new Color(0.58, 0.26, 0.1),
-  HOLLOW = new Color(0.24, 0.17, 0.19), CREST = new Color(0.72, 0.38, 0.15);
+// E399 (council round 2, R2B-1: the mockups' ground measures warm brown, R/B ~3): less blue in every tone
+const SAND = new Color(0.5, 0.23, 0.075),
+  HOLLOW = new Color(0.22, 0.14, 0.12), CREST = new Color(0.64, 0.33, 0.1);
 /** How far (m) and in how many growing steps the bake marches toward the sun for the dunes' cast shadows. */
 const SHADOW_MARCH = { first: 0.8, grow: 1.22, steps: 26 } as const;
 const WIND_GLSL = `${WIND.x.toFixed(3)}, ${WIND.z.toFixed(3)}`;
@@ -186,7 +187,7 @@ export function signalDunesLook(): LookStrategy {
       geometry.computeVertexNormals();
       const material = new MeshStandardMaterial({ vertexColors: true, roughness: 0.88, metalness: 0 }); scope.own(material);
       patchShader(material, 'sunscar.ripples', PATCH_ORDER.decorate, (shader) => {
-        shader.uniforms['uSandShadow'] = { value: shadow }; shader.uniforms['uSandGrain'] = { value: grain }; shader.uniforms['uSandTrail'] = { value: trail };
+        shader.uniforms['uSandShadow'] = { value: shadow }; shader.uniforms['uSandGrain'] = { value: grain }; shader.uniforms['uSandTrail'] = { value: trail }; shader.uniforms['uDusk'] = DUSK;
         shader.vertexShader = shader.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vSandPos;\nvarying vec3 vSandN;')
           .replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvSandPos = (modelMatrix * vec4(transformed, 1.0)).xyz;\nvSandN = normalize(mat3(modelMatrix) * objectNormal);');
         shader.fragmentShader = shader.fragmentShader.replace('#include <common>', `#include <common>
@@ -195,6 +196,7 @@ varying vec3 vSandN;
 uniform sampler2D uSandShadow;
 uniform sampler2D uSandGrain;
 uniform sampler2D uSandTrail;
+uniform float uDusk;
 // A ripple octave survives while a pixel spans well under one period, at any distance (no fixed fade, no aliasing).
 float sandAA(float phase) { return 1.0 - smoothstep(0.5, 1.8, fwidth(phase)); }`)
           .replace('#include <color_fragment>', `#include <color_fragment>
@@ -247,10 +249,13 @@ float sandAA(float phase) { return 1.0 - smoothstep(0.5, 1.8, fwidth(phase)); }`
   // cool violet shade (#4a3a48 to #5b4f6a), not a darkened orange: the crest line splits warm from cool.
   float sandKeyN = dot(normalize(vSandN), vec3(${KEY.dir.x.toFixed(3)}, ${KEY.dir.y.toFixed(3)}, ${KEY.dir.z.toFixed(3)}));
   float sandShade = 1.0 - smoothstep(0.0, 0.14, sandKeyN) * sandVis;
-  vec3 sandFill = vec3(dot(reflectedLight.indirectDiffuse, vec3(0.3, 0.59, 0.11)));
+  // E399 (council round 2, R2B-1): the shade keeps the sand's own hue (a grey luminance fill read as flat pink-grey)
+  vec3 sandFill = reflectedLight.indirectDiffuse;
   // loop 6 (the scorer: shade went muddy purple-black, ripples vanished in it): a cool blue-grey fill, a step brighter,
   // and the ripples and grain shade the sky light too, so they read in shadow as they do in the targets
-  reflectedLight.indirectDiffuse = mix(reflectedLight.indirectDiffuse, sandFill * vec3(0.86, 0.9, 1.18) * 2.3, sandShade * 0.9); // the mockups' shade: cool mid-tone, ripples readable // loop 6: navy shade (the targets)
+  reflectedLight.indirectDiffuse = mix(reflectedLight.indirectDiffuse, sandFill * mix(vec3(0.95, 0.9, 1.3), vec3(0.85, 0.85, 1.2), uDusk) * mix(1.1, 1.7, uDusk), sandShade * 0.9); // the dusk's shade a warm brown, never blue-black (R2B-1) // the mockups' shade: cool mid-tone, ripples readable // loop 6: navy shade (the targets)
+  // the dusk's lavender sky floor (R2B-1: the late views' sand measures dim warm brown-violet, not black or pure orange)
+  reflectedLight.indirectDiffuse += uDusk * vec3(0.011, 0.008, 0.017);
   reflectedLight.indirectDiffuse *= 1.0 + (0.16 * sin(sandPhase) * sandRip1 + 0.07 * sin(sandPhase2) * sandRip2) * sandShade + (sandTex.r - 0.5) * 0.18;`);
       }, { scope });
       const mesh = new Mesh(geometry, material); mesh.receiveShadow = false;

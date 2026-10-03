@@ -12,7 +12,7 @@ sand forms; everything it misses is lit by a cool sky. The sky is a tall aftergl
 
 | Part | Rule | Where |
 |---|---|---|
-| Key | a warm sun 10° up, 100° off the spawn view, behind-left of the player (never in the player's face). Colour `(1, 0.64, 0.4)` | `look/render.ts` KEY, `manifest.sky.sun` (az 80°, el 10°) |
+| Key | a low warm sun ~9° up **in front of the spawn view, with the afterglow behind the tower** (E399, the lead's decision after council round 2: the mockups win over the old "never in the player's face" rule, because Jake's goal is that the game looks like the mockups he picked). Dune faces turned to the camera fall into the cool shade, the crests catch the light, the ripples graze. The dusk dims it with each quest step (`look/dusk.ts`) | `look/render.ts` KEY |
 | Fill | a cool sky hemisphere `#6c78b0` over a warm sand bounce `#7a4a2c`: shade reads blue-violet, never black | `manifest.sky.hemi*` |
 | Dune shadow | baked into the ground per vertex (a march toward the key): a crest shadows the trough behind it at any distance; the shadow takes only the key, the sky fill stays | `look/render.ts` terrain painter (`sunVis`) |
 | Rim | a silhouette keeps a thin orange edge on the key side | creatures and props (open) |

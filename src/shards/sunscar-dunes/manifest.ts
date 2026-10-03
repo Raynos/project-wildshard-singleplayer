@@ -28,12 +28,12 @@ export const SUNSCAR_DUNES: ShardManifest = {
   // "Last Light" (style bible): the key 10° up, behind-left of the spawn view (look/render.ts KEY); a cool sky fill so
   // every shaded face reads blue-violet, never black (review R1).
   sky: { sunColor: [1, 0.74, 0.52], sunIntensity: 2.6, envIntensity: 0.4, bgIntensity: 1, fogSunColor: [0.78, 0.38, 0.22], cloudSunColor: [0.9, 0.5, 0.4],
-    hemiSky: 0x4e5a9a, hemiGround: 0x8a4a28, hemiIntensity: 1.5, sun: { azimuth: 52, elevation: 11 } },
+    hemiSky: 0x6e5248, hemiGround: 0x7a4426, hemiIntensity: 1.1, sun: { azimuth: 52, elevation: 11 } },
   // loop 4: real aerial perspective (the engine's fog is exponential in distance; `FOG` near / far are unused): the dune
   // rows and the far buttes lay back into the violet in layers (review R9), warm toward the sun.
   atmosphere: { fogHeight: -20, fogHeightFalloff: 0, fogHeightDensity: 0, fogDistDensity: 0.00045, volumetricSunColor: [1, 0.55, 0.35], weather: true }, // weather: the Matriarch's sand storm (E390)
   // A light split-tone (R9): warm highlights, blue-violet shadows. The greyer zenith (look/sky.ts) no longer clips.
-  grade: { saturation: 0.14, brightness: 0, contrast: 0.2, bloomIntensity: 0.15, bloomThreshold: 0.9, shadowTint: [0.94, 0.97, 1.08], highTint: [1.05, 1, 0.94], lift: [0, 0, 0], gain: [1, 1, 1], gamma: 1 },
+  grade: { saturation: 0.12, brightness: 0, contrast: 0.05, bloomIntensity: 0.15, bloomThreshold: 0.9, shadowTint: [0.94, 0.97, 1.08], highTint: [1.05, 1, 0.94], lift: [0.018, 0.01, 0.012], gain: [1, 1, 1], gamma: 1 }, // E399 (council round 2, R2B-1: measured patches): no crushed darks, a muted lavender floor
   horizon: { cloudSea: false, rings: [
     // round 2 (R1B-14 / R1C-5): the inner ring at 340 m stood on the dune skirt as an enclosing mauve wall; the skirt's
     // dunes run out to the far ranges instead

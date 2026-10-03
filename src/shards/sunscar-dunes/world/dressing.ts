@@ -60,7 +60,7 @@ const C = {
 
 /** How many of each (one draw per kind). */
 // loop 5 (the mockups: big clean sand forms): far fewer rocks and pebbles, scrub kept to the hollows and trail edges
-export const DRESSING = { shrubs: 0, tufts: 0, carcasses: 5, trees: 0, screePerRidge: 6, postEvery: 22, postSide: 3.6, postEnds: 14, outcrops: 0, gravel: 0 } as const; // E399: no outcrops (none in the mockups)
+export const DRESSING = { posts: 0, shrubs: 0, tufts: 0, carcasses: 5, trees: 0, screePerRidge: 6, postEvery: 22, postSide: 3.6, postEnds: 14, outcrops: 0, gravel: 0 } as const; // E399: no outcrops (none in the mockups)
 
 /** A saltbush, 0.9 m tall: four forked stems, dusty grey-green clumps at the tips. */
 function shrubGeometry(seed: number): BufferGeometry {
@@ -249,7 +249,9 @@ export function buildDressing(groundAt: (x: number, z: number) => number, trailD
         const x = ax + tx * d - tz * DRESSING.postSide * side, z = az + tz * d + tx * DRESSING.postSide * side; side = -side;
         // none within `postEnds` m of a trail's ends (the places, and the hero cameras on the path there)
         const [fx, fz] = line[0] ?? [0, 0], [lx, lz] = line[line.length - 1] ?? [0, 0];
-        if (clear(x, z, 2) && Math.hypot(x - fx, z - fz) > DRESSING.postEnds && Math.hypot(x - lx, z - lz) > DRESSING.postEnds) postSpots.push({ x, z });
+        // E399 (the mockups show no trail stakes; the council read them as clutter): `posts` caps them, now none; the tracker
+        // and the trail bed lead
+        if (postSpots.length < DRESSING.posts && clear(x, z, 2) && Math.hypot(x - fx, z - fz) > DRESSING.postEnds && Math.hypot(x - lx, z - lz) > DRESSING.postEnds) postSpots.push({ x, z });
       }
       carried = d - len;
     }

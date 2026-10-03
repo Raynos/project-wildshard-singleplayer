@@ -6,17 +6,17 @@ const smooth = (t: number): number => { const c = Math.min(1, Math.max(0, t)); r
  * The wind (P2, review R2): it blows along `WIND` (x, z), so the crests run from far-left to near-right across the
  * spawn view (40° off it) and every slip face turns toward the key light, behind-left of the spawn view (style bible). Wavelength `WAVE` m; the lee (slip face) is the last `LEE` of it.
  */
-export const WIND = { x: -0.985, z: -0.174 } as const;
+export const WIND = { x: -0.643, z: 0.766 } as const;
 // loop 5 (the mockups: tall sweeping dunes, 10-30 m): 1.5x the wave and the height together, so the slip face keeps its
 // angle (every face stays under the player's max climb)
-const WAVE = 128, LEE = 0.5, AMP_MAX = 22; // E399: the mockups' dunes are big smooth forms (10-30 m)
+const WAVE = 128, LEE = 0.45, AMP_MAX = 22, SPAWN_P = 0.55; // E399: the mockups' dunes are big smooth forms (10-30 m)
 /** The warped wind coordinate: crest lines bowed into crescents and wandering, so none read as parallel stripes. */
 const warped = (x: number, z: number, n: TerrainNoise['n']): number =>
   x * WIND.x + z * WIND.z + Math.cos((-x * WIND.z + z * WIND.x) * 0.0225) * 14 + n.get(x * 0.0035, z * 0.0035) * 18;
 /** u at the spawn minus the stoss: puts a crest through the spawn (per noise field). */
 const phases = new WeakMap<TerrainNoise['n'], number>();
 const phaseOf = (n: TerrainNoise['n']): number => {
-  let p = phases.get(n); if (p === undefined) { p = warped(SPAWN.x, SPAWN.z, n) - (1 - LEE) * WAVE; phases.set(n, p); }
+  let p = phases.get(n); if (p === undefined) { p = warped(SPAWN.x, SPAWN.z, n) - SPAWN_P * WAVE; phases.set(n, p); }
   return p;
 };
 /** The basin's sand floor (metres): the boss arena sits below every dune trough. */

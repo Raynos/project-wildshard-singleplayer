@@ -59,35 +59,17 @@ function warmByFire(m: MeshStandardMaterial): void {
   });
 }
 /**
- * Worn leather on the hero glove and its coiled whip (E399, council round 1, D9: the mockups' glove is creased brown-grey
- * leather with a plaited whip; ours read as a smooth saturated red mitten): the texture's red pulled toward a dusty
- * brown, and a fine crease bump in the model's own space (two octaves of value noise, `k` cells per object unit).
+ * Worn leather on the hero glove and its coiled whip (E399, council round 1, D9: ours read as a smooth saturated red
+ * mitten): the texture's light and dark kept, mapped onto a warm tan ramp. Round 2 dropped the crease bump (it read as
+ * jagged edges and noise) and the dusk rim (`sunscarNoRim`: it drew an X-ray outline).
  */
-function wornLeather(m: MeshStandardMaterial, k: number): void {
+function wornLeather(m: MeshStandardMaterial): void {
   patchShader(m, 'sunscar.leather', PATCH_ORDER.decorate, (shader) => {
-    shader.vertexShader = shader.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vLeatherP;')
-      .replace('#include <begin_vertex>', `#include <begin_vertex>\n  vLeatherP = position * ${k.toFixed(2)};`);
-    shader.fragmentShader = shader.fragmentShader.replace('#include <common>', `#include <common>
-varying vec3 vLeatherP;
-float leatherHash(vec3 p) { return fract(sin(dot(p, vec3(127.1, 311.7, 74.7))) * 43758.5453); }
-float leatherNoise(vec3 p) {
-  vec3 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
-  return mix(mix(mix(leatherHash(i), leatherHash(i + vec3(1, 0, 0)), f.x), mix(leatherHash(i + vec3(0, 1, 0)), leatherHash(i + vec3(1, 1, 0)), f.x), f.y),
-             mix(mix(leatherHash(i + vec3(0, 0, 1)), leatherHash(i + vec3(1, 0, 1)), f.x), mix(leatherHash(i + vec3(0, 1, 1)), leatherHash(i + vec3(1, 1, 1)), f.x), f.y), f.z);
-}`)
+    shader.fragmentShader = shader.fragmentShader
       .replace('#include <map_fragment>', `#include <map_fragment>
   float leatherL = dot(diffuseColor.rgb, vec3(0.3, 0.59, 0.11));
   // the texture's light and dark (braid, creases) kept, mapped onto a warm tan leather ramp (mockups A-C; the map is near-black red)
   diffuseColor.rgb = mix(vec3(0.07, 0.04, 0.025), vec3(0.62, 0.38, 0.2), smoothstep(0.015, 0.2, leatherL));`)
-      .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
-  {
-    // creases: a bump from the noise height, through screen-space derivatives (no tangents on a generated mesh)
-    float lh = leatherNoise(vLeatherP) * 0.8 + leatherNoise(vLeatherP * 2.7 + 5.1) * 0.2;
-    vec3 sx = dFdx(-vViewPosition), sy = dFdy(-vViewPosition), r1 = cross(sy, normal), r2 = cross(normal, sx);
-    float det = dot(sx, r1);
-    vec2 dh = vec2(dFdx(lh), dFdy(lh)) * 0.005;
-    normal = normalize(abs(det) * normal - sign(det) * (dh.x * r1 + dh.y * r2));
-  }`)
       // a warm self-fill, so the held glove never drops to a black cut-out against the dusk (mockup D: the fist still reads)
       .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n  totalEmissiveRadiance += diffuseColor.rgb * vec3(0.16, 0.11, 0.08);');
   });
@@ -103,8 +85,8 @@ async function loadHd(name: DuneHdName): Promise<void> {
           m.metalness = 0; m.roughness = 0.85; m.flatShading = false;
           // E399 (mockup D): the glove dark worn leather with a soft sheen, not a saturated red-brown
           if (name === 'glove-hd') {
-            m.color.setRGB(1, 1, 1); m.roughness = 0.55;
-            o.geometry.computeBoundingSphere(); wornLeather(m, 16 / Math.max(1e-6, o.geometry.boundingSphere?.radius ?? 1));
+            m.color.setRGB(1, 1, 1); m.roughness = 0.55; m.userData['sunscarNoRim'] = true; // council round 2: the rim drew an X-ray outline
+            wornLeather(m);
           }
           if (name === 'brazier-hd') warmByFire(m);
           m.needsUpdate = true;

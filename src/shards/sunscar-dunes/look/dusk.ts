@@ -24,4 +24,4 @@ export function stepDusk(dt: number): void {
 
 /** The key light's dimming and the fill's at a dusk value (look/render.ts). */
 export const keyAt = (d: number): number => 1 - 0.92 * d;
-export const fillAt = (d: number): number => 1 - 0.55 * d;
+export const fillAt = (d: number): number => 1 - 0.3 * d; // a floor: the late views keep warm brown sand (council round 2, R2B-1)

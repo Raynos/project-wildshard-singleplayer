@@ -38,7 +38,9 @@ const CARGO: readonly [number, number, number, number][] = [[2.6, -2.6, 0.42, 0.
 const SACKS: readonly [number, number, number, number][] = [[1.7, -3.5, 0.34, 0.4], [2.0, -4.0, 0.3, -0.6], [3.3, -4.1, 0.32, 1.2]];
 /** The caravan's tent, dark canvas pitched off the wagon's right as you come up behind it (mockup B). */
 const TENT = { x: -7.5, z: -1.5, yaw: 0.35, w: 3.2, h: 2.3, d: 3.8 } as const;
-const BURLAP = 0x8a7454, TENT_CANVAS = 0x2c2220;
+/** The pack horse, tethered between the tent and the wagon (mockup B): in the caravan's frame, its head toward the wagon's front. */
+const HORSE = { x: -5.0, z: 1.6, yaw: Math.PI / 2, h: 1.62 } as const;
+const BURLAP = 0x8a7454, TENT_CANVAS = 0x6a5644; // council round 2: 0x2c2220 read as a pure-black wedge
 
 /** Sun-bleached crate planks (loop 3: the plain dark boxes read as black cubes against the afterglow). */
 const CRATE = 0x9a7352, CRATE_GLOW = 0x150b05, BARREL = 0x7e5a3e;
@@ -131,6 +133,12 @@ export function buildCaravan(groundAt: (x: number, z: number) => number): Carava
   const cw = world(COOK.x, COOK.z); addFire(cook, COOKFIRE, { at: new Vector3(cw.x, y + 0.15, cw.z), groundAt });
   const body = world(0, 0);
   colliders.push(boxDesc({ x: body.x, z: body.z, hw: 1.1, hd: 2.3, rot: -CARAVAN.yaw, yBottom: y - 1, yTop: y + 1.9 }, 'wood'));
+  // The pack horse (E399, mockup B): the generated model (art/sunscar-dunes/round-19-horse), its head (model -X) turned along the wagon
+  const horse = duneHd('horse-hd', { size: HORSE.h, by: 'height', yaw: HORSE.yaw });
+  if (horse) {
+    horse.position.set(HORSE.x, 0, HORSE.z); root.add(horse);
+    const at2 = world(HORSE.x, HORSE.z); colliders.push(boxDesc({ x: at2.x, z: at2.z, hw: 0.35, hd: 1.1, rot: -CARAVAN.yaw, yBottom: y - 0.3, yTop: y + HORSE.h }, 'flesh'));
+  }
   const tentAt = world(TENT.x, TENT.z); colliders.push(boxDesc({ x: tentAt.x, z: tentAt.z, hw: TENT.w / 2, hd: TENT.d / 2, rot: -(CARAVAN.yaw + TENT.yaw), yBottom: y - 0.5, yTop: y + TENT.h }, 'felt'));
   for (const [x, z, half] of CARGO) { const c = world(x, z); colliders.push(boxDesc({ x: c.x, z: c.z, hw: half, hd: half, rot: -CARAVAN.yaw, yBottom: y - 0.5, yTop: y + half * 1.8 }, 'wood')); }
   { // the caravan's marker, off the lee side (in the caravan's frame, -X)
