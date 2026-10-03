@@ -58,7 +58,8 @@ def ended(path):
             continue
         t = rec.get("type")
         if t == "assistant":
-            return (rec.get("message") or {}).get("stop_reason") == "end_turn"
+            # an API error (a usage limit, 2026-10-03) ends the agent too: it never writes an end_turn
+            return rec.get("isApiErrorMessage") is True or (rec.get("message") or {}).get("stop_reason") == "end_turn"
         if t == "user":
             return False
     return False
