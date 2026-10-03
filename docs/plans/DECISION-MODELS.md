@@ -127,6 +127,10 @@ scripts/decide/decide.py <questions.json> --state <file|-> [--image a.jpg …] [
 | D5 | WorldClaw T12's batched style check gets the J0 pass | agreed and edited in WORLDCLAW-SHARD (its owner's row, not this plan's) | proposal |
 | D6 | Text triage: the session-brief status regex fix, then the ask-status and inbox-owner sets | the brief stops listing folded or parked asks; the inbox owner set reaches ≥ 85 % on 50 labelled reports | proposal |
 
+## Report
+
+The whole story as one page, with both score charts, sample frames and the verdict: https://claude.ai/artifact/7cM4xGBPvH57S5Buo2T66G
+
 ## D3 results (2026-10-03)
 
 Opus labelled every image by eye before the model ran. The images are in `~/ml/decide/d3-2026-10-03/`; the labels
