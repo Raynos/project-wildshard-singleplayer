@@ -313,7 +313,7 @@ export function kindling(y: number, size = 1, crown = false): Group {
     // a teepee: each stick leans in from the bowl's edge, the tips meeting above the rim, so it reads at eye level; the
     // crown adds four crossing logs over seven splayed ends (round 7's splayed ends read as one stub)
     const tee = crown && i >= 7, a = tee ? (i - 7) * 1.9 + 0.4 : (i / Math.min(n, 7)) * Math.PI * 2 + (crown ? (i % 2) * 0.3 : 0);
-    const lean = tee ? 1.0 + (i % 2) * 0.22 : crown ? -0.8 - (i % 3) * 0.1 : 0.5, len = (tee ? 0.56 + (i % 2) * 0.08 : crown ? 0.34 + (i % 2) * 0.06 : 0.6) * size;
+    const lean = tee ? 0.72 + (i % 2) * 0.16 : crown ? -0.8 - (i % 3) * 0.1 : 0.5, len = (tee ? 0.4 + (i % 2) * 0.06 : crown ? 0.34 + (i % 2) * 0.06 : 0.6) * size;
     const log = new Mesh(new CylinderGeometry(0.03 * size, 0.04 * size, len, 5), wood);
     log.rotation.order = 'YXZ'; log.rotation.set(-lean, a, 0);
     log.position.set(Math.sin(a) * Math.sin(lean) * len * 0.5, y + Math.cos(lean) * len * 0.5, Math.cos(a) * Math.sin(lean) * len * 0.5); g.add(log);

@@ -1,5 +1,5 @@
 import type { TerrainNoise } from '#engine/data';
-import { BASIN, CRESTS, FLATS, PADS, SPAWN } from '../layout';
+import { BASIN, CRESTS, PADS, SPAWN } from '../layout';
 
 const smooth = (t: number): number => { const c = Math.min(1, Math.max(0, t)); return c * c * (3 - 2 * c); };
 /**
@@ -29,19 +29,6 @@ const stoss = (t: number): number => t * t * (2 - t);
 /** Lee (slip face) fall 1 → 0: near-linear, so its steepest is only 1.15 × its mean (≈ 31° at `AMP_MAX`). */
 const lee = (s: number): number => 1 - (0.7 * s + 0.3 * smooth(s));
 
-/** How much of the dune height survives at (x, z): 1, down to a flat's `keep` inside it (layout FLATS). */
-function flatK(x: number, z: number): number {
-  let k = 1;
-  for (const f of FLATS) {
-    const dx = x - f.x, dz = z - f.z, c = Math.cos(f.dir), s = Math.sin(f.dir);
-    const along = dx * c + dz * s, across = -dx * s + dz * c;
-    // the distance (m) outside the ellipse, roughly: its normalised radius past 1, in metres of its smaller axis
-    const out = (Math.hypot(along / f.a, across / f.b) - 1) * Math.min(f.a, f.b);
-    k = Math.min(k, f.keep + (1 - f.keep) * smooth(out / f.ease));
-  }
-  return k;
-}
-
 /** One field of barchan-like crescent dunes: transverse crests bowed into crescents, amplitude varying along them. */
 function field(x: number, z: number, n: TerrainNoise['n']): { h: number; amp: number } {
   const u0 = x * WIND.x + z * WIND.z, v = -x * WIND.z + z * WIND.x;
@@ -52,7 +39,7 @@ function field(x: number, z: number, n: TerrainNoise['n']): { h: number; amp: nu
   const db = Math.hypot(x - BASIN.x, z - BASIN.z);
   // Big in the middle, gentler near the square's edge (the entry roads) and round the boss bowl.
   const damp = (1 - 0.6 * smooth((edge - 125) / 55)) * (1 - 0.45 * (1 - smooth((db - BASIN.r) / 60)));
-  const amp = Math.min(AMP_MAX, 19 + 6.4 * n.get(v * 0.006 + 7, u0 * 0.002 - 3)) * damp * flatK(x, z);
+  const amp = Math.min(AMP_MAX, 19 + 6.4 * n.get(v * 0.006 + 7, u0 * 0.002 - 3)) * damp;
   return { h: 2 + amp * ridge + 3.5 * n.get(x * 0.0024 - 11, z * 0.0024 + 5) * damp, amp };
 }
 

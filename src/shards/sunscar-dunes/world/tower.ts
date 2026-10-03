@@ -1,5 +1,5 @@
-import { addFire, SIGNAL_FIRE } from './fireFx';
-import { BoxGeometry, CylinderGeometry, Group, Mesh, MeshStandardMaterial, PointLight, Vector3, type Material } from 'three';
+import { addFire, addLampGlow, KEEPER_LAMP, SIGNAL_FIRE } from './fireFx';
+import { BoxGeometry, CylinderGeometry, Group, Mesh, MeshBasicMaterial, MeshStandardMaterial, PointLight, Vector3, type Material } from 'three';
 import { boxDesc, type ColliderDesc } from '#engine';
 import { TOWER } from '../layout';
 import { duneHd, duneMesh, fit } from './meshes';
@@ -107,6 +107,16 @@ export function buildTower(y: number, groundAt: (x: number, z: number) => number
   add(new Mesh(new CylinderGeometry(0.035, 0.06, CROWN.antenna, 6), wood), 0, apex.y + CROWN.antenna / 2, 0);
   add(box(1.1, 0.05, 0.05, wood), 0, apex.y + CROWN.antenna * 0.62, 0);
   add(new Mesh(new CylinderGeometry(0.09, 0.09, 0.14, 8), new MeshStandardMaterial({ color: 0x3a0a06, emissive: 0xff2a10, emissiveIntensity: 1.6 })), 0, apex.y + CROWN.antenna + 0.07, 0);
+  // The keeper's lantern (round 8, mockup dusk-fire: a lamp burns in the tower's top before the signal is lit; the council: an
+  // empty cage): hung under the crown's top frame, a lit glass in an iron cage, its small halo (fireFx addLampGlow)
+  // (round 8 first cut: a 0.3 m glass under the frame read as a pale dot against the bright afterglow at 145 m)
+  const keeperLamp = new Group(); keeperLamp.position.set(cx, topY + 0.45, cz); root.add(keeperLamp);
+  const glass = new MeshBasicMaterial({ color: 0xffb860 }); glass.color.multiplyScalar(3.5); // past 1: the tone mapper whites its core
+  keeperLamp.add(new Mesh(new BoxGeometry(0.6, 0.75, 0.6), glass));
+  for (const [dx, dz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]] as const) { const bar = box(0.06, 0.85, 0.06, iron); bar.position.set(dx * 0.32, 0, dz * 0.32); keeperLamp.add(bar); }
+  { const cap = box(0.8, 0.1, 0.8, iron); cap.position.y = 0.45; keeperLamp.add(cap); }
+  addLampGlow(keeperLamp, 2.6, () => deckY - (topY + 0.45));
+  { const flame = new Group(); flame.position.y = -0.3; keeperLamp.add(flame); addFire(flame, KEEPER_LAMP); } // its flame (a lit glass alone read as a pale dot)
   // The south stair: 22 treads from the sand to the deck edge.
   const top = new Vector3(cx + STAIR.x, deckY, cz + edge), foot = new Vector3(top.x, 0, top.z + STAIR.count * STAIR.run);
   foot.y = groundAt(foot.x, foot.z);

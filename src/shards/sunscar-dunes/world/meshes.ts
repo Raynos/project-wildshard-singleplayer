@@ -68,7 +68,16 @@ function wornLeather(m: MeshStandardMaterial, ramp: boolean): void {
   patchShader(m, 'sunscar.leather', PATCH_ORDER.decorate, (shader) => {
     shader.uniforms['uDusk'] = DUSK;
     shader.vertexShader = shader.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vGloveP;').replace('#include <begin_vertex>', '#include <begin_vertex>\n  vGloveP = position;');
-    shader.fragmentShader = shader.fragmentShader.replace('#include <common>', '#include <common>\nuniform float uDusk;\nvarying vec3 vGloveP;')
+    shader.fragmentShader = shader.fragmentShader.replace('#include <common>', `#include <common>
+uniform float uDusk;
+varying vec3 vGloveP;
+float gloveH(vec3 p) { return fract(sin(dot(p, vec3(127.1, 311.7, 74.7))) * 43758.5453); }
+float gloveN(vec3 p) { vec3 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
+  return mix(mix(mix(gloveH(i), gloveH(i + vec3(1, 0, 0)), f.x), mix(gloveH(i + vec3(0, 1, 0)), gloveH(i + vec3(1, 1, 0)), f.x), f.y),
+    mix(mix(gloveH(i + vec3(0, 0, 1)), gloveH(i + vec3(1, 0, 1)), f.x), mix(gloveH(i + vec3(0, 1, 1)), gloveH(i + vec3(1, 1, 1)), f.x), f.y), f.z); }
+// worn leather's crinkle (round 8, mockup D: creased, grained leather catching many small highlights; ours read smooth):
+// ridged noise at ~1 cm and ~4 mm in the model's own space (it spans 2 units, ~0.3 m)
+float gloveCrinkle(vec3 p) { return (1.0 - abs(2.0 * gloveN(p * 14.0) - 1.0)) * 0.65 + (1.0 - abs(2.0 * gloveN(p * 42.0 + 3.1) - 1.0)) * 0.35; }`)
       .replace('#include <map_fragment>', ramp ? `#include <map_fragment>
   float leatherL = dot(diffuseColor.rgb, vec3(0.3, 0.59, 0.11));
   // the texture's light and dark (braid, creases) kept, mapped onto a warm tan leather ramp (mockups A-C; the map is near-black red)
@@ -78,7 +87,8 @@ function wornLeather(m: MeshStandardMaterial, ramp: boolean): void {
   // round 8: the generated coil and tail are cut away (council rounds 1-7: a model-space plait read as a checker tape); the
   // code-built plaited coil (weapons/whipModel.ts plaitedCoil) runs through the fist in their place
   if (vGloveP.x < -0.45 || (vGloveP.y > 0.55 && vGloveP.x < 0.2) || (vGloveP.y < -0.25 && vGloveP.x < 0.15)) discard;
-  diffuseColor.rgb = mix(vec3(dot(diffuseColor.rgb, vec3(0.3, 0.59, 0.11))), diffuseColor.rgb, 0.3) * vec3(1.15, 0.95, 0.85) * 1.4; // neutral dark brown (round 4: 37,8,4 vs the mockup's 47,27,24)
+  // round 8 (mockup D: a warm mid-brown, ours read grey): more of the paint's own hue, warmer, darker in the creases
+  diffuseColor.rgb = mix(vec3(dot(diffuseColor.rgb, vec3(0.3, 0.59, 0.11))), diffuseColor.rgb, 0.45) * vec3(1.18, 0.93, 0.76) * 1.3 * (0.8 + 0.3 * gloveCrinkle(vGloveP));
   {
     vec3 gp = vGloveP; float whip = 0.0;
     // the gauntlet's stitching (council rounds 3-5: no seams read on the generated glove): two dashed seams along the back of
@@ -97,6 +107,15 @@ function wornLeather(m: MeshStandardMaterial, ramp: boolean): void {
   }`)
       // a light from the viewer side, so the held glove reads as lit leather, never a cut-out against the dusk (mockup D: the lit
       // fist; the key is behind it now): faces lit, edges falling off, more as the dusk deepens
+      .replace('#include <normal_fragment_maps>', ramp ? '#include <normal_fragment_maps>' : `#include <normal_fragment_maps>
+  {
+    // the crinkle as a bump (derivative bump mapping, three's perturbNormalArb): creases the key and the viewer light pick out
+    float gh = gloveCrinkle(vGloveP) * 0.0035;
+    vec2 dH = vec2(dFdx(gh), dFdy(gh));
+    vec3 sx = dFdx(-vViewPosition), sy = dFdy(-vViewPosition), r1 = cross(sy, normal), r2 = cross(normal, sx);
+    float det = dot(sx, r1);
+    normal = normalize(abs(det) * normal - sign(det) * (dH.x * r1 + dH.y * r2));
+  }`)
       .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
   totalEmissiveRadiance += diffuseColor.rgb * ${ramp ? 'vec3(0.62, 0.46, 0.34)' : 'vec3(0.42, 0.33, 0.27)'} * (0.2 + 0.8 * saturate(dot(normal, normalize(vViewPosition)))) * (1.0 + 0.7 * uDusk);`);
   });
@@ -114,6 +133,13 @@ export function viewerLit(m: MeshStandardMaterial, gain: readonly [number, numbe
   totalEmissiveRadiance += diffuseColor.rgb * vec3(${gain.map((g) => g.toFixed(3)).join(', ')}) * (0.2 + 0.8 * saturate(dot(normal, normalize(vViewPosition)))) * (1.0 + 0.7 * uDusk);`);
   });
 }
+/** A texture's colour pulled `amount` of the way to its own grey (the wagon's canvas: sun-bleached cloth, not orange). */
+function greyed(m: MeshStandardMaterial, amount: number): void {
+  patchShader(m, 'sunscar.greyed', PATCH_ORDER.decorate, (shader) => {
+    shader.fragmentShader = shader.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
+  diffuseColor.rgb = mix(diffuseColor.rgb, vec3(dot(diffuseColor.rgb, vec3(0.2126, 0.7152, 0.0722))), ${amount.toFixed(2)});`);
+  });
+}
 /** A textured hero model: its scene as loaded (its own map on its own UVs), normals smoothed, matte. */
 async function loadHd(name: DuneHdName): Promise<void> {
   try {
@@ -125,12 +151,12 @@ async function loadHd(name: DuneHdName): Promise<void> {
           m.metalness = 0; m.roughness = 0.85; m.flatShading = false;
           // E399 (mockup D): the glove dark worn leather with a soft sheen, not a saturated red-brown
           if (name === 'glove-hd' || name === 'glove-hd2') {
-            m.color.setRGB(1, 1, 1); m.roughness = name === 'glove-hd2' ? 0.26 : 0.42; m.fog = false; m.userData['sunscarNoRim'] = true; // council round 2: the rim drew an X-ray outline
+            m.color.setRGB(1, 1, 1); m.roughness = 0.42; /* round 8: glove-hd2's 0.26 caught the key (now in front) as a white streak along the cuff */ m.fog = false; m.userData['sunscarNoRim'] = true; // council round 2: the rim drew an X-ray outline
             wornLeather(m, name === 'glove-hd'); // glove-hd2 is painted dark leather with its seams: no ramp
           }
           // round 8 (the council since round 5: the wagon's canvas one even self-lit orange with blown white patches; mockup B:
           // a backlit wagon, its cloth grey-beige, the lantern's light inside): its texture taken down to the cloth's value
-          if (name === 'wagon-hd') m.color.setRGB(0.6, 0.55, 0.52);
+          if (name === 'wagon-hd') { m.color.setRGB(0.6, 0.55, 0.52); greyed(m, 0.5); }
           if (name === 'brazier-hd' || name === 'wagon-hd') warmByFire(m);
           m.needsUpdate = true;
         }

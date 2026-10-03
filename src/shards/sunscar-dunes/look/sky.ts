@@ -40,11 +40,11 @@ void main() {
   vec3 band = mix(vec3(0.82, 0.36, 0.15), vec3(1.0, 0.5, 0.16), pow(toward, 1.2)) * (1.0 - 0.4 * uDusk);
   // round 8 (measured, Rec. 709 bands: mockup A's mid sky 81,58,76 against ours 74,46,69, its top 40,37,65 against 48,35,61):
   // a dusty rose-peach above the band and a bluer, less plum dome
-  vec3 rose = vec3(0.5, 0.32, 0.32), dusk = vec3(0.24, 0.2, 0.29), indigo = vec3(0.1, 0.1, 0.19);
+  vec3 rose = vec3(0.5, 0.32, 0.32), dusk = vec3(0.24, 0.2, 0.29), indigo = vec3(0.09, 0.1, 0.21);
   // E399 (the mockups): a tall soft orange-gold band behind the tower, peach to rose, navy pushed higher
   // E399 (look/dusk.ts): as the quest goes on the band sinks and dims, the rose turns violet, the indigo comes down
   rose = mix(rose, vec3(0.42, 0.3, 0.42), uDusk);
-  indigo = mix(indigo, vec3(0.15, 0.15, 0.3), uDusk); // blue-violet (round 4: plum at half the mockups' value) // the late zenith a muted lavender (R2B-1), not navy
+  indigo = mix(indigo, vec3(0.13, 0.15, 0.33), uDusk); // round 8: bluer (mockup B's sky 49,46,92; ours read plum) // blue-violet (round 4: plum at half the mockups' value) // the late zenith a muted lavender (R2B-1), not navy
   vec3 c = mix(band, rose, smoothstep(0.0, (0.08 + 0.07 * toward) * (1.0 - 0.5 * uDusk), h));
   // wide overlapping blends: where one smoothstep ended flat as the next began, the eye read a hard arc (a Mach band)
   c = mix(c, dusk, smoothstep(0.05 * (1.0 - 0.6 * uDusk), 0.36 - 0.18 * uDusk, h));
@@ -63,11 +63,11 @@ void main() {
   float cov = smoothstep(0.66 - 0.08 * cside, 0.76, cn) * smoothstep(0.06, 0.12, h) * (1.0 - smoothstep(0.24, 0.34, h)) * (1.0 - smoothstep(0.03, 0.14, uDusk));
   // lit from below (the set sun): where the bank thins downward its belly takes the glow, its top stays dark
   float cBelow = vNoise(skyRing(az, 11.0, cH - 0.3)) * 0.45 + vNoise(skyRing(az, 26.0, (cH - 0.3) * 2.1 + 3.1)) * 0.3 + vNoise(skyRing(az, 70.0, (cH - 0.3) * 4.0 + 7.3)) * 0.25;
-  float lit = clamp((cn - cBelow) * -6.0 + 0.62, 0.0, 1.0);
+  float lit = clamp((cn - cBelow) * -6.0 + 0.78, 0.0, 1.0);
   float hot = pow(toward, 1.4) * (1.0 - smoothstep(0.1, 0.4, h));
   vec3 cLit = mix(mix(vec3(0.82, 0.36, 0.26), vec3(0.95, 0.44, 0.22), hot), vec3(1.0, 0.58, 0.3), hot * lit * 0.6);
   vec3 cDark = mix(vec3(0.2, 0.15, 0.22), vec3(0.3, 0.17, 0.16), hot);
-  c = mix(c, mix(cDark, cLit, clamp(lit * (0.6 + 0.4 * hot) + 0.15 * hot, 0.0, 1.0)), cov * 0.9);
+  c = mix(c, mix(cDark, cLit, clamp(lit * (0.75 + 0.25 * hot) + 0.2 * hot, 0.0, 1.0)), cov * 0.9);
   // Stars: soft points round a jittered spot in each cell, many overhead, fading into the band and the glow.
   vec3 cellP = d * 300.0, cell = floor(cellP);
   vec3 spot = cell + 0.5 + (vec3(starHash(cell + 1.7), starHash(cell + 5.3), starHash(cell + 9.1)) - 0.5) * 0.5;

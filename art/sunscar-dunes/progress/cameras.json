@@ -79,9 +79,9 @@
   {
    "id": "mock-B-logbook",
    "mockup": "art/sunscar-dunes/round-9-review/B-quest-logbook.jpg",
-   "x": -62.0,
-   "z": 39.7,
-   "yaw": 53.8,
+   "x": -58.8,
+   "z": 42.1,
+   "yaw": 48.3,
    "pitch": -3,
    "stage": "logbook",
    "settle": 11000
@@ -98,10 +98,10 @@
   {
    "id": "mock-D-hands",
    "mockup": "art/sunscar-dunes/round-9-review/D-hands-whip.jpg",
-   "x": 118,
-   "z": 88,
-   "yaw": 46,
-   "pitch": -1,
+   "x": 38,
+   "z": 122,
+   "yaw": 21.7,
+   "pitch": 0,
    "stage": "waymarks-lit",
    "settle": 11000
   }
