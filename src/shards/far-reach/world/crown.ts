@@ -77,7 +77,7 @@ function daisGeometry(): BufferGeometry {
   const R = DAIS.r, H = DAIS.h;
   const pos: number[] = [], col: number[] = [];
   const tri = (a: number[], b: number[], c: number[], color: [number, number, number]): void => { pos.push(...a, ...b, ...c); col.push(...color, ...color, ...color); };
-  const slab = rgb(0xa49d92), joint = rgb(0x787368), rim = rgb(0x8c867b), light = rgb(0xe6dccb), shade = rgb(0x66615a), inlay = rgb(0xcdb38a);
+  const slab = rgb(0xa49d92), joint = rgb(0x6a655c), rim = rgb(0x8c867b), light = rgb(0xf0e4cc), shade = rgb(0x4e4a44), inlay = rgb(0xd9b878);
   // the top: 4 rings of fitted slabs, alternate slabs a shade apart
   const rings = [0, 1.4, 2.6, 3.8, R - 0.45], segs = [8, 12, 18, 24];
   for (let k = 0; k < 4; k++) {
@@ -159,7 +159,7 @@ export function crownArena(): Group {
   const stoneMesh = new Mesh(mergeGeometries(stoneParts), paintIsleMaterial(new MeshStandardMaterial({ vertexColors: true, roughness: 0.95, metalness: 0, flatShading: true }), 0.7));
   const glyphMesh = new Mesh(mergeGeometries(glyphParts), new MeshStandardMaterial({ color: 0xe6f6f4, emissive: 0x9fe6f2, emissiveIntensity: 0.85, roughness: 0.8, metalness: 0 }));
   for (const g of [...stoneParts, ...glyphParts]) g.dispose();
-  const dais = new Mesh(daisGeometry(), paintIsleMaterial(new MeshStandardMaterial({ vertexColors: true, roughness: 0.9, metalness: 0, side: DoubleSide, flatShading: true }), 0.45));
+  const dais = new Mesh(daisGeometry(), paintIsleMaterial(new MeshStandardMaterial({ vertexColors: true, roughness: 0.9, metalness: 0, side: DoubleSide, flatShading: true }), 0.18));
   dais.position.set(DAIS.x, CROWN.y, DAIS.z);
   const { rope, flags } = pennants(stones);
   const ropeMesh = new Mesh(rope, new MeshStandardMaterial({ color: 0xd6c095, roughness: 1, metalness: 0, side: DoubleSide }));

@@ -30,7 +30,7 @@ export const MEADOW = {
   /** blade height range (metres) */
   low: 0.16, high: 0.74,
   /** an island's grass height scale (1 when absent): the crown's arena a little shorter, so the dais reads (E399: mockup D's meadow is lush to the dais) */
-  grass: { crown: 0.85 } as Readonly<Record<string, number>>,
+  grass: { crown: 0.5 } as Readonly<Record<string, number>>,
   /** the share of blades an island keeps (1 when absent): the crown a little thinner (round 2's carpet of chips was the old wide blades) */
   keep: { crown: 0.85 } as Readonly<Record<string, number>>,
 } as const;
@@ -238,6 +238,9 @@ export function meadow(sunDir: Vector3, blades: number, isles: readonly Isle[] =
           lit += ${glslColor(0xc9dc5c)} * glow * 0.45 + ${glslColor(SKY.sun)} * back * vH * vH * vH * 0.25;
         }
         lit *= ${glslColor(0xfff6ec)} * 1.1;
+        // olive-gold, not lime (council round 3: the meadow's blue measured 16-27 of 255 against the mockups' 39-47):
+        // toward a warm grey of the same brightness, a shade darker
+        lit = mix(lit, vec3(dot(lit, vec3(0.3, 0.59, 0.11))) * vec3(1.0, 0.86, 0.58), 0.52) * 0.86;
         float f = clamp((length(vWorld - uCam) - ${FOG.near.toFixed(1)}) / ${(FOG.far - FOG.near).toFixed(1)}, 0.0, 1.0) * ${FOG.max.toFixed(2)};
         gl_FragColor = vec4(mix(lit, ${glslColor(SKY.fog)}, f), 1.0);
       }` });
