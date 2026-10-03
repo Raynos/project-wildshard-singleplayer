@@ -88,7 +88,7 @@ export function skyDome(pano: Texture, haze: Texture): Mesh<SphereGeometry, Shad
         // 5.2 %, the hot blob ~0.35 of the frame wide): the glow card (look/sunGlow.ts) carries the hot core
         float farToSun = degrees(acos(clamp(dot(n, ${SUN_GLSL}), -1.0, 1.0)));
         float farHot = smoothstep(0.55, 0.95, dot(c, vec3(0.2126, 0.7152, 0.0722)));
-        c *= 1.0 - 0.28 * farHot * exp(-pow(farToSun / 14.0, 2.0)) * smoothstep(1.2, 3.0, farToSun);
+        c *= 1.0 - 0.42 * farHot * exp(-pow(farToSun / 18.0, 2.0)) * smoothstep(1.2, 3.0, farToSun);
         c = mix(c, ${srgb(zr, zg, zb)}, smoothstep(0.05, -0.12, vTop));
         c = mix(c, ${srgb(nr, ng, nb)}, smoothstep(0.95, 1.1, vTop));
         gl_FragColor = vec4(c, 1.0);
