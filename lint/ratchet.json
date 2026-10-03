@@ -30,8 +30,7 @@
     "src/engine/boot/extras.ts": 3,
     "src/engine/boot/pack.ts": 1,
     "src/engine/boot/prefetch.ts": 1,
-    "src/engine/boot/shardPrefetch.ts": 2,
-    "src/engine/native/boot.ts": 2
+    "src/engine/boot/shardPrefetch.ts": 2
   },
   "wildshard/public-index": {
     "src/entry.ts": 11,
@@ -52,6 +51,7 @@
     "src/kit/looks/grassField.ts": 4,
     "src/kit/looks/particles.ts": 7,
     "src/kit/viewmodel/rigArms.ts": 1,
+    "src/native.ts": 1,
     "src/pageServices.ts": 3,
     "src/shards/driftwood-isle/fpArms.ts": 5,
     "src/shards/driftwood-isle/loot/finds.ts": 2,

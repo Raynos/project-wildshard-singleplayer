@@ -79,7 +79,7 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
   game.captureLevelResources();
   game.levelScope.onDispose(() => { windupWarn?.dispose(); weapons.setEnabled(false); boot.runtime.hooks.dispose?.(); audio.unloadLevel(); });
   installProbe(handle, { bootSteps, health: () => playerHealth.attributes.health, quest: () => ({ driftwood: boot.runtime.hooks.adventureFlags?.() ?? [], nalati: boot.runtime.hooks.questFlags?.() ?? [] }) });
-  document.dispatchEvent(new Event('ws:ready')); // booted to the title: the native shell's update watchdog (src/engine/native/boot.ts) waits for this
+  document.dispatchEvent(new Event('ws:ready')); // booted to the title: the native shell's update watchdog (src/engine/native/boot.ts, via src/native.ts) waits for this
   // E158: the other shards' boot files into the worker's cache, in the background — once a page (the shell's, not a shard's)
   asShell(() => { startShardPrefetch(manifest); });
 

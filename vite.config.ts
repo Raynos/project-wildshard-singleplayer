@@ -42,7 +42,7 @@ const versionPlugin = (): Plugin => ({
 });
 
 // `vite build --mode native` (docs/plans/NATIVE-APPS.md): the web bundle the iOS / Android shells embed, in
-// dist-native/ (capacitor.config.ts `webDir`). Same game; the page swaps the web-only boot for src/engine/native/boot.ts:
+// dist-native/ (capacitor.config.ts `webDir`). Same game; the page swaps the web-only boot for src/native.ts:
 // no service worker (WKWebView has none on capacitor://, and the bundle is already on disk), no update pill
 // (native updates are the signed OTA channel), no Google Fonts (bundled — the app must boot offline), no trailers.
 const WEB_ONLY_HTML = [
@@ -67,8 +67,8 @@ const nativePlugin = (): Plugin => ({
     // any Google Fonts link (the native entry bundles the faces itself; optional, the web page may self-host them)
     out = out.replaceAll(/\s*<link[^>]*fonts\.(?:googleapis|gstatic)\.com[^>]*>/g, '');
     const main = '<script type="module" src="/src/entry.ts"></script>'; // the web entry (it imports src/main.ts)
-    if (!out.includes(main)) throw new Error('[native] index.html has no src/entry.ts script to swap for src/engine/native/boot.ts');
-    return out.replace(main, '<script type="module" src="/src/engine/native/boot.ts"></script>');
+    if (!out.includes(main)) throw new Error('[native] index.html has no src/entry.ts script to swap for src/native.ts');
+    return out.replace(main, '<script type="module" src="/src/native.ts"></script>');
   } },
   generateBundle() { this.emitFile({ type: 'asset', fileName: 'native-unavailable.html', source: NATIVE_UNAVAILABLE }); },
   closeBundle() { for (const f of ['trailer-15.mp4', 'trailer-30.mp4']) rmSync(join('dist-native', f), { force: true }); },

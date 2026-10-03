@@ -7,7 +7,7 @@
  *                   hook Storage.prototype.setItem / removeItem so each later write is queued to Preferences
  *   flushSaves()    resolves when every queued write has landed (the lifecycle calls it on backgrounding)
  *
- * The web build never imports this file (src/engine/native/boot.ts is the native entry only).
+ * The web build never imports this file (src/engine/native/boot.ts, run by the native entry src/native.ts, only).
  */
 import { Preferences } from '@capacitor/preferences';
 

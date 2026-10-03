@@ -1,7 +1,7 @@
 /**
  * Native OTA entry (docs/plans/NATIVE-APPS.md N-D): wires the pure controller in updates.ts to the real
  * @capgo/capacitor-updater plugin, the `ws.ota.*` localStorage keys (mirrored into durable Preferences by
- * src/engine/native/saves.ts) and the public channel in ota-config.ts. Imported only by src/engine/native/boot.ts, so the web build
+ * src/engine/native/saves.ts) and the public channel in ota-config.ts. Imported only by src/engine/native/boot.ts (run by src/native.ts), so the web build
  * never pulls in Capacitor.
  *
  * Order at boot (src/engine/native/boot.ts): hydrateSaves() → prepareOta() → … game … → `ws:ready` → session.ready().
