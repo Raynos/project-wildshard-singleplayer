@@ -772,7 +772,7 @@ export class Game {
       try {
         sky.update(realDt);
         // planet + sun disc travel with the camera so they stay "infinitely" far
-        sky.clouds?.position.copy(this.camera.position); sky.planet.position.copy(this.camera.position).addScaledVector(sky.planetDir, 1700); sky.sunDisc.position.copy(this.camera.position).addScaledVector(sky.sunDir, 1500);
+        sky.clouds?.position.copy(this.camera.position); sky.planet.position.copy(this.camera.position).addScaledVector(sky.planetDir, 1700); sky.sunDisc.position.copy(this.camera.position).addScaledVector(sky.raysDir, 1500);
         this.lookStrategy?.frame?.(realDt, t); // a shard's per-frame uniforms, with the camera final (ShardManifest.LookStrategy)
         cullPlaced(this.camera); // placed models' per-copy culling and LODs for this view (src/engine/models/place.ts; nothing when none cull)
         composer.render(realDt);

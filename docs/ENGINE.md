@@ -736,7 +736,7 @@ Both shapes take these optional parts:
 | Part | What it does |
 |---|---|
 | `backdrop` (`SkyBackdropFactory` → `SkyBackdrop`) | your sky backdrop and day clock. It gets `SkyBackdropContext`, `SkyBackdropTargets`, `SkyBackdropPost` |
-| `sky` (`SkyDressing`) | `{ clouds, planet, sun?: { disc?: boolean, halo?: boolean }, build?, update? }`: which engine sky objects to build/show |
+| `sky` (`SkyDressing`) | `{ clouds, planet, sun?: { disc?: boolean, halo?: boolean, rays?: boolean \| { azimuth, elevation } }, build?, update? }`: which engine sky objects to build/show |
 | `lighting` (`LightingRig`), `shadows` (`ShadowStyle`) | the light model and shadow rig |
 | `fog` (`FogModel`), `fogControl` | your fog patch (`{ order, install }`) and suspend / resume for Explore and playgrounds |
 | `terrainPainter` (`TerrainPainter`, `PainterField`) | `build(terrain, field, scope)` builds the ground mesh; `scope` is the owning level scope |
@@ -754,6 +754,16 @@ These flags affect drawing only: sun direction, key light, shadows and the backd
 hides its surface material so a selected halo can still draw; the parent mesh remains available to the rig and
 post effects. A backdrop can additionally drive `targets.disc.visible` / `targets.halo.visible` for day/night;
 hiding the disc parent also hides its child halo. The engine does not re-enable a dressing-disabled surface or halo.
+
+**God rays from a painted sun** (E398). With `disc: false` the god rays have no source, because the rays pass masks the
+disc. `sun.rays` keeps the disc as the rays' source only: it is left out of the scene (never drawn in the frame), and
+the rays pass draws it in its own light scene. `rays: true` puts it at the light's sun; `rays: { azimuth, elevation }`
+(degrees, the `sky.sun` compass) puts it at the painted sun when the key light points elsewhere. `sky.raysDir` is that
+direction (the sun's by default).
+
+```ts
+sky: { clouds: false, planet: false, sun: { disc: false, halo: false, rays: { azimuth: 352.5, elevation: 4.75 } } }
+```
 
 **`SkyBackdropTargets` field table.** `backdrop.bind(targets)` runs after the engine builds the light rig and sun,
 before frame updates. These are shared live objects: copy/set their values in place, rather than replacing them.

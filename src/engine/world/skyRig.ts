@@ -56,6 +56,8 @@ export class SkyRig {
   csm!: CSM;
   private readonly visual: SkyBackdropView;
   get sunDisc(): THREE.Mesh { return this.visual.sunDisc; }
+  /** where the sun disc (and so the god rays) sits: the light's sun, or a painted sun's direction (E398) */
+  get raysDir(): THREE.Vector3 { return this.visual.raysDir ?? this.sunDir; }
   get planet(): THREE.Group { return this.visual.planet; }
   get planetDir(): THREE.Vector3 { return this.visual.planetDir; }
   /** the fill light (ChunkSky.hemiSky / hemiGround / hemiIntensity) — a runtime handle for the day/night clocks */

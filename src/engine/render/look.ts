@@ -105,8 +105,13 @@ export interface SkyDressing {
   clouds: boolean;
   /** false: the engine's planet is not built (`sky.planet` stays an empty group outside the scene) — the level paints its own */
   planet: boolean;
-  /** Sun surface/corona visibility at build; each omitted flag defaults to true. Lighting is unchanged. */
-  sun?: { disc?: boolean; halo?: boolean };
+  /**
+   * Sun surface/corona visibility at build; each omitted flag defaults to true. Lighting is unchanged. `rays` (E398):
+   * with the disc off (a level whose painted sky has the sun), keep the disc as the god rays' source only: it is never
+   * drawn in the frame, but the rays pass masks it. `true` = at the light's sun; `{ azimuth, elevation }` (degrees, the
+   * same compass as `sky.sun`) = at the painted sun.
+   */
+  sun?: { disc?: boolean; halo?: boolean; rays?: boolean | { azimuth: number; elevation: number } };
   /** `cloudField`: the engine's tileable cloud fbm (R), for a level's cloud shadows */
   build?: (sky: Sky, cloudField: Texture) => void;
   update?: (dt: number) => void;

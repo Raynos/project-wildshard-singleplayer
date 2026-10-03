@@ -179,7 +179,11 @@ export class SkyBackdropView {
     const mat = new THREE.MeshBasicMaterial({ color: new THREE.Color(1.0, 0.95, 0.85), fog: false, toneMapped: false });
     this.sunDisc = new THREE.Mesh(new THREE.SphereGeometry(14, 24, 24), mat);
     // three uploads visible mesh geometry before checking material.visible. Hide the object itself.
-    this.sunDisc.visible = this.dressing?.sun?.disc !== false;
+    // E398: a disc that is off can stay on as the god rays' source only (`sun.rays`): out of the scene, so never drawn
+    const rays = this.dressing?.sun?.disc === false ? this.dressing.sun.rays : undefined;
+    const raysOnly = rays !== undefined && rays !== false;
+    if (typeof rays === 'object') this.raysDir = compassDir(rays.azimuth, rays.elevation);
+    this.sunDisc.visible = this.dressing?.sun?.disc !== false || raysOnly;
     this.sunDisc.position.copy(this.sunDir).multiplyScalar(1500);
     this.sunDisc.frustumCulled = false;
     // soft corona so the disc reads as a glowing sun rather than a white ball
@@ -196,12 +200,16 @@ export class SkyBackdropView {
     // the practice room (src/engine/practice/TrainingArena.ts) is a closed box: there its ceiling must hide the glow (E285)
     this.scope.listen(document, 'ws:practice-active', (e) => { if (e instanceof CustomEvent) halo.material.depthTest = e.detail === true; });
     // Keep the original hierarchy for default skies. A halo without a disc must escape its hidden parent.
-    if (!this.sunDisc.visible && halo.visible) {
+    if ((!this.sunDisc.visible || raysOnly) && halo.visible) {
       halo.position.copy(this.sunDisc.position);
       this.scene.add(halo);
     } else this.sunDisc.add(halo);
-    this.scene.add(this.sunDisc);
+    // a rays-only disc stays parentless: GodRaysEffect draws it in its own light scene and leaves it there
+    if (!raysOnly) this.scene.add(this.sunDisc);
   }
+
+  /** the god rays' source direction when it is not the light's sun (`sun.rays: { azimuth, elevation }`, E398); null = the sun */
+  raysDir: THREE.Vector3 | null = null;
 
   /** Only the independently selected halo needs a separate infinite-distance placement. */
   updateSunHalo(camera: THREE.PerspectiveCamera): void {
