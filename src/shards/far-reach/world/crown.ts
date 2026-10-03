@@ -1,4 +1,4 @@
-import { BoxGeometry, BufferGeometry, Color, DoubleSide, Float32BufferAttribute, Group, Mesh, MeshStandardMaterial, TorusGeometry } from 'three';
+import { BoxGeometry, BufferGeometry, CatmullRomCurve3, Color, DoubleSide, Float32BufferAttribute, Group, Mesh, MeshStandardMaterial, TubeGeometry, Vector3 } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { CROWN, DAIS } from '../layout';
 import { paintIsleMaterial } from './isle';
@@ -60,15 +60,16 @@ function stoneGeometry(h: number, seed: number): BufferGeometry {
   });
 }
 
-/** The carved wind glyph on a stone's face: a ring, a stroke through it and a dot, pale and faintly lit. */
+/**
+ * The carved wind glyph on a stone's face (E399, mockup D: each stone bears a large spiral, pale and faintly lit): a
+ * two-and-a-half-turn spiral 0.62 m across a little above the stone's middle, with a short tail running down the face.
+ */
 function glyphGeometry(h: number): BufferGeometry {
-  const ring = new TorusGeometry(0.26, 0.035, 4, 24); ring.translate(0, h * 0.52, 0);
-  const inner = new TorusGeometry(0.11, 0.03, 4, 16); inner.translate(0, h * 0.52, 0);
-  const stroke = new BoxGeometry(0.06, h * 0.38, 0.05); stroke.translate(0, h * 0.5, 0);
-  const tick = new BoxGeometry(0.22, 0.05, 0.05); tick.translate(0, h * 0.73, 0);
-  const merged = mergeGeometries([ring.toNonIndexed(), inner.toNonIndexed(), stroke.toNonIndexed(), tick.toNonIndexed()]);
-  for (const g of [ring, inner, stroke, tick]) g.dispose();
-  return merged;
+  const pts: Vector3[] = [], cy = h * 0.56;
+  for (let k = 0; k <= 90; k++) { const t = k / 90, a = t * Math.PI * 5, r = 0.04 + 0.27 * t; pts.push(new Vector3(Math.cos(a) * r, cy + Math.sin(a) * r, 0)); }
+  const last = pts[pts.length - 1] ?? new Vector3(0.31, cy, 0);
+  for (let k = 1; k <= 8; k++) pts.push(new Vector3(last.x + 0.01 * k, last.y - 0.06 * k, 0));
+  return new TubeGeometry(new CatmullRomCurve3(pts), 140, 0.03, 4, false).toNonIndexed();
 }
 
 /** The dais's top: a disc of fitted stone with a compass rose (eight points, light and shaded halves) and two inlaid rings. */
