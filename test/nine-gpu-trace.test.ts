@@ -1,9 +1,7 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { Pass } from 'postprocessing';
 import { traceBootPasses } from '#engine/boot/gpuTrace';
 
-vi.mock('#engine/ui/Settings', () => ({ setting: () => 'auto' }));
-vi.mock('#engine/boot/bootTrace', () => ({ recordBootCheckpoint: vi.fn() }));
 
 class ProbePass extends Pass {
   calls = 0;

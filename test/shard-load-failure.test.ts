@@ -3,7 +3,6 @@ import { saveStorageFixture } from './fake/saveFixture';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Scope } from '#engine/app/scope';
 import { QUEUE_KEY, reportError, type LoadFailure } from '#engine/core/errorReport';
-import { captureBrowserError } from '#engine/telemetry/browserErrors';
 import { showLoadFailure } from '#engine/ui/errorScreen';
 import { runShardLoad, withShardHooks } from '#game/shard/load';
 import { SHARDS } from '../src/shards.generated';
@@ -11,7 +10,8 @@ import type { ShardManifest } from '#game/shard/manifest';
 
 const fixtures = saveStorageFixture('device');
 
-vi.mock('#engine/telemetry/browserErrors', () => ({ captureBrowserError: vi.fn() }));
+// the error tracker is passed to reportError, not a mocked module (E422)
+const captureBrowserError = vi.fn();
 
 afterEach(() => { document.body.replaceChildren(); vi.unstubAllGlobals(); });
 
@@ -36,7 +36,7 @@ describe('shard load failure', () => {
     await expect(runShardLoad(m, (stage) => withShardHooks(m, stage, async () => { await m.render?.(); }), {
       build: 'test-build',
       dispose: () => { scope.dispose(); },
-      report: (failure) => { order.push('report'); return reportError(failure); },
+      report: (failure) => { order.push('report'); return reportError(failure, captureBrowserError); },
       show: (failure) => { expect(scope.disposed).toBe(true); order.push('show'); return showLoadFailure(failure); },
     })).rejects.toThrow('render <script> failed');
     expect(order).toEqual(['dispose', 'report', 'show']);

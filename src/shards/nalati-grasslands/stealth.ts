@@ -49,6 +49,8 @@ export interface StealthOpts {
   isMounted?: () => boolean;
   /** the crouch off long grass, where a quest asks for it (the taming approach, E287) */
   crouchHere?: () => boolean;
+  /** the grass's base height at a point (the kit's grass field by default; a test passes its own) */
+  grassAt?: (x: number, z: number) => number;
 }
 
 export const LONG_GRASS = 0.7;           // m — the crouch disc / C key work in grass at least this tall
@@ -106,9 +108,10 @@ export class Stealth {
   private shown: StealthState | '' = '';
   private lastCover = -1; private lastThreat = -1;
 
+  private readonly grassBase: (x: number, z: number) => number;
   constructor(opts: StealthOpts) {
     this.scope = opts.ctx?.scope ?? uiScope('stealth');
-    this.player = opts.player; this.wildlife = opts.wildlife; this.isMounted = opts.isMounted ?? (() => false); this.crouchHere = opts.crouchHere ?? (() => false);
+    this.player = opts.player; this.wildlife = opts.wildlife; this.isMounted = opts.isMounted ?? (() => false); this.crouchHere = opts.crouchHere ?? (() => false); this.grassBase = opts.grassAt ?? grassBaseHeightAt;
     this.root = document.createElement('div');
     this.root.className = 'ws-stealth';
     this.root.innerHTML = `<div class="ws-stealth-vig"></div>
@@ -161,7 +164,7 @@ export class Stealth {
   crouchStep(dt: number): void {
     const p = this.player;
     const blocked = p.hover || p.swimming || this.isMounted() || practiceRoom.open;
-    const long = !blocked && grassBaseHeightAt(p.position.x, p.position.z) >= LONG_GRASS;
+    const long = !blocked && this.grassBase(p.position.x, p.position.z) >= LONG_GRASS;
     if (long) { this.onT += dt; this.offT = 0; } else { this.offT += dt; this.onT = 0; }
     this.inLongGrass = blocked ? false : this.inLongGrass ? this.offT < OUT_AFTER : this.onT >= IN_AFTER;
     this.canCrouch = !blocked && (this.inLongGrass || this.crouchHere());
@@ -187,7 +190,7 @@ export class Stealth {
     this.t = t;
     const p = this.player.position;
     const crouched = this.player.crouching;
-    const g = grassBaseHeightAt(p.x, p.z), h = crouched ? 1.05 : 1.75; // as it stands round you, not your own footprint
+    const g = this.grassBase(p.x, p.z), h = crouched ? 1.05 : 1.75; // as it stands round you, not your own footprint
     this.cover = clamp01((g - 0.15) / (h - 0.15));
     // the most aware creature (as a fraction of its alert level) and whether anything close has noticed you at all
     let level = 0, quiet = true, noticed = false, tx = 0, tz = 0;
