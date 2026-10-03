@@ -6,6 +6,9 @@ export function genAskIds(root = process.cwd()) {
   const legacy = resolve(root, 'project/archive/2026-09-22-asks-table.md');
   if (!existsSync(legacy)) return;
   const ids = new Set([...readFileSync(legacy, 'utf8').matchAll(/^\| (E\d+) \|/gmu)].map((match) => match[1]));
-  for (const file of readdirSync(resolve(root, 'docs/tasks/asks'))) if (/^E\d+\.md$/u.test(file)) ids.add(file.slice(0, -3));
+  // the ask files are docs: a Vercel-shaped tree (.vercelignore drops /docs) has none, and keeps the committed inventory
+  const asks = resolve(root, 'docs/tasks/asks');
+  if (!existsSync(asks)) return;
+  for (const file of readdirSync(asks)) if (/^E\d+\.md$/u.test(file)) ids.add(file.slice(0, -3));
   writeFileSync(resolve(root, 'lint/ask-ids.json'), `${JSON.stringify([...ids].sort(), null, 2)}\n`);
 }
