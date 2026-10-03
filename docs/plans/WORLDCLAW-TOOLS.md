@@ -1,6 +1,6 @@
 # WorldClaw tools: Draft mode, the drafts site, and the Explorers a shard needs before it is a world
 
-**State:** `in progress` 2026-10-03 — the draft side is built and live (https://wildshard-drafts.vercel.app): the title, STAGES with decision boards and lineage comparison, Draft Explore (models, sets, world + camera check, beats, measured coverage), the design docs, Map Lab, the prototypes' cards, offline on the home screen with the reload pill; the artifact page auto-made; Thin Ice's COMING SOON card in the game. Open on the draft side: W7's playable prototypes (the next run's P7 makes them), W6's terrain re-stamp (T3–T5, J61), physical-iPhone readings. Later, just in time (J71): the game's Explore tools W10, W11, W12, W14. **New (E413, §9): how those tools land in the game's Explore on every shard, new and existing** (one data contract, a tab API, the draft → engine handover, rows W19–W23); waits on Jake's Q-E413a (scope) and Q-E413b (timing). Audit: E395 (Codex + own). Design: J1–J71.
+**State:** `in progress` 2026-10-03 — the draft side is built and live (https://wildshard-drafts.vercel.app): the title, STAGES with decision boards and lineage comparison, Draft Explore (models, sets, world + camera check, beats, measured coverage), the design docs, Map Lab, the prototypes' cards, offline on the home screen with the reload pill; the artifact page auto-made; Thin Ice's COMING SOON card in the game. Open on the draft side: W7's playable prototypes (the next run's P7 makes them), W6's terrain re-stamp (T3–T5, J61), physical-iPhone readings. Later, just in time (J71): the game's Explore tools W10, W11, W12, W14. **E413 (§9): the game's Explore tools work on every shard, new and existing (J72)**: one data contract, a tab API with the DEV row, COMPARE folded into Composition, the draft → engine handover per tab; rows W19–W23 join W10–W14, still built just in time (J73). Audit: E395 (Codex + own). Design: J1–J71.
 **Reviews:** [worldclaw-tools](../reviews/worldclaw-tools.md) · [thin-ice-draft](../reviews/thin-ice-draft.md)
 
 ## 0. Read this first
@@ -144,6 +144,8 @@ friction, keep the history browsable, and let Jake touch what exists.**
 | J69 | **Build SETS now on a test fixture** (E395, W17): the list by region, a set's page (aerial concept in its bounds box, planned members, copies, tris, draws), a member's PART OF view; Thin Ice's tab stays empty until P11 | "Build now on a test fixture" |
 | J70 | **The artifact page carries picks and current pictures** (E395, W3): rejected and superseded pictures become a count with a link to the drafts site, which keeps everything, so a draft never outgrows the page's file limit | "Picks and current only" |
 | J71 | **After the draft side, stop; the game's tools just in time** (E395): W10–W14 are built right before Thin Ice reaches the stage that needs each (J37) | "Stop; game tools just in time" |
+| J72 | **The game's Explore tools work on every shard** (E413, §9): Beats, Coverage and Composition are engine features on one data contract; a new shard's data is generated from `design/`, an existing shard's written from its walk legs, quest steps, poses and mockup cameras (WT10–WT16 adopted) | "Every shard" |
+| J73 | **Still just in time** (E413): §9's rows W19–W23 are not built now; they land with the game's tools, right before Thin Ice's stage that needs the first of them (J71) | "Keep just in time (J71)" |
 
 ## 1. Goal, done-when, non-goals
 
@@ -391,14 +393,14 @@ Every row: the other-shards proof (WORLDCLAW-SHARD §3, rule 3) where it touches
    first draft (J18). These replace T15 in the stage-entry table (§8).
 3. **Just before the Thin Ice stage that needs it:** W7 (prototypes, any time after W2); W6 before P5's re-check (after T3,
    T4); W11 before P8's report (after T5, T10); W14 before the slice (after T5, T16); W10 before P9b (after E4, T6, T8),
-   then W12.
+   then W12. The first of these brings §9's W19 → W20 → W21 with it (J73); W22 lands with W10, W23 at the handover.
 4. **After the pilot:** the keep / cut review of every part (J32).
 
 | Part | Rows | Days |
 |---|---|---|
 | Before P0 | W16, W15, W1, W2, W3, W4, W5, W8, W9, W17, W13 | ~12 |
 | Map Lab, prototypes | W6, W7 | ~4 |
-| The game's Explore tools | W10, W11, W12, W14 | ~7 |
+| The game's Explore tools, on every shard (§9, J72) | W19, W20, W21, W10, W11, W12, W14, W22, W23 | ~7 + §9's rows (not estimated) |
 | **Base after the archive** | W1–W17 | **~23** (T15's ~0.5 absorbed) |
 
 ## 6. Risks
@@ -420,7 +422,7 @@ Every row: the other-shards proof (WORLDCLAW-SHARD §3, rule 3) where it touches
 
 ## 7. Jake's answers and what is still open
 
-**Answered:** J1–J52 (§0.3, §0.5), from the grill of 2026-10-01 (waves 1–6 and rounds 1–3 of mockups, every board picked); J53–J63 (E387: go with no council, one builder, `wildshard-drafts`, the card once the site is live, the drafts site first in `drafts/`, overnight deploys, the card's art and line, Map Lab now, the artifact page in place, the dry run's prototypes).
+**Answered:** J1–J52 (§0.3, §0.5), from the grill of 2026-10-01 (waves 1–6 and rounds 1–3 of mockups, every board picked); J72–J73 (E413: the game's tools on every shard, still just in time); J53–J63 (E387: go with no council, one builder, `wildshard-drafts`, the card once the site is live, the drafts site first in `drafts/`, overnight deploys, the card's art and line, Map Lab now, the artifact page in place, the dry run's prototypes).
 
 **Still open:**
 - after the pilot: the keep / cut review of every tool part (J32).
@@ -433,7 +435,7 @@ first (D60); the place checkpoint (D63, W12). **New with J21–J44:** each stage
 (J21) and to the drafts site at every step boundary (J26); P5 reviews the map variants with Map Lab's checks (J31); P6's
 views carry the camera check in Draft Explore's WORLD (J44, J46); P8 onward uses the game's Beats and Coverage tabs (J42, J43).
 
-## 9. In engine: the game's Explore tools on every shard (E413, 2026-10-03; proposed, waits on Jake)
+## 9. In engine: the game's Explore tools on every shard (E413, 2026-10-03; J72, J73)
 
 > "the majority of the tools in World Claude Tools are actually tools that go into the World Explorer. And that
 > impacts, you know, all the new shards coming up. But it also impacts existing shards. … at some point, a shard will
@@ -463,12 +465,12 @@ views carry the camera check in Draft Explore's WORLD (J44, J46); P8 onward uses
 | Coverage (W11) | T5's bands and `coverage.png`, T10's `budgets.json`, P12 / P15 statuses | the navmesh (T5's reach and bands run on it), the POIs and place Sets (`pois`, `world/places.ts`), the mockup cameras above (which cells a mock-up shows), the budget census per pose (T10 runs on any shard's `capturePoses`) |
 | Model card provenance (E3), a Set's target beside built (E4), World channels (E5) | — | engine features: every shard gets them once built |
 
-### 9.3 Lead resolutions (proposed; Jake or a council may reopen any)
+### 9.3 Lead resolutions (adopted with J72; Jake or a council may reopen any)
 
 | # | Resolution | Why |
 |---|---|---|
 | WT10 | **The tools are engine features, not WorldClaw features: every shard gets them.** D90 limits the WorldClaw *workflow* to new shards; the Explore tabs are `#engine` code and show on any shard that gives them data. A shard with no data for a tab doesn't show that tab | Jake (E413): "it also impacts existing shards" |
-| WT11 | **One data contract, two sources.** The engine reads one shape per tool: `ExploreBeats` (legs, beats), `ExploreCameras` (pose, fov, target image, and optionally capture, composition and objects) and `ExploreCoverage` (bands, statuses, the census). A new shard's are **generated** from `design/` (`explore/tools.generated.ts`). An existing shard's are **written** from what it has (§9.2) in its own `explore/tools.ts`. The manifest gets one lazy, node-safe field, `explore.tools: () => Promise<ExploreTools>` | the engine never reads `design/` or names a shard (`engine-words`, `shard-sandbox`); one renderer for every shard |
+| WT11 | **One data contract, two sources.** The engine reads one shape per tool: `ExploreBeats` (legs, beats), `ExploreCameras` (pose, fov, target image, and optionally capture, composition and objects) and `ExploreCoverage` (bands, statuses, the census), level-generic in `#engine/data` (the engine says "level", never "shard": LAYER-PURITY). A new shard's are **generated** from `design/` (`explore/tools.generated.ts`). An existing shard's are **written** from what it has (§9.2) in its own `explore/tools.ts`. The game's manifest gets one lazy, node-safe field, `explore.tools: () => Promise<ExploreTools>`, and hands the loaded data to the engine's Explore | the engine never reads `design/` or names a shard (`engine-words`, `shard-sandbox`); one renderer for every shard |
 | WT12 | **A tab API before any tool.** `registerExploreTab({ id, label, row: 'main' \| 'dev', pane })`, with the pane a lazy import; MODELS · SETS · WORLD move onto it; the DEV row (J51) holds BEATS · COVERAGE, developer-only. A player's Explore is unchanged (J51) | the hard-coded bar can't take three more tools and their sub-modes |
 | WT13 | **COMPARE folds into Composition.** `explore.compare` targets become `ExploreCameras` entries; Composition's Target-vs-Built slider at a camera renders the live view from the pose (not a stored image) beside the target; `Compare.ts` is retired once every shard's targets moved | two tools for one question; Compare's stored "live" image goes stale |
 | WT14 | **Map Lab stops at the drafts site; its layers live on in Coverage.** Once a shard is in the engine its terrain is real, so the slope, walkable, sightline and band layers become layers on Coverage's map, computed from the real terrain and navmesh. The drag-a-place what-if stays a drafts-site tool | the numbers after P8 must be the built world's (WT6) |
@@ -509,23 +511,21 @@ once:
 "Composed" and "signed off" exist only where a WorldClaw build or a director's stage (D91) wrote them; an existing shard's
 Coverage shows unseen · to do · mocked up.
 
-### 9.6 Rows (proposed; added to §4 on Jake's go)
+### 9.6 Rows (J72; built just in time, J73)
 
 | Row | What | Done when | State |
 |---|---|---|---|
-| W19 | **The tab API + the DEV row** (WT12): `registerExploreTab`, MODELS · SETS · WORLD moved onto it, J51's second row; ENGINE.md §22 | every shard's Explore is identical for a player (captures); a test tab on the template shows only with Developer on | proposed |
-| W20 | **The tools contract** (WT11): `ExploreBeats`, `ExploreCameras`, `ExploreCoverage` in `#engine/data`; `explore.tools` on the manifest; `atlas.mjs`'s generator for a new shard's `tools.generated.ts` | the Thin Ice fixture generates; a shard with no `tools` loads unchanged | proposed |
-| W21 | **Existing shards' `explore/tools.ts`** (§9.5): written from each shard's legs, quest, poses, targets and cameras; their mockups' phone copies on Blob (WT15) | all six shards fill Beats and Composition; each shard's owner agent told over herdr first | proposed |
-| W22 | **COMPARE into Composition** (WT13) | every compare target opens in Composition; `Compare.ts` deleted | proposed |
-| W23 | **The handover** (§9.4): the IN GAME chips in Draft Explore, the game's targets from the draft's Blob URLs | on the fixture, a model going `live` flips its chip at the next drafts deploy | proposed |
+| W19 | **The tab API + the DEV row** (WT12): `registerExploreTab`, MODELS · SETS · WORLD moved onto it, J51's second row; ENGINE.md §22 | every shard's Explore is identical for a player (captures); a test tab on the template shows only with Developer on | todo |
+| W20 | **The tools contract** (WT11): `ExploreBeats`, `ExploreCameras`, `ExploreCoverage` in `#engine/data`; `explore.tools` on the manifest; `atlas.mjs`'s generator for a new shard's `tools.generated.ts` | the Thin Ice fixture generates; a shard with no `tools` loads unchanged | todo |
+| W21 | **Existing shards' `explore/tools.ts`** (§9.5): written from each shard's legs, quest, poses, targets and cameras; their mockups' phone copies on Blob (WT15) | all six shards fill Beats and Composition; each shard's owner agent told over herdr first | todo |
+| W22 | **COMPARE into Composition** (WT13) | every compare target opens in Composition; `Compare.ts` deleted | todo |
+| W23 | **The handover** (§9.4): the IN GAME chips in Draft Explore, the game's targets from the draft's Blob URLs | on the fixture, a model going `live` flips its chip at the next drafts deploy | todo |
 | W10, W11, W14 | as §4, reading W20's contract instead of `design/` directly; W11 gains Map Lab's layers (WT14) | as §4, on every shard with data | todo |
 
-**Order:** W19 → W20 → W14 (Beats: the most data already exists) → W21 → W22 + W10 → W11 → W23 → W12. The
+**Order (J73):** nothing now. Right before Thin Ice's first in-engine stage that needs a game tool (§5 step 3): W19 → W20 → W21 → the tool itself; then W22 with W10, W23 at the handover, W11, W12. The
 `no-shard-branch` and `engine-words` guards hold throughout: the engine never names a shard.
 
-### 9.7 Open for Jake
+### 9.7 Jake's answers
 
-- **Q-E413a, scope:** the tools on every shard (WT10), or on WorldClaw shards only (as §3–§4 are written)?
-- **Q-E413b, timing:** J71 builds the game's tools just in time for Thin Ice's P8 / P9b, which is waiting on N0's go.
-  Building W19 → W20 → W14 now would first serve the six shards (Signal Dunes and Sky Reach are polishing today), and
-  would test the tools on real data before Thin Ice needs them.
+- **Scope (J72):** every shard, new and existing.
+- **Timing (J73):** still just in time (J71); none of §9 is built now.
