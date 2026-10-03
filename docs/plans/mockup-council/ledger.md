@@ -27,7 +27,8 @@
      a weak area, and the change is named in the round's capture notes.
    - **No screenshot cheats:** real 3D in the playable area; painted only at infinity (sky, far panorama). No overlay,
      card or decal standing in for geometry the player can walk to.
-   - **The real game:** the phone tier and touch HUD Jake plays (390×844 @3), the shipped build (no debug-only look),
+   - **The real game:** the phone tier and touch HUD Jake plays (390×844 @3; the render is @3, and `shard-progress`
+     stores each frame at 780 px wide to keep the repo small), the shipped build (no debug-only look),
      the baseline HUD (no hiding or restyling it for the shot), 30 fps phone budget and the memory limits (1.8 GB
      loading / 1.0 GB Explorer) held.
    - **No narrowing:** the rest of the shard (other places, the quest, combat) must not regress to make the views better.
