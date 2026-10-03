@@ -1,0 +1,35 @@
+# Plan: LAYER-PURITY — each layer knows only what it should (E405, this session)
+
+**State:** `in progress` 2026-10-03 — LP1 done (81cf4066); LP2 (engine words) in flight, arch-guards agent; LP3–LP5 open
+
+Jake, 2026-10-03: the layers are engine → game → kit → shard. This plan makes the code match that, with a lint rule
+per layer that ends as a hard error at 0. It carries out ARCH-GUARDS AG28 and is finished and archived this session.
+
+| Layer | Knows | Never knows |
+|---|---|---|
+| `src/engine` | rendering, physics, audio, input, boot, levels in general | the game, Wildshard, that shards exist, any content (no deer, no loot, no Driftwood) |
+| `src/game` | that it is Wildshard, that shards exist and run arbitrary content (bag, loot, travel, the title deck) | any particular shard (no Driftwood, no Nalati) |
+| `src/kit` | reusable content: creatures (boar, deer, monkey), weapons, items, looks, used by any shard | any particular shard |
+| `src/shards/<slug>` | its own details: places, people, quests, tuning, assets | another shard |
+
+## Rows
+
+| Id | Row | Measure | Rule (hard at 0) | Status |
+|---|---|---|---|---|
+| LP1 | The engine imports nothing above it | wrong-way imports: 21 → **0** | `wildshard/layer` | **done** 81cf4066 |
+| LP2 | Engine code says nothing about the game, shards or content | `engine-words` hits: 266 at the start | `wildshard/engine-words` | in flight |
+| LP2a | ↳ Driftwood-only content into Driftwood's folder: the Blender cove area, the sailor / crab / monkey voices (audio/gen.ts), the captain (explore/catalog.ts), the default level id (core/config.ts), perfProbe's rows | ~35 | | in flight |
+| LP2b | ↳ the creatures into `#kit`: deer / elk species, AnimalManager's boar / bear / wolf / horse cases, creature models, HurtArc's names, fight rules | ~75 | | open |
+| LP2c | ↳ items and weapons into `#kit` / `#game`: the item and weapon icons (ui/icons.ts), loot / coin / doubloon interactables, the bag (ui/Menu.ts, a shared HUD file: announce first), the spear touch control, rifle viewmodel textures | ~95 | | open |
+| LP2d | ↳ the word "shard" (Jake: evict it too): code says "level"; player-facing engine copy that says "shard" moves into the game's string table | ~70 | | open |
+| LP2e | ↳ the pine tree species into `#kit` (world/forest) | ~13 | | open |
+| LP3 | Game code names no particular shard | shard names in `src/game`: ~14 lines (session/play.ts, engineStrings.ts, Inventory.ts, session/finish.ts, bag/tabs.ts) | new `wildshard/shard-names` (game + kit: slugs, display names, unique stems, shard-scoped ids) | open |
+| LP4 | Kit code names no particular shard | shard names in `src/kit`: 0 today | `wildshard/shard-names` | open (hard from day one) |
+| LP5 | The docs say it: ENGINE.md's layer table and §24, AGENTS.md's engine-layers section, SHARDS.md | — | — | open |
+
+**Done when:** `layer`, `engine-words` and `shard-names` are all on in `.oxlintrc.json` at 0; the full vitest, both
+typechecks, whole-tree oxlint, check-paths and vite build + check-chunks are green; pushed and live
+(version.json). Then this file moves to `project/archive/2026-10-03-layer-purity.md`, with any leftover as an open ask.
+
+**Rules of the work:** one engine area per commit; a moved file keeps its public-index debt (AG3 pays it down);
+shard files another agent is editing are left until they are idle; HUD files are announced over herdr first.
