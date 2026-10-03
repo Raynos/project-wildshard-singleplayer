@@ -9,7 +9,7 @@ import { sunGlow } from './sunGlow';
 import { PANO_SUN } from './panoramaData';
 import { ISLES } from '../layout';
 import { SKY_ISLES } from '../world/skyIsles';
-import { loadPainted } from './image';
+import { loadPainted, loadPaintedShared } from './image';
 import { TEX_URL } from '../boot/files';
 
 export { FOG, SKY, SUN_DIR } from './sun';
@@ -44,7 +44,7 @@ function keelPuffs(): [number, number, number, number][] {
 
 export async function skyReachLook(): Promise<LookStrategy> {
   const pano: Texture = await loadPanorama();
-  const [cloudAtlas, seaPaint, vortex] = await Promise.all([loadPainted(TEX_URL.clouds, 'far.cumulus'), loadPainted(TEX_URL.cloudsea, 'far.cloudsea', true), loadPainted(TEX_URL.maelstrom, 'far.maelstrom')]);
+  const [cloudAtlas, seaPaint, vortex] = await Promise.all([loadPainted(TEX_URL.clouds, 'far.cumulus'), loadPainted(TEX_URL.cloudsea, 'far.cloudsea', true), loadPaintedShared(TEX_URL.maelstrom, 'far.maelstrom')]);
   let seaTime: { value: number } | null = null;
   let glowUpdate: ((t: number) => void) | null = null;
   return { mode: 'extend',

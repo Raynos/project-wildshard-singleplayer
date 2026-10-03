@@ -34,8 +34,11 @@ export function sunGlow(sun: Vector3): { group: Group; geometry: PlaneGeometry; 
       varying vec2 vUv;
       void main(){
         float d = length(vUv - 0.5) * 2.0;
+        // loop 20 (mockup A: a hot white disc with a wide bloom beside the windmill; the painted disc alone read faint
+        // through the haze): the disc itself (about the painted one's 1.5 deg), a tight hot glow and a wide warm halo
+        float disc = 1.0 - smoothstep(0.085, 0.115, d);
         float core = exp(-d * d * 60.0), halo = exp(-d * 3.2) * (1.0 - smoothstep(0.7, 1.0, d));
-        gl_FragColor = vec4(vec3(1.0, 0.86, 0.58) * (core * 2.2 + halo * 0.7), 1.0);
+        gl_FragColor = vec4(vec3(1.0, 0.97, 0.88) * disc * 1.6 + vec3(1.0, 0.86, 0.58) * (core * 2.6 + halo * 1.0), 1.0);
       }` });
   const bloomMesh = new Mesh(plane, bloom); bloomMesh.frustumCulled = false; bloomMesh.renderOrder = -9; group.add(bloomMesh);
   const shafts: ShaderMaterial[] = [];

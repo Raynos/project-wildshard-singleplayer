@@ -1,7 +1,7 @@
 import { ShardPlugin, installLoot, type ShardContext } from '#game';
 import { installSilentScore } from '#kit';
 import type { Animal, Flags, QuestState } from '#engine';
-import { BoxGeometry, DoubleSide, Mesh, MeshBasicMaterial, Vector3, type Texture } from 'three';
+import { BoxGeometry, DoubleSide, Mesh, MeshBasicMaterial, MirroredRepeatWrapping, Vector3, type Texture } from 'three';
 import { STRINGS } from './strings';
 import { GOATS, RAY_HOMES, ROC, ROOST_RAYS, UPDRAFT, WISP_HOMES, apothem, type Home } from './layout';
 import { buildWorld, type BuiltWorld } from './world/build';
@@ -17,8 +17,10 @@ import { bindPlayerPush, setHome } from './species/rig';
 import { preloadSkyMeshes } from './world/meshes';
 import { setIsleTextures } from './world/isle';
 import { setFirSheet } from './world/fir';
+import { setMillTextures } from './world/mill';
 import { FAN_LEAF_URL, TEX_URL } from './boot/files';
-import { loadPainted } from './look/image';
+import { forgetPaintedShared, loadPainted, loadPaintedShared } from './look/image';
+import { setStormPaint } from './world/storm';
 import { meadow, type Meadow } from './world/meadow';
 import { SUN_DIR } from './look/sun';
 import { ROC_ID, StormRocBoss } from './combat/stormRoc';
@@ -66,8 +68,15 @@ export class SkyReachPlugin extends ShardPlugin {
     if (leaf !== null) { this.leaf = leaf; ctx.scope.own(leaf); }
     this.board = () => ctx.app.player?.mode === 'board';
     // the islands' painted rock and meadow (E392): sampled in world space by world/isle.ts
-    const [rock, meadowTex, branches] = await Promise.all([loadPainted(TEX_URL.rock, 'far.rock', true), loadPainted(TEX_URL.meadow, 'far.meadow', true), loadPainted(TEX_URL.branches, 'far.branches')]);
-    for (const t of [rock, meadowTex, branches]) if (t !== null) ctx.scope.own(t);
+    // and the windmill's stone, canvas and ivy (world/mill.ts)
+    const [rock, meadowTex, branches, millStone, millCanvas, millIvy, vortex] = await Promise.all([loadPainted(TEX_URL.rock, 'far.rock', true), loadPainted(TEX_URL.meadow, 'far.meadow', true), loadPainted(TEX_URL.branches, 'far.branches'),
+      loadPainted(TEX_URL.millStone, 'far.mill-stone', true), loadPainted(TEX_URL.millCanvas, 'far.mill-canvas'), loadPainted(TEX_URL.millIvy, 'far.mill-ivy'),
+      loadPaintedShared(TEX_URL.maelstrom, 'far.maelstrom')]);
+    for (const t of [rock, meadowTex, branches, millStone, millCanvas, millIvy, vortex]) if (t !== null) ctx.scope.own(t);
+    // the storm samples past the painting's edge (mirrored); the sea's disc stays inside it
+    if (vortex !== null) { vortex.wrapS = MirroredRepeatWrapping; vortex.wrapT = MirroredRepeatWrapping; vortex.needsUpdate = true; }
+    setStormPaint(vortex); ctx.scope.onDispose(() => { forgetPaintedShared(TEX_URL.maelstrom); });
+    setMillTextures({ stone: millStone, canvas: millCanvas, ivy: millIvy });
     setFirSheet(branches);
     setIsleTextures({ rock, meadow: meadowTex });
     this.built = buildWorld(ctx, () => this.board());
@@ -206,6 +215,15 @@ export class SkyReachPlugin extends ShardPlugin {
       wall.rotation.y = body.aim; wall.material.opacity = 0.06 + 0.16 * k;
     } });
     ctx.debug.expose('farReach', this);
+  }
+  /**
+   * Fight state for a capture (E399, shard-progress `stage`, through `__wildshard.shard.farReach`): only what a player
+   * reaches in play. 'roc-far-side': the Storm Roc, first phase, on the far side of its circle over the dais, the way the
+   * arena's entrance sees it pass every lap (mockup D).
+   */
+  stage(name: string): void {
+    const roc = this.roc, body = roc ? rocBrain(roc) : null;
+    if (name === 'roc-far-side' && body !== null) body.stageOnCircle(-Math.PI / 2 - 0.15, 6);
   }
   /** A GUST from `from` along `dir` turns every vane it reaches (quest step 3, once the notes are read). */
   gustVanes(from: Vector3, dir: Vector3, toast: (text: string) => void = () => undefined): number {

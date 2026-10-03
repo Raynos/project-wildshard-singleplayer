@@ -40,6 +40,16 @@ export class StormRocBrain extends CreatureBrain<RocState> {
   private spec(): StrikeSpec { return this.phase === 0 ? STOOP : this.phase === 1 ? GALE_WALL : SWEEP; }
   /** The altitude the Roc holds in this phase: high in the storm, a wall-height hover, or standing on the dais. */
   private altitude(): number { return this.phase === 0 ? ROC.y : this.phase === 1 ? CROWN.y + 7 : CROWN.y + DAIS.h + 0.05; }
+  /**
+   * Capture staging (E399, the mock-D view): the circling Roc of the first phase put at `angle` on its circle over the
+   * dais (it passes every point of it each lap, about every 8 s) and kept circling `hold` seconds before it stalks.
+   */
+  stageOnCircle(angle: number, hold: number): void {
+    const a = this.actor; if (!this.fighting || this.phase !== 0) return;
+    this.angle = angle; this.rest = hold; this.strikes.cancel(); a.cancelAttack(); this.current = null; this.transition('circle');
+    const x = ROC.x + Math.cos(angle) * ROC.r, z = ROC.z + Math.sin(angle) * ROC.r;
+    a.place(x, z, 0, ROC.y); a.yaw = yawTo(a, x - Math.sin(angle), z + Math.cos(angle));
+  }
   override think(ctx: ThinkCtx): void {
     const a = this.actor; if (!a.alive) return;
     if (!this.fighting || ctx.calm) { if (this.state !== 'circle') { this.strikes.cancel(); a.cancelAttack(); this.current = null; this.transition('circle'); } return; }

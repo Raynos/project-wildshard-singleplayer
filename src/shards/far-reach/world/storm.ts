@@ -9,15 +9,21 @@ import { AdditiveBlending, BufferGeometry, Color, DoubleSide, Float32BufferAttri
  * vertices; the noise is one 64² texture (16 KB) and five fetches a pixel. With distance it melts into the warm haze, so
  * from the spawn it reads as a far bruise over the crown, not a lid over the sun.
  */
-/** `gather`: the camera's distance from the crown (m) over which the storm fades in (from the step's rim to past the windmill isle). */
-export const STORM = { lift: 23, radius: 92, gather: [40, 85], layers: [{ dy: 0, r: 1, spin: 0.045, twist: 4.4 }, { dy: 7, r: 1.2, spin: -0.028, twist: 3.0 }] } as const;
+/**
+ * `lean`: the disc tips its underside toward the arena (rad about x; the near, south rim up and the far rim down), so
+ * from the entrance the spiral reads round, a funnel leaning over the crown, not squashed into streaks.
+ * `gather`: the camera's distance from the storm's centre (m) over which it fades in. `ahead`: how far north of the crown
+ * (-z) its eye hangs (E399, mockup D: from the arena's entrance the vortex fills the sky behind the dais, about 25 deg up;
+ * centred over the crown it hung 53 deg up, out of the portrait frame, and only its edge showed, as streaks).
+ */
+export const STORM = { lift: 30, ahead: 45, lean: -0.5, radius: 92, gather: [55, 100], layers: [{ dy: 0, r: 1, spin: 0.045, twist: 4.4 }, { dy: 7, r: 1.2, spin: -0.028, twist: 3.0 }] } as const;
 
 function hex(value: number): string { const c = new Color(value); return `vec3(${c.r.toFixed(4)},${c.g.toFixed(4)},${c.b.toFixed(4)})`; }
 /** The storm's palette (sRGB): belly, mid, the gold of the lit edges, the violet-white of the lightning, the haze it melts into. */
-export const STORM_COLORS = { belly: 0x6e5466, mid: 0xc09888, top: 0xe8c6a8, gold: 0xffc983, bolt: 0xe2d6ff, haze: 0xedc9b0 } as const;
+export const STORM_COLORS = { belly: 0x3c384e, mid: 0x9a8a98, top: 0xe8c6a8, gold: 0xffc983, bolt: 0xe2d6ff, haze: 0xedc9b0 } as const;
 
 const FRAGMENT = /* glsl */`
-  uniform sampler2D tex; uniform float time, flash, twist, spin, seed; uniform vec3 sunDir, centre; varying vec3 wp; varying vec2 lp;
+  uniform sampler2D tex, paint; uniform float time, flash, twist, spin, seed; uniform vec3 sunDir, centre; varying vec3 wp; varying vec2 lp;
   vec2 rot(vec2 p, float a){ float c = cos(a), s = sin(a); return vec2(c * p.x - s * p.y, s * p.x + c * p.y); }
   void main(){
     float r = length(lp), th = atan(lp.y, lp.x);
@@ -50,10 +56,32 @@ const FRAGMENT = /* glsl */`
     c = mix(c, ${hex(STORM_COLORS.gold)} * 0.95, pow(sunSide, 3.0) * smoothstep(0.72, 0.98, r) * 0.5);
     // lightning: the eye and the bellies near it light violet-white
     c += ${hex(STORM_COLORS.bolt)} * flash * (exp(-r * 3.5) * 1.4 + 0.25) * (0.4 + dens);
+#ifdef FAR_STORM_PAINT
+    // E399 (mockup D): the painted cumulus spiral (the maelstrom painting, seen from below): its lit tops become the pale
+    // undersides of the bands, its shadowed lanes the dark slate between them; the sunward rim keeps its gold
+    // the whole spiral inside the inner 40 % (mockup D shows all of it from the arena, the sky and the low sun clear
+    // below it), the disc past it fading out
+    vec2 pq = rot(lp, time * spin * 0.6 + seed) * (seed > 1.0 ? 1.05 : 1.25) + 0.5;
+    float pl = dot(texture2D(paint, pq).rgb, vec3(0.3, 0.59, 0.11));
+    vec3 under = mix(${hex(STORM_COLORS.belly)}, ${hex(STORM_COLORS.mid)}, smoothstep(0.42, 0.88, pl));
+    under += ${hex(STORM_COLORS.gold)} * (pow(sunSide, 2.0) * smoothstep(0.5, 0.95, r) * 0.45 + smoothstep(0.7, 0.95, pl) * 0.12);
+    c = under + ${hex(STORM_COLORS.bolt)} * flash * (exp(-r * 3.5) * 1.4 + 0.25) * 0.8;
+    alpha = rim * (1.0 - smoothstep(0.4, 0.68, r)) * (seed > 1.0 ? 0.55 : 0.96);
+    // the low sun stays clear (mockup D: the vortex above, the sun and its gold horizon below its edge), the edge gilded
+    float sunClear = smoothstep(0.955, 0.995, toward);
+    c += ${hex(STORM_COLORS.gold)} * smoothstep(0.9, 0.97, toward) * 0.35;
+    alpha *= 1.0 - sunClear * 0.95;
+#endif
+#ifdef FAR_STORM_PAINT
+    const float hazeK = 0.35;
+#else
+    const float hazeK = 0.7;
+#endif
     // haze with distance (the scene fog's warm rose): from the spawn the storm is a soft bruise, not a lid
     float dist = length(wp - cameraPosition);
-    float haze = smoothstep(90.0, 260.0, dist);
-    c = mix(c, ${hex(STORM_COLORS.haze)}, haze * 0.7);
+    // (E399: the eye now hangs 45 m beyond the crown, 60-150 m from the arena; the haze starts past it)
+    float haze = smoothstep(150.0, 330.0, dist);
+    c = mix(c, ${hex(STORM_COLORS.haze)}, haze * hazeK);
     // a camera up at the storm's height (the god views, a high hover) sees it thin out, never a wall of paint
     float near = smoothstep(3.0, 16.0, abs(wp.y - cameraPosition.y));
     // loop 4: it belongs to the crown. Seen from the far islands it is only a faint bruise over the crown, so the painted
@@ -103,6 +131,10 @@ export interface CrownStorm {
   readonly strike: () => void;
 }
 
+let PAINT: Texture | null = null;
+/** The painted cumulus spiral for the storm's underside (the sea's maelstrom painting; the plugin owns it). */
+export function setStormPaint(t: Texture | null): void { PAINT = t; }
+
 /** Build the storm, centred at the group's origin (place it over the crown at `STORM.lift`). */
 export function crownStorm(sun: Vector3, tex: Texture, random: () => number): CrownStorm {
   const group = new Group(); group.name = 'far.storm';
@@ -110,7 +142,8 @@ export function crownStorm(sun: Vector3, tex: Texture, random: () => number): Cr
   STORM.layers.forEach((layer, i) => {
     const radius = STORM.radius * layer.r, geometry = new RingGeometry(0.5, radius, 72, 10); geometry.rotateX(-Math.PI / 2);
     const material = new ShaderMaterial({ side: DoubleSide, transparent: true, depthWrite: false, fog: false, vertexShader: VERTEX, fragmentShader: FRAGMENT,
-      uniforms: { tex: { value: tex }, time, flash, sunDir: { value: sun }, twist: { value: layer.twist }, spin: { value: layer.spin },
+      defines: PAINT !== null ? { FAR_STORM_PAINT: '' } : {},
+      uniforms: { tex: { value: tex }, paint: { value: PAINT }, time, flash, sunDir: { value: sun }, twist: { value: layer.twist }, spin: { value: layer.spin },
         seed: { value: i * 17.3 }, radius: { value: radius }, dish: { value: 6 + i * 4 }, centre: { value: centre } } });
     const mesh = new Mesh(geometry, material); mesh.position.y = layer.dy; mesh.renderOrder = 3 - i; mesh.frustumCulled = false; group.add(mesh);
   });

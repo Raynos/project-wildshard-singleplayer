@@ -1,7 +1,6 @@
 import { BoxGeometry, BufferGeometry, Color, CylinderGeometry, DoubleSide, Float32BufferAttribute, Group, LatheGeometry, Mesh, MeshStandardMaterial, Vector2, Vector3, type Object3D, type Texture } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { PATCH_ORDER, patchShader } from '#engine';
-import { loadPainted } from '../look/image';
 
 /**
  * The windmill (loop 20, the judge: "a flat white/grey plaster cylinder with plain plank sails; the mockup has weathered
@@ -22,14 +21,14 @@ import { loadPainted } from '../look/image';
  */
 export const MILL = { base: 2.5, top: 1.7, height: 8.6, cap: 2.9, sail: 7.4 } as const;
 
-/** The windmill's painted textures (owned by this shard: public/assets/far-reach/tex/). */
-const MILL_TEX = { stone: '/assets/far-reach/tex/mill-stone.webp', canvas: '/assets/far-reach/tex/mill-canvas.webp', ivy: '/assets/far-reach/tex/mill-ivy.webp' } as const;
-const loads = new Map<string, Promise<Texture | null>>();
-function painted(url: string, name: string, tile: boolean, apply: (t: Texture) => void): void {
-  let p = loads.get(url);
-  if (p === undefined) { p = loadPainted(url, name, tile); loads.set(url, p); }
-  void p.then((t) => { if (t !== null) apply(t); return t; });
-}
+/**
+ * The windmill's painted textures (`public/assets/far-reach/tex/mill-*.webp`; the boot downloads them, boot/files.ts): the
+ * plugin loads them behind the loading screen and owns them (`setMillTextures`), so the first frame already has the
+ * stone, the ivy and the canvas; without one (offline, a test page) its part keeps the code look.
+ */
+const MILL_TEX: { stone: Texture | null; canvas: Texture | null; ivy: Texture | null } = { stone: null, canvas: null, ivy: null };
+export function setMillTextures(t: { stone: Texture | null; canvas: Texture | null; ivy: Texture | null }): void { Object.assign(MILL_TEX, t); }
+function painted(t: Texture | null, apply: (t: Texture) => void): void { if (t !== null) apply(t); }
 
 const hash = (a: number, b: number): number => { const v = Math.sin(a * 127.1 + b * 311.7) * 43758.5453; return v - Math.floor(v); };
 function vnoise(x: number, y: number): number {
@@ -271,12 +270,12 @@ export function towerMill(): { group: Group; hub: Object3D; hubAt: { y: number; 
   const group = new Group(), hub = new Group();
   // the whitewashed stone: cream until the painted stone lands, then the stone and its own luminance as the bump
   const stone = new MeshStandardMaterial({ vertexColors: true, color: 0xe9e0cf, roughness: 0.95, metalness: 0 });
-  painted(MILL_TEX.stone, 'far.mill-stone', true, (t) => { stone.map = t; stone.bumpMap = t; stone.bumpScale = 3; stone.color.set(0xffffff); stone.needsUpdate = true; });
+  painted(MILL_TEX.stone, (t) => { stone.map = t; stone.bumpMap = t; stone.bumpScale = 3; stone.color.set(0xffffff); stone.needsUpdate = true; });
   group.add(new Mesh(tower(), stone));
   // the ivy, hidden until its sheet lands
   const ivyMat = new MeshStandardMaterial({ vertexColors: true, alphaTest: 0.4, side: DoubleSide, roughness: 0.8, metalness: 0, emissive: 0x18220c });
   const ivyMesh = new Mesh(ivy(), ivyMat); ivyMesh.visible = false; group.add(ivyMesh);
-  painted(MILL_TEX.ivy, 'far.mill-ivy', false, (t) => { ivyMat.map = t; ivyMat.emissiveMap = t; ivyMat.needsUpdate = true; ivyMesh.visible = true; });
+  painted(MILL_TEX.ivy, (t) => { ivyMat.map = t; ivyMat.emissiveMap = t; ivyMat.needsUpdate = true; ivyMesh.visible = true; });
   const wood = new MeshStandardMaterial({ vertexColors: true, roughness: 0.9, metalness: 0 });
   const dark = new MeshStandardMaterial({ color: 0x1e1a20, roughness: 1, metalness: 0 });
   const dressed = new MeshStandardMaterial({ vertexColors: true, roughness: 0.92, metalness: 0 });
@@ -296,7 +295,7 @@ export function towerMill(): { group: Group; hub: Object3D; hubAt: { y: number; 
   // the worn canvas: the painted cloth once it lands (a coarse weave and water stains in the shader until then), frayed
   // edges and a torn-away corner on two sails cut in the shader, a faint warm glow where the low sun comes through
   const clothMat = new MeshStandardMaterial({ color: 0xece0c6, roughness: 0.95, metalness: 0, side: DoubleSide, emissive: 0x5a4c38, alphaTest: 0.5 });
-  painted(MILL_TEX.canvas, 'far.mill-canvas', false, (t) => { clothMat.map = t; clothMat.emissiveMap = t; clothMat.color.set(0xffffff); clothMat.needsUpdate = true; });
+  painted(MILL_TEX.canvas, (t) => { clothMat.map = t; clothMat.emissiveMap = t; clothMat.color.set(0xffffff); clothMat.needsUpdate = true; });
   patchShader(clothMat, 'far.mill-canvas', PATCH_ORDER.decorate, (shader) => {
     shader.vertexShader = `attribute vec3 farCloth;\nvarying vec3 vFarCloth;\n${shader.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n  vFarCloth = farCloth;')}`;
     shader.fragmentShader = `varying vec3 vFarCloth;

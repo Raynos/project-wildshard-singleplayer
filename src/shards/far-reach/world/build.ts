@@ -176,7 +176,7 @@ export function buildWorld(ctx: ShardContext, isBoard: () => boolean): BuiltWorl
   ctx.piece({ id: 'far.roost.nest', name: STRINGS.roost, category: 'props', file: FILE, object: nest.group, colliders: nest.colliders, surface: 'wood' });
   // the storm: a lit vortex high over the crown only (loop 3); it melts into the haze from the spawn
   const stormTex = bakeSeaTexture(SUN_DIR); ctx.scope.own(stormTex);
-  const storm = crownStorm(SUN_DIR, stormTex, rnd); storm.group.position.set(CROWN.x, CROWN.y + STORM.lift, CROWN.z); root.add(storm.group);
+  const storm = crownStorm(SUN_DIR, stormTex, rnd); storm.group.position.set(CROWN.x, CROWN.y + STORM.lift, CROWN.z - STORM.ahead); storm.group.rotation.x = STORM.lean; root.add(storm.group);
 
   ctx.root.add(root); ownPrimitives(root, ctx.scope);
   return { hoverDeck, wind, fallen, millHub: mill.hub, storm, vanes, winch: handle, winchAt, notes, notesAt, state };

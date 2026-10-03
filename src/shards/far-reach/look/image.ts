@@ -19,3 +19,20 @@ export async function loadPainted(url: string, name: string, tile = false): Prom
     return null;
   }
 }
+
+const shared = new Map<string, Promise<Texture | null>>();
+/**
+ * One decode of a painted image for every caller (E399: the painted maelstrom is the sea's vortex under the crown and the
+ * storm's underside over it). Each caller owns it in its scope (a second dispose is harmless); the shard's scope forgets
+ * it on unload (`forgetPaintedShared`), so the next load decodes it afresh.
+ */
+export function loadPaintedShared(url: string, name: string, tile = false): Promise<Texture | null> {
+  const key = `${url}|${tile ? 't' : ''}`;
+  let p = shared.get(key);
+  if (p === undefined) {
+    p = loadPainted(url, name, tile);
+    shared.set(key, p);
+  }
+  return p;
+}
+export function forgetPaintedShared(url: string, tile = false): void { shared.delete(`${url}|${tile ? 't' : ''}`); }

@@ -182,15 +182,22 @@ export const PAINTED_MAELSTROM = { radius: 125, y: -6 } as const;
 export function paintedMaelstrom(painted: Texture, time: { value: number }): Mesh<CircleGeometry, ShaderMaterial> {
   const material = new ShaderMaterial({ transparent: true, depthWrite: false, fog: false, side: DoubleSide,
     uniforms: { painted: { value: painted }, time },
-    vertexShader: 'varying vec2 lp; void main(){ lp = position.xy; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+    vertexShader: 'varying vec2 lp; varying float far; void main(){ lp = position.xy; vec4 w = modelMatrix * vec4(position, 1.0); far = length(cameraPosition.xz - (modelMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xz); gl_Position = projectionMatrix * viewMatrix * w; }',
     fragmentShader: /* glsl */`
-      uniform sampler2D painted; uniform float time; varying vec2 lp;
+      uniform sampler2D painted; uniform float time; varying vec2 lp; varying float far;
       void main(){
         float rn = length(lp) / ${PAINTED_MAELSTROM.radius.toFixed(1)};
         float a = -time * 0.012;
         vec2 q = vec2(cos(a) * lp.x - sin(a) * lp.y, sin(a) * lp.x + cos(a) * lp.y) / (${PAINTED_MAELSTROM.radius.toFixed(1)} * 2.0) + 0.5;
-        vec3 c = texture2D(painted, q).rgb;
-        gl_FragColor = vec4(c, 1.0 - smoothstep(0.55, 0.95, rn));
+        // the cloud palette (loop 20, the judge: 'too purple, hard bands'): the violet valleys lifted toward a lavender grey,
+        // the lit crests kept warm, two taps blurred so the band edges soften
+        vec3 c = texture2D(painted, q).rgb * 0.6 + texture2D(painted, q + vec2(0.004, 0.003)).rgb * 0.4;
+        float l = dot(c, vec3(0.3, 0.59, 0.11));
+        c = mix(c, vec3(l) * vec3(1.06, 0.98, 0.95), 0.45);
+        c = mix(c, vec3(1.0, 0.93, 0.84), 0.18) * 1.06;
+        // only the crown's own sky sees it: away from the arena the painted sea takes over (it bled into H1-H3)
+        float near = 1.0 - smoothstep(110.0, 175.0, far);
+        gl_FragColor = vec4(c, (1.0 - smoothstep(0.55, 0.95, rn)) * near);
       }` });
   const mesh = new Mesh(new CircleGeometry(PAINTED_MAELSTROM.radius, 96), material);
   mesh.rotation.x = -Math.PI / 2; mesh.position.set(MAELSTROM.x, PAINTED_MAELSTROM.y, MAELSTROM.z); mesh.renderOrder = -6; mesh.frustumCulled = false; mesh.name = 'far.painted-maelstrom';

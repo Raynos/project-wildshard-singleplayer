@@ -1,5 +1,5 @@
 {
-  "$doc": "E387 progress cameras for scripts/shard-progress.mjs: the loop builders' hero views (H1 Sunrest rim, H2 the windmill isle, H3 the high step, H4 the crown) plus two aerials and an orbit clip. Keep them fixed: the time-lapse lines frames up by id. yaw / pitch in degrees (yaw 0 faces -z). E399: one mock-* view per council mockup (docs/plans/mockup-council/ledger.md), at the mockup's camera: proposal B and mockup A down the spawn bridge to the windmill, B the quest start at the spawn (the keeper left of the axis), C the fan with the windmill behind, D the crown arena under the Roc. The spawn mock views come before the crown (its boss bar) and the aerials (a god view hides the viewmodel).",
+  "$doc": "E387 progress cameras for scripts/shard-progress.mjs: the loop builders' hero views (H1 Sunrest rim, H2 the windmill isle, H3 the high step, H4 the crown) plus two aerials and an orbit clip. Keep them fixed: the time-lapse lines frames up by id. yaw / pitch in degrees (yaw 0 faces -z). E399: one mock-* view per council mockup (docs/plans/mockup-council/ledger.md), at the mockup's camera: proposal B and mockup A down the spawn bridge to the windmill, B the quest start at the spawn (the keeper left of the axis), C the fan with the windmill behind, D the crown arena under the Roc. The spawn mock views come before the crown (its boss bar) and the aerials (a god view hides the viewmodel). Re-aimed to the mockups' cameras (E399 round notes): B 5.5 m from the keeper with the windmill just right of him; C from the bridge head, the windmill about 48 m off; D from 18 m before the dais, the Roc staged on the far side of its real circle (stage 'roc-far-side', settle 0.4 s).",
   "shots": [
     {
       "id": "h1-sunrest",
@@ -28,10 +28,10 @@
     {
       "id": "mock-proposal-B",
       "mockup": "art/far-reach/round-1-proposals/B-sky-reach.jpg",
-      "x": 0,
+      "x": 1.2,
       "y": 30,
-      "z": -11,
-      "yaw": 0,
+      "z": -8,
+      "yaw": 6,
       "pitch": -12
     },
     {
@@ -46,20 +46,20 @@
     {
       "id": "mock-B-quest-start",
       "mockup": "art/far-reach/round-11-review/mockup-B-quest-start.jpg",
-      "x": 0,
+      "x": -1,
       "y": 30,
-      "z": -5.5,
-      "yaw": 0,
-      "pitch": -4
+      "z": -8.2,
+      "yaw": 1.3,
+      "pitch": -3
     },
     {
       "id": "mock-C-hands-fan",
       "mockup": "art/far-reach/round-11-review/mockup-C-hands-fan.jpg",
       "x": 0,
       "y": 30,
-      "z": -7,
-      "yaw": -4,
-      "pitch": -2
+      "z": -18.5,
+      "yaw": 3,
+      "pitch": 0
     },
     {
       "id": "h4-crown",
@@ -74,9 +74,11 @@
       "mockup": "art/far-reach/round-11-review/mockup-D-crown-arena.jpg",
       "x": 0,
       "y": 44,
-      "z": -174,
+      "z": -178,
       "yaw": 0,
-      "pitch": 2
+      "pitch": 3,
+      "stage": "roc-far-side",
+      "settle": 400
     },
     {
       "id": "aerial-spawn",
@@ -121,5 +123,6 @@
     "startDeg": 0,
     "sweepDeg": 90,
     "fov": 60
-  }
+  },
+  "expose": "farReach"
 }

@@ -9,7 +9,7 @@ import { CROWN, DAIS } from '../layout';
  * replaces the loop-1 hexagonal pillars that read as one stray post from the arena's entrance.
  */
 /** The ring stands close round the dais (loop 5: at the crown's centre and 12.5 m out the arena's entrance framed one stone; at 7.8 m it frames five to seven). */
-export const CROWN_RING = { radius: 8.5, stones: 7, width: 1.4, depth: 0.8 } as const;
+export const CROWN_RING = { radius: 7, stones: 7, width: 1.4, depth: 0.8 } as const;
 /** Stone heights (metres), one per stone round the ring; tallest opposite the entrance, framing the dais. */
 const HEIGHTS = [3.4, 4.0, 4.6, 5.0, 4.5, 3.9, 3.3] as const;
 
@@ -19,7 +19,9 @@ export function crownStones(): Stone[] {
   const n = CROWN_RING.stones;
   // E392 (mockup D): an arc behind the dais, from the left round to the right, open toward the bridge (+z) so the
   // arena's entrance looks across the dais to the stones, the cloud sea and the sun between them
-  const from = Math.PI * 0.92, to = Math.PI * 2.08;
+  // E399 (mockup D, the portrait frame from the entrance): a tighter arc, 7 m round the dais from 1.12 pi to 1.88 pi,
+  // so five stones stand in the frame behind it, not two with the rest past its edges
+  const from = Math.PI * 1.12, to = Math.PI * 1.88;
   return Array.from({ length: n }, (_, i) => {
     const a = from + (to - from) * (i / (n - 1)), x = DAIS.x + Math.cos(a) * CROWN_RING.radius, z = DAIS.z + Math.sin(a) * CROWN_RING.radius;
     // each stone's carved face turns to the dais
