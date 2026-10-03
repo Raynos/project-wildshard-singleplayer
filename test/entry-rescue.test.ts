@@ -4,7 +4,9 @@ const mocks = vi.hoisted(() => ({ line: '', telemetry: vi.fn(), guard: vi.fn(), 
 vi.mock('#engine/telemetry/runtime', () => ({ startTelemetry: mocks.telemetry }));
 vi.mock('#engine/boot/stuck', () => ({ guardBoot: mocks.guard }));
 vi.mock('#engine/boot/bootTrace', () => ({ inspectPreviousBoot: vi.fn(), previousBootLine: () => mocks.line, previousBootLevel: () => 'nine-dragon-stack' }));
-vi.mock('#engine/ui/StartTitle', () => { mocks.title(); return {}; });
+vi.mock('#engine/ui/StartTitle', () => ({ showStartTitle: mocks.title }));
+// E405: the entry hands the game's deck to the title; the title-only path loads the deck module, never the game
+vi.mock('#game/titleDeck', () => ({ buildTitleDeck: vi.fn(), titleCards: vi.fn(() => []), travel: vi.fn() }));
 vi.mock('three', () => { mocks.three(); return {}; });
 vi.mock('../src/main', () => { mocks.main(); return {}; });
 

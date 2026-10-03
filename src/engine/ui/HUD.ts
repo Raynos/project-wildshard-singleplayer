@@ -4,13 +4,11 @@ import type { WeaponUi } from '../combat/Equipment';
 import { app } from '../app/runtime';
 import { tap } from '../core/harnessTap';
 import { activeLevel } from '../level/selection';
-import { travel } from '#game';
 import { CABIN_SITES } from '../world/Heightfield';
 import type { GameMenu } from './Menu';
 import { openBootSettings } from './BootSettings';
 import { isDev, onDev } from '../core/devMode';
 import { mountDeveloperBanner } from './developerBanner';
-import { buildTitleDeck, titleCards, type TitleDeck } from '#game/titleDeck';
 import { ToastStack } from './ToastStack';
 import { ROW, hudSlots } from './hudSlots';
 
@@ -108,6 +106,19 @@ function q(root: ParentNode, sel: string): HTMLElement {
   return e;
 }
 
+/** The title screen's deck of level cards, as the HUD drives it (keys, refresh, enter / explore) */
+export interface TitleDeckView {
+  readonly root: HTMLElement;
+  readonly cards: readonly { readonly slug: string }[];
+  readonly index: number;
+  readonly select: (i: number, smooth?: boolean) => void;
+  readonly activate: () => void;
+  readonly start: () => void;
+  readonly dispose: () => void;
+}
+/** Builds the deck: `here` plays this level, opens its Explore, or the boot settings; other cards are the game's to open */
+export type TitleDeckFactory = (here: { enter: () => void; explore: () => void; settings: () => void }) => TitleDeckView;
+
 export class HUD {
   readonly scope = uiScope('HUD');
   root: HTMLElement;
@@ -148,7 +159,9 @@ export class HUD {
   private intro?: HTMLElement | undefined;
   /** the in-game menu (src/engine/ui/Menu.ts) — pause opens it on Settings; its close is our `onResume` */
   private _menu?: GameMenu;
-  private deck?: TitleDeck | undefined;
+  private deck?: TitleDeckView | undefined;
+  /** builds the title screen's deck (the game installs it: src/game/titleDeck.ts, E318; E405: the engine imports no game) */
+  titleDeck: TitleDeckFactory | null = null;
   private last: Partial<HUDState> & { statusKey?: string | undefined; headingDeg?: number | undefined; noAmmo?: boolean | undefined } = {};
   private magazineChip = false; private canReloadChip = false;
   private ammoPanel!: HTMLElement;
@@ -538,14 +551,11 @@ export class HUD {
   showIntro(onEnter: () => void, _stats?: IntroStats): void {
     this.onEnter = onEnter;
     this.root.classList.add('intro');
-    const active = activeLevel().id;
-    const cards = titleCards();
-    const own = cards[cards.map((card): string => card.slug).indexOf(active)];
-    const deck = buildTitleDeck({
-      cards, active,
-      onEnter: (c) => { if (c === own) this.enter(); else travel({ to: c.slug, mode: 'enter' }); },
-      onExplore: (c) => { if (c !== own) { travel({ to: c.slug, mode: 'explore' }); return; } this.leaveForExplore(); },
-      onSettings: () => { openBootSettings(); }, // E55: the reload-to-apply picks
+    if (this.titleDeck === null) throw new Error('HUD.showIntro: the game installs hud.titleDeck first');
+    const deck = this.titleDeck({
+      enter: () => { this.enter(); },
+      explore: () => { this.leaveForExplore(); },
+      settings: () => { openBootSettings(); }, // E55: the reload-to-apply picks
     });
     mountUi(deck.root, this.scope, this.root);
     this.intro = deck.root;

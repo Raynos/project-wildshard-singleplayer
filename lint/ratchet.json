@@ -31,12 +31,10 @@
     "src/engine/boot/pack.ts": 1,
     "src/engine/boot/prefetch.ts": 1,
     "src/engine/boot/shardPrefetch.ts": 2,
-    "src/engine/native/boot.ts": 2,
-    "src/engine/ui/HUD.ts": 2,
-    "src/engine/ui/StartTitle.ts": 1
+    "src/engine/native/boot.ts": 2
   },
   "wildshard/public-index": {
-    "src/entry.ts": 10,
+    "src/entry.ts": 11,
     "src/game/Boss.ts": 4,
     "src/game/Elite.ts": 5,
     "src/game/Inventory.ts": 1,

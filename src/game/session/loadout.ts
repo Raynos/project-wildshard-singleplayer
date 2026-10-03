@@ -1,5 +1,6 @@
 import { weaponInputContext, type TrainingArena as Arena, type Weapon, type DiscSpot, type Targets } from '#engine';
 import { GAME_STRINGS } from '../strings';
+import { buildTitleDeck, titleCards, travel } from '../titleDeck';
 import type { worldStage } from './world';
 
 async function buildLoadout(ctx: Awaited<ReturnType<typeof worldStage>>) {
@@ -53,6 +54,16 @@ async function buildLoadout(ctx: Awaited<ReturnType<typeof worldStage>>) {
   authoredKit.install?.(weapons);
   await macrotask();
   const hud = withOwner(game.engineScope, () => new HUD({ pointerLock: !nolock, weaponUi: weapons.current.row.ui, maxBolts: weapons.state.magazine, ...(chunk.status === 'hidden' ? { developerBanner: GAME_STRINGS.developer.banner(chunk.slug.replace(/^_/, '')) } : {}) }));
+  // the title deck (E318): this level's card enters or explores here, another's opens in a fresh page (travel)
+  hud.titleDeck = (here) => {
+    const cards = titleCards(), own = cards[cards.map((card): string => card.slug).indexOf(chunk.slug)];
+    return buildTitleDeck({
+      cards, active: chunk.slug,
+      onEnter: (c) => { if (c === own) here.enter(); else travel({ to: c.slug, mode: 'enter' }); },
+      onExplore: (c) => { if (c !== own) { travel({ to: c.slug, mode: 'explore' }); return; } here.explore(); },
+      onSettings: here.settings,
+    });
+  };
   const shellHud = new Set(document.querySelectorAll('#hud *'));
   game.hudBaseline = shellHud.size;
   game.hudRetained = shellHud;

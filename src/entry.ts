@@ -41,7 +41,16 @@ if (rescueBoot) {
 const titleOnly = rescueBoot || search.size === 0 || (search.size === 1 && search.has('v'));
 
 /** resolves once the title or the selected shard's entry has been evaluated */
-export const entered: Promise<unknown> = setting('calibrate') === 'run' ? import('#engine/calibrate/entry').then((m) => m.enterCalibration()) : titleOnly ? retried(() => import('#engine/ui/StartTitle')) : (async () => {
+export const entered: Promise<unknown> = setting('calibrate') === 'run' ? import('#engine/calibrate/entry').then((m) => m.enterCalibration()) : titleOnly ? (async () => {
+  const [{ showStartTitle }, { buildTitleDeck, titleCards, travel }] = await retried(() => Promise.all([import('#engine/ui/StartTitle'), import('#game/titleDeck')]));
+  // the composition root wires the game's deck into the engine's title (E405)
+  showStartTitle(({ settings, notice }) => buildTitleDeck({
+    cards: titleCards(), active: null,
+    onEnter: (card) => { travel({ to: card.slug, mode: 'enter' }); },
+    onExplore: (card) => { travel({ to: card.slug, mode: 'explore' }); },
+    onSettings: settings, ...(notice === undefined ? {} : { notice }),
+  }));
+})() : (async () => {
   const { initializeTier } = await retried(() => import('#engine/core/tier'));
   await initializeTier();
   await retried(() => import('three')); 
