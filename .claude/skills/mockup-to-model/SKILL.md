@@ -221,7 +221,7 @@ Read `docs/design/blender-practice.md` first.
   - mirrored parts on the wrong side;
   - a wrong pivot (the model hovers or sinks);
   - a wrong front.
-  - Never approve from the hero angle alone (shard-checkpoints).
+  - Never approve from the hero angle alone (a checkpoint's Form gate, worldclaw-interactive).
 - **Tick the detail list** (§2) against the render, number by number.
 - **In the game:** the mockup's camera, then a walk-around, a 12-frame orbit for cutouts, seams and popping. Check it at
   the LOD switch distances, and at dawn and night if the shard has a clock.

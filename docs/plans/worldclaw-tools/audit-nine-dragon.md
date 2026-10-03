@@ -7,7 +7,7 @@
   on the ask tool, 50 agent launches, 32 production builds);
 - `art/nine-dragon-stack/round-*/` (first-commit time and image count per round);
 - git history (`f230117d`, `54d87764`, `33c629af`, `96d57347`, `3719d1d8`, `e760b30e`);
-- `docs/plans/NINE-DRAGON-STACK.md` §6, §7, §10 P0, §12; `docs/plans/SHARD-CHECKPOINTS.md`;
+- `docs/plans/NINE-DRAGON-STACK.md` §6, §7, §10 P0, §12; `project/archive/2026-10-03-shard-checkpoints.md` (merged into WORLDCLAW-SHARD, E406);
   `docs/sessions/nine-dragon-mega-session.md` (the feedback ledger F1–F10); `docs/process/nine-dragon-imaginary-play-by-play.pdf`.
 
 "Walkable" = the first deployed build Jake could walk on the phone: `3719d1d` at 09-26 01:43, the in-engine partial

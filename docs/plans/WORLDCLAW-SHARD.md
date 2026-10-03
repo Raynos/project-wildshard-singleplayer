@@ -1,6 +1,6 @@
 # WorldClaw shards: from Jake's vision to a fun, polished shard, with WorldClaw doing the labour
 
-**State:** `draft` 2026-10-01: **a plan only.** GAME-NORMALIZATION is archived (2026-10-01); the rows start with WORLDCLAW-SHARD N0 on Jake's go. Done: the research, Jake's grill and picks (D1–D76), four prototypes and the fjord dry run (§10; its front and content round 2 are Jake-reviewed), the flow ([06](../design/worldclaw/06-shard-flow.md)), council rounds 1–4 + a scoped check, the three skills (interactive, auto, sketch: D62; this plan's S rows, drafted in `.claude/skills/`). **One of three plans** (Jake): this one is the workflow and its skills; [WORLDCLAW-TOOLS](WORLDCLAW-TOOLS.md) is the tools and Draft mode; [THIN-ICE](THIN-ICE.md) is the pilot shard. **The pilot is Thin Ice** (D74; [THIN-ICE](THIN-ICE.md)). Companion: [WORLDCLAW-TOOLS](WORLDCLAW-TOOLS.md) (Draft mode, the drafts site, the Explorers). The content boards sit at P5b (D75). Open: Jake's go (§7): "Not yet, I'll review the pages". Pages: https://claude.ai/artifact/BmJQrhiuLPoqVXVfAoLdbp · Thin Ice https://claude.ai/artifact/1v5EE7bt75m3dGFAkVh7P1. On `main` since 2026-10-01 (merged from branch `worldclaw`; the prototypes and the review copies at the local tag `worldclaw-archive`, D76).
+**State:** `draft` 2026-10-03: **a plan only.** **SHARD-CHECKPOINTS is merged in** (E406, D77–D88: grey world first, then checkpoints; existing shards by a light front, Nine Dragon first; §2b, §2c, rows L0–L3), its council next (D88). GAME-NORMALIZATION is archived (2026-10-01); the rows start with WORLDCLAW-SHARD N0 on Jake's go. Done: the research, Jake's grill and picks (D1–D76), four prototypes and the fjord dry run (§10; its front and content round 2 are Jake-reviewed), the flow ([06](../design/worldclaw/06-shard-flow.md)), council rounds 1–4 + a scoped check, the three skills (interactive, auto, sketch: D62; this plan's S rows, drafted in `.claude/skills/`). **One of three plans** (Jake): this one is the workflow and its skills; [WORLDCLAW-TOOLS](WORLDCLAW-TOOLS.md) is the tools and Draft mode; [THIN-ICE](THIN-ICE.md) is the pilot shard. **The pilot is Thin Ice** (D74; [THIN-ICE](THIN-ICE.md)). Companion: [WORLDCLAW-TOOLS](WORLDCLAW-TOOLS.md) (Draft mode, the drafts site, the Explorers). The content boards sit at P5b (D75). Open: Jake's go (§7): "Not yet, I'll review the pages". Pages: https://claude.ai/artifact/BmJQrhiuLPoqVXVfAoLdbp · Thin Ice https://claude.ai/artifact/1v5EE7bt75m3dGFAkVh7P1. On `main` since 2026-10-01 (merged from branch `worldclaw`; the prototypes and the review copies at the local tag `worldclaw-archive`, D76).
 
 ## 0. Read this first
 
@@ -119,6 +119,18 @@ Superseded rows stay, struck through by the row that replaced them, so the histo
 | D74 | **The pilot is Thin Ice** (the fjord dry run's shard). Its shard plan is [THIN-ICE](THIN-ICE.md). Its front (pitch, style, concepts, map, content round 2) carries over from the dry run and is re-checked at P0–P6 with the built tools; the P-rows below run on it | Jake: "Yes, Thin Ice is the pilot"; "I'm not going to put this much effort into a dry run and then not build the shard" |
 | D75 | **The content boards sit at P5b** in every run: after the map (wave 1) and before the first-person views (wave 2), so the views can show quest moments; the pitch (P2) picks the journey structure. Answers §7 Q4 | Jake: "P5b, after the map" |
 | D76 | **One WorldClaw branch; the prototypes become the tools.** `worldclaw` holds the three plans, the skills and the prototypes (`prototypes/worldclaw/`, ~208 MB, 200 MB of it images); `worldclaw-proto` is merged into it (`43369eff`) and its worktree is gone. Supersedes D56's "own worktree and branch, never merged". **What the prototypes proved is converted into the tools, or redone as tools** (WORLDCLAW-TOOLS J20), by the rows that own it: `schematic.py` → T2; `terrain_vis.py` → T4, T5 and Map Lab (W6); `place_solve.py` → T8; the paint-then-lift test → T6, T8, P12; `run_jobs.py` → T14; `blockout_data.py`, `blockout.py`, `cam_pick.py`, `minimap.py`, `label_map.py`, `title_strip.py` → T19; `board.py`, `compose_steps.py`, `content_c.py`, `journey.py` → T11, T20. Each of those rows reads its prototype at the archive tag. **Thin Ice's dry run** enters as the pilot's draft at TI0 / P0 (J18): its design docs in `src/shards/thin-ice/design/`, its ~100 MB of original images in `art/thin-ice/round-<n>-<stage>/` (every decision's images, rejected options included; THIN-ICE §4.1 lists them), shown on the drafts site; the ~100 MB of copies made from them (titles, boards, numbered maps, the sets sent to chat) stay at the tag, since the tools re-make them. Until the merge, Jake keeps everything as it is. **After GAME-NORMALIZATION is archived:** tag the tip `worldclaw-archive` (local), merge into `main` without `prototypes/` (the originals moved to `art/` as above), then remove the worktree and delete the branch **Done 2026-10-01:** tagged `worldclaw-archive` (`1436c063`) and merged into `main` without `prototypes/`; the originals in `art/thin-ice/`, `art/worldclaw-tools/`, `art/worldclaw/` (JPEG, a README per round); Thin Ice's design docs in `docs/plans/thin-ice/dry-run/` | Jake: "Can we just have one workflow branch? And once normalization is done, we can merge and delete all the work trees"; "Those 200 megabytes of images is something that we need for the draft of Thin Ice. Honestly, I'll keep those for now"; "everything that [the prototypes have] proved, we're just gonna put it into tools or convert it into the tools or redo it so the tools comes in" |
+| D77 | **SHARD-CHECKPOINTS merged in** (E406): a shard grows **grey world first, then checkpoints**. A new shard runs the front and the grey world as written; every place of its build is then a **checkpoint** (§2b). An existing shard gets a **light front** (D85) and then goes straight to checkpoints. SHARD-CHECKPOINTS is archived as merged; its PDFs stay as history | Jake: "The goal is to merge them but I don't want to merge them blindly: pair, brainstorm and grill me"; M1 "Grey world first, then checkpoints" |
+| D78 | **A checkpoint keeps SHARD-CHECKPOINTS' four gates** (Frame, Form, Play, Pin) **and boards**: the agent brings as many boards as it sees fit; there is no one-board rule. Refines D63 | M2: "Both four gates and boards. There's no one board only rule. As many boards as the agent sees fit" |
+| D79 | **A pinned place deploys, still hidden**: on a new shard each pinned place ships with the next deploy inside the hidden shard (Developer on to walk it); the shard opens to players at P17 | M3 "Deploy, still hidden" |
+| D80 | **One skill**: `shard-checkpoints` folds into `worldclaw-interactive` (its build chapter is the checkpoint, its single-stage entry the existing-shard path); the old skill becomes a pointer | M4 "Fold into worldclaw-interactive" |
+| D81 | **The agent measures every place before the pin** (the iOS Simulator and the phone tier: load, frame rate, memory) and pins on that; Jake's iPhone is needed at the play gates (P7, P9) and his first walk (P17), and whenever he wants | M5 "Agent measures, you play at gates" |
+| D82 | **Models: the catalog batch, re-checked per place.** P11 makes and shows the catalog (every side, the Model Explorer); a place's Form gate shows only its new or changed models, in place | M6 "Catalog batch, re-checked per place" |
+| D83 | **Place order: the golden path, and Jake picks.** After each pin the agent proposes the next place along the golden path (the session slice first, each place's close band first); Jake picks the next place. Refines D60's order for the build | M8: "Golden path but also pick each next place" |
+| D84 | **On a live shard the slice in progress is public as it is built** (existing shards: Nine Dragon, Pine Hollow, …); a pin is the approval, not a release gate | M11 "Public as it's built" |
+| D85 | **An existing shard's light front**: `design.md` + `spec.json` written from the live shard (places, routes, critical path, verbs) in T1's formats, a top-down map and World Explorer views captured from the real world; Jake confirms its pillars and next slices in one pass. No pitch round, no drafts-site history | M7 "A light front first"; M9 "Design + map from the live world" |
+| D86 | **Nine Dragon's light front now, pausing its slice in flight**, made by the WorldClaw tools agent | M10 "Now, pausing the slice"; M13 "This agent" |
+| D87 | **T1 splits**: its **formats** first (the `design.md` template with its machine block, the `spec.json` schema), Nine Dragon's front written in them; `spec-check` / `twin-check` right after, validating it | M15 "T1's formats now, checkers later" |
+| D88 | **The merged plan keeps the name WORLDCLAW-SHARD** and goes through a full council (COUNCIL.md, at most four rounds) | M12 "Keep WORLDCLAW-SHARD"; M14 "Full council" |
 
 ### 0.3 Lead resolutions (the design choices; the council may challenge them with evidence)
 
@@ -165,7 +177,8 @@ The council's round-1 finding IDs are in brackets; [the register](worldclaw/revi
 **Goal.** A WorldClaw toolset and its skills, so that:
 - Jake can steer a shard from a sentence to a fun, polished, standalone level through images, two short grey play gates and a final walk;
 - WorldClaw's techniques do the labour with less slop;
-- the zero-shot mode can try one from a sentence alone.
+- the zero-shot mode can try one from a sentence alone;
+- an **existing** shard grows the same way after a light front (D85): one checkpoint at a time (§2b, D77).
 
 **Done when:**
 1. The pilot shard (guided mode) boots on the deck as EXPERIMENTAL with:
@@ -182,6 +195,9 @@ The council's round-1 finding IDs are in brackets; [the register](worldclaw/revi
 4. The three skills (D62: `worldclaw-interactive`, `worldclaw-auto`, `worldclaw-sketch`) are rewritten from what the pilot
    taught, and a fresh main session runs the front from the skills alone (P18).
 5. The pilot is **Thin Ice** (D74): it is the shard Done-when 1 describes.
+6. **Nine Dragon has its light front** (D85–D87): `design.md` + `spec.json` in T1's formats, clean under `spec-check
+   --scope slice` once it exists, its map and World Explorer views captured from the live build, and Jake's confirmation
+   of its pillars and next slices in the verdict log; its next slice then runs as a checkpoint (§2b).
 
 **Non-goals:**
 - return loops (daily seed, currency, medals; CONTENT-GAP §7, a later plan);
@@ -205,13 +221,47 @@ FRONT  (images, inspirational not pixel-exact: D72; Jake decides; D15/D46/D49)
        → [P7 verb gate, if a new verb or a moved toy: D57]
 GATES  (play in grey; Jake decides; D41)
        P8 grey world + grey content (sketch look) → P9 session slice: YES → P9b re-target onto the grey world
-BUILD  auto: the judges decide, Jake's notes only (D27/D36) · interactive: a checkpoint board per place (D63)
+BUILD  auto: the judges decide, Jake's notes only (D27/D36) · interactive: a checkpoint per place (§2b: Frame · Form · Play ·
+       Pin; D63, D78), places in golden-path order with Jake picking the next (D83), each pin deployed hidden (D79)
        P10 look → P11 catalog → P12 places (paint-then-lift on every seen band, close first: D60) → P13 content + audio
        → P14 budgets → P15 final judges
 END    P16 final board + time-lapse + physical-iPhone request → P17 Jake's first walk = the slop score (the arc gate)
 ALSO   P18 clean-room front check · P19 zero-shot dry run
+EXIST  an existing shard: a light front (D85) → checkpoints, one slice at a time, public as built (D84)
 ```
 In **zero-shot** (R18), the judges take P2–P6, there is no P7 (existing verbs only), and the judges decide P9; Jake sees P16 and walks P17 [R3-B11, R3-C14].
+
+## 2b. The checkpoint (from SHARD-CHECKPOINTS, D77–D84)
+
+A checkpoint grows one place (a new shard's P12) or one slice (an existing shard) while the rest stays playable and
+pinned. It keeps SHARD-CHECKPOINTS' four gates; the agent brings Jake **as many boards as it sees fit** (D78).
+
+| Gate | The agent brings | Jake | Exit |
+|---|---|---|---|
+| **Frame** | the place's camera(s): a live portrait capture with the real HUD, the P9b target, the plausible in-engine next view at the same camera | a look direction, when taste is needed | one accepted camera and a limited scope |
+| **Form** | the place's **new or changed** models in place, every side (front, sides, back, three-quarter), registered in the Model Explorer; the rest come from P11's catalog (D82) | approve, or name one form or material fix | the place's asset set |
+| **Play** | a moving capture and a playable build: collisions, controls, hit or miss, landings; World / HUD Explorer evidence where it applies | one steering note on what reads wrong first | the place works moving, not only as a still |
+| **Pin** | the agent's own measurements (iOS Simulator, phone tier: load, frame rate, memory, D81), the four CI gates, a before / current / target board | approve or revise | commit; the next deploy ships it (hidden on a new shard, D79; public on a live one, D84) |
+
+- **Order** (D83): after each pin the agent proposes the next place along the golden path (the session slice first;
+  each place's close band first, D60); Jake picks.
+- A rejected variant is deleted with its Debug row. Internal nine-angle sheets and measurements are evidence, never nine
+  decisions. A failed gate shrinks or polishes the same place; it never opens a new one.
+- After a pin: `design.md` records the accepted camera, the assets, the gate evidence, the rejected variants and the next
+  place; the drafts site gets the step (WORLDCLAW-TOOLS W13).
+- `worldclaw-auto` runs the same gates with the judges deciding (D27); Jake's notes only.
+
+## 2c. Existing shards: the light front (D85–D87)
+
+An existing shard (Nine Dragon first, D86; Pine Hollow, Nalati, Driftwood, the Dunes, Sky Reach later) enters at the
+build with a **light front**, made from the shard as it is:
+1. `src/shards/<slug>/design/design.md` + `spec.json` in T1's formats (D87): its places, routes as typed legs, the
+   critical path, the verbs, the session slice as it stands, from the live code and the shard's plan;
+2. a top-down map and World Explorer views captured from the live build (no painting: the world exists);
+3. one pass with Jake: he confirms the pillars and names the next slices; his words go in the verdict log.
+Then each slice is a checkpoint (§2b). No pitch round, no drafts-site history (WORLDCLAW-TOOLS non-goal). On a live shard
+the slice in progress is public as it is built (D84). The shard's own plan (e.g. NINE-DRAGON-STACK) keeps its scope and
+rows; the light front is its design's machine-readable twin.
 
 ## 3. Rules for every row (after normalization)
 
@@ -275,7 +325,7 @@ State per row: `todo` · `in flight (<owner>)` · `done (<commit>)` · `needs pi
 
 | Row | What | Done when | State |
 |---|---|---|---|
-| T1 | **The twins**: the `design.md` template with its machine block (R15) and the `spec.json` schema. `spec-check.mjs` enforces [06](../design/worldclaw/06-shard-flow.md) §10.2's rules: the required roles, "discovery place" = a place with a map pin and a discovery event, `catalogMode ∈ { kit, generated, mixed }`, `heightRange` from the extent, the summed triangle and GPU-MB estimate within the budget gate (R28), `scatter-sources.json` obeyed, id prefixes. `twin-check.mjs` compares the machine block with `spec.json`, ids and values. **`--scope slice`** (a director's shard, 06 §10.2): ids, heights, the slice's places inside the shard, routes as typed legs, happening signals and approach views stay on; the 8–12 places, the required roles, the entry roads, the estimate and the region rules are off. twin-check is skipped, and logged, on a single stage whose design has no machine block [A3, B19, B30, B43, C13, R4-B8, R4-C10] | fixtures: a valid pair passes; one fixture per rule fails with its message; "a trader in design.md, none in spec.json" fails; a slice fixture passes `--scope slice` and fails the full scope | todo |
+| T1 | **The twins** (D87: the formats first, then the checks): the `design.md` template with its machine block (R15) and the `spec.json` schema. `spec-check.mjs` enforces [06](../design/worldclaw/06-shard-flow.md) §10.2's rules: the required roles, "discovery place" = a place with a map pin and a discovery event, `catalogMode ∈ { kit, generated, mixed }`, `heightRange` from the extent, the summed triangle and GPU-MB estimate within the budget gate (R28), `scatter-sources.json` obeyed, id prefixes. `twin-check.mjs` compares the machine block with `spec.json`, ids and values. **`--scope slice`** (a director's shard, 06 §10.2): ids, heights, the slice's places inside the shard, routes as typed legs, happening signals and approach views stay on; the 8–12 places, the required roles, the entry roads, the estimate and the region rules are off. twin-check is skipped, and logged, on a single stage whose design has no machine block [A3, B19, B30, B43, C13, R4-B8, R4-C10] | fixtures: a valid pair passes; one fixture per rule fails with its message; "a trader in design.md, none in spec.json" fails; a slice fixture passes `--scope slice` and fails the full scope | todo |
 | T2 | **Schematic + illustrated map**: spec → a 512² schematic (square, roads, places, routes, sightlines, happening spots; `worldclaw@0825a9f5:prototypes/worldclaw/schematic.py` is the reference); the illustrated map is T19's top-down blockout render painted over by codex (D68), with **labels composited by code** over it. It is review art only, not the in-game map [B28] | pixel checks on the schematic; a label sheet over a fixture map | todo |
 | T3 | **Mask score + bake** (§10 PA): the gate is places-in-region 100 % + every route on walkable ground + roads untouched; palette fidelity is reported (PA measured 94.9–97.9 %); specks too small to hold a place merge into their neighbour (PB1's spikes). **When all three maps fail, stamp each place's region disc (its radius) from the schematic over the best variant, and log it** [C47]. `--bake` writes the region weights as world data. **Freshness by the normalized bake's output-byte comparison**, not a source hash [A2] | three fixture maps ranked right; a changed region cell or pad makes the bake check name the stale output; a no-op source edit re-bakes nothing | todo |
 | T4 | **Terrain operators** (Eq. 6): fbm, ridged, billow, voronoi F1/F2, warped; peak, crater, ridge, dune, terrace, mesa, basin, carve; `layoutLandscape(spec, regions)` over `heightRange`. High-base regions ramp in by distance to their edge (§10 PB1) **[TOOLS]** isomorphic ESM (no node imports), so Map Lab runs it in a worker (WORLDCLAW-TOOLS WT6). | deterministic per seed; each op tested; its cost per sample reported; PB1's fixture (a small rock blob in a snowfield) no longer spikes | todo |
@@ -314,7 +364,7 @@ State per row: `todo` · `in flight (<owner>)` · `done (<commit>)` · `needs pi
 | P9b | **Re-target onto the grey world** [C6, B12]: capture the grey world at every place's planned camera **and at T5's route-leg cameras** (`design/cams/leg-<id>.json`) (T6); codex re-edits each place capture to its approved P6 mockup (the mockup as the second input), and each route-leg capture to the bible with the nearest place's mockup as the second input [R4-B6, R4-C7]; a stand-dome and a look-dome 3×3 grid per hero view [C20]; phone copies for the Explorers. These are the build's targets (E4). The judges check fidelity (R6 pass mark); no new Jake decision | every place and every seen-band route leg (the close band first) has a target at its real camera; every hero view has two grids | todo |
 | P10 | **Look** (R29): the bible as shard data, including the kit's look (E6); LOOK-LOOP against the targets on every seen band, the close band first (D60); two domes; a 12-frame orbit strip | each target's ΔE00 reported; the judges sign off | todo |
 | P11 | **Catalog** per place by `catalogMode` (D18): scatter by `scatter-sources.json`; the bible's anchor models first; texture caps (R28); every asset passes the style check (fix ladder); provenance; walk-inside buildings as code (R26) | every model passes the style check and its review | todo |
-| P12 | **Places by paint-then-lift** (D19) on **every seen band, the close band first** (D60), per place and per **route leg** at crests and turns [C14]; in `worldclaw-interactive` each place ends on a **checkpoint board** Jake steers before the next place (D63); each composition is a codex edit of the capture **with the P9b target as the second input** [R2-C21]; gameplay structures from the spec as code; sketch pieces replaced (T9); placements by T8; object pads (R5); T9; Sets with targets (E4) | T9 clean; judges' must-fix empty (≤ 3 rounds a place, then the ladder) | todo |
+| P12 | **Places by paint-then-lift** (D19) on **every seen band, the close band first** (D60), per place and per **route leg** at crests and turns [C14]; in `worldclaw-interactive` each place is a **checkpoint** (§2b: Frame · Form · Play · Pin, as many boards as needed; D63, D78), pinned and deployed hidden (D79) before the next place, which Jake picks along the golden path (D83); each composition is a codex edit of the capture **with the P9b target as the second input** [R2-C21]; gameplay structures from the spec as code; sketch pieces replaced (T9); placements by T8; object pads (R5); T9; Sets with targets (E4) | T9 clean; judges' must-fix empty (≤ 3 rounds a place, then the ladder) | todo |
 | P13 | **Content and audio to final**: creature, NPC and boss models (mockup-to-model §2–§7, rigs), arena and happening dressing, signals, quest props, the weapon's final model and moves, **the score (MiniMax Music 3), ambience, SFX (MOSS + Stable Audio 3, the better take, `sfx_merge.py`), the in-game credits**, and the card art from P4's key art [C3, B27] | T16 plays the golden path and the slice end to end in the final look | todo |
 | P14 | **Budgets**: T10 at every place's 9 cameras and every 10 m of every route; a Simulator memory **pre-check** (R28) | every pose within the gate; Simulator ≤ 1.8 / 1.0 GB (a pre-check only) | todo |
 | P15 | **Final judges** vs F1, L1–L9, the look and slop rubric, on the final strips | no must-fix (≤ 2 rounds) | todo |
@@ -323,11 +373,20 @@ State per row: `todo` · `in flight (<owner>)` · `done (<commit>)` · `needs pi
 | P18 | **The clean-room check**: the main agent launches it per [06](../design/worldclaw/06-shard-flow.md) §8 through T18 (`/worldclaw-auto zero-shot <a sentence> as <slug> until P5`) on a second sentence the judges pick from three; it runs from the skills alone [C30, R2-C14, R3-B8, R4-B7] | a valid design.md + spec + map, judged and logged, no help | todo |
 | P19 | **The zero-shot dry run** (D51, R18): P18's shard continues through T18 with `/worldclaw-auto zero-shot <slug> until P8`: the grey world and content, T16's slice, a partial board | a judged front log and a P8-clean grey shard; Jake sees only the board; then P18's shard is deleted (R33) | todo |
 
+### L: existing shards (D85–D87)
+
+| Row | What | Done when | State |
+|---|---|---|---|
+| L0 | **The merge** (D77–D88): SHARD-CHECKPOINTS into this plan (§2b, §2c), the skill fold (D80), the archive | the council's rounds close (D88) | in flight (E406) |
+| L1 | **T1's formats**: the `design.md` template with its machine block (R15) and the `spec.json` schema, drawn from Thin Ice's dry-run pair | a schema file and a template; Thin Ice's dry-run pair converted as the first fixture | todo |
+| L2 | **Nine Dragon's light front** (D85, D86): pause its slice in flight; `design.md` + `spec.json` from the live shard in L1's formats; a top-down map and World Explorer views from the live build; Jake's pass | Jake confirms its pillars and next slices; the files pass T1's checks once they exist | todo |
+| L3 | **Nine Dragon's next slice as a checkpoint** (§2b) | pinned, public (D84) | todo |
+
 ### S: the skills
 
 | Row | What | Done when | State |
 |---|---|---|---|
-| S1 | **The three skills** (D62) from draft to final after the pilot: `worldclaw-interactive` (guided: the front, the play gates, a checkpoint per place, polish with Jake; it absorbs the old visdev and iterative drafts) and `worldclaw-auto` (zero-shot: the same steps, the judges decide, the T18 launcher) | P18 and P19 pass | todo |
+| S1 | **The three skills** (D62) from draft to final after the pilot: `worldclaw-interactive` (guided: the front, the play gates, a checkpoint per place, polish with Jake; it absorbs the old visdev and iterative drafts and, D80, `shard-checkpoints`: the checkpoint chapter and the existing-shard light front) and `worldclaw-auto` (zero-shot: the same steps, the judges decide, the T18 launcher) | P18 and P19 pass | todo |
 | S2 | (absorbed into `worldclaw-interactive`, D62: the iterative flow is its polish rounds after P17) | — | merged |
 | S3 | `worldclaw-sketch`: an outline (D4); its look and kit are E8a, its builder T17 | — | outline |
 

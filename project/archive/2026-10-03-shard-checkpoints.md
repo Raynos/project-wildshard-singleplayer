@@ -1,12 +1,12 @@
 # Plan: Shard checkpoints — the repeatable review loop (E206)
 
-**State:** `draft` 2026-10-03 — unblocked 2026-10-03 (Jake, E404): the E357 lock ended when GAME-NORMALIZATION was archived (`5390d75f9`). The skill and the two review PDFs are ready (E206 / E207, `3ed3285e`); Jake's process review is still the next checkpoint. WORLDCLAW-SHARD (draft) now covers the same ground, the human-in-the-loop shard workflow; whether this one folds into it is Jake's call.
+**State:** `archived` 2026-10-03 (merged, not finished) — merged into [WORLDCLAW-SHARD](../../docs/plans/WORLDCLAW-SHARD.md) by Jake's grill (E406, D77–D88): its four gates are that plan's checkpoint (§2b), its existing-shard path the light front (§2c), its skill folded into `worldclaw-interactive` (D80). Nine Dragon's slice continues as WORLDCLAW-SHARD rows L2–L3. Leftovers: none here; they live in WORLDCLAW-SHARD.
 
 ## Purpose
 
 Keep the exposed game mostly polished and playable while building one small rough pocket or interaction at a time. “80 / 20” is a scope discipline: pin reviewed work, leave one active slice. It is not a numeric quality claim. The agent owns internal multi-angle, movement, collision, performance and phone checks; Jake gets a small board and one taste decision per checkpoint.
 
-The working instructions are [the shard-checkpoints skill](../../.claude/skills/shard-checkpoints/SKILL.md). Jake can review the process through the [five-page imaginary Nine Dragon play-by-play](../process/nine-dragon-imaginary-play-by-play.pdf) and Matthew can use the [three-page manual](../process/shard-checkpoints-user-guide.pdf).
+The working instructions are [the shard-checkpoints skill](../../.claude/skills/shard-checkpoints/SKILL.md). Jake can review the process through the [five-page imaginary Nine Dragon play-by-play](../../docs/process/nine-dragon-imaginary-play-by-play.pdf) and Matthew can use the [three-page manual](../../docs/process/shard-checkpoints-user-guide.pdf).
 
 ## Repeatable checkpoint
 
@@ -21,7 +21,7 @@ Reject variants by removing their code and Debug rows. Keep internal nine-angle 
 
 ## First application: Nine Dragon
 
-The concrete scope and F-row ownership remain in [NINE-DRAGON-STACK.md](NINE-DRAGON-STACK.md). The present fragment is Lantern Square, a short street, stair corridor and Well edge. Its immediate active slice is the playable Fei Zhua crossing and landing; the grapple trailer shows it only after the verb works. The HUD/Weapon Explorer is a shared practice arena whose [mockups](../../art/hud-explorer/round-1-arena/README.md) precede implementation. The 500 m cube stays future plan, with new domes proposed individually after a pinned slice.
+The concrete scope and F-row ownership remain in [NINE-DRAGON-STACK.md](../../docs/plans/NINE-DRAGON-STACK.md). The present fragment is Lantern Square, a short street, stair corridor and Well edge. Its immediate active slice is the playable Fei Zhua crossing and landing; the grapple trailer shows it only after the verb works. The HUD/Weapon Explorer is a shared practice arena whose [mockups](../../art/hud-explorer/round-1-arena/README.md) precede implementation. The 500 m cube stays future plan, with new domes proposed individually after a pinned slice.
 
 ## Exclusions for this process review
 

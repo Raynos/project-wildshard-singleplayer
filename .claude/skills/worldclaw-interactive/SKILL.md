@@ -1,6 +1,6 @@
 ---
 name: worldclaw-interactive
-description: DRAFT (E359; plan stage, usable only after GAME-NORMALIZATION is archived and WORLDCLAW-SHARD's N/F/X/E/T rows land). Build a WorldClaw shard WITH Jake in the loop (guided) - the start questions; the front on images (three pitches, art direction + style bible, concepts, the map in two waves from a 3D blockout, the content boards with a 2x2 board per quest step, first-person views); the verb gate after the mockups; the grey session-slice gate; re-targeting; the build with a checkpoint board per place, WorldClaw's techniques on every seen band; the final board, Jake's first walk and polish rounds. Also a director's single-stage entry and resume. Use when asked to "make / build / WorldClaw a shard (with me)", "resume <slug>" on a guided shard, or by a director for one stage. Zero-shot runs use worldclaw-auto; fast low-poly big-picture rounds use worldclaw-sketch; single models use mockup-to-model.
+description: DRAFT (E359; plan stage, usable only after GAME-NORMALIZATION is archived and WORLDCLAW-SHARD's N/F/X/E/T rows land). Build a WorldClaw shard WITH Jake in the loop (guided) - the start questions; the front on images (three pitches, art direction + style bible, concepts, the map in two waves from a 3D blockout, the content boards with a 2x2 board per quest step, first-person views); the verb gate after the mockups; the grey session-slice gate; re-targeting; the build with a checkpoint board per place, WorldClaw's techniques on every seen band; the final board, Jake's first walk and polish rounds. Also an existing shard's light front and its checkpoints (it absorbed shard-checkpoints, D80), a director's single-stage entry and resume. Use when asked to "make / build / WorldClaw a shard (with me)", "resume <slug>" on a guided shard, or by a director for one stage. Zero-shot runs use worldclaw-auto; fast low-poly big-picture rounds use worldclaw-sketch; single models use mockup-to-model.
 ---
 
 # WorldClaw, interactive: Jake's vision to a fun, polished shard
@@ -173,13 +173,26 @@ Capture the grey world at every place's camera and T5's route-leg cameras; codex
 approved P6 view and each leg capture to the bible (the nearest place's view as the second input); the stand-dome and
 look-dome 3×3 grids; phone copies for the Explorers; each Set gets its `target` (E4); the judges check fidelity.
 
-## BUILD (06 §5): a checkpoint board per place (D63); the judges decide the rest
+## BUILD (06 §5): a checkpoint per place (WORLDCLAW-SHARD §2b; D63, D78); the judges decide the rest
 
 - **Polish every seen band, close first** (D60): `reach --bands` gives the order and the cameras; close-band places and
   legs first, then mid and far compositions from crests and vistas.
-- **The checkpoint per place** (P12): when a place's composition and its built result are ready, send one set (the
-  map leg, the target, the composition, the built view at the same camera) and ask GO / revise one thing (skip first).
-  Start the next place's independent work before asking.
+- **The checkpoint per place** (P12; WORLDCLAW-SHARD §2b, the merged SHARD-CHECKPOINTS loop, D77–D84). Four gates, as many
+  boards as the place needs (D78; there is no one-board rule):
+  - **Frame:** a live portrait capture with the real HUD, the P9b target, the plausible in-engine next view at the same
+    camera; ask for a look direction only when taste is needed.
+  - **Form:** only the place's new or changed models, in place, every side (front, sides, back, three-quarter),
+    registered in the Model Explorer; the rest were approved in P11's catalog (D82). Never approve from the hero angle.
+  - **Play:** a moving capture and a playable build: collisions, controls, hit or miss, landings; World / HUD Explorer
+    evidence where it applies. A still frame alone is not a pass.
+  - **Pin:** your own measurements (iOS Simulator and the phone tier: load, frame rate, memory; D81), the four CI gates,
+    a before / current / target board; Jake approves or revises. Commit; the next deploy ships it, hidden in the new
+    shard (D79).
+  - Then propose the next place along the golden path (the session slice first, each place's close band first) and let
+    Jake pick (D83). Start the next place's independent work before asking.
+  - A rejected variant goes with its Debug row; internal nine-angle sheets are evidence, not nine decisions; a failed
+    gate shrinks or polishes the same place, never opens a new one. After the pin, `design.md` records the camera, the
+    assets, the evidence, the rejected variants and the next place.
 - **Notes** (06 §10.3): apply, log and acknowledge each. Notes override taste, never a hard gate. A one-asset note adds
   a bible exception line. A palette / light / materials note takes the look row. A gate-reopening note **is Jake's
   decision**: apply its 06 §10.3 row; only an ambiguous note gets one clarifying question; a note that breaks a hard
@@ -192,9 +205,9 @@ look-dome 3×3 grids; phone copies for the Explorers; each Set gets its `target`
 
 | Step | Do | Done when |
 |---|---|---|
-| P10 look | the bible as shard data, the kit look (E6), the model post recipe; LOOK-LOOP against the P9b targets on every seen band, close first; two domes; the orbit strip | ΔE00 ≤ 6 or 3 rounds; the judges' pass mark |
+| P10 look | the bible as shard data, the kit look (E6), the model post recipe; LOOK-LOOP against the P9b targets on every seen band, close first; two domes; the orbit strip | each target's ΔE00 reported; the judges sign off |
 | P11 catalog | 04 §7: anchors first; per place by `catalogMode`; scatter by `scatter-sources.json`; codex refs → TRELLIS **and** Hunyuan3D-2 → the better take → the post recipe; texture caps; walk-inside buildings as code; reuse first; the style check with its ladder; T7 with provenance and phone copies | every placed asset passes |
-| P12 places | 04 §8, per place and route leg, close band first: `capture --cam` → codex composition **with the P9b target as the second input** → `objects.json` → new objects re-drawn isolated → P11 → T8 → object pads → the Set's target → T9 → bakes + walk → **the place's checkpoint board (Jake)** | T9 clean; Jake's GO per place (or "go with gaps"); the judges' compare has no must-fix |
+| P12 places | 04 §8, per place and route leg, close band first: `capture --cam` → codex composition **with the P9b target as the second input** → `objects.json` → new objects re-drawn isolated → P11 → T8 → object pads → the Set's target → T9 → bakes + walk → **the place's checkpoint (Frame · Form · Play · Pin)** | T9 clean; Jake's pin per place (or "go with gaps"); the judges' compare has no must-fix |
 | P13 content + audio | 04 §11: creature, NPC and boss models; the weapon's final model; the quest boards' mechanics to final (the NPC moments, the traversal and surface rules); dressing and signals; quest props; the score (MiniMax Music 3), ambience, SFX (MOSS + Stable Audio 3, `sfx_merge.py`), credits; card art | T16 plays the golden path and the slice in the final look |
 | P14 budgets | T10 at every place's 9 cameras and every 10 m of every route; a Simulator pre-check | within R28's gate |
 | P15 final judges | F1's fun rules, L1–L9, look and slop, on the final strips | the R6 pass mark |
@@ -210,10 +223,21 @@ look-dome 3×3 grids; phone copies for the Explorers; each Set gets its `target`
   `docs/audits/physical-shard-memory-baseline-2026-09-28.json`.
 - **P17:** Jake's first walk; notes through the inbox; drain-inbox makes one ask per note; size every note L / S / M
   with a reason, freeze the baseline and record the slop score; an over-limit reading reopens P14; fix S / M notes
-  (≤ 2 rounds; out of the exemption every fix re-records the gate baseline); **on Jake's word, the status becomes
+  ( out of the exemption every fix re-records the gate baseline); **on Jake's word, the status becomes
   `experimental`**.
 - **Polish rounds** (the old iterative flow, D62): after P17, Jake picks an area or a note; one place at a time: a
   composition + a built view at the same camera → his GO or revision → bakes + walk + budgets. Leftovers stay asks.
+
+## X. An existing shard: the light front, then checkpoints (WORLDCLAW-SHARD §2c; D85–D87)
+
+For a shard that already exists (Nine Dragon first, then Pine Hollow, Nalati, Driftwood, the Dunes, Sky Reach):
+1. **Pause** the slice in flight (record where it stands in the shard's plan and ask file).
+2. **The light front** (D85): `src/shards/<slug>/design/design.md` + `spec.json` written from the live shard (places, routes
+   as typed legs, the critical path, the verbs, the slice as it stands) in T1's formats (D87); a top-down map and World
+   Explorer views captured from the live build (no painting: the world exists). No pitch round, no drafts-site history.
+3. **One pass with Jake:** he confirms the pillars and names the next slices; his words go in the verdict log.
+4. **Each slice is a checkpoint** (BUILD above). On a live shard the slice in progress is public as it is built (D84);
+   the pin is Jake's approval. The shard's own plan keeps its scope and rows.
 
 ## S. Single-stage entry (a director's call; 06 §9, §10.2)
 

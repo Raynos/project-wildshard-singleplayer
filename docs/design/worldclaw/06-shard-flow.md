@@ -29,7 +29,7 @@ The order:
 2. the **verb gate**, after the mockups, when the pitch needs one (D57);
 3. the **slice gate** in grey;
 4. **re-targeting** onto the grey world;
-5. the **build** (`worldclaw-auto`: the judges decide; `worldclaw-interactive`: a checkpoint board per place, D63;
+5. the **build** (`worldclaw-auto`: the judges decide; `worldclaw-interactive`: a checkpoint per place, Frame · Form · Play · Pin, D63, D78 (WORLDCLAW-SHARD §2b);
    WorldClaw labours on every seen band, close first, D60);
 6. the **end** (Jake walks; his notes are the score).
 
@@ -47,7 +47,7 @@ One AskUserQuestion (guided):
 |---|---|---|
 | Follow along? (D16, D35) | the live page + milestone clips + a daily summary + the final time-lapse; any subset; none | all |
 | Run scope? (R17) | **world + all content** (grey, then final); **world + one session slice** (the world complete, content = the slice) | world + all content |
-| Build steering? (D63) | a checkpoint board per place (interactive); the judges decide, notes only | a checkpoint per place |
+| Build steering? (D63, D78) | a checkpoint per place (interactive: Frame · Form · Play · Pin, boards as needed, the next place Jake's pick along the golden path, D83); the judges decide, notes only | a checkpoint per place |
 
 - Recording is always on (§10.1's frames folder); the answer gates delivery only.
 - Zero-shot asks nothing and delivers only the final board + time-lapse, unless the invocation asks to follow along.
@@ -245,7 +245,7 @@ These are **the build's targets** (E4). The judges check fidelity (R6 pass mark)
 | never seen | ~6 % | nothing |
 
 The bands set the order and plan the cameras; every seen m² gets full polish (D60). In `worldclaw-interactive` each place
-ends on a **checkpoint board** (its composition and its built result) that Jake steers before the next place (D63).
+is a **checkpoint** (WORLDCLAW-SHARD §2b: Frame · Form · Play · Pin, as many boards as needed; D63, D78): the agent measures it (D81), Jake pins it, the next deploy ships it hidden (D79), and Jake picks the next place along the golden path (D83).
 
 **Jake's notes** (D36, R21; §10.3 for precedence) are read at every step boundary from chat (the pages are read-only:
 WORLDCLAW-TOOLS J17, J21), then applied, logged and acknowledged.
@@ -271,7 +271,7 @@ and on the final board; Jake can overturn it with a note.
 |---|---|---|
 | P10 look | the bible as shard data (ground, sky, fog, grade, light, `LookStrategy`, the kit look, the model post recipe); LOOK-LOOP against the targets on every seen band, close first (D60); two domes; a 12-frame orbit strip | each target's ΔE00 reported; the judges sign off (R29) |
 | P11 catalog | 04 §7: anchors first; per place by `catalogMode`; scatter by `scatter-sources.json`; texture caps; walk-inside buildings as code; the style check (an asset that fails its ladder is not placed); provenance | every placed asset passes the style check |
-| P12 places | 04 §8: per place and per route leg on every seen band, close first (D60); in interactive, a checkpoint board per place (D63); compositions conditioned on the P9b target; T8 placement through the physics query layer with support binding; object pads; T9; Sets with targets | T9 clean; judges' must-fix empty (≤ 3 rounds a place) |
+| P12 places | 04 §8: per place and per route leg on every seen band, close first (D60); in interactive, a checkpoint per place (§2b of the plan; D63, D78); compositions conditioned on the P9b target; T8 placement through the physics query layer with support binding; object pads; T9; Sets with targets | T9 clean; judges' must-fix empty (≤ 3 rounds a place) |
 | P13 content + audio | 04 §11: creature, NPC and boss models; the weapon's final model; dressing and signals; quest props; **score, ambience, SFX, credits**; card art | T16 plays the golden path and the slice in the final look |
 | P14 budgets | T10 at every place's 9 cameras and every 10 m of every route; a Simulator **pre-check** | within R28's gate |
 | P15 final judges | F1's fun rules, L1–L9, look and slop, on the final strips | the R6 pass mark; no must-fix (≤ 2 rounds) |
@@ -377,7 +377,7 @@ No questions.
 
 - **The director loop:** a director calls one stage through `worldclaw-interactive`'s **single-stage entry**, which is
   checked **before** resume (§10.2's inputs).
-- **Iterating and polish:** `worldclaw-interactive`'s checkpoint per place (D63) and its polish rounds after P17 (the old
+- **Iterating and polish:** `worldclaw-interactive`'s checkpoint per place (D63, D78) and its polish rounds after P17 (the old
   iterative outline, absorbed: D62).
 - **The sketch flow** (`worldclaw-sketch`): the grey part as fast rounds with Jake.
 
@@ -567,3 +567,10 @@ job at once and ignores unknown flags.
   - Anything else: continue at `next`, within `until`.
 - **A codex quota stop** records the reset time in §run (`waitingOn: codex-quota`, `stop: quota(<reset>)`) and stops. The next session resumes
   after the reset.
+
+## 11. Existing shards (WORLDCLAW-SHARD §2c; D77, D84–D87)
+
+An existing shard enters at the build: a **light front** (its `design.md` + `spec.json` written from the live shard in
+T1's formats, a top-down map and World Explorer views captured from the live build, one pass with Jake for its pillars
+and next slices), then **one checkpoint per slice** (§5 and the plan's §2b). On a live shard the slice in progress is
+public as it is built (D84). Nine Dragon is first (D86).
