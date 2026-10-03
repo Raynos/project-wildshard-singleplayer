@@ -13,7 +13,11 @@ export const SWING = { reach: 3.4, halfAngle: 0.9, light: 16, heavy: 30, cooldow
 // upper left on its pivot, the gloved hand, wrist and tassel in plain view at the lower right, as mockup C sweeps it
 // (round 7: a larger, more central hold, for mockup C, covered A's bridge and D's dais, where mockups A, B, D and proposal B
 // hold it small at the lower right: the hold stays)
-export const HOLD = { x: 0.135, y: -0.205, z: -0.6, pitch: 0.22, yaw: -0.2, roll: 0.95, scale: 0.46 } as const;
+// Top-10 row 3 (E407): ONE hold for every view, measured against the mockups' fans (390 x 844 portrait frame; A's pivot at
+// about (364, 605), its leaf's left tip (244, 547), top 480; B's left 275, top 452; proposal B's left 200, top 475): the
+// pivot low at the right (~345, 610), the leaf opening up and to the left, its right guard running off the frame's edge,
+// tipped back a little so the silk still faces you. It was leaned over with its pivot behind GUST (left 171, top 456).
+export const HOLD = { x: 0.155, y: -0.194, z: -0.6, pitch: 0.35, yaw: -0.5, roll: 0.55, scale: 0.46 } as const;
 /** The painted silk's tint (E399 seats: 'plain and bright'): mockup C's silk is a muted, deeper teal. */
 // E399 seats: the mockups' silk is a lighter sea-green with pale cloud swirls
 export const SILK_TINT = 0xdfece6;
@@ -150,7 +154,8 @@ export class WarFan extends Weapon {
     this.model.position.set(HOLD.x + pose.x + c * 0.04, HOLD.y + pose.y + breath * 0.004 + c * 0.06, HOLD.z + pose.z + c * 0.03);
     this.model.rotation.set(HOLD.pitch + pose.pitch + breath * 0.015 + c * 0.35, HOLD.yaw + this.spring.yaw + pose.yaw + c * 0.2, HOLD.roll + pose.roll - c * 0.25);
     const swish = this.motionK < 1 ? Math.sin(this.motionK * Math.PI) : 0;
-    this.parts.tassel.rotation.z = Math.sin(this.time * 2.1) * 0.25 + swish * (this.motion === 'swing' ? -0.7 : 0.7);
+    // the tassel hangs plumb (the hold's and the move's roll taken back out), swaying
+    this.parts.tassel.rotation.z = -(HOLD.roll + pose.roll - c * 0.25) + Math.sin(this.time * 2.1) * 0.25 + swish * (this.motion === 'swing' ? -0.7 : 0.7);
     this.model.visible = this.holster < 0.5 && !this.stowed();
   }
 }

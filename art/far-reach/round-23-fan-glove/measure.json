@@ -1,0 +1,97 @@
+{
+ "mock-C-hands-fan": {
+  "cap-before": {
+   "left": 171,
+   "top": 454,
+   "share": 7.8,
+   "iou": 0.328
+  },
+  "cap-a3": {
+   "left": 201,
+   "top": 480,
+   "share": 6.6,
+   "iou": 0.447
+  },
+  "mockup": {
+   "left": 120,
+   "top": 412,
+   "share": 13.6
+  }
+ },
+ "mock-A-spawn-look": {
+  "cap-before": {
+   "left": 171,
+   "top": 456,
+   "share": 7.8,
+   "iou": 0.354
+  },
+  "cap-a3": {
+   "left": 201,
+   "top": 479,
+   "share": 6.6,
+   "iou": 0.67
+  },
+  "mockup": {
+   "left": 240,
+   "top": 480,
+   "share": 5.6
+  }
+ },
+ "mock-B-quest-start": {
+  "cap-before": {
+   "left": 171,
+   "top": 453,
+   "share": 7.7,
+   "iou": 0.224
+  },
+  "cap-a3": {
+   "left": 201,
+   "top": 477,
+   "share": 6.5,
+   "iou": 0.461
+  },
+  "mockup": {
+   "left": 275,
+   "top": 453,
+   "share": 4.5
+  }
+ },
+ "mock-proposal-B": {
+  "cap-before": {
+   "left": 171,
+   "top": 459,
+   "share": 7.8,
+   "iou": 0.481
+  },
+  "cap-a3": {
+   "left": 201,
+   "top": 484,
+   "share": 6.6,
+   "iou": 0.534
+  },
+  "mockup": {
+   "left": 200,
+   "top": 475,
+   "share": 8.3
+  }
+ },
+ "mock-D-crown-arena": {
+  "cap-before": {
+   "left": 171,
+   "top": 458,
+   "share": 7.8,
+   "iou": 0.04
+  },
+  "cap-a3": {
+   "left": 201,
+   "top": 481,
+   "share": 6.6,
+   "iou": 0.087
+  },
+  "mockup": {
+   "left": 335,
+   "top": 561,
+   "share": 0.8
+  }
+ }
+}

@@ -79,10 +79,11 @@ export function gloveHand(armDir: Vector3 = ARM_DIR): Group {
 }
 
 /**
- * The textured hero hand (E392/E399, art/far-reach/round-20-fan-hand/: a codex reference of mockup C's hand → Hunyuan3D-2
- * turbo shape + paint → weld, simplify, 1024 WebP map, meshopt): a fingerless brown leather glove closed round a short
- * wrapped handle with bronze caps, a tooled bracer with bronze studs, a linen sleeve bound with cords. Null when the model
- * did not load (the code hand above stands in).
+ * The textured hero hand (E392/E399, art/far-reach/round-20-fan-hand/; top-10 row 3 rebuilt it as the layered glove,
+ * art/far-reach/round-23-fan-glove/: a codex reference of mockup C's hand → Hunyuan3D-2 turbo shape + paint → weld,
+ * simplify, 1024 WebP map, meshopt): a fingerless leather gauntlet with plates over the back of the hand and the knuckles,
+ * closed round a short red-wrapped handle with bronze caps, a bracer of overlapping bronze-edged lames with two buckled
+ * straps, a linen sleeve bound with cords. Null when the model did not load (the code hand above stands in).
  *
  * The file's frame: the handle upright at the −X end, the forearm level along +X, the fingers facing +Z. Placed here with the
  * handle's axis on the fan's grip axis (+Y) and its top cap at the pivot (y 0), the forearm turned `HERO_HAND.yaw` about

@@ -33,10 +33,11 @@ export function fanPanels(): BufferGeometry {
   for (let i = 0; i < FAN.panels; i++) {
     const a = from + i * step, m = a + step / 2, b = a + step;
     // the crease stands proud toward the camera; the two faces of the pleat take the light differently
-    const crease = 0.01;
+    // row 3 (E407): the folds deeper and the turned-away face darker (mockup C's pleats read as real folds, ours as flat)
+    const crease = 0.018;
     for (let k = 0; k + 1 < rings.length; k++) {
       const r0 = rings[k] ?? inner, r1 = rings[k + 1] ?? 1;
-      for (const [x0, x1, z0, z1, shade] of [[a, m, 0, crease, 0.72], [m, b, crease, 0, 1]] as const) {
+      for (const [x0, x1, z0, z1, shade] of [[a, m, 0, crease, 0.62], [m, b, crease, 0, 1]] as const) {
         vert(x0, r0, z0 * r0, shade); vert(x1, r0, z1 * r0, shade); vert(x1, r1, z1 * r1, shade);
         vert(x0, r0, z0 * r0, shade); vert(x1, r1, z1 * r1, shade); vert(x0, r1, z0 * r1, shade);
       }
@@ -81,10 +82,8 @@ export function fanSticks(): BufferGeometry {
   const root = new Color(0x1c1814), wood = new Color(0x302a24), grain = new Color(0x463e34), tip = new Color(0x7a6644);
   for (let i = 0; i <= FAN.panels; i++) {
     const a = from + i * step, guard = i === 0 || i === FAN.panels;
-    if (guard) {
-      // the guard: a heavy bar, widest where the leaf starts, a little longer than the leaf
-      stick(a, [{ r: 0.02, w: 0.016, c: root }, { r: 0.3, w: 0.026, c: wood }, { r: FAN.leaf + 0.04, w: 0.03, c: grain }, { r: 0.8, w: 0.027, c: wood }, { r: 1.05, w: 0.024, c: grain }], -0.004, 0.016, pos, col);
-    } else {
+    // the two guards are chamfered extrusions (fanParts: guardShape), not sticks
+    if (!guard) {
       // a stick: wide and flat through the bare part (they nearly meet at the leaf), a slim rib laid over the silk
       stick(a, [{ r: 0.03, w: 0.009, c: root }, { r: FAN.leaf * 0.6, w: 0.016, c: wood }, { r: FAN.leaf + 0.03, w: 0.019, c: grain }], -0.002, 0.006, pos, col);
       stick(a, [{ r: FAN.leaf + 0.02, w: 0.0062, c: wood }, { r: 0.9, w: 0.005, c: grain }, { r: 0.985, w: 0.0045, c: tip }], 0.004, 0.011, pos, col);
@@ -96,14 +95,31 @@ export function fanSticks(): BufferGeometry {
   return g;
 }
 
-/** A guard's ornate end plate: a pointed bronze leaf with a pierced diamond, `l` long and `w` wide, lying in XY along +Y. */
+/**
+ * A guard's end plate (row 3, mockup C's 'angular iron guards'): a faceted iron arrowhead with a pierced diamond, `l` long
+ * and `w` wide, lying in XY along +Y, its edges a real chamfer.
+ */
 function guardPlate(l: number, w: number): BufferGeometry {
   const s = new Shape();
-  s.moveTo(0, 0); s.quadraticCurveTo(w * 0.62, l * 0.12, w * 0.5, l * 0.42); s.quadraticCurveTo(w * 0.62, l * 0.72, 0, l);
-  s.quadraticCurveTo(-w * 0.62, l * 0.72, -w * 0.5, l * 0.42); s.quadraticCurveTo(-w * 0.62, l * 0.12, 0, 0);
-  const hole = new Shape(); hole.moveTo(0, l * 0.3); hole.lineTo(w * 0.18, l * 0.5); hole.lineTo(0, l * 0.7); hole.lineTo(-w * 0.18, l * 0.5); hole.lineTo(0, l * 0.3);
+  s.moveTo(0, 0); s.lineTo(w * 0.32, l * 0.06); s.lineTo(w * 0.5, l * 0.38); s.lineTo(w * 0.36, l * 0.5); s.lineTo(w * 0.42, l * 0.62); s.lineTo(0, l);
+  s.lineTo(-w * 0.42, l * 0.62); s.lineTo(-w * 0.36, l * 0.5); s.lineTo(-w * 0.5, l * 0.38); s.lineTo(-w * 0.32, l * 0.06); s.lineTo(0, 0);
+  const hole = new Shape(); hole.moveTo(0, l * 0.28); hole.lineTo(w * 0.17, l * 0.46); hole.lineTo(0, l * 0.64); hole.lineTo(-w * 0.17, l * 0.46); hole.lineTo(0, l * 0.28);
   s.holes.push(hole);
-  return new ExtrudeGeometry(s, { depth: 0.003, bevelEnabled: true, bevelThickness: 0.0012, bevelSize: 0.0012, bevelSegments: 1, curveSegments: 6 });
+  return new ExtrudeGeometry(s, { depth: 0.003, bevelEnabled: true, bevelThickness: 0.0014, bevelSize: 0.0014, bevelSegments: 1, curveSegments: 1 });
+}
+
+/**
+ * A guard's outline along +Y (metres): a slim root, a straight shaft that widens a little to a shoulder past the leaf's
+ * middle, then an angular, faceted point beyond the rim. `grow` offsets it outward (the bronze edging behind the wood).
+ */
+export const GUARD: readonly (readonly [number, number])[] = [[0, 0.0105], [0.3, 0.0135], [0.74, 0.0155], [0.8, 0.0235], [0.93, 0.021], [1.0, 0.0125], [1.1, 0]];
+function guardShape(grow: number): Shape {
+  const s = new Shape(), R = FAN.reach, side = GUARD.map(([r, w]) => [w + grow, r * R + (r === 0 ? -grow : 0)] as const), tip = side[side.length - 1];
+  s.moveTo(-(side[0]?.[0] ?? 0), side[0]?.[1] ?? 0);
+  for (const [x, y] of side.slice(0, -1)) s.lineTo(x, y);
+  if (tip !== undefined) s.lineTo(0, tip[1] + grow * 1.6);
+  for (const [x, y] of side.slice(0, -1).reverse()) s.lineTo(-x, y);
+  return s;
 }
 
 export interface FanParts { readonly group: Group; readonly fan: Group; readonly tassel: Group; readonly silk: MeshStandardMaterial }
@@ -118,7 +134,7 @@ export function fanParts(): FanParts {
     shader.fragmentShader = shader.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
   diffuseColor.rgb = mix(vec3(dot(diffuseColor.rgb, vec3(0.2126, 0.7152, 0.0722))), diffuseColor.rgb, ${SILK.saturation.toFixed(2)}) * ${SILK.lift.toFixed(2)} * vec3(${SILK.tint.map((v) => v.toFixed(2)).join(', ')});`);
   }, { key: (prior) => `${prior}|far.fan-silk` });
-  const lacquer = new MeshStandardMaterial({ vertexColors: true, roughness: 0.5, metalness: 0.1, side: 2 });
+  const lacquer = new MeshStandardMaterial({ vertexColors: true, roughness: 0.36, metalness: 0.1, side: 2 });
   const bronze = new MeshStandardMaterial({ color: 0x7a5c32, roughness: 0.42, metalness: 0.55, emissive: 0x0a0602 });
   const wrap = new MeshStandardMaterial({ color: 0x2c1c14, roughness: 0.85, metalness: 0 });
   const red = new MeshStandardMaterial({ color: 0xa8201a, roughness: 0.75, metalness: 0, emissive: 0x1e0403 });
@@ -126,28 +142,34 @@ export function fanParts(): FanParts {
   // the guards' metal (E399 round 6, mockup C: 'riveted metal guards with engraved end caps', every seat since round 3):
   // each guard sheathed in a dark iron strap from the grip to past the leaf, riveted along its length, an engraved bronze
   // cap at its tip and a smaller one at its root; a bronze stud on every stick where the leaf starts
-  const from = -FAN.spread / 2, plates: BufferGeometry[] = [], straps: BufferGeometry[] = [];
+  const from = -FAN.spread / 2, plates: BufferGeometry[] = [], straps: BufferGeometry[] = [], guardWood: BufferGeometry[] = [];
   const along = (a: number, r: number, z: number): [number, number, number] => [Math.sin(a) * r * FAN.reach, Math.cos(a) * r * FAN.reach, z];
   for (const a of [from, -from]) {
-    for (const [r, l, w] of [[0.84, 0.13, 0.044], [0.05, 0.05, 0.026]] as const) {
-      const p = guardPlate(l, w); p.rotateZ(-a); p.translate(...along(a, r, 0.017)); plates.push(p);
+    for (const [r, l, w] of [[0.8, 0.105, 0.05], [0.03, 0.05, 0.03]] as const) {
+      const p = guardPlate(l, w); p.rotateZ(-a); p.translate(...along(a, r, 0.0185)); plates.push(p);
     }
-    const strap = new CylinderGeometry(0.0155, 0.0155, (0.86 - 0.18) * FAN.reach, 4, 1); strap.scale(1, 1, 0.22); strap.rotateY(Math.PI / 4);
-    strap.translate(0, (0.18 + 0.86) / 2 * FAN.reach, 0.016); strap.rotateZ(-a); straps.push(strap.toNonIndexed());
-    for (let r = 0.22; r < 0.84; r += 0.09) {
-      const stud = new SphereGeometry(0.0034, 6, 4); stud.scale(1, 1, 0.6); stud.translate(...along(a, r, 0.0195)); plates.push(stud);
+    // row 3 (E407; the seats: 'plain guards'): each guard a chamfered extrusion of dark lacquered wood on a slightly
+    // larger bronze-edged iron backing (so a metal rim runs round it), the angular plates and rivets on top
+    const wood = new ExtrudeGeometry(guardShape(0), { depth: 0.005, bevelEnabled: true, bevelThickness: 0.0013, bevelSize: 0.0013, bevelSegments: 1, curveSegments: 1 });
+    wood.translate(0, 0, 0.012); wood.rotateZ(-a); guardWood.push(wood);
+    const back = new ExtrudeGeometry(guardShape(0.0026), { depth: 0.004, bevelEnabled: true, bevelThickness: 0.0012, bevelSize: 0.0012, bevelSegments: 1, curveSegments: 1 });
+    back.translate(0, 0, 0.0095); back.rotateZ(-a); straps.push(back);
+    for (let r = 0.16; r < 0.76; r += 0.085) {
+      const stud = new SphereGeometry(0.0034, 6, 4); stud.scale(1, 1, 0.6); stud.translate(...along(a, r, 0.0196)); plates.push(stud);
     }
   }
   for (let i = 1; i < FAN.panels; i++) {
     const a = from + i * (FAN.spread / FAN.panels), stud = new SphereGeometry(0.0036, 6, 4); stud.scale(1, 1, 0.55); stud.translate(...along(a, FAN.leaf + 0.03, 0.012)); plates.push(stud);
   }
-  const iron = new MeshStandardMaterial({ color: 0x34302c, roughness: 0.45, metalness: 0.7, emissive: 0x050403 });
+  const iron = new MeshStandardMaterial({ color: 0x6a5232, roughness: 0.4, metalness: 0.75, emissive: 0x080503 });
   fan.add(new Mesh(mergeGeometries(straps), iron));
-  for (const g of straps) g.dispose();
+  const guardLacquer = new MeshStandardMaterial({ color: 0x2a2420, roughness: 0.34, metalness: 0.08 });
+  fan.add(new Mesh(mergeGeometries(guardWood), guardLacquer));
+  for (const g of [...straps, ...guardWood]) g.dispose();
   // the gilt rim along the leaf's outer edge (mockup C's lit edge)
   const rim: Vector3[] = [];
   for (let i = 0; i <= 24; i++) { const a = from + (i / 24) * FAN.spread; rim.push(new Vector3(Math.sin(a) * FAN.reach, Math.cos(a) * FAN.reach, 0.004)); }
-  fan.add(new Mesh(new TubeGeometry(new CatmullRomCurve3(rim), 48, 0.0024, 4, false), new MeshStandardMaterial({ color: 0xc49a52, roughness: 0.35, metalness: 0.6, emissive: 0x1a1006 })));
+  fan.add(new Mesh(new TubeGeometry(new CatmullRomCurve3(rim), 48, 0.003, 4, false), new MeshStandardMaterial({ color: 0xc49a52, roughness: 0.35, metalness: 0.6, emissive: 0x1a1006 })));
   // the pivot: a bronze boss and its rivet
   const boss = new CylinderGeometry(0.017, 0.019, 0.012, 14); boss.rotateX(Math.PI / 2); boss.translate(0, 0, 0.012); plates.push(boss);
   const rivet = new SphereGeometry(0.008, 8, 6); rivet.translate(0, 0, 0.019); plates.push(rivet);
@@ -175,7 +197,8 @@ export function fanParts(): FanParts {
   if (hero === null) { const hand = gloveHand(); hand.position.y = -FAN.grip * 0.35; group.add(hand); }
   else {
     // the hero hand brings its own wrapped handle with bronze caps: the code grip goes, the tassel hangs from its foot
-    group.add(hero.group); grip.visible = false; ring.position.y = -hero.grip - 0.006; tassel.position.y = -hero.grip - 0.012;
+    // row 3 (mockup C): the tassel hangs from the pivot boss in front of the fist (it hung below the fist, off the frame)
+    group.add(hero.group); grip.visible = false; ring.position.y = -hero.grip - 0.006; tassel.position.set(0, -0.004, 0.028);
   }
   return { group, fan, tassel, silk };
 }
