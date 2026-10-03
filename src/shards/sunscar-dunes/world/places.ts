@@ -30,7 +30,10 @@ const at = (mesh: Mesh, x: number, y: number, z: number, parent: Group): Mesh =>
 // E399 (mockup B): the lantern hangs in the wagon's back hoop, over the logbook on the tailboard
 const LANTERN = { x: -0.6, y: 1.8, z: -2.75 } as const;
 /** The cookfire beside the wagon, in the caravan's frame (mockup B's smoke). */
-const COOK = { x: -0.6, z: 5.2 } as const; // E399 (mockup B): in front of the wagon, its wisp rising behind it as you come up from the back
+// E399 (mockup B): in front of the wagon, its wisp rising behind it as you come up from the back; round 24 (seats B and C:
+// the plume rose right of the wagon, x 0.71, where the mockup's rises over the canvas, x 0.53): on the approach's sight line
+// through the wagon, 5 m beyond its middle
+const COOK = { x: 2.6, z: 4.0 } as const;
 
 /** Spilled cargo on the lee (−X) side, on the sand itself: x, z, half size, yaw. */
 // E399 (mockup B): the crates stacked off the back corner on the left as you come up behind the wagon (+X)
