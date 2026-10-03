@@ -28,7 +28,7 @@ export const MEADOW = {
    */
   layers: 5, near: 7.5,
   /** blade height range (metres) */
-  low: 0.14, high: 0.62,
+  low: 0.16, high: 0.74,
   /** an island's grass height scale (1 when absent): the crown's arena a little shorter, so the dais reads (E399: mockup D's meadow is lush to the dais) */
   grass: { crown: 0.85 } as Readonly<Record<string, number>>,
   /** the share of blades an island keeps (1 when absent): the crown a little thinner (round 2's carpet of chips was the old wide blades) */
@@ -165,7 +165,7 @@ export function meadow(sunDir: Vector3, blades: number, isles: readonly Isle[] =
         // flowers: clustered drifts (daisies, buttercup patches), a few strays; never on a path
         float drift = smoothstep(0.36, 0.64, mfbm(p * 0.16 + 4.0));
         // (E399 seat: 'an even field of large white daisies'; the mockups' flowers are sparse, small, white and yellow)
-        float flower = step(fract(r * 91.7), (0.004 + 0.035 * drift) * worn) * step(0.6, dist);
+        float flower = step(fract(r * 91.7), (0.008 + 0.07 * drift) * worn) * step(0.6, dist);
         float kind = (mn(p * 0.45 + 20.0) + 0.35 * fract(r * 17.3)) > 0.64 ? 2.0 : 1.0;
         vec2 wind = normalize(vec2(0.6, 0.8));
         float sway = (0.16 + 0.1 * sin(uTime * 1.3 + dot(p, wind) * 0.35)) + 0.05 * sin(uTime * 4.1 + r * 30.0);
