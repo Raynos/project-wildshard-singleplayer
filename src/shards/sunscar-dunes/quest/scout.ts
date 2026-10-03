@@ -6,8 +6,12 @@ import { STRINGS } from '../strings';
 
 /** Raised when the player has talked to Sefa: the quest's first step (P4, the lead's pick: the quest starts at an NPC, as Driftwood's Wendell). */
 export const SCOUT_FLAG = 'sunscar.scout';
-/** Where Sefa stands: on the spawn crest, 8 m ahead and a little left, inside the first frame, facing the spawn. */
-export const SCOUT_AT = { x: SPAWN.x - 1.5, z: SPAWN.z - 8 } as const;
+/**
+ * Where Sefa stands: on the spawn crest beside the player, 5 m to the right and a little behind, facing the spawn (E407 row
+ * 9, the audit: the mockups' first look is an empty vista of the dunes and the tower; she stood 8 m ahead in it). Her pin
+ * and her wave (in range from the first frame) bring the player round to her; the quest is unchanged.
+ */
+export const SCOUT_AT = { x: SPAWN.x + 5, z: SPAWN.z + 2 } as const;
 /** She waves while the player is this close (metres) and has not talked to her yet, as Wendell does. */
 export const WAVE_RANGE = 16;
 const HEIGHT = 1.7, NECK = new Vector3(0, 1.43, 0), SHOULDER = new Vector3(-0.21, 1.36, 0);

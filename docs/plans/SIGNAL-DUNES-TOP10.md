@@ -70,5 +70,5 @@ terrain). Then rows 5 and 6, then rows 7–10. After each row: commit, capture, 
 | 6 | signal-dunes | open | |
 | 7 | signal-dunes | open | |
 | 8 | signal-dunes | open | |
-| 9 | signal-dunes | open | |
+| 9 | signal-dunes | landed (round 15) | quest/scout.ts SCOUT_AT: Sefa beside the spawn, 5 m right and a little behind (was 8 m ahead in the first frame); her pin and wave bring the player round; the shard README notes it |
 | 10 | signal-dunes | open | |
