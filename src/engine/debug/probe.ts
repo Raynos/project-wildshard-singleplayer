@@ -155,10 +155,6 @@ function authoredQuestFlags(world: ProbeWorld): string[] {
   const flags: unknown = isFlagsReader(read) ? read() : [];
   return Array.isArray(flags) ? flags.filter((flag): flag is string => typeof flag === 'string').sort() : [];
 }
-const SHARD_KEYS: Readonly<Record<string, readonly string[]>> = {
-  'driftwood-isle': ['ocean', 'pier', 'jetties', 'boat', 'hut', 'lookout', 'wreck', 'shrine', 'bushes', 'gulls', 'bridge', 'bridgeDeck', 'cove', 'enemies', 'shrineHum', 'islandSfx'],
-  'nalati-grasslands': ['nalati', 'ride', 'wildlife'],
-};
 
 /** Synchronous SHA-256: boot is captured in the ready task, without an async digest barrier. */
 export function programHash(input: string): string {
@@ -328,7 +324,6 @@ export function installProbe<W extends ProbeWorld>(world: W, deps: ProbeDeps): W
     await new Promise<void>((resolve) => { app.engineScope.raf(() => { resolve(); }); });
   };
   const shard: WildshardProbe['shard'] = { slug: world.game.level.id };
-  for (const key of SHARD_KEYS[world.game.level.id] ?? []) shard[key] = world[key];
   const authored: unknown = app.debug.snapshot()[`harness.shard.${world.game.level.id}`];
   if (authored !== null && typeof authored === 'object') Object.assign(shard, authored);
   const probe: WildshardProbe<W> = {

@@ -159,7 +159,8 @@
         "wildshard/sim-no-render": "error",
         "wildshard/no-active-chunk": "error",
         "wildshard/no-raw-hud": "error",
-        "wildshard/no-raw-animation-mixer": "error"
+        "wildshard/no-raw-animation-mixer": "error",
+        "wildshard/no-level-identity": "error"
       }
     },
     {

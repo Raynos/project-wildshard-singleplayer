@@ -426,6 +426,8 @@ export interface ShardManifest {
   /** Migrated manifests declare their plugin and level policy; legacy hooks retire per shard phase. */
   load?: () => Promise<{ default: new () => ShardPlugin }>;
   kitLook?: LevelSpec['kitLook'];
+  /** the first-person hands' style; 'pbr' when absent (E405 AG25) */
+  hands?: LevelSpec['hands'];
   creatures?: LevelSpec['creatures'];
   world?: LevelSpec['world'];
   /** Optional offline creature-navigation mask; water bodies remain the default. */

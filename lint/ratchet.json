@@ -63,7 +63,7 @@
     "src/engine/core/tier.ts": 2,
     "src/engine/core/Volumetrics.ts": 1,
     "src/engine/core/worldDepth.ts": 5,
-    "src/engine/debug/probe.ts": 14,
+    "src/engine/debug/probe.ts": 10,
     "src/engine/entities/Animal.ts": 40,
     "src/engine/entities/AnimalFactory.ts": 27,
     "src/engine/entities/AnimalManager.ts": 108,
@@ -190,7 +190,7 @@
     "src/engine/world/fx.ts": 4,
     "src/engine/world/Grass.ts": 9,
     "src/engine/world/Horizon.ts": 6,
-    "src/engine/world/HorizonMatte.ts": 24,
+    "src/engine/world/HorizonMatte.ts": 21,
     "src/engine/world/interact/Interactables.ts": 20,
     "src/engine/world/interact/models.ts": 7,
     "src/engine/world/interact/types.ts": 14,
@@ -560,11 +560,6 @@
     "src/shards/pine-hollow/combat/ctx.ts": 1,
     "src/shards/pine-hollow/life/index.ts": 1,
     "src/shards/pine-hollow/quest/index.ts": 1
-  },
-  "wildshard/no-level-identity": {
-    "src/engine/debug/probe.ts": 1,
-    "src/engine/player/Hands.ts": 1,
-    "src/engine/world/HorizonMatte.ts": 2
   },
   "wildshard/no-raw-random-time": {
     "src/engine/audio/audioLog.ts": 1,

@@ -1,7 +1,7 @@
 /**
  * Hands — the first-person viewmodel while swimming: no weapon, just the player's two forearms and hands doing a
  * looping breaststroke at the water line. The hands ALWAYS wear white gloves (a mitten shape with a thumb, over a plain
- * sleeve cuff — no finger detail by design). Styled per level: its `LevelSpec.kitLook` —
+ * sleeve cuff — no finger detail by design). Styled per level: its `LevelSpec.hands` —
  *   'pbr'     smooth-shaded, on the viewmodels' shared lit program (Crossbow.viewmodelMaterial), IBL-fixed like the crossbow
  *   'toon' faceted: non-indexed geometry, flat vertex colours with a per-facet jitter, `flatShading: true`
  * Both are lit through `sky.setupMaterial()` (CSM shadows + fog). Parented to the camera with its own depth clear
@@ -127,7 +127,7 @@ export class Hands {
   private tmp = { p: new THREE.Vector3(), q: new THREE.Vector3(), e: new THREE.Vector3(), d: new THREE.Vector3(), fwd: new THREE.Vector3(0, 0, -1) };
 
   constructor(sky: Sky, private camera: THREE.PerspectiveCamera, private rig: SwimArms | null = null) {
-    this.style = activeLevel().kitLook === 'toon' ? 'toon' : 'pbr'; // a painterly kit look: the smooth hands
+    this.style = activeLevel().hands ?? 'pbr'; // the level's own pick (its manifest's `hands`)
     if (rig !== null) rig.setup(sky);
     else this.buildGloves(sky);
 

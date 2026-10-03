@@ -113,7 +113,10 @@ describe('probe contract', () => {
   });
   it('shares its exact declared type with scripts and captures the boot synchronously', () => {
     expectTypeOf<ScriptProbe>().toEqualTypeOf<WildshardProbe>();
-    const world = fixture(), probe = installProbe(world, deps);
+    const world = fixture();
+    // the shard exposes its own handles (E405 AG25: the engine's probe has no per-shard key table)
+    world.game.levelScope.onDispose(world.game.app.debug.scopedExpose(`harness.shard.${world.game.level.id}`, { ocean: world['ocean'] }));
+    const probe = installProbe(world, deps);
     expect(Object.keys(probe).sort()).toEqual(['version', 'world', 'shard', 'boot', 'fingerprint', 'pose', 'walkLeg', 'combat', 'arena', 'state', 'onResume', 'saves', 'sounds', 'used', 'nav', 'leak', 'app', 'budgets'].sort());
     expect(window.__wildshard).toBe(probe);
     expect(Reflect.has(window, '__world')).toBe(false);

@@ -164,7 +164,7 @@ The manifest is data. Fill it top to bottom ([ENGINE.md §6](ENGINE.md#6-the-sha
    `heightAt` / `terrainFor` return an analytic floor at **y = −1,000 m**, not a walkable surface (dry water sentinel
    −1,001 m). Set `spawn.y` to your built floor and register its colliders with `ctx.piece`. Set `bounds.floor` /
    `world.killY` above that fallback for void falls. `ground.water` lists `WaterBody` rows. `spawn`, `bounds`.
-4. **Look data:** `sky`, `atmosphere`, `grade`, `style`, `kitLook`, and `render: async () => (await import('./look/render')).myLook()`.
+4. **Look data:** `sky`, `atmosphere`, `grade`, `style`, `kitLook`, `hands` (`'toon'` for faceted swimming hands; default `'pbr'`), and `render: async () => (await import('./look/render')).myLook()`.
 5. **Mechanisms:** `uses` lists only what you run, from the 15: engine `weather dayCycle bosses elites spawns quests
    swim hover explore practice`, game `coins loot compendium feats bag.pack`. Anything not listed isn't built.
 6. **Content:** `loadout`, `weapon: 'custom'`, `species`, `encounters`, `spawns`, `fight`, `bag`, `loot`, `creatures`.

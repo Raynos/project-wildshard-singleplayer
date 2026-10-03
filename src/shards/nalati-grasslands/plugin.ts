@@ -53,6 +53,8 @@ export class NalatiPlugin extends ShardPlugin {
     shell.hooks.animalsReady = (animals) => { rt.attachAnimals(animals); };
     shell.menu = { skins: () => skinRows(rt.skins), onWearSkin: (id) => { rt.skins.toggle(id); }, skinsTitle: 'Skins' };
     Object.assign(shell.objects, { nalati: rt, grass, particles });
+    // the probe's `shard` handles (E405 AG25), read when the probe installs (ride and wildlife arrive in later hooks)
+    ctx.debug.expose(`harness.shard.${ctx.manifest.slug}`, Object.defineProperties({}, Object.fromEntries(['nalati', 'ride', 'wildlife'].map((key) => [key, { enumerable: true, get: () => shell.objects[key] }]))));
     ctx.app.registerDayCycle(rt.weather.clock, ctx.scope);
     if (!world.params.has('time')) rt.weather.clock.setTime(setting('time'));
     ctx.scope.onDispose(onSettingChange('time', (value) => { rt.weather.clock.setTime(value); }));

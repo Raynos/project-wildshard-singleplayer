@@ -11,7 +11,7 @@ export const SKY_REACH: ShardManifest = {
   budgets: BUDGETS, api: 1, slug: 'far-reach', order: 60, status: 'experimental', name: STRINGS.name, label: STRINGS.label, seed: 6417,
   biome: STRINGS.biome, blurb: STRINGS.blurb, placement: { grid: [1, 4], size: [500, 500, 500] },
   card: { thumb: SKY_CARD.thumb, portrait: SKY_CARD.portrait, landscape: SKY_CARD.landscape },
-  style: 'skyReach', kitLook: 'toon', weapon: 'custom', treeCount: 0, trees: { factory: 'none', noun: 'pines' },
+  style: 'skyReach', kitLook: 'toon', hands: 'toon', weapon: 'custom', treeCount: 0, trees: { factory: 'none', noun: 'pines' },
   // A built world (G23, structures only): every island and bridge is a registry piece (world/build.ts); no terrain mesh or
   // collider, the analytic floor is y -1000. The void under the islands is the cloud sea; `world.killY` ends a fall.
   ground: { structures: true, paths: 'plugin' },

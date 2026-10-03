@@ -330,6 +330,7 @@ are the row types; `EngineRows` is the verb set.
 | `sky`, `atmosphere`, `grade`, `look?` | pure-data look fields |
 | `style` | `'toon' · 'painterly' · 'pbr' · 'jiehua' · 'greybox'`: data only, never branched on |
 | `kitLook?` | `'toon' · 'painterly' · 'pbr'`: the look shared kit pieces render in |
+| `hands?` | `'toon' · 'pbr'` (default `'pbr'`): the first-person swimming hands, faceted or smooth. The engine never derives it from `kitLook` (E405) |
 | `render?` | `() => Promise<LookStrategy>`: your look (§13.1) |
 | `groundColor?`, `surfaceAt?` | per-vertex ground colour and masks for a textureless ground |
 | `minimap?`, `pois?`, `hud?` | maps, named places, HUD bands to switch on |
@@ -339,7 +340,7 @@ are the row types; `EngineRows` is the verb set.
 **Distant scenery and the drawn boundary**
 
 Omitting `horizon` keeps the engine default: three ridge rings and a cloud sea on dry worlds,
-sea stacks without the cloud sea on open-water worlds, or `horizonStrips` imagery when present on a dry world.
+sea stacks without the cloud sea on open-water worlds, or `horizonStrips` imagery when present on a dry world. On an open-water world, `horizonStrips` is the painted band above the sea (`HorizonMatte`).
 An authored `horizon` replaces that default (including the dry-world strips):
 `horizon: { rings: [], cloudSea: false }` draws neither rings nor a cloud sea. `cloudSea: true` adds the
 engine's animated cloud floor below the slab. Supply any number of rings, ordered near → far, to reshape the skyline.

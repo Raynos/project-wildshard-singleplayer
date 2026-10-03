@@ -29,6 +29,7 @@ export function toLevelSpec(manifest: ShardManifest): LevelSpec {
     species: manifest.species ?? [], spawns: manifest.spawns,
     minimap: manifest.minimap ?? {},
     kitLook: manifest.kitLook ?? 'pbr',
+    ...(manifest.hands === undefined ? {} : { hands: manifest.hands }),
     ...(manifest.bounds === undefined ? {} : { bounds: manifest.bounds }),
     ...(manifest.camera === undefined ? {} : { camera: manifest.camera }),
     ...(manifest.render === undefined ? {} : { look: manifest.render }),

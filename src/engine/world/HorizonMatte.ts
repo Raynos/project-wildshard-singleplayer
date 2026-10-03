@@ -18,7 +18,7 @@
  * - **look**: the day texture × the cumulus' lit colour relative to midday (golden hour warms it, dusk dims it), faded into
  *   the night texture by the clock's `night`, then hazed toward the dome's live horizon colour near the sea and lit by
  *   the sun glow — so it rides every day / night preset without a third texture. The alpha fades into the sky at the top.
- * - **textures**: the shard's strips (`horizonStrips(slug)`, below): two 4096 × 512 WebPs with alpha
+ * - **textures**: the shard's strips (its manifest's `horizonStrips`): two 4096 × 512 WebPs with alpha
  *   (`public/assets/horizon/<slug>-{day,night}.webp`, made by scripts/horizon-matte/ with `--shard <slug>`), fetched after
  *   boot; the band fades in over ~1.5 s once both are decoded. A shard without strips builds nothing; Pine Hollow's
  *   photoreal strips are drawn at infinity by PaintedHorizon (below), not by this class. Always on — the user locked it in (E78); the `?matte=0` switch is gone (E136).
@@ -48,15 +48,10 @@ export interface HorizonStrips {
   scale?: number;
 }
 
-const STRIPS: Readonly<Partial<Record<string, HorizonStrips>>> = {
-  'driftwood-isle': { day: '/assets/horizon/driftwood-isle-day.webp', night: '/assets/horizon/driftwood-isle-night.webp', elMin: -4, elMax: 24 },
-
-};
-
 /** the shard's painted horizon, or null when it has none */
-export function horizonStrips(level: { slug: string; horizonStrips?: HorizonStrips }): HorizonStrips | null { return level.horizonStrips ?? STRIPS[level.slug] ?? null; }
+export function horizonStrips(level: { slug: string; horizonStrips?: HorizonStrips }): HorizonStrips | null { return level.horizonStrips ?? null; }
 /** the level's painted horizon, or null when it has none */
-export function levelHorizonStrips(level: { id: string; horizonStrips?: HorizonStrips | undefined }): HorizonStrips | null { return level.horizonStrips ?? STRIPS[level.id] ?? null; }
+export function levelHorizonStrips(level: { id: string; horizonStrips?: HorizonStrips | undefined }): HorizonStrips | null { return level.horizonStrips ?? null; }
 
 export class HorizonMatte {
   mesh: THREE.Mesh | null = null;

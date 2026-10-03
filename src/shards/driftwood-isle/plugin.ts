@@ -13,6 +13,7 @@ import { installDriftwoodCreatures } from './creatures/install';
 import { driftwoodLoadoutRows, installDriftwoodLoadout, clearDriftwoodDrop } from './loadout/rows';
 
 type WorldBuilder = (world: World, viewer: () => Vector3) => Promise<DriftwoodWorld>;
+const PROBE_KEYS = ['ocean', 'pier', 'jetties', 'boat', 'hut', 'lookout', 'wreck', 'shrine', 'bushes', 'gulls', 'bridge', 'bridgeDeck', 'cove', 'enemies'] as const;
 
 /** Driftwood owns its world, creatures, loadout, adventure and audio through scoped hooks. */
 export class DriftwoodPlugin extends ShardPlugin {
@@ -39,6 +40,9 @@ export class DriftwoodPlugin extends ShardPlugin {
     if (gulls !== null) shell.overhead.push(gulls.group);
     if (built.cover !== null) shell.overhead.push(built.cover.group);
     ctx.debug.expose('driftwood', shell);
+    // the probe's `shard` handles (E405 AG25: the shard names its own; the engine's probe keeps no shard table), read
+    // when the probe installs, so `enemies` (creatures hook) is there too
+    ctx.debug.expose(`harness.shard.${ctx.manifest.slug}`, Object.defineProperties({}, Object.fromEntries(PROBE_KEYS.map((key) => [key, { enumerable: true, get: () => shell.objects[key] }]))));
     shell.hooks.places = () => this.adventure?.places?.points ?? [];
     islandSystems<NonNullable<DriftwoodWorld['bridgeDeck']>>(ctx, world, built); // the island's per-frame work (./world/systems.ts)
   }

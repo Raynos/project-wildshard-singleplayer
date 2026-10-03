@@ -87,7 +87,10 @@ export interface LevelSpec {
   groundColor?: (x: number, z: number, h: number, slope: number, terrain: TerrainField, out: RGB) => RGB;
   surfaceAt?: (x: number, z: number, h: number, slope: number) => [number, number, number];
   assets?: LevelAssets; explore?: ExploreSpec;
-  kitLook: 'toon' | 'painterly' | 'pbr'; roster?: () => Promise<readonly RosterEntry[]>;
+  kitLook: 'toon' | 'painterly' | 'pbr';
+  /** the first-person hands: the flat-shaded toon gloves, or the smooth ones (absent = 'pbr') */
+  hands?: 'toon' | 'pbr';
+  roster?: () => Promise<readonly RosterEntry[]>;
 }
 
 export function resolveTierKnobs(defaults: TierKnobs, kit: TierKnobs, level: TierOverrides | undefined, tier: Tier): TierKnobs {
