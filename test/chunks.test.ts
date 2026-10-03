@@ -165,7 +165,6 @@ describe('chunk registry switching', () => {
 
     expect(setActiveChunk(other.slug)).toBe(other);
     expect(config.SEED).toBe(other.seed);
-    expect(config.CHUNK_ID).toBe(other.slug);
     expect(config.TREE_COUNT).toBe(other.treeCount);
     setActiveChunk(other.slug); // same chunk: no second notification
     expect(seen).toHaveBeenCalledTimes(1);

@@ -1,4 +1,5 @@
 import { NALATI_SPECIES, NALATI_LOOKS } from './species/rows';
+import { STRINGS } from './strings';
 import { NALATI_FEATS } from './feats';
 import { renderFinds, ShardPlugin, type ShardContext, type ShardRuntime } from '#game';
 import { loadMeadow, loadWorldContent, heightAt, macrotask, setting, onSettingChange, pathRampDescs, type DamageRequest } from '#engine';
@@ -28,6 +29,7 @@ export class NalatiPlugin extends ShardPlugin {
     const shell = host(ctx), world = shell.world, step = shell.step;
     if (world === null || step === null) throw new Error('Nalati world requires counted boot steps');
     const { game, sky, forest, registry } = world;
+    ctx.strings(STRINGS);
     ctx.strings({ 'respawn.default': 'respawning on the north road', 'cause.ride': 'Thrown from the saddle', 'cause.ride.text': 'Thrown from the saddle', 'cause.lightning': 'Struck by lightning', 'cause.lightning.text': 'Struck by lightning', 'cause.stormTitan': 'the Storm Titan' });
     const { Grass } = await loadMeadow();
     (await loadGrassField()).configureGrassField(NALATI_GRASS_LAYOUT, ctx.scope);

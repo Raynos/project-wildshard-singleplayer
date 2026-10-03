@@ -12,6 +12,8 @@ export interface CreatureHull {
 }
 export interface SpeciesLook extends Pick<SpeciesDef, 'rigContract' | 'fur' | 'build' | 'pose' | 'gait' | 'postPose' | 'rig' | 'animate' | 'damageMul' | 'eyeGlow' | 'eyeGlowIntensity'> {
   id: string; species: string; kind: string;
+  /** creature memory a specimen is stood up with in the Model Explorer (a creature that waits hidden is shown risen) */
+  standMem?: Readonly<Record<string, number>>;
   variants?: Readonly<Record<string, Pick<VariantDef, 'tint' | 'fur' | 'traits'>>>;
   material?: (sky: Sky, glow?: [number, number, number], intensity?: number) => AnimalMaterial;
   hasSkin?: (variant: VariantDef) => boolean;

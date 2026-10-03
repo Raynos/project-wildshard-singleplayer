@@ -1,4 +1,5 @@
 import { ShardPlugin, type ShardContext } from '#game';
+import { STRINGS } from './strings';
 import { buildDriftwoodWorld, keepDriftwoodWorld, type DriftwoodWorld } from './world/build';
 import { islandSystems } from './world/systems';
 import { installDriftwoodAudio } from './audio/install';
@@ -26,6 +27,7 @@ export class DriftwoodPlugin extends ShardPlugin {
   }
 
   override async world(ctx: ShardContext): Promise<void> {
+    ctx.strings(STRINGS);
     const shell = ctx.game.runtime;
     if (shell === undefined) throw new Error('Driftwood plugin requires its world host');
     const world = shell.world;

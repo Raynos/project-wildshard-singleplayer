@@ -16,6 +16,7 @@ import * as THREE from 'three';
 import { AnimalFactory, type AnimalStyle } from '../entities/AnimalFactory';
 import { Animal } from '../entities/Animal';
 import { hasSpecies, speciesDef } from '../entities/species/registry';
+import { app } from '../app/runtime';
 import type { Sky } from '../world/Sky';
 import { heightAt } from '../world/Heightfield';
 import type { DrawnAs, Pipeline } from '../world/registry';
@@ -93,7 +94,7 @@ export function catalogEntries(sky: Sky, animals: readonly { kind: string }[], s
       const old = e.animal;
       a.place(old ? old.position.x : at.x, old ? old.position.z : at.z, old ? old.yaw : Math.PI * 0.8);
       a.sampleTerrain();
-      if (kind === 'sailor' || kind === 'captain') { a.mem['init'] = 1; a.mem['rise'] = 1; } // they wait sunk (under the wreck's deck, in the Captain's pool) until woken (sailor.ts, captain.ts): on the turntable they stand
+      Object.assign(a.mem, app.species.look(kind)?.standMem ?? {}); // a creature that waits hidden until woken stands risen on the turntable (its look's standMem)
       if (old) old.mesh.removeFromParent();
       group.add(a.mesh);
       e.dress?.(a); // (the species' live dressing: the Antler King's lanterns and ribcage)

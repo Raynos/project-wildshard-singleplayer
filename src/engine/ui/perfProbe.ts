@@ -173,7 +173,7 @@ export async function runPerfProbe(game: Game, progress: (line: string) => void)
     },
     // E189 (Driftwood, the warm phone's grass frame): the ground cover, its near and far sets, the island's terrain, the viewmodel
     hideRow('no cover', () => topNamed(game.scene, 'ground-cover')),
-    hideRow('no near cover', () => topNamed(game.scene, 'ground-cover').flatMap((g) => g.children.filter((o) => o.name.startsWith('ground-cover-') && !o.name.endsWith('-far') && !o.name.includes('driftwood')))),
+    hideRow('no near cover', () => topNamed(game.scene, 'ground-cover').flatMap((g) => g.children.filter((o) => o.name.startsWith('ground-cover-') && !o.name.endsWith('-far') && o.userData['coverProp'] !== true))),
     hideRow('no far cover', () => topNamed(game.scene, 'ground-cover').flatMap((g) => g.children.filter((o) => o.name.endsWith('-far')))),
     hideRow('no terrain', () => topNamed(game.scene, 'blender-island')),
     hideRow('no viewmodel', () => [...game.camera.children]),

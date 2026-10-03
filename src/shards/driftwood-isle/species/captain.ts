@@ -328,6 +328,7 @@ export const CAPTAIN: SpeciesRow = {
 export const CAPTAIN_LOOK: SpeciesLook = {
   rigContract: { skeleton: 'captain.v1', clips: [], sockets: ['body', 'head'] },
   id: 'driftwood.look.captain', species: CAPTAIN.id, kind: 'captain',
+  standMem: { init: 1, rise: 1 }, // it waits sunk in its pool until woken: the Explorer shows it risen
   fur: NO_FUR,
   rig: 'custom',
   eyeGlow: [0.2, 1.0, 1.0], eyeGlowIntensity: 1.4,

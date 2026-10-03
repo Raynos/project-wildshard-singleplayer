@@ -368,6 +368,7 @@ export const SAILOR: SpeciesRow = {
 export const SAILOR_LOOK: SpeciesLook = {
   rigContract: { skeleton: 'sailor.v1', clips: [], sockets: ['body', 'head'] },
   id: 'driftwood.look.sailor', species: SAILOR.id, kind: 'sailor',
+  standMem: { init: 1, rise: 1 }, // it waits sunk under the wreck's deck until woken: the Explorer shows it risen
   fur: NO_FUR,
   rig: 'custom',
   eyeGlow: [0.2, 1.0, 1.0], eyeGlowIntensity: 1.0,

@@ -11,9 +11,8 @@ export const TERRAIN_RES = 256;       // vertices per side
 // Live bindings mirrored from the active ShardManifest (src/game/shard/registry.ts). They are set when the
 // registry module initialises (from ?chunk=) and again on setActiveChunk(); read them at build time,
 // not at module top level, unless your module imports the registry / Heightfield first.
-// The defaults are the default shard's (registry DEFAULT_CHUNK = Driftwood Isle), so a read before the registry has run
-// sees the shard a bare URL boots, not Pine Hollow.
-export let CHUNK_ID = 'driftwood-isle';
+// The defaults are the default level's (the registry's DEFAULT_CHUNK), so a read before the registry has run sees the
+// level a bare URL boots.
 export let CHUNK_COORDS = '(−1, +6)';
 export let TREE_COUNT = 0;
 export let SEED = 0x5ea1;
@@ -25,7 +24,6 @@ export let PAGE_LEVEL = '';
 /** @internal — called by the chunk registry; do not call from features. */
 export function _applyChunkConstants(c: { slug: string; label: string; seed: number; treeCount: number }): void {
   if (PAGE_LEVEL === '') PAGE_LEVEL = c.slug;
-  CHUNK_ID = c.slug;
   CHUNK_COORDS = c.label;
   SEED = c.seed;
   TREE_COUNT = c.treeCount;

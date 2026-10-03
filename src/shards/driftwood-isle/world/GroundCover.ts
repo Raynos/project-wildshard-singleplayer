@@ -524,6 +524,7 @@ export class GroundCover {
     const geo = kit.finish({ ao: { ground: heightAt, cell: 0.35, strength: 0.5 } });
     const mesh = new THREE.Mesh(geo, lowPolyMaterial(this.sky));
     mesh.name = 'ground-cover-driftwood';
+    mesh.userData['coverProp'] = true; // static logs, not instanced cover: the perf probe's cover rows leave it (E405)
     mesh.castShadow = true; mesh.receiveShadow = true;
     this.group.add(mesh);
     // E315 M1: each is the drift log model (src/shards/driftwood-isle/models/driftLog.ts), placed drawnInto this mesh

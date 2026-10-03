@@ -1,4 +1,5 @@
 import { installPineScore } from './audio/score';
+import { STRINGS } from './strings';
 import { installForestVoices } from './audio/synth';
 import { installPineDebug } from './debug/options';
 import { setCragView } from './world/crags';
@@ -52,6 +53,7 @@ export class PineHollow extends ShardPlugin {
   private particles: Particles | null = null;
 
   override async world(ctx: ShardContext): Promise<void> {
+    ctx.strings(STRINGS);
     installPineDebug(ctx, setCragView);
     const rt = runtime(ctx), world = rt.world, step = rt.step;
     if (world === null || step === null) throw new Error('Pine world builder needs staged services');

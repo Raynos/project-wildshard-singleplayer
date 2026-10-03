@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
+import { app, Scope } from '#engine';
 import { deathLine, respawnWhere } from '#engine/ui/HurtArc';
+import { STRINGS as DRIFTWOOD } from '#shards/driftwood-isle/strings';
+import { STRINGS as PINE } from '#shards/pine-hollow/strings';
+import { STRINGS as NALATI_STRINGS } from '#shards/nalati-grasslands/strings';
+
+// each level registers how its creatures kill (ctx.strings 'death.verb.<kind>'; E405)
+for (const table of [DRIFTWOOD, PINE, NALATI_STRINGS]) app.levelRegistrations.strings(table, new Scope('test.death-verbs'));
 
 const FOREST = respawnWhere({ slug: 'pine-hollow' });
 const ISLAND = respawnWhere({}, null, 'washed back to the pier');
