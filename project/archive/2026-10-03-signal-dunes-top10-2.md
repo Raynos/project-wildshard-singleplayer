@@ -1,6 +1,6 @@
 # Signal Dunes: the second top-10 (E407, E409)
 
-**State:** `in progress` 2026-10-03: the second zoom-out, written by the lead from round 17's frames (20261003-0947-8c70feaf), after round 16 regressed (E409's switching rule). It supersedes SIGNAL-DUNES-TOP10 (archived: rows 1-4 and 9 landed; rows 5, 6, 8 and 10 carry over here). The bar is 7.0; Sky Reach passed and is archived.
+**State:** `archived` 2026-10-03 (superseded the same day by docs/plans/SIGNAL-DUNES-TOP10-3.md, E409's third zoom-out): rows 1-5 and 10 landed (the warm key and violet shade, the painted skies, the flipbook fire, glove-hd4, the ray's tower patrol, aerial perspective by the engine fog); rounds 18-22 went 6.33 → 6.83. Open rows carry into TOP10-3: A's lit faces (7), the caravan (8), D's bands (9), the LUT re-fit (6).
 
 ## Why the game is still behind (zoom-out, from round 17's frames)
 
