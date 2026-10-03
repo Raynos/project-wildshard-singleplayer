@@ -2,8 +2,8 @@
   "boot": {
     "schema": 1,
     "lane": "gh-macos15",
-    "sha": "a28af631097f6f41bb92e0621c5d1a537054a804",
-    "build": "a28af63-muqcbkz0",
+    "sha": "c38204980708d162488d5642fd3877b15f5937eb",
+    "build": "c382049-murr7a9o",
     "shard": "_template",
     "tier": "phone",
     "viewport": {
@@ -287,8 +287,8 @@
       ]
     },
     "render": {
-      "programs": 40,
-      "programKeys": "16b6d9c7c42e0dba2a079ce0a8d4a18eefe644041b93551a9cda4c5a9b1976e2",
+      "programs": 43,
+      "programKeys": "cbb8456f57a576e0dc77cbd579d5a6fdd0bf9bc5368759da48c390c2b2e8c5c7",
       "memory": {
         "geometries": 57,
         "textures": 31
@@ -1819,26 +1819,26 @@
         "session:wildshard.save.v2.session"
       ]
     },
-    "playMs": 39215.80000000005,
+    "playMs": 27272,
     "stepMs": {
-      "renderer": 141,
-      "sky": 234,
-      "terrain": 17,
-      "cards": 8,
-      "forest": 36,
-      "physics": 144,
-      "edge": 194,
-      "grass": 1,
+      "renderer": 153,
+      "sky": 270,
+      "terrain": 20,
+      "cards": 31,
+      "forest": 44,
+      "physics": 170,
+      "edge": 197,
+      "grass": 0,
       "cabins": 0,
-      "props": 74,
-      "animals": 9,
+      "props": 3,
+      "animals": 4,
       "weapon": 0,
-      "menu": 248,
-      "shaders": 9459,
-      "firstFrame": 2614,
+      "menu": 22,
+      "shaders": 9046,
+      "firstFrame": 1704,
       "audio": 1
     },
-    "heapMB": 23.885608673095703
+    "heapMB": 20.329341888427734
   },
   "poses": {
     "current": {
@@ -1850,10 +1850,10 @@
       ],
       "calls": 46,
       "tris": 11833,
-      "fps": 25.391523661832217,
-      "frameP95Ms": 213.40000000002328,
-      "cpuP50Ms": 9.900000000023283,
-      "cpuP95Ms": 24.900000000023283,
+      "fps": 42.02154661853405,
+      "frameP95Ms": 76.29999999998836,
+      "cpuP50Ms": 13.799999999988358,
+      "cpuP95Ms": 33.79999999998836,
       "creatureBoxes": 1,
       "boxes": [
         [
@@ -1975,7 +1975,7 @@
       "observed": {
         "draws": 46,
         "tris": 11833,
-        "programs": 40,
+        "programs": 43,
         "gpuMB": 76.73144912719727
       }
     }
@@ -2275,16 +2275,16 @@
       "listeners": [
         "Error: listener touchmove\n    at HTMLDocument.addEventListener (<anonymous>:18:79)\n    at http://127.0.0.1:4400/?chunk=_template&tier=phone&skipintro=1&nolock=1&mute=1&weather=clear&touch=1&sw=0:36:16",
         "Error: listener gesturestart\n    at HTMLDocument.addEventListener (<anonymous>:18:79)\n    at http://127.0.0.1:4400/?chunk=_template&tier=phone&skipintro=1&nolock=1&mute=1&weather=clear&touch=1&sw=0:37:16",
-        "Error: listener online\n    at addEventListener (<anonymous>:18:79)\n    at r.listen (http://127.0.0.1:4400/assets/scope-_na6ANxn.js:1:3194)\n    at F (http://127.0.0.1:4400/assets/bootTrace-Dd1lDv_R.js:2:5163)\n    at http://127.0.0.1:4400/assets/index-gB5XcKzO.js:2:2883",
-        "Error: listener visibilitychange\n    at HTMLDocument.addEventListener (<anonymous>:18:79)\n    at r.listen (http://127.0.0.1:4400/assets/scope-_na6ANxn.js:1:3194)\n    at http://127.0.0.1:4400/assets/index-gB5XcKzO.js:2:3937",
-        "Error: listener pagehide\n    at addEventListener (<anonymous>:18:79)\n    at r.listen (http://127.0.0.1:4400/assets/scope-_na6ANxn.js:1:3194)\n    at http://127.0.0.1:4400/assets/index-gB5XcKzO.js:2:4030"
+        "Error: listener online\n    at addEventListener (<anonymous>:18:79)\n    at r.listen (http://127.0.0.1:4400/assets/scope-Bh_-aGTE.js:1:3194)\n    at F (http://127.0.0.1:4400/assets/bootTrace-C6BEf6j-.js:2:5163)\n    at http://127.0.0.1:4400/assets/index-DcZTMtuF.js:2:2883",
+        "Error: listener visibilitychange\n    at HTMLDocument.addEventListener (<anonymous>:18:79)\n    at r.listen (http://127.0.0.1:4400/assets/scope-Bh_-aGTE.js:1:3194)\n    at http://127.0.0.1:4400/assets/index-DcZTMtuF.js:2:3937",
+        "Error: listener pagehide\n    at addEventListener (<anonymous>:18:79)\n    at r.listen (http://127.0.0.1:4400/assets/scope-Bh_-aGTE.js:1:3194)\n    at http://127.0.0.1:4400/assets/index-DcZTMtuF.js:2:4030"
       ],
       "timers": [
-        "Error: interval\n    at w.setInterval (<anonymous>:34:101)\n    at r.interval (http://127.0.0.1:4400/assets/scope-_na6ANxn.js:1:4166)\n    at http://127.0.0.1:4400/assets/index-gB5XcKzO.js:2:3920",
-        "Error: interval\n    at w.setInterval (<anonymous>:34:101)\n    at r.interval (http://127.0.0.1:4400/assets/scope-_na6ANxn.js:1:4166)\n    at He (http://127.0.0.1:4400/assets/index-gB5XcKzO.js:73:3275)\n    at qe (http://127.0.0.1:4400/assets/index-gB5XcKzO.js:73:4569)\n    at http://127.0.0.1:4400/assets/index-gB5XcKzO.js:80:5558",
-        "Error: interval\n    at w.setInterval (<anonymous>:34:101)\n    at r.interval (http://127.0.0.1:4400/assets/scope-_na6ANxn.js:1:4166)\n    at He (http://127.0.0.1:4400/assets/index-gB5XcKzO.js:73:3375)\n    at qe (http://127.0.0.1:4400/assets/index-gB5XcKzO.js:73:4569)\n    at http://127.0.0.1:4400/assets/index-gB5XcKzO.js:80:5558",
-        "Error: interval\n    at w.setInterval (<anonymous>:34:101)\n    at r.interval (http://127.0.0.1:4400/assets/scope-_na6ANxn.js:1:4166)\n    at He (http://127.0.0.1:4400/assets/index-gB5XcKzO.js:73:3484)\n    at qe (http://127.0.0.1:4400/assets/index-gB5XcKzO.js:73:4569)\n    at http://127.0.0.1:4400/assets/index-gB5XcKzO.js:80:5558",
-        "Error: interval\n    at w.setInterval (<anonymous>:34:101)\n    at r.interval (http://127.0.0.1:4400/assets/scope-_na6ANxn.js:1:4166)\n    at http://127.0.0.1:4400/assets/index-gB5XcKzO.js:80:9021"
+        "Error: interval\n    at w.setInterval (<anonymous>:34:101)\n    at r.interval (http://127.0.0.1:4400/assets/scope-Bh_-aGTE.js:1:4166)\n    at http://127.0.0.1:4400/assets/index-DcZTMtuF.js:2:3920",
+        "Error: interval\n    at w.setInterval (<anonymous>:34:101)\n    at r.interval (http://127.0.0.1:4400/assets/scope-Bh_-aGTE.js:1:4166)\n    at He (http://127.0.0.1:4400/assets/index-DcZTMtuF.js:73:3275)\n    at qe (http://127.0.0.1:4400/assets/index-DcZTMtuF.js:73:4569)\n    at http://127.0.0.1:4400/assets/index-DcZTMtuF.js:80:5555",
+        "Error: interval\n    at w.setInterval (<anonymous>:34:101)\n    at r.interval (http://127.0.0.1:4400/assets/scope-Bh_-aGTE.js:1:4166)\n    at He (http://127.0.0.1:4400/assets/index-DcZTMtuF.js:73:3375)\n    at qe (http://127.0.0.1:4400/assets/index-DcZTMtuF.js:73:4569)\n    at http://127.0.0.1:4400/assets/index-DcZTMtuF.js:80:5555",
+        "Error: interval\n    at w.setInterval (<anonymous>:34:101)\n    at r.interval (http://127.0.0.1:4400/assets/scope-Bh_-aGTE.js:1:4166)\n    at He (http://127.0.0.1:4400/assets/index-DcZTMtuF.js:73:3484)\n    at qe (http://127.0.0.1:4400/assets/index-DcZTMtuF.js:73:4569)\n    at http://127.0.0.1:4400/assets/index-DcZTMtuF.js:80:5555",
+        "Error: interval\n    at w.setInterval (<anonymous>:34:101)\n    at r.interval (http://127.0.0.1:4400/assets/scope-Bh_-aGTE.js:1:4166)\n    at http://127.0.0.1:4400/assets/index-DcZTMtuF.js:80:9020"
       ]
     },
     "retained": [
@@ -2863,12 +2863,12 @@
       "total": {
         "geometries": 5,
         "textures": 8,
-        "programs": 23
+        "programs": 26
       },
       "retained": {
         "geometries": 5,
         "textures": 8,
-        "programs": 23
+        "programs": 26
       },
       "resources": [
         {
@@ -2966,7 +2966,7 @@
           "retained": true,
           "texture": false,
           "programs": [
-            5
+            6
           ],
           "image": {}
         },
@@ -2977,7 +2977,7 @@
           "retained": true,
           "texture": false,
           "programs": [
-            5
+            7
           ],
           "image": {}
         },
@@ -2988,8 +2988,8 @@
           "retained": true,
           "texture": false,
           "programs": [
-            6,
-            0
+            8,
+            9
           ],
           "image": {}
         },
@@ -3011,7 +3011,7 @@
           "retained": true,
           "texture": false,
           "programs": [
-            7
+            10
           ],
           "image": {}
         },
@@ -3044,7 +3044,7 @@
           "retained": true,
           "texture": false,
           "programs": [
-            8
+            11
           ],
           "image": {}
         },
@@ -3055,7 +3055,7 @@
           "retained": true,
           "texture": false,
           "programs": [
-            9
+            12
           ],
           "image": {}
         },
@@ -3066,7 +3066,7 @@
           "retained": true,
           "texture": false,
           "programs": [
-            12
+            15
           ],
           "image": {}
         },
@@ -3077,7 +3077,7 @@
           "retained": true,
           "texture": false,
           "programs": [
-            12
+            15
           ],
           "image": {}
         },
@@ -3088,7 +3088,7 @@
           "retained": true,
           "texture": false,
           "programs": [
-            16
+            19
           ],
           "image": {}
         },
@@ -3099,7 +3099,7 @@
           "retained": true,
           "texture": false,
           "programs": [
-            16
+            19
           ],
           "image": {}
         },
@@ -3110,7 +3110,7 @@
           "retained": true,
           "texture": false,
           "programs": [
-            16
+            19
           ],
           "image": {}
         },
@@ -3121,7 +3121,7 @@
           "retained": true,
           "texture": false,
           "programs": [
-            20
+            23
           ],
           "image": {}
         },
@@ -3132,7 +3132,7 @@
           "retained": true,
           "texture": false,
           "programs": [
-            21
+            24
           ],
           "image": {}
         },
@@ -3143,7 +3143,7 @@
           "retained": true,
           "texture": false,
           "programs": [
-            21
+            24
           ],
           "image": {}
         },
@@ -3154,7 +3154,7 @@
           "retained": true,
           "texture": false,
           "programs": [
-            21
+            24
           ],
           "image": {}
         },
@@ -3165,7 +3165,7 @@
           "retained": true,
           "texture": false,
           "programs": [
-            31
+            34
           ],
           "image": {}
         },
@@ -3176,7 +3176,7 @@
           "retained": true,
           "texture": false,
           "programs": [
-            32
+            35
           ],
           "image": {}
         },
@@ -3187,7 +3187,7 @@
           "retained": true,
           "texture": false,
           "programs": [
-            33
+            36
           ],
           "image": {}
         },
@@ -3198,7 +3198,7 @@
           "retained": true,
           "texture": false,
           "programs": [
-            34
+            37
           ],
           "image": {}
         },
@@ -3261,8 +3261,8 @@
           "retained": true,
           "texture": false,
           "programs": [
-            27,
-            28
+            30,
+            31
           ],
           "image": {}
         },
@@ -3357,7 +3357,7 @@
           "retained": true,
           "texture": false,
           "programs": [
-            35
+            38
           ],
           "image": {}
         },
@@ -3381,7 +3381,7 @@
           "retained": true,
           "texture": false,
           "programs": [
-            36
+            39
           ],
           "image": {}
         },
@@ -3444,7 +3444,7 @@
           "retained": true,
           "texture": false,
           "programs": [
-            37
+            40
           ],
           "image": {}
         },
@@ -3507,7 +3507,7 @@
           "retained": true,
           "texture": false,
           "programs": [
-            38
+            41
           ],
           "image": {}
         },
@@ -3531,7 +3531,7 @@
           "retained": true,
           "texture": false,
           "programs": [
-            39
+            42
           ],
           "image": {}
         },
@@ -3595,24 +3595,24 @@
     "boot.gpuBytes.buffers": 0,
     "boot.gpuBytes.total": 0,
     "boot.audio.requests": [],
-    "boot.playMs": 1681.2000000000698,
-    "boot.stepMs.renderer": 62,
-    "boot.stepMs.sky": 9598,
-    "boot.stepMs.terrain": 130,
-    "boot.stepMs.cards": 14,
-    "boot.stepMs.forest": 13,
-    "boot.stepMs.physics": 122,
-    "boot.stepMs.edge": 507,
+    "boot.playMs": 1365.600000000035,
+    "boot.stepMs.renderer": 179,
+    "boot.stepMs.sky": 7645,
+    "boot.stepMs.terrain": 18,
+    "boot.stepMs.cards": 43,
+    "boot.stepMs.forest": 21,
+    "boot.stepMs.physics": 324,
+    "boot.stepMs.edge": 257,
     "boot.stepMs.grass": 1,
     "boot.stepMs.cabins": 0,
-    "boot.stepMs.props": 237,
-    "boot.stepMs.animals": 144,
-    "boot.stepMs.weapon": 34,
-    "boot.stepMs.menu": 439,
-    "boot.stepMs.shaders": 2255,
-    "boot.stepMs.firstFrame": 748,
-    "boot.stepMs.audio": 0,
-    "boot.heapMB": 8.414485931396484,
+    "boot.stepMs.props": 7,
+    "boot.stepMs.animals": 15,
+    "boot.stepMs.weapon": 0,
+    "boot.stepMs.menu": 463,
+    "boot.stepMs.shaders": 3416,
+    "boot.stepMs.firstFrame": 1090,
+    "boot.stepMs.audio": 1,
+    "boot.heapMB": 18.057777404785156,
     "poses.current.pos": [
       0,
       0,
@@ -3620,10 +3620,10 @@
     ],
     "poses.current.calls": 0,
     "poses.current.tris": 0,
-    "poses.current.fps": 2.490401975897221,
-    "poses.current.frameP95Ms": 28.200000000186265,
-    "poses.current.cpuP50Ms": 1,
-    "poses.current.cpuP95Ms": 22.900000000023283,
+    "poses.current.fps": 1.8004088622254173,
+    "poses.current.frameP95Ms": 11.700000000011642,
+    "poses.current.cpuP50Ms": 2.599999999976717,
+    "poses.current.cpuP95Ms": 4.7999999999883585,
     "poses.current.creatureBoxes": 0,
     "poses.current.ssim": 0,
     "budgets.current.derived.draws": 0,
@@ -3809,7 +3809,7 @@
     "current": 1
   },
   "harness": 2,
-  "sha": "a28af631097f6f41bb92e0621c5d1a537054a804",
-  "recorded": "2026-10-02T02:29:19.555Z",
+  "sha": "c38204980708d162488d5642fd3877b15f5937eb",
+  "recorded": "2026-10-03T02:11:01.743Z",
   "browser": "153.0.8010.12"
 }
