@@ -6,6 +6,7 @@
 //   node scripts/model-spin.mjs --url=<served build> --shard=<slug> --models=<id,id,…|first:5> --out=<file.mp4>
 //                               [--seconds=10] [--size=402x874] [--turns=1] [--fps=30] [--keep] [--debug=<key=value,…>]
 //   node scripts/model-spin.mjs --url=<served build> --shard=<slug> --list      # the catalog's ids + names, in its order
+//   --models=<id>@* spins each of a card's variants (its chips: Camp people's five), <id>@<n> its n-th (1-based), E353
 //
 //   scripts/browser-lane.sh node scripts/model-spin.mjs --url=https://wildshard-singleplayer.vercel.app \
 //     --shard=driftwood-isle --models=hut --out=art/models-audit/round-3-spin-clips/driftwood-hut.mp4
@@ -112,9 +113,25 @@ try {
     process.exitCode = 0;
   } else {
     const first = /^first:(\d+)$/u.exec(MODELS);
-    const ids = first ? catalog.slice(0, Number(first[1])).map((c) => c.id) : MODELS.split(',').map((s) => s.trim()).filter((s) => s !== '');
-    const unknown = ids.filter((id) => !catalog.some((c) => c.id === id));
+    const asked = first ? catalog.slice(0, Number(first[1])).map((c) => c.id) : MODELS.split(',').map((s) => s.trim()).filter((s) => s !== '');
+    const unknown = asked.map((s) => s.split('@')[0] ?? '').filter((id) => !catalog.some((c) => c.id === id));
     if (unknown.length > 0) die(`not in ${SHARD}'s catalog: ${unknown.join(', ')}\n  catalog: ${catalog.map((c) => c.id).join(', ')}`);
+    // `id@*` spins every one of a card's variants (its chips under the name: Camp people's five, E353), `id@n` its n-th (1-based)
+    const ids = [];
+    for (const spec of asked) {
+      const [id = '', v] = spec.split('@');
+      if (v !== '*') { ids.push(spec); continue; }
+      const n = await page.evaluate((m) => {
+        const q = (s) => document.querySelector(s);
+        if (q('.ws-x-models')?.dataset.view === 'model') q('.ws-x-back')?.click();
+        [...document.querySelectorAll('.ws-x-grid .ws-x-model')].find((c) => c.dataset.id === m)?.click();
+        const count = document.querySelectorAll('.ws-x-variants button').length;
+        q('.ws-x-back')?.click();
+        return count;
+      }, id);
+      if (n === 0) die(`${id} has no variants (its card shows no variant chips)`);
+      for (let k = 1; k <= n; k++) ids.push(`${id}@${k}`);
+    }
     if (ids.length === 0) die('no models to spin');
     if (first && ids.length < Number(first[1])) console.log(`model-spin: the catalog has only ${ids.length} models`);
     const seg = SECONDS / ids.length;
@@ -128,19 +145,25 @@ try {
       let raf = 0;
       window.__spin = {
         canvas,
-        /** the real UI path: ‹ Catalog (when a model is up), then the model's card */
-        select(id) {
+        /** the real UI path: ‹ Catalog (when a model is up), then the model's card, then (`id@n`) its n-th variant chip */
+        select(spec) {
+          const [id, v] = spec.split('@');
           const view = q('.ws-x-models')?.dataset.view;
           if (view === 'model') q('.ws-x-back')?.click();
           const card = [...document.querySelectorAll('.ws-x-grid .ws-x-model')].find((c) => c.dataset.id === id);
           if (!card) return false;
           card.click();
+          if (v !== undefined) {
+            const chip = Number(v) >= 1 ? [...document.querySelectorAll('.ws-x-variants button')].at(Number(v) - 1) : undefined;
+            if (!chip) return false;
+            chip.click();
+          }
           return q('.ws-x-models')?.dataset.view === 'model';
         },
         /** what the sheet says about the model on show */
         facts() {
           const t = (s) => (q(s)?.textContent ?? '').trim();
-          return { name: t('.ws-x-name'), file: t('.ws-x-file'), tris: t('.ws-x-stats b[data-s="tris"]'), calls: t('.ws-x-stats b[data-s="calls"]'), build: t('.ws-x-stats b[data-s="build"]'), budget: t('.ws-x-budget span') };
+          return { name: t('.ws-x-name'), variant: t('.ws-x-variants button.on'), file: t('.ws-x-file'), tris: t('.ws-x-stats b[data-s="tris"]'), calls: t('.ws-x-stats b[data-s="calls"]'), build: t('.ws-x-stats b[data-s="build"]'), budget: t('.ws-x-budget span') };
         },
         /** the camera's azimuth round what it looks at: the turntable's yaw (camera = target + (sin yaw, …, cos yaw) · d) */
         yaw() {
@@ -262,7 +285,7 @@ try {
       const webm = join(work, `seg-${i}.webm`);
       writeFileSync(webm, Buffer.from(b64, 'base64'));
       const deg = Math.round((Math.abs(turned) * 180) / Math.PI);
-      console.log(`model-spin: ${i + 1}/${ids.length} ${id} — ${facts.name} · ${facts.tris} tris · ${facts.calls} calls · build ${facts.build} · turned ${deg}° · ${Math.round(drawn / seg)} fps drawn · ${facts.file}`);
+      console.log(`model-spin: ${i + 1}/${ids.length} ${id} — ${facts.name}${facts.variant !== '' ? ` (${facts.variant})` : ''} · ${facts.tris} tris · ${facts.calls} calls · build ${facts.build} · turned ${deg}° · ${Math.round(drawn / seg)} fps drawn · ${facts.file}`);
       if (Math.abs(deg - TURNS * 360) > 20) console.log(`model-spin:   the turntable turned ${deg}°, not ${TURNS * 360}° (did ModelExplorer's drag rate change from ${RAD_PER_PX} rad/px?)`);
       if (drawn < seg * 10) console.log(`model-spin:   only ${drawn} frames drawn in ${seg.toFixed(1)} s: the clip will stutter (a busy machine? scripts/browser-lane.sh status)`);
       segments.push({ id, facts, webm, overlay, still, size, deg });
